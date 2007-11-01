@@ -1,0 +1,22 @@
+<Default>
+<callManagerGroup>
+<members>
+<member  priority="0">
+<callManager>
+<ports>
+<ethernetPhonePort>2000</ethernetPhonePort>
+</ports>
+<processNodeName>192.168.1.1</processNodeName>
+</callManager>
+</member>
+</members>
+</callManagerGroup>
+<loadInformation6  model="IP Phone 7910">P00403020214</loadInformation6>
+<loadInformation124  model="Addon 7914"></loadInformation124>
+<loadInformation9  model="IP Phone 7935"></loadInformation9>
+<loadInformation8  model="IP Phone 7940">P00303020214</loadInformation8>
+<loadInformation7  model="IP Phone 7960">P00303020214</loadInformation7>
+<loadInformation20000  model="IP Phone 7905"></loadInformation20000>
+<loadInformation30008  model="IP Phone 7902"></loadInformation30008>
+<loadInformation30007  model="IP Phone 7912"></loadInformation30007>
+</Default>
