@@ -1,0 +1,48 @@
+#!/usr/bin/perl -w
+#
+# Generate a SEPDEFAULT.cnf file given the IP address and TCP port number of
+# the Cisco CallManager.
+#
+
+# ./set_sep_cnf 80.70.65.17 2000 | hexdump -v -e '"%07.7_ax |" 8/1 " %02x" "\n"'
+# 0000000 | 01 01 00 01 02 50 46 41
+# 0000008 | 11 01 03 d0 07 00 00 04
+# 0000010 | 07 00 68 74 74 70 3a 2f
+# 0000018 | 2f 38 30 2e 37 30 2e 36
+# 0000020 | 35 2e 31 37 2f 6c 6f 63
+# 0000028 | 61 6c 64 69 72 65 63 74
+# 0000030 | 6f 72 79 00 00 00 01 ff
+
+@ARGV == 2
+    or die "usage: $0 ip-address tcp-port\n";
+my $ipaddr = shift;
+my $tcpport = shift;
+
+my @ipaddr = $ipaddr =~ /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/
+    or die "invalid IP address: '$ipaddr'";
+$tcpport =~ /^\d+$/ && $tcpport > 0 && $tcpport <= 0xffff
+    or die "invalid TCP port: '$tcpport'";
+
+sub c { print pack("c", $_) for @_ }
+#sub V { print pack("V", $_) for @_ } # Feh. MVL3.0's Perl does "V" wrong.
+sub V { c $tcpport, $tcpport >> 8, $tcpport >> 16, $tcpport >> 24 }
+
+c 0x01, 0x01;	# DNS name of CCM (ASCIIZ)
+c 0x00;
+
+c 0x01, 0x02;	# IP address of CCM
+c @ipaddr;
+
+c 0x01, 0x03;	# TCP port for SCCP (4 bytes, little endian)
+V $tcpport;
+
+c 0x05, 0x07;   # Unknown was 0x04
+c 0x00;
+my $url = "http://$ipaddr/localdirectory\0";;
+print $url;
+my $n = length($url) % 4;
+print "\0" x (4 - $n)
+    if $n;
+
+c 0x01, 0xff;   # End of file marker
+

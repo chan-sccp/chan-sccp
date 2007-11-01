@@ -1,0 +1,357 @@
+Only in chan_sccp-2007-08-25-DD-serviceURL: .tm_project.cache
+diff -rwu 2007-07-12_chan_sccp-Version1.4.7/chan_sccp.c chan_sccp-2007-08-25-DD-serviceURL/chan_sccp.c
+--- 2007-07-12_chan_sccp-Version1.4.7/chan_sccp.c	2007-07-12 20:44:53.000000000 +0200
++++ chan_sccp-2007-08-25-DD-serviceURL/chan_sccp.c	2007-08-25 05:32:29.000000000 +0200
+@@ -626,6 +626,9 @@
+   case FeatureStatReqMessage:
+ 	sccp_handle_feature_stat_req(s,r);
+ 	break;
++  case ServiceURLStatReqMessage:
++	sccp_handle_servicesurl_stat_req(s,r);
++  	break;
+   default:
+ 	if (GLOB(debug))
+ 		ast_log(LOG_WARNING, "Unhandled SCCP Message: %d - %s with length %d\n", mid, sccpmsg2str(mid), r->length);
+@@ -714,9 +717,13 @@
+ 	sccp_device_t			*d;
+ 	sccp_line_t			*l;
+ 	sccp_speed_t			*k = NULL, *k_last = NULL;
++	sccp_serviceURL_t	*serviceURL = NULL, *serviceURL_last = NULL;
+ 	char 				*splitter, *k_exten = NULL, *k_name = NULL, *k_hint = NULL;
+ 	char k_speed[256];
++	char serviceURLOptionString[1024];
++	char *serviceURLLabel = NULL, *serviceURLURL = NULL;
+ 	uint8_t 			speeddial_index = 1;
++	uint8_t		serviceURLIndex = 1;
+ 	int firstdigittimeout = 0;
+ 	int digittimeout = 0;
+ 	int autoanswer_ring_time = 0;
+@@ -1001,6 +1008,8 @@
+ 			}
+ 			d = build_device();
+ 			speeddial_index = 1;
++			serviceURLIndex = 1;
++			serviceURL_last = NULL;
+ 			k_last = NULL;
+ 		} else if (!strcasecmp(v->name, "keepalive")) {
+ 			d->keepalive = atoi(v->value);
+@@ -1108,6 +1117,45 @@
+ 				} else
+ 					ast_log(LOG_WARNING, "Wrong speedial syntax: %s => %s\n", v->name, v->value);
+ 			}
++		} else if (!strcasecmp(v->name, "serviceURL")) {
++			if (ast_strlen_zero(v->value)) {
++				serviceURLIndex++;
++				ast_verbose(VERBOSE_PREFIX_3 "Added empty serviceURL\n");
++			} else {
++				sccp_copy_string(serviceURLOptionString, v->value, sizeof(serviceURLOptionString));
++				splitter = serviceURLOptionString;
++				serviceURLLabel = strsep(&splitter, ",");
++				serviceURLURL = splitter;
++				if(serviceURLLabel)
++					ast_strip(serviceURLLabel);
++				if(serviceURLURL)
++					ast_strip(serviceURLURL);
++				if((serviceURLURL && serviceURLLabel) && 
++					(!ast_strlen_zero(serviceURLURL) && !ast_strlen_zero(serviceURLLabel))) 
++				{
++					serviceURL = malloc(sizeof(sccp_serviceURL_t));
++					if (!serviceURL)
++					{
++						ast_log(LOG_WARNING, "Error allocating serviceURL %s => %s\n", v->name, v->value);
++					}
++					else
++					{
++						memset(serviceURL, 0, sizeof(sccp_serviceURL_t));
++						sccp_copy_string(serviceURL->label, serviceURLLabel, strlen(serviceURLLabel)+1);
++						sccp_copy_string(serviceURL->URL, serviceURLURL, strlen(serviceURLURL)+1);
++						serviceURL->config_instance = serviceURLIndex++;
++						if (!d->serviceURLs)
++							d->serviceURLs = serviceURL;
++						if (!serviceURL_last)
++							serviceURL_last = serviceURL;
++						else {
++							serviceURL_last->next = serviceURL;
++							serviceURL_last = serviceURL;
++						}
++					}
++				}
++			}
++
+ 		} else if (!strcasecmp(v->name, "mwilamp")) {
+ 			if (!strcasecmp(v->value, "off"))
+ 				d->mwilamp = SKINNY_LAMP_OFF;
+@@ -1494,4 +1542,3 @@
+ }
+ 
+ AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY, "Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION);
+-
+diff -rwu 2007-07-12_chan_sccp-Version1.4.7/chan_sccp.h chan_sccp-2007-08-25-DD-serviceURL/chan_sccp.h
+--- 2007-07-12_chan_sccp-Version1.4.7/chan_sccp.h	2007-07-12 20:25:07.000000000 +0200
++++ chan_sccp-2007-08-25-DD-serviceURL/chan_sccp.h	2007-08-25 04:16:19.000000000 +0200
+@@ -154,6 +154,7 @@
+ typedef struct sccp_session		sccp_session_t;
+ typedef struct sccp_line		sccp_line_t;
+ typedef struct sccp_speed		sccp_speed_t;
++typedef struct sccp_serviceURL	sccp_serviceURL_t;
+ typedef struct sccp_device		sccp_device_t;
+ typedef struct sccp_hint		sccp_hint_t;
+ typedef struct sccp_hostname	sccp_hostname_t;
+@@ -292,6 +293,24 @@
+ };
+ 
+ 
++/* This defines a serviceURL button */
++struct sccp_serviceURL {
++	/* The instance in the sccp.conf */
++	uint8_t config_instance;
++	/* The instance on the current device */
++	uint8_t instance;
++
++	/* The label of the serviceURL button */
++	char label[StationMaxNameSize];
++
++	/* The number to dial when it's hit */
++	char URL[StationMaxServiceURLSize];
++
++	/* Pointer to next serviceURL */
++	sccp_serviceURL_t * next;
++};
++
++
+ struct sccp_device {
+ 	ast_mutex_t lock;
+ 
+@@ -373,6 +392,7 @@
+ 	/* the channel under transfer */
+ 	sccp_channel_t   * transfer_channel;
+ 	sccp_speed_t     * speed_dials;
++	sccp_serviceURL_t * serviceURLs;
+ 	sccp_line_t      * lines;
+ 	sccp_line_t      * currentLine;
+ 	sccp_session_t   * session;
+@@ -531,4 +551,3 @@
+ void sccp_hint_notify(sccp_channel_t *c, sccp_device_t * onedevice);
+ 
+ #endif /* __CHAN_SCCP_H */
+-
+Only in chan_sccp-2007-08-25-DD-serviceURL: chan_sccp_2007_07_12_Marcello.prj
+Only in chan_sccp-2007-08-25-DD-serviceURL: chan_sccp_2007_07_12_Marcello.prj.bak
+Only in chan_sccp-2007-08-25-DD-serviceURL: chan_sccp_2007_07_12_Marcello.pws
+diff -rwu 2007-07-12_chan_sccp-Version1.4.7/sccp_actions.c chan_sccp-2007-08-25-DD-serviceURL/sccp_actions.c
+--- 2007-07-12_chan_sccp-Version1.4.7/sccp_actions.c	2007-07-12 20:25:07.000000000 +0200
++++ chan_sccp-2007-08-25-DD-serviceURL/sccp_actions.c	2007-08-25 05:30:52.000000000 +0200
+@@ -328,6 +328,7 @@
+ 	int i;
+ 	uint8_t lineindex, speedindex;
+ 	sccp_speed_t *k = NULL, *k1 = NULL;
++	sccp_serviceURL_t *s = NULL, *s1 = NULL;
+ 	sccp_line_t *l = NULL, * l1 = NULL;
+ 	int lineInstance = 1, btn_count = 1;
+ 	btnlist *btn;
+@@ -386,7 +387,7 @@
+ 	while (k) {
+ 		btn_count = 1;
+ 		k->instance = 0;
+-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a speeddial button place %s (%d)\n", d->id, k->name, k->config_instance);
++		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Looking for a speeddial button place %s (%d)\n", d->id, k->name, k->config_instance);
+ 		for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) {
+ 			if ( (btn[i].type == SKINNY_BUTTONTYPE_SPEEDDIAL) || (btn[i].type == SKINNY_BUTTONTYPE_MULTI) || (btn[i].type == SCCP_BUTTONTYPE_HINT) || (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL)) {
+ 				if (btn_count == k->config_instance) {
+@@ -397,14 +398,14 @@
+ 						btn[i].type = SCCP_BUTTONTYPE_HINT;
+ 					else
+ 						btn[i].type = SCCP_BUTTONTYPE_SPEEDDIAL;
+-					sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) temporary instance (%d)\n", d->id, i+1, (btn[i].type == SCCP_BUTTONTYPE_HINT) ? "SPEEDIAL WITH HINT" : "SPEEDIAL",k->name, k->instance);
++					sccp_log(1)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) temporary instance (%d)\n", d->id, i+1, (btn[i].type == SCCP_BUTTONTYPE_HINT) ? "SPEEDIAL WITH HINT" : "SPEEDIAL",k->name, k->instance);
+ 					break;
+ 				}
+ 				btn_count++;
+ 			}
+ 		}
+ 		if ( !k->instance ) {
+-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: removing unused speedial %s,%s\n", d->id, k->ext, k->name);
++			sccp_log(1)(VERBOSE_PREFIX_3 "%s: removing unused speedial %s,%s\n", d->id, k->ext, k->name);
+ 			if (k1) {
+ 				k1->next = k->next;
+ 				free(k);
+@@ -420,6 +421,52 @@
+ 			k = k->next;
+ 	}
+ 
++		/* ServiceURLs configuration */
++
++	s1 = NULL;
++	s = d->serviceURLs;
++	
++	btn_count = 1;
++	while (s) {
++		btn_count = 1;
++		s->instance = 0;
++		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Looking for a serviceURL button place %s (%d)\n", d->id, s->label, s->config_instance);
++		for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) {
++			sccp_log(1)(VERBOSE_PREFIX_3 "%s: At pos. %d we have type %d.\n", d->id, i, btn[i].type);
++
++			
++			if ( SKINNY_BUTTONTYPE_MULTI == btn[i].type || SKINNY_BUTTONTYPE_SERVICEURL == btn[i].type ) {
++				if (btn_count == s->config_instance) {
++					s->instance = i + 1;
++					btn[i].instance = s->instance;
++					btn[i].ptr = s;
++					btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
++					sccp_log(1)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) temporary instance (%d)\n", d->id, i+1, "ServiceURL" ,s->label, s->instance);
++					break;
++				}
++				btn_count++;
++			}
++		}
++		
++		if ( !s->instance ) {
++			sccp_log(1)(VERBOSE_PREFIX_3 "%s: removing unused serviceURL %s,%s\n", d->id, s->URL, s->label);
++			if (s1) {
++				s1->next = s->next;
++				free(s);
++				s = s1;
++			} else {
++				d->serviceURLs = NULL;
++				free(s);
++				s = NULL;
++			}
++		}
++		
++		s1 = s;
++		if (s)
++			s = s->next;
++	}
++	
++
+ 	/* cleanup the multi unused buttons 7914 fix*/
+ 	for (i = StationMaxButtonTemplateSize - 1; i >= 0 ; i--) {
+ 		if (btn[i].type == SKINNY_BUTTONTYPE_UNUSED)
+@@ -499,6 +546,9 @@
+ 		} else if (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) {
+ 			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_SPEEDDIAL;
+ 			r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
++		} else if (btn[i].type == SKINNY_BUTTONTYPE_SERVICEURL) {
++			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_SERVICEURL;
++			r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
+ 		} else if (btn[i].type == SKINNY_BUTTONTYPE_MULTI) {
+ 			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_DISPLAY;
+ 		} else if (btn[i].type == SKINNY_BUTTONTYPE_UNUSED) {
+@@ -1423,3 +1473,30 @@
+ 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d\n", d->id, letohl(r->msg.FeatureStatReqMessage.lel_featureIndex));
+ 	/* for now we are unable to use this skinny message */
+ }
++
++void sccp_handle_servicesurl_stat_req(sccp_session_t * s, sccp_moo_t * r) {
++	sccp_device_t * d = s->device;
++	sccp_moo_t * r1;
++	sccp_serviceURL_t *serviceURL;
++	
++	int urlIndex = letohl(r->msg.ServiceURLStatReqMessage.lel_serviceURLIndex);
++	
++	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Got ServiceURL Status Request.  Index = %d\n", d->id, urlIndex);
++	
++	serviceURL = sccp_dev_serviceURL_find_byindex(s->device, urlIndex);
++	
++	REQ(r1, ServiceURLStatMessage);
++	r1->msg.ServiceURLStatMessage.lel_serviceURLIndex = htolel(urlIndex);
++	
++	if (serviceURL)
++	{
++		sccp_copy_string(r1->msg.ServiceURLStatMessage.URL, serviceURL->URL, strlen(serviceURL->URL)+1);
++		sccp_copy_string(r1->msg.ServiceURLStatMessage.label, serviceURL->label, strlen(serviceURL->label)+1);
++	} 
++	else 
++	{
++		sccp_log(3)(VERBOSE_PREFIX_3 "%s: serviceURL %d not assigned\n", DEV_ID_LOG(s->device), urlIndex);
++	}
++
++	sccp_dev_send(s->device, r1);
++}
+diff -rwu 2007-07-12_chan_sccp-Version1.4.7/sccp_actions.h chan_sccp-2007-08-25-DD-serviceURL/sccp_actions.h
+--- 2007-07-12_chan_sccp-Version1.4.7/sccp_actions.h	2007-07-12 20:25:07.000000000 +0200
++++ chan_sccp-2007-08-25-DD-serviceURL/sccp_actions.h	2007-08-25 03:36:04.000000000 +0200
+@@ -25,3 +25,4 @@
+ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_moo_t * r);
+ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_moo_t * r);
+ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r);
++void sccp_handle_servicesurl_stat_req(sccp_session_t * s, sccp_moo_t * r);
+diff -rwu 2007-07-12_chan_sccp-Version1.4.7/sccp_device.c chan_sccp-2007-08-25-DD-serviceURL/sccp_device.c
+--- 2007-07-12_chan_sccp-Version1.4.7/sccp_device.c	2007-07-12 20:25:07.000000000 +0200
++++ chan_sccp-2007-08-25-DD-serviceURL/sccp_device.c	2007-08-25 05:08:01.000000000 +0200
+@@ -874,3 +874,19 @@
+ 	}
+ 	ast_mutex_unlock(&d->lock);
+ }
++
++sccp_serviceURL_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t instance) {
++	sccp_serviceURL_t * s = d->serviceURLs;
++	if (!d || !d->session)
++		return NULL;
++
++	sccp_log(1)(VERBOSE_PREFIX_3 "%s: searching for serviceURL index %d\n", d->id, instance);
++	while (s) {
++		if (s->instance == instance) {
++			sccp_log(1)(VERBOSE_PREFIX_3 "%s: found serviceURL label: %s, URL: %s, index: %d\n", d->id, s->label, s->URL, s->instance);
++			break;
++		}
++		s = s->next;
++	}
++	return s;
++}
+diff -rwu 2007-07-12_chan_sccp-Version1.4.7/sccp_device.h chan_sccp-2007-08-25-DD-serviceURL/sccp_device.h
+--- 2007-07-12_chan_sccp-Version1.4.7/sccp_device.h	2007-07-12 20:25:07.000000000 +0200
++++ chan_sccp-2007-08-25-DD-serviceURL/sccp_device.h	2007-08-25 04:10:47.000000000 +0200
+@@ -36,7 +36,7 @@
+ int sccp_device_check_ringback(sccp_device_t * d);
+ void * sccp_dev_postregistration(void *data);
+ void sccp_dev_clean(sccp_device_t * d);
++sccp_serviceURL_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t instance);
+ 
+ #define REQ(x,y) x = sccp_build_packet(y, sizeof(x->msg.y))
+ #define REQCMD(x,y) x = sccp_build_packet(y, 0)
+-
+diff -rwu 2007-07-12_chan_sccp-Version1.4.7/sccp_protocol.h chan_sccp-2007-08-25-DD-serviceURL/sccp_protocol.h
+--- 2007-07-12_chan_sccp-Version1.4.7/sccp_protocol.h	2007-07-12 20:25:07.000000000 +0200
++++ chan_sccp-2007-08-25-DD-serviceURL/sccp_protocol.h	2007-08-25 03:52:47.000000000 +0200
+@@ -78,6 +78,7 @@
+ #define StationMaxSoftKeyLabelSize		16
+ #define StationMaxVersionSize			16
+ #define ServerMaxNameSize				48
++#define StationMaxServiceURLSize		256
+ 
+ /* skinny tones skinny_tone2str */
+ #define SKINNY_TONE_SILENCE 										  0
+@@ -272,6 +273,7 @@
+ #define SKINNY_BUTTONTYPE_VOICEMAIL 										0xf
+ #define SKINNY_BUTTONTYPE_ANSWERRELEASE 									0x10
+ #define SKINNY_BUTTONTYPE_AUTOANSWER										0x11
++#define SKINNY_BUTTONTYPE_SERVICEURL										0x14
+ #define SKINNY_BUTTONTYPE_GENERICAPPB1										0x21
+ #define SKINNY_BUTTONTYPE_GENERICAPPB2										0x22
+ #define SKINNY_BUTTONTYPE_GENERICAPPB3										0x23
+@@ -650,6 +652,10 @@
+ 		uint32_t lel_featureIndex;
+ 	} FeatureStatReqMessage;
+ 
++	struct {
++		uint32_t lel_serviceURLIndex;
++	} ServiceURLStatReqMessage;
++
+ 	struct {} MulticastMediaReceptionAck;
+ 
+ 	struct {
+@@ -994,6 +1000,12 @@
+ 	} FeatureStatMessage;
+       
+ 	struct {
++		uint32_t lel_serviceURLIndex;
++		char	 URL[StationMaxServiceURLSize];
++		char	 label[StationMaxNameSize];
++	} ServiceURLStatMessage;
++      
++	struct {
+ 		uint32_t lel_displayTimeout;
+ 		uint32_t lel_priority;
+ 		char	 displayMessage[StationMaxDisplayNotifySize];
