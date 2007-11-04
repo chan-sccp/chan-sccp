@@ -205,8 +205,11 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 			sccp_channel_closereceivechannel(c);
 		sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, l->instance, c->callid, 0);
 		/* 7936 does not like the skinny ivalid message callstate */
-		if (d->skinny_type != SKINNY_DEVICETYPE_CISCO7936)
-			sccp_channel_set_callstate(c, SKINNY_CALLSTATE_INVALIDNUMBER);
+		/* In fact, newer firmware versions (the 8 releases for the 7960 etc.) and 
+		   the newer Cisco phone models don't seem to like this at all, resulting in
+		   crashes. Interestingly, the message imho does cause obvious effects anyway. (-DD)*/
+		/*if (d->skinny_type != SKINNY_DEVICETYPE_CISCO7936)
+			sccp_channel_set_callstate(c, SKINNY_CALLSTATE_INVALIDNUMBER); */
 		sccp_channel_send_callinfo(c);
 		sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_UNKNOWN_NUMBER, 0);
 		/* don't set AST_STATE_DOWN. we hangup only on onhook and endcall softkey */

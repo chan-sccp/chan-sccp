@@ -457,7 +457,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 	while (s) {
 		btn_count = 1;
 		s->instance = 0;
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Looking for a serviceURL button place %s (%d)\n", d->id, s->label, s->config_instance);
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a serviceURL button place %s (%d)\n", d->id, s->label, s->config_instance);
 		for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: At pos. %d we have type %d.\n", d->id, i, btn[i].type);
 
@@ -468,7 +468,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 					btn[i].instance = s->instance;
 					btn[i].ptr = s;
 					btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
-					sccp_log(1)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) temporary instance (%d)\n", d->id, i+1, "ServiceURL" ,s->label, s->instance);
+					sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) temporary instance (%d)\n", d->id, i+1, "ServiceURL" ,s->label, s->instance);
 					break;
 				}
 				btn_count++;
@@ -476,7 +476,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 		}
 		
 		if ( !s->instance ) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: removing unused serviceURL %s,%s\n", d->id, s->URL, s->label);
+			sccp_log(10)(VERBOSE_PREFIX_3 "%s: removing unused serviceURL %s,%s\n", d->id, s->URL, s->label);
 			if (s1) {
 				s1->next = s->next;
 				free(s);
@@ -712,7 +712,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 		case SKINNY_BUTTONTYPE_LINE: // We got a Line Request
 			l = sccp_line_find_byid(d, instance);
 			if (!l) {
-				sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line for instance %d. Looking for a speedial with hint\n", d->id, instance);
+				sccp_log(10)(VERBOSE_PREFIX_3 "%s: No line for instance %d. Looking for a speedial with hint\n", d->id, instance);
 				k = sccp_dev_speed_find_byindex(d, instance, SKINNY_BUTTONTYPE_LINE);
 				if (k)
 					sccp_handle_speeddial(d, k);
@@ -1215,7 +1215,11 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
 			}
 #endif
 			if (GLOB(digittimeoutchar) && GLOB(digittimeoutchar) == resp) {
-				c->dialedNumber[--len] = '\0';
+				if(GLOB(recorddigittimeoutchar)) {
+					c->dialedNumber[len] = '\0';
+				} else {
+					c->dialedNumber[--len] = '\0';
+				}
 				c->digittimeout = time(0);
 			}
 		}
