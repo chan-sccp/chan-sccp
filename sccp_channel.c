@@ -503,6 +503,10 @@ void sccp_channel_answer(sccp_channel_t * c) {
 #endif
 		}
 	}
+	/* @Marcello: Here you assume that it is not neccessary to tell the phone
+	   something it already knows ;-) But I am not sure if this would be needed
+	   nevertheless to log all incoming answered calls properly. We will have to
+	   investigate this further. (-DD) */
 	if (c->state != SCCP_CHANNELSTATE_OFFHOOK)
 		sccp_indicate_lock(c, SCCP_CHANNELSTATE_OFFHOOK);
 	sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONNECTED);

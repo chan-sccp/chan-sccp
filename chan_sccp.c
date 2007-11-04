@@ -217,6 +217,8 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 				optv[opti] += 7;
 				if (!strcasecmp(optv[opti], "inside"))
 					c->ringermode = SKINNY_STATION_INSIDERING;
+				if (!strcasecmp(optv[opti], "outside"))
+					c->ringermode = SKINNY_STATION_OUTSIDERING;
 				else if (!strcasecmp(optv[opti], "feature"))
 					c->ringermode = SKINNY_STATION_FEATURERING;
 				else if (!strcasecmp(optv[opti], "silent"))
@@ -1246,6 +1248,8 @@ static int reload_config(void) {
 			}
 		} else if (!strcasecmp(v->name, "digittimeoutchar")) {
 			GLOB(digittimeoutchar) = v->value[0];
+		} else if (!strcasecmp(v->name, "recorddigittimeoutchar")) {
+			GLOB(recorddigittimeoutchar) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "debug")) {
 			GLOB(debug) = atoi(v->value);
 		} else if (!strcasecmp(v->name, "allow")) {

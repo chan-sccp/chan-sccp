@@ -496,6 +496,7 @@ struct sccp_global_vars {
 	uint8_t				firstdigittimeout;				/*< Wait up to 16 seconds for first digit */
 	uint8_t				digittimeout;					/*< How long to wait for following digits */
 	char					digittimeoutchar;				/*< what char will force the dial */
+	unsigned int				recorddigittimeoutchar:1; /*< Whether to include the digittimeoutchar in the call logs */
 
 	uint32_t				tos;
 	uint32_t				rtptos;

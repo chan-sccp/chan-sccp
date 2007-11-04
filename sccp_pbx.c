@@ -90,10 +90,20 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	const char * ringermode = NULL;
 	pthread_attr_t attr;
 	pthread_t t;
+	char suffixedNumber[255] = { '\0' }; /*< For saving the digittimeoutchar to the logs */
 
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char * name, * number, *cidtmp; // For the callerid parse below
 #endif
+
+	// The following 5 lines are from a well-known patch fixing the issue of crashes due to NULL
+	// channel type. 
+	// if channel type is undefined, set to SCCP
+    if (!ast->type) {
+                sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Channel type undefined, setting to type 'SCCP'\n");
+                ast->type = "SCCP";
+    }
+
 	c = CS_AST_CHANNEL_PVT(ast);
 
 	if (!c) {
@@ -176,7 +186,23 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 
   /* Set the channel callingParty Name and Number */
 #ifdef CS_AST_CHANNEL_HAS_CID
-	sccp_channel_set_callingparty(c, ast->cid.cid_name, ast->cid.cid_num);
+	if(GLOB(recorddigittimeoutchar))
+	{
+		   if(NULL != ast->cid.cid_num && strlen(ast->cid.cid_num) > 0 && strlen(ast->cid.cid_num) < sizeof(suffixedNumber)-2 && '0' == ast->cid.cid_num[0])
+			   {
+			      strncpy(suffixedNumber, (const char*) ast->cid.cid_num, strlen(ast->cid.cid_num));
+			      suffixedNumber[strlen(ast->cid.cid_num)+0] = '#';
+			      suffixedNumber[strlen(ast->cid.cid_num)+1] = '\0';
+			      sccp_channel_set_callingparty(c, ast->cid.cid_name, suffixedNumber);
+			  }
+			  else
+			         sccp_channel_set_callingparty(c, ast->cid.cid_name, ast->cid.cid_num);
+	}
+	else
+	{
+		sccp_channel_set_callingparty(c, ast->cid.cid_name, ast->cid.cid_num);
+	}
+
 #else
 	if (ast->callerid && (cidtmp = strdup(ast->callerid))) {
 		ast_callerid_parse(cidtmp, &name, &number);
@@ -270,6 +296,8 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Current channel %s-%d state %s(%d)\n", DEV_ID_LOG(d), l ? l->name : "(null)", c->callid, sccp_indicate2str(c->state), c->state);
 
+	sccp_channel_send_callinfo(c);
+
 	if ( c->state != SCCP_CHANNELSTATE_DOWN) {
 		/* we are in a passive hangup */
 		if (GLOB(remotehangup_tone) && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_channel_get_active(d))
@@ -306,19 +334,28 @@ OUT:
 static int sccp_pbx_answer(struct ast_channel *ast) {
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
 
-       // if channel type is undefined, set to SCCP
-       //if (!ast->tech->type) {
-       //        sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Channel type undefined, setting to type 'SCCP'\n");
-       //        ast->tech->type = "SCCP";
-       //}
-
- 
 	if (!c || !c->device || !c->line) {
 		ast_log(LOG_ERROR, "SCCP: Answered %s but no SCCP channel\n", ast->name);
 		return -1;
 	}
 
+	// The following 5 lines are from a well-known patch fixing the issue of crashes due to NULL
+	// channel type. 
+	// if channel type is undefined, set to SCCP
+    if (!ast->type) {
+                sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Channel type undefined, setting to type 'SCCP'\n");
+                ast->type = "SCCP";
+    }
+
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Outgoing call has been answered %s on %s@%s-%d\n", ast->name, c->line->name, c->device->id, c->callid);
+	/* This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
+	   as I have forgotten what my actual motivation was for writing this strange code. (-DD) */
+	/*
+    sccp_indicate_nolock(c, SCCP_CHANNELSTATE_DIALING);
+    sccp_channel_send_callinfo(c);
+    sccp_indicate_nolock(c, SCCP_CHANNELSTATE_PROCEED);
+    sccp_channel_send_callinfo(c);
+	*/
 	sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONNECTED);
 	return 0;
 }
@@ -726,6 +763,7 @@ void * sccp_pbx_startchannel(void *data) {
 	sccp_line_t * l;
 	sccp_device_t * d;
 	uint8_t res_exten = 0, res_wait = 0, res_timeout = 0;
+	char shortenedNumber[256] = { '\0' }; /* For recording the digittimeoutchar */
 
 	/*sccp_log(1)( VERBOSE_PREFIX_3 "CS_AST_CHANNEL_PVT: %s\n", chan->tech_pvt);*/
 
@@ -801,7 +839,10 @@ void * sccp_pbx_startchannel(void *data) {
 		pthread_testcancel();
 		ast_mutex_lock(&c->lock);
 		if (!ast_strlen_zero(c->dialedNumber)) {
-			res_exten = (c->dialedNumber[0] == '*' || ast_matchmore_extension(chan, chan->context, c->dialedNumber, 1, l->cid_num));
+			/* It never occured to me what the purpose of the following line was. I modified it to avoid the limitation to
+			   extensions not starting with '*' only. (-DD) 
+			/res_exten = (c->dialedNumber[0] == '*' || ast_matchmore_extension(chan, chan->context, c->dialedNumber, 1, l->cid_num)); */
+			res_exten = (ast_matchmore_extension(chan, chan->context, c->dialedNumber, 1, l->cid_num));
 		}
 		if (! (res_wait = ( c->state == SCCP_CHANNELSTATE_DOWN || chan->_state == AST_STATE_DOWN
 							|| chan->_softhangup || c->calltype == SKINNY_CALLTYPE_INBOUND)) ) {
@@ -843,7 +884,17 @@ dial:
 
 
 	ast_mutex_lock(&c->lock);
-	sccp_copy_string(chan->exten, c->dialedNumber, sizeof(chan->exten));
+	if(GLOB(recordtimeoutdigit)) {
+		if(strlen(c->dialedNumber) > 0 && strlen(c->dialedNumber) < 255 && '#' == c->dialedNumber[strlen(c->dialedNumber)-1])
+			  {
+				       strncpy(shortenedNumber, (const char*) c->dialedNumber, strlen(c->dialedNumber)-1);
+				       sccp_copy_string(chan->exten, (const char*) shortenedNumber, sizeof(chan->exten));
+				   }
+				   else
+					       sccp_copy_string(chan->exten, c->dialedNumber, sizeof(chan->exten));
+	} else {
+		sccp_copy_string(chan->exten, c->dialedNumber, sizeof(chan->exten));
+	}
 	sccp_copy_string(d->lastNumber, c->dialedNumber, sizeof(d->lastNumber));
 	sccp_channel_set_calledparty(c, c->dialedNumber, c->dialedNumber);
 	/* The 7961 seems to need the dialing callstate to record its directories information. */
