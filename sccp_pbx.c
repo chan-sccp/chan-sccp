@@ -96,13 +96,6 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	char * name, * number, *cidtmp; // For the callerid parse below
 #endif
 
-	// The following 5 lines are from a well-known patch fixing the issue of crashes due to NULL
-	// channel type. 
-	// if channel type is undefined, set to SCCP
-    if (!ast->type) {
-                sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Channel type undefined, setting to type 'SCCP'\n");
-                ast->type = "SCCP";
-    }
 
 	c = CS_AST_CHANNEL_PVT(ast);
 
@@ -339,13 +332,6 @@ static int sccp_pbx_answer(struct ast_channel *ast) {
 		return -1;
 	}
 
-	// The following 5 lines are from a well-known patch fixing the issue of crashes due to NULL
-	// channel type. 
-	// if channel type is undefined, set to SCCP
-    if (!ast->type) {
-                sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Channel type undefined, setting to type 'SCCP'\n");
-                ast->type = "SCCP";
-    }
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Outgoing call has been answered %s on %s@%s-%d\n", ast->name, c->line->name, c->device->id, c->callid);
 	/* This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
