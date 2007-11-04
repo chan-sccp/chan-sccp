@@ -884,7 +884,7 @@ dial:
 
 
 	ast_mutex_lock(&c->lock);
-	if(GLOB(recordtimeoutdigit)) {
+	if(GLOB(recorddigittimeoutchar)) {
 		if(strlen(c->dialedNumber) > 0 && strlen(c->dialedNumber) < 255 && '#' == c->dialedNumber[strlen(c->dialedNumber)-1])
 			  {
 				       strncpy(shortenedNumber, (const char*) c->dialedNumber, strlen(c->dialedNumber)-1);
