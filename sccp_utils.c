@@ -13,8 +13,11 @@
  * distributed under the terms of the GNU Public License.
  */
 
-#include <asterisk.h>
 #include "config.h"
+
+#ifndef ASTERISK_CONF_1_2
+#include <asterisk.h>
+#endif
 #include "chan_sccp.h"
 #include "sccp_utils.h"
 #include "sccp_indicate.h"

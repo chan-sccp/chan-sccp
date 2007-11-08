@@ -13,8 +13,11 @@
  * distributed under the terms of the GNU Public License.
  */
 
-#include <asterisk.h>
 #include "config.h"
+
+#ifndef ASTERISK_CONF_1_2
+#include <asterisk.h>
+#endif
 #include "chan_sccp.h"
 #include "sccp_cli.h"
 #include "sccp_line.h"
@@ -135,6 +138,9 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	char pref_buf[128];
 	char cap_buf[512];
 	char buf[256];
+#ifdef ASTERISK_CONF_1_2
+	char iabuf[INET_ADDRSTRLEN];
+#endif
 
 	ast_mutex_lock(&GLOB(lock));
 	ast_codec_pref_string(&GLOB(global_codecs), pref_buf, sizeof(pref_buf) - 1);
@@ -149,7 +155,11 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 #endif
 	ast_cli(fd, "Protocol Version      : %d\n", GLOB(protocolversion));
 	ast_cli(fd, "Server Name           : %s\n", GLOB(servername));
+#ifdef ASTERISK_CONF_1_2
+	ast_cli(fd, "Bind Address          : %s:%d\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+#else
 	ast_cli(fd, "Bind Address          : %s:%d\n", ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+#endif
 	ast_cli(fd, "Keepalive             : %d\n", GLOB(keepalive));
 	ast_cli(fd, "Debug level           : %d\n", GLOB(debug));
 	ast_cli(fd, "Date format           : %s\n", GLOB(date_format));
@@ -351,6 +361,9 @@ static struct ast_cli_entry cli_show_channels = {
 
 static int sccp_show_devices(int fd, int argc, char * argv[]) {
 	sccp_device_t * d;
+#ifdef ASTERISK_CONF_1_2
+	char iabuf[INET_ADDRSTRLEN];
+#endif
 
 	ast_cli(fd, "\n%-16s %-15s %-16s %-10s\n", "NAME","ADDRESS","MAC","Reg. State");
 	ast_cli(fd, "================ =============== ================ ==========\n");
@@ -358,12 +371,22 @@ static int sccp_show_devices(int fd, int argc, char * argv[]) {
 	ast_mutex_lock(&GLOB(devices_lock));
 	d = GLOB(devices);
 	while (d) {
+		
+#ifdef ASTERISK_CONF_1_2
+		ast_cli(fd, "%-16s %-15s %-16s %-10s\n",// %-10s %-16s %c%c %-10s\n",
+			d->description,
+			(d->session) ? ast_inet_ntoa(iabuf, sizeof(iabuf), d->session->sin.sin_addr) : "--",
+			d->id,
+			skinny_registrationstate2str(d->registrationState)
+		);
+#else
 		ast_cli(fd, "%-16s %-15s %-16s %-10s\n",// %-10s %-16s %c%c %-10s\n",
 			d->description,
 			(d->session) ? ast_inet_ntoa(d->session->sin.sin_addr) : "--",
 			d->id,
 			skinny_registrationstate2str(d->registrationState)
 		);
+#endif
 		d = d->next;
 	}
 	ast_mutex_unlock(&GLOB(devices_lock));
@@ -523,6 +546,9 @@ static struct ast_cli_entry cli_remove_line_device = {
 static int sccp_show_sessions(int fd, int argc, char * argv[]) {
 	sccp_session_t * s = NULL;
 	sccp_device_t * d = NULL;
+#ifdef ASTERISK_CONF_1_2
+	char iabuf[INET_ADDRSTRLEN];
+#endif
 
 	ast_cli(fd, "%-10s %-15s %-4s %-15s %-15s %-15s\n", "Socket", "IP", "KA", "DEVICE", "STATE", "TYPE");
 	ast_cli(fd, "========== =============== ==== =============== =============== ===============\n");
@@ -535,6 +561,15 @@ static int sccp_show_sessions(int fd, int argc, char * argv[]) {
 		d = s->device;
 		if (d)
 			ast_mutex_lock(&d->lock);
+#ifdef ASTERISK_CONF_1_2
+		ast_cli(fd, "%-10d %-15s %-4d %-15s %-15s %-15s\n",
+			s->fd,
+			ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr),
+			(uint32_t)(time(0) - s->lastKeepAlive),
+			(d) ? d->id : "--",
+			(d) ? skinny_devicestate2str(d->state) : "--",
+			(d) ? skinny_devicetype2str(d->skinny_type) : "--");
+#else
 		ast_cli(fd, "%-10d %-15s %-4d %-15s %-15s %-15s\n",
 			s->fd,
 			ast_inet_ntoa(s->sin.sin_addr),
@@ -542,6 +577,7 @@ static int sccp_show_sessions(int fd, int argc, char * argv[]) {
 			(d) ? d->id : "--",
 			(d) ? skinny_devicestate2str(d->state) : "--",
 			(d) ? skinny_devicetype2str(d->skinny_type) : "--");
+#endif
 		if (d)
 			ast_mutex_unlock(&d->lock);
 		ast_mutex_unlock(&s->lock);

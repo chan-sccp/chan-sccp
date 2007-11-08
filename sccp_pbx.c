@@ -13,9 +13,12 @@
  * distributed under the terms of the GNU Public License.
  */
 
-#include <asterisk.h>
-#include <asterisk/musiconhold.h>
 #include "config.h"
+
+#ifndef ASTERISK_CONF_1_2
+#include <asterisk.h>
+#endif
+#include <asterisk/musiconhold.h>
 #include "chan_sccp.h"
 #include "sccp_pbx.h"
 #include "sccp_utils.h"
@@ -439,7 +442,11 @@ static char *sccp_control2str(int state) {
 		}
 }
 
+#ifdef ASTERISK_CONF_1_2
+static int sccp_pbx_indicate(struct ast_channel *ast, int ind) {
+#else
 static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data, size_t datalen) {
+#endif
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
 	int res = 0;
 	if (!c)
@@ -481,7 +488,11 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 #ifdef CS_AST_CONTROL_HOLD
 /* when the bridged channel hold/unhold the call we are notified here */
 	case AST_CONTROL_HOLD:
+#ifdef ASTERISK_CONF_1_2
+		ast_moh_start(ast, c->musicclass);
+#else
 		ast_moh_start(ast, data, c->musicclass);
+#endif
 		res = 0;
 		break;
 	case AST_CONTROL_UNHOLD:
@@ -519,11 +530,17 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 	return 0;
 }
 
+#ifndef ASTERISK_CONF_1_2
 static int sccp_pbx_recvdigit_begin(struct ast_channel *ast, char digit) {
 	return -1;
 }
+#endif
 
+#ifdef ASTERISK_CONF_1_2
+static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit) {
+#else
 static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit, unsigned int duration) {
+#endif
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
 	sccp_device_t * d = NULL;
 
@@ -596,8 +613,12 @@ const struct ast_channel_tech sccp_tech = {
 	.write = sccp_pbx_write,
 	.indicate = sccp_pbx_indicate,
 	.fixup = sccp_pbx_fixup,
+#ifndef ASTERISK_CONF_1_2
 	.send_digit_begin = sccp_pbx_recvdigit_begin,
 	.send_digit_end = sccp_pbx_recvdigit_end,
+#else
+	.send_digit = sccp_pbx_recvdigit_end,
+#endif
 	.send_text = sccp_pbx_sendtext,
 /*	.bridge = ast_rtp_bridge */
 };
@@ -618,7 +639,11 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 		return 0;
 	}
 
+#ifdef ASTERISK_CONF_1_2
+	tmp = ast_channel_alloc(1);
+#else
 	tmp = ast_channel_alloc(1, AST_STATE_DOWN, l->cid_num, l->cid_name, "SCCP/%s", l->name, NULL, 0, NULL);
+#endif
        // tmp = ast_channel_alloc(1); function changed in 1.4.0
        // Note: Assuming AST_STATE_DOWN is starting state
 	if (!tmp) {

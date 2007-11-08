@@ -34,6 +34,8 @@ echo " */" >>$CONFIGFILE
 echo >>$CONFIGFILE
 echo "#ifndef CHAN_SCCP_CONFIG_H" >>$CONFIGFILE
 echo "#define CHAN_SCCP_CONFIG_H" >>$CONFIGFILE
+echo "#define ASTERISK_CONF_1_2" >>$CONFIGFILE
+
 echo >>$CONFIGFILE
 
 echo -n "Build PARK functions (y/n)[n]?"

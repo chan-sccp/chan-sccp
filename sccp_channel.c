@@ -13,8 +13,11 @@
  * distributed under the terms of the GNU Public License.
  */
 
-#include <asterisk.h>
 #include "config.h"
+
+#ifndef ASTERISK_CONF_1_2
+#include <asterisk.h>
+#endif
 #include "chan_sccp.h"
 #include "sccp_actions.h"
 #include "sccp_utils.h"
@@ -299,6 +302,9 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c) {
 	struct ast_hostent ahp;
 	struct hostent *hp;
 	int payloadType = sccp_codec_ast2skinny(c->format);
+#ifdef ASTERISK_CONF_1_2
+	char iabuf[INET_ADDRSTRLEN];
+#endif
 
 	if (!c->rtp) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: can't start rtp media transmission, maybe channel is down %s-%d\n", c->device->id, c->line->name, c->callid);
@@ -334,7 +340,11 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c) {
 	r->msg.StartMediaTransmission.lel_maxFramesPerPacket = 0;
 	r->msg.StartMediaTransmission.lel_conferenceId1 = htolel(c->callid);
 	sccp_dev_send(c->line->device, r);
+#ifdef ASTERISK_CONF_1_2
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s, tos %d, silencesuppression: %s\n",c->line->device->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port), skinny_codec2str(payloadType), c->line->rtptos, c->line->silencesuppression ? "ON" : "OFF");
+#else
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s, tos %d, silencesuppression: %s\n",c->line->device->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), skinny_codec2str(payloadType), c->line->rtptos, c->line->silencesuppression ? "ON" : "OFF");
+#endif
 }
 
 
@@ -543,7 +553,11 @@ int sccp_channel_hold(sccp_channel_t * c) {
 	peer = CS_AST_BRIDGED_CHANNEL(c->owner);
 
 	if (peer) {
+#ifdef ASTERISK_CONF_1_2
+		ast_moh_start(peer, NULL);
+#else
 		ast_moh_start(peer, NULL, l->musicclass);
+#endif
 #ifndef CS_AST_HAS_FLAG_MOH
 		ast_set_flag(peer, AST_FLAG_MOH);
 #endif
@@ -717,6 +731,10 @@ void sccp_channel_delete_no_lock(sccp_channel_t * c) {
 
 void sccp_channel_start_rtp(sccp_channel_t * c) {
 	sccp_session_t * s;
+#ifdef ASTERISK_CONF_1_2
+	char iabuf[INET_ADDRSTRLEN];
+#endif
+	
 	if (!c || !c->device)
 		return;
 	s = c->device->session;
@@ -725,7 +743,11 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
 
 /* No need to lock, because already locked in the sccp_indicate.c */
 /*	ast_mutex_lock(&c->lock); */
+#ifdef ASTERISK_CONF_1_2
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", c->device->id, ast_inet_ntoa(iabuf, sizeof(iabuf), s->ourip));
+#else
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", c->device->id, ast_inet_ntoa(s->ourip));
+#endif
 	c->rtp = ast_rtp_new_with_bindaddr(NULL, NULL, 1, 0, s->ourip);
 	if (c->device->nat)
 		ast_rtp_setnat(c->rtp, 1);
@@ -809,7 +831,11 @@ static void * sccp_channel_transfer_ringing_thread(void *data) {
 	if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_RING)
 		ast_indicate(ast, AST_CONTROL_RINGING);
 	else if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_MOH)
+#ifdef ASTERISK_CONF_1_2
+		ast_moh_start(ast, NULL);
+#else
 		ast_moh_start(ast, NULL, NULL);
+#endif
 	ast_mutex_unlock(&ast->lock);
 	return NULL;
 }
@@ -1017,7 +1043,11 @@ void sccp_channel_park(sccp_channel_t * c) {
 	}
 	sccp_indicate_lock(c, SCCP_CHANNELSTATE_CALLPARK);
 
+#ifdef ASTERISK_CONF_1_2
+	chan1m = ast_channel_alloc(0);
+#else
 	chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, "SCCP/%s", l->name, NULL, 0, NULL);
+#endif
        // chan1m = ast_channel_alloc(0); function changed in 1.4.0
        // Assuming AST_STATE_DOWN is suitable.. need to check
 	if (!chan1m) {
@@ -1025,7 +1055,11 @@ void sccp_channel_park(sccp_channel_t * c) {
 		sccp_dev_displayprompt(c->device, c->line->instance, c->callid, SKINNY_DISP_NO_PARK_NUMBER_AVAILABLE, 0);
 		return;
 	}
+#ifdef ASTERISK_CONF_1_2
+	chan2m = ast_channel_alloc(0);
+#else
 	chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, "SCCP/%s", l->name,  NULL, 0, NULL);
+#endif
        // chan2m = ast_channel_alloc(0); function changed in 1.4.0
        // Assuming AST_STATE_DOWN is suitable.. need to check
 	if (!chan1m) {
