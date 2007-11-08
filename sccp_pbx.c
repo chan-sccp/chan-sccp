@@ -90,7 +90,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	const char * ringermode = NULL;
 	pthread_attr_t attr;
 	pthread_t t;
-	char suffixedNumber[255] = { '\0' }; /*< For saving the digittimeoutchar to the logs */
+	char suffixedNumber[255] = { '\0' }; //!< For saving the digittimeoutchar to the logs */
 
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char * name, * number, *cidtmp; // For the callerid parse below
@@ -213,6 +213,8 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		//ringermode = pbx_builtin_getvar_helper(ast, "ALERT_INFO");
 	}
 
+	/*!\bug{seems it does not work } 
+	 */
 	ringermode = pbx_builtin_getvar_helper(ast, "ALERT_INFO");
 
 	if ( ringermode && !ast_strlen_zero(ringermode) ) {
@@ -765,7 +767,7 @@ void * sccp_pbx_startchannel(void *data) {
 		}
 		return NULL;
 	}
-	if (strncmp(c->device->id,"SEP",3)!=0 && strncmp(c->device->id,"ATA",3)!=0) {
+	if (strlen(c->device->id)<3 || (strncmp(c->device->id,"SEP",3)!=0 && strncmp(c->device->id,"ATA",3)!=0)) {
 		if (!ast_test_flag(chan, AST_FLAG_ZOMBIE)) {
 			sccp_log(1)( VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for %s\n", (chan) ? chan->name : "(null)");
 				if (chan)
