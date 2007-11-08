@@ -1,0 +1,64 @@
+--- chan_sccp-20071009-DD/chan_sccp.c       2007-10-09
+15:35:41.000000000 +0200
++++ chan_sccp-20071009-DD-mod/chan_sccp.c   2007-11-07
+17:29:02.378888155 +0100
+@@ -1481,6 +1481,42 @@
+        return 0;
+ }
+
++static char *sccp_setmessage_descrip = "  SetMessage(\"Message\") sets
+a display message for use with chan_sccp\n";
++
++static int sccp_setmessage_exec(struct ast_channel *chan, void *data) {
++        char tmp[256] = "";
++        sccp_channel_t * c = CS_AST_CHANNEL_PVT(chan);
++       sccp_device_t * d;
++
++#ifndef CS_AST_HAS_TECH_PVT
++        if (strcasecmp(chan->type, "SCCP") != 0)
++                return 0;
++#else
++        if (strcasecmp(chan->tech->type, "SCCP") != 0)
++                return 0;
++#endif
++
++        if (!data || !c ||!c->device)
++                return 0;
++
++        sccp_copy_string(tmp, (char *)data, sizeof(tmp));
++
++       d = c->device;
++       ast_mutex_lock(&d->lock);
++       if (strlen(tmp)>0)
++               sccp_dev_displayprinotify(d,tmp,0,0);
++       else
++               sccp_dev_displayprinotify(d,"Message off",0,1); //turn message off
++       ast_mutex_unlock(&d->lock);
++        //ast_callerid_parse(tmp, &name, &num);
++
++        //
++        //sccp_channel_set_calledparty(c, name, num);
++
++        return 0;
++}
++
++
+ static int load_module(void) {
+        /* make globals */
+        sccp_globals = malloc(sizeof(struct sccp_global_vars));
+@@ -1539,6 +1575,7 @@
+
+        sccp_register_cli();
+        ast_register_application("SetCalledParty", sccp_setcalledparty_exec, "Sets the name of the called party", sccp_setcalledparty_descrip);
++       ast_register_application("SetMessage", sccp_setmessage_exec, "Sets a message on the calling device", sccp_setmessage_descrip);
+        return 0;
+ }
+
+@@ -1554,6 +1591,7 @@
+        ast_channel_unregister("SCCP");
+ #endif
+        ast_unregister_application("SetCalledParty");
++       ast_unregister_application("SetMessage");
+        sccp_unregister_cli();
+
+        ast_mutex_lock(&GLOB(channels_lock));
