@@ -14,8 +14,12 @@
  */
 #define AST_MODULE "chan_sccp"
 
-#include <asterisk.h>
 #include "config.h"
+
+
+#ifndef ASTERISK_CONF_1_2
+#include <asterisk.h>
+#endif
 #include "chan_sccp.h"
 #include "sccp_actions.h"
 #include "sccp_utils.h"
@@ -1100,17 +1104,20 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 
 static int reload_config(void) {
 	struct ast_config		*cfg;
-	struct ast_variable		*v;
-	int				oldport	= ntohs(GLOB(bindaddr.sin_port));
-	int				on		= 1;
-	int				tos		= 0;
-	char				pref_buf[128];
+	struct ast_variable	*v;
+	int						oldport	= ntohs(GLOB(bindaddr.sin_port));
+	int						on		= 1;
+	int						tos		= 0;
+	char					pref_buf[128];
 	struct ast_hostent		ahp;
-	struct hostent		*hp;
-	struct ast_ha 		*na;
+	struct hostent			*hp;
+	struct ast_ha 			*na;
+#ifdef ASTERISK_CONF_1_2
+	char					iabuf[INET_ADDRSTRLEN];
+#endif
 //	sccp_hostname_t 		*permithost;
 	sccp_device_t			*d;
-	sccp_line_t			*l = NULL;
+	sccp_line_t				*l = NULL;
 //	sccp_speed_t			*k = NULL, *k_last = NULL;
 //	char 				*splitter, *k_exten = NULL, *k_name = NULL, *k_hint = NULL;
 //	char k_speed[256];
@@ -1431,25 +1438,36 @@ static int reload_config(void) {
 
 	} else {
 		if (bind(GLOB(descriptor), (struct sockaddr *)&GLOB(bindaddr), sizeof(GLOB(bindaddr))) < 0) {
-			ast_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n",
-			ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)),
-			strerror(errno));
+#ifdef ASTERISK_CONF_1_2
+			ast_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n",	ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
+#else
+			ast_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n",	ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)),strerror(errno));
+#endif
 			close(GLOB(descriptor));
 			GLOB(descriptor) = -1;
 			return 0;
 		}
-		ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n",
-		ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+#ifdef ASTERISK_CONF_1_2
+		ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+#else
+		ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", 	ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+#endif
 
 		if (listen(GLOB(descriptor), DEFAULT_SCCP_BACKLOG)) {
-			ast_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", 			ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)),
-			strerror(errno));
+#ifdef ASTERISK_CONF_1_2
+			ast_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
+#else
+			ast_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)),	strerror(errno));
+#endif			
 			close(GLOB(descriptor));
 			GLOB(descriptor) = -1;
 			return 0;
 		}
-
+#ifdef ASTERISK_CONF_1_2
+		sccp_log(0)(VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+#else
 		sccp_log(0)(VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+#endif
 		ast_pthread_create(&socket_thread, NULL, sccp_socket_thread, NULL);
 	}
   }
@@ -1485,12 +1503,20 @@ static int sccp_setcalledparty_exec(struct ast_channel *chan, void *data) {
 	return 0;
 }
 
+#ifdef ASTERISK_CONF_1_2
+int load_module() {
+#else
 static int load_module(void) {
+#endif
 	/* make globals */
 	sccp_globals = malloc(sizeof(struct sccp_global_vars));
 	if (!sccp_globals) {
 		ast_log(LOG_ERROR, "No free mamory for SCCP global vars. SCCP channel type disabled\n");
+#ifdef ASTERISK_CONF_1_2		
+		return -1;
+#else		
 		return AST_MODULE_LOAD_FAILURE;
+#endif
 	}
 	memset(sccp_globals,0,sizeof(struct sccp_global_vars));
 	ast_mutex_init(&GLOB(lock));
@@ -1545,8 +1571,12 @@ static int load_module(void) {
 	ast_register_application("SetCalledParty", sccp_setcalledparty_exec, "Sets the name of the called party", sccp_setcalledparty_descrip);
 	return 0;
 }
-
+#ifdef ASTERISK_CONF_1_2
+int unload_module() {
+	char iabuf[INET_ADDRSTRLEN];
+#else
 static int unload_module(void) {
+#endif
 	sccp_line_t * l;
 	sccp_device_t * d;
 	sccp_session_t * s;
@@ -1598,7 +1628,12 @@ static int unload_module(void) {
 	while (GLOB(sessions)) {
 		s = GLOB(sessions);
 		GLOB(sessions) = s->next;
+#ifdef CS_AST_HAS_TECH_PVT
+		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
+#else
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", ast_inet_ntoa(s->sin.sin_addr));
+#endif
+		
 		if (s->fd > -1)
 			close(s->fd);
 		ast_mutex_destroy(&s->lock);
@@ -1643,4 +1678,22 @@ static int unload_module(void) {
 	return 0;
 }
 
+#ifndef ASTERISK_CONF_1_2
 AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY, "Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION);
+#else
+int usecount() {
+	int res;
+	ast_mutex_lock(&GLOB(usecnt_lock));
+	res = GLOB(usecnt);
+	ast_mutex_unlock(&GLOB(usecnt_lock));
+	return res;
+}
+
+char *key() {
+	return ASTERISK_GPL_KEY;
+}
+
+char *description() {
+	return ("Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION);
+}
+#endif

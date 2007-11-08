@@ -12,9 +12,11 @@
  * This program is free software and may be modified and
  * distributed under the terms of the GNU Public License.
  */
-
-#include <asterisk.h>
 #include "config.h"
+
+#ifndef ASTERISK_CONF_1_2
+#include <asterisk.h>
+#endif
 #include "chan_sccp.h"
 #include "sccp_actions.h"
 #include "sccp_utils.h"
@@ -58,6 +60,9 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 	struct hostent		*hp;
 	struct sockaddr_in sin;
 	sccp_hostname_t		*permithost;
+#ifdef ASTERISK_CONF_1_2
+	char iabuf[INET_ADDRSTRLEN];
+#endif
 
 	memset(&btn, 0 , sizeof(btn));
 
@@ -93,7 +98,11 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 				if (s->sin.sin_addr.s_addr == sin.sin_addr.s_addr) {
 					i = 0;
 				} else {
+#ifdef ASTERISK_CONF_1_2					
+					sccp_log(1)(VERBOSE_PREFIX_3 "%s: device ip address does not match the permithost = %s (%s)\n", r->msg.RegisterMessage.sId.deviceName, permithost->name, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr));
+#else					
 					sccp_log(1)(VERBOSE_PREFIX_3 "%s: device ip address does not match the permithost = %s (%s)\n", r->msg.RegisterMessage.sId.deviceName, permithost->name, ast_inet_ntoa(sin.sin_addr));
+#endif
 				}
 			} else {
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: Invalid address resolution for permithost = %s\n", r->msg.RegisterMessage.sId.deviceName, permithost->name);
@@ -121,7 +130,11 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 	if (d->session) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Device is doing a re-registration!\n", d->id);
 	}
+#ifdef ASTERISK_CONF_1_2	
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fd, ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
+#else	
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fd, ast_inet_ntoa(s->sin.sin_addr));
+#endif
 	s->device = d;
 	d->skinny_type = letohl(r->msg.RegisterMessage.lel_deviceType);
 	d->session = s;
@@ -334,10 +347,10 @@ static uint8_t sccp_activate_hint(sccp_device_t *d, sccp_speed_t *k) {
 	splitter = hint_dialplan;
 	strsep(&splitter, "/");
 	sccp_copy_string(hint_dialplan, splitter, sizeof(hint_dialplan));
-	if (hint_dialplan)
+	if (hint_dialplan){
 		ast_strip(hint_dialplan);
-	if (hint_dialplan)
 		l = sccp_line_find_byname(hint_dialplan);
+	}
 	if (!l) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Error adding hint (SCCP) for line: %s. The line does not exist!\n", d->id, hint_dialplan);
 		free(h);
@@ -1348,6 +1361,9 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_channel_t * c;
 	sccp_device_t * d;
 	int status = 0;
+#ifdef ASTERISK_CONF_1_2
+	char iabuf[INET_ADDRSTRLEN];
+#endif	
 
 	if (!s || !s->device)
 		return;
@@ -1363,13 +1379,21 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r) {
 	sin.sin_port = htons(htolel(r->msg.OpenReceiveChannelAck.lel_portNumber));
 
 	status = letohl(r->msg.OpenReceiveChannelAck.lel_orcStatus);
+#ifdef	ASTERISK_CONF_1_2
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %d\n",
+			d->id,
+			status, (d->trustphoneip ? "Phone" : "Connection"),
+			ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr),
+			ntohs(sin.sin_port),
+			letohl(r->msg.OpenReceiveChannelAck.lel_passThruPartyId));
+#else	
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %d\n",
 		d->id,
 		status, (d->trustphoneip ? "Phone" : "Connection"),
 		ast_inet_ntoa(sin.sin_addr),
 		ntohs(sin.sin_port),
 		letohl(r->msg.OpenReceiveChannelAck.lel_passThruPartyId));
-
+#endif
 	if (status) {
 		/* rtp error from the phone */
 		ast_log(LOG_ERROR, "%s: OpenReceiveChannelAck error from the phone! No rtp media available\n", d->id);
@@ -1382,10 +1406,19 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r) {
 		memcpy(&c->rtp_addr, &sin, sizeof(sin));
 		if (c->rtp) {
 			sccp_channel_startmediatransmission(c);
+#ifdef ASTERISK_CONF_1_2
+			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port));
+				ast_rtp_set_peer(c->rtp, &sin);
+#else
 			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 			ast_rtp_set_peer(c->rtp, &sin);
+#endif
 		} else {
+#ifdef ASTERISK_CONF_1_2
+			ast_log(LOG_ERROR,  "%s: Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port));
+#else
 			ast_log(LOG_ERROR,  "%s: Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
+#endif
 		}
 		ast_mutex_unlock(&c->lock);
 	} else {
@@ -1418,14 +1451,20 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_moo_t * r) {
 
 void sccp_handle_ServerResMessage(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_moo_t * r1;
+#ifdef ASTERISK_CONF_1_2
+	char iabuf[INET_ADDRSTRLEN];
+#endif
 
 	/* old protocol function replaced by the SEP file server addesses list */
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending servers message\n", DEV_ID_LOG(s->device));
 
 	REQ(r1, ServerResMessage);
-
+#ifdef ASTERISK_CONF_1_2
+	sccp_copy_string(r1->msg.ServerResMessage.server[0].serverName, ast_inet_ntoa(iabuf, sizeof(iabuf), s->ourip), sizeof(r1->msg.ServerResMessage.server[0].serverName));
+#else
 	sccp_copy_string(r1->msg.ServerResMessage.server[0].serverName, ast_inet_ntoa(s->ourip), sizeof(r1->msg.ServerResMessage.server[0].serverName));
+#endif
 	r1->msg.ServerResMessage.serverListenPort[0] = GLOB(ourport);
 	r1->msg.ServerResMessage.serverIpAddr[0] = s->ourip.s_addr;
 	sccp_dev_send(s->device, r1);

@@ -14,7 +14,11 @@
  */
 
 
+#include "config.h"
+
+#ifndef ASTERISK_CONF_1_2
 #include <asterisk.h>
+#endif
 #include "chan_sccp.h"
 #include "sccp_line.h"
 #include "sccp_socket.h"
@@ -99,12 +103,19 @@ void sccp_session_close(sccp_session_t * s) {
 static void destroy_session(sccp_session_t * s) {
 	sccp_line_t * l, * l1 = NULL;
 	sccp_device_t * d;
+#ifdef ASTERISK_CONF_1_2
+	char iabuf[INET_ADDRSTRLEN];
+#endif
 
 	if (!s)
 		return;
 	d = s->device;
 	ast_mutex_lock(&GLOB(devices_lock));
+#ifdef ASTERISK_CONF_1_2
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
+#else	
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(s->sin.sin_addr));
+#endif
 
 	if (d) {
 		ast_mutex_lock(&d->lock);
@@ -154,6 +165,9 @@ static void sccp_accept_connection(void) {
 	int dummy = 1, new_socket;
 	socklen_t length = (socklen_t)(sizeof(struct sockaddr_in));
 	int on = 1;
+#ifdef ASTERISK_CONF_1_2
+	char iabuf[INET_ADDRSTRLEN];
+#endif
 
 	if ((new_socket = accept(GLOB(descriptor), (struct sockaddr *)&incoming, &length)) < 0) {
 		ast_log(LOG_ERROR, "Error accepting new socket %s\n", strerror(errno));
@@ -183,7 +197,12 @@ static void sccp_accept_connection(void) {
 
 	s->fd = new_socket;
 	s->lastKeepAlive = time(0);
+#ifdef ASTERISK_CONF_1_2
+	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
+#else
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", ast_inet_ntoa(s->sin.sin_addr));
+#endif
+	
 
 	if (GLOB(bindaddr.sin_addr.s_addr) == INADDR_ANY) {
 		ast_ouraddrfor(&incoming.sin_addr, &s->ourip);
@@ -191,7 +210,11 @@ static void sccp_accept_connection(void) {
 		memcpy(&s->ourip, &GLOB(bindaddr.sin_addr.s_addr), sizeof(s->ourip));
 	}
 
+#ifdef ASTERISK_CONF_1_2
+	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Using ip %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), s->ourip));
+#else
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Using ip %s\n", ast_inet_ntoa(s->ourip));
+#endif
 
 	ast_mutex_lock(&GLOB(sessions_lock));
 	if (GLOB(sessions)) {
