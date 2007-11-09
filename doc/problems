@@ -1,0 +1,7 @@
+
+on Asterisk 1.2
+	- blind transfer crashes asterisk
+
+both
+	- on 7971 and protocoll version 5 -> phone does not stop ringing
+	- voicemailbutton is verschwindibus ;)	
