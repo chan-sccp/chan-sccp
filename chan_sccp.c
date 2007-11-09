@@ -1628,12 +1628,9 @@ static int unload_module(void) {
 	while (GLOB(sessions)) {
 		s = GLOB(sessions);
 		GLOB(sessions) = s->next;
-#ifdef CS_AST_HAS_TECH_PVT
+
 #ifdef ASTERISK_CONF_1_2
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
-#else
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
-#endif
 #else
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", ast_inet_ntoa(s->sin.sin_addr));
 #endif
