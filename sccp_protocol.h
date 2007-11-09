@@ -377,130 +377,130 @@ typedef struct {
 
 typedef enum {
   /* Client -> Server */
-  KeepAliveMessage						= 0x0000,
-  RegisterMessage						= 0x0001,
-  IpPortMessage 						= 0x0002,
-  KeypadButtonMessage						= 0x0003,
-  EnblocCallMessage 						= 0x0004,
-  StimulusMessage						= 0x0005,
-  OffHookMessage						= 0x0006,
-  OnHookMessage 						= 0x0007,
-  HookFlashMessage						= 0x0008,
-  ForwardStatReqMessage 					= 0x0009,
-  SpeedDialStatReqMessage					= 0x000A,
-  LineStatReqMessage						= 0x000B,
-  ConfigStatReqMessage						= 0x000C,
-  TimeDateReqMessage						= 0x000D,
-  ButtonTemplateReqMessage					= 0x000E,
-  VersionReqMessage 						= 0x000F,
-  CapabilitiesResMessage					= 0x0010,
-  MediaPortListMessage						= 0x0011,
-  ServerReqMessage						= 0x0012,
-  AlarmMessage							= 0x0020,
+  KeepAliveMessage								= 0x0000,
+  RegisterMessage								= 0x0001,
+  IpPortMessage 								= 0x0002,
+  KeypadButtonMessage							= 0x0003,
+  EnblocCallMessage 							= 0x0004,
+  StimulusMessage								= 0x0005,
+  OffHookMessage								= 0x0006,
+  OnHookMessage 								= 0x0007,
+  HookFlashMessage								= 0x0008,
+  ForwardStatReqMessage 						= 0x0009,
+  SpeedDialStatReqMessage						= 0x000A,
+  LineStatReqMessage							= 0x000B,
+  ConfigStatReqMessage							= 0x000C,
+  TimeDateReqMessage							= 0x000D,
+  ButtonTemplateReqMessage						= 0x000E,
+  VersionReqMessage 							= 0x000F,
+  CapabilitiesResMessage						= 0x0010,
+  MediaPortListMessage							= 0x0011,
+  ServerReqMessage								= 0x0012,
+  AlarmMessage									= 0x0020,
   MulticastMediaReceptionAck					= 0x0021,
-  OpenReceiveChannelAck 					= 0x0022,
-  ConnectionStatisticsRes					= 0x0023,
-  OffHookWithCgpnMessage					= 0x0024,
-  SoftKeySetReqMessage						= 0x0025,
-  SoftKeyEventMessage						= 0x0026,
-  UnregisterMessage 						= 0x0027,
+  OpenReceiveChannelAck 						= 0x0022,
+  ConnectionStatisticsRes						= 0x0023,
+  OffHookWithCgpnMessage						= 0x0024,
+  SoftKeySetReqMessage							= 0x0025,
+  SoftKeyEventMessage							= 0x0026,
+  UnregisterMessage 							= 0x0027,
   SoftKeyTemplateReqMessage 					= 0x0028,
-  RegisterTokenReq						= 0x0029,
-  HeadsetStatusMessage						= 0x002B,
+  RegisterTokenReq								= 0x0029,
+  HeadsetStatusMessage							= 0x002B,
   MediaResourceNotification 					= 0x002C,
   RegisterAvailableLinesMessage 				= 0x002D,
-  DeviceToUserDataMessage					= 0x002E,
+  DeviceToUserDataMessage						= 0x002E,
   DeviceToUserDataResponseMessage				= 0x002F,
   UpdateCapabilitiesMessage 					= 0x0030,
-  OpenMultiMediaReceiveChannelAckMessage			= 0x0031,
-  ClearConferenceMessage					= 0x0032,
-  ServiceURLStatReqMessage					= 0x0033,
-  FeatureStatReqMessage 					= 0x0034,
+  OpenMultiMediaReceiveChannelAckMessage		= 0x0031,
+  ClearConferenceMessage						= 0x0032,
+  ServiceURLStatReqMessage						= 0x0033,
+  FeatureStatReqMessage 						= 0x0034,
   CreateConferenceResMessage					= 0x0035,
   DeleteConferenceResMessage					= 0x0036,
   ModifyConferenceResMessage					= 0x0037,
-  AddParticipantResMessage					= 0x0038,
+  AddParticipantResMessage						= 0x0038,
   AuditConferenceResMessage 					= 0x0039,
   AuditParticipantResMessage					= 0x0040,
   DeviceToUserDataVersion1Message				= 0x0041,
-  DeviceToUserDataResponseVersion1Message			= 0x0042,
+  DeviceToUserDataResponseVersion1Message		= 0x0042,
 
   /* Server -> Client */
-  RegisterAckMessage						= 0x0081,
-  StartToneMessage						= 0x0082,
-  StopToneMessage						= 0x0083,
+  RegisterAckMessage							= 0x0081,
+  StartToneMessage								= 0x0082,
+  StopToneMessage								= 0x0083,
   // ??
-  SetRingerMessage						= 0x0085,
-  SetLampMessage						= 0x0086,
-  SetHkFDetectMessage						= 0x0087,
-  SetSpeakerModeMessage 					= 0x0088,
-  SetMicroModeMessage						= 0x0089,
-  StartMediaTransmission					= 0x008A,
-  StopMediaTransmission 					= 0x008B,
-  StartMediaReception						= 0x008C,
-  StopMediaReception						= 0x008D,
+  SetRingerMessage								= 0x0085,
+  SetLampMessage								= 0x0086,
+  SetHkFDetectMessage							= 0x0087,
+  SetSpeakerModeMessage 						= 0x0088,
+  SetMicroModeMessage							= 0x0089,
+  StartMediaTransmission						= 0x008A,
+  StopMediaTransmission 						= 0x008B,
+  StartMediaReception							= 0x008C,
+  StopMediaReception							= 0x008D,
   // ?
-  CallInfoMessage						= 0x008F,
+  CallInfoMessage								= 0x008F,
 
-  ForwardStatMessage						= 0x0090,
-  SpeedDialStatMessage						= 0x0091,
-  LineStatMessage						= 0x0092,
-  ConfigStatMessage 						= 0x0093,
-  DefineTimeDate						= 0x0094,
-  StartSessionTransmission					= 0x0095,
-  StopSessionTransmission					= 0x0096,
-  ButtonTemplateMessage 					= 0x0097,
-  VersionMessage						= 0x0098,
-  DisplayTextMessage						= 0x0099,
-  ClearDisplay							= 0x009A,
-  CapabilitiesReqMessage					= 0x009B,
-  EnunciatorCommandMessage					= 0x009C,
-  RegisterRejectMessage 					= 0x009D,
-  ServerResMessage						= 0x009E,
-  Reset 							= 0x009F,
+  ForwardStatMessage							= 0x0090,
+  SpeedDialStatMessage							= 0x0091,
+  LineStatMessage								= 0x0092,
+  ConfigStatMessage 							= 0x0093,
+  DefineTimeDate								= 0x0094,
+  StartSessionTransmission						= 0x0095,
+  StopSessionTransmission						= 0x0096,
+  ButtonTemplateMessage 						= 0x0097,
+  VersionMessage								= 0x0098,
+  DisplayTextMessage							= 0x0099,
+  ClearDisplay									= 0x009A,
+  CapabilitiesReqMessage						= 0x009B,
+  EnunciatorCommandMessage						= 0x009C,
+  RegisterRejectMessage 						= 0x009D,
+  ServerResMessage								= 0x009E,
+  Reset 										= 0x009F,
 
-  KeepAliveAckMessage						= 0x0100,
+  KeepAliveAckMessage							= 0x0100,
   StartMulticastMediaReception					= 0x0101,
   StartMulticastMediaTransmission				= 0x0102,
   StopMulticastMediaReception					= 0x0103,
   StopMulticastMediaTransmission				= 0x0104,
-  OpenReceiveChannel						= 0x0105,
-  CloseReceiveChannel						= 0x0106,
-  ConnectionStatisticsReq					= 0x0107,
+  OpenReceiveChannel							= 0x0105,
+  CloseReceiveChannel							= 0x0106,
+  ConnectionStatisticsReq						= 0x0107,
   SoftKeyTemplateResMessage 					= 0x0108,
-  SoftKeySetResMessage						= 0x0109,
+  SoftKeySetResMessage							= 0x0109,
 
-  SelectSoftKeysMessage 					= 0x0110,
-  CallStateMessage						= 0x0111,
+  SelectSoftKeysMessage 						= 0x0110,
+  CallStateMessage								= 0x0111,
   DisplayPromptStatusMessage					= 0x0112,
-  ClearPromptStatusMessage					= 0x0113,
-  DisplayNotifyMessage						= 0x0114,
-  ClearNotifyMessage						= 0x0115,
-  ActivateCallPlaneMessage					= 0x0116,
+  ClearPromptStatusMessage						= 0x0113,
+  DisplayNotifyMessage							= 0x0114,
+  ClearNotifyMessage							= 0x0115,
+  ActivateCallPlaneMessage						= 0x0116,
   DeactivateCallPlaneMessage					= 0x0117,
-  UnregisterAckMessage						= 0x0118,
-  BackSpaceReqMessage						= 0x0119,
-  RegisterTokenAck						= 0x011A,
-  RegisterTokenReject						= 0x011B,
+  UnregisterAckMessage							= 0x0118,
+  BackSpaceReqMessage							= 0x0119,
+  RegisterTokenAck								= 0x011A,
+  RegisterTokenReject							= 0x011B,
   StartMediaFailureDetection					= 0x011C,
-  DialedNumberMessage						= 0x011D,
-  UserToDeviceDataMessage					= 0x011E,
-  FeatureStatMessage						= 0x011F,
-  DisplayPriNotifyMessage					= 0x0120,
-  ClearPriNotifyMessage 					= 0x0121,
-  StartAnnouncementMessage					= 0x0122,
-  StopAnnouncementMessage					= 0x0123,
+  DialedNumberMessage							= 0x011D,
+  UserToDeviceDataMessage						= 0x011E,
+  FeatureStatMessage							= 0x011F,
+  DisplayPriNotifyMessage						= 0x0120,
+  ClearPriNotifyMessage 						= 0x0121,
+  StartAnnouncementMessage						= 0x0122,
+  StopAnnouncementMessage						= 0x0123,
   AnnouncementFinishMessage 					= 0x0124,
-  NotifyDtmfToneMessage 					= 0x0127,
-  SendDtmfToneMessage						= 0x0128,
+  NotifyDtmfToneMessage 						= 0x0127,
+  SendDtmfToneMessage							= 0x0128,
   SubscribeDtmfPayloadReqMessage				= 0x0129,
   SubscribeDtmfPayloadResMessage				= 0x012A,
   SubscribeDtmfPayloadErrMessage				= 0x012B,
   UnSubscribeDtmfPayloadReqMessage				= 0x012C,
   UnSubscribeDtmfPayloadResMessage				= 0x012D,
   UnSubscribeDtmfPayloadErrMessage				= 0x012E,
-  ServiceURLStatMessage 					= 0x012F,
-  CallSelectStatMessage 					= 0x0130,
+  ServiceURLStatMessage 						= 0x012F,
+  CallSelectStatMessage 						= 0x0130,
   OpenMultiMediaChannelMessage					= 0x0131,
   StartMultiMediaTransmission					= 0x0132,
   StopMultiMediaTransmission					= 0x0133,
@@ -510,7 +510,7 @@ typedef enum {
   CreateConferenceReqMessage					= 0x0137,
   DeleteConferenceReqMessage					= 0x0138,
   ModifyConferenceReqMessage					= 0x0139,
-  AddParticipantReqMessage					= 0x013A,
+  AddParticipantReqMessage						= 0x013A,
   DropParticipantReqMessage 					= 0x013B,
   AuditConferenceReqMessage 					= 0x013C,
   AuditParticipantReqMessage					= 0x013D,
@@ -660,10 +660,10 @@ typedef union {
 	struct {} MulticastMediaReceptionAck;
 
 	struct {
-		uint32_t lel_orcStatus; 				/*< OpenReceiveChanStatus */
-		uint32_t bel_ipAddr; 				/*< This field is apparently in big-endian format, 
-									even though most other fields are in
-									little-endian format. */
+		uint32_t lel_orcStatus; 			/*!< OpenReceiveChanStatus */
+		uint32_t bel_ipAddr; 				/*!< This field is apparently in big-endian format, 
+												even though most other fields are in
+												little-endian format. */
 		uint32_t lel_portNumber;
 		uint32_t lel_passThruPartyId;
 		uint32_t lel_callReference;
@@ -749,16 +749,16 @@ typedef union {
 	struct {
 		uint32_t lel_conferenceId;
 		uint32_t lel_passThruPartyId;
-		uint32_t bel_remoteIpAddr; 						/*< This field is apparently in big-endian
-											format, even though most other fields are
-											little-endian. */
+		uint32_t bel_remoteIpAddr; 						/*!< This field is apparently in big-endian
+														format, even though most other fields are
+														little-endian. */
 		uint32_t lel_remotePortNumber;
 		uint32_t lel_millisecondPacketSize;
-		uint32_t lel_payloadType; 						/*< Media_PayloadType */
+		uint32_t lel_payloadType; 						/*!< Media_PayloadType */
 		uint32_t lel_precedenceValue;
 		uint32_t lel_ssValue;
 		uint32_t lel_maxFramesPerPacket;
-		uint32_t lel_g723BitRate; 						/*< only used with G.723 payload */
+		uint32_t lel_g723BitRate; 						/*!< only used with G.723 payload */
 		uint32_t lel_conferenceId1;
 		uint32_t  unknown1;
 		uint32_t  unknown2;
@@ -792,7 +792,7 @@ typedef union {
 		char calledParty[StationMaxDirnumSize];
 		uint32_t  lel_lineId;
 		uint32_t  lel_callRef;
-		uint32_t  lel_callType; 						/*< INBOUND=1, OUTBOUND=2, FORWARD=3 */
+		uint32_t  lel_callType; 							/*!< INBOUND=1, OUTBOUND=2, FORWARD=3 */
 		char originalCalledPartyName[StationMaxNameSize];
 		char originalCalledParty[StationMaxDirnumSize];
 		char lastRedirectingPartyName[StationMaxNameSize];
@@ -805,15 +805,15 @@ typedef union {
 		char lastRedirectingVoiceMailbox[StationMaxDirnumSize];
 		uint32_t lel_callInstance;
 		uint32_t lel_callSecurityStatus;
-		uint32_t partyPIRestrictionBits;					/*< partyPIRestrictionBits struct
-											0 RestrictCallingPartyName
-											1 RestrictCallingPartyNumber
-											2 RestrictCalledPartyName
-											3 RestrictCalledPartyNumber
-											4 RestrictOriginalCalledPartyName
-											5 RestrictOriginalCalledPartyNumber
-											6 RestrictLastRedirectPartyName
-											7 RestrictLastRedirectPartyNumber */
+		uint32_t partyPIRestrictionBits;					/*!< partyPIRestrictionBits struct
+															0 RestrictCallingPartyName
+															1 RestrictCallingPartyNumber
+															2 RestrictCalledPartyName
+															3 RestrictCalledPartyNumber
+															4 RestrictOriginalCalledPartyName
+															5 RestrictOriginalCalledPartyNumber
+															6 RestrictLastRedirectPartyName
+															7 RestrictLastRedirectPartyNumber */
 	} CallInfoMessage;
 
 	struct {
@@ -823,7 +823,7 @@ typedef union {
 	} DialedNumberMessage;
 
 	struct {
-		uint32_t lel_status; 						/*< 0 inactive 1 active */
+		uint32_t lel_status; 								/*!< 0 inactive 1 active */
 		uint32_t lel_lineNumber;
 		uint32_t lel_cfwdallstatus;
 		char cfwdallnumber[StationMaxDirnumSize];
@@ -910,9 +910,9 @@ typedef union {
 		uint32_t lel_conferenceId;
 		uint32_t lel_passThruPartyId;
 		uint32_t lel_millisecondPacketSize;
-		uint32_t lel_payloadType; /* Media_PayloadType */
+		uint32_t lel_payloadType; 						/*!< Media_PayloadType */
 		uint32_t lel_vadValue;
-		uint32_t lel_g723BitRate; /* only used with G.723 payload */
+		uint32_t lel_g723BitRate; 						/*!< only used with G.723 payload */
 		/* protocol version 5 fields */
 		uint32_t lel_conferenceId1;
 		uint32_t  unknown1;
@@ -935,23 +935,23 @@ typedef union {
 	} CloseReceiveChannel;
 
 	struct {			// Request Statistics from Phone
-		char		DirectoryNumber[StationMaxDirnumSize];
-		uint32_t		lel_callReference;
-		uint32_t		lel_StatsProcessing;
+		char								DirectoryNumber[StationMaxDirnumSize];
+		uint32_t							lel_callReference;
+		uint32_t							lel_StatsProcessing;
 	} ConnectionStatisticsReq;
 
 	struct {
-		uint32_t							 lel_softKeyOffset;
-		uint32_t							 lel_softKeyCount;
-		uint32_t							 lel_totalSoftKeyCount;
-		StationSoftKeyDefinition   definition[StationMaxSoftKeyDefinition];
+		uint32_t							lel_softKeyOffset;
+		uint32_t							lel_softKeyCount;
+		uint32_t							lel_totalSoftKeyCount;
+		StationSoftKeyDefinition   			definition[StationMaxSoftKeyDefinition];
 	} SoftKeyTemplateResMessage;
 
 	struct {
 		uint32_t							lel_softKeySetOffset;
 		uint32_t							lel_softKeySetCount;
 		uint32_t							lel_totalSoftKeySetCount;
-		StationSoftKeySetDefinition definition[StationMaxSoftKeySetDefinition];
+		StationSoftKeySetDefinition 		definition[StationMaxSoftKeySetDefinition];
 	} SoftKeySetResMessage;
 
 	struct {
@@ -1032,7 +1032,7 @@ typedef struct {
 	uint32_t		length;
 	uint32_t		lel_reserved;
 	uint32_t		lel_messageId;
-	sccp_data_t msg;
+	sccp_data_t		msg;
 } sccp_moo_t;
 
 /* So in theory, a message should never be bigger than this.
@@ -1072,10 +1072,10 @@ typedef struct {
   const uint8_t count;
 } softkey_modes;
 
-#define KEYMODE_ONHOOK			0
+#define KEYMODE_ONHOOK				0
 #define KEYMODE_CONNECTED			1
-#define KEYMODE_ONHOLD			2
-#define KEYMODE_RINGIN			3
+#define KEYMODE_ONHOLD				2
+#define KEYMODE_RINGIN				3
 #define KEYMODE_OFFHOOK 			4
 #define KEYMODE_CONNTRANS			5
 #define KEYMODE_DIGITSFOLL			6
@@ -1109,16 +1109,16 @@ static const uint8_t skSet_Onhold [] = {
 	SKINNY_LBL_RESUME,
 	SKINNY_LBL_NEWCALL,
 	SKINNY_LBL_ENDCALL,
-	SKINNY_LBL_TRANSFER,
-	SKINNY_LBL_DIRTRFR
+	SKINNY_LBL_TRANSFER
+//	SKINNY_LBL_DIRTRFR
 };
 
 static const uint8_t skSet_Ringin [] = {
 	SKINNY_LBL_ANSWER,
 	SKINNY_LBL_ENDCALL,
-	SKINNY_LBL_TRNSFVM,
+	SKINNY_LBL_TRNSFVM
 //	SKINNY_LBL_TRANSFER,
-	SKINNY_LBL_DIRTRFR
+//	SKINNY_LBL_DIRTRFR
 };
 
 static const uint8_t skSet_Offhook [] = {
@@ -1185,7 +1185,7 @@ static const softkey_modes SoftKeyModes [] = {
   { KEYMODE_CONNCONF,		skSet_Connconf, 	sizeof(skSet_Connconf)/sizeof(uint8_t)},
   { KEYMODE_RINGOUT,		skSet_RingOut,		sizeof(skSet_RingOut)/sizeof(uint8_t)},
   { KEYMODE_OFFHOOKFEAT,	skSet_Offhookfeat,	sizeof(skSet_Offhookfeat)/sizeof(uint8_t)},
-  { KEYMODE_MYST,		skSet_Myst, 		sizeof(skSet_Myst)/sizeof(uint8_t)},
+  { KEYMODE_MYST,			skSet_Myst, 		sizeof(skSet_Myst)/sizeof(uint8_t)},
 };
 
 #endif
