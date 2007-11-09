@@ -41,7 +41,7 @@ echo "Checking Asterisk version..."
 if grep -q "\"1\.4" $INCLUDEDIR/version.h; then
 	echo "#define ASTERISK_CONF_1_4" >>$CONFIGFILE
 	echo " * found asterisk 1.4"
-else if if grep -q "\"1\.2" $INCLUDEDIR/version.h; then
+elif grep -q "\"1\.2" $INCLUDEDIR/version.h; then
 	echo "#define ASTERISK_CONF_1_2" >>$CONFIGFILE
 	echo " * found asterisk 1.2"
 else
