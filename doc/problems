@@ -5,4 +5,5 @@ on Asterisk 1.2
 both
 	- on 7971 and protocoll version 5 -> phone does not stop ringing
 	- voicemailbutton is verschwindibus ;)	
+	- remove dirTrans button
 	- saving custom dnd-status
