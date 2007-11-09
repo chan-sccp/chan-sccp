@@ -41,6 +41,14 @@ echo "Checking Asterisk version..."
 if grep -q "\"1\.4" $INCLUDEDIR/version.h; then
 	echo "#define ASTERISK_CONF_1_4" >>$CONFIGFILE
 	echo " * found asterisk 1.4"
+	
+	echo -n "Use realtime functionality (y/n)[n]?"
+	read key
+	if [ "$key" = "y" ]
+	then
+	        echo "#define CS_SCCP_REALTIME"  >>$CONFIGFILE
+	fi
+	
 elif grep -q "\"1\.2" $INCLUDEDIR/version.h; then
 	echo "#define ASTERISK_CONF_1_2" >>$CONFIGFILE
 	echo " * found asterisk 1.2"
@@ -63,13 +71,6 @@ read key
 if [ "$key" = "y" ]
 then
         echo "#define CS_SCCP_PICKUP"  >>$CONFIGFILE
-fi
-
-echo -n "Use realtime functionality (y/n)[n]?"
-read key
-if [ "$key" = "y" ]
-then
-        echo "#define CS_SCCP_REALTIME"  >>$CONFIGFILE
 fi
 
 
