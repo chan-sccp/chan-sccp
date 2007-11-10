@@ -1,0 +1,7 @@
+to add a serviceURL button to the phone, just add 
+serviceURL = button name,URL 
+instad of speeddial to the section of device configuration.
+
+e.g.
+serviceURL = Phonebook,http://webserver/phonebook.php
+ 
