@@ -593,8 +593,8 @@ typedef union {
   } ConfigStatMessage;
 
   struct {
-	uint16_t les_rtpMediaPort;
-	uint16_t unknown;
+	uint16_t 		les_rtpMediaPort;
+	uint16_t 		unknown;
   } IpPortMessage;
 
   struct {

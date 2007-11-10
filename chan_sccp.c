@@ -244,7 +244,12 @@ OUT:
 	return (c && c->owner ? c->owner : NULL);
 }
 
-
+/**
+ * returns the state of device
+ * 
+ * \param data name of device
+ * \return devicestate of AST_DEVICE_*
+ */
 int sccp_devicestate(void * data) {
 	sccp_line_t * l =  NULL;
 	int res = AST_DEVICE_UNKNOWN;
