@@ -273,7 +273,9 @@ struct sccp_line {
 #ifdef CS_SCCP_REALTIME
 	unsigned int			realtime:1;			/*!< is it a realtimeconfiguration*/
 #endif
-	struct ast_variable 		* variables;			/*!< Channel variables to set */
+	struct ast_variable 	* variables;		/*!< Channel variables to set */
+	unsigned int			dnd:3;				/*!< dnd on line */
+	uint8_t 				dndmode;			/*!< dnd mode: see SCCP_DNDMODE_* */
 };
 
 /* This defines a speed dial button */
@@ -299,7 +301,7 @@ struct sccp_speed {
 /* This defines a serviceURL button */
 struct sccp_serviceURL {
 	uint8_t config_instance;									/*!< The instance in the sccp.conf */
-	uint8_t instance;										/*!< The instance on the current device */
+	uint8_t instance;											/*!< The instance on the current device */
 	char label[StationMaxNameSize];								/*!< The label of the serviceURL button */
 	char URL[StationMaxServiceURLSize];							/*!< The number to dial when it's hit */
 	sccp_serviceURL_t * next;									/*!< Pointer to next serviceURL */
@@ -372,7 +374,7 @@ struct sccp_device {
 	unsigned int			mwioncall:1;
 	unsigned int			softkeysupport:1;
 	unsigned int			mwilight:1;
-	unsigned int			dnd:1;
+	unsigned int			dnd:3;
 	unsigned int			transfer:1;
 	unsigned int			park:1;
 	unsigned int			cfwdall:1;
@@ -381,35 +383,35 @@ struct sccp_device {
 	unsigned int			nat:1;
 	unsigned int			trustphoneip:1;
 	unsigned int			needcheckringback:1;
-	unsigned int			private:1; 						/*!< permit private function on this device */
+	unsigned int			private:1; 							/*!< permit private function on this device */
 #ifdef CS_SCCP_REALTIME
-	unsigned int			realtime:1;						/*!< is it a realtimeconfiguration*/
+	unsigned int			realtime:1;							/*!< is it a realtimeconfiguration*/
 #endif
 
 	sccp_channel_t   		* active_channel;
-	sccp_channel_t   		* transfer_channel; 					/*!< the channel under transfer */
+	sccp_channel_t   		* transfer_channel; 				/*!< the channel under transfer */
 	sccp_serviceURL_t 		* serviceURLs;
 	sccp_speed_t     		* speed_dials;
 	sccp_line_t      		* lines;
 	sccp_line_t      		* currentLine;
 	sccp_session_t   		* session;
 	sccp_device_t    		* next;
-	sccp_hint_t      		* hints;						/*!< list of hint pointers. Internal lines to notify the state */
+	sccp_hint_t      		* hints;							/*!< list of hint pointers. Internal lines to notify the state */
 	pthread_t        		postregistration_thread;
-	struct ast_variable 		* variables;						/*!< Channel variables to set */
+	struct ast_variable 	* variables;						/*!< Channel variables to set */
 };
 
 struct sccp_session {
-  	ast_mutex_t			lock;
-  	void				*buffer;
-  	size_t				buffer_size;
+  	ast_mutex_t				lock;
+  	void					*buffer;
+  	size_t					buffer_size;
   	struct sockaddr_in		sin;
-  	struct in_addr		ourip;							/*< ourip is for rtp use */
-  	time_t				lastKeepAlive;
-  	int				fd;
-  	int				rtpPort;
-  	sccp_device_t 		*device;
-  	sccp_session_t		*prev, *next;
+  	struct in_addr			ourip;								/*< ourip is for rtp use */
+  	time_t					lastKeepAlive;
+  	int						fd;
+  	int						rtpPort;
+  	sccp_device_t 			*device;
+  	sccp_session_t			*prev, *next;
   	unsigned int			needcheckringback:1;
 };
 

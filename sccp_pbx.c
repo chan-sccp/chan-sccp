@@ -123,27 +123,54 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	
 	/* DND handling*/
 	if (d->dnd) {
-		if (d->dndmode == SCCP_DNDMODE_REJECT) {
+		if (d->dndmode == SCCP_DNDMODE_REJECT || (d->dndmode == SCCP_DNDMODE_USERDEFINED && d->dnd == SCCP_DNDMODE_REJECT )) {
 			ringermode = pbx_builtin_getvar_helper(ast, "ALERT_INFO");
-                     if ( ringermode && !ast_strlen_zero(ringermode) ) {
+			if ( ringermode && !ast_strlen_zero(ringermode) ) {
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: Found ALERT_INFO=%s\n", d->id, ringermode);
 				if (strcasecmp(ringermode, "urgent") == 0)
-                           		c->ringermode = SKINNY_STATION_URGENTRING;
-                       } else {
-                               ast_mutex_unlock(&d->lock);
-                               ast_setstate(ast, AST_STATE_BUSY);
-                               ast_queue_control(ast, AST_CONTROL_BUSY);
-                               sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND is on. Call %s rejected\n", d->id, ast->name);
-                               return 0;
-                       }
+					c->ringermode = SKINNY_STATION_URGENTRING;
+			} else {
+				ast_mutex_unlock(&d->lock);
+				ast_setstate(ast, AST_STATE_BUSY);
+				ast_queue_control(ast, AST_CONTROL_BUSY);
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND is on. Call %s rejected\n", d->id, ast->name);
+				return 0;
+			}
 
-		} else if (d->dndmode == SCCP_DNDMODE_SILENT) {
+		} else if (d->dndmode == SCCP_DNDMODE_SILENT || (d->dndmode == SCCP_DNDMODE_USERDEFINED && d->dnd == SCCP_DNDMODE_SILENT ) ) {
 			/* disable the ringer and autoanswer options */
 			c->ringermode = SKINNY_STATION_SILENTRING;
 			c->autoanswer_type = SCCP_AUTOANSWER_NONE;
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND (silent) is on. Set the ringer = silent and autoanswer = off for %s\n", d->id, ast->name);
 		}
-	} //end DND handling
+	} 
+
+	//handle DND on lines
+	ast_mutex_lock(&l->lock);
+	if (1) {
+		if (l->dndmode == SCCP_DNDMODE_REJECT || (l->dndmode == SCCP_DNDMODE_USERDEFINED && l->dnd == SCCP_DNDMODE_REJECT )) {
+			ringermode = pbx_builtin_getvar_helper(ast, "ALERT_INFO");
+			if ( ringermode && !ast_strlen_zero(ringermode) ) {
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: Found ALERT_INFO=%s\n", d->id, ringermode);
+				if (strcasecmp(ringermode, "urgent") == 0)
+					c->ringermode = SKINNY_STATION_URGENTRING;
+			} else {
+				ast_mutex_unlock(&d->lock);
+				ast_setstate(ast, AST_STATE_BUSY);
+				ast_queue_control(ast, AST_CONTROL_BUSY);
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND for line \"%s\" is on. Call %s rejected\n", d->id, l->name, ast->name);
+				return 0;
+			}
+
+		} else if (l->dndmode == SCCP_DNDMODE_SILENT || (l->dndmode == SCCP_DNDMODE_USERDEFINED && l->dnd == SCCP_DNDMODE_SILENT ) ) {
+			/* disable the ringer and autoanswer options */
+			c->ringermode = SKINNY_STATION_SILENTRING;
+			c->autoanswer_type = SCCP_AUTOANSWER_NONE;
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND (silent) for line \"%s\" is on. Set the ringer = silent and autoanswer = off for %s\n", d->id, l->name, ast->name);
+		}
+	}
+	ast_mutex_unlock(&l->lock);
+	//end DND handling
 
 	/* if incoming call limit is reached send BUSY */
 	ast_mutex_lock(&l->lock);

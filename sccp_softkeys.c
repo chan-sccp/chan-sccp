@@ -108,26 +108,77 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	/* actually the line param is not used */
 	sccp_line_t * l1 = NULL;
 	
-	if (!d->dndmode) {
-		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_DND " " SKINNY_DISP_SERVICE_IS_NOT_ACTIVE, 10);
-		return;
-	}
-	
-	ast_mutex_lock(&d->lock);
-	d->dnd = (d->dnd) ? 0 : 1;
-	if (d->dndmode == SCCP_DNDMODE_REJECT) {
-		l1 = d->lines;
-		while (l1) {
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Notify the dnd status (%s) to asterisk for line %s\n", d->id, d->dnd ? "on" : "off", l1->name);
-			if (d->dnd)
- 				sccp_hint_notify_linestate(l1, SCCP_DEVICESTATE_DND, NULL);
- 			else
-	 			sccp_hint_notify_linestate(l1, SCCP_DEVICESTATE_ONHOOK, NULL);
-			l1 = l1->next_on_device;
+
+	if(l){
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: We have a line \"%s\", set DND to line\n", d->id, l->name);
+		if (!l->dndmode) {
+			sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_DND " " SKINNY_DISP_SERVICE_IS_NOT_ACTIVE, 10);
+			return;
 		}
+	
+		ast_mutex_lock(&l->lock);
+		if(l->dndmode == SCCP_DNDMODE_USERDEFINED){
+			switch (l->dnd) {
+				case SCCP_DNDMODE_OFF:
+					l->dnd = SCCP_DNDMODE_REJECT;
+					break;
+				case SCCP_DNDMODE_REJECT:
+					l->dnd = SCCP_DNDMODE_SILENT;
+					break;
+				case SCCP_DNDMODE_SILENT:
+					l->dnd = SCCP_DNDMODE_OFF;
+					break;
+				default:
+					l->dnd = (l->dnd) ? 0 : 1;
+					break;
+			}
+		} else{
+			l->dnd = (l->dnd) ? 0 : 1;
+		}
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: DND-line status: %d\n", d->id, l->dnd);
+		ast_mutex_unlock(&l->lock);
+	}else{
+
+		if (!d->dndmode) {
+			sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_DND " " SKINNY_DISP_SERVICE_IS_NOT_ACTIVE, 10);
+			return;
+		}
+	
+		ast_mutex_lock(&d->lock);
+		if(d->dndmode == SCCP_DNDMODE_USERDEFINED){
+			switch (d->dnd) {
+				case SCCP_DNDMODE_OFF:
+					d->dnd = SCCP_DNDMODE_REJECT;
+					break;
+				case SCCP_DNDMODE_REJECT:
+					d->dnd = SCCP_DNDMODE_SILENT;
+					break;
+				case SCCP_DNDMODE_SILENT:
+					d->dnd = SCCP_DNDMODE_OFF;
+					break;
+				default:
+					d->dnd = (d->dnd) ? 0 : 1;
+					break;
+			}
+		} else{
+			d->dnd = (d->dnd) ? 0 : 1;
+		}
+
+	
+		if (d->dndmode == SCCP_DNDMODE_REJECT || d->dnd == SCCP_DNDMODE_REJECT) {
+			l1 = d->lines;
+			while (l1) {
+				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Notify the dnd status (%s) to asterisk for line %s\n", d->id, d->dnd ? "on" : "off", l1->name);
+				if (d->dnd)
+ 					sccp_hint_notify_linestate(l1, SCCP_DEVICESTATE_DND, NULL);
+	 			else
+		 			sccp_hint_notify_linestate(l1, SCCP_DEVICESTATE_ONHOOK, NULL);
+				l1 = l1->next_on_device;
+			}
+		}
+		ast_mutex_unlock(&d->lock);
+		sccp_dev_dbput(d);
 	}
-	ast_mutex_unlock(&d->lock);
-	sccp_dev_dbput(d);
 	sccp_dev_check_displayprompt(d);
 }
 
