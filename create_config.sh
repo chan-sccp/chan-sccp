@@ -9,6 +9,7 @@
 #
 
 CONFIGFILE="config.h"
+REALTIME_USEABLE=1
 
 if [ -e "$CONFIGFILE" ]; then
 	exit
@@ -42,19 +43,14 @@ if grep -q "\"1\.4" $INCLUDEDIR/version.h; then
 	echo "#define ASTERISK_CONF_1_4" >>$CONFIGFILE
 	echo " * found asterisk 1.4"
 	
-	echo -n "Use realtime functionality (y/n)[n]?"
-	read key
-	if [ "$key" = "y" ]
-	then
-	        echo "#define CS_SCCP_REALTIME"  >>$CONFIGFILE
-	fi
-	
 elif grep -q "\"1\.2" $INCLUDEDIR/version.h; then
 	echo "#define ASTERISK_CONF_1_2" >>$CONFIGFILE
 	echo " * found asterisk 1.2"
+	$REALTIME_USEABLE=0
 else
 	echo " * found unsupported asterisk version"
-  exit 1
+	echo "#define ASTERISK_CONF_1_2" >>$CONFIGFILE
+#exit 1
 fi
 
 echo >>$CONFIGFILE
@@ -73,6 +69,15 @@ then
         echo "#define CS_SCCP_PICKUP"  >>$CONFIGFILE
 fi
 
+if $REALTIME_USEABLE
+then
+	echo -n "Use realtime functionality (y/n)[n]?"
+	read key
+	if [ "$key" = "y" ]
+	then
+		echo "#define CS_SCCP_REALTIME"  >>$CONFIGFILE
+	fi
+fi
 
 if grep -q "struct ast_channel_tech" $INCLUDEDIR/channel.h; then
 	echo "#define CS_AST_HAS_TECH_PVT" >>$CONFIGFILE
