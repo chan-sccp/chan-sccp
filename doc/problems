@@ -1,6 +1,6 @@
 
 on Asterisk 1.2
-	- blind transfer crashes asterisk
+	- blind transfer crashes asterisk (sometimes)
 
 both
 	- on 7971 and protocoll version 5 -> phone does not stop ringing
@@ -8,3 +8,4 @@ both
 	- remove dirTrans button
 	- saving custom dnd-status
 	- see https://sourceforge.net/tracker/index.php?func=detail&aid=1639174&group_id=186378&atid=917045
+	- dnd per line
