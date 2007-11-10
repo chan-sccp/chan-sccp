@@ -352,16 +352,17 @@
 #define SCCP_DTMFMODE_INBAND					0
 #define SCCP_DTMFMODE_OUTOFBAND 				1
 
-#define SCCP_AUTOANSWER_NONE					0 	/*< 1 way audio - MIC OFF */
-#define SCCP_AUTOANSWER_1W					1 	/*< 1 way audio - MIC OFF */
-#define SCCP_AUTOANSWER_2W					2 	/*< 2 way audio - MIC ON */
+#define SCCP_AUTOANSWER_NONE					0 	/*!< 1 way audio - MIC OFF */
+#define SCCP_AUTOANSWER_1W						1 	/*!< 1 way audio - MIC OFF */
+#define SCCP_AUTOANSWER_2W						2 	/*!< 2 way audio - MIC ON */
 
-#define SCCP_DNDMODE_OFF					0 	/*< dnd not permitted on the device */
-#define SCCP_DNDMODE_REJECT					1 	/*< busy signal */
-#define SCCP_DNDMODE_SILENT					2 	/*< ringing state with no ringer tone */
+#define SCCP_DNDMODE_OFF						0 	/*!< dnd not permitted on the device */
+#define SCCP_DNDMODE_REJECT						1 	/*!< busy signal */
+#define SCCP_DNDMODE_SILENT						2 	/*!< ringing state with no ringer tone */
+#define SCCP_DNDMODE_USERDEFINED				3 	/*!< the user defines the mode by pressing the softkey */
 
-#define SCCP_BLINDTRANSFER_RING					0 	/*< default */
-#define SCCP_BLINDTRANSFER_MOH					1 	/*< music on hold */
+#define SCCP_BLINDTRANSFER_RING					0 	/*!< default */
+#define SCCP_BLINDTRANSFER_MOH					1 	/*!< music on hold */
 
 typedef struct {
 	uint8_t instance;
@@ -1127,7 +1128,8 @@ static const uint8_t skSet_Offhook [] = {
 	SKINNY_LBL_PRIVATE,
 	SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_CFWDBUSY,
-	SKINNY_LBL_GPICKUP
+	SKINNY_LBL_GPICKUP,
+	SKINNY_LBL_DND
 };
 
 static const uint8_t skSet_Conntrans [] = {

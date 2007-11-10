@@ -634,12 +634,14 @@ void sccp_dev_check_displayprompt(sccp_device_t * d) {
 	if (res)
 		goto OUT;
 
-	if (d->dndmode && d->dnd) {
-		if (d->dndmode == SCCP_DNDMODE_REJECT)
+	if (d->dnd && d->dndmode ) {
+		if (d->dndmode == SCCP_DNDMODE_REJECT || d->dnd == SCCP_DNDMODE_REJECT)
 			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " (" SKINNY_DISP_BUSY ") <<<", 0);
-		else if (d->dndmode == SCCP_DNDMODE_SILENT)
+
+		else if (d->dndmode == SCCP_DNDMODE_SILENT || d->dnd == SCCP_DNDMODE_SILENT)
 			/* no internal label for the silent string */
 			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " (Silent) <<<", 0);
+
 		else
 			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " <<<", 0);
 		goto OUT;

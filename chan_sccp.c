@@ -254,8 +254,8 @@ int sccp_devicestate(void * data) {
 		res = AST_DEVICE_INVALID;
 	else if (!l->device)
 		res = AST_DEVICE_UNAVAILABLE;
-	else if (l->device->dnd && l->device->dndmode == SCCP_DNDMODE_REJECT)
-		res = AST_DEVICE_BUSY;
+	else if ((l->device->dnd && l->device->dndmode == SCCP_DNDMODE_REJECT) || (l->dnd && (l->dndmode == SCCP_DNDMODE_REJECT || (l->dndmode == SCCP_DNDMODE_USERDEFINED && l->dnd == SCCP_DNDMODE_REJECT) )) )
+			res = AST_DEVICE_BUSY;
 	else if (!l->channelCount)
 		res = AST_DEVICE_NOT_INUSE;
 #ifdef  CS_AST_DEVICE_RINGING
@@ -660,6 +660,7 @@ sccp_line_t * build_line(void) {
 	l->rtptos = GLOB(rtptos); /* default value */
 	l->transfer = 1; /* default value. on if the device transfer is on*/
 	l->secondary_dialtone_tone = SKINNY_TONE_OUTSIDEDIALTONE;
+	l->dndmode = SCCP_DNDMODE_OFF;
 
 	sccp_copy_string(l->context, GLOB(context), sizeof(l->context));
 	sccp_copy_string(l->language, GLOB(language), sizeof(l->language));
@@ -826,7 +827,18 @@ sccp_line_t * build_lines(struct ast_variable *v) {
 					newvar->next = l->variables;
 					l->variables = newvar;
 				}
- 			} else {
+ 			} else if (!strcasecmp(v->name, "dnd")) {
+				if (!strcasecmp(v->value, "reject")) {
+					l->dndmode = SCCP_DNDMODE_REJECT;
+				} else if (!strcasecmp(v->value, "silent")) {
+					l->dndmode = SCCP_DNDMODE_SILENT;
+				} else if (!strcasecmp(v->value, "user")) {
+					l->dndmode = SCCP_DNDMODE_USERDEFINED;
+				} else {
+					/* 0 is off and 1 (on) is reject */
+					l->dndmode = sccp_true(v->value);
+				}
+			} else {
  				ast_log(LOG_WARNING, "Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
  			}
  			v = v->next;
@@ -963,6 +975,8 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					d->dndmode = SCCP_DNDMODE_REJECT;
 				} else if (!strcasecmp(v->value, "silent")) {
 					d->dndmode = SCCP_DNDMODE_SILENT;
+				} else if (!strcasecmp(v->value, "user")) {
+					d->dndmode = SCCP_DNDMODE_USERDEFINED;
 				} else {
 					/* 0 is off and 1 (on) is reject */
 					d->dndmode = sccp_true(v->value);
