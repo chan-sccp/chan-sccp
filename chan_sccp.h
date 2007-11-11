@@ -123,7 +123,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 #define htoles(x) bswap_16(x)
 #endif
 
-#define SCCP_VERSION "20071101"
+#define SCCP_VERSION "20071111"
 #define SCCP_LOCK_TRIES 10
 #define SCCP_LOCK_USLEEP 100
 
