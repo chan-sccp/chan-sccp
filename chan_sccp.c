@@ -289,6 +289,14 @@ sccp_hint_t * sccp_hint_make(sccp_device_t *d, uint8_t instance) {
 	return h;
 }
 
+
+
+/**
+ * 
+ * 
+ * 
+ * 
+ */
 void sccp_hint_notify_devicestate(sccp_device_t * d, uint8_t state) {
 	sccp_line_t * l;
 	if (!d || !d->session)
@@ -302,6 +310,13 @@ void sccp_hint_notify_devicestate(sccp_device_t * d, uint8_t state) {
 	ast_mutex_unlock(&d->lock);
 }
 
+
+
+/**
+ * 
+ * 
+ * 
+ */
 void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * onedevice) {
 	sccp_moo_t * r;
 	sccp_hint_t * h;
@@ -383,6 +398,12 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 		ast_device_state_changed("SCCP/%s", l->name);
 }
 
+
+/**
+ * 
+ * 
+ * 
+ */
 void sccp_hint_notify_channelstate(sccp_device_t *d, uint8_t instance, sccp_channel_t * c) {
 	sccp_moo_t * r;
 	uint8_t lamp = SKINNY_LAMP_OFF;
@@ -445,7 +466,10 @@ void sccp_hint_notify_channelstate(sccp_device_t *d, uint8_t instance, sccp_chan
 	sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_MYST);
 }
 
-
+/**
+ * 
+ * 
+ */
 void sccp_hint_notify(sccp_channel_t * c, sccp_device_t * onedevice) {
 	sccp_hint_t *h;
 	sccp_line_t *l = c->line;
@@ -472,7 +496,9 @@ void sccp_hint_notify(sccp_channel_t * c, sccp_device_t * onedevice) {
 	}
 }
 
-/* asterisk hint wrapper */
+/**
+ * asterisk hint wrapper 
+ */
 int sccp_hint_state(char *context, char* exten, int state, void *data) {
 	sccp_hint_t * h = data;
 	sccp_device_t *d;
@@ -533,6 +559,13 @@ int sccp_hint_state(char *context, char* exten, int state, void *data) {
 	return 0;
 }
 
+
+/**
+ * 
+ * \brief controller function to handle received messages
+ * \param r message
+ * \param s session
+ */
 uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
   uint32_t  mid = letohl(r->lel_messageId);
   s->lastKeepAlive = time(0); /* always update keepalive */
@@ -650,6 +683,15 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
   return 1;
 }
 
+
+/**
+ * Creates a \link sccp_line_t line \endlink with default/global values 
+ * 
+ * \brief build default line.
+ * \return default line
+ * 
+ * 
+ */
 sccp_line_t * build_line(void) {
 	sccp_line_t * l = malloc(sizeof(sccp_line_t));
 	if (!l) {
@@ -680,6 +722,12 @@ sccp_line_t * build_line(void) {
   return l;
 }
 
+
+/**
+ * \brief creates configured line from \link ast_variable asterisk variable \endlink
+ * \return configured line
+ * \note also used by realtime functionality to line device from \link ast_variable asterisk variable \endlink
+ */
 sccp_line_t * build_lines(struct ast_variable *v) {
 	sccp_line_t * l, *gl;
 	int amaflags = 0;
@@ -852,7 +900,11 @@ sccp_line_t * build_lines(struct ast_variable *v) {
 	return l;
 }
 
-
+/**
+ * \brief Build default device.
+ * \return device with default/global values
+ * 
+ */
 sccp_device_t * build_device(void) {
 	sccp_device_t * d = malloc(sizeof(sccp_device_t));
 	if (!d) {
@@ -888,18 +940,22 @@ sccp_device_t * build_device(void) {
   return d;
 }
 
-
+/**
+ * \brief Create device from ast_variable
+ * \return configured device 
+ * \note also used by realtime functionality to build device from \link ast_variable asterisk variable \endlink
+ */
 sccp_device_t *build_devices(struct ast_variable *v) {
-	sccp_hostname_t 	*permithost;
+	sccp_hostname_t *permithost;
 	sccp_device_t 	*d;
-	sccp_speed_t 		*k = NULL, *k_last = NULL;
+	sccp_speed_t 	*k = NULL, *k_last = NULL;
 	sccp_serviceURL_t	*serviceURL = NULL, *serviceURL_last = NULL;
 	char 			*splitter, *k_exten = NULL, *k_name = NULL, *k_hint = NULL;
 	char 			k_speed[256];
 	char 			serviceURLOptionString[1024];
 	char 			*serviceURLLabel = NULL, *serviceURLURL = NULL;
 	uint8_t 		speeddial_index = 1;
-	uint8_t		serviceURLIndex = 1;
+	uint8_t			serviceURLIndex = 1;
 
 	d = build_device();
 	while (v) {	
@@ -1120,7 +1176,10 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 
 	return d;
 }
-
+/**
+ * \brief reload the configuration from sccp.conf
+ * 
+ */
 static int reload_config(void) {
 	struct ast_config		*cfg;
 	struct ast_variable	*v;
@@ -1134,19 +1193,13 @@ static int reload_config(void) {
 #ifdef ASTERISK_CONF_1_2
 	char					iabuf[INET_ADDRSTRLEN];
 #endif
-//	sccp_hostname_t 		*permithost;
 	sccp_device_t			*d;
 	sccp_line_t				*l = NULL;
-//	sccp_speed_t			*k = NULL, *k_last = NULL;
-//	char 				*splitter, *k_exten = NULL, *k_name = NULL, *k_hint = NULL;
-//	char k_speed[256];
-//	uint8_t 			speeddial_index = 1;
 	int firstdigittimeout = 0;
 	int digittimeout = 0;
 	int autoanswer_ring_time = 0;
 	int autoanswer_tone = 0;
 	int remotehangup_tone = 0;
-//	int secondary_dialtone_tone = 0;
 	int transfer_tone = 0;
 	int callwaiting_tone = 0;
 	int amaflags = 0;
@@ -1497,7 +1550,11 @@ static int reload_config(void) {
 }
 
 static char *sccp_setcalledparty_descrip = "  SetCalledParty(\"Name\" <ext>) sets the name and number of the called party for use with chan_sccp\n";
-
+/**
+ * \brief Set the name an number of the called party to the calling phone
+ * \param chan asterisk channel
+ * \param data callerid in format "Name" <number> 
+ */
 static int sccp_setcalledparty_exec(struct ast_channel *chan, void *data) {
 	char tmp[256] = "";
 	char * num, * name;
