@@ -49,8 +49,7 @@ elif grep -q "\"1\.2" $INCLUDEDIR/version.h; then
 	$REALTIME_USEABLE=0
 else
 	echo " * found unsupported asterisk version"
-	echo "#define ASTERISK_CONF_1_2" >>$CONFIGFILE
-#exit 1
+	exit 1
 fi
 
 echo >>$CONFIGFILE
