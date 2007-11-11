@@ -1516,11 +1516,49 @@ static int sccp_setcalledparty_exec(struct ast_channel *chan, void *data) {
 
 	sccp_copy_string(tmp, (char *)data, sizeof(tmp));
 	ast_callerid_parse(tmp, &name, &num);
-	
 	sccp_channel_set_calledparty(c, name, num);
 	
 	return 0;
 }
+
+
+static char *sccp_setmessage_descrip = "  SetMessage(\"Message\") sets a display message for use with chan_sccp. Clear the display with empty message\n";
+/**
+ * \brief It allows you to send a message to the calling device.
+ * \author Frank Segtrop <fs@matflow.net> 
+ * \param chan 
+ * \param data message to sent - if empty clear display
+ */
+static int sccp_setmessage_exec(struct ast_channel *chan, void *data) {
+	char tmp[256] 		= "";
+	sccp_channel_t 	* c = NULL;
+	sccp_device_t 	* d;
+
+	c = CS_AST_CHANNEL_PVT(chan);
+#ifndef CS_AST_HAS_TECH_PVT
+ 	if (strcasecmp(chan->type, "SCCP") != 0)
+ 		return 0;
+#else
+ 	if (strcasecmp(chan->tech->type, "SCCP") != 0)
+ 		return 0;
+#endif
+
+ 	if (!data || !c ||!c->device)
+ 		return 0;
+
+ 	sccp_copy_string(tmp, (char *)data, sizeof(tmp));
+
+	d = c->device;
+	ast_mutex_lock(&d->lock);
+ 	if (strlen(tmp)>0)
+ 		sccp_dev_displayprinotify(d,tmp,0,0);
+	else
+		sccp_dev_displayprinotify(d,"Message off",0,1); //turn message off
+	ast_mutex_unlock(&d->lock);
+	return 0;
+}
+
+
 
 #ifdef ASTERISK_CONF_1_2
 int load_module() {
@@ -1588,6 +1626,7 @@ static int load_module(void) {
 
 	sccp_register_cli();
 	ast_register_application("SetCalledParty", sccp_setcalledparty_exec, "Sets the name of the called party", sccp_setcalledparty_descrip);
+	ast_register_application("SetMessage", sccp_setmessage_exec, "Sets a message on the calling device", sccp_setmessage_descrip);
 	return 0;
 }
 #ifdef ASTERISK_CONF_1_2
@@ -1606,6 +1645,7 @@ static int unload_module(void) {
 #else
 	ast_channel_unregister("SCCP");
 #endif
+	ast_unregister_application("SetMessage");
 	ast_unregister_application("SetCalledParty");
 	sccp_unregister_cli();
 
