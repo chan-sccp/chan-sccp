@@ -53,8 +53,13 @@
 
 static pthread_t socket_thread;
 
-/* ---------------------------------------------------- */
 
+/**
+ * 
+ * 
+ * 
+ * 
+ */
 #ifdef CS_AST_HAS_TECH_PVT
 struct ast_channel *sccp_request(const char *type, int format, void *data, int *cause) {
 #else
@@ -275,7 +280,10 @@ int sccp_devicestate(void * data) {
 	return res;
 }
 
-
+/**
+ * 
+ * 
+ */
 sccp_hint_t * sccp_hint_make(sccp_device_t *d, uint8_t instance) {
 	sccp_hint_t *h = NULL;
 	if (!d)

@@ -49,12 +49,12 @@ void sccp_handle_alarm(sccp_session_t * s, sccp_moo_t * r) {
 }
 
 void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
-	pthread_attr_t attr;
-	sccp_device_t * d;
-	btnlist btn[StationMaxButtonTemplateSize];
+	pthread_attr_t 	attr;
+	sccp_device_t 	* d;
+	btnlist 		btn[StationMaxButtonTemplateSize];
 	char *mb, *cur, tmp[256];
 	sccp_line_t *l, *lines_last = NULL;
-	sccp_moo_t * r1;
+	sccp_moo_t 		* r1;
 	uint8_t i = 0, line_count = 0;
 	struct ast_hostent	ahp;
 	struct hostent		*hp;
@@ -366,12 +366,12 @@ static uint8_t sccp_activate_hint(sccp_device_t *d, sccp_speed_t *k) {
 
 static btnlist *sccp_make_button_template(sccp_device_t * d) {
 	int i;
-	uint8_t 		lineindex, speedindex;
+	uint8_t 			lineindex, speedindex;
 	sccp_speed_t 		*k = NULL, *k1 = NULL;
 	sccp_serviceURL_t 	*s = NULL, *s1 = NULL;
 	sccp_line_t 		*l = NULL, * l1 = NULL;
-	int 			lineInstance = 1, btn_count = 1;
-	btnlist 		*btn;
+	int 				lineInstance = 1, btn_count = 1;
+	btnlist 			*btn;
 
 	btn = malloc(sizeof(btnlist)*StationMaxButtonTemplateSize);
 	if (!btn)
@@ -870,7 +870,12 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 			break;
 	}
 }
-
+/**
+ * 
+ * 
+ * 
+ * 
+ */
 void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k) {
 	sccp_channel_t * c = NULL;
 	sccp_line_t * l;
@@ -903,7 +908,12 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k) {
 	}
 }
 
-
+/**
+ * 
+ * 
+ * 
+ * 
+ */
 void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_line_t * l;
 	sccp_channel_t * c;
@@ -941,6 +951,13 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r) {
 	}
 }
 
+/**
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
 void sccp_handle_onhook(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_channel_t * c;
 	sccp_device_t * d = s->device;
@@ -976,9 +993,15 @@ void sccp_handle_onhook(sccp_session_t * s, sccp_moo_t * r) {
 }
 
 void sccp_handle_headset(sccp_session_t * s, sccp_moo_t * r) {
-  // XXX:T: What should we do here?
+	sccp_log(10)(VERBOSE_PREFIX_3 "handle headset\n");
 }
 
+/**
+ * 
+ * 
+ * 
+ * 
+ */
 void sccp_handle_capabilities_res(sccp_session_t * s, sccp_moo_t * r) {
   int i;
   uint8_t codec;
@@ -994,7 +1017,12 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_moo_t * r) {
   }
 }
 
-
+/**
+ * 
+ * 
+ * 
+ * 
+ */
 void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r) {
 	uint8_t i;
 	const uint8_t c = sizeof(softkeysmap);
@@ -1028,7 +1056,12 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_dev_send(s->device, r1);
 }
 
-
+/**
+ * 
+ * 
+ * 
+ * 
+ */
 void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_device_t * d = s->device;
 	const softkey_modes * v = SoftKeyModes;
@@ -1126,6 +1159,13 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_dev_set_keyset(s->device, 0, 0, KEYMODE_ONHOOK);
 }
 
+
+/**
+ * 
+ * 
+ * 
+ * 
+ */
 void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * req) {
   time_t timer = 0;
   struct tm * cmtime = NULL;
@@ -1254,6 +1294,14 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
 }
 
 
+/**
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
 void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_device_t * d = s->device;
 	sccp_channel_t * c = NULL;
@@ -1356,6 +1404,14 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r) {
    */
 }
 
+
+/**
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
 void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r) {
 	struct sockaddr_in sin;
 	sccp_channel_t * c;
@@ -1426,6 +1482,11 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r) {
 	}
 }
 
+/**
+ * 
+ * 
+ * 
+ */
 void sccp_handle_version(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_moo_t * r1;
 
@@ -1438,6 +1499,13 @@ void sccp_handle_version(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending version number: %s\n", s->device->id, s->device->imageversion);
 }
 
+
+/**
+ * 
+ * 
+ * 
+ * 
+ */
 void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Statistics from %s callid: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", s->device->id, r->msg.ConnectionStatisticsRes.DirectoryNumber,
 		letohl(r->msg.ConnectionStatisticsRes.lel_CallIdentifier),
@@ -1470,6 +1538,10 @@ void sccp_handle_ServerResMessage(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_dev_send(s->device, r1);
 }
 
+/**
+ * 
+ * 
+ */
 void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_moo_t * r1;
 	uint8_t lines = 0;
@@ -1508,6 +1580,12 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending ConfigStatMessage, lines %d, speeddials %d\n", d->id, lines, speeddials);
 }
 
+
+/**
+ * 
+ * 
+ * 
+ */
 void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_moo_t * r) {
 	if (!s || !s->device)
 		return;
@@ -1515,6 +1593,12 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_moo_t * r) {
 		sccp_channel_newcall(s->device->currentLine, r->msg.EnblocCallMessage.calledParty);
 }
 
+
+/**
+ * 
+ * 
+ * 
+ */
 void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_device_t * d = s->device;
 	sccp_line_t * l;
@@ -1538,6 +1622,10 @@ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_moo_t * r) {
 	}
 }
 
+/**
+ * 
+ * 
+ */
 void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_device_t * d = s->device;
 
@@ -1548,29 +1636,30 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r) {
 	/* for now we are unable to use this skinny message */
 }
 
+/**
+ * 
+ * 
+ *  
+ */
 void sccp_handle_servicesurl_stat_req(sccp_session_t * s, sccp_moo_t * r) {
-	sccp_device_t 	* d = s->device;
-	sccp_moo_t 		* r1;
+	sccp_device_t 		* d = s->device;
+	sccp_moo_t 			* r1;
 	sccp_serviceURL_t 	* serviceURL;
 	
 	int urlIndex = letohl(r->msg.ServiceURLStatReqMessage.lel_serviceURLIndex);
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Got ServiceURL Status Request.  Index = %d\n", d->id, urlIndex);
-	
 	serviceURL = sccp_dev_serviceURL_find_byindex(s->device, urlIndex);
 	
 	REQ(r1, ServiceURLStatMessage);
 	r1->msg.ServiceURLStatMessage.lel_serviceURLIndex = htolel(urlIndex);
 	
-	if (serviceURL)
-	{
+	if (serviceURL){
 		sccp_copy_string(r1->msg.ServiceURLStatMessage.URL, serviceURL->URL, strlen(serviceURL->URL)+1);
 		sccp_copy_string(r1->msg.ServiceURLStatMessage.label, serviceURL->label, strlen(serviceURL->label)+1);
 	} 
-	else 
-	{
+	else{
 		sccp_log(3)(VERBOSE_PREFIX_3 "%s: serviceURL %d not assigned\n", DEV_ID_LOG(s->device), urlIndex);
 	}
-
 	sccp_dev_send(s->device, r1);
 }
