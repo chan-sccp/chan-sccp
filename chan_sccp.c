@@ -1593,6 +1593,7 @@ static char *sccp_setmessage_descrip = "  SetMessage(\"Message\") sets a displa
  * \author Frank Segtrop <fs@matflow.net> 
  * \param chan 
  * \param data message to sent - if empty clear display
+ * \version 20071112_1047
  */
 static int sccp_setmessage_exec(struct ast_channel *chan, void *data) {
 	char tmp[256] 		= "";
@@ -1615,10 +1616,16 @@ static int sccp_setmessage_exec(struct ast_channel *chan, void *data) {
 
 	d = c->device;
 	ast_mutex_lock(&d->lock);
- 	if (strlen(tmp)>0)
- 		sccp_dev_displayprinotify(d,tmp,0,0);
-	else
-		sccp_dev_displayprinotify(d,"Message off",0,1); //turn message off
+	if (strlen(tmp)>0) {
+		sccp_dev_displayprinotify(d,tmp,5,0);
+		sccp_dev_displayprompt(d,0,0,tmp,0);
+		d->phonemessage = strdup(tmp);
+	}
+	else {
+		sccp_dev_displayprinotify(d,"Message off",5,1);
+		sccp_dev_displayprompt(d,0,0,"Message off",1);
+		d->phonemessage = NULL;
+	}	
 	ast_mutex_unlock(&d->lock);
 	return 0;
 }

@@ -609,6 +609,10 @@ void sccp_dev_check_displayprompt(sccp_device_t * d) {
 
 	sccp_dev_clearprompt(d, 0, 0);
 	sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
+
+	if (d->phonemessage) /* display message if set */
+		sccp_dev_displayprompt(d,0,0,d->phonemessage,0);
+
 	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK); /* this is for redial softkey */
 
 	/* check for forward to display */
