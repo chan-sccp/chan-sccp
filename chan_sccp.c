@@ -974,6 +974,10 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 			if (!strcasecmp(v->name, "device")) {
 				if ( (strlen(v->value) == 15) && ((strncmp(v->value, "SEP",3) == 0) || (strncmp(v->value, "ATA",3)==0)) ) {
 					sccp_copy_string(d->id, v->value, sizeof(d->id));
+					res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
+					if (!res) 
+						d->phonemessage=strdup(message);									//set message on device if we have a result
+					strcpy(message,"");
 					ast_verbose(VERBOSE_PREFIX_3 "Added device '%s' (%s) \n", d->id, d->config_type);
 					ast_mutex_lock(&GLOB(devices_lock));
 					d->next = GLOB(devices);
