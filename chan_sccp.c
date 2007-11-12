@@ -50,6 +50,7 @@
 #ifdef CS_AST_HAS_AST_STRING_FIELD
 #include <asterisk/stringfields.h>
 #endif
+#include <asterisk/astdb.h>
 
 static pthread_t socket_thread;
 
@@ -964,6 +965,8 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 	char 			*serviceURLLabel = NULL, *serviceURLURL = NULL;
 	uint8_t 		speeddial_index = 1;
 	uint8_t			serviceURLIndex = 1;
+	char 			message[256]="";							//device message
+	int				res;
 
 	d = build_device();
 	while (v) {	
@@ -993,6 +996,10 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 			else if (!strcasecmp(v->name, "name")) {
 				if ( (strlen(v->value) == 15) && ((strncmp(v->value, "SEP",3) == 0) || (strncmp(v->value, "ATA",3)==0)) ) {
 					sccp_copy_string(d->id, v->value, sizeof(d->id));
+					res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
+					if (!res) 
+						d->phonemessage=strdup(message);									//set message on device if we have a result
+					strcpy(message,"");
 					ast_verbose(VERBOSE_PREFIX_3 "Added device '%s' (%s)\n", d->id, d->config_type);
 					ast_mutex_lock(&GLOB(devices_lock));
 					d->next = GLOB(devices);
@@ -1593,7 +1600,7 @@ static char *sccp_setmessage_descrip = "  SetMessage(\"Message\") sets a displa
  * \author Frank Segtrop <fs@matflow.net> 
  * \param chan 
  * \param data message to sent - if empty clear display
- * \version 20071112_1047
+ * \version 20071112_1944
  */
 static int sccp_setmessage_exec(struct ast_channel *chan, void *data) {
 	char tmp[256] 		= "";
@@ -1620,11 +1627,13 @@ static int sccp_setmessage_exec(struct ast_channel *chan, void *data) {
 		sccp_dev_displayprinotify(d,tmp,5,0);
 		sccp_dev_displayprompt(d,0,0,tmp,0);
 		d->phonemessage = strdup(tmp);
+		ast_db_put("SCCPM", d->id, tmp);
 	}
 	else {
 		sccp_dev_displayprinotify(d,"Message off",5,1);
 		sccp_dev_displayprompt(d,0,0,"Message off",1);
 		d->phonemessage = NULL;
+		ast_db_del("SCCPM", d->id);
 	}	
 	ast_mutex_unlock(&d->lock);
 	return 0;
