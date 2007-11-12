@@ -398,7 +398,7 @@ struct sccp_device {
 	sccp_hint_t      		* hints;							/*!< list of hint pointers. Internal lines to notify the state */
 	pthread_t        		postregistration_thread;
 	struct ast_variable 	* variables;						/*!< Channel variables to set */
-	char 					* phonemessage;						/*!< message to display */
+	char 					* phonemessage;						/*!< message to display on device*/
 };
 
 struct sccp_session {
