@@ -387,7 +387,6 @@ struct sccp_device {
 #ifdef CS_SCCP_REALTIME
 	unsigned int			realtime:1;							/*!< is it a realtimeconfiguration*/
 #endif
-
 	sccp_channel_t   		* active_channel;
 	sccp_channel_t   		* transfer_channel; 				/*!< the channel under transfer */
 	sccp_serviceURL_t 		* serviceURLs;
@@ -399,6 +398,7 @@ struct sccp_device {
 	sccp_hint_t      		* hints;							/*!< list of hint pointers. Internal lines to notify the state */
 	pthread_t        		postregistration_thread;
 	struct ast_variable 	* variables;						/*!< Channel variables to set */
+	char 					* phonemessage;						/*!< message to display */
 };
 
 struct sccp_session {
