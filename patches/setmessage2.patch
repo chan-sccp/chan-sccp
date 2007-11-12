@@ -1,0 +1,88 @@
+diff -ru chan_sccp_20071111/chan_sccp.c chan_sccp_20071111-mod/chan_sccp.c
+--- chan_sccp_20071111/chan_sccp.c	2007-11-11 16:24:24.000000000 +0100
++++ chan_sccp_20071111-mod/chan_sccp.c	2007-11-12 17:27:39.562711305 +0100
+@@ -50,6 +50,7 @@
+ #ifdef CS_AST_HAS_AST_STRING_FIELD
+ #include <asterisk/stringfields.h>
+ #endif
++#include <asterisk/astdb.h>
+ 
+ static pthread_t socket_thread;
+ 
+@@ -900,6 +901,8 @@
+ 	char 			*serviceURLLabel = NULL, *serviceURLURL = NULL;
+ 	uint8_t 		speeddial_index = 1;
+ 	uint8_t		serviceURLIndex = 1;
++	char 			tmp[256]="";
++	int			res;
+ 
+ 	d = build_device();
+ 	while (v) {	
+@@ -907,6 +910,9 @@
+ 			if (!strcasecmp(v->name, "device")) {
+ 				if ( (strlen(v->value) == 15) && ((strncmp(v->value, "SEP",3) == 0) || (strncmp(v->value, "ATA",3)==0)) ) {
+ 					sccp_copy_string(d->id, v->value, sizeof(d->id));
++				        res=ast_db_get("SCCPM", d->id, tmp, sizeof(tmp));
++        				if (!res) d->phonemessage=strdup(tmp);
++					strcpy(tmp,"");
+ 					ast_verbose(VERBOSE_PREFIX_3 "Added device '%s' (%s) \n", d->id, d->config_type);
+ 					ast_mutex_lock(&GLOB(devices_lock));
+ 					d->next = GLOB(devices);
+@@ -1550,10 +1556,22 @@
+ 
+ 	d = c->device;
+ 	ast_mutex_lock(&d->lock);
+- 	if (strlen(tmp)>0)
+- 		sccp_dev_displayprinotify(d,tmp,0,0);
+-	else
+-		sccp_dev_displayprinotify(d,"Message off",0,1); //turn message off
++
++        if (strlen(tmp)>0) {
++                sccp_dev_displayprinotify(d,tmp,5,0);
++                sccp_dev_displayprompt(d,0,0,tmp,0);
++                d->phonemessage = strdup(tmp);
++	 	 ast_db_put("SCCPM", d->id, tmp);
++                }
++        else {
++                sccp_dev_displayprinotify(d,"Message off",5,1);
++                sccp_dev_displayprompt(d,0,0,"Message off",1);
++                d->phonemessage = NULL;
++		 ast_db_del("SCCPM", d->id);
++
++        }
++	
++
+ 	ast_mutex_unlock(&d->lock);
+ 	return 0;
+ }
+diff -ru chan_sccp_20071111/chan_sccp.h chan_sccp_20071111-mod/chan_sccp.h
+--- chan_sccp_20071111/chan_sccp.h	2007-11-11 16:39:09.000000000 +0100
++++ chan_sccp_20071111-mod/chan_sccp.h	2007-11-12 10:14:30.925139313 +0100
+@@ -399,6 +399,7 @@
+ 	sccp_hint_t      		* hints;							/*!< list of hint pointers. Internal lines to notify the state */
+ 	pthread_t        		postregistration_thread;
+ 	struct ast_variable 	* variables;						/*!< Channel variables to set */
++	char 				* phonemessage;
+ };
+ 
+ struct sccp_session {
+diff -ru chan_sccp_20071111/sccp_device.c chan_sccp_20071111-mod/sccp_device.c
+--- chan_sccp_20071111/sccp_device.c	2007-11-11 17:38:21.000000000 +0100
++++ chan_sccp_20071111-mod/sccp_device.c	2007-11-12 17:28:05.844657980 +0100
+@@ -609,6 +609,16 @@
+ 
+ 	sccp_dev_clearprompt(d, 0, 0);
+ 	sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
++
++	//res=ast_db_get("SCCPM", d->id, tmp, sizeof(tmp));
++	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: ast_db_get returns %s\n", d->id, tmp);
++        //if (!res) d->phonemessage=strdup(tmp);
++	
++	
++        if (d->phonemessage)
++                sccp_dev_displayprompt(d,0,0,d->phonemessage,0);
++	
++
+ 	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK); /* this is for redial softkey */
+ 
+ 	/* check for forward to display */
