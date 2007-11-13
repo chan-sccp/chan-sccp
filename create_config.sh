@@ -68,7 +68,7 @@ then
         echo "#define CS_SCCP_PICKUP"  >>$CONFIGFILE
 fi
 
-if $REALTIME_USEABLE
+if [ "$REALTIME_USEABLE" = "1" ]
 then
 	echo -n "Use realtime functionality (y/n)[n]?"
 	read key

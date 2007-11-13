@@ -107,6 +107,54 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
+static int sccp_unregister(int fd, int argc, char * argv[]) {
+	sccp_moo_t * r;
+	sccp_hint_t * h;
+	sccp_device_t * d;
+
+	if (argc != 3)
+		return RESULT_SHOWUSAGE;
+
+	ast_cli(fd, "%s: %s request sent to the device\n", argv[2], argv[1]);
+
+	d = sccp_device_find_byid(argv[2]);
+
+	if (!d) {
+#ifdef CS_SCCP_REALTIME
+		d = sccp_device_find_realtime_byid(argv[2]);
+		if(!d)
+			ast_cli(fd, "Can't find device %s\n", argv[2]);
+#else
+		ast_cli(fd, "Can't find device %s\n", argv[2]);
+#endif	
+	}
+	if(!d)
+		return RESULT_SUCCESS;
+	
+	ast_mutex_lock(&d->lock);
+	
+	if (!d->session) {
+		ast_cli(fd, "%s: device not registered\n", argv[2]);
+		ast_mutex_unlock(&d->lock);
+		return RESULT_SUCCESS;
+	}
+	
+	ast_cli(fd, "%s: Turn off the monitored line lamps to permit the %s\n", argv[2], argv[1]);
+	h = d->hints;
+	while (h) {
+		/* force the hint state for non SCCP (or mixed) devices */
+		sccp_hint_state(NULL, NULL, AST_EXTENSION_NOT_INUSE, h);
+		h = h->next;
+	}
+	ast_mutex_unlock(&d->lock);
+
+	REQ(r, RegisterRejectMessage);
+	strncpy(r->msg.RegisterRejectMessage.text, "Unregister user request", StationMaxDisplayTextSize);
+	sccp_dev_send(d, r);
+	
+	return RESULT_SUCCESS;
+}
+
 /* ------------------------------------------------------------ */
 
 static char *sccp_print_group(char *buf, int buflen, ast_group_t group) {
@@ -325,6 +373,16 @@ static struct ast_cli_entry cli_restart = {
 	"Usage: sccp restart <deviceId>\n",
 	sccp_complete_device
 };
+
+static struct ast_cli_entry cli_unregister = {
+	{ "sccp", "unregister", NULL },
+	sccp_unregister,
+	"Unregister an SCCP device",
+	"Usage: sccp unregister <deviceId>\n",
+	sccp_complete_device
+};
+
+
 
 /* ------------------------------------------------------------ */
 
@@ -731,6 +789,7 @@ void sccp_register_cli(void) {
   ast_cli_register(&cli_reload);
   ast_cli_register(&cli_restart);
   ast_cli_register(&cli_reset);
+  ast_cli_register(&cli_unregister);
   ast_cli_register(&cli_do_debug);
   ast_cli_register(&cli_no_debug);
   ast_cli_register(&cli_system_message);
@@ -750,6 +809,7 @@ void sccp_unregister_cli(void) {
   ast_cli_unregister(&cli_reload);
   ast_cli_unregister(&cli_restart);
   ast_cli_unregister(&cli_reset);
+  ast_cli_unregister(&cli_unregister);
   ast_cli_unregister(&cli_do_debug);
   ast_cli_unregister(&cli_no_debug);
   ast_cli_unregister(&cli_system_message);
