@@ -809,7 +809,7 @@ void sccp_channel_transfer(sccp_channel_t * c) {
 		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CALLTRANSFER);
 	newcall = sccp_channel_newcall(c->line, NULL);
 	/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER*/
-	if (newcall && newcall->owner && CS_AST_BRIDGED_CHANNEL(c->owner))
+	if (newcall && newcall->owner && c->owner && CS_AST_BRIDGED_CHANNEL(c->owner))
 		pbx_builtin_setvar_helper(newcall->owner, "_BLINDTRANSFER", CS_AST_BRIDGED_CHANNEL(c->owner)->name);
 }
 
