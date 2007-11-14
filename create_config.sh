@@ -9,7 +9,7 @@
 #
 
 CONFIGFILE="config.h"
-REALTIME_USEABLE=1
+REALTIME_USEABLE=0
 
 if [ -e "$CONFIGFILE" ]; then
 	exit
@@ -42,11 +42,11 @@ echo "Checking Asterisk version..."
 if grep -q "\"1\.4" $INCLUDEDIR/version.h; then
 	echo "#define ASTERISK_CONF_1_4" >>$CONFIGFILE
 	echo " * found asterisk 1.4"
+	REALTIME_USEABLE=0
 	
 elif grep -q "\"1\.2" $INCLUDEDIR/version.h; then
 	echo "#define ASTERISK_CONF_1_2" >>$CONFIGFILE
 	echo " * found asterisk 1.2"
-	REALTIME_USEABLE=0
 else
 	echo " * found unsupported asterisk version"
 	exit 1
