@@ -358,6 +358,12 @@ OUT:
 
 static int sccp_pbx_answer(struct ast_channel *ast) {
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
+	
+	// if channel type is undefined, set to SCCP
+	if (!ast->type) {
+		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Channel type undefined, setting to type 'SCCP'\n");
+		ast->type = "SCCP";
+	}
 
 	if (!c || !c->device || !c->line) {
 		ast_log(LOG_ERROR, "SCCP: Answered %s but no SCCP channel\n", ast->name);
@@ -484,7 +490,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	if (c->state == SCCP_CHANNELSTATE_CONNECTED) {
 		/* let's asterisk emulate it */
 		ast_mutex_unlock(&c->lock);
-		return -1;
+		return -1;;
 
 	}
 	
@@ -529,6 +535,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 #endif
 
 	case -1:
+		res = -1;
 		break;
 
 	default:
