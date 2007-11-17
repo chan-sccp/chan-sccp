@@ -227,7 +227,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 				optv[opti] += 7;
 				if (!strcasecmp(optv[opti], "inside"))
 					c->ringermode = SKINNY_STATION_INSIDERING;
-				if (!strcasecmp(optv[opti], "outside"))
+				else if (!strcasecmp(optv[opti], "outside"))
 					c->ringermode = SKINNY_STATION_OUTSIDERING;
 				else if (!strcasecmp(optv[opti], "feature"))
 					c->ringermode = SKINNY_STATION_FEATURERING;
