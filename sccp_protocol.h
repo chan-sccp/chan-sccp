@@ -1071,6 +1071,7 @@ static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_TRNSFVM,
 	SKINNY_LBL_DND,
 	SKINNY_LBL_DIRTRFR, 
+  SKINNY_LBL_SELECT
 };
 
 typedef struct {
