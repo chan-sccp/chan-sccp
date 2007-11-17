@@ -1110,8 +1110,8 @@ static const uint8_t skSet_Connected [] = {
 	SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_CFWDBUSY,
 	SKINNY_LBL_DND,
-	SKINNY_LBL_DIRTRFR,
-  SKINNY_LBL_SELECT
+  SKINNY_LBL_SELECT,
+	SKINNY_LBL_DIRTRFR
 };
 
 static const uint8_t skSet_Onhold [] = {
