@@ -1384,6 +1384,9 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r) {
 	case SKINNY_LBL_DIRTRFR:
 		sccp_sk_dirtrfr(d, l, c);
 		break;
+	case SKINNY_LBL_SELECT:
+		sccp_sk_select(d, l, c);
+		break;
 	case SKINNY_LBL_PRIVATE:
 		sccp_sk_private(d, l, c);
 		break;
