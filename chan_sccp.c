@@ -508,7 +508,7 @@ void sccp_hint_notify(sccp_channel_t * c, sccp_device_t * onedevice) {
 /**
  * asterisk hint wrapper 
  */
-enum ast_extension_states sccp_hint_state(char *context, char* exten, enum ast_extension_states state, void *data) {
+ast_state_cb_type sccp_hint_state(char *context, char* exten, enum ast_extension_states state, void *data) {
 	sccp_hint_t * h = data;
 	sccp_device_t *d;
 	sccp_moo_t * r;
