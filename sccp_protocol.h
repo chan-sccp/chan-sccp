@@ -1118,8 +1118,8 @@ static const uint8_t skSet_Onhold [] = {
 	SKINNY_LBL_NEWCALL,
 	SKINNY_LBL_ENDCALL,
 	SKINNY_LBL_TRANSFER,
-	SKINNY_LBL_DIRTRFR,
-  SKINNY_LBL_SELECT
+  SKINNY_LBL_SELECT,
+	SKINNY_LBL_DIRTRFR
 };
 
 static const uint8_t skSet_Ringin [] = {
