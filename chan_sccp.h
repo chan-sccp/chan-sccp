@@ -545,7 +545,7 @@ sccp_hint_t * sccp_hint_make(sccp_device_t *d, uint8_t instance);
 void sccp_hint_notify_devicestate(sccp_device_t * d, uint8_t state);
 void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * onedevice);
 void sccp_hint_notify_channelstate(sccp_device_t *d, uint8_t instance, sccp_channel_t * c);
-int sccp_hint_state(char *context, char* exten, int state, void *data);
+int sccp_hint_state(char *context, char* exten, enum ast_extension_states state, void *data);
 void sccp_hint_notify(sccp_channel_t *c, sccp_device_t * onedevice);
 
 sccp_device_t * build_devices(struct ast_variable *v);

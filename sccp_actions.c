@@ -347,10 +347,10 @@ static uint8_t sccp_activate_hint(sccp_device_t *d, sccp_speed_t *k) {
 	splitter = hint_dialplan;
 	strsep(&splitter, "/");
 	sccp_copy_string(hint_dialplan, splitter, sizeof(hint_dialplan));
-	if (hint_dialplan){
+	/* if (hint_dialplan){ */
 		ast_strip(hint_dialplan);
 		l = sccp_line_find_byname(hint_dialplan);
-	}
+	/* } */
 	if (!l) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Error adding hint (SCCP) for line: %s. The line does not exist!\n", d->id, hint_dialplan);
 		free(h);
