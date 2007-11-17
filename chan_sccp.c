@@ -508,7 +508,7 @@ void sccp_hint_notify(sccp_channel_t * c, sccp_device_t * onedevice) {
 /**
  * asterisk hint wrapper 
  */
-ast_state_cb_type sccp_hint_state(char *context, char* exten, enum ast_extension_states state, void *data) {
+int sccp_hint_state(char *context, char* exten, enum ast_extension_states state, void *data) {
 	sccp_hint_t * h = data;
 	sccp_device_t *d;
 	sccp_moo_t * r;
@@ -945,6 +945,8 @@ sccp_device_t * build_device(void) {
 #else
 	d->park = 0;
 #endif
+  
+  d->selectedChannels = NULL;
 
   return d;
 }

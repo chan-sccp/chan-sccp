@@ -1005,6 +1005,12 @@ typedef union {
 		char	 label[StationMaxNameSize];
 	} ServiceURLStatMessage; 
       
+  struct {
+    uint32_t lel_status;
+		uint32_t lel_callReference;
+    uint32_t lel_lineInstance;
+	} CallSelectStatMessage; 
+  
 	struct {
 		uint32_t lel_displayTimeout;
 		uint32_t lel_priority;
@@ -1102,16 +1108,18 @@ static const uint8_t skSet_Connected [] = {
 #endif
 	SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_CFWDBUSY,
-	SKINNY_LBL_DND
-//	SKINNY_LBL_DIRTRFR
+	SKINNY_LBL_DND,
+	SKINNY_LBL_DIRTRFR,
+  SKINNY_LBL_SELECT
 };
 
 static const uint8_t skSet_Onhold [] = {
 	SKINNY_LBL_RESUME,
 	SKINNY_LBL_NEWCALL,
 	SKINNY_LBL_ENDCALL,
-	SKINNY_LBL_TRANSFER
-//	SKINNY_LBL_DIRTRFR
+	SKINNY_LBL_TRANSFER,
+	SKINNY_LBL_DIRTRFR,
+  SKINNY_LBL_SELECT
 };
 
 static const uint8_t skSet_Ringin [] = {

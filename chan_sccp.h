@@ -400,6 +400,8 @@ struct sccp_device {
 	pthread_t        		postregistration_thread;
 	struct ast_variable 	* variables;						/*!< Channel variables to set */
 	char 					* phonemessage;						/*!< message to display on device*/
+  
+  struct sccp_selected_channel    *selectedChannels;
 };
 
 struct sccp_session {
@@ -531,6 +533,11 @@ struct sccp_global_vars {
 #endif	
 };
 
+struct sccp_selected_channel {
+  sccp_channel_t *c;
+  struct sccp_selected_channel *next;  
+};
+
 struct sccp_global_vars *sccp_globals;
 
 uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s);
@@ -546,7 +553,7 @@ sccp_hint_t * sccp_hint_make(sccp_device_t *d, uint8_t instance);
 void sccp_hint_notify_devicestate(sccp_device_t * d, uint8_t state);
 void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * onedevice);
 void sccp_hint_notify_channelstate(sccp_device_t *d, uint8_t instance, sccp_channel_t * c);
-ast_state_cb_type sccp_hint_state(char *context, char* exten, enum ast_extension_states state, void *data);
+int sccp_hint_state(char *context, char* exten, enum ast_extension_states state, void *data);
 void sccp_hint_notify(sccp_channel_t *c, sccp_device_t * onedevice);
 
 sccp_device_t * build_devices(struct ast_variable *v);

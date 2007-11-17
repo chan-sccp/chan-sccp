@@ -205,6 +205,58 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	/* sccp_channel_dirtrfr(c); */
 }
 
+void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+  struct sccp_selected_channel *cur = NULL, *hel = NULL;
+  sccp_moo_t 			* r1;
+  
+  if(NULL == d)
+  {
+    sccp_log(10)(VERBOSE_PREFIX_3 "Null device!");
+    return;
+  }
+  
+  if(NULL == c)
+  {
+    sccp_log(10)(VERBOSE_PREFIX_3 "Null channel!");
+    return;
+  }
+  int status = 0;
+  
+  ast_mutex_lock(&d->lock);
+ 
+  cur = d->selectedChannels;
+  while(NULL != cur) {
+    if(c == cur->c) {
+      status = 0;
+      if(cur->next != NULL) {
+        hel = cur->next;
+        cur->next = cur->next->next;
+        free(hel);
+      }
+      break;
+    } else {
+      cur = cur->next;
+    }
+  }
+  
+  if(NULL == cur)
+  {
+    hel = malloc(sizeof(struct sccp_selected_channel));
+    hel->c = c;
+    hel->next = d->selectedChannels;
+    d->selectedChannels = hel;
+    status = 1;
+  }
+  
+  REQ(r1, CallSelectStatMessage);
+	r1->msg.CallSelectStatMessage.lel_status = htolel(status);
+  r1->msg.CallSelectStatMessage.lel_lineInstance = htolel(l->instance);
+  r1->msg.CallSelectStatMessage.lel_callReference = htolel(c->callid);
+	sccp_dev_send(d, r1);
+  
+  ast_mutex_unlock(&d->lock);
+}
+
 void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	if (!c || !c->owner) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Call forward with no channel active\n", d->id);
