@@ -168,8 +168,12 @@ void sccp_channel_send_callinfo(sccp_channel_t * c) {
 	r->msg.CallInfoMessage.lel_callRef  = htolel(c->callid);
 	r->msg.CallInfoMessage.lel_callType = htolel(c->calltype);
 	r->msg.CallInfoMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
-	sccp_dev_send(c->line->device, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send callinfo for %s channel %d\n", c->line->device->id, skinny_calltype2str(c->calltype), c->callid);
+	
+	if (c->line->device){
+		sccp_dev_send(c->line->device, r);
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send callinfo for %s channel %d\n", c->line->device->id, skinny_calltype2str(c->calltype), c->callid);
+	}else
+		return;
 }
 
 void sccp_channel_send_dialednumber(sccp_channel_t * c) {
@@ -925,9 +929,10 @@ void sccp_channel_transfer_complete(sccp_channel_t * c) {
 
 	
 	ast_mutex_lock(&d->lock);
-	if (peer->owner)
+	if (peer->owner){
+		ast_mutex_unlock(&d->lock);
 		ast_queue_hangup(peer->owner);
-	else {
+	}else {
 		sccp_log(1)(VERBOSE_PREFIX_3 "Peer owner disappeared! Can't free ressources\n");
 		ast_mutex_unlock(&d->lock);
 		return;
@@ -935,6 +940,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * c) {
 	ast_mutex_unlock(&transferee->lock);
 	//ast_mutex_lock(&d->lock);
 
+	ast_mutex_lock(&d->lock);
 	d->transfer_channel = NULL;
 	ast_mutex_unlock(&d->lock);
 
