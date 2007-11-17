@@ -16,6 +16,7 @@ void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 
 void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
+void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 
 void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 void sccp_sk_park(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
