@@ -382,7 +382,6 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 	sccp_device_t * d;
 	struct ast_channel * ast;
 	uint8_t res = 0;
-	struct sccp_selected_channel *cur = NULL, *par = NULL;
 
 	if (!c || !c->device)
 		return;
@@ -654,6 +653,7 @@ void sccp_channel_delete(sccp_channel_t * c) {
 void sccp_channel_delete_no_lock(sccp_channel_t * c) {
 	sccp_line_t * l;
 	sccp_device_t * d;
+	struct sccp_selected_channel *cur = NULL, *par = NULL;
 
 	if (!c)
 		return;
