@@ -382,6 +382,7 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 	sccp_device_t * d;
 	struct ast_channel * ast;
 	uint8_t res = 0;
+	struct sccp_selected_channel *cur = NULL, *par = NULL;
 
 	if (!c || !c->device)
 		return;
@@ -412,7 +413,22 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 //	res = (c->calltype == SKINNY_CALLTYPE_INBOUND || ast->pbx || ast->blocker || CS_AST_BRIDGED_CHANNEL(ast));
 	/* is there a blocker? */
 	res = (ast->pbx ||ast->blocker);
-
+	
+	ast_mutex_lock(&d->lock);
+	cur = d->selectedChannels;
+	while(NULL != cur) {
+	    if(c == cur->c) {
+	    	if(NULL == par)
+	    		d->selectedChannels = cur->next;
+	    	else 
+	    		par->next = cur->next;
+	    	free(cur);
+	    } else {
+	    	par = cur;
+	    	cur = cur->next;
+	    }
+	}
+	ast_mutex_unlock(&d->lock);
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending %s hangup request to %s\n", DEV_ID_LOG(d), res ? "(queue)" : "(force)", ast->name);
 
 	ast_mutex_unlock(&c->lock);
