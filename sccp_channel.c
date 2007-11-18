@@ -414,23 +414,6 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 	/* is there a blocker? */
 	res = (ast->pbx ||ast->blocker);
 	
-	//remove selected channels
-	ast_mutex_lock(&d->lock);
-	cur = d->selectedChannels;
-	while(NULL != cur) {
-	    if(c == cur->c) {
-	    	if(NULL == par)
-	    		d->selectedChannels = cur->next;
-	    	else 
-	    		par->next = cur->next;
-	    	free(cur);
-	    } 
-	    par = cur;
-	    cur = cur->next;
-	}
-	ast_mutex_unlock(&d->lock);
-	//remove selected channels
-	
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending %s hangup request to %s\n", DEV_ID_LOG(d), res ? "(queue)" : "(force)", ast->name);
 
 	ast_mutex_unlock(&c->lock);
@@ -741,8 +724,25 @@ void sccp_channel_delete_no_lock(sccp_channel_t * c) {
 	ast_mutex_lock(&d->lock);
 	d->channelCount--;
 	if (d->active_channel == c)
-		d->active_channel = NULL;
+		d->active_channel = NULL;	
 	ast_mutex_unlock(&d->lock);
+	
+	//remove selected channels
+	ast_mutex_lock(&d->lock);
+	cur = d->selectedChannels;
+	while(NULL != cur) {
+	    if(c == cur->c) {
+	    	if(NULL == par)
+	    		d->selectedChannels = cur->next;
+	    	else 
+	    		par->next = cur->next;
+	    	free(cur);
+	    } 
+	    par = cur;
+	    cur = cur->next;
+	}
+	ast_mutex_unlock(&d->lock);
+	//remove selected channels
 	
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Deleted channel %d from line %s\n", DEV_ID_LOG(d), c->callid, l ? l->name : "(null)");
 	ast_mutex_unlock(&c->lock);
