@@ -1046,7 +1046,7 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", s->device->id, i, i+1, skinny_lbl2str(softkeysmap[i]));
 		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = 128;
 		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = softkeysmap[i];
-		r1->msg.SoftKeyTemplateResMessage.definition[i].lel_softKeyEvent = htolel(i+1);
+		r1->msg.SoftKeyTemplateResMessage.definition[i].lel_softKeyEvent = htolel(i+1==28?78:i+1); /* Very dirty hack (DD) */
 	}
 	
 	ast_mutex_unlock(&d->lock);
