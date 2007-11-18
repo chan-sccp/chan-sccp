@@ -206,7 +206,7 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 }
 
 void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
-  struct sccp_selected_channel *cur = NULL, *hel = NULL;
+  struct sccp_selected_channel *cur = NULL, *par = NULL;
   sccp_moo_t 			* r1;
   
   if(NULL == d)
@@ -228,23 +228,27 @@ void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
   while(NULL != cur) {
     if(c == cur->c) {
       status = 0;
-      if(cur->next != NULL) {
-        hel = cur->next;
-        cur->next = cur->next->next;
-        free(hel);
+      if(NULL == par) {
+        d->selectedChannels = cur->next;
+        free(cur);
+      }
+      else {
+        par->next = cur->next;
+        free(cur);
       }
       break;
     } else {
+      par = cur;
       cur = cur->next;
     }
   }
   
   if(NULL == cur)
   {
-    hel = malloc(sizeof(struct sccp_selected_channel));
-    hel->c = c;
-    hel->next = d->selectedChannels;
-    d->selectedChannels = hel;
+    par = malloc(sizeof(struct sccp_selected_channel));
+    par->c = c;
+    par->next = d->selectedChannels;
+    d->selectedChannels = par;
     status = 1;
   }
   
