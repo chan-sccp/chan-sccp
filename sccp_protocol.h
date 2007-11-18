@@ -1112,14 +1112,12 @@ static const uint8_t skSet_Onhook [] = {
 static const uint8_t skSet_Connected [] = {
 	SKINNY_LBL_HOLD,
 	SKINNY_LBL_ENDCALL,
-	SKINNY_LBL_TRANSFER,
 #ifdef CS_SCCP_PARK
 	SKINNY_LBL_PARK,
 #endif
-	//SKINNY_LBL_CFWDALL,
-	//SKINNY_LBL_CFWDBUSY,
   SKINNY_LBL_SELECT,
-	SKINNY_LBL_DIRTRFR
+  SKINNY_LBL_CFWDALL,
+	SKINNY_LBL_CFWDBUSY
 };
 
 static const uint8_t skSet_Onhold [] = {
@@ -1156,7 +1154,9 @@ static const uint8_t skSet_Conntrans [] = {
 #ifdef CS_SCCP_PARK
 	SKINNY_LBL_PARK,
 #endif
-	SKINNY_LBL_CFWDALL,
+  SKINNY_LBL_SELECT,
+	SKINNY_LBL_DIRTRFR,
+  SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_CFWDBUSY
 };
 
