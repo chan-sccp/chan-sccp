@@ -414,6 +414,7 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 	/* is there a blocker? */
 	res = (ast->pbx ||ast->blocker);
 	
+	//remove selected channels
 	ast_mutex_lock(&d->lock);
 	cur = d->selectedChannels;
 	while(NULL != cur) {
@@ -429,6 +430,8 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 	    }
 	}
 	ast_mutex_unlock(&d->lock);
+	//remove selected channels
+	
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending %s hangup request to %s\n", DEV_ID_LOG(d), res ? "(queue)" : "(force)", ast->name);
 
 	ast_mutex_unlock(&c->lock);
