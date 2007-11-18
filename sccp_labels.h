@@ -29,7 +29,7 @@
 #define SKINNY_LBL_BUSY                                              	25
 #define SKINNY_LBL_LINE_IN_USE                                       	26
 #define SKINNY_LBL_CALL_WAITING                                      	27
-#define SKINNY_LBL_CALL_TRANSFER                                     	28
+#define SKINNY_LBL_CALL_TRANSFER                                     	128 /* Used to be 28 */
 #define SKINNY_LBL_CALL_PARK                                         	29
 #define SKINNY_LBL_CALL_PROCEED                                      	30
 #define SKINNY_LBL_IN_USE_REMOTE                                     	31
