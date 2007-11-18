@@ -424,10 +424,9 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 	    	else 
 	    		par->next = cur->next;
 	    	free(cur);
-	    } else {
-	    	par = cur;
-	    	cur = cur->next;
-	    }
+	    } 
+	    par = cur;
+	    cur = cur->next;
 	}
 	ast_mutex_unlock(&d->lock);
 	//remove selected channels
