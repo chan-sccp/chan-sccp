@@ -79,7 +79,7 @@
 #define SKINNY_LBL_QRT                                               	75
 #define SKINNY_LBL_MCID                                              	76
 #define SKINNY_LBL_DIRTRFR                                           	77
-#define SKINNY_LBL_SELECT                                            	78
+#define SKINNY_LBL_SELECT                                            	28 /* Used to be 78 */
 #define SKINNY_LBL_CONFLIST                                          	79
 #define SKINNY_LBL_IDIVERT                                           	80
 #define SKINNY_LBL_CBARGE                                            	81
