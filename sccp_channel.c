@@ -893,7 +893,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * c) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Complete transfer from %s-%d\n", d->id, c->line->name, c->callid);
 
 	
-	//commentet for testing of select transfer
+	//commented for testing of select transfer
 //	if (c->state != SCCP_CHANNELSTATE_RINGOUT && c->state != SCCP_CHANNELSTATE_CONNECTED) {
 //		ast_log(LOG_WARNING, "Failed to complete transfer. The channel is not ringing or connected\n");
 //		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, c->line->instance, c->callid, 0);
