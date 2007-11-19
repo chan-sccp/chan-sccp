@@ -862,6 +862,11 @@ static void * sccp_channel_transfer_ringing_thread(void *data) {
 	return NULL;
 }
 
+/**
+ * bridge two channels
+ * 
+ * \todo find a way solve the chan->state problem
+ */
 void sccp_channel_transfer_complete(sccp_channel_t * c) {
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char *name, *number, *cidtmp;
@@ -887,12 +892,14 @@ void sccp_channel_transfer_complete(sccp_channel_t * c) {
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Complete transfer from %s-%d\n", d->id, c->line->name, c->callid);
 
-	if (c->state != SCCP_CHANNELSTATE_RINGOUT && c->state != SCCP_CHANNELSTATE_CONNECTED) {
-		ast_log(LOG_WARNING, "Failed to complete transfer. The channel is not ringing or connected\n");
-		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, c->line->instance, c->callid, 0);
-		sccp_dev_displayprompt(d, c->line->instance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
-		return;
-	}
+	
+	//commentet for testing of select transfer
+//	if (c->state != SCCP_CHANNELSTATE_RINGOUT && c->state != SCCP_CHANNELSTATE_CONNECTED) {
+//		ast_log(LOG_WARNING, "Failed to complete transfer. The channel is not ringing or connected\n");
+//		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, c->line->instance, c->callid, 0);
+//		sccp_dev_displayprompt(d, c->line->instance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
+//		return;
+//	}
 
 	if (!c->owner || !peer->owner) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer error, asterisk channel error %s-%d and %s-%d\n", d->id, c->line->name, c->callid, peer->line->name, peer->callid);
