@@ -1170,7 +1170,6 @@ static const uint8_t skSet_Connconf []	= {
 };
 
 static const uint8_t skSet_RingOut [] = {
-	SKINNY_LBL_EMPTY,
 	SKINNY_LBL_ENDCALL,
 	SKINNY_LBL_TRANSFER,
 	SKINNY_LBL_CFWDALL,
