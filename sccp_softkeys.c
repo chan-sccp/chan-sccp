@@ -209,43 +209,47 @@ void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
  */
 void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	struct sccp_selected_channel *s;
-		sccp_channel_t *chan1 = NULL, *chan2 = NULL, *tmp = NULL;
-		uint8_t numSelectedChannels =0;
-		
-		if(!d)
-			return;
-		ast_mutex_lock(&d->lock);
-		s = d->selectedChannels;
-		if(!s)
-			return;
-		
-		chan1 = s->c;
-		while(s){
-			numSelectedChannels++;
-			if(numSelectedChannels==2)
-				chan2= s->c;
-			s=s->next;
+	sccp_channel_t *chan1 = NULL, *chan2 = NULL, *tmp = NULL;
+	uint8_t numSelectedChannels =0;
+	
+	if(!d)
+		return;
+	ast_mutex_lock(&d->lock);
+	s = d->selectedChannels;
+	if(!s)
+		return;
+	
+	chan1 = s->c;
+	while(s){
+		numSelectedChannels++;
+		if(numSelectedChannels==2)
+			chan2= s->c;
+		s=s->next;
+	}
+	
+	if(chan1 && chan2){
+		//for using the sccp_channel_transfer_complete function
+		//chan2 must be in RINGOUT or CONNECTED state
+		if(chan2->state != SCCP_CHANNELSTATE_CONNECTED && chan1->state == SCCP_CHANNELSTATE_CONNECTED){
+			tmp = chan1;
+			chan1 = chan2;
+			chan2 = tmp;
+		} else if (chan1->state == SCCP_CHANNELSTATE_HOLD && chan2->state == SCCP_CHANNELSTATE_HOLD){
+			//resume chan2 if both channels are on hold
+			ast_mutex_unlock(&d->lock);
+			sccp_channel_resume(chan2);
+			ast_mutex_lock(&d->lock);
 		}
-		
-		if(chan1 && chan2){
-			//for using the sccp_channel_transfer_complete function
-			//chan2 must be in RINGOUT or CONNECTED state
-			if(chan2->state != SCCP_CHANNELSTATE_CONNECTED && chan1->state == SCCP_CHANNELSTATE_CONNECTED){
-				tmp = chan1;
-				chan1 = chan2;
-				chan2 = tmp;
-				tmp = NULL;
-			}
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: State of chan1 is: %d\n", d->id, chan1->state);
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: State of chan1 is: %d\n", d->id, chan2->state);
-			d->transfer_channel = chan1;
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: State of chan1 is: %d\n", d->id, chan1->state);
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: State of chan2 is: %d\n", d->id, chan2->state);
+		d->transfer_channel = chan1;
 
-			ast_mutex_unlock(&d->lock);
-			sccp_channel_transfer_complete(chan2);
-		}else{
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: We need 2 channels to transfer\n", d->id);
-			ast_mutex_unlock(&d->lock);
-		}
+		ast_mutex_unlock(&d->lock);
+		sccp_channel_transfer_complete(chan2);
+	}else{
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: We need 2 channels to transfer\n", d->id);
+		ast_mutex_unlock(&d->lock);
+	}
 }
 
 void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
