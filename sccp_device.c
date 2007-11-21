@@ -210,7 +210,15 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt) {
 		/* the sccp_dev_check_displayprompt(d); can't stay here, IPC will not reboot correctly */
 	}
 }
-
+/**
+ * sets device d info the SoftKey mode specified by opt
+ * 
+ * \param d device
+ * \param line line
+ * \param callid callid
+ * \param opt KEYMODE of KEYMODE_*
+ * 
+ */
 void sccp_dev_set_keyset(sccp_device_t * d, uint8_t line, uint32_t callid, uint8_t opt) {
 	sccp_moo_t * r;
 	if (!d || !d->session)
