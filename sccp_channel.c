@@ -969,34 +969,10 @@ void sccp_channel_transfer_complete(sccp_channel_t * c) {
 	d->transfer_channel = NULL;
 	ast_mutex_unlock(&d->lock);
   
-    
-    /* it's a SCCP channel destination on transfer */
-    c = CS_AST_CHANNEL_PVT(transferred);
-    
-    if (c) {
-      sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer confirmation transferred on channel %s\n", d->id, transferred->name);
-      /* display the transferred CID info to transferred */
-#ifdef CS_AST_CHANNEL_HAS_CID
-      sccp_channel_set_callingparty(c, transferee->cid.cid_name, transferee->cid.cid_num);
-#else
-      if (transferee->callerid && (cidtmp = strdup(transferee->callerid))) {
-        ast_callerid_parse(cidtmp, &name, &number);
-        sccp_channel_set_callingparty(c, name, number);
-        free(cidtmp);
-      }
-#endif
-      sccp_channel_send_callinfo(c);
-      if (GLOB(transfer_tone) && c->state == SCCP_CHANNELSTATE_CONNECTED)
-			/* while connected not all the tones can be played */
-        sccp_dev_starttone(c->device, GLOB(autoanswer_tone), c->line->instance, c->callid, 0);
-    }
   
 
 	if (!destination) {
 		/* the channel was ringing not answered yet. BLIND TRANSFER */
-    
-    c = CS_AST_CHANNEL_PVT(transferred);
-     
   return;
 }
 
