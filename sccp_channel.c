@@ -991,7 +991,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * c) {
   c = CS_AST_CHANNEL_PVT(transferee);  
 
 	if (c) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer confirmation destination on channel %s\n", d->id, destination->name);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer confirmation destination on channel %s\n", d->id, transferee->name);
 		/* display the transferred CID info to destination */
 #ifdef CS_AST_CHANNEL_HAS_CID
 		sccp_channel_set_callingparty(c, transferred->cid.cid_name, transferred->cid.cid_num);
