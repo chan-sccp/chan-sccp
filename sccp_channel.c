@@ -969,10 +969,12 @@ void sccp_channel_transfer_complete(sccp_channel_t * c) {
 	d->transfer_channel = NULL;
 	ast_mutex_unlock(&d->lock);
 
+#if 0
 	if (!destination) {
 		/* the channel was ringing not answered yet. BLIND TRANSFER */
 		return;
 	}
+#endif
 
 #ifndef CS_AST_HAS_TECH_PVT
 	if (strncasecmp(destination->type,"SCCP",4)) {
