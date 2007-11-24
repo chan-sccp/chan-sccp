@@ -222,7 +222,7 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	chan1 = s->c;
 	while(s){
 		numSelectedChannels++;
-		if(numSelectedChannels==2)
+		if(2 == numSelectedChannels)
 			chan2= s->c;
 		s=s->next;
 	}
