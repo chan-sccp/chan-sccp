@@ -974,7 +974,6 @@ void sccp_channel_transfer_complete(sccp_channel_t * c) {
 		/* the channel was ringing not answered yet. BLIND TRANSFER */
 		return;
 	}
-#endif
 
 #ifndef CS_AST_HAS_TECH_PVT
 	if (strncasecmp(destination->type,"SCCP",4)) {
@@ -987,6 +986,9 @@ void sccp_channel_transfer_complete(sccp_channel_t * c) {
 
 	/* it's a SCCP channel destination on transfer */
 	c = CS_AST_CHANNEL_PVT(destination);
+#endif
+    
+  c = CS_AST_CHANNEL_PVT(transferee);  
 
 	if (c) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer confirmation destination on channel %s\n", d->id, destination->name);
