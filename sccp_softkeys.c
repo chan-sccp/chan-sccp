@@ -13,6 +13,15 @@
  * distributed under the terms of the GNU Public License.
  */
 
+/**
+ * \page intro_sk SoftKeys
+ * \ref sk_select The SELECT softkey <br />
+ * \ref sk_DirTrfr The DirTrfr softkey
+ * 
+ * 
+ */
+
+
 #include "config.h"
 
 #ifndef ASTERISK_CONF_1_2
@@ -205,7 +214,8 @@ void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 
 /**
  * bridge two selected channels 
- * 
+ * \page sk_DirTrfr DirTrfr
+ * \section sk_DirTrfr_howto How to use the DirTrfr
  * 
  */
 void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
@@ -253,6 +263,24 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	}
 }
 
+
+/**
+ * 
+ * \page sk_select select
+ * \section sk_select_howto How to use the select softkey
+ * 
+ * The "Select" softkey is used for bridging tow channels (redirect).
+ * Select your first channel and press the select softkey. On the display this channel is marked
+ * with a checkmark.
+ * By selecting the second channel, it is also marked with a checkmark and the \ref sk_DirTrfr DirTrfr 
+ * is enabled. Press this key to bridge both channels.  
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
 void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	struct sccp_selected_channel *cur = NULL, *par = NULL;
 	uint8_t numSelectedChannels =0;

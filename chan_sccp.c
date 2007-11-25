@@ -12,6 +12,16 @@
  * This program is free software and may be modified and
  * distributed under the terms of the GNU Public License.
  */
+
+
+
+/**
+ * \mainpage chan_sccp-b User documentation
+ * 
+ * \ref intro_sk The Softkeys
+ * 
+ * 
+ */
 #define AST_MODULE "chan_sccp"
 
 #include "config.h"
