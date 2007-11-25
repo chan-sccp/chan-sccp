@@ -24,6 +24,7 @@
 #include "sccp_device.h"
 #include "sccp_line.h"
 #include "sccp_indicate.h"
+#include "sccp_protocol.h"
 #ifndef CS_AST_HAS_TECH_PVT
 #include <asterisk/channel_pvt.h>
 #endif
@@ -253,59 +254,71 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 }
 
 void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
-  struct sccp_selected_channel *cur = NULL, *par = NULL;
-  sccp_moo_t 			* r1;
+	struct sccp_selected_channel *cur = NULL, *par = NULL;
+	uint8_t numSelectedChannels =0;
+	sccp_moo_t 			* r1;
   
-  if(NULL == d)
-  {
-    sccp_log(10)(VERBOSE_PREFIX_3 "Null device!");
-    return;
-  }
+	if(NULL == d)
+	{
+		sccp_log(10)(VERBOSE_PREFIX_3 "Null device!");
+		return;
+	}
   
-  if(NULL == c)
-  {
-    sccp_log(10)(VERBOSE_PREFIX_3 "Null channel!");
-    return;
-  }
-  int status = 0;
+	if(NULL == c)
+	{
+		sccp_log(10)(VERBOSE_PREFIX_3 "Null channel!");
+		return;
+	}
+	int status = 0;
   
-  ast_mutex_lock(&d->lock);
+	ast_mutex_lock(&d->lock);
  
-  cur = d->selectedChannels;
-  while(NULL != cur) {
-    if(c == cur->c) {
-      status = 0;
-      if(NULL == par) {
-        d->selectedChannels = cur->next;
-        free(cur);
-      }
-      else {
-        par->next = cur->next;
-        free(cur);
-      }
-      break;
-    } else {
-      par = cur;
-      cur = cur->next;
-    }
-  }
+	cur = d->selectedChannels;
+	while(NULL != cur) {
+		if(c == cur->c) {
+			status = 0;
+			if(NULL == par) {
+				d->selectedChannels = cur->next;
+				free(cur);
+			}
+		else {
+			par->next = cur->next;
+			free(cur);
+		}
+			break;
+		} else {
+			par = cur;
+			cur = cur->next;
+		}
+	}
   
-  if(NULL == cur)
-  {
-    par = malloc(sizeof(struct sccp_selected_channel));
-    par->c = c;
-    par->next = d->selectedChannels;
-    d->selectedChannels = par;
-    status = 1;
-  }
+	if(NULL == cur)
+	{
+		par = malloc(sizeof(struct sccp_selected_channel));
+		par->c = c;
+		par->next = d->selectedChannels;
+		d->selectedChannels = par;
+		status = 1;
+	}
   
-  REQ(r1, CallSelectStatMessage);
+	//count number of selected channels
+	cur = d->selectedChannels;
+	while(cur){
+		numSelectedChannels++;
+		cur=cur->next;
+	}
+	if(numSelectedChannels == 2)
+		sccp_sk_set_keystate(d,l, c, KEYMODE_CONNTRANS, 5, 1);
+	else
+		sccp_sk_set_keystate(d,l, c, KEYMODE_CONNTRANS, 5, 0);
+  
+	REQ(r1, CallSelectStatMessage);
 	r1->msg.CallSelectStatMessage.lel_status = htolel(status);
-  r1->msg.CallSelectStatMessage.lel_lineInstance = htolel(l->instance);
-  r1->msg.CallSelectStatMessage.lel_callReference = htolel(c->callid);
+	r1->msg.CallSelectStatMessage.lel_lineInstance = htolel(l->instance);
+	r1->msg.CallSelectStatMessage.lel_callReference = htolel(c->callid);
 	sccp_dev_send(d, r1);
   
-  ast_mutex_unlock(&d->lock);
+	ast_mutex_unlock(&d->lock);
 }
 
 void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
@@ -467,4 +480,51 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_indicate_nolock(c, SCCP_CHANNELSTATE_CONNECTED);
 	ast_mutex_unlock(&c->lock);
 #endif
+}
+
+
+/**
+ * \brief sets a SoftKey to a specified status (on/off)
+ * 
+ * \param d device
+ * \param l active line 
+ * \param c active channel
+ * \param keymode int of KEYMODE_*
+ * \param softkeyindex index of the SoftKey to set
+ * \param status 0 for off otherwise on
+ * 
+ * 
+ * \todo use SoftKeyLabel instead of softkeyindex
+ * 
+ */
+void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c, unsigned int keymode, unsigned int softkeyindex, unsigned int status) {
+	sccp_moo_t * r;
+	uint32_t mask;
+	int i;
+	
+	
+	if(!l || !c || !d || !d->session)
+		return;
+
+	
+	REQ(r, SelectSoftKeysMessage);
+	r->msg.SelectSoftKeysMessage.lel_lineInstance  = htolel(l->instance);
+	r->msg.SelectSoftKeysMessage.lel_callReference = htolel(c->callid);
+	r->msg.SelectSoftKeysMessage.lel_softKeySetIndex = htolel(keymode);
+	r->msg.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF; /* htolel(65535); */
+
+	mask = 1;
+	for(i=1;i<=softkeyindex;i++){
+		mask = (mask<<1);
+	}
+	
+	if(status==0)//disable softkey
+		mask = ~(r->msg.SelectSoftKeysMessage.les_validKeyMask & mask);
+	else
+		mask = r->msg.SelectSoftKeysMessage.les_validKeyMask | mask;
+
+	r->msg.SelectSoftKeysMessage.les_validKeyMask = mask;
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, skinny_softkeyset2str(5), 5, l->instance, c->callid);
+	sccp_dev_send(d, r);
+
 }
