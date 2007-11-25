@@ -53,3 +53,5 @@ unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arr
 #endif
 
 #endif
+
+int * sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsigned int softkey);
