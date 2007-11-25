@@ -1690,3 +1690,14 @@ unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arr
 	return argc;
 }
 #endif
+
+/**
+ * \brief get the SoftKeyIndex for a given SoftKeyLabel on specified keymode
+ * 
+ * 
+ * \todo implement function for finding index of given SoftKey
+ */
+int * sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsigned int softkey) {
+	
+	return -1;
+}
