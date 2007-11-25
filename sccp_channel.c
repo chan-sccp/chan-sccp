@@ -867,49 +867,50 @@ static void * sccp_channel_transfer_ringing_thread(void *data) {
  * 
  * \todo find a way solve the chan->state problem
  */
-void sccp_channel_transfer_complete(sccp_channel_t * c) {
+void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char *name, *number, *cidtmp;
 #endif
-	struct ast_channel	*transferred = NULL, *original_transferred=NULL,	*transferee = NULL, *destination = NULL;
-	sccp_channel_t * peer;
+	struct ast_channel	*astcSourceRemote = NULL, *astcDestinationLocal = NULL, *astcDestinationRemote = NULL;
+	sccp_channel_t * cSourceLocal;
 	sccp_device_t * d = NULL;
 	pthread_attr_t attr;
 	pthread_t t;
 
-	if (!c)
+	if (!cDestinationLocal)
 		return;
 
-	if (!c->line || !c->line->device) {
-		ast_log(LOG_WARNING, "SCCP: weird error. The channel has no line or device on channel %d\n", c->callid);
+	if (!cDestinationLocal->line || !cDestinationLocal->line->device) {
+		ast_log(LOG_WARNING, "SCCP: weird error. The channel has no line or device on channel %d\n", cDestinationLocal->callid);
 		return;
 	}
 	
-	d = c->line->device;
+	// Obtain the device from which the transfer was initiated
+	d = cDestinationLocal->line->device;
 	ast_mutex_lock(&d->lock);
-	peer = d->transfer_channel;
+	// Obtain the source channel on that device
+	cSourceLocal = d->transfer_channel;
 	ast_mutex_unlock(&d->lock);
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Complete transfer from %s-%d\n", d->id, c->line->name, c->callid);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Complete transfer from %s-%d\n", d->id, cDestinationLocal->line->name, cDestinationLocal->callid);
 
 	
 
-	if (c->state != SCCP_CHANNELSTATE_RINGOUT && c->state != SCCP_CHANNELSTATE_CONNECTED) {
+	if (cDestinationLocal->state != SCCP_CHANNELSTATE_RINGOUT && cDestinationLocal->state != SCCP_CHANNELSTATE_CONNECTED) {
 		ast_log(LOG_WARNING, "Failed to complete transfer. The channel is not ringing or connected\n");
-		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, c->line->instance, c->callid, 0);
-		sccp_dev_displayprompt(d, c->line->instance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
+		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, cDestinationLocal->line->instance, cDestinationLocal->callid, 0);
+		sccp_dev_displayprompt(d, cDestinationLocal->line->instance, cDestinationLocal->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
 	}
 
-	if (!c->owner || !peer->owner) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer error, asterisk channel error %s-%d and %s-%d\n", d->id, c->line->name, c->callid, peer->line->name, peer->callid);
+	if (!cDestinationLocal->owner || !cSourceLocal->owner) {
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer error, asterisk channel error %s-%d and %s-%d\n", d->id, cDestinationLocal->line->name, cDestinationLocal->callid, cSourceLocal->line->name, cSourceLocal->callid);
 		return;
 	}
 
-	transferred = CS_AST_BRIDGED_CHANNEL(peer->owner);
-	original_transferred = transferred;
-	destination = CS_AST_BRIDGED_CHANNEL(c->owner);
-	transferee = c->owner;
+	astcSourceRemote = CS_AST_BRIDGED_CHANNEL(cSourceLocal->owner);
+	astcDestinationRemote = CS_AST_BRIDGED_CHANNEL(cDestinationLocal->owner);
+	astcDestinationLocal = cDestinationLocal->owner;
 
 	//FIXME - segmentation fault on log
 //	sccp_log(1)(VERBOSE_PREFIX_3 "%s: transferred: %s(%p)\npeer->owner: %s(%p)\ndestination: %s(%p)\nc->owner:%s(%p)\n", d->id,
@@ -918,51 +919,51 @@ void sccp_channel_transfer_complete(sccp_channel_t * c) {
 //	destination->name, destination,
 //	c->owner->name, c->owner);
 
-	if (!transferred || !transferee) {
+	if (!astcSourceRemote || !astcDestinationLocal) {
 		ast_log(LOG_WARNING, "Failed to complete transfer. Missing asterisk transferred or transferee channel\n");
-		sccp_dev_displayprompt(d, c->line->instance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
+		sccp_dev_displayprompt(d, cDestinationLocal->line->instance, cDestinationLocal->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
 	}
 
-	if (c->state == SCCP_CHANNELSTATE_RINGOUT) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Blind transfer. Signalling ringing state to %s\n", d->id, transferred->name);
-		ast_indicate(transferred, AST_CONTROL_RINGING);
+	if (cDestinationLocal->state == SCCP_CHANNELSTATE_RINGOUT) {
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Blind transfer. Signalling ringing state to %s\n", d->id, astcSourceRemote->name);
+		ast_indicate(astcSourceRemote, AST_CONTROL_RINGING); // Shouldn't this be ALERTING?
 		/* starting the ringing thread */
 		pthread_attr_init(&attr);
 		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-		if (ast_pthread_create(&t, &attr, sccp_channel_transfer_ringing_thread, strdup(transferred->name))) {
+		if (ast_pthread_create(&t, &attr, sccp_channel_transfer_ringing_thread, strdup(astcSourceRemote->name))) {
 			ast_log(LOG_WARNING, "%s: Unable to create thread for the blind transfer ring indication. %s\n", d->id, strerror(errno));
 		}
 	}
 
-	if (transferee->cdr && transferred->cdr) {
-		transferee->cdr = ast_cdr_append(transferee->cdr, transferred->cdr);
-	} else if (transferred->cdr) {
-		transferee->cdr = transferred->cdr;
+	if (astcDestinationLocal->cdr && astcSourceRemote->cdr) {
+		astcDestinationLocal->cdr = ast_cdr_append(astcDestinationLocal->cdr, astcSourceRemote->cdr);
+	} else if (astcSourceRemote->cdr) {
+		astcDestinationLocal->cdr = astcSourceRemote->cdr;
 	}
-	transferred->cdr = NULL;
+	astcSourceRemote->cdr = NULL;
 
-	if (ast_channel_masquerade(transferee, transferred)) {
-		ast_log(LOG_WARNING, "Failed to masquerade %s into %s\n", transferee->name, transferred->name);
-		sccp_dev_displayprompt(d, c->line->instance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
+	if (ast_channel_masquerade(astcDestinationLocal, astcSourceRemote)) {
+		ast_log(LOG_WARNING, "Failed to masquerade %s into %s\n", astcDestinationLocal->name, astcSourceRemote->name);
+		sccp_dev_displayprompt(d, cDestinationLocal->line->instance, cDestinationLocal->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
 	}
 
-	if (c->state == SCCP_CHANNELSTATE_RINGOUT) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Blind transfer. Signalling ringing state to %s\n", d->id, transferred->name);
+	if (cDestinationLocal->state == SCCP_CHANNELSTATE_RINGOUT) {
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Blind transfer. Signalling ringing state to %s\n", d->id, astcSourceRemote->name);
 	}
 
 	
 	ast_mutex_lock(&d->lock);
-	if (peer->owner){
+	if (cSourceLocal->owner){
 		ast_mutex_unlock(&d->lock);
-		ast_queue_hangup(peer->owner);
+		ast_queue_hangup(cSourceLocal->owner);
 	}else {
 		sccp_log(1)(VERBOSE_PREFIX_3 "Peer owner disappeared! Can't free ressources\n");
 		ast_mutex_unlock(&d->lock);
 		return;
 	}
-	ast_mutex_unlock(&transferee->lock);
+	ast_mutex_unlock(&astcDestinationLocal->lock); // Where was the transferee locked at first?!
 	//ast_mutex_lock(&d->lock);
 
 	ast_mutex_lock(&d->lock);
@@ -971,39 +972,39 @@ void sccp_channel_transfer_complete(sccp_channel_t * c) {
   
   
 
-	if (!destination) {
+	if (!astcDestinationRemote) {
 		/* the channel was ringing not answered yet. BLIND TRANSFER */
   return;
 }
 
 #ifndef CS_AST_HAS_TECH_PVT
-	if (strncasecmp(destination->type,"SCCP",4)) {
+	if (strncasecmp(astcDestinationRemote->type,"SCCP",4)) {
 #else
-	if (strncasecmp(destination->tech->type,"SCCP",4)) {
+	if (strncasecmp(astcDestinationRemote->tech->type,"SCCP",4)) {
 #endif
 		/* nothing to do with different channel types */
 		return;
 	}
 
 	/* it's a SCCP channel destination on transfer */
-	c = CS_AST_CHANNEL_PVT(destination);
+	cDestinationLocal = CS_AST_CHANNEL_PVT(astcDestinationRemote);
 
-	if (c) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer confirmation destination on channel %s\n", d->id, destination->name);
+	if (cDestinationLocal) {
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer confirmation destination on channel %s\n", d->id, astcDestinationRemote->name);
 		/* display the transferred CID info to destination */
 #ifdef CS_AST_CHANNEL_HAS_CID
-		sccp_channel_set_callingparty(c, transferred->cid.cid_name, transferred->cid.cid_num);
+		sccp_channel_set_callingparty(cDestinationLocal, astcSourceRemote->cid.cid_name, astcSourceRemote->cid.cid_num);
 #else
-		if (transferred->callerid && (cidtmp = strdup(transferred->callerid))) {
+		if (astcSourceRemote->callerid && (cidtmp = strdup(astcSourceRemote->callerid))) {
 			ast_callerid_parse(cidtmp, &name, &number);
-			sccp_channel_set_callingparty(c, name, number);
+			sccp_channel_set_callingparty(cDestinationLocal, name, number);
 			free(cidtmp);
 		}
 #endif
-		sccp_channel_send_callinfo(c);
-		if (GLOB(transfer_tone) && c->state == SCCP_CHANNELSTATE_CONNECTED)
+		sccp_channel_send_callinfo(cDestinationLocal);
+		if (GLOB(transfer_tone) && cDestinationLocal->state == SCCP_CHANNELSTATE_CONNECTED)
 			/* while connected not all the tones can be played */
-			sccp_dev_starttone(c->device, GLOB(autoanswer_tone), c->line->instance, c->callid, 0);
+			sccp_dev_starttone(cDestinationLocal->device, GLOB(autoanswer_tone), cDestinationLocal->line->instance, cDestinationLocal->callid, 0);
 	}
 }
 
