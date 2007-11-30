@@ -259,6 +259,11 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_moo_t * r) {
   	r1->msg.UnregisterAckMessage.lel_status = SKINNY_UNREGISTERSTATUS_OK;
 	sccp_session_send(s, r1);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: unregister request sent\n", DEV_ID_LOG(d));
+
+	if (d)
+		sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);
+	sccp_session_close(s);
+  
 #ifdef CS_SCCP_REALTIME
 	if(d->realtime){
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Device is realtime - remove it from configuration\n", d->id);
@@ -279,10 +284,6 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_moo_t * r) {
 		ast_mutex_unlock(&GLOB(devices_lock));
 	}		
 #endif
-
-	if (d)
-		sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);
-	sccp_session_close(s);
 
 }
 
