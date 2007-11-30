@@ -246,9 +246,8 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_moo_t 		* r1;
 	sccp_device_t 	* d = s->device;
 #ifdef CS_SCCP_REALTIME
-	sccp_device_t 	* devices, *device;
+	sccp_device_t 	*devices, *dev, *prevDev;
 #endif
-	
 
 
 	if (!s || (s->fd < 0) )
@@ -269,18 +268,25 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_moo_t * r) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Device is realtime - remove it from configuration\n", d->id);
 		ast_mutex_lock(&GLOB(devices_lock));
 		devices = GLOB(devices);
-		device = GLOB(devices);
-		while(device){
-			if(d->id ==device->next->id){
-				device->next->next = d->next;
-				free(device);
-				sccp_log(10)(VERBOSE_PREFIX_3 "device removed");
+		dev = devices;
+    prevDev = NULL;
+        
+		while(NULL != dev) {
+			if(d->id == dev->id) {
+        if(NULL == prevDev) {
+          devices = dev->next;
+        } else {
+          prevDev->next = dev->next;
+        }
+        dev = dev->next;
+				free(dev);
+				sccp_log(10)(VERBOSE_PREFIX_3 "realtime device removed");
 			}else{
-				device = device->next;
+        prevDev = dev;
+				dev = dev->next;
 			}
 		}
 		GLOB(devices) = devices;
-		free(devices);
 		ast_mutex_unlock(&GLOB(devices_lock));
 	}		
 #endif
