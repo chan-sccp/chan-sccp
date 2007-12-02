@@ -266,30 +266,39 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_moo_t * r) {
 #ifdef CS_SCCP_REALTIME
 	if(d->realtime){
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Device is realtime - remove it from configuration\n", d->id);
+    ast_mutex_lock(&GLOB(sessions_lock));
 		ast_mutex_lock(&GLOB(devices_lock));
 		devices = GLOB(devices);
 		dev = devices;
     prevDev = NULL;
         
+    sccp_log(10)(VERBOSE_PREFIX_3 "realtime: about to remove device");
 		while(NULL != dev) {
+      sccp_log(10)(VERBOSE_PREFIX_3 "realtime: checking next device");
 			if(d->id == dev->id) {
+        sccp_log(10)(VERBOSE_PREFIX_3 "realtime: found matching device");
         if(NULL == prevDev) {
+          sccp_log(10)(VERBOSE_PREFIX_3 "realtime: removing first device");
           devices = dev->next;
           free(dev);
           dev = devices;
         } else {
+          sccp_log(10)(VERBOSE_PREFIX_3 "realtime: removing non-first device");
           prevDev->next = dev->next;
           free(dev);
           dev = prevDev->next;
         }
 				sccp_log(10)(VERBOSE_PREFIX_3 "realtime device removed");
 			} else {
+        sccp_log(10)(VERBOSE_PREFIX_3 "realtime: iterating");
         prevDev = dev;
 				dev = dev->next;
 			}
 		}
+    sccp_log(10)(VERBOSE_PREFIX_3 "realtime: setting global device pointer");
 		GLOB(devices) = devices;
 		ast_mutex_unlock(&GLOB(devices_lock));
+    ast_mutex_unlock(&GLOB(sessions_lock));
 	}		
 #endif
 
