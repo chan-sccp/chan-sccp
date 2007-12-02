@@ -89,16 +89,24 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 	case SCCP_CHANNELSTATE_ONHOOK:
 		if (c == d->active_channel)
 			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
-		sccp_dev_clearprompt(d,l->instance, c->callid);
 		sccp_channel_set_callstate(c, SKINNY_CALLSTATE_ONHOOK);
+		//sccp_dev_set_callinfo() goes here
+		sccp_moo_t * r2;
+		REQ(r2, CallInfoMessage);
+		r2->msg.CallInfoMessage.lel_lineId = htolel(l->instance);
+		r2->msg.CallInfoMessage.lel_callRef = htolel(c->callid);
+		r2->msg.CallInfoMessage.lel_callType = htolel(c->calltype);
+		r2->msg.CallInfoMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
+		sccp_dev_send(d,r2);
+		sccp_dev_clearprompt(d,l->instance, c->callid);
 		sccp_dev_set_keyset(d,l->instance,c->callid, KEYMODE_ONHOOK);
-		if (oldstate != SCCP_CHANNELSTATE_CALLWAITING)
-			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, l->instance, SKINNY_LAMP_OFF);
-		if (c == d->active_channel)
-			sccp_dev_stoptone(d, l->instance, c->callid);
 		if (oldstate == SCCP_CHANNELSTATE_RINGIN)
 			sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, l->instance, c->callid);
-		sccp_handle_time_date_req(d->session, NULL);
+		//if (c == d->active_channel)
+		sccp_dev_stoptone(d, l->instance, c->callid);
+		if (oldstate != SCCP_CHANNELSTATE_CALLWAITING)
+			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, l->instance, SKINNY_LAMP_OFF);
+		//sccp_handle_time_date_req(d->session, NULL);
 		c->state = SCCP_CHANNELSTATE_DOWN;
 		sccp_ast_setstate(c, AST_STATE_DOWN);
 		if (d->skinny_type == SKINNY_DEVICETYPE_CISCO7936) {

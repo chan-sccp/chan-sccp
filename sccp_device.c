@@ -278,8 +278,8 @@ void sccp_dev_set_ringer(sccp_device_t * d, uint8_t opt, uint32_t line, uint32_t
 	sccp_moo_t * r;
 	if (!d->session)
 		return;
-	if (d->ringermode == opt)
-		return;
+	//if (d->ringermode == opt)
+	//	return;
 
 	d->ringermode = opt;
 	REQ(r, SetRingerMessage);
