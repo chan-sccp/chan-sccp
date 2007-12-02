@@ -275,13 +275,15 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_moo_t * r) {
 			if(d->id == dev->id) {
         if(NULL == prevDev) {
           devices = dev->next;
+          free(dev);
+          dev = devices;
         } else {
           prevDev->next = dev->next;
+          free(dev);
+          dev = prevDev->next;
         }
-        dev = dev->next;
-				free(dev);
 				sccp_log(10)(VERBOSE_PREFIX_3 "realtime device removed");
-			}else{
+			} else {
         prevDev = dev;
 				dev = dev->next;
 			}
