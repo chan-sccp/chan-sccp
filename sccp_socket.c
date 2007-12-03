@@ -156,7 +156,7 @@ static void destroy_session(sccp_session_t * s) {
             prevDev->next = dev->next;
             dev = prevDev->next;
           }
-          sccp_log(10)(VERBOSE_PREFIX_3 "%: Removing realtime Device.\n", delDev->id);
+          sccp_log(10)(VERBOSE_PREFIX_3 "%s: Removing realtime Device.\n", delDev->id);
           free(delDev);
         } else {
           prevDev = dev;
