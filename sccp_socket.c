@@ -138,8 +138,6 @@ static void destroy_session(sccp_session_t * s) {
 
     if(d->realtime){
       sccp_log(10)(VERBOSE_PREFIX_3 "%s: Realtime device will be removed from the configuration.\n", d->id);
-      ast_mutex_lock(&GLOB(sessions_lock));
-      ast_mutex_lock(&GLOB(devices_lock));
       devices = GLOB(devices);
       dev = devices;
       prevDev = NULL;
@@ -163,8 +161,6 @@ static void destroy_session(sccp_session_t * s) {
         }
       }
       GLOB(devices) = devices;
-      ast_mutex_unlock(&GLOB(devices_lock));
-      ast_mutex_unlock(&GLOB(sessions_lock));
     }		
 #endif
 	}
