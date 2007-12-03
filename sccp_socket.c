@@ -146,7 +146,6 @@ static void destroy_session(sccp_session_t * s) {
       delDev = NULL;
       
       while(NULL != dev) {
-        sccp_log(10)(VERBOSE_PREFIX_3 ".");
         if(d->id == dev->id) {
           delDev = dev;
           if(NULL == prevDev) {
