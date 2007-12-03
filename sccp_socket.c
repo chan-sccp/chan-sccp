@@ -132,6 +132,47 @@ static void destroy_session(sccp_session_t * s) {
 		d->session = NULL;
 		d->registrationState = SKINNY_DEVICE_RS_NONE;
 		ast_mutex_unlock(&d->lock);
+    
+#ifdef CS_SCCP_REALTIME
+    sccp_device_t 	*devices, *dev, *prevDev;
+
+    if(d->realtime){
+      sccp_log(10)(VERBOSE_PREFIX_3 "%s: Device is realtime - remove it from configuration\n", d->id);
+      ast_mutex_lock(&GLOB(sessions_lock));
+      ast_mutex_lock(&GLOB(devices_lock));
+      devices = GLOB(devices);
+      dev = devices;
+      prevDev = NULL;
+      
+      sccp_log(10)(VERBOSE_PREFIX_3 "searching:");
+      while(NULL != dev) {
+        sccp_log(10)(VERBOSE_PREFIX_3 ".");
+        if(d->id == dev->id) {
+          sccp_log(10)(VERBOSE_PREFIX_3 "found -");
+          if(NULL == prevDev) {
+            sccp_log(10)(VERBOSE_PREFIX_3 " removing first device");
+            devices = dev->next;
+            free(dev);
+            dev = devices;
+          } else {
+            sccp_log(10)(VERBOSE_PREFIX_3 " removing non-first device");
+            prevDev->next = dev->next;
+            free(dev);
+            dev = prevDev->next;
+          }
+          sccp_log(10)(VERBOSE_PREFIX_3 " - done; ");
+        } else {
+          sccp_log(10)(VERBOSE_PREFIX_3 "continuing:");
+          prevDev = dev;
+          dev = dev->next;
+        }
+      }
+      sccp_log(10)(VERBOSE_PREFIX_3 "\nrealtime: setting global device pointer.\n.");
+      GLOB(devices) = devices;
+      ast_mutex_unlock(&GLOB(devices_lock));
+      ast_mutex_unlock(&GLOB(sessions_lock));
+    }		
+#endif
 	}
 	ast_mutex_unlock(&GLOB(devices_lock));
 
