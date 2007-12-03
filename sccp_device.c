@@ -278,6 +278,10 @@ void sccp_dev_set_ringer(sccp_device_t * d, uint8_t opt, uint32_t line, uint32_t
 	sccp_moo_t * r;
 	if (!d->session)
 		return;
+  // If we have multiple calls ringing at once, this has lead to
+  // never ending rings even after termination of the alerting call.
+  // Obviously the ringermode is no longer a per-device state but
+  // rather per line/per call.
 	//if (d->ringermode == opt)
 	//	return;
 
