@@ -74,7 +74,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_dev_set_mwi(d, l, 0);
 		if (!d->mwioncall)
 			sccp_dev_set_mwi(d, NULL, 0);
-		sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, l->instance, c->callid);
+		//sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, l->instance, c->callid);
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 //		sccp_dev_set_microphone(d, SKINNY_STATIONMIC_ON);
 		sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, l->instance, SKINNY_LAMP_ON);
