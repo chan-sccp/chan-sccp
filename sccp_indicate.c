@@ -191,7 +191,11 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		/* it will be emulated if the rtp audio stream is open */
 		if (!c->rtp)
 			sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, l->instance, c->callid, 0);
-		sccp_channel_set_callstate(c, SKINNY_CALLSTATE_CONGESTION);
+		/* In fact, newer firmware versions (the 8 releases for the 7960 etc.) and 
+		   the newer Cisco phone models don't seem to like this at all, resulting in
+		   crashes. Frederico observed that also congestion is affected. We have to find a
+		   signalling replacement for the display promptif this is neccessary for some reason.(-DD)*/
+//		sccp_channel_set_callstate(c, SKINNY_CALLSTATE_CONGESTION);
 		break;
 	case SCCP_CHANNELSTATE_CALLWAITING:
 		if (GLOB(callwaiting_tone))
