@@ -99,6 +99,13 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	char * name, * number, *cidtmp; // For the callerid parse below
 #endif
 
+#ifdef ASTERISK_CONF_1_2
+	// if channel type is undefined, set to SCCP
+	if (!ast->type) {
+		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Channel type undefined, setting to type 'SCCP'\n");
+		ast->type = "SCCP";
+	}
+#endif 
 
 	c = CS_AST_CHANNEL_PVT(ast);
 
