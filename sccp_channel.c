@@ -953,14 +953,15 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Blind transfer. Signalling ringing state to %s\n", d->id, astcSourceRemote->name);
 	}
 
-	
-	ast_mutex_lock(&d->lock);
-	if (cSourceLocal->owner){
-		ast_mutex_unlock(&d->lock);
-		ast_queue_hangup(cSourceLocal->owner);
-	}else {
+	//TODO see patch 1852936 on sf (http://sourceforge.net/tracker/index.php?func=detail&aid=1852936&group_id=186378&atid=917047)
+//	ast_mutex_lock(&d->lock);
+//	if (cSourceLocal->owner){
+//		ast_mutex_unlock(&d->lock);
+//		ast_queue_hangup(cSourceLocal->owner);
+//	}else {
+	if (!cSourceLocal->owner){
 		sccp_log(1)(VERBOSE_PREFIX_3 "Peer owner disappeared! Can't free ressources\n");
-		ast_mutex_unlock(&d->lock);
+//		ast_mutex_unlock(&d->lock);
 		return;
 	}
 	ast_mutex_unlock(&astcDestinationLocal->lock); // Where was the transferee locked at first?!
