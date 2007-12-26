@@ -1266,7 +1266,7 @@ static int reload_config(void) {
 	while (v) {
 		if (!strcasecmp(v->name, "protocolversion")) {
 			if (sscanf(v->value, "%i", &protocolversion) == 1) {
-				if (protocolversion < 2 || protocolversion > 6)
+				if (protocolversion < 2 || protocolversion > 9)
 					GLOB(protocolversion) = 3;
 				else
 					GLOB(protocolversion) = protocolversion;
