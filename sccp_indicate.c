@@ -196,6 +196,8 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		   crashes. Frederico observed that also congestion is affected. We have to find a
 		   signalling replacement for the display promptif this is neccessary for some reason.(-DD)*/
 //		sccp_channel_set_callstate(c, SKINNY_CALLSTATE_CONGESTION);
+		sccp_channel_send_callinfo(c);
+		sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_TEMP_FAIL, 0);
 		break;
 	case SCCP_CHANNELSTATE_CALLWAITING:
 		if (GLOB(callwaiting_tone))

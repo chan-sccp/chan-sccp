@@ -228,7 +228,10 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	ast_mutex_lock(&d->lock);
 	s = d->selectedChannels;
 	if(!s)
+	{
+		ast_mutex_unlock(&d->lock);
 		return;
+	}
 	
 	chan1 = s->c;
 	while(s){
