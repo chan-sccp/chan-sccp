@@ -189,7 +189,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 		i++;
 		ast_mutex_lock(&l->lock);
 		ast_mutex_lock(&d->lock);
-		if (i == 1)
+		//if (i == 1)
 		d->currentLine = l;
 		l->device = d;
 		l->instance = i;
