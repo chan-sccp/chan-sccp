@@ -47,6 +47,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 	}
 
   if (!strcasecmp(d->config_type,"7940hack")) {
+    sccp_log(10)(VERBOSE_PREFIX_3 "%s: Using 7940 button hack\n",	d->id);
 		(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
     (btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
     (btn++)->type = SKINNY_BUTTONTYPE_LINE;
