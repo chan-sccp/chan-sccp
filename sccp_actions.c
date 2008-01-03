@@ -457,6 +457,8 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 					btn[i].ptr = s;
 					btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
 					sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) temporary instance (%d)\n", d->id, i+1, "ServiceURL" ,s->label, s->instance);
+					if(!strncmp(s->label, "Feature"))
+						btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
 					break;
 				}
 				btn_count++;
@@ -562,6 +564,9 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r) {
 			r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
 		} else if (btn[i].type == SKINNY_BUTTONTYPE_SERVICEURL) {
 			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_SERVICEURL;
+			r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;	
+		} else if (btn[i].type == SKINNY_BUTTONTYPE_FEATURE) {
+			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_FEATURE;
 			r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;	
 		} else if (btn[i].type == SKINNY_BUTTONTYPE_MULTI) {
 			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_DISPLAY;
@@ -807,6 +812,10 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 
 		case SKINNY_BUTTONTYPE_CONFERENCE:
 			ast_log(LOG_NOTICE, "%s: Conference Button is not yet handled. working on implementation\n", d->id);
+			break;
+		
+		case SKINNY_BUTTONTYPE_FEATURE:
+			ast_log(LOG_NOTICE, "%s: Privacy Button is not yet handled. working on implementation\n", d->id);
 			break;
 
 		case SKINNY_BUTTONTYPE_FORWARDALL: // Call forward all
@@ -1617,9 +1626,9 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r) {
   
   REQ(r1, FeatureStatMessage);
 	r1->msg.FeatureStatMessage.lel_featureIndex = htolel(featureIndex);
-	r1->msg.FeatureStatMessage.lel_featureIndex = 1;
+	r1->msg.FeatureStatMessage.lel_featureID = htolel(1);
 	sccp_copy_string(r1->msg.FeatureStatMessage.featureTextLabel, "Feature", strlen("Feature")+1);
-  r1->msg.FeatureStatMessage.lel_featureStatus = 1;
+	r1->msg.FeatureStatMessage.lel_featureStatus = htolel(1);
   
 	sccp_dev_send(s->device, r1);
 }
