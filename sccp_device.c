@@ -46,6 +46,12 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 		return;
 	}
 
+  if (!strcasecmp(d->config_type,"7940hack")) {
+		(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+    (btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+    (btn++)->type = SKINNY_BUTTONTYPE_LINE;
+    }
+  
 	switch (d->skinny_type) {
 		case SKINNY_DEVICETYPE_30SPPLUS:
 		case SKINNY_DEVICETYPE_30VIP:
