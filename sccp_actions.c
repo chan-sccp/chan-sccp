@@ -455,7 +455,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 					s->instance = i + 1;
 					btn[i].instance = s->instance;
 					btn[i].ptr = s;
-					btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
+					btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
 					sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) temporary instance (%d)\n", d->id, i+1, "ServiceURL" ,s->label, s->instance);
 					break;
 				}
