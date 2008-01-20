@@ -456,11 +456,12 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 					s->instance = i + 1;
 					btn[i].instance = s->instance;
 					btn[i].ptr = s;
-					btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
-					sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) temporary instance (%d)\n", d->id, i+1, "ServiceURL" ,s->label, s->instance);
 					len = strlen(s->label);
 					if(!strncmp(s->label, "Feature", len))
 						btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
+					else
+						btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
+					sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) temporary instance (%d)\n", d->id, i+1, "ServiceURL" ,s->label, s->instance);
 					break;
 				}
 				btn_count++;
@@ -1628,7 +1629,7 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r) {
   
   REQ(r1, FeatureStatMessage);
 	r1->msg.FeatureStatMessage.lel_featureIndex = htolel(featureIndex);
-	r1->msg.FeatureStatMessage.lel_featureID = htolel(1);
+	r1->msg.FeatureStatMessage.lel_featureID = htolel(0x13);
 	sccp_copy_string(r1->msg.FeatureStatMessage.featureTextLabel, "Feature", strlen("Feature")+1);
 	r1->msg.FeatureStatMessage.lel_featureStatus = htolel(1);
   
