@@ -1269,6 +1269,10 @@ const char * skinny_devicetype2str(uint32_t type) {
 		return "Cisco7961";
 	case SKINNY_DEVICETYPE_CISCO7961GE:
 		return "Cisco7961GE";
+	case SKINNY_DEVICETYPE_CISCO7965:
+		return "Cisco7965";
+	case SKINNY_DEVICETYPE_CISCO7921:
+			return "Cisco7921";
 	case SKINNY_DEVICETYPE_CISCO7971:
 		return "Cisco7971";
 	case SKINNY_DEVICETYPE_CISCO7985:
