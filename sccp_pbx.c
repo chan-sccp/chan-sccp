@@ -899,17 +899,17 @@ void * sccp_pbx_startchannel(void *data) {
 			/* It never occured to me what the purpose of the following line was. I modified it to avoid the limitation to
 			   extensions not starting with '*' only. (-DD) 
 			/res_exten = (c->dialedNumber[0] == '*' || ast_matchmore_extension(chan, chan->context, c->dialedNumber, 1, l->cid_num)); */
-	if(GLOB(recorddigittimeoutchar)) {
-		if(strlen(c->dialedNumber) > 0 && strlen(c->dialedNumber) < 255 && '#' == c->dialedNumber[strlen(c->dialedNumber)-1])
-		  {
-			  strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-1);
-		   }
-			res_exten = (ast_matchmore_extension(chan, chan->context, shortenedNumber, 1, l->cid_num));
-	}
-	else
-	{
-			res_exten = (ast_matchmore_extension(chan, chan->context, c->dialedNumber, 1, l->cid_num));
-	}
+			if(GLOB(recorddigittimeoutchar)) {
+				if(strlen(c->dialedNumber) > 0 && strlen(c->dialedNumber) < 255 && '#' == c->dialedNumber[strlen(c->dialedNumber)-1])
+		  		{
+			  		strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-1);
+		   		}
+				res_exten = (ast_matchmore_extension(chan, chan->context, shortenedNumber, 1, l->cid_num));
+			}
+			else
+			{
+				res_exten = (ast_matchmore_extension(chan, chan->context, c->dialedNumber, 1, l->cid_num));
+			}
 		}
 		if (! (res_wait = ( c->state == SCCP_CHANNELSTATE_DOWN || chan->_state == AST_STATE_DOWN
 							|| chan->_softhangup || c->calltype == SKINNY_CALLTYPE_INBOUND)) ) {
