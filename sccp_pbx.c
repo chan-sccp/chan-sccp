@@ -899,7 +899,17 @@ void * sccp_pbx_startchannel(void *data) {
 			/* It never occured to me what the purpose of the following line was. I modified it to avoid the limitation to
 			   extensions not starting with '*' only. (-DD) 
 			/res_exten = (c->dialedNumber[0] == '*' || ast_matchmore_extension(chan, chan->context, c->dialedNumber, 1, l->cid_num)); */
+	if(GLOB(recorddigittimeoutchar)) {
+		if(strlen(c->dialedNumber) > 0 && strlen(c->dialedNumber) < 255 && '#' == c->dialedNumber[strlen(c->dialedNumber)-1])
+		  {
+			  strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-1);
+		   }
+			res_exten = (ast_matchmore_extension(chan, chan->context, shortenedNumber, 1, l->cid_num));
+	}
+	else
+	{
 			res_exten = (ast_matchmore_extension(chan, chan->context, c->dialedNumber, 1, l->cid_num));
+	}
 		}
 		if (! (res_wait = ( c->state == SCCP_CHANNELSTATE_DOWN || chan->_state == AST_STATE_DOWN
 							|| chan->_softhangup || c->calltype == SKINNY_CALLTYPE_INBOUND)) ) {
@@ -940,20 +950,22 @@ dial:
 	//private set
 
 
-	ast_mutex_lock(&c->lock);
 	if(GLOB(recorddigittimeoutchar)) {
 		if(strlen(c->dialedNumber) > 0 && strlen(c->dialedNumber) < 255 && '#' == c->dialedNumber[strlen(c->dialedNumber)-1])
-			  {
-				       strncpy(shortenedNumber, (const char*) c->dialedNumber, strlen(c->dialedNumber)-1);
-				       sccp_copy_string(chan->exten, (const char*) shortenedNumber, sizeof(chan->exten));
-				   }
-				   else
-					       sccp_copy_string(chan->exten, c->dialedNumber, sizeof(chan->exten));
-	} else {
-		sccp_copy_string(chan->exten, c->dialedNumber, sizeof(chan->exten));
+		  {
+			  strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-1);
+		   }
+		else
+			  strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-0);
 	}
+	else
+	{
+			  strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-0);
+	}
+	ast_mutex_lock(&c->lock);
+	sccp_copy_string(chan->exten, shortenedNumber, sizeof(chan->exten));
 	sccp_copy_string(d->lastNumber, c->dialedNumber, sizeof(d->lastNumber));
-	sccp_channel_set_calledparty(c, c->dialedNumber, c->dialedNumber);
+	sccp_channel_set_calledparty(c, c->dialedNumber, shortenedNumber);
 	/* The 7961 seems to need the dialing callstate to record its directories information. */
  	sccp_indicate_nolock(c, SCCP_CHANNELSTATE_DIALING);
 	/* proceed call state is needed to display the called number.
@@ -965,10 +977,10 @@ dial:
 	c->hangupok = 1;
 	ast_mutex_unlock(&c->lock);
 
-	if ( !ast_strlen_zero(c->dialedNumber)
-			&& ast_exists_extension(chan, chan->context, c->dialedNumber, 1, l->cid_num) ) {
+	if ( !ast_strlen_zero(shortenedNumber)
+			&& ast_exists_extension(chan, chan->context, shortenedNumber, 1, l->cid_num) ) {
 		/* found an extension, let's dial it */
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: channel %s-%d is dialing number %s\n", DEV_ID_LOG(l->device), l->name, c->callid, c->dialedNumber);
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: channel %s-%d is dialing number %s\n", DEV_ID_LOG(l->device), l->name, c->callid, shortenedNumber);
 		/* Answer dialplan command works only when in RINGING OR RING ast_state */
 		sccp_ast_setstate(c, AST_STATE_RING);
 		if (ast_pbx_run(chan)) {
