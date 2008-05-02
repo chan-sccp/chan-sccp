@@ -901,9 +901,9 @@ void * sccp_pbx_startchannel(void *data) {
 			/res_exten = (c->dialedNumber[0] == '*' || ast_matchmore_extension(chan, chan->context, c->dialedNumber, 1, l->cid_num)); */
 			if(GLOB(recorddigittimeoutchar)) {
 				if(strlen(c->dialedNumber) > 0 && strlen(c->dialedNumber) < 255 && '#' == c->dialedNumber[strlen(c->dialedNumber)-1])
-		  		{
 			  		strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-1);
-		   		}
+				else
+			  		strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-0);
 				res_exten = (ast_matchmore_extension(chan, chan->context, shortenedNumber, 1, l->cid_num));
 			}
 			else
