@@ -1306,6 +1306,20 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r) {
 		ast_log(LOG_ERROR, "%s: Out of range for Softkey: %s (%d) line=%d callid=%d\n", d->id, skinny_lbl2str(event), event, line, callid);
 	*/
 	event = softkeysmap[event-1];
+	
+
+	/* correct events for nokia icc client
+	 */
+	if(d->config_type && !strcasecmp(d->config_type, "nokia-icc")){
+		switch (event) {
+			case SKINNY_LBL_DIRTRFR:
+				event = SKINNY_LBL_ENDCALL;
+			break;
+		}
+	}
+
+
+
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Softkey: %s (%d) line=%d callid=%d\n", d->id, skinny_lbl2str(event), event, line, callid);
 
