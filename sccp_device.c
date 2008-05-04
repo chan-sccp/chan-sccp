@@ -135,8 +135,16 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 		case SKINNY_DEVICETYPE_CISCO7970:
 		case SKINNY_DEVICETYPE_CISCO7971:
 		case SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR:
-			for (i = 0 ; i < 8 ; i++)
+
+			/* the nokia icc client identifies it self as SKINNY_DEVICETYPE_CISCO7970, but it can have only one line 
+			 */
+			if(!strcasecmp(v->name, "nokia-icc")){
 				(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
+			}else{
+				for (i = 0 ; i < 8 ; i++){
+					(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
+				}
+			}
 			break;
 		case SKINNY_DEVICETYPE_ATA186:
 			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
