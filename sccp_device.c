@@ -138,7 +138,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 
 			/* the nokia icc client identifies it self as SKINNY_DEVICETYPE_CISCO7970, but it can have only one line 
 			 */
-			if(!strcasecmp(v->name, "nokia-icc")){
+			if(!strcasecmp(d->config_type, "nokia-icc")){
 				(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
 			}else{
 				for (i = 0 ; i < 8 ; i++){
