@@ -792,6 +792,7 @@ void sccp_channel_stop_rtp(sccp_channel_t * c) {
 void sccp_channel_transfer(sccp_channel_t * c) {
 	sccp_device_t * d;
 	sccp_channel_t * newcall = NULL;
+	uint32_t	blindTransfer = 0;
 
 	if (!c)
 		return;
@@ -831,8 +832,10 @@ void sccp_channel_transfer(sccp_channel_t * c) {
 		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CALLTRANSFER);
 	newcall = sccp_channel_newcall(c->line, NULL);
 	/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER*/
-	if (newcall && newcall->owner && c->owner && CS_AST_BRIDGED_CHANNEL(c->owner))
+ 	if ( blindTransfer || (newcall && newcall->owner && c->owner && CS_AST_BRIDGED_CHANNEL(c->owner)) )
 		pbx_builtin_setvar_helper(newcall->owner, "_BLINDTRANSFER", CS_AST_BRIDGED_CHANNEL(c->owner)->name);
+
+	
 }
 
 static void * sccp_channel_transfer_ringing_thread(void *data) {
