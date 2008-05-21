@@ -101,9 +101,14 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 
 			break;
 		case SKINNY_DEVICETYPE_CISCO7931:
-+                        for (i = 0 ; i < 24 ; i++)
-+                    		(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
-+                        break;
+                        for (i = 0 ; i < 20 ; i++){
+                    		(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
+			}
+			(btn++)->type = SKINNY_BUTTONTYPE_MESSAGES;
+			(btn++)->type = SKINNY_BUTTONTYPE_DIRECTORY;
+			(btn++)->type = SKINNY_BUTTONTYPE_APPLICATION;
+			(btn++)->type = SKINNY_BUTTONTYPE_HEADSET;
+                        break;
 		case SKINNY_DEVICETYPE_CISCO7935:
 		case SKINNY_DEVICETYPE_CISCO7936:
 		case SKINNY_DEVICETYPE_CISCO7937:
