@@ -373,6 +373,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 			if ( (btn[i].type == SKINNY_BUTTONTYPE_LINE)
 				|| ( btn[i].type == SKINNY_BUTTONTYPE_MULTI)
 				|| ( btn[i].type == SCCP_BUTTONTYPE_LINE)) {
+
 				if (btn_count == l->instance) {
 					l->device = d;
 					l->instance = i + 1;
@@ -405,15 +406,32 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 		k->instance = 0;
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a speeddial button place %s (%d)\n", d->id, k->name, k->config_instance);
 		for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) {
-			if ( (btn[i].type == SKINNY_BUTTONTYPE_SPEEDDIAL) || (btn[i].type == SKINNY_BUTTONTYPE_MULTI) || (btn[i].type == SCCP_BUTTONTYPE_HINT) || (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL)) {
+			if ( (btn[i].type == SKINNY_BUTTONTYPE_SPEEDDIAL) 
+				|| (btn[i].type == SKINNY_BUTTONTYPE_MULTI) 
+				|| (btn[i].type == SCCP_BUTTONTYPE_HINT) 
+				|| (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) 
+				|| (btn[i].type == SKINNY_BUTTONTYPE_MESSAGES) 
+				|| (btn[i].type == SKINNY_BUTTONTYPE_DIRECTORY) 
+				|| (btn[i].type == SKINNY_BUTTONTYPE_APPLICATION) 
+				|| (btn[i].type == SKINNY_BUTTONTYPE_HEADSET)) {
+				
 				if (btn_count == k->config_instance) {
 					k->instance = i + 1;
 					btn[i].instance = k->instance;
 					btn[i].ptr = k;
+/*
 					if (!ast_strlen_zero(k->hint))
 						btn[i].type = SCCP_BUTTONTYPE_HINT;
 					else
 						btn[i].type = SCCP_BUTTONTYPE_SPEEDDIAL;
+*/					
+					if ((btn[i].type != SKINNY_BUTTONTYPE_MESSAGES) && (btn[i].type != SKINNY_BUTTONTYPE_DIRECTORY) && (btn[i].type != SKINNY_BUTTONTYPE_APPLICATION) && (btn[i].type != SKINNY_BUTTONTYPE_HEADSET)){
+        					if (!ast_strlen_zero(k->hint)){
+							btn[i].type = SCCP_BUTTONTYPE_HINT;
+						}else{
+							btn[i].type = SCCP_BUTTONTYPE_SPEEDDIAL;
+						}
+					}
 					sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) temporary instance (%d)\n", d->id, i+1, (btn[i].type == SCCP_BUTTONTYPE_HINT) ? "SPEEDIAL WITH HINT" : "SPEEDIAL",k->name, k->instance);
 					break;
 				}
@@ -521,10 +539,17 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 			}
 		}
 
-		if (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) {
+		//if (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) {
+		if ((btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) 
+			|| (btn[i].type == SKINNY_BUTTONTYPE_MESSAGES) 
+			|| (btn[i].type == SKINNY_BUTTONTYPE_DIRECTORY) 
+			|| (btn[i].type == SKINNY_BUTTONTYPE_APPLICATION) 
+			|| (btn[i].type == SKINNY_BUTTONTYPE_HEADSET)) {
+			
 			btn[i].instance = speedindex++;
 			k = btn[i].ptr;
-			k->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+			//k->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+			k->type = btn[i].type; /*SKINNY_BUTTONTYPE_SPEEDDIAL;*/
 			k->instance = btn[i].instance;
 		}
 	}
