@@ -100,6 +100,10 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 				(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
 
 			break;
+		case SKINNY_DEVICETYPE_CISCO7931:
++                        for (i = 0 ; i < 24 ; i++)
++                    		(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
++                        break;
 		case SKINNY_DEVICETYPE_CISCO7935:
 		case SKINNY_DEVICETYPE_CISCO7936:
 		case SKINNY_DEVICETYPE_CISCO7937:
