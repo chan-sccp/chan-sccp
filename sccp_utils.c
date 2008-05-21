@@ -1166,7 +1166,10 @@ const char * skinny_alarm2str(uint8_t alarm) {
 		return "unknow";
 	}
 }
-
+/**
+ * convertes uint32_t of SKINNY_DEVICETYPE_* to string values
+ * @todo add values for new devices
+ */
 const char * skinny_devicetype2str(uint32_t type) {
 	switch(type) {
 	case SKINNY_DEVICETYPE_30SPPLUS:
