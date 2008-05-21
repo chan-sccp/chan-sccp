@@ -33,7 +33,12 @@
 #include <asterisk/devicestate.h>
 #endif
 
-
+/**
+ * create a templete of buttons as definition for a phonetype (d->skinny_type)
+ * \param d device
+ * \param btn buttonlist 
+ *
+ */
 void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 	uint8_t i;
 	if (!d || !d->session)
