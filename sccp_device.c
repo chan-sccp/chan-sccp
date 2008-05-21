@@ -60,7 +60,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 			(btn++)->type = SKINNY_BUTTONTYPE_CALLPARK;
 			for (i = 0 ; i < 9 ; i++)
 				(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-			break;
+		break;
 		case SKINNY_DEVICETYPE_12SPPLUS:
 		case SKINNY_DEVICETYPE_12SP:
 		case SKINNY_DEVICETYPE_12:
@@ -76,7 +76,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 			(btn++)->type = SKINNY_BUTTONTYPE_CALLPARK;
 			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
 			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
-			break;
+		break;
 		case SKINNY_DEVICETYPE_CISCO7902:
 			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
 			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
@@ -90,7 +90,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 			(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
 			(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
 			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
-			break;
+		break;
 		case SKINNY_DEVICETYPE_CISCO7912:
 		case SKINNY_DEVICETYPE_CISCO7911:
 		case SKINNY_DEVICETYPE_CISCO7905:
@@ -99,7 +99,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 			for (i = 0 ; i < 9 ; i++)
 				(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
 
-			break;
+		break;
 		case SKINNY_DEVICETYPE_CISCO7931:
                         for (i = 0 ; i < 20 ; i++){
                     		(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
@@ -108,41 +108,41 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 			(btn++)->type = SKINNY_BUTTONTYPE_DIRECTORY;
 			(btn++)->type = SKINNY_BUTTONTYPE_APPLICATION;
 			(btn++)->type = SKINNY_BUTTONTYPE_HEADSET;
-                        break;
+                break;
 		case SKINNY_DEVICETYPE_CISCO7935:
 		case SKINNY_DEVICETYPE_CISCO7936:
 		case SKINNY_DEVICETYPE_CISCO7937:
 			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
 			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
-			break;
+		break;
 		case SKINNY_DEVICETYPE_CISCO7910:
-				(btn++)->type = SKINNY_BUTTONTYPE_LINE;
-				(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
-				(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
-				(btn++)->type = SKINNY_BUTTONTYPE_DISPLAY;
-				(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
-				(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
-				(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
-				(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-				(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-				(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
-			break;
+			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
+			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
+			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
+			(btn++)->type = SKINNY_BUTTONTYPE_DISPLAY;
+			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
+			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
+			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
+			(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+			(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
+		break;
 		case SKINNY_DEVICETYPE_CISCO7940:
 		case SKINNY_DEVICETYPE_CISCO7941:
 		case SKINNY_DEVICETYPE_CISCO7941GE:
 		case SKINNY_DEVICETYPE_CISCO7945:
-				(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
-				(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
-			break;
+			(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
+			(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
+		break;
 		case SKINNY_DEVICETYPE_CISCO7920:
 		case SKINNY_DEVICETYPE_CISCO7921:
 		case SKINNY_DEVICETYPE_CISCO7960:
 		case SKINNY_DEVICETYPE_CISCO7961:
 		case SKINNY_DEVICETYPE_CISCO7961GE:
 		case SKINNY_DEVICETYPE_CISCO7965:
-				for (i = 0 ; i < 6 ; i++)
-					(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
-			break;
+			for (i = 0 ; i < 6 ; i++)
+				(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
+		break;
 		case SKINNY_DEVICETYPE_CISCO7970:
 		case SKINNY_DEVICETYPE_CISCO7971:
 		case SKINNY_DEVICETYPE_CISCO7975:
@@ -157,15 +157,15 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 					(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
 				}
 			}
-			break;
+		break;
 		case SKINNY_DEVICETYPE_ATA186:
 			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
 			for (i = 0 ; i < 4 ; i++)
 				(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-			break;
+		break;
 		default:
-		/* at least one line */
-		(btn++)->type = SKINNY_BUTTONTYPE_LINE;
+			/* at least one line */
+			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
 	}
 	return;
 }
