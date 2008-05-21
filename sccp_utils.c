@@ -1246,8 +1246,6 @@ const char * skinny_devicetype2str(uint32_t type) {
 		return "NotDefined";
 	case SKINNY_DEVICETYPE_CISCO7920:
 		return "Cisco7920";
-	case SKINNY_DEVICETYPE_CISCO7970:
-		return "Cisco7970";
 	case SKINNY_DEVICETYPE_CISCO7902:
 		return "Cisco7902";
 	case SKINNY_DEVICETYPE_CISCO7905:
@@ -1256,6 +1254,10 @@ const char * skinny_devicetype2str(uint32_t type) {
 		return "Cisco7911";
 	case SKINNY_DEVICETYPE_CISCO7912:
 		return "Cisco7912";
+	case SKINNY_DEVICETYPE_CISCO7931:
+		return "Cisco7931";
+	case SKINNY_DEVICETYPE_CISCO7921:
+		return "Cisco7921";
 	case SKINNY_DEVICETYPE_CISCO7935:
 		return "Cisco7935";
 	case SKINNY_DEVICETYPE_CISCO7936:
@@ -1268,18 +1270,25 @@ const char * skinny_devicetype2str(uint32_t type) {
 		return "Cisco7941";
 	case SKINNY_DEVICETYPE_CISCO7941GE:
 		return "Cisco7941GE";
+	case SKINNY_DEVICETYPE_CISCO7942:
+		return "Cisco7942";
+	case SKINNY_DEVICETYPE_CISCO7945:
+		return "Cisco7945";
 	case SKINNY_DEVICETYPE_CISCO7961:
 		return "Cisco7961";
 	case SKINNY_DEVICETYPE_CISCO7961GE:
 		return "Cisco7961GE";
 	case SKINNY_DEVICETYPE_CISCO7965:
 		return "Cisco7965";
-	case SKINNY_DEVICETYPE_CISCO7921:
-			return "Cisco7921";
+	case SKINNY_DEVICETYPE_CISCO7970:
+		return "Cisco7970";
 	case SKINNY_DEVICETYPE_CISCO7971:
 		return "Cisco7971";
+	case SKINNY_DEVICETYPE_CISCO7975:
+		return "Cisco7975";
 	case SKINNY_DEVICETYPE_CISCO7985:
 		return "Cisco7985";
+
 	default:
 		return "unknow";
 	}
