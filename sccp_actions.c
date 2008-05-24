@@ -373,7 +373,6 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 			if ( (btn[i].type == SKINNY_BUTTONTYPE_LINE)
 				|| ( btn[i].type == SKINNY_BUTTONTYPE_MULTI)
 				|| ( btn[i].type == SCCP_BUTTONTYPE_LINE)) {
-
 				if (btn_count == l->instance) {
 					l->device = d;
 					l->instance = i + 1;
@@ -406,7 +405,8 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 		k->instance = 0;
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a speeddial button place %s (%d)\n", d->id, k->name, k->config_instance);
 		for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) {
-			if ( (btn[i].type == SKINNY_BUTTONTYPE_SPEEDDIAL) 
+			if ( (btn[i].type == SKINNY_BUTTONTYPE_SPEEDDIAL) || (btn[i].type == SKINNY_BUTTONTYPE_MULTI) || (btn[i].type == SCCP_BUTTONTYPE_HINT) || (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL)) {
+				if ( (btn[i].type == SKINNY_BUTTONTYPE_SPEEDDIAL) 
 				|| (btn[i].type == SKINNY_BUTTONTYPE_MULTI) 
 				|| (btn[i].type == SCCP_BUTTONTYPE_HINT) 
 				|| (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) 
@@ -742,13 +742,23 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 				return;
 			}
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Line Key press on line %s\n", d->id, (l) ? l->name : "(nil)");
-			if ( (c = sccp_channel_get_active(d)) ) {
-				sccp_log(1)(VERBOSE_PREFIX_3 "%s: Trying to put on hold the active call (%d) on line %s\n", d->id, c->callid, (l) ? l->name : "(nil)");
-				/* there is an active call, let's put it on hold first */
-				if (!sccp_channel_hold(c)) {
+			if ( (c = sccp_channel_get_active(d)) ) {			
+			    if(c->state != SCCP_CHANNELSTATE_CONNECTED)
+			    {
+				    sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call not in progress. Closing line %s\n", d->id, (l) ? l->name : "(nil)");
+				    sccp_channel_endcall(c);
+				    return;
+			    }
+			    else
+			    {
+				    sccp_log(1)(VERBOSE_PREFIX_3 "%s: Trying to put on hold the active call (%d) on line %s\n", d->id, c->callid, (l) ? l->name : "(nil)");
+			    	    /* there is an active call, let's put it on hold first */
+				    if (!sccp_channel_hold(c)) {
 					sccp_log(1)(VERBOSE_PREFIX_3 "%s: Hold failed on call (%d), line %s\n", d->id, c->callid, (l) ? l->name : "(nil)");
 					return;
-				}
+				    }
+			    }
+			
 			}
 			sccp_dev_set_activeline(l);
 			sccp_dev_set_cplane(l,1);
@@ -1657,16 +1667,16 @@ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_moo_t * r) {
  */
 void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_device_t * d = s->device;
-	sccp_moo_t 			* r1;
+  	sccp_moo_t 			* r1;
   
 	if (!d)
 		return;
 
-	int featureIndex = letohl(r->msg.FeatureStatReqMessage.lel_featureIndex);
+  	int featureIndex = letohl(r->msg.FeatureStatReqMessage.lel_featureIndex);
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d\n", d->id, featureIndex);
 	/* for now we are unable to use this skinny message */
   
-	REQ(r1, FeatureStatMessage);
+  	REQ(r1, FeatureStatMessage);
 	r1->msg.FeatureStatMessage.lel_featureIndex = htolel(featureIndex);
 	r1->msg.FeatureStatMessage.lel_featureID = htolel(0x13);
 	sccp_copy_string(r1->msg.FeatureStatMessage.featureTextLabel, "Feature", strlen("Feature")+1);
