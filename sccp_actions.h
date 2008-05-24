@@ -1,3 +1,5 @@
+#ifndef __SCCP_ACTIONS_H
+#define __SCCP_ACTIONS_H
 void sccp_init_device(sccp_device_t * d);
 void sccp_handle_alarm(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r);
@@ -25,3 +27,4 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_servicesurl_stat_req(sccp_session_t * s, sccp_moo_t * r);
+#endif

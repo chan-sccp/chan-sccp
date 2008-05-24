@@ -19,6 +19,7 @@
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
+#include "sccp_lock.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
 #include "sccp_device.h"
@@ -47,41 +48,41 @@ void sccp_line_delete_nolock(sccp_line_t * l) {
 
 	/* remove from the global lines list */
 	if (l->next) { /* not the last one */
-		ast_mutex_lock(&l->next->lock);
+		sccp_mutex_lock(&l->next->lock);
 		l->next->prev = l->prev;
-		ast_mutex_unlock(&l->next->lock);
+		sccp_mutex_unlock(&l->next->lock);
 	}
 	if (l->prev) { /* not the first one */
-		ast_mutex_lock(&l->prev->lock);
+		sccp_mutex_lock(&l->prev->lock);
 		l->prev->next = l->next;
-		ast_mutex_unlock(&l->prev->lock);
+		sccp_mutex_unlock(&l->prev->lock);
 	} else { /* the first one */
-		ast_mutex_lock(&GLOB(lines_lock));
+		sccp_mutex_lock(&GLOB(lines_lock));
 		GLOB(lines) = l->next;
-		ast_mutex_unlock(&GLOB(lines_lock));
+		sccp_mutex_unlock(&GLOB(lines_lock));
 	}
 
 	/* remove the line from the device lines list */
 	if (l->next_on_device) { /* not the last one */
-		ast_mutex_lock(&l->next_on_device->lock);
+		sccp_mutex_lock(&l->next_on_device->lock);
 		l->next_on_device->prev_on_device = l->prev_on_device;
-		ast_mutex_unlock(&l->next_on_device->lock);
+		sccp_mutex_unlock(&l->next_on_device->lock);
 	}
 	if (l->prev_on_device) { /* not the first one */
-		ast_mutex_lock(&l->prev_on_device->lock);
+		sccp_mutex_lock(&l->prev_on_device->lock);
 		l->prev_on_device->next_on_device = l->next_on_device;
-		ast_mutex_unlock(&l->prev_on_device->lock);
+		sccp_mutex_unlock(&l->prev_on_device->lock);
 	} else { /* the first one */
-		ast_mutex_lock(&l->lock);
+		sccp_mutex_lock(&l->lock);
 		l->device->lines = l->next_on_device;
-		ast_mutex_unlock(&l->lock);
+		sccp_mutex_unlock(&l->lock);
 	}
 	if (l->cfwd_num)
 			free(l->cfwd_num);
 	if (l->trnsfvm)
 			free(l->trnsfvm);
 
-	ast_mutex_destroy(&l->lock);
+	sccp_mutex_destroy(&l->lock);
 	free(l);
 }
 

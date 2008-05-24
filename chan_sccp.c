@@ -31,6 +31,7 @@
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
+#include "sccp_lock.h"
 #include "sccp_actions.h"
 #include "sccp_utils.h"
 #include "sccp_device.h"
@@ -175,7 +176,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 	}
 
 	/* call forward check */
-	ast_mutex_lock(&l->lock);
+	sccp_mutex_lock(&l->lock);
 	if (l->cfwd_type == SCCP_CFWD_ALL) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call forward (all) to %s\n", l->device->id, l->cfwd_num);
 #ifdef CS_AST_HAS_AST_STRING_FIELD
@@ -191,7 +192,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 		sccp_copy_string(c->owner->call_forward, l->cfwd_num, sizeof(c->owner->call_forward));
 #endif
 	}
-	ast_mutex_unlock(&l->lock);
+	sccp_mutex_unlock(&l->lock);
 	
 	/* we don't need to parse any options when we have a call forward status */
 	if (!ast_strlen_zero(c->owner->call_forward))
@@ -320,13 +321,13 @@ void sccp_hint_notify_devicestate(sccp_device_t * d, uint8_t state) {
 	sccp_line_t * l;
 	if (!d || !d->session)
 		return;
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	l = d->lines;
 	while (l) {
 		sccp_hint_notify_linestate(l, state, NULL);
 		l = l->next_on_device;
 	}
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 }
 
 
@@ -768,12 +769,12 @@ sccp_line_t * build_lines(struct ast_variable *v) {
  						free(l);
  					}else {
  						ast_verbose(VERBOSE_PREFIX_3 "Added line '%s'\n", l->name);
- 						ast_mutex_lock(&GLOB(lines_lock));
+ 						sccp_mutex_lock(&GLOB(lines_lock));
  						l->next = GLOB(lines);
  						if (l->next)
  							l->next->prev = l;
  						GLOB(lines) = l;
- 						ast_mutex_unlock(&GLOB(lines_lock));
+ 						sccp_mutex_unlock(&GLOB(lines_lock));
  					}
 					free(gl);
  				} else {
@@ -788,23 +789,23 @@ sccp_line_t * build_lines(struct ast_variable *v) {
  					sccp_copy_string(l->name, ast_strip(v->value), sizeof(l->name));
  					
  					/* search for existing line */
-					ast_mutex_lock(&GLOB(lines_lock));
+					sccp_mutex_lock(&GLOB(lines_lock));
 					gl = GLOB(lines);
 					while(gl && strcasecmp(gl->name, v->value) != 0) {
 	 					gl = gl->next;
 	 				}
-					ast_mutex_unlock(&GLOB(lines_lock));
+					sccp_mutex_unlock(&GLOB(lines_lock));
  					if (gl && (strcasecmp(gl->name, v->value) == 0) ){					
  						ast_log(LOG_WARNING, "The line %s already exists\n", gl->name);
  						free(l);
  					}else {
  						ast_verbose(VERBOSE_PREFIX_3 "Added line '%s'\n", l->name);
- 						ast_mutex_lock(&GLOB(lines_lock));
+ 						sccp_mutex_lock(&GLOB(lines_lock));
  						l->next = GLOB(lines);
  						if (l->next)
  							l->next->prev = l;
  						GLOB(lines) = l;
- 						ast_mutex_unlock(&GLOB(lines_lock));
+ 						sccp_mutex_unlock(&GLOB(lines_lock));
  					}
 					free(gl);
  				} else {
@@ -991,10 +992,10 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 						d->phonemessage=strdup(message);									//set message on device if we have a result
 					strcpy(message,"");
 					ast_verbose(VERBOSE_PREFIX_3 "Added device '%s' (%s) \n", d->id, d->config_type);
-					ast_mutex_lock(&GLOB(devices_lock));
+					sccp_mutex_lock(&GLOB(devices_lock));
 					d->next = GLOB(devices);
 					GLOB(devices) = d;
-					ast_mutex_unlock(&GLOB(devices_lock));
+					sccp_mutex_unlock(&GLOB(devices_lock));
 					d = build_device();
 					speeddial_index = 1;
 					serviceURLIndex = 1;
@@ -1017,10 +1018,10 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 						d->phonemessage=strdup(message);									//set message on device if we have a result
 					strcpy(message,"");
 					ast_verbose(VERBOSE_PREFIX_3 "Added device '%s' (%s)\n", d->id, d->config_type);
-					ast_mutex_lock(&GLOB(devices_lock));
+					sccp_mutex_lock(&GLOB(devices_lock));
 					d->next = GLOB(devices);
 					GLOB(devices) = d;
-					ast_mutex_unlock(&GLOB(devices_lock));
+					sccp_mutex_unlock(&GLOB(devices_lock));
 
 				} else {
 					ast_log(LOG_WARNING, "Wrong device param: %s => %sn", v->name, v->value);
@@ -1638,7 +1639,7 @@ static int sccp_setmessage_exec(struct ast_channel *chan, void *data) {
  	sccp_copy_string(tmp, (char *)data, sizeof(tmp));
 
 	d = c->device;
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	if (strlen(tmp)>0) {
 		sccp_dev_displayprinotify(d,tmp,5,0);
 		sccp_dev_displayprompt(d,0,0,tmp,0);
@@ -1651,7 +1652,7 @@ static int sccp_setmessage_exec(struct ast_channel *chan, void *data) {
 		d->phonemessage = NULL;
 		ast_db_del("SCCPM", d->id);
 	}	
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 	return 0;
 }
 
@@ -1746,12 +1747,12 @@ static int unload_module(void) {
 	ast_unregister_application("SetCalledParty");
 	sccp_unregister_cli();
 
-	ast_mutex_lock(&GLOB(channels_lock));
+	sccp_mutex_lock(&GLOB(channels_lock));
 	while (GLOB(channels))
 		sccp_channel_delete_no_lock(GLOB(channels));
-	ast_mutex_unlock(&GLOB(channels_lock));
+	sccp_mutex_unlock(&GLOB(channels_lock));
 
-	ast_mutex_lock(&GLOB(lines_lock));
+	sccp_mutex_lock(&GLOB(lines_lock));
 	while (GLOB(lines)) {
 		l = GLOB(lines);
 		GLOB(lines) = l->next;
@@ -1767,9 +1768,9 @@ static int unload_module(void) {
 			free(l->trnsfvm);
 		free(l);
 	}
-	ast_mutex_unlock(&GLOB(lines_lock));
+	sccp_mutex_unlock(&GLOB(lines_lock));
 
-	ast_mutex_lock(&GLOB(devices_lock));
+	sccp_mutex_lock(&GLOB(devices_lock));
 	while (GLOB(devices)) {
 		d = GLOB(devices);
 		GLOB(devices) = d->next;
@@ -1778,9 +1779,9 @@ static int unload_module(void) {
 		ast_mutex_destroy(&d->lock);
 		free(d);
 	}
-	ast_mutex_unlock(&GLOB(devices_lock));
+	sccp_mutex_unlock(&GLOB(devices_lock));
 
-	ast_mutex_lock(&GLOB(sessions_lock));
+	sccp_mutex_lock(&GLOB(sessions_lock));
 	while (GLOB(sessions)) {
 		s = GLOB(sessions);
 		GLOB(sessions) = s->next;
@@ -1795,20 +1796,20 @@ static int unload_module(void) {
 		ast_mutex_destroy(&s->lock);
 		free(s);
 	}
-	ast_mutex_unlock(&GLOB(sessions_lock));
+	sccp_mutex_unlock(&GLOB(sessions_lock));
 	close(GLOB(descriptor));
 	GLOB(descriptor) = -1;
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Killing the socket thread\n");
 	
-	if (!ast_mutex_lock(&GLOB(socket_lock))) {
+	if (!sccp_mutex_lock(&GLOB(socket_lock))) {
 		if (socket_thread && (socket_thread != AST_PTHREADT_STOP)) {
 			/* pthread_cancel(socket_thread); */
 			pthread_kill(socket_thread, SIGURG);
 			pthread_join(socket_thread, NULL);
 		}
 		socket_thread = AST_PTHREADT_STOP;
-		ast_mutex_unlock(&GLOB(socket_lock));
+		sccp_mutex_unlock(&GLOB(socket_lock));
 	} else {
 		ast_log(LOG_WARNING, "SCCP: Unable to lock the socket\n");
 		return -1;
@@ -1839,9 +1840,9 @@ AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY, "Skinny Client Control Protocol (SCCP
 #else
 int usecount() {
 	int res;
-	ast_mutex_lock(&GLOB(usecnt_lock));
+	sccp_mutex_lock(&GLOB(usecnt_lock));
 	res = GLOB(usecnt);
-	ast_mutex_unlock(&GLOB(usecnt_lock));
+	sccp_mutex_unlock(&GLOB(usecnt_lock));
 	return res;
 }
 

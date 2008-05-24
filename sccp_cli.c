@@ -19,6 +19,7 @@
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
+#include "sccp_lock.h"
 #include "sccp_cli.h"
 #include "sccp_line.h"
 #include "sccp_indicate.h"
@@ -43,7 +44,7 @@ static char * sccp_complete_device(char *line, char *word, int pos, int state) {
 	if (pos > 3)
 	return NULL;
 
-	ast_mutex_lock(&GLOB(devices_lock));
+	sccp_mutex_lock(&GLOB(devices_lock));
 	d = GLOB(devices);
 	while(d) {
 		if (!strncasecmp(word, d->id, strlen(word))) {
@@ -54,7 +55,7 @@ static char * sccp_complete_device(char *line, char *word, int pos, int state) {
 	}
 	ret = d ? strdup(d->id) : NULL;
 
-	ast_mutex_unlock(&GLOB(devices_lock));
+	sccp_mutex_unlock(&GLOB(devices_lock));
 	
 	return ret;
 }
@@ -83,11 +84,11 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 	if(!d)
 		return RESULT_SUCCESS;
 	
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	
 	if (!d->session) {
 		ast_cli(fd, "%s: device not registered\n", argv[2]);
-		ast_mutex_unlock(&d->lock);
+		sccp_mutex_unlock(&d->lock);
 		return RESULT_SUCCESS;
 	}
 	
@@ -98,7 +99,7 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 		sccp_hint_state(NULL, NULL, AST_EXTENSION_NOT_INUSE, h);
 		h = h->next;
 	}
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 
 	REQ(r, Reset);
 	r->msg.Reset.lel_resetType = htolel((!strcasecmp(argv[1], "reset")) ? SKINNY_DEVICE_RESET : SKINNY_DEVICE_RESTART);
@@ -131,11 +132,11 @@ static int sccp_unregister(int fd, int argc, char * argv[]) {
 	if(!d)
 		return RESULT_SUCCESS;
 	
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	
 	if (!d->session) {
 		ast_cli(fd, "%s: device not registered\n", argv[2]);
-		ast_mutex_unlock(&d->lock);
+		sccp_mutex_unlock(&d->lock);
 		return RESULT_SUCCESS;
 	}
 	
@@ -146,7 +147,7 @@ static int sccp_unregister(int fd, int argc, char * argv[]) {
 		sccp_hint_state(NULL, NULL, AST_EXTENSION_NOT_INUSE, h);
 		h = h->next;
 	}
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 
 	REQ(r, RegisterRejectMessage);
 	strncpy(r->msg.RegisterRejectMessage.text, "Unregister user request", StationMaxDisplayTextSize);
@@ -190,7 +191,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	char iabuf[INET_ADDRSTRLEN];
 #endif
 
-	ast_mutex_lock(&GLOB(lock));
+	sccp_mutex_lock(&GLOB(lock));
 	ast_codec_pref_string(&GLOB(global_codecs), pref_buf, sizeof(pref_buf) - 1);
 	ast_getformatname_multiple(cap_buf, sizeof(cap_buf), GLOB(global_capability)),
 
@@ -243,7 +244,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "RemoteHangup tone     : %d\n", GLOB(remotehangup_tone));
 	ast_cli(fd, "Transfer tone         : %d\n", GLOB(transfer_tone));
 	ast_cli(fd, "CallWaiting tone      : %d\n", GLOB(callwaiting_tone));
-	ast_mutex_unlock(&GLOB(lock));
+	sccp_mutex_unlock(&GLOB(lock));
 	return RESULT_SUCCESS;
 }
 
@@ -273,7 +274,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 		ast_cli(fd, "Can't find settings for device %s\n", argv[3]);
 		return RESULT_SUCCESS;
 	}
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	ast_codec_pref_string(&d->codecs, pref_buf, sizeof(pref_buf) - 1);
 	ast_getformatname_multiple(cap_buf, sizeof(cap_buf), d->capability),
 
@@ -343,7 +344,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 			ast_cli(fd, "%-20s : %-20s\n", v->name , v->value);
 	}
 
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 	return RESULT_SUCCESS;
 }
 
@@ -392,7 +393,7 @@ static int sccp_show_channels(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "\n%-5s %-10s %-16s %-16s %-16s %-10s\n", "ID","LINE","DEVICE","AST STATE","SCCP STATE","CALLED");
 	ast_cli(fd, "===== ========== ================ ================ ================ ========== \n");
 
-	ast_mutex_lock(&GLOB(channels_lock));
+	sccp_mutex_lock(&GLOB(channels_lock));
 	c = GLOB(channels);
 	while(c) {
 		ast_cli(fd, "%.5d %-10s %-16s %-16s %-16s %-10s\n",
@@ -404,7 +405,7 @@ static int sccp_show_channels(int fd, int argc, char * argv[]) {
 			c->calledPartyNumber);
 		c = c->next;
 	}
-	ast_mutex_unlock(&GLOB(channels_lock));
+	sccp_mutex_unlock(&GLOB(channels_lock));
 	return RESULT_SUCCESS;
 }
 
@@ -426,7 +427,7 @@ static int sccp_show_devices(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "\n%-16s %-15s %-16s %-10s\n", "NAME","ADDRESS","MAC","Reg. State");
 	ast_cli(fd, "================ =============== ================ ==========\n");
 
-	ast_mutex_lock(&GLOB(devices_lock));
+	sccp_mutex_lock(&GLOB(devices_lock));
 	d = GLOB(devices);
 	while (d) {
 		
@@ -447,7 +448,7 @@ static int sccp_show_devices(int fd, int argc, char * argv[]) {
 #endif
 		d = d->next;
 	}
-	ast_mutex_unlock(&GLOB(devices_lock));
+	sccp_mutex_unlock(&GLOB(devices_lock));
 	return RESULT_SUCCESS;
 }
 
@@ -472,13 +473,13 @@ static int sccp_message_devices(int fd, int argc, char * argv[]) {
 		msgtimeout=10;
 	}
 
-	ast_mutex_lock(&GLOB(devices_lock));
+	sccp_mutex_lock(&GLOB(devices_lock));
 	d = GLOB(devices);
 	while (d) {
 		sccp_dev_displaynotify(d,argv[3],msgtimeout);
 		d = d->next;
 	}
-	ast_mutex_unlock(&GLOB(devices_lock));
+	sccp_mutex_unlock(&GLOB(devices_lock));
 	return RESULT_SUCCESS;
 }
 
@@ -503,17 +504,17 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "\n%-16s %-16s %-4s %-4s %-16s\n", "NAME","DEVICE","MWI","Chs","Active Channel");
 	ast_cli(fd, "================ ================ ==== ==== =================================================\n");
 
-	ast_mutex_lock(&GLOB(lines_lock));
+	sccp_mutex_lock(&GLOB(lines_lock));
 	l = GLOB(lines);
 
 	while (l) {
-		ast_mutex_lock(&l->lock);
+		sccp_mutex_lock(&l->lock);
 		c = NULL;
 		d = l->device;
 		if (d) {
-			ast_mutex_lock(&d->lock);
+			sccp_mutex_lock(&d->lock);
 			c = d->active_channel;
-			ast_mutex_unlock(&d->lock);
+			sccp_mutex_unlock(&d->lock);
 		}
 
 		if (!c || (c->line != l))
@@ -535,11 +536,11 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 		for (v = l->variables ; v ; v = v->next)
 			ast_cli(fd, "Variable: %-20s : %-20s\n", v->name , v->value);
 
-		ast_mutex_unlock(&l->lock);
+		sccp_mutex_unlock(&l->lock);
 		l = l->next;
   }
 
-  ast_mutex_unlock(&GLOB(lines_lock));
+  sccp_mutex_unlock(&GLOB(lines_lock));
   return RESULT_SUCCESS;
 }
 
@@ -567,7 +568,7 @@ static int sccp_remove_line_from_device(int fd, int argc, char * argv[]) {
 
 	l = d->lines;
 	while(l){
-		ast_mutex_lock(&l->lock);
+		sccp_mutex_lock(&l->lock);
 		if(!strcasecmp(l->name, argv[4])){
 			sccp_line_delete_nolock(l);
 			while (l->hints) {
@@ -585,7 +586,7 @@ static int sccp_remove_line_from_device(int fd, int argc, char * argv[]) {
 			break;
 		}
 		
-		ast_mutex_unlock(&l->lock);
+		sccp_mutex_unlock(&l->lock);
 		l = l->next_on_device;
 	}
 
@@ -611,14 +612,14 @@ static int sccp_show_sessions(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "%-10s %-15s %-4s %-15s %-15s %-15s\n", "Socket", "IP", "KA", "DEVICE", "STATE", "TYPE");
 	ast_cli(fd, "========== =============== ==== =============== =============== ===============\n");
 
-	ast_mutex_lock(&GLOB(sessions_lock));
+	sccp_mutex_lock(&GLOB(sessions_lock));
 	s = GLOB(sessions);
 
 	while (s) {
-		ast_mutex_lock(&s->lock);
+		sccp_mutex_lock(&s->lock);
 		d = s->device;
 		if (d)
-			ast_mutex_lock(&d->lock);
+			sccp_mutex_lock(&d->lock);
 #ifdef ASTERISK_CONF_1_2
 		ast_cli(fd, "%-10d %-15s %-4d %-15s %-15s %-15s\n",
 			s->fd,
@@ -637,11 +638,11 @@ static int sccp_show_sessions(int fd, int argc, char * argv[]) {
 			(d) ? skinny_devicetype2str(d->skinny_type) : "--");
 #endif
 		if (d)
-			ast_mutex_unlock(&d->lock);
-		ast_mutex_unlock(&s->lock);
+			sccp_mutex_unlock(&d->lock);
+		sccp_mutex_unlock(&s->lock);
 		s = s->next;
 	}
-	ast_mutex_unlock(&GLOB(sessions_lock));
+	sccp_mutex_unlock(&GLOB(sessions_lock));
 	return RESULT_SUCCESS;
 }
 

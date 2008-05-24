@@ -19,6 +19,7 @@
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
+#include "sccp_lock.h"
 #include "sccp_indicate.h"
 #include "sccp_device.h"
 #include "sccp_channel.h"
@@ -29,9 +30,9 @@
 void sccp_indicate_lock(sccp_channel_t * c, uint8_t state) {
 	if (!c)
 		return;
-	ast_mutex_lock(&c->lock);
+	sccp_mutex_lock(&c->lock);
 	sccp_indicate_nolock(c, state);
-	ast_mutex_unlock(&c->lock);
+	sccp_mutex_unlock(&c->lock);
 }
 
 void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {

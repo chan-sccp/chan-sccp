@@ -19,6 +19,7 @@
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
+#include "sccp_lock.h"
 #include "sccp_utils.h"
 #include "sccp_indicate.h"
 #include "sccp_device.h"
@@ -61,9 +62,9 @@ void sccp_device_add_line(sccp_device_t * d, char * name) {
 	ast_strip(name);
 		if (ast_strlen_zero(name)) {
 			/* this is useful to leave and empty button */
-			ast_mutex_lock(&lines_last->lock);
+			sccp_mutex_lock(&lines_last->lock);
 			lines_last->next = build_line();
-			ast_mutex_unlock(&lines_last->lock);
+			sccp_mutex_unlock(&lines_last->lock);
 			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Add an empty line\n", d->id);
 			
 		}
@@ -87,8 +88,8 @@ void sccp_device_add_line(sccp_device_t * d, char * name) {
 		}
 
 		i++;
-		ast_mutex_lock(&l->lock);
-		ast_mutex_lock(&d->lock);
+		sccp_mutex_lock(&l->lock);
+		sccp_mutex_lock(&d->lock);
 		if (i == 1)
 			d->currentLine = l;
 		l->device = d;
@@ -104,8 +105,8 @@ void sccp_device_add_line(sccp_device_t * d, char * name) {
 			lines_last->next_on_device = l;
 			lines_last = l;
 		}
-		ast_mutex_unlock(&l->lock);
-		ast_mutex_unlock(&d->lock);
+		sccp_mutex_unlock(&l->lock);
+		sccp_mutex_unlock(&d->lock);
 		/* notify the line is on */
 		sccp_hint_notify_linestate(l, SCCP_DEVICESTATE_ONHOOK, NULL);
 }
@@ -131,13 +132,13 @@ sccp_device_t * sccp_device_find_byid(const char * name) {
 	*/
    	d = GLOB(devices);
 
-  	ast_mutex_lock(&GLOB(devices_lock));
+  	sccp_mutex_lock(&GLOB(devices_lock));
   	while (d) {
     		if (!strcasecmp(d->id, name))
       			break;
     		d = d->next;
   	}
-  	ast_mutex_unlock(&GLOB(devices_lock));
+  	sccp_mutex_unlock(&GLOB(devices_lock));
 
 #ifdef CS_SCCP_REALTIME
   	if (!d)
@@ -154,13 +155,13 @@ sccp_device_t * sccp_device_find_byname(const char * name) {
 	*/
   	d = GLOB(devices);
   
-  	ast_mutex_lock(&GLOB(devices_lock));
+  	sccp_mutex_lock(&GLOB(devices_lock));
   	while (d) {
     		if (!strcasecmp(d->id, name))
     			break;
     		d = d->next;
   	}
-  	ast_mutex_unlock(&GLOB(devices_lock));
+  	sccp_mutex_unlock(&GLOB(devices_lock));
  
 #ifdef CS_SCCP_REALTIME
 	if (!d)
@@ -222,13 +223,13 @@ sccp_line_t * sccp_line_find_byname(const char * name) {
 #endif
 	l = GLOB(lines);
 
-	ast_mutex_lock(&GLOB(lines_lock));
+	sccp_mutex_lock(&GLOB(lines_lock));
 	while(l && strcasecmp(l->name, name) != 0) {
 		l = l->next;
 	}
 	if (l && l->device)
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: found line %s\n", DEV_ID_LOG(l->device), l->name);
-	ast_mutex_unlock(&GLOB(lines_lock));
+	sccp_mutex_unlock(&GLOB(lines_lock));
 
 #ifdef CS_SCCP_REALTIME
 	if (!l)
@@ -282,16 +283,16 @@ sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint8_t instance) {
 	if (!d)
 		return NULL;
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for line by instance %d\n", d->id, instance);
-	ast_mutex_lock(&GLOB(lines_lock));
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&GLOB(lines_lock));
+	sccp_mutex_lock(&d->lock);
 	l = d->lines;
 	while (l) {
 		if (l->instance == instance)
 			break;
 		l = l->next_on_device;
 	}
-	ast_mutex_unlock(&d->lock);
-	ast_mutex_unlock(&GLOB(lines_lock));
+	sccp_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&GLOB(lines_lock));
 	if (l)
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found line %s\n", d->id, l->name);
 	return l;
@@ -302,14 +303,14 @@ sccp_channel_t * sccp_channel_find_byid(uint32_t id) {
 /*	uint8_t tries = SCCP_LOCK_TRIES; */
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %d\n", id);
 
-	ast_mutex_lock(&GLOB(channels_lock));
+	sccp_mutex_lock(&GLOB(channels_lock));
 	/* with this lock the channels list will not change */
 	c = GLOB(channels);
 	while (c) {
 		if (c->callid == id) {
 			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(c->device), c->callid);
 /*
-			while (tries && ast_mutex_trylock(&c->lock)) {
+			while (tries && sccp_mutex_trylock(&c->lock)) {
 				tries--;
 				usleep(SCCP_LOCK_USLEEP);
 			}
@@ -322,7 +323,7 @@ sccp_channel_t * sccp_channel_find_byid(uint32_t id) {
 		}
 		c = c->next;
 	}
-	ast_mutex_unlock(&GLOB(channels_lock));
+	sccp_mutex_unlock(&GLOB(channels_lock));
 	return c;
 }
 
@@ -332,16 +333,16 @@ sccp_channel_t * sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t stat
 		return NULL;
 //	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a channel with state \"%s\" (%d) on line %s\n", DEV_ID_LOG(l->device), sccp_indicate2str(state), state, l->name);
 
-	ast_mutex_lock(&GLOB(channels_lock));
-	ast_mutex_lock(&l->lock);
+	sccp_mutex_lock(&GLOB(channels_lock));
+	sccp_mutex_lock(&l->lock);
 	c = l->channels;
 	while (c) {
 		if (c->state == state)
 			break;
 		c = c->next_on_line;
 	}
-	ast_mutex_unlock(&l->lock);
-	ast_mutex_unlock(&GLOB(channels_lock));
+	sccp_mutex_unlock(&l->lock);
+	sccp_mutex_unlock(&GLOB(channels_lock));
 	if (c)
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d) with state \"%s\" (%d) on line %s\n", DEV_ID_LOG(l->device), c->callid, sccp_indicate2str(state), state, l->name);
 	return c;
@@ -353,16 +354,16 @@ sccp_channel_t * sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t 
 		return NULL;
 //	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a channel with state \"%s\" (%d) on line %s\n", DEV_ID_LOG(l->device), sccp_callstate2str(state), state, l->name);
 
-	ast_mutex_lock(&GLOB(channels_lock));
-	ast_mutex_lock(&l->lock);
+	sccp_mutex_lock(&GLOB(channels_lock));
+	sccp_mutex_lock(&l->lock);
 	c = l->channels;
 	while (c) {
 		if (c->callstate == state)
 			break;
 		c = c->next_on_line;
 	}
-	ast_mutex_unlock(&l->lock);
-	ast_mutex_unlock(&GLOB(channels_lock));
+	sccp_mutex_unlock(&l->lock);
+	sccp_mutex_unlock(&GLOB(channels_lock));
 	if (c)
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d) with state \"%s\" (%d) on line %s\n", DEV_ID_LOG(l->device), c->callid, sccp_callstate2str(state), state, l->name);
 	return c;
@@ -375,8 +376,8 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 		return NULL;
 //	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a channel with state \"%s\" (%d) on device\n", d->id, sccp_indicate2str(state), state);
 	
-	ast_mutex_lock(&GLOB(channels_lock));
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&GLOB(channels_lock));
+	sccp_mutex_lock(&d->lock);
 	l = d->lines;
 	while (l) {
 		c = sccp_channel_find_bystate_on_line(l, state);
@@ -384,8 +385,8 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 			break;
 		l = l->next_on_device;
 	}
-	ast_mutex_unlock(&d->lock);
-	ast_mutex_unlock(&GLOB(channels_lock));
+	sccp_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&GLOB(channels_lock));
 	if (c)
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d) with state \"%s\" (%d) on device\n", d->id, c->callid, sccp_indicate2str(state), state);
 	return c;
@@ -403,7 +404,7 @@ void sccp_dev_dbput(sccp_device_t * d) {
 	sccp_line_t * l;
 	if (!d)
 		return;
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	l = d->lines;
 	while (l) {
 		if (l->cfwd_type == SCCP_CFWD_ALL) {
@@ -425,7 +426,7 @@ void sccp_dev_dbput(sccp_device_t * d) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Storing device status (dnd, cfwd*) in the asterisk db\n", d->id);
 	if (ast_db_put("SCCP", d->id, tmp))
 		ast_log(LOG_NOTICE, "%s: Unable to store device status (dnd, cfwd*) in the asterisk db\n", d->id);
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 }
 
 static void sccp_cfwd_parse(sccp_device_t * d, char * tmp, uint8_t type) {
@@ -490,7 +491,7 @@ void sccp_dev_dbclean() {
 	sccp_device_t * d;
 	char key[256];
 
-	ast_mutex_lock(&GLOB(devices_lock));
+	sccp_mutex_lock(&GLOB(devices_lock));
 	entry = ast_db_gettree("SCCP", NULL);
 	while (entry) {
 		sscanf(entry->key,"/SCCP/%s", key);
@@ -512,7 +513,7 @@ void sccp_dev_dbclean() {
 	}
 	if (entry)
 		ast_db_freetree(entry);
-	ast_mutex_unlock(&GLOB(devices_lock));
+	sccp_mutex_unlock(&GLOB(devices_lock));
 }
 
 const char * sccp_extensionstate2str(uint8_t type) {

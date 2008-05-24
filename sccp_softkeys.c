@@ -28,6 +28,7 @@
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
+#include "sccp_lock.h"
 #include "sccp_utils.h"
 #include "sccp_channel.h"
 #include "sccp_device.h"
@@ -60,11 +61,11 @@ void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, sccp_channel_t * c) {
 	if (c) {
 		if (c->state == SCCP_CHANNELSTATE_OFFHOOK) {
 			/* we have a offhook channel */
-			ast_mutex_lock(&c->lock);
+			sccp_mutex_lock(&c->lock);
 			sccp_copy_string(c->dialedNumber, d->lastNumber, sizeof(c->dialedNumber));
 			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Get ready to redial number %s\n", d->id, d->lastNumber);
 			c->digittimeout = time(0)+1;
-			ast_mutex_unlock(&c->lock);
+			sccp_mutex_unlock(&c->lock);
 		}
 		/* here's a KEYMODE error. nothing to do */
 		return;
@@ -126,7 +127,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 			return;
 		}
 	
-		ast_mutex_lock(&l->lock);
+		sccp_mutex_lock(&l->lock);
 		if(l->dndmode == SCCP_DNDMODE_USERDEFINED){
 			switch (l->dnd) {
 				case SCCP_DNDMODE_OFF:
@@ -146,7 +147,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 			l->dnd = (l->dnd) ? 0 : 1;
 		}
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: DND-line status: %d\n", d->id, l->dnd);
-		ast_mutex_unlock(&l->lock);
+		sccp_mutex_unlock(&l->lock);
 	}else{
 
 		if (!d->dndmode) {
@@ -154,7 +155,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 			return;
 		}
 	
-		ast_mutex_lock(&d->lock);
+		sccp_mutex_lock(&d->lock);
 		if(d->dndmode == SCCP_DNDMODE_USERDEFINED){
 			switch (d->dnd) {
 				case SCCP_DNDMODE_OFF:
@@ -186,7 +187,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 				l1 = l1->next_on_device;
 			}
 		}
-		ast_mutex_unlock(&d->lock);
+		sccp_mutex_unlock(&d->lock);
 		sccp_dev_dbput(d);
 	}
 	sccp_dev_check_displayprompt(d);
@@ -199,12 +200,12 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		return;
 	if (c->state != SCCP_CHANNELSTATE_DIALING)
 		return;
-	ast_mutex_lock(&c->lock);
+	sccp_mutex_lock(&c->lock);
 	len = strlen(c->dialedNumber)-1;
 	if (len >= 0)
 		c->dialedNumber[len] = '\0';
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: backspacing dial number %s\n", c->device->id, c->dialedNumber);
-	ast_mutex_unlock(&c->lock);
+	sccp_mutex_unlock(&c->lock);
 }
 
 void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
@@ -225,11 +226,11 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	
 	if(!d)
 		return;
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	s = d->selectedChannels;
 	if(!s)
 	{
-		ast_mutex_unlock(&d->lock);
+		sccp_mutex_unlock(&d->lock);
 		return;
 	}
 	
@@ -250,19 +251,19 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 			chan2 = tmp;
 		} else if (chan1->state == SCCP_CHANNELSTATE_HOLD && chan2->state == SCCP_CHANNELSTATE_HOLD){
 			//resume chan2 if both channels are on hold
-			ast_mutex_unlock(&d->lock);
+			sccp_mutex_unlock(&d->lock);
 			sccp_channel_resume(chan2);
-			ast_mutex_lock(&d->lock);
+			sccp_mutex_lock(&d->lock);
 		}
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: State of chan1 is: %d\n", d->id, chan1->state);
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: State of chan2 is: %d\n", d->id, chan2->state);
 		d->transfer_channel = chan1;
 
-		ast_mutex_unlock(&d->lock);
+		sccp_mutex_unlock(&d->lock);
 		sccp_channel_transfer_complete(chan2);
 	}else{
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: We need 2 channels to transfer\n", d->id);
-		ast_mutex_unlock(&d->lock);
+		sccp_mutex_unlock(&d->lock);
 	}
 }
 
@@ -302,7 +303,7 @@ void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	}
 	int status = 0;
   
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
  
 	cur = d->selectedChannels;
 	while(NULL != cur) {
@@ -349,7 +350,7 @@ void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	r1->msg.CallSelectStatMessage.lel_callReference = htolel(c->callid);
 	sccp_dev_send(d, r1);
   
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 }
 
 void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
@@ -418,7 +419,7 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: private function is not active on this device\n", d->id);
 		return;
 	}
-	ast_mutex_lock(&c->lock);
+	sccp_mutex_lock(&c->lock);
 	c->private = (c->private) ? 0 : 1;
 	if(c->private){
 		sccp_dev_displayprompt(d, c->line->instance, c->callid, SKINNY_DISP_PRIVATE, 0);
@@ -427,7 +428,7 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	}
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Private %s on call %d\n", d->id, c->private ? "enabled" : "disabled", c->callid);
-	ast_mutex_unlock(&c->lock);
+	sccp_mutex_unlock(&c->lock);
 }
 
 void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
@@ -475,7 +476,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		return;
 	}
 
-	while (ast_mutex_trylock(&ast->lock)) {
+	while (sccp_mutex_trylock(&ast->lock)) {
 		ast_log(LOG_DEBUG, "SCCP: Waiting to lock the channel for pickup\n");
 		usleep(1000);
 		ast = c->owner;
@@ -487,7 +488,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 
 	res = (int) (ast->blocker);
 	
-	ast_mutex_unlock(&ast->lock);
+	sccp_mutex_unlock(&ast->lock);
 
 	if (res)
 		ast_queue_hangup(ast);
@@ -506,10 +507,10 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		}
 #endif
 	}
-	ast_mutex_lock(&c->lock);
+	sccp_mutex_lock(&c->lock);
 	c->calltype = SKINNY_CALLTYPE_INBOUND;
 	sccp_indicate_nolock(c, SCCP_CHANNELSTATE_CONNECTED);
-	ast_mutex_unlock(&c->lock);
+	sccp_mutex_unlock(&c->lock);
 #endif
 }
 

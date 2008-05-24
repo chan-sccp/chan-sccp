@@ -56,6 +56,7 @@ LINTOPTS+=-retvalother
 LINTOPTS+=-type
 
 FLS+=chan_sccp
+FLS+=sccp_lock
 FLS+=sccp_actions
 FLS+=sccp_channel
 FLS+=sccp_device
@@ -114,6 +115,7 @@ MOO=chan_sccp.c
 	sh ./create_config.sh "$(ASTERISK_HEADER_DIR)"
 	
 .tmp/chan_sccp.o:		chan_sccp.c
+.tmp/sccp_lock.o:       sccp_lock.c
 .tmp/sccp_actions.o:	sccp_actions.c
 .tmp/sccp_channel.o:	sccp_channel.c
 .tmp/sccp_device.o:	sccp_device.c
