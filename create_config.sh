@@ -78,6 +78,25 @@ then
 	fi
 fi
 
+if [ "$REALTIME_USEABLE" = "1" ]
+then
+	if grep -q "#define DEBUG_CHANNEL_LOCKS" $INCLUDEDIR/buildopts.h; then
+		echo "#define CS_AST_DEBUG_CHANNEL_LOCKS" >>$CONFIGFILE
+		echo " * found 'DEBUG_CHANNEL_LOCKS'"
+	else
+		echo "#undef CS_AST_DEBUG_CHANNEL_LOCKS" >>$CONFIGFILE
+		echo " * no 'DEBUG_CHANNEL_LOCKS'"
+	fi
+
+	if grep -q "#define DEBUG_THREADS" $INCLUDEDIR/buildopts.h; then
+		echo "#define CS_AST_DEBUG_THREADS" >>$CONFIGFILE
+		echo " * found 'DEBUG_THREADS'"
+	else
+		echo "#undef CS_AST_DEBUG_CHANNEL_LOCKS" >>$CONFIGFILE
+		echo " * no 'DEBUG_THREADS'"
+	fi
+fi
+
 if grep -q "struct ast_channel_tech" $INCLUDEDIR/channel.h; then
 	echo "#define CS_AST_HAS_TECH_PVT" >>$CONFIGFILE
 	echo " * found 'struct ast_channel_tech'"
@@ -213,7 +232,7 @@ fi
 
 
 echo "" >>$CONFIGFILE
-echo "#endif /* CHAN_CAPI_CONFIG_H */" >>$CONFIGFILE
+echo "#endif /* CHAN_SCCP_CONFIG_H */" >>$CONFIGFILE
 echo "" >>$CONFIGFILE
 
 echo "config.h complete."

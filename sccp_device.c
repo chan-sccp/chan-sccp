@@ -20,6 +20,7 @@
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
+#include "sccp_lock.h"
 #include "sccp_utils.h"
 #include "sccp_device.h"
 #include "sccp_channel.h"
@@ -212,9 +213,9 @@ int sccp_session_send(sccp_session_t * s, sccp_moo_t * r) {
 
 	res = 1;
 	/* sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending Packet Type %s (%d bytes)\n", s->device->id, sccpmsg2str(letohl(r->lel_messageId)), letohl(r->length)); */
-	ast_mutex_lock(&s->lock);
+	sccp_mutex_lock(&s->lock);
 	res = write(s->fd, r, (size_t)(letohl(r->length) + 8));
-	ast_mutex_unlock(&s->lock);
+	sccp_mutex_unlock(&s->lock);
 	if (res != (ssize_t)(letohl(r->length) + 8)) {
 /*		ast_log(LOG_WARNING, "SCCP: Only managed to send %d bytes (out of %d): %s\n", res, letohl(r->length) + 8, strerror(errno)); */
 		res = 0;
@@ -562,9 +563,9 @@ void sccp_dev_set_activeline(sccp_line_t * l) {
 		return;
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send the active line %s\n", d->id, l->name);
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	d->currentLine = l;
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 	return;
 }
 
@@ -577,11 +578,11 @@ void sccp_dev_check_mwi(sccp_device_t * d) {
 	if (!d || !d->session)
 		return;
 
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	l = d->lines;
 	while (l) {
 		linehasmsgs = 0;
-		ast_mutex_lock(&l->lock);
+		sccp_mutex_lock(&l->lock);
 		if (l->channels && !d->mwioncall)
 			devicehaschannels = 1;
 		else if (!ast_strlen_zero(l->mailbox)) {
@@ -600,7 +601,7 @@ void sccp_dev_check_mwi(sccp_device_t * d) {
 		}
 		if (linehasmsgs)
 			devicehasmsgs = 1;
-		ast_mutex_unlock(&l->lock);
+		sccp_mutex_unlock(&l->lock);
 		l = l->next_on_device;
 	}
 
@@ -608,7 +609,7 @@ void sccp_dev_check_mwi(sccp_device_t * d) {
 		if (devicehasmsgs != d->mwilight)
 			sccp_dev_set_mwi(d, NULL, devicehasmsgs);
 	}
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 }
 
 /*
@@ -617,7 +618,7 @@ uint8_t sccp_dev_check_idle(sccp_device_t * d) {
 	uint8_t res = 0;
 	if (!d || !d->session)
 		return 0;
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	if (d->state == SCCP_DEVICESTATE_OFFHOOK)
 		goto OUT;
 	if (d->active_channel)
@@ -633,7 +634,7 @@ uint8_t sccp_dev_check_idle(sccp_device_t * d) {
 		l = l->next_on_device;
 	}
 OUT:
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 	return res;
 }
 */
@@ -647,7 +648,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d) {
 	if (!d || !d->session)
 		return;
 
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 
 	sccp_dev_clearprompt(d, 0, 0);
 	sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
@@ -712,7 +713,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d) {
 	}
 	/* when we are here, there's nothing to display */
 OUT:
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 }
 
 void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted) {
@@ -801,13 +802,13 @@ void sccp_dev_forward_status(sccp_line_t * l) {
 int sccp_device_check_ringback(sccp_device_t * d) {
 	sccp_channel_t * c;
 
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	d->needcheckringback = 0;
 	if (d->state == SCCP_DEVICESTATE_OFFHOOK) {
-		ast_mutex_unlock(&d->lock);
+		sccp_mutex_unlock(&d->lock);
 		return 0;
 	}
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 	c = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_CALLTRANSFER);
 	if (!c)
 		c = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_RINGIN);
@@ -834,7 +835,7 @@ void * sccp_dev_postregistration(void *data) {
 
 	sleep(5);
 	pthread_testcancel();
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Post registration process\n", d->id);
 
@@ -854,7 +855,7 @@ void * sccp_dev_postregistration(void *data) {
 
 	/* poll the state of the SCCP monitored lines */
 	
-	ast_mutex_lock(&GLOB(lines_lock));
+	sccp_mutex_lock(&GLOB(lines_lock));
 	l = GLOB(lines);
 	while(l) {
 		/* turn off the device MWI light */
@@ -883,12 +884,12 @@ void * sccp_dev_postregistration(void *data) {
 		}
 		l = l->next;
 	}
-	ast_mutex_unlock(&GLOB(lines_lock));
+	sccp_mutex_unlock(&GLOB(lines_lock));
 	sccp_dev_check_mwi(d);
 	sccp_dev_check_displayprompt(d);
 	d->postregistration_thread = AST_PTHREADT_STOP;
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 	return NULL;
 }
 
@@ -900,7 +901,7 @@ void sccp_dev_clean(sccp_device_t * d) {
 
 	if (!d || !d->session)
 		return;
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 
 	k = d->speed_dials;
 	while (k) {
@@ -930,7 +931,7 @@ void sccp_dev_clean(sccp_device_t * d) {
 		pthread_join(d->postregistration_thread, NULL);
 		d->postregistration_thread = AST_PTHREADT_STOP;
 	}
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 }
 
 sccp_serviceURL_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t instance) {

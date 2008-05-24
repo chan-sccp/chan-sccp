@@ -18,6 +18,7 @@
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
+#include "sccp_lock.h"
 #include "sccp_actions.h"
 #include "sccp_utils.h"
 #include "sccp_pbx.h"
@@ -118,7 +119,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 		}
 	}
 
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 
 	/* test the localnet to understand if the device is behind NAT */
 	if (GLOB(localaddr) && ast_apply_ha(GLOB(localaddr), &s->sin)) {
@@ -141,7 +142,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 	s->lastKeepAlive = time(0);
 	d->mwilight = 0;
 	d->protocolversion = r->msg.RegisterMessage.protocolVer;
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 
 	/* pre-attach lines. We will wait for button template req if the phone does support it */
 	sccp_dev_build_buttontemplate(d, btn);
@@ -187,8 +188,8 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 		}
 
 		i++;
-		ast_mutex_lock(&l->lock);
-		ast_mutex_lock(&d->lock);
+		sccp_mutex_lock(&l->lock);
+		sccp_mutex_lock(&d->lock);
 		if (i == 1)
 		d->currentLine = l;
 		l->device = d;
@@ -204,8 +205,8 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 			lines_last->next_on_device = l;
 			lines_last = l;
 		}
-		ast_mutex_unlock(&l->lock);
-		ast_mutex_unlock(&d->lock);
+		sccp_mutex_unlock(&l->lock);
+		sccp_mutex_unlock(&d->lock);
 		/* notify the line is on */
 		sccp_hint_notify_linestate(l, SCCP_DEVICESTATE_ONHOOK, NULL);
 	}
@@ -356,9 +357,9 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 	memset(btn, 0 , sizeof(btnlist)*StationMaxButtonTemplateSize);
 	sccp_dev_build_buttontemplate(d, btn);
 
-	ast_mutex_lock(&GLOB(devices_lock));
-	ast_mutex_lock(&GLOB(lines_lock));
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&GLOB(devices_lock));
+	sccp_mutex_lock(&GLOB(lines_lock));
+	sccp_mutex_lock(&d->lock);
 
 	/* line button template configuration */
 	l = d->lines;
@@ -369,11 +370,14 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 		l->device = NULL;
 		btn_count = 1;
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a line button place %s (%d)\n", d->id, l->name, l->instance);
-		for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) {
-			if ( (btn[i].type == SKINNY_BUTTONTYPE_LINE)
-				|| ( btn[i].type == SKINNY_BUTTONTYPE_MULTI)
-				|| ( btn[i].type == SCCP_BUTTONTYPE_LINE)) {
-				if (btn_count == l->instance) {
+		for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) 
+		{
+			if ((btn[i].type == SKINNY_BUTTONTYPE_LINE) || 
+				(btn[i].type == SKINNY_BUTTONTYPE_MULTI) || 
+				(btn[i].type == SCCP_BUTTONTYPE_LINE)) {
+				
+				if (btn_count == l->instance) 
+				{
 					l->device = d;
 					l->instance = i + 1;
 					btn[i].instance = l->instance;
@@ -385,8 +389,10 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 				btn_count++;
 			}
 		}
+
 		l1 = l->next_on_device;
-		if (!l->device) {
+		if (!l->device) 
+		{
 			/* unused line */
 			l->instance = 0;
 			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Unused line %s\n", d->id, l->name);
@@ -400,56 +406,68 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 	k1 = NULL;
 	k = d->speed_dials;
 	btn_count = 1;
-	while (k) {
+	while (k) 
+	{
 		btn_count = 1;
 		k->instance = 0;
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a speeddial button place %s (%d)\n", d->id, k->name, k->config_instance);
-		for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) {
-			if ( (btn[i].type == SKINNY_BUTTONTYPE_SPEEDDIAL) || (btn[i].type == SKINNY_BUTTONTYPE_MULTI) || (btn[i].type == SCCP_BUTTONTYPE_HINT) || (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL)) {
-				if ( (btn[i].type == SKINNY_BUTTONTYPE_SPEEDDIAL) 
-				|| (btn[i].type == SKINNY_BUTTONTYPE_MULTI) 
-				|| (btn[i].type == SCCP_BUTTONTYPE_HINT) 
-				|| (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) 
-				|| (btn[i].type == SKINNY_BUTTONTYPE_MESSAGES) 
-				|| (btn[i].type == SKINNY_BUTTONTYPE_DIRECTORY) 
-				|| (btn[i].type == SKINNY_BUTTONTYPE_APPLICATION) 
-				|| (btn[i].type == SKINNY_BUTTONTYPE_HEADSET)) {
+		
+		for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) 
+		{
+			if ((btn[i].type == SKINNY_BUTTONTYPE_SPEEDDIAL) || (btn[i].type == SKINNY_BUTTONTYPE_MULTI) || (btn[i].type == SCCP_BUTTONTYPE_HINT) || (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL)) 
+			{
+				if ((btn[i].type == SKINNY_BUTTONTYPE_SPEEDDIAL) || 
+					(btn[i].type == SKINNY_BUTTONTYPE_MULTI) || 
+					(btn[i].type == SCCP_BUTTONTYPE_HINT) ||
+					(btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) ||
+					(btn[i].type == SKINNY_BUTTONTYPE_MESSAGES) ||
+					(btn[i].type == SKINNY_BUTTONTYPE_DIRECTORY) ||
+					(btn[i].type == SKINNY_BUTTONTYPE_APPLICATION) ||
+					(btn[i].type == SKINNY_BUTTONTYPE_HEADSET)) 
+				{
 				
-				if (btn_count == k->config_instance) {
-					k->instance = i + 1;
-					btn[i].instance = k->instance;
-					btn[i].ptr = k;
-/*
-					if (!ast_strlen_zero(k->hint))
-						btn[i].type = SCCP_BUTTONTYPE_HINT;
-					else
-						btn[i].type = SCCP_BUTTONTYPE_SPEEDDIAL;
-*/					
-					if ((btn[i].type != SKINNY_BUTTONTYPE_MESSAGES) && (btn[i].type != SKINNY_BUTTONTYPE_DIRECTORY) && (btn[i].type != SKINNY_BUTTONTYPE_APPLICATION) && (btn[i].type != SKINNY_BUTTONTYPE_HEADSET)){
-        					if (!ast_strlen_zero(k->hint)){
+					if (btn_count == k->config_instance) 
+					{
+						k->instance = i + 1;
+						btn[i].instance = k->instance;
+						btn[i].ptr = k;
+	/*
+						if (!ast_strlen_zero(k->hint))
 							btn[i].type = SCCP_BUTTONTYPE_HINT;
-						}else{
+						else
 							btn[i].type = SCCP_BUTTONTYPE_SPEEDDIAL;
+	*/					
+						if ((btn[i].type != SKINNY_BUTTONTYPE_MESSAGES) && (btn[i].type != SKINNY_BUTTONTYPE_DIRECTORY) && (btn[i].type != SKINNY_BUTTONTYPE_APPLICATION) && (btn[i].type != SKINNY_BUTTONTYPE_HEADSET))
+						{
+        					if (!ast_strlen_zero(k->hint))
+								btn[i].type = SCCP_BUTTONTYPE_HINT;
+							else
+								btn[i].type = SCCP_BUTTONTYPE_SPEEDDIAL;
 						}
+						sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) temporary instance (%d)\n", d->id, i+1, (btn[i].type == SCCP_BUTTONTYPE_HINT) ? "SPEEDIAL WITH HINT" : "SPEEDIAL",k->name, k->instance);
+						break;
 					}
-					sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) temporary instance (%d)\n", d->id, i+1, (btn[i].type == SCCP_BUTTONTYPE_HINT) ? "SPEEDIAL WITH HINT" : "SPEEDIAL",k->name, k->instance);
-					break;
+					btn_count++;
 				}
-				btn_count++;
 			}
 		}
-		if ( !k->instance ) {
+		if (!k->instance)
+		{
 			sccp_log(10)(VERBOSE_PREFIX_3 "%s: removing unused speedial %s,%s\n", d->id, k->ext, k->name);
-			if (k1) {
+			if (k1) 
+			{
 				k1->next = k->next;
 				free(k);
 				k = k1;
-			} else {
+			}
+			else
+			{
 				d->speed_dials = NULL;
 				free(k);
 				k = NULL;
 			}
 		}
+		
 		k1 = k;
 		if (k)
 			k = k->next;
@@ -461,16 +479,20 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 	s = d->serviceURLs;
 	
 	btn_count = 1;
-	while (s) {
+	while (s) 
+	{
 		btn_count = 1;
 		s->instance = 0;
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a serviceURL button place %s (%d)\n", d->id, s->label, s->config_instance);
-		for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) {
+		for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) 
+		{
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: At pos. %d we have type %d.\n", d->id, i, btn[i].type);
 
 			
-			if ( SKINNY_BUTTONTYPE_MULTI == btn[i].type || SKINNY_BUTTONTYPE_SERVICEURL == btn[i].type ) {
-				if (btn_count == s->config_instance) {
+			if (SKINNY_BUTTONTYPE_MULTI == btn[i].type || SKINNY_BUTTONTYPE_SERVICEURL == btn[i].type) 
+			{
+				if (btn_count == s->config_instance) 
+				{
 					s->instance = i + 1;
 					btn[i].instance = s->instance;
 					btn[i].ptr = s;
@@ -486,13 +508,17 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 			}
 		}
 		
-		if ( !s->instance ) {
+		if (!s->instance) 
+		{
 			sccp_log(10)(VERBOSE_PREFIX_3 "%s: removing unused serviceURL %s,%s\n", d->id, s->URL, s->label);
-			if (s1) {
+			if (s1) 
+			{
 				s1->next = s->next;
 				free(s);
 				s = s1;
-			} else {
+			}
+			else
+			{
 				d->serviceURLs = NULL;
 				free(s);
 				s = NULL;
@@ -505,12 +531,16 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 	}
 
 	/* cleanup the multi unused buttons 7914 fix*/
-	for (i = StationMaxButtonTemplateSize - 1; i >= 0 ; i--) {
+	for (i = StationMaxButtonTemplateSize - 1; i >= 0 ; i--) 
+	{
 		if (btn[i].type == SKINNY_BUTTONTYPE_UNUSED)
 			continue;
-		if (btn[i].type == SKINNY_BUTTONTYPE_MULTI && btn[i].instance == 0) {
+		if (btn[i].type == SKINNY_BUTTONTYPE_MULTI && btn[i].instance == 0) 
+		{
 			btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
-		} else {
+		} 
+		else 
+		{
 			break;
 		}
 	}
@@ -518,33 +548,40 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 	lineindex = 1;
 	speedindex = 1;
 	/* correct the button instances */
-	for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) {
-		if (btn[i].type == SCCP_BUTTONTYPE_LINE) {
+	for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) 
+	{
+		if (btn[i].type == SCCP_BUTTONTYPE_LINE) 
+		{
 			btn[i].instance = lineindex++;
 			l = btn[i].ptr;
 			l->instance = btn[i].instance;
 			continue;
 		}
 
-		if (btn[i].type == SCCP_BUTTONTYPE_HINT) {
+		if (btn[i].type == SCCP_BUTTONTYPE_HINT) 
+		{
 			k = btn[i].ptr;
 			k->instance = lineindex;
-			if (sccp_activate_hint(d, k)) {
+			if (sccp_activate_hint(d, k)) 
+			{
 				btn[i].instance = lineindex++;
 				k->type = SKINNY_BUTTONTYPE_LINE;
 				k->instance = btn[i].instance;
 				continue;
-			} else {
+			} 
+			else
+			{
 				btn[i].type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			}
 		}
 
 		//if (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) {
-		if ((btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) 
-			|| (btn[i].type == SKINNY_BUTTONTYPE_MESSAGES) 
-			|| (btn[i].type == SKINNY_BUTTONTYPE_DIRECTORY) 
-			|| (btn[i].type == SKINNY_BUTTONTYPE_APPLICATION) 
-			|| (btn[i].type == SKINNY_BUTTONTYPE_HEADSET)) {
+		if ((btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) ||
+			(btn[i].type == SKINNY_BUTTONTYPE_MESSAGES) ||
+			(btn[i].type == SKINNY_BUTTONTYPE_DIRECTORY) ||
+			(btn[i].type == SKINNY_BUTTONTYPE_APPLICATION) ||
+			(btn[i].type == SKINNY_BUTTONTYPE_HEADSET))
+		{
 			
 			btn[i].instance = speedindex++;
 			k = btn[i].ptr;
@@ -554,9 +591,9 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 		}
 	}
 
-	ast_mutex_unlock(&d->lock);
-	ast_mutex_unlock(&GLOB(lines_lock));
-	ast_mutex_unlock(&GLOB(devices_lock));
+	sccp_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&GLOB(lines_lock));
+	sccp_mutex_unlock(&GLOB(devices_lock));
 	return btn;
 }
 
@@ -711,15 +748,15 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 				return;
 			c = sccp_channel_get_active(d);
 			if (c) {
-				ast_mutex_lock(&c->lock);
+				sccp_mutex_lock(&c->lock);
 				if (c->state == SCCP_CHANNELSTATE_OFFHOOK) {
 					sccp_copy_string(c->dialedNumber, d->lastNumber, sizeof(d->lastNumber));
 					c->digittimeout = time(0)+1;
 					sccp_indicate_nolock(c, SCCP_CHANNELSTATE_DIALING);
-					ast_mutex_unlock(&c->lock);
+					sccp_mutex_unlock(&c->lock);
 					sccp_log(1)(VERBOSE_PREFIX_3 "%s: Redial the number %s\n", d->id, d->lastNumber);
 				} else {
-					ast_mutex_unlock(&c->lock);
+					sccp_mutex_unlock(&c->lock);
 					sccp_log(1)(VERBOSE_PREFIX_3 "%s: Redial ignored as call in progress\n", d->id);
 				}
 			} else {
@@ -819,7 +856,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 					sccp_log(1)(VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, instance);
 					return;
 				}
-				ast_mutex_lock(&c->lock);
+				sccp_mutex_lock(&c->lock);
 				if (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_DIALING) {
 					len = strlen(c->dialedNumber);
 					sccp_copy_string(c->dialedNumber+len, c->line->vmnum, sizeof(c->dialedNumber-len));
@@ -830,7 +867,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 					sccp_pbx_senddigits(c, c->line->vmnum);
 //					ast_log(LOG_NOTICE, "Cannot send voicemail number. Call in progress with no rtp stream\n", c->callid);
 				}
-				ast_mutex_unlock(&c->lock);
+				sccp_mutex_unlock(&c->lock);
 				return;
 			}
 			if (!instance)
@@ -909,17 +946,17 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Speeddial Button (%d) pressed, configured number is (%s)\n", d->id, k->instance, k->ext);
 	c = sccp_channel_get_active(d);
 	if (c) {
-		ast_mutex_lock(&c->lock);
+		sccp_mutex_lock(&c->lock);
 		if ( (c->state == SCCP_CHANNELSTATE_DIALING) || (c->state == SCCP_CHANNELSTATE_OFFHOOK) ) {
 			len = strlen(c->dialedNumber);
 			sccp_copy_string(c->dialedNumber+len, k->ext, sizeof(c->dialedNumber)-len);
 				c->digittimeout = time(0)+1;
 			if (c->state == SCCP_CHANNELSTATE_OFFHOOK)
 				sccp_indicate_nolock(c, SCCP_CHANNELSTATE_DIALING);
-			ast_mutex_unlock(&c->lock);
+			sccp_mutex_unlock(&c->lock);
 			return;
 		}
-		ast_mutex_unlock(&c->lock);
+		sccp_mutex_unlock(&c->lock);
 		sccp_pbx_senddigits(c, k->ext);
 	} else {
 		// Pull up a channel
@@ -1056,7 +1093,7 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r) {
 	
 	/* ok the device support the softkey map */
 	
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	
 	d->softkeysupport = 1;
 	
@@ -1071,7 +1108,7 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r) {
 		r1->msg.SoftKeyTemplateResMessage.definition[i].lel_softKeyEvent = htolel(i+1);
 	}
 	
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 	
 	r1->msg.SoftKeyTemplateResMessage.lel_softKeyCount = htolel(c);
 	r1->msg.SoftKeyTemplateResMessage.lel_totalSoftKeyCount = htolel(c);
@@ -1250,7 +1287,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
 		return;
 	}
 
-	ast_mutex_lock(&c->lock);
+	sccp_mutex_lock(&c->lock);
 	
 	l = c->line;
 	d = c->device;
@@ -1266,7 +1303,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
 
 	if (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED) {
 		/* we have to unlock 'cause the senddigit lock the channel */
-		ast_mutex_unlock(&c->lock);
+		sccp_mutex_unlock(&c->lock);
 //		sccp_dev_starttone(d, (uint8_t) event);
     	sccp_pbx_senddigit(c, resp);
     	return;
@@ -1284,7 +1321,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
 			if (!strcmp(c->dialedNumber, ast_pickup_ext())) {
 				/* set it to offhook state because the sccp_sk_gpickup function look for an offhook channel */
 				c->state = SCCP_CHANNELSTATE_OFFHOOK;
-				ast_mutex_unlock(&c->lock);
+				sccp_mutex_unlock(&c->lock);
 				sccp_sk_gpickup(c->device, c->line, c);
 				return;
 			}
@@ -1312,7 +1349,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
 		}
 	}
 
-	ast_mutex_unlock(&c->lock);
+	sccp_mutex_unlock(&c->lock);
 }
 
 
@@ -1439,7 +1476,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r) {
    * the channel and with it the lock is already deallocated when we try to unlock it.
    * This actually happens sometimes when issueing a hangup handled by this function.
 	if (c)
-		ast_mutex_unlock(&c->lock);
+		sccp_mutex_unlock(&c->lock);
    */
 }
 
@@ -1497,7 +1534,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r) {
 	c = sccp_channel_find_byid(letohl(r->msg.OpenReceiveChannelAck.lel_passThruPartyId));
 	/* prevent a segmentation fault on fast hangup after answer, failed voicemail for example */
 	if (c && c->state != SCCP_CHANNELSTATE_DOWN) {
-		ast_mutex_lock(&c->lock);
+		sccp_mutex_lock(&c->lock);
 		memcpy(&c->rtp_addr, &sin, sizeof(sin));
 		if (c->rtp) {
 			sccp_channel_startmediatransmission(c);
@@ -1515,7 +1552,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r) {
 			ast_log(LOG_ERROR,  "%s: Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 #endif
 		}
-		ast_mutex_unlock(&c->lock);
+		sccp_mutex_unlock(&c->lock);
 	} else {
 		ast_log(LOG_ERROR, "%s: No channel with this PassThruId!\n", d->id);
 	}
@@ -1594,8 +1631,8 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r) {
 	d = s->device;
 	if (!d)
 		return;
-	ast_mutex_lock(&d->lock);
-	ast_mutex_lock(&GLOB(lines_lock));
+	sccp_mutex_lock(&d->lock);
+	sccp_mutex_lock(&GLOB(lines_lock));
 	l = d->lines;
 	while (l) {
 		lines++;
@@ -1606,8 +1643,8 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r) {
 		speeddials++;
 		k = k->next;
 	}
-	ast_mutex_unlock(&GLOB(lines_lock));
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&GLOB(lines_lock));
+	sccp_mutex_unlock(&d->lock);
 
 
 	REQ(r1, ConfigStatMessage);

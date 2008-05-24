@@ -19,6 +19,7 @@
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
+#include "sccp_lock.h"
 #include "sccp_actions.h"
 #include "sccp_utils.h"
 #include "sccp_device.h"
@@ -69,7 +70,7 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l) {
 		return NULL;
 	}
 	memset(c, 0, sizeof(sccp_channel_t));
-	ast_mutex_init(&c->lock);
+	sccp_mutex_init(&c->lock);
 
 	/* default ringermode SKINNY_STATION_OUTSIDERING. Change it with SCCPRingerMode app */
 	c->ringermode = SKINNY_STATION_OUTSIDERING;
@@ -78,31 +79,31 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l) {
 	/* the dialing thread will set the hangupok = 0 */
 	c->hangupok = 1;
 
-	ast_mutex_lock(&callCountLock);
+	sccp_mutex_lock(&callCountLock);
 	c->callid = callCount++;
-	ast_mutex_unlock(&callCountLock);
+	sccp_mutex_unlock(&callCountLock);
 
 	c->line = l;
 	c->device = d;
 
-	ast_mutex_lock(&l->lock);
+	sccp_mutex_lock(&l->lock);
 	l->channelCount++;
-	ast_mutex_unlock(&l->lock);
+	sccp_mutex_unlock(&l->lock);
 
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	d->channelCount++;
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: New channel number: %d on line %s\n", d->id, c->callid, l->name);
 
 	/* put it on the top of the lists */
 
-	ast_mutex_lock(&GLOB(channels_lock));
+	sccp_mutex_lock(&GLOB(channels_lock));
 	c->next = GLOB(channels);
 	if (GLOB(channels)) /* first one */
 		GLOB(channels)->prev = c;
 	GLOB(channels) = c;
-	ast_mutex_unlock(&GLOB(channels_lock));
+	sccp_mutex_unlock(&GLOB(channels_lock));
 
 	c->next_on_line = l->channels;
 	if (l->channels) /* first one */
@@ -121,11 +122,11 @@ sccp_channel_t * sccp_channel_get_active(sccp_device_t * d) {
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Getting the active channel on device\n",d->id);
 	
-	ast_mutex_lock(&GLOB(channels_lock));
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&GLOB(channels_lock));
+	sccp_mutex_lock(&d->lock);
 	c = d->active_channel;
 /*
-	while (tries && ast_mutex_trylock(&c->lock)) {
+	while (tries && sccp_mutex_trylock(&c->lock)) {
 		tries--;
 		usleep(SCCP_LOCK_USLEEP);
 	}
@@ -135,18 +136,18 @@ sccp_channel_t * sccp_channel_get_active(sccp_device_t * d) {
 		c = NULL;
 	}
 */
-	ast_mutex_unlock(&d->lock);
-	ast_mutex_unlock(&GLOB(channels_lock));
+	sccp_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&GLOB(channels_lock));
 	return c;
 }
 
 void sccp_channel_set_active(sccp_channel_t * c) {
 	sccp_device_t * d = c->device;
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Set the active channel %d on device\n", DEV_ID_LOG(d), (c) ? c->callid : 0);
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	d->active_channel = c;
 	d->currentLine = c->line;
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 }
 
 void sccp_channel_send_callinfo(sccp_channel_t * c) {
@@ -386,7 +387,7 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 	if (!c || !c->device)
 		return;
 
-	ast_mutex_lock(&c->lock);
+	sccp_mutex_lock(&c->lock);
 
 	/* this is a station active endcall or onhook */
 	d = c->device;
@@ -404,7 +405,7 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 	
 	if (!ast) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(d), c->callid, c->line->name);
-		ast_mutex_unlock(&c->lock);
+		sccp_mutex_unlock(&c->lock);
 		return;
 	}
 
@@ -415,7 +416,7 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 	
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending %s hangup request to %s\n", DEV_ID_LOG(d), res ? "(queue)" : "(force)", ast->name);
 
-	ast_mutex_unlock(&c->lock);
+	sccp_mutex_unlock(&c->lock);
 
 	if (res) {
 		ast_queue_hangup(ast);
@@ -567,20 +568,20 @@ int sccp_channel_hold(sccp_channel_t * c) {
 #endif
 	}
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Hold the channel %s-%d\n", d->id, l->name, c->callid);
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	d->active_channel = NULL;
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 	sccp_indicate_lock(c, SCCP_CHANNELSTATE_HOLD);
 
 #ifdef CS_AST_CONTROL_HOLD
-	 ast_mutex_lock(&d->lock);
+	 sccp_mutex_lock(&d->lock);
 	 if (!c->owner) {
 		 sccp_log(1)(VERBOSE_PREFIX_3 "C owner disappeared! Can't free ressources\n");
-		 ast_mutex_unlock(&d->lock);
+		 sccp_mutex_unlock(&d->lock);
 		 return 0;
 	 }
 	ast_queue_control(c->owner, AST_CONTROL_HOLD);
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 #endif
 	return 1;
 }
@@ -618,12 +619,12 @@ int sccp_channel_resume(sccp_channel_t * c) {
 	}
 
 	/* check if we are in the middle of a transfer */
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	if (d->transfer_channel == c) {
 		d->transfer_channel = NULL;
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer on the channel %s-%d\n", d->id, l->name, c->callid);
 	}
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 
 	peer = CS_AST_BRIDGED_CHANNEL(c->owner);
 	if (peer) {
@@ -644,9 +645,9 @@ int sccp_channel_resume(sccp_channel_t * c) {
 }
 
 void sccp_channel_delete(sccp_channel_t * c) {
-	ast_mutex_lock(&GLOB(channels_lock));
+	sccp_mutex_lock(&GLOB(channels_lock));
 	sccp_channel_delete_no_lock(c);
-	ast_mutex_unlock(&GLOB(channels_lock));
+	sccp_mutex_unlock(&GLOB(channels_lock));
 }
 
 /* this does no lock the main channels pointer */
@@ -658,7 +659,7 @@ void sccp_channel_delete_no_lock(sccp_channel_t * c) {
 	if (!c)
 		return;
 
-	ast_mutex_lock(&c->lock);
+	sccp_mutex_lock(&c->lock);
 
 	l = c->line;
 	d = c->device;
@@ -684,14 +685,14 @@ void sccp_channel_delete_no_lock(sccp_channel_t * c) {
 	/* remove from the global channels list */
 
 	if (c->next) { /* not the last one */
-		ast_mutex_lock(&c->next->lock);
+		sccp_mutex_lock(&c->next->lock);
 		c->next->prev = c->prev;
-		ast_mutex_unlock(&c->next->lock);
+		sccp_mutex_unlock(&c->next->lock);
 	}
 	if (c->prev) { /* not the first one */
-		ast_mutex_lock(&c->prev->lock);
+		sccp_mutex_lock(&c->prev->lock);
 		c->prev->next = c->next;
-		ast_mutex_unlock(&c->prev->lock);
+		sccp_mutex_unlock(&c->prev->lock);
 	}
 	else { /* the first one */
 		GLOB(channels) = c->next;
@@ -699,36 +700,36 @@ void sccp_channel_delete_no_lock(sccp_channel_t * c) {
 
 	/* remove the channel from the channels line list */
 	if (c->next_on_line) { /* not the last one */
-		ast_mutex_lock(&c->next_on_line->lock);
+		sccp_mutex_lock(&c->next_on_line->lock);
 		c->next_on_line->prev_on_line = c->prev_on_line;
-		ast_mutex_unlock(&c->next_on_line->lock);
+		sccp_mutex_unlock(&c->next_on_line->lock);
 	}
 	if (c->prev_on_line) { /* not the first one */
-		ast_mutex_lock(&c->prev_on_line->lock);
+		sccp_mutex_lock(&c->prev_on_line->lock);
 		c->prev_on_line->next_on_line = c->next_on_line;
-		ast_mutex_unlock(&c->prev_on_line->lock);
+		sccp_mutex_unlock(&c->prev_on_line->lock);
 	}
 	else { /* the first one */
-		ast_mutex_lock(&l->lock);
+		sccp_mutex_lock(&l->lock);
 		l->channels = c->next_on_line;
-		ast_mutex_unlock(&l->lock);
+		sccp_mutex_unlock(&l->lock);
 	}
 
-	ast_mutex_lock(&l->lock);
+	sccp_mutex_lock(&l->lock);
 /*	if (l->activeChannel == c)
 		l->activeChannel = NULL; */
 	l->channelCount--;
-	ast_mutex_unlock(&l->lock);
+	sccp_mutex_unlock(&l->lock);
 
 	/* deactive the active call if needed */
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	d->channelCount--;
 	if (d->active_channel == c)
 		d->active_channel = NULL;	
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 	
 	//remove selected channels
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	cur = d->selectedChannels;
 	while(NULL != cur) {
 	    if(c == cur->c) {
@@ -741,12 +742,12 @@ void sccp_channel_delete_no_lock(sccp_channel_t * c) {
 	    par = cur;
 	    cur = cur->next;
 	}
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 	//remove selected channels
 	
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Deleted channel %d from line %s\n", DEV_ID_LOG(d), c->callid, l ? l->name : "(null)");
-	ast_mutex_unlock(&c->lock);
-	ast_mutex_destroy(&c->lock);
+	sccp_mutex_unlock(&c->lock);
+	sccp_mutex_destroy(&c->lock);
 	free(c);
 	return;
 }
@@ -764,7 +765,7 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
 		return;
 
 /* No need to lock, because already locked in the sccp_indicate.c */
-/*	ast_mutex_lock(&c->lock); */
+/*	sccp_mutex_lock(&c->lock); */
 #ifdef ASTERISK_CONF_1_2
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", c->device->id, ast_inet_ntoa(iabuf, sizeof(iabuf), s->ourip));
 #else
@@ -777,7 +778,7 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
 	if (c->rtp && c->owner)
 		c->owner->fds[0] = ast_rtp_fd(c->rtp);
 
-/*	ast_mutex_unlock(&c->lock); */
+/*	sccp_mutex_unlock(&c->lock); */
 }
 
 void sccp_channel_stop_rtp(sccp_channel_t * c) {
@@ -809,16 +810,16 @@ void sccp_channel_transfer(sccp_channel_t * c) {
 		return;
 	}
 
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	/* are we in the middle of a transfer? */
 	if (d->transfer_channel && (d->transfer_channel != c)) {
-		ast_mutex_unlock(&d->lock);
+		sccp_mutex_unlock(&d->lock);
 		sccp_channel_transfer_complete(c);
 		return;
 	}
 
 	d->transfer_channel = c;
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%d\n", d->id, c->line->name, c->callid);
 
 	if (!c->owner) {
@@ -861,7 +862,7 @@ static void * sccp_channel_transfer_ringing_thread(void *data) {
 #else
 		ast_moh_start(ast, NULL, NULL);
 #endif
-	ast_mutex_unlock(&ast->lock);
+	sccp_mutex_unlock(&ast->lock);
 	return NULL;
 }
 
@@ -890,10 +891,10 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	
 	// Obtain the device from which the transfer was initiated
 	d = cDestinationLocal->line->device;
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	// Obtain the source channel on that device
 	cSourceLocal = d->transfer_channel;
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Complete transfer from %s-%d\n", d->id, cDestinationLocal->line->name, cDestinationLocal->callid);
 
@@ -960,11 +961,11 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "Peer owner disappeared! Can't free ressources\n");
 		return;
 	}
-	ast_mutex_unlock(&astcDestinationLocal->lock); // Where was the transferee locked at first?!
+	sccp_mutex_unlock(&astcDestinationLocal->lock); // Where was the transferee locked at first?!
 
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 	d->transfer_channel = NULL;
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 
 	if (!astcDestinationRemote) {
 		/* the channel was ringing not answered yet. BLIND TRANSFER */

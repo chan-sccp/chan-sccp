@@ -20,6 +20,7 @@
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
+#include "sccp_lock.h"
 #include "sccp_line.h"
 #include "sccp_socket.h"
 #include "sccp_device.h"
@@ -35,10 +36,10 @@ static void sccp_read_data(sccp_session_t * s) {
 	char * input, * newptr;
 
   /* called while we have GLOB(sessions_lock) */
-	ast_mutex_lock(&s->lock);
+	sccp_mutex_lock(&s->lock);
 
 	if (ioctl(s->fd, FIONREAD, &length) == -1) {
-		ast_mutex_unlock(&s->lock);
+		sccp_mutex_unlock(&s->lock);
 		ast_log(LOG_WARNING, "SCCP: FIONREAD ioctl failed: %s\n", strerror(errno));
 		sccp_session_close(s);
 		return;
@@ -46,7 +47,7 @@ static void sccp_read_data(sccp_session_t * s) {
 
 	if (!length) {
 		/* probably a CLOSE_WAIT */
-		ast_mutex_unlock(&s->lock);
+		sccp_mutex_unlock(&s->lock);
 		sccp_session_close(s);
 		return;
 	}
@@ -57,7 +58,7 @@ static void sccp_read_data(sccp_session_t * s) {
 	if ((readlen = read(s->fd, input, length)) < 0) {
 		ast_log(LOG_WARNING, "SCCP: read() returned %s\n", strerror(errno));
 		free(input);
-		ast_mutex_unlock(&s->lock);
+		sccp_mutex_unlock(&s->lock);
 		sccp_session_close(s);
 		return;
 	}
@@ -65,7 +66,7 @@ static void sccp_read_data(sccp_session_t * s) {
 	if (readlen != length) {
 		ast_log(LOG_WARNING, "SCCP: read() returned %zd, wanted %zd: %s\n", readlen, length, strerror(errno));
 		free(input);
-		ast_mutex_unlock(&s->lock);
+		sccp_mutex_unlock(&s->lock);
 		sccp_session_close(s);
 		return;
 	}
@@ -84,19 +85,19 @@ static void sccp_read_data(sccp_session_t * s) {
 
 	free(input);
 
-	ast_mutex_unlock(&s->lock);
+	sccp_mutex_unlock(&s->lock);
 }
 
 void sccp_session_close(sccp_session_t * s) {
 	if (!s)
 		return;
-	ast_mutex_lock(&s->lock);
+	sccp_mutex_lock(&s->lock);
 	if (s->fd > 0) {
 		FD_CLR(s->fd, &active_fd_set);
 		close(s->fd);
 		s->fd = -1;
 	}
-	ast_mutex_unlock(&s->lock);
+	sccp_mutex_unlock(&s->lock);
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Old session marked down\n", (s->device) ? s->device->id : "SCCP");
 }
 
@@ -110,7 +111,7 @@ static void destroy_session(sccp_session_t * s) {
 	if (!s)
 		return;
 	d = s->device;
-	ast_mutex_lock(&GLOB(devices_lock));
+	sccp_mutex_lock(&GLOB(devices_lock));
 #ifdef ASTERISK_CONF_1_2
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
 #else	
@@ -118,7 +119,7 @@ static void destroy_session(sccp_session_t * s) {
 #endif
 
 	if (d) {
-		ast_mutex_lock(&d->lock);
+		sccp_mutex_lock(&d->lock);
 		l = d->lines;
 		while (l) {
 			sccp_hint_notify_linestate(l, SCCP_DEVICESTATE_UNAVAILABLE, NULL);
@@ -131,7 +132,7 @@ static void destroy_session(sccp_session_t * s) {
 		d->lines = NULL;
 		d->session = NULL;
 		d->registrationState = SKINNY_DEVICE_RS_NONE;
-		ast_mutex_unlock(&d->lock);
+		sccp_mutex_unlock(&d->lock);
     
 #ifdef CS_SCCP_REALTIME
     sccp_device_t 	*devices, *dev, *prevDev, *delDev;
@@ -164,7 +165,7 @@ static void destroy_session(sccp_session_t * s) {
     }		
 #endif
 	}
-	ast_mutex_unlock(&GLOB(devices_lock));
+	sccp_mutex_unlock(&GLOB(devices_lock));
 
   /* remove the session */
 
@@ -185,7 +186,7 @@ static void destroy_session(sccp_session_t * s) {
 	if (s->buffer)
 		free(s->buffer);
 
-	ast_mutex_destroy(&s->lock);
+	sccp_mutex_destroy(&s->lock);
 	free(s);
 }
 
@@ -224,7 +225,7 @@ static void sccp_accept_connection(void) {
 	s = malloc(sizeof(struct sccp_session));
 	memset(s, 0, sizeof(sccp_session_t));
 	memcpy(&s->sin, &incoming, sizeof(s->sin));
-	ast_mutex_init(&s->lock);
+	sccp_mutex_init(&s->lock);
 
 	s->fd = new_socket;
 	s->lastKeepAlive = time(0);
@@ -247,13 +248,13 @@ static void sccp_accept_connection(void) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Using ip %s\n", ast_inet_ntoa(s->ourip));
 #endif
 
-	ast_mutex_lock(&GLOB(sessions_lock));
+	sccp_mutex_lock(&GLOB(sessions_lock));
 	if (GLOB(sessions)) {
 		GLOB(sessions)->prev = s;
 		s->next   = GLOB(sessions);
 	}
 	GLOB(sessions)  = s;
-	ast_mutex_unlock(&GLOB(sessions_lock));
+	sccp_mutex_unlock(&GLOB(sessions_lock));
 }
 
 /* Called with mutex lock */
@@ -341,7 +342,7 @@ void * sccp_socket_thread(void * ignore) {
 			continue;
 		}
 
-		ast_mutex_lock(&GLOB(sessions_lock));
+		sccp_mutex_lock(&GLOB(sessions_lock));
 		s = GLOB(sessions);
 		now = time(0);
 	    while (s) {
@@ -381,7 +382,7 @@ void * sccp_socket_thread(void * ignore) {
 				s1 = NULL;
 			}
 		}
-		ast_mutex_unlock(&GLOB(sessions_lock));
+		sccp_mutex_unlock(&GLOB(sessions_lock));
 		
 		if ( (GLOB(descriptor)> -1) && FD_ISSET(GLOB(descriptor), &fset)) {
 			sccp_accept_connection();

@@ -20,6 +20,7 @@
 #endif
 #include <asterisk/musiconhold.h>
 #include "chan_sccp.h"
+#include "sccp_lock.h"
 #include "sccp_pbx.h"
 #include "sccp_utils.h"
 #include "sccp_device.h"
@@ -126,7 +127,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Asterisk request to call %s\n", d->id, ast->name);
 
 
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&d->lock);
 
 	/* DND handling*/
 	if (d->dnd) {
@@ -137,7 +138,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 				if (strcasecmp(ringermode, "urgent") == 0)
 					c->ringermode = SKINNY_STATION_URGENTRING;
 			} else {
-				ast_mutex_unlock(&d->lock);
+				sccp_mutex_unlock(&d->lock);
 				ast_setstate(ast, AST_STATE_BUSY);
 				ast_queue_control(ast, AST_CONTROL_BUSY);
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND is on. Call %s rejected\n", d->id, ast->name);
@@ -153,7 +154,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	} 
 
 	//handle DND on lines
-	ast_mutex_lock(&l->lock);
+	sccp_mutex_lock(&l->lock);
 	if (1) {
 		if (l->dndmode == SCCP_DNDMODE_REJECT || (l->dndmode == SCCP_DNDMODE_USERDEFINED && l->dnd == SCCP_DNDMODE_REJECT )) {
 			ringermode = pbx_builtin_getvar_helper(ast, "ALERT_INFO");
@@ -162,7 +163,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 				if (strcasecmp(ringermode, "urgent") == 0)
 					c->ringermode = SKINNY_STATION_URGENTRING;
 			} else {
-				ast_mutex_unlock(&d->lock);
+				sccp_mutex_unlock(&d->lock);
 				ast_setstate(ast, AST_STATE_BUSY);
 				ast_queue_control(ast, AST_CONTROL_BUSY);
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND for line \"%s\" is on. Call %s rejected\n", d->id, l->name, ast->name);
@@ -176,20 +177,20 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND (silent) for line \"%s\" is on. Set the ringer = silent and autoanswer = off for %s\n", d->id, l->name, ast->name);
 		}
 	}
-	ast_mutex_unlock(&l->lock);
+	sccp_mutex_unlock(&l->lock);
 	//end DND handling
 
 	/* if incoming call limit is reached send BUSY */
-	ast_mutex_lock(&l->lock);
+	sccp_mutex_lock(&l->lock);
 	if ( l->channelCount > l->incominglimit ) { /* >= just to be sure :-) */
 		sccp_log(1)(VERBOSE_PREFIX_3 "Incoming calls limit (%d) reached on SCCP/%s... sending busy\n", l->incominglimit, l->name);
-		ast_mutex_unlock(&l->lock);
-		ast_mutex_unlock(&d->lock);
+		sccp_mutex_unlock(&l->lock);
+		sccp_mutex_unlock(&d->lock);
 		ast_setstate(ast, AST_STATE_BUSY);
 		ast_queue_control(ast, AST_CONTROL_BUSY);
 		return 0;
 	}
-	ast_mutex_unlock(&l->lock);
+	sccp_mutex_unlock(&l->lock);
 
 	/* autoanswer check */
 	if (c->autoanswer_type) {
@@ -205,14 +206,14 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 						ast_queue_control(ast, AST_CONTROL_BUSY);
 						break;
 				}
-				ast_mutex_unlock(&d->lock);
+				sccp_mutex_unlock(&d->lock);
 				return 0;
 			}
 		} else {
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Autoanswer requested and activated %s\n", d->id, (c->autoanswer_type == SCCP_AUTOANSWER_1W) ? "with MIC OFF" : "with MIC ON");
 		}
 	}
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&d->lock);
 
   /* Set the channel callingParty Name and Number */
 #ifdef CS_AST_CHANNEL_HAS_CID
@@ -266,7 +267,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	}
 
 	/* release the asterisk lock */
-	ast_mutex_unlock(&ast->lock);
+	sccp_mutex_unlock(&ast->lock);
 	if ( sccp_channel_get_active(d) ) {
 		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CALLWAITING);
 		ast_queue_control(ast, AST_CONTROL_RINGING);
@@ -283,7 +284,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		}
 	}
 	/* someone forget to restore the asterisk lock */
-	ast_mutex_lock(&ast->lock);
+	sccp_mutex_lock(&ast->lock);
 	
 	return 0;
 }
@@ -299,15 +300,15 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Asterisk request to hangup channel %s\n", ast->name);
 	
-	ast_mutex_lock(&GLOB(usecnt_lock));
+	sccp_mutex_lock(&GLOB(usecnt_lock));
 	GLOB(usecnt)--;
-	ast_mutex_unlock(&GLOB(usecnt_lock));
+	sccp_mutex_unlock(&GLOB(usecnt_lock));
 
 	ast_update_use_count();
 
 	c = CS_AST_CHANNEL_PVT(ast);
 
-	while (c && ast_mutex_trylock(&c->lock)) {
+	while (c && sccp_mutex_trylock(&c->lock)) {
 		ast_log(LOG_DEBUG, "SCCP: Waiting to lock the channel %s for hangup\n", ast->name);
 		usleep(1000);
 		c = CS_AST_CHANNEL_PVT(ast);
@@ -340,16 +341,16 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 	}
 
 	if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && !c->hangupok) {
-		ast_mutex_unlock(&c->lock);
+		sccp_mutex_unlock(&c->lock);
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Waiting for the dialing thread to go down on channel %s\n", DEV_ID_LOG(d), ast->name);
 		do {
 			usleep(10000);
-			ast_mutex_lock(&c->lock);
+			sccp_mutex_lock(&c->lock);
 			res = c->hangupok;
-			ast_mutex_unlock(&c->lock);
+			sccp_mutex_unlock(&c->lock);
 		} while (!res);
 	} else {
-		ast_mutex_unlock(&c->lock);
+		sccp_mutex_unlock(&c->lock);
 	}
 
 	sccp_channel_delete(c);
@@ -357,9 +358,9 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 OUT:
 
 	if (d && d->session) {
-		ast_mutex_lock(&d->session->lock);
+		sccp_mutex_lock(&d->session->lock);
 		d->session->needcheckringback = 1;
-		ast_mutex_unlock(&d->session->lock);
+		sccp_mutex_unlock(&d->session->lock);
 	}
 
 	return 0;
@@ -401,9 +402,9 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast) {
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
 	if (!c)
 		return NULL;
-	ast_mutex_lock(&c->lock);
+	sccp_mutex_lock(&c->lock);
 	fr = sccp_rtp_read(c);
-	ast_mutex_unlock(&c->lock);
+	sccp_mutex_unlock(&c->lock);
 	return fr;
 }
 
@@ -434,11 +435,11 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 		}
 	}
 	if (c) {
-		ast_mutex_lock(&c->lock);
+		sccp_mutex_lock(&c->lock);
 		if (c->rtp) {
 			res =  ast_rtp_write(c->rtp, frame);
 		}
-		ast_mutex_unlock(&c->lock);
+		sccp_mutex_unlock(&c->lock);
 	}
 	return res;
 }
@@ -496,11 +497,11 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	if (!c)
 		return -1;
 
-	ast_mutex_lock(&c->lock);
+	sccp_mutex_lock(&c->lock);
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Asterisk indicate '%d' (%s) condition on channel %s\n", DEV_ID_LOG(c->device), ind, sccp_control2str(ind), ast->name);
 	if (c->state == SCCP_CHANNELSTATE_CONNECTED) {
 		/* let's asterisk emulate it */
-		ast_mutex_unlock(&c->lock);
+		sccp_mutex_unlock(&c->lock);
 		return -1;;
 
 	}
@@ -554,7 +555,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	  res = -1;
 	}
 
-	ast_mutex_unlock(&c->lock);
+	sccp_mutex_unlock(&c->lock);
 	return res;
 }
 
@@ -564,14 +565,14 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 		ast_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", oldchan->name, oldchan, newchan->name, newchan);
 		return -1;
 	}
-	ast_mutex_lock(&c->lock);
+	sccp_mutex_lock(&c->lock);
 	if (c->owner != oldchan) {
 		ast_log(LOG_WARNING, "old channel wasn't %p but was %p\n", oldchan, c->owner);
-		ast_mutex_unlock(&c->lock);
+		sccp_mutex_unlock(&c->lock);
 		return -1;
 	}
 	c->owner = newchan;
-	ast_mutex_unlock(&c->lock);
+	sccp_mutex_unlock(&c->lock);
 	return 0;
 }
 
@@ -701,13 +702,13 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	memset(&tmp->exten,0,sizeof(tmp->exten));
 
 	/* let's connect the ast channel to the sccp channel */
-	ast_mutex_lock(&c->lock);
+	sccp_mutex_lock(&c->lock);
 	c->owner = tmp;
-	ast_mutex_unlock(&c->lock);
+	sccp_mutex_unlock(&c->lock);
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Global Capabilities: %d\n", d->id, GLOB(global_capability));
 
-	ast_mutex_lock(&l->lock);
-	ast_mutex_lock(&d->lock);
+	sccp_mutex_lock(&l->lock);
+	sccp_mutex_lock(&d->lock);
 	tmp->nativeformats = (d->capability ? d->capability : GLOB(global_capability));
 	if (tmp->nativeformats & c->format) {
 		fmt = c->format;
@@ -715,8 +716,8 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 		fmt = ast_codec_choose(&d->codecs, tmp->nativeformats, 1);
 		c->format = fmt;
 	}
-	ast_mutex_unlock(&l->lock);
-	ast_mutex_unlock(&d->lock);
+	sccp_mutex_unlock(&l->lock);
+	sccp_mutex_unlock(&d->lock);
 	sccp_log(2)(VERBOSE_PREFIX_3 "%s: format request: %d/%d\n", d->id, tmp->nativeformats, c->format);
 
 #ifdef CS_AST_HAS_AST_STRING_FIELD
@@ -770,9 +771,9 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	// XXX: Bridge?
 	// XXX: Transfer?
 
-	ast_mutex_lock(&GLOB(usecnt_lock));
+	sccp_mutex_lock(&GLOB(usecnt_lock));
 	GLOB(usecnt)++;
-	ast_mutex_unlock(&GLOB(usecnt_lock));
+	sccp_mutex_unlock(&GLOB(usecnt_lock));
 
 	ast_update_use_count();
 
@@ -850,7 +851,7 @@ void * sccp_pbx_startchannel(void *data) {
 	}
 	
 	/* this is an outgoung call */
-	ast_mutex_lock(&c->lock);
+	sccp_mutex_lock(&c->lock);
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 	c->hangupok = 0;
 	
@@ -865,7 +866,7 @@ void * sccp_pbx_startchannel(void *data) {
 		/* let's go out as soon as possibile */
 		ast_log(LOG_ERROR, "%s: return from the dial thread. No line or device defined for channel %d\n", DEV_ID_LOG(d), c->callid);
 		c->hangupok = 1;
-		ast_mutex_unlock(&c->lock);
+		sccp_mutex_unlock(&c->lock);
 		if (chan)
 			ast_hangup(chan);
 		return NULL;
@@ -880,7 +881,7 @@ void * sccp_pbx_startchannel(void *data) {
 		sccp_log(10)( VERBOSE_PREFIX_3 "%s: Dialing %s on channel %s-%d\n", DEV_ID_LOG(l->device), c->dialedNumber, l->name, c->callid);
 		sccp_channel_set_calledparty(c, c->dialedNumber, c->dialedNumber);
 		sccp_indicate_nolock(c, SCCP_CHANNELSTATE_DIALING);
-		ast_mutex_unlock(&c->lock);
+		sccp_mutex_unlock(&c->lock);
 		goto dial;
 	}
 
@@ -889,14 +890,14 @@ void * sccp_pbx_startchannel(void *data) {
 	sccp_log(10)( VERBOSE_PREFIX_3 "%s: Waiting for the number to dial on channel %s-%d\n", DEV_ID_LOG(l->device), l->name, c->callid);
 	/* let's use the keypad to collect digits */
 	c->digittimeout = time(0)+GLOB(firstdigittimeout);
-	ast_mutex_unlock(&c->lock);
+	sccp_mutex_unlock(&c->lock);
 
 	res_exten = 1;
 
 	do {
 		usleep(100);
 		pthread_testcancel();
-		ast_mutex_lock(&c->lock);
+		sccp_mutex_lock(&c->lock);
 		if (!ast_strlen_zero(c->dialedNumber)) {
 			/* It never occured to me what the purpose of the following line was. I modified it to avoid the limitation to
 			   extensions not starting with '*' only. (-DD) 
@@ -920,15 +921,15 @@ void * sccp_pbx_startchannel(void *data) {
 			} else
 				res_timeout = 0;
 		}
-		ast_mutex_unlock(&c->lock);
+		sccp_mutex_unlock(&c->lock);
 	} while ( (res_wait == 0) && res_exten &&  res_timeout);
 
 	if (res_wait != 0) {
 		/* AST_STATE_DOWN or softhangup */
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: return from the dial thread for DOWN, HANGUP or PICKUP cause\n", DEV_ID_LOG(l->device));
-		ast_mutex_lock(&c->lock);
+		sccp_mutex_lock(&c->lock);
 		c->hangupok = 1;
-		ast_mutex_unlock(&c->lock);
+		sccp_mutex_unlock(&c->lock);
 		return NULL;
 	}
 
@@ -964,7 +965,7 @@ dial:
 	{
 			  strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-0);
 	}
-	ast_mutex_lock(&c->lock);
+	sccp_mutex_lock(&c->lock);
 	sccp_copy_string(chan->exten, shortenedNumber, sizeof(chan->exten));
 	sccp_copy_string(d->lastNumber, c->dialedNumber, sizeof(d->lastNumber));
 	sccp_channel_set_calledparty(c, c->dialedNumber, shortenedNumber);
@@ -977,7 +978,7 @@ dial:
 	sccp_dev_clearprompt(d,c->line->instance, c->callid);
 	sccp_dev_displayprompt(d, c->line->instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 	c->hangupok = 1;
-	ast_mutex_unlock(&c->lock);
+	sccp_mutex_unlock(&c->lock);
 
 	if ( !ast_strlen_zero(shortenedNumber)
 			&& ast_exists_extension(chan, chan->context, shortenedNumber, 1, l->cid_num) ) {
@@ -1002,16 +1003,16 @@ void sccp_pbx_senddigit(sccp_channel_t * c, char digit) {
 	f.src = "SCCP";
 	f.subclass = digit;
 	
-	while(ast_mutex_trylock(&c->lock)) {
+	while(sccp_mutex_trylock(&c->lock)) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Avoiding pbx_senddigit (1) deadlock\n");
-		ast_mutex_unlock(&c->lock);
+		sccp_mutex_unlock(&c->lock);
 		usleep(1);
-		ast_mutex_lock(&c->lock);
+		sccp_mutex_lock(&c->lock);
 	}
 
-	// ast_mutex_lock(&c->lock);
+	// sccp_mutex_lock(&c->lock);
 	ast_queue_frame(c->owner, &f);
-	ast_mutex_unlock(&c->lock);
+	sccp_mutex_unlock(&c->lock);
 }
 
 void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
@@ -1024,18 +1025,18 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 	f.data = NULL;
 	f.datalen = 0;
 	
-	while(ast_mutex_trylock(&c->lock)) {
+	while(sccp_mutex_trylock(&c->lock)) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Avoiding pbx_senddigits (2) deadlock\n");
-		ast_mutex_unlock(&c->lock);
+		sccp_mutex_unlock(&c->lock);
 		usleep(1);
-		ast_mutex_lock(&c->lock);
+		sccp_mutex_lock(&c->lock);
 	}
 
-	// ast_mutex_lock(&c->lock);
+	// sccp_mutex_lock(&c->lock);
 	for (i = 0; digits[i] != '\0'; i++) {
 		f.subclass = digits[i];
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending digit %c\n", DEV_ID_LOG(c->device), digits[i]);
 		ast_queue_frame(c->owner, &f);
 	}
-	ast_mutex_unlock(&c->lock);
+	sccp_mutex_unlock(&c->lock);
 }
