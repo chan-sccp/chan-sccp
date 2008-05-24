@@ -125,9 +125,9 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Asterisk request to call %s\n", d->id, ast->name);
 
+
 	ast_mutex_lock(&d->lock);
 
-	
 	/* DND handling*/
 	if (d->dnd) {
 		if (d->dndmode == SCCP_DNDMODE_REJECT || (d->dndmode == SCCP_DNDMODE_USERDEFINED && d->dnd == SCCP_DNDMODE_REJECT )) {
@@ -241,7 +241,6 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		cidtmp = NULL;
 	}
 #endif
-
   /* Set the channel calledParty Name and Number 7910 compatibility*/
 	sccp_channel_set_calledparty(c, l->cid_name, l->cid_num);
 
@@ -283,6 +282,9 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 			}
 		}
 	}
+	/* someone forget to restore the asterisk lock */
+	ast_mutex_lock(&ast->lock);
+	
 	return 0;
 }
 
@@ -999,8 +1001,15 @@ void sccp_pbx_senddigit(sccp_channel_t * c, char digit) {
 
 	f.src = "SCCP";
 	f.subclass = digit;
+	
+	while(ast_mutex_trylock(&c->lock)) {
+		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Avoiding pbx_senddigit (1) deadlock\n");
+		ast_mutex_unlock(&c->lock);
+		usleep(1);
+		ast_mutex_lock(&c->lock);
+	}
 
-	ast_mutex_lock(&c->lock);
+	// ast_mutex_lock(&c->lock);
 	ast_queue_frame(c->owner, &f);
 	ast_mutex_unlock(&c->lock);
 }
@@ -1014,7 +1023,15 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 	f.offset = 0;
 	f.data = NULL;
 	f.datalen = 0;
-	ast_mutex_lock(&c->lock);
+	
+	while(ast_mutex_trylock(&c->lock)) {
+		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Avoiding pbx_senddigits (2) deadlock\n");
+		ast_mutex_unlock(&c->lock);
+		usleep(1);
+		ast_mutex_lock(&c->lock);
+	}
+
+	// ast_mutex_lock(&c->lock);
 	for (i = 0; digits[i] != '\0'; i++) {
 		f.subclass = digits[i];
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending digit %c\n", DEV_ID_LOG(c->device), digits[i]);
