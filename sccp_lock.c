@@ -41,7 +41,7 @@ int __sccp_mutex_unlock(ast_mutex_t *p_mutex, const char *itemnametolock, const 
 #endif
 	
 	if (!p_mutex) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Unlocking non-existing  \n", filename, lineno, func);
+		sccp_log(10)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Unlocking non-existing mutex\n", filename, lineno, func);
 		return 0;
 	}
 
@@ -50,6 +50,14 @@ int __sccp_mutex_unlock(ast_mutex_t *p_mutex, const char *itemnametolock, const 
 	res = __ast_pthread_mutex_unlock(filename, lineno, func, itemnametolock, p_mutex);
 #else
 	res = ast_mutex_unlock(p_mutex);
+#endif
+
+#ifdef CS_LOCKS_DEBUG_ALL
+#ifdef CS_AST_DEBUG_THREADS
+    int count = 0;
+	if ((count = p_mutex->reentrancy))
+		sccp_log(10)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Still have %d locks (recursive)\n", count);
+#endif
 #endif
 
 #ifdef CS_LOCKS_DEBUG_ALL
@@ -87,6 +95,14 @@ int __sccp_mutex_lock(ast_mutex_t *p_mutex, const char *itemnametolock, const ch
 #endif
 
 #ifdef CS_LOCKS_DEBUG_ALL
+#ifdef CS_AST_DEBUG_THREADS
+    int count = 0;
+	if ((count = p_mutex->reentrancy))
+		sccp_log(10)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Now have %d locks (recursive)\n", count);
+#endif
+#endif
+
+#ifdef CS_LOCKS_DEBUG_ALL
 	if (!res)
 		sccp_log(10)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s was locked\n", filename, lineno, func, itemnametolock);
 #endif
@@ -118,6 +134,14 @@ int __sccp_mutex_trylock(ast_mutex_t *p_mutex, const char *itemnametolock, const
 	res = __ast_pthread_mutex_trylock(filename, lineno, func, itemnametolock, p_mutex);
 #else
 	res = ast_mutex_trylock(p_mutex);
+#endif
+
+#ifdef CS_LOCKS_DEBUG_ALL
+#ifdef CS_AST_DEBUG_THREADS
+    int count = 0;
+	if ((count = p_mutex->reentrancy))
+		sccp_log(10)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Now have %d locks (recursive)\n", count);
+#endif
 #endif
 
 #ifdef CS_LOCKS_DEBUG_ALL

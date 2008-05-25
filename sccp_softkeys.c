@@ -475,12 +475,19 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		/* let the channel goes down to the invalid number */
 		return;
 	}
-
+#ifdef ASTERISK_CONF_1_2
 	while (sccp_mutex_trylock(&ast->lock)) {
 		ast_log(LOG_DEBUG, "SCCP: Waiting to lock the channel for pickup\n");
 		usleep(1000);
 		ast = c->owner;
 	}
+#else
+	while (ast_channel_trylock(ast)) {
+		ast_log(LOG_DEBUG, "SCCP: Waiting to lock the channel for pickup\n");
+		usleep(1000);
+		ast = c->owner;
+	}
+#endif
 	
 	original = ast->masqr;
 
@@ -488,7 +495,11 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 
 	res = (int) (ast->blocker);
 	
+#ifdef ASTERISK_CONF_1_2	
 	sccp_mutex_unlock(&ast->lock);
+#else
+	ast_channel_unlock(ast);
+#endif
 
 	if (res)
 		ast_queue_hangup(ast);

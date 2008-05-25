@@ -267,7 +267,11 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	}
 
 	/* release the asterisk lock */
+#ifdef ASTERISK_CONF_1_2
 	sccp_mutex_unlock(&ast->lock);
+#else
+	ast_channel_unlock(ast);
+#endif
 	if ( sccp_channel_get_active(d) ) {
 		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CALLWAITING);
 		ast_queue_control(ast, AST_CONTROL_RINGING);
@@ -284,8 +288,11 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		}
 	}
 	/* someone forget to restore the asterisk lock */
+#ifdef ASTERISK_CONF_1_2
 	sccp_mutex_lock(&ast->lock);
-	
+#else	
+	ast_channel_lock(ast);
+#endif	
 	return 0;
 }
 
