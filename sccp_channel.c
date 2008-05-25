@@ -859,10 +859,12 @@ static void * sccp_channel_transfer_ringing_thread(void *data) {
 	else if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_MOH)
 #ifdef ASTERISK_CONF_1_2
 		ast_moh_start(ast, NULL);
+		sccp_mutex_unlock(&ast->lock);
 #else
 		ast_moh_start(ast, NULL, NULL);
+		ast_channel_unlock(ast);
 #endif
-	sccp_mutex_unlock(&ast->lock);
+	
 	return NULL;
 }
 
@@ -961,7 +963,11 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "Peer owner disappeared! Can't free ressources\n");
 		return;
 	}
+#ifdef ASTERISK_CONF_1_2
 	sccp_mutex_unlock(&astcDestinationLocal->lock); // Where was the transferee locked at first?!
+#else	
+	ast_channel_unlock(astcDestinationLocal); // Where was the transferee locked at first?!
+#endif
 
 	sccp_mutex_lock(&d->lock);
 	d->transfer_channel = NULL;
@@ -977,6 +983,14 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 #else
 	if (strncasecmp(astcDestinationRemote->tech->type,"SCCP",4)) {
 #endif
+		/* why leave the channel we unlocked in this state before leaving ? */
+/*		
+#ifdef ASTERISK_CONF_1_2
+		sccp_mutex_lock(&astcDestinationLocal->lock);
+#else	
+		ast_channel_lock(astcDestinationLocal);
+#endif
+*/
 		/* nothing to do with different channel types */
 		return;
 	}
