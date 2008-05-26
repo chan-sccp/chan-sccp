@@ -37,6 +37,7 @@
 #include <asterisk/features.h>
 #endif
 
+#ifndef ASTERISK_CONF_1_6
 struct ast_ha {
         /* Host access rule */
         struct in_addr netaddr;
@@ -44,6 +45,7 @@ struct ast_ha {
         int sense;
         struct ast_ha *next;
 };
+#endif
 
 void sccp_handle_alarm(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Alarm Message: Severity: %s (%d), %s [%d/%d]\n", skinny_alarm2str(letohl(r->msg.AlarmMessage.lel_alarmSeverity)), letohl(r->msg.AlarmMessage.lel_alarmSeverity), r->msg.AlarmMessage.text, letohl(r->msg.AlarmMessage.lel_parm1), letohl(r->msg.AlarmMessage.lel_parm2));
