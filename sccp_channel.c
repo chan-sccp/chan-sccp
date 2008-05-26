@@ -762,6 +762,14 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
 	char iabuf[INET_ADDRSTRLEN];
 #endif
 	
+	struct sched_context *sched; 
+	struct io_context *io;
+	
+	
+	sched = sched_context_create();
+	io = io_context_create();
+	
+	
 	if (!c || !c->device)
 		return;
 	s = c->device->session;
@@ -775,7 +783,9 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
 #else
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", c->device->id, ast_inet_ntoa(s->ourip));
 #endif
-	c->rtp = ast_rtp_new_with_bindaddr(NULL, NULL, 1, 0, s->ourip);
+	
+	c->rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
+//	c->rtp = ast_rtp_new_with_bindaddr(NULL, NULL, 1, 0, s->ourip);
 	if (c->device->nat)
 		ast_rtp_setnat(c->rtp, 1);
 
@@ -793,6 +803,8 @@ void sccp_channel_stop_rtp(sccp_channel_t * c) {
 		c->rtp = NULL;
 	}
 }
+
+
 
 void sccp_channel_transfer(sccp_channel_t * c) {
 	sccp_device_t * d;
