@@ -39,7 +39,12 @@ echo "#define CHAN_SCCP_CONFIG_H" >>$CONFIGFILE
 
 echo "Checking Asterisk version..."
 
-if grep -q "\"1\.4" $INCLUDEDIR/version.h; then
+if grep -q "\"1\.6" $INCLUDEDIR/version.h; then
+	echo "#define ASTERISK_CONF_1_6" >>$CONFIGFILE
+	echo " * found asterisk 1.6"
+	REALTIME_USEABLE=1
+	
+elif grep -q "\"1\.4" $INCLUDEDIR/version.h; then
 	echo "#define ASTERISK_CONF_1_4" >>$CONFIGFILE
 	echo " * found asterisk 1.4"
 	REALTIME_USEABLE=1

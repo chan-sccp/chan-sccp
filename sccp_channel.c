@@ -317,7 +317,11 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c) {
 	}
 
 	ast_rtp_get_us(c->rtp, &sin);
+#ifdef ASTERISK_CONF_1_6
+	ast_rtp_setqos(c->rtp, c->line->rtptos, 5, "SCCP RTP");
+#else
 	ast_rtp_settos(c->rtp, c->line->rtptos);
+#endif
 
 	REQ(r, StartMediaTransmission);
 	r->msg.StartMediaTransmission.lel_conferenceId = htolel(c->callid);

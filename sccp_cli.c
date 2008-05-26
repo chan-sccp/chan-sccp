@@ -32,6 +32,8 @@
 
 /* ------------------------------------------------------------ */
 
+//do we need this in 1.6?
+#ifndef ASTERISK_CONF_1_6
 #ifdef CS_NEW_AST_CLI
 static char * sccp_complete_device(const char *line, const char *word, int pos, int state) {
 #else
@@ -59,6 +61,7 @@ static char * sccp_complete_device(char *line, char *word, int pos, int state) {
 	
 	return ret;
 }
+#endif
 
 static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 	sccp_moo_t * r;
@@ -248,12 +251,34 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
+
+#ifdef ASTERISK_CONF_1_6
+static char *cli_show_globals(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+			e->command = "sccp show globals";
+			e->usage =
+				"Usage: sccp show globals\n";
+			return NULL;
+		} else if (cmd == CLI_GENERATE){
+			return NULL;
+		}
+		if (a->argc != 3)
+			return CLI_SHOWUSAGE;
+		
+		if(sccp_show_globals(a->fd, a->argc, a->argv)){
+			return CLI_SUCCESS;
+		}else
+			return CLI_FAILURE;
+		
+}
+#else
 static struct ast_cli_entry cli_show_globals = {
   { "sccp", "show", "globals", NULL },
   sccp_show_globals,
   "Show SCCP global settings",
   "Usage: sccp show globals\n"
 };
+#endif
 
 /* ------------------------------------------------------------ */
 
@@ -348,6 +373,27 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
+
+#ifdef ASTERISK_CONF_1_6
+static char *cli_show_device(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+			e->command = "sccp show device";
+			e->usage =
+				"Usage:  sccp show device <deviceId>\n";
+			return NULL;
+		} else if (cmd == CLI_GENERATE){
+			return NULL;
+		}
+		if (a->argc != 4)
+			return CLI_SHOWUSAGE;
+		
+		if(sccp_show_device(a->fd, a->argc, a->argv)){
+			return CLI_SUCCESS;
+		}else
+			return CLI_FAILURE;
+		
+}
+#else
 static struct ast_cli_entry cli_show_device = {
   { "sccp", "show", "device", NULL },
   sccp_show_device,
@@ -355,10 +401,31 @@ static struct ast_cli_entry cli_show_device = {
   "Usage: sccp show device <deviceId>\n",
   sccp_complete_device
 };
-
+#endif
 /* ------------------------------------------------------------ */
 
 
+
+#ifdef ASTERISK_CONF_1_6
+static char *cli_reset(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+			e->command = "sccp reset";
+			e->usage =
+				"Usage: sccp reset <deviceId>\n";
+			return NULL;
+		} else if (cmd == CLI_GENERATE){
+			return NULL;
+		}
+		if (a->argc != 4)
+			return CLI_SHOWUSAGE;
+		
+		if(sccp_reset_restart(a->fd, a->argc, a->argv)){
+			return CLI_SUCCESS;
+		}else
+			return CLI_FAILURE;
+		
+}
+#else
 static struct ast_cli_entry cli_reset = {
   { "sccp", "reset", NULL },
   sccp_reset_restart,
@@ -366,7 +433,29 @@ static struct ast_cli_entry cli_reset = {
   "Usage: sccp reset <deviceId>\n",
   sccp_complete_device
 };
+#endif
 
+
+#ifdef ASTERISK_CONF_1_6
+static char *cli_restart(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+			e->command = "sccp restart";
+			e->usage =
+				"Usage: sccp restart <deviceId>\n";
+			return NULL;
+		} else if (cmd == CLI_GENERATE){
+			return NULL;
+		}
+		if (a->argc != 4)
+			return CLI_SHOWUSAGE;
+		
+		if(sccp_reset_restart(a->fd, a->argc, a->argv)){
+			return CLI_SUCCESS;
+		}else
+			return CLI_FAILURE;
+		
+}
+#else
 static struct ast_cli_entry cli_restart = {
 	{ "sccp", "restart", NULL },
 	sccp_reset_restart,
@@ -374,7 +463,31 @@ static struct ast_cli_entry cli_restart = {
 	"Usage: sccp restart <deviceId>\n",
 	sccp_complete_device
 };
+#endif
 
+
+
+#ifdef ASTERISK_CONF_1_6
+static char *cli_unregister(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+			e->command = "sccp unregister";
+			e->usage =
+				"Usage: sccp unregister <deviceId>\n"
+				"       Unregister an SCCP device\n";
+			return NULL;
+		} else if (cmd == CLI_GENERATE){
+			return NULL;
+		}
+		if (a->argc != 3)
+			return CLI_SHOWUSAGE;
+		
+		if(sccp_unregister(a->fd, a->argc, a->argv)){
+			return CLI_SUCCESS;
+		}else
+			return CLI_FAILURE;
+		
+}
+#else
 static struct ast_cli_entry cli_unregister = {
 	{ "sccp", "unregister", NULL },
 	sccp_unregister,
@@ -382,7 +495,7 @@ static struct ast_cli_entry cli_unregister = {
 	"Usage: sccp unregister <deviceId>\n",
 	sccp_complete_device
 };
-
+#endif
 
 
 /* ------------------------------------------------------------ */
@@ -409,12 +522,34 @@ static int sccp_show_channels(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
+
+
+#ifdef ASTERISK_CONF_1_6
+static char *cli_show_channels(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+		e->command = "sccp show channels";
+		e->usage =
+			"Usage: sccp show channels\n"
+			"       Show all SCCP channels.\n";
+		return NULL;
+	} else if (cmd == CLI_GENERATE)
+		return NULL;
+	
+	if(sccp_show_channels(a->fd, a->argc, a->argv))
+		return CLI_SUCCESS;
+	else
+		return CLI_FAILURE;
+}
+#endif
+
+#ifndef ASTERISK_CONF_1_6
 static struct ast_cli_entry cli_show_channels = {
 	{ "sccp", "show", "channels", NULL },
 	sccp_show_channels,
 	"Show all SCCP channels",
 	"Usage: sccp show channel\n",
 };
+#endif
 
 /* ------------------------------------------------------------ */
 
@@ -452,12 +587,35 @@ static int sccp_show_devices(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
+
+
+
+#ifdef ASTERISK_CONF_1_6
+static char *cli_show_devices(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+		e->command = "sccp show devices";
+		e->usage =
+			"Usage: sccp show devices\n"
+			"       Show all SCCP Devices.\n";
+		return NULL;
+	} else if (cmd == CLI_GENERATE)
+		return NULL;
+	
+	if(sccp_show_devices(a->fd, a->argc, a->argv))
+		return CLI_SUCCESS;
+	else
+		return CLI_FAILURE;
+}
+#else
 static struct ast_cli_entry cli_show_devices = {
 	{ "sccp", "show", "devices", NULL },
 	sccp_show_devices,
 	"Show all SCCP Devices",
 	"Usage: sccp show devices\n"
 };
+#endif
+
+
 
 static int sccp_message_devices(int fd, int argc, char * argv[]) {
 	sccp_device_t * d;
@@ -483,13 +641,34 @@ static int sccp_message_devices(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
+
+#ifdef ASTERISK_CONF_1_6
+static char *cli_message_devices(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+		e->command = "sccp message devices";
+		e->usage =
+			"Usage: sccp messages devices <message text> [timeout]\n"
+			"       Send a message to all SCCP Devices.\n";
+		return NULL;
+	} else if (cmd == CLI_GENERATE)
+		return NULL;
+	
+	if (a->argc < 4)
+		return CLI_SHOWUSAGE;
+	
+	if(sccp_message_devices(a->fd, a->argc, a->argv))
+		return CLI_SUCCESS;
+	else
+		return CLI_FAILURE;
+}
+#else
 static struct ast_cli_entry cli_message_devices = {
   { "sccp", "message", "devices", NULL },
   sccp_message_devices,
   "Send a message to all SCCP Devices",
   "Usage: sccp messages devices <message text> <timeout>\n"
 };
-
+#endif
 
 
 /* ------------------------------------------------------------ */
@@ -544,12 +723,32 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
   return RESULT_SUCCESS;
 }
 
+
+#ifdef ASTERISK_CONF_1_6
+static char *cli_show_lines(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+		e->command = "sccp show lines";
+		e->usage =
+			"Usage: sccp show lines\n"
+			"       Show All SCCP Lines.\n";
+		return NULL;
+	} else if (cmd == CLI_GENERATE)
+		return NULL;
+	
+	
+	if(sccp_show_lines(a->fd, a->argc, a->argv))
+		return CLI_SUCCESS;
+	else
+		return CLI_FAILURE;
+}
+#else
 static struct ast_cli_entry cli_show_lines = {
   { "sccp", "show", "lines", NULL },
   sccp_show_lines,
   "Show All SCCP Lines",
   "Usage: sccp show lines\n"
 };
+#endif
 
 
 
@@ -593,12 +792,34 @@ static int sccp_remove_line_from_device(int fd, int argc, char * argv[]) {
   return RESULT_SUCCESS;
 }
 
+
+#ifdef ASTERISK_CONF_1_6
+static char *cli_remove_line_device(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+		e->command = "sccp remove line";
+		e->usage =
+			"Usage: sccp remove line <deviceID> <lineID>\n"
+			"       Remove a line from device.\n";
+		return NULL;
+	} else if (cmd == CLI_GENERATE)
+		return NULL;
+	
+	if (a->argc != 5)
+		return CLI_SHOWUSAGE;
+	
+	if(sccp_remove_line_from_device(a->fd, a->argc, a->argv))
+		return CLI_SUCCESS;
+	else
+		return CLI_FAILURE;
+}
+#else
 static struct ast_cli_entry cli_remove_line_device = {
   { "sccp", "remove", "line", NULL },
   sccp_remove_line_from_device,
   "Remove a line from device",
   "Usage: sccp remove line <deviceID> <lineID>\n"
 };
+#endif
 
 /* ------------------------------------------------------------ */
 
@@ -646,12 +867,34 @@ static int sccp_show_sessions(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
+
+#ifdef ASTERISK_CONF_1_6
+static char *cli_show_sessions(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+		e->command = "sccp show sessions";
+		e->usage =
+			"Usage: sccp show sessions\n"
+			"       Show All SCCP Sessions.\n";
+		return NULL;
+	} else if (cmd == CLI_GENERATE)
+		return NULL;
+	
+	if (a->argc != 5)
+		return CLI_SHOWUSAGE;
+	
+	if(sccp_show_sessions(a->fd, a->argc, a->argv))
+		return CLI_SUCCESS;
+	else
+		return CLI_FAILURE;
+}
+#else
 static struct ast_cli_entry cli_show_sessions = {
   { "sccp", "show", "sessions", NULL },
   sccp_show_sessions,
   "Show All SCCP Sessions",
   "Usage: sccp show sessions\n"
 };
+#endif
 
 /* ------------------------------------------------------------ */
 static int sccp_system_message(int fd, int argc, char * argv[]) {
@@ -694,22 +937,41 @@ static int sccp_system_message(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
+
+#ifdef ASTERISK_CONF_1_6
+static char *cli_system_message(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+		e->command = "sccp system message";
+		e->usage =
+			"Usage: sccp system message \"<message text>\" <timeout>\n"
+			"		The default optional timeout is 0 (forever)\n"
+			"		Example: sccp system message \"The boss is gone. Let's have some fun!\"  10\n";
+		return NULL;
+	} else if (cmd == CLI_GENERATE)
+		return NULL;
+	
+	if (a->argc < 4)
+		return CLI_SHOWUSAGE;
+	
+	if(sccp_system_message(a->fd, a->argc, a->argv))
+		return CLI_SUCCESS;
+	else
+		return CLI_FAILURE;
+}
+#else
 static struct ast_cli_entry cli_system_message = {
    { "sccp", "system", "message", NULL },
    sccp_system_message,
    "Set the SCCP system message",
-   "Usage: sccp system message \"<message text>\" <timeout>\nThe default optional timeout is 0 (forever)\nExample: sccp system message \"The boss is gone. Let's have some fun!\"  10\n"
+   "Usage: sccp system message \"<message text>\" <timeout>\n"
+   "		The default optional timeout is 0 (forever)\n"
+   "		Example: sccp system message \"The boss is gone. Let's have some fun!\"  10\n"
 };
+#endif
 
 /* ------------------------------------------------------------ */
 
-static char debug_usage[] =
-"Usage: SCCP debug <level>\n"
-"		Set the debug level of the sccp protocol from none (0) to high (10)\n";
 
-static char no_debug_usage[] =
-"Usage: SCCP no debug\n"
-"		Disables dumping of SCCP packets for debugging purposes\n";
 
 static int sccp_do_debug(int fd, int argc, char *argv[]) {
 	int new_debug = 10;
@@ -729,11 +991,34 @@ static int sccp_do_debug(int fd, int argc, char *argv[]) {
 	return RESULT_SUCCESS;
 }
 
+#ifdef ASTERISK_CONF_1_6
+static char *cli_do_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+		e->command = "sccp debug";
+		e->usage =
+			"Usage: SCCP debug <level>\n"
+			"		Set the debug level of the sccp protocol from none (0) to high (10)\n";
+		return NULL;
+	} else if (cmd == CLI_GENERATE)
+		return NULL;
+	
+	if (a->argc != 3)
+		return CLI_SHOWUSAGE;
+	
+	if(sccp_do_debug(a->fd, a->argc, a->argv))
+		return CLI_SUCCESS;
+	else
+		return CLI_FAILURE;
+}
+#else
 static struct ast_cli_entry cli_do_debug = {
   { "sccp", "debug", NULL },
   sccp_do_debug,
   "Enable SCCP debugging",
-  debug_usage };
+  "Usage: SCCP debug <level>\n"
+  "		Set the debug level of the sccp protocol from none (0) to high (10)\n" 
+};
+#endif
 
 static int sccp_no_debug(int fd, int argc, char *argv[]) {
 	if (argc != 3)
@@ -744,43 +1029,148 @@ static int sccp_no_debug(int fd, int argc, char *argv[]) {
 	return RESULT_SUCCESS;
 }
 
+
+#ifdef ASTERISK_CONF_1_6
+static char *cli_no_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+		e->command = "sccp no debug";
+		e->usage =
+			"Usage: SCCP no debug\n"
+			"		Disables dumping of SCCP packets for debugging purposes\n";
+		return NULL;
+	} else if (cmd == CLI_GENERATE)
+		return NULL;
+	
+	if (a->argc != 3)
+		return CLI_SHOWUSAGE;
+	
+	if(sccp_no_debug(a->fd, a->argc, a->argv))
+		return CLI_SUCCESS;
+	else
+		return CLI_FAILURE;
+}
+#else
 static struct ast_cli_entry cli_no_debug = {
   { "sccp", "no", "debug", NULL },
   sccp_no_debug,
   "Disable SCCP debugging",
-  no_debug_usage };
+  "Usage: SCCP no debug\n"
+  "		Disables dumping of SCCP packets for debugging purposes\n"
+};
+#endif
+
 
 static int sccp_do_reload(int fd, int argc, char *argv[]) {
 	ast_cli(fd, "SCCP configuration reload not implemented yet! use unload and load.\n");
 	return RESULT_SUCCESS;
 }
 
-static char reload_usage[] =
-"Usage: sccp reload\n"
-"		Reloads SCCP configuration from sccp.conf (It will close all active connections)\n";
 
+
+#ifdef ASTERISK_CONF_1_6
+static char *cli_reload(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+		e->command = "sccp reload";
+		e->usage =
+			"Usage: SCCP show version\n"
+			"		Show the SCCP channel version\n";
+		return NULL;
+	} else if (cmd == CLI_GENERATE)
+		return NULL;
+	
+	if (a->argc != 2)
+		return CLI_SHOWUSAGE;
+	
+	if(sccp_do_reload(a->fd, a->argc, a->argv))
+		return CLI_SUCCESS;
+	else
+		return CLI_FAILURE;
+}
+#else
 static struct ast_cli_entry cli_reload = {
   { "sccp", "reload", NULL },
   sccp_do_reload,
   "SCCP module reload",
-  reload_usage };
+  "Usage: sccp reload\n"
+  "		Reloads SCCP configuration from sccp.conf (It will close all active connections)\n" 
+};
+#endif
 
-static char version_usage[] =
-"Usage: SCCP show version\n"
-"		Show the SCCP channel version\n";
+
 
 static int sccp_show_version(int fd, int argc, char *argv[]) {
 	ast_cli(fd, "SCCP channel version: %s\n", SCCP_VERSION);
 	return RESULT_SUCCESS;
 }
 
+
+#ifdef ASTERISK_CONF_1_6
+static char *cli_show_version(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+		e->command = "sccp show reload";
+		e->usage =
+			"Usage: SCCP show version\n"
+			"		Show the SCCP channel version\n";
+		return NULL;
+	} else if (cmd == CLI_GENERATE)
+		return NULL;
+	
+	if (a->argc != 3)
+		return CLI_SHOWUSAGE;
+	
+	if(sccp_show_version(a->fd, a->argc, a->argv))
+		return CLI_SUCCESS;
+	else
+		return CLI_FAILURE;
+}
+#else
 static struct ast_cli_entry cli_show_version = {
   { "sccp", "show", "version", NULL },
   sccp_show_version,
   "SCCP show version",
-  version_usage };
+  "Usage: SCCP show version\n"
+  "		Show the SCCP channel version\n"
+};
+#endif
 
+
+/**
+ * \brief structure for cli functions including short description.
+ * \todo add short description
+ */
+#ifdef ASTERISK_CONF_1_6
+static struct ast_cli_entry cli_entries[] = {
+		AST_CLI_DEFINE(cli_show_globals, "Show SCCP global settings."),
+		AST_CLI_DEFINE(cli_show_channels, "Show all SCCP channels."),
+		AST_CLI_DEFINE(cli_unregister, "Unregister an SCCP device"),
+		AST_CLI_DEFINE(cli_show_devices, "Show all SCCP Devices."),
+		AST_CLI_DEFINE(cli_message_devices, "Send a message to all SCCP Devices."),
+		AST_CLI_DEFINE(cli_show_lines, "Show All SCCP Lines."),
+		AST_CLI_DEFINE(cli_remove_line_device, "Remove a line from device."),
+		AST_CLI_DEFINE(cli_show_sessions, "Show All SCCP Sessions."),
+		AST_CLI_DEFINE(cli_system_message, "Set the SCCP system message."),
+		AST_CLI_DEFINE(cli_do_debug, "Enable SCCP debugging."),
+		AST_CLI_DEFINE(cli_no_debug, "Disable SCCP debugging."),
+		AST_CLI_DEFINE(cli_reload, "SCCP module reload."),
+		AST_CLI_DEFINE(cli_show_version, "SCCP show version."),
+		AST_CLI_DEFINE(cli_restart, ""),
+		AST_CLI_DEFINE(cli_reset, ""),
+		AST_CLI_DEFINE(cli_show_device, "")
+};
+#endif
+
+
+/**
+ * register CLI functions from asterisk
+ */
 void sccp_register_cli(void) {
+	
+#ifdef ASTERISK_CONF_1_6	
+	/* register all CLI functions */
+	ast_cli_register_multiple(cli_entries, sizeof(cli_entries)/ sizeof(struct ast_cli_entry));
+#else
+		
+
   ast_cli_register(&cli_show_channels);
   ast_cli_register(&cli_show_devices);
   ast_cli_register(&cli_show_lines);
@@ -797,10 +1187,21 @@ void sccp_register_cli(void) {
   ast_cli_register(&cli_show_globals);
   ast_cli_register(&cli_message_devices);
   ast_cli_register(&cli_remove_line_device);
+#endif
 
 }
 
+
+/**
+ * unregister CLI functions from asterisk
+ */
 void sccp_unregister_cli(void) {
+	
+#ifdef ASTERISK_CONF_1_6
+	/* unregister CLI functions */
+	ast_cli_unregister_multiple(cli_entries, sizeof(cli_entries) / sizeof(struct ast_cli_entry));
+	
+#else	
   ast_cli_unregister(&cli_show_channels);
   ast_cli_unregister(&cli_show_devices);
   ast_cli_unregister(&cli_show_lines);
@@ -817,4 +1218,7 @@ void sccp_unregister_cli(void) {
   ast_cli_unregister(&cli_show_globals);
   ast_cli_unregister(&cli_message_devices);
   ast_cli_unregister(&cli_remove_line_device);
+#endif
 }
+
+

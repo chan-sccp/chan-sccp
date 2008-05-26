@@ -757,7 +757,10 @@ sccp_line_t * build_lines(struct ast_variable *v) {
  	while(v) {
  			if (!strcasecmp(v->name, "line")) {
  				if ( !ast_strlen_zero(v->value) ) {
- 					sccp_copy_string(l->name, ast_strip(v->value), sizeof(l->name));
+ 					
+ 					//TODO check ast_strip for asterisk 1.6 - just comment out to get the functionality of 1.6 (MC)
+// 					sccp_copy_string(l->name, ast_strip(v->value), sizeof(l->name));
+ 					sccp_copy_string(l->name, v->value, sizeof(l->name));
  					
  					/* search for existing line */
 					gl = GLOB(lines);
@@ -786,7 +789,10 @@ sccp_line_t * build_lines(struct ast_variable *v) {
 #ifdef CS_SCCP_REALTIME
 			if (!strcasecmp(v->name, "name")) {
  				if ( !ast_strlen_zero(v->value) ) {
- 					sccp_copy_string(l->name, ast_strip(v->value), sizeof(l->name));
+ 					
+ 					//TODO check ast_strip for asterisk 1.6 - just comment out to get the functionality of 1.6 (MC)
+// 					sccp_copy_string(l->name, ast_strip(v->value), sizeof(l->name));
+ 					sccp_copy_string(l->name, v->value, sizeof(l->name));
  					
  					/* search for existing line */
 					sccp_mutex_lock(&GLOB(lines_lock));
@@ -1033,7 +1039,13 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 			else if (!strcasecmp(v->name, "keepalive")) {
 				d->keepalive = atoi(v->value);
 			} else if (!strcasecmp(v->name, "permit") || !strcasecmp(v->name, "deny")) {
+				
+#ifndef ASTERISK_CONF_1_6				
 				d->ha = ast_append_ha(v->name, v->value, d->ha);
+#else
+				d->ha = ast_append_ha(v->name, v->value, d->ha, NULL );
+#endif
+				
 			} else if (!strcasecmp(v->name, "permithost")) {
 				if ((permithost = malloc(sizeof(sccp_hostname_t)))) {
 					sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
@@ -1225,6 +1237,9 @@ static int reload_config(void) {
 #ifdef ASTERISK_CONF_1_2
 	char					iabuf[INET_ADDRSTRLEN];
 #endif
+#ifdef ASTERISK_CONF_1_6
+	struct ast_flags 		config_flags = { CONFIG_FLAG_WITHCOMMENTS };
+#endif
 	sccp_device_t			*d;
 	sccp_line_t				*l = NULL;
 	int firstdigittimeout = 0;
@@ -1252,7 +1267,11 @@ static int reload_config(void) {
 	sccp_log(0)(VERBOSE_PREFIX_2 "Platform byte order   : BIG ENDIAN\n");
 #endif
 
+#ifndef ASTERISK_CONF_1_6
 	cfg = ast_config_load("sccp.conf");
+#else
+	cfg = ast_config_load2("sccp.conf", "chan_sccp", config_flags);
+#endif
 	if (!cfg) {
 		ast_log(LOG_WARNING, "Unable to load config file sccp.conf, SCCP disabled\n");
 		return 0;
@@ -1284,9 +1303,20 @@ static int reload_config(void) {
 				memcpy(&GLOB(bindaddr.sin_addr), hp->h_addr, sizeof(GLOB(bindaddr.sin_addr)));
 			}
 		} else if (!strcasecmp(v->name, "permit") || !strcasecmp(v->name, "deny")) {
+			
+#ifndef	ASTERISK_CONF_1_6		
 			GLOB(ha) = ast_append_ha(v->name, v->value, GLOB(ha));
+#else
+			GLOB(ha) = ast_append_ha(v->name, v->value, GLOB(ha), NULL);
+#endif
+			
 		} else if (!strcasecmp(v->name, "localnet")) {
+
+#ifndef	ASTERISK_CONF_1_6			
 			if (!(na = ast_append_ha("d", v->value, GLOB(localaddr))))
+#else
+			if (!(na = ast_append_ha("d", v->value, GLOB(localaddr), NULL)))	
+#endif
 				ast_log(LOG_WARNING, "Invalid localnet value: %s\n", v->value);
 			else
 				GLOB(localaddr) = na;
