@@ -759,8 +759,8 @@ sccp_line_t * build_lines(struct ast_variable *v) {
  				if ( !ast_strlen_zero(v->value) ) {
  					
  					//TODO check ast_strip for asterisk 1.6 - just comment out to get the functionality of 1.6 (MC)
-// 					sccp_copy_string(l->name, ast_strip(v->value), sizeof(l->name));
- 					sccp_copy_string(l->name, v->value, sizeof(l->name));
+ 					sccp_copy_string(l->name, ast_strip(v->value), sizeof(l->name));
+// 					sccp_copy_string(l->name, v->value, sizeof(l->name));
  					
  					/* search for existing line */
 					gl = GLOB(lines);
@@ -791,8 +791,8 @@ sccp_line_t * build_lines(struct ast_variable *v) {
  				if ( !ast_strlen_zero(v->value) ) {
  					
  					//TODO check ast_strip for asterisk 1.6 - just comment out to get the functionality of 1.6 (MC)
-// 					sccp_copy_string(l->name, ast_strip(v->value), sizeof(l->name));
- 					sccp_copy_string(l->name, v->value, sizeof(l->name));
+ 					sccp_copy_string(l->name, ast_strip(v->value), sizeof(l->name));
+// 					sccp_copy_string(l->name, v->value, sizeof(l->name));
  					
  					/* search for existing line */
 					sccp_mutex_lock(&GLOB(lines_lock));
