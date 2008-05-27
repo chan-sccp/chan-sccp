@@ -416,8 +416,10 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 		
 		for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) 
 		{
+/*
 			if ((btn[i].type == SKINNY_BUTTONTYPE_SPEEDDIAL) || (btn[i].type == SKINNY_BUTTONTYPE_MULTI) || (btn[i].type == SCCP_BUTTONTYPE_HINT) || (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL)) 
 			{
+*/                             
 				if ((btn[i].type == SKINNY_BUTTONTYPE_SPEEDDIAL) || 
 					(btn[i].type == SKINNY_BUTTONTYPE_MULTI) || 
 					(btn[i].type == SCCP_BUTTONTYPE_HINT) ||
@@ -451,7 +453,9 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 					}
 					btn_count++;
 				}
+/*
 			}
+*/
 		}
 		if (!k->instance)
 		{
@@ -577,18 +581,20 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 			}
 		}
 
-		//if (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) {
-		if ((btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) ||
-			(btn[i].type == SKINNY_BUTTONTYPE_MESSAGES) ||
-			(btn[i].type == SKINNY_BUTTONTYPE_DIRECTORY) ||
-			(btn[i].type == SKINNY_BUTTONTYPE_APPLICATION) ||
-			(btn[i].type == SKINNY_BUTTONTYPE_HEADSET))
-		{
-			
+		if (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) {
 			btn[i].instance = speedindex++;
 			k = btn[i].ptr;
-			//k->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-			k->type = btn[i].type; /*SKINNY_BUTTONTYPE_SPEEDDIAL;*/
+			k->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+			k->instance = btn[i].instance;
+		}
+		
+		if ((btn[i].type == SKINNY_BUTTONTYPE_MESSAGES) ||
+			(btn[i].type == SKINNY_BUTTONTYPE_DIRECTORY) ||
+			(btn[i].type == SKINNY_BUTTONTYPE_APPLICATION) ||
+			(btn[i].type == SKINNY_BUTTONTYPE_HEADSET)) {		
+			btn[i].instance = speedindex++;
+			k = btn[i].ptr;
+			k->type = btn[i].type; 
 			k->instance = btn[i].instance;
 		}
 	}
