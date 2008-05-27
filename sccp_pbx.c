@@ -1064,6 +1064,26 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 	sccp_mutex_unlock(&c->lock);
 }
 
+#ifdef ASTERISK_CONF_1_6
+void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
+{
+	for(;;) {
+		if (c->owner) {
+
+			if (!ast_channel_trylock(c->owner)) {
+				ast_queue_frame(c->owner, f);
+				ast_channel_unlock(c->owner);				
+				break;
+			} else {
+				sccp_mutex_unlock(&c->lock);
+				usleep(1);
+				sccp_mutex_lock(&c->lock);
+			}
+		} else
+			break;
+	}
+}
+#else
 void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 {
 	for(;;) {
@@ -1081,3 +1101,4 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 			break;
 	}
 }
+#endif
