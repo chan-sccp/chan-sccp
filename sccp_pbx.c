@@ -537,6 +537,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		res = 0;
 		break;
 
+#ifndef ASTERISK_CONF_1_2
+    case AST_CONTROL_SRCUPDATE:
+        /* Source media has changed. */ 
+        ast_rtp_new_source(c->rtp);
+        break;        
+#endif
+
 #ifdef CS_AST_CONTROL_HOLD
 /* when the bridged channel hold/unhold the call we are notified here */
 	case AST_CONTROL_HOLD:
