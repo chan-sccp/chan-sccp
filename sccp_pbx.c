@@ -489,6 +489,10 @@ static char *sccp_control2str(int state) {
 		case AST_CONTROL_UNHOLD:
 				return "UnHold";
 #endif
+#ifdef CS_AST_CONTROL_SRCUPDATE
+		case AST_CONTROL_SRCUPDATE:
+				return "MediaSourceUpdate";
+#endif
 		default:
 				return "Unknown";
 		}
