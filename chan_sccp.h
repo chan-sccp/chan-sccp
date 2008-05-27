@@ -23,6 +23,10 @@
 #include <asterisk/logger.h>
 #include <asterisk/config.h>
 
+#ifndef ASTERISK_CONF_1_2
+#include "asterisk/abstract_jb.h"
+#endif
+
 #ifdef CS_AST_HAS_ENDIAN
 #include <asterisk/endian.h>
 #endif
@@ -529,8 +533,9 @@ struct sccp_global_vars {
 	unsigned int				cfwdbusy:1;
 #ifdef CS_SCCP_REALTIME
 	char 					realtimedevicetable[45];			/*< databasetable for sccp devices*/
-	char 					realtimelinetable[45];			/*< databasetable for sccp lines*/
-#endif	
+	char 					realtimelinetable[45];			/*< databasetable for sccp lines*/	
+    struct ast_jb_conf             global_jbconf;
+#endif
 };
 
 struct sccp_selected_channel {
@@ -560,6 +565,11 @@ sccp_device_t * build_devices(struct ast_variable *v);
 sccp_device_t * build_device(void);
 sccp_line_t * build_lines(struct ast_variable *v);
 sccp_line_t * build_line(void);
+
+#ifndef ASTERISK_CONF_1_2
+struct sched_context *sched; 
+struct io_context *io;
+#endif
 
 #endif /* __CHAN_SCCP_H */
 
