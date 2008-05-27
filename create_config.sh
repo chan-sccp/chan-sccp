@@ -123,6 +123,14 @@ else
 	echo " * no 'struct ast_callerid'"
 fi
 
+if grep -q "AST_CONTROL_SRCUPDATE" $INCLUDEDIR/frame.h; then
+	echo "#define CS_AST_CONTROL_SRCUPDATE" >>$CONFIGFILE
+	echo " * found 'AST_CONTROL_SRCUPDATE'"
+else
+	echo "#undef CS_AST_CONTROL_SRCUPDATE" >>$CONFIGFILE
+	echo " * no 'AST_CONTROL_SRCUPDATE'"
+fi
+
 if grep -q "AST_MAX_CONTEXT" $INCLUDEDIR/channel.h; then
         echo " * found 'AST_MAX_CONTEXT'"
 else
