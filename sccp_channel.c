@@ -37,6 +37,9 @@
 #ifdef CS_SCCP_PARK
 #include <asterisk/features.h>
 #endif
+#ifndef ast_free
+#define ast_free free
+#endif
 
 static uint32_t callCount = 1;
 AST_MUTEX_DEFINE_STATIC(callCountLock);
