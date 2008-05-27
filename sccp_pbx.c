@@ -1032,7 +1032,8 @@ void sccp_pbx_senddigit(sccp_channel_t * c, char digit) {
 	}
 
 	// sccp_mutex_lock(&c->lock);
-	ast_queue_frame(c->owner, &f);
+	// ast_queue_frame(c->owner, &f);
+	sccp_queue_frame(c, &f);
 	sccp_mutex_unlock(&c->lock);
 }
 
@@ -1057,7 +1058,26 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 	for (i = 0; digits[i] != '\0'; i++) {
 		f.subclass = digits[i];
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending digit %c\n", DEV_ID_LOG(c->device), digits[i]);
-		ast_queue_frame(c->owner, &f);
+		// ast_queue_frame(c->owner, &f);
+		sccp_queue_frame(c, &f);
 	}
 	sccp_mutex_unlock(&c->lock);
+}
+
+void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
+{
+	for(;;) {
+		if (c->owner) {
+			if (!sccp_mutex_trylock(&c->owner->lock)) {
+				ast_queue_frame(c->owner, f);
+				sccp_mutex_unlock(&c->owner->lock);
+				break;
+			} else {
+				sccp_mutex_unlock(&c->lock);
+				usleep(1);
+				sccp_mutex_lock(&c->lock);
+			}
+		} else
+			break;
+	}
 }
