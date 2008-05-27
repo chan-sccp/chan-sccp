@@ -17,6 +17,7 @@
 
 #ifndef ASTERISK_CONF_1_2
 #include <asterisk.h>
+#include "asterisk/abstract_jb.h"
 #endif
 #include "chan_sccp.h"
 #include "sccp_lock.h"
@@ -761,15 +762,7 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
 #ifdef ASTERISK_CONF_1_2
 	char iabuf[INET_ADDRSTRLEN];
 #endif
-	
-	struct sched_context *sched; 
-	struct io_context *io;
-	
-	
-	sched = sched_context_create();
-	io = io_context_create();
-	
-	
+
 	if (!c || !c->device)
 		return;
 	s = c->device->session;
@@ -784,13 +777,39 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", c->device->id, ast_inet_ntoa(s->ourip));
 #endif
 	
+#ifdef ASTERISK_CONF_1_2
+	c->rtp = ast_rtp_new_with_bindaddr(NULL, NULL, 1, 0, s->ourip);
+#else
 	c->rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
-//	c->rtp = ast_rtp_new_with_bindaddr(NULL, NULL, 1, 0, s->ourip);
+#endif
+
 	if (c->device->nat)
 		ast_rtp_setnat(c->rtp, 1);
 
+#ifdef ASTERISK_CONF_1_2
 	if (c->rtp && c->owner)
 		c->owner->fds[0] = ast_rtp_fd(c->rtp);
+#endif
+
+#ifdef ASTERISK_CONF_1_4
+	if (c->rtp && c->owner)
+    {
+        ast_jb_configure(c->owner, &GLOB(global_jbconf));
+		c->owner->fds[0] = ast_rtp_fd(c->rtp);
+		c->owner->fds[1] = ast_rtcp_fd(c->rtp);
+		ast_queue_frame(c->owner, &ast_null_frame);	/* Tell Asterisk to apply changes */        
+    }	   	
+#endif
+
+#ifdef ASTERISK_CONF_1_6
+	if (c->rtp && c->owner)
+    {
+        ast_jb_configure(c->owner, &GLOB(global_jbconf));
+		ast_channel_set_fd(c->owner, 0, ast_rtp_fd(c->rtp));
+		ast_channel_set_fd(c->owner, 1, ast_rtcp_fd(c->rtp));
+		ast_queue_frame(c->owner, &ast_null_frame);	/* Tell Asterisk to apply changes */        
+    }	   
+#endif
 
 /*	sccp_mutex_unlock(&c->lock); */
 }

@@ -65,6 +65,14 @@
 
 static pthread_t socket_thread;
 
+/* for jitter buffer use */
+static struct ast_jb_conf default_jbconf =
+{
+	.flags = 0,
+	.max_size = -1,
+	.resync_threshold = -1,
+	.impl = ""
+};
 
 /**
  * 
@@ -1251,8 +1259,10 @@ static int reload_config(void) {
 	int callwaiting_tone = 0;
 	int amaflags = 0;
 	int protocolversion = 0;
+   
+	/* Copy the default jb config over global_jbconf */
+	memcpy(&GLOB(global_jbconf), &default_jbconf, sizeof(struct ast_jb_conf));
 	
-
 	memset(&GLOB(global_codecs), 0, sizeof(GLOB(global_codecs)));
 	memset(&GLOB(bindaddr), 0, sizeof(GLOB(bindaddr)));
 
@@ -1284,6 +1294,10 @@ static int reload_config(void) {
 	}
 
 	while (v) {
+        /* handle jb conf */
+		if (!ast_jb_read_conf(&GLOB(global_jbconf), v->name, v->value))
+			continue;
+			
 		if (!strcasecmp(v->name, "protocolversion")) {
 			if (sscanf(v->value, "%i", &protocolversion) == 1) {
 				if (protocolversion < 2 || protocolversion > 9)
@@ -1703,6 +1717,20 @@ static int load_module(void) {
 		return AST_MODULE_LOAD_FAILURE;
 #endif
 	}
+
+#ifndef ASTERISK_CONF_1_2
+	sched = sched_context_create();
+	if (!sched) {
+		ast_log(LOG_WARNING, "Unable to create schedule context. SCCP channel type disabled\n");
+		return AST_MODULE_LOAD_FAILURE;
+	}
+	io = io_context_create();
+	if (!io) {
+		ast_log(LOG_WARNING, "Unable to create I/O context. SCCP channel type disabled\n");
+		return AST_MODULE_LOAD_FAILURE;
+	}
+#endif
+
 	memset(sccp_globals,0,sizeof(struct sccp_global_vars));
 	ast_mutex_init(&GLOB(lock));
 	ast_mutex_init(&GLOB(sessions_lock));
@@ -1852,6 +1880,13 @@ static int unload_module(void) {
 
 	if (GLOB(localaddr))
 		ast_free_ha(GLOB(localaddr));
+
+#ifndef ASTERISK_CONF_1_2
+	if (io)
+		io_context_destroy(io);
+	if (sched)
+		sched_context_destroy(sched);
+#endif
 
 	ast_mutex_destroy(&GLOB(sessions_lock));
 	ast_mutex_destroy(&GLOB(devices_lock));
