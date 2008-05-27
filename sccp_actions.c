@@ -411,7 +411,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 			if ((btn[i].type == SKINNY_BUTTONTYPE_SPEEDDIAL) || 
                 (btn[i].type == SKINNY_BUTTONTYPE_MULTI) || 
                 (btn[i].type == SCCP_BUTTONTYPE_HINT) || 
-                (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL)) 
+                (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) || 
 				(btn[i].type == SKINNY_BUTTONTYPE_MESSAGES) ||
 				(btn[i].type == SKINNY_BUTTONTYPE_DIRECTORY) ||
 				(btn[i].type == SKINNY_BUTTONTYPE_APPLICATION) ||
