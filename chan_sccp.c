@@ -1298,9 +1298,14 @@ static int reload_config(void) {
 	}
 
 	while (v) {
-        /* handle jb conf */
+		
+#ifndef ASTERISK_CONF_1_2
+        /* handle jb in configuration
+         * just let asterisk do that
+         */
 		if (!ast_jb_read_conf(&GLOB(global_jbconf), v->name, v->value))
 			continue;
+#endif
 			
 		if (!strcasecmp(v->name, "protocolversion")) {
 			if (sscanf(v->value, "%i", &protocolversion) == 1) {
