@@ -998,37 +998,21 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "Peer owner disappeared! Can't free ressources\n");
 		return;
 	}
-/* We dont need this at all */
-/*
-#ifdef ASTERISK_CONF_1_2
-	sccp_mutex_unlock(&astcDestinationLocal->lock); // Where was the transferee locked at first?!
-#else
-	ast_channel_unlock(astcDestinationLocal); // Where was the transferee locked at first?!
-#endif
-*/
+
 	sccp_mutex_lock(&d->lock);
 	d->transfer_channel = NULL;
 	sccp_mutex_unlock(&d->lock);
 
 	if (!astcDestinationRemote) {
-		/* the channel was ringing not answered yet. BLIND TRANSFER */
-  return;
-}
+	    /* the channel was ringing not answered yet. BLIND TRANSFER */
+        return;
+    }
 
 #ifndef CS_AST_HAS_TECH_PVT
 	if (strncasecmp(astcDestinationRemote->type,"SCCP",4)) {
 #else
 	if (strncasecmp(astcDestinationRemote->tech->type,"SCCP",4)) {
 #endif
-		/* why leave the channel we unlocked in this state before leaving ? */
-/*		
-#ifdef ASTERISK_CONF_1_2
-		sccp_mutex_lock(&astcDestinationLocal->lock);
-#else	
-		ast_channel_lock(astcDestinationLocal);
-#endif
-*/
-		/* nothing to do with different channel types */
 		return;
 	}
 
@@ -1074,7 +1058,7 @@ static void * sccp_channel_park_thread(void *stuff) {
 	dual = stuff;
 	chan1 = dual->chan1;
 	chan2 = dual->chan2;
-	free(dual);
+	ast_free(dual);
 	f = ast_read(chan1);
 	if (f)
 		ast_frfree(f);
@@ -1126,7 +1110,9 @@ void sccp_channel_park(sccp_channel_t * c) {
 #ifdef ASTERISK_CONF_1_2
 	chan1m = ast_channel_alloc(0);
 #else
-	chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, "SCCP/%s", l->name, NULL, 0, NULL);
+	// chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, "SCCP/%s", l->name, NULL, 0, NULL);
+    /* This should definetly fix CDR */
+    chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->owner->exten, l->context, l->amaflags, "SCCP/%s", l->name);
 #endif
        // chan1m = ast_channel_alloc(0); function changed in 1.4.0
        // Assuming AST_STATE_DOWN is suitable.. need to check
@@ -1138,11 +1124,13 @@ void sccp_channel_park(sccp_channel_t * c) {
 #ifdef ASTERISK_CONF_1_2
 	chan2m = ast_channel_alloc(0);
 #else
-	chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, "SCCP/%s", l->name,  NULL, 0, NULL);
+	// chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, "SCCP/%s", l->name,  NULL, 0, NULL);
+    /* This should definetly fix CDR */
+    chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->owner->exten, l->context, l->amaflags, "SCCP/%s", l->name);
 #endif
        // chan2m = ast_channel_alloc(0); function changed in 1.4.0
        // Assuming AST_STATE_DOWN is suitable.. need to check
-	if (!chan1m) {
+	if (!chan2m) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Park Failed: can't create asterisk channel\n", d->id);
 		sccp_dev_displayprompt(c->device, c->line->instance, c->callid, SKINNY_DISP_NO_PARK_NUMBER_AVAILABLE, 0);
 		ast_hangup(chan1m);
