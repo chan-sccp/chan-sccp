@@ -231,20 +231,22 @@ sccp_line_t * sccp_line_find_byname(const char * name) {
 	while(l && strcasecmp(l->name, name) != 0) {
 		l = l->next;
 	}
-	if (l && l->device)
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: found line %s\n", DEV_ID_LOG(l->device), l->name);
-	sccp_mutex_unlock(&GLOB(lines_lock));
 
 #ifdef CS_SCCP_REALTIME
 	if (!l)
 		l = sccp_line_find_realtime_byname(name);
 #endif
-	if(l){
+
+	sccp_mutex_unlock(&GLOB(lines_lock));
+	
+	if (l && l->device)
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: found line %s\n", DEV_ID_LOG(l->device), l->name);
-	}else{
-		sccp_log(10)(VERBOSE_PREFIX_3 "no line");	
+	else
+	{
+		sccp_log(10)(VERBOSE_PREFIX_3 "Line not found.\n");	
 		return NULL;
 	}
+	
 	return l;
 }
 
