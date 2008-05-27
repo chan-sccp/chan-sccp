@@ -998,12 +998,14 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "Peer owner disappeared! Can't free ressources\n");
 		return;
 	}
+/* We dont need this at all */
+/*
 #ifdef ASTERISK_CONF_1_2
 	sccp_mutex_unlock(&astcDestinationLocal->lock); // Where was the transferee locked at first?!
-#else	
+#else
 	ast_channel_unlock(astcDestinationLocal); // Where was the transferee locked at first?!
 #endif
-
+*/
 	sccp_mutex_lock(&d->lock);
 	d->transfer_channel = NULL;
 	sccp_mutex_unlock(&d->lock);
