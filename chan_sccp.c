@@ -65,6 +65,7 @@
 
 static pthread_t socket_thread;
 
+#ifndef ASTERISK_CONF_1_2
 /* for jitter buffer use */
 static struct ast_jb_conf default_jbconf =
 {
@@ -73,6 +74,7 @@ static struct ast_jb_conf default_jbconf =
 	.resync_threshold = -1,
 	.impl = ""
 };
+#endif
 
 /**
  * 
@@ -1260,8 +1262,10 @@ static int reload_config(void) {
 	int amaflags = 0;
 	int protocolversion = 0;
    
+#ifndef ASTERISK_CONF_1_2
 	/* Copy the default jb config over global_jbconf */
 	memcpy(&GLOB(global_jbconf), &default_jbconf, sizeof(struct ast_jb_conf));
+#endif
 	
 	memset(&GLOB(global_codecs), 0, sizeof(GLOB(global_codecs)));
 	memset(&GLOB(bindaddr), 0, sizeof(GLOB(bindaddr)));
