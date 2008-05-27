@@ -779,13 +779,13 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
 #else
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", c->device->id, ast_inet_ntoa(s->ourip));
 #endif
-	
+
 #ifdef ASTERISK_CONF_1_2
 	c->rtp = ast_rtp_new_with_bindaddr(NULL, NULL, 1, 0, s->ourip);
 #else
 	c->rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
 #endif
-
+    
 	if (c->device->nat)
 		ast_rtp_setnat(c->rtp, 1);
 
@@ -800,8 +800,8 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
         ast_jb_configure(c->owner, &GLOB(global_jbconf));
 		c->owner->fds[0] = ast_rtp_fd(c->rtp);
 		c->owner->fds[1] = ast_rtcp_fd(c->rtp);
-		ast_queue_frame(c->owner, &ast_null_frame);	/* Tell Asterisk to apply changes */        
-    }	   	
+		sccp_queue_frame(c, &ast_null_frame);	/* Tell Asterisk to apply changes */        
+    }
 #endif
 
 #ifdef ASTERISK_CONF_1_6
@@ -810,8 +810,8 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
         ast_jb_configure(c->owner, &GLOB(global_jbconf));
 		ast_channel_set_fd(c->owner, 0, ast_rtp_fd(c->rtp));
 		ast_channel_set_fd(c->owner, 1, ast_rtcp_fd(c->rtp));
-		ast_queue_frame(c->owner, &ast_null_frame);	/* Tell Asterisk to apply changes */        
-    }	   
+		sccp_queue_frame(c, &ast_null_frame);	/* Tell Asterisk to apply changes */        
+    }
 #endif
 
 /*	sccp_mutex_unlock(&c->lock); */
