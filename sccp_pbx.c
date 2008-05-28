@@ -862,8 +862,17 @@ void * sccp_pbx_startchannel(void *data) {
          usleep(10);
     }
 */ 
+	if(c->device && c->device != NULL)
+	{
+        sccp_log(1)(VERBOSE_PREFIX_3 "GOT device %s\n", c->device->id);
+    }
+    else
+    {
+        return NULL;
+    }
+
 	sccp_log(10)(VERBOSE_PREFIX_3 "(A)\n");
-    if (!c->device || !c->device->id || c->device->id == NULL) {
+    if (!c->device || !c->device->id) {
 		/* let's go out as soon as possibile */
 		if (!ast_test_flag(chan, AST_FLAG_ZOMBIE)) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for %s\n", /*(chan) ? chan->name : */ "(null)");
@@ -876,11 +885,6 @@ void * sccp_pbx_startchannel(void *data) {
 		return NULL;
 	}
 
-	if(c)
-	{
-        sccp_log(1)( VERBOSE_PREFIX_3 "GOT device %s\n", c->device->id);
-    }
-	
 	if (strlen(c->device->id)<3 || (strncmp(c->device->id,"SEP",3)!=0 && strncmp(c->device->id,"ATA",3)!=0)) {
  	    sccp_log(10)(VERBOSE_PREFIX_3 "(C)\n");
 		if (!ast_test_flag(chan, AST_FLAG_ZOMBIE)) {
