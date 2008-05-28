@@ -23,12 +23,12 @@
 
 #ifdef ASTERISK_CONFIG_1_2
 /* Channel Mutex Macros for Asterisk 1.2 */
-#define sccp_ast_channel_lock(x)	ast_mutex_lock(&x->lock)
-#define sccp_ast_channel_unlock(x)  ast_mutex_unlock(&x->lock)
-#define sccp_ast_channel_trylock(x) ast_mutex_trylock(&x->lock)
+#define sccp_ast_channel_lock(x)    sccp_mutex_lock(&x->lock)
+#define sccp_ast_channel_unlock(x)  sccp_mutex_unlock(&x->lock)
+#define sccp_ast_channel_trylock(x) sccp_mutex_trylock(&x->lock)
 #else
 /* Channel Mutex Macros for Asterisk 1.4 and above */
-#define sccp_ast_channel_lock(x)	ast_channel_lock(x)
+#define sccp_ast_channel_lock(x)    ast_channel_lock(x)
 #define sccp_ast_channel_unlock(x)  ast_channel_unlock(x)
 #define sccp_ast_channel_trylock(x) ast_channel_trylock(x)
 #endif

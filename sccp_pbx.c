@@ -1067,20 +1067,21 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 {
 	for(;;) {
-		if (c->owner) {
-			if (!sccp_ast_channel_trylock(c->owner)) {
+		if (c && c->owner) {
+			if (!sccp_mutex_trylock(&c->owner->lock)) {
 				ast_queue_frame(c->owner, f);
-				sccp_ast_channel_unlock(c->owner);
+				sccp_mutex_unlock(&c->owner->lock);
 				break;
 			} else {
-				// sccp_mutex_unlock(&c->lock);
-				usleep(1);
-				// sccp_mutex_lock(&c->lock);
+				sccp_mutex_unlock(&c->lock);
+				usleep(100);
+				sccp_mutex_lock(&c->lock);
 			}
 		} else
 			break;
 	}
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Frame successfully queued\n");
+	// sccp_mutex_unlock(&c->lock);
+	// sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Frame successfully queued\n");
 }
 
 
