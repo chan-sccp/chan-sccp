@@ -1063,7 +1063,6 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
  * 
  * \param c channel
  * \param f ast_frame
- * \TODO we shoud use the macros to handle diverent version of locking
  */
 void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 {
@@ -1071,7 +1070,7 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 		if (c->owner) {
 			if (!sccp_ast_channel_trylock(c->owner)) {
 				ast_queue_frame(c->owner, f);
-				sccp_ast_channel_unlock(c->owner);				
+				sccp_ast_channel_unlock(c->owner);
 				break;
 			} else {
 				sccp_mutex_unlock(&c->lock);
@@ -1082,3 +1081,5 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 			break;
 	}
 }
+
+

@@ -800,7 +800,7 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
         ast_jb_configure(c->owner, &GLOB(global_jbconf));
 		c->owner->fds[0] = ast_rtp_fd(c->rtp);
 		c->owner->fds[1] = ast_rtcp_fd(c->rtp);
-		sccp_queue_frame(c, &ast_null_frame);	/* Tell Asterisk to apply changes */        
+		sccp_queue_frame(c, &ast_null_frame);	/* Tell Asterisk to apply changes */
     }
 #endif
 
@@ -810,7 +810,7 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
         ast_jb_configure(c->owner, &GLOB(global_jbconf));
 		ast_channel_set_fd(c->owner, 0, ast_rtp_fd(c->rtp));
 		ast_channel_set_fd(c->owner, 1, ast_rtcp_fd(c->rtp));
-		sccp_queue_frame(c, &ast_null_frame);	/* Tell Asterisk to apply changes */        
+		sccp_queue_frame(c, &ast_null_frame);	/* Tell Asterisk to apply changes */
     }
 #endif
 
@@ -825,8 +825,6 @@ void sccp_channel_stop_rtp(sccp_channel_t * c) {
 		c->rtp = NULL;
 	}
 }
-
-
 
 void sccp_channel_transfer(sccp_channel_t * c) {
 	sccp_device_t * d;
