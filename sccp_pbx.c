@@ -844,7 +844,7 @@ void * sccp_pbx_startchannel(void *data) {
 
     if(!chan)
     {
-         sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: NO CHANNEL AST AVAILABLE\n")
+         sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: NO CHANNEL AST AVAILABLE\n");
          return NULL;
     }
 
@@ -852,7 +852,7 @@ void * sccp_pbx_startchannel(void *data) {
 
     if(!c)
     {
-         sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: NO CHANNEL PRIVATE AVAILABLE\n")
+         sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: NO CHANNEL PRIVATE AVAILABLE\n");
          return NULL;
     }
 	
