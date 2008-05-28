@@ -842,6 +842,12 @@ void * sccp_pbx_startchannel(void *data) {
 
 	/*sccp_log(1)( VERBOSE_PREFIX_3 "CS_AST_CHANNEL_PVT: %s\n", chan->tech_pvt);*/
 
+    while(sccp_channel_trylock(chan)) {
+        sccp_mutex_unlock(&c->lock);
+        sleep(1);
+        sccp_mutex_lock(&c->lock);
+    }
+    
 	c = CS_AST_CHANNEL_PVT(chan);
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "(A)\n");
@@ -869,6 +875,9 @@ void * sccp_pbx_startchannel(void *data) {
  	    sccp_log(10)(VERBOSE_PREFIX_3 "(D)\n");
 		return NULL;
 	}
+
+    sccp_channel_unlock(chan);
+    	
     sccp_log(10)(VERBOSE_PREFIX_3 "(E)\n");	
 	/* this is an outgoung call */
 	sccp_mutex_lock(&c->lock);
