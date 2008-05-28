@@ -468,7 +468,6 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	if (ast != NULL) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Ast channel %s not NULL\n", ast->name);
 		/* let the channel goes down to the invalid number */
-		return;
 	}
 
 	if (!ast) {
