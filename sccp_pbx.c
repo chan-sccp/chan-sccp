@@ -855,11 +855,12 @@ void * sccp_pbx_startchannel(void *data) {
          sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: NO CHANNEL PRIVATE AVAILABLE\n");
          return NULL;
     }
+/*
 	while(sccp_mutex_trylock(&c->lock))
 	{
          usleep(10);
     }
-    
+*/ 
 	sccp_log(10)(VERBOSE_PREFIX_3 "(A)\n");
     if (!c || !c->device || !c->device->id) {
 		/* let's go out as soon as possibile */
@@ -887,7 +888,7 @@ void * sccp_pbx_startchannel(void *data) {
 		return NULL;
 	}
 
-    sccp_mutex_unlock(&c->lock);
+//    sccp_mutex_unlock(&c->lock);
     	
     sccp_log(10)(VERBOSE_PREFIX_3 "(E)\n");	
 	/* this is an outgoung call */
