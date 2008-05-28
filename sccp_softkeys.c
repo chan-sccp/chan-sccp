@@ -475,21 +475,22 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		/* let the channel goes down to the invalid number */
 		return;
 	}
-	
+
+/*	
 	while (sccp_ast_channel_trylock(ast)) {
 		ast_log(LOG_DEBUG, "SCCP: Waiting to lock the channel for pickup\n");
 		usleep(1000);
 		ast = c->owner;
 	}
-	
+*/	
 	original = ast->masqr;
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Pickup the call from %s\n", d->id, original->name);
 
 	res = (int) (ast->blocker);
-
+/*
 	sccp_ast_channel_unlock(ast);
-
+*/
 	if (res)
 		ast_queue_hangup(ast);
 	else
