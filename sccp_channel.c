@@ -897,12 +897,10 @@ static void * sccp_channel_transfer_ringing_thread(void *data) {
 	else if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_MOH)
 #ifdef ASTERISK_CONF_1_2
 		ast_moh_start(ast, NULL);
-		sccp_mutex_unlock(&ast->lock);
 #else
 		ast_moh_start(ast, NULL, NULL);
-		ast_channel_unlock(ast);
 #endif
-	
+	sccp_ast_channel_unlock(ast);	
 	return NULL;
 }
 
