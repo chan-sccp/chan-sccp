@@ -842,19 +842,25 @@ void * sccp_pbx_startchannel(void *data) {
 
 	/*sccp_log(1)( VERBOSE_PREFIX_3 "CS_AST_CHANNEL_PVT: %s\n", chan->tech_pvt);*/
 
-	c = CS_AST_CHANNEL_PVT(chan);
-	
-    while(sccp_channel_trylock(chan)) {
-        sccp_mutex_unlock(&c->lock);
-        sleep(1);
-        sccp_mutex_lock(&c->lock);
+    if(!chan)
+    {
+         sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: NO CHANNEL AST AVAILABLE\n")
+         return NULL;
     }
- 
+
+	c = CS_AST_CHANNEL_PVT(chan);
+
+    if(!c)
+    {
+         sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: NO CHANNEL PRIVATE AVAILABLE\n")
+         return NULL;
+    }
+	
 	sccp_log(10)(VERBOSE_PREFIX_3 "(A)\n");
     if (!c || !c->device || !c->device->id) {
 		/* let's go out as soon as possibile */
 		if (!ast_test_flag(chan, AST_FLAG_ZOMBIE)) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for %s\n", (chan) ? chan->name : "(null)");
+			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for %s\n", /*(chan) ? chan->name : */ "(null)");
 			if (chan)
 				ast_hangup(chan);
 		} else {
@@ -863,6 +869,7 @@ void * sccp_pbx_startchannel(void *data) {
   	    sccp_log(10)(VERBOSE_PREFIX_3 "(B)\n");
 		return NULL;
 	}
+	
 	if (strlen(c->device->id)<3 || (strncmp(c->device->id,"SEP",3)!=0 && strncmp(c->device->id,"ATA",3)!=0)) {
  	    sccp_log(10)(VERBOSE_PREFIX_3 "(C)\n");
 		if (!ast_test_flag(chan, AST_FLAG_ZOMBIE)) {
