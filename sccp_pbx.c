@@ -883,7 +883,7 @@ void * sccp_pbx_startchannel(void *data) {
 		return NULL;
 	}
 
-    sccp_channel_unlock(chan);
+    // sccp_channel_unlock(chan);
     	
     sccp_log(10)(VERBOSE_PREFIX_3 "(E)\n");	
 	/* this is an outgoung call */
