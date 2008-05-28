@@ -842,6 +842,8 @@ void * sccp_pbx_startchannel(void *data) {
 
 	/*sccp_log(1)( VERBOSE_PREFIX_3 "CS_AST_CHANNEL_PVT: %s\n", chan->tech_pvt);*/
 
+	c = CS_AST_CHANNEL_PVT(chan);
+
 	sccp_log(10)(VERBOSE_PREFIX_3 "(A)\n");
     if (!c || !c->device || !c->device->id) {
 		/* let's go out as soon as possibile */
