@@ -20,6 +20,19 @@
 #include <asterisk/lock.h>
 #define sccp_mutex_init(x)          ast_mutex_init(x)
 #define sccp_mutex_destroy(x)       ast_mutex_destroy(x)
+
+#ifdef ASTERISK_CONFIG_1_2
+/* Channel Mutex Macros for Asterisk 1.2 */
+#define sccp_ast_channel_lock(x)	ast_mutex_lock(&x->lock)
+#define sccp_ast_channel_unlock(x)  ast_mutex_unlock(&x->lock)
+#define sccp_ast_channel_trylock(x) ast_mutex_trylock(&x->lock)
+#else
+/* Channel Mutex Macros for Asterisk 1.4 and above */
+#define sccp_ast_channel_lock(x)	ast_channel_lock(x)
+#define sccp_ast_channel_unlock(x)  ast_channel_unlock(x)
+#define sccp_ast_channel_trylock(x) ast_channel_trylock(x)
+#endif
+
 #ifndef CS_AST_DEBUG_CHANNEL_LOCKS
 /* Macro for Generic Mutex */
 #define sccp_mutex_lock(x)		    ast_mutex_lock(x)

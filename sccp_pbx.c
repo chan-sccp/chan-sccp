@@ -266,12 +266,9 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 			c->ringermode = SKINNY_STATION_URGENTRING;
 	}
 
-	/* release the asterisk lock */
-#ifdef ASTERISK_CONF_1_2
-	sccp_mutex_unlock(&ast->lock);
-#else
-	ast_channel_unlock(ast);
-#endif
+	/* release the asterisk channel lock */
+	sccp_ast_channel_unlock(ast);
+
 	if ( sccp_channel_get_active(d) ) {
 		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CALLWAITING);
 		ast_queue_control(ast, AST_CONTROL_RINGING);
@@ -288,11 +285,8 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		}
 	}
 	/* someone forget to restore the asterisk lock */
-#ifdef ASTERISK_CONF_1_2
-	sccp_mutex_lock(&ast->lock);
-#else	
-	ast_channel_lock(ast);
-#endif	
+	sccp_ast_channel_lock(ast);
+	
 	return 0;
 }
 
@@ -1064,9 +1058,6 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 	sccp_mutex_unlock(&c->lock);
 }
 
-
-
-#ifdef ASTERISK_CONF_1_6
 /**
  * \brief Queue an outgoing frame 
  * 
@@ -1078,9 +1069,9 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 {
 	for(;;) {
 		if (c->owner) {
-			if (!ast_channel_trylock(c->owner)) {
+			if (!sccp_ast_channel_trylock(c->owner)) {
 				ast_queue_frame(c->owner, f);
-				ast_channel_unlock(c->owner);				
+				sccp_ast_channel_unlock(c->owner);				
 				break;
 			} else {
 				sccp_mutex_unlock(&c->lock);
@@ -1091,22 +1082,3 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 			break;
 	}
 }
-#else
-void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
-{
-	for(;;) {
-		if (c->owner) {
-			if (!sccp_mutex_trylock(&c->owner->lock)) {
-				ast_queue_frame(c->owner, f);
-				sccp_mutex_unlock(&c->owner->lock);
-				break;
-			} else {
-				sccp_mutex_unlock(&c->lock);
-				usleep(1);
-				sccp_mutex_lock(&c->lock);
-			}
-		} else
-			break;
-	}
-}
-#endif
