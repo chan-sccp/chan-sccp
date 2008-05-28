@@ -842,19 +842,21 @@ void * sccp_pbx_startchannel(void *data) {
 
 	/*sccp_log(1)( VERBOSE_PREFIX_3 "CS_AST_CHANNEL_PVT: %s\n", chan->tech_pvt);*/
 
-	c = CS_AST_CHANNEL_PVT(chan);
-	if (!c || !c->device || !c->device->id) {
+	sccp_log(10)(VERBOSE_PREFIX_3 "(A)\n");
+    if (!c || !c->device || !c->device->id) {
 		/* let's go out as soon as possibile */
 		if (!ast_test_flag(chan, AST_FLAG_ZOMBIE)) {
-			ast_log(LOG_ERROR, "SCCP: return from the dial thread. No sccp channel available for %s\n", (chan) ? chan->name : "(null)");
+			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for %s\n", (chan) ? chan->name : "(null)");
 			if (chan)
 				ast_hangup(chan);
 		} else {
-			ast_log(LOG_DEBUG, "SCCP: return from the dial thread. No sccp channel available for zombie\n");
+			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for zombie\n");
 		}
+  	    sccp_log(10)(VERBOSE_PREFIX_3 "(B)\n");
 		return NULL;
 	}
 	if (strlen(c->device->id)<3 || (strncmp(c->device->id,"SEP",3)!=0 && strncmp(c->device->id,"ATA",3)!=0)) {
+ 	    sccp_log(10)(VERBOSE_PREFIX_3 "(C)\n");
 		if (!ast_test_flag(chan, AST_FLAG_ZOMBIE)) {
 			sccp_log(1)( VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for %s\n", (chan) ? chan->name : "(null)");
 				if (chan)
@@ -862,14 +864,15 @@ void * sccp_pbx_startchannel(void *data) {
 		} else {
 			sccp_log(1)( VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for zombie\n");
 		}
+ 	    sccp_log(10)(VERBOSE_PREFIX_3 "(D)\n");
 		return NULL;
 	}
-	
+    sccp_log(10)(VERBOSE_PREFIX_3 "(E)\n");	
 	/* this is an outgoung call */
 	sccp_mutex_lock(&c->lock);
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 	c->hangupok = 0;
-	
+ 	sccp_log(10)(VERBOSE_PREFIX_3 "(F)\n");	
 	l = c->line;
 	d = c->device;
 	
