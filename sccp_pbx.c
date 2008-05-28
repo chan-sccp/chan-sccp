@@ -1073,9 +1073,9 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 				sccp_ast_channel_unlock(c->owner);
 				break;
 			} else {
-				sccp_mutex_unlock(&c->lock);
+				// sccp_mutex_unlock(&c->lock);
 				usleep(1);
-				sccp_mutex_lock(&c->lock);
+				// sccp_mutex_lock(&c->lock);
 			}
 		} else
 			break;
