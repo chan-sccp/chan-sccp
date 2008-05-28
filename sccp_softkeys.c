@@ -489,7 +489,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	res = (int) (ast->blocker);
 
 	/* let's unlock ast_channel */
-	sccp_ast_channel_unlock(ast);
+	// sccp_ast_channel_unlock(ast);
 
 	if (res)
 		ast_queue_hangup(ast);
