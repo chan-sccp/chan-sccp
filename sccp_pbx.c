@@ -862,12 +862,13 @@ void * sccp_pbx_startchannel(void *data) {
          usleep(10);
     }
 */ 
-	if(c->device && c->device != NULL)
+	if(c->device && c->device != NULL && c->device->id && c->device->id != NULL)
 	{
         sccp_log(1)(VERBOSE_PREFIX_3 "GOT device %s\n", c->device->id);
     }
     else
     {
+        sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available.");
         return NULL;
     }
 
