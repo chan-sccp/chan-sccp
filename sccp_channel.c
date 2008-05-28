@@ -486,6 +486,7 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial) {
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   /* let's call it */
+	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: ************ %s", c->owner->name);
 	if (ast_pthread_create(&t, &attr, sccp_pbx_startchannel, c->owner)) {
 		ast_log(LOG_WARNING, "%s: Unable to create switch thread for channel (%s-%d) %s\n", d->id, l->name, c->callid, strerror(errno));
 		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONGESTION);
