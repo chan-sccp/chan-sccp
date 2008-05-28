@@ -907,7 +907,7 @@ void * sccp_pbx_startchannel(void *data) {
 
 	if ( !l || !d) {
 		/* let's go out as soon as possibile */
-		ast_log(LOG_ERROR, "%s: return from the dial thread. No line or device defined for channel %d\n", (d) ? DEV_ID_LOG(d) ? "SCCP", (c) ? c->callid : -1);
+		ast_log(LOG_ERROR, "%s: return from the dial thread. No line or device defined for channel %d\n", (d ? DEV_ID_LOG(d) : "SCCP"), (c ? c->callid : -1));
 		c->hangupok = 1;
 		sccp_mutex_unlock(&c->lock);
 		if (chan)
