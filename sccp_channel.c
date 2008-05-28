@@ -798,10 +798,14 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
 	if (c->rtp && c->owner)
     {
         ast_jb_configure(c->owner, &GLOB(global_jbconf));
+		sccp_log(10)(VERBOSE_PREFIX_3 "(1)\n");
 		c->owner->fds[0] = ast_rtp_fd(c->rtp);
+		sccp_log(10)(VERBOSE_PREFIX_3 "(2)\n");
 		c->owner->fds[1] = ast_rtcp_fd(c->rtp);
+		sccp_log(10)(VERBOSE_PREFIX_3 "(3)\n");	
 		sccp_queue_frame(c, &ast_null_frame);	/* Tell Asterisk to apply changes */
     }
+	sccp_log(10)(VERBOSE_PREFIX_3 "Buffer Configured correctly\n");
 #endif
 
 #ifdef ASTERISK_CONF_1_6
