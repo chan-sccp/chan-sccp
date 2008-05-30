@@ -484,7 +484,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	/* trying unlock */
 	sccp_ast_channel_unlock(ast);
 	
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Pickup exten %d", ast_pickup_ext());
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Pickup exten %s\n", ast_pickup_ext());
 	if (ast_pickup_call(ast)) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: pickup error\n", d->id);
 		/* let the channel goes down to the invalid number */
