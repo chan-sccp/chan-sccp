@@ -431,7 +431,7 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_mutex_unlock(&c->lock);
 }
 
-void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+void sccp_sk_gpickup(sccp_channel_t * c) {     
 #ifndef CS_SCCP_PICKUP
 	sccp_log(10)(VERBOSE_PREFIX_3 "### Native PICKUP was not compiled in\n");
 #else
@@ -440,7 +440,9 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char * name, * number, *cidtmp; // For the callerid parse below
 #endif
-
+	sccp_device_t * d = c->device;    
+	sccp_line_t * l = c->line;
+	
 	if (!l)
 		l = d->currentLine;
 	if (!l)
