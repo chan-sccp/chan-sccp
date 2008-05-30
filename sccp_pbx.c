@@ -1092,7 +1092,7 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 				break;
 			} else {
 				sccp_mutex_unlock(&c->lock);
-				usleep(10);
+				usleep(1);
 				sccp_mutex_lock(&c->lock);
 			}
 		} else
