@@ -442,8 +442,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #endif
 
 	if (c && c->line)
-		l = c->line;
-		
+		l = c->line;		
 	if (!l)
 		l = d->currentLine;
 	if (!l)
@@ -482,6 +481,10 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		return;
 	}
 
+	/* trying unlock */
+	sccp_ast_channel_unlock(ast);
+	
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Pickup exten %d", ast_pickup_ext());
 	if (ast_pickup_call(ast)) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: pickup error\n", d->id);
 		/* let the channel goes down to the invalid number */
@@ -510,7 +513,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		
 	if (original) {
 #ifdef CS_AST_CHANNEL_HAS_CID
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Data ast %s (%s) - masq %s (%s)\n", ast->cid.cid_name, ast->cid.cid_num, original->cid.cid_name, original->cid.cid_num);
+		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Data Ast Channel: \"%s\" (%s) - Data Masq Channel \"%s\" (%s)\n", ast->cid.cid_name, ast->cid.cid_num, original->cid.cid_name, original->cid.cid_num);
 		sccp_channel_set_callingparty(c, original->cid.cid_name, original->cid.cid_num);
 #else
 		if (original->callerid && (cidtmp = strdup(original->callerid))) {
