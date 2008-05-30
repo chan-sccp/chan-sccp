@@ -1110,9 +1110,9 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 {
 	for(;;) {
 		if (c && c->owner) {
-			if (!sccp_mutex_trylock(&c->owner->lock)) {
+			if (!sccp_ast_channel_trylock(c->owner)) {
 				ast_queue_frame(c->owner, f);
-				sccp_mutex_unlock(&c->owner->lock);
+				sccp_ast_channel_unlock(c->owner);
 				break;
 			} else {
 				sccp_mutex_unlock(&c->lock);
