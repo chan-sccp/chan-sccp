@@ -1432,7 +1432,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r) {
 #ifdef CS_SCCP_PICKUP
 	case SKINNY_LBL_GPICKUP:
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Calling pickup stuff from sccp_handle_softkey_event");
-		sccp_sk_gpickup(/*d, l*/, c);
+		sccp_sk_gpickup(/*d, l,*/ c);
 		break;
 #endif
 	default:
