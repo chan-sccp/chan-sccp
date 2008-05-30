@@ -510,7 +510,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		
 	if (original) {
 #ifdef CS_AST_CHANNEL_HAS_CID
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Data ast %s (%s) - masq %s (%s)", ast->cid.cid_name, ast->cid.cid_num, original->cid.cid_name, original->cid.cid_num);
+		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Data ast %s (%s) - masq %s (%s)\n", ast->cid.cid_name, ast->cid.cid_num, original->cid.cid_name, original->cid.cid_num);
 		sccp_channel_set_callingparty(c, original->cid.cid_name, original->cid.cid_num);
 #else
 		if (original->callerid && (cidtmp = strdup(original->callerid))) {
