@@ -440,8 +440,8 @@ void sccp_sk_gpickup(sccp_channel_t * c) {
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char * name, * number, *cidtmp; // For the callerid parse below
 #endif
-	sccp_device_t * d = c->device;    
-	sccp_line_t * l = c->line;
+	sccp_device_t * d = &c->device;    
+	sccp_line_t * l = &c->line;
 	
 	if (!l)
 		l = d->currentLine;
