@@ -922,7 +922,7 @@ void * sccp_pbx_startchannel(void *data) {
  	sccp_log(10)(VERBOSE_PREFIX_3 "(F)\n");	
 	l = c->line;
 	d = c->device;
-	
+	/*
 	if(chan && chan != NULL)
         sccp_log(1)( VERBOSE_PREFIX_3 "GOT data %s (%p)\n", chan->name, chan);
     else
@@ -935,7 +935,8 @@ void * sccp_pbx_startchannel(void *data) {
     }
     else
         return NULL;
-        
+    */
+      
 	if ( !l || !d) {
 		/* let's go out as soon as possibile */
         ast_log(LOG_ERROR, "%s: return from the dial thread. No line or device defined for channel %d\n", (d ? DEV_ID_LOG(d) : "SCCP"), (c ? c->callid : -1));
