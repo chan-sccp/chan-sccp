@@ -441,6 +441,9 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	char * name, * number, *cidtmp; // For the callerid parse below
 #endif
 
+	if (c && c->line)
+		l = c->line;
+		
 	if (!l)
 		l = d->currentLine;
 	if (!l)
@@ -454,7 +457,10 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	}
 	c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_OFFHOOK);
 	if (!c)
+	{
 		c = sccp_channel_newcall(l, NULL);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: New channel allocated for line %s\n",d->id, l->name);
+	}
 	if (!c) {
 			ast_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n",d->id, l->name);
 			return;
@@ -504,6 +510,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		
 	if (original) {
 #ifdef CS_AST_CHANNEL_HAS_CID
+		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Data ast %s (%s) - masq %s (%s)", ast->cid.cid_name, ast->cid.cid_num, original->cid.cid_name, original->cid.cid_num);
 		sccp_channel_set_callingparty(c, original->cid.cid_name, original->cid.cid_num);
 #else
 		if (original->callerid && (cidtmp = strdup(original->callerid))) {
