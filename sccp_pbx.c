@@ -889,9 +889,7 @@ void * sccp_pbx_startchannel(void *data) {
 		}
 		return NULL;
 	}
-
-    sccp_mutex_unlock(&c->device->lock);
-    
+  
     int aa_a = strlen(c->device->id);
     int aa_b = strncmp(c->device->id, "SEP", 3);
     int aa_c = strncmp(c->device->id, "ATA", 3);
@@ -908,8 +906,6 @@ void * sccp_pbx_startchannel(void *data) {
 		return NULL;
 	}
 
-   	sccp_mutex_lock(&c->device->lock);
-	
     /* this is an outgoung call */
 	sccp_mutex_lock(&c->lock);
 	
