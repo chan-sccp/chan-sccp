@@ -136,7 +136,19 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 			if ( ringermode && !ast_strlen_zero(ringermode) ) {
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: Found ALERT_INFO=%s\n", d->id, ringermode);
 				if (strcasecmp(ringermode, "urgent") == 0)
+			    {
+                    /* only if urgent call can be passed to phone */
 					c->ringermode = SKINNY_STATION_URGENTRING;
+                }
+				else
+				{
+                    /* rejecting call as not urgent */ 
+        			sccp_mutex_unlock(&d->lock);
+        			ast_setstate(ast, AST_STATE_BUSY);
+        			ast_queue_control(ast, AST_CONTROL_BUSY);
+        			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Unurgent call with DND activated. Rejecting %s\n", d->id, ast->name);
+        			return 0;
+                }
 			} else {
 				sccp_mutex_unlock(&d->lock);
 				ast_setstate(ast, AST_STATE_BUSY);
