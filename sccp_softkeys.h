@@ -22,7 +22,8 @@ void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 void sccp_sk_park(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
-void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
+// void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
+void sccp_sk_gpickup(sccp_channel_t * c);
 void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c, unsigned int keymode, unsigned int softkeyindex, unsigned int status);
 
 #endif
