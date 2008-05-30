@@ -14,6 +14,7 @@
  * This program is free software and may be modified and
  * distributed under the terms of the GNU Public License.
  */
+
 #ifndef __SCCP_LOCK_H
 #define __SCCP_LOCK_H
 #include "config.h"
