@@ -853,11 +853,9 @@ void * sccp_pbx_startchannel(void *data) {
 	uint8_t res_exten = 0, res_wait = 0, res_timeout = 0;
 	char shortenedNumber[256] = { '\0' }; /* For recording the digittimeoutchar */
 
-	/*sccp_log(1)( VERBOSE_PREFIX_3 "CS_AST_CHANNEL_PVT: %s\n", chan->tech_pvt);*/
-
     if(!chan || chan == NULL)
     {
-         sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: NO CHANNEL AST AVAILABLE\n");
+         sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Asterisk Channel not found. Leaving\n");
          return NULL;
     }
 
@@ -865,18 +863,13 @@ void * sccp_pbx_startchannel(void *data) {
 
     if(!c || c == NULL)
     {
-         sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: NO CHANNEL PRIVATE AVAILABLE\n");
+         sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Asterisk Channel Private not found. Leaving\n");
          return NULL;
     }
-/*
-	while(sccp_mutex_trylock(&c->lock))
-	{
-         usleep(10);
-    }
-*/ 
+
 	if(c->device && c->device != NULL && c->device->id && c->device->id != NULL)
 	{
-        sccp_log(1)(VERBOSE_PREFIX_3 "GOT device %s\n", c->device->id);
+        sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Got device %s\n", c->device->id);
     }
     else
     {
@@ -884,58 +877,39 @@ void * sccp_pbx_startchannel(void *data) {
         return NULL;
     }
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "(A)\n");
     if (!c->device || !c->device->id) {
 		/* let's go out as soon as possibile */
 		if (!ast_test_flag(chan, AST_FLAG_ZOMBIE)) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for %s\n", /*(chan) ? chan->name : */ "(null)");
+			// sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for %s\n", (chan) ? chan->name : "(null)");
+			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available\n");
 			if (chan)
 				ast_hangup(chan);
 		} else {
 			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for zombie\n");
 		}
-  	    sccp_log(10)(VERBOSE_PREFIX_3 "(B)\n");
 		return NULL;
 	}
 
 	if (strlen(c->device->id)<3 || (strncmp(c->device->id,"SEP",3)!=0 && strncmp(c->device->id,"ATA",3)!=0)) {
- 	    sccp_log(10)(VERBOSE_PREFIX_3 "(C)\n");
 		if (!ast_test_flag(chan, AST_FLAG_ZOMBIE)) {
-			sccp_log(1)( VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for %s\n", (chan) ? chan->name : "(null)");
+			// sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for %s\n", (chan) ? chan->name : "(null)");
+			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available\n");
 				if (chan)
 					ast_hangup(chan);
 		} else {
 			sccp_log(1)( VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for zombie\n");
 		}
- 	    sccp_log(10)(VERBOSE_PREFIX_3 "(D)\n");
 		return NULL;
 	}
-
-//    sccp_mutex_unlock(&c->lock);
-    	
-    sccp_log(10)(VERBOSE_PREFIX_3 "(E)\n");	
+   	
 	/* this is an outgoung call */
 	sccp_mutex_lock(&c->lock);
 	
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 	c->hangupok = 0;
- 	sccp_log(10)(VERBOSE_PREFIX_3 "(F)\n");	
+
 	l = c->line;
 	d = c->device;
-	/*
-	if(chan && chan != NULL)
-        sccp_log(1)( VERBOSE_PREFIX_3 "GOT data %s (%p)\n", chan->name, chan);
-    else
-        return NULL;
-	
-	if(c && c != NULL)
-	{
-        sccp_log(1)( VERBOSE_PREFIX_3 "GOT line %s\n", c->line->name);
-        sccp_log(1)( VERBOSE_PREFIX_3 "GOT device %s\n", c->device->id);
-    }
-    else
-        return NULL;
-    */
       
 	if ( !l || !d) {
 		/* let's go out as soon as possibile */
@@ -1077,16 +1051,8 @@ void sccp_pbx_senddigit(sccp_channel_t * c, char digit) {
 
 	f.src = "SCCP";
 	f.subclass = digit;
-/*	
-	while(sccp_mutex_trylock(&c->lock)) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Avoiding pbx_senddigit (1) deadlock\n");
-		sccp_mutex_unlock(&c->lock);
-		usleep(1);
-		sccp_mutex_lock(&c->lock);
-	}
-*/
+
 	sccp_mutex_lock(&c->lock);
-	// ast_queue_frame(c->owner, &f);
 	sccp_queue_frame(c, &f);
 	sccp_mutex_unlock(&c->lock);
 }
@@ -1100,19 +1066,11 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 	f.offset = 0;
 	f.data = NULL;
 	f.datalen = 0;
-/*	
-	while(sccp_mutex_trylock(&c->lock)) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Avoiding pbx_senddigits (2) deadlock\n");
-		sccp_mutex_unlock(&c->lock);
-		usleep(1);
-		sccp_mutex_lock(&c->lock);
-	}
-*/
+
 	sccp_mutex_lock(&c->lock);
 	for (i = 0; digits[i] != '\0'; i++) {
 		f.subclass = digits[i];
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending digit %c\n", DEV_ID_LOG(c->device), digits[i]);
-		// ast_queue_frame(c->owner, &f);
 		sccp_queue_frame(c, &f);
 	}
 	sccp_mutex_unlock(&c->lock);
@@ -1140,8 +1098,6 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 		} else
 			break;
 	}
-	// sccp_mutex_unlock(&c->lock);
-	// sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Frame successfully queued\n");
 }
 
 

@@ -1287,7 +1287,6 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
 				/* set it to offhook state because the sccp_sk_gpickup function look for an offhook channel */
 				c->state = SCCP_CHANNELSTATE_OFFHOOK;
 				sccp_mutex_unlock(&c->lock);
-				sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Calling pickup stuff from (1) sccp_handle_keypad_button");
 				sccp_sk_gpickup(c->device, c->line, c);
 				return;
 			}
@@ -1431,7 +1430,6 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r) {
 		break;
 #ifdef CS_SCCP_PICKUP
 	case SKINNY_LBL_GPICKUP:
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Calling pickup stuff from (2) sccp_handle_softkey_event");
 		sccp_sk_gpickup(d, l, c);
 		break;
 #endif
