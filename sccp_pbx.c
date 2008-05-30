@@ -890,6 +890,12 @@ void * sccp_pbx_startchannel(void *data) {
 		return NULL;
 	}
 
+    sccp_mutex_unlock(&c->device);
+    
+    int aa_a = strlen(c->device->id);
+    int aa_b = strncmp(c->device->id, "SEP", 3);
+    int aa_c = strncmp(c->device->id, "ATA", 3);
+    
 	if (strlen(c->device->id)<3 || (strncmp(c->device->id,"SEP",3)!=0 && strncmp(c->device->id,"ATA",3)!=0)) {
 		if (!ast_test_flag(chan, AST_FLAG_ZOMBIE)) {
 			// sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for %s\n", (chan) ? chan->name : "(null)");
@@ -901,8 +907,10 @@ void * sccp_pbx_startchannel(void *data) {
 		}
 		return NULL;
 	}
-   	
-	/* this is an outgoung call */
+
+   	sccp_mutex_lock(&c->device);
+	
+    /* this is an outgoung call */
 	sccp_mutex_lock(&c->lock);
 	
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
