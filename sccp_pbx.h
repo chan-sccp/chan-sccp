@@ -4,7 +4,7 @@
 #include <asterisk/pbx.h>
 
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c);
-void * sccp_pbx_startchannel (void *data);
+void * sccp_pbx_startchannel (sccp_channel_t * c);
 void start_rtp(sccp_channel_t * sub);
 
 #ifdef CS_AST_HAS_TECH_PVT
