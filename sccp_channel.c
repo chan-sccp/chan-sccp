@@ -450,16 +450,16 @@ static void * sccp_channel_thread(void * data) {
 	c = CS_AST_CHANNEL_PVT(chan);
 
 	if(chan)
-		sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: Ast Chan: \"%s\"\n", chan->name);		
+		sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: (newcall_thread) Ast Chan: \"%s\"\n", chan->name);		
 	
 	if(c) {
 		l = c->line;
 		d = c->device;
 
 		if(l)
-			sccp_log(4)(VERBOSE_PREFIX_2 "SCCP:     Line: \"%s\"\n", c->line->name);
+			sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: (newcall_thread)     Line: \"%s\"\n", c->line->name);
 		if(d)
-			sccp_log(4)(VERBOSE_PREFIX_2 "SCCP:   Device: \"%s\"\n", c->device->id);
+			sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: (newcall_thread)   Device: \"%s\"\n", c->device->id);
 	}
 	
 	return sccp_pbx_startchannel(data);
@@ -519,6 +519,8 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial) {
 		sccp_channel_openreceivechannel(c);
 	}
 
+	sccp_ast_channel_unlock(c->owner);
+	
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
