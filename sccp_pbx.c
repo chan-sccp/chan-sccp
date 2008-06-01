@@ -723,7 +723,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
     
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: accountcode: %s", l->accountcode);
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:     context: %s", l->context);
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:    amaflags: %s", l->amaflags);
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:    amaflags: %d", l->amaflags);
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:   chan/call: %s-%08x", l->name, c->callid);
 	
 	/* This should definetly fix CDR */
