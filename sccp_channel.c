@@ -441,6 +441,30 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 	return;
 }
 
+static void * sccp_channel_thread(void * data) {
+	struct ast_channel * chan = data;
+	sccp_channel_t * c;
+	sccp_line_t * l;
+	sccp_device_t * d;
+	
+	c = CS_AST_CHANNEL_PVT(chan);
+
+	if(chan)
+		sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: Ast Chan: \"%s\"\n", chan->name);		
+	
+	if(c) {
+		l = c->line;
+		d = c->device;
+
+		if(l)
+			sccp_log(4)(VERBOSE_PREFIX_2 "SCCP:     Line: \"%s\"\n", c->line->name);
+		if(d)
+			sccp_log(4)(VERBOSE_PREFIX_2 "SCCP:   Device: \"%s\"\n", c->device->id);
+	}
+	
+	return sccp_pbx_startchannel(data);
+}
+
 sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial) {
 	/* handle outgoing calls */
 	sccp_channel_t * c;
@@ -499,7 +523,7 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial) {
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
 	/* let's call it */
-	if (ast_pthread_create(&t, &attr, sccp_pbx_startchannel, c->owner)) {
+	if (ast_pthread_create(&t, &attr, sccp_channel_thread, c->owner)) {
 		ast_log(LOG_WARNING, "%s: Unable to create switch thread for channel (%s-%08x) %s\n", d->id, l->name, c->callid, strerror(errno));
 		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONGESTION);
 	}
