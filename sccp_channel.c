@@ -1169,7 +1169,7 @@ void sccp_channel_park(sccp_channel_t * c) {
 	chan1m = ast_channel_alloc(0);
 #else
     /* This should definetly fix CDR */
-    chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l_cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
+    chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
 #endif
        // chan1m = ast_channel_alloc(0); function changed in 1.4.0
        // Assuming AST_STATE_DOWN is suitable.. need to check
@@ -1183,7 +1183,7 @@ void sccp_channel_park(sccp_channel_t * c) {
 #else
 	// chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, "SCCP/%s", l->name,  NULL, 0, NULL);
     /* This should definetly fix CDR */
-    chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l_cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
+    chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
 #endif
        // chan2m = ast_channel_alloc(0); function changed in 1.4.0
        // Assuming AST_STATE_DOWN is suitable.. need to check

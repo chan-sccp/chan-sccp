@@ -730,7 +730,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:   chan/call: \"%s-%08x\"\n", l->name, c->callid);
 	
 	/* This should definetly fix CDR */
-    tmp = ast_channel_alloc(1, AST_STATE_DOWN, l->cid_num, l_cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
+    tmp = ast_channel_alloc(1, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
 #endif
        // tmp = ast_channel_alloc(1); function changed in 1.4.0
        // Note: Assuming AST_STATE_DOWN is starting state
