@@ -874,7 +874,8 @@ void * sccp_pbx_startchannel(sccp_channel_t * c) {
          return NULL;
     }
 
-	sccp_channel_lock(c);
+	/* channel already locked in sccp_channel_newcall_thread */
+	// sccp_channel_lock(c);
 	sccp_device_lock(c->device);
 	
 	if(c->device && c->device->id)

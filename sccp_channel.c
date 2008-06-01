@@ -459,6 +459,8 @@ static void * sccp_channel_newcall_thread(void * data) {
 	sccp_device_t * d;
 	
 	if(c) {
+		sccp_channel_lock(c);
+		
 		chan = c->owner;
 		l = c->line;
 		d = c->device;
@@ -486,6 +488,12 @@ static void * sccp_channel_newcall_thread(void * data) {
 		if(d)
 			sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: (newcall_thread)   Device: \"%s\"\n", (c->device->id ? c->device->id : "(null)"));
 	
+		while(sccp_ast_channel_trylock(chan)) {
+				sccp_channel_unlock(c);
+				usleep(1);
+				sccp_channel_lock(c);
+		}
+
 		/* starting real processing */
 		return sccp_pbx_startchannel(c);
 	}
