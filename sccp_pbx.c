@@ -519,7 +519,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	if (c->state == SCCP_CHANNELSTATE_CONNECTED) {
 		/* let's asterisk emulate it */
 		sccp_mutex_unlock(&c->lock);
-		return -1;;
+		return -1;
 
 	}
 	
@@ -546,13 +546,14 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		sccp_indicate_nolock(c, SCCP_CHANNELSTATE_PROCEED);
 		res = 0;
 		break;
-
 #ifdef CS_AST_CONTROL_SRCUPDATE
     case AST_CONTROL_SRCUPDATE:
         /* Source media has changed. */ 
         if(c->rtp)
-             ast_rtp_new_source(c->rtp);
-        sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Source media has changed.\n");
+		{
+			sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Source media has changed\n");    
+			ast_rtp_new_source(c->rtp);
+		}
         break;        
 #endif
 
@@ -711,17 +712,26 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 		return 0;
 	}
 
+	sccp_mutex_unlock(&c->lock);
+	/* Don't hold a sccp pvt lock while we allocate a channel */	
+	
 #ifdef ASTERISK_CONF_1_2
 	tmp = ast_channel_alloc(1);
 #else
 	// tmp = ast_channel_alloc(1, AST_STATE_DOWN, l->cid_num, l->cid_name, "SCCP/%s", l->name, NULL, 0, NULL);
 	// tmp = ast_channel_alloc(1, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, l->name, NULL, 0, NULL);
-    /* This should definetly fix CDR */
-    tmp = ast_channel_alloc(1, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, /* should be exten here */ 0, l->context, l->amaflags, "SCCP/%s", l->name);
+    
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: accountcode: %s", l->accountcode");
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:     context: %s", l->context");
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:    amaflags: %s", l->amaflags");
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:   chan/call: %s-%08x", l->name, c->callid);
+	
+	/* This should definetly fix CDR */
+    tmp = ast_channel_alloc(1, AST_STATE_DOWN, 0, 0, l->accountcode, /* should be exten here */ "", l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
 #endif
        // tmp = ast_channel_alloc(1); function changed in 1.4.0
        // Note: Assuming AST_STATE_DOWN is starting state
-	if (!tmp) {
+	if (!tmp || tmp==NULL) {
 		ast_log(LOG_ERROR, "%s: Unable to allocate asterisk channel on line %s\n", d->id, l->name);
 		return 0;
 	}
