@@ -447,7 +447,7 @@ static void * sccp_channel_thread(void * data) {
 	sccp_line_t * l;
 	sccp_device_t * d;
 	
-	sccp_channel_unlock(c);
+	// sccp_channel_unlock(c);
 	
 	if(c) {
 		chan = c->owner;
@@ -519,7 +519,7 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial) {
 		sccp_channel_openreceivechannel(c);
 	}
 
-	sccp_channel_lock(c);
+	// sccp_channel_lock(c);
 	
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
