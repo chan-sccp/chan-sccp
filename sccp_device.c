@@ -811,12 +811,12 @@ int sccp_device_check_ringback(sccp_device_t * d) {
 	sccp_mutex_unlock(&d->lock);
 	c = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_CALLTRANSFER);
 	if (!c)
-		c = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_RINGIN);
+		c = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_RINGING);
 	if (!c)
 		c = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_CALLWAITING);
 
 	if (c) {
-		sccp_indicate_lock(c, SCCP_CHANNELSTATE_RINGIN);
+		sccp_indicate_lock(c, SCCP_CHANNELSTATE_RINGING);
 		return 1;
 	}
 	return 0;
@@ -872,7 +872,7 @@ void * sccp_dev_postregistration(void *data) {
 				else {
 					c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED);
 					if (!c)
-						c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGIN);
+						c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING);
 					if (!c)
 						c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CALLWAITING);
 					if (c)

@@ -962,7 +962,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r) {
     	return;
     }
 
-	c = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_RINGIN);
+	c = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_RINGING);
 
 	if (c) {
     	/* Answer the ringing channel. */

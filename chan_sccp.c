@@ -291,7 +291,7 @@ int sccp_devicestate(void * data) {
 	else if (!l->channelCount)
 		res = AST_DEVICE_NOT_INUSE;
 #ifdef  CS_AST_DEVICE_RINGING
-	else if (sccp_channel_find_bystate_on_device(l->device, SCCP_CHANNELSTATE_RINGIN))
+	else if (sccp_channel_find_bystate_on_device(l->device, SCCP_CHANNELSTATE_RINGING))
 		res = AST_DEVICE_RINGING;
 #endif
 	else
