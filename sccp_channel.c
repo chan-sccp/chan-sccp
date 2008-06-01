@@ -487,9 +487,10 @@ static void * sccp_channel_newcall_thread(void * data) {
 			sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: (newcall_thread)   Device: \"%s\"\n", (c->device->id ? c->device->id : "(null)"));
 	
 		/* starting real processing */
-		return sccp_pbx_startchannel(chan);
+		return sccp_pbx_startchannel(c);
 	}
 	
+	/* should never be here */
 	return NULL;
 }
 
