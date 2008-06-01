@@ -721,10 +721,10 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	// tmp = ast_channel_alloc(1, AST_STATE_DOWN, l->cid_num, l->cid_name, "SCCP/%s", l->name, NULL, 0, NULL);
 	// tmp = ast_channel_alloc(1, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, l->name, NULL, 0, NULL);
     
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: accountcode: %s", l->accountcode);
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:     context: %s", l->context);
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:    amaflags: %d", l->amaflags);
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:   chan/call: %s-%08x", l->name, c->callid);
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: accountcode: %s\n", l->accountcode);
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:     context: %s\n", l->context);
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:    amaflags: %d\n", l->amaflags);
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:   chan/call: %s-%08x\n", l->name, c->callid);
 	
 	/* This should definetly fix CDR */
     tmp = ast_channel_alloc(1, AST_STATE_DOWN, 0, 0, l->accountcode, /* should be exten here */ "", l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
