@@ -59,7 +59,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 	l = c->line;
 
 	/* all the check are ok. We can safely run all the dev functions with no more checks */
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Indicate SCCP state (%s) on call %s-%d\n",d->id, sccp_indicate2str(state), l->name, c->callid);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Indicate SCCP state (%s) on call %s-%08x\n",d->id, sccp_indicate2str(state), l->name, c->callid);
 
 	oldstate = c->state;
 	c->state = state;
@@ -244,7 +244,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_ast_setstate(c, AST_STATE_DIALING);
 		break;
 	}
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s), SKINNY (%s) on call %s-%d\n",d->id, sccp_indicate2str(state), sccp_callstate2str(c->callstate), l->name, c->callid);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s), SKINNY (%s) on call %s-%08x\n",d->id, sccp_indicate2str(state), sccp_callstate2str(c->callstate), l->name, c->callid);
 	if (l->hints) {
 		/* privacy stuff */
 		if (c->private && state != SCCP_CHANNELSTATE_ONHOOK) {
