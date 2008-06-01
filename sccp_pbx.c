@@ -858,7 +858,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	return 1;
 }
 
-void * sccp_pbx_startchannel(void *data) {
+static void * sccp_pbx_startchannel(void *data) {
 	struct ast_channel * chan = data;
 	struct ast_variable *v = NULL;
 	sccp_channel_t * c;

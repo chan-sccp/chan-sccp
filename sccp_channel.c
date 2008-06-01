@@ -487,7 +487,7 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial) {
 		return c;
 	}
 
-	sccp_log(4)(VERBOSE_PREFIX_2 "%s: **** Ast Channel allocated for line %s-%08x\n", c->device->id,c->line->name,c->callid);
+	sccp_log(4)(VERBOSE_PREFIX_2 "%s: **** Ast Channel %s allocated for line %s-%08x\n", c->owner->name, c->device->id,c->line->name,c->callid);
 	
 	sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 
