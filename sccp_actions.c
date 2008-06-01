@@ -1284,6 +1284,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
     		c->digittimeout = time(0)+GLOB(digittimeout);
 #ifdef CS_SCCP_PICKUP
 			if (!strcmp(c->dialedNumber, ast_pickup_ext())) {
+				sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Called pickup stuff from ACTIONS\n");
 				/* set it to offhook state because the sccp_sk_gpickup function look for an offhook channel */
 				c->state = SCCP_CHANNELSTATE_OFFHOOK;
 				sccp_mutex_unlock(&c->lock);
