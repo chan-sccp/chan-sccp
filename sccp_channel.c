@@ -440,29 +440,57 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 
 	return;
 }
+/*
+	Thread functions "should" be always static.... --FS
 
-static void * sccp_channel_thread(void * data) {
+	This is a wrapper function for  sccp_pbx_startchannel.
+	
+	It's not really needed, but it does some checks to never get fall into segfault.
+	
+	Federico Santulli
+	06/01/2008
+*/
+static void * sccp_channel_newcall_thread(void * data) {
+	
 	struct ast_channel * chan;
+	
 	sccp_channel_t * c = data;
 	sccp_line_t * l;
 	sccp_device_t * d;
-	
-	// sccp_channel_unlock(c);
 	
 	if(c) {
 		chan = c->owner;
 		l = c->line;
 		d = c->device;
 		
-		if(chan)
-			sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: (newcall_thread) Ast Chan: \"%s\"\n", chan->name);			
+		if(chan && chan != NULL)
+		{
+			if(chan->name && strlen(chan->name) > 0)
+			{
+				sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: (newcall_thread) Ast Chan: \"%s\"\n", (chan->name ? chan->name : "(null)"));
+			}
+			else
+			{
+				sccp_log(3)(VERBOSE_PREFIX_3 "SCCP: (newcall_thread) Peer owner disappeared (1). Leaving\n");
+				return NULL;
+			}
+		}
+		else
+		{
+			sccp_log(3)(VERBOSE_PREFIX_3 "SCCP: (newcall_thread) Peer owner disappeared (2). Leaving\n");
+			return NULL;
+		}
+
 		if(l)
-			sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: (newcall_thread)     Line: \"%s\"\n", c->line->name);
+			sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: (newcall_thread)     Line: \"%s\"\n", (c->line->name ? c->line->name : "(null)"));
 		if(d)
-			sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: (newcall_thread)   Device: \"%s\"\n", c->device->id);
+			sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: (newcall_thread)   Device: \"%s\"\n", (c->device->id ? c->device->id : "(null)"));
+	
+		/* starting real processing */
+		return sccp_pbx_startchannel(chan);
 	}
 	
-	return sccp_pbx_startchannel(c->owner);
+	return NULL;
 }
 
 sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial) {
@@ -486,15 +514,12 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial) {
 			return NULL;
 	}
 
-	sccp_log(4)(VERBOSE_PREFIX_2 "%s: **** New call allocate channel for line %s\n", d->id,l->name);
 	c = sccp_channel_allocate(l);
 	
 	if (!c) {
 		ast_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n", d->id, l->name);
 		return NULL;
 	}
-
-	sccp_log(4)(VERBOSE_PREFIX_2 "%s: **** Channel allocated for line %s-%08x\n", c->device->id,c->line->name,c->callid);
 	
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 	sccp_channel_set_active(c);
@@ -511,24 +536,21 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial) {
 		return c;
 	}
 
-	sccp_log(4)(VERBOSE_PREFIX_2 "%s: **** Ast Channel %s allocated for line %s-%08x\n", c->owner->name, c->device->id,c->line->name,c->callid);
-	
 	sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 
 	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp) {
 		sccp_channel_openreceivechannel(c);
 	}
 
-	// sccp_channel_lock(c);
-	
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
 	/* let's call it */
-	if (ast_pthread_create(&t, &attr, sccp_channel_thread, c)) {
+	if (ast_pthread_create(&t, &attr, sccp_channel_newcall_thread, c)) {
 		ast_log(LOG_WARNING, "%s: Unable to create switch thread for channel (%s-%08x) %s\n", d->id, l->name, c->callid, strerror(errno));
 		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONGESTION);
 	}
+
 	return c;
 }
 
@@ -1147,7 +1169,7 @@ void sccp_channel_park(sccp_channel_t * c) {
 	chan1m = ast_channel_alloc(0);
 #else
     /* This should definetly fix CDR */
-    chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, /* should be exten here */ "", l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
+    chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l_cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
 #endif
        // chan1m = ast_channel_alloc(0); function changed in 1.4.0
        // Assuming AST_STATE_DOWN is suitable.. need to check
@@ -1161,7 +1183,7 @@ void sccp_channel_park(sccp_channel_t * c) {
 #else
 	// chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, "SCCP/%s", l->name,  NULL, 0, NULL);
     /* This should definetly fix CDR */
-    chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, /* should be exten here */ "", l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
+    chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l_cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
 #endif
        // chan2m = ast_channel_alloc(0); function changed in 1.4.0
        // Assuming AST_STATE_DOWN is suitable.. need to check
