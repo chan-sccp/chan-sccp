@@ -37,6 +37,9 @@
 #ifdef CS_AST_HAS_AST_STRING_FIELD
 #include <asterisk/stringfields.h>
 #endif
+#ifdef CS_SCCP_PICKUP
+#include <asterisk/features.h>
+#endif
 
 static struct ast_frame * sccp_rtp_read(sccp_channel_t * c) {
 	/* Retrieve audio/etc from channel.  Assumes c->lock is already held. */
@@ -1055,7 +1058,7 @@ dial:
 		}
 	} else {
 #ifdef CS_SCCP_PICKUP
-			if (!strcmp(shortenedNumber, ast_pickup_ext())) {
+			if (!strcmp(c->dialedNumber, ast_pickup_ext())) {
 				/* set it to offhook state because the sccp_sk_gpickup function look for an offhook channel */
 				c->state = SCCP_CHANNELSTATE_OFFHOOK;
 				sccp_channel_unlock(c);
