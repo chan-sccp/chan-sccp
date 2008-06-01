@@ -442,27 +442,27 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 }
 
 static void * sccp_channel_thread(void * data) {
-	struct ast_channel * chan = data;
-	sccp_channel_t * c;
+	struct ast_channel * chan;
+	sccp_channel_t * c = data;
 	sccp_line_t * l;
 	sccp_device_t * d;
 	
-	c = CS_AST_CHANNEL_PVT(chan);
-
-	if(chan)
-		sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: (newcall_thread) Ast Chan: \"%s\"\n", chan->name);		
+	sccp_channel_unlock(c);
 	
 	if(c) {
+		chan = c->owner;
 		l = c->line;
 		d = c->device;
-
+		
+		if(chan)
+			sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: (newcall_thread) Ast Chan: \"%s\"\n", chan->name);			
 		if(l)
 			sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: (newcall_thread)     Line: \"%s\"\n", c->line->name);
 		if(d)
 			sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: (newcall_thread)   Device: \"%s\"\n", c->device->id);
 	}
 	
-	return sccp_pbx_startchannel(data);
+	return sccp_pbx_startchannel(c->owner);
 }
 
 sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial) {
@@ -519,13 +519,13 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial) {
 		sccp_channel_openreceivechannel(c);
 	}
 
-	sccp_ast_channel_unlock(c->owner);
+	sccp_channel_lock(c);
 	
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
 	/* let's call it */
-	if (ast_pthread_create(&t, &attr, sccp_channel_thread, c->owner)) {
+	if (ast_pthread_create(&t, &attr, sccp_channel_thread, c)) {
 		ast_log(LOG_WARNING, "%s: Unable to create switch thread for channel (%s-%08x) %s\n", d->id, l->name, c->callid, strerror(errno));
 		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONGESTION);
 	}
