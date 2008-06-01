@@ -734,7 +734,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 #endif
        // tmp = ast_channel_alloc(1); function changed in 1.4.0
        // Note: Assuming AST_STATE_DOWN is starting state
-	if (!tmp || tmp==NULL) {
+	if (!tmp || tmp == NULL) {
 		ast_log(LOG_ERROR, "%s: Unable to allocate asterisk channel on line %s\n", d->id, l->name);
 		return 0;
 	}
@@ -857,20 +857,20 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	return 1;
 }
 
-void * sccp_pbx_startchannel(void *data) {
-	struct ast_channel * chan = data;
+void * sccp_pbx_startchannel(sccp_channel_t * c) {
+	struct ast_channel * chan = c->owner;
 	struct ast_variable *v = NULL;
-	sccp_channel_t * c;
+	// sccp_channel_t * c;
 	sccp_line_t * l;
 	sccp_device_t * d;
 	uint8_t res_exten = 0, res_wait = 0, res_timeout = 0;
 	char shortenedNumber[256] = { '\0' }; /* For recording the digittimeoutchar */
 
-	c = CS_AST_CHANNEL_PVT(chan);
+	// c = CS_AST_CHANNEL_PVT(chan);
 	
     if(!c || c == NULL)
     {
-         sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Asterisk Channel Private not found. Leaving\n");
+         sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Channel not found. Leaving\n");
          return NULL;
     }
 
