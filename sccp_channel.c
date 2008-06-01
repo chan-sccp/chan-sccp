@@ -803,7 +803,6 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
 		c->owner->fds[1] = ast_rtcp_fd(c->rtp);
 		sccp_queue_frame(c, &ast_null_frame);	/* Tell Asterisk to apply changes */
     }
-	sccp_log(10)(VERBOSE_PREFIX_3 "Buffer Configured correctly\n");
 #endif
 
 #ifdef ASTERISK_CONF_1_6

@@ -712,8 +712,8 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 		return 0;
 	}
 
-	sccp_mutex_unlock(&c->lock);
-	/* Don't hold a sccp pvt lock while we allocate a channel */	
+//	sccp_mutex_unlock(&c->lock);
+//	/* Don't hold a sccp pvt lock while we allocate a channel */	
 	
 #ifdef ASTERISK_CONF_1_2
 	tmp = ast_channel_alloc(1);
@@ -721,10 +721,10 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	// tmp = ast_channel_alloc(1, AST_STATE_DOWN, l->cid_num, l->cid_name, "SCCP/%s", l->name, NULL, 0, NULL);
 	// tmp = ast_channel_alloc(1, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, l->name, NULL, 0, NULL);
     
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: accountcode: %s\n", l->accountcode);
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:     context: %s\n", l->context);
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:    amaflags: %d\n", l->amaflags);
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:   chan/call: %s-%08x\n", l->name, c->callid);
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: accountcode: \"%s\"\n", l->accountcode);
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:     context: \"%s\"\n", l->context);
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:    amaflags: \"%d\"\n", l->amaflags);
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:   chan/call: \"%s-%08x\"\n", l->name, c->callid);
 	
 	/* This should definetly fix CDR */
     tmp = ast_channel_alloc(1, AST_STATE_DOWN, 0, 0, l->accountcode, /* should be exten here */ "", l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
@@ -850,7 +850,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	tmp->pickupgroup = l->pickupgroup;
 #endif
 	tmp->priority = 1;
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%d\n", d->id, l->name, c->callid);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%08x\n", d->id, l->name, c->callid);
 	return 1;
 }
 
@@ -870,13 +870,16 @@ void * sccp_pbx_startchannel(void *data) {
     }
 
 	c = CS_AST_CHANNEL_PVT(chan);
-
+	
     if(!c || c == NULL)
     {
          sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Asterisk Channel Private not found. Leaving\n");
          return NULL;
     }
 
+	sccp_channel_lock(c);
+	sccp_device_lock(c->device);
+	
 	if(c->device && c->device != NULL && c->device->id && c->device->id != NULL)
 	{
         sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Got device %s\n", c->device->id);
@@ -900,10 +903,6 @@ void * sccp_pbx_startchannel(void *data) {
 		return NULL;
 	}
   
-    int aa_a = strlen(c->device->id);
-    int aa_b = strncmp(c->device->id, "SEP", 3);
-    int aa_c = strncmp(c->device->id, "ATA", 3);
-    
 	if (strlen(c->device->id)<3 || (strncmp(c->device->id,"SEP",3)!=0 && strncmp(c->device->id,"ATA",3)!=0)) {
 		if (!ast_test_flag(chan, AST_FLAG_ZOMBIE)) {
 			// sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for %s\n", (chan) ? chan->name : "(null)");
@@ -916,8 +915,10 @@ void * sccp_pbx_startchannel(void *data) {
 		return NULL;
 	}
 
+	sccp_device_unlock(c->device);
+	
     /* this is an outgoung call */
-	sccp_mutex_lock(&c->lock);
+	//sccp_mutex_lock(&c->lock);
 	
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 	c->hangupok = 0;
@@ -929,7 +930,7 @@ void * sccp_pbx_startchannel(void *data) {
 		/* let's go out as soon as possibile */
         ast_log(LOG_ERROR, "%s: return from the dial thread. No line or device defined for channel %d\n", (d ? DEV_ID_LOG(d) : "SCCP"), (c ? c->callid : -1));
 		c->hangupok = 1;
-		sccp_mutex_unlock(&c->lock);
+		sccp_channel_unlock(c);
 		if (chan)
 			ast_hangup(chan);
 		return NULL;
@@ -944,7 +945,7 @@ void * sccp_pbx_startchannel(void *data) {
 		sccp_log(10)( VERBOSE_PREFIX_3 "%s: Dialing %s on channel %s-%d\n", DEV_ID_LOG(l->device), c->dialedNumber, l->name, c->callid);
 		sccp_channel_set_calledparty(c, c->dialedNumber, c->dialedNumber);
 		sccp_indicate_nolock(c, SCCP_CHANNELSTATE_DIALING);
-		sccp_mutex_unlock(&c->lock);
+		sccp_channel_unlock(c);
 		goto dial;
 	}
 
@@ -953,14 +954,14 @@ void * sccp_pbx_startchannel(void *data) {
 	sccp_log(10)( VERBOSE_PREFIX_3 "%s: Waiting for the number to dial on channel %s-%d\n", DEV_ID_LOG(l->device), l->name, c->callid);
 	/* let's use the keypad to collect digits */
 	c->digittimeout = time(0)+GLOB(firstdigittimeout);
-	sccp_mutex_unlock(&c->lock);
+	sccp_channel_unlock(c);
 
 	res_exten = 1;
 
 	do {
 		usleep(100);
 		pthread_testcancel();
-		sccp_mutex_lock(&c->lock);
+		sccp_channel_lock(c);
 		if (!ast_strlen_zero(c->dialedNumber)) {
 			/* It never occured to me what the purpose of the following line was. I modified it to avoid the limitation to
 			   extensions not starting with '*' only. (-DD) 
@@ -984,15 +985,15 @@ void * sccp_pbx_startchannel(void *data) {
 			} else
 				res_timeout = 0;
 		}
-		sccp_mutex_unlock(&c->lock);
+		sccp_channel_unlock(c);
 	} while ( (res_wait == 0) && res_exten &&  res_timeout);
 
 	if (res_wait != 0) {
 		/* AST_STATE_DOWN or softhangup */
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: return from the dial thread for DOWN, HANGUP or PICKUP cause\n", DEV_ID_LOG(l->device));
-		sccp_mutex_lock(&c->lock);
+		sccp_channel_lock(c);
 		c->hangupok = 1;
-		sccp_mutex_unlock(&c->lock);
+		sccp_channel_unlock(c);
 		return NULL;
 	}
 
@@ -1028,7 +1029,7 @@ dial:
 	{
 			  strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-0);
 	}
-	sccp_mutex_lock(&c->lock);
+	sccp_channel_lock(c);
 	sccp_copy_string(chan->exten, shortenedNumber, sizeof(chan->exten));
 	sccp_copy_string(d->lastNumber, c->dialedNumber, sizeof(d->lastNumber));
 	sccp_channel_set_calledparty(c, c->dialedNumber, shortenedNumber);
@@ -1041,7 +1042,7 @@ dial:
 	sccp_dev_clearprompt(d,c->line->instance, c->callid);
 	sccp_dev_displayprompt(d, c->line->instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 	c->hangupok = 1;
-	sccp_mutex_unlock(&c->lock);
+	sccp_channel_unlock(c);
 
 	if ( !ast_strlen_zero(shortenedNumber)
 			&& ast_exists_extension(chan, chan->context, shortenedNumber, 1, l->cid_num) ) {
@@ -1053,6 +1054,15 @@ dial:
 			sccp_indicate_lock(c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 		}
 	} else {
+#ifdef CS_SCCP_PICKUP
+			if (!strcmp(shortenedNumber, ast_pickup_ext())) {
+				/* set it to offhook state because the sccp_sk_gpickup function look for an offhook channel */
+				c->state = SCCP_CHANNELSTATE_OFFHOOK;
+				sccp_channel_unlock(c);
+				sccp_sk_gpickup(c->device, c->line, c);
+				return NULL;
+			}
+#endif
 		/* timeout and no extension match */
 		sccp_indicate_lock(c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 	}
