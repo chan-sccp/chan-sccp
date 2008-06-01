@@ -295,7 +295,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 			pthread_attr_init(&attr);
 			pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 			if (ast_pthread_create(&t, &attr, sccp_pbx_call_autoanswer_thread, &c->callid)) {
-				ast_log(LOG_WARNING, "%s: Unable to create switch thread for channel (%s-%d) %s\n", d->id, l->name, c->callid, strerror(errno));
+				ast_log(LOG_WARNING, "%s: Unable to create switch thread for channel (%s-%08x) %s\n", d->id, l->name, c->callid, strerror(errno));
 			}
 		}
 	}
@@ -345,7 +345,7 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 		sccp_channel_stop_rtp(c);
 	}
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Current channel %s-%d state %s(%d)\n", DEV_ID_LOG(d), l ? l->name : "(null)", c->callid, sccp_indicate2str(c->state), c->state);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Current channel %s-%08x state %s(%d)\n", DEV_ID_LOG(d), l ? l->name : "(null)", c->callid, sccp_indicate2str(c->state), c->state);
 
 	sccp_channel_send_callinfo(c);
 
@@ -399,7 +399,7 @@ static int sccp_pbx_answer(struct ast_channel *ast) {
 	}
 
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Outgoing call has been answered %s on %s@%s-%d\n", ast->name, c->line->name, c->device->id, c->callid);
+	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Outgoing call has been answered %s on %s@%s-%08x\n", ast->name, c->line->name, c->device->id, c->callid);
 	/* This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
 	   as I have forgotten what my actual motivation was for writing this strange code. (-DD) */
 	/*
@@ -945,7 +945,7 @@ void * sccp_pbx_startchannel(void *data) {
 
 	if (!ast_strlen_zero(c->dialedNumber)) {
 		/* we have a number to dial. Let's do it */
-		sccp_log(10)( VERBOSE_PREFIX_3 "%s: Dialing %s on channel %s-%d\n", DEV_ID_LOG(l->device), c->dialedNumber, l->name, c->callid);
+		sccp_log(10)( VERBOSE_PREFIX_3 "%s: Dialing %s on channel %s-%08x\n", DEV_ID_LOG(l->device), c->dialedNumber, l->name, c->callid);
 		sccp_channel_set_calledparty(c, c->dialedNumber, c->dialedNumber);
 		sccp_indicate_nolock(c, SCCP_CHANNELSTATE_DIALING);
 		sccp_channel_unlock(c);
@@ -954,7 +954,7 @@ void * sccp_pbx_startchannel(void *data) {
 
 	/* we have to collect the number */
 	/* the phone is on TsOffHook state */
-	sccp_log(10)( VERBOSE_PREFIX_3 "%s: Waiting for the number to dial on channel %s-%d\n", DEV_ID_LOG(l->device), l->name, c->callid);
+	sccp_log(10)( VERBOSE_PREFIX_3 "%s: Waiting for the number to dial on channel %s-%08x\n", DEV_ID_LOG(l->device), l->name, c->callid);
 	/* let's use the keypad to collect digits */
 	c->digittimeout = time(0)+GLOB(firstdigittimeout);
 	sccp_channel_unlock(c);
@@ -1050,7 +1050,7 @@ dial:
 	if ( !ast_strlen_zero(shortenedNumber)
 			&& ast_exists_extension(chan, chan->context, shortenedNumber, 1, l->cid_num) ) {
 		/* found an extension, let's dial it */
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: channel %s-%d is dialing number %s\n", DEV_ID_LOG(l->device), l->name, c->callid, shortenedNumber);
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: channel %s-%08x is dialing number %s\n", DEV_ID_LOG(l->device), l->name, c->callid, shortenedNumber);
 		/* Answer dialplan command works only when in RINGING OR RING ast_state */
 		sccp_ast_setstate(c, AST_STATE_RING);
 		if (ast_pbx_run(chan)) {
