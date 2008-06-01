@@ -721,9 +721,8 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 #ifdef ASTERISK_CONF_1_2
 	tmp = ast_channel_alloc(1);
 #else
-	// tmp = ast_channel_alloc(1, AST_STATE_DOWN, l->cid_num, l->cid_name, "SCCP/%s", l->name, NULL, 0, NULL);
-	// tmp = ast_channel_alloc(1, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, l->name, NULL, 0, NULL);
-    
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:     cid_num: \"%s\"\n", l->cid_num);
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:    cid_name: \"%s\"\n", l->cid_name);
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: accountcode: \"%s\"\n", l->accountcode);
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:       exten: \"%s\"\n", c->dialedNumber);
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:     context: \"%s\"\n", l->context);
@@ -731,7 +730,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:   chan/call: \"%s-%08x\"\n", l->name, c->callid);
 	
 	/* This should definetly fix CDR */
-    tmp = ast_channel_alloc(1, AST_STATE_DOWN, 0, 0, l->accountcode, /* should be exten here */ c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
+    tmp = ast_channel_alloc(1, AST_STATE_DOWN, l->cid_num, l_cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
 #endif
        // tmp = ast_channel_alloc(1); function changed in 1.4.0
        // Note: Assuming AST_STATE_DOWN is starting state
@@ -867,12 +866,6 @@ void * sccp_pbx_startchannel(void *data) {
 	uint8_t res_exten = 0, res_wait = 0, res_timeout = 0;
 	char shortenedNumber[256] = { '\0' }; /* For recording the digittimeoutchar */
 
-    if(!chan || chan == NULL)
-    {
-         sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Asterisk Channel not found. Leaving\n");
-         return NULL;
-    }
-
 	c = CS_AST_CHANNEL_PVT(chan);
 	
     if(!c || c == NULL)
@@ -884,9 +877,9 @@ void * sccp_pbx_startchannel(void *data) {
 	sccp_channel_lock(c);
 	sccp_device_lock(c->device);
 	
-	if(c->device && c->device != NULL && c->device->id && c->device->id != NULL)
+	if(c->device && c->device->id)
 	{
-        sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Got device %s\n", c->device->id);
+        sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Got device %s\n", c->device->id);
     }
     else
     {
@@ -922,8 +915,6 @@ void * sccp_pbx_startchannel(void *data) {
 	sccp_device_unlock(c->device);
 	
     /* this is an outgoung call */
-	//sccp_mutex_lock(&c->lock);
-	
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 	c->hangupok = 0;
 
