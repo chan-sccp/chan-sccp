@@ -399,7 +399,7 @@ void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRANSVM with no channel active\n", d->id);
 		return;
 	}
-	if (c->state != SCCP_CHANNELSTATE_RINGIN && c->state != SCCP_CHANNELSTATE_CALLWAITING) {
+	if (c->state != SCCP_CHANNELSTATE_RINGING && c->state != SCCP_CHANNELSTATE_CALLWAITING) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRANSVM pressed in no ringing state\n", d->id);
 		return;
 	}
@@ -482,7 +482,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	}
 
 	if (ast_pickup_call(ast)) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: pickup error\n", d->id);
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: No channel to pickup\n", d->id);
 		/* let the channel goes down to the invalid number */
 		return;
 	}

@@ -252,7 +252,7 @@ sccp_line_t * sccp_line_find_byname(const char * name) {
     }
 	else
 	{
-		sccp_log(10)(VERBOSE_PREFIX_3 "Line not found.\n");	
+		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Line not found.\n");	
 		return NULL;
 	}
 	

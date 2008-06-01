@@ -462,7 +462,7 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial) {
 			return NULL;
 	}
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: **** New call allocate channel for line %s", d->id,l->name);
+	sccp_log(4)(VERBOSE_PREFIX_2 "%s: **** New call allocate channel for line %s\n", d->id,l->name);
 	c = sccp_channel_allocate(l);
 	
 	if (!c) {
@@ -470,12 +470,16 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial) {
 		return NULL;
 	}
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: **** Channel allocated for line %s-%08x\n", c->device->id,c->line->name,c->callid);
+	sccp_log(4)(VERBOSE_PREFIX_2 "%s: **** Channel allocated for line %s-%08x\n", c->device->id,c->line->name,c->callid);
 	
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 	sccp_channel_set_active(c);
 	sccp_indicate_lock(c, SCCP_CHANNELSTATE_OFFHOOK);
 
+	/* copy the number to dial in the ast->exten */
+	if (dial)
+		sccp_copy_string(c->dialedNumber, dial, sizeof(c->dialedNumber));
+		
 	/* ok the number exist. allocate the asterisk channel */
 	if (!sccp_pbx_channel_allocate(c)) {
 		ast_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", d->id, l->name);
@@ -483,15 +487,13 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial) {
 		return c;
 	}
 
+	sccp_log(4)(VERBOSE_PREFIX_2 "%s: **** Ast Channel allocated for line %s-%08x\n", c->device->id,c->line->name,c->callid);
+	
 	sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 
 	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp) {
 		sccp_channel_openreceivechannel(c);
 	}
-
-	/* copy the number to dial in the ast->exten */
-	if (dial)
-		sccp_copy_string(c->dialedNumber, dial, sizeof(c->dialedNumber));
 
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);

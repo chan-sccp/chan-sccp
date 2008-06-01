@@ -101,7 +101,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_dev_send(d,r2);
 		sccp_dev_clearprompt(d,l->instance, c->callid);
 		sccp_dev_set_keyset(d,l->instance,c->callid, KEYMODE_ONHOOK);
-		if (oldstate == SCCP_CHANNELSTATE_RINGIN)
+		if (oldstate == SCCP_CHANNELSTATE_RINGING)
 			sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, l->instance, c->callid);
 		//if (c == d->active_channel)
 		sccp_dev_stoptone(d, l->instance, c->callid);
@@ -130,7 +130,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_RING_OUT, 0);
 		sccp_ast_setstate(c, AST_STATE_RING);
 		break;
-	case SCCP_CHANNELSTATE_RINGIN:
+	case SCCP_CHANNELSTATE_RINGING:
 		/* clear all the display buffers */
 		sccp_dev_cleardisplaynotify(d);
 		sccp_dev_clearprompt(d, 0, 0);
@@ -265,7 +265,7 @@ const char * sccp_indicate2str(uint8_t state) {
 				return "OnHook";
 		case SCCP_CHANNELSTATE_RINGOUT:
 				return "RingOut";
-		case SCCP_CHANNELSTATE_RINGIN:
+		case SCCP_CHANNELSTATE_RINGING:
 				return "Ringing";
 		case SCCP_CHANNELSTATE_CONNECTED:
 				return "Connected";
