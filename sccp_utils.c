@@ -818,7 +818,7 @@ const char * sccpmsg2str(uint32_t e) {
 	case 0x013F:
 		return "UserToDeviceDataVersion1Message";
 	default:
-		return "unknow";
+		return "unknown";
 	}
 }
 
@@ -1179,7 +1179,7 @@ const char * skinny_alarm2str(uint8_t alarm) {
 	case SKINNY_ALARM_TRACEINFO:
 		return "TraceInfo";
 	default:
-		return "unknow";
+		return "unknown";
 	}
 }
 /**
@@ -1306,7 +1306,7 @@ const char * skinny_devicetype2str(uint32_t type) {
 		return "Cisco7985";
 
 	default:
-		return "unknow";
+		return "unknown";
 	}
 }
 
@@ -1365,7 +1365,7 @@ const char * skinny_stimulus2str(uint8_t type) {
 	case SKINNY_STIMULUS_GROUPCALLPICKUP:
 		return "GroupCallPickup";
 	default:
-		return "unknow";
+		return "unknown";
 	}
 }
 
@@ -1437,7 +1437,7 @@ const char * skinny_buttontype2str(uint8_t type) {
 	case SKINNY_BUTTONTYPE_MULTI:
 		return "Line_or_Speeddial";
 	default:
-		return "unknow";
+		return "unknown";
 	}
 }
 
@@ -1454,7 +1454,7 @@ const char * skinny_lampmode2str(uint8_t type) {
 	case SKINNY_LAMP_BLINK:
 		return "LampBlink";
 	default:
-		return "unknow";
+		return "unknown";
 	}
 }
 
@@ -1469,7 +1469,7 @@ const char * skinny_ringermode2str(uint8_t type) {
 	case SKINNY_STATION_FEATURERING:
 		return "Feature";
 	default:
-		return "unknow";
+		return "unknown";
 	}
 }
 
@@ -1498,7 +1498,7 @@ const char * skinny_softkeyset2str(uint8_t type) {
 	case KEYMODE_MYST:
 		return "Myst";
 	default:
-		return "unknow";
+		return "unknown";
 	}
 }
 
@@ -1515,7 +1515,7 @@ const char * skinny_devicestate2str(uint8_t type) {
 	case SCCP_DEVICESTATE_FWDALL:
 		return "Forward All";
 	default:
-		return "unknow";
+		return "unknown";
 	}
 }
 
@@ -1532,7 +1532,7 @@ const char * skinny_registrationstate2str(uint8_t type) {
 	case SKINNY_DEVICE_RS_TIMEOUT:
 		return "Timeout";
 	default:
-		return "unknow";
+		return "unknown";
 	}
 }
 
@@ -1545,7 +1545,7 @@ const char * skinny_calltype2str(uint8_t type) {
 	case SKINNY_CALLTYPE_FORWARD:
 		return "Forward";
 	default:
-		return "unknow";
+		return "unknown";
 	}
 }
 
@@ -1610,7 +1610,7 @@ const char * skinny_codec2str(uint8_t type) {
 	case 86:
 		return "G.729B Low Complexity";
 	default:
-		return "unknow";
+		return "unknown";
 	}
 }
 
@@ -1653,7 +1653,7 @@ const char * sccp_dndmode2str(uint8_t type) {
 	case SCCP_DNDMODE_SILENT:
 		return "Silent";
 	default:
-		return "unknow";
+		return "unknown";
 	}
 }
 

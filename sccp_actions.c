@@ -727,7 +727,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 			} else {
 				l = d->currentLine;
 				if (l) {
-					sccp_channel_newcall(l, d->lastNumber);
+					sccp_channel_newcall(l, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND);
 				}
 			}
 			break;
@@ -765,7 +765,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 			sccp_dev_set_activeline(l);
 			sccp_dev_set_cplane(l,1);
 			if (!l->channelCount)
-				sccp_channel_newcall(l,NULL);
+				sccp_channel_newcall(l, NULL, SKINNY_CALLTYPE_OUTBOUND);
 			break;
 
 		case SKINNY_BUTTONTYPE_SPEEDDIAL:
@@ -844,7 +844,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 			}
 			if (!ast_strlen_zero(l->vmnum)) {
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: Dialing voicemail %s\n", d->id, l->vmnum);
-				sccp_channel_newcall(l, l->vmnum);
+				sccp_channel_newcall(l, l->vmnum, SKINNY_CALLTYPE_OUTBOUND);
 			} else {
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, instance);
 			}
@@ -927,7 +927,7 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k) {
 		// Pull up a channel
 		l = d->currentLine;
 		if (l) {
-			sccp_channel_newcall(l, k->ext);
+			sccp_channel_newcall(l, k->ext, SKINNY_CALLTYPE_OUTBOUND);
 		}
 	}
 }
@@ -971,7 +971,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r) {
 		l = sccp_dev_get_activeline(d);
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Using line %s\n", d->id, l->name);
 		/* make a new call with no number */
-		sccp_channel_newcall(l, NULL);
+		sccp_channel_newcall(l, NULL, SKINNY_CALLTYPE_OUTBOUND);
 	}
 }
 
@@ -1631,7 +1631,7 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_moo_t * r) {
 	if (!s || !s->device)
 		return;
 	if (r && !ast_strlen_zero(r->msg.EnblocCallMessage.calledParty))
-		sccp_channel_newcall(s->device->currentLine, r->msg.EnblocCallMessage.calledParty);
+		sccp_channel_newcall(s->device->currentLine, r->msg.EnblocCallMessage.calledParty, SKINNY_CALLTYPE_OUTBOUND);
 }
 
 

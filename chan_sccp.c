@@ -1100,6 +1100,12 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 				d->trustphoneip = sccp_true(v->value);
 			} else if (!strcasecmp(v->name, "private")) {
 				d->private = sccp_true(v->value);
+			} else if (!strcasecmp(v->name, "privacy")) {
+				if (!strcasecmp(v->value, "full")) {
+					d->privacy = 0x02;
+				} else {
+					d->privacy = sccp_true(v->value);
+				}
 			} else if (!strcasecmp(v->name, "earlyrtp")) {
 				if (!strcasecmp(v->value, "none"))
 					d->earlyrtp = 0;

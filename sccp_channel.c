@@ -45,6 +45,7 @@ static uint32_t callCount = 1;
 AST_MUTEX_DEFINE_STATIC(callCountLock);
 
 sccp_channel_t * sccp_channel_allocate(sccp_line_t * l) {
+	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_CHANNEL_ALLOCATE ===========================\n");
 /* this just allocate a sccp channel (not the asterisk channel, for that look at sccp_pbx_channel_allocate) */
 	sccp_channel_t * c;
 	sccp_device_t * d;
@@ -124,6 +125,9 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l) {
 }
 
 sccp_channel_t * sccp_channel_get_active(sccp_device_t * d) {
+	
+	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_CHANNEL_GET_ACTIVE ===========================\n");
+	
 	sccp_channel_t * c;
 /* uint8_t tries = SCCP_LOCK_TRIES; */
 
@@ -398,6 +402,8 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 	struct ast_channel * ast;
 	uint8_t res = 0;
 
+	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_CHANNEL_ENDCALL ===========================\n");
+	
 	if (!c || !c->device)
 		return;
 
@@ -440,6 +446,49 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 
 	return;
 }
+
+sccp_channel_t * sccp_channel_pickup(sccp_line_t * l) {
+	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_CHANNEL_PICKUP ===========================\n");
+	
+	sccp_channel_t * c;
+	sccp_device_t * d;
+
+	if (!l || !l->device || strlen(l->device->id) < 3){
+		ast_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
+		return NULL;
+	}
+
+	d = l->device;
+
+	c = sccp_channel_allocate(l);
+	
+	if (!c) {
+		ast_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n", d->id, l->name);
+		return NULL;
+	}
+	
+	c->calltype = SKINNY_CALLTYPE_INBOUND;
+	c->hangupok = 0;
+	
+	sccp_channel_set_active(c);
+	sccp_indicate_lock(c, SCCP_CHANNELSTATE_OFFHOOK);
+
+	if (!sccp_pbx_channel_allocate(c)) {
+		ast_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", d->id, l->name);
+		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONGESTION);
+		return c;
+	}
+	
+	sccp_ast_setstate(c, AST_STATE_OFFHOOK);
+
+	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp) {
+		sccp_channel_openreceivechannel(c);
+	}
+
+	return c;
+}
+
+
 /*
 	Thread functions "should" be always static.... --FS
 
@@ -451,7 +500,7 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 	06/01/2008
 */
 static void * sccp_channel_newcall_thread(void * data) {
-	
+	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_CHANNEL_NEWCALL_THREAD ===========================\n");
 	struct ast_channel * chan;
 	
 	sccp_channel_t * c = data;
@@ -503,7 +552,8 @@ static void * sccp_channel_newcall_thread(void * data) {
 	return NULL;
 }
 
-sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial) {
+sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial, uint8_t calltype) {
+	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_CHANNEL_NEWCALL ===========================\n");
 	/* handle outgoing calls */
 	sccp_channel_t * c;
 	sccp_device_t * d;
@@ -531,7 +581,8 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial) {
 		return NULL;
 	}
 	
-	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
+	c->calltype = calltype;
+	
 	sccp_channel_set_active(c);
 	sccp_indicate_lock(c, SCCP_CHANNELSTATE_OFFHOOK);
 
@@ -938,12 +989,10 @@ void sccp_channel_transfer(sccp_channel_t * c) {
 		return;
 	if (c->state != SCCP_CHANNELSTATE_CALLTRANSFER)
 		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CALLTRANSFER);
-	newcall = sccp_channel_newcall(c->line, NULL);
+	newcall = sccp_channel_newcall(c->line, NULL, SKINNY_CALLTYPE_OUTBOUND);
 	/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER*/
  	if ( blindTransfer || (newcall && newcall->owner && c->owner && CS_AST_BRIDGED_CHANNEL(c->owner)) )
-		pbx_builtin_setvar_helper(newcall->owner, "_BLINDTRANSFER", CS_AST_BRIDGED_CHANNEL(c->owner)->name);
-
-	
+		pbx_builtin_setvar_helper(newcall->owner, "_BLINDTRANSFER", CS_AST_BRIDGED_CHANNEL(c->owner)->name);	
 }
 
 static void * sccp_channel_transfer_ringing_thread(void *data) {

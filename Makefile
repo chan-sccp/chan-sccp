@@ -39,6 +39,7 @@ CFLAGS+=-Iinclude -D_REENTRANT -D_GNU_SOURCE -O -DCRYPTO -fPIC
 CFLAG= -pipe -Wall -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations
 CFLAG+=$(shell if $(CC) -march=$(PROC) -S -o /dev/null -xc /dev/null >/dev/null 2>&1; then echo " -march=$(PROC)"; fi)
 CFLAG+=$(shell if echo athlon | grep -q ppc; then echo " -fsigned-char"; fi)
+CFLAG+=-D'SCCP_VERSION="$(shell svnversion -n .)"'
 #CFLAG+= -pedantic
 #CFLAG+= -W
 #CFLAG+= -Wpointer-arith
