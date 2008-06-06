@@ -42,6 +42,7 @@
 #ifdef CS_SCCP_PICKUP
 #include <asterisk/features.h>
 #include <asterisk/callerid.h>
+#include <asterisk/causes.h>
 #endif
 #ifdef CS_AST_HAS_NEW_DEVICESTATE
 #include <asterisk/devicestate.h>
@@ -72,13 +73,13 @@ void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, sccp_channel_t * c) {
 	}
 	if (!l)
 		l = d->currentLine;
-	sccp_channel_newcall(l, d->lastNumber);
+	sccp_channel_newcall(l, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND);
 }
 
 void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	if (!l)
 		l = d->currentLine;
-	sccp_channel_newcall(l, NULL);
+	sccp_channel_newcall(l, NULL, SKINNY_CALLTYPE_OUTBOUND);
 }
 
 void sccp_sk_hold(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
@@ -103,7 +104,6 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		return;
 	}
 	sccp_channel_transfer(c);
-
 }
 
 void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
@@ -435,14 +435,12 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #ifndef CS_SCCP_PICKUP
 	sccp_log(10)(VERBOSE_PREFIX_3 "### Native PICKUP was not compiled in\n");
 #else
-	uint8_t res = 0;
 	struct ast_channel *ast, *original = NULL;
+	int res = 0;
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char * name, * number, *cidtmp; // For the callerid parse below
 #endif
 
-	if (c && c->line)
-		l = c->line;		
 	if (!l)
 		l = d->currentLine;
 	if (!l)
@@ -454,62 +452,47 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: pickupgroup not configured in sccp.conf\n", d->id);
 		return;
 	}
-	c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_OFFHOOK);
+	
+	c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_OFFHOOK);	
 	if (!c)
 	{
-		c = sccp_channel_newcall(l, NULL);
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: New channel allocated for line %s\n",d->id, l->name);
-	}
-	if (!c) {
+		c = sccp_channel_pickup(l);
+		if(!c)
+		{
 			ast_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n",d->id, l->name);
 			return;
+		}
+		else
+		{
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: New channel allocated for line %s\n",d->id, l->name);
+		}
 	}
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Starting the PICKUP stuff\n", d->id);
-	/* convert the outgoing call in a incoming call */
-	/* let's the startchannel thread go down */
 	ast = c->owner;
-	
-	if (ast != NULL) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Ast channel %s not NULL\n", ast->name);
-		/* let the channel goes down to the invalid number */
-	}
 
-	if (!ast) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: error: no channel to handle\n", d->id);
-		/* let the channel goes down to the invalid number */
+	sccp_log(4)(VERBOSE_PREFIX_3 "%s: Starting the PICKUP stuff\n", d->id);
+	if (!c->owner)
+	{
+		sccp_log(4)(VERBOSE_PREFIX_3 "%s: No channel owner. Leaving\n", d->id);
 		return;
 	}
 
 	if (ast_pickup_call(ast)) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: No channel to pickup\n", d->id);
-		/* let the channel goes down to the invalid number */
+		sccp_log(4)(VERBOSE_PREFIX_3 "%s: No channel to pickup\n", d->id);
 		return;
 	}
 
 	original = ast->masqr;
-
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Pickup the call from %s\n", d->id, original->name);
-
+	
 	res = (int) (ast->blocker);
-
-	/* let's unlock ast_channel */
-	// sccp_ast_channel_unlock(ast);
-
+	
 	if (res)
 		ast_queue_hangup(ast);
 	else
 		ast_hangup(ast);
-
-	if (original != NULL)
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Original channel not null\n");
-
-	if (original)
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Original true\n");
-		
-	if (original) {
+	
+	if (original) {	
 #ifdef CS_AST_CHANNEL_HAS_CID
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Data Ast Channel: \"%s\" (%s) - Data Masq Channel \"%s\" (%s)\n", ast->cid.cid_name, ast->cid.cid_num, original->cid.cid_name, original->cid.cid_num);
 		sccp_channel_set_callingparty(c, original->cid.cid_name, original->cid.cid_num);
 #else
 		if (original->callerid && (cidtmp = strdup(original->callerid))) {
@@ -519,11 +502,13 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 			cidtmp = NULL;
 		}
 #endif
+		sccp_log(4)(VERBOSE_PREFIX_3 "%s: Pickup the call from %s\n", d->id, original->name);
+		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONNECTED);
 	}
-	sccp_mutex_lock(&c->lock);
-	c->calltype = SKINNY_CALLTYPE_INBOUND;
-	sccp_indicate_nolock(c, SCCP_CHANNELSTATE_CONNECTED);
-	sccp_mutex_unlock(&c->lock);
+	else
+	{		
+		sccp_log(4)(VERBOSE_PREFIX_3 "%s: Pickup error\n", d->id);
+	}	
 #endif
 }
 

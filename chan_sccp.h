@@ -128,7 +128,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 #define htoles(x) bswap_16(x)
 #endif
 
-#define SCCP_VERSION "svn-trunk"
+#define __SCCP_VERSION "svn-trunk"
 #define SCCP_LOCK_TRIES 10
 #define SCCP_LOCK_USLEEP 100
 
@@ -389,6 +389,7 @@ struct sccp_device {
 	unsigned int			trustphoneip:1;
 	unsigned int			needcheckringback:1;
 	unsigned int			private:1; 							/*!< permit private function on this device */
+	unsigned int			privacy:1;                          /*!< for future use -FS */
 #ifdef CS_SCCP_REALTIME
 	unsigned int			realtime:1;							/*!< is it a realtimeconfiguration*/
 #endif
@@ -454,6 +455,7 @@ struct sccp_channel {
 	/* don't allow sccp phones to monitor (hint) this call */
 	unsigned int		private:1;
 	unsigned int		hangupok:1;
+	unsigned int		privacy:1;	
 	char musicclass[MAX_MUSICCLASS];
 };
 

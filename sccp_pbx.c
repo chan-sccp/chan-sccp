@@ -90,6 +90,7 @@ static void * sccp_pbx_call_autoanswer_thread(void *data) {
   * \brief this is for incoming calls asterisk sccp_request.
 */
 static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
+	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_PBX_CALL ===========================\n");
 	sccp_line_t	 * l;
 	sccp_device_t  * d;
 	sccp_session_t * s;
@@ -98,7 +99,15 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	pthread_attr_t attr;
 	pthread_t t;
 	char suffixedNumber[255] = { '\0' }; //!< For saving the digittimeoutchar to the logs */
-
+	
+	/* why let the phone ringing on a call forward ??? */
+	if (!ast_strlen_zero(ast->call_forward))
+	{
+		ast_queue_control(ast, AST_CONTROL_PROGRESS);
+		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Forwarding Call to '%s'\n", ast->call_forward);
+		return 0;
+	}
+		
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char * name, * number, *cidtmp; // For the callerid parse below
 #endif
@@ -110,7 +119,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		ast->type = "SCCP";
 	}
 #endif 
-
+	
 	c = CS_AST_CHANNEL_PVT(ast);
 
 	if (!c) {
@@ -312,8 +321,9 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 	sccp_device_t  * d = NULL;
 	int res = 0;
 	
+	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_PBX_HANGUP ===========================\n");
+	
 	/* here the ast channel is locked */
-
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Asterisk request to hangup channel %s\n", ast->name);
 	
 	sccp_mutex_lock(&GLOB(usecnt_lock));
@@ -355,8 +365,8 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
 		sccp_indicate_nolock(c, SCCP_CHANNELSTATE_ONHOOK);
 	}
-
-	if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && !c->hangupok) {
+	
+	if (c->calltype != SKINNY_CALLTYPE_INBOUND && !c->hangupok) {
 		sccp_mutex_unlock(&c->lock);
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Waiting for the dialing thread to go down on channel %s\n", DEV_ID_LOG(d), ast->name);
 		do {
@@ -383,6 +393,7 @@ OUT:
 }
 
 static int sccp_pbx_answer(struct ast_channel *ast) {
+	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_PBX_ANSWER ===========================\n");
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
 	
 #ifdef ASTERISK_CONF_1_2
@@ -701,6 +712,9 @@ const struct ast_channel_tech sccp_tech = {
 #endif
 
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
+	
+	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_PBX_CHANNEL_ALLOCATE ===========================\n");
+	
 	sccp_device_t * d = c->device;
 	struct ast_channel * tmp;
 	sccp_line_t * l = c->line;
@@ -865,7 +879,9 @@ void * sccp_pbx_startchannel(sccp_channel_t * c) {
 	sccp_device_t * d;
 	uint8_t res_exten = 0, res_wait = 0, res_timeout = 0;
 	char shortenedNumber[256] = { '\0' }; /* For recording the digittimeoutchar */
-
+	
+	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_PBX_STARTCHANNEL ===========================\n");
+	
 	// c = CS_AST_CHANNEL_PVT(chan);
 	
     if(!c || c == NULL)
@@ -892,11 +908,11 @@ void * sccp_pbx_startchannel(sccp_channel_t * c) {
 		/* let's go out as soon as possibile */
 		if (!ast_test_flag(chan, AST_FLAG_ZOMBIE)) {
 			// sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for %s\n", (chan) ? chan->name : "(null)");
-			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available\n");
+			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available (1)\n");
 			if (chan)
 				ast_hangup(chan);
 		} else {
-			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for zombie\n");
+			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for zombie (1)\n");
 		}
 		return NULL;
 	}
@@ -904,11 +920,11 @@ void * sccp_pbx_startchannel(sccp_channel_t * c) {
 	if (strlen(c->device->id)<3 || (strncmp(c->device->id,"SEP",3)!=0 && strncmp(c->device->id,"ATA",3)!=0)) {
 		if (!ast_test_flag(chan, AST_FLAG_ZOMBIE)) {
 			// sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for %s\n", (chan) ? chan->name : "(null)");
-			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available\n");
+			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available (2)\n");
 				if (chan)
 					ast_hangup(chan);
 		} else {
-			sccp_log(1)( VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for zombie\n");
+			sccp_log(1)( VERBOSE_PREFIX_3 "SCCP: return from the dial thread. No sccp channel available for zombie (2)\n");
 		}
 		return NULL;
 	}
@@ -916,7 +932,7 @@ void * sccp_pbx_startchannel(sccp_channel_t * c) {
 	sccp_device_unlock(c->device);
 	
     /* this is an outgoung call */
-	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
+	// c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 	c->hangupok = 0;
 
 	l = c->line;
@@ -934,7 +950,14 @@ void * sccp_pbx_startchannel(sccp_channel_t * c) {
 	
 	sccp_log(1)( VERBOSE_PREFIX_3 "%s: New call on line %s\n", DEV_ID_LOG(d), l->name);
 
-	sccp_channel_set_callingparty(c, l->cid_name, l->cid_num);
+	/* Maybe inbound calls should not be processed -FS */
+	if(c->calltype != SKINNY_CALLTYPE_INBOUND)
+		sccp_channel_set_callingparty(c, l->cid_name, l->cid_num);
+	else
+	{
+		sccp_channel_unlock(c);
+		return NULL;
+	}
 
 	if (!ast_strlen_zero(c->dialedNumber)) {
 		/* we have a number to dial. Let's do it */
@@ -950,6 +973,7 @@ void * sccp_pbx_startchannel(sccp_channel_t * c) {
 	sccp_log(10)( VERBOSE_PREFIX_3 "%s: Waiting for the number to dial on channel %s-%08x\n", DEV_ID_LOG(l->device), l->name, c->callid);
 	/* let's use the keypad to collect digits */
 	c->digittimeout = time(0)+GLOB(firstdigittimeout);
+
 	sccp_channel_unlock(c);
 
 	res_exten = 1;
