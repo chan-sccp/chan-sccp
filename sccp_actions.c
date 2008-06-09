@@ -1381,6 +1381,9 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r) {
 				sccp_sk_newcall(d, NULL, NULL);
 		}
 		break;
+	case SKINNY_LBL_CONFRN:
+		sccp_sk_conference(d, l, c);
+		break;
 	case SKINNY_LBL_HOLD:
 		sccp_sk_hold(d, l, c);
 		break;

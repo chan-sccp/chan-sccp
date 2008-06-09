@@ -291,7 +291,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	}
 
 	/* release the asterisk channel lock */
-	 sccp_ast_channel_unlock(ast);
+	// sccp_ast_channel_unlock(ast);
 
 	if ( sccp_channel_get_active(d) ) {
 		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CALLWAITING);
@@ -309,7 +309,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		}
 	}
 	/* someone forget to restore the asterisk lock */
-	 sccp_ast_channel_lock(ast);
+	// sccp_ast_channel_lock(ast);
 	
 	return 0;
 }
@@ -575,13 +575,16 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 /* when the bridged channel hold/unhold the call we are notified here */
 	case AST_CONTROL_HOLD:
 #ifdef ASTERISK_CONF_1_2
+		sccp_log(1)("SCCP: **** NOTIFIED HOLD\n");
 		ast_moh_start(ast, c->musicclass);
 #else
+		sccp_log(1)("SCCP: **** NOTIFIED HOLD\n");
 		ast_moh_start(ast, data, c->musicclass);
 #endif
 		res = 0;
 		break;
 	case AST_CONTROL_UNHOLD:
+		sccp_log(1)("SCCP: **** NOTIFIED UNHOLD\n");
 		ast_moh_stop(ast);
 		res = 0;
 		break;
@@ -1135,4 +1138,18 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 	}
 }
 
+/*! \brief Queue a control frame
+  * 
+  * \param c channel
+  * \param control ast_control_frame_type
+ */
+int sccp_ast_queue_control(sccp_channel_t * c, enum ast_control_frame_type control)
+{
+	struct ast_frame f = { AST_FRAME_CONTROL, };
 
+	f.subclass = control;
+
+	sccp_queue_frame(c, &f);
+	
+	return 0;
+}

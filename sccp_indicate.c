@@ -120,7 +120,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 	case SCCP_CHANNELSTATE_RINGOUT:
 		sccp_channel_set_callstate(c, SKINNY_CALLSTATE_RINGOUT);
 		sccp_channel_send_callinfo(c);
-		if (d->earlyrtp ==  SCCP_CHANNELSTATE_RINGOUT && !c->rtp) {
+		if (d->earlyrtp == SCCP_CHANNELSTATE_RINGOUT && (!c->rtp || c->state != SCCP_CHANNELSTATE_HOLD)) {
 			sccp_channel_openreceivechannel(c);
 		}
 		/* it will be emulated if the rtp audio stream is open */
@@ -155,7 +155,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_dev_set_cplane(l,1);
 		sccp_dev_set_keyset(d, l->instance, c->callid, KEYMODE_CONNECTED);
 		sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_CONNECTED, 0);
-		if (!c->rtp) {
+		if (!c->rtp || c->state == SCCP_CHANNELSTATE_HOLD) {
 			sccp_channel_openreceivechannel(c);
 		}
 		/* asterisk wants rtp open before AST_STATE_UP */
@@ -173,13 +173,12 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_channel_set_callstate(c, SKINNY_CALLSTATE_PROCEED);
 		sccp_channel_send_callinfo(c);
 		sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
-		if (!c->rtp) {
+		if (!c->rtp || c->state != SCCP_CHANNELSTATE_HOLD) {
 			sccp_channel_openreceivechannel(c);
 		}
 		/* sccp_ast_setstate(c, AST_STATE_UP); */
 		break;
-	case SCCP_CHANNELSTATE_HOLD:
-		sccp_channel_closereceivechannel(c);
+	case SCCP_CHANNELSTATE_HOLD:		
 		sccp_handle_time_date_req(d->session, NULL);
 		sccp_channel_set_callstate(c, SKINNY_CALLSTATE_HOLD);
 		sccp_dev_set_keyset(d, l->instance, c->callid, KEYMODE_ONHOLD);
@@ -187,6 +186,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 //		sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 		sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, l->instance, SKINNY_LAMP_WINK);
+		sccp_channel_closereceivechannel(c);
 		break;
 	case SCCP_CHANNELSTATE_CONGESTION:
 		/* it will be emulated if the rtp audio stream is open */
@@ -194,7 +194,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 			sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, l->instance, c->callid, 0);
 		/* In fact, newer firmware versions (the 8 releases for the 7960 etc.) and 
 		   the newer Cisco phone models don't seem to like this at all, resulting in
-		   crashes. Frederico observed that also congestion is affected. We have to find a
+		   crashes. Federico observed that also congestion is affected. We have to find a
 		   signalling replacement for the display promptif this is neccessary for some reason.(-DD)*/
 //		sccp_channel_set_callstate(c, SKINNY_CALLSTATE_CONGESTION);
 		sccp_channel_send_callinfo(c);
@@ -247,7 +247,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s), SKINNY (%s) on call %s-%08x\n",d->id, sccp_indicate2str(state), sccp_callstate2str(c->callstate), l->name, c->callid);
 	if (l->hints) {
 		/* privacy stuff */
-		if (c->private && state != SCCP_CHANNELSTATE_ONHOOK) {
+		if ((c->privacy == 0x02 || (c->privacy == 0x01 && c->private == 1)) && state != SCCP_CHANNELSTATE_ONHOOK) {
 			return;
 		} else {
 			sccp_hint_notify(c, NULL);

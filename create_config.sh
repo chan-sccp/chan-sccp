@@ -73,6 +73,13 @@ then
         echo "#define CS_SCCP_PICKUP"  >>$CONFIGFILE
 fi
 
+echo -n "Build CONFERENCE test functions (y/n)[n]?"
+read key
+if [ "$key" = "y" ]
+then
+	echo "#define CS_SCCP_CONFERENCE"  >>$CONFIGFILE
+fi
+
 if [ "$REALTIME_USEABLE" = "1" ]
 then
 	echo -n "Use realtime functionality (y/n)[n]?"

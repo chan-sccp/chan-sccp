@@ -5,6 +5,7 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 void sccp_sk_hold(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
+void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
