@@ -1174,6 +1174,9 @@ static const uint8_t skSet_Conntrans [] = {
 	SKINNY_LBL_HOLD,
 	SKINNY_LBL_ENDCALL,
 	SKINNY_LBL_TRANSFER,
+#ifdef CS_SCCP_CONFERENCE	
+	SKINNY_LBL_CONFRN,
+#endif
 #ifdef CS_SCCP_PARK
 	SKINNY_LBL_PARK,
 #endif

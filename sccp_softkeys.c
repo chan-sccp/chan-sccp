@@ -431,12 +431,18 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_mutex_unlock(&c->lock);
 }
 
+void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+
+	sccp_log(1)(VERBOSE_PREFIX_3 "### Native conference not yet implemented\n");
+	sccp_dev_displayprompt(d, c->line->instance, c->callid, "Not yet implemented",5);
+
+}
+
 void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {     
 #ifndef CS_SCCP_PICKUP
 	sccp_log(10)(VERBOSE_PREFIX_3 "### Native PICKUP was not compiled in\n");
 #else
 	struct ast_channel *ast, *original = NULL;
-	int res = 0;
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char * name, * number, *cidtmp; // For the callerid parse below
 #endif
@@ -484,13 +490,6 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 
 	original = ast->masqr;
 	
-	res = (int) (ast->blocker);
-	
-	if (res)
-		ast_queue_hangup(ast);
-	else
-		ast_hangup(ast);
-	
 	if (original) {	
 #ifdef CS_AST_CHANNEL_HAS_CID
 		sccp_channel_set_callingparty(c, original->cid.cid_name, original->cid.cid_num);
@@ -504,11 +503,15 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #endif
 		sccp_log(4)(VERBOSE_PREFIX_3 "%s: Pickup the call from %s\n", d->id, original->name);
 		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONNECTED);
+		ast_setstate(ast, AST_STATE_DOWN);
+		ast->hangupcause = AST_CAUSE_NORMAL_CLEARING;
 	}
 	else
 	{		
 		sccp_log(4)(VERBOSE_PREFIX_3 "%s: Pickup error\n", d->id);
-	}	
+		ast->hangupcause = AST_CAUSE_CALL_REJECTED;
+	}
+	ast_hangup(ast);
 #endif
 }
 

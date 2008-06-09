@@ -305,7 +305,7 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c) {
 	sccp_dev_send(c->line->device, r);
 	/* create the rtp stuff. It must be create before setting the channel AST_STATE_UP. otherwise no audio will be played */
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", c->line->device->id, c->callid, skinny_codec2str(payloadType), c->line->echocancel ? "ON" : "OFF");
-	if (!c->rtp) {
+	if (!c->rtp || c->state == SCCP_CHANNELSTATE_HOLD) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Starting RTP on channel %s-%08x\n", DEV_ID_LOG(c->device), c->line->name, c->callid);
 		sccp_channel_start_rtp(c);
 	}
@@ -384,11 +384,12 @@ void sccp_channel_closereceivechannel(sccp_channel_t * c) {
 
 void sccp_channel_stopmediatransmission(sccp_channel_t * c) {
 	sccp_moo_t * r;
-	if (c->rtp) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Stopping phone media transmission on channel %s-%08x\n", c->device->id, c->line->name, c->callid);
-		sccp_channel_stop_rtp(c);
-	}
 	REQ(r, StopMediaTransmission);
+	
+	/* it seems that sccp_channel_stop_rtp hangs up the call on a pickup or transfer, so it should be carefully used . more investigation needed. (-FS)  */
+	if(c->rtp && c->state != SCCP_CHANNELSTATE_HOLD)
+		sccp_channel_stop_rtp(c);
+		
 	r->msg.CloseReceiveChannel.lel_conferenceId = htolel(c ? c->callid : 0);
 	r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(c ? c->callid : 0);
 	sccp_dev_send(c->line->device, r);
@@ -413,14 +414,14 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 	d = c->device;
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Ending call %d on line %s\n", DEV_ID_LOG(d), c->callid, c->line->name);
 	
+	if (c->state != SCCP_CHANNELSTATE_DOWN)
+		sccp_indicate_nolock(c, SCCP_CHANNELSTATE_ONHOOK);
+
 	if (c->rtp) {
 		sccp_channel_closereceivechannel(c);
 		sccp_channel_stop_rtp(c);
 	}
-
-	if ( c->state != SCCP_CHANNELSTATE_DOWN)
-		sccp_indicate_nolock(c, SCCP_CHANNELSTATE_ONHOOK);
-
+		
 	ast = c->owner;
 	
 	if (!ast) {
@@ -675,7 +676,10 @@ int sccp_channel_hold(sccp_channel_t * c) {
 	d = c->line->device;
 
 	if (c->state == SCCP_CHANNELSTATE_HOLD)
+	{
+		ast_log(LOG_WARNING, "SCCP: Channel already on hold\n");
 		return 0;
+	}
 	/* put on hold an active call */
 	if (c->state != SCCP_CHANNELSTATE_CONNECTED) {
 		/* something wrong on the code let's notify it for a fix */
@@ -685,18 +689,32 @@ int sccp_channel_hold(sccp_channel_t * c) {
 		return 0;
 	}
 
+	if(c->owner)
+	{
+		sccp_log(4)(VERBOSE_PREFIX_3 "SCCP: Hold Owner channel %s\n", c->owner->name);
+	}
+		
 	peer = CS_AST_BRIDGED_CHANNEL(c->owner);
-
+		
 	if (peer) {
-#ifdef ASTERISK_CONF_1_2
-		ast_moh_start(peer, NULL);
+#ifdef ASTERISK_CONF_1_2		
+		ast_moh_start(peer, NULL);		
+		sccp_log(4)(VERBOSE_PREFIX_3 "SCCP: Hold the channel %s\n", peer->name);
 #else
+		ast_rtp_new_source(c->rtp);
 		ast_moh_start(peer, NULL, l->musicclass);
+		sccp_log(4)(VERBOSE_PREFIX_3 "SCCP: Hold the channel %s\n", peer->name);
 #endif
 #ifndef CS_AST_HAS_FLAG_MOH
 		ast_set_flag(peer, AST_FLAG_MOH);
+		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: AST_FLAG_MOH\n");		
 #endif
 	}
+	else
+	{
+		ast_log(LOG_ERROR, "SCCP: Cannot find bridged channel on '%s'\n", c->owner->name);
+		return 0;
+	}	
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Hold the channel %s-%08x\n", d->id, l->name, c->callid);
 	sccp_mutex_lock(&d->lock);
 	d->active_channel = NULL;
@@ -704,15 +722,18 @@ int sccp_channel_hold(sccp_channel_t * c) {
 	sccp_indicate_lock(c, SCCP_CHANNELSTATE_HOLD);
 
 #ifdef CS_AST_CONTROL_HOLD
-	 sccp_mutex_lock(&d->lock);
-	 if (!c->owner) {
-		 sccp_log(1)(VERBOSE_PREFIX_3 "C owner disappeared! Can't free ressources\n");
-		 sccp_mutex_unlock(&d->lock);
-		 return 0;
-	 }
-	ast_queue_control(c->owner, AST_CONTROL_HOLD);
+	sccp_mutex_lock(&d->lock);
+	if (!c->owner) {
+		sccp_log(1)(VERBOSE_PREFIX_3 "C owner disappeared! Can't free ressources\n");
+		sccp_mutex_unlock(&d->lock);
+		return 0;
+	}
+	
+	sccp_ast_queue_control(c, AST_CONTROL_HOLD);
+	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: AST_CONTROL_HOLD\n");
 	sccp_mutex_unlock(&d->lock);
 #endif
+
 	return 1;
 }
 
@@ -758,7 +779,11 @@ int sccp_channel_resume(sccp_channel_t * c) {
 
 	peer = CS_AST_BRIDGED_CHANNEL(c->owner);
 	if (peer) {
-		ast_moh_stop(peer);
+#ifndef ASTERISK_CONF_1_2
+	if(c->rtp)
+		ast_rtp_new_source(c->rtp);
+#endif	
+	ast_moh_stop(peer);
             /* this is for STABLE version */
 #ifndef CS_AST_HAS_FLAG_MOH
 		ast_clear_flag(peer, AST_FLAG_MOH);
@@ -768,7 +793,7 @@ int sccp_channel_resume(sccp_channel_t * c) {
 	sccp_channel_set_active(c);
 	sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONNECTED);
 #ifdef CS_AST_CONTROL_HOLD
-	ast_queue_control(c->owner, AST_CONTROL_UNHOLD);
+	sccp_ast_queue_control(c, AST_CONTROL_UNHOLD);
 #endif
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Resume the channel %s-%08x\n", d->id, l->name, c->callid);
 	return 1;
@@ -941,8 +966,7 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
 
 void sccp_channel_stop_rtp(sccp_channel_t * c) {
 	if (c->rtp) {
-		if (c->owner)
-			c->owner->fds[0] = -1;
+		sccp_log(3)(VERBOSE_PREFIX_3 "%s: Stopping phone media transmission on channel %s-%08x\n", c->device->id, c->line->name, c->callid);
 		ast_rtp_destroy(c->rtp);
 		c->rtp = NULL;
 	}
