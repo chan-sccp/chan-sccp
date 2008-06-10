@@ -45,7 +45,7 @@ static uint32_t callCount = 1;
 AST_MUTEX_DEFINE_STATIC(callCountLock);
 
 sccp_channel_t * sccp_channel_allocate(sccp_line_t * l) {
-	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_CHANNEL_ALLOCATE ===========================\n");
+
 /* this just allocate a sccp channel (not the asterisk channel, for that look at sccp_pbx_channel_allocate) */
 	sccp_channel_t * c;
 	sccp_device_t * d;
@@ -125,8 +125,6 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l) {
 }
 
 sccp_channel_t * sccp_channel_get_active(sccp_device_t * d) {
-	
-	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_CHANNEL_GET_ACTIVE ===========================\n");
 	
 	sccp_channel_t * c;
 /* uint8_t tries = SCCP_LOCK_TRIES; */
@@ -402,8 +400,6 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 	sccp_device_t * d;
 	struct ast_channel * ast;
 	uint8_t res = 0;
-
-	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_CHANNEL_ENDCALL ===========================\n");
 	
 	if (!c || !c->device)
 		return;
@@ -449,7 +445,6 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 }
 
 sccp_channel_t * sccp_channel_pickup(sccp_line_t * l) {
-	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_CHANNEL_PICKUP ===========================\n");
 	
 	sccp_channel_t * c;
 	sccp_device_t * d;
@@ -501,7 +496,6 @@ sccp_channel_t * sccp_channel_pickup(sccp_line_t * l) {
 	06/01/2008
 */
 static void * sccp_channel_newcall_thread(void * data) {
-	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_CHANNEL_NEWCALL_THREAD ===========================\n");
 	struct ast_channel * chan;
 	
 	sccp_channel_t * c = data;
@@ -554,7 +548,6 @@ static void * sccp_channel_newcall_thread(void * data) {
 }
 
 sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial, uint8_t calltype) {
-	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_CHANNEL_NEWCALL ===========================\n");
 	/* handle outgoing calls */
 	sccp_channel_t * c;
 	sccp_device_t * d;
@@ -688,26 +681,18 @@ int sccp_channel_hold(sccp_channel_t * c) {
 		sccp_dev_displayprompt(d, l->instance, c->callid, "No active call to put on hold.",5);
 		return 0;
 	}
-
-	if(c->owner)
-	{
-		sccp_log(4)(VERBOSE_PREFIX_3 "SCCP: Hold Owner channel %s\n", c->owner->name);
-	}
-		
+	
 	peer = CS_AST_BRIDGED_CHANNEL(c->owner);
 		
 	if (peer) {
 #ifdef ASTERISK_CONF_1_2		
 		ast_moh_start(peer, NULL);		
-		sccp_log(4)(VERBOSE_PREFIX_3 "SCCP: Hold the channel %s\n", peer->name);
 #else
 		ast_rtp_new_source(c->rtp);
 		ast_moh_start(peer, NULL, l->musicclass);
-		sccp_log(4)(VERBOSE_PREFIX_3 "SCCP: Hold the channel %s\n", peer->name);
 #endif
 #ifndef CS_AST_HAS_FLAG_MOH
 		ast_set_flag(peer, AST_FLAG_MOH);
-		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: AST_FLAG_MOH\n");		
 #endif
 	}
 	else
@@ -715,7 +700,9 @@ int sccp_channel_hold(sccp_channel_t * c) {
 		ast_log(LOG_ERROR, "SCCP: Cannot find bridged channel on '%s'\n", c->owner->name);
 		return 0;
 	}	
+
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Hold the channel %s-%08x\n", d->id, l->name, c->callid);
+	
 	sccp_mutex_lock(&d->lock);
 	d->active_channel = NULL;
 	sccp_mutex_unlock(&d->lock);
@@ -730,7 +717,6 @@ int sccp_channel_hold(sccp_channel_t * c) {
 	}
 	
 	sccp_ast_queue_control(c, AST_CONTROL_HOLD);
-	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: AST_CONTROL_HOLD\n");
 	sccp_mutex_unlock(&d->lock);
 #endif
 
