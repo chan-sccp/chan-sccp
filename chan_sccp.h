@@ -389,7 +389,7 @@ struct sccp_device {
 	unsigned int			trustphoneip:1;
 	unsigned int			needcheckringback:1;
 	unsigned int			private:1; 							/*!< permit private function on this device */
-	unsigned int			privacy:1;                          /*!< for future use -FS */
+	unsigned int			privacy:1;                          /*!< device privacy flag 0x02 = no hints, 0x01 = hints depending on private key, 0x00 = always hints */
 #ifdef CS_SCCP_REALTIME
 	unsigned int			realtime:1;							/*!< is it a realtimeconfiguration*/
 #endif
@@ -455,7 +455,6 @@ struct sccp_channel {
 	/* don't allow sccp phones to monitor (hint) this call */
 	unsigned int		private:1;
 	unsigned int		hangupok:1;
-	unsigned int		privacy:1;	
 	char musicclass[MAX_MUSICCLASS];
 };
 

@@ -144,7 +144,10 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_dev_set_keyset(d, l->instance, c->callid, KEYMODE_RINGIN);
 		sccp_ast_setstate(c, AST_STATE_RINGING);
 		break;
-	case SCCP_CHANNELSTATE_CONNECTED:
+	case SCCP_CHANNELSTATE_CONNECTED:				
+		if (!c->rtp || c->callstate == SKINNY_CALLSTATE_HOLD) {
+			sccp_channel_openreceivechannel(c);
+		}
 		sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, l->instance, c->callid);
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 //		if (c->calltype == SKINNY_CALLTYPE_OUTBOUND)
@@ -155,9 +158,6 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_dev_set_cplane(l,1);
 		sccp_dev_set_keyset(d, l->instance, c->callid, KEYMODE_CONNECTED);
 		sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_CONNECTED, 0);
-		if (!c->rtp || c->state == SCCP_CHANNELSTATE_HOLD) {
-			sccp_channel_openreceivechannel(c);
-		}
 		/* asterisk wants rtp open before AST_STATE_UP */
 		sccp_ast_setstate(c, AST_STATE_UP);
 		break;
@@ -173,7 +173,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_channel_set_callstate(c, SKINNY_CALLSTATE_PROCEED);
 		sccp_channel_send_callinfo(c);
 		sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
-		if (!c->rtp || c->state != SCCP_CHANNELSTATE_HOLD) {
+		if (!c->rtp || c->state == SCCP_CHANNELSTATE_HOLD || c->state == SCCP_CHANNELSTATE_CALLTRANSFER) {
 			sccp_channel_openreceivechannel(c);
 		}
 		/* sccp_ast_setstate(c, AST_STATE_UP); */
