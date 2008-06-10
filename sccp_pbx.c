@@ -559,11 +559,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 #ifdef CS_AST_CONTROL_SRCUPDATE
     case AST_CONTROL_SRCUPDATE:
         /* Source media has changed. */ 
+		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Source media has changed\n");
+#ifdef CS_AST_RTP_NEW_SOURCE		
         if(c->rtp)
-		{
-			sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Source media has changed\n");    
+		{			
 			ast_rtp_new_source(c->rtp);
 		}
+#endif		
         break;        
 #endif
 
