@@ -477,7 +477,7 @@ sccp_channel_t * sccp_channel_pickup(sccp_line_t * l) {
 	
 	sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 
-	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp) {
+	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK) { // && !c->rtp) {
 		sccp_channel_openreceivechannel(c);
 	}
 
@@ -593,7 +593,7 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial, uint8_t call
 
 	sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 
-	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp) {
+	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK) { //  && !c->rtp) {
 		sccp_channel_openreceivechannel(c);
 	}
 
