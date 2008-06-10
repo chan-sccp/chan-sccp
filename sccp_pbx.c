@@ -1131,7 +1131,11 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
   * \param c channel
   * \param control ast_control_frame_type
  */
+#ifndef ASTERISK_CONF_1_2
 int sccp_ast_queue_control(sccp_channel_t * c, enum ast_control_frame_type control)
+#else
+int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
+#endif
 {
 	struct ast_frame f = { AST_FRAME_CONTROL, };
 
