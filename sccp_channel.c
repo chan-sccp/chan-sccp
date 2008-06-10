@@ -303,7 +303,7 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c) {
 	sccp_dev_send(c->line->device, r);
 	/* create the rtp stuff. It must be create before setting the channel AST_STATE_UP. otherwise no audio will be played */
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", c->line->device->id, c->callid, skinny_codec2str(payloadType), c->line->echocancel ? "ON" : "OFF");
-	if (!c->rtp || c->state == SCCP_CHANNELSTATE_HOLD) {
+	if (!c->rtp || c->callstate == SKINNY_CALLSTATE_HOLD) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Starting RTP on channel %s-%08x\n", DEV_ID_LOG(c->device), c->line->name, c->callid);
 		sccp_channel_start_rtp(c);
 	}
@@ -385,7 +385,7 @@ void sccp_channel_stopmediatransmission(sccp_channel_t * c) {
 	REQ(r, StopMediaTransmission);
 	
 	/* it seems that sccp_channel_stop_rtp hangs up the call on a pickup or transfer, so it should be carefully used . more investigation needed. (-FS)  */
-	if(c->rtp && c->state != SCCP_CHANNELSTATE_HOLD)
+	if(c->rtp && c->state != SCCP_CHANNELSTATE_HOLD && c->state != SCCP_CHANNELSTATE_CALLTRANSFER)
 		sccp_channel_stop_rtp(c);
 		
 	r->msg.CloseReceiveChannel.lel_conferenceId = htolel(c ? c->callid : 0);
@@ -766,11 +766,11 @@ int sccp_channel_resume(sccp_channel_t * c) {
 	peer = CS_AST_BRIDGED_CHANNEL(c->owner);
 	if (peer) {
 #ifndef ASTERISK_CONF_1_2
-	if(c->rtp)
-		ast_rtp_new_source(c->rtp);
+		if(c->rtp)
+			ast_rtp_new_source(c->rtp);
 #endif	
-	ast_moh_stop(peer);
-            /* this is for STABLE version */
+		ast_moh_stop(peer);
+		/* this is for STABLE version */
 #ifndef CS_AST_HAS_FLAG_MOH
 		ast_clear_flag(peer, AST_FLAG_MOH);
 #endif
