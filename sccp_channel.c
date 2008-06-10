@@ -687,8 +687,10 @@ int sccp_channel_hold(sccp_channel_t * c) {
 	if (peer) {
 #ifdef ASTERISK_CONF_1_2		
 		ast_moh_start(peer, NULL);		
-#else
+#else	
+#ifdef CS_AST_RTP_NEW_SOURCE		
 		ast_rtp_new_source(c->rtp);
+#endif		
 		ast_moh_start(peer, NULL, l->musicclass);
 #endif
 #ifndef CS_AST_HAS_FLAG_MOH
@@ -765,7 +767,7 @@ int sccp_channel_resume(sccp_channel_t * c) {
 
 	peer = CS_AST_BRIDGED_CHANNEL(c->owner);
 	if (peer) {
-#ifndef ASTERISK_CONF_1_2
+#ifdef CS_AST_RTP_NEW_SOURCE
 		if(c->rtp)
 			ast_rtp_new_source(c->rtp);
 #endif	
