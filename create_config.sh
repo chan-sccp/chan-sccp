@@ -111,10 +111,10 @@ fi
 
 if grep -q "void ast_rtp_new_source" $INCLUDEDIR/rtp.h; then
 	echo "#define CS_AST_RTP_NEW_SOURCE" >>$CONFIGFILE
-	echo " * found 'struct ast_rtp_new_source'"
+	echo " * found 'void ast_rtp_new_source'"
 else
 	echo "#undef CS_AST_RTP_NEW_SOURCE" >>$CONFIGFILE
-	echo " * no 'struct ast_rtp_new_source'"
+	echo " * no 'void ast_rtp_new_source'"
 fi
 
 if grep -q "struct ast_channel_tech" $INCLUDEDIR/channel.h; then
