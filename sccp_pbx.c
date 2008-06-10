@@ -90,7 +90,6 @@ static void * sccp_pbx_call_autoanswer_thread(void *data) {
   * \brief this is for incoming calls asterisk sccp_request.
 */
 static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
-	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_PBX_CALL ===========================\n");
 	sccp_line_t	 * l;
 	sccp_device_t  * d;
 	sccp_session_t * s;
@@ -321,8 +320,6 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 	sccp_device_t  * d = NULL;
 	int res = 0;
 	
-	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_PBX_HANGUP ===========================\n");
-	
 	/* here the ast channel is locked */
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Asterisk request to hangup channel %s\n", ast->name);
 	
@@ -393,7 +390,6 @@ OUT:
 }
 
 static int sccp_pbx_answer(struct ast_channel *ast) {
-	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_PBX_ANSWER ===========================\n");
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
 	
 #ifdef ASTERISK_CONF_1_2
@@ -716,8 +712,6 @@ const struct ast_channel_tech sccp_tech = {
 
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	
-	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_PBX_CHANNEL_ALLOCATE ===========================\n");
-	
 	sccp_device_t * d = c->device;
 	struct ast_channel * tmp;
 	sccp_line_t * l = c->line;
@@ -883,10 +877,6 @@ void * sccp_pbx_startchannel(sccp_channel_t * c) {
 	uint8_t res_exten = 0, res_wait = 0, res_timeout = 0;
 	char shortenedNumber[256] = { '\0' }; /* For recording the digittimeoutchar */
 	
-	sccp_log(1)(VERBOSE_PREFIX_2 "SCCP: ==== SCCP_PBX_STARTCHANNEL ===========================\n");
-	
-	// c = CS_AST_CHANNEL_PVT(chan);
-	
     if(!c || c == NULL)
     {
          sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Channel not found. Leaving\n");
@@ -934,8 +924,6 @@ void * sccp_pbx_startchannel(sccp_channel_t * c) {
 
 	sccp_device_unlock(c->device);
 	
-    /* this is an outgoung call */
-	// c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 	c->hangupok = 0;
 
 	l = c->line;

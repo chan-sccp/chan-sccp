@@ -247,7 +247,8 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s), SKINNY (%s) on call %s-%08x\n",d->id, sccp_indicate2str(state), sccp_callstate2str(c->callstate), l->name, c->callid);
 	if (l->hints) {
 		/* privacy stuff */
-		if ((c->privacy == 0x02 || (c->privacy == 0x01 && c->private == 1)) && state != SCCP_CHANNELSTATE_ONHOOK) {
+		if ((d->privacy == 0x02 || (d->privacy == 0x01 && c->private == 1)) && state != SCCP_CHANNELSTATE_ONHOOK) {
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Privacy flag on (%01x), Private key (%01x) on call %s-%08x\n",d->id, d->privacy, c->private, l->name, c->callid);
 			return;
 		} else {
 			sccp_hint_notify(c, NULL);
