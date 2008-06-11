@@ -1499,6 +1499,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r) {
 		ast_log(LOG_ERROR, "%s: OpenReceiveChannelAck error from the phone! No rtp media available\n", d->id);
 		return;
 	}
+	
 	c = sccp_channel_find_byid(letohl(r->msg.OpenReceiveChannelAck.lel_passThruPartyId));
 	/* prevent a segmentation fault on fast hangup after answer, failed voicemail for example */
 	if (c && c->state != SCCP_CHANNELSTATE_DOWN) {

@@ -442,7 +442,7 @@ void sccp_hint_notify_channelstate(sccp_device_t *d, uint8_t instance, sccp_chan
 		d = c->device;
 	if (!d)
 		return;
-
+	
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: HINT notify state %s (%d) of the channel %d \n", d->id, sccp_callstate2str(c->callstate), c->callstate, c->callid);
 
 	if (c->callstate == SKINNY_CALLSTATE_ONHOOK) {
@@ -455,29 +455,53 @@ void sccp_hint_notify_channelstate(sccp_device_t *d, uint8_t instance, sccp_chan
 	switch (c->callstate) {
 	case SKINNY_CALLSTATE_CONNECTED:
 		lamp = SKINNY_LAMP_ON;
-		sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, c->callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
-		sccp_copy_string(r->msg.CallInfoMessage.callingParty, c->callingPartyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
-		sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, c->calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
-		sccp_copy_string(r->msg.CallInfoMessage.calledParty, c->calledPartyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
+		if(d->privacy == 0 || (d->privacy == 1 && c->private == 0))
+		{
+			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, c->callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
+			sccp_copy_string(r->msg.CallInfoMessage.callingParty, c->callingPartyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
+			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, c->calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
+			sccp_copy_string(r->msg.CallInfoMessage.calledParty, c->calledPartyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
+		}
+		else
+		{
+			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_CONNECTED, sizeof(r->msg.CallInfoMessage.callingPartyName));
+			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_CONNECTED, sizeof(r->msg.CallInfoMessage.calledPartyName));
+		}
 		break;
 	case SKINNY_CALLSTATE_OFFHOOK:
-		lamp = SKINNY_LAMP_ON;
+		lamp = SKINNY_LAMP_ON;		
 		sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_OFF_HOOK, sizeof(r->msg.CallInfoMessage.callingPartyName));
-		sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_OFF_HOOK, sizeof(r->msg.CallInfoMessage.calledPartyName));
-		break;
+		sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_OFF_HOOK, sizeof(r->msg.CallInfoMessage.calledPartyName));		
+		break;		
 	case SKINNY_CALLSTATE_RINGOUT:
 		lamp = SKINNY_LAMP_ON;
-		sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, c->callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
-		sccp_copy_string(r->msg.CallInfoMessage.callingParty, c->callingPartyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
-		sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, c->calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
-		sccp_copy_string(r->msg.CallInfoMessage.calledParty, c->calledPartyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
+		if(d->privacy == 0 || (d->privacy == 1 && c->private == 0))
+		{
+			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, c->callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
+			sccp_copy_string(r->msg.CallInfoMessage.callingParty, c->callingPartyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
+			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, c->calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
+			sccp_copy_string(r->msg.CallInfoMessage.calledParty, c->calledPartyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
+		}
+		else
+		{
+			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_RING_OUT, sizeof(r->msg.CallInfoMessage.callingPartyName));
+			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_RING_OUT, sizeof(r->msg.CallInfoMessage.calledPartyName));
+		}
 		break;
 	case SKINNY_CALLSTATE_RINGIN:
 		lamp = SKINNY_LAMP_BLINK;
-		sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, c->callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
-		sccp_copy_string(r->msg.CallInfoMessage.callingParty, c->callingPartyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
-		sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, c->calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
-		sccp_copy_string(r->msg.CallInfoMessage.calledParty, c->calledPartyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
+		if(d->privacy == 0 || (d->privacy == 1 && c->private == 0))
+		{
+			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, c->callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
+			sccp_copy_string(r->msg.CallInfoMessage.callingParty, c->callingPartyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
+			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, c->calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
+			sccp_copy_string(r->msg.CallInfoMessage.calledParty, c->calledPartyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
+		}
+		else
+		{
+			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_CALL_PROCEED, sizeof(r->msg.CallInfoMessage.callingPartyName));
+			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_CALL_PROCEED, sizeof(r->msg.CallInfoMessage.calledPartyName));
+		}
 		break;
 	default:
 		/* nothing to send */
