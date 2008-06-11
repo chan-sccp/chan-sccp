@@ -66,7 +66,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 
 	switch (state) {
 	case SCCP_CHANNELSTATE_DOWN:
-/*		sccp_ast_setstate(c, AST_STATE_DOWN); */
+//		sccp_ast_setstate(c, AST_STATE_DOWN); 
 		break;
 	case SCCP_CHANNELSTATE_OFFHOOK:
 		/* clear all the display buffers */
@@ -75,11 +75,11 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_dev_set_mwi(d, l, 0);
 		if (!d->mwioncall)
 			sccp_dev_set_mwi(d, NULL, 0);
-		//sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, l->instance, c->callid);
+//		sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, l->instance, c->callid);
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 //		sccp_dev_set_microphone(d, SKINNY_STATIONMIC_ON);
-		sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, l->instance, SKINNY_LAMP_ON);
 		sccp_channel_set_callstate(c, SKINNY_CALLSTATE_OFFHOOK);
+		sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, l->instance, SKINNY_LAMP_ON);
 		sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 0);
 		sccp_dev_set_keyset(d,l->instance,c->callid, KEYMODE_OFFHOOK);
 		sccp_dev_set_cplane(l,1);
@@ -245,15 +245,8 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		break;
 	}
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s), SKINNY (%s) on call %s-%08x\n",d->id, sccp_indicate2str(state), sccp_callstate2str(c->callstate), l->name, c->callid);
-	if (l->hints) {
-		/* privacy stuff */
-		if ((d->privacy == 0x02 || (d->privacy == 0x01 && c->private == 1)) && state != SCCP_CHANNELSTATE_ONHOOK) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Privacy flag on (%01x), Private key (%01x) on call %s-%08x\n",d->id, d->privacy, c->private, l->name, c->callid);
-			return;
-		} else {
-			sccp_hint_notify(c, NULL);
-		}
-	}
+	if (l->hints)
+		sccp_hint_notify(c, NULL);
 }
 
 const char * sccp_indicate2str(uint8_t state) {
