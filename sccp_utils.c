@@ -415,7 +415,7 @@ void sccp_ast_setstate(sccp_channel_t * c, int state) {
 }
 
 void sccp_dev_dbput(sccp_device_t * d) {
-	char tmp[1024] = "", cfwdall[1024] = "", cfwdbusy[1024] = "";
+	char tmp[1024] = "", cfwdall[1024] = "", cfwdbusy[1024] = "", cfwdnoanswer[1024] = "";
 	sccp_line_t * l;
 	if (!d)
 		return;
@@ -428,6 +428,9 @@ void sccp_dev_dbput(sccp_device_t * d) {
 		} else if (l->cfwd_type == SCCP_CFWD_BUSY) {
 			snprintf(tmp, sizeof(tmp), "%d:%s;", l->instance, l->cfwd_num);
 			strncat(cfwdbusy, tmp, sizeof(cfwdbusy) - strlen(cfwdbusy));
+		} else if (l->cfwd_type == SCCP_CFWD_NOANSWER) {
+			snprintf(tmp, sizeof(tmp), "%d:%s;", l->instance, l->cfwd_num);
+			strncat(cfwdnoanswer, tmp, sizeof(cfwdnoanswer) - strlen(cfwdnoanswer));
 		}
 		l = l->next_on_device;
 	}
@@ -437,7 +440,7 @@ void sccp_dev_dbput(sccp_device_t * d) {
 	if (!ast_strlen_zero(cfwdbusy))
 		cfwdbusy[strlen(cfwdbusy)-1] = '\0';
 
-	snprintf(tmp, sizeof(tmp), "dnd=%d,cfwdall=%s,cfwdbusy=%s", d->dnd, cfwdall, cfwdbusy);
+	snprintf(tmp, sizeof(tmp), "dnd=%d,cfwdall=%s,cfwdbusy=%s,cfwdnoanswer=%s", d->dnd, cfwdall, cfwdbusy, cfwdnoanswer);
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Storing device status (dnd, cfwd*) in the asterisk db\n", d->id);
 	if (ast_db_put("SCCP", d->id, tmp))
 		ast_log(LOG_NOTICE, "%s: Unable to store device status (dnd, cfwd*) in the asterisk db\n", d->id);
@@ -1624,6 +1627,12 @@ uint8_t sccp_codec_ast2skinny(int fmt) {
 		return 9;
 	case AST_FORMAT_G729A:
 		return 12;
+	case AST_FORMAT_G726_AAL2:
+		return 82;
+	case AST_FORMAT_H261:
+		return 100;
+	case AST_FORMAT_H263:
+		return 101;
 	default:
 		return 0;
 	}
@@ -1639,6 +1648,12 @@ int sccp_codec_skinny2ast(uint8_t fmt) {
 		return AST_FORMAT_G723_1;
 	case 12:
 		return AST_FORMAT_G729A;
+	case 82:
+		return AST_FORMAT_G726_AAL2;
+	case 100:
+		return AST_FORMAT_H261;
+	case 101:
+		return AST_FORMAT_H263;
 	default:
 		return 0;
 	}

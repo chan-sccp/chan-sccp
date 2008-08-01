@@ -821,7 +821,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 					sccp_log(1)(VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, instance);
 					return;
 				}
-				sccp_mutex_lock(&c->lock);
+				sccp_channel_lock(c);
 				if (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_DIALING) {
 					len = strlen(c->dialedNumber);
 					sccp_copy_string(c->dialedNumber+len, c->line->vmnum, sizeof(c->dialedNumber-len));
@@ -832,7 +832,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 					sccp_pbx_senddigits(c, c->line->vmnum);
 //					ast_log(LOG_NOTICE, "Cannot send voicemail number. Call in progress with no rtp stream\n", c->callid);
 				}
-				sccp_mutex_unlock(&c->lock);
+				sccp_channel_unlock(c);
 				return;
 			}
 			if (!instance)
@@ -857,8 +857,24 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 		case SKINNY_BUTTONTYPE_FEATURE:
 			ast_log(LOG_NOTICE, "%s: Privacy Button is not yet handled. working on implementation\n", d->id);
 			break;
-
-		case SKINNY_BUTTONTYPE_FORWARDALL: // Call forward all
+			
+		case SKINNY_BUTTONTYPE_FORWARDALL: // Call forward all			
+			l = d->currentLine;			
+			if(!l) {
+				if (!instance)
+					instance = 1;
+			
+				l = sccp_line_find_byid(d, instance);
+				if (!l) {
+					sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
+					return;
+				}
+			}			
+			if (l) {
+				sccp_channel_handle_callforward(l, SCCP_CFWD_ALL);
+			}
+			break;
+			/*	
 			if (!d->cfwdall) {
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: CFWDALL disabled on device\n", d->id);
 				sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
@@ -875,7 +891,39 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 			}
 			sccp_line_cfwd(c->line, SCCP_CFWD_ALL, c->dialedNumber);
 			break;
-
+			*/
+		case SKINNY_BUTTONTYPE_FORWARDBUSY:
+			l = d->currentLine;			
+			if(!l) {
+				if (!instance)
+					instance = 1;
+			
+				l = sccp_line_find_byid(d, instance);
+				if (!l) {
+					sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
+					return;
+				}
+			}			
+			if (l) {
+				sccp_channel_handle_callforward(l, SCCP_CFWD_BUSY);
+			}
+			break;
+		case SKINNY_BUTTONTYPE_FORWARDNOANSWER:
+			l = d->currentLine;			
+			if(!l) {
+				if (!instance)
+					instance = 1;
+			
+				l = sccp_line_find_byid(d, instance);
+				if (!l) {
+					sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
+					return;
+				}
+			}			
+			if (l) {
+				sccp_channel_handle_callforward(l, SCCP_CFWD_NOANSWER);
+			}
+			break;
 		case SKINNY_BUTTONTYPE_CALLPARK: // Call parking
 #ifdef CS_SCCP_PARK
 			c = sccp_channel_get_active(d);
@@ -1151,7 +1199,13 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r) {
 			if ( (b[c] == SKINNY_LBL_CFWDBUSY) && (!d->cfwdbusy) ) {
 				continue;
 			}
+			if ( (b[c] == SKINNY_LBL_CFWDNOANSWER) && (!d->cfwdnoanswer) ) {
+				continue;
+			}			
 			if ( (b[c] == SKINNY_LBL_TRNSFVM) && (!trnsfvm) ) {
+				continue;
+			}
+			if ( (b[c] == SKINNY_LBL_PICKUP) && (!d->pickupexten) ) {
 				continue;
 			}
 			if ( (b[c] == SKINNY_LBL_GPICKUP) && (!pickupgroup) ) {
@@ -1274,7 +1328,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
     	return;
 	}
 
-	if ( (c->state == SCCP_CHANNELSTATE_DIALING) || (c->state == SCCP_CHANNELSTATE_OFFHOOK) ) {
+	if ( (c->state == SCCP_CHANNELSTATE_DIALING) || (c->state == SCCP_CHANNELSTATE_OFFHOOK) || (c->state == SCCP_CHANNELSTATE_GETDIGITS)) {
 		len = strlen(c->dialedNumber);
 		if (len >= (AST_MAX_EXTENSION - 1) ) {
 			sccp_dev_displayprompt(d,c->line->instance, c->callid, "No more digits", 5);
@@ -1282,8 +1336,9 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
 			c->dialedNumber[len++] = resp;
     		c->dialedNumber[len] = '\0';
     		c->digittimeout = time(0)+GLOB(digittimeout);
-#ifdef CS_SCCP_PICKUP
-			if (!strcmp(c->dialedNumber, ast_pickup_ext())) {
+
+#ifdef CS_SCCP_PICKUP			
+			if (!strcmp(c->dialedNumber, ast_pickup_ext()) && (c->state != SCCP_CHANNELSTATE_GETDIGITS)) {
 				/* set it to offhook state because the sccp_sk_gpickup function look for an offhook channel */
 				c->state = SCCP_CHANNELSTATE_OFFHOOK;
 				sccp_mutex_unlock(&c->lock);
@@ -1291,6 +1346,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
 				return;
 			}
 #endif
+
 			if (GLOB(digittimeoutchar) && GLOB(digittimeoutchar) == resp) {
 				if(GLOB(recorddigittimeoutchar)) {
 					c->dialedNumber[len] = '\0';
@@ -1316,7 +1372,6 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
 
 	sccp_mutex_unlock(&c->lock);
 }
-
 
 /**
  * 
@@ -1432,6 +1487,9 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r) {
 		sccp_sk_private(d, l, c);
 		break;
 #ifdef CS_SCCP_PICKUP
+	case SKINNY_LBL_PICKUP:
+		sccp_sk_pickup(d, l, c);
+		break;
 	case SKINNY_LBL_GPICKUP:
 		sccp_sk_gpickup(d, l, c);
 		break;

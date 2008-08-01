@@ -22,6 +22,7 @@
 #include "chan_sccp.h"
 #include "sccp_lock.h"
 #include "sccp_pbx.h"
+#include "sccp_line.h"
 #include "sccp_utils.h"
 #include "sccp_device.h"
 #include "sccp_channel.h"
@@ -42,25 +43,31 @@
 #endif
 
 static struct ast_frame * sccp_rtp_read(sccp_channel_t * c) {
-	/* Retrieve audio/etc from channel.  Assumes c->lock is already held. */
-	struct ast_frame * f;
-	/* if c->rtp not null */
-	if (!c->rtp)
-		return NULL;
-
-	f = ast_rtp_read(c->rtp);
-
-	if (c->owner) {
-		/* We already hold the channel lock */
-		if (f->frametype == AST_FRAME_VOICE) {
-			if (f->subclass != c->owner->nativeformats) {
-				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Oooh, format changed to %d from %d on channel %d\n", c->device->id, f->subclass, c->owner->nativeformats, c->callid);
-				c->owner->nativeformats = f->subclass;
-				ast_set_read_format(c->owner, c->owner->readformat);
-				ast_set_write_format(c->owner, c->owner->writeformat);
+	struct ast_frame * f = &ast_null_frame;
+	
+	if (c->rtp) {
+		f = ast_rtp_read(c->rtp);
+		if (c->owner) {
+			/* We already hold the channel lock */
+			if (f->frametype == AST_FRAME_VOICE) {
+				if (!(f->subclass & (c->owner->nativeformats & AST_FORMAT_AUDIO_MASK))) {
+					if (GLOB(debug) > 2) {	  
+						sccp_log(2)(VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n",
+						DEV_ID_LOG(c->device),
+						c->owner->name,
+						ast_getformatname(f->subclass),
+						f->subclass,
+						ast_getformatname(c->owner->nativeformats),
+						c->owner->nativeformats);
+					}	
+					c->owner->nativeformats = f->subclass;
+					ast_set_read_format(c->owner, c->owner->readformat);
+					ast_set_write_format(c->owner, c->owner->writeformat);
+				}
 			}
 		}
 	}
+		
 	return f;
 }
 
@@ -421,48 +428,49 @@ static int sccp_pbx_answer(struct ast_channel *ast) {
 
 
 static struct ast_frame * sccp_pbx_read(struct ast_channel *ast) {
-	struct ast_frame *fr;
+	struct ast_frame *frame = &ast_null_frame;
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
-	if (!c)
-		return NULL;
-	sccp_mutex_lock(&c->lock);
-	fr = sccp_rtp_read(c);
-	sccp_mutex_unlock(&c->lock);
-	return fr;
+	if(c) {
+		sccp_channel_lock(c);
+		frame = sccp_rtp_read(c);
+		sccp_channel_unlock(c);
+	}	
+	return frame;
 }
 
 static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 	int res = 0;
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
 
-	if (!c)
-		return 0;
-
-	if (frame->frametype != AST_FRAME_VOICE) {
-		if (frame->frametype == AST_FRAME_IMAGE)
-			return 0;
-		else {
-			ast_log(LOG_WARNING, "%s: Can't send %d type frames with SCCP write on channel %d\n", DEV_ID_LOG(c->device), frame->frametype, (c) ? c->callid : 0);
-			return 0;
+	if(c) {
+		switch (frame->frametype) {
+			case AST_FRAME_VOICE:
+				if (!(frame->subclass & ast->nativeformats)) {
+					char s1[512], s2[512], s3[512];
+					ast_log(LOG_WARNING, "%s: Asked to transmit frame type %d, while native formats is %s(%d) read/write = %s(%d)/%s(%d)\n",
+						DEV_ID_LOG(c->device),
+						frame->subclass, 
+						ast_getformatname_multiple(s1, sizeof(s1) - 1, ast->nativeformats & AST_FORMAT_AUDIO_MASK),
+						ast->nativeformats & AST_FORMAT_AUDIO_MASK,
+						ast_getformatname_multiple(s2, sizeof(s2) - 1, ast->readformat),
+						ast->readformat,
+						ast_getformatname_multiple(s3, sizeof(s3) - 1, ast->writeformat),
+						ast->writeformat);
+					return 0;
+				}
+				sccp_mutex_lock(&c->lock);
+				if (c->rtp)
+					res =  ast_rtp_write(c->rtp, frame);
+				sccp_mutex_unlock(&c->lock);
+				break;
+			case AST_FRAME_IMAGE:
+			case AST_FRAME_VIDEO:
+			case AST_FRAME_TEXT:
+			case AST_FRAME_MODEM:
+			default:
+				ast_log(LOG_WARNING, "%s: Can't send %d type frames with SCCP write on channel %d\n", DEV_ID_LOG(c->device), frame->frametype, (c) ? c->callid : 0);
+				break;
 		}
-	} else {
-		if (!(frame->subclass & ast->nativeformats)) {
-			ast_log(LOG_WARNING, "%s: Asked to transmit frame type %d, while native formats is %d (read/write = %d/%d)\n",
-			DEV_ID_LOG(c->device), frame->subclass, ast->nativeformats, ast->readformat, ast->writeformat);
-			/* As asterisk will hang up if we return -1 here, we better don't ;-)
-			 * We can safely do so as asterisk returns 0 if there is no need for a conversion.
-			 * with some channels like IAX. However, we need some serious discussion on this
-			 * topic. This is currently a dirty hack to cope with *'s new behaviour. (-DD)
-			 */
-			 /* return -1; */
-		}
-	}
-	if (c) {
-		sccp_mutex_lock(&c->lock);
-		if (c->rtp) {
-			res =  ast_rtp_write(c->rtp, frame);
-		}
-		sccp_mutex_unlock(&c->lock);
 	}
 	return res;
 }
@@ -713,12 +721,12 @@ const struct ast_channel_tech sccp_tech = {
 #endif
 
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
-	
 	sccp_device_t * d = c->device;
 	struct ast_channel * tmp;
 	sccp_line_t * l = c->line;
 	int fmt;
-#ifndef CS_AST_CHANNEL_HAS_CID
+
+	#ifndef CS_AST_CHANNEL_HAS_CID
 	char cidtmp[256];
 	memset(&cidtmp, 0, sizeof(cidtmp));
 #endif
@@ -756,46 +764,48 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	memset(&tmp->exten,0,sizeof(tmp->exten));
 
 	/* let's connect the ast channel to the sccp channel */
-	sccp_mutex_lock(&c->lock);
+	sccp_channel_lock(c);
 	c->owner = tmp;
-	sccp_mutex_unlock(&c->lock);
+	sccp_channel_unlock(c);
+	
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Global Capabilities: %d\n", d->id, GLOB(global_capability));
 
-	sccp_mutex_lock(&l->lock);
-	sccp_mutex_lock(&d->lock);
-	tmp->nativeformats = (d->capability ? d->capability : GLOB(global_capability));
-	if (tmp->nativeformats & c->format) {
-		fmt = c->format;
-	} else {
-		fmt = ast_codec_choose(&d->codecs, tmp->nativeformats, 1);
-		c->format = fmt;
-	}
-	sccp_mutex_unlock(&l->lock);
-	sccp_mutex_unlock(&d->lock);
-	sccp_log(2)(VERBOSE_PREFIX_3 "%s: format request: %d/%d\n", d->id, tmp->nativeformats, c->format);
-
+	sccp_line_lock(l);
+	sccp_device_lock(d);
+	
+	/* native formats are device capabilities or global capabilities*/
+	tmp->nativeformats = ast_codec_choose(&d->codecs, (d->capability ? d->capability : GLOB(global_capability)), 1);
+	
+	/* format is channel best codec between native */
+	fmt = ast_best_codec(tmp->nativeformats);	
+	c->format = fmt;
+	
+	sccp_device_unlock(d);
+	sccp_line_unlock(l);
+	
 #ifdef CS_AST_HAS_AST_STRING_FIELD
 	ast_string_field_build(tmp, name, "SCCP/%s-%08x", l->name, c->callid);
 #else
 	snprintf(tmp->name, sizeof(tmp->name), "SCCP/%s-%08x", l->name, c->callid);
 #endif
 
-	if (GLOB(debug) > 2) {
-	  const unsigned slen=512;
-	  char s1[slen];
-	  char s2[slen];
-	  sccp_log(2)(VERBOSE_PREFIX_3 "%s: Channel %s, capabilities: DEVICE %s NATIVE %s BEST %d (%s)\n",
-		d->id,
-		c->owner->name,
-		ast_getformatname_multiple(s1, slen, d->capability),
-		ast_getformatname_multiple(s2, slen, tmp->nativeformats),
-		fmt, ast_getformatname(fmt));
+	if (GLOB(debug) > 2) {	  
+	  char s1[512], s2[512];
+	  sccp_log(2)(VERBOSE_PREFIX_3 "%s: Channel %s, capabilities: DEVICE %s(%d) NATIVE %s(%d) BEST %s(%d)\n",
+		DEV_ID_LOG(c->device),
+		tmp->name,
+		ast_getformatname_multiple(s1, sizeof(s1) -1, d->capability & AST_FORMAT_AUDIO_MASK),
+		d->capability,
+		ast_getformatname_multiple(s2, sizeof(s2) -1, tmp->nativeformats & AST_FORMAT_AUDIO_MASK),
+		tmp->nativeformats,
+		ast_getformatname(fmt),
+		fmt);
 	}
 
 #ifndef CS_AST_HAS_TECH_PVT
 	tmp->type = "SCCP";
 #endif
-	tmp->nativeformats		= fmt;
+	// tmp->nativeformats		= fmt;
 	tmp->writeformat		= fmt;
 	tmp->readformat 		= fmt;
 
@@ -870,7 +880,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	return 1;
 }
 
-void * sccp_pbx_startchannel(sccp_channel_t * c) {
+void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 	struct ast_channel * chan = c->owner;
 	struct ast_variable *v = NULL;
 	// sccp_channel_t * c;
@@ -952,66 +962,122 @@ void * sccp_pbx_startchannel(sccp_channel_t * c) {
 		return NULL;
 	}
 
-	if (!ast_strlen_zero(c->dialedNumber)) {
+	if (!ast_strlen_zero(c->dialedNumber) && (c->ss_action == SCCP_SS_DIAL)) {
 		/* we have a number to dial. Let's do it */
 		sccp_log(10)( VERBOSE_PREFIX_3 "%s: Dialing %s on channel %s-%08x\n", DEV_ID_LOG(l->device), c->dialedNumber, l->name, c->callid);
 		sccp_channel_set_calledparty(c, c->dialedNumber, c->dialedNumber);
 		sccp_indicate_nolock(c, SCCP_CHANNELSTATE_DIALING);
 		sccp_channel_unlock(c);
-		goto dial;
-	}
+	} 
+	else 
+	{
+		/* we have to collect the number */
+		
+		/* the phone is on TsOffHook state */
+		sccp_log(10)( VERBOSE_PREFIX_3 "%s: Waiting for an extension on channel %s-%08x\n", DEV_ID_LOG(l->device), l->name, c->callid);
+		
+		/* let's use the keypad to collect digits */		
+		c->digittimeout = time(0)+GLOB(firstdigittimeout);
 
-	/* we have to collect the number */
-	/* the phone is on TsOffHook state */
-	sccp_log(10)( VERBOSE_PREFIX_3 "%s: Waiting for the number to dial on channel %s-%08x\n", DEV_ID_LOG(l->device), l->name, c->callid);
-	/* let's use the keypad to collect digits */
-	c->digittimeout = time(0)+GLOB(firstdigittimeout);
+		sccp_channel_unlock(c);
 
-	sccp_channel_unlock(c);
+		res_exten = 1;
 
-	res_exten = 1;
-
-	do {
-		usleep(100);
-		pthread_testcancel();
-		sccp_channel_lock(c);
-		if (!ast_strlen_zero(c->dialedNumber)) {
-			/* It never occured to me what the purpose of the following line was. I modified it to avoid the limitation to
-			   extensions not starting with '*' only. (-DD) 
-			/res_exten = (c->dialedNumber[0] == '*' || ast_matchmore_extension(chan, chan->context, c->dialedNumber, 1, l->cid_num)); */
-			if(GLOB(recorddigittimeoutchar)) {
-				if(strlen(c->dialedNumber) > 0 && strlen(c->dialedNumber) < 255 && '#' == c->dialedNumber[strlen(c->dialedNumber)-1])
-			  		strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-1);
+		do {
+			usleep(100);
+			pthread_testcancel();
+			sccp_channel_lock(c);
+			if (!ast_strlen_zero(c->dialedNumber)) {
+				/* It never occured to me what the purpose of the following line was. I modified it to avoid the limitation to
+				   extensions not starting with '*' only. (-DD) 
+				/res_exten = (c->dialedNumber[0] == '*' || ast_matchmore_extension(chan, chan->context, c->dialedNumber, 1, l->cid_num)); */
+				if(GLOB(recorddigittimeoutchar)) {
+					if(strlen(c->dialedNumber) > 0 && strlen(c->dialedNumber) < 255 && '#' == c->dialedNumber[strlen(c->dialedNumber)-1])
+				  		strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-1);
+					else
+				  		strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-0);
+					
+					res_exten = (ast_matchmore_extension(chan, chan->context, shortenedNumber, 1, l->cid_num));
+				}
 				else
-			  		strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-0);
-				res_exten = (ast_matchmore_extension(chan, chan->context, shortenedNumber, 1, l->cid_num));
+					res_exten = (ast_matchmore_extension(chan, chan->context, c->dialedNumber, 1, l->cid_num));
 			}
+			if (! (res_wait = ( c->state == SCCP_CHANNELSTATE_DOWN || chan->_state == AST_STATE_DOWN
+								|| chan->_softhangup || c->calltype == SKINNY_CALLTYPE_INBOUND)) ) {
+				if (CS_AST_CHANNEL_PVT(chan)) {
+					res_timeout = (time(0) < c->digittimeout);
+				} else
+					res_timeout = 0;
+			}
+			sccp_channel_unlock(c);
+		} while ( (res_wait == 0) && res_exten &&  res_timeout);
+
+		if (res_wait != 0) {
+			/* AST_STATE_DOWN or softhangup */
+			sccp_log(10)(VERBOSE_PREFIX_3 
+			"%s: return from the dial thread\n"
+			"### c->state:          %d(should not be %d)\n"
+			"### chan->_state:      %d(should not be %d)\n"
+			"### chan->_softhangup: %d(should not be %d)\n"
+			"### c->calltype:       %d(should not be %d)\n",
+			DEV_ID_LOG(l->device),
+			c->state, SCCP_CHANNELSTATE_DOWN,
+			chan->_state, AST_STATE_DOWN,
+			chan->_softhangup, 1,
+			c->calltype, SKINNY_CALLTYPE_INBOUND);
+			
+			sccp_channel_lock(c);
+			c->hangupok = 1;
+			// Don't know if it can be here :(
+			sccp_indicate_nolock(c, SCCP_CHANNELSTATE_ONHOOK);
+			sccp_channel_unlock(c);
+			return NULL;
+		}
+
+		if(GLOB(recorddigittimeoutchar)) {
+			if(strlen(c->dialedNumber) > 0 && strlen(c->dialedNumber) < 255 && '#' == c->dialedNumber[strlen(c->dialedNumber)-1])
+				strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-1);
 			else
-			{
-				res_exten = (ast_matchmore_extension(chan, chan->context, c->dialedNumber, 1, l->cid_num));
-			}
+				strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-0);
 		}
-		if (! (res_wait = ( c->state == SCCP_CHANNELSTATE_DOWN || chan->_state == AST_STATE_DOWN
-							|| chan->_softhangup || c->calltype == SKINNY_CALLTYPE_INBOUND)) ) {
-			if (CS_AST_CHANNEL_PVT(chan)) {
-				res_timeout = (time(0) < c->digittimeout);
-			} else
-				res_timeout = 0;
+		else
+			strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-0);
+		
+		/* This will choose what to do */
+		switch(c->ss_action) {
+			case SCCP_SS_GETFORWARDEXTEN:
+				sccp_channel_unlock(c);				
+				c->hangupok = 1;
+				sccp_channel_endcall(c);
+				usleep(200);
+				if(!ast_strlen_zero(shortenedNumber));
+					sccp_line_cfwd(l, c->ss_data, shortenedNumber);
+				return NULL; // leave simpleswitch without dial
+			case SCCP_SS_GETPICKUPEXTEN:
+				sccp_channel_unlock(c);											
+				c->hangupok = 1;
+				if(!ast_strlen_zero(shortenedNumber)) {
+					ast_log(LOG_WARNING, "SCCP: Asterisk request to pickup %s exten\n", shortenedNumber);									
+					if(sccp_channel_directpickup(c, shortenedNumber)) {
+						sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONNECTED);
+						usleep(200);
+						sccp_indicate_lock(c, SCCP_CHANNELSTATE_INVALIDNUMBER);
+					}
+				}
+				else
+				{
+					sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONNECTED);
+					usleep(200);
+					sccp_indicate_lock(c, SCCP_CHANNELSTATE_INVALIDNUMBER);
+				}
+				return NULL; // leave simpleswitch without dial
+			case SCCP_SS_DIAL:
+			default:
+			break;			
 		}
-		sccp_channel_unlock(c);
-	} while ( (res_wait == 0) && res_exten &&  res_timeout);
-
-	if (res_wait != 0) {
-		/* AST_STATE_DOWN or softhangup */
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: return from the dial thread for DOWN, HANGUP or PICKUP cause\n", DEV_ID_LOG(l->device));
-		sccp_channel_lock(c);
-		c->hangupok = 1;
-		sccp_channel_unlock(c);
-		return NULL;
 	}
-
-dial:
 	
+	/* LET'S DIAL */
 	
 	/* set devicevariables */
 	for (v = d->variables ; v ; v = v->next)
@@ -1021,7 +1087,6 @@ dial:
 	for (v = l->variables ; v ; v = v->next)
 		pbx_builtin_setvar_helper(chan, v->name, v->value);
 
-
 	//set private var
 	if(chan){
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: set variable SKINNY_PRIVATE to: %s\n", c->private ? "1" : "0");
@@ -1029,19 +1094,6 @@ dial:
 	}
 	//private set
 
-
-	if(GLOB(recorddigittimeoutchar)) {
-		if(strlen(c->dialedNumber) > 0 && strlen(c->dialedNumber) < 255 && '#' == c->dialedNumber[strlen(c->dialedNumber)-1])
-		  {
-			  strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-1);
-		   }
-		else
-			  strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-0);
-	}
-	else
-	{
-			  strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-0);
-	}
 	sccp_channel_lock(c);
 	sccp_copy_string(chan->exten, shortenedNumber, sizeof(chan->exten));
 	sccp_copy_string(d->lastNumber, c->dialedNumber, sizeof(d->lastNumber));

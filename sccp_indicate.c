@@ -87,6 +87,27 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 		/* for earlyrtp take a look at sccp_channel_newcall because we have no c->owner here */
 		break;
+	case SCCP_CHANNELSTATE_GETDIGITS:
+		c->state = SCCP_CHANNELSTATE_OFFHOOK;
+		/* clear all the display buffers */
+		sccp_dev_cleardisplaynotify(d);
+		sccp_dev_clearprompt(d, 0, 0);
+		sccp_dev_set_mwi(d, l, 0);
+		if (!d->mwioncall)
+			sccp_dev_set_mwi(d, NULL, 0);
+//		sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, l->instance, c->callid);
+		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
+//		sccp_dev_set_microphone(d, SKINNY_STATIONMIC_ON);
+		sccp_channel_set_callstate(c, SKINNY_CALLSTATE_OFFHOOK);
+		sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, l->instance, SKINNY_LAMP_ON);
+		sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 0);
+		sccp_dev_set_keyset(d,l->instance,c->callid, KEYMODE_DIGITSFOLL);
+		sccp_dev_set_cplane(l,1);
+		// sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, l->instance, c->callid, 0);
+		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, l->instance, c->callid, 0);
+		sccp_ast_setstate(c, AST_STATE_OFFHOOK);
+		/* for earlyrtp take a look at sccp_channel_handle_callforward because we have no c->owner here */
+		break;
 	case SCCP_CHANNELSTATE_ONHOOK:
 		if (c == d->active_channel)
 			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);

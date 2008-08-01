@@ -289,7 +289,7 @@ void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	struct sccp_selected_channel *cur = NULL, *par = NULL;
 	uint8_t numSelectedChannels =0;
 	sccp_moo_t 			* r1;
-  
+	
 	if(NULL == d)
 	{
 		sccp_log(10)(VERBOSE_PREFIX_3 "Null device!");
@@ -353,7 +353,16 @@ void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_mutex_unlock(&d->lock);
 }
 
-void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {	
+	if(!l && d) {
+		l = sccp_line_find_byid(d, 1);
+	}
+	if(l)
+		sccp_channel_handle_callforward(l, SCCP_CFWD_ALL);
+	else
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
+
+	/*
 	if (!c || !c->owner) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Call forward with no channel active\n", d->id);
 		return;
@@ -363,9 +372,19 @@ void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		return;
 	}
 	sccp_line_cfwd(l, SCCP_CFWD_ALL, c->dialedNumber);
+	*/
 }
 
 void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+	if(!l && d) {
+		l = sccp_line_find_byid(d, 1);
+	}
+	if(l)
+		sccp_channel_handle_callforward(l, SCCP_CFWD_BUSY);
+	else
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
+	
+	/*
 	if (!c || !c->owner) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Call forward with no channel active\n", d->id);
 		return;
@@ -375,11 +394,21 @@ void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		return;
 	}
 	sccp_line_cfwd(l, SCCP_CFWD_BUSY, c->dialedNumber);
-
+	*/
 }
 
 void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+	if(!l && d) {
+		l = sccp_line_find_byid(d, 1);
+	}
+	if(l)
+		sccp_channel_handle_callforward(l, SCCP_CFWD_NOANSWER);
+	else
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
+	
+	/*
 	sccp_log(10)(VERBOSE_PREFIX_3 "### CFwdNoAnswer Softkey pressed - NOT SUPPORTED\n");
+	*/
 }
 
 void sccp_sk_park(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
@@ -438,9 +467,23 @@ void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) 
 
 }
 
+void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {     
+#ifndef CS_SCCP_PICKUP
+	sccp_log(10)(VERBOSE_PREFIX_3 "### Native EXTENSION PICKUP was not compiled in\n");
+#else
+	if(!l && d) {
+		l = sccp_line_find_byid(d, 1);
+	}
+	if(l)
+		sccp_channel_handle_directpickup(l);
+	else
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);	
+#endif
+}
+
 void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {     
 #ifndef CS_SCCP_PICKUP
-	sccp_log(10)(VERBOSE_PREFIX_3 "### Native PICKUP was not compiled in\n");
+	sccp_log(10)(VERBOSE_PREFIX_3 "### Native GROUP PICKUP was not compiled in\n");
 #else
 	struct ast_channel *ast, *original = NULL;
 #ifndef CS_AST_CHANNEL_HAS_CID
