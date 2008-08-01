@@ -105,6 +105,7 @@ void sccp_line_cfwd(sccp_line_t * l, uint8_t type, char * number) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call Forward disabled on line %s\n", d->id, l->name);
 	} else {
 		if (!number || ast_strlen_zero(number)) {
+			l->cfwd_type = SCCP_CFWD_NONE;
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call Forward to an empty number. Invalid\n", d->id);
 			return;
 		}

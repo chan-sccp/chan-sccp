@@ -23,16 +23,19 @@
 #define  SCCP_CHANNELSTATE_CALLREMOTEMULTILINE	13
 #define  SCCP_CHANNELSTATE_INVALIDNUMBER		14
 #define  SCCP_CHANNELSTATE_DIALING				20
+#define  SCCP_CHANNELSTATE_GETDIGITS			0xA0
 
 #define SCCP_DEVICESTATE_ONHOOK 				0
 #define SCCP_DEVICESTATE_OFFHOOK				1
-#define SCCP_DEVICESTATE_UNAVAILABLE				2
+#define SCCP_DEVICESTATE_UNAVAILABLE			2
 #define SCCP_DEVICESTATE_DND					3
 #define SCCP_DEVICESTATE_FWDALL 				4
+
 
 #define SCCP_CFWD_NONE						0
 #define SCCP_CFWD_ALL						1
 #define SCCP_CFWD_BUSY						2
+#define SCCP_CFWD_NOANSWER					3
 
 /* skinny protocol call states */
 #define SKINNY_CALLSTATE_OFFHOOK			 	1
@@ -1084,26 +1087,26 @@ static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_ENDCALL,
 	SKINNY_LBL_RESUME,
 	SKINNY_LBL_ANSWER,
-  SKINNY_LBL_INFO,
-  SKINNY_LBL_CONFRN,
+	SKINNY_LBL_INFO,
+	SKINNY_LBL_CONFRN,
 	SKINNY_LBL_PARK,
-  SKINNY_LBL_JOIN,
-  SKINNY_LBL_MEETME,
-  SKINNY_LBL_PICKUP,
+	SKINNY_LBL_JOIN,
+	SKINNY_LBL_MEETME,
+	SKINNY_LBL_PICKUP,
 	SKINNY_LBL_GPICKUP,
-  SKINNY_LBL_RMLSTC,
-  SKINNY_LBL_CALLBACK,
-  SKINNY_LBL_BARGE,
+	SKINNY_LBL_RMLSTC,
+	SKINNY_LBL_CALLBACK,
+	SKINNY_LBL_BARGE,
 	SKINNY_LBL_DND,
-  SKINNY_LBL_NO_PARK_NUMBER_AVAILABLE, /* Should be: Acct */
-  SKINNY_LBL_CALLPARK_REVERSION,       /* Should be: Flash */
-  SKINNY_LBL_SERVICE_IS_NOT_ACTIVE,    /* Should be: Login */
-  SKINNY_LBL_EMPTY,                    /* Should be: HLog */
-  SKINNY_LBL_CONFLIST,
-  SKINNY_LBL_SELECT,
-  SKINNY_LBL_PRIVATE,
+	SKINNY_LBL_NO_PARK_NUMBER_AVAILABLE, /* Should be: Acct */
+	SKINNY_LBL_CALLPARK_REVERSION,       /* Should be: Flash */
+	SKINNY_LBL_SERVICE_IS_NOT_ACTIVE,    /* Should be: Login */
+	SKINNY_LBL_EMPTY,                    /* Should be: HLog */
+	SKINNY_LBL_CONFLIST,
+	SKINNY_LBL_SELECT,
+	SKINNY_LBL_PRIVATE,
 	SKINNY_LBL_TRNSFVM,
-  SKINNY_LBL_DIRTRFR
+	SKINNY_LBL_DIRTRFR
 };
 
 typedef struct {
@@ -1127,9 +1130,11 @@ typedef struct {
 static const uint8_t skSet_Onhook [] = {
 	SKINNY_LBL_REDIAL,
 	SKINNY_LBL_NEWCALL,
+	SKINNY_LBL_CFWDALL,
+	SKINNY_LBL_CFWDBUSY,
 	SKINNY_LBL_DND,
+	SKINNY_LBL_PICKUP,
 	SKINNY_LBL_GPICKUP
-//	SKINNY_LBL_CFWDALL
 };
 
 static const uint8_t skSet_Connected [] = {
@@ -1231,5 +1236,11 @@ static const softkey_modes SoftKeyModes [] = {
   { KEYMODE_OFFHOOKFEAT,	skSet_Offhookfeat,	sizeof(skSet_Offhookfeat)/sizeof(uint8_t)},
   { KEYMODE_MYST,			skSet_Myst, 		sizeof(skSet_Myst)/sizeof(uint8_t)},
 };
+
+/* simple switch modes - Used in simple switch tread to distinguish dial from other number collects */
+#define SCCP_SS_DIAL				0
+#define SCCP_SS_GETFORWARDEXTEN		1
+#define SCCP_SS_GETPICKUPEXTEN		2
+#define SCCP_SS_GETVMEXTEN			3 /* really don't know if it is usefull */
 
 #endif

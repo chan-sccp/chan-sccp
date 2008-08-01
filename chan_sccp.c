@@ -1109,6 +1109,15 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 				d->cfwdall = sccp_true(v->value);
 			} else if (!strcasecmp(v->name, "cfwdbusy")) {
 				d->cfwdbusy = sccp_true(v->value);
+			} else if (!strcasecmp(v->name, "cfwdnoanswer")) {
+				d->cfwdnoanswer = sccp_true(v->value);
+			} else if (!strcasecmp(v->name, "pickupexten")) {
+				d->pickupexten = sccp_true(v->value);
+			} else if (!strcasecmp(v->name, "pickupcontext")) {
+				if(!ast_strlen_zero(v->value))
+					d->pickupcontext = strdup(v->value);
+				else
+					d->pickupcontext = NULL;
 			} else if (!strcasecmp(v->name, "dnd")) {
 				if (!strcasecmp(v->value, "reject")) {
 					d->dndmode = SCCP_DNDMODE_REJECT;
@@ -1463,6 +1472,8 @@ static int reload_config(void) {
 			GLOB(cfwdall) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "cfwdbusy")) {
 			GLOB(cfwdbusy) = sccp_true(v->value);
+		} else if (!strcasecmp(v->name, "cfwdnoanswer")) {
+			GLOB(cfwdnoanswer) = sccp_true(v->value);			
 		} else if (!strcasecmp(v->name, "echocancel")) {
 			GLOB(echocancel) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "silencesuppression")) {

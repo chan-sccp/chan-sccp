@@ -384,7 +384,10 @@ struct sccp_device {
 	unsigned int			park:1;
 	unsigned int			cfwdall:1;
 	unsigned int			cfwdbusy:1;
-	unsigned int			dtmfmode:1; 						/*!< 0 inband - 1 outofband */
+	unsigned int			cfwdnoanswer:1;
+	unsigned int			pickupexten:1;
+	char					* pickupcontext;
+	unsigned int			dtmfmode:1; 						/*!< 0 inband - 1 outofband */	
 	unsigned int			nat:1;
 	unsigned int			trustphoneip:1;
 	unsigned int			needcheckringback:1;
@@ -433,6 +436,8 @@ struct sccp_channel {
 	char				callingPartyNumber[StationMaxDirnumSize];
 	uint32_t			callid;
 	
+	uint32_t			conferenceid; /* this will be used in native conferencing mode and will differ from callid  -FS*/
+	
 	uint8_t			state;				/*< internal channel state SCCP_CHANNELSTATE_* */
 	uint8_t			callstate;			/*< skinny state */
 	uint8_t			calltype;			/*< SKINNY_CALLTYPE_* */
@@ -456,6 +461,9 @@ struct sccp_channel {
 	unsigned int		private:1;
 	unsigned int		hangupok:1;
 	char musicclass[MAX_MUSICCLASS];
+	
+	uint8_t		ss_action; /* simple switch action, this is used in dial thread to collect numbers for callforward, pickup and so on -FS*/
+	uint8_t		ss_data; /* simple switch integer param */
 };
 
 struct sccp_global_vars {
@@ -532,6 +540,7 @@ struct sccp_global_vars {
 	unsigned int				blindtransferindication:1; 			/*< SCCP_BLINDTRANSFER_* */
 	unsigned int				cfwdall:1;
 	unsigned int				cfwdbusy:1;
+	unsigned int				cfwdnoanswer:1;
 #ifdef CS_SCCP_REALTIME
 	char 					realtimedevicetable[45];			/*< databasetable for sccp devices*/
 	char 					realtimelinetable[45];			/*< databasetable for sccp lines*/	
