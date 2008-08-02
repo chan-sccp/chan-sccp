@@ -968,6 +968,15 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 		sccp_channel_set_calledparty(c, c->dialedNumber, c->dialedNumber);
 		sccp_indicate_nolock(c, SCCP_CHANNELSTATE_DIALING);
 		sccp_channel_unlock(c);
+		
+		if(GLOB(recorddigittimeoutchar)) {
+			if(strlen(c->dialedNumber) > 0 && strlen(c->dialedNumber) < 255 && '#' == c->dialedNumber[strlen(c->dialedNumber)-1])
+				strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-1);
+			else
+				strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-0);
+		}
+		else
+			strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-0);		
 	} 
 	else 
 	{
