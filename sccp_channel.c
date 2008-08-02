@@ -30,6 +30,7 @@
 #include "sccp_indicate.h"
 #include <asterisk/pbx.h>
 #include <asterisk/utils.h>
+#include <asterisk/causes.h>
 #ifndef CS_AST_HAS_TECH_PVT
 #include <asterisk/channel_pvt.h>
 #endif
@@ -447,9 +448,12 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 int sccp_channel_directpickup(sccp_channel_t * c, char *exten) {
 	int res = -1;
 	struct ast_channel *target = NULL;
+	struct ast_channel *original = NULL;
+	
 	sccp_device_t * d;
 	char * pickupexten;
-
+	char * cidtmp = NULL, *name = NULL, *number = NULL;
+	
 	if(ast_strlen_zero(exten))
 	{
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (directpickup) zero exten\n");
@@ -462,6 +466,8 @@ int sccp_channel_directpickup(sccp_channel_t * c, char *exten) {
 		return res;
 	}
 	
+	original = c->owner;
+	
 	if(!c->device || !c->device->id || strlen(c->device->id) < 3)
 	{
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (directpickup) no device\n");
@@ -473,9 +479,8 @@ int sccp_channel_directpickup(sccp_channel_t * c, char *exten) {
 	/* copying extension into our buffer */
 	pickupexten = strdup(exten);
 	
-	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (directpickup) go on\n");
-	
 	while ((target = ast_channel_walk_locked(target))) {
+/*
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (directpickup)\n"
 		"### pickupexten:         %s\n"
 		"### d->pickupcontext:    %s\n"
@@ -498,60 +503,59 @@ int sccp_channel_directpickup(sccp_channel_t * c, char *exten) {
 		(!strcasecmp(target->dialcontext, d->pickupcontext)),
 		(!target->pbx && (target->_state == AST_STATE_RINGING || target->_state == AST_STATE_RING))
 		);
-		
+	*/	
 		if ((!strcasecmp(target->macroexten, pickupexten) || !strcasecmp(target->exten, pickupexten)) &&
 		    /* (!strcasecmp(target->dialcontext, d->pickupcontext)) &&  */
 		    (!target->pbx && (target->_state == AST_STATE_RINGING || target->_state == AST_STATE_RING))) {
 		
-			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (directpickup) mumble\n");
-/*
-			if ((res = ast_answer(c->owner))) {
-				ast_log(LOG_WARNING, "SCCP: (direct_pickup) Unable to answer '%s'\n", c->owner->name);
-				res = -1;
-			} else {
-				if ((res = ast_queue_control(c->owner, AST_CONTROL_ANSWER))) {
-					ast_log(LOG_WARNING, "SCCP: (direct_pickup) Unable to queue answer on '%s'\n", chan->name);
-					res = -1;
-				} else {
-*/
-					if ((res = ast_channel_masquerade(target, c->owner))) {
-						sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (direct_pickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);
-						res = -1;
-					}
-					else
-					{
-						sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (direct_pickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
+			// sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (directpickup) mumble\n");
 
-						c->calltype = SKINNY_CALLTYPE_INBOUND;
-						sccp_indicate_nolock(c, SCCP_CHANNELSTATE_CONNECTED);
-;						if (c->owner->masqr) {	
-#ifdef CS_AST_CHANNEL_HAS_CID
-							sccp_channel_set_callingparty(c, c->owner->masqr->cid.cid_name, c->owner->masqr->cid.cid_num);
+#ifdef CS_AST_CHANNEL_HAS_CID							
+			if(target->cid.cid_name)
+				name = strdup(target->cid.cid_name);
+			if(target->cid.cid_num)
+				number = strdup(target->cid.cid_num);
 #else
-							char * cidtmp, *name, *number;
-							if (c->owner->masqr->callerid && (cidtmp = strdup(c->owner->masqr->callerid))) {
-								ast_callerid_parse(cidtmp, &name, &number);
-								sccp_channel_set_callingparty(c, name, number);
-								free(name);
-								free(number);
-								free(cidtmp);
-								name = NULL;
-								number = NULL;
-								cidtmp = NULL;
-							}
-#endif
-						}		
-					}
-/*					
-				}
+			if(target->callerid)
+			{
+				cidtmp = strdup(target->callerid);
+				ast_callerid_parse(cidtmp, &name, &number);
 			}
-*/						
+#endif					
+			
+			if ((res = ast_channel_masquerade(target, c->owner))) {
+				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (direct_pickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);
+				original->hangupcause = AST_CAUSE_CALL_REJECTED;
+				res = -1;
+			}
+			else
+			{
+				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (direct_pickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
+				c->calltype = SKINNY_CALLTYPE_INBOUND;					
+				sccp_channel_set_callingparty(c, name, number);
+				sccp_indicate_nolock(c, SCCP_CHANNELSTATE_PROCEED);
+				usleep(200);
+				sccp_indicate_nolock(c, SCCP_CHANNELSTATE_CONNECTED);	
+				if(name)
+					free(name);
+				name = NULL;
+				if(number)
+					free(number);
+				number = NULL;	
+				if(cidtmp)
+					free(cidtmp);								
+				cidtmp = NULL;
+				
+				original->hangupcause = AST_CAUSE_NORMAL_CLEARING;
+				ast_setstate(original, AST_STATE_DOWN);
+			}	
 			ast_channel_unlock(target);
 			break;
 		}
-		ast_channel_unlock(target);		
-	}
-
+		ast_channel_unlock(target);
+	}	
+	
+	ast_hangup(original);
 	free(pickupexten);
 	pickupexten = NULL;
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (directpickup) quit\n");
