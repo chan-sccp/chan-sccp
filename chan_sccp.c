@@ -989,7 +989,9 @@ sccp_device_t * build_device(void) {
 	d->mwioncall = GLOB(mwioncall);
 	d->cfwdall = GLOB(cfwdall);
 	d->cfwdbusy = GLOB(cfwdbusy);
+	d->cfwdnoanswer = GLOB(cfwdnoanswer);
 	d->postregistration_thread = AST_PTHREADT_STOP;
+	d->pickupcontext = NULL;
 
 #ifdef CS_SCCP_PARK
 	d->park = 1;
@@ -1116,8 +1118,6 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 			} else if (!strcasecmp(v->name, "pickupcontext")) {
 				if(!ast_strlen_zero(v->value))
 					d->pickupcontext = strdup(v->value);
-				else
-					d->pickupcontext = NULL;
 			} else if (!strcasecmp(v->name, "dnd")) {
 				if (!strcasecmp(v->value, "reject")) {
 					d->dndmode = SCCP_DNDMODE_REJECT;

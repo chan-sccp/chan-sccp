@@ -532,14 +532,17 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	if (!c)
 		return -1;
 
-	sccp_mutex_lock(&c->lock);
+	sccp_channel_lock(c);
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Asterisk indicate '%d' (%s) condition on channel %s\n", DEV_ID_LOG(c->device), ind, sccp_control2str(ind), ast->name);
+	
+/*
 	if (c->state == SCCP_CHANNELSTATE_CONNECTED) {
-		/* let's asterisk emulate it */
-		sccp_mutex_unlock(&c->lock);
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: state for device is connected on channel %s\n", DEV_ID_LOG(c->device), ast->name);
+		// let's asterisk emulate it 
+		sccp_channel_unlock(c);
 		return -1;
-
 	}
+*/
 	
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
 	if (c->rtp)
@@ -548,15 +551,18 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	switch(ind) {
 
 	case AST_CONTROL_RINGING:
-		sccp_indicate_nolock(c, SCCP_CHANNELSTATE_RINGOUT);
+		if(c->state != SCCP_CHANNELSTATE_CONNECTED)
+			sccp_indicate_nolock(c, SCCP_CHANNELSTATE_RINGOUT);
 		break;
 
 	case AST_CONTROL_BUSY:
-		sccp_indicate_nolock(c, SCCP_CHANNELSTATE_BUSY);
+		if(c->state != SCCP_CHANNELSTATE_CONNECTED)
+			sccp_indicate_nolock(c, SCCP_CHANNELSTATE_BUSY);
 		break;
 
 	case AST_CONTROL_CONGESTION:
-		sccp_indicate_nolock(c, SCCP_CHANNELSTATE_CONGESTION);
+		if(c->state != SCCP_CHANNELSTATE_CONNECTED)
+			sccp_indicate_nolock(c, SCCP_CHANNELSTATE_CONGESTION);
 		break;
 
 	case AST_CONTROL_PROGRESS:
@@ -569,8 +575,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
         /* Source media has changed. */ 
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Source media has changed\n");
 #ifdef CS_AST_RTP_NEW_SOURCE		
-        if(c->rtp)
-		{			
+        if(c->rtp) {			
 			ast_rtp_new_source(c->rtp);
 		}
 #endif		
@@ -581,16 +586,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 /* when the bridged channel hold/unhold the call we are notified here */
 	case AST_CONTROL_HOLD:
 #ifdef ASTERISK_CONF_1_2
-		sccp_log(1)("SCCP: **** NOTIFIED HOLD\n");
 		ast_moh_start(ast, c->musicclass);
 #else
-		sccp_log(1)("SCCP: **** NOTIFIED HOLD\n");
 		ast_moh_start(ast, data, c->musicclass);
 #endif
 		res = 0;
 		break;
 	case AST_CONTROL_UNHOLD:
-		sccp_log(1)("SCCP: **** NOTIFIED UNHOLD\n");
 		ast_moh_stop(ast);
 		res = 0;
 		break;
@@ -605,7 +607,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	  res = -1;
 	}
 
-	sccp_mutex_unlock(&c->lock);
+	sccp_channel_unlock(c);
 	return res;
 }
 
@@ -1022,24 +1024,16 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 		} while ( (res_wait == 0) && res_exten &&  res_timeout);
 
 		if (res_wait != 0) {
-			/* AST_STATE_DOWN or softhangup */
-			sccp_log(10)(VERBOSE_PREFIX_3 
-			"%s: return from the dial thread\n"
-			"### c->state:          %d(should not be %d)\n"
-			"### chan->_state:      %d(should not be %d)\n"
-			"### chan->_softhangup: %d(should not be %d)\n"
-			"### c->calltype:       %d(should not be %d)\n",
-			DEV_ID_LOG(l->device),
-			c->state, SCCP_CHANNELSTATE_DOWN,
-			chan->_state, AST_STATE_DOWN,
-			chan->_softhangup, 1,
-			c->calltype, SKINNY_CALLTYPE_INBOUND);
-			
-			sccp_channel_lock(c);
 			c->hangupok = 1;
-			// Don't know if it can be here :(
-			sccp_indicate_nolock(c, SCCP_CHANNELSTATE_ONHOOK);
-			sccp_channel_unlock(c);
+			if(c->calltype == SKINNY_CALLTYPE_INBOUND) {			
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: (simpleswitch) Leaving the dial thread for PICKUP\n", d->id);
+			}
+			else if(chan->_softhangup) {
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: (simpleswitch) Leaving the dial thread cause SOFTHANGUP\n", d->id);
+			}
+			else {
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: (simpleswitch) Leaving the dial thread on state: SCCP (%s) - ASTERISK (%s)\n", d->id, sccp_indicate2str(c->state), ast_state2str(chan->_state));
+			}
 			return NULL;
 		}
 
@@ -1052,32 +1046,41 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 		else
 			strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-0);
 		
+		// we would hear last keypad stroke before starti to dial. right ? so let's wait 200 ms
+		sccp_safe_sleep(200); 
+		
 		/* This will choose what to do */
 		switch(c->ss_action) {
 			case SCCP_SS_GETFORWARDEXTEN:
 				sccp_channel_unlock(c);				
 				c->hangupok = 1;
 				sccp_channel_endcall(c);
-				usleep(200);
-				if(!ast_strlen_zero(shortenedNumber));
+				usleep(200); // this is needed as main thread should wait sccp_channel_endcall do his work.
+				if(!ast_strlen_zero(shortenedNumber)) {
 					sccp_line_cfwd(l, c->ss_data, shortenedNumber);
+				}
 				return NULL; // leave simpleswitch without dial
 			case SCCP_SS_GETPICKUPEXTEN:
 				sccp_channel_unlock(c);											
 				c->hangupok = 1;
+				// like we're dialing but we're not :)
+				sccp_indicate_nolock(c, SCCP_CHANNELSTATE_DIALING);
+				sccp_channel_set_callstate(c, SKINNY_CALLSTATE_PROCEED);
+				sccp_channel_send_callinfo(c);
+				sccp_dev_clearprompt(d, c->line->instance, c->callid);
+				sccp_dev_displayprompt(d, c->line->instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
+				
 				if(!ast_strlen_zero(shortenedNumber)) {
-					ast_log(LOG_WARNING, "SCCP: Asterisk request to pickup %s exten\n", shortenedNumber);									
+					sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Asterisk request to pickup exten '%s'\n", shortenedNumber);									
 					if(sccp_channel_directpickup(c, shortenedNumber)) {
-						sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONNECTED);
-						usleep(200);
 						sccp_indicate_lock(c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 					}
 				}
-				else
-				{
-					sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONNECTED);
-					usleep(200);
-					sccp_indicate_lock(c, SCCP_CHANNELSTATE_INVALIDNUMBER);
+				else {
+					// without a number we can also close the call. Isn't it true ?
+					sccp_channel_endcall(c);
+					usleep(200); // this is needed as main thread should wait sccp_channel_endcall do his work.
+					// sccp_indicate_lock(c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 				}
 				return NULL; // leave simpleswitch without dial
 			case SCCP_SS_DIAL:
@@ -1113,7 +1116,7 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 	The phone will not display callinfo in offhook state */
 	sccp_channel_set_callstate(c, SKINNY_CALLSTATE_PROCEED);
 	sccp_channel_send_callinfo(c);
-	sccp_dev_clearprompt(d,c->line->instance, c->callid);
+	sccp_dev_clearprompt(d, c->line->instance, c->callid);
 	sccp_dev_displayprompt(d, c->line->instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 	c->hangupok = 1;
 	sccp_channel_unlock(c);

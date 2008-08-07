@@ -30,7 +30,15 @@
 #include <asterisk/channel_pvt.h>
 #endif
 
-
+void sccp_safe_sleep(int ms) {	
+	struct timeval start = { 0 , 0 };
+	
+	start = ast_tvnow();
+	usleep(1);
+	while(ast_tvdiff_ms(ast_tvnow(), start) < ms) {
+		usleep(1);
+	}
+}
 void sccp_device_add_line(sccp_device_t * d, char * name) {
 	uint8_t i = 0, line_count = 0;
 	sccp_line_t *l, *lines_last = NULL;
