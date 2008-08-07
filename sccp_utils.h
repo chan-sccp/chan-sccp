@@ -1,6 +1,7 @@
 #ifndef __SCCP_UTILS_H
 #define __SCCP_UTILS_H
 
+void sccp_safe_sleep(int ms);
 struct ast_variable * sccp_create_variable(const char *buf);
 void sccp_device_add_line(sccp_device_t * d, char * name);
 sccp_device_t * sccp_device_find_byid(const char * name);

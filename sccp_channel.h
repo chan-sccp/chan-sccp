@@ -14,6 +14,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c);
 void sccp_channel_closereceivechannel(sccp_channel_t * c);
 void sccp_channel_stopmediatransmission(sccp_channel_t * c);
 void sccp_channel_endcall(sccp_channel_t * c);
+int sccp_channel_grouppickup(sccp_line_t * l);
 int sccp_channel_directpickup(sccp_channel_t * c, char *exten);
 void sccp_channel_StatisticsRequest(sccp_channel_t * c);
 sccp_channel_t * sccp_channel_pickup(sccp_line_t * l);
@@ -27,6 +28,7 @@ int sccp_channel_hold(sccp_channel_t * c);
 int sccp_channel_resume(sccp_channel_t * c);
 void sccp_channel_start_rtp(sccp_channel_t * c);
 void sccp_channel_stop_rtp(sccp_channel_t * c);
+void sccp_channel_destroy_rtp(sccp_channel_t * c);
 void sccp_channel_transfer(sccp_channel_t * c);
 void sccp_channel_transfer_complete(sccp_channel_t * c);
 #ifdef CS_SCCP_PARK

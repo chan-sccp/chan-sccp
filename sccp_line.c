@@ -113,7 +113,7 @@ void sccp_line_cfwd(sccp_line_t * l, uint8_t type, char * number) {
 		l->cfwd_type = type;
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call Forward enabled on line %s to number %s\n", d->id, l->name, number);
 	}
-	sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, l->instance, 0, 0);
+	// sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, l->instance, 0, 0);
 	sccp_dev_forward_status(l);
 	sccp_dev_dbput(d);
 }

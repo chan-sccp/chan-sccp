@@ -1132,9 +1132,10 @@ static const uint8_t skSet_Onhook [] = {
 	SKINNY_LBL_NEWCALL,
 	SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_CFWDBUSY,
-	SKINNY_LBL_DND,
+	SKINNY_LBL_CFWDNOANSWER,
 	SKINNY_LBL_PICKUP,
-	SKINNY_LBL_GPICKUP
+	SKINNY_LBL_GPICKUP,
+	SKINNY_LBL_DND,
 };
 
 static const uint8_t skSet_Connected [] = {
@@ -1153,8 +1154,8 @@ static const uint8_t skSet_Onhold [] = {
 	SKINNY_LBL_NEWCALL,
 	SKINNY_LBL_ENDCALL,
 	SKINNY_LBL_TRANSFER,
-	SKINNY_LBL_SELECT
-//	SKINNY_LBL_DIRTRFR
+	SKINNY_LBL_SELECT,
+	SKINNY_LBL_DIRTRFR,
 };
 
 static const uint8_t skSet_Ringin [] = {
@@ -1186,9 +1187,9 @@ static const uint8_t skSet_Conntrans [] = {
 	SKINNY_LBL_PARK,
 #endif
 	SKINNY_LBL_SELECT,
-//	SKINNY_LBL_DIRTRFR,
+	SKINNY_LBL_DIRTRFR,
 	SKINNY_LBL_CFWDALL,
-	SKINNY_LBL_CFWDBUSY
+	SKINNY_LBL_CFWDBUSY,
 };
 
 static const uint8_t skSet_DigitsFoll []  = {

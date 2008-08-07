@@ -141,7 +141,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 	case SCCP_CHANNELSTATE_RINGOUT:
 		sccp_channel_set_callstate(c, SKINNY_CALLSTATE_RINGOUT);
 		sccp_channel_send_callinfo(c);
-		if (d->earlyrtp == SCCP_CHANNELSTATE_RINGOUT) { //  && (!c->rtp || c->state != SCCP_CHANNELSTATE_HOLD)) {
+		if (d->earlyrtp == SCCP_CHANNELSTATE_RINGOUT && !c->rtp) {
 			sccp_channel_openreceivechannel(c);
 		}
 		/* it will be emulated if the rtp audio stream is open */
@@ -166,9 +166,9 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_ast_setstate(c, AST_STATE_RINGING);
 		break;
 	case SCCP_CHANNELSTATE_CONNECTED:				
-		// if (!c->rtp || c->callstate == SKINNY_CALLSTATE_HOLD || c->state == SCCP_CHANNELSTATE_CALLTRANSFER) {
-		sccp_channel_openreceivechannel(c);
-		// }
+		if (!c->rtp) {
+			sccp_channel_openreceivechannel(c);
+		}
 		sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, l->instance, c->callid);
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 //		if (c->calltype == SKINNY_CALLTYPE_OUTBOUND)
@@ -194,9 +194,9 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_channel_set_callstate(c, SKINNY_CALLSTATE_PROCEED);
 		sccp_channel_send_callinfo(c);
 		sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
-		// if (!c->rtp || c->state == SCCP_CHANNELSTATE_HOLD || c->state == SCCP_CHANNELSTATE_CALLTRANSFER) {
+		if (!c->rtp) {
 			sccp_channel_openreceivechannel(c);
-		// }
+		}
 		/* sccp_ast_setstate(c, AST_STATE_UP); */
 		break;
 	case SCCP_CHANNELSTATE_HOLD:		
@@ -259,7 +259,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_channel_send_dialednumber(c);
 		sccp_dev_set_keyset(d, l->instance, c->callid, KEYMODE_DIGITSFOLL);
 		sccp_dev_clearprompt(d,l->instance, c->callid);
-		if (d->earlyrtp == SCCP_CHANNELSTATE_DIALING) { // && !c->rtp) {
+		if (d->earlyrtp == SCCP_CHANNELSTATE_DIALING && !c->rtp) {
 			sccp_channel_openreceivechannel(c);
 		}
 		sccp_ast_setstate(c, AST_STATE_DIALING);

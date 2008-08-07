@@ -485,76 +485,14 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #ifndef CS_SCCP_PICKUP
 	sccp_log(10)(VERBOSE_PREFIX_3 "### Native GROUP PICKUP was not compiled in\n");
 #else
-	struct ast_channel *ast, *original = NULL;
-#ifndef CS_AST_CHANNEL_HAS_CID
-	char * name, * number, *cidtmp; // For the callerid parse below
-#endif
-
-	if (!l)
-		l = d->currentLine;
-	if (!l)
-		l = d->lines;
-	if (!l)
-		return;
-
-	if (!l->pickupgroup) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: pickupgroup not configured in sccp.conf\n", d->id);
-		return;
+	if(!l && d) {
+		l = sccp_line_find_byid(d, 1);
 	}
-	
-	c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_OFFHOOK);	
-	if (!c)
-	{
-		c = sccp_channel_pickup(l);
-		if(!c)
-		{
-			ast_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n",d->id, l->name);
-			return;
-		}
-		else
-		{
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: New channel allocated for line %s\n",d->id, l->name);
-		}
-	}
-
-	ast = c->owner;
-
-	sccp_log(4)(VERBOSE_PREFIX_3 "%s: Starting the PICKUP stuff\n", d->id);
-	if (!c->owner)
-	{
-		sccp_log(4)(VERBOSE_PREFIX_3 "%s: No channel owner. Leaving\n", d->id);
-		return;
-	}
-
-	if (ast_pickup_call(ast)) {
-		sccp_log(4)(VERBOSE_PREFIX_3 "%s: No channel to pickup\n", d->id);
-		return;
-	}
-
-	original = ast->masqr;
-	
-	if (original) {	
-#ifdef CS_AST_CHANNEL_HAS_CID
-		sccp_channel_set_callingparty(c, original->cid.cid_name, original->cid.cid_num);
-#else
-		if (original->callerid && (cidtmp = strdup(original->callerid))) {
-			ast_callerid_parse(cidtmp, &name, &number);
-			sccp_channel_set_callingparty(c, name, number);
-			free(cidtmp);
-			cidtmp = NULL;
-		}
-#endif
-		sccp_log(4)(VERBOSE_PREFIX_3 "%s: Pickup the call from %s\n", d->id, original->name);
-		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONNECTED);
-		ast_setstate(ast, AST_STATE_DOWN);
-		ast->hangupcause = AST_CAUSE_NORMAL_CLEARING;
-	}
+	if(l)
+		sccp_channel_grouppickup(l);
 	else
-	{		
-		sccp_log(4)(VERBOSE_PREFIX_3 "%s: Pickup error\n", d->id);
-		ast->hangupcause = AST_CAUSE_CALL_REJECTED;
-	}
-	ast_hangup(ast);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);		
+
 #endif
 }
 
