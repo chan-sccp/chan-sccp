@@ -803,7 +803,7 @@ sccp_channel_t * sccp_channel_handle_callforward(sccp_line_t * l, uint8_t type) 
 		if(type == SCCP_CFWD_NOANSWER)
 		{
 			sccp_log(10)(VERBOSE_PREFIX_3 "### CFwdNoAnswer NOT SUPPORTED\n");
-			sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+			sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 			return NULL;
 		}
 	}
@@ -851,14 +851,14 @@ sccp_channel_t * sccp_channel_handle_callforward(sccp_line_t * l, uint8_t type) 
 				if (!sccp_channel_hold(c))
 				{
 					// if can't hold  it means there is no active call, so return as we're already waiting a number to dial
-					sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);				
+					sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);				
 					return NULL; 
 				}
 			}		
 		}
 		else {
 			// if we're waiting for dialing or so on, we cannot allocate a channel, or ask an extension to pickup.
-			sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+			sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 			return NULL;
 		}
 	}
