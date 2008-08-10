@@ -246,6 +246,11 @@ else
         echo " * no 'ast_app_separate_args'"
 fi
 
+if grep -q "AST_EXTENSION_ONHOLD" $INCLUDEDIR/pbx.h; then
+        echo "#define CS_AST_HAS_EXTENSION_ONHOLD" >>$CONFIGFILE
+        echo " * found AST_EXTENSION_ONHOLD"
+fi
+
 if grep -q "AST_EXTENSION_RINGING" $INCLUDEDIR/pbx.h; then
         echo "#define CS_AST_HAS_EXTENSION_RINGING" >>$CONFIGFILE
         echo " * found AST_EXTENSION_RINGING"

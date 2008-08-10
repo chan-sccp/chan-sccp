@@ -587,6 +587,14 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(r->msg.CallInfoMessage.callingPartyName));
 			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(r->msg.CallInfoMessage.calledPartyName));
 			break;
+#ifdef CS_AST_HAS_EXTENSION_ONHOLD		
+		case AST_EXTENSION_ONHOLD:
+			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, SKINNY_LAMP_ON);
+			sccp_channel_set_callstate_full(d, h->instance, 0, SKINNY_CALLSTATE_CALLREMOTEMULTILINE);
+			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_HOLD, sizeof(r->msg.CallInfoMessage.callingPartyName));
+			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_HOLD, sizeof(r->msg.CallInfoMessage.calledPartyName));
+			break;
+#endif	
 #ifdef CS_AST_HAS_EXTENSION_RINGING
 		case AST_EXTENSION_RINGING:
 			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, SKINNY_LAMP_FLASH);
@@ -991,7 +999,10 @@ sccp_device_t * build_device(void) {
 	d->cfwdbusy = GLOB(cfwdbusy);
 	d->cfwdnoanswer = GLOB(cfwdnoanswer);
 	d->postregistration_thread = AST_PTHREADT_STOP;
+#ifdef CS_SCCP_PICKUP
+	d->pickupexten = 0;
 	d->pickupcontext = NULL;
+#endif
 
 #ifdef CS_SCCP_PARK
 	d->park = 1;
@@ -1113,11 +1124,13 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 				d->cfwdbusy = sccp_true(v->value);
 			} else if (!strcasecmp(v->name, "cfwdnoanswer")) {
 				d->cfwdnoanswer = sccp_true(v->value);
+#ifdef CS_SCCP_PICKUP
 			} else if (!strcasecmp(v->name, "pickupexten")) {
 				d->pickupexten = sccp_true(v->value);
 			} else if (!strcasecmp(v->name, "pickupcontext")) {
 				if(!ast_strlen_zero(v->value))
 					d->pickupcontext = strdup(v->value);
+#endif					
 			} else if (!strcasecmp(v->name, "dnd")) {
 				if (!strcasecmp(v->value, "reject")) {
 					d->dndmode = SCCP_DNDMODE_REJECT;

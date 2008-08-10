@@ -445,6 +445,7 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 
 	return;
 }
+#ifdef CS_SCCP_PICKUP
 int sccp_channel_directpickup(sccp_channel_t * c, char *exten) {
 	int res = -1;
 	struct ast_channel *target = NULL;
@@ -498,15 +499,15 @@ int sccp_channel_directpickup(sccp_channel_t * c, char *exten) {
 			original->hangupcause = AST_CAUSE_CALL_REJECTED;
 			
 			if ((res = ast_answer(c->owner))) {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Unable to answer '%s'\n", c->owner->name);
+				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (directpickup) Unable to answer '%s'\n", c->owner->name);
 				res = -1;
 			}
 			else if ((res = ast_queue_control(c->owner, AST_CONTROL_ANSWER))) {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Unable to queue answer on '%s'\n", c->owner->name);
+				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (directpickup) Unable to queue answer on '%s'\n", c->owner->name);
 				res = -1;
 			}
 			else if ((res = ast_channel_masquerade(target, c->owner))) {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);				
+				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (directpickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);				
 				res = -1;
 			}
 			else {
@@ -654,6 +655,7 @@ int sccp_channel_grouppickup(sccp_line_t * l) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (grouppickup) quit\n");
 	return res;
 }
+#endif
 
 /*
 	Thread functions "should" be always static.... --FS
@@ -901,7 +903,7 @@ sccp_channel_t * sccp_channel_handle_callforward(sccp_line_t * l, uint8_t type) 
 
 	return c;
 }
-
+#ifdef CS_SCCP_PICKUP
 sccp_channel_t * sccp_channel_handle_directpickup(sccp_line_t * l) {
 	sccp_channel_t * c;
 	sccp_device_t * d;
@@ -961,6 +963,7 @@ sccp_channel_t * sccp_channel_handle_directpickup(sccp_line_t * l) {
 
 	return c;
 }
+#endif
 
 void sccp_channel_answer(sccp_channel_t * c) {
 	sccp_line_t * l;
