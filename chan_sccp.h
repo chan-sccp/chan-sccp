@@ -385,8 +385,10 @@ struct sccp_device {
 	unsigned int			cfwdall:1;
 	unsigned int			cfwdbusy:1;
 	unsigned int			cfwdnoanswer:1;
+#ifdef CS_SCCP_PICKUP
 	unsigned int			pickupexten:1;
 	char					* pickupcontext;
+#endif	
 	unsigned int			dtmfmode:1; 						/*!< 0 inband - 1 outofband */	
 	unsigned int			nat:1;
 	unsigned int			trustphoneip:1;

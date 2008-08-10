@@ -1060,8 +1060,9 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 					sccp_line_cfwd(l, c->ss_data, shortenedNumber);
 				}
 				return NULL; // leave simpleswitch without dial
+#ifdef CS_SCCP_PICKUP
 			case SCCP_SS_GETPICKUPEXTEN:
-				sccp_channel_unlock(c);											
+				sccp_channel_unlock(c);									
 				c->hangupok = 1;
 				// like we're dialing but we're not :)
 				sccp_indicate_nolock(c, SCCP_CHANNELSTATE_DIALING);
@@ -1083,6 +1084,7 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 					// sccp_indicate_lock(c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 				}
 				return NULL; // leave simpleswitch without dial
+#endif				
 			case SCCP_SS_DIAL:
 			default:
 			break;			

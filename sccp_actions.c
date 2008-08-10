@@ -1143,8 +1143,9 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r) {
 	uint8_t i = 0;
 	sccp_line_t * l;
 	uint8_t trnsfvm = 0;
+#ifdef CS_SCCP_PICKUP
 	uint8_t pickupgroup= 0;
-	
+#endif	
 	if (!d)
 		return;
 
@@ -1171,9 +1172,11 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r) {
 #endif
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CFWDALL     is  %s\n", d->id, (d->cfwdall) ? "enabled" : "disabled");
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CFWDBUSY    is  %s\n", d->id, (d->cfwdbusy) ? "enabled" : "disabled");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CFWDNOANSWER is  %s\n", d->id, (d->cfwdnoanswer) ? "enabled" : "disabled");
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRNSFVM     is  %s\n", d->id, (trnsfvm) ? "enabled" : "disabled");
 #ifdef CS_SCCP_PICKUP
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PICKUPGROUP is  %s\n", d->id, (pickupgroup) ? "enabled" : "disabled");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PICKUPEXTEN is  %s\n", d->id, (d->pickupexten) ? "enabled" : "disabled");
 #endif
 
 	for (i = 0; i < v_count; i++) {
@@ -1205,12 +1208,14 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r) {
 			if ( (b[c] == SKINNY_LBL_TRNSFVM) && (!trnsfvm) ) {
 				continue;
 			}
+#ifdef CS_SCCP_PICKUP
 			if ( (b[c] == SKINNY_LBL_PICKUP) && (!d->pickupexten) ) {
 				continue;
 			}
 			if ( (b[c] == SKINNY_LBL_GPICKUP) && (!pickupgroup) ) {
 				continue;
 			}
+#endif			
 			if ( (b[c] == SKINNY_LBL_PRIVATE) && (!d->private) ) {
 				continue;
 			}
