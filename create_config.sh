@@ -48,15 +48,29 @@ elif grep -q "trunk" $INCLUDEDIR/version.h; then
 	echo "#define ASTERISK_CONF_1_6" >>$CONFIGFILE
 	echo " * found asterisk 1.6 (trunk)"
 	REALTIME_USEABLE=1
+
+elif grep -q "\"SVN-branch-1\.6" $INCLUDEDIR/version.h; then
+	echo "#define ASTERISK_CONF_1_6" >>$CONFIGFILE
+	echo " * found asterisk 1.6 (branch)"
+	REALTIME_USEABLE=1
 	
 elif grep -q "\"1\.4" $INCLUDEDIR/version.h; then
 	echo "#define ASTERISK_CONF_1_4" >>$CONFIGFILE
 	echo " * found asterisk 1.4"
 	REALTIME_USEABLE=1
+
+elif grep -q "\"SVN-branch-1\.4" $INCLUDEDIR/version.h; then
+	echo "#define ASTERISK_CONF_1_4" >>$CONFIGFILE
+	echo " * found asterisk 1.4 (branch)"
+	REALTIME_USEABLE=1
 	
 elif grep -q "\"1\.2" $INCLUDEDIR/version.h; then
 	echo "#define ASTERISK_CONF_1_2" >>$CONFIGFILE
 	echo " * found asterisk 1.2"
+
+elif grep -q "\"SVN-branch-1\.2" $INCLUDEDIR/version.h; then
+	echo "#define ASTERISK_CONF_1_2" >>$CONFIGFILE
+	echo " * found asterisk 1.2 (branch)"
 else
 	echo " * found unsupported asterisk version"
 	exit 1

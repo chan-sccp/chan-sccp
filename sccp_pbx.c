@@ -1158,7 +1158,11 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 	// We don't just call sccp_pbx_senddigit due to potential overhead, and issues with locking
 	f.src = "SCCP";
 	f.offset = 0;
+#ifndef ASTERISK_CONF_1_6	
 	f.data = NULL;
+#else	
+	f.data.ptr = NULL;
+#endif	
 	f.datalen = 0;
 
 	sccp_mutex_lock(&c->lock);
