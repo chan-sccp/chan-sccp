@@ -456,19 +456,19 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 						ast->readformat,
 						ast_getformatname_multiple(s3, sizeof(s3) - 1, ast->writeformat),
 						ast->writeformat);
-					return 0;
+					return -1;
 				}
-				sccp_mutex_lock(&c->lock);
+				sccp_channel_lock(c);
 				if (c->rtp)
-					res =  ast_rtp_write(c->rtp, frame);
-				sccp_mutex_unlock(&c->lock);
+					res = ast_rtp_write(c->rtp, frame);
+				sccp_channel_unlock(c);
 				break;
 			case AST_FRAME_IMAGE:
 			case AST_FRAME_VIDEO:
 			case AST_FRAME_TEXT:
 			case AST_FRAME_MODEM:
 			default:
-				ast_log(LOG_WARNING, "%s: Can't send %d type frames with SCCP write on channel %d\n", DEV_ID_LOG(c->device), frame->frametype, (c) ? c->callid : 0);
+				ast_log(LOG_WARNING, "%s: Can't send %d type frames with SCCP write on channel %s\n", DEV_ID_LOG(c->device), frame->frametype, ast->name);
 				break;
 		}
 	}
@@ -1158,7 +1158,7 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 	// We don't just call sccp_pbx_senddigit due to potential overhead, and issues with locking
 	f.src = "SCCP";
 	f.offset = 0;
-#ifndef ASTERISK_CONF_1_6	
+#ifndef CS_AST_NEW_FRAME_STRUCT
 	f.data = NULL;
 #else	
 	f.data.ptr = NULL;

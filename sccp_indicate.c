@@ -30,9 +30,9 @@
 void sccp_indicate_lock(sccp_channel_t * c, uint8_t state) {
 	if (!c)
 		return;
-	sccp_mutex_lock(&c->lock);
+	sccp_channel_lock(c);
 	sccp_indicate_nolock(c, state);
-	sccp_mutex_unlock(&c->lock);
+	sccp_channel_unlock(c);
 }
 
 void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
@@ -197,7 +197,8 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		if (!c->rtp) {
 			sccp_channel_openreceivechannel(c);
 		}
-		/* sccp_ast_setstate(c, AST_STATE_UP); */
+		// TEST TEST TEST
+		sccp_ast_setstate(c, AST_STATE_UP);
 		break;
 	case SCCP_CHANNELSTATE_HOLD:		
 		sccp_handle_time_date_req(d->session, NULL);
