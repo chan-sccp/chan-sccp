@@ -756,8 +756,8 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 				    sccp_log(1)(VERBOSE_PREFIX_3 "%s: Trying to put on hold the active call (%d) on line %s\n", d->id, c->callid, (l) ? l->name : "(nil)");
 			    	    /* there is an active call, let's put it on hold first */
 				    if (!sccp_channel_hold(c)) {
-					sccp_log(1)(VERBOSE_PREFIX_3 "%s: Hold failed on call (%d), line %s\n", d->id, c->callid, (l) ? l->name : "(nil)");
-					return;
+						sccp_log(1)(VERBOSE_PREFIX_3 "%s: Hold failed on call (%d), line %s\n", d->id, c->callid, (l) ? l->name : "(nil)");
+						return;
 				    }
 			    }
 			

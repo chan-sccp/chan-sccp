@@ -290,9 +290,17 @@ int sccp_devicestate(void * data) {
 			res = AST_DEVICE_BUSY;
 	else if (!l->channelCount)
 		res = AST_DEVICE_NOT_INUSE;
-#ifdef  CS_AST_DEVICE_RINGING
+#ifdef CS_AST_DEVICE_RINGING
 	else if (sccp_channel_find_bystate_on_device(l->device, SCCP_CHANNELSTATE_RINGING))
 		res = AST_DEVICE_RINGING;
+#endif
+#ifdef CS_AST_DEVICE_RINGINUSE
+	else if (sccp_channel_find_bystate_on_device(l->device, SCCP_CHANNELSTATE_RINGING) && sccp_channel_find_bystate_on_device(l->device, SCCP_CHANNELSTATE_CONNECTED))
+		res = AST_DEVICE_RINGINUSE;
+#endif
+#ifdef CS_AST_DEVICE_ONHOLD
+	else if (sccp_channel_find_bystate_on_device(l->device, SCCP_CHANNELSTATE_HOLD))
+		res = AST_DEVICE_ONHOLD;
 #endif
 	else
 		res = AST_DEVICE_INUSE;
@@ -356,9 +364,16 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 
 	/* let's go for internal hint system */
 
-	if (!l || !l->hints) {
+	if (!l)
+		return;
+		
+	if (!l->hints) {
 		if (!onedevice)
+#ifndef ASTERISK_CONF_1_6
 			ast_device_state_changed("SCCP/%s", l->name);
+#else
+			ast_devstate_changed(sccp_devicestate(l->name), "SCCP/%s", l->name);
+#endif			
 		return;
 	}
 
@@ -425,7 +440,11 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 
 	/* notify the asterisk hint system when we are not in a postregistration state (onedevice) */
 	if (!onedevice)
+#ifndef ASTERISK_CONF_1_6
 		ast_device_state_changed("SCCP/%s", l->name);
+#else
+		ast_devstate_changed(sccp_devicestate(l->name), "SCCP/%s", l->name);
+#endif	
 }
 
 
@@ -794,15 +813,17 @@ sccp_line_t * build_lines(struct ast_variable *v) {
 	sccp_line_t * l, *gl;
 	int amaflags = 0;
 	int secondary_dialtone_tone = 0;
+	char * tmp;
 
  	l = build_line();
  	while(v) {
  			if (!strcasecmp(v->name, "line")) {
  				if ( !ast_strlen_zero(v->value) ) {
- 					
- 					//TODO check ast_strip for asterisk 1.6 - just comment out to get the functionality of 1.6 (MC)
- 					sccp_copy_string(l->name, ast_strip(v->value), sizeof(l->name));
-// 					sccp_copy_string(l->name, v->value, sizeof(l->name));
+
+					tmp = strdup(v->value);
+ 					sccp_copy_string(l->name, ast_strip(tmp), sizeof(l->name));
+					free(tmp);
+					tmp = NULL;
  					
  					/* search for existing line */
 					gl = GLOB(lines);
@@ -831,10 +852,10 @@ sccp_line_t * build_lines(struct ast_variable *v) {
 #ifdef CS_SCCP_REALTIME
 			if (!strcasecmp(v->name, "name")) {
  				if ( !ast_strlen_zero(v->value) ) {
- 					
- 					//TODO check ast_strip for asterisk 1.6 - just comment out to get the functionality of 1.6 (MC)
- 					sccp_copy_string(l->name, ast_strip(v->value), sizeof(l->name));
-// 					sccp_copy_string(l->name, v->value, sizeof(l->name));
+ 					tmp = strdup(v->value);
+ 					sccp_copy_string(l->name, ast_strip(tmp), sizeof(l->name));
+					free(tmp);
+					tmp = NULL;
  					
  					/* search for existing line */
 					sccp_mutex_lock(&GLOB(lines_lock));

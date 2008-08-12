@@ -240,11 +240,19 @@ fi
 
 if [ -e "$INCLUDEDIR/devicestate.h" ]; then
         echo "#define CS_AST_HAS_NEW_DEVICESTATE" >>$CONFIGFILE
-        echo " * found new devicestate.h"
+        echo " * found devicestate.h"
 	if grep -q "AST_DEVICE_RINGING" $INCLUDEDIR/devicestate.h; then
 		echo "#define CS_AST_DEVICE_RINGING" >>$CONFIGFILE
 		echo " * found AST_DEVICE_RINGING"
 	fi
+	if grep -q "AST_DEVICE_RINGINUSE" $INCLUDEDIR/devicestate.h; then
+		echo "#define CS_AST_DEVICE_RINGINUSE" >>$CONFIGFILE
+		echo " * found AST_DEVICE_RINGINUSE"
+	fi
+	if grep -q "AST_DEVICE_ONHOLD" $INCLUDEDIR/devicestate.h; then
+		echo "#define CS_AST_DEVICE_ONHOLD" >>$CONFIGFILE
+		echo " * found AST_DEVICE_ONHOLD"
+	fi	
 fi
 
 if grep -q "ast_group_t" $INCLUDEDIR/channel.h; then
