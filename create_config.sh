@@ -136,6 +136,14 @@ else
 	echo " * no 'void ast_rtp_new_source'"
 fi
 
+if grep -q "void *data;" $INCLUDEDIR/frame.h; then
+	echo "#undef CS_AST_NEW_FRAME_STRUCT" >>$CONFIGFILE
+	echo " * no 'new frame structure'"
+else
+	echo "#define CS_AST_NEW_FRAME_STRUCT" >>$CONFIGFILE
+	echo " * found 'new ast_frame structure'"
+fi
+
 if grep -q "struct ast_channel_tech" $INCLUDEDIR/channel.h; then
 	echo "#define CS_AST_HAS_TECH_PVT" >>$CONFIGFILE
 	echo " * found 'struct ast_channel_tech'"
