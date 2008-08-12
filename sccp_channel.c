@@ -1076,11 +1076,10 @@ int sccp_channel_hold(sccp_channel_t * c) {
 	sccp_device_unlock(d);
 #endif
 
-	sccp_mutex_lock(&d->lock);
+	sccp_device_lock(d);
 	d->active_channel = NULL;
-	sccp_mutex_unlock(&d->lock);
+	sccp_device_unlock(d);
 	sccp_indicate_lock(c, SCCP_CHANNELSTATE_HOLD);
-	
 
 	return 1;
 }
