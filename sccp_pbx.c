@@ -1159,9 +1159,9 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 	f.src = "SCCP";
 	f.offset = 0;
 #ifndef CS_AST_NEW_FRAME_STRUCT
-	f.data = NULL;
-#else	
 	f.data.ptr = NULL;
+#else	
+	f.data = NULL;
 #endif	
 	f.datalen = 0;
 
