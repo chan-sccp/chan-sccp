@@ -16,6 +16,12 @@ void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 
 void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 
+void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
+void sccp_sk_join(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
+void sccp_sk_meetme(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
+void sccp_sk_barge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
+void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
+
 void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 

@@ -248,6 +248,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Transfer tone         : %d\n", GLOB(transfer_tone));
 	ast_cli(fd, "CallWaiting tone      : %d\n", GLOB(callwaiting_tone));
 	sccp_mutex_unlock(&GLOB(lock));
+
 	return RESULT_SUCCESS;
 }
 
@@ -265,7 +266,7 @@ static char *cli_show_globals(struct ast_cli_entry *e, int cmd, struct ast_cli_a
 		if (a->argc != 3)
 			return CLI_SHOWUSAGE;
 		
-		if(sccp_show_globals(a->fd, a->argc, a->argv)){
+		if(sccp_show_globals(a->fd, a->argc, a->argv) == RESULT_SUCCESS) {
 			return CLI_SUCCESS;
 		}else
 			return CLI_FAILURE;
@@ -387,7 +388,7 @@ static char *cli_show_device(struct ast_cli_entry *e, int cmd, struct ast_cli_ar
 		if (a->argc != 4)
 			return CLI_SHOWUSAGE;
 		
-		if(sccp_show_device(a->fd, a->argc, a->argv)){
+		if(sccp_show_device(a->fd, a->argc, a->argv) == RESULT_SUCCESS){
 			return CLI_SUCCESS;
 		}else
 			return CLI_FAILURE;
@@ -419,7 +420,7 @@ static char *cli_reset(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a)
 		if (a->argc != 4)
 			return CLI_SHOWUSAGE;
 		
-		if(sccp_reset_restart(a->fd, a->argc, a->argv)){
+		if(sccp_reset_restart(a->fd, a->argc, a->argv) == RESULT_SUCCESS){
 			return CLI_SUCCESS;
 		}else
 			return CLI_FAILURE;
@@ -449,7 +450,7 @@ static char *cli_restart(struct ast_cli_entry *e, int cmd, struct ast_cli_args *
 		if (a->argc != 4)
 			return CLI_SHOWUSAGE;
 		
-		if(sccp_reset_restart(a->fd, a->argc, a->argv)){
+		if(sccp_reset_restart(a->fd, a->argc, a->argv) == RESULT_SUCCESS){
 			return CLI_SUCCESS;
 		}else
 			return CLI_FAILURE;
@@ -481,7 +482,7 @@ static char *cli_unregister(struct ast_cli_entry *e, int cmd, struct ast_cli_arg
 		if (a->argc != 3)
 			return CLI_SHOWUSAGE;
 		
-		if(sccp_unregister(a->fd, a->argc, a->argv)){
+		if(sccp_unregister(a->fd, a->argc, a->argv) == RESULT_SUCCESS){
 			return CLI_SUCCESS;
 		}else
 			return CLI_FAILURE;
@@ -535,7 +536,7 @@ static char *cli_show_channels(struct ast_cli_entry *e, int cmd, struct ast_cli_
 	} else if (cmd == CLI_GENERATE)
 		return NULL;
 	
-	if(sccp_show_channels(a->fd, a->argc, a->argv))
+	if(sccp_show_channels(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
 		return CLI_FAILURE;
@@ -601,7 +602,7 @@ static char *cli_show_devices(struct ast_cli_entry *e, int cmd, struct ast_cli_a
 	} else if (cmd == CLI_GENERATE)
 		return NULL;
 	
-	if(sccp_show_devices(a->fd, a->argc, a->argv))
+	if(sccp_show_devices(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
 		return CLI_FAILURE;
@@ -656,7 +657,7 @@ static char *cli_message_devices(struct ast_cli_entry *e, int cmd, struct ast_cl
 	if (a->argc < 4)
 		return CLI_SHOWUSAGE;
 	
-	if(sccp_message_devices(a->fd, a->argc, a->argv))
+	if(sccp_message_devices(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
 		return CLI_FAILURE;
@@ -736,7 +737,7 @@ static char *cli_show_lines(struct ast_cli_entry *e, int cmd, struct ast_cli_arg
 		return NULL;
 	
 	
-	if(sccp_show_lines(a->fd, a->argc, a->argv))
+	if(sccp_show_lines(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
 		return CLI_FAILURE;
@@ -807,7 +808,7 @@ static char *cli_remove_line_device(struct ast_cli_entry *e, int cmd, struct ast
 	if (a->argc != 5)
 		return CLI_SHOWUSAGE;
 	
-	if(sccp_remove_line_from_device(a->fd, a->argc, a->argv))
+	if(sccp_remove_line_from_device(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
 		return CLI_FAILURE;
@@ -882,7 +883,7 @@ static char *cli_show_sessions(struct ast_cli_entry *e, int cmd, struct ast_cli_
 	if (a->argc != 5)
 		return CLI_SHOWUSAGE;
 	
-	if(sccp_show_sessions(a->fd, a->argc, a->argv))
+	if(sccp_show_sessions(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
 		return CLI_FAILURE;
@@ -953,7 +954,7 @@ static char *cli_system_message(struct ast_cli_entry *e, int cmd, struct ast_cli
 	if (a->argc < 4)
 		return CLI_SHOWUSAGE;
 	
-	if(sccp_system_message(a->fd, a->argc, a->argv))
+	if(sccp_system_message(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
 		return CLI_FAILURE;
@@ -982,7 +983,7 @@ static int sccp_do_debug(int fd, int argc, char *argv[]) {
 	if (argc == 3) {
 		if (sscanf(argv[2], "%d", &new_debug) != 1)
 			return RESULT_SHOWUSAGE;
-		new_debug = (new_debug > 10) ? 10 : new_debug;
+		new_debug = (new_debug > 99) ? 99 : new_debug; // 99 was 10
 		new_debug = (new_debug < 0) ? 0 : new_debug;
 	}
 
@@ -1005,7 +1006,7 @@ static char *cli_do_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args 
 	if (a->argc != 3)
 		return CLI_SHOWUSAGE;
 	
-	if(sccp_do_debug(a->fd, a->argc, a->argv))
+	if(sccp_do_debug(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
 		return CLI_FAILURE;
@@ -1044,7 +1045,7 @@ static char *cli_no_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args 
 	if (a->argc != 3)
 		return CLI_SHOWUSAGE;
 	
-	if(sccp_no_debug(a->fd, a->argc, a->argv))
+	if(sccp_no_debug(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
 		return CLI_FAILURE;
@@ -1081,7 +1082,7 @@ static char *cli_reload(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a
 	if (a->argc != 2)
 		return CLI_SHOWUSAGE;
 	
-	if(sccp_do_reload(a->fd, a->argc, a->argv))
+	if(sccp_do_reload(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
 		return CLI_FAILURE;
@@ -1118,7 +1119,7 @@ static char *cli_show_version(struct ast_cli_entry *e, int cmd, struct ast_cli_a
 	if (a->argc != 3)
 		return CLI_SHOWUSAGE;
 	
-	if(sccp_show_version(a->fd, a->argc, a->argv))
+	if(sccp_show_version(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
 		return CLI_FAILURE;

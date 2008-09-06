@@ -833,10 +833,10 @@ void * sccp_dev_postregistration(void *data) {
 	if (!d || !d->session)
 		return NULL;
 
-	sleep(5);
+	sccp_safe_sleep(5000);
 	pthread_testcancel();
-	sccp_mutex_lock(&d->lock);
-
+	sccp_device_lock(d);
+	
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Post registration process\n", d->id);
 
 	/* turn off the device MWI light. We need to force it off on some phone (7910 for example) */
@@ -889,7 +889,7 @@ void * sccp_dev_postregistration(void *data) {
 	sccp_dev_check_displayprompt(d);
 	d->postregistration_thread = AST_PTHREADT_STOP;
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
-	sccp_mutex_unlock(&d->lock);
+	sccp_device_unlock(d);
 	return NULL;
 }
 

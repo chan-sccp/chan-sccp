@@ -903,15 +903,17 @@ sccp_line_t * build_lines(struct ast_variable *v) {
  				sccp_copy_string(l->mailbox, v->value, sizeof(l->mailbox));
  			} else if (!strcasecmp(v->name, "vmnum")) {
  				sccp_copy_string(l->vmnum, v->value, sizeof(l->vmnum));
+ 			} else if (!strcasecmp(v->name, "meetmenum")) {
+ 				sccp_copy_string(l->meetmenum, v->value, sizeof(l->meetmenum));				
  			} else if (!strcasecmp(v->name, "transfer")) {
  				l->transfer = sccp_true(v->value);
  			} else if (!strcasecmp(v->name, "incominglimit")) {
  				l->incominglimit = atoi(v->value);
  				if (l->incominglimit < 1)
- 				l->incominglimit = 1;
+					l->incominglimit = 1;
  				/* this is the max call phone limits. Just a guess. It's not important */
  				if (l->incominglimit > 10)
- 				l->incominglimit = 10;
+					l->incominglimit = 10;
  			} else if (!strcasecmp(v->name, "echocancel")) {
  					l->echocancel = sccp_true(v->value);
  			} else if (!strcasecmp(v->name, "silencesuppression")) {
@@ -941,11 +943,14 @@ sccp_line_t * build_lines(struct ast_variable *v) {
  	#endif
  			} else if (!strcasecmp(v->name, "trnsfvm")) {
  				if (!ast_strlen_zero(v->value)) {
- 					if (ast_exists_extension(NULL, l->context, v->value, 1, l->cid_num)) {
+ 					// it needs a chan to work :(
+					// if (ast_exists_extension(NULL, l->context, v->value, 1, l->cid_num)) {
  						l->trnsfvm = strdup(v->value);
- 					} else {
+ 					/*
+					} else {
  						ast_log(LOG_WARNING, "trnsfvm: %s is not a valid extension. Disabled!\n", v->value);
  					}
+					*/
  				}
  			} else if (!strcasecmp(v->name, "secondary_dialtone_digits")) {
  				if (strlen(v->value) > 9)
@@ -1151,6 +1156,8 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 			} else if (!strcasecmp(v->name, "pickupcontext")) {
 				if(!ast_strlen_zero(v->value))
 					d->pickupcontext = strdup(v->value);
+			} else if (!strcasecmp(v->name, "pickupmodeanswer")) {
+				d->pickupmodeanswer = sccp_true(v->value);
 #endif					
 			} else if (!strcasecmp(v->name, "dnd")) {
 				if (!strcasecmp(v->value, "reject")) {

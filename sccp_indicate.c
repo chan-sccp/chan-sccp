@@ -106,7 +106,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		// sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, l->instance, c->callid, 0);
 		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, l->instance, c->callid, 0);
 		sccp_ast_setstate(c, AST_STATE_OFFHOOK);
-		/* for earlyrtp take a look at sccp_channel_handle_callforward because we have no c->owner here */
+		/* for earlyrtp take a look at sccp_feat_handle_callforward because we have no c->owner here */
 		break;
 	case SCCP_CHANNELSTATE_ONHOOK:
 		if (c == d->active_channel)
@@ -198,7 +198,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 			sccp_channel_openreceivechannel(c);
 		}
 		// TEST TEST TEST
-		sccp_ast_setstate(c, AST_STATE_UP);
+		// sccp_ast_setstate(c, AST_STATE_UP);
 		break;
 	case SCCP_CHANNELSTATE_HOLD:		
 		sccp_handle_time_date_req(d->session, NULL);

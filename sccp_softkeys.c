@@ -35,6 +35,7 @@
 #include "sccp_line.h"
 #include "sccp_indicate.h"
 #include "sccp_protocol.h"
+#include "sccp_features.h"
 #ifndef CS_AST_HAS_TECH_PVT
 #include <asterisk/channel_pvt.h>
 #endif
@@ -358,7 +359,7 @@ void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		l = sccp_line_find_byid(d, 1);
 	}
 	if(l)
-		sccp_channel_handle_callforward(l, SCCP_CFWD_ALL);
+		sccp_feat_handle_callforward(l, SCCP_CFWD_ALL);
 	else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
 
@@ -380,7 +381,7 @@ void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		l = sccp_line_find_byid(d, 1);
 	}
 	if(l)
-		sccp_channel_handle_callforward(l, SCCP_CFWD_BUSY);
+		sccp_feat_handle_callforward(l, SCCP_CFWD_BUSY);
 	else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
 	
@@ -402,7 +403,7 @@ void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 		l = sccp_line_find_byid(d, 1);
 	}
 	if(l)
-		sccp_channel_handle_callforward(l, SCCP_CFWD_NOANSWER);
+		sccp_feat_handle_callforward(l, SCCP_CFWD_NOANSWER);
 	else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
 	
@@ -420,27 +421,7 @@ void sccp_sk_park(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 }
 
 void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
-	if (!l->trnsfvm) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRANSVM pressed but not configured in sccp.conf\n", d->id);
-		return;
-	}
-	if (!c || !c->owner) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRANSVM with no channel active\n", d->id);
-		return;
-	}
-	if (c->state != SCCP_CHANNELSTATE_RINGING && c->state != SCCP_CHANNELSTATE_CALLWAITING) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRANSVM pressed in no ringing state\n", d->id);
-		return;
-	}
-
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: TRANSVM to %s\n", d->id, l->trnsfvm);
-#ifdef CS_AST_HAS_AST_STRING_FIELD
-		ast_string_field_set(c->owner, call_forward, l->trnsfvm);
-#else
-		sccp_copy_string(c->owner->call_forward, l->trnsfvm, sizeof(c->owner->call_forward));
-#endif
-	ast_setstate(c->owner, AST_STATE_BUSY);
-	ast_queue_control(c->owner, AST_CONTROL_BUSY);
+	sccp_feat_idivert(d, l, c);
 }
 
 void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
@@ -461,11 +442,43 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 }
 
 void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
-
-	sccp_log(1)(VERBOSE_PREFIX_3 "### Native conference not yet implemented\n");
-	sccp_dev_displayprompt(d, c->line->instance, c->callid, "Not yet implemented",5);
-
+	sccp_feat_conference(d, l, c);
 }
+
+void sccp_sk_join(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+	sccp_feat_join(d, l, c);
+}
+
+void sccp_sk_barge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+	if(!l && d) {
+		l = sccp_line_find_byid(d, 1);
+	}
+	if(l)
+		sccp_feat_handle_barge(l);
+	else
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);	
+}
+
+void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+	if(!l && d) {
+		l = sccp_line_find_byid(d, 1);
+	}
+	if(l)
+		sccp_feat_handle_cbarge(l);
+	else
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);	
+}
+
+void sccp_sk_meetme(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+	if(!l && d) {
+		l = sccp_line_find_byid(d, 1);
+	}
+	if(l)
+		sccp_feat_handle_meetme(l);
+	else
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);	
+}
+
 
 void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {     
 #ifndef CS_SCCP_PICKUP
@@ -475,7 +488,7 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		l = sccp_line_find_byid(d, 1);
 	}
 	if(l)
-		sccp_channel_handle_directpickup(l);
+		sccp_feat_handle_directpickup(l);
 	else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);	
 #endif
@@ -489,7 +502,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		l = sccp_line_find_byid(d, 1);
 	}
 	if(l)
-		sccp_channel_grouppickup(l);
+		sccp_feat_grouppickup(l);
 	else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);		
 
