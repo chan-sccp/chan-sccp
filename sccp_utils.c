@@ -1635,8 +1635,10 @@ uint8_t sccp_codec_ast2skinny(int fmt) {
 		return 9;
 	case AST_FORMAT_G729A:
 		return 12;
+#ifndef ASTERISK_CONF_1_2
 	case AST_FORMAT_G726_AAL2:
 		return 82;
+#endif		
 	case AST_FORMAT_H261:
 		return 100;
 	case AST_FORMAT_H263:
@@ -1656,8 +1658,10 @@ int sccp_codec_skinny2ast(uint8_t fmt) {
 		return AST_FORMAT_G723_1;
 	case 12:
 		return AST_FORMAT_G729A;
+#ifndef ASTERISK_CONF_1_2
 	case 82:
 		return AST_FORMAT_G726_AAL2;
+#endif		
 	case 100:
 		return AST_FORMAT_H261;
 	case 101:
