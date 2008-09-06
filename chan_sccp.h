@@ -213,6 +213,9 @@ struct sccp_line {
 
 	/* Voicemail number to dial */
 	char vmnum[AST_MAX_EXTENSION];
+	
+	/* Meetme Extension to be dialed*/
+	char meetmenum[AST_MAX_EXTENSION];
 
 	/* The context we use for outgoing calls. */
 	char context[AST_MAX_CONTEXT];
@@ -388,6 +391,7 @@ struct sccp_device {
 #ifdef CS_SCCP_PICKUP
 	unsigned int			pickupexten:1;
 	char					* pickupcontext;
+	unsigned int			pickupmodeanswer:1;
 #endif	
 	unsigned int			dtmfmode:1; 						/*!< 0 inband - 1 outofband */	
 	unsigned int			nat:1;

@@ -68,6 +68,8 @@ FLS+=sccp_cli
 FLS+=sccp_softkeys
 FLS+=sccp_socket
 FLS+=sccp_indicate
+FLS+=sccp_features
+FLS+=sccp_adv_features
 
 CFLAGS+=$(CFLAG) -I$(ASTERISK_HEADER_DIR)
 HEADERS=$(shell for i in $(FLS) ; do echo $$i.h ; done)

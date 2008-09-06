@@ -89,7 +89,7 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l) {
 	c->hangupok = 1;
 
 	/* callcount limit should be reset at his upper limit :) */
-	if(callCount == 0xFFFFFFF)
+	if(callCount == 0xFFFFFFFF)
 		callCount = 1;
 	
 	sccp_mutex_lock(&callCountLock);
@@ -385,277 +385,65 @@ void sccp_channel_closereceivechannel(sccp_channel_t * c) {
 void sccp_channel_stopmediatransmission(sccp_channel_t * c) {
 	sccp_moo_t * r;
 	REQ(r, StopMediaTransmission);
-	
-	/* it seems that sccp_channel_stop_rtp hangs up the call on a pickup or transfer, so it should be carefully used . more investigation needed. (-FS)  */
-	if(c->rtp)
-		sccp_channel_stop_rtp(c);
 		
 	r->msg.CloseReceiveChannel.lel_conferenceId = htolel(c ? c->callid : 0);
 	r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(c ? c->callid : 0);
 	sccp_dev_send(c->line->device, r);
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Stop media transmission on channel %d\n",c->line->device->id, c->callid);
+	
+	// stopping rtp
+	if(c->rtp)
+		sccp_channel_stop_rtp(c);
+	
 	/* requesting statistics */
 	sccp_channel_StatisticsRequest(c);
 }
 
 void sccp_channel_endcall(sccp_channel_t * c) {
-	sccp_device_t * d;
-	struct ast_channel * ast;
 	uint8_t res = 0;
 	
 	if (!c || !c->device)
 		return;
 
-	sccp_mutex_lock(&c->lock);
-
 	/* this is a station active endcall or onhook */
-	d = c->device;
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Ending call %d on line %s\n", DEV_ID_LOG(d), c->callid, c->line->name);
+    sccp_log(1)(VERBOSE_PREFIX_3 "%s: Ending call %d on line %s\n", DEV_ID_LOG(c->device), c->callid, c->line->name);
+
+/*
+	sccp_channel_lock(c);
 	
 	if (c->state != SCCP_CHANNELSTATE_DOWN)
 		sccp_indicate_nolock(c, SCCP_CHANNELSTATE_ONHOOK);
 
-	if (c->rtp) {
+	if (c->rtp) {		
 		sccp_channel_closereceivechannel(c);
+		usleep(200);
+		sccp_channel_stop_rtp(c);
+		usleep(200);
 		sccp_channel_destroy_rtp(c);
+		usleep(200);
 	}
+	
+	sccp_channel_unlock(c);
+*/	
+	if (c->owner) {
+		/* Is there a blocker ? */
+		res = (c->owner->pbx || c->owner->blocker);
 		
-	ast = c->owner;
-	
-	if (!ast) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(d), c->callid, c->line->name);
-		sccp_mutex_unlock(&c->lock);
-		return;
-	}
-
-	/* what type of hangup? */
-//	res = (c->calltype == SKINNY_CALLTYPE_INBOUND || ast->pbx || ast->blocker || CS_AST_BRIDGED_CHANNEL(ast));
-	/* is there a blocker? */
-	res = (ast->pbx ||ast->blocker);
-	
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending %s hangup request to %s\n", DEV_ID_LOG(d), res ? "(queue)" : "(force)", ast->name);
-
-	sccp_mutex_unlock(&c->lock);
-
-	if (res) {
-		ast_queue_hangup(ast);
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending %s hangup request to %s\n", DEV_ID_LOG(c->device), res ? "(queue)" : "(force)", c->owner->name);
+		
+		c->owner->hangupcause = AST_CAUSE_NORMAL_CLEARING;	
+		if (res) {
+			c->owner->_softhangup |= AST_SOFTHANGUP_DEV;
+			ast_queue_hangup(c->owner);
+		} else {
+			ast_hangup(c->owner);
+		}
 	} else {
-		ast_hangup(ast);
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(c->device), c->callid, c->line->name);
 	}
-
+	  
 	return;
 }
-#ifdef CS_SCCP_PICKUP
-int sccp_channel_directpickup(sccp_channel_t * c, char *exten) {
-	int res = -1;
-	struct ast_channel *target = NULL;
-	struct ast_channel *original = NULL;
-	
-	sccp_device_t * d;
-	char * pickupexten;
-	char * cidtmp = NULL, *name = NULL, *number = NULL;
-	
-	if(ast_strlen_zero(exten))
-	{
-		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (directpickup) zero exten\n");
-		return res;
-	}
-		
-	if(!c || !c->owner)
-	{
-		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (directpickup) no channel\n");
-		return res;
-	}
-	
-	original = c->owner;
-	
-	if(!c->device || !c->device->id || strlen(c->device->id) < 3)
-	{
-		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (directpickup) no device\n");
-		return res;
-	}
-	
-	d = c->device;
-	
-	/* copying extension into our buffer */
-	pickupexten = strdup(exten);
-	
-	while ((target = ast_channel_walk_locked(target))) {
-		if ((!strcasecmp(target->macroexten, pickupexten) || !strcasecmp(target->exten, pickupexten)) &&
-		    (d->pickupcontext?(!strcasecmp(target->dialcontext, d->pickupcontext)):1) &&
-		    (!target->pbx && (target->_state == AST_STATE_RINGING || target->_state == AST_STATE_RING))) {
-		
-#ifdef CS_AST_CHANNEL_HAS_CID							
-			if(target->cid.cid_name)
-				name = strdup(target->cid.cid_name);
-			if(target->cid.cid_num)
-				number = strdup(target->cid.cid_num);
-#else
-			if(target->callerid) {
-				cidtmp = strdup(target->callerid);
-				ast_callerid_parse(cidtmp, &name, &number);
-			}
-#endif							
-			original->hangupcause = AST_CAUSE_CALL_REJECTED;
-			
-			if ((res = ast_answer(c->owner))) {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (directpickup) Unable to answer '%s'\n", c->owner->name);
-				res = -1;
-			}
-			else if ((res = ast_queue_control(c->owner, AST_CONTROL_ANSWER))) {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (directpickup) Unable to queue answer on '%s'\n", c->owner->name);
-				res = -1;
-			}
-			else if ((res = ast_channel_masquerade(target, c->owner))) {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (directpickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);				
-				res = -1;
-			}
-			else {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (direct_pickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
-				c->calltype = SKINNY_CALLTYPE_INBOUND;					
-				sccp_channel_set_callingparty(c, name, number);
-				sccp_indicate_nolock(c, SCCP_CHANNELSTATE_CONNECTED);	
-				
-				if(name)
-					free(name);
-				name = NULL;
-				if(number)
-					free(number);
-				number = NULL;	
-				if(cidtmp)
-					free(cidtmp);								
-				cidtmp = NULL;
-				
-				original->hangupcause = AST_CAUSE_NORMAL_CLEARING;
-				ast_setstate(original, AST_STATE_DOWN);
-			}	
-			ast_channel_unlock(target);
-			ast_hangup(original);
-			break;
-		}
-		ast_channel_unlock(target);
-	}	
-	free(pickupexten);
-	pickupexten = NULL;
-	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (directpickup) quit\n");
-	return res;
-}
-
-int sccp_channel_grouppickup(sccp_line_t * l) {
-	int res = -1;
-	struct ast_channel *target = NULL;
-	struct ast_channel *original = NULL;
-	
-	sccp_channel_t * c;
-	sccp_device_t * d;
-	
-	char * cidtmp = NULL, *name = NULL, *number = NULL;
-		
-	if(!l || !l->device || strlen(l->device->id) < 3) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (grouppickup) no line or device\n");
-		return res;
-	}
-
-	d = l->device;	
-			
-	if (!l->pickupgroup) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: (grouppickup) pickupgroup not configured in sccp.conf\n", d->id);		
-		return res;
-	}
-	
-	while ((target = ast_channel_walk_locked(target))) {
-		if ((l->pickupgroup & target->callgroup) &&
-		    (!target->pbx && (target->_state == AST_STATE_RINGING || target->_state == AST_STATE_RING))) {
-
-			//  let's allocate a new channel if it's not already up
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Device state is '%s'\n", d->id, skinny_devicestate2str(d->state));			
-			if(!(c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_OFFHOOK))) {
-				c = sccp_channel_allocate(l);			
-				if (!c) {
-					ast_log(LOG_ERROR, "%s: (grouppickup) Can't allocate SCCP channel for line %s\n", d->id, l->name);
-					return res;
-				}
-				
-				c->hangupok = 1;
-
-				if (!sccp_pbx_channel_allocate(c)) {
-					ast_log(LOG_WARNING, "%s: (grouppickup) Unable to allocate a new channel for line %s\n", d->id, l->name);
-					sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONGESTION);
-					return res;
-				}
-				
-				sccp_channel_set_active(c);
-				sccp_indicate_lock(c, SCCP_CHANNELSTATE_OFFHOOK);
-
-				if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp) {
-					sccp_channel_openreceivechannel(c);
-				}
-			}
-			
-			if(!c->owner) {
-				ast_channel_unlock(target);
-				res = -1;
-				break;
-			}
-			
-			original = c->owner;
-
-#ifdef CS_AST_CHANNEL_HAS_CID							
-			if(target->cid.cid_name)
-				name = strdup(target->cid.cid_name);
-			if(target->cid.cid_num)
-				number = strdup(target->cid.cid_num);
-#else
-			if(target->callerid) {
-				cidtmp = strdup(target->callerid);
-				ast_callerid_parse(cidtmp, &name, &number);
-			}
-#endif							
-
-			original->hangupcause = AST_CAUSE_CALL_REJECTED;
-			
-			if ((res = ast_answer(c->owner))) {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Unable to answer '%s'\n", c->owner->name);
-				res = -1;
-			}
-			else if ((res = ast_queue_control(c->owner, AST_CONTROL_ANSWER))) {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Unable to queue answer on '%s'\n", c->owner->name);
-				res = -1;
-			}
-			else if ((res = ast_channel_masquerade(target, c->owner))) {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);				
-				res = -1;
-			}
-			else {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
-				c->calltype = SKINNY_CALLTYPE_INBOUND;					
-				sccp_channel_set_callingparty(c, name, number);
-				sccp_indicate_nolock(c, SCCP_CHANNELSTATE_CONNECTED);	
-
-				if(name)
-					free(name);
-				name = NULL;
-				if(number)
-					free(number);
-				number = NULL;	
-				if(cidtmp)
-					free(cidtmp);								
-				cidtmp = NULL;
-				
-				original->hangupcause = AST_CAUSE_NORMAL_CLEARING;
-				ast_setstate(original, AST_STATE_DOWN);
-			}	
-			ast_channel_unlock(target);
-			ast_hangup(original);
-			break;
-		}
-		ast_channel_unlock(target);
-	}	
-		
-	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (grouppickup) quit\n");
-	return res;
-}
-#endif
 
 /*
 	Thread functions "should" be always static.... --FS
@@ -667,7 +455,8 @@ int sccp_channel_grouppickup(sccp_line_t * l) {
 	Federico Santulli
 	06/01/2008
 */
-static void * sccp_channel_simpleswitch_thread(void * data) {
+/* static */
+void * sccp_channel_simpleswitch_thread(void * data) {
 	struct ast_channel * chan;
 	
 	sccp_channel_t * c = data;
@@ -777,194 +566,6 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial, uint8_t call
 	return c;
 }
 
-sccp_channel_t * sccp_channel_handle_callforward(sccp_line_t * l, uint8_t type) {
-	sccp_channel_t * c = NULL;
-	sccp_device_t * d;	
-	pthread_attr_t attr;
-	pthread_t t;
-	struct ast_channel * bridge = NULL;
-	
-	if (!l || !l->device || strlen(l->device->id) < 3){
-		ast_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
-		return NULL;
-	}
-
-	d = l->device;
-	
-	if(l->cfwd_type != SCCP_CFWD_NONE && l->cfwd_type == type) /* if callforward is active and you asked about the same callforward maybe you would disable */
-	{
-		/* disable call_forward */
-		sccp_line_cfwd(l, SCCP_CFWD_NONE, NULL);
-		sccp_dev_check_displayprompt(d);
-		return NULL;
-	}
-	else 
-	{
-		if(type == SCCP_CFWD_NOANSWER)
-		{
-			sccp_log(10)(VERBOSE_PREFIX_3 "### CFwdNoAnswer NOT SUPPORTED\n");
-			sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
-			return NULL;
-		}
-	}
-	
-	/* look if we have a call  */
-	if ((c = sccp_channel_get_active(d))) {				
-		// we have a channel, checking if 
-		if (c->state == SCCP_CHANNELSTATE_RINGOUT || c->state == SCCP_CHANNELSTATE_CONNECTED) {
-			if(c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
-				// if we have an outbound call, we can set callforward to dialed number -FS				
-				if(c->dialedNumber) { // checking if we have a number !
-					sccp_line_cfwd(l, type, c->dialedNumber);		
-					// we are on call, so no tone has been played until now :)
-					sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, l->instance, 0, 0);				
-					return NULL;
-				}
-			}
-			else if(c->owner && (bridge = ast_bridged_channel(c->owner))) { // check if we have an ast channel to get callerid from
-				// if we have an incoming or forwarded call, let's get number from callerid :) -FS
-#ifdef CS_AST_CHANNEL_HAS_CID
-				char * number = NULL;
-				if(bridge->cid.cid_num)
-					number = strdup(bridge->cid.cid_num);
-#else
-				char * number = NULL, * name = NULL, * cidtmp =  NULL;
-				if(bridge->callerid) {
-					cidtmp = strdup(bridge->callerid);
-					ast_callerid_parse(cidtmp, &name, &number);
-				}
-				// cleaning unused vars
-				if(cidtmp)
-					free(cidtmp);
-					
-				if(name)
-					free(name);
-#endif			
-				if(number) {
-					sccp_line_cfwd(l, type, number);
-					// we are on call, so no tone has been played until now :)	
-					sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, l->instance, 0, 0);
-					free(number);
-					return NULL;
-				}				
-				// if we where here it's cause there is no number in callerid,, so put call on hold and ask for a call forward number :) -FS
-				if (!sccp_channel_hold(c))
-				{
-					// if can't hold  it means there is no active call, so return as we're already waiting a number to dial
-					sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);				
-					return NULL; 
-				}
-			}		
-		}
-		else {
-			// if we're waiting for dialing or so on, we cannot allocate a channel, or ask an extension to pickup.
-			sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
-			return NULL;
-		}
-	}
-	
-	// if we where here there is no call in progress, so we should allocate a channel.	
-	c = sccp_channel_allocate(l);
-
-	if(!c) {
-		ast_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n", d->id, l->name);
-		return NULL;
-	}
-
-	c->ss_action = SCCP_SS_GETFORWARDEXTEN; /* Simpleswitch will catch a number to be dialed */	
-	c->ss_data = type; /* this should be found in thread */
-
-	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
-	
-	sccp_channel_set_active(c);
-	sccp_indicate_lock(c, SCCP_CHANNELSTATE_GETDIGITS);
-	
-	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(c)) {
-		ast_log(LOG_WARNING, "%s: (handle_callforward) Unable to allocate a new channel for line %s\n", d->id, l->name);
-		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONGESTION);
-		return c;
-	}
-
-	sccp_ast_setstate(c, AST_STATE_OFFHOOK);
-
-	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp) {
-		sccp_channel_openreceivechannel(c);
-	}
-
-	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
-	/* let's wait for an extension */
-	if (ast_pthread_create(&t, &attr, sccp_channel_simpleswitch_thread, c)) {
-		ast_log(LOG_WARNING, "%s: (handle_callforward) Unable to create switch thread for channel (%s-%08x) %s\n", d->id, l->name, c->callid, strerror(errno));
-		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONGESTION);
-	}
-
-	return c;
-}
-#ifdef CS_SCCP_PICKUP
-sccp_channel_t * sccp_channel_handle_directpickup(sccp_line_t * l) {
-	sccp_channel_t * c;
-	sccp_device_t * d;
-	pthread_attr_t attr;
-	pthread_t t;
-
-	if (!l || !l->device || strlen(l->device->id) < 3){
-		ast_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
-		return NULL;
-	}
-
-	d = l->device;
-	
-	/* look if we have a call to put on hold */
-	if ( (c = sccp_channel_get_active(d)) ) {
-		/* there is an active call, let's put it on hold first */
-		if (!sccp_channel_hold(c))
-			return NULL;
-	}
-
-	c = sccp_channel_allocate(l);
-	
-	if (!c) {
-		ast_log(LOG_ERROR, "%s: (handle_pickupexten) Can't allocate SCCP channel for line %s\n", d->id, l->name);
-		return NULL;
-	}
-	
-	c->ss_action = SCCP_SS_GETPICKUPEXTEN; /* Simpleswitch will catch a number to be dialed */	
-	c->ss_data = 0; /* not needed here */
-
-	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
-	
-	sccp_channel_set_active(c);
-	sccp_indicate_lock(c, SCCP_CHANNELSTATE_GETDIGITS);
-	
-	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(c)) {
-		ast_log(LOG_WARNING, "%s: (handle_pickupexten) Unable to allocate a new channel for line %s\n", d->id, l->name);
-		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONGESTION);
-		return c;
-	}
-
-	sccp_ast_setstate(c, AST_STATE_OFFHOOK);
-
-	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp) {
-		sccp_channel_openreceivechannel(c);
-	}
-
-	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
-	/* let's call it */
-	if (ast_pthread_create(&t, &attr, sccp_channel_simpleswitch_thread, c)) {
-		ast_log(LOG_WARNING, "%s: (handle_pickupexten) Unable to create switch thread for channel (%s-%08x) %s\n", d->id, l->name, c->callid, strerror(errno));
-		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONGESTION);
-	}
-
-	return c;
-}
-#endif
-
 void sccp_channel_answer(sccp_channel_t * c) {
 	sccp_line_t * l;
 	sccp_device_t * d;
@@ -1072,7 +673,12 @@ int sccp_channel_hold(sccp_channel_t * c) {
 		return 0;
 	}
 	sccp_ast_queue_control(c, AST_CONTROL_HOLD);
-	sccp_channel_stop_rtp(c);
+
+	sccp_channel_closereceivechannel(c);
+	usleep(200);
+	sccp_channel_destroy_rtp(c);
+	usleep(200);
+	
 	sccp_device_unlock(d);
 #endif
 
@@ -1149,6 +755,8 @@ int sccp_channel_resume(sccp_channel_t * c) {
 #endif
 
 	sccp_channel_openreceivechannel(c);
+	// sccp_channel_startmediatransmission(c);	
+	
 	sccp_channel_set_active(c);
 	sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONNECTED);
 	
@@ -1243,7 +851,7 @@ void sccp_channel_delete_no_lock(sccp_channel_t * c) {
 	//remove selected channels
 	sccp_mutex_lock(&d->lock);
 	cur = d->selectedChannels;
-	while(NULL != cur) {
+	while(cur != NULL) {
 	    if(c == cur->c) {
 	    	if(NULL == par)
 	    		d->selectedChannels = cur->next;

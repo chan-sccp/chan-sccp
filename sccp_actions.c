@@ -27,6 +27,7 @@
 #include "sccp_device.h"
 #include "sccp_line.h"
 #include "sccp_socket.h"
+#include "sccp_features.h"
 
 #include <asterisk/pbx.h>
 #include <asterisk/utils.h>
@@ -215,8 +216,16 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, (d->keepalive ? d->keepalive : GLOB(keepalive)) );
 	REQ(r1, RegisterAckMessage);
-	if  (r->msg.RegisterMessage.protocolVer > GLOB(protocolversion))
+	
+	/* it seems that device sends protovolVer 0 if connected to a SRST server while chan_sccp disappears (e.g. the default router is a ccme and the phone registers to it (or not) */
+
+	
+	
+	if  (r->msg.RegisterMessage.protocolVer == 0 || r->msg.RegisterMessage.protocolVer > GLOB(protocolversion))
+	{
 		r1->msg.RegisterAckMessage.protocolVer = GLOB(protocolversion);
+		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Wrong protocol version: fixing\n");
+	}
 	else
 		r1->msg.RegisterAckMessage.protocolVer = r->msg.RegisterMessage.protocolVer;
 
@@ -871,7 +880,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 				}
 			}			
 			if (l) {
-				sccp_channel_handle_callforward(l, SCCP_CFWD_ALL);
+				sccp_feat_handle_callforward(l, SCCP_CFWD_ALL);
 			}
 			break;
 			/*	
@@ -905,7 +914,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 				}
 			}			
 			if (l) {
-				sccp_channel_handle_callforward(l, SCCP_CFWD_BUSY);
+				sccp_feat_handle_callforward(l, SCCP_CFWD_BUSY);
 			}
 			break;
 		case SKINNY_BUTTONTYPE_FORWARDNOANSWER:
@@ -921,7 +930,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 				}
 			}			
 			if (l) {
-				sccp_channel_handle_callforward(l, SCCP_CFWD_NOANSWER);
+				sccp_feat_handle_callforward(l, SCCP_CFWD_NOANSWER);
 			}
 			break;
 		case SKINNY_BUTTONTYPE_CALLPARK: // Call parking
@@ -1143,6 +1152,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r) {
 	uint8_t i = 0;
 	sccp_line_t * l;
 	uint8_t trnsfvm = 0;
+	uint8_t meetme = 0;
 #ifdef CS_SCCP_PICKUP
 	uint8_t pickupgroup= 0;
 #endif	
@@ -1155,8 +1165,12 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r) {
 	/* look for line trnsvm */
 	l = d->lines;
 	while (l) {
-		if (l->trnsfvm)
+		if (!ast_strlen_zero(l->trnsfvm))
 			trnsfvm = 1;
+
+		if (!ast_strlen_zero(l->meetmenum))
+			meetme = 1;
+
 #ifdef CS_SCCP_PICKUP
 		if (l->pickupgroup)
 			pickupgroup = 1;
@@ -1164,19 +1178,20 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r) {
 		l = l->next_on_device;
 	}
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRANSFER    is %s\n", d->id, (d->transfer) ? "enabled" : "disabled");
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: DND         is %s\n", d->id, d->dndmode ? sccp_dndmode2str(d->dndmode) : "disabled");
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PRIVATE     is %s\n", d->id, d->private ? "enabled" : "disabled");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRANSFER        is %s\n", d->id, (d->transfer) ? "enabled" : "disabled");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: DND             is %s\n", d->id, d->dndmode ? sccp_dndmode2str(d->dndmode) : "disabled");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PRIVATE         is %s\n", d->id, d->private ? "enabled" : "disabled");
 #ifdef CS_SCCP_PARK
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PARK        is  %s\n", d->id, (d->park) ? "enabled" : "disabled");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PARK            is  %s\n", d->id, (d->park) ? "enabled" : "disabled");
 #endif
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CFWDALL     is  %s\n", d->id, (d->cfwdall) ? "enabled" : "disabled");
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CFWDBUSY    is  %s\n", d->id, (d->cfwdbusy) ? "enabled" : "disabled");
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CFWDNOANSWER is  %s\n", d->id, (d->cfwdnoanswer) ? "enabled" : "disabled");
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRNSFVM     is  %s\n", d->id, (trnsfvm) ? "enabled" : "disabled");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CFWDALL         is  %s\n", d->id, (d->cfwdall) ? "enabled" : "disabled");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CFWDBUSY        is  %s\n", d->id, (d->cfwdbusy) ? "enabled" : "disabled");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CFWDNOANSWER    is  %s\n", d->id, (d->cfwdnoanswer) ? "enabled" : "disabled");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRNSFVM/IDIVERT is  %s\n", d->id, (trnsfvm) ? "enabled" : "disabled");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: MEETME          is  %s\n", d->id, (meetme) ? "enabled" : "disabled");
 #ifdef CS_SCCP_PICKUP
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PICKUPGROUP is  %s\n", d->id, (pickupgroup) ? "enabled" : "disabled");
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PICKUPEXTEN is  %s\n", d->id, (d->pickupexten) ? "enabled" : "disabled");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PICKUPGROUP     is  %s\n", d->id, (pickupgroup) ? "enabled" : "disabled");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PICKUPEXTEN     is  %s\n", d->id, (d->pickupexten) ? "enabled" : "disabled");
 #endif
 
 	for (i = 0; i < v_count; i++) {
@@ -1204,10 +1219,33 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r) {
 			}
 			if ( (b[c] == SKINNY_LBL_CFWDNOANSWER) && (!d->cfwdnoanswer) ) {
 				continue;
-			}			
+			}
 			if ( (b[c] == SKINNY_LBL_TRNSFVM) && (!trnsfvm) ) {
 				continue;
 			}
+			if ( (b[c] == SKINNY_LBL_IDIVERT) && (!trnsfvm) ) {
+				continue;
+			}			
+			if ( (b[c] == SKINNY_LBL_MEETME) && (!meetme) ) {
+				continue;
+			}
+#ifndef CS_ADV_FEATURES
+			if ( (b[c] == SKINNY_LBL_BARGE) ) {
+				continue;
+			}			
+			if ( (b[c] == SKINNY_LBL_CBARGE) ) {
+				continue;
+			}
+#else
+#ifndef CS_SCCP_CONFERENCE
+			if ( (b[c] == SKINNY_LBL_JOIN) ) {
+				continue;
+			}
+			if ( (b[c] == SKINNY_LBL_CONFRN) ) {
+				continue;
+			}			
+#endif
+#endif
 #ifdef CS_SCCP_PICKUP
 			if ( (b[c] == SKINNY_LBL_PICKUP) && (!d->pickupexten) ) {
 				continue;
@@ -1444,6 +1482,18 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r) {
 	case SKINNY_LBL_CONFRN:
 		sccp_sk_conference(d, l, c);
 		break;
+	case SKINNY_LBL_MEETME:
+		sccp_sk_meetme(d, l, c);
+		break;
+	case SKINNY_LBL_JOIN:
+		sccp_sk_join(d, l, c);
+		break;
+	case SKINNY_LBL_BARGE:
+		sccp_sk_barge(d, l, c);
+		break;
+	case SKINNY_LBL_CBARGE:
+		sccp_sk_cbarge(d, l, c);
+		break;
 	case SKINNY_LBL_HOLD:
 		sccp_sk_hold(d, l, c);
 		break;
@@ -1477,6 +1527,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r) {
 		break;
 #endif
 	case SKINNY_LBL_TRNSFVM:
+	case SKINNY_LBL_IDIVERT:
 		sccp_sk_trnsfvm(d, l, c);
 		break;
 	case SKINNY_LBL_DND:

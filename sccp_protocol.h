@@ -71,7 +71,8 @@
 #define StationMaxButtonTemplateSize				42
 #define StationMaxButtonTemplateNameSize			44
 #define StationDateTemplateSize 				6
-#define StationMaxDisplayTextSize				33
+// #define StationMaxDisplayTextSize				33
+#define StationMaxDisplayTextSize				32
 #define StationMaxDisplayNotifySize 				32
 #define StationMaxDirnumSize					24
 #define StationMaxNameSize					40
@@ -1106,7 +1107,9 @@ static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_SELECT,
 	SKINNY_LBL_PRIVATE,
 	SKINNY_LBL_TRNSFVM,
-	SKINNY_LBL_DIRTRFR
+	SKINNY_LBL_DIRTRFR,
+	SKINNY_LBL_IDIVERT,
+	SKINNY_LBL_CBARGE,
 };
 
 typedef struct {
@@ -1131,12 +1134,12 @@ static const uint8_t skSet_Onhook [] = {
 	SKINNY_LBL_REDIAL,
 	SKINNY_LBL_NEWCALL,
 	SKINNY_LBL_CFWDALL,
-	SKINNY_LBL_CFWDBUSY,
-	SKINNY_LBL_CFWDNOANSWER,
-#ifdef CS_SCCP_PICKUP	
-	SKINNY_LBL_PICKUP,
-	SKINNY_LBL_GPICKUP,
-#endif	
+//	SKINNY_LBL_CFWDBUSY,
+//	SKINNY_LBL_CFWDNOANSWER,
+// #ifdef CS_SCCP_PICKUP	
+//	SKINNY_LBL_PICKUP,
+//	SKINNY_LBL_GPICKUP,
+// #endif	
 	SKINNY_LBL_DND,
 };
 
@@ -1148,7 +1151,9 @@ static const uint8_t skSet_Connected [] = {
 #endif
 	SKINNY_LBL_SELECT,
   	SKINNY_LBL_CFWDALL,
-	SKINNY_LBL_CFWDBUSY
+	SKINNY_LBL_CFWDBUSY,
+//	SKINNY_LBL_CFWDNOANSWER,	
+	SKINNY_LBL_IDIVERT,
 };
 
 static const uint8_t skSet_Onhold [] = {
@@ -1161,12 +1166,14 @@ static const uint8_t skSet_Onhold [] = {
 #endif	
 	SKINNY_LBL_SELECT,
 	SKINNY_LBL_DIRTRFR,
+	SKINNY_LBL_IDIVERT,
 };
 
 static const uint8_t skSet_Ringin [] = {
 	SKINNY_LBL_ANSWER,
 	SKINNY_LBL_ENDCALL,
-	SKINNY_LBL_TRNSFVM
+//	SKINNY_LBL_TRNSFVM, 
+	SKINNY_LBL_IDIVERT,
 //	SKINNY_LBL_TRANSFER,
 //	SKINNY_LBL_DIRTRFR
 };
@@ -1177,12 +1184,14 @@ static const uint8_t skSet_Offhook [] = {
 	SKINNY_LBL_PRIVATE,
 	SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_CFWDBUSY,
-	SKINNY_LBL_CFWDNOANSWER,
+//	SKINNY_LBL_CFWDNOANSWER,
 #ifdef CS_SCCP_PICKUP
-	//SKINNY_LBL_PICKUP,
+	SKINNY_LBL_PICKUP,
 	SKINNY_LBL_GPICKUP,
 #endif	
-	SKINNY_LBL_DND
+	SKINNY_LBL_MEETME,
+	SKINNY_LBL_BARGE,
+	SKINNY_LBL_CBARGE,	
 };
 
 static const uint8_t skSet_Conntrans [] = {
@@ -1199,7 +1208,7 @@ static const uint8_t skSet_Conntrans [] = {
 	SKINNY_LBL_DIRTRFR,
 	SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_CFWDBUSY,
-	SKINNY_LBL_CFWDNOANSWER,
+//	SKINNY_LBL_CFWDNOANSWER,
 };
 
 static const uint8_t skSet_DigitsFoll []  = {
@@ -1208,24 +1217,41 @@ static const uint8_t skSet_DigitsFoll []  = {
 };
 
 static const uint8_t skSet_Connconf []	= {
-	SKINNY_LBL_EMPTY
+	SKINNY_LBL_HOLD,
+	SKINNY_LBL_ENDCALL,
+	SKINNY_LBL_TRANSFER,
+#ifdef CS_SCCP_CONFERENCE	
+	SKINNY_LBL_JOIN,
+#endif
+#ifdef CS_SCCP_PARK
+	SKINNY_LBL_PARK,
+#endif
+	SKINNY_LBL_SELECT,
+	SKINNY_LBL_DIRTRFR,
+	SKINNY_LBL_CFWDALL,
+	SKINNY_LBL_CFWDBUSY,
+//	SKINNY_LBL_CFWDNOANSWER,
 };
 
 static const uint8_t skSet_RingOut [] = {
 	SKINNY_LBL_ENDCALL,
 	SKINNY_LBL_TRANSFER,
 	SKINNY_LBL_CFWDALL,
-	SKINNY_LBL_CFWDBUSY,
-	SKINNY_LBL_CFWDNOANSWER,
+	SKINNY_LBL_IDIVERT,
+//	SKINNY_LBL_CFWDBUSY,
+//	SKINNY_LBL_CFWDNOANSWER,
 };
 
 static const uint8_t skSet_Offhookfeat [] = {
 	SKINNY_LBL_REDIAL,
-	SKINNY_LBL_ENDCALL
+	SKINNY_LBL_ENDCALL,
 };
 
+// this appears when in ringout mode you press an hint button 
+// i think it should be used to transfer the call (i suppose) -FS
 static const uint8_t skSet_Myst [] = {
-	SKINNY_LBL_NEWCALL
+//	SKINNY_LBL_NEWCALL,
+	SKINNY_LBL_ENDCALL,
 };
 
 
@@ -1253,6 +1279,7 @@ static const softkey_modes SoftKeyModes [] = {
 #define SCCP_SS_DIAL				0
 #define SCCP_SS_GETFORWARDEXTEN		1
 #define SCCP_SS_GETPICKUPEXTEN		2
-#define SCCP_SS_GETVMEXTEN			3 /* really don't know if it is usefull */
-
+#define SCCP_SS_GETMEETMEROOM		3
+#define SCCP_SS_GETBARGEEXTEN		4
+#define SCCP_SS_GETCBARGEROOM		5
 #endif
