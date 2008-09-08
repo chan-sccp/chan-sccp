@@ -1109,7 +1109,7 @@ static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_TRNSFVM,
 	SKINNY_LBL_DIRTRFR,
 	SKINNY_LBL_IDIVERT,
-	SKINNY_LBL_CBARGE,
+//	SKINNY_LBL_CBARGE,
 };
 
 typedef struct {
@@ -1191,7 +1191,7 @@ static const uint8_t skSet_Offhook [] = {
 #endif	
 	SKINNY_LBL_MEETME,
 	SKINNY_LBL_BARGE,
-	SKINNY_LBL_CBARGE,	
+//	SKINNY_LBL_CBARGE,	
 };
 
 static const uint8_t skSet_Conntrans [] = {
