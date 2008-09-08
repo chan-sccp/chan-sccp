@@ -795,9 +795,17 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	sccp_line_lock(l);
 	sccp_device_lock(d);
 	
-	/* native formats are device capabilities or global capabilities*/
-	tmp->nativeformats = ast_codec_choose(&d->codecs, (d->capability ? d->capability : GLOB(global_capability)), 1);
+	/* native formats are device capabilities or global capabilities - If no joint cap's global will be used */ 	
+	tmp->nativeformats = ast_codec_choose(&d->codecs, d->capability, 1);
 	
+	if(!tmp->nativeformats)
+		tmp->nativeformats = ast_codec_choose(&d->codecs, GLOB(global_capability), 1);
+	
+	if(!tmp->nativeformats)	{
+		ast_log(LOG_ERROR, "%s: No audio format to offer. Cancelling call on line %s\n", d->id, l->name);
+		return 0;
+	}
+		
 	/* format is channel best codec between native */
 	fmt = ast_best_codec(tmp->nativeformats);	
 	c->format = fmt;
@@ -813,7 +821,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 
 	if (GLOB(debug) > 2) {	  
 	  char s1[512], s2[512];
-	  sccp_log(2)(VERBOSE_PREFIX_3 "%s: Channel %s, capabilities: DEVICE %s(%d) NATIVE %s(%d) BEST %s(%d)\n",
+	  sccp_log(2)(VERBOSE_PREFIX_3 "%s: Channel %s, capabilities: DEVICE %s(%d) PREFERRED %s(%d) USED %s(%d)\n",
 		DEV_ID_LOG(c->device),
 		tmp->name,
 #ifndef ASTERISK_CONF_1_2
