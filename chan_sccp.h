@@ -134,7 +134,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 
 /* I don't like the -1 returned value */
 #define sccp_true(x) (ast_true(x) ? 1 : 0)
-#define sccp_log(x) if (sccp_globals->debug >= x) ast_verbose
+#define sccp_log(x) if ((!sccp_globals->fdebug && sccp_globals->debug >= x) || (sccp_globals->fdebug == x)) ast_verbose
 #define GLOB(x) sccp_globals->x
 
 #define DEV_ID_LOG(x) x ? x->id : "SCCP"
@@ -161,6 +161,7 @@ typedef struct sccp_line		sccp_line_t;
 typedef struct sccp_speed		sccp_speed_t;
 typedef struct sccp_serviceURL	sccp_serviceURL_t;
 typedef struct sccp_device		sccp_device_t;
+typedef struct sccp_addon		sccp_addon_t; // Added on SVN 327 -FS
 typedef struct sccp_hint		sccp_hint_t;
 typedef struct sccp_hostname	sccp_hostname_t;
 typedef struct sccp_ast_channel_name	sccp_ast_channel_name_t;
@@ -414,8 +415,21 @@ struct sccp_device {
 	pthread_t        		postregistration_thread;
 	struct ast_variable 	* variables;						/*!< Channel variables to set */
 	char 					* phonemessage;						/*!< message to display on device*/
-  
-  struct sccp_selected_channel    *selectedChannels;
+    sccp_addon_t			* addons;
+	struct sccp_selected_channel    *selectedChannels;
+};
+
+// Number of additional keys per addon -FS
+#define SCCP_ADDON_7914_TAPS		14
+#define SCCP_ADDON_7915_TAPS		24
+#define SCCP_ADDON_7916_TAPS		24
+
+struct sccp_addon {
+	ast_mutex_t	lock;
+	int type;
+	sccp_addon_t * prev;
+	sccp_addon_t * next;
+	sccp_device_t * device;
 };
 
 struct sccp_session {
@@ -477,7 +491,7 @@ struct sccp_global_vars {
 
 	sccp_session_t			*sessions;
 	ast_mutex_t				sessions_lock;
-	sccp_device_t				*devices;
+	sccp_device_t			*devices;
 	ast_mutex_t				devices_lock;
 	sccp_line_t	  			*lines;
 	ast_mutex_t				lines_lock;
@@ -515,6 +529,7 @@ struct sccp_global_vars {
 	struct					ast_codec_pref global_codecs;
 	int					keepalive;
 	int					debug;
+	int					fdebug;
 	char 					date_format[7];
 	
 	uint8_t				firstdigittimeout;				/*< Wait up to 16 seconds for first digit */
@@ -543,10 +558,12 @@ struct sccp_global_vars {
 	unsigned int				silencesuppression:1;
 	unsigned int				trustphoneip:1;
 	unsigned int				private:1; 					/*< permit private function */
+	unsigned int				privacy:2;
 	unsigned int				blindtransferindication:1; 			/*< SCCP_BLINDTRANSFER_* */
 	unsigned int				cfwdall:1;
 	unsigned int				cfwdbusy:1;
 	unsigned int				cfwdnoanswer:1;
+
 #ifdef CS_SCCP_REALTIME
 	char 					realtimedevicetable[45];			/*< databasetable for sccp devices*/
 	char 					realtimelinetable[45];			/*< databasetable for sccp lines*/	
