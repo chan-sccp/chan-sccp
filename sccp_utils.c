@@ -30,6 +30,122 @@
 #include <asterisk/channel_pvt.h>
 #endif
 
+void sccp_device_addon_addnew(sccp_device_t * d, const char * addon_config_type) {	
+	int addon_type;
+	
+	// check for device
+	if(!d)
+		return;
+
+	// can't add more than two devices :D
+	if(d->addons && d->addons->next)
+		return;
+
+	// checking if devicetype is specified
+	if(ast_strlen_zero(d->config_type)) {
+		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Addon type (%s) must be specified after device type\n", addon_config_type);
+		return;
+	}
+
+	if(!strcasecmp(addon_config_type, "7914"))
+		addon_type = SKINNY_DEVICETYPE_CISCO7914;
+	else if(!strcasecmp(addon_config_type, "7915"))
+		addon_type = SKINNY_DEVICETYPE_CISCO7915;
+	else if(!strcasecmp(addon_config_type, "7916"))
+		addon_type = SKINNY_DEVICETYPE_CISCO7916;
+	else {
+		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Unknown addon type (%s) for device (%s)\n", addon_config_type, d->config_type);
+		return;
+	}	
+	
+	if( !((addon_type == SKINNY_DEVICETYPE_CISCO7914) && 
+		((!strcasecmp(d->config_type, "7960")) || 
+		 (!strcasecmp(d->config_type, "7961")) || 
+		 (!strcasecmp(d->config_type, "7962")) || 
+		 (!strcasecmp(d->config_type, "7965")) || 
+		 (!strcasecmp(d->config_type, "7970")) || 
+		 (!strcasecmp(d->config_type, "7971")) || 
+		 (!strcasecmp(d->config_type, "7975")))) && 
+		!((addon_type == SKINNY_DEVICETYPE_CISCO7915) && 
+		((!strcasecmp(d->config_type, "7962")) || 
+		 (!strcasecmp(d->config_type, "7965")) || 
+		 (!strcasecmp(d->config_type, "7975")))) && 
+		!((addon_type == SKINNY_DEVICETYPE_CISCO7916) && 
+		((!strcasecmp(d->config_type, "7962")) || 
+		 (!strcasecmp(d->config_type, "7965")) || 
+		 (!strcasecmp(d->config_type, "7975"))))) {
+		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Configured device (%s) does not support the specified addon type (%s)\n", d->config_type, addon_config_type);
+		return;
+	}
+	
+	sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: C\n");
+	
+	sccp_addon_t * a = malloc(sizeof(sccp_addon_t));
+	if (!a) {
+		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a device addon\n");
+		return;
+	}	
+	memset(a, 0, sizeof(sccp_addon_t));
+	
+	/* INIT  */	
+	sccp_mutex_init(&a->lock);
+	
+	a->type = addon_type;
+	a->device = d;
+	a->next = d->addons;
+	a->prev = NULL;
+	
+	d->addons = a;
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Added addon (%d) taps on device type (%s)\n", (d->id?d->id:"SCCP"), a->type, d->config_type);
+}
+
+int sccp_device_addons_taps(sccp_device_t * d) {
+	sccp_addon_t * cur = NULL;
+	int taps = 0;
+	
+	if(!d->addons)
+		return 0;
+	
+	if(!strcasecmp(d->config_type, "7914"))
+		return 28; // on compatibility mode it returns 28 taps for a double 7914 addon
+		
+	cur = d->addons;
+	do {
+		if(cur->type == SKINNY_DEVICETYPE_CISCO7914)
+			taps += 14;		
+		if(cur->type == SKINNY_DEVICETYPE_CISCO7915 || cur->type == SKINNY_DEVICETYPE_CISCO7916)
+			taps += 20;
+		sccp_log(22)(VERBOSE_PREFIX_3 "%s: Found (%d) taps on device addon (%d)\n", (d->id?d->id:"SCCP"), taps, cur->type);
+		cur = cur->next;
+	} while (cur);
+	
+	return taps;
+}
+
+void sccp_device_addons_clear(sccp_device_t * d) {
+	sccp_addon_t * cur, * a = NULL;
+
+	if(!d->addons)
+		return;
+
+	cur = d->addons;
+	do {				
+		a = cur->next;
+		sccp_log(22)(VERBOSE_PREFIX_3 "%s: Destroy addon (%d) on device (%s)\n", (d->id?d->id:"SCCP"), cur->type, d->config_type);
+		if(cur) {
+			sccp_mutex_destroy(&cur->lock);
+			free(cur);
+		}
+		cur = a;
+	} while (cur);	
+}
+
+char * sccp_device_addons_list(sccp_device_t * d) {	
+	char * addons_list = NULL;
+	
+	return addons_list;
+}
+
 void sccp_safe_sleep(int ms) {	
 	struct timeval start = { 0 , 0 };
 	
@@ -326,7 +442,7 @@ sccp_channel_t * sccp_channel_find_byid(uint32_t id) {
 /*	uint8_t tries = SCCP_LOCK_TRIES; */
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %d\n", id);
 
-	sccp_mutex_lock(&GLOB(channels_lock));
+	sccp_globals_lock(channels_lock);
 	/* with this lock the channels list will not change */
 	c = GLOB(channels);
 	while (c) {
@@ -346,7 +462,7 @@ sccp_channel_t * sccp_channel_find_byid(uint32_t id) {
 		}
 		c = c->next;
 	}
-	sccp_mutex_unlock(&GLOB(channels_lock));
+	sccp_globals_unlock(channels_lock);
 	return c;
 }
 
@@ -356,7 +472,7 @@ sccp_channel_t * sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t stat
 		return NULL;
 //	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a channel with state \"%s\" (%d) on line %s\n", DEV_ID_LOG(l->device), sccp_indicate2str(state), state, l->name);
 
-	sccp_mutex_lock(&GLOB(channels_lock));
+	sccp_globals_lock(channels_lock);
 	sccp_mutex_lock(&l->lock);
 	c = l->channels;
 	while (c) {
@@ -365,7 +481,7 @@ sccp_channel_t * sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t stat
 		c = c->next_on_line;
 	}
 	sccp_mutex_unlock(&l->lock);
-	sccp_mutex_unlock(&GLOB(channels_lock));
+	sccp_globals_unlock(channels_lock);
 	if (c)
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d) with state \"%s\" (%d) on line %s\n", DEV_ID_LOG(l->device), c->callid, sccp_indicate2str(state), state, l->name);
 	return c;
@@ -377,7 +493,7 @@ sccp_channel_t * sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t 
 		return NULL;
 //	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a channel with state \"%s\" (%d) on line %s\n", DEV_ID_LOG(l->device), sccp_callstate2str(state), state, l->name);
 
-	sccp_mutex_lock(&GLOB(channels_lock));
+	sccp_globals_lock(channels_lock);
 	sccp_mutex_lock(&l->lock);
 	c = l->channels;
 	while (c) {
@@ -386,7 +502,7 @@ sccp_channel_t * sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t 
 		c = c->next_on_line;
 	}
 	sccp_mutex_unlock(&l->lock);
-	sccp_mutex_unlock(&GLOB(channels_lock));
+	sccp_globals_unlock(channels_lock);
 	if (c)
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d) with state \"%s\" (%d) on line %s\n", DEV_ID_LOG(l->device), c->callid, sccp_callstate2str(state), state, l->name);
 	return c;
@@ -399,7 +515,7 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 		return NULL;
 //	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a channel with state \"%s\" (%d) on device\n", d->id, sccp_indicate2str(state), state);
 	
-	sccp_mutex_lock(&GLOB(channels_lock));
+	sccp_globals_lock(channels_lock);
 	sccp_mutex_lock(&d->lock);
 	l = d->lines;
 	while (l) {
@@ -409,7 +525,7 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 		l = l->next_on_device;
 	}
 	sccp_mutex_unlock(&d->lock);
-	sccp_mutex_unlock(&GLOB(channels_lock));
+	sccp_globals_unlock(channels_lock);
 	if (c)
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d) with state \"%s\" (%d) on device\n", d->id, c->callid, sccp_indicate2str(state), state);
 	return c;
@@ -1277,6 +1393,8 @@ const char * skinny_devicetype2str(uint32_t type) {
 		return "Cisco7902";
 	case SKINNY_DEVICETYPE_CISCO7905:
 		return "Cisco7905";
+	case SKINNY_DEVICETYPE_CISCO7906:
+		return "Cisco7906";		
 	case SKINNY_DEVICETYPE_CISCO7911:
 		return "Cisco7911";
 	case SKINNY_DEVICETYPE_CISCO7912:
@@ -1289,6 +1407,8 @@ const char * skinny_devicetype2str(uint32_t type) {
 		return "Cisco7935";
 	case SKINNY_DEVICETYPE_CISCO7936:
 		return "Cisco7936";
+	case SKINNY_DEVICETYPE_CISCO7937:
+		return "Cisco7937";		
 	case SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR:
 		return "Cisco_IP_Communicator";
 	case SKINNY_DEVICETYPE_ATA186:
@@ -1305,6 +1425,8 @@ const char * skinny_devicetype2str(uint32_t type) {
 		return "Cisco7961";
 	case SKINNY_DEVICETYPE_CISCO7961GE:
 		return "Cisco7961GE";
+	case SKINNY_DEVICETYPE_CISCO7962:
+		return "Cisco7962";
 	case SKINNY_DEVICETYPE_CISCO7965:
 		return "Cisco7965";
 	case SKINNY_DEVICETYPE_CISCO7970:

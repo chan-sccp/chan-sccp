@@ -1,6 +1,11 @@
 #ifndef __SCCP_UTILS_H
 #define __SCCP_UTILS_H
 
+void sccp_device_addon_addnew(sccp_device_t * d, const char * addon_config_type);
+int sccp_device_addons_taps(sccp_device_t * d);
+void sccp_device_addons_clear(sccp_device_t * d);
+char * sccp_device_addons_list(sccp_device_t * d);
+
 void sccp_safe_sleep(int ms);
 struct ast_variable * sccp_create_variable(const char *buf);
 void sccp_device_add_line(sccp_device_t * d, char * name);

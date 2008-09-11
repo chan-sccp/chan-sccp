@@ -2,9 +2,9 @@
 #define __SCCP_PROTOCOL_H
 
 #define DEFAULT_SCCP_PORT					2000 	/*< SCCP uses port 2000. */
-#define DEFAULT_SCCP_BACKLOG					2 	/*< the listen baklog. */
+#define DEFAULT_SCCP_BACKLOG				2 		/*< the listen baklog. */
 #define SCCP_MAX_AUTOLOGIN					100 	/*< Maximum allowed of autologins per device */
-#define SCCP_KEEPALIVE						5 	/*< Default keepalive time if not specified in sccp.conf. */
+#define SCCP_KEEPALIVE						5 		/*< Default keepalive time if not specified in sccp.conf. */
 
 /* internal chan_sccp call state c->callstate */
 #define  SCCP_CHANNELSTATE_DOWN 				0
@@ -44,14 +44,14 @@
 #define SKINNY_CALLSTATE_RINGIN 			 	4
 #define SKINNY_CALLSTATE_CONNECTED			 	5
 #define SKINNY_CALLSTATE_BUSY				 	6
-#define SKINNY_CALLSTATE_CONGESTION 		 		7
+#define SKINNY_CALLSTATE_CONGESTION 		 	7
 #define SKINNY_CALLSTATE_HOLD				 	8
-#define SKINNY_CALLSTATE_CALLWAITING		 		9
-#define SKINNY_CALLSTATE_CALLTRANSFER		 		10
+#define SKINNY_CALLSTATE_CALLWAITING		 	9
+#define SKINNY_CALLSTATE_CALLTRANSFER		 	10
 #define SKINNY_CALLSTATE_CALLPARK			 	11
 #define SKINNY_CALLSTATE_PROCEED			 	12
-#define SKINNY_CALLSTATE_CALLREMOTEMULTILINE 			13
-#define SKINNY_CALLSTATE_INVALIDNUMBER		 		14
+#define SKINNY_CALLSTATE_CALLREMOTEMULTILINE 	13
+#define SKINNY_CALLSTATE_INVALIDNUMBER		 	14
 
 #define SKINNY_CALLTYPE_INBOUND 			 	1
 #define SKINNY_CALLTYPE_OUTBOUND			 	2
@@ -64,25 +64,25 @@
 #define SKINNY_CALLPRIORITY_NORMAL			 	4
 
 #define SKINNY_CALLSECURITYSTATE_UNKNOWN			0
-#define SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED		1
-#define SKINNY_CALLSECURITYSTATE_AUTHENTICATED	 		2
+#define SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED	1
+#define SKINNY_CALLSECURITYSTATE_AUTHENTICATED	 	2
 
-#define StationMaxDeviceNameSize				16
+#define StationMaxDeviceNameSize					16
 #define StationMaxButtonTemplateSize				42
 #define StationMaxButtonTemplateNameSize			44
-#define StationDateTemplateSize 				6
-// #define StationMaxDisplayTextSize				33
-#define StationMaxDisplayTextSize				32
+#define StationDateTemplateSize 					6
+//#define StationMaxDisplayTextSize					33
+#define StationMaxDisplayTextSize					32
 #define StationMaxDisplayNotifySize 				32
-#define StationMaxDirnumSize					24
-#define StationMaxNameSize					40
+#define StationMaxDirnumSize						24
+#define StationMaxNameSize							40
 #define StationMaxSoftKeyDefinition 				32
 #define StationMaxSoftKeySetDefinition				16
-#define StationMaxSoftKeyIndex					16
-#define StationMaxSoftKeyLabelSize				16
-#define StationMaxVersionSize				16
-#define ServerMaxNameSize					48
-#define StationMaxServiceURLSize				256
+#define StationMaxSoftKeyIndex						16
+#define StationMaxSoftKeyLabelSize					16
+#define StationMaxVersionSize						16
+#define ServerMaxNameSize							48
+#define StationMaxServiceURLSize					256
 
 /* skinny tones skinny_tone2str */
 #define SKINNY_TONE_SILENCE 					0
@@ -96,41 +96,41 @@
 #define SKINNY_TONE_DTMF8					8
 #define SKINNY_TONE_DTMF9					9
 #define SKINNY_TONE_DTMF0					0xa
-#define SKINNY_TONE_DTMFSTAR					0xe
-#define SKINNY_TONE_DTMFPOUND					0xf
+#define SKINNY_TONE_DTMFSTAR				0xe
+#define SKINNY_TONE_DTMFPOUND				0xf
 #define SKINNY_TONE_DTMFA					0x10
 #define SKINNY_TONE_DTMFB					0x11
 #define SKINNY_TONE_DTMFC					0x12
 #define SKINNY_TONE_DTMFD					0x13
-#define SKINNY_TONE_INSIDEDIALTONE				0x21
-#define SKINNY_TONE_OUTSIDEDIALTONE 				0x22
-#define SKINNY_TONE_LINEBUSYTONE				0x23
-#define SKINNY_TONE_ALERTINGTONE				0x24
-#define SKINNY_TONE_REORDERTONE 				0x25
-#define SKINNY_TONE_RECORDERWARNINGTONE 			0x26
-#define SKINNY_TONE_RECORDERDETECTEDTONE			0x27
-#define SKINNY_TONE_REVERTINGTONE				0x28
-#define SKINNY_TONE_RECEIVEROFFHOOKTONE 			0x29
-#define SKINNY_TONE_PARTIALDIALTONE 				0x2a
-#define SKINNY_TONE_NOSUCHNUMBERTONE				0x2b
-#define SKINNY_TONE_BUSYVERIFICATIONTONE			0x2c
-#define SKINNY_TONE_CALLWAITINGTONE 				0x2d
-#define SKINNY_TONE_CONFIRMATIONTONE				0x2e
-#define SKINNY_TONE_CAMPONINDICATIONTONE			0x2f
-#define SKINNY_TONE_RECALLDIALTONE				0x30
+#define SKINNY_TONE_INSIDEDIALTONE			0x21
+#define SKINNY_TONE_OUTSIDEDIALTONE 		0x22
+#define SKINNY_TONE_LINEBUSYTONE			0x23
+#define SKINNY_TONE_ALERTINGTONE			0x24
+#define SKINNY_TONE_REORDERTONE 			0x25
+#define SKINNY_TONE_RECORDERWARNINGTONE 	0x26
+#define SKINNY_TONE_RECORDERDETECTEDTONE	0x27
+#define SKINNY_TONE_REVERTINGTONE			0x28
+#define SKINNY_TONE_RECEIVEROFFHOOKTONE 	0x29
+#define SKINNY_TONE_PARTIALDIALTONE 		0x2a
+#define SKINNY_TONE_NOSUCHNUMBERTONE		0x2b
+#define SKINNY_TONE_BUSYVERIFICATIONTONE	0x2c
+#define SKINNY_TONE_CALLWAITINGTONE 		0x2d
+#define SKINNY_TONE_CONFIRMATIONTONE		0x2e
+#define SKINNY_TONE_CAMPONINDICATIONTONE	0x2f
+#define SKINNY_TONE_RECALLDIALTONE			0x30
 #define SKINNY_TONE_ZIPZIP					0x31
 #define SKINNY_TONE_ZIP 					0x32
-#define SKINNY_TONE_BEEPBONK					0x33
-#define SKINNY_TONE_MUSICTONE					0x34
-#define SKINNY_TONE_HOLDTONE					0x35
-#define SKINNY_TONE_TESTTONE					0x36
-#define SKINNY_TONE_ADDCALLWAITING				0x40
-#define SKINNY_TONE_PRIORITYCALLWAIT				0x41
-#define SKINNY_TONE_RECALLDIAL					0x42
+#define SKINNY_TONE_BEEPBONK				0x33
+#define SKINNY_TONE_MUSICTONE				0x34
+#define SKINNY_TONE_HOLDTONE				0x35
+#define SKINNY_TONE_TESTTONE				0x36
+#define SKINNY_TONE_ADDCALLWAITING			0x40
+#define SKINNY_TONE_PRIORITYCALLWAIT		0x41
+#define SKINNY_TONE_RECALLDIAL				0x42
 #define SKINNY_TONE_BARGIN					0x43
-#define SKINNY_TONE_DISTINCTALERT				0x44
-#define SKINNY_TONE_PRIORITYALERT				0x45
-#define SKINNY_TONE_REMINDERRING				0x46
+#define SKINNY_TONE_DISTINCTALERT			0x44
+#define SKINNY_TONE_PRIORITYALERT			0x45
+#define SKINNY_TONE_REMINDERRING			0x46
 #define SKINNY_TONE_MF1 					0x50
 #define SKINNY_TONE_MF2 					0x51
 #define SKINNY_TONE_MF3 					0x52
@@ -146,14 +146,14 @@
 #define SKINNY_TONE_MFKP2					0x5c
 #define SKINNY_TONE_MFSTP					0x5d
 #define SKINNY_TONE_MFST3P					0x5e
-#define SKINNY_TONE_MILLIWATT					0x5f
-#define SKINNY_TONE_MILLIWATTTEST				0x60
-#define SKINNY_TONE_HIGHTONE					0x61
-#define SKINNY_TONE_FLASHOVERRIDE				0x62
+#define SKINNY_TONE_MILLIWATT				0x5f
+#define SKINNY_TONE_MILLIWATTTEST			0x60
+#define SKINNY_TONE_HIGHTONE				0x61
+#define SKINNY_TONE_FLASHOVERRIDE			0x62
 #define SKINNY_TONE_FLASH					0x63
-#define SKINNY_TONE_PRIORITY					0x64
-#define SKINNY_TONE_IMMEDIATE					0x65
-#define SKINNY_TONE_PREAMPWARN					0x66
+#define SKINNY_TONE_PRIORITY				0x64
+#define SKINNY_TONE_IMMEDIATE				0x65
+#define SKINNY_TONE_PREAMPWARN				0x66
 #define SKINNY_TONE_2105HZ					0x67
 #define SKINNY_TONE_2600HZ					0x68
 #define SKINNY_TONE_440HZ					0x69
@@ -208,15 +208,21 @@
 
 #define SKINNY_DEVICETYPE_CISCO7902 				30008
 #define SKINNY_DEVICETYPE_CISCO7905 				20000
+#define SKINNY_DEVICETYPE_CISCO7906					369	// -FS
 
 #define SKINNY_DEVICETYPE_CISCO7910					6 	/*< 7910 */
 #define SKINNY_DEVICETYPE_CISCO7911 				307
 #define SKINNY_DEVICETYPE_CISCO7912					30007
 
+#define SKINNY_DEVICETYPE_CISCO7914 				124 /*< Expansion module */
+/* We don't know ATM the next two device codes -FS */
+#define SKINNY_DEVICETYPE_CISCO7915 				125	/*< Expansion module */
+#define SKINNY_DEVICETYPE_CISCO7916 				126	/*< Expansion module */
+
 #define SKINNY_DEVICETYPE_CISCO7920 				30002
 #define SKINNY_DEVICETYPE_CISCO7921 				365
 
-#define SKINNY_DEVICETYPE_CISCO7931				348
+#define SKINNY_DEVICETYPE_CISCO7931					348
 #define SKINNY_DEVICETYPE_CISCO7935 				9
 #define SKINNY_DEVICETYPE_CISCO7936 				30019
 #define SKINNY_DEVICETYPE_CISCO7937					431
@@ -224,12 +230,13 @@
 #define SKINNY_DEVICETYPE_CISCO7940					8 	/*!< 7940 */
 #define SKINNY_DEVICETYPE_CISCO7941 				115
 #define SKINNY_DEVICETYPE_CISCO7941GE 				309
-#define SKINNY_DEVICETYPE_CISCO7942				434
+#define SKINNY_DEVICETYPE_CISCO7942					434
 #define SKINNY_DEVICETYPE_CISCO7945					435
 
 #define SKINNY_DEVICETYPE_CISCO7960					7 	/*< 7960 */
 #define SKINNY_DEVICETYPE_CISCO7961 				30018
 #define SKINNY_DEVICETYPE_CISCO7961GE 				308
+#define SKINNY_DEVICETYPE_CISCO7962					404	// -FS
 #define SKINNY_DEVICETYPE_CISCO7965 				436
 
 #define SKINNY_DEVICETYPE_CISCO7970 				30006
@@ -240,6 +247,8 @@
 
 #define SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR 	30016
 
+#define SKINNY_DEVICETYPE_GATEWAY_AN 				30027 /*< Analog gateway */
+#define SKINNY_DEVICETYPE_GATEWAY_BRI 				30028 /*< BRI gateway */
 
 
 #define SKINNY_DEVICE_RS_NONE					0

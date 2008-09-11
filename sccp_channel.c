@@ -99,24 +99,23 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l) {
 	c->line = l;
 	c->device = d;
 
-	sccp_mutex_lock(&l->lock);
+	sccp_line_lock(l);
 	l->channelCount++;
-	sccp_mutex_unlock(&l->lock);
+	sccp_line_unlock(l);
 
-	sccp_mutex_lock(&d->lock);
+	sccp_device_lock(d);
 	d->channelCount++;
-	sccp_mutex_unlock(&d->lock);
+	sccp_device_unlock(d);
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: New channel number: %d on line %s\n", d->id, c->callid, l->name);
 
 	/* put it on the top of the lists */
-
-	sccp_mutex_lock(&GLOB(channels_lock));
+	sccp_globals_lock(channels_lock);
 	c->next = GLOB(channels);
 	if (GLOB(channels)) /* first one */
 		GLOB(channels)->prev = c;
 	GLOB(channels) = c;
-	sccp_mutex_unlock(&GLOB(channels_lock));
+	sccp_globals_unlock(channels_lock);
 
 	c->next_on_line = l->channels;
 	if (l->channels) /* first one */
@@ -127,41 +126,30 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l) {
 }
 
 sccp_channel_t * sccp_channel_get_active(sccp_device_t * d) {
-	
 	sccp_channel_t * c;
-/* uint8_t tries = SCCP_LOCK_TRIES; */
 
 	if (!d)
 		return NULL;
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Getting the active channel on device\n",d->id);
 	
-	sccp_mutex_lock(&GLOB(channels_lock));
-	sccp_mutex_lock(&d->lock);
+	sccp_globals_lock(channels_lock);
+	sccp_device_lock(d);
+	
 	c = d->active_channel;
-/*
-	while (tries && sccp_mutex_trylock(&c->lock)) {
-		tries--;
-		usleep(SCCP_LOCK_USLEEP);
-	}
 
-	if (!tries) {
-		ast_log(LOG_ERROR, "%s: Failed to lock channel (%d)\n", DEV_ID_LOG(d), c->callid);
-		c = NULL;
-	}
-*/
-	sccp_mutex_unlock(&d->lock);
-	sccp_mutex_unlock(&GLOB(channels_lock));
+	sccp_device_unlock(d);
+	sccp_globals_unlock(channels_lock);
 	return c;
 }
 
 void sccp_channel_set_active(sccp_channel_t * c) {
 	sccp_device_t * d = c->device;
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Set the active channel %d on device\n", DEV_ID_LOG(d), (c) ? c->callid : 0);
-	sccp_mutex_lock(&d->lock);
+	sccp_device_lock(d);
 	d->active_channel = c;
 	d->currentLine = c->line;
-	sccp_mutex_unlock(&d->lock);
+	sccp_device_unlock(d);
 }
 
 void sccp_channel_send_callinfo(sccp_channel_t * c) {
@@ -304,9 +292,9 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c) {
 	r->msg.OpenReceiveChannel.lel_conferenceId1 = htolel(c->callid);
 	sccp_dev_send(c->line->device, r);
 	/* create the rtp stuff. It must be create before setting the channel AST_STATE_UP. otherwise no audio will be played */
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", c->line->device->id, c->callid, skinny_codec2str(payloadType), c->line->echocancel ? "ON" : "OFF");
+	sccp_log(65)(VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", c->line->device->id, c->callid, skinny_codec2str(payloadType), c->line->echocancel ? "ON" : "OFF");
 	if (!c->rtp) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Starting RTP on channel %s-%08x\n", DEV_ID_LOG(c->device), c->line->name, c->callid);
+		sccp_log(65)(VERBOSE_PREFIX_3 "%s: Starting RTP on channel %s-%08x\n", DEV_ID_LOG(c->device), c->line->name, c->callid);
 		sccp_channel_start_rtp(c);
 	}
 	if (!c->rtp) {
@@ -326,7 +314,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c) {
 #endif
 
 	if (!c->rtp) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: can't start rtp media transmission, maybe channel is down %s-%08x\n", c->device->id, c->line->name, c->callid);
+		sccp_log(66)(VERBOSE_PREFIX_3 "%s: can't start rtp media transmission, maybe channel is down %s-%08x\n", c->device->id, c->line->name, c->callid);
 		return;
 	}
 
@@ -364,9 +352,9 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c) {
 	r->msg.StartMediaTransmission.lel_conferenceId1 = htolel(c->callid);
 	sccp_dev_send(c->line->device, r);
 #ifdef ASTERISK_CONF_1_2
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s, tos %d, silencesuppression: %s\n",c->line->device->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port), skinny_codec2str(payloadType), c->line->rtptos, c->line->silencesuppression ? "ON" : "OFF");
+	sccp_log(66)(VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s, tos %d, silencesuppression: %s\n",c->line->device->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port), skinny_codec2str(payloadType), c->line->rtptos, c->line->silencesuppression ? "ON" : "OFF");
 #else
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s, tos %d, silencesuppression: %s\n",c->line->device->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), skinny_codec2str(payloadType), c->line->rtptos, c->line->silencesuppression ? "ON" : "OFF");
+	sccp_log(66)(VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s, tos %d, silencesuppression: %s\n",c->line->device->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), skinny_codec2str(payloadType), c->line->rtptos, c->line->silencesuppression ? "ON" : "OFF");
 #endif
 }
 
@@ -765,9 +753,9 @@ int sccp_channel_resume(sccp_channel_t * c) {
 }
 
 void sccp_channel_delete(sccp_channel_t * c) {
-	sccp_mutex_lock(&GLOB(channels_lock));
+	sccp_globals_lock(channels_lock);
 	sccp_channel_delete_no_lock(c);
-	sccp_mutex_unlock(&GLOB(channels_lock));
+	sccp_globals_unlock(channels_lock);
 }
 
 /* this does no lock the main channels pointer */
@@ -779,7 +767,7 @@ void sccp_channel_delete_no_lock(sccp_channel_t * c) {
 	if (!c)
 		return;
 
-	sccp_mutex_lock(&c->lock);
+	sccp_channel_lock(c);
 
 	l = c->line;
 	d = c->device;
@@ -830,26 +818,26 @@ void sccp_channel_delete_no_lock(sccp_channel_t * c) {
 		sccp_mutex_unlock(&c->prev_on_line->lock);
 	}
 	else { /* the first one */
-		sccp_mutex_lock(&l->lock);
+		sccp_line_lock(l);
 		l->channels = c->next_on_line;
-		sccp_mutex_unlock(&l->lock);
+		sccp_line_unlock(l);
 	}
 
-	sccp_mutex_lock(&l->lock);
+	sccp_line_lock(l);
 /*	if (l->activeChannel == c)
 		l->activeChannel = NULL; */
 	l->channelCount--;
-	sccp_mutex_unlock(&l->lock);
+	sccp_line_unlock(l);
 
 	/* deactive the active call if needed */
-	sccp_mutex_lock(&d->lock);
+	sccp_device_lock(d);
 	d->channelCount--;
 	if (d->active_channel == c)
 		d->active_channel = NULL;	
-	sccp_mutex_unlock(&d->lock);
+	sccp_device_unlock(d);
 	
 	//remove selected channels
-	sccp_mutex_lock(&d->lock);
+	sccp_device_lock(d);
 	cur = d->selectedChannels;
 	while(cur != NULL) {
 	    if(c == cur->c) {
@@ -862,11 +850,11 @@ void sccp_channel_delete_no_lock(sccp_channel_t * c) {
 	    par = cur;
 	    cur = cur->next;
 	}
-	sccp_mutex_unlock(&d->lock);
+	sccp_device_unlock(d);
 	//remove selected channels
 	
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Deleted channel %d from line %s\n", DEV_ID_LOG(d), c->callid, l ? l->name : "(null)");
-	sccp_mutex_unlock(&c->lock);
+	sccp_channel_unlock(c);
 	sccp_mutex_destroy(&c->lock);
 	free(c);
 	return;
@@ -885,7 +873,7 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
 		return;
 
 /* No need to lock, because already locked in the sccp_indicate.c */
-/*	sccp_mutex_lock(&c->lock); */
+/*	sccp_channel_lock(c); */
 #ifdef ASTERISK_CONF_1_2
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", c->device->id, ast_inet_ntoa(iabuf, sizeof(iabuf), s->ourip));
 #else
@@ -924,7 +912,7 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
     }
 #endif
 
-/*	sccp_mutex_unlock(&c->lock); */
+/*	sccp_channel_unlock(c); */
 }
 
 void sccp_channel_stop_rtp(sccp_channel_t * c) {
@@ -962,16 +950,16 @@ void sccp_channel_transfer(sccp_channel_t * c) {
 		return;
 	}
 
-	sccp_mutex_lock(&d->lock);
+	sccp_device_lock(d);
 	/* are we in the middle of a transfer? */
 	if (d->transfer_channel && (d->transfer_channel != c)) {
-		sccp_mutex_unlock(&d->lock);
+		sccp_device_unlock(d);
 		sccp_channel_transfer_complete(c);
 		return;
 	}
 
 	d->transfer_channel = c;
-	sccp_mutex_unlock(&d->lock);
+	sccp_device_unlock(d);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%08x\n", d->id, c->line->name, c->callid);
 
 	if (!c->owner) {
@@ -1041,10 +1029,10 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	
 	// Obtain the device from which the transfer was initiated
 	d = cDestinationLocal->line->device;
-	sccp_mutex_lock(&d->lock);
+	sccp_device_lock(d);
 	// Obtain the source channel on that device
 	cSourceLocal = d->transfer_channel;
-	sccp_mutex_unlock(&d->lock);
+	sccp_device_unlock(d);
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Complete transfer from %s-%08x\n", d->id, cDestinationLocal->line->name, cDestinationLocal->callid);
 
@@ -1110,9 +1098,9 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 		return;
 	}
 
-	sccp_mutex_lock(&d->lock);
+	sccp_device_lock(d);
 	d->transfer_channel = NULL;
-	sccp_mutex_unlock(&d->lock);
+	sccp_device_unlock(d);
 
 	if (!astcDestinationRemote) {
 	    /* the channel was ringing not answered yet. BLIND TRANSFER */

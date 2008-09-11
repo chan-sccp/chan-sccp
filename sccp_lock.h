@@ -53,16 +53,21 @@
 #define sccp_channel_lock(x)		ast_mutex_lock(&x->lock)
 #define sccp_channel_unlock(x)		ast_mutex_unlock(&x->lock)
 #define sccp_channel_trylock(x)		ast_mutex_trylock(&x->lock)
-/* Macro for Sessions*/
+/* Macro for Sessions */
 #define sccp_session_lock(x)		ast_mutex_lock(&x->lock)
 #define sccp_session_unlock(x)		ast_mutex_unlock(&x->lock)
 #define sccp_session_trylock(x)		ast_mutex_trylock(&x->lock)
+/* Macro for Globals */
+#define sccp_globals_lock(x)		ast_mutex_lock(&sccp_globals->x)
+#define sccp_globals_unlock(x)		ast_mutex_unlock(&sccp_globals->x)
+#define sccp_globals_trylock(x)		ast_mutex_trylock(&sccp_globals->x)
 #else
 #define sccp_mutex_lock(a)          __sccp_mutex_lock(a, "(unspecified)", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_line_lock(a)           __sccp_mutex_lock(&a->lock, "(line)", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_device_lock(a)		    __sccp_mutex_lock(&a->lock, "(device)", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_channel_lock(a)		__sccp_mutex_lock(&a->lock, "(channel)", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_session_lock(a)		__sccp_mutex_lock(&a->lock, "(session)", __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_globals_lock(a)		__sccp_mutex_lock(&sccp_globals->a, "(globals)", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 /*! \brief Lock AST channel (and print debugging output)
 \note You need to enable DEBUG_CHANNEL_LOCKS for this function */
 int __sccp_mutex_lock(ast_mutex_t *p_ast_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func);
@@ -71,15 +76,16 @@ int __sccp_mutex_lock(ast_mutex_t *p_ast_mutex, const char *itemnametolock, cons
 #define sccp_device_unlock(a)		__sccp_mutex_unlock(&a->lock, "(device)", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_channel_unlock(a)      __sccp_mutex_unlock(&a->lock, "(channel)", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_session_unlock(a)		__sccp_mutex_unlock(&a->lock, "(session)", __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_globals_unlock(a)		__sccp_mutex_unlock(&sccp_globals->a, "(globals)", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 /*! \brief Unlock AST channel (and print debugging output)
-\note You need to enable DEBUG_CHANNEL_LOCKS for this function
-*/
+\note You need to enable DEBUG_CHANNEL_LOCKS for this function */
 int __sccp_mutex_unlock(ast_mutex_t *p_ast_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func);
 #define sccp_mutex_trylock(a)       __sccp_mutex_trylock(a, "(unspecified)", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_line_trylock(a)        __sccp_mutex_trylock(&a->lock, "(line)", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_device_trylock(a)		__sccp_mutex_trylock(&a->lock, "(device)", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_channel_trylock(a)		__sccp_mutex_trylock(&a->lock, "(channel)", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_session_trylock(a)		__sccp_mutex_trylock(&a->lock, "(session)", __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_globals_trylock(a)		__sccp_mutex_trylock(&sccp_globals->a, "(globals)", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 /*! \brief Lock AST channel (and print debugging output)
 \note   You need to enable DEBUG_CHANNEL_LOCKS for this function */
 int __sccp_mutex_trylock(ast_mutex_t *p_ast_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func);

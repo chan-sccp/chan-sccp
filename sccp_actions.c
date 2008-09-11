@@ -122,7 +122,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 		}
 	}
 
-	sccp_mutex_lock(&d->lock);
+	sccp_device_lock(d);
 
 	/* test the localnet to understand if the device is behind NAT */
 	if (GLOB(localaddr) && ast_apply_ha(GLOB(localaddr), &s->sin)) {
@@ -145,7 +145,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 	s->lastKeepAlive = time(0);
 	d->mwilight = 0;
 	d->protocolversion = r->msg.RegisterMessage.protocolVer;
-	sccp_mutex_unlock(&d->lock);
+	sccp_device_unlock(d);
 
 	/* pre-attach lines. We will wait for button template req if the phone does support it */
 	sccp_dev_build_buttontemplate(d, btn);
@@ -191,8 +191,8 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 		}
 
 		i++;
-		sccp_mutex_lock(&l->lock);
-		sccp_mutex_lock(&d->lock);
+		sccp_line_lock(l);
+		sccp_device_lock(d);
 		if (i == 1)
 		d->currentLine = l;
 		l->device = d;
@@ -208,8 +208,8 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 			lines_last->next_on_device = l;
 			lines_last = l;
 		}
-		sccp_mutex_unlock(&l->lock);
-		sccp_mutex_unlock(&d->lock);
+		sccp_line_unlock(l);
+		sccp_device_unlock(d);
 		/* notify the line is on */
 		sccp_hint_notify_linestate(l, SCCP_DEVICESTATE_ONHOOK, NULL);
 	}
@@ -368,9 +368,9 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 	memset(btn, 0 , sizeof(btnlist)*StationMaxButtonTemplateSize);
 	sccp_dev_build_buttontemplate(d, btn);
 
-	sccp_mutex_lock(&GLOB(devices_lock));
-	sccp_mutex_lock(&GLOB(lines_lock));
-	sccp_mutex_lock(&d->lock);
+	sccp_globals_lock(devices_lock);
+	sccp_globals_lock(lines_lock);
+	sccp_device_lock(d);
 
 	/* line button template configuration */
 	l = d->lines;
@@ -565,9 +565,9 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 		    }
 	}
 
-	sccp_mutex_unlock(&d->lock);
-	sccp_mutex_unlock(&GLOB(lines_lock));
-	sccp_mutex_unlock(&GLOB(devices_lock));
+	sccp_device_unlock(d);
+	sccp_globals_unlock(lines_lock);
+	sccp_globals_unlock(devices_lock);
 	return btn;
 }
 
@@ -722,15 +722,15 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 				return;
 			c = sccp_channel_get_active(d);
 			if (c) {
-				sccp_mutex_lock(&c->lock);
+				sccp_channel_lock(c);
 				if (c->state == SCCP_CHANNELSTATE_OFFHOOK) {
 					sccp_copy_string(c->dialedNumber, d->lastNumber, sizeof(d->lastNumber));
 					c->digittimeout = time(0)+1;
 					sccp_indicate_nolock(c, SCCP_CHANNELSTATE_DIALING);
-					sccp_mutex_unlock(&c->lock);
+					sccp_channel_unlock(c);
 					sccp_log(1)(VERBOSE_PREFIX_3 "%s: Redial the number %s\n", d->id, d->lastNumber);
 				} else {
-					sccp_mutex_unlock(&c->lock);
+					sccp_channel_unlock(c);
 					sccp_log(1)(VERBOSE_PREFIX_3 "%s: Redial ignored as call in progress\n", d->id);
 				}
 			} else {
@@ -968,17 +968,17 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Speeddial Button (%d) pressed, configured number is (%s)\n", d->id, k->instance, k->ext);
 	c = sccp_channel_get_active(d);
 	if (c) {
-		sccp_mutex_lock(&c->lock);
+		sccp_channel_lock(c);
 		if ( (c->state == SCCP_CHANNELSTATE_DIALING) || (c->state == SCCP_CHANNELSTATE_OFFHOOK) ) {
 			len = strlen(c->dialedNumber);
 			sccp_copy_string(c->dialedNumber+len, k->ext, sizeof(c->dialedNumber)-len);
 				c->digittimeout = time(0)+1;
 			if (c->state == SCCP_CHANNELSTATE_OFFHOOK)
 				sccp_indicate_nolock(c, SCCP_CHANNELSTATE_DIALING);
-			sccp_mutex_unlock(&c->lock);
+			sccp_channel_unlock(c);
 			return;
 		}
-		sccp_mutex_unlock(&c->lock);
+		sccp_channel_unlock(c);
 		sccp_pbx_senddigits(c, k->ext);
 	} else {
 		// Pull up a channel
@@ -1115,7 +1115,7 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r) {
 	
 	/* ok the device support the softkey map */
 	
-	sccp_mutex_lock(&d->lock);
+	sccp_device_lock(d);
 	
 	d->softkeysupport = 1;
 	
@@ -1130,7 +1130,7 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r) {
 		r1->msg.SoftKeyTemplateResMessage.definition[i].lel_softKeyEvent = htolel(i+1);
 	}
 	
-	sccp_mutex_unlock(&d->lock);
+	sccp_device_unlock(d);
 	
 	r1->msg.SoftKeyTemplateResMessage.lel_softKeyCount = htolel(c);
 	r1->msg.SoftKeyTemplateResMessage.lel_totalSoftKeyCount = htolel(c);
@@ -1349,7 +1349,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
 		return;
 	}
 
-	sccp_mutex_lock(&c->lock);
+	sccp_channel_lock(c);
 	
 	l = c->line;
 	d = c->device;
@@ -1365,7 +1365,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
 
 	if (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED) {
 		/* we have to unlock 'cause the senddigit lock the channel */
-		sccp_mutex_unlock(&c->lock);
+		sccp_channel_unlock(c);
 //		sccp_dev_starttone(d, (uint8_t) event);
     	sccp_pbx_senddigit(c, resp);
     	return;
@@ -1384,7 +1384,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
 			if (!strcmp(c->dialedNumber, ast_pickup_ext()) && (c->state != SCCP_CHANNELSTATE_GETDIGITS)) {
 				/* set it to offhook state because the sccp_sk_gpickup function look for an offhook channel */
 				c->state = SCCP_CHANNELSTATE_OFFHOOK;
-				sccp_mutex_unlock(&c->lock);
+				sccp_channel_unlock(c);
 				sccp_sk_gpickup(c->device, c->line, c);
 				return;
 			}
@@ -1413,7 +1413,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
 		}
 	}
 
-	sccp_mutex_unlock(&c->lock);
+	sccp_channel_unlock(c);
 }
 
 /**
@@ -1558,7 +1558,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r) {
    * the channel and with it the lock is already deallocated when we try to unlock it.
    * This actually happens sometimes when issueing a hangup handled by this function.
 	if (c)
-		sccp_mutex_unlock(&c->lock);
+		sccp_channel_unlock(c);
    */
 }
 
@@ -1594,14 +1594,14 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r) {
 
 	status = letohl(r->msg.OpenReceiveChannelAck.lel_orcStatus);
 #ifdef	ASTERISK_CONF_1_2
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %d\n",
+	sccp_log(8)(VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %d\n",
 			d->id,
 			status, (d->trustphoneip ? "Phone" : "Connection"),
 			ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr),
 			ntohs(sin.sin_port),
 			letohl(r->msg.OpenReceiveChannelAck.lel_passThruPartyId));
 #else	
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %d\n",
+	sccp_log(8)(VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %d\n",
 		d->id,
 		status, (d->trustphoneip ? "Phone" : "Connection"),
 		ast_inet_ntoa(sin.sin_addr),
@@ -1615,17 +1615,18 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r) {
 	}
 	
 	c = sccp_channel_find_byid(letohl(r->msg.OpenReceiveChannelAck.lel_passThruPartyId));
-	/* prevent a segmentation fault on fast hangup after answer, failed voicemail for example */
+	/* prevent a segmentation fault on fast hangup after answer, failed voicemail for example */	
 	if (c && c->state != SCCP_CHANNELSTATE_DOWN) {
-		sccp_mutex_lock(&c->lock);
+		sccp_log(66)(VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
+		sccp_channel_lock(c);
 		memcpy(&c->rtp_addr, &sin, sizeof(sin));
 		if (c->rtp) {
 			sccp_channel_startmediatransmission(c);
 #ifdef ASTERISK_CONF_1_2
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port));
+			sccp_log(66)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port));
 				ast_rtp_set_peer(c->rtp, &sin);
 #else
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
+			sccp_log(66)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 			ast_rtp_set_peer(c->rtp, &sin);
 #endif
 		} else {
@@ -1635,7 +1636,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r) {
 			ast_log(LOG_ERROR,  "%s: Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 #endif
 		}
-		sccp_mutex_unlock(&c->lock);
+		sccp_channel_unlock(c);
 	} else {
 		ast_log(LOG_ERROR, "%s: No channel with this PassThruId!\n", d->id);
 	}
@@ -1714,8 +1715,8 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r) {
 	d = s->device;
 	if (!d)
 		return;
-	sccp_mutex_lock(&d->lock);
-	sccp_mutex_lock(&GLOB(lines_lock));
+	sccp_device_lock(d);
+	sccp_globals_lock(lines_lock);
 	l = d->lines;
 	while (l) {
 		lines++;
@@ -1726,8 +1727,8 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r) {
 		speeddials++;
 		k = k->next;
 	}
-	sccp_mutex_unlock(&GLOB(lines_lock));
-	sccp_mutex_unlock(&d->lock);
+	sccp_globals_unlock(lines_lock);
+	sccp_device_unlock(d);
 
 
 	REQ(r1, ConfigStatMessage);

@@ -60,15 +60,14 @@ static struct ast_frame * sccp_rtp_read(sccp_channel_t * c) {
 #else
 				if (!(f->subclass & (c->owner->nativeformats))) {
 #endif				
-					if (GLOB(debug) > 2) {	  
-						sccp_log(2)(VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n",
-						DEV_ID_LOG(c->device),
-						c->owner->name,
-						ast_getformatname(f->subclass),
-						f->subclass,
-						ast_getformatname(c->owner->nativeformats),
-						c->owner->nativeformats);
-					}	
+					sccp_log(2)(VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n",
+					DEV_ID_LOG(c->device),
+					c->owner->name,
+					ast_getformatname(f->subclass),
+					f->subclass,
+					ast_getformatname(c->owner->nativeformats),
+					c->owner->nativeformats);
+
 					c->owner->nativeformats = f->subclass;
 					ast_set_read_format(c->owner, c->owner->readformat);
 					ast_set_write_format(c->owner, c->owner->writeformat);
@@ -819,26 +818,24 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	snprintf(tmp->name, sizeof(tmp->name), "SCCP/%s-%08x", l->name, c->callid);
 #endif
 
-	if (GLOB(debug) > 2) {	  
-	  char s1[512], s2[512];
-	  sccp_log(2)(VERBOSE_PREFIX_3 "%s: Channel %s, capabilities: DEVICE %s(%d) PREFERRED %s(%d) USED %s(%d)\n",
-		DEV_ID_LOG(c->device),
-		tmp->name,
+  char s1[512], s2[512];
+  sccp_log(2)(VERBOSE_PREFIX_3 "%s: Channel %s, capabilities: DEVICE %s(%d) PREFERRED %s(%d) USED %s(%d)\n",
+	DEV_ID_LOG(c->device),
+	tmp->name,
 #ifndef ASTERISK_CONF_1_2
-		ast_getformatname_multiple(s1, sizeof(s1) -1, d->capability & AST_FORMAT_AUDIO_MASK),
+	ast_getformatname_multiple(s1, sizeof(s1) -1, d->capability & AST_FORMAT_AUDIO_MASK),
 #else
-		ast_getformatname_multiple(s1, sizeof(s1) -1, d->capability),
+	ast_getformatname_multiple(s1, sizeof(s1) -1, d->capability),
 #endif		
-		d->capability,
+	d->capability,
 #ifndef ASTERISK_CONF_1_2		
-		ast_getformatname_multiple(s2, sizeof(s2) -1, tmp->nativeformats & AST_FORMAT_AUDIO_MASK),
+	ast_getformatname_multiple(s2, sizeof(s2) -1, tmp->nativeformats & AST_FORMAT_AUDIO_MASK),
 #else
-		ast_getformatname_multiple(s2, sizeof(s2) -1, tmp->nativeformats),
+	ast_getformatname_multiple(s2, sizeof(s2) -1, tmp->nativeformats),
 #endif		
-		tmp->nativeformats,
-		ast_getformatname(fmt),
-		fmt);
-	}
+	tmp->nativeformats,
+	ast_getformatname(fmt),
+	fmt);
 
 #ifndef CS_AST_HAS_TECH_PVT
 	tmp->type = "SCCP";
