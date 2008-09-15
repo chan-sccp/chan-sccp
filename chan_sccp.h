@@ -524,6 +524,7 @@ struct sccp_global_vars {
 	ast_group_t				callgroup;
 #ifdef CS_SCCP_PICKUP
 	ast_group_t				pickupgroup;
+	int					pickupmodeanswer:1;
 #endif
 	int					global_capability;
 	struct					ast_codec_pref global_codecs;

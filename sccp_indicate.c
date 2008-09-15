@@ -190,6 +190,11 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_ast_setstate(c, AST_STATE_BUSY);
 		break;
 	case SCCP_CHANNELSTATE_PROCEED:
+		if(oldstate == SCCP_CHANNELSTATE_CONNECTED) { // this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app)
+			sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
+			c->state = SCCP_CHANNELSTATE_CONNECTED;
+			return;
+		}
 		sccp_dev_stoptone(d, l->instance, c->callid);
 		sccp_channel_set_callstate(c, SKINNY_CALLSTATE_PROCEED);
 		sccp_channel_send_callinfo(c);
@@ -197,8 +202,6 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		if (!c->rtp) {
 			sccp_channel_openreceivechannel(c);
 		}
-		// TEST TEST TEST
-		// sccp_ast_setstate(c, AST_STATE_UP);
 		break;
 	case SCCP_CHANNELSTATE_HOLD:		
 		sccp_handle_time_date_req(d->session, NULL);

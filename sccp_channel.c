@@ -279,7 +279,7 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * c) {
 
 void sccp_channel_openreceivechannel(sccp_channel_t * c) {
 	sccp_moo_t * r;
-	int payloadType = sccp_codec_ast2skinny(c->format);
+	int payloadType = sccp_codec_ast2skinny(c->owner->readformat); // was c->format
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: readformat %d, payload %d\n", c->line->device->id, c->owner->readformat, payloadType);
 
 	REQ(r, OpenReceiveChannel);
@@ -308,7 +308,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c) {
 	struct sockaddr_in sin;
 	struct ast_hostent ahp;
 	struct hostent *hp;
-	int payloadType = sccp_codec_ast2skinny(c->format);
+	int payloadType = sccp_codec_ast2skinny(c->owner->writeformat); // was c->format
 #ifdef ASTERISK_CONF_1_2
 	char iabuf[INET_ADDRSTRLEN];
 #endif
@@ -612,15 +612,15 @@ int sccp_channel_hold(sccp_channel_t * c) {
 	l = c->line;
 	d = c->line->device;
 
-	if (c->state == SCCP_CHANNELSTATE_HOLD)
-	{
+	if (c->state == SCCP_CHANNELSTATE_HOLD) {
 		ast_log(LOG_WARNING, "SCCP: Channel already on hold\n");
 		return 0;
 	}
+	
 	/* put on hold an active call */
-	if (c->state != SCCP_CHANNELSTATE_CONNECTED) {
+	if (c->state != SCCP_CHANNELSTATE_CONNECTED && c->state != SCCP_CHANNELSTATE_PROCEED) { // TOLL FREE NUMBERS STAYS ALWAYS IN CALL PROGRESS STATE
 		/* something wrong on the code let's notify it for a fix */
-		ast_log(LOG_ERROR, "%s can't put on hold an inactive channel %s-%08x\n", d->id, l->name, c->callid);
+		ast_log(LOG_ERROR, "%s can't put on hold an inactive channel %s-%08x (%s)\n", d->id, l->name, c->callid, sccp_indicate2str(c->state));
 		/* hard button phones need it */
 		//sccp_dev_displayprompt(d, l->instance, c->callid, "No active call to put on hold.",5);
 		sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);

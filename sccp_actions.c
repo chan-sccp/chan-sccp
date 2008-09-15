@@ -217,18 +217,19 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, (d->keepalive ? d->keepalive : GLOB(keepalive)) );
 	REQ(r1, RegisterAckMessage);
 	
-	/* it seems that device sends protovolVer 0 if connected to a SRST server while chan_sccp disappears (e.g. the default router is a ccme and the phone registers to it (or not) */
-
-	
-	
-	if  (r->msg.RegisterMessage.protocolVer == 0 || r->msg.RegisterMessage.protocolVer > GLOB(protocolversion))
-	{
+	// most devices puts 0 in protocol version request, to get the higher protocol version supported by CALL MANAGER. 
+	// if we set the right version as stated in the global vars, the device will ask for the real protocol specified and it hangs with wrong message size.
+	// this is not a bugfix but just a trick to get no warnings. Happy to say, we're going to support protocol version "0" (zero) -FS
+	if(r->msg.RegisterMessage.protocolVer == 0) { 
+		r1->msg.RegisterAckMessage.protocolVer = 0;
+		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Wrong protocol version: fixing\n");	
+	} else if(r->msg.RegisterMessage.protocolVer > GLOB(protocolversion)) {
 		r1->msg.RegisterAckMessage.protocolVer = GLOB(protocolversion);
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Wrong protocol version: fixing\n");
-	}
-	else
+	} else {
 		r1->msg.RegisterAckMessage.protocolVer = r->msg.RegisterMessage.protocolVer;
-
+	}
+	
 	r1->msg.RegisterAckMessage.lel_keepAliveInterval = htolel( (d->keepalive ? d->keepalive : GLOB(keepalive)) );
 	r1->msg.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel( (d->keepalive ? d->keepalive : GLOB(keepalive)) );
 

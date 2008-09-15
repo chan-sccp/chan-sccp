@@ -262,9 +262,10 @@ sccp_channel_t * sccp_feat_handle_directpickup(sccp_line_t * l) {
 
 #ifdef CS_SCCP_PICKUP
 int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
-	int res = -1;
+	int res = 0;
 	struct ast_channel *target = NULL;
 	struct ast_channel *original = NULL;
+	const char * ringermode = NULL;
 	
 	sccp_device_t * d;
 	char * pickupexten;
@@ -273,13 +274,13 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
 	if(ast_strlen_zero(exten))
 	{
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (directpickup) zero exten\n");
-		return res;
+		return -1;
 	}
 		
 	if(!c || !c->owner)
 	{
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (directpickup) no channel\n");
-		return res;
+		return -1;
 	}
 	
 	original = c->owner;
@@ -287,7 +288,7 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
 	if(!c->device || !c->device->id || strlen(c->device->id) < 3)
 	{
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (directpickup) no device\n");
-		return res;
+		return -1;
 	}
 	
 	d = c->device;
@@ -305,7 +306,7 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
 #endif
 		    (!target->pbx && (target->_state == AST_STATE_RINGING || target->_state == AST_STATE_RING))) {
 		
-#ifdef CS_AST_CHANNEL_HAS_CID							
+#ifdef CS_AST_CHANNEL_HAS_CID
 			if(target->cid.cid_name)
 				name = strdup(target->cid.cid_name);
 			if(target->cid.cid_num)
@@ -315,42 +316,68 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
 				cidtmp = strdup(target->callerid);
 				ast_callerid_parse(cidtmp, &name, &number);
 			}
-#endif							
+#endif
 			original->hangupcause = AST_CAUSE_CALL_REJECTED;
 			
-			if ((res = ast_answer(c->owner))) {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (directpickup) Unable to answer '%s'\n", c->owner->name);
-				res = -1;
+			if(d->pickupmodeanswer) {
+				if ((res = ast_answer(c->owner))) {
+					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (directpickup) Unable to answer '%s'\n", c->owner->name);
+					res = -1;
+				}
+				else if ((res = ast_queue_control(c->owner, AST_CONTROL_ANSWER))) {
+					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (directpickup) Unable to queue answer on '%s'\n", c->owner->name);
+					res = -1;
+				}
 			}
-			else if ((res = ast_queue_control(c->owner, AST_CONTROL_ANSWER))) {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (directpickup) Unable to queue answer on '%s'\n", c->owner->name);
-				res = -1;
+			
+			if(res==0) 
+			{
+				if ((res = ast_channel_masquerade(target, c->owner))) {
+					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (directpickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);				
+					res = -1;
+				} else {
+					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (direct_pickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
+					c->calltype = SKINNY_CALLTYPE_INBOUND;					
+					sccp_channel_set_callingparty(c, name, number);
+					if(d->pickupmodeanswer) {
+						sccp_indicate_nolock(c, SCCP_CHANNELSTATE_CONNECTED);
+					} else {
+						sccp_dev_stoptone(d, c->line->instance, c->callid);
+						d->active_channel = NULL;
+					
+						c->ringermode = SKINNY_STATION_OUTSIDERING;	// default ring
+						ringermode = pbx_builtin_getvar_helper(c->owner, "ALERT_INFO");
+						if ( ringermode && !ast_strlen_zero(ringermode) ) {
+							sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", ringermode);
+							if (strcasecmp(ringermode, "inside") == 0)
+								c->ringermode = SKINNY_STATION_INSIDERING;
+							else if (strcasecmp(ringermode, "feature") == 0)
+								c->ringermode = SKINNY_STATION_FEATURERING;
+							else if (strcasecmp(ringermode, "silent") == 0)
+								c->ringermode = SKINNY_STATION_SILENTRING;
+							else if (strcasecmp(ringermode, "urgent") == 0)
+								c->ringermode = SKINNY_STATION_URGENTRING;
+						}						
+						sccp_indicate_nolock(c, SCCP_CHANNELSTATE_RINGING);
+						
+						original->hangupcause = AST_CAUSE_NORMAL_CLEARING;
+						ast_setstate(original, AST_STATE_DOWN);
+					}	
+				}
+				sccp_ast_channel_unlock(target);
+				ast_hangup(original);
 			}
-			else if ((res = ast_channel_masquerade(target, c->owner))) {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (directpickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);				
-				res = -1;
-			}
-			else {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (direct_pickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
-				c->calltype = SKINNY_CALLTYPE_INBOUND;					
-				sccp_channel_set_callingparty(c, name, number);
-				sccp_indicate_nolock(c, SCCP_CHANNELSTATE_CONNECTED);	
-				
-				if(name)
-					free(name);
-				name = NULL;
-				if(number)
-					free(number);
-				number = NULL;	
-				if(cidtmp)
-					free(cidtmp);								
-				cidtmp = NULL;
-				
-				original->hangupcause = AST_CAUSE_NORMAL_CLEARING;
-				ast_setstate(original, AST_STATE_DOWN);
-			}	
-			sccp_ast_channel_unlock(target);
-			ast_hangup(original);
+			
+			if(name)
+				free(name);
+			name = NULL;
+			if(number)
+				free(number);
+			number = NULL;	
+			if(cidtmp)
+				free(cidtmp);								
+			cidtmp = NULL;
+					
 			break;
 		}
 		sccp_ast_channel_unlock(target);
@@ -362,9 +389,10 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
 }
 
 int sccp_feat_grouppickup(sccp_line_t * l) {
-	int res = -1;
+	int res = 0;
 	struct ast_channel *target = NULL;
 	struct ast_channel *original = NULL;
+	const char * ringermode = NULL;
 	
 	sccp_channel_t * c;
 	sccp_device_t * d;
@@ -373,14 +401,14 @@ int sccp_feat_grouppickup(sccp_line_t * l) {
 		
 	if(!l || !l->device || strlen(l->device->id) < 3) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (grouppickup) no line or device\n");
-		return res;
+		return -1;
 	}
 
 	d = l->device;	
 			
 	if (!l->pickupgroup) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: (grouppickup) pickupgroup not configured in sccp.conf\n", d->id);		
-		return res;
+		return -1;
 	}
 	
 	while ((target = ast_channel_walk_locked(target))) {
@@ -394,7 +422,7 @@ int sccp_feat_grouppickup(sccp_line_t * l) {
 				c = sccp_channel_allocate(l);			
 				if (!c) {
 					ast_log(LOG_ERROR, "%s: (grouppickup) Can't allocate SCCP channel for line %s\n", d->id, l->name);
-					return res;
+					return -1;
 				}
 				
 				c->hangupok = 1;
@@ -432,47 +460,71 @@ int sccp_feat_grouppickup(sccp_line_t * l) {
 				ast_callerid_parse(cidtmp, &name, &number);
 			}
 #endif							
-
 			original->hangupcause = AST_CAUSE_CALL_REJECTED;
 			
-			if ((res = ast_answer(c->owner))) {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Unable to answer '%s'\n", c->owner->name);
-				res = -1;
+			if(d->pickupmodeanswer) {
+				if ((res = ast_answer(c->owner))) {
+					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Unable to answer '%s'\n", c->owner->name);
+					res = -1;
+				}
+				else if ((res = ast_queue_control(c->owner, AST_CONTROL_ANSWER))) {
+					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Unable to queue answer on '%s'\n", c->owner->name);
+					res = -1;
+				}
 			}
-			else if ((res = ast_queue_control(c->owner, AST_CONTROL_ANSWER))) {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Unable to queue answer on '%s'\n", c->owner->name);
-				res = -1;
+			
+			if(res==0) 
+			{
+				if ((res = ast_channel_masquerade(target, c->owner))) {
+					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);				
+					res = -1;
+				} else {
+					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
+					c->calltype = SKINNY_CALLTYPE_INBOUND;					
+					sccp_channel_set_callingparty(c, name, number);
+					if(d->pickupmodeanswer) {
+						sccp_indicate_nolock(c, SCCP_CHANNELSTATE_CONNECTED);
+					} else {
+						sccp_dev_stoptone(d, c->line->instance, c->callid);
+						d->active_channel = NULL;
+											
+						c->ringermode = SKINNY_STATION_OUTSIDERING;	// default ring
+						ringermode = pbx_builtin_getvar_helper(c->owner, "ALERT_INFO");
+						if ( ringermode && !ast_strlen_zero(ringermode) ) {
+							sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", ringermode);
+							if (strcasecmp(ringermode, "inside") == 0)
+								c->ringermode = SKINNY_STATION_INSIDERING;
+							else if (strcasecmp(ringermode, "feature") == 0)
+								c->ringermode = SKINNY_STATION_FEATURERING;
+							else if (strcasecmp(ringermode, "silent") == 0)
+								c->ringermode = SKINNY_STATION_SILENTRING;
+							else if (strcasecmp(ringermode, "urgent") == 0)
+								c->ringermode = SKINNY_STATION_URGENTRING;
+						}						
+						sccp_indicate_nolock(c, SCCP_CHANNELSTATE_RINGING);
+						
+						original->hangupcause = AST_CAUSE_NORMAL_CLEARING;
+						ast_setstate(original, AST_STATE_DOWN);
+					}	
+				}
+				sccp_ast_channel_unlock(target);
+				ast_hangup(original);
 			}
-			else if ((res = ast_channel_masquerade(target, c->owner))) {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);				
-				res = -1;
-			}
-			else {
-				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
-				c->calltype = SKINNY_CALLTYPE_INBOUND;					
-				sccp_channel_set_callingparty(c, name, number);
-				sccp_indicate_nolock(c, SCCP_CHANNELSTATE_CONNECTED);	
-
-				if(name)
-					free(name);
-				name = NULL;
-				if(number)
-					free(number);
-				number = NULL;	
-				if(cidtmp)
-					free(cidtmp);								
-				cidtmp = NULL;
-				
-				original->hangupcause = AST_CAUSE_NORMAL_CLEARING;
-				ast_setstate(original, AST_STATE_DOWN);
-			}	
-			sccp_ast_channel_unlock(target);
-			ast_hangup(original);
+			
+			if(name)
+				free(name);
+			name = NULL;
+			if(number)
+				free(number);
+			number = NULL;	
+			if(cidtmp)
+				free(cidtmp);								
+			cidtmp = NULL;
+					
 			break;
 		}
 		sccp_ast_channel_unlock(target);
 	}	
-		
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (grouppickup) quit\n");
 	return res;
 }

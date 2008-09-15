@@ -115,8 +115,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	char suffixedNumber[255] = { '\0' }; //!< For saving the digittimeoutchar to the logs */
 	
 	/* why let the phone ringing on a call forward ??? */
-	if (!ast_strlen_zero(ast->call_forward))
-	{
+	if (!ast_strlen_zero(ast->call_forward)) {
 		ast_queue_control(ast, AST_CONTROL_PROGRESS);
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Forwarding Call to '%s'\n", ast->call_forward);
 		return 0;
@@ -257,21 +256,20 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 #ifdef CS_AST_CHANNEL_HAS_CID
 	if(GLOB(recorddigittimeoutchar))
 	{
-		   if(NULL != ast->cid.cid_num && strlen(ast->cid.cid_num) > 0 && strlen(ast->cid.cid_num) < sizeof(suffixedNumber)-2 && '0' == ast->cid.cid_num[0])
-			   {
-			      strncpy(suffixedNumber, (const char*) ast->cid.cid_num, strlen(ast->cid.cid_num));
-			      suffixedNumber[strlen(ast->cid.cid_num)+0] = '#';
-			      suffixedNumber[strlen(ast->cid.cid_num)+1] = '\0';
-			      sccp_channel_set_callingparty(c, ast->cid.cid_name, suffixedNumber);
-			  }
-			  else
-			         sccp_channel_set_callingparty(c, ast->cid.cid_name, ast->cid.cid_num);
+			if(NULL != ast->cid.cid_num && strlen(ast->cid.cid_num) > 0 && strlen(ast->cid.cid_num) < sizeof(suffixedNumber)-2 && '0' == ast->cid.cid_num[0])
+			{
+				strncpy(suffixedNumber, (const char*) ast->cid.cid_num, strlen(ast->cid.cid_num));
+				suffixedNumber[strlen(ast->cid.cid_num)+0] = '#';
+				suffixedNumber[strlen(ast->cid.cid_num)+1] = '\0';
+				sccp_channel_set_callingparty(c, ast->cid.cid_name, suffixedNumber);
+			}
+			else
+				sccp_channel_set_callingparty(c, ast->cid.cid_name, ast->cid.cid_num);
 	}
 	else
 	{
 		sccp_channel_set_callingparty(c, ast->cid.cid_name, ast->cid.cid_num);
 	}
-
 #else
 	if (ast->callerid && (cidtmp = strdup(ast->callerid))) {
 		ast_callerid_parse(cidtmp, &name, &number);
@@ -794,19 +792,16 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	sccp_line_lock(l);
 	sccp_device_lock(d);
 	
-	/* native formats are device capabilities or global capabilities - If no joint cap's global will be used */ 	
-	tmp->nativeformats = ast_codec_choose(&d->codecs, d->capability, 1);
-	
-	if(!tmp->nativeformats)
-		tmp->nativeformats = ast_codec_choose(&d->codecs, GLOB(global_capability), 1);
+	// tmp->nativeformats = (d->capability ? d->capability : GLOB(global_capability)); 
+	tmp->nativeformats = ast_codec_choose(&d->codecs, (d->capability ? d->capability : GLOB(global_capability)), 1);
 	
 	if(!tmp->nativeformats)	{
 		ast_log(LOG_ERROR, "%s: No audio format to offer. Cancelling call on line %s\n", d->id, l->name);
 		return 0;
 	}
-		
-	/* format is channel best codec between native */
-	fmt = ast_best_codec(tmp->nativeformats);	
+			
+	// fmt = ast_codec_choose(&d->codecs, tmp->nativeformats, 1);
+	fmt = tmp->nativeformats;	
 	c->format = fmt;
 	
 	sccp_device_unlock(d);

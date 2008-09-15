@@ -1518,6 +1518,8 @@ static int reload_config(void) {
 			GLOB(cfwdnoanswer) = sccp_true(v->value);			
 		} else if (!strcasecmp(v->name, "echocancel")) {
 			GLOB(echocancel) = sccp_true(v->value);
+		} else if (!strcasecmp(v->name, "pickupmodeanswer")) {
+			GLOB(pickupmodeanswer) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "silencesuppression")) {
 			GLOB(silencesuppression) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "trustphoneip")) {
