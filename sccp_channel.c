@@ -627,7 +627,6 @@ int sccp_channel_hold(sccp_channel_t * c) {
 		return 0;
 	}
 	
-	
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Hold the channel %s-%08x\n", d->id, l->name, c->callid);
 	
 #ifndef CS_AST_CONTROL_HOLD

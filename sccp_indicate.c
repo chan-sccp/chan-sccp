@@ -131,12 +131,15 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		//sccp_handle_time_date_req(d->session, NULL);
 		c->state = SCCP_CHANNELSTATE_DOWN;
 		sccp_ast_setstate(c, AST_STATE_DOWN);
+		// why reset 7936 after each call ?
+/*
 		if (d->skinny_type == SKINNY_DEVICETYPE_CISCO7936) {
 			sccp_moo_t * r;
 			REQ(r, Reset);
 			r->msg.Reset.lel_resetType =htolel(SKINNY_DEVICE_RESTART);
 			sccp_dev_send(d,r);
 		}
+*/		
 		break;
 	case SCCP_CHANNELSTATE_RINGOUT:
 		sccp_channel_set_callstate(c, SKINNY_CALLSTATE_RINGOUT);
