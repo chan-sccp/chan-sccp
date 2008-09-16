@@ -1306,6 +1306,8 @@ void sccp_unregister_cli(void) {
   ast_cli_unregister(&cli_unregister);
   ast_cli_unregister(&cli_do_debug);
   ast_cli_unregister(&cli_no_debug);
+  ast_cli_unregister(&cli_do_fdebug);
+  ast_cli_unregister(&cli_no_fdebug);    
   ast_cli_unregister(&cli_system_message);
   ast_cli_unregister(&cli_show_globals);
   ast_cli_unregister(&cli_message_devices);
