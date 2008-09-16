@@ -1104,7 +1104,7 @@ static char *cli_do_fdebug(struct ast_cli_entry *e, int cmd, struct ast_cli_args
 #else
 static struct ast_cli_entry cli_do_fdebug = {
   { "sccp", "fdebug", NULL },
-  sccp_do_debug,
+  sccp_do_fdebug,
   "Enable SCCP filtered debugging",
   "Usage: SCCP fdebug <level>\n"
   "		Set the filtered debug level of the sccp protocol from none (0) to high (99)\n" 
@@ -1143,7 +1143,7 @@ static char *cli_no_fdebug(struct ast_cli_entry *e, int cmd, struct ast_cli_args
 #else
 static struct ast_cli_entry cli_no_fdebug = {
   { "sccp", "no", "fdebug", NULL },
-  sccp_no_debug,
+  sccp_no_fdebug,
   "Disable SCCP filtered debugging",
   "Usage: SCCP no fdebug\n"
   "		Disables filtered dumping of SCCP packets for debugging purposes\n"
