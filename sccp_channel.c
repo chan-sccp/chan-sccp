@@ -380,8 +380,9 @@ void sccp_channel_stopmediatransmission(sccp_channel_t * c) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Stop media transmission on channel %d\n",c->line->device->id, c->callid);
 	
 	// stopping rtp
-	if(c->rtp)
+	if(c->rtp) {
 		sccp_channel_stop_rtp(c);
+	}
 	
 	/* requesting statistics */
 	sccp_channel_StatisticsRequest(c);
@@ -396,23 +397,6 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 	/* this is a station active endcall or onhook */
     sccp_log(1)(VERBOSE_PREFIX_3 "%s: Ending call %d on line %s\n", DEV_ID_LOG(c->device), c->callid, c->line->name);
 
-/*
-	sccp_channel_lock(c);
-	
-	if (c->state != SCCP_CHANNELSTATE_DOWN)
-		sccp_indicate_nolock(c, SCCP_CHANNELSTATE_ONHOOK);
-
-	if (c->rtp) {		
-		sccp_channel_closereceivechannel(c);
-		usleep(200);
-		sccp_channel_stop_rtp(c);
-		usleep(200);
-		sccp_channel_destroy_rtp(c);
-		usleep(200);
-	}
-	
-	sccp_channel_unlock(c);
-*/	
 	if (c->owner) {
 		/* Is there a blocker ? */
 		res = (c->owner->pbx || c->owner->blocker);
@@ -660,19 +644,13 @@ int sccp_channel_hold(sccp_channel_t * c) {
 		return 0;
 	}
 	sccp_ast_queue_control(c, AST_CONTROL_HOLD);
-
-	sccp_channel_closereceivechannel(c);
-	usleep(200);
-	sccp_channel_destroy_rtp(c);
-	usleep(200);
-	
 	sccp_device_unlock(d);
 #endif
 
 	sccp_device_lock(d);
 	d->active_channel = NULL;
 	sccp_device_unlock(d);
-	sccp_indicate_lock(c, SCCP_CHANNELSTATE_HOLD);
+	sccp_indicate_lock(c, SCCP_CHANNELSTATE_HOLD); // this will also close (but not destroy) the RTP stream
 
 	return 1;
 }
@@ -740,14 +718,9 @@ int sccp_channel_resume(sccp_channel_t * c) {
 #endif	
 	sccp_ast_queue_control(c, AST_CONTROL_UNHOLD);
 #endif
-
-	sccp_channel_openreceivechannel(c);
-	// sccp_channel_startmediatransmission(c);	
-	
 	sccp_channel_set_active(c);
-	sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONNECTED);
+	sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONNECTED); // this will also reopen the RTP stream
 	
-
 	return 1;
 }
 

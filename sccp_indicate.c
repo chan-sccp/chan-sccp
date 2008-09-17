@@ -169,9 +169,6 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_ast_setstate(c, AST_STATE_RINGING);
 		break;
 	case SCCP_CHANNELSTATE_CONNECTED:				
-		if (!c->rtp) {
-			sccp_channel_openreceivechannel(c);
-		}
 		sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, l->instance, c->callid);
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 //		if (c->calltype == SKINNY_CALLTYPE_OUTBOUND)
@@ -182,6 +179,12 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_dev_set_cplane(l,1);
 		sccp_dev_set_keyset(d, l->instance, c->callid, KEYMODE_CONNECTED);
 		sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_CONNECTED, 0);
+		// if no rtp or was in old openreceivechannel (note that rtp doens't reinitialize as channel was in hold state or offhook state due to a transfer abort)
+		if (!c->rtp || oldstate == SCCP_CHANNELSTATE_HOLD || oldstate == SCCP_CHANNELSTATE_OFFHOOK) {
+			sccp_channel_openreceivechannel(c);
+		} else if(c->rtp) {
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: (for debug purposes) did not open an RTP stream as old SCCP state was (%s)\n", d->id, sccp_indicate2str(oldstate));
+		}
 		/* asterisk wants rtp open before AST_STATE_UP */
 		sccp_ast_setstate(c, AST_STATE_UP);
 		break;
