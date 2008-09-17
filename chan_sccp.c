@@ -1996,7 +1996,7 @@ static int unload_module(void) {
 }
 
 #ifndef ASTERISK_CONF_1_2
-AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY, "Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION);
+AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY, "Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION " (built by '" BUILD_USER "' on '" BUILD_DATE "')");
 #else
 int usecount() {
 	int res;
@@ -2011,6 +2011,6 @@ char *key() {
 }
 
 char *description() {
-	return ("Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION);
+	return ("Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION " (built by '" BUILD_USER "' on '" BUILD_DATE "')");
 }
 #endif
