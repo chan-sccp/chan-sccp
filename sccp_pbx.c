@@ -455,7 +455,11 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 	if(c) {
 		switch (frame->frametype) {
 			case AST_FRAME_VOICE:
-				if (!(frame->subclass & ast->nativeformats)) {
+#ifndef ASTERISK_CONF_1_2
+			if (!(frame->subclass & ast->nativeformats) && strcasecmp(frame->src, "ast_prod")) {
+#else
+			if (!(frame->subclass & ast->nativeformats)) {
+#endif			
 					char s1[512], s2[512], s3[512];
 					ast_log(LOG_WARNING, "%s: Asked to transmit frame type %d, while native formats is %s(%d) read/write = %s(%d)/%s(%d)\n",
 						DEV_ID_LOG(c->device),

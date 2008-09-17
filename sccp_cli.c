@@ -1187,7 +1187,7 @@ static struct ast_cli_entry cli_reload = {
 
 
 static int sccp_show_version(int fd, int argc, char *argv[]) {
-	ast_cli(fd, "SCCP channel version: %s\n", SCCP_VERSION);
+	ast_cli(fd, "SCCP channel version: %s (built by '%s' on '%s')\n", SCCP_VERSION, BUILD_USER, BUILD_DATE);
 	return RESULT_SUCCESS;
 }
 
@@ -1292,7 +1292,6 @@ void sccp_unregister_cli(void) {
 #ifdef ASTERISK_CONF_1_6
 	/* unregister CLI functions */
 	ast_cli_unregister_multiple(cli_entries, sizeof(cli_entries) / sizeof(struct ast_cli_entry));
-	
 #else	
   ast_cli_unregister(&cli_show_channels);
   ast_cli_unregister(&cli_show_devices);
