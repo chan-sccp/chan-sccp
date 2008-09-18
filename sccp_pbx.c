@@ -455,11 +455,16 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 	if(c) {
 		switch (frame->frametype) {
 			case AST_FRAME_VOICE:
-#ifndef ASTERISK_CONF_1_2
-			if (!(frame->subclass & ast->nativeformats) && strcasecmp(frame->src, "ast_prod")) {
-#else
-			if (!(frame->subclass & ast->nativeformats)) {
-#endif			
+				// checking for samples to transmit
+				if (!frame->samples) {
+					if(strcasecmp(frame->src, "ast_prod")) {
+						ast_log(LOG_ERROR, "%s: Asked to transmit frame type %d with no samples\n", DEV_ID_LOG(c->device), frame->subclass);
+						return -1;
+					} else {
+						// frame->samples == 0  when frame_src is ast_prod
+						sccp_log(10)(VERBOSE_PREFIX_3 "%s: Asterisk prodded channel %s\n", DEV_ID_LOG(c->device), ast->name);
+					}
+				} else if (!(frame->subclass & ast->nativeformats)) {
 					char s1[512], s2[512], s3[512];
 					ast_log(LOG_WARNING, "%s: Asked to transmit frame type %d, while native formats is %s(%d) read/write = %s(%d)/%s(%d)\n",
 						DEV_ID_LOG(c->device),
