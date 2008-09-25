@@ -751,8 +751,10 @@ const struct ast_channel_tech sccp_tech = {
 #endif
 	.send_text = sccp_pbx_sendtext,
 #ifndef ASTERISK_CONF_1_2
+/*
 	.bridge = ast_rtp_bridge,
 	.early_bridge = ast_rtp_early_bridge,
+*/	
 #endif
 };
 #endif
@@ -1104,19 +1106,18 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 		else
 			strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-0);
 		
-		// we would hear last keypad stroke before starti to dial. right ? so let's wait 200 ms
+		// we would hear last keypad stroke before starting to dial. right ? so let's wait 200 ms
 		sccp_safe_sleep(200); 
 		
 		/* This will choose what to do */
 		switch(c->ss_action) {
 			case SCCP_SS_GETFORWARDEXTEN:
 //				sccp_channel_unlock(c);
-				c->hangupok = 1;
-				sccp_channel_endcall(c);
-				usleep(200); // this is needed as main thread should wait sccp_channel_endcall do his work.
 				if(!ast_strlen_zero(shortenedNumber)) {
 					sccp_line_cfwd(l, c->ss_data, shortenedNumber);
 				}
+				c->hangupok = 1;
+				sccp_channel_endcall(c);
 				return NULL; // leave simpleswitch without dial
 #ifdef CS_SCCP_PICKUP
 			case SCCP_SS_GETPICKUPEXTEN:
@@ -1138,7 +1139,7 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 				else {
 					// without a number we can also close the call. Isn't it true ?
 					sccp_channel_endcall(c);
-					usleep(200); // this is needed as main thread should wait sccp_channel_endcall do his work.
+					// usleep(200); // this is needed as main thread should wait sccp_channel_endcall do his work.
 					// sccp_indicate_lock(c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 				}
 				return NULL; // leave simpleswitch without dial
@@ -1154,7 +1155,7 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 					// without a number we can also close the call. Isn't it true ?
 					c->hangupok = 1;
 					sccp_channel_endcall(c);
-					usleep(200); // this is needed as main thread should wait sccp_channel_endcall do his work.
+					// usleep(200); // this is needed as main thread should wait sccp_channel_endcall do his work.
 					return NULL;
 				}
 				break;
@@ -1175,7 +1176,7 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 				} else {
 					// without a number we can also close the call. Isn't it true ?
 					sccp_channel_endcall(c);
-					usleep(200); // this is needed as main thread should wait sccp_channel_endcall do his work.
+					// usleep(200); // this is needed as main thread should wait sccp_channel_endcall do his work.
 					// sccp_indicate_lock(c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 				}
 				return NULL; // leave simpleswitch without dial
@@ -1196,7 +1197,7 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 				} else {
 					// without a number we can also close the call. Isn't it true ?
 					sccp_channel_endcall(c);
-					usleep(200); // this is needed as main thread should wait sccp_channel_endcall do his work.
+					// usleep(200); // this is needed as main thread should wait sccp_channel_endcall do his work.
 					// sccp_indicate_lock(c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 				}
 				return NULL; // leave simpleswitch without dial			

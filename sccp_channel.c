@@ -425,8 +425,6 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 	} else {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(c->device), c->callid, c->line->name);
 	}
-	  
-	return;
 }
 
 /*
