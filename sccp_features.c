@@ -336,7 +336,7 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
 					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (directpickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);				
 					res = -1;
 				} else {
-					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (direct_pickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
+					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (directpickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
 					c->calltype = SKINNY_CALLTYPE_INBOUND;					
 					sccp_channel_set_callingparty(c, name, number);
 					if(d->pickupmodeanswer) {
@@ -359,10 +359,9 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
 								c->ringermode = SKINNY_STATION_URGENTRING;
 						}						
 						sccp_indicate_nolock(c, SCCP_CHANNELSTATE_RINGING);
-						
-						original->hangupcause = AST_CAUSE_NORMAL_CLEARING;
-						ast_setstate(original, AST_STATE_DOWN);
-					}	
+					}
+					original->hangupcause = AST_CAUSE_NORMAL_CLEARING;
+					ast_setstate(original, AST_STATE_DOWN);
 				}
 				sccp_ast_channel_unlock(target);
 				ast_hangup(original);
@@ -502,10 +501,9 @@ int sccp_feat_grouppickup(sccp_line_t * l) {
 								c->ringermode = SKINNY_STATION_URGENTRING;
 						}						
 						sccp_indicate_nolock(c, SCCP_CHANNELSTATE_RINGING);
-						
-						original->hangupcause = AST_CAUSE_NORMAL_CLEARING;
-						ast_setstate(original, AST_STATE_DOWN);
-					}	
+					}
+					original->hangupcause = AST_CAUSE_NORMAL_CLEARING;
+					ast_setstate(original, AST_STATE_DOWN);
 				}
 				sccp_ast_channel_unlock(target);
 				ast_hangup(original);
@@ -529,6 +527,38 @@ int sccp_feat_grouppickup(sccp_line_t * l) {
 	return res;
 }
 #endif
+
+void sccp_feat_updatecid(sccp_channel_t * c) {
+	struct ast_channel * target = NULL;
+	char * cidtmp = NULL, *name = NULL, *number = NULL;
+
+	if(!c || !c->owner)
+		return;
+	
+	if(c->calltype == SKINNY_CALLTYPE_OUTBOUND)	
+		target = c->owner;
+	else if(!(target = ast_bridged_channel(c->owner))) {
+		return;
+	}
+
+#ifdef CS_AST_CHANNEL_HAS_CID
+	if(target->cid.cid_name)
+		name = strdup(target->cid.cid_name);
+	if(target->cid.cid_num)
+		number = strdup(target->cid.cid_num);
+#else
+	if(target->callerid) {
+		cidtmp = strdup(target->callerid);
+		ast_callerid_parse(target, &name, &number);
+	}
+#endif		
+
+	sccp_channel_set_callingparty(c, name, number);
+	
+	free(name);
+	free(number);
+	free(cidtmp);		
+}
 
 void sccp_feat_voicemail(sccp_device_t * d, int line_instance) {
 

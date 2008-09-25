@@ -217,15 +217,17 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, (d->keepalive ? d->keepalive : GLOB(keepalive)) );
 	REQ(r1, RegisterAckMessage);
 	
-	// most devices puts 0 in protocol version request, to get the higher protocol version supported by CALL MANAGER. 
-	// if we set the right version as stated in the global vars, the device will ask for the real protocol specified and it hangs with wrong message size.
-	// this is not a bugfix but just a trick to get no warnings. Happy to say, we're going to support protocol version "0" (zero) -FS
-	if(r->msg.RegisterMessage.protocolVer == 0) { 
+	sccp_dump_packet(&r->msg.RegisterMessage, r->length);
+	
+	if(r->length < 68) {
+		// registration request with protocol 0 version structure. 
 		r1->msg.RegisterAckMessage.protocolVer = 0;
-		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Wrong protocol version: fixing\n");	
+		// we should tell the device which is the highest protocol version we support but on some messages we support only version 0 :( -FS
+		// r1->msg.RegisterAckMessage.protocolVer = GLOB(protocolversion);	
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d) but we answered (0) for compatibility.\n", d->id, GLOB(protocolversion));		
 	} else if(r->msg.RegisterMessage.protocolVer > GLOB(protocolversion)) {
 		r1->msg.RegisterAckMessage.protocolVer = GLOB(protocolversion);
-		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Wrong protocol version: fixing\n");
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: asked for protocol version (%d): our capability is (%d).\n", d->id, r->msg.RegisterMessage.protocolVer, GLOB(protocolversion));
 	} else {
 		r1->msg.RegisterAckMessage.protocolVer = r->msg.RegisterMessage.protocolVer;
 	}
