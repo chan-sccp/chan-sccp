@@ -420,7 +420,7 @@ static char *cli_reset(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a)
 		} else if (cmd == CLI_GENERATE){
 			return NULL;
 		}
-		if (a->argc != 4)
+		if (a->argc != 3)
 			return CLI_SHOWUSAGE;
 		
 		if(sccp_reset_restart(a->fd, a->argc, a->argv) == RESULT_SUCCESS){
@@ -450,7 +450,7 @@ static char *cli_restart(struct ast_cli_entry *e, int cmd, struct ast_cli_args *
 		} else if (cmd == CLI_GENERATE){
 			return NULL;
 		}
-		if (a->argc != 4)
+		if (a->argc != 3)
 			return CLI_SHOWUSAGE;
 		
 		if(sccp_reset_restart(a->fd, a->argc, a->argv) == RESULT_SUCCESS){

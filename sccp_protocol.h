@@ -740,7 +740,9 @@ typedef union {
 	struct {
 		uint32_t lel_keepAliveInterval;
 		char	 dateTemplate[StationDateTemplateSize];
-		uint16_t les__filler1;
+		// uint16_t les__filler1;
+		uint8_t	filler1;
+		uint8_t filler2;
 		uint32_t lel_secondaryKeepAliveInterval;
 		uint8_t  protocolVer;
 		uint8_t  unknown1;
@@ -1158,7 +1160,9 @@ static const uint8_t skSet_Connected [] = {
 #ifdef CS_SCCP_PARK
 	SKINNY_LBL_PARK,
 #endif
+#ifdef CS_SCCP_DIRTRFR
 	SKINNY_LBL_SELECT,
+#endif	
   	SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_CFWDBUSY,
 //	SKINNY_LBL_CFWDNOANSWER,	
@@ -1173,8 +1177,10 @@ static const uint8_t skSet_Onhold [] = {
 #ifdef CS_SCCP_CONFERENCE	
 	SKINNY_LBL_CONFRN,
 #endif	
+#ifdef CS_SCCP_DIRTRFR
 	SKINNY_LBL_SELECT,
 	SKINNY_LBL_DIRTRFR,
+#endif	
 	SKINNY_LBL_IDIVERT,
 };
 
@@ -1213,8 +1219,10 @@ static const uint8_t skSet_Conntrans [] = {
 #ifdef CS_SCCP_PARK
 	SKINNY_LBL_PARK,
 #endif
+#ifdef CS_SCCP_DIRTRFR
 	SKINNY_LBL_SELECT,
 	SKINNY_LBL_DIRTRFR,
+#endif
 	SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_CFWDBUSY,
 //	SKINNY_LBL_CFWDNOANSWER,
@@ -1235,8 +1243,10 @@ static const uint8_t skSet_Connconf []	= {
 #ifdef CS_SCCP_PARK
 	SKINNY_LBL_PARK,
 #endif
+#ifdef CS_SCCP_DIRTRFR
 	SKINNY_LBL_SELECT,
 	SKINNY_LBL_DIRTRFR,
+#endif	
 	SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_CFWDBUSY,
 //	SKINNY_LBL_CFWDNOANSWER,

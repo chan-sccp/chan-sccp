@@ -7,6 +7,8 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten);
 sccp_channel_t * sccp_feat_handle_directpickup(sccp_line_t * l);
 #endif
 
+void sccp_feat_updatecid(sccp_channel_t * c);
+
 // Voicemail wrapper
 void sccp_feat_voicemail(sccp_device_t * d, int line_instance);
 // Divert call to VoiceMail (was TRANSFVM)

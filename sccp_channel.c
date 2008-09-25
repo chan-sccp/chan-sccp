@@ -131,15 +131,27 @@ sccp_channel_t * sccp_channel_get_active(sccp_device_t * d) {
 	if (!d)
 		return NULL;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Getting the active channel on device\n",d->id);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Getting the active channel on device.\n",d->id);
 	
-	sccp_globals_lock(channels_lock);
-	sccp_device_lock(d);
+//	sccp_globals_lock(channels_lock);
+// 	sccp_device_lock(d);
+	while(sccp_device_trylock(d)) {
+		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		usleep(200);
+	}
+
+	while(sccp_globals_trylock(channels_lock)) {
+		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		sccp_device_unlock(d);
+		usleep(200);
+		sccp_device_lock(d);
+	}
 	
 	c = d->active_channel;
 
-	sccp_device_unlock(d);
 	sccp_globals_unlock(channels_lock);
+	sccp_device_unlock(d);
+	
 	return c;
 }
 
@@ -279,8 +291,8 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * c) {
 
 void sccp_channel_openreceivechannel(sccp_channel_t * c) {
 	sccp_moo_t * r;
-	int payloadType = sccp_codec_ast2skinny(c->owner->readformat); // was c->format
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: readformat %d, payload %d\n", c->line->device->id, c->owner->readformat, payloadType);
+	int payloadType = sccp_codec_ast2skinny(c->format);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Open receive channel with format %s(%d), payload %d\n", c->line->device->id, skinny_codec2str(payloadType), c->format, payloadType);
 
 	REQ(r, OpenReceiveChannel);
 	r->msg.OpenReceiveChannel.lel_conferenceId = htolel(c->callid);
@@ -308,7 +320,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c) {
 	struct sockaddr_in sin;
 	struct ast_hostent ahp;
 	struct hostent *hp;
-	int payloadType = sccp_codec_ast2skinny(c->owner->writeformat); // was c->format
+	int payloadType = sccp_codec_ast2skinny(c->format); // was c->format
 #ifdef ASTERISK_CONF_1_2
 	char iabuf[INET_ADDRSTRLEN];
 #endif

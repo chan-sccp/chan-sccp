@@ -92,6 +92,13 @@ then
         echo "#define CS_SCCP_PICKUP"  >>$CONFIGFILE
 fi
 
+echo -n "Build DIRTRFR functions (y/n)[n]?"
+read key
+if [ "$key" = "y" ]
+then
+	echo "#define CS_SCCP_DIRTRFR"  >>$CONFIGFILE
+fi
+
 echo -n "Build CONFERENCE test functions (y/n)[n]?"
 read key
 if [ "$key" = "y" ]
@@ -171,6 +178,21 @@ if grep -q "struct ast_callerid" $INCLUDEDIR/channel.h; then
 else
 	echo "#undef CS_AST_CHANNEL_HAS_CID" >>$CONFIGFILE
 	echo " * no 'struct ast_callerid'"
+fi
+if grep -q "AST_CONTROL_VIDUPDATE" $INCLUDEDIR/frame.h; then
+	echo "#define CS_AST_CONTROL_VIDUPDATE" >>$CONFIGFILE
+	echo " * found 'AST_CONTROL_VIDUPDATE'"
+else
+	echo "#undef CS_AST_CONTROL_VIDUPDATE" >>$CONFIGFILE
+	echo " * no 'AST_CONTROL_VIDUPDATE'"
+fi
+
+if grep -q "AST_CONTROL_T38" $INCLUDEDIR/frame.h; then
+	echo "#define CS_AST_CONTROL_T38" >>$CONFIGFILE
+	echo " * found 'AST_CONTROL_T38'"
+else
+	echo "#undef CS_AST_CONTROL_T38" >>$CONFIGFILE
+	echo " * no 'AST_CONTROL_T38'"
 fi
 
 if grep -q "AST_CONTROL_SRCUPDATE" $INCLUDEDIR/frame.h; then

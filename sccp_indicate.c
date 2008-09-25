@@ -25,6 +25,7 @@
 #include "sccp_channel.h"
 #include "sccp_actions.h"
 #include "sccp_utils.h"
+#include "sccp_features.h"
 
 
 void sccp_indicate_lock(sccp_channel_t * c, uint8_t state) {
@@ -180,10 +181,10 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_dev_set_keyset(d, l->instance, c->callid, KEYMODE_CONNECTED);
 		sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_CONNECTED, 0);
 		// if no rtp or was in old openreceivechannel (note that rtp doens't reinitialize as channel was in hold state or offhook state due to a transfer abort)
-		if (!c->rtp || oldstate == SCCP_CHANNELSTATE_HOLD || oldstate == SCCP_CHANNELSTATE_OFFHOOK) {
+		if (!c->rtp || oldstate == SCCP_CHANNELSTATE_HOLD || oldstate == SCCP_CHANNELSTATE_CALLTRANSFER || oldstate == SCCP_CHANNELSTATE_OFFHOOK) {
 			sccp_channel_openreceivechannel(c);
 		} else if(c->rtp) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: (for debug purposes) did not open an RTP stream as old SCCP state was (%s)\n", d->id, sccp_indicate2str(oldstate));
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: (for debug purposes) did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_indicate2str(oldstate));
 		}
 		/* asterisk wants rtp open before AST_STATE_UP */
 		sccp_ast_setstate(c, AST_STATE_UP);
@@ -199,6 +200,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		if(oldstate == SCCP_CHANNELSTATE_CONNECTED) { // this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app)
 			sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
 			c->state = SCCP_CHANNELSTATE_CONNECTED;
+			sccp_feat_updatecid(c);
 			return;
 		}
 		sccp_dev_stoptone(d, l->instance, c->callid);
