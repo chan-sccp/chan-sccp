@@ -298,11 +298,41 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
 	
 	while ((target = ast_channel_walk_locked(target))) {
 		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		sccp_log(73)(VERBOSE_PREFIX_3 "SCCP: (directpickup)\n"
+					 "--------------------------------------------\n"
+					 "(pickup target)\n"
+					 "exten       = %s\n"
+					 "context     = %s\n"
+					 "pbx         = off\n"
+					 "state		  = %d or %d\n"
+					 "(current chan)\n"
+					 "macro exten = %s\n"
+					 "exten       = %s\n"
+					 "context	  = %s\n"
+#ifndef ASTERISK_CONF_1_2
+					 "dialcontext = %s\n"
+#endif
+					 "pbx		  = %s\n"
+					 "state		  = %d\n"
+					 "--------------------------------------------\n",
+					 pickupexten,
+					 !ast_strlen_zero(d->pickupcontext)?d->pickupcontext:"(NULL)",
+					 AST_STATE_RINGING,
+					 AST_STATE_RING,
+					 target->macroexten?target->macroexten:"(NULL)",
+					 target->exten?target->exten:"(NULL)",
+					 target->context?target->context:"(NULL)",
+#ifndef ASTERISK_CONF_1_2
+					 target->dialcontext?target->dialcontext:"(NULL)",					 
+#endif
+					 target->pbx?"on":"off",
+					 target->_state);
+					 
 		if ((!strcasecmp(target->macroexten, pickupexten) || !strcasecmp(target->exten, pickupexten)) &&
 #ifdef ASTERISK_CONF_1_2
-			(d->pickupcontext?(!strcasecmp(target->context, d->pickupcontext)):1) &&
+			(!ast_strlen_zero(d->pickupcontext)?(!strcasecmp(target->context, d->pickupcontext)):1) &&
 #else			
-			(d->pickupcontext?(!strcasecmp(target->dialcontext, d->pickupcontext)):1) &&
+			(!ast_strlen_zero(d->pickupcontext)?(!strcasecmp(target->dialcontext, d->pickupcontext)):1) &&
 #endif
 		    (!target->pbx && (target->_state == AST_STATE_RINGING || target->_state == AST_STATE_RING))) {
 		

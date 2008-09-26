@@ -359,7 +359,7 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 	sccp_moo_t * r;
 	sccp_hint_t * h;
 	sccp_device_t * d;
-	char tmp[256] = "";
+	char tmp[256];
 	uint8_t lamp = SKINNY_LAMP_OFF;
 
 	/* let's go for internal hint system */
@@ -415,6 +415,7 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 		case SCCP_DEVICESTATE_FWDALL:
 			lamp = SKINNY_LAMP_ON;
 			if (l->cfwd_type == SCCP_CFWD_ALL) {
+				memset(tmp, 0, sizeof(tmp));
 				strcat(tmp, SKINNY_DISP_FORWARDED_TO " ");
 				strcat(tmp, l->cfwd_num);
 				sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, tmp, sizeof(r->msg.CallInfoMessage.callingPartyName));
