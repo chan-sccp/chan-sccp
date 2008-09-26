@@ -661,7 +661,8 @@ void sccp_dev_check_displayprompt(sccp_device_t * d) {
 	while (l) {
 		if (l->cfwd_type != SCCP_CFWD_NONE && l->cfwd_num) {
 			res = 1;
-			tmp[0] = '\0';
+			// tmp[0] = '\0';
+			memset(tmp, 0, sizeof(tmp));
 			if (l->cfwd_type == SCCP_CFWD_ALL) {
 				strcat(tmp, SKINNY_DISP_CFWDALL ":");
 				sccp_dev_set_lamp(d, SKINNY_STIMULUS_FORWARDALL, l->instance, SKINNY_LAMP_ON);
