@@ -373,6 +373,7 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
 						sccp_indicate_nolock(c, SCCP_CHANNELSTATE_CONNECTED);
 					} else {
 						sccp_dev_stoptone(d, c->line->instance, c->callid);
+						sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 						d->active_channel = NULL;
 					
 						c->ringermode = SKINNY_STATION_OUTSIDERING;	// default ring
@@ -515,6 +516,7 @@ int sccp_feat_grouppickup(sccp_line_t * l) {
 						sccp_indicate_nolock(c, SCCP_CHANNELSTATE_CONNECTED);
 					} else {
 						sccp_dev_stoptone(d, c->line->instance, c->callid);
+						sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 						d->active_channel = NULL;
 											
 						c->ringermode = SKINNY_STATION_OUTSIDERING;	// default ring

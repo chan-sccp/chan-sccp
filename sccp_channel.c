@@ -955,8 +955,10 @@ void sccp_channel_transfer(sccp_channel_t * c) {
 		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CALLTRANSFER);
 	newcall = sccp_channel_newcall(c->line, NULL, SKINNY_CALLTYPE_OUTBOUND);
 	/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER*/
- 	if ( blindTransfer || (newcall && newcall->owner && c->owner && CS_AST_BRIDGED_CHANNEL(c->owner)) )
-		pbx_builtin_setvar_helper(newcall->owner, "_BLINDTRANSFER", CS_AST_BRIDGED_CHANNEL(c->owner)->name);	
+ 	if ( blindTransfer || (newcall && newcall->owner && c->owner && CS_AST_BRIDGED_CHANNEL(c->owner)) ) {
+		pbx_builtin_setvar_helper(newcall->owner, "BLINDTRANSFER", CS_AST_BRIDGED_CHANNEL(c->owner)->name);
+		pbx_builtin_setvar_helper(CS_AST_BRIDGED_CHANNEL(c->owner), "BLINDTRANSFER", newcall->owner->name);		
+	}
 }
 
 static void * sccp_channel_transfer_ringing_thread(void *data) {
@@ -1019,7 +1021,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Complete transfer from %s-%08x\n", d->id, cDestinationLocal->line->name, cDestinationLocal->callid);
 
 	if (cDestinationLocal->state != SCCP_CHANNELSTATE_RINGOUT && cDestinationLocal->state != SCCP_CHANNELSTATE_CONNECTED) {
-		ast_log(LOG_WARNING, "Failed to complete transfer. The channel is not ringing or connected\n");
+		ast_log(LOG_WARNING, "SCCP: Failed to complete transfer. The channel is not ringing or connected\n");
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, cDestinationLocal->line->instance, cDestinationLocal->callid, 0);
 		sccp_dev_displayprompt(d, cDestinationLocal->line->instance, cDestinationLocal->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
@@ -1033,16 +1035,15 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	astcSourceRemote = CS_AST_BRIDGED_CHANNEL(cSourceLocal->owner);
 	astcDestinationRemote = CS_AST_BRIDGED_CHANNEL(cDestinationLocal->owner);
 	astcDestinationLocal = cDestinationLocal->owner;
-
-	//FIXME - segmentation fault on log
-//	sccp_log(1)(VERBOSE_PREFIX_3 "%s: transferred: %s(%p)\npeer->owner: %s(%p)\ndestination: %s(%p)\nc->owner:%s(%p)\n", d->id,
-//	transferred->name, transferred,
-//	peer->owner->name, peer->owner,
-//	destination->name, destination,
-//	c->owner->name, c->owner);
-
+/*
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: transferred: %s(%p)\npeer->owner: %s(%p)\ndestination: %s(%p)\nc->owner:%s(%p)\n", d->id,
+								(transferred&&transferred_name)?transferred->name:"", transferred?transferred:0x0,
+								(peer && peer->owner && peer->owner->name)?peer->owner->name:"", (peer && peer->owner)?peer->owner:0x0,
+								(destination && destination->name)?destination->name:"", destination?destination:0x0,
+								(c && c->owner && c->owner->name)?c->owner->name:"", (c && c->owner)?c->owner:0x0);
+*/
 	if (!astcSourceRemote || !astcDestinationLocal) {
-		ast_log(LOG_WARNING, "Failed to complete transfer. Missing asterisk transferred or transferee channel\n");
+		ast_log(LOG_WARNING, "SCCP: Failed to complete transfer. Missing asterisk transferred or transferee channel\n");
 		sccp_dev_displayprompt(d, cDestinationLocal->line->instance, cDestinationLocal->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
 	}
@@ -1058,15 +1059,16 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 		}
 	}
 
-	if (astcDestinationLocal->cdr && astcSourceRemote->cdr) {
+	if(!astcDestinationLocal->cdr)
+		astcDestinationLocal->cdr = ast_cdr_alloc();
+	
+	if(astcSourceRemote->cdr)
 		astcDestinationLocal->cdr = ast_cdr_append(astcDestinationLocal->cdr, astcSourceRemote->cdr);
-	} else if (astcSourceRemote->cdr) {
-		astcDestinationLocal->cdr = astcSourceRemote->cdr;
-	}
-	astcSourceRemote->cdr = NULL;
-
+	else
+		ast_log(LOG_WARNING, "SCCP: unable to find CDR informations for channel %s\n", (astcSourceRemote && astcSourceRemote->name)?astcSourceRemote->name:"(NULL)");
+	
 	if (ast_channel_masquerade(astcDestinationLocal, astcSourceRemote)) {
-		ast_log(LOG_WARNING, "Failed to masquerade %s into %s\n", astcDestinationLocal->name, astcSourceRemote->name);
+		ast_log(LOG_WARNING, "SCCP: Failed to masquerade %s into %s\n", astcDestinationLocal->name, astcSourceRemote->name);
 		sccp_dev_displayprompt(d, cDestinationLocal->line->instance, cDestinationLocal->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
 	}
@@ -1076,7 +1078,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	}
 
 	if (!cSourceLocal->owner){
-		sccp_log(1)(VERBOSE_PREFIX_3 "Peer owner disappeared! Can't free ressources\n");
+		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Peer owner disappeared! Can't free ressources\n");
 		return;
 	}
 

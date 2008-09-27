@@ -52,7 +52,7 @@ void sccp_dump_packet(unsigned char * messagebuffer, int len) {
 	int res = 16;
 	char row[256];
 	char temp[16];
-	char temp2[32];
+	char temp2[32];	
 	cur = 0; 
 	
 	cols = res;	
