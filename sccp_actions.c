@@ -217,7 +217,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, (d->keepalive ? d->keepalive : GLOB(keepalive)) );
 	REQ(r1, RegisterAckMessage);
 	
-	sccp_dump_packet(&r->msg.RegisterMessage, r->length);
+	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->length);
 	
 	if(r->length < 68) {
 		// registration request with protocol 0 version structure. 
