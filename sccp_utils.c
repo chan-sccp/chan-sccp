@@ -809,6 +809,14 @@ const char * sccp_extensionstate2str(uint8_t type) {
 #ifdef CS_AST_HAS_EXTENSION_RINGING
 	case AST_EXTENSION_RINGING:
 		return "Ringing";
+	case AST_EXTENSION_RINGING | AST_EXTENSION_INUSE:
+		return "RingInUse";		
+#endif
+#ifdef CS_AST_HAS_EXTENSION_ONHOLD
+	case AST_EXTENSION_ONHOLD:
+		return "OnHold";
+	case AST_EXTENSION_ONHOLD | AST_EXTENSION_INUSE:
+		return "HoldInUse";		
 #endif
 	default:
 		return "Unknown";
@@ -1766,8 +1774,8 @@ const char * skinny_softkeyset2str(uint8_t type) {
 		return "RingOut";
 	case KEYMODE_OFFHOOKFEAT:
 		return "OffHookFeat";
-	case KEYMODE_MYST:
-		return "Myst";
+	case KEYMODE_INUSEHINT:
+		return "InUseHint";
 	default:
 		return "unknown";
 	}

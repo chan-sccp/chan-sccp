@@ -434,7 +434,7 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 		r->msg.CallInfoMessage.lel_lineId = htolel(h->instance);
 		r->msg.CallInfoMessage.lel_callType = htolel(SKINNY_CALLTYPE_OUTBOUND);
 		sccp_dev_send(d, r);
-		sccp_dev_set_keyset(d, h->instance, 0, KEYMODE_MYST);
+		sccp_dev_set_keyset(d, h->instance, 0, KEYMODE_INUSEHINT);
 
 		h = h->next;
 	}
@@ -537,7 +537,7 @@ void sccp_hint_notify_channelstate(sccp_device_t *d, uint8_t instance, sccp_chan
 
 	sccp_dev_send(d, r);
 //			sccp_dev_sendmsg(d, DeactivateCallPlaneMessage);
-	sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_MYST);
+	sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_INUSEHINT);
 }
 
 /**
@@ -584,6 +584,7 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 	REQ(r, CallInfoMessage);
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: HINT notify state %s (%d), instance %d\n", d->id, sccp_extensionstate2str(state), state, h->instance);
+	h->state = state;
 	switch(state) {
 		case AST_EXTENSION_NOT_INUSE:
 			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, SKINNY_LAMP_OFF);
@@ -614,14 +615,26 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_HOLD, sizeof(r->msg.CallInfoMessage.callingPartyName));
 			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_HOLD, sizeof(r->msg.CallInfoMessage.calledPartyName));
 			break;
+		case AST_EXTENSION_ONHOLD | AST_EXTENSION_INUSE:
+			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, SKINNY_LAMP_ON);
+			sccp_channel_set_callstate_full(d, h->instance, 0, SKINNY_CALLSTATE_CALLREMOTEMULTILINE);
+			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_LINE_IN_USE ", " SKINNY_DISP_HOLD, sizeof(r->msg.CallInfoMessage.callingPartyName));
+			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_LINE_IN_USE ", " SKINNY_DISP_HOLD, sizeof(r->msg.CallInfoMessage.calledPartyName));
+			break;			
 #endif	
 #ifdef CS_AST_HAS_EXTENSION_RINGING
 		case AST_EXTENSION_RINGING:
 			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, SKINNY_LAMP_FLASH);
 			sccp_channel_set_callstate_full(d, h->instance, 0, SKINNY_CALLSTATE_CALLREMOTEMULTILINE);
-			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_LINE_IN_USE, sizeof(r->msg.CallInfoMessage.callingPartyName));
-			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_LINE_IN_USE, sizeof(r->msg.CallInfoMessage.calledPartyName));
+			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_RING_OUT, sizeof(r->msg.CallInfoMessage.callingPartyName));
+			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_RING_OUT, sizeof(r->msg.CallInfoMessage.calledPartyName));
 			break;
+		case AST_EXTENSION_RINGING | AST_EXTENSION_INUSE:
+			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, SKINNY_LAMP_FLASH);
+			sccp_channel_set_callstate_full(d, h->instance, 0, SKINNY_CALLSTATE_CALLREMOTEMULTILINE);
+			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_LINE_IN_USE ", " SKINNY_DISP_RING_OUT, sizeof(r->msg.CallInfoMessage.callingPartyName));
+			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_LINE_IN_USE ", " SKINNY_DISP_RING_OUT, sizeof(r->msg.CallInfoMessage.calledPartyName));
+			break;			
 #endif
 		default:
 			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, SKINNY_LAMP_FLASH);
@@ -637,7 +650,7 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 	r->msg.CallInfoMessage.lel_callRef  = htolel(0);
 	r->msg.CallInfoMessage.lel_callType = htolel(SKINNY_CALLTYPE_OUTBOUND);
 	sccp_dev_send(d, r);
-	sccp_dev_set_keyset(d, h->instance, 0, KEYMODE_MYST);
+	sccp_dev_set_keyset(d, h->instance, 0, KEYMODE_INUSEHINT);
 	return 0;
 }
 

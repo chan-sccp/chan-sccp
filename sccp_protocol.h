@@ -1139,7 +1139,7 @@ typedef struct {
 #define KEYMODE_CONNCONF			7
 #define KEYMODE_RINGOUT 			8
 #define KEYMODE_OFFHOOKFEAT 		9
-#define KEYMODE_MYST				10
+#define KEYMODE_INUSEHINT			10
 
 static const uint8_t skSet_Onhook [] = {
 	SKINNY_LBL_REDIAL,
@@ -1266,11 +1266,12 @@ static const uint8_t skSet_Offhookfeat [] = {
 	SKINNY_LBL_ENDCALL,
 };
 
-// this appears when in ringout mode you press an hint button 
-// i think it should be used to transfer the call (i suppose) -FS
-static const uint8_t skSet_Myst [] = {
+// in use hint keyset
+static const uint8_t skSet_InUseHint [] = {
 //	SKINNY_LBL_NEWCALL,
-	SKINNY_LBL_ENDCALL,
+//	SKINNY_LBL_ENDCALL,
+	SKINNY_LBL_PICKUP,
+	SKINNY_LBL_BARGE,
 };
 
 
@@ -1279,7 +1280,7 @@ static const softkey_modes SoftKeyModes [] = {
  OnHook(0), Connected(1), OnHold(2), RingIn(3)
  OffHook(4), ConnectedWithTransfer(5)
  Digitsafterdialingfirstdigit(6), Connected with Conference (7)
- RingOut (8), OffHookWithFeatures (9), Unknown (10)
+ RingOut (8), OffHookWithFeatures (9), InUseHint(10)
  */
   { KEYMODE_ONHOOK, 		skSet_Onhook,		sizeof(skSet_Onhook)/sizeof(uint8_t)},
   { KEYMODE_CONNECTED,		skSet_Connected,	sizeof(skSet_Connected)/sizeof(uint8_t)},
@@ -1291,7 +1292,7 @@ static const softkey_modes SoftKeyModes [] = {
   { KEYMODE_CONNCONF,		skSet_Connconf, 	sizeof(skSet_Connconf)/sizeof(uint8_t)},
   { KEYMODE_RINGOUT,		skSet_RingOut,		sizeof(skSet_RingOut)/sizeof(uint8_t)},
   { KEYMODE_OFFHOOKFEAT,	skSet_Offhookfeat,	sizeof(skSet_Offhookfeat)/sizeof(uint8_t)},
-  { KEYMODE_MYST,			skSet_Myst, 		sizeof(skSet_Myst)/sizeof(uint8_t)},
+  { KEYMODE_INUSEHINT,		skSet_InUseHint,	sizeof(skSet_InUseHint)/sizeof(uint8_t)},
 };
 
 /* simple switch modes - Used in simple switch tread to distinguish dial from other number collects */

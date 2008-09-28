@@ -181,6 +181,7 @@ struct sccp_hint {
 	uint8_t	instance;
 	char context[AST_MAX_CONTEXT];
 	char exten[AST_MAX_EXTENSION];
+	enum ast_extension_states state;
 	sccp_hint_t *next;
 };
 

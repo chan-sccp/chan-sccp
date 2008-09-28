@@ -976,8 +976,10 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k) {
 			len = strlen(c->dialedNumber);
 			sccp_copy_string(c->dialedNumber+len, k->ext, sizeof(c->dialedNumber)-len);
 				c->digittimeout = time(0)+1;
+			/*
 			if (c->state == SCCP_CHANNELSTATE_OFFHOOK)
 				sccp_indicate_nolock(c, SCCP_CHANNELSTATE_DIALING);
+			*/
 			sccp_channel_unlock(c);
 			return;
 		}
