@@ -301,19 +301,20 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
 		sccp_log(73)(VERBOSE_PREFIX_3 "SCCP: (directpickup)\n"
 					 "--------------------------------------------\n"
 					 "(pickup target)\n"
-					 "exten       = %s\n"
-					 "context     = %s\n"
-					 "pbx         = off\n"
-					 "state		  = %d or %d\n"
+					 "exten         = %s\n"
+					 "context       = %s\n"
+					 "pbx           = off\n"
+					 "state		    = %d or %d\n"
 					 "(current chan)\n"
-					 "macro exten = %s\n"
-					 "exten       = %s\n"
-					 "context	  = %s\n"
+					 "macro exten   = %s\n"
+					 "exten         = %s\n"
+					 "macro context = %s\n"
+					 "context	    = %s\n"
 #ifndef ASTERISK_CONF_1_2
-					 "dialcontext = %s\n"
+					 "dialcontext   = %s\n"
 #endif
-					 "pbx		  = %s\n"
-					 "state		  = %d\n"
+					 "pbx		    = %s\n"
+					 "state		    = %d\n"
 					 "--------------------------------------------\n",
 					 pickupexten,
 					 !ast_strlen_zero(d->pickupcontext)?d->pickupcontext:"(NULL)",
@@ -321,6 +322,7 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
 					 AST_STATE_RING,
 					 target->macroexten?target->macroexten:"(NULL)",
 					 target->exten?target->exten:"(NULL)",
+					 target->macrocontext?target->macrocontext:"(NULL)",
 					 target->context?target->context:"(NULL)",
 #ifndef ASTERISK_CONF_1_2
 					 target->dialcontext?target->dialcontext:"(NULL)",					 
@@ -330,9 +332,12 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
 					 
 		if ((!strcasecmp(target->macroexten, pickupexten) || !strcasecmp(target->exten, pickupexten)) &&
 #ifdef ASTERISK_CONF_1_2
-			(!ast_strlen_zero(d->pickupcontext)?(!strcasecmp(target->context, d->pickupcontext)):1) &&
+			((!ast_strlen_zero(d->pickupcontext)?(!strcasecmp(target->context, d->pickupcontext)):1) || 
+			 (!ast_strlen_zero(d->pickupcontext)?(!strcasecmp(target->macrocontext, d->pickupcontext)):1)) &&
 #else			
-			(!ast_strlen_zero(d->pickupcontext)?(!strcasecmp(target->dialcontext, d->pickupcontext)):1) &&
+			((!ast_strlen_zero(d->pickupcontext)?(!strcasecmp(target->dialcontext, d->pickupcontext)):1) ||
+			 (!ast_strlen_zero(d->pickupcontext)?(!strcasecmp(target->macrocontext, d->pickupcontext)):1)) &&
+			
 #endif
 		    (!target->pbx && (target->_state == AST_STATE_RINGING || target->_state == AST_STATE_RING))) {
 		
@@ -349,6 +354,7 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
 #endif
 			original->hangupcause = AST_CAUSE_CALL_REJECTED;
 			
+			res = 0;
 			if(d->pickupmodeanswer) {
 				if ((res = ast_answer(c->owner))) {
 					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (directpickup) Unable to answer '%s'\n", c->owner->name);
@@ -407,9 +413,11 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
 			if(cidtmp)
 				free(cidtmp);								
 			cidtmp = NULL;
-					
+			
 			break;
-		}
+		} else {
+			res = -1;
+		}		
 		sccp_ast_channel_unlock(target);
 	}	
 	free(pickupexten);
@@ -452,6 +460,7 @@ int sccp_feat_grouppickup(sccp_line_t * l) {
 				c = sccp_channel_allocate(l);			
 				if (!c) {
 					ast_log(LOG_ERROR, "%s: (grouppickup) Can't allocate SCCP channel for line %s\n", d->id, l->name);
+					sccp_ast_channel_unlock(target);
 					return -1;
 				}
 				
@@ -459,6 +468,7 @@ int sccp_feat_grouppickup(sccp_line_t * l) {
 
 				if (!sccp_pbx_channel_allocate(c)) {
 					ast_log(LOG_WARNING, "%s: (grouppickup) Unable to allocate a new channel for line %s\n", d->id, l->name);
+					sccp_ast_channel_unlock(target);
 					sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONGESTION);
 					return res;
 				}
@@ -492,6 +502,7 @@ int sccp_feat_grouppickup(sccp_line_t * l) {
 #endif							
 			original->hangupcause = AST_CAUSE_CALL_REJECTED;
 			
+			res = 0;
 			if(d->pickupmodeanswer) {
 				if ((res = ast_answer(c->owner))) {
 					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Unable to answer '%s'\n", c->owner->name);
@@ -550,10 +561,14 @@ int sccp_feat_grouppickup(sccp_line_t * l) {
 			if(cidtmp)
 				free(cidtmp);								
 			cidtmp = NULL;
-					
+			
+			res = 0;		
+			
 			break;
+		} else {
+			res = -1;
 		}
-		sccp_ast_channel_unlock(target);
+		sccp_ast_channel_unlock(target);		
 	}	
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (grouppickup) quit\n");
 	return res;
