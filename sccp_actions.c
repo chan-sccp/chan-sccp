@@ -1747,15 +1747,49 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r) {
 
 
 /**
- * 
+ *  
  * 
  * 
  */
 void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_moo_t * r) {
+	sccp_device_t * d = NULL;
+	sccp_channel_t * c = NULL;
+	sccp_line_t * l = NULL;
+	
+	int len = 0;
+	// sccp_dump_packet((unsigned char *)&r->msg.EnblocCallMessage, r->length);
+	
 	if (!s || !s->device)
 		return;
-	if (r && !ast_strlen_zero(r->msg.EnblocCallMessage.calledParty))
-		sccp_channel_newcall(s->device->currentLine, r->msg.EnblocCallMessage.calledParty, SKINNY_CALLTYPE_OUTBOUND);
+	
+	d = s->device;
+	
+	if (r && !ast_strlen_zero(r->msg.EnblocCallMessage.calledParty)) {
+		c = sccp_channel_get_active(d);
+		if (c) {
+			sccp_channel_lock(c);
+			if ( (c->state == SCCP_CHANNELSTATE_DIALING) || (c->state == SCCP_CHANNELSTATE_OFFHOOK) ) {
+				len = strlen(c->dialedNumber);
+				sccp_copy_string(c->dialedNumber+len, r->msg.EnblocCallMessage.calledParty, sizeof(c->dialedNumber)-len);
+					c->digittimeout = time(0)+1;
+				/*
+				if (c->state == SCCP_CHANNELSTATE_OFFHOOK)
+					sccp_indicate_nolock(c, SCCP_CHANNELSTATE_DIALING);
+				*/
+				sccp_channel_unlock(c);
+				return;
+			}
+			sccp_channel_unlock(c);
+			sccp_pbx_senddigits(c, r->msg.EnblocCallMessage.calledParty);
+		} else {
+			// Pull up a channel
+			l = d->currentLine;
+			if (l) {
+				sccp_channel_newcall(l, r->msg.EnblocCallMessage.calledParty, SKINNY_CALLTYPE_OUTBOUND);
+			}
+		}		
+			
+	}
 }
 
 

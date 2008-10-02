@@ -271,8 +271,9 @@ void sccp_channel_set_calledparty(sccp_channel_t * c, char *name, char *number) 
 
 void sccp_channel_StatisticsRequest(sccp_channel_t * c) {
 	sccp_moo_t * r;
+	sccp_device_t * d = c->line->device;
 
-	if (!c)
+	if (!c || !d)
 		return;
 
 	REQ(r, ConnectionStatisticsReq);
@@ -285,8 +286,8 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * c) {
 
 	r->msg.ConnectionStatisticsReq.lel_callReference = htolel((c) ? c->callid : 0);
 	r->msg.ConnectionStatisticsReq.lel_StatsProcessing = htolel(SKINNY_STATSPROCESSING_CLEAR);
-	sccp_dev_send(c->line->device, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Requesting CallStatisticsAndClear from Phone\n", c->line->device->id);
+	sccp_dev_send(d, r);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Requesting CallStatisticsAndClear from Phone\n", (d && d->id)?d->id:"SCCP");
 }
 
 void sccp_channel_openreceivechannel(sccp_channel_t * c) {
@@ -373,23 +374,30 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c) {
 
 void sccp_channel_closereceivechannel(sccp_channel_t * c) {
 	sccp_moo_t * r;
-	REQ(r, CloseReceiveChannel);
-	r->msg.CloseReceiveChannel.lel_conferenceId = htolel(c ? c->callid : 0);
-	r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(c ? c->callid : 0);
-	r->msg.OpenReceiveChannel.lel_conferenceId1 = htolel(c ? c->callid : 0);
-	sccp_dev_send(c->line->device, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Close openreceivechannel on channel %d\n",c->line->device->id, c->callid);
+	sccp_device_t * d = c->line->device;
+	
+	if(d) {
+		REQ(r, CloseReceiveChannel);
+		r->msg.CloseReceiveChannel.lel_conferenceId = htolel(c ? c->callid : 0);
+		r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(c ? c->callid : 0);
+		r->msg.OpenReceiveChannel.lel_conferenceId1 = htolel(c ? c->callid : 0);
+		sccp_dev_send(d, r);
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Close openreceivechannel on channel %d\n",(d && d->id)?d->id:"(none)", c->callid);
+	}
 	sccp_channel_stopmediatransmission(c);
 }
 
 void sccp_channel_stopmediatransmission(sccp_channel_t * c) {
 	sccp_moo_t * r;
+	sccp_device_t * d = c->line->device;
+	
 	REQ(r, StopMediaTransmission);
-		
-	r->msg.CloseReceiveChannel.lel_conferenceId = htolel(c ? c->callid : 0);
-	r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(c ? c->callid : 0);
-	sccp_dev_send(c->line->device, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Stop media transmission on channel %d\n",c->line->device->id, c->callid);
+	if(d) {	
+		r->msg.CloseReceiveChannel.lel_conferenceId = htolel(c ? c->callid : 0);
+		r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(c ? c->callid : 0);
+		sccp_dev_send(d, r);
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Stop media transmission on channel %d\n",(d && d->id)?d->id:"(none)", c->callid);
+	}
 	
 	// stopping rtp
 	if(c->rtp) {
@@ -742,8 +750,8 @@ void sccp_channel_delete(sccp_channel_t * c) {
 
 /* this does no lock the main channels pointer */
 void sccp_channel_delete_no_lock(sccp_channel_t * c) {
-	sccp_line_t * l;
-	sccp_device_t * d;
+	sccp_line_t * l = NULL;
+	sccp_device_t * d = NULL;
 	struct sccp_selected_channel *cur = NULL, *par = NULL;
 
 	if (!c)
@@ -752,12 +760,13 @@ void sccp_channel_delete_no_lock(sccp_channel_t * c) {
 	sccp_channel_lock(c);
 
 	l = c->line;
-	d = c->device;
+	if(l)
+		d = l->device;
 
-	if (d->transfer_channel == c)
+	if (d && d->transfer_channel == c)
 		d->transfer_channel = NULL;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Deleting channel %d from line %s\n", DEV_ID_LOG(d), c->callid, l ? l->name : "(null)");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Deleting channel %d from line %s\n", (d && d->id)?DEV_ID_LOG(d):"SCCP", c->callid, l ? l->name : "(null)");
 
 	/* mark the channel DOWN so any pending thread will terminate */
 	if (c->owner) {
@@ -798,44 +807,47 @@ void sccp_channel_delete_no_lock(sccp_channel_t * c) {
 		sccp_mutex_lock(&c->prev_on_line->lock);
 		c->prev_on_line->next_on_line = c->next_on_line;
 		sccp_mutex_unlock(&c->prev_on_line->lock);
+	} else { /* the first one */
+		if(l) {
+			sccp_line_lock(l);
+			l->channels = c->next_on_line;
+			sccp_line_unlock(l);
+		}
 	}
-	else { /* the first one */
+
+	if(l) {
 		sccp_line_lock(l);
-		l->channels = c->next_on_line;
+/*		if (l->activeChannel == c)
+			l->activeChannel = NULL; */
+		l->channelCount--;
 		sccp_line_unlock(l);
 	}
-
-	sccp_line_lock(l);
-/*	if (l->activeChannel == c)
-		l->activeChannel = NULL; */
-	l->channelCount--;
-	sccp_line_unlock(l);
-
-	/* deactive the active call if needed */
-	sccp_device_lock(d);
-	d->channelCount--;
-	if (d->active_channel == c)
-		d->active_channel = NULL;	
-	sccp_device_unlock(d);
 	
-	//remove selected channels
-	sccp_device_lock(d);
-	cur = d->selectedChannels;
-	while(cur != NULL) {
-	    if(c == cur->c) {
-	    	if(NULL == par)
-	    		d->selectedChannels = cur->next;
-	    	else 
-	    		par->next = cur->next;
-	    	free(cur);
-	    } 
-	    par = cur;
-	    cur = cur->next;
+	if(d) {
+		/* deactive the active call if needed */
+		sccp_device_lock(d);
+		d->channelCount--;
+		if (d->active_channel == c)
+			d->active_channel = NULL;
+		
+		//remove selected channels
+		cur = d->selectedChannels;
+		while(cur != NULL) {
+		    if(c == cur->c) {
+		    	if(NULL == par)
+		    		d->selectedChannels = cur->next;
+		    	else 
+		    		par->next = cur->next;
+		    	free(cur);
+		    } 
+		    par = cur;
+		    cur = cur->next;
+		}
+		sccp_device_unlock(d);
 	}
-	sccp_device_unlock(d);
 	//remove selected channels
 	
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Deleted channel %d from line %s\n", DEV_ID_LOG(d), c->callid, l ? l->name : "(null)");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Deleted channel %d from line %s\n", (d && d->id)?DEV_ID_LOG(d):"SCCP", c->callid, l ? l->name : "(null)");
 	sccp_channel_unlock(c);
 	sccp_mutex_destroy(&c->lock);
 	free(c);
@@ -844,22 +856,35 @@ void sccp_channel_delete_no_lock(sccp_channel_t * c) {
 
 void sccp_channel_start_rtp(sccp_channel_t * c) {
 	sccp_session_t * s;
+	sccp_line_t * l = NULL;
+	sccp_device_t * d = NULL;
 #ifdef ASTERISK_CONF_1_2
 	char iabuf[INET_ADDRSTRLEN];
 #endif
 
-	if (!c || !c->device)
+	if (!c)
 		return;
-	s = c->device->session;
+	
+	if (c->line)
+		l = c->line;
+	
+	if(l)
+		d = l->device;
+	
+	if(d)
+		s = d->session;
+	else
+		return;
+		
 	if (!s)
 		return;
 
 /* No need to lock, because already locked in the sccp_indicate.c */
 /*	sccp_channel_lock(c); */
 #ifdef ASTERISK_CONF_1_2
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", c->device->id, ast_inet_ntoa(iabuf, sizeof(iabuf), s->ourip));
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), s->ourip));
 #else
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", c->device->id, ast_inet_ntoa(s->ourip));
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", d->id, ast_inet_ntoa(s->ourip));
 #endif
 
 #ifdef ASTERISK_CONF_1_2
@@ -868,7 +893,7 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
 	c->rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
 #endif
     
-	if (c->device->nat)
+	if (d->nat)
 		ast_rtp_setnat(c->rtp, 1);
 
 #ifdef ASTERISK_CONF_1_2
@@ -898,15 +923,29 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
 }
 
 void sccp_channel_stop_rtp(sccp_channel_t * c) {
+	sccp_device_t * d = NULL;
+	sccp_line_t * l = NULL;
+	if(c && c->line) {
+		l = c->line;
+		d = l->device;
+	}
+
 	if (c->rtp) {
-		sccp_log(3)(VERBOSE_PREFIX_3 "%s: Stopping phone media transmission on channel %s-%08x\n", c->device->id, c->line->name, c->callid);
+		sccp_log(3)(VERBOSE_PREFIX_3 "%s: Stopping phone media transmission on channel %s-%08x\n", (d && d->id)?d->id:"SCCP", l?l->name:"(null)", c->callid);
 		ast_rtp_stop(c->rtp);
 	}
 }
 
 void sccp_channel_destroy_rtp(sccp_channel_t * c) {
+	sccp_device_t * d = NULL;
+	sccp_line_t * l = NULL;
+	if(c && c->line) {
+		l = c->line;
+		d = l->device;
+	}
+		
 	if (c->rtp) {
-		sccp_log(3)(VERBOSE_PREFIX_3 "%s: destroying phone media transmission on channel %s-%08x\n", c->device->id, c->line->name, c->callid);
+		sccp_log(3)(VERBOSE_PREFIX_3 "%s: destroying phone media transmission on channel %s-%08x\n", (d && d->id)?d->id:"SCCP", l?l->name:"(null)", c->callid);
 		ast_rtp_destroy(c->rtp);
 		c->rtp = NULL;
 	}
@@ -925,10 +964,11 @@ void sccp_channel_transfer(sccp_channel_t * c) {
 		return;
 	}
 
-	d = c->device;
+	// d = c->device;
+	d = c->line->device;
 
 	if (!d->transfer || !c->line->transfer) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Tranfer disabled on device or line\n", d->id);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Tranfer disabled on device or line\n", (d && d->id)?d->id:"SCCP");
 		return;
 	}
 
@@ -942,10 +982,10 @@ void sccp_channel_transfer(sccp_channel_t * c) {
 
 	d->transfer_channel = c;
 	sccp_device_unlock(d);
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%08x\n", d->id, c->line->name, c->callid);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%08x\n", (d && d->id)?d->id:"SCCP", (c->line && c->line->name)?c->line->name:"(null)", c->callid);
 
 	if (!c->owner) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: No bridged channel to transfer on %s-%08x\n", d->id, c->line->name, c->callid);
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: No bridged channel to transfer on %s-%08x\n", (d && d->id)?d->id:"SCCP", (c->line && c->line->name)?c->line->name:"(null)", c->callid);
 		sccp_dev_displayprompt(d, c->line->instance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
 	}

@@ -130,7 +130,7 @@ then
 		echo "#define CS_AST_DEBUG_THREADS" >>$CONFIGFILE
 		echo " * found 'DEBUG_THREADS'"
 	else
-		echo "#undef CS_AST_DEBUG_CHANNEL_LOCKS" >>$CONFIGFILE
+		echo "#undef CS_AST_DEBUG_THREADS" >>$CONFIGFILE
 		echo " * no 'DEBUG_THREADS'"
 	fi
 fi
