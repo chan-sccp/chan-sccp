@@ -186,7 +186,10 @@ sccp_moo_t * sccp_build_packet(sccp_message_t t, size_t pkt_len) {
 }
 
 int sccp_dev_send(sccp_device_t * d, sccp_moo_t * r) {
-  return sccp_session_send(d->session, r);
+	if(d && d->session)
+		return sccp_session_send(d->session, r);
+	else
+		return -1;
 }
 
 void sccp_session_sendmsg(sccp_session_t * s, sccp_message_t t) {
@@ -196,7 +199,7 @@ void sccp_session_sendmsg(sccp_session_t * s, sccp_message_t t) {
 }
 
 void sccp_dev_sendmsg(sccp_device_t * d, sccp_message_t t) {
-	if (d)
+	if (d && d->session)
 		sccp_session_sendmsg(d->session, t);
 }
 

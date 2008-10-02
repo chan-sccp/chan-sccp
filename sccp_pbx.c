@@ -385,7 +385,7 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 
 	if (c->state != SCCP_CHANNELSTATE_DOWN) {
 		/* we are in a passive hangup */
-		if (GLOB(remotehangup_tone) && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_channel_get_active(d))
+		if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_channel_get_active(d))
 			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
 		sccp_indicate_nolock(c, SCCP_CHANNELSTATE_ONHOOK);
 	}
