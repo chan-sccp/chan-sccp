@@ -52,6 +52,15 @@ void sccp_handle_alarm(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Alarm Message: Severity: %s (%d), %s [%d/%d]\n", skinny_alarm2str(letohl(r->msg.AlarmMessage.lel_alarmSeverity)), letohl(r->msg.AlarmMessage.lel_alarmSeverity), r->msg.AlarmMessage.text, letohl(r->msg.AlarmMessage.lel_parm1), letohl(r->msg.AlarmMessage.lel_parm2));
 }
 
+void sccp_handle_unknown_message(sccp_session_t * s, sccp_moo_t * r) {
+	uint32_t mid = letohl(r->lel_messageId);
+	
+	if (GLOB(debug))
+		ast_log(LOG_WARNING, "Unhandled SCCP Message: %d - %s with length %d\n", mid, sccpmsg2str(mid), r->length);
+		
+	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
+}
+
 void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 	pthread_attr_t 	attr;
 	sccp_device_t 	* d;
@@ -216,7 +225,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, (d->keepalive ? d->keepalive : GLOB(keepalive)) );
 	REQ(r1, RegisterAckMessage);
-	
+
 	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->length);
 	
 	if(r->length < 68) {

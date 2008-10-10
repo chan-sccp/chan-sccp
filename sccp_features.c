@@ -285,13 +285,13 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
 	
 	original = c->owner;
 	
-	if(!c->device || !c->device->id || strlen(c->device->id) < 3)
+	if(!c->line || !c->line->device || !c->line->device->id || strlen(c->line->device->id) < 3)
 	{
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (directpickup) no device\n");
 		return -1;
 	}
 	
-	d = c->device;
+	d = c->line->device;
 	
 	/* copying extension into our buffer */
 	pickupexten = strdup(exten);
@@ -637,7 +637,7 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 
 void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #ifdef CS_ADV_FEATURES
-	sccp_adv_feat_conference(d, l, c);
+	sccp_advfeat_conference(d, l, c);
 #else
 	/* sorry but this is private code -FS */
 	sccp_dev_displayprompt(d, c->line->instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
@@ -646,7 +646,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 
 void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #ifdef CS_ADV_FEATURES
-	sccp_adv_feat_join(d, l, c);
+	sccp_advfeat_join(d, l, c);
 #else
 	/* sorry but this is private code -FS */
 	sccp_dev_displayprompt(d, c->line->instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
@@ -799,7 +799,7 @@ sccp_channel_t * sccp_feat_handle_barge(sccp_line_t * l) {
 
 int sccp_feat_barge(sccp_channel_t * c, char *exten) {
 #ifdef CS_ADV_FEATURES
-	return sccp_adv_feat_barge(c, exten);
+	return sccp_advfeat_barge(c, exten);
 #else
 	/* sorry but this is private code -FS */
 	sccp_dev_displayprompt(c->device, c->line->instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
@@ -881,7 +881,7 @@ sccp_channel_t * sccp_feat_handle_cbarge(sccp_line_t * l) {
 
 int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum) {
 #ifdef CS_ADV_FEATURES
-	return sccp_adv_feat_barge(c, conferencenum);
+	return sccp_advfeat_cbarge(c, conferencenum);
 #else
 	/* sorry but this is private code -FS */
 	sccp_dev_displayprompt(c->device, c->line->instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);

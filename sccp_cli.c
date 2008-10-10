@@ -32,8 +32,6 @@
 
 /* ------------------------------------------------------------ */
 
-//do we need this in 1.6?
-#ifndef ASTERISK_CONF_1_6
 #ifdef CS_NEW_AST_CLI
 static char * sccp_complete_device(const char *line, const char *word, int pos, int state) {
 #else
@@ -61,7 +59,6 @@ static char * sccp_complete_device(char *line, char *word, int pos, int state) {
 	
 	return ret;
 }
-#endif
 
 static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 	sccp_moo_t * r;
@@ -386,7 +383,7 @@ static char *cli_show_device(struct ast_cli_entry *e, int cmd, struct ast_cli_ar
 				"Usage:  sccp show device <deviceId>\n";
 			return NULL;
 		} else if (cmd == CLI_GENERATE){
-			return NULL;
+			return sccp_complete_device(a->line, a->word, a->pos, a->n);
 		}
 		if (a->argc != 4)
 			return CLI_SHOWUSAGE;
@@ -418,7 +415,7 @@ static char *cli_reset(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a)
 				"Usage: sccp reset <deviceId>\n";
 			return NULL;
 		} else if (cmd == CLI_GENERATE){
-			return NULL;
+			return sccp_complete_device(a->line, a->word, a->pos, a->n);
 		}
 		if (a->argc != 3)
 			return CLI_SHOWUSAGE;
@@ -448,7 +445,7 @@ static char *cli_restart(struct ast_cli_entry *e, int cmd, struct ast_cli_args *
 				"Usage: sccp restart <deviceId>\n";
 			return NULL;
 		} else if (cmd == CLI_GENERATE){
-			return NULL;
+			return sccp_complete_device(a->line, a->word, a->pos, a->n);
 		}
 		if (a->argc != 3)
 			return CLI_SHOWUSAGE;
@@ -480,7 +477,7 @@ static char *cli_unregister(struct ast_cli_entry *e, int cmd, struct ast_cli_arg
 				"       Unregister an SCCP device\n";
 			return NULL;
 		} else if (cmd == CLI_GENERATE){
-			return NULL;
+			return sccp_complete_device(a->line, a->word, a->pos, a->n);
 		}
 		if (a->argc != 3)
 			return CLI_SHOWUSAGE;
@@ -1160,8 +1157,8 @@ static char *cli_reload(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a
 	if (cmd == CLI_INIT) {
 		e->command = "sccp reload";
 		e->usage =
-			"Usage: SCCP show version\n"
-			"		Show the SCCP channel version\n";
+		"Usage: sccp reload\n"
+		"	  Reloads SCCP configuration from sccp.conf (It will close all active connections)\n";
 		return NULL;
 	} else if (cmd == CLI_GENERATE)
 		return NULL;
@@ -1180,7 +1177,7 @@ static struct ast_cli_entry cli_reload = {
   sccp_do_reload,
   "SCCP module reload",
   "Usage: sccp reload\n"
-  "		Reloads SCCP configuration from sccp.conf (It will close all active connections)\n" 
+  "		Reloads SCCP configuration from sccp.conf (It will close all active connections)\n"
 };
 #endif
 
@@ -1195,7 +1192,7 @@ static int sccp_show_version(int fd, int argc, char *argv[]) {
 #ifdef ASTERISK_CONF_1_6
 static char *cli_show_version(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
-		e->command = "sccp show reload";
+		e->command = "sccp show version";
 		e->usage =
 			"Usage: SCCP show version\n"
 			"		Show the SCCP channel version\n";

@@ -770,8 +770,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 	sccp_handle_servicesurl_stat_req(s,r);
   	break;
   default:
-	if (GLOB(debug))
-		ast_log(LOG_WARNING, "Unhandled SCCP Message: %d - %s with length %d\n", mid, sccpmsg2str(mid), r->length);
+	sccp_handle_unknown_message(s,r);
   }
 
   free(r);
@@ -1532,8 +1531,10 @@ static int reload_config(void) {
 			GLOB(cfwdnoanswer) = sccp_true(v->value);			
 		} else if (!strcasecmp(v->name, "echocancel")) {
 			GLOB(echocancel) = sccp_true(v->value);
+#ifdef CS_SCCP_PICKUP
 		} else if (!strcasecmp(v->name, "pickupmodeanswer")) {
 			GLOB(pickupmodeanswer) = sccp_true(v->value);
+#endif			
 		} else if (!strcasecmp(v->name, "silencesuppression")) {
 			GLOB(silencesuppression) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "trustphoneip")) {

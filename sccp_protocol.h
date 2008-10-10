@@ -24,6 +24,7 @@
 #define  SCCP_CHANNELSTATE_INVALIDNUMBER		14
 #define  SCCP_CHANNELSTATE_DIALING				20
 #define  SCCP_CHANNELSTATE_GETDIGITS			0xA0
+#define  SCCP_CHANNELSTATE_CALLCONFERENCE 		0xA1
 
 #define SCCP_DEVICESTATE_ONHOOK 				0
 #define SCCP_DEVICESTATE_OFFHOOK				1
@@ -85,7 +86,7 @@
 #define StationMaxServiceURLSize					256
 
 /* skinny tones skinny_tone2str */
-#define SKINNY_TONE_SILENCE 					0
+#define SKINNY_TONE_SILENCE 				0
 #define SKINNY_TONE_DTMF1					1
 #define SKINNY_TONE_DTMF2					2
 #define SKINNY_TONE_DTMF3					3
@@ -461,7 +462,11 @@ typedef enum {
   AuditParticipantResMessage					= 0x0040,
   DeviceToUserDataVersion1Message				= 0x0041,
   DeviceToUserDataResponseVersion1Message		= 0x0042,
-
+ 
+  Unknown_0049_Message							= 0x0049,
+  
+  Unknown_0072_Message							= 0x0072,
+  
   /* Server -> Client */
   RegisterAckMessage							= 0x0081,
   StartToneMessage								= 0x0082,
@@ -551,9 +556,62 @@ typedef enum {
   DropParticipantReqMessage 					= 0x013B,
   AuditConferenceReqMessage 					= 0x013C,
   AuditParticipantReqMessage					= 0x013D,
-  UserToDeviceDataVersion1Message				= 0x013F	
+  UserToDeviceDataVersion1Message				= 0x013F,
+  
+  // These are conference related
+  Unknown_0143_Message							= 0x0143,
+  Unknown_0144_Message							= 0x0144,
+  Unknown_0145_Message							= 0x0145,
+  Unknown_014A_Message							= 0x014A
 
 } sccp_message_t;
+
+// This is not a true struct
+typedef struct { // COMPLETE BUT WRONG
+	uint32_t	lel_ConferenceID;
+	uint32_t	lel_NumberOfPartecipants;
+} Unknown_0049;
+
+typedef struct { // INCOMPLETE
+ uint32_t nn;
+} Unknown_0143;
+
+// Message 0x144 len 0x10
+// 0000   14 00 00 00 00 00 00 00 44 01 00 00 0a 00 00 00  ........D.......
+// 0010   05 00 00 00 80 17 31 30 34 00 00 00              ......104...
+typedef struct { // INCOMPLETE
+	uint32_t nn;
+} Unknown_0144;
+
+typedef struct { // OK
+	uint32_t 	lel_lineInstance;
+	uint32_t 	lel_callReference;
+	uint8_t 	Unknown_1; // this is always 0x80
+	uint8_t 	Unknown_2; /* this is a bit register 				
+						  00000001 other information following (callerid, null terminated padded by 4)
+						  00000010 
+						  00000100
+						  00001000
+						  00010000
+						  00100000 no other informations available						  
+						  following 2 bytes of attributes*/
+	char Unknown_3[256]; // space for something
+} Unknown_0145;
+
+typedef struct { // INCOMPLETE
+	uint32_t lel_lineInstance;
+	uint32_t lel_callReference;
+	uint32_t lel_Unknown_1;
+	uint32_t lel_Unknown_2;
+	uint32_t lel_Unknown_3;
+	uint32_t lel_Unknown_4;
+	uint32_t lel_Unknown_5;
+	uint32_t lel_Unknown_6;
+	char	extension_1[4];
+	uint16_t lel_extension_1_attribute;
+	char	extension_2[4];
+	uint16_t lel_extension_2_attribute;
+} Unknown_014A;
 
 typedef struct {
   char					deviceName[StationMaxDeviceNameSize];
@@ -1236,20 +1294,7 @@ static const uint8_t skSet_DigitsFoll []  = {
 static const uint8_t skSet_Connconf []	= {
 	SKINNY_LBL_HOLD,
 	SKINNY_LBL_ENDCALL,
-	SKINNY_LBL_TRANSFER,
-#ifdef CS_SCCP_CONFERENCE	
 	SKINNY_LBL_JOIN,
-#endif
-#ifdef CS_SCCP_PARK
-	SKINNY_LBL_PARK,
-#endif
-#ifdef CS_SCCP_DIRTRFR
-	SKINNY_LBL_SELECT,
-	SKINNY_LBL_DIRTRFR,
-#endif	
-	SKINNY_LBL_CFWDALL,
-	SKINNY_LBL_CFWDBUSY,
-//	SKINNY_LBL_CFWDNOANSWER,
 };
 
 static const uint8_t skSet_RingOut [] = {

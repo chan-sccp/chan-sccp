@@ -181,7 +181,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_dev_set_keyset(d, l->instance, c->callid, KEYMODE_CONNECTED);
 		sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_CONNECTED, 0);
 		// if no rtp or was in old openreceivechannel (note that rtp doens't reinitialize as channel was in hold state or offhook state due to a transfer abort)
-		if (!c->rtp || oldstate == SCCP_CHANNELSTATE_HOLD || oldstate == SCCP_CHANNELSTATE_CALLTRANSFER || oldstate == SCCP_CHANNELSTATE_OFFHOOK) {
+		if (!c->rtp || oldstate == SCCP_CHANNELSTATE_HOLD || oldstate == SCCP_CHANNELSTATE_CALLTRANSFER || oldstate == SCCP_CHANNELSTATE_CALLCONFERENCE || oldstate == SCCP_CHANNELSTATE_OFFHOOK) {
 			sccp_channel_openreceivechannel(c);
 		} else if(c->rtp) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: (for debug purposes) did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_indicate2str(oldstate));
@@ -246,6 +246,10 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_TRANSFER, 0);
 		/* sccp_channel_set_callstate(c, SKINNY_CALLSTATE_CALLTRANSFER); */
 		break;
+	case SCCP_CHANNELSTATE_CALLCONFERENCE:
+		sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_CONFERENCE, 0);
+		/* sccp_channel_set_callstate(c, SKINNY_CALLSTATE_CALLTRANSFER); */
+		break;		
 	case SCCP_CHANNELSTATE_CALLPARK:
 		sccp_channel_set_callstate(c, SKINNY_CALLSTATE_CALLPARK);
 		break;
