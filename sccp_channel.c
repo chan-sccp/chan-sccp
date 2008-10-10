@@ -411,17 +411,17 @@ void sccp_channel_stopmediatransmission(sccp_channel_t * c) {
 void sccp_channel_endcall(sccp_channel_t * c) {
 	uint8_t res = 0;
 	
-	if (!c || !c->device)
+	if (!c || !c->line || !c->line->device)
 		return;
 
 	/* this is a station active endcall or onhook */
-    sccp_log(1)(VERBOSE_PREFIX_3 "%s: Ending call %d on line %s\n", DEV_ID_LOG(c->device), c->callid, c->line->name);
+    sccp_log(1)(VERBOSE_PREFIX_3 "%s: Ending call %d on line %s\n", DEV_ID_LOG(c->line->device), c->callid, c->line->name);
 
 	if (c->owner) {
 		/* Is there a blocker ? */
 		res = (c->owner->pbx || c->owner->blocker);
 		
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending %s hangup request to %s\n", DEV_ID_LOG(c->device), res ? "(queue)" : "(force)", c->owner->name);
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending %s hangup request to %s\n", DEV_ID_LOG(c->line->device), res ? "(queue)" : "(force)", c->owner->name);
 		
 		c->owner->hangupcause = AST_CAUSE_NORMAL_CLEARING;	
 		if (res) {
@@ -431,7 +431,7 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 			ast_hangup(c->owner);
 		}
 	} else {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(c->device), c->callid, c->line->name);
+		sccp_log(10)(VERBOSE_PREFIX_1 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(c->line->device), c->callid, c->line->name);
 	}
 }
 
@@ -697,7 +697,7 @@ int sccp_channel_resume(sccp_channel_t * c) {
 	}
 
 	/* resume an active call */
-	if (c->state != SCCP_CHANNELSTATE_HOLD && c->state != SCCP_CHANNELSTATE_CALLTRANSFER) {
+	if (c->state != SCCP_CHANNELSTATE_HOLD && c->state != SCCP_CHANNELSTATE_CALLTRANSFER && c->state != SCCP_CHANNELSTATE_CALLCONFERENCE) {
 		/* something wrong on the code let's notify it for a fix */
 		ast_log(LOG_ERROR, "%s can't resume the channel %s-%08x. Not on hold\n", d->id, l->name, c->callid);
 		sccp_dev_displayprompt(d, l->instance, c->callid, "No active call to put on hold",5);
@@ -710,6 +710,12 @@ int sccp_channel_resume(sccp_channel_t * c) {
 		d->transfer_channel = NULL;
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer on the channel %s-%08x\n", d->id, l->name, c->callid);
 	}
+	
+	if (d->conference_channel == c) {
+		d->conference_channel = NULL;
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Conference on the channel %s-%08x\n", d->id, l->name, c->callid);
+	}
+	
 	sccp_device_unlock(d);
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Resume the channel %s-%08x\n", d->id, l->name, c->callid);
@@ -765,6 +771,9 @@ void sccp_channel_delete_no_lock(sccp_channel_t * c) {
 
 	if (d && d->transfer_channel == c)
 		d->transfer_channel = NULL;
+
+	if (d && d->conference_channel == c)
+		d->conference_channel = NULL;
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Deleting channel %d from line %s\n", (d && d->id)?DEV_ID_LOG(d):"SCCP", c->callid, l ? l->name : "(null)");
 
@@ -1015,15 +1024,18 @@ static void * sccp_channel_transfer_ringing_thread(void *data) {
 	if (!ast)
 		return NULL;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Send ringing indication to %s(%p)\n", ast->name, ast);
-	if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_RING)
+	if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_RING) {
+		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Send ringing indication to %s(%p)\n", ast->name, ast);
 		ast_indicate(ast, AST_CONTROL_RINGING);
-	else if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_MOH)
+	}
+	else if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_MOH) {
+		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Started music on hold for channel %s(%p)\n", ast->name, ast);
 #ifdef ASTERISK_CONF_1_2
 		ast_moh_start(ast, NULL);
 #else
 		ast_moh_start(ast, NULL, NULL);
 #endif
+	}
 	sccp_ast_channel_unlock(ast);	
 	return NULL;
 }
@@ -1098,7 +1110,17 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 			ast_log(LOG_WARNING, "%s: Unable to create thread for the blind transfer ring indication. %s\n", d->id, strerror(errno));
 		}
 	}
-
+// OLD APPLIANCE
+/*	
+	if (astcDestinationLocal->cdr && astcSourceRemote->cdr) {
+		astcDestinationLocal->cdr = ast_cdr_append(astcDestinationLocal->cdr, astcSourceRemote->cdr);
+	} else if (astcSourceRemote->cdr) {
+		astcDestinationLocal->cdr = astcSourceRemote->cdr;
+	}
+	astcSourceRemote->cdr = NULL;
+*/
+// NEW APPLIANCE	
+/*
 	if(!astcDestinationLocal->cdr)
 		astcDestinationLocal->cdr = ast_cdr_alloc();
 	
@@ -1106,6 +1128,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 		astcDestinationLocal->cdr = ast_cdr_append(astcDestinationLocal->cdr, astcSourceRemote->cdr);
 	else
 		ast_log(LOG_WARNING, "SCCP: unable to find CDR informations for channel %s\n", (astcSourceRemote && astcSourceRemote->name)?astcSourceRemote->name:"(NULL)");
+*/
 	
 	if (ast_channel_masquerade(astcDestinationLocal, astcSourceRemote)) {
 		ast_log(LOG_WARNING, "SCCP: Failed to masquerade %s into %s\n", astcDestinationLocal->name, astcSourceRemote->name);
@@ -1128,6 +1151,8 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 
 	if (!astcDestinationRemote) {
 	    /* the channel was ringing not answered yet. BLIND TRANSFER */
+		if(cDestinationLocal->rtp)
+			sccp_channel_destroy_rtp(cDestinationLocal);
         return;
     }
 
@@ -1151,7 +1176,12 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 		if (astcSourceRemote->callerid && (cidtmp = strdup(astcSourceRemote->callerid))) {
 			ast_callerid_parse(cidtmp, &name, &number);
 			sccp_channel_set_callingparty(cDestinationLocal, name, number);
-			free(cidtmp);
+			if(cidtmp)
+				free(cidtmp);
+			if(name)
+				free(name);
+			if(number)
+				free(number);
 		}
 #endif
 		sccp_channel_send_callinfo(cDestinationLocal);

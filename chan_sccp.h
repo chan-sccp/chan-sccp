@@ -380,12 +380,15 @@ struct sccp_device {
 	/* permit registration to the hostname ip address */
 	sccp_hostname_t			*permithost;
 
+	uint32_t				conferenceid;
+	
 	unsigned int			mwilamp:3;
 	unsigned int			mwioncall:1;
 	unsigned int			softkeysupport:1;
 	unsigned int			mwilight:1;
 	unsigned int			dnd:3;
 	unsigned int			transfer:1;
+	unsigned int			conference:1;
 	unsigned int			park:1;
 	unsigned int			cfwdall:1;
 	unsigned int			cfwdbusy:1;
@@ -406,6 +409,7 @@ struct sccp_device {
 #endif
 	sccp_channel_t   		* active_channel;
 	sccp_channel_t   		* transfer_channel; 				/*!< the channel under transfer */
+	sccp_channel_t			* conference_channel;				/*|< the channel is going to be conferenced */
 	sccp_serviceURL_t 		* serviceURLs;
 	sccp_speed_t     		* speed_dials;
 	sccp_line_t      		* lines;
@@ -457,7 +461,7 @@ struct sccp_channel {
 	char				callingPartyNumber[StationMaxDirnumSize];
 	uint32_t			callid;
 	
-	uint32_t			conferenceid; /* this will be used in native conferencing mode and will differ from callid  -FS*/
+	uint32_t			conferenceid; 	/* this will be used in native conferencing mode and will differ from callid  -FS*/
 	
 	uint8_t			state;				/*< internal channel state SCCP_CHANNELSTATE_* */
 	uint8_t			callstate;			/*< skinny state */

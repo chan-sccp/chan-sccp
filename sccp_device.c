@@ -259,7 +259,7 @@ void sccp_dev_set_keyset(sccp_device_t * d, uint8_t line, uint32_t callid, uint8
 
 	/*let's activate the transfer */
 	if (opt == KEYMODE_CONNECTED)
-		opt = ( (d->transfer) ? KEYMODE_CONNTRANS : KEYMODE_CONNECTED );
+		opt = ( (/* d->conference && */ d->conference_channel) ? KEYMODE_CONNCONF : (d->transfer) ? KEYMODE_CONNTRANS : KEYMODE_CONNECTED );
 
 	REQ(r, SelectSoftKeysMessage);
 	r->msg.SelectSoftKeysMessage.lel_lineInstance  = htolel(line);
