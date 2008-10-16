@@ -58,7 +58,7 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, uint8_t type) {
 	pthread_t t;
 	struct ast_channel * bridge = NULL;
 	
-	if (!l || !l->device || !ast_strlen_zero(l->device->id)){
+	if (!l || !l->device || !l->device->id || ast_strlen_zero(l->device->id)){
 		ast_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
 		return NULL;
 	}

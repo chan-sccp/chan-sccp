@@ -316,14 +316,18 @@ int sccp_devicestate(void * data) {
  */
 sccp_hint_t * sccp_hint_make(sccp_device_t *d, uint8_t instance) {
 	sccp_hint_t *h = NULL;
+	
 	if (!d)
 		return NULL;
+	
 	h = malloc(sizeof(sccp_hint_t));
-
-	if (!h)
-		return NULL;
-	h->device = d;
-	h->instance = instance;
+	if (h) {			
+		h->device = d;
+		h->instance = instance;
+		// SVN 347
+		h->callid = 0;
+		h->state = SCCP_HINTSTATE_NOTINUSE;
+	}
 	return h;
 }
 
@@ -337,11 +341,14 @@ sccp_hint_t * sccp_hint_make(sccp_device_t *d, uint8_t instance) {
  */
 void sccp_hint_notify_devicestate(sccp_device_t * d, uint8_t state) {
 	sccp_line_t * l;
+	
 	if (!d || !d->session)
 		return;
+	
 	sccp_device_lock(d);
 	l = d->lines;
 	while (l) {
+		sccp_log(71)(VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifystate) Notifying state (%d) for line (%s)\n", state, l->name);		
 		sccp_hint_notify_linestate(l, state, NULL);
 		l = l->next_on_device;
 	}
@@ -364,35 +371,28 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 
 	/* let's go for internal hint system */
 
-	if (!l)
+	if (!l) {
+		ast_log(LOG_ERROR,"SCCP: (sccp_hint_notify_linestate) <line> not found. Leaving\n");
 		return;
-		
-	if (!l->hints) {
-		if (!onedevice)
-#ifndef ASTERISK_CONF_1_6
-			ast_device_state_changed("SCCP/%s", l->name);
-#else
-			ast_devstate_changed(sccp_devicestate(l->name), "SCCP/%s", l->name);
-#endif			
-		return;
+	}
+	
+	if (!onedevice) { // we are in post registration state
+		ast_device_state_changed("SCCP/%s", l->name);
+		if (!l->hints) {
+			sccp_log(71)(VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notify_linestate) State (%d) of line (%s) has been notified. Leaving.\n", state, l->name);
+			return;
+		} 
+		sccp_log(71)(VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notify_linestate) State (%d) of line (%s) has been notified. Going o\n", state, l->name);	
 	}
 
 	h = l->hints;
-
 	while (h) {
 		d = h->device;
-		if (!d || !d->session) {
+		if (!d || !d->session || (onedevice && d != onedevice)) {
 			h = h->next;
 			continue;
 		}
-
-		/* this is for polling line status after device registration */
-		if (onedevice && d != onedevice) {
-			h = h->next;
-			continue;
-		}
-
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: (sccp_hint_notify_linestate) HINT notify state %d of the line '%s'\n", d->id, state, l->name);
+		sccp_log(71)(VERBOSE_PREFIX_3 "%s: (sccp_hint_notify_linestate) HINT notify state %d of the line '%s'\n", d->id, state, l->name);
 		
 		if (state == SCCP_DEVICESTATE_ONHOOK) {
 			usleep(100);
@@ -447,18 +447,10 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 		if(h->state == SCCP_HINTSTATE_NOTINUSE) {
 			sccp_dev_set_keyset(d, h->instance, 0, KEYMODE_INUSEHINT);
 			h->callid = 0;
+			h->state = SCCP_HINTSTATE_INUSE;			
 		}
-		h->state = SCCP_HINTSTATE_INUSE;
 		h = h->next;
 	}
-
-	/* notify the asterisk hint system when we are not in a postregistration state (onedevice) */
-	if (!onedevice)
-#ifndef ASTERISK_CONF_1_6
-		ast_device_state_changed("SCCP/%s", l->name);
-#else
-		ast_devstate_changed(sccp_devicestate(l->name), "SCCP/%s", l->name);
-#endif	
 }
 
 
@@ -471,18 +463,20 @@ void sccp_hint_notify_channelstate(sccp_device_t * d, sccp_hint_t * h, sccp_chan
 	sccp_moo_t * r;
 	uint8_t lamp = SKINNY_LAMP_OFF;
 
-	if (!d && c && c->line)
+	if (!c) {
+		sccp_log(10)(VERBOSE_PREFIX_2 "SCCP: (sccp_hint_notify_channelstate) No <channel> to notify. Leaving.\n");
+		return;	
+	}
+	
+	if (!d && c->line)
 		d = c->line->device;
-/*	
-	if (d && d != c->device)
-		sccp_log(10)(VERBOSE_PREFIX_2 "SCCP: (sccp_hint_notify_channelstate) DIFFERENT DEVICE\n");
-*/		
+
 	if (!d) {
-		sccp_log(10)(VERBOSE_PREFIX_2 "SCCP: (sccp_hint_notify_channelstate) NO DEVICE !!!!!\n");
+		sccp_log(10)(VERBOSE_PREFIX_2 "SCCP: (sccp_hint_notify_channelstate) No <device> to notify. Leaving.\n");
 		return;
 	}
 	
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: (sccp_hint_notify_channelstate) HINT notify state %s (%d) of the channel %d \n", d->id, sccp_callstate2str(c->callstate), c->callstate, c->callid);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: (sccp_hint_notify_channelstate) Notifying state '%s' (%d) of call '%d' \n", d->id, sccp_callstate2str(c->callstate), c->callstate, c->callid);
 
 	REQ(r, CallInfoMessage);
 	switch (c->callstate) {
@@ -554,8 +548,8 @@ void sccp_hint_notify_channelstate(sccp_device_t * d, sccp_hint_t * h, sccp_chan
 	if(h->state == SCCP_HINTSTATE_NOTINUSE) {
 		sccp_dev_set_keyset(d, h->instance, c->callid, KEYMODE_INUSEHINT);
 		h->callid = c->callid;
+		h->state = SCCP_HINTSTATE_INUSE;
 	}
-	h->state = SCCP_HINTSTATE_INUSE;
 }
 
 /**
@@ -674,8 +668,8 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 	if(h->state == SCCP_HINTSTATE_NOTINUSE) {
 		sccp_dev_set_keyset(d, h->instance, 0, KEYMODE_INUSEHINT);
 		h->callid = 0;
+		h->state = SCCP_HINTSTATE_INUSE;
 	}
-	h->state = SCCP_HINTSTATE_INUSE;
 	return 0;
 }
 
