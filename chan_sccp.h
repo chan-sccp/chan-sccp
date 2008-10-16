@@ -289,6 +289,12 @@ struct sccp_line {
 	struct ast_variable 	* variables;		/*!< Channel variables to set */
 	unsigned int			dnd:3;				/*!< dnd on line */
 	uint8_t 				dndmode;			/*!< dnd mode: see SCCP_DNDMODE_* */
+
+#ifdef CS_DYNAMIC_CONFIG
+// this is for reload routines
+	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
+	sccp_line_t				pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+#endif
 };
 
 /* This defines a speed dial button */
@@ -309,6 +315,10 @@ struct sccp_speed {
 
 	/* Pointer to next speed dial */
 	sccp_speed_t * next;
+#ifdef CS_DYNAMIC_CONFIG
+	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
+	sccp_speed_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+#endif
 };
 
 /* This defines a serviceURL button */
@@ -318,6 +328,10 @@ struct sccp_serviceURL {
 	char label[StationMaxNameSize];								/*!< The label of the serviceURL button */
 	char URL[StationMaxServiceURLSize];							/*!< The number to dial when it's hit */
 	sccp_serviceURL_t * next;									/*!< Pointer to next serviceURL */
+#ifdef CS_DYNAMIC_CONFIG
+	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
+	sccp_serviceURL_t		pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */	
+#endif
 };
 
 
@@ -425,6 +439,10 @@ struct sccp_device {
 	char 					* phonemessage;						/*!< message to display on device*/
     sccp_addon_t			* addons;
 	struct sccp_selected_channel    *selectedChannels;
+#ifdef CS_DYNAMIC_CONFIG
+	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
+	sccp_device_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */	
+#endif
 };
 
 // Number of additional keys per addon -FS
@@ -435,9 +453,13 @@ struct sccp_device {
 struct sccp_addon {
 	ast_mutex_t	lock;
 	int type;
-	sccp_addon_t * prev;
+//	sccp_addon_t * prev;
 	sccp_addon_t * next;
 	sccp_device_t * device;
+#ifdef CS_DYNAMIC_CONFIG
+	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
+	sccp_addon_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */	
+#endif	
 };
 
 struct sccp_session {
@@ -492,6 +514,10 @@ struct sccp_channel {
 	
 	uint8_t		ss_action; /* simple switch action, this is used in dial thread to collect numbers for callforward, pickup and so on -FS*/
 	uint8_t		ss_data; /* simple switch integer param */
+#ifdef CS_DYNAMIC_CONFIG
+	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
+	sccp_channel_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */	
+#endif	
 };
 
 struct sccp_global_vars {
@@ -581,6 +607,10 @@ struct sccp_global_vars {
 #endif
 #ifndef ASTERISK_CONF_1_2
     struct ast_jb_conf             global_jbconf;
+#endif
+#ifdef CS_DYNAMIC_CONFIG
+	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
+	struct sccp_global_vars	pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */	
 #endif
 };
 

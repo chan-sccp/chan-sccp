@@ -152,7 +152,7 @@ void sccp_device_addon_addnew(sccp_device_t * d, const char * addon_config_type)
 	a->type = addon_type;
 	a->device = d;
 	a->next = d->addons;
-	a->prev = NULL;
+//	a->prev = NULL;
 	
 	d->addons = a;
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Added addon (%d) taps on device type (%s)\n", (d->id?d->id:"SCCP"), a->type, d->config_type);
@@ -184,9 +184,11 @@ int sccp_device_addons_taps(sccp_device_t * d) {
 void sccp_device_addons_clear(sccp_device_t * d) {
 	sccp_addon_t * cur, * a = NULL;
 
-	if(!d->addons)
+	if(!d || !d->addons)
 		return;
 
+	sccp_device_lock(d);
+	
 	cur = d->addons;
 	do {				
 		a = cur->next;
@@ -196,7 +198,9 @@ void sccp_device_addons_clear(sccp_device_t * d) {
 			free(cur);
 		}
 		cur = a;
-	} while (cur);	
+	} while (cur);
+	
+	sccp_device_unlock(d);
 }
 
 char * sccp_device_addons_list(sccp_device_t * d) {	
