@@ -39,6 +39,9 @@
 #ifdef CS_SCCP_PARK
 #include <asterisk/features.h>
 #endif
+#ifdef CS_MANAGER_EVENTS
+#include <asterisk/manager.h>
+#endif
 #ifndef ast_free
 #define ast_free free
 #endif
@@ -483,6 +486,8 @@ void * sccp_channel_simpleswitch_thread(void * data) {
 		if(d)
 			sccp_log(4)(VERBOSE_PREFIX_2 "SCCP: (simpleswitch_thread)   Device: \"%s\"\n", (c->device->id ? c->device->id : "(null)"));
 	
+		sccp_channel_unlock(c);
+		
 		/* starting real processing */
 		return sccp_pbx_simpleswitch(c);
 	}
@@ -519,18 +524,22 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial, uint8_t call
 		return NULL;
 	}
 	
+	sccp_channel_lock(c);
+	
 	c->ss_action = SCCP_SS_DIAL; /* Simpleswitch will catch a number to be dialed */
 	c->ss_data = 0; // nothing to pass to action
 	
 	c->calltype = calltype;	
 	
 	sccp_channel_set_active(c);
-	sccp_indicate_lock(c, SCCP_CHANNELSTATE_OFFHOOK);
-
+	sccp_indicate_nolock(c, SCCP_CHANNELSTATE_OFFHOOK);
+	
 	/* copy the number to dial in the ast->exten */
 	if (dial)
 		sccp_copy_string(c->dialedNumber, dial, sizeof(c->dialedNumber));
-		
+
+	sccp_channel_unlock(c);
+	
 	/* ok the number exist. allocate the asterisk channel */
 	if (!sccp_pbx_channel_allocate(c)) {
 		ast_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", d->id, l->name);
@@ -576,7 +585,7 @@ void sccp_channel_answer(sccp_channel_t * c) {
 			return;
 	}
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Answer the channel %s-%08x\n", d->id, l->name, c->callid);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Answer the channel %s-%08x\n", (d)?DEV_ID_LOG(d):"SCCP", l->name, c->callid);
 	sccp_channel_set_active(c);
 	sccp_dev_set_activeline(c->line);
 	if (c->owner) {
@@ -670,6 +679,16 @@ int sccp_channel_hold(sccp_channel_t * c) {
 	sccp_device_unlock(d);
 	sccp_indicate_lock(c, SCCP_CHANNELSTATE_HOLD); // this will also close (but not destroy) the RTP stream
 
+#ifdef CS_MANAGER_EVENTS
+	if (GLOB(callevents))
+		manager_event(EVENT_FLAG_CALL, "Hold",
+			      "Status: On\r\n"
+			      "Channel: %s\r\n"
+			      "Uniqueid: %s\r\n",
+			      c->owner->name,
+			      c->owner->uniqueid);	
+#endif
+				  
 	return 1;
 }
 
@@ -744,7 +763,17 @@ int sccp_channel_resume(sccp_channel_t * c) {
 #endif
 	sccp_channel_set_active(c);
 	sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONNECTED); // this will also reopen the RTP stream
-	
+
+#ifdef CS_MANAGER_EVENTS
+	if (GLOB(callevents))
+		manager_event(EVENT_FLAG_CALL, "Hold",
+				  "Status: Off\r\n"
+				  "Channel: %s\r\n"
+				  "Uniqueid: %s\r\n",
+				  c->owner->name,
+				  c->owner->uniqueid);
+#endif
+					  
 	return 1;
 }
 

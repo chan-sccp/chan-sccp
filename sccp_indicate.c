@@ -29,9 +29,17 @@
 
 
 void sccp_indicate_lock(sccp_channel_t * c, uint8_t state) {
-	if (!c)
+
+	while (c && sccp_channel_trylock(c)) {
+		sccp_log(64)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		usleep(200);
+	}
+
+	if (!c) {
+		ast_log(LOG_ERROR, "SCCP: (sccp_indicate_lock) No channel to indicate.\n");
 		return;
-	sccp_channel_lock(c);
+	}
+	
 	sccp_indicate_nolock(c, state);
 	sccp_channel_unlock(c);
 }
@@ -42,7 +50,7 @@ void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 	uint8_t oldstate;
 
 	if (!c) {
-		ast_log(LOG_ERROR, "SCCP: No channel, nothing to indicate?\n");
+		ast_log(LOG_ERROR, "SCCP: (sccp_indicate_nolock) No channel to indicate.\n");
 		return;
 	}
 	if (!c->device) {

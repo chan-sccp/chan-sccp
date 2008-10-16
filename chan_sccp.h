@@ -175,13 +175,16 @@ struct sccp_hostname {
 	sccp_hostname_t *next;
 };
 
+#define SCCP_HINTSTATE_NOTINUSE		0
+#define SCCP_HINTSTATE_INUSE		1
 struct sccp_hint {
 	int hintid;
-	sccp_device_t  *device;
+	sccp_device_t *device;
 	uint8_t	instance;
 	char context[AST_MAX_CONTEXT];
 	char exten[AST_MAX_EXTENSION];
-	enum ast_extension_states state;
+	uint8_t state;
+	uint32_t callid;
 	sccp_hint_t *next;
 };
 
@@ -569,7 +572,9 @@ struct sccp_global_vars {
 	unsigned int				cfwdall:1;
 	unsigned int				cfwdbusy:1;
 	unsigned int				cfwdnoanswer:1;
-
+#ifdef CS_MANAGER_EVENTS
+	unsigned int				callevents:1;
+#endif
 #ifdef CS_SCCP_REALTIME
 	char 					realtimedevicetable[45];			/*< databasetable for sccp devices*/
 	char 					realtimelinetable[45];			/*< databasetable for sccp lines*/	
@@ -598,7 +603,7 @@ int sccp_devicestate(void *data);
 sccp_hint_t * sccp_hint_make(sccp_device_t *d, uint8_t instance);
 void sccp_hint_notify_devicestate(sccp_device_t * d, uint8_t state);
 void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * onedevice);
-void sccp_hint_notify_channelstate(sccp_device_t *d, uint8_t instance, sccp_channel_t * c);
+void sccp_hint_notify_channelstate(sccp_device_t * d, sccp_hint_t * h, sccp_channel_t * c);
 int sccp_hint_state(char *context, char* exten, enum ast_extension_states state, void *data);
 void sccp_hint_notify(sccp_channel_t *c, sccp_device_t * onedevice);
 

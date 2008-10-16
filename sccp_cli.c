@@ -230,6 +230,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "CFWDALL               : %s\n", (GLOB(cfwdall)) ? "Yes" : "No");
 	ast_cli(fd, "CFWBUSY               : %s\n", (GLOB(cfwdbusy)) ? "Yes" : "No");
 	ast_cli(fd, "CFWNOANSWER           : %s\n", (GLOB(cfwdnoanswer)) ? "Yes" : "No");
+	ast_cli(fd, "Call Events:          : %s\n", (GLOB(callevents)) ? "Yes" : "No");
 	ast_cli(fd, "DND                   : %s\n", GLOB(dndmode) ? sccp_dndmode2str(GLOB(dndmode)) : "Disabled");
 #ifdef CS_SCCP_PARK
 	ast_cli(fd, "Park                  : Enabled\n");

@@ -392,50 +392,63 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 			continue;
 		}
 
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: HINT notify state %d of the line '%s'\n", d->id, state, l->name);
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: (sccp_hint_notify_linestate) HINT notify state %d of the line '%s'\n", d->id, state, l->name);
+		
 		if (state == SCCP_DEVICESTATE_ONHOOK) {
+			usleep(100);
 			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, SKINNY_LAMP_OFF);
 			sccp_channel_set_callstate_full(d, h->instance, 0, SKINNY_CALLSTATE_ONHOOK);
+			if(h->state == SCCP_HINTSTATE_INUSE) {
+				sccp_dev_set_keyset(d, h->instance, h->callid, KEYMODE_ONHOOK); 
+				h->state = SCCP_HINTSTATE_NOTINUSE;
+			}
 			h = h->next;
 			continue;
 		}
 
 		REQ(r, CallInfoMessage);
 		switch (state) {
-		case SCCP_DEVICESTATE_UNAVAILABLE:
-			lamp = SKINNY_LAMP_ON;
-			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(r->msg.CallInfoMessage.callingPartyName));
-			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(r->msg.CallInfoMessage.calledPartyName));
-			break;
-		case SCCP_DEVICESTATE_DND:
-			lamp = SKINNY_LAMP_ON;
-			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_DND, sizeof(r->msg.CallInfoMessage.callingPartyName));
-			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_DND, sizeof(r->msg.CallInfoMessage.calledPartyName));
-			break;
-		case SCCP_DEVICESTATE_FWDALL:
-			lamp = SKINNY_LAMP_ON;
-			if (l->cfwd_type == SCCP_CFWD_ALL) {
-				memset(tmp, 0, sizeof(tmp));
-				strcat(tmp, SKINNY_DISP_FORWARDED_TO " ");
-				strcat(tmp, l->cfwd_num);
-				sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, tmp, sizeof(r->msg.CallInfoMessage.callingPartyName));
-				sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, tmp, sizeof(r->msg.CallInfoMessage.calledPartyName));
-			}
-			break;
-		default:
-			/* nothing to send */
-			free(r);
-			h = h->next;
-			continue;
+			case SCCP_DEVICESTATE_UNAVAILABLE:
+				lamp = SKINNY_LAMP_ON;
+				sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(r->msg.CallInfoMessage.callingPartyName));
+				sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(r->msg.CallInfoMessage.calledPartyName));
+				break;
+			case SCCP_DEVICESTATE_DND:
+				lamp = SKINNY_LAMP_ON;
+				sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_DND, sizeof(r->msg.CallInfoMessage.callingPartyName));
+				sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_DND, sizeof(r->msg.CallInfoMessage.calledPartyName));
+				break;
+			case SCCP_DEVICESTATE_FWDALL:
+				if (l->cfwd_type == SCCP_CFWD_ALL) {
+					lamp = SKINNY_LAMP_ON;
+					memset(tmp, 0, sizeof(tmp));
+					strcat(tmp, SKINNY_DISP_FORWARDED_TO " ");
+					strcat(tmp, l->cfwd_num);
+					sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, tmp, sizeof(r->msg.CallInfoMessage.callingPartyName));
+					sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, tmp, sizeof(r->msg.CallInfoMessage.calledPartyName));
+				}
+				break;
+			default:
+				/* nothing to send */
+				free(r);
+				h = h->next;
+				continue;
 		}
+		
 		sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, lamp);
 		sccp_channel_set_callstate_full(d, h->instance, 0, SKINNY_CALLSTATE_CALLREMOTEMULTILINE);
+		
 		/* sending CallInfoMessage */
 		r->msg.CallInfoMessage.lel_lineId = htolel(h->instance);
+		r->msg.CallInfoMessage.lel_callRef = htolel(0);
 		r->msg.CallInfoMessage.lel_callType = htolel(SKINNY_CALLTYPE_OUTBOUND);
 		sccp_dev_send(d, r);
-		sccp_dev_set_keyset(d, h->instance, 0, KEYMODE_INUSEHINT);
-
+		
+		if(h->state == SCCP_HINTSTATE_NOTINUSE) {
+			sccp_dev_set_keyset(d, h->instance, 0, KEYMODE_INUSEHINT);
+			h->callid = 0;
+		}
+		h->state = SCCP_HINTSTATE_INUSE;
 		h = h->next;
 	}
 
@@ -454,90 +467,95 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
  * 
  * 
  */
-void sccp_hint_notify_channelstate(sccp_device_t *d, uint8_t instance, sccp_channel_t * c) {
+void sccp_hint_notify_channelstate(sccp_device_t * d, sccp_hint_t * h, sccp_channel_t * c) {
 	sccp_moo_t * r;
 	uint8_t lamp = SKINNY_LAMP_OFF;
 
-	if (!d)
-		d = c->device;
-	if (!d)
-		return;
-	
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: HINT notify state %s (%d) of the channel %d \n", d->id, sccp_callstate2str(c->callstate), c->callstate, c->callid);
-
-	if (c->callstate == SKINNY_CALLSTATE_ONHOOK) {
-		sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_OFF);
-		sccp_channel_set_callstate_full(d, instance, c->callid, SKINNY_CALLSTATE_ONHOOK);
+	if (!d && c && c->line)
+		d = c->line->device;
+/*	
+	if (d && d != c->device)
+		sccp_log(10)(VERBOSE_PREFIX_2 "SCCP: (sccp_hint_notify_channelstate) DIFFERENT DEVICE\n");
+*/		
+	if (!d) {
+		sccp_log(10)(VERBOSE_PREFIX_2 "SCCP: (sccp_hint_notify_channelstate) NO DEVICE !!!!!\n");
 		return;
 	}
+	
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: (sccp_hint_notify_channelstate) HINT notify state %s (%d) of the channel %d \n", d->id, sccp_callstate2str(c->callstate), c->callstate, c->callid);
 
 	REQ(r, CallInfoMessage);
 	switch (c->callstate) {
-	case SKINNY_CALLSTATE_CONNECTED:
-		lamp = SKINNY_LAMP_ON;
-		if(d->privacy == 0 || (d->privacy == 1 && c->private == 0))
-		{
-			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, c->callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
-			sccp_copy_string(r->msg.CallInfoMessage.callingParty, c->callingPartyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
-			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, c->calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
-			sccp_copy_string(r->msg.CallInfoMessage.calledParty, c->calledPartyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
-		}
-		else
-		{
-			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_CONNECTED, sizeof(r->msg.CallInfoMessage.callingPartyName));
-			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_CONNECTED, sizeof(r->msg.CallInfoMessage.calledPartyName));
-		}
-		break;
-	case SKINNY_CALLSTATE_OFFHOOK:
-		lamp = SKINNY_LAMP_ON;		
-		sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_OFF_HOOK, sizeof(r->msg.CallInfoMessage.callingPartyName));
-		sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_OFF_HOOK, sizeof(r->msg.CallInfoMessage.calledPartyName));		
-		break;		
-	case SKINNY_CALLSTATE_RINGOUT:
-		lamp = SKINNY_LAMP_ON;
-		if(d->privacy == 0 || (d->privacy == 1 && c->private == 0))
-		{
-			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, c->callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
-			sccp_copy_string(r->msg.CallInfoMessage.callingParty, c->callingPartyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
-			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, c->calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
-			sccp_copy_string(r->msg.CallInfoMessage.calledParty, c->calledPartyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
-		}
-		else
-		{
-			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_RING_OUT, sizeof(r->msg.CallInfoMessage.callingPartyName));
-			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_RING_OUT, sizeof(r->msg.CallInfoMessage.calledPartyName));
-		}
-		break;
-	case SKINNY_CALLSTATE_RINGIN:
-		lamp = SKINNY_LAMP_BLINK;
-		if(d->privacy == 0 || (d->privacy == 1 && c->private == 0))
-		{
-			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, c->callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
-			sccp_copy_string(r->msg.CallInfoMessage.callingParty, c->callingPartyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
-			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, c->calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
-			sccp_copy_string(r->msg.CallInfoMessage.calledParty, c->calledPartyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
-		}
-		else
-		{
-			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_CALL_PROCEED, sizeof(r->msg.CallInfoMessage.callingPartyName));
-			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_CALL_PROCEED, sizeof(r->msg.CallInfoMessage.calledPartyName));
-		}
-		break;
-	default:
-		/* nothing to send */
-		free(r);
-		return;
+		case SKINNY_CALLSTATE_ONHOOK:
+			usleep(100);
+			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, SKINNY_LAMP_OFF);
+			sccp_channel_set_callstate_full(d, h->instance, c->callid, SKINNY_CALLSTATE_ONHOOK);
+			if(h->state == SCCP_HINTSTATE_INUSE) {
+				sccp_dev_set_keyset(d, h->instance, h->callid, KEYMODE_ONHOOK); 
+				h->state = SCCP_HINTSTATE_NOTINUSE;
+			}
+			return;
+		case SKINNY_CALLSTATE_CONNECTED:
+			lamp = SKINNY_LAMP_ON;
+			if(d->privacy == 0 || (d->privacy == 1 && c->private == 0)) {
+				sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, c->callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
+				sccp_copy_string(r->msg.CallInfoMessage.callingParty, c->callingPartyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
+				sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, c->calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
+				sccp_copy_string(r->msg.CallInfoMessage.calledParty, c->calledPartyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
+			} else {
+				sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_CONNECTED, sizeof(r->msg.CallInfoMessage.callingPartyName));
+				sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_CONNECTED, sizeof(r->msg.CallInfoMessage.calledPartyName));
+			}
+			break;
+		case SKINNY_CALLSTATE_OFFHOOK:
+			lamp = SKINNY_LAMP_ON;		
+			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_OFF_HOOK, sizeof(r->msg.CallInfoMessage.callingPartyName));
+			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_OFF_HOOK, sizeof(r->msg.CallInfoMessage.calledPartyName));		
+			break;		
+		case SKINNY_CALLSTATE_RINGOUT:
+			lamp = SKINNY_LAMP_ON;
+			if(d->privacy == 0 || (d->privacy == 1 && c->private == 0)) {
+				sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, c->callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
+				sccp_copy_string(r->msg.CallInfoMessage.callingParty, c->callingPartyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
+				sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, c->calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
+				sccp_copy_string(r->msg.CallInfoMessage.calledParty, c->calledPartyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
+			} else {
+				sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_RING_OUT, sizeof(r->msg.CallInfoMessage.callingPartyName));
+				sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_RING_OUT, sizeof(r->msg.CallInfoMessage.calledPartyName));
+			}
+			break;
+		case SKINNY_CALLSTATE_RINGIN:
+			lamp = SKINNY_LAMP_BLINK;
+			if(d->privacy == 0 || (d->privacy == 1 && c->private == 0)) {
+				sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, c->callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
+				sccp_copy_string(r->msg.CallInfoMessage.callingParty, c->callingPartyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
+				sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, c->calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
+				sccp_copy_string(r->msg.CallInfoMessage.calledParty, c->calledPartyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
+			} else {
+				sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_CALL_PROCEED, sizeof(r->msg.CallInfoMessage.callingPartyName));
+				sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_CALL_PROCEED, sizeof(r->msg.CallInfoMessage.calledPartyName));
+			}
+			break;
+		default:
+			/* nothing to send */
+			free(r);
+			return;
 	}
-	sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
-	sccp_channel_set_callstate_full(d, instance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE);
+	
+	sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, lamp /* SKINNY_LAMP_ON */) ;
+	sccp_channel_set_callstate_full(d, h->instance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE);
+	
 	/* sending CallInfoMessage */
-	r->msg.CallInfoMessage.lel_lineId   = htolel(instance);
+	r->msg.CallInfoMessage.lel_lineId   = htolel(h->instance);
 	r->msg.CallInfoMessage.lel_callRef  = htolel(c->callid);
 	r->msg.CallInfoMessage.lel_callType = htolel(c->calltype);
-
 	sccp_dev_send(d, r);
-//			sccp_dev_sendmsg(d, DeactivateCallPlaneMessage);
-	sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_INUSEHINT);
+	
+	if(h->state == SCCP_HINTSTATE_NOTINUSE) {
+		sccp_dev_set_keyset(d, h->instance, c->callid, KEYMODE_INUSEHINT);
+		h->callid = c->callid;
+	}
+	h->state = SCCP_HINTSTATE_INUSE;
 }
 
 /**
@@ -545,27 +563,23 @@ void sccp_hint_notify_channelstate(sccp_device_t *d, uint8_t instance, sccp_chan
  * 
  */
 void sccp_hint_notify(sccp_channel_t * c, sccp_device_t * onedevice) {
-	sccp_hint_t *h;
 	sccp_line_t *l = c->line;
+	sccp_hint_t *h = l->hints;
 	sccp_device_t *d;
 
-	h = l->hints;
 	if (!h)
 		return;
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: HINT notify the state of the line %s \n", l->name);
 
-	while (h) {
-		d = h->device;
-		if (!d || !d->session) {
-			h = h->next;
-			continue;
+	while (h) {		
+		d = h->device;		
+		if (d && d->session) {
+			sccp_hint_notify_channelstate(d, h, c);
+			
+			if (onedevice && d == onedevice)
+				break;
 		}
-		if (onedevice && d == onedevice) {
-			sccp_hint_notify_channelstate(d, h->instance, c);
-			break;
-		} else
-			sccp_hint_notify_channelstate(d, h->instance, c);
 		h = h->next;
 	}
 }
@@ -577,18 +591,24 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 	sccp_hint_t * h = data;
 	sccp_device_t *d;
 	sccp_moo_t * r;
+	
 	if (state == -1 || !h || !h->device || !h->device->session)
 		return 0;
 
 	d = h->device;
+	
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: (sccp_hint_state) HINT notify state %s (%d), instance %d\n", d->id, sccp_extensionstate2str(state), state, h->instance);
+	
 	REQ(r, CallInfoMessage);
-
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: HINT notify state %s (%d), instance %d\n", d->id, sccp_extensionstate2str(state), state, h->instance);
-	h->state = state;
 	switch(state) {
 		case AST_EXTENSION_NOT_INUSE:
+			usleep(100);
 			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, SKINNY_LAMP_OFF);
 			sccp_channel_set_callstate_full(d, h->instance, 0, SKINNY_CALLSTATE_ONHOOK);
+			if(h->state == SCCP_HINTSTATE_INUSE) {
+				sccp_dev_set_keyset(d, h->instance, h->callid, KEYMODE_ONHOOK); 
+				h->state = SCCP_HINTSTATE_NOTINUSE;
+			}
 			return 0;
 		case AST_EXTENSION_INUSE:
 			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, SKINNY_LAMP_ON);
@@ -648,9 +668,14 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 
 	r->msg.CallInfoMessage.lel_lineId   = htolel(h->instance);
 	r->msg.CallInfoMessage.lel_callRef  = htolel(0);
-	r->msg.CallInfoMessage.lel_callType = htolel(SKINNY_CALLTYPE_OUTBOUND);
-	sccp_dev_send(d, r);
-	sccp_dev_set_keyset(d, h->instance, 0, KEYMODE_INUSEHINT);
+	r->msg.CallInfoMessage.lel_callType = htolel(SKINNY_CALLTYPE_OUTBOUND);	
+	sccp_dev_send(d, r);	
+	
+	if(h->state == SCCP_HINTSTATE_NOTINUSE) {
+		sccp_dev_set_keyset(d, h->instance, 0, KEYMODE_INUSEHINT);
+		h->callid = 0;
+	}
+	h->state = SCCP_HINTSTATE_INUSE;
 	return 0;
 }
 
@@ -1529,6 +1554,10 @@ static int reload_config(void) {
 			GLOB(cfwdbusy) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "cfwdnoanswer")) {
 			GLOB(cfwdnoanswer) = sccp_true(v->value);			
+#ifdef CS_MANAGER_EVENTS
+		} else if (!strcasecmp(v->name, "callevents")) {
+			GLOB(callevents) = sccp_true(v->value);
+#endif			
 		} else if (!strcasecmp(v->name, "echocancel")) {
 			GLOB(echocancel) = sccp_true(v->value);
 #ifdef CS_SCCP_PICKUP
