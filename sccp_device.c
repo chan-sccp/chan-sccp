@@ -834,8 +834,10 @@ void * sccp_dev_postregistration(void *data) {
 	if (!d || !d->session)
 		return NULL;
 
-	sccp_safe_sleep(5000);
 	pthread_testcancel();
+	
+	sccp_safe_sleep(5000);
+	
 	sccp_device_lock(d);
 	
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Post registration process\n", d->id);
@@ -846,9 +848,11 @@ void * sccp_dev_postregistration(void *data) {
 	/* poll the state of the asterisk hints extensions and notify the state to the phone */
 	h = d->hints;
 	while (h) {
-		/* force the hint state for non SCCP (or mixed) devices */
-		state = ast_extension_state(NULL, h->context, h->exten);
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: %s@%s is on state %d\n", d->id, h->exten, h->context, state);
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: %s@%s is on state %d\n", (d->id?DEV_ID_LOG(d):"SCCP"), (h->exten?h->exten:"(null)"), (h->context?h->context:"(null)"), state);
+		if(h->context && h->exten) {
+			/* force the hint state for non SCCP (or mixed) devices */
+			state = ast_extension_state(NULL, h->context, h->exten);
+		}
 		if (state != AST_EXTENSION_NOT_INUSE)
 			sccp_hint_state(NULL, NULL, state, h);
 		h = h->next;

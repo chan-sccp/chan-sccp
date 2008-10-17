@@ -322,8 +322,11 @@ sccp_hint_t * sccp_hint_make(sccp_device_t *d, uint8_t instance) {
 	
 	h = malloc(sizeof(sccp_hint_t));
 	if (h) {			
+		memset(h, 0x0, sizeof(sccp_hint_t)); // cleaning the hint -FS (SVN349)
 		h->device = d;
 		h->instance = instance;
+		// SVN 349
+		h->hintid = 0;
 		// SVN 347
 		h->callid = 0;
 		h->state = SCCP_HINTSTATE_NOTINUSE;
