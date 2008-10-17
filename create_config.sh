@@ -123,6 +123,13 @@ then
 	echo "#define CS_MANAGER_EVENTS"  >>$CONFIGFILE
 fi
 
+echo -n "Debug SCCP indications (y/n)[n]?"
+read key
+if [ "$key" = "y" ]
+then
+	echo "#define CS_DEBUG_INDICATIONS"  >>$CONFIGFILE
+fi
+
 if [ "$REALTIME_USEABLE" = "1" ]
 then
 	if grep -q "#define DEBUG_CHANNEL_LOCKS" $INCLUDEDIR/buildopts.h; then
