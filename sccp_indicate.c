@@ -27,8 +27,17 @@
 #include "sccp_utils.h"
 #include "sccp_features.h"
 
+void sccp_indicate_debug(int mode, char * file, int line, const char * pretty_function, sccp_channel_t * c, uint8_t state) {
+	sccp_log(93)(VERBOSE_PREFIX_1 "SCCP: [INDICATE] mode '%s' in file '%s', on line %d (%s)\n", (mode == SCCP_INDICATE_LOCK ? "LOCK" : "UNLOCK") , file, line, pretty_function);
+	if(mode == SCCP_INDICATE_LOCK) {
+		__sccp_indicate_lock(c, state);
+	}
+	else {
+		__sccp_indicate_nolock(c, state);
+	}
+}
 
-void sccp_indicate_lock(sccp_channel_t * c, uint8_t state) {
+void __sccp_indicate_lock(sccp_channel_t * c, uint8_t state) {
 
 	while (c && sccp_channel_trylock(c)) {
 		sccp_log(64)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -40,11 +49,11 @@ void sccp_indicate_lock(sccp_channel_t * c, uint8_t state) {
 		return;
 	}
 	
-	sccp_indicate_nolock(c, state);
+	__sccp_indicate_nolock(c, state);
 	sccp_channel_unlock(c);
 }
 
-void sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
+void __sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 	sccp_device_t * d;
 	sccp_line_t * l;
 	uint8_t oldstate;
