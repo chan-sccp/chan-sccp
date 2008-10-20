@@ -203,8 +203,10 @@ void __sccp_indicate_nolock(sccp_channel_t * c, uint8_t state) {
 		} else if(c->rtp) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: (for debug purposes) did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_indicate2str(oldstate));
 		}
-		/* asterisk wants rtp open before AST_STATE_UP */
-		sccp_ast_setstate(c, AST_STATE_UP);
+		/* asterisk wants rtp open before AST_STATE_UP
+		  * so we set it in OPEN_CHANNEL_ACK in sccp_actions.c.
+		  */
+		// sccp_ast_setstate(c, AST_STATE_UP);
 		break;
 	case SCCP_CHANNELSTATE_BUSY:
 		/* it will be emulated if the rtp audio stream is open */

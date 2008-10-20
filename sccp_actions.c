@@ -1642,6 +1642,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r) {
 #else
 			sccp_log(66)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 			ast_rtp_set_peer(c->rtp, &sin);
+			sccp_ast_setstate(c, AST_STATE_UP);
 #endif
 		} else {
 #ifdef ASTERISK_CONF_1_2
@@ -1649,11 +1650,12 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r) {
 #else
 			ast_log(LOG_ERROR,  "%s: Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 #endif
+			sccp_channel_endcall(c); // FS - 350
 		}
 		sccp_channel_unlock(c);
 	} else {
 		ast_log(LOG_ERROR, "%s: No channel with this PassThruId!\n", d->id);
-	}
+	}	
 }
 
 /**
