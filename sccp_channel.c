@@ -74,13 +74,13 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l) {
 	}
 
 	c = malloc(sizeof(sccp_channel_t));
-	
 	if (!c) {
 		/* error allocating memory */
 		ast_log(LOG_ERROR, "%s: No memory to allocate channel on line %s\n",d->id, l->name);
 		return NULL;
 	}
-		memset(c, 0, sizeof(sccp_channel_t));
+
+	memset(c, 0, sizeof(sccp_channel_t));
 	
 	sccp_mutex_init(&c->lock);
 
