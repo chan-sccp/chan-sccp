@@ -14,3 +14,26 @@ Asterisk 1.6
 				    -- Hungup 'IAX2/asterisk01-5943' 
 				    
 	- no hangup after invalide number -> channel looked
+	- speeddials on 7971 with 7914
+			configured as:
+				speeddial = 41,user1,30@hint
+				speeddial = 42,user2
+				speeddial = 74721,user1IP,74721@hint
+				speeddial = 23,admin3,23@hint
+				speeddial = 22,admin2,22@hint
+				
+			cli output
+				Speedials
+				id  : name                 number
+				------------------------------------
+				   0: user1                41
+				   0: user2                42
+				   0: user1IP              74721
+				   0: admin3	           23
+				   0: admin2               22
+				   
+		
+			if i added an empty speeddial before id is correct, but empty speeddial is not print out
+	- 7971 + 7914 
+		speeddials will not displayed on 7914, cause: just 8 buttons will used for calculating size
+								
