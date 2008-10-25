@@ -1,11 +1,16 @@
+known problems on
 
-on Asterisk 1.2
-	- blind transfer crashes asterisk (sometimes)
-
-both
-	- on 7971 and protocoll version 5 -> phone does not stop ringing
-	- voicemailbutton is verschwindibus ;)	
-	- remove dirTrans button
-	- saving custom dnd-status
-	- see https://sourceforge.net/tracker/index.php?func=detail&aid=1639174&group_id=186378&atid=917045
-	- dnd per line
+Asterisk 1.6
+	- redial after MeetMe does not work
+	- select softkey is deactivated after first select
+	- iDivert on non existing extension causes channel to hang in look 
+		DEBUG:
+	
+					-- Now forwarding IAX2/asterisk01-5943 to 'Local/*86*1234@testUser' (thanks to SCCP/marcello-00000001)
+				[Oct 25 13:43:01] WARNING[3515]: chan_iax2.c:11315 find_cache: Timeout waiting for asterisk01/testUser exten *86*1234@testUser
+				[Oct 25 13:43:01] NOTICE[3515]: chan_local.c:625 local_alloc: No such extension/context *86*1234@testUser creating local channel
+				[Oct 25 13:43:01] NOTICE[3515]: app_dial.c:503 do_forward: Unable to create local channel for call forward to 'Local/*86*1234@testUser' (cause = 0)
+				  == Spawn extension (users, marcello, 2) exited non-zero on 'IAX2/asterisk01-5943'
+				    -- Hungup 'IAX2/asterisk01-5943' 
+				    
+	- no hangup after invalide number -> channel looked
