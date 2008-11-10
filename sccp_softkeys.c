@@ -201,12 +201,12 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		return;
 	if (c->state != SCCP_CHANNELSTATE_DIALING)
 		return;
-	sccp_mutex_lock(&c->lock);
+	sccp_channel_lock(c);
 	len = strlen(c->dialedNumber)-1;
 	if (len >= 0)
 		c->dialedNumber[len] = '\0';
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: backspacing dial number %s\n", c->device->id, c->dialedNumber);
-	sccp_mutex_unlock(&c->lock);
+	sccp_channel_unlock(c);
 }
 
 void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
@@ -227,11 +227,11 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	
 	if(!d)
 		return;
-	sccp_mutex_lock(&d->lock);
+
+	sccp_device_lock(d);
 	s = d->selectedChannels;
-	if(!s)
-	{
-		sccp_mutex_unlock(&d->lock);
+	if(!s) {
+		sccp_device_unlock(d);
 		return;
 	}
 	
@@ -252,19 +252,19 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 			chan2 = tmp;
 		} else if (chan1->state == SCCP_CHANNELSTATE_HOLD && chan2->state == SCCP_CHANNELSTATE_HOLD){
 			//resume chan2 if both channels are on hold
-			sccp_mutex_unlock(&d->lock);
+			sccp_device_unlock(d);
 			sccp_channel_resume(chan2);
-			sccp_mutex_lock(&d->lock);
+			sccp_device_lock(d);
 		}
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: State of chan1 is: %d\n", d->id, chan1->state);
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: State of chan2 is: %d\n", d->id, chan2->state);
 		d->transfer_channel = chan1;
 
-		sccp_mutex_unlock(&d->lock);
+		sccp_device_unlock(d);
 		sccp_channel_transfer_complete(chan2);
 	}else{
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: We need 2 channels to transfer\n", d->id);
-		sccp_mutex_unlock(&d->lock);
+		sccp_device_unlock(d);
 	}
 }
 

@@ -30,6 +30,34 @@
 #include <asterisk/channel_pvt.h>
 #endif
 
+/* sometimes happens strange things... */
+int sccp_channel_exists(sccp_channel_t * c) {
+	sccp_channel_t * tmp = NULL;
+	int res = 0;
+	
+	if(!c)
+		return res;
+		
+	while(sccp_globals_trylock(channels_lock)) {
+		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		usleep(200);
+	}
+	
+	// here we parse global channels
+	tmp = GLOB(channels);
+	while (tmp) {
+		if (tmp == c) { // found... what we do ?
+			res = 1;
+			break;
+		}
+		tmp = tmp->next;
+	}
+
+	sccp_globals_unlock(channels_lock);
+	
+	return res;
+}
+
 static int isPrintableChar(char c) {
 	if ((c < 'A' || c > 'Z') && (c < 'a' || c > 'z')
 			&& (c < '0' || c > '9') && (c != ' ') && (c != '\'')
@@ -606,23 +634,27 @@ sccp_channel_t * sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t 
 		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		usleep(200);
 	}
+
+	c = l->channels;
+	
+	sccp_line_unlock(l);	
 	
 	while(sccp_globals_trylock(channels_lock)) {
 		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
-		sccp_line_unlock(l);
+		// sccp_line_unlock(l);
 		usleep(200);
-		sccp_line_lock(l);
+		// sccp_line_lock(l);
 	}
 	
-	c = l->channels;
 	while (c) {
+		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		if (c->callstate == state)
 			break;
 		c = c->next_on_line;
 	}
 	
 	sccp_globals_unlock(channels_lock);
-	sccp_line_unlock(l);
+
 	
 	if (c)
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d) with state \"%s\" (%d) on line %s\n", DEV_ID_LOG(l->device), c->callid, sccp_callstate2str(state), state, l->name);
@@ -639,11 +671,12 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 	
 //	sccp_mutex_lock(&d->lock);
 // 	sccp_globals_lock(channels_lock);
+
 	while(sccp_device_trylock(d)) {
 		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		usleep(200);
 	}
-	
+/*	
 	// while(sccp_globals_trylock(channels_lock)) {
 	while(sccp_globals_trylock(lines_lock)) {
 		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -651,8 +684,11 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 		usleep(200);
 		sccp_device_lock(d);
 	}
-
+*/
 	l = d->lines;
+	// -FS SVN 351
+	sccp_device_unlock(d);
+
 	while (l) {
 		c = sccp_channel_find_bystate_on_line(l, state);
 		/*
@@ -667,8 +703,10 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 			break;
 		l = l->next_on_device;
 	}	
+/*	
 	sccp_globals_unlock(lines_lock);	
 	sccp_device_unlock(d);	
+*/
 	if (c)
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d) with state \"%s\" (%d) on device\n", d->id, c->callid, sccp_indicate2str(state), state);
 	return c;

@@ -287,19 +287,21 @@ int sccp_devicestate(void * data) {
 	else if (!l->device)
 		res = AST_DEVICE_UNAVAILABLE;
 	else if ((l->device->dnd && l->device->dndmode == SCCP_DNDMODE_REJECT) || (l->dnd && (l->dndmode == SCCP_DNDMODE_REJECT || (l->dndmode == SCCP_DNDMODE_USERDEFINED && l->dnd == SCCP_DNDMODE_REJECT) )) )
-			res = AST_DEVICE_BUSY;
+		res = AST_DEVICE_BUSY;
+	else if (l->incominglimit && l->channelCount == l->incominglimit)
+		res = AST_DEVICE_BUSY;
 	else if (!l->channelCount)
-		res = AST_DEVICE_NOT_INUSE;
+		res = AST_DEVICE_NOT_INUSE;		
 #ifdef CS_AST_DEVICE_RINGING
-	else if (sccp_channel_find_bystate_on_device(l->device, SCCP_CHANNELSTATE_RINGING))
+	else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING))
 		res = AST_DEVICE_RINGING;
 #endif
 #ifdef CS_AST_DEVICE_RINGINUSE
-	else if (sccp_channel_find_bystate_on_device(l->device, SCCP_CHANNELSTATE_RINGING) && sccp_channel_find_bystate_on_device(l->device, SCCP_CHANNELSTATE_CONNECTED))
+	else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING) && sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))
 		res = AST_DEVICE_RINGINUSE;
 #endif
 #ifdef CS_AST_DEVICE_ONHOLD
-	else if (sccp_channel_find_bystate_on_device(l->device, SCCP_CHANNELSTATE_HOLD))
+	else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))
 		res = AST_DEVICE_ONHOLD;
 #endif
 	else

@@ -155,6 +155,8 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		return -1;
 	}
 
+	// sccp_channel_lock(c);
+	
 	l = c->line;
 	d = l->device;
 	s = d->session;
@@ -167,7 +169,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Asterisk request to call %s\n", d->id, ast->name);
 
 
-	sccp_mutex_lock(&d->lock);
+	sccp_device_lock(d);
 
 	/* DND handling*/
 	if (d->dnd) {
@@ -183,7 +185,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 				else
 				{
                     /* rejecting call as not urgent */
-        			sccp_mutex_unlock(&d->lock);
+					sccp_device_unlock(d);
         			ast_setstate(ast, AST_STATE_BUSY);
         			ast_queue_control(ast, AST_CONTROL_BUSY);
         			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Unurgent call with DND activated. Rejecting %s\n", d->id, ast->name);
@@ -206,7 +208,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	}
 
 	//handle DND on lines
-	sccp_mutex_lock(&l->lock);
+	sccp_line_lock(l);
 	if (1) {
 		if (l->dndmode == SCCP_DNDMODE_REJECT || (l->dndmode == SCCP_DNDMODE_USERDEFINED && l->dnd == SCCP_DNDMODE_REJECT )) {
 			ringermode = pbx_builtin_getvar_helper(ast, "ALERT_INFO");
@@ -229,20 +231,20 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND (silent) for line \"%s\" is on. Set the ringer = silent and autoanswer = off for %s\n", d->id, l->name, ast->name);
 		}
 	}
-	sccp_mutex_unlock(&l->lock);
+	sccp_line_unlock(l);
 	//end DND handling
 
 	/* if incoming call limit is reached send BUSY */
-	sccp_mutex_lock(&l->lock);
-	if ( l->channelCount > l->incominglimit ) { /* >= just to be sure :-) */
+	sccp_mutex_lock(l);
+	if (l->channelCount > l->incominglimit) { /* >= just to be sure :-) */
 		sccp_log(1)(VERBOSE_PREFIX_3 "Incoming calls limit (%d) reached on SCCP/%s... sending busy\n", l->incominglimit, l->name);
-		sccp_mutex_unlock(&l->lock);
-		sccp_mutex_unlock(&d->lock);
+		sccp_line_unlock(l);
+		sccp_device_unlock(d);
 		ast_setstate(ast, AST_STATE_BUSY);
 		ast_queue_control(ast, AST_CONTROL_BUSY);
 		return 0;
 	}
-	sccp_mutex_unlock(&l->lock);
+	sccp_line_unlock(l);
 
 	/* autoanswer check */
 	if (c->autoanswer_type) {
@@ -258,14 +260,14 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 						ast_queue_control(ast, AST_CONTROL_BUSY);
 						break;
 				}
-				sccp_mutex_unlock(&d->lock);
+				sccp_device_unlock(d);
 				return 0;
 			}
 		} else {
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Autoanswer requested and activated %s\n", d->id, (c->autoanswer_type == SCCP_AUTOANSWER_1W) ? "with MIC OFF" : "with MIC ON");
 		}
 	}
-	sccp_mutex_unlock(&d->lock);
+	sccp_device_unlock(d);
 
   /* Set the channel callingParty Name and Number */
 #ifdef CS_AST_CHANNEL_HAS_CID
@@ -355,7 +357,7 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 	sccp_channel_t * c;
 	sccp_line_t    * l = NULL;
 	sccp_device_t  * d = NULL;
-
+	int pendingdelete = 0;
 	/* here the ast channel is locked */
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Asterisk request to hangup channel %s\n", ast->name);
 
@@ -376,7 +378,8 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 
 	if (!c) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Asked to hangup channel %s. SCCP channel already deleted\n", ast->name);
-		goto OUT;
+		sccp_pbx_needcheckringback(d);
+		return 0;
 	}
 
 	CS_AST_CHANNEL_PVT(ast) = NULL;
@@ -395,35 +398,49 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 
 	sccp_channel_send_callinfo(c);
 
-	if (c->state != SCCP_CHANNELSTATE_DOWN) {
-		/* we are in a passive hangup */
-		if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_channel_get_active(d))
-			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
-		sccp_indicate_nolock(c, SCCP_CHANNELSTATE_ONHOOK);
+	switch(c->state) {	
+		case SCCP_CHANNELSTATE_DOWN:
+			break;
+		case SCCP_CHANNELSTATE_GETDIGITS:
+		case SCCP_CHANNELSTATE_OFFHOOK:
+		// case SCCP_CHANNELSTATE_DIALING:
+			if(!c->pendingDelete) {
+				pendingdelete = 1;
+				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Current channel %s-%08x is pending delete\n", DEV_ID_LOG(d), l ? l->name : "(null)", c->callid);
+			}
+		default:
+			/* we are in a passive hangup */
+			if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_channel_get_active(d))
+				sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
+			sccp_indicate_nolock(c, SCCP_CHANNELSTATE_ONHOOK);
+			break;
 	}
 
+	sccp_channel_unlock(c);
+	
 	if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && !c->hangupok) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Waiting for the dialing thread to go down on channel %s\n", DEV_ID_LOG(d), ast->name);
 		while(!c->hangupok) {
 			sccp_log(64)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
-			sccp_channel_unlock(c);
 			usleep(200);
-			sccp_channel_lock(c);
 		}
 	}
 
-	sccp_channel_unlock(c);
-	sccp_channel_delete(c);
+	if(!pendingdelete) {
+		sccp_channel_delete(c);
+		sccp_pbx_needcheckringback(d);
+	}
+	
+	return 0;
+}
 
-OUT:
-
-	if (d && d->session) {
+void sccp_pbx_needcheckringback(sccp_device_t * d) {
+	
+	if (d && d->session) {	
 		sccp_session_lock(d->session);
 		d->session->needcheckringback = 1;
 		sccp_session_unlock(d->session);
 	}
-
-	return 0;
 }
 
 static int sccp_pbx_answer(struct ast_channel *ast) {
@@ -969,21 +986,14 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 
 	sccp_line_t * l;
 	sccp_device_t * d;
-	uint8_t res_exten = 0, res_wait = 0, res_timeout = 0;
+	uint8_t res_exten = 0, res_wait = 0, res_timeout = 0, private_tmp = 0;
 	char shortenedNumber[256] = { '\0' }; /* For recording the digittimeoutchar */
 
     if (!c) {
 		ast_log(LOG_ERROR, "SCCP: (sccp_pbx_simpleswitch) No <channel> available. Returning from dial thread.\n");
 		return NULL;
     }
-/*
-	if (!ast_test_flag(chan, AST_FLAG_ZOMBIE)) {
-		ast_log(LOG_ERROR, "SCCP: (sccp_pbx_simpleswitch) Asterisk <channel> marked as 'ZOMBIE'. Returning from dial thread.\n");
-		if (chan)
-			ast_hangup(chan);
-		return NULL;
-	}
-*/	
+
 	/* channel is here, so locking it */
 	sccp_channel_lock(c);
 
@@ -1025,6 +1035,7 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 	}
 	
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: New call on line %s\n", DEV_ID_LOG(d), l->name);	
+	
 	/* assign callerid name and number */
 	sccp_channel_set_callingparty(c, l->cid_name, l->cid_num);
 
@@ -1043,21 +1054,22 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 		}
 		else
 			strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-0);
-	} else {
-		/* we have to collect the number */
-
+	} else { /* we have to collect the number */
 		/* the phone is on TsOffHook state */
 		sccp_log(10)( VERBOSE_PREFIX_3 "%s: Waiting the user dial an extension on channel %s-%08x\n", DEV_ID_LOG(d), l->name, c->callid);
 
 		/* let's use the keypad to collect digits */
 		c->digittimeout = time(0)+GLOB(firstdigittimeout);
 
+		/* delegate the hangup function to delete channel */
+		c->pendingDelete = 1;
+		
 		sccp_channel_unlock(c);
 
 		pthread_testcancel();
-
 		res_exten = 1;
-
+		
+		
 		do {
 			sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 			usleep(100);
@@ -1088,21 +1100,27 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 		} while (!res_wait && res_exten && res_timeout);
 
 		sccp_channel_lock(c);
+		
 		if (res_wait != 0) {
 			if(c->calltype != SKINNY_CALLTYPE_OUTBOUND) {
-				sccp_log(1)(VERBOSE_PREFIX_3 "%s: (simpleswitch) Leaving the dial thread for PICKUP\n", (d)?DEV_ID_LOG(d):"(null)");
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: (simpleswitch) Leaving the dial thread for PICKUP\n", DEV_ID_LOG(d));
 			}
 			else if(chan->_softhangup) {
-				sccp_log(1)(VERBOSE_PREFIX_3 "%s: (simpleswitch) Leaving the dial thread cause SOFTHANGUP\n", (d)?DEV_ID_LOG(d):"(null)");
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: (simpleswitch) Leaving the dial thread cause SOFTHANGUP\n", DEV_ID_LOG(d));
 			}
 			else {
-				sccp_log(1)(VERBOSE_PREFIX_3 "%s: (simpleswitch) Leaving the dial thread on state: SCCP (%s) - ASTERISK (%s)\n", (d)?DEV_ID_LOG(d):"(null)", (c)?sccp_indicate2str(c->state):"(null)", (chan)?ast_state2str(chan->_state):"(null)");
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: (simpleswitch) Leaving the dial thread on state: SCCP (%s) - ASTERISK (%s)\n", DEV_ID_LOG(d), (c)?sccp_indicate2str(c->state):"(null)", (chan)?ast_state2str(chan->_state):"(null)");
 			}
 			c->hangupok = 1;
+			c->state = SCCP_CHANNELSTATE_DOWN;
+			// sccp_channel_delete_wo(c, 1, 0);
 			sccp_channel_unlock(c);
 			return NULL;
 		}
 
+		/* manually delete the channel */
+		c->pendingDelete = 0;
+		
 		if(GLOB(recorddigittimeoutchar)) {
 			if(strlen(c->dialedNumber) > 0 && strlen(c->dialedNumber) < 255 && '#' == c->dialedNumber[strlen(c->dialedNumber)-1])
 				strncpy(shortenedNumber, c->dialedNumber, strlen(c->dialedNumber)-1);
@@ -1146,6 +1164,7 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 				}
 				else {
 					// without a number we can also close the call. Isn't it true ?
+					c->hangupok = 1;
 					sccp_channel_unlock(c);
 					sccp_channel_endcall(c);
 				}
@@ -1180,15 +1199,12 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 					sccp_channel_unlock(c);
 					if(sccp_feat_barge(c, shortenedNumber)) {
 						sccp_indicate_lock(c, SCCP_CHANNELSTATE_INVALIDNUMBER);
-					}
-					
+					}			
 				} else {
 					// without a number we can also close the call. Isn't it true ?
 					c->hangupok = 1;
 					sccp_channel_unlock(c);
 					sccp_channel_endcall(c);
-					// usleep(200); // this is needed as main thread should wait sccp_channel_endcall do his work.
-					// sccp_indicate_lock(c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 				}
 				return NULL; // leave simpleswitch without dial
 			case SCCP_SS_GETCBARGEROOM:
@@ -1207,11 +1223,9 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 					}
 				} else {
 					// without a number we can also close the call. Isn't it true ?
-					c->hangupok = 1;					
+					c->hangupok = 1;
 					sccp_channel_unlock(c);
 					sccp_channel_endcall(c);
-					// usleep(200); // this is needed as main thread should wait sccp_channel_endcall do his work.
-					// sccp_indicate_lock(c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 				}
 				return NULL; // leave simpleswitch without dial
 			case SCCP_SS_DIAL:
@@ -1220,6 +1234,7 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 		}
 	}
 
+	private_tmp = c->private; // we copy private to prevent segfault as we unlock channel ! -FS
 	c->hangupok = 1;
 	sccp_channel_unlock(c);
 
@@ -1245,11 +1260,23 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 
 	/* set private variable */
 	if (chan) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: set variable SKINNY_PRIVATE to: %s\n", c->private ? "1" : "0");
-		pbx_builtin_setvar_helper(chan, "SKINNY_PRIVATE", c->private ? "1" : "0");
+		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: set variable SKINNY_PRIVATE to: %s\n", private_tmp ? "1" : "0");
+		pbx_builtin_setvar_helper(chan, "SKINNY_PRIVATE", private_tmp ? "1" : "0");
 	}
 
-	sccp_channel_lock(c);
+	/* locking channel again */
+	while(sccp_channel_trylock(c)) {
+		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);		
+		usleep(200);
+	}
+
+	if (c->state == SCCP_CHANNELSTATE_DOWN || c->state == SCCP_CHANNELSTATE_ONHOOK) {
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: channel %s-%08X is pending delete\n", DEV_ID_LOG(d), l->name, c->callid);
+		sccp_channel_delete_wo(c, 1, 0);
+		sccp_pbx_needcheckringback(d);
+		return NULL;
+	}
+	
 	sccp_copy_string(chan->exten, shortenedNumber, sizeof(chan->exten));
 	sccp_copy_string(d->lastNumber, c->dialedNumber, sizeof(d->lastNumber));
 	sccp_channel_set_calledparty(c, c->dialedNumber, shortenedNumber);
@@ -1262,11 +1289,11 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 	sccp_dev_clearprompt(d, c->line->instance, c->callid);
 	sccp_dev_displayprompt(d, c->line->instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 	sccp_channel_unlock(c);
-
+	
 	if (!ast_strlen_zero(shortenedNumber)
 			&& ast_exists_extension(chan, chan->context, shortenedNumber, 1, l->cid_num) ) {
 		/* found an extension, let's dial it */
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: channel %s-%08x is dialing number %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
+		sccp_log(10)(VERBOSE_PREFIX_1 "[SCCP] %s: channel %s-%08x is dialing number %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 		/* Answer dialplan command works only when in RINGING OR RING ast_state */
 		sccp_ast_setstate(c, AST_STATE_RING);
 		if (ast_pbx_run(chan)) {
@@ -1276,7 +1303,8 @@ void * sccp_pbx_simpleswitch(sccp_channel_t * c) {
 		/* timeout and no extension match */
 		sccp_indicate_lock(c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 	}
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: return from the startchannel on exit\n", DEV_ID_LOG(d));
+
+	sccp_log(10)(VERBOSE_PREFIX_1 "[SCCP] %s: return from the startchannel on exit\n", DEV_ID_LOG(d));
 	return NULL;
 }
 

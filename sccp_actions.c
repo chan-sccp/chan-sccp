@@ -1028,8 +1028,8 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r) {
 
 	if (!d->lines) {
     	ast_log(LOG_NOTICE, "No lines registered on %s for take OffHook\n", s->device->id);
-    	sccp_dev_displayprompt(d, 0, 0, "No lines registered!", 0);
-    	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
+    	// sccp_dev_displayprompt(d, 0, 0, "No lines registered!", 0);
+    	// sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
     	return;
     }
 
@@ -1624,7 +1624,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r) {
 #endif
 	if (status) {
 		/* rtp error from the phone */
-		ast_log(LOG_ERROR, "%s: OpenReceiveChannelAck error from the phone! No rtp media available\n", d->id);
+		ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available\n", d->id, status);
 		return;
 	}
 	

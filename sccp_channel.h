@@ -18,8 +18,9 @@ void sccp_channel_endcall(sccp_channel_t * c);
 void sccp_channel_StatisticsRequest(sccp_channel_t * c);
 sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial, uint8_t calltype);
 void sccp_channel_answer(sccp_channel_t * c);
-void sccp_channel_delete(sccp_channel_t * c);
-void sccp_channel_delete_no_lock(sccp_channel_t * c);
+void sccp_channel_delete_wo(sccp_channel_t * c, uint8_t list_lock, uint8_t channel_lock);
+#define sccp_channel_delete(x) sccp_channel_delete_wo(x, 1, 1)
+#define sccp_channel_delete_no_lock(x) sccp_channel_delete_wo(x, 0, 1)
 int sccp_channel_hold(sccp_channel_t * c);
 int sccp_channel_resume(sccp_channel_t * c);
 void sccp_channel_start_rtp(sccp_channel_t * c);
