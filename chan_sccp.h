@@ -514,10 +514,10 @@ struct sccp_channel {
 	
 	uint8_t		ss_action; /* simple switch action, this is used in dial thread to collect numbers for callforward, pickup and so on -FS*/
 	uint8_t		ss_data; /* simple switch integer param */
-#ifdef CS_DYNAMIC_CONFIG
+// #ifdef CS_DYNAMIC_CONFIG
 	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-	sccp_channel_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */	
-#endif	
+//	sccp_channel_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */	
+//#endif	
 };
 
 struct sccp_global_vars {

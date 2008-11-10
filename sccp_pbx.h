@@ -11,6 +11,8 @@ void start_rtp(sccp_channel_t * sub);
 const struct ast_channel_tech sccp_tech;
 #endif
 
+void sccp_pbx_needcheckringback(sccp_device_t * d);
+
 void sccp_pbx_senddigit(sccp_channel_t * c, char digit);
 void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]);
 void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f);

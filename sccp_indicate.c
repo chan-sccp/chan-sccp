@@ -39,8 +39,13 @@ void sccp_indicate_debug(int mode, char * file, int line, const char * pretty_fu
 
 void __sccp_indicate_lock(sccp_channel_t * c, uint8_t state) {
 
+/*
+	if(!sccp_channel_exists(c)) 
+		c = NULL;
+*/
+
 	while (c && sccp_channel_trylock(c)) {
-		sccp_log(64)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		usleep(200);
 	}
 

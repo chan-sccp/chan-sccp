@@ -310,11 +310,11 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c) {
 	/* create the rtp stuff. It must be create before setting the channel AST_STATE_UP. otherwise no audio will be played */
 	sccp_log(65)(VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", c->line->device->id, c->callid, skinny_codec2str(payloadType), c->line->echocancel ? "ON" : "OFF");
 	if (!c->rtp) {
-		sccp_log(65)(VERBOSE_PREFIX_3 "%s: Starting RTP on channel %s-%08x\n", DEV_ID_LOG(c->device), c->line->name, c->callid);
+		sccp_log(65)(VERBOSE_PREFIX_3 "%s: Starting RTP on channel %s-%08X\n", DEV_ID_LOG(c->device), c->line->name, c->callid);
 		sccp_channel_start_rtp(c);
 	}
 	if (!c->rtp) {
-		ast_log(LOG_WARNING, "%s: Error opening RTP for channel %s-%08x\n", DEV_ID_LOG(c->device), c->line->name, c->callid);
+		ast_log(LOG_WARNING, "%s: Error opening RTP for channel %s-%08X\n", DEV_ID_LOG(c->device), c->line->name, c->callid);
 		sccp_dev_starttone(c->line->device, SKINNY_TONE_REORDERTONE, c->line->instance, c->callid, 0);
 	}
 }
@@ -330,7 +330,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c) {
 #endif
 
 	if (!c->rtp) {
-		sccp_log(66)(VERBOSE_PREFIX_3 "%s: can't start rtp media transmission, maybe channel is down %s-%08x\n", c->device->id, c->line->name, c->callid);
+		sccp_log(66)(VERBOSE_PREFIX_3 "%s: can't start rtp media transmission, maybe channel is down %s-%08X\n", c->device->id, c->line->name, c->callid);
 		return;
 	}
 
@@ -558,7 +558,7 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, char * dial, uint8_t call
 
 	/* let's call it */
 	if (ast_pthread_create(&t, &attr, sccp_channel_simpleswitch_thread, c)) {
-		ast_log(LOG_WARNING, "%s: Unable to create switch thread for channel (%s-%08x) %s\n", d->id, l->name, c->callid, strerror(errno));
+		ast_log(LOG_WARNING, "%s: Unable to create switch thread for channel (%s-%08X) %s\n", d->id, l->name, c->callid, strerror(errno));
 		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CONGESTION);
 	}
 
@@ -585,7 +585,7 @@ void sccp_channel_answer(sccp_channel_t * c) {
 			return;
 	}
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Answer the channel %s-%08x\n", (d)?DEV_ID_LOG(d):"SCCP", l->name, c->callid);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Answer the channel %s-%08X\n", (d)?DEV_ID_LOG(d):"SCCP", l->name, c->callid);
 	sccp_channel_set_active(c);
 	sccp_dev_set_activeline(c->line);
 	if (c->owner) {
@@ -631,14 +631,14 @@ int sccp_channel_hold(sccp_channel_t * c) {
 	/* put on hold an active call */
 	if (c->state != SCCP_CHANNELSTATE_CONNECTED && c->state != SCCP_CHANNELSTATE_PROCEED) { // TOLL FREE NUMBERS STAYS ALWAYS IN CALL PROGRESS STATE
 		/* something wrong on the code let's notify it for a fix */
-		ast_log(LOG_ERROR, "%s can't put on hold an inactive channel %s-%08x (%s)\n", d->id, l->name, c->callid, sccp_indicate2str(c->state));
+		ast_log(LOG_ERROR, "%s can't put on hold an inactive channel %s-%08X (%s)\n", d->id, l->name, c->callid, sccp_indicate2str(c->state));
 		/* hard button phones need it */
 		//sccp_dev_displayprompt(d, l->instance, c->callid, "No active call to put on hold.",5);
 		sccp_dev_displayprompt(d, l->instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 		return 0;
 	}
 	
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Hold the channel %s-%08x\n", d->id, l->name, c->callid);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Hold the channel %s-%08X\n", d->id, l->name, c->callid);
 	
 #ifndef CS_AST_CONTROL_HOLD
 	struct ast_channel * peer;    
@@ -718,7 +718,7 @@ int sccp_channel_resume(sccp_channel_t * c) {
 	/* resume an active call */
 	if (c->state != SCCP_CHANNELSTATE_HOLD && c->state != SCCP_CHANNELSTATE_CALLTRANSFER && c->state != SCCP_CHANNELSTATE_CALLCONFERENCE) {
 		/* something wrong on the code let's notify it for a fix */
-		ast_log(LOG_ERROR, "%s can't resume the channel %s-%08x. Not on hold\n", d->id, l->name, c->callid);
+		ast_log(LOG_ERROR, "%s can't resume the channel %s-%08X. Not on hold\n", d->id, l->name, c->callid);
 		sccp_dev_displayprompt(d, l->instance, c->callid, "No active call to put on hold",5);
 		return 0;
 	}
@@ -727,17 +727,17 @@ int sccp_channel_resume(sccp_channel_t * c) {
 	sccp_device_lock(d);
 	if (d->transfer_channel == c) {
 		d->transfer_channel = NULL;
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer on the channel %s-%08x\n", d->id, l->name, c->callid);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer on the channel %s-%08X\n", d->id, l->name, c->callid);
 	}
 	
 	if (d->conference_channel == c) {
 		d->conference_channel = NULL;
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Conference on the channel %s-%08x\n", d->id, l->name, c->callid);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Conference on the channel %s-%08X\n", d->id, l->name, c->callid);
 	}
 	
 	sccp_device_unlock(d);
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Resume the channel %s-%08x\n", d->id, l->name, c->callid);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Resume the channel %s-%08X\n", d->id, l->name, c->callid);
 
 #ifndef CS_AST_CONTROL_HOLD
 	struct ast_channel * peer;
@@ -777,23 +777,24 @@ int sccp_channel_resume(sccp_channel_t * c) {
 	return 1;
 }
 
-void sccp_channel_delete(sccp_channel_t * c) {
-	sccp_globals_lock(channels_lock);
-	sccp_channel_delete_no_lock(c);
-	sccp_globals_unlock(channels_lock);
-}
-
-/* this does no lock the main channels pointer */
-void sccp_channel_delete_no_lock(sccp_channel_t * c) {
+void sccp_channel_delete_wo(sccp_channel_t * c, uint8_t list_lock, uint8_t channel_lock) {
 	sccp_line_t * l = NULL;
 	sccp_device_t * d = NULL;
 	struct sccp_selected_channel *cur = NULL, *par = NULL;
 
 	if (!c)
 		return;
+	
+	while(list_lock && sccp_globals_trylock(channels_lock)) {
+		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		usleep(200);
+	}	
 
-	sccp_channel_lock(c);
-
+	while(channel_lock && sccp_channel_trylock(c)) {
+		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		usleep(200);
+	}
+	
 	l = c->line;
 	if(l)
 		d = l->device;
@@ -804,7 +805,7 @@ void sccp_channel_delete_no_lock(sccp_channel_t * c) {
 	if (d && d->conference_channel == c)
 		d->conference_channel = NULL;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Deleting channel %d from line %s\n", (d && d->id)?DEV_ID_LOG(d):"SCCP", c->callid, l ? l->name : "(null)");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Deleting channel %d from line %s\n", DEV_ID_LOG(d), c->callid, l ? l->name : "(null)");
 
 	/* mark the channel DOWN so any pending thread will terminate */
 	if (c->owner) {
@@ -886,9 +887,16 @@ void sccp_channel_delete_no_lock(sccp_channel_t * c) {
 	//remove selected channels
 	
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Deleted channel %d from line %s\n", (d && d->id)?DEV_ID_LOG(d):"SCCP", c->callid, l ? l->name : "(null)");
-	sccp_channel_unlock(c);
-	sccp_mutex_destroy(&c->lock);
-	free(c);
+
+	// if(channel_lock) {
+		sccp_channel_unlock(c);
+		sccp_mutex_destroy(&c->lock);
+		ast_free(c);
+	// } 
+	
+	if(list_lock)
+		sccp_globals_unlock(channels_lock);
+	
 	return;
 }
 
@@ -969,7 +977,7 @@ void sccp_channel_stop_rtp(sccp_channel_t * c) {
 	}
 
 	if (c->rtp) {
-		sccp_log(3)(VERBOSE_PREFIX_3 "%s: Stopping phone media transmission on channel %s-%08x\n", (d && d->id)?d->id:"SCCP", l?l->name:"(null)", c->callid);
+		sccp_log(3)(VERBOSE_PREFIX_3 "%s: Stopping phone media transmission on channel %s-%08X\n", (d && d->id)?d->id:"SCCP", l?l->name:"(null)", c->callid);
 		ast_rtp_stop(c->rtp);
 	}
 }
@@ -983,7 +991,7 @@ void sccp_channel_destroy_rtp(sccp_channel_t * c) {
 	}
 		
 	if (c->rtp) {
-		sccp_log(3)(VERBOSE_PREFIX_3 "%s: destroying phone media transmission on channel %s-%08x\n", (d && d->id)?d->id:"SCCP", l?l->name:"(null)", c->callid);
+		sccp_log(3)(VERBOSE_PREFIX_3 "%s: destroying phone media transmission on channel %s-%08X\n", (d && d->id)?d->id:"SCCP", l?l->name:"(null)", c->callid);
 		ast_rtp_destroy(c->rtp);
 		c->rtp = NULL;
 	}
@@ -1020,10 +1028,10 @@ void sccp_channel_transfer(sccp_channel_t * c) {
 
 	d->transfer_channel = c;
 	sccp_device_unlock(d);
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%08x\n", (d && d->id)?d->id:"SCCP", (c->line && c->line->name)?c->line->name:"(null)", c->callid);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%08X\n", (d && d->id)?d->id:"SCCP", (c->line && c->line->name)?c->line->name:"(null)", c->callid);
 
 	if (!c->owner) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: No bridged channel to transfer on %s-%08x\n", (d && d->id)?d->id:"SCCP", (c->line && c->line->name)?c->line->name:"(null)", c->callid);
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: No bridged channel to transfer on %s-%08X\n", (d && d->id)?d->id:"SCCP", (c->line && c->line->name)?c->line->name:"(null)", c->callid);
 		sccp_dev_displayprompt(d, c->line->instance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
 	}
@@ -1099,7 +1107,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	cSourceLocal = d->transfer_channel;
 	sccp_device_unlock(d);
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Complete transfer from %s-%08x\n", d->id, cDestinationLocal->line->name, cDestinationLocal->callid);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Complete transfer from %s-%08X\n", d->id, cDestinationLocal->line->name, cDestinationLocal->callid);
 
 	if (cDestinationLocal->state != SCCP_CHANNELSTATE_RINGOUT && cDestinationLocal->state != SCCP_CHANNELSTATE_CONNECTED) {
 		ast_log(LOG_WARNING, "SCCP: Failed to complete transfer. The channel is not ringing or connected\n");
@@ -1109,7 +1117,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	}
 
 	if (!cDestinationLocal->owner || !cSourceLocal->owner) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer error, asterisk channel error %s-%08x and %s-%08x\n", d->id, cDestinationLocal->line->name, cDestinationLocal->callid, cSourceLocal->line->name, cSourceLocal->callid);
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer error, asterisk channel error %s-%08X and %s-%08X\n", d->id, cDestinationLocal->line->name, cDestinationLocal->callid, cSourceLocal->line->name, cSourceLocal->callid);
 		return;
 	}
 
@@ -1293,7 +1301,7 @@ void sccp_channel_park(sccp_channel_t * c) {
 	chan1m = ast_channel_alloc(0);
 #else
     /* This should definetly fix CDR */
-    chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
+    chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
 #endif
        // chan1m = ast_channel_alloc(0); function changed in 1.4.0
        // Assuming AST_STATE_DOWN is suitable.. need to check
@@ -1307,7 +1315,7 @@ void sccp_channel_park(sccp_channel_t * c) {
 #else
 	// chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, "SCCP/%s", l->name,  NULL, 0, NULL);
     /* This should definetly fix CDR */
-    chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
+    chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
 #endif
        // chan2m = ast_channel_alloc(0); function changed in 1.4.0
        // Assuming AST_STATE_DOWN is suitable.. need to check

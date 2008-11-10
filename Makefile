@@ -129,6 +129,8 @@ MOO=chan_sccp.c
 .tmp/sccp_softkeys.o:	sccp_softkeys.c
 .tmp/sccp_socket.o:	sccp_socket.c
 .tmp/sccp_indicate.o:	sccp_indicate.c
+.tmp/sccp_features.o:	sccp_features.c
+.tmp/sccp_adv_features.o: sccp_adv_features.c
 
 .tmp:
 	@mkdir -p .tmp
