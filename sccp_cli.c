@@ -295,6 +295,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	char pref_buf[128];
 	char cap_buf[512];
 	struct ast_variable *v = NULL;
+	sccp_buttonconfig_t	* buttonconfig=NULL;
 
 	if (argc != 4)
 		return RESULT_SHOWUSAGE;
@@ -356,7 +357,19 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 			k = k->next;
 		}
 	}
-	s = d->serviceURLs;
+	if(d->buttonconfig){
+		buttonconfig = d->buttonconfig;	
+		ast_cli(fd, "\nService URLs\n");
+		ast_cli(fd, "%-4s: %-20s %-20s\n", "id", "label" , "URL");
+		ast_cli(fd, "------------------------------------\n");
+		while(buttonconfig){
+			if(!strcasecmp(buttonconfig->type, "serviceurl")){
+				ast_cli(fd, "%4d: %-20s %-20s\n", buttonconfig->instance, buttonconfig->button.serviceurl.label ,buttonconfig->button.serviceurl.URL);
+			}
+			buttonconfig = buttonconfig->next;
+		}
+	}
+/*	s = d->serviceURLs;
 	if (s) {
 		ast_cli(fd, "\nService URLs\n");
 		ast_cli(fd, "%-4s: %-20s %-20s\n", "id", "label" , "URL");
@@ -366,6 +379,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 			s = s->next;
 		}
 	}
+*/
 	
 	if(d->variables){
 		ast_cli(fd, "\nDevice variables\n");

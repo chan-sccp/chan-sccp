@@ -373,6 +373,8 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 	btnlist 			*btn;
 	int 				len = 0;
 
+	sccp_buttonconfig_t	* buttonconfig;
+
 	btn = malloc(sizeof(btnlist)*StationMaxButtonTemplateSize);
 	if (!btn)
 		return NULL;
@@ -475,54 +477,72 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 			k = k->next;
 	}
 
+	//TODO at the moment we only add buttons from buttonconfig
+	buttonconfig = d->buttonconfig;
+	for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) {
+// 		while(buttonconfig){
+// 			if (btn[i].type == SKINNY_BUTTONTYPE_UNUSED){
+// 				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Button %d type: %s\n", d->id, buttonconfig->instance, buttonconfig->type);
+// 				if(!strcasecmp(buttonconfig->type, "feature") && !ast_strlen_zero(buttonconfig->button.feature.label)){
+// 					btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
+// 				}
+// 				buttonconfig = buttonconfig->next;
+// 				continue;
+// 			}
+// 		}
+		btn[3].instance = 3;
+		btn[3].type = SKINNY_BUTTONTYPE_FEATURE;
+			
+	}
 
 	/* ServiceURLs configuration */
-	s1 = NULL;
-	s = d->serviceURLs;
+	//s1 = NULL;
+	//s = d->serviceURLs;
 	
-	btn_count = 1;
-	while (s) {
-		btn_count = 1;
-		s->instance = 0;
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a serviceURL button place %s (%d)\n", d->id, s->label, s->config_instance);
-		for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: At pos. %d we have type %d.\n", d->id, i, btn[i].type);
-
-			
-			if ( SKINNY_BUTTONTYPE_MULTI == btn[i].type || SKINNY_BUTTONTYPE_SERVICEURL == btn[i].type ) {
-				if (btn_count == s->config_instance) {
-					s->instance = i + 1;
-					btn[i].instance = s->instance;
-					btn[i].ptr = s;
-					len = strlen(s->label);
-					if(!strncmp(s->label, "Feature", len))
-						btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
-					else
-						btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
-					sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) temporary instance (%d)\n", d->id, i+1, "ServiceURL" ,s->label, s->instance);
-					break;
-				}
-				btn_count++;
-			}
-		}
-		
-		if ( !s->instance ) {
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: removing unused serviceURL %s,%s\n", d->id, s->URL, s->label);
-			if (s1) {
-				s1->next = s->next;
-				free(s);
-				s = s1;
-			} else {
-				d->serviceURLs = NULL;
-				free(s);
-				s = NULL;
-			}
-		}
-		
-		s1 = s;
-		if (s)
-			s = s->next;
-	}
+// 	btn_count = 1;
+// 	while (s) {
+// 		btn_count = 1;
+// 		s->instance = 0;
+// 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a serviceURL button place %s (%d)\n", d->id, s->label, s->config_instance);
+// 		for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) {
+// 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: At pos. %d we have type %d.\n", d->id, i, btn[i].type);
+// 
+// 			
+// 			if ( SKINNY_BUTTONTYPE_MULTI == btn[i].type || SKINNY_BUTTONTYPE_SERVICEURL == btn[i].type ) {
+// 				if (btn_count == s->config_instance) {
+// 					s->instance = i + 1;
+// 					btn[i].instance = s->instance;
+// 					btn[i].ptr = s;
+// 					len = strlen(s->label);
+// 					if(!strncmp(s->label, "Feature", len))
+// 						btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
+// 					else
+// 						btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
+// 					sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) temporary instance (%d)\n", d->id, i+1, "ServiceURL" ,s->label, s->instance);
+// 					break;
+// 				}
+// 				btn_count++;
+// 			}
+// 		}
+// 		
+// 		if ( !s->instance ) {
+// 			sccp_log(10)(VERBOSE_PREFIX_3 "%s: removing unused serviceURL %s,%s\n", d->id, s->URL, s->label);
+// 			if (s1) {
+// 				s1->next = s->next;
+// 				free(s);
+// 				s = s1;
+// 			} else {
+// 				d->serviceURLs = NULL;
+// 				free(s);
+// 				s = NULL;
+// 			}
+// 		}
+// 		
+// 		s1 = s;
+// 		if (s)
+// 			s = s->next;
+// 	}
+	
 
 	/* cleanup the multi unused buttons 7914 fix*/
 	for (i = StationMaxButtonTemplateSize - 1; i >= 0 ; i--) {
@@ -874,9 +894,12 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 		case SKINNY_BUTTONTYPE_CONFERENCE:
 			ast_log(LOG_NOTICE, "%s: Conference Button is not yet handled. working on implementation\n", d->id);
 			break;
+
+		
 		
 		case SKINNY_BUTTONTYPE_FEATURE:
-			ast_log(LOG_NOTICE, "%s: Privacy Button is not yet handled. working on implementation\n", d->id);
+			//ast_log(LOG_NOTICE, "%s: Feature Button is not yet handled. working on implementation\n", d->id);
+			sccp_handle_feature_action(s, r, 1);
 			break;
 			
 		case SKINNY_BUTTONTYPE_FORWARDALL: // Call forward all			
@@ -1845,15 +1868,16 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r) {
 
   	int featureIndex = letohl(r->msg.FeatureStatReqMessage.lel_featureIndex);
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d\n", d->id, featureIndex);
-	/* for now we are unable to use this skinny message */
-  
-  	REQ(r1, FeatureStatMessage);
-	r1->msg.FeatureStatMessage.lel_featureIndex = htolel(featureIndex);
-	r1->msg.FeatureStatMessage.lel_featureID = htolel(0x13);
-	sccp_copy_string(r1->msg.FeatureStatMessage.featureTextLabel, "Feature", strlen("Feature")+1);
-	r1->msg.FeatureStatMessage.lel_featureStatus = htolel(1);
-  
-	sccp_dev_send(s->device, r1);
+	sccp_handle_feature_action(s, r, 0);
+// 	/* for now we are unable to use this skinny message */
+//   
+//   	REQ(r1, FeatureStatMessage);
+// 	r1->msg.FeatureStatMessage.lel_featureIndex = htolel(featureIndex);
+// 	r1->msg.FeatureStatMessage.lel_featureID = htolel(0x13);
+// 	sccp_copy_string(r1->msg.FeatureStatMessage.featureTextLabel, "Feature", strlen("Feature")+1);
+// 	r1->msg.FeatureStatMessage.lel_featureStatus = htolel(1);
+//   
+// 	sccp_dev_send(s->device, r1);
 }
 
 /**
@@ -1882,4 +1906,73 @@ void sccp_handle_servicesurl_stat_req(sccp_session_t * s, sccp_moo_t * r) {
 		sccp_log(3)(VERBOSE_PREFIX_3 "%s: serviceURL %d not assigned\n", DEV_ID_LOG(s->device), urlIndex);
 	}
 	sccp_dev_send(s->device, r1);
+}
+
+void sccp_handle_feature_action(sccp_session_t * s, sccp_moo_t * r, uint8_t toggleState) {
+	sccp_device_t 		* d = NULL;
+	sccp_moo_t 		* featureRequestMessage = NULL;
+	sccp_buttonconfig_t	* buttonconfig=NULL;
+	int featureIndex	=0;
+	sccp_line_t		* line;
+	
+	if(!s->device)
+		return;
+	else
+		d = s->device;
+
+	//TODO not a good solution to use toggleState
+	if(toggleState)
+		featureIndex = letohl(r->msg.StimulusMessage.lel_stimulusInstance);
+	else
+		featureIndex = letohl(r->msg.FeatureStatReqMessage.lel_featureIndex);
+
+	
+	featureIndex=2;
+	buttonconfig = d->buttonconfig;	
+	while(buttonconfig){
+		if(buttonconfig->instance == featureIndex && !strcasecmp(buttonconfig->type, "feature")){
+			//feature = buttonconfig->button.feature;
+			if(toggleState){
+				ast_mutex_lock(&d->lock);
+				buttonconfig->button.feature.status = htolel((buttonconfig->button.feature.status==0)?1:0);
+				ast_mutex_unlock(&d->lock);
+			}
+			break;
+		}
+		buttonconfig = buttonconfig->next;
+	}
+	
+	if(!buttonconfig || !buttonconfig->type || strcasecmp(buttonconfig->type, "feature") ){
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Couldn find feature with ID = %d \n", d->id, featureIndex);	
+		return;
+	}
+
+	
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: feature ID = %d \n", d->id, buttonconfig->button.feature.id);
+	if(buttonconfig->button.feature.id == 1 && toggleState){
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: set cfwd to  %d \n", d->id, buttonconfig->button.feature.status);
+		line = d->lines;
+		while(line){
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: line  %s \n", d->id, line->name);
+
+			if(buttonconfig->button.feature.status)
+				sccp_line_cfwd(line, SCCP_CFWD_ALL, buttonconfig->button.feature.options);
+			else
+				sccp_line_cfwd(line, SCCP_CFWD_NONE, NULL);
+			line = line->next_on_device;
+		}
+	}
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Status: %d\n", d->id, featureIndex, buttonconfig->button.feature.status);	
+
+	REQ(featureRequestMessage, FeatureStatMessage);
+	featureRequestMessage->msg.FeatureStatMessage.lel_featureIndex = htolel(featureIndex);
+	//featureRequestMessage->msg.FeatureStatMessage.lel_featureIndex = htolel(3);	//TODO just fpr testing
+	featureRequestMessage->msg.FeatureStatMessage.lel_featureID = htolel(0x13);
+	sccp_copy_string(featureRequestMessage->msg.FeatureStatMessage.featureTextLabel, buttonconfig->button.feature.label, strlen(buttonconfig->button.feature.label)+1);
+
+	//featureRequestMessage->msg.FeatureStatMessage.lel_featureStatus = htolel(1);
+
+	featureRequestMessage->msg.FeatureStatMessage.lel_featureStatus = htolel(buttonconfig->button.feature.status);
+	sccp_dev_send(s->device, featureRequestMessage);
+	return;
 }

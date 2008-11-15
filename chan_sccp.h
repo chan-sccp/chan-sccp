@@ -165,6 +165,7 @@ typedef struct sccp_addon		sccp_addon_t; // Added on SVN 327 -FS
 typedef struct sccp_hint		sccp_hint_t;
 typedef struct sccp_hostname	sccp_hostname_t;
 typedef struct sccp_ast_channel_name	sccp_ast_channel_name_t;
+typedef struct sccp_buttonconfig	sccp_buttonconfig_t;
 
 typedef void sk_func (sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 
@@ -322,17 +323,18 @@ struct sccp_speed {
 };
 
 /* This defines a serviceURL button */
-struct sccp_serviceURL {
-	uint8_t config_instance;									/*!< The instance in the sccp.conf */
-	uint8_t instance;											/*!< The instance on the current device */
-	char label[StationMaxNameSize];								/*!< The label of the serviceURL button */
-	char URL[StationMaxServiceURLSize];							/*!< The number to dial when it's hit */
-	sccp_serviceURL_t * next;									/*!< Pointer to next serviceURL */
-#ifdef CS_DYNAMIC_CONFIG
-	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-	sccp_serviceURL_t		pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */	
-#endif
-};
+
+//struct sccp_serviceURL {
+//	uint8_t config_instance;									/*!< The instance in the sccp.conf */
+//	uint8_t instance;											/*!< The instance on the current device */
+//	char label[StationMaxNameSize];								/*!< The label of the serviceURL button */
+//	char URL[StationMaxServiceURLSize];							/*!< The number to dial when it's hit */
+//	sccp_serviceURL_t * next;									/*!< Pointer to next serviceURL */
+//#ifdef CS_DYNAMIC_CONFIG
+//	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
+//	sccp_serviceURL_t		pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */	
+//#endif
+//};
 
 
 struct sccp_device {
@@ -437,7 +439,8 @@ struct sccp_device {
 	pthread_t        		postregistration_thread;
 	struct ast_variable 	* variables;						/*!< Channel variables to set */
 	char 					* phonemessage;						/*!< message to display on device*/
-    sccp_addon_t			* addons;
+    	sccp_addon_t			* addons;
+	sccp_buttonconfig_t		* buttonconfig;
 	struct sccp_selected_channel    *selectedChannels;
 #ifdef CS_DYNAMIC_CONFIG
 	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
@@ -463,14 +466,14 @@ struct sccp_addon {
 };
 
 struct sccp_session {
-  	ast_mutex_t				lock;
-  	void					*buffer;
-  	size_t					buffer_size;
+  	ast_mutex_t			lock;
+  	void				*buffer;
+  	size_t				buffer_size;
   	struct sockaddr_in		sin;
   	struct in_addr			ourip;								/*< ourip is for rtp use */
-  	time_t					lastKeepAlive;
-  	int						fd;
-  	int						rtpPort;
+  	time_t				lastKeepAlive;
+  	int				fd;
+  	int				rtpPort;
   	sccp_device_t 			*device;
   	sccp_session_t			*prev, *next;
   	unsigned int			needcheckringback:1;
@@ -621,6 +624,43 @@ struct sccp_selected_channel {
 
 struct sccp_global_vars *sccp_globals;
 
+struct sccp_buttonconfig {
+	uint8_t		instance;		/*!< instance on device */
+	char 		type[15];		/*!< button type (e.g. line, speeddial, feature, empty) */
+	union sccp_button{
+		struct { 
+			char name[80];
+		} line;
+	
+		struct sccp_speeddial{ 
+			char label[StationMaxNameSize];
+			char ext[AST_MAX_EXTENSION];
+			char hint[AST_MAX_EXTENSION]; 
+		} speeddial;
+	
+		struct sccp_serviceURL {
+			char label[StationMaxNameSize];			/*!< The label of the serviceURL button */
+			char URL[StationMaxServiceURLSize];		/*!< The number to dial when it's hit */
+		} serviceurl;
+	
+		struct sccp_feature {										
+			uint8_t index;
+			uint8_t id;
+			char label[StationMaxNameSize];
+			char options[254];
+			uint8_t status:1;
+		} feature;
+	} button;
+	sccp_buttonconfig_t 	* next;					/*!< next button on device*/
+};
+
+
+
+
+
+
+
+
 uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s);
 
 #ifdef CS_AST_HAS_TECH_PVT
@@ -638,9 +678,15 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 void sccp_hint_notify(sccp_channel_t *c, sccp_device_t * onedevice);
 
 sccp_device_t * build_devices(struct ast_variable *v);
-sccp_device_t * build_device(void);
+sccp_device_t * buildDeviceTemplate(void);
+sccp_device_t * build_device(struct ast_variable *v, char *devicename);
+
 sccp_line_t * build_lines(struct ast_variable *v);
-sccp_line_t * build_line(void);
+sccp_line_t * buildLineTemplate(void);
+sccp_line_t * buildLine(struct ast_variable *v, char *linename);
+
+
+void buildSoftkeyTemplate(struct ast_variable *astVar);
 
 #ifndef ASTERISK_CONF_1_2
 struct sched_context *sched; 

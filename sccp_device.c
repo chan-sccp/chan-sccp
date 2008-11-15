@@ -942,21 +942,26 @@ void sccp_dev_clean(sccp_device_t * d) {
 }
 
 sccp_serviceURL_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t instance) {
-	sccp_serviceURL_t * s = d->serviceURLs;
+	sccp_serviceURL_t 	* serviceURL = NULL;
+	sccp_buttonconfig_t	* buttonconfig=NULL;
+	
 	if (!d || !d->session)
 		return NULL;
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: searching for serviceURL index %d\n", d->id, instance);
-	if(!s)
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: no serviceURLs defined for device\n", d->id);
+	//if(!s)
+	//	sccp_log(1)(VERBOSE_PREFIX_3 "%s: no serviceURLs defined for device\n", d->id);
 
-	while (s) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: ServiceURL-instance: %d\n", d->id, s->instance);
-		if (s->instance == instance) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: found serviceURL label: %s, URL: %s, index: %d\n", d->id, s->label, s->URL, s->instance);
-			break;
+	buttonconfig = d->buttonconfig;	
+	while(buttonconfig){
+		if(buttonconfig->instance == instance && !strcasecmp(buttonconfig->type, "serviceurl")){
+			serviceURL = malloc(sizeof(sccp_serviceURL_t));
+			sccp_copy_string(serviceURL->label, buttonconfig->button.serviceurl.label, sizeof(serviceURL->label));
+			sccp_copy_string(serviceURL->URL, buttonconfig->button.serviceurl.URL, sizeof(serviceURL->URL));
+			return serviceURL;
+			
 		}
-		s = s->next;
+		buttonconfig = buttonconfig->next;
 	}
-	return s;
+	return NULL;
 }

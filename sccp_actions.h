@@ -28,4 +28,5 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_servicesurl_stat_req(sccp_session_t * s, sccp_moo_t * r);
+void sccp_handle_feature_action(sccp_session_t * s, sccp_moo_t * r, uint8_t toggleState);
 #endif
