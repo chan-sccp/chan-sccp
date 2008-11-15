@@ -65,7 +65,7 @@ static int isPrintableChar(char c) {
 			&& (c != '-') && (c != '.') && (c != '/') && (c != ':')
 			&& (c != '=') && (c != '?') && (c != '_') && (c != '\\')
 			&& (c != '@') && (c != '"') && (c != '%') && (c != '$')
-			&& (c != '£') && (c != '&') && (c != '#') && (c != ';')
+			&& (c != 'ï¿½') && (c != '&') && (c != '#') && (c != ';')
 			&& (c != '<') && (c != '>') && (c != '[') && (c != ']')
 			&& (c != '{') && (c != '}')) {
 		return 0;
@@ -278,7 +278,7 @@ void sccp_device_add_line(sccp_device_t * d, char * name) {
 		if (ast_strlen_zero(name)) {
 			/* this is useful to leave and empty button */
 			sccp_mutex_lock(&lines_last->lock);
-			lines_last->next = build_line();
+			lines_last->next = buildLineTemplate();
 			sccp_mutex_unlock(&lines_last->lock);
 			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Add an empty line\n", d->id);
 			
