@@ -471,16 +471,16 @@ sccp_line_t * sccp_line_find_byname(const char * name) {
 	{
         if(l->device)
         {
-            sccp_log(10)(VERBOSE_PREFIX_3 "%s: found line %s\n", DEV_ID_LOG(l->device), l->name);
+            ast_log(LOG_WARNING, "%s: found line %s\n", DEV_ID_LOG(l->device), l->name);
         }
         else
         {
-            sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Found line %s\n", l->name);
+            ast_log(LOG_WARNING, "SCCP: Found line %s\n", l->name);
         }
     }
 	else
 	{
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Line not found.\n");	
+		ast_log(LOG_WARNING, "SCCP: Line not found.\n");	
 		return NULL;
 	}
 	
