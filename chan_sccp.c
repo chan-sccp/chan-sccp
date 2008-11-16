@@ -840,10 +840,7 @@ sccp_line_t * buildLineTemplate(void) {
   return l;
 }
 sccp_line_t * buildLine(struct ast_variable *v, char *linename){
-	sccp_line_t 	*line, *gl = NULL;
-	int		res;
-	char 		message[256]="";
-	
+	sccp_line_t 	*line, *gl = NULL;	
 
 	line = build_lines(v);
 	sccp_copy_string(line->name, ast_strip(linename), sizeof(line->name));
@@ -876,10 +873,9 @@ sccp_line_t * buildLine(struct ast_variable *v, char *linename){
  * \note also used by realtime functionality to line device from \link ast_variable asterisk variable \endlink
  */
 sccp_line_t * build_lines(struct ast_variable *v) {
-	sccp_line_t * l, *gl;
-	int amaflags = 0;
-	int secondary_dialtone_tone = 0;
-	char * tmp;
+	sccp_line_t 	*l, *gl;
+	int 		amaflags = 0;
+	int 		secondary_dialtone_tone = 0;
 
 
 
@@ -887,44 +883,13 @@ sccp_line_t * build_lines(struct ast_variable *v) {
  	l = buildLineTemplate();
  	while(v) {
  			if (!strcasecmp(v->name, "line")) {
-//  				if ( !ast_strlen_zero(v->value) ) {
-// 
-// 					tmp = strdup(v->value);
-//  					sccp_copy_string(l->name, ast_strip(tmp), sizeof(l->name));
-// 					free(tmp);
-// 					tmp = NULL;
-//  					
-//  					/* search for existing line */
-// 					gl = GLOB(lines);
-// 					while(gl && strcasecmp(gl->name, v->value) != 0) {
-// 	 					gl = gl->next;
-// 	 				}
-//  					if (gl && (strcasecmp(gl->name, v->value) == 0) ){					
-//  						ast_log(LOG_WARNING, "The line %s already exists\n", gl->name);
-//  						free(l);
-//  					}else {
-//  						ast_verbose(VERBOSE_PREFIX_3 "Added line '%s'\n", l->name);
-// 						sccp_globals_lock(lines_lock);
-//  						l->next = GLOB(lines);
-//  						if (l->next)
-//  							l->next->prev = l;
-//  						GLOB(lines) = l;
-//  						sccp_globals_unlock(lines_lock);
-//  					}
-// 					free(gl);
-//  				} else {
-//  					ast_log(LOG_WARNING, "Wrong line param: %s => %s\n", v->name, v->value);
-//  					free(l);
-//  				}
-//  				l = buildLineTemplate();
+
   			}
 #ifdef CS_SCCP_REALTIME
 			if (!strcasecmp(v->name, "name")) {
  				if ( !ast_strlen_zero(v->value) ) {
- 					tmp = strdup(v->value);
- 					sccp_copy_string(l->name, ast_strip(tmp), sizeof(l->name));
-					free(tmp);
-					tmp = NULL;
+					sccp_copy_string(l->name, ast_strip(v->value), sizeof(l->name));
+					
  					
  					/* search for existing line */
 					sccp_globals_lock(lines_lock);
@@ -1263,18 +1228,6 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					ast_verbose(VERBOSE_PREFIX_3 "Added button config: '%s' \n", currentButton->type);
 					
 					
-					
-					
-					/*
-					if(d->autologin){
-						sccp_log(0)(VERBOSE_PREFIX_3 "Append Line: %s\n", buttonName);
-						strcat(d->autologin, ",");	
-						strcat(d->autologin, ast_strip(buttonName));
-					}else{
-						sccp_copy_string(d->autologin, ast_strip(buttonName), sizeof(d->autologin));
-						sccp_log(0)(VERBOSE_PREFIX_3 "Add Line: %s\n", buttonName);
-					}
-					*/
 				} else if (!strcasecmp(buttonType, "empty")){
 					currentButton = malloc(sizeof(sccp_buttonconfig_t));
 					
@@ -1580,28 +1533,16 @@ ast_log(LOG_WARNING, "Speeddial_inst %s, hint:  %s\n",  k->name,  k->hint);
 
 	return d;
 }
-/**
- * \brief reload the configuration from sccp.conf
- * 
- */
-static int reload_config(void) {
-	struct ast_config		*cfg, *cfg_v3;
-	struct ast_variable	*v;
-	int						oldport	= ntohs(GLOB(bindaddr.sin_port));
-	int						on		= 1;
-	int						tos		= 0;
-	char					pref_buf[128];
-	struct ast_hostent		ahp;
-	struct hostent			*hp;
-	struct ast_ha 			*na;
+
+int buildGlobals(struct ast_variable *v){
+	int			tos= 0;
+	char			pref_buf[128];
+	struct ast_hostent	ahp;
+	struct hostent		*hp;
+	struct ast_ha 		*na;
 #ifdef ASTERISK_CONF_1_2
-	char					iabuf[INET_ADDRSTRLEN];
+	char			iabuf[INET_ADDRSTRLEN];
 #endif
-#ifdef ASTERISK_CONF_1_6
-	struct ast_flags 		config_flags = { CONFIG_FLAG_WITHCOMMENTS };
-#endif
-	sccp_device_t			*d;
-	sccp_line_t				*l = NULL;
 	int firstdigittimeout = 0;
 	int digittimeout = 0;
 	int autoanswer_ring_time = 0;
@@ -1611,42 +1552,6 @@ static int reload_config(void) {
 	int callwaiting_tone = 0;
 	int amaflags = 0;
 	int protocolversion = 0;
-   
-#ifndef ASTERISK_CONF_1_2
-	/* Copy the default jb config over global_jbconf */
-	memcpy(&GLOB(global_jbconf), &default_jbconf, sizeof(struct ast_jb_conf));
-#endif
-	
-	memset(&GLOB(global_codecs), 0, sizeof(GLOB(global_codecs)));
-	memset(&GLOB(bindaddr), 0, sizeof(GLOB(bindaddr)));
-
-#ifdef CS_SCCP_REALTIME
-	sccp_copy_string(GLOB(realtimedevicetable), "sccpdevice", sizeof(GLOB(realtimedevicetable)));
-	sccp_copy_string(GLOB(realtimelinetable) , "sccpline", sizeof(GLOB(realtimelinetable)) );
-#endif	
-
-#if SCCP_PLATFORM_BYTE_ORDER == SCCP_LITTLE_ENDIAN
-	sccp_log(0)(VERBOSE_PREFIX_2 "Platform byte order   : LITTLE ENDIAN\n");
-#else
-	sccp_log(0)(VERBOSE_PREFIX_2 "Platform byte order   : BIG ENDIAN\n");
-#endif
-
-#ifndef ASTERISK_CONF_1_6
-	cfg = ast_config_load("sccp.conf");
-#else
-	cfg = ast_config_load2("sccp.conf", "chan_sccp", config_flags);
-#endif
-	if (!cfg) {
-		ast_log(LOG_WARNING, "Unable to load config file sccp.conf, SCCP disabled\n");
-		return 0;
-	}
-	/* read the general section */
-	v = ast_variable_browse(cfg, "general");
-	if (!v) {
-		ast_log(LOG_WARNING, "Missing [general] section, SCCP disabled\n");
-		return 0;
-	}
-
 	while (v) {
 		
 #ifndef ASTERISK_CONF_1_2
@@ -1671,7 +1576,7 @@ static int reload_config(void) {
 		} else if (!strcasecmp(v->name, "bindaddr")) {
 			if (!(hp = ast_gethostbyname(v->value, &ahp))) {
 				ast_log(LOG_WARNING, "Invalid address: %s. SCCP disabled\n", v->value);
-				return 0;
+				return -1;
 			} else {
 				memcpy(&GLOB(bindaddr.sin_addr), hp->h_addr, sizeof(GLOB(bindaddr.sin_addr)));
 			}
@@ -1912,9 +1817,72 @@ static int reload_config(void) {
 		GLOB(bindaddr.sin_port) = ntohs(DEFAULT_SCCP_PORT);
 	}
 	GLOB(bindaddr.sin_family) = AF_INET;
+	return 1;
+}
 
-	char *cat = NULL;
+
+/**
+ * \brief reload the configuration from sccp.conf
+ * 
+ */
+static int reload_config(void) {
+	struct ast_config	*cfg_v3;
+	struct ast_variable	*v;
+	int			oldport	= ntohs(GLOB(bindaddr.sin_port));
+	int			on		= 1;
+	
+#ifdef ASTERISK_CONF_1_2
+	char			iabuf[INET_ADDRSTRLEN];
+#endif
+#ifdef ASTERISK_CONF_1_6
+	struct ast_flags 	config_flags = { CONFIG_FLAG_WITHCOMMENTS };
+#endif
+	sccp_device_t		*d;
+	char 			*cat = NULL;
+
+   
+#ifndef ASTERISK_CONF_1_2
+	/* Copy the default jb config over global_jbconf */
+	memcpy(&GLOB(global_jbconf), &default_jbconf, sizeof(struct ast_jb_conf));
+#endif
+	
+	memset(&GLOB(global_codecs), 0, sizeof(GLOB(global_codecs)));
+	memset(&GLOB(bindaddr), 0, sizeof(GLOB(bindaddr)));
+
+#ifdef CS_SCCP_REALTIME
+	sccp_copy_string(GLOB(realtimedevicetable), "sccpdevice", sizeof(GLOB(realtimedevicetable)));
+	sccp_copy_string(GLOB(realtimelinetable) , "sccpline", sizeof(GLOB(realtimelinetable)) );
+#endif	
+
+#if SCCP_PLATFORM_BYTE_ORDER == SCCP_LITTLE_ENDIAN
+	sccp_log(0)(VERBOSE_PREFIX_2 "Platform byte order   : LITTLE ENDIAN\n");
+#else
+	sccp_log(0)(VERBOSE_PREFIX_2 "Platform byte order   : BIG ENDIAN\n");
+#endif
+
+#ifndef ASTERISK_CONF_1_6
+	//cfg = ast_config_load("sccp.conf");
 	cfg_v3 = ast_config_load2("sccp_v3.conf", "chan_sccp", config_flags);
+#else
+	//cfg = ast_config_load2("sccp.conf", "chan_sccp", config_flags);
+	cfg_v3 = ast_config_load2("sccp_v3.conf", "chan_sccp", config_flags);
+#endif
+	if (!cfg_v3) {
+		ast_log(LOG_WARNING, "Unable to load config file sccp.conf, SCCP disabled\n");
+		return 0;
+	}
+	/* read the general section */
+	v = ast_variable_browse(cfg_v3, "general");
+	if (!v) {
+		ast_log(LOG_WARNING, "Missing [general] section, SCCP disabled\n");
+		return 0;
+	}
+	if(!buildGlobals(v))
+		return 0;
+	
+
+	
+	
 	/* get all categories */
 	while ((cat = ast_category_browse(cfg_v3, cat))) {
 		ast_verbose(VERBOSE_PREFIX_3 "found %s\n", cat);
@@ -1922,12 +1890,12 @@ static int reload_config(void) {
 			ast_verbose(VERBOSE_PREFIX_3 "found device %s\n", cat);
 			v = ast_variable_browse(cfg_v3, cat);
 			d = build_device(v, cat);
-			sccp_buttonconfig_t	*buttonconfig;
-			buttonconfig = d->buttonconfig;
-			while(buttonconfig){
-				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found buttontype: %s\n", d->id, buttonconfig->type);
-				buttonconfig = buttonconfig->next;
-			}
+// 			sccp_buttonconfig_t	*buttonconfig;
+// 			buttonconfig = d->buttonconfig;
+// 			while(buttonconfig){
+// 				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found buttontype: %s\n", d->id, buttonconfig->type);
+// 				buttonconfig = buttonconfig->next;
+// 			}
 		}else if( (strncmp(cat, "softkeys",8) == 0) ){
 			v = ast_variable_browse(cfg_v3, cat);
 			buildSoftkeyTemplate(v);
@@ -1940,7 +1908,7 @@ static int reload_config(void) {
 		
 	}
 	
-
+/*
 
 	v = ast_variable_browse(cfg, "devices");
 	if (!v) {
@@ -1951,13 +1919,13 @@ static int reload_config(void) {
 		//d = build_devices(v);
 	}
 
-	v = ast_variable_browse(cfg, "lines");
+	v = ast_variable_browse(cfg_v3, "lines");
 	if(v)
 		//l = build_lines(v);
 	
 	if (l) {
 		free(l);
-	}
+	}*/
 
 	/* ok the config parse is done */
 
@@ -2018,7 +1986,7 @@ static int reload_config(void) {
 	}
   }
 
-  ast_config_destroy(cfg);
+  ast_config_destroy(cfg_v3);
   sccp_dev_dbclean();
   return 0;
 }
