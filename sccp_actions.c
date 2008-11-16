@@ -65,8 +65,8 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 	pthread_attr_t 	attr;
 	sccp_device_t 	* d;
 	btnlist 		btn[StationMaxButtonTemplateSize];
-	char *mb, *cur, tmp[256];
-	sccp_line_t *l, *lines_last = NULL;
+	char 			*mb, *cur, tmp[256];
+	sccp_line_t 		*l, *lines_last = NULL;
 	sccp_moo_t 		* r1;
 	uint8_t i = 0, line_count = 0;
 	struct ast_hostent	ahp;
