@@ -687,6 +687,7 @@ sccp_line_t * buildLine(struct ast_variable *v, char *linename);
 
 
 void buildSoftkeyTemplate(struct ast_variable *astVar);
+int buildGlobals(struct ast_variable *v);
 
 #ifndef ASTERISK_CONF_1_2
 struct sched_context *sched; 

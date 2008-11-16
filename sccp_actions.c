@@ -2025,7 +2025,7 @@ void sccp_handle_feature_action(sccp_session_t * s, sccp_moo_t * r, uint8_t togg
 		featureIndex = letohl(r->msg.FeatureStatReqMessage.lel_featureIndex);
 
 	
-	featureIndex=2;
+	
 	buttonconfig = d->buttonconfig;	
 	while(buttonconfig){
 		if(buttonconfig->instance == featureIndex && !strcasecmp(buttonconfig->type, "feature")){
