@@ -887,37 +887,37 @@ sccp_line_t * build_lines(struct ast_variable *v) {
  	l = buildLineTemplate();
  	while(v) {
  			if (!strcasecmp(v->name, "line")) {
- 				if ( !ast_strlen_zero(v->value) ) {
-
-					tmp = strdup(v->value);
- 					sccp_copy_string(l->name, ast_strip(tmp), sizeof(l->name));
-					free(tmp);
-					tmp = NULL;
- 					
- 					/* search for existing line */
-					gl = GLOB(lines);
-					while(gl && strcasecmp(gl->name, v->value) != 0) {
-	 					gl = gl->next;
-	 				}
- 					if (gl && (strcasecmp(gl->name, v->value) == 0) ){					
- 						ast_log(LOG_WARNING, "The line %s already exists\n", gl->name);
- 						free(l);
- 					}else {
- 						ast_verbose(VERBOSE_PREFIX_3 "Added line '%s'\n", l->name);
-						sccp_globals_lock(lines_lock);
- 						l->next = GLOB(lines);
- 						if (l->next)
- 							l->next->prev = l;
- 						GLOB(lines) = l;
- 						sccp_globals_unlock(lines_lock);
- 					}
-					free(gl);
- 				} else {
- 					ast_log(LOG_WARNING, "Wrong line param: %s => %s\n", v->name, v->value);
- 					free(l);
- 				}
- 				l = buildLineTemplate();
- 			}
+//  				if ( !ast_strlen_zero(v->value) ) {
+// 
+// 					tmp = strdup(v->value);
+//  					sccp_copy_string(l->name, ast_strip(tmp), sizeof(l->name));
+// 					free(tmp);
+// 					tmp = NULL;
+//  					
+//  					/* search for existing line */
+// 					gl = GLOB(lines);
+// 					while(gl && strcasecmp(gl->name, v->value) != 0) {
+// 	 					gl = gl->next;
+// 	 				}
+//  					if (gl && (strcasecmp(gl->name, v->value) == 0) ){					
+//  						ast_log(LOG_WARNING, "The line %s already exists\n", gl->name);
+//  						free(l);
+//  					}else {
+//  						ast_verbose(VERBOSE_PREFIX_3 "Added line '%s'\n", l->name);
+// 						sccp_globals_lock(lines_lock);
+//  						l->next = GLOB(lines);
+//  						if (l->next)
+//  							l->next->prev = l;
+//  						GLOB(lines) = l;
+//  						sccp_globals_unlock(lines_lock);
+//  					}
+// 					free(gl);
+//  				} else {
+//  					ast_log(LOG_WARNING, "Wrong line param: %s => %s\n", v->name, v->value);
+//  					free(l);
+//  				}
+//  				l = buildLineTemplate();
+  			}
 #ifdef CS_SCCP_REALTIME
 			if (!strcasecmp(v->name, "name")) {
  				if ( !ast_strlen_zero(v->value) ) {
@@ -1262,17 +1262,20 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					sccp_copy_string(currentButton->button.line.name, ast_strip(buttonName), sizeof(currentButton->button.line.name));
 					ast_verbose(VERBOSE_PREFIX_3 "Added button config: '%s' \n", currentButton->type);
 					
-					/* for old behavior append to autologin */
-					//TODO odl behavior should be remove after full implementation
- 					if(d->autologin){
-  						sccp_log(0)(VERBOSE_PREFIX_3 "Append Line: %s\n", buttonName);
-  						strcat(d->autologin, ",");
-  						strcat(d->autologin, ast_strip(buttonName));
-  					}else{
-  						sccp_copy_string(d->autologin, ast_strip(buttonName), sizeof(d->autologin));
-  						sccp_log(0)(VERBOSE_PREFIX_3 "Add Line: %s\n", buttonName);
-  					}
-				}else if (!strcasecmp(buttonType, "empty")){
+					
+					
+					
+					/*
+					if(d->autologin){
+						sccp_log(0)(VERBOSE_PREFIX_3 "Append Line: %s\n", buttonName);
+						strcat(d->autologin, ",");	
+						strcat(d->autologin, ast_strip(buttonName));
+					}else{
+						sccp_copy_string(d->autologin, ast_strip(buttonName), sizeof(d->autologin));
+						sccp_log(0)(VERBOSE_PREFIX_3 "Add Line: %s\n", buttonName);
+					}
+					*/
+				} else if (!strcasecmp(buttonType, "empty")){
 					currentButton = malloc(sizeof(sccp_buttonconfig_t));
 					
 					if(!lastButton){
@@ -1289,17 +1292,59 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					sccp_copy_string(currentButton->type, "empty", sizeof(currentButton->type));
 					ast_verbose(VERBOSE_PREFIX_3 "Added button config: '%s' \n", currentButton->type);
 
-					/* for old behavior append to autologin */
-					//TODO odl behavior should be remove after full implementation
- 					if(d->autologin){
-  						sccp_log(0)(VERBOSE_PREFIX_3 "Append Line: %s\n", buttonName);
-  						strcat(d->autologin, ",");
-  						strcat(d->autologin, "");
-  					}else{
-  						sccp_copy_string(d->autologin, "", sizeof(d->autologin));
-  						sccp_log(0)(VERBOSE_PREFIX_3 "Add Line: %s\n", buttonName);
-  					}
-				}else if (!strcasecmp(buttonType, "feature") && buttonName){
+					
+				} else if (!strcasecmp(buttonType, "speeddial")){
+					currentButton = malloc(sizeof(sccp_buttonconfig_t));
+					
+					if(!lastButton){
+						d->buttonconfig = currentButton;
+						lastButton = d->buttonconfig;
+					}else{
+						lastButton->next = currentButton;
+						lastButton = lastButton->next;
+					}
+					//TODO check if malloc is successfull
+					currentButton->instance = lastinstance+1;
+					lastinstance = currentButton->instance;
+					
+					sccp_copy_string(currentButton->type, "speeddial", sizeof(currentButton->type));
+					
+					sccp_copy_string(currentButton->button.speeddial.label, ast_strip(buttonName), sizeof(currentButton->button.speeddial.label));
+					sccp_copy_string(currentButton->button.speeddial.ext, ast_strip(buttonOption), sizeof(currentButton->button.speeddial.ext));
+					if(buttonArgs)
+						sccp_copy_string(currentButton->button.speeddial.hint, ast_strip(buttonArgs), sizeof(currentButton->button.speeddial.hint));
+
+ast_log(LOG_WARNING, "Speddial %s, extension: %s\n",  currentButton->button.speeddial.label,  currentButton->button.speeddial.ext);
+ast_log(LOG_WARNING, "Speeddial %s, hint:  %s\n",  currentButton->button.speeddial.label,  (currentButton->button.speeddial.hint)?currentButton->button.speeddial.hint:"none");					
+
+
+					k = malloc(sizeof(sccp_speed_t));
+					if (!k)
+						ast_log(LOG_WARNING, "Error allocating speedial %s => %s\n",  currentButton->button.speeddial.label,  currentButton->button.speeddial.ext);
+					else {
+						memset(k, 0, sizeof(sccp_speed_t));
+						sccp_copy_string(k->name, currentButton->button.speeddial.label, sizeof(k->name));
+						sccp_copy_string(k->ext, currentButton->button.speeddial.ext, sizeof(k->ext));
+
+						if (currentButton->button.speeddial.hint)
+							sccp_copy_string(k->hint, currentButton->button.speeddial.hint, sizeof(k->hint));
+
+						k->config_instance = currentButton->instance;
+						if (!d->speed_dials)
+							d->speed_dials = k;
+						if (!k_last)
+							k_last = k;
+						else {
+							k_last->next = k;
+							k_last = k;
+						}
+ast_log(LOG_WARNING, "Speddial_inst %s, extension: %s\n",  k->name,  k->ext);
+ast_log(LOG_WARNING, "Speeddial_inst %s, hint:  %s\n",  k->name,  k->hint);
+						ast_verbose(VERBOSE_PREFIX_3 "Added speeddial %d: %s (%s)\n", k->config_instance, k->name, k->ext);
+					}
+
+					
+				} else if (!strcasecmp(buttonType, "feature") && buttonName){
 					currentButton = malloc(sizeof(sccp_buttonconfig_t));
 					
 					if(!lastButton){
@@ -1331,6 +1376,28 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					
 					ast_verbose(VERBOSE_PREFIX_3 "Added button config: '%s' \n", currentButton->type);
 					
+				} else if (!strcasecmp(buttonType, "serviceurl") && buttonName && !ast_strlen_zero(buttonName) ){
+					currentButton = malloc(sizeof(sccp_buttonconfig_t));
+					
+					if(!lastButton){
+						d->buttonconfig = currentButton;
+						lastButton = d->buttonconfig;
+					}else{
+						lastButton->next = currentButton;
+						lastButton = lastButton->next;
+					}
+					//TODO check if malloc is successfull
+					currentButton->instance = lastinstance+1;
+					lastinstance = currentButton->instance;
+					
+					sccp_copy_string(currentButton->type, "serviceurl", sizeof(currentButton->type));
+										
+					sccp_copy_string(currentButton->button.serviceurl.label, buttonName, sizeof(currentButton->button.serviceurl.label));
+					sccp_copy_string(currentButton->button.serviceurl.URL, buttonOption, sizeof(currentButton->button.serviceurl.URL));
+					
+					
+					//ast_verbose(VERBOSE_PREFIX_3 "Added button config: '%s, buttonName: %s, buttonOption: %s' \n", currentButton->type, buttonName, buttonOption);
+					ast_verbose(VERBOSE_PREFIX_3 "Added button config: '%s, serviceName: %s, serviceURL: %s' \n", currentButton->type, currentButton->button.serviceurl.label, currentButton->button.serviceurl.URL);
 				}
  			} else if (!strcasecmp(v->name, "tzoffset")) {
 				/* timezone offset */
@@ -1854,7 +1921,13 @@ static int reload_config(void) {
 		if( (strncmp(cat, "SEP",3) == 0) ){
 			ast_verbose(VERBOSE_PREFIX_3 "found device %s\n", cat);
 			v = ast_variable_browse(cfg_v3, cat);
-			build_device(v, cat);
+			d = build_device(v, cat);
+			sccp_buttonconfig_t	*buttonconfig;
+			buttonconfig = d->buttonconfig;
+			while(buttonconfig){
+				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found buttontype: %s\n", d->id, buttonconfig->type);
+				buttonconfig = buttonconfig->next;
+			}
 		}else if( (strncmp(cat, "softkeys",8) == 0) ){
 			v = ast_variable_browse(cfg_v3, cat);
 			buildSoftkeyTemplate(v);
