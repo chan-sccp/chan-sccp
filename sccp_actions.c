@@ -97,6 +97,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 	}
 
 	d = sccp_device_find_byid(r->msg.RegisterMessage.sId.deviceName);
+
 	if (!d) {
 		REQ(r1, RegisterRejectMessage);
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Rejecting device: not found\n", r->msg.RegisterMessage.sId.deviceName);
@@ -170,59 +171,58 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 	}
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Phone available lines %d\n", d->id, line_count);
 	i = 0;
-	
-		ast_log(LOG_WARNING,VERBOSE_PREFIX_3 "%s: use new configuration\n", d->id);
-		buttonconfig = d->buttonconfig;
-		while(buttonconfig){
-			ast_log(LOG_WARNING, "%s: Found buttontype: %s\n", d->id, buttonconfig->type);
-			
-			if(!strcasecmp(buttonconfig->type, "line") && !ast_strlen_zero(buttonconfig->button.line.name)){
-				l = sccp_line_find_byname(buttonconfig->button.line.name);
-				if (!l) {
-					ast_log(LOG_ERROR, "%s: Failed to autolog into %s: Couldn't find line %s\n", d->id, buttonconfig->button.line.name, buttonconfig->button.line.name);
-					i++;
-					buttonconfig = buttonconfig->next;
-					continue;
-				}
-	
-				if (l->device) {
-					ast_log(LOG_WARNING, "%s: Line %s aready attached to device %s\n", d->id, l->name, l->device->id);
-					i++;
-					buttonconfig = buttonconfig->next;
-					continue;
-				}
-	
-				ast_log(LOG_WARNING, "%s: Attaching line %s with instance %d to this device\n", d->id, l->name, buttonconfig->instance);
-				if (buttonconfig->instance == line_count) {
-					ast_log(LOG_WARNING, "%s: Failed to autolog into %s: Max available lines phone limit reached %s\n", d->id, buttonconfig->button.line.name, buttonconfig->button.line.name);
-					buttonconfig = buttonconfig->next;
-					continue;
-				}
-				ast_mutex_lock(&l->lock);
-				ast_mutex_lock(&d->lock);
-				
-				l->device = d;
-				l->instance = buttonconfig->instance;
-				l->mwilight = 0;
-				/* I want it in the right order */
-				if (!d->lines)
-					d->lines = l;
-				if (!lines_last){
-					lines_last = l;
-					d->currentLine = l;				//set to default line
-				}else {
-					l->prev_on_device = lines_last;
-					lines_last->next_on_device = l;
-					lines_last = l;
-				}
-				ast_mutex_unlock(&l->lock);
-				ast_mutex_unlock(&d->lock);
-				/* notify the line is on */
-				sccp_hint_notify_linestate(l, SCCP_DEVICESTATE_ONHOOK, NULL);
-			}
-			buttonconfig = buttonconfig->next;
 
+	buttonconfig = d->buttonconfig;
+	while(buttonconfig){
+		ast_log(LOG_WARNING, "%s: Found buttontype: %s\n", d->id, buttonconfig->type);
+		
+		if(!strcasecmp(buttonconfig->type, "line") && !ast_strlen_zero(buttonconfig->button.line.name)){
+			l = sccp_line_find_byname(buttonconfig->button.line.name);
+			if (!l) {
+				ast_log(LOG_ERROR, "%s: Failed to autolog into %s: Couldn't find line %s\n", d->id, buttonconfig->button.line.name, buttonconfig->button.line.name);
+				i++;
+				buttonconfig = buttonconfig->next;
+				continue;
+			}
+
+			if (l->device) {
+				ast_log(LOG_WARNING, "%s: Line %s aready attached to device %s\n", d->id, l->name, l->device->id);
+				i++;
+				buttonconfig = buttonconfig->next;
+				continue;
+			}
+
+			ast_log(LOG_WARNING, "%s: Attaching line %s with instance %d to this device\n", d->id, l->name, buttonconfig->instance);
+			if (buttonconfig->instance == line_count) {
+				ast_log(LOG_WARNING, "%s: Failed to autolog into %s: Max available lines phone limit reached %s\n", d->id, buttonconfig->button.line.name, buttonconfig->button.line.name);
+				buttonconfig = buttonconfig->next;
+				continue;
+			}
+			ast_mutex_lock(&l->lock);
+			ast_mutex_lock(&d->lock);
+			
+			l->device = d;
+			l->instance = buttonconfig->instance;
+			l->mwilight = 0;
+			/* I want it in the right order */
+			if (!d->lines)
+				d->lines = l;
+			if (!lines_last){
+				lines_last = l;
+				d->currentLine = l;				//set to default line
+			}else {
+				l->prev_on_device = lines_last;
+				lines_last->next_on_device = l;
+				lines_last = l;
+			}
+			ast_mutex_unlock(&l->lock);
+			ast_mutex_unlock(&d->lock);
+			/* notify the line is on */
+			sccp_hint_notify_linestate(l, SCCP_DEVICESTATE_ONHOOK, NULL);
 		}
+		buttonconfig = buttonconfig->next;
+
+	}
 	
 // 	sccp_copy_string(tmp, d->autologin, sizeof(tmp));
 // 	mb = tmp;
@@ -602,98 +602,6 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 // 	}
 
 
-
-	/* ServiceURLs configuration */
-	//s1 = NULL;
-	//s = d->serviceURLs;
-	
-// 	btn_count = 1;
-// 	while (s) {
-// 		btn_count = 1;
-// 		s->instance = 0;
-// 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a serviceURL button place %s (%d)\n", d->id, s->label, s->config_instance);
-// 		for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) {
-// 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: At pos. %d we have type %d.\n", d->id, i, btn[i].type);
-// 
-// 			
-// 			if ( SKINNY_BUTTONTYPE_MULTI == btn[i].type || SKINNY_BUTTONTYPE_SERVICEURL == btn[i].type ) {
-// 				if (btn_count == s->config_instance) {
-// 					s->instance = i + 1;
-// 					btn[i].instance = s->instance;
-// 					btn[i].ptr = s;
-// 					len = strlen(s->label);
-// 					if(!strncmp(s->label, "Feature", len))
-// 						btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
-// 					else
-// 						btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
-// 					sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) temporary instance (%d)\n", d->id, i+1, "ServiceURL" ,s->label, s->instance);
-// 					break;
-// 				}
-// 				btn_count++;
-// 			}
-// 		}
-// 		
-// 		if ( !s->instance ) {
-// 			sccp_log(10)(VERBOSE_PREFIX_3 "%s: removing unused serviceURL %s,%s\n", d->id, s->URL, s->label);
-// 			if (s1) {
-// 				s1->next = s->next;
-// 				free(s);
-// 				s = s1;
-// 			} else {
-// 				d->serviceURLs = NULL;
-// 				free(s);
-// 				s = NULL;
-// 			}
-// 		}
-// 		
-// 		s1 = s;
-// 		if (s)
-// 			s = s->next;
-// 	}
-	
-
-	/* cleanup the multi unused buttons 7914 fix*/
-	for (i = StationMaxButtonTemplateSize - 1; i >= 0 ; i--) {
-		if (btn[i].type == SKINNY_BUTTONTYPE_UNUSED)
-			continue;
-		if (btn[i].type == SKINNY_BUTTONTYPE_MULTI && btn[i].instance == 0) {
-			btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
-		} else {
-			break;
-		}
-	}
-	
-	lineindex = 1;
-	speedindex = 1;
-	/* correct the button instances */
-	for (i = 0 ; i < StationMaxButtonTemplateSize ; i++) {
-		if (btn[i].type == SCCP_BUTTONTYPE_LINE) {
-			btn[i].instance = lineindex++;
-			l = btn[i].ptr;
-			l->instance = btn[i].instance;
-			continue;
-		}
-
-		if (btn[i].type == SCCP_BUTTONTYPE_HINT) {
-			k = btn[i].ptr;
-//			k->instance = lineindex;
-//			if (sccp_activate_hint(d, k)) {
-//				btn[i].instance = lineindex++;
-//				k->type = SKINNY_BUTTONTYPE_LINE;
-//				k->instance = btn[i].instance;
-//				continue;
-//			} else {
-//				btn[i].type = SCCP_BUTTONTYPE_SPEEDDIAL;
-//			}
-		}
-
-		if (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) {
-			btn[i].instance = speedindex++;
-//			k = btn[i].ptr;
-//			k->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-//			k->instance = btn[i].instance;
-		}
-	}
 
 	sccp_device_unlock(d);
 	sccp_globals_unlock(lines_lock);
