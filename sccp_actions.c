@@ -444,55 +444,71 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 	sccp_device_lock(d);
 
 	buttonconfig = d->buttonconfig;
+	
 	while(buttonconfig){
-		ast_log(LOG_WARNING, "%s: Found buttontype: %s\n", d->id, buttonconfig->type);
+		i = buttonconfig->instance-1;
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Button %d type: %s\n", d->id, buttonconfig->instance, buttonconfig->type);
 		
+		btn[i].instance = buttonconfig->instance;
 		if(!strcasecmp(buttonconfig->type, "line") && !ast_strlen_zero(buttonconfig->button.line.name)){
-			l = sccp_line_find_byname(buttonconfig->button.line.name);
-			if (!l) {
-				ast_log(LOG_ERROR, "%s: Failed to autolog into %s: Couldn't find line %s\n", d->id, buttonconfig->button.line.name, buttonconfig->button.line.name);
-				i++;
-				buttonconfig = buttonconfig->next;
-				continue;
+			l = d->lines;
+			while(l){
+				sccp_log(10)(VERBOSE_PREFIX_3 "%s: button instance %d\n", d->id, buttonconfig->instance);
+				sccp_log(10)(VERBOSE_PREFIX_3 "%s: line instance %d\n", d->id, l->instance);
+				if(buttonconfig->instance == l->instance){
+					l->device = d;	
+					btn[i].type = SCCP_BUTTONTYPE_LINE;
+					btn[i].ptr = l;
+					sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = LINE (%s), temporary instance (%d)\n", d->id, i+1, l->name, l->instance);
+					break;	
+				}
+				l = l->next_on_device;
 			}
-
-			if (l->device) {
-				ast_log(LOG_WARNING, "%s: Line %s aready attached to device %s\n", d->id, l->name, l->device->id);
-				i++;
-				buttonconfig = buttonconfig->next;
-				continue;
-			}
-
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Attaching line %s with instance %d to this device\n", d->id, l->name, buttonconfig->instance);
-			if (buttonconfig->instance == line_count) {
-				ast_log(LOG_WARNING, "%s: Failed to autolog into %s: Max available lines phone limit reached %s\n", d->id, buttonconfig->button.line.name, buttonconfig->button.line.name);
-				buttonconfig = buttonconfig->next;
-				continue;
-			}
-			ast_mutex_lock(&l->lock);
-			ast_mutex_lock(&d->lock);
 			
-			l->device = d;
-			l->instance = buttonconfig->instance;
-			l->mwilight = 0;
-			/* I want it in the right order */
-			if (!d->lines)
-				d->lines = l;
-			if (!lines_last){
-				lines_last = l;
-				d->currentLine = l;				//set to default line
-			}else {
-				l->prev_on_device = lines_last;
-				lines_last->next_on_device = l;
-				lines_last = l;
+		} else if(!strcasecmp(buttonconfig->type, "empty")){
+			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = empty\n", d->id, buttonconfig->instance);
+			btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
+				
+		} else if(!strcasecmp(buttonconfig->type, "serviceurl")) {
+			btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
+			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) URL: %s\n", d->id, buttonconfig->instance, "ServiceURL" ,buttonconfig->button.serviceurl.label, buttonconfig->button.serviceurl.URL);
+			
+		} else if(!strcasecmp(buttonconfig->type, "speeddial") && !ast_strlen_zero(buttonconfig->button.speeddial.label)){
+			if (!ast_strlen_zero(buttonconfig->button.speeddial.hint))
+				btn[i].type = SCCP_BUTTONTYPE_HINT;
+			else
+				btn[i].type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			
+			k = d->speed_dials;
+			sccp_log(10)(VERBOSE_PREFIX_3 "%s: searching speeddial/hint for button [%.2d]\n", d->id, buttonconfig->instance);
+			while (k) {
+				sccp_log(10)(VERBOSE_PREFIX_3 "%s: speeddial/hint instance=%d\n", d->id, k->config_instance);
+				if(buttonconfig->instance == k->config_instance){
+					sccp_log(10)(VERBOSE_PREFIX_3 "%s: speeddial/hint found.\n", d->id);
+					btn[i].instance = buttonconfig->instance;
+					k->instance = buttonconfig->instance;
+					btn[i].ptr = k;
+					break;
+				}
+				k = k->next;
 			}
-			ast_mutex_unlock(&l->lock);
-			ast_mutex_unlock(&d->lock);
-			/* notify the line is on */
-			sccp_hint_notify_linestate(l, SCCP_DEVICESTATE_ONHOOK, NULL);
+			if(!k){
+				sccp_log(10)(VERBOSE_PREFIX_3 "%s: speeddial/hint not found.\n", d->id);
+			}else if (btn[i].type == SCCP_BUTTONTYPE_HINT && !sccp_activate_hint(d, k)) {
+				//if we can not activate hint, fall back to speeddial
+				btn[i].type = SCCP_BUTTONTYPE_SPEEDDIAL;
+				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Hint on Button [%.2d] can not activated\n", d->id, buttonconfig->instance);
+			}
+
+		} else if(!strcasecmp(buttonconfig->type, "feature") && !ast_strlen_zero(buttonconfig->button.feature.label)){
+			btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
 		}
-		buttonconfig = buttonconfig->next;
+
+		
+		buttonconfig = buttonconfig->next;	
 	}
+		
+	
 
 // 	/* line button template configuration */
 // 	l = d->lines;
