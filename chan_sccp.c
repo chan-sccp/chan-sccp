@@ -1483,44 +1483,7 @@ ast_log(LOG_WARNING, "Speeddial_inst %s, hint:  %s\n",  k->name,  k->hint);
 					newvar->next = d->variables;
 					d->variables = newvar;
 				}
- 			/*} else if (!strcasecmp(v->name, "serviceURL")) {
-				if (ast_strlen_zero(v->value)) {
-					serviceURLIndex++;
-					ast_verbose(VERBOSE_PREFIX_3 "Added empty serviceURL\n");
-				} else {
-					sccp_copy_string(serviceURLOptionString, v->value, sizeof(serviceURLOptionString));
-					splitter = serviceURLOptionString;
-					serviceURLLabel = strsep(&splitter, ",");
-					serviceURLURL = splitter;
-					if(serviceURLLabel)
-						ast_strip(serviceURLLabel);
-					if(serviceURLURL)
-						ast_strip(serviceURLURL);
-					if((serviceURLURL && serviceURLLabel) && 	(!ast_strlen_zero(serviceURLURL) && !ast_strlen_zero(serviceURLLabel))) 
-					{
-						serviceURL = malloc(sizeof(sccp_serviceURL_t));
-						if (!serviceURL)
-						{
-							ast_log(LOG_WARNING, "Error allocating serviceURL %s => %s\n", v->name, v->value);
-						}
-						else
-						{
-							memset(serviceURL, 0, sizeof(sccp_serviceURL_t));
-							sccp_copy_string(serviceURL->label, serviceURLLabel, strlen(serviceURLLabel)+1);
-							sccp_copy_string(serviceURL->URL, serviceURLURL, strlen(serviceURLURL)+1);
-							//serviceURL->config_instance = serviceURLIndex++;
-							ast_verbose(VERBOSE_PREFIX_3 "Add serviceURL: %s as instance %d\n",serviceURLURL, serviceURL->config_instance);
-							if (!d->serviceURLs)
-								d->serviceURLs = serviceURL;
-							if (!serviceURL_last)
-								serviceURL_last = serviceURL;
-							else {
-								serviceURL_last->next = serviceURL;
-								serviceURL_last = serviceURL;
-							}
-						}
-					}
-				}*/
+
 			} else {
 				ast_log(LOG_WARNING, "Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
 			}
@@ -1965,8 +1928,44 @@ static int reload_config(void) {
 *
 */
 void buildSoftkeyTemplate(struct ast_variable *astVar){
-	ast_verbose(VERBOSE_PREFIX_3 "building softkey template\n");
-	
+	sccp_softkeyTemplate_t		*template =NULL;
+	sccp_softkeyTemplateSet_t	*templateSet = malloc(sizeof(sccp_softkeyTemplateSet_t));
+	struct ast_variable 		*variable;
+	char 				field[256];
+	char 				*splitter;
+ 				
+
+	ast_verbose(VERBOSE_PREFIX_3 "build softkeys\n");
+	variable = astVar;
+	while(variable){
+		if (!strcasecmp(variable->name, "onhook")) {
+			template = malloc(sizeof(sccp_softkeyTemplate_t));
+			templateSet->onhook = template;
+		}
+
+		
+		sccp_copy_string(field, variable->value, sizeof(field));
+		ast_verbose(VERBOSE_PREFIX_3 "%s\n", variable->name);
+		splitter = field;
+		char* res;
+		while( (res=strsep(&splitter,",")) != NULL ) {
+			ast_verbose(VERBOSE_PREFIX_3 "     %s \n", res);
+			
+			template->next = malloc(sizeof(sccp_softkeyTemplate_t));
+			template->next->prev = template;
+
+			sccp_copy_string(template->type, res, sizeof(template->type));
+			
+		}
+		
+		variable = variable->next;
+	}
+	template = templateSet->onhook;
+	while(template){
+		ast_verbose(VERBOSE_PREFIX_3 "value of onhook: %s\n", template->type);
+		template = template->next;
+	}
+	GLOB(softkeyTempletSet) = templateSet;
 	return;
 }
 

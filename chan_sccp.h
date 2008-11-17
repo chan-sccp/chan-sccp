@@ -159,13 +159,16 @@ typedef struct sccp_channel		sccp_channel_t;
 typedef struct sccp_session		sccp_session_t;
 typedef struct sccp_line		sccp_line_t;
 typedef struct sccp_speed		sccp_speed_t;
-typedef struct sccp_serviceURL	sccp_serviceURL_t;
+typedef struct sccp_serviceURL		sccp_serviceURL_t;
 typedef struct sccp_device		sccp_device_t;
 typedef struct sccp_addon		sccp_addon_t; // Added on SVN 327 -FS
 typedef struct sccp_hint		sccp_hint_t;
-typedef struct sccp_hostname	sccp_hostname_t;
+typedef struct sccp_hostname		sccp_hostname_t;
 typedef struct sccp_ast_channel_name	sccp_ast_channel_name_t;
 typedef struct sccp_buttonconfig	sccp_buttonconfig_t;
+typedef struct sccp_softkeyTemplate	sccp_softkeyTemplate_t;
+typedef struct sccp_softkeyTemplateSet	sccp_softkeyTemplateSet_t;
+
 
 typedef void sk_func (sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 
@@ -336,6 +339,26 @@ struct sccp_speed {
 //#endif
 //};
 
+
+struct sccp_softkeyTemplate{
+	char			type[50];
+	sccp_softkeyTemplate_t 	*next;
+	sccp_softkeyTemplate_t  *prev;
+};
+
+struct sccp_softkeyTemplateSet{
+	sccp_softkeyTemplate_t	*onhook;
+	sccp_softkeyTemplate_t	*connected;
+	sccp_softkeyTemplate_t	*onhold;
+	sccp_softkeyTemplate_t	*ringin;
+	sccp_softkeyTemplate_t	*offhook;
+	sccp_softkeyTemplate_t	*conntrans;
+	sccp_softkeyTemplate_t	*digitsfoll;
+	sccp_softkeyTemplate_t	*connconf;
+	sccp_softkeyTemplate_t	*ringout;
+	sccp_softkeyTemplate_t	*offhookfeat;
+	sccp_softkeyTemplate_t	*onhint;
+};
 
 struct sccp_device {
 	ast_mutex_t lock;
@@ -615,6 +638,7 @@ struct sccp_global_vars {
 	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
 	struct sccp_global_vars	pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */	
 #endif
+	sccp_softkeyTemplate_t		softkeyTemplateSet;
 };
 
 struct sccp_selected_channel {
@@ -688,6 +712,7 @@ sccp_line_t * buildLine(struct ast_variable *v, char *linename);
 
 void buildSoftkeyTemplate(struct ast_variable *astVar);
 int buildGlobals(struct ast_variable *v);
+
 
 #ifndef ASTERISK_CONF_1_2
 struct sched_context *sched; 
