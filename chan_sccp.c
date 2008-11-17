@@ -1925,17 +1925,21 @@ static int reload_config(void) {
   return 0;
 }
 /**
-*
+* \brief building softkey template sets from configuration
+* \todo save in global variables, an implement request
 */
 void buildSoftkeyTemplate(struct ast_variable *astVar){
 	sccp_softkeyTemplate_t		*template =NULL;
-	sccp_softkeyTemplateSet_t	*templateSet = malloc(sizeof(sccp_softkeyTemplateSet_t));
+	sccp_softkeyTemplateSet_t	*templateSet = NULL;
 	struct ast_variable 		*variable;
 	char 				field[256];
 	char 				*splitter;
  				
 
 	ast_verbose(VERBOSE_PREFIX_3 "build softkeys\n");
+	templateSet = malloc(sizeof(sccp_softkeyTemplateSet_t));
+
+		
 	variable = astVar;
 	while(variable){
 		if (!strcasecmp(variable->name, "onhook")) {
@@ -1965,7 +1969,7 @@ void buildSoftkeyTemplate(struct ast_variable *astVar){
 		ast_verbose(VERBOSE_PREFIX_3 "value of onhook: %s\n", template->type);
 		template = template->next;
 	}
-	GLOB(softkeyTempletSet) = templateSet;
+	//GLOB(softkeyTempletSet) = templateSet;
 	return;
 }
 

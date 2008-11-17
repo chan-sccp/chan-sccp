@@ -613,32 +613,32 @@ struct sccp_global_vars {
 	uint8_t				transfer_tone;
 	uint8_t				callwaiting_tone;
 	
-	unsigned int				mwilamp:3;
-	unsigned int				mwioncall:1;
-	unsigned int				echocancel:1;					/*< echocancel phone support */
-	unsigned int				silencesuppression:1;
-	unsigned int				trustphoneip:1;
-	unsigned int				private:1; 					/*< permit private function */
-	unsigned int				privacy:2;
-	unsigned int				blindtransferindication:1; 			/*< SCCP_BLINDTRANSFER_* */
-	unsigned int				cfwdall:1;
-	unsigned int				cfwdbusy:1;
-	unsigned int				cfwdnoanswer:1;
+	unsigned int			mwilamp:3;
+	unsigned int			mwioncall:1;
+	unsigned int			echocancel:1;					/*< echocancel phone support */
+	unsigned int			silencesuppression:1;
+	unsigned int			trustphoneip:1;
+	unsigned int			private:1; 					/*< permit private function */
+	unsigned int			privacy:2;
+	unsigned int			blindtransferindication:1; 			/*< SCCP_BLINDTRANSFER_* */
+	unsigned int			cfwdall:1;
+	unsigned int			cfwdbusy:1;
+	unsigned int			cfwdnoanswer:1;
 #ifdef CS_MANAGER_EVENTS
-	unsigned int				callevents:1;
+	unsigned int			callevents:1;
 #endif
 #ifdef CS_SCCP_REALTIME
-	char 					realtimedevicetable[45];			/*< databasetable for sccp devices*/
-	char 					realtimelinetable[45];			/*< databasetable for sccp lines*/	
+	char 				realtimedevicetable[45];			/*< databasetable for sccp devices*/
+	char 				realtimelinetable[45];			/*< databasetable for sccp lines*/	
 #endif
 #ifndef ASTERISK_CONF_1_2
-    struct ast_jb_conf             global_jbconf;
+    struct ast_jb_conf             	global_jbconf;
 #endif
 #ifdef CS_DYNAMIC_CONFIG
 	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-	struct sccp_global_vars	pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */	
+	struct sccp_global_vars		pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */	
 #endif
-	sccp_softkeyTemplate_t		softkeyTemplateSet;
+	sccp_softkeyTemplateSet_t	softkeyTempletSet;
 };
 
 struct sccp_selected_channel {
