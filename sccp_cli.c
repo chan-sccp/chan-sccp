@@ -288,9 +288,8 @@ static struct ast_cli_entry cli_show_globals = {
 /* ------------------------------------------------------------ */
 
 static int sccp_show_device(int fd, int argc, char * argv[]) {
-	sccp_device_t 	* d;
+	sccp_device_t 		* d;
 	sccp_speed_t 		* k;
-	sccp_serviceURL_t 	* s;
 	sccp_line_t 		* l;
 	char pref_buf[128];
 	char cap_buf[512];
