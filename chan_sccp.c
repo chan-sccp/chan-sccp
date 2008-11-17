@@ -1868,7 +1868,7 @@ static int reload_config(void) {
 	cfg_v3 = ast_config_load2("sccp_v3.conf", "chan_sccp", config_flags);
 #endif
 	if (!cfg_v3) {
-		ast_log(LOG_WARNING, "Unable to load config file sccp.conf, SCCP disabled\n");
+		ast_log(LOG_WARNING, "Unable to load config file sccp_v3.conf, SCCP disabled\n");
 		return 0;
 	}
 	/* read the general section */
