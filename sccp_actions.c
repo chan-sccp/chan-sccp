@@ -65,7 +65,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 	pthread_attr_t 	attr;
 	sccp_device_t 	* d;
 	btnlist 		btn[StationMaxButtonTemplateSize];
-	char 			*mb, *cur, tmp[256];
 	sccp_line_t 		*l, *lines_last = NULL;
 	sccp_moo_t 		* r1;
 	uint8_t i = 0, line_count = 0;
@@ -420,17 +419,12 @@ static uint8_t sccp_activate_hint(sccp_device_t *d, sccp_speed_t *k) {
 
 static btnlist *sccp_make_button_template(sccp_device_t * d) {
 	int i;
-	uint8_t 			lineindex, speedindex;
-	sccp_speed_t 		*k = NULL, *k1 = NULL;
-	sccp_serviceURL_t 	*s = NULL, *s1 = NULL;
-	sccp_line_t 		*l = NULL, *lines_last = NULL;
-	int 			lineInstance = 1, btn_count = 1;
+	sccp_speed_t 		*k = NULL;
+	sccp_line_t 		*l = NULL;
 	btnlist 		*btn;
-	int 			len = 0;
-	uint8_t 		line_count = 0;
-	
-
 	sccp_buttonconfig_t	* buttonconfig;
+
+
 
 	btn = malloc(sizeof(btnlist)*StationMaxButtonTemplateSize);
 	if (!btn)
@@ -1867,7 +1861,7 @@ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_moo_t * r) {
  */
 void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_device_t * d = s->device;
-  	sccp_moo_t 			* r1;
+
   
 	if (!d)
 		return;
@@ -1875,15 +1869,6 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r) {
   	int featureIndex = letohl(r->msg.FeatureStatReqMessage.lel_featureIndex);
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d\n", d->id, featureIndex);
 	sccp_handle_feature_action(s, r, 0);
-// 	/* for now we are unable to use this skinny message */
-//   
-//   	REQ(r1, FeatureStatMessage);
-// 	r1->msg.FeatureStatMessage.lel_featureIndex = htolel(featureIndex);
-// 	r1->msg.FeatureStatMessage.lel_featureID = htolel(0x13);
-// 	sccp_copy_string(r1->msg.FeatureStatMessage.featureTextLabel, "Feature", strlen("Feature")+1);
-// 	r1->msg.FeatureStatMessage.lel_featureStatus = htolel(1);
-//   
-// 	sccp_dev_send(s->device, r1);
 }
 
 /**

@@ -876,6 +876,7 @@ sccp_line_t * build_lines(struct ast_variable *v) {
 	sccp_line_t 	*l, *gl;
 	int 		amaflags = 0;
 	int 		secondary_dialtone_tone = 0;
+	char		*lineName = NULL;
 
 
 
@@ -888,7 +889,8 @@ sccp_line_t * build_lines(struct ast_variable *v) {
 #ifdef CS_SCCP_REALTIME
 			if (!strcasecmp(v->name, "name")) {
  				if ( !ast_strlen_zero(v->value) ) {
-					sccp_copy_string(l->name, ast_strip(v->value), sizeof(l->name));
+					sccp_copy_string(lineName, v->value, sizeof(v->value));
+					sccp_copy_string(l->name, ast_strip(lineName), sizeof(l->name));
 					
  					
  					/* search for existing line */
@@ -1109,13 +1111,9 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 	sccp_hostname_t *permithost;
 	sccp_device_t 	*d;
 	sccp_speed_t 	*k = NULL, *k_last = NULL;
-	sccp_serviceURL_t	*serviceURL = NULL, *serviceURL_last = NULL;
 	char 			*splitter, *k_exten = NULL, *k_name = NULL, *k_hint = NULL;
 	char 			k_speed[256];
-	char 			serviceURLOptionString[1024];
-	char 			*serviceURLLabel = NULL, *serviceURLURL = NULL;
 	uint8_t 		speeddial_index = 1;
-	uint8_t			serviceURLIndex = 1;
 	char 			message[256]="";							//device message
 	int			res;
 	
@@ -1143,8 +1141,6 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					sccp_globals_unlock(devices_lock);
 					d = buildDeviceTemplate();
 					speeddial_index = 1;
-					serviceURLIndex = 1;
-					serviceURL_last = NULL;
 					k_last = NULL;
 				} else {
 					ast_log(LOG_WARNING, "Wrong device param: %s => %s\n", v->name, v->value);
