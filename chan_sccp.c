@@ -1858,7 +1858,7 @@ static int reload_config(void) {
 
 #ifndef ASTERISK_CONF_1_6
 	//cfg = ast_config_load("sccp.conf");
-	cfg_v3 = ast_config_load2("sccp_v3.conf", "chan_sccp", config_flags);
+	cfg_v3 = ast_config_load2("sccp_v3.conf");
 #else
 	//cfg = ast_config_load2("sccp.conf", "chan_sccp", config_flags);
 	cfg_v3 = ast_config_load2("sccp_v3.conf", "chan_sccp", config_flags);
@@ -1886,12 +1886,6 @@ static int reload_config(void) {
 			ast_verbose(VERBOSE_PREFIX_3 "found device %s\n", cat);
 			v = ast_variable_browse(cfg_v3, cat);
 			d = build_device(v, cat);
-// 			sccp_buttonconfig_t	*buttonconfig;
-// 			buttonconfig = d->buttonconfig;
-// 			while(buttonconfig){
-// 				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found buttontype: %s\n", d->id, buttonconfig->type);
-// 				buttonconfig = buttonconfig->next;
-// 			}
 		}else if( (strncmp(cat, "softkeys",8) == 0) ){
 			v = ast_variable_browse(cfg_v3, cat);
 			buildSoftkeyTemplate(v);
@@ -1903,25 +1897,6 @@ static int reload_config(void) {
 		}
 		
 	}
-	
-/*
-
-	v = ast_variable_browse(cfg, "devices");
-	if (!v) {
-#ifndef CS_SCCP_REALTIME
-		ast_log(LOG_WARNING, "Missing [devices] section\n");
-#endif		
-	}else{
-		//d = build_devices(v);
-	}
-
-	v = ast_variable_browse(cfg_v3, "lines");
-	if(v)
-		//l = build_lines(v);
-	
-	if (l) {
-		free(l);
-	}*/
 
 	/* ok the config parse is done */
 
