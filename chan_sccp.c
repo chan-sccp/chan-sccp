@@ -1962,16 +1962,20 @@ void buildSoftkeyTemplate(struct ast_variable *astVar){
 		while( (res=strsep(&splitter,",")) != NULL ) {
 			ast_verbose(VERBOSE_PREFIX_3 "     %s \n", res);
 
-			template->next = malloc(sizeof(sccp_softkeyTemplate_t));
-			template->next->prev = template;
+			if(template->prev){
+				template->next = malloc(sizeof(sccp_softkeyTemplate_t));
+				template->next->prev = template;
+				template->next->next = NULL;
+				template = template->next;
+			}
 
 			//sccp_copy_string(template->type, res, sizeof(template->type));
 			template->type = skinny_str2lbl(res);
 		}
-
+		template = NULL;
 		variable = variable->next;
 	}
-	template = templateSet->onhook;
+	template = templateSet->connected;
 	while(template){
 		ast_verbose(VERBOSE_PREFIX_3 "value of onhook: %s\n", skinny_lbl2str(template->type));
 		template = template->next;
