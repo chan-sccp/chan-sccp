@@ -1942,14 +1942,15 @@ void buildSoftkeyTemplate(struct ast_variable *astVar){
 
 	variable = astVar;
 	while(variable){
+		template = malloc(sizeof(sccp_softkeyTemplate_t));
+
 		if (!strcasecmp(variable->name, "onhook")) {
-			template = malloc(sizeof(sccp_softkeyTemplate_t));
 			templateSet->onhook = template;
 		}else if (!strcasecmp(variable->name, "connected")) {
-			template = malloc(sizeof(sccp_softkeyTemplate_t));
 			templateSet->connected = template;
 		}else{
 			variable = variable->next;
+			free(template);
 			continue;
 		}
 
