@@ -17,10 +17,10 @@
 
 /**
  * \mainpage chan_sccp-b User documentation
- * 
+ *
  * \ref intro_sk The Softkeys
- * 
- * 
+ *
+ *
  */
 #define AST_MODULE "chan_sccp"
 
@@ -77,10 +77,10 @@ static struct ast_jb_conf default_jbconf =
 #endif
 
 /**
- * 
- * 
- * 
- * 
+ *
+ *
+ *
+ *
  */
 #ifdef CS_AST_HAS_TECH_PVT
 struct ast_channel *sccp_request(const char *type, int format, void *data, int *cause) {
@@ -203,7 +203,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 #endif
 	}
 	sccp_line_unlock(l);
-	
+
 	/* we don't need to parse any options when we have a call forward status */
 	if (!ast_strlen_zero(c->owner->call_forward))
 		goto OUT;
@@ -273,7 +273,7 @@ OUT:
 
 /**
  * returns the state of device
- * 
+ *
  * \param data name of device
  * \return devicestate of AST_DEVICE_*
  */
@@ -291,7 +291,7 @@ int sccp_devicestate(void * data) {
 	else if (l->incominglimit && l->channelCount == l->incominglimit)
 		res = AST_DEVICE_BUSY;
 	else if (!l->channelCount)
-		res = AST_DEVICE_NOT_INUSE;		
+		res = AST_DEVICE_NOT_INUSE;
 #ifdef CS_AST_DEVICE_RINGING
 	else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING))
 		res = AST_DEVICE_RINGING;
@@ -313,17 +313,17 @@ int sccp_devicestate(void * data) {
 }
 
 /**
- * 
- * 
+ *
+ *
  */
 sccp_hint_t * sccp_hint_make(sccp_device_t *d, uint8_t instance) {
 	sccp_hint_t *h = NULL;
-	
+
 	if (!d)
 		return NULL;
-	
+
 	h = malloc(sizeof(sccp_hint_t));
-	if (h) {			
+	if (h) {
 		memset(h, 0x0, sizeof(sccp_hint_t)); // cleaning the hint -FS (SVN349)
 		h->device = d;
 		h->instance = instance;
@@ -339,21 +339,21 @@ sccp_hint_t * sccp_hint_make(sccp_device_t *d, uint8_t instance) {
 
 
 /**
- * 
- * 
- * 
- * 
+ *
+ *
+ *
+ *
  */
 void sccp_hint_notify_devicestate(sccp_device_t * d, uint8_t state) {
 	sccp_line_t * l;
-	
+
 	if (!d || !d->session)
 		return;
-	
+
 	sccp_device_lock(d);
 	l = d->lines;
 	while (l) {
-		sccp_log(71)(VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifystate) Notifying state (%d) for line (%s)\n", state, l->name);		
+		sccp_log(71)(VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifystate) Notifying state (%d) for line (%s)\n", state, l->name);
 		sccp_hint_notify_linestate(l, state, NULL);
 		l = l->next_on_device;
 	}
@@ -363,9 +363,9 @@ void sccp_hint_notify_devicestate(sccp_device_t * d, uint8_t state) {
 
 
 /**
- * 
- * 
- * 
+ *
+ *
+ *
  */
 void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * onedevice) {
 	sccp_moo_t * r;
@@ -380,14 +380,14 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 		ast_log(LOG_ERROR,"SCCP: (sccp_hint_notify_linestate) <line> not found. Leaving\n");
 		return;
 	}
-	
+
 	if (!onedevice) { // we are in post registration state
 		ast_device_state_changed("SCCP/%s", l->name);
 		if (!l->hints) {
 			sccp_log(71)(VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notify_linestate) State (%d) of line (%s) has been notified. Leaving.\n", state, l->name);
 			return;
-		} 
-		sccp_log(71)(VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notify_linestate) State (%d) of line (%s) has been notified. Going o\n", state, l->name);	
+		}
+		sccp_log(71)(VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notify_linestate) State (%d) of line (%s) has been notified. Going o\n", state, l->name);
 	}
 
 	h = l->hints;
@@ -398,13 +398,13 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 			continue;
 		}
 		sccp_log(71)(VERBOSE_PREFIX_3 "%s: (sccp_hint_notify_linestate) HINT notify state %d of the line '%s'\n", d->id, state, l->name);
-		
+
 		if (state == SCCP_DEVICESTATE_ONHOOK) {
 			usleep(100);
 			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, SKINNY_LAMP_OFF);
 			sccp_channel_set_callstate_full(d, h->instance, 0, SKINNY_CALLSTATE_ONHOOK);
 			if(h->state == SCCP_HINTSTATE_INUSE) {
-				sccp_dev_set_keyset(d, h->instance, h->callid, KEYMODE_ONHOOK); 
+				sccp_dev_set_keyset(d, h->instance, h->callid, KEYMODE_ONHOOK);
 				h->state = SCCP_HINTSTATE_NOTINUSE;
 			}
 			h = h->next;
@@ -439,20 +439,20 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 				h = h->next;
 				continue;
 		}
-		
+
 		sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, lamp);
 		sccp_channel_set_callstate_full(d, h->instance, 0, SKINNY_CALLSTATE_CALLREMOTEMULTILINE);
-		
+
 		/* sending CallInfoMessage */
 		r->msg.CallInfoMessage.lel_lineId = htolel(h->instance);
 		r->msg.CallInfoMessage.lel_callRef = htolel(0);
 		r->msg.CallInfoMessage.lel_callType = htolel(SKINNY_CALLTYPE_OUTBOUND);
 		sccp_dev_send(d, r);
-		
+
 		if(h->state == SCCP_HINTSTATE_NOTINUSE) {
 			sccp_dev_set_keyset(d, h->instance, 0, KEYMODE_INUSEHINT);
 			h->callid = 0;
-			h->state = SCCP_HINTSTATE_INUSE;			
+			h->state = SCCP_HINTSTATE_INUSE;
 		}
 		h = h->next;
 	}
@@ -460,9 +460,9 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 
 
 /**
- * 
- * 
- * 
+ *
+ *
+ *
  */
 void sccp_hint_notify_channelstate(sccp_device_t * d, sccp_hint_t * h, sccp_channel_t * c) {
 	sccp_moo_t * r;
@@ -470,9 +470,9 @@ void sccp_hint_notify_channelstate(sccp_device_t * d, sccp_hint_t * h, sccp_chan
 
 	if (!c) {
 		sccp_log(10)(VERBOSE_PREFIX_2 "SCCP: (sccp_hint_notify_channelstate) No <channel> to notify. Leaving.\n");
-		return;	
+		return;
 	}
-	
+
 	if (!d && c->line)
 		d = c->line->device;
 
@@ -480,7 +480,7 @@ void sccp_hint_notify_channelstate(sccp_device_t * d, sccp_hint_t * h, sccp_chan
 		sccp_log(10)(VERBOSE_PREFIX_2 "SCCP: (sccp_hint_notify_channelstate) No <device> to notify. Leaving.\n");
 		return;
 	}
-	
+
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: (sccp_hint_notify_channelstate) Notifying state '%s' (%d) of call '%d' \n", d->id, sccp_callstate2str(c->callstate), c->callstate, c->callid);
 
 	REQ(r, CallInfoMessage);
@@ -490,7 +490,7 @@ void sccp_hint_notify_channelstate(sccp_device_t * d, sccp_hint_t * h, sccp_chan
 			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, SKINNY_LAMP_OFF);
 			sccp_channel_set_callstate_full(d, h->instance, c->callid, SKINNY_CALLSTATE_ONHOOK);
 			if(h->state == SCCP_HINTSTATE_INUSE) {
-				sccp_dev_set_keyset(d, h->instance, h->callid, KEYMODE_ONHOOK); 
+				sccp_dev_set_keyset(d, h->instance, h->callid, KEYMODE_ONHOOK);
 				h->state = SCCP_HINTSTATE_NOTINUSE;
 			}
 			return;
@@ -507,10 +507,10 @@ void sccp_hint_notify_channelstate(sccp_device_t * d, sccp_hint_t * h, sccp_chan
 			}
 			break;
 		case SKINNY_CALLSTATE_OFFHOOK:
-			lamp = SKINNY_LAMP_ON;		
+			lamp = SKINNY_LAMP_ON;
 			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_OFF_HOOK, sizeof(r->msg.CallInfoMessage.callingPartyName));
-			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_OFF_HOOK, sizeof(r->msg.CallInfoMessage.calledPartyName));		
-			break;		
+			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_OFF_HOOK, sizeof(r->msg.CallInfoMessage.calledPartyName));
+			break;
 		case SKINNY_CALLSTATE_RINGOUT:
 			lamp = SKINNY_LAMP_ON;
 			if(d->privacy == 0 || (d->privacy == 1 && c->private == 0)) {
@@ -540,16 +540,16 @@ void sccp_hint_notify_channelstate(sccp_device_t * d, sccp_hint_t * h, sccp_chan
 			free(r);
 			return;
 	}
-	
+
 	sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, lamp /* SKINNY_LAMP_ON */) ;
 	sccp_channel_set_callstate_full(d, h->instance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE);
-	
+
 	/* sending CallInfoMessage */
 	r->msg.CallInfoMessage.lel_lineId   = htolel(h->instance);
 	r->msg.CallInfoMessage.lel_callRef  = htolel(c->callid);
 	r->msg.CallInfoMessage.lel_callType = htolel(c->calltype);
 	sccp_dev_send(d, r);
-	
+
 	if(h->state == SCCP_HINTSTATE_NOTINUSE) {
 		sccp_dev_set_keyset(d, h->instance, c->callid, KEYMODE_INUSEHINT);
 		h->callid = c->callid;
@@ -558,8 +558,8 @@ void sccp_hint_notify_channelstate(sccp_device_t * d, sccp_hint_t * h, sccp_chan
 }
 
 /**
- * 
- * 
+ *
+ *
  */
 void sccp_hint_notify(sccp_channel_t * c, sccp_device_t * onedevice) {
 	sccp_line_t *l = c->line;
@@ -571,11 +571,11 @@ void sccp_hint_notify(sccp_channel_t * c, sccp_device_t * onedevice) {
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: HINT notify the state of the line %s \n", l->name);
 
-	while (h) {		
-		d = h->device;		
+	while (h) {
+		d = h->device;
 		if (d && d->session) {
 			sccp_hint_notify_channelstate(d, h, c);
-			
+
 			if (onedevice && d == onedevice)
 				break;
 		}
@@ -584,20 +584,20 @@ void sccp_hint_notify(sccp_channel_t * c, sccp_device_t * onedevice) {
 }
 
 /**
- * asterisk hint wrapper 
+ * asterisk hint wrapper
  */
 int sccp_hint_state(char *context, char* exten, enum ast_extension_states state, void *data) {
 	sccp_hint_t * h = data;
 	sccp_device_t *d;
 	sccp_moo_t * r;
-	
+
 	if (state == -1 || !h || !h->device || !h->device->session)
 		return 0;
 
 	d = h->device;
-	
+
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: (sccp_hint_state) HINT notify state %s (%d), instance %d\n", d->id, sccp_extensionstate2str(state), state, h->instance);
-	
+
 	REQ(r, CallInfoMessage);
 	switch(state) {
 		case AST_EXTENSION_NOT_INUSE:
@@ -605,7 +605,7 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, SKINNY_LAMP_OFF);
 			sccp_channel_set_callstate_full(d, h->instance, 0, SKINNY_CALLSTATE_ONHOOK);
 			if(h->state == SCCP_HINTSTATE_INUSE) {
-				sccp_dev_set_keyset(d, h->instance, h->callid, KEYMODE_ONHOOK); 
+				sccp_dev_set_keyset(d, h->instance, h->callid, KEYMODE_ONHOOK);
 				h->state = SCCP_HINTSTATE_NOTINUSE;
 			}
 			return 0;
@@ -627,7 +627,7 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(r->msg.CallInfoMessage.callingPartyName));
 			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(r->msg.CallInfoMessage.calledPartyName));
 			break;
-#ifdef CS_AST_HAS_EXTENSION_ONHOLD		
+#ifdef CS_AST_HAS_EXTENSION_ONHOLD
 		case AST_EXTENSION_ONHOLD:
 			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, SKINNY_LAMP_ON);
 			sccp_channel_set_callstate_full(d, h->instance, 0, SKINNY_CALLSTATE_CALLREMOTEMULTILINE);
@@ -639,8 +639,8 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 			sccp_channel_set_callstate_full(d, h->instance, 0, SKINNY_CALLSTATE_CALLREMOTEMULTILINE);
 			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_LINE_IN_USE ", " SKINNY_DISP_HOLD, sizeof(r->msg.CallInfoMessage.callingPartyName));
 			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_LINE_IN_USE ", " SKINNY_DISP_HOLD, sizeof(r->msg.CallInfoMessage.calledPartyName));
-			break;			
-#endif	
+			break;
+#endif
 #ifdef CS_AST_HAS_EXTENSION_RINGING
 		case AST_EXTENSION_RINGING:
 			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, SKINNY_LAMP_FLASH);
@@ -653,7 +653,7 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 			sccp_channel_set_callstate_full(d, h->instance, 0, SKINNY_CALLSTATE_CALLREMOTEMULTILINE);
 			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, SKINNY_DISP_LINE_IN_USE ", " SKINNY_DISP_RING_OUT, sizeof(r->msg.CallInfoMessage.callingPartyName));
 			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, SKINNY_DISP_LINE_IN_USE ", " SKINNY_DISP_RING_OUT, sizeof(r->msg.CallInfoMessage.calledPartyName));
-			break;			
+			break;
 #endif
 		default:
 			sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, h->instance, SKINNY_LAMP_FLASH);
@@ -667,9 +667,9 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 
 	r->msg.CallInfoMessage.lel_lineId   = htolel(h->instance);
 	r->msg.CallInfoMessage.lel_callRef  = htolel(0);
-	r->msg.CallInfoMessage.lel_callType = htolel(SKINNY_CALLTYPE_OUTBOUND);	
-	sccp_dev_send(d, r);	
-	
+	r->msg.CallInfoMessage.lel_callType = htolel(SKINNY_CALLTYPE_OUTBOUND);
+	sccp_dev_send(d, r);
+
 	if(h->state == SCCP_HINTSTATE_NOTINUSE) {
 		sccp_dev_set_keyset(d, h->instance, 0, KEYMODE_INUSEHINT);
 		h->callid = 0;
@@ -680,7 +680,7 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 
 
 /**
- * 
+ *
  * \brief controller function to handle received messages
  * \param r message
  * \param s session
@@ -803,12 +803,12 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 
 
 /**
- * Creates a \link sccp_line_t line \endlink with default/global values 
- * 
+ * Creates a \link sccp_line_t line \endlink with default/global values
+ *
  * \brief build default line.
  * \return default line
- * 
- * 
+ *
+ *
  */
 sccp_line_t * buildLineTemplate(void) {
 	sccp_line_t * l = malloc(sizeof(sccp_line_t));
@@ -840,7 +840,7 @@ sccp_line_t * buildLineTemplate(void) {
   return l;
 }
 sccp_line_t * buildLine(struct ast_variable *v, char *linename){
-	sccp_line_t 	*line, *gl = NULL;	
+	sccp_line_t 	*line, *gl = NULL;
 
 	line = build_lines(v);
 	sccp_copy_string(line->name, ast_strip(linename), sizeof(line->name));
@@ -848,7 +848,7 @@ sccp_line_t * buildLine(struct ast_variable *v, char *linename){
 	while(gl && strcasecmp(gl->name, v->value) != 0) {
 		gl = gl->next;
 	}
-	if (gl && (strcasecmp(gl->name, v->value) == 0) ){					
+	if (gl && (strcasecmp(gl->name, v->value) == 0) ){
 		ast_log(LOG_WARNING, "The line %s already exists\n", gl->name);
 		free(line);
 	}else {
@@ -861,9 +861,9 @@ sccp_line_t * buildLine(struct ast_variable *v, char *linename){
 		sccp_globals_unlock(lines_lock);
 	}
 	free(gl);
-	
-	
-	
+
+
+
 	return line;
 }
 
@@ -891,8 +891,8 @@ sccp_line_t * build_lines(struct ast_variable *v) {
  				if ( !ast_strlen_zero(v->value) ) {
 					sccp_copy_string(lineName, v->value, sizeof(v->value));
 					sccp_copy_string(l->name, ast_strip(lineName), sizeof(l->name));
-					
- 					
+
+
  					/* search for existing line */
 					sccp_globals_lock(lines_lock);
 					gl = GLOB(lines);
@@ -900,7 +900,7 @@ sccp_line_t * build_lines(struct ast_variable *v) {
 	 					gl = gl->next;
 	 				}
 					sccp_globals_unlock(lines_lock);
- 					if (gl && (strcasecmp(gl->name, v->value) == 0) ){					
+ 					if (gl && (strcasecmp(gl->name, v->value) == 0) ){
  						ast_log(LOG_WARNING, "The line %s already exists\n", gl->name);
  						free(l);
  					}else {
@@ -917,7 +917,7 @@ sccp_line_t * build_lines(struct ast_variable *v) {
  					ast_log(LOG_WARNING, "Wrong line param: %s => %s\n", v->name, v->value);
  					free(l);
  				}
- 			} 
+ 			}
 #endif
 			  else if (!strcasecmp(v->name, "id")) {
  				sccp_copy_string(l->id, v->value, sizeof(l->id));
@@ -940,7 +940,7 @@ sccp_line_t * build_lines(struct ast_variable *v) {
  			} else if (!strcasecmp(v->name, "vmnum")) {
  				sccp_copy_string(l->vmnum, v->value, sizeof(l->vmnum));
  			} else if (!strcasecmp(v->name, "meetmenum")) {
- 				sccp_copy_string(l->meetmenum, v->value, sizeof(l->meetmenum));				
+ 				sccp_copy_string(l->meetmenum, v->value, sizeof(l->meetmenum));
  			} else if (!strcasecmp(v->name, "transfer")) {
  				l->transfer = sccp_true(v->value);
  			} else if (!strcasecmp(v->name, "incominglimit")) {
@@ -1003,10 +1003,10 @@ sccp_line_t * build_lines(struct ast_variable *v) {
  				}
  			} else if (!strcasecmp(v->name, "setvar")) {
 				struct ast_variable *newvar = NULL;
-				
+
 				newvar = sccp_create_variable(v->value);
 				if(newvar){
-					sccp_log(10)(VERBOSE_PREFIX_3 "Add new channelvariable to line %s. Value is: %s \n",newvar->name ,newvar->value);				
+					sccp_log(10)(VERBOSE_PREFIX_3 "Add new channelvariable to line %s. Value is: %s \n",newvar->name ,newvar->value);
 					newvar->next = l->variables;
 					l->variables = newvar;
 				}
@@ -1033,7 +1033,7 @@ sccp_line_t * build_lines(struct ast_variable *v) {
 /**
  * \brief Build default device.
  * \return device with default/global values
- * 
+ *
  */
 sccp_device_t * buildDeviceTemplate(void) {
 	sccp_device_t * d = malloc(sizeof(sccp_device_t));
@@ -1071,7 +1071,7 @@ sccp_device_t * buildDeviceTemplate(void) {
 #else
 	d->park = 0;
 #endif
-  
+
   d->selectedChannels = NULL;
 
   return d;
@@ -1084,13 +1084,13 @@ sccp_device_t * build_device(struct ast_variable *v, char *devicename){
 	sccp_device_t * d = NULL;
 	int		res;
 	char 		message[256]="";
-	
+
 
 	d = build_devices(v);
 	sccp_copy_string(d->id, devicename, sizeof(d->id));
-	
+
 	res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
-	if (!res) 
+	if (!res)
 		d->phonemessage=strdup(message);									//set message on device if we have a result
 	strcpy(message,"");
 	ast_verbose(VERBOSE_PREFIX_3 "Added device '%s' (%s) \n", d->id, d->config_type);
@@ -1098,13 +1098,13 @@ sccp_device_t * build_device(struct ast_variable *v, char *devicename){
 	d->next = GLOB(devices);
 	GLOB(devices) = d;
 	sccp_globals_unlock(devices_lock);
-	
+
 	return d;
 }
 
 /**
  * \brief Create device from ast_variable
- * \return configured device 
+ * \return configured device
  * \note also used by realtime functionality to build device from \link ast_variable asterisk variable \endlink
  */
 sccp_device_t *build_devices(struct ast_variable *v) {
@@ -1116,7 +1116,7 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 	uint8_t 		speeddial_index = 1;
 	char 			message[256]="";							//device message
 	int			res;
-	
+
 	/* for button config */
 	char 			*buttonType = NULL, *buttonName = NULL, *buttonOption=NULL, *buttonArgs=NULL;
 	char 			k_button[256];
@@ -1125,13 +1125,13 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 
 
 	d = buildDeviceTemplate();
-	while (v) {	
+	while (v) {
 			sccp_log(10)(VERBOSE_PREFIX_3 "%s = %s\n", v->name, v->value);
 			if (!strcasecmp(v->name, "device")) {
 				if ( (strlen(v->value) == 15) && ((strncmp(v->value, "SEP",3) == 0) || (strncmp(v->value, "ATA",3)==0)) ) {
 					sccp_copy_string(d->id, v->value, sizeof(d->id));
 					res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
-					if (!res) 
+					if (!res)
 						d->phonemessage=strdup(message);									//set message on device if we have a result
 					strcpy(message,"");
 					ast_verbose(VERBOSE_PREFIX_3 "Added device '%s' (%s) \n", d->id, d->config_type);
@@ -1148,14 +1148,14 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					ast_mutex_destroy(&d->lock);
 					free(d);
 				}
-				
-			} 
+
+			}
 #ifdef CS_SCCP_REALTIME
 			else if (!strcasecmp(v->name, "name")) {
 				if ( (strlen(v->value) == 15) && ((strncmp(v->value, "SEP",3) == 0) || (strncmp(v->value, "ATA",3)==0)) ) {
 					sccp_copy_string(d->id, v->value, sizeof(d->id));
 					res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
-					if (!res) 
+					if (!res)
 						d->phonemessage=strdup(message);									//set message on device if we have a result
 					strcpy(message,"");
 					ast_verbose(VERBOSE_PREFIX_3 "Added device '%s' (%s)\n", d->id, d->config_type);
@@ -1173,13 +1173,13 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 			else if (!strcasecmp(v->name, "keepalive")) {
 				d->keepalive = atoi(v->value);
 			} else if (!strcasecmp(v->name, "permit") || !strcasecmp(v->name, "deny")) {
-				
-#ifndef ASTERISK_CONF_1_6				
+
+#ifndef ASTERISK_CONF_1_6
 				d->ha = ast_append_ha(v->name, v->value, d->ha);
 #else
 				d->ha = ast_append_ha(v->name, v->value, d->ha, NULL );
 #endif
-				
+
 			} else if (!strcasecmp(v->name, "permithost")) {
 				if ((permithost = malloc(sizeof(sccp_hostname_t)))) {
 					sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
@@ -1189,7 +1189,7 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					ast_log(LOG_WARNING, "Error adding the permithost = %s to the list\n", v->value);
 				}
 			} else if (!strcasecmp(v->name, "type")) {
-				sccp_copy_string(d->config_type, v->value, sizeof(d->config_type));				
+				sccp_copy_string(d->config_type, v->value, sizeof(d->config_type));
 			} else if (!strcasecmp(v->name, "addon")) {
 				sccp_device_addon_addnew(d, v->value);
 			} else if (!strcasecmp(v->name, "button")) {
@@ -1200,13 +1200,13 @@ sccp_device_t *build_devices(struct ast_variable *v) {
  				buttonName = strsep(&splitter, ",");
  				buttonOption = strsep(&splitter, ",");
  				buttonArgs = splitter;
- 	
+
  				sccp_log(0)(VERBOSE_PREFIX_3 "ButtonType: %s\n", buttonType);
  				sccp_log(0)(VERBOSE_PREFIX_3 "ButtonName: %s\n", buttonName);
  				sccp_log(0)(VERBOSE_PREFIX_3 "ButtonOption: %s\n", buttonOption);
 				if (!strcasecmp(buttonType, "line") && buttonName){
 					currentButton = malloc(sizeof(sccp_buttonconfig_t));
-					
+
 					if(!lastButton){
 						d->buttonconfig = currentButton;
 						lastButton = d->buttonconfig;
@@ -1217,16 +1217,16 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					//TODO check if malloc is successfull
 					currentButton->instance = lastinstance+1;
 					lastinstance = currentButton->instance;
-					
-					
+
+
 					sccp_copy_string(currentButton->type, "line", sizeof(currentButton->type));
 					sccp_copy_string(currentButton->button.line.name, ast_strip(buttonName), sizeof(currentButton->button.line.name));
 					ast_verbose(VERBOSE_PREFIX_3 "Added button config: '%s' \n", currentButton->type);
-					
-					
+
+
 				} else if (!strcasecmp(buttonType, "empty")){
 					currentButton = malloc(sizeof(sccp_buttonconfig_t));
-					
+
 					if(!lastButton){
 						d->buttonconfig = currentButton;
 						lastButton = d->buttonconfig;
@@ -1237,14 +1237,14 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					//TODO check if malloc is successfull
 					currentButton->instance = lastinstance+1;
 					lastinstance = currentButton->instance;
-					
+
 					sccp_copy_string(currentButton->type, "empty", sizeof(currentButton->type));
 					ast_verbose(VERBOSE_PREFIX_3 "Added button config: '%s' \n", currentButton->type);
 
-					
+
 				} else if (!strcasecmp(buttonType, "speeddial")){
 					currentButton = malloc(sizeof(sccp_buttonconfig_t));
-					
+
 					if(!lastButton){
 						d->buttonconfig = currentButton;
 						lastButton = d->buttonconfig;
@@ -1255,16 +1255,16 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					//TODO check if malloc is successfull
 					currentButton->instance = lastinstance+1;
 					lastinstance = currentButton->instance;
-					
+
 					sccp_copy_string(currentButton->type, "speeddial", sizeof(currentButton->type));
-					
+
 					sccp_copy_string(currentButton->button.speeddial.label, ast_strip(buttonName), sizeof(currentButton->button.speeddial.label));
 					sccp_copy_string(currentButton->button.speeddial.ext, ast_strip(buttonOption), sizeof(currentButton->button.speeddial.ext));
 					if(buttonArgs)
 						sccp_copy_string(currentButton->button.speeddial.hint, ast_strip(buttonArgs), sizeof(currentButton->button.speeddial.hint));
 
 ast_log(LOG_WARNING, "Speddial %s, extension: %s\n",  currentButton->button.speeddial.label,  currentButton->button.speeddial.ext);
-ast_log(LOG_WARNING, "Speeddial %s, hint:  %s\n",  currentButton->button.speeddial.label,  (currentButton->button.speeddial.hint)?currentButton->button.speeddial.hint:"none");					
+ast_log(LOG_WARNING, "Speeddial %s, hint:  %s\n",  currentButton->button.speeddial.label,  (currentButton->button.speeddial.hint)?currentButton->button.speeddial.hint:"none");
 
 
 					k = malloc(sizeof(sccp_speed_t));
@@ -1292,10 +1292,10 @@ ast_log(LOG_WARNING, "Speeddial_inst %s, hint:  %s\n",  k->name,  k->hint);
 						ast_verbose(VERBOSE_PREFIX_3 "Added speeddial %d: %s (%s)\n", k->config_instance, k->name, k->ext);
 					}
 
-					
+
 				} else if (!strcasecmp(buttonType, "feature") && buttonName){
 					currentButton = malloc(sizeof(sccp_buttonconfig_t));
-					
+
 					if(!lastButton){
 						d->buttonconfig = currentButton;
 						lastButton = d->buttonconfig;
@@ -1306,7 +1306,7 @@ ast_log(LOG_WARNING, "Speeddial_inst %s, hint:  %s\n",  k->name,  k->hint);
 					//TODO check if malloc is successfull
 					currentButton->instance = lastinstance+1;
 					lastinstance = currentButton->instance;
-					
+
 					sccp_copy_string(currentButton->type, "feature", sizeof(currentButton->type));
 					if(buttonOption){
 						ast_verbose(VERBOSE_PREFIX_3 "Feature option: '%s' \n", buttonOption);
@@ -1322,12 +1322,12 @@ ast_log(LOG_WARNING, "Speeddial_inst %s, hint:  %s\n",  k->name,  k->hint);
 					}
 					sccp_copy_string(currentButton->button.feature.label, ast_strip(buttonName), sizeof(currentButton->button.feature.label));
 					currentButton->button.feature.status = 0;
-					
+
 					ast_verbose(VERBOSE_PREFIX_3 "Added button config: '%s' \n", currentButton->type);
-					
+
 				} else if (!strcasecmp(buttonType, "serviceurl") && buttonName && !ast_strlen_zero(buttonName) ){
 					currentButton = malloc(sizeof(sccp_buttonconfig_t));
-					
+
 					if(!lastButton){
 						d->buttonconfig = currentButton;
 						lastButton = d->buttonconfig;
@@ -1338,13 +1338,13 @@ ast_log(LOG_WARNING, "Speeddial_inst %s, hint:  %s\n",  k->name,  k->hint);
 					//TODO check if malloc is successfull
 					currentButton->instance = lastinstance+1;
 					lastinstance = currentButton->instance;
-					
+
 					sccp_copy_string(currentButton->type, "serviceurl", sizeof(currentButton->type));
-										
+
 					sccp_copy_string(currentButton->button.serviceurl.label, buttonName, sizeof(currentButton->button.serviceurl.label));
 					sccp_copy_string(currentButton->button.serviceurl.URL, buttonOption, sizeof(currentButton->button.serviceurl.URL));
-					
-					
+
+
 					//ast_verbose(VERBOSE_PREFIX_3 "Added button config: '%s, buttonName: %s, buttonOption: %s' \n", currentButton->type, buttonName, buttonOption);
 					ast_verbose(VERBOSE_PREFIX_3 "Added button config: '%s, serviceName: %s, serviceURL: %s' \n", currentButton->type, currentButton->button.serviceurl.label, currentButton->button.serviceurl.URL);
 				}
@@ -1377,7 +1377,7 @@ ast_log(LOG_WARNING, "Speeddial_inst %s, hint:  %s\n",  k->name,  k->hint);
 					d->pickupcontext = strdup(v->value);
 			} else if (!strcasecmp(v->name, "pickupmodeanswer")) {
 				d->pickupmodeanswer = sccp_true(v->value);
-#endif					
+#endif
 			} else if (!strcasecmp(v->name, "dnd")) {
 				if (!strcasecmp(v->value, "reject")) {
 					d->dndmode = SCCP_DNDMODE_REJECT;
@@ -1476,10 +1476,10 @@ ast_log(LOG_WARNING, "Speeddial_inst %s, hint:  %s\n",  k->name,  k->hint);
 					d->mwioncall = sccp_true(v->value);
 			}else if (!strcasecmp(v->name, "setvar")) {
 				struct ast_variable *newvar = NULL;
-				
+
 				newvar = sccp_create_variable(v->value);
 				if(newvar){
-					sccp_log(10)(VERBOSE_PREFIX_3 "Add new channelvariable to line %s. Value is: %s \n",newvar->name ,newvar->value);				
+					sccp_log(10)(VERBOSE_PREFIX_3 "Add new channelvariable to line %s. Value is: %s \n",newvar->name ,newvar->value);
 					newvar->next = d->variables;
 					d->variables = newvar;
 				}
@@ -1512,7 +1512,7 @@ int buildGlobals(struct ast_variable *v){
 	int amaflags = 0;
 	int protocolversion = 0;
 	while (v) {
-		
+
 #ifndef ASTERISK_CONF_1_2
         /* handle jb in configuration
          * just let asterisk do that
@@ -1520,7 +1520,7 @@ int buildGlobals(struct ast_variable *v){
 		if (!ast_jb_read_conf(&GLOB(global_jbconf), v->name, v->value))
 			continue;
 #endif
-			
+
 		if (!strcasecmp(v->name, "protocolversion")) {
 			if (sscanf(v->value, "%i", &protocolversion) == 1) {
 				if (protocolversion < 2 || protocolversion > 9)
@@ -1540,19 +1540,19 @@ int buildGlobals(struct ast_variable *v){
 				memcpy(&GLOB(bindaddr.sin_addr), hp->h_addr, sizeof(GLOB(bindaddr.sin_addr)));
 			}
 		} else if (!strcasecmp(v->name, "permit") || !strcasecmp(v->name, "deny")) {
-			
-#ifndef	ASTERISK_CONF_1_6		
+
+#ifndef	ASTERISK_CONF_1_6
 			GLOB(ha) = ast_append_ha(v->name, v->value, GLOB(ha));
 #else
 			GLOB(ha) = ast_append_ha(v->name, v->value, GLOB(ha), NULL);
 #endif
-			
+
 		} else if (!strcasecmp(v->name, "localnet")) {
 
-#ifndef	ASTERISK_CONF_1_6			
+#ifndef	ASTERISK_CONF_1_6
 			if (!(na = ast_append_ha("d", v->value, GLOB(localaddr))))
 #else
-			if (!(na = ast_append_ha("d", v->value, GLOB(localaddr), NULL)))	
+			if (!(na = ast_append_ha("d", v->value, GLOB(localaddr), NULL)))
 #endif
 				ast_log(LOG_WARNING, "Invalid localnet value: %s\n", v->value);
 			else
@@ -1648,17 +1648,17 @@ int buildGlobals(struct ast_variable *v){
 		} else if (!strcasecmp(v->name, "cfwdbusy")) {
 			GLOB(cfwdbusy) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "cfwdnoanswer")) {
-			GLOB(cfwdnoanswer) = sccp_true(v->value);			
+			GLOB(cfwdnoanswer) = sccp_true(v->value);
 #ifdef CS_MANAGER_EVENTS
 		} else if (!strcasecmp(v->name, "callevents")) {
 			GLOB(callevents) = sccp_true(v->value);
-#endif			
+#endif
 		} else if (!strcasecmp(v->name, "echocancel")) {
 			GLOB(echocancel) = sccp_true(v->value);
 #ifdef CS_SCCP_PICKUP
 		} else if (!strcasecmp(v->name, "pickupmodeanswer")) {
 			GLOB(pickupmodeanswer) = sccp_true(v->value);
-#endif			
+#endif
 		} else if (!strcasecmp(v->name, "silencesuppression")) {
 			GLOB(silencesuppression) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "trustphoneip")) {
@@ -1758,7 +1758,7 @@ int buildGlobals(struct ast_variable *v){
 			else
 				ast_log(LOG_WARNING, "Invalid blindtransferindication value at line %d, should be 'moh' or 'ring'\n", v->lineno);
 #ifdef CS_SCCP_REALTIME
-		}  else if (!strcasecmp(v->name, "devicetable")) {	
+		}  else if (!strcasecmp(v->name, "devicetable")) {
 				sccp_copy_string(GLOB(realtimedevicetable), v->value, sizeof(GLOB(realtimedevicetable)));
 		}  else if (!strcasecmp(v->name, "linetable")) {
 				sccp_copy_string(GLOB(realtimelinetable) , v->value, sizeof(GLOB(realtimelinetable)) );
@@ -1782,14 +1782,14 @@ int buildGlobals(struct ast_variable *v){
 
 /**
  * \brief reload the configuration from sccp.conf
- * 
+ *
  */
 static int reload_config(void) {
 	struct ast_config	*cfg_v3;
 	struct ast_variable	*v;
 	int			oldport	= ntohs(GLOB(bindaddr.sin_port));
 	int			on		= 1;
-	
+
 #ifdef ASTERISK_CONF_1_2
 	char			iabuf[INET_ADDRSTRLEN];
 #endif
@@ -1799,19 +1799,19 @@ static int reload_config(void) {
 	sccp_device_t		*d;
 	char 			*cat = NULL;
 
-   
+
 #ifndef ASTERISK_CONF_1_2
 	/* Copy the default jb config over global_jbconf */
 	memcpy(&GLOB(global_jbconf), &default_jbconf, sizeof(struct ast_jb_conf));
 #endif
-	
+
 	memset(&GLOB(global_codecs), 0, sizeof(GLOB(global_codecs)));
 	memset(&GLOB(bindaddr), 0, sizeof(GLOB(bindaddr)));
 
 #ifdef CS_SCCP_REALTIME
 	sccp_copy_string(GLOB(realtimedevicetable), "sccpdevice", sizeof(GLOB(realtimedevicetable)));
 	sccp_copy_string(GLOB(realtimelinetable) , "sccpline", sizeof(GLOB(realtimelinetable)) );
-#endif	
+#endif
 
 #if SCCP_PLATFORM_BYTE_ORDER == SCCP_LITTLE_ENDIAN
 	sccp_log(0)(VERBOSE_PREFIX_2 "Platform byte order   : LITTLE ENDIAN\n");
@@ -1838,10 +1838,10 @@ static int reload_config(void) {
 	}
 	if(!buildGlobals(v))
 		return 0;
-	
 
-	
-	
+
+
+
 	/* get all categories */
 	while ((cat = ast_category_browse(cfg_v3, cat))) {
 		ast_verbose(VERBOSE_PREFIX_3 "found %s\n", cat);
@@ -1858,7 +1858,7 @@ static int reload_config(void) {
 			v = ast_variable_browse(cfg_v3, cat);
 			buildLine(v, cat);
 		}
-		
+
 	}
 
 	/* ok the config parse is done */
@@ -1906,7 +1906,7 @@ static int reload_config(void) {
 			ast_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
 #else
 			ast_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)),	strerror(errno));
-#endif			
+#endif
 			close(GLOB(descriptor));
 			GLOB(descriptor) = -1;
 			return 0;
@@ -1934,12 +1934,12 @@ void buildSoftkeyTemplate(struct ast_variable *astVar){
 	struct ast_variable 		*variable;
 	char 				field[256];
 	char 				*splitter;
- 				
+
 
 	ast_verbose(VERBOSE_PREFIX_3 "build softkeys\n");
 	templateSet = malloc(sizeof(sccp_softkeyTemplateSet_t));
 
-		
+
 	variable = astVar;
 	while(variable){
 		if (!strcasecmp(variable->name, "onhook")) {
@@ -1947,26 +1947,26 @@ void buildSoftkeyTemplate(struct ast_variable *astVar){
 			templateSet->onhook = template;
 		}
 
-		
+
 		sccp_copy_string(field, variable->value, sizeof(field));
 		ast_verbose(VERBOSE_PREFIX_3 "%s\n", variable->name);
 		splitter = field;
 		char* res;
 		while( (res=strsep(&splitter,",")) != NULL ) {
 			ast_verbose(VERBOSE_PREFIX_3 "     %s \n", res);
-			
+
 			template->next = malloc(sizeof(sccp_softkeyTemplate_t));
 			template->next->prev = template;
 
-			sccp_copy_string(template->type, res, sizeof(template->type));
-			
+			//sccp_copy_string(template->type, res, sizeof(template->type));
+			template->type = skinny_str2lbl(res);
 		}
-		
+
 		variable = variable->next;
 	}
 	template = templateSet->onhook;
 	while(template){
-		ast_verbose(VERBOSE_PREFIX_3 "value of onhook: %s\n", template->type);
+		ast_verbose(VERBOSE_PREFIX_3 "value of onhook: %s\n", skinny_lbl2str(template->type));
 		template = template->next;
 	}
 	//GLOB(softkeyTempletSet) = templateSet;
@@ -1978,7 +1978,7 @@ static char *sccp_setcalledparty_descrip = "  SetCalledParty(\"Name\" <ext>) set
 /**
  * \brief Set the name an number of the called party to the calling phone
  * \param chan asterisk channel
- * \param data callerid in format "Name" <number> 
+ * \param data callerid in format "Name" <number>
  */
 static int sccp_setcalledparty_exec(struct ast_channel *chan, void *data) {
 	char tmp[256] = "";
@@ -1999,7 +1999,7 @@ static int sccp_setcalledparty_exec(struct ast_channel *chan, void *data) {
 	sccp_copy_string(tmp, (char *)data, sizeof(tmp));
 	ast_callerid_parse(tmp, &name, &num);
 	sccp_channel_set_calledparty(c, name, num);
-	
+
 	return 0;
 }
 
@@ -2007,8 +2007,8 @@ static int sccp_setcalledparty_exec(struct ast_channel *chan, void *data) {
 static char *sccp_setmessage_descrip = "  SetMessage(\"Message\") sets a display message for use with chan_sccp. Clear the display with empty message\n";
 /**
  * \brief It allows you to send a message to the calling device.
- * \author Frank Segtrop <fs@matflow.net> 
- * \param chan 
+ * \author Frank Segtrop <fs@matflow.net>
+ * \param chan
  * \param data message to sent - if empty clear display
  * \version 20071112_1944
  */
@@ -2044,7 +2044,7 @@ static int sccp_setmessage_exec(struct ast_channel *chan, void *data) {
 		sccp_dev_displayprompt(d,0,0,"Message off",1);
 		d->phonemessage = NULL;
 		ast_db_del("SCCPM", d->id);
-	}	
+	}
 	sccp_device_unlock(d);
 	return 0;
 }
@@ -2060,9 +2060,9 @@ static int load_module(void) {
 	sccp_globals = malloc(sizeof(struct sccp_global_vars));
 	if (!sccp_globals) {
 		ast_log(LOG_ERROR, "No free mamory for SCCP global vars. SCCP channel type disabled\n");
-#ifdef ASTERISK_CONF_1_2		
+#ifdef ASTERISK_CONF_1_2
 		return -1;
-#else		
+#else
 		return AST_MODULE_LOAD_FAILURE;
 #endif
 	}
@@ -2145,7 +2145,7 @@ static int unload_module(void) {
 	sccp_device_t * d;
 	sccp_session_t * s;
 	sccp_hint_t *h;
-	
+
 #ifdef CS_AST_HAS_TECH_PVT
 	ast_channel_unregister(&sccp_tech);
 #else
@@ -2159,7 +2159,7 @@ static int unload_module(void) {
 	while (GLOB(channels))
 		sccp_channel_delete_no_lock(GLOB(channels));
 	sccp_globals_unlock(channels_lock);
-	
+
 	sccp_globals_lock(lines_lock);
 	while (GLOB(lines)) {
 		l = GLOB(lines);
@@ -2198,7 +2198,7 @@ static int unload_module(void) {
 #else
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", ast_inet_ntoa(s->sin.sin_addr));
 #endif
-		
+
 		if (s->fd > -1)
 			close(s->fd);
 		ast_mutex_destroy(&s->lock);
@@ -2209,7 +2209,7 @@ static int unload_module(void) {
 	GLOB(descriptor) = -1;
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Killing the socket thread\n");
-	
+
 	if (!sccp_globals_lock(socket_lock)) {
 		if (socket_thread && (socket_thread != AST_PTHREADT_STOP)) {
 			/* pthread_cancel(socket_thread); */
@@ -2222,9 +2222,9 @@ static int unload_module(void) {
 		ast_log(LOG_WARNING, "SCCP: Unable to lock the socket\n");
 		return -1;
 	}
-	
+
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Killed the socket thread\n");
-	
+
 	if (GLOB(ha))
 		ast_free_ha(GLOB(ha));
 

@@ -34,15 +34,15 @@
 int sccp_channel_exists(sccp_channel_t * c) {
 	sccp_channel_t * tmp = NULL;
 	int res = 0;
-	
+
 	if(!c)
 		return res;
-		
+
 	while(sccp_globals_trylock(channels_lock)) {
 		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		usleep(200);
 	}
-	
+
 	// here we parse global channels
 	tmp = GLOB(channels);
 	while (tmp) {
@@ -54,7 +54,7 @@ int sccp_channel_exists(sccp_channel_t * c) {
 	}
 
 	sccp_globals_unlock(channels_lock);
-	
+
 	return res;
 }
 
@@ -80,14 +80,14 @@ void sccp_dump_packet(unsigned char * messagebuffer, int len) {
 	int res = 16;
 	char row[256];
 	char temp[16];
-	char temp2[32];	
-	cur = 0; 
-	
-	cols = res;	
+	char temp2[32];
+	cur = 0;
+
+	cols = res;
 	rows = len / cols + (len % cols ? 1 : 0);
-	
+
 	for(i = 0; i < rows; i++)
-	{		
+	{
 		memset(row, 0, sizeof(row));
 //		sprintf(row, "%04d: %08X - ", i, cur);
 		sprintf(row, "%08X - ", cur);
@@ -97,7 +97,7 @@ void sccp_dump_packet(unsigned char * messagebuffer, int len) {
 		for(t = 0; t < cols; t++) {
 			memset(temp, 0, sizeof(temp));
 			sprintf(temp, "%02X ", messagebuffer[cur]);
-			strcat(row, temp);        
+			strcat(row, temp);
 
 			if(isPrintableChar((char)messagebuffer[cur]))
 				sprintf(temp, "%c", messagebuffer[cur]);
@@ -106,7 +106,7 @@ void sccp_dump_packet(unsigned char * messagebuffer, int len) {
             strcat(temp2, temp);
 			cur++;
 		}
-		
+
 		if(cols < res) {
             for(t = 0; t < res - cols; t++) {
 				strcat(row, "   ");
@@ -117,9 +117,9 @@ void sccp_dump_packet(unsigned char * messagebuffer, int len) {
 	}
 }
 
-void sccp_device_addon_addnew(sccp_device_t * d, const char * addon_config_type) {	
+void sccp_device_addon_addnew(sccp_device_t * d, const char * addon_config_type) {
 	int addon_type;
-	
+
 	// check for device
 	if(!d)
 		return;
@@ -143,45 +143,45 @@ void sccp_device_addon_addnew(sccp_device_t * d, const char * addon_config_type)
 	else {
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Unknown addon type (%s) for device (%s)\n", addon_config_type, d->config_type);
 		return;
-	}	
-	
-	if( !((addon_type == SKINNY_DEVICETYPE_CISCO7914) && 
-		((!strcasecmp(d->config_type, "7960")) || 
-		 (!strcasecmp(d->config_type, "7961")) || 
-		 (!strcasecmp(d->config_type, "7962")) || 
-		 (!strcasecmp(d->config_type, "7965")) || 
-		 (!strcasecmp(d->config_type, "7970")) || 
-		 (!strcasecmp(d->config_type, "7971")) || 
-		 (!strcasecmp(d->config_type, "7975")))) && 
-		!((addon_type == SKINNY_DEVICETYPE_CISCO7915) && 
-		((!strcasecmp(d->config_type, "7962")) || 
-		 (!strcasecmp(d->config_type, "7965")) || 
-		 (!strcasecmp(d->config_type, "7975")))) && 
-		!((addon_type == SKINNY_DEVICETYPE_CISCO7916) && 
-		((!strcasecmp(d->config_type, "7962")) || 
-		 (!strcasecmp(d->config_type, "7965")) || 
+	}
+
+	if( !((addon_type == SKINNY_DEVICETYPE_CISCO7914) &&
+		((!strcasecmp(d->config_type, "7960")) ||
+		 (!strcasecmp(d->config_type, "7961")) ||
+		 (!strcasecmp(d->config_type, "7962")) ||
+		 (!strcasecmp(d->config_type, "7965")) ||
+		 (!strcasecmp(d->config_type, "7970")) ||
+		 (!strcasecmp(d->config_type, "7971")) ||
+		 (!strcasecmp(d->config_type, "7975")))) &&
+		!((addon_type == SKINNY_DEVICETYPE_CISCO7915) &&
+		((!strcasecmp(d->config_type, "7962")) ||
+		 (!strcasecmp(d->config_type, "7965")) ||
+		 (!strcasecmp(d->config_type, "7975")))) &&
+		!((addon_type == SKINNY_DEVICETYPE_CISCO7916) &&
+		((!strcasecmp(d->config_type, "7962")) ||
+		 (!strcasecmp(d->config_type, "7965")) ||
 		 (!strcasecmp(d->config_type, "7975"))))) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Configured device (%s) does not support the specified addon type (%s)\n", d->config_type, addon_config_type);
 		return;
 	}
-	
+
 	sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: C\n");
-	
+
 	sccp_addon_t * a = malloc(sizeof(sccp_addon_t));
 	if (!a) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a device addon\n");
 		return;
-	}	
+	}
 	memset(a, 0, sizeof(sccp_addon_t));
-	
-	/* INIT  */	
+
+	/* INIT  */
 	sccp_mutex_init(&a->lock);
-	
+
 	a->type = addon_type;
 	a->device = d;
 	a->next = d->addons;
 //	a->prev = NULL;
-	
+
 	d->addons = a;
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Added addon (%d) taps on device type (%s)\n", (d->id?d->id:"SCCP"), a->type, d->config_type);
 }
@@ -189,23 +189,23 @@ void sccp_device_addon_addnew(sccp_device_t * d, const char * addon_config_type)
 int sccp_device_addons_taps(sccp_device_t * d) {
 	sccp_addon_t * cur = NULL;
 	int taps = 0;
-	
+
 	if(!d->addons)
 		return 0;
-	
+
 	if(!strcasecmp(d->config_type, "7914"))
 		return 28; // on compatibility mode it returns 28 taps for a double 7914 addon
-		
+
 	cur = d->addons;
 	do {
 		if(cur->type == SKINNY_DEVICETYPE_CISCO7914)
-			taps += 14;		
+			taps += 14;
 		if(cur->type == SKINNY_DEVICETYPE_CISCO7915 || cur->type == SKINNY_DEVICETYPE_CISCO7916)
 			taps += 20;
 		sccp_log(22)(VERBOSE_PREFIX_3 "%s: Found (%d) taps on device addon (%d)\n", (d->id?d->id:"SCCP"), taps, cur->type);
 		cur = cur->next;
 	} while (cur);
-	
+
 	return taps;
 }
 
@@ -216,9 +216,9 @@ void sccp_device_addons_clear(sccp_device_t * d) {
 		return;
 
 	sccp_device_lock(d);
-	
+
 	cur = d->addons;
-	do {				
+	do {
 		a = cur->next;
 		sccp_log(22)(VERBOSE_PREFIX_3 "%s: Destroy addon (%d) on device (%s)\n", (d->id?d->id:"SCCP"), cur->type, d->config_type);
 		if(cur) {
@@ -227,19 +227,19 @@ void sccp_device_addons_clear(sccp_device_t * d) {
 		}
 		cur = a;
 	} while (cur);
-	
+
 	sccp_device_unlock(d);
 }
 
-char * sccp_device_addons_list(sccp_device_t * d) {	
+char * sccp_device_addons_list(sccp_device_t * d) {
 	char * addons_list = NULL;
-	
+
 	return addons_list;
 }
 
-void sccp_safe_sleep(int ms) {	
+void sccp_safe_sleep(int ms) {
 	struct timeval start = { 0 , 0 };
-	
+
 	start = ast_tvnow();
 	usleep(1);
 	while(ast_tvdiff_ms(ast_tvnow(), start) < ms) {
@@ -256,7 +256,7 @@ void sccp_device_add_line(sccp_device_t * d, char * name) {
 
 	memset(&btn, 0 , sizeof(btn));
 	sccp_dev_build_buttontemplate(d, btn);
-	
+
 	line_count = 0;
 	/* count the available lines on the phone */
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
@@ -271,7 +271,7 @@ void sccp_device_add_line(sccp_device_t * d, char * name) {
 	while(l){
 		i++;
 		lines_last=l;
-		l = l->next;		
+		l = l->next;
 	}
 
 	ast_strip(name);
@@ -281,7 +281,7 @@ void sccp_device_add_line(sccp_device_t * d, char * name) {
 			lines_last->next = buildLineTemplate();
 			sccp_mutex_unlock(&lines_last->lock);
 			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Add an empty line\n", d->id);
-			
+
 		}
 
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Auto logging into %s\n", d->id, name);
@@ -329,10 +329,10 @@ void sccp_device_add_line(sccp_device_t * d, char * name) {
 struct ast_variable * sccp_create_variable(const char *buf) {
 	struct ast_variable *tmpvar = NULL;
 	char *varname = ast_strdupa(buf), *varval = NULL;
-	
+
 	if ((varval = strchr(varname,'='))) {
 		*varval++ = '\0';
-#ifndef ASTERISK_CONF_1_6		
+#ifndef ASTERISK_CONF_1_6
 		if ((tmpvar = ast_variable_new(varname, varval))) {
 #else
 		if ((tmpvar = ast_variable_new(varname, varval, "" ))) {
@@ -355,13 +355,13 @@ sccp_device_t * sccp_device_find_byid(const char * name) {
 		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		usleep(200);
 	}
-	
+
   	while (d) {
 		if (!strcasecmp(d->id, name))
 			break;
 		d = d->next;
   	}
-  	
+
 	sccp_globals_unlock(devices_lock);
 
 #ifdef CS_SCCP_REALTIME
@@ -378,7 +378,7 @@ sccp_device_t * sccp_device_find_byname(const char * name) {
 		return NULL;
 	*/
   	d = GLOB(devices);
-  
+
 	while(sccp_globals_trylock(devices_lock)) {
 		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		usleep(200);
@@ -390,12 +390,12 @@ sccp_device_t * sccp_device_find_byname(const char * name) {
     		d = d->next;
   	}
   	sccp_globals_unlock(devices_lock);
- 
+
 #ifdef CS_SCCP_REALTIME
 	if (!d)
  		d = sccp_device_find_realtime_byname(name);
 #endif
- 
+
  return d;
 }
 
@@ -426,7 +426,7 @@ sccp_device_t * sccp_device_find_realtime(const char * name) {
 	d = build_devices(v);
 	if(d)
 		d->realtime=1;
-	
+
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Device %s realtime is: %d\n", d->id, d->realtime);
 
 	ast_variables_destroy(v);
@@ -456,12 +456,12 @@ sccp_line_t * sccp_line_find_byname(const char * name) {
 		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		usleep(200);
 	}
-	
+
 	while(l && strcasecmp(l->name, name) != 0) {
 		l = l->next;
 	}
 	sccp_globals_unlock(lines_lock);
-	
+
 #ifdef CS_SCCP_REALTIME
 	if (!l)
 		l = sccp_line_find_realtime_byname(name);
@@ -480,10 +480,10 @@ sccp_line_t * sccp_line_find_byname(const char * name) {
     }
 	else
 	{
-		ast_log(LOG_WARNING, "SCCP: Line not found.\n");	
+		ast_log(LOG_WARNING, "SCCP: Line not found.\n");
 		return NULL;
 	}
-	
+
 	return l;
 }
 
@@ -532,24 +532,24 @@ sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint8_t instance) {
 		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		usleep(200);
 	}
-	
+
 	while(sccp_globals_trylock(lines_lock)) {
 		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		sccp_device_unlock(d);
 		usleep(200);
 		sccp_device_lock(d);
 	}
-		
+
 	l = d->lines;
 	while (l) {
 		if (l->instance == instance)
 			break;
 		l = l->next_on_device;
 	}
-	
+
 	sccp_globals_unlock(lines_lock);
 	sccp_device_unlock(d);
-	
+
 	if (l)
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found line %s\n", d->id, l->name);
 	return l;
@@ -564,7 +564,7 @@ sccp_channel_t * sccp_channel_find_byid(uint32_t id) {
 	while(sccp_globals_trylock(channels_lock)) {
 		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		usleep(200);
-	}	
+	}
 
 	/* with this lock the channels list will not change */
 	c = GLOB(channels);
@@ -594,7 +594,7 @@ sccp_channel_t * sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t stat
 	if (!l)
 		return NULL;
 //	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a channel with state \"%s\" (%d) on line %s\n", DEV_ID_LOG(l->device), sccp_indicate2str(state), state, l->name);
-	
+
 	// sccp_line_lock(l);
 	while(sccp_line_trylock(l)) {
 		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -615,7 +615,7 @@ sccp_channel_t * sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t stat
 		c = c->next_on_line;
 	}
 	sccp_globals_unlock(channels_lock);
-	sccp_line_unlock(l);	
+	sccp_line_unlock(l);
 	if (c)
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d) with state \"%s\" (%d) on line %s\n", DEV_ID_LOG(l->device), c->callid, sccp_indicate2str(state), state, l->name);
 	return c;
@@ -636,29 +636,29 @@ sccp_channel_t * sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t 
 	}
 
 	c = l->channels;
-	
-	sccp_line_unlock(l);	
-	
+
+	sccp_line_unlock(l);
+
 	while(sccp_globals_trylock(channels_lock)) {
 		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		// sccp_line_unlock(l);
 		usleep(200);
 		// sccp_line_lock(l);
 	}
-	
+
 	while (c) {
 		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		if (c->callstate == state)
 			break;
 		c = c->next_on_line;
 	}
-	
+
 	sccp_globals_unlock(channels_lock);
 
-	
+
 	if (c)
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d) with state \"%s\" (%d) on line %s\n", DEV_ID_LOG(l->device), c->callid, sccp_callstate2str(state), state, l->name);
-	
+
 	return c;
 }
 
@@ -668,7 +668,7 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 	if (!d)
 		return NULL;
 //	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for a channel with state \"%s\" (%d) on device\n", d->id, sccp_indicate2str(state), state);
-	
+
 //	sccp_mutex_lock(&d->lock);
 // 	sccp_globals_lock(channels_lock);
 
@@ -676,7 +676,7 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		usleep(200);
 	}
-/*	
+/*
 	// while(sccp_globals_trylock(channels_lock)) {
 	while(sccp_globals_trylock(lines_lock)) {
 		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -702,10 +702,10 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 		if (c)
 			break;
 		l = l->next_on_device;
-	}	
-/*	
-	sccp_globals_unlock(lines_lock);	
-	sccp_device_unlock(d);	
+	}
+/*
+	sccp_globals_unlock(lines_lock);
+	sccp_device_unlock(d);
 */
 	if (c)
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d) with state \"%s\" (%d) on device\n", d->id, c->callid, sccp_indicate2str(state), state);
@@ -836,7 +836,7 @@ void sccp_dev_dbclean() {
 	}
 	if (entry)
 		ast_db_freetree(entry);
-	
+
 	sccp_globals_unlock(devices_lock);
 }
 
@@ -854,13 +854,13 @@ const char * sccp_extensionstate2str(uint8_t type) {
 	case AST_EXTENSION_RINGING:
 		return "Ringing";
 	case AST_EXTENSION_RINGING | AST_EXTENSION_INUSE:
-		return "RingInUse";		
+		return "RingInUse";
 #endif
 #ifdef CS_AST_HAS_EXTENSION_ONHOLD
 	case AST_EXTENSION_ONHOLD:
 		return "OnHold";
 	case AST_EXTENSION_ONHOLD | AST_EXTENSION_INUSE:
-		return "HoldInUse";		
+		return "HoldInUse";
 #endif
 	default:
 		return "Unknown";
@@ -1322,6 +1322,62 @@ const char * skinny_lbl2str(uint8_t label) {
 	}
 }
 
+uint8_t skinny_str2lbl(char *str) {
+	if (!strcasecmp(str, "empty")){
+		return SKINNY_LBL_EMPTY;
+	}else if (!strcasecmp(str, "redial")){
+		return SKINNY_LBL_REDIAL;
+	}else if (!strcasecmp(str, "newcall")){
+		return SKINNY_LBL_NEWCALL;
+	}else if (!strcasecmp(str, "hold")){
+		return SKINNY_LBL_HOLD;
+	}else if (!strcasecmp(str, "transfer")){
+		return SKINNY_LBL_TRANSFER;
+	}else if (!strcasecmp(str, "cfwdall")){
+		return SKINNY_LBL_CFWDALL;
+	}else if (!strcasecmp(str, "cfwdbusy")){
+		return SKINNY_LBL_CFWDBUSY;
+	}else if (!strcasecmp(str, "cfwdnoanswer")){
+		return SKINNY_LBL_CFWDNOANSWER;
+	}else if (!strcasecmp(str, "<<")){
+		return SKINNY_LBL_BACKSPACE;
+	}else if (!strcasecmp(str, "endcall")){
+		return SKINNY_LBL_ENDCALL;
+	}else if (!strcasecmp(str, "resume")){
+		return SKINNY_LBL_RESUME;
+	}else if (!strcasecmp(str, "answer")){
+		return SKINNY_LBL_ANSWER;
+	}else if (!strcasecmp(str, "info")){
+		return SKINNY_LBL_INFO;
+	}else if (!strcasecmp(str, "confrn")){
+		return SKINNY_LBL_CONFRN;
+	}else if (!strcasecmp(str, "Park")){
+		return SKINNY_LBL_PARK;
+	}else if (!strcasecmp(str, "Join")){
+		return SKINNY_LBL_JOIN;
+	}else if (!strcasecmp(str, "meetme")){
+		return SKINNY_LBL_MEETME;
+	}else if (!strcasecmp(str, "gpickup")){
+		return SKINNY_LBL_GPICKUP;
+	}else if (!strcasecmp(str, "trnsfvm")){
+		return SKINNY_LBL_TRNSFVM;
+	}else if (!strcasecmp(str, "dnd")){
+		return SKINNY_LBL_DND;
+	}else if (!strcasecmp(str, "dirtrfr")){
+		return SKINNY_LBL_DIRTRFR;
+	}else if (!strcasecmp(str, "select")){
+		return SKINNY_LBL_SELECT;
+	}else if (!strcasecmp(str, "conflist")){
+		return SKINNY_LBL_CONFLIST;
+	}else if (!strcasecmp(str, "idivert")){
+		return SKINNY_LBL_IDIVERT;
+	}
+
+	return SKINNY_LBL_EMPTY;
+
+
+}
+
 const char * skinny_tone2str(uint8_t tone) {
 	switch(tone) {
 		case SKINNY_TONE_SILENCE:
@@ -1584,7 +1640,7 @@ const char * skinny_devicetype2str(uint32_t type) {
 	case SKINNY_DEVICETYPE_CISCO7905:
 		return "Cisco7905";
 	case SKINNY_DEVICETYPE_CISCO7906:
-		return "Cisco7906";		
+		return "Cisco7906";
 	case SKINNY_DEVICETYPE_CISCO7911:
 		return "Cisco7911";
 	case SKINNY_DEVICETYPE_CISCO7912:
@@ -1598,7 +1654,7 @@ const char * skinny_devicetype2str(uint32_t type) {
 	case SKINNY_DEVICETYPE_CISCO7936:
 		return "Cisco7936";
 	case SKINNY_DEVICETYPE_CISCO7937:
-		return "Cisco7937";		
+		return "Cisco7937";
 	case SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR:
 		return "Cisco_IP_Communicator";
 	case SKINNY_DEVICETYPE_ATA186:
@@ -1950,7 +2006,7 @@ uint8_t sccp_codec_ast2skinny(int fmt) {
 #ifndef ASTERISK_CONF_1_2
 	case AST_FORMAT_G726_AAL2:
 		return 82;
-#endif		
+#endif
 	case AST_FORMAT_H261:
 		return 100;
 	case AST_FORMAT_H263:
@@ -1973,7 +2029,7 @@ int sccp_codec_skinny2ast(uint8_t fmt) {
 #ifndef ASTERISK_CONF_1_2
 	case 82:
 		return AST_FORMAT_G726_AAL2;
-#endif		
+#endif
 	case 100:
 		return AST_FORMAT_H261;
 	case 101:
@@ -2064,11 +2120,11 @@ unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arr
 
 /**
  * \brief get the SoftKeyIndex for a given SoftKeyLabel on specified keymode
- * 
- * 
+ *
+ *
  * \todo implement function for finding index of given SoftKey
  */
 int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsigned int softkey) {
-	
+
 	return -1;
 }

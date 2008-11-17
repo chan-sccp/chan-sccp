@@ -222,7 +222,7 @@ struct sccp_line {
 
 	/* Voicemail number to dial */
 	char vmnum[AST_MAX_EXTENSION];
-	
+
 	/* Meetme Extension to be dialed*/
 	char meetmenum[AST_MAX_EXTENSION];
 
@@ -335,13 +335,13 @@ struct sccp_speed {
 //	sccp_serviceURL_t * next;									/*!< Pointer to next serviceURL */
 //#ifdef CS_DYNAMIC_CONFIG
 //	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-//	sccp_serviceURL_t		pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */	
+//	sccp_serviceURL_t		pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 //#endif
 //};
 
 
 struct sccp_softkeyTemplate{
-	char			type[50];
+	uint8_t					type;
 	sccp_softkeyTemplate_t 	*next;
 	sccp_softkeyTemplate_t  *prev;
 };
@@ -410,10 +410,10 @@ struct sccp_device {
 
 	/* Number of currently active channels */
 	uint8_t channelCount;
-	
+
 	/* skinny protocol version */
 	uint8_t protocolversion;
-	
+
 	/* station specific keepalive timeout */
 	int						keepalive;
 
@@ -423,7 +423,7 @@ struct sccp_device {
 	sccp_hostname_t			*permithost;
 
 	uint32_t				conferenceid;
-	
+
 	unsigned int			mwilamp:3;
 	unsigned int			mwioncall:1;
 	unsigned int			softkeysupport:1;
@@ -439,8 +439,8 @@ struct sccp_device {
 	unsigned int			pickupexten:1;
 	char					* pickupcontext;
 	unsigned int			pickupmodeanswer:1;
-#endif	
-	unsigned int			dtmfmode:1; 						/*!< 0 inband - 1 outofband */	
+#endif
+	unsigned int			dtmfmode:1; 						/*!< 0 inband - 1 outofband */
 	unsigned int			nat:1;
 	unsigned int			trustphoneip:1;
 	unsigned int			needcheckringback:1;
@@ -467,7 +467,7 @@ struct sccp_device {
 	struct sccp_selected_channel    *selectedChannels;
 #ifdef CS_DYNAMIC_CONFIG
 	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-	sccp_device_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */	
+	sccp_device_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
 };
 
@@ -484,8 +484,8 @@ struct sccp_addon {
 	sccp_device_t * device;
 #ifdef CS_DYNAMIC_CONFIG
 	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-	sccp_addon_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */	
-#endif	
+	sccp_addon_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+#endif
 };
 
 struct sccp_session {
@@ -511,16 +511,16 @@ struct sccp_channel {
 	char				callingPartyName[StationMaxNameSize];
 	char				callingPartyNumber[StationMaxDirnumSize];
 	uint32_t			callid;
-	
+
 	uint32_t			conferenceid; 	/* this will be used in native conferencing mode and will differ from callid  -FS*/
-	
+
 	uint8_t			state;				/*< internal channel state SCCP_CHANNELSTATE_* */
 	uint8_t			callstate;			/*< skinny state */
 	uint8_t			calltype;			/*< SKINNY_CALLTYPE_* */
-	
+
 	time_t				digittimeout;			/*< timeout on dialing state */
 	uint8_t			ringermode;			/*< SCCPRingerMode application */
-	
+
 	char dialedNumber[AST_MAX_EXTENSION];			/*< last dialed number */
 
 	sccp_device_t 	 	*device;
@@ -537,13 +537,13 @@ struct sccp_channel {
 	unsigned int		private:1;
 	unsigned int		hangupok:1;
 	char musicclass[MAX_MUSICCLASS];
-	
+
 	uint8_t		ss_action; /* simple switch action, this is used in dial thread to collect numbers for callforward, pickup and so on -FS*/
 	uint8_t		ss_data; /* simple switch integer param */
 // #ifdef CS_DYNAMIC_CONFIG
 	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-//	sccp_channel_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */	
-//#endif	
+//	sccp_channel_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+//#endif
 };
 
 struct sccp_global_vars {
@@ -592,7 +592,7 @@ struct sccp_global_vars {
 	int					debug;
 	int					fdebug;
 	char 					date_format[7];
-	
+
 	uint8_t				firstdigittimeout;				/*< Wait up to 16 seconds for first digit */
 	uint8_t				digittimeout;					/*< How long to wait for following digits */
 	char					digittimeoutchar;				/*< what char will force the dial */
@@ -602,7 +602,7 @@ struct sccp_global_vars {
 	uint32_t				rtptos;
 	/* channel state where to open the rtp media stream */
 	uint8_t				earlyrtp;
-		
+
 	uint8_t 				dndmode;					/*< dnd mode: see SCCP_DNDMODE_* */
 	uint8_t 				protocolversion;				/*< skinny protocol version */
 
@@ -612,7 +612,7 @@ struct sccp_global_vars {
 	uint8_t				remotehangup_tone;
 	uint8_t				transfer_tone;
 	uint8_t				callwaiting_tone;
-	
+
 	unsigned int			mwilamp:3;
 	unsigned int			mwioncall:1;
 	unsigned int			echocancel:1;					/*< echocancel phone support */
@@ -629,21 +629,21 @@ struct sccp_global_vars {
 #endif
 #ifdef CS_SCCP_REALTIME
 	char 				realtimedevicetable[45];			/*< databasetable for sccp devices*/
-	char 				realtimelinetable[45];			/*< databasetable for sccp lines*/	
+	char 				realtimelinetable[45];			/*< databasetable for sccp lines*/
 #endif
 #ifndef ASTERISK_CONF_1_2
     struct ast_jb_conf             	global_jbconf;
 #endif
 #ifdef CS_DYNAMIC_CONFIG
 	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-	struct sccp_global_vars		pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */	
+	struct sccp_global_vars		pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
 	sccp_softkeyTemplateSet_t	softkeyTempletSet;
 };
 
 struct sccp_selected_channel {
   sccp_channel_t *c;
-  struct sccp_selected_channel *next;  
+  struct sccp_selected_channel *next;
 };
 
 struct sccp_global_vars *sccp_globals;
@@ -652,22 +652,22 @@ struct sccp_buttonconfig {
 	uint8_t		instance;		/*!< instance on device */
 	char 		type[15];		/*!< button type (e.g. line, speeddial, feature, empty) */
 	union sccp_button{
-		struct { 
+		struct {
 			char name[80];
 		} line;
-	
-		struct sccp_speeddial{ 
+
+		struct sccp_speeddial{
 			char label[StationMaxNameSize];
 			char ext[AST_MAX_EXTENSION];
-			char hint[AST_MAX_EXTENSION]; 
+			char hint[AST_MAX_EXTENSION];
 		} speeddial;
-	
+
 		struct sccp_serviceURL {
 			char label[StationMaxNameSize];			/*!< The label of the serviceURL button */
 			char URL[StationMaxServiceURLSize];		/*!< The number to dial when it's hit */
 		} serviceurl;
-	
-		struct sccp_feature {										
+
+		struct sccp_feature {
 			uint8_t index;
 			uint8_t id;
 			char label[StationMaxNameSize];
@@ -715,7 +715,7 @@ int buildGlobals(struct ast_variable *v);
 
 
 #ifndef ASTERISK_CONF_1_2
-struct sched_context *sched; 
+struct sched_context *sched;
 struct io_context *io;
 #endif
 
