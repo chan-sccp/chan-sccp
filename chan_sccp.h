@@ -168,6 +168,7 @@ typedef struct sccp_ast_channel_name	sccp_ast_channel_name_t;
 typedef struct sccp_buttonconfig	sccp_buttonconfig_t;
 typedef struct sccp_softkeyTemplate	sccp_softkeyTemplate_t;
 typedef struct sccp_softkeyTemplateSet	sccp_softkeyTemplateSet_t;
+typedef struct sccp_list		sccp_list_t;
 
 
 typedef void sk_func (sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
@@ -189,7 +190,12 @@ struct sccp_hint {
 	char exten[AST_MAX_EXTENSION];
 	uint8_t state;
 	uint32_t callid;
-	sccp_hint_t *next;
+};
+
+struct sccp_list{
+	void 		*data;
+	sccp_list_t	*next;
+	sccp_list_t	*prev;
 };
 
 /* A line is a the equiv of a 'phone line' going to the phone. */
@@ -265,7 +271,7 @@ struct sccp_line {
 	sccp_device_t * device;
 
 	/* list of hint pointers. Internal lines to notify the state */
-	sccp_hint_t * hints;
+	sccp_list_t 	*hints;
 
 	/* call forward SCCP_CFWD_ALL or SCCP_CFWD_BUSY */
 	uint8_t cfwd_type;
@@ -458,7 +464,7 @@ struct sccp_device {
 	sccp_line_t      		* currentLine;
 	sccp_session_t   		* session;
 	sccp_device_t    		* next;
-	sccp_hint_t      		* hints;							/*!< list of hint pointers. Internal lines to notify the state */
+	sccp_list_t      		* hints;							/*!< list of hint pointers. Internal lines to notify the state */
 	pthread_t        		postregistration_thread;
 	struct ast_variable 	* variables;						/*!< Channel variables to set */
 	char 					* phonemessage;						/*!< message to display on device*/
@@ -638,7 +644,7 @@ struct sccp_global_vars {
 	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
 	struct sccp_global_vars		pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
-	sccp_softkeyTemplateSet_t	softkeyTempletSet;
+	sccp_softkeyTemplateSet_t	*softkeyTemplateSet;
 };
 
 struct sccp_selected_channel {
