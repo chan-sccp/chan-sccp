@@ -373,6 +373,7 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 	sccp_device_t * d;
 	char tmp[256];
 	uint8_t lamp = SKINNY_LAMP_OFF;
+	sccp_list_t	*hintList = NULL;
 
 	/* let's go for internal hint system */
 
@@ -381,20 +382,25 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 		return;
 	}
 
-	if (!onedevice) { // we are in post registration state
-		ast_device_state_changed("SCCP/%s", l->name);
-		if (!l->hints) {
-			sccp_log(71)(VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notify_linestate) State (%d) of line (%s) has been notified. Leaving.\n", state, l->name);
-			return;
-		}
-		sccp_log(71)(VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notify_linestate) State (%d) of line (%s) has been notified. Going o\n", state, l->name);
-	}
+// 	if (!onedevice) { // we are in post registration state
+// 		ast_device_state_changed("SCCP/%s", l->name);
+// 		if (!l->hints) {
+// 			sccp_log(71)(VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notify_linestate) State (%d) of line (%s) has been notified. Leaving.\n", state, l->name);
+// 			return;
+// 		}
+// 		sccp_log(71)(VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notify_linestate) State (%d) of line (%s) has been notified. Going o\n", state, l->name);
+// 	}
 
-	h = l->hints;
-	while (h) {
+	hintList = l->hints;
+	while (hintList) {
+		if(!hintList->data){
+			hintList = hintList->next;
+			continue;
+		}
+		h = (sccp_hint_t*)hintList->data;
 		d = h->device;
 		if (!d || !d->session || (onedevice && d != onedevice)) {
-			h = h->next;
+			hintList = hintList->next;
 			continue;
 		}
 		sccp_log(71)(VERBOSE_PREFIX_3 "%s: (sccp_hint_notify_linestate) HINT notify state %d of the line '%s'\n", d->id, state, l->name);
@@ -407,7 +413,7 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 				sccp_dev_set_keyset(d, h->instance, h->callid, KEYMODE_ONHOOK);
 				h->state = SCCP_HINTSTATE_NOTINUSE;
 			}
-			h = h->next;
+			hintList = hintList->next;
 			continue;
 		}
 
@@ -436,7 +442,7 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 			default:
 				/* nothing to send */
 				free(r);
-				h = h->next;
+				hintList = hintList->next;
 				continue;
 		}
 
@@ -454,7 +460,7 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 			h->callid = 0;
 			h->state = SCCP_HINTSTATE_INUSE;
 		}
-		h = h->next;
+		hintList = hintList->next;
 	}
 }
 
@@ -562,16 +568,27 @@ void sccp_hint_notify_channelstate(sccp_device_t * d, sccp_hint_t * h, sccp_chan
  *
  */
 void sccp_hint_notify(sccp_channel_t * c, sccp_device_t * onedevice) {
-	sccp_line_t *l = c->line;
-	sccp_hint_t *h = l->hints;
-	sccp_device_t *d;
+	sccp_line_t 	*l = c->line;
+	sccp_hint_t 	*h = NULL;
+	sccp_list_t	*hintList = NULL;
+	sccp_device_t 	*d;
 
 	if (!h)
 		return;
+	
+	hintList = l->hints;
+	if(!hintList)
+		return;
+	
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: HINT notify the state of the line %s \n", l->name);
 
-	while (h) {
+	while (hintList) {
+		h = (sccp_hint_t*)hintList->data;
+		if(!h){
+			hintList = hintList->next;
+			continue;
+		}
 		d = h->device;
 		if (d && d->session) {
 			sccp_hint_notify_channelstate(d, h, c);
@@ -579,7 +596,7 @@ void sccp_hint_notify(sccp_channel_t * c, sccp_device_t * onedevice) {
 			if (onedevice && d == onedevice)
 				break;
 		}
-		h = h->next;
+		hintList = hintList->next;
 	}
 }
 
@@ -1262,36 +1279,6 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					sccp_copy_string(currentButton->button.speeddial.ext, ast_strip(buttonOption), sizeof(currentButton->button.speeddial.ext));
 					if(buttonArgs)
 						sccp_copy_string(currentButton->button.speeddial.hint, ast_strip(buttonArgs), sizeof(currentButton->button.speeddial.hint));
-
-ast_log(LOG_WARNING, "Speddial %s, extension: %s\n",  currentButton->button.speeddial.label,  currentButton->button.speeddial.ext);
-ast_log(LOG_WARNING, "Speeddial %s, hint:  %s\n",  currentButton->button.speeddial.label,  (currentButton->button.speeddial.hint)?currentButton->button.speeddial.hint:"none");
-
-
-					k = malloc(sizeof(sccp_speed_t));
-					if (!k)
-						ast_log(LOG_WARNING, "Error allocating speedial %s => %s\n",  currentButton->button.speeddial.label,  currentButton->button.speeddial.ext);
-					else {
-						memset(k, 0, sizeof(sccp_speed_t));
-						sccp_copy_string(k->name, currentButton->button.speeddial.label, sizeof(k->name));
-						sccp_copy_string(k->ext, currentButton->button.speeddial.ext, sizeof(k->ext));
-
-						if (currentButton->button.speeddial.hint)
-							sccp_copy_string(k->hint, currentButton->button.speeddial.hint, sizeof(k->hint));
-
-						k->config_instance = currentButton->instance;
-						if (!d->speed_dials)
-							d->speed_dials = k;
-						if (!k_last)
-							k_last = k;
-						else {
-							k_last->next = k;
-							k_last = k;
-						}
-ast_log(LOG_WARNING, "Speddial_inst %s, extension: %s\n",  k->name,  k->ext);
-ast_log(LOG_WARNING, "Speeddial_inst %s, hint:  %s\n",  k->name,  k->hint);
-						ast_verbose(VERBOSE_PREFIX_3 "Added speeddial %d: %s (%s)\n", k->config_instance, k->name, k->ext);
-					}
-
 
 				} else if (!strcasecmp(buttonType, "feature") && buttonName){
 					currentButton = malloc(sizeof(sccp_buttonconfig_t));
@@ -1997,7 +1984,7 @@ void buildSoftkeyTemplate(struct ast_variable *astVar){
 		ast_verbose(VERBOSE_PREFIX_3 "value of connected: %s\n", skinny_lbl2str(template->type));
 		template = template->next;
 	}
-	//GLOB(softkeyTempletSet) = templateSet;
+	GLOB(softkeyTemplateSet) = templateSet;
 	return;
 }
 
@@ -2173,6 +2160,7 @@ static int unload_module(void) {
 	sccp_device_t * d;
 	sccp_session_t * s;
 	sccp_hint_t *h;
+	sccp_list_t	*hintList;
 
 #ifdef CS_AST_HAS_TECH_PVT
 	ast_channel_unregister(&sccp_tech);
@@ -2193,10 +2181,19 @@ static int unload_module(void) {
 		l = GLOB(lines);
 		GLOB(lines) = l->next;
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Removing line %s\n", l->name);
-		while (l->hints) {
-			h = l->hints;
+// 		while (l->hints) {
+// 			h = l->hints;
+// 			l->hints = l->hints->next;
+// 			free(h);
+// 		}
+		while (l->hints) {	
+			hintList = l->hints;
+			h = (sccp_hint_t*)hintList->data;
 			l->hints = l->hints->next;
-			free(h);
+			l->hints->prev = NULL;
+			if(h)
+				free(h);
+			free(hintList);
 		}
 		if (l->cfwd_num)
 			free(l->cfwd_num);

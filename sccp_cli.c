@@ -62,6 +62,7 @@ static char * sccp_complete_device(char *line, char *word, int pos, int state) {
 
 static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 	sccp_moo_t * r;
+	sccp_list_t	*hintList;
 	sccp_hint_t * h;
 	sccp_device_t * d;
 
@@ -93,11 +94,14 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 	}
 	
 	ast_cli(fd, "%s: Turn off the monitored line lamps to permit the %s\n", argv[2], argv[1]);
-	h = d->hints;
-	while (h) {
+	hintList = d->hints;
+	
+	while (hintList) {
+		h = (sccp_hint_t*)hintList->data;
 		/* force the hint state for non SCCP (or mixed) devices */
-		sccp_hint_state(NULL, NULL, AST_EXTENSION_NOT_INUSE, h);
-		h = h->next;
+		if(h)
+			sccp_hint_state(NULL, NULL, AST_EXTENSION_NOT_INUSE, h);
+		hintList = hintList->next;
 	}
 	sccp_device_unlock(d);
 
@@ -110,6 +114,7 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 
 static int sccp_unregister(int fd, int argc, char * argv[]) {
 	sccp_moo_t * r;
+	sccp_list_t	*hintList;
 	sccp_hint_t * h;
 	sccp_device_t * d;
 
@@ -141,11 +146,14 @@ static int sccp_unregister(int fd, int argc, char * argv[]) {
 	}
 	
 	ast_cli(fd, "%s: Turn off the monitored line lamps to permit the %s\n", argv[2], argv[1]);
-	h = d->hints;
-	while (h) {
+	
+	hintList = d->hints;
+	while (hintList) {
+		h = (sccp_hint_t*)hintList->data;
 		/* force the hint state for non SCCP (or mixed) devices */
-		sccp_hint_state(NULL, NULL, AST_EXTENSION_NOT_INUSE, h);
-		h = h->next;
+		if(h)
+			sccp_hint_state(NULL, NULL, AST_EXTENSION_NOT_INUSE, h);
+		hintList = hintList->next;
 	}
 	sccp_device_unlock(d);
 
@@ -776,6 +784,7 @@ static struct ast_cli_entry cli_show_lines = {
 
 static int sccp_remove_line_from_device(int fd, int argc, char * argv[]) {
 	sccp_line_t * l = NULL;
+	sccp_list_t	*hintList;
 	sccp_hint_t * h = NULL;
 	sccp_device_t * d = NULL;
 
@@ -790,10 +799,16 @@ static int sccp_remove_line_from_device(int fd, int argc, char * argv[]) {
 		sccp_line_lock(l);
 		if(!strcasecmp(l->name, argv[4])){
 			sccp_line_delete_nolock(l);
+			
 			while (l->hints) {
-				h = l->hints;
+				
+				hintList = l->hints;
+				h = (sccp_hint_t*)hintList->data;
 				l->hints = l->hints->next;
-				free(h);
+				l->hints->prev = NULL;
+				if(h)
+					free(h);
+				free(hintList);
 			}
 			if (l->cfwd_num)
 				free(l->cfwd_num);
