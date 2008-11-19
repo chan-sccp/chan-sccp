@@ -521,21 +521,41 @@ void sccp_dev_displayprinotify(sccp_device_t * d, char * msg, uint32_t priority,
 
 sccp_speed_t * sccp_dev_speed_find_byindex(sccp_device_t * d, uint8_t instance, uint8_t type) {
 	/* type could be SKINNY_BUTTONTYPE_SPEEDDIAL or SKINNY_BUTTONTYPE_LINE. See the button template functions */
-	sccp_speed_t * k = d->speed_dials;
+	//sccp_speed_t * k = d->speed_dials;
+	sccp_buttonconfig_t	*buttonconfig;
+	sccp_speed_t 		*k = NULL; 
+
+
 	if (!d || !d->session)
 		return NULL;
 
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: searching for index %d and type %d\n", d->id, instance, type);
-	while (k) {
-		if (k->type == type && k->instance == instance) {
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: found name: %s, ext: %s, index: %d, type: %d\n", d->id, k->name, k->ext, k->instance, k->type);
-			break;
+	buttonconfig = d->buttonconfig;
+	while(buttonconfig){
+		if(buttonconfig->instance == instance && !strcasecmp(buttonconfig->type, "speeddial")){
+			if (!ast_strlen_zero(buttonconfig->button.speeddial.hint)){
+				k = malloc(sizeof(sccp_speed_t));
+				k->instance = instance;
+				k->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+				sccp_copy_string(k->name, buttonconfig->button.speeddial.label, sizeof(k->name));
+				sccp_copy_string(k->ext, buttonconfig->button.speeddial.ext, sizeof(k->ext));
+				return k;	
+			}
 		}
-/*		sccp_log(10)(VERBOSE_PREFIX_3 "%s: skipped name: %s, ext: %s, index: %d, type: %d\n", d->id, k->name, k->ext, k->instance, k->type); */
-		k = k->next;
+		buttonconfig = buttonconfig->next;
 	}
-	return k;
+
+
+// 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: searching for index %d and type %d\n", d->id, instance, type);
+// 	while (k) {
+// 		if (k->type == type && k->instance == instance) {
+// 			sccp_log(10)(VERBOSE_PREFIX_3 "%s: found name: %s, ext: %s, index: %d, type: %d\n", d->id, k->name, k->ext, k->instance, k->type);
+// 			break;
+// 		}
+// /*		sccp_log(10)(VERBOSE_PREFIX_3 "%s: skipped name: %s, ext: %s, index: %d, type: %d\n", d->id, k->name, k->ext, k->instance, k->type); */
+// 		k = k->next;
+// 	}
+ 	return NULL;
 }
 
 sccp_line_t * sccp_dev_get_activeline(sccp_device_t * d) {
@@ -825,7 +845,8 @@ int sccp_device_check_ringback(sccp_device_t * d) {
 
 /* this thread will start 5 seconds after the device registration to display the status of the monitored extensions */
 void * sccp_dev_postregistration(void *data) {
-	sccp_device_t * d = data;
+	sccp_device_t 	*d = data;
+	sccp_list_t 	*hintList = NULL;
 	sccp_hint_t * h = NULL;
 	sccp_line_t * l = NULL;
 	sccp_channel_t * c = NULL;
@@ -846,8 +867,13 @@ void * sccp_dev_postregistration(void *data) {
 	sccp_dev_set_mwi(d, NULL, 0);
 
 	/* poll the state of the asterisk hints extensions and notify the state to the phone */
-	h = d->hints;
-	while (h) {
+	hintList = d->hints;
+	while (hintList) {
+		h = (sccp_hint_t*)hintList->data;
+		if(!h){
+			hintList = hintList->next;
+			continue;
+		}
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: %s@%s is on state %d\n", (d->id?DEV_ID_LOG(d):"SCCP"), (h->exten?h->exten:"(null)"), (h->context?h->context:"(null)"), state);
 		if(h->context && h->exten) {
 			/* force the hint state for non SCCP (or mixed) devices */
@@ -855,7 +881,7 @@ void * sccp_dev_postregistration(void *data) {
 		}
 		if (state != AST_EXTENSION_NOT_INUSE)
 			sccp_hint_state(NULL, NULL, state, h);
-		h = h->next;
+		hintList = hintList->next;
 	}
 
 	/* poll the state of the SCCP monitored lines */
@@ -865,8 +891,14 @@ void * sccp_dev_postregistration(void *data) {
 	while(l) {
 		/* turn off the device MWI light */
 		sccp_dev_set_mwi(d, l, 0);
-		h = l->hints;
-		while (h) {
+		hintList = l->hints;
+		
+		while (hintList) {
+			h = (sccp_hint_t*)hintList->data;
+			if(!h){
+				hintList = hintList->next;
+				continue;
+			}				
 			if (h->device == d) {
 				if (!l->device)
 					sccp_hint_notify_linestate(l, SCCP_DEVICESTATE_UNAVAILABLE, d);
@@ -885,7 +917,7 @@ void * sccp_dev_postregistration(void *data) {
 				}
 				break;
 			}
-			h = h->next;
+			hintList = hintList->next;
 		}
 		l = l->next;
 	}
@@ -895,12 +927,15 @@ void * sccp_dev_postregistration(void *data) {
 	d->postregistration_thread = AST_PTHREADT_STOP;
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
 	sccp_device_unlock(d);
+
+	
 	return NULL;
 }
 
 /* clean up memory allocated by the device */
 void sccp_dev_clean(sccp_device_t * d) {
 	sccp_speed_t * k, * k1 = NULL;
+	sccp_list_t	*hintList;
 	sccp_hint_t * h;
 	sccp_hostname_t *permithost;
 
@@ -916,12 +951,22 @@ void sccp_dev_clean(sccp_device_t * d) {
 		free(k);
 		k = k1;
 	}
+// 	while (d->hints) {
+// 		h = d->hints;
+// 		if (h->hintid > -1)
+// 			ast_extension_state_del(h->hintid, NULL);
+// 		d->hints = d->hints->next;
+// 		free(h);
+// 	}
 	while (d->hints) {
-		h = d->hints;
-		if (h->hintid > -1)
-			ast_extension_state_del(h->hintid, NULL);
+				
+		hintList = d->hints;
+		h = (sccp_hint_t*)hintList->data;
 		d->hints = d->hints->next;
-		free(h);
+		d->hints->prev = NULL;
+		if(h)
+			free(h);
+		free(hintList);
 	}
 	while (d->permithost) {
 		permithost = d->permithost;
