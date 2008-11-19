@@ -525,22 +525,24 @@ sccp_speed_t * sccp_dev_speed_find_byindex(sccp_device_t * d, uint8_t instance, 
 	sccp_buttonconfig_t	*buttonconfig;
 	sccp_speed_t 		*k = NULL; 
 
-
+	
 	if (!d || !d->session)
 		return NULL;
 
-
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s searching for speeddial: %d\n", d->id, instance);
 	buttonconfig = d->buttonconfig;
 	while(buttonconfig){
 		if(buttonconfig->instance == instance && !strcasecmp(buttonconfig->type, "speeddial")){
-			if (!ast_strlen_zero(buttonconfig->button.speeddial.hint)){
+			
 				k = malloc(sizeof(sccp_speed_t));
 				k->instance = instance;
 				k->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
 				sccp_copy_string(k->name, buttonconfig->button.speeddial.label, sizeof(k->name));
 				sccp_copy_string(k->ext, buttonconfig->button.speeddial.ext, sizeof(k->ext));
-				return k;	
+			if (!ast_strlen_zero(buttonconfig->button.speeddial.hint)){
+				sccp_copy_string(k->hint, buttonconfig->button.speeddial.hint, sizeof(k->hint));
 			}
+				return k;
 		}
 		buttonconfig = buttonconfig->next;
 	}

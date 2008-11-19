@@ -394,6 +394,7 @@ void sccp_hint_notify_linestate(sccp_line_t * l, uint8_t state, sccp_device_t * 
 	hintList = l->hints;
 	while (hintList) {
 		if(!hintList->data){
+			sccp_log(71)(VERBOSE_PREFIX_3 "%s: (sccp_hint_notify_linestate) no data on list\n", l->name);
 			hintList = hintList->next;
 			continue;
 		}
@@ -1277,8 +1278,11 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 
 					sccp_copy_string(currentButton->button.speeddial.label, ast_strip(buttonName), sizeof(currentButton->button.speeddial.label));
 					sccp_copy_string(currentButton->button.speeddial.ext, ast_strip(buttonOption), sizeof(currentButton->button.speeddial.ext));
-					if(buttonArgs)
+					if(buttonArgs){
 						sccp_copy_string(currentButton->button.speeddial.hint, ast_strip(buttonArgs), sizeof(currentButton->button.speeddial.hint));
+// 						ast_verbose(VERBOSE_PREFIX_3 "hint: '%s' \n", currentButton->button.speeddial.hint);
+					}
+					
 
 				} else if (!strcasecmp(buttonType, "feature") && buttonName){
 					currentButton = malloc(sizeof(sccp_buttonconfig_t));
