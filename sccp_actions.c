@@ -699,28 +699,43 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r) {
 }
 
 void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_moo_t * r) {
-	sccp_speed_t * k = s->device->speed_dials;
-	sccp_moo_t * r1;
-	int wanted = letohl(r->msg.SpeedDialStatReqMessage.lel_speedDialNumber);
+	sccp_buttonconfig_t	*buttonconfig;
+	//sccp_speed_t 		*k = s->device->speed_dials;
+	sccp_moo_t 		*r1;
+	int instance = letohl(r->msg.SpeedDialStatReqMessage.lel_speedDialNumber);
 
-	sccp_log(3)(VERBOSE_PREFIX_3 "%s: Speed Dial Request for Button %d\n", s->device->id, wanted);
+	sccp_log(3)(VERBOSE_PREFIX_3 "%s: Speed Dial Request for Button %d\n", s->device->id, instance);
 
 	REQ(r1, SpeedDialStatMessage);
-	r1->msg.SpeedDialStatMessage.lel_speedDialNumber = htolel(wanted);
+	r1->msg.SpeedDialStatMessage.lel_speedDialNumber = htolel(instance);
 
-	k = sccp_dev_speed_find_byindex(s->device, wanted, SKINNY_BUTTONTYPE_SPEEDDIAL);
-	if (k) {
-		sccp_copy_string(r1->msg.SpeedDialStatMessage.speedDialDirNumber, k->ext, sizeof(r1->msg.SpeedDialStatMessage.speedDialDirNumber));
-		sccp_copy_string(r1->msg.SpeedDialStatMessage.speedDialDisplayName, k->name, sizeof(r1->msg.SpeedDialStatMessage.speedDialDisplayName));
-	} else {
-		sccp_log(3)(VERBOSE_PREFIX_3 "%s: speeddial %d not assigned\n", DEV_ID_LOG(s->device), wanted);
+	//k = sccp_dev_speed_find_byindex(s->device, wanted, SKINNY_BUTTONTYPE_SPEEDDIAL);
+	buttonconfig = s->device->buttonconfig;
+	while (buttonconfig) {
+		sccp_log(99)(VERBOSE_PREFIX_3 "%s: Button %d is %s\n", s->device->id, buttonconfig->instance, buttonconfig->type);
+		if(buttonconfig->instance == instance && !strcasecmp(buttonconfig->type, "speeddial")){
+			sccp_log(10)(VERBOSE_PREFIX_3 "%s: found name: %s, ext: %s, index: %d\n", s->device->id, buttonconfig->button.speeddial.label, buttonconfig->button.speeddial.ext, buttonconfig->instance);
+			sccp_copy_string(r1->msg.SpeedDialStatMessage.speedDialDirNumber, buttonconfig->button.speeddial.ext, sizeof(r1->msg.SpeedDialStatMessage.speedDialDirNumber));
+			sccp_copy_string(r1->msg.SpeedDialStatMessage.speedDialDisplayName, buttonconfig->button.speeddial.label, sizeof(r1->msg.SpeedDialStatMessage.speedDialDisplayName));
+			break;
+		}
+		buttonconfig = buttonconfig->next;
 	}
+	if(!buttonconfig)
+		sccp_log(3)(VERBOSE_PREFIX_3 "%s: speeddial %d not assigned\n", DEV_ID_LOG(s->device), instance);
+// 	if (k) {
+// 		sccp_copy_string(r1->msg.SpeedDialStatMessage.speedDialDirNumber, k->ext, sizeof(r1->msg.SpeedDialStatMessage.speedDialDirNumber));
+// 		sccp_copy_string(r1->msg.SpeedDialStatMessage.speedDialDisplayName, k->name, sizeof(r1->msg.SpeedDialStatMessage.speedDialDisplayName));
+// 	} else {
+// 		sccp_log(3)(VERBOSE_PREFIX_3 "%s: speeddial %d not assigned\n", DEV_ID_LOG(s->device), wanted);
+// 	}
 
 	sccp_dev_send(s->device, r1);
 }
 
 void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
-	sccp_device_t * d = s->device;
+	sccp_device_t 		*d = s->device;
+	sccp_buttonconfig_t	*buttonconfig;
 	sccp_line_t * l;
 	sccp_speed_t * k;
 	sccp_channel_t * c, * c1;
@@ -810,11 +825,31 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 			break;
 
 		case SKINNY_BUTTONTYPE_SPEEDDIAL:
-			k = sccp_dev_speed_find_byindex(d, instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
-			if (k)
-				sccp_handle_speeddial(d, k);
-			else
-				sccp_log(1)(VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
+			//k = sccp_dev_speed_find_byindex(d, instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
+			
+			buttonconfig = s->device->buttonconfig;
+			while (buttonconfig) {
+				sccp_log(99)(VERBOSE_PREFIX_3 "%s: Button %d is %s\n", s->device->id, buttonconfig->instance, buttonconfig->type);
+				if(buttonconfig->instance == instance && !strcasecmp(buttonconfig->type, "speeddial")){
+					k = malloc(sizeof(sccp_speed_t));
+					k->instance = instance;
+					k->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+					sccp_copy_string(k->name, buttonconfig->button.speeddial.label, sizeof(k->name));
+					sccp_copy_string(k->ext, buttonconfig->button.speeddial.ext, sizeof(k->ext));
+					
+					sccp_handle_speeddial(d, k);
+					free(k);
+					break;
+				}
+				buttonconfig = buttonconfig->next;
+			}
+			if(!buttonconfig)
+				sccp_log(3)(VERBOSE_PREFIX_3 "%s: speeddial %d not assigned\n", DEV_ID_LOG(s->device), instance);
+		// 	i
+// 			if (k)
+// 				sccp_handle_speeddial(d, k);
+// 			else
+// 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
 			break;
 
 		case SKINNY_BUTTONTYPE_HOLD:
