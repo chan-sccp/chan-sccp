@@ -1944,10 +1944,27 @@ void buildSoftkeyTemplate(struct ast_variable *astVar){
 	while(variable){
 		template = malloc(sizeof(sccp_softkeyTemplate_t));
 
+
 		if (!strcasecmp(variable->name, "onhook")) {
 			templateSet->onhook = template;
 		}else if (!strcasecmp(variable->name, "connected")) {
 			templateSet->connected = template;
+		}else if (!strcasecmp(variable->name, "onhold")) {
+			templateSet->onhold = template;
+		}else if (!strcasecmp(variable->name, "ringin")) {
+			templateSet->ringin = template;
+		}else if (!strcasecmp(variable->name, "offhook")) {
+			templateSet->offhook = template;
+		}else if (!strcasecmp(variable->name, "conntrans")) {
+			templateSet->conntrans = template;
+		}else if (!strcasecmp(variable->name, "digitsfoll")) {
+			templateSet->digitsfoll = template;
+		}else if (!strcasecmp(variable->name, "ringout")) {
+			templateSet->ringout = template;
+		}else if (!strcasecmp(variable->name, "offhookfeat")) {
+			templateSet->offhookfeat = template;
+		}else if (!strcasecmp(variable->name, "onhint")) {
+			templateSet->onhint = template;
 		}else{
 			variable = variable->next;
 			free(template);
@@ -1968,16 +1985,16 @@ void buildSoftkeyTemplate(struct ast_variable *astVar){
 				template->next->next = NULL;
 				template = template->next;
 			}
-
-			//sccp_copy_string(template->type, res, sizeof(template->type));
 			template->type = skinny_str2lbl(res);
+			//sccp_copy_string(template->type, res, sizeof(template->type));
+			
 		}
 		template = NULL;
 		variable = variable->next;
 	}
 	template = templateSet->connected;
 	while(template){
-		ast_verbose(VERBOSE_PREFIX_3 "value of onhook: %s\n", skinny_lbl2str(template->type));
+		ast_verbose(VERBOSE_PREFIX_3 "value of connected: %s\n", skinny_lbl2str(template->type));
 		template = template->next;
 	}
 	//GLOB(softkeyTempletSet) = templateSet;
