@@ -542,7 +542,9 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r) {
 	}
 	/* remove speedial if present */
 	if(k){
+		sccp_log(3)(VERBOSE_PREFIX_3 "%s: line is hint for %s\n", s->device->id, k->hint);
 		if(!ast_strlen_zero(k->hint)){
+			sccp_log(3)(VERBOSE_PREFIX_3 "%s: activate hint for Button %d\n", s->device->id, lineNumber);
 			sccp_activate_hint(d,k);
 		}
 		free(k);
