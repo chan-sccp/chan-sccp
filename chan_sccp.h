@@ -375,8 +375,8 @@ struct sccp_device {
 	/* internal description. Skinny protocol does not use it */
 	char description[40];
 
-	/* lines to auto login this device to */
-	char autologin[SCCP_MAX_AUTOLOGIN];
+	/* default line to use (name of line) */
+	char defaultline;
 
 	/* model of this phone used for setting up features/softkeys/buttons etc. */
 	char config_type[10];
@@ -428,7 +428,7 @@ struct sccp_device {
 	/* permit registration to the hostname ip address */
 	sccp_hostname_t			*permithost;
 
-	uint32_t				conferenceid;
+	uint32_t			conferenceid;
 
 	unsigned int			mwilamp:3;
 	unsigned int			mwioncall:1;
@@ -443,37 +443,37 @@ struct sccp_device {
 	unsigned int			cfwdnoanswer:1;
 #ifdef CS_SCCP_PICKUP
 	unsigned int			pickupexten:1;
-	char					* pickupcontext;
+	char				*pickupcontext;
 	unsigned int			pickupmodeanswer:1;
 #endif
-	unsigned int			dtmfmode:1; 						/*!< 0 inband - 1 outofband */
+	unsigned int			dtmfmode:1; 					/*!< 0 inband - 1 outofband */
 	unsigned int			nat:1;
 	unsigned int			trustphoneip:1;
 	unsigned int			needcheckringback:1;
-	unsigned int			private:1; 							/*!< permit private function on this device */
-	unsigned int			privacy:2;                          /*!< device privacy flag 0x02 = no hints, 0x01 = hints depending on private key, 0x00 = always hints */
+	unsigned int			private:1; 					/*!< permit private function on this device */
+	unsigned int			privacy:2;                          		/*!< device privacy flag 0x02 = no hints, 0x01 = hints depending on private key, 0x00 = always hints */
 #ifdef CS_SCCP_REALTIME
-	unsigned int			realtime:1;							/*!< is it a realtimeconfiguration*/
+	unsigned int			realtime:1;					/*!< is it a realtimeconfiguration*/
 #endif
-	sccp_channel_t   		* active_channel;
-	sccp_channel_t   		* transfer_channel; 				/*!< the channel under transfer */
-	sccp_channel_t			* conference_channel;				/*|< the channel is going to be conferenced */
-	sccp_serviceURL_t 		* serviceURLs;
-	sccp_speed_t     		* speed_dials;
-	sccp_line_t      		* lines;
-	sccp_line_t      		* currentLine;
-	sccp_session_t   		* session;
-	sccp_device_t    		* next;
-	sccp_list_t      		* hints;							/*!< list of hint pointers. Internal lines to notify the state */
+	sccp_channel_t   		*active_channel;
+	sccp_channel_t   		*transfer_channel; 				/*!< the channel under transfer */
+	sccp_channel_t			*conference_channel;				/*!< the channel is going to be conferenced */
+	sccp_serviceURL_t 		*serviceURLs;
+	sccp_speed_t     		*speed_dials;
+	sccp_line_t      		*lines;
+	sccp_line_t      		*currentLine;
+	sccp_session_t   		*session;
+	sccp_device_t    		*next;
+	sccp_list_t      		*hints;						/*!< list of hint pointers. Internal lines to notify the state */
 	pthread_t        		postregistration_thread;
-	struct ast_variable 	* variables;						/*!< Channel variables to set */
-	char 					* phonemessage;						/*!< message to display on device*/
-    	sccp_addon_t			* addons;
-	sccp_buttonconfig_t		* buttonconfig;
+	struct ast_variable 		*variables;					/*!< Channel variables to set */
+	char 				*phonemessage;					/*!< message to display on device*/
+    	sccp_addon_t			*addons;
+	sccp_buttonconfig_t		*buttonconfig;
 	struct sccp_selected_channel    *selectedChannels;
 #ifdef CS_DYNAMIC_CONFIG
-	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-	sccp_device_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+	unsigned int			pendingDelete:1;				/*!< this bit will tell the scheduler to delete this line when unused */
+	sccp_device_t			pendingUpdate;					/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
 };
 
@@ -511,7 +511,7 @@ struct sccp_session {
 struct sccp_channel {
 	ast_mutex_t			lock;
 	/* codec requested by asterisk */
-	int					format;
+	int				format;
 	char				calledPartyName[StationMaxNameSize];
 	char				calledPartyNumber[StationMaxDirnumSize];
 	char				callingPartyName[StationMaxNameSize];

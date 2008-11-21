@@ -328,7 +328,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Config Phone Type  : %s\n", d->config_type);
 	ast_cli(fd, "Skinny Phone Type  : %s(%d)\n", skinny_devicetype2str(d->skinny_type), d->skinny_type);
 	ast_cli(fd, "Softkey support    : %s\n", (d->softkeysupport) ? "Yes" : "No");
-	ast_cli(fd, "Autologin          : %s\n", d->autologin);
+// 	ast_cli(fd, "Autologin          : %s\n", d->autologin);
 	ast_cli(fd, "Image Version      : %s\n", d->imageversion);
 	ast_cli(fd, "Timezone Offset    : %d\n", d->tz_offset);
 	ast_cli(fd, "Capabilities       : %s\n", cap_buf);
