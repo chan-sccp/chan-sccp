@@ -1812,7 +1812,7 @@ static int reload_config(void) {
 
 #ifndef ASTERISK_CONF_1_6
 	//cfg = ast_config_load("sccp.conf");
-	cfg_v3 = ast_config_load2("sccp_v3.conf");
+	cfg_v3 = ast_config_load("sccp_v3.conf");
 #else
 	//cfg = ast_config_load2("sccp.conf", "chan_sccp", config_flags);
 	cfg_v3 = ast_config_load2("sccp_v3.conf", "chan_sccp", config_flags);
