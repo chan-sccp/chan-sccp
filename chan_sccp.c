@@ -1128,10 +1128,8 @@ sccp_device_t * build_device(struct ast_variable *v, char *devicename){
 sccp_device_t *build_devices(struct ast_variable *v) {
 	sccp_hostname_t *permithost;
 	sccp_device_t 	*d;
-	sccp_speed_t 	*k = NULL, *k_last = NULL;
-	char 			*splitter, *k_exten = NULL, *k_name = NULL, *k_hint = NULL;
-	char 			k_speed[256];
-	uint8_t 		speeddial_index = 1;
+
+	char 			*splitter;
 	char 			message[256]="";							//device message
 	int			res;
 
@@ -1322,8 +1320,6 @@ sccp_device_t *build_devices(struct ast_variable *v) {
  			} else if (!strcasecmp(v->name, "tzoffset")) {
 				/* timezone offset */
 				d->tz_offset = atoi(v->value);
-			} else if (!strcasecmp(v->name, "autologin")) {
-				sccp_copy_string(d->autologin, v->value, sizeof(d->autologin));
 			} else if (!strcasecmp(v->name, "description")) {
 				sccp_copy_string(d->description, v->value, sizeof(d->description));
 			} else if (!strcasecmp(v->name, "imageversion")) {
@@ -1388,48 +1384,6 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 			} else if (!strcasecmp(v->name, "park")) {
 				d->park = sccp_true(v->value);
 		#endif
-			} else if (!strcasecmp(v->name, "speeddial")) {
-				if (ast_strlen_zero(v->value)) {
-					speeddial_index++;
-					ast_verbose(VERBOSE_PREFIX_3 "Added empty speeddial\n");
-				} else {
-					sccp_copy_string(k_speed, v->value, sizeof(k_speed));
-					splitter = k_speed;
-					k_exten = strsep(&splitter, ",");
-					k_name = strsep(&splitter, ",");
-					k_hint = splitter;
-					if (k_exten)
-						ast_strip(k_exten);
-					if (k_name)
-						ast_strip(k_name);
-					if (k_hint)
-						ast_strip(k_hint);
-					if (k_exten && !ast_strlen_zero(k_exten)) {
-						if (!k_name)
-							k_name = k_exten;
-						k = malloc(sizeof(sccp_speed_t));
-						if (!k)
-							ast_log(LOG_WARNING, "Error allocating speedial %s => %s\n", v->name, v->value);
-						else {
-							memset(k, 0, sizeof(sccp_speed_t));
-							sccp_copy_string(k->name, k_name, sizeof(k->name));
-							sccp_copy_string(k->ext, k_exten, sizeof(k->ext));
-							if (k_hint)
-								sccp_copy_string(k->hint, k_hint, sizeof(k->hint));
-							k->config_instance = speeddial_index++;
-							if (!d->speed_dials)
-								d->speed_dials = k;
-							if (!k_last)
-								k_last = k;
-							else {
-								k_last->next = k;
-								k_last = k;
-							}
-							ast_verbose(VERBOSE_PREFIX_3 "Added speeddial %d: %s (%s)\n", k->config_instance, k->name, k->ext);
-						}
-					} else
-						ast_log(LOG_WARNING, "Wrong speedial syntax: %s => %s\n", v->name, v->value);
-				}
 			} else if (!strcasecmp(v->name, "mwilamp")) {
 				if (!strcasecmp(v->value, "off"))
 					d->mwilamp = SKINNY_LAMP_OFF;
