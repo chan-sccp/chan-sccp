@@ -891,10 +891,9 @@ sccp_line_t * buildLine(struct ast_variable *v, char *linename){
  * \note also used by realtime functionality to line device from \link ast_variable asterisk variable \endlink
  */
 sccp_line_t * build_lines(struct ast_variable *v) {
-	sccp_line_t 	*l, *gl;
+	sccp_line_t 	*l;
 	int 		amaflags = 0;
 	int 		secondary_dialtone_tone = 0;
-	char		*lineName = NULL;
 
 
 
@@ -1130,8 +1129,7 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 	char 			*splitter, *k_exten = NULL, *k_name = NULL, *k_hint = NULL;
 	char 			k_speed[256];
 	uint8_t 		speeddial_index = 1;
-	char 			message[256]="";							//device message
-	int			res;
+
 
 	/* for button config */
 	char 			*buttonType = NULL, *buttonName = NULL, *buttonOption=NULL, *buttonArgs=NULL;
