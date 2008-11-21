@@ -900,7 +900,9 @@ sccp_line_t * build_lines(struct ast_variable *v) {
 
  	l = buildLineTemplate();
  	while(v) {
-
+		if (!strcasecmp(v->name, "line")) {
+			ast_log(LOG_WARNING, "line => name is not allowed anymore; check sample config\n");
+  		}
 #ifdef CS_SCCP_REALTIME
 			if (!strcasecmp(v->name, "name")) {
  				if ( !ast_strlen_zero(v->value) ) {
@@ -934,7 +936,7 @@ sccp_line_t * build_lines(struct ast_variable *v) {
  				}
  			}
 #endif
-			if (!strcasecmp(v->name, "id")) {
+			else if (!strcasecmp(v->name, "id")) {
  				sccp_copy_string(l->id, v->value, sizeof(l->id));
 			} else if (!strcasecmp(v->name, "pin")) {
  				sccp_copy_string(l->pin, v->value, sizeof(l->pin));
@@ -1141,29 +1143,9 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 	d = buildDeviceTemplate();
 	while (v) {
 			sccp_log(10)(VERBOSE_PREFIX_3 "%s = %s\n", v->name, v->value);
-// 			if (!strcasecmp(v->name, "device")) {
-// 				if ( (strlen(v->value) == 15) && ((strncmp(v->value, "SEP",3) == 0) || (strncmp(v->value, "ATA",3)==0)) ) {
-// 					sccp_copy_string(d->id, v->value, sizeof(d->id));
-// 					res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
-// 					if (!res)
-// 						d->phonemessage=strdup(message);									//set message on device if we have a result
-// 					strcpy(message,"");
-// 					ast_verbose(VERBOSE_PREFIX_3 "Added device '%s' (%s) \n", d->id, d->config_type);
-// 					sccp_globals_lock(devices_lock);
-// 					d->next = GLOB(devices);
-// 					GLOB(devices) = d;
-// 					sccp_globals_unlock(devices_lock);
-// 					d = buildDeviceTemplate();
-// 					speeddial_index = 1;
-// 					k_last = NULL;
-// 				} else {
-// 					ast_log(LOG_WARNING, "Wrong device param: %s => %s\n", v->name, v->value);
-// 					sccp_dev_clean(d);
-// 					ast_mutex_destroy(&d->lock);
-// 					free(d);
-// 				}
-//
-// 			}
+ 			if (!strcasecmp(v->name, "device")) {
+ 				ast_log(LOG_WARNING, "device => SEP****** is not allowed anymore; check sample config\n");
+ 			}
 #ifdef CS_SCCP_REALTIME
 			else if (!strcasecmp(v->name, "name")) {
 				if ( (strlen(v->value) == 15) && ((strncmp(v->value, "SEP",3) == 0) || (strncmp(v->value, "ATA",3)==0)) ) {
