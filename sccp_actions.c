@@ -522,6 +522,8 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r) {
 	/* if we find no regular line - it can be a speedial with hint */
 	if (!l)
 		k = sccp_dev_speed_find_byindex(d, lineNumber, SKINNY_BUTTONTYPE_LINE);
+
+
 	REQ(r1, LineStatMessage);
 	if (!l && !k) {
 		ast_log(LOG_ERROR, "%s: requested a line configuration for unknown line %d\n", s->device->id, lineNumber);
@@ -1256,6 +1258,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_device_t * d = NULL;
 	sccp_line_t * l = NULL;
 
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: sccp_handle_keypad_button \n", s->device->id);
 	if (!s->device)
 		return;
 
