@@ -576,11 +576,11 @@ void sccp_hint_notify(sccp_channel_t * c, sccp_device_t * onedevice) {
 
 	if (!h)
 		return;
-	
+
 	hintList = l->hints;
 	if(!hintList)
 		return;
-	
+
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: HINT notify the state of the line %s \n", l->name);
 
@@ -901,7 +901,7 @@ sccp_line_t * build_lines(struct ast_variable *v) {
 
  	l = buildLineTemplate();
  	while(v) {
- 			
+
 #ifdef CS_SCCP_REALTIME
 			if (!strcasecmp(v->name, "name")) {
  				if ( !ast_strlen_zero(v->value) ) {
@@ -935,7 +935,7 @@ sccp_line_t * build_lines(struct ast_variable *v) {
  				}
  			}
 #endif
-			  else if (!strcasecmp(v->name, "id")) {
+			if (!strcasecmp(v->name, "id")) {
  				sccp_copy_string(l->id, v->value, sizeof(l->id));
 			} else if (!strcasecmp(v->name, "pin")) {
  				sccp_copy_string(l->pin, v->value, sizeof(l->pin));
@@ -1164,7 +1164,7 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 // 					ast_mutex_destroy(&d->lock);
 // 					free(d);
 // 				}
-// 
+//
 // 			}
 #ifdef CS_SCCP_REALTIME
 			else if (!strcasecmp(v->name, "name")) {
@@ -1280,7 +1280,7 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 						sccp_copy_string(currentButton->button.speeddial.hint, ast_strip(buttonArgs), sizeof(currentButton->button.speeddial.hint));
 // 						ast_verbose(VERBOSE_PREFIX_3 "hint: '%s' \n", currentButton->button.speeddial.hint);
 					}
-					
+
 
 				} else if (!strcasecmp(buttonType, "feature") && buttonName){
 					currentButton = malloc(sizeof(sccp_buttonconfig_t));
@@ -1976,7 +1976,7 @@ void buildSoftkeyTemplate(struct ast_variable *astVar){
 			}
 			template->type = skinny_str2lbl(res);
 			//sccp_copy_string(template->type, res, sizeof(template->type));
-			
+
 		}
 		template = NULL;
 		variable = variable->next;
@@ -2188,7 +2188,7 @@ static int unload_module(void) {
 // 			l->hints = l->hints->next;
 // 			free(h);
 // 		}
-		while (l->hints) {	
+		while (l->hints) {
 			hintList = l->hints;
 			h = (sccp_hint_t*)hintList->data;
 			l->hints = l->hints->next;
