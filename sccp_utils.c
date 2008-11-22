@@ -145,8 +145,8 @@ void sccp_device_addon_addnew(sccp_device_t * d, const char * addon_config_type)
 		return;
 	}
 
-	if( !(((addon_type == SKINNY_DEVICETYPE_CISCO7914) &&
-		(!strcasecmp(d->config_type, "7940")) ||
+	if( !((addon_type == SKINNY_DEVICETYPE_CISCO7914) &&
+		((!strcasecmp(d->config_type, "7940")) ||
 		  (!strcasecmp(d->config_type, "7960")) ||
 		 (!strcasecmp(d->config_type, "7961")) ||
 		 (!strcasecmp(d->config_type, "7962")) ||
