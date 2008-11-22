@@ -193,7 +193,7 @@ int sccp_device_addons_taps(sccp_device_t * d) {
 
 	if(!strcasecmp(d->config_type, "7914"))
 		return 28; // on compatibility mode it returns 28 taps for a double 7914 addon
-	
+
 	if(!d->addons)
 		return 0;
 
@@ -344,7 +344,7 @@ struct ast_variable * sccp_create_variable(const char *buf) {
 	return NULL;
 }
 
-sccp_device_t * sccp_device_find_byid(const char * name) {
+sccp_device_t * sccp_device_find_byid(const char * name, boolean useRealtime) {
   	sccp_device_t * d;
 	/*
   	if (!(d = GLOB(devices) ))
@@ -366,13 +366,13 @@ sccp_device_t * sccp_device_find_byid(const char * name) {
 	sccp_globals_unlock(devices_lock);
 
 #ifdef CS_SCCP_REALTIME
-  	if (!d)
+  	if (!d && useRealtime == TRUE)
 		d = sccp_device_find_realtime_byid(name);
 #endif
   	return d;
 }
 
-sccp_device_t * sccp_device_find_byname(const char * name) {
+sccp_device_t * sccp_device_find_byname(const char * name, boolean useRealtime) {
   	sccp_device_t * d;
 	/*
 	if (!(d = GLOB(devices) ))
@@ -393,7 +393,7 @@ sccp_device_t * sccp_device_find_byname(const char * name) {
   	sccp_globals_unlock(devices_lock);
 
 #ifdef CS_SCCP_REALTIME
-	if (!d)
+	if (!d && useRealtime == TRUE)
  		d = sccp_device_find_realtime_byname(name);
 #endif
 

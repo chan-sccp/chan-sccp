@@ -122,6 +122,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
   return (((unsigned long long)bswap_32(x&0xffffffffull))<<32) | (bswap_32(x>>32));
 }
 */
+
 #define letohl(x) bswap_32(x)
 #define letohs(x) bswap_16(x)
 #define htolel(x) bswap_32(x)
@@ -169,11 +170,13 @@ typedef struct sccp_buttonconfig	sccp_buttonconfig_t;
 typedef struct sccp_softkeyTemplate	sccp_softkeyTemplate_t;
 typedef struct sccp_softkeyTemplateSet	sccp_softkeyTemplateSet_t;
 typedef struct sccp_list		sccp_list_t;
-
+typedef enum { FALSE, TRUE } boolean;
 
 typedef void sk_func (sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 
 #include "sccp_protocol.h"
+
+
 
 struct sccp_hostname {
 	char name[MAXHOSTNAMELEN];

@@ -56,7 +56,7 @@ static char * sccp_complete_device(char *line, char *word, int pos, int state) {
 	ret = d ? strdup(d->id) : NULL;
 
 	sccp_globals_unlock(devices_lock);
-	
+
 	return ret;
 }
 
@@ -71,21 +71,21 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 
 	ast_cli(fd, "%s: %s request sent to the device\n", argv[2], argv[1]);
 
-	d = sccp_device_find_byid(argv[2]);
+	d = sccp_device_find_byid(argv[2], FALSE);
 	if(!d)
 		return RESULT_SUCCESS;
-	
+
 	sccp_device_lock(d);
-	
+
 	if (!d->session) {
 		ast_cli(fd, "%s: device not registered\n", argv[2]);
 		sccp_device_unlock(d);
 		return RESULT_SUCCESS;
 	}
-	
+
 	ast_cli(fd, "%s: Turn off the monitored line lamps to permit the %s\n", argv[2], argv[1]);
 	hintList = d->hints;
-	
+
 	while (hintList) {
 		h = (sccp_hint_t*)hintList->data;
 		/* force the hint state for non SCCP (or mixed) devices */
@@ -98,7 +98,7 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 	REQ(r, Reset);
 	r->msg.Reset.lel_resetType = htolel((!strcasecmp(argv[1], "reset")) ? SKINNY_DEVICE_RESET : SKINNY_DEVICE_RESTART);
 	sccp_dev_send(d, r);
-	
+
 	return RESULT_SUCCESS;
 }
 
@@ -113,7 +113,7 @@ static int sccp_unregister(int fd, int argc, char * argv[]) {
 
 	ast_cli(fd, "%s: %s request sent to the device\n", argv[2], argv[1]);
 
-	d = sccp_device_find_byid(argv[2]);
+	d = sccp_device_find_byid(argv[2], FALSE);
 
 	if (!d) {
 #ifdef CS_SCCP_REALTIME
@@ -122,21 +122,21 @@ static int sccp_unregister(int fd, int argc, char * argv[]) {
 			ast_cli(fd, "Can't find device %s\n", argv[2]);
 #else
 		ast_cli(fd, "Can't find device %s\n", argv[2]);
-#endif	
+#endif
 	}
 	if(!d)
 		return RESULT_SUCCESS;
-	
+
 	sccp_device_lock(d);
-	
+
 	if (!d->session) {
 		ast_cli(fd, "%s: device not registered\n", argv[2]);
 		sccp_device_unlock(d);
 		return RESULT_SUCCESS;
 	}
-	
+
 	ast_cli(fd, "%s: Turn off the monitored line lamps to permit the %s\n", argv[2], argv[1]);
-	
+
 	hintList = d->hints;
 	while (hintList) {
 		h = (sccp_hint_t*)hintList->data;
@@ -150,7 +150,7 @@ static int sccp_unregister(int fd, int argc, char * argv[]) {
 	REQ(r, RegisterRejectMessage);
 	strncpy(r->msg.RegisterRejectMessage.text, "Unregister user request", StationMaxDisplayTextSize);
 	sccp_dev_send(d, r);
-	
+
 	return RESULT_SUCCESS;
 }
 
@@ -163,7 +163,7 @@ static char *sccp_print_group(char *buf, int buflen, ast_group_t group) {
 	uint8_t max = (sizeof(ast_group_t) * 8) - 1;
 
 	buf[0] = '\0';
-	
+
 	if (!group)
 		return(buf);
 
@@ -267,12 +267,12 @@ static char *cli_show_globals(struct ast_cli_entry *e, int cmd, struct ast_cli_a
 		}
 		if (a->argc != 3)
 			return CLI_SHOWUSAGE;
-		
+
 		if(sccp_show_globals(a->fd, a->argc, a->argv) == RESULT_SUCCESS) {
 			return CLI_SUCCESS;
 		}else
 			return CLI_FAILURE;
-		
+
 }
 #else
 static struct ast_cli_entry cli_show_globals = {
@@ -297,7 +297,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	if (argc != 4)
 		return RESULT_SHOWUSAGE;
 
-	d = sccp_device_find_byid(argv[3]);
+	d = sccp_device_find_byid(argv[3], FALSE);
 	if (!d) {
 		ast_cli(fd, "Can't find settings for device %s\n", argv[3]);
 		return RESULT_SUCCESS;
@@ -329,7 +329,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Private softkey    : %s\n", d->private ? "Enabled" : "Disabled");
 	ast_cli(fd, "Can CFWDALL        : %s\n", (d->cfwdall) ? "Yes" : "No");
 	ast_cli(fd, "Can CFWBUSY        : %s\n", (d->cfwdbusy) ? "Yes" : "No");
-	ast_cli(fd, "Can CFWNOANSWER    : %s\n", (d->cfwdnoanswer) ? "Yes" : "No");	
+	ast_cli(fd, "Can CFWNOANSWER    : %s\n", (d->cfwdnoanswer) ? "Yes" : "No");
 	ast_cli(fd, "Dtmf mode          : %s\n", (d->dtmfmode) ? "Out-of-Band" : "In-Band");
 	ast_cli(fd, "Trust phone ip     : %s\n", (d->trustphoneip) ? "Yes" : "No");
 	ast_cli(fd, "Early RTP          : %s\n", (d->earlyrtp) ? "Yes" : "No");
@@ -355,7 +355,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 		}
 	}
 	if(d->buttonconfig){
-		buttonconfig = d->buttonconfig;	
+		buttonconfig = d->buttonconfig;
 		ast_cli(fd, "\nService URLs\n");
 		ast_cli(fd, "%-4s: %-20s %-20s\n", "id", "label" , "URL");
 		ast_cli(fd, "------------------------------------\n");
@@ -377,7 +377,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 		}
 	}
 */
-	
+
 	if(d->variables){
 		ast_cli(fd, "\nDevice variables\n");
 		ast_cli(fd, "%-4s: %-20s \n", "name" , "value");
@@ -403,12 +403,12 @@ static char *cli_show_device(struct ast_cli_entry *e, int cmd, struct ast_cli_ar
 		}
 		if (a->argc != 4)
 			return CLI_SHOWUSAGE;
-		
+
 		if(sccp_show_device(a->fd, a->argc, a->argv) == RESULT_SUCCESS){
 			return CLI_SUCCESS;
 		}else
 			return CLI_FAILURE;
-		
+
 }
 #else
 static struct ast_cli_entry cli_show_device = {
@@ -435,12 +435,12 @@ static char *cli_reset(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a)
 		}
 		if (a->argc != 3)
 			return CLI_SHOWUSAGE;
-		
+
 		if(sccp_reset_restart(a->fd, a->argc, a->argv) == RESULT_SUCCESS){
 			return CLI_SUCCESS;
 		}else
 			return CLI_FAILURE;
-		
+
 }
 #else
 static struct ast_cli_entry cli_reset = {
@@ -465,12 +465,12 @@ static char *cli_restart(struct ast_cli_entry *e, int cmd, struct ast_cli_args *
 		}
 		if (a->argc != 3)
 			return CLI_SHOWUSAGE;
-		
+
 		if(sccp_reset_restart(a->fd, a->argc, a->argv) == RESULT_SUCCESS){
 			return CLI_SUCCESS;
 		}else
 			return CLI_FAILURE;
-		
+
 }
 #else
 static struct ast_cli_entry cli_restart = {
@@ -497,12 +497,12 @@ static char *cli_unregister(struct ast_cli_entry *e, int cmd, struct ast_cli_arg
 		}
 		if (a->argc != 3)
 			return CLI_SHOWUSAGE;
-		
+
 		if(sccp_unregister(a->fd, a->argc, a->argv) == RESULT_SUCCESS){
 			return CLI_SUCCESS;
 		}else
 			return CLI_FAILURE;
-		
+
 }
 #else
 static struct ast_cli_entry cli_unregister = {
@@ -551,7 +551,7 @@ static char *cli_show_channels(struct ast_cli_entry *e, int cmd, struct ast_cli_
 		return NULL;
 	} else if (cmd == CLI_GENERATE)
 		return NULL;
-	
+
 	if(sccp_show_channels(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
@@ -582,7 +582,7 @@ static int sccp_show_devices(int fd, int argc, char * argv[]) {
 	sccp_globals_lock(devices_lock);
 	d = GLOB(devices);
 	while (d) {
-		
+
 #ifdef ASTERISK_CONF_1_2
 		ast_cli(fd, "%-16s %-15s %-16s %-10s\n",// %-10s %-16s %c%c %-10s\n",
 			d->description,
@@ -617,7 +617,7 @@ static char *cli_show_devices(struct ast_cli_entry *e, int cmd, struct ast_cli_a
 		return NULL;
 	} else if (cmd == CLI_GENERATE)
 		return NULL;
-	
+
 	if(sccp_show_devices(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
@@ -640,10 +640,10 @@ static int sccp_message_devices(int fd, int argc, char * argv[]) {
 
 	if (argc < 4)
 		return RESULT_SHOWUSAGE;
-		
+
 	if (ast_strlen_zero(argv[3]))
 		return RESULT_SHOWUSAGE;
-		
+
 	if (argc == 5 && sscanf(argv[4], "%d", &msgtimeout) != 1) {
 		msgtimeout=10;
 	}
@@ -669,10 +669,10 @@ static char *cli_message_devices(struct ast_cli_entry *e, int cmd, struct ast_cl
 		return NULL;
 	} else if (cmd == CLI_GENERATE)
 		return NULL;
-	
+
 	if (a->argc < 4)
 		return CLI_SHOWUSAGE;
-	
+
 	if(sccp_message_devices(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
@@ -737,7 +737,7 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
   }
 
   sccp_globals_unlock(lines_lock);
-  
+
   return RESULT_SUCCESS;
 }
 
@@ -752,8 +752,8 @@ static char *cli_show_lines(struct ast_cli_entry *e, int cmd, struct ast_cli_arg
 		return NULL;
 	} else if (cmd == CLI_GENERATE)
 		return NULL;
-	
-	
+
+
 	if(sccp_show_lines(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
@@ -780,7 +780,7 @@ static int sccp_remove_line_from_device(int fd, int argc, char * argv[]) {
 
 
 
-	d = sccp_device_find_byid(argv[3]);
+	d = sccp_device_find_byid(argv[3], TRUE);
 	if(!d)
 		ast_cli(fd, "Device %s not found\n",argv[3]);
 
@@ -789,9 +789,9 @@ static int sccp_remove_line_from_device(int fd, int argc, char * argv[]) {
 		sccp_line_lock(l);
 		if(!strcasecmp(l->name, argv[4])){
 			sccp_line_delete_nolock(l);
-			
+
 			while (l->hints) {
-				
+
 				hintList = l->hints;
 				h = (sccp_hint_t*)hintList->data;
 				l->hints = l->hints->next;
@@ -809,7 +809,7 @@ static int sccp_remove_line_from_device(int fd, int argc, char * argv[]) {
 //			sccp_dev_set_registered(d, SKINNY_DEVICE_RS_OK);
 			break;
 		}
-		
+
 		sccp_line_unlock(l);
 		l = l->next_on_device;
 	}
@@ -828,10 +828,10 @@ static char *cli_remove_line_device(struct ast_cli_entry *e, int cmd, struct ast
 		return NULL;
 	} else if (cmd == CLI_GENERATE)
 		return NULL;
-	
+
 	if (a->argc != 5)
 		return CLI_SHOWUSAGE;
-	
+
 	if(sccp_remove_line_from_device(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
@@ -903,10 +903,10 @@ static char *cli_show_sessions(struct ast_cli_entry *e, int cmd, struct ast_cli_
 		return NULL;
 	} else if (cmd == CLI_GENERATE)
 		return NULL;
-	
+
 	if (a->argc != 5)
 		return CLI_SHOWUSAGE;
-	
+
 	if(sccp_show_sessions(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
@@ -974,10 +974,10 @@ static char *cli_system_message(struct ast_cli_entry *e, int cmd, struct ast_cli
 		return NULL;
 	} else if (cmd == CLI_GENERATE)
 		return NULL;
-	
+
 	if (a->argc < 4)
 		return CLI_SHOWUSAGE;
-	
+
 	if(sccp_system_message(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
@@ -1044,10 +1044,10 @@ static char *cli_do_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args 
 		return NULL;
 	} else if (cmd == CLI_GENERATE)
 		return NULL;
-	
+
 	if (a->argc != 3)
 		return CLI_SHOWUSAGE;
-	
+
 	if(sccp_do_debug(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
@@ -1059,7 +1059,7 @@ static struct ast_cli_entry cli_do_debug = {
   sccp_do_debug,
   "Enable SCCP debugging",
   "Usage: SCCP debug <level>\n"
-  "		Set the debug level of the sccp protocol from none (0) to high (10)\n" 
+  "		Set the debug level of the sccp protocol from none (0) to high (10)\n"
 };
 #endif
 
@@ -1083,10 +1083,10 @@ static char *cli_no_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args 
 		return NULL;
 	} else if (cmd == CLI_GENERATE)
 		return NULL;
-	
+
 	if (a->argc != 3)
 		return CLI_SHOWUSAGE;
-	
+
 	if(sccp_no_debug(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
@@ -1112,10 +1112,10 @@ static char *cli_do_fdebug(struct ast_cli_entry *e, int cmd, struct ast_cli_args
 		return NULL;
 	} else if (cmd == CLI_GENERATE)
 		return NULL;
-	
+
 	if (a->argc != 3)
 		return CLI_SHOWUSAGE;
-	
+
 	if(sccp_do_fdebug(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
@@ -1127,7 +1127,7 @@ static struct ast_cli_entry cli_do_fdebug = {
   sccp_do_fdebug,
   "Enable SCCP filtered debugging",
   "Usage: SCCP fdebug <level>\n"
-  "		Set the filtered debug level of the sccp protocol from none (0) to high (99)\n" 
+  "		Set the filtered debug level of the sccp protocol from none (0) to high (99)\n"
 };
 #endif
 
@@ -1151,10 +1151,10 @@ static char *cli_no_fdebug(struct ast_cli_entry *e, int cmd, struct ast_cli_args
 		return NULL;
 	} else if (cmd == CLI_GENERATE)
 		return NULL;
-	
+
 	if (a->argc != 3)
 		return CLI_SHOWUSAGE;
-	
+
 	if(sccp_no_fdebug(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
@@ -1185,10 +1185,10 @@ static char *cli_reload(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a
 		return NULL;
 	} else if (cmd == CLI_GENERATE)
 		return NULL;
-	
+
 	if (a->argc != 2)
 		return CLI_SHOWUSAGE;
-	
+
 	if(sccp_do_reload(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
@@ -1222,10 +1222,10 @@ static char *cli_show_version(struct ast_cli_entry *e, int cmd, struct ast_cli_a
 		return NULL;
 	} else if (cmd == CLI_GENERATE)
 		return NULL;
-	
+
 	if (a->argc != 3)
 		return CLI_SHOWUSAGE;
-	
+
 	if(sccp_show_version(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
@@ -1274,12 +1274,12 @@ static struct ast_cli_entry cli_entries[] = {
  * register CLI functions from asterisk
  */
 void sccp_register_cli(void) {
-	
-#ifdef ASTERISK_CONF_1_6	
+
+#ifdef ASTERISK_CONF_1_6
 	/* register all CLI functions */
 	ast_cli_register_multiple(cli_entries, sizeof(cli_entries)/ sizeof(struct ast_cli_entry));
 #else
-		
+
 
   ast_cli_register(&cli_show_channels);
   ast_cli_register(&cli_show_devices);
@@ -1294,7 +1294,7 @@ void sccp_register_cli(void) {
   ast_cli_register(&cli_do_debug);
   ast_cli_register(&cli_no_debug);
   ast_cli_register(&cli_do_fdebug);
-  ast_cli_register(&cli_no_fdebug);  
+  ast_cli_register(&cli_no_fdebug);
   ast_cli_register(&cli_system_message);
   ast_cli_register(&cli_show_globals);
   ast_cli_register(&cli_message_devices);
@@ -1308,11 +1308,11 @@ void sccp_register_cli(void) {
  * unregister CLI functions from asterisk
  */
 void sccp_unregister_cli(void) {
-	
+
 #ifdef ASTERISK_CONF_1_6
 	/* unregister CLI functions */
 	ast_cli_unregister_multiple(cli_entries, sizeof(cli_entries) / sizeof(struct ast_cli_entry));
-#else	
+#else
   ast_cli_unregister(&cli_show_channels);
   ast_cli_unregister(&cli_show_devices);
   ast_cli_unregister(&cli_show_lines);
@@ -1326,7 +1326,7 @@ void sccp_unregister_cli(void) {
   ast_cli_unregister(&cli_do_debug);
   ast_cli_unregister(&cli_no_debug);
   ast_cli_unregister(&cli_do_fdebug);
-  ast_cli_unregister(&cli_no_fdebug);    
+  ast_cli_unregister(&cli_no_fdebug);
   ast_cli_unregister(&cli_system_message);
   ast_cli_unregister(&cli_show_globals);
   ast_cli_unregister(&cli_message_devices);
