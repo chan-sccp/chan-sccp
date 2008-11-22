@@ -576,11 +576,11 @@ void sccp_hint_notify(sccp_channel_t * c, sccp_device_t * onedevice) {
 
 	if (!h)
 		return;
-	
+
 	hintList = l->hints;
 	if(!hintList)
 		return;
-	
+
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: HINT notify the state of the line %s \n", l->name);
 
@@ -1178,6 +1178,7 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					//TODO check if malloc is successfull
 					currentButton->instance = lastinstance+1;
 					lastinstance = currentButton->instance;
+					currentButton->next = NULL;
 
 					sccp_copy_string(currentButton->type, "empty", sizeof(currentButton->type));
 					ast_verbose(VERBOSE_PREFIX_3 "Added button config: '%s' \n", currentButton->type);
@@ -1196,6 +1197,7 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					//TODO check if malloc is successfull
 					currentButton->instance = lastinstance+1;
 					lastinstance = currentButton->instance;
+					currentButton->next = NULL;
 
 					sccp_copy_string(currentButton->type, "speeddial", sizeof(currentButton->type));
 
@@ -1203,9 +1205,8 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					sccp_copy_string(currentButton->button.speeddial.ext, ast_strip(buttonOption), sizeof(currentButton->button.speeddial.ext));
 					if(buttonArgs){
 						sccp_copy_string(currentButton->button.speeddial.hint, ast_strip(buttonArgs), sizeof(currentButton->button.speeddial.hint));
-// 						ast_verbose(VERBOSE_PREFIX_3 "hint: '%s' \n", currentButton->button.speeddial.hint);
 					}
-					
+
 
 				} else if (!strcasecmp(buttonType, "feature") && buttonName){
 					currentButton = malloc(sizeof(sccp_buttonconfig_t));
@@ -1220,6 +1221,7 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					//TODO check if malloc is successfull
 					currentButton->instance = lastinstance+1;
 					lastinstance = currentButton->instance;
+					currentButton->next = NULL;
 
 					sccp_copy_string(currentButton->type, "feature", sizeof(currentButton->type));
 					if(buttonOption){
@@ -1252,6 +1254,7 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					//TODO check if malloc is successfull
 					currentButton->instance = lastinstance+1;
 					lastinstance = currentButton->instance;
+					currentButton->next = NULL;
 
 					sccp_copy_string(currentButton->type, "serviceurl", sizeof(currentButton->type));
 
@@ -1259,7 +1262,6 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					sccp_copy_string(currentButton->button.serviceurl.URL, buttonOption, sizeof(currentButton->button.serviceurl.URL));
 
 
-					//ast_verbose(VERBOSE_PREFIX_3 "Added button config: '%s, buttonName: %s, buttonOption: %s' \n", currentButton->type, buttonName, buttonOption);
 					ast_verbose(VERBOSE_PREFIX_3 "Added button config: '%s, serviceName: %s, serviceURL: %s' \n", currentButton->type, currentButton->button.serviceurl.label, currentButton->button.serviceurl.URL);
 				}
  			} else if (!strcasecmp(v->name, "tzoffset")) {
@@ -1857,7 +1859,7 @@ void buildSoftkeyTemplate(struct ast_variable *astVar){
 			}
 			template->type = skinny_str2lbl(res);
 			//sccp_copy_string(template->type, res, sizeof(template->type));
-			
+
 		}
 		template = NULL;
 		variable = variable->next;
@@ -2069,7 +2071,7 @@ static int unload_module(void) {
 // 			l->hints = l->hints->next;
 // 			free(h);
 // 		}
-		while (l->hints) {	
+		while (l->hints) {
 			hintList = l->hints;
 			h = (sccp_hint_t*)hintList->data;
 			l->hints = l->hints->next;
