@@ -95,7 +95,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 		return;
 	}
 
-	d = sccp_device_find_byid(r->msg.RegisterMessage.sId.deviceName);
+	d = sccp_device_find_byid(r->msg.RegisterMessage.sId.deviceName, TRUE);
 
 	if (!d) {
 		REQ(r1, RegisterRejectMessage);
