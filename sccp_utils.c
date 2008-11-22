@@ -414,16 +414,22 @@ sccp_device_t * sccp_device_find_realtime_byname(const char * name) {
 sccp_device_t * sccp_device_find_realtime(const char * name) {
 	sccp_device_t *d=NULL;
 	struct ast_variable *v;
+	char 	deviceName[15];
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Looking for device %s in realtime. look at table: %s\n", name, GLOB(realtimedevicetable));
+	memset(deviceName, 0, sizeof(deviceName));
+	sccp_copy_string(deviceName, name, sizeof(deviceName));
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Looking for device %s in realtime. look at table: %s\n", deviceName, GLOB(realtimedevicetable));
 	v = ast_load_realtime(GLOB(realtimedevicetable), "name", name, NULL);
 
 	if (!v){
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Device %s not found\n", name);
+		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Realtime-Device %s not found\n", name);
 		return NULL;
 	}
 
-	d = build_devices(v);
+	//d = build_devices(v);
+	
+// 	
+	d = build_device(v, deviceName);
 	if(d)
 		d->realtime=1;
 
@@ -492,22 +498,28 @@ sccp_line_t * sccp_line_find_byname(const char * name) {
 sccp_line_t * sccp_line_find_realtime_byname(const char * name) {
 	sccp_line_t *l=NULL;
 	struct ast_variable *v;
+	char	lineName[64];
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Looking for line %s in realtime. Look at table: %s\n", name, GLOB(realtimelinetable));
+	memset(lineName, 0, sizeof(lineName));
+	sccp_copy_string(lineName, name, sizeof(lineName));
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Looking for line %s in realtime. Look at table: %s\n", lineName, GLOB(realtimelinetable));
 
 	v = ast_load_realtime(GLOB(realtimelinetable), "name", name, NULL);
 
 	if (!v){
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Line %s not found\n", name);
+		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Realtime-Line %s not found\n", name);
 		return NULL;
 	} else {
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Line %s found\n", name);
+		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Realtime-Line %s found\n", name);
 	}
 
-	l = build_lines(v);
-	if(l)
+	//l = build_lines(v);
+	
+	l = buildLine(v, lineName);
+	if(l){
 		l->realtime = 1;
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Line %s realtime is: %d\n", l->name, l->realtime);
+		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Line %s realtime is: %d\n", l->name, l->realtime);
+	}
 
 	ast_variables_destroy(v);
 
