@@ -891,10 +891,9 @@ sccp_line_t * buildLine(struct ast_variable *v, char *linename){
  * \note also used by realtime functionality to line device from \link ast_variable asterisk variable \endlink
  */
 sccp_line_t * build_lines(struct ast_variable *v) {
-	sccp_line_t 	*l, *gl;
+	sccp_line_t 	*l;
 	int 		amaflags = 0;
 	int 		secondary_dialtone_tone = 0;
-	char		*lineName = NULL;
 
 
 
@@ -903,41 +902,7 @@ sccp_line_t * build_lines(struct ast_variable *v) {
  	while(v) {
  			if (!strcasecmp(v->name, "line")) {
 				ast_log(LOG_WARNING, "line => lineName is not allowed anymore; check sample config\n");
-  			}
-#ifdef CS_SCCP_REALTIME
-			if (!strcasecmp(v->name, "name")) {
- 				if ( !ast_strlen_zero(v->value) ) {
-					sccp_copy_string(lineName, v->value, sizeof(v->value));
-					sccp_copy_string(l->name, ast_strip(lineName), sizeof(l->name));
-
-
- 					/* search for existing line */
-					sccp_globals_lock(lines_lock);
-					gl = GLOB(lines);
-					while(gl && strcasecmp(gl->name, v->value) != 0) {
-	 					gl = gl->next;
-	 				}
-					sccp_globals_unlock(lines_lock);
- 					if (gl && (strcasecmp(gl->name, v->value) == 0) ){
- 						ast_log(LOG_WARNING, "The line %s already exists\n", gl->name);
- 						free(l);
- 					}else {
- 						ast_verbose(VERBOSE_PREFIX_3 "Added line '%s'\n", l->name);
- 						sccp_globals_lock(lines_lock);
- 						l->next = GLOB(lines);
- 						if (l->next)
- 							l->next->prev = l;
- 						GLOB(lines) = l;
-						sccp_globals_unlock(lines_lock);
- 					}
-					free(gl);
- 				} else {
- 					ast_log(LOG_WARNING, "Wrong line param: %s => %s\n", v->name, v->value);
- 					free(l);
- 				}
- 			}
-#endif
-			  else if (!strcasecmp(v->name, "id")) {
+  			} else if (!strcasecmp(v->name, "id")) {
  				sccp_copy_string(l->id, v->value, sizeof(l->id));
 			} else if (!strcasecmp(v->name, "pin")) {
  				sccp_copy_string(l->pin, v->value, sizeof(l->pin));
@@ -1105,6 +1070,7 @@ sccp_device_t * build_device(struct ast_variable *v, char *devicename){
 
 
 	d = build_devices(v);
+	memset(d->id, 0, sizeof(d->id));
 	sccp_copy_string(d->id, devicename, sizeof(d->id));
 
 	res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
@@ -1130,8 +1096,7 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 	sccp_device_t 	*d;
 
 	char 			*splitter;
-	char 			message[256]="";							//device message
-	int			res;
+
 
 	/* for button config */
 	char 			*buttonType = NULL, *buttonName = NULL, *buttonOption=NULL, *buttonArgs=NULL;
@@ -1145,28 +1110,7 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 			sccp_log(10)(VERBOSE_PREFIX_3 "%s = %s\n", v->name, v->value);
 			if (!strcasecmp(v->name, "device")) {
 				ast_log(LOG_WARNING, "device => SEP****** is not allowed anymore; check sample config\n");
-			}
-#ifdef CS_SCCP_REALTIME
-			else if (!strcasecmp(v->name, "name")) {
-				if ( (strlen(v->value) == 15) && ((strncmp(v->value, "SEP",3) == 0) || (strncmp(v->value, "ATA",3)==0)) ) {
-					sccp_copy_string(d->id, v->value, sizeof(d->id));
-					res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
-					if (!res)
-						d->phonemessage=strdup(message);									//set message on device if we have a result
-					strcpy(message,"");
-					ast_verbose(VERBOSE_PREFIX_3 "Added device '%s' (%s)\n", d->id, d->config_type);
-					sccp_globals_lock(devices_lock);
-					d->next = GLOB(devices);
-					GLOB(devices) = d;
-					sccp_globals_unlock(devices_lock);
-				} else {
-					ast_log(LOG_WARNING, "Wrong device param: %s => %sn", v->name, v->value);
-					sccp_dev_clean(d);
-					free(d);
-				}
-			}
-#endif
-			else if (!strcasecmp(v->name, "keepalive")) {
+			} else if (!strcasecmp(v->name, "keepalive")) {
 				d->keepalive = atoi(v->value);
 			} else if (!strcasecmp(v->name, "permit") || !strcasecmp(v->name, "deny")) {
 
