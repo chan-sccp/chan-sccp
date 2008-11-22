@@ -414,10 +414,11 @@ sccp_device_t * sccp_device_find_realtime_byname(const char * name) {
 sccp_device_t * sccp_device_find_realtime(const char * name) {
 	sccp_device_t *d=NULL;
 	struct ast_variable *v;
-	char 	deviceName[15];
+	char 	deviceName[StationMaxDeviceNameSize];
 
 	memset(deviceName, 0, sizeof(deviceName));
 	sccp_copy_string(deviceName, name, sizeof(deviceName));
+
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Looking for device %s in realtime. look at table: %s\n", deviceName, GLOB(realtimedevicetable));
 	v = ast_load_realtime(GLOB(realtimedevicetable), "name", name, NULL);
 
