@@ -486,7 +486,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r) {
 		} else if (btn[i].type == SKINNY_BUTTONTYPE_MULTI) {
 			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_DISPLAY;
 		} else if (btn[i].type == SKINNY_BUTTONTYPE_UNUSED) {
-			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_UNDEFINED;
+			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_UNUSED;
 		} else
 			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = btn[i].type;
 
