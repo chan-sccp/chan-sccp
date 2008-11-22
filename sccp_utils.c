@@ -145,8 +145,9 @@ void sccp_device_addon_addnew(sccp_device_t * d, const char * addon_config_type)
 		return;
 	}
 
-	if( !((addon_type == SKINNY_DEVICETYPE_CISCO7914) &&
-		((!strcasecmp(d->config_type, "7960")) ||
+	if( !(((addon_type == SKINNY_DEVICETYPE_CISCO7914) &&
+		(!strcasecmp(d->config_type, "7940")) ||
+		  (!strcasecmp(d->config_type, "7960")) ||
 		 (!strcasecmp(d->config_type, "7961")) ||
 		 (!strcasecmp(d->config_type, "7962")) ||
 		 (!strcasecmp(d->config_type, "7965")) ||
@@ -190,18 +191,18 @@ int sccp_device_addons_taps(sccp_device_t * d) {
 	sccp_addon_t * cur = NULL;
 	int taps = 0;
 
-	if(!d->addons)
-		return 0;
-
 	if(!strcasecmp(d->config_type, "7914"))
 		return 28; // on compatibility mode it returns 28 taps for a double 7914 addon
+	
+	if(!d->addons)
+		return 0;
 
 	cur = d->addons;
 	do {
 		if(cur->type == SKINNY_DEVICETYPE_CISCO7914)
 			taps += 14;
 		if(cur->type == SKINNY_DEVICETYPE_CISCO7915 || cur->type == SKINNY_DEVICETYPE_CISCO7916)
-			taps += 20;
+			taps += 24;
 		sccp_log(22)(VERBOSE_PREFIX_3 "%s: Found (%d) taps on device addon (%d)\n", (d->id?d->id:"SCCP"), taps, cur->type);
 		cur = cur->next;
 	} while (cur);
