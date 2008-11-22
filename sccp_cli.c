@@ -72,16 +72,6 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "%s: %s request sent to the device\n", argv[2], argv[1]);
 
 	d = sccp_device_find_byid(argv[2]);
-
-	if (!d) {
-#ifdef CS_SCCP_REALTIME
-		d = sccp_device_find_realtime_byid(argv[2]);
-		if(!d)
-			ast_cli(fd, "Can't find device %s\n", argv[2]);
-#else
-		ast_cli(fd, "Can't find device %s\n", argv[2]);
-#endif	
-	}
 	if(!d)
 		return RESULT_SUCCESS;
 	
