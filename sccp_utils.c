@@ -427,18 +427,15 @@ sccp_device_t * sccp_device_find_realtime(const char * name) {
 	}
 
 	//d = build_devices(v);
-	
-// 	
+
+//
 	d = build_device(v, deviceName);
-	if(d)
-		d->realtime=1;
-
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Device %s realtime is: %d\n", d->id, d->realtime);
-
 	ast_variables_destroy(v);
-
 	if (!d)
-		return NULL;
+			return NULL;
+
+	d->realtime=1;
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Device %s realtime is: %d\n", d->id, d->realtime);
 
 	return d;
 }
@@ -514,17 +511,14 @@ sccp_line_t * sccp_line_find_realtime_byname(const char * name) {
 	}
 
 	//l = build_lines(v);
-	
+
 	l = buildLine(v, lineName);
-	if(l){
-		l->realtime = 1;
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Line %s realtime is: %d\n", l->name, l->realtime);
-	}
-
 	ast_variables_destroy(v);
-
 	if (!l)
-		return NULL;
+			return NULL;
+	l->realtime = 1;
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Line %s realtime is: %d\n", l->name, l->realtime);
+
 
 	return l;
 }
