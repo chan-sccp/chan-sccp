@@ -1157,6 +1157,7 @@ sccp_device_t *build_devices(struct ast_variable *v) {
 					//TODO check if malloc is successfull
 					currentButton->instance = lastinstance+1;
 					lastinstance = currentButton->instance;
+					currentButton->next = NULL;
 
 
 					sccp_copy_string(currentButton->type, "line", sizeof(currentButton->type));
