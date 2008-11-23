@@ -416,7 +416,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 			
 		} else if(!strcasecmp(buttonconfig->type, "empty")){
 			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = empty\n", d->id, buttonconfig->instance);
-			btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
+			btn[i].type = SKINNY_BUTTONTYPE_UNDEFINED;
 				
 		} else if(!strcasecmp(buttonconfig->type, "serviceurl")) {
 			btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
@@ -485,12 +485,12 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r) {
 			r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;	
 		} else if (btn[i].type == SKINNY_BUTTONTYPE_MULTI) {
 			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_DISPLAY;
-		} else if (btn[i].type == SKINNY_BUTTONTYPE_UNUSED) {
+		} else if (btn[i].type == SKINNY_BUTTONTYPE_UNDEFINED) {
 			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_UNDEFINED;
 		} else
 			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = btn[i].type;
 
-		if (1|| r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition != SKINNY_BUTTONTYPE_UNDEFINED) {
+		if (r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition != SKINNY_BUTTONTYPE_UNUSED) {
 			r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Button Template [%.2d] = %s (%d), instance %d\n", d->id, i+1, skinny_buttontype2str(r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition), r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition,r1->msg.ButtonTemplateMessage.definition[i].instanceNumber);
 		}
