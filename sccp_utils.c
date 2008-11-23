@@ -2136,3 +2136,56 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
 
 	return -1;
 }
+
+void sccp_list_insert(sccp_list_t **list, void *new, listPosition pos){
+	sccp_list_t 	*lst_iter = *list, *newElement = NULL;
+
+
+	if(!lst_iter){
+		lst_iter = malloc(sizeof(sccp_list_t));
+		lst_iter->next = NULL;
+		lst_iter->prev = NULL;
+		lst_iter->data = new;
+		*list = lst_iter;
+		return;
+	}
+
+	if(pos == LAST){
+		lst_iter = *list;
+		while (lst_iter->next){
+			lst_iter = lst_iter->next;
+		}
+
+		newElement = malloc(sizeof(sccp_list_t));
+		newElement->data = new;
+		newElement->prev = lst_iter;
+		newElement->next = NULL;
+
+		lst_iter->next = newElement;
+
+	}else if(pos == FIRST){
+		newElement  = malloc(sizeof(sccp_list_t));
+		newElement->data = new;
+		newElement->prev = NULL;
+		lst_iter->prev = newElement;
+		newElement->next = lst_iter;
+		*list = newElement;
+	}
+}
+
+void sccp_list_remove(sccp_list_t **list, void *old){
+	sccp_list_t 	*listEntry = NULL;
+
+	listEntry = *list;
+	while(listEntry){
+		if(listEntry->data == old){
+			if(listEntry->prev)
+				listEntry->prev->next = listEntry->next;
+
+			if(listEntry->next)
+				listEntry->next->prev = listEntry->prev;
+			free(listEntry);
+		}
+		listEntry = listEntry->next;
+	}
+}

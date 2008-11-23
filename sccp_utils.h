@@ -65,3 +65,5 @@ unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arr
 #endif
 
 int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsigned int softkey);
+void sccp_list_insert(sccp_list_t **list, void *new, listPosition pos);
+void sccp_list_remove(sccp_list_t **list, void *old);

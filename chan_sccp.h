@@ -171,6 +171,7 @@ typedef struct sccp_softkeyTemplate	sccp_softkeyTemplate_t;
 typedef struct sccp_softkeyTemplateSet	sccp_softkeyTemplateSet_t;
 typedef struct sccp_list		sccp_list_t;
 typedef enum { FALSE, TRUE } boolean;
+typedef enum { FIRST, LAST } listPosition;
 
 typedef void sk_func (sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 
@@ -334,39 +335,19 @@ struct sccp_speed {
 #endif
 };
 
-/* This defines a serviceURL button */
-
-//struct sccp_serviceURL {
-//	uint8_t config_instance;									/*!< The instance in the sccp.conf */
-//	uint8_t instance;											/*!< The instance on the current device */
-//	char label[StationMaxNameSize];								/*!< The label of the serviceURL button */
-//	char URL[StationMaxServiceURLSize];							/*!< The number to dial when it's hit */
-//	sccp_serviceURL_t * next;									/*!< Pointer to next serviceURL */
-//#ifdef CS_DYNAMIC_CONFIG
-//	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-//	sccp_serviceURL_t		pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
-//#endif
-//};
-
-
-struct sccp_softkeyTemplate{
-	uint8_t					type;
-	sccp_softkeyTemplate_t 	*next;
-	sccp_softkeyTemplate_t  *prev;
-};
 
 struct sccp_softkeyTemplateSet{
-	sccp_softkeyTemplate_t	*onhook;
-	sccp_softkeyTemplate_t	*connected;
-	sccp_softkeyTemplate_t	*onhold;
-	sccp_softkeyTemplate_t	*ringin;
-	sccp_softkeyTemplate_t	*offhook;
-	sccp_softkeyTemplate_t	*conntrans;
-	sccp_softkeyTemplate_t	*digitsfoll;
-	sccp_softkeyTemplate_t	*connconf;
-	sccp_softkeyTemplate_t	*ringout;
-	sccp_softkeyTemplate_t	*offhookfeat;
-	sccp_softkeyTemplate_t	*onhint;
+	sccp_list_t	*onhook;
+	sccp_list_t	*connected;
+	sccp_list_t	*onhold;
+	sccp_list_t	*ringin;
+	sccp_list_t	*offhook;
+	sccp_list_t	*conntrans;
+	sccp_list_t	*digitsfoll;
+	sccp_list_t	*connconf;
+	sccp_list_t	*ringout;
+	sccp_list_t	*offhookfeat;
+	sccp_list_t	*onhint;
 };
 
 struct sccp_device {
