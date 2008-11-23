@@ -41,7 +41,7 @@
 #include "sccp_socket.h"
 #include "sccp_pbx.h"
 #include "sccp_indicate.h"
-#ifdef SCCPRestartDevice
+#ifdef CS_SCCP_MANAGER
 #include "sccp_management.h"
 #endif
 #include <ctype.h>
@@ -2020,7 +2020,7 @@ static int load_module(void) {
 	}
 
 	sccp_register_cli();
-#ifdef SCCPRestartDevice
+#ifdef CS_SCCP_MANAGER
 	sccp_register_management();
 #endif
 
@@ -2049,7 +2049,7 @@ static int unload_module(void) {
 	ast_unregister_application("SetMessage");
 	ast_unregister_application("SetCalledParty");
 
-#ifdef SCCPRestartDevice
+#ifdef CS_SCCP_MANAGER
 	sccp_unregister_management();
 #endif
 	sccp_unregister_cli();
