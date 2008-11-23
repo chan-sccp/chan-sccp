@@ -1207,7 +1207,7 @@ static const uint8_t skSet_Onhook [] = {
 //	SKINNY_LBL_CFWDNOANSWER,
 // #ifdef CS_SCCP_PICKUP	
 //	SKINNY_LBL_PICKUP,
-//	SKINNY_LBL_GPICKUP,
+	SKINNY_LBL_GPICKUP,
 // #endif	
 	SKINNY_LBL_DND,
 };
@@ -1245,7 +1245,7 @@ static const uint8_t skSet_Onhold [] = {
 static const uint8_t skSet_Ringin [] = {
 	SKINNY_LBL_ANSWER,
 	SKINNY_LBL_ENDCALL,
-//	SKINNY_LBL_TRNSFVM, 
+	SKINNY_LBL_TRNSFVM, 
 	SKINNY_LBL_IDIVERT,
 //	SKINNY_LBL_TRANSFER,
 //	SKINNY_LBL_DIRTRFR
@@ -1259,7 +1259,7 @@ static const uint8_t skSet_Offhook [] = {
 	SKINNY_LBL_CFWDBUSY,
 //	SKINNY_LBL_CFWDNOANSWER,
 #ifdef CS_SCCP_PICKUP
-	SKINNY_LBL_PICKUP,
+//	SKINNY_LBL_PICKUP,
 	SKINNY_LBL_GPICKUP,
 #endif	
 	SKINNY_LBL_MEETME,
@@ -1313,8 +1313,8 @@ static const uint8_t skSet_Offhookfeat [] = {
 
 // in use hint keyset
 static const uint8_t skSet_InUseHint [] = {
-//	SKINNY_LBL_NEWCALL,
-//	SKINNY_LBL_ENDCALL,
+	SKINNY_LBL_NEWCALL,
+	SKINNY_LBL_ENDCALL,
 	SKINNY_LBL_PICKUP,
 	SKINNY_LBL_BARGE,
 };
