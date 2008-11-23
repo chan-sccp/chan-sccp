@@ -41,6 +41,7 @@
 #include "sccp_socket.h"
 #include "sccp_pbx.h"
 #include "sccp_indicate.h"
+//#include "sccp_management.h"
 
 #include <ctype.h>
 #include <unistd.h>
@@ -1801,75 +1802,62 @@ static int reload_config(void) {
 * \todo save in global variables, an implement request
 */
 void buildSoftkeyTemplate(struct ast_variable *astVar){
-	sccp_softkeyTemplate_t		*template =NULL;
-	sccp_softkeyTemplateSet_t	*templateSet = NULL;
-	struct ast_variable 		*variable;
-	char 				field[256];
-	char 				*splitter;
-
-
-	ast_verbose(VERBOSE_PREFIX_3 "build softkeys\n");
-	templateSet = malloc(sizeof(sccp_softkeyTemplateSet_t));
-
-
-	variable = astVar;
-	while(variable){
-		template = malloc(sizeof(sccp_softkeyTemplate_t));
-
-
-		if (!strcasecmp(variable->name, "onhook")) {
-			templateSet->onhook = template;
-		}else if (!strcasecmp(variable->name, "connected")) {
-			templateSet->connected = template;
-		}else if (!strcasecmp(variable->name, "onhold")) {
-			templateSet->onhold = template;
-		}else if (!strcasecmp(variable->name, "ringin")) {
-			templateSet->ringin = template;
-		}else if (!strcasecmp(variable->name, "offhook")) {
-			templateSet->offhook = template;
-		}else if (!strcasecmp(variable->name, "conntrans")) {
-			templateSet->conntrans = template;
-		}else if (!strcasecmp(variable->name, "digitsfoll")) {
-			templateSet->digitsfoll = template;
-		}else if (!strcasecmp(variable->name, "ringout")) {
-			templateSet->ringout = template;
-		}else if (!strcasecmp(variable->name, "offhookfeat")) {
-			templateSet->offhookfeat = template;
-		}else if (!strcasecmp(variable->name, "onhint")) {
-			templateSet->onhint = template;
-		}else{
-			variable = variable->next;
-			free(template);
-			continue;
-		}
-
-
-		sccp_copy_string(field, variable->value, sizeof(field));
-		ast_verbose(VERBOSE_PREFIX_3 "%s\n", variable->name);
-		splitter = field;
-		char* res;
-		while( (res=strsep(&splitter,",")) != NULL ) {
-			ast_verbose(VERBOSE_PREFIX_3 "     %s \n", res);
-
-			if(template->prev){
-				template->next = malloc(sizeof(sccp_softkeyTemplate_t));
-				template->next->prev = template;
-				template->next->next = NULL;
-				template = template->next;
-			}
-			template->type = skinny_str2lbl(res);
-			//sccp_copy_string(template->type, res, sizeof(template->type));
-
-		}
-		template = NULL;
-		variable = variable->next;
-	}
-	template = templateSet->connected;
-	while(template){
-		ast_verbose(VERBOSE_PREFIX_3 "value of connected: %s\n", skinny_lbl2str(template->type));
-		template = template->next;
-	}
-	GLOB(softkeyTemplateSet) = templateSet;
+//	sccp_list_t					*template =NULL;
+//	sccp_softkeyTemplateSet_t	*templateSet = NULL;
+//	struct ast_variable 		*variable;
+//	char 				field[256];
+//	char 				*splitter;
+//
+//
+//	ast_verbose(VERBOSE_PREFIX_3 "build softkeys\n");
+//	templateSet = malloc(sizeof(sccp_softkeyTemplateSet_t));
+//
+//
+//	variable = astVar;
+//	while(variable){
+//
+//		sccp_copy_string(field, variable->value, sizeof(field));
+//		ast_verbose(VERBOSE_PREFIX_3 "%s\n", variable->name);
+//		splitter = field;
+//		char* res;
+//		while( (res=strsep(&splitter,",")) != NULL ) {
+//			ast_verbose(VERBOSE_PREFIX_3 "     %s \n", res);
+//
+//			if (!strcasecmp(variable->name, "onhook")) {
+//					sccp_list_insert(&templateSet->onhook, skinny_str2lbl(res), LAST);
+//				}else if (!strcasecmp(variable->name, "connected")) {
+//					sccp_list_insert(&templateSet->connected, skinny_str2lbl(res), LAST);
+//				}else if (!strcasecmp(variable->name, "onhold")) {
+//					sccp_list_insert(&templateSet->onhold, skinny_str2lbl(res), LAST);
+//				}else if (!strcasecmp(variable->name, "ringin")) {
+//					sccp_list_insert(&templateSet->ringin, skinny_str2lbl(res), LAST);
+//				}else if (!strcasecmp(variable->name, "offhook")) {
+//					sccp_list_insert(&templateSet->offhook, skinny_str2lbl(res), LAST);
+//				}else if (!strcasecmp(variable->name, "conntrans")) {
+//					sccp_list_insert(&templateSet->conntrans, skinny_str2lbl(res), LAST);
+//				}else if (!strcasecmp(variable->name, "digitsfoll")) {
+//					sccp_list_insert(&templateSet->digitsfoll, skinny_str2lbl(res), LAST);
+//				}else if (!strcasecmp(variable->name, "ringout")) {
+//					sccp_list_insert(&templateSet->ringout, skinny_str2lbl(res), LAST);
+//				}else if (!strcasecmp(variable->name, "offhookfeat")) {
+//					sccp_list_insert(&templateSet->offhookfeat, skinny_str2lbl(res), LAST);
+//				}else if (!strcasecmp(variable->name, "onhint")) {
+//					sccp_list_insert(&templateSet->onhint, skinny_str2lbl(res), LAST);
+//				}else{
+//					variable = variable->next;
+//					free(template);
+//					continue;
+//				}
+//		}
+//		template = NULL;
+//		variable = variable->next;
+//	}
+//	template = templateSet->onhook;
+//	while(template != NULL){
+//		ast_verbose(VERBOSE_PREFIX_3 "value of connected: %s\n", skinny_lbl2str( (uint8_t)template->data ));
+//		template = template->next;
+//	}
+//	GLOB(softkeyTemplateSet) = templateSet;
 	return;
 }
 
@@ -1959,7 +1947,7 @@ static int load_module(void) {
 	/* make globals */
 	sccp_globals = malloc(sizeof(struct sccp_global_vars));
 	if (!sccp_globals) {
-		ast_log(LOG_ERROR, "No free mamory for SCCP global vars. SCCP channel type disabled\n");
+		ast_log(LOG_ERROR, "No free memory for SCCP global variables SCCP channel type disabled\n");
 #ifdef ASTERISK_CONF_1_2
 		return -1;
 #else
@@ -2031,6 +2019,10 @@ static int load_module(void) {
 	}
 
 	sccp_register_cli();
+	//sccp_register_management();
+
+
+
 	ast_register_application("SetCalledParty", sccp_setcalledparty_exec, "Sets the name of the called party", sccp_setcalledparty_descrip);
 	ast_register_application("SetMessage", sccp_setmessage_exec, "Sets a message on the calling device", sccp_setmessage_descrip);
 	return 0;
@@ -2054,6 +2046,8 @@ static int unload_module(void) {
 #endif
 	ast_unregister_application("SetMessage");
 	ast_unregister_application("SetCalledParty");
+
+	//sccp_unregister_management();
 	sccp_unregister_cli();
 
 	sccp_globals_lock(channels_lock);
