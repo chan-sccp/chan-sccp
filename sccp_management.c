@@ -11,6 +11,7 @@
 #include "sccp_utils.h"
 #include "sccp_lock.h"
 #include "sccp_device.h"
+#include "asterisk/a"
 
 
 
@@ -104,7 +105,7 @@ static int sccp_manager_restart_device(struct mansession *s, const struct messag
 	r->msg.Reset.lel_resetType = htolel(SKINNY_DEVICE_RESET);
 	sccp_dev_send(d, r);
 
-	astman_start_ack(s, m);
+	//astman_start_ack(s, m);
 	astman_append(s, "Send reset to device %s\r\n", fn);
 
 	astman_append(s, "\r\n");
