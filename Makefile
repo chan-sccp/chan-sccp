@@ -70,6 +70,7 @@ FLS+=sccp_socket
 FLS+=sccp_indicate
 FLS+=sccp_features
 FLS+=sccp_adv_features
+FLS+=sccp_management
 
 CFLAGS+=$(CFLAG) -I$(ASTERISK_HEADER_DIR)
 HEADERS=$(shell for i in $(FLS) ; do echo $$i.h ; done)
