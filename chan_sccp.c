@@ -41,8 +41,9 @@
 #include "sccp_socket.h"
 #include "sccp_pbx.h"
 #include "sccp_indicate.h"
-//#include "sccp_management.h"
-
+#ifdef SCCPRestartDevice
+#include "sccp_management.h"
+#endif
 #include <ctype.h>
 #include <unistd.h>
 #include <asterisk/pbx.h>
@@ -2019,8 +2020,9 @@ static int load_module(void) {
 	}
 
 	sccp_register_cli();
-	//sccp_register_management();
-
+#ifdef SCCPRestartDevice
+	sccp_register_management();
+#endif
 
 
 	ast_register_application("SetCalledParty", sccp_setcalledparty_exec, "Sets the name of the called party", sccp_setcalledparty_descrip);
@@ -2047,7 +2049,9 @@ static int unload_module(void) {
 	ast_unregister_application("SetMessage");
 	ast_unregister_application("SetCalledParty");
 
-	//sccp_unregister_management();
+#ifdef SCCPRestartDevice
+	sccp_unregister_management();
+#endif
 	sccp_unregister_cli();
 
 	sccp_globals_lock(channels_lock);
