@@ -1350,6 +1350,11 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
  */
 void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 {
+	// I hope this should fix 100% CPU problems on 7920/21 phones while sending RTP
+	if(c && c->owner) {
+		ast_queue_frame(c->owner, f);
+	}
+/*	
 	for(;;) {
 		if (c && c->owner && c->owner->_state == AST_STATE_UP) {
 			if (!sccp_ast_channel_trylock(c->owner)) {
@@ -1357,7 +1362,7 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 				sccp_ast_channel_unlock(c->owner);
 				break;
 			} else {
-				/* strange deadlocks happens here :D -FS */
+				// strange deadlocks happens here :D -FS
 				// sccp_channel_unlock(c);
 				usleep(1);
 				// sccp_channel_lock(c);
@@ -1365,6 +1370,7 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 		} else
 			break;
 	}
+*/
 }
 
 /*! \brief Queue a control frame
