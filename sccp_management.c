@@ -13,31 +13,28 @@
 #include "sccp_device.h"
 #include "asterisk/a"
 
-
-
-
 /**
  * Register manager commands
  */
 void sccp_register_management(void){
 	/* Register manager commands */
 	ast_manager_register2(
-			"SccpDevices",
+			"SCCPListDevices",
 			EVENT_FLAG_SYSTEM | EVENT_FLAG_REPORTING,
 			sccp_manager_show_devices,
 			"List SCCP devices (text format)",
 			management_show_devices_desc);
 	ast_manager_register2(
-				"SCCPRestartDevice",
-				EVENT_FLAG_SYSTEM | EVENT_FLAG_REPORTING,
-				sccp_manager_restart_device,
-				"Restart a given device",
-				management_restart_devices_desc);
+			"SCCPDeviceRestart",
+			EVENT_FLAG_SYSTEM | EVENT_FLAG_REPORTING,
+			sccp_manager_restart_device,
+			"Restart a given device",
+			management_restart_devices_desc);
 }
 
 void sccp_unregister_management(void){
-	ast_manager_unregister("SccpDevices");
-	ast_manager_unregister("SCCPRestartDevice");
+	ast_manager_unregister("SCCPListDevices");
+	ast_manager_unregister("SCCPDeviceRestart");
 }
 
 static int sccp_manager_show_devices(struct mansession *s, const struct message *m){
@@ -55,7 +52,7 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 
 	/* Send final confirmation */
 	astman_append(s,
-			"Event: DevicelistComplete\r\n"
+			"Event: SCCPListDevicesComplete\r\n"
 			"EventList: Complete\r\n"
 			"ListItems: %d\r\n"
 			"%s"
@@ -73,13 +70,16 @@ static int sccp_manager_restart_device(struct mansession *s, const struct messag
 
 	ast_log(LOG_WARNING, "Attempt to get device %s\n",fn);
 	if (ast_strlen_zero(fn)) {
-		astman_send_error(s, m, "Devicename not specified");
+		astman_send_error(s, m, "Please specify the name of device to be reset");
 		return 0;
 	}
 
+	/*	This is ok but Manager apps should be just wrappers of other
+		routines not implement their ones -FS 25/11/2008 
+	 */
 	d = sccp_device_find_byid(fn, FALSE);
-	if(!d){
-		astman_send_error(s, m, "Devicename not found");
+	if (!d) {
+		astman_send_error(s, m, "Device not found");
 		return 0;
 	}
 	sccp_device_lock(d);
@@ -107,7 +107,6 @@ static int sccp_manager_restart_device(struct mansession *s, const struct messag
 
 	//astman_start_ack(s, m);
 	astman_append(s, "Send reset to device %s\r\n", fn);
-
 	astman_append(s, "\r\n");
 
 	return 0;
