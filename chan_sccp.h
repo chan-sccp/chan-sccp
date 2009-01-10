@@ -452,7 +452,7 @@ struct sccp_device {
 	pthread_t        		postregistration_thread;
 	struct ast_variable 		*variables;					/*!< Channel variables to set */
 	char 				*phonemessage;					/*!< message to display on device*/
-    	sccp_addon_t			*addons;
+    sccp_addon_t			*addons;
 	sccp_buttonconfig_t		*buttonconfig;
 	struct sccp_selected_channel    *selectedChannels;
 #ifdef CS_DYNAMIC_CONFIG

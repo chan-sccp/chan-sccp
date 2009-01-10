@@ -684,22 +684,6 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 			k = sccp_dev_speed_find_byindex(d, instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
 			sccp_handle_speeddial(d, k);
 
-// 			buttonconfig = s->device->buttonconfig;
-// 			while (buttonconfig) {
-// 				sccp_log(99)(VERBOSE_PREFIX_3 "%s: Button %d is %s\n", s->device->id, buttonconfig->instance, buttonconfig->type);
-// 				if(buttonconfig->instance == instance && !strcasecmp(buttonconfig->type, "speeddial")){
-// 					k = malloc(sizeof(sccp_speed_t));
-// 					k->instance = instance;
-// 					k->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-// 					sccp_copy_string(k->name, buttonconfig->button.speeddial.label, sizeof(k->name));
-// 					sccp_copy_string(k->ext, buttonconfig->button.speeddial.ext, sizeof(k->ext));
-//
-// 					sccp_handle_speeddial(d, k);
-// 					free(k);
-// 					break;
-// 				}
-// 				buttonconfig = buttonconfig->next;
-// 			}
 			if(!k){
 				sccp_log(3)(VERBOSE_PREFIX_3 "%s: speeddial %d not assigned\n", DEV_ID_LOG(s->device), instance);
 			}else{
