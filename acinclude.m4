@@ -221,11 +221,11 @@ AC_DEFUN([CS_GET_VERSION], [
     SCCP_REVISION="`hg parents|grep changeset|sed 's/\(.*:\)\(.*\)\(:.*\)/\2/g'|sed 's/\ //g'`"
   elif test -d .svn;then
     PARTS=`LANG=C svn info | grep URL | awk '{print $2;}'`
-    5TH_PART="`echo $PARTS|awk -F/ '{print $5}'`"
-    if test "${5TH_PART}" = "branches"; then
-      6TH_PART="`echo $PARTS|awk -F/ '{print $6}'`"
-      SCCP_VERSION="${6TH_PART}"
-      SCCP_BRANCH="${6TH_PART}"
+    FOURTH_PART="`echo $PARTS|awk -F/ '{print $6}'`"
+    if test "${FOURTH_PART}" = "branches"; then
+      FIFTH_PART="`echo $PARTS|awk -F/ '{print $7}'`"
+      SCCP_VERSION="${FIFTH_PART}"
+      SCCP_BRANCH="${FIFTH_PART}"
     else
       SCCP_VERSION="TRUNK"
       SCCP_BRANCH="TRUNK"
