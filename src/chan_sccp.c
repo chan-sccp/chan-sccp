@@ -59,9 +59,6 @@
 #include <asterisk/channel.h>
 
 #ifndef ASTERISK_CONF_1_2
-void *sccp_create_hotline(void);
-void sccp_createTemplateDevice(void);
-void sccp_createTemplateLine(void);
 
 
 /*!
