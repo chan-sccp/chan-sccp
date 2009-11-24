@@ -4,6 +4,8 @@
 void sccp_dump_packet(unsigned char * messagebuffer, int len);
 
 void sccp_permithost_addnew(sccp_device_t * d, const char * config_string);
+void sccp_serviceURL_addnew(sccp_device_t * d, const char * config_string, uint8_t index);
+void sccp_speeddial_addnew(sccp_device_t * d, const char * speed_config_string, uint8_t index);
 void sccp_addon_addnew(sccp_device_t * d, const char * addon_config_type);
 int sccp_addons_taps(sccp_device_t * d);
 void sccp_addons_clear(sccp_device_t * d);
@@ -73,13 +75,9 @@ char *ast_strip(char *s);
 unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arraylen);
 #endif
 
-
-void sccp_utils_updateCodecCompatibility(sccp_channel_t * channel);
-
 #endif
 
 int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsigned int softkey);
 sccp_device_t * sccp_device_find_byipaddress(unsigned long s_addr);
 enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state);
 sccp_feature_type_t sccp_featureStr2featureID(char *str);
-

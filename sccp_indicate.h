@@ -21,7 +21,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 
 const char * sccp_indicate2str(uint8_t state);
 const char * sccp_callstate2str(uint8_t state);
-void __sccp_indicate_remote_device(sccp_device_t *device, const sccp_channel_t * c, uint8_t state, uint8_t debug, char * file, int line, const char * pretty_function);
+void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, uint8_t state, uint8_t debug, char * file, int line, const char * pretty_function);
 
 
 #ifdef CS_DEBUG_INDICATIONS

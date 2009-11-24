@@ -7,6 +7,7 @@
 #include "config.h"
 #include "sccp_hint.h"
 #include "sccp_event.h"
+#include "chan_sccp.h"
 #include "sccp_utils.h"
 
 #include "sccp_device.h"
@@ -25,7 +26,7 @@ sccp_hint_list_t *sccp_hint_create(char *hint_context, char *hint_exten);
 void sccp_hint_subscribeHint(const sccp_device_t *device, const char *hintStr, uint8_t instance);
 void sccp_hint_unSubscribeHint(const sccp_device_t *device, const char *hintStr, uint8_t instance);
 
-void *sccp_hint_eventListener(sccp_event_t *event);
+void sccp_hint_eventListener(const sccp_event_t **event);
 void sccp_hint_deviceRegistered(const sccp_device_t *device);
 void sccp_hint_deviceUnRegistered(const sccp_device_t *device);
 
@@ -67,17 +68,23 @@ void sccp_hint_module_stop(){
 }
 
 
-void *sccp_hint_eventListener(sccp_event_t *event){
-	const sccp_event_t *e = event;
+void sccp_hint_eventListener(const sccp_event_t **event){
+	const sccp_event_t *e = *event;
 	sccp_device_t *device;
 
 	if(!e)
-		return NULL;
+		return;
 
 	switch(e->type){
 	case SCCP_EVENT_DEVICEREGISTERED:
 		device = e->event.deviceRegistered.device;
 		
+		if(!device)
+		{
+			ast_log(LOG_ERROR, "Error posting deviceRegistered event (null device)\n");
+			return;
+		}
+
 		sccp_device_lock(device);
 		sccp_hint_deviceRegistered(device);
 		sccp_device_unlock(device);
@@ -86,6 +93,12 @@ void *sccp_hint_eventListener(sccp_event_t *event){
 
 	case SCCP_EVENT_DEVICEUNREGISTERED:
 		device = e->event.deviceRegistered.device;
+		
+		if(!device)
+		{
+			ast_log(LOG_ERROR, "Error posting deviceUnregistered event (null device)\n");
+			return;
+		}
 		
 		sccp_device_lock(device);
 		sccp_hint_deviceUnRegistered(device);
@@ -98,8 +111,6 @@ void *sccp_hint_eventListener(sccp_event_t *event){
 	default:
 		break;
 	}
-	
-	return NULL;
 }
 
 
@@ -422,12 +433,9 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 
 	if(channel){
 		hint->callInfo.calltype = channel->calltype;
-		//hint->currentState = channel->state;
-		hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
+		hint->currentState = channel->state;
 		sccp_linedevices_t *lineDevice = SCCP_LIST_FIRST(&line->devices);
 		sccp_device_t *device = NULL;
-		
-		
 		if(lineDevice)
 			device = lineDevice->device;
 

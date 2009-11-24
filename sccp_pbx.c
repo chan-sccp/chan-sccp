@@ -122,6 +122,8 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
 	}
+//	d = l->device;
+//	s = d->session;
 
 	if (!l || !hasSession) {
 		ast_log(LOG_WARNING, "SCCP: weird error. The channel %d has no line or device or session\n", (c ? c->callid : 0) );
@@ -143,7 +145,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 				if (strcasecmp(ringermode, "urgent") == 0)
 					c->ringermode = SKINNY_STATION_URGENTRING;
 			} else {
-				sccp_mutex_unlock(&l->lock);
+				sccp_mutex_unlock(&d->lock);
 				ast_setstate(ast, AST_STATE_BUSY);
 				ast_queue_control(ast, AST_CONTROL_BUSY);
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND for line \"%s\" is on. Call %s rejected\n", d->id, l->name, ast->name);
@@ -165,7 +167,6 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	sccp_mutex_lock(&l->lock);
 	if ( l->channelCount > l->incominglimit ) { /* >= just to be sure :-) */
 		sccp_log(1)(VERBOSE_PREFIX_3 "Incoming calls limit (%d) reached on SCCP/%s... sending busy\n", l->incominglimit, l->name);
-		
 		sccp_mutex_unlock(&l->lock);
 		ast_setstate(ast, AST_STATE_BUSY);
 		ast_queue_control(ast, AST_CONTROL_BUSY);
@@ -462,11 +463,6 @@ void sccp_pbx_needcheckringback(sccp_device_t * d) {
 	}
 }
 
-
-/**
-*
-* \note we have no bridged channel at this point
-*/
 static int sccp_pbx_answer(struct ast_channel *ast) {
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
 
@@ -484,21 +480,7 @@ static int sccp_pbx_answer(struct ast_channel *ast) {
 	}
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Outgoing call has been answered %s on %s@%s-%08x\n", ast->name, c->line->name, c->device->id, c->callid);
-	
-	/* update navive format for current channel */
 	ast->nativeformats = c->device ? c->device->capability : GLOB(global_capability);
-	
-	//FIXME best codec choose
-	sccp_utils_updateCodecCompatibility(c);
-	
-	/*
-	c->format = AST_FORMAT_ULAW;
-	ast->nativeformats = c->format; 
-	ast->rawreadformat = c->device->capability;
-	ast->rawwriteformat = c->device->capability;
-	
-	ast_set_read_format(ast, c->format);
-	ast_set_write_format(ast, c->format);*/
 	/* This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
 	   as I have forgotten what my actual motivation was for writing this strange code. (-DD) */
 
@@ -506,7 +488,7 @@ static int sccp_pbx_answer(struct ast_channel *ast) {
 	sccp_channel_send_callinfo(c->device,c);
 	sccp_indicate_lock(c->device, c, SCCP_CHANNELSTATE_PROCEED);
 	sccp_channel_send_callinfo(c->device,c);
-	
+
 	sccp_indicate_lock(c->device, c, SCCP_CHANNELSTATE_CONNECTED);
 	return 0;
 }
@@ -593,23 +575,7 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 						ast->readformat,
 						ast_getformatname_multiple(s3, sizeof(s3) - 1, ast->writeformat),
 						ast->writeformat);
-
-						
-					//we can switch codec
-					if( (frame->subclass & c->device->capability) ){
-						//TODO check if this makes sense
-						c->format = frame->subclass;
-						ast->nativeformats = c->format;
-						ast->readformat = c->format;
-						ast->writeformat = c->format;
-						ast_set_read_format(ast, ast->readformat);
-						ast_set_write_format(ast, ast->writeformat);
-						
-						sccp_channel_closereceivechannel(c);
-						usleep(100);
-						sccp_channel_openreceivechannel(c);
-					}else
-						return -1;
+					return -1;
 				}
 				if (c->rtp)
 					res = ast_rtp_write(c->rtp, frame);
@@ -709,7 +675,8 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	switch(ind) {
 
 	case AST_CONTROL_RINGING:
-		if(SKINNY_CALLTYPE_OUTBOUND == c->calltype){
+		if(SKINNY_CALLTYPE_OUTBOUND == c->calltype)
+		{
 			// Allow signalling of RINGOUT only on outbound calls.
 			// Otherwise, there are some issues with late arriving ringing
 			// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
@@ -731,11 +698,11 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
     case AST_CONTROL_SRCUPDATE:
         /* Source media has changed. */
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
-		sccp_utils_updateCodecCompatibility(c);
 #ifdef CS_AST_RTP_NEW_SOURCE
-		ast_rtp_new_source(c->rtp);
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
-		
+        if(c->rtp) {
+			ast_rtp_new_source(c->rtp);
+			sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
+		}
 #endif
         break;
 #endif
@@ -789,9 +756,6 @@ static void sccp_pbx_update_connectedline(sccp_channel_t *channel, const void *d
 
 static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newchan) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: we gote a fixup request\n");
-	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: oldchan: %s\n", oldchan->name);
-	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: newchan: %s\n", newchan->name);
-	
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(newchan);
 	if (!c) {
 		ast_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", oldchan->name, oldchan, newchan->name, newchan);
@@ -804,10 +768,7 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 		return -1;
 	}
 	c->owner = newchan;
-	
 	sccp_mutex_unlock(&c->lock);
-	
-	
 	return 0;
 }
 
@@ -991,9 +952,8 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	// tmp->nativeformats = (d->capability ? d->capability : GLOB(global_capability));
 	//tmp->nativeformats = ast_codec_choose(&d->codecs, (d->capability ? d->capability : GLOB(global_capability)), 1);
 	//tmp->nativeformats = (l->capability ? l->capability : GLOB(global_capability));
-	//tmp->nativeformats = ast_codec_choose(&c->codecs, (l->capability ? l->capability : GLOB(global_capability)), 1);
-	tmp->nativeformats = GLOB(global_capability);
-	
+	tmp->nativeformats = ast_codec_choose(&c->codecs, (l->capability ? l->capability : GLOB(global_capability)), 1);
+
 
 	if(!tmp->nativeformats)	{
 		ast_log(LOG_ERROR, "%s: No audio format to offer. Cancelling call on line %s\n", l->id, l->name);

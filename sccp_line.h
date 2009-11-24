@@ -3,7 +3,7 @@
 
 
 sccp_line_t * sccp_line_create(void);
-sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l);
+sccp_line_t *sccp_line_applayDefaults(sccp_line_t *l);
 void sccp_line_kill(sccp_line_t * l);
 void sccp_line_delete_nolock(sccp_line_t * l);
 void sccp_line_cfwd(sccp_line_t * l, uint8_t type, char * number);

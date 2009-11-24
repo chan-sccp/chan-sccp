@@ -6,7 +6,7 @@
 sccp_channel_t * sccp_channel_allocate(sccp_line_t * l, sccp_device_t *device);
 sccp_channel_t * sccp_channel_get_active(sccp_device_t * d);
 void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * c);
-void sccp_channel_send_callinfo(const sccp_device_t *device, const sccp_channel_t * c);
+void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t * c);
 void sccp_channel_send_dialednumber(sccp_channel_t * c);
 void sccp_channel_set_callstate(sccp_device_t * d, sccp_channel_t * c, uint8_t state);
 void sccp_channel_set_callingparty(sccp_channel_t * c, char *name, char *number);

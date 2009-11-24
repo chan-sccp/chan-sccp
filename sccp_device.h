@@ -1,12 +1,9 @@
 #ifndef __SCCP_DEVICE_H
 #define __SCCP_DEVICE_H
 
-#include "chan_sccp.h"
-
-sccp_device_t *sccp_deviceTempate;
 
 sccp_device_t * sccp_device_create(void);
-sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d);
+sccp_device_t *sccp_device_applayDefaults(sccp_device_t *d);
 int sccp_device_get_codec(struct ast_channel *ast);
 void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn);
 sccp_moo_t * sccp_build_packet(sccp_message_t t, size_t pkt_len);
@@ -44,7 +41,7 @@ int sccp_device_check_ringback(sccp_device_t * d);
 void * sccp_dev_postregistration(void *data);
 void sccp_dev_clean(sccp_device_t * d, boolean_t destroy);
 sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t instance);
-int sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName);
+int sccp_device_find_index_for_line(sccp_device_t * d, char *lineName);
 
 void sccp_device_removeLine(sccp_device_t *device, sccp_line_t * l);
 int sccp_device_reset(sccp_session_t * s, uint8_t reset_type);
@@ -55,7 +52,6 @@ void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32
  * usefull to poll data (e.g mwi status)
  */
 void sccp_device_stateChanged(sccp_device_t *device);
-void sccp_device_send_dateTime(sccp_device_t *device);
 
 #define REQ(x,y) x = sccp_build_packet(y, sizeof(x->msg.y))
 #define REQCMD(x,y) x = sccp_build_packet(y, 0)

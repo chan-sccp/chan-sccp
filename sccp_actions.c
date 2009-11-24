@@ -1686,18 +1686,34 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r) {
 			return;
 
 		
-		/* update callerid for outbound channels */
-		struct ast_channel *bridged = CS_AST_BRIDGED_CHANNEL(c->owner);
-		if(bridged && c->calltype == SKINNY_CALLTYPE_OUTBOUND && ast_strlen_zero(bridged->cid.cid_name) ){
-			sccp_channel_set_callingparty(c, bridged->cid.cid_name, bridged->cid.cid_num);
-			sccp_channel_send_callinfo(d, c);
-		}
-		
-		
 		/* codec compatibility - start
 		   find best codec between bridged channel and our channel 
 		*/
-		sccp_utils_updateCodecCompatibility(c);
+		struct ast_channel *bridged = CS_AST_BRIDGED_CHANNEL(c->owner);
+		if(bridged){
+			int codecSimilarity 	= (c->owner->nativeformats & bridged->nativeformats);
+			int ourPreferedChoose 	= ast_codec_choose(&d->codecs, codecSimilarity, 1);
+			
+			if(!codecSimilarity || !ourPreferedChoose ){
+				/* fall back to ulaw if something goes wrong */
+				ourPreferedChoose = AST_FORMAT_ULAW;
+			}
+			
+			if(c->format != ourPreferedChoose){
+				ast_log(LOG_NOTICE, "%s: Our prefered format does not match current format, fallback to %d\n", d->id, ourPreferedChoose);
+				c->format = ourPreferedChoose; /* updating channel format */
+				
+				c->owner->rawreadformat = d->capability;
+				c->owner->rawwriteformat = d->capability;
+							
+				ast_set_read_format(c->owner, ourPreferedChoose);
+				ast_set_write_format(c->owner, ourPreferedChoose);
+				
+				sccp_channel_closereceivechannel(c);	/* close the already openend receivechannel */
+				sccp_channel_openreceivechannel(c);	/* reopen it */
+				return;
+			}
+		}
 		/* codec compatibility - done */
 		
 		

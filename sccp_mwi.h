@@ -62,8 +62,8 @@ void sccp_mwi_event(const struct ast_event *event, void *data);
 void sccp_mwi_subscribeMailbox(sccp_line_t **l, sccp_mailbox_t **m);
 void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t **mailbox);
 
-void *sccp_mwi_linecreatedEvent(sccp_event_t *event);
-void *sccp_mwi_deviceAttachedEvent(sccp_event_t *event);
+void sccp_mwi_linecreatedEvent(const sccp_event_t **event);
+void sccp_mwi_deviceAttachedEvent(const sccp_event_t **event);
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t **line);
 
 #else

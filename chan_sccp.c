@@ -1,26 +1,26 @@
-/*!
- * \file 	chan_sccp.c
- * \brief 	An implementation of Skinny Client Control Protocol (SCCP)
- * \author 	Sergio Chersovani <mlists [at] c-net.it>
- * \date
- * \brief 	Main chan_sccp Class
- * \note	Reworked, but based on chan_sccp code.
- *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *        	Modified by Jan Czmok and Julien Goodwin
- * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- * \todo
- * 
+/*
+ * (SCCP*)
+ *
+ * An implementation of Skinny Client Control Protocol (SCCP)
+ *
+ * Sergio Chersovani (mlists@c-net.it)
+ *
+ * Reworked, but based on chan_sccp code.
+ * The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ * Modified by Jan Czmok and Julien Goodwin
+ *
+ * This program is free software and may be modified and
+ * distributed under the terms of the GNU Public License.
  */
 
-/*!
- * \page intro_chan 	Chan_SCCP
- * \mainpage 		Chan_SCCP User documentation
- * \ref cs_load_module  How to load the chan_sccp Module\n
- * \ref sccp_softkeys	How to use the phones softkeys\n
- */
-    
-/*!
- * \brief Asterisk module chan_sccp
+
+
+/**
+ * \mainpage chan_sccp-b User documentation
+ *
+ * \ref intro_sk The Softkeys
+ *
+ *
  */
 #define AST_MODULE "chan_sccp"
 
@@ -204,7 +204,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 		c = NULL;
 		goto OUT;
 	}
-	sccp_log(64)(VERBOSE_PREFIX_3 "Line %s has %d device%s\n", l->name, l->devices.size, (l->devices.size>1)?"s":"");
+sccp_log(64)(VERBOSE_PREFIX_3 "Line %s has %d device%s\n", l->name, l->devices.size, (l->devices.size>1)?"s":"");
 if(l->devices.size < 2){
 	if(!c->owner){
 		sccp_log(64)(VERBOSE_PREFIX_3 "%s: channel has no owner\n", l->name);
@@ -385,29 +385,24 @@ int sccp_devicestate(void * data) {
 //			|| (l->dnd && (l->dndmode == SCCP_DNDMODE_REJECT
 //					|| (l->dndmode == SCCP_DNDMODE_USERDEFINED && l->dnd == SCCP_DNDMODE_REJECT) )) )
 //		res = AST_DEVICE_BUSY;
-	else if (l->incominglimit && l->channelCount == l->incominglimit){
+	else if (l->incominglimit && l->channelCount == l->incominglimit)
 		res = AST_DEVICE_BUSY;
-	}else if (!l->channelCount){
+	else if (!l->channelCount)
 		res = AST_DEVICE_NOT_INUSE;
 #ifdef CS_AST_DEVICE_RINGING
-	}else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING)){
+	else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING))
 		res = AST_DEVICE_RINGING;
 #endif
 #ifdef CS_AST_DEVICE_RINGINUSE
-	}else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING) && sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED)){
+	else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING) && sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))
 		res = AST_DEVICE_RINGINUSE;
 #endif
 #ifdef CS_AST_DEVICE_ONHOLD
-	}else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD)){
+	else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))
 		res = AST_DEVICE_ONHOLD;
 #endif
-	}else{
+	else
 		res = AST_DEVICE_INUSE;
-		/* we should not answer with AST_DEVICE_INUSE */
-		//res = AST_DEVICE_NOT_INUSE;
-		//sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Asterisk asked we answer else state\n");
-	
-	}
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Asterisk asked for the state (%d) of the line %s\n", res, (char *)data);
 
@@ -586,6 +581,428 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 
 
 /**
+ * \brief creates configured line from \link ast_variable asterisk variable \endlink
+ * \return configured line
+ * \note also used by realtime functionality to line device from \link ast_variable asterisk variable \endlink
+ */
+sccp_line_t * build_lines_wo(struct ast_variable *v, uint8_t realtime) {
+	sccp_line_t * l = NULL;
+	int amaflags = 0;
+	int secondary_dialtone_tone = 0;
+	char * tmp;
+
+	l = sccp_line_create();
+ 	while(v) {
+ 			if((!strcasecmp(v->name, "line"))
+#ifdef CS_SCCP_REALTIME
+			|| (!strcasecmp(v->name, "name"))
+#endif
+ 			) {
+ 				if (!ast_strlen_zero(v->value)) {
+					tmp = strdup(v->value);
+ 					sccp_copy_string(l->name, ast_strip(tmp), sizeof(l->name));
+ 					ast_free(tmp);
+					tmp = NULL;
+ 					/* search for existing line */
+ 					if (sccp_line_find_byname_wo(l->name, 0)) {
+ 						ast_log(LOG_WARNING, "SCCP: Line '%s' already exists\n", l->name);
+ 						ast_free(l);
+ 					} else {
+#ifdef CS_SCCP_REALTIME
+ 						l->realtime = realtime;
+#endif
+// 						SCCP_LIST_LOCK(&GLOB(lines));
+// 						SCCP_LIST_INSERT_HEAD(&GLOB(lines), l, list);
+// 						SCCP_LIST_UNLOCK(&GLOB(lines));
+// 						sccp_log(1)(VERBOSE_PREFIX_3 "chan_sccp.conf: Added line '%s'\n", l->name);
+ 						return l;
+ 					}
+ 				} else {
+ 					ast_log(LOG_WARNING, "Wrong line param: '%s => %s'\n", v->name, v->value);
+ 					ast_free(l);
+ 				}
+				if(!realtime)
+					l = sccp_line_create();
+ 			} else if (!strcasecmp(v->name, "id")) {
+ 				sccp_copy_string(l->id, v->value, sizeof(l->id));
+ 			} else if (!strcasecmp(v->name, "pin")) {
+ 				sccp_copy_string(l->pin, v->value, sizeof(l->pin));
+ 			} else if (!strcasecmp(v->name, "label")) {
+ 				sccp_copy_string(l->label, v->value, sizeof(l->label));
+ 			} else if (!strcasecmp(v->name, "description")) {
+ 				sccp_copy_string(l->description, v->value, sizeof(l->description));
+ 			} else if (!strcasecmp(v->name, "context")) {
+ 				sccp_copy_string(l->context, v->value, sizeof(l->context));
+ 			} else if (!strcasecmp(v->name, "cid_name")) {
+ 				sccp_copy_string(l->cid_name, v->value, sizeof(l->cid_name));
+ 			} else if (!strcasecmp(v->name, "cid_num")) {
+ 				sccp_copy_string(l->cid_num, v->value, sizeof(l->cid_num));
+ 			} else if (!strcasecmp(v->name, "callerid")) {
+ 				ast_log(LOG_WARNING, "obsolete callerid param. Use cid_num and cid_name\n");
+ 			} else if (!strcasecmp(v->name, "mailbox")) {
+ 				sccp_mailbox_t *mailbox = NULL;
+ 				char *context, *mbox = NULL;
+
+ 				mbox = context = ast_strdupa(v->value);
+ 				if (ast_strlen_zero(mbox))
+ 					continue;
+
+ 				if (!(mailbox = ast_calloc(1, sizeof(*mailbox))))
+ 					continue;
+
+
+ 				strsep(&context, "@");
+ 				mailbox->mailbox = ast_strdup(mbox);
+ 				mailbox->context = ast_strdup(context);
+
+ 				SCCP_LIST_INSERT_TAIL(&l->mailboxes, mailbox, list);
+ 				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Added mailbox '%s@%s'\n", l->name, mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
+
+ 				//sccp_copy_string(l->mailbox, v->value, sizeof(l->mailbox));
+ 			} else if (!strcasecmp(v->name, "vmnum")) {
+ 				sccp_copy_string(l->vmnum, v->value, sizeof(l->vmnum));
+ 			} else if (!strcasecmp(v->name, "meetmenum")) {
+ 				sccp_copy_string(l->meetmenum, v->value, sizeof(l->meetmenum));
+ 			} else if (!strcasecmp(v->name, "transfer")) {
+ 				l->transfer = sccp_true(v->value);
+ 			} else if (!strcasecmp(v->name, "incominglimit")) {
+ 				l->incominglimit = atoi(v->value);
+ 				if (l->incominglimit < 1)
+					l->incominglimit = 1;
+ 				/* this is the max call phone limits. Just a guess. It's not important */
+ 				if (l->incominglimit > 99)
+					l->incominglimit = 99;
+ 			} else if (!strcasecmp(v->name, "echocancel")) {
+ 					l->echocancel = sccp_true(v->value);
+ 			} else if (!strcasecmp(v->name, "silencesuppression")) {
+ 				l->silencesuppression = sccp_true(v->value);
+ 			} else if (!strcasecmp(v->name, "rtptos")) {
+ 				if (sscanf(v->value, "%d", &l->rtptos) == 1)
+ 					l->rtptos &= 0xff;
+ 			} else if (!strcasecmp(v->name, "language")) {
+ 				sccp_copy_string(l->language, v->value, sizeof(l->language));
+ 			} else if (!strcasecmp(v->name, "musicclass")) {
+ 				sccp_copy_string(l->musicclass, v->value, sizeof(l->musicclass));
+ 			} else if (!strcasecmp(v->name, "accountcode")) {
+ 				sccp_copy_string(l->accountcode, v->value, sizeof(l->accountcode));
+ 			} else if (!strcasecmp(v->name, "amaflags")) {
+ 				amaflags = ast_cdr_amaflags2int(v->value);
+ 				if (amaflags < 0) {
+ 					ast_log(LOG_WARNING, "Invalid AMA Flags: %s at line %d\n", v->value, v->lineno);
+ 				} else {
+ 					l->amaflags = amaflags;
+ 				}
+ 			} else if (!strcasecmp(v->name, "callgroup")) {
+ 				l->callgroup = ast_get_group(v->value);
+ 	#ifdef CS_SCCP_PICKUP
+ 			} else if (!strcasecmp(v->name, "pickupgroup")) {
+ 				l->pickupgroup = ast_get_group(v->value);
+ 	#endif
+ 			} else if (!strcasecmp(v->name, "trnsfvm")) {
+ 				if (!ast_strlen_zero(v->value)) {
+					l->trnsfvm = strdup(v->value);
+ 				}
+ 			} else if (!strcasecmp(v->name, "secondary_dialtone_digits")) {
+ 				if (strlen(v->value) > 9)
+ 					ast_log(LOG_WARNING, "secondary_dialtone_digits value '%s' is too long at line %d of SCCP.CONF. Max 9 digits\n", v->value, v->lineno);
+ 				sccp_copy_string(l->secondary_dialtone_digits, v->value, sizeof(l->secondary_dialtone_digits));
+ 			} else if (!strcasecmp(v->name, "secondary_dialtone_tone")) {
+ 				if (sscanf(v->value, "%i", &secondary_dialtone_tone) == 1) {
+ 					if (secondary_dialtone_tone >= 0 && secondary_dialtone_tone <= 255)
+ 						l->secondary_dialtone_tone = secondary_dialtone_tone;
+ 					else
+ 						l->secondary_dialtone_tone = SKINNY_TONE_OUTSIDEDIALTONE;
+ 				} else {
+ 					ast_log(LOG_WARNING, "Invalid secondary_dialtone_tone value '%s' at line %d of SCCP.CONF. Default is OutsideDialtone (0x22)\n", v->value, v->lineno);
+ 				}
+ 			} else if (!strcasecmp(v->name, "setvar")) {
+				struct ast_variable *newvar = NULL;
+
+				newvar = sccp_create_variable(v->value);
+				if(newvar){
+					sccp_log(10)(VERBOSE_PREFIX_3 "Add new channelvariable to line %s. Value is: %s \n",newvar->name ,newvar->value);
+					newvar->next = l->variables;
+					l->variables = newvar;
+				}
+ 			} else if (!strcasecmp(v->name, "dnd")) {
+				if (!strcasecmp(v->value, "reject")) {
+					l->dndmode = SCCP_DNDMODE_REJECT;
+				} else if (!strcasecmp(v->value, "silent")) {
+					l->dndmode = SCCP_DNDMODE_SILENT;
+				} else if (!strcasecmp(v->value, "user")) {
+					l->dndmode = SCCP_DNDMODE_USERDEFINED;
+				} else {
+					/* 0 is off and 1 (on) is reject */
+					l->dndmode = sccp_true(v->value);
+				}
+			} else {
+ 				ast_log(LOG_WARNING, "Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
+ 			}
+ 			v = v->next;
+ 		}
+
+	return l;
+}
+
+
+/**
+ * \brief Create device from ast_variable
+ * \return configured device
+ * \note also used by realtime functionality to build device from \link ast_variable asterisk variable \endlink
+ */
+sccp_device_t *build_devices_wo(struct ast_variable *v, uint8_t realtime) {
+	sccp_device_t 	*d = NULL;
+	uint8_t 		speeddial_index = 1;
+	uint8_t			serviceURLIndex = 1;
+	char 			message[256]="";							//device message
+	int				res;
+
+	/* for button config */
+	char 			*buttonType = NULL, *buttonName = NULL, *buttonOption=NULL, *buttonArgs=NULL;
+	char 			k_button[256];
+//	sccp_buttonconfig_t	* lastButton = NULL, * currentButton = NULL;
+	uint8_t			instance=0;
+	char 			*splitter;
+
+	d = sccp_device_create();
+	if(!v)
+		sccp_log(10)(VERBOSE_PREFIX_3 "no variable given\n");
+	while (v) {
+			sccp_log(10)(VERBOSE_PREFIX_3 "%s = %s\n", v->name, v->value);
+			if ((!strcasecmp(v->name, "device"))
+#ifdef CS_SCCP_REALTIME
+			|| (!strcasecmp(v->name, "name"))
+#endif
+			) {
+				if ((strlen(v->value) == 15) && ((strncmp(v->value, "SEP",3) == 0) || (strncmp(v->value, "ATA",3)==0)) ) {
+					sccp_copy_string(d->id, v->value, sizeof(d->id));
+					instance=0;
+					res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
+					if (!res)
+						d->phonemessage=strdup(message);									//set message on device if we have a result
+					strcpy(message,"");
+#ifdef CS_SCCP_REALTIME
+					d->realtime = realtime;
+#endif
+					SCCP_LIST_LOCK(&GLOB(devices));
+					SCCP_LIST_INSERT_HEAD(&GLOB(devices), d, list);
+					SCCP_LIST_UNLOCK(&GLOB(devices));
+					if(!realtime) {
+						sccp_log(1)(VERBOSE_PREFIX_3 "Added device '%s' (%s)\n", d->id, d->config_type);
+					} else {
+						sccp_log(1)(VERBOSE_PREFIX_3 "Added device '%s'\n", d->id);
+					}
+				} else {
+					ast_log(LOG_WARNING, "Wrong device param: %s => %s\n", v->name, v->value);
+					sccp_dev_clean(d, TRUE); /* clean and destroy*/
+					instance=0;
+				}
+				if(!realtime) {
+					d = sccp_device_create();
+					speeddial_index = 1;
+					serviceURLIndex = 1;
+				}
+			}
+			else if (!strcasecmp(v->name, "keepalive")) {
+				d->keepalive = atoi(v->value);
+			} else if (!strcasecmp(v->name, "permit") || !strcasecmp(v->name, "deny")) {
+#ifndef ASTERISK_CONF_1_6
+				d->ha = ast_append_ha(v->name, v->value, d->ha);
+#else
+				d->ha = ast_append_ha(v->name, v->value, d->ha, NULL );
+#endif
+			} else if (!strcasecmp(v->name, "button")) {
+				sccp_log(0)(VERBOSE_PREFIX_3 "Found buttonconfig: %s\n", v->value);
+				sccp_copy_string(k_button, v->value, sizeof(k_button));
+				splitter = k_button;
+				buttonType = strsep(&splitter, ",");
+				buttonName = strsep(&splitter, ",");
+				buttonOption = strsep(&splitter, ",");
+				buttonArgs = splitter;
+
+				sccp_log(99)(VERBOSE_PREFIX_3 "ButtonType: %s\n", buttonType);
+				sccp_log(99)(VERBOSE_PREFIX_3 "ButtonName: %s\n", buttonName);
+				sccp_log(99)(VERBOSE_PREFIX_3 "ButtonOption: %s\n", buttonOption);
+				if (!strcasecmp(buttonType, "line") && buttonName){
+					if(!buttonName)
+						continue;
+					sccp_config_addLine(d, (buttonName)?ast_strip(buttonName):NULL, ++instance);
+					if(buttonOption && !strcasecmp(buttonOption, "default")){
+						d->defaultLineInstance = instance;
+						sccp_log(99)(VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", instance);
+					}
+				} else if (!strcasecmp(buttonType, "empty")){
+					sccp_config_addEmpty(d, ++instance);
+				} else if (!strcasecmp(buttonType, "speeddial")){
+					sccp_config_addSpeeddial(d, (buttonName)?ast_strip(buttonName):"speeddial", (buttonOption)?ast_strip(buttonOption):NULL, (buttonArgs)?ast_strip(buttonArgs):NULL, ++instance);
+				} else if (!strcasecmp(buttonType, "feature") && buttonName){
+					sccp_config_addFeature(d, (buttonName)?ast_strip(buttonName):"feature", (buttonOption)?ast_strip(buttonOption):NULL, buttonArgs, ++instance );
+				} else if (!strcasecmp(buttonType, "service") && buttonName && !ast_strlen_zero(buttonName) ){
+					sccp_config_addService(d, (buttonName)?ast_strip(buttonName):"service", (buttonOption)?ast_strip(buttonOption):NULL, ++instance);
+				}
+			} else if (!strcasecmp(v->name, "permithost")) {
+				sccp_permithost_addnew(d, v->value);
+			} else if (!strcasecmp(v->name, "type")) {
+				sccp_copy_string(d->config_type, v->value, sizeof(d->config_type));
+			} else if (!strcasecmp(v->name, "addon")) {
+				sccp_addon_addnew(d, v->value);
+			} else if (!strcasecmp(v->name, "tzoffset")) {
+				/* timezone offset */
+				d->tz_offset = atoi(v->value);
+			} else if (!strcasecmp(v->name, "autologin")) {
+				char *mb, *cur, tmp[256];
+
+				sccp_copy_string(tmp, v->value, sizeof(tmp));
+				mb = tmp;
+				while((cur = strsep(&mb, ","))) {
+					ast_strip(cur);
+					if (ast_strlen_zero(cur)) {
+						sccp_config_addEmpty(d, ++instance);
+						continue;
+					}
+
+					sccp_log(10)(VERBOSE_PREFIX_3 "%s: Auto logging into %s\n", d->id, cur);
+					sccp_config_addLine(d, cur, ++instance);
+				}
+
+				//sccp_copy_string(d->autologin, v->value, sizeof(d->autologin));
+			} else if (!strcasecmp(v->name, "description")) {
+				sccp_copy_string(d->description, v->value, sizeof(d->description));
+			} else if (!strcasecmp(v->name, "imageversion")) {
+				sccp_copy_string(d->imageversion, v->value, sizeof(d->imageversion));
+			} else if (!strcasecmp(v->name, "allow")) {
+				ast_parse_allow_disallow(&d->codecs, &d->capability, v->value, 1);
+			} else if (!strcasecmp(v->name, "disallow")) {
+				ast_parse_allow_disallow(&d->codecs, &d->capability, v->value, 0);
+			} else if (!strcasecmp(v->name, "transfer")) {
+				d->transfer = sccp_true(v->value);
+			} else if (!strcasecmp(v->name, "cfwdall")) {
+				d->cfwdall = sccp_true(v->value);
+			} else if (!strcasecmp(v->name, "cfwdbusy")) {
+				d->cfwdbusy = sccp_true(v->value);
+			} else if (!strcasecmp(v->name, "cfwdnoanswer")) {
+				d->cfwdnoanswer = sccp_true(v->value);
+#ifdef CS_SCCP_PICKUP
+			} else if (!strcasecmp(v->name, "pickupexten")) {
+				d->pickupexten = sccp_true(v->value);
+			} else if (!strcasecmp(v->name, "pickupcontext")) {
+				if(!ast_strlen_zero(v->value))
+					d->pickupcontext = strdup(v->value);
+			} else if (!strcasecmp(v->name, "pickupmodeanswer")) {
+				d->pickupmodeanswer = sccp_true(v->value);
+#endif
+			} else if (!strcasecmp(v->name, "dnd")) {
+				if (!strcasecmp(v->value, "reject")) {
+					d->dndmode = SCCP_DNDMODE_REJECT;
+				} else if (!strcasecmp(v->value, "silent")) {
+					d->dndmode = SCCP_DNDMODE_SILENT;
+				} else if (!strcasecmp(v->value, "user")) {
+					d->dndmode = SCCP_DNDMODE_USERDEFINED;
+				} else {
+					/* 0 is off and 1 (on) is reject */
+					d->dndmode = sccp_true(v->value);
+				}
+			} else if (!strcasecmp(v->name, "nat")) {
+				d->nat = sccp_true(v->value);
+			} else if (!strcasecmp(v->name, "directrtp")) {
+				d->directrtp = sccp_true(v->value);
+			} else if (!strcasecmp(v->name, "allowoverlap")) {
+				d->overlapFeature.enabled = sccp_true(v->value);
+			} else if (!strcasecmp(v->name, "trustphoneip")) {
+				d->trustphoneip = sccp_true(v->value);
+			} else if (!strcasecmp(v->name, "private")) {
+				d->privacyFeature.enabled = sccp_true(v->value);
+			} else if (!strcasecmp(v->name, "privacy")) {
+				if (!strcasecmp(v->value, "full")) {
+					d->privacyFeature.status = 0;
+					d->privacyFeature.status = ~d->privacyFeature.status;
+					//d->privacyFeature.status = 0xFFFFFFFF;
+				} else {
+					d->privacyFeature.status = 0;
+					//d->privacyFeature.enabled = sccp_true(v->value);
+				}
+			} else if (!strcasecmp(v->name, "earlyrtp")) {
+				if (!strcasecmp(v->value, "none"))
+					d->earlyrtp = 0;
+				else if (!strcasecmp(v->value, "offhook"))
+					d->earlyrtp = SCCP_CHANNELSTATE_OFFHOOK;
+				else if (!strcasecmp(v->value, "dial"))
+					d->earlyrtp = SCCP_CHANNELSTATE_DIALING;
+				else if (!strcasecmp(v->value, "ringout"))
+					d->earlyrtp = SCCP_CHANNELSTATE_RINGOUT;
+				else
+					ast_log(LOG_WARNING, "Invalid earlyrtp state value at line %d, should be 'none', 'offhook', 'dial', 'ringout'\n", v->lineno);
+			} else if (!strcasecmp(v->name, "dtmfmode")) {
+				if (!strcasecmp(v->value, "outofband"))
+					d->dtmfmode = SCCP_DTMFMODE_OUTOFBAND;
+		#ifdef CS_SCCP_PARK
+			} else if (!strcasecmp(v->name, "park")) {
+				d->park = sccp_true(v->value);
+		#endif
+			} else if (!strcasecmp(v->name, "speeddial")) {
+				if(ast_strlen_zero(v->value)){
+					sccp_config_addEmpty(d, ++instance);
+				}else{
+//					//sccp_speeddial_addnew(d, v->value, speeddial_index);
+					sccp_copy_string(k_button, v->value, sizeof(k_button));
+					splitter = k_button;
+					buttonType = strsep(&splitter, ",");
+					buttonName = strsep(&splitter, ",");
+					if(splitter)
+						buttonOption = strsep(&splitter, ",");
+					else
+						buttonOption = NULL;
+//
+					sccp_config_addSpeeddial(d, ast_strip(buttonName), ast_strip(buttonType), (buttonOption)?ast_strip(buttonOption):NULL, ++instance);
+				}
+
+			} else if (!strcasecmp(v->name, "mwilamp")) {
+				if (!strcasecmp(v->value, "off"))
+					d->mwilamp = SKINNY_LAMP_OFF;
+				else if (!strcasecmp(v->value, "on"))
+					d->mwilamp = SKINNY_LAMP_ON;
+				else if (!strcasecmp(v->value, "wink"))
+					d->mwilamp = SKINNY_LAMP_WINK;
+				else if (!strcasecmp(v->value, "flash"))
+					d->mwilamp = SKINNY_LAMP_FLASH;
+				else if (!strcasecmp(v->value, "blink"))
+					d->mwilamp = SKINNY_LAMP_BLINK;
+				else
+					ast_log(LOG_WARNING, "Invalid mwilamp value at line %d, should be 'off', 'on', 'wink', 'flash' or 'blink'\n", v->lineno);
+			} else if (!strcasecmp(v->name, "mwioncall")) {
+					d->mwioncall = sccp_true(v->value);
+			}else if (!strcasecmp(v->name, "setvar")) {
+				struct ast_variable *newvar = NULL;
+				newvar = sccp_create_variable(v->value);
+				if(newvar){
+					sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Add new channelvariable to line %s. Value is: %s \n",newvar->name ,newvar->value);
+					newvar->next = d->variables;
+					d->variables = newvar;
+				}
+ 			} else if (!strcasecmp(v->name, "serviceURL")) {
+ 				//sccp_serviceURL_addnew(d, v->value, serviceURLIndex);
+ 				ast_log(LOG_WARNING, "SCCP: Service: %s\n", v->value);
+ 				if(ast_strlen_zero(v->value))
+					sccp_config_addEmpty(d, ++instance);
+				else{
+					sccp_copy_string(k_button, v->value, sizeof(k_button));
+					splitter = k_button;
+					buttonType = strsep(&splitter, ",");
+					buttonName = strsep(&splitter, ",");
+
+
+					sccp_config_addService(d, ast_strip(buttonType), ast_strip(buttonName), ++instance);
+				}
+			} else {
+				ast_log(LOG_WARNING, "SCCP: Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
+			}
+			v = v->next;
+		}
+
+	sccp_dev_dbget(d); /* load saved settings from ast db */
+	return d;
+}
+/**
  * \brief reload the configuration from sccp.conf
  *
  */
@@ -629,7 +1046,7 @@ static int reload_config(void) {
 	if( !sccp_config_general() ){
 		return 0;
 	}
-	sccp_config_readDevices(SCCP_CONFIG_READINITIAL);
+	sccp_config_readdevices(SCCP_CONFIG_READINITIAL);
 	sccp_config_readLines(SCCP_CONFIG_READINITIAL);
 
 	/* ok the config parse is done */
@@ -983,9 +1400,6 @@ static int load_module(void) {
 	GLOB(ourport) = 2000;
 	GLOB(externrefresh) = 60;
 	GLOB(keepalive)  = SCCP_KEEPALIVE;
-	
-	GLOB(pushPlacedCalls)  = TRUE;
-	GLOB(pushReceivedCalls)  = TRUE;
 	sccp_copy_string(GLOB(date_format), "D/M/YA", sizeof(GLOB(date_format)));
 	sccp_copy_string(GLOB(context), "default", sizeof(GLOB(context)));
 	sccp_copy_string(GLOB(servername), "Asterisk", sizeof(GLOB(servername)));

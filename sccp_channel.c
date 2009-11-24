@@ -105,13 +105,10 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l, sccp_device_t *device) {
 	
 	if(!device){
 		c->device = NULL;
-		c->format = AST_FORMAT_ULAW;
 	}else{
 		c->device = device;
+		c->format = ast_codec_choose(&device->codecs, device->capability, 1);
 		
-		//TODO this trick does not work currently
-		//c->format = ast_codec_choose(&device->codecs, device->capability, 1);
-		c->format = AST_FORMAT_ULAW;
 	}
 
 /*
@@ -164,7 +161,7 @@ void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * c) {
 	sccp_device_unlock(d);
 }
 
-void sccp_channel_send_callinfo(const sccp_device_t *device, const sccp_channel_t * c) {
+void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t * c) {
 	sccp_moo_t * r;
 	uint8_t			instance =0;
 
@@ -782,24 +779,19 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, sccp_device_t *device, ch
 
 	sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 
-	c->format = AST_FORMAT_ULAW;
-	c->owner->nativeformats = c->format;
 	
-// 	if(device){
-// 		c->format = ast_codec_choose(&device->codecs, device->capability, 1);
-// 	  
-// 		c->owner->nativeformats = device->capability;
-// 		
-// 		c->owner->rawreadformat = device->capability;
-// 		c->owner->rawwriteformat = device->capability;
-// 	
-// 	  
-// 	}
+	if(device){
+		c->format = ast_codec_choose(&device->codecs, device->capability, 1);
+	  
+		c->owner->nativeformats = device->capability;
+		
+		c->owner->rawreadformat = device->capability;
+		c->owner->rawwriteformat = device->capability;
 
-	c->owner->rawreadformat =  c->format;
-	c->owner->rawwriteformat =  c->format;
-	ast_set_read_format(c->owner, c->format);
-	ast_set_write_format(c->owner, c->format);
+		ast_set_read_format(c->owner, c->format);
+		ast_set_write_format(c->owner, c->format);
+	  
+	}
 
 	if (device->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp) {
 		sccp_channel_openreceivechannel(c);
@@ -842,6 +834,7 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 	/* channel was on hold, restore active -> inc. channelcount*/
 	if(c->state == SCCP_CHANNELSTATE_HOLD){
 		sccp_line_lock(c->line);
+		//c->line->channelCount++;
 		c->line->statistic.numberOfActiveChannels--;
 		sccp_line_unlock(c->line);
 	}
@@ -855,26 +848,12 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 	}
 	c->device = d;
 	
-	/* update native format and prefered codec.
-	*  capability is checked on sccp_handle_open_receive_channel_ack - MC
-	*/
-	
-
-
-	
-	c->format = AST_FORMAT_ULAW;
-	c->owner->nativeformats = c->format;
-	//FIXME this does currently not work
-	/*
 	c->owner->nativeformats = device->capability;
-	c->format = ast_codec_choose(&device->codecs, device->capability, 1);*/
-	c->owner->rawreadformat = c->format;
-	c->owner->rawwriteformat = c->format;
-	ast_set_read_format(c->owner, c->format);
-	ast_set_write_format(c->owner, c->format);
+	c->format = ast_codec_choose(&device->codecs, device->capability, 1);
+	c->owner->rawreadformat = device->capability;
+	c->owner->rawwriteformat = device->capability;
 
-	
-	
+
 	/* answering an incoming call */
 	/* look if we have a call to put on hold */
 	if ((hold = sccp_channel_get_active(d))) {
@@ -906,9 +885,6 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 	if (c->state != SCCP_CHANNELSTATE_OFFHOOK)
 		sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_OFFHOOK);
 
-	/* we get a problem if we set connected at this point
-	* asterisk 
-	*/
 	sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CONNECTED);
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Answering channel with state '%s' (%d)\n", DEV_ID_LOG(c->device), ast_state2str(c->owner->_state), c->owner->_state);
@@ -1093,12 +1069,7 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c) {
 	sccp_channel_lock(c);
 	
 	c->device = d;
-	//c->owner->nativeformats = c->device ? c->device->capability : GLOB(global_capability);
-	//FIXME best codec choose
-	c->format = AST_FORMAT_ULAW;
-	c->owner->nativeformats = c->format;
-	ast_set_read_format(c->owner, c->format);
-	ast_set_write_format(c->owner, c->format);
+	c->owner->nativeformats = c->device ? c->device->capability : GLOB(global_capability);
 	
 	//sccp_channel_set_callstate(d, c, SKINNY_CALLSTATE_CONNECTED);
 	c->state = SCCP_CHANNELSTATE_HOLD;
@@ -1422,9 +1393,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 		ast_log(LOG_WARNING, "SCCP: weird error. The channel has no line or device on channel %d\n", cDestinationLocal->callid);
 		return;
 	}
-	
-	
-	
+
 	// Obtain the device from which the transfer was initiated
 	d = cDestinationLocal->device;
 	sccp_device_lock(d);
@@ -1464,15 +1433,6 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 
 		sccp_dev_displayprompt(d, instance, cDestinationLocal->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
-	}else{
-		/* update callerID */
-		//astcDestinationLocal->cid.cid_num = strdup(astcSourceRemote->cid.cid_num);
-		//astcDestinationLocal->cid.cid_name = strdup(astcSourceRemote->cid.cid_name);
-		ast_set_callerid(astcDestinationLocal, strdup(astcSourceRemote->cid.cid_num), strdup(astcSourceRemote->cid.cid_name), strdup(astcSourceRemote->cid.cid_num));
-		
-		//ast_log(LOG_WARNING, "SCCP: Update callerid to: %s %s\n",astcDestinationLocal->cid.cid_num, astcDestinationLocal->cid.cid_name);
-		//ast_log(LOG_WARNING, "SCCP: Update callerid to: %s %s\n",cDestinationLocal->line->cid_num, cDestinationLocal->line->cid_name);
-		//ast_log(LOG_WARNING, "SCCP: Update callerid to: %s %s\n",astcSourceRemote->cid.cid_num, astcSourceRemote->cid.cid_name);
 	}
 
 	if (cDestinationLocal->state == SCCP_CHANNELSTATE_RINGOUT) {
@@ -1503,8 +1463,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 		astcDestinationLocal->cdr = ast_cdr_append(astcDestinationLocal->cdr, astcSourceRemote->cdr);
 	else
 		ast_log(LOG_WARNING, "SCCP: unable to find CDR informations for channel %s\n", (astcSourceRemote && astcSourceRemote->name)?astcSourceRemote->name:"(NULL)");
-*/	
-	//TODO set codecs
+*/
 
 	if (ast_channel_masquerade(astcDestinationLocal, astcSourceRemote)) {
 		ast_log(LOG_WARNING, "SCCP: Failed to masquerade %s into %s\n", astcDestinationLocal->name, astcSourceRemote->name);
@@ -1528,14 +1487,11 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 
 	if (!astcDestinationRemote) {
 	    /* the channel was ringing not answered yet. BLIND TRANSFER */
-	    ast_log(LOG_WARNING, "no astcDestinationRemote\n");
-	
 // TEST
 //		if(cDestinationLocal->rtp)
 //			sccp_channel_destroy_rtp(cDestinationLocal);
-		
-		return;
-	}
+        return;
+    }
 
 #ifndef CS_AST_HAS_TECH_PVT
 	if (strncasecmp(astcDestinationRemote->type,"SCCP",4)) {
@@ -1553,15 +1509,6 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 		/* display the transferred CID info to destination */
 #ifdef CS_AST_CHANNEL_HAS_CID
 		sccp_channel_set_callingparty(cDestinationLocal, astcSourceRemote->cid.cid_name, astcSourceRemote->cid.cid_num);
-		
-		
-		/* update callinfo */
-		sccp_linedevices_t *linedevice;
-		SCCP_LIST_LOCK(&cDestinationLocal->line->devices);
-		SCCP_LIST_TRAVERSE(&cDestinationLocal->line->devices, linedevice, list){
-			sccp_channel_send_callinfo(linedevice->device, cDestinationLocal);
-		}
-		SCCP_LIST_UNLOCK(&cDestinationLocal->line->devices);
 #else
 		if (astcSourceRemote->callerid && (cidtmp = strdup(astcSourceRemote->callerid))) {
 			ast_callerid_parse(cidtmp, &name, &number);
