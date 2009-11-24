@@ -14,7 +14,8 @@
 #include "chan_sccp.h"
 #include "sccp_features.h"
 #ifdef CS_ADV_FEATURES
-#include "sccp_adv_features.h"
+//#include "sccp_adv_features.h"
+#undef CS_ADV_FEATURES
 #endif
 #include "sccp_lock.h"
 #include "sccp_actions.h"
