@@ -863,12 +863,7 @@ sccp_device_t *sccp_deviceTemplate;
  */
 sccp_line_t *sccp_lineTemplate;
 
-#ifndef ASTERISK_CONF_1_2
-void *sccp_create_hotline(void);
-#endif
 
-void sccp_createTemplateDevice(void);
-void sccp_createTemplateLine(void);
 
 uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s);
 

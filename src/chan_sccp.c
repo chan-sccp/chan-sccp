@@ -60,6 +60,9 @@
 
 #ifndef ASTERISK_CONF_1_2
 
+void *sccp_create_hotline(void);
+void sccp_createTemplateDevice(void);
+void sccp_createTemplateLine(void);
 
 /*!
  * \brief	Buffer for Jitterbuffer use
@@ -1387,6 +1390,8 @@ char *description() {
         return ("Skinny Client Control Protocol (SCCP). Release: " SCCP_BRANCH " - " SCCP_VERSION " (built by '" BUILD_USER "' on '" BUILD_DATE "')");
 }
 
+#endif
+
 void sccp_createTemplateDevice(){
 	sccp_deviceTemplate = ast_malloc(sizeof(sccp_device_t));
 	memset(&sccp_deviceTemplate, 0, sizeof(sccp_device_t));
@@ -1466,4 +1471,3 @@ void sccp_createTemplateLine(){
 #endif
 
 }
-#endif
