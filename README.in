@@ -1,5 +1,19 @@
-Welcome to chan_sccp.
+Welcome to Chan_SCCP.
 
-chan_sccp is free software. Please see the file COPYING for details.
+Chan_SCCP is free software. Please see the file COPYING for details.
 For documentation, please see the files in the doc subdirectory.
 For building and installation instructions please see the INSTALL file.
+
+To get started with configure please run 
+autogen.sh
+
+Then run 
+./configure
+
+And finally 
+make
+
+To get the developers documentation run
+make doxygen-doc
+For documentation, please see the files in the doc/html subdirectory.
+
