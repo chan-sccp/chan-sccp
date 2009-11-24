@@ -132,17 +132,11 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 
                         /* send status */
                         REQ(featureRequestMessage, FeatureStatMessage);
-
                         featureRequestMessage->msg.FeatureStatMessage.lel_featureInstance = htolel(instance);
-
                         featureRequestMessage->msg.FeatureStatMessage.lel_featureID = htolel(0x13);
-
                         sccp_copy_string(featureRequestMessage->msg.FeatureStatMessage.featureTextLabel, config->button.feature.label, strlen(config->button.feature.label)+1);
-
                         featureRequestMessage->msg.FeatureStatMessage.lel_featureStatus = htolel(config->button.feature.status);
-
                         sccp_dev_send(device, featureRequestMessage);
-
                         sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request. Instance = %d Status: %d\n", device->id, instance, config->button.feature.status);
                 }
 

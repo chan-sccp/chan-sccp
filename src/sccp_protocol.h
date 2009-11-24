@@ -1872,7 +1872,7 @@ typedef union {
 
     /* 0x11F FeatureStatMessage */
 	struct {
-		uint32_t 			lel_featureIndex;		/*!< Feature Index */
+		uint32_t 			lel_featureInstance;		/*!< Feature Instance */
 		uint32_t 			lel_featureID;			/*!< Feature ID */
 		char 				featureTextLabel[StationMaxNameSize];/*!< Feature Text Label */
 		uint32_t 			lel_featureStatus;		/*!< Feature Status */
