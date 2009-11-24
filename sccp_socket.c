@@ -1,0 +1,517 @@
+/*!
+ * \file 	sccp_socket.c
+ * \brief 	SCCP Socket Class
+ * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \date
+ * \note	Reworked, but based on chan_sccp code.
+ *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *        	Modified by Jan Czmok and Julien Goodwin
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \version 	$LastChangedDate$
+ * \todo
+ * 
+  */
+ 
+/*!
+ * \page sccp_socket Socket
+ */
+ 
+
+#include "config.h"
+
+#ifndef ASTERISK_CONF_1_2
+#include <asterisk.h>
+#endif
+#include "chan_sccp.h"
+#include "sccp_event.h"
+#include "sccp_lock.h"
+#include "sccp_line.h"
+#include "sccp_socket.h"
+#include "sccp_device.h"
+#include "sccp_utils.h"
+#include <signal.h>
+#include <sys/ioctl.h>
+#include <asterisk/utils.h>
+
+sccp_session_t * sccp_session_find(const sccp_device_t *device);
+
+int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r);
+
+/* file descriptors of active sockets */
+static fd_set	active_fd_set;
+
+
+/*!
+ * \brief Read Data From Socket
+ * \param s Session
+ */
+static void sccp_read_data(sccp_session_t * s) {
+	int64_t ioctl_len;
+	int32_t length, readlen;
+	char * input, * newptr;
+
+	/* called while we have GLOB(sessions) list lock */
+	sccp_session_lock(s);
+
+	if (ioctl(s->fd, FIONREAD, &ioctl_len) == -1) {
+		ast_log(LOG_WARNING, "SCCP: FIONREAD ioctl failed: %s\n", strerror(errno));
+		sccp_session_unlock(s);
+		sccp_session_close(s);
+		return;
+	}
+
+	length = (int32_t)ioctl_len;
+
+	if (!length) {
+		/* probably a CLOSE_WAIT */
+		sccp_session_unlock(s);
+		sccp_session_close(s);
+		return;
+	}
+
+	input = ast_malloc(length + 1);
+/*	memset(input, 0, length+1); */
+
+	if ((readlen = read(s->fd, input, length)) < 0) {
+		ast_log(LOG_WARNING, "SCCP: read() returned %s\n", strerror(errno));
+		ast_free(input);
+		sccp_session_unlock(s);
+		sccp_session_close(s);
+		return;
+	}
+
+	if (readlen != length) {
+		ast_log(LOG_WARNING, "SCCP: read() returned %d, wanted %d: %s\n", readlen, length, strerror(errno));
+		ast_free(input);
+		sccp_session_unlock(s);
+		sccp_session_close(s);
+		return;
+	}
+
+	newptr = realloc(s->buffer, (uint32_t)(s->buffer_size + length));
+	if (newptr) {
+			s->buffer = newptr;
+			memcpy(s->buffer + s->buffer_size, input, length);
+			s->buffer_size += length;
+	} else {
+		ast_log(LOG_WARNING, "SCCP: unable to reallocate %d bytes for skinny a packet\n", s->buffer_size + length);
+		ast_free(s->buffer);
+		s->buffer_size = 0;
+	}
+
+	ast_free(input);
+
+	sccp_session_unlock(s);
+}
+
+
+/*!
+ * \brief Socket Session Close
+ * \param s Session
+ */
+void sccp_session_close(sccp_session_t * s)
+{
+	if (!s)
+		return;
+
+	// fire event for new device
+	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
+	memset(event, 0, sizeof(sccp_event_t));
+
+	event->type=SCCP_EVENT_DEVICEUNREGISTERED;
+	event->event.deviceRegistered.device = s->device;
+	sccp_event_fire(event);
+
+	sccp_session_lock(s);
+	if (s->fd > 0) {
+		FD_CLR(s->fd, &active_fd_set);
+		close(s->fd);
+		s->fd = -1;
+	}
+	sccp_session_unlock(s);
+
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Old session marked down\n", (s->device) ? s->device->id : "SCCP");
+
+}
+
+/*!
+ * \brief Destroy Socket Session
+ * \param s Session
+ */
+static void destroy_session(sccp_session_t * s) {
+	sccp_device_t * d;
+#ifdef ASTERISK_CONF_1_2
+	char iabuf[INET_ADDRSTRLEN];
+#endif
+
+	if (!s)
+		return;
+
+	d = s->device;
+	if (d)
+	{
+#ifdef ASTERISK_CONF_1_2
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
+#else
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(s->sin.sin_addr));
+#endif
+
+		sccp_dev_clean(d, (d->realtime)?TRUE:FALSE);
+	}
+
+	/* remove the session from global list*/
+	SCCP_LIST_LOCK(&GLOB(sessions));
+	SCCP_LIST_REMOVE(&GLOB(sessions), s, list);
+	SCCP_LIST_UNLOCK(&GLOB(sessions));
+
+	/* closing fd's */
+	if (s->fd > 0) {
+		FD_CLR(s->fd, &active_fd_set);
+		close(s->fd);
+	}
+	/* freeing buffers */
+	if (s->buffer)
+		ast_free(s->buffer);
+
+	/* destroying mutex and cleaning the session */
+	sccp_mutex_destroy(&s->lock);
+	ast_free(s);
+	s=NULL;
+}
+
+
+/*!
+ * \brief Socket Accept Connection
+ */
+static void sccp_accept_connection(void) {
+	/* called without GLOB(sessions_lock) */
+	struct sockaddr_in incoming;
+	sccp_session_t * s;
+	int dummy = 1, new_socket;
+	socklen_t length = (socklen_t)(sizeof(struct sockaddr_in));
+	int on = 1;
+
+#ifdef ASTERISK_CONF_1_2
+	char iabuf[INET_ADDRSTRLEN];
+#endif
+
+	if ((new_socket = accept(GLOB(descriptor), (struct sockaddr *)&incoming, &length)) < 0) {
+		ast_log(LOG_ERROR, "Error accepting new socket %s\n", strerror(errno));
+		return;
+	}
+
+	if (ioctl(new_socket, FIONBIO, &dummy) < 0) {
+		ast_log(LOG_ERROR, "Couldn't set socket to non-blocking\n");
+		close(new_socket);
+		return;
+	}
+
+	if (setsockopt(new_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
+		ast_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
+	if (setsockopt(new_socket, IPPROTO_IP, IP_TOS, &GLOB(tos), sizeof(GLOB(tos))) < 0)
+		ast_log(LOG_WARNING, "Failed to set SCCP socket TOS to IPTOS_LOWDELAY: %s\n", strerror(errno));
+	if (setsockopt(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
+		ast_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
+/*
+	if (setsockopt(new_socket, IPPROTO_TCP, TCP_CORK, &on, sizeof(on)) < 0)
+		ast_log(LOG_WARNING, "Failed to set SCCP socket to TCP_CORK: %s\n", strerror(errno));
+*/
+
+	s = ast_malloc(sizeof(struct sccp_session));
+	memset(s, 0, sizeof(sccp_session_t));
+	memcpy(&s->sin, &incoming, sizeof(s->sin));
+	sccp_mutex_init(&s->lock);
+
+	s->fd = new_socket;
+	s->lastKeepAlive = time(0);
+#ifdef ASTERISK_CONF_1_2
+	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
+#else
+	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", ast_inet_ntoa(s->sin.sin_addr));
+#endif
+
+
+	if (GLOB(bindaddr.sin_addr.s_addr) == INADDR_ANY) {
+		ast_ouraddrfor(&incoming.sin_addr, &s->ourip);
+	} else {
+		memcpy(&s->ourip, &GLOB(bindaddr.sin_addr.s_addr), sizeof(s->ourip));
+	}
+
+#ifdef ASTERISK_CONF_1_2
+	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Using ip %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), s->ourip));
+#else
+	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Using ip %s\n", ast_inet_ntoa(s->ourip));
+#endif
+
+	SCCP_LIST_LOCK(&GLOB(sessions));
+	SCCP_LIST_INSERT_HEAD(&GLOB(sessions), s, list);
+	SCCP_LIST_UNLOCK(&GLOB(sessions));
+}
+
+/*!
+ * \brief Socket Process Data
+ * \note Called with mutex lock
+ * \param s Session
+ */
+static sccp_moo_t * sccp_process_data(sccp_session_t * s) {
+	uint32_t packSize;
+	void * newptr = NULL;
+	sccp_moo_t * m;
+
+	if (s->buffer_size == 0)
+		return NULL;
+
+	memcpy(&packSize, s->buffer, 4);
+	packSize = letohl(packSize);
+
+	packSize += 8;
+
+	if ((packSize) > s->buffer_size)
+		return NULL; /* Not enough data, yet. */
+
+	m = ast_malloc(SCCP_MAX_PACKET);
+	if (!m) {
+		ast_log(LOG_WARNING, "SCCP: unable to allocate %zd bytes for skinny packet\n", SCCP_MAX_PACKET);
+		return NULL;
+	}
+
+	memset(m, 0, SCCP_MAX_PACKET);
+
+	if (packSize > SCCP_MAX_PACKET)
+		ast_log(LOG_WARNING, "SCCP: Oversize packet mid: %d, our packet size: %zd, phone packet size: %d\n", letohl(m->lel_messageId), SCCP_MAX_PACKET, packSize);
+
+	memcpy(m, s->buffer, (packSize < SCCP_MAX_PACKET ? packSize : SCCP_MAX_PACKET) );
+
+	s->buffer_size -= packSize;
+
+	if (s->buffer_size) {
+		newptr = ast_malloc(s->buffer_size);
+		if (newptr)
+			memcpy(newptr, (s->buffer + packSize), s->buffer_size);
+		else
+			ast_log(LOG_WARNING, "SCCP: unable to allocate %d bytes for packets buffer\n", s->buffer_size);
+	}
+
+	if (s->buffer)
+		ast_free(s->buffer);
+
+	s->buffer = newptr;
+
+	return m;
+}
+
+/*!
+ * \brief Socket Thread
+ * \param ignore None
+ */
+void * sccp_socket_thread(void * ignore) {
+	fd_set fset;
+	int res, maxfd = FD_SETSIZE;
+	time_t now;
+	sccp_session_t * s = NULL;
+	sccp_moo_t * m;
+	struct timeval tv;
+	sigset_t sigs;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+	sigemptyset(&sigs);
+	sigaddset(&sigs, SIGHUP);
+	sigaddset(&sigs, SIGTERM);
+	sigaddset(&sigs, SIGINT);
+	sigaddset(&sigs, SIGPIPE);
+	sigaddset(&sigs, SIGWINCH);
+	sigaddset(&sigs, SIGURG);
+//	pthread_sigmask(SIG_BLOCK, &sigs, NULL);
+
+	FD_ZERO(&active_fd_set);
+	FD_SET(GLOB(descriptor), &active_fd_set);
+	maxfd = GLOB(descriptor);
+	uint8_t keepaliveAdditionalTime = 0;
+
+	while (GLOB(descriptor) > -1)
+	{
+		fset = active_fd_set;
+		tv.tv_sec = 0;
+		tv.tv_usec = 500000;
+		res = select(maxfd + 1, &fset, 0, 0, &tv);
+		maxfd = GLOB(descriptor);
+
+		if (res == -1) {
+			ast_log(LOG_ERROR, "SCCP select() returned -1. errno: %s\n", strerror(errno));
+			continue;
+		}
+
+		now = time(0);
+		SCCP_LIST_LOCK(&GLOB(sessions));
+		SCCP_LIST_TRAVERSE(&GLOB(sessions), s, list) {
+	    	keepaliveAdditionalTime = 10;
+			if (s->fd > 0) {
+				if (s->fd > maxfd)
+					maxfd = s->fd;
+				/* we give the device a little delay after the TCP connection to start sending registration packets */
+				if (!FD_ISSET(s->fd, &active_fd_set) && now > s->lastKeepAlive + 1)
+					FD_SET(s->fd, &active_fd_set);
+				if (FD_ISSET(s->fd, &fset)) {
+					sccp_read_data(s);
+					while ((m = sccp_process_data(s))) {
+						if (!sccp_handle_message(m, s)) {
+							sccp_session_close(s);
+						}
+					}
+				}
+			}
+			if (s->fd > 0) {
+				/* we increase additionalTime for wireless devices */
+				if(s->device && (s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920
+									|| s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921
+									|| s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925)){
+					keepaliveAdditionalTime = 30;
+
+				}
+
+				if (s->device && s->device->keepalive && (now > ((s->lastKeepAlive + s->device->keepalive) + keepaliveAdditionalTime) ) ) {
+					ast_log(LOG_WARNING, "%s: Device lastKeepAlive %s, now %s\n", (s->device) ? s->device->id : "SCCP", ctime(&s->lastKeepAlive), ctime(&now));
+					ast_log(LOG_WARNING, "%s: Dead device does not send a keepalive message in %d+%d seconds. Will be removed\n", (s->device) ? s->device->id : "SCCP", GLOB(keepalive), keepaliveAdditionalTime);
+					sccp_session_close(s);
+				}
+			} else {
+				/* session is gone */
+				destroy_session(s);
+			}
+		}
+		SCCP_LIST_UNLOCK(&GLOB(sessions));
+
+		if ( (GLOB(descriptor)> -1) && FD_ISSET(GLOB(descriptor), &fset)) {
+			sccp_accept_connection();
+		}
+	}
+
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Exit from the socket thread\n");
+
+	return NULL;
+}
+
+
+/*!
+ * \brief Socket Send Message
+ * \param device device
+ * \param t Message
+ */
+void sccp_session_sendmsg(sccp_device_t *device, sccp_message_t t) {
+	if(!device || !device->session)
+		return;
+
+	sccp_moo_t * r = sccp_build_packet(t, 0);
+	if (r)
+		sccp_session_send(device, r);
+}
+
+/*!
+ * \brief Socket Send
+ * \param device Device
+ * \param r Message Data Structure (sccp_moo_t)
+ */
+int sccp_session_send(const sccp_device_t *device, sccp_moo_t * r) {
+	sccp_session_t *s =sccp_session_find(device);
+	return sccp_session_send2(s, r);
+}
+
+/*!
+ * \brief Socket Send Message
+ * \param s Session - can be null
+ * \param r Message - will be freed
+ * \return Result as Int
+ */
+int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
+	ssize_t res;
+
+	if (!s || s->fd <= 0) {
+		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Tried to send packet over DOWN device.\n");
+		ast_free(r);
+		r = NULL;
+		return -1;
+	}
+//	if(!s->device){
+//		ast_free(r);
+//		return -1;
+//	}
+	sccp_session_lock(s);
+
+	/* This is a just a test */
+	if(s->device && s->device->inuseprotocolversion >= 17)
+		r->lel_reserved = htolel(s->device->inuseprotocolversion);
+	else
+		r->lel_reserved = 0;
+
+	res = 1;
+	sccp_log(3)(VERBOSE_PREFIX_3 "%s: Sending Packet Type %s (%d bytes)\n", s->device->id, sccpmsg2str(letohl(r->lel_messageId)), letohl(r->length));
+	res = write(s->fd, r, (size_t)(letohl(r->length) + 8));
+	sccp_session_unlock(s);
+	if (res != (ssize_t)(letohl(r->length) + 8)) {
+/*		ast_log(LOG_WARNING, "SCCP: Only managed to send %d bytes (out of %d): %s\n", res, letohl(r->length) + 8, strerror(errno)); */
+		res = 0;
+	}
+
+	ast_free(r);
+	return res;
+}
+
+/*!
+ * \brief Find session for device
+ * \param device Device
+ * \return session as sccp_session_t
+ */
+sccp_session_t * sccp_session_find(const sccp_device_t *device){
+	sccp_session_t *session = NULL;
+	if(!device)
+		return NULL;
+
+	//SCCP_LIST_LOCK(&GLOB(sessions));
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
+		if(session->device && session->device == device)
+			break;
+	}
+	SCCP_LIST_TRAVERSE_SAFE_END;
+	//SCCP_LIST_UNLOCK(&GLOB(sessions));
+	return session;
+}
+
+/**
+ * \brief send a reject message to device.
+ * \param session session pointer
+ * \param message reason of rejection
+ */
+void sccp_session_reject(sccp_session_t *session, char *message){
+	sccp_moo_t 		* r;
+	REQ(r, RegisterRejectMessage);
+	sccp_copy_string(r->msg.RegisterRejectMessage.text, message, sizeof(r->msg.RegisterRejectMessage.text));
+	sccp_session_send2(session, r);
+}
+
+/**
+ * \brief get the in_addr for specific device.
+ * \param device pointer to device (can be null)
+ * \param type in {AF_INET, AF_INET6}
+ * \return
+ */
+struct in_addr * sccp_session_getINaddr(sccp_device_t *device, int type){
+	sccp_session_t *s = sccp_session_find(device);
+	if(!s)
+		return NULL;
+
+	switch (type) {
+		case AF_INET:
+			return &s->sin.sin_addr;
+			break;
+		case AF_INET6:
+			//return &s->sin6.sin6_addr;
+			return NULL;
+			break;
+		default:
+			return NULL;
+			break;
+	}
+}
+
