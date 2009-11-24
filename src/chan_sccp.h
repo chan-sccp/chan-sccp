@@ -863,6 +863,12 @@ sccp_device_t *sccp_deviceTemplate;
  */
 sccp_line_t *sccp_lineTemplate;
 
+#ifndef ASTERISK_CONF_1_2
+void *sccp_create_hotline(void);
+#endif
+
+void sccp_createTemplateDevice(void);
+void sccp_createTemplateLine(void);
 
 uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s);
 
@@ -874,6 +880,9 @@ struct ast_channel *sccp_request(const char *type, int format, void *data, int *
 struct ast_channel *sccp_request(char *type, int format, void *data);
 #endif
 int sccp_devicestate(void *data);
+
+
+
 
 #ifndef ASTERISK_CONF_1_2
 enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo, struct ast_channel **rc, int timeoutms);
