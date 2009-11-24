@@ -1,4 +1,0 @@
-example:
-
-button= feature,forward all calls to mobile,CFWD_ALL,44
-button= feature,test

@@ -1,8 +1,0 @@
---- chan_sccp-20071009-DD/sccp_pbx.c        2007-10-30 18:05:42.910102970 +0100
-+++ chan_sccp-20071009-DD.mod/sccp_pbx.c    2007-11-02 09:10:02.028890828 +0100
-@@ -743,7 +743,7 @@
-                return NULL;
-        }
-
--       if (strncmp(c->device->id,"SEP",3)!=0 && strncmp(c->device->id,"ATA",3)!=0) {
-+       if (strlen(c->device->id)<3 || (strncmp(c->device->id,"SEP",3)!=0 && strncmp(c->device->id,"ATA",3)!=0)) {
