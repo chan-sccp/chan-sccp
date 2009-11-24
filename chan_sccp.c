@@ -611,10 +611,10 @@ sccp_line_t * build_lines_wo(struct ast_variable *v, uint8_t realtime) {
 #ifdef CS_SCCP_REALTIME
  						l->realtime = realtime;
 #endif
-// 						SCCP_LIST_LOCK(&GLOB(lines));
-// 						SCCP_LIST_INSERT_HEAD(&GLOB(lines), l, list);
-// 						SCCP_LIST_UNLOCK(&GLOB(lines));
-// 						sccp_log(1)(VERBOSE_PREFIX_3 "chan_sccp.conf: Added line '%s'\n", l->name);
+ 						SCCP_LIST_LOCK(&GLOB(lines));
+ 						SCCP_LIST_INSERT_HEAD(&GLOB(lines), l, list);
+ 						SCCP_LIST_UNLOCK(&GLOB(lines));
+ 						sccp_log(1)(VERBOSE_PREFIX_3 "chan_sccp.conf: Added line '%s'\n", l->name);
  						return l;
  					}
  				} else {
