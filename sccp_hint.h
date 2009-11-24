@@ -16,6 +16,19 @@ typedef enum{ASTERISK=0, INTERNAL=1} sccp_hinttype_t;
 //#define SCCP_HINTSTATE_INUSE		1
 
 
+//struct sccp_hint {
+//	int hintid;											/*!< hint id from asterisk (only if asterisk system is used)*/
+//	sccp_device_t *device;								/*!< hint owner */
+//	uint8_t	instance;									/*!< instance (button instance) on owner device */
+//	char context[AST_MAX_CONTEXT];						/*!< context for hint */
+//	char exten[AST_MAX_EXTENSION];
+//	sccp_hinttype_t state;								/*!< current state */
+//
+//	char hint_dialplan[256];							/*!< e.g. IAX2/station123 */
+//	pthread_t notificationThread;						/*!< thread for updating call informations */
+//	SCCP_LIST_ENTRY(sccp_hint_t) list;
+//};
+
 
 typedef struct sccp_hint_SubscribingDevice sccp_hint_SubscribingDevice_t;
 struct sccp_hint_SubscribingDevice{

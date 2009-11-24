@@ -541,23 +541,22 @@ static int sccp_show_channels(int fd, int argc, char * argv[]) {
 	sccp_channel_t * c;
 	sccp_line_t * l;
 
-	ast_cli(fd, "\n%-5s %-10s %-16s %-16s %-16s %-10s %-10s %-10s\n", "ID","LINE","DEVICE","AST STATE","SCCP STATE","CALLED", "CODEC", "PassThruId");
-	ast_cli(fd, "===== ========== ================ ================ ================ ========== =============== ==========\n");
+	ast_cli(fd, "\n%-5s %-10s %-16s %-16s %-16s %-10s %-10s\n", "ID","LINE","DEVICE","AST STATE","SCCP STATE","CALLED", "CODEC");
+	ast_cli(fd, "===== ========== ================ ================ ================ ========== ==========\n");
 
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
 		sccp_line_lock(l);
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-			ast_cli(fd, "%.5d %-10s %-16s %-16s %-16s %-10s %-15s %-10u\n",
+			ast_cli(fd, "%.5d %-10s %-16s %-16s %-16s %-10s %-10s\n",
 				c->callid,
 				c->line->name,
 				(c->device)?c->device->description:"(unknown)",
 				(c->owner) ? ast_state2str(c->owner->_state) : "(none)",
 				sccp_indicate2str(c->state),
 				c->calledPartyNumber,
-				(c->format)?skinny_codec2str(sccp_codec_ast2skinny(c->format)):"(none)",
-				c->passthrupartyid);
+				(c->format)?skinny_codec2str(sccp_codec_ast2skinny(c->format)):"(none)");
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
 		sccp_line_unlock(l);
@@ -727,6 +726,8 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 		// sccp_line_lock(l);
 
 		c = NULL;
+//		d = l->device;
+		//TODO handle shared line
 		d = NULL;
 
 		if (d) {

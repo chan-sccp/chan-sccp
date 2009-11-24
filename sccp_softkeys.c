@@ -1,44 +1,26 @@
-/*!
- * \file 	sccp_softkeys_b.c
- * \brief 	SCCP SoftKeys
- * \author 	Sergio Chersovani <mlists [at] c-net.it>
- * \date
- * \note	Reworked, but based on chan_sccp code.
- *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *        	Modified by Jan Czmok and Julien Goodwin
- * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- * \version 	$LastChangedDate$
- * \todo
- * 
+/*
+ * (SCCP*)
+ *
+ * An implementation of Skinny Client Control Protocol (SCCP)
+ *
+ * Sergio Chersovani (mlists@c-net.it)
+ *
+ * Reworked, but based on chan_sccp code.
+ * The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ * Modified by Jan Czmok and Julien Goodwin
+ *
+ * This program is free software and may be modified and
+ * distributed under the terms of the GNU Public License.
  */
 
-/*!
- * \page sccp_softkeys  Defined SoftKeys
+/**
+ * \page intro_sk SoftKeys
+ * \ref sk_select The SELECT softkey <br />
+ * \ref sk_DirTrfr The DirTrfr softkey
  *
- * \ref sk_redial		\n
- * \ref sk_newcall		\n
- * \ref sk_hold			\n
- * \ref sk_resume		\n
- * \ref sk_transfer		\n
- * \ref sk_endcall		\n
- * \ref sk_dnd			\n
- * \ref sk_backspace		\n
- * \ref sk_answer		\n
- * \ref sk_select		\n
- * \ref sk_DirTrfr		\n
- * \ref sk_cfwdall		\n
- * \ref sk_cfwdbusy		\n
- * \ref sk_cfwdnoanswer		\n
- * \ref sk_park			\n
- * \ref sk_private		\n
- * \ref sk_conference		\n
- * \ref sk_join			\n
- * \ref sk_barge		\n
- * \ref sk_cbarge		\n
- * \ref sk_meetme		\n
- * \ref sk_pickup		\n
- * \ref sk_gpickup		\n
+ *
  */
+
 
 #include "config.h"
 
@@ -73,20 +55,6 @@
 #include <asterisk/stringfields.h>
 #endif
 
-/*!
- * \page sk_redial 		The Redial SoftKey
- * \section sk_Redial_howto 	How to use the Redial Softkey
- *
- * Using the Redial Button you can Redial the last Called Number on this Line or Device
- */
- 
-/*!
- * \brief Redial last Dialed Number by this Device
- * \n Usage: \ref sk_redial
- * \param s Session
- * \param lineinst Line Instance as uint32_t
- * \param callid CallID as uint32_t
- */
 void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, sccp_channel_t * c) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Redial Softkey.\n",d->id);
 
@@ -114,20 +82,6 @@ void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, sccp_channel_t * c) {
 	sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND);
 }
 
-/*!
- * \page sk_newcall 		The NewCall SoftKey
- * \section sk_NewCall_howto 	How to use the NewCall Softkey
- *
- * Using the New Call Button you can initiate a new Call just like picking up the receiver. 
- * You can either type in the number to be called before or afterwards.
- */
-/*!
- * \brief Initiate a New Call
- * \n Usage: \ref sk_newcall
- * \param s Session
- * \param lineinst Line Instance as uint32_t
- * \param callid CallID as uint32_t
- */
 void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	if (!l){
 		/* use default line if it is set */
@@ -142,21 +96,6 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
 }
 
-
-/*!
- * \page sk_hold 		The Hold SoftKey
- * \section sk_Hold_howto 	How to use the Hold Softkey
- *
- * Using the Hold Button you can hold the current line and undertake some other action
- * You can later resume the held line use \ref sk_resume
- */
-/*!
- * \brief Hold Call on Current Line
- * \n Usage: \ref sk_hold
- * \param d Device
- * \param line Line
- * \param c Channel
- */
 void sccp_sk_hold(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	if (!c) {
 		sccp_dev_displayprompt(d, 0, 0, "No call to put on hold.",5);
@@ -165,19 +104,6 @@ void sccp_sk_hold(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_channel_hold(c);
 }
 
-/*!
- * \page sk_resume 		The Resume SoftKey
- * \section sk_Resume_howto 	How to use the Resume Softkey
- *
- * Using the Resume Button you can resume a previously help line which has been put on hold using \ref sk_hold
- */
-/*!
- * \brief Resume Call on Current Line
- * \n Usage: \ref sk_resume
- * \param d Device
- * \param line Line
- * \param c Channel
- */
 void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	if (!c) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: No call to resume. Ignoring\n", d->id);
@@ -186,19 +112,6 @@ void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_channel_resume(d, c);
 }
 
-/*!
- * \page sk_transfer 		The Transfer SoftKey
- * \section sk_Resume_howto 	How to use the Transfer Softkey
- *
- * Using the Transfer Button you can Transfer the Currentline to another Number
- */
-/*!
- * \brief Transfer Call on Current Line
- * \n Usage: \ref sk_transfer
- * \param d Device
- * \param line Line
- * \param c Channel
- */
 void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	if (!c) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Transfer when there is no active call\n", d->id);
@@ -207,19 +120,6 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_channel_transfer(c);
 }
 
-/*!
- * \page sk_endcall 		The End Call SoftKey
- * \section sk_endcall_howto 	How to use the End Call Softkey
- *
- * Using the End Call Button you can End the Call on the Current Line
- */
-/*!
- * \brief End Call on Current Line
- * \n Usage: \ref sk_endcall
- * \param d Device
- * \param line Line
- * \param c Channel
- */
 void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	if (!c) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Endcall with no call in progress\n", d->id);
@@ -228,20 +128,7 @@ void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_channel_endcall(c);
 }
 
-/*!
- * \page sk_dnd 		The Do Not Disturb (DND) SoftKey
- * \section sk_dnd_howto 	How to use the Do Not Disturb (DND) Softkey
- *
- * Using the Do Not Disturb (DND) Button you set your device/line to the Do Not Disturb Status. 
- * When receiving a call your phone will not ring and the People Call You Will get a Busy Signal
- */
-/*!
- * \brief Set DND on Current Line if Line is Active otherwise set on Device
- * \n Usage: \ref sk_dnd
- * \param d Device
- * \param line Line
- * \param c Channel
- */
+
 void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	/* actually the line param is not used */
 	sccp_line_t * l1 = NULL;
@@ -296,19 +183,6 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 }
 
 
-/*!
- * \page sk_backspace 		The BackSpace SoftKey
- * \section sk_backspace_howto 	How to use the BackSpace (<<) Softkey
- *
- * Using the backspace (<<) Button you can erase the last entered digit/character
- */
-/*!
- * \brief BackSpace Last Entered Number
- * \n Usage: \ref sk_backspace
- * \param d Device
- * \param line Line
- * \param c Channel
- */
 void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	int len;
 	int instance;
@@ -356,38 +230,16 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_handle_backspace(d, instance, c->callid);
 }
 
-
-/*!
- * \page sk_answer 		The Answer SoftKey
- * \section sk_Answer_howto 	How to use the Answer Softkey
- *
-+ * Using the Answer Button you can Answer an Incoming Call
- */
-/*!
- * \brief Answer Incoming Call
- * \n Usage: \ref sk_answer
- * \param d Device
- * \param line Line
- * \param c Channel
- */
 void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_channel_answer(d, c);
 }
 
 
-/*!
- * \page sk_DirTrfr 		The DirTrfr SoftKey
- * \section sk_DirTrfr_howto 	How to use the DirTrfr
+/**
+ * bridge two selected channels
+ * \page sk_DirTrfr DirTrfr
+ * \section sk_DirTrfr_howto How to use the DirTrfr
  *
- * When two channels have been selected using the Select SoftKey (\ref sk_select) then
- * using the DirTrfr SoftKey can be used to Connect Both Lines to one another (bridging both channels).
- */
-/*!
- * \brief Bridge two selected channels
- * \n Usage: \ref sk_DirTrfr
- * \param d Device
- * \param line Line
- * \param c Channel
  */
 void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 
@@ -433,23 +285,22 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 }
 
 
-/*!
- * \page sk_select 		The Select SoftKey
- * \section sk_select_howto 	How to use the select softkey
+/**
  *
- * The "Select" softkey is used for bridging two channels (redirect).
+ * \page sk_select select
+ * \section sk_select_howto How to use the select softkey
+ *
+ * The "Select" softkey is used for bridging tow channels (redirect).
  * Select your first channel and press the select softkey. On the display this channel is marked
  * with a checkmark.
  * By selecting the second channel, it is also marked with a checkmark and the \ref sk_DirTrfr DirTrfr
  * is enabled. Press this key to bridge both channels.
  *
- **/
-/*!
- * \brief Select a Line for further processing by for example DirTrfr
- * \n Usage: \ref sk_select
- * \param d Device
- * \param line Line
- * \param c Channel
+ *
+ *
+ *
+ *
+ *
  */
 void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_selectedchannel_t *x = NULL;
@@ -500,21 +351,6 @@ void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 
 }
 
-
-/*!
- * \page sk_cfwdall 		The Call Forward All (CFwdAll) SoftKey
- * \section sk_cfwdall_howto 	How to use the Call Forward All Button
- *
- * Using this Button you can set the current line / device to forward all incoming call to another number
- * This number can be another SCCP/SIP/IAX Device or even an external number (if permitted to call externally)
- */
-/*!
- * \brief Set Call Forward All on Current Line
- * \n Usage: \ref sk_cfwdall
- * \param d Device
- * \param line Line
- * \param c Channel
- */
 void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	if(!l && d) {
 		l = sccp_line_find_byid(d, 1);
@@ -524,23 +360,19 @@ void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	}else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
 
+	/*
+	if (!c || !c->owner) {
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Call forward with no channel active\n", d->id);
+		return;
+	}
+	if (c->state != SCCP_CHANNELSTATE_RINGOUT && c->state != SCCP_CHANNELSTATE_CONNECTED) {
+		sccp_line_cfwd(l, SCCP_CFWD_NONE, NULL);
+		return;
+	}
+	sccp_line_cfwd(l, SCCP_CFWD_ALL, c->dialedNumber);
+	*/
 }
 
-
-/*!
- * \page sk_cfwdbusy 		The Call Forward if Busy (CFwdBusy) SoftKey
- * \section sk_cfwdbusy_howto 	How to use the Call Forward if Busy Button
- *
- * Using this Button you can set the current line / device to forward incoming calls when busy to another number
- * This number can be another SCCP/SIP/IAX Device or even an external number (if permitted to call externally)
- */
-/*!
- * \brief Set Call Forward when Busy on Current Line
- * \n Usage: \ref sk_cfwdbusy
- * \param d Device
- * \param line Line
- * \param c Channel
- */
 void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	if(!l && d) {
 		l = sccp_line_find_byid(d, 1);
@@ -549,23 +381,20 @@ void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		sccp_feat_handle_callforward(l, d, SCCP_CFWD_BUSY);
 	else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
+
+	/*
+	if (!c || !c->owner) {
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Call forward with no channel active\n", d->id);
+		return;
+	}
+	if (c->state != SCCP_CHANNELSTATE_RINGOUT && c->state != SCCP_CHANNELSTATE_CONNECTED) {
+		sccp_line_cfwd(l, SCCP_CFWD_NONE, NULL);
+		return;
+	}
+	sccp_line_cfwd(l, SCCP_CFWD_BUSY, c->dialedNumber);
+	*/
 }
 
-
-/*!
- * \page sk_cfwdnoanswer 		The Call Forward if No-Answer (CFwdBusy) SoftKey
- * \section sk_cfwdnoanswer_howto 	How to use the Call Forward if No-Answer Button
- *
- * Using this Button you can set the current line / device to forward incoming calls when you don't/can't answer to another number
- * This number can be another SCCP/SIP/IAX Device or even an external number (if permitted to call externally)
- */
-/*!
- * \brief Set Call Forward when No Answer on Current Line
- * \n Usage: \ref sk_cfwdnoanswer 
- * \param d Device
- * \param line Line
- * \param c Channel
- */
 void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	if(!l && d) {
 		l = sccp_line_find_byid(d, 1);
@@ -574,24 +403,12 @@ void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 		sccp_feat_handle_callforward(l, d, SCCP_CFWD_NOANSWER);
 	else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
+
+	/*
+	sccp_log(10)(VERBOSE_PREFIX_3 "### CFwdNoAnswer Softkey pressed - NOT SUPPORTED\n");
+	*/
 }
 
-
-/*!
- * \page sk_park 		The Park SoftKey
- * \section sk_park_howto 	How to use the Park Button
- *
- * Using the Park Button make it possible to Send a Call to the Asterisk Parking Lot
- * Channels parked in the Parking Lot can be Picked-Up by Another Phone Using the Pickup Button or the Pickup Number 
- * Configured in features.conf under pickupexten
- */
-/*!
- * \brief Park Call on Current Line
- * \n Usage: \ref sk_park
- * \param d Device
- * \param line Line
- * \param c Channel
- */
 void sccp_sk_park(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #ifdef CS_SCCP_PARK
 	sccp_channel_park(c);
@@ -600,40 +417,10 @@ void sccp_sk_park(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #endif
 }
 
-
-/*!
- * \page sk_transfer 		The Transfer SoftKey
- * \section sk_transfer_howto 	How to use the Transfer Button
- *
- * Using the Transfer Button gives you the possibily to Transfer the Current Line to a New Number
- * After pressing the Transfer button you are asked to Enter a New Number to which the Line will have to be transfered
- */
-/*!
- * \brief Transfer to VoiceMail on Current Line
- * \n Usage: \ref sk_transfer
- * \param d Device
- * \param line Line
- * \param c Channel
- */
 void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_feat_idivert(d, l, c);
 }
 
-
-/*!
- * \page sk_private 		The Private SoftKey
- * \section sk_private_howto 	How to use the Private Button
- *
- * Using the Private Button before dialing a New Outside Line will Prevent the Number dialed to be monitored by
- * Devices that use a HINT. It does not prevent the number turning up in Asterisk Logging or the Console Window.
- */
-/*!
- * \brief Initiate Private Call on Current Line
- * \n Usage: \ref sk_private
- * \param d Device
- * \param line Line
- * \param c Channel
- */
 void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	uint8_t	instance;
 
@@ -658,63 +445,14 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_mutex_unlock(&c->lock);
 }
 
-/*!
- * \page sk_conference 		The Conference SoftKey
- * \section sk_conference_howto 	How to use the Conference Button
- *
- * Using the Conference Button makes it possible to set up a Simple Three Way Conference. There are two ways this can be done:
- * Option 1: You Already have to Lines Occupied (One is active and the other Held), which you would like to put in a Conference; Simple Press the Conference Button
- * Option 2: You have one line Occupied and would like to call Someone else and Join them all into a Conference;
- *           Press the Conference Button and you will be asked for the 3 party number which need to be added to the conference, 
- *           once this line is connected, you press the Conference Button Again and the Conference Starts.
- */
-/*!
- * \brief Put Current Line into Conference
- * \n Usage: \ref sk_conference
- * \param d Device
- * \param line Line
- * \param c Channel
- * \todo Conferencing option needs to be build and implemented
- *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
- */
 void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_feat_conference(d, l, c);
 }
 
-
-/*!
- * \page sk_join 		The Join SoftKey
- * \section sk_join_howto 	How to use the Join Button
- *
- * Using the Join Button makes it possible to Add another member/line to an already running Conference
- * When you are in a conference and you receive an Incoming Call you can join this channel/line to the running Conference
- */
-/*!
- * \brief Join Current Line to Conference
- * \n Usage: \ref sk_join
- * \param d Device
- * \param line Line
- * \param c Channel
- * \todo Conferencing option needs to be build and implemented
- */
 void sccp_sk_join(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_feat_join(d, l, c);
 }
 
-
-/*!
- * \page sk_barge  		The Barge SoftKey
- * \section sk_barge_howto 	How to use the Barge Button
- *
- * Using the Barge Button makes it possible to listen in on an On-Going Call on another Line / Device
- */
-/*!
- * \brief Barge into Call on the Current Line
- * \n Usage: \ref sk_barge
- * \param d Device
- * \param line Line
- * \param c Channel
- */
 void sccp_sk_barge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	if(!l && d) {
 		l = sccp_line_find_byid(d, 1);
@@ -725,19 +463,6 @@ void sccp_sk_barge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
 }
 
-/*!
- * \page sk_cbarge 		The Cbarge SoftKey
- * \section sk_cbarge_howto 	How to use the Cbarge Button
- *
- * Using the Barge Button makes it possible to listen in on an On-Going Call on another Channel
- */
-/*!
- * \brief Barge into Call on the Current Line
- * \n Usage: \ref sk_cbarge
- * \param d Device
- * \param line Line
- * \param c Channel
- */
 void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	if(!l && d) {
 		l = sccp_line_find_byid(d, 1);
@@ -748,26 +473,6 @@ void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
 }
 
-/*!
- * \page sk_meetme 		The Meetme SoftKey
- * \section sk_meetme_howto 	How to use the Meetme Button
- *
- * Using the Conference Button makes it possible to set up a Simple Three Way Conference. There are two ways this can be done:
- * Option 1: You Already have to Lines Occupied (One is active and the other Held), which you would like to put in a Conference; Simple Press the Conference Button
- * Option 2: You have one line Occupied and would like to call Someone else and Join them all into a Conference;
- *           Press the Conference Button and you will be asked for the 3 party number which need to be added to the conference, 
- *           once this line is connected, you press the Conference Button Again and the Conference Starts.
- * \sa sk_conference
- */
-/*!
- * \brief Put Current Line in to Meetme Conference
- * \n Usage: \ref sk_meetme
- * \param d Device
- * \param line Line
- * \param c Channel
- * \todo Conferencing option needs to be build and implemented 
- *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
- */
 void sccp_sk_meetme(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	if(!l && d) {
 		l = sccp_line_find_byid(d, 1);
@@ -779,21 +484,6 @@ void sccp_sk_meetme(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 }
 
 
-
-/*!
- * \page sk_pickup 		The Pickup SoftKey
- * \section sk_pickup_howto 	How to use the Pickup Button
- *
- * Using the Pickup Button Makes it possible to Pickup a Parked Call from the Parking Lot
- * This is equivalent to using the keys defined in features.conf under pickupexten
-*/
-/*!
- * \brief Pickup Parked Call
- * \n Usage: \ref sk_pickup
- * \param d Device
- * \param line Line
- * \param c Channel
- */
 void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #ifndef CS_SCCP_PICKUP
 	sccp_log(10)(VERBOSE_PREFIX_3 "### Native EXTENSION PICKUP was not compiled in\n");
@@ -808,21 +498,6 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #endif
 }
 
-
-/*!
- * \page sk_gpickup 		The GPickup SoftKey
- * \section sk_gpickup_howto 	How to use the Group Pickup Button
- *
- * Using the GroupPickup Button Makes it possible to Pickup a Ringing Line in defined in your PickupGroup
- * This is equivalent to using the keys defined in features.conf under pickupexten
- */
-/*!
- * \brief Pickup Ringing Line from Pickup Group
- * \n Usage: \ref sk_gpickup
- * \param d Device
- * \param line Line
- * \param c Channel
- */
 void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #ifndef CS_SCCP_PICKUP
 	sccp_log(10)(VERBOSE_PREFIX_3 "### Native GROUP PICKUP was not compiled in\n");

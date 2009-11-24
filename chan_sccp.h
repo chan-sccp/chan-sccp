@@ -395,6 +395,7 @@ struct sccp_line {
 #ifdef CS_DYNAMIC_CONFIG
 // this is for reload routines
 	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
+	sccp_line_t				pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
 
 	int capability;
@@ -433,6 +434,7 @@ struct sccp_speed {
 	SCCP_LIST_ENTRY(sccp_speed_t) list;
 #ifdef CS_DYNAMIC_CONFIG
 	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
+	sccp_speed_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
 };
 
@@ -564,7 +566,9 @@ struct sccp_device {
 
 #ifdef CS_DYNAMIC_CONFIG
 	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-//	sccp_device_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+	sccp_device_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+
+	SCCP_LIST_ENTRY(sccp_device_t) list;
 #endif
 
 	boolean_t 		isAnonymous;
@@ -593,7 +597,7 @@ struct sccp_addon {
 	sccp_device_t * device;
 #ifdef CS_DYNAMIC_CONFIG
 	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-//	sccp_addon_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+	sccp_addon_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
 
 
@@ -657,7 +661,7 @@ struct sccp_channel {
 	uint8_t		ss_data; /* simple switch integer param */
 #ifdef CS_DYNAMIC_CONFIG
 	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-//	sccp_channel_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+	sccp_channel_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
 
 	/* feature sets */
@@ -756,15 +760,12 @@ struct sccp_global_vars {
 #endif
 #ifdef CS_DYNAMIC_CONFIG
 	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-//	struct sccp_global_vars	pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+	struct sccp_global_vars	pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
 
 	pthread_t				mwiMonitorThread; // MC
 	boolean_t				allowAnonymus;		/*!< allow anonymous/unknown devices */
 	sccp_hotline_t				*hotline;
-	
-	boolean_t			pushPlacedCalls;		/*!< mark as placed call on remote device */
-	boolean_t			pushReceivedCalls;		/*!< mark as received call on remote device */
 };
 
 
@@ -810,13 +811,6 @@ struct sccp_hotline {
 
 struct sccp_global_vars *sccp_globals;
 
-#ifndef ASTERISK_CONF_1_2
-struct sched_context *sched;
-struct io_context *io;
-#endif
-
-
-
 uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s);
 
 #ifdef CS_AST_HAS_TECH_PVT
@@ -824,14 +818,27 @@ struct ast_channel *sccp_request(const char *type, int format, void *data, int *
 #else
 struct ast_channel *sccp_request(char *type, int format, void *data);
 #endif
+
 int sccp_devicestate(void *data);
 
+
+sccp_device_t *build_devices_wo(struct ast_variable *v, uint8_t realtime);
+#define build_devices(x) build_devices_wo(x, 0)
+
+sccp_line_t * build_lines_wo(struct ast_variable *v, uint8_t realtime);
+#define build_lines(x) build_lines_wo(x, 0)
+
+
 #ifndef ASTERISK_CONF_1_2
-enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo, struct ast_channel **rc, int timeoutms);
+struct sched_context *sched;
+struct io_context *io;
+
 void * sccp_do_monitor(void *data); // ADDED IN SVN 414 -FS
 int sccp_restart_monitor(void); // ADDED IN SVN 414 -FS
 #endif
-
+#ifndef ASTERISK_CONF_1_2
+enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo, struct ast_channel **rc, int timeoutms);
+#endif
 
 static inline unsigned char sccp_is_nonempty_string(char *string) {
 	if(NULL != string) {

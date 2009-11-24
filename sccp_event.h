@@ -11,8 +11,6 @@
 
 #include "chan_sccp.h"
 
-#define EVENT(x) sccp_event_create(x)
-
 /* structures */
 
 /** event types to notify modular systems */
@@ -28,7 +26,7 @@ typedef enum {
 
 
 typedef struct sccp_event sccp_event_t;
-typedef void* (*sccp_event_callback_t)(sccp_event_t *event);
+typedef void (*sccp_event_callback_t)(const sccp_event_t **event);
 
 struct sccp_event{
 	sccp_event_type_t	type;
@@ -36,11 +34,9 @@ struct sccp_event{
 		struct{
 			sccp_line_t 	*line;
 		} lineCreated;
-		
 		struct{
 			sccp_device_t 	*device;
 		} deviceRegistered;
-		
 		struct{
 			sccp_line_t 	*line;
 			sccp_device_t	*device;
@@ -72,7 +68,6 @@ struct sccp_event_subscriptions *sccp_event_listeners;
 void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb,
 			     const char *file, const char *caller, int line);
 
-void sccp_event_fire(sccp_event_t *event);
-sccp_event_t *sccp_event_create(sccp_event_type_t eventType);
+void sccp_event_fire(const sccp_event_t **event);
 
 #endif /* SCCP_EVENT_H_ */

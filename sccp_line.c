@@ -1,21 +1,17 @@
-/*!
- * \file 	sccp_line.c
- * \brief 	SCCP Line
- * \author 	Sergio Chersovani <mlists [at] c-net.it>
- * \date
- * \note	Reworked, but based on chan_sccp code.
- *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *        	Modified by Jan Czmok and Julien Goodwin
- * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- * \version 	$LastChangedDate$
- * \todo
- * 
+/*
+ * (SCCP*)
+ *
+ * An implementation of Skinny Client Control Protocol (SCCP)
+ *
+ * Sergio Chersovani (mlists@c-net.it)
+ *
+ * Reworked, but based on chan_sccp code.
+ * The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ * Modified by Jan Czmok and Julien Goodwin
+ *
+ * This program is free software and may be modified and
+ * distributed under the terms of the GNU Public License.
  */
-
-/*!
- * \page sccp_line  Line
- */
-
 
 #include "config.h"
 
@@ -53,16 +49,10 @@ sccp_line_t * sccp_line_create(void) {
 	SCCP_LIST_HEAD_INIT(&l->channels);
 	SCCP_LIST_HEAD_INIT(&l->devices);
 	SCCP_LIST_HEAD_INIT(&l->mailboxes);
-
-	return sccp_line_applyDefaults(l);
+	return sccp_line_applayDefaults(l);
 }
 
-/*!
- * \brief Applay default configuration to line
- * \param l Line
- * \return line
- */
-sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l){
+sccp_line_t *sccp_line_applayDefaults(sccp_line_t *l){
 	if(!l)
 		return NULL;
 
@@ -89,11 +79,8 @@ sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l){
 }
 
 
-/*!
- * \brief Kill all Channels of a specific Line
- * \param l Line
- * \note Should be Called with a lock on l->lock
- */
+/* Kills a line's channels. */
+/* Called with a lock on l->lock */
 void sccp_line_kill(sccp_line_t * l) {
 	sccp_channel_t * c;
 
@@ -106,11 +93,7 @@ void sccp_line_kill(sccp_line_t * l) {
 	}
 	SCCP_LIST_UNLOCK(&l->channels);
 }
-/*!
- * \brief Delete a line
- * \param l Line
- * \note Should be Called without a lock on l->lock
- */
+
 void sccp_line_delete_nolock(sccp_line_t * l) {
 
 	sccp_device_t 		*d;
@@ -130,6 +113,10 @@ void sccp_line_delete_nolock(sccp_line_t * l) {
 				continue;
 			d = linedevice->device;
 
+			/* remove the line from the device lines list */
+			//SCCP_LIST_LOCK(&d->lines);
+			//SCCP_LIST_REMOVE(&d->lines, l, listperdevice);
+			//SCCP_LIST_UNLOCK(&d->lines);
 			sccp_device_lock(d);
 			d->linesCount--;
 			sccp_device_unlock(d);
@@ -169,11 +156,8 @@ void sccp_line_delete_nolock(sccp_line_t * l) {
 
 	ast_free(l);
 }
-/*!
- * \brief Set a Call Forward on a specific Line
- * \param l Line
- * \param type Call Forward Type as uint8_t
- * \param number Number to which should be forwarded
+/**
+ *
  * \todo we should check, that extension is reachable on line
  */
 void sccp_line_cfwd(sccp_line_t * l, uint8_t type, char * number) {
@@ -201,6 +185,7 @@ void sccp_line_cfwd(sccp_line_t * l, uint8_t type, char * number) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call Forward enabled on line %s to number %s\n", l->name, l->name, number);
 		}
 	}
+	// sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, l->instance, 0, 0);
 
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
 		if(linedevice && linedevice->device){
@@ -208,16 +193,12 @@ void sccp_line_cfwd(sccp_line_t * l, uint8_t type, char * number) {
 			sccp_dev_dbput(linedevice->device);
 			sccp_dev_starttone(linedevice->device, SKINNY_TONE_ZIPZIP, 0, 0, 0);
 
-			/* notify feature changes */
+
 			sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDALL);
 		}
 	}
 }
-/*!
- * \brief Attach device to line
- * \param l Line
- * \param device Device
- */
+
 void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device){
 	sccp_linedevices_t *linedevice;
 	if(!l || !device)
@@ -237,19 +218,16 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device){
 	sccp_line_unlock(l);
 
 
-	/* fire event for new device */
-	sccp_event_t *event = EVENT(SCCP_EVENT_DEVICEATTACHED);
+	// fire event for new device
+	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
+	memset(event, 0, sizeof(sccp_event_t));
 
-	event->event.deviceAttached.device = device;
+	event->type=SCCP_EVENT_DEVICEATTACHED;
 	event->event.deviceAttached.line = l;
-	sccp_event_fire(event);
+	event->event.deviceAttached.device = device;
+	sccp_event_fire((const sccp_event_t**)&event);
 }
-/*!
- * \brief Remove device from line
- * Fire SCCP_EVENT_DEVICEDETACHED event after removing device.
- * \param l Line
- * \param device Device
- */
+
 void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device){
 	sccp_linedevices_t *linedevice;
 
@@ -260,32 +238,25 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device){
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 		if (linedevice->device == device) {
+			SCCP_LIST_LOCK(&l->devices);
+			SCCP_LIST_REMOVE(&l->devices, linedevice, list);
+			SCCP_LIST_UNLOCK(&l->devices);
+
+			sccp_line_lock(l);
+			l->statistic.numberOfActiveDevices--;
+			sccp_line_unlock(l);
+			ast_free(linedevice);
 			break;
 		}
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
-	
-	if(linedevice){
-	    	SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_REMOVE(&l->devices, linedevice, list);
-		SCCP_LIST_UNLOCK(&l->devices);
-
-		sccp_line_lock(l);
-		l->statistic.numberOfActiveDevices--;
-		sccp_line_unlock(l);
-		ast_free(linedevice);
-		linedevice = NULL;
-	}else{
-		ast_log(LOG_NOTICE, "Removing device %s that is not part of line %s\n", DEV_ID_LOG(device), l->name);
-	}
 	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
 	memset(event, 0, sizeof(sccp_event_t));
 
 	event->type=SCCP_EVENT_DEVICEDETACHED;
 	event->event.deviceAttached.line = l;
 	event->event.deviceAttached.device = device;
-	sccp_event_fire(event);
-	
+	sccp_event_fire((const sccp_event_t**)&event);
 }
 
 void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t *channel){
@@ -316,6 +287,4 @@ void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t *channel){
 
 	SCCP_LIST_REMOVE(&l->channels, channel, list);
 }
-
-
 

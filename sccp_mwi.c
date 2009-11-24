@@ -286,10 +286,9 @@ void sccp_mwi_check(sccp_device_t *device){
 	sccp_line_t		*line = NULL;
 	uint hasNewMessage = 0;
 
-	if(!device)
+	if(!device || sccp_device_lock(device))
 		return;
 
-	sccp_device_lock(device);
 	device->voicemailStatistic.newmsgs = 0;
 	device->voicemailStatistic.oldmsgs = 0;
 
@@ -321,17 +320,17 @@ void sccp_mwi_check(sccp_device_t *device){
 	sccp_device_unlock(device);
 }
 
-void *sccp_mwi_deviceAttachedEvent(sccp_event_t *event){
-	if(!event)
-		return NULL;
+void sccp_mwi_deviceAttachedEvent(const sccp_event_t **event){
+	if(!(*event))
+		return;
 
 	sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_1 "Get deviceAttachedEvent\n");
-	sccp_line_t *line = event->event.deviceAttached.line;
-	sccp_device_t *device = event->event.deviceAttached.device;
+	sccp_line_t *line = (*event)->event.deviceAttached.line;
+	sccp_device_t *device = (*event)->event.deviceAttached.device;
 
 	if(!line || !device){
 		ast_log(LOG_ERROR, "get deviceAttachedEvent where one parameter is missing. device: %s, line: %s\n", DEV_ID_LOG(device), (line)?line->name:"null");
-		return NULL;
+		return;
 	}
 
 	sccp_device_lock(device);
@@ -339,22 +338,21 @@ void *sccp_mwi_deviceAttachedEvent(sccp_event_t *event){
 	device->voicemailStatistic.newmsgs += line->voicemailStatistic.newmsgs;
 	sccp_device_unlock(device);
 	//sccp_mwi_setMWILineStatus(device, line); /* set mwi-line-status */
-	return NULL;
 }
 
 
-void *sccp_mwi_linecreatedEvent(sccp_event_t *event){
-	if(!event)
-		return NULL;
+void sccp_mwi_linecreatedEvent(const sccp_event_t **event){
+	if(!(*event))
+		return;
 
 	sccp_mailbox_t *mailbox;
-	sccp_line_t *line = event->event.lineCreated.line;
+	sccp_line_t *line = (*event)->event.lineCreated.line;
 	
 	sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_1 "Get linecreatedEvent\n");
 
 	if(!line){
 		ast_log(LOG_ERROR, "Get linecreatedEvent, but line not set\n");
-		return NULL;
+		return;
 	}
 
 	if(line && (&line->mailboxes) != NULL){
@@ -363,7 +361,7 @@ void *sccp_mwi_linecreatedEvent(sccp_event_t *event){
 		}
 		SCCP_LIST_TRAVERSE_SAFE_END;
 	}
-	return NULL;
+	return;
 }
 
 

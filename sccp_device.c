@@ -57,11 +57,11 @@ sccp_device_t * sccp_device_create(void){
 	// SCCP_LIST_HEAD_INIT(&d->selectedChannels);
 	SCCP_LIST_HEAD_INIT(&d->addons);
 
-	return d;
+	return sccp_device_applayDefaults(d);
 }
 
 
-sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d){
+sccp_device_t *sccp_device_applayDefaults(sccp_device_t *d){
 	if(!d)
 		return NULL;
 
@@ -136,15 +136,13 @@ int sccp_device_get_codec(struct ast_channel *ast)
 	}
 
 	/* update channel capabilities */
-	//FIXME best codec choose
-	/*c->format = ast_codec_choose(&d->codecs, d->capability, 1);
+	c->format = ast_codec_choose(&d->codecs, d->capability, 1);
 	ast->nativeformats = d->capability;
 	ast->rawreadformat = d->capability;
 	ast->rawwriteformat = d->capability;
 	
 	ast_set_read_format(ast, c->format);
 	ast_set_write_format(ast, c->format);
-	*/
 	
 	
 	sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Device '%s' capabilities are '%d'\n", d->id, d->capability);
@@ -522,7 +520,7 @@ void sccp_dev_clearprompt(sccp_device_t * d, uint8_t line, uint32_t callid) {
 	r->msg.ClearPromptStatusMessage.lel_callReference = htolel(callid);
 	r->msg.ClearPromptStatusMessage.lel_lineInstance  = htolel(line);
 	sccp_dev_send(d, r);
-	sccp_log(99)(VERBOSE_PREFIX_3 "%s: Clear the status prompt on line %d and callid %d\n", d->id, line, callid);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Clear the status prompt on line %d and callid %d\n", d->id, line, callid);
 }
 
 
@@ -543,8 +541,7 @@ void sccp_dev_displayprompt(sccp_device_t * d, uint8_t line, uint32_t callid, ch
 	r->msg.DisplayPromptStatusMessage.lel_lineInstance = htolel(line);
 	sccp_copy_string(r->msg.DisplayPromptStatusMessage.promptMessage, msg, sizeof(r->msg.DisplayPromptStatusMessage.promptMessage));
 	sccp_dev_send(d, r);
-	sccp_log(99)(VERBOSE_PREFIX_3 "%s: Display prompt on line %d, callid %d, timeout %d\n", d->id, line, callid, timeout);
-
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Display prompt on line %d, callid %d, timeout %d\n", d->id, line, callid, timeout);
 }
 
 void sccp_dev_cleardisplay(sccp_device_t * d) {
@@ -554,7 +551,7 @@ void sccp_dev_cleardisplay(sccp_device_t * d) {
 	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) return; /* only for telecaster and new phones */
 
 	sccp_dev_sendmsg(d, ClearDisplay);
-	sccp_log(99)(VERBOSE_PREFIX_3 "%s: Clear the display\n", d->id);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Clear the display\n", d->id);
 }
 
 void sccp_dev_display(sccp_device_t * d, char * msg) {
@@ -966,7 +963,7 @@ void * sccp_dev_postregistration(void *data) {
 
 	event->type=SCCP_EVENT_DEVICEREGISTERED;
 	event->event.deviceRegistered.device = d;
-	sccp_event_fire(event);
+	sccp_event_fire( (const sccp_event_t **)&event);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: ... done!\n", d->id);
 	return NULL;
 }
@@ -1115,7 +1112,7 @@ sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t ins
 
 }
 
-int sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName) {
+int sccp_device_find_index_for_line(sccp_device_t * d, char *lineName) {
 	int i=0;
 	sccp_buttonconfig_t	*config;
 	boolean_t	found = FALSE;
@@ -1126,6 +1123,7 @@ int sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName) {
 	if(!lineName)
 		return -1;
 
+	//SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		i++;
 		if(config->type == LINE && (config->button.line.name) && lineName && !strcasecmp(config->button.line.name, lineName)){
@@ -1133,6 +1131,7 @@ int sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName) {
 			break;
 		}
 	}
+	//SCCP_LIST_UNLOCK(&d->buttonconfig);
 
 	return (found)? i : 0;
 }
@@ -1237,32 +1236,5 @@ void sccp_device_stateChanged(sccp_device_t *device){
 		return;
 
 	sccp_mwi_check(device);
-}
-
-void sccp_device_send_dateTime(sccp_device_t *device){
-  time_t timer = 0;
-  struct tm * cmtime = NULL;
-  sccp_moo_t * r1;
-  REQ(r1, DefineTimeDate);
-
-  if (!device) {
-       return;
-  }
-
-  /* modulate the timezone by full hours only */
-  timer = time(0) + (device->tz_offset * 3600);
-  cmtime = localtime(&timer);
-
-  r1->msg.DefineTimeDate.lel_year = htolel(cmtime->tm_year+1900);
-  r1->msg.DefineTimeDate.lel_month = htolel(cmtime->tm_mon+1);
-  r1->msg.DefineTimeDate.lel_dayOfWeek = htolel(cmtime->tm_wday);
-  r1->msg.DefineTimeDate.lel_day = htolel(cmtime->tm_mday);
-  r1->msg.DefineTimeDate.lel_hour = htolel(cmtime->tm_hour);
-  r1->msg.DefineTimeDate.lel_minute = htolel(cmtime->tm_min);
-  r1->msg.DefineTimeDate.lel_seconds = htolel(cmtime->tm_sec);
-  r1->msg.DefineTimeDate.lel_milliseconds = htolel(0);
-  r1->msg.DefineTimeDate.lel_systemTime = htolel(timer);
-  sccp_dev_send(device, r1);
-  sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send date/time\n", device->id);
 }
 
