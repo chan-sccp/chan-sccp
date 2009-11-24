@@ -216,11 +216,15 @@ else
 	echo " * no 'AST_CONTROL_VIDUPDATE'"
 fi
 
-if grep -q "AST_CONTROL_T38" $INCLUDEDIR/frame.h; then
+if grep -q "AST_CONTROL_T38_PARAMETERS" $INCLUDEDIR/frame.h; then
+	echo "#define CS_AST_CONTROL_T38_PARAMETERS" >>$CONFIGFILE
+	echo " * found 'AST_CONTROL_T38_PARAMETERS'"
+elif grep -q "AST_CONTROL_T38" $INCLUDEDIR/frame.h; then
 	echo "#define CS_AST_CONTROL_T38" >>$CONFIGFILE
 	echo " * found 'AST_CONTROL_T38'"
 else
 	echo "#undef CS_AST_CONTROL_T38" >>$CONFIGFILE
+	echo "#undef CS_AST_CONTROL_T3_PARAMETERS" >>$CONFIGFILE
 	echo " * no 'AST_CONTROL_T38'"
 fi
 
