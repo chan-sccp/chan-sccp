@@ -1,0 +1,65 @@
+#!/bin/sh
+
+if [ -f ${1}/.version ]; then
+	cat ${1}.version
+elif [ -f ${1}/.svnrevision ]; then
+	echo SVN-`cat ${1}/.svnbranch`-r`cat ${1}/.svnrevision`
+elif [ -d .svn ]; then
+    PARTS=`LANG=C svn info ${1} | grep URL | awk '{print $2;}' | sed -e s:^.*/svn/chan_sccp/:: | sed -e 's:/: :g'`
+    BRANCH=0
+    TEAM=0
+    
+    REV=`svnversion -c ${1} | cut -d: -f2|sed s/M//g`
+    
+    if [ "x`echo ${PARTS}|grep trunk`" != "x" ]
+	then
+	echo SVN-'trunk'-r${REV}
+	exit 0
+    fi
+    
+    for PART in $PARTS
+      do
+      if [ ${BRANCH} != 0 ]
+	  then
+	  RESULT="${RESULT}-${PART}"
+	  break
+      fi
+      
+      if [ ${TEAM} != 0 ]
+	  then
+	  RESULT="${RESULT}-${PART}"
+	  continue
+      fi
+      
+      if [ "${PART}" = "branches" ]
+	  then
+	  BRANCH=1
+	  RESULT="branch"
+	  continue
+      fi
+      
+      if [ "${PART}" = "tags" ]
+	  then
+	  BRANCH=1
+	  RESULT="tag"
+	  continue
+      fi
+      
+      if [ "${PART}" = "team" ]
+	  then
+	  TEAM=1
+	  continue
+      fi
+    done
+    
+    echo SVN-${RESULT##-}-r${REV}
+elif [ -d .hg ]; then
+    SCCP_VERSION="`cat .hg/hgrc |grep http|awk '{print $3}'|tr "/" "\n"|tail -n2|head -n1`"
+    if grep -q "default" .hg/branch; then
+      SCCP_BRANCH="TRUNK"
+    else 
+      SCCP_BRANCH="`cat .hg/branch`"
+    fi
+    SCCP_REVISION="`hg parents|grep changeset|sed 's/\(.*:\)\(.*\)\(:.*\)/\2/g'|sed 's/\ //g'`"
+    echo HG-${SCCP_BRANCH}-r${SCCP_REVISION}
+fi

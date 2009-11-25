@@ -1,0 +1,358 @@
+/*!
+ * \file 	main.doc
+ * \brief 	An implementation of Skinny Client Control Protocol (SCCP)
+ * \author 	Diederik de Groot <dkgroot [at] talon.nl>
+ * \since	2009-11-12
+ * \brief 	Main Documentation
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * 
+ */
+
+/**
+ * \file 
+ * Contains extra comments for Doxygen.
+ *
+ * You could read the documentation from this file; but it would probably
+ * be easier to go to http://chan-sccp-b.sourceforge.net 
+ *
+ **/
+
+/**
+ * \mainpage Chan_SCCP Documentation
+ * 
+ * \section intro Introduction
+ * 
+ * Welcome to the documentation for the chan_sccp Project. 
+ * 
+ * On these pages here, you can find the documented source code, the change log.
+ * and more.
+ * 
+ * To get started have a look at the pages:\n
+ * \ref what_sccp	What is Chan_SCCP\n
+ * \ref build_guide 	Building and Installation Guide\n
+ * \ref load_module  	How to load the chan_sccp Module\n
+ * \ref setup_howto     How to setup the chan_sccp Module\n
+ * \ref sccp_softkeys   How to use the Soft Keys on the Phone\n
+ * \ref faq		Frequently Asked Questions\n
+ * \ref cons 		Consulted Documentation\n
+ * \ref guest_os	Guest OS Notes\n
+ * \ref dev_guide	Developer's Guide\n
+ * \ref authors		Meet the Authors\n
+ * \ref Licensing	Licensing\n
+ * 
+ * See http://sourceforge.net/projects/chan-sccp-b/ for more information about
+ * the Chan_SCCP project. Please do not directly contact any of the maintainers of this project for assistance;
+ * the project provides a web site, mailing lists and IRC channels for your use.
+ */
+
+/*!
+ * \page Licensing Chan_SCCP Licensing Information
+ *
+ * \section license Chan_SCCP License
+ * \verbinclude COPYING
+ */
+
+/**
+ * \page 	what_sccp 		What is Chan_SCCP
+ *
+ * \section 	what_is_chan_sccp 	What is Chan_SCCP
+ * 
+ * Chan_SCCP is a replacement Channel Driver for chan_skinny in the Asterisk Channel Driver Library. It delivers
+ * better performance, scalability, interoperability and functionality than either chan_skinny or chan_sip on a 
+ * SCCP capable phone. It is still under heavy development but a stable release is also available for you to use.
+ * 
+ * \subsection 	what_sccp_ss1		SCCP in relation to SIP/IAX/MGCP
+ *
+ * There are several methods to communicate with a VOIP Server. Next to the well known SIP Protocol there are 
+ * Several others like: MGCP, IAX, IAX2, SS7 and SCCP. The SCCP protocol is sometimes refered to as SKINNY. 
+ * 
+ * Several VOIP Phone Resellers have create phones that use the SCCP Protocol. The most well known at this moment
+ * is CISCO, but there are others like Kirk, Ixia, Symbol Techologies, SocketIP, Digium and Nokia.
+ *
+ * IPBlue markets a software phone (soft phone) which uses SCCP for signaling and emulates a Cisco 7960 hardware phone.
+ *
+ * \subsection 	what_sccp_ss2 		SCCP as a Protocol
+ * 
+ * The Skinny Call Control Protocol a.k.a Signalling Connection Control Part (SCCP, Q.713, or short Skinny) is a 
+ * proprietary network terminal control protocol originally developed by Selsius Corporation. The term "Skinny" 
+ * reflects that SCCP is a simple and uncomplicated ("lightweight") protocol requiring relatively little computer 
+ * processing. 
+ * 
+ * The SCCP technology is now owned and defined by Cisco Systems, Inc. as a messaging system between a Skinny 
+ * client and the Cisco CallManager. Examples of skinny clients include the Cisco 7900 series of IP phones, 
+ * Cisco IP Communicator softphone and the 802.11b wireless Cisco 7920.
+ * 
+ * Skinny is a lightweight protocol which allows for efficient communication with Asterisk. The SCCP Protocol 
+ * is a lower level protocol when compared to for example SIP. It works on Layer 3/4 of the OSI Layer Model.
+ *
+ * The SCCP protocol layer supports connectionless and connection-oriented protocol services, 
+ * and network management procedures are carried out on a per protocol service basis, that is, network management
+ * procedures at SCCP are independently treated for connectionless and for connection-oriented protocol services. 
+ *
+ * It uses the Real-time Transport Protocol (RTP) over UDP-transport for the bearer traffic (real-time audio stream) 
+ * with other Skinny clients or an H.323 terminal. SCCP is a stimulus-based protocol and is designed as a 
+ * communications protocol for hardware endpoints and other embedded systems, with significant CPU and memory constraints.
+ */
+
+/**
+ * \page build_guide Building and Installation Guide
+ *
+ * \section unix UNIX, BSD and Linux
+ * These instructions are valid for most UNIX-like operating systems, including BSD and
+ * Linux variants.
+ *
+ * \subsection unix_pr Prerequisites
+ * The following prerequisites are required:
+ *   - A bourne shell (/bin/sh) that is capable of running the supplied configure script.
+ *   - Installed version of Asterisk starting at version 1.2
+ *   - The GNU C compiler or another supported C compiler.
+ *   - The make program.
+ *   .
+ *
+ * \subsection unix_bi Building and Installation
+ *   - Download the Chan_SCCP sources.
+ *   - Extract the source tree to a clean directory.
+ *   - Run the configure script, and answer the questions asked.
+ *   - Run make.
+ *   - Run make install
+ *   .
+ * \code
+ *       $ ./create_config.sh /usr/include True
+ *       $ make
+ *       $ make install
+ * \endcode
+ *
+ * \section setup_howto     How to setup Chan_SCCP
+ * 
+ * 
+ * \subsection sccp_config_howto How to use the config file
+ *
+ * Please check ./conf/sccp_v3.conf
+ * \todo Documentation sccp_v3.conf Sample (To be implemented)
+ * 
+ *
+ * \subsection sccp_config_rt How to use RealTime Database
+ *
+ * Please check ./conf/tables.sql
+ * \todo Documentation tables.sql Sample (To be implemented)
+ *
+ *
+ * \subsection dialplan_sample Dialplan Sample
+ * 
+ * \todo Documentation DialPlan Sample (To be implemented)
+ * 
+ *
+ * \subsection sccp_config_sp How to configure SpeedDials
+ * 
+ * \todo Documentation SpeedDials (To be implemented)
+ *
+ * 
+ * \subsection change_phone_to_sccp Hot to change the firmware to SCCP
+ *
+ *   - Copy the SCCP Firmware to your tftp directory
+ *   - Set the Firmware version in OS79XX.TXT. It should containt only on line, like this:
+ *     \code
+ * 	 P00308010100
+ *     \endcode
+ *   - Set the XMLDefault.cnf.xml to should contain every used device and it firmware. It should look like this:
+ *     \code
+ *     <Default>
+ *     <callManagerGroup>
+ *       <members>
+ *         <member  priority="0">
+ *           <callManager>
+ *             <ports>
+ *               <ethernetPhonePort>2000</ethernetPhonePort>
+ *             </ports>
+ *             <processNodeName>10.31.150.1</processNodeName>
+ *           </callManager>
+ *         </member>
+ *       </members>
+ *     </callManagerGroup>
+ *     <loadInformation6  model="IP Phone 7910">SCCP11.8-5-2S</loadInformation6>
+ *     <loadInformation6  model="IP Phone 7911">SCCP11.8-5-2S</loadInformation6>
+ *     <loadInformation124  model="Addon 7914">S00105000300</loadInformation124>
+ *     <loadInformation9  model="IP Phone 7935"></loadInformation9>
+ *     <loadInformation8  model="IP Phone 7940">P00308010100</loadInformation8>
+ *     <loadInformation7  model="IP Phone 7960">P00308010100</loadInformation7>
+ *     <loadInformation20000  model="IP Phone 7905"></loadInformation20000>
+ *     <loadInformation30008  model="IP Phone 7902"></loadInformation30008>
+ *     <loadInformation30007  model="IP Phone 7912"></loadInformation30007>
+ *     </Default>
+ *     \endcode
+ * 
+ * For more information check out : \n
+ * http://www.cisco.com/en/US/products/hw/phones/ps379/products_tech_note09186a0080094584.shtml
+ *
+ */
+
+/**
+ * \page load_module Use Chan_SCCP
+ * \section cs_load_module_howto How to load the Chan_SCCP
+ *
+ * The chan_sccp module can be loaded using the following lines in asterisk module.conf:
+ *
+ * load => chan_sccp.conf
+ *
+ * noload => chan_skinn.so
+ *
+ * the skinny module is not allowed to be loaded, is it conflicts with chan_sccp.
+ * 
+ * \section necessities Necessities
+ * A valid sccp.conf/sccp_v3.conf configfile has to be available in the asterisk configuration directory.
+ *
+ **/
+
+
+/**
+ * \page faq Frequently Asked Questions
+ * 
+ * Here, you can find the answers to a few frequently asked questions.
+ * For up to date Help, Faq, Bug Reporting have a look here: http://sourceforge.net/projects/chan-sccp-b/support.
+ * 
+ * \section a A. Compilation
+ * Compilation related issues.
+ *
+ * \subsection a1 A1. How to Compile
+ * Q: How to Compile chan_sccp-b
+ *
+ * A: We are using the standard autoconf/automake principle. This means the only thing
+ * you have to do to compile your application is run:
+ * \code
+ * ./configure
+ * ./make
+ * ./make install
+ * \endcode
+ * To get everything install using the default values. It will try and determine all the 
+ * relevant dependecies and compile the application.
+ * If you need any specific functionality, or need to specify a location of for example
+ * your asterisk installatin you can use "\code./configure --help\endcode" to figure out the
+ * switches you need. 
+ * To Read more about using ./configure, read the INSTALL document in the root of this project 
+ * directory.
+ *
+ * \subsection a2 A2. Compilation Errors
+ * Q: How to solve compilations errors
+ *
+ * A: First try to work out what ./configure is complaining about, when it is. I normally tries to
+ * be as explicit as possible. If you get errors trying to start configure, first try to resolve it
+ * using "\code./reconf\endcode", it will try and build a new configure application for your machine 
+ * (autoconf, automake and m4 are required).
+ * 
+ * If nothing helps, send a message to our bug page via http://sourceforge.net/tracker/?group_id=186378&atid=917045.
+ * Please include config.log when sending a bug about configure/make
+ */
+
+/**
+ * \page cons Consulted Documentation
+ * The following documents have been useful to us:
+ *  - http://hisown.com/Talks/VoIP%20-%20Excerpt%20(SCCP).pdf
+ *  - http://www.javvin.com/protocolSS7SCCP.html
+ *  - http://www.javvin.com/protocolSCCP.html
+ *  - http://www.cisco.com/en/US/products/hw/phones/ps379/products_tech_note09186a0080094584.shtml
+ *  - http://tools.ietf.org/html/draft-ietf-mmusic-sccp-00
+ *  - http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-Q.711-200103-I!!PDF-E&type=items
+ *  - http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-Q.713-200103-I!!PDF-E&type=items
+ *  - http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-Q.714-200105-I!!PDF-E&type=items
+ *  - http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-Q.715-200204-I!!PDF-E&type=items
+ *  - http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-Q.716-199303-I!!PDF-E&type=items
+ *  - http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-Q.751.4-199805-I!!PDF-E&type=items
+ *  - http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-Q.786-199303-I!!PDF-E&type=items
+ *  - http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-Q.2220-200212-I!!PDF-E&type=items
+ *  - http://en.wikipedia.org/wiki/Signalling_Connection_Control_Part
+ *  .
+ **/
+
+/**
+ * \page guest_os 	Guest OS Notes
+ *
+ * Status for various guest OSes under Asterisk - Chan_SCCP
+ *
+ * \section guest_os_hp 	HP-UX/Tru64
+ *
+ * \section guest_os_ibm 	IBM AIX
+ *
+ * \section guest_os_sun 	SUN Solaris
+ *
+ * \section guest_os_free 	Free OS'es
+ *
+ * \subsection gosf_fbsd 		FreeBSD
+ * Tested with 6.2 and Asterisk 1.4
+ *
+ * \subsection gosf_nbsd 		NetBSD
+ * Tested 3.1.1 and Asterisk 1.4
+ * Tested 4.0 and Asterisk 1.6
+ *
+ * \subsection gosf_obsd 		OpenBSD
+ * Tested 4.2 and Asterisk 1.4
+ *
+ * \subsection gosf_linux 		Linux
+ * Tested using Debian 4.0 rc 0, centos 4.2, gentoo 2007.0, OpenSuSE 11.0
+ *   - Centos:  
+ *      - Asterisk 1.4
+ *      - Asterisk 1.6
+ *      - Asterisk 1.6.1
+ *      .
+ *   - Debian:  
+ *      - Asterisk 1.4
+ *      - Asterisk 1.6
+ *      - Asterisk 1.6.1
+ *      .
+ *   - OpenSuSE:
+ *      - 10.0:
+ *         - Asterisk 1.4
+ *         - Asterisk 1.6
+ *         - Asterisk 1.6.1
+ *         .
+ *      - 11.0:
+ *         - Asterisk 1.4
+ *         - Asterisk 1.6
+ *         - Asterisk 1.6.1
+ *         .
+ *      - 11.1:
+ *         - Asterisk 1.4
+ *         - Asterisk 1.6
+ *         - Asterisk 1.6.1
+ *         .
+ *      .
+ *   .
+ *
+ **/
+
+/**
+ * \page dev_guide Developer's Guide
+ * \section dv_guide Information for Developers
+ *
+ * On this page, people who want to contribute can find information.
+ *
+ * \subsection dv_bugs You found a Bug
+ * 
+ * You found a bug, please report it via : http://sourceforge.net/tracker/?group_id=186378&atid=917045. Please
+ * try to describe the bug you found as clearly as possible. Please give us a step by step procedure to reproduce
+ * the error. Give us some thing to work with, like "sccp debug" logging, asterisk logging, protocol analyzer pcap files etc.
+ * 
+ * \subsection dv_suggest Sending Feature Requests
+ * 
+ * You have a new Feature which you think would be a wonderfull addition to chan_sccp. Or you need
+ * something implemented and are willing to pay. Just send a Message via: 
+ * http://sourceforge.net/tracker/?group_id=186378&atid=917048. We'll look into it and let you know
+ * what we think. 
+ * You can't wait until it is implemented, why not give the sources a look over. Read the documentation
+ * and start coding yourself. You could even become a member of the development team if you like. Have a look
+ * here \ref dv_sendpatch and here \ref dv_developer.
+ *
+ * \subsection dv_sendpatch Send us a Patch
+ *
+ * You found an error and fixed it or you wrote some new functionality ? Please submit a patch to:
+ * http://sourceforge.net/tracker/?group_id=186378&atid=917047. Please include a description of your
+ * patch and if necessary how to apply it. 
+ * 
+ * \subsection dv_developer Becoming a Developer in out Team
+ * 
+ * Our project can always use more testers, documentors, developers, project managers. Why not apply 
+ * by contacting one of our Project Admin members (\ref authors). 
+ * 
+ * \subsection dv_tracing   How to trace an Protocol Error
+ * \subsection dv_protocol  Using a Network Protocol Analyzer
+ *
+ **/
