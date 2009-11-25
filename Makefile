@@ -11,7 +11,7 @@
 #
 # This program is free software and may be modified and
 # distributed under the terms of the GNU Public License.
-
+CC="distcc"
 OSNAME=${shell uname}
 
 INSTALL_PREFIX=

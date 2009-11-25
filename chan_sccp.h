@@ -386,7 +386,7 @@ struct sccp_line {
 	unsigned int			spareBit5:1;
 	unsigned int			spareBit6:1;
 #ifdef CS_SCCP_REALTIME
-	unsigned int			realtime:1;			/*!< is it a realtimeconfiguration*/
+	boolean_t		realtime:1;			/*!< is it a realtimeconfiguration*/
 #endif
 	struct ast_variable 	* variables;		/*!< Channel variables to set */
 	unsigned int			dnd:3;				/*!< dnd on line */
@@ -822,10 +822,10 @@ struct ast_channel *sccp_request(char *type, int format, void *data);
 int sccp_devicestate(void *data);
 
 
-sccp_device_t *build_devices_wo(struct ast_variable *v, uint8_t realtime);
+sccp_device_t *build_devices_wo(struct ast_variable *v, boolean_t realtime);
 #define build_devices(x) build_devices_wo(x, 0)
 
-sccp_line_t * build_lines_wo(struct ast_variable *v, uint8_t realtime);
+sccp_line_t * build_lines_wo(struct ast_variable *v, boolean_t realtime);
 #define build_lines(x) build_lines_wo(x, 0)
 
 
