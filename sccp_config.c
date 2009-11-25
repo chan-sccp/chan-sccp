@@ -178,7 +178,7 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, char *devi
 	sccp_device_t 	*d = NULL;
 
 
-	d = build_devices(variable);
+	d = build_devices_wo(variable, isRealtime);
 	memset(d->id, 0, sizeof(d->id));
 	sccp_copy_string(d->id, deviceName, sizeof(d->id));
 
@@ -207,7 +207,9 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, char *devi
 sccp_line_t *sccp_config_buildLine(struct ast_variable *variable,const char *lineName, boolean_t isRealtime){
 	sccp_line_t 	*line = NULL;
 
-	line = build_lines(variable);
+	//line = build_lines(variable); <-- culprit
+	line = build_lines_wo(variable, isRealtime); // <--- correct
+
 	sccp_copy_string(line->name, ast_strip((char *)lineName), sizeof(line->name));
 
 

@@ -585,7 +585,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
  * \return configured line
  * \note also used by realtime functionality to line device from \link ast_variable asterisk variable \endlink
  */
-sccp_line_t * build_lines_wo(struct ast_variable *v, uint8_t realtime) {
+sccp_line_t * build_lines_wo(struct ast_variable *v, boolean_t realtime) {
 	sccp_line_t * l = NULL;
 	int amaflags = 0;
 	int secondary_dialtone_tone = 0;
@@ -609,12 +609,19 @@ sccp_line_t * build_lines_wo(struct ast_variable *v, uint8_t realtime) {
  						ast_free(l);
  					} else {
 #ifdef CS_SCCP_REALTIME
- 						l->realtime = realtime;
+						if (realtime) {
+ 							l->realtime = realtime;
+							sccp_log(1)(VERBOSE_PREFIX_3 "chan_sccp.conf: Added realtime line '%s'\n", l->name);
+ 						} else {
+							l->realtime = realtime;
 #endif
- 						SCCP_LIST_LOCK(&GLOB(lines));
- 						SCCP_LIST_INSERT_HEAD(&GLOB(lines), l, list);
- 						SCCP_LIST_UNLOCK(&GLOB(lines));
- 						sccp_log(1)(VERBOSE_PREFIX_3 "chan_sccp.conf: Added line '%s'\n", l->name);
+							SCCP_LIST_LOCK(&GLOB(lines));
+							SCCP_LIST_INSERT_HEAD(&GLOB(lines), l, list);
+							SCCP_LIST_UNLOCK(&GLOB(lines));
+							sccp_log(1)(VERBOSE_PREFIX_3 "chan_sccp.conf: Added line '%s'\n", l->name);
+#ifdef CS_SCCP_REALTIME 						
+						} 						
+#endif
  						return l;
  					}
  				} else {
@@ -750,7 +757,7 @@ sccp_line_t * build_lines_wo(struct ast_variable *v, uint8_t realtime) {
  * \return configured device
  * \note also used by realtime functionality to build device from \link ast_variable asterisk variable \endlink
  */
-sccp_device_t *build_devices_wo(struct ast_variable *v, uint8_t realtime) {
+sccp_device_t *build_devices_wo(struct ast_variable *v, boolean_t realtime) {
 	sccp_device_t 	*d = NULL;
 	uint8_t 		speeddial_index = 1;
 	uint8_t			serviceURLIndex = 1;
