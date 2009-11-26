@@ -30,7 +30,7 @@ void sccp_mwi_checkLine(sccp_line_t *line);
 void sccp_mwi_module_start(void){
 #ifdef CS_AST_HAS_EVENT
 	sccp_subscribe_event(SCCP_EVENT_LINECREATED, sccp_mwi_linecreatedEvent);
-	sccp_subscribe_event(SCCP_EVENT_DEVICEATTACHED, sccp_mwi_deviceAttached);
+	sccp_subscribe_event(SCCP_EVENT_DEVICEATTACHED, sccp_mwi_deviceAttachedEvent);
 #endif
 }
                   
