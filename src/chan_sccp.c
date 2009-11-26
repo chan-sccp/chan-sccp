@@ -630,6 +630,8 @@ sccp_line_t * build_lines_wo(struct ast_variable *v, boolean_t realtime) {
  				}
 				if(!realtime)
 					l = sccp_line_create();
+ 			} else if (!strcasecmp(v->name, "type")) {
+ 				;			// skip
  			} else if (!strcasecmp(v->name, "id")) {
  				sccp_copy_string(l->id, v->value, sizeof(l->id));
  			} else if (!strcasecmp(v->name, "pin")) {
@@ -849,8 +851,10 @@ sccp_device_t *build_devices_wo(struct ast_variable *v, boolean_t realtime) {
 				}
 			} else if (!strcasecmp(v->name, "permithost")) {
 				sccp_permithost_addnew(d, v->value);
-			} else if (!strcasecmp(v->name, "type")) {
+			} else if ((!strcasecmp(v->name, "type")) || (!strcasecmp(v->name, "devicetype"))) {
+			  if (strcasecmp(v->value, "device")) {
 				sccp_copy_string(d->config_type, v->value, sizeof(d->config_type));
+			  }	
 			} else if (!strcasecmp(v->name, "addon")) {
 				sccp_addon_addnew(d, v->value);
 			} else if (!strcasecmp(v->name, "tzoffset")) {
@@ -1053,8 +1057,9 @@ static int reload_config(void) {
 	if( !sccp_config_general() ){
 		return 0;
 	}
-	sccp_config_readdevices(SCCP_CONFIG_READINITIAL);
-	sccp_config_readLines(SCCP_CONFIG_READINITIAL);
+//	sccp_config_readdevices(SCCP_CONFIG_READINITIAL);
+//	sccp_config_readLines(SCCP_CONFIG_READINITIAL);
+	sccp_config_readDevicesLines(SCCP_CONFIG_READINITIAL);
 	/* ok the config parse is done */
 	if ((GLOB(descriptor) > -1) && (ntohs(GLOB(bindaddr.sin_port)) != oldport)) {
 		close(GLOB(descriptor));
