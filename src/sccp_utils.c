@@ -2074,6 +2074,8 @@ sccp_device_t * sccp_device_find_byipaddress(unsigned long s_addr){
 }
 
 
+#if ASTERISK_VERSION_NUM >= 10600
+#ifdef HAVE_ASTERISK_DEVICESTATE_H
 /**
  * map states from sccp to ast_device_state
  */
@@ -2097,6 +2099,8 @@ enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state
 	  break;
 	}
 }
+#endif
+#endif
 
 sccp_feature_type_t sccp_featureStr2featureID(char *str){
 	if(!str)
