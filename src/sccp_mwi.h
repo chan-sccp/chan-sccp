@@ -51,7 +51,7 @@ SCCP_LIST_HEAD(, sccp_mailbox_subscriber_list_t) sccp_mailbox_subscriptions;
 
 
 
-
+void sccp_mwi_module_start(void);
 void sccp_mwi_stopMonitor(void);
 int sccp_mwi_startMonitor(void);
 void sccp_mwi_check(sccp_device_t *device);

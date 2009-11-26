@@ -9,6 +9,7 @@
 #include "chan_sccp.h"
 #include "sccp_config.h"
 #include "sccp_utils.h"
+#include "sccp_event.h"
 
 #ifdef CS_AST_HAS_EVENT
 #include "sccp_mwi.h"
@@ -229,7 +230,6 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable,const char *lin
 
 	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
 	memset(event, 0, sizeof(sccp_event_t));
-
 	event->type=SCCP_EVENT_LINECREATED;
 	event->event.lineCreated.line = line;
 	sccp_event_fire((const sccp_event_t **)&event);

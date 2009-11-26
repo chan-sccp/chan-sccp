@@ -1276,7 +1276,7 @@ static struct ast_cli_entry cli_show_version = {
 #endif
 
 
-
+#ifdef ASTERISK_CONF_1_6
 static char *cli_show_mwi_subscriptions(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 		e->command = "sccp show subscriptions";
@@ -1318,7 +1318,15 @@ static char *cli_show_mwi_subscriptions(struct ast_cli_entry *e, int cmd, struct
 	//}else
 	//	return CLI_FAILURE;
 }
-
+#else
+static struct ast_cli_entry cli_show_mwi_subscriptions = {
+  { "sccp", "show", "subscriptions", NULL },
+  sccp_show_version,
+  "SCCP show subscriptions",
+  "Usage: SCCP show subscriptions\n"
+  "		Show the SCCP channel subscriptions\n"
+};
+#endif
 
 
 /**

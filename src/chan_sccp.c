@@ -1055,7 +1055,6 @@ static int reload_config(void) {
 	}
 	sccp_config_readdevices(SCCP_CONFIG_READINITIAL);
 	sccp_config_readLines(SCCP_CONFIG_READINITIAL);
-
 	/* ok the config parse is done */
 	if ((GLOB(descriptor) > -1) && (ntohs(GLOB(bindaddr.sin_port)) != oldport)) {
 		close(GLOB(descriptor));
@@ -1396,11 +1395,9 @@ static int load_module(void) {
 	SCCP_LIST_HEAD_INIT(&sccp_event_listeners->subscriber);
 
 	ast_log(LOG_ERROR, "register event listeners\n");
-	sccp_subscribe_event(SCCP_EVENT_LINECREATED, sccp_mwi_linecreatedEvent);
-	sccp_subscribe_event(SCCP_EVENT_DEVICEATTACHED, sccp_mwi_deviceAttachedEvent);
 
+	sccp_mwi_module_start();
 	sccp_hint_module_start();
-
 
 	/* GLOB() is a macro for sccp_globals-> */
 	GLOB(descriptor) = -1;
