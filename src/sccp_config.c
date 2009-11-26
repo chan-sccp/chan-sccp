@@ -634,7 +634,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
                         }
                 } else if ( !strcasecmp(utype,"line") ) {
                         // check minimum requirements for a line
-                        if ( ast_variable_retrieve(cfg, cat, "incominglimit")=="" ) {
+                        if ( ast_variable_retrieve(cfg, cat, "button")=="" ) {
                                 ast_log(LOG_WARNING, "Unknown type '%s' for '%s' in %s\n", utype, cat, "sccp.conf");
                                 continue;
                         } else {
