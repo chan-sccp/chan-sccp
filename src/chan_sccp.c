@@ -369,6 +369,7 @@ OUT:
  *
  * \param data name of device
  * \return devicestate of AST_DEVICE_*
+ * \todo data can include options e.g. 1234/ringer=inside -> we have to exclude options
  */
 int sccp_devicestate(void * data) {
 	sccp_line_t * l =  NULL;
