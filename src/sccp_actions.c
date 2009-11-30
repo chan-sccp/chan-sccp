@@ -1131,7 +1131,6 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PICKUPGROUP     is  %s\n", d->id, (pickupgroup) ? "enabled" : "disabled");
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PICKUPEXTEN     is  %s\n", d->id, (d->pickupexten) ? "enabled" : "disabled");
 #endif
-
 	for (i = 0; i < v_count; i++) {
 		const uint8_t * b = v->ptr;
 		uint8_t c, i = 0;
@@ -1167,22 +1166,21 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r) {
 			if ( (b[c] == SKINNY_LBL_MEETME) && (!meetme) ) {
 				continue;
 			}
-#ifndef CS_ADV_FEATURES
+#ifdef CS_ADV_FEATURES
 			if ( (b[c] == SKINNY_LBL_BARGE) ) {
 				continue;
 			}
 			if ( (b[c] == SKINNY_LBL_CBARGE) ) {
 				continue;
 			}
-#else
-#ifndef CS_SCCP_CONFERENCE
+#endif
+#ifdef CS_SCCP_CONFERENCE
 			if ( (b[c] == SKINNY_LBL_JOIN) ) {
 				continue;
 			}
 			if ( (b[c] == SKINNY_LBL_CONFRN) ) {
 				continue;
 			}
-#endif
 #endif
 #ifdef CS_SCCP_PICKUP
 			if ( (b[c] == SKINNY_LBL_PICKUP) && (!d->pickupexten) ) {
