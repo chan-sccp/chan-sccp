@@ -623,7 +623,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
                         continue;
                 } else if ( !strcasecmp(utype,"device") ){
                         // check minimum requirements for a device
-                        if ( ast_variable_retrieve(cfg, cat, "devicetype")=="" ) {
+                        if ( ast_strlen_zero( ast_variable_retrieve(cfg, cat, "devicetype") ) ) {
                                 ast_log(LOG_WARNING, "Unknown type '%s' for '%s' in %s\n", utype, cat, "sccp.conf");
                                 continue;
                         } else {
@@ -634,7 +634,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
                         }
                 } else if ( !strcasecmp(utype,"line") ) {
                         // check minimum requirements for a line
-                        if ( ast_variable_retrieve(cfg, cat, "button")=="" ) {
+                        if ( ast_strlen_zero( ast_variable_retrieve(cfg, cat, "button") ) ) {
                                 ast_log(LOG_WARNING, "Unknown type '%s' for '%s' in %s\n", utype, cat, "sccp.conf");
                                 continue;
                         } else {
