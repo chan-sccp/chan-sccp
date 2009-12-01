@@ -524,7 +524,7 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c) {
 		return;
 	}
 
-	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d] (%d ms), payload %d\n", c->device->id, skinny_codec2str(payloadType), c->format, packetSize, payloadType);
+	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d] (%d ms), payload %d, echocancel: %d\n", c->device->id, skinny_codec2str(payloadType), c->format, packetSize, payloadType, c->line->echocancel);
 
 	if(d->inuseprotocolversion >= 17) {
 		r = sccp_build_packet(OpenReceiveChannel, sizeof(r->msg.OpenReceiveChannel_v17));

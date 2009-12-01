@@ -342,8 +342,7 @@ sccp_device_t * sccp_device_find_realtime(const char * name) {
 
 	if ((v = ast_load_realtime(GLOB(realtimedevicetable), "name", name, NULL))) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Device '%s' found in realtime table '%s'\n", name, GLOB(realtimedevicetable));
-		d = build_devices_wo(v, 1);
-		//d = sccp_config_buildDevice(v, name, TRUE);
+		d = sccp_config_buildDevice(v, name, TRUE);
 		ast_variables_destroy(v);
 		if(!d) {
 			ast_log(LOG_ERROR, "SCCP: Unable to build realtime device '%s'\n", name);

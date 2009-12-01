@@ -29,7 +29,7 @@ void sccp_config_addSpeeddial(sccp_device_t *device, char *label, char *extensio
 void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID, char *args, uint8_t index);
 void sccp_config_addService(sccp_device_t *device, char *label, char *url, uint8_t index);
 
-sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, char *deviceName, boolean_t isRealtime);
+sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char *deviceName, boolean_t isRealtime);
 sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *lineName, boolean_t isRealtime);
 boolean_t sccp_config_general(void);
 void sccp_config_readDevicesLines(sccp_readingtype_t readingtype);

@@ -383,12 +383,13 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t *hint){
 
 			//hint->currentState = channel->state;
 			hint->callInfo.calltype = channel->calltype;
-			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 			if(channel->state != SCCP_CHANNELSTATE_ONHOOK && channel->state != SCCP_CHANNELSTATE_DOWN){
+				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 				sccp_copy_string(hint->callInfo.callingPartyName, channel->callingPartyName, sizeof(hint->callInfo.callingPartyName));
 				sccp_copy_string(hint->callInfo.calledPartyName, channel->calledPartyName, sizeof(hint->callInfo.calledPartyName));
 
 			}else{
+				hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
 				sccp_copy_string(hint->callInfo.callingPartyName, "", sizeof(hint->callInfo.callingPartyName));
 				sccp_copy_string(hint->callInfo.calledPartyName,  "", sizeof(hint->callInfo.calledPartyName));
 			}
