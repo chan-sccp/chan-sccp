@@ -821,17 +821,14 @@ struct ast_channel *sccp_request(char *type, int format, void *data);
 
 int sccp_devicestate(void *data);
 
+sccp_device_t *build_devices_wo(struct ast_variable *v);
 
-sccp_device_t *build_devices_wo(struct ast_variable *v, boolean_t realtime);
-#define build_devices(x) build_devices_wo(x, 0)
-
-sccp_line_t * build_lines_wo(struct ast_variable *v, boolean_t realtime);
-#define build_lines(x) build_lines_wo(x, 0)
-
+sccp_line_t * build_lines_wo(struct ast_variable *v);
 
 #ifndef ASTERISK_CONF_1_2
 struct sched_context *sched;
 struct io_context *io;
+
 
 void * sccp_do_monitor(void *data); // ADDED IN SVN 414 -FS
 int sccp_restart_monitor(void); // ADDED IN SVN 414 -FS
@@ -839,6 +836,7 @@ int sccp_restart_monitor(void); // ADDED IN SVN 414 -FS
 #ifndef ASTERISK_CONF_1_2
 enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo, struct ast_channel **rc, int timeoutms);
 #endif
+
 
 static inline unsigned char sccp_is_nonempty_string(char *string) {
 	if(NULL != string) {

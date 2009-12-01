@@ -10,6 +10,7 @@
 #include "sccp_config.h"
 #include "sccp_utils.h"
 #include "sccp_event.h"
+#include <asterisk/astdb.h>
 
 #ifdef CS_AST_HAS_EVENT
 #include "sccp_mwi.h"
@@ -175,23 +176,35 @@ void sccp_config_addService(sccp_device_t *device, char *label, char *url, uint8
  * \since 10.01.2008 - branche V3
  * \author Marcello Ceschia
  */
-sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, char *deviceName, boolean_t isRealtime){
+sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char *deviceName, boolean_t isRealtime){
 	sccp_device_t 	*d = NULL;
+	int				res;
+	char 			message[256]="";							//device message
 
+	// Try to find out if we have the device already on file.
+	// However, do not look into realtime, since
+	// we might have been asked to create a device for realtime addition,
+	// thus causing an infinite loop / recursion.
+	d = sccp_device_find_byid(deviceName, FALSE);
+	if (d) {
+		ast_log(LOG_WARNING, "SCCP: Device '%s' already exists\n", deviceName);
+		return d;
+	} 
 
-	d = build_devices_wo(variable, isRealtime);
+	d = build_devices_wo(variable);
 	memset(d->id, 0, sizeof(d->id));
 	sccp_copy_string(d->id, deviceName, sizeof(d->id));
-
-//	res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
-//	if (!res)
-//		d->phonemessage=strdup(message);									//set message on device if we have a result
-//	strcpy(message,"");
-//	ast_verbose(VERBOSE_PREFIX_3 "Added device '%s' (%s) \n", d->id, d->config_type);
-
 #ifdef CS_SCCP_REALTIME
 	d->realtime = isRealtime;
 #endif
+
+	res = ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
+	if (!res) {
+		d->phonemessage=strdup(message);									//set message on device if we have a result
+	}
+
+	// TODO: Load status of feature (DND, CFwd, etc.) from astdb.
+
 	SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_INSERT_HEAD(&GLOB(devices), d, list);
 	SCCP_LIST_UNLOCK(&GLOB(devices));
@@ -205,14 +218,30 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, char *devi
 	return d;
 }
 
-sccp_line_t *sccp_config_buildLine(struct ast_variable *variable,const char *lineName, boolean_t isRealtime){
+sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *lineName, boolean_t isRealtime){
 	sccp_line_t 	*line = NULL;
 
-	//line = build_lines(variable); <-- culprit
-	line = build_lines_wo(variable, isRealtime); // <--- correct
+	// Try to find out if we have the line already on file.
+	// However, do not look into realtime, since
+	// we might have been asked to create a device for realtime addition,
+	// thus causing an infinite loop / recursion.
+	line = sccp_line_find_byname_wo(lineName, FALSE);
+
+
+	/* search for existing line */
+	if (line) {
+		ast_log(LOG_WARNING, "SCCP: Line '%s' already exists\n", lineName);
+		return line;
+	} 
+
+	line = build_lines_wo(variable);
 
 	sccp_copy_string(line->name, ast_strip((char *)lineName), sizeof(line->name));
+#ifdef CS_SCCP_REALTIME
+	line->realtime = isRealtime;
+#endif
 
+	// TODO: Load status of feature (DND, CFwd, etc.) from astdb.
 
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_INSERT_HEAD(&GLOB(lines), line, list);
@@ -671,9 +700,6 @@ void sccp_config_readLines(sccp_readingtype_t readingtype){
 	/* get all categories */
 	while ((cat = ast_category_browse(cfg, cat))) {
 		if( (strncmp(cat, "lines",5) == 0) ){
-//			ast_verbose(VERBOSE_PREFIX_3 "using build_lines\n");
-//			v = ast_variable_browse(cfg, cat);
-//			build_lines(v);
 		}else if( !(strncmp(cat, "devices",7) == 0) && !(strncmp(cat, "SEP",3) == 0) && !(strncmp(cat, "ATA",3) == 0) && !(strncmp(cat, "general",7) == 0) ) {
 			v = ast_variable_browse(cfg, cat);
 			sccp_config_buildLine(v, cat, FALSE);
@@ -713,7 +739,7 @@ void sccp_config_readdevices(sccp_readingtype_t readingtype){
 		else if( (strncmp(cat, "devices",7) == 0) ){
 			ast_verbose(VERBOSE_PREFIX_3 "using build_devices\n");
 			v = ast_variable_browse(cfg, cat);
-			build_devices(v);
+			build_devices_wo(v);
 		}
 	}
 	ast_config_destroy(cfg);

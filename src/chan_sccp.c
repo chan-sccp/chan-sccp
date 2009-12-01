@@ -594,53 +594,17 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
  * \return configured line
  * \note also used by realtime functionality to line device from \link ast_variable asterisk variable \endlink
  */
-sccp_line_t * build_lines_wo(struct ast_variable *v, boolean_t realtime) {
+sccp_line_t * build_lines_wo(struct ast_variable *v) {
 	sccp_line_t * l = NULL;
 	int amaflags = 0;
 	int secondary_dialtone_tone = 0;
-	char * tmp;
 
 	l = sccp_line_create();
  	while(v) {
- 			if((!strcasecmp(v->name, "line"))
-#ifdef CS_SCCP_REALTIME
-			|| (!strcasecmp(v->name, "name"))
-#endif
- 			) {
- 				if (!ast_strlen_zero(v->value)) {
-					tmp = strdup(v->value);
- 					sccp_copy_string(l->name, ast_strip(tmp), sizeof(l->name));
- 					ast_free(tmp);
-					tmp = NULL;
- 					/* search for existing line */
- 					if (sccp_line_find_byname_wo(l->name, 0)) {
- 						ast_log(LOG_WARNING, "SCCP: Line '%s' already exists\n", l->name);
- 						ast_free(l);
- 					} else {
-#ifdef CS_SCCP_REALTIME
-						if (realtime) {
- 							l->realtime = realtime;
-							sccp_log(1)(VERBOSE_PREFIX_3 "chan_sccp.conf: Added realtime line '%s'\n", l->name);
- 						} else {
-							l->realtime = realtime;
-#endif
-							SCCP_LIST_LOCK(&GLOB(lines));
-							SCCP_LIST_INSERT_HEAD(&GLOB(lines), l, list);
-							SCCP_LIST_UNLOCK(&GLOB(lines));
-							sccp_log(1)(VERBOSE_PREFIX_3 "chan_sccp.conf: Added line '%s'\n", l->name);
-#ifdef CS_SCCP_REALTIME 						
-						} 						
-#endif
- 						return l;
- 					}
- 				} else {
- 					ast_log(LOG_WARNING, "Wrong line param: '%s => %s'\n", v->name, v->value);
- 					ast_free(l);
- 				}
-				if(!realtime)
-					l = sccp_line_create();
- 			} else if (!strcasecmp(v->name, "type")) {
- 				;			// skip
+ 			if((!strcasecmp(v->name, "name"))) {
+				;			// skip, already handled before in wrapper function calling sccp_config_buildLine
+			} else if (!strcasecmp(v->name, "type")) {
+ 				;			// skip, only indicates that this is a line
  			} else if (!strcasecmp(v->name, "id")) {
  				sccp_copy_string(l->id, v->value, sizeof(l->id));
  			} else if (!strcasecmp(v->name, "pin")) {
@@ -768,12 +732,8 @@ sccp_line_t * build_lines_wo(struct ast_variable *v, boolean_t realtime) {
  * \return configured device
  * \note also used by realtime functionality to build device from \link ast_variable asterisk variable \endlink
  */
-sccp_device_t *build_devices_wo(struct ast_variable *v, boolean_t realtime) {
+sccp_device_t *build_devices_wo(struct ast_variable *v) {
 	sccp_device_t 	*d = NULL;
-	uint8_t 		speeddial_index = 1;
-	uint8_t			serviceURLIndex = 1;
-	char 			message[256]="";							//device message
-	int				res;
 
 	/* for button config */
 	char 			*buttonType = NULL, *buttonName = NULL, *buttonOption=NULL, *buttonArgs=NULL;
@@ -787,40 +747,10 @@ sccp_device_t *build_devices_wo(struct ast_variable *v, boolean_t realtime) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "no variable given\n");
 	while (v) {
 			sccp_log(10)(VERBOSE_PREFIX_3 "%s = %s\n", v->name, v->value);
-			if ((!strcasecmp(v->name, "device"))
-#ifdef CS_SCCP_REALTIME
-			|| (!strcasecmp(v->name, "name"))
-#endif
-			) {
-				if ((strlen(v->value) == 15) && ((strncmp(v->value, "SEP",3) == 0) || (strncmp(v->value, "ATA",3)==0)) ) {
-					sccp_copy_string(d->id, v->value, sizeof(d->id));
-					instance=0;
-					res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
-					if (!res)
-						d->phonemessage=strdup(message);									//set message on device if we have a result
-					strcpy(message,"");
-#ifdef CS_SCCP_REALTIME
-					d->realtime = realtime;
-#endif
-					SCCP_LIST_LOCK(&GLOB(devices));
-					SCCP_LIST_INSERT_HEAD(&GLOB(devices), d, list);
-					SCCP_LIST_UNLOCK(&GLOB(devices));
-					if(!realtime) {
-						sccp_log(1)(VERBOSE_PREFIX_3 "Added device '%s' (%s)\n", d->id, d->config_type);
-					} else {
-						sccp_log(1)(VERBOSE_PREFIX_3 "Added device '%s'\n", d->id);
-					}
-				} else {
-					ast_log(LOG_WARNING, "Wrong device param: %s => %s\n", v->name, v->value);
-					sccp_dev_clean(d, TRUE); /* clean and destroy*/
-					instance=0;
-				}
-				if(!realtime) {
-					d = sccp_device_create();
-					speeddial_index = 1;
-					serviceURLIndex = 1;
-				}
+			if ((!strcasecmp(v->name, "name"))) {
+					; // skip, this is handled in the functions calling the wrapper sccp_buildDevice()
 			}
+		
 			else if (!strcasecmp(v->name, "keepalive")) {
 				d->keepalive = atoi(v->value);
 			} else if (!strcasecmp(v->name, "permit") || !strcasecmp(v->name, "deny")) {
