@@ -610,33 +610,33 @@ boolean_t sccp_config_general(void){
  */
 void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 {
+	char				*config_file="sccp_v3.conf";
 	struct ast_config		*cfg = NULL;
-	char 					*cat = NULL;
+	char 				*cat = NULL;
 	struct ast_variable		*v = NULL;
 	uint8_t device_count=0;
 	uint8_t line_count=0;
 
-        ast_log(LOG_NOTICE, "Loading Devices and Lines from config\n");
 
 #ifndef ASTERISK_CONF_1_6
-	cfg = ast_config_load("sccp_v3.conf");
-	if(!cfg)
-		cfg = ast_config_load("sccp.conf");
+	cfg = ast_config_load(config_file);
+	if(!cfg) {
+		config_file="sccp.conf";
+		cfg = ast_config_load(config_file);
+	}
 #else
 	struct ast_flags 		config_flags = { CONFIG_FLAG_WITHCOMMENTS };
-	cfg = ast_config_load2("sccp_v3.conf", "chan_sccp", config_flags);
-	if(!cfg)
-		cfg = ast_config_load2("sccp.conf", "chan_sccp", config_flags);
-#endif
-	if (!cfg) {
-		ast_log(LOG_NOTICE, "Unable to load config file sccp.conf, SCCP disabled\n");
-		return;
+	cfg = ast_config_load2(config_file, "chan_sccp", config_flags);
+	if(!cfg) {
+		config_file="sccp.conf";
+		cfg = ast_config_load2(config_file, "chan_sccp", config_flags);
 	}
-
+#endif
         if (!cfg) {
-                ast_log(LOG_NOTICE, "Unable to load config file sccp.conf, SCCP disabled\n");
+                ast_log(LOG_NOTICE, "Unable to load config file sccp.conf or sccp_v3.conf, SCCP disabled\n");
                 return;
         }
+        ast_log(LOG_NOTICE, "Loading Devices and Lines from %s\n", config_file);
         
         while ( ( cat = ast_category_browse(cfg,cat)) ){
         
@@ -651,35 +651,19 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
                         ast_log(LOG_WARNING, "Section '%s' lacks type\n", cat);
                         continue;
                 } else if ( !strcasecmp(utype,"device") ){
-                        // check minimum requirements for a device
-                        if ( ast_strlen_zero( ast_variable_retrieve(cfg, cat, "devicetype") ) ) {
-                                ast_log(LOG_WARNING, "Unknown type '%s' for '%s' in %s\n", utype, cat, "sccp.conf");
-                                continue;
-                        } else {
-				v = ast_variable_browse(cfg, cat);
-				sccp_config_buildDevice(v, cat, FALSE);
-				device_count++;
-				ast_verbose(VERBOSE_PREFIX_3 "found device %d: %s\n", device_count, cat);
-                        }
+			device_count++;
+			v = ast_variable_browse(cfg, cat);
+			sccp_config_buildDevice(v, cat, FALSE);
+			ast_verbose(VERBOSE_PREFIX_3 "found device %d: %s\n", device_count, cat);
                 } else if ( !strcasecmp(utype,"line") ) {
-                        // check minimum requirements for a line
-                        if ( !ast_strlen_zero( ast_variable_retrieve(cfg, cat, "label") ) ) {
-                        	;
-                        } else if ( !ast_strlen_zero( ast_variable_retrieve(cfg, cat, "pin") ) ) {
-                        	;
-                        } else if ( !ast_strlen_zero( ast_variable_retrieve(cfg, cat, "cid_name") ) ) {
-                        	;
-                        } else if ( !ast_strlen_zero( ast_variable_retrieve(cfg, cat, "cid_num") ) ) {
-                        	;
-                        } else {
-                                ast_log(LOG_WARNING, "Unknown type '%s' for '%s' in %s\n", utype, cat, "sccp.conf");
-                                continue;
-			}
 			line_count++;
 			v = ast_variable_browse(cfg, cat);
 			sccp_config_buildLine(v, cat, FALSE);
 			ast_verbose(VERBOSE_PREFIX_3 "found line %d: %s\n", line_count, cat);
-                }
+                } else {
+		  ast_log(LOG_WARNING, "Unknown type '%s' for '%s' in %s\n", utype, cat, config_file);
+		  continue;
+		}
         }
         ast_config_destroy(cfg);
 }
