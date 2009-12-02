@@ -663,15 +663,22 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
                         }
                 } else if ( !strcasecmp(utype,"line") ) {
                         // check minimum requirements for a line
-                        if ( ast_strlen_zero( ast_variable_retrieve(cfg, cat, "button") ) ) {
+                        if ( !ast_strlen_zero( ast_variable_retrieve(cfg, cat, "label") ) ) {
+                        	;
+                        } else if ( !ast_strlen_zero( ast_variable_retrieve(cfg, cat, "pin") ) ) {
+                        	;
+                        } else if ( !ast_strlen_zero( ast_variable_retrieve(cfg, cat, "cid_name") ) ) {
+                        	;
+                        } else if ( !ast_strlen_zero( ast_variable_retrieve(cfg, cat, "cid_num") ) ) {
+                        	;
+                        } else {
                                 ast_log(LOG_WARNING, "Unknown type '%s' for '%s' in %s\n", utype, cat, "sccp.conf");
                                 continue;
-                        } else {
-				line_count++;
-				v = ast_variable_browse(cfg, cat);
-				sccp_config_buildLine(v, cat, FALSE);
-				ast_verbose(VERBOSE_PREFIX_3 "found line %d: %s\n", line_count, cat);
-                        }
+			}
+			line_count++;
+			v = ast_variable_browse(cfg, cat);
+			sccp_config_buildLine(v, cat, FALSE);
+			ast_verbose(VERBOSE_PREFIX_3 "found line %d: %s\n", line_count, cat);
                 }
         }
         ast_config_destroy(cfg);
