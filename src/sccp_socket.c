@@ -1,17 +1,13 @@
-/*
- * (SCCP*)
+/*!
+ * \file 	sccp_socket.c
+ * \brief 	SCCP Socket Class
+ * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \note	Reworked, but based on chan_sccp code.
+ *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *        	Modified by Jan Czmok and Julien Goodwin
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *
- * An implementation of Skinny Client Control Protocol (SCCP)
- *
- * Sergio Chersovani (mlists@c-net.it)
- *
- * Reworked, but based on chan_sccp code.
- * The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- * Modified by Jan Czmok and Julien Goodwin
- *
- * This program is free software and may be modified and
- * distributed under the terms of the GNU Public License.
- */
+  */
 
 
 #include "config.h"
@@ -36,7 +32,13 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r);
 /* file descriptors of active sockets */
 static fd_set	active_fd_set;
 
-static void sccp_read_data(sccp_session_t * s) {
+
+/*!
+ * \brief Read Data From Socket
+ * \param s SCCP Session
+ */
+static void sccp_read_data(sccp_session_t * s)
+{
 	int64_t ioctl_len;
 	int32_t length, readlen;
 	char * input, * newptr;
@@ -95,6 +97,11 @@ static void sccp_read_data(sccp_session_t * s) {
 	sccp_session_unlock(s);
 }
 
+
+/*!
+ * \brief Socket Session Close
+ * \param s SCCP Session
+ */
 void sccp_session_close(sccp_session_t * s)
 {
 	if (!s)
@@ -120,8 +127,12 @@ void sccp_session_close(sccp_session_t * s)
 
 }
 
-static void destroy_session(sccp_session_t * s) {
-//	sccp_line_t * l;
+/*!
+ * \brief Destroy Socket Session
+ * \param s SCCP Session
+ */
+static void destroy_session(sccp_session_t * s)
+{
 	sccp_device_t * d;
 #ifdef ASTERISK_CONF_1_2
 	char iabuf[INET_ADDRSTRLEN];
@@ -162,7 +173,12 @@ static void destroy_session(sccp_session_t * s) {
 	s=NULL;
 }
 
-static void sccp_accept_connection(void) {
+
+/*!
+ * \brief Socket Accept Connection
+ */
+static void sccp_accept_connection(void)
+{
 	/* called without GLOB(sessions_lock) */
 	struct sockaddr_in incoming;
 	sccp_session_t * s;
@@ -227,8 +243,13 @@ static void sccp_accept_connection(void) {
 	SCCP_LIST_UNLOCK(&GLOB(sessions));
 }
 
-/* Called with mutex lock */
-static sccp_moo_t * sccp_process_data(sccp_session_t * s) {
+/*!
+ * \brief Socket Process Data
+ * \param s SCCP Session
+ * \note Called with mutex lock
+ */
+static sccp_moo_t * sccp_process_data(sccp_session_t * s)
+{
 	uint32_t packSize;
 	void * newptr = NULL;
 	sccp_moo_t * m;
@@ -275,7 +296,12 @@ static sccp_moo_t * sccp_process_data(sccp_session_t * s) {
 	return m;
 }
 
-void * sccp_socket_thread(void * ignore) {
+/*!
+ * \brief Socket Thread
+ * \param ignore None
+ */
+void * sccp_socket_thread(void * ignore)
+{
 	fd_set fset;
 	int res, maxfd = FD_SETSIZE;
 	time_t now;
@@ -364,7 +390,14 @@ void * sccp_socket_thread(void * ignore) {
 	return NULL;
 }
 
-void sccp_session_sendmsg(sccp_device_t *device, sccp_message_t t) {
+
+/*!
+ * \brief Socket Send Message
+ * \param device SCCP Device
+ * \param t SCCP Message
+ */
+void sccp_session_sendmsg(sccp_device_t *device, sccp_message_t t)
+{
 	if(!device || !device->session)
 		return;
 
@@ -373,13 +406,23 @@ void sccp_session_sendmsg(sccp_device_t *device, sccp_message_t t) {
 		sccp_session_send(device, r);
 }
 
-int sccp_session_send(const sccp_device_t *device, sccp_moo_t * r) {
+/*!
+ * \brief Socket Send
+ * \param device SCCP Device
+ * \param r Message Data Structure (sccp_moo_t)
+ * \return SCCP Session Send
+ */
+int sccp_session_send(const sccp_device_t *device, sccp_moo_t * r)
+{
 	sccp_session_t *s =sccp_session_find(device);
 	return sccp_session_send2(s, r);
 }
 
-/**
- * \param s session can be null, r will be freed and no message is send
+/*!
+ * \brief Socket Send Message
+ * \param s Session SCCP Session (can't be null)
+ * \param r Message SCCP Moo Message (will be freed)
+ * \return Result as Int
  */
 int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 	ssize_t res;
@@ -415,7 +458,13 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 	return res;
 }
 
-sccp_session_t * sccp_session_find(const sccp_device_t *device){
+/*!
+ * \brief Find session for device
+ * \param device SCCP Device
+ * \return SCCP Session
+ */
+sccp_session_t * sccp_session_find(const sccp_device_t *device)
+{
 	sccp_session_t *session = NULL;
 	if(!device)
 		return NULL;
@@ -431,9 +480,9 @@ sccp_session_t * sccp_session_find(const sccp_device_t *device){
 }
 
 /**
- * \brief send a reject message to device.
- * \param session session pointer
- * \param message reason of rejection
+ * \brief Send a Reject Message to Device.
+ * \param session SCCP Session Pointer
+ * \param message Message as char (reason of rejection)
  */
 void sccp_session_reject(sccp_session_t *session, char *message){
 	sccp_moo_t 		* r;
@@ -443,10 +492,10 @@ void sccp_session_reject(sccp_session_t *session, char *message){
 }
 
 /**
- * \brief get the in_addr for specific device.
- * \param device pointer to device (can be null)
- * \param type in {AF_INET, AF_INET6}
- * \return
+ * \brief Get the in_addr for Specific Device.
+ * \param device SCCP Device Pointer (can be null)
+ * \param type Type in {AF_INET, AF_INET6}
+ * \return In Address as Structure
  */
 struct in_addr * sccp_session_getINaddr(sccp_device_t *device, int type){
 	sccp_session_t *s = sccp_session_find(device);

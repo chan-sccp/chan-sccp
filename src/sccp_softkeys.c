@@ -1,26 +1,13 @@
 /*
- * (SCCP*)
- *
- * An implementation of Skinny Client Control Protocol (SCCP)
- *
- * Sergio Chersovani (mlists@c-net.it)
- *
- * Reworked, but based on chan_sccp code.
- * The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- * Modified by Jan Czmok and Julien Goodwin
- *
- * This program is free software and may be modified and
- * distributed under the terms of the GNU Public License.
+ * \file 	sccp_softkeys.c
+ * \brief 	SCCP SoftKeys Class
+ * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \note	Reworked, but based on chan_sccp code.
+ *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *        	Modified by Jan Czmok and Julien Goodwin
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \version 	$LastChangedDate$
  */
-
-/**
- * \page intro_sk SoftKeys
- * \ref sk_select The SELECT softkey <br />
- * \ref sk_DirTrfr The DirTrfr softkey
- *
- *
- */
-
 
 #include "config.h"
 
@@ -55,7 +42,15 @@
 #include <asterisk/stringfields.h>
 #endif
 
-void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, sccp_channel_t * c) {
+/*!
+ * \brief Redial last Dialed Number by this Device
+ * \n Usage: \ref sk_redial
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
+void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, sccp_channel_t * c)
+{
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Redial Softkey.\n",d->id);
 
 	if (ast_strlen_zero(d->lastNumber)) {
@@ -82,7 +77,15 @@ void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, sccp_channel_t * c) {
 	sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND);
 }
 
-void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+/*!
+ * \brief Initiate a New Call
+ * \n Usage: \ref sk_newcall
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
+void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
 	if (!l){
 		/* use default line if it is set */
 		if(d && d->defaultLineInstance >0){
@@ -96,7 +99,16 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
 }
 
-void sccp_sk_hold(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+
+/*!
+ * \brief Hold Call on Current Line
+ * \n Usage: \ref sk_hold
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
+void sccp_sk_hold(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
 	if (!c) {
 		sccp_dev_displayprompt(d, 0, 0, "No call to put on hold.",5);
 		return;
@@ -104,7 +116,15 @@ void sccp_sk_hold(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_channel_hold(c);
 }
 
-void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+/*!
+ * \brief Resume Call on Current Line
+ * \n Usage: \ref sk_resume
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
+void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
 	if (!c) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: No call to resume. Ignoring\n", d->id);
 		return;
@@ -112,7 +132,15 @@ void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_channel_resume(d, c);
 }
 
-void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+/*!
+ * \brief Transfer Call on Current Line
+ * \n Usage: \ref sk_transfer
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
+void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
 	if (!c) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Transfer when there is no active call\n", d->id);
 		return;
@@ -120,7 +148,15 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_channel_transfer(c);
 }
 
-void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+/*!
+ * \brief End Call on Current Line
+ * \n Usage: \ref sk_endcall
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
+void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
 	if (!c) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Endcall with no call in progress\n", d->id);
 		return;
@@ -128,8 +164,15 @@ void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_channel_endcall(c);
 }
 
-
-void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+/*!
+ * \brief Set DND on Current Line if Line is Active otherwise set on Device
+ * \n Usage: \ref sk_dnd
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
+void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
 	/* actually the line param is not used */
 	sccp_line_t * l1 = NULL;
 
@@ -183,7 +226,15 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 }
 
 
-void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+/*!
+ * \brief BackSpace Last Entered Number
+ * \n Usage: \ref sk_backspace
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
+void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
 	int len;
 	int instance;
 
@@ -230,18 +281,29 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_handle_backspace(d, instance, c->callid);
 }
 
-void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+
+/*!
+ * \brief Answer Incoming Call
+ * \n Usage: \ref sk_answer
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
+void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
 	sccp_channel_answer(d, c);
 }
 
 
-/**
- * bridge two selected channels
- * \page sk_DirTrfr DirTrfr
- * \section sk_DirTrfr_howto How to use the DirTrfr
- *
+/*!
+ * \brief Bridge two selected channels
+ * \n Usage: \ref sk_dirtrfr
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
  */
-void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
 
 	sccp_selectedchannel_t *x;
 	sccp_channel_t *chan1 = NULL, *chan2 = NULL, *tmp = NULL;
@@ -285,24 +347,15 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 }
 
 
-/**
- *
- * \page sk_select select
- * \section sk_select_howto How to use the select softkey
- *
- * The "Select" softkey is used for bridging tow channels (redirect).
- * Select your first channel and press the select softkey. On the display this channel is marked
- * with a checkmark.
- * By selecting the second channel, it is also marked with a checkmark and the \ref sk_DirTrfr DirTrfr
- * is enabled. Press this key to bridge both channels.
- *
- *
- *
- *
- *
- *
+/*!
+ * \brief Select a Line for further processing by for example DirTrfr
+ * \n Usage: \ref sk_select
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
  */
-void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
 	sccp_selectedchannel_t *x = NULL;
 	sccp_moo_t * r1;
 	uint8_t numSelectedChannels = 0, status = 0;
@@ -351,29 +404,35 @@ void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 
 }
 
-void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
-	if(!l && d) {
-		l = sccp_line_find_byid(d, 1);
-	}
+
+/*!
+ * \brief Set Call Forward All on Current Line
+ * \n Usage: \ref sk_cfwdall
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
+void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
+        if (!l && d) {
+                l = sccp_line_find_byid(d, 1);
+        }
 	if(l){
 		sccp_feat_handle_callforward(l, d, SCCP_CFWD_ALL);
 	}else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
 
-	/*
-	if (!c || !c->owner) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Call forward with no channel active\n", d->id);
-		return;
-	}
-	if (c->state != SCCP_CHANNELSTATE_RINGOUT && c->state != SCCP_CHANNELSTATE_CONNECTED) {
-		sccp_line_cfwd(l, SCCP_CFWD_NONE, NULL);
-		return;
-	}
-	sccp_line_cfwd(l, SCCP_CFWD_ALL, c->dialedNumber);
-	*/
 }
 
-void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+/*!
+ * \brief Set Call Forward when Busy on Current Line
+ * \n Usage: \ref sk_cfwdbusy
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
+void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
 	if(!l && d) {
 		l = sccp_line_find_byid(d, 1);
 	}
@@ -382,19 +441,15 @@ void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
 
-	/*
-	if (!c || !c->owner) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Call forward with no channel active\n", d->id);
-		return;
-	}
-	if (c->state != SCCP_CHANNELSTATE_RINGOUT && c->state != SCCP_CHANNELSTATE_CONNECTED) {
-		sccp_line_cfwd(l, SCCP_CFWD_NONE, NULL);
-		return;
-	}
-	sccp_line_cfwd(l, SCCP_CFWD_BUSY, c->dialedNumber);
-	*/
 }
 
+/*!
+ * \brief Set Call Forward when No Answer on Current Line
+ * \n Usage: \ref sk_cfwdnoanswer
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
 void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	if(!l && d) {
 		l = sccp_line_find_byid(d, 1);
@@ -409,6 +464,13 @@ void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 	*/
 }
 
+/*!
+ * \brief Park Call on Current Line
+ * \n Usage: \ref sk_park
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
 void sccp_sk_park(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #ifdef CS_SCCP_PARK
 	sccp_channel_park(c);
@@ -417,10 +479,24 @@ void sccp_sk_park(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #endif
 }
 
+/*!
+ * \brief Transfer to VoiceMail on Current Line
+ * \n Usage: \ref sk_transfer
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
 void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_feat_idivert(d, l, c);
 }
 
+/*!
+ * \brief Initiate Private Call on Current Line
+ * \n Usage: \ref sk_private
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
 void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	uint8_t	instance;
 
@@ -445,38 +521,85 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	sccp_mutex_unlock(&c->lock);
 }
 
-void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+/*!
+ * \brief Put Current Line into Conference
+ * \n Usage: \ref sk_conference
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ * \todo Conferencing option needs to be build and implemented
+ *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
+ */
+void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
 	sccp_feat_conference(d, l, c);
 }
 
-void sccp_sk_join(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+
+/*!
+ * \brief Join Current Line to Conference
+ * \n Usage: \ref sk_join
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ * \todo Conferencing option needs to be build and implemented
+ */
+void sccp_sk_join(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
 	sccp_feat_join(d, l, c);
 }
 
-void sccp_sk_barge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
-	if(!l && d) {
-		l = sccp_line_find_byid(d, 1);
-	}
+
+/*!
+ * \brief Barge into Call on the Current Line
+ * \n Usage: \ref sk_barge
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
+void sccp_sk_barge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
+        if (!l && d) {
+                l = sccp_line_find_byid(d, 1);
+        }
 	if(l)
 		sccp_feat_handle_barge(l,d);
 	else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
 }
 
-void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
-	if(!l && d) {
-		l = sccp_line_find_byid(d, 1);
-	}
+/*!
+ * \brief Barge into Call on the Current Line
+ * \n Usage: \ref sk_cbarge
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
+void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
+        if (!l && d) {
+                l = sccp_line_find_byid(d, 1);
+        }
 	if(l)
 		sccp_feat_handle_cbarge(l,d);
 	else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
 }
 
-void sccp_sk_meetme(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
-	if(!l && d) {
-		l = sccp_line_find_byid(d, 1);
-	}
+/*!
+ * \brief Put Current Line in to Meetme Conference
+ * \n Usage: \ref sk_meetme
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ * \todo Conferencing option needs to be build and implemented
+ *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
+ */
+void sccp_sk_meetme(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
+        if (!l && d) {
+                l = sccp_line_find_byid(d, 1);
+        }
 	if(l)
 		sccp_feat_handle_meetme(l, d);
 	else
@@ -484,7 +607,16 @@ void sccp_sk_meetme(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 }
 
 
-void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+
+/*!
+ * \brief Pickup Parked Call
+ * \n Usage: \ref sk_pickup
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
+void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
 #ifndef CS_SCCP_PICKUP
 	sccp_log(10)(VERBOSE_PREFIX_3 "### Native EXTENSION PICKUP was not compiled in\n");
 #else
@@ -498,7 +630,17 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #endif
 }
 
-void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+
+
+/*!
+ * \brief Pickup Ringing Line from Pickup Group
+ * \n Usage: \ref sk_gpickup
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
+void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+{
 #ifndef CS_SCCP_PICKUP
 	sccp_log(10)(VERBOSE_PREFIX_3 "### Native GROUP PICKUP was not compiled in\n");
 #else
@@ -517,7 +659,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 /**
  * \brief sets a SoftKey to a specified status (on/off)
  *
- * \param d device
+ * \param d SCCP Device
  * \param l active line
  * \param c active channel
  * \param keymode int of KEYMODE_*
