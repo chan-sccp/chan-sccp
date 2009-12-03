@@ -467,23 +467,25 @@ typedef enum {
 /*!
  * \brief Button List Structure
 */
-
 typedef struct {
         uint8_t instance;							/*!< Button Instance */
         uint8_t type;								/*!< Button Type */
         void *ptr;								/*!< Pointer to the next Button */
 } btnlist;									/*!< Button List Structure */
+
 /*!
  * \brief Button Modes Structure
  * \todo do we need this? - MC
 */
-
 typedef struct {
         const char * type;							/*!< Button Type */
         int buttonCount;							/*!< Button Count */
         const btnlist * buttons;						/*!< Button List */
 } button_modes;									/*!< Button Modes Structure */
 
+/*!
+ * \brief SCCP Message Types Enum
+ */
 typedef enum {
         /* Client -> Server */
         KeepAliveMessage			= 0x0000,
@@ -641,7 +643,7 @@ typedef enum {
         /* received from phone */
         StartMediaTransmissionAck		= 0x0154,
         Unknown_0x0159_Message			= 0x0159
-} sccp_message_t;								/*!< SCCPMessageTypes */
+} sccp_message_t;								/*!< SCCP Message Types Enum */
 
 #define SCCP_ACCESSORY_NONE			0x00 				/*!< Added for compatibility with old phones -FS */
 #define SCCP_ACCESSORY_HEADSET			0x01
@@ -654,12 +656,18 @@ typedef enum {
 
 /*=====================================================================================================*/
 
+/*!
+ * \brief Station Identifier Structure
+ */
 typedef struct {
         char			deviceName[StationMaxDeviceNameSize]; 		/*!< Device name */
         uint32_t		lel_userid;					/*!< User ID */
         uint32_t		lel_instance;					/*!< Instance */
 } StationIdentifier;								/*!< Station Identifier Structure */
 
+/*!
+ * \brief Station Button Definition Structure
+ */
 typedef struct {
         uint8_t 		instanceNumber;					/*!< set to instance number or StationKeyPadButton value */
         uint8_t 		buttonDefinition;				/*!< set to one of the preceding Bt values */
@@ -668,7 +676,7 @@ typedef struct {
 
 /*!
  * \brief Media Payload Capability Structure
-*/
+ */
 typedef struct {
         uint32_t 		lel_payloadCapability;				/*!< Payload Capability */
         uint32_t 		lel_maxFramesPerPacket;				/*!< Maximum Number of Frames per IP Packet */
@@ -680,8 +688,7 @@ typedef struct {
 
 /*!
  * \brief Station Soft Key Definition Structure
-*/
-
+ */
 typedef struct {
         char			softKeyLabel[StationMaxSoftKeyLabelSize];	/*!< Soft Key Label */
         uint32_t		lel_softKeyEvent;				/*!< Soft Key Event */
@@ -689,21 +696,23 @@ typedef struct {
 
 /*!
  * \brief Station Soft Key Set Definition Structure
-*/
-
+ */
 typedef struct {
         uint8_t  		softKeyTemplateIndex[StationMaxSoftKeyIndex];	/*!< Soft Key Template Index */
         uint16_t 		les_softKeyInfoIndex[StationMaxSoftKeyIndex];	/*!< Soft Key Info Index */
 } StationSoftKeySetDefinition;							/*!< Station Soft Key Set Definition Structure */
 
+/*!
+ * \brief Station Identifier Structure
+ */
 typedef struct {
         char		 	serverName[ServerMaxNameSize];			/*!< Server Name */
 } ServerIdentifier;								/*!< Server Identifier Structure */
 
-/*! \brief Layout Config Structure (Update Capabilities Message Struct)
+/*! 
+ * \brief Layout Config Structure (Update Capabilities Message Struct)
  * \since 20080111
  */
-
 typedef struct {
         uint32_t		layout;						/*!< Layout \todo what is layout? */
 } layoutConfig_t;								/*!< Layout Config Structure */
@@ -711,8 +720,7 @@ typedef struct {
 /*!
  * \brief Level Preference Structure
  * \todo what does this mean?
-*/
-
+ */
 typedef struct {
         uint32_t		transmitPreference;				/*!< Transmit Preference */
         uint32_t		format;						/*!< Format / Codec */
@@ -722,6 +730,9 @@ typedef struct {
         uint32_t		serviceNumber;					/*!< Service Number */
 } levelPreference_t;								/*!< Level Preference Structure */
 
+/*!
+ * \brief Service Resource Structure
+ */
 typedef struct {
         uint32_t		layoutCount;					/*!< Layout Count */
         layoutConfig_t		layout[MAX_LAYOUT_WITH_SAME_SERVICE];		/*!< Layout */
@@ -731,6 +742,9 @@ typedef struct {
         uint32_t		activeConferenceOnRegistration;			/*!< Active Conference On Registration */
 } serviceResource_t;								/*!< Service Resource Structure */
 
+/*!
+ * \brief Picture Format Structure
+ */
 typedef struct {
         uint32_t		customPictureFormatWidth;			/*!< Picture Width */
         uint32_t		customPictureFormatHeight;			/*!< Picture Height */
@@ -739,12 +753,18 @@ typedef struct {
         uint32_t		customPictureFormatpixelclockDivisor;		/*!< Picture Pixel Divisor */
 } customPictureFormat_t;							/*!< Picture Format Structure */
 
+/*!
+ * \brief Audio Capabilities Structure
+ */
 typedef struct {
         uint32_t		lel_payloadCapability;				/*!< PayLoad Capability */
         uint32_t		lel_maxFramesPerPacket;				/*!< Maximum Number of Frames per IP Packet */
         uint32_t		lel_unknown[2];					/*!< this are related to G.723 */
 } audioCaps_t;									/*!< Audio Capabilities Structure */
 
+/*!
+ * \brief Video Capabilities Structure
+ */
 typedef struct {
         uint32_t		lel_payloadCapability;				/*!< PayLoad Capability */
         uint32_t		lel_transmitOrReceive;				/*!< Transmit of Receive */
@@ -775,7 +795,6 @@ typedef struct {
 /*!
  * \brief Data Capabilities Structure
  */
-
 typedef struct {
         uint32_t		payloadCapability;				/*!< Payload Capability */
         uint32_t		transmitOrReceive;				/*!< Transmit or Receive */

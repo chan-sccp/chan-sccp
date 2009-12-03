@@ -258,10 +258,13 @@ typedef enum {
 }sccp_readingtype_t;									/*!< Reading Type */
 
 /*!
- * \brief SCCP Mailbox Structure
+ * \brief SCCP Mailbox Type Definition
  */
 typedef struct sccp_mailbox sccp_mailbox_t;
 
+/*!
+ * \brief SCCP Mailbox Structure
+ */
 struct sccp_mailbox {
         char 					* mailbox;				/*!< Mailbox */
         char 					* context;				/*!< Context */
@@ -354,10 +357,10 @@ struct sccp_buttonconfig {
                 } feature;								/*!< SCCP Button Feature Structure */
         } button;									/*!< SCCP Button Structure */
 };											/*!< SCCP Button Configuration Structure */
-/*
+
+/*!
  * \brief SCCP Hostname Structure
  */
-
 struct sccp_hostname {
         char 					name[MAXHOSTNAMELEN];			/*!< Name of the Host */
         SCCP_LIST_ENTRY(sccp_hostname_t) 	list;					/*!< Host Linked List Entry */
@@ -444,10 +447,10 @@ struct sccp_line {
 	
 	uint32_t				configurationStatus;			/*!< what is the current configuration status - @see sccp_config_status_t */
 };											/*!< SCCP Line Structure */
+
 /*!
  * \brief SCCP SpeedDial Button Structure
  */
-
 struct sccp_speed {
         uint8_t 				config_instance;			/*!< The instance of the speeddial in the sccp.conf */
         uint8_t 				instance;				/*!< The instance on the current device */
@@ -465,6 +468,9 @@ struct sccp_speed {
 
 };
 
+/*!
+ * \brief SCCP Device Structure
+ */
 struct sccp_device {
         ast_mutex_t 				lock;					/*!< Asterisk: Lock Me Up and Tie me Down */
         char 					id[StationMaxDeviceNameSize];		/*!< SEP<macAddress> of the device. */
