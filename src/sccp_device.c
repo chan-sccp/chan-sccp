@@ -1,16 +1,13 @@
-/*
- * (SCCP*)
+/*!
+ * file 	sccp_device.c
+ * brief 	SCCP Device Class
+ * author 	Sergio Chersovani <mlists [at] c-net.it>
+ * date
+ * note	Reworked, but based on chan_sccp code.
+ *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *        	Modified by Jan Czmok and Julien Goodwin
+ * note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *
- * An implementation of Skinny Client Control Protocol (SCCP)
- *
- * Sergio Chersovani (mlists@c-net.it)
- *
- * Reworked, but based on chan_sccp code.
- * The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- * Modified by Jan Czmok and Julien Goodwin
- *
- * This program is free software and may be modified and
- * distributed under the terms of the GNU Public License.
  */
 
 
@@ -57,11 +54,15 @@ sccp_device_t * sccp_device_create(void){
 	// SCCP_LIST_HEAD_INIT(&d->selectedChannels);
 	SCCP_LIST_HEAD_INIT(&d->addons);
 
-	return sccp_device_applayDefaults(d);
+	return sccp_device_applyDefaults(d);
 }
 
-
-sccp_device_t *sccp_device_applayDefaults(sccp_device_t *d){
+/*!
+ * \brief Apply Device Defaults
+ * \return SCCP Device with default values
+ */
+sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
+{
 	if(!d)
 		return NULL;
 
@@ -117,7 +118,11 @@ sccp_device_t *sccp_device_applayDefaults(sccp_device_t *d){
 	  return d;
 }
 
-/*! \brief Return Device's codec (part of the RTP interface) */
+/*!
+ * \brief Return Device's Codec (part of the RTP interface)
+ * \param ast Asterisk Channel
+ * \return Success as int
+ */
 int sccp_device_get_codec(struct ast_channel *ast)
 {
 	sccp_channel_t *c = NULL;
@@ -149,13 +154,13 @@ int sccp_device_get_codec(struct ast_channel *ast)
 	return d->capability;
 }
 
-/**
- * create a templete of buttons as definition for a phonetype (d->skinny_type)
+/*!
+ * \brief Create a template of Buttons as Definition for a Phonetype (d->skinny_type)
  * \param d device
  * \param btn buttonlist
- *
  */
-void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
+void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn)
+{
 	uint8_t i;
 	if (!d || !d->session)
 		return;
@@ -296,7 +301,14 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 	return;
 }
 
-sccp_moo_t * sccp_build_packet(sccp_message_t t, size_t pkt_len) {
+/*!
+ * \brief Build an SCCP Message Packet
+ * \param[in] t SCCP Message Text
+ * \param[out] pkt_len Packet Length
+ * \return SCCP Message
+ */
+sccp_moo_t * sccp_build_packet(sccp_message_t t, size_t pkt_len)
+{
 	sccp_moo_t * r = ast_malloc(sizeof(sccp_moo_t));
 	if (!r) {
 		ast_log(LOG_WARNING, "SCCP: Packet memory allocation error\n");
@@ -308,7 +320,14 @@ sccp_moo_t * sccp_build_packet(sccp_message_t t, size_t pkt_len) {
 	return r;
 }
 
-int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r) {
+/*!
+ * \brief Send SCCP Message to Device
+ * \param d SCCP Device
+ * \param r SCCP MOO Message
+ * \return Status as int
+ */
+int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
+{
 	if(d && d->session)
 		return sccp_session_send(d, r);
 	else
@@ -324,7 +343,13 @@ void sccp_dev_sendmsg(sccp_device_t * d, sccp_message_t t) {
 
 
 
-void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt) {
+/*!
+ * \brief Register a Device
+ * \param d SCCP Device
+ * \param opt Option/Registration State as int
+ */
+void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
+{
 	char servername[StationMaxDisplayNotifySize];
 
 	if (d->registrationState == opt)
@@ -338,15 +363,12 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt) {
 	}
 }
 /**
- * sets device d info the SoftKey mode specified by opt
- *
- * \param d device
- * \param line line
- * \param callid callid
- * \param opt KEYMODE of KEYMODE_*
- *
- * \todo disable DirTrfr on default
- *
+ * brief Sets the SCCP Device's SoftKey Mode Specified by opt
+ * param d SCCP Device
+ * param line Line as uint8_t
+ * param callid Call ID as uint8_t
+ * param opt KEYMODE of KEYMODE_*
+ * todo Disable DirTrfr by Default
  */
 void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid, uint8_t opt) {
 	sccp_moo_t * r;
@@ -375,7 +397,15 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 	sccp_dev_send(d, r);
 }
 
-void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail) {
+
+/*!
+ * brief Set Message Waiting Indicator (MWI or LAMP) on Device
+ * param d SCCP Device
+ * param l SCCP Line
+ * parma hasMail Mail Indicator Status as uint8_t
+ */
+void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
+{
 	sccp_moo_t * r;
 	int instance;
 	if (!d)
@@ -406,10 +436,19 @@ void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n",DEV_ID_LOG(d), hasMail ? "ON" : "OFF", (l ? l->name : "unknown"),(l ? instance : 0));
 }
 
-void sccp_dev_set_ringer(sccp_device_t * d, uint8_t opt, uint32_t line, uint32_t callid) {
-	sccp_moo_t * r;
-	if (!d || !d->session)
-		return;
+/*!
+ * brief Set Ringer on Device
+ * param d SCCP Device
+ * param opt Option as uint8_t
+ * param l Line Number as uint32_t
+ * param callid Call ID as uint32_t
+ */
+void sccp_dev_set_ringer(sccp_device_t * d, uint8_t opt, uint32_t line, uint32_t callid)
+{
+        sccp_moo_t * r;
+
+        if (!d || !d->session)
+                return;
   // If we have multiple calls ringing at once, this has lead to
   // never ending rings even after termination of the alerting call.
   // Obviously the ringermode is no longer a per-device state but
@@ -432,8 +471,14 @@ void sccp_dev_set_ringer(sccp_device_t * d, uint8_t opt, uint32_t line, uint32_t
 
 }
 
-void sccp_dev_set_speaker(sccp_device_t * d, uint8_t mode) {
-	sccp_moo_t * r;
+/*!
+ * brief Set Speaker Status on Device
+ * param d SCCP Device
+ * param mode Speaker Mode as uint8_t
+ */
+void sccp_dev_set_speaker(sccp_device_t * d, uint8_t mode)
+{
+        sccp_moo_t * r;
 	if (!d || !d->session)
 		return;
 
@@ -443,8 +488,14 @@ void sccp_dev_set_speaker(sccp_device_t * d, uint8_t mode) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send speaker mode %d\n", d->id, mode);
 }
 
-void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode) {
-	sccp_moo_t * r;
+/*!
+ * brief Set Microphone Status on Device
+ * param d SCCP Device
+ * param mode Microphone Mode as uint8_t
+ */
+void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode)
+{
+        sccp_moo_t * r;
 	if (!d || !d->session)
 		return;
 
@@ -454,7 +505,14 @@ void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send microphone mode %d\n", d->id, mode);
 }
 
-void sccp_dev_set_cplane(sccp_line_t * l, sccp_device_t *device, int status) {
+/*!
+ * brief Set Call Plane to Active on  Line on Device
+ * param l SCCP Line
+ * param status Status as int
+ * todo What does this function do exactly (ActivateCallPlaneMessage) ?
+ */
+void sccp_dev_set_cplane(sccp_line_t * l, sccp_device_t *device, int status)
+{
 	sccp_moo_t * r;
 	int 	instance=0;
 	if (!l)
@@ -471,7 +529,13 @@ void sccp_dev_set_cplane(sccp_line_t * l, sccp_device_t *device, int status) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send activate call plane on line %d\n", device->id, (status) ? instance : 0 );
 }
 
-void sccp_dev_set_deactivate_cplane(sccp_channel_t * c) {
+/*!
+ * brief Set Call Plane to In-Active on  Line on Device
+ * param l SCCP Line
+ * todo What does this function do exactly (DeactivateCallPlaneMessage) ?
+ */
+void sccp_dev_set_deactivate_cplane(sccp_channel_t * c)
+{
 	int instance;
 
 	if (!c || !c->device || !c->line)
@@ -482,8 +546,17 @@ void sccp_dev_set_deactivate_cplane(sccp_channel_t * c) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send deactivate call plane on line %d\n", c->device->id, instance);
 }
 
-void sccp_dev_starttone(sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t callid, uint32_t timeout) {
-	sccp_moo_t * r;
+/*!
+ * \brief Send Start Tone to Device
+ * \param d SCCP Device
+ * \param tone Tone as uint8_t
+ * \param line Line as uint8_t
+ * \param callid Call ID as uint32_t
+ * \param timeout Timeout as uint32_t
+ */
+void sccp_dev_starttone(sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t callid, uint32_t timeout)
+{
+        sccp_moo_t * r;
 	if (!d || !d->session)
 		return;
 
@@ -497,10 +570,18 @@ void sccp_dev_starttone(sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending tone %s (%d)\n", d->id, skinny_tone2str(tone), tone);
 }
 
-void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid) {
-	sccp_moo_t * r;
-	if (!d || !d->session)
-		return;
+/*!
+ * \brief Send Stop Tone to Device
+ * \param d SCCP Device
+ * \param line Line as uint8_t
+ * \param callid Call ID as uint32_t
+ */
+void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid)
+{
+        sccp_moo_t * r;
+
+        if (!d || !d->session)
+                return;
 	REQ(r, StopToneMessage);
 	r->msg.StopToneMessage.lel_lineInstance = htolel(line);
 	r->msg.StopToneMessage.lel_callReference = htolel(callid);
@@ -508,7 +589,14 @@ void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Stop tone on device\n", d->id);
 }
 
-void sccp_dev_clearprompt(sccp_device_t * d, uint8_t line, uint32_t callid) {
+/*!
+ * \brief Send Clear Prompt to Device
+ * \param d SCCP Device
+ * \param line Line as uint8_t
+ * \param callid Call ID uint32_t
+ */
+void sccp_dev_clearprompt(sccp_device_t * d, uint8_t line, uint32_t callid)
+{
 	sccp_moo_t * r;
 
 	if (!d || !d->session)
@@ -525,11 +613,20 @@ void sccp_dev_clearprompt(sccp_device_t * d, uint8_t line, uint32_t callid) {
 
 
 
-void sccp_dev_displayprompt(sccp_device_t * d, uint8_t line, uint32_t callid, char * msg, int timeout) {
-	sccp_moo_t * r;
+/*!
+ * \brief Send Display Prompt to Device
+ * \param d SCCP Device
+ * \param line Line as uint8_t
+ * \param callid Call ID uint32_t
+ * \param msg Msg as char
+ * \param timeout Timeout as int
+ */
+void sccp_dev_displayprompt(sccp_device_t * d, uint8_t line, uint32_t callid, char * msg, int timeout)
+{
+        sccp_moo_t * r;
 
-	if (!d || !d->session)
-		return;
+        if (!d || !d->session)
+                return;
 	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) return; /* only for telecaster and new phones */
 
 	if (!msg || ast_strlen_zero(msg))
@@ -544,7 +641,12 @@ void sccp_dev_displayprompt(sccp_device_t * d, uint8_t line, uint32_t callid, ch
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Display prompt on line %d, callid %d, timeout %d\n", d->id, line, callid, timeout);
 }
 
-void sccp_dev_cleardisplay(sccp_device_t * d) {
+/*!
+ * \brief Send Clear Display to Device
+ * \param d SCCP Device
+ */
+void sccp_dev_cleardisplay(sccp_device_t * d)
+{
 	if (!d || !d->session)
 		return;
 
@@ -554,7 +656,14 @@ void sccp_dev_cleardisplay(sccp_device_t * d) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Clear the display\n", d->id);
 }
 
-void sccp_dev_display(sccp_device_t * d, char * msg) {
+
+/*!
+ * \brief Send Display to Device
+ * \param d SCCP Device
+ * \param msg Msg as char
+ */
+void sccp_dev_display(sccp_device_t * d, char * msg)
+{
 	sccp_moo_t * r;
 
 	if (!d || !d->session)
@@ -572,7 +681,12 @@ void sccp_dev_display(sccp_device_t * d, char * msg) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Display text\n", d->id);
 }
 
-void sccp_dev_cleardisplaynotify(sccp_device_t * d) {
+/*!
+ * \brief Send Clear Display Notification to Device
+ * \param d SCCP Device
+ */
+void sccp_dev_cleardisplaynotify(sccp_device_t * d)
+{
 	if (!d || !d->session)
 		return;
 
@@ -582,11 +696,18 @@ void sccp_dev_cleardisplaynotify(sccp_device_t * d) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Clear the display notify message\n", d->id);
 }
 
-void sccp_dev_displaynotify(sccp_device_t * d, char * msg, uint32_t timeout) {
-	sccp_moo_t * r;
+/*!
+ * \brief Send Display Notification to Device
+ * \param d SCCP Device
+ * \param msg Msg as char
+ * \param timeout Timeout as uint32_t
+ */
+void sccp_dev_displaynotify(sccp_device_t * d, char * msg, uint32_t timeout)
+{
+        sccp_moo_t * r;
 
-	if (!d || !d->session)
-		return;
+        if (!d || !d->session)
+                return;
 	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) return; /* only for telecaster and new phones */
 
 	if (!msg || ast_strlen_zero(msg))
@@ -599,7 +720,12 @@ void sccp_dev_displaynotify(sccp_device_t * d, char * msg, uint32_t timeout) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Display notify with timeout %d\n", d->id, timeout);
 }
 
-void sccp_dev_cleardisplayprinotify(sccp_device_t * d) {
+/*!
+ * \brief Send Clear Display Notification to Device
+ * \param d SCCP Device
+ */
+void sccp_dev_cleardisplayprinotify(sccp_device_t * d)
+{
 	if (!d || !d->session)
 		return;
 
@@ -609,7 +735,15 @@ void sccp_dev_cleardisplayprinotify(sccp_device_t * d) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Clear the display priority notify message\n", d->id);
 }
 
-void sccp_dev_displayprinotify(sccp_device_t * d, char * msg, uint32_t priority, uint32_t timeout) {
+/*!
+ * \brief Send Display Priority Notification to Device
+ * \param d SCCP Device
+ * \param msg Msg as char
+ * \param priority Priority as uint32_t
+ * \param timeout Timeout as uint32_t
+ */
+void sccp_dev_displayprinotify(sccp_device_t * d, char * msg, uint32_t priority, uint32_t timeout)
+{
 	sccp_moo_t * r;
 
 	if (!d || !d->session)
@@ -627,7 +761,15 @@ void sccp_dev_displayprinotify(sccp_device_t * d, char * msg, uint32_t priority,
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Display notify with timeout %d and priority %d\n", d->id, timeout, priority);
 }
 
-sccp_speed_t * sccp_dev_speed_find_byindex(sccp_device_t * d, uint8_t instance, uint8_t type) {
+/*!
+ * \brief Find SpeedDial by Index
+ * \param d SCCP Device
+ * \param instance Instance as uint8_t
+ * \param type Type as uint8_t
+ * \return SCCP Speed
+ */
+sccp_speed_t * sccp_dev_speed_find_byindex(sccp_device_t * d, uint8_t instance, uint8_t type)
+{
 	sccp_speed_t 		* k = NULL;
 	sccp_buttonconfig_t	*config;
 
@@ -656,7 +798,13 @@ sccp_speed_t * sccp_dev_speed_find_byindex(sccp_device_t * d, uint8_t instance, 
 	return k;
 }
 
-sccp_line_t * sccp_dev_get_activeline(sccp_device_t * d) {
+/*!
+ * \brief Send Get Activeline to Device
+ * \param d SCCP Device
+ * \return SCCP Line
+ */
+sccp_line_t * sccp_dev_get_activeline(sccp_device_t * d)
+{
 	sccp_buttonconfig_t *buttonconfig;
 
 	/* XXX fixme */
@@ -685,7 +833,13 @@ sccp_line_t * sccp_dev_get_activeline(sccp_device_t * d) {
 	return d->currentLine;
 }
 
-void sccp_dev_set_activeline(sccp_device_t *device, sccp_line_t * l) {
+/*!
+ * \brief Send Set Activeline to Device
+ * \param device SCCP Device
+ * \param l SCCP Line
+ */
+void sccp_dev_set_activeline(sccp_device_t *device, sccp_line_t * l)
+{
 	if (!l || !device || !device->session)
 		return;
 
@@ -724,7 +878,12 @@ OUT:
 }
 */
 
-void sccp_dev_check_displayprompt(sccp_device_t * d) {
+/*!
+ * \brief Reschedule Display Prompt Check
+ * \param d SCCP Device
+ */
+void sccp_dev_check_displayprompt(sccp_device_t * d)
+{
 	sccp_buttonconfig_t	*buttonconfig = NULL;
 	sccp_line_t * l;
 	char tmp[256] = "";
@@ -821,7 +980,13 @@ sccp_log(99)(VERBOSE_PREFIX_3 "%s: \n", d->id);
 	//sccp_device_unlock(d);
 }
 
-void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted) {
+/*!
+ * \brief Select Line on Device
+ * \param d SCCP Device
+ * \param wanted SCCP Line
+ */
+void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
+{
 	/* XXX rework this */
 	sccp_line_t * current;
 	sccp_channel_t * chan = NULL;
@@ -863,7 +1028,15 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted) {
 	}
 }
 
-void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint8_t instance, uint8_t lampMode) {
+/*!
+ * \brief Set Message Waiting Indicator (MWI/Lamp)
+ * \param d SCCP Device
+ * \param stimulus Stimulus as uint16_t
+ * \param instance Instance as uint8_t
+ * \param lampMode LampMode as uint8_t
+ */
+void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint8_t instance, uint8_t lampMode)
+{
 	sccp_moo_t * r;
 
 	if (!d )
@@ -908,7 +1081,13 @@ void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {
 	}
 }
 
-int sccp_device_check_ringback(sccp_device_t * d) {
+/*!
+ * \brief Check Ringback on Device
+ * \param d SCCP Device
+ * \return Result as int
+ */
+int sccp_device_check_ringback(sccp_device_t * d)
+{
 	sccp_channel_t * c;
 
 	sccp_device_lock(d);
@@ -931,8 +1110,15 @@ int sccp_device_check_ringback(sccp_device_t * d) {
 	return 0;
 }
 
-/* this thread will start 5 seconds after the device registration to display the status of the monitored extensions */
-void * sccp_dev_postregistration(void *data) {
+/*!
+ * \brief Handle Post Device Registration
+ *
+ * this thread will start 5 seconds after the device registration to display the status of the monitored extensions
+ *
+ * \param data Data
+ */
+void * sccp_dev_postregistration(void *data)
+{
 	sccp_device_t * d = data;
 
 	if (!d)
@@ -968,11 +1154,17 @@ void * sccp_dev_postregistration(void *data) {
 	return NULL;
 }
 
-/**
+/*!
+ * \brief Clean Device
+ *
  *  clean up memory allocated by the device.
  *  if destroy is true, device will be removed from global device list
+ *
+ * \param d SCCP Device
+ * \param destroy Destroy as boolean_t
  */
-void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
+void sccp_dev_clean(sccp_device_t * d, boolean_t destroy)
+{
 	sccp_buttonconfig_t	*config = NULL;
 	sccp_hostname_t *permithost = NULL;
 	sccp_selectedchannel_t 	*selectedChannel = NULL;
@@ -1083,7 +1275,14 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 	d->session = NULL;
 }
 
-sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t instance) {
+/*!
+ * \brief Find ServiceURL by index
+ * \param d SCCP Device
+ * \param instance Instance as uint8_t
+ * \return SCCP Service
+ */
+sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t instance)
+{
 	sccp_service_t 		* service = NULL;
 	sccp_buttonconfig_t	* config=NULL;
 
@@ -1112,7 +1311,14 @@ sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t ins
 
 }
 
-int sccp_device_find_index_for_line(sccp_device_t * d, char *lineName) {
+/*!
+ * \brief Find Device by Line Index
+ * \param d SCCP Device
+ * \param lineName Line Name as char
+ * \return Status as int
+ */
+int sccp_device_find_index_for_line(sccp_device_t * d, char *lineName)
+{
 	int i=0;
 	sccp_buttonconfig_t	*config;
 	boolean_t	found = FALSE;
@@ -1136,8 +1342,13 @@ int sccp_device_find_index_for_line(sccp_device_t * d, char *lineName) {
 	return (found)? i : 0;
 }
 
-
-void sccp_device_removeLine(sccp_device_t *device, sccp_line_t * line){
+/*!
+ * \brief Remove Line from Device
+ * \param device SCCP Device
+ * \param line SCCP Line
+ */
+void sccp_device_removeLine(sccp_device_t *device, sccp_line_t * line)
+{
 //	sccp_buttonconfig_t	*config;
 //
 //
@@ -1154,7 +1365,14 @@ void sccp_device_removeLine(sccp_device_t *device, sccp_line_t * line){
 
 }
 
-int sccp_device_reset(sccp_session_t * s, uint8_t reset_type) {
+/*!
+ * \brief Reset a Device
+ * \param s SCCP Session
+ * \param reset_type as int
+ * \return Status as int
+ */
+int sccp_device_reset(sccp_session_t * s, uint8_t reset_type)
+{
 	sccp_moo_t * r;
 	sccp_device_t 	*d;
 
@@ -1215,7 +1433,18 @@ int sccp_device_reset(sccp_session_t * s, uint8_t reset_type) {
 }
 
 /* temporary function for hints */
-void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, uint8_t state, skinny_callPriority_t priority, skinny_callinfo_visibility_t visibility) {
+
+/*!
+ * \brief Send Call State to Device
+ * \param d SCCP Device
+ * \param instance Instance as int
+ * \param callid Call ID as int
+ * \param state Call State as int
+ * \param priority Priority as skinny_callPriority_t
+ * \param visibility Visibility as skinny_callinfo_visibility_t
+ */
+void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, uint8_t state, skinny_callPriority_t priority, skinny_callinfo_visibility_t visibility)
+{
 	sccp_moo_t * r;
 
 	if (!d)
@@ -1231,10 +1460,16 @@ void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send and Set the call state %s(%d) on call %d\n", d->id, sccp_callstate2str(state), state, callid);
 }
 
-void sccp_device_stateChanged(sccp_device_t *device){
-	if(!device)
-		return;
 
-	sccp_mwi_check(device);
+/*!
+ * \brief Handle State Changed on Device
+ * \param device SCCP Device
+ */
+void sccp_device_stateChanged(sccp_device_t *device)
+{
+        if (!device)
+                return;
+
+        sccp_mwi_check(device);
 }
 

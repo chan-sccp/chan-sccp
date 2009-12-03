@@ -49,10 +49,10 @@ sccp_line_t * sccp_line_create(void) {
 	SCCP_LIST_HEAD_INIT(&l->channels);
 	SCCP_LIST_HEAD_INIT(&l->devices);
 	SCCP_LIST_HEAD_INIT(&l->mailboxes);
-	return sccp_line_applayDefaults(l);
+	return sccp_line_applyDefaults(l);
 }
 
-sccp_line_t *sccp_line_applayDefaults(sccp_line_t *l){
+sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l){
 	if(!l)
 		return NULL;
 
