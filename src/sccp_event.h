@@ -13,8 +13,8 @@
 #include "chan_sccp.h"
 
 /* structures */
-
 /* event types to notify modular systems */
+
 /*!
  * \brief SCCP Event Type ENUM
  */
@@ -26,9 +26,11 @@ typedef enum {
 	SCCP_EVENT_DEVICEDETACHED = 1 << 4,
 	SCCP_EVENT_DEVICEREGISTERED = 1 << 5,
 	SCCP_EVENT_DEVICEUNREGISTERED  = 1 << 6
-} sccp_event_type_t;
+} sccp_event_type_t;									/*!< SCCP Event Type ENUM */
 
-
+/*!
+ * \brief SCCP Event Structure
+ */
 typedef struct sccp_event sccp_event_t;
 typedef void (*sccp_event_callback_t)(const sccp_event_t **event);
 
@@ -36,22 +38,29 @@ typedef void (*sccp_event_callback_t)(const sccp_event_t **event);
  * \brief SCCP Event Structure
  */
 struct sccp_event {
-	sccp_event_type_t	type;
+	sccp_event_type_t	type;							/*!< Event Type */
+	
+	/*! 
+	 * \brief SCCP Event Data Union
+	 */
 	union sccp_event_data{
 		struct{
-			sccp_line_t 	*line;
-		} lineCreated;
+			sccp_line_t 	*line;						/*!< SCCP Line */
+		} lineCreated;								/*!< Event Line Created Structure */
 		struct{
-			sccp_device_t 	*device;
-		} deviceRegistered;
+			sccp_device_t 	*device;					/*!< SCCP Device */
+		} deviceRegistered;							/*!< Event Device Registered Structure */
 		struct{
-			sccp_line_t 	*line;
-			sccp_device_t	*device;
-		} deviceAttached;
-	} event;
-};
+			sccp_line_t 	*line;						/*!< SCCP Line */
+			sccp_device_t	*device;					/*!< SCCP Device */
+		} deviceAttached;							/*!< Event Device Attached Structure */
+	} event;									/*!< SCCP Event Data Union */
+};											/*!< SCCP Event Structure */
 
 typedef struct sccp_event_subscriber sccp_event_subscriber_t;
+/*!
+ * \brief SCCP Event Subscriber Structure
+ */
 struct sccp_event_subscriber{
 	sccp_event_type_t eventType;
 	sccp_event_callback_t callback_function;
@@ -59,18 +68,23 @@ struct sccp_event_subscriber{
 	SCCP_LIST_ENTRY(sccp_event_subscriber_t) list;
 };
 
+/*!
+ * \brief SCCP Event Subscribtions Structure
+ */
 struct sccp_event_subscriptions{
 	SCCP_LIST_HEAD(,sccp_event_subscriber_t)  subscriber;
 };
 
 
+/*!
+ * \brief SCCP Event Listeners Structure
+ */
 struct sccp_event_subscriptions *sccp_event_listeners;
 
 
 /* functions */
-
-#define 	sccp_subscribe_event(event, callback)		\
-			sccp_event_subscribe(event, callback,	__FILE__, __FUNCTION__, __LINE__);
+#define sccp_subscribe_event(event, callback)		\
+sccp_event_subscribe(event, callback,	__FILE__, __FUNCTION__, __LINE__);
 
 void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb,
 			     const char *file, const char *caller, int line);
