@@ -2149,7 +2149,7 @@ uint8_t sccp_codec_ast2skinny(int fmt) {
 }
 
 
-/**
+/*!
  * \version 20090708
  *  \author Federico
  */
@@ -2297,7 +2297,7 @@ unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arr
 }
 #endif
 
-/**
+/*!
  * \brief get the SoftKeyIndex for a given SoftKeyLabel on specified keymode
  *
  *

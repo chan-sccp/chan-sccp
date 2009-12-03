@@ -1952,7 +1952,7 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r)
 }
 
 
-/**
+/*!
  *
  *
  *

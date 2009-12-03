@@ -16,7 +16,7 @@
 #include "asterisk/event.h"
 #endif
 
-/**
+/*!
  * holding line information for mailbox subscription
  */
 typedef struct sccp_mailboxLine sccp_mailboxLine_t;
@@ -26,7 +26,7 @@ struct sccp_mailboxLine{
 	SCCP_LIST_ENTRY(sccp_mailboxLine_t) list;
 };
 
-/**
+/*!
  * we hold a mailbox event subscription in sccp_mailbox_subscription_t.
  *
  * Each line that holds a subscription for this mailbox is listed in

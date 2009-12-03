@@ -839,7 +839,6 @@ enum ast_bridge_result 				sccp_rtp_bridge(struct ast_channel *c0, struct ast_ch
 
 /*! 
  * \todo sccp_is_nonempty_string never used (not used)
- * @unused@ 
  */
 static inline unsigned char sccp_is_nonempty_string(char *string)
 {

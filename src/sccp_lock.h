@@ -20,13 +20,11 @@
 #define sccp_ast_channel_lock(x)    ast_channel_lock(x)
 #define sccp_ast_channel_unlock(x)  ast_channel_unlock(x)
 #define sccp_ast_channel_trylock(x) ast_channel_trylock(x)
-/**/
 #else
 /* Channel Mutex Macros for Asterisk 1.2 */
 #define sccp_ast_channel_lock(x)    sccp_mutex_lock(&x->lock)
 #define sccp_ast_channel_unlock(x)  sccp_mutex_unlock(&x->lock)
 #define sccp_ast_channel_trylock(x) sccp_mutex_trylock(&x->lock)
-/**/
 #endif
 
 #ifndef CS_AST_DEBUG_CHANNEL_LOCKS

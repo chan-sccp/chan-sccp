@@ -14,7 +14,7 @@
 
 /* structures */
 
-/** event types to notify modular systems */
+/* event types to notify modular systems */
 /*!
  * \brief SCCP Event Type ENUM
  */

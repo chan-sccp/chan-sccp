@@ -1,12 +1,12 @@
 /*!
- * file 	sccp_device.c
- * brief 	SCCP Device Class
- * author 	Sergio Chersovani <mlists [at] c-net.it>
- * date
- * note	Reworked, but based on chan_sccp code.
+ * \file 	sccp_device.c
+ * \brief 	SCCP Device Class
+ * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \date
+ * \note	Reworked, but based on chan_sccp code.
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
- * note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *
  */
 
@@ -36,7 +36,7 @@
 #endif
 
 
-/**
+/*!
  * \brief create a device and adding default values.
  * \return device with default/global values
  */
@@ -362,13 +362,13 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 		/* the sccp_dev_check_displayprompt(d); can't stay here, IPC will not reboot correctly */
 	}
 }
-/**
- * brief Sets the SCCP Device's SoftKey Mode Specified by opt
- * param d SCCP Device
- * param line Line as uint8_t
- * param callid Call ID as uint8_t
- * param opt KEYMODE of KEYMODE_*
- * todo Disable DirTrfr by Default
+/*!
+ * \brief Sets the SCCP Device's SoftKey Mode Specified by opt
+ * \param d SCCP Device
+ * \param line Line as uint8_t
+ * \param callid Call ID as uint8_t
+ * \param opt KEYMODE of KEYMODE_*
+ * \todo Disable DirTrfr by Default
  */
 void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid, uint8_t opt) {
 	sccp_moo_t * r;
@@ -399,10 +399,10 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 
 
 /*!
- * brief Set Message Waiting Indicator (MWI or LAMP) on Device
- * param d SCCP Device
- * param l SCCP Line
- * parma hasMail Mail Indicator Status as uint8_t
+ * \brief Set Message Waiting Indicator (MWI or LAMP) on Device
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param hasMail Mail Indicator Status as uint8_t
  */
 void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
 {
@@ -437,11 +437,11 @@ void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
 }
 
 /*!
- * brief Set Ringer on Device
- * param d SCCP Device
- * param opt Option as uint8_t
- * param l Line Number as uint32_t
- * param callid Call ID as uint32_t
+ * \brief Set Ringer on Device
+ * \param d SCCP Device
+ * \param opt Option as uint8_t
+ * \param line Line Number as uint32_t
+ * \param callid Call ID as uint32_t
  */
 void sccp_dev_set_ringer(sccp_device_t * d, uint8_t opt, uint32_t line, uint32_t callid)
 {
@@ -472,9 +472,9 @@ void sccp_dev_set_ringer(sccp_device_t * d, uint8_t opt, uint32_t line, uint32_t
 }
 
 /*!
- * brief Set Speaker Status on Device
- * param d SCCP Device
- * param mode Speaker Mode as uint8_t
+ * \brief Set Speaker Status on Device
+ * \param d SCCP Device
+ * \param mode Speaker Mode as uint8_t
  */
 void sccp_dev_set_speaker(sccp_device_t * d, uint8_t mode)
 {
@@ -489,9 +489,9 @@ void sccp_dev_set_speaker(sccp_device_t * d, uint8_t mode)
 }
 
 /*!
- * brief Set Microphone Status on Device
- * param d SCCP Device
- * param mode Microphone Mode as uint8_t
+ * \brief Set Microphone Status on Device
+ * \param d SCCP Device
+ * \param mode Microphone Mode as uint8_t
  */
 void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode)
 {
@@ -506,10 +506,11 @@ void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode)
 }
 
 /*!
- * brief Set Call Plane to Active on  Line on Device
- * param l SCCP Line
- * param status Status as int
- * todo What does this function do exactly (ActivateCallPlaneMessage) ?
+ * \brief Set Call Plane to Active on  Line on Device
+ * \param l SCCP Line
+ * \param device SCCP Device
+ * \param status Status as int
+ * \todo What does this function do exactly (ActivateCallPlaneMessage) ?
  */
 void sccp_dev_set_cplane(sccp_line_t * l, sccp_device_t *device, int status)
 {
@@ -530,9 +531,9 @@ void sccp_dev_set_cplane(sccp_line_t * l, sccp_device_t *device, int status)
 }
 
 /*!
- * brief Set Call Plane to In-Active on  Line on Device
- * param l SCCP Line
- * todo What does this function do exactly (DeactivateCallPlaneMessage) ?
+ * \brief Set Call Plane to In-Active on  Line on Device
+ * \param c SCCP Channel
+ * \todo What does this function do exactly (DeactivateCallPlaneMessage) ?
  */
 void sccp_dev_set_deactivate_cplane(sccp_channel_t * c)
 {

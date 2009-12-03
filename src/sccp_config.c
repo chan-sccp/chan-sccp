@@ -1,12 +1,12 @@
 /*!
- * file 	sccp_config.c
- * brief 	SCCP Config Class
- * author 	Sergio Chersovani <mlists [at] c-net.it>
- * date
- * note	Reworked, but based on chan_sccp code.
+ * \file 	sccp_config.c
+ * \brief 	SCCP Config Class
+ * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \date
+ * \note	Reworked, but based on chan_sccp code.
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
- * note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  * \todo using generic function to configure structures, this can also be used to reconfigure structure on-line
  */
 #include "config.h"
@@ -58,7 +58,7 @@ void sccp_config_addLine(sccp_device_t *device, char *lineName, uint8_t index) {
 
 }
 
-/**
+/*!
  * Add an Empty Button to device.
  * \param device SCCP Device
  * \param index Index Preferred Button Position as int
@@ -82,7 +82,7 @@ void sccp_config_addEmpty(sccp_device_t *device, uint8_t index)
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 }
 
-/**
+/*!
  * Add an SpeedDial to Device.
  * \param device SCCP Device
  * \param label Label as char
@@ -116,7 +116,7 @@ void sccp_config_addSpeeddial(sccp_device_t *device, char *label, char *extensio
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 }
 
-/**
+/*!
  * Add an Feature to Device.
  * \param device SCCP Device
  * \param label Label as char
@@ -157,7 +157,7 @@ void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID,
 }
 
 
-/**
+/*!
  *
  */
 void sccp_config_addService(sccp_device_t *device, char *label, char *url, uint8_t index){
@@ -196,7 +196,7 @@ void sccp_config_addService(sccp_device_t *device, char *label, char *url, uint8
 
 
 
-/**
+/*!
  * \brief Create a Device from an Asterisk Configuration Variable.
  *
  * \param variable Asterisk Configuration Variable
@@ -248,7 +248,7 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 	return d;
 }
 
-/**
+/*!
  * \brief Build Line Structure from Asterisk Variable
  *
  * \param variable Asterisk Configuration Variable
@@ -641,7 +641,7 @@ boolean_t sccp_config_general(void){
 	ast_config_destroy(cfg);
 	return TRUE;
 }
-/**
+/*!
  * \brief Read Lines from the Config File
  *
  * \param readingtype as SCCP Reading Type
@@ -740,7 +740,7 @@ void sccp_config_readLines(sccp_readingtype_t readingtype){
 	ast_config_destroy(cfg);
 }
 
-/**
+/*!
  * \brief Read Devices from the Config File
  *
  * \param readingtype as SCCP Reading Type

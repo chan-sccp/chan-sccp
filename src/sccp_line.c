@@ -26,7 +26,7 @@
 #include <asterisk/utils.h>
 
 
-/**
+/*!
  * \brief Build Default SCCP Line.
  *
  * Creates an SCCP Line with default/global values
