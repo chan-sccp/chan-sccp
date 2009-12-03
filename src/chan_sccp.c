@@ -359,7 +359,7 @@ OUT:
 	return (c && c->owner ? c->owner : NULL);
 }
 
-/**
+/*!
  * \brief returns the state of device
  * \param data name of device
  * \return devicestate of AST_DEVICE_*
@@ -581,7 +581,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
  * \brief 	Reload Config
  * \param 	v Asterisk Variable
  * \return 	Success as int
- * \note also used by realtime functionality to line device from \link ast_variable asterisk variable \endlink
+ * \note also used by realtime functionality to line device from ast_variable asterisk variable
  */
 sccp_line_t * build_lines_wo(struct ast_variable *v) {
 	sccp_line_t * l = NULL;
@@ -716,11 +716,11 @@ sccp_line_t * build_lines_wo(struct ast_variable *v) {
 }
 
 
-/**
+/*!
  * \brief Create device from ast_variable
  * \param v Asterisk Variable
  * \return configured device
- * \note also used by realtime functionality to build device from \link ast_variable asterisk variable \endlink
+ * \note also used by realtime functionality to build device from ast_variable asterisk variable
  */
 sccp_device_t *build_devices_wo(struct ast_variable *v) {
 	sccp_device_t 	*d = NULL;

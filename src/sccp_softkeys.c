@@ -656,7 +656,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 }
 
 
-/**
+/*!
  * \brief sets a SoftKey to a specified status (on/off)
  *
  * \param d SCCP Device

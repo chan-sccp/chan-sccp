@@ -1,15 +1,14 @@
-/*
- * (SCCP*)
- * brief 	SCCP CLI Class
- * author 	Sergio Chersovani <mlists [at] c-net.it>
- * date
- * note	Reworked, but based on chan_sccp code.
+/*!
+ * \file 	sccp_cli.c
+ * \brief 	SCCP CLI Class
+ * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \date
+ * \note	Reworked, but based on chan_sccp code.
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
- * note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *
  */
-
 #include "config.h"
 
 #ifndef ASTERISK_CONF_1_2
@@ -1722,7 +1721,7 @@ static struct ast_cli_entry cli_entries[] = {
 #endif
 
 
-/**
+/*!
  * register CLI functions from asterisk
  */
 void sccp_register_cli(void) {
@@ -1758,7 +1757,7 @@ void sccp_register_cli(void) {
 }
 
 
-/**
+/*!
  * unregister CLI functions from asterisk
  */
 void sccp_unregister_cli(void) {

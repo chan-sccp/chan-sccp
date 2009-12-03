@@ -75,7 +75,7 @@ static int sccp_manager_device_update(struct mansession *s, const struct message
 static int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m);
 
 
-/**
+/*!
  * \brief Register management commands
  */
 void sccp_register_management(void)
@@ -138,7 +138,7 @@ void sccp_register_management(void)
                 management_line_fwd_update_desc);
 }
 
-/**
+/*!
  * \brief Unregister management commands
  */
 void sccp_unregister_management(void)
@@ -150,7 +150,7 @@ void sccp_unregister_management(void)
         ast_manager_unregister("SCCPLineForwardUpdate");
 }
 
-/**
+/*!
  * \brief Show Devices Command
  * \param s Management Session
  * \param m Message 
@@ -191,7 +191,7 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
         return 0;
 }
 
-/**
+/*!
  * \brief Restart Command
  * \param s Management Session
  * \param m Message 
@@ -243,7 +243,7 @@ int sccp_manager_restart_device(struct mansession *s, const struct message *m)
 }
 
 
-/**
+/*!
  * \brief Add Device Command
  * \param s Management Session
  * \param m Message 
@@ -294,7 +294,7 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
 }
 
 
-/**
+/*!
  * \brief Update Line Forward Command
  * \param s Management Session
  * \param m Message 
@@ -343,7 +343,7 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
         return 0;
 }
 
-/**
+/*!
  * \brief Update Device Command
  * \param s Management Session
  * \param m Message 

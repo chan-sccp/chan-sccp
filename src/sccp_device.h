@@ -58,9 +58,13 @@ void sccp_device_removeLine(sccp_device_t *device, sccp_line_t * l);
 int sccp_device_reset(sccp_session_t * s, uint8_t reset_type);
 void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, uint8_t state, skinny_callPriority_t priority, skinny_callinfo_visibility_t visibility);
 
-/**
+/*!
+ * \brief State Change for Device
+ *
  * notify device, that some global device state is changed.
  * usefull to poll data (e.g mwi status)
+ *
+ * \param device SCCP Device
  */
 void sccp_device_stateChanged(sccp_device_t *device);
 

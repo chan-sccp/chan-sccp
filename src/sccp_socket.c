@@ -479,7 +479,7 @@ sccp_session_t * sccp_session_find(const sccp_device_t *device)
 	return session;
 }
 
-/**
+/*!
  * \brief Send a Reject Message to Device.
  * \param session SCCP Session Pointer
  * \param message Message as char (reason of rejection)
@@ -491,7 +491,7 @@ void sccp_session_reject(sccp_session_t *session, char *message){
 	sccp_session_send2(session, r);
 }
 
-/**
+/*!
  * \brief Get the in_addr for Specific Device.
  * \param device SCCP Device Pointer (can be null)
  * \param type Type in {AF_INET, AF_INET6}

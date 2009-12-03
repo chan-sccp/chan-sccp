@@ -40,7 +40,7 @@ struct sccp_hint_SubscribingDevice{
 	SCCP_LIST_ENTRY(sccp_hint_SubscribingDevice_t) list;
 };
 
-/**
+/*!
  * we hold a mailbox event subscription in sccp_mailbox_subscription_t.
  *
  * Each line that holds a subscription for this mailbox is listed in
@@ -86,7 +86,7 @@ struct sccp_hint_list{
 SCCP_LIST_HEAD(, sccp_hint_list_t) sccp_hint_subscriptions;
 
 
-/**
+/*!
  * \brief Hint State for Device
  * \param context Context as char
  * \param exten Extension as char
