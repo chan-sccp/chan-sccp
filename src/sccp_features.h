@@ -1,6 +1,6 @@
 /*!
- * \file 	sccp_features.c
- * \brief 	SCCP Features Class
+ * \file 	sccp_features.h
+ * \brief 	SCCP Features Header
  * \author 	Federico Santulli <fsantulli [at] users.sourceforge.net >
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  * \since 	2009-01-16

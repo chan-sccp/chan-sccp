@@ -1,19 +1,14 @@
-/*
- * (SCCP*)
- *
- * An implementation of Skinny Client Control Protocol (SCCP)
- *
- * Federico Santulli (info@chan-sccp.org)
- *
- * Code derives from Asterisk 1.6.1 "dlinkedlists.h"
- *
- * File is not directly included to get benefit of lists also in
- * previous Asterisk releases (like 1.2)
- *
- * This program is free software and may be modified and
- * distributed under the terms of the GNU Public License v2.
- *
+/*!
+ * \file 	sccp_dllists.h
+ * \brief 	SCCP Double Linked Lists Header
+ * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \date
+ * \note	Double Linked List Code derived from Asterisk 1.6.1 "dlinkedlists.h"
+ * \note  	File is not directly included to get benefit of lists also in previous Asterisk releases (like 1.2)
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * 
  */
+ 
 #ifndef _SCCP_DLLISTS_H
 #define _SCCP_DLLISTS_H
 
