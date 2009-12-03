@@ -1,9 +1,11 @@
-/*
- * sccp_hint.c
- *
- *  Created on: 16.01.2009
- *      Author: marcelloceschia
- */
+/*!
+ * \file 	sccp_hint.c
+ * \brief 	SCCP Hint Class
+ * \author 	Marcello Ceschia <<marcello [at] ceschia.de>
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \since 	2009-01-16
+ */ 
+ 
 #include "config.h"
 #include "sccp_hint.h"
 #include "sccp_event.h"
@@ -35,11 +37,9 @@ void sccp_hint_hintStatusUpdate(sccp_hint_list_t *hint);
 void sccp_hint_notificationForSharedLine(sccp_hint_list_t *hint);
 void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint);
 
-
-
-//TODO handle DND
-/**
- * starting hint-module
+/*!
+ * \brief starting hint-module
+ * \todo Handle Do Not Disturb (DND) (TODO MC)
  */
 void sccp_hint_module_start(){
 	/* */
@@ -48,10 +48,11 @@ void sccp_hint_module_start(){
 	sccp_subscribe_event(SCCP_EVENT_DEVICEREGISTERED | SCCP_EVENT_DEVICEUNREGISTERED | SCCP_EVENT_DEVICEDETACHED, sccp_hint_eventListener);
 }
 
-/**
- * stop hint-module
+/*!
+ * \brief stop hint-module
  */
-void sccp_hint_module_stop(){
+void sccp_hint_module_stop()
+{
 	sccp_hint_list_t *hint;
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
 
@@ -67,7 +68,10 @@ void sccp_hint_module_stop(){
 	SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
 }
 
-
+/*!
+ * \brief Event Listener for Hints
+ * \param event SCCP Event
+ */
 void sccp_hint_eventListener(const sccp_event_t **event){
 	const sccp_event_t *e = *event;
 	sccp_device_t *device;
@@ -114,7 +118,10 @@ void sccp_hint_eventListener(const sccp_event_t **event){
 }
 
 
-
+/*!
+ * \brief Handle Hints for Device Register
+ * \param device SCCP Device
+ */
 void sccp_hint_deviceRegistered(const sccp_device_t *device){
 	sccp_buttonconfig_t *config;
 
@@ -129,6 +136,11 @@ void sccp_hint_deviceRegistered(const sccp_device_t *device){
 		}
 	}
 }
+
+/*!
+ * \brief Handle Hints for Device UnRegister
+ * \param device SCCP Device
+ */
 void sccp_hint_deviceUnRegistered(const sccp_device_t *device){
 	sccp_buttonconfig_t *config;
 
@@ -148,8 +160,12 @@ void sccp_hint_deviceUnRegistered(const sccp_device_t *device){
 }
 
 
-/**
- * asterisk hint wrapper
+/*!
+ * \brief Asterisk Hint Wrapper
+ * \param context Context as char
+ * \param exten Extension as char
+ * \param state Asterisk Extension State
+ * \param data Asterisk Data
  */
 int sccp_hint_state(char *context, char* exten, enum ast_extension_states state, void *data) {
 	sccp_hint_list_t 	*hint = NULL;
@@ -241,7 +257,10 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 	return 0;
 }
 
-
+/*!
+ * \brief Handle Hints for Notification Subribers
+ * \param hint SCCP Hint Linked List Pointer
+ */
 void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
 	sccp_moo_t *r;
@@ -294,7 +313,14 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 	SCCP_LIST_UNLOCK(&hint->subscribers);
 }
 
-
+/*!
+ * \brief Handle Hints when the Line Status has Changed
+ * \param line		SCCP Line
+ * \param device	SCCP Device
+ * \param channel	SCCP Channel
+ * \param previousState Previous Channel State
+ * \param state		New Channel State
+ */
 void sccp_hint_lineStatusChanged(sccp_line_t *line, sccp_device_t *device, sccp_channel_t *channel, sccp_channelState_t previousState, sccp_channelState_t state){
 	sccp_hint_list_t *hint = NULL;
 
@@ -318,7 +344,10 @@ void sccp_hint_lineStatusChanged(sccp_line_t *line, sccp_device_t *device, sccp_
 	sccp_hint_notifyAsterisk(line, state);
 }
 
-
+/*!
+ * \brief Handle Hint Status Update
+ * \param hint SCCP Hint Linked List Pointer
+ */
 void sccp_hint_hintStatusUpdate(sccp_hint_list_t *hint){
 	sccp_line_t *line = NULL;
 	if(!hint)
@@ -340,7 +369,11 @@ void sccp_hint_hintStatusUpdate(sccp_hint_list_t *hint){
 	sccp_hint_notifyAsterisk(line, hint->currentState);
 }
 
-
+/*!
+ * \brief Notify Asterisk of Hint State Change
+ * \param line	SCCP Line
+ * \param state SCCP Channel State
+ */
 void sccp_hint_notifyAsterisk(sccp_line_t *line, sccp_channelState_t state){
 	if(!line)
 		return;
@@ -355,6 +388,10 @@ void sccp_hint_notifyAsterisk(sccp_line_t *line, sccp_channelState_t state){
 
 
 /* private functions */
+/*!
+ * \brief Handle Hints for Shared Line Notification
+ * \param hint	SCCP Hint Linked List Pointer
+ */
 void sccp_hint_notificationForSharedLine(sccp_hint_list_t *hint){
 	sccp_line_t *line = sccp_line_find_byname_wo(hint->type.internal.lineName,FALSE);
 	sccp_channel_t *channel = NULL;
@@ -411,6 +448,13 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t *hint){
 		}
 	}
 }
+
+
+/*!
+ * \brief Handle Hints for Single Line Notification
+ * \param hint	SCCP Hint Linked List Pointer
+ */
+
 void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 	sccp_line_t 	*line = NULL;
 	sccp_channel_t 	*channel = NULL;
@@ -530,7 +574,12 @@ DONE:
 	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "set singleLineState to %d\n", hint->currentState);
 	sccp_mutex_unlock(&hint->lock);
 }
-
+/*!
+ * \brief Subscribe to a Hint
+ * \param device SCCP Device
+ * \param hintStr Asterisk Hint Name as char
+ * \param instance Instance as int
+ */
 void sccp_hint_subscribeHint(const sccp_device_t *device, const char *hintStr, uint8_t instance){
 	sccp_hint_list_t *hint = NULL;
 
@@ -599,8 +648,12 @@ void sccp_hint_subscribeHint(const sccp_device_t *device, const char *hintStr, u
 	sccp_hint_notifySubscribers(hint);
 }
 
-
-
+/*!
+ * \brief Unsubscribe from a Hint
+ * \param device SCCP Device
+ * \param hintStr Hint String (Extension at Context) as char
+ * \param instance Instance as int
+ */
 void sccp_hint_unSubscribeHint(const sccp_device_t *device, const char *hintStr, uint8_t instance){
 	sccp_hint_list_t *hint = NULL;
 
@@ -656,9 +709,11 @@ void sccp_hint_unSubscribeHint(const sccp_device_t *device, const char *hintStr,
 }
 
 
-/**
- * create a hint structure
- * @return
+/*!
+ * \brief create a hint structure
+ * \param hint_exten Hint Extension as char
+ * \param hint_context Hint Context as char
+ * \return SCCP Hint Linked List
  */
 sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context){
 	sccp_hint_list_t *hint = NULL;
@@ -746,6 +801,11 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context){
 
 	return hint;
 }
+
+/*!
+ * \brief Remove Notification Thread for a Hint
+ * \param data Data
+ */
 
 static void * sccp_hint_remoteNotification_thread(void *data){
 	sccp_hint_list_t  *hint = data;

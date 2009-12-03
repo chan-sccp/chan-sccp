@@ -1,16 +1,13 @@
-/*
- * (SCCP*)
- *
- * An implementation of Skinny Client Control Protocol (SCCP)
- *
- * Sergio Chersovani (mlists@c-net.it)
- *
- * Reworked, but based on chan_sccp code.
- * The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- * Modified by Jan Czmok and Julien Goodwin
- *
- * This program is free software and may be modified and
- * distributed under the terms of the GNU Public License.
+/*!
+ * \file 	sccp_indicate.c
+ * \brief 	SCCP Indicate Class
+ * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \date
+ * \note	Reworked, but based on chan_sccp code.
+ *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *        	Modified by Jan Czmok and Julien Goodwin
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * 
  */
 
 #include "config.h"
@@ -28,7 +25,19 @@
 #include "sccp_features.h"
 #include "sccp_hint.h"
 
-void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t state, uint8_t debug, char * file, int line, const char * pretty_function) {
+/*!
+ * \brief Indicate Without Lock
+ * \param device SCCP Device
+ * \param c SCCP Channel
+ * \param state State as uint8_t
+ * \param debug Debug as uint8_t
+ * \param file File as char
+ * \param line Line Number as int
+ * \param file Pretty Function as char
+ * \param pretty_function
+ */
+void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t state, uint8_t debug, char * file, int line, const char * pretty_function)
+{
 	sccp_device_t * d;
 	sccp_line_t * l;
 	int instance;
@@ -353,7 +362,20 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s), SKINNY (%s) on call %s-%08x\n",d->id, sccp_indicate2str(state), sccp_callstate2str(c->callstate), l->name, c->callid);
 }
 
-void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, uint8_t state, uint8_t debug, char * file, int line, const char * pretty_function){
+
+/*!
+ * \brief Indicate to Remote Device
+ * \param device SCCP Device
+ * \param c SCCP Channel
+ * \param state State as int
+ * \param debug Debug as int
+ * \param file File as char
+ * \param line Line as int 
+ * \param pretty_function Pretty Function as char
+ * \todo Explain Pretty Function
+ */
+void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, uint8_t state, uint8_t debug, char * file, int line, const char * pretty_function)
+{
 	sccp_device_t	*remoteDevice;
 	int instance;
 
@@ -472,7 +494,15 @@ void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, ui
 
 
 
-const char * sccp_indicate2str(uint8_t state) {
+
+
+/*!
+ * \brief Convert SCCP Indication/ChannelState 2 String
+ * \param state SCCP_CHANNELSTATE_*
+ * \return Channel State String
+ */
+const char * sccp_indicate2str(uint8_t state)
+{
 		switch(state) {
 		case SCCP_CHANNELSTATE_DOWN:
 				return "Down";
@@ -515,8 +545,13 @@ const char * sccp_indicate2str(uint8_t state) {
 		}
 }
 
-
-const char * sccp_callstate2str(uint8_t state) {
+/*!
+ * \brief Convert SKINNYCall State 2 String
+ * \param state SKINNY_CALLSTATE_*
+ * \return Call State String
+ */
+const char * sccp_callstate2str(uint8_t state)
+{
 		switch(state) {
 		case SKINNY_CALLSTATE_OFFHOOK:
 				return "OffHook";

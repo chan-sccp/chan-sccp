@@ -1,9 +1,9 @@
-/*
- * sccp_event.h
- *
- *  Created on: 02.09.2009
- *      Author: Marcello Ceschia
- *     Version: $LastChangedDate$
+/*!
+ * \file 	sccp_event.c
+ * \brief 	SCCP Event Class
+ * \author 	Marcello Ceschia <marcello [at] ceschia.de>
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \since	2009-09-02
  */
 
 #ifndef SCCP_EVENT_H_
@@ -15,6 +15,9 @@
 /* structures */
 
 /** event types to notify modular systems */
+/*!
+ * \brief SCCP Event Type ENUM
+ */
 typedef enum {
 	SCCP_EVENT_LINECREATED = 1,
 	SCCP_EVENT_LINECHANGED = 1 << 1,
@@ -29,7 +32,10 @@ typedef enum {
 typedef struct sccp_event sccp_event_t;
 typedef void (*sccp_event_callback_t)(const sccp_event_t **event);
 
-struct sccp_event{
+/*!
+ * \brief SCCP Event Structure
+ */
+struct sccp_event {
 	sccp_event_type_t	type;
 	union sccp_event_data{
 		struct{

@@ -1,16 +1,11 @@
-/*
- * (SCCP*)
- *
- * An implementation of Skinny Client Control Protocol (SCCP)
- *
- * Sergio Chersovani (mlists@c-net.it)
- *
- * Reworked, but based on chan_sccp code.
- * The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- * Modified by Jan Czmok and Julien Goodwin
- *
- * This program is free software and may be modified and
- * distributed under the terms of the GNU Public License.
+/*!
+ * \file 	sccp_pbx.c
+ * \brief 	SCCP PBX Class
+ * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \note	Reworked, but based on chan_sccp code.
+ *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *        	Modified by Jan Czmok and Julien Goodwin
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  */
 
 #include "config.h"
@@ -46,7 +41,14 @@
 #include <asterisk/features.h>
 #endif
 
-static void * sccp_pbx_call_autoanswer_thread(void *data) {
+/*!
+ * \brief Call Auto Answer Thead
+ *
+ * The Auto Answer thread is started by ref sccp_pbx_call if necessary
+ * \param data Data
+ */
+static void * sccp_pbx_call_autoanswer_thread(void *data)
+{
 	uint32_t *tmp = data;
 	uint32_t callid = *tmp;
 	sccp_channel_t 		*c;
@@ -70,9 +72,13 @@ static void * sccp_pbx_call_autoanswer_thread(void *data) {
 }
 
 
-/**
-  * \brief this is for incoming calls asterisk sccp_request.
-*/
+/*!
+ * \brief Incoming Calls by Asterisk SCCP_Request
+ * \param ast Asterisk Channel as ast_channel
+ * \param dest Destination as char
+ * \param timeout Timeout after which incoming call is cancelled as int
+ * \return Success as int
+ */
 static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	sccp_line_t	 * l;
 	sccp_device_t  *d=NULL;
@@ -348,7 +354,11 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	return 0;
 }
 
-
+/*!
+ * \brief Handle Hangup Request by Asterisk
+ * \param ast Asterisk Channel as ast_channel
+ * \return Success as int
+ */
 static int sccp_pbx_hangup(struct ast_channel * ast) {
 	sccp_channel_t * c;
 	sccp_line_t    * l = NULL;
@@ -454,6 +464,13 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 	return 0;
 }
 
+/*!
+ * \brief Thread to check Device Ring Back
+ *
+ * The Auto Answer thread is started by ref sccp_pbx_needcheckringback if necessary
+ *
+ * \param d SCCP Device
+ */
 void sccp_pbx_needcheckringback(sccp_device_t * d) {
 
 	if (d && d->session) {
@@ -463,7 +480,15 @@ void sccp_pbx_needcheckringback(sccp_device_t * d) {
 	}
 }
 
-static int sccp_pbx_answer(struct ast_channel *ast) {
+
+/*!
+ * \brief Answer an Asterisk Channel
+ * \param ast Asterisk Channel as ast_channel
+ * \return Success as int
+ * \note we have no bridged channel at this point
+ */
+static int sccp_pbx_answer(struct ast_channel *ast)
+{
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
 
 #ifdef ASTERISK_CONF_1_2
@@ -493,7 +518,10 @@ static int sccp_pbx_answer(struct ast_channel *ast) {
 	return 0;
 }
 
-
+/*!
+ * \brief Read from an Asterisk Channel
+ * \param ast Asterisk Channel as ast_channel
+ */
 static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 {
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
@@ -542,7 +570,11 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 	return frame;
 }
 
-
+/*!
+ * \brief Write to an Asterisk Channel
+ * \param ast Channel as ast_channel
+ * \param frame Frame as ast_frame
+ */
 static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 	int res = 0;
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
@@ -594,6 +626,11 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 	return res;
 }
 
+/*!
+ * \brief Convert Control 2 String
+ * \param state AST_CONTROL_* as int
+ * \return Asterisk Control State String
+ */
 static char *sccp_control2str(int state) {
 		switch(state) {
 		case AST_CONTROL_HANGUP:
@@ -653,8 +690,22 @@ static char *sccp_control2str(int state) {
 }
 
 #ifdef ASTERISK_CONF_1_2
+/*!
+ * \brief Indicate to Asterisk Channel
+ * \param ast Asterisk Channel as ast_channel
+ * \param ind AST_CONTROL_* State as int (Indication)
+ * \return Result as int
+ */
 static int sccp_pbx_indicate(struct ast_channel *ast, int ind) {
 #else
+/*!
+ * \brief Indicate to Asterisk Channel
+ * \param ast Asterisk Channel as ast_channel
+ * \param ind AST_CONTROL_* State as int (Indication)
+ * \param data Data
+ * \param datalen Data Length as size_t
+ * \return Result as int
+ */
 static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data, size_t datalen) {
 #endif
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
@@ -741,6 +792,12 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 }
 
 #ifdef CS_AST_CONTROL_CONNECTED_LINE
+/*!
+ * \brief Update Connected Line
+ * \param channel Asterisk Channel as ast_channel
+ * \param data Asterisk Data
+ * \param datalen Asterisk Data Length
+ */
 static void sccp_pbx_update_connectedline(sccp_channel_t *channel, const void *data, size_t datalen){
 	struct ast_channel *ast_channel = channel->owner;
 	if(!ast_channel)
@@ -754,6 +811,12 @@ static void sccp_pbx_update_connectedline(sccp_channel_t *channel, const void *d
 #endif
 
 
+/*!
+ * \brief Asterisk Fix Up
+ * \param oldchan Asterisk Channel as ast_channel
+ * \param newchan Asterisk Channel as ast_channel
+ * \return Success as int
+ */
 static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newchan) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: we gote a fixup request\n");
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(newchan);
@@ -773,14 +836,35 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 }
 
 #ifndef ASTERISK_CONF_1_2
+/*!
+ * \brief Receive First Digit from Asterisk Channel
+ * \param ast Asterisk Channel as ast_channel
+ * \param digit First Digit as char
+ * \return Always Return -1 as int
+ */
 static int sccp_pbx_recvdigit_begin(struct ast_channel *ast, char digit) {
 	return -1;
 }
 #endif
 
 #ifdef ASTERISK_CONF_1_2
+/*!
+ * \brief Receive Last Digit from Asterisk Channel
+ * \param ast Asterisk Channel as ast_channel
+ * \param digit Last Digit as char
+ * \return Always Return -1 as int
+ * \todo FIXME Always returns -1 
+ */
 static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit) {
 #else
+/*!
+ * \brief Receive Last Digit from Asterisk Channel
+ * \param ast Asterisk Channel as ast_channel
+ * \param digit Last Digit as char
+ * \param duration Duration as int
+ * \return Always Return -1 as int
+ * \todo FIXME Always returns -1
+ */
 static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit, unsigned int duration) {
 #endif
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
@@ -825,8 +909,20 @@ static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit, unsigned 
 }
 
 #ifdef CS_AST_HAS_TECH_PVT
+/*!
+ * \brief Send Text to Asterisk Channel
+ * \param ast Asterisk Channel as ast_channel
+ * \param text Text to be send as char
+ * \return Succes as int
+ */
 static int sccp_pbx_sendtext(struct ast_channel *ast, const char *text) {
 #else
+/*!
+ * \brief Send Text to Asterisk Channel
+ * \param ast Asterisk Channel as ast_channel
+ * \param text Text to be send as char
+ * \return Succes as int
+ */
 static int sccp_pbx_sendtext(struct ast_channel *ast, char *text) {
 #endif
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
@@ -848,6 +944,9 @@ static int sccp_pbx_sendtext(struct ast_channel *ast, char *text) {
 }
 
 #ifdef CS_AST_HAS_TECH_PVT
+/*!
+ * \brief SCCP Tech Structure
+ */
 const struct ast_channel_tech sccp_tech = {
 	.type = "SCCP",
 	.description = "Skinny Client Control Protocol (SCCP)",
@@ -878,6 +977,11 @@ const struct ast_channel_tech sccp_tech = {
 };
 #endif
 
+/*!
+ * \brief Allocate an Asterisk Channel
+ * \param c SCCP Channel
+ * \return 1 on Success as uint8_t
+ */
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 //	sccp_device_t 			*d = c->device;
 	struct ast_channel 	*tmp;
@@ -1076,6 +1180,11 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	return 1;
 }
 
+/*!
+ * \brief Schedule Asterisk Dial
+ * \param data Data as constant
+ * \return Success as int
+ */
 int sccp_pbx_sched_dial(const void *data)
 {
 	sccp_channel_t *c = (sccp_channel_t *)data;
@@ -1089,6 +1198,11 @@ int sccp_pbx_sched_dial(const void *data)
 	return 0;
 }
 
+/*!
+ * \brief Asterisk Helper
+ * \param c SCCP Channel as sccp_channel_t
+ * \return Success as int
+ */
 int sccp_pbx_helper(sccp_channel_t * c)
 {
 	struct ast_channel * chan = c->owner;
@@ -1128,6 +1242,11 @@ int sccp_pbx_helper(sccp_channel_t * c)
 	return 0;
 }
 
+/*!
+ * \brief Handle Soft Switch
+ * \param c SCCP Channel as sccp_channel_t
+ * \todo clarify Soft Switch Function
+ */
 void * sccp_pbx_softswitch(sccp_channel_t * c) {
 	struct ast_channel * chan = c->owner;
 	struct ast_variable *v = NULL;
@@ -1359,6 +1478,11 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 	return NULL;
 }
 
+/*!
+ * \brief Send Digit to Asterisk
+ * \param c SCCP Channel
+ * \param digit Digit as char
+ */
 void sccp_pbx_senddigit(sccp_channel_t * c, char digit) {
 	struct ast_frame f = { AST_FRAME_DTMF, };
 
@@ -1370,6 +1494,11 @@ void sccp_pbx_senddigit(sccp_channel_t * c, char digit) {
 //	sccp_channel_unlock(c);
 }
 
+/*!
+ * \brief Send Multiple Digits to Asterisk
+ * \param c SCCP Channel
+ * \param digits Multiple Digits as char
+ */
 void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 	int i;
 	struct ast_frame f = { AST_FRAME_DTMF, 0};
@@ -1393,11 +1522,10 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 //	sccp_channel_unlock(c);
 }
 
-/**
- * \brief Queue an outgoing frame
- *
- * \param c channel
- * \param f ast_frame
+/*!
+ * \brief Queue an outgoing Asterisk frame
+ * \param c SCCP Channel
+ * \param f Asterisk Frame
  */
 void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 {
@@ -1423,10 +1551,10 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 */
 }
 
-/*! \brief Queue a control frame
-  *
-  * \param c channel
-  * \param control ast_control_frame_type
+/*! 
+ * \brief Queue a control frame
+ * \param c SCCP Channel
+ * \param control as Asterisk Control Frame Type
  */
 #ifndef ASTERISK_CONF_1_2
 int sccp_ast_queue_control(sccp_channel_t * c, enum ast_control_frame_type control)

@@ -1,16 +1,12 @@
-/*
- * (SCCP*)
- *
- * An implementation of Skinny Client Control Protocol (SCCP)
- *
- * Sergio Chersovani (mlists@c-net.it)
- *
- * Reworked, but based on chan_sccp code.
- * The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- * Modified by Jan Czmok and Julien Goodwin
- *
- * This program is free software and may be modified and
- * distributed under the terms of the GNU Public License.
+/*!
+ * \file 	sccp_line.c
+ * \brief 	SCCP Line
+ * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \note	Reworked, but based on chan_sccp code.
+ *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *        	Modified by Jan Czmok and Julien Goodwin
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \version 	$LastChangedDate$
  */
 
 #include "config.h"
@@ -31,12 +27,11 @@
 
 
 /**
- * Creates a \link sccp_line_t line \endlink with default/global values
+ * \brief Build Default SCCP Line.
  *
- * \brief build default line.
- * \return default line
+ * Creates an SCCP Line with default/global values
  *
- *
+ * \return Default SCCP Line
  */
 sccp_line_t * sccp_line_create(void) {
 	sccp_line_t * l = ast_malloc(sizeof(sccp_line_t));
@@ -52,7 +47,13 @@ sccp_line_t * sccp_line_create(void) {
 	return sccp_line_applyDefaults(l);
 }
 
-sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l){
+/*!
+ * \brief Apply Default Configuration to SCCP Line
+ * \param l SCCP Line
+ * \return SCCP line
+ */
+sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l)
+{
 	if(!l)
 		return NULL;
 
@@ -78,10 +79,13 @@ sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l){
 	return l;
 }
 
-
-/* Kills a line's channels. */
-/* Called with a lock on l->lock */
-void sccp_line_kill(sccp_line_t * l) {
+/*!
+ * \brief Kill all Channels of a specific Line
+ * \param l SCCP Line
+ * \note Should be Called with a lock on l->lock
+ */
+void sccp_line_kill(sccp_line_t * l)
+{
 	sccp_channel_t * c;
 
 	if (!l)
@@ -94,7 +98,13 @@ void sccp_line_kill(sccp_line_t * l) {
 	SCCP_LIST_UNLOCK(&l->channels);
 }
 
-void sccp_line_delete_nolock(sccp_line_t * l) {
+/*!
+ * \brief Delete an SCCP line
+ * \param l SCCP Line
+ * \note Should be Called without a lock on l->lock
+ */
+void sccp_line_delete_nolock(sccp_line_t * l)
+{
 
 	sccp_device_t 		*d;
 	sccp_linedevices_t	*linedevice;
@@ -156,8 +166,12 @@ void sccp_line_delete_nolock(sccp_line_t * l) {
 
 	ast_free(l);
 }
-/**
- *
+
+/*!
+ * \brief Set a Call Forward on a specific Line
+ * \param l SCCP Line
+ * \param type Call Forward Type as uint8_t
+ * \param number Number to which should be forwarded
  * \todo we should check, that extension is reachable on line
  */
 void sccp_line_cfwd(sccp_line_t * l, uint8_t type, char * number) {
@@ -199,8 +213,14 @@ void sccp_line_cfwd(sccp_line_t * l, uint8_t type, char * number) {
 	}
 }
 
-void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device){
-	sccp_linedevices_t *linedevice;
+/*!
+ * \brief Attach a Device to a line
+ * \param l SCCP Line
+ * \param device SCCP Device
+ */
+void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device)
+{
+        sccp_linedevices_t *linedevice;
 	if(!l || !device)
 		return;
 
@@ -228,7 +248,17 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device){
 	sccp_event_fire((const sccp_event_t**)&event);
 }
 
-void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device){
+
+/*!
+ * \brief Remove a Device from a Line
+ *
+ * Fire SCCP_EVENT_DEVICEDETACHED event after removing device.
+ *
+ * \param l SCCP Line
+ * \param device SCCP Device
+ */
+void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device)
+{
 	sccp_linedevices_t *linedevice;
 
 	if(!l || !device)
@@ -259,7 +289,15 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device){
 	sccp_event_fire((const sccp_event_t**)&event);
 }
 
-void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t *channel){
+
+/*!
+ * \brief Add a Channel to a Line
+ *
+ * \param l SCCP Line
+ * \param channel SCCP Channel
+ */
+void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t *channel)
+{
 	if(!l || !channel)
 		return;
 
@@ -274,10 +312,14 @@ void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t *channel){
 		SCCP_LIST_INSERT_HEAD(&l->channels, channel, list);
 }
 
-/**
+/*!
+ * \brief Remove a Channel from a Line
  *
+ * \param l SCCP Line
+ * \param channel SCCP Channel
  */
-void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t *channel){
+void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t *channel)
+{
 	if(!l || !channel)
 		return;
 

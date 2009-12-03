@@ -1,18 +1,11 @@
-/*
- * (SCCP*)
- *
- * An implementation of Skinny Client Control Protocol (SCCP)
- *
- * Sergio Chersovani (mlists@c-net.it)
- *
- * Reworked, but based on chan_sccp code.
- * The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- * Modified by Jan Czmok and Julien Goodwin
- *
- * Mutex lock code derived from Asterisk 1.4 adapted by Federico Santulli
- *
- * This program is free software and may be modified and
- * distributed under the terms of the GNU Public License.
+/*!
+ * \file 	sccp_lock.h
+ * \brief 	SCCP Lock Header
+ * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \date
+ * \note	Mutex lock code derived from Asterisk 1.4
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * 
  */
 
 #ifndef __SCCP_LOCK_H
