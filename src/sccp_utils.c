@@ -1,16 +1,12 @@
-/*
- * (SCCP*)
- *
- * An implementation of Skinny Client Control Protocol (SCCP)
- *
- * Sergio Chersovani (mlists@c-net.it)
- *
- * Reworked, but based on chan_sccp code.
- * The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- * Modified by Jan Czmok and Julien Goodwin
- *
- * This program is free software and may be modified and
- * distributed under the terms of the GNU Public License.
+/*!
+ * \file 	sccp_utils.c
+ * \brief 	SCCP Utils Class
+ * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \note	Reworked, but based on chan_sccp code.
+ *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *        	Modified by Jan Czmok and Julien Goodwin
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \version 	$LastChangedDate$
  */
 
 #include "config.h"
@@ -32,7 +28,14 @@
 #endif
 #include <asterisk/devicestate.h>
 
-static int isPrintableChar(char c) {
+
+/*!
+ * \brief is Printable Character
+ * \param c Character
+ * \return true/false
+ */
+static int isPrintableChar(char c)
+{
 	if ((c < 'A' || c > 'Z') && (c < 'a' || c > 'z')
 			&& (c < '0' || c > '9') && (c != ' ') && (c != '\'')
 			&& (c != '(') && (c != ')') && (c != '+') && (c != ',')
@@ -49,7 +52,13 @@ static int isPrintableChar(char c) {
 	}
 }
 
-void sccp_dump_packet(unsigned char * messagebuffer, int len) {
+/*!
+ * \brief Print out a messagebuffer
+ * \param messagebuffer Pointer to Message Buffer as char
+ * \param len Lenght as Int
+ */
+void sccp_dump_packet(unsigned char * messagebuffer, int len)
+{
 	int cur, t, i;
 	int rows, cols;
 	int res = 16;
@@ -93,6 +102,11 @@ void sccp_dump_packet(unsigned char * messagebuffer, int len) {
 	}
 }
 
+/*!
+ * \brief Add Host to the Permithost Linked List
+ * \param d SCCP Device
+ * \param config_string as Character
+ */
 void sccp_permithost_addnew(sccp_device_t * d, const char * config_string)
 {
 	sccp_hostname_t *permithost;
@@ -104,6 +118,7 @@ void sccp_permithost_addnew(sccp_device_t * d, const char * config_string)
 		ast_log(LOG_WARNING, "Error adding the permithost = %s to the list\n", config_string);
 	}
 }
+
 
 void sccp_serviceURL_addnew(sccp_device_t * d, const char * config_string, uint8_t index)
 {
@@ -192,6 +207,11 @@ void sccp_speeddial_addnew(sccp_device_t * d, const char * speed_config_string, 
 //	}
 }
 
+/*!
+ * \brief Add New AddOn/Sidecar to Device's AddOn Linked List
+ * \param d SCCP Device
+ * \param addon_config_type AddOn Type as Character
+ */
 void sccp_addon_addnew(sccp_device_t * d, const char * addon_config_type) {
 	int addon_type;
 
@@ -251,7 +271,14 @@ void sccp_addon_addnew(sccp_device_t * d, const char * addon_config_type) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Added addon (%d) taps on device type (%s)\n", (d->id?d->id:"SCCP"), a->type, d->config_type);
 }
 
-int sccp_addons_taps(sccp_device_t * d) {
+
+/*!
+ * \brief Return Number of Buttons on AddOn Device
+ * \param d SCCP Device
+ * \return taps (Number of Buttons on AddOn Device)
+ */
+int sccp_addons_taps(sccp_device_t * d)
+{
 	sccp_addon_t * cur = NULL;
 	int taps = 0;
 
@@ -271,20 +298,36 @@ int sccp_addons_taps(sccp_device_t * d) {
 	return taps;
 }
 
-void sccp_addons_clear(sccp_device_t * d) {
+/*!
+ * \brief Clear all Addons from AddOn Linked List
+ * \param d SCCP Device
+ */
+void sccp_addons_clear(sccp_device_t * d)
+{
 	if(!d)
 		return;
 
 	while ((AST_LIST_REMOVE_HEAD(&d->addons, list)));
 }
 
-char * sccp_addons_list(sccp_device_t * d) {
+/*!
+ * \brief Return AddOn Linked List
+ * \param d SCCP Device
+ * \return addons_list
+ */
+char * sccp_addons_list(sccp_device_t * d)
+{
 	char * addons_list = NULL;
 
 	return addons_list;
 }
 
-void sccp_safe_sleep(int ms) {
+/*!
+ * \brief Put SCCP into Safe Sleep for [num] milli_seconds
+ * \param ms MilliSeconds
+ */
+void sccp_safe_sleep(int ms)
+{
 	struct timeval start = { 0 , 0 };
 
 	start = ast_tvnow();
@@ -294,6 +337,10 @@ void sccp_safe_sleep(int ms) {
 	}
 }
 
+/*!
+ * \brief Create an asterisk variable
+ * \param buf Variable Definition in format "[var]=[value]"
+ */
 struct ast_variable * sccp_create_variable(const char *buf) {
 	struct ast_variable *tmpvar = NULL;
 	char *varname = ast_strdupa(buf), *varval = NULL;
@@ -311,6 +358,12 @@ struct ast_variable * sccp_create_variable(const char *buf) {
 	return NULL;
 }
 
+/*!
+ * \brief Find Device by ID
+ * \param name Device ID (hostname)
+ * \param useRealtime Use RealTime as Boolean
+ * \return SCCP Device - can bee null if device is not found
+ */
 sccp_device_t * sccp_device_find_byid(const char * name, boolean_t useRealtime)
 {
 	sccp_device_t * d;
@@ -332,6 +385,11 @@ sccp_device_t * sccp_device_find_byid(const char * name, boolean_t useRealtime)
 }
 
 #ifdef CS_SCCP_REALTIME
+/*!
+ * \brief Find Device via RealTime
+ * \param name Device ID (hostname)
+ * \return SCCP Device - can bee null if device is not found
+ */
 sccp_device_t * sccp_device_find_realtime(const char * name) {
 	sccp_device_t *d = NULL;
 	struct ast_variable *v;
@@ -355,6 +413,12 @@ sccp_device_t * sccp_device_find_realtime(const char * name) {
 }
 #endif
 
+/*!
+ * \brief Find Line by Name
+ * \param name Line Name
+ * \param realtime Use Realtime as Boolean
+ * \return SCCP Line
+ */
 sccp_line_t * sccp_line_find_byname_wo(const char * name, uint8_t realtime)
 {
 	sccp_line_t * l = NULL;
@@ -387,6 +451,11 @@ sccp_line_t * sccp_line_find_byname_wo(const char * name, uint8_t realtime)
 }
 
 #ifdef CS_SCCP_REALTIME
+/*!
+ * \brief Find Line via Realtime
+ * \param name Line Name
+ * \return SCCP Line
+ */
 sccp_line_t * sccp_line_find_realtime_byname(const char * name)
 {
 	sccp_line_t *l = NULL;
@@ -413,6 +482,13 @@ sccp_line_t * sccp_line_find_realtime_byname(const char * name)
 #endif
 
 
+/*!
+ * \brief Find Line by Instance on device
+ * \param d SCCP Device
+ * \param instance line instance as int
+ * \return SCCP Line (can be null)
+ * \todo TODO No ID Specified only instance, should this function be renamed ?
+ */
 sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint8_t instance){
 	sccp_line_t * l = NULL;
 	int i=0;
@@ -451,6 +527,11 @@ sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint8_t instance){
 	return l;
 }
 
+/*!
+ * \brief Find Line by ID
+ * \param id ID as int
+ * \return SCCP Channel (can be null)
+ */
 sccp_channel_t * sccp_channel_find_byid(uint32_t id)
 {
 	sccp_channel_t * c = NULL;
@@ -478,6 +559,12 @@ sccp_channel_t * sccp_channel_find_byid(uint32_t id)
 	return c;
 }
 
+/*!
+ * We need this to start the correct rtp stream.
+ * \brief Find Channel by Pass Through Party ID
+ * \param id Party ID
+ * \return SCCP Channel - cann bee NULL if no channel with this id was found
+ */
 sccp_channel_t * sccp_channel_find_bypassthrupartyid(uint32_t id)
 {
 	sccp_channel_t * c = NULL;
@@ -505,6 +592,12 @@ sccp_channel_t * sccp_channel_find_bypassthrupartyid(uint32_t id)
 	return c;
 }
 
+/*!
+ * \brief Find Channel by State on Line
+ * \param l SCCP Line
+ * \param state State
+ * \return SCCP Channel
+ */
 sccp_channel_t * sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state) {
 	sccp_channel_t * c = NULL;
 
@@ -528,6 +621,12 @@ sccp_channel_t * sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t stat
 	return c;
 }
 
+/*!
+ * \brief Find Selected Channel by Device
+ * \param d SCCP Device
+ * \param c channel
+ * \return x SelectedChannel
+ */
 sccp_selectedchannel_t * sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * c) {
 	sccp_selectedchannel_t *x = NULL;
 
@@ -548,6 +647,11 @@ sccp_selectedchannel_t * sccp_device_find_selectedchannel(sccp_device_t * d, scc
 	return x;
 }
 
+/*!
+ * \brief Count Selected Channel on Device
+ * \param d SCCP Device
+ * \return count Number of Selected Channels
+ */
 uint8_t sccp_device_selectedchannels_count(sccp_device_t * d) {
 	sccp_selectedchannel_t *x = NULL;
 	uint8_t count = 0;
@@ -566,7 +670,12 @@ uint8_t sccp_device_selectedchannels_count(sccp_device_t * d) {
 	return count;
 }
 
-
+/*!
+ * \brief Find Channel by CallState on Line
+ * \param l SCCP Line
+ * \param state State
+ * \return SCCP Channel
+ */
 sccp_channel_t * sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t state) {
 	sccp_channel_t * c = NULL;
 
@@ -590,6 +699,12 @@ sccp_channel_t * sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t 
 	return c;
 }
 
+/*!
+ * \brief Find Channel by State on Device
+ * \param d SCCP Device
+ * \param state State as int
+ * \return SCCP Channel
+ */
 sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t state)
 {
 	sccp_channel_t * c = NULL;
@@ -621,6 +736,11 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 	return c;
 }
 
+/*!
+ * \brief Notify asterisk for new state
+ * \param c Channel
+ * \param state New State - type of AST_STATE_*
+ */
 void sccp_ast_setstate(sccp_channel_t * c, int state) {
 	if (c && c->owner) {
 		ast_setstate(c->owner, state);
@@ -628,6 +748,11 @@ void sccp_ast_setstate(sccp_channel_t * c, int state) {
 	}
 }
 
+/*!
+ * \brief Safe current device state to astDB
+ * \param d SCCP Device
+ * \todo TODO we shoud do this on feature_state_changed
+ */
 void sccp_dev_dbput(sccp_device_t * d) {
 	sccp_buttonconfig_t	*buttonconfig;
 	sccp_line_t * l;
@@ -680,6 +805,12 @@ void sccp_dev_dbput(sccp_device_t * d) {
 		ast_log(LOG_NOTICE, "%s: Unable to store device status (dnd, cfwd*) in the asterisk db\n", d->id);
 }
 
+/*!
+ * \brief Parse Call Forward List
+ * \param d SCCP Device
+ * \param tmp CallForward List Separated by ";"
+ * \param type CallForward Type
+ */
 static void sccp_cfwd_parse(sccp_device_t * d, char * tmp, uint8_t type) {
 	char *tmp2, *tmp3;
 	sccp_line_t * l = NULL;
@@ -706,6 +837,10 @@ static void sccp_cfwd_parse(sccp_device_t * d, char * tmp, uint8_t type) {
 	}
 }
 
+/*!
+ * \brief read device state from astDB
+ * \param d SCCP Device
+ */
 void sccp_dev_dbget(sccp_device_t * d) {
 	char result[256]="", *tmp, *tmp1, *r;
 	int i=0;
@@ -737,6 +872,9 @@ void sccp_dev_dbget(sccp_device_t * d) {
 	}
 }
 
+/*!
+ * \brief Clean Asterisk Database Entries in the "SCCP" Family
+ */
 void sccp_dev_dbclean() {
 	struct ast_db_entry *entry;
 	sccp_device_t * d;
@@ -768,6 +906,11 @@ void sccp_dev_dbclean() {
 		ast_db_freetree(entry);
 }
 
+/*!
+ * \brief Convert Asterisk Extension State to String
+ * \param type Extension State
+ * \return Extension String or "unknown"
+ */
 const char * sccp_extensionstate2str(uint8_t type) {
 	switch(type) {
 	case AST_EXTENSION_NOT_INUSE:
@@ -795,6 +938,12 @@ const char * sccp_extensionstate2str(uint8_t type) {
 	}
 }
 
+
+/*!
+ * \brief Convert Message to String
+ * \param e Message
+ * \return Message String or "unknown"
+ */
 const char * sccpmsg2str(uint32_t e) {
 	switch(e) {
 /* Station -> Callmanager */
@@ -1071,6 +1220,11 @@ const char * sccpmsg2str(uint32_t e) {
 	}
 }
 
+/*!
+ * \brief Convert Accessory 2 String
+ * \param accessory SCCP_ACCESSORY_* as uint32_t
+ * \return Accessory String or "unknown"
+ */
 const char * skinny_accessory2str(uint32_t accessory) {
 	switch(accessory) {
 	case SCCP_ACCESSORY_NONE:
@@ -1086,6 +1240,11 @@ const char * skinny_accessory2str(uint32_t accessory) {
 	}
 }
 
+/*!
+ * \brief Convert Accessory State 2 String
+ * \param state SCCP_ACCESSORYSTATE_* as uint32_t
+ * \return Accessroy State String or "unknown"
+ */
 const char * skinny_accessorystate2str(uint32_t state) {
 	switch(state) {
 	case SCCP_ACCESSORYSTATE_NONE:
@@ -1099,6 +1258,11 @@ const char * skinny_accessorystate2str(uint32_t state) {
 	}
 }
 
+/*!
+ * \brief Convert Label 2 String
+ * \param label SKINNY_LBL_* as uint8_t
+ * \return Label String or "unknown"
+ */
 const char * skinny_lbl2str(uint8_t label) {
 	switch(label) {
 	case SKINNY_LBL_EMPTY:
@@ -1282,6 +1446,11 @@ const char * skinny_lbl2str(uint8_t label) {
 	}
 }
 
+/*!
+ * \brief Convert Tone 2 String
+ * \param tone SKINNY_TONE_* as uint8_t
+ * \return Tone String or "unknown"
+ */
 const char * skinny_tone2str(uint8_t tone) {
 	switch(tone) {
 		case SKINNY_TONE_SILENCE:
@@ -1437,6 +1606,11 @@ const char * skinny_tone2str(uint8_t tone) {
 	}
 }
 
+/*!
+ * \brief Convert Alarm 2 String
+ * \param alarm SKINNY_ALARM_* as uint8_t
+ * \return Alarm String or "unknown"
+ */
 const char * skinny_alarm2str(uint8_t alarm) {
 	switch(alarm) {
 	case SKINNY_ALARM_CRITICAL:
@@ -1459,9 +1633,12 @@ const char * skinny_alarm2str(uint8_t alarm) {
 		return "unknown";
 	}
 }
-/**
- * convertes uint32_t of SKINNY_DEVICETYPE_* to string values
- * @todo add values for new devices
+
+/*!
+ * \brief Convert DeviceType 2 string values
+ * \param type SKINNY_DEVICETYPE_* as uint32_t
+ * \return DeviceType String or "unknown"
+ * \todo TODO add values for new devices
  */
 const char * skinny_devicetype2str(uint32_t type) {
 	switch(type) {
@@ -1593,6 +1770,11 @@ const char * skinny_devicetype2str(uint32_t type) {
 	}
 }
 
+/*!
+ * \brief Convert Stimulis 2 String
+ * \param type SKINNY_STIMULUS_* as uint8_t
+ * \return Stimulus String or "unknown"
+ */
 const char * skinny_stimulus2str(uint8_t type) {
 	switch(type) {
 	case SKINNY_STIMULUS_LASTNUMBERREDIAL:
@@ -1652,6 +1834,11 @@ const char * skinny_stimulus2str(uint8_t type) {
 	}
 }
 
+/*!
+ * \brief Convert Button Type 2 String
+ * \param type SKINNY_BUTTONTYPE_* as uint8_t
+ * \return Button Type String or "unknown"
+ */
 const char * skinny_buttontype2str(uint8_t type) {
 	switch(type) {
 	case SKINNY_BUTTONTYPE_UNUSED:
@@ -1724,6 +1911,11 @@ const char * skinny_buttontype2str(uint8_t type) {
 	}
 }
 
+/*!
+ * \brief Convert Lamp Mode 2 String
+ * \param type SKINNY_LAMP_* as uint8_t
+ * \return Lamp Mode String or "unknown"
+ */
 const char * skinny_lampmode2str(uint8_t type) {
 	switch(type) {
 	case SKINNY_LAMP_OFF:
@@ -1741,6 +1933,11 @@ const char * skinny_lampmode2str(uint8_t type) {
 	}
 }
 
+/*!
+ * \brief Convert Ringer Mode 2 String
+ * \param type SKINNY_STATTION_* as uint8_t
+ * \return Ringer Mode String or "unknown"
+ */
 const char * skinny_ringermode2str(uint8_t type) {
 	switch(type) {
 	case SKINNY_STATION_RINGOFF:
@@ -1789,6 +1986,11 @@ const char * skinny_softkeyset2str(uint8_t type) {
 	}
 }
 
+/*!
+ * \brief Convert Device State 2 String
+ * \param type SCCP_DEVICESTATE_* as uint8_t
+ * \return Device State String or "unknown"
+ */
 const char * skinny_devicestate2str(uint8_t type) {
 	switch(type) {
 	case SCCP_DEVICESTATE_ONHOOK:
@@ -1806,6 +2008,11 @@ const char * skinny_devicestate2str(uint8_t type) {
 	}
 }
 
+/*!
+ * \brief Convert Device Registration State 2 String
+ * \param type SKINNY_DEVICE_RS_* as uint8_t
+ * \return Device Registration State String or "unknown"
+ */
 const char * skinny_registrationstate2str(uint8_t type) {
 	switch(type) {
 	case SKINNY_DEVICE_RS_NONE:
@@ -1823,6 +2030,11 @@ const char * skinny_registrationstate2str(uint8_t type) {
 	}
 }
 
+/*!
+ * \brief Convert Call Type 2 String
+ * \param type SKINNY_CALLTYPE_* as uint8_t
+ * \return Call Type String or "unknown"
+ */
 const char * skinny_calltype2str(uint8_t type) {
 	switch(type) {
 	case SKINNY_CALLTYPE_INBOUND:
@@ -1836,6 +2048,11 @@ const char * skinny_calltype2str(uint8_t type) {
 	}
 }
 
+/*!
+ * \brief Convert Codec 2 String
+ * \param type Codec_* as uint8_t
+ * \return Codec String or "unknown"
+ */
 const char * skinny_codec2str(uint8_t type) {
 	switch(type) {
 	case 1:
@@ -1901,6 +2118,11 @@ const char * skinny_codec2str(uint8_t type) {
 	}
 }
 
+/*!
+ * \brief Convert Asterisk Codec 2 Skinny Codec
+ * \param fmt Asterisk Codec as type of AST_FORMAT_*
+ * \return Skinny Codec
+ */
 uint8_t sccp_codec_ast2skinny(int fmt) {
 	switch(fmt) {
 	case AST_FORMAT_ALAW:
@@ -1968,6 +2190,11 @@ int sccp_codec_skinny2ast(uint8_t fmt) {
 	}
 }
 
+/*!
+ * \brief Convert Do Not Disturb 2 String
+ * \param type DND as uint8_t
+ * \return DND String or "unknown"
+ */
 const char * sccp_dndmode2str(uint8_t type) {
 	switch(type) {
 	case SCCP_DNDMODE_OFF:
@@ -1982,12 +2209,24 @@ const char * sccp_dndmode2str(uint8_t type) {
 }
 
 #ifndef CS_AST_HAS_STRINGS
+/*!
+ * \brief Asterisk Skip Blanks
+ * \param str as Character
+ * \return String without Blanks
+ */
 char *ast_skip_blanks(char *str) {
-	while (*str && *str < 33)
-		str++;
-	return str;
+        while (*str && *str < 33)
+                str++;
+
+        return str;
 }
 
+/*!
+ * \brief Asterisk Trim Blanks
+ * Remove Blanks from the begining and end of a string
+ * \param str as Character
+ * \return String without Beginning or Ending Blanks
+ */
 char *ast_trim_blanks(char *str) {
 	char *work = str;
 	if (work) {
@@ -1998,12 +2237,23 @@ char *ast_trim_blanks(char *str) {
 	return str;
 }
 
+/*!
+ * \brief Asterisk Non Blanks
+ * \param str as Character
+ * \return Only the Non Blank Characters
+ */
 char *ast_skip_nonblanks(char *str) {
-	while (*str && *str > 32)
-		str++;
-	return str;
+        while (*str && *str > 32)
+                str++;
+
+        return str;
 }
 
+/*!
+ * \brief Asterisk Strip
+ * \param s as Character
+ * \return String without all Blanks
+ */
 char *ast_strip(char *s) {
 	s = ast_skip_blanks(s);
 	if (s)
@@ -2058,7 +2308,11 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
 	return -1;
 }
 
-/* this is used on device reconnect attempt */
+/*!
+ * \brief This is used on device reconnect attempt
+ * \param s_addr IP Address as unsigned long
+ * \return SCCP Device 
+ */
 sccp_device_t * sccp_device_find_byipaddress(unsigned long s_addr){
 	sccp_device_t * d;
 
@@ -2075,8 +2329,10 @@ sccp_device_t * sccp_device_find_byipaddress(unsigned long s_addr){
 
 #if ASTERISK_VERSION_NUM >= 10600
 #ifdef HAVE_ASTERISK_DEVICESTATE_H
-/**
- * map states from sccp to ast_device_state
+/*!
+ * \brief map states from sccp to ast_device_state
+ * \param state SCCP Channel State
+ * \return asterisk device state 
  */
 enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state){
 	switch(state){
@@ -2101,6 +2357,11 @@ enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state
 #endif
 #endif
 
+/*!
+ * \brief convert Feature String 2 Feature ID
+ * \param str Feature Str as char
+ * \return Feature Type
+ */
 sccp_feature_type_t sccp_featureStr2featureID(char *str){
 	if(!str)
 		return SCCP_FEATURE_UNKNOWN;
