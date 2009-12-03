@@ -1,6 +1,16 @@
-/**
+/*!
+ * \file 	sccp_config.h
+ * \brief 	SCCP Config Header
+ * \author 	Marcello Ceschia <marcelloceschia [at] users.sourceforge.net>
+ * \date
+ * \note	Reworked, but based on chan_sccp code.
+ *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *        	Modified by Jan Czmok and Julien Goodwin
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *
  */
+#ifndef __SCCP_CONFIG_H
+#define __SCCP_CONFIG_H
 
 #include "config.h"
 #include <stdint.h>
@@ -36,3 +46,4 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype);
 void sccp_config_readLines(sccp_readingtype_t readingtype);
 void sccp_config_readdevices(sccp_readingtype_t readingtype);
 
+#endif /*__SCCP_CONFIG_H */

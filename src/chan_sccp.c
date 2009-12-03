@@ -1,25 +1,13 @@
-/*
- * (SCCP*)
- *
- * An implementation of Skinny Client Control Protocol (SCCP)
- *
- * Sergio Chersovani (mlists@c-net.it)
- *
- * Reworked, but based on chan_sccp code.
- * The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- * Modified by Jan Czmok and Julien Goodwin
- *
- * This program is free software and may be modified and
- * distributed under the terms of the GNU Public License.
- */
-
-
-
-/**
- * \mainpage chan_sccp-b User documentation
- *
- * \ref intro_sk The Softkeys
- *
+/*!
+ * \file 	chan_sccp.c
+ * \brief 	An implementation of Skinny Client Control Protocol (SCCP)
+ * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \date
+ * \brief 	Main chan_sccp Class
+ * \note	Reworked, but based on chan_sccp code.
+ *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *        	Modified by Jan Czmok and Julien Goodwin
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *
  */
 #define AST_MODULE "chan_sccp"
@@ -74,14 +62,9 @@
 
 void *sccp_create_hotline(void);
 
-
-
-
-
-
-
-
-/* for jitter buffer use */
+/*!
+ * \brief	Buffer for Jitterbuffer use
+ */
 static struct ast_jb_conf default_jbconf =
 {
 	.flags = 0,
@@ -92,6 +75,9 @@ static struct ast_jb_conf default_jbconf =
 #endif
 
 #ifndef ASTERISK_CONF_1_2
+/*!
+ * \brief	Buffer for Jitterbuffer use
+ */
 struct ast_rtp_protocol sccp_rtp = {
 	.type = "SCCP",
 	.get_rtp_info = sccp_channel_get_rtp_peer,
@@ -100,15 +86,24 @@ struct ast_rtp_protocol sccp_rtp = {
 };
 #endif
 
-/**
- *
- *
- *
- *
- */
 #ifdef CS_AST_HAS_TECH_PVT
+/*!
+ * \brief	handle request coming from asterisk
+ * \param	type	type of data as char
+ * \param	format	format of data as int
+ * \param	data	actual data
+ * \param 	cause	Cause of the request
+ * \return	Asterisk Channel
+ */
 struct ast_channel *sccp_request(const char *type, int format, void *data, int *cause) {
 #else
+/*!
+ * \brief	handle request coming from asterisk
+ * \param	type	type of data as char
+ * \param	format	format of data as int
+ * \param	data	actual data
+ * \return	Asterisk Channel
+ */
 struct ast_channel *sccp_request(char *type, int format, void *data) {
 #endif
 
@@ -365,8 +360,7 @@ OUT:
 }
 
 /**
- * returns the state of device
- *
+ * \brief returns the state of device
  * \param data name of device
  * \return devicestate of AST_DEVICE_*
  */
@@ -418,14 +412,10 @@ int sccp_devicestate(void *data) {
 	return res;
 }
 
-
-
-
-/**
- *
- * \brief controller function to handle received messages
- * \param r message
- * \param s session
+/*!
+ * \brief 	Controller function to handle Received Messages
+ * \param 	r Message as sccp_moo_t
+ * \param 	s Session as sccp_session_t
  */
 uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 	uint32_t  mid = letohl(r->lel_messageId);
@@ -587,11 +577,10 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
   return 1;
 }
 
-
-
-/**
- * \brief creates configured line from \link ast_variable asterisk variable \endlink
- * \return configured line
+/*!
+ * \brief 	Reload Config
+ * \param 	v Asterisk Variable
+ * \return 	Success as int
  * \note also used by realtime functionality to line device from \link ast_variable asterisk variable \endlink
  */
 sccp_line_t * build_lines_wo(struct ast_variable *v) {
@@ -729,6 +718,7 @@ sccp_line_t * build_lines_wo(struct ast_variable *v) {
 
 /**
  * \brief Create device from ast_variable
+ * \param v Asterisk Variable
  * \return configured device
  * \note also used by realtime functionality to build device from \link ast_variable asterisk variable \endlink
  */
@@ -952,7 +942,8 @@ sccp_device_t *build_devices_wo(struct ast_variable *v) {
 	sccp_dev_dbget(d); /* load saved settings from ast db */
 	return d;
 }
-/**
+
+/*!
  * \brief reload the configuration from sccp.conf
  *
  */
@@ -1066,6 +1057,9 @@ static int reload_config(void) {
 }
 
 
+/*!
+ * \brief 	create a hotline
+ */
 void *sccp_create_hotline(void){
       sccp_line_t	*hotline;
 
@@ -1087,6 +1081,10 @@ void *sccp_create_hotline(void){
       return NULL;
 }
 
+/*!
+ * \brief 	start monitoring thread of chan_sccp
+ * \param 	data
+ */
 void *sccp_do_monitor(void *data)
 {
 	int res;
@@ -1113,6 +1111,10 @@ void *sccp_do_monitor(void *data)
 
 }
 
+/*!
+ * \brief 	restart the monitoring thread of chan_sccp
+ * \return	Success as int
+ */
 int sccp_restart_monitor(void)
 {
 	/* If we're supposed to be stopped -- stay stopped */
@@ -1140,11 +1142,16 @@ int sccp_restart_monitor(void)
 	return 0;
 }
 
+/*!
+ * \brief 	Set the Called Party name a number over an SCCP channel made by chan_sccp.
+ */
 static char *sccp_setcalledparty_descrip = "  SetCalledParty(\"Name\" <ext>) sets the name and number of the called party for use with chan_sccp\n";
-/**
- * \brief Set the name an number of the called party to the calling phone
- * \param chan asterisk channel
- * \param data callerid in format "Name" <number>
+
+/*!
+ * \brief 	Set the Name and Number of the Called Party to the Calling Phone
+ * \param 	chan Asterisk Channel
+ * \param 	data CallerId in format "Name" \<number\>
+ * \return	Success as int
  */
 static int sccp_setcalledparty_exec(struct ast_channel *chan, void *data) {
 	char tmp[256] = "";
@@ -1171,12 +1178,12 @@ static int sccp_setcalledparty_exec(struct ast_channel *chan, void *data) {
 
 
 static char *sccp_setmessage_descrip = "  SetMessage(\"Message\") sets a display message for use with chan_sccp. Clear the display with empty message\n";
-/**
- * \brief It allows you to send a message to the calling device.
- * \author Frank Segtrop <fs@matflow.net>
- * \param chan
- * \param data message to sent - if empty clear display
- * \version 20071112_1944
+/*!
+ * \brief	It allows you to send a message to the calling device.
+ * \author	Frank Segtrop <fs@matflow.net>
+ * \param	chan asterisk channel
+ * \param	data message to sent - if empty clear display
+ * \version	20071112_1944
  */
 static int sccp_setmessage_exec(struct ast_channel *chan, void *data) {
 	char tmp[256] 		= "";
@@ -1216,8 +1223,17 @@ static int sccp_setmessage_exec(struct ast_channel *chan, void *data) {
 }
 
 #ifndef ASTERISK_CONF_1_2
-enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo, struct ast_channel **rc, int timeoutms)
-{
+/*!
+ * \brief	Initialize and Astersik RTP Bridge
+ * \param	c0	Asterisk Channel 0
+ * \param	c1	Asterisk Channel 1
+ * \param	flags	Flags as int
+ * \param	fo	Asterisk Frame
+ * \param	rc	Asterisk Channel
+ * \param	timeoutms Time Out in Millisecs as int
+ * \return 	Asterisk Bridge Result as enum
+ */
+enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo, struct ast_channel **rc, int timeoutms) {
 	struct ast_rtp *p0 = NULL, *p1 = NULL;		/* Audio RTP Channels */
 	enum ast_rtp_get_result audio_p0_res = AST_RTP_GET_FAILED;
 	enum ast_rtp_get_result audio_p1_res = AST_RTP_GET_FAILED;
@@ -1298,6 +1314,10 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 #endif
 
 #ifdef ASTERISK_CONF_1_2
+/*!
+ * \brief 	Load the actual chan_sccp module
+ * \return	Success as int
+ */
 int load_module() {
 #else
 static int load_module(void) {
@@ -1408,12 +1428,11 @@ static int load_module(void) {
 	return 0;
 }
 
-
-
-
-
-
 #ifdef ASTERISK_CONF_1_2
+/*!
+ * \brief 	Unload the chan_sccp module
+ * \return	Success as int
+ */
 int unload_module() {
 	char iabuf[INET_ADDRSTRLEN];
 #else
@@ -1557,6 +1576,10 @@ static int unload_module(void) {
 #ifndef ASTERISK_CONF_1_2
 AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY, "Skinny Client Control Protocol (SCCP). Release: " SCCP_BRANCH " - " SCCP_VERSION " (built by '" BUILD_USER "' on '" BUILD_DATE "')");
 #else
+/*!
+ * \brief 	number of instances of chan_sccp
+ * \return	res number of instances
+ */
 int usecount() {
 	int res;
 	sccp_globals_lock(usecnt_lock);
@@ -1565,11 +1588,19 @@ int usecount() {
 	return res;
 }
 
+/*!
+ * \brief 	Asterisk GPL Key
+ * \return 	the asterisk key
+ */
 char *key() {
-	return ASTERISK_GPL_KEY;
+        return ASTERISK_GPL_KEY;
 }
 
+/*!
+ * \brief 	echo the module description
+ * \return	chan_sccp description
+ */
 char *description() {
-	return ("Skinny Client Control Protocol (SCCP). Release: " SCCP_BRANCH " - " SCCP_VERSION " (built by '" BUILD_USER "' on '" BUILD_DATE "')");
+        return ("Skinny Client Control Protocol (SCCP). Release: " SCCP_BRANCH " - " SCCP_VERSION " (built by '" BUILD_USER "' on '" BUILD_DATE "')");
 }
 #endif

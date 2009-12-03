@@ -1,17 +1,15 @@
-/*
- * (SCCP*)
+/*!
+ * \file 	sccp_actions.c
+ * \brief 	SCCP Actions Class
+ * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \date
+ * \note	Reworked, but based on chan_sccp code.
+ *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *        	Modified by Jan Czmok and Julien Goodwin
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *
- * An implementation of Skinny Client Control Protocol (SCCP)
- *
- * Sergio Chersovani (mlists@c-net.it)
- *
- * Reworked, but based on chan_sccp code.
- * The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- * Modified by Jan Czmok and Julien Goodwin
- *
- * This program is free software and may be modified and
- * distributed under the terms of the GNU Public License.
  */
+
 #include "config.h"
 
 #ifndef ASTERISK_CONF_1_2
@@ -41,6 +39,9 @@
 #endif
 
 #ifndef ASTERISK_CONF_1_6
+/*!
+ * \brief Host Access Rule Structure
+ */
 struct ast_ha {
         /* Host access rule */
         struct in_addr netaddr;
@@ -50,20 +51,38 @@ struct ast_ha {
 };
 #endif
 
-void sccp_handle_alarm(sccp_session_t * s, sccp_moo_t * r) {
-	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Alarm Message: Severity: %s (%d), %s [%d/%d]\n", skinny_alarm2str(letohl(r->msg.AlarmMessage.lel_alarmSeverity)), letohl(r->msg.AlarmMessage.lel_alarmSeverity), r->msg.AlarmMessage.text, letohl(r->msg.AlarmMessage.lel_parm1), letohl(r->msg.AlarmMessage.lel_parm2));
+/*!
+ * \brief Handle Alarm
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP MOO T as sccp_moo_t
+ */
+void sccp_handle_alarm(sccp_session_t * s, sccp_moo_t * r)
+{
+        sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Alarm Message: Severity: %s (%d), %s [%d/%d]\n", skinny_alarm2str(letohl(r->msg.AlarmMessage.lel_alarmSeverity)), letohl(r->msg.AlarmMessage.lel_alarmSeverity), r->msg.AlarmMessage.text, letohl(r->msg.AlarmMessage.lel_parm1), letohl(r->msg.AlarmMessage.lel_parm2));
 }
 
-void sccp_handle_unknown_message(sccp_session_t * s, sccp_moo_t * r) {
-	uint32_t mid = letohl(r->lel_messageId);
+/*!
+ * \brief Handle Unknown Message
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP MOO T as sccp_moo_t
+ */
+void sccp_handle_unknown_message(sccp_session_t * s, sccp_moo_t * r)
+{
+        uint32_t mid = letohl(r->lel_messageId);
 
-	if (GLOB(debug))
-		ast_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", sccpmsg2str(mid), mid, r->length);
+        if (GLOB(debug))
+                ast_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", sccpmsg2str(mid), mid, r->length);
 
-	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
+        sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
 }
 
-void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
+/*!
+ * \brief Handle Device Registration
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP MOO T as sccp_moo_t
+ */
+void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
+{
 	sccp_buttonconfig_t		*buttonconfig = NULL;
 	boolean_t				defaultLineSet = FALSE;
 // 	pthread_attr_t 	attr;
@@ -324,6 +343,11 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_dev_check_displayprompt(d);
 }
 
+/*!
+ * \brief Handle Accessory Status Message
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP MOO T as sccp_moo_t
+ */
 void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_moo_t * r)
 {
 	/* this is from CCM7 dump -FS */
@@ -356,7 +380,13 @@ void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_moo_t * r)
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(d), skinny_accessory2str(d->accessoryused), skinny_accessorystate2str(d->accessorystatus), unknown);
 }
 
-void sccp_handle_unregister(sccp_session_t * s, sccp_moo_t * r) {
+/*!
+ * \brief Handle Device Unregister
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP MOO T as sccp_moo_t
+ */
+void sccp_handle_unregister(sccp_session_t * s, sccp_moo_t * r)
+{
 	sccp_moo_t 		* r1;
 	sccp_device_t 	* d = s->device;
 
@@ -375,8 +405,13 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_moo_t * r) {
 
 }
 
-
-static btnlist *sccp_make_button_template(sccp_device_t * d) {
+/*!
+ * \brief Make Button Template for Device
+ * \param d SCCP Device as sccp_device_t
+ * \return Linked List of ButtonDefinitions
+ */
+static btnlist *sccp_make_button_template(sccp_device_t * d)
+{
 	int i=0, instance=0;
 	btnlist 			*btn;
 	sccp_buttonconfig_t	* buttonconfig;
@@ -438,7 +473,13 @@ static btnlist *sccp_make_button_template(sccp_device_t * d) {
 	return btn;
 }
 
-void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r) {
+/*!
+ * \brief Handle Button Template Request for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
+ */
+void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
+{
 	btnlist *btn;
 	sccp_device_t * d = s->device;
 	int i;
@@ -496,7 +537,13 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r) {
 	ast_free(btn);
 }
 
-void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r) {
+/*!
+ * \brief Handle Line Number for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
+ */
+void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
+{
 	uint8_t lineNumber = letohs(r->msg.LineStatReqMessage.lel_lineNumber);
 	sccp_line_t * l = NULL;
 	sccp_moo_t * r1;
@@ -554,7 +601,13 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r) {
 // 	}
 }
 
-void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_moo_t * r) {
+/*!
+ * \brief Handle SpeedDial Status Request for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
+ */
+void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_moo_t * r)
+{
 	sccp_speed_t * k;
 	sccp_moo_t * r1;
 	int wanted = letohl(r->msg.SpeedDialStatReqMessage.lel_speedDialNumber);
@@ -580,7 +633,13 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_dev_send(s->device, r1);
 }
 
-void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
+/*!
+ * \brief Handle Stimulus for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
+ */
+void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
+{
 	sccp_device_t * d = s->device;
 	sccp_line_t * l;
 	sccp_speed_t * k;
@@ -825,13 +884,14 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r) {
 			break;
 	}
 }
-/**
- *
- *
- *
- *
+
+/*!
+ * \brief Handle SpeedDial for Device
+ * \param d SCCP Device as sccp_device_t
+ * \param k SCCP SpeedDial as sccp_speed_t
  */
-void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k) {
+void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
+{
 	sccp_channel_t * c = NULL;
 	sccp_line_t * l;
 	int len;
@@ -870,15 +930,13 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k) {
 	}
 }
 
-
-
-/**
- *
- *
- *
- *
+/*!
+ * \brief Handle Off Hook Event for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
  */
-void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r) {
+void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r)
+{
 	sccp_line_t * l;
 	sccp_channel_t * c;
 	sccp_device_t * d = s->device;
@@ -930,7 +988,14 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r) {
 	}
 }
 
-void sccp_handle_backspace(sccp_device_t * d, uint8_t line, uint32_t callid) {
+/*!
+ * \brief Handle BackSpace Event for Device
+ * \param d SCCP Device as sccp_device_t
+ * \param line Line Number as uint8_t
+ * \param callid Call ID as uint32_t
+ */
+void sccp_handle_backspace(sccp_device_t * d, uint8_t line, uint32_t callid)
+{
 	sccp_moo_t * r;
 
 	if (!d || !d->session)
@@ -943,14 +1008,13 @@ void sccp_handle_backspace(sccp_device_t * d, uint8_t line, uint32_t callid) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Backspace request on line instance %u, call %u.\n", d->id, line, callid);
 }
 
-/**
- *
- *
- *
- *
- *
+/*!
+ * \brief Handle On Hook Event for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
  */
-void sccp_handle_onhook(sccp_session_t * s, sccp_moo_t * r) {
+void sccp_handle_onhook(sccp_session_t * s, sccp_moo_t * r)
+{
 	sccp_channel_t * c;
 	sccp_device_t * d = s->device;
 	sccp_buttonconfig_t	*buttonconfig = NULL;
@@ -994,6 +1058,12 @@ void sccp_handle_onhook(sccp_session_t * s, sccp_moo_t * r) {
 	return;
 }
 
+/*!
+ * \brief Handle On Hook Event for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
+ * \note this is used just in protocol v3 stuff, it has been included in 0x004A AccessoryStatusMessage
+ */
 void sccp_handle_headset(sccp_session_t * s, sccp_moo_t * r)
 {
 	/*
@@ -1008,14 +1078,14 @@ void sccp_handle_headset(sccp_session_t * s, sccp_moo_t * r)
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(s->device), skinny_accessory2str(SCCP_ACCESSORY_HEADSET), skinny_accessorystate2str(headsetmode), 0);
 }
 
-/**
- *
- *
- *
- *
+/*!
+ * \brief Handle Capabilities for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
  */
-void sccp_handle_capabilities_res(sccp_session_t * s, sccp_moo_t * r) {
-  int i;
+void sccp_handle_capabilities_res(sccp_session_t * s, sccp_moo_t * r)
+{
+        int i;
   uint8_t codec;
   int astcodec;
   uint8_t n = letohl(r->msg.CapabilitiesResMessage.lel_count);
@@ -1029,13 +1099,13 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_moo_t * r) {
   }
 }
 
-/**
- *
- *
- *
- *
+/*!
+ * \brief Handle Soft Key Template Request Message for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
  */
-void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r) {
+void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r)
+{
 	uint8_t i;
 	const uint8_t c = sizeof(softkeysmap);
 	sccp_moo_t * r1;
@@ -1068,13 +1138,13 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_dev_send(s->device, r1);
 }
 
-/**
- *
- *
- *
- *
+/*!
+ * \brief Handle Set Soft Key Request Message for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
  */
-void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r) {
+void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
+{
 	sccp_device_t * d = s->device;
 	const softkey_modes * v = SoftKeyModes;
 	const	uint8_t	v_count = ( sizeof(SoftKeyModes)/sizeof(softkey_modes) );
@@ -1217,7 +1287,13 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);
 }
 
-void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_moo_t * r) {
+/*!
+ * \brief Handle Dialed PhoneBook Message for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
+ */
+void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_moo_t * r)
+{
 	/* this is from CCM7 dump */
 	sccp_device_t * d = s->device;
 
@@ -1242,13 +1318,13 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_moo_t * r) {
 	/* maybe we should store latest dialed numbers for each line -FS */
 }
 
-/**
- *
- *
- *
- *
+/*!
+ * \brief Handle Time/Date Request Message for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param req SCCP Message as sccp_moo_t
  */
-void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * req) {
+void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * req)
+{
   time_t timer = 0;
   struct tm * cmtime = NULL;
   sccp_moo_t * r1;
@@ -1276,7 +1352,13 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * req) {
   sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send date/time\n", s->device->id);
 }
 
-void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
+/*!
+ * \brief Handle KeyPad Button for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
+ */
+void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
+{
 	int event;
 	uint8_t line;
 	uint32_t callid;
@@ -1408,6 +1490,10 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_channel_unlock(c);
 }
 
+/*!
+ * \brief Handle DialTone Without Lock
+ * \param c SCCP Channel as sccp_channel_t
+ */
 void sccp_handle_dialtone_nolock(sccp_channel_t * c)
 {
 	sccp_line_t * l = NULL;
@@ -1463,15 +1549,13 @@ void sccp_handle_dialtone_nolock(sccp_channel_t * c)
 	}
 }
 
-/**
- *
- *
- *
- *
- *
- *
+/*!
+ * \brief Handle Soft Key Event for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
  */
-void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r) {
+void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
+{
 	sccp_device_t * d = s->device;
 	sccp_channel_t * c = NULL;
 	sccp_line_t * l = NULL;
@@ -1612,14 +1696,15 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r) {
 }
 
 
-/**
- *
- *
- *
- *
- *
+
+/*!
+ * \brief Handle Start Media Transmission Acknowledgement for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
  */
-void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r) {
+void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
+{
+
 	struct sockaddr_in sin;
 	sccp_channel_t * c;
 	sccp_device_t * d;
@@ -1745,12 +1830,13 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r) {
 	}
 }
 
-/**
- *
- *
- *
+/*!
+ * \brief Handle Version for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
  */
-void sccp_handle_version(sccp_session_t * s, sccp_moo_t * r) {
+void sccp_handle_version(sccp_session_t * s, sccp_moo_t * r)
+{
 	sccp_moo_t * r1;
 
 	if (!s || !s->device)
@@ -1763,13 +1849,13 @@ void sccp_handle_version(sccp_session_t * s, sccp_moo_t * r) {
 }
 
 
-/**
- *
- *
- *
- *
+/*!
+ * \brief Handle Connection Statistics for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
  */
-void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_moo_t * r) {
+void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_moo_t * r)
+{
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Statistics from %s callid: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", s->device->id, r->msg.ConnectionStatisticsRes.DirectoryNumber,
 		letohl(r->msg.ConnectionStatisticsRes.lel_CallIdentifier),
 		letohl(r->msg.ConnectionStatisticsRes.lel_SentPackets),
@@ -1780,7 +1866,13 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_moo_t * r) {
 		);
 }
 
-void sccp_handle_ServerResMessage(sccp_session_t * s, sccp_moo_t * r) {
+/*!
+ * \brief Handle Server Resource Message for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
+ */
+void sccp_handle_ServerResMessage(sccp_session_t * s, sccp_moo_t * r)
+{
 	sccp_moo_t * r1;
 #ifdef ASTERISK_CONF_1_2
 	char iabuf[INET_ADDRSTRLEN];
@@ -1801,11 +1893,13 @@ void sccp_handle_ServerResMessage(sccp_session_t * s, sccp_moo_t * r) {
 	sccp_dev_send(s->device, r1);
 }
 
-/**
- *
- *
+/*!
+ * \brief Handle Config Status Message for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
  */
-void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r) {
+void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r)
+{
 	sccp_moo_t * r1;
 	sccp_buttonconfig_t	*config = NULL;
 	uint8_t lines = 0;
@@ -1914,13 +2008,13 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_moo_t * r) {
 	}
 }
 
-
-/**
- *
- *
- *
+/*!
+ * \brief Handle Forward Status Reques for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
  */
-void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_moo_t * r) {
+void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_moo_t * r)
+{
 	sccp_device_t * d = s->device;
 	sccp_line_t * l;
 	sccp_moo_t * r1 = NULL;
@@ -1943,15 +2037,14 @@ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_moo_t * r) {
 	}
 }
 
-/**
- *
- *
+
+/*!
+ * \brief Handle Feature Status Reques for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
  */
-/**
- *
- *
- */
-void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r) {
+void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
+{
 	sccp_device_t * d = s->device;
 	sccp_buttonconfig_t *config = NULL;
 
@@ -1967,16 +2060,15 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r) {
 			sccp_feat_changed(d, config->button.feature.id);
 		}
 	}
-
-
 }
 
-/**
- *
- *
- *
+/*!
+ * \brief Handle Feature Status Request for Session
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
  */
-void sccp_handle_services_stat_req(sccp_session_t * s, sccp_moo_t * r) {
+void sccp_handle_services_stat_req(sccp_session_t * s, sccp_moo_t * r)
+{
 	sccp_device_t 		* d = s->device;
 	sccp_moo_t 			* r1;
 	sccp_service_t 		* service;
@@ -2001,7 +2093,14 @@ void sccp_handle_services_stat_req(sccp_session_t * s, sccp_moo_t * r) {
 }
 
 
-void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggleState) {
+/*!
+ * \brief Handle Feature Action for Device
+ * \param d SCCP Device as sccp_device_t
+ * \param instance Instance as int
+ * \param toggleState as boolean
+ */
+void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggleState)
+{
 	sccp_buttonconfig_t		*config=NULL;
 	sccp_line_t			*line = NULL;
 	uint8_t 			status=0; /* state of cfwd */
@@ -2111,19 +2210,21 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 	return;
 }
 
-
-/**
- *	This message is often used to add video and data capabilities
- *	to client. Atm we just use it for audio and video caps.
- *	Will be better to store audio codec max packet size and video
- *	bandwidth and size.
- * 	In future we will parse also data caps to support T.38 and NSE
- *  with ATA186/188 devices.
+/*!
+ * \brief Handle Update Capabilities Message
  *
- *  \since 20090708
- *  \author Federico
- **/
-void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_moo_t * r) {
+ * This message is often used to add video and data capabilities to client. Atm we just use it for audio and video caps.
+ * Will be better to store audio codec max packet size and video bandwidth and size.
+ * In future we will parse also data caps to support T.38 and NSE with ATA186/188 devices.
+ *
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
+ *
+ * \since 20090708
+ * \author Federico
+ */
+void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_moo_t * r)
+{
   int i;
   uint8_t codec, n;
   int astcodec;
@@ -2156,7 +2257,10 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_moo_t * r) 
   }
 }
 
-/**
+/*!
+ * \brief Handle Start Media Transmission Acknowledgement
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
  * \since 20090708
  * \author Federico
  */

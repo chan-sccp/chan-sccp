@@ -1,3 +1,20 @@
+/*!
+ * \file 	chan_sccp.h
+ * \brief 	Chan SCCP Main Class
+ *
+ * An implementation of Skinny Client Control Protocol (SCCP)
+ *
+ * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \date
+ * \brief 	Main chan_sccp Class
+ * \note	Reworked, but based on chan_sccp code.
+ *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *        	Modified by Jan Czmok and Julien Goodwin
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *
+ * \warning 	File has been Lined up using 8 Space TABS
+ */
+
 #ifndef __CHAN_SCCP_H
 #define __CHAN_SCCP_H
 
@@ -149,7 +166,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 #define SCCP_LOCK_TRIES 10
 #define SCCP_LOCK_USLEEP 100
 
-/* I don't like the -1 returned value */
+/*! \todo I don't like the -1 returned value */
 #define sccp_true(x) (ast_true(x) ? 1 : 0)
 #define sccp_log(x) if ((!sccp_globals->fdebug && sccp_globals->debug >= x) || (sccp_globals->fdebug == x)) ast_verbose
 #define GLOB(x) sccp_globals->x
@@ -180,676 +197,659 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 typedef unsigned int ast_group_t;
 #endif
 
-typedef struct sccp_channel			sccp_channel_t;
-typedef struct sccp_session			sccp_session_t;
-typedef struct sccp_line				sccp_line_t;
-typedef struct sccp_speed			sccp_speed_t;
-typedef struct sccp_service			sccp_service_t;
-typedef struct sccp_selectedchannel	sccp_selectedchannel_t;
-typedef struct sccp_device			sccp_device_t;
-typedef struct sccp_addon			sccp_addon_t; // Added on SVN 327 -FS
-typedef struct sccp_hint				sccp_hint_t;
-typedef struct sccp_hostname			sccp_hostname_t;
-typedef struct sccp_ast_channel_name	sccp_ast_channel_name_t;
-typedef enum { FALSE=0, TRUE=1 } 		boolean_t;
-typedef enum { LINE, SPEEDDIAL, SERVICE, FEATURE, EMPTY } button_type_t;
-typedef enum { ANSWER_LAST_FIRST=1, ANSWER_OLDEST_FIRST=2 } 		call_answer_order_t;
-typedef struct sccp_buttonconfig	sccp_buttonconfig_t;
-typedef void sk_func (sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
-typedef enum {ON, OFF} light_t;
+typedef struct sccp_channel			sccp_channel_t;				/*!< SCCP Channel Structure */
+typedef struct sccp_session			sccp_session_t;				/*!< SCCP Session Structure */
+typedef struct sccp_line			sccp_line_t;				/*!< SCCP Line Structure */
+typedef struct sccp_speed			sccp_speed_t;				/*!< SCCP Speed Structure */
+typedef struct sccp_service			sccp_service_t;				/*!< SCCP Service Structure */
+typedef struct sccp_device			sccp_device_t;				/*!< SCCP Device Structure */
+typedef struct sccp_addon			sccp_addon_t; 				/*!< SCCP Add-On Structure */	// Added on SVN 327 -FS
+typedef struct sccp_hint			sccp_hint_t;				/*!< SCCP Hint Structure */
+typedef struct sccp_hostname			sccp_hostname_t;			/*!< SCCP HostName Structure */
+typedef struct sccp_selectedchannel		sccp_selectedchannel_t;			/*!< SCCP Selected Channel Structure */
+typedef struct sccp_ast_channel_name		sccp_ast_channel_name_t;		/*!< SCCP Asterisk Channel Name Structure */
+typedef struct sccp_buttonconfig		sccp_buttonconfig_t;			/*!< SCCP Button Config Structure */
 typedef struct sccp_hotline			sccp_hotline_t;
-typedef enum{
-	SCCP_VERBOSE_LEVEL_HINT = 1,
-	SCCP_VERBOSE_LEVEL_RTP = 2,
-	SCCP_VERBOSE_LEVEL_MWI = 1<< 15,
-	SCCP_VERBOSE_LEVEL_EVENT = 1 << 16
-} sccp_verbose_level_t;
+typedef enum { FALSE=0, TRUE=1 } 		boolean_t;				/*!< Asterisk Reverses True and False; nice !! */
+typedef enum { LINE, SPEEDDIAL, SERVICE, FEATURE, EMPTY } button_type_t;		/*!< Enum Button Type */
+typedef enum { ANSWER_LAST_FIRST=1, ANSWER_OLDEST_FIRST=2 } call_answer_order_t;	/*!< Enum Call Answer Order */
+typedef enum {ON, OFF} 				light_t;				/*!< Enum Light Status */
+typedef void sk_func (sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
+
+/*!
+ * \brief Verbosity Level Enum
+ */
 typedef enum {
-	SCCP_FEATURE_UNKNOWN,
-	SCCP_FEATURE_CFWDALL,
-	SCCP_FEATURE_CFWDBUSY,
-	SCCP_FEATURE_CFWDNOANSWER,
-	SCCP_FEATURE_DND,
-	SCCP_FEATURE_PRIVACY,
-	SCCP_FEATURE_MONITOR
-} sccp_feature_type_t;
+        SCCP_VERBOSE_LEVEL_HINT 		= 1,
+        SCCP_VERBOSE_LEVEL_RTP 			= 2,
+        SCCP_VERBOSE_LEVEL_MWI 			= 1<< 15,
+        SCCP_VERBOSE_LEVEL_EVENT 		= 1 << 16
+} sccp_verbose_level_t;									/*!< Verbosity Level */
+
+/*!
+ * \brief Feature Type Enum
+ */
+typedef enum {
+        SCCP_FEATURE_UNKNOWN,
+        SCCP_FEATURE_CFWDALL,
+        SCCP_FEATURE_CFWDBUSY,
+        SCCP_FEATURE_CFWDNOANSWER,
+        SCCP_FEATURE_DND,
+        SCCP_FEATURE_PRIVACY,
+        SCCP_FEATURE_MONITOR
+} sccp_feature_type_t;									/*!< Feature Type */
+
+/*!
+ * \brief Feature Configuration Structure
+ */
+
+typedef struct {
+        boolean_t				enabled;				/*!< Feature Enabled */
+        uint8_t					status;					/*!< Feature State */
+} sccp_featureConfiguration_t;								/*!< Feature Configuration */
 
 
-typedef struct{
-	boolean_t	enabled;
-	uint8_t		status;
-} sccp_featureConfiguration_t;
+/*!
+ * \brief Reading Type Enum
+ */
+typedef enum {
+        SCCP_CONFIG_READINITIAL,
+        SCCP_CONFIG_READRELOAD
+}sccp_readingtype_t;									/*!< Reading Type */
 
-typedef enum{
-	SCCP_CONFIG_READINITIAL,
-	SCCP_CONFIG_READRELOAD
-}sccp_readingtype_t;
-
+/*!
+ * \brief SCCP Mailbox Structure
+ */
 typedef struct sccp_mailbox sccp_mailbox_t;
-struct sccp_mailbox{
-	char *mailbox;
-	char *context;
 
-	SCCP_LIST_ENTRY(sccp_mailbox_t) list;
-};
+struct sccp_mailbox {
+        char 					* mailbox;				/*!< Mailbox */
+        char 					* context;				/*!< Context */
+        SCCP_LIST_ENTRY(sccp_mailbox_t)		list;					/*!< Mailbox Linked List Entry */
+};											/*!< SCCP Mailbox Structure */
 
 #include "sccp_protocol.h"
 
 
-/* privacy definition */
-#define SCCP_PRIVACYFEATURE_HINT 			1 << 1;
-#define SCCP_PRIVACYFEATURE_CALLPRESENT 	1 << 2;
+/*!
+ * \brief Privacy Definition
+ */
+#define SCCP_PRIVACYFEATURE_HINT 		1 << 1;
+#define SCCP_PRIVACYFEATURE_CALLPRESENT		1 << 2;
 
-
-
-
-
+/*!
+ * \brief Currently Selected Channel Structure
+ */
 
 struct sccp_selectedchannel {
-	sccp_channel_t * channel;
-	SCCP_LIST_ENTRY(sccp_selectedchannel_t) list;
-};
+        sccp_channel_t 				* channel;				/*!< SCCP Channel */
+        SCCP_LIST_ENTRY(sccp_selectedchannel_t) list;					/*!< Selected Channel Linked List Entry */
+};											/*!< SCCP Selected Channel Structure */
 
-typedef struct sccp_linedevices	sccp_linedevices_t;
+/*!
+ * \brief SCCP Line-Devices Structure
+ */
+
+typedef struct sccp_linedevices			sccp_linedevices_t;			/*!< SCCP Line Connected to Devices */
+
+/*!
+ * \brief SCCP Line-Devices Structure
+ */
+
 struct sccp_linedevices {
-	sccp_device_t 	*device;
-	SCCP_LIST_ENTRY(sccp_linedevices_t) list;
-};
+        sccp_device_t 				* device;				/*!< SCCP Device */
+        SCCP_LIST_ENTRY(sccp_linedevices_t) 	list;					/*!< Device Linked List Entry */
+};											/*!< SCCP Line-Device Structure */
 
+
+/*!
+ * \brief SCCP Button Configuration Structure
+ */
 
 struct sccp_buttonconfig {
-	uint8_t			instance;		/*!< instance on device */
-	button_type_t 	type;			/*!< button type (e.g. line, speeddial, feature, empty) */
-	SCCP_LIST_ENTRY(sccp_buttonconfig_t) list;
-	union sccp_button{
-		struct {
-			char 	name[80];
-		} line;
+        uint8_t					instance;				/*!< Instance on device */
+        button_type_t 				type;					/*!< Button type (e.g. line, speeddial, feature, empty) */
+        SCCP_LIST_ENTRY(sccp_buttonconfig_t) 	list;					/*!< Button Linked List Entry */
 
-		struct sccp_speeddial{
-			char 	label[StationMaxNameSize];
-			char 	ext[AST_MAX_EXTENSION];
-			char 	hint[AST_MAX_EXTENSION];
-		} speeddial;
+        /*!
+         * \brief SCCP Button Structure
+         */
+        union sccp_button {
 
-		struct sccp_service {
-			char 	label[StationMaxNameSize];			/*!< The label of the serviceURL button */
-			char 	url[StationMaxServiceURLSize];		/*!< The number to dial when it's hit */
-		} service;
+                /*!
+                 * \brief SCCP Button Line Structure
+                 */
 
-		struct sccp_feature {
-			uint8_t index;
-			sccp_feature_type_t id;
-			char 	label[StationMaxNameSize];
-			char 	options[254];
-			uint8_t status;
-		} feature;
-	} button;
-};
+                struct {
+                        char 			name[80];				/*!< Button Name */
+                } line;									/*!< SCCP Button Line Structure */
+                /*!
+                 * \brief SCCP Button Speeddial Structure
+                 */
+
+                struct sccp_speeddial {
+                        char 			label[StationMaxNameSize];		/*!< SpeedDial Label */
+                        char 			ext[AST_MAX_EXTENSION];			/*!< SpeedDial Extension */
+                        char 			hint[AST_MAX_EXTENSION];		/*!< SpeedDIal Hint */
+                } speeddial;								/*!< SCCP Button Speeddial Structure */
+
+                /*!
+                 * \brief SCCP Button Service Structure
+                 */
+
+                struct sccp_service {
+                        char 			label[StationMaxNameSize];		/*!< The label of the serviceURL button */
+                        char 			url[StationMaxServiceURLSize];		/*!< The number to dial when it's hit */
+                } service;								/*!< SCCP Button Service Structure  */
+                /*!
+                 * \brief SCCP Button Feature Structure
+                 */
+
+                struct sccp_feature {
+                        uint8_t 		index;					/*!< Button Feature Index */
+                        sccp_feature_type_t 	id;					/*!< Button Feature ID */
+                        char 			label[StationMaxNameSize];		/*!< Button Feature Label */
+                        char 			options[254];				/*!< Button Feature Options */
+                        uint8_t 		status;					/*!< Button Feature Status */
+                } feature;								/*!< SCCP Button Feature Structure */
+        } button;									/*!< SCCP Button Structure */
+};											/*!< SCCP Button Configuration Structure */
+/*
+ * \brief SCCP Hostname Structure
+ */
 
 struct sccp_hostname {
-	char name[MAXHOSTNAMELEN];
-	SCCP_LIST_ENTRY(sccp_hostname_t) list;
-};
+        char 					name[MAXHOSTNAMELEN];			/*!< Name of the Host */
+        SCCP_LIST_ENTRY(sccp_hostname_t) 	list;					/*!< Host Linked List Entry */
+};											/*!< SCCP Hostname Structure */
 
-
-
-/* A line is a the equiv of a 'phone line' going to the phone. */
+/*!
+ * \brief SCCP Line Structure
+ * \note A line is the equivalent of a 'phone line' going to the phone.
+ */
 struct sccp_line {
-
-	/* lockmeupandtiemedown */
-	ast_mutex_t lock;
-
-	/* This line's ID, used for logging into (for mobility) */
-	char id[4];
-
-	/* PIN number for mobility/roaming. */
-	char pin[8];
-
-	/* The lines position/instanceId on the current device*/
-//	uint8_t instance;
-
-	/* the name of the line, so use in asterisk (i.e SCCP/<name>) */
-	char name[80];
-
-	/* A description for the line, displayed on in header (on7960/40)
-	* or on main  screen on 7910 */
-	char description[StationMaxNameSize];
-
-	/* A name for the line, displayed next to the button (7960/40). */
-	char label[StationMaxNameSize];
-
-	/* mainbox numbers (seperated by commas) to check for messages */
-	//char mailbox[AST_MAX_EXTENSION];
-	SCCP_LIST_HEAD(, sccp_mailbox_t) mailboxes;
-
-
-	/* Voicemail number to dial */
-	char vmnum[AST_MAX_EXTENSION];
-
-	/* Meetme Extension to be dialed*/
-	char meetmenum[AST_MAX_EXTENSION];
-
-	/* The context we use for outgoing calls. */
-	char context[AST_MAX_CONTEXT];
-	char language[MAX_LANGUAGE];
-	char accountcode[AST_MAX_ACCOUNT_CODE];
-	char musicclass[MAX_MUSICCLASS];
-	int					amaflags;
-	ast_group_t				callgroup;
+        ast_mutex_t 				lock;					/*!< Asterisk: Lock Me Up and Tie me Down */
+        char 					id[4];					/*!< This line's ID, used for logging into (for mobility) */
+        char 					pin[8];					/*!< PIN number for mobility/roaming. */
+/*	uint8_t 				instance;*/				/* The lines position/instanceId on the current device*/
+        char 					name[80];				/*!< The name of the line, so use in asterisk (i.e SCCP/[name]) */
+        char 					description[StationMaxNameSize];	/*!< A description for the line, displayed on in header (on7960/40) or on main  screen on 7910 */
+        char 					label[StationMaxNameSize];		/*!< A name for the line, displayed next to the button (7960/40). */
+/*	char 					mailbox[AST_MAX_EXTENSION];*/		/* Previous MailBox Number as Char */
+        SCCP_LIST_HEAD(, sccp_mailbox_t) 	mailboxes;				/*!< Mailbox Linked List Entry. To check for messages */
+        char 					vmnum[AST_MAX_EXTENSION];		/*!< Voicemail number to Dial */
+        char 					meetmenum[AST_MAX_EXTENSION];		/*!< Meetme Extension to be Dialed*/
+        char 					context[AST_MAX_CONTEXT];		/*!< The context we use for Outgoing Calls. */
+        char 					language[MAX_LANGUAGE];			/*!< language we use for calls */
+        char 					accountcode[AST_MAX_ACCOUNT_CODE];	/*!< accountcode used in cdr */
+        char 					musicclass[MAX_MUSICCLASS];		/*!< musicclass assigned when getting moh */
+        int					amaflags;				/*!< amaflags */
+        ast_group_t				callgroup;				/*!< callgroups assigned (seperated by commas) to this lines */
 #ifdef CS_SCCP_PICKUP
-	ast_group_t				pickupgroup;
+        ast_group_t				pickupgroup;				/*!< pickupgroup assigned to this line */
 #endif
-	/* CallerId to use on outgoing calls*/
-	char cid_name[AST_MAX_EXTENSION];
-	char cid_num[AST_MAX_EXTENSION];
+        char 					cid_name[AST_MAX_EXTENSION];		/*!< Caller(Name) to use on outgoing calls*/
+        char 					cid_num[AST_MAX_EXTENSION];		/*!< Caller(ID) to use on outgoing calls  */
+        uint8_t 				incominglimit;				/*!< max incoming calls limit */
+        uint32_t				rtptos;					/*!< rtp stream tos */
+/* 	sccp_channel_t 				* activeChannel; */			/* The currently active channel. */
+        SCCP_LIST_HEAD(, sccp_channel_t) 	channels;				/*!< Linked list of current channels for this line */
+        uint8_t 				channelCount;				/*!< Number of currently active channels */
+        SCCP_LIST_ENTRY(sccp_line_t) 		list;					/*!< global list entry */
+/* 	sccp_device_t * 			device;*/				/* The device this line is currently registered to. */
+        SCCP_LIST_HEAD(,sccp_linedevices_t)	devices;				/*!< The device this line is currently registered to. */
+        uint8_t 				cfwd_type;				/*!< Call Forward Type (SCCP_CFWD_ALL or SCCP_CFWD_BUSY0 */
+        char 					* cfwd_num;				/*!< call forward Number*/
+        char 					* trnsfvm;				/*!< transfer to voicemail softkey. Basically a call forward */
+        char 					secondary_dialtone_digits[10];		/*!< secondary dialtone digits*/
+        uint8_t					secondary_dialtone_tone;		/*!< secondary dialtone tone */
 
-	/* max incoming calls limit */
-	uint8_t incominglimit;
-
-	/* rtp stream tos */
-	uint32_t	rtptos;
-
-	/* The currently active channel. */
-	/* sccp_channel_t * activeChannel; */
-
-	/* Linked list of current channels for this line */
-	SCCP_LIST_HEAD(, sccp_channel_t) channels;
-
-	/* Number of currently active channels */
-	uint8_t channelCount;
-
-	/* global list entry */
-	SCCP_LIST_ENTRY(sccp_line_t) list;
-
-	/* The device this line is currently registered to. */
-	//sccp_device_t * device;
-	SCCP_LIST_HEAD(, sccp_linedevices_t) devices;
-
-
-	/* call forward SCCP_CFWD_ALL or SCCP_CFWD_BUSY */
-	uint8_t cfwd_type;
-	char * cfwd_num;
-
-	/* transfer to voicemail softkey. Basically a call forward */
-	char * trnsfvm;
-
-	/* secondary dialtone */
-	char secondary_dialtone_digits[10];
-	uint8_t	secondary_dialtone_tone;
-
-	/* echocancel phone support */
-	unsigned int			echocancel:1;
-	unsigned int			silencesuppression:1;
-	unsigned int			transfer:1;
-	unsigned int			spareBit4:1;
-	unsigned int			spareBit5:1;
-	unsigned int			spareBit6:1;
+        unsigned int				echocancel: 1;				/*!< echocancel phone support */
+        unsigned int				silencesuppression:1;			/*!< Silence Suppression Phone Support */
+        unsigned int				transfer: 1;				/*!< Transfer Phone Support */
+        unsigned int				spareBit4: 1;				/*!< SpareBit4 */
+        unsigned int				spareBit5: 1;				/*!< SpareBit5 */
+        unsigned int				spareBit6: 1;				/*!< SpareBit6 */
 #ifdef CS_SCCP_REALTIME
 	boolean_t		realtime:1;			/*!< is it a realtimeconfiguration*/
 #endif
-	struct ast_variable 	* variables;		/*!< Channel variables to set */
-	unsigned int			dnd:3;				/*!< dnd on line */
-	uint8_t 				dndmode;			/*!< dnd mode: see SCCP_DNDMODE_* */
+        struct ast_variable			* variables;				/*!< Channel variables to set */
+        unsigned int				dnd: 3;					/*!< dnd on line */
+        uint8_t 				dndmode;				/*!< dnd mode: see SCCP_DNDMODE_* */
 
 #ifdef CS_DYNAMIC_CONFIG
-// this is for reload routines
-	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-	sccp_line_t				pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+        /* this is for reload routines */
+        unsigned int				pendingDelete: 1;			/*!< this bit will tell the scheduler to delete this line when unused */
+/*	sccp_line_t				pendingUpdate;*/			/* this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
+        int 					capability;				/*!< Line Capability \todo Shouldn't Line Capability use a structure ? */
 
-	int capability;
+        /*!
+         * \brief Statistic for Line Structure
+         */
+        struct {
+                uint8_t				numberOfActiveDevices;			/*!< Number of Active Devices */
+                uint8_t				numberOfActiveChannels;			/*!< Number of Active Channels */
+                uint8_t				numberOfHoldChannels;			/*!< Number of Hold Channels */
+                uint8_t 			numberOfDNDDevices;			/*!< Number of DND Devices */
+        } statistic;									/*!< Statistics for Line Structure */
 
-	/* statistic for line */
-	struct{
-		uint8_t	numberOfActiveDevices;
-		uint8_t	numberOfActiveChannels;
-		uint8_t	numberOfHoldChannels;
-		uint8_t numberOfDNDDevices;
-	}statistic;
+        /*!
+         * \brief VoiceMail Statistics Structure
+         */
+        struct {
+                int				newmsgs;				/*!< New Messages */
+                int				oldmsgs;				/*!< Old Messages */
+        } voicemailStatistic;								/*!< VoiceMail Statistics Structure */
+	
+	uint32_t				configurationStatus;			/*!< what is the current configuration status - @see sccp_config_status_t */
+};											/*!< SCCP Line Structure */
+/*!
+ * \brief SCCP SpeedDial Button Structure
+ */
 
-	struct{
-		int			newmsgs;
-		int			oldmsgs;
-	}voicemailStatistic;
-};
-
-/* This defines a speed dial button */
 struct sccp_speed {
-	/* The instance of the speeddial in the sccp.conf */
-	uint8_t config_instance;
-	/* The instance on the current device */
-	uint8_t instance;
-	/* SKINNY_BUTTONTYPE_SPEEDDIAL or SKINNY_BUTTONTYPE_LINE (hint) */
-	uint8_t type;
+        uint8_t 				config_instance;			/*!< The instance of the speeddial in the sccp.conf */
+        uint8_t 				instance;				/*!< The instance on the current device */
+        uint8_t 				type;					/*!< SpeedDial Button Type (SKINNY_BUTTONTYPE_SPEEDDIAL or SKINNY_BUTTONTYPE_LINE (hint)) */
+        char 					name[StationMaxNameSize];		/*!< The name of the speed dial button */
+        char 					ext[AST_MAX_EXTENSION];			/*!< The number to dial when it's hit */
+        char 					hint[AST_MAX_EXTENSION];		/*!< The HINT on this SpeedDial */
 
-	/* The name of the speed dial button */
-	char name[StationMaxNameSize];
-
-	/* The number to dial when it's hit */
-	char ext[AST_MAX_EXTENSION];
-	char hint[AST_MAX_EXTENSION];
-
-	/* Pointer to speed dials list */
-	SCCP_LIST_ENTRY(sccp_speed_t) list;
+        SCCP_LIST_ENTRY(sccp_speed_t) 		list;					/*!< SpeedDial Linked List Entry */
+        
 #ifdef CS_DYNAMIC_CONFIG
-	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-	sccp_speed_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this line when unused */
+	sccp_speed_t				pendingUpdate;				/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
+
 };
-
-
 
 struct sccp_device {
-	ast_mutex_t lock;
+        ast_mutex_t 				lock;					/*!< Asterisk: Lock Me Up and Tie me Down */
+        char 					id[StationMaxDeviceNameSize];		/*!< SEP<macAddress> of the device. */
+        char 					description[40];			/*!< Internal Description. Skinny protocol does not use it */
+        char 					config_type[10];			/*!< Model of this Phone used for setting up features/softkeys/buttons etc. */
+        uint32_t 				skinny_type;				/*!< Model of this Phone sent by the station, devicetype*/
+        int 					tz_offset;				/*!< Timezone OffSet */
+        char 					imageversion[StationMaxVersionSize];	/*!< Version to Send to the phone */
+        uint8_t 				accessoryused;				/*!< Accessory Used. This are for support of message 0x0073 AccessoryStatusMessage - Protocol v.11 CCM7 -FS */
+        uint8_t 				accessorystatus;			/*!< Accessory Status */
+        uint8_t 				registrationState;			/*!< If the device has been rully registered yet */
+        struct ast_codec_pref 			codecs;					/*!< Asterisk Codec Device Preference */
+        sccp_devicestate_t 			state;					/*!< Device State (SCCP_DEVICE_ONHOOK or SCCP_DEVICE_OFFHOOK) */
+/*      uint8_t 				ringermode;*/				/* Ringer Mode. Need it for the ringback */
+        uint8_t 				dndmode;				/*!< Do Not Distrurb (DND) Mode \see SCCP_DNDMODE_* */
+        char 					lastNumber[AST_MAX_EXTENSION];		/*!< Last Dialed Number */
+        int 					capability;				/*!< Asterisk Codec Capability */
+        uint8_t 				earlyrtp;				/*!< RTP Channel State where to open the RTP Media Stream */
+        uint8_t 				channelCount;				/*!< Number of Currently Active Channels */
+        uint8_t 				protocolversion;			/*!< Skinny Supported Protocol Version */
+        uint8_t 				inuseprotocolversion;			/*!< Skinny Used Protocol Version */
+        int					keepalive;				/*!< Station Specific Keepalive Timeout */
 
-	/* SEP<macAddress> of the device. */
-	char id[StationMaxDeviceNameSize];
+        struct ast_ha				*ha;					/*!< Permit or Deny Connections to the Main Socket */
+        uint32_t				conferenceid;				/*!< Conference ID */
 
-	/* internal description. Skinny protocol does not use it */
-	char description[40];
+        unsigned int				mwilamp: 3;				/*!< MWI/Lamp to indicate MailBox Messages */
+        unsigned int				mwioncall: 1;				/*!< MWI On Call Support (Boolean, default=on) */
+        unsigned int				softkeysupport: 1;			/*!< Soft Key Support (Boolean, default=on) */
+        unsigned int				mwilight: 1;				/*!< MWI/Light Support (Boolean, default=on) \todo MWI/Light or Lamp was soll es sein */
+        unsigned int				dnd: 3;					/*!< Do no Disturb Support (Boolean, default=on) */
+        unsigned int				transfer: 1;				/*!< Transfer Support (Boolean, default=on) */
+        unsigned int				conference: 1;				/*!< Conference Support (Boolean, default=on) */
+        unsigned int				park: 1;				/*!< Park Support (Boolean, default=on) */
+        unsigned int				cfwdall: 1;				/*!< Call Forward All Support (Boolean, default=on) */
+        unsigned int				cfwdbusy: 1;				/*!< Call Forward on Busy Support (Boolean, default=on) */
+        unsigned int				cfwdnoanswer: 1;			/*!< Call Forward on No-Answer Support (Boolean, default=on) */
 
-	/* model of this phone used for setting up features/softkeys/buttons etc. */
-	char config_type[10];
-
-	/* model of this phone sent by the station, devicetype*/
-	uint32_t skinny_type;
-
-	/* timezone offset */
-	int tz_offset;
-
-	/* version to send to the phone */
-	char imageversion[StationMaxVersionSize];
-
-	/* this are for support of message 0x0073
-	 * AccessoryStatusMessage - Protocol v.11
-	 * CCM7 -FS */
-	uint8_t accessoryused;
-	uint8_t accessorystatus;
-
-	/* If the device has been rully registered yet */
-	uint8_t registrationState;
-
-	/* asterisk codec device preference */
-	struct ast_codec_pref codecs;
-
-	/* SCCP_DEVICE_ONHOOK or SCCP_DEVICE_OFFHOOK */
-	sccp_devicestate_t state;
-
-	/* ringer mode. Need it for the ringback */
-	//uint8_t ringermode;
-
-	/* dnd mode: see SCCP_DNDMODE_* */
-	uint8_t dndmode;
-
-	/* last dialed number */
-	char lastNumber[AST_MAX_EXTENSION];
-
-	/* asterisk codec capability */
-	int capability;
-
-	/* channel state where to open the rtp media stream */
-	uint8_t earlyrtp;
-
-	/* Number of currently active channels */
-	uint8_t channelCount;
-
-	/* skinny supported protocol version */
-	uint8_t protocolversion;
-
-	/* skinny used protocol version */
-	uint8_t inuseprotocolversion;
-
-	/* station specific keepalive timeout */
-	int						keepalive;
-
-	/* permit or deny connections to the main socket */
-	struct ast_ha			*ha;
-
-	uint32_t				conferenceid;
-
-	unsigned int			mwilamp:3;
-	unsigned int			mwioncall:1;
-	unsigned int			softkeysupport:1;
-	unsigned int			mwilight:1;
-	unsigned int			dnd:3;
-	unsigned int			transfer:1;
-	unsigned int			conference:1;
-	unsigned int			park:1;
-	unsigned int			cfwdall:1;
-	unsigned int			cfwdbusy:1;
-	unsigned int			cfwdnoanswer:1;
 #ifdef CS_SCCP_PICKUP
-	unsigned int			pickupexten:1;
-	char					* pickupcontext;
-	unsigned int			pickupmodeanswer:1;
+        unsigned int				pickupexten: 1;				/*!< Pickup Extension Support (Boolean, default=on) */
+        char					* pickupcontext;			/*!< Pickup Context to Use in DialPlan */
+        unsigned int				pickupmodeanswer: 1;			/*!< Pickup Mode Answer */
 #endif
-	unsigned int			dtmfmode:1; 			/*!< 0 inband - 1 outofband */
-	unsigned int			nat:1;
-	unsigned int			directrtp:1;
-	unsigned int			trustphoneip:1;
-	unsigned int			needcheckringback:1;
+        unsigned int				dtmfmode: 1; 				/*!< DTMF Mode (0 inband - 1 outofband) */
+        unsigned int				nat: 1;					/*!< Network Address Translation Support (Boolean, default=on) */
+        unsigned int				directrtp: 1;				/*!< Direct RTP Support (Boolean, default=on) */
+        unsigned int				trustphoneip: 1;			/*!< Trust Phone IP Support (Boolean, default=on) */
+        unsigned int				needcheckringback: 1;			/*!< Need to Check Ring Back Support (Boolean, default=on) */
 
 
-	boolean_t				realtime;		/*!< is it a realtime configuration*/
-	sccp_channel_t   		* active_channel;
-	sccp_channel_t   		* transfer_channel; 		/*!< the channel under transfer */
-	sccp_channel_t			* conference_channel;		/*!< the channel is going to be conferenced */
-	sccp_line_t      		* currentLine;
-	sccp_session_t   		* session;
-	//SCCP_LIST_ENTRY(sccp_linedevices_t) linedevicelist;		/*!< line_device_list */
-	SCCP_LIST_ENTRY(sccp_device_t) list;				/*!< global device list */
-	SCCP_LIST_HEAD(,sccp_hint_t) hints;					/*!< list of hint pointers. Internal lines to notify the state */
-	SCCP_LIST_HEAD(,sccp_buttonconfig_t) buttonconfig;
-	uint8_t					linesCount;
-	SCCP_LIST_HEAD(,sccp_selectedchannel_t) selectedChannels;
-    SCCP_LIST_HEAD(,sccp_addon_t) addons;
-    SCCP_LIST_HEAD(,sccp_hostname_t) permithosts;		/*!< permit registration to the hostname ip address */
+        boolean_t				realtime;				/*!< is it a realtime configuration*/
+        sccp_channel_t   			* active_channel;			/*!< Active SCCP Channel */
+        sccp_channel_t   			* transfer_channel; 			/*!< SCCP Channel being Transfered */
+        sccp_channel_t				* conference_channel;			/*!< SCCP Channel which is going to be Conferenced */
+        sccp_line_t      			* currentLine;				/*!< Current Line */
+        sccp_session_t   			* session;				/*!< Current Session */
+/*	SCCP_LIST_ENTRY(sccp_linedevices_t) 	linedevicelist;*/			/* Line-Device Linked List */
+        SCCP_LIST_ENTRY(sccp_device_t) 		list;					/*!< Global Device Lined List */
+        SCCP_LIST_HEAD(,sccp_hint_t) 		hints;					/*!< list of hint pointers. Internal lines to notify the state */
+        SCCP_LIST_HEAD(,sccp_buttonconfig_t) 	buttonconfig;				/*!< SCCP Button Config Attached to this Device */
+        uint8_t					linesCount;				/*!< Number of Lines */
+        SCCP_LIST_HEAD(,sccp_selectedchannel_t)	selectedChannels;			/*!< Selected Channel List */
+        SCCP_LIST_HEAD(,sccp_addon_t) 		addons;					/*!< Add-Ons connect to this Device */
+        SCCP_LIST_HEAD(,sccp_hostname_t)	permithosts;				/*!< Permit Registration to the Hostname/IP Address */
 
-	pthread_t        		postregistration_thread;
-	struct ast_variable 	* variables;						/*!< Channel variables to set */
-	char 					* phonemessage;						/*!< message to display on device*/
-	uint8_t					defaultLineInstance;
+        pthread_t        			postregistration_thread;		/*!< Post Registration Thread */
 
-	struct{
-		boolean_t	headset;
-		boolean_t	handset;
-		boolean_t	speaker;
-	} accessoryStatus;
+        struct ast_variable 			* variables;				/*!< Channel variables to set */
+        char 					* phonemessage;				/*!< Message to display on device*/
+        uint8_t					defaultLineInstance;			/*!< Default Line Instance */
 
-	struct{
-		uint8_t		numberOfLines;
-		uint8_t		numberOfSpeeddials;
-		uint8_t		numberOfFeatures;
-		uint8_t		numberOfServices;
-	} configurationStatistic;
+        struct {
+                boolean_t			headset;				/*!< HeadSet Support (Boolean) */
+                boolean_t			handset;				/*!< HandSet Support (Boolean) */
+                boolean_t			speaker;				/*!< Speaker Support (Boolean) */
+        } accessoryStatus;								/*!< Accesory Status Structure */
+
+        struct {
+                uint8_t				numberOfLines;				/*!< Number of Lines */
+                uint8_t				numberOfSpeeddials;			/*!< Number of SpeedDials */
+                uint8_t				numberOfFeatures;			/*!< Number of Features */
+                uint8_t				numberOfServices;			/*!< Number of Services */
+        } configurationStatistic;							/*!< Configuration Statistic Structure */
 
 #ifdef CS_DYNAMIC_CONFIG
-	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-	sccp_device_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this line when unused */
+	sccp_device_t				pendingUpdate;				/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 
-	SCCP_LIST_ENTRY(sccp_device_t) list;
+	SCCP_LIST_ENTRY(sccp_device_t) 		list;
 #endif
 
-	boolean_t 		isAnonymous;
-	light_t			mwiLight;
+        boolean_t 				isAnonymous;				/*!< Device is connected Anonymously (Guest) */
+        light_t					mwiLight;				/*!< MWI/Light \todo third MWI/light entry in device ? */
 
-	struct{
-		int			newmsgs;
-		int			oldmsgs;
-	}voicemailStatistic;
+        struct {
+                int				newmsgs;				/*!< New Messages */
+                int				oldmsgs;				/*!< Old Messages */
+        }voicemailStatistic;								/*!< VoiceMail Statistics */
 
-	/* feature configurations */
-	sccp_featureConfiguration_t privacyFeature;				/*!< device privacy flag see SCCP_PRIVACYFEATURE_* */
-	sccp_featureConfiguration_t overlapFeature;				/*!< overlap dial support */
-	sccp_featureConfiguration_t monitorFeature;				/*!< monitor (automon) support */
+        /* feature configurations */
+        sccp_featureConfiguration_t 		privacyFeature;				/*!< Device Privacy Feature. \see SCCP_PRIVACYFEATURE_* */
+        sccp_featureConfiguration_t 		overlapFeature;				/*!< Overlap Dial Feature */
+        sccp_featureConfiguration_t 		monitorFeature;				/*!< Monitor (automon) Feature */
 
 };
 
 // Number of additional keys per addon -FS
-#define SCCP_ADDON_7914_TAPS		14
-#define SCCP_ADDON_7915_TAPS		24
-#define SCCP_ADDON_7916_TAPS		24
+#define SCCP_ADDON_7914_TAPS			14
+#define SCCP_ADDON_7915_TAPS			24
+#define SCCP_ADDON_7916_TAPS			24
 
+/*!
+ * \brief SCCP Add-On Structure
+ * \note This defines the add-ons a.k.a sidecars
+ */
 struct sccp_addon {
-	int type;
-	SCCP_LIST_ENTRY(sccp_addon_t) list;
-	sccp_device_t * device;
+        int 					type;					/*!< Add-On Type */
+        SCCP_LIST_ENTRY(sccp_addon_t) 		list;					/*!< Linked List Entry for this Add-On */
+        sccp_device_t * 			device;					/*!< Device Associated with this Add-On */
+        
 #ifdef CS_DYNAMIC_CONFIG
-	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-	sccp_addon_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this line when unused */
+	sccp_addon_t				pendingUpdate;				/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
-
-
 };
 
+/*!
+ * \brief SCCP Session Structure
+ * \note This contains the current session the phone is in
+ */
 struct sccp_session {
-  	ast_mutex_t				lock;
-  	void					*buffer;
-  	int32_t					buffer_size;
-  	struct sockaddr_in		sin;
-  	struct in_addr			ourip;								/*< ourip is for rtp use */
-  	time_t					lastKeepAlive;
-  	int						fd;
-  	int						rtpPort;
-  	sccp_device_t 			*device;
-  	SCCP_LIST_ENTRY(sccp_session_t) list;
-  	unsigned int			needcheckringback:1;
-};
+        ast_mutex_t				lock;					/*!< Asterisk: Lock Me Up and Tie me Down */
+        void					* buffer;				/*!< Session Buffer */
+        int32_t					buffer_size;				/*!< Session Buffer Size */
 
+        struct sockaddr_in			sin;					/*!< Socket In */
+
+        struct in_addr				ourip;					/*!< Our IP is for rtp use */
+        time_t					lastKeepAlive;				/*!< Last KeepAlive Time */
+        int					fd;					/*!< File Descriptor */
+        int					rtpPort;				/*!< RTP Port */
+        sccp_device_t 				* device;				/*!< Associated Device */
+        SCCP_LIST_ENTRY(sccp_session_t) 	list;					/*!< Linked List Entry for this Session */
+
+        unsigned int				needcheckringback: 1;			/*!< Need Check Ring Back. (0/1) default 1 */
+};											/*!< SCCP Sesson Structure */								/*!< SCCP Session Structure */
+
+/*!
+ * \brief SCCP Channel Structure
+ * \note This contains the current channel information
+ */
 struct sccp_channel {
-	ast_mutex_t			lock;
-	/* codec requested by asterisk */
-	int				format;
-	/* asterisk codec channel preference */
-	struct ast_codec_pref 		codecs;
-	char				calledPartyName[StationMaxNameSize];
-	char				calledPartyNumber[StationMaxDirnumSize];
-	char				callingPartyName[StationMaxNameSize];
-	char				callingPartyNumber[StationMaxDirnumSize];
+        ast_mutex_t				lock;					/*!< Asterisk: Lock Me Up and Tie me Down */
+        int					format;					/*!< Codec requested by Asterisk */
 
-	uint32_t			callid;
-	uint32_t			passthrupartyid;
+        struct ast_codec_pref 			codecs;					/*!< Asterisk Codec Channel Preference */
+        char					calledPartyName[StationMaxNameSize];	/*!< Called Party Name */
+        char					calledPartyNumber[StationMaxDirnumSize];/*!< Called Party Number */
+        char					callingPartyName[StationMaxNameSize];	/*!< Calling Party Name */
+        char					callingPartyNumber[StationMaxDirnumSize];/*!< Calling Party Number */
+        uint32_t				callid;					/*!< Call ID */
+        uint32_t				passthrupartyid;			/*!< Pass Through ID */
+        uint32_t				conferenceid; 				/*!< Conference ID. This will be used in native conferencing mode and will differ from callid  -FS*/
+        uint8_t					state;					/*!< Internal channel state SCCP_CHANNELSTATE_* */
+        uint8_t					previousChannelState;			/*!< Previous channel state SCCP_CHANNELSTATE_* */
+        uint8_t					callstate;				/*!< Skinny Call State */
+        skinny_calltype_t			calltype;				/*!< Skinny Call Type as SKINNY_CALLTYPE_* */
+        int					digittimeout;				/*!< Scheduler Timeout on Dialing State */
+        uint8_t					ringermode;				/*!< Ringer Mode */
 
-	uint32_t			conferenceid; 	/* this will be used in native conferencing mode and will differ from callid  -FS*/
+        char dialedNumber[AST_MAX_EXTENSION];						/*!< Last Dialed Number */
+        sccp_device_t 	 			* device;				/*!< SCCP Device */
 
-	uint8_t			state;				/*< internal channel state SCCP_CHANNELSTATE_* */
-	uint8_t			previousChannelState;/*< previous channel state SCCP_CHANNELSTATE_* */
-	uint8_t			callstate;			/*< skinny state */
-	skinny_calltype_t	calltype;			/*< SKINNY_CALLTYPE_* */
+        struct ast_channel 	 		* owner;				/*!< Asterisk Channel Owner */
+        sccp_line_t		 		* line;					/*!< SCCP Line */
 
-	int				digittimeout;			/*< scheduler timeout on dialing state */
-	uint8_t			ringermode;			/*< SCCPRingerMode application */
+        struct ast_rtp	 			* rtp;					/*!< Asterisk RTP */
 
-	char dialedNumber[AST_MAX_EXTENSION];			/*< last dialed number */
+        struct sockaddr_in			rtp_addr;				/*!< RTP Socket Address */
+        SCCP_LIST_ENTRY(sccp_channel_t) 	list;					/*!< Channel Linked List List */
+        uint8_t					autoanswer_type;			/*!< Auto Answer Type */
+        uint8_t					autoanswer_cause;			/*!< Auto Answer Cause */
+        boolean_t				answered_elsewhere;			/*!< Answered Elsewhere */
 
-	sccp_device_t 	 	*device;
-	struct ast_channel 	 	*owner;
-	sccp_line_t		 	*line;
-	struct ast_rtp	 	*rtp;
-	struct sockaddr_in		rtp_addr;
-	SCCP_LIST_ENTRY(sccp_channel_t) list;
-	uint8_t				autoanswer_type;
-	uint8_t				autoanswer_cause;
-	boolean_t			answered_elsewhere;
-
-	/* don't allow sccp phones to monitor (hint) this call */
-	boolean_t			private;
-	char 				musicclass[MAX_MUSICCLASS];
-
-	uint8_t		ss_action; /* simple switch action, this is used in dial thread to collect numbers for callforward, pickup and so on -FS*/
-	uint8_t		ss_data; /* simple switch integer param */
+        /* don't allow sccp phones to monitor (hint) this call */
+        boolean_t				private;				/*!< Private */
+        char 					musicclass[MAX_MUSICCLASS];		/*!< Music Class */
+        uint8_t					ss_action; 				/*!< Simple Switch Action. This is used in dial thread to collect numbers for callforward, pickup and so on -FS*/
+        uint8_t					ss_data; 				/*!< Simple Switch Integer param */
 #ifdef CS_DYNAMIC_CONFIG
-	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-	sccp_channel_t			pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this line when unused */
+	sccp_channel_t				pendingUpdate;				/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
 
-	/* feature sets */
-	boolean_t			monitorEnabled;
-};
+        /* feature sets */
+        boolean_t				monitorEnabled;				/*!< Monitor Enabled Feature */
+};											/*!< SCCP Channel Structure */
 
+/*!
+ * \brief SCCP Global Variable Structure
+ */
 struct sccp_global_vars {
-	ast_mutex_t				lock;
+        ast_mutex_t				lock;					/*!< Asterisk: Lock Me Up and Tie me Down */
 
-	pthread_t 				monitor_thread;	// ADDED IN 414 -FS
-	ast_mutex_t				monitor_lock;  // ADDED IN 414 -FS
+        pthread_t 				monitor_thread;				/*!< Monitor Thread */ // ADDED IN 414 -FS
+        ast_mutex_t				monitor_lock;  				/*!< Monitor Asterisk Lock */ // ADDED IN 414 -FS
 
-	SCCP_LIST_HEAD(, sccp_session_t) sessions;
-	SCCP_LIST_HEAD(, sccp_device_t) devices;
-	SCCP_LIST_HEAD(, sccp_line_t) lines;
-	ast_mutex_t				socket_lock;
-	pthread_t				socket_thread; // Moved her in v2 SVN 426 -FS
-	int 					descriptor;
-	int						usecnt;	/* Keep track of when we're in use. */
-	ast_mutex_t				usecnt_lock;
+        SCCP_LIST_HEAD(, sccp_session_t) 	sessions;				/*!< SCCP Sessions */
+        SCCP_LIST_HEAD(, sccp_device_t) 	devices;				/*!< SCCP Devices */
+        SCCP_LIST_HEAD(, sccp_line_t) 		lines;					/*!< SCCP Lines */
+        ast_mutex_t				socket_lock;				/*!< Socket Lock */
+        pthread_t				socket_thread; 				/*!< Socket Thread */ // Moved her in v2 SVN 426 -FS
+        int 					descriptor;				/*!< Descriptor */
+        int					usecnt;					/*!< Keep track of when we're in use. */
+        ast_mutex_t				usecnt_lock;				/*!< Use Counter Asterisk Lock */
 
-	char					servername[StationMaxDisplayNotifySize];
-	struct sockaddr_in			bindaddr;
-	int					ourport;
-	/* permit or deny connections to the main socket */
-	struct ast_ha				*ha;
-	/* localnet for NAT */
-	struct ast_ha				*localaddr;
-	struct sockaddr_in			externip;
-	char 					externhost[MAXHOSTNAMELEN];
-	time_t 				externexpire;
-	int 					externrefresh;
+        char					servername[StationMaxDisplayNotifySize];/*!< ServerName */
 
-	char					context[AST_MAX_CONTEXT];
-	char					language[MAX_LANGUAGE];
-	char					accountcode[AST_MAX_ACCOUNT_CODE];
-	char					musicclass[MAX_MUSICCLASS];
-	/*char					mohinterpret[MAX_MUSICCLASS];*/
-	int					amaflags;
-	ast_group_t				callgroup;
+        struct sockaddr_in			bindaddr;				/*!< Bind IP Address */
+        int					ourport;				/*!< \todo *ha ? */
+
+        struct ast_ha				* ha;					/*!< Permit or deny connections to the main socket */
+
+        struct ast_ha				* localaddr;				/*!< Localnet for Network Address Translation */
+        struct sockaddr_in			externip;				/*!< External IP Address */
+        char 					externhost[MAXHOSTNAMELEN];		/*!< External HostName */
+        time_t 					externexpire;				/*!< External Expire */
+        int 					externrefresh;				/*!< External Refresh */
+
+        char					context[AST_MAX_CONTEXT];		/*!< Global / General Context */
+        char					language[MAX_LANGUAGE];			/*!< Language */
+        char					accountcode[AST_MAX_ACCOUNT_CODE];	/*!< Account Code */
+        char					musicclass[MAX_MUSICCLASS];		/*!< Music Class */
+        /*char					mohinterpret[MAX_MUSICCLASS];*/		/*!< Music On Hold Interpret */
+        int					amaflags;				/*!< AmaFlags */
+        ast_group_t				callgroup;				/*!< Call Group */
 #ifdef CS_SCCP_PICKUP
-	ast_group_t				pickupgroup;
-	int					pickupmodeanswer:1;
+        ast_group_t				pickupgroup;				/*!< Pick Up Group */
+
+        int					pickupmodeanswer: 1;			/*!< Pick Up Mode Answer */
 #endif
-	int					global_capability;
-	struct					ast_codec_pref global_codecs;
-	int					keepalive;
-	int					debug;
-	int					fdebug;
-	char 					date_format[7];
+        int					global_capability;			/*!< Global Capability */
 
-	uint8_t				firstdigittimeout;				/*< Wait up to 16 seconds for first digit */
-	uint8_t				digittimeout;					/*< How long to wait for following digits */
-	char					digittimeoutchar;				/*< what char will force the dial */
-	unsigned int				recorddigittimeoutchar:1; /*< Whether to include the digittimeoutchar in the call logs */
+        struct					ast_codec_pref global_codecs;		/*!< Global Asterisk Codecs */
+        int					keepalive;				/*!< KeepAlive */
+        int					debug;					/*!< Debug */
+        int					fdebug;					/*!< FDebug */
+        char 					date_format[7];				/*!< Date Format */
 
-	uint32_t				tos;
-	uint32_t				rtptos;
-	/* channel state where to open the rtp media stream */
-	uint8_t				earlyrtp;
+        uint8_t					firstdigittimeout;			/*< First Digit Timeout. Wait up to 16 seconds for first digit */
+        uint8_t					digittimeout;				/*< Digit Timeout. How long to wait for following digits */
+        char					digittimeoutchar;			/*< Digit End Character. What char will force the dial (Normally '#') */
 
-	uint8_t 				dndmode;					/*< dnd mode: see SCCP_DNDMODE_* */
-	uint8_t 				protocolversion;				/*< skinny protocol version */
+        unsigned int				recorddigittimeoutchar: 1; 		/*< Record Digit Time Out Char. Whether to include the digittimeoutchar in the call logs */
 
-	/* autoanswer stuff */
-	uint8_t				autoanswer_ring_time;
-	uint8_t				autoanswer_tone;
-	uint8_t				remotehangup_tone;
-	uint8_t				transfer_tone;
-	uint8_t				callwaiting_tone;
+        uint32_t				tos;					/*!< Type of Service */
+        uint32_t				rtptos;					/*!< Type of Service for RTP */
 
-	unsigned int				mwilamp:3;
-	unsigned int				mwioncall:1;
-	unsigned int				echocancel:1;					/*< echocancel phone support */
-	unsigned int				silencesuppression:1;
-	unsigned int				trustphoneip:1;
-	unsigned int				private:1; 					/*< permit private function */
-	unsigned int				privacy:2;
-	unsigned int				blindtransferindication:1; 			/*< SCCP_BLINDTRANSFER_* */
-	unsigned int				cfwdall:1;
-	unsigned int				cfwdbusy:1;
-	unsigned int				cfwdnoanswer:1;
-	unsigned int				nat:1;
-	unsigned int				directrtp:1;
-	unsigned int				useoverlap:1;	/* overlap dial support */
-	call_answer_order_t			callAnswerOrder;
+        uint8_t					earlyrtp;				/*!< Channel State where to open the rtp media stream */
+
+        uint8_t 				dndmode;				/*!< Do Not Disturb (DND) Mode: \see SCCP_DNDMODE_* */
+        uint8_t 				protocolversion;			/*!< Skinny Protocol Version */
+
+        /* autoanswer stuff */
+        uint8_t					autoanswer_ring_time;			/*!< Auto Answer Ring Time */
+        uint8_t					autoanswer_tone;			/*!< Auto Answer Tone */
+        uint8_t					remotehangup_tone;			/*!< Remote Hangup Tone */
+        uint8_t					transfer_tone;				/*!< Transfer Tone */
+        uint8_t					callwaiting_tone;			/*!< Call Waiting Tone */
+
+	unsigned int				mwilamp:3;				/*!< MWI/Lamp (Default:3) */
+	unsigned int				mwioncall:1;				/*!< MWI On Call Support (Boolean, default=on) */
+	unsigned int				echocancel:1;				/*!< Echo Canel Support (Boolean, default=on) */
+	unsigned int				silencesuppression: 1;			/*!< Silence Suppression Support (Boolean, default=on)  */
+	unsigned int				trustphoneip: 1;				/*!< Trust Phone IP Support (Boolean, default=on) */
+	unsigned int				private: 1; 				/*!< Permit Private Function Support (Boolean, default=on) */
+	unsigned int				privacy: 2;				/*!< Privacy Support (Default=2) */
+	unsigned int				blindtransferindication: 1; 		/*!< Blind Transfer Indication Support (Boolean, default=on) */
+	unsigned int				cfwdall: 1;				/*!< Call Forward All Support (Boolean, default=on) */
+	unsigned int				cfwdbusy: 1;				/*!< Call Forward on Busy Support (Boolean, default=on) */
+	unsigned int				cfwdnoanswer: 1;				/*!< Call Forward on No-Answer Support (Boolean, default=on) */
+	unsigned int				nat: 1;					/*!< Network Address Translation */
+	unsigned int				directrtp: 1;				/*!< Direct RTP */
+	unsigned int				useoverlap: 1;				/*!< Overlap Dial Support */
+        call_answer_order_t			callAnswerOrder;			/*!< Call Answer Order */
 #ifdef CS_MANAGER_EVENTS
-	boolean_t					callevents;
+        boolean_t				callevents;				/*!< Call Events */
 #endif
 #ifdef CS_SCCP_REALTIME
-	char 					realtimedevicetable[45];			/*< databasetable for sccp devices*/
-	char 					realtimelinetable[45];			/*< databasetable for sccp lines*/
+        char 					realtimedevicetable[45];		/*!< Database Table Name for SCCP Devices*/
+        char 					realtimelinetable[45];			/*!< Database Table Name for SCCP Lines*/
 #endif
 #ifndef ASTERISK_CONF_1_2
-    struct ast_jb_conf             global_jbconf;
+
+        struct ast_jb_conf             		global_jbconf;				/*!< Global Jitter Buffer Configuration */
 #endif
+
 #ifdef CS_DYNAMIC_CONFIG
-	unsigned int			pendingDelete:1;	/*!< this bit will tell the scheduler to delete this line when unused */
-	struct sccp_global_vars	pendingUpdate;		/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this line when unused */
+	struct sccp_global_vars			pendingUpdate;				/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
 
-	pthread_t				mwiMonitorThread; // MC
-	boolean_t				allowAnonymus;		/*!< allow anonymous/unknown devices */
-	sccp_hotline_t				*hotline;
-};
+        pthread_t				mwiMonitorThread; 			/*!< MWI Monitor Thread */ // MC
+        boolean_t				allowAnonymus;				/*!< Allow Anonymous/Guest Devices */
+        sccp_hotline_t				* hotline;				/*!< HotLine */
+};											/*!< SCCP Global Varable Structure */
 
 
 
+/*!
+ * \brief SCCP Hotline Structure
+ * \note This contains the new HotLine Feature
+ */
 struct sccp_hotline {
-	sccp_line_t		*line;
-	char			exten[50];
-};
+        sccp_line_t				* line;					/*!< Line */
+        char					exten[50];				/*!< Extension */
+};											/*!< SCCP Hotline Structure */
 
 
-/* simple switch modes - Used in simple
- * switch tread to distinguish dial from
- * other number collects
- *
- * Moved here from protocol.h
+/*!
+ * \brief Simple Switch Modes
+ * \note Used in simple switch tread to distinguish dial from other number collects
+ * \note (Moved here from protocol.h)
  */
 #define SCCP_SS_DIAL				0
-#define SCCP_SS_GETFORWARDEXTEN		1
-#define SCCP_SS_GETPICKUPEXTEN		2
-#define SCCP_SS_GETMEETMEROOM		3
-#define SCCP_SS_GETBARGEEXTEN		4
-#define SCCP_SS_GETCBARGEROOM		5
-/*
- * NEW NEW NEW NEW
- *
- * SCHEDULER TASKS !!!
- *
+#define SCCP_SS_GETFORWARDEXTEN			1
+#define SCCP_SS_GETPICKUPEXTEN			2
+#define SCCP_SS_GETMEETMEROOM			3
+#define SCCP_SS_GETBARGEEXTEN			4
+#define SCCP_SS_GETCBARGEROOM			5
+/*!
+ * \brief Scheduler Tasks
+ * \note (NEW) Scheduler Implementation (NEW)
  */
-#define sccp_sched_add ast_sched_add
-#define sccp_sched_del ast_sched_del
+#define sccp_sched_add 				ast_sched_add
+#define sccp_sched_del 				ast_sched_del
 #define SCCP_SCHED_DEL(sched, id) \
-	({ \
-		int _count = 0; \
-		int _sched_res = -1; \
-		while (id > -1 && (_sched_res = sccp_sched_del(sched, id)) && ++_count < 10) \
-			usleep(1); \
-		if (_count == 10) { \
-			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Unable to cancel schedule ID %d.\n", id); \
-		} \
-		id = -1; \
-		(_sched_res); \
-	})
+({ \
+	int _count = 0; \
+	int _sched_res = -1; \
+	while (id > -1 && (_sched_res = sccp_sched_del(sched, id)) && ++_count < 10) \
+		usleep(1); \
+	if (_count == 10) { \
+		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Unable to cancel schedule ID %d.\n", id); \
+	} \
+	id = -1; \
+	(_sched_res); \
+})
 
-struct sccp_global_vars *sccp_globals;
+struct sccp_global_vars 			* sccp_globals;
 
 uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s);
 
 #ifdef CS_AST_HAS_TECH_PVT
-struct ast_channel *sccp_request(const char *type, int format, void *data, int *cause);
+struct ast_channel 				* sccp_request(const char *type, int format, void *data, int *cause);
 #else
-struct ast_channel *sccp_request(char *type, int format, void *data);
+struct ast_channel 				* sccp_request(char *type, int format, void *data);
 #endif
 
 int sccp_devicestate(void *data);
-
-sccp_device_t *build_devices_wo(struct ast_variable *v);
-
-sccp_line_t * build_lines_wo(struct ast_variable *v);
+sccp_device_t 					* build_devices_wo(struct ast_variable *v);
+sccp_line_t 					* build_lines_wo(struct ast_variable *v);
 
 #ifndef ASTERISK_CONF_1_2
-struct sched_context *sched;
-struct io_context *io;
-
-
-void * sccp_do_monitor(void *data); // ADDED IN SVN 414 -FS
-int sccp_restart_monitor(void); // ADDED IN SVN 414 -FS
-#endif
-#ifndef ASTERISK_CONF_1_2
-enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo, struct ast_channel **rc, int timeoutms);
+struct sched_context 				* sched;
+struct io_context 				* io;
+void 						* sccp_do_monitor(void *data); 		// ADDED IN SVN 414 -FS
+int sccp_restart_monitor(void); 							// ADDED IN SVN 414 -FS
+enum ast_bridge_result 				sccp_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo, struct ast_channel **rc, int timeoutms);
 #endif
 
 
-static inline unsigned char sccp_is_nonempty_string(char *string) {
-	if(NULL != string) {
-		if(!ast_strlen_zero(string)) {
-			return 1;
-		}
-	}
+/*! 
+ * \todo sccp_is_nonempty_string never used 
+ * \unused */
+static inline unsigned char sccp_is_nonempty_string(char *string)
+{
+        if (NULL != string) {
+                if (!ast_strlen_zero(string)) {						/*! \todo Unrecognized identifier: ast_strlen_zero. Identifier used in code has not been declared. */
+                        return 1;							/*! \todo Return value type int does not match declared type unsigned char: 1 */
+                }
+        }
 
-	return 0;
+        return 0;									/*! \todo Return value type int does not match declared type unsigned char: 1 */
 }
-
-
-
 
 #endif /* __CHAN_SCCP_H */
 

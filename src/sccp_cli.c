@@ -1,16 +1,13 @@
 /*
  * (SCCP*)
+ * brief 	SCCP CLI Class
+ * author 	Sergio Chersovani <mlists [at] c-net.it>
+ * date
+ * note	Reworked, but based on chan_sccp code.
+ *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *        	Modified by Jan Czmok and Julien Goodwin
+ * note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *
- * An implementation of Skinny Client Control Protocol (SCCP)
- *
- * Sergio Chersovani (mlists@c-net.it)
- *
- * Reworked, but based on chan_sccp code.
- * The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- * Modified by Jan Czmok and Julien Goodwin
- *
- * This program is free software and may be modified and
- * distributed under the terms of the GNU Public License.
  */
 
 #include "config.h"
@@ -39,8 +36,25 @@
 /* ------------------------------------------------------------ */
 
 #ifdef CS_NEW_AST_CLI
-static char * sccp_complete_device(const char *line, const char *word, int pos, int state) {
+/*!
+ * \brief Complete Device
+ * \param line Line as char
+ * \param word Word as char
+ * \param pos Pos as int
+ * \param state State as int
+ * \return Result as char
+ */
+static char * sccp_complete_device(const char *line, const char *word, int pos, int state)
+{
 #else
+/*!
+ * \brief Complete Device
+ * \param line Line as char
+ * \param word Word as char
+ * \param pos Pos as int
+ * \param state State as int
+ * \return Result as char
+ */
 static char * sccp_complete_device(char *line, char *word, int pos, int state) {
 #endif
 	sccp_device_t * d;
@@ -64,6 +78,13 @@ static char * sccp_complete_device(char *line, char *word, int pos, int state) {
 	return ret;
 }
 
+/*!
+ * \brief Reset/Restart
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
 static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 	sccp_moo_t * r;
 	sccp_device_t * d;
@@ -100,6 +121,13 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
+/*!
+ * \brief Unregister
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
 static int sccp_unregister(int fd, int argc, char * argv[]) {
 	sccp_moo_t * r;
 	sccp_device_t * d;
@@ -143,7 +171,13 @@ static int sccp_unregister(int fd, int argc, char * argv[]) {
 }
 
 /* ------------------------------------------------------------ */
-
+/*!
+ * \brief Print Group
+ * \param buf Buf as char
+ * \param buflen Buffer Lendth as int
+ * \param group Group as ast_group_t
+ * \return Result as char
+ */
 static char *sccp_print_group(char *buf, int buflen, ast_group_t group) {
 	unsigned int i;
 	int first=1;
@@ -169,6 +203,13 @@ static char *sccp_print_group(char *buf, int buflen, ast_group_t group) {
 	return(buf);
 }
 
+/*!
+ * \brief Show Globals
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
 static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	char pref_buf[128];
 	char cap_buf[512];
@@ -253,6 +294,13 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 
 
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief Cli Show Globals
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Asterisk CLI Arguments
+ * \return Result as char
+ */
 static char *cli_show_globals(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 			e->command = "sccp show globals";
@@ -271,7 +319,12 @@ static char *cli_show_globals(struct ast_cli_entry *e, int cmd, struct ast_cli_a
 			return CLI_FAILURE;
 
 }
+
 #else
+/*
+ * \brief CLI Show Global
+ * \note Alias for Asterisk CLI ENTRY
+ */
 static struct ast_cli_entry cli_show_globals = {
   { "sccp", "show", "globals", NULL },
   sccp_show_globals,
@@ -281,7 +334,13 @@ static struct ast_cli_entry cli_show_globals = {
 #endif
 
 /* ------------------------------------------------------------ */
-
+/*!
+ * \brief Show Line
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
 static int sccp_show_device(int fd, int argc, char * argv[]) {
 	sccp_device_t 	* d;
 	sccp_buttonconfig_t	*config = NULL;
@@ -412,6 +471,13 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 
 
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief Show Device
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
 static char *cli_show_device(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 			e->command = "sccp show device";
@@ -430,7 +496,12 @@ static char *cli_show_device(struct ast_cli_entry *e, int cmd, struct ast_cli_ar
 			return CLI_FAILURE;
 
 }
+
 #else
+/*!
+ * \brief Show Device
+ * \return Result as Cli Entry Struct
+ */
 static struct ast_cli_entry cli_show_device = {
   { "sccp", "show", "device", NULL },
   sccp_show_device,
@@ -444,6 +515,13 @@ static struct ast_cli_entry cli_show_device = {
 
 
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief CLI Reset
+ * \param e Asterisk Cli Entry
+ * \param cmd Command as int
+ * \param a Asterisk Cli Arguments
+ * \note Result as Char
+ */
 static char *cli_reset(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 			e->command = "sccp reset";
@@ -462,7 +540,13 @@ static char *cli_reset(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a)
 			return CLI_FAILURE;
 
 }
+
 #else
+/*!
+ * \brief CLI Reset
+ * \return Asterisk Cli Entry Structure
+ * \note Alias for Asterisk CLI Entry
+ */
 static struct ast_cli_entry cli_reset = {
   { "sccp", "reset", NULL },
   sccp_reset_restart,
@@ -474,6 +558,13 @@ static struct ast_cli_entry cli_reset = {
 
 
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief Cli Restart
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Asterisk CLI Arguments
+ * \return Result as char
+ */
 static char *cli_restart(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 			e->command = "sccp restart";
@@ -492,7 +583,13 @@ static char *cli_restart(struct ast_cli_entry *e, int cmd, struct ast_cli_args *
 			return CLI_FAILURE;
 
 }
+
 #else
+/*!
+ * \brief CLI Restart
+ * \return Asterisk Cli Entry Structure
+ * \note Alias for Asterisk CLI Entry
+ */
 static struct ast_cli_entry cli_restart = {
 	{ "sccp", "restart", NULL },
 	sccp_reset_restart,
@@ -505,6 +602,13 @@ static struct ast_cli_entry cli_restart = {
 
 
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief Cli Unregister
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Aterisk CLI Argements
+ * \return Result as char
+ */
 static char *cli_unregister(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 			e->command = "sccp unregister";
@@ -524,7 +628,13 @@ static char *cli_unregister(struct ast_cli_entry *e, int cmd, struct ast_cli_arg
 			return CLI_FAILURE;
 
 }
+
 #else
+/*!
+ * \brief CLI Unregister
+ * \return Asterisk Cli Entry Structure
+ * \note Alias for Asterisk CLI Entry
+ */
 static struct ast_cli_entry cli_unregister = {
 	{ "sccp", "unregister", NULL },
 	sccp_unregister,
@@ -536,7 +646,13 @@ static struct ast_cli_entry cli_unregister = {
 
 
 /* ------------------------------------------------------------ */
-
+/*!
+ * \brief Show Channels
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
 static int sccp_show_channels(int fd, int argc, char * argv[]) {
 	sccp_channel_t * c;
 	sccp_line_t * l;
@@ -566,8 +682,14 @@ static int sccp_show_channels(int fd, int argc, char * argv[]) {
 }
 
 
-
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief Cli Show Channels
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Asterisk CLI Arguments
+ * \return Result as char
+ */
 static char *cli_show_channels(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 		e->command = "sccp show channels";
@@ -586,6 +708,11 @@ static char *cli_show_channels(struct ast_cli_entry *e, int cmd, struct ast_cli_
 #endif
 
 #ifndef ASTERISK_CONF_1_6
+/*!
+ * \brief CLI Show Channels
+ * \return Asterisk Cli Entry Structure
+ * \note Alias for Asterisk CLI Entry
+ */
 static struct ast_cli_entry cli_show_channels = {
 	{ "sccp", "show", "channels", NULL },
 	sccp_show_channels,
@@ -595,7 +722,13 @@ static struct ast_cli_entry cli_show_channels = {
 #endif
 
 /* ------------------------------------------------------------ */
-
+/*!
+ * \brief Show Devices
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
 static int sccp_show_devices(int fd, int argc, char * argv[]) {
 	sccp_device_t * d;
 #ifdef ASTERISK_CONF_1_2
@@ -631,6 +764,13 @@ static int sccp_show_devices(int fd, int argc, char * argv[]) {
 
 
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief Cli Show Devices
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Asterisk CLI Arguments
+ * \return Result as char
+ */
 static char *cli_show_devices(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 		e->command = "sccp show devices";
@@ -646,7 +786,13 @@ static char *cli_show_devices(struct ast_cli_entry *e, int cmd, struct ast_cli_a
 	else
 		return CLI_FAILURE;
 }
+
 #else
+/*!
+ * \brief CLI Show Devices
+ * \return Asterisk Cli Entry Structure
+ * \note Alias for Asterisk CLI Entry
+ */
 static struct ast_cli_entry cli_show_devices = {
 	{ "sccp", "show", "devices", NULL },
 	sccp_show_devices,
@@ -656,7 +802,13 @@ static struct ast_cli_entry cli_show_devices = {
 #endif
 
 
-
+/*!
+ * \brief Message Devices
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
 static int sccp_message_devices(int fd, int argc, char * argv[]) {
 	sccp_device_t * d;
 	int msgtimeout=10;
@@ -681,6 +833,13 @@ static int sccp_message_devices(int fd, int argc, char * argv[]) {
 
 
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief Cli Message Devices
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Asterisk CLI Arguments
+ * \return Result as char
+ */
 static char *cli_message_devices(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 		e->command = "sccp message devices";
@@ -699,7 +858,13 @@ static char *cli_message_devices(struct ast_cli_entry *e, int cmd, struct ast_cl
 	else
 		return CLI_FAILURE;
 }
+
 #else
+/*!
+ * \brief CLI Mesage Devices
+ * \return Asterisk Cli Entry Structure
+ * \note Alias for Asterisk CLI Entry
+ */
 static struct ast_cli_entry cli_message_devices = {
   { "sccp", "message", "devices", NULL },
   sccp_message_devices,
@@ -710,7 +875,13 @@ static struct ast_cli_entry cli_message_devices = {
 
 
 /* ------------------------------------------------------------ */
-
+/*!
+ * \brief Show Lines
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
 static int sccp_show_lines(int fd, int argc, char * argv[]) {
 	sccp_line_t * l = NULL;
 	sccp_channel_t * c = NULL;
@@ -786,6 +957,13 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 
 
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief Cli Show Lines
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Asterisk CLI Arguments
+ * \return Result as char
+ */
 static char *cli_show_lines(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 		e->command = "sccp show lines";
@@ -802,7 +980,13 @@ static char *cli_show_lines(struct ast_cli_entry *e, int cmd, struct ast_cli_arg
 	else
 		return CLI_FAILURE;
 }
+
 #else
+/*!
+ * \brief CLI Show Lines
+ * \return Asterisk Cli Entry Structure
+ * \note Alias for Asterisk CLI Entry
+ */
 static struct ast_cli_entry cli_show_lines = {
   { "sccp", "show", "lines", NULL },
   sccp_show_lines,
@@ -814,7 +998,13 @@ static struct ast_cli_entry cli_show_lines = {
 
 
 /* ------------------------------------------------------------ */
-
+/*!
+ * \brief Remove Line From Device
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
 static int sccp_remove_line_from_device(int fd, int argc, char * argv[])
 {
 	return RESULT_FAILURE;
@@ -859,6 +1049,13 @@ static int sccp_remove_line_from_device(int fd, int argc, char * argv[])
 
 
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief Cli Remove Line Device
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Asterisk CLI Arguments
+ * \return Result as char
+ */
 static char *cli_remove_line_device(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 		e->command = "sccp remove line";
@@ -877,7 +1074,13 @@ static char *cli_remove_line_device(struct ast_cli_entry *e, int cmd, struct ast
 	else
 		return CLI_FAILURE;
 }
+
 #else
+/*!
+ * \brief CLI Remove Line from Device
+ * \return Asterisk Cli Entry Structure
+ * \note Alias for Asterisk CLI Entry
+ */
 static struct ast_cli_entry cli_remove_line_device = {
   { "sccp", "remove", "line", NULL },
   sccp_remove_line_from_device,
@@ -887,7 +1090,13 @@ static struct ast_cli_entry cli_remove_line_device = {
 #endif
 
 /* ------------------------------------------------------------ */
-
+/*!
+ * \brief Show Sessions
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
 static int sccp_show_sessions(int fd, int argc, char * argv[]) {
 	sccp_session_t * s = NULL;
 	sccp_device_t * d = NULL;
@@ -931,6 +1140,13 @@ static int sccp_show_sessions(int fd, int argc, char * argv[]) {
 
 
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief Cli Show Sessions
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Asterisk CLI Arguments
+ * \return Result as char
+ */
 static char *cli_show_sessions(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 		e->command = "sccp show sessions";
@@ -946,7 +1162,13 @@ static char *cli_show_sessions(struct ast_cli_entry *e, int cmd, struct ast_cli_
 	else
 		return CLI_FAILURE;
 }
+
 #else
+/*!
+ * \brief CLI Show Sessions
+ * \return Asterisk Cli Entry Structure
+ * \note Alias for Asterisk CLI Entry
+ */
 static struct ast_cli_entry cli_show_sessions = {
   { "sccp", "show", "sessions", NULL },
   sccp_show_sessions,
@@ -956,6 +1178,13 @@ static struct ast_cli_entry cli_show_sessions = {
 #endif
 
 /* ------------------------------------------------------------ */
+/*!
+ * \brief System Message
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
 static int sccp_system_message(int fd, int argc, char * argv[]) {
 	int res;
 	int timeout = 0;
@@ -998,6 +1227,13 @@ static int sccp_system_message(int fd, int argc, char * argv[]) {
 
 
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief Cli System Message
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Asterisk CLI Arguments
+ * \return Result as char
+ */
 static char *cli_system_message(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 		e->command = "sccp system message";
@@ -1017,7 +1253,13 @@ static char *cli_system_message(struct ast_cli_entry *e, int cmd, struct ast_cli
 	else
 		return CLI_FAILURE;
 }
+
 #else
+/*!
+ * \brief CLI Systsem Message
+ * \return Asterisk Cli Entry Structure
+ * \note Alias for Asterisk CLI Entry
+ */
 static struct ast_cli_entry cli_system_message = {
    { "sccp", "system", "message", NULL },
    sccp_system_message,
@@ -1029,9 +1271,13 @@ static struct ast_cli_entry cli_system_message = {
 #endif
 
 /* ------------------------------------------------------------ */
-
-
-
+/*!
+ * \brief Do Debug
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
 static int sccp_do_debug(int fd, int argc, char *argv[]) {
 	int new_debug = 10;
 
@@ -1069,6 +1315,13 @@ static int sccp_do_fdebug(int fd, int argc, char *argv[]) {
 }
 
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief Cli Do Debug
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Asterisk CLI Arguments
+ * \return Result as char
+ */
 static char *cli_do_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 		e->command = "sccp debug";
@@ -1087,7 +1340,13 @@ static char *cli_do_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args 
 	else
 		return CLI_FAILURE;
 }
+
 #else
+/*!
+ * \brief CLI Enable Debug
+ * \return Asterisk Cli Entry Structure
+ * \note Alias for Asterisk CLI Entry
+ */
 static struct ast_cli_entry cli_do_debug = {
   { "sccp", "debug", NULL },
   sccp_do_debug,
@@ -1097,6 +1356,13 @@ static struct ast_cli_entry cli_do_debug = {
 };
 #endif
 
+/*!
+ * \brief No Debug
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
 static int sccp_no_debug(int fd, int argc, char *argv[]) {
 	if (argc != 3)
 		return RESULT_SHOWUSAGE;
@@ -1107,7 +1373,15 @@ static int sccp_no_debug(int fd, int argc, char *argv[]) {
 }
 
 
+
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief Cli No Debug
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Asterisk CLI Arguments
+ * \return Result as char
+ */
 static char *cli_no_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 		e->command = "sccp no debug";
@@ -1126,7 +1400,13 @@ static char *cli_no_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args 
 	else
 		return CLI_FAILURE;
 }
+
 #else
+/*!
+ * \brief CLI No Debug
+ * \return Asterisk Cli Entry Structure
+ * \note Alias for Asterisk CLI Entry
+ */
 static struct ast_cli_entry cli_no_debug = {
   { "sccp", "no", "debug", NULL },
   sccp_no_debug,
@@ -1137,6 +1417,13 @@ static struct ast_cli_entry cli_no_debug = {
 #endif
 
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief Cli Do Fdebug
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Asterisk CLI Arguments
+ * \return Result as char
+ */
 static char *cli_do_fdebug(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 		e->command = "sccp fdebug";
@@ -1165,6 +1452,13 @@ static struct ast_cli_entry cli_do_fdebug = {
 };
 #endif
 
+/*!
+ * \brief No Fdebug
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
 static int sccp_no_fdebug(int fd, int argc, char *argv[]) {
 	if (argc != 3)
 		return RESULT_SHOWUSAGE;
@@ -1175,7 +1469,15 @@ static int sccp_no_fdebug(int fd, int argc, char *argv[]) {
 }
 
 
+
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief Cli No Fdebug
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Asterisk CLI Arguments
+ * \return Result as char
+ */
 static char *cli_no_fdebug(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 		e->command = "sccp no fdebug";
@@ -1194,7 +1496,13 @@ static char *cli_no_fdebug(struct ast_cli_entry *e, int cmd, struct ast_cli_args
 	else
 		return CLI_FAILURE;
 }
+
 #else
+/*!
+ * \brief CLI No Filtered Debug
+ * \return Asterisk Cli Entry Structure
+ * \note Alias for Asterisk CLI Entry
+ */
 static struct ast_cli_entry cli_no_fdebug = {
   { "sccp", "no", "fdebug", NULL },
   sccp_no_fdebug,
@@ -1204,12 +1512,26 @@ static struct ast_cli_entry cli_no_fdebug = {
 };
 #endif
 
+/*!
+ * \brief Do Reload
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
 static int sccp_do_reload(int fd, int argc, char *argv[]) {
 	ast_cli(fd, "SCCP configuration reload not implemented yet! use unload and load.\n");
 	return RESULT_SUCCESS;
 }
 
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief Cli Reload
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Asterisk CLI Arguments
+ * \return Result as char
+ */
 static char *cli_reload(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 		e->command = "sccp reload";
@@ -1228,7 +1550,13 @@ static char *cli_reload(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a
 	else
 		return CLI_FAILURE;
 }
+
 #else
+/*!
+ * \brief CLI Reload
+ * \return Asterisk Cli Entry Structure
+ * \note Alias for Asterisk CLI Entry
+ */
 static struct ast_cli_entry cli_reload = {
   { "sccp", "reload", NULL },
   sccp_do_reload,
@@ -1238,8 +1566,13 @@ static struct ast_cli_entry cli_reload = {
 };
 #endif
 
-
-
+/*!
+ * \brief Show Version
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
 static int sccp_show_version(int fd, int argc, char *argv[]) {
 	ast_cli(fd, "SCCP channel Release: %s - %s (built by '%s' on '%s')\n", SCCP_BRANCH, SCCP_VERSION, BUILD_USER, BUILD_DATE);
 	return RESULT_SUCCESS;
@@ -1247,6 +1580,13 @@ static int sccp_show_version(int fd, int argc, char *argv[]) {
 
 
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief CLI Show Version
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Asterisk CLI Arguments
+ * \return Result as char
+ */
 static char *cli_show_version(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 		e->command = "sccp show version";
@@ -1265,7 +1605,13 @@ static char *cli_show_version(struct ast_cli_entry *e, int cmd, struct ast_cli_a
 	else
 		return CLI_FAILURE;
 }
+
 #else
+/*!
+ * \brief CLI Show Version
+ * \return Asterisk Cli Entry Structure
+ * \note Alias for Asterisk CLI Entry
+ */
 static struct ast_cli_entry cli_show_version = {
   { "sccp", "show", "version", NULL },
   sccp_show_version,
@@ -1277,6 +1623,13 @@ static struct ast_cli_entry cli_show_version = {
 
 
 #ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief CLI MWI Subscriptions
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Asterisk CLI Arguments
+ * \return Result as char
+ */
 static char *cli_show_mwi_subscriptions(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
 	if (cmd == CLI_INIT) {
 		e->command = "sccp show subscriptions";
@@ -1319,6 +1672,11 @@ static char *cli_show_mwi_subscriptions(struct ast_cli_entry *e, int cmd, struct
 	//	return CLI_FAILURE;
 }
 #else
+/*!
+ * \brief CLI MWI Subscriptions
+ * \return Asterisk Cli Entry Structure
+ * \note Alias for Asterisk CLI Entry
+ */
 static struct ast_cli_entry cli_show_mwi_subscriptions = {
   { "sccp", "show", "subscriptions", NULL },
   sccp_show_version,
@@ -1329,11 +1687,17 @@ static struct ast_cli_entry cli_show_mwi_subscriptions = {
 #endif
 
 
-/**
- * \brief structure for cli functions including short description.
+#ifdef ASTERISK_CONF_1_6
+
+/*!
+ * \brief Asterisk Cli Entry
+ *
+ * structure for cli functions including short description.
+ *
+ * \return Result as struct
  * \todo add short description
  */
-#ifdef ASTERISK_CONF_1_6
+
 static struct ast_cli_entry cli_entries[] = {
 		AST_CLI_DEFINE(cli_show_globals, "Show SCCP global settings."),
 		AST_CLI_DEFINE(cli_show_channels, "Show all SCCP channels."),

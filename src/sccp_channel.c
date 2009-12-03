@@ -1,16 +1,13 @@
-/*
- * (SCCP*)
+/*!
+ * \file 	sccp_channel.c
+ * \brief 	SCCP Channel Class
+ * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \date
+ * \note	Reworked, but based on chan_sccp code.
+ *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *        	Modified by Jan Czmok and Julien Goodwin
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *
- * An implementation of Skinny Client Control Protocol (SCCP)
- *
- * Sergio Chersovani (mlists@c-net.it)
- *
- * Reworked, but based on chan_sccp code.
- * The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- * Modified by Jan Czmok and Julien Goodwin
- *
- * This program is free software and may be modified and
- * distributed under the terms of the GNU Public License.
  */
 
 #include "config.h"
@@ -51,7 +48,14 @@
 static uint32_t callCount = 1;
 AST_MUTEX_DEFINE_STATIC(callCountLock);
 
-sccp_channel_t * sccp_channel_allocate(sccp_line_t * l, sccp_device_t *device) {
+/*!
+ * \brief Allocate SCCP Channel on Device
+ * \param l SCCP Line
+ * \param device SCCP Device
+ * \return SCCP Channel
+ */
+sccp_channel_t * sccp_channel_allocate(sccp_line_t * l, sccp_device_t *device)
+{
 	/* this just allocate a sccp channel (not the asterisk channel, for that look at sccp_pbx_channel_allocate) */
 	sccp_channel_t * c;
 
@@ -132,8 +136,15 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l, sccp_device_t *device) {
 	return c;
 }
 
-sccp_channel_t * sccp_channel_get_active(sccp_device_t * d) {
-	sccp_channel_t * c;
+
+/*!
+ * \brief Get Active Channel on Device
+ * \param d SCCP Device
+ * \return SCCP Channel
+ */
+sccp_channel_t * sccp_channel_get_active(sccp_device_t * d)
+{
+        sccp_channel_t * c = NULL;
 
 	if (!d)
 		return NULL;
@@ -150,7 +161,13 @@ sccp_channel_t * sccp_channel_get_active(sccp_device_t * d) {
 	return c;
 }
 
-void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * c) {
+/*!
+ * \brief Set SCCP Channel to Active
+ * \param d SCCP Device
+ * \param c SCCP Channel
+ */
+void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * c)
+{
 	if(!d)
 		return;
 
@@ -161,7 +178,13 @@ void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * c) {
 	sccp_device_unlock(d);
 }
 
-void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t * c) {
+/*!
+ * \brief Send Call Information to Device/Channel
+ * \param device SCCP Device
+ * \param c SCCP Channel
+ */
+void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t * c)
+{
 	sccp_moo_t * r;
 	uint8_t			instance =0;
 
@@ -213,7 +236,12 @@ void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t * c) {
 //		return;
 }
 
-void sccp_channel_send_dialednumber(sccp_channel_t * c) {
+/*!
+ * \brief Send Dialed Number to SCCP Channel device
+ * \param c SCCP Channel
+ */
+void sccp_channel_send_dialednumber(sccp_channel_t * c)
+{
 	sccp_moo_t 		*r;
 	sccp_device_t	*device;
 	uint8_t instance;
@@ -236,7 +264,14 @@ void sccp_channel_send_dialednumber(sccp_channel_t * c) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, c->calledPartyNumber, skinny_calltype2str(c->calltype), c->callid);
 }
 
-void sccp_channel_set_callstate(sccp_device_t * d, sccp_channel_t * c, uint8_t state) {
+/*!
+ * \brief Set Call State for SCCP Channel c, and Send this State to SCCP Device d.
+ * \param d device to send call state
+ * \param c SCCP Channel
+ * \param state channel state
+ */
+void sccp_channel_set_callstate(sccp_device_t * d, sccp_channel_t * c, uint8_t state)
+{
 	uint8_t instance;
 	c->callstate = state;
 
@@ -248,7 +283,14 @@ void sccp_channel_set_callstate(sccp_device_t * d, sccp_channel_t * c, uint8_t s
 }
 
 
-void sccp_channel_set_callingparty(sccp_channel_t * c, char *name, char *number) {
+/*!
+ * \brief Set CallingParty on SCCP Channel c
+ * \param c SCCP Channel
+ * \param name Name as char
+ * \param number Number as char
+ */
+void sccp_channel_set_callingparty(sccp_channel_t * c, char *name, char *number)
+{
 	if (!c)
 		return;
 
@@ -265,8 +307,16 @@ void sccp_channel_set_callingparty(sccp_channel_t * c, char *name, char *number)
 	return;
 }
 
-void sccp_channel_set_calledparty(sccp_channel_t * c, char *name, char *number) {
-	if (!c)
+
+/*!
+ * \brief Set CalledParty on SCCP Channel c
+ * \param c SCCP Channel
+ * \param name Called Party Name
+ * \param number Called Party Number
+ */
+void sccp_channel_set_calledparty(sccp_channel_t * c, char *name, char *number)
+{
+        if (!c)
 		return;
 
 	if (name && strncmp(name, c->calledPartyName, StationMaxNameSize - 1)) {
@@ -280,7 +330,12 @@ void sccp_channel_set_calledparty(sccp_channel_t * c, char *name, char *number) 
 	}
 }
 
-void sccp_channel_StatisticsRequest(sccp_channel_t * c) {
+/*!
+ * \brief Request Call Statistics for SCCP Channel
+ * \param c SCCP Channel
+ */
+void sccp_channel_StatisticsRequest(sccp_channel_t * c)
+{
 	sccp_moo_t * r;
 	sccp_device_t * d = c->device;
 
@@ -302,6 +357,12 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * c) {
 }
 
 #ifndef ASTERISK_CONF_1_2
+/*!
+ * \brief Get RTP Peer from Channel
+ * \param ast Asterisk Channel
+ * \param rtp Asterisk RTP
+ * \return ENUM of RTP Result
+ */
 enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struct ast_rtp **rtp)
 {
 	sccp_channel_t *c = NULL;
@@ -356,8 +417,27 @@ enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struc
 }
 
 #ifdef ASTERISK_CONF_1_4
+/*!
+ * \brief Set RTP Peer from Channel
+ * \param ast Asterisk Channel
+ * \param rtp Asterisk RTP
+ * \param vrtp Asterisk RTP
+ * \param codecs Codecs as int
+ * \param nat_active Is NAT Active as int
+ * \return Result as int
+ */
 int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, int codecs, int nat_active)
 #else
+/*!
+ * \brief Set RTP Peer from Channel
+ * \param ast Asterisk Channel
+ * \param rtp Asterisk RTP
+ * \param vrtp Asterisk RTP
+ * \param trtp Asterisk RTP
+ * \param codecs Codecs as int
+ * \param nat_active Is NAT Active as int
+ * \return Result as int
+ */
 int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, struct ast_rtp *trtp, int codecs, int nat_active)
 #endif
 {
@@ -483,7 +563,16 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 }
 #endif
 
-void sccp_channel_openreceivechannel(sccp_channel_t * c) {
+/*!
+ * \brief Tell Device to Open a RTP Receive Channel
+ *
+ * At this point we choose the codec for receive channel and tell them to device.
+ * We will get a OpenReceiveChannelAck message that includes all information.
+ *
+ * \param c SCCP Channel
+ */
+void sccp_channel_openreceivechannel(sccp_channel_t * c)
+{
 	sccp_moo_t * r;
 	sccp_device_t * d = NULL;
 	int payloadType;
@@ -554,7 +643,16 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c) {
 	
 }
 
-void sccp_channel_startmediatransmission(sccp_channel_t * c) {
+/*!
+ * \brief Tell a Device to Start Media Transmission.
+ *
+ * We choose codec according to c->format.
+ *
+ * \param c SCCP Channel
+ * \note rtp should be started before, otherwise we do not start transmission
+ */
+void sccp_channel_startmediatransmission(sccp_channel_t * c)
+{
 	sccp_moo_t * r;
 	sccp_device_t * d = NULL;
 	struct sockaddr_in sin;
@@ -642,8 +740,13 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c) {
 #endif
 }
 
-
-void sccp_channel_closereceivechannel(sccp_channel_t * c) {
+/*!
+ * \brief Tell Device to Close an RTP Receive Channel and Stop Media Transmission
+ * \param c SCCP Channel
+ * \note sccp_channel_stopmediatransmission is explicit call within this function!
+ */
+void sccp_channel_closereceivechannel(sccp_channel_t * c)
+{
 	sccp_moo_t * r;
 	sccp_device_t * d = c->device;
 
@@ -658,6 +761,13 @@ void sccp_channel_closereceivechannel(sccp_channel_t * c) {
 	sccp_channel_stopmediatransmission(c);
 }
 
+
+/*!
+ * \brief Tell device to Stop Media Transmission.
+ *
+ * Also RTP will be Stopped/Destroyed and Call Statistic is requested.
+ * \param c SCCP Channel
+ */
 void sccp_channel_stopmediatransmission(sccp_channel_t * c)
 {
 	sccp_moo_t * r;
@@ -686,7 +796,13 @@ void sccp_channel_stopmediatransmission(sccp_channel_t * c)
 	sccp_channel_StatisticsRequest(c);
 }
 
-void sccp_channel_endcall(sccp_channel_t * c) {
+
+/*!
+ * \brief Hangup this channel.
+ * \param c SCCP Channel
+ */
+void sccp_channel_endcall(sccp_channel_t * c)
+{
 	uint8_t res = 0;
 
 	if (!c || !c->line || !c->device){
@@ -722,7 +838,17 @@ void sccp_channel_endcall(sccp_channel_t * c) {
 	}
 }
 
-sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, sccp_device_t *device, char * dial, uint8_t calltype) {
+/*!
+ * \brief Allocate a new Outgoing Channel.
+ *
+ * \param l SCCP Line that owns this channel
+ * \param device SCCP Device that owns this channel
+ * \param dial Dialed Number as char
+ * \param calltype Calltype as int
+ * \return SCCP Channel or NULL if something is wrong
+ */
+sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, sccp_device_t *device, char * dial, uint8_t calltype)
+{
 	/* handle outgoing calls */
 	sccp_channel_t * c;
 
@@ -809,6 +935,13 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, sccp_device_t *device, ch
 	return c;
 }
 
+
+/*!
+ * \brief Answer an Incoming Call.
+ * \param device SCCP Device who answers
+ * \param c incoming SCCP channel
+ * \todo handle codec choose
+ */
 void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 {
 	sccp_line_t * l;
@@ -893,7 +1026,15 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 	ast_queue_control(c->owner, AST_CONTROL_ANSWER);
 }
 
-int sccp_channel_hold(sccp_channel_t * c) {
+
+/*!
+ * \brief Put channel on Hold.
+ *
+ * \param c SCCP Channel
+ * \return Status as in (0 if something was wrong, otherwise 1)
+ */
+int sccp_channel_hold(sccp_channel_t * c)
+{
 	sccp_line_t * l;
 	sccp_device_t * d;
 	int instance;
@@ -987,7 +1128,15 @@ int sccp_channel_hold(sccp_channel_t * c) {
 	return 1;
 }
 
-int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c) {
+
+/*!
+ * \brief Resume a channel that is on hold.
+ * \param device device who resumes the channel
+ * \param c channel
+ * \return 0 if something was wrong, otherwise 1
+ */
+int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
+{
 	sccp_line_t * l;
 	sccp_device_t 	*d;
 	sccp_channel_t * hold;
@@ -1105,7 +1254,13 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c) {
 	return 1;
 }
 
-void sccp_channel_cleanbeforedelete(sccp_channel_t *c) { // we assume channel is locked
+/*!
+ * \brief Cleanup Channel before Free.
+ * \param c SCCP Channel
+ * \note we assume channel is locked
+ */
+void sccp_channel_cleanbeforedelete(sccp_channel_t *c)   // we assume channel is locked
+{
 
 	sccp_line_t *l;
 	sccp_device_t *d;
@@ -1158,7 +1313,15 @@ void sccp_channel_cleanbeforedelete(sccp_channel_t *c) { // we assume channel is
 	}
 }
 
-void sccp_channel_delete_wo(sccp_channel_t * c, uint8_t list_lock, uint8_t channel_lock) {
+/*!
+ * \brief Delete Channel (WO)
+ * \param c SCCP Channel
+ * \param list_lock List Lock as int
+ * \param channel_lock Channel Lock as int
+ * \note We assume channel is locked
+ */
+void sccp_channel_delete_wo(sccp_channel_t * c, uint8_t list_lock, uint8_t channel_lock)   // We assume channel is locked
+{
 	sccp_line_t * l = NULL;
 	sccp_device_t * d = NULL;
 
@@ -1187,7 +1350,14 @@ void sccp_channel_delete_wo(sccp_channel_t * c, uint8_t list_lock, uint8_t chann
 	return;
 }
 
-void sccp_channel_start_rtp(sccp_channel_t * c) {
+
+/*!
+ * \brief Create a new RTP Source.
+ * \param c SCCP Channel
+ * \todo Add Video Capability
+ */
+void sccp_channel_start_rtp(sccp_channel_t * c)
+{
 	sccp_session_t * s;
 	sccp_line_t * l = NULL;
 	sccp_device_t * d = NULL;
@@ -1259,7 +1429,13 @@ void sccp_channel_start_rtp(sccp_channel_t * c) {
 /*	sccp_channel_unlock(c); */
 }
 
-void sccp_channel_stop_rtp(sccp_channel_t * c) {
+
+/*!
+ * \brief Stop an RTP Source.
+ * \param c SCCP Channel
+ */
+void sccp_channel_stop_rtp(sccp_channel_t * c)
+{
 	sccp_device_t * d = NULL;
 	sccp_line_t * l = NULL;
 	if(c && c->line) {
@@ -1273,7 +1449,12 @@ void sccp_channel_stop_rtp(sccp_channel_t * c) {
 	}
 }
 
-void sccp_channel_destroy_rtp(sccp_channel_t * c) {
+/*!
+ * \brief Destroy RTP Source.
+ * \param c SCCP Channel
+ */
+void sccp_channel_destroy_rtp(sccp_channel_t * c)
+{
 	sccp_device_t * d = NULL;
 	sccp_line_t * l = NULL;
 	if(c && c->line) {
@@ -1288,7 +1469,13 @@ void sccp_channel_destroy_rtp(sccp_channel_t * c) {
 	}
 }
 
-void sccp_channel_transfer(sccp_channel_t * c) {
+
+/*!
+ * \brief Handle Transfer Request (Pressing the Transfer Softkey)
+ * \param c SCCP Channel
+ */
+void sccp_channel_transfer(sccp_channel_t * c)
+{
 	sccp_device_t * d;
 	sccp_channel_t * newcall = NULL;
 	uint32_t	blindTransfer = 0;
@@ -1340,7 +1527,11 @@ void sccp_channel_transfer(sccp_channel_t * c) {
 	}
 }
 
-static void * sccp_channel_transfer_ringing_thread(void *data) {
+/*!
+ * \brief Handle Transfer Ringing Thread
+ */
+static void * sccp_channel_transfer_ringing_thread(void *data)
+{
 	char * name = data;
 	struct ast_channel * ast;
 
@@ -1370,12 +1561,13 @@ static void * sccp_channel_transfer_ringing_thread(void *data) {
 	return NULL;
 }
 
-/**
- * bridge two channels
- *
- * \todo find a way solve the chan->state problem
+/*!
+ * \brief Bridge Two Channels
+ * \param cDestinationLocal Local Destination SCCP Channel
+ * \todo Find a way solve the chan->state problem
  */
-void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
+void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal)
+{
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char *name, *number, *cidtmp;
 #endif
@@ -1531,11 +1723,23 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 
 #ifdef CS_SCCP_PARK
 
+/*!
+ * \brief Dual Structure
+ */
+
 struct sccp_dual {
-	struct ast_channel *chan1;
-	struct ast_channel *chan2;
+
+        struct ast_channel *chan1;
+
+        struct ast_channel *chan2;
 };
 
+/*!
+ * \brief Channel Park Thread
+ * \param stuff Stuff
+ * \todo Some work to do i guess
+ * \todo replace parameter stuff with something sensable
+ */
 static void * sccp_channel_park_thread(void *stuff) {
 	struct ast_channel *chan1, *chan2;
 	struct sccp_dual *dual;
@@ -1567,6 +1771,10 @@ static void * sccp_channel_park_thread(void *stuff) {
 	return NULL;
 }
 
+/*!
+ * \brief Park an SCCP Channel
+ * \param c SCCP Channel
+ */
 void sccp_channel_park(sccp_channel_t * c) {
 	sccp_device_t * d;
 	sccp_line_t      * l;
@@ -1680,9 +1888,6 @@ void sccp_channel_park(sccp_channel_t * c) {
 		ast_free(dual);
 	}
 }
-
-
-
 
 #endif
 
