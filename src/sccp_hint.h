@@ -1,9 +1,10 @@
-/*
- * sccp_hint.h
- *
- *  Created on: 16.01.2009
- *      Author: marcello
- */
+/*!
+ * \file 	sccp_hint.h
+ * \brief 	SCCP Hint Header
+ * \author 	Marcello Ceschia <<marcello [at] ceschia.de>
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \since 	2009-01-16
+ */ 
 
 #ifndef SCCP_HINT_H_
 #define SCCP_HINT_H_
@@ -86,8 +87,12 @@ SCCP_LIST_HEAD(, sccp_hint_list_t) sccp_hint_subscriptions;
 
 
 /**
- * activate hint for device
- * \param d device
+ * \brief Hint State for Device
+ * \param context Context as char
+ * \param exten Extension as char
+ * \param state State as Asterisk Extension State
+ * \param data Asterisk Data
+ * \return Status as int
  */
 int sccp_hint_state(char *context, char* exten, enum ast_extension_states state, void *data);
 void sccp_hint_lineStatusChanged(sccp_line_t *line, sccp_device_t *device, sccp_channel_t *channel, sccp_channelState_t previousState, sccp_channelState_t newState);

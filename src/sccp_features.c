@@ -1,16 +1,9 @@
-/*
- * (SCCP*)
- *
- * An implementation of Skinny Client Control Protocol (SCCP)
- *
- * This code is entirely write by Federico Santulli
- * info@chan-sccp.org
- *
- * This program is free software and may be modified and
- * distributed under the terms of the GNU Public License.
- *
- * Part of this features code rests private due to free effort of implementing
- *
+/*!
+ * \file 	sccp_features.c
+ * \brief 	SCCP Features Class
+ * \author 	Federico Santulli <fsantulli [at] users.sourceforge.net >
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \since 	2009-01-16
  */
 
 #include "config.h"
@@ -47,8 +40,15 @@
 #endif
 #include "sccp_featureButton.h"
 
-
-sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *device, uint8_t type) {
+/*!
+ * \brief Handle Call Forwarding
+ * \param l SCCP Line
+ * \param device SCCP Device
+ * \param type CallForward Type (NONE, ALL, BUSY, NOANSWER) as SCCP_CFWD_*
+ * \return SCCP Channel
+ */
+sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *device, uint8_t type)
+{
 	sccp_channel_t * c = NULL;
 	struct ast_channel * bridge = NULL;
 	int instance;
@@ -192,7 +192,14 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 }
 
 #ifdef CS_SCCP_PICKUP
-sccp_channel_t * sccp_feat_handle_directpickup(sccp_line_t * l, sccp_device_t *d) {
+/*!
+ * \brief Handle Direct Pickup of Line
+ * \param l SCCP Line
+ * \param d SCCP Device
+ * \return SCCP Channel
+ */
+sccp_channel_t * sccp_feat_handle_directpickup(sccp_line_t * l, sccp_device_t *d)
+{
 	sccp_channel_t * c;
 	int instance;
 
@@ -260,7 +267,14 @@ sccp_channel_t * sccp_feat_handle_directpickup(sccp_line_t * l, sccp_device_t *d
 #endif
 
 #ifdef CS_SCCP_PICKUP
-int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
+/*!
+ * \brief Handle Direct Pickup of Extension
+ * \param c SCCP Channel
+ * \param exten Extension as char
+ * \return Success as int
+ */
+int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
+{
 	int res = 0;
 	struct ast_channel *target = NULL;
 	struct ast_channel *original = NULL;
@@ -440,7 +454,14 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten) {
 	return res;
 }
 
-int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d) {
+/*!
+ * \brief Handle Group Pickup Feature
+ * \param l SCCP Line
+ * \param d SCCP Device
+ * \return Success as int
+ */
+int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
+{
 	int res = 0;
 	struct ast_channel *target = NULL;
 	struct ast_channel *original = NULL;
@@ -606,8 +627,13 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (grouppickup) quit\n");
 	return res;
 }
+
 #endif
 
+/*!
+ * \brief Update Caller ID
+ * \param c SCCP Channel
+ */
 void sccp_feat_updatecid(sccp_channel_t * c) {
 	struct ast_channel * target = NULL;
 	char * cidtmp = NULL, *name = NULL, *number = NULL;
@@ -640,8 +666,13 @@ void sccp_feat_updatecid(sccp_channel_t * c) {
 	ast_free(cidtmp);
 }
 
-void sccp_feat_voicemail(sccp_device_t * d, uint8_t line_instance)
-{
+/*!
+ * \brief Handle VoiceMail
+ * \param d SCCP Device
+ * \param line_instance Line Instance as int
+ */
+void sccp_feat_voicemail(sccp_device_t * d, uint8_t line_instance) {
+
 	sccp_channel_t * c;
 	sccp_line_t * l;
 	uint8_t		instance;
@@ -687,8 +718,13 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t line_instance)
 	}
 }
 
-void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
-{
+/*!
+ * \brief Handle Divert/Transfer Call to VoiceMail
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ */
+void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	if (!l->trnsfvm) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRANSVM pressed but not configured in sccp.conf\n", d->id);
 		return;
@@ -713,6 +749,15 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 	ast_queue_control(c->owner, AST_CONTROL_BUSY);
 }
 
+/*!
+ * \brief Handle Conference
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel
+ * \return Success as int
+ * \todo Conferencing option needs to be build and implemented
+ *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
+ */
 void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #ifdef CS_ADV_FEATURES
 	sccp_advfeat_conference(d, l, c);
@@ -723,6 +768,14 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 #endif
 }
 
+/*!
+ * \brief Handle Join a Conference
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param c SCCP Channel 
+ * \todo Conferencing option needs to be build and implemented
+ *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
+ */
 void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #ifdef CS_ADV_FEATURES
 	sccp_advfeat_join(d, l, c);
@@ -733,6 +786,14 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #endif
 }
 
+/*!
+ * \brief Handle 3-Way Phone Based Conferencing on a Device
+ * \param l SCCP Line
+ * \param d SCCP Device
+ * \return SCCP Channel
+ * \todo Conferencing option needs to be build and implemented
+ *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
+ */
 sccp_channel_t * sccp_feat_handle_meetme(sccp_line_t * l, sccp_device_t *d) {
 	sccp_channel_t * c;
 	int instance;
@@ -799,6 +860,12 @@ sccp_channel_t * sccp_feat_handle_meetme(sccp_line_t * l, sccp_device_t *d) {
 	return c;
 }
 
+/*!
+ * \brief Handle Barging into a Call
+ * \param l SCCP Line
+ * \param d SCCP Device
+ * \return SCCP Channel
+ */
 sccp_channel_t * sccp_feat_handle_barge(sccp_line_t * l, sccp_device_t *d) {
 	sccp_channel_t * c;
 	int instance;
@@ -866,6 +933,12 @@ sccp_channel_t * sccp_feat_handle_barge(sccp_line_t * l, sccp_device_t *d) {
 	return c;
 }
 
+/*!
+ * \brief Barging into a Call Feature
+ * \param c SCCP Channel
+ * \param exten Extention as char
+ * \return Success as int
+ */
 int sccp_feat_barge(sccp_channel_t * c, char *exten) {
 #ifdef CS_ADV_FEATURES
 	return sccp_advfeat_barge(c, exten);
@@ -877,6 +950,14 @@ int sccp_feat_barge(sccp_channel_t * c, char *exten) {
 #endif
 }
 
+/*!
+ * \brief Handle Barging into a Conference
+ * \param l SCCP Line
+ * \param d SCCP Device
+ * \return SCCP Channel
+ * \todo Conferencing option needs to be build and implemented
+ *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
+ */
 sccp_channel_t * sccp_feat_handle_cbarge(sccp_line_t * l, sccp_device_t *d) {
 	sccp_channel_t * c;
 	int instance;
@@ -943,6 +1024,12 @@ sccp_channel_t * sccp_feat_handle_cbarge(sccp_line_t * l, sccp_device_t *d) {
 	return c;
 }
 
+/*!
+ * \brief Barging into a Conference Feature
+ * \param c SCCP Channel
+ * \param conferencenum Conference Number as char
+ * \return Success as int
+ */
 int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum) {
 #ifdef CS_ADV_FEATURES
 	return sccp_advfeat_cbarge(c, conferencenum);
@@ -953,6 +1040,14 @@ int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum) {
 	return 1;
 #endif
 }
+/*!
+ * \brief Hotline Feature
+ * 
+ * Setting the hotline Feature on a device, will make it connect to a predefined extension as soon as the Receiver
+ * is picked up or the "New Call" Button is pressed. No number has to be given.
+ * 
+ * \param d SCCP Device
+ */
 void sccp_feat_hotline(sccp_device_t *d) {
 	sccp_channel_t * c = NULL;
 
@@ -982,15 +1077,21 @@ void sccp_feat_hotline(sccp_device_t *d) {
 	}
 }
 
-/**
- * event handler to notify feature changes
- */
+/*!
+ * \brief Handler to Notify Features have Changed
+ * \param device SCCP Device
+ * \param featureType SCCP Feature Type
+ */ 
 void sccp_feat_changed(sccp_device_t *device, sccp_feature_type_t featureType){
 	if(device)
 		sccp_featButton_changed(device, featureType);
 }
 
-
+/*!
+ * \brief Handler to Notify Channel State has Changed
+ * \param device SCCP Device
+ * \param channel SCCP Channel
+ */
 void sccp_feat_channelStateChanged(sccp_device_t *device, sccp_channel_t * channel){
 	uint8_t state;
 
@@ -1011,6 +1112,11 @@ void sccp_feat_channelStateChanged(sccp_device_t *device, sccp_channel_t * chann
 
 }
 
+/*!
+ * \brief Feature Monitor
+ * \param device SCCP Device
+ * \param channel SCCP Channel
+ */
 void sccp_feat_monitor(sccp_device_t *device, sccp_channel_t *channel){
 #ifdef CS_SCCP_FEATURE_MONITOR
 	struct ast_call_feature *feat;

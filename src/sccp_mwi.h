@@ -1,3 +1,11 @@
+/*!
+ * \file 	sccp_mwi.h
+ * \brief 	SCCP Message Waiting Indicator Header
+ * \author 	Marcello Ceschia <marcello [at] ceschia.de>
+ * \date	2008-11-22
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ */
+
 #ifndef SCCP_MWI_H_
 #define SCCP_MWI_H_
 

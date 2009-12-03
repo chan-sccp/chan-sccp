@@ -1,10 +1,11 @@
-/*
- * sccp_event.c
- *
- *  Created on: 03.09.2009
- *      Author: marcello
+/*!
+ * \file 	sccp_event.c
+ * \brief 	SCCP Event Class
+ * \author 	Marcello Ceschia <marcello [at] ceschia.de>
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \since	2009-09-02
  */
- 
+
 #include "config.h"
 #ifndef ASTERISK_CONF_1_2
 #include <asterisk.h>
@@ -22,7 +23,14 @@
 #include <asterisk/features.h>
 #endif
 
-
+/*!
+ * \brief Subscribe to an Event
+ * \param eventType SCCP Event Type
+ * \param cb SCCP Event Call Back
+ * \param file File as char
+ * \param caller Caller as char
+ * \param line Line as int
+ */
 void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb,
 			     const char *file, const char *caller, int line){
 
@@ -42,9 +50,11 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb,
 
 	SCCP_LIST_INSERT_TAIL(&sccp_event_listeners->subscriber, subscription, list);
 }
-/**
- *
- * \remarks event will be freed after event is fired
+
+/*!
+ * \brief Fire an Event
+ * \param event SCCP Event
+ * \note event will be freed after event is fired
  */
 void sccp_event_fire(const sccp_event_t* *event){
 	if( *event == NULL)

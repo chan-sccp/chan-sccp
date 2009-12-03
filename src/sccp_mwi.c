@@ -1,4 +1,11 @@
-
+/*!
+ * \file 	sccp_mwi.c
+ * \brief 	SCCP Message Waiting Indicator Class
+ * \author 	Marcello Ceschia <marcello [at] ceschia.de>
+ * \date	2008-11-22
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ */
+ 
 #include "config.h"
 #include "sccp_mwi.h"
 #include "chan_sccp.h"
@@ -33,9 +40,12 @@ void sccp_mwi_module_start(void){
 	sccp_subscribe_event(SCCP_EVENT_DEVICEATTACHED, sccp_mwi_deviceAttachedEvent);
 #endif
 }
-                  
 
-void sccp_mwi_stopMonitor(){
+/*!
+ * \brief Stop MWI Monitor
+ */
+void sccp_mwi_stopMonitor() 
+{
 #ifndef CS_AST_HAS_EVENT
 	if (GLOB(mwiMonitorThread) != AST_PTHREADT_NULL) {
 		/* Wake up the thread */
@@ -48,7 +58,12 @@ void sccp_mwi_stopMonitor(){
 #endif
 }
 
-int sccp_mwi_startMonitor(){
+/*!
+ * \brief Start MWI Monitor
+ * \return Status int
+ */
+int sccp_mwi_startMonitor()
+{
 #ifndef CS_AST_HAS_EVENT
 	/* Start a new monitor */
 	if(GLOB(mwiMonitorThread) == AST_PTHREADT_NULL){
@@ -68,7 +83,12 @@ int sccp_mwi_startMonitor(){
 
 
 #ifndef CS_AST_HAS_EVENT
-void *sccp_mwi_progress(void *data) {
+/*!
+ * \brief MWI Progress
+ * \param data Data
+ */
+void *sccp_mwi_progress(void *data)
+{
 	sccp_line_t			*line;
 	//sccp_linedevices_t 	*linedevice;
 	//sccp_device_t 		*device;
@@ -145,7 +165,9 @@ void *sccp_mwi_progress(void *data) {
 #else
 
 /*!
- * \brief receive mwi event from asterisk
+ * \brief Receive MWI Event from Asterisk
+ * \param event Asterisk Event
+ * \param data Asterisk Data
  */
 void sccp_mwi_event(const struct ast_event *event, void *data){
 	sccp_mailbox_subscriber_list_t *subscribtion = data;
@@ -195,7 +217,9 @@ void sccp_mwi_event(const struct ast_event *event, void *data){
 }
 
 /*!
- * remove mailbox subscription
+ * \brief Remove Mailbox Subscription
+ * \param m SCCP Mailbox
+ * \todo Implement sccp_mwi_unsubscribeMailbox (TODO Marcello)
  */
 void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t **m){
 	sccp_mailbox_t *mailbox = *m;
@@ -207,7 +231,9 @@ void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t **m){
 }
 
 /*!
- * remove mailbox subscription
+ * \brief Subscribe to mailbox
+ * \param l SCCP Line
+ * \param m SCCP MailBox
  */
 void sccp_mwi_subscribeMailbox(sccp_line_t **l, sccp_mailbox_t **m){
 	sccp_mailbox_t *mailbox = *m;
@@ -332,6 +358,10 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 
 #endif
 
+/*!
+ * \brief Check Line for MWI Status
+ * \param line SCCP Line
+ */
 void sccp_mwi_checkLine(sccp_line_t *line){
 	sccp_mailbox_t *mailbox=NULL;
 	char buffer[512];
@@ -356,7 +386,13 @@ void sccp_mwi_checkLine(sccp_line_t *line){
 	SCCP_LIST_UNLOCK(&line->mailboxes);
 }
 
-void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l) {
+/*!
+ * \brief Set MWI Line Status
+ * \param d SCCP Device
+ * \param l SCCP Line
+ */
+void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
+{
 	sccp_moo_t * r;
 	int instance;
 	boolean_t hasMail;
@@ -400,7 +436,12 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l) {
 	sccp_device_unlock(d);
 }
 
-void sccp_mwi_check(sccp_device_t *device){
+/*!
+ * \brief Check MWI Status for Device
+ * \param device SCCP Device
+ */
+void sccp_mwi_check(sccp_device_t *device)
+{
 	sccp_buttonconfig_t	*buttonconfig = NULL;
 	sccp_line_t		*line = NULL;
 	uint hasNewMessage = 0;

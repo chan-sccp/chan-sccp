@@ -1,9 +1,11 @@
-/*
- * sccp_featureButton.c
- *
- *  Created on: 25.06.2009
- *      Author: marcello
- */
+/*!
+ * \file 	sccp_featureButton.c
+ * \brief 	SCCP FeatureButton Class
+ * \author 	Marcello Ceschia <marcello [at] ceschia.de>
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \since 	2009-06-15
+ */ 
+ 
 #include "config.h"
 
 #ifndef ASTERISK_CONF_1_2
@@ -26,8 +28,16 @@
 #endif
 
 
-/* fetch the new sate, and send status to device */
-void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureType){
+/*!
+ * \brief Feature Button Changed
+ *
+ * fetch the new sate, and send status to device
+ * 
+ * \param device SCCP Device
+ * \param featureType SCCP Feature Type
+ */
+void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureType)
+{
 	sccp_moo_t 			*featureRequestMessage = NULL;
 	sccp_buttonconfig_t		*config=NULL, *buttonconfig = NULL;
 	sccp_line_t			*line;
