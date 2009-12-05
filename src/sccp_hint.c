@@ -4,6 +4,7 @@
  * \author 	Marcello Ceschia <<marcello [at] ceschia.de>
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  * \since 	2009-01-16
+ * \version $LastChangeDate$
  */ 
  
 #include "config.h"
@@ -98,8 +99,7 @@ void sccp_hint_eventListener(const sccp_event_t **event){
 	case SCCP_EVENT_DEVICEUNREGISTERED:
 		device = e->event.deviceRegistered.device;
 		
-		if(!device)
-		{
+		if(!device){
 			ast_log(LOG_ERROR, "Error posting deviceUnregistered event (null device)\n");
 			return;
 		}
