@@ -109,11 +109,13 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l, sccp_device_t *device)
 	
 	if(!device){
 		c->device = NULL;
+		c->capability = GLOB(global_capability);
 	}else{
 		c->device = device;
 		c->format = ast_codec_choose(&device->codecs, device->capability, 1);
-		
+		c->capability = device->capability;
 	}
+	sccp_channel_updateChannelCapability(c);
 
 /*
 	if(!device){
@@ -136,15 +138,48 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l, sccp_device_t *device)
 	return c;
 }
 
+void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
+	if(!channel)
+		return;
+	
+	if(!channel->device){
+		channel->capability = GLOB(global_capability);
+		memcpy(&channel->codecs, &GLOB(global_codecs), sizeof(channel->codecs));
+	}else{
+		channel->capability = channel->device->capability;
+		memcpy(&channel->codecs, &channel->device->codecs, sizeof(channel->codecs));
+	}
+
+	channel->format = ast_codec_choose(&channel->codecs, channel->capability, 1);
+  
+	if(channel->owner){
+		channel->owner->nativeformats = channel->capability;
+		channel->owner->rawreadformat = channel->capability;
+		channel->owner->rawwriteformat = channel->capability;
+	}
+	
+	
+	char s1[512];
+	sccp_log(2)(VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d)\n",
+	channel->line->name,
+	channel->callid,
+#ifndef ASTERISK_CONF_1_2
+	ast_getformatname_multiple(s1, sizeof(s1) -1, channel->capability & AST_FORMAT_AUDIO_MASK),
+#else
+	ast_getformatname_multiple(s1, sizeof(s1) -1, channel->capability),
+#endif
+	channel->capability);
+}
+
 
 /*!
- * \brief Get Active Channel on Device
- * \param d SCCP Device
- * \return SCCP Channel
+ * \brief Add Line to device.
+ * \param device - Device
+ * \param lineName - Name of line
+ * \param index - preferred button (position)
  */
-sccp_channel_t * sccp_channel_get_active(sccp_device_t * d)
-{
-        sccp_channel_t * c = NULL;
+sccp_channel_t * sccp_channel_get_active(sccp_device_t * d) {
+	sccp_channel_t * c;
 
 	if (!d)
 		return NULL;
@@ -981,11 +1016,14 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 	}
 	c->device = d;
 	
+	sccp_channel_updateChannelCapability(c);
+	
+	/*
 	c->owner->nativeformats = device->capability;
 	c->format = ast_codec_choose(&device->codecs, device->capability, 1);
 	c->owner->rawreadformat = device->capability;
 	c->owner->rawwriteformat = device->capability;
-
+	*/
 
 	/* answering an incoming call */
 	/* look if we have a call to put on hold */
@@ -1218,7 +1256,8 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
 	sccp_channel_lock(c);
 	
 	c->device = d;
-	c->owner->nativeformats = c->device ? c->device->capability : GLOB(global_capability);
+	sccp_channel_updateChannelCapability(c);
+	//c->owner->nativeformats = c->device ? c->device->capability : GLOB(global_capability);
 	
 	//sccp_channel_set_callstate(d, c, SKINNY_CALLSTATE_CONNECTED);
 	c->state = SCCP_CHANNELSTATE_HOLD;
@@ -1566,8 +1605,7 @@ static void * sccp_channel_transfer_ringing_thread(void *data)
  * \param cDestinationLocal Local Destination SCCP Channel
  * \todo Find a way solve the chan->state problem
  */
-void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal)
-{
+void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char *name, *number, *cidtmp;
 #endif
@@ -1888,6 +1926,9 @@ void sccp_channel_park(sccp_channel_t * c) {
 		ast_free(dual);
 	}
 }
+
+
+
 
 #endif
 

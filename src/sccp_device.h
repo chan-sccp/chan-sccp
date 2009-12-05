@@ -13,8 +13,10 @@
 #ifndef __SCCP_DEVICE_H
 #define __SCCP_DEVICE_H
 
+
 sccp_device_t * sccp_device_create(void);
 sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d);
+sccp_device_t *sccp_device_addToGlobals(sccp_device_t *device);
 int sccp_device_get_codec(struct ast_channel *ast);
 void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn);
 sccp_moo_t * sccp_build_packet(sccp_message_t t, size_t pkt_len);

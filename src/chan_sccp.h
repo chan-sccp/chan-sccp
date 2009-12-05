@@ -374,11 +374,10 @@ struct sccp_line {
         ast_mutex_t 				lock;					/*!< Asterisk: Lock Me Up and Tie me Down */
         char 					id[4];					/*!< This line's ID, used for logging into (for mobility) */
         char 					pin[8];					/*!< PIN number for mobility/roaming. */
-/*	uint8_t 				instance;*/				/* The lines position/instanceId on the current device*/
         char 					name[80];				/*!< The name of the line, so use in asterisk (i.e SCCP/[name]) */
         char 					description[StationMaxNameSize];	/*!< A description for the line, displayed on in header (on7960/40) or on main  screen on 7910 */
         char 					label[StationMaxNameSize];		/*!< A name for the line, displayed next to the button (7960/40). */
-/*	char 					mailbox[AST_MAX_EXTENSION];*/		/* Previous MailBox Number as Char */
+
         SCCP_LIST_HEAD(, sccp_mailbox_t) 	mailboxes;				/*!< Mailbox Linked List Entry. To check for messages */
         char 					vmnum[AST_MAX_EXTENSION];		/*!< Voicemail number to Dial */
         char 					meetmenum[AST_MAX_EXTENSION];		/*!< Meetme Extension to be Dialed*/
@@ -386,7 +385,7 @@ struct sccp_line {
         char 					language[MAX_LANGUAGE];			/*!< language we use for calls */
         char 					accountcode[AST_MAX_ACCOUNT_CODE];	/*!< accountcode used in cdr */
         char 					musicclass[MAX_MUSICCLASS];		/*!< musicclass assigned when getting moh */
-        int					amaflags;				/*!< amaflags */
+        int						amaflags;				/*!< amaflags */
         ast_group_t				callgroup;				/*!< callgroups assigned (seperated by commas) to this lines */
 #ifdef CS_SCCP_PICKUP
         ast_group_t				pickupgroup;				/*!< pickupgroup assigned to this line */
@@ -425,7 +424,7 @@ struct sccp_line {
         unsigned int				pendingDelete: 1;			/*!< this bit will tell the scheduler to delete this line when unused */
 /*	sccp_line_t				pendingUpdate;*/			/* this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
-        int 					capability;				/*!< Line Capability \todo Shouldn't Line Capability use a structure ? */
+
 
         /*!
          * \brief Statistic for Line Structure
@@ -624,9 +623,11 @@ struct sccp_session {
  */
 struct sccp_channel {
         ast_mutex_t				lock;					/*!< Asterisk: Lock Me Up and Tie me Down */
-        int					format;					/*!< Codec requested by Asterisk */
+        int						format;					/*!< Codec requested by Asterisk */
 
-        struct ast_codec_pref 			codecs;					/*!< Asterisk Codec Channel Preference */
+        struct ast_codec_pref 	codecs;					/*!< Asterisk Codec Channel Preference */
+        int 					capability;				/*!< channel Capability */
+
         char					calledPartyName[StationMaxNameSize];	/*!< Called Party Name */
         char					calledPartyNumber[StationMaxDirnumSize];/*!< Called Party Number */
         char					callingPartyName[StationMaxNameSize];	/*!< Calling Party Name */

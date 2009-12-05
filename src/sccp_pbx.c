@@ -283,6 +283,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 
 	if(l->devices.size == 1 && SCCP_LIST_FIRST(&l->devices) && SCCP_LIST_FIRST(&l->devices)->device && SCCP_LIST_FIRST(&l->devices)->device->session){
 		c->device = SCCP_LIST_FIRST(&l->devices)->device;
+		sccp_channel_updateChannelCapability(c);
 	}
 
 
@@ -1056,8 +1057,9 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	// tmp->nativeformats = (d->capability ? d->capability : GLOB(global_capability));
 	//tmp->nativeformats = ast_codec_choose(&d->codecs, (d->capability ? d->capability : GLOB(global_capability)), 1);
 	//tmp->nativeformats = (l->capability ? l->capability : GLOB(global_capability));
-	tmp->nativeformats = ast_codec_choose(&c->codecs, (l->capability ? l->capability : GLOB(global_capability)), 1);
-
+	
+	tmp->nativeformats = ast_codec_choose(&c->codecs, c->capability, 1);
+	
 
 	if(!tmp->nativeformats)	{
 		ast_log(LOG_ERROR, "%s: No audio format to offer. Cancelling call on line %s\n", l->id, l->name);
@@ -1066,7 +1068,8 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 
 	//fmt = ast_codec_choose(&d->codecs, tmp->nativeformats, 1);
 	fmt = tmp->nativeformats;
-	c->format = fmt;
+	//c->format = fmt;
+	c->format = ast_codec_choose(&c->codecs, tmp->nativeformats, 1);
 
 #ifdef CS_AST_HAS_AST_STRING_FIELD
 	ast_string_field_build(tmp, name, "SCCP/%s-%08x", l->name, c->callid);
@@ -1083,15 +1086,15 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 #endif
 
     char s1[512], s2[512];
-	sccp_log(2)(VERBOSE_PREFIX_3 "%s: Channel %s, capabilities: DEVICE %s(%d) PREFERRED %s(%d) USED %s(%d)\n",
+	sccp_log(2)(VERBOSE_PREFIX_3 "%s: Channel %s, capabilities: CHANNEL %s(%d) PREFERRED %s(%d) USED %s(%d)\n",
 	l->id,
 	tmp->name,
 #ifndef ASTERISK_CONF_1_2
-	ast_getformatname_multiple(s1, sizeof(s1) -1, l->capability & AST_FORMAT_AUDIO_MASK),
+	ast_getformatname_multiple(s1, sizeof(s1) -1, c->capability & AST_FORMAT_AUDIO_MASK),
 #else
-	ast_getformatname_multiple(s1, sizeof(s1) -1, l->capability),
+	ast_getformatname_multiple(s1, sizeof(s1) -1, c->capability),
 #endif
-	l->capability,
+	c->capability,
 #ifndef ASTERISK_CONF_1_2
 	ast_getformatname_multiple(s2, sizeof(s2) -1, tmp->nativeformats & AST_FORMAT_AUDIO_MASK),
 #else
