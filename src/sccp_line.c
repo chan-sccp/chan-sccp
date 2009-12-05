@@ -41,10 +41,12 @@ sccp_line_t * sccp_line_create(void) {
 	}
 	memset(l, 0, sizeof(sccp_line_t));
 	ast_mutex_init(&l->lock);
+	l =  sccp_line_applyDefaults(l);
 	SCCP_LIST_HEAD_INIT(&l->channels);
 	SCCP_LIST_HEAD_INIT(&l->devices);
 	SCCP_LIST_HEAD_INIT(&l->mailboxes);
-	return sccp_line_applyDefaults(l);
+	
+	return l;
 }
 
 /*!
@@ -57,15 +59,14 @@ sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l)
 	if(!l)
 		return NULL;
 
-	//l->instance = -1;
+	
 	l->incominglimit = 3; /* default value */
 	l->echocancel = GLOB(echocancel); /* default value */
 	l->silencesuppression = GLOB(silencesuppression); /* default value */
 	l->rtptos = GLOB(rtptos); /* default value */
-	l->transfer = 1; /* default value. on if the device transfer is on*/
+	l->transfer = TRUE; /* default value. on if the device transfer is on*/
 	l->secondary_dialtone_tone = SKINNY_TONE_OUTSIDEDIALTONE;
 	l->dndmode = SCCP_DNDMODE_OFF;
-	//l->mailbox[0] = '\0';
 
 	sccp_copy_string(l->context, GLOB(context), sizeof(l->context));
 	sccp_copy_string(l->language, GLOB(language), sizeof(l->language));
@@ -79,13 +80,40 @@ sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l)
 	return l;
 }
 
+
+/*!
+ * Add a line to global line list.
+ * \param line line pointer
+ * \since 20091202 - MC
+ */
+sccp_line_t *sccp_line_addToGlobals(sccp_line_t *line){
+	if(!line){
+		ast_log(LOG_ERROR, "Adding null to global line list is not allowed!\n");
+		return NULL;
+	}
+  
+	SCCP_LIST_LOCK(&GLOB(lines));
+	SCCP_LIST_INSERT_HEAD(&GLOB(lines), line, list);
+	SCCP_LIST_UNLOCK(&GLOB(lines));
+	sccp_log(1)(VERBOSE_PREFIX_3 "Added line '%s'\n", line->name);
+
+
+	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
+	memset(event, 0, sizeof(sccp_event_t));
+	event->type=SCCP_EVENT_LINECREATED;
+	event->event.lineCreated.line = line;
+	sccp_event_fire((const sccp_event_t **)&event);
+	
+	return line;
+}
+
+
 /*!
  * \brief Kill all Channels of a specific Line
  * \param l SCCP Line
  * \note Should be Called with a lock on l->lock
  */
-void sccp_line_kill(sccp_line_t * l)
-{
+void sccp_line_kill(sccp_line_t * l) {
 	sccp_channel_t * c;
 
 	if (!l)

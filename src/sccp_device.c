@@ -48,13 +48,14 @@ sccp_device_t * sccp_device_create(void){
 	}
 	memset(d, 0, sizeof(sccp_device_t));
 	ast_mutex_init(&d->lock);
-	SCCP_LIST_HEAD_INIT(&d->hints);
+
+	d = sccp_device_applyDefaults(d);
+
 	SCCP_LIST_HEAD_INIT(&d->buttonconfig);
 	// TODO: FIX THIS
 	// SCCP_LIST_HEAD_INIT(&d->selectedChannels);
 	SCCP_LIST_HEAD_INIT(&d->addons);
-
-	return sccp_device_applyDefaults(d);
+	return d;
 }
 
 /*!
@@ -118,10 +119,25 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 	  return d;
 }
 
+
+
+
+sccp_device_t *sccp_device_addToGlobals(sccp_device_t *device){
+	if(!device)
+		return NULL;
+  
+	SCCP_LIST_LOCK(&GLOB(devices));
+	SCCP_LIST_INSERT_HEAD(&GLOB(devices), device, list);
+	SCCP_LIST_UNLOCK(&GLOB(devices));
+
+	sccp_log(1)(VERBOSE_PREFIX_3 "Added device '%s' (%s)\n", device->id, device->config_type);
+	return device;
+}
+
 /*!
- * \brief Return Device's Codec (part of the RTP interface)
- * \param ast Asterisk Channel
- * \return Success as int
+ * \brief Kill all Channels of a specific Line
+ * \param l SCCP Line
+ * \note Should be Called with a lock on l->lock
  */
 int sccp_device_get_codec(struct ast_channel *ast)
 {
@@ -137,21 +153,31 @@ int sccp_device_get_codec(struct ast_channel *ast)
 
 	if (!(d = c->device)) {
 		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Couldn't find a device associated to channel. Returning global capabilities\n");
-		return GLOB(global_capability);
+		//return GLOB(global_capability);
 	}
 
 	/* update channel capabilities */
+	sccp_channel_updateChannelCapability(c);
+	/*
 	c->format = ast_codec_choose(&d->codecs, d->capability, 1);
 	ast->nativeformats = d->capability;
 	ast->rawreadformat = d->capability;
 	ast->rawwriteformat = d->capability;
+	*/
 	
 	ast_set_read_format(ast, c->format);
 	ast_set_write_format(ast, c->format);
 	
-	
-	sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Device '%s' capabilities are '%d'\n", d->id, d->capability);
-	return d->capability;
+	char s1[512];
+	sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) capabilities are %s (%d)\n", 
+#ifndef ASTERISK_CONF_1_2
+		ast_getformatname_multiple(s1, sizeof(s1) -1, c->capability & AST_FORMAT_AUDIO_MASK),
+#else
+		ast_getformatname_multiple(s1, sizeof(s1) -1, c->capability),
+#endif
+		c->capability);
+		
+	return c->capability;
 }
 
 /*!
@@ -159,8 +185,7 @@ int sccp_device_get_codec(struct ast_channel *ast)
  * \param d device
  * \param btn buttonlist
  */
-void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn)
-{
+void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 	uint8_t i;
 	if (!d || !d->session)
 		return;
@@ -626,8 +651,8 @@ void sccp_dev_displayprompt(sccp_device_t * d, uint8_t line, uint32_t callid, ch
 {
         sccp_moo_t * r;
 
-        if (!d || !d->session)
-                return;
+	if (!d || !d->session)
+		return;
 	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) return; /* only for telecaster and new phones */
 
 	if (!msg || ast_strlen_zero(msg))
@@ -707,8 +732,8 @@ void sccp_dev_displaynotify(sccp_device_t * d, char * msg, uint32_t timeout)
 {
         sccp_moo_t * r;
 
-        if (!d || !d->session)
-                return;
+	if (!d || !d->session)
+		return;
 	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) return; /* only for telecaster and new phones */
 
 	if (!msg || ast_strlen_zero(msg))
@@ -1164,8 +1189,7 @@ void * sccp_dev_postregistration(void *data)
  * \param d SCCP Device
  * \param destroy Destroy as boolean_t
  */
-void sccp_dev_clean(sccp_device_t * d, boolean_t destroy)
-{
+void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 	sccp_buttonconfig_t	*config = NULL;
 	sccp_hostname_t *permithost = NULL;
 	sccp_selectedchannel_t 	*selectedChannel = NULL;
@@ -1234,7 +1258,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy)
 
 	if(destroy){
 		//SCCP_LIST_REMOVE_CURRENT(d);
-		SCCP_LIST_HEAD_DESTROY(&d->hints);
 
 		/* remove button config */
 		/* only generated on read config, so do not remove on reset/restart*/

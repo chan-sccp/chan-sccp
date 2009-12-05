@@ -19,7 +19,12 @@
 #include "sccp_utils.h"
 #include "sccp_indicate.h"
 #include "sccp_device.h"
+#include "sccp_line.h"
 #include "sccp_config.h"
+
+
+
+
 #include <asterisk/astdb.h>
 #include <asterisk/pbx.h>
 #include <asterisk/utils.h>
@@ -120,92 +125,7 @@ void sccp_permithost_addnew(sccp_device_t * d, const char * config_string)
 }
 
 
-void sccp_serviceURL_addnew(sccp_device_t * d, const char * config_string, uint8_t index)
-{
-//	char *splitter;
-//	char *Label = NULL, *URL = NULL;
-//	char OptionString[1024];
-//
-//	sccp_service_t *serviceURL = malloc(sizeof(sccp_service_t));
-//
-//	if (!serviceURL) {
-//		ast_log(LOG_WARNING, "SCCP: Error allocating serviceURL '%s'\n", config_string);
-//	} else {
-//		memset(serviceURL, 0, sizeof(sccp_service_t));
-//		serviceURL->config_instance = index;
-//		if (ast_strlen_zero(config_string)) {
-//			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Added empty serviceURL\n");
-//		} else {
-//			sccp_copy_string(OptionString, config_string, sizeof(OptionString));
-//			splitter = OptionString;
-//			Label = strsep(&splitter, ",");
-//			URL = splitter;
-//			if(Label)
-//				ast_strip(Label);
-//			if(URL)
-//				ast_strip(URL);
-//			if((URL && Label) && (!ast_strlen_zero(URL) && !ast_strlen_zero(Label)))
-//			{
-//				sccp_copy_string(serviceURL->label, Label, strlen(Label) + 1);
-//				sccp_copy_string(serviceURL->URL, URL, strlen(URL) + 1);
-//				SCCP_LIST_INSERT_TAIL(&d->serviceURLs, serviceURL, list);
-//				sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Add serviceURL: %s as instance %d\n", URL, index);
-//			} else {
-//				ast_log(LOG_WARNING, "SCCP: Wrong serviceURL syntax: '%s'\n", config_string);
-//			}
-//		}
-//	}
-}
 
-void sccp_speeddial_addnew(sccp_device_t * d, const char * speed_config_string, uint8_t index) {
-
-	char *splitter;
-	char *k_exten = NULL, *k_name = NULL, *k_hint = NULL;
-	char k_speed[256];
-
-//	sccp_speed_t *k = malloc(sizeof(sccp_speed_t));
-
-//	if (!k) {
-//		ast_log(LOG_WARNING, "SCCP: Error allocating speedial '%s'\n", speed_config_string);
-//	} else {
-//		memset(k, 0, sizeof(sccp_speed_t));
-//		k->config_instance = index;
-		if (ast_strlen_zero(speed_config_string)) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Added empty speeddial\n");
-			sccp_config_addEmpty(d, index);
-		} else {
-			sccp_copy_string(k_speed, speed_config_string, sizeof(k_speed));
-			splitter = k_speed;
-			k_exten = strsep(&splitter, ",");
-			k_name = strsep(&splitter, ",");
-			k_hint = splitter;
-			if (k_exten)
-				ast_strip(k_exten);
-			if (k_name)
-				ast_strip(k_name);
-			if (k_hint)
-				ast_strip(k_hint);
-			if (k_exten && !ast_strlen_zero(k_exten))
-			{
-				if (!k_name)
-					k_name = k_exten;
-
-				sccp_config_addSpeeddial(d, k_name, k_exten, (k_hint)?k_hint:NULL, index);
-//				sccp_copy_string(k->name, k_name, sizeof(k->name));
-//				sccp_copy_string(k->ext, k_exten, sizeof(k->ext));
-//
-//				if (k_hint)
-//					sccp_copy_string(k->hint, k_hint, sizeof(k->hint));
-//
-//				SCCP_LIST_INSERT_TAIL(&d->speed_dials, k, list);
-
-				sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Added speeddial %d: %s (%s)\n", index, k_name, k_exten);
-			} else {
-				ast_log(LOG_WARNING, "SCCP: Wrong speedial syntax: '%s'\n", speed_config_string);
-			}
-		}
-//	}
-}
 
 /*!
  * \brief Add New AddOn/Sidecar to Device's AddOn Linked List
@@ -392,16 +312,26 @@ sccp_device_t * sccp_device_find_byid(const char * name, boolean_t useRealtime)
  */
 sccp_device_t * sccp_device_find_realtime(const char * name) {
 	sccp_device_t *d = NULL;
-	struct ast_variable *v;
+	struct ast_variable *v, *variable;
 
 	/* No martini, no party ! */
 	if(ast_strlen_zero(GLOB(realtimedevicetable)))
 		return NULL;
 
-	if ((v = ast_load_realtime(GLOB(realtimedevicetable), "name", name, NULL))) {
+	if ((variable = ast_load_realtime(GLOB(realtimedevicetable), "name", name, NULL))) {
+		v = variable;
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Device '%s' found in realtime table '%s'\n", name, GLOB(realtimedevicetable));
-		d = sccp_config_buildDevice(v, name, TRUE);
+		//d = sccp_config_buildDevice(v, name, TRUE);
+		
+		d = sccp_device_create();
+		d = sccp_config_applyDeviceConfiguration(d, variable);
+		sccp_copy_string(d->id, name, sizeof(d->id));
+#ifdef CS_SCCP_REALTIME
+		d->realtime = TRUE;
+#endif
+		d = sccp_device_addToGlobals(d);
 		ast_variables_destroy(v);
+		
 		if(!d) {
 			ast_log(LOG_ERROR, "SCCP: Unable to build realtime device '%s'\n", name);
 		}
@@ -459,17 +389,28 @@ sccp_line_t * sccp_line_find_byname_wo(const char * name, uint8_t realtime)
 sccp_line_t * sccp_line_find_realtime_byname(const char * name)
 {
 	sccp_line_t *l = NULL;
-	struct ast_variable *v;
+	struct ast_variable *v, *variable;
 
 	/* No martini, no party ! */
 	if(ast_strlen_zero(GLOB(realtimelinetable)))
 		return NULL;
 
-	if ((v = ast_load_realtime(GLOB(realtimelinetable), "name", name, NULL))) {
+	if ((variable = ast_load_realtime(GLOB(realtimelinetable), "name", name, NULL))) {
+		v = variable;
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Line '%s' found in realtime table '%s'\n", name, GLOB(realtimelinetable));
 		//l = build_lines_wo(v, 1);
-		l = sccp_config_buildLine(v, name, TRUE);
+		
+		//l = sccp_config_buildLine(v, name, TRUE);
+		l = sccp_line_create();
+		l = sccp_config_applyLineConfiguration(l, variable);
+		sccp_copy_string(l->name, name, sizeof(l->name));
+#ifdef CS_SCCP_REALTIME
+		l->realtime = TRUE;
+#endif
+		l = sccp_line_addToGlobals(l);
 		ast_variables_destroy(v);
+		
+		
 		if(!l) {
 			ast_log(LOG_ERROR, "SCCP: Unable to build realtime line '%s'\n", name);
 		}
