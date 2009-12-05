@@ -1,7 +1,7 @@
 /*!
  * \file 	sccp_lists.h
  * \brief 	SCCP Lists Header
- * \author 	Federico Santulli <info [at] chan-sccp.org>
+ * \author 	Federico Santulli <fsantulli [at] users.sourceforge.net>
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  * \note	Code derives from Asterisk 1.6 "linkedlists.h"
  *

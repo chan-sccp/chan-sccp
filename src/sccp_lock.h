@@ -1,7 +1,7 @@
 /*!
  * \file 	sccp_lock.h
  * \brief 	SCCP Lock Header
- * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \author 	Federico Santulli <fsantulli [at] users.sourceforge.net>
  * \date
  * \note	Mutex lock code derived from Asterisk 1.4
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.

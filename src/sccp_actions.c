@@ -2,6 +2,7 @@
  * \file 	sccp_actions.c
  * \brief 	SCCP Actions Class
  * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \author 	Federico Santulli <fsantulli [at] users.sourceforge.net>
  * \date
  * \note	Reworked, but based on chan_sccp code.
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
