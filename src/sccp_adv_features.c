@@ -2,6 +2,7 @@
  * \file 	sccp_adv_features.c
  * \brief 	SCCP Advanced Features Class
  * \author 	Sergio Chersovani <mlists [at] c-net.it>
+ * \author	Federico Santulli <fsantulli [at] users.sourceforge.net>
  * \date
  * \note	Reworked, but based on chan_sccp code.
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
