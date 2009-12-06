@@ -106,7 +106,7 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l, sccp_device_t *device)
 	sccp_mutex_unlock(&callCountLock);
 
 	c->line = l;
-	
+	c->format = 0;
 	if(!device){
 		c->device = NULL;
 		c->capability = GLOB(global_capability);
@@ -150,17 +150,23 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
 		memcpy(&channel->codecs, &channel->device->codecs, sizeof(channel->codecs));
 	}
 
-	channel->format = ast_codec_choose(&channel->codecs, channel->capability, 1);
+	if(channel->format == 0){
+		/* we does not have set a preferred format before */
+		channel->format = ast_codec_choose(&channel->codecs, channel->capability, 1);
+	}
   
 	if(channel->owner){
 		channel->owner->nativeformats = channel->capability;
-		channel->owner->rawreadformat = channel->capability;
-		channel->owner->rawwriteformat = channel->capability;
+		channel->owner->rawreadformat = channel->format;
+		channel->owner->rawwriteformat = channel->format;
+		
+		ast_set_read_format(channel->owner, channel->format);
+		ast_set_write_format(channel->owner, channel->format);
 	}
 	
 	
-	char s1[512];
-	sccp_log(2)(VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d)\n",
+	char s1[512], s2[512];
+	sccp_log(2)(VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d) USED: %s(%d) \n",
 	channel->line->name,
 	channel->callid,
 #ifndef ASTERISK_CONF_1_2
@@ -168,7 +174,13 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
 #else
 	ast_getformatname_multiple(s1, sizeof(s1) -1, channel->capability),
 #endif
-	channel->capability);
+	channel->capability,
+#ifndef ASTERISK_CONF_1_2
+	ast_getformatname_multiple(s2, sizeof(s2) -1, channel->format & AST_FORMAT_AUDIO_MASK),
+#else
+	ast_getformatname_multiple(s2, sizeof(s2) -1, channel->format),
+#endif
+	channel->format);
 }
 
 

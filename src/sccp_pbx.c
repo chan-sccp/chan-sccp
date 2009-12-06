@@ -609,6 +609,7 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 						ast_getformatname_multiple(s3, sizeof(s3) - 1, ast->writeformat),
 						ast->writeformat);
 					return -1;
+					
 				}
 				if (c->rtp)
 					res = ast_rtp_write(c->rtp, frame);

@@ -244,7 +244,7 @@ if(l->devices.size < 2){
 		}
 	}
 
-
+	/*
 	if(c->device){
 		if(c->device->session){
 			hasSession = TRUE;
@@ -265,7 +265,7 @@ if(l->devices.size < 2){
 				hasSession = TRUE;
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
-	}
+	}*/
 
 	if (!hasSession) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP/%s we have no registered devices for this line.\n", l->name);
@@ -274,6 +274,7 @@ if(l->devices.size < 2){
 #endif
 		goto OUT;
 	}
+	/*
 	if (!format) {
 		format = oldformat;
 		res = ast_translator_best_choice(&format, &GLOB(global_capability));
@@ -284,12 +285,11 @@ if(l->devices.size < 2){
 #endif
 			goto OUT;
 		}
-	}
+	}*/
 
 
 	 c->format = oldformat;
-
-
+	 sccp_channel_updateChannelCapability(c);
 
 	/* we don't need to parse any options when we have a call forward status */
 // 	if (c->owner && !ast_strlen_zero(c->owner->call_forward))
