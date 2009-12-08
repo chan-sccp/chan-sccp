@@ -843,7 +843,72 @@ void sccp_channel_stopmediatransmission(sccp_channel_t * c)
 	sccp_channel_StatisticsRequest(c);
 }
 
+/*!
+ * \brief Update Channel Media Type / Native Bridged Format Match
+ * \param c SCCP Channel
+ * \note Copied function from v2 (FS)
+ */
+void sccp_channel_updatemediatype(sccp_channel_t * c) {
+        struct ast_channel * bridged = NULL; 
 
+        /* checking for ast_channel owner */
+        if(!c->owner) {
+                return;
+        }
+        /* is owner ast_channel a zombie ? */
+        if(ast_test_flag(c->owner, AST_FLAG_ZOMBIE)) {
+                return; /* c->owner is zombie, leaving */
+        }
+        /* channel is hanging up */
+        if(c->owner->_softhangup != 0) {
+                return;
+        }
+        /* channel is not running */
+        if(!c->owner->pbx) {
+                return;
+        }
+        /* check for briged ast_channel */
+        if(!(bridged = CS_AST_BRIDGED_CHANNEL(c->owner))) {
+                return; /* no bridged channel, leaving */  
+        }
+        /* is bridged ast_channel a zombie ? */
+        if(ast_test_flag(bridged, AST_FLAG_ZOMBIE)) {
+                return; /* bridged channel is zombie, leaving */
+        }
+        /* channel is hanging up */
+        if(bridged->_softhangup != 0) {
+                return;
+        }
+        /* channel is not running */
+        if(!bridged->pbx) {
+                return;
+        }
+        if(c->state != SCCP_CHANNELSTATE_ZOMBIE) {
+                ast_log(LOG_NOTICE, "%s: Channel %s -> nativeformats:%d - r:%d/w:%d - rr:%d/rw:%d\n",
+                                        DEV_ID_LOG(c->device),
+                                        bridged->name,
+                                        bridged->nativeformats,
+                                        bridged->writeformat,  
+                                        bridged->readformat,   
+                                #ifdef CS_AST_HAS_TECH_PVT     
+                                        bridged->rawreadformat,
+                                        bridged->rawwriteformat
+                                #else
+                                        bridged->pvt->rawwriteformat,
+                                        bridged->pvt->rawreadformat  
+                                #endif
+                                        );
+                if(!(bridged->nativeformats & c->owner->nativeformats) && (bridged->nativeformats & c->device->capability)) {
+                        c->owner->nativeformats = c->format = bridged->nativeformats;
+                        sccp_channel_closereceivechannel(c);
+                        usleep(100);
+                        sccp_channel_openreceivechannel(c);
+                        ast_set_read_format(c->owner, c->format);
+                        ast_set_write_format(c->owner, c->format);
+                }
+        }
+}
+                                        
 /*!
  * \brief Hangup this channel.
  * \param c SCCP Channel

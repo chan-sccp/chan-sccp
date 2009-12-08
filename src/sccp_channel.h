@@ -38,6 +38,7 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c);
 void sccp_channel_startmediatransmission(sccp_channel_t * c);
 void sccp_channel_closereceivechannel(sccp_channel_t * c);
 void sccp_channel_stopmediatransmission(sccp_channel_t * c);
+void sccp_channel_updatemediatype(sccp_channel_t * c);
 void sccp_channel_endcall(sccp_channel_t * c);
 void sccp_channel_StatisticsRequest(sccp_channel_t * c);
 sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, sccp_device_t *device, char * dial, uint8_t calltype);
