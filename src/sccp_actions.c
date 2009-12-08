@@ -1805,6 +1805,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 		sccp_channel_lock(c);
 		memcpy(&c->rtp_addr, &sin, sizeof(sin));
 		if (c->rtp) {
+			sccp_channel_startmediatransmission(c);				/*!< Starting Media Transmission Earlier to fix 2 second delay - Copied from v2 - FS */
 #ifdef ASTERISK_CONF_1_2
 			sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port));
 			ast_rtp_set_peer(c->rtp, &sin);
@@ -1813,8 +1814,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 			ast_rtp_set_peer(c->rtp, &sin);
 #endif
 			// sccp_dev_stoptone(d, c->line->instance, c->callid);
-
-			sccp_channel_startmediatransmission(c);
+			//sccp_channel_startmediatransmission(c);			/*!< Moved to 9 lines before - Copied from v2 - FS */
 			if(c->state == SCCP_CHANNELSTATE_CONNECTED)
 				sccp_ast_setstate(c, AST_STATE_UP);
 		} else {

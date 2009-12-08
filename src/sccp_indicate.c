@@ -237,6 +237,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		 */
 		if(d->earlyrtp)
 			sccp_ast_setstate(c, AST_STATE_UP);
+		sccp_channel_updatemediatype(c);				/*!< Copied from v2 - FS */
 		break;
 	case SCCP_CHANNELSTATE_BUSY:
 		/* it will be emulated if the rtp audio stream is open */
