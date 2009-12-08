@@ -99,18 +99,20 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 		ast_cli(fd, "Can't find device %s\n", argv[2]);
 		return RESULT_SUCCESS;
 	}
+	
 
 	sccp_device_lock(d);
-
 	if (!d->session) {
 		ast_cli(fd, "%s: device not registered\n", argv[2]);
 		sccp_device_unlock(d);
 		return RESULT_SUCCESS;
 	}
+	if(d->channelCount > 0) {
+	        ast_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
+	        return RESULT_SUCCESS;
+	}
 	sccp_device_unlock(d);
 	ast_cli(fd, "%s: Turn off the monitored line lamps to permit the %s\n", argv[2], argv[1]);
-
-
 
 	REQ(r, Reset);
 	r->msg.Reset.lel_resetType = htolel((!strcasecmp(argv[1], "reset")) ? SKINNY_DEVICE_RESET : SKINNY_DEVICE_RESTART);

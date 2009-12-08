@@ -993,8 +993,35 @@ typedef union {
 
         struct { } StationKeepAliveMessage;					/*!< Station Keep Alive Message */
 
+        /* this is register message from 7940 with load 8.1.1
+         * 00000010 - 00 00 00 00 01 00 00 00 0A 0A 0A D2 07 00 00 00 ................
+         * 00000020 - 00 00 00 00 00 00 00 00 0B 00 60 85 00 00 00 00 ................
+         * 00000030 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+         * 00000040 - 00 00 00 00                                     ....
+         */
+
+        /* Register message from Cisco 7941 with load v8.5.3
+         *
+         * 0000   53 45 50 30 30 31 46 39 45 32 36 36 33 36 39 00
+         * 0010   00 00 00 00 00 00 00 00 c0 a8 09 24 73 00 00 00
+         * 0020   05 00 00 00 00 00 00 00 11 00 72 85 01 00 00 00
+         * 0030   00 00 00 00 00 1f 9e 26 63 69 00 00 00 00 00 00
+         * 0040   03 00 00 00 02 00 00 00 00 00 00 00 00 00 00 00
+         * 0050   00 00 00 00 00 00 00 00 00 00 00 00 53 43 43 50
+         * 0060   34 31 2e 38 2d 35 2d 33 53 00 00 00 00 00 00 00
+         * 0070   00 00 00 00 00 00 00 00 00 00 00 00
+         */
+
+        /* Register message from Cisco 6961 with load v8.5.3
+         *  00000000 - 53 45 50 30 30 31 31 32 31 46 46 38 41 33 45 00 SEP001121FF8A3
+         *  00000010 - 00 00 00 00 01 00 00 00 53 DA 5E 14 F1 01 00 00 ........S.^...
+         *  00000020 - 28 00 00 00 00 00 00 00 0F 20 70 85 00 00 00 00 (........ p...
+         *  00000030 - 00 00 00 00 30 30 31 31 32 31 46 46 38 41 33 45 ....001121FF8A
+         *  00000040 - 00 00 00 00
+         */
+
         struct {
-                StationIdentifier sId;						/*!< Station Identifier */
+                StationIdentifier 	sId;						/*!< Station Identifier */
                 uint32_t		lel_stationIpAddr;				/*!< Station IP Address */
                 uint32_t		lel_deviceType;					/*!< Device Type as part of SKINNY_DEVICETYPE_* */
                 uint32_t		lel_maxStreams;					/*!< Max Streams */
