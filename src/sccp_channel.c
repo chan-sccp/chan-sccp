@@ -423,10 +423,10 @@ enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struc
 		return AST_RTP_GET_FAILED;
 	}
 
-	sccp_channel_lock(c);
+//	sccp_channel_lock(c);
 
 	if (!c->rtp) {
-		sccp_channel_unlock(c);
+//                sccp_channel_unlock(c);
 		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO RTP\n");
 		return AST_RTP_GET_FAILED;
 	}
@@ -434,19 +434,19 @@ enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struc
 	*rtp = c->rtp;
 	if(!(d = c->device)) {
 		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO DEVICE\n");
-		sccp_channel_unlock(c);
+//		sccp_channel_unlock(c);
 		return AST_RTP_GET_FAILED;
 	}
 
 	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
 		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
-		sccp_channel_unlock(c);
+//		sccp_channel_unlock(c);
 		return AST_RTP_GET_FAILED;
 	}
 
  	if (!d->directrtp) {
  		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Direct RTP disabled\n");
- 		sccp_channel_unlock(c);
+// 		sccp_channel_unlock(c);
  		return AST_RTP_GET_FAILED;
  	}
 
@@ -457,7 +457,7 @@ enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struc
 		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Using AST_RTP_TRY_NATIVE for channel %s\n", ast->name);
 	}
 
-	sccp_channel_unlock(c);
+//	sccp_channel_unlock(c);
 
 	return res;
 
