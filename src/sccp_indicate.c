@@ -438,10 +438,16 @@ void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, ui
 
 					break;
 				case SCCP_CHANNELSTATE_CONNECTED:
-					if(c->previousChannelState == SCCP_CHANNELSTATE_RINGING){
+					/* DD: We sometimes set the channel to offhook first before setting it to connected state.
+					   This seems to be necessary to have incoming calles logged properly.
+					   If this is done, the ringer would not get turned off on remote devices. 
+					   So I removed the if clause below. Hopefully, this will not cause other calls to stop
+					 ringing if multiple calls are ringing concurrently on a shared line.*/
+
+					//if(c->previousChannelState == SCCP_CHANNELSTATE_RINGING){
 						sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
 						sccp_device_sendcallstate(remoteDevice, instance,c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, (!c->private)?SKINNY_CALLINFO_VISIBILITY_DEFAULT:SKINNY_CALLINFO_VISIBILITY_HIDDEN); /* send connected, so it is not listed as missed call*/
-					}
+					//}
 					sccp_dev_clearprompt(remoteDevice, instance, c->callid);
 					sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_LOW, (!c->private)?SKINNY_CALLINFO_VISIBILITY_DEFAULT:SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 					sccp_channel_send_callinfo(remoteDevice, c);
