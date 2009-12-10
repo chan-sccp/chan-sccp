@@ -59,6 +59,9 @@ void sccp_hint_module_stop()
 
 	SCCP_LIST_LOCK(&sccp_hint_subscriptions);
 	while((hint = SCCP_LIST_REMOVE_HEAD(&sccp_hint_subscriptions, list))) {
+		if(hint->hintType == ASTERISK){
+			ast_extension_state_del(hint->type.asterisk.hintid, NULL);
+		}
 		while((subscriber = SCCP_LIST_REMOVE_HEAD(&hint->subscribers, list))){
 			ast_free(subscriber);
 			subscriber = NULL;
@@ -758,6 +761,7 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context){
 		/* asterisk style hint system */
 		sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "Configuring asterisk (no sccp features) hint %s for exten: %s and context: %s\n", hint_dialplan, hint_exten, hint_context);
 		
+		hint->hintType = ASTERISK;
 		hint->type.asterisk.notificationThread = AST_PTHREADT_NULL;
 		hint->type.asterisk.hintid = ast_extension_state_add(hint_context, hint_exten, sccp_hint_state, hint);
 		
@@ -777,6 +781,7 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context){
 		}
 	}else{
 		/* SCCP channels hint system. Push */
+		hint->hintType = INTERNAL;
 		char lineName[256];
 
 		/* what line do we have */
