@@ -107,17 +107,15 @@ struct ast_channel *sccp_request(const char *type, int format, void *data, int *
 struct ast_channel *sccp_request(char *type, int format, void *data) {
 #endif
 
-	sccp_device_t 	*device = NULL;
+
 	sccp_line_t * l = NULL;
 	sccp_channel_t * c = NULL;
 	char *options = NULL, *deviceName=NULL, *lineName = NULL;
 	int optc = 0;
 	char *optv[2];
 	int opti = 0;
-	int res = 0;
 	int oldformat = format;
 
-	boolean_t	hasSession = FALSE;
 
 #ifdef CS_AST_HAS_TECH_PVT
 	*cause = AST_CAUSE_NOTDEFINED;
@@ -152,7 +150,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 		options++;
 	}
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Asterisk asked to create a channel type=%s, format=%d, data=%s, device=%s options=%s\n", type, format, lineName,(deviceName)?deviceName:"" , (options) ? options : "");
+	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Asterisk asked to create a channel type=%s, format=%d, data=%s, device=%s options=%s\n", type, format, lineName,(deviceName)?deviceName:"" , (options) ? options : "");
 
 	l = sccp_line_find_byname(lineName);
 
@@ -199,38 +197,40 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 		c = NULL;
 		goto OUT;
 	}
-sccp_log(64)(VERBOSE_PREFIX_3 "Line %s has %d device%s\n", l->name, l->devices.size, (l->devices.size>1)?"s":"");
-if(l->devices.size < 2){
-	if(!c->owner){
-		sccp_log(64)(VERBOSE_PREFIX_3 "%s: channel has no owner\n", l->name);
+	
+	
+	sccp_log(10)(VERBOSE_PREFIX_3 "Line %s has %d device%s\n", l->name, l->devices.size, (l->devices.size>1)?"s":"");
+	if(l->devices.size < 2){
+		if(!c->owner){
+			sccp_log(64)(VERBOSE_PREFIX_3 "%s: channel has no owner\n", l->name);
 #ifdef CS_AST_HAS_TECH_PVT
-		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
+			*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 #endif
-		sccp_channel_delete(c);
-		c = NULL;
-		goto OUT;
+			sccp_channel_delete(c);
+			c = NULL;
+			goto OUT;
+		}
+
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call forward type: %d\n", l->name, l->cfwd_type);
+		if (l->cfwd_type == SCCP_CFWD_ALL) {
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call forward (all) to %s\n", l->name, l->cfwd_num);
+#ifdef CS_AST_HAS_AST_STRING_FIELD
+			ast_string_field_set(c->owner, call_forward, l->cfwd_num);
+#else
+			sccp_copy_string(c->owner->call_forward, l->cfwd_num, sizeof(c->owner->call_forward));
+#endif
+		} else if (l->cfwd_type == SCCP_CFWD_BUSY && l->channelCount > 1) {
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call forward (busy) to %s\n", l->name, l->cfwd_num);
+#ifdef CS_AST_HAS_AST_STRING_FIELD
+			ast_string_field_set(c->owner, call_forward, l->cfwd_num);
+#else
+			sccp_copy_string(c->owner->call_forward, l->cfwd_num, sizeof(c->owner->call_forward));
+#endif
+		}
 	}
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call forward type: %d\n", l->name, l->cfwd_type);
-	if (l->cfwd_type == SCCP_CFWD_ALL) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call forward (all) to %s\n", l->name, l->cfwd_num);
-#ifdef CS_AST_HAS_AST_STRING_FIELD
-		ast_string_field_set(c->owner, call_forward, l->cfwd_num);
-#else
-		sccp_copy_string(c->owner->call_forward, l->cfwd_num, sizeof(c->owner->call_forward));
-#endif
-	} else if (l->cfwd_type == SCCP_CFWD_BUSY && l->channelCount > 1) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call forward (busy) to %s\n", l->name, l->cfwd_num);
-#ifdef CS_AST_HAS_AST_STRING_FIELD
-		ast_string_field_set(c->owner, call_forward, l->cfwd_num);
-#else
-		sccp_copy_string(c->owner->call_forward, l->cfwd_num, sizeof(c->owner->call_forward));
-#endif
-	}
-}
 
-
-
+	sccp_log(1)(VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	 /* we have a single device given */
 	if(deviceName){
 		if( !(c->device = sccp_device_find_byid(deviceName, TRUE)) ){
@@ -267,8 +267,8 @@ if(l->devices.size < 2){
 		SCCP_LIST_UNLOCK(&l->devices);
 	}*/
 
-	if (!hasSession) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP/%s we have no registered devices for this line.\n", l->name);
+	if (l->devices.size == 0) {
+		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP/%s we have no registered devices for this line.\n", l->name);
 #ifdef CS_AST_HAS_TECH_PVT
 		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 #endif
@@ -297,6 +297,7 @@ if(l->devices.size < 2){
 
 	/* check for the channel params */
 	if (options && (optc = sccp_app_separate_args(options, '/', optv, sizeof(optv) / sizeof(optv[0])))) {
+
 		for (opti = 0; opti < optc; opti++) {
 			if (!strncasecmp(optv[opti], "aa", 2)) {
 				/* let's use the old style auto answer aa1w and aa2w */
@@ -333,6 +334,7 @@ if(l->devices.size < 2){
 			/* check for ringer options */
 			} else if (!strncasecmp(optv[opti], "ringer=", 7)) {
 				optv[opti] += 7;
+				ast_log(LOG_WARNING, "%s: found ringer %s\n", l->id, optv[opti]);
 				if (!strcasecmp(optv[opti], "inside"))
 					c->ringermode = SKINNY_STATION_INSIDERING;
 				else if (!strcasecmp(optv[opti], "outside"))
