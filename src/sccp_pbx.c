@@ -551,9 +551,9 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 
 	if (frame->frametype == AST_FRAME_VOICE) {
 		//sccp_log(1)(VERBOSE_PREFIX_3 "%s: read format: %s(%d)\n",
-						DEV_ID_LOG(c->device),
-						ast_getformatname(frame->subclass),
-						frame->subclass);
+		//				DEV_ID_LOG(c->device),
+		//				ast_getformatname(frame->subclass),
+		//				frame->subclass);
 #ifndef ASTERISK_CONF_1_2
 		if (!(frame->subclass & (ast->nativeformats & AST_FORMAT_AUDIO_MASK)))
 #else
@@ -618,9 +618,9 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 				}
 				if (c->rtp){
 					//sccp_log(1)(VERBOSE_PREFIX_3 "%s: write format: %s(%d)\n",
-						DEV_ID_LOG(c->device),
-						ast_getformatname(frame->subclass),
-						frame->subclass);
+					//	DEV_ID_LOG(c->device),
+					//	ast_getformatname(frame->subclass),
+					//	frame->subclass);
 					res = ast_rtp_write(c->rtp, frame);
 				}
 				break;
