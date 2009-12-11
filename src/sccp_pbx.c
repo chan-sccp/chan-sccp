@@ -249,7 +249,8 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	/*!\bug{seems it does not work }
 	 */
 	ringermode = pbx_builtin_getvar_helper(ast, "ALERT_INFO");
-
+	sccp_log(1)(VERBOSE_PREFIX_3 "Do we have ALERT_INFO? %s\n", (ringermode)?"yes":"no");
+	
 	if ( ringermode && !ast_strlen_zero(ringermode) ) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Found ALERT_INFO=%s\n", d->id, ringermode);
 		if (strcasecmp(ringermode, "inside") == 0)
@@ -549,6 +550,10 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 	}
 
 	if (frame->frametype == AST_FRAME_VOICE) {
+		//sccp_log(1)(VERBOSE_PREFIX_3 "%s: read format: %s(%d)\n",
+						DEV_ID_LOG(c->device),
+						ast_getformatname(frame->subclass),
+						frame->subclass);
 #ifndef ASTERISK_CONF_1_2
 		if (!(frame->subclass & (ast->nativeformats & AST_FORMAT_AUDIO_MASK)))
 #else
@@ -611,8 +616,13 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 					return -1;
 					
 				}
-				if (c->rtp)
+				if (c->rtp){
+					//sccp_log(1)(VERBOSE_PREFIX_3 "%s: write format: %s(%d)\n",
+						DEV_ID_LOG(c->device),
+						ast_getformatname(frame->subclass),
+						frame->subclass);
 					res = ast_rtp_write(c->rtp, frame);
+				}
 				break;
 			case AST_FRAME_IMAGE:
 			case AST_FRAME_VIDEO:
