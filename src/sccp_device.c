@@ -26,6 +26,7 @@
 #include "sccp_hint.h"
 #include "sccp_line.h"
 #include "sccp_mwi.h"
+#include "sccp_config.h"
 
 #include <asterisk/app.h>
 #include <asterisk/pbx.h>
@@ -1176,6 +1177,8 @@ void * sccp_dev_postregistration(void *data)
 	event->type=SCCP_EVENT_DEVICEREGISTERED;
 	event->event.deviceRegistered.device = d;
 	sccp_event_fire( (const sccp_event_t **)&event);
+	
+	sccp_config_restoreDeviceFeatureStatus(d);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: ... done!\n", d->id);
 	return NULL;
 }
@@ -1496,4 +1499,6 @@ void sccp_device_stateChanged(sccp_device_t *device)
 
         sccp_mwi_check(device);
 }
+
+
 

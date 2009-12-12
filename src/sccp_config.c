@@ -685,6 +685,10 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			v = ast_variable_browse(cfg, cat);
 			sccp_config_buildLine(v, cat, FALSE);
 			ast_verbose(VERBOSE_PREFIX_3 "found line %d: %s\n", line_count, cat);
+		} else if ( !strcasecmp(utype,"softkeyset") ) {
+			ast_verbose(VERBOSE_PREFIX_3 "read set %s\n", cat);
+			v = ast_variable_browse(cfg, cat);
+			sccp_config_softKeySet(v, cat);
                 }
         }
         ast_config_destroy(cfg);
@@ -1127,3 +1131,126 @@ struct ast_config *sccp_config_getConfig() {
 
 	return cfg;
 }
+
+void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
+	int keySetSize;
+	uint8_t keyMode = 0;
+	int i=0;
+	sccp_log(1)(VERBOSE_PREFIX_3 "start reading softkeyset: %s\n", name);
+	while(variable){
+		sccp_log(1)(VERBOSE_PREFIX_3 "softkeyset: %s \n",variable->name);
+		if (!strcasecmp(variable->name, "type")){
+			
+		}else if(!strcasecmp(variable->name, "onhook")){
+			keyMode = KEYMODE_ONHOOK;
+		}else if(!strcasecmp(variable->name, "connected")){
+			keyMode = KEYMODE_CONNECTED;
+		}else if(!strcasecmp(variable->name, "onhold")){
+			keyMode = KEYMODE_ONHOLD;
+		}else if(!strcasecmp(variable->name, "ringin")){
+			keyMode = KEYMODE_RINGIN;
+		}else if(!strcasecmp(variable->name, "offhook")){
+			keyMode = KEYMODE_OFFHOOK;
+		}else if(!strcasecmp(variable->name, "conntrans")){
+			keyMode = KEYMODE_CONNTRANS;
+		}else if(!strcasecmp(variable->name, "digitsfoll")){
+			keyMode = KEYMODE_DIGITSFOLL;
+		}else if(!strcasecmp(variable->name, "connconf")){
+			keyMode = KEYMODE_CONNCONF;
+		}else if(!strcasecmp(variable->name, "ringout")){
+			keyMode = KEYMODE_RINGOUT;
+		}else if(!strcasecmp(variable->name, "offhookfeat")){
+			keyMode = KEYMODE_OFFHOOKFEAT;
+		}else if(!strcasecmp(variable->name, "onhint")){
+			keyMode = KEYMODE_INUSEHINT;
+		}else{
+			
+		}
+		
+		if(keyMode == 0){
+			variable = variable->next;
+			continue;
+		}
+		
+		for(i=0;i < ( sizeof(SoftKeyModes)/sizeof(softkey_modes) ); i++){
+			if(SoftKeyModes[i].id == keyMode){
+				uint8_t *softkeyset = ast_malloc(StationMaxSoftKeySetDefinition * sizeof(uint8_t));
+				keySetSize = sccp_config_readSoftSet(softkeyset, variable->value);
+				
+				if(keySetSize > 0){
+					SoftKeyModes[i].ptr = softkeyset;
+					SoftKeyModes[i].count = keySetSize;
+				}else{
+					ast_free(softkeyset);
+				}
+			}
+		}
+		variable = variable->next;
+	}
+}
+
+uint8_t sccp_config_readSoftSet(uint8_t *softkeyset, const char *data){
+	int i = 0, j;
+
+	char 			labels[256];
+	char 			*splitter;
+	char			*label;
+
+
+	strcpy(labels, data);
+	splitter = labels;
+	while( (label = strsep(&splitter, ",")) != NULL && i < StationMaxSoftKeySetDefinition){
+		softkeyset[i++] = sccp_config_getSoftkeyLbl(label);
+	}
+
+	for(j=i;j < StationMaxSoftKeySetDefinition;j++){
+		softkeyset[j] = SKINNY_LBL_EMPTY;
+	}
+	return i;
+}
+
+int sccp_config_getSoftkeyLbl(char* key){
+	int i=0;
+	int size = sizeof(softKeyTemplate)/sizeof(softkeyConfigurationTemplate);
+
+
+	for(i=0; i < size; i++){
+		if(!strcasecmp(softKeyTemplate[i].configVar, key)){
+			return softKeyTemplate[i].softkey;
+		}
+	}
+	return SKINNY_LBL_EMPTY;
+}
+
+void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
+	if(!device)
+		return;
+	
+	char 	buffer[256];
+	char 	family[25];
+	int 	res;
+	
+	sprintf(family, "SCCP/%s", device->id);
+	//sccp_log(1)(VERBOSE_PREFIX_3 "restore %s\n", family);
+	res = ast_db_get(family, "dnd", buffer, sizeof(buffer));
+	//sccp_log(1)(VERBOSE_PREFIX_3 "res: %d\n", res);
+	//sccp_log(1)(VERBOSE_PREFIX_3 "buffer: %s\n", buffer);
+	if(!res){
+	      if(!strcasecmp(buffer, "silent"))
+			device->dndmode = SCCP_DNDMODE_SILENT;
+	      else
+			device->dndmode = SCCP_DNDMODE_REJECT;
+	}else{
+	      device->dnd = FALSE;
+	}
+	//sccp_log(1)(VERBOSE_PREFIX_3 "set dnd %d\n", device->dnd);
+	//sccp_log(1)(VERBOSE_PREFIX_3 "set dndmode to %d\n", device->dndmode);
+	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
+	memset(event, 0, sizeof(sccp_event_t));
+	
+	event->type=SCCP_EVENT_FEATURECHANGED;
+	event->event.featureChanged.device = device;
+	event->event.featureChanged.featureType = SCCP_FEATURE_DND;
+	sccp_event_fire((const sccp_event_t **)&event);
+}
+

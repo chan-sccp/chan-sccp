@@ -136,18 +136,10 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
 		return;
 	
 	char s1[512], s2[512];
-	
 	if(!channel->device){
-		channel->capability = GLOB(global_capability);
+		channel->capability = AST_FORMAT_ALAW|AST_FORMAT_ULAW|AST_FORMAT_G729A;
 		memcpy(&channel->codecs, &GLOB(global_codecs), sizeof(channel->codecs));
 	}else{
-		sccp_log(2)(VERBOSE_PREFIX_3 "SCCP: using device capability %s \n",
-#ifndef ASTERISK_CONF_1_2
-			ast_getformatname_multiple(s1, sizeof(s1) -1, channel->device->capability & AST_FORMAT_AUDIO_MASK)
-#else
-			ast_getformatname_multiple(s1, sizeof(s1) -1, channel->device->capability)
-#endif
-		);
 		channel->capability = channel->device->capability;
 		memcpy(&channel->codecs, &channel->device->codecs, sizeof(channel->codecs));
 	}
@@ -159,7 +151,13 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
   
 	if(channel->owner){
 	  
+		/*
 		channel->owner->nativeformats = channel->format;
+		channel->owner->rawreadformat = channel->format;
+		channel->owner->rawwriteformat = channel->format;
+		*/
+		
+		channel->owner->nativeformats = channel->capability;
 		channel->owner->rawreadformat = channel->format;
 		channel->owner->rawwriteformat = channel->format;
 		
