@@ -1068,19 +1068,21 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	// tmp->nativeformats = (d->capability ? d->capability : GLOB(global_capability));
 	//tmp->nativeformats = ast_codec_choose(&d->codecs, (d->capability ? d->capability : GLOB(global_capability)), 1);
 	//tmp->nativeformats = (l->capability ? l->capability : GLOB(global_capability));
-	
-	tmp->nativeformats = ast_codec_choose(&c->codecs, c->capability, 1);
+	//tmp->nativeformats = ast_codec_choose(&c->codecs, c->capability, 1);
 	
 
+	
+
+	//fmt = ast_codec_choose(&d->codecs, tmp->nativeformats, 1);
+	//fmt = tmp->nativeformats;
+	//c->format = fmt;
+	//c->format = ast_codec_choose(&c->codecs, tmp->nativeformats, 1);
+	sccp_channel_updateChannelCapability(c);
 	if(!tmp->nativeformats)	{
 		ast_log(LOG_ERROR, "%s: No audio format to offer. Cancelling call on line %s\n", l->id, l->name);
 		return 0;
 	}
-
-	//fmt = ast_codec_choose(&d->codecs, tmp->nativeformats, 1);
-	fmt = tmp->nativeformats;
-	//c->format = fmt;
-	c->format = ast_codec_choose(&c->codecs, tmp->nativeformats, 1);
+	fmt = tmp->readformat;
 
 #ifdef CS_AST_HAS_AST_STRING_FIELD
 	ast_string_field_build(tmp, name, "SCCP/%s-%08x", l->name, c->callid);
@@ -1093,7 +1095,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	sccp_line_unlock(l);
 
 #ifndef ASTERISK_CONF_1_2
-    ast_jb_configure(tmp, &GLOB(global_jbconf));
+	ast_jb_configure(tmp, &GLOB(global_jbconf));
 #endif
 
     char s1[512], s2[512];
@@ -1115,19 +1117,19 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	ast_getformatname(fmt),
 	fmt);
 
-	tmp->writeformat		= fmt;
-	tmp->readformat 		= fmt;
+	//tmp->writeformat		= fmt;
+	//tmp->readformat 		= fmt;
 
 #ifdef CS_AST_HAS_TECH_PVT
 	tmp->tech = &sccp_tech;
 	tmp->tech_pvt = c;
-	tmp->rawreadformat = fmt;
-	tmp->rawwriteformat = fmt;
+	//tmp->rawreadformat = fmt;
+	//tmp->rawwriteformat = fmt;
 #else
 	tmp->type = "SCCP";
 	tmp->pvt->pvt = c;
-	tmp->pvt->rawwriteformat = fmt;
-	tmp->pvt->rawreadformat = fmt;
+	//tmp->pvt->rawwriteformat = fmt;
+	//tmp->pvt->rawreadformat = fmt;
 
 	tmp->pvt->answer = sccp_pbx_answer;
 	tmp->pvt->hangup = sccp_pbx_hangup;
