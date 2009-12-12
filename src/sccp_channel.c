@@ -151,15 +151,16 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
   
 	if(channel->owner){
 	  
-		/*
+		
 		channel->owner->nativeformats = channel->format;
 		channel->owner->rawreadformat = channel->format;
 		channel->owner->rawwriteformat = channel->format;
-		*/
 		
+		/*
 		channel->owner->nativeformats = channel->capability;
 		channel->owner->rawreadformat = channel->format;
 		channel->owner->rawwriteformat = channel->format;
+		*/
 		
 		channel->owner->writeformat	= channel->format;
 		channel->owner->readformat 	= channel->format;
