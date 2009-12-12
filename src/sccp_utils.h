@@ -11,6 +11,9 @@
 #ifndef __SCCP_UTILS_H
 #define __SCCP_UTILS_H
 
+#include "sccp_event.h"
+
+
 void sccp_dump_packet(unsigned char * messagebuffer, int len);
 
 void sccp_permithost_addnew(sccp_device_t * d, const char * config_string);
@@ -85,8 +88,7 @@ char *ast_strip(char *s);
 unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arraylen);
 #endif
 
-#endif
-
+void sccp_util_handleFeatureChangeEvent(const sccp_event_t **e);
 int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsigned int softkey);
 sccp_device_t * sccp_device_find_byipaddress(unsigned long s_addr);
 #if ASTERISK_VERSION_NUM >= 10600
@@ -95,3 +97,7 @@ enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state
 #endif
 #endif
 sccp_feature_type_t sccp_featureStr2featureID(char *str);
+
+#endif
+
+

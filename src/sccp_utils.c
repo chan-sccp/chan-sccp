@@ -2320,3 +2320,36 @@ sccp_feature_type_t sccp_featureStr2featureID(char *str){
 	return SCCP_FEATURE_UNKNOWN;
 }
 
+void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
+	char family[25];
+
+	
+	if(!(*event) || !(*event)->event.featureChanged.device )
+		return;
+	
+	sprintf(family, "SCCP/%s", (*event)->event.featureChanged.device->id);
+	switch((*event)->event.featureChanged.featureType) {
+		case SCCP_FEATURE_CFWDALL:
+			break;
+		case SCCP_FEATURE_CFWDBUSY:
+		  	break;
+		case SCCP_FEATURE_DND:
+			if(!(*event)->event.featureChanged.device->dnd){
+				ast_db_del(family, "dnd");
+			}else{
+				if((*event)->event.featureChanged.device->dndmode == SCCP_DNDMODE_SILENT)
+					ast_db_put(family, "dnd", "silent");
+				else 
+					ast_db_put(family, "dnd", "reject");
+			}	
+		  	break;
+		case SCCP_FEATURE_PRIVACY:
+		  	break;
+		case SCCP_FEATURE_MONITOR:
+
+			break;
+		default:
+			return;
+	}
+	
+}

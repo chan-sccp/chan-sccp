@@ -27,7 +27,40 @@
 
 
 
+typedef struct {
+  const char configVar[50];
+  const int softkey;
+} softkeyConfigurationTemplate;
 
+static const softkeyConfigurationTemplate softKeyTemplate[] = {
+        {"redial", SKINNY_LBL_REDIAL},
+        {"newcall", SKINNY_LBL_NEWCALL},
+        {"cfwdall", SKINNY_LBL_NEWCALL},
+        {"cfwdbusy", SKINNY_LBL_CFWDBUSY},
+        {"cfwdnoanswer", SKINNY_LBL_CFWDNOANSWER},
+        {"pickup", SKINNY_LBL_PICKUP},
+        {"gpickup", SKINNY_LBL_GPICKUP},
+        {"conflist", SKINNY_LBL_CONFLIST},
+        {"dnd", SKINNY_LBL_DND},
+        {"hold", SKINNY_LBL_HOLD},
+        {"endcall", SKINNY_LBL_ENDCALL},
+        {"park", SKINNY_LBL_PARK},
+        {"select", SKINNY_LBL_SELECT},
+        {"idivert", SKINNY_LBL_IDIVERT},
+        {"resume", SKINNY_LBL_RESUME},
+        {"newcall", SKINNY_LBL_NEWCALL},
+        {"transfer", SKINNY_LBL_TRANSFER},
+        {"dirtrfr", SKINNY_LBL_DIRTRFR},
+        {"answer", SKINNY_LBL_ANSWER},
+        {"transvm", SKINNY_LBL_TRNSFVM},
+        {"private", SKINNY_LBL_PRIVATE},
+        {"meetme", SKINNY_LBL_MEETME},
+        {"barge", SKINNY_LBL_BARGE},
+        {"cbarge", SKINNY_LBL_CBARGE},
+        {"conf", SKINNY_LBL_CONFRN},
+        {"back", SKINNY_LBL_BACKSPACE},
+        {"join", SKINNY_LBL_JOIN},
+};
 
 
 
@@ -46,5 +79,10 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype);
 
 sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_variable *v);
 sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast_variable *v);
+
+void sccp_config_softKeySet(struct ast_variable *variable, const char *name);
+uint8_t sccp_config_readSoftSet(uint8_t *softkeyset, const char *data);
+int sccp_config_getSoftkeyLbl(char* key);
+void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device);
 
 #endif /*__SCCP_CONFIG_H */

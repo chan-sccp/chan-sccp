@@ -2050,8 +2050,8 @@ static const uint8_t softkeysmap[] = {
 
 typedef struct {
   const uint8_t id;								/*!< Soft Key ID */
-  const uint8_t * ptr;								/*!< Point to next Mode */
-  const uint8_t count;								/*!< Soft Key Count */
+  uint8_t * ptr;								/*!< Point to next Mode */
+  uint8_t count;								/*!< Soft Key Count */
 } softkey_modes;								/*!< Soft Key Modes Structure */
 
 #define KEYMODE_ONHOOK				0
@@ -2066,7 +2066,7 @@ typedef struct {
 #define KEYMODE_OFFHOOKFEAT 			9
 #define KEYMODE_INUSEHINT			10
 
-static const uint8_t skSet_Onhook [] = {
+static uint8_t skSet_Onhook [] = {
         SKINNY_LBL_REDIAL,
         SKINNY_LBL_NEWCALL,
         SKINNY_LBL_CFWDALL,
@@ -2080,7 +2080,7 @@ static const uint8_t skSet_Onhook [] = {
         SKINNY_LBL_DND,
 };										/*!< SKINNY SoftKeys Set Onhook as INT */
 
-static const uint8_t skSet_Connected [] = {
+static uint8_t skSet_Connected [] = {
         SKINNY_LBL_HOLD,
         SKINNY_LBL_ENDCALL,
 #ifdef CS_SCCP_PARK
@@ -2095,7 +2095,7 @@ static const uint8_t skSet_Connected [] = {
         SKINNY_LBL_IDIVERT,
 };										/*!< SKINNY SoftKeys Set Connected as INT */
 
-static const uint8_t skSet_Onhold [] = {
+static uint8_t skSet_Onhold [] = {
         SKINNY_LBL_RESUME,
         SKINNY_LBL_NEWCALL,
         SKINNY_LBL_ENDCALL,
@@ -2111,7 +2111,7 @@ static const uint8_t skSet_Onhold [] = {
         SKINNY_LBL_IDIVERT,
 };										/*!< SKINNY SoftKeys Set On Hold as INT */
 
-static const uint8_t skSet_Ringin [] = {
+static uint8_t skSet_Ringin [] = {
         SKINNY_LBL_ANSWER,
         SKINNY_LBL_ENDCALL,
 //	SKINNY_LBL_TRNSFVM,
@@ -2120,7 +2120,7 @@ static const uint8_t skSet_Ringin [] = {
 //	SKINNY_LBL_DIRTRFR
 };										/*!< SKINNY SoftKeys Set Ring-IN as INT */
 
-static const uint8_t skSet_Offhook [] = {
+static uint8_t skSet_Offhook [] = {
         SKINNY_LBL_REDIAL,
         SKINNY_LBL_ENDCALL,
         SKINNY_LBL_PRIVATE,
@@ -2136,7 +2136,7 @@ static const uint8_t skSet_Offhook [] = {
 //	SKINNY_LBL_CBARGE,
 };										/*!< SKINNY SoftKeys Set OffHook as INT */
 
-static const uint8_t skSet_Conntrans [] = {
+static uint8_t skSet_Conntrans [] = {
         SKINNY_LBL_HOLD,
         SKINNY_LBL_ENDCALL,
         SKINNY_LBL_TRANSFER,
@@ -2155,18 +2155,18 @@ static const uint8_t skSet_Conntrans [] = {
 //	SKINNY_LBL_CFWDNOANSWER,
 };										/*!< SKINNY SoftKeys Set Connection Transmission as INT */
 
-static const uint8_t skSet_DigitsFoll []  = {
+static uint8_t skSet_DigitsFoll []  = {
         SKINNY_LBL_BACKSPACE,
         SKINNY_LBL_ENDCALL,
 };										/*!< SKINNY SoftKeys Set Digits Following as INT */
 
-static const uint8_t skSet_Connconf []	= {
+static uint8_t skSet_Connconf []	= {
         SKINNY_LBL_HOLD,
         SKINNY_LBL_ENDCALL,
         SKINNY_LBL_JOIN,
 };										/*!< SKINNY SoftKeys Set Connect Conference as INT*/
 
-static const uint8_t skSet_RingOut [] = {
+static uint8_t skSet_RingOut [] = {
         SKINNY_LBL_ENDCALL,
         SKINNY_LBL_TRANSFER,
         SKINNY_LBL_CFWDALL,
@@ -2175,22 +2175,22 @@ static const uint8_t skSet_RingOut [] = {
 //	SKINNY_LBL_CFWDNOANSWER,
 };										/*!< SKINNY SoftKeys Set Ring-Out as INT */
 
-static const uint8_t skSet_Offhookfeat [] = {
+static uint8_t skSet_Offhookfeat [] = {
         SKINNY_LBL_REDIAL,
         SKINNY_LBL_ENDCALL,
 };										/*!< SKINNY SoftKeys Set Off Hook Feature as INT */
 
 // in use hint keyset
-static const uint8_t skSet_InUseHint [] = {
+static uint8_t skSet_InUseHint [] = {
 //	SKINNY_LBL_NEWCALL,
 //	SKINNY_LBL_ENDCALL,
         SKINNY_LBL_PICKUP,
         SKINNY_LBL_BARGE,
 };										/*!< SKINNY SoftKeys Set Hint In Use as INT */
 
-/* \todo softkeysmap is not used at the moment */
+
 /*@unused@*/
-static const softkey_modes SoftKeyModes [] = {
+static softkey_modes SoftKeyModes [] = {
         /* According to CCM dump:
          OnHook(0), Connected(1), OnHold(2), RingIn(3)
          OffHook(4), ConnectedWithTransfer(5)

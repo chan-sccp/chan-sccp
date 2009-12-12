@@ -25,7 +25,8 @@ typedef enum {
 	SCCP_EVENT_DEVICEATTACHED = 1 << 3,
 	SCCP_EVENT_DEVICEDETACHED = 1 << 4,
 	SCCP_EVENT_DEVICEREGISTERED = 1 << 5,
-	SCCP_EVENT_DEVICEUNREGISTERED  = 1 << 6
+	SCCP_EVENT_DEVICEUNREGISTERED  = 1 << 6,
+	SCCP_EVENT_FEATURECHANGED  = 1 << 7
 } sccp_event_type_t;									/*!< SCCP Event Type ENUM */
 
 /*!
@@ -54,6 +55,11 @@ struct sccp_event {
 			sccp_line_t 	*line;						/*!< SCCP Line */
 			sccp_device_t	*device;					/*!< SCCP Device */
 		} deviceAttached;							/*!< Event Device Attached Structure */
+		
+		struct{
+			sccp_device_t 	*device;					/*!< device how initialized the change */
+			sccp_feature_type_t featureType;				/*!< what feature is changed */
+		} featureChanged;							/*!< Event feature changed Structure */
 	} event;									/*!< SCCP Event Data Union */
 };											/*!< SCCP Event Structure */
 

@@ -289,6 +289,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 
 
 	 c->format = oldformat;
+	 c->isCodecFix = TRUE;
 	 sccp_channel_updateChannelCapability(c);
 
 	/* we don't need to parse any options when we have a call forward status */
@@ -689,7 +690,7 @@ static int reload_config(void) {
 	}
   }
 
-  sccp_dev_dbclean();
+  
   sccp_mwi_stopMonitor();
   sccp_restart_monitor();
   return 0;
@@ -1000,6 +1001,7 @@ static int load_module(void) {
 
 	sccp_mwi_module_start();
 	sccp_hint_module_start();
+	sccp_subscribe_event(SCCP_EVENT_FEATURECHANGED, sccp_util_handleFeatureChangeEvent);
 
 	/* GLOB() is a macro for sccp_globals-> */
 	GLOB(descriptor) = -1;
