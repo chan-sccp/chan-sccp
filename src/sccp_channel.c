@@ -106,15 +106,8 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l, sccp_device_t *device)
 	sccp_mutex_unlock(&callCountLock);
 
 	c->line = l;
-	c->format = 0;
-	if(!device){
-		c->device = NULL;
-		c->capability = GLOB(global_capability);
-	}else{
-		c->device = device;
-		c->format = ast_codec_choose(&device->codecs, device->capability, 1);
-		c->capability = device->capability;
-	}
+	c->isCodecFix = FALSE;
+	c->device = device;
 	sccp_channel_updateChannelCapability(c);
 
 /*
@@ -142,21 +135,29 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
 	if(!channel)
 		return;
 	
+	char s1[512], s2[512];
+	
 	if(!channel->device){
 		channel->capability = GLOB(global_capability);
 		memcpy(&channel->codecs, &GLOB(global_codecs), sizeof(channel->codecs));
 	}else{
+		sccp_log(2)(VERBOSE_PREFIX_3 "SCCP: using device capability %s \n",
+#ifndef ASTERISK_CONF_1_2
+			ast_getformatname_multiple(s1, sizeof(s1) -1, channel->device->capability & AST_FORMAT_AUDIO_MASK)
+#else
+			ast_getformatname_multiple(s1, sizeof(s1) -1, channel->device->capability)
+#endif
+		);
 		channel->capability = channel->device->capability;
 		memcpy(&channel->codecs, &channel->device->codecs, sizeof(channel->codecs));
 	}
 
-	if(channel->format == 0){
+	if(channel->isCodecFix == FALSE){
 		/* we does not have set a preferred format before */
 		channel->format = ast_codec_choose(&channel->codecs, channel->capability, 1);
 	}
   
 	if(channel->owner){
-		//channel->format = ast_codec_choose(&channel->codecs, channel->capability, 1);
 	  
 		channel->owner->nativeformats = channel->format;
 		channel->owner->rawreadformat = channel->format;
@@ -170,7 +171,7 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
 	}
 	
 	
-	char s1[512], s2[512];
+	
 	sccp_log(2)(VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d) USED: %s(%d) \n",
 	channel->line->name,
 	channel->callid,
@@ -599,6 +600,7 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 			r->msg.StartMediaTransmission_v17.lel_rtptimeout = htolel(10);
 		}
 		sccp_dev_send(d, r);
+		c->mediaStatus.transmit = TRUE;
 
 		return 0;
 	} else {
@@ -630,14 +632,6 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 	int payloadType;
 	int packetSize;
 	struct sockaddr_in them;
-#ifndef ASTERISK_CONF_1_2
-	struct ast_format_list fmt = ast_codec_pref_getsize(&c->device->codecs, c->format);
-	payloadType = sccp_codec_ast2skinny(fmt.bits);
-	packetSize = fmt.cur_ms;
-#else
-	payloadType = sccp_codec_ast2skinny(c->format); // was c->format
-	packetSize = 20;
-#endif
 	uint8_t	instance;
 
 
@@ -647,7 +641,15 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 
 	d = c->device;
 	sccp_channel_updateChannelCapability(c);
-	
+	c->isCodecFix = TRUE;
+#ifndef ASTERISK_CONF_1_2
+	struct ast_format_list fmt = ast_codec_pref_getsize(&c->codecs, c->format);
+	payloadType = sccp_codec_ast2skinny(fmt.bits);
+	packetSize = fmt.cur_ms;
+#else
+	payloadType = sccp_codec_ast2skinny(c->format); // was c->format
+	packetSize = 20;
+#endif	
 	
 	
 	
@@ -692,6 +694,7 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 		r->msg.OpenReceiveChannel.lel_rtptimeout = htolel(10);
 	}
 	sccp_dev_send(c->device, r);
+	c->mediaStatus.receive = TRUE;
 	
 }
 
@@ -810,6 +813,8 @@ void sccp_channel_closereceivechannel(sccp_channel_t * c)
 		sccp_dev_send(d, r);
 		sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Close openreceivechannel on channel %d\n", DEV_ID_LOG(d), c->callid);
 	}
+	c->isCodecFix = FALSE;
+	c->mediaStatus.receive = FALSE;
 	sccp_channel_stopmediatransmission(c);
 }
 
@@ -838,7 +843,7 @@ void sccp_channel_stopmediatransmission(sccp_channel_t * c)
 		sccp_dev_send(d, r);
 		sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Stop media transmission on channel %d\n",(d && d->id)?d->id:"(none)", c->callid);
 	}
-
+	c->mediaStatus.transmit = FALSE;
 	// stopping rtp
 	if(c->rtp) {
 		sccp_channel_stop_rtp(c);
