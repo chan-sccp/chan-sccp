@@ -1022,19 +1022,6 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, sccp_device_t *device, ch
 
 	sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 
-	
-	if(device){
-		c->format = ast_codec_choose(&device->codecs, device->capability, 1);
-	  
-		c->owner->nativeformats = device->capability;
-		
-		c->owner->rawreadformat = device->capability;
-		c->owner->rawwriteformat = device->capability;
-
-		ast_set_read_format(c->owner, c->format);
-		ast_set_write_format(c->owner, c->format);
-	  
-	}
 
 	if (device->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp) {
 		sccp_channel_openreceivechannel(c);
