@@ -507,7 +507,8 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 	}
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Outgoing call has been answered %s on %s@%s-%08x\n", ast->name, c->line->name, c->device->id, c->callid);
-	ast->nativeformats = c->device ? c->device->capability : GLOB(global_capability);
+	//ast->nativeformats = c->device ? c->device->capability : GLOB(global_capability);
+	sccp_channel_updateChannelCapability(c);
 	/* This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
 	   as I have forgotten what my actual motivation was for writing this strange code. (-DD) */
 
@@ -761,11 +762,51 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
     case AST_CONTROL_SRCUPDATE:
         /* Source media has changed. */
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
+		
+		/* change our format */
+		char s1[512], s2[512];
+		ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%d) to: %s(%d) \n",
+		c->line->name,
+		c->callid,
+#ifndef ASTERISK_CONF_1_2
+		ast_getformatname_multiple(s1, sizeof(s1) -1, c->format & AST_FORMAT_AUDIO_MASK),
+#else
+		ast_getformatname_multiple(s1, sizeof(s1) -1, c->format),
+#endif
+		ast->nativeformats,
+#ifndef ASTERISK_CONF_1_2
+		ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat & AST_FORMAT_AUDIO_MASK),
+#else
+		ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat),
+#endif
+		ast->rawreadformat);
+	
+	
+	/* update channel format */
+	int oldChannelFormat = c->format;
+	c->format = ast->rawreadformat;
+	
+	if(oldChannelFormat != c->format ){
+		ast_set_read_format(ast, c->format);
+		ast_set_write_format(ast, c->format);
+	}
+
+	ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n",c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
+        if(c->rtp){
+
+		if(oldChannelFormat != c->format){
+			if(c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE){
+				sccp_channel_closereceivechannel(c);	/* close the already openend receivechannel */
+				sccp_channel_openreceivechannel(c);	/* reopen it */
+			}
+		}
+		
+	}
 #ifdef CS_AST_RTP_NEW_SOURCE
         if(c->rtp) {
-			ast_rtp_new_source(c->rtp);
-			sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
-		}
+		ast_rtp_new_source(c->rtp);
+		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
+	}
 #endif
         break;
 #endif

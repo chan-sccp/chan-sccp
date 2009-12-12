@@ -623,7 +623,8 @@ struct sccp_session {
  */
 struct sccp_channel {
         ast_mutex_t				lock;					/*!< Asterisk: Lock Me Up and Tie me Down */
-        int						format;					/*!< Codec requested by Asterisk */
+        int					format;					/*!< Codec requested by Asterisk */
+        boolean_t				isCodecFix;				/*!< can we change codec */
 
         struct ast_codec_pref 	codecs;					/*!< Asterisk Codec Channel Preference */
         int 					capability;				/*!< channel Capability */
@@ -665,6 +666,11 @@ struct sccp_channel {
 	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this line when unused */
 	sccp_channel_t				pendingUpdate;				/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
+
+	struct {
+		boolean_t transmit;							/*!< have we oppend transmitport already */
+		boolean_t receive;							/*!< have we oppend receiveport already */
+	} mediaStatus;
 
         /* feature sets */
         boolean_t				monitorEnabled;				/*!< Monitor Enabled Feature */
