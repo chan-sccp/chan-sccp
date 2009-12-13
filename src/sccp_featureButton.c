@@ -97,11 +97,11 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 
 				case SCCP_FEATURE_DND:
 					if(!strcasecmp(config->button.feature.options, "silent")){
-						if( (device->dnd && device->dndmode == SCCP_DNDMODE_SILENT) || (device->dnd == SCCP_DNDMODE_SILENT && device->dndmode == SCCP_DNDMODE_USERDEFINED) ){
+						if( (device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_SILENT) ){
 							config->button.feature.status = 1;
 						}
 					}else if(!strcasecmp(config->button.feature.options, "busy")){
-						if( (device->dnd && device->dndmode == SCCP_DNDMODE_REJECT) || (device->dnd == SCCP_DNDMODE_REJECT && device->dndmode == SCCP_DNDMODE_USERDEFINED) ){
+						if( ( device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_REJECT) ){
 							config->button.feature.status = 1;
 						}
 					}

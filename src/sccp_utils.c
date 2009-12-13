@@ -740,7 +740,7 @@ void sccp_dev_dbput(sccp_device_t * d) {
 	if (!ast_strlen_zero(cfwdbusy))
 		cfwdbusy[strlen(cfwdbusy)-1] = '\0';
 
-	snprintf(tmp, sizeof(tmp), "dnd=%d,cfwdall=%s,cfwdbusy=%s,cfwdnoanswer=%s", d->dnd, cfwdall, cfwdbusy, cfwdnoanswer);
+	snprintf(tmp, sizeof(tmp), "dnd=%d,cfwdall=%s,cfwdbusy=%s,cfwdnoanswer=%s", d->dndFeature.status, cfwdall, cfwdbusy, cfwdnoanswer);
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Storing device status (dnd, cfwd*) in the asterisk db\n", d->id);
 	if (ast_db_put("SCCP", d->id, tmp))
 		ast_log(LOG_NOTICE, "%s: Unable to store device status (dnd, cfwd*) in the asterisk db\n", d->id);
@@ -783,34 +783,34 @@ static void sccp_cfwd_parse(sccp_device_t * d, char * tmp, uint8_t type) {
  * \param d SCCP Device
  */
 void sccp_dev_dbget(sccp_device_t * d) {
-	char result[256]="", *tmp, *tmp1, *r;
-	int i=0;
-
-	if (!d)
-		return;
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Restoring device status (dnd, cfwd*) from the asterisk db\n", d->id);
-	if (ast_db_get("SCCP", d->id, result, sizeof(result))) {
-		return;
-	}
-	r = result;
-	while ( (tmp = strsep(&r,",")) ) {
-		tmp1 = strsep(&tmp,"=");
-		if (tmp1) {
-			if (!strcasecmp(tmp1, "dnd")) {
-				if ( (tmp1 = strsep(&tmp,"")) ) {
-					sscanf(tmp1, "%i", &i);
-					d->dnd = (i) ? 1 : 0;
-					sccp_log(10)(VERBOSE_PREFIX_3 "%s: dnd status is: %s\n", d->id, (d->dnd) ? "ON" : "OFF");
-				}
-			} else if (!strcasecmp(tmp1, "cfwdall")) {
-				tmp1 = strsep(&tmp,"");
-				sccp_cfwd_parse(d, tmp1, SCCP_CFWD_ALL);
-			} else if (!strcasecmp(tmp1, "cfwdbusy")) {
-				tmp1 = strsep(&tmp,"");
-				sccp_cfwd_parse(d, tmp1, SCCP_CFWD_BUSY);
-			}
-		}
-	}
+// 	char result[256]="", *tmp, *tmp1, *r;
+// 	int i=0;
+// 
+// 	if (!d)
+// 		return;
+// 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Restoring device status (dnd, cfwd*) from the asterisk db\n", d->id);
+// 	if (ast_db_get("SCCP", d->id, result, sizeof(result))) {
+// 		return;
+// 	}
+// 	r = result;
+// 	while ( (tmp = strsep(&r,",")) ) {
+// 		tmp1 = strsep(&tmp,"=");
+// 		if (tmp1) {
+// 			if (!strcasecmp(tmp1, "dnd")) {
+// 				if ( (tmp1 = strsep(&tmp,"")) ) {
+// 					sscanf(tmp1, "%i", &i);
+// 					d->dnd = (i) ? 1 : 0;
+// 					sccp_log(10)(VERBOSE_PREFIX_3 "%s: dnd status is: %s\n", d->id, (d->dnd) ? "ON" : "OFF");
+// 				}
+// 			} else if (!strcasecmp(tmp1, "cfwdall")) {
+// 				tmp1 = strsep(&tmp,"");
+// 				sccp_cfwd_parse(d, tmp1, SCCP_CFWD_ALL);
+// 			} else if (!strcasecmp(tmp1, "cfwdbusy")) {
+// 				tmp1 = strsep(&tmp,"");
+// 				sccp_cfwd_parse(d, tmp1, SCCP_CFWD_BUSY);
+// 			}
+// 		}
+// 	}
 }
 
 /*!
@@ -2334,10 +2334,10 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 		case SCCP_FEATURE_CFWDBUSY:
 		  	break;
 		case SCCP_FEATURE_DND:
-			if(!(*event)->event.featureChanged.device->dnd){
+			if(!(*event)->event.featureChanged.device->dndFeature.status){
 				ast_db_del(family, "dnd");
 			}else{
-				if((*event)->event.featureChanged.device->dndmode == SCCP_DNDMODE_SILENT)
+				if((*event)->event.featureChanged.device->dndFeature.status == SCCP_DNDMODE_SILENT)
 					ast_db_put(family, "dnd", "silent");
 				else 
 					ast_db_put(family, "dnd", "reject");

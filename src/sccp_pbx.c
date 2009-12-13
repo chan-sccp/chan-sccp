@@ -297,7 +297,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 				sccp_indicate_lock(c->device, c, SCCP_CHANNELSTATE_CALLWAITING);
 				isRinging = TRUE;
 			} else {
-				if(c->device->dnd && (c->device->dndmode == SCCP_DNDMODE_REJECT || (c->device->dndmode == SCCP_DNDMODE_USERDEFINED && c->device->dnd == SCCP_DNDMODE_REJECT) ) ){
+				if(c->device->dndFeature.enabled && c->device->dndFeature.status == SCCP_DNDMODE_REJECT ){
 					sccp_log(1)(VERBOSE_PREFIX_3 "%s: is on dnd\n", c->device->id);
 				}else{
 					sccp_indicate_lock(c->device, c, SCCP_CHANNELSTATE_RINGING);
@@ -328,7 +328,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 				sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CALLWAITING);
 				isRinging = TRUE;
 			} else {
-				if(d->dnd && (d->dndmode == SCCP_DNDMODE_REJECT || (d->dndmode == SCCP_DNDMODE_USERDEFINED && d->dnd == SCCP_DNDMODE_REJECT) ))
+				if(d->dndFeature.enabled && d->dndFeature.status == SCCP_DNDMODE_REJECT)
 					continue;
 
 				sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_RINGING);
