@@ -1175,7 +1175,7 @@ void * sccp_dev_postregistration(void *data)
 	event->event.deviceRegistered.device = d;
 	sccp_event_fire( (const sccp_event_t **)&event);
 	
-	sccp_config_restoreDeviceFeatureStatus(d);
+	//sccp_config_restoreDeviceFeatureStatus(d);
 	sccp_dev_check_displayprompt(d);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: ... done!\n", d->id);
 	return NULL;
@@ -1199,6 +1199,9 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 
 	if (!d)
 		return;
+	
+	if(destroy)
+		SCCP_LIST_REMOVE(&GLOB(devices), d, list);
 
 	sccp_device_lock(d);
 
@@ -1285,8 +1288,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 			ast_free_ha(d->ha);
 
 		d->ha = NULL;
-
-		SCCP_LIST_REMOVE(&GLOB(devices), d, list);
 	}
 	sccp_device_unlock(d);
 	if(destroy){
@@ -1396,65 +1397,19 @@ void sccp_device_removeLine(sccp_device_t *device, sccp_line_t * line)
  * \param reset_type as int
  * \return Status as int
  */
-int sccp_device_reset(sccp_session_t * s, uint8_t reset_type)
+int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type)
 {
 	sccp_moo_t * r;
-	sccp_device_t 	*d;
 
 
-	if(!s)
+	if(!d)
 		return 0;
 
-		d = s->device;
-		if(d) {
-			sccp_device_lock(d);
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Turn off the monitored line lamps to permit the %s\n", DEV_ID_LOG(d), (reset_type == SKINNY_DEVICE_RESET ? "reset" : "restart"));
-//
-//			SCCP_LIST_LOCK(&d->hints);
-////			SCCP_LIST_TRAVERSE(&d->hints, h, list) {
-////				/* force the hint state for non SCCP (or mixed) devices */
-////				c
-////			}
-////			SCCP_LIST_UNLOCK(&d->hints);
-//			sccp_device_unlock(d);
-//
-			/* removing hints */
-//			SCCP_LIST_LOCK(&d->hints);
-//			while((h = SCCP_LIST_REMOVE_HEAD(&d->hints, list))) {
-//				sccp_hint_state(NULL, NULL, AST_EXTENSION_NOT_INUSE, h);
-//				if (h->hintid > -1)
-//					ast_extension_state_del(h->hintid, NULL);
-//				ast_free(h);
-//			}
-//			SCCP_LIST_UNLOCK(&d->hints);
-//
-//			/* remove lines */
-//			SCCP_LIST_LOCK(&d->lines);
-//			while((line = SCCP_LIST_REMOVE_HEAD(&d->lines, listperdevice))) {
-//				if(line){
-//					sccp_line_lock(line);
-//					if(line->device == d)
-//						line->device = NULL;
-//					sccp_line_unlock(line);
-//				}
-//			}
-//			SCCP_LIST_UNLOCK(&d->lines);
-//
-//			/* remove button config */
-//			SCCP_LIST_LOCK(&d->buttonconfig);
-//			while((config = SCCP_LIST_REMOVE_HEAD(&d->buttonconfig, list))) {
-//				free(config);
-//			}
-//			SCCP_LIST_UNLOCK(&d->buttonconfig);
-//			config = NULL;
-//			sccp_device_unlock(d);
-		}
-
-		REQ(r, Reset);
-		r->msg.Reset.lel_resetType = htolel(reset_type);
-		sccp_session_send(d, r);
-		//sccp_dev_clean(d, FALSE); /* cleanup device */
-		return 1;
+	REQ(r, Reset);
+	r->msg.Reset.lel_resetType = htolel(reset_type);
+	sccp_session_send(d, r);
+	//sccp_dev_clean(d, FALSE); /* cleanup device */
+	return 1;
 }
 
 /* temporary function for hints */

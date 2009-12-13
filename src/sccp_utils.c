@@ -324,8 +324,9 @@ sccp_device_t * sccp_device_find_realtime(const char * name) {
 		//d = sccp_config_buildDevice(v, name, TRUE);
 		
 		d = sccp_device_create();
-		d = sccp_config_applyDeviceConfiguration(d, variable);
 		sccp_copy_string(d->id, name, sizeof(d->id));
+		d = sccp_config_applyDeviceConfiguration(d, variable);
+		
 #ifdef CS_SCCP_REALTIME
 		d->realtime = TRUE;
 #endif
@@ -2322,31 +2323,46 @@ sccp_feature_type_t sccp_featureStr2featureID(char *str){
 
 void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 	char family[25];
+	sccp_device_t *device = (*event)->event.featureChanged.device;
 
 	
 	if(!(*event) || !(*event)->event.featureChanged.device )
 		return;
 	
-	sprintf(family, "SCCP/%s", (*event)->event.featureChanged.device->id);
+	sprintf(family, "SCCP/%s", device->id);
 	switch((*event)->event.featureChanged.featureType) {
 		case SCCP_FEATURE_CFWDALL:
 			break;
 		case SCCP_FEATURE_CFWDBUSY:
 		  	break;
 		case SCCP_FEATURE_DND:
-			if(!(*event)->event.featureChanged.device->dndFeature.status){
+			if(!device->dndFeature.status){
 				ast_db_del(family, "dnd");
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "dnd");
 			}else{
-				if((*event)->event.featureChanged.device->dndFeature.status == SCCP_DNDMODE_SILENT)
+				if(device->dndFeature.status == SCCP_DNDMODE_SILENT)
 					ast_db_put(family, "dnd", "silent");
 				else 
 					ast_db_put(family, "dnd", "reject");
 			}	
 		  	break;
 		case SCCP_FEATURE_PRIVACY:
+			if(!device->privacyFeature.status){
+				ast_db_del(family, "privacy");
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "privacy");
+			}else{
+				char data[256];
+				sprintf(data, "%d", device->privacyFeature.status );
+				ast_db_put(family, "privacy", data);
+			}
 		  	break;
 		case SCCP_FEATURE_MONITOR:
-
+			if(!device->monitorFeature.status){
+				ast_db_del(family, "monitor");
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "monitor");
+			}else{
+				ast_db_put(family, "monitor", "on");
+			}
 			break;
 		default:
 			return;
