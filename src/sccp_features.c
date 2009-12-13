@@ -1085,6 +1085,9 @@ void sccp_feat_hotline(sccp_device_t *d) {
 void sccp_feat_changed(sccp_device_t *device, sccp_feature_type_t featureType){
 	if(device){
 	  
+	  
+		sccp_featButton_changed(device, featureType);
+		
 		sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
 		memset(event, 0, sizeof(sccp_event_t));
 		
@@ -1092,8 +1095,6 @@ void sccp_feat_changed(sccp_device_t *device, sccp_feature_type_t featureType){
 		event->event.featureChanged.device = device;
 		event->event.featureChanged.featureType = featureType;
 		sccp_event_fire((const sccp_event_t **)&event);
-	  
-		sccp_featButton_changed(device, featureType);
 		
 	}
 	

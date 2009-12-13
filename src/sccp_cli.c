@@ -85,7 +85,6 @@ static char * sccp_complete_device(char *line, char *word, int pos, int state) {
  * \return Result as int
  */
 static int sccp_reset_restart(int fd, int argc, char * argv[]) {
-	sccp_moo_t * r;
 	sccp_device_t * d;
 
 	if (argc != 3)
@@ -112,11 +111,10 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 	        return RESULT_SUCCESS;
 	}
 	sccp_device_unlock(d);
-	ast_cli(fd, "%s: Turn off the monitored line lamps to permit the %s\n", argv[2], argv[1]);
+	//ast_cli(fd, "%s: Turn off the monitored line lamps to permit the %s\n", argv[2], argv[1]);
 
-	REQ(r, Reset);
-	r->msg.Reset.lel_resetType = htolel((!strcasecmp(argv[1], "reset")) ? SKINNY_DEVICE_RESET : SKINNY_DEVICE_RESTART);
-	sccp_dev_send(d, r);
+
+	sccp_device_sendReset(d, (!strcasecmp(argv[1], "reset")) ? SKINNY_DEVICE_RESET : SKINNY_DEVICE_RESTART );
 	sccp_dev_clean(d, FALSE);
 
 	return RESULT_SUCCESS;

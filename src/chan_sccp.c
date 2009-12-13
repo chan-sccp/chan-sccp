@@ -447,7 +447,8 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 		if(!(s->device = sccp_device_find_byipaddress(s->sin.sin_addr.s_addr))) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Device attempt to reconnect failed. Restarting device\n");
 			ast_free(r);
-			sccp_device_reset(s, SKINNY_DEVICE_RESTART);
+			sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
+			sccp_dev_clean(s->device, s->device->realtime);
 
 
 			return 0;

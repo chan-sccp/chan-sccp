@@ -228,10 +228,11 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 	
 	/* create new device with default values */
 	d= sccp_device_create();
-	d= sccp_config_applyDeviceConfiguration(d, variable); /* apply configuration using variable */
-	
 	memset(d->id, 0, sizeof(d->id));
-	sccp_copy_string(d->id, deviceName, sizeof(d->id));/* set device name */
+	sccp_copy_string(d->id, deviceName, sizeof(d->id));	/* set device name */
+	d= sccp_config_applyDeviceConfiguration(d, variable); 	/* apply configuration using variable */
+	
+	
 #ifdef CS_SCCP_REALTIME
 	d->realtime = isRealtime;
 #endif
@@ -240,8 +241,6 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 	if (!res) {
 		d->phonemessage=strdup(message);						//set message on device if we have a result
 	}
-
-	// TODO: Load status of feature (DND, CFwd, etc.) from astdb.
 
 	sccp_device_addToGlobals(d);
 
@@ -1093,7 +1092,9 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 
         strcpy(message,"");
 
-        sccp_dev_dbget(d); /* load saved settings from ast db */
+	 /* load saved settings from ast db */
+	sccp_config_restoreDeviceFeatureStatus(d);
+        //sccp_dev_dbget(d);
 
         return d;
 }
@@ -1223,6 +1224,8 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 	int 	res;
 	
 	sprintf(family, "SCCP/%s", device->id);
+	
+	/* dndFeature */
 	res = ast_db_get(family, "dnd", buffer, sizeof(buffer));
 	if(!res){
 	      if(!strcasecmp(buffer, "silent"))
@@ -1232,12 +1235,25 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 	}else{
 	      device->dndFeature.status = SCCP_DNDMODE_OFF;
 	}
-	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
-	memset(event, 0, sizeof(sccp_event_t));
 	
-	event->type=SCCP_EVENT_FEATURECHANGED;
-	event->event.featureChanged.device = device;
-	event->event.featureChanged.featureType = SCCP_FEATURE_DND;
-	sccp_event_fire((const sccp_event_t **)&event);
+	
+	/* monitorFeature */
+	res = ast_db_get(family, "monitor", buffer, sizeof(buffer));
+	if(!res){
+	      device->monitorFeature.status = 1;
+	}else{
+	      device->monitorFeature.status = 0;
+	}
+	
+	
+	/* privacyFeature */
+	res = ast_db_get(family, "privacy", buffer, sizeof(buffer));
+	if(!res){
+	      sscanf(buffer, "%u", (unsigned int*)&device->privacyFeature.status);
+	}else{
+	      device->privacyFeature.status = 0;
+	}
+	
+	
 }
 

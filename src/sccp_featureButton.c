@@ -56,6 +56,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s \n", DEV_ID_LOG(device), config->button.feature.id, (config->button.feature.options)?config->button.feature.options:"(none)");
 			instance = config->instance;
 			config->button.feature.status = 0;
+			
 			switch(config->button.feature.id){
 				case SCCP_FEATURE_PRIVACY:
 					if(!device->privacyFeature.enabled){
@@ -107,7 +108,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 					}
 				break;
 				case SCCP_FEATURE_MONITOR:
-					config->button.feature.status = device->monitorFeature.status;
+					config->button.feature.status = (device->monitorFeature.status)?1:0;
 				break;
 
 
@@ -123,7 +124,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 			sccp_copy_string(featureRequestMessage->msg.FeatureStatMessage.featureTextLabel, config->button.feature.label, strlen(config->button.feature.label)+1);
 			featureRequestMessage->msg.FeatureStatMessage.lel_featureStatus = htolel(config->button.feature.status);
 			sccp_dev_send(device, featureRequestMessage);
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request. Instance = %d Status: %d\n", device->id, instance, config->button.feature.status);
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request. Instance = %d Status: %d\n", device->id, instance, config->button.feature.status);
 		}
 
 	}
