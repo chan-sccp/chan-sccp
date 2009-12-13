@@ -980,16 +980,8 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
                         d->pickupmodeanswer = sccp_true(v->value);
 #endif
                 } else if (!strcasecmp(v->name, "dnd")) {
-                        if (!strcasecmp(v->value, "reject")) {
-                                d->dndmode = SCCP_DNDMODE_REJECT;
-                        } else if (!strcasecmp(v->value, "silent")) {
-                                d->dndmode = SCCP_DNDMODE_SILENT;
-                        } else if (!strcasecmp(v->value, "user")) {
-                                d->dndmode = SCCP_DNDMODE_USERDEFINED;
-                        } else {
-                                /* 0 is off and 1 (on) is reject */
-                                d->dndmode = sccp_true(v->value);
-                        }
+                        /* 0 is off and 1 (on) is reject */
+                        //d->dndFeature.enabled = sccp_true(v->value);
                 } else if (!strcasecmp(v->name, "nat")) {
                         d->nat = sccp_true(v->value);
                 } else if (!strcasecmp(v->name, "directrtp")) {
@@ -1231,20 +1223,15 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 	int 	res;
 	
 	sprintf(family, "SCCP/%s", device->id);
-	//sccp_log(1)(VERBOSE_PREFIX_3 "restore %s\n", family);
 	res = ast_db_get(family, "dnd", buffer, sizeof(buffer));
-	//sccp_log(1)(VERBOSE_PREFIX_3 "res: %d\n", res);
-	//sccp_log(1)(VERBOSE_PREFIX_3 "buffer: %s\n", buffer);
 	if(!res){
 	      if(!strcasecmp(buffer, "silent"))
-			device->dndmode = SCCP_DNDMODE_SILENT;
+			device->dndFeature.status = SCCP_DNDMODE_SILENT;
 	      else
-			device->dndmode = SCCP_DNDMODE_REJECT;
+			device->dndFeature.status = SCCP_DNDMODE_REJECT;
 	}else{
-	      device->dnd = FALSE;
+	      device->dndFeature.status = SCCP_DNDMODE_OFF;
 	}
-	//sccp_log(1)(VERBOSE_PREFIX_3 "set dnd %d\n", device->dnd);
-	//sccp_log(1)(VERBOSE_PREFIX_3 "set dndmode to %d\n", device->dndmode);
 	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
 	memset(event, 0, sizeof(sccp_event_t));
 	

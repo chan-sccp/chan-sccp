@@ -80,13 +80,14 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 	d->transfer = 1;
 	d->state = SCCP_DEVICESTATE_ONHOOK;
 //	d->ringermode = SKINNY_STATION_RINGOFF;
-	d->dndmode = GLOB(dndmode);
+//	d->dndmode = GLOB(dndmode);
 	d->trustphoneip = GLOB(trustphoneip);
 	//d->privacyFeature.enabled = GLOB(private);
 	//TODO use global cnf
 	d->privacyFeature.enabled = TRUE;
 	d->monitorFeature.enabled = TRUE;
 	d->overlapFeature.enabled = GLOB(useoverlap);
+	d->dndFeature.enabled = TRUE;
 	d->earlyrtp = GLOB(earlyrtp);
 	d->mwilamp = GLOB(mwilamp);
 	d->mwioncall = GLOB(mwioncall);
@@ -940,46 +941,42 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 //	}
 
 
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-		if(buttonconfig->type == LINE ){
-			l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
-			if (l && l->cfwd_type != SCCP_CFWD_NONE && l->cfwd_num) {
-				res = 1;
-				// tmp[0] = '\0';
-				memset(tmp, 0, sizeof(tmp));
-				instance = sccp_device_find_index_for_line(d, l->name);
+// 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+// 		if(buttonconfig->type == LINE ){
+// 			l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
+// 			if (l && l->cfwd_type != SCCP_CFWD_NONE && l->cfwd_num) {
+// 				res = 1;
+// 				// tmp[0] = '\0';
+// 				memset(tmp, 0, sizeof(tmp));
+// 				instance = sccp_device_find_index_for_line(d, l->name);
+// 
+// 				if (l->cfwd_type == SCCP_CFWD_ALL) {
+// 					strcat(tmp, SKINNY_DISP_CFWDALL ":");
+// 					sccp_dev_set_lamp(d, SKINNY_STIMULUS_FORWARDALL, instance, SKINNY_LAMP_ON);
+// 				} else if (l->cfwd_type == SCCP_CFWD_BUSY) {
+// 					strcat(tmp, SKINNY_DISP_CFWDBUSY ":");
+// 					sccp_dev_set_lamp(d, SKINNY_STIMULUS_FORWARDBUSY, instance, SKINNY_LAMP_ON);
+// 				}
+// 				strcat(tmp, SKINNY_DISP_FORWARDED_TO " ");
+// 				strcat(tmp, l->cfwd_num);
+// 				sccp_dev_displayprompt(d, 0, 0, tmp, 0);
+// 				sccp_dev_set_keyset(d, instance, 0, KEYMODE_ONHOOK); /* this is for redial softkey */
+// 			}
+// 
+// 		}
+// 	}
 
-				if (l->cfwd_type == SCCP_CFWD_ALL) {
-					strcat(tmp, SKINNY_DISP_CFWDALL ":");
-					sccp_dev_set_lamp(d, SKINNY_STIMULUS_FORWARDALL, instance, SKINNY_LAMP_ON);
-				} else if (l->cfwd_type == SCCP_CFWD_BUSY) {
-					strcat(tmp, SKINNY_DISP_CFWDBUSY ":");
-					sccp_dev_set_lamp(d, SKINNY_STIMULUS_FORWARDBUSY, instance, SKINNY_LAMP_ON);
-				}
-				strcat(tmp, SKINNY_DISP_FORWARDED_TO " ");
-				strcat(tmp, l->cfwd_num);
-				sccp_dev_displayprompt(d, 0, 0, tmp, 0);
-				sccp_dev_set_keyset(d, instance, 0, KEYMODE_ONHOOK); /* this is for redial softkey */
-			}
 
-		}
-	}
-
-
-	if (res)
-		goto OUT;
-
-	if (d->dnd && d->dndmode ) {
-		if (d->dndmode == SCCP_DNDMODE_REJECT || (d->dnd == SCCP_DNDMODE_REJECT && d->dndmode == SCCP_DNDMODE_USERDEFINED ))
+	if (d->dndFeature.enabled && d->dndFeature.status ) {
+		if (d->dndFeature.status == SCCP_DNDMODE_REJECT )
 			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " (" SKINNY_DISP_BUSY ") <<<", 0);
 
-		else if (d->dndmode == SCCP_DNDMODE_SILENT || (d->dnd == SCCP_DNDMODE_SILENT && d->dndmode == SCCP_DNDMODE_USERDEFINED ))
+		else if (d->dndFeature.status == SCCP_DNDMODE_SILENT )
 			/* no internal label for the silent string */
 			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " (Silent) <<<", 0);
-
 		else
 			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " <<<", 0);
-		goto OUT;
+		//goto OUT;
 	}
 
 	if (!ast_db_get("SCCP/message", "timeout", tmp, sizeof(tmp))) {
@@ -1003,7 +1000,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	}
 	/* when we are here, there's nothing to display */
 OUT:
-sccp_log(99)(VERBOSE_PREFIX_3 "%s: \n", d->id);
+	sccp_log(99)(VERBOSE_PREFIX_3 "%s: \n", d->id);
 	//sccp_device_unlock(d);
 }
 
@@ -1179,6 +1176,7 @@ void * sccp_dev_postregistration(void *data)
 	sccp_event_fire( (const sccp_event_t **)&event);
 	
 	sccp_config_restoreDeviceFeatureStatus(d);
+	sccp_dev_check_displayprompt(d);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: ... done!\n", d->id);
 	return NULL;
 }

@@ -292,9 +292,9 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	 } else if(r->msg.RegisterMessage.protocolVer <= GLOB(protocolversion)) {
 		d->inuseprotocolversion = r->msg.RegisterMessage.protocolVer;
 	 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), r->msg.RegisterMessage.protocolVer);
-	 } else if(d->skinny_type == SKINNY_DEVICETYPE_CISCO7935
-			 || d->skinny_type == SKINNY_DEVICETYPE_CISCO7936){
-		 d->inuseprotocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
+// 	 } else if(d->skinny_type == SKINNY_DEVICETYPE_CISCO7935
+// 			 || d->skinny_type == SKINNY_DEVICETYPE_CISCO7936){
+// 		 d->inuseprotocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
 	 }
 
 	if(d->inuseprotocolversion <= 3) {
@@ -327,21 +327,23 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 	sccp_dev_clearprompt(d, 0, 0);
 
-	/* check for dnd and cfwd status */
-	sccp_dev_dbget(d);
-
 	sccp_dev_sendmsg(d, CapabilitiesReqMessage);
 
 	/* starting thread for monitored line status poll */
 
-	pthread_attr_t 	attr;
- 	pthread_attr_init(&attr);
- 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
- 	if (ast_pthread_create(&d->postregistration_thread, &attr, sccp_dev_postregistration, d)) {
- 		ast_log(LOG_WARNING, "%s: Unable to create thread for monitored status line poll. %s\n", d->id, strerror(errno));
- 	}
-	sccp_dev_set_mwi(d, NULL, 0);
-	sccp_dev_check_displayprompt(d);
+	
+	if(d->skinny_type != SKINNY_DEVICETYPE_CISCO7935 && d->skinny_type != SKINNY_DEVICETYPE_CISCO7936){
+		pthread_attr_t 	attr;
+		pthread_attr_init(&attr);
+		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+		if (ast_pthread_create(&d->postregistration_thread, &attr, sccp_dev_postregistration, d)) {
+			ast_log(LOG_WARNING, "%s: Unable to create thread for monitored status line poll. %s\n", d->id, strerror(errno));
+		}
+		sccp_dev_set_mwi(d, NULL, 0);
+		sccp_dev_check_displayprompt(d);
+	}
+	
+	
 }
 
 /*!
@@ -1188,7 +1190,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRANSFER        is %s\n", d->id, (d->transfer) ? "enabled" : "disabled");
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: DND             is %s\n", d->id, d->dndmode ? sccp_dndmode2str(d->dndmode) : "disabled");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: DND             is %s\n", d->id, d->dndFeature.status ? sccp_dndmode2str(d->dndFeature.status) : "disabled");
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PRIVATE         is %s\n", d->id, d->privacyFeature.enabled ? "enabled" : "disabled");
 #ifdef CS_SCCP_PARK
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PARK            is  %s\n", d->id, (d->park) ? "enabled" : "disabled");
@@ -1216,7 +1218,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 			if ( (b[c] == SKINNY_LBL_TRANSFER) && (!d->transfer) ) {
 				continue;
 			}
-			if ( (b[c] == SKINNY_LBL_DND) && (!d->dndmode) ) {
+			if ( (b[c] == SKINNY_LBL_DND) && (!d->dndFeature.enabled) ) {
 				continue;
 			}
 			if ( (b[c] == SKINNY_LBL_CFWDALL) && (!d->cfwdall) ) {
@@ -2179,16 +2181,13 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 		break;
 
 		case SCCP_FEATURE_DND:
-			d->dnd = config->button.feature.status;
-			if(d->dnd){
-				if(!strcasecmp(config->button.feature.options, "silent")){
-				  d->dndmode = SCCP_DNDMODE_SILENT;
-				}else if(!strcasecmp(config->button.feature.options, "busy")){
-				  d->dndmode = SCCP_DNDMODE_REJECT;
-				}
+			if(!strcasecmp(config->button.feature.options, "silent")){
+				d->dndFeature.status = (config->button.feature.status)?SCCP_DNDMODE_SILENT:SCCP_DNDMODE_OFF;
+			}else if(!strcasecmp(config->button.feature.options, "busy")){
+				d->dndFeature.status = (config->button.feature.status)?SCCP_DNDMODE_REJECT:SCCP_DNDMODE_OFF;
 			}
 
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: dndmode %d is %s\n", d->id, d->dndmode, (d->dnd)?"on":"off");
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: dndmode %d is %s\n", d->id, d->dndFeature.status, (d->dndFeature.status)?"on":"off");
 			sccp_dev_check_displayprompt(d);
 		break;
 #ifdef CS_SCCP_FEATURE_MONITOR

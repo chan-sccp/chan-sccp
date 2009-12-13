@@ -379,8 +379,8 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Timezone Offset    : %d\n", d->tz_offset);
 	ast_cli(fd, "Capabilities       : %s\n", cap_buf);
 	ast_cli(fd, "Codecs preference  : %s\n", pref_buf);
-	ast_cli(fd, "DND                : %s\n", (d->dnd) ? "ON" : "OFF");
-	ast_cli(fd, "DND Setting        : %s\n", (d->dndmode) ? sccp_dndmode2str(d->dndmode) : "Disabled");
+	ast_cli(fd, "DND Feature enabled: %s\n", (d->dndFeature.enabled) ? "YES" : "NO");
+	ast_cli(fd, "DND Status         : %s\n", (d->dndFeature.status) ? sccp_dndmode2str(d->dndFeature.status) : "Disabled");
 	ast_cli(fd, "Can Transfer       : %s\n", (d->transfer) ? "Yes" : "No");
 	ast_cli(fd, "Can Park           : %s\n", (d->park) ? "Yes" : "No");
 	ast_cli(fd, "Private softkey    : %s\n", d->privacyFeature.enabled ? "Enabled" : "Disabled");

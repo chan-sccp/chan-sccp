@@ -201,8 +201,8 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_channel_send_callinfo(d, c);
 		sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_BLINK);
 
-		if ((d->dnd && d->dndmode == SCCP_DNDMODE_SILENT) || (d->dndmode == SCCP_DNDMODE_USERDEFINED && d->dnd == SCCP_DNDMODE_SILENT ) ) {
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: DND is activated on device(%d/%d)\n",d->id, d->dnd, d->dndmode);
+		if ( (d->dndFeature.enabled && d->dndFeature.status == SCCP_DNDMODE_SILENT) ) {
+			sccp_log(10)(VERBOSE_PREFIX_3 "%s: DND is activated on device\n",d->id);
 			sccp_dev_set_ringer(d, SKINNY_STATION_SILENTRING, instance, c->callid);
 		}else
 			sccp_dev_set_ringer(d, c->ringermode, instance, c->callid);
