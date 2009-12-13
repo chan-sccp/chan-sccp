@@ -484,7 +484,7 @@ struct sccp_device {
         struct ast_codec_pref 			codecs;					/*!< Asterisk Codec Device Preference */
         sccp_devicestate_t 			state;					/*!< Device State (SCCP_DEVICE_ONHOOK or SCCP_DEVICE_OFFHOOK) */
 /*      uint8_t 				ringermode;*/				/* Ringer Mode. Need it for the ringback */
-        uint8_t 				dndmode;				/*!< Do Not Distrurb (DND) Mode \see SCCP_DNDMODE_* */
+       
         char 					lastNumber[AST_MAX_EXTENSION];		/*!< Last Dialed Number */
         int 					capability;				/*!< Asterisk Codec Capability */
         uint8_t 				earlyrtp;				/*!< RTP Channel State where to open the RTP Media Stream */
@@ -500,7 +500,7 @@ struct sccp_device {
         unsigned int				mwioncall: 1;				/*!< MWI On Call Support (Boolean, default=on) */
         unsigned int				softkeysupport: 1;			/*!< Soft Key Support (Boolean, default=on) */
         unsigned int				mwilight: 1;				/*!< MWI/Light Support (Boolean, default=on) \todo MWI/Light or Lamp was soll es sein */
-        unsigned int				dnd: 3;					/*!< Do no Disturb Support (Boolean, default=on) */
+       
         unsigned int				transfer: 1;				/*!< Transfer Support (Boolean, default=on) */
         unsigned int				conference: 1;				/*!< Conference Support (Boolean, default=on) */
         unsigned int				park: 1;				/*!< Park Support (Boolean, default=on) */
@@ -573,6 +573,7 @@ struct sccp_device {
         sccp_featureConfiguration_t 		privacyFeature;				/*!< Device Privacy Feature. \see SCCP_PRIVACYFEATURE_* */
         sccp_featureConfiguration_t 		overlapFeature;				/*!< Overlap Dial Feature */
         sccp_featureConfiguration_t 		monitorFeature;				/*!< Monitor (automon) Feature */
+        sccp_featureConfiguration_t 		dndFeature;				/*!< dnd Feature */
 
 };
 
