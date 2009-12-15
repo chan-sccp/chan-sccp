@@ -2049,8 +2049,8 @@ static const uint8_t softkeysmap[] = {
  */
 
 typedef struct {
-  const uint8_t id;								/*!< Soft Key ID */
-  uint8_t * ptr;								/*!< Point to next Mode */
+  uint8_t id;									/*!< Soft Key ID */
+  uint8_t *ptr;									/*!< Point to next Mode */
   uint8_t count;								/*!< Soft Key Count */
 } softkey_modes;								/*!< Soft Key Modes Structure */
 
@@ -2190,7 +2190,7 @@ static uint8_t skSet_InUseHint [] = {
 
 
 /*@unused@*/
-static softkey_modes SoftKeyModes [] = {
+static const softkey_modes SoftKeyModes [] = {
         /* According to CCM dump:
          OnHook(0), Connected(1), OnHold(2), RingIn(3)
          OffHook(4), ConnectedWithTransfer(5)

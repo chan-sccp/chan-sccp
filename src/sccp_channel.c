@@ -152,7 +152,7 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
 	if(channel->owner){
 	  
 		
-		channel->owner->nativeformats = channel->format;
+		channel->owner->nativeformats = channel->format; /* if we set nativeformats to a single format, we force asterisk to translate stream */
 		channel->owner->rawreadformat = channel->format;
 		channel->owner->rawwriteformat = channel->format;
 		
