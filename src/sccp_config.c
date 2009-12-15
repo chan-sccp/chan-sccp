@@ -1249,7 +1249,5 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 	}else{
 	      device->privacyFeature.status = 0;
 	}
-	
-	
 }
 
