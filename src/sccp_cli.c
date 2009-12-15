@@ -1728,7 +1728,8 @@ static char *cli_show_softkeysets(struct ast_cli_entry *e, int cmd, struct ast_c
 		
 		for (i = 0; i < v_count; i++) {
 			const uint8_t *b = softkeyset->modes[i].ptr;
-			ast_cli(a->fd, "      Set[%-2d]= ", softkeyset->modes[i].id);
+			//ast_cli(a->fd, "      Set[%-2d]= ", softkeyset->modes[i].id);
+			ast_cli(a->fd, "      Set[%-2d]= ", i);
 			
 			for ( c = 0; c < softkeyset->modes[i].count; c++) {
 				ast_cli(a->fd, "%-2d:%-10s ", c, skinny_lbl2str(b[c]));

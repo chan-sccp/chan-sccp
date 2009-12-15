@@ -335,6 +335,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	memcpy(r1->msg.RegisterAckMessage.dateTemplate, GLOB(date_format), sizeof(r1->msg.RegisterAckMessage.dateTemplate));
 	sccp_session_send(d, r1);
 	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_PROGRESS);
+	sccp_safe_sleep(100);
 	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_OK);
 
 	/* clean up the device state */
@@ -346,16 +347,18 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	/* starting thread for monitored line status poll */
 
 	
-	if(d->skinny_type != SKINNY_DEVICETYPE_CISCO7935 && d->skinny_type != SKINNY_DEVICETYPE_CISCO7936){
-		pthread_attr_t 	attr;
-		pthread_attr_init(&attr);
-		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-		if (ast_pthread_create(&d->postregistration_thread, &attr, sccp_dev_postregistration, d)) {
-			ast_log(LOG_WARNING, "%s: Unable to create thread for monitored status line poll. %s\n", d->id, strerror(errno));
-		}
-		sccp_dev_set_mwi(d, NULL, 0);
-		sccp_dev_check_displayprompt(d);
+	
+	pthread_attr_t 	attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	
+	if (ast_pthread_create(&d->postregistration_thread, &attr, sccp_dev_postregistration, d)) {
+		ast_log(LOG_WARNING, "%s: Unable to create thread for monitored status line poll. %s\n", d->id, strerror(errno));
 	}
+	
+	
+	sccp_dev_set_mwi(d, NULL, 0);
+	sccp_dev_check_displayprompt(d);
 	
 	
 }
@@ -1130,8 +1133,8 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r){
 		return;
 	
 	
-	//const uint8_t c = sizeof(softkeysmap);
-	const uint8_t 	c = d->softKeyConfiguration.size;
+	const uint8_t c = sizeof(softkeysmap);
+	//const uint8_t 	c = d->softKeyConfiguration.size;
 	
 	/* ok the device support the softkey map */
 	sccp_device_lock(d);
