@@ -916,12 +916,12 @@ OUT:
  */
 void sccp_dev_check_displayprompt(sccp_device_t * d)
 {
-	sccp_buttonconfig_t	*buttonconfig = NULL;
-	sccp_line_t * l;
+	//sccp_buttonconfig_t	*buttonconfig = NULL;
+	//sccp_line_t * l;
 	char tmp[256] = "";
 	int timeout = 0;
 	uint8_t res = 0;
-	int instance;
+	//int instance;
 
 
 	if (!d || !d->session)

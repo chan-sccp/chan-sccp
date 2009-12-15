@@ -1152,9 +1152,9 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
 	/* set default value if not configured */
 	uint8_t size = ( sizeof(softKeySetConfiguration->modes)/sizeof(softkey_modes) );
 	for(i=0;i < size; i++){
- 		if(softKeySetConfiguration->modes[i].ptr == NULL){
- 			softKeySetConfiguration->modes[i] = SoftKeyModes[i];
- 		}
+//  		if(softKeySetConfiguration->modes[i].ptr == NULL){
+//  			softKeySetConfiguration->modes[i] = SoftKeyModes[i];
+//  		}
 	}
 	
 	
