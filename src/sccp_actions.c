@@ -1291,16 +1291,16 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 			}
 			for (i = 0; i < sizeof(softkeysmap); i++) {
 				if (b[c] == softkeysmap[i]) {
-				sccp_log(1)("%-2d:%-10s ", c, skinny_lbl2str(softkeysmap[i]));
-				r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[c] = (i+1);
-				break;
+					sccp_log(1)("%-2d:%-10s ", c, skinny_lbl2str(softkeysmap[i]));
+					r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[c] = (i+1);
+					break;
+				}
 			}
 		}
-	}
 
-	sccp_log(1)("\n");
-	v++;
-	iKeySetCount++;
+		sccp_log(1)("\n");
+		v++;
+		iKeySetCount++;
 	};
 
 	sccp_log(1)( VERBOSE_PREFIX_3 "There are %d SoftKeySets.\n", iKeySetCount);
