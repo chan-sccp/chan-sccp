@@ -933,26 +933,6 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
                 } else if (!strcasecmp(v->name, "tzoffset")) {
                         /* timezone offset */
                         d->tz_offset = atoi(v->value);
-                } else if (!strcasecmp(v->name, "autologin")) {
-                        char *mb, *cur, tmp[256];
-
-                        sccp_copy_string(tmp, v->value, sizeof(tmp));
-                        mb = tmp;
-
-                        while ((cur = strsep(&mb, ","))) {
-                                ast_strip(cur);
-
-                                if (ast_strlen_zero(cur)) {
-                                        sccp_config_addEmpty(d, ++instance);
-                                        continue;
-                                }
-
-                                sccp_log(10)(VERBOSE_PREFIX_3 "%s: Auto logging into %s\n", d->id, cur);
-
-                                sccp_config_addLine(d, cur, ++instance);
-                        }
-
-                        //sccp_copy_string(d->autologin, v->value, sizeof(d->autologin));
                 } else if (!strcasecmp(v->name, "description")) {
                         sccp_copy_string(d->description, v->value, sizeof(d->description));
                 } else if (!strcasecmp(v->name, "imageversion")) {
@@ -991,6 +971,8 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
                         d->trustphoneip = sccp_true(v->value);
                 } else if (!strcasecmp(v->name, "private")) {
                         d->privacyFeature.enabled = sccp_true(v->value);
+		} else if (!strcasecmp(v->name, "softkeyset")) {
+                        sccp_copy_string(d->softkeyDefinition, v->value, sizeof(d->softkeyDefinition));
                 } else if (!strcasecmp(v->name, "privacy")) {
                         if (!strcasecmp(v->value, "full")) {
                                 d->privacyFeature.status = 0;
@@ -1019,25 +1001,6 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
                 } else if (!strcasecmp(v->name, "park")) {
                         d->park = sccp_true(v->value);
 #endif
-                } else if (!strcasecmp(v->name, "speeddial")) {
-                        if (ast_strlen_zero(v->value)) {
-                                sccp_config_addEmpty(d, ++instance);
-                        } else {
-                                //					//sccp_speeddial_addnew(d, v->value, speeddial_index);
-                                sccp_copy_string(k_button, v->value, sizeof(k_button));
-                                splitter = k_button;
-                                buttonType = strsep(&splitter, ",");
-                                buttonName = strsep(&splitter, ",");
-
-                                if (splitter)
-                                        buttonOption = strsep(&splitter, ",");
-                                else
-                                        buttonOption = NULL;
-
-                                //
-                                sccp_config_addSpeeddial(d, ast_strip(buttonName), ast_strip(buttonType), (buttonOption)?ast_strip(buttonOption):NULL, ++instance);
-                        }
-
                 } else if (!strcasecmp(v->name, "mwilamp")) {
                         if (!strcasecmp(v->value, "off"))
                                 d->mwilamp = SKINNY_LAMP_OFF;
@@ -1062,21 +1025,6 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
                                 sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Add new channelvariable to line %s. Value is: %s \n",newvar->name ,newvar->value);
                                 newvar->next = d->variables;
                                 d->variables = newvar;
-                        }
-                } else if (!strcasecmp(v->name, "serviceURL")) {
-                        //sccp_serviceURL_addnew(d, v->value, serviceURLIndex);
-                        ast_log(LOG_WARNING, "SCCP: Service: %s\n", v->value);
-
-                        if (ast_strlen_zero(v->value))
-                                sccp_config_addEmpty(d, ++instance);
-                        else {
-                                sccp_copy_string(k_button, v->value, sizeof(k_button));
-                                splitter = k_button;
-                                buttonType = strsep(&splitter, ",");
-                                buttonName = strsep(&splitter, ",");
-
-
-                                sccp_config_addService(d, ast_strip(buttonType), ast_strip(buttonName), ++instance);
                         }
                 } else {
                         ast_log(LOG_WARNING, "SCCP: Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
@@ -1125,13 +1073,27 @@ struct ast_config *sccp_config_getConfig() {
 	return cfg;
 }
 
+
+/**
+ * \brief Read a SoftKey configuration context
+ * \param variable list of configuration variables
+ * \param name name of this configuration (context)
+ */
 void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
-	int keySetSize;
-	uint8_t keyMode = 0;
-	int i=0;
-	sccp_log(1)(VERBOSE_PREFIX_3 "start reading softkeyset: %s\n", name);
+	int 			keySetSize;
+	sccp_softKeySetConfiguration_t 	*softKeySetConfiguration = NULL;
+	uint8_t 		keyMode = -1;
+	int 			i=0;
+	sccp_log(10)(VERBOSE_PREFIX_3 "start reading softkeyset: %s\n", name);
+	
+	
+	softKeySetConfiguration = ast_malloc(sizeof(sccp_softKeySetConfiguration_t));
+	sccp_copy_string(softKeySetConfiguration->name, name, sizeof(softKeySetConfiguration->name));
+	
+	
 	while(variable){
-		sccp_log(1)(VERBOSE_PREFIX_3 "softkeyset: %s \n",variable->name);
+		keyMode = -1;
+		sccp_log(10)(VERBOSE_PREFIX_3 "softkeyset: %s \n",variable->name);
 		if (!strcasecmp(variable->name, "type")){
 			
 		}else if(!strcasecmp(variable->name, "onhook")){
@@ -1160,28 +1122,51 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
 			
 		}
 		
-		if(keyMode == 0){
+		if(keyMode == -1){
 			variable = variable->next;
 			continue;
 		}
 		
+		
 		for(i=0;i < ( sizeof(SoftKeyModes)/sizeof(softkey_modes) ); i++){
-			if(SoftKeyModes[i].id == keyMode){
-				uint8_t *softkeyset = ast_malloc(StationMaxSoftKeySetDefinition * sizeof(uint8_t));
-				keySetSize = sccp_config_readSoftSet(softkeyset, variable->value);
-				
-				if(keySetSize > 0){
-					SoftKeyModes[i].ptr = softkeyset;
-					SoftKeyModes[i].count = keySetSize;
-				}else{
-					ast_free(softkeyset);
-				}
-			}
+ 			if(SoftKeyModes[i].id == keyMode){
+ 				uint8_t *softkeyset = ast_malloc(StationMaxSoftKeySetDefinition * sizeof(uint8_t));
+				memset(softkeyset, 0, StationMaxSoftKeySetDefinition * sizeof(uint8_t));
+ 				keySetSize = sccp_config_readSoftSet(softkeyset, variable->value);
+ 				
+ 				if(keySetSize > 0){
+ 					//SoftKeyModes[i].count = keySetSize;
+					softKeySetConfiguration->modes[i].id = keyMode;
+ 					softKeySetConfiguration->modes[i].ptr = softkeyset;
+ 					softKeySetConfiguration->modes[i].count = keySetSize;
+ 				}else{
+ 					ast_free(softkeyset);
+ 				}
+ 			}
 		}
+		
+		
 		variable = variable->next;
 	}
+	
+	/* set default value if not configured */
+	uint8_t size = ( sizeof(softKeySetConfiguration->modes)/sizeof(softkey_modes) );
+	for(i=0;i < size; i++){
+ 		if(softKeySetConfiguration->modes[i].ptr == NULL){
+ 			softKeySetConfiguration->modes[i] = SoftKeyModes[i];
+ 		}
+	}
+	
+	
+	SCCP_LIST_INSERT_HEAD(&softKeySetConfig, softKeySetConfiguration, list);
 }
 
+/**
+ * \brief Read a single SoftKeyMode (configuration values)
+ * \param softkeyset SoftKeySet
+ * \param data configuration values
+ * \return number of parsed softkeys
+ */
 uint8_t sccp_config_readSoftSet(uint8_t *softkeyset, const char *data){
 	int i = 0, j;
 
@@ -1202,6 +1187,11 @@ uint8_t sccp_config_readSoftSet(uint8_t *softkeyset, const char *data){
 	return i;
 }
 
+/**
+ * \brief Get softkey label as int
+ * \param key configuration value
+ * \return SoftKey label as int of SKINNY_LBL_*. returns an empty button if nothing matched
+ */
 int sccp_config_getSoftkeyLbl(char* key){
 	int i=0;
 	int size = sizeof(softKeyTemplate)/sizeof(softkeyConfigurationTemplate);
@@ -1215,6 +1205,12 @@ int sccp_config_getSoftkeyLbl(char* key){
 	return SKINNY_LBL_EMPTY;
 }
 
+
+/**
+ * \brief Restore feature status from ast-db
+ * \param device device to be restored
+ * \todo restore clfw feature
+ */
 void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 	if(!device)
 		return;

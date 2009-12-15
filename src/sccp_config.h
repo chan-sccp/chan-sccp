@@ -35,7 +35,7 @@ typedef struct {
 static const softkeyConfigurationTemplate softKeyTemplate[] = {
         {"redial", SKINNY_LBL_REDIAL},
         {"newcall", SKINNY_LBL_NEWCALL},
-        {"cfwdall", SKINNY_LBL_NEWCALL},
+        {"cfwdall", SKINNY_LBL_CFWDALL},
         {"cfwdbusy", SKINNY_LBL_CFWDBUSY},
         {"cfwdnoanswer", SKINNY_LBL_CFWDNOANSWER},
         {"pickup", SKINNY_LBL_PICKUP},

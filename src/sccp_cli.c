@@ -1687,6 +1687,81 @@ static struct ast_cli_entry cli_show_mwi_subscriptions = {
 #endif
 
 
+
+#ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief CLI MWI Subscriptions
+ * \param e Asterisk CLI Entry
+ * \param cmd Cmd as int
+ * \param a Asterisk CLI Arguments
+ * \return Result as char
+ */
+static char *cli_show_softkeysets(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+		e->command = "sccp show softkeysets";
+		e->usage =
+			"Usage: sccp show softkeysets\n"
+			"		Show the configured SoftKeySets\n";
+		return NULL;
+	} else if (cmd == CLI_GENERATE)
+		return NULL;
+
+	if (a->argc != 3)
+		return CLI_SHOWUSAGE;
+
+	//if(sccp_show_version(a->fd, a->argc, a->argv) == RESULT_SUCCESS){
+	  
+	  
+	sccp_softKeySetConfiguration_t *softkeyset = NULL;
+	
+	ast_cli(a->fd, "SoftKeySets: %d\n", softKeySetConfig.size);
+	uint8_t i = 0;
+	uint8_t v_count = 0;
+	uint8_t c=0;
+	SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list){
+		v_count = sizeof(softkeyset->modes)/sizeof(softkey_modes);
+	  
+		ast_cli(a->fd, "name: %s\n", softkeyset->name);
+		ast_cli(a->fd, "number of softkeysets: %d\n", v_count );
+		
+		
+		
+		for (i = 0; i < v_count; i++) {
+			const uint8_t *b = softkeyset->modes[i].ptr;
+			ast_cli(a->fd, "      Set[%-2d]= ", softkeyset->modes[i].id);
+			
+			for ( c = 0; c < softkeyset->modes[i].count; c++) {
+				ast_cli(a->fd, "%-2d:%-10s ", c, skinny_lbl2str(b[c]));
+			}
+			
+			ast_cli(a->fd, "\n");
+		}
+		
+		//ast_cli(a->fd, "      Set[%-2d]= ", softkeyset->id);
+		ast_cli(a->fd, "\n");
+		
+	}
+	ast_cli(a->fd, "\n");
+	return CLI_SUCCESS;
+	//}else
+	//	return CLI_FAILURE;
+}
+#else
+/*!
+ * \brief CLI MWI Subscriptions
+ * \return Asterisk Cli Entry Structure
+ * \note Alias for Asterisk CLI Entry
+ */
+static struct ast_cli_entry cli_show_mwi_subscriptions = {
+  { "sccp", "show", "softkeysets", NULL },
+  sccp_show_version,
+  "SCCP show softkeysets",
+  "Usage: SCCP show softkeysets\n"
+  "		Show the SCCP channel subscriptions\n"
+};
+#endif
+
+
 #ifdef ASTERISK_CONF_1_6
 
 /*!
@@ -1715,11 +1790,15 @@ static struct ast_cli_entry cli_entries[] = {
 		AST_CLI_DEFINE(cli_reload, "SCCP module reload."),
 		AST_CLI_DEFINE(cli_show_version, "SCCP show version."),
 		AST_CLI_DEFINE(cli_show_mwi_subscriptions, "Show all mwi subscriptions"),
+		AST_CLI_DEFINE(cli_show_softkeysets, "Show all mwi configured SoftKeySets"),
 		AST_CLI_DEFINE(cli_restart, ""),
 		AST_CLI_DEFINE(cli_reset, ""),
+		
 		AST_CLI_DEFINE(cli_show_device, "")
 };
 #endif
+
+
 
 
 /*!

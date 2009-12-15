@@ -574,6 +574,14 @@ struct sccp_device {
         sccp_featureConfiguration_t 		overlapFeature;				/*!< Overlap Dial Feature */
         sccp_featureConfiguration_t 		monitorFeature;				/*!< Monitor (automon) Feature */
         sccp_featureConfiguration_t 		dndFeature;				/*!< dnd Feature */
+        
+        
+        char 					softkeyDefinition[50];			/*!< requested softKey configuration */
+        
+        struct{
+		softkey_modes			*modes;					/*!< used softkeySet */
+		uint8_t				size;					/*!< who many softkeysets are provieded by modes */
+	}softKeyConfiguration;								/*!< SoftKeySet configuration */
 
 };
 
@@ -864,6 +872,17 @@ static inline unsigned char sccp_is_nonempty_string(char *string)
 
         return 0;									/*! \todo Return value type int does not match declared type unsigned char: 1 */
 }
+
+typedef struct softKeySetConfiguration sccp_softKeySetConfiguration_t;			/*!< SoftKeySet configuration */
+struct softKeySetConfiguration{
+	char					name[50];				/*!< name for configuration */
+	softkey_modes 				modes[16];				/*!< SoftKeySet modes, see KEYMODE_* */
+	
+	SCCP_LIST_ENTRY(sccp_softKeySetConfiguration_t) 	list;			/*!< next list entry */
+};
+
+
+SCCP_LIST_HEAD(, sccp_softKeySetConfiguration_t) softKeySetConfig;			/*! list of SoftKeySet */
 
 #endif /* __CHAN_SCCP_H */
 

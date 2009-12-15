@@ -198,6 +198,20 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	s->lastKeepAlive = time(0);
 	d->mwilight = 0;
 	d->protocolversion = r->msg.RegisterMessage.protocolVer;
+	
+	sccp_softKeySetConfiguration_t *softkeyset;
+	
+	if(!ast_strlen_zero(d->softkeyDefinition)){
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: searching for softkeyset: %s!\n", d->id, d->softkeyDefinition);
+		SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
+			if (!strcasecmp(d->softkeyDefinition, softkeyset->name)) {
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: using softkeyset: %s!\n", d->id, softkeyset->name);
+				d->softKeyConfiguration.modes = softkeyset->modes;
+				d->softKeyConfiguration.size = (sizeof(softkeyset->modes)/sizeof(softkey_modes));
+			}
+		}
+	}
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: d->softkeyDefinition=%s!\n", d->id, d->softkeyDefinition);
 	sccp_device_unlock(d);
 
 	/* pre-attach lines. We will wait for button template req if the phone does support it */
@@ -1107,18 +1121,19 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_moo_t * r)
  * \param s SCCP Session as sccp_session_t
  * \param r SCCP Message as sccp_moo_t
  */
-void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r)
-{
-	uint8_t i;
-	const uint8_t c = sizeof(softkeysmap);
-	sccp_moo_t * r1;
-	sccp_device_t * d = s->device;
+void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r){
+	uint8_t 	i;
+	sccp_moo_t 	*r1;
+	sccp_device_t 	*d = s->device;
 
 	if (!d)
 		return;
-
+	
+	
+	//const uint8_t c = sizeof(softkeysmap);
+	const uint8_t 	c = d->softKeyConfiguration.size;
+	
 	/* ok the device support the softkey map */
-
 	sccp_device_lock(d);
 
 	d->softkeysupport = 1;
@@ -1128,9 +1143,11 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r)
 	r1->msg.SoftKeyTemplateResMessage.lel_softKeyOffset = htolel(0);
 
 	for (i = 0; i < c; i++) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", s->device->id, i, i+1, skinny_lbl2str(softkeysmap[i]));
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", s->device->id, i, i+1, skinny_lbl2str(softkeysmap[i]));
+		//sccp_log(1)(VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", s->device->id, i, i+1, skinny_lbl2str(d->softKeyModes[i]));
 		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = 128;
 		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = softkeysmap[i];
+		//r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = d->softKeyModes[i];
 		r1->msg.SoftKeyTemplateResMessage.definition[i].lel_softKeyEvent = htolel(i+1);
 	}
 
@@ -1148,17 +1165,19 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r)
  */
 void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 {
-	sccp_device_t * d = s->device;
-	const softkey_modes * v = SoftKeyModes;
-	const	uint8_t	v_count = ( sizeof(SoftKeyModes)/sizeof(softkey_modes) );
-	int iKeySetCount = 0;
-	sccp_moo_t * r1;
-	uint8_t i = 0;
-	sccp_line_t * l;
-	uint8_t trnsfvm = 0;
-	uint8_t meetme = 0;
+	sccp_device_t 		*d = s->device;
+	const softkey_modes 	*v = d->softKeyConfiguration.modes;
+	const	uint8_t		v_count = d->softKeyConfiguration.size;
+	//const softkey_modes 	*v = SoftKeyModes;
+	//const	uint8_t		v_count = ( sizeof(SoftKeyModes)/sizeof(softkey_modes) );
+	int 			iKeySetCount = 0;
+	sccp_moo_t 		*r1;
+	uint8_t 		i = 0;
+	sccp_line_t 		*l;
+	uint8_t 		trnsfvm = 0;
+	uint8_t 		meetme = 0;
 #ifdef CS_SCCP_PICKUP
-	uint8_t pickupgroup= 0;
+	uint8_t 		pickupgroup= 0;
 #endif
 	if (!d)
 		return;
@@ -1188,27 +1207,28 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 		}
 	}
 
+	sccp_log(1)(VERBOSE_PREFIX_3 "count: %d", v_count);
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRANSFER        is %s\n", d->id, (d->transfer) ? "enabled" : "disabled");
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: DND             is %s\n", d->id, d->dndFeature.status ? sccp_dndmode2str(d->dndFeature.status) : "disabled");
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PRIVATE         is %s\n", d->id, d->privacyFeature.enabled ? "enabled" : "disabled");
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: TRANSFER        is %s\n", d->id, (d->transfer) ? "enabled" : "disabled");
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND             is %s\n", d->id, d->dndFeature.status ? sccp_dndmode2str(d->dndFeature.status) : "disabled");
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: PRIVATE         is %s\n", d->id, d->privacyFeature.enabled ? "enabled" : "disabled");
 #ifdef CS_SCCP_PARK
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PARK            is  %s\n", d->id, (d->park) ? "enabled" : "disabled");
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: PARK            is  %s\n", d->id, (d->park) ? "enabled" : "disabled");
 #endif
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CFWDALL         is  %s\n", d->id, (d->cfwdall) ? "enabled" : "disabled");
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CFWDBUSY        is  %s\n", d->id, (d->cfwdbusy) ? "enabled" : "disabled");
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CFWDNOANSWER    is  %s\n", d->id, (d->cfwdnoanswer) ? "enabled" : "disabled");
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRNSFVM/IDIVERT is  %s\n", d->id, (trnsfvm) ? "enabled" : "disabled");
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: MEETME          is  %s\n", d->id, (meetme) ? "enabled" : "disabled");
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: CFWDALL         is  %s\n", d->id, (d->cfwdall) ? "enabled" : "disabled");
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: CFWDBUSY        is  %s\n", d->id, (d->cfwdbusy) ? "enabled" : "disabled");
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: CFWDNOANSWER    is  %s\n", d->id, (d->cfwdnoanswer) ? "enabled" : "disabled");
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: TRNSFVM/IDIVERT is  %s\n", d->id, (trnsfvm) ? "enabled" : "disabled");
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: MEETME          is  %s\n", d->id, (meetme) ? "enabled" : "disabled");
 #ifdef CS_SCCP_PICKUP
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PICKUPGROUP     is  %s\n", d->id, (pickupgroup) ? "enabled" : "disabled");
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: PICKUPEXTEN     is  %s\n", d->id, (d->pickupexten) ? "enabled" : "disabled");
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: PICKUPGROUP     is  %s\n", d->id, (pickupgroup) ? "enabled" : "disabled");
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: PICKUPEXTEN     is  %s\n", d->id, (d->pickupexten) ? "enabled" : "disabled");
 #endif
 	for (i = 0; i < v_count; i++) {
 		const uint8_t * b = v->ptr;
 		uint8_t c, i = 0;
 
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Set[%-2d]= ", d->id, v->id);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Set[%-2d]= ", d->id, v->id);
 
 		for ( c = 0; c < v->count; c++) {
 		/* look for the SKINNY_LBL_ number in the softkeysmap */
@@ -1268,19 +1288,19 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 			}
 			for (i = 0; i < sizeof(softkeysmap); i++) {
 				if (b[c] == softkeysmap[i]) {
-				sccp_log(10)("%-2d:%-10s ", c, skinny_lbl2str(softkeysmap[i]));
+				sccp_log(1)("%-2d:%-10s ", c, skinny_lbl2str(softkeysmap[i]));
 				r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[c] = (i+1);
 				break;
 			}
 		}
 	}
 
-	sccp_log(10)("\n");
+	sccp_log(1)("\n");
 	v++;
 	iKeySetCount++;
 	};
 
-	sccp_log(10)( VERBOSE_PREFIX_3 "There are %d SoftKeySets.\n", iKeySetCount);
+	sccp_log(1)( VERBOSE_PREFIX_3 "There are %d SoftKeySets.\n", iKeySetCount);
 
 	r1->msg.SoftKeySetResMessage.lel_softKeySetCount = htolel(iKeySetCount);
 	r1->msg.SoftKeySetResMessage.lel_totalSoftKeySetCount = htolel(iKeySetCount); // <<-- for now, but should be: iTotalKeySetCount;

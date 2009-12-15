@@ -114,6 +114,10 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 	d->configurationStatistic.numberOfFeatures=0;
 	/* */
 
+	
+	d->softKeyConfiguration.modes = SoftKeyModes;
+	d->softKeyConfiguration.size = sizeof(SoftKeyModes)/sizeof(softkey_modes);
+	
 	// TODO: FIX THIS
 	/*
 		d->selectedChannels = NULL;
