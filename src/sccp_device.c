@@ -359,9 +359,10 @@ sccp_moo_t * sccp_build_packet(sccp_message_t t, size_t pkt_len)
  */
 int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
 {
-	if(d && d->session)
+	if(d && d->session){
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: >> Sent message %s\n", d->id, sccpmsg2str(r->lel_messageId));
 		return sccp_session_send(d, r);
-	else
+	}else
 		return -1;
 }
 

@@ -207,7 +207,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 			if (!strcasecmp(d->softkeyDefinition, softkeyset->name)) {
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: using softkeyset: %s!\n", d->id, softkeyset->name);
 				d->softKeyConfiguration.modes = softkeyset->modes;
-				d->softKeyConfiguration.size = (sizeof(softkeyset->modes)/sizeof(softkey_modes));
+				d->softKeyConfiguration.size = (sizeof(softkeyset->modes)/sizeof(softkey_modes));;
 			}
 		}
 	}
@@ -468,7 +468,12 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 
 			} else if(buttonconfig->type == SPEEDDIAL && sccp_is_nonempty_string(buttonconfig->button.speeddial.label)){
 				if (sccp_is_nonempty_string(buttonconfig->button.speeddial.hint)){
+#ifdef CS_DYNAMIC_SPEEDDIAL				  
+					btn[i].type = 0x15;
+#else
 					btn[i].type = SCCP_BUTTONTYPE_HINT;
+#endif
+					
 				}else
 					btn[i].type = SCCP_BUTTONTYPE_SPEEDDIAL;
 
@@ -486,7 +491,8 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 		btn[i].type = SCCP_BUTTONTYPE_LINE;
 		btn[i].instance = 1;
 	}
-
+	
+	
 
 //	sccp_device_unlock(d);
 
@@ -504,6 +510,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 	sccp_device_t * d = s->device;
 	int i;
 	sccp_moo_t * r1;
+	
 
 	if (!d)
 		return;
@@ -523,6 +530,50 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 
 	REQ(r1, ButtonTemplateMessage);
 	for (i = 0; i < StationMaxButtonTemplateSize ; i++) {
+		
+		switch (btn[i].type) {
+			case SCCP_BUTTONTYPE_HINT:
+			case SCCP_BUTTONTYPE_LINE:
+				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_LINE;
+				r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
+				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
+				break;
+				
+			case SCCP_BUTTONTYPE_SPEEDDIAL:
+				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_SPEEDDIAL;
+				r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
+				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
+				break;
+			
+			case SKINNY_BUTTONTYPE_SERVICEURL:
+				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_SERVICEURL;
+				r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
+				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
+				break;
+			
+			case SKINNY_BUTTONTYPE_FEATURE:
+				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_FEATURE;
+				r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
+				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
+				break;
+				
+			case SKINNY_BUTTONTYPE_MULTI:
+				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_DISPLAY;
+				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
+				break;
+				
+			case SKINNY_BUTTONTYPE_UNUSED:
+				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_UNDEFINED;
+				
+				break;
+				
+			default:
+				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = btn[i].type;
+				r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
+				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
+				break;
+		}
+		/*
 		if (btn[i].type == SCCP_BUTTONTYPE_HINT || btn[i].type == SCCP_BUTTONTYPE_LINE) {
 			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_LINE;
 			r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
@@ -546,7 +597,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 		//if (r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition != SKINNY_BUTTONTYPE_UNDEFINED) {
 			r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Button Template [%.2d] = %s (%d), instance %d\n", d->id, i+1, skinny_buttontype2str(r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition), r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition,r1->msg.ButtonTemplateMessage.definition[i].instanceNumber);
-		}
+		}*/
 	}
 
 	r1->msg.ButtonTemplateMessage.lel_buttonOffset = htolel(0);
@@ -637,7 +688,7 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_moo_t * r)
 	REQ(r1, SpeedDialStatMessage);
 	r1->msg.SpeedDialStatMessage.lel_speedDialNumber = htolel(wanted);
 
-	/* Dirty hack by davidded for his doorbell stuff */
+	// Dirty hack by davidded for his doorbell stuff 
 	if(SKINNY_DEVICETYPE_CISCO7910 == s->device->skinny_type)
 		wanted += 1;
 
@@ -651,6 +702,8 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	sccp_dev_send(s->device, r1);
+	
+	
 }
 
 /*!
@@ -899,6 +952,14 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 #endif
 			break;
 
+		case 21: //dynamic Speeddial 
+			k = sccp_dev_speed_find_byindex(d, instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
+			if (k)
+				sccp_handle_speeddial(d, k);
+			else
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
+			break;
+			
 		default:
 			ast_log(LOG_NOTICE, "%s: Don't know how to deal with stimulus %d with Phonetype %s(%d) \n", d->id, stimulus, skinny_devicetype2str(d->skinny_type), d->skinny_type);
 			break;
@@ -1146,7 +1207,7 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r){
 	r1->msg.SoftKeyTemplateResMessage.lel_softKeyOffset = htolel(0);
 
 	for (i = 0; i < c; i++) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", s->device->id, i, i+1, skinny_lbl2str(softkeysmap[i]));
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i+1, skinny_lbl2str(softkeysmap[i]));
 		//sccp_log(1)(VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", s->device->id, i, i+1, skinny_lbl2str(d->softKeyModes[i]));
 		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = 128;
 		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = softkeysmap[i];
@@ -1210,7 +1271,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 		}
 	}
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "count: %d", v_count);
+	sccp_log(1)(VERBOSE_PREFIX_3 "count: %d\n", v_count);
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: TRANSFER        is %s\n", d->id, (d->transfer) ? "enabled" : "disabled");
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND             is %s\n", d->id, d->dndFeature.status ? sccp_dndmode2str(d->dndFeature.status) : "disabled");
@@ -1229,7 +1290,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 #endif
 	for (i = 0; i < v_count; i++) {
 		const uint8_t * b = v->ptr;
-		uint8_t c, i = 0;
+		uint8_t c, j = 0;
 
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Set[%-2d]= ", d->id, v->id);
 
@@ -1289,10 +1350,10 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 			if ( (b[c] == SKINNY_LBL_PRIVATE) && (!d->privacyFeature.enabled) ) {
 				continue;
 			}
-			for (i = 0; i < sizeof(softkeysmap); i++) {
-				if (b[c] == softkeysmap[i]) {
-					sccp_log(1)("%-2d:%-10s ", c, skinny_lbl2str(softkeysmap[i]));
-					r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[c] = (i+1);
+			for (j = 0; j < sizeof(softkeysmap); j++) {
+				if (b[c] == softkeysmap[j]) {
+					sccp_log(1)("%-2d:%-10s ", c, skinny_lbl2str(softkeysmap[j]));
+					r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[c] = (j+1);
 					break;
 				}
 			}
@@ -2079,8 +2140,40 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 		return;
 
   	int instance = letohl(r->msg.FeatureStatReqMessage.lel_featureInstance);
-  	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d\n", d->id, instance);
+	int unknown = letohl(r->msg.FeatureStatReqMessage.lel_unknown);
+  	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Unknown = %d \n", d->id, instance, unknown);
 
+	
+	/* the new speeddial style uses feature to display state
+	   unfortunately we dont know how to handle this on other way
+	*/
+#ifdef CS_DYNAMIC_SPEEDDIAL
+	if(unknown == 1 && d->inuseprotocolversion >= 15 ){
+		sccp_speed_t * k = sccp_dev_speed_find_byindex(d, instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
+		if (k){
+			sccp_moo_t * r1;
+			REQ(r1, SpeedDialStatDynamicMessage);
+			r1->msg.SpeedDialStatDynamicMessage.lel_instance = htolel(instance);
+			r1->msg.SpeedDialStatDynamicMessage.lel_type = 0x15;
+			r1->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(0);
+
+			sccp_copy_string(r1->msg.SpeedDialStatDynamicMessage.DisplayName, k->name, sizeof(r1->msg.SpeedDialStatDynamicMessage.DisplayName));
+			sccp_dev_send(d, r1);
+			
+			
+			REQ(r1, SpeedDialStatDynamicMessage);
+			r1->msg.SpeedDialStatDynamicMessage.lel_instance = htolel(instance);
+			r1->msg.SpeedDialStatDynamicMessage.lel_type = 0x15;
+			r1->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(0); /* default state */
+
+			sccp_copy_string(r1->msg.SpeedDialStatDynamicMessage.DisplayName, k->name, sizeof(r1->msg.SpeedDialStatDynamicMessage.DisplayName));
+			sccp_dev_send(d, r1);
+		}
+		return;
+			
+	}
+#endif
+	
   	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list){
 		if(config->instance == instance && config->type == FEATURE){
 			sccp_feat_changed(d, config->button.feature.id);

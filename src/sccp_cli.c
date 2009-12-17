@@ -463,9 +463,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	}
 
 	sccp_device_unlock(d);
-
-
-
+	
 	return RESULT_SUCCESS;
 }
 

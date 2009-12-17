@@ -218,7 +218,8 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 #endif
 #ifdef CS_AST_HAS_EXTENSION_RINGING
 		case AST_EXTENSION_RINGING:
-			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+			//hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+			hint->currentState = SCCP_CHANNELSTATE_RINGING;
 			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.callingPartyName));
 			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.calledPartyName));
 
@@ -290,6 +291,8 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 // 		}else
 //  			sccp_dev_set_lamp(subscriber->device, SKINNY_STIMULUS_LINE, subscriber->instance, SKINNY_LAMP_OFF);
 		
+		
+#ifndef CS_DYNAMIC_SPEEDDIAL		
 		sccp_device_sendcallstate(subscriber->device, subscriber->instance, 0, hint->currentState, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 
 		/* create CallInfoMessage */
@@ -305,7 +308,31 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 		r->msg.CallInfoMessage.lel_callRef  = htolel(0);
 		r->msg.CallInfoMessage.lel_callType = htolel(hint->callInfo.calltype);
 		sccp_dev_send(subscriber->device, r);
-
+		
+#else
+		if(subscriber->device->inuseprotocolversion >= 15){
+			REQ(r, SpeedDialStatDynamicMessage);
+			r->msg.SpeedDialStatDynamicMessage.lel_instance = htolel(subscriber->instance);
+			r->msg.SpeedDialStatDynamicMessage.lel_type = 0x15;
+			
+			switch(hint->currentState){
+				case SCCP_CHANNELSTATE_ONHOOK:
+					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(1); /* default state */
+				break;
+				
+				case SCCP_CHANNELSTATE_RINGING:
+					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(4); /* default state */
+				break;
+				
+				default:
+					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(2); /* default state */
+				break;
+			}
+			
+			sccp_copy_string(r->msg.SpeedDialStatDynamicMessage.DisplayName, "hint in use", sizeof(r->msg.SpeedDialStatDynamicMessage.DisplayName));
+			sccp_dev_send(subscriber->device, r);
+		}
+#endif
 		/*  */
 		if(hint->currentState == SCCP_CHANNELSTATE_ONHOOK) {
 			sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_ONHOOK);
@@ -462,6 +489,8 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 	sccp_line_t 	*line = NULL;
 	sccp_channel_t 	*channel = NULL;
 
+	if(!hint)
+		return;
 
 	sccp_mutex_lock(&hint->lock);
 	line = sccp_line_find_byname_wo(hint->type.internal.lineName,FALSE);
@@ -503,7 +532,6 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 			case SCCP_CHANNELSTATE_ONHOOK:
 				break;
 			case SCCP_CHANNELSTATE_RINGOUT:
-			case SCCP_CHANNELSTATE_RINGING:
 			case SCCP_CHANNELSTATE_CONNECTED:
 			case SCCP_CHANNELSTATE_PROCEED:
 				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
@@ -521,6 +549,24 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 					sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.calledPartyName));
 				}
 				break;
+				
+			case SCCP_CHANNELSTATE_RINGING:
+				hint->currentState = SCCP_CHANNELSTATE_RINGING;
+				if(!device || device->privacyFeature.enabled == 0 || (device->privacyFeature.enabled == 1 && channel->private == FALSE)) {
+					
+					sccp_copy_string(hint->callInfo.callingPartyName,   channel->callingPartyName, sizeof(hint->callInfo.callingPartyName));
+					sccp_copy_string(hint->callInfo.calledPartyName,   channel->calledPartyName, sizeof(hint->callInfo.calledPartyName));
+
+					sccp_copy_string(hint->callInfo.callingParty,  channel->callingPartyNumber, sizeof(hint->callInfo.callingParty));
+					sccp_copy_string(hint->callInfo.calledParty,  channel->calledPartyNumber, sizeof(hint->callInfo.calledParty));
+					
+
+				} else {
+					sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.callingPartyName));
+					sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.calledPartyName));
+				}
+				break;
+				
 			case SCCP_CHANNELSTATE_DIALING:
 			case SCCP_CHANNELSTATE_DIGITSFOLL:
 				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;

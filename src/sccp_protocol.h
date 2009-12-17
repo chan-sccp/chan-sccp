@@ -355,6 +355,7 @@ typedef enum {
 #define SKINNY_BUTTONTYPE_AUTOANSWER		0x11
 #define SKINNY_BUTTONTYPE_FEATURE        	0x13
 #define SKINNY_BUTTONTYPE_SERVICEURL		0x14
+#define SKINNY_BUTTONTYPE_UNKNOWN		0x15
 
 
 #define SKINNY_BUTTONTYPE_GENERICAPPB1		0x21
@@ -636,8 +637,9 @@ typedef enum {
         Unknown_0x0143_Message			= 0x0143,
         Unknown_0x0144_Message			= 0x0144,
         DisplayDynamicPromptStatusMessage	= 0x0145,
+        SpeedDialStatDynamicMessage		= 0x0146,
         LineStatDynamicMessage			= 0x0147,
-        SpeedDialStatDynamicMessage		= 0x0149,
+        Unknown_0x0149_Message			= 0x0149,
         CallInfoDynamicMessage			= 0x014A,
 
         /* received from phone */
@@ -875,6 +877,13 @@ typedef union {
                 uint32_t 	nn;						/*!< Unknown */
         } Unknown_0x0144_Message;						/*!< \todo Unknown 0x0144 Message Structure (This set caller and called id )*/
 
+	struct {
+		uint32_t 	lel_instance;
+                uint32_t 	lel_type;					/*!< always 0x15 */
+                uint32_t 	lel_unknown1;					
+		char	 	DisplayName[StationMaxNameSize];		/*!< SpeedDial Display Name */
+	} SpeedDialStatDynamicMessage;
+
         struct {
                 uint32_t	lel_messageTimeout;
                 uint32_t 	lel_lineInstance;
@@ -897,7 +906,7 @@ typedef union {
         struct {
                 uint32_t 	lel_speedDialNumber;
                 uint32_t 	dummy;
-        } SpeedDialStatDynamicMessage;
+        } Unknown_0x0149_Message;
 
         struct {
                 uint32_t 	lel_lineId;
@@ -1124,6 +1133,7 @@ typedef union {
         /* 0x34 FeatureStatReqMessage */
         struct {
                 uint32_t 	lel_featureInstance;				/*!< instance on device */
+                uint32_t 	lel_unknown;					/*!< unknown */
         } FeatureStatReqMessage;						/*!< Feature Stat Request Message - Client -> Server */
 
         struct {
