@@ -413,6 +413,13 @@ AC_ARG_WITH(advanced_functions,
        	AC_DEFINE(CS_ADV_FEATURES, 1, [Debug SCCP advanced functions])
 ])
 
+AC_ARG_WITH(dynamic_speeddial, 
+  AC_HELP_STRING([--with-dynamic-speeddial], [Using dynamic speeddials (default is NO)]), 
+  ac_cv_dynamic_speeddial=yes, ac_cv_dynamic_speeddial=no)
+    AS_IF([test "${ac_cv_dynamic_speeddial}" == "yes"], [
+       	AC_DEFINE(CS_DYNAMIC_SPEEDDIAL, 1, [Using dynamic speeddials])
+])
+
 dnl Figure out the Asterisk Version
 if test "${PBX_TYPE}" = "Asterisk"; then
   AC_CHECK_HEADER(asterisk/version.h,[
