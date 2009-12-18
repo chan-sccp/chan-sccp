@@ -334,6 +334,9 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			
 			sccp_copy_string(r->msg.SpeedDialStatDynamicMessage.DisplayName, (k)?k->name:"unknown speeddial", sizeof(r->msg.SpeedDialStatDynamicMessage.DisplayName));
 			sccp_dev_send(subscriber->device, r);
+			
+			if(k)
+				ast_free(k);
 		}
 #endif
 		/*  */
