@@ -335,7 +335,6 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 			/* check for ringer options */
 			} else if (!strncasecmp(optv[opti], "ringer=", 7)) {
 				optv[opti] += 7;
-				ast_log(LOG_WARNING, "%s: found ringer %s\n", l->id, optv[opti]);
 				if (!strcasecmp(optv[opti], "inside"))
 					c->ringermode = SKINNY_STATION_INSIDERING;
 				else if (!strcasecmp(optv[opti], "outside"))

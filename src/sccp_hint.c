@@ -311,6 +311,9 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 		
 #else
 		if(subscriber->device->inuseprotocolversion >= 15){
+			sccp_speed_t * k = sccp_dev_speed_find_byindex(subscriber->device, subscriber->instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
+		  
+		  
 			REQ(r, SpeedDialStatDynamicMessage);
 			r->msg.SpeedDialStatDynamicMessage.lel_instance = htolel(subscriber->instance);
 			r->msg.SpeedDialStatDynamicMessage.lel_type = 0x15;
@@ -329,7 +332,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 				break;
 			}
 			
-			sccp_copy_string(r->msg.SpeedDialStatDynamicMessage.DisplayName, "hint in use", sizeof(r->msg.SpeedDialStatDynamicMessage.DisplayName));
+			sccp_copy_string(r->msg.SpeedDialStatDynamicMessage.DisplayName, (k)?k->name:"unknown speeddial", sizeof(r->msg.SpeedDialStatDynamicMessage.DisplayName));
 			sccp_dev_send(subscriber->device, r);
 		}
 #endif

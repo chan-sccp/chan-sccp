@@ -877,6 +877,7 @@ typedef struct softKeySetConfiguration sccp_softKeySetConfiguration_t;			/*!< So
 struct softKeySetConfiguration{
 	char					name[50];				/*!< name for configuration */
 	softkey_modes 				modes[16];				/*!< SoftKeySet modes, see KEYMODE_* */
+	uint8_t					numberOfSoftKeySets;			/*!< how many softkeysets we definde? */
 	
 	SCCP_LIST_ENTRY(sccp_softKeySetConfiguration_t) 	list;			/*!< next list entry */
 };

@@ -199,6 +199,8 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	d->mwilight = 0;
 	d->protocolversion = r->msg.RegisterMessage.protocolVer;
 	
+	
+	/* set softkey definition */
 	sccp_softKeySetConfiguration_t *softkeyset;
 	
 	if(!ast_strlen_zero(d->softkeyDefinition)){
@@ -207,12 +209,15 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 			if (!strcasecmp(d->softkeyDefinition, softkeyset->name)) {
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: using softkeyset: %s!\n", d->id, softkeyset->name);
 				d->softKeyConfiguration.modes = softkeyset->modes;
-				d->softKeyConfiguration.size = (sizeof(softkeyset->modes)/sizeof(softkey_modes));;
+				//d->softKeyConfiguration.size = (sizeof(softkeyset->modes)/sizeof(softkey_modes));;
+				d->softKeyConfiguration.size = softkeyset->numberOfSoftKeySets;
 			}
 		}
 	}
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: d->softkeyDefinition=%s!\n", d->id, d->softkeyDefinition);
+	/* end softkey definition */
 	sccp_device_unlock(d);
+	
 
 	/* pre-attach lines. We will wait for button template req if the phone does support it */
 	sccp_dev_build_buttontemplate(d, btn);

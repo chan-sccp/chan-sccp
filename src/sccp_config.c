@@ -1082,14 +1082,16 @@ struct ast_config *sccp_config_getConfig() {
 void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
 	int 			keySetSize;
 	sccp_softKeySetConfiguration_t 	*softKeySetConfiguration = NULL;
-	uint8_t 		keyMode = -1;
+	int 			keyMode = -1;
 	int 			i=0;
 	sccp_log(10)(VERBOSE_PREFIX_3 "start reading softkeyset: %s\n", name);
 	
 	
 	softKeySetConfiguration = ast_malloc(sizeof(sccp_softKeySetConfiguration_t));
-	sccp_copy_string(softKeySetConfiguration->name, name, sizeof(softKeySetConfiguration->name));
+	memset(softKeySetConfiguration, 0, sizeof(sccp_softKeySetConfiguration_t));
 	
+	sccp_copy_string(softKeySetConfiguration->name, name, sizeof(softKeySetConfiguration->name));
+	softKeySetConfiguration->numberOfSoftKeySets = 0;
 	
 	while(variable){
 		keyMode = -1;
@@ -1128,6 +1130,10 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
 		}
 		
 		
+		if(softKeySetConfiguration->numberOfSoftKeySets < (keyMode+1) ){
+			softKeySetConfiguration->numberOfSoftKeySets = keyMode+1;
+		}
+		
 		for(i=0;i < ( sizeof(SoftKeyModes)/sizeof(softkey_modes) ); i++){
  			if(SoftKeyModes[i].id == keyMode){
  				uint8_t *softkeyset = ast_malloc(StationMaxSoftKeySetDefinition * sizeof(uint8_t));
@@ -1149,14 +1155,15 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
 		variable = variable->next;
 	}
 	
+	ast_log(LOG_NOTICE, "number of softkeysets configured %d\n", softKeySetConfiguration->numberOfSoftKeySets);
 	
 	/* set default value if not configured */
-	uint8_t size = ( sizeof(softKeySetConfiguration->modes)/sizeof(softkey_modes) );
-	for(i=0;i < size; i++){
+// 	uint8_t size = ( sizeof(softKeySetConfiguration->modes)/sizeof(softkey_modes) );
+// 	for(i=0;i < size; i++){
 //  		if(softKeySetConfiguration->modes[i].ptr == NULL){
 //  			softKeySetConfiguration->modes[i] = SoftKeyModes[i];
 //  		}
-	}
+// 	}
 	
 	
 	SCCP_LIST_INSERT_HEAD(&softKeySetConfig, softKeySetConfiguration, list);
