@@ -452,9 +452,9 @@ boolean_t sccp_config_general(void){
 			} else if (!strcasecmp(v->name, "debug")) {
 				GLOB(debug) = atoi(v->value);
 			} else if (!strcasecmp(v->name, "allow")) {
-				ast_parse_allow_disallow(&GLOB(global_codecs), &GLOB(global_capability), v->value, 1);
+				ast_parse_allow_disallow(&GLOB(global_codecs), &GLOB(global_capability), ast_strip(v->value), 1);
 			} else if (!strcasecmp(v->name, "disallow")) {
-				ast_parse_allow_disallow(&GLOB(global_codecs), &GLOB(global_capability), v->value, 0);
+				ast_parse_allow_disallow(&GLOB(global_codecs), &GLOB(global_capability), ast_strip(v->value), 0);
 			} else if (!strcasecmp(v->name, "dnd")) {
 				if (!strcasecmp(v->value, "reject")) {
 					GLOB(dndmode) = SCCP_DNDMODE_REJECT;
@@ -938,9 +938,9 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
                 } else if (!strcasecmp(v->name, "imageversion")) {
                         sccp_copy_string(d->imageversion, v->value, sizeof(d->imageversion));
                 } else if (!strcasecmp(v->name, "allow")) {
-                        ast_parse_allow_disallow(&d->codecs, &d->capability, v->value, 1);
+                        ast_parse_allow_disallow(&d->codecs, &d->capability, ast_strip(v->value), 1);
                 } else if (!strcasecmp(v->name, "disallow")) {
-                        ast_parse_allow_disallow(&d->codecs, &d->capability, v->value, 0);
+                        ast_parse_allow_disallow(&d->codecs, &d->capability, ast_strip(v->value), 0);
                 } else if (!strcasecmp(v->name, "transfer")) {
                         d->transfer = sccp_true(v->value);
                 } else if (!strcasecmp(v->name, "cfwdall")) {
@@ -1155,7 +1155,6 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
 		variable = variable->next;
 	}
 	
-	ast_log(LOG_NOTICE, "number of softkeysets configured %d\n", softKeySetConfiguration->numberOfSoftKeySets);
 	
 	/* set default value if not configured */
 // 	uint8_t size = ( sizeof(softKeySetConfiguration->modes)/sizeof(softkey_modes) );
