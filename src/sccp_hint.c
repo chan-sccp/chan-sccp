@@ -218,8 +218,11 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 #endif
 #ifdef CS_AST_HAS_EXTENSION_RINGING
 		case AST_EXTENSION_RINGING:
+#ifndef CS_DYNAMIC_SPEEDDIAL		  
 			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-			//hint->currentState = SCCP_CHANNELSTATE_RINGING;
+#else
+			hint->currentState = SCCP_CHANNELSTATE_RINGING;
+#endif
 			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.callingPartyName));
 			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.calledPartyName));
 
@@ -557,7 +560,11 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 				break;
 				
 			case SCCP_CHANNELSTATE_RINGING:
+#ifndef CS_DYNAMIC_SPEEDDIAL		  
 				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+#else
+				hint->currentState = SCCP_CHANNELSTATE_RINGING;
+#endif
 				if(!device || device->privacyFeature.enabled == 0 || (device->privacyFeature.enabled == 1 && channel->private == FALSE)) {
 					
 					sccp_copy_string(hint->callInfo.callingPartyName,   channel->callingPartyName, sizeof(hint->callInfo.callingPartyName));
