@@ -424,7 +424,7 @@ dnl Figure out the Asterisk Version
 if test "${PBX_TYPE}" = "Asterisk"; then
   AC_CHECK_HEADER(asterisk/version.h,[
     AC_MSG_CHECKING([for version in asterisk/version.h])
-    AC_DEFINE_UNQUOTED([ASTERISK_VERSION_NUM],`cat /usr/include/asterisk/version.h |grep ASTERISK_VERSION_NUM|awk '{print $3}'`,[Define ASTERISK_VERSION_NUM])
+    
     AC_SUBST([ASTERISK_VERSION_NUM])
     dnl The rest is for backward support of old sources, should be removed shortly
     if grep -q "\"1\.6" $PBX_INCLUDE/version.h; then
