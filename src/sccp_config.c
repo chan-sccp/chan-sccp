@@ -306,6 +306,7 @@ boolean_t sccp_config_general(void){
 	struct ast_hostent		ahp;
 	struct hostent			*hp;
 	struct ast_ha 			*na;
+	char 				config_value[256];
 
 
 
@@ -323,6 +324,8 @@ boolean_t sccp_config_general(void){
 	}
 
 	while (v) {
+		sccp_copy_string(config_value, v->value, sizeof(config_value));
+	  
 #ifndef ASTERISK_CONF_1_2
 			/* handle jb in configuration just let asterisk do that */
 			if (!ast_jb_read_conf(&GLOB(global_jbconf), v->name, v->value)){
@@ -452,9 +455,9 @@ boolean_t sccp_config_general(void){
 			} else if (!strcasecmp(v->name, "debug")) {
 				GLOB(debug) = atoi(v->value);
 			} else if (!strcasecmp(v->name, "allow")) {
-				ast_parse_allow_disallow(&GLOB(global_codecs), &GLOB(global_capability), ast_strip(v->value), 1);
+				ast_parse_allow_disallow(&GLOB(global_codecs), &GLOB(global_capability), ast_strip(config_value), 1);
 			} else if (!strcasecmp(v->name, "disallow")) {
-				ast_parse_allow_disallow(&GLOB(global_codecs), &GLOB(global_capability), ast_strip(v->value), 0);
+				ast_parse_allow_disallow(&GLOB(global_codecs), &GLOB(global_capability), ast_strip(config_value), 0);
 			} else if (!strcasecmp(v->name, "dnd")) {
 				if (!strcasecmp(v->value, "reject")) {
 					GLOB(dndmode) = SCCP_DNDMODE_REJECT;
@@ -864,6 +867,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
         char 			k_button[256];
         uint8_t			instance=0;
         char 			*splitter;
+	char			config_value[256];
 
         if (!v) {
                 sccp_log(10)(VERBOSE_PREFIX_3 "no variable given\n");
@@ -871,7 +875,8 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
         }
 
         while (v) {
-                sccp_log(1)(VERBOSE_PREFIX_3 "%s = %s\n", v->name, v->value);
+		sccp_copy_string(config_value, v->value, sizeof(config_value));
+                sccp_log(1)(VERBOSE_PREFIX_3 "%s = %s\n", v->name, config_value);
 
                 if ((!strcasecmp(v->name, "device"))
 #ifdef CS_SCCP_REALTIME
@@ -938,9 +943,9 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
                 } else if (!strcasecmp(v->name, "imageversion")) {
                         sccp_copy_string(d->imageversion, v->value, sizeof(d->imageversion));
                 } else if (!strcasecmp(v->name, "allow")) {
-                        ast_parse_allow_disallow(&d->codecs, &d->capability, ast_strip(v->value), 1);
+                        ast_parse_allow_disallow(&d->codecs, &d->capability, ast_strip(config_value), 1);
                 } else if (!strcasecmp(v->name, "disallow")) {
-                        ast_parse_allow_disallow(&d->codecs, &d->capability, ast_strip(v->value), 0);
+                        ast_parse_allow_disallow(&d->codecs, &d->capability, ast_strip(config_value), 0);
                 } else if (!strcasecmp(v->name, "transfer")) {
                         d->transfer = sccp_true(v->value);
                 } else if (!strcasecmp(v->name, "cfwdall")) {

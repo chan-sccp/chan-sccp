@@ -203,7 +203,11 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 
 			break;
 		case AST_EXTENSION_UNAVAILABLE:
+#ifndef CS_DYNAMIC_SPEEDDIAL
 			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+#else
+			hint->currentState = SCCP_CHANNELSTATE_DOWN;
+#endif
 			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(hint->callInfo.callingPartyName));
 			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(hint->callInfo.calledPartyName));
 
@@ -328,6 +332,10 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 				
 				case SCCP_CHANNELSTATE_RINGING:
 					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(4); /* default state */
+				break;
+				
+				case SCCP_CHANNELSTATE_DOWN:
+					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(0); /* default state */
 				break;
 				
 				default:
@@ -479,7 +487,12 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t *hint){
 		if(line->devices.size == 0){
 			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(hint->callInfo.callingPartyName));
 			sccp_copy_string(hint->callInfo.calledPartyName,  SKINNY_DISP_TEMP_FAIL, sizeof(hint->callInfo.calledPartyName));
+			//hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+#ifndef CS_DYNAMIC_SPEEDDIAL
 			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+#else
+			hint->currentState = SCCP_CHANNELSTATE_DOWN;
+#endif
 		}else{
 			hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
 			sccp_copy_string(hint->callInfo.callingPartyName, "", sizeof(hint->callInfo.callingPartyName));
@@ -503,14 +516,22 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 
 	sccp_mutex_lock(&hint->lock);
 	line = sccp_line_find_byname_wo(hint->type.internal.lineName,FALSE);
+	
+	/* no line, or line without devices */
 	if(!line || (line && line->devices.size == 0) ){
 		sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(hint->callInfo.callingPartyName));
 		sccp_copy_string(hint->callInfo.calledPartyName,  SKINNY_DISP_TEMP_FAIL, sizeof(hint->callInfo.calledPartyName));
+		//hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+#ifndef CS_DYNAMIC_SPEEDDIAL
 		hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-		
+#else
+		hint->currentState = SCCP_CHANNELSTATE_DOWN;
+#endif
+
 		sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "no line or no device; line: %s\n", (line)?line->name:"null");
 		goto DONE;
 	}
+	
 
 	sccp_copy_string(hint->callInfo.callingPartyName, "", sizeof(hint->callInfo.callingPartyName));
 	sccp_copy_string(hint->callInfo.calledPartyName,  "", sizeof(hint->callInfo.calledPartyName));

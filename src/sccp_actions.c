@@ -656,9 +656,12 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 // 	}else{
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configuring line number %d\n", d->id, lineNumber);
 		l = sccp_line_find_byid(d, lineNumber);
+		
 		/* if we find no regular line - it can be a speedial with hint */
 		if (!l)
 			k = sccp_dev_speed_find_byindex(d, lineNumber, SKINNY_BUTTONTYPE_LINE);
+		
+		
 		REQ(r1, LineStatMessage);
 		if (!l && !k) {
 			ast_log(LOG_ERROR, "%s: requested a line configuration for unknown line %d\n", s->device->id, lineNumber);
@@ -670,12 +673,17 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 
 		sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, ((l) ? l->name : (k)?k->name:""), sizeof(r1->msg.LineStatMessage.lineDirNumber));
 		
+		/* lets set the device description for the first line, so it will be display on top of device -MC*/
 		if(lineNumber == 1 && l){
 			sccp_copy_string(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName, (d->description), sizeof(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName));
 		}else{
 			sccp_copy_string(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName, ((l) ? l->description : (k)?k->name:""), sizeof(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName));
 		}
+		
 		sccp_copy_string(r1->msg.LineStatMessage.lineDisplayName, ((l) ? l->label : (k)?k->name:""), sizeof(r1->msg.LineStatMessage.lineDisplayName));
+		
+		/* we have a strange behavior if we have debug 0, some messages will not be sent. -MC*/
+		sccp_safe_sleep(100);
 		sccp_dev_send(d, r1);
 
 		/* force the forward status message. Some phone does not request it registering */

@@ -441,7 +441,7 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 //	}
 	sccp_session_lock(s);
 
-	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
+	//sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
 	
 	/* This is a just a test */
 	if(s->device && s->device->inuseprotocolversion >= 17)
