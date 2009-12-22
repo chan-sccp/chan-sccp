@@ -735,20 +735,20 @@ static int sccp_show_devices(int fd, int argc, char * argv[]) {
 	char iabuf[INET_ADDRSTRLEN];
 #endif
 
-	ast_cli(fd, "\n%-16s %-15s %-16s %-10s\n", "NAME","ADDRESS","MAC","Reg. State");
-	ast_cli(fd, "================ =============== ================ ==========\n");
+	ast_cli(fd, "\n%-40s %-20s %-16s %-10s\n", "NAME","ADDRESS","MAC","Reg. State");
+	ast_cli(fd, "======================================== ==================== ================ ==========\n");
 
 	SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
 #ifdef ASTERISK_CONF_1_2
-		ast_cli(fd, "%-16s %-15s %-16s %-10s\n",// %-10s %-16s %c%c %-10s\n",
+		ast_cli(fd, "%-40s %-20s %-16s %-10s\n",// %-10s %-16s %c%c %-10s\n",
 			d->description,
 			(d->session) ? ast_inet_ntoa(iabuf, sizeof(iabuf), d->session->sin.sin_addr) : "--",
 			d->id,
 			skinny_registrationstate2str(d->registrationState)
 		);
 #else
-		ast_cli(fd, "%-16s %-15s %-16s %-10s\n",// %-10s %-16s %c%c %-10s\n",
+		ast_cli(fd, "%-40s %-20s %-16s %-10s\n",// %-10s %-16s %c%c %-10s\n",
 			d->description,
 			(d->session) ? ast_inet_ntoa(d->session->sin.sin_addr) : "--",
 			d->id,
