@@ -335,6 +335,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 			/* check for ringer options */
 			} else if (!strncasecmp(optv[opti], "ringer=", 7)) {
 				optv[opti] += 7;
+				ast_log(LOG_WARNING, "%s: found ringer %s\n", l->id, optv[opti]);
 				if (!strcasecmp(optv[opti], "inside"))
 					c->ringermode = SKINNY_STATION_INSIDERING;
 				else if (!strcasecmp(optv[opti], "outside"))
@@ -421,6 +422,7 @@ int sccp_devicestate(void *data) {
  */
 uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 	uint32_t  mid = letohl(r->lel_messageId);
+	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: last keepAlive within %d (%d)\n", (s->device)?s->device->id:"null", (uint32_t)(time(0) - s->lastKeepAlive), (s->device)?s->device->keepalive:0 );
 	s->lastKeepAlive = time(0); /* always update keepalive */
 
   //sccp_log(10)(VERBOSE_PREFIX_3 "%s(%d): >> Got message %s\n", (s->device)?s->device->id:"null", s->sin.sin_addr.s_addr ,sccpmsg2str(mid));

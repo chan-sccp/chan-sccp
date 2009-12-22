@@ -115,7 +115,7 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 	/* */
 
 	
-	d->softKeyConfiguration.modes = SoftKeyModes;
+	d->softKeyConfiguration.modes = (softkey_modes *)SoftKeyModes;
 	d->softKeyConfiguration.size = sizeof(SoftKeyModes)/sizeof(softkey_modes);
 	
 	// TODO: FIX THIS
@@ -1294,6 +1294,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 
 		d->ha = NULL;
 	}
+	
 	sccp_device_unlock(d);
 	if(destroy){
 		ast_mutex_destroy(&d->lock);
