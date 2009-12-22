@@ -296,7 +296,13 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	//}
 
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, (d->keepalive ? d->keepalive : GLOB(keepalive)) );
+	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
+	int keepAliveInterval = d->keepalive ? d->keepalive : GLOB(keepalive);
+	//keepAliveInterval = (keepAliveInterval/2) + random( (keepAliveInterval/2) );
+	keepAliveInterval = (keepAliveInterval/2) + (rand() % (keepAliveInterval/2) )+1;
+	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: set keepAliveInterval = %d.\n", DEV_ID_LOG(d), keepAliveInterval);
+
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval );
 	REQ(r1, RegisterAckMessage);
 
 	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->length);
@@ -332,9 +338,11 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 		r1->msg.RegisterAckMessage.unknown2 = 0xF1; // 0xF1;
 		r1->msg.RegisterAckMessage.unknown3 = 0xFF; // 0xFF;
 	}
+	
 
 	r1->msg.RegisterAckMessage.protocolVer = d->inuseprotocolversion;
-	r1->msg.RegisterAckMessage.lel_keepAliveInterval = htolel( (d->keepalive ? d->keepalive : GLOB(keepalive)) );
+	//r1->msg.RegisterAckMessage.lel_keepAliveInterval = htolel( (d->keepalive ? d->keepalive : GLOB(keepalive)) );
+	r1->msg.RegisterAckMessage.lel_keepAliveInterval = htolel( keepAliveInterval );
 	r1->msg.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel( (d->keepalive ? d->keepalive : GLOB(keepalive)) );
 
 	memcpy(r1->msg.RegisterAckMessage.dateTemplate, GLOB(date_format), sizeof(r1->msg.RegisterAckMessage.dateTemplate));
@@ -661,7 +669,12 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 		r1->msg.LineStatMessage.lel_lineNumber = htolel(lineNumber);
 
 		sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, ((l) ? l->name : (k)?k->name:""), sizeof(r1->msg.LineStatMessage.lineDirNumber));
-		sccp_copy_string(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName, ((l) ? l->description : (k)?k->name:""), sizeof(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName));
+		
+		if(lineNumber == 1 && l){
+			sccp_copy_string(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName, (d->description), sizeof(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName));
+		}else{
+			sccp_copy_string(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName, ((l) ? l->description : (k)?k->name:""), sizeof(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName));
+		}
 		sccp_copy_string(r1->msg.LineStatMessage.lineDisplayName, ((l) ? l->label : (k)?k->name:""), sizeof(r1->msg.LineStatMessage.lineDisplayName));
 		sccp_dev_send(d, r1);
 
