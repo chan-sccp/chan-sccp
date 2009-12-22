@@ -106,9 +106,12 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 		sccp_device_unlock(d);
 		return RESULT_SUCCESS;
 	}
+	
+	
 	if(d->channelCount > 0) {
-	        ast_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
-	        return RESULT_SUCCESS;
+		/* sccp_device_clean will check active channels */
+	        //ast_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
+	        //return RESULT_SUCCESS;
 	}
 	sccp_device_unlock(d);
 	//ast_cli(fd, "%s: Turn off the monitored line lamps to permit the %s\n", argv[2], argv[1]);
@@ -463,7 +466,6 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	}
 
 	sccp_device_unlock(d);
-	
 	return RESULT_SUCCESS;
 }
 
