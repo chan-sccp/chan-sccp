@@ -21,6 +21,7 @@
 #include "sccp_line.h"
 #include "sccp_socket.h"
 #include "sccp_device.h"
+#include "sccp_utils.h"
 #include <signal.h>
 #include <sys/ioctl.h>
 #include <asterisk/utils.h>
@@ -343,7 +344,7 @@ void * sccp_socket_thread(void * ignore)
 		now = time(0);
 		SCCP_LIST_LOCK(&GLOB(sessions));
 		SCCP_LIST_TRAVERSE(&GLOB(sessions), s, list) {
-	    	keepaliveAdditionalTime = 10;
+			keepaliveAdditionalTime = 10;
 			if (s->fd > 0) {
 				if (s->fd > maxfd)
 					maxfd = s->fd;
@@ -375,6 +376,7 @@ void * sccp_socket_thread(void * ignore)
 				}
 			} else {
 				/* session is gone */
+				sccp_session_close(s);
 				destroy_session(s);
 			}
 		}
@@ -439,6 +441,8 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 //	}
 	sccp_session_lock(s);
 
+	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
+	
 	/* This is a just a test */
 	if(s->device && s->device->inuseprotocolversion >= 17)
 		r->lel_reserved = htolel(s->device->inuseprotocolversion);
