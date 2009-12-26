@@ -40,6 +40,7 @@
 #include <asterisk/logger.h>
 #include <asterisk/config.h>
 #include <asterisk/sched.h>
+#include <asterisk/version.h>
 
 #include "sccp_dllists.h"
 
@@ -179,6 +180,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 }
 /* */
 
+
 #define DEV_ID_LOG(x) x ? x->id : "SCCP"
 
 #ifdef CS_AST_HAS_TECH_PVT
@@ -196,6 +198,9 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 #ifndef CS_AST_HAS_AST_GROUP_T
 typedef unsigned int ast_group_t;
 #endif
+
+struct ast_frame 				sccp_null_frame;		/*!< Asterisk Structure */
+
 
 typedef struct sccp_channel			sccp_channel_t;				/*!< SCCP Channel Structure */
 typedef struct sccp_session			sccp_session_t;				/*!< SCCP Session Structure */
@@ -582,6 +587,11 @@ struct sccp_device {
 		softkey_modes			*modes;					/*!< used softkeySet */
 		uint8_t				size;					/*!< who many softkeysets are provieded by modes */
 	}softKeyConfiguration;								/*!< SoftKeySet configuration */
+	
+	
+	struct{
+		int 				free;
+	}scheduleTasks;
 
 };
 
@@ -659,7 +669,7 @@ struct sccp_channel {
         sccp_line_t		 		* line;					/*!< SCCP Line */
 
         struct ast_rtp	 			* rtp;					/*!< Asterisk RTP */
-
+        
         struct sockaddr_in			rtp_addr;				/*!< RTP Socket Address */
         SCCP_LIST_ENTRY(sccp_channel_t) 	list;					/*!< Channel Linked List List */
         uint8_t					autoanswer_type;			/*!< Auto Answer Type */
@@ -858,6 +868,10 @@ int sccp_restart_monitor(void); 							// ADDED IN SVN 414 -FS
 enum ast_bridge_result 				sccp_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo, struct ast_channel **rc, int timeoutms);
 #endif
 
+
+#if ASTERISK_VERSION_NUM >= 10400
+int sccp_sched_free(void *ptr);
+#endif
 
 /*! 
  * \todo sccp_is_nonempty_string never used (not used)
