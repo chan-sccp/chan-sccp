@@ -212,6 +212,7 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 	sccp_device_t 	*d = NULL;
 	int		res;
 	char 		message[256]=""; /*!< device message */
+	
 
 	// Try to find out if we have the device already on file.
 	// However, do not look into realtime, since
@@ -241,6 +242,9 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 	if (!res) {
 		d->phonemessage=strdup(message);						//set message on device if we have a result
 	}
+	
+	
+	
 
 	sccp_device_addToGlobals(d);
 
@@ -868,6 +872,8 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
         uint8_t			instance=0;
         char 			*splitter;
 	char			config_value[256];
+	char 			lastNumber[AST_MAX_EXTENSION]=""; /*!< device last dialed number */
+	char 			family[25];
 
         if (!v) {
                 sccp_log(10)(VERBOSE_PREFIX_3 "no variable given\n");
@@ -1043,6 +1049,13 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
         if (!res)
                 d->phonemessage=strdup(message);									//set message on device if we have a result
 
+		
+	sprintf(family, "SCCP/%s", d->id);
+	res = ast_db_get(family, "lastDialedNumber", lastNumber, sizeof(lastNumber));
+	if(!res){
+	      sccp_copy_string(d->lastNumber, lastNumber, sizeof(d->lastNumber));
+	}
+	
         strcpy(message,"");
 
 	 /* load saved settings from ast db */
@@ -1161,15 +1174,6 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
 	}
 	
 	
-	/* set default value if not configured */
-// 	uint8_t size = ( sizeof(softKeySetConfiguration->modes)/sizeof(softkey_modes) );
-// 	for(i=0;i < size; i++){
-//  		if(softKeySetConfiguration->modes[i].ptr == NULL){
-//  			softKeySetConfiguration->modes[i] = SoftKeyModes[i];
-//  		}
-// 	}
-	
-	
 	SCCP_LIST_INSERT_HEAD(&softKeySetConfig, softKeySetConfiguration, list);
 }
 
@@ -1186,14 +1190,16 @@ uint8_t sccp_config_readSoftSet(uint8_t *softkeyset, const char *data){
 	char 			*splitter;
 	char			*label;
 
+	if(!data)
+		return 0;
 
 	strcpy(labels, data);
 	splitter = labels;
-	while( (label = strsep(&splitter, ",")) != NULL && i < StationMaxSoftKeySetDefinition){
+	while( (label = strsep(&splitter, ",")) != NULL && (i+1) < StationMaxSoftKeySetDefinition){
 		softkeyset[i++] = sccp_config_getSoftkeyLbl(label);
 	}
 
-	for(j=i;j < StationMaxSoftKeySetDefinition;j++){
+	for(j=i+1;j < StationMaxSoftKeySetDefinition;j++){
 		softkeyset[j] = SKINNY_LBL_EMPTY;
 	}
 	return i;
@@ -1246,12 +1252,12 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 	
 	
 	/* monitorFeature */
-	res = ast_db_get(family, "monitor", buffer, sizeof(buffer));
-	if(!res){
-	      device->monitorFeature.status = 1;
-	}else{
-	      device->monitorFeature.status = 0;
-	}
+	      res = ast_db_get(family, "monitor", buffer, sizeof(buffer));
+	      if(!res){
+		    device->monitorFeature.status = 1;
+	      }else{
+		    device->monitorFeature.status = 0;
+	      }
 	
 	
 	/* privacyFeature */

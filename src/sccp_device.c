@@ -360,7 +360,7 @@ sccp_moo_t * sccp_build_packet(sccp_message_t t, size_t pkt_len)
 int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
 {
 	if(d && d->session){
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: >> Sent message %s\n", d->id, sccpmsg2str(r->lel_messageId));
+		sccp_log(99)(VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, sccpmsg2str(r->lel_messageId));
 		return sccp_session_send(d, r);
 	}else
 		return -1;
@@ -1201,9 +1201,17 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 	sccp_selectedchannel_t 	*selectedChannel = NULL;
 	sccp_line_t	*line =NULL;
 	sccp_channel_t	*channel=NULL;
+	
+	char family[25];
+	
 
 	if (!d)
 		return;
+	
+	sprintf(family, "SCCP/%s", d->id);
+	ast_db_del(family, "lastDialedNumber");
+	if(!ast_strlen_zero(d->lastNumber))
+		ast_db_put(family, "lastDialedNumber", d->lastNumber);
 	
 	if(destroy)
 		SCCP_LIST_REMOVE(&GLOB(devices), d, list);
@@ -1297,14 +1305,40 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 	
 	sccp_device_unlock(d);
 	if(destroy){
-		ast_mutex_destroy(&d->lock);
-		memset(d, 0, sizeof(sccp_device_t));
-		ast_free(d);
-		d=NULL;
+		uint8_t waittime = 10;
+		if(!(d->scheduleTasks.free = sccp_sched_add(sched, waittime * 1000, sccp_device_free, d))) {
+			sleep(waittime);
+			sccp_device_free(d);
+			d=NULL;
+		}
 		return;
 	}
 
 	d->session = NULL;
+}
+
+
+/*!
+ * \brief Cleanup memory used by device
+ * \param d SCCP Device
+ * \param ptr device pointer
+ * \return success as int
+ */
+int sccp_device_free(const void *ptr){
+	sccp_device_t *d = (sccp_device_t *)ptr;
+  
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: device deleted\n", d->id);
+	ast_mutex_destroy(&d->lock);
+	ast_free(d);
+	
+	return 0;
+}
+
+boolean_t sccp_device_isVideoSupported(sccp_device_t *device){
+	if(device->capability & AST_FORMAT_VIDEO_MASK)
+		return TRUE;
+	
+	return FALSE;
 }
 
 /*!
