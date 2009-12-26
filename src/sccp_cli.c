@@ -1679,7 +1679,7 @@ static char *cli_show_mwi_subscriptions(struct ast_cli_entry *e, int cmd, struct
  */
 static struct ast_cli_entry cli_show_mwi_subscriptions = {
   { "sccp", "show", "subscriptions", NULL },
-  sccp_show_version,
+  cli_show_mwi_subscriptions,
   "SCCP show subscriptions",
   "Usage: SCCP show subscriptions\n"
   "		Show the SCCP channel subscriptions\n"
@@ -1753,9 +1753,9 @@ static char *cli_show_softkeysets(struct ast_cli_entry *e, int cmd, struct ast_c
  * \return Asterisk Cli Entry Structure
  * \note Alias for Asterisk CLI Entry
  */
-static struct ast_cli_entry cli_show_mwi_subscriptions = {
+static struct ast_cli_entry cli_show_softkeysets = {
   { "sccp", "show", "softkeysets", NULL },
-  sccp_show_version,
+  cli_show_softkeysets,
   "SCCP show softkeysets",
   "Usage: SCCP show softkeysets\n"
   "		Show the SCCP channel subscriptions\n"
