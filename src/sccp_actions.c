@@ -39,7 +39,7 @@
 #include <asterisk/features.h>
 #endif
 
-#ifndef ASTERISK_CONF_1_6
+#ifdef ASTERISK_CONF_1_2
 /*!
  * \brief Host Access Rule Structure
  */
