@@ -686,7 +686,11 @@ static char *sccp_control2str(int state) {
 		case AST_CONTROL_VIDUPDATE:
 				return "VideoFrameUpdate";
 #endif
-#ifdef AST_CONTROL_T38
+#ifdef AST_CONTROL_T38 && AST_CONTROL_T38_PARAMETERS
+		case AST_CONTROL_T38:
+				return "T38RequestNotification";
+#endif
+#ifdef AST_CONTROL_T38_PARAMETERS
 		case AST_CONTROL_T38:
 				return "T38RequestNotification";
 #endif
