@@ -293,6 +293,16 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device)
 		return;
 
 	sccp_log(64)(VERBOSE_PREFIX_3 "%s: remove device from line %s\n", DEV_ID_LOG(device), l->name);
+	
+	
+	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
+	memset(event, 0, sizeof(sccp_event_t));
+
+	event->type=SCCP_EVENT_DEVICEDETACHED;
+	event->event.deviceAttached.line = l;
+	event->event.deviceAttached.device = device;
+	sccp_event_fire((const sccp_event_t**)&event);
+	
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 		if (linedevice->device == device) {
@@ -308,13 +318,7 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device)
 		}
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
-	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
-	memset(event, 0, sizeof(sccp_event_t));
-
-	event->type=SCCP_EVENT_DEVICEDETACHED;
-	event->event.deviceAttached.line = l;
-	event->event.deviceAttached.device = device;
-	sccp_event_fire((const sccp_event_t**)&event);
+	
 }
 
 

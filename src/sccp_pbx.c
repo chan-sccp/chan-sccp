@@ -412,7 +412,7 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 	l = c->line;
 //	d = l->device;
 
-	if (c->rtp) {
+	if (c->rtp.audio) {
 		sccp_channel_closereceivechannel(c);
 		usleep(200);
 		sccp_channel_destroy_rtp(c);
@@ -536,16 +536,40 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 	frame = NULL;
 #endif
 
-	if(!c || !c->rtp)
+	if(!c || !c->rtp.audio)
 		return frame;
 
 	switch(ast->fdno) {
+#ifndef CS_AST_HAS_RTP_ENGINE
 		case 0:
-			frame = ast_rtp_read(c->rtp);
+			frame = ast_rtp_read(c->rtp.audio);	/* RTP Audio */
 			break;
 		case 1:
-			frame = ast_rtcp_read(c->rtp);
+			frame = ast_rtcp_read(c->rtp.audio);	/* RTCP Control Channel */
 			break;
+		case 2:
+			frame = ast_rtp_read(c->rtp.video);	/* RTP Video */
+			ast_log(LOG_NOTICE, "%s: Got Video frame from device\n", DEV_ID_LOG(c->device));
+			break;
+		case 3:
+			frame = ast_rtcp_read(c->rtp.video);	/* RTCP Control Channel for video */
+			break;
+#else
+		case 0:
+			frame = ast_rtp_instance_read(c->rtp.audio, 0); /* RTP Audio */
+			break;
+		case 1:
+			frame = ast_rtp_instance_read(c->rtp.audio, 1); /* RTCP Control Channel */
+			break;
+		case 2:
+			frame = ast_rtp_instance_read(c->rtp.video, 0); /* RTP Video */
+			break;
+		case 3:
+			frame = ast_rtp_instance_read(c->rtp.video, 1); /* RTCP Control Channel for video */
+			break;
+#endif
+
+
 		default:
 			return frame;
 	}
@@ -617,16 +641,22 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 					return -1;
 					
 				}
-				if (c->rtp){
-					//sccp_log(1)(VERBOSE_PREFIX_3 "%s: write format: %s(%d)\n",
-					//	DEV_ID_LOG(c->device),
-					//	ast_getformatname(frame->subclass),
-					//	frame->subclass);
-					res = ast_rtp_write(c->rtp, frame);
+				if (c->rtp.audio){
+					res = sccp_rtp_read(c->rtp.audio, frame);
 				}
 				break;
 			case AST_FRAME_IMAGE:
 			case AST_FRAME_VIDEO:
+				//ast_log(LOG_NOTICE, "%s: Got Video frame type %d\n", DEV_ID_LOG(c->device), frame->subclass);
+				if (c && c->rtp.video){
+					sccp_log(9)(VERBOSE_PREFIX_3 "%s: send video frame type: %d\n", c->device->id, frame->subclass);
+					res = sccp_rtp_read(c->rtp.video, frame);
+					sccp_log(9)(VERBOSE_PREFIX_3 "%s: result: %d\n", c->device->id, res);
+				}else{
+					//ast_log(LOG_NOTICE, "%s: drop video frame\n", DEV_ID_LOG(c->device));
+				}
+				break;
+
 			case AST_FRAME_TEXT:
 #ifndef ASTERISK_CONF_1_2
 			case AST_FRAME_MODEM:
@@ -690,10 +720,6 @@ static char *sccp_control2str(int state) {
 		case AST_CONTROL_T38:
 				return "T38RequestNotification";
 #endif
-#ifdef AST_CONTROL_T38_PARAMETERS
-		case AST_CONTROL_T38:
-				return "T38RequestNotification";
-#endif
 #ifdef CS_AST_CONTROL_SRCUPDATE
 		case AST_CONTROL_SRCUPDATE:
 				return "MediaSourceUpdate";
@@ -737,7 +763,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Asterisk indicate '%d' (%s) condition on channel %s\n", DEV_ID_LOG(c->device), ind, sccp_control2str(ind), ast->name);
 
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
-	if (c->rtp)
+	if (c->rtp.audio)
 		res = -1;
 
 	switch(ind) {
@@ -796,7 +822,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	}
 
 	ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n",c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
-        if(c->rtp){
+        if(c->rtp.audio){
 
 		if(oldChannelFormat != c->format){
 			if(c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE){
@@ -807,8 +833,8 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		
 	}
 #ifdef CS_AST_RTP_NEW_SOURCE
-        if(c->rtp) {
-		ast_rtp_new_source(c->rtp);
+        if(c->rtp.audio) {
+		ast_rtp_new_source(c->rtp.audio);
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
 	}
 #endif
@@ -839,6 +865,12 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		sccp_indicate_nolock(c->device, c, c->state);
 	break;
 #endif
+	case AST_CONTROL_VIDUPDATE:	/* Request a video frame update */
+		if (c->rtp.video) {
+			res = 0;
+		} else
+			res = -1;
+	break;
 	default:
 	  ast_log(LOG_WARNING, "SCCP: Don't know how to indicate condition %d\n", ind);
 	  res = -1;
@@ -1007,7 +1039,7 @@ static int sccp_pbx_sendtext(struct ast_channel *ast, char *text) {
 const struct ast_channel_tech sccp_tech = {
 	.type = "SCCP",
 	.description = "Skinny Client Control Protocol (SCCP)",
-	.capabilities = AST_FORMAT_ALAW|AST_FORMAT_ULAW|AST_FORMAT_G729A,
+	.capabilities = AST_FORMAT_ALAW|AST_FORMAT_ULAW|AST_FORMAT_G729A |AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS,
 	.properties = AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
 	.requester = sccp_request,
 	.devicestate = sccp_devicestate,
@@ -1016,6 +1048,7 @@ const struct ast_channel_tech sccp_tech = {
 	.answer = sccp_pbx_answer,
 	.read = sccp_pbx_read,
 	.write = sccp_pbx_write,
+	.write_video = sccp_pbx_write,
 	.indicate = sccp_pbx_indicate,
 	.fixup = sccp_pbx_fixup,
 #ifndef ASTERISK_CONF_1_2

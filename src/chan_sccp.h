@@ -593,6 +593,7 @@ struct sccp_device {
 		int 				free;
 	}scheduleTasks;
 
+	char 					videoSink[MAXHOSTNAMELEN];		/*!< sink to send video*/
 };
 
 // Number of additional keys per addon -FS
@@ -645,7 +646,7 @@ struct sccp_channel {
         int					format;					/*!< Codec requested by Asterisk */
         boolean_t				isCodecFix;				/*!< can we change codec */
 
-        struct ast_codec_pref 	codecs;					/*!< Asterisk Codec Channel Preference */
+        struct ast_codec_pref 			codecs;					/*!< Asterisk Codec Channel Preference */
         int 					capability;				/*!< channel Capability */
 
         char					calledPartyName[StationMaxNameSize];	/*!< Called Party Name */
@@ -668,8 +669,13 @@ struct sccp_channel {
         struct ast_channel 	 		* owner;				/*!< Asterisk Channel Owner */
         sccp_line_t		 		* line;					/*!< SCCP Line */
 
-        struct ast_rtp	 			* rtp;					/*!< Asterisk RTP */
-        
+        //struct ast_rtp	 			* rtp;					/*!< Asterisk RTP */
+	struct{
+		struct ast_rtp	 		*audio;					/*!< Asterisk RTP */
+		struct ast_rtp 			*video;					/*!< Video RTP session */
+	}rtp;
+
+
         struct sockaddr_in			rtp_addr;				/*!< RTP Socket Address */
         SCCP_LIST_ENTRY(sccp_channel_t) 	list;					/*!< Channel Linked List List */
         uint8_t					autoanswer_type;			/*!< Auto Answer Type */

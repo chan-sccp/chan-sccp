@@ -34,6 +34,11 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, struct ast_rtp *trtp, int codecs, int nat_active);
 #endif
 #endif
+#ifndef CS_AST_HAS_RTP_ENGINE
+enum ast_rtp_get_result sccp_channel_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp **rtp);
+#else
+enum ast_rtp_glue_result sccp_channel_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp_instance **rtp);
+#endif
 void sccp_channel_openreceivechannel(sccp_channel_t * c);
 void sccp_channel_startmediatransmission(sccp_channel_t * c);
 void sccp_channel_closereceivechannel(sccp_channel_t * c);

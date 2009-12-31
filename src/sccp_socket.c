@@ -370,9 +370,10 @@ void * sccp_socket_thread(void * ignore)
 				}
 
 				if (s->device && s->device->keepalive && (now > ((s->lastKeepAlive + s->device->keepalive) + keepaliveAdditionalTime) ) ) {
-					ast_log(LOG_WARNING, "%s: Device lastKeepAlive %s, now %s\n", (s->device) ? s->device->id : "SCCP", ctime(&s->lastKeepAlive), ctime(&now));
+					//ast_log(LOG_WARNING, "%s: Device lastKeepAlive %s, now %s\n", (s->device) ? s->device->id : "SCCP", ctime(&s->lastKeepAlive), ctime(&now));
 					ast_log(LOG_WARNING, "%s: Dead device does not send a keepalive message in %d+%d seconds. Will be removed\n", (s->device) ? s->device->id : "SCCP", GLOB(keepalive), keepaliveAdditionalTime);
 					sccp_session_close(s);
+					destroy_session(s);
 				}
 			} else {
 				/* session is gone */

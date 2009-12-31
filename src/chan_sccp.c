@@ -78,12 +78,27 @@ static struct ast_jb_conf default_jbconf =
 /*!
  * \brief	Buffer for Jitterbuffer use
  */
+#ifndef CS_AST_HAS_RTP_ENGINE
 struct ast_rtp_protocol sccp_rtp = {
 	.type = "SCCP",
 	.get_rtp_info = sccp_channel_get_rtp_peer,
 	.set_rtp_peer = sccp_channel_set_rtp_peer,
+	.get_vrtp_info = sccp_channel_get_vrtp_peer,
 	.get_codec = sccp_device_get_codec,
 };
+#else
+/*!
+ * \brief using rtp enginge
+ */
+struct ast_rtp_glue sccp_rtp = {
+	.type = "SCCP",
+	.get_rtp_info = sccp_channel_get_rtp_peer,
+	.get_vrtp_info = sccp_channel_get_vrtp_peer,
+	.update_peer = sccp_channel_set_rtp_peer,
+	.get_codec = sccp_device_get_codec,
+};
+#endif
+
 #endif
 
 #ifdef CS_AST_HAS_TECH_PVT
@@ -449,9 +464,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Device attempt to reconnect failed. Restarting device\n");
 			ast_free(r);
 			sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
-			sccp_dev_clean(s->device, s->device->realtime);
-
-
+			sccp_session_close(s);
 			return 0;
 		} else {
 			/* this prevent loops -FS */
@@ -1019,7 +1032,7 @@ static int load_module(void) {
 	/* How long to wait for following digits */
 	GLOB(digittimeout) = 8;
 	/* Yes, these are all that the phone supports (except it's own 'Wideband 256k') */
-	GLOB(global_capability) = AST_FORMAT_ALAW|AST_FORMAT_ULAW|AST_FORMAT_G729A;
+	GLOB(global_capability) = AST_FORMAT_ALAW|AST_FORMAT_ULAW|AST_FORMAT_G729A | AST_FORMAT_H263;
 
 	GLOB(debug) = 1;
 	GLOB(fdebug) = 0;
@@ -1053,8 +1066,13 @@ static int load_module(void) {
 	}
 
 #ifndef ASTERISK_CONF_1_2
+#ifndef CS_AST_HAS_RTP_ENGINE
 	ast_rtp_proto_register(&sccp_rtp);
+#else
+	ast_rtp_glue_register(&sccp_rtp);
 #endif
+#endif
+
 #ifdef CS_SCCP_MANAGER
 	sccp_register_management();
 #endif
@@ -1069,6 +1087,25 @@ static int load_module(void) {
 
 	return 0;
 }
+
+
+
+#if ASTERISK_VERSION_NUM >= 10400
+/*!
+ * \brief Schedule free memory
+ * \param ptr pointer
+ * \return Success as int
+ */
+int sccp_sched_free(void *ptr){
+	if(!ptr)
+		return -1;
+	
+	ast_free(ptr);
+	return 0;
+	
+}
+#endif
+
 
 #ifdef ASTERISK_CONF_1_2
 /*!
