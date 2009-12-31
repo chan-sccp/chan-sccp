@@ -1509,10 +1509,10 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 
 	/* set private variable */
 	if (chan && !ast_check_hangup(chan)) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: set variable SKINNY_PRIVATE to: %s\n", c->private ? "1" : "0");
+		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: set variable SKINNY_PRIVATE to: %s\n", c->privacy ? "1" : "0");
 
 		uint32_t result = d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
-		result |= c->private;
+		result |= c->privacy;
 		if(d->privacyFeature.enabled && result ){
 			sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: set variable SKINNY_PRIVATE to: %s\n", "1");
 			pbx_builtin_setvar_helper(chan, "SKINNY_PRIVATE", "1");

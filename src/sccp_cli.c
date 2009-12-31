@@ -272,7 +272,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 #else
 	ast_cli(fd, "Park                  : Disabled\n");
 #endif
-	ast_cli(fd, "Private softkey       : %s\n", GLOB(private) ? "Enabled" : "Disabled");
+	ast_cli(fd, "Private softkey       : %s\n", GLOB(privacy) ? "Enabled" : "Disabled");
 	ast_cli(fd, "Echo cancel           : %s\n", GLOB(echocancel) ? "Enabled" : "Disabled");
 	ast_cli(fd, "Silence suppression   : %s\n", GLOB(silencesuppression) ? "Enabled" : "Disabled");
 	ast_cli(fd, "Trust phone ip        : %s\n", GLOB(trustphoneip) ? "Yes" : "No");

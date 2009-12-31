@@ -492,7 +492,7 @@ boolean_t sccp_config_general(void){
 			} else if (!strcasecmp(v->name, "trustphoneip")) {
 				GLOB(trustphoneip) = sccp_true(v->value);
 			} else if (!strcasecmp(v->name, "private")) {
-				GLOB(private) = sccp_true(v->value);
+				GLOB(privacy) = sccp_true(v->value);
 			} else if (!strcasecmp(v->name, "earlyrtp")) {
 				if (!strcasecmp(v->value, "none"))
 					GLOB(earlyrtp) = 0;

@@ -33,6 +33,7 @@
 #include "sccp_config.h"
 #include "sccp_management.h"
 #include "sccp_mwi.h"
+#include "sccp_conference.h"
 
 #include <ctype.h>
 #include <unistd.h>
@@ -1016,6 +1017,7 @@ static int load_module(void) {
 
 	sccp_mwi_module_start();
 	sccp_hint_module_start();
+	sccp_conference_module_start();
 	sccp_subscribe_event(SCCP_EVENT_FEATURECHANGED, sccp_util_handleFeatureChangeEvent);
 
 	/* GLOB() is a macro for sccp_globals-> */
@@ -1044,7 +1046,7 @@ static int load_module(void) {
 	GLOB(autoanswer_tone) = SKINNY_TONE_ZIP;
 	GLOB(remotehangup_tone) = SKINNY_TONE_ZIP;
 	GLOB(callwaiting_tone) = SKINNY_TONE_CALLWAITINGTONE;
-	GLOB(private) = 1; /* permit private function */
+	GLOB(privacy) = 1; /* permit private function */
 	GLOB(mwilamp) = SKINNY_LAMP_ON;
 	GLOB(protocolversion) = SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH;
 	GLOB(amaflags) = ast_cdr_amaflags2int("documentation");

@@ -502,8 +502,8 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 
 	instance = sccp_device_find_index_for_line(d, l->name);
 	sccp_mutex_lock(&c->lock);
-	c->private = (c->private) ? FALSE : TRUE;
-	if(c->private){
+	c->privacy = (c->privacy) ? FALSE : TRUE;
+	if(c->privacy){
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_PRIVATE, 0);
 	}else{
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 1);
@@ -512,7 +512,7 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	/* force update on remote devices */
 	__sccp_indicate_remote_device(d, c, c->state, 0,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Private %s on call %d\n", d->id, c->private ? "enabled" : "disabled", c->callid);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Private %s on call %d\n", d->id, c->privacy ? "enabled" : "disabled", c->callid);
 	sccp_mutex_unlock(&c->lock);
 }
 
