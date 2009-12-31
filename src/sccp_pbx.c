@@ -720,6 +720,10 @@ static char *sccp_control2str(int state) {
 		case AST_CONTROL_T38:
 				return "T38RequestNotification";
 #endif
+#ifdef AST_CONTROL_T38_PARAMETERS
+		case AST_CONTROL_T38_PARAMETERS:
+				return "T38RequestNotification";
+#endif
 #ifdef CS_AST_CONTROL_SRCUPDATE
 		case AST_CONTROL_SRCUPDATE:
 				return "MediaSourceUpdate";
