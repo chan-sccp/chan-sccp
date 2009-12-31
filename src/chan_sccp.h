@@ -18,6 +18,10 @@
 #ifndef __CHAN_SCCP_H
 #define __CHAN_SCCP_H
 
+#if defined(__cplusplus) || defined(c_plusplus)
+extern "C" {
+#endif
+
 #include "config.h"
 #include <sys/signal.h>
 #include <sys/types.h>
@@ -51,6 +55,8 @@
 #ifdef CS_AST_HAS_ENDIAN
 #include <asterisk/endian.h>
 #endif
+
+
 
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
@@ -230,6 +236,16 @@ typedef enum {
         SCCP_VERBOSE_LEVEL_MWI 			= 1<< 15,
         SCCP_VERBOSE_LEVEL_EVENT 		= 1 << 16
 } sccp_verbose_level_t;									/*!< Verbosity Level */
+
+
+typedef enum {
+        SCCP_CALLREASON_NORMAL	 		= 0,
+        SCCP_CALLREASON_CREATECONFERENCE,
+        SCCP_CALLREASON_INITIALIZECFWD,
+        SCCP_CALLREASON_TRANSFER,
+} sccp_callReason_t;									/*!< call reasons */
+
+
 
 /*!
  * \brief Feature Type Enum
@@ -683,7 +699,7 @@ struct sccp_channel {
         boolean_t				answered_elsewhere;			/*!< Answered Elsewhere */
 
         /* don't allow sccp phones to monitor (hint) this call */
-        boolean_t				private;				/*!< Private */
+        boolean_t				privacy;				/*!< Private */
         char 					musicclass[MAX_MUSICCLASS];		/*!< Music Class */
         uint8_t					ss_action; 				/*!< Simple Switch Action. This is used in dial thread to collect numbers for callforward, pickup and so on -FS*/
         uint8_t					ss_data; 				/*!< Simple Switch Integer param */
@@ -699,6 +715,7 @@ struct sccp_channel {
 
         /* feature sets */
         boolean_t				monitorEnabled;				/*!< Monitor Enabled Feature */
+        sccp_callReason_t		reason;						/*!< what is the reaso for this call */
 };											/*!< SCCP Channel Structure */
 
 /*!
@@ -778,7 +795,7 @@ struct sccp_global_vars {
 	unsigned int				echocancel:1;				/*!< Echo Canel Support (Boolean, default=on) */
 	unsigned int				silencesuppression: 1;			/*!< Silence Suppression Support (Boolean, default=on)  */
 	unsigned int				trustphoneip: 1;				/*!< Trust Phone IP Support (Boolean, default=on) */
-	unsigned int				private: 1; 				/*!< Permit Private Function Support (Boolean, default=on) */
+//	unsigned int				private: 1; 				/*!< Permit Private Function Support (Boolean, default=on) */
 	unsigned int				privacy: 2;				/*!< Privacy Support (Default=2) */
 	unsigned int				blindtransferindication: 1; 		/*!< Blind Transfer Indication Support (Boolean, default=on) */
 	unsigned int				cfwdall: 1;				/*!< Call Forward All Support (Boolean, default=on) */
@@ -904,6 +921,10 @@ struct softKeySetConfiguration{
 
 
 SCCP_LIST_HEAD(, sccp_softKeySetConfiguration_t) softKeySetConfig;			/*! list of SoftKeySet */
+
+#if defined(__cplusplus) || defined(c_plusplus)
+}
+#endif
 
 #endif /* __CHAN_SCCP_H */
 

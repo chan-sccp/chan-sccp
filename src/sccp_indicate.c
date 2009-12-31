@@ -410,7 +410,7 @@ void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, ui
 				case SCCP_CHANNELSTATE_OFFHOOK:
 					if(c->previousChannelState == SCCP_CHANNELSTATE_RINGING){
 						sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
-						sccp_device_sendcallstate(remoteDevice, instance,c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, (!c->private)?SKINNY_CALLINFO_VISIBILITY_DEFAULT:SKINNY_CALLINFO_VISIBILITY_HIDDEN); /* send connected, so it is not listed as missed call*/
+						sccp_device_sendcallstate(remoteDevice, instance,c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, (!c->privacy)?SKINNY_CALLINFO_VISIBILITY_DEFAULT:SKINNY_CALLINFO_VISIBILITY_HIDDEN); /* send connected, so it is not listed as missed call*/
 					}
 					break;
 				case SCCP_CHANNELSTATE_GETDIGITS:
@@ -428,7 +428,7 @@ void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, ui
 						sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 
 					sccp_dev_clearprompt(remoteDevice, instance, c->callid);
-					sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_NORMAL, (!c->private)?SKINNY_CALLINFO_VISIBILITY_DEFAULT:SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+					sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_NORMAL, (!c->privacy)?SKINNY_CALLINFO_VISIBILITY_DEFAULT:SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 
 					break;
 				case SCCP_CHANNELSTATE_RINGOUT:
@@ -446,10 +446,10 @@ void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, ui
 
 					//if(c->previousChannelState == SCCP_CHANNELSTATE_RINGING){
 						sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
-						sccp_device_sendcallstate(remoteDevice, instance,c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, (!c->private)?SKINNY_CALLINFO_VISIBILITY_DEFAULT:SKINNY_CALLINFO_VISIBILITY_HIDDEN); /* send connected, so it is not listed as missed call*/
+						sccp_device_sendcallstate(remoteDevice, instance,c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, (!c->privacy)?SKINNY_CALLINFO_VISIBILITY_DEFAULT:SKINNY_CALLINFO_VISIBILITY_HIDDEN); /* send connected, so it is not listed as missed call*/
 					//}
 					sccp_dev_clearprompt(remoteDevice, instance, c->callid);
-					sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_LOW, (!c->private)?SKINNY_CALLINFO_VISIBILITY_DEFAULT:SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+					sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_LOW, (!c->privacy)?SKINNY_CALLINFO_VISIBILITY_DEFAULT:SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 					sccp_channel_send_callinfo(remoteDevice, c);
 					//sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CONNECTED, 0);
 					sccp_dev_set_keyset(remoteDevice, instance, c->callid, KEYMODE_ONHOOK);
@@ -463,7 +463,7 @@ void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, ui
 					break;
 				case SCCP_CHANNELSTATE_HOLD:
 					sccp_dev_set_lamp(remoteDevice, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_FLASH);
-					sccp_device_sendcallstate(remoteDevice, instance,c->callid, SKINNY_CALLSTATE_HOLDRED, SKINNY_CALLPRIORITY_NORMAL, (!c->private)?SKINNY_CALLINFO_VISIBILITY_DEFAULT:SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+					sccp_device_sendcallstate(remoteDevice, instance,c->callid, SKINNY_CALLSTATE_HOLDRED, SKINNY_CALLPRIORITY_NORMAL, (!c->privacy)?SKINNY_CALLINFO_VISIBILITY_DEFAULT:SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 					sccp_dev_set_keyset(remoteDevice, instance, c->callid, KEYMODE_ONHOLD);
 					sccp_dev_displayprompt(remoteDevice, instance, c->callid, SKINNY_DISP_HOLD, 0);
 					sccp_channel_send_callinfo(remoteDevice, c);

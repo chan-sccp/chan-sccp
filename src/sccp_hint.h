@@ -1,7 +1,7 @@
 /*!
  * \file 	sccp_hint.h
  * \brief 	SCCP Hint Header
- * \author 	Marcello Ceschia <<marcello [at] ceschia.de>
+ * \author 	Marcello Ceschia <marcelloceschia [at] users.sourceforge.net>
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  * \since 	2009-01-16
  */ 

@@ -565,7 +565,7 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 			case SCCP_CHANNELSTATE_CONNECTED:
 			case SCCP_CHANNELSTATE_PROCEED:
 				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-				if(!device || device->privacyFeature.enabled == 0 || (device->privacyFeature.enabled == 1 && channel->private == FALSE)) {
+				if(!device || device->privacyFeature.enabled == 0 || (device->privacyFeature.enabled == 1 && channel->privacy == FALSE)) {
 					
 					sccp_copy_string(hint->callInfo.callingPartyName,   channel->callingPartyName, sizeof(hint->callInfo.callingPartyName));
 					sccp_copy_string(hint->callInfo.calledPartyName,   channel->calledPartyName, sizeof(hint->callInfo.calledPartyName));
@@ -586,7 +586,7 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 #else
 				hint->currentState = SCCP_CHANNELSTATE_RINGING;
 #endif
-				if(!device || device->privacyFeature.enabled == 0 || (device->privacyFeature.enabled == 1 && channel->private == FALSE)) {
+				if(!device || device->privacyFeature.enabled == 0 || (device->privacyFeature.enabled == 1 && channel->privacy == FALSE)) {
 					
 					sccp_copy_string(hint->callInfo.callingPartyName,   channel->callingPartyName, sizeof(hint->callInfo.callingPartyName));
 					sccp_copy_string(hint->callInfo.calledPartyName,   channel->calledPartyName, sizeof(hint->callInfo.calledPartyName));
@@ -604,7 +604,7 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 			case SCCP_CHANNELSTATE_DIALING:
 			case SCCP_CHANNELSTATE_DIGITSFOLL:
 				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-				if(!device || device->privacyFeature.enabled == 0 || (device->privacyFeature.enabled == 1 && channel->private == FALSE)) {
+				if(!device || device->privacyFeature.enabled == 0 || (device->privacyFeature.enabled == 1 && channel->privacy == FALSE)) {
 					
 					sccp_copy_string(hint->callInfo.callingPartyName, channel->dialedNumber, sizeof(hint->callInfo.callingPartyName));
 					sccp_copy_string(hint->callInfo.calledPartyName, channel->calledPartyName, sizeof(hint->callInfo.calledPartyName));
