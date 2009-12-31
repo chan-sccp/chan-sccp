@@ -801,7 +801,7 @@ void sccp_dev_displayprinotify(sccp_device_t * d, char * msg, uint32_t priority,
  * \param type Type as uint8_t
  * \return SCCP Speed
  */
-sccp_speed_t * sccp_dev_speed_find_byindex(sccp_device_t * d, uint8_t instance, uint8_t type)
+sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint8_t instance, uint8_t type)
 {
 	sccp_speed_t 		* k = NULL;
 	sccp_buttonconfig_t	*config;
@@ -1335,8 +1335,8 @@ int sccp_device_free(const void *ptr){
 }
 
 boolean_t sccp_device_isVideoSupported(sccp_device_t *device){
-	if(device->capability & AST_FORMAT_VIDEO_MASK)
-		return TRUE;
+	//if(device->capability & AST_FORMAT_VIDEO_MASK)
+	//	return TRUE;
 	
 	return FALSE;
 }

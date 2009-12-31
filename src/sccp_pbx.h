@@ -12,6 +12,12 @@
 
 #include <asterisk/pbx.h>
 
+#ifndef CS_AST_HAS_RTP_ENGINE
+#define sccp_rtp_read	ast_rtp_write
+#else
+#define sccp_rtp_read	ast_rtp_instance_write
+#endif
+
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c);
 int sccp_pbx_sched_dial(const void *data);
 int sccp_pbx_helper(sccp_channel_t * c);

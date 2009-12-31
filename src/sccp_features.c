@@ -184,7 +184,7 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 
 	sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 
-	if (device->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp) {
+	if (device->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp.audio) {
 		sccp_channel_openreceivechannel(c);
 	}
 
@@ -258,7 +258,7 @@ sccp_channel_t * sccp_feat_handle_directpickup(sccp_line_t * l, sccp_device_t *d
 
 	sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 
-	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp) {
+	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp.audio) {
 		sccp_channel_openreceivechannel(c);
 	}
 
@@ -507,7 +507,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
 				sccp_channel_set_active(d, c);
 				sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_OFFHOOK);
 
-				if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp) {
+				if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp.audio) {
 					sccp_channel_openreceivechannel(c);
 				}
 			}
@@ -853,7 +853,7 @@ sccp_channel_t * sccp_feat_handle_meetme(sccp_line_t * l, sccp_device_t *d) {
 
 	sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 
-	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp) {
+	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp.audio) {
 		sccp_channel_openreceivechannel(c);
 	}
 
@@ -926,7 +926,7 @@ sccp_channel_t * sccp_feat_handle_barge(sccp_line_t * l, sccp_device_t *d) {
 
 	sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 
-	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp) {
+	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp.audio) {
 		sccp_channel_openreceivechannel(c);
 	}
 
@@ -1017,7 +1017,7 @@ sccp_channel_t * sccp_feat_handle_cbarge(sccp_line_t * l, sccp_device_t *d) {
 
 	sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 
-	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp) {
+	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp.audio) {
 		sccp_channel_openreceivechannel(c);
 	}
 

@@ -43,7 +43,7 @@ void sccp_dev_displaynotify(sccp_device_t * d, char * msg, uint32_t timeout);
 void sccp_dev_cleardisplayprinotify(sccp_device_t * d);
 void sccp_dev_displayprinotify(sccp_device_t * d, char * msg, uint32_t priority, uint32_t timeout);
 
-sccp_speed_t * sccp_dev_speed_find_byindex(sccp_device_t * d, uint8_t instance, uint8_t type);
+sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint8_t instance, uint8_t type);
 sccp_line_t * sccp_dev_get_activeline(sccp_device_t * d);
 void sccp_dev_set_activeline(sccp_device_t *device, sccp_line_t * l);
 void sccp_dev_check_displayprompt(sccp_device_t * d);

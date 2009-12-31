@@ -1983,13 +1983,14 @@ typedef union {
 
         struct {
                 uint32_t			lel_conferenceID;		/*!< Conference ID */
-                uint32_t			lel_numberOfReservedParticipants;	/*!< Number of Reserved Participants */
+                uint32_t			lel_numberOfReservedParticipants;/*!< Number of Reserved Participants */
                 uint32_t			lel_resourceTypes;		/*!< Resource Types */
                 uint32_t			lel_appID;			/*!< Application ID */
-                uint32_t			lel_appConfID;			/*!< Conference Application ID */
-                uint32_t			lel_appData;			/*!< Application Data */
+                uint8_t				lel_appConfID;			/*!< Conference Application ID */
+                char				lel_unknown[31];
+                char				lel_appData[24];		/*!< Application Data */
                 uint32_t			lel_data_length;		/*!< Application Data Length */
-                uint32_t			lel__passThruData;		/*!< Pass Through Data */
+                uint8_t				lel__passThruData;		/*!< Pass Through Data */
         }CreateConferenceReqMessage;						/*!< Create Conference Request Message Structure */
 
         struct {

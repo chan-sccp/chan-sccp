@@ -1321,6 +1321,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Set[%-2d]= ", d->id, v->id);
 
 		for ( c = 0; c < v->count; c++) {
+			//r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[c] = 0;
 		/* look for the SKINNY_LBL_ number in the softkeysmap */
 			if ( (b[c] == SKINNY_LBL_PARK) && (!d->park) ) {
 				continue;
@@ -1916,14 +1917,14 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 		sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
 		sccp_channel_lock(c);
 		memcpy(&c->rtp_addr, &sin, sizeof(sin));
-		if (c->rtp) {
+		if (c->rtp.audio) {
 			sccp_channel_startmediatransmission(c);				/*!< Starting Media Transmission Earlier to fix 2 second delay - Copied from v2 - FS */
 #ifdef ASTERISK_CONF_1_2
 			sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port));
-			ast_rtp_set_peer(c->rtp, &sin);
+			ast_rtp_set_peer(c->rtp.audio, &sin);
 #else
 			sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
-			ast_rtp_set_peer(c->rtp, &sin);
+			ast_rtp_set_peer(c->rtp.audio, &sin);
 #endif
 			// sccp_dev_stoptone(d, c->line->instance, c->callid);
 			//sccp_channel_startmediatransmission(c);			/*!< Moved to 9 lines before - Copied from v2 - FS */
@@ -1937,6 +1938,53 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 #endif
 			sccp_channel_endcall(c); // FS - 350
 		}
+		
+		
+		if(c->rtp.video){
+			struct sockaddr_in vsin;
+			vsin.sin_family = AF_INET;
+			
+			if(!ast_strlen_zero(d->videoSink)){
+			  
+				struct ast_hostent ahp;
+				struct hostent *hp;
+
+				if ( !(hp = ast_gethostbyname(d->videoSink, &ahp)) ){
+					memcpy(&vsin, hp->h_addr, sizeof(vsin));
+					vsin.sin_port = ipPort;
+					
+				}else{
+					/* test server */
+					//net_aton("172.17.1.101", &vsin.sin_addr);
+					//vsin.sin_port = htons(12345);
+				}
+				
+				
+			}else{
+				//net_aton("172.17.1.101", &vsin.sin_addr);
+				//vsin.sin_port = htons(12345);
+			}
+			
+			
+		  
+#ifdef ASTERISK_CONF_1_2
+			sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Set the RTP video media address to %s:%d\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), vsin.sin_addr), ntohs(vsin.sin_port));
+			ast_rtp_set_peer(c->rtp.video, &vsin);
+#else
+			sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Set the RTP video media address to %s:%d\n", d->id, ast_inet_ntoa(vsin.sin_addr), ntohs(vsin.sin_port));
+			ast_rtp_set_peer(c->rtp.video, &vsin);
+			
+			//struct sockaddr_in us;
+			//ast_rtp_get_us(c->rtp.video, &us);
+			
+			
+			
+			//sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: our video media address is %s:%d\n", d->id, ast_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
+			
+			
+#endif		  
+		}
+		
 		sccp_channel_unlock(c);
 	} else {
 		ast_log(LOG_ERROR, "%s: No channel with this PassThruId!\n", d->id);

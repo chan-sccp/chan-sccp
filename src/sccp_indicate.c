@@ -180,11 +180,11 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 	case SCCP_CHANNELSTATE_RINGOUT:
 		sccp_channel_set_callstate(d, c, SKINNY_CALLSTATE_RINGOUT);
 		sccp_channel_send_callinfo(d, c);
-		if (d->earlyrtp == SCCP_CHANNELSTATE_RINGOUT && !c->rtp) {
+		if (d->earlyrtp == SCCP_CHANNELSTATE_RINGOUT && !c->rtp.audio) {
 			sccp_channel_openreceivechannel(c);
 		}
 		/* it will be emulated if the rtp audio stream is open */
-		if (!c->rtp)
+		if (!c->rtp.audio)
 			sccp_dev_starttone(d, SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGOUT);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_RING_OUT, 0);
@@ -223,13 +223,13 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_CONNECTED);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CONNECTED, 0);
 		// if no rtp or was in old openreceivechannel (note that rtp doens't reinitialize as channel was in hold state or offhook state due to a transfer abort)
-		if (!c->rtp
+		if (!c->rtp.audio
 				|| c->previousChannelState == SCCP_CHANNELSTATE_HOLD
 				|| c->previousChannelState == SCCP_CHANNELSTATE_CALLTRANSFER
 				|| c->previousChannelState == SCCP_CHANNELSTATE_CALLCONFERENCE
 				|| c->previousChannelState == SCCP_CHANNELSTATE_OFFHOOK) {
 			sccp_channel_openreceivechannel(c);
-		} else if(c->rtp) {
+		} else if(c->rtp.audio) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: (for debug purposes) did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
 		}
 		/* asterisk wants rtp open before AST_STATE_UP
@@ -241,7 +241,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		break;
 	case SCCP_CHANNELSTATE_BUSY:
 		/* it will be emulated if the rtp audio stream is open */
-		if (!c->rtp)
+		if (!c->rtp.audio)
 			sccp_dev_starttone(d, SKINNY_TONE_LINEBUSYTONE, instance, c->callid, 0);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_BUSY, 0);
 		sccp_ast_setstate(c, AST_STATE_BUSY);
@@ -258,7 +258,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		// sccp_dev_set_keyset(d, l->instance, c->callid, KEYMODE_CONNECTED);
 		sccp_channel_send_callinfo(d, c);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
-		if (!c->rtp) {
+		if (!c->rtp.audio) {
 			sccp_channel_openreceivechannel(c);
 		}
 		break;
@@ -275,7 +275,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		break;
 	case SCCP_CHANNELSTATE_CONGESTION:
 		/* it will be emulated if the rtp audio stream is open */
-		if (!c->rtp)
+		if (!c->rtp.audio)
 			sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
 		/* In fact, newer firmware versions (the 8 releases for the 7960 etc.) and
 		   the newer Cisco phone models don't seem to like this at all, resulting in
@@ -315,7 +315,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		break;
 	case SCCP_CHANNELSTATE_INVALIDNUMBER:
 		/* this is for the earlyrtp. The 7910 does not play tones if a rtp stream is open */
-		if (c->rtp)
+		if (c->rtp.audio)
 			sccp_channel_closereceivechannel(c);
 
 		sccp_safe_sleep(100);
@@ -337,7 +337,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_channel_send_dialednumber(c);
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_DIGITSFOLL);
 		// sccp_dev_clearprompt(d,l->instance, c->callid);
-		if (d->earlyrtp == SCCP_CHANNELSTATE_DIALING && !c->rtp) {
+		if (d->earlyrtp == SCCP_CHANNELSTATE_DIALING && !c->rtp.audio) {
 			sccp_channel_openreceivechannel(c);
 		}
 		sccp_ast_setstate(c, AST_STATE_DIALING);

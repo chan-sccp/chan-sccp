@@ -2054,7 +2054,12 @@ const char * skinny_codec2str(uint8_t type) {
 	case 85:
 		return "G.729 Annex B";
 	case 86:
-		return "G.729B Low Complexity";
+		return "G.729B Low Complexity";	
+	case 101:
+		return "H.263";
+	case 103:
+		return "H.264";
+		
 	default:
 		return "unknown";
 	}

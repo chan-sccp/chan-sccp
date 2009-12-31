@@ -1,3 +1,59 @@
+2009-12-15 17:00  marcelloceschia
+
+	* 
+
+2009-12-15 16:17  marcelloceschia
+
+	* database update
+
+2009-12-15 16:10  marcelloceschia
+
+	* reading sofkeyset configuration
+
+2009-12-15 09:23  marcelloceschia
+
+	* add softkey configuration
+
+2009-12-13 18:24  marcelloceschia
+
+	* restoring features from ast db
+
+2009-12-13 14:02  marcelloceschia
+
+	* fixing dnd issue
+
+2009-12-13 13:32  marcelloceschia
+
+	* fixing dnd issue
+
+2009-12-12 17:51  marcelloceschia
+
+	* codec choose
+
+2009-12-12 17:28  marcelloceschia
+
+	* restoring dnd status after unloading channel
+
+2009-12-12 12:45  marcelloceschia
+
+	* changing codec choose strategie
+
+2009-12-12 10:30  marcelloceschia
+
+	* updateing channel capability on asterisk channel alloc
+
+2009-12-11 17:27  marcelloceschia
+
+	* 
+
+2009-12-11 16:10  marcelloceschia
+
+	* update codec choose
+
+2009-12-11 13:50  marcelloceschia
+
+	* issue: 2912546 fixed
+
 2009-12-10 13:33  marcelloceschia
 
 	* remove hint on unload
