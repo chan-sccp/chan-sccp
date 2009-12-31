@@ -466,21 +466,6 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 		}
 	}
 
-	sccp_device_unlock(d);
-	
-	sccp_moo_t * r;
-	REQ(r, CreateConferenceReqMessage);
-	r->msg.CreateConferenceReqMessage.lel_conferenceID  = htolel(1);
-	r->msg.CreateConferenceReqMessage.lel_numberOfReservedParticipants = htolel(3);
-	r->msg.CreateConferenceReqMessage.lel_appID = htolel(1);
-	r->msg.CreateConferenceReqMessage.lel_appConfID = htolel(1);
-	//r->msg.CreateConferenceReqMessage.lel_appData = htolel(0);
-	r->msg.CreateConferenceReqMessage.lel_data_length = htolel(24);
-	r->msg.CreateConferenceReqMessage.lel__passThruData = htolel(1);
-	
-	sccp_dev_send(d, r);
-	
-	
 	
 	
 	return RESULT_SUCCESS;
