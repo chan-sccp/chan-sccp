@@ -160,18 +160,17 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
   
 	if(channel->owner){
 
-		channel->owner->nativeformats = channel->format |AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS; /* if we set nativeformats to a single format, we force asterisk to translate stream */
+	/*	channel->owner->nativeformats = channel->format |AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS;  if we set nativeformats to a single format, we force asterisk to translate stream 
 		channel->owner->rawreadformat = channel->format |AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS;
 		channel->owner->rawwriteformat = channel->format |AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS;
+		*/
 		
-		/*
 		channel->owner->nativeformats = channel->capability;
 		channel->owner->rawreadformat = channel->format;
 		channel->owner->rawwriteformat = channel->format;
-		*/
 		
-		channel->owner->writeformat	= channel->format |AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS;
-		channel->owner->readformat 	= channel->format |AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS;
+		channel->owner->writeformat	= channel->format; /*|AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS;*/
+		channel->owner->readformat 	= channel->format; /*|AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS;*/
 		
 		ast_set_read_format(channel->owner, channel->format);
 		ast_set_write_format(channel->owner, channel->format);
@@ -1648,8 +1647,8 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 		ast_rtp_set_rtptimeout(c->rtp.video, 10);
 		ast_rtp_set_rtpholdtimeout(c->rtp.video, 0);
 		ast_rtp_set_rtpkeepalive(c->rtp.video, 0);
-		ast_rtp_set_constantssrc(c->rtp.video);
-		ast_rtp_set_constantssrc(c->rtp.video);
+		//ast_rtp_set_constantssrc(c->rtp.video);
+		//ast_rtp_set_constantssrc(c->rtp.video);
 		ast_rtp_set_m_type(c->rtp.video, AST_FORMAT_H263);
 
 	}
