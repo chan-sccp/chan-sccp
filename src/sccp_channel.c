@@ -139,6 +139,10 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l, sccp_device_t *device)
 	return c;
 }
 
+/*!
+ * \brief Update Channel Capability
+ * \param channel SCCP Channel
+ */
 void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
 	if(!channel)
 		return;
@@ -198,10 +202,9 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
 
 
 /*!
- * \brief Add Line to device.
- * \param device - Device
- * \param lineName - Name of line
- * \param index - preferred button (position)
+ * \brief Get Active Channel
+ * \param d SCCP Device
+ * \return SCCP Channel
  */
 sccp_channel_t * sccp_channel_get_active(sccp_device_t * d) {
 	sccp_channel_t * c;
