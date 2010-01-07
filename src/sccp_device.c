@@ -141,9 +141,9 @@ sccp_device_t *sccp_device_addToGlobals(sccp_device_t *device){
 }
 
 /*!
- * \brief Kill all Channels of a specific Line
- * \param l SCCP Line
- * \note Should be Called with a lock on l->lock
+ * \brief Get Codec for Device
+ * \param ast Asterisk Channel
+ * \return CodecCapability as int
  */
 int sccp_device_get_codec(struct ast_channel *ast)
 {
@@ -1319,9 +1319,8 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 
 
 /*!
- * \brief Cleanup memory used by device
- * \param d SCCP Device
- * \param ptr device pointer
+ * \brief Free a Device
+ * \param ptr SCCP Device Pointer
  * \return success as int
  */
 int sccp_device_free(const void *ptr){
@@ -1432,8 +1431,8 @@ void sccp_device_removeLine(sccp_device_t *device, sccp_line_t * line)
 }
 
 /*!
- * \brief Reset a Device
- * \param s SCCP Session
+ * \brief Send Reset to a Device
+ * \param d SCCP Device
  * \param reset_type as int
  * \return Status as int
  */

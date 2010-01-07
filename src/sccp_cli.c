@@ -473,11 +473,12 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 
 
 #ifdef ASTERISK_CONF_1_6
+
 /*!
  * \brief Show Device
- * \param fd Fd as int
- * \param argc Argc as int
- * \param argv[] Argv[] as char
+ * \param e Asterisk CLI Entry
+ * \param cmd Command as int
+ * \param a Args as int
  * \return Result as int
  */
 static char *cli_show_device(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){

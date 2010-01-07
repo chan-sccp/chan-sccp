@@ -122,11 +122,11 @@ void sccp_config_addSpeeddial(sccp_device_t *device, char *label, char *extensio
 }
 
 /**
- * Add an SpeedDial to Device.
+ * \brief Add Feature to Device.
  * \param device SCCP Device
  * \param label Label as char
- * \param extension Extension as char
- * \param hint Hint as char
+ * \param featureID featureID as char
+ * \param args Arguments as char
  * \param index Index Preferred Button Position as int
  */
 void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID, char *args, uint8_t index){
@@ -252,10 +252,10 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 }
 
 /*!
- * \brief Add Line to device.
- * \param device - Device
- * \param lineName - Name of line
- * \param index - preferred button (position)
+ * \brief Build Line
+ * \param variable Asterisk Variable
+ * \param lineName Name of line as char
+ * \param isRealtime is Realtime as Boolean
  */
 sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *lineName, boolean_t isRealtime){
 	sccp_line_t 	*line = NULL;
