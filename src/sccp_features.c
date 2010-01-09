@@ -38,7 +38,10 @@
 #ifndef ast_free
 #define ast_free free
 #endif
+
+
 #include "sccp_featureButton.h"
+#include "sccp_conference.h"
 
 /*!
  * \brief Handle Call Forwarding
@@ -725,12 +728,18 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t line_instance) {
  * \param c SCCP Channel
  */
 void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+	if(!l){
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRANSVM pressed but no line found\n", d->id);
+		sccp_dev_displayprompt(d, 0, 0, "No line found to transfer", 5);
+		return;
+	}
 	if (!l->trnsfvm) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRANSVM pressed but not configured in sccp.conf\n", d->id);
 		return;
 	}
 	if (!c || !c->owner) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRANSVM with no channel active\n", d->id);
+		sccp_dev_displayprompt(d, 0, 0, "TRANSVM with no channel active", 5);
 		return;
 	}
 
@@ -759,12 +768,70 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  */
 void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
-#ifdef CS_ADV_FEATURES
-	sccp_advfeat_conference(d, l, c);
+#ifdef CS_SCCP_CONFERENCE
+	sccp_buttonconfig_t 	*config = NULL;
+	sccp_channel_t 		*channel = NULL;
+	sccp_selectedchannel_t 	*selectedChannel = NULL;
+	sccp_line_t 		*line = NULL;
+
+
+	if(!d || !c)
+		return;
+	
+	uint8_t num = sccp_device_numberOfChannels(d);
+	if(num < 2){
+		uint8_t instance = sccp_device_find_index_for_line(d, l->name);
+		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+		return;
+	}
+	      
+	if(!d->conference){
+		d->conference = sccp_conference_create(c);
+	}
+	
+  
+	/* if we have selected channels, add this to conference */
+	SCCP_LIST_LOCK(&d->selectedChannels);
+	SCCP_LIST_TRAVERSE(&d->selectedChannels, selectedChannel, list) {
+		if(selectedChannel->channel->state != SCCP_CHANNELSTATE_CONNECTED)
+			sccp_indicate_nolock(selectedChannel->channel->device, selectedChannel->channel, SCCP_CHANNELSTATE_CONNECTED);
+		
+		sccp_conference_addParticipant(d->conference, selectedChannel->channel);
+	}
+	SCCP_LIST_UNLOCK(&d->selectedChannels);
+	
+	
+	SCCP_LIST_LOCK(&d->buttonconfig);
+	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+	  
+		if(config->type == LINE){
+			line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
+			if(!line)
+				continue;
+				  
+		  
+			SCCP_LIST_LOCK(&line->channels);
+			SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
+				if(channel->device == d && !channel->conference){
+				  
+					if(channel->state == SCCP_CHANNELSTATE_HOLD)
+						sccp_channel_resume(channel->device, channel);
+				
+					sccp_conference_addParticipant(d->conference, channel);
+				}
+			}
+			SCCP_LIST_UNLOCK(&line->channels);
+		  
+		  
+		}
+	}
+	SCCP_LIST_UNLOCK(&d->buttonconfig);
+	  
 #else
 	/* sorry but this is private code -FS */
 	uint8_t instance = sccp_device_find_index_for_line(d, l->name);
 	sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+	ast_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
 #endif
 }
 
