@@ -429,6 +429,11 @@ int sccp_session_send(const sccp_device_t *device, sccp_moo_t * r)
  */
 int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 	ssize_t res;
+	ssize_t bytesSent;
+	ssize_t bufLen;
+	uint8_t *bufAddr;
+	boolean_t finishSending;
+	unsigned int try, maxTries;;
 
 	if (!s || s->fd <= 0) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Tried to send packet over DOWN device.\n");
@@ -450,15 +455,31 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 	else
 		r->lel_reserved = 0;
 
-	res = 1;
+	res = 0;
+	finishSending = 0;
+	try = 1;
+	maxTries = 10;
+	bytesSent = 0;
+	bufAddr = ((uint8_t *) r);
+	bufLen = (size_t)(letohl(r->length) + 8);
 	/* sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending Packet Type %s (%d bytes)\n", s->device->id, sccpmsg2str(letohl(r->lel_messageId)), letohl(r->length)); */
-	res = write(s->fd, r, (size_t)(letohl(r->length) + 8));
-	sccp_session_unlock(s);
-	if (res != (ssize_t)(letohl(r->length) + 8)) {
-/*		ast_log(LOG_WARNING, "SCCP: Only managed to send %d bytes (out of %d): %s\n", res, letohl(r->length) + 8, strerror(errno)); */
-		res = 0;
-	}
+	do {
+		res = write(s->fd, bufAddr+bytesSent, bufLen-bytesSent);
+		if(res >= 0)
+			bytesSent += res;
+		
+		if(!((bytesSent < bufLen) && (try < maxTries)))
+			finishSending = 1;
+		else
+			usleep(1000);
 
+		} while(finishSending);
+
+	if(bytesSent < bufLen)
+	 sccp_log(10)(VERBOSE_PREFIX_3 "%s: Could only send %d of %d bytes!\n", s->device->id, bytesSent, bufLen);
+
+
+	sccp_session_unlock(s);
 	ast_free(r);
 	return res;
 }
