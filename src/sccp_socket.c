@@ -468,12 +468,12 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 		if(res >= 0)
 			bytesSent += res;
 		
-		if(!((bytesSent < bufLen) && (try < maxTries)))
+		if((bytesSent == bufLen) || (try >= maxTries))
 			finishSending = 1;
 		else
 			usleep(1000);
-
-		} while(finishSending);
+		try++;
+	} while(!finishSending);
 
 	if(bytesSent < bufLen)
 	 sccp_log(10)(VERBOSE_PREFIX_3 "%s: Could only send %d of %d bytes!\n", s->device->id, bytesSent, bufLen);
