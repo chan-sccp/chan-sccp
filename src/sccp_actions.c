@@ -321,7 +321,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 // 			 || d->skinny_type == SKINNY_DEVICETYPE_CISCO7936){
 // 		 d->inuseprotocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
 	 }
-
+d->inuseprotocolversion = 15;
 	if(d->inuseprotocolversion <= 3) {
 		// Our old flags for protocols from 0 to 3
 		r1->msg.RegisterAckMessage.unknown1 = 0x00;
@@ -1321,7 +1321,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Set[%-2d]= ", d->id, v->id);
 
 		for ( c = 0; c < v->count; c++) {
-			//r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[c] = 0;
+			r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[c] = 1;
 		/* look for the SKINNY_LBL_ number in the softkeysmap */
 			if ( (b[c] == SKINNY_LBL_PARK) && (!d->park) ) {
 				continue;
@@ -1350,7 +1350,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 			if ( (b[c] == SKINNY_LBL_MEETME) && (!meetme) ) {
 				continue;
 			}
-#ifdef CS_ADV_FEATURES
+#ifndef CS_ADV_FEATURES
 			if ( (b[c] == SKINNY_LBL_BARGE) ) {
 				continue;
 			}
@@ -1358,7 +1358,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 				continue;
 			}
 #endif
-#ifdef CS_SCCP_CONFERENCE
+#ifndef CS_SCCP_CONFERENCE
 			if ( (b[c] == SKINNY_LBL_JOIN) ) {
 				continue;
 			}
@@ -1955,14 +1955,14 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 					
 				}else{
 					/* test server */
-					//net_aton("172.17.1.101", &vsin.sin_addr);
+					//inet_aton("172.17.1.101", &vsin.sin_addr);
 					//vsin.sin_port = htons(12345);
 				}
 				
 				
 			}else{
-				//net_aton("172.17.1.101", &vsin.sin_addr);
-				//vsin.sin_port = htons(12345);
+				inet_aton("172.17.1.101", &vsin.sin_addr);
+				vsin.sin_port = htons(12345);
 			}
 			
 			
@@ -2208,6 +2208,7 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 {
 	sccp_device_t * d = s->device;
 	sccp_buttonconfig_t *config = NULL;
+	sccp_speed_t * k = NULL;
 
 
 	if (!d)
@@ -2221,9 +2222,10 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 	/* the new speeddial style uses feature to display state
 	   unfortunately we dont know how to handle this on other way
 	*/
+	
 #ifdef CS_DYNAMIC_SPEEDDIAL
-	if(unknown == 1 && d->inuseprotocolversion >= 15 ){
-		sccp_speed_t * k = sccp_dev_speed_find_byindex(d, instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
+	k = sccp_dev_speed_find_byindex(d, instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
+	if( (unknown == 1 && d->inuseprotocolversion >= 15) || k ){
 		if (k){
 			sccp_moo_t * r1;
 			REQ(r1, SpeedDialStatDynamicMessage);
@@ -2235,13 +2237,14 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 			sccp_dev_send(d, r1);
 			
 			
-			REQ(r1, SpeedDialStatDynamicMessage);
-			r1->msg.SpeedDialStatDynamicMessage.lel_instance = htolel(instance);
-			r1->msg.SpeedDialStatDynamicMessage.lel_type = 0x15;
-			r1->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(0); /* default state */
-
-			sccp_copy_string(r1->msg.SpeedDialStatDynamicMessage.DisplayName, k->name, sizeof(r1->msg.SpeedDialStatDynamicMessage.DisplayName));
-			sccp_dev_send(d, r1);
+// 			REQ(r1, SpeedDialStatDynamicMessage);
+// 			r1->msg.SpeedDialStatDynamicMessage.lel_instance = htolel(instance);
+// 			r1->msg.SpeedDialStatDynamicMessage.lel_type = 0x15;
+// 			r1->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(0); /* default state */
+// 
+// 			sccp_copy_string(r1->msg.SpeedDialStatDynamicMessage.DisplayName, k->name, sizeof(r1->msg.SpeedDialStatDynamicMessage.DisplayName));
+// 			sccp_dev_send(d, r1);
+			ast_free(k);
 		}
 		return;
 			
