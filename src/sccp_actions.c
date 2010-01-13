@@ -1573,11 +1573,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 #endif
 
 			if (GLOB(digittimeoutchar) && GLOB(digittimeoutchar) == resp) {
-				if(GLOB(recorddigittimeoutchar)) {
 					c->dialedNumber[len] = '\0';
-				} else {
-					c->dialedNumber[--len] = '\0';
-				}
 
 				SCCP_SCHED_DEL(sched, c->digittimeout);
 				sccp_channel_unlock(c);

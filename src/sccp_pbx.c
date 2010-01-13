@@ -24,6 +24,8 @@
 #include "sccp_indicate.h"
 #include "sccp_features.h"
 
+#include <assert.h>
+
 #include <asterisk/pbx.h>
 #ifndef CS_AST_HAS_TECH_PVT
 #include <asterisk/channel_pvt.h>
@@ -207,6 +209,14 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 #ifdef CS_AST_CHANNEL_HAS_CID
 	if(GLOB(recorddigittimeoutchar))
 	{
+		/* The hack to add the # at the end of the incoming number
+		   is only applied for numbers beginning with a 0,
+		   which is appropriate for Germany and other countries using similar numbering plan.
+		   The option should be generalized, moved to the dialplan, or otherwise be replaced. */
+		/* Also, we require an option whether to add the timeout suffix to certain
+		   enbloc dialed numbers (such as via 7970 enbloc dialing) if they match a certain pattern.
+		   This would help users dial from call history lists on other phones, which do not have enbloc dialing,
+		   when using shared lines. */
 			if(NULL != ast->cid.cid_num && strlen(ast->cid.cid_num) > 0 && strlen(ast->cid.cid_num) < sizeof(suffixedNumber)-2 && '0' == ast->cid.cid_num[0])
 			{
 				strncpy(suffixedNumber, (const char*) ast->cid.cid_num, strlen(ast->cid.cid_num));
@@ -1349,6 +1359,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 	struct ast_channel * chan = c->owner;
 	struct ast_variable *v = NULL;
 	uint8_t	instance;
+	int len = 0;
 
 	sccp_line_t * l;
 	sccp_device_t * d;
@@ -1403,8 +1414,30 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 	/* assign callerid name and number */
 	sccp_channel_set_callingparty(c, l->cid_name, l->cid_num);
 
+
 	// we use shortenedNumber but why ???
+	// If the timeout digit has been used to terminate the number
+	// and this digit shall be included in the phone call history etc (recorddigittimeoutchar is true)
+	// we still need to dial the number without the timeout char in the pbx
+	// so that we don't dial strange extensions with a trailing characters.
+
 	sccp_copy_string(shortenedNumber, c->dialedNumber, sizeof(shortenedNumber));
+	len = strlen(shortenedNumber);
+	assert(strlen(c->dialedNumber) == len);
+
+	if(GLOB(digittimeoutchar) == shortenedNumber[len-1])
+	{
+		shortenedNumber[len-1] = '\0';
+
+		// If we don't record the timeoutchar in the logs, we remove it from the sccp channel structure
+		// Later, the channel dialed number is used for directories, etc.,
+		// and the shortened number is used for dialing the actual call via asterisk pbx.
+
+		if(!GLOB(recorddigittimeoutchar)) {
+			c->dialedNumber[len-1] = '\0';
+		}
+	}
+
 
 	/* This will choose what to do */
 	switch(c->ss_action) {
@@ -1537,7 +1570,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 	}
 
 	sccp_copy_string(chan->exten, shortenedNumber, sizeof(chan->exten));
-	sccp_copy_string(d->lastNumber, shortenedNumber, sizeof(d->lastNumber));
+	sccp_copy_string(d->lastNumber, c->dialedNumber, sizeof(d->lastNumber));
 	sccp_channel_set_calledparty(c, c->dialedNumber, shortenedNumber);
 	/* The 7961 seems to need the dialing callstate to record its directories information. */
  	sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_DIALING);
