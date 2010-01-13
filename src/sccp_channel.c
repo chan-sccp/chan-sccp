@@ -150,7 +150,7 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
 	
 	char s1[512], s2[512];
 	if(!channel->device){
-		channel->capability = AST_FORMAT_ALAW|AST_FORMAT_ULAW|AST_FORMAT_G729A |AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS;
+		channel->capability = AST_FORMAT_ALAW|AST_FORMAT_ULAW|AST_FORMAT_G729A;
 		memcpy(&channel->codecs, &GLOB(global_codecs), sizeof(channel->codecs));
 	}else{
 		channel->capability = channel->device->capability;
@@ -164,15 +164,15 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
   
 	if(channel->owner){
 
-	/*	channel->owner->nativeformats = channel->format |AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS;  if we set nativeformats to a single format, we force asterisk to translate stream 
-		channel->owner->rawreadformat = channel->format |AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS;
-		channel->owner->rawwriteformat = channel->format |AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS;
-		*/
-		
-		channel->owner->nativeformats = channel->capability;
+		channel->owner->nativeformats = channel->format;  if we set nativeformats to a single format, we force asterisk to translate stream 
 		channel->owner->rawreadformat = channel->format;
 		channel->owner->rawwriteformat = channel->format;
 		
+		/*
+		channel->owner->nativeformats = channel->capability;
+		channel->owner->rawreadformat = channel->format;
+		channel->owner->rawwriteformat = channel->format;
+		*/
 		channel->owner->writeformat	= channel->format; /*|AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS;*/
 		channel->owner->readformat 	= channel->format; /*|AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS;*/
 		
