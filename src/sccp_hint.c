@@ -540,7 +540,10 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 
 	if(channel){
 		hint->callInfo.calltype = channel->calltype;
-		hint->currentState = channel->state;
+		
+		//hint->currentState = channel->state;
+		hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE; /* not a good idea to set this to channel->currentState -MC */
+		
 		sccp_linedevices_t *lineDevice = SCCP_LIST_FIRST(&line->devices);
 		sccp_device_t *device = NULL;
 		if(lineDevice)
@@ -556,6 +559,7 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 				break;
 			case SCCP_CHANNELSTATE_GETDIGITS:
+				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 				break;
 			case SCCP_CHANNELSTATE_SPEEDDIAL:
 				break;
@@ -625,8 +629,8 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 				sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_BUSY, sizeof(hint->callInfo.calledPartyName));
 				break;
 			case SCCP_CHANNELSTATE_HOLD:
-				//hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-				hint->currentState = channel->state;
+				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+				//hint->currentState = channel->state;
 				sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_HOLD, sizeof(hint->callInfo.callingPartyName));
 				sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_HOLD, sizeof(hint->callInfo.calledPartyName));
 				break;
@@ -634,6 +638,7 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 			case SCCP_CHANNELSTATE_CALLWAITING:
 			case SCCP_CHANNELSTATE_CALLTRANSFER:
 			case SCCP_CHANNELSTATE_CALLCONFERENCE:
+				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 				break;
 			case SCCP_CHANNELSTATE_CALLPARK:
 				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
@@ -642,6 +647,7 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 				break;
 			case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
 			case SCCP_CHANNELSTATE_INVALIDNUMBER:
+				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 				break;
 			default:
 				hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
