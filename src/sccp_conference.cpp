@@ -17,6 +17,7 @@
  * @return conference
  */
 sccp_conference_t *sccp_conference_create(sccp_channel_t *owner){
+#if 0
 	sccp_conference_t *conference = NULL;
 	sccp_conference_participant_t *moderator = NULL;
 
@@ -45,6 +46,8 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t *owner){
 	SCCP_LIST_UNLOCK(&sccp_conferences);
 
 	return conference;
+#endif
+        return NULL;
 }
 
 /*!
@@ -54,7 +57,8 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t *owner){
  * @param participant participant to remove
  */
 void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_t *participant){
-	sccp_conference_participant_t *part = NULL;
+#if 0
+    sccp_conference_participant_t *part = NULL;
 
 	if(!participant || !conference)
 		return;
@@ -66,6 +70,7 @@ void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_
 	part->channel = participant;
 
 	SCCP_LIST_INSERT_TAIL(&conference->participants, part, list);
+#endif
 }
 
 
