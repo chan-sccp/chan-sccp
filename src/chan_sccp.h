@@ -47,6 +47,7 @@ extern "C" {
 #include <asterisk/version.h>
 
 #include "sccp_dllists.h"
+//#include "sccp_conference.h"
 
 #ifndef ASTERISK_CONF_1_2
 #include "asterisk/abstract_jb.h"
@@ -226,6 +227,10 @@ typedef enum { LINE, SPEEDDIAL, SERVICE, FEATURE, EMPTY } button_type_t;		/*!< E
 typedef enum { ANSWER_LAST_FIRST=1, ANSWER_OLDEST_FIRST=2 } call_answer_order_t;	/*!< Enum Call Answer Order */
 typedef enum {ON, OFF} 				light_t;				/*!< Enum Light Status */
 typedef void sk_func (sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
+
+
+struct sccp_conference;
+
 
 /*!
  * \brief Verbosity Level Enum
@@ -501,7 +506,7 @@ struct sccp_device {
         char 					imageversion[StationMaxVersionSize];	/*!< Version to Send to the phone */
         uint8_t 				accessoryused;				/*!< Accessory Used. This are for support of message 0x0073 AccessoryStatusMessage - Protocol v.11 CCM7 -FS */
         uint8_t 				accessorystatus;			/*!< Accessory Status */
-        uint8_t 				registrationState;			/*!< If the device has been rully registered yet */
+        uint8_t 				registrationState;			/*!< If the device has been fully registered yet */
         struct ast_codec_pref 			codecs;					/*!< Asterisk Codec Device Preference */
         sccp_devicestate_t 			state;					/*!< Device State (SCCP_DEVICE_ONHOOK or SCCP_DEVICE_OFFHOOK) */
 /*      uint8_t 				ringermode;*/				/* Ringer Mode. Need it for the ringback */
@@ -523,7 +528,7 @@ struct sccp_device {
         unsigned int				mwilight: 1;				/*!< MWI/Light Support (Boolean, default=on) \todo MWI/Light or Lamp was soll es sein */
        
         unsigned int				transfer: 1;				/*!< Transfer Support (Boolean, default=on) */
-        unsigned int				conference: 1;				/*!< Conference Support (Boolean, default=on) */
+        //unsigned int				conference: 1;				/*!< Conference Support (Boolean, default=on) */
         unsigned int				park: 1;				/*!< Park Support (Boolean, default=on) */
         unsigned int				cfwdall: 1;				/*!< Call Forward All Support (Boolean, default=on) */
         unsigned int				cfwdbusy: 1;				/*!< Call Forward on Busy Support (Boolean, default=on) */
@@ -549,7 +554,7 @@ struct sccp_device {
         sccp_session_t   			* session;				/*!< Current Session */
 /*	SCCP_LIST_ENTRY(sccp_linedevices_t) 	linedevicelist;*/			/* Line-Device Linked List */
         SCCP_LIST_ENTRY(sccp_device_t) 		list;					/*!< Global Device Lined List */
-        SCCP_LIST_HEAD(,sccp_hint_t) 		hints;					/*!< list of hint pointers. Internal lines to notify the state */
+        //SCCP_LIST_HEAD(,sccp_hint_t) 		hints;					/*!< list of hint pointers. Internal lines to notify the state */
         SCCP_LIST_HEAD(,sccp_buttonconfig_t) 	buttonconfig;				/*!< SCCP Button Config Attached to this Device */
         uint8_t					linesCount;				/*!< Number of Lines */
         SCCP_LIST_HEAD(,sccp_selectedchannel_t)	selectedChannels;			/*!< Selected Channel List */
@@ -610,6 +615,7 @@ struct sccp_device {
 	}scheduleTasks;
 
 	char 					videoSink[MAXHOSTNAMELEN];		/*!< sink to send video*/
+	struct sccp_conference			*conference;				/*!< conference we are part of */
 };
 
 // Number of additional keys per addon -FS
@@ -685,7 +691,6 @@ struct sccp_channel {
         struct ast_channel 	 		* owner;				/*!< Asterisk Channel Owner */
         sccp_line_t		 		* line;					/*!< SCCP Line */
 
-        //struct ast_rtp	 			* rtp;					/*!< Asterisk RTP */
 	struct{
 		struct ast_rtp	 		*audio;					/*!< Asterisk RTP */
 		struct ast_rtp 			*video;					/*!< Video RTP session */
@@ -715,7 +720,9 @@ struct sccp_channel {
 
         /* feature sets */
         boolean_t				monitorEnabled;				/*!< Monitor Enabled Feature */
-        sccp_callReason_t		reason;						/*!< what is the reaso for this call */
+        sccp_callReason_t			reason;					/*!< what is the reaso for this call */
+        
+        struct sccp_conference			*conference;
 };											/*!< SCCP Channel Structure */
 
 /*!
