@@ -2193,7 +2193,7 @@ static uint8_t skSet_Offhookfeat [] = {
 
 // in use hint keyset
 static uint8_t skSet_InUseHint [] = {
-//	SKINNY_LBL_NEWCALL,
+	SKINNY_LBL_NEWCALL,
 //	SKINNY_LBL_ENDCALL,
         SKINNY_LBL_PICKUP,
         SKINNY_LBL_BARGE,
