@@ -881,7 +881,7 @@ typedef union {
 		uint32_t 	lel_instance;
                 uint32_t 	lel_type;					/*!< always 0x15 */
                 uint32_t 	lel_unknown1;					
-		char	 	DisplayName[StationMaxNameSize];		/*!< SpeedDial Display Name */
+		char	 	DisplayName[100];				/*!< SpeedDial Display Name */
 	} SpeedDialStatDynamicMessage;
 
         struct {
