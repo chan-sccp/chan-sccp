@@ -308,8 +308,9 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 		/* set callInfo */
 		sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, hint->callInfo.callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
 		sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, hint->callInfo.calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
-		sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, hint->callInfo.callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
-		sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, hint->callInfo.calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
+		
+		sccp_copy_string(r->msg.CallInfoMessage.callingParty, hint->callInfo.callingParty, sizeof(r->msg.CallInfoMessage.callingParty));
+		sccp_copy_string(r->msg.CallInfoMessage.calledParty, hint->callInfo.calledParty, sizeof(r->msg.CallInfoMessage.calledParty));
 
 		r->msg.CallInfoMessage.lel_lineId   = htolel(subscriber->instance);
 		r->msg.CallInfoMessage.lel_callRef  = htolel(0);
@@ -318,7 +319,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 		
 #else
 		if(subscriber->device->inuseprotocolversion >= 15){
-			sccp_speed_t * k = sccp_dev_speed_find_byindex(subscriber->device, subscriber->instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
+			sccp_speed_t * k = sccp_dev_speed_find_byindex((sccp_device_t *)subscriber->device, subscriber->instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
 		  
 		  
 			REQ(r, SpeedDialStatDynamicMessage);
@@ -327,23 +328,35 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			
 			switch(hint->currentState){
 				case SCCP_CHANNELSTATE_ONHOOK:
-					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(1); /* default state */
-				break;
-				
-				case SCCP_CHANNELSTATE_RINGING:
-					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(4); /* default state */
+					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(1);
 				break;
 				
 				case SCCP_CHANNELSTATE_DOWN:
 					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(0); /* default state */
 				break;
 				
+				case SCCP_CHANNELSTATE_RINGING:
+					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(4); /* ringin */
+				break;
+				
 				default:
-					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(2); /* default state */
+					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(2); /* connected */
 				break;
 			}
+			char displayMessage[100];
 			
-			sccp_copy_string(r->msg.SpeedDialStatDynamicMessage.DisplayName, (k)?k->name:"unknown speeddial", sizeof(r->msg.SpeedDialStatDynamicMessage.DisplayName));
+			/* do not add name for TEMP_FAIL and ONHOOK */
+			if(hint->currentState > 2 ){
+				sprintf(displayMessage, "%s %s %s", 
+					(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)?hint->callInfo.calledPartyName : hint->callInfo.callingPartyName,
+					(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)? "\t<-\t" : "\t->\t",
+					(k)?k->name:"unknown speeddial"
+				);
+			}else{
+				sccp_copy_string(displayMessage, (k)?k->name:"unknown speeddial", sizeof(displayMessage));
+			}
+			
+			sccp_copy_string(r->msg.SpeedDialStatDynamicMessage.DisplayName, displayMessage, sizeof(r->msg.SpeedDialStatDynamicMessage.DisplayName));
 			sccp_dev_send(subscriber->device, r);
 			
 			if(k)
