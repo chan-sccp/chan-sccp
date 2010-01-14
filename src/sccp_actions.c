@@ -2324,7 +2324,12 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 
 
 	/* notice: we use this function for request and changing status -> so just change state if toggleState==TRUE -MC*/
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s \n", d->id, config->button.feature.id, (config->button.feature.options)?config->button.feature.options:"(none)");
+	char featureOption[255];
+	if(config->button.feature.options){
+		sccp_copy_string(featureOption, config->button.feature.options, sizeof(featureOption));
+	}
+	
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s \n", d->id, config->button.feature.id, featureOption);
 	switch(config->button.feature.id){
 		case SCCP_FEATURE_PRIVACY:
 
@@ -2361,7 +2366,7 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 				if(config->type == LINE ){
 					line = sccp_line_find_byname_wo(config->button.line.name,FALSE);
 					if(line){
-						sccp_line_cfwd(line, (line->cfwd_type == status)?SCCP_CFWD_NONE:status, config->button.feature.options);
+						sccp_line_cfwd(line, (line->cfwd_type == status)?SCCP_CFWD_NONE:status, featureOption);
 					}
 				}
 			}
@@ -2393,8 +2398,10 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 
 	}
 
+if(config){
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Status: %d\n", d->id, instance, config->button.feature.status);
 	sccp_feat_changed(d, config->button.feature.id);
+}
 
 	return;
 }
