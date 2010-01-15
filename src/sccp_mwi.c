@@ -98,65 +98,7 @@ void *sccp_mwi_progress(void *data)
 		sccp_log(98)(VERBOSE_PREFIX_3 "Checking mwi status\n");
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), line, list){
 			sccp_mwi_checkLine(line);
-				/* set mwi-line-status */
-// 				SCCP_LIST_LOCK(&line->devices);
-// 				SCCP_LIST_TRAVERSE(&line->devices, linedevice, list){
-// 					assert(linedevice != NULL);
-// 					assert(linedevice->device != NULL);
-//
-// 					device = linedevice->device;
-// 					if(device){
-// 						sccp_device_lock(device);
-// 						sccp_mwi_setMWILineStatus(device, line);
-// 						sccp_device_unlock(device);
-// 					}
-// 					//sccp_dev_set_mwi(linedevice->device, NULL,line->hasVoicemail?1:0);
-// 				}
-// 				SCCP_LIST_UNLOCK(&line->devices);
-//			}
-		}
-		SCCP_LIST_TRAVERSE_SAFE_END;
 
-		/* set mwi light for each device */
-// 		SCCP_LIST_LOCK(&GLOB(devices));
-// 		SCCP_LIST_TRAVERSE(&GLOB(devices), device, list) {
-// 			if(!device)
-// 				continue;
-// 			sccp_device_lock(device);
-//
-// 			uint hasNewMessage = 0;
-// 			device->voicemailStatistic->newmsgs = 0;
-// 			device->voicemailStatistic->oldmsgs = 0;
-//
-// 			sccp_buttonconfig_t *buttonconfig;
-// 			SCCP_LIST_TRAVERSE(&device->buttonconfig, buttonconfig, list) {
-// 				if(buttonconfig->type == LINE ){
-// 					line = buttonconfig->button.line.reference;
-// 					if(line){
-// 						if(ast_strlen_zero(line->mailbox))
-// 							continue;
-//
-// 						device->voicemailStatistic->oldmsgs += line->voicemailStatistic->oldmsgs;
-// 						device->voicemailStatistic->newmsgs += line->voicemailStatistic->newmsgs;
-//
-// 						sccp_log(98)(VERBOSE_PREFIX_3 "%s: line %s mwi-status: %s (%d)\n",DEV_ID_LOG(device), line->name, line->voicemailStatistic->newmsgs ? "ON" : "OFF", line->voicemailStatistic->newmsgs);
-// 						if(line->voicemailStatistic->newmsgs){
-// 							hasNewMessage = 1;
-// 							sccp_log(98)(VERBOSE_PREFIX_3 "%s: device has voicemail: %d\n",DEV_ID_LOG(device), line->voicemailStatistic->newmsgs);
-// 						}
-// 					}
-// 				}
-// 			}
-// 			sccp_log(98)(VERBOSE_PREFIX_3 "%s: current device mwi-state is: %s\n",DEV_ID_LOG(device), device->mwilight ? "ON" : "OFF");
-// 			if(device->mwilight != hasNewMessage){
-// 				sccp_log(98)(VERBOSE_PREFIX_3 "%s: set device mwi-state to: %s\n",DEV_ID_LOG(device), hasNewMessage ? "ON" : "OFF");
-// 				device->mwilight = hasNewMessage;
-// 				sccp_mwi_setMWILineStatus(device, NULL);
-// 			}
-//
-// 			sccp_device_unlock(device);
-// 		}
-// 		SCCP_LIST_UNLOCK(&GLOB(devices));
 		sleep(30);
 	}
 	return NULL;
@@ -329,11 +271,14 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 		sprintf(buffer, "%s@%s", subscribtion->mailbox, (subscribtion->context)?subscribtion->context:"default");
 		ast_app_inboxcount(buffer, &subscribtion->currentVoicemailStatistic.newmsgs, &subscribtion->currentVoicemailStatistic.oldmsgs);
 
+		
+#ifdef CS_AST_HAS_EVENT
 		/* register asterisk event */
 		subscribtion->event_sub = ast_event_subscribe(AST_EVENT_MWI, sccp_mwi_event, subscribtion,
 										AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, subscribtion->mailbox,
 										AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, S_OR(subscribtion->context, "default"),
 										AST_EVENT_IE_END);
+#endif
 	}
 
 	/* we already have this subscription */
