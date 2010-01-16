@@ -707,7 +707,7 @@ static int reload_config(void) {
   }
 
   
-  sccp_mwi_stopMonitor();
+  sccp_mwi_module_stop();
   sccp_restart_monitor();
   return 0;
 }
@@ -1085,7 +1085,6 @@ static int load_module(void) {
 
 	/* And start the monitor for the first time */
 	sccp_restart_monitor();
-	sccp_mwi_startMonitor();
 
 	return 0;
 }
@@ -1139,7 +1138,7 @@ static int unload_module(void) {
 	ast_unregister_application("SetMessage");
 	ast_unregister_application("SetCalledParty");
 	sccp_unregister_cli();
-	sccp_mwi_stopMonitor();
+	sccp_mwi_module_stop();
 
 	sccp_hint_module_stop();
 

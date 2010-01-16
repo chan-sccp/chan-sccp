@@ -80,22 +80,16 @@ struct sccp_mailbox_subscriber_list{
 SCCP_LIST_HEAD(, sccp_mailbox_subscriber_list_t) sccp_mailbox_subscriptions;
 
 void sccp_mwi_module_start(void);
-void sccp_mwi_stopMonitor(void);
-int sccp_mwi_startMonitor(void);
+void sccp_mwi_module_stop(void);
 void sccp_mwi_check(sccp_device_t *device);
 
 
-
-void sccp_mwi_subscribeMailbox(sccp_line_t **l, sccp_mailbox_t **m);
 void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t **mailbox);
-void sccp_mwi_linecreatedEvent(const sccp_event_t **event);
-void sccp_mwi_deviceAttachedEvent(const sccp_event_t **event);
-void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t **line);
+
+
 
 #ifdef CS_AST_HAS_EVENT
 void sccp_mwi_event(const struct ast_event *event, void *data);
-#else
-void *sccp_mwi_progress(void *data);
 #endif
 
 #endif /*SCCP_MWI_H_*/
