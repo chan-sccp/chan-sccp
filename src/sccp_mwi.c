@@ -21,14 +21,22 @@
 #endif
 
 #include <asterisk/app.h>
-#include <assert.h>
 
 
 
 
+void *sccp_mwi_progress(void *data);
+void sccp_mwi_checkLine(sccp_line_t *line);
 void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l);
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t **line);
-void sccp_mwi_checkLine(sccp_line_t *line);
+
+
+
+void sccp_mwi_subscribeMailbox(sccp_line_t **l, sccp_mailbox_t **m);
+void sccp_mwi_linecreatedEvent(const sccp_event_t **event);
+void sccp_mwi_deviceAttachedEvent(const sccp_event_t **event);
+void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t **line);
+
 
 
 /*!
@@ -38,74 +46,54 @@ void sccp_mwi_module_start(void){
 #ifdef CS_AST_HAS_EVENT
 	sccp_subscribe_event(SCCP_EVENT_LINECREATED, sccp_mwi_linecreatedEvent);
 	sccp_subscribe_event(SCCP_EVENT_DEVICEATTACHED, sccp_mwi_deviceAttachedEvent);
+#else
+	if(GLOB(mwiMonitorThread) == AST_PTHREADT_NULL){
+		if (ast_pthread_create_background(&GLOB(mwiMonitorThread), NULL, sccp_mwi_progress, NULL) < 0) {
+			return;
+		}
+	}
 #endif
 }
 
 /*!
  * \brief Stop MWI Monitor
  */
-void sccp_mwi_stopMonitor() 
-{
+void sccp_mwi_module_stop(){
 #ifndef CS_AST_HAS_EVENT
 	if (GLOB(mwiMonitorThread) != AST_PTHREADT_NULL) {
 		/* Wake up the thread */
 		pthread_kill(GLOB(mwiMonitorThread), SIGURG);
 		GLOB(mwiMonitorThread) = AST_PTHREADT_NULL;
 	}
-#else
-
-
-#endif
-}
-
-/*!
- * \brief Start MWI Monitor
- * \return Status int
- */
-int sccp_mwi_startMonitor()
-{
-#ifndef CS_AST_HAS_EVENT
-	/* Start a new monitor */
-	if(GLOB(mwiMonitorThread) == AST_PTHREADT_NULL){
-		if (ast_pthread_create_background(&GLOB(mwiMonitorThread), NULL, sccp_mwi_progress, NULL) < 0) {
-			return -1;
-		}
-	}
-
-	return 0;
-#else
-
-
-
-	return 0;
 #endif
 }
 
 
-#ifndef CS_AST_HAS_EVENT
+
+
 /*!
  * \brief MWI Progress
  * \param data Data
  */
-void *sccp_mwi_progress(void *data)
-{
-	sccp_line_t			*line;
-	//sccp_linedevices_t 	*linedevice;
-	//sccp_device_t 		*device;
+void *sccp_mwi_progress(void *data){
+	sccp_line_t	*line;
 
 
 	while(GLOB(mwiMonitorThread) != AST_PTHREADT_NULL){
-		sccp_log(98)(VERBOSE_PREFIX_3 "Checking mwi status\n");
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), line, list){
 			sccp_mwi_checkLine(line);
-
-		sleep(30);
+			sleep(30);
+		}
+		SCCP_LIST_TRAVERSE_SAFE_END;
 	}
 	return NULL;
 }
 
-#else
 
+
+
+
+#ifdef CS_AST_HAS_EVENT
 /*!
  * \brief Receive MWI Event from Asterisk
  * \param event Asterisk Event
@@ -157,17 +145,19 @@ void sccp_mwi_event(const struct ast_event *event, void *data){
 	}
 	SCCP_LIST_UNLOCK(&subscribtion->sccp_mailboxLine);
 }
+#endif
+//#endif
+
 
 /*!
  * \brief Remove Mailbox Subscription
  * \param m SCCP Mailbox
  * \todo Implement sccp_mwi_unsubscribeMailbox (TODO Marcello)
  */
-void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t **m){
-	sccp_mailbox_t *mailbox = *m;
+void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t **mailbox){
+
 	//TODO implement sccp_mwi_unsubscribeMailbox
-	if(!mailbox)
-		return;
+	return;
 
 
 }
@@ -301,7 +291,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 	}
 }
 
-#endif
+
 
 /*!
  * \brief Check Line for MWI Status
