@@ -230,7 +230,7 @@ AC_DEFUN([CS_GET_VERSION], [
       SCCP_VERSION="TRUNK"
       SCCP_BRANCH="TRUNK"
     fi
-    SCCP_REVISION="`svnversion -c ${1} |cut -d: -f2`"
+    SCCP_REVISION="`svnversion . |cut -dM -f1`"
     
   elif test -f .version;then
     SCCP_VERSION="`cat .version`"
