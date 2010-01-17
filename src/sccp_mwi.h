@@ -73,7 +73,9 @@ struct sccp_mailbox_subscriber_list{
 	/*!
 	 * \brief Asterisk Event Subscribers Structure
 	 */
-	struct ast_event_sub 				*event_sub;
+	struct ast_event_sub 		*event_sub;
+#else
+	int				schedUpdate;
 #endif
 };											/*!< SCCP Mailbox Subscriber List Structure */
 
@@ -90,6 +92,8 @@ void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t **mailbox);
 
 #ifdef CS_AST_HAS_EVENT
 void sccp_mwi_event(const struct ast_event *event, void *data);
+#else
+int sccp_mwi_checkSubscribtion(const void *ptr);
 #endif
 
 #endif /*SCCP_MWI_H_*/

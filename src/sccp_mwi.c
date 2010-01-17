@@ -25,7 +25,7 @@
 
 
 
-void *sccp_mwi_progress(void *data);
+
 void sccp_mwi_checkLine(sccp_line_t *line);
 void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l);
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t **line);
@@ -43,29 +43,15 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
  * start mwi module.
  */
 void sccp_mwi_module_start(void){
-#ifdef CS_AST_HAS_EVENT
 	sccp_subscribe_event(SCCP_EVENT_LINECREATED, sccp_mwi_linecreatedEvent);
 	sccp_subscribe_event(SCCP_EVENT_DEVICEATTACHED, sccp_mwi_deviceAttachedEvent);
-#else
-	if(GLOB(mwiMonitorThread) == AST_PTHREADT_NULL){
-		if (ast_pthread_create_background(&GLOB(mwiMonitorThread), NULL, sccp_mwi_progress, NULL) < 0) {
-			return;
-		}
-	}
-#endif
 }
 
 /*!
  * \brief Stop MWI Monitor
  */
 void sccp_mwi_module_stop(){
-#ifndef CS_AST_HAS_EVENT
-	if (GLOB(mwiMonitorThread) != AST_PTHREADT_NULL) {
-		/* Wake up the thread */
-		pthread_kill(GLOB(mwiMonitorThread), SIGURG);
-		GLOB(mwiMonitorThread) = AST_PTHREADT_NULL;
-	}
-#endif
+	//TODO unsubscribe events
 }
 
 
@@ -75,18 +61,57 @@ void sccp_mwi_module_stop(){
  * \brief MWI Progress
  * \param data Data
  */
-void *sccp_mwi_progress(void *data){
-	sccp_line_t	*line;
+int sccp_mwi_checkSubscribtion(const void *ptr){
+	sccp_mailbox_subscriber_list_t 	*subscribtion = (sccp_mailbox_subscriber_list_t *)ptr;
+	sccp_line_t			*line=NULL;
+	sccp_mailboxLine_t 		*mailboxLine = NULL;
+	if(!subscribtion)
+		return -1;
+	
+	subscribtion->previousVoicemailStatistic.newmsgs = subscribtion->currentVoicemailStatistic.newmsgs;
+	subscribtion->previousVoicemailStatistic.oldmsgs = subscribtion->currentVoicemailStatistic.oldmsgs;
+	
+	char buffer[512];
+	sprintf(buffer, "%s@%s", subscribtion->mailbox, (subscribtion->context)?subscribtion->context:"default");
+	sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_4 "SCCP: ckecking mailbox: %s\n", buffer);
+	ast_app_inboxcount(buffer, &subscribtion->currentVoicemailStatistic.newmsgs, &subscribtion->currentVoicemailStatistic.oldmsgs);
 
+	/* update devices if something changed */
+	if(subscribtion->previousVoicemailStatistic.newmsgs != subscribtion->currentVoicemailStatistic.newmsgs){
+		SCCP_LIST_LOCK(&subscribtion->sccp_mailboxLine);
+		SCCP_LIST_TRAVERSE(&subscribtion->sccp_mailboxLine, mailboxLine, list){
+			line = mailboxLine->line;
+			if(line){
 
-	while(GLOB(mwiMonitorThread) != AST_PTHREADT_NULL){
-		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), line, list){
-			sccp_mwi_checkLine(line);
-			sleep(30);
+				sccp_line_lock( line );
+				sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_4 "line: %s\n", line->name);
+				sccp_linedevices_t *lineDevice = NULL;
+
+				/* update statistics for line  */
+				line->voicemailStatistic.oldmsgs -= subscribtion->previousVoicemailStatistic.oldmsgs;
+				line->voicemailStatistic.newmsgs -= subscribtion->previousVoicemailStatistic.newmsgs;
+
+				line->voicemailStatistic.oldmsgs += subscribtion->currentVoicemailStatistic.oldmsgs;
+				line->voicemailStatistic.newmsgs += subscribtion->currentVoicemailStatistic.newmsgs;
+				/* done */
+
+				/* notify each device on line */
+				SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->devices, lineDevice, list){
+					sccp_mwi_setMWILineStatus(lineDevice->device, line);
+				}
+				SCCP_LIST_TRAVERSE_SAFE_END;
+				sccp_line_unlock( line );
+			}
 		}
-		SCCP_LIST_TRAVERSE_SAFE_END;
+		SCCP_LIST_UNLOCK(&subscribtion->sccp_mailboxLine);
 	}
-	return NULL;
+		
+		
+	/* reschedule my self */
+	if(!(subscribtion->schedUpdate = sccp_sched_add(sched, 30 * 1000, sccp_mwi_checkSubscribtion, subscribtion))) {
+		ast_log(LOG_ERROR, "Error creating mailbox subscription.\n");
+	}
+	return 0;
 }
 
 
@@ -268,6 +293,11 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 										AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, subscribtion->mailbox,
 										AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, S_OR(subscribtion->context, "default"),
 										AST_EVENT_IE_END);
+#else
+		if(!(subscribtion->schedUpdate = sccp_sched_add(sched, 30 * 1000, sccp_mwi_checkSubscribtion, subscribtion))) {
+			ast_log(LOG_ERROR, "Error creating mailbox subscription.\n");
+		}
+										
 #endif
 	}
 
