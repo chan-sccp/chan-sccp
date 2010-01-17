@@ -31,8 +31,6 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l);
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t **line);
 
 
-
-void sccp_mwi_subscribeMailbox(sccp_line_t **l, sccp_mailbox_t **m);
 void sccp_mwi_linecreatedEvent(const sccp_event_t **event);
 void sccp_mwi_deviceAttachedEvent(const sccp_event_t **event);
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t **line);
@@ -187,21 +185,6 @@ void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t **mailbox){
 
 }
 
-/*!
- * \brief Subscribe to mailbox
- * \param l SCCP Line
- * \param m SCCP MailBox
- */
-void sccp_mwi_subscribeMailbox(sccp_line_t **l, sccp_mailbox_t **m){
-	sccp_mailbox_t *mailbox = *m;
-	sccp_line_t		*line = *l;
-
-	if(!mailbox || !line)
-		return;
-
-	sccp_mwi_checkLine(line);
-	sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_3 "%s: subscribe mailbox %s@%s'\n", line->name, mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
-}
 
 void sccp_mwi_deviceAttachedEvent(const sccp_event_t **event){
 	if(!(*event))
