@@ -54,7 +54,7 @@ void sccp_mwi_module_stop(){
 
 
 
-
+#ifndef CS_AST_HAS_EVENT
 /*!
  * \brief MWI Progress
  * \param data Data
@@ -111,7 +111,7 @@ int sccp_mwi_checkSubscribtion(const void *ptr){
 	}
 	return 0;
 }
-
+#endif
 
 
 
