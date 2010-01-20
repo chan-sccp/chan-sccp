@@ -752,6 +752,7 @@ void sccp_dev_dbput(sccp_device_t * d) {
  * \param d SCCP Device
  * \param tmp CallForward List Separated by ";"
  * \param type CallForward Type
+ * \note NEVER USED, should be removed
  */
 static void sccp_cfwd_parse(sccp_device_t * d, char * tmp, uint8_t type) {
 	char *tmp2, *tmp3;

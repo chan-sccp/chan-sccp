@@ -2204,7 +2204,7 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 {
 	sccp_device_t * d = s->device;
 	sccp_buttonconfig_t *config = NULL;
-	sccp_speed_t * k = NULL;
+//	sccp_speed_t * k = NULL;	// \todo NEVER USED, should be removed
 
 
 	if (!d)
