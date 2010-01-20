@@ -183,7 +183,9 @@ AC_PATH_PROGS(UNAME,uname,[echo uname not found so no version info will be avail
 AC_PATH_PROGS(WHOAMI,whoami,[echo whoami not found so no version info will be available])
 
 # LibTool
-dnl LT_INIT
+LT_INIT()
+LT_PREREQ([2.0.0])
+AC_SUBST([LIBTOOL_DEPS])
 dnl AC_LIBTOOL_DLOPEN
 dnl AC_LIBLTDL_CONVENIENCE
 dnl AC_SUBST(INCLTDL)

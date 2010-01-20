@@ -22,9 +22,19 @@ chan_sccp_la_SOURCES		= chan_sccp.c          sccp_channel.c  sccp_device.c    sc
 chan_sccp_la_CFLAGS		= $(AM_CFLAGS) #-I/usr/include -Iinclude
 chan_sccp_la_CFLAGS             += -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
 chan_sccp_la_CFLAGS             += -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wlong-long
-chan_sccp_la_LDFLAGS            = -avoid-version -module
-
-#chan_sccp_la_LIBADD		= @ASTERISK_LIB@
-#chan_sccp_la_LDFLAGS            = -module -avoid-version @NO_UNDEFINED@
-
-#INCLUDES = -I$(top_builddir)/include -I${top_srcdir}/corelib -I$(top_srcdir)/include
+chan_sccp_la_LDFLAGS            = $(all_libraries) -no-undefined -avoid-version -module -no-static
+chan_sccp_la_LIBTOOLFLAGS 	= --tag=disable-static
+install-csmodLTLIBRARIES:
+	@$(NORMAL_INSTALL)
+	@if [ -d "$(DESTDIR)$(csmoddir)" ]; then $(MKDIR_P) "$(DESTDIR)$(csmoddir)"; fi
+	@if [ -d "$(DESTDIR)$(csmoddir)" ]; then                                                         \
+		echo    "		=============================================================="; \
+		echo -n "		Installing chan_sccp.so to '$(DESTDIR)$(csmoddir)'...";          \
+		echo -n ".";                                                                             \
+		cp .libs/chan_sccp.so '$(DESTDIR)$(csmoddir)';                                           \
+		echo    ".";                                                                             \
+		echo    "		Installed.";                                                     \
+		echo    "		=============================================================="; \
+		echo    "		Please restart asterisk to use the new version of chan_sccp.so"; \
+		echo    "		=============================================================="; \
+	fi
