@@ -989,7 +989,7 @@ void sccp_channel_endcall(sccp_channel_t * c)
 {
 	uint8_t res = 0;
 
-	if (!c || !c->line || !c->device){
+	if (!c || !c->line){
 		ast_log(LOG_WARNING, "No channel or line or device to hangup\n");
 		return;
 	}
@@ -1185,8 +1185,10 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 	sccp_channel_t	*channel;
 	SCCP_LIST_LOCK(&c->line->channels);
 	SCCP_LIST_TRAVERSE(&c->line->channels, channel, list) {
-		if(channel->parentChannel == c)
+		if(channel->parentChannel == c){
+			 sccp_log(1)(VERBOSE_PREFIX_3 "%s: Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
 			 sccp_channel_endcall(channel);
+		}
 	}
 	SCCP_LIST_UNLOCK(&c->line->channels);
 	/* */

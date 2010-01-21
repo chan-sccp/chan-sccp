@@ -65,5 +65,8 @@ void sccp_channel_forward(sccp_channel_t *parent, sccp_linedevices_t *lineDevice
 #ifdef CS_SCCP_PARK
 void sccp_channel_park(sccp_channel_t * c);
 #endif
+
+void sccp_channel_transfer2(sccp_channel_t * cSourceLocal, sccp_channel_t * cDestinationLocal);
+
 #endif
 
