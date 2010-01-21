@@ -7,7 +7,7 @@
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *
+ * \version 	$LastChangedDate$
  */
 
 
@@ -1492,5 +1492,38 @@ void sccp_device_stateChanged(sccp_device_t *device)
         sccp_mwi_check(device);
 }
 
-
+uint8_t sccp_device_numberOfChannels(sccp_device_t *device){
+	sccp_buttonconfig_t 	*config;
+	sccp_channel_t 		*c;
+	sccp_line_t 		*l;
+	uint8_t			numberOfChannels = 0;
+  
+	if(!device){
+		sccp_log(1)(VERBOSE_PREFIX_3 "device is null\n");
+		return 0;
+	}
+	
+	SCCP_LIST_LOCK(&device->buttonconfig);
+	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+	  
+		if(config->type == LINE){
+			l = sccp_line_find_byname_wo(config->button.line.name, FALSE);
+			if(!l)
+				continue;
+				  
+		  
+			SCCP_LIST_LOCK(&l->channels);
+			SCCP_LIST_TRAVERSE(&l->channels, c, list) {
+				if(c->device == device)
+					numberOfChannels++;
+			}
+			SCCP_LIST_UNLOCK(&l->channels);
+		  
+		  
+		}
+	}
+	SCCP_LIST_UNLOCK(&device->buttonconfig);
+	
+	return numberOfChannels;
+}
 
