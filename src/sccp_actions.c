@@ -8,7 +8,7 @@
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *
+ * \version 	$LastChangedDate$
  */
 
 #include "config.h"
@@ -481,8 +481,12 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 
 			} else if(buttonconfig->type == SPEEDDIAL && sccp_is_nonempty_string(buttonconfig->button.speeddial.label)){
 				if (sccp_is_nonempty_string(buttonconfig->button.speeddial.hint)){
-#ifdef CS_DYNAMIC_SPEEDDIAL				  
-					btn[i].type = 0x15;
+#ifdef CS_DYNAMIC_SPEEDDIAL
+					if(d->inuseprotocolversion >= 15){
+						btn[i].type = 0x15;
+					}else{
+						btn[i].type = SCCP_BUTTONTYPE_HINT;
+					}
 #else
 					btn[i].type = SCCP_BUTTONTYPE_HINT;
 #endif
@@ -2204,7 +2208,7 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 {
 	sccp_device_t * d = s->device;
 	sccp_buttonconfig_t *config = NULL;
-//	sccp_speed_t * k = NULL;	// \todo NEVER USED, should be removed
+
 
 
 	if (!d)
@@ -2220,8 +2224,8 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 	*/
 	
 #ifdef CS_DYNAMIC_SPEEDDIAL
-	k = sccp_dev_speed_find_byindex(d, instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
-	if( (unknown == 1 && d->inuseprotocolversion >= 15) || k ){
+  	sccp_speed_t * k = sccp_dev_speed_find_byindex(d, instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
+	if( (unknown == 1 && d->inuseprotocolversion >= 15)){
 		if (k){
 			sccp_moo_t * r1;
 			REQ(r1, SpeedDialStatDynamicMessage);
@@ -2232,14 +2236,6 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 			sccp_copy_string(r1->msg.SpeedDialStatDynamicMessage.DisplayName, k->name, sizeof(r1->msg.SpeedDialStatDynamicMessage.DisplayName));
 			sccp_dev_send(d, r1);
 			
-			
-// 			REQ(r1, SpeedDialStatDynamicMessage);
-// 			r1->msg.SpeedDialStatDynamicMessage.lel_instance = htolel(instance);
-// 			r1->msg.SpeedDialStatDynamicMessage.lel_type = 0x15;
-// 			r1->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(0); /* default state */
-// 
-// 			sccp_copy_string(r1->msg.SpeedDialStatDynamicMessage.DisplayName, k->name, sizeof(r1->msg.SpeedDialStatDynamicMessage.DisplayName));
-// 			sccp_dev_send(d, r1);
 			ast_free(k);
 		}
 		return;
