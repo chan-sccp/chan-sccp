@@ -40,6 +40,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 {
 	sccp_moo_t 			*featureRequestMessage = NULL;
 	sccp_buttonconfig_t		*config=NULL, *buttonconfig = NULL;
+	sccp_linedevices_t		*linedevice =NULL;
 	sccp_line_t			*line;
 	uint8_t				instance=0;
 
@@ -84,8 +85,20 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 						if(buttonconfig->type == LINE ){
 							line = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
 							if(line){
-								sccp_log(10)(VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (line->cfwd_type == SCCP_CFWD_ALL)?"on":"off");
-								if(line->cfwd_type == SCCP_CFWD_ALL){
+
+								SCCP_LIST_LOCK(&line->devices);
+								SCCP_LIST_TRAVERSE(&line->devices, linedevice, list){
+									if(linedevice->device == device);
+										break;
+								}
+								SCCP_LIST_UNLOCK(&line->devices);
+
+								if(!linedevice){
+									ast_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
+								}
+
+								sccp_log(10)(VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled)?"on":"off");
+								if(linedevice->cfwdAll.enabled){
 									config->button.feature.status = 1;
 									break;
 								}

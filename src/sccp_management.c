@@ -299,6 +299,7 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
  * \param s Management Session
  * \param m Message 
  * \return Success as int
+ * //TODO
  */
 int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 {
@@ -329,16 +330,16 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
                 return 0;
         }
 
-        /* (cfwdAll | cfwdBusy | noAnswer) */
-        if (!strcasecmp(forwardType, "all")) {
-                sccp_line_cfwd(line, SCCP_CFWD_ALL, fwdNumber);
-        } else if (!strcasecmp(forwardType, "busy")) {
-                //sccp_line_cfwd(line, SCCP_CFWD_ALL, number);
-                astman_send_error(s,m, "cfwdBusy is not handled for the moment");
-        } else if (!strcasecmp(forwardType, "noAnswer")) {
-                //sccp_line_cfwd(line, SCCP_CFWD_ALL, number);
-                astman_send_error(s,m, "noAnswer is not handled for the moment");
-        }
+//        /* (cfwdAll | cfwdBusy | noAnswer) */
+//        if (!strcasecmp(forwardType, "all")) {
+//                sccp_line_cfwd(line, SCCP_CFWD_ALL, fwdNumber);
+//        } else if (!strcasecmp(forwardType, "busy")) {
+//                //sccp_line_cfwd(line, SCCP_CFWD_ALL, number);
+//                astman_send_error(s,m, "cfwdBusy is not handled for the moment");
+//        } else if (!strcasecmp(forwardType, "noAnswer")) {
+//                //sccp_line_cfwd(line, SCCP_CFWD_ALL, number);
+//                astman_send_error(s,m, "noAnswer is not handled for the moment");
+//        }
 
         return 0;
 }

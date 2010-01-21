@@ -1080,8 +1080,9 @@ void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint8_t insta
 }
 
 void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {
-	sccp_moo_t * r1 = NULL;
-	int instance;
+	sccp_moo_t 				*r1 = NULL;
+	sccp_linedevices_t 		*linedevice = NULL;
+	int 					instance;
 
 	if (!device || !device->session)
 		return;
@@ -1089,25 +1090,39 @@ void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send Forward Status.  Line: %s\n", device->id, l->name);
 
 	instance = sccp_device_find_index_for_line(device, l->name);
-	REQ(r1, ForwardStatMessage);
-	r1->msg.ForwardStatMessage.lel_status = (l->cfwd_type)? htolel(1) : 0;
-	r1->msg.ForwardStatMessage.lel_lineNumber = htolel(instance);
-	switch (l->cfwd_type) {
-		case SCCP_CFWD_ALL:
-			r1->msg.ForwardStatMessage.lel_cfwdallstatus = htolel(1);
-			sccp_copy_string(r1->msg.ForwardStatMessage.cfwdallnumber,l->cfwd_num, sizeof(r1->msg.ForwardStatMessage.cfwdallnumber));
+
+	SCCP_LIST_LOCK(&l->devices);
+	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
+		if(linedevice->device == device);
 			break;
-		case SCCP_CFWD_BUSY:
+	}
+	SCCP_LIST_UNLOCK(&l->devices);
+
+	if(!linedevice){
+		ast_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
+		return;
+	}
+
+	REQ(r1, ForwardStatMessage);
+	r1->msg.ForwardStatMessage.lel_status = (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled)? htolel(1) : 0;
+	r1->msg.ForwardStatMessage.lel_lineNumber = htolel(instance);
+	if (linedevice->cfwdAll.enabled) {
+			r1->msg.ForwardStatMessage.lel_cfwdallstatus = htolel(1);
+			sccp_copy_string(r1->msg.ForwardStatMessage.cfwdallnumber, linedevice->cfwdAll.number, sizeof(r1->msg.ForwardStatMessage.cfwdallnumber));
+	}else if (linedevice->cfwdBusy.enabled) {
 			r1->msg.ForwardStatMessage.lel_cfwdbusystatus = htolel(1);
-			sccp_copy_string(r1->msg.ForwardStatMessage.cfwdbusynumber, l->cfwd_num, sizeof(r1->msg.ForwardStatMessage.cfwdbusynumber));
+			sccp_copy_string(r1->msg.ForwardStatMessage.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(r1->msg.ForwardStatMessage.cfwdbusynumber));
 	}
 	sccp_dev_send(device, r1);
+
+	/*
 	if (l->cfwd_type == SCCP_CFWD_ALL){
 		//sccp_hint_notify_linestate(l,device, SCCP_DEVICESTATE_ONHOOK, SCCP_DEVICESTATE_FWDALL);
 		sccp_hint_lineStatusChanged(l, device, NULL, SCCP_DEVICESTATE_ONHOOK, SCCP_DEVICESTATE_FWDALL);
 	}else{
 		sccp_hint_lineStatusChanged(l, device, NULL, SCCP_DEVICESTATE_FWDALL, SCCP_DEVICESTATE_ONHOOK);
 	}
+	*/
 }
 
 /*!

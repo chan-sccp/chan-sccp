@@ -23,6 +23,7 @@
 #include "sccp_channel.h"
 #include "sccp_indicate.h"
 #include "sccp_features.h"
+#include "sccp_conference.h"
 
 #include <assert.h>
 
@@ -82,14 +83,14 @@ static void * sccp_pbx_call_autoanswer_thread(void *data)
  * \return Success as int
  */
 static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
-	sccp_line_t	 * l;
-	sccp_device_t  *d=NULL;
-	sccp_channel_t * c;
-	const char * ringermode = NULL;
-	pthread_attr_t attr;
+	sccp_line_t		* l;
+	sccp_device_t  		*d=NULL;
+	sccp_channel_t 		*c;
+	const char 		*ringermode = NULL;
+	pthread_attr_t 		attr;
 	pthread_t t;
-	char suffixedNumber[255] = { '\0' }; //!< For saving the digittimeoutchar to the logs */
-	boolean_t	hasSession = FALSE;
+	char 			suffixedNumber[255] = { '\0' }; //!< For saving the digittimeoutchar to the logs */
+	boolean_t		hasSession = FALSE;
 
 	/* why let the phone ringing on a call forward ??? */
 	if (!ast_strlen_zero(ast->call_forward)) {
@@ -259,7 +260,6 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	/*!\bug{seems it does not work }
 	 */
 	ringermode = pbx_builtin_getvar_helper(ast, "ALERT_INFO");
-	sccp_log(1)(VERBOSE_PREFIX_3 "Do we have ALERT_INFO? %s\n", (ringermode)?"yes":"no");
 	
 	if ( ringermode && !ast_strlen_zero(ringermode) ) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Found ALERT_INFO=%s\n", d->id, ringermode);
@@ -330,10 +330,22 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
 			if(!linedevice->device)
 				continue;
-
+			
 			d=linedevice->device;
+
+			/* do we have cfwd enabled? */
+			if(linedevice->cfwdAll.enabled ){
+				ast_log(LOG_NOTICE, "%s: initialize cfwd for line %s\n", d->id, l->name);
+				//sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CALLTRANSFER);
+				sccp_channel_forward(c, linedevice, linedevice->cfwdAll.number);
+				continue;
+			}
+			
+			
+			
 			if(!d->session)
 				continue;
+			
 			if ( sccp_channel_get_active(d) ) {
 				sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CALLWAITING);
 				isRinging = TRUE;
@@ -405,7 +417,7 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 	}
 
 	//c->line->channelCount--;
-#ifdef AST_FLAG_chaERED_ELSEWHERE
+#ifdef AST_FLAG_ANSWERED_ELSEWHERE
 	if (ast_test_flag(ast, AST_FLAG_ANSWERED_ELSEWHERE) || ast->hangupcause == AST_CAUSE_ANSWERED_ELSEWHERE) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere");
 		c->answered_elsewhere = TRUE;
@@ -421,6 +433,10 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 	c->owner = NULL;
 	l = c->line;
 //	d = l->device;
+
+	if(c->conference){
+		sccp_conference_removeParticipant(c->conference, c);
+	}
 
 	if (c->rtp.audio) {
 		sccp_channel_closereceivechannel(c);
@@ -502,6 +518,8 @@ void sccp_pbx_needcheckringback(sccp_device_t * d) {
 static int sccp_pbx_answer(struct ast_channel *ast)
 {
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
+	
+	
 
 #ifdef ASTERISK_CONF_1_2
 	// if channel type is undefined, set to SCCP
@@ -511,17 +529,57 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 	}
 #endif
 
-	if (!c || !c->device || !c->line) {
+	if (!c || !c->line || (!c->device && !c->parentChannel) ) {
 		ast_log(LOG_ERROR, "SCCP: Answered %s but no SCCP channel\n", ast->name);
 		return -1;
 	}
-
-	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Outgoing call has been answered %s on %s@%s-%08x\n", ast->name, c->line->name, c->device->id, c->callid);
+	
+	if( c->parentChannel){
+		/* we are a forwarded call, bridge me with my parent */
+		sccp_log(10)(VERBOSE_PREFIX_4 "SCCP: bridge me with my parent, device %s\n", DEV_ID_LOG(c->device));
+		
+		struct ast_channel	*astChannel = NULL, *br = NULL, *astForwardedChannel = c->parentChannel->owner;
+		
+		
+		/* 
+		  on this point we do not have a pointer to ou bridge channel 
+		  so we search for it -MC
+		*/
+		const char *bridgePeer = pbx_builtin_getvar_helper(c->owner, "BRIDGEPEER");
+		if(bridgePeer){
+			while ((astChannel = ast_channel_walk_locked(astChannel)) != NULL) {
+				sccp_log(99)(VERBOSE_PREFIX_4 "(sccp_pbx_answer) searching for channel on %s\n", bridgePeer);
+				sccp_log(99)(VERBOSE_PREFIX_4 "(sccp_pbx_answer) asterisk channels %s\n", astChannel->name);
+				if(strlen(astChannel->name) == strlen(bridgePeer) && !strncmp(astChannel->name, bridgePeer, strlen( astChannel->name ))){
+					ast_channel_unlock(astChannel);
+					br = astChannel;
+					break;
+				}
+				ast_channel_unlock(astChannel);
+			}
+		}
+		
+		ast_log(LOG_ERROR, "SCCP: bridge: %s\n", (br)?br->name:" -- no bridget -- ");
+		/* did we found our bridge */
+		if(br){
+			c->parentChannel = NULL;
+			ast_channel_masquerade(astForwardedChannel, br); /* bridge me */		
+			return 0;
+		}else{
+			/* we have no bridge and can not make a masquerade -> end call */
+			ast_log(LOG_ERROR, "SCCP: We did not found bridge channel for call forwarding call. Hangup\n");
+			sccp_channel_endcall(c);
+		}
+		return -1;
+	}
+	
+	
+	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Outgoing call has been answered %s on %s@%s-%08x\n", ast->name, c->line->name, DEV_ID_LOG(c->device), c->callid);
 	//ast->nativeformats = c->device ? c->device->capability : GLOB(global_capability);
 	sccp_channel_updateChannelCapability(c);
 	/* This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
 	   as I have forgotten what my actual motivation was for writing this strange code. (-DD) */
-
+	
 	sccp_indicate_lock(c->device, c, SCCP_CHANNELSTATE_DIALING);
 	sccp_channel_send_callinfo(c->device,c);
 	sccp_indicate_lock(c->device, c, SCCP_CHANNELSTATE_PROCEED);
@@ -553,13 +611,29 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 #ifndef CS_AST_HAS_RTP_ENGINE
 		case 0:
 			frame = ast_rtp_read(c->rtp.audio);	/* RTP Audio */
+#ifdef 	CS_SCCP_CONFERENCE
+			sccp_conference_participant_t *participant;
+			if(c->conference){
+				SCCP_LIST_TRAVERSE(&c->conference->participants, participant, list){
+// 					if(
+// 					  participant->channel == c /* do not write to us*/
+// 					  || ast_rtp_get_bridged(c->rtp.audio) == participant->channel->rtp.audio /* do not write back to our participant */
+// 					  )
+// 						continue;
+					
+					ast_rtp_write(participant->channel->rtp.audio, frame);
+					//ast_log(LOG_NOTICE, "%s: write to %s\n", DEV_ID_LOG(c->device), DEV_ID_LOG(participant->channel->device));
+				}
+			}
+#endif
+			
 			break;
 		case 1:
 			frame = ast_rtcp_read(c->rtp.audio);	/* RTCP Control Channel */
 			break;
 		case 2:
 			frame = ast_rtp_read(c->rtp.video);	/* RTP Video */
-			ast_log(LOG_NOTICE, "%s: Got Video frame from device\n", DEV_ID_LOG(c->device));
+			//ast_log(LOG_NOTICE, "%s: Got Video frame from device\n", DEV_ID_LOG(c->device));
 			break;
 		case 3:
 			frame = ast_rtcp_read(c->rtp.video);	/* RTCP Control Channel for video */
@@ -659,9 +733,7 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 			case AST_FRAME_VIDEO:
 				//ast_log(LOG_NOTICE, "%s: Got Video frame type %d\n", DEV_ID_LOG(c->device), frame->subclass);
 				if (c && c->rtp.video){
-					sccp_log(9)(VERBOSE_PREFIX_3 "%s: send video frame type: %d\n", c->device->id, frame->subclass);
 					res = sccp_rtp_read(c->rtp.video, frame);
-					sccp_log(9)(VERBOSE_PREFIX_3 "%s: result: %d\n", c->device->id, res);
 				}else{
 					//ast_log(LOG_NOTICE, "%s: drop video frame\n", DEV_ID_LOG(c->device));
 				}
@@ -921,8 +993,12 @@ static void sccp_pbx_update_connectedline(sccp_channel_t *channel, const void *d
  * \return Success as int
  */
 static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newchan) {
-	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: we gote a fixup request\n");
+	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: we gote a fixup request for %s\n", newchan->name);
+	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: old chan %s\n", oldchan->name);
+	
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(newchan);
+	sccp_channel_t * c2 = CS_AST_CHANNEL_PVT(oldchan);
+	
 	if (!c) {
 		ast_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", oldchan->name, oldchan, newchan->name, newchan);
 		return -1;
@@ -933,6 +1009,10 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 		sccp_mutex_unlock(&c->lock);
 		return -1;
 	}
+	
+	ast_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%u))\n", oldchan->name, (c2)?c2->passthrupartyid:-1);
+	ast_log(LOG_WARNING, "sccp_pbx_fixup(new: %s(%u))\n", newchan->name, c->passthrupartyid);
+	
 	c->owner = newchan;
 	sccp_mutex_unlock(&c->lock);
 	return 0;
@@ -1366,10 +1446,10 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 
 	char shortenedNumber[256] = { '\0' }; /* For recording the digittimeoutchar */
 
-    if (!c) {
+	if (!c) {
 		ast_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) No <channel> available. Returning from dial thread.\n");
 		return NULL;
-    }
+	}
 
 	/* removing scheduled dialing */
 	SCCP_SCHED_DEL(sched, c->digittimeout);
@@ -1388,13 +1468,13 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 
 	/* does it exists ? */
 	if (!d) {
-        ast_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) No <device> available. Returning from dial thread.\n");
-        sccp_channel_unlock(c);
+		ast_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) No <device> available. Returning from dial thread.\n");
+		sccp_channel_unlock(c);
 		return NULL;
-    }
+	}
 
 	/* we don't need to check for a device type but just if the device has an id, otherwise back home  -FS */
-    if (!d->id || ast_strlen_zero(d->id)) {
+	if (!d->id || ast_strlen_zero(d->id)) {
 		ast_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) No <device> identifier available. Returning from dial thread.\n");
 		sccp_channel_unlock(c);
 		return NULL;
@@ -1444,11 +1524,11 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 		case SCCP_SS_GETFORWARDEXTEN:
 //				sccp_channel_unlock(c);
 			if(!ast_strlen_zero(shortenedNumber)) {
-				sccp_line_cfwd(l, c->ss_data, shortenedNumber);
+				sccp_line_cfwd(l, d, c->ss_data, shortenedNumber);
 			}
 			sccp_channel_unlock(c);
 			sccp_channel_endcall(c);
-			return NULL; // leave simpleswitch without dial
+			return NULL; // leave simple switch without dial
 #ifdef CS_SCCP_PICKUP
 		case SCCP_SS_GETPICKUPEXTEN:
 //				sccp_channel_unlock(c);
@@ -1572,8 +1652,10 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 	sccp_copy_string(chan->exten, shortenedNumber, sizeof(chan->exten));
 	sccp_copy_string(d->lastNumber, c->dialedNumber, sizeof(d->lastNumber));
 	sccp_channel_set_calledparty(c, c->dialedNumber, shortenedNumber);
+	
 	/* The 7961 seems to need the dialing callstate to record its directories information. */
  	sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_DIALING);
+	
 	/* proceed call state is needed to display the called number.
 	The phone will not display callinfo in offhook state */
 	sccp_channel_set_callstate(d, c, SKINNY_CALLSTATE_PROCEED);
