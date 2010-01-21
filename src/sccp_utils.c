@@ -702,7 +702,7 @@ void sccp_dev_dbput(sccp_device_t * d) {
 
 	if (!d)
 		return;
-
+/*
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 		if(buttonconfig->type == LINE ){
 			l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
@@ -720,6 +720,7 @@ void sccp_dev_dbput(sccp_device_t * d) {
 			}
 		}
 	}
+	*/
 //	SCCP_LIST_LOCK(&d->lines);
 //	SCCP_LIST_TRAVERSE(&d->lines, l, listperdevice) {
 //		instance = sccp_device_find_index_for_line(d, l->name);
