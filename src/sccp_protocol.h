@@ -726,7 +726,7 @@ typedef struct {
 typedef struct {
         uint32_t		transmitPreference;				/*!< Transmit Preference */
         uint32_t		format;						/*!< Format / Codec */
-        uint32_t		maxBitRate;					/*!< Maximum BitRate */
+	    uint32_t		maxBitRate;					/*!< Maximum BitRate */
         uint32_t		minBitRate;					/*!< Minimum BitRate */
         uint32_t		MPI;						/*!< \todo MPI ?? */
         uint32_t		serviceNumber;					/*!< Service Number */
@@ -803,6 +803,56 @@ typedef struct {
         uint32_t		protocolDependentData;				/*!< Protocol Dependent Data */
         uint32_t		maxBitRate;					/*!< Maximum BitRate */
 } dataCaps_t;									/*!< Data Capabilities Structure */
+
+
+typedef struct{
+	uint32_t		millisecondPacketSize;				/*!<  */
+	uint32_t 		lel_echoCancelType;				/*!< Echo Cancelation Type */
+	uint32_t		lel_g723BitRate; 				/*!< only used with G.723 payload */
+} audioParameter_t;								/*!< Audio parameters */
+
+
+
+typedef struct{
+	uint32_t		format;						/*!< 0 */
+	uint32_t		mpi;						/*!< 0 */
+} pictureFormat_t;
+
+typedef struct{
+	uint32_t		temporalSpatialTradeOffCapability;		/*!<  */
+	uint32_t		stillImageTransmission;				/*!<  */
+} h261VideoCapability_t;
+
+typedef struct{
+	uint32_t		h263CapabilityBitfield;				/*!<  */
+	uint32_t		annexNandwFutureUse;				/*!<  */
+} h263VideoCapability_t;
+
+typedef struct{
+	uint32_t		modelNumber;					/*!<  */
+	uint32_t		bandwidth;					/*!<  */
+} vieoVideoCapability_t;
+
+typedef struct{
+	uint32_t		protocolDependentData;				/*!< 0 */
+	uint32_t 		maxBitRate;					/*!< Maximum BitRate */
+} dataParameter_t;
+
+
+/*! 
+ * \brief video parameter structure 
+ * \since 20100103
+ */
+typedef struct{
+	uint32_t		bitRate;					/*!< 384 */
+	uint32_t		pictureFormatCount;				/*!< 0 */
+	pictureFormat_t		pictureFormat[5];
+	uint32_t		confServiceNum;					/*!<  */
+	h261VideoCapability_t	h261VideoCapability;
+	h263VideoCapability_t	h263VideoCapability;
+	vieoVideoCapability_t	vieoVideoCapability;
+} videoParameter_t;
+
 
 /*!
  * \brief SCCP Data Union
@@ -1049,32 +1099,32 @@ typedef union {
                 // 00 00 00 00
                 // 02 00 00 00 == 2
                 // ce f1 00 00 // == (61092 / 206 / 241) 1668 dn-size 420
-        } RegisterMessage;							/*!< Register Message */
+        } RegisterMessage;								/*!< Register Message */
 
         struct {
                 // All char arrays are in multiples of 32bit
-                char		deviceName[StationMaxDeviceNameSize];		/*!< Device Name */
+                char			deviceName[StationMaxDeviceNameSize];		/*!< Device Name */
                 uint32_t		lel_stationUserId;				/*!< Station User ID */
                 uint32_t		lel_stationInstance;				/*!< Station Instance */
-                char		userName[StationMaxNameSize];			/*!< User Name */
-                char		serverName[StationMaxNameSize];			/*!< Server Name */
+                char			userName[StationMaxNameSize];			/*!< User Name */
+                char			serverName[StationMaxNameSize];			/*!< Server Name */
                 uint32_t		lel_numberLines;				/*!< Number of Lines configured */
                 uint32_t		lel_numberSpeedDials;				/*!< Number of SpeedDials configured */
-        } ConfigStatMessage;							/*!< Configuration Status Message - Server -> Client */
+        } ConfigStatMessage;								/*!< Configuration Status Message - Server -> Client */
 
         struct {
                 uint16_t 		les_rtpMediaPort;				/*!< RTP Media Port */
                 uint16_t 		unknown;					/*!< Unknown */
-        } IpPortMessage;							/*!< Ip Port Message - Client -> Server  */
+        } IpPortMessage;								/*!< Ip Port Message - Client -> Server  */
 
         struct {
                 uint32_t 		lel_kpButton;					/*!< KeyPad Button */
                 uint32_t 		lel_lineInstance;				/*!< Line Instance on device */
                 uint32_t 		lel_callReference;				/*!< Call Reference - current channel identifier */
-        } KeypadButtonMessage;							/*!< KeyPad Button Message - Client -> Server */
+        } KeypadButtonMessage;								/*!< KeyPad Button Message - Client -> Server */
         struct {
-                char 		calledParty[StationMaxDirnumSize];		/*!< Called Party */
-        } EnblocCallMessage;							/*!< Enbloc Call Message - Cleint -> Server */
+                char 			calledParty[StationMaxDirnumSize];		/*!< Called Party */
+        } EnblocCallMessage;								/*!< Enbloc Call Message - Cleint -> Server */
 
         struct {
                 uint32_t 		lel_stimulus;					/*!< Stimulus */
@@ -1527,7 +1577,7 @@ typedef union {
         struct {
                 uint32_t 			lel_conferenceId;		/*!< Conference ID */
                 uint32_t 			lel_passThruPartyId;		/*!< Pass Through Party ID */
-                uint32_t bel_remoteIpAddr; 					/*!< This field is apparently in big-endian
+                uint32_t 			bel_remoteIpAddr; 		/*!< This field is apparently in big-endian
                                                                                      format, even though most other fields are
                                                                                      little-endian. */
                 uint32_t 			lel_remotePortNumber;		/*!< Remote Port Number */
@@ -1954,7 +2004,48 @@ typedef union {
 		uint32_t 			lel_callReference;		/*!< Call Reference */
                 uint32_t 			lel_lineInstance;		/*!< Line Instance */
 	} CallSelectStatMessage;						/*!< Call Select Status Message Structure */
+	
+	
+	struct{
+		uint32_t			lel_conferenceID;		/*!< Conference ID */
+		uint32_t 			lel_passThruPartyId;		/*!< Pass Through Party ID */
+		uint32_t 			lel_payloadCapability;		/*!< payload capability */
+		uint32_t 			lel_lineInstance;		/*!< Line Instance */
+		uint32_t			lel_callReference;		/*!< Call Reference */
+		uint32_t			lel_payload_rfc_number;		/*!<  */
+		uint32_t			lel_payloadType;		/*!< payload type */
+		uint32_t			lel_isConferenceCreator;	/*!< we can set it to 0 */
+		
+		audioParameter_t		audioParameter;
+		videoParameter_t		videoParameter;
+		dataParameter_t			dataParameter;
+		
+		uint32_t			unknown[8];
+	} OpenMultiMediaChannelMessage;
 
+	/*!
+	 * \since 20100104 -MC
+	 */
+	struct{
+		uint32_t			lel_conferenceID;		/*!< Conference ID */
+		uint32_t 			lel_passThruPartyId;		/*!< Pass Through Party ID */
+		uint32_t 			lel_payloadCapability;		/*!< payload capability */
+		
+		uint32_t 			bel_remoteIpAddr; 		/*!< This field is apparently in big-endian
+                                                                                     format, even though most other fields are
+                                                                                     little-endian. */
+                uint32_t 			lel_remotePortNumber;		/*!< Remote Port Number */
+                uint32_t			lel_callReference;		/*!< Call Reference */
+                uint32_t			lel_payload_rfc_number;		/*!<  */
+                uint32_t			lel_payloadType;		/*!< payload type */
+                uint32_t			lel_DSCPValue;
+		
+		audioParameter_t		audioParameter;
+		videoParameter_t		videoParameter;
+		dataParameter_t			dataParameter;
+		
+	} StartMultiMediaTransmission;
+	
 	struct {
 		uint32_t 			lel_displayTimeout;		/*!< Display Timeout */
 		uint32_t 			lel_priority;			/*!< Priority */
@@ -1980,6 +2071,19 @@ typedef union {
 
 	struct {} RegisterTokenAck;						/*!< Register Token Ackknowledge Message Structure */
 	struct {} RegisterTokenReject;						/*!< Register Token Reject Message Structure */
+	
+
+	/*!
+	 * 
+	 * \since 20100103 -MC
+	 */
+	struct{
+		uint32_t			lel_conferenceID;		/*!< Conference ID */
+		uint32_t 			lel_passThruPartyId;		/*!< Pass Through Party ID */
+		uint32_t 			lel_callReference;		/*!< Call Reference */
+		uint32_t			maxBitRate;			/*!< Maximum BitRate */
+	}FlowControlCommandMessage;
+
 
         struct {
                 uint32_t			lel_conferenceID;		/*!< Conference ID */
@@ -1995,6 +2099,7 @@ typedef union {
 
         struct {
                 uint32_t			lel_conferenceID;		/*!< Conference ID */
+                
         }DeleteConferenceReqMessage;						/*!< Delete Conference Request Message Structure */
 
 } sccp_data_t;									/*!< SCCP Data Structure */
@@ -2017,8 +2122,7 @@ typedef struct {
 #include "sccp_softkeys.h"
 #include "sccp_labels.h"
 
-/* \todo softkeysmap is not used at the moment */
-/*@unused@*/ 
+
 static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_REDIAL,
 	SKINNY_LBL_NEWCALL,
@@ -2171,7 +2275,7 @@ static uint8_t skSet_DigitsFoll []  = {
         SKINNY_LBL_ENDCALL,
 };										/*!< SKINNY SoftKeys Set Digits Following as INT */
 
-static uint8_t skSet_Connconf []	= {
+static uint8_t skSet_Connconf [] = {
         SKINNY_LBL_HOLD,
         SKINNY_LBL_ENDCALL,
         SKINNY_LBL_JOIN,
