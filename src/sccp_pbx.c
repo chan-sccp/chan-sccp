@@ -454,6 +454,19 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Current channel %s-%08x state %s(%d)\n", (d)?DEV_ID_LOG(d):"(null)", l ? l->name : "(null)", c->callid, sccp_indicate2str(c->state), c->state);
+	
+	
+	/* end callforwards */
+	sccp_channel_t	*channel;
+	SCCP_LIST_LOCK(&c->line->channels);
+	SCCP_LIST_TRAVERSE(&c->line->channels, channel, list) {
+		if(channel->parentChannel == c){
+			  sccp_log(1)(VERBOSE_PREFIX_3 "%s: Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
+			 sccp_channel_endcall(channel);
+		}
+	}
+	SCCP_LIST_UNLOCK(&c->line->channels);
+	/* */
 
 	if(!d){
 		/* channel is not answerd, just ringin over all devices */
