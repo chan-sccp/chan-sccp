@@ -8,7 +8,7 @@
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *
+ * \version 	$LastChangedDate$
  */
 #define AST_MODULE "chan_sccp"
 
@@ -351,7 +351,6 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 			/* check for ringer options */
 			} else if (!strncasecmp(optv[opti], "ringer=", 7)) {
 				optv[opti] += 7;
-				ast_log(LOG_WARNING, "%s: found ringer %s\n", l->id, optv[opti]);
 				if (!strcasecmp(optv[opti], "inside"))
 					c->ringermode = SKINNY_STATION_INSIDERING;
 				else if (!strcasecmp(optv[opti], "outside"))
