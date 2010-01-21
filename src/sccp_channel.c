@@ -67,7 +67,7 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l, sccp_device_t *device)
 	/* this just allocate a sccp channel (not the asterisk channel, for that look at sccp_pbx_channel_allocate) */
 	sccp_channel_t * c;
 
-  /* If there is no current line, then we can't make a call in, or out. */
+	/* If there is no current line, then we can't make a call in, or out. */
 	if (!l) {
 		ast_log(LOG_ERROR, "SCCP: Tried to open channel on a device with no lines\n");
 		return NULL;
@@ -164,17 +164,15 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
   
 	if(channel->owner){
 
-		channel->owner->nativeformats = channel->format;  /*if we set nativeformats to a single format, we force asterisk to translate stream */
+		channel->owner->nativeformats = channel->format; /* if we set nativeformats to a single format, we force asterisk to translate stream */
 		channel->owner->rawreadformat = channel->format;
 		channel->owner->rawwriteformat = channel->format;
+
 		
-		/*
-		channel->owner->nativeformats = channel->capability;
-		channel->owner->rawreadformat = channel->format;
-		channel->owner->rawwriteformat = channel->format;
-		*/
+
 		channel->owner->writeformat	= channel->format; /*|AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS;*/
 		channel->owner->readformat 	= channel->format; /*|AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS;*/
+
 		
 		ast_set_read_format(channel->owner, channel->format);
 		ast_set_write_format(channel->owner, channel->format);
@@ -677,6 +675,7 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 	int packetSize;
 	struct sockaddr_in them;
 	uint8_t	instance;
+	
 
 
 
@@ -703,7 +702,9 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 		c->isCodecFix = TRUE;
 	}
 	  
-	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: channel payloadType %d\n", c->device->id, payloadType);
+	  
+	  
+	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: channel %s payloadType %d\n", c->device->id, c->owner->name, payloadType);
 	
 	/* create the rtp stuff. It must be create before setting the channel AST_STATE_UP. otherwise no audio will be played */
 	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", c->device->id, c->callid, skinny_codec2str(payloadType), c->line->echocancel ? "ON" : "OFF");
@@ -749,6 +750,15 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 	c->mediaStatus.receive = TRUE;
 	
 }
+
+void sccp_channel_openMultiMediaChannel(sccp_channel_t *channel){
+	
+}
+
+void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
+	
+}
+
 
 /*!
  * \brief Tell a Device to Start Media Transmission.
@@ -986,6 +996,15 @@ void sccp_channel_endcall(sccp_channel_t * c)
 
 	/* this is a station active endcall or onhook */
     	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Ending call %d on line %s (%s)\n", DEV_ID_LOG(c->device), c->callid, c->line->name, sccp_indicate2str(c->state));
+	/* end callforwards */
+	sccp_channel_t	*channel;
+	SCCP_LIST_LOCK(&c->line->channels);
+	SCCP_LIST_TRAVERSE(&c->line->channels, channel, list) {
+		if(channel->parentChannel == c)
+			 sccp_channel_endcall(channel);
+	}
+	SCCP_LIST_UNLOCK(&c->line->channels);
+	/* */
 
 	if (c->owner) {
 		/* Is there a blocker ? */
@@ -1162,6 +1181,16 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Answer the channel %s-%08X\n", DEV_ID_LOG(d), l->name, c->callid);
 
+	/* end callforwards */
+	sccp_channel_t	*channel;
+	SCCP_LIST_LOCK(&c->line->channels);
+	SCCP_LIST_TRAVERSE(&c->line->channels, channel, list) {
+		if(channel->parentChannel == c)
+			 sccp_channel_endcall(channel);
+	}
+	SCCP_LIST_UNLOCK(&c->line->channels);
+	/* */
+
 	sccp_channel_set_active(d, c);
 	sccp_dev_set_activeline(d, c->line);
 
@@ -1174,20 +1203,20 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 			 ast_clear_flag(bridged, AST_FLAG_MOH);
 	}
 #endif
+
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Answering channel with state '%s' (%d)\n", DEV_ID_LOG(c->device), ast_state2str(c->owner->_state), c->owner->_state);
+	ast_queue_control(c->owner, AST_CONTROL_ANSWER);
+	
 	/* @Marcello: Here you assume that it is not neccessary to tell the phone
 	   something it already knows ;-) But I am not sure if this would be needed
 	   nevertheless to log all incoming answered calls properly. We will have to
 	   investigate this further. (-DD) */
-
 	if (c->state != SCCP_CHANNELSTATE_OFFHOOK)
 		sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_OFFHOOK);
 
 	sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CONNECTED);
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Answering channel with state '%s' (%d)\n", DEV_ID_LOG(c->device), ast_state2str(c->owner->_state), c->owner->_state);
-
-
-	ast_queue_control(c->owner, AST_CONTROL_ANSWER);
+	//ast_setstate(c->owner, AST_STATE_UP);
 }
 
 
@@ -1283,7 +1312,7 @@ int sccp_channel_hold(sccp_channel_t * c)
 
 	if(l){
 		//l->channelCount--; /* channel is not active, so dec. count */
-		l->statistic.numberOfActiveChannels++;
+		l->statistic.numberOfActiveChannels--;
 	}
 
 
@@ -1324,12 +1353,13 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
 
 	instance = sccp_device_find_index_for_line(d, l->name);
 
+	//TODO this have to be enabled
 	/* look if we have a call to put on hold */
-	if ( (hold = sccp_channel_get_active(d)) ) {
-		/* there is an active call, let's put it on hold first */
-		if (!sccp_channel_hold(hold))
-			return 0;
-	}
+// 	if ( (hold = sccp_channel_get_active(d)) ) {
+// 		/* there is an active call, let's put it on hold first */
+// 		if (!sccp_channel_hold(hold))
+// 			return 0;
+// 	}
 
 	/* resume an active call */
 	if (c->state != SCCP_CHANNELSTATE_HOLD && c->state != SCCP_CHANNELSTATE_CALLTRANSFER && c->state != SCCP_CHANNELSTATE_CALLCONFERENCE) {
@@ -1961,6 +1991,8 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	}
 }
 
+
+
 #ifdef CS_SCCP_PARK
 
 /*!
@@ -2009,6 +2041,64 @@ static void * sccp_channel_park_thread(void *stuff) {
 	}
 	ast_hangup(chan2);
 	return NULL;
+}
+
+void sccp_channel_forward(sccp_channel_t *parent, sccp_linedevices_t *lineDevice, char *fwdNumber){
+	sccp_channel_t 	*forwarder = NULL;
+	char 		dialedNumber[256];
+	
+	if(!parent){
+		ast_log(LOG_ERROR, "We can not forward a call without parent channel\n");
+		return;
+	}
+	
+	
+	sccp_copy_string(dialedNumber, fwdNumber, sizeof(dialedNumber));
+	
+	
+	forwarder = sccp_channel_allocate(parent->line, NULL);
+
+	if (!forwarder) {
+		ast_log(LOG_ERROR, "%s: Can't allocate SCCP channel\n", lineDevice->device->id);
+		return;
+	}
+
+	sccp_channel_lock(forwarder);
+
+	forwarder->parentChannel = parent;
+	forwarder->ss_action = SCCP_SS_DIAL; /* softswitch will catch the number to be dialed */
+	forwarder->ss_data = 0; // nothing to pass to action
+
+	forwarder->calltype = SKINNY_CALLTYPE_OUTBOUND;
+	
+
+	/* copy the number to dial in the ast->exten */
+	
+	sccp_copy_string(forwarder->dialedNumber, dialedNumber, sizeof(forwarder->dialedNumber));
+	sccp_channel_unlock(forwarder);
+
+	/* ok the number exist. allocate the asterisk channel */
+	if (!sccp_pbx_channel_allocate(forwarder)) {
+		ast_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", lineDevice->device->id, forwarder->line->name);
+		
+		//TODO cleanup allocation
+		sccp_channel_cleanbeforedelete(forwarder);
+		ast_free(forwarder);
+	}
+
+	sccp_copy_string(forwarder->owner->exten, dialedNumber, sizeof(forwarder->owner->exten));
+	sccp_ast_setstate(forwarder, AST_STATE_OFFHOOK);
+	//sccp_pbx_softswitch(forwarder); /* softswitch does nothing for dial */
+	if (!ast_strlen_zero(dialedNumber) && !ast_check_hangup(forwarder->owner)
+			&& ast_exists_extension(forwarder->owner, forwarder->line->context, dialedNumber, 1, forwarder->line->cid_num) ) {
+		/* found an extension, let's dial it */
+		ast_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s-%08x is dialing number %s\n", "SCCP", forwarder->line->name, forwarder->callid, strdup(dialedNumber));
+		/* Answer dialplan command works only when in RINGING OR RING ast_state */
+		sccp_ast_setstate(forwarder, AST_STATE_RING);
+		if (ast_pbx_start(forwarder->owner)) {
+			ast_log(LOG_WARNING, "%s: invalide number\n", "SCCP");
+		}
+	}
 }
 
 /*!

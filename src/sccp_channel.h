@@ -43,6 +43,8 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c);
 void sccp_channel_startmediatransmission(sccp_channel_t * c);
 void sccp_channel_closereceivechannel(sccp_channel_t * c);
 void sccp_channel_stopmediatransmission(sccp_channel_t * c);
+void sccp_channel_openMultiMediaChannel(sccp_channel_t *channel);
+void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel);
 void sccp_channel_updatemediatype(sccp_channel_t * c);
 void sccp_channel_endcall(sccp_channel_t * c);
 void sccp_channel_StatisticsRequest(sccp_channel_t * c);
@@ -59,6 +61,7 @@ void sccp_channel_stop_rtp(sccp_channel_t * c);
 void sccp_channel_destroy_rtp(sccp_channel_t * c);
 void sccp_channel_transfer(sccp_channel_t * c);
 void sccp_channel_transfer_complete(sccp_channel_t * c);
+void sccp_channel_forward(sccp_channel_t *parent, sccp_linedevices_t *lineDevice, char *fwdNumber);
 #ifdef CS_SCCP_PARK
 void sccp_channel_park(sccp_channel_t * c);
 #endif
