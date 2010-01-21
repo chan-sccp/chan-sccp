@@ -7,7 +7,7 @@
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- * 
+ * \version 	$LastChangedDate$
  */
 
 #include "config.h"
@@ -169,7 +169,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOOK);
 
 
-//		sccp_handle_time_date_req(d->session, NULL);
+		sccp_handle_time_date_req(d->session, NULL);
 		if (c == d->active_channel)
 			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 		
@@ -296,6 +296,8 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		break;
 	case SCCP_CHANNELSTATE_CALLTRANSFER:
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TRANSFER, 0);
+		sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
+		sccp_device_sendcallstate(d, instance,c->callid, SCCP_CHANNELSTATE_CALLTRANSFER, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		/* sccp_channel_set_callstate(c, SKINNY_CALLSTATE_CALLTRANSFER); */
 		break;
 	case SCCP_CHANNELSTATE_CALLCONFERENCE:
