@@ -298,6 +298,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TRANSFER, 0);
 		sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
 		sccp_device_sendcallstate(d, instance,c->callid, SCCP_CHANNELSTATE_CALLTRANSFER, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+		sccp_channel_send_callinfo(d, c);
 		/* sccp_channel_set_callstate(c, SKINNY_CALLSTATE_CALLTRANSFER); */
 		break;
 	case SCCP_CHANNELSTATE_CALLCONFERENCE:

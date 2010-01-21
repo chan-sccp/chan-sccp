@@ -4,6 +4,7 @@
  * \author 	Federico Santulli <fsantulli [at] users.sourceforge.net >
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  * \since 	2009-01-16
+ * \version 	$LastChangedDate$
  */
 
 #include "config.h"
@@ -54,6 +55,7 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 {
 	sccp_channel_t * c = NULL;
 	struct ast_channel * bridge = NULL;
+	sccp_linedevices_t	*linedevice;
 	int instance;
 
 	if (!l || !device || !device->id || ast_strlen_zero(device->id)){
@@ -61,22 +63,28 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 		return NULL;
 	}
 
+	SCCP_LIST_LOCK(&l->devices);
+	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
+		if(linedevice->device == device);
+			break;
+	}
+	SCCP_LIST_UNLOCK(&l->devices);
 
-	if(l->cfwd_type != SCCP_CFWD_NONE && l->cfwd_type == type) /* if callforward is active and you asked about the same callforward maybe you would disable */
-	{
-		/* disable call_forward */
-		sccp_log(10)(VERBOSE_PREFIX_3 "### request to disable cfwAll\n");
-		sccp_line_cfwd(l, SCCP_CFWD_NONE, NULL);
-		sccp_dev_check_displayprompt(device);
+	if(!linedevice){
+		ast_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
 		return NULL;
 	}
-	else
-	{
-		if(l->devices.size >1){
 
-			sccp_dev_displayprompt(device, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
-			return NULL;
-		}
+	/* if call forward is active and you asked about the same call forward maybe you would disable */
+	if( 	(linedevice->cfwdAll.enabled && type == SCCP_CFWD_ALL)
+			|| (linedevice->cfwdBusy.enabled && type == SCCP_CFWD_BUSY)
+			|| type == SCCP_CFWD_ALL ){
+
+		sccp_line_cfwd(l, device, SCCP_CFWD_NONE, NULL);
+		sccp_dev_sendmsg(device, DeactivateCallPlaneMessage);
+		sccp_dev_check_displayprompt(device);
+	}
+	else{
 		if(type == SCCP_CFWD_NOANSWER)
 		{
 			sccp_log(10)(VERBOSE_PREFIX_3 "### CFwdNoAnswer NOT SUPPORTED\n");
@@ -95,7 +103,7 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 			if(c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 				// if we have an outbound call, we can set callforward to dialed number -FS
 				if(c->dialedNumber && !ast_strlen_zero(c->dialedNumber)) { // checking if we have a number !
-					sccp_line_cfwd(l, type, c->dialedNumber);
+					sccp_line_cfwd(l, device, type, c->dialedNumber);
 					// we are on call, so no tone has been played until now :)
 					//sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, instance, 0, 0);
 
@@ -123,7 +131,7 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 					ast_free(name);
 #endif
 				if(number) {
-					sccp_line_cfwd(l, type, number);
+					sccp_line_cfwd(l, device, type, number);
 					// we are on call, so no tone has been played until now :)
 					sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, instance, 0, 0);
 

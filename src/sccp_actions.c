@@ -2354,15 +2354,16 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 		case SCCP_FEATURE_CFWDALL:
 			status = SCCP_CFWD_ALL;
 
-			if(!config->button.feature.options || ast_strlen_zero(config->button.feature.options))
+			if(!config->button.feature.options || ast_strlen_zero(config->button.feature.options) || !config->button.feature.status)
 				status = SCCP_CFWD_NONE;
 
 
 			SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 				if(config->type == LINE ){
 					line = sccp_line_find_byname_wo(config->button.line.name,FALSE);
+
 					if(line){
-						sccp_line_cfwd(line, (line->cfwd_type == status)?SCCP_CFWD_NONE:status, featureOption);
+						sccp_line_cfwd(line, d, status, featureOption);
 					}
 				}
 			}

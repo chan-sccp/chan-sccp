@@ -243,12 +243,7 @@ typedef enum {
 } sccp_verbose_level_t;									/*!< Verbosity Level */
 
 
-typedef enum {
-        SCCP_CALLREASON_NORMAL	 		= 0,
-        SCCP_CALLREASON_CREATECONFERENCE,
-        SCCP_CALLREASON_INITIALIZECFWD,
-        SCCP_CALLREASON_TRANSFER,
-} sccp_callReason_t;									/*!< call reasons */
+
 
 
 
@@ -315,18 +310,35 @@ struct sccp_selectedchannel {
         SCCP_LIST_ENTRY(sccp_selectedchannel_t) list;					/*!< Selected Channel Linked List Entry */
 };											/*!< SCCP Selected Channel Structure */
 
+
+
+/*!
+ * \brief SCCP cfwd information
+ */
+typedef struct sccp_cfwd_information		sccp_cfwd_information_t;		/*!< cfwd information */
+
+/*!
+ * \brief SCCP cfwd information
+ */
+struct sccp_cfwd_information{
+	boolean_t				enabled;
+	char 					number[AST_MAX_EXTENSION];
+};
+
+
 /*!
  * \brief SCCP Line-Devices Structure
  */
-
 typedef struct sccp_linedevices			sccp_linedevices_t;			/*!< SCCP Line Connected to Devices */
 
 /*!
  * \brief SCCP Line-Devices Structure
  */
-
 struct sccp_linedevices {
         sccp_device_t 				* device;				/*!< SCCP Device */
+        sccp_cfwd_information_t			cfwdAll;				/*!< cfwd information */
+        sccp_cfwd_information_t			cfwdBusy;				/*!< cfwd information */
+	
         SCCP_LIST_ENTRY(sccp_linedevices_t) 	list;					/*!< Device Linked List Entry */
 };											/*!< SCCP Line-Device Structure */
 
@@ -411,7 +423,7 @@ struct sccp_line {
         char 					language[MAX_LANGUAGE];			/*!< language we use for calls */
         char 					accountcode[AST_MAX_ACCOUNT_CODE];	/*!< accountcode used in cdr */
         char 					musicclass[MAX_MUSICCLASS];		/*!< musicclass assigned when getting moh */
-        int						amaflags;				/*!< amaflags */
+        int					amaflags;				/*!< amaflags */
         ast_group_t				callgroup;				/*!< callgroups assigned (seperated by commas) to this lines */
 #ifdef CS_SCCP_PICKUP
         ast_group_t				pickupgroup;				/*!< pickupgroup assigned to this line */
@@ -426,8 +438,8 @@ struct sccp_line {
         SCCP_LIST_ENTRY(sccp_line_t) 		list;					/*!< global list entry */
 /* 	sccp_device_t * 			device;*/				/* The device this line is currently registered to. */
         SCCP_LIST_HEAD(,sccp_linedevices_t)	devices;				/*!< The device this line is currently registered to. */
-        uint8_t 				cfwd_type;				/*!< Call Forward Type (SCCP_CFWD_ALL or SCCP_CFWD_BUSY0 */
-        char 					* cfwd_num;				/*!< call forward Number*/
+        //uint8_t 				cfwd_type;				/*!< Call Forward Type (SCCP_CFWD_ALL or SCCP_CFWD_BUSY0 */
+        //char 					* cfwd_num;				/*!< call forward Number*/
         char 					* trnsfvm;				/*!< transfer to voicemail softkey. Basically a call forward */
         char 					secondary_dialtone_digits[10];		/*!< secondary dialtone digits*/
         uint8_t					secondary_dialtone_tone;		/*!< secondary dialtone tone */
@@ -677,7 +689,7 @@ struct sccp_channel {
         char					callingPartyNumber[StationMaxDirnumSize];/*!< Calling Party Number */
         uint32_t				callid;					/*!< Call ID */
         uint32_t				passthrupartyid;			/*!< Pass Through ID */
-        uint32_t				conferenceid; 				/*!< Conference ID. This will be used in native conferencing mode and will differ from callid  -FS*/
+        //uint32_t				conferenceid; 				/*!< Conference ID. This will be used in native conferencing mode and will differ from callid  -FS*/
         uint8_t					state;					/*!< Internal channel state SCCP_CHANNELSTATE_* */
         uint8_t					previousChannelState;			/*!< Previous channel state SCCP_CHANNELSTATE_* */
         uint8_t					callstate;				/*!< Skinny Call State */
@@ -685,7 +697,7 @@ struct sccp_channel {
         int					digittimeout;				/*!< Scheduler Timeout on Dialing State */
         uint8_t					ringermode;				/*!< Ringer Mode */
 
-        char dialedNumber[AST_MAX_EXTENSION];						/*!< Last Dialed Number */
+        char 					dialedNumber[AST_MAX_EXTENSION];	/*!< Last Dialed Number */
         sccp_device_t 	 			* device;				/*!< SCCP Device */
 
         struct ast_channel 	 		* owner;				/*!< Asterisk Channel Owner */
@@ -720,9 +732,11 @@ struct sccp_channel {
 
         /* feature sets */
         boolean_t				monitorEnabled;				/*!< Monitor Enabled Feature */
-        sccp_callReason_t			reason;					/*!< what is the reaso for this call */
+        //sccp_callReason_t			reason;					/*!< what is the reaso for this call */
         
-        struct sccp_conference			*conference;
+        struct sccp_conference			*conference;				/*!< are we part of a conference? */
+	sccp_channel_t				*parentChannel;				/*!< if we are a cfwd channel, our parent is this */
+	
 };											/*!< SCCP Channel Structure */
 
 /*!

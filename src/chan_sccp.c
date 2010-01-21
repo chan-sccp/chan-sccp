@@ -214,7 +214,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 		goto OUT;
 	}
 	
-	
+#if 0
 	sccp_log(10)(VERBOSE_PREFIX_3 "Line %s has %d device%s\n", l->name, l->devices.size, (l->devices.size>1)?"s":"");
 	if(l->devices.size < 2){
 		if(!c->owner){
@@ -244,7 +244,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 #endif
 		}
 	}
-
+#endif
 
 	sccp_log(1)(VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	 /* we have a single device given */
@@ -1188,8 +1188,8 @@ static int unload_module(void) {
 		SCCP_LIST_HEAD_DESTROY(&l->channels);
 
 
-		if (l->cfwd_num)
-			ast_free(l->cfwd_num);
+		//if (l->cfwd_num)
+		//	ast_free(l->cfwd_num);
 		if (l->trnsfvm)
 			ast_free(l->trnsfvm);
 		ast_free(l);
