@@ -6,22 +6,22 @@
  * \since 	2009-01-16
  * \version 	$LastChangeDate$
  *
- how does hint update works:
+ <h2>how does hint update works:</h2>
  \dot
  digraph updateHint {
 	asteriskEvent[ label="asterisk event" shape=rect];
-	sccp_hint_state[ label="sccp_hint_state" shape=rect style=rounded];
+	sccp_hint_state[ label="sccp_hint_state" shape=rect style=rounded URL="\ref sccp_hint_state"];
 	and[label="and" shape=circle]
-	sccp_hint_list_t[ label="sccp_hint_list_t" shape=circle];
-	sccp_hint_remoteNotification_thread[ label="sccp_hint_remoteNotification_thread" shape=rect style=rounded];
-	sccp_hint_notifySubscribers[ label="sccp_hint_notifySubscribers" shape=rect style=rounded];
+	sccp_hint_list_t[ label="sccp_hint_list_t" shape=circle URL="\ref sccp_hint_list_t"];
+	sccp_hint_remoteNotification_thread[ label="sccp_hint_remoteNotification_thread" shape=rect style=rounded  URL="\ref sccp_hint_remoteNotification_thread"];
+	sccp_hint_notifySubscribers[ label="sccp_hint_notifySubscribers" shape=rect style=rounded URL="\ref sccp_hint_notifySubscribers"];
 	
 	lineStatusChanged[label="line status changed" shape=rect];
-	sccp_hint_lineStatusChanged[label="sccp_hint_lineStatusChanged" shape=rect style=rounded];
-	sccp_hint_hintStatusUpdate[label="sccp_hint_hintStatusUpdate" shape=rect style=rounded];
+	sccp_hint_lineStatusChanged[label="sccp_hint_lineStatusChanged" shape=rect style=rounded URL="\ref sccp_hint_lineStatusChanged"];
+	sccp_hint_hintStatusUpdate[label="sccp_hint_hintStatusUpdate" shape=rect style=rounded URL="\ref sccp_hint_hintStatusUpdate"];
 	checkShared[label="is shared line?" shape=diamond];
-	sccp_hint_notificationForSharedLine[label="sccp_hint_notificationForSharedLine" shape=rect style=rounded];
-	sccp_hint_notificationForSingleLine[label="sccp_hint_notificationForSingleLine" shape=rect style=rounded];
+	sccp_hint_notificationForSharedLine[label="sccp_hint_notificationForSharedLine" shape=rect style=rounded URL="\ref sccp_hint_notificationForSharedLine"];
+	sccp_hint_notificationForSingleLine[label="sccp_hint_notificationForSingleLine" shape=rect style=rounded URL="\ref sccp_hint_notificationForSingleLine"];
 	
 	
 	end[shape=point];
