@@ -7,7 +7,7 @@
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *
+ * \version 	$LastChangedDate$
  */
 
 #ifndef __SCCP_DEVICE_H
@@ -71,6 +71,7 @@ boolean_t sccp_device_isVideoSupported(sccp_device_t *device);
  * \param device SCCP Device
  */
 void sccp_device_stateChanged(sccp_device_t *device);
+uint8_t sccp_device_numberOfChannels(sccp_device_t *device);
 
 #define REQ(x,y) x = sccp_build_packet(y, sizeof(x->msg.y))
 #define REQCMD(x,y) x = sccp_build_packet(y, 0)
