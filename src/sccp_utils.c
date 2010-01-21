@@ -748,39 +748,6 @@ void sccp_dev_dbput(sccp_device_t * d) {
 }
 
 /*!
- * \brief Parse Call Forward List
- * \param d SCCP Device
- * \param tmp CallForward List Separated by ";"
- * \param type CallForward Type
- * \note NEVER USED, should be removed
- */
-static void sccp_cfwd_parse(sccp_device_t * d, char * tmp, uint8_t type) {
-	char *tmp2, *tmp3;
-	sccp_line_t * l = NULL;
-
-	while ( tmp && (tmp2 = strsep(&tmp,";")) ) {
-		if (tmp2 && !ast_strlen_zero(tmp2)) {
-			tmp3 = strsep(&tmp2,":");
-			if (tmp3 && !ast_strlen_zero(tmp3)) {
-				l = sccp_line_find_byid(d, atoi(tmp3));
-				if (!l) {
-					sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found a call forward %s in the database, but no line available with instance %s\n", d->id, (type == SCCP_CFWD_ALL) ? "ALL" : "BUSY", tmp3);
-				} else {
-					tmp3 = strsep(&tmp2,"");
-					if (tmp3 && !ast_strlen_zero(tmp3)) {
-						sccp_log(10)(VERBOSE_PREFIX_3 "%s: Restoring call forward %s to %s on line %s\n", d->id, (type == SCCP_CFWD_ALL) ? "ALL" : "BUSY", tmp3, l->name);
-						l->cfwd_type = type;
-						l->cfwd_num = strdup(tmp3);
-					} else {
-						sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found a call forward %s in the database, but no number available for line %s\n", d->id, (type == SCCP_CFWD_ALL) ? "ALL" : "BUSY", l->name);
-					}
-				}
-			}
-		}
-	}
-}
-
-/*!
  * \brief read device state from astDB
  * \param d SCCP Device
  */
