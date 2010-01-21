@@ -1,12 +1,51 @@
 /*!
  * \file 	sccp_hint.c
  * \brief 	SCCP Hint Class
- * \author 	Marcello Ceschia <<marcello [at] ceschia.de>
+ * \author 	Marcello Ceschia < marcello.ceschia@users.sourceforge.net >
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  * \since 	2009-01-16
- * \version $LastChangeDate$
+ * \version 	$LastChangeDate$
+ *
+ how does hint update works:
+ \dot
+ digraph updateHint {
+	asteriskEvent[ label="asterisk event" shape=rect];
+	sccp_hint_state[ label="sccp_hint_state" shape=rect style=rounded];
+	and[label="and" shape=circle]
+	sccp_hint_list_t[ label="sccp_hint_list_t" shape=circle];
+	sccp_hint_remoteNotification_thread[ label="sccp_hint_remoteNotification_thread" shape=rect style=rounded];
+	sccp_hint_notifySubscribers[ label="sccp_hint_notifySubscribers" shape=rect style=rounded];
+	
+	lineStatusChanged[label="line status changed" shape=rect];
+	sccp_hint_lineStatusChanged[label="sccp_hint_lineStatusChanged" shape=rect style=rounded];
+	sccp_hint_hintStatusUpdate[label="sccp_hint_hintStatusUpdate" shape=rect style=rounded];
+	checkShared[label="is shared line?" shape=diamond];
+	sccp_hint_notificationForSharedLine[label="sccp_hint_notificationForSharedLine" shape=rect style=rounded];
+	sccp_hint_notificationForSingleLine[label="sccp_hint_notificationForSingleLine" shape=rect style=rounded];
+	
+	
+	end[shape=point];
+	asteriskEvent -> sccp_hint_state;
+	sccp_hint_state -> and;
+	and -> sccp_hint_list_t[label="update"];
+	and -> sccp_hint_remoteNotification_thread;
+	sccp_hint_remoteNotification_thread -> sccp_hint_list_t[label="update"];
+	
+	lineStatusChanged -> sccp_hint_lineStatusChanged;
+	sccp_hint_lineStatusChanged -> sccp_hint_hintStatusUpdate;
+	sccp_hint_hintStatusUpdate -> checkShared;
+	checkShared -> sccp_hint_notificationForSingleLine[label="no"];
+	checkShared -> sccp_hint_notificationForSharedLine[label="yes"];
+	sccp_hint_notificationForSingleLine -> sccp_hint_list_t[label="update"];
+	sccp_hint_notificationForSharedLine -> sccp_hint_list_t[label="update"];
+	
+	sccp_hint_list_t -> sccp_hint_notifySubscribers;
+	sccp_hint_notifySubscribers -> end;
+ }
+ \enddot
  */ 
- 
+
+
 #include "config.h"
 #include "sccp_hint.h"
 #include "sccp_event.h"
@@ -269,7 +308,7 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 }
 
 /*!
- * \brief Handle Hints for Notification Subribers
+ * \brief send hint status to subscriber
  * \param hint SCCP Hint Linked List Pointer
  */
 void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
@@ -374,7 +413,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 }
 
 /*!
- * \brief Handle Hints when the Line Status has Changed
+ * \brief Handle line status change
  * \param line		SCCP Line
  * \param device	SCCP Device
  * \param channel	SCCP Channel
@@ -416,7 +455,8 @@ void sccp_hint_hintStatusUpdate(sccp_hint_list_t *hint){
 	line = sccp_line_find_byname(hint->type.internal.lineName);
 	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "hint %s@%s has changed\n", hint->exten, hint->context );
 	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "line %s has %d device%s --> notify %s\n", line->name, line->devices.size, (line->devices.size>1)?"s":"",  (line->devices.size>1)?"shared line change":"single line change");
-	if(line->devices.size >1){
+	
+	if( (line->devices.size >1 && line->channels.size > 1) || line->channels.size > 1 ){
 		/* line is currently shared */
 		sccp_hint_notificationForSharedLine(hint);
 	}else{
@@ -449,7 +489,7 @@ void sccp_hint_notifyAsterisk(sccp_line_t *line, sccp_channelState_t state){
 
 /* private functions */
 /*!
- * \brief Handle Hints for Shared Line Notification
+ * \brief set hint status for a line with more then one channel
  * \param hint	SCCP Hint Linked List Pointer
  */
 void sccp_hint_notificationForSharedLine(sccp_hint_list_t *hint){
@@ -516,10 +556,9 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t *hint){
 
 
 /*!
- * \brief Handle Hints for Single Line Notification
+ * \brief set hint status for a line with less or eq one channel
  * \param hint	SCCP Hint Linked List Pointer
  */
-
 void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 	sccp_line_t 	*line = NULL;
 	sccp_channel_t 	*channel = NULL;
@@ -907,10 +946,9 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context){
 }
 
 /*!
- * \brief Remove Notification Thread for a Hint
+ * \brief thread for searching callinfo on none sccp channels
  * \param data Data
  */
-
 static void * sccp_hint_remoteNotification_thread(void *data){
 	sccp_hint_list_t  *hint = data;
 	
