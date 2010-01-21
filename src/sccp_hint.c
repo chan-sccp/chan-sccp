@@ -4,7 +4,7 @@
  * \author 	Marcello Ceschia < marcello.ceschia@users.sourceforge.net >
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  * \since 	2009-01-16
- * \version 	$LastChangeDate$
+ * \version 	$LastChangedDate$
  *
  <h2>how does hint update works:</h2>
  \dot
