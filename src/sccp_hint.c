@@ -7,6 +7,7 @@
  * \version 	$LastChangedDate$
  *
  <h2>how does hint update works:</h2>
+ \section hint_update How does hint update work
  \dot
  digraph updateHint {
 	asteriskEvent[ label="asterisk event" shape=rect];

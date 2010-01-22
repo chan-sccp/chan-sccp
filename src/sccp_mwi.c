@@ -175,7 +175,7 @@ void sccp_mwi_event(const struct ast_event *event, void *data){
 
 /*!
  * \brief Remove Mailbox Subscription
- * \param m SCCP Mailbox
+ * \param mailbox SCCP Mailbox
  * \todo Implement sccp_mwi_unsubscribeMailbox (TODO Marcello)
  */
 void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t **mailbox){
