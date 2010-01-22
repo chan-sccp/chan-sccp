@@ -24,7 +24,7 @@ chan_sccp_la_CFLAGS             += -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pi
 chan_sccp_la_CFLAGS             += -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wlong-long
 #chan_sccp_la_LDFLAGS            = $(all_libraries) -no-undefined -avoid-version -module -no-static
 #chan_sccp_la_LIBTOOLFLAGS 	= --tag=disable-static
-chan_sccp_la_LDFLAGS            = $(all_libraries) -no-undefined -avoid-version -module
+chan_sccp_la_LDFLAGS            = -avoid-version -module
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
 	@if [ -d "$(DESTDIR)$(csmoddir)" ]; then $(MKDIR_P) "$(DESTDIR)$(csmoddir)"; fi
