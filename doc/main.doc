@@ -33,6 +33,7 @@
  * \ref load_module  	How to load the chan_sccp Module\n
  * \ref setup_howto     How to setup the chan_sccp Module\n
  * \ref sccp_softkeys   How to use the Soft Keys on the Phone\n
+ * \ref sources_explain Sources Explained\n
  * \ref faq		Frequently Asked Questions\n
  * \ref cons 		Consulted Documentation\n
  * \ref guest_os	Guest OS Notes\n
@@ -183,6 +184,17 @@
  * 
  * For more information check out : \n
  * http://www.cisco.com/en/US/products/hw/phones/ps379/products_tech_note09186a0080094584.shtml
+ *
+ */
+
+/**
+ * \page sources_explain Sources Explained
+ * \section se_section Sources Explained
+ * 
+ * You will find some background information to the sources provided by us. Please follow one of the following 
+ * Links
+ * 
+ * \ref hint_update How does hint update work
  *
  */
 
