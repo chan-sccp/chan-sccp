@@ -368,19 +368,19 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			
 			switch(hint->currentState){
 				case SCCP_CHANNELSTATE_ONHOOK:
-					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(1);
+					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(SCCP_BLF_STATUS_IDLE);
 				break;
 				
 				case SCCP_CHANNELSTATE_DOWN:
-					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(0); /* default state */
+					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(SCCP_BLF_STATUS_UNKNOWN); /* default state */
 				break;
 				
 				case SCCP_CHANNELSTATE_RINGING:
-					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(4); /* ringin */
+					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(SCCP_BLF_STATUS_ALERTING); /* ringin */
 				break;
 				
 				default:
-					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(2); /* connected */
+					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(SCCP_BLF_STATUS_INUSE); /* connected */
 				break;
 			}
 			char displayMessage[100];

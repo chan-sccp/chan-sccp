@@ -50,6 +50,15 @@ typedef enum {
 } sccp_channelState_t;								/*!< internal Chan_SCCP Call State c->callstate */
 
 
+typedef enum {
+	SCCP_BLF_STATUS_UNKNOWN			=0,				/*!< unknown status - default */
+        SCCP_BLF_STATUS_IDLE			=1,				/*!< not in use */
+        SCCP_BLF_STATUS_INUSE			=2,				/*!< in use */
+        SCCP_BLF_STATUS_DND			=3,				/*!< dnd */
+        SCCP_BLF_STATUS_ALERTING		=4				/*!< alerting */
+} sccp_BFLState_t;								/*!< blf states for dynamic speeddials */
+
+
 
 typedef enum {
         SCCP_DEVICESTATE_ONHOOK			=0,
