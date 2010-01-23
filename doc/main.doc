@@ -106,19 +106,31 @@
  * The following prerequisites are required:
  *   - A bourne shell (/bin/sh) that is capable of running the supplied configure script.
  *   - Installed version of Asterisk starting at version 1.2
- *   - The GNU C compiler or another supported C compiler.
- *   - The make program.
+ *   - Make sure you have the following installed on your system:
+ *     - The GNU C compiler or another supported C compiler.
+ *     - The make program
+ *     - autoconf (2.6.0)
+ *     - automake (1.10)
+ *     - libtool (2.2.2)
+ *     - m4 (1.4.5)
+ *     .
  *   .
  *
  * \subsection unix_bi Building and Installation
- *   - Download the Chan_SCCP sources.
+ *
+ * Build instructions:
+ *   - Download the Chan_SCCP sources. 
  *   - Extract the source tree to a clean directory.
- *   - Run the configure script, and answer the questions asked.
+ *   - To get started with configure please run: \n
+ *     ./bootstrap.sh
+ *   - run configure --help to get a list of all the possible configure flags\n
+ *     ./configure
  *   - Run make.
  *   - Run make install
  *   .
  * \code
- *       $ ./create_config.sh /usr/include True
+ *       $ ./bootstrap.sh
+ *       $ ./configure
  *       $ make
  *       $ make install
  * \endcode
@@ -128,8 +140,11 @@
  * 
  * \subsection sccp_config_howto How to use the config file
  *
- * Please check ./conf/sccp_v3.conf
- * \todo Documentation sccp_v3.conf Sample (To be implemented)
+ * Please check out ./conf/sccp.conf for all possible sccp configuration parameters. This new config file uses standard 
+ * asterisk templating to keep your config file shorter and easier to manager. For an untemplated version check-out 
+ * ./conf/sccp_simple.conf
+ *
+ * \todo Documentation sccp.conf Sample (To be implemented)
  * 
  *
  * \subsection sccp_config_rt How to use RealTime Database
@@ -211,7 +226,7 @@
  * the skinny module is not allowed to be loaded, is it conflicts with chan_sccp.
  * 
  * \section necessities Necessities
- * A valid sccp.conf/sccp_v3.conf configfile has to be available in the asterisk configuration directory.
+ * A valid sccp.conf/sccp.conf configfile has to be available in the asterisk configuration directory.
  *
  **/
 
