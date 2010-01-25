@@ -5,6 +5,9 @@
  * \date	$LastChangedDate$
  *
  */
+#ifdef CS_SCCP_CONFERENCE
+
+
 #include "config.h"
 #include "sccp_conference.h"
 #include "asterisk/bridging.h"
@@ -214,3 +217,4 @@ static void * sccp_conference_join_thread(void *data){
 	
 	participant->joinThread = AST_PTHREADT_NULL;
 }
+#endif

@@ -10,9 +10,13 @@
 #define SCCP_CONFERENCE_H_
 
 
+
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {
 #endif
+
+#ifdef CS_SCCP_CONFERENCE
+
 
 #include "asterisk.h"
 #include "chan_sccp.h"
@@ -71,7 +75,7 @@ void sccp_conference_writeFrame(struct ast_frame *frame, sccp_channel_t *channel
 
 SCCP_LIST_HEAD(, sccp_conference_t) 					sccp_conferences;		/*!< our list of conferences */
 
-
+#endif
 
 #if defined(__cplusplus) || defined(c_plusplus)
 }
