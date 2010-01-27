@@ -336,7 +336,9 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 			/* do we have cfwd enabled? */
 			if(linedevice->cfwdAll.enabled ){
 				ast_log(LOG_NOTICE, "%s: initialize cfwd for line %s\n", d->id, l->name);
-				//sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CALLTRANSFER);
+				int instance = sccp_device_find_index_for_line(d, l->name);
+				sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_channel_send_callinfo(d, c);
 				sccp_channel_forward(c, linedevice, linedevice->cfwdAll.number);
 				continue;
 			}
@@ -433,10 +435,11 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 	c->owner = NULL;
 	l = c->line;
 //	d = l->device;
-
+#ifdef CS_SCCP_CONFERENCE
 	if(c->conference){
 		sccp_conference_removeParticipant(c->conference, c);
 	}
+#endif
 
 	if (c->rtp.audio) {
 		sccp_channel_closereceivechannel(c);
@@ -625,18 +628,8 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 		case 0:
 			frame = ast_rtp_read(c->rtp.audio);	/* RTP Audio */
 #ifdef 	CS_SCCP_CONFERENCE
-			sccp_conference_participant_t *participant;
 			if(c->conference){
-				SCCP_LIST_TRAVERSE(&c->conference->participants, participant, list){
-// 					if(
-// 					  participant->channel == c /* do not write to us*/
-// 					  || ast_rtp_get_bridged(c->rtp.audio) == participant->channel->rtp.audio /* do not write back to our participant */
-// 					  )
-// 						continue;
-					
-					ast_rtp_write(participant->channel->rtp.audio, frame);
-					//ast_log(LOG_NOTICE, "%s: write to %s\n", DEV_ID_LOG(c->device), DEV_ID_LOG(participant->channel->device));
-				}
+				//sccp_conference_readFrame(frame, c);
 			}
 #endif
 			
@@ -735,7 +728,7 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 						ast->readformat,
 						ast_getformatname_multiple(s3, sizeof(s3) - 1, ast->writeformat),
 						ast->writeformat);
-					return -1;
+					//return -1;
 					
 				}
 				if (c->rtp.audio){
@@ -1007,7 +1000,6 @@ static void sccp_pbx_update_connectedline(sccp_channel_t *channel, const void *d
  */
 static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newchan) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: we gote a fixup request for %s\n", newchan->name);
-	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: old chan %s\n", oldchan->name);
 	
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(newchan);
 	sccp_channel_t * c2 = CS_AST_CHANNEL_PVT(oldchan);
@@ -1022,9 +1014,6 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 		sccp_mutex_unlock(&c->lock);
 		return -1;
 	}
-	
-	ast_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%u))\n", oldchan->name, (c2)?c2->passthrupartyid:-1);
-	ast_log(LOG_WARNING, "sccp_pbx_fixup(new: %s(%u))\n", newchan->name, c->passthrupartyid);
 	
 	c->owner = newchan;
 	sccp_mutex_unlock(&c->lock);
