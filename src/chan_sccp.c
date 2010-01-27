@@ -1016,7 +1016,9 @@ static int load_module(void) {
 
 	sccp_mwi_module_start();
 	sccp_hint_module_start();
+#ifdef CS_SCCP_CONFERENCE
 	sccp_conference_module_start();
+#endif
 	sccp_subscribe_event(SCCP_EVENT_FEATURECHANGED, sccp_util_handleFeatureChangeEvent);
 
 	/* GLOB() is a macro for sccp_globals-> */
