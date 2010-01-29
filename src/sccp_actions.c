@@ -2425,21 +2425,21 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 #endif
 
 		case SCCP_FEATURE_TEST3:
-			featureStat1 =  d->priFeature.status & 0xf;
-			featureStat2 = (d->priFeature.status & 0xf00) >> 8;
-			featureStat3 = (d->priFeature.status & 0xf0000) >> 16;
+			featureStat1 = ( d->priFeature.status & 0xf9           ) - 1;
+			featureStat2 = ((d->priFeature.status & 0xf00) >> 8    ) - 1;
+			featureStat3 = ((d->priFeature.status & 0xf0000) >> 16 ) - 1;
 
 
-			if(3 == featureStat2 && 7 == featureStat1)
-				featureStat3 = (featureStat3 + 1) % 3;
+			if(2 == featureStat2 && 6 == featureStat1)
+				featureStat3 = (featureStat3 + 1) % 2;
 
-			if(7 == featureStat1)
-				featureStat2 = (featureStat2 + 1) % 4;
+			if(6 == featureStat1)
+				featureStat2 = (featureStat2 + 1) % 3;
 
-			featureStat1 = (featureStat1 + 1) % 8;
+			featureStat1 = (featureStat1 + 1) % 7;
 
 
-			d->priFeature.status = (featureStat3 << 16) | (featureStat2 << 8) | featureStat1;
+			d->priFeature.status = ((featureStat3+1) << 16) | ((featureStat2+1) << 8) | (featureStat1+1);
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: priority feature status: %d, %d, %d, total: %d\n", d->id, featureStat3, featureStat2, featureStat1, d->priFeature.status );
 			break;
 
