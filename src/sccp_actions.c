@@ -497,7 +497,34 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) extension: %s\n", d->id, buttonconfig->instance, "SPEEDDIAL" ,buttonconfig->button.speeddial.label, buttonconfig->button.speeddial.ext);
 
 			} else if(buttonconfig->type == FEATURE && sccp_is_nonempty_string(buttonconfig->button.feature.label)){
-				btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
+
+				switch(buttonconfig->button.feature.id)
+				{
+					case SCCP_FEATURE_TEST1:
+						btn[i].type = SKINNY_BUTTONTYPE_TEST1;
+						break;
+
+					case SCCP_FEATURE_TEST2:
+						btn[i].type = SKINNY_BUTTONTYPE_TEST2;
+						break;
+
+					case SCCP_FEATURE_TEST3:
+						btn[i].type = SKINNY_BUTTONTYPE_TEST3;
+						break;
+
+					case SCCP_FEATURE_TEST4:
+						btn[i].type = SKINNY_BUTTONTYPE_TEST4;
+						break;
+
+					case SCCP_FEATURE_TEST5:
+						btn[i].type = SKINNY_BUTTONTYPE_TEST5;
+						break;
+
+					default:
+						btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
+						break;
+				}
+
 				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s)\n", d->id, buttonconfig->instance, "FEATURE" ,buttonconfig->button.feature.label);
 			}
 			i++;
@@ -899,6 +926,11 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			break;
 
 		case SKINNY_BUTTONTYPE_FEATURE:
+		//case SKINNY_BUTTONTYPE_TEST5:
+		case SKINNY_BUTTONTYPE_TEST4:
+		case SKINNY_BUTTONTYPE_TEST3:
+		//case SKINNY_BUTTONTYPE_TEST2:
+		//case SKINNY_BUTTONTYPE_TEST1:
 			//ast_log(LOG_NOTICE, "%s: Privacy Button is not yet handled. working on implementation\n", d->id);
 			sccp_handle_feature_action(d, r->msg.StimulusMessage.lel_stimulusInstance, TRUE);
 			break;
@@ -982,7 +1014,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 #endif
 			break;
 
-		case 21: //dynamic Speeddial 
+		case SKINNY_BUTTONTYPE_BLFSPEEDDIAL: //dynamic Speeddial 
 			k = sccp_dev_speed_find_byindex(d, instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
 			if (k)
 				sccp_handle_speeddial(d, k);
@@ -2292,6 +2324,9 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 	sccp_buttonconfig_t		*config=NULL;
 	sccp_line_t			*line = NULL;
 	uint8_t 			status=0; /* state of cfwd */
+	uint32_t featureStat1 = 0;
+	uint32_t featureStat2 = 0;
+	uint32_t featureStat3 = 0;
 
 
 	if(!d){
@@ -2388,6 +2423,25 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 			sccp_feat_monitor(d, channel);
 		break;
 #endif
+
+		case SCCP_FEATURE_TEST3:
+			featureStat1 =  d->priFeature.status & 0xf;
+			featureStat2 = (d->priFeature.status & 0xf00) >> 8;
+			featureStat3 = (d->priFeature.status & 0xf0000) >> 16;
+
+
+			if(3 == featureStat2)
+				featureStat3 = (featureStat3 + 1) % 2;
+
+			if(7 == featureStat1)
+				featureStat2 = (featureStat2 + 1) % 4;
+
+			featureStat1 = (featureStat1 + 1) % 8;
+
+
+			d->priFeature.status = (featureStat3 << 16) | (featureStat2 << 8) | featureStat1;
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: priority feature status: %d, %d, %d, total: %d\n", d->id, featureStat3, featureStat2, featureStat1, d->priFeature.status );
+			break;
 
 		default:
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: unknown feature\n", d->id);
