@@ -2425,7 +2425,7 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 #endif
 
 		case SCCP_FEATURE_TEST3:
-			featureStat1 = ( d->priFeature.status & 0xf9           ) - 1;
+			featureStat1 = ( d->priFeature.status & 0xf            ) - 1;
 			featureStat2 = ((d->priFeature.status & 0xf00) >> 8    ) - 1;
 			featureStat3 = ((d->priFeature.status & 0xf0000) >> 16 ) - 1;
 
