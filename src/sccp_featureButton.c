@@ -43,6 +43,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 	sccp_linedevices_t		*linedevice =NULL;
 	sccp_line_t			*line;
 	uint8_t				instance=0;
+	uint8_t				buttonID=SKINNY_BUTTONTYPE_FEATURE;  // Default feature type.
 
 
 	if(!device){
@@ -124,16 +125,39 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 					config->button.feature.status = (device->monitorFeature.status)?1:0;
 				break;
 
+				case SCCP_FEATURE_TEST1:
+					buttonID = SKINNY_BUTTONTYPE_TEST1;
+					break;
+
+				case SCCP_FEATURE_TEST2:
+					buttonID = SKINNY_BUTTONTYPE_TEST2;
+					break;
+
+				case SCCP_FEATURE_TEST3:
+					buttonID = SKINNY_BUTTONTYPE_TEST3;
+					config->button.feature.status = device->priFeature.status;
+					break;
+
+				case SCCP_FEATURE_TEST4:
+					buttonID = SKINNY_BUTTONTYPE_TEST4;
+					break;
+
+				case SCCP_FEATURE_TEST5:
+					buttonID = SKINNY_BUTTONTYPE_TEST5;
+					break;
+
 
 				default:
 				break;
 
 			}
 
+
 			/* send status */
 			REQ(featureRequestMessage, FeatureStatMessage);
 			featureRequestMessage->msg.FeatureStatMessage.lel_featureInstance = htolel(instance);
-			featureRequestMessage->msg.FeatureStatMessage.lel_featureID = htolel(0x13);
+			featureRequestMessage->msg.FeatureStatMessage.lel_featureID = htolel(buttonID);
+			//featureRequestMessage->msg.FeatureStatMessage.lel_featureID = htolel(0x13);
 			sccp_copy_string(featureRequestMessage->msg.FeatureStatMessage.featureTextLabel, config->button.feature.label, strlen(config->button.feature.label)+1);
 			featureRequestMessage->msg.FeatureStatMessage.lel_featureStatus = htolel(config->button.feature.status);
 			sccp_dev_send(device, featureRequestMessage);

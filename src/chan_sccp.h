@@ -257,7 +257,12 @@ typedef enum {
         SCCP_FEATURE_CFWDNOANSWER,
         SCCP_FEATURE_DND,
         SCCP_FEATURE_PRIVACY,
-        SCCP_FEATURE_MONITOR
+        SCCP_FEATURE_MONITOR,
+		SCCP_FEATURE_TEST1,
+		SCCP_FEATURE_TEST2,
+		SCCP_FEATURE_TEST3,
+		SCCP_FEATURE_TEST4,
+		SCCP_FEATURE_TEST5
 } sccp_feature_type_t;									/*!< Feature Type */
 
 /*!
@@ -266,7 +271,7 @@ typedef enum {
 
 typedef struct {
         boolean_t				enabled;				/*!< Feature Enabled */
-        uint8_t					status;					/*!< Feature State */
+        uint32_t					status;					/*!< Feature State */
 } sccp_featureConfiguration_t;								/*!< Feature Configuration */
 
 
@@ -391,7 +396,7 @@ struct sccp_buttonconfig {
                         sccp_feature_type_t 	id;					/*!< Button Feature ID */
                         char 			label[StationMaxNameSize];		/*!< Button Feature Label */
                         char 			options[254];				/*!< Button Feature Options */
-                        uint8_t 		status;					/*!< Button Feature Status */
+                        uint32_t 		status;					/*!< Button Feature Status */
                 } feature;								/*!< SCCP Button Feature Structure */
         } button;									/*!< SCCP Button Structure */
 };											/*!< SCCP Button Configuration Structure */
@@ -612,6 +617,7 @@ struct sccp_device {
         sccp_featureConfiguration_t 		overlapFeature;				/*!< Overlap Dial Feature */
         sccp_featureConfiguration_t 		monitorFeature;				/*!< Monitor (automon) Feature */
         sccp_featureConfiguration_t 		dndFeature;				/*!< dnd Feature */
+        sccp_featureConfiguration_t 		priFeature;				/*!< priority Feature */
         
         
         char 					softkeyDefinition[50];			/*!< requested softKey configuration */

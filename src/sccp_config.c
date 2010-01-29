@@ -142,12 +142,11 @@ void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID,
 		config->type = EMPTY;
 	}else{
 		config->type = FEATURE;
-
-
 		sccp_copy_string(config->button.feature.label, ast_strip(label), sizeof(config->button.feature.label));
 		//sccp_copy_string(config->button.feature.id, (!ast_strlen_zero(featureID))?ast_strip(featureID):NULL, sizeof(config->button.feature.options));
 		sccp_log(10)(VERBOSE_PREFIX_3 "featureID: %s\n", featureID);
 		config->button.feature.id = sccp_featureStr2featureID(featureID);
+
 		if(args)
 			sccp_copy_string(config->button.feature.options, (args)?ast_strip(args):"", sizeof(config->button.feature.options));
 
