@@ -2430,8 +2430,8 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 			featureStat3 = (d->priFeature.status & 0xf0000) >> 16;
 
 
-			if(3 == featureStat2)
-				featureStat3 = (featureStat3 + 1) % 2;
+			if(3 == featureStat2 && 7 == featureStat1)
+				featureStat3 = (featureStat3 + 1) % 3;
 
 			if(7 == featureStat1)
 				featureStat2 = (featureStat2 + 1) % 4;
