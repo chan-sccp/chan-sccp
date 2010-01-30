@@ -2307,6 +2307,10 @@ sccp_feature_type_t sccp_featureStr2featureID(char *str){
 
 void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 	char family[25];
+	char cfwdLineStore[60];
+	sccp_buttonconfig_t	*config;
+	sccp_line_t		*line;
+	sccp_linedevices_t 	*lineDevice;
 	sccp_device_t *device = (*event)->event.featureChanged.device;
 
 
@@ -2315,10 +2319,30 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 
 	sccp_device_lock(device);
 	sprintf(family, "SCCP/%s", device->id);
-	sccp_device_unlock(d);
+	sccp_device_unlock(device);
 
 	switch((*event)->event.featureChanged.featureType) {
 		case SCCP_FEATURE_CFWDALL:
+			
+			SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list){
+				if(config->type == LINE ){
+					line = sccp_line_find_byname_wo(config->button.line.name,FALSE);
+					if(line){
+						SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list){
+							if(lineDevice->device != device)
+								continue;
+							
+							sprintf(cfwdLineStore, "%s/%s", family,config->button.line.name);
+							if(lineDevice->cfwdAll.enabled)
+								ast_db_put(cfwdLineStore, "cfwdAll", lineDevice->cfwdAll.number);
+							else
+								ast_db_del(cfwdLineStore, "cfwdAll");
+						}
+					}
+				}
+
+			}
+		  
 			break;
 		case SCCP_FEATURE_CFWDBUSY:
 		  	break;
