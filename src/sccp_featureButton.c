@@ -39,6 +39,8 @@
 void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureType)
 {
 	sccp_moo_t 			*featureRequestMessage = NULL;
+	sccp_moo_t 			*featureRequestMessage2 = NULL;
+	sccp_moo_t 			*buttonDefMessage = NULL;
 	sccp_buttonconfig_t		*config=NULL, *buttonconfig = NULL;
 	sccp_linedevices_t		*linedevice =NULL;
 	sccp_line_t			*line;
@@ -136,6 +138,14 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 				case SCCP_FEATURE_TEST3:
 					buttonID = SKINNY_BUTTONTYPE_TEST3;
 					config->button.feature.status = device->priFeature.status;
+					if(0 == device->priFeature.initialized)
+					{
+						buttonID = SKINNY_BUTTONTYPE_FEATURE;
+					}
+					else
+					{
+						buttonID = SKINNY_BUTTONTYPE_TEST3;
+					}
 					break;
 
 				case SCCP_FEATURE_TEST4:
@@ -157,11 +167,31 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 			REQ(featureRequestMessage, FeatureStatMessage);
 			featureRequestMessage->msg.FeatureStatMessage.lel_featureInstance = htolel(instance);
 			featureRequestMessage->msg.FeatureStatMessage.lel_featureID = htolel(buttonID);
-			//featureRequestMessage->msg.FeatureStatMessage.lel_featureID = htolel(0x13);
 			sccp_copy_string(featureRequestMessage->msg.FeatureStatMessage.featureTextLabel, config->button.feature.label, strlen(config->button.feature.label)+1);
 			featureRequestMessage->msg.FeatureStatMessage.lel_featureStatus = htolel(config->button.feature.status);
 			sccp_dev_send(device, featureRequestMessage);
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request. Instance = %d Status: %d\n", device->id, instance, config->button.feature.status);
+			
+			
+			switch(config->button.feature.id){
+				case SCCP_FEATURE_TEST3:
+
+					if(0 == device->priFeature.initialized)
+					{
+						REQ(buttonDefMessage, ButtonTemplateMessageSingle);
+						buttonDefMessage->msg.ButtonTemplateMessageSingle.lel_buttonOffset = htolel(instance-1);
+						buttonDefMessage->msg.ButtonTemplateMessageSingle.lel_buttonCount = htolel(1);
+						buttonDefMessage->msg.ButtonTemplateMessageSingle.lel_totalButtonCount = htolel(1);
+						buttonDefMessage->msg.ButtonTemplateMessageSingle.definition[0].instanceNumber = instance;
+						buttonDefMessage->msg.ButtonTemplateMessageSingle.definition[0].buttonDefinition = SKINNY_BUTTONTYPE_TEST3;
+						sccp_dev_send(device, buttonDefMessage);
+						device->priFeature.initialized = 1;
+					}
+					break;
+					
+				default:
+					break;
+			}
 		}
 
 	}

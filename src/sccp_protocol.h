@@ -581,6 +581,7 @@ typedef enum {
         StartSessionTransmission		= 0x0095,
         StopSessionTransmission			= 0x0096,
         ButtonTemplateMessage 			= 0x0097,
+        ButtonTemplateMessageSingle		= 0x0097,
         VersionMessage				= 0x0098,
         DisplayTextMessage			= 0x0099,
         ClearDisplay				= 0x009A,
@@ -1767,6 +1768,14 @@ typedef union {
 		uint32_t 	lel_totalButtonCount;				/*!< Total Number of Buttons */
 		StationButtonDefinition definition[StationMaxButtonTemplateSize];/*!< Station Button Definition */
 	} ButtonTemplateMessage;						/*!< Button Template Message Structure */
+
+	struct {
+		uint32_t 	lel_buttonOffset;				/*!< Button OffSet */
+		uint32_t 	lel_buttonCount;				/*!< Button Count */
+		uint32_t 	lel_totalButtonCount;				/*!< Total Number of Buttons */
+		StationButtonDefinition definition[1];/*!< Station Button Definition */
+	} ButtonTemplateMessageSingle;						/*!< Button Template Message Structure */
+
 
 	struct {
 		char 		requiredVersion[StationMaxVersionSize];		/*!< Required Version */

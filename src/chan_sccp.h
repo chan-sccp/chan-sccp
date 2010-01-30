@@ -271,6 +271,7 @@ typedef enum {
 
 typedef struct {
         boolean_t				enabled;				/*!< Feature Enabled */
+        boolean_t				initialized;				/*!< Feature Enabled */
         uint32_t					status;					/*!< Feature State */
 } sccp_featureConfiguration_t;								/*!< Feature Configuration */
 
