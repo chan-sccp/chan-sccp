@@ -349,7 +349,18 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 	if (!d)
 		return;
 
-	sccp_device_lock(d);
+	//sccp_device_lock(d);
+	int retry = 0;
+	while(sccp_device_trylock(d)) {
+		retry++;
+		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s), retry: %d\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__, retry);
+		usleep(100);
+		
+		if(retry > 100){
+		     return;
+		}
+	}
+	
 	/* when l is defined we are switching on/off the button icon */
 	if(l)
 		instance = sccp_device_find_index_for_line(d, l->name);

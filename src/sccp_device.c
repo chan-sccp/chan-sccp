@@ -443,12 +443,23 @@ void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
 	if (!d)
 		return;
 
+	
+	int retry = 0;
+	while(sccp_device_trylock(d)) {
+		retry++;
+		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s), retry: %d\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__, retry);
+		usleep(100);
+		
+		if(retry > 100){
+		     return;
+		}
+	}
 
-	sccp_device_lock(d);
 	if (l) {
 		instance = sccp_device_find_index_for_line(d, l->name);
 	} else {
 		if (d->mwilight == hasMail) {
+			sccp_device_unlock(d);
 			return;
 		}
 		d->mwilight = hasMail;
