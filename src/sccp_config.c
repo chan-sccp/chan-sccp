@@ -1269,5 +1269,6 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 
 	/* initialize so called priority feature */
 	device->priFeature.status = 0x010101;
+	device->priFeature.initialized = 0;
 }
 
