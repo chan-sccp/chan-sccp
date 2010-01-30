@@ -98,7 +98,7 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 		ast_cli(fd, "Can't find device %s\n", argv[2]);
 		return RESULT_SUCCESS;
 	}
-	
+
 
 	sccp_device_lock(d);
 	if (!d->session) {
@@ -106,8 +106,8 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 		sccp_device_unlock(d);
 		return RESULT_SUCCESS;
 	}
-	
-	
+
+
 	if(d->channelCount > 0) {
 		/* sccp_device_clean will check active channels */
 	        //ast_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
@@ -466,8 +466,8 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 		}
 	}
 
-	
-	
+
+
 	return RESULT_SUCCESS;
 }
 
@@ -1577,7 +1577,7 @@ static struct ast_cli_entry cli_reload = {
  * \return Result as int
  */
 static int sccp_show_version(int fd, int argc, char *argv[]) {
-	ast_cli(fd, "SCCP channel Release: %s - %s (built by '%s' on '%s')\n", SCCP_BRANCH, SCCP_VERSION, BUILD_USER, BUILD_DATE);
+	ast_cli(fd, "Skinny Client Control Protocol (SCCP). Release: %s - %s (built by '%s' on '%s')\n", SCCP_BRANCH, SCCP_REVISION, BUILD_USER, BUILD_DATE);
 	return RESULT_SUCCESS;
 }
 
@@ -1647,20 +1647,20 @@ static char *cli_show_mwi_subscriptions(struct ast_cli_entry *e, int cmd, struct
 		return CLI_SHOWUSAGE;
 
 	//if(sccp_show_version(a->fd, a->argc, a->argv) == RESULT_SUCCESS){
-	  
-	  
+
+
 	sccp_mailbox_subscriber_list_t *subscribtion = NULL;
 	sccp_mailboxLine_t	*mailboxLine = NULL;
 	ast_cli(a->fd, "subscriptionsize: %d\n", sccp_mailbox_subscriptions.size);
 	SCCP_LIST_TRAVERSE(&sccp_mailbox_subscriptions, subscribtion, list){
 		ast_cli(a->fd, "mailbox: %s@%s\n", subscribtion->mailbox, subscribtion->context);
-		
+
 		SCCP_LIST_TRAVERSE(&subscribtion->sccp_mailboxLine, mailboxLine, list){
 			ast_cli(a->fd, "---line: %s\n", (mailboxLine->line)->name );
 			ast_cli(a->fd, "-----status\n");
 			ast_cli(a->fd, "--------new: %d\n",(mailboxLine->line)->voicemailStatistic.newmsgs);
 			ast_cli(a->fd, "--------old: %d\n",(mailboxLine->line)->voicemailStatistic.oldmsgs);
-			
+
 			sccp_linedevices_t *lineDevice = NULL;
 			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&(mailboxLine->line)->devices, lineDevice, list){
 				ast_cli(a->fd, "-----------device: %s light: %d\n", DEV_ID_LOG(lineDevice->device), lineDevice->device->mwilight);
@@ -1713,37 +1713,37 @@ static char *cli_show_softkeysets(struct ast_cli_entry *e, int cmd, struct ast_c
 		return CLI_SHOWUSAGE;
 
 	//if(sccp_show_version(a->fd, a->argc, a->argv) == RESULT_SUCCESS){
-	  
-	  
+
+
 	sccp_softKeySetConfiguration_t *softkeyset = NULL;
-	
+
 	ast_cli(a->fd, "SoftKeySets: %d\n", softKeySetConfig.size);
 	uint8_t i = 0;
 	uint8_t v_count = 0;
 	uint8_t c=0;
 	SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list){
 		v_count = sizeof(softkeyset->modes)/sizeof(softkey_modes);
-	  
+
 		ast_cli(a->fd, "name: %s\n", softkeyset->name);
 		ast_cli(a->fd, "number of softkeysets: %d\n", v_count );
-		
-		
-		
+
+
+
 		for (i = 0; i < v_count; i++) {
 			const uint8_t *b = softkeyset->modes[i].ptr;
 			//ast_cli(a->fd, "      Set[%-2d]= ", softkeyset->modes[i].id);
 			ast_cli(a->fd, "      Set[%-2d]= ", i);
-			
+
 			for ( c = 0; c < softkeyset->modes[i].count; c++) {
 				ast_cli(a->fd, "%-2d:%-10s ", c, skinny_lbl2str(b[c]));
 			}
-			
+
 			ast_cli(a->fd, "\n");
 		}
-		
+
 		//ast_cli(a->fd, "      Set[%-2d]= ", softkeyset->id);
 		ast_cli(a->fd, "\n");
-		
+
 	}
 	ast_cli(a->fd, "\n");
 	return CLI_SUCCESS;
@@ -1797,7 +1797,7 @@ static struct ast_cli_entry cli_entries[] = {
 		AST_CLI_DEFINE(cli_show_softkeysets, "Show all mwi configured SoftKeySets"),
 		AST_CLI_DEFINE(cli_restart, ""),
 		AST_CLI_DEFINE(cli_reset, ""),
-		
+
 		AST_CLI_DEFINE(cli_show_device, "")
 };
 #endif
@@ -1834,8 +1834,8 @@ void sccp_register_cli(void) {
   ast_cli_register(&cli_show_globals);
   ast_cli_register(&cli_message_devices);
   ast_cli_register(&cli_remove_line_device);
-  
-  ast_cli_register(&cli_show_mwi_subscriptions);  
+
+  ast_cli_register(&cli_show_mwi_subscriptions);
 #endif
 
 }
@@ -1868,7 +1868,7 @@ void sccp_unregister_cli(void) {
   ast_cli_unregister(&cli_show_globals);
   ast_cli_unregister(&cli_message_devices);
   ast_cli_unregister(&cli_remove_line_device);
-  
+
   ast_cli_unregister(&cli_show_mwi_subscriptions);
 #endif
 }
