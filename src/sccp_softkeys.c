@@ -272,7 +272,11 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 	// sccp_log(10)(VERBOSE_PREFIX_3 "%s: backspacing dial number %s\n", c->device->id, c->dialedNumber);
 	sccp_handle_dialtone_nolock(c);
 	sccp_channel_unlock(c);
+
+	sccp_device_lock(c->device);
 	instance = sccp_device_find_index_for_line(c->device, c->line->name);
+	sccp_device_unlock(c->device);
+
 	sccp_handle_backspace(d, instance, c->callid);
 }
 

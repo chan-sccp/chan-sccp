@@ -65,9 +65,12 @@ static void * sccp_pbx_call_autoanswer_thread(void *data)
 	if (c->state != SCCP_CHANNELSTATE_RINGING)
 		return NULL;
 	sccp_channel_answer(c->device, c);
-	if (GLOB(autoanswer_tone) != SKINNY_TONE_SILENCE && GLOB(autoanswer_tone) != SKINNY_TONE_NOTONE)
+	if (GLOB(autoanswer_tone) != SKINNY_TONE_SILENCE && GLOB(autoanswer_tone) != SKINNY_TONE_NOTONE){
+		sccp_device_lock(c->device);
 		instance = sccp_device_find_index_for_line(c->device, c->line->name);
+		sccp_device_unlock(c->device);
 		sccp_dev_starttone(c->device, GLOB(autoanswer_tone), instance, c->callid, 0);
+	}
 	if (c->autoanswer_type == SCCP_AUTOANSWER_1W)
 		sccp_dev_set_microphone(c->device, SKINNY_STATIONMIC_OFF);
 
@@ -260,7 +263,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	/*!\bug{seems it does not work }
 	 */
 	ringermode = pbx_builtin_getvar_helper(ast, "ALERT_INFO");
-	
+
 	if ( ringermode && !ast_strlen_zero(ringermode) ) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Found ALERT_INFO=%s\n", d->id, ringermode);
 		if (strcasecmp(ringermode, "inside") == 0)
@@ -330,7 +333,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
 			if(!linedevice->device)
 				continue;
-			
+
 			d=linedevice->device;
 
 			/* do we have cfwd enabled? */
@@ -342,12 +345,12 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 				sccp_channel_forward(c, linedevice, linedevice->cfwdAll.number);
 				continue;
 			}
-			
-			
-			
+
+
+
 			if(!d->session)
 				continue;
-			
+
 			if ( sccp_channel_get_active(d) ) {
 				sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CALLWAITING);
 				isRinging = TRUE;
@@ -457,8 +460,8 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Current channel %s-%08x state %s(%d)\n", (d)?DEV_ID_LOG(d):"(null)", l ? l->name : "(null)", c->callid, sccp_indicate2str(c->state), c->state);
-	
-	
+
+
 	/* end callforwards */
 	sccp_channel_t	*channel;
 	SCCP_LIST_LOCK(&c->line->channels);
@@ -534,8 +537,8 @@ void sccp_pbx_needcheckringback(sccp_device_t * d) {
 static int sccp_pbx_answer(struct ast_channel *ast)
 {
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
-	
-	
+
+
 
 #ifdef ASTERISK_CONF_1_2
 	// if channel type is undefined, set to SCCP
@@ -549,16 +552,16 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 		ast_log(LOG_ERROR, "SCCP: Answered %s but no SCCP channel\n", ast->name);
 		return -1;
 	}
-	
+
 	if( c->parentChannel){
 		/* we are a forwarded call, bridge me with my parent */
 		sccp_log(10)(VERBOSE_PREFIX_4 "SCCP: bridge me with my parent, device %s\n", DEV_ID_LOG(c->device));
-		
+
 		struct ast_channel	*astChannel = NULL, *br = NULL, *astForwardedChannel = c->parentChannel->owner;
-		
-		
-		/* 
-		  on this point we do not have a pointer to ou bridge channel 
+
+
+		/*
+		  on this point we do not have a pointer to ou bridge channel
 		  so we search for it -MC
 		*/
 		const char *bridgePeer = pbx_builtin_getvar_helper(c->owner, "BRIDGEPEER");
@@ -574,12 +577,12 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 				ast_channel_unlock(astChannel);
 			}
 		}
-		
+
 		ast_log(LOG_ERROR, "SCCP: bridge: %s\n", (br)?br->name:" -- no bridget -- ");
 		/* did we found our bridge */
 		if(br){
 			c->parentChannel = NULL;
-			ast_channel_masquerade(astForwardedChannel, br); /* bridge me */		
+			ast_channel_masquerade(astForwardedChannel, br); /* bridge me */
 			return 0;
 		}else{
 			/* we have no bridge and can not make a masquerade -> end call */
@@ -588,14 +591,14 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 		}
 		return -1;
 	}
-	
-	
+
+
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Outgoing call has been answered %s on %s@%s-%08x\n", ast->name, c->line->name, DEV_ID_LOG(c->device), c->callid);
 	//ast->nativeformats = c->device ? c->device->capability : GLOB(global_capability);
 	sccp_channel_updateChannelCapability(c);
 	/* This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
 	   as I have forgotten what my actual motivation was for writing this strange code. (-DD) */
-	
+
 	sccp_indicate_lock(c->device, c, SCCP_CHANNELSTATE_DIALING);
 	sccp_channel_send_callinfo(c->device,c);
 	sccp_indicate_lock(c->device, c, SCCP_CHANNELSTATE_PROCEED);
@@ -632,7 +635,7 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 				//sccp_conference_readFrame(frame, c);
 			}
 #endif
-			
+
 			break;
 		case 1:
 			frame = ast_rtcp_read(c->rtp.audio);	/* RTCP Control Channel */
@@ -729,7 +732,7 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 						ast_getformatname_multiple(s3, sizeof(s3) - 1, ast->writeformat),
 						ast->writeformat);
 					//return -1;
-					
+
 				}
 				if (c->rtp.audio){
 					res = sccp_rtp_read(c->rtp.audio, frame);
@@ -884,7 +887,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
     case AST_CONTROL_SRCUPDATE:
         /* Source media has changed. */
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
-		
+
 		/* change our format */
 		char s1[512], s2[512];
 		ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%d) to: %s(%d) \n",
@@ -902,12 +905,12 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat),
 #endif
 		ast->rawreadformat);
-	
-	
+
+
 	/* update channel format */
 	int oldChannelFormat = c->format;
 	c->format = ast->rawreadformat;
-	
+
 	if(oldChannelFormat != c->format ){
 		ast_set_read_format(ast, c->format);
 		ast_set_write_format(ast, c->format);
@@ -922,7 +925,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 				sccp_channel_openreceivechannel(c);	/* reopen it */
 			}
 		}
-		
+
 	}
 #ifdef CS_AST_RTP_NEW_SOURCE
         if(c->rtp.audio) {
@@ -1000,10 +1003,10 @@ static void sccp_pbx_update_connectedline(sccp_channel_t *channel, const void *d
  */
 static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newchan) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: we gote a fixup request for %s\n", newchan->name);
-	
+
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(newchan);
 	sccp_channel_t * c2 = CS_AST_CHANNEL_PVT(oldchan);
-	
+
 	if (!c) {
 		ast_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", oldchan->name, oldchan, newchan->name, newchan);
 		return -1;
@@ -1014,7 +1017,7 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 		sccp_mutex_unlock(&c->lock);
 		return -1;
 	}
-	
+
 	c->owner = newchan;
 	sccp_mutex_unlock(&c->lock);
 	return 0;
@@ -1038,7 +1041,7 @@ static int sccp_pbx_recvdigit_begin(struct ast_channel *ast, char digit) {
  * \param ast Asterisk Channel as ast_channel
  * \param digit Last Digit as char
  * \return Always Return -1 as int
- * \todo FIXME Always returns -1 
+ * \todo FIXME Always returns -1
  */
 static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit) {
 #else
@@ -1243,9 +1246,9 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	//tmp->nativeformats = ast_codec_choose(&d->codecs, (d->capability ? d->capability : GLOB(global_capability)), 1);
 	//tmp->nativeformats = (l->capability ? l->capability : GLOB(global_capability));
 	//tmp->nativeformats = ast_codec_choose(&c->codecs, c->capability, 1);
-	
 
-	
+
+
 
 	//fmt = ast_codec_choose(&d->codecs, tmp->nativeformats, 1);
 	//fmt = tmp->nativeformats;
@@ -1654,10 +1657,10 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 	sccp_copy_string(chan->exten, shortenedNumber, sizeof(chan->exten));
 	sccp_copy_string(d->lastNumber, c->dialedNumber, sizeof(d->lastNumber));
 	sccp_channel_set_calledparty(c, c->dialedNumber, shortenedNumber);
-	
+
 	/* The 7961 seems to need the dialing callstate to record its directories information. */
  	sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_DIALING);
-	
+
 	/* proceed call state is needed to display the called number.
 	The phone will not display callinfo in offhook state */
 	sccp_channel_set_callstate(d, c, SKINNY_CALLSTATE_PROCEED);
@@ -1766,7 +1769,7 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 */
 }
 
-/*! 
+/*!
  * \brief Queue a control frame
  * \param c SCCP Channel
  * \param control as Asterisk Control Frame Type

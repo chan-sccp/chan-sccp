@@ -114,10 +114,10 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 	d->configurationStatistic.numberOfFeatures=0;
 	/* */
 
-	
+
 	d->softKeyConfiguration.modes = (softkey_modes *)SoftKeyModes;
 	d->softKeyConfiguration.size = sizeof(SoftKeyModes)/sizeof(softkey_modes);
-	
+
 	// TODO: FIX THIS
 	/*
 		d->selectedChannels = NULL;
@@ -131,7 +131,7 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 sccp_device_t *sccp_device_addToGlobals(sccp_device_t *device){
 	if(!device)
 		return NULL;
-  
+
 	SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_INSERT_HEAD(&GLOB(devices), device, list);
 	SCCP_LIST_UNLOCK(&GLOB(devices));
@@ -170,19 +170,19 @@ int sccp_device_get_codec(struct ast_channel *ast)
 	ast->rawreadformat = d->capability;
 	ast->rawwriteformat = d->capability;
 	*/
-	
+
 	ast_set_read_format(ast, c->format);
 	ast_set_write_format(ast, c->format);
-	
+
 	char s1[512];
-	sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) capabilities are %s (%d)\n", 
+	sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) capabilities are %s (%d)\n",
 #ifndef ASTERISK_CONF_1_2
 		ast_getformatname_multiple(s1, sizeof(s1) -1, c->capability & AST_FORMAT_AUDIO_MASK),
 #else
 		ast_getformatname_multiple(s1, sizeof(s1) -1, c->capability),
 #endif
 		c->capability);
-		
+
 	return c->capability;
 }
 
@@ -443,22 +443,20 @@ void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
 	if (!d)
 		return;
 
+
+	sccp_device_lock(d);
 	if (l) {
-//		if (l->voicemailCount == hasMail) {
-//			return;
-//		}
-//		l->voicemailCount = hasMail;
+		instance = sccp_device_find_index_for_line(d, l->name);
 	} else {
 		if (d->mwilight == hasMail) {
 			return;
 		}
 		d->mwilight = hasMail;
-	}
-
-	if(l)
-		instance = sccp_device_find_index_for_line(d, l->name);
-	else
 		instance = 0;
+	}
+	sccp_device_unlock(d);
+
+
 	REQ(r, SetLampMessage);
 	r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
 	r->msg.SetLampMessage.lel_stimulusInstance = (l ? htolel(instance) : 0);
@@ -954,7 +952,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 // 				// tmp[0] = '\0';
 // 				memset(tmp, 0, sizeof(tmp));
 // 				instance = sccp_device_find_index_for_line(d, l->name);
-// 
+//
 // 				if (l->cfwd_type == SCCP_CFWD_ALL) {
 // 					strcat(tmp, SKINNY_DISP_CFWDALL ":");
 // 					sccp_dev_set_lamp(d, SKINNY_STIMULUS_FORWARDALL, instance, SKINNY_LAMP_ON);
@@ -967,7 +965,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 // 				sccp_dev_displayprompt(d, 0, 0, tmp, 0);
 // 				sccp_dev_set_keyset(d, instance, 0, KEYMODE_ONHOOK); /* this is for redial softkey */
 // 			}
-// 
+//
 // 		}
 // 	}
 
@@ -1194,7 +1192,7 @@ void * sccp_dev_postregistration(void *data)
 	event->type=SCCP_EVENT_DEVICEREGISTERED;
 	event->event.deviceRegistered.device = d;
 	sccp_event_fire( (const sccp_event_t **)&event);
-	
+
 	//sccp_config_restoreDeviceFeatureStatus(d);
 	sccp_dev_check_displayprompt(d);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: ... done!\n", d->id);
@@ -1216,18 +1214,18 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 	sccp_selectedchannel_t 	*selectedChannel = NULL;
 	sccp_line_t	*line =NULL;
 	sccp_channel_t	*channel=NULL;
-	
+
 	char family[25];
-	
+
 
 	if (!d)
 		return;
-	
+
 	sprintf(family, "SCCP/%s", d->id);
 	ast_db_del(family, "lastDialedNumber");
 	if(!ast_strlen_zero(d->lastNumber))
 		ast_db_put(family, "lastDialedNumber", d->lastNumber);
-	
+
 	if(destroy)
 		SCCP_LIST_REMOVE(&GLOB(devices), d, list);
 
@@ -1317,7 +1315,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 
 		d->ha = NULL;
 	}
-	
+
 	sccp_device_unlock(d);
 	if(destroy){
 		uint8_t waittime = 10;
@@ -1340,18 +1338,18 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
  */
 int sccp_device_free(const void *ptr){
 	sccp_device_t *d = (sccp_device_t *)ptr;
-  
+
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: device deleted\n", d->id);
 	ast_mutex_destroy(&d->lock);
 	ast_free(d);
-	
+
 	return 0;
 }
 
-boolean_t sccp_device_isVideoSupported(sccp_device_t *device){
+boolean_t sccp_device_isVideoSupported(const sccp_device_t *device){
 	//if(device->capability & AST_FORMAT_VIDEO_MASK)
 	//	return TRUE;
-	
+
 	return FALSE;
 }
 
@@ -1396,8 +1394,9 @@ sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t ins
  * \param d SCCP Device
  * \param lineName Line Name as char
  * \return Status as int
+ * \note device should be locked by parent fuction
  */
-int sccp_device_find_index_for_line(sccp_device_t * d, char *lineName)
+int sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName)
 {
 	int i=0;
 	sccp_buttonconfig_t	*config;
@@ -1409,6 +1408,7 @@ int sccp_device_find_index_for_line(sccp_device_t * d, char *lineName)
 	if(!lineName)
 		return -1;
 
+	/* device is already locked by parent function */
 	//SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		i++;
@@ -1507,38 +1507,41 @@ void sccp_device_stateChanged(sccp_device_t *device)
         sccp_mwi_check(device);
 }
 
-uint8_t sccp_device_numberOfChannels(sccp_device_t *device){
+/**
+ * get number of channels that the device owns
+ * \param device sccp device
+ * \note device should be locked by parent functions
+ */
+uint8_t sccp_device_numberOfChannels(const sccp_device_t *device){
 	sccp_buttonconfig_t 	*config;
 	sccp_channel_t 		*c;
 	sccp_line_t 		*l;
 	uint8_t			numberOfChannels = 0;
-  
+
 	if(!device){
 		sccp_log(1)(VERBOSE_PREFIX_3 "device is null\n");
 		return 0;
 	}
-	
-	SCCP_LIST_LOCK(&device->buttonconfig);
+
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
-	  
+
 		if(config->type == LINE){
 			l = sccp_line_find_byname_wo(config->button.line.name, FALSE);
 			if(!l)
 				continue;
-				  
-		  
+
+
 			SCCP_LIST_LOCK(&l->channels);
 			SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 				if(c->device == device)
 					numberOfChannels++;
 			}
 			SCCP_LIST_UNLOCK(&l->channels);
-		  
-		  
+
+
 		}
 	}
-	SCCP_LIST_UNLOCK(&device->buttonconfig);
-	
+
 	return numberOfChannels;
 }
 

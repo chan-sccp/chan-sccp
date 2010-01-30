@@ -322,17 +322,17 @@ sccp_device_t * sccp_device_find_realtime(const char * name) {
 		v = variable;
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Device '%s' found in realtime table '%s'\n", name, GLOB(realtimedevicetable));
 		//d = sccp_config_buildDevice(v, name, TRUE);
-		
+
 		d = sccp_device_create();
 		sccp_copy_string(d->id, name, sizeof(d->id));
 		d = sccp_config_applyDeviceConfiguration(d, variable);
-		
+
 #ifdef CS_SCCP_REALTIME
 		d->realtime = TRUE;
 #endif
 		d = sccp_device_addToGlobals(d);
 		ast_variables_destroy(v);
-		
+
 		if(!d) {
 			ast_log(LOG_ERROR, "SCCP: Unable to build realtime device '%s'\n", name);
 		}
@@ -400,7 +400,7 @@ sccp_line_t * sccp_line_find_realtime_byname(const char * name)
 		v = variable;
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Line '%s' found in realtime table '%s'\n", name, GLOB(realtimelinetable));
 		//l = build_lines_wo(v, 1);
-		
+
 		//l = sccp_config_buildLine(v, name, TRUE);
 		l = sccp_line_create();
 		l = sccp_config_applyLineConfiguration(l, variable);
@@ -410,8 +410,8 @@ sccp_line_t * sccp_line_find_realtime_byname(const char * name)
 #endif
 		l = sccp_line_addToGlobals(l);
 		ast_variables_destroy(v);
-		
-		
+
+
 		if(!l) {
 			ast_log(LOG_ERROR, "SCCP: Unable to build realtime line '%s'\n", name);
 		}
@@ -755,7 +755,7 @@ void sccp_dev_dbput(sccp_device_t * d) {
 void sccp_dev_dbget(sccp_device_t * d) {
 // 	char result[256]="", *tmp, *tmp1, *r;
 // 	int i=0;
-// 
+//
 // 	if (!d)
 // 		return;
 // 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Restoring device status (dnd, cfwd*) from the asterisk db\n", d->id);
@@ -2023,12 +2023,12 @@ const char * skinny_codec2str(uint8_t type) {
 	case 85:
 		return "G.729 Annex B";
 	case 86:
-		return "G.729B Low Complexity";	
+		return "G.729B Low Complexity";
 	case 101:
 		return "H.263";
 	case 103:
 		return "H.264";
-		
+
 	default:
 		return "unknown";
 	}
@@ -2227,7 +2227,7 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
 /*!
  * \brief This is used on device reconnect attempt
  * \param s_addr IP Address as unsigned long
- * \return SCCP Device 
+ * \return SCCP Device
  */
 sccp_device_t * sccp_device_find_byipaddress(unsigned long s_addr){
 	sccp_device_t * d;
@@ -2248,11 +2248,11 @@ sccp_device_t * sccp_device_find_byipaddress(unsigned long s_addr){
 /*!
  * \brief map states from sccp to ast_device_state
  * \param state SCCP Channel State
- * \return asterisk device state 
+ * \return asterisk device state
  */
 enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state){
 	switch(state){
-	  case SCCP_CHANNELSTATE_ONHOOK: 
+	  case SCCP_CHANNELSTATE_ONHOOK:
 	  case SCCP_CHANNELSTATE_DOWN:
 		return AST_DEVICE_NOT_INUSE;
 	  break;
@@ -2309,11 +2309,14 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 	char family[25];
 	sccp_device_t *device = (*event)->event.featureChanged.device;
 
-	
-	if(!(*event) || !(*event)->event.featureChanged.device )
+
+	if(!(*event) || !device )
 		return;
-	
+
+	sccp_device_lock(device);
 	sprintf(family, "SCCP/%s", device->id);
+	sccp_device_unlock(d);
+
 	switch((*event)->event.featureChanged.featureType) {
 		case SCCP_FEATURE_CFWDALL:
 			break;
@@ -2322,18 +2325,18 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 		case SCCP_FEATURE_DND:
 			if(!device->dndFeature.status){
 				ast_db_del(family, "dnd");
-				sccp_log(1)(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "dnd");
+				//sccp_log(1)(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "dnd");
 			}else{
 				if(device->dndFeature.status == SCCP_DNDMODE_SILENT)
 					ast_db_put(family, "dnd", "silent");
-				else 
+				else
 					ast_db_put(family, "dnd", "reject");
-			}	
+			}
 		  	break;
 		case SCCP_FEATURE_PRIVACY:
 			if(!device->privacyFeature.status){
 				ast_db_del(family, "privacy");
-				sccp_log(1)(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "privacy");
+				//sccp_log(1)(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "privacy");
 			}else{
 				char data[256];
 				sprintf(data, "%d", device->privacyFeature.status );
@@ -2343,7 +2346,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 		case SCCP_FEATURE_MONITOR:
 			if(!device->monitorFeature.status){
 				ast_db_del(family, "monitor");
-				sccp_log(1)(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "monitor");
+				//sccp_log(1)(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "monitor");
 			}else{
 				ast_db_put(family, "monitor", "on");
 			}
@@ -2351,5 +2354,5 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 		default:
 			return;
 	}
-	
+
 }
