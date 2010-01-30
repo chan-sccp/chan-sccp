@@ -60,9 +60,12 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		ast_log(LOG_ERROR, "SCCP: The channel %d does not have a line\n",c->callid);
 		return;
 	}
-
 	l = c->line;
+
+	sccp_device_lock(d);
 	instance = sccp_device_find_index_for_line(d, l->name);
+	sccp_device_unlock(d);
+
 	/* all the check are ok. We can safely run all the dev functions with no more checks */
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Indicate SCCP state (%s) old (%s) on call %s-%08x\n",d->id, sccp_indicate2str(state), sccp_indicate2str(c->state), l->name, c->callid);
 
@@ -172,7 +175,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_handle_time_date_req(d->session, NULL);
 		if (c == d->active_channel)
 			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
-		
+
 		if (c->previousChannelState == SCCP_CHANNELSTATE_RINGING)
 			sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
 
@@ -374,7 +377,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
  * \param state State as int
  * \param debug Debug as int
  * \param file File as char
- * \param line Line as int 
+ * \param line Line as int
  * \param pretty_function Pretty Function as char
  * \todo Explain Pretty Function
  */
@@ -400,13 +403,13 @@ void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, ui
 			if(device && remoteDevice == device)
 				continue;
 
-			
+
 
 			sccp_log(64)(VERBOSE_PREFIX_3 "%s: Notify remote device.\n", DEV_ID_LOG(remoteDevice));
 			sccp_log(64)(VERBOSE_PREFIX_3 "%s: channelcount: %d\n", DEV_ID_LOG(remoteDevice), c->line->channelCount);
 
 			instance = sccp_device_find_index_for_line(remoteDevice, c->line->name);
-			
+
 			switch (state) {
 				case SCCP_CHANNELSTATE_DOWN:
 				break;
@@ -443,7 +446,7 @@ void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, ui
 				case SCCP_CHANNELSTATE_CONNECTED:
 					/* DD: We sometimes set the channel to offhook first before setting it to connected state.
 					   This seems to be necessary to have incoming calles logged properly.
-					   If this is done, the ringer would not get turned off on remote devices. 
+					   If this is done, the ringer would not get turned off on remote devices.
 					   So I removed the if clause below. Hopefully, this will not cause other calls to stop
 					 ringing if multiple calls are ringing concurrently on a shared line.*/
 

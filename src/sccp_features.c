@@ -93,8 +93,11 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 		}
 	}
 
-	/* look if we have a call  */
+	sccp_device_lock(device);
 	instance = sccp_device_find_index_for_line(device, l->name);
+	sccp_device_unlock(device);
+
+	/* look if we have a call  */
 	c = sccp_channel_get_active(device);
 
 	if (c) {
@@ -785,56 +788,58 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 
 	if(!d || !c)
 		return;
-	
+
+	sccp_device_lock(d);
 	uint8_t num = sccp_device_numberOfChannels(d);
+	sccp_device_inlock(d);
 	if(num < 2){
 		uint8_t instance = sccp_device_find_index_for_line(d, l->name);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 		return;
 	}
-	      
+
 	if(!d->conference){
 		d->conference = sccp_conference_create(c);
 	}
-	
-  
+
+
 	/* if we have selected channels, add this to conference */
 	SCCP_LIST_LOCK(&d->selectedChannels);
 	SCCP_LIST_TRAVERSE(&d->selectedChannels, selectedChannel, list) {
 		if(selectedChannel->channel->state != SCCP_CHANNELSTATE_CONNECTED)
 			sccp_indicate_nolock(selectedChannel->channel->device, selectedChannel->channel, SCCP_CHANNELSTATE_CONNECTED);
-		
+
 		sccp_conference_addParticipant(d->conference, selectedChannel->channel);
 	}
 	SCCP_LIST_UNLOCK(&d->selectedChannels);
-	
-	
+
+
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-	  
+
 		if(config->type == LINE){
 			line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
 			if(!line)
 				continue;
-				  
-		  
+
+
 			SCCP_LIST_LOCK(&line->channels);
 			SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
 				if(channel->device == d && !channel->conference){
-				  
+
 					if(channel->state == SCCP_CHANNELSTATE_HOLD)
 						sccp_channel_resume(channel->device, channel);
-				
+
 					sccp_conference_addParticipant(d->conference, channel);
 				}
 			}
 			SCCP_LIST_UNLOCK(&line->channels);
-		  
-		  
+
+
 		}
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
-	  
+
 #else
 	/* sorry but this is private code -FS */
 	uint8_t instance = sccp_device_find_index_for_line(d, l->name);
@@ -847,7 +852,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
  * \brief Handle Join a Conference
  * \param d SCCP Device
  * \param l SCCP Line
- * \param c SCCP Channel 
+ * \param c SCCP Channel
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  */
@@ -1117,10 +1122,10 @@ int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum) {
 }
 /*!
  * \brief Hotline Feature
- * 
+ *
  * Setting the hotline Feature on a device, will make it connect to a predefined extension as soon as the Receiver
  * is picked up or the "New Call" Button is pressed. No number has to be given.
- * 
+ *
  * \param d SCCP Device
  */
 void sccp_feat_hotline(sccp_device_t *d) {
@@ -1156,24 +1161,24 @@ void sccp_feat_hotline(sccp_device_t *d) {
  * \brief Handler to Notify Features have Changed
  * \param device SCCP Device
  * \param featureType SCCP Feature Type
- */ 
+ */
 void sccp_feat_changed(sccp_device_t *device, sccp_feature_type_t featureType){
 	if(device){
-	  
-	  
+
+
 		sccp_featButton_changed(device, featureType);
-		
+
 		sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
 		memset(event, 0, sizeof(sccp_event_t));
-		
+
 		event->type=SCCP_EVENT_FEATURECHANGED;
 		event->event.featureChanged.device = device;
 		event->event.featureChanged.featureType = featureType;
 		sccp_event_fire((const sccp_event_t **)&event);
-		
+
 	}
-	
-	
+
+
 }
 
 /*!
