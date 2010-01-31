@@ -29,12 +29,9 @@
 
 void sccp_mwi_checkLine(sccp_line_t *line);
 void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l);
-void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t **line);
-
-
 void sccp_mwi_linecreatedEvent(const sccp_event_t **event);
 void sccp_mwi_deviceAttachedEvent(const sccp_event_t **event);
-void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t **line);
+void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *line);
 
 
 
@@ -229,7 +226,7 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t **event){
 
 	if(line && (&line->mailboxes) != NULL){
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->mailboxes, mailbox, list){
-			sccp_mwi_addMailboxSubscription(mailbox->mailbox, (mailbox->context)?mailbox->context:"default", &line );
+			sccp_mwi_addMailboxSubscription(mailbox->mailbox, (mailbox->context)?mailbox->context:"default", line);
 		}
 		SCCP_LIST_TRAVERSE_SAFE_END;
 	}
@@ -238,7 +235,7 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t **event){
 
 
 
-void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t **line){
+void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *line){
 	sccp_mailbox_subscriber_list_t *subscribtion = NULL;
 	sccp_mailboxLine_t	*mailboxLine = NULL;
 	
@@ -292,16 +289,16 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 
 	/* we already have this subscription */
 	SCCP_LIST_TRAVERSE(&subscribtion->sccp_mailboxLine, mailboxLine, list){
-		if(mailboxLine->line == *line)
+		if(line == mailboxLine->line)
 			break;
 	}
 
 	if(!mailboxLine){
 		mailboxLine = ast_malloc(sizeof(sccp_mailboxLine_t));
-		mailboxLine->line = *line;
+		mailboxLine->line = line;
 
-		(*line)->voicemailStatistic.newmsgs = subscribtion->currentVoicemailStatistic.newmsgs;
-		(*line)->voicemailStatistic.oldmsgs = subscribtion->currentVoicemailStatistic.oldmsgs;
+		line->voicemailStatistic.newmsgs = subscribtion->currentVoicemailStatistic.newmsgs;
+		line->voicemailStatistic.oldmsgs = subscribtion->currentVoicemailStatistic.oldmsgs;
 
 
 		SCCP_LIST_LOCK(&subscribtion->sccp_mailboxLine);
