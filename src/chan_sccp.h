@@ -262,7 +262,21 @@ typedef enum {
 		SCCP_FEATURE_TEST2,
 		SCCP_FEATURE_TEST3,
 		SCCP_FEATURE_TEST4,
-		SCCP_FEATURE_TEST5
+		SCCP_FEATURE_TEST5,
+		SCCP_FEATURE_TEST6,
+		SCCP_FEATURE_TEST7,
+		SCCP_FEATURE_TEST8,
+		SCCP_FEATURE_TEST9,
+		SCCP_FEATURE_TESTA,
+		SCCP_FEATURE_TESTB,
+		SCCP_FEATURE_TESTC,
+		SCCP_FEATURE_TESTD,
+		SCCP_FEATURE_TESTE,
+		SCCP_FEATURE_TESTF,
+		SCCP_FEATURE_TESTG,
+		SCCP_FEATURE_TESTH,
+		SCCP_FEATURE_TESTI,
+		SCCP_FEATURE_TESTJ
 } sccp_feature_type_t;									/*!< Feature Type */
 
 /*!
@@ -619,6 +633,7 @@ struct sccp_device {
         sccp_featureConfiguration_t 		monitorFeature;				/*!< Monitor (automon) Feature */
         sccp_featureConfiguration_t 		dndFeature;				/*!< dnd Feature */
         sccp_featureConfiguration_t 		priFeature;				/*!< priority Feature */
+        sccp_featureConfiguration_t 		mobFeature;				/*!< priority Feature */
         
         
         char 					softkeyDefinition[50];			/*!< requested softKey configuration */

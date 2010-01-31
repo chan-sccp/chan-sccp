@@ -41,6 +41,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 	sccp_moo_t 			*featureRequestMessage = NULL;
 	sccp_moo_t 			*featureRequestMessage2 = NULL;
 	sccp_moo_t 			*buttonDefMessage = NULL;
+	sccp_moo_t			*featureDynamicMessage = NULL;
 	sccp_buttonconfig_t		*config=NULL, *buttonconfig = NULL;
 	sccp_linedevices_t		*linedevice =NULL;
 	sccp_line_t			*line;
@@ -138,6 +139,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 				case SCCP_FEATURE_TEST3:
 					buttonID = SKINNY_BUTTONTYPE_TEST3;
 					config->button.feature.status = device->priFeature.status;
+					/*
 					if(0 == device->priFeature.initialized)
 					{
 						buttonID = SKINNY_BUTTONTYPE_FEATURE;
@@ -145,17 +147,74 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 					else
 					{
 						buttonID = SKINNY_BUTTONTYPE_TEST3;
-					}
+					}*/
+					buttonID = SKINNY_BUTTONTYPE_TEST3;
 					break;
 
 				case SCCP_FEATURE_TEST4:
 					buttonID = SKINNY_BUTTONTYPE_TEST4;
+					config->button.feature.status = device->mobFeature.status;
 					break;
 
 				case SCCP_FEATURE_TEST5:
 					buttonID = SKINNY_BUTTONTYPE_TEST5;
 					break;
 
+				case SCCP_FEATURE_TEST6:
+					buttonID = SKINNY_BUTTONTYPE_TEST6;
+					break;
+
+				case SCCP_FEATURE_TEST7:
+					buttonID = SKINNY_BUTTONTYPE_TEST7;
+					break;
+
+				case SCCP_FEATURE_TEST8:
+					buttonID = SKINNY_BUTTONTYPE_TEST8;
+					break;
+
+				case SCCP_FEATURE_TEST9:
+					buttonID = SKINNY_BUTTONTYPE_TEST9;
+					break;
+
+				case SCCP_FEATURE_TESTA:
+					buttonID = SKINNY_BUTTONTYPE_TESTA;
+					break;
+
+				case SCCP_FEATURE_TESTB:
+					buttonID = SKINNY_BUTTONTYPE_TESTB;
+					break;
+
+				case SCCP_FEATURE_TESTC:
+					buttonID = SKINNY_BUTTONTYPE_TESTC;
+					break;
+
+				case SCCP_FEATURE_TESTD:
+					buttonID = SKINNY_BUTTONTYPE_TESTD;
+					break;
+
+				case SCCP_FEATURE_TESTE:
+					buttonID = SKINNY_BUTTONTYPE_TESTE;
+					break;
+
+				case SCCP_FEATURE_TESTF:
+					buttonID = SKINNY_BUTTONTYPE_TESTF;
+					break;
+
+				case SCCP_FEATURE_TESTG:
+					buttonID = SKINNY_BUTTONTYPE_TESTG;
+					break;
+
+				case SCCP_FEATURE_TESTH:
+					buttonID = SKINNY_BUTTONTYPE_TESTH;
+					break;
+
+				case SCCP_FEATURE_TESTI:
+					buttonID = SKINNY_BUTTONTYPE_TESTI;
+					break;
+
+				case SCCP_FEATURE_TESTJ:
+					buttonID = SKINNY_BUTTONTYPE_TESTJ;
+					break;
 
 				default:
 				break;
@@ -164,6 +223,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 
 
 			/* send status */
+			/*
 			REQ(featureRequestMessage, FeatureStatMessage);
 			featureRequestMessage->msg.FeatureStatMessage.lel_featureInstance = htolel(instance);
 			featureRequestMessage->msg.FeatureStatMessage.lel_featureID = htolel(buttonID);
@@ -171,8 +231,16 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 			featureRequestMessage->msg.FeatureStatMessage.lel_featureStatus = htolel(config->button.feature.status);
 			sccp_dev_send(device, featureRequestMessage);
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request. Instance = %d Status: %d\n", device->id, instance, config->button.feature.status);
+			*/
+
+			REQ(featureDynamicMessage, SpeedDialStatDynamicMessage);
+			featureDynamicMessage->msg.SpeedDialStatDynamicMessage.lel_instance = htolel(instance);
+			featureDynamicMessage->msg.SpeedDialStatDynamicMessage.lel_type     = htolel(buttonID);
+			featureDynamicMessage->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(config->button.feature.status);
+			sccp_copy_string(featureDynamicMessage->msg.SpeedDialStatDynamicMessage.DisplayName, config->button.feature.label, strlen(config->button.feature.label)+1);
+			sccp_dev_send(device, featureDynamicMessage);
 			
-			
+		/*	
 			switch(config->button.feature.id){
 				case SCCP_FEATURE_TEST3:
 
@@ -191,8 +259,8 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 					
 				default:
 					break;
-			}
-		}
+			} */
+		} 
 
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
