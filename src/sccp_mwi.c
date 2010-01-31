@@ -161,7 +161,12 @@ void sccp_mwi_event(const struct ast_event *event, void *data){
 
 			/* notify each device on line */
 			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->devices, lineDevice, list){
-				sccp_mwi_setMWILineStatus(lineDevice->device, line);
+				if(0 != lineDevice->device) {
+					sccp_mwi_setMWILineStatus(lineDevice->device, line);
+				} else {
+					sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_4 "error: null line device.\n");
+				}
+
 			}
 			SCCP_LIST_TRAVERSE_SAFE_END;
 			sccp_line_unlock( line );
