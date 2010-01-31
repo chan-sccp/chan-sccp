@@ -659,21 +659,25 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 		return NULL;
 
 
+	sccp_device_lock(d);
+
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 		if(buttonconfig->type == LINE ){
 			l = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE);
 			if(l){
-				//SCCP_LIST_LOCK(&l->channels);
+				SCCP_LIST_LOCK(&l->channels);
 				SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 					if (c->callstate == state && c->state != SCCP_CHANNELSTATE_DOWN) {
 						sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(c->device), c->callid);
 						return c;
 					}
 				}
-				//SCCP_LIST_UNLOCK(&l->channels);
+				SCCP_LIST_UNLOCK(&l->channels);
 			}
 		}
 	}
+	
+	sccp_device_unlock(d);
 
 	return c;
 }
