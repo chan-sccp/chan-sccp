@@ -53,8 +53,7 @@ sccp_device_t * sccp_device_create(void){
 	d = sccp_device_applyDefaults(d);
 
 	SCCP_LIST_HEAD_INIT(&d->buttonconfig);
-	// TODO: FIX THIS
-	// SCCP_LIST_HEAD_INIT(&d->selectedChannels);
+	SCCP_LIST_HEAD_INIT(&d->selectedChannels);
 	SCCP_LIST_HEAD_INIT(&d->addons);
 	return d;
 }
@@ -114,14 +113,9 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 	d->configurationStatistic.numberOfFeatures=0;
 	/* */
 
-
 	d->softKeyConfiguration.modes = (softkey_modes *)SoftKeyModes;
 	d->softKeyConfiguration.size = sizeof(SoftKeyModes)/sizeof(softkey_modes);
 
-	// TODO: FIX THIS
-	/*
-		d->selectedChannels = NULL;
-	*/
 	  return d;
 }
 
@@ -1276,11 +1270,11 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 	sccp_addons_clear(d);
 
 	/* removing selected channels */
-	SCCP_LIST_LOCK(&d->selectedChannels);
-	while((selectedChannel = SCCP_LIST_REMOVE_HEAD(&d->selectedChannels, list))) {
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->selectedChannels, selectedChannel, list) {
+		SCCP_LIST_REMOVE(&d->selectedChannels, selectedChannel, list);
 		ast_free(selectedChannel);
 	}
-	SCCP_LIST_UNLOCK(&d->selectedChannels);
+	SCCP_LIST_TRAVERSE_SAFE_END;
 
 
 
