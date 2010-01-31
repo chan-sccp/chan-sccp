@@ -652,6 +652,7 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 	sccp_channel_t * c = NULL;
 	sccp_line_t * l;
 	sccp_buttonconfig_t	*buttonconfig = NULL;
+	boolean_t channelFound = FALSE;
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
 
@@ -669,10 +670,14 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 				SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 					if (c->callstate == state && c->state != SCCP_CHANNELSTATE_DOWN) {
 						sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(c->device), c->callid);
-						return c;
+						channelFound = TRUE;
+						break;
 					}
 				}
 				SCCP_LIST_UNLOCK(&l->channels);
+				
+				if(channelFound)
+					break;
 			}
 		}
 	}
