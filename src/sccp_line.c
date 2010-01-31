@@ -142,6 +142,11 @@ void sccp_line_delete_nolock(sccp_line_t * l)
 
 	sccp_line_kill(l);
 
+	/* remove from the global lines list */
+	SCCP_LIST_LOCK(&GLOB(lines));
+	SCCP_LIST_REMOVE(&GLOB(lines), l, list);
+	SCCP_LIST_UNLOCK(&GLOB(lines));
+
 	//d = l->device;
 
 	SCCP_LIST_LOCK(&l->devices);
@@ -163,11 +168,6 @@ void sccp_line_delete_nolock(sccp_line_t * l)
 		}
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
-
-	/* remove from the global lines list */
-	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_REMOVE(&GLOB(lines), l, list);
-	SCCP_LIST_LOCK(&GLOB(lines));
 
 	if (l->trnsfvm)
 		ast_free(l->trnsfvm);
