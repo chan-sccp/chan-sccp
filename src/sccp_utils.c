@@ -2299,6 +2299,34 @@ sccp_feature_type_t sccp_featureStr2featureID(char *str){
 		return SCCP_FEATURE_TEST4;
 	}else if(!strcasecmp(str, "test5")){
 		return SCCP_FEATURE_TEST5;
+	}else if(!strcasecmp(str, "test6")){
+		return SCCP_FEATURE_TEST6;
+	}else if(!strcasecmp(str, "test7")){
+		return SCCP_FEATURE_TEST7;
+	}else if(!strcasecmp(str, "test8")){
+		return SCCP_FEATURE_TEST8;
+	}else if(!strcasecmp(str, "test9")){
+		return SCCP_FEATURE_TEST9;
+	}else if(!strcasecmp(str, "testA")){
+		return SCCP_FEATURE_TESTA;
+	}else if(!strcasecmp(str, "testB")){
+		return SCCP_FEATURE_TESTB;
+	}else if(!strcasecmp(str, "testC")){
+		return SCCP_FEATURE_TESTC;
+	}else if(!strcasecmp(str, "testD")){
+		return SCCP_FEATURE_TESTD;
+	}else if(!strcasecmp(str, "testE")){
+		return SCCP_FEATURE_TESTE;
+	}else if(!strcasecmp(str, "testF")){
+		return SCCP_FEATURE_TESTF;
+	}else if(!strcasecmp(str, "testG")){
+		return SCCP_FEATURE_TESTG;
+	}else if(!strcasecmp(str, "testH")){
+		return SCCP_FEATURE_TESTH;
+	}else if(!strcasecmp(str, "testI")){
+		return SCCP_FEATURE_TESTI;
+	}else if(!strcasecmp(str, "testJ")){
+		return SCCP_FEATURE_TESTJ;
 	}
 
 

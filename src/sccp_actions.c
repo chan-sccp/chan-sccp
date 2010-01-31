@@ -520,6 +520,63 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 						btn[i].type = SKINNY_BUTTONTYPE_TEST5;
 						break;
 
+					case SCCP_FEATURE_TEST6:
+						btn[i].type = SKINNY_BUTTONTYPE_TEST6;
+						break;
+
+					case SCCP_FEATURE_TEST7:
+						btn[i].type = SKINNY_BUTTONTYPE_TEST7;
+						break;
+
+					case SCCP_FEATURE_TEST8:
+						btn[i].type = SKINNY_BUTTONTYPE_TEST8;
+						break;
+
+					case SCCP_FEATURE_TEST9:
+						btn[i].type = SKINNY_BUTTONTYPE_TEST9;
+						break;
+
+					case SCCP_FEATURE_TESTA:
+						btn[i].type = SKINNY_BUTTONTYPE_TESTA;
+						break;
+
+					case SCCP_FEATURE_TESTB:
+						btn[i].type = SKINNY_BUTTONTYPE_TESTB;
+						break;
+
+					case SCCP_FEATURE_TESTC:
+						btn[i].type = SKINNY_BUTTONTYPE_TESTC;
+						break;
+
+					case SCCP_FEATURE_TESTD:
+						btn[i].type = SKINNY_BUTTONTYPE_TESTD;
+						break;
+
+					case SCCP_FEATURE_TESTE:
+						btn[i].type = SKINNY_BUTTONTYPE_TESTE;
+						break;
+
+					case SCCP_FEATURE_TESTF:
+						btn[i].type = SKINNY_BUTTONTYPE_TESTF;
+						break;
+
+					case SCCP_FEATURE_TESTG:
+						btn[i].type = SKINNY_BUTTONTYPE_TESTG;
+						break;
+
+					case SCCP_FEATURE_TESTH:
+						btn[i].type = SKINNY_BUTTONTYPE_TESTH;
+						break;
+
+					case SCCP_FEATURE_TESTI:
+						btn[i].type = SKINNY_BUTTONTYPE_TESTI;
+						break;
+
+					case SCCP_FEATURE_TESTJ:
+						btn[i].type = SKINNY_BUTTONTYPE_TESTJ;
+						break;
+
+
 					default:
 						btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
 						break;
@@ -583,7 +640,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 				break;
 
-			case SCCP_BUTTONTYPE_SPEEDDIAL:
+			case SKINNY_BUTTONTYPE_SPEEDDIAL:
 				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_SPEEDDIAL;
 				r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
 				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
@@ -619,9 +676,9 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 		}
 		/*
 		if (btn[i].type == SCCP_BUTTONTYPE_HINT || btn[i].type == SCCP_BUTTONTYPE_LINE) {
-			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_LINE;
+			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SCCP_BUTTONTYPE_LINE;
 			r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
-		} else if (btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) {
+		} else if (btn[i].type == SKINNY_BUTTONTYPE_SPEEDDIAL) {
 			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_SPEEDDIAL;
 			r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
 		} else if (btn[i].type == SKINNY_BUTTONTYPE_SERVICEURL) {
@@ -690,7 +747,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 
 		/* if we find no regular line - it can be a speedial with hint */
 		if (!l)
-			k = sccp_dev_speed_find_byindex(d, lineNumber, SKINNY_BUTTONTYPE_LINE);
+			k = sccp_dev_speed_find_byindex(d, lineNumber, SCCP_BUTTONTYPE_LINE);
 
 
 		REQ(r1, LineStatMessage);
@@ -836,7 +893,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			l = sccp_line_find_byid(d, instance);
 			if (!l) {
 				sccp_log(10)(VERBOSE_PREFIX_3 "%s: No line for instance %d. Looking for a speedial with hint\n", d->id, instance);
-				k = sccp_dev_speed_find_byindex(d, instance, SKINNY_BUTTONTYPE_LINE);
+				k = sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_LINE);
 				if (k)
 					sccp_handle_speeddial(d, k);
 				else
@@ -929,10 +986,24 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		case SKINNY_BUTTONTYPE_FEATURE:
 		//case SKINNY_BUTTONTYPE_TEST5:
 		case SKINNY_BUTTONTYPE_TEST4:
+		case SKINNY_BUTTONTYPE_TEST6:
 		case SKINNY_BUTTONTYPE_TEST3:
 		//case SKINNY_BUTTONTYPE_TEST2:
 		//case SKINNY_BUTTONTYPE_TEST1:
 			//ast_log(LOG_NOTICE, "%s: Privacy Button is not yet handled. working on implementation\n", d->id);
+		case SKINNY_BUTTONTYPE_TEST7:
+		case SKINNY_BUTTONTYPE_TEST8:
+		case SKINNY_BUTTONTYPE_TEST9:
+		case SKINNY_BUTTONTYPE_TESTA:
+		case SKINNY_BUTTONTYPE_TESTB:
+		case SKINNY_BUTTONTYPE_TESTC:
+		case SKINNY_BUTTONTYPE_TESTD:
+		case SKINNY_BUTTONTYPE_TESTE:
+		case SKINNY_BUTTONTYPE_TESTF:
+		case SKINNY_BUTTONTYPE_TESTG:
+		case SKINNY_BUTTONTYPE_TESTH:
+		case SKINNY_BUTTONTYPE_TESTI:
+		case SKINNY_BUTTONTYPE_TESTJ:
 			sccp_handle_feature_action(d, r->msg.StimulusMessage.lel_stimulusInstance, TRUE);
 			break;
 
@@ -1752,7 +1823,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 		}else if (l)
 			sccp_sk_newcall(d, l, c);
 		else {
-			k = sccp_dev_speed_find_byindex(d, line, SKINNY_BUTTONTYPE_LINE);
+			k = sccp_dev_speed_find_byindex(d, line, SCCP_BUTTONTYPE_LINE);
 			if (k)
 				sccp_handle_speeddial(d, k);
 			else
@@ -2442,6 +2513,33 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 
 			d->priFeature.status = ((featureStat3+1) << 16) | ((featureStat2+1) << 8) | (featureStat1+1);
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: priority feature status: %d, %d, %d, total: %d\n", d->id, featureStat3, featureStat2, featureStat1, d->priFeature.status );
+			break;
+
+		case SCCP_FEATURE_TEST4:
+			switch(d->mobFeature.status) {
+				case 0:
+					d->mobFeature.status = 129;
+					break;
+				case 129:
+					d->mobFeature.status = 3;
+					break;
+				case 3:
+					d->mobFeature.status = 125;
+					break;
+				case 125:
+					d->mobFeature.status = 4;
+					break;
+				case 4:
+					d->mobFeature.status = 0;
+					break;
+				default:
+					d->mobFeature.status = 0;
+					break;
+
+
+
+			}
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: mobility feature: %d\n", d->id, d->mobFeature.status);
 			break;
 
 		default:
