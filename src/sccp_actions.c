@@ -640,7 +640,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 				break;
 
-			case SKINNY_BUTTONTYPE_SPEEDDIAL:
+			case SCCP_BUTTONTYPE_SPEEDDIAL:
 				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_SPEEDDIAL;
 				r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
 				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
