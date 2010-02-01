@@ -1221,9 +1221,9 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 	   nevertheless to log all incoming answered calls properly. We will have to
 	   investigate this further. (-DD) */
 	if (c->state != SCCP_CHANNELSTATE_OFFHOOK)
-		sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_OFFHOOK);
+		sccp_indicate_unlock(d, c, SCCP_CHANNELSTATE_OFFHOOK);
 
-	sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CONNECTED);
+	sccp_indicate_unlock(d, c, SCCP_CHANNELSTATE_CONNECTED);
 
 	//ast_setstate(c->owner, AST_STATE_UP);
 }
