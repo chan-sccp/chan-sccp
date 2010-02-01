@@ -53,20 +53,18 @@ if test ! x"${UNAME}" = xNo; then
 	AC_DEFINE_UNQUOTED([BUILD_MACHINE],"`${UNAME} -m`",[Machine we are building on])
 	AC_DEFINE_UNQUOTED([BUILD_HOSTNAME],"`${UNAME} -n`",[Hostname of our Box])
 	AC_DEFINE_UNQUOTED([BUILD_KERNEL],"`${UNAME} -r`",[Kernel version of this build])
+	AC_DEFINE_UNQUOTED([BUILD_USER],"`${WHOAMI}`",[building user])
 	AC_SUBST([BUILD_DATE])
 	AC_SUBST([BUILD_OS])
 	AC_SUBST([BUILD_MACHINE])
 	AC_SUBST([BUILD_HOSTNAME])
 	AC_SUBST([BUILD_KERNEL])
-    fi
-fi
-if test ! x"${WHOAMI}" = xNo; then
-    if test -n $BUILD_USER ; then
-        BUILD_USER="`whoami`"
-	AC_DEFINE_UNQUOTED([BUILD_USER],"`${WHOAMI}`",[Kernel version of this build])
 	AC_SUBST([BUILD_USER])
     fi
 fi
+
+AC_DEFINE_UNQUOTED([BUILD_USER],"`${WHOAMI}`",[building user])
+
 
 case "${host}" in
      *freebsd*)
@@ -804,6 +802,8 @@ if test -z "${csmoddir}"; then
 fi
 AC_SUBST([csmoddir])
 
+AC_DEFINE_UNQUOTED([BUILD_USER],"`${WHOAMI}`",[building user])
+
 dnl Doxygen
 DX_HTML_FEATURE(ON)
 DX_CHM_FEATURE(OFF)
@@ -830,6 +830,7 @@ AC_OUTPUT
 
 echo
 echo "Architecture: $build_cpu"
+echo "  Build user: $BUILD_USER"
 echo "  CPU -march: $march"
 echo "      CFLAGS: $CFLAGS $PBX_CFLAGS"
 echo "     LDFLAGS: $LDFLAGS"
