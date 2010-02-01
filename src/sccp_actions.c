@@ -352,8 +352,8 @@ d->inuseprotocolversion = 15;
 	memcpy(r1->msg.RegisterAckMessage.dateTemplate, GLOB(date_format), sizeof(r1->msg.RegisterAckMessage.dateTemplate));
 	sccp_session_send(d, r1);
 	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_PROGRESS);
-#warning "removed sleep (-DD)"
-	//sccp_safe_sleep(100);
+#warning "discuss about  sleep (-DD)"
+	sccp_safe_sleep(100);
 	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_OK);
 
 	/* clean up the device state */
@@ -1692,8 +1692,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 				SCCP_SCHED_DEL(sched, c->digittimeout);
 				sccp_channel_unlock(c);
 				// we would hear last keypad stroke before starting all
-#warning "removed sleeps (-DD)"
-				// sccp_safe_sleep(100);
+				sccp_safe_sleep(100);
 				// we dial on digit timeout char !
 				sccp_pbx_softswitch(c);
 				return;
@@ -1703,7 +1702,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 			if(sccp_pbx_helper(c)) {
 				sccp_channel_unlock(c);
 				// we would hear last keypad stroke before starting all
-				// sccp_safe_sleep(100);
+				sccp_safe_sleep(100);
 				// we dialout if helper says it's time to dial
 				sccp_pbx_softswitch(c);
 				return;
