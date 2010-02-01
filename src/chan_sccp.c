@@ -190,11 +190,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 
 	sccp_log(64)(VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	/* call forward check */
-	sccp_line_lock(l);
-
-
-	sccp_line_unlock(l);
-
+	
 	// Allocate a new SCCP channel.
 	/* on multiline phone we set the line when answering or switching lines */
 	 c = sccp_channel_allocate(l, NULL);
@@ -954,6 +950,8 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 		res = AST_BRIDGE_FAILED_NOWARN;
 	} else {
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (sccp_rtp_bridge) Native bridging '%s' and '%s'\n", c0->name, c1->name);
+#warning "The purpose of this code is obscure and must be clarified (-DD)"
+
 /*
 		sccp_pbx_set_rtp_peer(c0, pvt1->rtp, NULL, NULL, pvt1->device->codecs, 0);
 		sccp_pbx_set_rtp_peer(c1, pvt0->rtp, NULL, NULL, pvt0->device->codecs, 0);

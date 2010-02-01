@@ -640,6 +640,7 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 			case SCCP_CHANNELSTATE_RINGING:
 #ifndef CS_DYNAMIC_SPEEDDIAL		  
 				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+#warning "Haven't we found a way to make the normal line-type hint ring, too? (-DD)"
 #else
 				hint->currentState = SCCP_CHANNELSTATE_RINGING;
 #endif
@@ -984,6 +985,7 @@ static void * sccp_hint_remoteNotification_thread(void *data){
 			if(!ast_channel_unlock(foundChannel))
 				goto CLEANUP;
 			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) searching for bridgedChannel\n");
+#warning "This looks very dangerous to me or needs explanation (-DD)"
 			sleep(1);
 			i++;
 			if(!ast_channel_trylock(foundChannel))
