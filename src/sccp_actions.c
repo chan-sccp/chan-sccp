@@ -243,7 +243,11 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 		//sccp_device_addLine(d, GLOB(hotline)->line);
 		sccp_hint_lineStatusChanged(GLOB(hotline)->line, d, NULL, SCCP_DEVICESTATE_UNAVAILABLE ,SCCP_DEVICESTATE_ONHOOK);
 	}else{
+		/*
 		SCCP_LIST_TRYLOCK(&d->buttonconfig);
+		*/
+#warning "Trylock makes no sense here, since the lock is never checked. Changed it to hard lock. (-DD)"
+		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 			if(!buttonconfig)
 				continue;
@@ -348,7 +352,8 @@ d->inuseprotocolversion = 15;
 	memcpy(r1->msg.RegisterAckMessage.dateTemplate, GLOB(date_format), sizeof(r1->msg.RegisterAckMessage.dateTemplate));
 	sccp_session_send(d, r1);
 	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_PROGRESS);
-	sccp_safe_sleep(100);
+#warning "removed sleep (-DD)"
+	//sccp_safe_sleep(100);
 	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_OK);
 
 	/* clean up the device state */
@@ -771,7 +776,8 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 		sccp_copy_string(r1->msg.LineStatMessage.lineDisplayName, ((l) ? l->label : (k)?k->name:""), sizeof(r1->msg.LineStatMessage.lineDisplayName));
 
 		/* we have a strange behavior if we have debug 0, some messages will not be sent. -MC*/
-		sccp_safe_sleep(100);
+		//sccp_safe_sleep(100);
+#warning "Removed sleep (-DD)"
 		sccp_dev_send(d, r1);
 
 		/* force the forward status message. Some phone does not request it registering */
@@ -1686,7 +1692,8 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 				SCCP_SCHED_DEL(sched, c->digittimeout);
 				sccp_channel_unlock(c);
 				// we would hear last keypad stroke before starting all
-				sccp_safe_sleep(100);
+#warning "removed sleeps (-DD)"
+				// sccp_safe_sleep(100);
 				// we dial on digit timeout char !
 				sccp_pbx_softswitch(c);
 				return;
@@ -1696,7 +1703,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 			if(sccp_pbx_helper(c)) {
 				sccp_channel_unlock(c);
 				// we would hear last keypad stroke before starting all
-				sccp_safe_sleep(100);
+				// sccp_safe_sleep(100);
 				// we dialout if helper says it's time to dial
 				sccp_pbx_softswitch(c);
 				return;
@@ -1904,6 +1911,8 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 	default:
 		ast_log(LOG_WARNING, "Don't know how to handle keypress %d\n", event);
 	}
+
+#warning "This must be discussed sometime again. (-DD)"
   /* This must not be done. As we didn't lock the channel ourselves,
    * we should not unlock it either. Hence, it could happen that
    * the channel and with it the lock is already deallocated when we try to unlock it.

@@ -791,7 +791,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 
 	sccp_device_lock(d);
 	uint8_t num = sccp_device_numberOfChannels(d);
-	sccp_device_inlock(d);
+	sccp_device_unlock(d);
 	if(num < 2){
 		uint8_t instance = sccp_device_find_index_for_line(d, l->name);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
