@@ -960,7 +960,7 @@ typedef union {
 		uint32_t 	lel_instance;
                 uint32_t 	lel_type;					/*!< always 0x15 */
                 uint32_t 	lel_unknown1;					
-		char	 	DisplayName[100];				/*!< SpeedDial Display Name */
+		char	 	DisplayName[StationMaxNameSize];		/*!< SpeedDial Display Name */
 	} SpeedDialStatDynamicMessage;
 
         struct {
@@ -1189,7 +1189,9 @@ typedef union {
 
         struct {} TimeDateReqMessage;						/*!< Time Date Request Message  - Client -> Server */
 
-        struct {} ButtonTemplateReqMessage;					/*!< Button Template Request Message - Client -> Server  */
+        struct {
+		  uint32_t 	lel_totalButtonCount;				/*!< number of available buttons */
+	} ButtonTemplateReqMessage;						/*!< Button Template Request Message - Client -> Server  */
 
         struct {} VersionReqMessage;						/*!< Version Request Message - Client -> Server */
 
