@@ -381,11 +381,16 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 	if (d->registrationState == opt)
 		return;
 
+
 	d->registrationState = opt;
+
+	/* Handle registration completion. */
 	if (opt == SKINNY_DEVICE_RS_OK) {
 		snprintf(servername, sizeof(servername), "%s %s", GLOB(servername), SKINNY_DISP_CONNECTED);
 		sccp_dev_displaynotify(d, servername, 5);
 		/* the sccp_dev_check_displayprompt(d); can't stay here, IPC will not reboot correctly */
+
+		sccp_dev_postregistration(d);
 	}
 }
 /*!
@@ -1171,26 +1176,25 @@ void * sccp_dev_postregistration(void *data)
 	if (!d)
 		return NULL;
 
-	pthread_testcancel();
+	/*pthread_testcancel();
 	sleep(10);
+	*/
 
 	//sccp_device_lock(d);
 
-	sccp_log(2)(VERBOSE_PREFIX_3 "%s: Post registration process\n", d->id);
+	sccp_log(2)(VERBOSE_PREFIX_3 "%s: Device registered; performing post registration tasks...\n", d->id);
 
 	/* turn off the device MWI light. We need to force it off on some phone (7910 for example) */
 	sccp_dev_set_mwi(d, NULL, 0);
 
-
-	//sccp_dev_check_mwi(d);
 	sccp_dev_check_displayprompt(d);
 
-	d->postregistration_thread = AST_PTHREADT_STOP;
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
+	/*d->postregistration_thread = AST_PTHREADT_STOP; */
 
 	//sccp_device_unlock(d);
-	sccp_mwi_check(d);
+	//sccp_mwi_check(d);
 
+	// Post event to interested listeners (hints, mwi) that device was registered.
 	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
 	memset(event, 0, sizeof(sccp_event_t));
 
@@ -1199,8 +1203,8 @@ void * sccp_dev_postregistration(void *data)
 	sccp_event_fire( (const sccp_event_t **)&event);
 
 	//sccp_config_restoreDeviceFeatureStatus(d);
-	sccp_dev_check_displayprompt(d);
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: ... done!\n", d->id);
+	//sccp_dev_check_displayprompt(d);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
 	return NULL;
 }
 
