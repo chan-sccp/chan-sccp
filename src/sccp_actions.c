@@ -325,7 +325,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 // 			 || d->skinny_type == SKINNY_DEVICETYPE_CISCO7936){
 // 		 d->inuseprotocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
 	 }
-d->inuseprotocolversion = 15;
 	if(d->inuseprotocolversion <= 3) {
 		// Our old flags for protocols from 0 to 3
 		r1->msg.RegisterAckMessage.unknown1 = 0x00;
@@ -352,20 +351,19 @@ d->inuseprotocolversion = 15;
 	memcpy(r1->msg.RegisterAckMessage.dateTemplate, GLOB(date_format), sizeof(r1->msg.RegisterAckMessage.dateTemplate));
 	sccp_session_send(d, r1);
 	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_PROGRESS);
-#warning "discuss about  sleep (-DD)"
-	sccp_safe_sleep(100);
-	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_OK);
-
-	/* clean up the device state */
-	sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
-	sccp_dev_clearprompt(d, 0, 0);
-
+	
+	// Ask for the capabilities of the device
+	// to proceed with registration according to sccp protocol specification 3.0
 	sccp_dev_sendmsg(d, CapabilitiesReqMessage);
 
+	/* clean up the device state */
+	/*sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
+	sccp_dev_clearprompt(d, 0, 0);
+	*/
+
 	/* starting thread for monitored line status poll */
-
-
-
+	
+	/*
 	pthread_attr_t 	attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -377,7 +375,7 @@ d->inuseprotocolversion = 15;
 
 	sccp_dev_set_mwi(d, NULL, 0);
 	sccp_dev_check_displayprompt(d);
-
+	*/
 
 }
 
@@ -621,7 +619,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 	if (!d)
 		return;
 
-	if (d->registrationState != SKINNY_DEVICE_RS_OK) {
+	if (d->registrationState != SKINNY_DEVICE_RS_PROGRESS && d->registrationState != SKINNY_DEVICE_RS_OK) {
 		ast_log(LOG_WARNING, "%s: Received a button template request from unregistered device\n", d->id);
 		sccp_session_close(s);
 		return;
@@ -1578,6 +1576,12 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * req)
   r1->msg.DefineTimeDate.lel_systemTime = htolel(timer);
   sccp_dev_send(s->device, r1);
   sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send date/time\n", s->device->id);
+
+  // According to SCCP protocol since version 3,
+  // the first instance of asking for time and date
+  // concludes the device registration process.
+  // This is included even in the minimal subset of device registration commands.
+  sccp_dev_set_registered(s->device, SKINNY_DEVICE_RS_OK);
 }
 
 /*!
