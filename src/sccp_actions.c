@@ -2195,7 +2195,8 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r)
 	sccp_device_lock(d);
 
 	// We count lines when attached to the phone
-	lines = d->linesCount;
+	// Yes, but we don't save it anywhere ;-) (-DD)
+	//lines = d->linesCount;
 
 /*
 	SCCP_LIST_LOCK(&d->lines);
@@ -2214,6 +2215,8 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r)
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		if(config->type == SPEEDDIAL)
 			speeddials++;
+		else if(config->type == LINE)
+			lines++;
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 

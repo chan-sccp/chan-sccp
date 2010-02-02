@@ -158,7 +158,7 @@ void sccp_mwi_event(const struct ast_event *event, void *data){
 
 			/* notify each device on line */
 			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->devices, lineDevice, list){
-				if(0 != lineDevice->device) {
+				if(0 != lineDevice && 0 != lineDevice->device) {
 					sccp_mwi_setMWILineStatus(lineDevice->device, line);
 				} else {
 					sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_4 "error: null line device.\n");
@@ -408,8 +408,10 @@ void sccp_mwi_check(sccp_device_t *device)
 	sccp_line_t		*line = NULL;
 	uint hasNewMessage = 0;
 
-	if(!device || sccp_device_lock(device))
+	if(!device)
 		return;
+
+	sccp_device_lock(device);
 
 	device->voicemailStatistic.newmsgs = 0;
 	device->voicemailStatistic.oldmsgs = 0;
