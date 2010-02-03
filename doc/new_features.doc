@@ -35,9 +35,9 @@
  * Currently Possible feature_name, parameter combinations:
  *   - privacy,callpresent	= Make a private call, number is suppressed
  *   - privacy,hint		= Make a private call, hint is suppressed
- *   - cfwdall			= Forward all calls
- *   - cfwbusy			= Forward on busy (not implemented yet)
- *   - cfwnoaswer		= Forward on no-answer (not implemented yet)
+ *   - cfwdall,number		= Forward all calls
+ *   - cfwbusy,number		= Forward on busy
+ *   - cfwnoaswer,number	= Forward on no-answer (not implemented yet)
  *   - DND,busy			= Do-not-disturb, return Busy signal to Caller
  *   - DND,silent		= Do-not-disturb, return nothing to caller
  *   .
