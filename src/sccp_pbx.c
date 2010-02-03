@@ -157,7 +157,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 				if (strcasecmp(ringermode, "urgent") == 0)
 					c->ringermode = SKINNY_STATION_URGENTRING;
 			} else {
-				sccp_mutex_unlock(&d->lock);
+				sccp_mutex_unlock(&l->lock);
 				ast_setstate(ast, AST_STATE_BUSY);
 				ast_queue_control(ast, AST_CONTROL_BUSY);
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND for line \"%s\" is on. Call %s rejected\n", d->id, l->name, ast->name);
