@@ -19,6 +19,7 @@
  * \ref nf_feature_buttons 	How to use Feature Buttons on a device\n
  * \ref nf_hotline		How to use the Hotline option on a device\n
  * \ref nf_sccp_softkeys   	How to use the Soft Keys on the Phone\n
+ * <HR>
  *
  *
  *
@@ -40,6 +41,7 @@
  *   - DND,busy			= Do-not-disturb, return Busy signal to Caller
  *   - DND,silent		= Do-not-disturb, return nothing to caller
  *   .
+ * <HR>
  *
  *
  *
@@ -62,14 +64,44 @@
  *   - hotline_extension=111
  * \endcode
  * This will add a Hotline on all phones, dialing 111 via context default.
+ * <HR>
  *
  *
  *
  * 
  *
  *
- * \subsection nf_sccp_softkeys       Soft Keys Howto
+ * \subsection nf_sccp_softkeys 	Soft Keys Howto
  * 
+ * \subsection sk_config		Softkey Configuration
+ * 
+ * You can create several softkeyset in you config for use on different devices. You can assign these softkeyset to a device 
+ * using: softkeyset = name_of_softkeyset in the device section of the config. for example:
+ * \code
+ * [SEP001122334455]
+ * devicetype=7960
+ * ...
+ * softkeyset = mysoftkeyset
+ * 
+ * [mysoftkeyset]
+ * type=softkeyset
+ * onhook      = redial,newcall,cfwdall,dnd
+ * connected   = hold,endcall,park,select,cfwdall,cfwdbusy,idivert
+ * onhold      = resume,newcall,endcall,transfer,confrn,select,dirtrfr,idivert
+ * ringin      = answer,endcall,idivert
+ * offhook     = redial,endcall,private,cfwdall,cfwdbusy,pickup,gpickup,meetme,barge
+ * conntrans   = hold,endcall,transfer,confrn,park,select,dirtrfr,cfwdall,cfwdbusy
+ * digitsfoll  = back,endcall
+ * connconf    = hold,endcall,join
+ * ringout     = endcall,transfer,cfwdall,idivert
+ * offhookfeat = redial,endcall
+ * onhint      = pickup,barge
+ * \endcode
+ *
+ * The [mysoftkeyset] section about contains the state of the phone as the first part (before the equal sign) and the 
+ * softbuttons shown during this state in the second part.
+ * 
+ * \subsection sk_softkeys_avail	These are the softkeys available
  * \subsubsection sk_redial 		How to use the Redial Softkey
  *
  * Using the Redial Button you can Redial the last Called Number on this Line or Device
@@ -215,4 +247,5 @@
  *
  * Using the GroupPickup Button Makes it possible to Pickup a Ringing Line in defined in your PickupGroup
  * This is equivalent to using the keys defined in features.conf under pickupexten
+ * <HR>
  */
