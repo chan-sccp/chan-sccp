@@ -16,9 +16,10 @@
  * \page new_features What is new in this version (V3/Trunk)
  * \section se_new_features New features in this version (V3/Trunk)
  * 
- * \ref nf_feature_buttons 	How to use Feature Buttons on a device\n
- * \ref nf_hotline		How to use the Hotline option on a device\n
- * \ref nf_sccp_softkeys   	How to use the Soft Keys on the Phone\n
+ * \ref nf_shared_lines 	"How to use Shared Lines on a device"\n
+ * \ref nf_phone_buttons 	"How to set Phone Buttons on a device"\n
+ * \ref nf_hotline		"How to use the Hotline option on a device"\n
+ * \ref nf_sccp_softkeys   	"How to use the Soft Keys on the Phone"\n
  * <HR>
  *
  *
@@ -26,21 +27,59 @@
  *
  *
  *
- * \subsection nf_feature_buttons Feature Buttons
+ * \subsection nf_shared_lines Shared Lines
  * 
- * Feature buttons have an on/off status represented on the device with a 
- * tick-box and can be used to set the device in a particular state. 
+ * Shared lines is simple, and is activated readily by registering multiple phones on the same line.
+ * That's all, no extra options required. What happens is that all phones on a shared line "see" the calls of  
+ * the other phones and vice versa. If you have a call on a shared line, just press "hold" on one phone
+ * and resume that call with "resume" on another phone.
  * 
- * Format: button= feature, "Name off button on phone", feature_name, parameter
- * Currently Possible feature_name, parameter combinations:
- *   - privacy,callpresent	= Make a private call, number is suppressed
- *   - privacy,hint		= Make a private call, hint is suppressed
- *   - cfwdall,number		= Forward all calls
- *   - cfwbusy,number		= Forward on busy
- *   - cfwnoaswer,number	= Forward on no-answer (not implemented yet)
- *   - DND,busy			= Do-not-disturb, return Busy signal to Caller
- *   - DND,silent		= Do-not-disturb, return nothing to caller
+ * Earlier, without shared lines, registering multiple phones on the same line lead to an error
+ * that the line was already in use. Now, you simply get a shared line.
+ * <HR> 
+ * 
+ *
+ * 
+ *
+ *
+ *
+ *
+ * \subsection nf_phone_buttons Phone Buttons
+ * 
+ * We do not use the different autologin, speeddial options any longer, instead trunk uses a unified scheme for adding buttons:
+ * Each button is added to the phone in the order as specified in the config file by specifying a "button" assignment. The syntax is
+ * button = <empty|line|speeddial|feature|service>[, name[, option1[, option2]]]
+ * 
+ * buttons come in the following flavours:
+ *   - empty: Empty button (no options)
+ *   - line: Registers the line with identifier specified as <name>
+ *   - speeddial: Adds a speeddial with label <name> and <option1> as number
+       Optionally, <option2> can be used to specify a hint by extension@context as usual.
+ *   - service: Adds a service url 
+ *   - Feature buttons have an on/off status represented on the device with a tick-box and can be used to set the device in a particular state. 
+ *     Option1 is the feature_name and option2 it's parameter. 
+ *     Currently Possible option1,option2 combinations:
+ *      - privacy,callpresent	= Make a private call, number is suppressed
+ *      - privacy,hint		= Make a private call, hint is suppressed
+ *      - cfwdall,number	= Forward all calls
+ *      - cfwbusy,number	= Forward on busy
+ *      - cfwnoaswer,number	= Forward on no-answer (not implemented yet)
+ *      - DND,busy		= Do-not-disturb, return Busy signal to Caller
+ *      - DND,silent		= Do-not-disturb, return nothing to caller
+ *      .
  *   .
+ * 
+ * In a configuration file this could look like:
+ * \code
+ * button = line, "My Line", 519
+ * button = empty
+ * button = speeddial, "Cantine", 332, 332@hints
+ * button = service, "Asterisk", "www.asterisk.org"
+ * button = feature, "privacy callpresent", privacy, callpresent
+ * button = feature, "callforward busy", cfwdbusy, 529
+ * button = feature, "DND busy", "DND", "busy"
+ * \endcode
+ *
  * <HR>
  *
  *
@@ -55,8 +94,9 @@
  *
  * The hotline function can be used in different circumstances, for example at a door, where you want people to be 
  * able to only call one number, or for unprovisioned phones to only be able to call the helpdesk to get their phone
- * set up.
- *
+ * set up. If hotline_enabled = yes, any device which is not included in the configuration explicitly will be allowed 
+ * to registered as a guest device. All such devices will register on a single shared line called "hotline".
+ * 
  * For example:
  * \code
  *   - hotline_enabled=yes

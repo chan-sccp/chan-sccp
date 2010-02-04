@@ -28,18 +28,18 @@
  * and more.
  * 
  * To get started have a look at the pages:\n
- * \ref what_sccp	What is Chan_SCCP\n
- * \ref build_guide 	Building and Installation Guide\n
- * \ref load_module  	How to load the chan_sccp Module\n
- * \ref setup_howto     How to setup the chan_sccp Module\n
- * \ref new_features    What is new in this version (V3/Trunk)\n
- * \ref sources_explain Sources Explained\n
- * \ref faq		Frequently Asked Questions\n
- * \ref cons 		Consulted Documentation\n
- * \ref guest_os	Guest OS Notes\n
- * \ref dev_guide	Developer's Guide\n
- * \ref authors		Meet the Authors\n
- * \ref Licensing	Licensing\n
+ * \ref what_sccp	"What is Chan_SCCP"\n
+ * \ref build_guide 	"Building and Installation Guide"\n
+ * \ref load_module  	"How to load the chan_sccp Module"\n
+ * \ref setup_howto     "How to setup the chan_sccp Module"\n
+ * \ref new_features    "What is new in this version (V3/Trunk)"\n
+ * \ref sources_explain "Sources Explained"\n
+ * \ref faq		"Frequently Asked Questions"\n
+ * \ref cons 		"Consulted Documentation"\n
+ * \ref guest_os	"Guest OS Notes"\n
+ * \ref dev_guide	"Developer's Guide"\n
+ * \ref authors		"Meet the Authors"\n
+ * \ref Licensing	"Licensing"\n
  * 
  * See http://sourceforge.net/projects/chan-sccp-b/ for more information about
  * the Chan_SCCP project. Please do not directly contact any of the maintainers of this project for assistance;
