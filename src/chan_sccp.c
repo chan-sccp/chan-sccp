@@ -537,7 +537,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 	break;
   case KeepAliveMessage:
 	sccp_session_sendmsg(s->device, KeepAliveAckMessage);
-	sccp_mwi_check(s->device);
+	//sccp_mwi_check(s->device);
 	break;
   case IpPortMessage:
   	/* obsolete message */

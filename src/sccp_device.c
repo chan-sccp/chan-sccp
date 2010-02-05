@@ -1202,6 +1202,9 @@ void * sccp_dev_postregistration(void *data)
 	event->event.deviceRegistered.device = d;
 	sccp_event_fire( (const sccp_event_t **)&event);
 
+
+	sccp_mwi_check(d);
+
 	//sccp_config_restoreDeviceFeatureStatus(d);
 	//sccp_dev_check_displayprompt(d);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
@@ -1236,7 +1239,12 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 		ast_db_put(family, "lastDialedNumber", d->lastNumber);
 
 	if(destroy)
+	{
+
+		SCCP_LIST_LOCK(&GLOB(devices));
 		SCCP_LIST_REMOVE(&GLOB(devices), d, list);
+		SCCP_LIST_UNLOCK(&GLOB(devices));
+	}
 
 	sccp_device_lock(d);
 
