@@ -1,5 +1,8 @@
 2010-02-05  ddegroot
 
+	* [r1210] ChangeLog, Makefile.am: Fixed ChangeLog-HTML generation
+	  Error when doc/html does not exist yet.
+
 	* [r1209] ChangeLog, Makefile.am, build_tools/svn2html.css: Updated
 	  the StyleSheet for ChangeLog to fit better in the Doxygen Pages.
 	  Added a title to the ChangeLog HTML File
