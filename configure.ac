@@ -215,6 +215,27 @@ AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T 
 AC_TYPE_UINT8_T
 
+dnl
+dnl Check for svn2cl for generating ChangeLog
+dnl
+enable_svn2cl=yes
+AC_PATH_PROG([SVN2CL], [svn2cl])
+if test -z "$SVN2CL"; then
+  enable_svn2cl=no
+fi
+
+AM_CONDITIONAL(ENABLE_SVN2CL, test x$enable_svn2cl != xno)
+
+AC_ARG_WITH(changelog-oldest,
+	    AC_HELP_STRING([--with-changelog-oldest=NUMBER],
+			   [Oldest revision to include in ChangeLog]))
+
+CHANGELOG_OLDEST=1021
+if test "x$with_changelog_oldest" != "x" ; then
+  CHANGELOG_OLDEST=$with_changelog_oldest
+fi
+AC_SUBST(CHANGELOG_OLDEST) 
+
 dnl checks for library functions
 AC_PROG_GCC_TRADITIONAL
 AC_FUNC_MALLOC 
