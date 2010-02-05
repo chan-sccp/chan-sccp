@@ -24,13 +24,13 @@
 #include "sccp_dllists.h"
 #include "sccp_protocol.h"
 
-
-
-
+/*!
+ * \brief Soft Key Configuration Template Structure
+ */
 typedef struct {
-  const char configVar[50];
-  const int softkey;
-} softkeyConfigurationTemplate;
+  const char configVar[50];			/*!< Config Variable as Character */
+  const int softkey;				/*!< Softkey as Int */
+} softkeyConfigurationTemplate;			/*!< Soft Key Configuration Template Structure */
 
 static const softkeyConfigurationTemplate softKeyTemplate[] = {
         {"redial", SKINNY_LBL_REDIAL},
