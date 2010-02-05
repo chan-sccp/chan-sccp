@@ -26,6 +26,7 @@ endif
 ChangeLog-HTML:	FORCE
 if ENABLE_SVN2CL
 	@echo "Generating doc/html/ChangeLog.html from SVN $(CHANGELOG_OLDEST)->HEAD"
+	@mkdir doc/html
 	@$(SVN2CL) --include-actions -i -a --group-by-day --title "Chan_SCCP-b ChangeLog" --separate-daylogs --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST) --html -o doc/html/ChangeLog_SVN2CL.html --revision-link 'http://chan-sccp-b.svn.sourceforge.net/viewvc/chan-sccp-b?view=rev&revision='
 	@cp build_tools/svn2html.css doc/html/
 endif
