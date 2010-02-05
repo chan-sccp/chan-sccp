@@ -19,14 +19,14 @@ FORCE:
 ChangeLog:	FORCE
 if ENABLE_SVN2CL
 	@echo "Generating ChangeLog from SVN $(CHANGELOG_OLDEST)->HEAD"
-	@$(SVN2CL) --include-actions -i -a --group-by-day --separate-daylogs --reparagraph --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST)
+	@$(SVN2CL) --include-actions -i -a --group-by-day --separate-daylogs --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST)
 endif
 
 # Update doc/html/ChangeLog.html from SVN Log
 ChangeLog-HTML:	FORCE
 if ENABLE_SVN2CL
 	@echo "Generating doc/html/ChangeLog.html from SVN $(CHANGELOG_OLDEST)->HEAD"
-	@$(SVN2CL) --include-actions -i -a --group-by-day --separate-daylogs --reparagraph --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST) --html -o doc/html/ChangeLog_SVN2CL.html --revision-link 'http://chan-sccp-b.svn.sourceforge.net/viewvc/chan-sccp-b?view=rev&revision='
+	@$(SVN2CL) --include-actions -i -a --group-by-day --title "Chan_SCCP-b ChangeLog" --separate-daylogs --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST) --html -o doc/html/ChangeLog_SVN2CL.html --revision-link 'http://chan-sccp-b.svn.sourceforge.net/viewvc/chan-sccp-b?view=rev&revision='
 	@cp build_tools/svn2html.css doc/html/
 endif
 

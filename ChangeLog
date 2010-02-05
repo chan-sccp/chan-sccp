@@ -1,14 +1,19 @@
 2010-02-05  ddegroot
 
+	* [r1208] ChangeLog, Makefile.am, README,
+	  build_tools/svn2html.css[ADD]: Added a style-sheet for the HTML
+	  version of the ChangeLog
+
 	* [r1207] ChangeLog, INSTALL, Makefile.am, README.in, configure.ac,
 	  doc/main.doc, doc/new_features.doc: - Added a new Makefile.am
-	  method to generate ChangeLog files - Added a "make doxygen"
-	  method, which updates ChangeLog files and generates the
-	  documentation. - SVN2CL is used, when found to generate the
-	  ChangeLog files - An HTML version of the ChangeLog is inserted in
-	  the main page of the doxygen documentation. - This
-	  ChangeLog_SVN2CL.html file has links to the Subversion Repository
-	  at sourceforge for easy Revision Lookup.
+	  method to generate ChangeLog files
+	  - Added a "make doxygen" method, which updates ChangeLog files
+	  and generates the documentation.
+	  - SVN2CL is used, when found to generate the ChangeLog files
+	  - An HTML version of the ChangeLog is inserted in the main page
+	  of the doxygen documentation.
+	  - This ChangeLog_SVN2CL.html file has links to the Subversion
+	  Repository at sourceforge for easy Revision Lookup.
 
 2010-02-05  davidded
 
@@ -19,8 +24,9 @@
 
 	* [r1205] doc/new_features.doc, src/chan_sccp.h, src/sccp_config.h,
 	  src/sccp_protocol.h: Added Structure Comments to
-	  sccp_protocol.h,chan_sccp.h and sccp_config.h Fixed format issue
-	  in new_features.doc for <name>, <option1> and <option2>
+	  sccp_protocol.h,chan_sccp.h and sccp_config.h
+	  Fixed format issue in new_features.doc for <name>, <option1> and
+	  <option2>
 
 2010-02-04  ddegroot
 
@@ -162,15 +168,17 @@
 2010-01-23  ddegroot
 
 	* [r1167] README, README.in: Added documentation url to the README
-	  file http://chan-sccp-b.sourceforge.net/doc/index.html
+	  file
+	  http://chan-sccp-b.sourceforge.net/doc/index.html
 
-	* [r1166] README.in: Added a simple config file Update
-	  documentation to reflect the latest config samples and config
-	  file names.
+	* [r1166] README.in: Added a simple config file
+	  Update documentation to reflect the latest config samples and
+	  config file names.
 
 	* [r1165] conf/sccp_simple.conf[ADD], doc/main.doc: Added a simple
-	  config file Update documentation to reflect the latest config
-	  samples and config file names.
+	  config file
+	  Update documentation to reflect the latest config samples and
+	  config file names.
 
 	* [r1164] README: Updated readme file to specify minimum versions
 	  of autoconf, automake, libtool and m4
@@ -210,11 +218,11 @@
 
 	* [r1154] src/chan_sccp.c: remove ringer debug warning
 
-	* [r1153] src/sccp_actions.c: set version handle protocolVersion
-	  for dynSpeeddial
+	* [r1153] src/sccp_actions.c: set version
+	  handle protocolVersion for dynSpeeddial
 
-	* [r1152] src/sccp_device.c, src/sccp_device.h: set version handle
-	  protocolVersion for dynSpeeddial
+	* [r1152] src/sccp_device.c, src/sccp_device.h: set version
+	  handle protocolVersion for dynSpeeddial
 
 	* [r1151] src/sccp_mwi.c, src/sccp_mwi.h: set version
 
@@ -234,8 +242,9 @@
 
 	* [r1144] configure.ac, src/Makefile.am, src/sccp_actions.c,
 	  src/sccp_utils.c: Changed Makefile.am so that only the .so file
-	  is installed. The chan_sccp.la is no longer installed in the
-	  asterisk module directory
+	  is installed.
+	  The chan_sccp.la is no longer installed in the asterisk module
+	  directory
 
 2010-01-17  marcelloceschia
 
@@ -305,35 +314,56 @@
 	* [r1125] src/sccp_features.c: fixes null pointer bug in transvm
 	  
 	  #0 sccp_feat_idivert (d=0x8dadff8, l=0x0, c=0x0) at
-	  sccp_features.c:728 728 if (!l->trnsfvm) { (gdb) bt full #0
-	  sccp_feat_idivert (d=0x8dadff8, l=0x0, c=0x0) at
-	  sccp_features.c:728 __PRETTY_FUNCTION__ = "sccp_feat_idivert" #1
-	  0xb213936b in sccp_sk_trnsfvm (d=0x8dadff8, l=0x0, c=0x0) at
-	  sccp_softkeys.c:485 No locals. #2 0xb20f89b0 in
-	  sccp_handle_soft_key_event (s=0x8f70cb0, r=0x8fce560) at
-	  sccp_actions.c:1778 d = (sccp_device_t *) 0x8dadff8 c =
-	  (sccp_channel_t *) 0x0 l = (sccp_line_t *) 0x0 k = <value
-	  optimized out> event = 62 line = 0 callid = 0 __PRETTY_FUNCTION__
-	  = "sccp_handle_soft_key_event" #3 0xb20baf69 in
-	  sccp_handle_message (r=0x8fce560, s=0x8f70cb0) at chan_sccp.c:541
-	  mid = 38 __PRETTY_FUNCTION__ = "sccp_handle_message" #4
-	  0xb21246ca in sccp_socket_thread (ignore=0x0) at
-	  sccp_socket.c:357 fset = {fds_bits = {536870912, 0 <repeats 31
-	  times>}} res = 148561912 maxfd = 84 now = 1263038868 s =
-	  (sccp_session_t *) 0x8f70cb0 m = (sccp_moo_t *) 0x8fce560 tv =
-	  {tv_sec = 0, tv_usec = 280000} sigs = {__val = {138432515, 0
-	  <repeats 31 times>}} attr = {__size =
+	  sccp_features.c:728
+	  728 if (!l->trnsfvm) {
+	  (gdb) bt full
+	  #0 sccp_feat_idivert (d=0x8dadff8, l=0x0, c=0x0) at
+	  sccp_features.c:728
+	  __PRETTY_FUNCTION__ = "sccp_feat_idivert"
+	  #1 0xb213936b in sccp_sk_trnsfvm (d=0x8dadff8, l=0x0, c=0x0) at
+	  sccp_softkeys.c:485
+	  No locals.
+	  #2 0xb20f89b0 in sccp_handle_soft_key_event (s=0x8f70cb0,
+	  r=0x8fce560)
+	  at sccp_actions.c:1778
+	  d = (sccp_device_t *) 0x8dadff8
+	  c = (sccp_channel_t *) 0x0
+	  l = (sccp_line_t *) 0x0
+	  k = <value optimized out>
+	  event = 62
+	  line = 0
+	  callid = 0
+	  __PRETTY_FUNCTION__ = "sccp_handle_soft_key_event"
+	  #3 0xb20baf69 in sccp_handle_message (r=0x8fce560, s=0x8f70cb0)
+	  at
+	  chan_sccp.c:541
+	  mid = 38
+	  __PRETTY_FUNCTION__ = "sccp_handle_message"
+	  #4 0xb21246ca in sccp_socket_thread (ignore=0x0) at
+	  sccp_socket.c:357
+	  fset = {fds_bits = {536870912, 0 <repeats 31 times>}}
+	  res = 148561912
+	  maxfd = 84
+	  now = 1263038868
+	  s = (sccp_session_t *) 0x8f70cb0
+	  m = (sccp_moo_t *) 0x8fce560
+	  tv = {tv_sec = 0, tv_usec = 280000}
+	  sigs = {__val = {138432515, 0 <repeats 31 times>}}
+	  attr = {__size =
 	  "\000\000\000\000\000\000\000\000\001\000\000\000\000\020", '\0'
-	  <repeats 21 times>, __align = 0} keepaliveAdditionalTime = <value
-	  optimized out> __PRETTY_FUNCTION__ = "sccp_socket_thread" #5
-	  0x081d2029 in dummy_start (data=0xb1912c08) at utils.c:968
+	  <repeats 21 times>, __align = 0}
+	  keepaliveAdditionalTime = <value optimized out>
+	  __PRETTY_FUNCTION__ = "sccp_socket_thread"
+	  #5 0x081d2029 in dummy_start (data=0xb1912c08) at utils.c:968
 	  __cancel_buf = {__cancel_jmp_buf = {{__cancel_jmp_buf =
 	  {-1210138636, 0, 0, -1317014600, -337207140, 775857646},
 	  __mask_was_saved = 0}}, __pad = {0xb17ff480, 0x0, 0x0, 0x0}}
-	  not_first_call = <value optimized out> ret = <value optimized
-	  out> mutex_attr = {__size = "\001\000\000", __align = 1}
-	  __PRETTY_FUNCTION__ = "dummy_start" #6 0xb7ddc4c0 in start_thread
-	  () from /lib/i686/cmov/libpthread.so.0
+	  not_first_call = <value optimized out>
+	  ret = <value optimized out>
+	  mutex_attr = {__size = "\001\000\000", __align = 1}
+	  __PRETTY_FUNCTION__ = "dummy_start"
+	  #6 0xb7ddc4c0 in start_thread () from
+	  /lib/i686/cmov/libpthread.so.0
 
 2010-01-07  ddegroot
 
@@ -392,7 +422,8 @@
 	  softkeysets)
 
 	* [r1111] src/sccp_cli.c: wrong definition in asterisk 1.4 (show
-	  softkeysets) M sccp_cli.c
+	  softkeysets)
+	  M sccp_cli.c
 
 2009-12-22  marcelloceschia
 
@@ -513,13 +544,14 @@
 
 	* [r1077] src/sccp_actions.c, src/sccp_channel.c,
 	  src/sccp_channel.h, src/sccp_indicate.c: Copied 2 second Delay
-	  from v2 (Rev 1067) Copied "Fixed deadlock on faster channel
-	  answer/hangup" from v2 (Rev 1067)
+	  from v2 (Rev 1067)
+	  Copied "Fixed deadlock on faster channel answer/hangup" from v2
+	  (Rev 1067)
 
 	* [r1076] src/sccp_channel.c, src/sccp_cli.c, src/sccp_labels.h,
-	  src/sccp_protocol.h: Fix deadlock in Direct RTP Routines Fix
-	  deadlock on Restart Device with call in progress (Based on Steven
-	  Lams fix in v2)
+	  src/sccp_protocol.h: Fix deadlock in Direct RTP Routines
+	  Fix deadlock on Restart Device with call in progress
+	  (Based on Steven Lams fix in v2)
 
 2009-12-06  marcelloceschia
 
@@ -530,8 +562,9 @@
 
 	* [r1074] src/sccp_actions.c, src/sccp_adv_features.c,
 	  src/sccp_lists.h, src/sccp_lock.c, src/sccp_lock.h: Updated some
-	  of the sources to reflect the Authorship of Federico Santulli.
-	  His authorship was wrongly removed from some of the sourcefiles.
+	  of the sources to reflect the Authorship of Federico
+	  Santulli. His authorship was wrongly removed from some of the
+	  sourcefiles.
 
 2009-12-05  marcelloceschia
 
@@ -542,8 +575,9 @@
 	  src/sccp_channel.h, src/sccp_config.c, src/sccp_config.h,
 	  src/sccp_device.c, src/sccp_device.h, src/sccp_line.c,
 	  src/sccp_line.h, src/sccp_pbx.c, src/sccp_utils.c: all
-	  configuration options handled in sccp_config.c channel handles
-	  codec capability it self and does not need a device
+	  configuration options handled in sccp_config.c
+	  channel handles codec capability it self and does not need a
+	  device
 
 2009-12-03  ddegroot
 
@@ -579,8 +613,9 @@
 	  src/sccp_mwi.h, src/sccp_pbx.c, src/sccp_pbx.h: Added comments to
 	  classes.
 	  
-	  To generate documentation on all classes use: make doxygen-doc in
-	  the root folder and check out doc/html/index.html afterwards
+	  To generate documentation on all classes use:
+	  make doxygen-doc
+	  in the root folder and check out doc/html/index.html afterwards
 
 	* [r1062] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
 	  src/sccp_actions.h, src/sccp_adv_features.c,
@@ -603,16 +638,25 @@
 
 	* [r1059] conf/sccp.conf, conf/sccp_short.conf, src/sccp_config.c,
 	  src/sccp_featureButton.c: Fixed Problem sccp.conf parsing:
-	  minimum entry in a line configuration is now one of the following
-	  (one of these is necessary to recognize if it is a line or
-	  device): - cid_num - cid_name - label - pin
+	  minimum entry in a line configuration
+	  is now one of the following (one of these is necessary to
+	  recognize if
+	  it is a line or device):
+	  - cid_num
+	  - cid_name
+	  - label
+	  - pin
 	  
-	  Initial Bug Report: Both sample configs (sccp.conf and
-	  sccp_short.conf) in current trunk (rev. 1056) does not work.
-	  There is missing "button" keyword in lines definition which
-	  causes asterisk to ignore them on initial sccp.conf load (it
-	  complains about Unknown type - sccp_config.c line 637). In case I
-	  add line "button = 1" into [defaultline] template it works like
+	  Initial Bug Report:
+	  Both sample configs (sccp.conf and sccp_short.conf) in current
+	  trunk
+	  (rev. 1056) does not work. There is missing "button" keyword in
+	  lines
+	  definition which causes asterisk to ignore them on initial
+	  sccp.conf
+	  load (it complains about Unknown type - sccp_config.c line 637).
+	  In case
+	  I add line "button = 1" into [defaultline] template it works like
 	  charm.
 	  
 	  https://sourceforge.net/tracker/?func=detail&atid=917045&aid=2907192&group_id=186378
@@ -659,16 +703,17 @@
 
 	* [r1047] conf/sccp.conf, conf/sccp_short.conf[ADD]: Added
 	  sccp_short.conf sample file to make clear that device and line
-	  can now be intermixed to make it easier to see which line belongs
-	  to which device
+	  can now be intermixed to make it
+	  easier to see which line belongs to which device
 
 	* [r1046] conf/sccp.conf[ADD]: Added configuration sccp.conf sample
 	  in conf/sccp.conf
 
 	* [r1045] INSTALL, configure, src/chan_sccp.c, src/sccp_config.c,
 	  src/sccp_config.h: Added Configuration Template Parsing to
-	  Chan_SCCP Added new conf/sccp.conf file to demonstart and
-	  document new features
+	  Chan_SCCP
+	  Added new conf/sccp.conf file to demonstart and document new
+	  features
 
 	* [r1044] src/Makefile.am, src/chan_sccp.c, src/sccp_cli.c,
 	  src/sccp_config.c, src/sccp_mwi.c, src/sccp_mwi.h,
@@ -709,16 +754,23 @@
 	  src/sccp_socket.c[ADD], src/sccp_socket.h[ADD],
 	  src/sccp_softkeys.c[ADD], src/sccp_softkeys.h[ADD],
 	  src/sccp_utils.c[ADD], src/sccp_utils.h[ADD]: Major Update of
-	  chan_sccp v3.x This directory will contain ongoing development of
-	  version 3.x Including: - Shared Lines - Conference -
-	  Autoconfigure - Documentation - Templated Config Files - Advanced
-	  Codec Resolving
+	  chan_sccp v3.x
+	  This directory will contain ongoing development of version 3.x
+	  Including:
+	  - Shared Lines
+	  - Conference
+	  - Autoconfigure
+	  - Documentation
+	  - Templated Config Files
+	  - Advanced Codec Resolving
 	  
-	  Fixed: - Mixed Mode Realtime / Static Device/Line Configuration -
-	  Autoconf fixes
+	  Fixed:
+	  - Mixed Mode Realtime / Static Device/Line Configuration
+	  - Autoconf fixes
 	  
-	  Attention: - Please refrain from using branches/v3.x. These
-	  branches will be move to archive shortly.
+	  Attention:
+	  - Please refrain from using branches/v3.x. These branches will be
+	  move to archive shortly.
 
 	* [r1041] AUTHORS[DEL], COPYING[DEL], ChangeLog[DEL], INSTALL[DEL],
 	  Makefile[DEL], README[DEL], chan_sccp.c[DEL], chan_sccp.h[DEL],
@@ -843,8 +895,9 @@
 
 	* [r1028] README, README.in, acinclude.m4, autogen.sh[DEL],
 	  bootstrap.sh[CPY]: - Moved autogen.sh to bootstrap.sh analogous
-	  to asterisk - Added Startup instructions to README - Changed
-	  acinclude.m4 to recognize svn versions correctly
+	  to asterisk
+	  - Added Startup instructions to README
+	  - Changed acinclude.m4 to recognize svn versions correctly
 
 2009-11-24  davidded
 
