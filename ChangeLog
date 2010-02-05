@@ -1,5 +1,9 @@
 2010-02-05  ddegroot
 
+	* [r1209] ChangeLog, Makefile.am, build_tools/svn2html.css: Updated
+	  the StyleSheet for ChangeLog to fit better in the Doxygen Pages.
+	  Added a title to the ChangeLog HTML File
+
 	* [r1208] ChangeLog, Makefile.am, README,
 	  build_tools/svn2html.css[ADD]: Added a style-sheet for the HTML
 	  version of the ChangeLog
