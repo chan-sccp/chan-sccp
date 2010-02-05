@@ -945,25 +945,27 @@ int sccp_sched_free(void *ptr);
 static inline unsigned char sccp_is_nonempty_string(char *string)
 {
         if (NULL != string) {
-                if (!ast_strlen_zero(string)) {						/*! \todo Unrecognized identifier: ast_strlen_zero. Identifier used in code has not been declared. */
-                        return 1;							/*! \todo Return value type int does not match declared type unsigned char: 1 */
+                if (!ast_strlen_zero(string)) {						/*!< \todo Unrecognized identifier: ast_strlen_zero. Identifier used in code has not been declared. */
+                        return 1;							/*!< \todo Return value type int does not match declared type unsigned char: 1 */
                 }
         }
-
-        return 0;									/*! \todo Return value type int does not match declared type unsigned char: 1 */
+        return 0;									/*!< \todo Return value type int does not match declared type unsigned char: 1 */
 }
 
 typedef struct softKeySetConfiguration sccp_softKeySetConfiguration_t;			/*!< SoftKeySet configuration */
+
+
+/*!
+ * \brief SoftKeySet Configuration Structure
+ */
 struct softKeySetConfiguration{
-	char					name[50];				/*!< name for configuration */
+	char					name[50];				/*!< Name for this configuration */
 	softkey_modes 				modes[16];				/*!< SoftKeySet modes, see KEYMODE_* */
-	uint8_t					numberOfSoftKeySets;			/*!< how many softkeysets we definde? */
-	
-	SCCP_LIST_ENTRY(sccp_softKeySetConfiguration_t) 	list;			/*!< next list entry */
-};
+	uint8_t					numberOfSoftKeySets;			/*!< How many SoftKeySets we definde? */
+	SCCP_LIST_ENTRY(sccp_softKeySetConfiguration_t) 	list;			/*!< Next list entry */
+};											/*!< SoftKeySet Configuration Structure */
 
-
-SCCP_LIST_HEAD(, sccp_softKeySetConfiguration_t) softKeySetConfig;			/*! list of SoftKeySet */
+SCCP_LIST_HEAD(, sccp_softKeySetConfiguration_t) softKeySetConfig;			/*!< List of SoftKeySets */
 
 #if defined(__cplusplus) || defined(c_plusplus)
 }
