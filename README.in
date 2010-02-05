@@ -21,7 +21,7 @@ make
 make install
 
 To get the developers documentation run
-make doxygen-doc
+make doxygen
 For documentation, please see the files in the doc/html subdirectory or
 check it out on the internet:
 http://chan-sccp-b.sourceforge.net/doc/index.html.

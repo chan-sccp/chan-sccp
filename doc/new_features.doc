@@ -54,7 +54,7 @@
  *   - empty: Empty button (no options)
  *   - line: Registers the line with identifier specified as [name]
  *   - speeddial: Adds a speeddial with label [name] and [option1] as number
-       Optionally, [option2] can be used to specify a hint by extension@context as usual.
+       Optionally, [option2] can be used to specify a hint by extension\@context as usual.
  *   - service: Adds a service url 
  *   - Feature buttons have an on/off status represented on the device with a tick-box and can be used to set the device in a particular state. 
  *     Currently Possible [option1],[option2] combinations:

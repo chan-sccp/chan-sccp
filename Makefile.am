@@ -12,3 +12,22 @@ include $(top_srcdir)/amdoxygen.am
 EXTRA_DIST 			= bootstrap.sh configure
 SUBDIRS 			= src doc
 ACLOCAL_AMFLAGS                 = -I m4
+
+FORCE:
+
+# Update ChangeLog file from SVN Log
+ChangeLog:	FORCE
+if ENABLE_SVN2CL
+	@echo "Generating ChangeLog from SVN $(CHANGELOG_OLDEST)->HEAD"
+	@$(SVN2CL) --include-actions -i -a --group-by-day --separate-daylogs --reparagraph --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST)
+endif
+
+# Update doc/html/ChangeLog.html from SVN Log
+ChangeLog-HTML:	FORCE
+if ENABLE_SVN2CL
+	@echo "Generating doc/html/ChangeLog.html from SVN $(CHANGELOG_OLDEST)->HEAD"
+	@$(SVN2CL) --include-actions -i -a --group-by-day --separate-daylogs --reparagraph --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST) --html -o doc/html/ChangeLog_SVN2CL.html --revision-link 'http://chan-sccp-b.svn.sourceforge.net/viewvc/chan-sccp-b?view=rev&revision='
+endif
+
+# Update ChangeLog Files and Generate Doxygen Documentation
+doxygen: ChangeLog ChangeLog-HTML doxygen-doc
