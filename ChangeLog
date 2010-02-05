@@ -1,3 +1,15 @@
+2010-02-05  ddegroot
+
+	* [r1207] ChangeLog, INSTALL, Makefile.am, README.in, configure.ac,
+	  doc/main.doc, doc/new_features.doc: - Added a new Makefile.am
+	  method to generate ChangeLog files - Added a "make doxygen"
+	  method, which updates ChangeLog files and generates the
+	  documentation. - SVN2CL is used, when found to generate the
+	  ChangeLog files - An HTML version of the ChangeLog is inserted in
+	  the main page of the doxygen documentation. - This
+	  ChangeLog_SVN2CL.html file has links to the Subversion Repository
+	  at sourceforge for easy Revision Lookup.
+
 2010-02-05  davidded
 
 	* [r1206] src/chan_sccp.c, src/sccp_device.c, src/sccp_mwi.c: my
