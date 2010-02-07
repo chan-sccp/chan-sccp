@@ -1181,8 +1181,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	sccp_linedevices_t 		*linedevice;
 	sccp_line_t 			*l = c->line;
 	int fmt;
-	char 				cid_name[AST_MAX_EXTENSION];
-        char 				cid_num[AST_MAX_EXTENSION];
+
 
 	#ifndef CS_AST_CHANNEL_HAS_CID
 	char cidtmp[256];
@@ -1200,12 +1199,32 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 
 //	sccp_mutex_unlock(&c->lock);
 //	/* Don't hold a sccp pvt lock while we allocate a channel */
+	if(c->device){
+		sccp_linedevices_t 	*linedevice;
+			
+		SCCP_LIST_LOCK(&l->devices);
+		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
+			  if(linedevice->device == c->device)
+				break;
+		}
+		SCCP_LIST_UNLOCK(&l->devices);
+		
+		/* append subscriptionId to cid */
+		sprintf(tmp->cid.cid_num, "%s%s", l->cid_num, (linedevice && linedevice->subscriptionId.number)?linedevice->subscriptionId.number:"");
+	  
+	}else{
+		sccp_copy_string(c->callingPartyNumber, l->cid_num, sizeof(c->callingPartyNumber));
+		sccp_copy_string(c->callingPartyName,  l->cid_name, sizeof(c->callingPartyName));
+	}
+
+
+
 
 #ifdef ASTERISK_CONF_1_2
 	tmp = ast_channel_alloc(1);
 #else
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:     cid_num: \"%s\"\n", l->cid_num);
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:    cid_name: \"%s\"\n", l->cid_name);
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:     cid_num: \"%s\"\n", c->callingPartyNumber);
+	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:    cid_name: \"%s\"\n", c->callingPartyName);
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: accountcode: \"%s\"\n", l->accountcode);
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:       exten: \"%s\"\n", c->dialedNumber);
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:     context: \"%s\"\n", l->context);
@@ -1216,7 +1235,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	
 	
 	/* This should definetly fix CDR */
-    	tmp = ast_channel_alloc(1, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
+    	tmp = ast_channel_alloc(1, AST_STATE_DOWN, c->callingPartyNumber, c->callingPartyName, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
 #endif
        // tmp = ast_channel_alloc(1); function changed in 1.4.0
        // Note: Assuming AST_STATE_DOWN is starting state
@@ -1285,7 +1304,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	ast_jb_configure(tmp, &GLOB(global_jbconf));
 #endif
 
-    char s1[512], s2[512];
+	char s1[512], s2[512];
 	sccp_log(2)(VERBOSE_PREFIX_3 "%s: Channel %s, capabilities: CHANNEL %s(%d) PREFERRED %s(%d) USED %s(%d)\n",
 	l->id,
 	tmp->name,
@@ -1344,28 +1363,12 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 
 #ifdef CS_AST_CHANNEL_HAS_CID
 	if (l->cid_num){
-		if(!c->device)
-			tmp->cid.cid_num = strdup(l->cid_num);
-		else{
-		  
-			sccp_linedevices_t 	*linedevice;
-			
-			SCCP_LIST_LOCK(&c->line->devices);
-			SCCP_LIST_TRAVERSE(&c->line->devices, linedevice, list){
-				 if(linedevice->device == c->device)
-					break;
-			}
-			SCCP_LIST_UNLOCK(&c->line->devices);
-			
-			/* append subscriptionId to cid */
-			sprintf(tmp->cid.cid_num, "%s%s", l->cid_num, (linedevice && linedevice->subscriptionId.number)?linedevice->subscriptionId.number:"");
-		}
-	  
+		tmp->cid.cid_num = strdup(c->callingPartyNumber);	  
 	}
 	if (l->cid_name)
-	  tmp->cid.cid_name = strdup(l->cid_name);
+		tmp->cid.cid_name = strdup(c->callingPartyName);
 #else
-	snprintf(cidtmp, sizeof(cidtmp), "\"%s\" <%s>", l->cid_name, l->cid_num);
+	snprintf(cidtmp, sizeof(cidtmp), "\"%s\" <%s>", c->callingPartyName, c->callingPartyNumber);
 	tmp->callerid = strdup(cidtmp);
 #endif
 
