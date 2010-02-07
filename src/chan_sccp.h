@@ -721,6 +721,7 @@ struct sccp_channel {
         char					calledPartyNumber[StationMaxDirnumSize];/*!< Called Party Number */
         char					callingPartyName[StationMaxNameSize];	/*!< Calling Party Name */
         char					callingPartyNumber[StationMaxDirnumSize];/*!< Calling Party Number */
+        
         uint32_t				callid;					/*!< Call ID */
         uint32_t				passthrupartyid;			/*!< Pass Through ID */
         //uint32_t				conferenceid; 				/*!< Conference ID. This will be used in native conferencing mode and will differ from callid  -FS*/
