@@ -1222,10 +1222,9 @@ void * sccp_dev_postregistration(void *data)
  */
 void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 	sccp_buttonconfig_t	*config = NULL;
-	sccp_hostname_t *permithost = NULL;
 	sccp_selectedchannel_t 	*selectedChannel = NULL;
-	sccp_line_t	*line =NULL;
-	sccp_channel_t	*channel=NULL;
+	sccp_line_t		*line =NULL;
+	sccp_channel_t		*channel=NULL;
 
 	char family[25];
 
@@ -1233,6 +1232,8 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 	if (!d)
 		return;
 
+	sccp_device_lock(d);
+	
 	sprintf(family, "SCCP/%s", d->id);
 	ast_db_del(family, "lastDialedNumber");
 	if(!ast_strlen_zero(d->lastNumber))
@@ -1246,10 +1247,11 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 		SCCP_LIST_UNLOCK(&GLOB(devices));
 	}
 
-	sccp_device_lock(d);
+	
 
-	/* hang up open channels */
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
+	/* hang up open channels and remove device from line */
+	SCCP_LIST_LOCK(&d->buttonconfig);
+	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		if(config->type == LINE ){
 			line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
 			if(!line)
@@ -1261,35 +1263,30 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 				}
 			}
 			SCCP_LIST_TRAVERSE_SAFE_END;
+			
+			/* remove devices from line */
+			sccp_line_removeDevice(line, d);
 		}
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
+	SCCP_LIST_UNLOCK(&d->buttonconfig);
 	/* */
 
-	/* remove devices from line */
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
-		if(config->type == LINE ){
-			line = sccp_line_find_byname_wo(config->button.line.name,FALSE);
-			if(line){
-				sccp_line_removeDevice(line, d);
-			}
-		}
-	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
 
 
 	/* removing addons */
-	sccp_addons_clear(d);
+	if(destroy){
+		sccp_addons_clear(d);
+	}
 
 	/* removing selected channels */
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->selectedChannels, selectedChannel, list) {
-		SCCP_LIST_REMOVE(&d->selectedChannels, selectedChannel, list);
+	SCCP_LIST_LOCK(&d->selectedChannels);
+	while((selectedChannel = SCCP_LIST_REMOVE_HEAD(&d->selectedChannels, list))) {
 		ast_free(selectedChannel);
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
+	SCCP_LIST_UNLOCK(&d->selectedChannels);
 
 
-
+#if 0
 	if (d->postregistration_thread && (d->postregistration_thread != AST_PTHREADT_STOP)) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Killing the device postregistration thread\n", d->id);
 		pthread_cancel(d->postregistration_thread);
@@ -1297,43 +1294,12 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 		pthread_join(d->postregistration_thread, NULL);
 		d->postregistration_thread = AST_PTHREADT_STOP;
 	}
-
+#endif
 
 	/* */
 	d->session = NULL;
-
-
-	if(destroy){
-		//SCCP_LIST_REMOVE_CURRENT(d);
-
-		/* remove button config */
-		/* only generated on read config, so do not remove on reset/restart*/
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		while((config = SCCP_LIST_REMOVE_HEAD(&d->buttonconfig, list))) {
-			ast_free(config);
-			config = NULL;
-		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
-		SCCP_LIST_HEAD_DESTROY(&d->buttonconfig);
-		/* */
-
-		/* removing permithosts */
-		SCCP_LIST_LOCK(&d->permithosts);
-		while((permithost = SCCP_LIST_REMOVE_HEAD(&d->permithosts, list))) {
-			ast_free(permithost);
-		}
-		SCCP_LIST_UNLOCK(&d->permithosts);
-		SCCP_LIST_HEAD_DESTROY(&d->permithosts);
-
-		/* */
-		SCCP_LIST_HEAD_DESTROY(&d->selectedChannels);
-		if (d->ha)
-			ast_free_ha(d->ha);
-
-		d->ha = NULL;
-	}
-
 	sccp_device_unlock(d);
+	
 	if(destroy){
 		uint8_t waittime = 10;
 		if(!(d->scheduleTasks.free = sccp_sched_add(sched, waittime * 1000, sccp_device_free, d))) {
@@ -1349,14 +1315,48 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 
 
 /*!
- * \brief Free a Device
+ * \brief Free a Device as scheduled command
  * \param ptr SCCP Device Pointer
  * \return success as int
  */
 int sccp_device_free(const void *ptr){
-	sccp_device_t *d = (sccp_device_t *)ptr;
+	sccp_device_t 		*d = (sccp_device_t *)ptr;
+	sccp_buttonconfig_t	*config = NULL;
+	sccp_hostname_t 	*permithost = NULL;
 
+	
+	
+	sccp_device_lock(d);
+	/* remove button config */
+	/* only generated on read config, so do not remove on reset/restart*/
+	SCCP_LIST_LOCK(&d->buttonconfig);
+	while((config = SCCP_LIST_REMOVE_HEAD(&d->buttonconfig, list))) {
+		ast_free(config);
+		config = NULL;
+	}
+	SCCP_LIST_UNLOCK(&d->buttonconfig);
+	SCCP_LIST_HEAD_DESTROY(&d->buttonconfig);
+	/* */
+	
+	/* removing permithosts */
+	SCCP_LIST_LOCK(&d->permithosts);
+	while((permithost = SCCP_LIST_REMOVE_HEAD(&d->permithosts, list))) {
+		ast_free(permithost);
+	}
+	SCCP_LIST_UNLOCK(&d->permithosts);
+	SCCP_LIST_HEAD_DESTROY(&d->permithosts);
+
+	/* destroy selected channels list */
+	SCCP_LIST_HEAD_DESTROY(&d->selectedChannels);
+	if (d->ha){
+		ast_free_ha(d->ha);
+	}
+
+	d->ha = NULL;
+	
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: device deleted\n", d->id);
+	
+	sccp_device_unlock(d);
 	ast_mutex_destroy(&d->lock);
 	ast_free(d);
 
