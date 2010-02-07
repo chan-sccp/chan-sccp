@@ -346,6 +346,16 @@ struct sccp_cfwd_information{
 };
 
 
+
+/*!
+ * \brief for addressing individual devices on shared line
+ */
+struct  subscriptionId{
+	char				number[AST_MAX_EXTENSION];			/*!< will be added to cid */
+	char				name[AST_MAX_EXTENSION];			/*!< will be added to cidName */
+};
+
+
 /*!
  * \brief SCCP Line-Devices Structure
  */
@@ -358,6 +368,8 @@ struct sccp_linedevices {
         sccp_device_t 				* device;				/*!< SCCP Device */
         sccp_cfwd_information_t			cfwdAll;				/*!< cfwd information */
         sccp_cfwd_information_t			cfwdBusy;				/*!< cfwd information */
+        
+        struct  subscriptionId			subscriptionId;				/*!< for addressing individual devices on shared line */
 	
         SCCP_LIST_ENTRY(sccp_linedevices_t) 	list;					/*!< Device Linked List Entry */
 };											/*!< SCCP Line-Device Structure */
@@ -758,6 +770,9 @@ struct sccp_channel {
         
         struct sccp_conference			*conference;				/*!< are we part of a conference? */
 	sccp_channel_t				*parentChannel;				/*!< if we are a cfwd channel, our parent is this */
+	
+	
+	struct  subscriptionId			subscriptionId;
 	
 };											/*!< SCCP Channel Structure */
 

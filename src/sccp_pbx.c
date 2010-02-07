@@ -350,6 +350,10 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 
 			if(!d->session)
 				continue;
+			
+			if( strlen(c->subscriptionId.number) > 0 && strncasecmp(c->subscriptionId.number, linedevice->subscriptionId.number, strlen(c->subscriptionId.number))){
+				continue;
+			}
 
 			if ( sccp_channel_get_active(d) ) {
 				sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CALLWAITING);
@@ -1173,9 +1177,12 @@ const struct ast_channel_tech sccp_tech = {
  */
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 //	sccp_device_t 			*d = c->device;
-	struct ast_channel 	*tmp;
+	struct ast_channel 		*tmp;
+	sccp_linedevices_t 		*linedevice;
 	sccp_line_t 			*l = c->line;
 	int fmt;
+	char 				cid_name[AST_MAX_EXTENSION];
+        char 				cid_num[AST_MAX_EXTENSION];
 
 	#ifndef CS_AST_CHANNEL_HAS_CID
 	char cidtmp[256];
@@ -1205,6 +1212,9 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:    amaflags: \"%d\"\n", l->amaflags);
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:   chan/call: \"%s-%08x\"\n", l->name, c->callid);
 
+	
+	
+	
 	/* This should definetly fix CDR */
     	tmp = ast_channel_alloc(1, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
 #endif
@@ -1333,8 +1343,25 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	ast_update_use_count();
 
 #ifdef CS_AST_CHANNEL_HAS_CID
-	if (l->cid_num)
-	  tmp->cid.cid_num = strdup(l->cid_num);
+	if (l->cid_num){
+		if(!c->device)
+			tmp->cid.cid_num = strdup(l->cid_num);
+		else{
+		  
+			sccp_linedevices_t 	*linedevice;
+			
+			SCCP_LIST_LOCK(&c->line->devices);
+			SCCP_LIST_TRAVERSE(&c->line->devices, linedevice, list){
+				 if(linedevice->device == c->device)
+					break;
+			}
+			SCCP_LIST_UNLOCK(&c->line->devices);
+			
+			/* append subscriptionId to cid */
+			sprintf(tmp->cid.cid_num, "%s%s", l->cid_num, (linedevice && linedevice->subscriptionId.number)?linedevice->subscriptionId.number:"");
+		}
+	  
+	}
 	if (l->cid_name)
 	  tmp->cid.cid_name = strdup(l->cid_name);
 #else
