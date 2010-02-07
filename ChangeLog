@@ -1,4 +1,24 @@
+2010-02-07  ddegroot
+
+	* [r1215] ., Makefile.am: Updated ChangeLog Generation to only
+	  update the ChangeLog when necessary
+	  Include ChangeLog Generation in Make all
+	  Updated svn:ignore to Exclude ChangeLog in svn commits
+
+2010-02-07  marcelloceschia
+
+	* [r1214] src/chan_sccp.h, src/sccp_pbx.c: adding subscriptionId to
+	  linedevice
+
+	* [r1213] src/sccp_device.c: device clean
+
+	* [r1212] src/chan_sccp.h, src/sccp_pbx.c: adding subscriptionId to
+	  linedevice
+
 2010-02-05  ddegroot
+
+	* [r1211] ChangeLog, Makefile.am: Fix Makefile.am so it only create
+	  doc/html when necessary
 
 	* [r1210] ChangeLog, Makefile.am: Fixed ChangeLog-HTML generation
 	  Error when doc/html does not exist yet.
