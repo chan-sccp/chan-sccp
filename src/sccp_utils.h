@@ -98,6 +98,7 @@ enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state
 #endif
 #endif
 sccp_feature_type_t sccp_featureStr2featureID(char *str);
+boolean_t sccp_util_matchSubscriberID(const sccp_channel_t *channel, const char *subscriberID);
 
 #endif
 

@@ -324,6 +324,7 @@ sccp_device_t * sccp_device_find_realtime(const char * name) {
 		//d = sccp_config_buildDevice(v, name, TRUE);
 
 		d = sccp_device_create();
+		sccp_device_applyDefaults(d);
 		sccp_copy_string(d->id, name, sizeof(d->id));
 		d = sccp_config_applyDeviceConfiguration(d, variable);
 
@@ -2416,4 +2417,14 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 			return;
 	}
 
+}
+
+boolean_t sccp_util_matchSubscriberID(const sccp_channel_t *channel, const char *subscriberID){
+	if(strlen(channel->subscriptionId.number) || !subscriberID)
+		return TRUE;
+	
+	if( !strncasecmp(channel->subscriptionId.number, subscriberID, strlen(channel->subscriptionId.number)) )
+		return FALSE;
+	
+	return TRUE;	
 }
