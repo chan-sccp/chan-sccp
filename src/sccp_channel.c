@@ -273,7 +273,7 @@ void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t * c)
 		r->msg.CallInfoMessage.lel_lineId   = htolel(instance);
 		r->msg.CallInfoMessage.lel_callRef  = htolel(c->callid);
 		r->msg.CallInfoMessage.lel_callType = htolel(c->calltype);
-		r->msg.CallInfoMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
+		r->msg.CallInfoMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED);
 	}else{
 		/* remote device notification */
 		if (c->callingPartyName)
@@ -289,7 +289,7 @@ void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t * c)
 		r->msg.CallInfoMessage.lel_lineId   = htolel(instance);
 		r->msg.CallInfoMessage.lel_callRef  = htolel(c->callid);
 		r->msg.CallInfoMessage.lel_callType = htolel(c->calltype);
-		r->msg.CallInfoMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
+		r->msg.CallInfoMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED);
 	}
 
 	sccp_dev_send(device, r);

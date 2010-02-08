@@ -259,11 +259,15 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *lineName, boolean_t isRealtime){
 	sccp_line_t 	*line = NULL;
 
+	struct composedId id;
+
+	id = sccp_parseComposedId(lineName, 256);
+
 	// Try to find out if we have the line already on file.
 	// However, do not look into realtime, since
 	// we might have been asked to create a device for realtime addition,
 	// thus causing an infinite loop / recursion.
-	line = sccp_line_find_byname_wo(lineName, FALSE);
+	line = sccp_line_find_byname_wo(id.mainId, FALSE);
 
 
 	/* search for existing line */
@@ -274,13 +278,12 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 
 	//line = build_lines_wo(variable);
 	line = sccp_line_create();
-        line = sccp_config_applyLineConfiguration(line, variable);
+	line = sccp_config_applyLineConfiguration(line, variable);
 	
-	sccp_copy_string(line->name, lineName, sizeof(line->name));
-
+	sccp_copy_string(line->defaultSubscriptionId.number, id.subscriptionId.number, sizeof(line->defaultSubscriptionId.number));
+	sccp_copy_string(line->defaultSubscriptionId.name, id.subscriptionId.name, sizeof(line->defaultSubscriptionId.name));
 	
-	
-	sccp_copy_string(line->name, ast_strip((char *)lineName), sizeof(line->name));
+	sccp_copy_string(line->name, ast_strip((char *)id.mainId), sizeof(line->name));
 #ifdef CS_SCCP_REALTIME
 	line->realtime = isRealtime;
 #endif

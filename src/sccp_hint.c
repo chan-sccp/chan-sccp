@@ -988,7 +988,7 @@ static void * sccp_hint_remoteNotification_thread(void *data){
 #warning "This looks very dangerous to me or needs explanation (-DD)"
 			sleep(1);
 			i++;
-			if(!ast_channel_trylock(foundChannel))
+			if(ast_channel_trylock(foundChannel))
 				goto CLEANUP;
 		}
 

@@ -21,6 +21,7 @@
 #include "sccp_device.h"
 #include "sccp_line.h"
 #include "sccp_config.h"
+#include <assert.h>
 
 
 
@@ -2417,6 +2418,82 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 			return;
 	}
 
+}
+
+struct composedId sccp_parseComposedId(const char* labelString, unsigned int maxLength)
+{
+	const char *stringIterator = 0;
+	int i = 0;
+	boolean_t endDetected = FALSE;
+	int state = 0;
+	struct composedId id;
+
+	assert(0 != labelString);
+
+	memset (&id, 0, sizeof(id));
+		
+
+	for (stringIterator = labelString; stringIterator < labelString+maxLength && !endDetected; stringIterator++)
+	{
+		switch (state)
+		{
+			case 0: // parsing of main id
+				assert (i < sizeof(id.mainId));
+				switch (*stringIterator) {
+					case '\0':
+						endDetected = TRUE;
+						id.mainId[i] = '\0';
+						break;
+					case '@':
+						id.mainId[i] = '\0';
+						i = 0;
+						state = 1;
+						break;
+					default:
+						id.mainId[i] = *stringIterator;
+						i++;
+						break;
+				}
+				break;
+						
+			case 1: // parsing of sub id number
+				assert (i < sizeof(id.subscriptionId.number));
+				switch (*stringIterator) {
+					case '\0':
+						endDetected = TRUE;
+						id.subscriptionId.number[i] = '\0';
+						break;
+					case ':':
+						id.subscriptionId.number[i] = '\0';
+						i = 0;
+						state = 2;
+						break;
+					default:
+						id.subscriptionId.number[i] = *stringIterator;
+						i++;
+						break;
+				}
+				break;
+				
+			case 2: // parsing of sub id name
+				assert (i < sizeof(id.subscriptionId.name));
+				switch (*stringIterator) {
+					case '\0':
+						endDetected = TRUE;
+						id.subscriptionId.name[i] = '\0';
+						break;
+					default:
+						id.subscriptionId.name[i] = *stringIterator;
+						i++;
+						break;
+				}
+				break;
+
+			default:
+				assert(FALSE);
+		}
+	}
+	return id;
 }
 
 boolean_t sccp_util_matchSubscriberID(const sccp_channel_t *channel, const char *subscriberID){
