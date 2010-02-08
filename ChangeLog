@@ -1,4 +1,40 @@
+2010-02-08  ddegroot
+
+	* [r1229] ChangeLog, bootstrap.sh, configure.ac: Updated
+	  bootstrap.sh to check installed autoconf/automake on BSD machines
+
 2010-02-08  marcelloceschia
+
+	* [r1228] src/sccp_hint.c: setting hint state if dnd == busy
+
+	* [r1227] src/sccp_actions.c, src/sccp_featureButton.c,
+	  src/sccp_protocol.h: rename
+	  SpeedDialStatDynamicMessage.lel_unknown1 to
+	  SpeedDialStatDynamicMessage.lel_status
+
+2010-02-08  davidded
+
+	* [r1226] src/chan_sccp.h, src/sccp_channel.c, src/sccp_cli.c,
+	  src/sccp_config.c, src/sccp_hint.c, src/sccp_pbx.c,
+	  src/sccp_utils.c, src/sccp_utils.h: parser and default
+	  subscription id
+
+2010-02-08  marcelloceschia
+
+	* [r1225] src/sccp_protocol.h: update registrationMessage
+
+	* [r1224] src/sccp_pbx.c: testing subscriberID
+
+	* [r1223] src/sccp_utils.c: fixing sccp_util_matchSubscriberID
+
+	* [r1222] src/sccp_pbx.c: set subscriber
+
+	* [r1221] src/sccp_utils.c, src/sccp_utils.h: matching function for
+	  subscriber
+
+	* [r1220] src/chan_sccp.c: parsing subscriber
+
+	* [r1219] src/sccp_line.c: testing subscriberID
 
 	* [r1218] src/sccp_pbx.c: fixing segmentation fault
 

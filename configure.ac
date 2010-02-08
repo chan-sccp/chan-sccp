@@ -1,4 +1,10 @@
-dnl Process this file with autoconf to produce a configure script.
+dnl
+dnl Chan_SCCP-b Configure Script 
+dnl
+dnl Date: $Date$
+dnl Revision: $Revision$
+dnl 
+dnl Process this file with "autoreconf -vfi" to produce a configure script.
 AC_PREREQ(2.64)
 AC_INIT([Chan_SCCP],[TRUNK],[https://sourceforge.net/projects/chan-sccp-b/],[Chan_SCCP])
 
