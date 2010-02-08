@@ -359,10 +359,20 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 					c->ringermode = SKINNY_STATION_URGENTRING;
 				else
 					c->ringermode = SKINNY_STATION_OUTSIDERING;
+			
+			/* set subscriberId for individual device addressing */
+			}else if (!strncasecmp(optv[opti], "subscriber=", 11)) {
+				optv[opti] += 11;
+				sccp_copy_string(c->subscriptionId.number, optv[opti], sizeof(c->subscriptionId.number));
+				ast_log(LOG_NOTICE, "%s: calling subscriber %s\n", l->id, c->subscriptionId.number);
+			
 			} else {
 				ast_log(LOG_WARNING, "%s: Wrong option %s\n", l->id, optv[opti]);
 			}
 		}
+		
+		
+		
 	}
 
 OUT:
