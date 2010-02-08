@@ -354,7 +354,9 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 				continue;
 			
 			/* check if c->subscriptionId.number is matching deviceSubscriptionID */
-			if( !sccp_util_matchSubscriberID(c, linedevice->subscriptionId.number) ){
+			/* This means that we call only those devices on a shared line
+			   which match the specified subscription id in the dial parameters. */
+			if( !sccp_util_matchSubscriptionId(c, linedevice->subscriptionId.number) ){
 				continue;
 			}
 

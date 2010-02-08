@@ -2493,18 +2493,24 @@ struct composedId sccp_parseComposedId(const char* labelString, unsigned int max
 	return id;
 }
 
-boolean_t sccp_util_matchSubscriberID(const sccp_channel_t *channel, const char *subscriberID){
+boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const char *subscriptionIdNum){
 	boolean_t result = TRUE;
   
-	if(!strlen(channel->subscriptionId.number) || !subscriberID || !strlen(subscriberID)){
-		result = TRUE;
-	
-	}else if( !strncasecmp(channel->subscriptionId.number, subscriberID, strlen(channel->subscriptionId.number)) ){
-		result = FALSE;
-		
+	if(    NULL != subscriptionIdNum 
+		&& 0    != strlen(subscriptionIdNum)
+	    && NULL != channel->line 
+	    && !strncasecmp(channel->line->defaultSubscriptionId.number, 
+					   subscriptionIdNum, 
+					   strlen(channel->line->defaultSubscriptionId.number ))  ) {
+			if( !strncasecmp(channel->subscriptionId.number,
+				subscriptionIdNum, 
+				strlen(channel->subscriptionId.number)) 
+				&& !strlen(channel->subscriptionId.number) ) {
+					result = FALSE;
+			}
 	}
 	
-	ast_log(LOG_NOTICE, "sccp_util_matchSubscriberID: channel->subscriptionId.number=%s, subscriberID=%s result: %s\n", (channel->subscriptionId.number)?channel->subscriptionId.number:"NULL", (subscriberID)?subscriberID:"NULL", (result)?"TRUE":"FALSE");
+	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: channel->subscriptionId.number=%s, SubscriptionId=%s result: %s\n", (channel->subscriptionId.number)?channel->subscriptionId.number:"NULL", (subscriptionIdNum)?subscriptionIdNum:"NULL", (result)?"TRUE":"FALSE");
 	
 	return result;	
 }
