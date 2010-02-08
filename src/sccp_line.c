@@ -61,7 +61,7 @@ sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l)
 		return NULL;
 
 	
-	l->incominglimit = 3; /* default value */
+	l->incominglimit = 99; /* default value */
 	l->echocancel = GLOB(echocancel); /* default value */
 	l->silencesuppression = GLOB(silencesuppression); /* default value */
 	l->rtptos = GLOB(rtptos); /* default value */
