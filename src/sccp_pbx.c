@@ -1231,8 +1231,8 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 		}
 	  
 	}else{
-		sccp_copy_string(c->callingPartyNumber, l->cid_num, sizeof(c->callingPartyNumber));
-		sccp_copy_string(c->callingPartyName,  l->cid_name, sizeof(c->callingPartyName));
+		sprintf(c->callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number)?l->defaultSubscriptionId.number:"");
+		sprintf(c->callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name)?l->defaultSubscriptionId.name:"");
 	}
 
 
