@@ -1217,10 +1217,14 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 		if(linedevice && !ast_strlen_zero(linedevice->subscriptionId.number)){
 			sprintf(c->callingPartyNumber, "%s%s", l->cid_num, linedevice->subscriptionId.number);
 		}else{
-			sprintf(c->callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionSuffix)?l->defaultSubscriptionSuffix:"");
+			sprintf(c->callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number)?l->defaultSubscriptionId.number:"");
 		}
 		
-		sprintf(c->callingPartyName, "%s%s", l->cid_name, (linedevice && !ast_strlen_zero(linedevice->subscriptionId.name))?linedevice->subscriptionId.name:"");
+		if(linedevice && !ast_strlen_zero(linedevice->subscriptionId.name)){
+			sprintf(c->callingPartyName, "%s%s", l->cid_name, linedevice->subscriptionId.name);
+		}else{
+			sprintf(c->callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name)?l->defaultSubscriptionId.name:"");
+		}
 	  
 	}else{
 		sccp_copy_string(c->callingPartyNumber, l->cid_num, sizeof(c->callingPartyNumber));

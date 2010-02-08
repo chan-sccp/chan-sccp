@@ -404,6 +404,7 @@ struct sccp_buttonconfig {
 
                 struct {
                         char 			name[80];				/*!< Button Name */
+						struct subscriptionId subscriptionId;
                 } line;									/*!< SCCP Button Line Structure */
                 /*!
                  * \brief SCCP Button Speeddial Structure
@@ -949,8 +950,6 @@ struct ast_channel 				* sccp_request(char *type, int format, void *data);
 #endif
 
 int sccp_devicestate(void *data);
-sccp_device_t 					* build_devices_wo(struct ast_variable *v);
-sccp_line_t 					* build_lines_wo(struct ast_variable *v);
 
 #ifndef ASTERISK_CONF_1_2
 struct sched_context 				* sched;
