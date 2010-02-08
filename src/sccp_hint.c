@@ -368,22 +368,28 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			
 			switch(hint->currentState){
 				case SCCP_CHANNELSTATE_ONHOOK:
-					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(SCCP_BLF_STATUS_IDLE);
+					r->msg.SpeedDialStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_IDLE);
 				break;
 				
 				case SCCP_CHANNELSTATE_DOWN:
-					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(SCCP_BLF_STATUS_UNKNOWN); /* default state */
+					r->msg.SpeedDialStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_UNKNOWN); /* default state */
 				break;
 				
 				case SCCP_CHANNELSTATE_RINGING:
-					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(SCCP_BLF_STATUS_ALERTING); /* ringin */
+					r->msg.SpeedDialStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_ALERTING); /* ringin */
+				break;
+				
+				case SCCP_CHANNELSTATE_DND:
+					r->msg.SpeedDialStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_DND); /* ringin */
 				break;
 				
 				default:
-					r->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(SCCP_BLF_STATUS_INUSE); /* connected */
+					r->msg.SpeedDialStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_INUSE); /* connected */
 				break;
 			}
 			char displayMessage[100];
+			//int i=0;
+			
 			
 			/* do not add name for TEMP_FAIL and ONHOOK */
 			if(hint->currentState > 2 ){
@@ -395,7 +401,12 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			}else{
 				sccp_copy_string(displayMessage, (k)?k->name:"unknown speeddial", sizeof(displayMessage));
 			}
+			/*
+			for(i=strlen(displayMessage); i<100;i++){
+			      displayMessage[i] = 0x20;
+			}*/
 			
+			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "set display name to: \"%s\"\n", displayMessage);
 			sccp_copy_string(r->msg.SpeedDialStatDynamicMessage.DisplayName, displayMessage, sizeof(r->msg.SpeedDialStatDynamicMessage.DisplayName));
 			sccp_dev_send(subscriber->device, r);
 			
@@ -563,6 +574,7 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t *hint){
 void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 	sccp_line_t 	*line = NULL;
 	sccp_channel_t 	*channel = NULL;
+	uint8_t		state;
 
 	if(!hint)
 		return;
@@ -599,10 +611,18 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 		
 		sccp_linedevices_t *lineDevice = SCCP_LIST_FIRST(&line->devices);
 		sccp_device_t *device = NULL;
-		if(lineDevice)
+		
+		
+		state = channel->state;
+		if(lineDevice){
 			device = lineDevice->device;
-
-		switch (channel->state) {
+			if(device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_REJECT){
+				state = SCCP_CHANNELSTATE_DND;
+			}
+		}
+		
+		
+		switch (state) {
 			case SCCP_CHANNELSTATE_DOWN:
 				hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
 				break;
@@ -610,6 +630,15 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 				sccp_copy_string(hint->callInfo.callingPartyName,  SKINNY_DISP_OFF_HOOK, sizeof(hint->callInfo.callingPartyName));
 				sccp_copy_string(hint->callInfo.calledPartyName,  SKINNY_DISP_OFF_HOOK, sizeof(hint->callInfo.calledPartyName));
 				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+				break;
+			case SCCP_CHANNELSTATE_DND:
+				sccp_copy_string(hint->callInfo.callingPartyName,  SKINNY_DISP_DND, sizeof(hint->callInfo.callingPartyName));
+				sccp_copy_string(hint->callInfo.calledPartyName,  SKINNY_DISP_DND, sizeof(hint->callInfo.calledPartyName));
+#ifndef CS_DYNAMIC_SPEEDDIAL		  
+				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+#else
+				hint->currentState = SCCP_CHANNELSTATE_DND;
+#endif
 				break;
 			case SCCP_CHANNELSTATE_GETDIGITS:
 				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
@@ -710,8 +739,17 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 
 
 	}else{
-		/* no channel -> on hook */
-		hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
+		sccp_linedevices_t *lineDevice = SCCP_LIST_FIRST(&line->devices);
+		if(lineDevice){
+			if(lineDevice->device->dndFeature.enabled && lineDevice->device->dndFeature.status == SCCP_DNDMODE_REJECT){
+				hint->currentState = SCCP_CHANNELSTATE_DND;
+			}else{
+				hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
+			}
+		}else{
+			/* no channel -> on hook */
+			hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
+		}
 	}
 DONE:
 	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "set singleLineState to %d\n", hint->currentState);
