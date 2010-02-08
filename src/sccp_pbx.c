@@ -417,7 +417,8 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 		sccp_log(64)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		ast_log(LOG_DEBUG, "SCCP: Waiting to lock the channel %s for hangup\n", ast->name);
 		usleep(200);
-		c = CS_AST_CHANNEL_PVT(ast);
+		//c = CS_AST_CHANNEL_PVT(ast);
+		// Strange why this assignment was included in the code in the first place (-DD)
 	}
 
 	if (!c) {
@@ -496,6 +497,8 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 		sccp_pbx_needcheckringback(d);
 	}
 	sccp_channel_cleanbeforedelete(c);
+	sccp_channel_unlock(c);
+
 	sccp_channel_delete_wo(c,0,0);
 
 //	switch(c->state) {
@@ -1303,9 +1306,10 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	snprintf(tmp->name, sizeof(tmp->name), "SCCP/%s-%08x", l->name, c->callid);
 #endif
 
+	sccp_line_unlock(l);
 	sccp_channel_unlock(c);
 //	sccp_device_unlock(d);
-	sccp_line_unlock(l);
+
 
 #ifndef ASTERISK_CONF_1_2
 	ast_jb_configure(tmp, &GLOB(global_jbconf));

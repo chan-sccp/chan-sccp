@@ -78,6 +78,8 @@ const char * sccp_dndmode2str(uint8_t type);
 uint8_t sccp_codec_ast2skinny(int fmt);
 int sccp_codec_skinny2ast(uint8_t fmt);
 
+struct composedId sccp_parseComposedId(const char* labelString, unsigned int maxLength);
+
 #ifndef CS_AST_HAS_STRINGS
 char *ast_skip_blanks(char *str);
 char *ast_trim_blanks(char *str);

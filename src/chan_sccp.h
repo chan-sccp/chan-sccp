@@ -355,6 +355,15 @@ struct  subscriptionId{
 	char				name[AST_MAX_EXTENSION];			/*!< will be added to cidName */
 };
 
+/*!
+ * \brief string identifier with additional subscription id
+ */
+struct  composedId{
+	char   mainId[StationMaxServiceURLSize];
+	struct subscriptionId subscriptionId;
+};
+
+
 
 /*!
  * \brief SCCP Line-Devices Structure
@@ -488,6 +497,7 @@ struct sccp_line {
         struct ast_variable			* variables;				/*!< Channel variables to set */
         unsigned int				dnd: 3;					/*!< dnd on line */
         uint8_t 				dndmode;				/*!< dnd mode: see SCCP_DNDMODE_* */
+	struct  subscriptionId			defaultSubscriptionId;     /*!< default subscription id for shared lines */
 
 #ifdef CS_DYNAMIC_CONFIG
         /* this is for reload routines */

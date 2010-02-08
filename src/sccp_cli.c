@@ -950,6 +950,9 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 		for (v = l->variables ; v ; v = v->next)
 			ast_cli(fd, "Variable: %-20s : %-20s\n", v->name , v->value);
 
+		if(strcmp(l->defaultSubscriptionId.number, "") || strcmp(l->defaultSubscriptionId.name, ""))
+			ast_cli(fd, "Default Subscription Id: Number=%s, Name=%s\n", l->defaultSubscriptionId.number,  l->defaultSubscriptionId.name);
+
 		// sccp_line_unlock(l);
 
 	}
