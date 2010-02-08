@@ -19,6 +19,7 @@
  * \ref nf_shared_lines 	"How to use Shared Lines on a device"\n
  * \ref nf_phone_buttons 	"How to set Phone Buttons on a device"\n
  * \ref nf_hotline		"How to use the Hotline option on a device"\n
+ * \ref nf_dynamic_speeddial   	"How to use Dynamic SpeedDials"\n
  * \ref nf_sccp_softkeys   	"How to use the Soft Keys on the Phone"\n
  * <HR>
  *
@@ -80,6 +81,26 @@
  * \endcode
  *
  * <HR>
+ *
+ *
+ *
+ *
+ *
+ *
+ * \subsection nf_dynamic_speeddial How to use Dynamic SpeedDials
+ * 
+ * Dynamic SpeedDials give additional information about the status of the lines assigned the speeddial. The
+ * Icon displayed changes to indicate "IDLE", "DND", "IN USE" and "RINGING". The only limitation with 
+ * dynamic speeddials is that they do not display the in- or out-going number on the speeddial. This however
+ * is a limitation in the Cisco Protocol which can not be overcome at this moment.
+ * 
+ * To use Dynamic SpeedDials instead of Normal SpeedDials you need to use a configure parameters during compilation
+ * \code
+ * ./configure --with-dynamic-speeddial
+ * \endcode
+ *
+ * Dynamic SpeedDial is currently switch off by default.
+ * <HR> 
  *
  *
  *
