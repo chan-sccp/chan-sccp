@@ -2495,6 +2495,8 @@ struct composedId sccp_parseComposedId(const char* labelString, unsigned int max
 
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const char *subscriptionIdNum){
 	boolean_t result = TRUE;
+	int compareId = 0;
+	int compareDefId = 0;
 
 	if(NULL != subscriptionIdNum) {
 	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: channel->subscriptionId.number=%s, SubscriptionId=%s, NULL!=channel->line %s\n", (channel->subscriptionId.number)?channel->subscriptionId.number:"NULL", (subscriptionIdNum)?subscriptionIdNum:"NULL", (NULL != channel->line)?"TRUE":"FALSE");
@@ -2506,13 +2508,15 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const cha
 	if(    NULL != subscriptionIdNum 
 		&& 0    != strlen(subscriptionIdNum)
 	    && NULL != channel->line 
-	    && 0    != strncasecmp(channel->line->defaultSubscriptionId.number, 
+	    && 0    != compareDefId = strncasecmp(channel->line->defaultSubscriptionId.number, 
 					   subscriptionIdNum, 
 					   strlen(channel->line->defaultSubscriptionId.number ))  ) {
+	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: outer if: compare = %d\n", compareDefId);
 			if( 0 != strncasecmp(channel->subscriptionId.number,
 				subscriptionIdNum, 
 				strlen(channel->subscriptionId.number)) 
-				&& 0 != strlen(channel->subscriptionId.number) ) {
+				&& 0 != compareId = strlen(channel->subscriptionId.number) ) {
+	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: inner if: compare = %d\n", compareId);
 					result = FALSE;
 			}
 	}
