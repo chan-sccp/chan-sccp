@@ -239,8 +239,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 
 		sccp_device_unlock(d);
 
-		sccp_line_addDevice(GLOB(hotline)->line, d);
-		//sccp_device_addLine(d, GLOB(hotline)->line);
+		sccp_line_addDevice(GLOB(hotline)->line, d, NULL);
 		sccp_hint_lineStatusChanged(GLOB(hotline)->line, d, NULL, SCCP_DEVICESTATE_UNAVAILABLE ,SCCP_DEVICESTATE_ONHOOK);
 	}else{
 
@@ -276,11 +275,10 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 					}
 					sccp_device_unlock(d);
 
-					sccp_line_addDevice(l, d);
+					sccp_line_addDevice(l, d, &(buttonconfig->button.line.subscriptionId));
 
 
 					/* notify the line is on */
-					//sccp_hint_notify_linestate(l, d, SCCP_DEVICESTATE_UNAVAILABLE ,SCCP_DEVICESTATE_ONHOOK);
 					sccp_hint_lineStatusChanged(l, d, NULL, SCCP_DEVICESTATE_UNAVAILABLE ,SCCP_DEVICESTATE_ONHOOK);
 					l = NULL;
 				}
