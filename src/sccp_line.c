@@ -262,8 +262,9 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t *device, uint8_t type, char *
  * \brief Attach a Device to a line
  * \param l SCCP Line
  * \param device SCCP Device
+ * \param subscriptionId Subscription ID for addressing individual devices on the line
  */
-void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device)
+void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, struct subscriptionId *subscriptionId)
 {
 	char *options;
 	int optc = 0;
@@ -279,10 +280,9 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device)
 	memset(linedevice, 0, sizeof(sccp_linedevices_t));
 	linedevice->device = device;
 
-	
-	if(!strcasecmp(device->id, "SEP0014A9D9D5E6")){
-		sccp_copy_string(linedevice->subscriptionId.name, " 7971", sizeof(linedevice->subscriptionId.name));
-		sccp_copy_string(linedevice->subscriptionId.number, "123", sizeof(linedevice->subscriptionId.number));
+	if(NULL != subscriptionId) {
+		sccp_copy_string(linedevice->subscriptionId.name,  subscriptionId->name, sizeof(linedevice->subscriptionId.name));
+		sccp_copy_string(linedevice->subscriptionId.number, subscriptionId->number, sizeof(linedevice->subscriptionId.number));
 	}
 	
 	SCCP_LIST_LOCK(&l->devices);
