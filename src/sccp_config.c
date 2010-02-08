@@ -737,9 +737,9 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
                 } else if (!strcasecmp(v->name, "cid_num")) {
                         sccp_copy_string(l->cid_num, v->value, sizeof(l->cid_num));
                 } else if (!strcasecmp(v->name, "defaultSubscriptionId_name")) { // Subscription IDs
-                        sccp_copy_string(l->cid_name, v->value, sizeof(l->defaultSubscriptionId.name));
+                        sccp_copy_string(l->defaultSubscriptionId.name, v->value, sizeof(l->defaultSubscriptionId.name));
                 } else if (!strcasecmp(v->name, "defaultSubscriptionId_number")) {
-                        sccp_copy_string(l->cid_name, v->value, sizeof(l->defaultSubscriptionId.number));
+                        sccp_copy_string(l->defaultSubscriptionId.number, v->value, sizeof(l->defaultSubscriptionId.number));
                 } else if (!strcasecmp(v->name, "callerid")) {
                         ast_log(LOG_WARNING, "obsolete callerid param. Use cid_num and cid_name\n");
                 } else if (!strcasecmp(v->name, "mailbox")) {

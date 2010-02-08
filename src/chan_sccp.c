@@ -123,7 +123,7 @@ struct ast_channel *sccp_request(const char *type, int format, void *data, int *
 struct ast_channel *sccp_request(char *type, int format, void *data) {
 #endif
 
-
+	struct composedId lineSubscriptionId;
 	sccp_line_t * l = NULL;
 	sccp_channel_t * c = NULL;
 	char *options = NULL, *deviceName=NULL, *lineName = NULL;
@@ -133,6 +133,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 	int oldformat = format;
 
 
+	memset(&lineSubscriptionId, 0, sizeof(struct composedId));
 #ifdef CS_AST_HAS_TECH_PVT
 	*cause = AST_CAUSE_NOTDEFINED;
 #endif
@@ -156,22 +157,19 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 	/* we leave the data unchanged */
 	lineName = strdup(data);
 
-	if ((deviceName = strchr(lineName, '@'))) {
-		*deviceName = '\0';
-		deviceName++;
-	}
-
-	if ((options = strchr(deviceName?deviceName:lineName, '/'))) {
+	if ((options = strchr(lineName, '/'))) {
 		*options = '\0';
 		options++;
 	}
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Asterisk asked to create a channel type=%s, format=%d, data=%s, device=%s options=%s\n", type, format, lineName,(deviceName)?deviceName:"" , (options) ? options : "");
+	lineSubscriptionId = sccp_parseComposedId(lineName, 80);
 
-	l = sccp_line_find_byname(lineName);
+	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Asterisk asked to create a channel type=%s, format=%d, line=%s, subscriptionId.number=%s, options=%s\n", type, format, lineSubscriptionId.mainId, lineSubscriptionId.subscriptionId.number, (options) ? options : "");
+
+	l = sccp_line_find_byname(lineSubscriptionId.mainId);
 
 	if (!l) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP/%s does not exist!\n", lineName);
+		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP/%s does not exist!\n", lineSubscriptionId.mainId);
 #ifdef CS_AST_HAS_TECH_PVT
 		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 #endif
@@ -201,7 +199,22 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 		goto OUT;
 	 }
 
-	if (!sccp_pbx_channel_allocate(c)) {
+	
+	/* set subscriberId for individual device addressing */
+	if (!ast_strlen_zero(lineSubscriptionId.subscriptionId.number)) {
+			sccp_copy_string(c->subscriptionId.number, lineSubscriptionId.subscriptionId.number, sizeof(c->subscriptionId.number));
+			// Here it would be nice to add the name suffix as well.
+			// However, this information is not available 
+			// without explicit lookup over all relevant devices.
+			ast_log(LOG_NOTICE, "%s: calling subscriber %s\n", l->id, c->subscriptionId.number);
+	} else {
+			sccp_copy_string(c->subscriptionId.number, l->defaultSubscriptionId.number, sizeof(c->subscriptionId.number));
+			sccp_copy_string(c->subscriptionId.name, l->defaultSubscriptionId.name, sizeof(c->subscriptionId.name));
+			ast_log(LOG_NOTICE, "%s: calling all subscribers with id %s\n", l->id, c->subscriptionId.number);
+	}
+
+
+if (!sccp_pbx_channel_allocate(c)) {
 #ifdef CS_AST_HAS_TECH_PVT
 		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 #endif
@@ -209,6 +222,8 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 		c = NULL;
 		goto OUT;
 	}
+
+
 	
 #if 0
 	sccp_log(10)(VERBOSE_PREFIX_3 "Line %s has %d device%s\n", l->name, l->devices.size, (l->devices.size>1)?"s":"");
@@ -244,17 +259,6 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 
 	sccp_log(1)(VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	 /* we have a single device given */
-	if(deviceName){
-		if( !(c->device = sccp_device_find_byid(deviceName, TRUE)) ){
-			/* but can't find it -> cleanup*/
-#ifdef CS_AST_HAS_TECH_PVT
-		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
-#endif
-		sccp_channel_delete(c);
-		c = NULL;
-		goto OUT;
-		}
-	}
 
 	/*
 	if(c->device){
@@ -360,17 +364,10 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 				else
 					c->ringermode = SKINNY_STATION_OUTSIDERING;
 			
-			/* set subscriberId for individual device addressing */
-			}else if (!strncasecmp(optv[opti], "subscriber=", 11)) {
-				optv[opti] += 11;
-				sccp_copy_string(c->subscriptionId.number, optv[opti], sizeof(c->subscriptionId.number));
-				ast_log(LOG_NOTICE, "%s: calling subscriber %s\n", l->id, c->subscriptionId.number);
-			
 			} else {
 				ast_log(LOG_WARNING, "%s: Wrong option %s\n", l->id, optv[opti]);
 			}
 		}
-		
 		
 		
 	}
