@@ -2508,14 +2508,14 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const cha
 	if(    NULL != subscriptionIdNum 
 		&& 0    != strlen(subscriptionIdNum)
 	    && NULL != channel->line 
-	    && 0    != compareDefId = strncasecmp(channel->line->defaultSubscriptionId.number, 
-					   subscriptionIdNum, 
-					   strlen(channel->line->defaultSubscriptionId.number ))  ) {
+	    && 0    != (compareDefId = strncasecmp(channel->subscriptionId.number, 
+					   channel->line->defaultSubscriptionId.number,
+					   strlen(channel->subscriptionId.number)))  ) {
 	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: outer if: compare = %d\n", compareDefId);
 			if( 0 != strncasecmp(channel->subscriptionId.number,
 				subscriptionIdNum, 
 				strlen(channel->subscriptionId.number)) 
-				&& 0 != compareId = strlen(channel->subscriptionId.number) ) {
+				&& 0 != (compareId = strlen(channel->subscriptionId.number)) ) {
 	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: inner if: compare = %d\n", compareId);
 					result = FALSE;
 			}
