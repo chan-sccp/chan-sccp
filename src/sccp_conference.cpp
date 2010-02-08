@@ -2,8 +2,8 @@
  * \file 	sccp_conference.c
  * \brief 	SCCP Conference Class
  * \author
- * \date	$LastChangedDate$
- *
+ * \date        $Date$
+ * \version     $Revision$  
  */
 #ifdef CS_SCCP_CONFERENCE
 

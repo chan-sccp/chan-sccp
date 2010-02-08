@@ -5,7 +5,6 @@
  * An implementation of Skinny Client Control Protocol (SCCP)
  *
  * \author 	Sergio Chersovani <mlists [at] c-net.it>
- * \date
  * \brief 	Main chan_sccp Class
  * \note	Reworked, but based on chan_sccp code.
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
@@ -13,6 +12,8 @@
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *
  * \warning 	File has been Lined up using 8 Space TABS
+ * \date        $Date$
+ * \version     $Revision$
  */
 
 #ifndef __CHAN_SCCP_H

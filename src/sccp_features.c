@@ -4,7 +4,8 @@
  * \author 	Federico Santulli <fsantulli [at] users.sourceforge.net >
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  * \since 	2009-01-16
- * \version 	$LastChangedDate$
+ * \date        $Date$
+ * \version     $Revision$
  */
 
 #include "config.h"

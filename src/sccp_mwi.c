@@ -2,9 +2,9 @@
  * \file 	sccp_mwi.c
  * \brief 	SCCP Message Waiting Indicator Class
  * \author 	Marcello Ceschia <marcello [at] ceschia.de>
- * \date	2008-11-22
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- * \version 	$LastChangedDate$
+ * \date        $Date$
+ * \version     $Revision$  
  */
  
 #include "config.h"

@@ -4,6 +4,8 @@
  * \author 	Federico Santulli <fsantulli [at] users.sourceforge.net >
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  * \since 	2009-01-16
+ * \date        $Date$
+ * \version     $Revision$  
  */
 
 #ifndef __SCCP_FEATURES_H
