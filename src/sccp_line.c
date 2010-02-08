@@ -265,6 +265,11 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t *device, uint8_t type, char *
  */
 void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device)
 {
+	char *options;
+	int optc = 0;
+	char *optv[2];
+	int opti = 0;
+  
         sccp_linedevices_t *linedevice;
 	if(!l || !device)
 		return;
@@ -274,6 +279,12 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device)
 	memset(linedevice, 0, sizeof(sccp_linedevices_t));
 	linedevice->device = device;
 
+	
+	if(!strcasecmp(device->id, "SEP0014A9D9D5E6")){
+		sccp_copy_string(linedevice->subscriptionId.name, " 7971", sizeof(linedevice->subscriptionId.name));
+		sccp_copy_string(linedevice->subscriptionId.number, "123", sizeof(linedevice->subscriptionId.number));
+	}
+	
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_INSERT_HEAD(&l->devices, linedevice, list);
 	SCCP_LIST_UNLOCK(&l->devices);
