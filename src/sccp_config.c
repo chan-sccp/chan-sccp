@@ -41,9 +41,11 @@ struct ast_config *sccp_config_getConfig(void);
  */
 void sccp_config_addLine(sccp_device_t *device, char *lineName, uint8_t index) {
 	sccp_buttonconfig_t	*config;
+	struct composedId composedLineRegistrationId;
 
 	config = ast_malloc(sizeof(sccp_buttonconfig_t));
 	memset(config, 0, sizeof(sccp_buttonconfig_t));
+	memset(&composedLineRegistrationId, 0, sizeof(struct composedId));
 	if(!config)
 		return;
 
@@ -54,8 +56,12 @@ void sccp_config_addLine(sccp_device_t *device, char *lineName, uint8_t index) {
 	if (ast_strlen_zero(lineName)) {
 		config->type = EMPTY;
 	}else{
+		composedLineRegistrationId = sccp_parseComposedId(lineName, 80);
+
 		config->type = LINE;
-		sccp_copy_string(config->button.line.name, lineName, sizeof(config->button.line.name));
+		sccp_copy_string(config->button.line.name, composedLineRegistrationId.mainId, sizeof(config->button.line.name));
+		sccp_copy_string(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number, sizeof(config->button.line.subscriptionId.number));
+		sccp_copy_string(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name, sizeof(config->button.line.subscriptionId.name));
 	}
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_INSERT_TAIL(&device->buttonconfig, config, list);
@@ -224,8 +230,6 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 	} 
 
 	
-	//d = build_devices_wo(variable);
-	
 	/* create new device with default values */
 	d= sccp_device_create();
 	memset(d->id, 0, sizeof(d->id));
@@ -259,15 +263,12 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *lineName, boolean_t isRealtime){
 	sccp_line_t 	*line = NULL;
 
-	struct composedId id;
-
-	id = sccp_parseComposedId(lineName, 256);
 
 	// Try to find out if we have the line already on file.
 	// However, do not look into realtime, since
 	// we might have been asked to create a device for realtime addition,
 	// thus causing an infinite loop / recursion.
-	line = sccp_line_find_byname_wo(id.mainId, FALSE);
+	line = sccp_line_find_byname_wo(lineName, FALSE);
 
 
 	/* search for existing line */
@@ -276,14 +277,10 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 		return line;
 	} 
 
-	//line = build_lines_wo(variable);
 	line = sccp_line_create();
 	line = sccp_config_applyLineConfiguration(line, variable);
 	
-	sccp_copy_string(line->defaultSubscriptionId.number, id.subscriptionId.number, sizeof(line->defaultSubscriptionId.number));
-	sccp_copy_string(line->defaultSubscriptionId.name, id.subscriptionId.name, sizeof(line->defaultSubscriptionId.name));
-	
-	sccp_copy_string(line->name, ast_strip((char *)id.mainId), sizeof(line->name));
+	sccp_copy_string(line->name, ast_strip((char *)lineName), sizeof(line->name));
 #ifdef CS_SCCP_REALTIME
 	line->realtime = isRealtime;
 #endif
@@ -739,6 +736,10 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
                         sccp_copy_string(l->cid_name, v->value, sizeof(l->cid_name));
                 } else if (!strcasecmp(v->name, "cid_num")) {
                         sccp_copy_string(l->cid_num, v->value, sizeof(l->cid_num));
+                } else if (!strcasecmp(v->name, "defaultSubscriptionId_name")) { // Subscription IDs
+                        sccp_copy_string(l->cid_name, v->value, sizeof(l->defaultSubscriptionId.name));
+                } else if (!strcasecmp(v->name, "defaultSubscriptionId_number")) {
+                        sccp_copy_string(l->cid_name, v->value, sizeof(l->defaultSubscriptionId.number));
                 } else if (!strcasecmp(v->name, "callerid")) {
                         ast_log(LOG_WARNING, "obsolete callerid param. Use cid_num and cid_name\n");
                 } else if (!strcasecmp(v->name, "mailbox")) {

@@ -394,16 +394,13 @@ sccp_line_t * sccp_line_find_realtime_byname(const char * name)
 	sccp_line_t *l = NULL;
 	struct ast_variable *v, *variable;
 
-	/* No martini, no party ! */
 	if(ast_strlen_zero(GLOB(realtimelinetable)))
 		return NULL;
 
 	if ((variable = ast_load_realtime(GLOB(realtimelinetable), "name", name, NULL))) {
 		v = variable;
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Line '%s' found in realtime table '%s'\n", name, GLOB(realtimelinetable));
-		//l = build_lines_wo(v, 1);
 
-		//l = sccp_config_buildLine(v, name, TRUE);
 		l = sccp_line_create();
 		l = sccp_config_applyLineConfiguration(l, variable);
 		sccp_copy_string(l->name, name, sizeof(l->name));
@@ -412,7 +409,6 @@ sccp_line_t * sccp_line_find_realtime_byname(const char * name)
 #endif
 		l = sccp_line_addToGlobals(l);
 		ast_variables_destroy(v);
-
 
 		if(!l) {
 			ast_log(LOG_ERROR, "SCCP: Unable to build realtime line '%s'\n", name);
