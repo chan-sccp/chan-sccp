@@ -351,7 +351,8 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 			if(!d->session)
 				continue;
 			
-			if( strlen(c->subscriptionId.number) > 0 && strncasecmp(c->subscriptionId.number, linedevice->subscriptionId.number, strlen(c->subscriptionId.number))){
+			/* check if c->subscriptionId.number is matching deviceSubscriptionID */
+			if( !sccp_util_matchSubscriberID(c, linedevice->subscriptionId.number) ){
 				continue;
 			}
 
@@ -1211,6 +1212,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 		
 		/* append subscriptionId to cid */
 		sprintf(c->callingPartyNumber, "%s%s", l->cid_num, (linedevice && !ast_strlen_zero(linedevice->subscriptionId.number))?linedevice->subscriptionId.number:"");
+		sprintf(c->callingPartyName, "%s%s", l->cid_name, (linedevice && !ast_strlen_zero(linedevice->subscriptionId.name))?linedevice->subscriptionId.name:"");
 	  
 	}else{
 		sccp_copy_string(c->callingPartyNumber, l->cid_num, sizeof(c->callingPartyNumber));
