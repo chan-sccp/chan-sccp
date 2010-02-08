@@ -236,7 +236,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 			REQ(featureDynamicMessage, SpeedDialStatDynamicMessage);
 			featureDynamicMessage->msg.SpeedDialStatDynamicMessage.lel_instance = htolel(instance);
 			featureDynamicMessage->msg.SpeedDialStatDynamicMessage.lel_type     = htolel(buttonID);
-			featureDynamicMessage->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(config->button.feature.status);
+			featureDynamicMessage->msg.SpeedDialStatDynamicMessage.lel_status = htolel(config->button.feature.status);
 			sccp_copy_string(featureDynamicMessage->msg.SpeedDialStatDynamicMessage.DisplayName, config->button.feature.label, strlen(config->button.feature.label)+1);
 			sccp_dev_send(device, featureDynamicMessage);
 			

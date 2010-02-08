@@ -243,10 +243,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 		//sccp_device_addLine(d, GLOB(hotline)->line);
 		sccp_hint_lineStatusChanged(GLOB(hotline)->line, d, NULL, SCCP_DEVICESTATE_UNAVAILABLE ,SCCP_DEVICESTATE_ONHOOK);
 	}else{
-		/*
-		SCCP_LIST_TRYLOCK(&d->buttonconfig);
-		*/
-#warning "Trylock makes no sense here, since the lock is never checked. Changed it to hard lock. (-DD)"
+
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 			if(!buttonconfig)
@@ -293,11 +290,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	}
 	l = NULL;
 	buttonconfig = NULL;
-
-
-	//SCCP_LIST_TRAVERSE(&d->lines, l, list) {
-	//	ast_log(LOG_WARNING, "%s: LIST Device for line %s is %s\n", d->id, l->name, l->device->id);
-	//}
 
 
 	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
@@ -625,12 +617,12 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 		return;
 	}
 
-		btn = sccp_make_button_template(d);
-		if (!btn) {
-			ast_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
-			sccp_session_close(s);
-			return;
-		}
+	btn = sccp_make_button_template(d);
+	if (!btn) {
+		ast_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
+		sccp_session_close(s);
+		return;
+	}
 
 	REQ(r1, ButtonTemplateMessage);
 	for (i = 0; i < StationMaxButtonTemplateSize ; i++) {
@@ -773,9 +765,10 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 
 		sccp_copy_string(r1->msg.LineStatMessage.lineDisplayName, ((l) ? l->label : (k)?k->name:""), sizeof(r1->msg.LineStatMessage.lineDisplayName));
 
+#if 0
 		/* we have a strange behavior if we have debug 0, some messages will not be sent. -MC*/
 		//sccp_safe_sleep(100);
-#warning "Removed sleep (-DD)"
+#endif
 		sccp_dev_send(d, r1);
 
 		/* force the forward status message. Some phone does not request it registering */
@@ -2350,7 +2343,7 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 			REQ(r1, SpeedDialStatDynamicMessage);
 			r1->msg.SpeedDialStatDynamicMessage.lel_instance = htolel(instance);
 			r1->msg.SpeedDialStatDynamicMessage.lel_type = 0x15;
-			r1->msg.SpeedDialStatDynamicMessage.lel_unknown1 = htolel(0);
+			r1->msg.SpeedDialStatDynamicMessage.lel_status = htolel(0);
 
 			sccp_copy_string(r1->msg.SpeedDialStatDynamicMessage.DisplayName, k->name, sizeof(r1->msg.SpeedDialStatDynamicMessage.DisplayName));
 			sccp_dev_send(d, r1);

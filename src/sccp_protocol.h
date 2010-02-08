@@ -976,7 +976,7 @@ typedef union {
 	struct {
 		uint32_t 	lel_instance;					/*!< Instance */
                 uint32_t 	lel_type;					/*!< always 0x15 */
-                uint32_t 	lel_unknown1;					/*!< Unknown1 */
+                uint32_t 	lel_status;					/*!< status */
 		char	 	DisplayName[StationMaxNameSize];		/*!< SpeedDial Display Name */
 	} SpeedDialStatDynamicMessage;						/*!< Speed Dial Stat Dynamic Message Structure */
 
