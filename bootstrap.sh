@@ -1,4 +1,11 @@
 #!/bin/sh
+#
+# Automatically generate configure script
+# 
+# Date:     $Date$
+# Revision: $Revision$
+#
+
 if [ -f src/Makefile ]; then
   rm -rf libtool config aclocal.m4 autom4te.cache/ src/Makefile.in src/config.h src/Makefile
 fi

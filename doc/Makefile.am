@@ -7,6 +7,9 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# Date:     $Date$
+# Revision: $Revision$
 
 EXTRA_DIST = html
 DX_CLEANFILES = everything to clean.
