@@ -2495,14 +2495,20 @@ struct composedId sccp_parseComposedId(const char* labelString, unsigned int max
 
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const char *subscriptionIdNum){
 	boolean_t result = TRUE;
+
+	if(NULL != subscriptionIdNum) {
+	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: channel->subscriptionId.number=%s, SubscriptionId=%s, NULL!=channel->line %s\n", (channel->subscriptionId.number)?channel->subscriptionId.number:"NULL", (subscriptionIdNum)?subscriptionIdNum:"NULL", (result)?"TRUE":"FALSE");
+	} else {
+	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: null subscriptionIdNum!\n");
+	}
   
 	if(    NULL != subscriptionIdNum 
 		&& 0    != strlen(subscriptionIdNum)
 	    && NULL != channel->line 
-	    && !strncasecmp(channel->line->defaultSubscriptionId.number, 
+	    && 0    != strncasecmp(channel->line->defaultSubscriptionId.number, 
 					   subscriptionIdNum, 
 					   strlen(channel->line->defaultSubscriptionId.number ))  ) {
-			if( !strncasecmp(channel->subscriptionId.number,
+			if( 0 != strncasecmp(channel->subscriptionId.number,
 				subscriptionIdNum, 
 				strlen(channel->subscriptionId.number)) 
 				&& !strlen(channel->subscriptionId.number) ) {
