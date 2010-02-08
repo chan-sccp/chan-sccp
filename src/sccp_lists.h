@@ -7,6 +7,8 @@
  *
  *		File is not directly included to get benefit from lists also in
  *		previous Asterisk releases (like 1.2)
+ * \date        $Date$
+ * \version     $Revision$  
  */
 #ifndef _SCCP_LISTS_H
 #define _SCCP_LISTS_H

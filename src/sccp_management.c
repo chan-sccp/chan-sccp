@@ -2,8 +2,9 @@
  * \file 	sccp_management.c
  * \brief 	SCCP Management Class
  * \author 	Marcello Ceschia <marcello [at] ceschia.de>
- * \date	2008-11-22
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \date        $Date$
+ * \version     $Revision$  
  */
 
 #include "config.h"

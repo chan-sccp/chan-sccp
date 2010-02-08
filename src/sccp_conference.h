@@ -2,8 +2,8 @@
  * \file 	sccp_conference.h
  * \brief 	SCCP Conference Header
  * \author
- * \date	$LastChangedDate$
- *
+ * \date        $Date$
+ * \version     $Revision$  
  */
 
 #ifndef SCCP_CONFERENCE_H_
