@@ -2420,11 +2420,17 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 }
 
 boolean_t sccp_util_matchSubscriberID(const sccp_channel_t *channel, const char *subscriberID){
-	if(strlen(channel->subscriptionId.number) || !subscriberID)
-		return TRUE;
+	boolean_t result = TRUE;
+  
+	if(!strlen(channel->subscriptionId.number) || !subscriberID || !strlen(subscriberID)){
+		result = TRUE;
 	
-	if( !strncasecmp(channel->subscriptionId.number, subscriberID, strlen(channel->subscriptionId.number)) )
-		return FALSE;
+	}else if( !strncasecmp(channel->subscriptionId.number, subscriberID, strlen(channel->subscriptionId.number)) ){
+		result = FALSE;
+		
+	}
 	
-	return TRUE;	
+	ast_log(LOG_NOTICE, "sccp_util_matchSubscriberID: channel->subscriptionId.number=%s, subscriberID=%s result: %s\n", (channel->subscriptionId.number)?channel->subscriptionId.number:"NULL", (subscriberID)?subscriberID:"NULL", (result)?"TRUE":"FALSE");
+	
+	return result;	
 }
