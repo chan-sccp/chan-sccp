@@ -1210,7 +1210,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 		SCCP_LIST_UNLOCK(&l->devices);
 		
 		/* append subscriptionId to cid */
-		sprintf(tmp->cid.cid_num, "%s%s", l->cid_num, (linedevice && linedevice->subscriptionId.number)?linedevice->subscriptionId.number:"");
+		sprintf(c->callingPartyNumber, "%s%s", l->cid_num, (linedevice && !ast_strlen_zero(linedevice->subscriptionId.number))?linedevice->subscriptionId.number:"");
 	  
 	}else{
 		sccp_copy_string(c->callingPartyNumber, l->cid_num, sizeof(c->callingPartyNumber));
