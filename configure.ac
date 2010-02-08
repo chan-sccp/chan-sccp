@@ -4,9 +4,12 @@ dnl
 dnl Date: $Date$
 dnl Revision: $Revision$
 dnl 
-dnl Process this file with "autoreconf -vfi" to produce a configure script.
-AC_PREREQ(2.64)
-AC_INIT([Chan_SCCP],[TRUNK],[https://sourceforge.net/projects/chan-sccp-b/],[Chan_SCCP])
+dnl Process this file with autoconf to produce a configure script.
+AC_PREREQ(2.53)
+AC_INIT([Chan_SCCP],
+        [TRUNK],
+        [https://sourceforge.net/projects/chan-sccp-b/],
+        [Chan_SCCP])
 
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
@@ -20,7 +23,7 @@ AC_CANONICAL_HOST
 AC_CANONICAL_TARGET 
 dnl AC_DISABLE_STATIC
 
-AC_CONFIG_HEADERS([src/config.h])
+AM_CONFIG_HEADER(src/config.h)
 
 AH_TOP([
 /*!
@@ -38,7 +41,7 @@ AH_TOP([
 dnl AM_INIT_AUTOMAKE([gnu 1.5 no-define dist-bzip2 dist-tarZ])
 AM_INIT_AUTOMAKE([1.9 -Wno-portability check-news dist-bzip2 dist-tarZ no-define nostdinc])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
-AC_DISABLE_STATIC([])
+AM_DISABLE_STATIC
 
 # check existence of the package
 AC_CONFIG_SRCDIR([src/chan_sccp.c]) 
@@ -50,8 +53,8 @@ dnl Create the relevant Build variables
 AC_PATH_TOOL([UNAME], [uname], No)
 if test ! x"${UNAME}" = xNo; then
     if test -n $BUILD_OS ; then
-        BUILD_DATE="`date -u "+%Y-%m-%d %H:%M:%S"`"
-	AC_DEFINE_UNQUOTED([BUILD_DATE],"`date -u "+%Y-%m-%d %H:%M:%S"`",[The date of this build])
+        BUILD_DATE="`date -u "+%Y-%m-%d %H:%M:%S"` UTC"
+	AC_DEFINE_UNQUOTED([BUILD_DATE],"`date -u "+%Y-%m-%d %H:%M:%S"` UTC",[The date of this build])
 	AC_DEFINE_UNQUOTED([BUILD_OS],"`${UNAME} -s`",[Operating System we are building on])
 	AC_DEFINE_UNQUOTED([BUILD_MACHINE],"`${UNAME} -m`",[Machine we are building on])
 	AC_DEFINE_UNQUOTED([BUILD_HOSTNAME],"`${UNAME} -n`",[Hostname of our Box])
@@ -145,7 +148,7 @@ esac
 AC_SUBST(CS_OSTYPE)
 
 # This needs to be before any macros that use the C compiler
-AC_USE_SYSTEM_EXTENSIONS
+AC_GNU_SOURCE
 
 # cross-compile checks
 if test x"${build}" != x"${host}"; 
@@ -165,11 +168,11 @@ fi
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
-LT_INIT(dlopen)   
+AC_PROG_LIBTOOL   
 AC_PROG_AWK
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_LANG([C])
+AC_LANG_C
 AC_C_INLINE 		dnl wanted by: src/chan_sccp.h:138
 
 AC_PATH_PROGS(GREP, ggrep grep,[echo Missing grep so skipping but I doubt we will get anywhere])
@@ -187,10 +190,6 @@ AC_PATH_PROGS(WHOAMI,whoami,[echo whoami not found so no version info will be av
 dnl LT_INIT()
 dnl LT_PREREQ([2.0.0])
 dnl AC_SUBST([LIBTOOL_DEPS])
-dnl _LT_SET_OPTION([LT_INIT],[dlopen])
-AC_DIAGNOSE([obsolete],[AC_LIBTOOL_DLOPEN: Remove this warning and the call to _LT_SET_OPTION when you
-put the `dlopen' option into LT_INIT's first parameter.])
-
 dnl AC_LIBLTDL_CONVENIENCE
 dnl AC_SUBST(INCLTDL)
 dnl AC_SUBST(LIBLTDL)
@@ -233,7 +232,8 @@ fi
 AM_CONDITIONAL(ENABLE_SVN2CL, test x$enable_svn2cl != xno)
 
 AC_ARG_WITH(changelog-oldest,
-	    AS_HELP_STRING([--with-changelog-oldest=NUMBER],[Oldest revision to include in ChangeLog]))
+	    AC_HELP_STRING([--with-changelog-oldest=NUMBER],
+			   [Oldest revision to include in ChangeLog]))
 
 CHANGELOG_OLDEST=1021
 if test "x$with_changelog_oldest" != "x" ; then
@@ -262,12 +262,12 @@ AC_DEFINE([__BIG_ENDIAN],4321,[for the places where it is not defined])
 # Configure Options
 dnl Optimize for host cpu version
 AC_ARG_ENABLE(optimization,     
-	[AS_HELP_STRING([--disable-optimization],[no detection or tuning flags for cpu version])],
+	[AC_HELP_STRING([--disable-optimization],[no detection or tuning flags for cpu version])],
 	[OPTIMIZECPU="$enableval"],[OPTIMIZECPU="yes"])
 
 dnl Enable debugging
 AC_ARG_ENABLE(debug,
-	[AS_HELP_STRING([--enable-debug],[build with debug information])],,[enable_debug="no"])
+	[AC_HELP_STRING([--enable-debug],[build with debug information])],,[enable_debug="no"])
 if test "${enable_debug}" = "yes"; then
    AC_DEFINE([DEBUG],[],[Enable extra debugging.])
    enable_do_crash="yes"
@@ -276,9 +276,9 @@ fi
 AM_CONDITIONAL([WANT_DEBUG],[test "${enable_debug}" = "yes"])
 
 AC_ARG_WITH([asterisk],
-    [AS_HELP_STRING([--with-asterisk=PATH],[Location of OpenSSL installation])],,[withval="/usr"])
+    [AC_HELP_STRING([--with-asterisk=PATH],[Location of OpenSSL installation])],,[withval="/usr"])
 AC_ARG_WITH([callweaver],
-    [AS_HELP_STRING([--with-callweaver=PATH],[Location of OpenSSL installation])],,[withval="/usr"])
+    [AC_HELP_STRING([--with-callweaver=PATH],[Location of OpenSSL installation])],,[withval="/usr"])
 AC_ARG_WITH(asterisk-includes,
     AS_HELP_STRING([--with-asterisk-includes=PATH], [Path to Asterisk includes (defaults to PREFIX/include)]),
     [ASTERISK_CFLAGS="-I$withval"])
@@ -369,42 +369,42 @@ fi
 
 dnl Add Arguments to configure
 AC_ARG_WITH(pickup, 
-  AS_HELP_STRING([--with-pickup],[build with pickup function (default is YES)]), 
+  AC_HELP_STRING([--with-pickup],       [build with pickup function (default is YES)]), 
   ac_cv_use_pickup=no, ac_cv_use_pickup=yes)
 	AS_IF([test "${ac_cv_use_pickup}" == "yes"], [
         	AC_DEFINE(CS_SCCP_PICKUP, 1, [Enable pickup function])
 ])
 
 AC_ARG_WITH(park, 
-  AS_HELP_STRING([--with-park],[build with park funktion (default is YES)]), 
+  AC_HELP_STRING([--with-park], [build with park funktion (default is YES)]), 
   ac_cv_use_park=no, ac_cv_use_park=yes)
 	AS_IF([test "${ac_cv_use_park}" == "yes"], [
         	AC_DEFINE(CS_SCCP_PARK, 1, [Enable park function])
 ])
 
 AC_ARG_WITH(dirtrfr, 
-  AS_HELP_STRING([--with-dirtrfr],[Build DIRTRFR functions (default is YES)]), 
+  AC_HELP_STRING([--with-dirtrfr], [Build DIRTRFR functions (default is YES)]), 
   ac_cv_use_dirtrfr=no, ac_cv_use_dirtrfr=yes)
 	AS_IF([test "${ac_cv_use_dirtrfr}" == "yes"], [
         	AC_DEFINE(CS_SCCP_DIRTRFR, 1, [Enable DIRTRFR function])
 ])
 
 AC_ARG_WITH(monitor, 
-  AS_HELP_STRING([--with-monitor],[Build monitor functions (default is YES)]), 
+  AC_HELP_STRING([--with-monitor], [Build monitor functions (default is YES)]), 
   ac_cv_use_monitor=no, ac_cv_use_monitor=yes)
 	AS_IF([test "${ac_cv_use_monitor}" == "yes"], [
         	AC_DEFINE(CS_SCCP_FEATURE_MONITOR, 1, [Enable monitor function])
 ])
 
 AC_ARG_WITH(conference, 
-  AS_HELP_STRING([--with-conference],[Build conference functions (default is NO)]), 
+  AC_HELP_STRING([--with-conference], [Build conference functions (default is NO)]), 
   ac_cv_use_conference=yes, ac_cv_use_conference=no)
 AS_IF([test "${ac_cv_use_conference}" == "yes"], [
         AC_DEFINE(CS_SCCP_CONFERENCE, 1, [Enable conference function])
 ])
 
 AC_ARG_WITH(manager, 
-  AS_HELP_STRING([--with-manager],[Build manager functions (default is YES)]), 
+  AC_HELP_STRING([--with-manager], [Build manager functions (default is YES)]), 
   ac_cv_use_manager=no, ac_cv_use_manager=yes)
 	AS_IF([test "${ac_cv_use_manager}" == "yes"], [
         	AC_DEFINE(CS_MANAGER_EVENTS, 1, [Enable manager events])
@@ -412,21 +412,21 @@ AC_ARG_WITH(manager,
 ])
 
 AC_ARG_WITH(indications, 
-  AS_HELP_STRING([--with-indications],[Debug SCCP indications (default is NO)]), 
+  AC_HELP_STRING([--with-indications], [Debug SCCP indications (default is NO)]), 
   ac_cv_debug_indications=yes, ac_cv_debug_indications=no)
 	AS_IF([test "${ac_cv_debug_indications}" == "yes"], [
         	AC_DEFINE(CS_DEBUG_INDICATIONS, 1, [Debug SCCP indications])
 ])
 
 AC_ARG_WITH(realtime, 
-  AS_HELP_STRING([--with-realtime],[Debug SCCP realtime (default is YES)]), 
+  AC_HELP_STRING([--with-realtime], [Debug SCCP realtime (default is YES)]), 
   ac_cv_realtime=no, ac_cv_realtime=yes)
     AS_IF([test "${ac_cv_realtime}" == "yes"], [
     	AC_DEFINE(CS_SCCP_REALTIME, 1, [Debug SCCP realtime])
 ])
 
 AC_ARG_WITH(feature_monitor, 
-  AS_HELP_STRING([--with-feature-monitor],[Debug SCCP feature monitor (default is NO)]), 
+  AC_HELP_STRING([--with-feature-monitor], [Debug SCCP feature monitor (default is NO)]), 
   ac_cv_feature_monitor=yes, ac_cv_feature_monitor=no)
     AS_IF([test "${ac_cv_feature_monitor}" == "yes"], [
        	AC_DEFINE(CS_SCCP_FEATURE_MONITOR, 1, [Debug SCCP feature monitor])
@@ -434,14 +434,14 @@ AC_ARG_WITH(feature_monitor,
 
 
 AC_ARG_WITH(advanced_functions, 
-  AS_HELP_STRING([--with-advanced-functions],[Debug SCCP advanced functions (default is NO)]), 
+  AC_HELP_STRING([--with-advanced-functions], [Debug SCCP advanced functions (default is NO)]), 
     ac_cv_advanced_functions=yes, ac_cv_advanced_functions=no)
     AS_IF([test "${ac_cv_advanced_functions}" == "yes"], [
        	AC_DEFINE(CS_ADV_FEATURES, 1, [Debug SCCP advanced functions])
 ])
 
 AC_ARG_WITH(dynamic_speeddial, 
-  AS_HELP_STRING([--with-dynamic-speeddial],[Using dynamic speeddials (default is NO)]), 
+  AC_HELP_STRING([--with-dynamic-speeddial], [Using dynamic speeddials (default is NO)]), 
   ac_cv_dynamic_speeddial=yes, ac_cv_dynamic_speeddial=no)
     AS_IF([test "${ac_cv_dynamic_speeddial}" == "yes"], [
        	AC_DEFINE(CS_DYNAMIC_SPEEDDIAL, 1, [Using dynamic speeddials])
