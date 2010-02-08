@@ -7,8 +7,7 @@
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- * \date        $Date$
- * \version     $Revision$
+ *
  */
 
 #include "config.h"
@@ -148,7 +147,7 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
 	if(!channel)
 		return;
 
-
+	
 	char s1[512], s2[512];
 	if(!channel->device){
 		channel->capability = AST_FORMAT_ALAW|AST_FORMAT_ULAW|AST_FORMAT_G729A;
@@ -197,6 +196,7 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
 	ast_getformatname_multiple(s2, sizeof(s2) -1, channel->format),
 #endif
 	channel->format);
+	
 }
 
 
@@ -274,7 +274,7 @@ void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t * c)
 		r->msg.CallInfoMessage.lel_lineId   = htolel(instance);
 		r->msg.CallInfoMessage.lel_callRef  = htolel(c->callid);
 		r->msg.CallInfoMessage.lel_callType = htolel(c->calltype);
-		r->msg.CallInfoMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED);
+		r->msg.CallInfoMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
 	}else{
 		/* remote device notification */
 		if (c->callingPartyName)
@@ -290,7 +290,7 @@ void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t * c)
 		r->msg.CallInfoMessage.lel_lineId   = htolel(instance);
 		r->msg.CallInfoMessage.lel_callRef  = htolel(c->callid);
 		r->msg.CallInfoMessage.lel_callType = htolel(c->calltype);
-		r->msg.CallInfoMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED);
+		r->msg.CallInfoMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
 	}
 
 	sccp_dev_send(device, r);
@@ -1363,13 +1363,13 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
 
 	instance = sccp_device_find_index_for_line(d, l->name);
 
-	//TODO this have to be enabled
+
 	/* look if we have a call to put on hold */
-// 	if ( (hold = sccp_channel_get_active(d)) ) {
-// 		/* there is an active call, let's put it on hold first */
-// 		if (!sccp_channel_hold(hold))
-// 			return 0;
-// 	}
+ 	if ( (hold = sccp_channel_get_active(d)) ) {
+ 		/* there is an active call, let's put it on hold first */
+ 		if (!sccp_channel_hold(hold))
+ 			return 0;
+ 	}
 
 	/* resume an active call */
 	if (c->state != SCCP_CHANNELSTATE_HOLD && c->state != SCCP_CHANNELSTATE_CALLTRANSFER && c->state != SCCP_CHANNELSTATE_CALLCONFERENCE) {
