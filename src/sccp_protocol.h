@@ -1130,7 +1130,7 @@ typedef union {
                 uint32_t		lel_stationIpAddr;				/*!< Station IP Address */
                 uint32_t		lel_deviceType;					/*!< Device Type as part of SKINNY_DEVICETYPE_* */
                 uint32_t		lel_maxStreams;					/*!< Max Streams */
-                uint32_t		lel__unknown1;					/*!< Unknown */
+                uint32_t		lel_activeStreams;				/*!< number of active streams */
                 uint8_t 		protocolVer;					/*!< Maximum Protocol Version */
                 uint8_t 		lel__unknown2;					/*!< Unknown */
                 uint8_t 		lel__unknown3;					/*!< Unknown */
