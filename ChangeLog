@@ -1,5 +1,8 @@
 2010-02-07  ddegroot
 
+	* [r1216] ChangeLog, Makefile.am: Improved Makefile.am to Detect
+	  changes in ChangeLog better
+
 	* [r1215] ., Makefile.am: Updated ChangeLog Generation to only
 	  update the ChangeLog when necessary
 	  Include ChangeLog Generation in Make all
