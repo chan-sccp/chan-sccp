@@ -297,17 +297,19 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 //		}
 //	}
 
+#warning "Check if this exception is really neccessary and eventually remove it. It might robustify codec selection for lines with only one device, but this robustification should not be required. (-DD)"	
 	if(l->devices.size == 1 && SCCP_LIST_FIRST(&l->devices) && SCCP_LIST_FIRST(&l->devices)->device && SCCP_LIST_FIRST(&l->devices)->device->session){
 		c->device = SCCP_LIST_FIRST(&l->devices)->device;
 		sccp_channel_updateChannelCapability(c);
 	}
-
-
+	
+    
 
 	boolean_t isRinging = FALSE;
+
+	/*
 	if(c->device){
-		/* call to a single device */
-		if(c->device->session){
+		if(c->device->session){ // Call to a single device
 			if ( sccp_channel_get_active(c->device) ) {
 				sccp_indicate_lock(c->device, c, SCCP_CHANNELSTATE_CALLWAITING);
 				isRinging = TRUE;
@@ -328,7 +330,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 				}
 			}
 		}
-	}else{
+	}else{ */
 		sccp_linedevices_t *linedevice;
 
 		SCCP_LIST_LOCK(&l->devices);
@@ -380,7 +382,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
-	}
+/* 	} */
 
 	/* someone forget to restore the asterisk lock */
 	// sccp_ast_channel_lock(ast);
