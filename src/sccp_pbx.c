@@ -1211,7 +1211,12 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 		SCCP_LIST_UNLOCK(&l->devices);
 		
 		/* append subscriptionId to cid */
-		sprintf(c->callingPartyNumber, "%s%s", l->cid_num, (linedevice && !ast_strlen_zero(linedevice->subscriptionId.number))?linedevice->subscriptionId.number:"");
+		if(linedevice && !ast_strlen_zero(linedevice->subscriptionId.number)){
+			sprintf(c->callingPartyNumber, "%s%s", l->cid_num, linedevice->subscriptionId.number);
+		}else{
+			sprintf(c->callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionSuffix)?l->defaultSubscriptionSuffix:"");
+		}
+		
 		sprintf(c->callingPartyName, "%s%s", l->cid_name, (linedevice && !ast_strlen_zero(linedevice->subscriptionId.name))?linedevice->subscriptionId.name:"");
 	  
 	}else{
