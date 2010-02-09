@@ -10,13 +10,15 @@
  * \date        $Date$
  * \version     $Revision$
  */
-
 #include "config.h"
 
 #ifndef ASTERISK_CONF_1_2
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
+
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
+
 #include "sccp_hint.h"
 #include "sccp_config.h"
 #include "sccp_lock.h"

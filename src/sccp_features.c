@@ -14,6 +14,9 @@
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
+
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
+
 #include "sccp_features.h"
 #ifdef CS_ADV_FEATURES
 #include "sccp_adv_features.h"

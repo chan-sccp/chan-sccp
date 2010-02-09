@@ -6,7 +6,9 @@
  * \since 	2009-01-16
  * \date        $Date$
  * \version     $Revision$  
- *
+ */
+
+/*! 
  <h2>how does hint update works:</h2>
  \section hint_update How does hint update work
  \dot
@@ -52,8 +54,10 @@
 #include "sccp_hint.h"
 #include "sccp_event.h"
 #include "chan_sccp.h"
-#include "sccp_utils.h"
 
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
+
+#include "sccp_utils.h"
 #include "sccp_device.h"
 #include "sccp_channel.h"
 #include "sccp_indicate.h"
