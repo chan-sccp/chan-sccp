@@ -16,6 +16,9 @@
 #include "asterisk/channel.h"
 
 #include "chan_sccp.h"
+
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
+
 #include "sccp_config.h"
 #include "sccp_utils.h"
 #include "sccp_event.h"

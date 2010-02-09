@@ -10,15 +10,17 @@
  * \date        $Date$
  * \version     $Revision$
  */
+
 #define AST_MODULE "chan_sccp"
 
 #include "config.h"
-
-
 #ifndef ASTERISK_CONF_1_2
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
+
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
+
 #include "sccp_hint.h"
 #include "sccp_lock.h"
 #include "sccp_actions.h"
@@ -34,7 +36,6 @@
 #include "sccp_management.h"
 #include "sccp_mwi.h"
 #include "sccp_conference.h"
-
 #include <ctype.h>
 #include <unistd.h>
 #include <asterisk/pbx.h>

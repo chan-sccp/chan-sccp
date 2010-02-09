@@ -16,6 +16,9 @@
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
+
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
+
 #include "sccp_lock.h"
 #include "sccp_indicate.h"
 #include "sccp_device.h"

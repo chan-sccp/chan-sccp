@@ -188,6 +188,15 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 }
 /* */
 
+#define SCCP_FILE_VERSION(file, version) \
+        static void __attribute__((constructor)) __register_file_version(void) \
+        { \
+                ast_register_file_version(file, version); \
+        } \
+        static void __attribute__((destructor)) __unregister_file_version(void) \
+        { \
+                ast_unregister_file_version(file); \
+        }
 
 #define DEV_ID_LOG(x) x ? x->id : "SCCP"
 
@@ -378,9 +387,9 @@ struct sccp_linedevices {
         sccp_device_t 				* device;				/*!< SCCP Device */
         sccp_cfwd_information_t			cfwdAll;				/*!< cfwd information */
         sccp_cfwd_information_t			cfwdBusy;				/*!< cfwd information */
-        
+
         struct  subscriptionId			subscriptionId;				/*!< for addressing individual devices on shared line */
-	
+
         SCCP_LIST_ENTRY(sccp_linedevices_t) 	list;					/*!< Device Linked List Entry */
 };											/*!< SCCP Line-Device Structure */
 
@@ -525,7 +534,7 @@ struct sccp_line {
                 int				newmsgs;				/*!< New Messages */
                 int				oldmsgs;				/*!< Old Messages */
         } voicemailStatistic;								/*!< VoiceMail Statistics Structure */
-	
+
 	uint32_t				configurationStatus;			/*!< what is the current configuration status - @see sccp_config_status_t */
 };											/*!< SCCP Line Structure */
 
@@ -541,7 +550,7 @@ struct sccp_speed {
         char 					hint[AST_MAX_EXTENSION];		/*!< The HINT on this SpeedDial */
 
         SCCP_LIST_ENTRY(sccp_speed_t) 		list;					/*!< SpeedDial Linked List Entry */
-        
+
 #ifdef CS_DYNAMIC_CONFIG
 	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this line when unused */
 	sccp_speed_t				pendingUpdate;				/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
@@ -566,7 +575,7 @@ struct sccp_device {
         struct ast_codec_pref 			codecs;					/*!< Asterisk Codec Device Preference */
         sccp_devicestate_t 			state;					/*!< Device State (SCCP_DEVICE_ONHOOK or SCCP_DEVICE_OFFHOOK) */
 /*      uint8_t 				ringermode;*/				/* Ringer Mode. Need it for the ringback */
-       
+
         char 					lastNumber[AST_MAX_EXTENSION];		/*!< Last Dialed Number */
         int 					capability;				/*!< Asterisk Codec Capability */
         uint8_t 				earlyrtp;				/*!< RTP Channel State where to open the RTP Media Stream */
@@ -582,7 +591,7 @@ struct sccp_device {
         unsigned int				mwioncall: 1;				/*!< MWI On Call Support (Boolean, default=on) */
         unsigned int				softkeysupport: 1;			/*!< Soft Key Support (Boolean, default=on) */
         unsigned int				mwilight: 1;				/*!< MWI/Light Support (Boolean, default=on) \todo MWI/Light or Lamp was soll es sein */
-       
+
         unsigned int				transfer: 1;				/*!< Transfer Support (Boolean, default=on) */
         //unsigned int				conference: 1;				/*!< Conference Support (Boolean, default=on) */
         unsigned int				park: 1;				/*!< Park Support (Boolean, default=on) */
@@ -658,16 +667,16 @@ struct sccp_device {
         sccp_featureConfiguration_t 		dndFeature;				/*!< dnd Feature */
         sccp_featureConfiguration_t 		priFeature;				/*!< priority Feature */
         sccp_featureConfiguration_t 		mobFeature;				/*!< priority Feature */
-        
-        
+
+
         char 					softkeyDefinition[50];			/*!< requested softKey configuration */
-        
+
         struct{
 		softkey_modes			*modes;					/*!< used softkeySet */
 		uint8_t				size;					/*!< who many softkeysets are provieded by modes */
 	}softKeyConfiguration;								/*!< SoftKeySet configuration */
-	
-	
+
+
 	struct{
 		int 				free;
 	}scheduleTasks;
@@ -689,7 +698,7 @@ struct sccp_addon {
         int 					type;					/*!< Add-On Type */
         SCCP_LIST_ENTRY(sccp_addon_t) 		list;					/*!< Linked List Entry for this Add-On */
         sccp_device_t * 			device;					/*!< Device Associated with this Add-On */
-        
+
 #ifdef CS_DYNAMIC_CONFIG
 	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this line when unused */
 	sccp_addon_t				pendingUpdate;				/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
@@ -733,7 +742,7 @@ struct sccp_channel {
         char					calledPartyNumber[StationMaxDirnumSize];/*!< Called Party Number */
         char					callingPartyName[StationMaxNameSize];	/*!< Calling Party Name */
         char					callingPartyNumber[StationMaxDirnumSize];/*!< Calling Party Number */
-        
+
         uint32_t				callid;					/*!< Call ID */
         uint32_t				passthrupartyid;			/*!< Pass Through ID */
         //uint32_t				conferenceid; 				/*!< Conference ID. This will be used in native conferencing mode and will differ from callid  -FS*/
@@ -780,13 +789,13 @@ struct sccp_channel {
         /* feature sets */
         boolean_t				monitorEnabled;				/*!< Monitor Enabled Feature */
         //sccp_callReason_t			reason;					/*!< what is the reaso for this call */
-        
+
         struct sccp_conference			*conference;				/*!< are we part of a conference? */
 	sccp_channel_t				*parentChannel;				/*!< if we are a cfwd channel, our parent is this */
-	
-	
+
+
 	struct  subscriptionId			subscriptionId;
-	
+
 };											/*!< SCCP Channel Structure */
 
 /*!
@@ -965,7 +974,7 @@ enum ast_bridge_result 				sccp_rtp_bridge(struct ast_channel *c0, struct ast_ch
 int sccp_sched_free(void *ptr);
 #endif
 
-/*! 
+/*!
  * \todo sccp_is_nonempty_string never used (not used)
  */
 static inline unsigned char sccp_is_nonempty_string(char *string)

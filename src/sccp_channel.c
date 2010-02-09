@@ -7,16 +7,20 @@
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *
+ * \date        $Date$
+ * \version     $Revision$
  */
-
 #include "config.h"
 
 #ifndef ASTERISK_CONF_1_2
 #include <asterisk.h>
 #include "asterisk/abstract_jb.h"
 #endif
+
 #include "chan_sccp.h"
+
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
+
 #include "sccp_lock.h"
 #include "sccp_dllists.h"
 #include "sccp_actions.h"
@@ -26,7 +30,6 @@
 #include "sccp_line.h"
 #include "sccp_channel.h"
 #include "sccp_indicate.h"
-
 
 #include <asterisk/pbx.h>
 #include <asterisk/utils.h>
