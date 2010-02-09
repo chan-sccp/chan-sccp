@@ -704,8 +704,6 @@ void sccp_ast_setstate(sccp_channel_t * c, int state) {
  * \todo TODO we shoud do this on feature_state_changed
  */
 void sccp_dev_dbput(sccp_device_t * d) {
-	sccp_buttonconfig_t	*buttonconfig;
-	sccp_line_t * l;
 	char tmp[1024] = "", cfwdall[1024] = "", cfwdbusy[1024] = "", cfwdnoanswer[1024] = "";
 
 	if (!d)

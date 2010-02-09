@@ -814,7 +814,6 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 	}
 	SCCP_LIST_UNLOCK(&d->selectedChannels);
 
-
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 
@@ -826,7 +825,8 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 
 			SCCP_LIST_LOCK(&line->channels);
 			SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
-				if(channel->device == d && !channel->conference){
+				//if(channel->device == d && !channel->conference){
+				if(channel->device == d){
 
 					if(channel->state == SCCP_CHANNELSTATE_HOLD)
 						sccp_channel_resume(channel->device, channel);

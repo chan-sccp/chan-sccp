@@ -126,7 +126,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 	struct composedId lineSubscriptionId;
 	sccp_line_t * l = NULL;
 	sccp_channel_t * c = NULL;
-	char *options = NULL, *deviceName=NULL, *lineName = NULL;
+	char *options = NULL, *lineName = NULL;
 	int optc = 0;
 	char *optv[2];
 	int opti = 0;
