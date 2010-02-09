@@ -26,17 +26,11 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #include <asterisk/app.h>
 
-
-
-
-
 void sccp_mwi_checkLine(sccp_line_t *line);
 void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l);
 void sccp_mwi_linecreatedEvent(const sccp_event_t **event);
 void sccp_mwi_deviceAttachedEvent(const sccp_event_t **event);
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *line);
-
-
 
 /*!
  * start mwi module.

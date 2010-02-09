@@ -61,7 +61,7 @@ void sccp_dev_dbclean(void);
 const char * skinny_accessorystate2str(uint32_t state);
 const char * skinny_accessory2str(uint32_t accessory);
 const char * sccp_extensionstate2str(uint8_t type);
-const char * sccpmsg2str(uint32_t e);
+const char * sccpmsg2str(uint32_t hex);
 const char * skinny_lbl2str(uint8_t label);
 const char * skinny_tone2str(uint8_t tone);
 const char * skinny_alarm2str(uint8_t alarm);
