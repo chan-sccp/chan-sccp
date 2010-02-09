@@ -853,7 +853,6 @@ const char * sccp_extensionstate2str(uint8_t type) {
 	}
 }
 
-
 /*!
  * \brief Convert Message to String
  * \param e Message
@@ -862,13 +861,14 @@ const char * sccp_extensionstate2str(uint8_t type) {
 const char * sccpmsg2str(uint32_t hex) {
         int i;
         for (i = 1; i < ARRAY_LEN(sccp_messagetypes); i++) {
-                if (sccp_messagetypes[i].hex == hex) {
-                        return sccp_messagetypes[i].longtext;
+                if (sccp_messagetypes[i].type == hex) {
+                        return sccp_messagetypes[i].text;
                 }
         }
-        return sccp_messagetypes[0].longtext;
+        return sccp_messagetypes[0].text;
 }
 
+        
 /*!
  * \brief Convert Accessory 2 String
  * \param accessory SCCP_ACCESSORY_* as uint32_t
