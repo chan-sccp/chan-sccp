@@ -69,9 +69,10 @@ void sccp_dev_dbclean(void);
         return arrayname[0].return_var; \
         })
 
-#define _SCCPMSG2STR(hex) ARR2STR(sccp_messagetypes, type, hex, text)
-#define _SKINNYLBL2STR(label) ARR2STR(skinny_labels, label, label, text)
-#define _SKINNYCALLTYPE2STR(type) ARR2STR(skinny_calltypes, type, type, shorttext)
+#define _SCCPMSG2STR(myhex) 		ARR2STR(sccp_messagetypes, type , myhex  , text)
+#define _SKINNYLBL2STR(mylabel) 	ARR2STR(skinny_labels	 , label, mylabel, text)
+#define _SKINNYCALLTYPE2STR(mytype) 	ARR2STR(skinny_calltypes , type , mytype , shorttext)
+#define _SKINNYTONE2STR(mytone) 	ARR2STR(skinny_tones	 , tone , mytone , text)
 
 const char * skinny_accessorystate2str(uint32_t state);
 const char * skinny_accessory2str(uint32_t accessory);

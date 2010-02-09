@@ -107,9 +107,9 @@ static const struct skinny_calltype {
         const char * const longtext;
         const char * const shorttext;
 } skinny_calltypes[] = {
-        { SKINNY_CALLTYPE_INBOUND , "Inbound Line"  , "Inbound" },
-        { SKINNY_CALLTYPE_OUTBOUND, "Outbound Line" , "Outbound" },
-        { SKINNY_CALLTYPE_FORWARD , "Forwarded Line", "Forward" },
+        { SKINNY_CALLTYPE_INBOUND , "Inbound Line"  , "Inbound" 	},
+        { SKINNY_CALLTYPE_OUTBOUND, "Outbound Line" , "Outbound" 	},
+        { SKINNY_CALLTYPE_FORWARD , "Forwarded Line", "Forward" 	},
 };
 
 typedef enum {
@@ -224,6 +224,88 @@ typedef enum {
 #define SKINNY_TONE_440HZ			0x69
 #define SKINNY_TONE_300HZ			0x6a
 #define SKINNY_TONE_NOTONE			0x7f
+/*!
+ * \brief Skinny Call Type Structure
+ */
+static const struct skinny_tone {
+        uint8_t tone;
+        const char * const text;
+} skinny_tones[] = {
+	{ SKINNY_TONE_SILENCE			, "Silence" 		},
+	{ SKINNY_TONE_DTMF1			, "Dtmf1" 		},
+	{ SKINNY_TONE_DTMF2			, "Dtmf2" 		},
+	{ SKINNY_TONE_DTMF3			, "Dtmf3" 		},
+	{ SKINNY_TONE_DTMF4			, "Dtmf4" 		},
+	{ SKINNY_TONE_DTMF5			, "Dtmf5"		},
+	{ SKINNY_TONE_DTMF6			, "Dtmf6"		},
+	{ SKINNY_TONE_DTMF7			, "Dtmf7"		},
+	{ SKINNY_TONE_DTMF8			, "Dtmf8"		},
+	{ SKINNY_TONE_DTMF9			, "Dtmf9"		},
+	{ SKINNY_TONE_DTMF0			, "Dtmf0"		},
+	{ SKINNY_TONE_DTMFSTAR			, "DtmfStar"		},
+	{ SKINNY_TONE_DTMFPOUND			, "DtmfPound"		},
+	{ SKINNY_TONE_DTMFA			, "DtmfA"		},
+	{ SKINNY_TONE_DTMFB			, "DtmfB"		},
+	{ SKINNY_TONE_DTMFC			, "DtmfC"		},
+	{ SKINNY_TONE_DTMFD			, "DtmfD"		},
+	{ SKINNY_TONE_INSIDEDIALTONE		, "InsideDialTone"	},
+	{ SKINNY_TONE_OUTSIDEDIALTONE		, "OutsideDialTone"	},
+	{ SKINNY_TONE_LINEBUSYTONE		, "LineBusyTone"	},
+	{ SKINNY_TONE_ALERTINGTONE		, "AlertingTone"	},
+	{ SKINNY_TONE_REORDERTONE		, "ReorderTone"		},
+	{ SKINNY_TONE_RECORDERWARNINGTONE	, "RecorderWarningTone"	},
+	{ SKINNY_TONE_RECORDERDETECTEDTONE	, "RecorderDetectedTone"},
+	{ SKINNY_TONE_REVERTINGTONE		, "RevertingTone"	},
+	{ SKINNY_TONE_RECEIVEROFFHOOKTONE	, "ReceiverOffHookTone"	},
+	{ SKINNY_TONE_PARTIALDIALTONE		, "PartialDialTone"	},
+	{ SKINNY_TONE_NOSUCHNUMBERTONE		, "NoSuchNumberTone"	},
+	{ SKINNY_TONE_BUSYVERIFICATIONTONE	, "BusyVerificationTone"},
+	{ SKINNY_TONE_CALLWAITINGTONE		, "CallWaitingTone"	},
+	{ SKINNY_TONE_CONFIRMATIONTONE		, "ConfirmationTone"	},
+	{ SKINNY_TONE_CAMPONINDICATIONTONE	, "CampOnIndicationTone"},
+	{ SKINNY_TONE_RECALLDIALTONE		, "RecallDialTone"	},
+	{ SKINNY_TONE_ZIPZIP			, "ZipZip"		},
+	{ SKINNY_TONE_ZIP			, "Zip"			},
+	{ SKINNY_TONE_BEEPBONK			, "BeepBonk"		},
+	{ SKINNY_TONE_MUSICTONE			, "MusicTone"		},
+	{ SKINNY_TONE_HOLDTONE			, "HoldTone"		},
+	{ SKINNY_TONE_TESTTONE			, "TestTone"		},
+	{ SKINNY_TONE_ADDCALLWAITING		, "AddCallWaiting"	},
+	{ SKINNY_TONE_PRIORITYCALLWAIT		, "PriorityCallWait"	},
+	{ SKINNY_TONE_RECALLDIAL		, "RecallDial"		},
+	{ SKINNY_TONE_BARGIN			, "BargIn"		},
+	{ SKINNY_TONE_DISTINCTALERT		, "DistinctAlert"	},
+	{ SKINNY_TONE_PRIORITYALERT		, "PriorityAlert"	},
+	{ SKINNY_TONE_REMINDERRING		, "ReminderRing"	},
+	{ SKINNY_TONE_MF1			, "MF1"			},
+	{ SKINNY_TONE_MF2			, "MF2"			},
+	{ SKINNY_TONE_MF3			, "MF3"			},
+	{ SKINNY_TONE_MF4			, "MF4"			},
+	{ SKINNY_TONE_MF5			, "MF5"			},
+	{ SKINNY_TONE_MF6			, "MF6"			},
+	{ SKINNY_TONE_MF7			, "MF7"			},
+	{ SKINNY_TONE_MF8			, "MF8"			},
+	{ SKINNY_TONE_MF9			, "MF9"			},
+	{ SKINNY_TONE_MF0			, "MF0"			},
+	{ SKINNY_TONE_MFKP1			, "MFKP1"		},
+	{ SKINNY_TONE_MFST			, "MFST"		},
+	{ SKINNY_TONE_MFKP2			, "MFKP2"		},
+	{ SKINNY_TONE_MFSTP			, "MFSTP"		},
+	{ SKINNY_TONE_MFST3P			, "MFST3P"		},
+	{ SKINNY_TONE_MILLIWATT			, "MILLIWATT"		},
+	{ SKINNY_TONE_MILLIWATTTEST		, "MILLIWATTTEST"	},
+	{ SKINNY_TONE_HIGHTONE			, "HIGHTONE"		},
+	{ SKINNY_TONE_FLASHOVERRIDE		, "FLASHOVERRIDE"	},
+	{ SKINNY_TONE_FLASH			, "FLASH"		},
+	{ SKINNY_TONE_PRIORITY			, "PRIORITY"		},
+	{ SKINNY_TONE_IMMEDIATE			, "IMMEDIATE"		},
+	{ SKINNY_TONE_PREAMPWARN		, "PREAMPWARN"		},
+	{ SKINNY_TONE_2105HZ			, "2105HZ"		},
+	{ SKINNY_TONE_2600HZ			, "2600HZ"		},
+	{ SKINNY_TONE_440HZ			, "440HZ"		},
+	{ SKINNY_TONE_300HZ			, "300HZ"		},
+	{ SKINNY_TONE_NOTONE			, "NoTone"		},
+};
 
 /* alarm skinny_alarm2str*/
 #define SKINNY_ALARM_CRITICAL			0
