@@ -37,6 +37,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/devicestate.h>
 #endif
 
+#define  REF_DEBUG 1
 
 /*!
  * \brief create a device and adding default values.

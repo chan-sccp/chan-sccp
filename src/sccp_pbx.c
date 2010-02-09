@@ -17,11 +17,11 @@
 #endif
 #include <asterisk/musiconhold.h>
 #include "chan_sccp.h"
+#include "sccp_pbx.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #include "sccp_lock.h"
-#include "sccp_pbx.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
 #include "sccp_device.h"

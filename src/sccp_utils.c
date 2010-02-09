@@ -859,9 +859,8 @@ const char * sccp_extensionstate2str(uint8_t type) {
  * \param e Message
  * \return Message String or "unknown"
  */
-const char * sccpmsg2str(uint32_t e) {
-	switch(e) {
-/* Station -> Callmanager */
+const char * sccpmsg2str(uint32_t hex) {
+/*	switch(e) {
 	case 0x0000:
 		return "KeepAliveMessage";
 	case 0x0001:
@@ -960,8 +959,6 @@ const char * sccpmsg2str(uint32_t e) {
 		return "DialedPhoneBookMessage";
 	case 0x0049:
 		return "AccessoryStatusMessage";
-
-/* Callmanager -> Station */
 	case 0x0081:
 		return "RegisterAckMessage";
 	case 0x0082:
@@ -1132,7 +1129,15 @@ const char * sccpmsg2str(uint32_t e) {
 		return "UserToDeviceDataVersion1Message";
 	default:
 		return "unknown";
-	}
+	}*/
+        int i;
+        for (i = 1; i < ARRAY_LEN(sccp_messagetypes); i++) {
+                if (sccp_messagetypes[i].hex == hex) {
+                        return sccp_messagetypes[i].longtext;
+                }
+        }
+        return sccp_messagetypes[0].longtext;
+	
 }
 
 /*!
@@ -1951,7 +1956,7 @@ const char * skinny_registrationstate2str(uint8_t type) {
  * \return Call Type String or "unknown"
  */
 const char * skinny_calltype2str(uint8_t type) {
-	switch(type) {
+/*	switch(type) {
 	case SKINNY_CALLTYPE_INBOUND:
 		return "Inbound";
 	case SKINNY_CALLTYPE_OUTBOUND:
@@ -1960,7 +1965,14 @@ const char * skinny_calltype2str(uint8_t type) {
 		return "Forward";
 	default:
 		return "unknown";
-	}
+	}*/
+        int i;
+        for (i = 1; i < ARRAY_LEN(skinny_calltypes); i++) {
+                if (skinny_calltypes[i].type == type) {
+                        return skinny_calltypes[i].shorttext;
+                }
+        }
+        return skinny_calltypes[0].shorttext;
 }
 
 /*!
