@@ -858,7 +858,7 @@ const char * sccp_extensionstate2str(uint8_t type) {
  * \param e Message
  * \return Message String or "unknown"
  */
-const char * sccpmsg2str(uint32_t hex) {
+/*const char * sccpmsg2str(uint32_t hex) {
         int i;
         for (i = 1; i < ARRAY_LEN(sccp_messagetypes); i++) {
                 if (sccp_messagetypes[i].type == hex) {
@@ -866,6 +866,9 @@ const char * sccpmsg2str(uint32_t hex) {
                 }
         }
         return sccp_messagetypes[0].text;
+}*/
+const char * sccpmsg2str(uint32_t hex) {
+  _SCCPMSG2STR(hex);
 }
 
         
@@ -912,15 +915,21 @@ const char * skinny_accessorystate2str(uint32_t state) {
  * \param label SKINNY_LBL_* as uint8_t
  * \return Label String or "unknown"
  */
+/*
 const char * skinny_lbl2str(uint8_t label) {
         int i;
-        for (i = 1; i < ARRAY_LEN(skinny_labels); i++) {
+                for (i = 1; i < ARRAY_LEN(skinny_labels); i++) {
                 if (skinny_labels[i].label == label) {
                         return skinny_labels[i].text;
                 }
         }
         return skinny_labels[0].text;
 }
+*/
+const char * skinny_lbl2str(uint8_t label) {
+  _SKINNYLBL2STR(label);
+}
+
 
 /*!
  * \brief Convert Tone 2 String
@@ -1511,6 +1520,7 @@ const char * skinny_registrationstate2str(uint8_t type) {
  * \param type SKINNY_CALLTYPE_* as uint8_t
  * \return Call Type String or "unknown"
  */
+/*
 const char * skinny_calltype2str(uint8_t type) {
         int i;
         for (i = 1; i < ARRAY_LEN(skinny_calltypes); i++) {
@@ -1520,6 +1530,11 @@ const char * skinny_calltype2str(uint8_t type) {
         }
         return skinny_calltypes[0].shorttext;
 }
+*/
+const char * skinny_calltype2str(uint8_t type) {
+  _SKINNYCALLTYPE2STR(type);
+}
+
 
 /*!
  * \brief Convert Codec 2 String

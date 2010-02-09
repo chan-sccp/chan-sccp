@@ -58,6 +58,21 @@ void sccp_dev_dbput(sccp_device_t * d);
 void sccp_dev_dbget(sccp_device_t * d);
 void sccp_dev_dbclean(void);
 
+#define ARR2STR(arrayname, lookup_var, lookup_val, return_var) \
+        ({ \
+        int i; \
+        for (i = 1; i < ARRAY_LEN(arrayname); i++) { \
+                if (arrayname[i].lookup_var == lookup_val) { \
+                        return arrayname[i].return_var; \
+                } \
+        } \
+        return arrayname[0].return_var; \
+        })
+
+#define _SCCPMSG2STR(hex) ARR2STR(sccp_messagetypes, type, hex, text)
+#define _SKINNYLBL2STR(label) ARR2STR(skinny_labels, label, label, text)
+#define _SKINNYCALLTYPE2STR(type) ARR2STR(skinny_calltypes, type, type, shorttext)
+
 const char * skinny_accessorystate2str(uint32_t state);
 const char * skinny_accessory2str(uint32_t accessory);
 const char * sccp_extensionstate2str(uint8_t type);
