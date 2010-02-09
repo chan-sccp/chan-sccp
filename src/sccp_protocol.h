@@ -99,7 +99,10 @@ typedef enum {
         SKINNY_CALLTYPE_FORWARD			=3
 } skinny_calltype_t;								/*!< Skinny Calltype */
 
-static const struct cfskinny_calltypes {
+/*!
+ * \brief Skinny Call Type Structure
+ */
+static const struct skinny_calltype {
         skinny_calltype_t type;
         const char * const longtext;
         const char * const shorttext;
@@ -685,7 +688,10 @@ typedef enum {
         Unknown_0x0159_Message			= 0x0159
 } sccp_message_t;								/*!< SCCP Message Types Enum */
 
-static const struct cfsccp_messagetypes {
+/*!
+ * \brief SCCP Message Type Structure
+ */
+static const struct sccp_messagetype {
         sccp_message_t type;
         uint32_t hex;
         const char * const longtext;
