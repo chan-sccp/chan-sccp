@@ -10,12 +10,13 @@
 #define SCCP_CONFERENCE_H_
 
 
+#ifdef CS_SCCP_CONFERENCE
 
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {
 #endif
 
-#ifdef CS_SCCP_CONFERENCE
+
 
 
 #include "asterisk.h"

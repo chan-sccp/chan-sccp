@@ -267,11 +267,7 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t *device, uint8_t type, char *
  */
 void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, struct subscriptionId *subscriptionId)
 {
-	char *options;
-	int optc = 0;
-	char *optv[2];
-	int opti = 0;
-  
+	
         sccp_linedevices_t *linedevice;
 	if(!l || !device)
 		return;

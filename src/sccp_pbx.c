@@ -1019,7 +1019,6 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: we gote a fixup request for %s\n", newchan->name);
 
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(newchan);
-	sccp_channel_t * c2 = CS_AST_CHANNEL_PVT(oldchan);
 
 	if (!c) {
 		ast_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", oldchan->name, oldchan, newchan->name, newchan);
@@ -1188,7 +1187,6 @@ const struct ast_channel_tech sccp_tech = {
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 //	sccp_device_t 			*d = c->device;
 	struct ast_channel 		*tmp;
-	sccp_linedevices_t 		*linedevice;
 	sccp_line_t 			*l = c->line;
 	int fmt;
 

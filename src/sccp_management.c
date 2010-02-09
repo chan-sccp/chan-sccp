@@ -310,7 +310,7 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
         const char 	*forwardType = astman_get_header(m, "Forwardtype");
         const char 	*number = astman_get_header(m, "Number");
 
-        char *fwdNumber = (char *)number;
+        //char *fwdNumber = (char *)number;
 
 
         line = sccp_line_find_byname_wo(lineName, TRUE);

@@ -470,7 +470,7 @@ void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, ui
 
 					break;
 				case SCCP_CHANNELSTATE_HOLD:
-					sccp_dev_set_lamp(remoteDevice, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_FLASH);
+					sccp_dev_set_lamp(remoteDevice, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_WINK);
 					sccp_device_sendcallstate(remoteDevice, instance,c->callid, SKINNY_CALLSTATE_HOLDRED, SKINNY_CALLPRIORITY_NORMAL, (!c->privacy)?SKINNY_CALLINFO_VISIBILITY_DEFAULT:SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 					sccp_dev_set_keyset(remoteDevice, instance, c->callid, KEYMODE_ONHOLD);
 					sccp_dev_displayprompt(remoteDevice, instance, c->callid, SKINNY_DISP_HOLD, 0);

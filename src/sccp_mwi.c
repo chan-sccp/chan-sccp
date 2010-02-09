@@ -129,8 +129,8 @@ void sccp_mwi_event(const struct ast_event *event, void *data){
 	if(!subscribtion || !event)
 		return;
 
-#warning "If you don't check for null mailbox and context here, * will crash. And it does..."
-	//	sccp_log(SCCP_VERBOSE_LEVEL_EVENT)(VERBOSE_PREFIX_3 "Get mwi event for %s@%s\n",subscribtion->mailbox, subscribtion->context);
+
+	sccp_log(SCCP_VERBOSE_LEVEL_EVENT)(VERBOSE_PREFIX_3 "Get mwi event for %s@%s\n",(subscribtion->mailbox)?subscribtion->mailbox:"NULL", (subscribtion->context)?subscribtion->context:"NULL");
 
 
 	/* for calculation store previous voicemail counts */

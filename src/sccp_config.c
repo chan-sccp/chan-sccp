@@ -1240,6 +1240,8 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 	char 	family[25];
 	int 	res;
 	
+	
+	
 	sprintf(family, "SCCP/%s", device->id);
 	
 	/* dndFeature */

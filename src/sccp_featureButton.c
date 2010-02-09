@@ -40,9 +40,9 @@
  */
 void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureType)
 {
-	sccp_moo_t 			*featureRequestMessage = NULL;
-	sccp_moo_t 			*featureRequestMessage2 = NULL;
-	sccp_moo_t 			*buttonDefMessage = NULL;
+	//sccp_moo_t 			*featureRequestMessage = NULL;
+	//sccp_moo_t 			*featureRequestMessage2 = NULL;
+	//sccp_moo_t 			*buttonDefMessage = NULL;
 	sccp_moo_t			*featureDynamicMessage = NULL;
 	sccp_buttonconfig_t		*config=NULL, *buttonconfig = NULL;
 	sccp_linedevices_t		*linedevice =NULL;
