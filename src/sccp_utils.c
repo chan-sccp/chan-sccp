@@ -858,15 +858,6 @@ const char * sccp_extensionstate2str(uint8_t type) {
  * \param e Message
  * \return Message String or "unknown"
  */
-/*const char * sccpmsg2str(uint32_t hex) {
-        int i;
-        for (i = 1; i < ARRAY_LEN(sccp_messagetypes); i++) {
-                if (sccp_messagetypes[i].type == hex) {
-                        return sccp_messagetypes[i].text;
-                }
-        }
-        return sccp_messagetypes[0].text;
-}*/
 const char * sccpmsg2str(uint32_t hex) {
   _SCCPMSG2STR(hex);
 }
@@ -915,17 +906,6 @@ const char * skinny_accessorystate2str(uint32_t state) {
  * \param label SKINNY_LBL_* as uint8_t
  * \return Label String or "unknown"
  */
-/*
-const char * skinny_lbl2str(uint8_t label) {
-        int i;
-                for (i = 1; i < ARRAY_LEN(skinny_labels); i++) {
-                if (skinny_labels[i].label == label) {
-                        return skinny_labels[i].text;
-                }
-        }
-        return skinny_labels[0].text;
-}
-*/
 const char * skinny_lbl2str(uint8_t label) {
   _SKINNYLBL2STR(label);
 }
@@ -937,158 +917,7 @@ const char * skinny_lbl2str(uint8_t label) {
  * \return Tone String or "unknown"
  */
 const char * skinny_tone2str(uint8_t tone) {
-	switch(tone) {
-		case SKINNY_TONE_SILENCE:
-		return "Silence";
-	case SKINNY_TONE_DTMF1:
-		return "Dtmf1";
-	case SKINNY_TONE_DTMF2:
-		return "Dtmf2";
-	case SKINNY_TONE_DTMF3:
-		return "Dtmf3";
-	case SKINNY_TONE_DTMF4:
-		return "Dtmf4";
-	case SKINNY_TONE_DTMF5:
-		return "Dtmf5";
-	case SKINNY_TONE_DTMF6:
-		return "Dtmf6";
-	case SKINNY_TONE_DTMF7:
-		return "Dtmf7";
-	case SKINNY_TONE_DTMF8:
-		return "Dtmf8";
-	case SKINNY_TONE_DTMF9:
-		return "Dtmf9";
-	case SKINNY_TONE_DTMF0:
-		return "Dtmf0";
-	case SKINNY_TONE_DTMFSTAR:
-		return "DtmfStar";
-	case SKINNY_TONE_DTMFPOUND:
-		return "DtmfPound";
-	case SKINNY_TONE_DTMFA:
-		return "DtmfA";
-	case SKINNY_TONE_DTMFB:
-		return "DtmfB";
-	case SKINNY_TONE_DTMFC:
-		return "DtmfC";
-	case SKINNY_TONE_DTMFD:
-		return "DtmfD";
-	case SKINNY_TONE_INSIDEDIALTONE:
-		return "InsideDialTone";
-	case SKINNY_TONE_OUTSIDEDIALTONE:
-		return "OutsideDialTone";
-	case SKINNY_TONE_LINEBUSYTONE:
-		return "LineBusyTone";
-	case SKINNY_TONE_ALERTINGTONE:
-		return "AlertingTone";
-	case SKINNY_TONE_REORDERTONE:
-		return "ReorderTone";
-	case SKINNY_TONE_RECORDERWARNINGTONE:
-		return "RecorderWarningTone";
-	case SKINNY_TONE_RECORDERDETECTEDTONE:
-		return "RecorderDetectedTone";
-	case SKINNY_TONE_REVERTINGTONE:
-		return "RevertingTone";
-	case SKINNY_TONE_RECEIVEROFFHOOKTONE:
-		return "ReceiverOffHookTone";
-	case SKINNY_TONE_PARTIALDIALTONE:
-		return "PartialDialTone";
-	case SKINNY_TONE_NOSUCHNUMBERTONE:
-		return "NoSuchNumberTone";
-	case SKINNY_TONE_BUSYVERIFICATIONTONE:
-		return "BusyVerificationTone";
-	case SKINNY_TONE_CALLWAITINGTONE:
-		return "CallWaitingTone";
-	case SKINNY_TONE_CONFIRMATIONTONE:
-		return "ConfirmationTone";
-	case SKINNY_TONE_CAMPONINDICATIONTONE:
-		return "CampOnIndicationTone";
-	case SKINNY_TONE_RECALLDIALTONE:
-		return "RecallDialTone";
-	case SKINNY_TONE_ZIPZIP:
-		return "ZipZip";
-	case SKINNY_TONE_ZIP:
-		return "Zip";
-	case SKINNY_TONE_BEEPBONK:
-		return "BeepBonk";
-	case SKINNY_TONE_MUSICTONE:
-		return "MusicTone";
-	case SKINNY_TONE_HOLDTONE:
-		return "HoldTone";
-	case SKINNY_TONE_TESTTONE:
-		return "TestTone";
-	case SKINNY_TONE_ADDCALLWAITING:
-		return "AddCallWaiting";
-	case SKINNY_TONE_PRIORITYCALLWAIT:
-		return "PriorityCallWait";
-	case SKINNY_TONE_RECALLDIAL:
-		return "RecallDial";
-	case SKINNY_TONE_BARGIN:
-		return "BargIn";
-	case SKINNY_TONE_DISTINCTALERT:
-		return "DistinctAlert";
-	case SKINNY_TONE_PRIORITYALERT:
-		return "PriorityAlert";
-	case SKINNY_TONE_REMINDERRING:
-		return "ReminderRing";
-	case SKINNY_TONE_MF1:
-		return "MF1";
-	case SKINNY_TONE_MF2:
-		return "MF2";
-	case SKINNY_TONE_MF3:
-		return "MF3";
-	case SKINNY_TONE_MF4:
-		return "MF4";
-	case SKINNY_TONE_MF5:
-		return "MF5";
-	case SKINNY_TONE_MF6:
-		return "MF6";
-	case SKINNY_TONE_MF7:
-		return "MF7";
-	case SKINNY_TONE_MF8:
-		return "MF8";
-	case SKINNY_TONE_MF9:
-		return "MF9";
-	case SKINNY_TONE_MF0:
-		return "MF0";
-	case SKINNY_TONE_MFKP1:
-		return "MFKP1";
-	case SKINNY_TONE_MFST:
-		return "MFST";
-	case SKINNY_TONE_MFKP2:
-		return "MFKP2";
-	case SKINNY_TONE_MFSTP:
-		return "MFSTP";
-	case SKINNY_TONE_MFST3P:
-		return "MFST3P";
-	case SKINNY_TONE_MILLIWATT:
-		return "MILLIWATT";
-	case SKINNY_TONE_MILLIWATTTEST:
-		return "MILLIWATTTEST";
-	case SKINNY_TONE_HIGHTONE:
-		return "HIGHTONE";
-	case SKINNY_TONE_FLASHOVERRIDE:
-		return "FLASHOVERRIDE";
-	case SKINNY_TONE_FLASH:
-		return "FLASH";
-	case SKINNY_TONE_PRIORITY:
-		return "PRIORITY";
-	case SKINNY_TONE_IMMEDIATE:
-		return "IMMEDIATE";
-	case SKINNY_TONE_PREAMPWARN:
-		return "PREAMPWARN";
-	case SKINNY_TONE_2105HZ:
-		return "2105HZ";
-	case SKINNY_TONE_2600HZ:
-		return "2600HZ";
-	case SKINNY_TONE_440HZ:
-		return "440HZ";
-	case SKINNY_TONE_300HZ:
-		return "300HZ";
-	case SKINNY_TONE_NOTONE:
-		return "NoTone";
-	default:
-		return "";
-	}
+  _SKINNYTONE2STR(tone);
 }
 
 /*!
@@ -1520,17 +1349,6 @@ const char * skinny_registrationstate2str(uint8_t type) {
  * \param type SKINNY_CALLTYPE_* as uint8_t
  * \return Call Type String or "unknown"
  */
-/*
-const char * skinny_calltype2str(uint8_t type) {
-        int i;
-        for (i = 1; i < ARRAY_LEN(skinny_calltypes); i++) {
-                if (skinny_calltypes[i].type == type) {
-                        return skinny_calltypes[i].shorttext;
-                }
-        }
-        return skinny_calltypes[0].shorttext;
-}
-*/
 const char * skinny_calltype2str(uint8_t type) {
   _SKINNYCALLTYPE2STR(type);
 }
