@@ -1073,5 +1073,6 @@ void *_so2_iterator_next(struct so2_iterator *a);
 
 /* extra functions */
 void so2_bt(void);	/* backtrace */
+int sccpobj2_init(void);
 
 #endif /* _ASTERISK_SCCPOBJ2_H */
