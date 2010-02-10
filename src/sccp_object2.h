@@ -383,6 +383,7 @@ typedef void (*so2_destructor_fn)(void *);
  *
  * \param data_size The sizeof() of the user-defined structure.
  * \param destructor_fn The destructor function (can be NULL)
+ * \param debug_msg Debug Message to be sent
  * \return A pointer to user-data.
  *
  * Allocates a struct sccpobj2 with sufficient space for the
