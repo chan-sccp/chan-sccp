@@ -880,7 +880,7 @@ const char * skinny2str(uint8_t type, uint32_t value) {
                 case SKINNY_CODEC:
                         _ARR2STR(skinny_codecs, codec , value, text);
                 default:
-                        return "not defined yes";
+                        return "Not Defined";
         }
 }
 
