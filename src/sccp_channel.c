@@ -718,7 +718,7 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: channel %s payloadType %d\n", c->device->id, c->owner->name, payloadType);
 
 	/* create the rtp stuff. It must be create before setting the channel AST_STATE_UP. otherwise no audio will be played */
-	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", c->device->id, c->callid, skinny_codec2str(payloadType), c->line->echocancel ? "ON" : "OFF");
+	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", c->device->id, c->callid, skinny2str(SKINNY_CODEC,payloadType), c->line->echocancel ? "ON" : "OFF");
 	if (!c->rtp.audio) {
 		sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Starting RTP on channel %s-%08X\n", DEV_ID_LOG(c->device), c->line->name, c->callid);
 		sccp_channel_start_rtp(c);
@@ -731,7 +731,7 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 		return;
 	}
 
-	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d] (%d ms), payload %d, echocancel: %d\n", c->device->id, skinny_codec2str(payloadType), c->format, packetSize, payloadType, c->line->echocancel);
+	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d] (%d ms), payload %d, echocancel: %d\n", c->device->id, skinny2str(SKINNY_CODEC,payloadType), c->format, packetSize, payloadType, c->line->echocancel);
 
 	if(d->inuseprotocolversion >= 17) {
 		r = sccp_build_packet(OpenReceiveChannel, sizeof(r->msg.OpenReceiveChannel_v17));
@@ -862,9 +862,9 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 	}
 	sccp_dev_send(c->device, r);
 #ifdef ASTERISK_CONF_1_2
-	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s (%d ms), tos %d, silencesuppression: %s\n",c->device->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port), skinny_codec2str(payloadType), packetSize, c->line->rtptos, c->line->silencesuppression ? "ON" : "OFF");
+	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s (%d ms), tos %d, silencesuppression: %s\n",c->device->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port), skinny2str(SKINNY_CODEC,payloadType), packetSize, c->line->rtptos, c->line->silencesuppression ? "ON" : "OFF");
 #else
-	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s(%d) (%d ms), tos %d, silencesuppression: %s\n",c->device->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), skinny_codec2str(payloadType),payloadType, packetSize, c->line->rtptos, c->line->silencesuppression ? "ON" : "OFF");
+	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s(%d) (%d ms), tos %d, silencesuppression: %s\n",c->device->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), skinny2str(SKINNY_CODEC,payloadType),payloadType, packetSize, c->line->rtptos, c->line->silencesuppression ? "ON" : "OFF");
 #endif
 }
 

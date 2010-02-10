@@ -72,14 +72,7 @@ void sccp_dev_dbclean(void);
 const char * skinny2str(uint8_t type, uint32_t value);
 const char * sccp2str(uint8_t type, uint32_t value);
 
-const char * skinny_accessorystate2str(uint32_t state);
-const char * skinny_accessory2str(uint32_t accessory);
-const char * sccp_extensionstate2str(uint8_t type);
 const char * skinny_ringermode2str(uint8_t type);
-const char * skinny_softkeyset2str(uint8_t type);
-const char * skinny_devicestate2str(uint8_t type);
-const char * skinny_registrationstate2str(uint8_t type);
-const char * skinny_codec2str(uint8_t type);
 const char * sccp_dndmode2str(uint8_t type);
 uint8_t sccp_codec_ast2skinny(int fmt);
 int sccp_codec_skinny2ast(uint8_t fmt);

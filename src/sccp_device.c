@@ -426,7 +426,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 		r->msg.SelectSoftKeysMessage.les_validKeyMask &= htolel(~(1<<0));
 
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, skinny_softkeyset2str(opt), opt, line, callid);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, skinny2str(SKINNY_KEYMODE,opt), opt, line, callid);
 	sccp_dev_send(d, r);
 }
 
