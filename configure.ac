@@ -169,6 +169,7 @@ fi
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
+AC_PROG_LIBTOOL
 AC_PROG_AWK
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
@@ -187,8 +188,8 @@ AC_PATH_PROGS(UNAME,uname,[echo uname not found so no version info will be avail
 AC_PATH_PROGS(WHOAMI,whoami,[echo whoami not found so no version info will be available])
 
 # LibTool
-LT_INIT(dlopen)
-LT_PREREQ([2.0.0])
+dnl LT_INIT([dlopen])
+dnl LT_PREREQ([2.0.0])
 dnl AC_SUBST([LIBTOOL_DEPS])
 dnl AC_LIBLTDL_CONVENIENCE
 dnl AC_SUBST(INCLTDL)
