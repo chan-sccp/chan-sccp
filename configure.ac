@@ -1,9 +1,3 @@
-dnl
-dnl Chan_SCCP-b Configure Script 
-dnl
-dnl Date: $Date$
-dnl Revision: $Revision$
-dnl 
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.53)
 AC_INIT([Chan_SCCP],
@@ -23,7 +17,7 @@ AC_CANONICAL_HOST
 AC_CANONICAL_TARGET 
 dnl AC_DISABLE_STATIC
 
-AM_CONFIG_HEADER([src/config.h])
+AM_CONFIG_HEADER(src/config.h)
 
 AH_TOP([
 /*!
@@ -41,7 +35,7 @@ AH_TOP([
 dnl AM_INIT_AUTOMAKE([gnu 1.5 no-define dist-bzip2 dist-tarZ])
 AM_INIT_AUTOMAKE([1.9 -Wno-portability check-news dist-bzip2 dist-tarZ no-define nostdinc])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
-AM_DISABLE_STATIC([])
+AM_DISABLE_STATIC
 
 # check existence of the package
 AC_CONFIG_SRCDIR([src/chan_sccp.c]) 
@@ -148,8 +142,7 @@ esac
 AC_SUBST(CS_OSTYPE)
 
 # This needs to be before any macros that use the C compiler
-dnl AC_GNU_SOURCE
-AC_USE_SYSTEM_EXTENSIONS
+AC_GNU_SOURCE
 
 # cross-compile checks
 if test x"${build}" != x"${host}"; 
@@ -169,12 +162,12 @@ fi
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
-AC_PROG_LIBTOOL
+AC_PROG_LIBTOOL   
 AC_PROG_AWK
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_LANG([C])
-AC_C_INLINE
+AC_LANG_C
+AC_C_INLINE 		dnl wanted by: src/chan_sccp.h:138
 
 AC_PATH_PROGS(GREP, ggrep grep,[echo Missing grep so skipping but I doubt we will get anywhere])
 AC_PATH_PROGS(SVN, svn, [echo Missing subversion so some stuff will be borked],${PATH}:/opt/csw/bin)
@@ -188,9 +181,10 @@ AC_PATH_PROGS(UNAME,uname,[echo uname not found so no version info will be avail
 AC_PATH_PROGS(WHOAMI,whoami,[echo whoami not found so no version info will be available])
 
 # LibTool
-dnl LT_INIT([dlopen])
+dnl LT_INIT()
 dnl LT_PREREQ([2.0.0])
 dnl AC_SUBST([LIBTOOL_DEPS])
+dnl AC_LIBTOOL_DLOPEN
 dnl AC_LIBLTDL_CONVENIENCE
 dnl AC_SUBST(INCLTDL)
 dnl AC_SUBST(LIBLTDL)
@@ -198,6 +192,7 @@ dnl LT_CONFIG_LTDL_DIR([libltdl])
 dnl AC_CONFIG_AUX_DIR([libltdl/config])
 dnl AC_CONFIG_MACRO_DIR([libltdl/m4])
 dnl LTDL_INIT
+
 LIBS_save=$LIBS
 LIBS="$LIBS"
 
