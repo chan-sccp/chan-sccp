@@ -9,8 +9,16 @@
  * \date        $Date$
  * \version     $Revision$  
  */
+ 
+#include "sccp_labels.h"
+
 #ifndef __SCCP_PROTOCOL_H
 #define __SCCP_PROTOCOL_H
+
+/*
+ * SCCP Lookup Types
+ */
+#define SCCP_MESSAGE 		0
 
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW	3				/*!< At least we require protocol V.3 */
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH	17				/*!< We support up to protocol V.11 */
@@ -68,11 +76,24 @@ typedef enum {
         SCCP_DEVICESTATE_FWDALL			=4
 } sccp_devicestate_t;								/*!< Internal Chan_SCCP Device State */
 
-
 #define SCCP_CFWD_NONE				0
 #define SCCP_CFWD_ALL				1
 #define SCCP_CFWD_BUSY				2
 #define SCCP_CFWD_NOANSWER			3
+
+/*
+ * Skinny Lookup Types
+ */
+#define SKINNY_TONE 		0
+#define SKINNY_ALARM		1  
+#define SKINNY_DEVICETYPE	3  
+#define SKINNY_DEVICE_RS	4  
+#define SKINNY_STIMULUS		5  
+#define SKINNY_BUTTONTYPE	6  
+#define SKINNY_LAMP		7  
+#define SKINNY_STATION		8  
+#define SKINNY_LBL		9
+#define SKINNY_CALLTYPE		10
 
 /* skinny protocol call states */
 #define SKINNY_CALLSTATE_OFFHOOK		1
@@ -100,16 +121,15 @@ typedef enum {
 } skinny_calltype_t;								/*!< Skinny Calltype */
 
 /*!
- * \brief Skinny Call Type Structure
+ * \brief Skinny CallType Structure
  */
 static const struct skinny_calltype {
-        skinny_calltype_t type;
-        const char * const longtext;
-        const char * const shorttext;
+        uint8_t calltype;
+        const char * const text;
 } skinny_calltypes[] = {
-        { SKINNY_CALLTYPE_INBOUND , "Inbound Line"  , "Inbound" 	},
-        { SKINNY_CALLTYPE_OUTBOUND, "Outbound Line" , "Outbound" 	},
-        { SKINNY_CALLTYPE_FORWARD , "Forwarded Line", "Forward" 	},
+        { SKINNY_CALLTYPE_INBOUND 			,	"Inbound" 				},
+        { SKINNY_CALLTYPE_OUTBOUND			,	"Outbound"				},
+        { SKINNY_CALLTYPE_FORWARD 			,	"Forward" 				},
 };
 
 typedef enum {
@@ -224,87 +244,88 @@ typedef enum {
 #define SKINNY_TONE_440HZ			0x69
 #define SKINNY_TONE_300HZ			0x6a
 #define SKINNY_TONE_NOTONE			0x7f
+
 /*!
- * \brief Skinny Call Type Structure
+ * \brief Skinny Tone Structure
  */
 static const struct skinny_tone {
         uint8_t tone;
         const char * const text;
 } skinny_tones[] = {
-	{ SKINNY_TONE_SILENCE			, "Silence" 		},
-	{ SKINNY_TONE_DTMF1			, "Dtmf1" 		},
-	{ SKINNY_TONE_DTMF2			, "Dtmf2" 		},
-	{ SKINNY_TONE_DTMF3			, "Dtmf3" 		},
-	{ SKINNY_TONE_DTMF4			, "Dtmf4" 		},
-	{ SKINNY_TONE_DTMF5			, "Dtmf5"		},
-	{ SKINNY_TONE_DTMF6			, "Dtmf6"		},
-	{ SKINNY_TONE_DTMF7			, "Dtmf7"		},
-	{ SKINNY_TONE_DTMF8			, "Dtmf8"		},
-	{ SKINNY_TONE_DTMF9			, "Dtmf9"		},
-	{ SKINNY_TONE_DTMF0			, "Dtmf0"		},
-	{ SKINNY_TONE_DTMFSTAR			, "DtmfStar"		},
-	{ SKINNY_TONE_DTMFPOUND			, "DtmfPound"		},
-	{ SKINNY_TONE_DTMFA			, "DtmfA"		},
-	{ SKINNY_TONE_DTMFB			, "DtmfB"		},
-	{ SKINNY_TONE_DTMFC			, "DtmfC"		},
-	{ SKINNY_TONE_DTMFD			, "DtmfD"		},
-	{ SKINNY_TONE_INSIDEDIALTONE		, "InsideDialTone"	},
-	{ SKINNY_TONE_OUTSIDEDIALTONE		, "OutsideDialTone"	},
-	{ SKINNY_TONE_LINEBUSYTONE		, "LineBusyTone"	},
-	{ SKINNY_TONE_ALERTINGTONE		, "AlertingTone"	},
-	{ SKINNY_TONE_REORDERTONE		, "ReorderTone"		},
-	{ SKINNY_TONE_RECORDERWARNINGTONE	, "RecorderWarningTone"	},
-	{ SKINNY_TONE_RECORDERDETECTEDTONE	, "RecorderDetectedTone"},
-	{ SKINNY_TONE_REVERTINGTONE		, "RevertingTone"	},
-	{ SKINNY_TONE_RECEIVEROFFHOOKTONE	, "ReceiverOffHookTone"	},
-	{ SKINNY_TONE_PARTIALDIALTONE		, "PartialDialTone"	},
-	{ SKINNY_TONE_NOSUCHNUMBERTONE		, "NoSuchNumberTone"	},
-	{ SKINNY_TONE_BUSYVERIFICATIONTONE	, "BusyVerificationTone"},
-	{ SKINNY_TONE_CALLWAITINGTONE		, "CallWaitingTone"	},
-	{ SKINNY_TONE_CONFIRMATIONTONE		, "ConfirmationTone"	},
-	{ SKINNY_TONE_CAMPONINDICATIONTONE	, "CampOnIndicationTone"},
-	{ SKINNY_TONE_RECALLDIALTONE		, "RecallDialTone"	},
-	{ SKINNY_TONE_ZIPZIP			, "ZipZip"		},
-	{ SKINNY_TONE_ZIP			, "Zip"			},
-	{ SKINNY_TONE_BEEPBONK			, "BeepBonk"		},
-	{ SKINNY_TONE_MUSICTONE			, "MusicTone"		},
-	{ SKINNY_TONE_HOLDTONE			, "HoldTone"		},
-	{ SKINNY_TONE_TESTTONE			, "TestTone"		},
-	{ SKINNY_TONE_ADDCALLWAITING		, "AddCallWaiting"	},
-	{ SKINNY_TONE_PRIORITYCALLWAIT		, "PriorityCallWait"	},
-	{ SKINNY_TONE_RECALLDIAL		, "RecallDial"		},
-	{ SKINNY_TONE_BARGIN			, "BargIn"		},
-	{ SKINNY_TONE_DISTINCTALERT		, "DistinctAlert"	},
-	{ SKINNY_TONE_PRIORITYALERT		, "PriorityAlert"	},
-	{ SKINNY_TONE_REMINDERRING		, "ReminderRing"	},
-	{ SKINNY_TONE_MF1			, "MF1"			},
-	{ SKINNY_TONE_MF2			, "MF2"			},
-	{ SKINNY_TONE_MF3			, "MF3"			},
-	{ SKINNY_TONE_MF4			, "MF4"			},
-	{ SKINNY_TONE_MF5			, "MF5"			},
-	{ SKINNY_TONE_MF6			, "MF6"			},
-	{ SKINNY_TONE_MF7			, "MF7"			},
-	{ SKINNY_TONE_MF8			, "MF8"			},
-	{ SKINNY_TONE_MF9			, "MF9"			},
-	{ SKINNY_TONE_MF0			, "MF0"			},
-	{ SKINNY_TONE_MFKP1			, "MFKP1"		},
-	{ SKINNY_TONE_MFST			, "MFST"		},
-	{ SKINNY_TONE_MFKP2			, "MFKP2"		},
-	{ SKINNY_TONE_MFSTP			, "MFSTP"		},
-	{ SKINNY_TONE_MFST3P			, "MFST3P"		},
-	{ SKINNY_TONE_MILLIWATT			, "MILLIWATT"		},
-	{ SKINNY_TONE_MILLIWATTTEST		, "MILLIWATTTEST"	},
-	{ SKINNY_TONE_HIGHTONE			, "HIGHTONE"		},
-	{ SKINNY_TONE_FLASHOVERRIDE		, "FLASHOVERRIDE"	},
-	{ SKINNY_TONE_FLASH			, "FLASH"		},
-	{ SKINNY_TONE_PRIORITY			, "PRIORITY"		},
-	{ SKINNY_TONE_IMMEDIATE			, "IMMEDIATE"		},
-	{ SKINNY_TONE_PREAMPWARN		, "PREAMPWARN"		},
-	{ SKINNY_TONE_2105HZ			, "2105HZ"		},
-	{ SKINNY_TONE_2600HZ			, "2600HZ"		},
-	{ SKINNY_TONE_440HZ			, "440HZ"		},
-	{ SKINNY_TONE_300HZ			, "300HZ"		},
-	{ SKINNY_TONE_NOTONE			, "NoTone"		},
+	{ SKINNY_TONE_SILENCE				,		"Silence" 				},
+	{ SKINNY_TONE_DTMF1				,		"Dtmf1" 				},
+	{ SKINNY_TONE_DTMF2				,		"Dtmf2" 				},
+	{ SKINNY_TONE_DTMF3				,		"Dtmf3" 				},
+	{ SKINNY_TONE_DTMF4				,		"Dtmf4" 				},
+	{ SKINNY_TONE_DTMF5				,		"Dtmf5"					},
+	{ SKINNY_TONE_DTMF6				,		"Dtmf6"					},
+	{ SKINNY_TONE_DTMF7				,		"Dtmf7"					},
+	{ SKINNY_TONE_DTMF8				,		"Dtmf8"					},
+	{ SKINNY_TONE_DTMF9				,		"Dtmf9"					},
+	{ SKINNY_TONE_DTMF0				,		"Dtmf0"					},
+	{ SKINNY_TONE_DTMFSTAR				,		"DtmfStar"				},
+	{ SKINNY_TONE_DTMFPOUND				,		"DtmfPound"				},
+	{ SKINNY_TONE_DTMFA				,		"DtmfA"					},
+	{ SKINNY_TONE_DTMFB				,		"DtmfB"					},
+	{ SKINNY_TONE_DTMFC				,		"DtmfC"					},
+	{ SKINNY_TONE_DTMFD				,		"DtmfD"					},
+	{ SKINNY_TONE_INSIDEDIALTONE			,		"InsideDialTone"			},
+	{ SKINNY_TONE_OUTSIDEDIALTONE			,		"OutsideDialTone"			},
+	{ SKINNY_TONE_LINEBUSYTONE			,		"LineBusyTone"				},
+	{ SKINNY_TONE_ALERTINGTONE			,		"AlertingTone"				},
+	{ SKINNY_TONE_REORDERTONE			,		"ReorderTone"				},
+	{ SKINNY_TONE_RECORDERWARNINGTONE		,		"RecorderWarningTone"			},
+	{ SKINNY_TONE_RECORDERDETECTEDTONE		,		"RecorderDetectedTone"			},
+	{ SKINNY_TONE_REVERTINGTONE			,		"RevertingTone"				},
+	{ SKINNY_TONE_RECEIVEROFFHOOKTONE		,		"ReceiverOffHookTone"			},
+	{ SKINNY_TONE_PARTIALDIALTONE			,		"PartialDialTone"			},
+	{ SKINNY_TONE_NOSUCHNUMBERTONE			,		"NoSuchNumberTone"			},
+	{ SKINNY_TONE_BUSYVERIFICATIONTONE		,		"BusyVerificationTone"			},
+	{ SKINNY_TONE_CALLWAITINGTONE			,		"CallWaitingTone"			},
+	{ SKINNY_TONE_CONFIRMATIONTONE			,		"ConfirmationTone"			},
+	{ SKINNY_TONE_CAMPONINDICATIONTONE		,		"CampOnIndicationTone"			},
+	{ SKINNY_TONE_RECALLDIALTONE			,		"RecallDialTone"			},
+	{ SKINNY_TONE_ZIPZIP				,		"ZipZip"				},
+	{ SKINNY_TONE_ZIP				,		"Zip"					},
+	{ SKINNY_TONE_BEEPBONK				,		"BeepBonk"				},
+	{ SKINNY_TONE_MUSICTONE				,		"MusicTone"				},
+	{ SKINNY_TONE_HOLDTONE				,		"HoldTone"				},
+	{ SKINNY_TONE_TESTTONE				,		"TestTone"				},
+	{ SKINNY_TONE_ADDCALLWAITING			,		"AddCallWaiting"			},
+	{ SKINNY_TONE_PRIORITYCALLWAIT			,		"PriorityCallWait"			},
+	{ SKINNY_TONE_RECALLDIAL			,		"RecallDial"				},
+	{ SKINNY_TONE_BARGIN				,		"BargIn"				},
+	{ SKINNY_TONE_DISTINCTALERT			,		"DistinctAlert"				},
+	{ SKINNY_TONE_PRIORITYALERT			,		"PriorityAlert"				},
+	{ SKINNY_TONE_REMINDERRING			,		"ReminderRing"				},
+	{ SKINNY_TONE_MF1				,		"MF1"					},
+	{ SKINNY_TONE_MF2				,		"MF2"					},
+	{ SKINNY_TONE_MF3				,		"MF3"					},
+	{ SKINNY_TONE_MF4				,		"MF4"					},
+	{ SKINNY_TONE_MF5				,		"MF5"					},
+	{ SKINNY_TONE_MF6				,		"MF6"					},
+	{ SKINNY_TONE_MF7				,		"MF7"					},
+	{ SKINNY_TONE_MF8				,		"MF8"					},
+	{ SKINNY_TONE_MF9				,		"MF9"					},
+	{ SKINNY_TONE_MF0				,		"MF0"					},
+	{ SKINNY_TONE_MFKP1				,		"MFKP1"					},
+	{ SKINNY_TONE_MFST				,		"MFST"					},
+	{ SKINNY_TONE_MFKP2				,		"MFKP2"					},
+	{ SKINNY_TONE_MFSTP				,		"MFSTP"					},
+	{ SKINNY_TONE_MFST3P				,		"MFST3P"				},
+	{ SKINNY_TONE_MILLIWATT				,		"MILLIWATT"				},
+	{ SKINNY_TONE_MILLIWATTTEST			,		"MILLIWATTTEST"				},
+	{ SKINNY_TONE_HIGHTONE				,		"HIGHTONE"				},
+	{ SKINNY_TONE_FLASHOVERRIDE			,		"FLASHOVERRIDE"				},
+	{ SKINNY_TONE_FLASH				,		"FLASH"					},
+	{ SKINNY_TONE_PRIORITY				,		"PRIORITY"				},
+	{ SKINNY_TONE_IMMEDIATE				,		"IMMEDIATE"				},
+	{ SKINNY_TONE_PREAMPWARN			,		"PREAMPWARN"				},
+	{ SKINNY_TONE_2105HZ				,		"2105HZ"				},
+	{ SKINNY_TONE_2600HZ				,		"2600HZ"				},
+	{ SKINNY_TONE_440HZ				,		"440HZ"					},
+	{ SKINNY_TONE_300HZ				,		"300HZ"					},
+	{ SKINNY_TONE_NOTONE				,		"NoTone"				},
 };
 
 /* alarm skinny_alarm2str*/
@@ -316,6 +337,23 @@ static const struct skinny_tone {
 #define SKINNY_ALARM_MINOR			8
 #define SKINNY_ALARM_MARGINAL			10
 #define SKINNY_ALARM_TRACEINFO			20
+
+/*!
+ * \brief Skinny Alarm Structure
+ */
+static const struct skinny_alarm {
+        uint8_t alarm;
+        const char * const text;
+} skinny_alarms[] = {
+	{ SKINNY_ALARM_CRITICAL				,		"Critical"				},
+	{ SKINNY_ALARM_WARNING				,		"Warning"				},
+	{ SKINNY_ALARM_INFORMATIONAL			,		"Informational"				},
+	{ SKINNY_ALARM_UNKNOWN				,		"Unknown"				},
+	{ SKINNY_ALARM_MAJOR				,		"Major"					},
+	{ SKINNY_ALARM_MINOR				,		"Minor"					},
+	{ SKINNY_ALARM_MARGINAL				,		"Marginal"				},
+	{ SKINNY_ALARM_TRACEINFO			,		"TraceInfo"				},
+};
 
 /* devices type */
 #define SKINNY_DEVICETYPE_30SPPLUS		1
@@ -353,62 +391,132 @@ static const struct skinny_tone {
 #define SKINNY_DEVICETYPE_MGCPTRUNK 		121
 #define SKINNY_DEVICETYPE_RASPROXY		122
 #define SKINNY_DEVICETYPE_NOTDEFINED		255
-
 #define SKINNY_DEVICETYPE_CISCO7902 		30008
 #define SKINNY_DEVICETYPE_CISCO7905 		20000
 #define SKINNY_DEVICETYPE_CISCO7906		369				/*!< 7906 -FS */
 #define SKINNY_DEVICETYPE_CISCO7910		6 				/*!< 7910 */
 #define SKINNY_DEVICETYPE_CISCO7911 		307
 #define SKINNY_DEVICETYPE_CISCO7912		30007
-
 #define SKINNY_DEVICETYPE_CISCO7914 		124 				/*!< Expansion module */
-
-/* This are from CCM6 -FS */
 #define SKINNY_DEVICETYPE_CISCO7915_12BUTTONS	227				/*!< 7915 12-Button Line Expansion Module */
 #define SKINNY_DEVICETYPE_CISCO7915		228				/*!< 7915 24-Button Line Expansion Module */
 #define SKINNY_DEVICETYPE_CISCO7916_12BUTTONS	229				/*!< 7916 12-Button Line Expansion Module */
 #define SKINNY_DEVICETYPE_CISCO7916		230				/*!< 7916 24-Button Line Expansion Module */
-
 #define SKINNY_DEVICETYPE_CISCO7920 		30002
 #define SKINNY_DEVICETYPE_CISCO7921 		365
 #define SKINNY_DEVICETYPE_CISCO7925 		484 				/*!< 7925 -FS */
-
 #define SKINNY_DEVICETYPE_CISCO7931		348
 #define SKINNY_DEVICETYPE_CISCO7935 		9
 #define SKINNY_DEVICETYPE_CISCO7936 		30019
 #define SKINNY_DEVICETYPE_CISCO7937		431
-
 #define SKINNY_DEVICETYPE_CISCO7940		8 				/*!< 7940 */
 #define SKINNY_DEVICETYPE_CISCO7941 		115
 #define SKINNY_DEVICETYPE_CISCO7941GE 		309
 #define SKINNY_DEVICETYPE_CISCO7942		434
 #define SKINNY_DEVICETYPE_CISCO7945		435
-
 #define SKINNY_DEVICETYPE_CISCO7960		7 				/*< 7960 */
 #define SKINNY_DEVICETYPE_CISCO7961 		30018
 #define SKINNY_DEVICETYPE_CISCO7961GE 		308
 #define SKINNY_DEVICETYPE_CISCO7962		404				// -FS
 #define SKINNY_DEVICETYPE_CISCO7965 		436
-
 #define SKINNY_DEVICETYPE_CISCO7970 		30006
 #define SKINNY_DEVICETYPE_CISCO7971 		119
 #define SKINNY_DEVICETYPE_CISCO7975		437
-
 #define SKINNY_DEVICETYPE_CISCO7985		302
-
 #define SKINNY_DEVICETYPE_NOKIA_E_SERIES	275 				/*!< Nokia S60 */
-
 #define SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR 30016
-
 #define SKINNY_DEVICETYPE_GATEWAY_AN 		30027 				/*!< Analog gateway */
 #define SKINNY_DEVICETYPE_GATEWAY_BRI 		30028 				/*!< BRI gateway */
 
+/*!
+ * \brief Skinny DeviceType Structure
+ */
+static const struct skinny_devicetype {
+        uint16_t devicetype;
+        const char * const text;
+} skinny_devicetypes[] = {
+	{ SKINNY_DEVICETYPE_30SPPLUS			,	"30SPplus" 				},
+	{ SKINNY_DEVICETYPE_12SPPLUS			,	"12SPplus" 				},
+	{ SKINNY_DEVICETYPE_12SP			,	"12SP" 					},
+	{ SKINNY_DEVICETYPE_12				,	"12" 					},
+	{ SKINNY_DEVICETYPE_30VIP			,	"30VIP" 				},
+	{ SKINNY_DEVICETYPE_CISCO7910			,	"Cisco7910" 				},
+	{ SKINNY_DEVICETYPE_CISCO7960			,	"Cisco7960"				},
+	{ SKINNY_DEVICETYPE_CISCO7940			,	"Cisco7940"				},
+	{ SKINNY_DEVICETYPE_VIRTUAL30SPPLUS		,	"Virtual30SPplus"			},
+	{ SKINNY_DEVICETYPE_PHONEAPPLICATION		,	"PhoneApplication"			},
+	{ SKINNY_DEVICETYPE_ANALOGACCESS		,	"AnalogAccess"				},
+	{ SKINNY_DEVICETYPE_DIGITALACCESSPRI		,	"DigitalAccessPRI"			},
+	{ SKINNY_DEVICETYPE_DIGITALACCESST1		,	"DigitalAccessT1"			},
+	{ SKINNY_DEVICETYPE_DIGITALACCESSTITAN2		,	"DigitalAccessTitan2"			},
+	{ SKINNY_DEVICETYPE_ANALOGACCESSELVIS		,	"AnalogAccessElvis"			},
+	{ SKINNY_DEVICETYPE_DIGITALACCESSLENNON		,	"DigitalAccessLennon"			},
+	{ SKINNY_DEVICETYPE_CONFERENCEBRIDGE		,	"ConferenceBridge"			},
+	{ SKINNY_DEVICETYPE_CONFERENCEBRIDGEYOKO	,	"ConferenceBridgeYoko"			},
+	{ SKINNY_DEVICETYPE_H225			,	"H225"					},
+	{ SKINNY_DEVICETYPE_H323PHONE			,	"H323Phone"				},
+	{ SKINNY_DEVICETYPE_H323TRUNK			,	"H323Trunk"				},
+	{ SKINNY_DEVICETYPE_MUSICONHOLD			,	"MusicOnHold"				},
+	{ SKINNY_DEVICETYPE_PILOT			,	"Pilot"					},
+	{ SKINNY_DEVICETYPE_TAPIPORT			,	"TapiPort"				},
+	{ SKINNY_DEVICETYPE_TAPIROUTEPOINT		,	"TapiRoutePoint"			},
+	{ SKINNY_DEVICETYPE_VOICEINBOX			,	"VoiceInBox"				},
+	{ SKINNY_DEVICETYPE_VOICEINBOXADMIN		,	"VoiceInboxAdmin"			},
+	{ SKINNY_DEVICETYPE_LINEANNUNCIATOR		,	"LineAnnunciator"			},
+	{ SKINNY_DEVICETYPE_ROUTELIST			,	"RouteList"				},
+	{ SKINNY_DEVICETYPE_LOADSIMULATOR		,	"LoadSimulator"				},
+	{ SKINNY_DEVICETYPE_MEDIATERMINATIONPOINT	,	"MediaTerminationPoint"			},
+	{ SKINNY_DEVICETYPE_MEDIATERMINATIONPOINTYOKO	,	"MediaTerminationPointYoko"		},
+	{ SKINNY_DEVICETYPE_MGCPSTATION			,	"MGCPStation"				},
+	{ SKINNY_DEVICETYPE_MGCPTRUNK			,	"MGCPTrunk"				},
+	{ SKINNY_DEVICETYPE_RASPROXY			,	"RASProxy"				},
+	{ SKINNY_DEVICETYPE_NOTDEFINED			,	"NotDefined"				},
+	{ SKINNY_DEVICETYPE_CISCO7920			,	"Cisco7920"				},
+	{ SKINNY_DEVICETYPE_CISCO7902			,	"Cisco7902"				},
+	{ SKINNY_DEVICETYPE_CISCO7905			,	"Cisco7905"				},
+	{ SKINNY_DEVICETYPE_CISCO7906			,	"Cisco7906"				},
+	{ SKINNY_DEVICETYPE_CISCO7911			,	"Cisco7911"				},
+	{ SKINNY_DEVICETYPE_CISCO7912			,	"Cisco7912"				},
+	{ SKINNY_DEVICETYPE_CISCO7931			,	"Cisco7931"				},
+	{ SKINNY_DEVICETYPE_CISCO7921			,	"Cisco7921"				},
+	{ SKINNY_DEVICETYPE_CISCO7935			,	"Cisco7935"				},
+	{ SKINNY_DEVICETYPE_CISCO7936			,	"Cisco7936"				},
+	{ SKINNY_DEVICETYPE_CISCO7937			,	"Cisco7937"				},
+	{ SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR	,	"Cisco_IP_Communicator"			},
+	{ SKINNY_DEVICETYPE_ATA186			,	"Cisco Ata 186"				},
+	{ SKINNY_DEVICETYPE_CISCO7941			,	"Cisco7941"				},
+	{ SKINNY_DEVICETYPE_CISCO7941GE			,	"Cisco7941GE"				},
+	{ SKINNY_DEVICETYPE_CISCO7942			,	"Cisco7942"				},
+	{ SKINNY_DEVICETYPE_CISCO7945			,	"Cisco7945"				},
+	{ SKINNY_DEVICETYPE_CISCO7961			,	"Cisco7961"				},
+	{ SKINNY_DEVICETYPE_CISCO7961GE			,	"Cisco7961GE"				},
+	{ SKINNY_DEVICETYPE_CISCO7962			,	"Cisco7962"				},
+	{ SKINNY_DEVICETYPE_CISCO7965			,	"Cisco7965"				},
+	{ SKINNY_DEVICETYPE_CISCO7970			,	"Cisco7970"				},
+	{ SKINNY_DEVICETYPE_CISCO7971			,	"Cisco7971"				},
+	{ SKINNY_DEVICETYPE_CISCO7975			,	"Cisco7975"				},
+	{ SKINNY_DEVICETYPE_CISCO7985			,	"Cisco7985"				},
+};
 
 #define SKINNY_DEVICE_RS_NONE			0
 #define SKINNY_DEVICE_RS_PROGRESS		1
 #define SKINNY_DEVICE_RS_FAILED 		2
 #define SKINNY_DEVICE_RS_OK 			3
 #define SKINNY_DEVICE_RS_TIMEOUT		4
+
+/*!
+ * \brief Skinny Device RS Structure
+ */
+static const struct skinny_devicers {
+        uint8_t devicers;
+        const char * const text;
+} skinny_devicerses[] = {
+	{ SKINNY_DEVICE_RS_NONE				,	"None"					},
+	{ SKINNY_DEVICE_RS_PROGRESS			,	"Progress"				},
+	{ SKINNY_DEVICE_RS_FAILED			,	"Failed"				},
+	{ SKINNY_DEVICE_RS_OK				,	"OK"					},
+	{ SKINNY_DEVICE_RS_TIMEOUT			,	"TimeOut"				},
+};
 
 /* stimulus */
 #define SKINNY_STIMULUS_LASTNUMBERREDIAL	1
@@ -438,6 +546,41 @@ static const struct skinny_tone {
 #define SKINNY_STIMULUS_CALLPICKUP		0x7f
 #define SKINNY_STIMULUS_GROUPCALLPICKUP 	0x80
 
+/*!
+ * \brief Skinny Stimulus Structure
+ */
+static const struct skinny_stimulus {
+        uint8_t stimulus;
+        const char * const text;
+} skinny_stimuluses[] = {
+	{ SKINNY_STIMULUS_LASTNUMBERREDIAL		,	"LastNumberRedial"			},
+	{ SKINNY_STIMULUS_SPEEDDIAL			,	"SpeedDial"				},
+	{ SKINNY_STIMULUS_HOLD				,	"Hold"					},
+	{ SKINNY_STIMULUS_TRANSFER			,	"Transfer"				},
+	{ SKINNY_STIMULUS_FORWARDALL			,	"ForwardAll"				},
+	{ SKINNY_STIMULUS_FORWARDBUSY			,	"ForwardBusy"				},
+	{ SKINNY_STIMULUS_FORWARDNOANSWER		,	"ForwardNoAnswer"			},
+	{ SKINNY_STIMULUS_DISPLAY			,	"Display"				},
+	{ SKINNY_STIMULUS_LINE				,	"Line"					},
+	{ SKINNY_STIMULUS_T120CHAT			,	"T120Chat"				},
+	{ SKINNY_STIMULUS_T120WHITEBOARD		,	"T120Whiteboard"			},
+	{ SKINNY_STIMULUS_T120APPLICATIONSHARING	,	"T120ApplicationSharing"		},
+	{ SKINNY_STIMULUS_T120FILETRANSFER		,	"T120FileTransfer"			},
+	{ SKINNY_STIMULUS_VIDEO				,	"Video"					},
+	{ SKINNY_STIMULUS_VOICEMAIL			,	"VoiceMail"				},
+	{ SKINNY_STIMULUS_AUTOANSWER			,	"AutoAnswer"				},
+	{ SKINNY_STIMULUS_GENERICAPPB1			,	"GenericAppB1"				},
+	{ SKINNY_STIMULUS_GENERICAPPB2			,	"GenericAppB2"				},
+	{ SKINNY_STIMULUS_GENERICAPPB3			,	"GenericAppB3"				},
+	{ SKINNY_STIMULUS_GENERICAPPB4			,	"GenericAppB4"				},
+	{ SKINNY_STIMULUS_GENERICAPPB5			,	"GenericAppB5"				},
+	{ SKINNY_STIMULUS_MEETMECONFERENCE		,	"MeetMeConference"			},
+	{ SKINNY_STIMULUS_CONFERENCE			,	"Conference"				},
+	{ SKINNY_STIMULUS_CALLPARK			,	"CallPark"				},
+	{ SKINNY_STIMULUS_CALLPICKUP			,	"CallPickup"				},
+	{ SKINNY_STIMULUS_GROUPCALLPICKUP		,	"GroupCallPickup"			},
+};
+
 #define SKINNY_BUTTONTYPE_UNUSED		0x00
 #define SKINNY_BUTTONTYPE_LASTNUMBERREDIAL	0x01
 #define SKINNY_BUTTONTYPE_SPEEDDIAL 		0x02
@@ -450,47 +593,43 @@ static const struct skinny_tone {
 #define SKINNY_BUTTONTYPE_LINE			0x09
 #define SKINNY_BUTTONTYPE_T120CHAT		0x0a
 #define SKINNY_BUTTONTYPE_T120WHITEBOARD	0x0b
-#define SKINNY_BUTTONTYPE_T120APPLICATIONSHARING	0x0c
+#define SKINNY_BUTTONTYPE_T120APPLICATIONSHARING 0x0c
 #define SKINNY_BUTTONTYPE_T120FILETRANSFER	0x0d
 #define SKINNY_BUTTONTYPE_VIDEO 		0x0e
 #define SKINNY_BUTTONTYPE_VOICEMAIL 		0x0f
 #define SKINNY_BUTTONTYPE_ANSWERRELEASE 	0x10
 #define SKINNY_BUTTONTYPE_AUTOANSWER		0x11
 #define SKINNY_BUTTONTYPE_FEATURE        	0x13
-#define SKINNY_BUTTONTYPE_TEST1				0x03
-#define SKINNY_BUTTONTYPE_TEST2				0x04
-#define SKINNY_BUTTONTYPE_TEST3				0x26
-#define SKINNY_BUTTONTYPE_TEST4				0x81
-#define SKINNY_BUTTONTYPE_TEST5				0x7D
-#define SKINNY_BUTTONTYPE_TEST6				0x82
-#define SKINNY_BUTTONTYPE_TEST7				0x8B
-#define SKINNY_BUTTONTYPE_TEST8				0x85
-#define SKINNY_BUTTONTYPE_TEST9				0x86
-#define SKINNY_BUTTONTYPE_TESTA				0x87
-#define SKINNY_BUTTONTYPE_TESTB				0x88
-#define SKINNY_BUTTONTYPE_TESTC				0x89
-#define SKINNY_BUTTONTYPE_TESTD				0x8A
-#define SKINNY_BUTTONTYPE_TESTE				0xC0
-#define SKINNY_BUTTONTYPE_TESTF				0xC1
-#define SKINNY_BUTTONTYPE_TESTG				0xC2
-#define SKINNY_BUTTONTYPE_TESTH				0xC3
-#define SKINNY_BUTTONTYPE_TESTI				0xC4
-#define SKINNY_BUTTONTYPE_TESTJ				0xC5
+#define SKINNY_BUTTONTYPE_TEST1			0x03
+#define SKINNY_BUTTONTYPE_TEST2			0x04
+#define SKINNY_BUTTONTYPE_TEST3			0x26
+#define SKINNY_BUTTONTYPE_TEST4			0x81
+#define SKINNY_BUTTONTYPE_TEST5			0x7D
+#define SKINNY_BUTTONTYPE_TEST6			0x82
+#define SKINNY_BUTTONTYPE_TEST7			0x8B
+#define SKINNY_BUTTONTYPE_TEST8			0x85
+#define SKINNY_BUTTONTYPE_TEST9			0x86
+#define SKINNY_BUTTONTYPE_TESTA			0x87
+#define SKINNY_BUTTONTYPE_TESTB			0x88
+#define SKINNY_BUTTONTYPE_TESTC			0x89
+#define SKINNY_BUTTONTYPE_TESTD			0x8A
+#define SKINNY_BUTTONTYPE_TESTE			0xC0
+#define SKINNY_BUTTONTYPE_TESTF			0xC1
+#define SKINNY_BUTTONTYPE_TESTG			0xC2
+#define SKINNY_BUTTONTYPE_TESTH			0xC3
+#define SKINNY_BUTTONTYPE_TESTI			0xC4
+#define SKINNY_BUTTONTYPE_TESTJ			0xC5
 #define SKINNY_BUTTONTYPE_SERVICEURL		0x14
 #define SKINNY_BUTTONTYPE_BLFSPEEDDIAL		0x15
-
-
 #define SKINNY_BUTTONTYPE_GENERICAPPB1		0x21
 #define SKINNY_BUTTONTYPE_GENERICAPPB2		0x22
 #define SKINNY_BUTTONTYPE_GENERICAPPB3		0x23
 #define SKINNY_BUTTONTYPE_GENERICAPPB4		0x24
 #define SKINNY_BUTTONTYPE_GENERICAPPB5		0x25
-
 #define SKINNY_BUTTONTYPE_MESSAGES		0xc2
 #define SKINNY_BUTTONTYPE_DIRECTORY		0xc3
 #define SKINNY_BUTTONTYPE_APPLICATION		0xc5
 #define SKINNY_BUTTONTYPE_HEADSET		0xc6
-
 #define SKINNY_BUTTONTYPE_MEETMECONFERENCE	0x7B
 #define SKINNY_BUTTONTYPE_CONFERENCE		0x7D
 #define SKINNY_BUTTONTYPE_CALLPARK		0x7E
@@ -506,6 +645,46 @@ static const struct skinny_tone {
 #define SCCP_BUTTONTYPE_SPEEDDIAL		0xc2
 #define SCCP_BUTTONTYPE_HINT			0xc3
 
+/*!
+ * \brief Skinny ButtonType Structure
+ */
+static const struct skinny_buttontype {
+        uint8_t buttontype;
+        const char * const text;
+} skinny_buttontypes[] = {
+	{ SKINNY_BUTTONTYPE_UNUSED			,	"Unused"				},
+	{ SKINNY_BUTTONTYPE_LASTNUMBERREDIAL		,	"LastNumberRedial"			},
+	{ SKINNY_BUTTONTYPE_SPEEDDIAL			,	"SpeedDial"				},
+	{ SKINNY_BUTTONTYPE_HOLD			,	"Hold"					},
+	{ SKINNY_BUTTONTYPE_TRANSFER			,	"Transfer"				},
+	{ SKINNY_BUTTONTYPE_FORWARDALL			,	"ForwardAll"				},
+	{ SKINNY_BUTTONTYPE_FORWARDBUSY			,	"ForwardBusy"				},
+	{ SKINNY_BUTTONTYPE_FORWARDNOANSWER		,	"ForwardNoAnswer"			},
+	{ SKINNY_BUTTONTYPE_DISPLAY			,	"Display"				},
+	{ SKINNY_BUTTONTYPE_LINE			,	"Line"					},
+	{ SKINNY_BUTTONTYPE_T120CHAT			,	"T120Chat"				},
+	{ SKINNY_BUTTONTYPE_T120WHITEBOARD		,	"T120Whiteboard"			},
+	{ SKINNY_BUTTONTYPE_T120APPLICATIONSHARING	,	"T120ApplicationSharing"		},
+	{ SKINNY_BUTTONTYPE_T120FILETRANSFER		,	"T120FileTransfer"			},
+	{ SKINNY_BUTTONTYPE_VIDEO			,	"Video"					},
+	{ SKINNY_BUTTONTYPE_VOICEMAIL			,	"Voicemail"				},
+	{ SKINNY_BUTTONTYPE_ANSWERRELEASE		,	"AnswerRelease"				},
+	{ SKINNY_BUTTONTYPE_AUTOANSWER			,	"AutoAnswer"				},
+	{ SKINNY_BUTTONTYPE_GENERICAPPB1		,	"GenericAppB1"				},
+	{ SKINNY_BUTTONTYPE_GENERICAPPB2		,	"GenericAppB2"				},
+	{ SKINNY_BUTTONTYPE_GENERICAPPB3		,	"GenericAppB3"				},
+	{ SKINNY_BUTTONTYPE_GENERICAPPB4		,	"GenericAppB4"				},
+	{ SKINNY_BUTTONTYPE_GENERICAPPB5		,	"GenericAppB5"				},
+	{ SKINNY_BUTTONTYPE_MEETMECONFERENCE		,	"MeetMeConference"			},
+	{ SKINNY_BUTTONTYPE_CONFERENCE			,	"Conference"				},
+	{ SKINNY_BUTTONTYPE_CALLPARK			,	"CallPark"				},
+	{ SKINNY_BUTTONTYPE_CALLPICKUP			,	"CallPickup"				},
+	{ SKINNY_BUTTONTYPE_GROUPCALLPICKUP		,	"GroupCallPickup"			},
+	{ SKINNY_BUTTONTYPE_KEYPAD			,	"Keypad"				},
+	{ SKINNY_BUTTONTYPE_AEC				,	"AEC"					},
+	{ SKINNY_BUTTONTYPE_UNDEFINED			,	"Undefined"				},
+	{ SKINNY_BUTTONTYPE_MULTI			,	"Line_or_Speeddial"			},
+};
 
 /* unregister */
 #define SKINNY_UNREGISTERSTATUS_OK		0
@@ -520,6 +699,20 @@ typedef enum {
         SKINNY_LAMP_FLASH			=4,				/*!< Lamp very fast blink, ~70% Duty */
         SKINNY_LAMP_BLINK			=5				/*!< Lamp slow blink, ~50% Duty */
 } sccp_lampMode_t;
+
+/*!
+ * \brief Skinny Lamp Structure
+ */
+static const struct skinny_lampmode {
+        uint8_t lampmode;
+        const char * const text;
+} skinny_lampmodes[] = {
+	{ SKINNY_LAMP_OFF				,		"LampOff"				},
+	{ SKINNY_LAMP_ON				,		"LampOn"				},
+	{ SKINNY_LAMP_WINK				,		"LampWink"				},
+	{ SKINNY_LAMP_FLASH				,		"LampFlash"				},
+	{ SKINNY_LAMP_BLINK				,		"LampBlink"				},
+};
 
 /* media silence suppression */
 #define SKINNY_MEDIA_SILENCESUPPRESSION_OFF 	0
@@ -550,6 +743,21 @@ typedef enum {
 #define SKINNY_STATION_SILENTRING		5
 #define SKINNY_STATION_URGENTRING		6
 
+/*!
+ * \brief Skinny Station Structure
+ */
+static const struct skinny_station {
+        uint8_t station;
+        const char * const text;
+} skinny_stations[] = {
+	{ SKINNY_STATION_RINGOFF			,	"RingOff"				},
+	{ SKINNY_STATION_INSIDERING			,	"Inside"				},
+	{ SKINNY_STATION_OUTSIDERING			,	"Outside"				},
+	{ SKINNY_STATION_FEATURERING			,	"Feature"				},
+	{ SKINNY_STATION_SILENTRING			,	"Silent"				},
+	{ SKINNY_STATION_URGENTRING			,	"Urgent"				},
+};
+
 /* speaker status */
 #define SKINNY_STATIONSPEAKER_ON		1
 #define SKINNY_STATIONSPEAKER_OFF		2
@@ -561,6 +769,7 @@ typedef enum {
 /* headset status */
 #define SKINNY_STATIONHEADSET_ON		1
 #define SKINNY_STATIONHEADSET_OFF		2
+
 
 /* device dtmfmode */
 #define SCCP_DTMFMODE_INBAND			0

@@ -61,7 +61,7 @@ struct ast_ha {
  */
 void sccp_handle_alarm(sccp_session_t * s, sccp_moo_t * r)
 {
-        sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Alarm Message: Severity: %s (%d), %s [%d/%d]\n", skinny_alarm2str(letohl(r->msg.AlarmMessage.lel_alarmSeverity)), letohl(r->msg.AlarmMessage.lel_alarmSeverity), r->msg.AlarmMessage.text, letohl(r->msg.AlarmMessage.lel_parm1), letohl(r->msg.AlarmMessage.lel_parm2));
+        sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Alarm Message: Severity: %s (%d), %s [%d/%d]\n", skinny2str(SKINNY_ALARM,letohl(r->msg.AlarmMessage.lel_alarmSeverity)), letohl(r->msg.AlarmMessage.lel_alarmSeverity), r->msg.AlarmMessage.text, letohl(r->msg.AlarmMessage.lel_parm1), letohl(r->msg.AlarmMessage.lel_parm2));
 }
 
 /*!
@@ -74,7 +74,7 @@ void sccp_handle_unknown_message(sccp_session_t * s, sccp_moo_t * r)
         uint32_t mid = letohl(r->lel_messageId);
 
         if (GLOB(debug))
-                ast_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", sccpmsg2str(mid), mid, r->length);
+                ast_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", sccp2str(SCCP_MESSAGE,mid), mid, r->length);
 
         sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
 }
@@ -108,7 +108,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d\n",
 		r->msg.RegisterMessage.sId.deviceName,
 		letohl(r->msg.RegisterMessage.sId.lel_instance),
-		skinny_devicetype2str(letohl(r->msg.RegisterMessage.lel_deviceType)),
+		skinny2str(SKINNY_DEVICETYPE,letohl(r->msg.RegisterMessage.lel_deviceType)),
 		letohl(r->msg.RegisterMessage.lel_deviceType),
 		r->msg.RegisterMessage.protocolVer);
 
@@ -692,7 +692,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 		if (btn[i].type != SKINNY_BUTTONTYPE_UNUSED) {
 		//if (r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition != SKINNY_BUTTONTYPE_UNDEFINED) {
 			r1->msg.ButtonTemplateMessage.lel_buttonCount++;
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Button Template [%.2d] = %s (%d), instance %d\n", d->id, i+1, skinny_buttontype2str(r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition), r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition,r1->msg.ButtonTemplateMessage.definition[i].instanceNumber);
+			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Button Template [%.2d] = %s (%d), instance %d\n", d->id, i+1, skinny2str(SKINNY_BUTTONTYPE,r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition), r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition,r1->msg.ButtonTemplateMessage.definition[i].instanceNumber);
 		}*/
 	}
 
@@ -843,7 +843,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 	  return;
 	}
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d) for instance=%d\n", d->id, skinny_stimulus2str(stimulus), stimulus, instance);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d) for instance=%d\n", d->id, skinny2str(SKINNY_STIMULUS,stimulus), stimulus, instance);
 
 	if (!instance) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Instance 0 is not a valid instance. Trying the active line %d\n", d->id, instance);
@@ -1092,7 +1092,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			break;
 
 		default:
-			ast_log(LOG_NOTICE, "%s: Don't know how to deal with stimulus %d with Phonetype %s(%d) \n", d->id, stimulus, skinny_devicetype2str(d->skinny_type), d->skinny_type);
+			ast_log(LOG_NOTICE, "%s: Don't know how to deal with stimulus %d with Phonetype %s(%d) \n", d->id, stimulus, skinny2str(SKINNY_DEVICETYPE,d->skinny_type), d->skinny_type);
 			break;
 	}
 }
@@ -1338,8 +1338,7 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r){
 	r1->msg.SoftKeyTemplateResMessage.lel_softKeyOffset = htolel(0);
 
 	for (i = 0; i < c; i++) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i+1, skinny_lbl2str(softkeysmap[i]));
-		//sccp_log(1)(VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", s->device->id, i, i+1, skinny_lbl2str(d->softKeyModes[i]));
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i+1, skinny2str(SKINNY_LBL,softkeysmap[i]));
 		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = 128;
 		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = softkeysmap[i];
 		//r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = d->softKeyModes[i];
@@ -1484,7 +1483,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 			}
 			for (j = 0; j < sizeof(softkeysmap); j++) {
 				if (b[c] == softkeysmap[j]) {
-					sccp_log(1)("%-2d:%-10s ", c, skinny_lbl2str(softkeysmap[j]));
+					sccp_log(1)("%-2d:%-10s ", c, skinny2str(SKINNY_LBL,softkeysmap[j]));
 					r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[c] = (j+1);
 					break;
 				}
@@ -1792,7 +1791,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 
 		/*
 	if ( event > sizeof(softkeysmap) )
-		ast_log(LOG_ERROR, "%s: Out of range for Softkey: %s (%d) line=%d callid=%d\n", d->id, skinny_lbl2str(event), event, line, callid);
+		ast_log(LOG_ERROR, "%s: Out of range for Softkey: %s (%d) line=%d callid=%d\n", d->id, skinny2str(SKINNY_LBL,event), event, line, callid);
 	*/
 	event = softkeysmap[event-1];
 
@@ -1807,7 +1806,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 		}
 	}
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Softkey: %s (%d) line=%d callid=%d\n", d->id, skinny_lbl2str(event), event, line, callid);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Softkey: %s (%d) line=%d callid=%d\n", d->id, skinny2str(SKINNY_LBL,event), event, line, callid);
 
 	if (line)
 		l = sccp_line_find_byid(s->device, line);

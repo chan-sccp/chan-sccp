@@ -465,7 +465,7 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 	bytesSent = 0;
 	bufAddr = ((uint8_t *) r);
 	bufLen = (size_t)(letohl(r->length) + 8);
-	/* sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending Packet Type %s (%d bytes)\n", s->device->id, sccpmsg2str(letohl(r->lel_messageId)), letohl(r->length)); */
+	/* sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending Packet Type %s (%d bytes)\n", s->device->id, sccp2str(SCCP_MESSAGE,letohl(r->lel_messageId)), letohl(r->length)); */
 	do {
 		res = write(s->fd, bufAddr+bytesSent, bufLen-bytesSent);
 		if(res >= 0)
