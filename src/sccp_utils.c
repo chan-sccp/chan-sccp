@@ -855,11 +855,16 @@ const char * sccp_extensionstate2str(uint8_t type) {
 
 /*!
  * \brief Convert Message to String
- * \param e Message
+ * \param hex Message
  * \return Message String or "unknown"
  */
-const char * sccpmsg2str(uint32_t hex) {
-  _SCCPMSG2STR(hex);
+const char * sccp2str(uint8_t type, uint32_t value) {
+	switch(type) {
+                case SCCP_MESSAGE:
+                        _ARR2STR(sccp_messagetypes, type , value , text);
+                default:
+                        return "Not Defined";
+        }  
 }
 
         
@@ -902,374 +907,43 @@ const char * skinny_accessorystate2str(uint32_t state) {
 }
 
 /*!
- * \brief Convert Label 2 String
- * \param label SKINNY_LBL_* as uint8_t
- * \return Label String or "unknown"
+ * \brief Convert Skinny 2 String
+ * \param type 	Skinny Type
+ * \param value Skinny Value
+ * \return Converted Skinny String
  */
-const char * skinny_lbl2str(uint8_t label) {
-  _SKINNYLBL2STR(label);
-}
-
-
-/*!
- * \brief Convert Tone 2 String
- * \param tone SKINNY_TONE_* as uint8_t
- * \return Tone String or "unknown"
- */
-const char * skinny_tone2str(uint8_t tone) {
-  _SKINNYTONE2STR(tone);
-}
-
-/*!
- * \brief Convert Alarm 2 String
- * \param alarm SKINNY_ALARM_* as uint8_t
- * \return Alarm String or "unknown"
- */
-const char * skinny_alarm2str(uint8_t alarm) {
-	switch(alarm) {
-	case SKINNY_ALARM_CRITICAL:
-		return "Critical";
-	case SKINNY_ALARM_WARNING:
-		return "Warning";
-	case SKINNY_ALARM_INFORMATIONAL:
-		return "Informational";
-	case SKINNY_ALARM_UNKNOWN:
-		return "Unknown";
-	case SKINNY_ALARM_MAJOR:
-		return "Major";
-	case SKINNY_ALARM_MINOR:
-		return "Minor";
-	case SKINNY_ALARM_MARGINAL:
-		return "Marginal";
-	case SKINNY_ALARM_TRACEINFO:
-		return "TraceInfo";
-	default:
-		return "unknown";
-	}
-}
-
-/*!
- * \brief Convert DeviceType 2 string values
- * \param type SKINNY_DEVICETYPE_* as uint32_t
- * \return DeviceType String or "unknown"
- * \todo TODO add values for new devices
- */
-const char * skinny_devicetype2str(uint32_t type) {
+const char * skinny2str(uint8_t type, uint32_t value) {
 	switch(type) {
-	case SKINNY_DEVICETYPE_30SPPLUS:
-		return "30SPplus";
-	case SKINNY_DEVICETYPE_12SPPLUS:
-		return "12SPplus";
-	case SKINNY_DEVICETYPE_12SP:
-		return "12SP";
-	case SKINNY_DEVICETYPE_12:
-		return "12";
-	case SKINNY_DEVICETYPE_30VIP:
-		return "30VIP";
-	case SKINNY_DEVICETYPE_CISCO7910:
-		return "Cisco7910";
-	case SKINNY_DEVICETYPE_CISCO7960:
-		return "Cisco7960";
-	case SKINNY_DEVICETYPE_CISCO7940:
-		return "Cisco7940";
-	case SKINNY_DEVICETYPE_VIRTUAL30SPPLUS:
-		return "Virtual30SPplus";
-	case SKINNY_DEVICETYPE_PHONEAPPLICATION:
-		return "PhoneApplication";
-	case SKINNY_DEVICETYPE_ANALOGACCESS:
-		return "AnalogAccess";
-	case SKINNY_DEVICETYPE_DIGITALACCESSPRI:
-		return "DigitalAccessPRI";
-	case SKINNY_DEVICETYPE_DIGITALACCESST1:
-		return "DigitalAccessT1";
-	case SKINNY_DEVICETYPE_DIGITALACCESSTITAN2:
-		return "DigitalAccessTitan2";
-	case SKINNY_DEVICETYPE_ANALOGACCESSELVIS:
-		return "AnalogAccessElvis";
-	case SKINNY_DEVICETYPE_DIGITALACCESSLENNON:
-		return "DigitalAccessLennon";
-	case SKINNY_DEVICETYPE_CONFERENCEBRIDGE:
-		return "ConferenceBridge";
-	case SKINNY_DEVICETYPE_CONFERENCEBRIDGEYOKO:
-		return "ConferenceBridgeYoko";
-	case SKINNY_DEVICETYPE_H225:
-		return "H225";
-	case SKINNY_DEVICETYPE_H323PHONE:
-		return "H323Phone";
-	case SKINNY_DEVICETYPE_H323TRUNK:
-		return "H323Trunk";
-	case SKINNY_DEVICETYPE_MUSICONHOLD:
-		return "MusicOnHold";
-	case SKINNY_DEVICETYPE_PILOT:
-		return "Pilot";
-	case SKINNY_DEVICETYPE_TAPIPORT:
-		return "TapiPort";
-	case SKINNY_DEVICETYPE_TAPIROUTEPOINT:
-		return "TapiRoutePoint";
-	case SKINNY_DEVICETYPE_VOICEINBOX:
-		return "VoiceInBox";
-	case SKINNY_DEVICETYPE_VOICEINBOXADMIN:
-		return "VoiceInboxAdmin";
-	case SKINNY_DEVICETYPE_LINEANNUNCIATOR:
-		return "LineAnnunciator";
-	case SKINNY_DEVICETYPE_ROUTELIST:
-		return "RouteList";
-	case SKINNY_DEVICETYPE_LOADSIMULATOR:
-		return "LoadSimulator";
-	case SKINNY_DEVICETYPE_MEDIATERMINATIONPOINT:
-		return "MediaTerminationPoint";
-	case SKINNY_DEVICETYPE_MEDIATERMINATIONPOINTYOKO:
-		return "MediaTerminationPointYoko";
-	case SKINNY_DEVICETYPE_MGCPSTATION:
-		return "MGCPStation";
-	case SKINNY_DEVICETYPE_MGCPTRUNK:
-		return "MGCPTrunk";
-	case SKINNY_DEVICETYPE_RASPROXY:
-		return "RASProxy";
-	case SKINNY_DEVICETYPE_NOTDEFINED:
-		return "NotDefined";
-	case SKINNY_DEVICETYPE_CISCO7920:
-		return "Cisco7920";
-	case SKINNY_DEVICETYPE_CISCO7902:
-		return "Cisco7902";
-	case SKINNY_DEVICETYPE_CISCO7905:
-		return "Cisco7905";
-	case SKINNY_DEVICETYPE_CISCO7906:
-		return "Cisco7906";
-	case SKINNY_DEVICETYPE_CISCO7911:
-		return "Cisco7911";
-	case SKINNY_DEVICETYPE_CISCO7912:
-		return "Cisco7912";
-	case SKINNY_DEVICETYPE_CISCO7931:
-		return "Cisco7931";
-	case SKINNY_DEVICETYPE_CISCO7921:
-		return "Cisco7921";
-	case SKINNY_DEVICETYPE_CISCO7935:
-		return "Cisco7935";
-	case SKINNY_DEVICETYPE_CISCO7936:
-		return "Cisco7936";
-	case SKINNY_DEVICETYPE_CISCO7937:
-		return "Cisco7937";
-	case SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR:
-		return "Cisco_IP_Communicator";
-	case SKINNY_DEVICETYPE_ATA186:
-		return "Cisco Ata 186";
-	case SKINNY_DEVICETYPE_CISCO7941:
-		return "Cisco7941";
-	case SKINNY_DEVICETYPE_CISCO7941GE:
-		return "Cisco7941GE";
-	case SKINNY_DEVICETYPE_CISCO7942:
-		return "Cisco7942";
-	case SKINNY_DEVICETYPE_CISCO7945:
-		return "Cisco7945";
-	case SKINNY_DEVICETYPE_CISCO7961:
-		return "Cisco7961";
-	case SKINNY_DEVICETYPE_CISCO7961GE:
-		return "Cisco7961GE";
-	case SKINNY_DEVICETYPE_CISCO7962:
-		return "Cisco7962";
-	case SKINNY_DEVICETYPE_CISCO7965:
-		return "Cisco7965";
-	case SKINNY_DEVICETYPE_CISCO7970:
-		return "Cisco7970";
-	case SKINNY_DEVICETYPE_CISCO7971:
-		return "Cisco7971";
-	case SKINNY_DEVICETYPE_CISCO7975:
-		return "Cisco7975";
-	case SKINNY_DEVICETYPE_CISCO7985:
-		return "Cisco7985";
-
-	default:
-		return "unknown";
-	}
+                case SKINNY_TONE:
+                        _ARR2STR(skinny_tones		, tone , value , text);
+                case SKINNY_ALARM:
+                        _ARR2STR(skinny_alarms		, alarm, value , text);
+                case SKINNY_DEVICETYPE:
+                        _ARR2STR(skinny_devicetypes	, devicetype, value  , text);
+                case SKINNY_DEVICE_RS:
+                        _ARR2STR(skinny_devicerses	, devicers , value, text);
+                case SKINNY_STIMULUS:
+                        _ARR2STR(skinny_stimuluses	, stimulus , value, text);
+                case SKINNY_BUTTONTYPE:
+                        _ARR2STR(skinny_buttontypes	, buttontype , value, text);
+                case SKINNY_LAMP:
+                        _ARR2STR(skinny_lampmodes	, lampmode , value, text);
+                case SKINNY_STATION:
+                        _ARR2STR(skinny_stations	, station , value, text);
+                case SKINNY_LBL:
+                        _ARR2STR(skinny_labels    	, label, value, text);
+                case SKINNY_CALLTYPE:
+                        _ARR2STR(skinny_calltypes 	, calltype , value, text);
+                default:
+                        return "not defined yes";
+        }
 }
 
 /*!
- * \brief Convert Stimulis 2 String
- * \param type SKINNY_STIMULUS_* as uint8_t
- * \return Stimulus String or "unknown"
+ * \brief Convert Softkeyset 2 String
+ * \param type KEYMODE_* as uint8_t
+ * \return Softkeyset String or "unknown"
  */
-const char * skinny_stimulus2str(uint8_t type) {
-	switch(type) {
-	case SKINNY_STIMULUS_LASTNUMBERREDIAL:
-		return "LastNumberRedial";
-	case SKINNY_STIMULUS_SPEEDDIAL:
-		return "SpeedDial";
-	case SKINNY_STIMULUS_HOLD:
-		return "Hold";
-	case SKINNY_STIMULUS_TRANSFER:
-		return "Transfer";
-	case SKINNY_STIMULUS_FORWARDALL:
-		return "ForwardAll";
-	case SKINNY_STIMULUS_FORWARDBUSY:
-		return "ForwardBusy";
-	case SKINNY_STIMULUS_FORWARDNOANSWER:
-		return "ForwardNoAnswer";
-	case SKINNY_STIMULUS_DISPLAY:
-		return "Display";
-	case SKINNY_STIMULUS_LINE:
-		return "Line";
-	case SKINNY_STIMULUS_T120CHAT:
-		return "T120Chat";
-	case SKINNY_STIMULUS_T120WHITEBOARD:
-		return "T120Whiteboard";
-	case SKINNY_STIMULUS_T120APPLICATIONSHARING:
-		return "T120ApplicationSharing";
-	case SKINNY_STIMULUS_T120FILETRANSFER:
-		return "T120FileTransfer";
-	case SKINNY_STIMULUS_VIDEO:
-		return "Video";
-	case SKINNY_STIMULUS_VOICEMAIL:
-		return "VoiceMail";
-	case SKINNY_STIMULUS_AUTOANSWER:
-		return "AutoAnswer";
-	case SKINNY_STIMULUS_GENERICAPPB1:
-		return "GenericAppB1";
-	case SKINNY_STIMULUS_GENERICAPPB2:
-		return "GenericAppB2";
-	case SKINNY_STIMULUS_GENERICAPPB3:
-		return "GenericAppB3";
-	case SKINNY_STIMULUS_GENERICAPPB4:
-		return "GenericAppB4";
-	case SKINNY_STIMULUS_GENERICAPPB5:
-		return "GenericAppB5";
-	case SKINNY_STIMULUS_MEETMECONFERENCE:
-		return "MeetMeConference";
-	case SKINNY_STIMULUS_CONFERENCE:
-		return "Conference";
-	case SKINNY_STIMULUS_CALLPARK:
-		return "CallPark";
-	case SKINNY_STIMULUS_CALLPICKUP:
-		return "CallPickup";
-	case SKINNY_STIMULUS_GROUPCALLPICKUP:
-		return "GroupCallPickup";
-	default:
-		return "unknown";
-	}
-}
-
-/*!
- * \brief Convert Button Type 2 String
- * \param type SKINNY_BUTTONTYPE_* as uint8_t
- * \return Button Type String or "unknown"
- */
-const char * skinny_buttontype2str(uint8_t type) {
-	switch(type) {
-	case SKINNY_BUTTONTYPE_UNUSED:
-		return "Unused";
-	case SKINNY_BUTTONTYPE_LASTNUMBERREDIAL:
-		return "LastNumberRedial";
-	case SKINNY_BUTTONTYPE_SPEEDDIAL:
-		return "SpeedDial";
-	case SKINNY_BUTTONTYPE_HOLD:
-		return "Hold";
-	case SKINNY_BUTTONTYPE_TRANSFER:
-		return "Transfer";
-	case SKINNY_BUTTONTYPE_FORWARDALL:
-		return "ForwardAll";
-	case SKINNY_BUTTONTYPE_FORWARDBUSY:
-		return "ForwardBusy";
-	case SKINNY_BUTTONTYPE_FORWARDNOANSWER:
-		return "ForwardNoAnswer";
-	case SKINNY_BUTTONTYPE_DISPLAY:
-		return "Display";
-	case SKINNY_BUTTONTYPE_LINE:
-		return "Line";
-	case SKINNY_BUTTONTYPE_T120CHAT:
-		return "T120Chat";
-	case SKINNY_BUTTONTYPE_T120WHITEBOARD:
-		return "T120Whiteboard";
-	case SKINNY_BUTTONTYPE_T120APPLICATIONSHARING:
-		return "T120ApplicationSharing";
-	case SKINNY_BUTTONTYPE_T120FILETRANSFER:
-		return "T120FileTransfer";
-	case SKINNY_BUTTONTYPE_VIDEO:
-		return "Video";
-	case SKINNY_BUTTONTYPE_VOICEMAIL:
-		return "Voicemail";
-	case SKINNY_BUTTONTYPE_ANSWERRELEASE:
-		return "AnswerRelease";
-	case SKINNY_BUTTONTYPE_AUTOANSWER:
-		return "AutoAnswer";
-	case SKINNY_BUTTONTYPE_GENERICAPPB1:
-		return "GenericAppB1";
-	case SKINNY_BUTTONTYPE_GENERICAPPB2:
-		return "GenericAppB2";
-	case SKINNY_BUTTONTYPE_GENERICAPPB3:
-		return "GenericAppB3";
-	case SKINNY_BUTTONTYPE_GENERICAPPB4:
-		return "GenericAppB4";
-	case SKINNY_BUTTONTYPE_GENERICAPPB5:
-		return "GenericAppB5";
-	case SKINNY_BUTTONTYPE_MEETMECONFERENCE:
-		return "MeetMeConference";
-	case SKINNY_BUTTONTYPE_CONFERENCE:
-		return "Conference";
-	case SKINNY_BUTTONTYPE_CALLPARK:
-		return "CallPark";
-	case SKINNY_BUTTONTYPE_CALLPICKUP:
-		return "CallPickup";
-	case SKINNY_BUTTONTYPE_GROUPCALLPICKUP:
-		return "GroupCallPickup";
-	case SKINNY_BUTTONTYPE_KEYPAD:
-		return "Keypad";
-	case SKINNY_BUTTONTYPE_AEC:
-		return "AEC";
-	case SKINNY_BUTTONTYPE_UNDEFINED:
-		return "Undefined";
-	/* not a skinny definition */
-	case SKINNY_BUTTONTYPE_MULTI:
-		return "Line_or_Speeddial";
-	default:
-		return "unknown";
-	}
-}
-
-/*!
- * \brief Convert Lamp Mode 2 String
- * \param type SKINNY_LAMP_* as uint8_t
- * \return Lamp Mode String or "unknown"
- */
-const char * skinny_lampmode2str(uint8_t type) {
-	switch(type) {
-	case SKINNY_LAMP_OFF:
-		return "LampOff";
-	case SKINNY_LAMP_ON:
-		return "LampOn";
-	case SKINNY_LAMP_WINK:
-		return "LampWink";
-	case SKINNY_LAMP_FLASH:
-		return "LampFlash";
-	case SKINNY_LAMP_BLINK:
-		return "LampBlink";
-	default:
-		return "unknown";
-	}
-}
-
-/*!
- * \brief Convert Ringer Mode 2 String
- * \param type SKINNY_STATTION_* as uint8_t
- * \return Ringer Mode String or "unknown"
- */
-const char * skinny_ringermode2str(uint8_t type) {
-	switch(type) {
-	case SKINNY_STATION_RINGOFF:
-		return "RingOff";
-	case SKINNY_STATION_INSIDERING:
-		return "Inside";
-	case SKINNY_STATION_OUTSIDERING:
-		return "Outside";
-	case SKINNY_STATION_FEATURERING:
-		return "Feature";
-	case SKINNY_STATION_SILENTRING:
-			return "Silent";
-	case SKINNY_STATION_URGENTRING:
-			return "Urgent";
-	default:
-		return "unknown";
-	}
-}
 
 const char * skinny_softkeyset2str(uint8_t type) {
 	switch(type) {
@@ -1349,9 +1023,11 @@ const char * skinny_registrationstate2str(uint8_t type) {
  * \param type SKINNY_CALLTYPE_* as uint8_t
  * \return Call Type String or "unknown"
  */
+/*
 const char * skinny_calltype2str(uint8_t type) {
   _SKINNYCALLTYPE2STR(type);
 }
+*/
 
 
 /*!

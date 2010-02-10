@@ -444,8 +444,8 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: last keepAlive within %d (%d)\n", (s->device)?s->device->id:"null", (uint32_t)(time(0) - s->lastKeepAlive), (s->device)?s->device->keepalive:0 );
 	s->lastKeepAlive = time(0); /* always update keepalive */
 
-  //sccp_log(10)(VERBOSE_PREFIX_3 "%s(%d): >> Got message %s\n", (s->device)?s->device->id:"null", s->sin.sin_addr.s_addr ,sccpmsg2str(mid));
-  //sccp_log(10)(VERBOSE_PREFIX_3 "%s(%d): >> Got message %s\n", (s->device)?s->device->id:"null", (s->device)?s->device->session->sin.sin_addr.s_addr:0 ,sccpmsg2str(mid));
+  //sccp_log(10)(VERBOSE_PREFIX_3 "%s(%d): >> Got message %s\n", (s->device)?s->device->id:"null", s->sin.sin_addr.s_addr ,sccp2str(SCCP_MESSAGE,mid));
+  //sccp_log(10)(VERBOSE_PREFIX_3 "%s(%d): >> Got message %s\n", (s->device)?s->device->id:"null", (s->device)?s->device->session->sin.sin_addr.s_addr:0 ,sccp2str(SCCP_MESSAGE,mid));
   /* try to handle nat problem.
    * devices behind nat box can not do anything after ip address change */
 //  if(s && s->device && s->device->session){
@@ -463,7 +463,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 //  }
 
 	if ( (!s->device) && (mid != RegisterMessage && mid != UnregisterMessage && mid != RegisterTokenReq && mid != AlarmMessage && mid != KeepAliveMessage && mid != IpPortMessage)) {
-		ast_log(LOG_WARNING, "SCCP: Client sent %s without first registering. Attempting reconnect.\n", sccpmsg2str(mid));
+		ast_log(LOG_WARNING, "SCCP: Client sent %s without first registering. Attempting reconnect.\n", sccp2str(SCCP_MESSAGE,mid));
 		if(!(s->device = sccp_device_find_byipaddress(s->sin.sin_addr.s_addr))) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Device attempt to reconnect failed. Restarting device\n");
 			ast_free(r);
@@ -483,9 +483,9 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 
 	if (mid != KeepAliveMessage) {
 		if (s && s->device) {
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: >> Got message %s\n", s->device->id, sccpmsg2str(mid));
+			sccp_log(10)(VERBOSE_PREFIX_3 "%s: >> Got message %s\n", s->device->id, sccp2str(SCCP_MESSAGE,mid));
 		} else {
-			sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: >> Got message %s\n", sccpmsg2str(mid));
+			sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: >> Got message %s\n", sccp2str(SCCP_MESSAGE,mid));
 		}
 	}
 

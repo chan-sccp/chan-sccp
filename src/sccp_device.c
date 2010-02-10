@@ -191,7 +191,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 	uint8_t i;
 	if (!d || !d->session)
 		return;
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Building button template %s(%d), user config %s\n",	d->id, skinny_devicetype2str(d->skinny_type), d->skinny_type, d->config_type);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Building button template %s(%d), user config %s\n",	d->id, skinny2str(SKINNY_DEVICETYPE,d->skinny_type), d->skinny_type, d->config_type);
 
 	switch (d->skinny_type) {
 		case SKINNY_DEVICETYPE_30SPPLUS:
@@ -356,7 +356,7 @@ sccp_moo_t * sccp_build_packet(sccp_message_t t, size_t pkt_len)
 int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
 {
 	if(d && d->session){
-		sccp_log(99)(VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, sccpmsg2str(r->lel_messageId));
+		sccp_log(99)(VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, sccp2str(SCCP_MESSAGE,r->lel_messageId));
 		return sccp_session_send(d, r);
 	}else
 		return -1;
@@ -509,7 +509,7 @@ void sccp_dev_set_ringer(sccp_device_t * d, uint8_t opt, uint32_t line, uint32_t
 	r->msg.SetRingerMessage.lel_lineInstance = htolel(line);
 	r->msg.SetRingerMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send ringer mode %s(%d) on device\n", d->id, skinny_ringermode2str(opt), opt);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send ringer mode %s(%d) on device\n", d->id, skinny2str(SKINNY_STATION,opt), opt);
 
 }
 
@@ -610,7 +610,7 @@ void sccp_dev_starttone(sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t 
 	r->msg.StartToneMessage.lel_callReference = htolel(callid);
 
 	sccp_dev_send(d, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending tone %s (%d)\n", d->id, skinny_tone2str(tone), tone);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending tone %s (%d)\n", d->id, skinny2str(SKINNY_TONE,tone), tone);
 }
 
 /*!
@@ -1086,7 +1086,7 @@ void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint8_t insta
 	r->msg.SetLampMessage.lel_stimulusInstance = htolel(instance);
 	r->msg.SetLampMessage.lel_lampMode = htolel(lampMode);
 	sccp_dev_send(d, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send lamp mode %s(%d) on line %d\n", d->id, skinny_lampmode2str(lampMode), lampMode, instance );
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send lamp mode %s(%d) on line %d\n", d->id, skinny2str(SKINNY_LAMP,lampMode), lampMode, instance );
 }
 
 void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {

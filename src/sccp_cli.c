@@ -377,7 +377,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "MWI handset light  : %s\n", (d->mwilight) ? "ON" : "OFF");
 	ast_cli(fd, "Description        : %s\n", d->description);
 	ast_cli(fd, "Config Phone Type  : %s\n", d->config_type);
-	ast_cli(fd, "Skinny Phone Type  : %s(%d)\n", skinny_devicetype2str(d->skinny_type), d->skinny_type);
+	ast_cli(fd, "Skinny Phone Type  : %s(%d)\n", skinny2str(SKINNY_DEVICETYPE,d->skinny_type), d->skinny_type);
 	ast_cli(fd, "Softkey support    : %s\n", (d->softkeysupport) ? "Yes" : "No");
 	ast_cli(fd, "Image Version      : %s\n", d->imageversion);
 	ast_cli(fd, "Timezone Offset    : %d\n", d->tz_offset);
@@ -929,7 +929,7 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 			(l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
 			l->channelCount,
 			(c) ? sccp_indicate2str(c->state) : "--",
-			(c) ? skinny_calltype2str(c->calltype) : "",
+			(c) ? skinny2str(SKINNY_CALLTYPE,c->calltype) : "",
 			(c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->calledPartyName : c->callingPartyName ) : "",
 			cap_buf);
 
@@ -945,7 +945,7 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 				(l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
 				l->channelCount,
 				(c) ? sccp_indicate2str(c->state) : "--",
-				(c) ? skinny_calltype2str(c->calltype) : "",
+				(c) ? skinny2str(SKINNY_CALLTYPE,c->calltype) : "",
 				(c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->calledPartyName : c->callingPartyName ) : "",
 				cap_buf);
 		}
@@ -1129,7 +1129,7 @@ static int sccp_show_sessions(int fd, int argc, char * argv[]) {
 				(uint32_t)(time(0) - s->lastKeepAlive),
 				(d) ? d->id : "--",
 				(d) ? skinny_devicestate2str(d->state) : "--",
-				(d) ? skinny_devicetype2str(d->skinny_type) : "--");
+				(d) ? skinny2str(SKINNY_DEVICETYPE,d->skinny_type) : "--");
 #else
 			ast_cli(fd, "%-10d %-15s %-4d %-15s %-15s %-15s\n",
 				s->fd,
@@ -1137,7 +1137,7 @@ static int sccp_show_sessions(int fd, int argc, char * argv[]) {
 				(uint32_t)(time(0) - s->lastKeepAlive),
 				(d) ? d->id : "--",
 				(d) ? skinny_devicestate2str(d->state) : "--",
-				(d) ? skinny_devicetype2str(d->skinny_type) : "--");
+				(d) ? skinny2str(SKINNY_DEVICETYPE,d->skinny_type) : "--");
 #endif
 			sccp_device_unlock(d);
 		}
@@ -1741,7 +1741,7 @@ static char *cli_show_softkeysets(struct ast_cli_entry *e, int cmd, struct ast_c
 			ast_cli(a->fd, "      Set[%-2d]= ", i);
 
 			for ( c = 0; c < softkeyset->modes[i].count; c++) {
-				ast_cli(a->fd, "%-2d:%-10s ", c, skinny_lbl2str(b[c]));
+				ast_cli(a->fd, "%-2d:%-10s ", c, skinny2str(SKINNY_LBL,b[c]));
 			}
 
 			ast_cli(a->fd, "\n");

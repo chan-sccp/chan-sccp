@@ -58,7 +58,7 @@ void sccp_dev_dbput(sccp_device_t * d);
 void sccp_dev_dbget(sccp_device_t * d);
 void sccp_dev_dbclean(void);
 
-#define ARR2STR(arrayname, lookup_var, lookup_val, return_var) \
+#define _ARR2STR(arrayname, lookup_var, lookup_val, return_var) \
         ({ \
         int i; \
         for (i = 1; i < ARRAY_LEN(arrayname); i++) { \
@@ -69,27 +69,16 @@ void sccp_dev_dbclean(void);
         return arrayname[0].return_var; \
         })
 
-#define _SCCPMSG2STR(myhex) 		ARR2STR(sccp_messagetypes, type , myhex  , text)
-#define _SKINNYLBL2STR(mylabel) 	ARR2STR(skinny_labels	 , label, mylabel, text)
-#define _SKINNYCALLTYPE2STR(mytype) 	ARR2STR(skinny_calltypes , type , mytype , shorttext)
-#define _SKINNYTONE2STR(mytone) 	ARR2STR(skinny_tones	 , tone , mytone , text)
+const char * skinny2str(uint8_t type, uint32_t value);
+const char * sccp2str(uint8_t type, uint32_t value);
 
 const char * skinny_accessorystate2str(uint32_t state);
 const char * skinny_accessory2str(uint32_t accessory);
 const char * sccp_extensionstate2str(uint8_t type);
-const char * sccpmsg2str(uint32_t hex);
-const char * skinny_lbl2str(uint8_t label);
-const char * skinny_tone2str(uint8_t tone);
-const char * skinny_alarm2str(uint8_t alarm);
-const char * skinny_devicetype2str(uint32_t type);
-const char * skinny_stimulus2str(uint8_t type);
-const char * skinny_buttontype2str(uint8_t type);
-const char * skinny_lampmode2str(uint8_t type);
 const char * skinny_ringermode2str(uint8_t type);
 const char * skinny_softkeyset2str(uint8_t type);
 const char * skinny_devicestate2str(uint8_t type);
 const char * skinny_registrationstate2str(uint8_t type);
-const char * skinny_calltype2str(uint8_t type);
 const char * skinny_codec2str(uint8_t type);
 const char * sccp_dndmode2str(uint8_t type);
 uint8_t sccp_codec_ast2skinny(int fmt);

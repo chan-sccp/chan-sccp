@@ -299,11 +299,11 @@ void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t * c)
 	sccp_dev_send(device, r);
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send callinfo for %s channel %d on line instance %d"
 			"\n\tcallerid: %s"
-			"\n\tcallerName: %s\n", (device)?device->id:"(null)", skinny_calltype2str(c->calltype), c->callid, instance, c->callingPartyNumber, c->callingPartyName);
+			"\n\tcallerName: %s\n", (device)?device->id:"(null)", skinny2str(SKINNY_CALLTYPE,c->calltype), c->callid, instance, c->callingPartyNumber, c->callingPartyName);
 
 //	if (c->line->device){
 //		sccp_dev_send(c->line->device, r);
-//		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send callinfo for %s channel %d\n", c->line->device->id, skinny_calltype2str(c->calltype), c->callid);
+//		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send callinfo for %s channel %d\n", c->line->device->id, skinny2str(SKINNY_CALLTYPE,c->calltype), c->callid);
 //	}else
 //		return;
 }
@@ -333,7 +333,7 @@ void sccp_channel_send_dialednumber(sccp_channel_t * c)
 	r->msg.DialedNumberMessage.lel_lineId   = htolel(instance);
 	r->msg.DialedNumberMessage.lel_callRef  = htolel(c->callid);
 	sccp_dev_send(device, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, c->calledPartyNumber, skinny_calltype2str(c->calltype), c->callid);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, c->calledPartyNumber, skinny2str(SKINNY_CALLTYPE,c->calltype), c->callid);
 }
 
 /*!
