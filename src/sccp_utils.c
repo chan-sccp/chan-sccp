@@ -822,9 +822,10 @@ void sccp_dev_dbclean() {
 }
 
 /*!
- * \brief Convert Message to String
- * \param hex Message
- * \return Message String or "unknown"
+ * \brief Convert SCCP Types to String
+ * \param type 	SCCP Type
+ * \param value SCCP Value
+ * \return Converted String
  */
 const char * sccp2str(uint8_t type, uint32_t value) {
 	switch(type) {
@@ -845,10 +846,10 @@ const char * sccp2str(uint8_t type, uint32_t value) {
 
 
 /*!
- * \brief Convert Skinny 2 String
+ * \brief Convert Skinny Types 2 String
  * \param type 	Skinny Type
  * \param value Skinny Value
- * \return Converted Skinny String
+ * \return Converted String
  */
 const char * skinny2str(uint8_t type, uint32_t value) {
 	switch(type) {
