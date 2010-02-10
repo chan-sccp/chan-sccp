@@ -91,7 +91,7 @@ void sccp_hint_module_start(){
 	/* */
 	SCCP_LIST_HEAD_INIT(&sccp_hint_subscriptions);
 	
-	sccp_subscribe_event(SCCP_EVENT_DEVICEREGISTERED | SCCP_EVENT_DEVICEUNREGISTERED | SCCP_EVENT_DEVICEDETACHED, sccp_hint_eventListener);
+	sccp_event_subscribe(SCCP_EVENT_DEVICEREGISTERED | SCCP_EVENT_DEVICEUNREGISTERED | SCCP_EVENT_DEVICEDETACHED, sccp_hint_eventListener);
 }
 
 /*!

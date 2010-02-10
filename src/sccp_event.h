@@ -90,12 +90,7 @@ struct sccp_event_subscriptions{
 struct sccp_event_subscriptions *sccp_event_listeners;
 
 
-/* functions */
-#define sccp_subscribe_event(event, callback)		\
-sccp_event_subscribe(event, callback,	__FILE__, __FUNCTION__, __LINE__);
-
-void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb,
-			     const char *file, const char *caller, int line);
+void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb);
 
 void sccp_event_fire(const sccp_event_t **event);
 

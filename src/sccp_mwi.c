@@ -36,8 +36,8 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
  * start mwi module.
  */
 void sccp_mwi_module_start(void){
-	sccp_subscribe_event(SCCP_EVENT_LINECREATED, sccp_mwi_linecreatedEvent);
-	sccp_subscribe_event(SCCP_EVENT_DEVICEATTACHED, sccp_mwi_deviceAttachedEvent);
+	sccp_event_subscribe(SCCP_EVENT_LINECREATED, sccp_mwi_linecreatedEvent);
+	sccp_event_subscribe(SCCP_EVENT_DEVICEATTACHED, sccp_mwi_deviceAttachedEvent);
 }
 
 /*!

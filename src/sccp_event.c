@@ -35,13 +35,11 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \param caller Caller as char
  * \param line Line as int
  */
-void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb,
-			     const char *file, const char *caller, int line){
+void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb){
 
 	sccp_event_subscriber_t *subscription = NULL;
 
-	sccp_log(1)(VERBOSE_PREFIX_1 "[SCCP] %s:%d %s register event listener for %d\n", file, line, caller, eventType);
-	sccp_log(1)(VERBOSE_PREFIX_1 "[SCCP] %s:%d %s register event listener for %d\n", file, line, caller, eventType);
+	sccp_log(1)(VERBOSE_PREFIX_1 "[SCCP] register event listener for %d\n", eventType);
 
 	subscription = ast_malloc(sizeof(sccp_event_subscriber_t));
 	if(!subscription){
