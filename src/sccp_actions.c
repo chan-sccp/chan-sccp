@@ -405,7 +405,7 @@ void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_moo_t * r)
 		break;
 	}
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(d), skinny_accessory2str(d->accessoryused), skinny_accessorystate2str(d->accessorystatus), unknown);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(d), skinny2str(SCCP_ACCESSORY,d->accessoryused), skinny2str(SCCP_ACCESSORY_STATE,d->accessorystatus), unknown);
 }
 
 /*!
@@ -1287,7 +1287,7 @@ void sccp_handle_headset(sccp_session_t * s, sccp_moo_t * r)
 		return;
 
 	uint32_t headsetmode = letohl(r->msg.HeadsetStatusMessage.lel_hsMode);
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(s->device), skinny_accessory2str(SCCP_ACCESSORY_HEADSET), skinny_accessorystate2str(headsetmode), 0);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(s->device), skinny2str(SCCP_ACCESSORY,SCCP_ACCESSORY_HEADSET), skinny2str(SCCP_ACCESSORY_STATE,headsetmode), 0);
 }
 
 /*!
@@ -1307,7 +1307,7 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_moo_t * r)
     codec = letohl(r->msg.CapabilitiesResMessage.caps[i].lel_payloadCapability);
     astcodec = sccp_codec_skinny2ast(codec);
 	s->device->capability |= astcodec;
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CISCO:%6d %-25s AST:%6d %s\n", s->device->id, codec, skinny_codec2str(codec), astcodec, ast_codec2str(astcodec));
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CISCO:%6d %-25s AST:%6d %s\n", s->device->id, codec, skinny2str(SKINNY_CODEC,codec), astcodec, ast_codec2str(astcodec));
   }
 }
 
@@ -1404,7 +1404,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 	sccp_log(1)(VERBOSE_PREFIX_3 "count: %d\n", v_count);
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: TRANSFER        is %s\n", d->id, (d->transfer) ? "enabled" : "disabled");
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND             is %s\n", d->id, d->dndFeature.status ? sccp_dndmode2str(d->dndFeature.status) : "disabled");
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND             is %s\n", d->id, d->dndFeature.status ? sccp2str(SCCP_DNDMODE,d->dndFeature.status) : "disabled");
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: PRIVATE         is %s\n", d->id, d->privacyFeature.enabled ? "enabled" : "disabled");
 #ifdef CS_SCCP_PARK
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: PARK            is  %s\n", d->id, (d->park) ? "enabled" : "disabled");
@@ -2596,7 +2596,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_moo_t * r)
     codec = letohl(r->msg.UpdateCapabilitiesMessage.audioCaps[i].lel_payloadCapability);
     astcodec = sccp_codec_skinny2ast(codec);
 	s->device->capability |= astcodec;
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CISCO:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(s->device), codec, skinny_codec2str(codec), astcodec, ast_codec2str(astcodec));
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CISCO:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(s->device), codec, skinny2str(SKINNY_CODEC,codec), astcodec, ast_codec2str(astcodec));
   }
 
   /* parsing video caps */
@@ -2606,7 +2606,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_moo_t * r)
     codec = letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[i].lel_payloadCapability);
     astcodec = sccp_codec_skinny2ast(codec);
 	s->device->capability |= astcodec;
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CISCO:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(s->device), codec, skinny_codec2str(codec), astcodec, ast_codec2str(astcodec));
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CISCO:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(s->device), codec, skinny2str(SKINNY_CODEC,codec), astcodec, ast_codec2str(astcodec));
   }
 }
 

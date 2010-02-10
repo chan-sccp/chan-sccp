@@ -701,7 +701,7 @@ void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 		mask = r->msg.SelectSoftKeysMessage.les_validKeyMask | mask;
 
 	r->msg.SelectSoftKeysMessage.les_validKeyMask = mask;
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, skinny_softkeyset2str(5), 5, instance, c->callid);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, skinny2str(SKINNY_KEYMODE,5), 5, instance, c->callid);
 	sccp_dev_send(d, r);
 
 }

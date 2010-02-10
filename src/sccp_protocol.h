@@ -8,9 +8,11 @@
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  * \date        $Date$
  * \version     $Revision$  
+
  */
  
 #include "sccp_labels.h"
+#include "asterisk/frame.h"
 
 #ifndef __SCCP_PROTOCOL_H
 #define __SCCP_PROTOCOL_H
@@ -19,6 +21,10 @@
  * SCCP Lookup Types
  */
 #define SCCP_MESSAGE 		0
+#define SCCP_ACCESSORY 		1
+#define SCCP_ACCESSORY_STATE	2
+#define SCCP_EXTENSION_STATE	3
+#define SCCP_DNDMODE		4
 
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW	3				/*!< At least we require protocol V.3 */
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH	17				/*!< We support up to protocol V.11 */
@@ -67,15 +73,6 @@ typedef enum {
 } sccp_BFLState_t;								/*!< blf states for dynamic speeddials */
 
 
-
-typedef enum {
-        SCCP_DEVICESTATE_ONHOOK			=0,
-        SCCP_DEVICESTATE_OFFHOOK		=1,
-        SCCP_DEVICESTATE_UNAVAILABLE		=2,
-        SCCP_DEVICESTATE_DND			=3,
-        SCCP_DEVICESTATE_FWDALL			=4
-} sccp_devicestate_t;								/*!< Internal Chan_SCCP Device State */
-
 #define SCCP_CFWD_NONE				0
 #define SCCP_CFWD_ALL				1
 #define SCCP_CFWD_BUSY				2
@@ -94,6 +91,9 @@ typedef enum {
 #define SKINNY_STATION		8  
 #define SKINNY_LBL		9
 #define SKINNY_CALLTYPE		10
+#define SKINNY_KEYMODE		11
+#define SKINNY_DEVICE_STATE	12
+#define SKINNY_CODEC		13
 
 /* skinny protocol call states */
 #define SKINNY_CALLSTATE_OFFHOOK		1
@@ -507,15 +507,37 @@ static const struct skinny_devicetype {
 /*!
  * \brief Skinny Device RS Structure
  */
-static const struct skinny_devicers {
-        uint8_t devicers;
+static const struct skinny_device_registrationstate {
+        uint8_t device_registrationstate;
         const char * const text;
-} skinny_devicerses[] = {
+} skinny_device_registrationstates[] = {
 	{ SKINNY_DEVICE_RS_NONE				,	"None"					},
 	{ SKINNY_DEVICE_RS_PROGRESS			,	"Progress"				},
 	{ SKINNY_DEVICE_RS_FAILED			,	"Failed"				},
 	{ SKINNY_DEVICE_RS_OK				,	"OK"					},
 	{ SKINNY_DEVICE_RS_TIMEOUT			,	"TimeOut"				},
+};
+
+typedef enum {
+        SCCP_DEVICESTATE_ONHOOK			=0,
+        SCCP_DEVICESTATE_OFFHOOK		=1,
+        SCCP_DEVICESTATE_UNAVAILABLE		=2,
+        SCCP_DEVICESTATE_DND			=3,
+        SCCP_DEVICESTATE_FWDALL			=4
+} sccp_devicestate_t;								/*!< Internal Chan_SCCP Device State */
+
+/*!
+ * \brief Skinny Device State Structure
+ */
+static const struct skinny_device_state {
+        uint8_t device_state;
+        const char * const text;
+} skinny_device_states[] = {
+	{ SCCP_DEVICESTATE_ONHOOK	,	"OnHook"		},
+	{ SCCP_DEVICESTATE_OFFHOOK	,	"OffHook"		},
+	{ SCCP_DEVICESTATE_UNAVAILABLE	,	"Unavailable"		},
+	{ SCCP_DEVICESTATE_DND		,	"Do Not Disturb"	},
+	{ SCCP_DEVICESTATE_FWDALL	,	"Forward All"		},
 };
 
 /* stimulus */
@@ -770,6 +792,82 @@ static const struct skinny_station {
 #define SKINNY_STATIONHEADSET_ON		1
 #define SKINNY_STATIONHEADSET_OFF		2
 
+/* skinny codecs */
+#define SKINNY_CODEC_NONSTANDARD	1
+#define SKINNY_CODEC_G711_ALAW_64K	2
+#define SKINNY_CODEC_G711_ALAW_56K	3
+#define SKINNY_CODEC_G711_ULAW_64K	4
+#define SKINNY_CODEC_G711_ULAW_56K	5
+#define SKINNY_CODEC_G722_64K		6
+#define SKINNY_CODEC_G722_56K		7
+#define SKINNY_CODEC_G722_48K		8
+#define SKINNY_CODEC_G723_1		9
+#define SKINNY_CODEC_G727		10
+#define SKINNY_CODEC_G729		11
+#define SKINNY_CODEC_G729_A		12
+#define SKINNY_CODEC_IS11172		13
+#define SKINNY_CODEC_IS13818		14
+#define SKINNY_CODEC_G729_B		15
+#define SKINNY_CODEC_G729_AB		16
+#define SKINNY_CODEC_GSM_FULLRATE	18
+#define SKINNY_CODEC_GSM_HALFRATE	19
+#define SKINNY_CODEC_GSM_ENH_FULLRATE	20
+#define SKINNY_CODEC_WIDEBAND_256K	25
+#define SKINNY_CODEC_DATA_64K		32
+#define SKINNY_CODEC_DATA_56K		33
+#define SKINNY_CODEC_GSM		80
+#define SKINNY_CODEC_ACTIVEVOICE	81
+#define SKINNY_CODEC_G726_32K		82
+#define SKINNY_CODEC_G726_23K		83
+#define SKINNY_CODEC_G726_16K		84
+#define SKINNY_CODEC_G729_ANNEX_B	85
+#define SKINNY_CODEC_G729_B_LOW		86
+#define SKINNY_CODEC_H261		100
+#define SKINNY_CODEC_H263		101
+#define SKINNY_CODEC_H264		102
+
+/*!
+ * \brief Skinny Codec Structure
+ */
+static const struct skinny_codec {
+        uint32_t codec;
+        uint32_t astcodec;
+        const char * const text;
+} skinny_codecs[] = {
+	{ SKINNY_CODEC_NONSTANDARD	, 0,				"Non-standard codec"	},
+	{ SKINNY_CODEC_G711_ALAW_64K	, AST_FORMAT_ALAW,		"G.711 A-law 64k"	},
+	{ SKINNY_CODEC_G711_ALAW_56K	, AST_FORMAT_ALAW,		"G.711 A-law 56k"	},
+	{ SKINNY_CODEC_G711_ULAW_64K	, AST_FORMAT_ULAW,		"G.711 u-law 64k"	},
+	{ SKINNY_CODEC_G711_ULAW_56K	, AST_FORMAT_ULAW,		"G.711 u-law 56k"	},
+	{ SKINNY_CODEC_G722_64K		, AST_FORMAT_G722,		"G.722 64k"		},
+	{ SKINNY_CODEC_G722_56K		, AST_FORMAT_G722,		"G.722 56k"		},
+	{ SKINNY_CODEC_G722_48K		, AST_FORMAT_G722,		"G.722 48k"		},
+	{ SKINNY_CODEC_G723_1		, AST_FORMAT_G723_1,		"G.723.1"		},
+	{ SKINNY_CODEC_G727		, 0,				"G.728"			},
+	{ SKINNY_CODEC_G729		, 0,				"G.729"			},
+	{ SKINNY_CODEC_G729_A		, AST_FORMAT_G729A,		"G.729 Annex A"		},
+	{ SKINNY_CODEC_IS11172		, 0,				"IS11172 AudioCap"	},
+	{ SKINNY_CODEC_IS13818		, 0,				"IS13818 AudioCap"	},
+	{ SKINNY_CODEC_G729_B		, 0,				"G.729 Annex B"		},
+	{ SKINNY_CODEC_G729_AB		, 0,				"G.729 Annex A + B"	},
+	{ SKINNY_CODEC_GSM_FULLRATE	, 0,				"GSM Full Rate"		},
+	{ SKINNY_CODEC_GSM_HALFRATE	, 0,				"GSM Half Rate"		},
+	{ SKINNY_CODEC_GSM_ENH_FULLRATE	, 0,				"GSM Enhanced Full Rate"},
+	{ SKINNY_CODEC_WIDEBAND_256K	, 0,				"Wideband 256k"		},
+	{ SKINNY_CODEC_DATA_64K		, 0,				"Data 64k"		},
+	{ SKINNY_CODEC_DATA_56K		, 0,			 	"Data 56k"		},
+	{ SKINNY_CODEC_GSM		, AST_FORMAT_GSM,		"GSM"			},
+	{ SKINNY_CODEC_ACTIVEVOICE	, 0,				"ActiveVoice"		},
+	{ SKINNY_CODEC_G726_32K		, AST_FORMAT_G726_AAL2,		"G.726 32K"		},
+	{ SKINNY_CODEC_G726_23K		, 0,				"G.726 24K"		},
+	{ SKINNY_CODEC_G726_16K		, 0,				"G.726 16K"		},
+	{ SKINNY_CODEC_G729_ANNEX_B	, 0,				"G.729 Annex B"		},
+	{ SKINNY_CODEC_G729_B_LOW	, 0,				"G.729B Low Complexity"	},
+	{ SKINNY_CODEC_H261		, AST_FORMAT_H261,		"H.261"			},
+	{ SKINNY_CODEC_H263		, AST_FORMAT_H263,		"H.263"			},
+	{ SKINNY_CODEC_H264		, AST_FORMAT_H264,		"H.264"			},
+};
+
 
 /* device dtmfmode */
 #define SCCP_DTMFMODE_INBAND			0
@@ -783,6 +881,19 @@ static const struct skinny_station {
 #define SCCP_DNDMODE_REJECT			1 				/*!< busy signal */
 #define SCCP_DNDMODE_SILENT			2 				/*!< ringing state with no ringer tone */
 #define SCCP_DNDMODE_USERDEFINED		3 				/*!< the user defines the mode by pressing the softkey */
+
+/*!
+ * \brief Skinny DNDMode Structure
+ */
+static const struct sccp_dndmode {
+        uint8_t dndmode;
+        const char * const text;
+} sccp_dndmodes[] = {
+	{ SCCP_DNDMODE_OFF		,	"Off"		},
+	{ SCCP_DNDMODE_REJECT		,	"Reject"	},
+	{ SCCP_DNDMODE_SILENT		,	"Silent"	},
+	{ SCCP_DNDMODE_USERDEFINED	,	"User Defined"	},
+};;
 
 #define SCCP_BLINDTRANSFER_RING			0 				/*!< default */
 #define SCCP_BLINDTRANSFER_MOH			1 				/*!< music on hold */
@@ -1137,10 +1248,55 @@ static const struct sccp_messagetype {
 #define SCCP_ACCESSORY_HANDSET			0x02
 #define SCCP_ACCESSORY_SPEAKER			0x03
 
+/*!
+ * \brief Skinny Accessory Structure
+ */
+static const struct sccp_accessory {
+        uint8_t accessory;
+        const char * const text;
+} sccp_accessories[] = {
+	{ SCCP_ACCESSORY_NONE		,	"None"		},
+	{ SCCP_ACCESSORY_HEADSET	,	"Headset"	},
+	{ SCCP_ACCESSORY_HANDSET	,	"Handset"	},
+	{ SCCP_ACCESSORY_SPEAKER	,	"Speaker"	},
+};
+
 #define SCCP_ACCESSORYSTATE_NONE		0x00				/*!< Added for compatibility with old phones -FS */
 #define SCCP_ACCESSORYSTATE_OFFHOOK		0x01
 #define SCCP_ACCESSORYSTATE_ONHOOK		0x02
 
+/*!
+ * \brief Skinny Accessory State Structure
+ */
+static const struct sccp_accessory_state {
+        uint8_t accessory_state;
+        const char * const text;
+} sccp_accessory_states[] = {
+	{ SCCP_ACCESSORYSTATE_NONE	,	"None"		},
+	{ SCCP_ACCESSORYSTATE_ONHOOK	,	"OnHook"	},
+	{ SCCP_ACCESSORYSTATE_OFFHOOK	,	"OffHook"	},
+};
+
+/*!
+ * \brief SCCP Extension State Structure
+ */
+static const struct sccp_extension_state {
+        uint16_t extension_state;
+        const char * const text;
+} sccp_extension_states[] = {
+	{ AST_EXTENSION_NOT_INUSE	,	"NotInUse"	},
+	{ AST_EXTENSION_BUSY		,	"Busy"	},
+	{ AST_EXTENSION_UNAVAILABLE	,	"Unavailable"	},
+	{ AST_EXTENSION_INUSE		,	"InUse"	},
+#ifdef CS_AST_HAS_EXTENSION_RINGING
+	{ AST_EXTENSION_RINGING		,	"Ringing"	},
+	{ AST_EXTENSION_INUSE		,	"RingInUse"	},
+#endif
+#ifdef CS_AST_HAS_EXTENSION_ONHOLD
+	{ AST_EXTENSION_ONHOLD		,	"OnHold"	},
+	{ AST_EXTENSION_INUSE		,	"HoldInUse"	},
+#endif
+};
 /*=====================================================================================================*/
 
 /*!
@@ -2692,6 +2848,27 @@ typedef struct {
 #define KEYMODE_RINGOUT 			8
 #define KEYMODE_OFFHOOKFEAT 			9
 #define KEYMODE_INUSEHINT			10
+
+/*!
+ * \brief Skinny KeyMode Structure
+ */
+static const struct skinny_keymode {
+        uint8_t keymode;
+        const char * const text;
+} skinny_keymodes[] = {
+	{ KEYMODE_ONHOOK	,	"OnHook"	},
+	{ KEYMODE_CONNECTED	,	"Connected"	},
+	{ KEYMODE_ONHOLD	,	"OnHold"	},
+	{ KEYMODE_RINGIN	,	"Ringin"	},
+	{ KEYMODE_OFFHOOK	,	"OffHook"	},
+	{ KEYMODE_CONNTRANS	,	"ConnTrans"	},
+	{ KEYMODE_DIGITSFOLL	,	"DigitsFoll"	},
+	{ KEYMODE_CONNCONF	,	"ConnConf"	},
+	{ KEYMODE_RINGOUT	,	"RingOut"	},
+	{ KEYMODE_OFFHOOKFEAT	,	"OffHookFeat"	},
+	{ KEYMODE_INUSEHINT	,	"InUseHint"	},
+};
+
 
 static uint8_t skSet_Onhook [] = {
         SKINNY_LBL_REDIAL,

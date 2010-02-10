@@ -822,38 +822,6 @@ void sccp_dev_dbclean() {
 }
 
 /*!
- * \brief Convert Asterisk Extension State to String
- * \param type Extension State
- * \return Extension String or "unknown"
- */
-const char * sccp_extensionstate2str(uint8_t type) {
-	switch(type) {
-	case AST_EXTENSION_NOT_INUSE:
-		return "NotInUse";
-	case AST_EXTENSION_BUSY:
-		return "Busy";
-	case AST_EXTENSION_UNAVAILABLE:
-		return "Unavailable";
-	case AST_EXTENSION_INUSE:
-		return "InUse";
-#ifdef CS_AST_HAS_EXTENSION_RINGING
-	case AST_EXTENSION_RINGING:
-		return "Ringing";
-	case AST_EXTENSION_RINGING | AST_EXTENSION_INUSE:
-		return "RingInUse";
-#endif
-#ifdef CS_AST_HAS_EXTENSION_ONHOLD
-	case AST_EXTENSION_ONHOLD:
-		return "OnHold";
-	case AST_EXTENSION_ONHOLD | AST_EXTENSION_INUSE:
-		return "HoldInUse";
-#endif
-	default:
-		return "Unknown";
-	}
-}
-
-/*!
  * \brief Convert Message to String
  * \param hex Message
  * \return Message String or "unknown"
@@ -862,49 +830,19 @@ const char * sccp2str(uint8_t type, uint32_t value) {
 	switch(type) {
                 case SCCP_MESSAGE:
                         _ARR2STR(sccp_messagetypes, type , value , text);
+                case SCCP_ACCESSORY:
+                        _ARR2STR(sccp_accessories, accessory , value , text);
+                case SCCP_ACCESSORY_STATE:
+                        _ARR2STR(sccp_accessory_states, accessory_state , value , text);
+                case SCCP_EXTENSION_STATE:
+                        _ARR2STR(sccp_extension_states, extension_state , value , text);
+                case SCCP_DNDMODE:
+                        _ARR2STR(sccp_dndmodes, dndmode , value , text);
                 default:
                         return "Not Defined";
         }  
 }
 
-        
-/*!
- * \brief Convert Accessory 2 String
- * \param accessory SCCP_ACCESSORY_* as uint32_t
- * \return Accessory String or "unknown"
- */
-const char * skinny_accessory2str(uint32_t accessory) {
-	switch(accessory) {
-	case SCCP_ACCESSORY_NONE:
-		return "None";
-	case SCCP_ACCESSORY_HEADSET:
-		return "Headset";
-	case SCCP_ACCESSORY_HANDSET:
-		return "Handset";
-	case SCCP_ACCESSORY_SPEAKER:
-		return "Speaker";
-	default:
-		return "unknown";
-	}
-}
-
-/*!
- * \brief Convert Accessory State 2 String
- * \param state SCCP_ACCESSORYSTATE_* as uint32_t
- * \return Accessroy State String or "unknown"
- */
-const char * skinny_accessorystate2str(uint32_t state) {
-	switch(state) {
-	case SCCP_ACCESSORYSTATE_NONE:
-		return "None";
-	case SCCP_ACCESSORYSTATE_ONHOOK:
-		return "OnHook";
-	case SCCP_ACCESSORYSTATE_OFFHOOK:
-		return "OffHook";
-	default:
-		return "unknown";
-	}
-}
 
 /*!
  * \brief Convert Skinny 2 String
@@ -915,194 +853,34 @@ const char * skinny_accessorystate2str(uint32_t state) {
 const char * skinny2str(uint8_t type, uint32_t value) {
 	switch(type) {
                 case SKINNY_TONE:
-                        _ARR2STR(skinny_tones		, tone , value , text);
+                        _ARR2STR(skinny_tones, tone , value , text);
                 case SKINNY_ALARM:
-                        _ARR2STR(skinny_alarms		, alarm, value , text);
+                        _ARR2STR(skinny_alarms, alarm, value , text);
                 case SKINNY_DEVICETYPE:
-                        _ARR2STR(skinny_devicetypes	, devicetype, value  , text);
-                case SKINNY_DEVICE_RS:
-                        _ARR2STR(skinny_devicerses	, devicers , value, text);
+                        _ARR2STR(skinny_devicetypes, devicetype, value  , text);
                 case SKINNY_STIMULUS:
-                        _ARR2STR(skinny_stimuluses	, stimulus , value, text);
+                        _ARR2STR(skinny_stimuluses, stimulus , value, text);
                 case SKINNY_BUTTONTYPE:
-                        _ARR2STR(skinny_buttontypes	, buttontype , value, text);
+                        _ARR2STR(skinny_buttontypes, buttontype , value, text);
                 case SKINNY_LAMP:
-                        _ARR2STR(skinny_lampmodes	, lampmode , value, text);
+                        _ARR2STR(skinny_lampmodes, lampmode , value, text);
                 case SKINNY_STATION:
-                        _ARR2STR(skinny_stations	, station , value, text);
+                        _ARR2STR(skinny_stations, station , value, text);
                 case SKINNY_LBL:
-                        _ARR2STR(skinny_labels    	, label, value, text);
+                        _ARR2STR(skinny_labels, label, value, text);
                 case SKINNY_CALLTYPE:
-                        _ARR2STR(skinny_calltypes 	, calltype , value, text);
+                        _ARR2STR(skinny_calltypes, calltype , value, text);
+                case SKINNY_KEYMODE:
+                        _ARR2STR(skinny_keymodes, keymode , value, text);
+                case SKINNY_DEVICE_RS:
+                        _ARR2STR(skinny_device_registrationstates, device_registrationstate , value, text);
+                case SKINNY_DEVICE_STATE:
+                        _ARR2STR(skinny_device_states, device_state , value, text);
+                case SKINNY_CODEC:
+                        _ARR2STR(skinny_codecs, codec , value, text);
                 default:
                         return "not defined yes";
         }
-}
-
-/*!
- * \brief Convert Softkeyset 2 String
- * \param type KEYMODE_* as uint8_t
- * \return Softkeyset String or "unknown"
- */
-
-const char * skinny_softkeyset2str(uint8_t type) {
-	switch(type) {
-	case KEYMODE_ONHOOK:
-		return "OnHook";
-	case KEYMODE_CONNECTED:
-		return "Connected";
-	case KEYMODE_ONHOLD:
-		return "OnHold";
-	case KEYMODE_RINGIN:
-		return "Ringin";
-	case KEYMODE_OFFHOOK:
-		return "OffHook";
-	case KEYMODE_CONNTRANS:
-		return "ConnTrans";
-	case KEYMODE_DIGITSFOLL:
-		return "DigitsFoll";
-	case KEYMODE_CONNCONF:
-		return "ConnConf";
-	case KEYMODE_RINGOUT:
-		return "RingOut";
-	case KEYMODE_OFFHOOKFEAT:
-		return "OffHookFeat";
-	case KEYMODE_INUSEHINT:
-		return "InUseHint";
-	default:
-		return "unknown";
-	}
-}
-
-/*!
- * \brief Convert Device State 2 String
- * \param type SCCP_DEVICESTATE_* as uint8_t
- * \return Device State String or "unknown"
- */
-const char * skinny_devicestate2str(uint8_t type) {
-	switch(type) {
-	case SCCP_DEVICESTATE_ONHOOK:
-		return "OnHook";
-	case SCCP_DEVICESTATE_OFFHOOK:
-		return "OffHook";
-	case SCCP_DEVICESTATE_UNAVAILABLE:
-		return "Unavailable";
-	case SCCP_DEVICESTATE_DND:
-		return "Do Not Disturb";
-	case SCCP_DEVICESTATE_FWDALL:
-		return "Forward All";
-	default:
-		return "unknown";
-	}
-}
-
-/*!
- * \brief Convert Device Registration State 2 String
- * \param type SKINNY_DEVICE_RS_* as uint8_t
- * \return Device Registration State String or "unknown"
- */
-const char * skinny_registrationstate2str(uint8_t type) {
-	switch(type) {
-	case SKINNY_DEVICE_RS_NONE:
-		return "None";
-	case SKINNY_DEVICE_RS_PROGRESS:
-		return "Progress";
-	case SKINNY_DEVICE_RS_FAILED:
-		return "Failes";
-	case SKINNY_DEVICE_RS_OK:
-		return "Ok";
-	case SKINNY_DEVICE_RS_TIMEOUT:
-		return "Timeout";
-	default:
-		return "unknown";
-	}
-}
-
-/*!
- * \brief Convert Call Type 2 String
- * \param type SKINNY_CALLTYPE_* as uint8_t
- * \return Call Type String or "unknown"
- */
-/*
-const char * skinny_calltype2str(uint8_t type) {
-  _SKINNYCALLTYPE2STR(type);
-}
-*/
-
-
-/*!
- * \brief Convert Codec 2 String
- * \param type Codec_* as uint8_t
- * \return Codec String or "unknown"
- */
-const char * skinny_codec2str(uint8_t type) {
-	switch(type) {
-	case 1:
-		return "Non-standard codec";
-	case 2:
-		return "G.711 A-law 64k";
-	case 3:
-		return "G.711 A-law 56k";
-	case 4:
-		return "G.711 u-law 64k";
-	case 5:
-		return "G.711 u-law 56k";
-	case 6:
-		return "G.722 64k";
-	case 7:
-		return "G.722 56k";
-	case 8:
-		return "G.722 48k";
-	case 9:
-		return "G.723.1";
-	case 10:
-		return "G.728";
-	case 11:
-		return "G.729";
-	case 12:
-		return "G.729 Annex A";
-	case 13:
-		return "IS11172 AudioCap";
-	case 14:
-		return "IS13818 AudioCap";
-	case 15:
-		return "G.729 Annex B";
-	case 16:
-		return "G.729 Annex A + B";
-	case 18:
-		return "GSM Full Rate";
-	case 19:
-		return "GSM Half Rate";
-	case 20:
-		return "GSM Enhanced Full Rate";
-	case 25:
-		return "Wideband 256k";
-	case 32:
-		return "Data 64k";
-	case 33:
-		return "Data 56k";
-	case 80:
-		return "GSM";
-	case 81:
-		return "ActiveVoice";
-	case 82:
-		return "G.726 32K";
-	case 83:
-		return "G.726 24K";
-	case 84:
-		return "G.726 16K";
-	case 85:
-		return "G.729 Annex B";
-	case 86:
-		return "G.729B Low Complexity";
-	case 101:
-		return "H.263";
-	case 103:
-		return "H.264";
-
-	default:
-		return "unknown";
-	}
 }
 
 /*!
@@ -1111,7 +889,7 @@ const char * skinny_codec2str(uint8_t type) {
  * \return Skinny Codec
  */
 uint8_t sccp_codec_ast2skinny(int fmt) {
-	switch(fmt) {
+/*	switch(fmt) {
 	case AST_FORMAT_ALAW:
 		return 2;
 	case AST_FORMAT_ULAW:
@@ -1132,7 +910,14 @@ uint8_t sccp_codec_ast2skinny(int fmt) {
 	        return 6;
 	default:
 		return 0;
+	}*/
+	int i;
+	for (i = 1; i < ARRAY_LEN(skinny_codecs); i++) {
+	        if (skinny_codecs[i].astcodec == fmt) {
+	                return skinny_codecs[i].codec;
+	        }
 	}
+	return 0;
 }
 
 
@@ -1141,6 +926,7 @@ uint8_t sccp_codec_ast2skinny(int fmt) {
  *  \author Federico
  */
 int sccp_codec_skinny2ast(uint8_t fmt) {
+/*
 	switch(fmt) {
 		case 2:
 			return AST_FORMAT_ALAW;
@@ -1161,10 +947,8 @@ int sccp_codec_skinny2ast(uint8_t fmt) {
 			return AST_FORMAT_H264;
 #endif
 #ifdef ASTERISK_CONF_1_6
-/*
-		case 25:
-			return AST_FORMAT_CISCO_WIDEBAND;
- */
+//		case 25:
+//			return AST_FORMAT_CISCO_WIDEBAND;
 #endif
 		case 100:
 			return AST_FORMAT_H261;
@@ -1175,24 +959,14 @@ int sccp_codec_skinny2ast(uint8_t fmt) {
 		default:
 			return 0;
 	}
-}
-
-/*!
- * \brief Convert Do Not Disturb 2 String
- * \param type DND as uint8_t
- * \return DND String or "unknown"
- */
-const char * sccp_dndmode2str(uint8_t type) {
-	switch(type) {
-	case SCCP_DNDMODE_OFF:
-		return "Off";
-	case SCCP_DNDMODE_REJECT:
-		return "Reject";
-	case SCCP_DNDMODE_SILENT:
-		return "Silent";
-	default:
-		return "unknown";
+*/
+	int i;
+	for (i = 1; i < ARRAY_LEN(skinny_codecs); i++) {
+	        if (skinny_codecs[i].codec == fmt) {
+	                return skinny_codecs[i].astcodec;
+	        }
 	}
+	return 0;
 }
 
 #ifndef CS_AST_HAS_STRINGS
