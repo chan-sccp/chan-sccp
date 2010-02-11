@@ -1206,8 +1206,13 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r)
 			l = sccp_dev_get_activeline(d);
 		}
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Using line %s\n", d->id, l->name);
-		/* make a new call with no number */
-		sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
+		
+		if(strlen(l->adhocNumber)>0){
+			sccp_channel_newcall(l, d, l->adhocNumber, SKINNY_CALLTYPE_OUTBOUND);
+		}else{
+		      /* make a new call with no number */
+		      sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
+		}
 	}
 }
 

@@ -99,8 +99,11 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 	}
 	if(!l)
 		l = d->currentLine;
-
-	sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
+	
+	if(strlen(l->adhocNumber)>0)
+		sccp_channel_newcall(l, d, l->adhocNumber, SKINNY_CALLTYPE_OUTBOUND);
+	else
+		sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
 }
 
 

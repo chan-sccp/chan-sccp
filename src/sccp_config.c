@@ -771,6 +771,8 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
                         //sccp_copy_string(l->mailbox, v->value, sizeof(l->mailbox));
                 } else if (!strcasecmp(v->name, "vmnum")) {
                         sccp_copy_string(l->vmnum, v->value, sizeof(l->vmnum));
+		} else if (!strcasecmp(v->name, "adhocNumber")) {
+                        sccp_copy_string(l->adhocNumber, v->value, sizeof(l->adhocNumber));
                 } else if (!strcasecmp(v->name, "meetmenum")) {
                         sccp_copy_string(l->meetmenum, v->value, sizeof(l->meetmenum));
                 } else if (!strcasecmp(v->name, "transfer")) {
