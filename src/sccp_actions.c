@@ -196,6 +196,12 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 #endif
 	s->device = d;
 	d->skinny_type = letohl(r->msg.RegisterMessage.lel_deviceType);
+	
+	
+	if (!strcasecmp(d->id, "SEP0014A9D9D5E6")) {
+		d->skinny_type = SKINNY_DEVICETYPE_CISCO7931;
+	}
+	
 	d->session = s;
 	s->lastKeepAlive = time(0);
 	d->mwilight = 0;
@@ -556,11 +562,11 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 						break;
 
 					case SCCP_FEATURE_TESTG:
-						btn[i].type = SKINNY_BUTTONTYPE_TESTG;
+						btn[i].type = SKINNY_BUTTONTYPE_MESSAGES;
 						break;
 
 					case SCCP_FEATURE_TESTH:
-						btn[i].type = SKINNY_BUTTONTYPE_TESTH;
+						btn[i].type = SKINNY_BUTTONTYPE_DIRECTORY;
 						break;
 
 					case SCCP_FEATURE_TESTI:
@@ -568,7 +574,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 						break;
 
 					case SCCP_FEATURE_TESTJ:
-						btn[i].type = SKINNY_BUTTONTYPE_TESTJ;
+						btn[i].type = SKINNY_BUTTONTYPE_APPLICATION;
 						break;
 
 
@@ -626,7 +632,6 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 
 	REQ(r1, ButtonTemplateMessage);
 	for (i = 0; i < StationMaxButtonTemplateSize ; i++) {
-
 		switch (btn[i].type) {
 			case SCCP_BUTTONTYPE_HINT:
 			case SCCP_BUTTONTYPE_LINE:
@@ -655,6 +660,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 
 			case SKINNY_BUTTONTYPE_MULTI:
 				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_DISPLAY;
+				r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
 				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 				break;
 
@@ -997,10 +1003,10 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		case SKINNY_BUTTONTYPE_TESTD:
 		case SKINNY_BUTTONTYPE_TESTE:
 		case SKINNY_BUTTONTYPE_TESTF:
-		case SKINNY_BUTTONTYPE_TESTG:
-		case SKINNY_BUTTONTYPE_TESTH:
+		case SKINNY_BUTTONTYPE_MESSAGES:
+		case SKINNY_BUTTONTYPE_DIRECTORY:
 		case SKINNY_BUTTONTYPE_TESTI:
-		case SKINNY_BUTTONTYPE_TESTJ:
+		case SKINNY_BUTTONTYPE_APPLICATION:
 			sccp_handle_feature_action(d, r->msg.StimulusMessage.lel_stimulusInstance, TRUE);
 			break;
 
