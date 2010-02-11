@@ -604,6 +604,9 @@ boolean_t sccp_config_general(void){
 					sccp_copy_string(GLOB(hotline)->line->context , v->value, sizeof(GLOB(hotline)->line->context) );
 			} else if (!strcasecmp(v->name, "hotline_extension")) {
 					sccp_copy_string(GLOB(hotline)->exten , v->value, sizeof(GLOB(hotline)->exten) );
+					if(GLOB(hotline)->line)
+						sccp_copy_string(GLOB(hotline)->line->adhocNumber, v->value, sizeof(GLOB(hotline)->line->adhocNumber) );
+					  
 			} else {
 				ast_log(LOG_WARNING, "Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
 			}

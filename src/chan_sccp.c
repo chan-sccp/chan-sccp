@@ -723,11 +723,13 @@ void *sccp_create_hotline(void){
       sccp_line_t	*hotline;
 
       hotline = sccp_line_create();
-      sccp_copy_string(hotline->name, "hotline", sizeof(hotline->name));
+      sccp_copy_string(hotline->name, "Hotline", sizeof(hotline->name));
       sccp_copy_string(hotline->cid_name, "hotline", sizeof(hotline->cid_name));
-      sccp_copy_string(hotline->cid_num, "***", sizeof(hotline->cid_name));
+      sccp_copy_string(hotline->cid_num, "hotline", sizeof(hotline->cid_name));
       sccp_copy_string(hotline->context, "default", sizeof(hotline->context));
       sccp_copy_string(hotline->label, "hotline", sizeof(hotline->label));
+      sccp_copy_string(hotline->adhocNumber, "111", sizeof(hotline->adhocNumber));
+      
       //sccp_copy_string(hotline->mailbox, "hotline", sizeof(hotline->mailbox));
 
       SCCP_LIST_LOCK(&GLOB(lines));

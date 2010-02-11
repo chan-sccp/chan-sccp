@@ -248,7 +248,10 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 				(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7931:
-			for (i = 0; i < 20; i++)
+			for (i = 0; i < 20; i++){
+				btn[i]->type = SKINNY_BUTTONTYPE_MULTI;
+				btn[i].instance=i+1;
+			}
 			/*(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
 			(btn++)->type = SKINNY_BUTTONTYPE_MESSAGES;
 			(btn++)->type = SKINNY_BUTTONTYPE_DIRECTORY;
@@ -1518,7 +1521,7 @@ void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32
 	r->msg.CallStateMessage.lel_callReference = htolel(callid);
 	r->msg.CallStateMessage.lel_visibility = htolel(visibility);
 	r->msg.CallStateMessage.lel_priority = htolel(priority);
-	r->msg.CallStateMessage.lel_unknown3 = htolel(2);
+	/*r->msg.CallStateMessage.lel_unknown3 = htolel(2);*/
 	sccp_dev_send(d, r);
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send and Set the call state %s(%d) on call %d\n", d->id, sccp_callstate2str(state), state, callid);
 }

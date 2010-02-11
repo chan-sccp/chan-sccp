@@ -536,6 +536,7 @@ struct sccp_line {
         } voicemailStatistic;								/*!< VoiceMail Statistics Structure */
 
 	uint32_t				configurationStatus;			/*!< what is the current configuration status - @see sccp_config_status_t */
+	char 					adhocNumber[AST_MAX_EXTENSION];		/*!< number that should be dialed when device offhocks this line */
 };											/*!< SCCP Line Structure */
 
 /*!
