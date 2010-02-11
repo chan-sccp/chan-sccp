@@ -20,6 +20,7 @@
  * \ref nf_shared_lines 	"How to use Shared Lines on a device"\n
  * \ref nf_phone_buttons 	"How to set Phone Buttons on a device"\n
  * \ref nf_hotline		"How to use the Hotline option on a device"\n
+ * \ref nf_adhoc_plar		"How to use the adhoc option on a line (PLAR)"\n
  * \ref nf_dynamic_speeddial   	"How to use Dynamic SpeedDials"\n
  * \ref nf_sccp_softkeys   	"How to use the Soft Keys on the Phone"\n
  * <HR>
@@ -125,6 +126,26 @@
  *   - hotline_extension=111
  * \endcode
  * This will add a Hotline on all phones, dialing 111 via context default.
+ * <HR>
+ *
+ *
+ *
+ * 
+ *
+ *
+ * \subsection nf_adhoc_plar How to use the adhoc option (PLAR)
+ *
+ * Adhoc Number or Private-line automatic ringdown (PLAR): 
+ * Adhoc/PLAR circuits have statically configured endpoints and do not require the user dialing to connect calls. 
+ * 
+ * - The adhocNumber is dialed as soon as the Phone is taken off-hook or when the new-call button is pressed 
+ * - The adhocNumber will <b>not</b> be dialed when choosing a line; so when you choose a line you can enter a number manually.
+ *
+ * For example adding this to the line configuration:
+ * \code
+ *   adhocNumber = 818
+ * \endcode
+ * Will automatically dial 818 as soon as the Receiver is picked up or the new call button is pressed.
  * <HR>
  *
  *
