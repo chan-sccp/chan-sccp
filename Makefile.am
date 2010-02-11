@@ -37,7 +37,7 @@ if ENABLE_SVN2CL
             echo "Generating doc/html/ChangeLog_SVN2CL.html from SVN $(CHANGELOG_OLDEST)->HEAD"; \
             if [ ! -d doc/html ]; then mkdir doc/html;fi; \
             $(SVN2CL) --include-actions -i -a --group-by-day --title "Chan_SCCP-b ChangeLog" --separate-daylogs --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST) --html -o doc/html/ChangeLog_SVN2CL.html --revision-link 'http://chan-sccp-b.svn.sourceforge.net/viewvc/chan-sccp-b?view=rev&revision='; \
-            cp build_tools/svn2html.css doc/html/; \
+            cp autoconf/svn2html.css doc/html/; \
 	  fi; \
 	fi
 endif

@@ -1,5 +1,8 @@
 2010-02-11  ddegroot
 
+	* [r1274] ChangeLog, autoconf, bootstrap.sh, libtool[ADD]: Added
+	  local libtool
+
 	* [r1273] ., Makefile.am, acinclude.m4[DEL], autoconf[CPY],
 	  autoconf/acinclude.m4[CPY], autoconf/depcomp[ADD],
 	  autoconf/install-sh[ADD], autoconf/libtool.m4[ADD],
