@@ -209,6 +209,7 @@ typedef enum {
 #define SKINNY_TONE_MUSICTONE			0x34
 #define SKINNY_TONE_HOLDTONE			0x35
 #define SKINNY_TONE_TESTTONE			0x36
+#define SKINNY_TONE_DTMONITORWARNINGTONE	0x37
 #define SKINNY_TONE_ADDCALLWAITING		0x40
 #define SKINNY_TONE_PRIORITYCALLWAIT		0x41
 #define SKINNY_TONE_RECALLDIAL			0x42
@@ -216,6 +217,8 @@ typedef enum {
 #define SKINNY_TONE_DISTINCTALERT		0x44
 #define SKINNY_TONE_PRIORITYALERT		0x45
 #define SKINNY_TONE_REMINDERRING		0x46
+#define SKINNY_TONE_PRECEDENCE_RINGBACK		0x47
+#define SKINNY_TONE_PREEMPTIONTONE		0x48
 #define SKINNY_TONE_MF1 			0x50
 #define SKINNY_TONE_MF2 			0x51
 #define SKINNY_TONE_MF3 			0x52
@@ -243,6 +246,12 @@ typedef enum {
 #define SKINNY_TONE_2600HZ			0x68
 #define SKINNY_TONE_440HZ			0x69
 #define SKINNY_TONE_300HZ			0x6a
+#define SKINNY_TONE_MLPP_PALA			0x77
+#define SKINNY_TONE_MLPP_ICA			0x78
+#define SKINNY_TONE_MLPP_VCA			0x79
+#define SKINNY_TONE_MLPP_BPA			0x7A
+#define SKINNY_TONE_MLPP_BNEA			0x7B
+#define SKINNY_TONE_MLPP_UPA			0x7C
 #define SKINNY_TONE_NOTONE			0x7f
 
 /*!
@@ -291,6 +300,7 @@ static const struct skinny_tone {
 	{ SKINNY_TONE_MUSICTONE				,		"Music Tone"				},
 	{ SKINNY_TONE_HOLDTONE				,		"Hold Tone"				},
 	{ SKINNY_TONE_TESTTONE				,		"Test Tone"				},
+	{ SKINNY_TONE_DTMONITORWARNINGTONE		,		"DT Monitor Warning Tone"		},
 	{ SKINNY_TONE_ADDCALLWAITING			,		"Add Call Waiting"			},
 	{ SKINNY_TONE_PRIORITYCALLWAIT			,		"Priority Call Wait"			},
 	{ SKINNY_TONE_RECALLDIAL			,		"Recall Dial"				},
@@ -298,6 +308,8 @@ static const struct skinny_tone {
 	{ SKINNY_TONE_DISTINCTALERT			,		"Distinct Alert"			},
 	{ SKINNY_TONE_PRIORITYALERT			,		"Priority Alert"			},
 	{ SKINNY_TONE_REMINDERRING			,		"Reminder Ring"				},
+	{ SKINNY_TONE_PRECEDENCE_RINGBACK		,		"Precedence RingBank"			},
+	{ SKINNY_TONE_PREEMPTIONTONE			,		"Pre-EmptionTone"			},
 	{ SKINNY_TONE_MF1				,		"MF1"					},
 	{ SKINNY_TONE_MF2				,		"MF2"					},
 	{ SKINNY_TONE_MF3				,		"MF3"					},
@@ -325,6 +337,12 @@ static const struct skinny_tone {
 	{ SKINNY_TONE_2600HZ				,		"2600 HZ"				},
 	{ SKINNY_TONE_440HZ				,		"440 HZ"				},
 	{ SKINNY_TONE_300HZ				,		"300 HZ"				},
+	{ SKINNY_TONE_MLPP_PALA				,		"MLPP Pala"				},
+	{ SKINNY_TONE_MLPP_ICA				,		"MLPP Ica"				},
+	{ SKINNY_TONE_MLPP_VCA				,		"MLPP Vca"				},
+	{ SKINNY_TONE_MLPP_BPA				,		"MLPP Bpa"				},
+	{ SKINNY_TONE_MLPP_BNEA				,		"MLPP Bnea"				},
+	{ SKINNY_TONE_MLPP_UPA				,		"MLPP Upa"				},
 	{ SKINNY_TONE_NOTONE				,		"No Tone"				},
 };
 
@@ -356,78 +374,95 @@ static const struct skinny_alarm {
 };
 
 /* devices type */
-#define SKINNY_DEVICETYPE_30SPPLUS		1
-#define SKINNY_DEVICETYPE_12SPPLUS		2
-#define SKINNY_DEVICETYPE_12SP			3
-#define SKINNY_DEVICETYPE_12			4
-#define SKINNY_DEVICETYPE_30VIP 		5
-#define SKINNY_DEVICETYPE_ATA186		12
-#define SKINNY_DEVICETYPE_ATA188		12 				/*!< ATA188 -FS */
-#define SKINNY_DEVICETYPE_VIRTUAL30SPPLUS	20
-#define SKINNY_DEVICETYPE_PHONEAPPLICATION	21
-#define SKINNY_DEVICETYPE_ANALOGACCESS		30
-#define SKINNY_DEVICETYPE_DIGITALACCESSPRI	40
-#define SKINNY_DEVICETYPE_DIGITALACCESST1	41
-#define SKINNY_DEVICETYPE_DIGITALACCESSTITAN2	42
-#define SKINNY_DEVICETYPE_ANALOGACCESSELVIS 	47
-#define SKINNY_DEVICETYPE_DIGITALACCESSLENNON	49
-#define SKINNY_DEVICETYPE_CONFERENCEBRIDGE	50
-#define SKINNY_DEVICETYPE_CONFERENCEBRIDGEYOKO	51
-#define SKINNY_DEVICETYPE_H225			60
-#define SKINNY_DEVICETYPE_H323PHONE 		61
-#define SKINNY_DEVICETYPE_H323TRUNK 		62
-#define SKINNY_DEVICETYPE_MUSICONHOLD		70
-#define SKINNY_DEVICETYPE_PILOT 		71
-#define SKINNY_DEVICETYPE_TAPIPORT		72
-#define SKINNY_DEVICETYPE_TAPIROUTEPOINT	73
-#define SKINNY_DEVICETYPE_VOICEINBOX		80
-#define SKINNY_DEVICETYPE_VOICEINBOXADMIN	81
-#define SKINNY_DEVICETYPE_LINEANNUNCIATOR	82
-#define SKINNY_DEVICETYPE_ROUTELIST 		90
-#define SKINNY_DEVICETYPE_LOADSIMULATOR 	100
-#define SKINNY_DEVICETYPE_MEDIATERMINATIONPOINT 110
-#define SKINNY_DEVICETYPE_MEDIATERMINATIONPOINTYOKO	111
-#define SKINNY_DEVICETYPE_MGCPSTATION		120
-#define SKINNY_DEVICETYPE_MGCPTRUNK 		121
-#define SKINNY_DEVICETYPE_RASPROXY		122
-#define SKINNY_DEVICETYPE_NOTDEFINED		255
-#define SKINNY_DEVICETYPE_CISCO7902 		30008
-#define SKINNY_DEVICETYPE_CISCO7905 		20000
-#define SKINNY_DEVICETYPE_CISCO7906		369				/*!< 7906 -FS */
-#define SKINNY_DEVICETYPE_CISCO7910		6 				/*!< 7910 */
-#define SKINNY_DEVICETYPE_CISCO7911 		307
-#define SKINNY_DEVICETYPE_CISCO7912		30007
-#define SKINNY_DEVICETYPE_CISCO7914 		124 				/*!< Expansion module */
-#define SKINNY_DEVICETYPE_CISCO7915_12BUTTONS	227				/*!< 7915 12-Button Line Expansion Module */
-#define SKINNY_DEVICETYPE_CISCO7915		228				/*!< 7915 24-Button Line Expansion Module */
-#define SKINNY_DEVICETYPE_CISCO7916_12BUTTONS	229				/*!< 7916 12-Button Line Expansion Module */
-#define SKINNY_DEVICETYPE_CISCO7916		230				/*!< 7916 24-Button Line Expansion Module */
-#define SKINNY_DEVICETYPE_CISCO7920 		30002
-#define SKINNY_DEVICETYPE_CISCO7921 		365
-#define SKINNY_DEVICETYPE_CISCO7925 		484 				/*!< 7925 -FS */
-#define SKINNY_DEVICETYPE_CISCO7931		348
-#define SKINNY_DEVICETYPE_CISCO7935 		9
-#define SKINNY_DEVICETYPE_CISCO7936 		30019
-#define SKINNY_DEVICETYPE_CISCO7937		431
-#define SKINNY_DEVICETYPE_CISCO7940		8 				/*!< 7940 */
-#define SKINNY_DEVICETYPE_CISCO7941 		115
-#define SKINNY_DEVICETYPE_CISCO7941GE 		309
-#define SKINNY_DEVICETYPE_CISCO7942		434
-#define SKINNY_DEVICETYPE_CISCO7945		435
-#define SKINNY_DEVICETYPE_CISCO7960		7 				/*< 7960 */
-#define SKINNY_DEVICETYPE_CISCO7961 		30018
-#define SKINNY_DEVICETYPE_CISCO7961GE 		308
-#define SKINNY_DEVICETYPE_CISCO7962		404				// -FS
-#define SKINNY_DEVICETYPE_CISCO7965 		436
-#define SKINNY_DEVICETYPE_CISCO7970 		30006
-#define SKINNY_DEVICETYPE_CISCO7971 		119
-#define SKINNY_DEVICETYPE_CISCO7975		437
-#define SKINNY_DEVICETYPE_CISCO7985		302
-#define SKINNY_DEVICETYPE_NOKIA_E_SERIES	275 				/*!< Nokia S60 */
-#define SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR 30016
-#define SKINNY_DEVICETYPE_GATEWAY_AN 		30027 				/*!< Analog gateway */
-#define SKINNY_DEVICETYPE_GATEWAY_BRI 		30028 				/*!< BRI gateway */
-
+#define SKINNY_DEVICETYPE_30SPPLUS			1
+#define SKINNY_DEVICETYPE_12SPPLUS			2
+#define SKINNY_DEVICETYPE_12SP				3
+#define SKINNY_DEVICETYPE_12				4
+#define SKINNY_DEVICETYPE_30VIP 			5
+//#define SKINNY_DEVICETYPE_TELECASTER			6
+//#define SKINNY_DEVICETYPE_TELECASTER_MGR		7
+//#define SKINNY_DEVICETYPE_TELECASTER_BUS		8
+//#define SKINNY_DEVICETYPE_POLYCOM			9
+#define SKINNY_DEVICETYPE_VGC				10
+#define SKINNY_DEVICETYPE_ATA186			12
+#define SKINNY_DEVICETYPE_ATA188			12 				/*!< ATA188 -FS */
+#define SKINNY_DEVICETYPE_VIRTUAL30SPPLUS		20
+#define SKINNY_DEVICETYPE_PHONEAPPLICATION		21
+#define SKINNY_DEVICETYPE_ANALOGACCESS			30
+#define SKINNY_DEVICETYPE_DIGITALACCESSPRI		40
+#define SKINNY_DEVICETYPE_DIGITALACCESST1		41
+#define SKINNY_DEVICETYPE_DIGITALACCESSTITAN2		42
+#define SKINNY_DEVICETYPE_DIGITALACCESSLENNON		43
+#define SKINNY_DEVICETYPE_ANALOGACCESSELVIS 		47
+#define SKINNY_DEVICETYPE_CONFERENCEBRIDGE		50
+#define SKINNY_DEVICETYPE_CONFERENCEBRIDGEYOKO		51
+#define SKINNY_DEVICETYPE_CONFERENCEBRIDGEDIXIELAND	52
+#define SKINNY_DEVICETYPE_CONFERENCEBRIDGESUMMIT	53
+#define SKINNY_DEVICETYPE_H225				60
+#define SKINNY_DEVICETYPE_H323PHONE 			61
+#define SKINNY_DEVICETYPE_H323TRUNK 			62
+#define SKINNY_DEVICETYPE_MUSICONHOLD			70
+#define SKINNY_DEVICETYPE_PILOT 			71
+#define SKINNY_DEVICETYPE_TAPIPORT			72
+#define SKINNY_DEVICETYPE_TAPIROUTEPOINT		73
+#define SKINNY_DEVICETYPE_VOICEINBOX			80
+#define SKINNY_DEVICETYPE_VOICEINBOXADMIN		81
+#define SKINNY_DEVICETYPE_LINEANNUNCIATOR		82
+#define SKINNY_DEVICETYPE_SOFTWAREMTPDIXIELAND		83
+#define SKINNY_DEVICETYPE_CISCOMEDIASERVER		84
+#define SKINNY_DEVICETYPE_CONFERENCEBRIDGEFLINT 	85
+#define SKINNY_DEVICETYPE_ROUTELIST 			90
+#define SKINNY_DEVICETYPE_LOADSIMULATOR 		100
+#define SKINNY_DEVICETYPE_MEDIA_TERM_POINT 		110
+#define SKINNY_DEVICETYPE_MEDIA_TERM_POINTYOKO		111
+#define SKINNY_DEVICETYPE_MEDIA_TERM_POINTDIXIELAND 	112
+#define SKINNY_DEVICETYPE_MEDIA_TERM_POINTSUMMIT	113
+#define SKINNY_DEVICETYPE_MGCPSTATION			120
+#define SKINNY_DEVICETYPE_MGCPTRUNK 			121
+#define SKINNY_DEVICETYPE_RASPROXY			122
+#define SKINNY_DEVICETYPE_TRUNK				125
+#define SKINNY_DEVICETYPE_ANNUNCIATOR			126
+#define SKINNY_DEVICETYPE_MONITORBRIDGE			127
+#define SKINNY_DEVICETYPE_RECORDER			128
+#define SKINNY_DEVICETYPE_MONITORBRIDGEYOKO		129
+#define SKINNY_DEVICETYPE_SIPTRUNK			131
+#define SKINNY_DEVICETYPE_NOTDEFINED			255
+#define SKINNY_DEVICETYPE_CISCO7902 			30008
+#define SKINNY_DEVICETYPE_CISCO7905 			20000
+#define SKINNY_DEVICETYPE_CISCO7906			369				/*!< 7906 -FS */
+#define SKINNY_DEVICETYPE_CISCO7910			6 				/*!< 7910 */
+#define SKINNY_DEVICETYPE_CISCO7911 			307
+#define SKINNY_DEVICETYPE_CISCO7912			30007
+#define SKINNY_DEVICETYPE_CISCO7914 			124 				/*!< Expansion module */
+#define SKINNY_DEVICETYPE_CISCO7915_12BUTTONS		227				/*!< 7915 12-Button Line Expansion Module */
+#define SKINNY_DEVICETYPE_CISCO7915			228				/*!< 7915 24-Button Line Expansion Module */
+#define SKINNY_DEVICETYPE_CISCO7916_12BUTTONS		229				/*!< 7916 12-Button Line Expansion Module */
+#define SKINNY_DEVICETYPE_CISCO7916			230				/*!< 7916 24-Button Line Expansion Module */
+#define SKINNY_DEVICETYPE_CISCO7920 			30002
+#define SKINNY_DEVICETYPE_CISCO7921 			365
+#define SKINNY_DEVICETYPE_CISCO7925 			484 				/*!< 7925 -FS */
+#define SKINNY_DEVICETYPE_CISCO7931			348
+#define SKINNY_DEVICETYPE_CISCO7935 			9
+#define SKINNY_DEVICETYPE_CISCO7936 			30019
+#define SKINNY_DEVICETYPE_CISCO7937			431
+#define SKINNY_DEVICETYPE_CISCO7940			8 				/*!< 7940 */
+#define SKINNY_DEVICETYPE_CISCO7941 			115
+#define SKINNY_DEVICETYPE_CISCO7941GE 			309
+#define SKINNY_DEVICETYPE_CISCO7942			434
+#define SKINNY_DEVICETYPE_CISCO7945			435
+#define SKINNY_DEVICETYPE_CISCO7960			7 				/*< 7960 */
+#define SKINNY_DEVICETYPE_CISCO7961 			30018
+#define SKINNY_DEVICETYPE_CISCO7961GE 			308
+#define SKINNY_DEVICETYPE_CISCO7962			404				// -FS
+#define SKINNY_DEVICETYPE_CISCO7965 			436
+#define SKINNY_DEVICETYPE_CISCO7970 			30006
+#define SKINNY_DEVICETYPE_CISCO7971 			119
+#define SKINNY_DEVICETYPE_CISCO7975			437
+#define SKINNY_DEVICETYPE_CISCO7985			302
+#define SKINNY_DEVICETYPE_NOKIA_E_SERIES		275 				/*!< Nokia S60 */
+#define SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR	 	30016
+#define SKINNY_DEVICETYPE_GATEWAY_AN 			30027 				/*!< Analog gateway */
+#define SKINNY_DEVICETYPE_GATEWAY_BRI 			30028 				/*!< BRI gateway */
 /*!
  * \brief Skinny DeviceType Structure
  */
@@ -440,6 +475,13 @@ static const struct skinny_devicetype {
 	{ SKINNY_DEVICETYPE_12SP			,	"12SP"	 				},
 	{ SKINNY_DEVICETYPE_12				,	"12" 					},
 	{ SKINNY_DEVICETYPE_30VIP			,	"30 VIP" 				},
+//	{ SKINNY_DEVICETYPE_TELECASTER			,	"Telecaster" 				},
+//	{ SKINNY_DEVICETYPE_TELECASTER_MGR		,	"Telecaster Manager" 			},
+//	{ SKINNY_DEVICETYPE_TELECASTER_BUS		,	"Telecaster Bus" 			},
+//	{ SKINNY_DEVICETYPE_POLYCOM			,	"Polycom" 				},
+	{ SKINNY_DEVICETYPE_VGC				,	"VGC"					},
+	{ SKINNY_DEVICETYPE_ATA186			,	"Cisco Ata 186"				},
+	{ SKINNY_DEVICETYPE_ATA188			,	"Cisco Ata 188"				},
 	{ SKINNY_DEVICETYPE_CISCO7910			,	"Cisco 7910" 				},
 	{ SKINNY_DEVICETYPE_CISCO7960			,	"Cisco 7960"				},
 	{ SKINNY_DEVICETYPE_CISCO7940			,	"Cisco 7940"				},
@@ -453,6 +495,8 @@ static const struct skinny_devicetype {
 	{ SKINNY_DEVICETYPE_DIGITALACCESSLENNON		,	"Digital Access Lennon"			},
 	{ SKINNY_DEVICETYPE_CONFERENCEBRIDGE		,	"Conference Bridge"			},
 	{ SKINNY_DEVICETYPE_CONFERENCEBRIDGEYOKO	,	"Conference Bridge Yoko"		},
+	{ SKINNY_DEVICETYPE_CONFERENCEBRIDGEDIXIELAND	,	"Conference Bridge Dixieland" 		},
+	{ SKINNY_DEVICETYPE_CONFERENCEBRIDGESUMMIT	,	"Conference Bridge Summit"		},
 	{ SKINNY_DEVICETYPE_H225			,	"H225"					},
 	{ SKINNY_DEVICETYPE_H323PHONE			,	"H323 Phone"				},
 	{ SKINNY_DEVICETYPE_H323TRUNK			,	"H323 Trunk"				},
@@ -465,11 +509,19 @@ static const struct skinny_devicetype {
 	{ SKINNY_DEVICETYPE_LINEANNUNCIATOR		,	"Line Annunciator"			},
 	{ SKINNY_DEVICETYPE_ROUTELIST			,	"Route List"				},
 	{ SKINNY_DEVICETYPE_LOADSIMULATOR		,	"Load Simulator"			},
-	{ SKINNY_DEVICETYPE_MEDIATERMINATIONPOINT	,	"Media Termination Point"		},
-	{ SKINNY_DEVICETYPE_MEDIATERMINATIONPOINTYOKO	,	"Media Termination Point Yoko"		},
+	{ SKINNY_DEVICETYPE_MEDIA_TERM_POINT		,	"Media Termination Point"		},
+	{ SKINNY_DEVICETYPE_MEDIA_TERM_POINTYOKO	,	"Media Termination Point Yoko"		},
+	{ SKINNY_DEVICETYPE_MEDIA_TERM_POINTDIXIELAND	,	"Media Termination Point Dixieland"	},
+	{ SKINNY_DEVICETYPE_MEDIA_TERM_POINTSUMMIT	,	"Media Termination Point Summit"	},
 	{ SKINNY_DEVICETYPE_MGCPSTATION			,	"MGCP Station"				},
 	{ SKINNY_DEVICETYPE_MGCPTRUNK			,	"MGCP Trunk"				},
 	{ SKINNY_DEVICETYPE_RASPROXY			,	"RAS Proxy"				},
+	{ SKINNY_DEVICETYPE_TRUNK			,	"Trunk" 				},
+	{ SKINNY_DEVICETYPE_ANNUNCIATOR			,	"Annuciator" 				},
+	{ SKINNY_DEVICETYPE_MONITORBRIDGE		,	"Monitor Bridge" 			},
+	{ SKINNY_DEVICETYPE_RECORDER			,	"Recorder" 				},
+	{ SKINNY_DEVICETYPE_MONITORBRIDGEYOKO		,	"Monitor Bridge Yoko" 			},
+	{ SKINNY_DEVICETYPE_SIPTRUNK			,	"Sip Trunk" 				},
 	{ SKINNY_DEVICETYPE_NOTDEFINED			,	"Not Defined"				},
 	{ SKINNY_DEVICETYPE_CISCO7920			,	"Cisco 7920"				},
 	{ SKINNY_DEVICETYPE_CISCO7902			,	"Cisco 7902"				},
@@ -483,7 +535,6 @@ static const struct skinny_devicetype {
 	{ SKINNY_DEVICETYPE_CISCO7936			,	"Cisco 7936"				},
 	{ SKINNY_DEVICETYPE_CISCO7937			,	"Cisco 7937"				},
 	{ SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR	,	"Cisco IP Communicator"			},
-	{ SKINNY_DEVICETYPE_ATA186			,	"Cisco Ata 186"				},
 	{ SKINNY_DEVICETYPE_CISCO7941			,	"Cisco 7941"				},
 	{ SKINNY_DEVICETYPE_CISCO7941GE			,	"Cisco 7941 GE"				},
 	{ SKINNY_DEVICETYPE_CISCO7942			,	"Cisco 7942"				},
@@ -556,7 +607,12 @@ static const struct skinny_device_state {
 #define SKINNY_STIMULUS_T120FILETRANSFER	0xD
 #define SKINNY_STIMULUS_VIDEO			0xE
 #define SKINNY_STIMULUS_VOICEMAIL		0xF
+#define SKINNY_STIMULUS_AUTOANSWERRELEASE	0x10
 #define SKINNY_STIMULUS_AUTOANSWER		0x11
+#define SKINNY_STIMULUS_SELECT			0x12
+#define SKINNY_STIMULUS_PRIVACY			0x13
+#define SKINNY_STIMULUS_SERVICEURL		0x14
+#define SKINNY_STIMULUS_MALICIOUSCALL		0x1B
 #define SKINNY_STIMULUS_GENERICAPPB1		0x21
 #define SKINNY_STIMULUS_GENERICAPPB2		0x22
 #define SKINNY_STIMULUS_GENERICAPPB3		0x23
@@ -590,7 +646,12 @@ static const struct skinny_stimulus {
 	{ SKINNY_STIMULUS_T120FILETRANSFER		,	"T120 File Transfer"			},
 	{ SKINNY_STIMULUS_VIDEO				,	"Video"					},
 	{ SKINNY_STIMULUS_VOICEMAIL			,	"VoiceMail"				},
-	{ SKINNY_STIMULUS_AUTOANSWER			,	"AutoAnswer"				},
+	{ SKINNY_STIMULUS_AUTOANSWERRELEASE		,	"Auto Answer Release"			},
+	{ SKINNY_STIMULUS_AUTOANSWER			,	"Auto Answer"				},
+	{ SKINNY_STIMULUS_SELECT			,	"Select"				},
+	{ SKINNY_STIMULUS_PRIVACY			,	"Privacy"				},
+	{ SKINNY_STIMULUS_SERVICEURL			,	"ServiceURL"				},
+	{ SKINNY_STIMULUS_MALICIOUSCALL			,	"Malicious Call"			},
 	{ SKINNY_STIMULUS_GENERICAPPB1			,	"Generic App B1"			},
 	{ SKINNY_STIMULUS_GENERICAPPB2			,	"Generic App B2"			},
 	{ SKINNY_STIMULUS_GENERICAPPB3			,	"Generic App B3"			},
@@ -793,6 +854,7 @@ static const struct skinny_station {
 #define SKINNY_STATIONHEADSET_OFF		2
 
 /* skinny codecs */
+#define SKINNY_CODEC_NONE		0
 #define SKINNY_CODEC_NONSTANDARD	1
 #define SKINNY_CODEC_G711_ALAW_64K	2
 #define SKINNY_CODEC_G711_ALAW_56K	3
@@ -825,6 +887,9 @@ static const struct skinny_station {
 #define SKINNY_CODEC_H261		100
 #define SKINNY_CODEC_H263		101
 #define SKINNY_CODEC_H264		102
+#define SKINNY_CODEC_T120		105
+#define SKINNY_CODEC_H224		106
+#define SKINNY_CODEC_RFC2833_DYNPAYLOAD	257
 
 /*!
  * \brief Skinny Codec Structure
@@ -834,6 +899,7 @@ static const struct skinny_codec {
         uint32_t astcodec;
         const char * const text;
 } skinny_codecs[] = {
+	{ SKINNY_CODEC_NONE		, 0,				"No codec"		},
 	{ SKINNY_CODEC_NONSTANDARD	, 0,				"Non-standard codec"	},
 	{ SKINNY_CODEC_G711_ALAW_64K	, AST_FORMAT_ALAW,		"G.711 A-law 64k"	},
 	{ SKINNY_CODEC_G711_ALAW_56K	, AST_FORMAT_ALAW,		"G.711 A-law 56k"	},
@@ -866,6 +932,9 @@ static const struct skinny_codec {
 	{ SKINNY_CODEC_H261		, AST_FORMAT_H261,		"H.261"			},
 	{ SKINNY_CODEC_H263		, AST_FORMAT_H263,		"H.263"			},
 	{ SKINNY_CODEC_H264		, AST_FORMAT_H264,		"H.264"			},
+	{ SKINNY_CODEC_T120		, 0,				"T.120"			},
+	{ SKINNY_CODEC_H224		, 0,				"H.224"			},
+	{ SKINNY_CODEC_RFC2833_DYNPAYLOAD, 0,				"RFC 2833 Dyn Pay Load"	},
 };
 
 
@@ -2856,19 +2925,18 @@ static const struct skinny_keymode {
         uint8_t keymode;
         const char * const text;
 } skinny_keymodes[] = {
-	{ KEYMODE_ONHOOK	,	"On Hook"	},
-	{ KEYMODE_CONNECTED	,	"Connected"	},
-	{ KEYMODE_ONHOLD	,	"On Hold"	},
-	{ KEYMODE_RINGIN	,	"Ringin"	},
-	{ KEYMODE_OFFHOOK	,	"Off Hook"	},
-	{ KEYMODE_CONNTRANS	,	"Conn Trans"	},
-	{ KEYMODE_DIGITSFOLL	,	"Digits Foll"	},
-	{ KEYMODE_CONNCONF	,	"Conn Conf"	},
-	{ KEYMODE_RINGOUT	,	"Ring Out"	},
-	{ KEYMODE_OFFHOOKFEAT	,	"Off Hook Feat"	},
-	{ KEYMODE_INUSEHINT	,	"In Use Hint"	},
+	{ KEYMODE_ONHOOK	,	"On Hook"				},
+	{ KEYMODE_CONNECTED	,	"Connected"				},
+	{ KEYMODE_ONHOLD	,	"On Hold"				},
+	{ KEYMODE_RINGIN	,	"Ringin"				},
+	{ KEYMODE_OFFHOOK	,	"Off Hook"				},
+	{ KEYMODE_CONNTRANS	,	"Connected with Transfer" 		},
+	{ KEYMODE_DIGITSFOLL	,	"Digits after dialing first digit "	},
+	{ KEYMODE_CONNCONF	,	"Connected with Conference"		},
+	{ KEYMODE_RINGOUT	,	"Ring Out"				},
+	{ KEYMODE_OFFHOOKFEAT	,	"Off Hook with Features"		},
+	{ KEYMODE_INUSEHINT	,	"In Use Hint"				},
 };
-
 
 static uint8_t skSet_Onhook [] = {
         SKINNY_LBL_REDIAL,
@@ -2882,7 +2950,7 @@ static uint8_t skSet_Onhook [] = {
 #endif
 //	SKINNY_LBL_CONFLIST,
         SKINNY_LBL_DND,
-};										/*!< SKINNY SoftKeys Set Onhook as INT */
+};										/*!< SKINNY SoftKeys Set "Onhook" as INT */
 
 static uint8_t skSet_Connected [] = {
         SKINNY_LBL_HOLD,
@@ -2897,7 +2965,7 @@ static uint8_t skSet_Connected [] = {
         SKINNY_LBL_CFWDBUSY,
 //	SKINNY_LBL_CFWDNOANSWER,
         SKINNY_LBL_IDIVERT,
-};										/*!< SKINNY SoftKeys Set Connected as INT */
+};										/*!< SKINNY SoftKeys Set "Connected" as INT */
 
 static uint8_t skSet_Onhold [] = {
         SKINNY_LBL_RESUME,
@@ -2913,7 +2981,7 @@ static uint8_t skSet_Onhold [] = {
         SKINNY_LBL_DIRTRFR,
 #endif
         SKINNY_LBL_IDIVERT,
-};										/*!< SKINNY SoftKeys Set On Hold as INT */
+};										/*!< SKINNY SoftKeys Set "On Hold" as INT */
 
 static uint8_t skSet_Ringin [] = {
         SKINNY_LBL_ANSWER,
@@ -2922,7 +2990,7 @@ static uint8_t skSet_Ringin [] = {
         SKINNY_LBL_IDIVERT,
 //	SKINNY_LBL_TRANSFER,
 //	SKINNY_LBL_DIRTRFR
-};										/*!< SKINNY SoftKeys Set Ring-IN as INT */
+};										/*!< SKINNY SoftKeys Set "Ring-IN" as INT */
 
 static uint8_t skSet_Offhook [] = {
         SKINNY_LBL_REDIAL,
@@ -2938,7 +3006,7 @@ static uint8_t skSet_Offhook [] = {
         SKINNY_LBL_MEETME,
         SKINNY_LBL_BARGE,
 //	SKINNY_LBL_CBARGE,
-};										/*!< SKINNY SoftKeys Set OffHook as INT */
+};										/*!< SKINNY SoftKeys Set "OffHook" as INT */
 
 static uint8_t skSet_Conntrans [] = {
         SKINNY_LBL_HOLD,
@@ -2957,18 +3025,19 @@ static uint8_t skSet_Conntrans [] = {
         SKINNY_LBL_CFWDALL,
         SKINNY_LBL_CFWDBUSY,
 //	SKINNY_LBL_CFWDNOANSWER,
-};										/*!< SKINNY SoftKeys Set Connection Transmission as INT */
+};										/*!< SKINNY SoftKeys Set "Connected With Transfer" as INT */
+
 
 static uint8_t skSet_DigitsFoll []  = {
         SKINNY_LBL_BACKSPACE,
         SKINNY_LBL_ENDCALL,
-};										/*!< SKINNY SoftKeys Set Digits Following as INT */
+};										/*!< SKINNY SoftKeys Set "Digits after dialing first digit" as INT */
 
 static uint8_t skSet_Connconf [] = {
         SKINNY_LBL_HOLD,
         SKINNY_LBL_ENDCALL,
         SKINNY_LBL_JOIN,
-};										/*!< SKINNY SoftKeys Set Connect Conference as INT*/
+};										/*!< SKINNY SoftKeys Set "Connected with Conference" as INT*/
 
 static uint8_t skSet_RingOut [] = {
         SKINNY_LBL_ENDCALL,
@@ -2977,12 +3046,12 @@ static uint8_t skSet_RingOut [] = {
         SKINNY_LBL_IDIVERT,
 //	SKINNY_LBL_CFWDBUSY,
 //	SKINNY_LBL_CFWDNOANSWER,
-};										/*!< SKINNY SoftKeys Set Ring-Out as INT */
+};										/*!< SKINNY SoftKeys Set "Ring-Out" as INT */
 
 static uint8_t skSet_Offhookfeat [] = {
         SKINNY_LBL_REDIAL,
         SKINNY_LBL_ENDCALL,
-};										/*!< SKINNY SoftKeys Set Off Hook Feature as INT */
+};										/*!< SKINNY SoftKeys Set "Off Hook with Features" as INT */
 
 // in use hint keyset
 static uint8_t skSet_InUseHint [] = {
@@ -2990,7 +3059,7 @@ static uint8_t skSet_InUseHint [] = {
 //	SKINNY_LBL_ENDCALL,
         SKINNY_LBL_PICKUP,
         SKINNY_LBL_BARGE,
-};										/*!< SKINNY SoftKeys Set Hint In Use as INT */
+};										/*!< SKINNY SoftKeys Set "Hint In Use" as INT */
 
 
 /*@unused@*/
