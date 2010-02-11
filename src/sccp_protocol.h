@@ -698,10 +698,10 @@ static const struct skinny_stimulus {
 #define SKINNY_BUTTONTYPE_TESTD			0x8A
 #define SKINNY_BUTTONTYPE_TESTE			0xC0
 #define SKINNY_BUTTONTYPE_TESTF			0xC1
-#define SKINNY_BUTTONTYPE_TESTG			0xC2
-#define SKINNY_BUTTONTYPE_TESTH			0xC3
+
+
 #define SKINNY_BUTTONTYPE_TESTI			0xC4
-#define SKINNY_BUTTONTYPE_TESTJ			0xC5
+
 #define SKINNY_BUTTONTYPE_SERVICEURL		0x14
 #define SKINNY_BUTTONTYPE_BLFSPEEDDIAL		0x15
 #define SKINNY_BUTTONTYPE_GENERICAPPB1		0x21
@@ -723,10 +723,10 @@ static const struct skinny_stimulus {
 #define SKINNY_BUTTONTYPE_UNDEFINED 		0xff
 
 /* this is not a skinny button type. Used for speedial/line buttons */
-#define SKINNY_BUTTONTYPE_MULTI 		0xc0
-#define SCCP_BUTTONTYPE_LINE			0xc1
-#define SCCP_BUTTONTYPE_SPEEDDIAL		0xc2
-#define SCCP_BUTTONTYPE_HINT			0xc3
+#define SKINNY_BUTTONTYPE_MULTI 		0xf1
+#define SCCP_BUTTONTYPE_LINE			0xf2
+#define SCCP_BUTTONTYPE_SPEEDDIAL		0xf3
+#define SCCP_BUTTONTYPE_HINT			0xf4
 
 /*!
  * \brief Skinny ButtonType Structure
