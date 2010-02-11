@@ -7,7 +7,7 @@
 #
 
 if [ -f src/Makefile ]; then
-  rm -rf libtool config aclocal.m4 autom4te.cache/ src/Makefile.in src/config.h src/Makefile
+  rm -rf config aclocal.m4 autom4te.cache/ src/Makefile.in src/config.h src/Makefile
 fi
 
 check_for_app() {

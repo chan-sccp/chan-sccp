@@ -1,4 +1,100 @@
+2010-02-11  ddegroot
+
+	* [r1273] ., Makefile.am, acinclude.m4[DEL], autoconf[CPY],
+	  autoconf/acinclude.m4[CPY], autoconf/depcomp[ADD],
+	  autoconf/install-sh[ADD], autoconf/libtool.m4[ADD],
+	  autoconf/ltmain.sh[ADD], autoconf/ltoptions.m4[ADD],
+	  autoconf/ltsugar.m4[ADD], autoconf/ltversion.m4[ADD],
+	  autoconf/lt~obsolete.m4[ADD], autoconf/missing[ADD],
+	  bootstrap.sh, build_tools[DEL], configure.ac, doc: Remove
+	  Dependency on libtoolize.
+	  Move build_tools to autoconf directory
+	  Move m4 to autoconf directory
+
+	* [r1272] conf/sccp.conf, doc/new_features.doc: Updated new_feature
+	  documentation with PLAR/adhocNumber option
+
+	* [r1271] conf/sccp.conf: Added PLAR / Adhoc Option + Comment to
+	  sccp.conf for Line 98021
+
+2010-02-11  marcelloceschia
+
+	* [r1270] src/sccp_actions.c, src/sccp_config.c,
+	  src/sccp_softkeys.c: hotline/PLAR improvement
+
+	* [r1269] src/sccp_device.c: 7931 fix, adhocNumber
+
+	* [r1268] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_config.c, src/sccp_device.c, src/sccp_features.c,
+	  src/sccp_features.h: 7931 fix, adhocNumber
+
+	* [r1267] src/Makefile.am, src/sccp_actions.c,
+	  src/sccp_featureButton.c, src/sccp_protocol.h: set test buttons
+	  to real names
+
+	* [r1266] src/sccp_hint.c: set lamp for hint
+
+	* [r1265] src/sccp_actions.c, src/sccp_device.c,
+	  src/sccp_protocol.h: handling button template for 7931
+
+	* [r1264] src/sccp_featureButton.c: changing button type from test
+
+2010-02-11  ddegroot
+
+	* [r1263] src/sccp_protocol.h: Added a few protocol entries from
+	  wireshark sccp definition
+
+2010-02-10  ddegroot
+
+	* [r1262] src/sccp_protocol.h: Update Spacing in Message Lookups
+
+	* [r1261] src/sccp_actions.c: Fix Accessory Status Message
+	  (assigned skinny2str instead of sccp2str).
+
+	* [r1260] bootstrap.sh, src/sccp_utils.c: Fixed Bootstrap
+	  Fixed "Not Defined yes" error in accessory
+
+	* [r1259] bootstrap.sh, configure.ac: Went back to older
+	  bootstrap.sh and configure.ac
+
+2010-02-10  marcelloceschia
+
+	* [r1258] configure.ac: get it working with older libtool version
+
+	* [r1257] src/sccp_object2.h: insert prototype
+
+	* [r1256] src/chan_sccp.c, src/sccp_event.c, src/sccp_event.h,
+	  src/sccp_hint.c, src/sccp_mwi.c: remove define for subscribing
+	  event
+
+2010-02-10  ddegroot
+
+	* [r1255] ., ChangeLog, doc/doxygen.cfg, src/sccp_object2.h,
+	  src/sccp_utils.c: Added INSTALL, ChangeLog and doxygen.warn to
+	  svn:ignore
+	  Added Parameter Comment to sccp_object2.h
+
+	* [r1254] src/sccp_actions.c, src/sccp_channel.c, src/sccp_cli.c,
+	  src/sccp_device.c, src/sccp_features.c, src/sccp_hint.c,
+	  src/sccp_protocol.h, src/sccp_softkeys.c, src/sccp_utils.c,
+	  src/sccp_utils.h: Changed more skinny_*2str and sccp_*2str
+	  function to array lookups
+
+	* [r1253] src/chan_sccp.c, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_cli.c, src/sccp_device.c, src/sccp_protocol.h,
+	  src/sccp_socket.c, src/sccp_utils.c, src/sccp_utils.h: Changeover
+	  to sccp_utils function sccp2str and skinny2str
+
 2010-02-09  ddegroot
+
+	* [r1252] src/sccp_protocol.h, src/sccp_utils.c, src/sccp_utils.h:
+	  Replaced skinny_tone2str with array lookup
+
+	* [r1251] src/sccp_utils.c, src/sccp_utils.h: Replaced array lookup
+	  for loop with preliminary preprocessor macro
+
+	* [r1250] src/sccp_protocol.h, src/sccp_utils.c: Removed hex and
+	  longtext columns from sccpmessage_types array
 
 	* [r1249] src/sccp_labels.h, src/sccp_protocol.h, src/sccp_utils.c:
 	  Replaced skinny_lbl2str with array lookup function
