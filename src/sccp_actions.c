@@ -197,11 +197,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	s->device = d;
 	d->skinny_type = letohl(r->msg.RegisterMessage.lel_deviceType);
 	
-	
-	if (!strcasecmp(d->id, "SEP0014A9D9D5E6")) {
-		d->skinny_type = SKINNY_DEVICETYPE_CISCO7931;
-	}
-	
 	d->session = s;
 	s->lastKeepAlive = time(0);
 	d->mwilight = 0;
@@ -411,7 +406,7 @@ void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_moo_t * r)
 		break;
 	}
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(d), sccp2str(SCCP_ACCESSORY,d->accessoryused), sccp2str(SCCP_ACCESSORY_STATE,d->accessorystatus), unknown);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(d), skinny2str(SCCP_ACCESSORY,d->accessoryused), skinny2str(SCCP_ACCESSORY_STATE,d->accessorystatus), unknown);
 }
 
 /*!
@@ -502,11 +497,11 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				switch(buttonconfig->button.feature.id)
 				{
 					case SCCP_FEATURE_TEST1:
-						btn[i].type = SKINNY_BUTTONTYPE_TEST1;
+						btn[i].type = SKINNY_BUTTONTYPE_HOLD;
 						break;
 
 					case SCCP_FEATURE_TEST2:
-						btn[i].type = SKINNY_BUTTONTYPE_TEST2;
+						btn[i].type = SKINNY_BUTTONTYPE_TRANSFER;
 						break;
 
 					case SCCP_FEATURE_TEST3:
@@ -518,7 +513,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 						break;
 
 					case SCCP_FEATURE_TEST5:
-						btn[i].type = SKINNY_BUTTONTYPE_TEST5;
+						btn[i].type = SKINNY_BUTTONTYPE_CONFERENCE;
 						break;
 
 					case SCCP_FEATURE_TEST6:
@@ -987,12 +982,12 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			break;
 
 		case SKINNY_BUTTONTYPE_FEATURE:
-		//case SKINNY_BUTTONTYPE_TEST5:
+		//case SKINNY_BUTTONTYPE_CONFERENCE:
 		case SKINNY_BUTTONTYPE_TEST4:
 		case SKINNY_BUTTONTYPE_TEST6:
 		case SKINNY_BUTTONTYPE_TEST3:
-		//case SKINNY_BUTTONTYPE_TEST2:
-		//case SKINNY_BUTTONTYPE_TEST1:
+		//case SKINNY_BUTTONTYPE_TRANSFER:
+		//case SKINNY_BUTTONTYPE_HOLD:
 			//ast_log(LOG_NOTICE, "%s: Privacy Button is not yet handled. working on implementation\n", d->id);
 		case SKINNY_BUTTONTYPE_TEST7:
 		case SKINNY_BUTTONTYPE_TEST8:
