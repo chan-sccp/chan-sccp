@@ -5,8 +5,8 @@ AC_INIT([Chan_SCCP],
         [https://sourceforge.net/projects/chan-sccp-b/],
         [Chan_SCCP])
 
-AC_CONFIG_AUX_DIR([config])
-AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_AUX_DIR([autoconf])
+AC_CONFIG_MACRO_DIR([autoconf])
 
 dnl Get version information from repository
 CS_GET_VERSION([.])

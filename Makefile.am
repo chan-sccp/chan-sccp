@@ -14,7 +14,7 @@
 include $(top_srcdir)/amdoxygen.am
 EXTRA_DIST 			= bootstrap.sh configure
 SUBDIRS 			= src doc
-ACLOCAL_AMFLAGS                 = -I m4
+ACLOCAL_AMFLAGS                 = -I autoconf
 
 FORCE:
 

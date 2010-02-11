@@ -9,7 +9,6 @@
 if [ -f src/Makefile ]; then
   rm -rf libtool config aclocal.m4 autom4te.cache/ src/Makefile.in src/config.h src/Makefile
 fi
-if ! [ -d m4 ]; then mkdir m4;fi
 
 check_for_app() {
 	$1 --version 2>&1 >/dev/null
@@ -51,12 +50,10 @@ check_for_app aclocal${MY_AM_VER}
 
 echo "Generating the configure script ..."
 echo 
-autoreconf -fi
-#aclocal${MY_AM_VER} --force -I m4
-#libtoolize${MY_AM_VER} -q --install --copy 2>/dev/null
-#autoconf${MY_AC_VER}
-#autoheader${MY_AC_VER}
-#automake${MY_AM_VER} --add-missing --copy --force-missing 2>/dev/null
+aclocal${MY_AM_VER} --force -I autoconf
+autoconf${MY_AC_VER}
+autoheader${MY_AC_VER}
+automake${MY_AM_VER} --add-missing --copy --force-missing 2>/dev/null
 
 echo "Running configure script..."
 echo
