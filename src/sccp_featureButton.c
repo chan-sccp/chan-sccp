@@ -103,6 +103,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 
 								if(!linedevice){
 									ast_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
+									continue;
 								}
 
 								sccp_log(10)(VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled)?"on":"off");
@@ -205,11 +206,11 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 					break;
 
 				case SCCP_FEATURE_TESTG:
-					buttonID = SKINNY_BUTTONTYPE_TESTG;
+					buttonID = SKINNY_BUTTONTYPE_MESSAGES;
 					break;
 
 				case SCCP_FEATURE_TESTH:
-					buttonID = SKINNY_BUTTONTYPE_TESTH;
+					buttonID = SKINNY_BUTTONTYPE_DIRECTORY;
 					break;
 
 				case SCCP_FEATURE_TESTI:
@@ -217,7 +218,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 					break;
 
 				case SCCP_FEATURE_TESTJ:
-					buttonID = SKINNY_BUTTONTYPE_TESTJ;
+					buttonID = SKINNY_BUTTONTYPE_APPLICATION;
 					break;
 
 				default:
