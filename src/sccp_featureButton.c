@@ -134,11 +134,11 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 				break;
 
 				case SCCP_FEATURE_TEST1:
-					buttonID = SKINNY_BUTTONTYPE_TEST1;
+					buttonID = SKINNY_BUTTONTYPE_HOLD;
 					break;
 
 				case SCCP_FEATURE_TEST2:
-					buttonID = SKINNY_BUTTONTYPE_TEST2;
+					buttonID = SKINNY_BUTTONTYPE_TRANSFER;
 					break;
 
 				case SCCP_FEATURE_TEST3:
@@ -162,7 +162,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 					break;
 
 				case SCCP_FEATURE_TEST5:
-					buttonID = SKINNY_BUTTONTYPE_TEST5;
+					buttonID = SKINNY_BUTTONTYPE_CONFERENCE;
 					break;
 
 				case SCCP_FEATURE_TEST6:
