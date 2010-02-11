@@ -840,8 +840,8 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 
 
 	if(d->isAnonymous){
-	  sccp_feat_hotline(d);
-	  return;
+		sccp_feat_hotline(d, GLOB(hotline)->line);
+		return;
 	}
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d) for instance=%d\n", d->id, skinny2str(SKINNY_STIMULUS,stimulus), stimulus, instance);
@@ -852,6 +852,10 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		if (!l) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line found\n", d->id);
 			return;
+		}
+		if(strlen(l->adhocNumber) > 0){
+			sccp_feat_hotline(d, l);
+		      return;
 		}
 		//instance = l->instance;
 		//TODO set index
@@ -898,6 +902,12 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 					sccp_log(1)(VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
 				return;
 			}
+			
+			if(strlen(l->adhocNumber) > 0){
+				sccp_feat_hotline(d, l);
+				return;
+			}
+			
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Line Key press on line %s\n", d->id, (l) ? l->name : "(nil)");
 			if ( (c = sccp_channel_get_active(d)) ) {
 			    if(c->state != SCCP_CHANNELSTATE_CONNECTED)
@@ -1158,7 +1168,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r)
 		return;
 
 	if(d->isAnonymous){
-		sccp_feat_hotline(d);
+		sccp_feat_hotline(d, GLOB(hotline)->line);
 		return;
 	}
 
@@ -1822,10 +1832,14 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 		break;
 	case SKINNY_LBL_NEWCALL:
 		if(d->isAnonymous){
-			sccp_feat_hotline(d);
-		}else if (l)
-			sccp_sk_newcall(d, l, c);
-		else {
+			sccp_feat_hotline(d, GLOB(hotline)->line);
+		}else if (l){
+			if(strlen(l->adhocNumber)==0)
+				sccp_sk_newcall(d, l, c);
+			else{
+				sccp_feat_hotline(d, GLOB(hotline)->line);
+			}
+		}else {
 			k = sccp_dev_speed_find_byindex(d, line, SCCP_BUTTONTYPE_LINE);
 			if (k)
 				sccp_handle_speeddial(d, k);

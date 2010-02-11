@@ -1132,10 +1132,10 @@ int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum) {
  *
  * \param d SCCP Device
  */
-void sccp_feat_hotline(sccp_device_t *d) {
+void sccp_feat_hotline(sccp_device_t *d, sccp_line_t *line) {
 	sccp_channel_t * c = NULL;
 
-	if (!d || !d->session)
+	if (!d || !d->session || !line)
 		return;
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: handling hotline\n", d->id);
@@ -1143,7 +1143,7 @@ void sccp_feat_hotline(sccp_device_t *d) {
 	if (c) {
 		sccp_channel_lock(c);
 		if ( (c->state == SCCP_CHANNELSTATE_DIALING) || (c->state == SCCP_CHANNELSTATE_OFFHOOK) ) {
-			sccp_copy_string(c->dialedNumber, GLOB(hotline)->exten, sizeof(c->dialedNumber));
+			sccp_copy_string(c->dialedNumber, line->adhocNumber, sizeof(c->dialedNumber));
 			sccp_channel_unlock(c);
 
 			SCCP_SCHED_DEL(sched, c->digittimeout);
@@ -1152,11 +1152,11 @@ void sccp_feat_hotline(sccp_device_t *d) {
 			return;
 		}
 		sccp_channel_unlock(c);
-		sccp_pbx_senddigits(c, GLOB(hotline)->exten);
+		sccp_pbx_senddigits(c, line->adhocNumber);
 	} else {
 		// Pull up a channel
 		if (GLOB(hotline)->line) {
-			sccp_channel_newcall(GLOB(hotline)->line, d, GLOB(hotline)->exten, SKINNY_CALLTYPE_OUTBOUND);
+			sccp_channel_newcall(line, d, line->adhocNumber, SKINNY_CALLTYPE_OUTBOUND);
 		}
 	}
 }
