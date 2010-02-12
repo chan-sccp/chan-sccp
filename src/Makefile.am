@@ -17,11 +17,11 @@ ACLOCAL_AMFLAGS		= -I m4
 
 
 csmod_LTLIBRARIES	= chan_sccp.la
-chan_sccp_la_SOURCES	= chan_sccp.c      sccp_channel.c       sccp_device.c  sccp_indicate.c    sccp_pbx.c \
-			  sccp_utils.c     sccp_actions.c       sccp_cli.c     sccp_features.c    sccp_line.c \
-			  sccp_socket.c    sccp_config.c        sccp_hint.c    sccp_lock.c        sccp_softkeys.c \
-			  sccp_event.c     sccp_adv_features.c  sccp_mwi.c     sccp_management.c  sccp_featureButton.c \
-			  sccp_object2.c   sccp_conference.cpp
+chan_sccp_la_SOURCES	= chan_sccp.c         sccp_channel.c       sccp_device.c  sccp_indicate.c    sccp_pbx.c \
+			  sccp_utils.c        sccp_actions.c       sccp_cli.c     sccp_features.c    sccp_line.c \
+			  sccp_socket.c       sccp_config.c        sccp_hint.c    sccp_lock.c        sccp_softkeys.c \
+			  sccp_event.c        sccp_adv_features.c  sccp_mwi.c     sccp_management.c  sccp_featureButton.c \
+			  sccp_conference.cpp #sccp_object2.c
 
 chan_sccp_la_CFLAGS	= $(AM_CFLAGS)
 chan_sccp_la_CFLAGS	+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
