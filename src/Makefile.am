@@ -11,17 +11,21 @@
 # Date:     $Date$
 # Revision: $Revision$
 
-AUTOMAKE_OPTS		= gnu dist-bzip2 dist-tarZ silent-rules
-ACLOCAL_AMFLAGS		= -I m4
-#DEFS += -include $(top_builddir)/include/global.h
+AUTOMAKE_OPTS		= gnu silent-rules
 
-
+# Chan_SCCP.so
 csmod_LTLIBRARIES	= chan_sccp.la
-chan_sccp_la_SOURCES	= chan_sccp.c         sccp_channel.c       sccp_device.c  sccp_indicate.c    sccp_pbx.c \
-			  sccp_utils.c        sccp_actions.c       sccp_cli.c     sccp_features.c    sccp_line.c \
-			  sccp_socket.c       sccp_config.c        sccp_hint.c    sccp_lock.c        sccp_softkeys.c \
-			  sccp_event.c        sccp_adv_features.c  sccp_mwi.c     sccp_management.c  sccp_featureButton.c \
-			  sccp_conference.cpp #sccp_object2.c
+chan_sccp_la_SOURCES    = chan_sccp.h          sccp_cli.h          sccp_event.h          sccp_labels.h      sccp_mwi.h           \
+			  sccp_softkeys.h      sccp_conference.h   sccp_featureButton.h  sccp_line.h        sccp_utils.h	 \
+			  sccp_actions.h       sccp_config.h       sccp_features.h       sccp_lists.h       sccp_pbx.h           \
+			  sccp_adv_features.h  sccp_device.h       sccp_hint.h           sccp_lock.h        sccp_protocol.h      \
+			  sccp_channel.h       sccp_dllists.h      sccp_indicate.h       sccp_management.h  sccp_socket.h        \
+			  													 \
+			  chan_sccp.c          sccp_channel.c      sccp_device.c         sccp_indicate.c    sccp_pbx.c           \
+			  sccp_utils.c         sccp_actions.c      sccp_cli.c            sccp_features.c    sccp_line.c          \
+			  sccp_socket.c        sccp_config.c       sccp_hint.c           sccp_lock.c        sccp_softkeys.c      \
+			  sccp_event.c         sccp_adv_features.c sccp_mwi.c            sccp_management.c  sccp_featureButton.c \
+			  sccp_conference.cpp  #sccp_object2.c
 
 chan_sccp_la_CFLAGS	= $(AM_CFLAGS)
 chan_sccp_la_CFLAGS	+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall

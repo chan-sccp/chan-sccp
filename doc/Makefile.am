@@ -11,6 +11,6 @@
 # Date:     $Date$
 # Revision: $Revision$
 
-EXTRA_DIST = html
+EXTRA_DIST = doxygen.cfg doxygen-header main.doc new_features.doc
 DX_CLEANFILES = everything to clean.
 

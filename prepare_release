@@ -1,0 +1,22 @@
+#!/bin/bash
+#echo "Adding Libtool to Project"
+#libtoolize --ltdl --copy --force --quiet
+echo "Running aclocal"
+aclocal --force -I autoconf
+echo "Running libtoolize"
+libtoolize --copy --force --quiet
+echo "Running autoheader"
+autoheader
+echo "Running automake"
+automake --add-missing --copy --force-missing
+echo "Running autoconf"
+autoconf
+echo "Running configure"
+./configure
+echo "Running make"
+make
+echo "Adding Current Revision to NEWS file"
+echo TRUNK_r`svn info |grep Revision |awk -F:\  '{print $2}'`: Generated Release on `date +"%Y/%M/%d"` >>NEWS
+echo "Running make dist"
+make dist
+
