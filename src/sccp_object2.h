@@ -1075,4 +1075,18 @@ void *_so2_iterator_next(struct so2_iterator *a);
 void so2_bt(void);	/* backtrace */
 int sccpobj2_init(void);
 
+/* QuickFix for missing linkedlist.h entry in versions lower than asterisk 1.6 */
+/*#ifndef ASTERISK_CONF_1_6
+#define AST_LIST_REMOVE_CURRENT(field) do { \
+        __new_prev->field.next = NULL;                         
+        __new_prev = __list_prev;
+        if (__list_prev)                                        
+                __list_prev->field.next = __list_next;           
+        else                                   
+                __list_head->first = __list_next;     
+        if (!__list_next)                            
+                __list_head->last = __list_prev;            
+        } while (0)
+#endif
+*/
 #endif /* _ASTERISK_SCCPOBJ2_H */
