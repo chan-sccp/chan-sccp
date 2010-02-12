@@ -184,6 +184,29 @@ fi
 ])
 
 ## ------------------##
+## CONFIGURE_PART    ##
+## ------------------##
+AC_DEFUN([CONFIGURE_PART],[
+case $TERM in
+       #   for the most important terminal types we directly know the sequences
+       xterm|xterm*|vt220|vt220*)
+               T_MD=`awk 'BEGIN { printf("%c%c%c%c", 27, 91, 49, 109); }' </dev/null 2>/dev/null`
+               T_ME=`awk 'BEGIN { printf("%c%c%c", 27, 91, 109); }' </dev/null 2>/dev/null`
+        ;;
+       vt100|vt100*|cygwin)
+               T_MD=`awk 'BEGIN { printf("%c%c%c%c%c%c", 27, 91, 49, 109, 0, 0); }' </dev/null 2>/dev/null`
+               T_ME=`awk 'BEGIN { printf("%c%c%c%c%c", 27, 91, 109, 0, 0); }' </dev/null 2>/dev/null`
+       ;;
+       *)
+               T_MD=''
+               T_ME=''
+       ;;
+esac
+  AC_MSG_RESULT()
+  AC_MSG_RESULT([${T_MD}$1${T_ME}])
+])
+
+## ------------------##
 ## Check Make	     ##
 ## ------------------##
 AC_DEFUN([CS_CHECK_GNU_MAKE], [AC_CACHE_CHECK([for GNU make], [ac_cv_GNU_MAKE],
