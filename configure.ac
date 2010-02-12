@@ -34,6 +34,7 @@ AH_TOP([
 ])
 
 dnl AM_INIT_AUTOMAKE([gnu 1.5 no-define dist-bzip2 dist-tarZ])
+CONFIGURE_PART([Checking AutoMake:])
 AM_INIT_AUTOMAKE([1.9 -Wno-portability check-news dist-bzip2 dist-tarZ no-define nostdinc])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 AM_DISABLE_STATIC([])
@@ -66,7 +67,7 @@ fi
 
 AC_DEFINE_UNQUOTED([BUILD_USER],"`${WHOAMI}`",[building user])
 
-
+CONFIGURE_PART([Checking host platform:])
 case "${host}" in
      *freebsd*)
      ac_default_prefix=/usr/local
@@ -148,6 +149,7 @@ AC_GNU_SOURCE
 # cross-compile checks
 if test x"${build}" != x"${host}"; 
 then
+   CONFIGURE_PART([Checking Cross-Compile:])
    AC_CHECK_TOOL(CC, gcc, :)
    AC_CHECK_TOOL(AR, ar, :)
    if test x"${CS_OSTYPE}" = xWin32;
@@ -160,6 +162,7 @@ then
 fi
 
 # Checks for programs.
+CONFIGURE_PART([Checking for standard programs:])
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
@@ -182,6 +185,7 @@ AC_PATH_PROGS(UNAME,uname,[echo uname not found so no version info will be avail
 AC_PATH_PROGS(WHOAMI,whoami,[echo whoami not found so no version info will be available])
 
 # LibTool
+CONFIGURE_PART([Checking Libtool:])
 LT_PREREQ([2.0.0])
 LT_INIT([dlopen])
 LTDL_INIT([])
@@ -202,6 +206,7 @@ LIBS_save=$LIBS
 LIBS="$LIBS"
 
 # Check for headers, structures, typedefs, libs etc which are not related to specific add-on packages
+CONFIGURE_PART([Checking for Required Libraries:])
 dnl check for required libraries (also for add-ons)
 AC_CHECK_LIB([c], [main])
 AC_CHECK_HEADER([asterisk.h],,[compile_for_asterisk="no"])
@@ -260,6 +265,8 @@ AC_DEFINE([__LITTLE_ENDIAN],1234,[for the places where it is not defined])
 AC_DEFINE([__BIG_ENDIAN],4321,[for the places where it is not defined])
 
 # Configure Options
+CONFIGURE_PART([Checking Configure Options:])
+
 dnl Optimize for host cpu version
 AC_ARG_ENABLE(optimization,     
 	[AC_HELP_STRING([--disable-optimization],[no detection or tuning flags for cpu version])],
@@ -448,6 +455,7 @@ AC_ARG_WITH(dynamic_speeddial,
 ])
 
 dnl Figure out the Asterisk Version
+CONFIGURE_PART([Checking Asterisk Headers:])
 if test "${PBX_TYPE}" = "Asterisk"; then
   AC_CHECK_HEADER(asterisk/version.h,[
     AC_MSG_CHECKING([for version in asterisk/version.h])
@@ -831,6 +839,7 @@ AC_SUBST([csmoddir])
 AC_DEFINE_UNQUOTED([BUILD_USER],"`${WHOAMI}`",[building user])
 
 dnl Doxygen
+CONFIGURE_PART([Checking for Doxygen:])
 DX_HTML_FEATURE(ON)
 DX_CHM_FEATURE(OFF)
 DX_CHI_FEATURE(OFF)
@@ -841,6 +850,7 @@ DX_PDF_FEATURE(OFF)
 DX_PS_FEATURE(OFF)
 DX_INIT_DOXYGEN($PACKAGE, doc/doxygen.cfg)
 
+CONFIGURE_PART([Generating Configuration and Makefiles])
 AC_CONFIG_FILES([
    Makefile
    README
