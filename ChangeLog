@@ -1,4 +1,15 @@
+2010-02-12  ddegroot
+
+	* [r1277] src/Makefile.am, src/sccp_object2.h: Removed sccp_object2
+	  temporarily because it does not compile against lower than
+	  asterisk 1.6 versions.
+
 2010-02-11  ddegroot
+
+	* [r1276] configure.ac: Include Checking for libtool
+
+	* [r1275] ChangeLog, Makefile.am: Change build_tools content to
+	  autoconf directory
 
 	* [r1274] ChangeLog, autoconf, bootstrap.sh, libtool[ADD]: Added
 	  local libtool

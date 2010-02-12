@@ -12,10 +12,17 @@
 # Revision: $Revision$
 
 include $(top_srcdir)/amdoxygen.am
-EXTRA_DIST 			= bootstrap.sh configure
+AUTOMAKE_OPTS			= gnu silent-rules
+EXTRA_DIST 			= 
 SUBDIRS 			= src doc
 ACLOCAL_AMFLAGS                 = -I autoconf
-
+AM_CPPFLAGS                     = $(LTDLINCL)
+	
+# Update libtool if necessary	
+libtool: @LIBTOOL_DEPS@
+	cd $(srcdir) && \
+	$(SHELL) ./config.status --recheck
+	
 FORCE:
 
 # Update ChangeLog file from SVN Log

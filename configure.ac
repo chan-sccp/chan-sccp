@@ -17,7 +17,8 @@ AC_CANONICAL_HOST
 AC_CANONICAL_TARGET 
 dnl AC_DISABLE_STATIC
 
-AM_CONFIG_HEADER(src/config.h)
+dnl AC_CONFIG_HEADER(src/config.h.in:src/config.h)
+AC_CONFIG_HEADER(src/config.h)
 
 AH_TOP([
 /*!
@@ -35,7 +36,7 @@ AH_TOP([
 dnl AM_INIT_AUTOMAKE([gnu 1.5 no-define dist-bzip2 dist-tarZ])
 AM_INIT_AUTOMAKE([1.9 -Wno-portability check-news dist-bzip2 dist-tarZ no-define nostdinc])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
-AM_DISABLE_STATIC
+AM_DISABLE_STATIC([])
 
 # check existence of the package
 AC_CONFIG_SRCDIR([src/chan_sccp.c]) 
@@ -181,8 +182,20 @@ AC_PATH_PROGS(UNAME,uname,[echo uname not found so no version info will be avail
 AC_PATH_PROGS(WHOAMI,whoami,[echo whoami not found so no version info will be available])
 
 # LibTool
-LT_INIT()
 LT_PREREQ([2.0.0])
+LT_INIT([dlopen])
+LTDL_INIT([])
+if test "x$with_included_ltdl" != "xyes"; then
+  save_CFLAGS="$CFLAGS"
+  save_LDFLAGS="$LDFLAGS"
+  CFLAGS="$CFLAGS $LTDLINCL"
+  LDFLAGS="$LDFLAGS $LIBLTDL"
+  AC_CHECK_LIB([ltdl], [lt_dladvise_init],
+                [],
+        [AC_MSG_ERROR([installed libltdl is too old])])
+  LDFLAGS="$save_LDFLAGS"
+  CFLAGS="$save_CFLAGS"
+fi
 AC_SUBST([LIBTOOL_DEPS])
 
 LIBS_save=$LIBS

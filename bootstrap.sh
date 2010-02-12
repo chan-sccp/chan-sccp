@@ -51,9 +51,10 @@ check_for_app aclocal${MY_AM_VER}
 echo "Generating the configure script ..."
 echo 
 aclocal${MY_AM_VER} --force -I autoconf
-autoconf${MY_AC_VER}
+#libtoolize --force --copy
 autoheader${MY_AC_VER}
 automake${MY_AM_VER} --add-missing --copy --force-missing 2>/dev/null
+autoconf${MY_AC_VER}
 
 echo "Running configure script..."
 echo
