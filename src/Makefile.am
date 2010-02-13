@@ -34,7 +34,7 @@ chan_sccp_la_LDFLAGS	= -avoid-version -module
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
-	@if [ -d "$(DESTDIR)$(csmoddir)" ]; then $(MKDIR_P) "$(DESTDIR)$(csmoddir)"; fi
+	@test -z "$(csmoddir)" || $(mkdir_p) "$(DESTDIR)$(csmoddir)"
 	@$(INSTALL) $(INSTALL_STRIP_FLAG) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)" 
 	@if [ -d "$(DESTDIR)$(csmoddir)" ]; then                                                         \
 		echo    "=============================================================="; \
