@@ -35,7 +35,7 @@ chan_sccp_la_LDFLAGS	= -avoid-version -module
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
 	@if [ -d "$(DESTDIR)$(csmoddir)" ]; then $(MKDIR_P) "$(DESTDIR)$(csmoddir)"; fi
-	@$(install_sh_PROGRAM) .libs/chan_sccp.so $(DESTDIR)$(csmoddir)/chan_sccp.so		 
+	@$(INSTALL) $(INSTALL_STRIP_FLAG) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)" 
 	@if [ -d "$(DESTDIR)$(csmoddir)" ]; then                                                         \
 		echo    "=============================================================="; \
 		echo    "Installed chan_sccp.so to '$(DESTDIR)$(csmoddir)'...";           \
@@ -43,3 +43,5 @@ install-csmodLTLIBRARIES:
 		echo    "Please restart asterisk to use the new version of chan_sccp.so"; \
 		echo    "=============================================================="; \
 	fi
+
+#	@$(install_sh_PROGRAM) .libs/chan_sccp.so $(DESTDIR)$(csmoddir)/chan_sccp.so		 
