@@ -76,12 +76,6 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l, sccp_device_t *device)
 		return NULL;
 	}
 
-	//TODO check if device has this line
-//	if (!l->device) {
-//		ast_log(LOG_ERROR, "SCCP: Tried to open channel on NULL device\n");
-//		return NULL;
-//	}
-
 	if (device && !device->session) {
 		ast_log(LOG_ERROR, "SCCP: Tried to open channel on device %s without a session\n", device->id);
 		return NULL;
@@ -121,20 +115,6 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l, sccp_device_t *device)
 	c->device = device;
 	sccp_channel_updateChannelCapability(c);
 
-/*
-	if(!device){
-//		SCCP_LIST_LOCK(&l->devices);
-//		SCCP_LIST_TRAVERSE(&l->devices, device, linedevicelist){
-//			sccp_device_lock(device);
-//			device->channelCount++;
-//			sccp_device_unlock(device);
-//		}
-//		SCCP_LIST_UNLOCK(&l->devices);
-	}else{
-		sccp_device_lock(device);
-		device->channelCount++;
-		sccp_device_unlock(device);
-	}*/
 	sccp_line_addChannel(l, c);
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: New channel number: %d on line %s\n", l->id, c->callid, l->name);
@@ -301,11 +281,6 @@ void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t * c)
 			"\n\tcallerid: %s"
 			"\n\tcallerName: %s\n", (device)?device->id:"(null)", skinny2str(SKINNY_CALLTYPE,c->calltype), c->callid, instance, c->callingPartyNumber, c->callingPartyName);
 
-//	if (c->line->device){
-//		sccp_dev_send(c->line->device, r);
-//		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send callinfo for %s channel %d\n", c->line->device->id, skinny2str(SKINNY_CALLTYPE,c->calltype), c->callid);
-//	}else
-//		return;
 }
 
 /*!
@@ -448,10 +423,7 @@ enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struc
 		return AST_RTP_GET_FAILED;
 	}
 
-//	sccp_channel_lock(c);
-
 	if (!c->rtp.audio) {
-//                sccp_channel_unlock(c);
 		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO RTP\n");
 		return AST_RTP_GET_FAILED;
 	}
@@ -459,19 +431,16 @@ enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struc
 	*rtp = c->rtp.audio;
 	if(!(d = c->device)) {
 		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO DEVICE\n");
-//		sccp_channel_unlock(c);
 		return AST_RTP_GET_FAILED;
 	}
 
 	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
 		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
-//		sccp_channel_unlock(c);
 		return AST_RTP_GET_FAILED;
 	}
 
  	if (!d->directrtp) {
  		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Direct RTP disabled\n");
-// 		sccp_channel_unlock(c);
  		return AST_RTP_GET_FAILED;
  	}
 
@@ -482,10 +451,7 @@ enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struc
 		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Using AST_RTP_TRY_NATIVE for channel %s\n", ast->name);
 	}
 
-//	sccp_channel_unlock(c);
-
 	return res;
-
 }
 
 
@@ -509,11 +475,6 @@ enum ast_rtp_glue_result sccp_channel_get_vrtp_peer(struct ast_channel *ast, str
 #endif
 	*rtp = c->rtp.video;
 	return AST_RTP_TRY_PARTIAL;
-//#ifndef CS_AST_HAS_RTP_ENGINE
-//	return AST_RTP_TRY_NATIVE;
-//#else
-//	return AST_RTP_GLUE_RESULT_REMOTE;
-//#endif
 }
 
 
@@ -553,13 +514,6 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 	struct sockaddr_in them;
 
 	sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer)\n");
-
-	/* this should disable early rtp peering */
-	/*
-	if (ast->_state != AST_STATE_UP) {
-		return 0;
-	}
-	*/
 
 	if (!(c = CS_AST_CHANNEL_PVT(ast))) {
 		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) NO PVT\n");
@@ -1228,8 +1182,6 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 		sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_OFFHOOK);
 
 	sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_CONNECTED);
-
-	//ast_setstate(c->owner, AST_STATE_UP);
 }
 
 
@@ -1426,13 +1378,9 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
 
 	c->device = d;
 	sccp_channel_updateChannelCapability(c);
-	//c->owner->nativeformats = c->device ? c->device->capability : GLOB(global_capability);
-
-	//sccp_channel_set_callstate(d, c, SKINNY_CALLSTATE_CONNECTED);
 	c->state = SCCP_CHANNELSTATE_HOLD;
 	sccp_channel_unlock(c);
 	sccp_channel_start_rtp(c);
-	//sccp_channel_openreceivechannel(c);
 	sccp_channel_set_active(d, c);
 	sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CONNECTED); // this will also reopen the RTP stream
 
@@ -1594,9 +1542,6 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 	sccp_device_unlock(d);
 
 	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: do we have video support? %s\n", d->id, isVideoSupported?"yes":"no");
-
-	//if (!s)
-	//	return;
 
 /* No need to lock, because already locked in the sccp_indicate.c */
 /*	sccp_channel_lock(c); */
@@ -1776,7 +1721,6 @@ void sccp_channel_transfer(sccp_channel_t * c)
 		return;
 	}
 
-	// d = c->device;
 	d = c->device;
 
 	if (!d->transfer || !c->line->transfer) {
@@ -1923,26 +1867,6 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 			ast_log(LOG_WARNING, "%s: Unable to create thread for the blind transfer ring indication. %s\n", d->id, strerror(errno));
 		}
 	}
-// OLD APPLIANCE
-/*
-	if (astcDestinationLocal->cdr && astcSourceRemote->cdr) {
-		astcDestinationLocal->cdr = ast_cdr_append(astcDestinationLocal->cdr, astcSourceRemote->cdr);
-	} else if (astcSourceRemote->cdr) {
-		astcDestinationLocal->cdr = astcSourceRemote->cdr;
-	}
-	astcSourceRemote->cdr = NULL;
-*/
-// NEW APPLIANCE
-/*
-	if(!astcDestinationLocal->cdr)
-		astcDestinationLocal->cdr = ast_cdr_alloc();
-
-	if(astcSourceRemote->cdr)
-		astcDestinationLocal->cdr = ast_cdr_append(astcDestinationLocal->cdr, astcSourceRemote->cdr);
-	else
-		ast_log(LOG_WARNING, "SCCP: unable to find CDR informations for channel %s\n", (astcSourceRemote && astcSourceRemote->name)?astcSourceRemote->name:"(NULL)");
-*/
-
 	if (ast_channel_masquerade(astcDestinationLocal, astcSourceRemote)) {
 		ast_log(LOG_WARNING, "SCCP: Failed to masquerade %s into %s\n", astcDestinationLocal->name, astcSourceRemote->name);
 
@@ -2051,7 +1975,6 @@ static void * sccp_channel_park_thread(void *stuff) {
 		extstr[1] = SKINNY_LBL_CALL_PARK_AT;
 		sprintf(&extstr[2]," %d",ext);
 		c = CS_AST_CHANNEL_PVT(chan2);
-//		sccp_dev_displayprompt(c->device, c->line->instance, c->callid, extstr, 0);
 		sccp_dev_displaynotify(c->device, extstr, 10);
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(c->device), chan1->name, ext);
 	}
@@ -2104,7 +2027,6 @@ void sccp_channel_forward(sccp_channel_t *parent, sccp_linedevices_t *lineDevice
 
 	sccp_copy_string(forwarder->owner->exten, dialedNumber, sizeof(forwarder->owner->exten));
 	sccp_ast_setstate(forwarder, AST_STATE_OFFHOOK);
-	//sccp_pbx_softswitch(forwarder); /* softswitch does nothing for dial */
 	if (!ast_strlen_zero(dialedNumber) && !ast_check_hangup(forwarder->owner)
 			&& ast_exists_extension(forwarder->owner, forwarder->line->context, dialedNumber, 1, forwarder->line->cid_num) ) {
 		/* found an extension, let's dial it */

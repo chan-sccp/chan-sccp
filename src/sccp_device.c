@@ -80,7 +80,6 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 	d->codecs = GLOB(global_codecs);
 	d->transfer = 1;
 	d->state = SCCP_DEVICESTATE_ONHOOK;
-//	d->ringermode = SKINNY_STATION_RINGOFF;
 //	d->dndmode = GLOB(dndmode);
 	d->trustphoneip = GLOB(trustphoneip);
 	//d->privacyFeature.enabled = GLOB(private);
@@ -160,13 +159,6 @@ int sccp_device_get_codec(struct ast_channel *ast)
 
 	/* update channel capabilities */
 	sccp_channel_updateChannelCapability(c);
-	/*
-	c->format = ast_codec_choose(&d->codecs, d->capability, 1);
-	ast->nativeformats = d->capability;
-	ast->rawreadformat = d->capability;
-	ast->rawwriteformat = d->capability;
-	*/
-
 	ast_set_read_format(ast, c->format);
 	ast_set_write_format(ast, c->format);
 
@@ -252,13 +244,6 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 				btn[i].type = SKINNY_BUTTONTYPE_MULTI;
 				btn[i].instance=i+1;
 			}
-			/*(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
-			(btn++)->type = SKINNY_BUTTONTYPE_MESSAGES;
-			(btn++)->type = SKINNY_BUTTONTYPE_DIRECTORY;
-			(btn++)->type = SKINNY_BUTTONTYPE_APPLICATION;
-			(btn++)->type = SKINNY_BUTTONTYPE_HEADSET;*/
-			//btn[20].type = SKINNY_BUTTONTYPE_MULTI;
-			//btn[20].instance=21;
 			btn[20].type = SKINNY_BUTTONTYPE_MESSAGES;
 			btn[20].instance=21;
 			btn[21].type = SKINNY_BUTTONTYPE_DIRECTORY;
@@ -403,8 +388,6 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 	if (opt == SKINNY_DEVICE_RS_OK) {
 		snprintf(servername, sizeof(servername), "%s %s", GLOB(servername), SKINNY_DISP_CONNECTED);
 		sccp_dev_displaynotify(d, servername, 5);
-		/* the sccp_dev_check_displayprompt(d); can't stay here, IPC will not reboot correctly */
-
 		sccp_dev_postregistration(d);
 	}
 }
@@ -517,7 +500,6 @@ void sccp_dev_set_ringer(sccp_device_t * d, uint8_t opt, uint32_t line, uint32_t
 	/* Note that for distinctive ringing to work with the higher protocol versions
 	   the following actually needs to be set to 1 as the original comment says.
 	   Curiously, the variable is not set to 1 ... */
-	//r->msg.SetRingerMessage.lel_unknown1 = htolel(opt); /* always 1 */
 	r->msg.SetRingerMessage.lel_unknown1 = htolel(1);/* always 1 */
 	r->msg.SetRingerMessage.lel_lineInstance = htolel(line);
 	r->msg.SetRingerMessage.lel_callReference = htolel(callid);
@@ -863,7 +845,6 @@ sccp_line_t * sccp_dev_get_activeline(sccp_device_t * d)
 {
 	sccp_buttonconfig_t *buttonconfig;
 
-	/* XXX fixme */
 	/* What's up if the currentLine is NULL? let's do the check */
 	if (!d || !d->session)
 		return NULL;
@@ -906,52 +887,18 @@ void sccp_dev_set_activeline(sccp_device_t *device, sccp_line_t * l)
 	return;
 }
 
-
-/*
-uint8_t sccp_dev_check_idle(sccp_device_t * d) {
-	sccp_line_t * l = NULL;
-	uint8_t res = 0;
-	if (!d || !d->session)
-		return 0;
-	sccp_device_lock(d);
-	if (d->state == SCCP_DEVICESTATE_OFFHOOK)
-		goto OUT;
-	if (d->active_channel)
-		goto OUT;
-	l = d->lines;
-	if (!l)
-		goto OUT;
-	* let's check for channels on lines *
-	res = 1;
-	while (res && l) {
-		if (l->channels)
-			res = 0;
-		l = l->next_on_device;
-	}
-OUT:
-	sccp_device_unlock(d);
-	return res;
-}
-*/
-
 /*!
  * \brief Reschedule Display Prompt Check
  * \param d SCCP Device
  */
 void sccp_dev_check_displayprompt(sccp_device_t * d)
 {
-	//sccp_buttonconfig_t	*buttonconfig = NULL;
-	//sccp_line_t * l;
 	char tmp[256] = "";
 	int timeout = 0;
 	uint8_t res = 0;
-	//int instance;
-
 
 	if (!d || !d->session)
 		return;
-
-	//sccp_device_lock(d);
 
 	sccp_dev_clearprompt(d, 0, 0);
 	sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
@@ -1004,7 +951,6 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " (Silent) <<<", 0);
 		else
 			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " <<<", 0);
-		//goto OUT;
 	}
 
 	if (!ast_db_get("SCCP/message", "timeout", tmp, sizeof(tmp))) {
@@ -1012,24 +958,20 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	}
 	if (!ast_db_get("SCCP/message", "text", tmp, sizeof(tmp))) {
 		if (!ast_strlen_zero(tmp)) {
-			/* sccp_dev_displayprompt(d, 0, 0, tmp, timeout); */
 			sccp_dev_displayprinotify(d, tmp, 5, timeout);
 			goto OUT;
 		}
 	}
 
 	if (d->mwilight) {
-		/* sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOU_HAVE_VOICEMAIL, 10); */
 		char buffer[StationMaxDisplayTextSize];
 		sprintf(buffer, "%s: (%d/%d)", SKINNY_DISP_YOU_HAVE_VOICEMAIL, d->voicemailStatistic.newmsgs, d->voicemailStatistic.oldmsgs);
-		//sccp_dev_displayprinotify(d, SKINNY_DISP_YOU_HAVE_VOICEMAIL ": " d->mwilight, 5, 10);
 		sccp_dev_displayprinotify(d, buffer, 5, 10);
 		goto OUT;
 	}
 	/* when we are here, there's nothing to display */
 OUT:
 	sccp_log(99)(VERBOSE_PREFIX_3 "%s: \n", d->id);
-	//sccp_device_unlock(d);
 }
 
 /*!
@@ -1179,9 +1121,6 @@ int sccp_device_check_ringback(sccp_device_t * d)
 
 /*!
  * \brief Handle Post Device Registration
- *
- * this thread will start 5 seconds after the device registration to display the status of the monitored extensions
- *
  * \param data Data
  */
 void * sccp_dev_postregistration(void *data)
@@ -1191,23 +1130,12 @@ void * sccp_dev_postregistration(void *data)
 	if (!d)
 		return NULL;
 
-	/*pthread_testcancel();
-	sleep(10);
-	*/
-
-	//sccp_device_lock(d);
-
 	sccp_log(2)(VERBOSE_PREFIX_3 "%s: Device registered; performing post registration tasks...\n", d->id);
 
 	/* turn off the device MWI light. We need to force it off on some phone (7910 for example) */
 	sccp_dev_set_mwi(d, NULL, 0);
 
 	sccp_dev_check_displayprompt(d);
-
-	/*d->postregistration_thread = AST_PTHREADT_STOP; */
-
-	//sccp_device_unlock(d);
-	//sccp_mwi_check(d);
 
 	// Post event to interested listeners (hints, mwi) that device was registered.
 	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
@@ -1217,11 +1145,8 @@ void * sccp_dev_postregistration(void *data)
 	event->event.deviceRegistered.device = d;
 	sccp_event_fire( (const sccp_event_t **)&event);
 
-
 	sccp_mwi_check(d);
 
-	//sccp_config_restoreDeviceFeatureStatus(d);
-	//sccp_dev_check_displayprompt(d);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
 	return NULL;
 }
@@ -1300,18 +1225,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 	}
 	SCCP_LIST_UNLOCK(&d->selectedChannels);
 
-
-#if 0
-	if (d->postregistration_thread && (d->postregistration_thread != AST_PTHREADT_STOP)) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Killing the device postregistration thread\n", d->id);
-		pthread_cancel(d->postregistration_thread);
-		pthread_kill(d->postregistration_thread, SIGURG);
-		pthread_join(d->postregistration_thread, NULL);
-		d->postregistration_thread = AST_PTHREADT_STOP;
-	}
-#endif
-
-	/* */
 	d->session = NULL;
 	sccp_device_unlock(d);
 	
@@ -1494,7 +1407,6 @@ int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type)
 	REQ(r, Reset);
 	r->msg.Reset.lel_resetType = htolel(reset_type);
 	sccp_session_send(d, r);
-	//sccp_dev_clean(d, FALSE); /* cleanup device */
 	return 1;
 }
 

@@ -112,6 +112,7 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 
 
 	if(d->channelCount > 0) {
+#warning "Restarting channels with active channels must be revisited urgently! (-DD)"
 		/* sccp_device_clean will check active channels */
 	        //ast_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
 	        //return RESULT_SUCCESS;
@@ -425,12 +426,6 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 			}
 		}
 	}
-//	SCCP_LIST_LOCK(&d->lines);
-//	SCCP_LIST_TRAVERSE(&d->lines, l, listperdevice) {
-//	//			ast_cli(fd, "%4d: %-20s %-20s\n", instance, l->name , l->label);
-//		ast_cli(fd, "%4d: %-20s %-20s\n", -1, l->name , l->label);
-//	}
-//	SCCP_LIST_UNLOCK(&d->lines);
 
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		ast_cli(fd, "\nSpeedials\n");
@@ -900,10 +895,8 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines),l,list) {
-		// sccp_line_lock(l);
 
 		c = NULL;
-//		d = l->device;
 		//TODO handle shared line
 		d = NULL;
 
@@ -956,7 +949,6 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 		if(strcmp(l->defaultSubscriptionId.number, "") || strcmp(l->defaultSubscriptionId.name, ""))
 			ast_cli(fd, "Default Subscription Id: Number=%s, Name=%s\n", l->defaultSubscriptionId.number,  l->defaultSubscriptionId.name);
 
-		// sccp_line_unlock(l);
 
 	}
 	SCCP_LIST_UNLOCK(&GLOB(lines));
@@ -1652,9 +1644,6 @@ static char *cli_show_mwi_subscriptions(struct ast_cli_entry *e, int cmd, struct
 	if (a->argc != 3)
 		return CLI_SHOWUSAGE;
 
-	//if(sccp_show_version(a->fd, a->argc, a->argv) == RESULT_SUCCESS){
-
-
 	sccp_mailbox_subscriber_list_t *subscribtion = NULL;
 	sccp_mailboxLine_t	*mailboxLine = NULL;
 	ast_cli(a->fd, "subscriptionsize: %d\n", sccp_mailbox_subscriptions.size);
@@ -1677,8 +1666,6 @@ static char *cli_show_mwi_subscriptions(struct ast_cli_entry *e, int cmd, struct
 	}
 	ast_cli(a->fd, "\n");
 	return CLI_SUCCESS;
-	//}else
-	//	return CLI_FAILURE;
 }
 #else
 /*!
@@ -1718,9 +1705,6 @@ static char *cli_show_softkeysets(struct ast_cli_entry *e, int cmd, struct ast_c
 	if (a->argc != 3)
 		return CLI_SHOWUSAGE;
 
-	//if(sccp_show_version(a->fd, a->argc, a->argv) == RESULT_SUCCESS){
-
-
 	sccp_softKeySetConfiguration_t *softkeyset = NULL;
 
 	ast_cli(a->fd, "SoftKeySets: %d\n", softKeySetConfig.size);
@@ -1737,7 +1721,6 @@ static char *cli_show_softkeysets(struct ast_cli_entry *e, int cmd, struct ast_c
 
 		for (i = 0; i < v_count; i++) {
 			const uint8_t *b = softkeyset->modes[i].ptr;
-			//ast_cli(a->fd, "      Set[%-2d]= ", softkeyset->modes[i].id);
 			ast_cli(a->fd, "      Set[%-2d]= ", i);
 
 			for ( c = 0; c < softkeyset->modes[i].count; c++) {
@@ -1747,14 +1730,11 @@ static char *cli_show_softkeysets(struct ast_cli_entry *e, int cmd, struct ast_c
 			ast_cli(a->fd, "\n");
 		}
 
-		//ast_cli(a->fd, "      Set[%-2d]= ", softkeyset->id);
 		ast_cli(a->fd, "\n");
 
 	}
 	ast_cli(a->fd, "\n");
 	return CLI_SUCCESS;
-	//}else
-	//	return CLI_FAILURE;
 }
 #else
 /*!

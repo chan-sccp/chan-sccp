@@ -1135,16 +1135,16 @@ sccp_feature_type_t sccp_featureStr2featureID(char *str){
 		return SCCP_FEATURE_DND;
 	}else if(!strcasecmp(str, "monitor")){
 		return SCCP_FEATURE_MONITOR;
-	}else if(!strcasecmp(str, "test1")){
-		return SCCP_FEATURE_TEST1;
-	}else if(!strcasecmp(str, "test2")){
-		return SCCP_FEATURE_TEST2;
-	}else if(!strcasecmp(str, "test3")){
-		return SCCP_FEATURE_TEST3;
-	}else if(!strcasecmp(str, "test4")){
-		return SCCP_FEATURE_TEST4;
-	}else if(!strcasecmp(str, "test5")){
-		return SCCP_FEATURE_TEST5;
+	}else if(!strcasecmp(str, "hold")){
+		return SCCP_FEATURE_HOLD;
+	}else if(!strcasecmp(str, "transfer")){
+		return SCCP_FEATURE_TRANSFER;
+	}else if(!strcasecmp(str, "multiblink")){
+		return SCCP_FEATURE_MULTIBLINK;
+	}else if(!strcasecmp(str, "mobility")){
+		return SCCP_FEATURE_MOBILITY;
+	}else if(!strcasecmp(str, "conference")){
+		return SCCP_FEATURE_CONFERENCE;
 	}else if(!strcasecmp(str, "test6")){
 		return SCCP_FEATURE_TEST6;
 	}else if(!strcasecmp(str, "test7")){
