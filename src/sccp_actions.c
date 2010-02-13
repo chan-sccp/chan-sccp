@@ -362,7 +362,7 @@ void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_moo_t * r)
 		break;
 	}
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(d), skinny2str(SCCP_ACCESSORY,d->accessoryused), skinny2str(SCCP_ACCESSORY_STATE,d->accessorystatus), unknown);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(d), sccp2str(SCCP_ACCESSORY,d->accessoryused), sccp2str(SCCP_ACCESSORY_STATE,d->accessorystatus), unknown);
 }
 
 /*!
