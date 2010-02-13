@@ -545,7 +545,6 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 	break;
   case KeepAliveMessage:
 	sccp_session_sendmsg(s->device, KeepAliveAckMessage);
-	//sccp_mwi_check(s->device);
 	break;
   case IpPortMessage:
   	/* obsolete message */
@@ -646,8 +645,6 @@ static int reload_config(void) {
 	if( !sccp_config_general() ){
 		return 0;
 	}
-//	sccp_config_readdevices(SCCP_CONFIG_READINITIAL);
-//	sccp_config_readLines(SCCP_CONFIG_READINITIAL);
 	sccp_config_readDevicesLines(SCCP_CONFIG_READINITIAL);
 	/* ok the config parse is done */
 	if ((GLOB(descriptor) > -1) && (ntohs(GLOB(bindaddr.sin_port)) != oldport)) {
@@ -657,7 +654,6 @@ static int reload_config(void) {
 
 	if (GLOB(descriptor) < 0)
 	{
-		//GLOB(descriptor) = socket(AF_UNSPEC, SOCK_STREAM, 0);
 		GLOB(descriptor) = socket(AF_INET, SOCK_STREAM, 0);
 
 		on = 1;
@@ -1164,18 +1160,12 @@ static int unload_module(void) {
 
 
 	/* removing devices */
-	//SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(devices), d, list){
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Removing device %s\n", d->id);
 		sccp_dev_clean(d, TRUE);
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
 
-//	while ((d = SCCP_LIST_REMOVE_HEAD(&GLOB(devices), list))) {
-//		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Removing device %s\n", d->id);
-//		sccp_dev_clean(d, TRUE);
-//	}
-//	SCCP_LIST_UNLOCK(&GLOB(devices));
 	if(SCCP_LIST_EMPTY(&GLOB(devices)))
 		SCCP_LIST_HEAD_DESTROY(&GLOB(devices));
 
@@ -1196,7 +1186,6 @@ static int unload_module(void) {
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
 		SCCP_LIST_HEAD_DESTROY(&l->channels);
-
 
 		//if (l->cfwd_num)
 		//	ast_free(l->cfwd_num);

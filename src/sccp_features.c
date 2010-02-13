@@ -586,8 +586,6 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
 					sccp_channel_lock(c);
 
 					/* searching callerid */
-
-
 					c->calltype = SKINNY_CALLTYPE_INBOUND;
 					sccp_channel_set_callingparty(c, name, number);
 					if(d->pickupmodeanswer) {
@@ -706,8 +704,6 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t line_instance) {
 			return;
 		}
 		if (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_DIALING) {
-			// len = strlen(c->dialedNumber);
-			// sccp_copy_string(c->dialedNumber+len, c->line->vmnum, sizeof(c->dialedNumber-len));
 			sccp_copy_string(c->dialedNumber, c->line->vmnum, sizeof(c->dialedNumber));
 			SCCP_SCHED_DEL(sched, c->digittimeout);
 			sccp_channel_unlock(c);

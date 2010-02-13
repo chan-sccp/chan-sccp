@@ -690,7 +690,7 @@ static const struct skinny_stimulus {
 #define SKINNY_BUTTONTYPE_GENERICAPPB3		0x23
 #define SKINNY_BUTTONTYPE_GENERICAPPB4		0x24
 #define SKINNY_BUTTONTYPE_GENERICAPPB5		0x25
-#define SKINNY_BUTTONTYPE_TEST3			0x26
+#define SKINNY_BUTTONTYPE_MULTIBLINKFEATURE	0x26
 
 #define SKINNY_BUTTONTYPE_MEETMECONFERENCE	0x7B
 #define SKINNY_BUTTONTYPE_CONFERENCE		0x7D
@@ -698,7 +698,7 @@ static const struct skinny_stimulus {
 #define SKINNY_BUTTONTYPE_CALLPICKUP		0x7F
 #define SKINNY_BUTTONTYPE_GROUPCALLPICKUP	0x80
 
-#define SKINNY_BUTTONTYPE_TEST4			0x81
+#define SKINNY_BUTTONTYPE_MOBILITY		0x81
 #define SKINNY_BUTTONTYPE_TEST6			0x82
 #define SKINNY_BUTTONTYPE_TEST7			0x8B
 #define SKINNY_BUTTONTYPE_TEST8			0x85
@@ -710,21 +710,21 @@ static const struct skinny_stimulus {
 
 #define SKINNY_BUTTONTYPE_TESTE			0xC0
 #define SKINNY_BUTTONTYPE_TESTF			0xC1
-#define SKINNY_BUTTONTYPE_MESSAGES		0xc2
-#define SKINNY_BUTTONTYPE_DIRECTORY		0xc3
+#define SKINNY_BUTTONTYPE_MESSAGES		0xC2
+#define SKINNY_BUTTONTYPE_DIRECTORY		0xC3
 #define SKINNY_BUTTONTYPE_TESTI			0xC4
-#define SKINNY_BUTTONTYPE_APPLICATION		0xc5
-#define SKINNY_BUTTONTYPE_HEADSET		0xc6
+#define SKINNY_BUTTONTYPE_APPLICATION	0xC5
+#define SKINNY_BUTTONTYPE_HEADSET		0xC6
 
-#define SKINNY_BUTTONTYPE_KEYPAD		0xf0
-#define SKINNY_BUTTONTYPE_AEC			0xfd
-#define SKINNY_BUTTONTYPE_UNDEFINED 		0xff
+#define SKINNY_BUTTONTYPE_KEYPAD		0xF0
+#define SKINNY_BUTTONTYPE_AEC			0xFd
+#define SKINNY_BUTTONTYPE_UNDEFINED 	0xFF
 
 /* this is not a skinny button type. Used for speedial/line buttons */
-#define SKINNY_BUTTONTYPE_MULTI 		0xf1
-#define SCCP_BUTTONTYPE_LINE			0xf2
-#define SCCP_BUTTONTYPE_SPEEDDIAL		0xf3
-#define SCCP_BUTTONTYPE_HINT			0xf4
+#define SKINNY_BUTTONTYPE_MULTI 		0xF1
+#define SCCP_BUTTONTYPE_LINE			0xF2
+#define SCCP_BUTTONTYPE_SPEEDDIAL		0xF3
+#define SCCP_BUTTONTYPE_HINT			0xF4
 
 /*!
  * \brief Skinny ButtonType Structure
@@ -1147,7 +1147,7 @@ typedef enum {
         Unknown_0x0143_Message			= 0x0143,
         Unknown_0x0144_Message			= 0x0144,
         DisplayDynamicPromptStatusMessage	= 0x0145,
-        SpeedDialStatDynamicMessage		= 0x0146,
+        FeatureStatAdvancedMessage		= 0x0146,
         LineStatDynamicMessage			= 0x0147,
         Unknown_0x0149_Message			= 0x0149,
         CallInfoDynamicMessage			= 0x014A,
@@ -1173,10 +1173,10 @@ static const struct sccp_messagetype {
 	{ OffHookMessage				, "Off-Hook Message"				},
 	{ OnHookMessage					, "On-Hook Message"				},
 	{ HookFlashMessage				, "Hook-Flash Message"				},
-	{ ForwardStatReqMessage				, "Forward Statistics Request"			},
-	{ SpeedDialStatReqMessage			, "Speed-Dial Statistics Request"		},
-	{ LineStatReqMessage				, "Line Statistics Request"			},
-	{ ConfigStatReqMessage				, "Config Statistics Request"			},
+	{ ForwardStatReqMessage				, "Forward State Request"			},
+	{ SpeedDialStatReqMessage			, "Speed-Dial State Request"		},
+	{ LineStatReqMessage				, "Line State Request"			},
+	{ ConfigStatReqMessage				, "Config State Request"			},
 	{ TimeDateReqMessage				, "Time Date Request"				},
 	{ ButtonTemplateReqMessage			, "Button Template Request"			},
 	{ VersionReqMessage				, "Version Request"				},
@@ -1201,8 +1201,8 @@ static const struct sccp_messagetype {
 	{ UpdateCapabilitiesMessage			, "Update Capabilities Message"			},
 	{ OpenMultiMediaReceiveChannelAckMessage	, "Open MultiMedia Receive Channel Acknowledge"	},
 	{ ClearConferenceMessage			, "Clear Conference Message"			},
-	{ ServiceURLStatReqMessage			, "Service URL Statistics Request"		},
-	{ FeatureStatReqMessage				, "Feature Statistics Request"			},
+	{ ServiceURLStatReqMessage			, "Service URL State Request"		},
+	{ FeatureStatReqMessage				, "Feature State Request"			},
 	{ CreateConferenceResMessage			, "Create Conference Response"			},
 	{ DeleteConferenceResMessage			, "Delete Conference Response"			},
 	{ ModifyConferenceResMessage			, "Modify Conference Response"			},
@@ -1227,10 +1227,10 @@ static const struct sccp_messagetype {
 	{ StartMediaReception				, "Start Media Reception"			},
 	{ StopMediaReception				, "Stop Media Reception"			},
 	{ CallInfoMessage				, "Call Information Message"			},
-	{ ForwardStatMessage				, "Forward Staticstics Message"			},
-	{ SpeedDialStatMessage				, "SpeedDial Staticstics Message"		},
-	{ LineStatMessage				, "Line Staticstics Message"			},
-	{ ConfigStatMessage				, "Config Staticstics Message"			},
+	{ ForwardStatMessage				, "Forward State Message"			},
+	{ SpeedDialStatMessage				, "SpeedDial State Message"		},
+	{ LineStatMessage				, "Line State Message"			},
+	{ ConfigStatMessage				, "Config State Message"			},
 	{ DefineTimeDate				, "Define Time Date"				},
 	{ StartSessionTransmission			, "Start Session Transmission"			},
 	{ StopSessionTransmission			, "Stop Session Transmission"			},
@@ -1269,7 +1269,7 @@ static const struct sccp_messagetype {
 	{ StartMediaFailureDetection			, "Start Media Failure Detection"		},
 	{ DialedNumberMessage				, "Dialed Number Message"			},
 	{ UserToDeviceDataMessage			, "User To Device Data Message"			},
-	{ FeatureStatMessage				, "Feature Staticstics Message"			},
+	{ FeatureStatMessage				, "Feature State Message"			},
 	{ DisplayPriNotifyMessage			, "Display Pri Notify Message"			},
 	{ ClearPriNotifyMessage				, "Clear Pri Notify Message"			},
 	{ StartAnnouncementMessage			, "Start Announcement Message"			},
@@ -1283,8 +1283,8 @@ static const struct sccp_messagetype {
 	{ UnSubscribeDtmfPayloadReqMessage		, "UnSubscribe DTMF Payload Request"		},
 	{ UnSubscribeDtmfPayloadResMessage		, "UnSubscribe DTMF Payload Response"		},
 	{ UnSubscribeDtmfPayloadErrMessage		, "UnSubscribe DTMF Payload Error Message"	},
-	{ ServiceURLStatMessage				, "ServiceURL Staticstics Message"		},
-	{ CallSelectStatMessage				, "Call Select Staticstics Message"		},
+	{ ServiceURLStatMessage				, "ServiceURL State Message"		},
+	{ CallSelectStatMessage				, "Call Select State Message"		},
 	{ OpenMultiMediaChannelMessage			, "Open MultiMedia Channel Message"		},
 	{ StartMultiMediaTransmission			, "Start MultiMedia Transmission"		},
 	{ StopMultiMediaTransmission			, "Stop MultiMedia Transmission"		},
@@ -1302,8 +1302,8 @@ static const struct sccp_messagetype {
 	{ Unknown_0x0143_Message			, "Unknown 0x0143_Message"			},
 	{ Unknown_0x0144_Message			, "Unknown 0x0144_Message"			},
 	{ DisplayDynamicPromptStatusMessage		, "Display Dynamic Prompt Status Message"	},
-	{ SpeedDialStatDynamicMessage			, "SpeedDial Statistics Dynamic Message"	},
-	{ LineStatDynamicMessage			, "Line Statistics Dynamic Message"		},
+	{ FeatureStatAdvancedMessage			, "SpeedDial State Dynamic Message"	},
+	{ LineStatDynamicMessage			, "Line State Dynamic Message"		},
 	{ Unknown_0x0149_Message			, "Unknown 0x0149 Message"			},
 	{ CallInfoDynamicMessage			, "Call Information Dynamic Message"		},
 	{ StartMediaTransmissionAck			, "Start Media Transmission Acknowledge"	},
@@ -1657,7 +1657,7 @@ typedef union {
                 uint32_t 	lel_type;					/*!< always 0x15 */
                 uint32_t 	lel_status;					/*!< status */
 		char	 	DisplayName[StationMaxNameSize];		/*!< SpeedDial Display Name */
-	} SpeedDialStatDynamicMessage;						/*!< Speed Dial Stat Dynamic Message Structure */
+	} FeatureStatAdvancedMessage;						/*!< Speed Dial Stat Dynamic Message Structure */
 
         struct {
                 uint32_t	lel_messageTimeout;				/*!< Message Timeout */

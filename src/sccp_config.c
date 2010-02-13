@@ -152,7 +152,6 @@ void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID,
 	}else{
 		config->type = FEATURE;
 		sccp_copy_string(config->button.feature.label, ast_strip(label), sizeof(config->button.feature.label));
-		//sccp_copy_string(config->button.feature.id, (!ast_strlen_zero(featureID))?ast_strip(featureID):NULL, sizeof(config->button.feature.options));
 		sccp_log(10)(VERBOSE_PREFIX_3 "featureID: %s\n", featureID);
 		config->button.feature.id = sccp_featureStr2featureID(featureID);
 
@@ -411,10 +410,6 @@ boolean_t sccp_config_general(void){
 				} else {
 					GLOB(amaflags) = amaflags;
 				}
-	/*
-			} else if (!strcasecmp(v->name, "mohinterpret") || !strcasecmp(v->name, "mohinterpret") 	) {
-				sccp_copy_string(GLOB(mohinterpret), v->value, sizeof(GLOB(mohinterpret)));
-	*/
 			} else if (!strcasecmp(v->name, "nat")) {
 				GLOB(nat) = sccp_true(v->value);
 			} else if (!strcasecmp(v->name, "directrtp")) {
@@ -620,12 +615,10 @@ boolean_t sccp_config_general(void){
 			GLOB(bindaddr.sin_port) = ntohs(DEFAULT_SCCP_PORT);
 		}
 		GLOB(bindaddr.sin_family) = AF_INET;
-		//GLOB(bindaddr.sin_family) = AF_UNSPEC;
-
-
-	ast_config_destroy(cfg);
 	return TRUE;
 }
+
+
 /**
  * \brief Read Lines from the Config File
  *
@@ -767,8 +760,6 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 
                         SCCP_LIST_INSERT_TAIL(&l->mailboxes, mailbox, list);
                         sccp_log(10)(VERBOSE_PREFIX_3 "%s: Added mailbox '%s@%s'\n", l->name, mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
-
-                        //sccp_copy_string(l->mailbox, v->value, sizeof(l->mailbox));
                 } else if (!strcasecmp(v->name, "vmnum")) {
                         sccp_copy_string(l->vmnum, v->value, sizeof(l->vmnum));
 		} else if (!strcasecmp(v->name, "adhocNumber")) {
@@ -779,13 +770,8 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
                         l->transfer = sccp_true(v->value);
                 } else if (!strcasecmp(v->name, "incominglimit")) {
                         l->incominglimit = atoi(v->value);
-
                         if (l->incominglimit < 1)
                                 l->incominglimit = 1;
-
-                        /* this is the max call phone limits. Just a guess. It's not important */
-                        if (l->incominglimit > 99)
-                                l->incominglimit = 99;
                 } else if (!strcasecmp(v->name, "echocancel")) {
                         l->echocancel = sccp_true(v->value);
                 } else if (!strcasecmp(v->name, "silencesuppression")) {
@@ -947,13 +933,9 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 			if (!strcasecmp(v->value, "device")){
 				sccp_copy_string(d->config_type, v->value, sizeof(d->config_type));
 			}
-                } else if (!strcasecmp(v->name, "type")) {
-                        //sccp_copy_string(d->config_type, v->value, sizeof(d->config_type));
-			//skip
                 } else if (!strcasecmp(v->name, "addon")) {
                         sccp_addon_addnew(d, v->value);
                 } else if (!strcasecmp(v->name, "tzoffset")) {
-                        /* timezone offset */
                         d->tz_offset = atoi(v->value);
                 } else if (!strcasecmp(v->name, "description")) {
                         sccp_copy_string(d->description, v->value, sizeof(d->description));
@@ -999,10 +981,8 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
                         if (!strcasecmp(v->value, "full")) {
                                 d->privacyFeature.status = 0;
                                 d->privacyFeature.status = ~d->privacyFeature.status;
-                                //d->privacyFeature.status = 0xFFFFFFFF;
                         } else {
                                 d->privacyFeature.status = 0;
-                                //d->privacyFeature.enabled = sccp_true(v->value);
                         }
                 } else if (!strcasecmp(v->name, "earlyrtp")) {
                         if (!strcasecmp(v->value, "none"))
@@ -1071,9 +1051,8 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 
 	 /* load saved settings from ast db */
 	sccp_config_restoreDeviceFeatureStatus(d);
-        //sccp_dev_dbget(d);
 
-        return d;
+	return d;
 }
 
 
@@ -1170,7 +1149,6 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
  				keySetSize = sccp_config_readSoftSet(softkeyset, variable->value);
  				
  				if(keySetSize > 0){
- 					//SoftKeyModes[i].count = keySetSize;
 					softKeySetConfiguration->modes[i].id = keyMode;
  					softKeySetConfiguration->modes[i].ptr = softkeyset;
  					softKeySetConfiguration->modes[i].count = keySetSize;

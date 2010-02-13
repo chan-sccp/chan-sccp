@@ -42,10 +42,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  */
 void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureType)
 {
-	//sccp_moo_t 			*featureRequestMessage = NULL;
-	//sccp_moo_t 			*featureRequestMessage2 = NULL;
-	//sccp_moo_t 			*buttonDefMessage = NULL;
-	sccp_moo_t			*featureDynamicMessage = NULL;
+	sccp_moo_t			*featureAdvancedMessage = NULL;
 	sccp_buttonconfig_t		*config=NULL, *buttonconfig = NULL;
 	sccp_linedevices_t		*linedevice =NULL;
 	sccp_line_t			*line;
@@ -133,35 +130,26 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 					config->button.feature.status = (device->monitorFeature.status)?1:0;
 				break;
 
-				case SCCP_FEATURE_TEST1:
+				case SCCP_FEATURE_HOLD:
 					buttonID = SKINNY_BUTTONTYPE_HOLD;
 					break;
 
-				case SCCP_FEATURE_TEST2:
+				case SCCP_FEATURE_TRANSFER:
 					buttonID = SKINNY_BUTTONTYPE_TRANSFER;
 					break;
 
-				case SCCP_FEATURE_TEST3:
-					buttonID = SKINNY_BUTTONTYPE_TEST3;
+				case SCCP_FEATURE_MULTIBLINK:
+					buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 					config->button.feature.status = device->priFeature.status;
-					/*
-					if(0 == device->priFeature.initialized)
-					{
-						buttonID = SKINNY_BUTTONTYPE_FEATURE;
-					}
-					else
-					{
-						buttonID = SKINNY_BUTTONTYPE_TEST3;
-					}*/
-					buttonID = SKINNY_BUTTONTYPE_TEST3;
+					buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 					break;
 
-				case SCCP_FEATURE_TEST4:
-					buttonID = SKINNY_BUTTONTYPE_TEST4;
+				case SCCP_FEATURE_MOBILITY:
+					buttonID = SKINNY_BUTTONTYPE_MOBILITY;
 					config->button.feature.status = device->mobFeature.status;
 					break;
 
-				case SCCP_FEATURE_TEST5:
+				case SCCP_FEATURE_CONFERENCE:
 					buttonID = SKINNY_BUTTONTYPE_CONFERENCE;
 					break;
 
@@ -227,8 +215,8 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 			}
 
 
-			/* send status */
-			/*
+			/* send status using old message */
+#if 0
 			REQ(featureRequestMessage, FeatureStatMessage);
 			featureRequestMessage->msg.FeatureStatMessage.lel_featureInstance = htolel(instance);
 			featureRequestMessage->msg.FeatureStatMessage.lel_featureID = htolel(buttonID);
@@ -236,37 +224,16 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 			featureRequestMessage->msg.FeatureStatMessage.lel_featureStatus = htolel(config->button.feature.status);
 			sccp_dev_send(device, featureRequestMessage);
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request. Instance = %d Status: %d\n", device->id, instance, config->button.feature.status);
-			*/
-
-			REQ(featureDynamicMessage, SpeedDialStatDynamicMessage);
-			featureDynamicMessage->msg.SpeedDialStatDynamicMessage.lel_instance = htolel(instance);
-			featureDynamicMessage->msg.SpeedDialStatDynamicMessage.lel_type     = htolel(buttonID);
-			featureDynamicMessage->msg.SpeedDialStatDynamicMessage.lel_status = htolel(config->button.feature.status);
-			sccp_copy_string(featureDynamicMessage->msg.SpeedDialStatDynamicMessage.DisplayName, config->button.feature.label, strlen(config->button.feature.label)+1);
-			sccp_dev_send(device, featureDynamicMessage);
-			
-		/*	
-			switch(config->button.feature.id){
-				case SCCP_FEATURE_TEST3:
-
-					if(0 == device->priFeature.initialized)
-					{
-						REQ(buttonDefMessage, ButtonTemplateMessageSingle);
-						buttonDefMessage->msg.ButtonTemplateMessageSingle.lel_buttonOffset = htolel(instance-1);
-						buttonDefMessage->msg.ButtonTemplateMessageSingle.lel_buttonCount = htolel(1);
-						buttonDefMessage->msg.ButtonTemplateMessageSingle.lel_totalButtonCount = htolel(1);
-						buttonDefMessage->msg.ButtonTemplateMessageSingle.definition[0].instanceNumber = instance;
-						buttonDefMessage->msg.ButtonTemplateMessageSingle.definition[0].buttonDefinition = SKINNY_BUTTONTYPE_TEST3;
-						sccp_dev_send(device, buttonDefMessage);
-						device->priFeature.initialized = 1;
-					}
-					break;
-					
-				default:
-					break;
-			} */
+#else
+			/* send status using new message */
+			REQ(featureAdvancedMessage, FeatureStatAdvancedMessage);
+			featureAdvancedMessage->msg.FeatureStatAdvancedMessage.lel_instance = htolel(instance);
+			featureAdvancedMessage->msg.FeatureStatAdvancedMessage.lel_type     = htolel(buttonID);
+			featureAdvancedMessage->msg.FeatureStatAdvancedMessage.lel_status = htolel(config->button.feature.status);
+			sccp_copy_string(featureAdvancedMessage->msg.FeatureStatAdvancedMessage.DisplayName, config->button.feature.label, strlen(config->button.feature.label)+1);
+			sccp_dev_send(device, featureAdvancedMessage);
+#endif
 		} 
-
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 }
