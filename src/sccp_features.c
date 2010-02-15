@@ -784,6 +784,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 	sccp_channel_t 		*channel = NULL;
 	sccp_selectedchannel_t 	*selectedChannel = NULL;
 	sccp_line_t 		*line = NULL;
+	boolean_t			selectedFound = FALSE;
 
 
 	if(!d || !c)
@@ -806,13 +807,14 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 	/* if we have selected channels, add this to conference */
 	SCCP_LIST_LOCK(&d->selectedChannels);
 	SCCP_LIST_TRAVERSE(&d->selectedChannels, selectedChannel, list) {
-		if(selectedChannel->channel->state != SCCP_CHANNELSTATE_CONNECTED)
-			sccp_indicate_nolock(selectedChannel->channel->device, selectedChannel->channel, SCCP_CHANNELSTATE_CONNECTED);
 
 		sccp_conference_addParticipant(d->conference, selectedChannel->channel);
+		selectedFound = TRUE;
 	}
 	SCCP_LIST_UNLOCK(&d->selectedChannels);
 
+	/* If no calls were selected, add all calls to the conference, across all lines. */
+	if(FALSE == selectedFound) {
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 
@@ -821,15 +823,10 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 			if(!line)
 				continue;
 
-
 			SCCP_LIST_LOCK(&line->channels);
 			SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
 				//if(channel->device == d && !channel->conference){
 				if(channel->device == d){
-
-					if(channel->state == SCCP_CHANNELSTATE_HOLD)
-						sccp_channel_resume(channel->device, channel);
-
 					sccp_conference_addParticipant(d->conference, channel);
 				}
 			}
@@ -839,6 +836,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 		}
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
+	}
 
 #else
 	/* sorry but this is private code -FS */

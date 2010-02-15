@@ -1022,7 +1022,7 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, sccp_device_t *device, ch
 
 
 	/* look if we have a call to put on hold */
-	if ( (c = sccp_channel_get_active(device)) ) {
+	if ( (c = sccp_channel_get_active(device)) && (NULL == c->conference) ) {
 		/* there is an active call, let's put it on hold first */
 		if (!sccp_channel_hold(c))
 			return NULL;
@@ -1091,7 +1091,7 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 {
 	sccp_line_t * l;
 	sccp_device_t 	*d;
-	sccp_channel_t * hold;
+	sccp_channel_t * c1;
 #ifdef CS_AST_HAS_FLAG_MOH
 	struct ast_channel * bridged;
 #endif
@@ -1137,10 +1137,16 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 
 	/* answering an incoming call */
 	/* look if we have a call to put on hold */
-	if ((hold = sccp_channel_get_active(d))) {
-		/* there is an active call, let's put it on hold first */
-		if (!sccp_channel_hold(hold))
-			return;
+	if ((c1 = sccp_channel_get_active(d))) {
+		if(NULL != c1) {
+			/* If there is a new call, we end it so that we can answer the call. */
+			if (c1 && c1->state == SCCP_CHANNELSTATE_OFFHOOK) {
+				sccp_channel_endcall(c1);
+			} else if (!sccp_channel_hold(c1)) {
+				/* there is an active call, let's put it on hold first */
+				return;
+			}
+		}
 	}
 
 

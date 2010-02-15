@@ -121,6 +121,12 @@ void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_
 	part->conference = conference;
 	participant->conference = conference;
 
+	/* Do we need both ? (-DD) */
+	if(participant->state != SCCP_CHANNELSTATE_CONNECTED)
+		sccp_indicate_nolock(selectedChannel->channel->device, selectedChannel->channel, SCCP_CHANNELSTATE_CONNECTED);
+	if(channel->state == SCCP_CHANNELSTATE_HOLD)
+		sccp_channel_resume(channel->device, channel);
+
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Added participant to conference %d \n", participant->device->id, conference->id);
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_INSERT_TAIL(&conference->participants, part, list);
