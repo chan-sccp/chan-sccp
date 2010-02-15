@@ -1139,8 +1139,8 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 	/* look if we have a call to put on hold */
 	if ((c1 = sccp_channel_get_active(d))) {
 		if(NULL != c1) {
-			/* If there is a new call, we end it so that we can answer the call. */
-			if (c1 && c1->state == SCCP_CHANNELSTATE_OFFHOOK) {
+			/* If there is a ringout or offhook call, we end it so that we can answer the call. */
+			if(c1 && (c1->state == SCCP_CHANNELSTATE_OFFHOOK || c1->state == SCCP_CHANNELSTATE_RINGOUT)) {
 				sccp_channel_endcall(c1);
 			} else if (!sccp_channel_hold(c1)) {
 				/* there is an active call, let's put it on hold first */
