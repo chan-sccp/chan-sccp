@@ -48,6 +48,7 @@ struct sccp_conference {
 
 struct sccp_conference_participant {
 		sccp_channel_t							*channel;		/*!< channel */
+		struct ast_channel *conferenceBridgePeer;	
 		
 		struct ast_bridge_features 					features;		/*!< Enabled features information */
 		pthread_t 							joinThread;

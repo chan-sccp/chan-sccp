@@ -817,7 +817,6 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 	if(FALSE == selectedFound) {
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-
 		if(config->type == LINE){
 			line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
 			if(!line)
@@ -825,14 +824,11 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 
 			SCCP_LIST_LOCK(&line->channels);
 			SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
-				//if(channel->device == d && !channel->conference){
 				if(channel->device == d){
 					sccp_conference_addParticipant(d->conference, channel);
 				}
 			}
 			SCCP_LIST_UNLOCK(&line->channels);
-
-
 		}
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);

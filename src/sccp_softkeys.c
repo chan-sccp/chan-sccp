@@ -319,7 +319,7 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 	if(!d)
 		return;
 
-	if((numSelectedChannels = sccp_device_selectedchannels_count(d)) < 2) {
+	if((numSelectedChannels = sccp_device_selectedchannels_count(d)) != 2) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: We need 2 channels to transfer\n", d->id);
 		sccp_mutex_unlock(&d->lock);
 		return;
