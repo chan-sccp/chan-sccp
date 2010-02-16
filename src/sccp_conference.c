@@ -95,11 +95,11 @@ void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_
 	if(!channel || !conference)
 		return;
 
-	if(channel->conference){
+	if(channel != conference->moderator->channel && channel->conference){
 		ast_log(LOG_NOTICE, "%s: Already in conference\n", DEV_ID_LOG(channel->device));
 		return;
 	}
-	if(channel->state != SCCP_CHANNELSTATE_HOLD || channel->state != SCCP_CHANNELSTATE_CONNECTED){
+	if(channel->state != SCCP_CHANNELSTATE_HOLD &&  channel->state != SCCP_CHANNELSTATE_CONNECTED){
 		ast_log(LOG_NOTICE, "%s: Only connected or channel on hold eligible for conference: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
 		return;
 	}
