@@ -5,11 +5,12 @@
  * \date        $Date$
  * \version     $Revision$  
  */
-#ifdef CS_SCCP_CONFERENCE
-
 
 #include "config.h"
+
+#ifdef CS_SCCP_CONFERENCE
 #include "sccp_conference.h"
+#include "sccp_indicate.h"
 #include "asterisk/bridging.h"
 #include "asterisk/bridging_features.h"
 
@@ -56,7 +57,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t *owner){
 	/* Always initialize the features structure, we are in most cases always going to need it. */
 	ast_bridge_features_init(&moderator->features);
 	
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: joining owner\n", owner->device->id, conference->id, owner->device->id);
+	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: joining owner to conference: %s, device %s\n", owner->device->id, conference->id, owner->device->id);
 	
 	
 	
@@ -97,15 +98,15 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t *owner){
  * @param conference conference
  * @param participant participant to remove
  */
-void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_t *participant){
+void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_t *channel){
 
     sccp_conference_participant_t *part = NULL;
 
-	if(!participant || !conference)
+	if(!channel || !conference)
 		return;
 
-	/*if(participant->conference){
-		ast_log(LOG_NOTICE, "%s: Already in conference\n", DEV_ID_LOG(participant->device));
+	/*if(channel->conference){
+		ast_log(LOG_NOTICE, "%s: Already in conference\n", DEV_ID_LOG(channel->device));
 		return;
 	}*/
 	
@@ -117,17 +118,15 @@ void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_
 	/* Always initialize the features structure, we are in most cases always going to need it. */
 	ast_bridge_features_init(&part->features);
 	
-	part->channel = participant;
+	part->channel = channel;
 	part->conference = conference;
-	participant->conference = conference;
+	channel->conference = conference;
 
 	/* Do we need both ? (-DD) */
-	if(participant->state != SCCP_CHANNELSTATE_CONNECTED)
-		sccp_indicate_nolock(selectedChannel->channel->device, selectedChannel->channel, SCCP_CHANNELSTATE_CONNECTED);
 	if(channel->state == SCCP_CHANNELSTATE_HOLD)
 		sccp_channel_resume(channel->device, channel);
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Added participant to conference %d \n", participant->device->id, conference->id);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Added participant to conference %d \n", channel->device->id, conference->id);
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_INSERT_TAIL(&conference->participants, part, list);
 	SCCP_LIST_UNLOCK(&conference->participants);
