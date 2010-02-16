@@ -1225,7 +1225,6 @@ int sccp_channel_hold(sccp_channel_t * c)
 		/* something wrong on the code let's notify it for a fix */
 		ast_log(LOG_ERROR, "%s can't put on hold an inactive channel %s-%08X (%s)\n", d->id, l->name, c->callid, sccp_indicate2str(c->state));
 		/* hard button phones need it */
-		//sccp_dev_displayprompt(d, l->instance, c->callid, "No active call to put on hold.",5);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 		return 0;
 	}

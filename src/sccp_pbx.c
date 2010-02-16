@@ -555,8 +555,6 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 {
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
 
-
-
 #ifdef ASTERISK_CONF_1_2
 	// if channel type is undefined, set to SCCP
 	if (!ast->type) {
