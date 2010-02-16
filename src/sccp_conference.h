@@ -48,7 +48,7 @@ struct sccp_conference {
 
 struct sccp_conference_participant {
 		sccp_channel_t							*channel;		/*!< channel */
-		struct ast_channel *conferenceBridgePeer;	
+		struct ast_channel  *conferenceBridgePeer;
 		
 		struct ast_bridge_features 					features;		/*!< Enabled features information */
 		pthread_t 							joinThread;
@@ -66,6 +66,7 @@ void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_
 void sccp_conference_removeParticipant(sccp_conference_t *conference, sccp_channel_t *participant);
 void sccp_conference_module_start(void);
 void sccp_conference_end(sccp_conference_t *conference);
+int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_t *participant, struct ast_channel *currentParticipantPeer);
 
 void sccp_conference_readFrame(struct ast_frame *frame, sccp_channel_t *channel);
 void sccp_conference_writeFrame(struct ast_frame *frame, sccp_channel_t *channel);

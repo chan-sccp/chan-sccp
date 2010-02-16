@@ -58,6 +58,15 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t *owner){
 	moderator->conference = conference;
 	owner->conference = conference;
 	conference->moderator = moderator;
+
+	if(NULL == owner->owner)
+	{
+		return NULL;
+	}
+
+	if (0 != sccp_conference_addAstChannelToConferenceBridge(moderator, owner->owner) ) {
+		// Error handling
+	}
 		
 	/* add moderator to participants list */
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: add owner\n", owner->device->id);
@@ -79,6 +88,45 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t *owner){
 	}
 	
 	return conference;
+}
+
+
+/*!
+ * Add channel to conference bridge
+ */
+int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_t *participant, struct ast_channel *currentParticipantPeer)
+{
+	if(NULL == participant)
+		return -1;
+
+	sccp_conference_t *conference = participant->conference;
+
+	if(NULL == conference)
+		return -1;
+
+	ast_channel_lock(currentParticipantPeer);
+	/* Allocate an asterisk channel structure as conference bridge peer for the participant */
+	participant->conferenceBridgePeer = ast_channel_alloc(0, currentParticipantPeer->_state, 0, 0, currentParticipantPeer->accountcode, 
+			currentParticipantPeer->exten, currentParticipantPeer->context, currentParticipantPeer->amaflags, "ConferenceBridge/%s", currentParticipantPeer->name);
+	if(!participant->conferenceBridgePeer) {
+		ast_log(LOG_NOTICE, "Couldn't allocate participant peer.\n");
+		ast_channel_unlock(currentParticipantPeer);
+		return -1;
+	}
+
+	participant->conferenceBridgePeer->readformat = currentParticipantPeer->readformat;
+	participant->conferenceBridgePeer->writeformat = currentParticipantPeer->writeformat;
+	participant->conferenceBridgePeer->nativeformats = currentParticipantPeer->nativeformats;
+
+	if(ast_channel_masquerade(participant->conferenceBridgePeer, currentParticipantPeer)){
+		/* Masquerade failed */
+		ast_channel_unlock(currentParticipantPeer);
+		return -1;
+	} 
+
+	ast_channel_unlock(currentParticipantPeer);
+
+	return 0;
 }
 
 /*!
@@ -104,19 +152,10 @@ void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_
 		return;
 	}
 
-	if(channel == conference->moderator->channel)
+	if(! (channel->owner && (currentParticipantPeer = CS_AST_BRIDGED_CHANNEL(channel->owner))))
 	{
-		if(! (currentParticipantPeer = channel->owner))
-		{
-			ast_log(LOG_NOTICE, "%s: Weird error: Participant has no channel on our side: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
-			return;
-		}
-	} else {
-		if(! (channel->owner && (currentParticipantPeer = CS_AST_BRIDGED_CHANNEL(channel->owner))))
-		{
-			ast_log(LOG_NOTICE, "%s: Weird error: Participant has no channel on our side: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
-			return;
-		}
+		ast_log(LOG_NOTICE, "%s: Weird error: Participant has no channel on our side: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
+		return;
 	}
 
 	part = (sccp_conference_participant_t*)ast_malloc(sizeof(sccp_conference_participant_t));
@@ -125,53 +164,23 @@ void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_
 	}
 	memset(part, 0, sizeof(sccp_conference_participant_t));
 	
-	ast_channel_lock(currentParticipantPeer);
-
-	/* Always initialize the features structure, we are in most cases always going to need it. */
-	ast_bridge_features_init(&part->features);
-	
-	/* Allocate an asterisk channel structure as conference bridge peer for the participant */
-	part->conferenceBridgePeer = ast_channel_alloc(0, currentParticipantPeer->_state, 0, 0, currentParticipantPeer->accountcode, 
-			currentParticipantPeer->exten, currentParticipantPeer->context, currentParticipantPeer->amaflags, "ConferenceBridge/%s", currentParticipantPeer->name);
-	if(!part->conferenceBridgePeer) {
-		ast_log(LOG_NOTICE, "%s: Couldn't allocate participant peer: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
-		free(part);
-		ast_channel_unlock(currentParticipantPeer);
-		return;
-	}
-	
 	part->channel = channel;
 	part->conference = conference;
 	channel->conference = conference;
-
-	part->conferenceBridgePeer->readformat = currentParticipantPeer->readformat;
-	part->conferenceBridgePeer->writeformat = currentParticipantPeer->writeformat;
-
-	if(ast_channel_masquerade(currentParticipantPeer, part->conferenceBridgePeer)){
-		/* Masquerade failed */
-		ast_log(LOG_NOTICE, "%s: Couldn't masquerade participant peer: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
-		ast_hangup(part->conferenceBridgePeer);
-		channel->conference = NULL;
-		free(part);
-		ast_channel_unlock(currentParticipantPeer);
-		return;
-	} else {
-		ast_channel_lock(part->conferenceBridgePeer);
-		ast_do_masquerade(currentParticipantPeer);
-		ast_channel_unlock(part->conferenceBridgePeer);
-	}
-
-	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: Added participant to conference %d \n", channel->device->id, conference->id);
+	
+	/* Always initialize the features structure, we are in most cases always going to need it. */
+	ast_bridge_features_init(&part->features);
 	
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_INSERT_TAIL(&conference->participants, part, list);
 	SCCP_LIST_UNLOCK(&conference->participants);
-	
+
+	if(0 != sccp_conference_addAstChannelToConferenceBridge(part, currentParticipantPeer) )
+	{
+		// Todo: error handling
+	}
+
 	if (ast_pthread_create_background(&part->joinThread, NULL, sccp_conference_join_thread, part) < 0) {
-		//channel->conference = NULL;
-		ast_hangup(part->conferenceBridgePeer);
-		free(part);
-		ast_channel_unlock(currentParticipantPeer);
 		return;
 	}
 	
@@ -179,7 +188,6 @@ void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_
 		//sccp_log(1)(VERBOSE_PREFIX_3 "Conference %d: members %s-%08x\n", conference->id, part->channel->line->name, part->channel->callid);
 	}
 
-	ast_channel_unlock(currentParticipantPeer);
 }
 
 
@@ -207,7 +215,7 @@ void sccp_conference_removeParticipant(sccp_conference_t *conference, sccp_chann
 	SCCP_LIST_UNLOCK(&conference->participants);
 	
 	SCCP_LIST_TRAVERSE(&conference->participants, part, list){
-		sccp_log(1)(VERBOSE_PREFIX_3 "Conference %d: members %s-%08x\n", conference->id, part->channel->line->name, part->channel->callid);		
+		sccp_log(1)(VERBOSE_PREFIX_3 "Conference %d: members\n", conference->id);		
 	}
 	
 	if(conference->participants.size < 1)
@@ -240,25 +248,33 @@ void sccp_conference_module_start(){
 static void * sccp_conference_join_thread(void *data){  
 	sccp_conference_participant_t *participant = (sccp_conference_participant_t *)data;
 	struct ast_channel	*astChannel;
-	
-	
-	if(participant == participant->conference->moderator){
-		astChannel = participant->channel->owner;
-	}else{
-		astChannel = participant->conferenceBridgePeer;
+
+	if(NULL == participant)
+	{
+		ast_log(LOG_ERROR, "SCCP: conference join thread null participant\n");
+		return NULL;
 	}
+
+	astChannel = participant->conferenceBridgePeer;
+
+	if(NULL == data)
+	{
+		ast_log(LOG_ERROR, "SCCP: conference join thread null channel\n");
+		return NULL;
+	}
+
 	
 	if(!astChannel){
 		ast_log(LOG_ERROR, "SCCP: no channel for conference\n");
 		participant->joinThread = AST_PTHREADT_NULL;
 		return NULL;
 	}else{
-		ast_log(LOG_NOTICE, "SCCP: add %s to bridge\n", astChannel->name);
+		ast_log(LOG_NOTICE, "SCCP: add channel to bridge\n");
 	}
 	  
 	ast_bridge_join(participant->conference->bridge, astChannel, NULL, &participant->features);
 	
-	sccp_conference_removeParticipant(participant->conference, participant->channel);
+	//sccp_conference_removeParticipant(participant->conference, participant->channel);
 	
 	participant->joinThread = AST_PTHREADT_NULL;
 }
