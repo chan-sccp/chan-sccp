@@ -840,8 +840,8 @@ const char * sccp2str(uint8_t type, uint32_t value) {
                 case SCCP_DNDMODE:
                         _ARR2STR(sccp_dndmodes, dndmode , value , text);
                 default:
-                        return "Not Defined";
-        }  
+                        return "sccp2str: SCCP Type Not Found";
+        }
 }
 
 
@@ -880,7 +880,7 @@ const char * skinny2str(uint8_t type, uint32_t value) {
                 case SKINNY_CODEC:
                         _ARR2STR(skinny_codecs, codec , value, text);
                 default:
-                        return "Not Defined";
+                        return "skinny2str: SKINNY Type Not Found";
         }
 }
 

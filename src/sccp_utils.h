@@ -66,7 +66,7 @@ void sccp_dev_dbclean(void);
                         return arrayname[i].return_var; \
                 } \
         } \
-        return arrayname[0].return_var; \
+        return "_ARR2STR Lookup Failed"; \
         })
 
 const char * skinny2str(uint8_t type, uint32_t value);
