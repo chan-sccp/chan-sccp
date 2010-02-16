@@ -157,17 +157,18 @@ void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_
 		return;
 	} else {
 		ast_channel_lock(part->conferenceBridgePeer);
-		ast_do_masquerade(part->conferenceBridgePeer);
+		ast_do_masquerade(currentParticipantPeer);
 		ast_channel_unlock(part->conferenceBridgePeer);
 	}
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Added participant to conference %d \n", channel->device->id, conference->id);
+	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: Added participant to conference %d \n", channel->device->id, conference->id);
+	
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_INSERT_TAIL(&conference->participants, part, list);
 	SCCP_LIST_UNLOCK(&conference->participants);
 	
 	if (ast_pthread_create_background(&part->joinThread, NULL, sccp_conference_join_thread, part) < 0) {
-		channel->conference = NULL;
+		//channel->conference = NULL;
 		ast_hangup(part->conferenceBridgePeer);
 		free(part);
 		ast_channel_unlock(currentParticipantPeer);
@@ -175,7 +176,7 @@ void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_
 	}
 	
 	SCCP_LIST_TRAVERSE(&conference->participants, part, list){
-		sccp_log(1)(VERBOSE_PREFIX_3 "Conference %d: members %s-%08x\n", conference->id, part->channel->line->name, part->channel->callid);
+		//sccp_log(1)(VERBOSE_PREFIX_3 "Conference %d: members %s-%08x\n", conference->id, part->channel->line->name, part->channel->callid);
 	}
 
 	ast_channel_unlock(currentParticipantPeer);
