@@ -1644,13 +1644,13 @@ static char *cli_show_mwi_subscriptions(struct ast_cli_entry *e, int cmd, struct
 	if (a->argc != 3)
 		return CLI_SHOWUSAGE;
 
-	sccp_mailbox_subscriber_list_t *subscribtion = NULL;
+	sccp_mailbox_subscriber_list_t *subscription = NULL;
 	sccp_mailboxLine_t	*mailboxLine = NULL;
 	ast_cli(a->fd, "subscriptionsize: %d\n", sccp_mailbox_subscriptions.size);
-	SCCP_LIST_TRAVERSE(&sccp_mailbox_subscriptions, subscribtion, list){
-		ast_cli(a->fd, "mailbox: %s@%s\n", subscribtion->mailbox, subscribtion->context);
+	SCCP_LIST_TRAVERSE(&sccp_mailbox_subscriptions, subscription, list){
+		ast_cli(a->fd, "mailbox: %s@%s\n", subscription->mailbox, subscription->context);
 
-		SCCP_LIST_TRAVERSE(&subscribtion->sccp_mailboxLine, mailboxLine, list){
+		SCCP_LIST_TRAVERSE(&subscription->sccp_mailboxLine, mailboxLine, list){
 			ast_cli(a->fd, "---line: %s\n", (mailboxLine->line)->name );
 			ast_cli(a->fd, "-----status\n");
 			ast_cli(a->fd, "--------new: %d\n",(mailboxLine->line)->voicemailStatistic.newmsgs);
