@@ -672,13 +672,13 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 					}
 				}
 				SCCP_LIST_UNLOCK(&l->channels);
-				
+
 				if(channelFound)
 					break;
 			}
 		}
 	}
-	
+
 	sccp_device_unlock(d);
 
 	return c;
@@ -821,66 +821,72 @@ void sccp_dev_dbclean() {
 		ast_db_freetree(entry);
 }
 
+const char * message2str(uint32_t value) { _ARR2STR(sccp_messagetypes, type , value , text); }
+const char * accessory2str(uint32_t value) { _ARR2STR(sccp_accessories, accessory , value , text); }
+const char * accessorystatus2str(uint32_t value) { _ARR2STR(sccp_accessory_states, accessory_state , value , text); }
+const char * extensionstatus2str(uint32_t value) { _ARR2STR(sccp_extension_states, extension_state , value , text); }
+const char * dndmode2str(uint32_t value) { _ARR2STR(sccp_dndmodes, dndmode , value , text); }
+
+const char * tone2str(uint32_t value) { _ARR2STR(skinny_tones, tone , value , text); }
+const char * alarm2str(uint32_t value) { _ARR2STR(skinny_alarms, alarm, value , text); }
+const char * devicetype2str(uint32_t value) { _ARR2STR(skinny_devicetypes, devicetype, value  , text); }
+const char * stimulus2str(uint32_t value) { _ARR2STR(skinny_stimuluses, stimulus , value, text); }
+const char * buttontype2str(uint32_t value) { _ARR2STR(skinny_buttontypes, buttontype , value, text); }
+const char * lampmode2str(uint32_t value) { _ARR2STR(skinny_lampmodes, lampmode , value, text); }
+const char * station2str(uint32_t value) { _ARR2STR(skinny_stations, station , value, text); }
+const char * label2str(uint32_t value) { _ARR2STR(skinny_labels, label, value, text); }
+const char * calltype2str(uint32_t value) { _ARR2STR(skinny_calltypes, calltype , value, text); }
+const char * keymode2str(uint32_t value) { _ARR2STR(skinny_keymodes, keymode , value, text); }
+const char * deviceregistrationstatus2str(uint32_t value) { _ARR2STR(skinny_device_registrationstates, device_registrationstate , value, text); }
+const char * devicestatus2str(uint32_t value)  { _ARR2STR(skinny_device_states, device_state , value, text); }
+const char * codec2str(uint32_t value) { _ARR2STR(skinny_codecs, codec , value, text); }
+
 /*!
- * \brief Convert SCCP Types to String
- * \param type 	SCCP Type
- * \param value SCCP Value
+ * \brief Convert SCCP/Skinny Types 2 String
+ * \param type 	SCCP/Skinny Type
+ * \param value SCCP/Skinny Value
  * \return Converted String
  */
-const char * sccp2str(uint8_t type, uint32_t value) {
+const char * array2str(uint8_t type, uint32_t value) {
 	switch(type) {
                 case SCCP_MESSAGE:
-                        _ARR2STR(sccp_messagetypes, type , value , text);
+                        message2str(value);
                 case SCCP_ACCESSORY:
-                        _ARR2STR(sccp_accessories, accessory , value , text);
+                        accessory2str(value);
                 case SCCP_ACCESSORY_STATE:
-                        _ARR2STR(sccp_accessory_states, accessory_state , value , text);
+                        accessorystatus2str(value);
                 case SCCP_EXTENSION_STATE:
-                        _ARR2STR(sccp_extension_states, extension_state , value , text);
+                        extensionstatus2str(value);
                 case SCCP_DNDMODE:
-                        _ARR2STR(sccp_dndmodes, dndmode , value , text);
-                default:
-                        return "sccp2str: SCCP Type Not Found";
-        }
-}
-
-
-/*!
- * \brief Convert Skinny Types 2 String
- * \param type 	Skinny Type
- * \param value Skinny Value
- * \return Converted String
- */
-const char * skinny2str(uint8_t type, uint32_t value) {
-	switch(type) {
+                        dndmode2str(value);
                 case SKINNY_TONE:
-                        _ARR2STR(skinny_tones, tone , value , text);
+                        tone2str(value);
                 case SKINNY_ALARM:
-                        _ARR2STR(skinny_alarms, alarm, value , text);
+                        alarm2str(value);
                 case SKINNY_DEVICETYPE:
-                        _ARR2STR(skinny_devicetypes, devicetype, value  , text);
+                        devicetype2str(value);
                 case SKINNY_STIMULUS:
-                        _ARR2STR(skinny_stimuluses, stimulus , value, text);
+                        stimulus2str(value);
                 case SKINNY_BUTTONTYPE:
-                        _ARR2STR(skinny_buttontypes, buttontype , value, text);
-                case SKINNY_LAMP:
-                        _ARR2STR(skinny_lampmodes, lampmode , value, text);
+                        buttontype2str(value);
+                case SKINNY_LAMPMODE:
+                        lampmode2str(value);
                 case SKINNY_STATION:
-                        _ARR2STR(skinny_stations, station , value, text);
+                        station2str(value);
                 case SKINNY_LBL:
-                        _ARR2STR(skinny_labels, label, value, text);
+                        label2str(value);
                 case SKINNY_CALLTYPE:
-                        _ARR2STR(skinny_calltypes, calltype , value, text);
+                        calltype2str(value);
                 case SKINNY_KEYMODE:
-                        _ARR2STR(skinny_keymodes, keymode , value, text);
+                        keymode2str(value);
                 case SKINNY_DEVICE_RS:
-                        _ARR2STR(skinny_device_registrationstates, device_registrationstate , value, text);
+                        deviceregistrationstatus2str(value);
                 case SKINNY_DEVICE_STATE:
-                        _ARR2STR(skinny_device_states, device_state , value, text);
+                        devicestatus2str(value);
                 case SKINNY_CODEC:
-                        _ARR2STR(skinny_codecs, codec , value, text);
+                        codec2str(value);
                 default:
-                        return "skinny2str: SKINNY Type Not Found";
+                        return "array2str: Type Not Found";
         }
 }
 
@@ -1197,7 +1203,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 
 	switch((*event)->event.featureChanged.featureType) {
 		case SCCP_FEATURE_CFWDALL:
-			
+
 			SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list){
 				if(config->type == LINE ){
 					line = sccp_line_find_byname_wo(config->button.line.name,FALSE);
@@ -1205,7 +1211,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 						SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list){
 							if(lineDevice->device != device)
 								continue;
-							
+
 							sprintf(cfwdLineStore, "%s/%s", family,config->button.line.name);
 							if(lineDevice->cfwdAll.enabled)
 								ast_db_put(cfwdLineStore, "cfwdAll", lineDevice->cfwdAll.number);
@@ -1216,7 +1222,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 				}
 
 			}
-		  
+
 			break;
 		case SCCP_FEATURE_CFWDBUSY:
 		  	break;
@@ -1266,7 +1272,7 @@ struct composedId sccp_parseComposedId(const char* labelString, unsigned int max
 	assert(0 != labelString);
 
 	memset (&id, 0, sizeof(id));
-		
+
 
 	for (stringIterator = labelString; stringIterator < labelString+maxLength && !endDetected; stringIterator++)
 	{
@@ -1290,7 +1296,7 @@ struct composedId sccp_parseComposedId(const char* labelString, unsigned int max
 						break;
 				}
 				break;
-						
+
 			case 1: // parsing of sub id number
 				assert (i < sizeof(id.subscriptionId.number));
 				switch (*stringIterator) {
@@ -1309,7 +1315,7 @@ struct composedId sccp_parseComposedId(const char* labelString, unsigned int max
 						break;
 				}
 				break;
-				
+
 			case 2: // parsing of sub id name
 				assert (i < sizeof(id.subscriptionId.name));
 				switch (*stringIterator) {
@@ -1342,24 +1348,24 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const cha
 	} else {
 	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: null subscriptionIdNum!\n");
 	}
-  
-	if(    NULL != subscriptionIdNum 
+
+	if(    NULL != subscriptionIdNum
 		&& 0    != strlen(subscriptionIdNum)
-	    && NULL != channel->line 
-	    && 0    != (compareDefId = strncasecmp(channel->subscriptionId.number, 
+	    && NULL != channel->line
+	    && 0    != (compareDefId = strncasecmp(channel->subscriptionId.number,
 					   channel->line->defaultSubscriptionId.number,
 					   strlen(channel->subscriptionId.number)))  ) {
 	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: outer if: compare = %d\n", compareDefId);
 			if( 0 != strncasecmp(channel->subscriptionId.number,
-				subscriptionIdNum, 
-				strlen(channel->subscriptionId.number)) 
+				subscriptionIdNum,
+				strlen(channel->subscriptionId.number))
 				&& 0 != (compareId = strlen(channel->subscriptionId.number)) ) {
 	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: inner if: compare = %d\n", compareId);
 					result = FALSE;
 			}
 	}
-	
+
 	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId:  result: %s\n", (result)?"TRUE":"FALSE");
-	
-	return result;	
+
+	return result;
 }

@@ -61,7 +61,7 @@ struct ast_ha {
  */
 void sccp_handle_alarm(sccp_session_t * s, sccp_moo_t * r)
 {
-        sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Alarm Message: Severity: %s (%d), %s [%d/%d]\n", skinny2str(SKINNY_ALARM,letohl(r->msg.AlarmMessage.lel_alarmSeverity)), letohl(r->msg.AlarmMessage.lel_alarmSeverity), r->msg.AlarmMessage.text, letohl(r->msg.AlarmMessage.lel_parm1), letohl(r->msg.AlarmMessage.lel_parm2));
+        sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Alarm Message: Severity: %s (%d), %s [%d/%d]\n", alarm2str(letohl(r->msg.AlarmMessage.lel_alarmSeverity)), letohl(r->msg.AlarmMessage.lel_alarmSeverity), r->msg.AlarmMessage.text, letohl(r->msg.AlarmMessage.lel_parm1), letohl(r->msg.AlarmMessage.lel_parm2));
 }
 
 /*!
@@ -74,7 +74,7 @@ void sccp_handle_unknown_message(sccp_session_t * s, sccp_moo_t * r)
         uint32_t mid = letohl(r->lel_messageId);
 
         if (GLOB(debug))
-                ast_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", sccp2str(SCCP_MESSAGE,mid), mid, r->length);
+                ast_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", message2str(mid), mid, r->length);
 
         sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
 }
@@ -108,7 +108,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d\n",
 		r->msg.RegisterMessage.sId.deviceName,
 		letohl(r->msg.RegisterMessage.sId.lel_instance),
-		skinny2str(SKINNY_DEVICETYPE,letohl(r->msg.RegisterMessage.lel_deviceType)),
+		devicetype2str(letohl(r->msg.RegisterMessage.lel_deviceType)),
 		letohl(r->msg.RegisterMessage.lel_deviceType),
 		r->msg.RegisterMessage.protocolVer);
 
@@ -362,7 +362,7 @@ void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_moo_t * r)
 		break;
 	}
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(d), sccp2str(SCCP_ACCESSORY,d->accessoryused), sccp2str(SCCP_ACCESSORY_STATE,d->accessorystatus), unknown);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(d), accessory2str(d->accessoryused), accessorystatus2str(d->accessorystatus), unknown);
 }
 
 /*!
@@ -755,7 +755,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		return;
 	}
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d) for instance=%d\n", d->id, skinny2str(SKINNY_STIMULUS,stimulus), stimulus, instance);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d) for instance=%d\n", d->id, stimulus2str(stimulus), stimulus, instance);
 
 	if (!instance) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Instance 0 is not a valid instance. Trying the active line %d\n", d->id, instance);
@@ -1008,7 +1008,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			break;
 
 		default:
-			ast_log(LOG_NOTICE, "%s: Don't know how to deal with stimulus %d with Phonetype %s(%d) \n", d->id, stimulus, skinny2str(SKINNY_DEVICETYPE,d->skinny_type), d->skinny_type);
+			ast_log(LOG_NOTICE, "%s: Don't know how to deal with stimulus %d with Phonetype %s(%d) \n", d->id, stimulus, devicetype2str(d->skinny_type), d->skinny_type);
 			break;
 	}
 }
@@ -1202,7 +1202,7 @@ void sccp_handle_headset(sccp_session_t * s, sccp_moo_t * r)
 		return;
 
 	uint32_t headsetmode = letohl(r->msg.HeadsetStatusMessage.lel_hsMode);
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(s->device), skinny2str(SCCP_ACCESSORY,SCCP_ACCESSORY_HEADSET), skinny2str(SCCP_ACCESSORY_STATE,headsetmode), 0);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(s->device), accessory2str(SCCP_ACCESSORY_HEADSET), accessorystatus2str(headsetmode), 0);
 }
 
 /*!
@@ -1222,7 +1222,7 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_moo_t * r)
     codec = letohl(r->msg.CapabilitiesResMessage.caps[i].lel_payloadCapability);
     astcodec = sccp_codec_skinny2ast(codec);
 	s->device->capability |= astcodec;
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CISCO:%6d %-25s AST:%6d %s\n", s->device->id, codec, skinny2str(SKINNY_CODEC,codec), astcodec, ast_codec2str(astcodec));
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CISCO:%6d %-25s AST:%6d %s\n", s->device->id, codec, codec2str(codec), astcodec, ast_codec2str(astcodec));
   }
 }
 
@@ -1252,7 +1252,7 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r){
 	r1->msg.SoftKeyTemplateResMessage.lel_softKeyOffset = htolel(0);
 
 	for (i = 0; i < c; i++) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i+1, skinny2str(SKINNY_LBL,softkeysmap[i]));
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i+1, label2str(softkeysmap[i]));
 		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = 128;
 		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = softkeysmap[i];
 		r1->msg.SoftKeyTemplateResMessage.definition[i].lel_softKeyEvent = htolel(i+1);
@@ -1315,7 +1315,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 	sccp_log(1)(VERBOSE_PREFIX_3 "count: %d\n", v_count);
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: TRANSFER        is %s\n", d->id, (d->transfer) ? "enabled" : "disabled");
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND             is %s\n", d->id, d->dndFeature.status ? sccp2str(SCCP_DNDMODE,d->dndFeature.status) : "disabled");
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND             is %s\n", d->id, d->dndFeature.status ? dndmode2str(d->dndFeature.status) : "disabled");
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: PRIVATE         is %s\n", d->id, d->privacyFeature.enabled ? "enabled" : "disabled");
 #ifdef CS_SCCP_PARK
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: PARK            is  %s\n", d->id, (d->park) ? "enabled" : "disabled");
@@ -1394,7 +1394,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 			}
 			for (j = 0; j < sizeof(softkeysmap); j++) {
 				if (b[c] == softkeysmap[j]) {
-					sccp_log(1)("%-2d:%-10s ", c, skinny2str(SKINNY_LBL,softkeysmap[j]));
+					sccp_log(1)("%-2d:%-10s ", c, label2str(softkeysmap[j]));
 					r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[c] = (j+1);
 					break;
 				}
@@ -1707,7 +1707,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 		}
 	}
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Softkey: %s (%d) line=%d callid=%d\n", d->id, skinny2str(SKINNY_LBL,event), event, line, callid);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Softkey: %s (%d) line=%d callid=%d\n", d->id, label2str(event), event, line, callid);
 
 	if (line)
 		l = sccp_line_find_byid(s->device, line);
@@ -2437,7 +2437,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_moo_t * r)
     codec = letohl(r->msg.UpdateCapabilitiesMessage.audioCaps[i].lel_payloadCapability);
     astcodec = sccp_codec_skinny2ast(codec);
 	s->device->capability |= astcodec;
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CISCO:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(s->device), codec, skinny2str(SKINNY_CODEC,codec), astcodec, ast_codec2str(astcodec));
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CISCO:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(s->device), codec, codec2str(codec), astcodec, ast_codec2str(astcodec));
   }
 
   /* parsing video caps */
@@ -2447,7 +2447,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_moo_t * r)
     codec = letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[i].lel_payloadCapability);
     astcodec = sccp_codec_skinny2ast(codec);
 	s->device->capability |= astcodec;
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CISCO:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(s->device), codec, skinny2str(SKINNY_CODEC,codec), astcodec, ast_codec2str(astcodec));
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CISCO:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(s->device), codec, codec2str(codec), astcodec, ast_codec2str(astcodec));
   }
 }
 

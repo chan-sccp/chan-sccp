@@ -270,7 +270,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 #else
 	ast_cli(fd, "Call Events:          : Disabled\n");
 #endif
-	ast_cli(fd, "DND                   : %s\n", GLOB(dndmode) ? sccp2str(SCCP_DNDMODE,GLOB(dndmode)) : "Disabled");
+	ast_cli(fd, "DND                   : %s\n", GLOB(dndmode) ? dndmode2str(GLOB(dndmode)) : "Disabled");
 #ifdef CS_SCCP_PARK
 	ast_cli(fd, "Park                  : Enabled\n");
 #else
@@ -373,19 +373,19 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "MAC-Address        : %s\n", d->id);
 	ast_cli(fd, "Protocol Version   : Supported '%d', In Use '%d'\n", d->protocolversion, d->inuseprotocolversion);
 	ast_cli(fd, "Keepalive          : %d\n", d->keepalive);
-	ast_cli(fd, "Registration state : %s(%d)\n", skinny2str(SKINNY_DEVICE_RS,d->registrationState), d->registrationState);
-	ast_cli(fd, "State              : %s(%d)\n", skinny2str(SKINNY_DEVICE_STATE,d->state), d->state);
+	ast_cli(fd, "Registration state : %s(%d)\n", deviceregistrationstatus2str(d->registrationState), d->registrationState);
+	ast_cli(fd, "State              : %s(%d)\n", devicestatus2str(d->state), d->state);
 	ast_cli(fd, "MWI handset light  : %s\n", (d->mwilight) ? "ON" : "OFF");
 	ast_cli(fd, "Description        : %s\n", d->description);
 	ast_cli(fd, "Config Phone Type  : %s\n", d->config_type);
-	ast_cli(fd, "Skinny Phone Type  : %s(%d)\n", skinny2str(SKINNY_DEVICETYPE,d->skinny_type), d->skinny_type);
+	ast_cli(fd, "Skinny Phone Type  : %s(%d)\n", devicetype2str(d->skinny_type), d->skinny_type);
 	ast_cli(fd, "Softkey support    : %s\n", (d->softkeysupport) ? "Yes" : "No");
 	ast_cli(fd, "Image Version      : %s\n", d->imageversion);
 	ast_cli(fd, "Timezone Offset    : %d\n", d->tz_offset);
 	ast_cli(fd, "Capabilities       : %s\n", cap_buf);
 	ast_cli(fd, "Codecs preference  : %s\n", pref_buf);
 	ast_cli(fd, "DND Feature enabled: %s\n", (d->dndFeature.enabled) ? "YES" : "NO");
-	ast_cli(fd, "DND Status         : %s\n", (d->dndFeature.status) ? sccp2str(SCCP_DNDMODE,d->dndFeature.status) : "Disabled");
+	ast_cli(fd, "DND Status         : %s\n", (d->dndFeature.status) ? dndmode2str(d->dndFeature.status) : "Disabled");
 	ast_cli(fd, "Can Transfer       : %s\n", (d->transfer) ? "Yes" : "No");
 	ast_cli(fd, "Can Park           : %s\n", (d->park) ? "Yes" : "No");
 	ast_cli(fd, "Private softkey    : %s\n", d->privacyFeature.enabled ? "Enabled" : "Disabled");
@@ -397,8 +397,8 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Direct RTP         : %s\n", (d->directrtp) ? "Yes" : "No");
 	ast_cli(fd, "Trust phone ip     : %s\n", (d->trustphoneip) ? "Yes" : "No");
 	ast_cli(fd, "Early RTP          : %s\n", (d->earlyrtp) ? "Yes" : "No");
-	ast_cli(fd, "Device State (Acc.): %s\n", skinny2str(SCCP_ACCESSORY_STATE,d->accessorystatus));
-	ast_cli(fd, "Last Used Accessory: %s\n", skinny2str(SCCP_ACCESSORY,d->accessoryused));
+	ast_cli(fd, "Device State (Acc.): %s\n", accessorystatus2str(d->accessorystatus));
+	ast_cli(fd, "Last Used Accessory: %s\n", accessory2str(d->accessoryused));
 	ast_cli(fd, "Last dialed number : %s\n", d->lastNumber);
 
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
@@ -673,7 +673,7 @@ static int sccp_show_channels(int fd, int argc, char * argv[]) {
 				(c->owner) ? ast_state2str(c->owner->_state) : "(none)",
 				sccp_indicate2str(c->state),
 				c->calledPartyNumber,
-				(c->format)?skinny2str(SKINNY_CODEC,sccp_codec_ast2skinny(c->format)):"(none)");
+				(c->format)?codec2str(sccp_codec_ast2skinny(c->format)):"(none)");
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
 		sccp_line_unlock(l);
@@ -746,14 +746,14 @@ static int sccp_show_devices(int fd, int argc, char * argv[]) {
 			d->description,
 			(d->session) ? ast_inet_ntoa(iabuf, sizeof(iabuf), d->session->sin.sin_addr) : "--",
 			d->id,
-			skinny2str(SKINNY_DEVICE_RS,d->registrationState)
+			deviceregistrationstatus2str(d->registrationState)
 		);
 #else
 		ast_cli(fd, "%-40s %-20s %-16s %-10s\n",// %-10s %-16s %c%c %-10s\n",
 			d->description,
 			(d->session) ? ast_inet_ntoa(d->session->sin.sin_addr) : "--",
 			d->id,
-			skinny2str(SKINNY_DEVICE_RS,d->registrationState)
+			deviceregistrationstatus2str(d->registrationState)
 		);
 #endif
 	}
@@ -922,7 +922,7 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 			(l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
 			l->channelCount,
 			(c) ? sccp_indicate2str(c->state) : "--",
-			(c) ? skinny2str(SKINNY_CALLTYPE,c->calltype) : "",
+			(c) ? calltype2str(c->calltype) : "",
 			(c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->calledPartyName : c->callingPartyName ) : "",
 			cap_buf);
 
@@ -938,7 +938,7 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 				(l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
 				l->channelCount,
 				(c) ? sccp_indicate2str(c->state) : "--",
-				(c) ? skinny2str(SKINNY_CALLTYPE,c->calltype) : "",
+				(c) ? calltype2str(c->calltype) : "",
 				(c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->calledPartyName : c->callingPartyName ) : "",
 				cap_buf);
 		}
@@ -1120,16 +1120,16 @@ static int sccp_show_sessions(int fd, int argc, char * argv[]) {
 				ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr),
 				(uint32_t)(time(0) - s->lastKeepAlive),
 				(d) ? d->id : "--",
-				(d) ? skinny2str(SKINNY_DEVICE_STATE,d->state) : "--",
-				(d) ? skinny2str(SKINNY_DEVICETYPE,d->skinny_type) : "--");
+				(d) ? devicestatus2str(d->state) : "--",
+				(d) ? devicetype2str(d->skinny_type) : "--");
 #else
 			ast_cli(fd, "%-10d %-15s %-4d %-15s %-15s %-15s\n",
 				s->fd,
 				ast_inet_ntoa(s->sin.sin_addr),
 				(uint32_t)(time(0) - s->lastKeepAlive),
 				(d) ? d->id : "--",
-				(d) ? skinny2str(SKINNY_DEVICE_STATE,d->state) : "--",
-				(d) ? skinny2str(SKINNY_DEVICETYPE,d->skinny_type) : "--");
+				(d) ? devicestatus2str(d->state) : "--",
+				(d) ? devicetype2str(d->skinny_type) : "--");
 #endif
 			sccp_device_unlock(d);
 		}
@@ -1724,7 +1724,7 @@ static char *cli_show_softkeysets(struct ast_cli_entry *e, int cmd, struct ast_c
 			ast_cli(a->fd, "      Set[%-2d]= ", i);
 
 			for ( c = 0; c < softkeyset->modes[i].count; c++) {
-				ast_cli(a->fd, "%-2d:%-10s ", c, skinny2str(SKINNY_LBL,b[c]));
+				ast_cli(a->fd, "%-2d:%-10s ", c, label2str(b[c]));
 			}
 
 			ast_cli(a->fd, "\n");

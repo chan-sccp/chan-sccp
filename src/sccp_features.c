@@ -506,7 +506,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
 		    (!target->pbx && (target->_state == AST_STATE_RINGING || target->_state == AST_STATE_RING))) {
 
 			//  let's allocate a new channel if it's not already up
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Device state is '%s'\n", d->id, skinny2str(SKINNY_DEVICE_STATE,d->state));
+			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Device state is '%s'\n", d->id, devicestatus2str(d->state));
 			if(!(c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_OFFHOOK))) {
 				c = sccp_channel_allocate(l, d);
 				if (!c) {

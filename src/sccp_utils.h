@@ -7,7 +7,7 @@
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  * \date        $Date$
- * \version     $Revision$  
+ * \version     $Revision$
  */
 #ifndef __SCCP_UTILS_H
 #define __SCCP_UTILS_H
@@ -66,11 +66,33 @@ void sccp_dev_dbclean(void);
                         return arrayname[i].return_var; \
                 } \
         } \
-        return "_ARR2STR Lookup Failed"; \
+        ast_log(LOG_ERROR, "_ARR2STR Lookup Failed for " #arrayname "." #lookup_var "=%i\n", lookup_val); \
+        return ""; \
         })
 
-const char * skinny2str(uint8_t type, uint32_t value);
-const char * sccp2str(uint8_t type, uint32_t value);
+// SCCP Lookups
+const char * message2str(uint32_t value);
+const char * accessory2str(uint32_t value);
+const char * accessorystatus2str(uint32_t value);
+const char * extensionstatus2str(uint32_t value);
+const char * dndmode2str(uint32_t value);
+
+// SKINNY Lookups
+const char * tone2str(uint32_t value);
+const char * alarm2str(uint32_t value);
+const char * devicetype2str(uint32_t value);
+const char * stimulus2str(uint32_t value);
+const char * buttontype2str(uint32_t value);
+const char * lampmode2str(uint32_t value);
+const char * station2str(uint32_t value);
+const char * label2str(uint32_t value);
+const char * calltype2str(uint32_t value);
+const char * keymode2str(uint32_t value);
+const char * deviceregistrationstatus2str(uint32_t value);
+const char * devicestatus2str(uint32_t value) ;
+const char * codec2str(uint32_t value);
+
+const char * array2str(uint8_t type, uint32_t value);
 
 const char * skinny_ringermode2str(uint8_t type);
 const char * sccp_dndmode2str(uint8_t type);
