@@ -109,7 +109,7 @@
  * \brief Skinny LABEL Structure
  */
 static const struct skinny_label {
-        int label;
+        uint16_t label;
         const char * const text;
 } skinny_labels[] = {
 	{ SKINNY_LBL_EMPTY				, "Empty" },

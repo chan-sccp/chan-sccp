@@ -121,7 +121,7 @@ typedef enum {
  * \brief Skinny CallType Structure
  */
 static const struct skinny_calltype {
-        uint8_t calltype;
+        skinny_calltype_t calltype;
         const char * const text;
 } skinny_calltypes[] = {
         { SKINNY_CALLTYPE_INBOUND 			,	"Inbound" 				},
@@ -578,7 +578,7 @@ typedef enum {
  * \brief Skinny Device State Structure
  */
 static const struct skinny_device_state {
-        uint8_t device_state;
+        sccp_devicestate_t device_state;
         const char * const text;
 } skinny_device_states[] = {
 	{ SCCP_DEVICESTATE_ONHOOK	,	"On Hook"		},
@@ -782,7 +782,7 @@ typedef enum {
  * \brief Skinny Lamp Structure
  */
 static const struct skinny_lampmode {
-        uint8_t lampmode;
+        sccp_lampMode_t lampmode;
         const char * const text;
 } skinny_lampmodes[] = {
 	{ SKINNY_LAMP_OFF				,		"Lamp Off"				},
