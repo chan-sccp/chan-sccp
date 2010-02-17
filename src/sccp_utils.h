@@ -61,7 +61,7 @@ void sccp_dev_dbclean(void);
 #define _ARR2STR(arrayname, lookup_var, lookup_val, return_var) \
         ({ \
         int i; \
-        for (i = 1; i < ARRAY_LEN(arrayname); i++) { \
+        for (i = 0; i < ARRAY_LEN(arrayname); i++) { \
                 if (arrayname[i].lookup_var == lookup_val) { \
                         return arrayname[i].return_var; \
                 } \
