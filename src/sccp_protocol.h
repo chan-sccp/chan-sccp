@@ -17,14 +17,6 @@
 #ifndef __SCCP_PROTOCOL_H
 #define __SCCP_PROTOCOL_H
 
-/*
- * SCCP Lookup Types
- */
-#define SCCP_MESSAGE 		0
-#define SCCP_ACCESSORY 		1
-#define SCCP_ACCESSORY_STATE	2
-#define SCCP_EXTENSION_STATE	3
-#define SCCP_DNDMODE		4
 
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW	3				/*!< At least we require protocol V.3 */
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH	17				/*!< We support up to protocol V.11 */
@@ -79,21 +71,26 @@ typedef enum {
 #define SCCP_CFWD_NOANSWER			3
 
 /*
- * Skinny Lookup Types
+ * SCCP/Skinny Lookup Types
  */
-#define SKINNY_TONE 		0
-#define SKINNY_ALARM		1  
-#define SKINNY_DEVICETYPE	3  
-#define SKINNY_DEVICE_RS	4  
-#define SKINNY_STIMULUS		5  
-#define SKINNY_BUTTONTYPE	6  
-#define SKINNY_LAMP		7  
-#define SKINNY_STATION		8  
-#define SKINNY_LBL		9
-#define SKINNY_CALLTYPE		10
-#define SKINNY_KEYMODE		11
-#define SKINNY_DEVICE_STATE	12
-#define SKINNY_CODEC		13
+#define SCCP_MESSAGE 		0
+#define SCCP_ACCESSORY 		1
+#define SCCP_ACCESSORY_STATE	2
+#define SCCP_EXTENSION_STATE	3
+#define SCCP_DNDMODE		4
+#define SKINNY_TONE 		5
+#define SKINNY_ALARM		6  
+#define SKINNY_DEVICETYPE	7  
+#define SKINNY_DEVICE_RS	8  
+#define SKINNY_STIMULUS		9  
+#define SKINNY_BUTTONTYPE	10  
+#define SKINNY_LAMPMODE		11  
+#define SKINNY_STATION		12 
+#define SKINNY_LBL		13
+#define SKINNY_CALLTYPE		14
+#define SKINNY_KEYMODE		15
+#define SKINNY_DEVICE_STATE	16
+#define SKINNY_CODEC		17
 
 /* skinny protocol call states */
 #define SKINNY_CALLSTATE_OFFHOOK		1
