@@ -103,10 +103,14 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 
 	if(NULL == conference)
 		return -1;
+	if(NULL == currentParticipantPeer)
+		return -1;
 
 	ast_channel_lock(currentParticipantPeer);
 	/* Allocate an asterisk channel structure as conference bridge peer for the participant */
-	participant->conferenceBridgePeer = ast_channel_alloc(0, currentParticipantPeer->_state, 0, 0, currentParticipantPeer->accountcode, 
+	participant->conferenceBridgePeer = currentParticipantPeer;
+	/*
+	   ast_channel_alloc(0, currentParticipantPeer->_state, 0, 0, currentParticipantPeer->accountcode, 
 			currentParticipantPeer->exten, currentParticipantPeer->context, currentParticipantPeer->amaflags, "ConferenceBridge/%s", currentParticipantPeer->name);
 	if(!participant->conferenceBridgePeer) {
 		ast_log(LOG_NOTICE, "Couldn't allocate participant peer.\n");
@@ -119,10 +123,9 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 	participant->conferenceBridgePeer->nativeformats = currentParticipantPeer->nativeformats;
 
 	if(ast_channel_masquerade(participant->conferenceBridgePeer, currentParticipantPeer)){
-		/* Masquerade failed */
 		ast_channel_unlock(currentParticipantPeer);
 		return -1;
-	} 
+	}*/ 
 
 	ast_channel_unlock(currentParticipantPeer);
 

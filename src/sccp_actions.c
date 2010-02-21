@@ -1331,12 +1331,12 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 #endif
 	for (i = 0; i < v_count; i++) {
 		const uint8_t * b = v->ptr;
-		uint8_t c, j = 0;
+		uint8_t c, j, cp = 0;
 
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Set[%-2d]= ", d->id, v->id);
 
-		for ( c = 0; c < v->count; c++) {
-			r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[c] = 1;
+		for ( c = 0, cp=0; c < v->count;c++) {
+			r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[cp] = 0;
 		/* look for the SKINNY_LBL_ number in the softkeysmap */
 			if ( (b[c] == SKINNY_LBL_PARK) && (!d->park) ) {
 				continue;
@@ -1395,10 +1395,11 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 			for (j = 0; j < sizeof(softkeysmap); j++) {
 				if (b[c] == softkeysmap[j]) {
 					sccp_log(1)("%-2d:%-10s ", c, label2str(softkeysmap[j]));
-					r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[c] = (j+1);
+					r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[cp] = (j+1);
 					break;
 				}
 			}
+			cp++;
 		}
 
 		sccp_log(1)("\n");
