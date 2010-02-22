@@ -165,12 +165,14 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		if(c->answered_elsewhere)
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 
-		/* request channel hangup on remote device without answer*/
+		/* request channel hangup on remote device without answer */
 		if(!c->device && c->state == SCCP_CHANNELSTATE_RINGING){
 			sccp_device_sendcallstate(device, instance, c->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			sccp_dev_set_ringer(device, SKINNY_STATION_RINGOFF, instance, c->callid);
 			sccp_dev_set_lamp(device, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_OFF);
 		}
+		
+		sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
 		sccp_channel_set_callstate(d, c, SKINNY_CALLSTATE_ONHOOK);
 		//sccp_channel_set_callstate_full(d, instance, c->callid, SKINNY_CALLSTATE_ONHOOK);
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOOK);
@@ -431,8 +433,8 @@ void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, ui
 
 					break;
 				case SCCP_CHANNELSTATE_ONHOOK:
-					if(c->previousChannelState == SCCP_CHANNELSTATE_RINGING)
-							sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
+					//if(c->previousChannelState == SCCP_CHANNELSTATE_RINGING)
+					sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
 
 					/* if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry*/
 					if(c->answered_elsewhere)
