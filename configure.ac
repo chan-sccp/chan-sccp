@@ -298,25 +298,32 @@ AC_ARG_WITH(callweaver-includes,
 AC_ARG_WITH(callweaver-libs,
     AS_HELP_STRING([--with-callweaver-libs=PATH], [Path to CallWeaver includes (defaults to PREFIX/lib)]),
     [CALLWEAVER_LDFLAGS="-L$withval"])
-    
+   
+   
+echo "withval: $withval"
 PBX_MANDATORY="yes"
 CS_CHECK_PBX
 
-dnl echo "PBX_TYPE:		$PBX_TYPE"
-dnl echo "HAVE_ASTERISK:	$HAVE_ASTERISK"
-dnl echo "HAVE_CALLWEAVER:	$HAVE_CALLWEAVER"
-dnl echo "PBX_LIB:		$PBX_LIB"
-dnl echo "PBX_INCLUDE:		$PBX_INCLUDE"
-dnl echo "PBX_MODDIR:		$PBX_MODDIR"
-dnl echo "PBX_CFLAGS:		$PBX_CFLAGS"
-dnl echo "PBX_CXXFLAGS:		$PBX_CXXFLAGS"
+
+echo "PBX_TYPE:		$PBX_TYPE"
+echo "HAVE_ASTERISK:	$HAVE_ASTERISK"
+echo "HAVE_CALLWEAVER:	$HAVE_CALLWEAVER"
+echo "PBX_LIB:		$PBX_LIB"
+echo "PBX_INCLUDE:		$PBX_INCLUDE"
+echo "PBX_MODDIR:		$PBX_MODDIR"
+echo "PBX_CFLAGS:		$PBX_CFLAGS"
+echo "PBX_CXXFLAGS:		$PBX_CXXFLAGS"
+
 
 if test "${USE_ASTERISK}" != "no"; then
    AC_MSG_CHECKING(for asterisk.h)
    saved_cppflags="${CPPFLAGS}"
    if test "x${PBX_DIR}" != "x"; then
       CPPFLAGS="${CPPFLAGS} -I${PBX_DIR}/include"
+      else
+      CPPFLAGS="${CPPFLAGS} -I${withval}/include"
    fi
+   
    AC_COMPILE_IFELSE(
 	[
 	AC_LANG_PROGRAM(
