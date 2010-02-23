@@ -20,8 +20,10 @@ AC_DEFUN([CS_CHECK_PBX], [
             found_asterisk="yes";
             PBX_TYPE="Asterisk"
             PBX_INCLUDE="$checkdir/include/asterisk"
-            PBX_CFLAGS="$CFLAGS -I$checkdir/include/asterisk -DHAVE_ASTERISK";
-            PBX_CXXFLAGS="$CXXFLAGS -I$checkdir/include/astereisk -DHAVE_ASTERISK";
+            PBX_CFLAGS="-I$checkdir/include -DHAVE_ASTERISK";
+            PBX_CPPFLAGS="-I$checkdir/include -DHAVE_ASTERISK";
+            CFLAGS="$CFLAGS -I$checkdir/include -DHAVE_ASTERISK";
+            CPPFLAGS="$CPPFLAGS -I$checkdir/include -DHAVE_ASTERISK";
             break;
         fi
         if test -f "$dir/include/asterisk.h"; then
@@ -30,8 +32,10 @@ AC_DEFUN([CS_CHECK_PBX], [
             found_asterisk="yes";
             PBX_TYPE="Asterisk"
             PBX_INCLUDE="$checkdir/include/asterisk"
-            PBX_CFLAGS="-I$checkdir/include/asterisk -DHAVE_ASTERISK";
-            PBX_CXXFLAGS="-I$checkdir/include/asterisk -DHAVE_ASTERISK";
+            PBX_CFLAGS="-I$checkdir/include -DHAVE_ASTERISK";
+            PBX_CPPFLAGS="-I$checkdir/include -DHAVE_ASTERISK";
+            CFLAGS="$CFLAGS -I$checkdir/include -DHAVE_ASTERISK";
+            CPPFLAGS="$CPPFLAGS -I$checkdir/include -DHAVE_ASTERISK";
             break
         fi
         if test -f "$dir/include/callweaver/callweaver.h"; then
@@ -40,8 +44,10 @@ AC_DEFUN([CS_CHECK_PBX], [
             found_callweaver="yes";
             PBX_TYPE="Callweaver"
             PBX_INCLUDE="$checkdir/include/callweaver"
-            PBX_CFLAGS="$CFLAGS -I$checkdir/include/callweaver -DHAVE_CALLWEAVER";
-            PBX_CXXFLAGS="$CXXFLAGS -I$checkdir/include/callweaver -DHAVE_CALLWEAVER";
+            PBX_CFLAGS="-I$checkdir/include -DHAVE_CALLWEAVER";
+            PBX_CPPFLAGS="-I$checkdir/include -DHAVE_CALLWEAVER";
+            CFLAGS="$CFLAGS -I$checkdir/include -DHAVE_CALLWEAVER";
+            CPPFLAGS="$CPPFLAGS -I$checkdir/include -DHAVE_CALLWEAVER";
             break;
         fi
         if test -f "$dir/include/callweaver.h"; then
@@ -50,24 +56,28 @@ AC_DEFUN([CS_CHECK_PBX], [
             found_callweaver="yes";
             PBX_TYPE="Callweaver"
             PBX_INCLUDE="$checkdir/include/callweaver"
-            PBX_CFLAGS="-I$checkdir/include/callweaver -DHAVE_CALLWEAVER";
-            PBX_CXXFLAGS="-I$checkdir/include/callweaver -DHAVE_CALLWEAVER";
+            PBX_CFLAGS="$CFLAGS -I$checkdir/include -DHAVE_CALLWEAVER";
+            PBX_CPPFLAGS="$CPPFLAGS -I$checkdir/include -DHAVE_CALLWEAVER";
+            CFLAGS="$CFLAGS -I$checkdir/include -DHAVE_CALLWEAVER";
+            CPPFLAGS="$CFLAGS -I$checkdir/include -DHAVE_CALLWEAVER";
             break
         fi
         echo "no"
     done
     if test x_$found_pbx != x_yes; then
-        AC_MSG_ERROR(Cannot find pbx libraries - these are required. Please install either the asterisk-devel or callweaver-devel package)
+        AC_MSG_ERROR([Cannot find pbx libraries - these are required.\nPlease install either the asterisk-devel or callweaver-devel package.\nOr run ./configure --with-asterisk=PATH with PATH pointing to the directory where you installed asterisk])
     else
        if test x_$found_asterisk = x_yes; then
          printf "Asterisk found in $checkdir\n";
          PBX_LIB="$checkdir/lib"
+         LDFLAGS="$LDFLAGS -L$checkdir/lib"
          PBX_MODDIR="$checkdir/lib/asterisk/modules"
          case "$build_cpu" in
             x86_64|amd64)
               if test -d "$checkdir/lib64/asterisk"; then
                 PBX_LIB="$checkdir/lib64"
                 PBX_MODDIR="$checkdir/lib64/asterisk/modules"
+                LDFLAGS="$LDFLAGS -L$checkdir/lib64"
               fi
               ;;
          esac;
@@ -75,12 +85,14 @@ AC_DEFUN([CS_CHECK_PBX], [
        elif test x_$found_callweaver = x_yes; then
          printf "CallWeaver found in $checkdir\n";
          PBX_LIB="$checkdir/lib"
+         LDFLAGS="$LDFLAGS -L$checkdir/lib"
          PBX_MODDIR="$checkdir/lib/callweaver/modules"
          case "$build_cpu" in
             x86_64|amd64)
               if test -d "$checkdir/lib64/callweaver"; then
                 PBX_LIB="$checkdir/lib64"
                 PBX_MODDIR="$checkdir/lib64/callweaver/modules"
+                LDFLAGS="$LDFLAGS -L$checkdir/lib64"
               fi
               ;;
          esac;
@@ -94,7 +106,7 @@ AC_DEFUN([CS_CHECK_PBX], [
     AC_SUBST([PBX_INCLUDE])
     AC_SUBST([PBX_MODDIR])
     AC_SUBST([PBX_CFLAGS])
-    AC_SUBST([PBX_CXXFLAGS])
+    AC_SUBST([PBX_LDFLAGS])
 ])
 
 ## ---------------------##
