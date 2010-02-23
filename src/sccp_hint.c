@@ -333,9 +333,9 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 
 #ifndef CS_DYNAMIC_SPEEDDIAL
   		if(hint->currentState == SCCP_CHANNELSTATE_ONHOOK){
-  			sccp_dev_set_lamp(subscriber->device, SKINNY_STIMULUS_LINE, subscriber->instance, SKINNY_LAMP_ON);
- 		}else
   			sccp_dev_set_lamp(subscriber->device, SKINNY_STIMULUS_LINE, subscriber->instance, SKINNY_LAMP_OFF);
+ 		}else
+  			sccp_dev_set_lamp(subscriber->device, SKINNY_STIMULUS_LINE, subscriber->instance, SKINNY_LAMP_ON);
 		
 		
 		sccp_device_sendcallstate(subscriber->device, subscriber->instance, 0, hint->currentState, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);

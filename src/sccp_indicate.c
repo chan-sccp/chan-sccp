@@ -121,6 +121,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_channel_set_callstate(d, c, SKINNY_CALLSTATE_OFFHOOK);
 
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 0);
+		sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); 
 		sccp_dev_set_keyset(d, instance,c->callid, KEYMODE_DIGITSFOLL);
 		sccp_dev_set_cplane(l, d, 1);
 		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, 0);
@@ -144,6 +145,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_channel_set_callstate(d, c, SKINNY_CALLSTATE_OFFHOOK);
 
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 0);
+		sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); 
 		sccp_dev_set_keyset(d, instance,c->callid, KEYMODE_OFFHOOK);
 		sccp_dev_set_cplane(l, d, 1);
 //		sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, l->instance, c->callid, 0);
@@ -197,6 +199,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 			sccp_dev_starttone(d, SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGOUT);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_RING_OUT, 0);
+		sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_RINGOUT, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); 
 		sccp_ast_setstate(c, AST_STATE_RING);
 		break;
 	case SCCP_CHANNELSTATE_RINGING:
@@ -207,6 +210,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		if (!d->mwioncall)
 			sccp_dev_set_mwi(d, NULL, 0);
 		sccp_channel_set_callstate(d, c, SKINNY_CALLSTATE_RINGIN);
+		sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); 
 		sccp_channel_send_callinfo(d, c);
 		sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_BLINK);
 
@@ -265,6 +269,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		}
 		sccp_dev_stoptone(d, instance, c->callid);
 		sccp_channel_set_callstate(d, c, SKINNY_CALLSTATE_PROCEED);
+		sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); /* send connected, so it is not listed as missed call*/
 		// sccp_dev_set_keyset(d, l->instance, c->callid, KEYMODE_CONNECTED);
 		sccp_channel_send_callinfo(d, c);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
@@ -277,6 +282,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_handle_time_date_req(d->session, NULL);
 		sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_WINK);
 		sccp_channel_set_callstate(d, c, SKINNY_CALLSTATE_HOLD);
+		sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); /* send connected, so it is not listed as missed call*/
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOLD);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_HOLD, 0);
 //		sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
@@ -299,6 +305,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		if (GLOB(callwaiting_tone))
 			sccp_dev_starttone(d, GLOB(callwaiting_tone), instance, c->callid, 0);
 		sccp_channel_set_callstate(d, c, SKINNY_CALLSTATE_RINGIN);
+		sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); /* send connected, so it is not listed as missed call*/
 		sccp_channel_send_callinfo(d, c);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_WAITING, 0);
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGIN);

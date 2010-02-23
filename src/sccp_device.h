@@ -33,7 +33,7 @@ void sccp_dev_set_speaker(sccp_device_t * d, uint8_t opt);
 void sccp_dev_set_microphone(sccp_device_t * d, uint8_t opt);
 void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail);
 void sccp_dev_set_cplane(sccp_line_t * l, sccp_device_t *device, int status);
-void sccp_dev_set_deactivate_cplane(sccp_channel_t * c);
+void sccp_dev_deactivate_cplane(sccp_device_t * d);
 void sccp_dev_starttone(sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t callid, uint32_t timeout);
 void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid);
 void sccp_dev_clearprompt(sccp_device_t * d, uint8_t line, uint32_t callid);
