@@ -837,6 +837,8 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 					sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
 				} else {
 					sccp_dev_deactivate_cplane(d);
+					sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);
+					sccp_dev_deactivate_cplane(d);
 				}
 			}
 			break;
