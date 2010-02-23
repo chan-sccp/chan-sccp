@@ -283,9 +283,9 @@ fi
 AM_CONDITIONAL([WANT_DEBUG],[test "${enable_debug}" = "yes"])
 
 AC_ARG_WITH([asterisk],
-    [AC_HELP_STRING([--with-asterisk=PATH],[Location of OpenSSL installation])],,[withval="/usr"])
+    [AC_HELP_STRING([--with-asterisk=PATH],[Location of OpenSSL installation])],,[if test "x$withval" = "xyes"; then PBX_PATH="/usr"; else PBX_PATH="$withval";fi])
 AC_ARG_WITH([callweaver],
-    [AC_HELP_STRING([--with-callweaver=PATH],[Location of OpenSSL installation])],,[withval="/usr"])
+    [AC_HELP_STRING([--with-callweaver=PATH],[Location of OpenSSL installation])],,[if test "x$withval" = "xyes"; then PBX_PATH="/usr"; else PBX_PATH="$withval";fi])
 AC_ARG_WITH(asterisk-includes,
     AS_HELP_STRING([--with-asterisk-includes=PATH], [Path to Asterisk includes (defaults to PREFIX/include)]),
     [ASTERISK_CFLAGS="-I$withval"])
@@ -299,20 +299,18 @@ AC_ARG_WITH(callweaver-libs,
     AS_HELP_STRING([--with-callweaver-libs=PATH], [Path to CallWeaver includes (defaults to PREFIX/lib)]),
     [CALLWEAVER_LDFLAGS="-L$withval"])
    
-   
-echo "withval: $withval"
+AC_SUBST([PBX_PATH])
 PBX_MANDATORY="yes"
 CS_CHECK_PBX
 
-
-echo "PBX_TYPE:		$PBX_TYPE"
-echo "HAVE_ASTERISK:	$HAVE_ASTERISK"
-echo "HAVE_CALLWEAVER:	$HAVE_CALLWEAVER"
-echo "PBX_LIB:		$PBX_LIB"
-echo "PBX_INCLUDE:		$PBX_INCLUDE"
-echo "PBX_MODDIR:		$PBX_MODDIR"
-echo "PBX_CFLAGS:		$PBX_CFLAGS"
-echo "PBX_CXXFLAGS:		$PBX_CXXFLAGS"
+echo "PBX_TYPE:         $PBX_TYPE"
+echo "HAVE_ASTERISK:    $HAVE_ASTERISK"
+echo "HAVE_CALLWEAVER:  $HAVE_CALLWEAVER"
+echo "PBX_LIB:          $PBX_LIB"
+echo "PBX_INCLUDE:      $PBX_INCLUDE"
+echo "PBX_MODDIR:       $PBX_MODDIR"
+echo "PBX_CFLAGS:       $PBX_CFLAGS"
+echo "PBX_CXXFLAGS:     $PBX_CXXFLAGS"
 
 
 if test "${USE_ASTERISK}" != "no"; then
@@ -321,7 +319,7 @@ if test "${USE_ASTERISK}" != "no"; then
    if test "x${PBX_DIR}" != "x"; then
       CPPFLAGS="${CPPFLAGS} -I${PBX_DIR}/include"
       else
-      CPPFLAGS="${CPPFLAGS} -I${withval}/include"
+      CPPFLAGS="${CPPFLAGS} -I${PBX_PATH}/include"
    fi
    
    AC_COMPILE_IFELSE(

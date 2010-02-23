@@ -1,4 +1,131 @@
+2010-02-23  marcelloceschia
+
+	* [r1307] src/sccp_channel.c: unlock channel if locked
+
+2010-02-23  davidded
+
+	* [r1306] src/chan_sccp.h, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_indicate.c, src/sccp_utils.c: fixed callstate
+	  signalling. merged MC and mine code
+
+2010-02-23  marcelloceschia
+
+	* [r1305] src/sccp_device.c, src/sccp_protocol.h: added devicetype
+	  376 (nokia icc)
+
+	* [r1304] src/sccp_config.c: fixes config_type issue
+
+	* [r1303] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_channel.h, src/sccp_pbx.c, src/sccp_protocol.h,
+	  src/sccp_utils.c: fixes off-hook answer
+
+2010-02-23  davidded
+
+	* [r1302] src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_indicate.c, src/sccp_pbx.c: cleanup with callstate
+	  signalling. removing obsolete function.
+
+	* [r1301] src/sccp_actions.c, src/sccp_device.c, src/sccp_device.h,
+	  src/sccp_hint.c, src/sccp_indicate.c: line key fancy
+
+2010-02-22  marcelloceschia
+
+	* [r1300] configure.ac: prefix fix
+
+	* [r1299] src/sccp_indicate.c: stop continues ringing on remote
+	  device issue
+
+2010-02-21  davidded
+
+	* [r1298] src/sccp_actions.c, src/sccp_conference.c: softkey fix
+
+2010-02-17  ddegroot
+
+	* [r1297] src/sccp_labels.h, src/sccp_protocol.h: Updated
+	  protocol.h to match enum names instead of uint32_t
+
+	* [r1296] src/chan_sccp.c, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_cli.c, src/sccp_device.c, src/sccp_features.c,
+	  src/sccp_hint.c, src/sccp_protocol.h, src/sccp_socket.c,
+	  src/sccp_softkeys.c, src/sccp_utils.c, src/sccp_utils.h: Cleaned
+	  up the array2str function
+
+	* [r1295] src/sccp_utils.h: Started waling the array at 1 instead
+	  of 0
+
+2010-02-16  ddegroot
+
+	* [r1294] src/sccp_utils.c, src/sccp_utils.h: Added more specific
+	  return values, when lookups failed
+
+2010-02-16  davidded
+
+	* [r1293] src/sccp_conference.c, src/sccp_conference.h: typos
+
+	* [r1292] src/sccp_conference.c: typos
+
+	* [r1291] src/sccp_conference.c: typos
+
+	* [r1290] src/sccp_cli.c, src/sccp_mwi.c: typos
+
+	* [r1289] src/sccp_channel.c, src/sccp_conference.c,
+	  src/sccp_conference.h, src/sccp_features.c, src/sccp_pbx.c,
+	  src/sccp_softkeys.c: conference reworked
+
+2010-02-16  ddegroot
+
+	* [r1288] src/sccp_labels.h: Added a couple of new labels
+
+2010-02-16  davidded
+
+	* [r1287] src/sccp_conference.c: test
+
+2010-02-15  davidded
+
+	* [r1286] src/Makefile.am, src/sccp_conference.c[CPY],
+	  src/sccp_conference.cpp[DEL]: cpp to c
+
+	* [r1285] src/sccp_channel.c: conference attempt
+
+	* [r1284] INSTALL, autoconf/config.guess, autoconf/config.sub,
+	  autoconf/depcomp, autoconf/install-sh, autoconf/missing, libtool,
+	  src/sccp_channel.c, src/sccp_conference.cpp, src/sccp_features.c:
+	  conference attempt
+
+2010-02-13  ddegroot
+
+	* [r1283] src/Makefile.am: Replace "if [ -d" with "test -z" in
+	  "make install" procedure
+
+2010-02-13  marcelloceschia
+
+	* [r1282] src/sccp_actions.c: fixing accessory status
+
+2010-02-13  ddegroot
+
+	* [r1281] src/Makefile.am: Replaced install-sh with default
+	  /usr/bin/install when it exists
+
+2010-02-13  davidded
+
+	* [r1280] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_adv_features.c, src/sccp_channel.c, src/sccp_cli.c,
+	  src/sccp_config.c, src/sccp_device.c, src/sccp_featureButton.c,
+	  src/sccp_features.c, src/sccp_hint.c, src/sccp_hint.h,
+	  src/sccp_protocol.h, src/sccp_utils.c: code cleanup
+
 2010-02-12  ddegroot
+
+	* [r1279] autoconf/acinclude.m4, configure.ac: Added some section
+	  headers in configure.ac so people known what we are doing
+
+	* [r1278] ChangeLog, Makefile.am, autoconf,
+	  autoconf/config.guess[ADD], autoconf/config.sub[ADD],
+	  bootstrap.sh, configure.ac, doc/Makefile.am, libtool,
+	  prepare_release[ADD], src/Makefile.am: Fixed a couple of libtool
+	  issues
+	  Fixed "make dist" issues
+	  Added script to run "make dist" succesfully
 
 	* [r1277] src/Makefile.am, src/sccp_object2.h: Removed sccp_object2
 	  temporarily because it does not compile against lower than
