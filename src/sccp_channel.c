@@ -324,7 +324,7 @@ void sccp_channel_setSkinnyCallstate(sccp_channel_t * c, skinny_callstate_t stat
 	c->previousChannelState =c->state;
 	c->state = state;
 	
-	c->callstate = state;
+	//c->callstate = state;
 
 	return;
 

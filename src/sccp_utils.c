@@ -546,7 +546,7 @@ sccp_channel_t * sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t stat
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-			if (c && c->callstate == state && c->state != SCCP_CHANNELSTATE_DOWN) {
+			if (c && c->state == state) {
 				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(c->device), c->callid);
 				break;
 			}
@@ -624,7 +624,7 @@ sccp_channel_t * sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t 
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-			if (c->callstate == state) {
+			if (c->state == state) {
 				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(c->device), c->callid);
 				break;
 			}
@@ -666,8 +666,7 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 				sccp_log(10)(VERBOSE_PREFIX_3 "%s: line: '%s'\n", DEV_ID_LOG(d), l->name);
 				SCCP_LIST_LOCK(&l->channels);
 				SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-					sccp_log(10)(VERBOSE_PREFIX_3 "%s: channelstate: '%d'\n", DEV_ID_LOG(c->device), c->callstate);
-					if (c->callstate == state && c->state != SCCP_CHANNELSTATE_DOWN) {
+					if (c->state == state) {
 						sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(d), c->callid);
 						channelFound = TRUE;
 						break;

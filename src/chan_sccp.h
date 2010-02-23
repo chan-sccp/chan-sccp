@@ -749,7 +749,6 @@ struct sccp_channel {
         //uint32_t				conferenceid; 				/*!< Conference ID. This will be used in native conferencing mode and will differ from callid  -FS*/
         uint8_t					state;					/*!< Internal channel state SCCP_CHANNELSTATE_* */
         uint8_t					previousChannelState;			/*!< Previous channel state SCCP_CHANNELSTATE_* */
-        uint8_t					callstate;				/*!< Skinny Call State */
         skinny_calltype_t			calltype;				/*!< Skinny Call Type as SKINNY_CALLTYPE_* */
         int					digittimeout;				/*!< Scheduler Timeout on Dialing State */
         uint8_t					ringermode;				/*!< Ringer Mode */
