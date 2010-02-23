@@ -1508,8 +1508,9 @@ void sccp_channel_delete_wo(sccp_channel_t * c, uint8_t list_lock, uint8_t chann
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Channel %d deleted from line %s\n", DEV_ID_LOG(d), c->callid, l ? l->name : "(null)");
 	}
 
-
-	sccp_channel_unlock(c);
+	if(channel_lock)
+		sccp_channel_unlock(c);
+	
 	sccp_mutex_destroy(&c->lock);
 	ast_free(c);
 
