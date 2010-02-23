@@ -306,6 +306,9 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 				}
 			}
 			break;
+		case SKINNY_DEVICETYPE_NOKIA_ICC:
+			(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
+			break;
 		case SKINNY_DEVICETYPE_NOKIA_E_SERIES:
 			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
 			(btn++)->type = SKINNY_BUTTONTYPE_LINE;

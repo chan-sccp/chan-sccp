@@ -463,6 +463,7 @@ static const struct skinny_alarm {
 #define SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR	 	30016
 #define SKINNY_DEVICETYPE_GATEWAY_AN 			30027 				/*!< Analog gateway */
 #define SKINNY_DEVICETYPE_GATEWAY_BRI 			30028 				/*!< BRI gateway */
+#define SKINNY_DEVICETYPE_NOKIA_ICC 			376 				/*!< nokia icc client V2 */
 /*!
  * \brief Skinny DeviceType Structure
  */
@@ -547,6 +548,8 @@ static const struct skinny_devicetype {
 	{ SKINNY_DEVICETYPE_CISCO7971			,	"Cisco 7971"				},
 	{ SKINNY_DEVICETYPE_CISCO7975			,	"Cisco 7975"				},
 	{ SKINNY_DEVICETYPE_CISCO7985			,	"Cisco 7985"				},
+	{ SKINNY_DEVICETYPE_NOKIA_ICC			,	"Nokia ICC client"			},
+	
 };
 
 #define SKINNY_DEVICE_RS_NONE			0
