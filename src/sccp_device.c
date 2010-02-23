@@ -569,19 +569,18 @@ void sccp_dev_set_cplane(sccp_line_t * l, sccp_device_t *device, int status)
 
 /*!
  * \brief Set Call Plane to In-Active on  Line on Device
- * \param c SCCP Channel
+ * \param d device
  * \todo What does this function do exactly (DeactivateCallPlaneMessage) ?
  */
-void sccp_dev_set_deactivate_cplane(sccp_channel_t * c)
+void sccp_dev_deactivate_cplane(sccp_device_t * d)
 {
-	int instance;
-
-	if (!c || !c->device || !c->line)
+	if (!d) {
+		sccp_log(10)(VERBOSE_PREFIX_3 "Null device for deactivate callplane\n");
 		return;
+	}
 
-	instance = sccp_device_find_index_for_line(c->device, c->line->name);
-	sccp_dev_sendmsg(c->device, DeactivateCallPlaneMessage);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send deactivate call plane on line %d\n", c->device->id, instance);
+	sccp_dev_sendmsg(d, DeactivateCallPlaneMessage);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send deactivate call plane\n", d->id);
 }
 
 /*!
@@ -1031,7 +1030,8 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
  */
 void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint8_t instance, uint8_t lampMode)
 {
-	sccp_moo_t * r;
+/*
+   sccp_moo_t * r;
 
 	if (!d )
 		return;
@@ -1041,7 +1041,8 @@ void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint8_t insta
 	r->msg.SetLampMessage.lel_stimulusInstance = htolel(instance);
 	r->msg.SetLampMessage.lel_lampMode = htolel(lampMode);
 	sccp_dev_send(d, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send lamp mode %s(%d) on line %d\n", d->id, lampmode2str(lampMode), lampMode, instance );
+	*/
+	//sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send lamp mode %s(%d) on line %d\n", d->id, lampmode2str(lampMode), lampMode, instance );
 }
 
 void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {

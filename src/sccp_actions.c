@@ -823,23 +823,19 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			    {
 				    sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call not in progress. Closing line %s\n", d->id, (l) ? l->name : "(nil)");
 				    sccp_channel_endcall(c);
+					sccp_dev_deactivate_cplane(d);
 				    return;
 			    }
-			    else
-			    {
-				    sccp_log(1)(VERBOSE_PREFIX_3 "%s: Trying to put on hold the active call (%d) on line %s\n", d->id, c->callid, (l) ? l->name : "(nil)");
-			    	    /* there is an active call, let's put it on hold first */
-				    if (!sccp_channel_hold(c)) {
-						sccp_log(1)(VERBOSE_PREFIX_3 "%s: Hold failed on call (%d), line %s\n", d->id, c->callid, (l) ? l->name : "(nil)");
-						return;
-				    }
-			    }
 
+			} else {
+				if (!l->channelCount) {
+					sccp_dev_set_activeline(d, l);
+					sccp_dev_set_cplane(l, d, 1);
+					sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
+				} else {
+					sccp_dev_deactivate_cplane(d);
+				}
 			}
-			sccp_dev_set_activeline(d, l);
-			sccp_dev_set_cplane(l, d, 1);
-			if (!l->channelCount)
-				sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
 			break;
 
 		case SKINNY_BUTTONTYPE_SPEEDDIAL:
