@@ -317,7 +317,7 @@ void sccp_channel_send_dialednumber(sccp_channel_t * c)
  * \param c SCCP Channel
  * \param state channel state
  */
-void sccp_channel_set_callstate(sccp_device_t * d, sccp_channel_t * c, uint8_t state)
+/*void sccp_channel_set_callstate(sccp_device_t * d, sccp_channel_t * c, uint8_t state)
 {
 	uint8_t instance;
 	c->callstate = state;
@@ -327,7 +327,7 @@ void sccp_channel_set_callstate(sccp_device_t * d, sccp_channel_t * c, uint8_t s
 
 	instance = sccp_device_find_index_for_line(d, c->line->name);
 	sccp_device_sendcallstate(d, instance, c->callid, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-}
+}*/
 
 
 /*!
