@@ -1591,7 +1591,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 			instance = sccp_device_find_index_for_line(d, c->line->name);
 
 			sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_DIALING);
-			sccp_channel_set_callstate(d, c, SKINNY_CALLSTATE_PROCEED);
+			sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); 
 			sccp_channel_send_callinfo(d, c);
 			sccp_dev_clearprompt(d, instance, c->callid);
 			sccp_dev_displayprompt(d,instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
@@ -1630,7 +1630,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 			// like we're dialing but we're not :)
 			instance = sccp_device_find_index_for_line(d, c->line->name);
 			sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_DIALING);
-			sccp_channel_set_callstate(d, c, SKINNY_CALLSTATE_PROCEED);
+			sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); 
 			sccp_channel_send_callinfo(d, c);
 
 			sccp_dev_clearprompt(d, instance, c->callid);
@@ -1652,7 +1652,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 			instance = sccp_device_find_index_for_line(d, c->line->name);
 
 			sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_DIALING);
-			sccp_channel_set_callstate(d, c, SKINNY_CALLSTATE_PROCEED);
+			sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); 
 			sccp_channel_send_callinfo(d, c);
 			sccp_dev_clearprompt(d, instance, c->callid);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
@@ -1713,7 +1713,8 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 
 	/* proceed call state is needed to display the called number.
 	The phone will not display callinfo in offhook state */
-	sccp_channel_set_callstate(d, c, SKINNY_CALLSTATE_PROCEED);
+	instance = sccp_device_find_index_for_line(d, c->line->name);
+	sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); 
 	sccp_channel_send_callinfo(d, c);
 
 	instance = sccp_device_find_index_for_line(d, c->line->name);
