@@ -930,7 +930,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
                 } else if (!strcasecmp(v->name, "permithost")) {
                         sccp_permithost_addnew(d, v->value);
 		} else if ((!strcasecmp(v->name, "type")) || !strcasecmp(v->name, "devicetype")){
-			if (!strcasecmp(v->value, "device")){
+			if (strcasecmp(v->value, "device")){
 				sccp_copy_string(d->config_type, v->value, sizeof(d->config_type));
 			}
                 } else if (!strcasecmp(v->name, "addon")) {
