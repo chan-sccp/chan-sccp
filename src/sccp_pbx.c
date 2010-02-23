@@ -389,10 +389,12 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 
 	/* someone forget to restore the asterisk lock */
 	// sccp_ast_channel_lock(ast);
-	if (isRinging)
+	if (isRinging){
 		ast_queue_control(ast, AST_CONTROL_RINGING);
-	else
+		sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_RINGIN);
+	}else{
 		ast_queue_control(ast, AST_CONTROL_CONGESTION);
+	}
 
 	return 0;
 }

@@ -22,7 +22,7 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel);
 void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * c);
 void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t * c);
 void sccp_channel_send_dialednumber(sccp_channel_t * c);
-//void sccp_channel_set_callstate(sccp_device_t * d, sccp_channel_t * c, uint8_t state);
+void sccp_channel_setSkinnyCallstate(sccp_channel_t * c, skinny_callstate_t state);
 void sccp_channel_set_callingparty(sccp_channel_t * c, char *name, char *number);
 void sccp_channel_set_calledparty(sccp_channel_t * c, char *name, char *number);
 void sccp_channel_connect(sccp_channel_t * c);
