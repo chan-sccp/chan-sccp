@@ -1,3 +1,19 @@
+2010-02-23  davidded
+
+	* [r1310] src/sccp_hint.c: fixed callstate signalling. merged MC
+	  and mine code
+
+2010-02-23  marcelloceschia
+
+	* [r1309] src/sccp_indicate.c:
+
+2010-02-23  ddegroot
+
+	* [r1308] ChangeLog, INSTALL, autoconf/acinclude.m4,
+	  autoconf/config.guess, autoconf/config.sub, autoconf/depcomp,
+	  autoconf/install-sh, autoconf/missing, configure.ac, libtool:
+	  Fixed configure.ac to search --with-asterisk=PATH
+
 2010-02-23  marcelloceschia
 
 	* [r1307] src/sccp_channel.c: unlock channel if locked

@@ -209,8 +209,6 @@ LIBS="$LIBS"
 CONFIGURE_PART([Checking for Required Libraries:])
 dnl check for required libraries (also for add-ons)
 AC_CHECK_LIB([c], [main])
-AC_CHECK_HEADER([asterisk.h],,[compile_for_asterisk="no"])
-AC_CHECK_HEADER([callweaver.h],,[compile_for_callweaver="no"])
 AC_CHECK_HEADERS([sys/ioctl.h]) 
 AC_CHECK_HEADERS([sys/socket.h])
 AC_CHECK_HEADERS([netinet/in.h])
@@ -286,99 +284,32 @@ AC_ARG_WITH([asterisk],
     [AC_HELP_STRING([--with-asterisk=PATH],[Location of OpenSSL installation])],,[if test "x$withval" = "xyes"; then PBX_PATH="/usr"; else PBX_PATH="$withval";fi])
 AC_ARG_WITH([callweaver],
     [AC_HELP_STRING([--with-callweaver=PATH],[Location of OpenSSL installation])],,[if test "x$withval" = "xyes"; then PBX_PATH="/usr"; else PBX_PATH="$withval";fi])
-AC_ARG_WITH(asterisk-includes,
-    AS_HELP_STRING([--with-asterisk-includes=PATH], [Path to Asterisk includes (defaults to PREFIX/include)]),
-    [ASTERISK_CFLAGS="-I$withval"])
-AC_ARG_WITH(asterisk-libs,
-    AS_HELP_STRING([--with-asterisk-libs=PATH], [Path to Asterisk includes (defaults to PREFIX/lib)]),
-    [ASTERISK_LDFLAGS="-L$withval"])
-AC_ARG_WITH(callweaver-includes,
-    AS_HELP_STRING([--with-callweaver-includes=PATH], [Path to CallWeaver includes (defaults to PREFIX/include)]),
-    [CALLWEAVER_CFLAGS="-I$withval"])
-AC_ARG_WITH(callweaver-libs,
-    AS_HELP_STRING([--with-callweaver-libs=PATH], [Path to CallWeaver includes (defaults to PREFIX/lib)]),
-    [CALLWEAVER_LDFLAGS="-L$withval"])
+dnl AC_ARG_WITH(asterisk-includes,
+dnl     AS_HELP_STRING([--with-asterisk-includes=PATH], [Path to Asterisk includes (defaults to PREFIX/include)]),
+dnl     [ASTERISK_CFLAGS="-I$withval"])
+dnl AC_ARG_WITH(asterisk-libs,
+dnl     AS_HELP_STRING([--with-asterisk-libs=PATH], [Path to Asterisk includes (defaults to PREFIX/lib)]),
+dnl     [ASTERISK_LDFLAGS="-L$withval"])
+dnl AC_ARG_WITH(callweaver-includes,
+dnl     AS_HELP_STRING([--with-callweaver-includes=PATH], [Path to CallWeaver includes (defaults to PREFIX/include)]),
+dnl     [CALLWEAVER_CFLAGS="-I$withval"])
+dnl AC_ARG_WITH(callweaver-libs,
+dnl     AS_HELP_STRING([--with-callweaver-libs=PATH], [Path to CallWeaver includes (defaults to PREFIX/lib)]),
+dnl     [CALLWEAVER_LDFLAGS="-L$withval"])
    
+CFLAGS_saved="$CFLAGS"
+CPPFLAGS_saved="$CPPFLAGS"
+LDFLAGS_saved="$LDFLAGS"
 AC_SUBST([PBX_PATH])
 PBX_MANDATORY="yes"
 CS_CHECK_PBX
 
-echo "PBX_TYPE:         $PBX_TYPE"
-echo "HAVE_ASTERISK:    $HAVE_ASTERISK"
-echo "HAVE_CALLWEAVER:  $HAVE_CALLWEAVER"
-echo "PBX_LIB:          $PBX_LIB"
-echo "PBX_INCLUDE:      $PBX_INCLUDE"
-echo "PBX_MODDIR:       $PBX_MODDIR"
-echo "PBX_CFLAGS:       $PBX_CFLAGS"
-echo "PBX_CXXFLAGS:     $PBX_CXXFLAGS"
+AC_CHECK_HEADER([asterisk.h],,[compile_for_asterisk="no"])
+AC_CHECK_HEADER([callweaver.h],,[compile_for_callweaver="no"])
 
-
-if test "${USE_ASTERISK}" != "no"; then
-   AC_MSG_CHECKING(for asterisk.h)
-   saved_cppflags="${CPPFLAGS}"
-   if test "x${PBX_DIR}" != "x"; then
-      CPPFLAGS="${CPPFLAGS} -I${PBX_DIR}/include"
-      else
-      CPPFLAGS="${CPPFLAGS} -I${PBX_PATH}/include"
-   fi
-   
-   AC_COMPILE_IFELSE(
-	[
-	AC_LANG_PROGRAM(
-	[#include <asterisk.h>],
-	[])
-	],
-	[	AC_MSG_RESULT(yes) 
-		ac_cv_asterisk_h="yes" 
-	],
-	[	AC_MSG_RESULT(no) 
-		ac_cv_asterisk_h="no" 
-	]
-	)
-   CPPFLAGS="${saved_cppflags}"
-   if test "${ac_cv_asterisk_h}" = "yes"; then
-	if test "${PBX_DIR}" != ""; then
-	   PBX_INCLUDE="-I${PBX_DIR}/include"
-	fi
-	PBX_ASTERISK=1
-	AC_DEFINE([HAVE_ASTERISK], 1, [Define if your system has the Asterisk headers.])
-   fi
-   AC_MSG_CHECKING(for callweaver.h)
-   if test "x${PBX_DIR}" != "x"; then
-      CPPFLAGS="${CPPFLAGS} -I${PBX_DIR}/include"
-   fi
-   AC_COMPILE_IFELSE(
-	[
-	AC_LANG_PROGRAM(
-	[#include <callweaver.h>],
-	[])
-	],
-	[	AC_MSG_RESULT(yes) 
-		ac_cv_callweaver_h="yes" 
-	],
-	[	AC_MSG_RESULT(no) 
-		ac_cv_callweaver_h="no" 
-	]
-	)
-   if test "${ac_cv_callweaver_h}" = "yes"; then
-	if test "${PBX_DIR}" != ""; then
-	   PBX_INCLUDE="-I${PBX_DIR}/include"
-	fi
-	PBX_CALLWEAVER=1
-	AC_DEFINE([HAVE_CALLWEAVER], 1, [Define if your system has the Asterisk headers.])
-   fi
-   if test ! -z "${PBX_MANDATORY}"; then
-     if test "${ac_cv_callweaver_h}" != "yes" && test "${ac_cv_asterisk_h}" != "yes"
-     then
-        AC_MSG_NOTICE([***])
-        AC_MSG_NOTICE([*** The Asterisk installation on this system appears to be broken.])
-        AC_MSG_NOTICE([*** Either correct the installation, or run configure])
-        AC_MSG_NOTICE([*** including --without-asterisk.])
-        exit 1
-     fi
-   fi
-fi
-
+dnl echo "CFLAGS: $CFLAGS"
+dnl echo "CPPFLAGS: $CPPFLAGS"
+dnl echo "LDFLAGS: $LDFLAGS"
 dnl Add Arguments to configure
 AC_ARG_WITH(pickup, 
   AC_HELP_STRING([--with-pickup],       [build with pickup function (default is YES)]), 
@@ -501,20 +432,12 @@ if test "${PBX_TYPE}" = "Asterisk"; then
   ],AC_MSG_RESULT([Not Found 'asterisk/version.h']))
 
 
-dnl NEW NEW
-  dnl Save Current CFLAGS / CPPFLAGS
-  CFLAGS_saved="${CFLAGS}"
-  CPPFLAGS_saved="${CPPFLAGS}"
-  LDFLAGS_saved="${LDFLAGS}"
-  
-  dnl Set Temporary Test CFLAGS / CPPFLAGS
-dnl  CFLAGS="-DPTHREAD_MUTEX_RECURSIVE -pthread -D_REENTRANT"
-dnl  CPPFLAGS="${CFLAGS}"
-dnl  LDFLAGS="-lpthread -MD -MP"
+dnl Set Temporary Test CFLAGS / CPPFLAGS
+dnl CFLAGS="${CFLAGS} -DPTHREAD_MUTEX_RECURSIVE -pthread -D_REENTRANT"
+dnl CPPFLAGS="${CPPFLAGS} -DPTHREAD_MUTEX_RECURSIVE -pthread -D_REENTRANT"
+dnl LDFLAGS="-lpthread -MD -MP"
 
-dnl  echo "CFLAGS: $CFLAGS"
-dnl  echo "LDFLAGS: $LDFLAGS"
-  dnl Run Header Test
+dnl Run Header Test
   AC_CHECK_HEADER([asterisk/lock.h],AC_DEFINE(HAVE_ASTERISK_LOCK_H,1,[Found 'asterisk/lock.h']),[lock_compiled=no],[#include <asterisk.h>])
   AS_IF([test "${lock_compiled}" != "no"], [
     AC_CHECK_HEADER([asterisk/app.h],		AC_DEFINE(HAVE_ASTERISK_APP_H,1,[Found 'asterisk/app.h']),,			[ #include <asterisk.h>])
@@ -544,10 +467,6 @@ dnl  echo "LDFLAGS: $LDFLAGS"
     AC_CHECK_HEADER([asterisk/manager.h],	AC_DEFINE(HAVE_ASTERISK_MANAGER_H,1,[Found 'asterisk/manager.h']),,     	[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/channel_pvt.h],	AC_DEFINE(HAVE_ASTERISK_CHANNEL_pvt_H,1,[Found 'asterisk/channel_pvt.h']),, 	[ #include <asterisk.h> ])
   ])
-  dnl Return CFLAGS / CPPFLAGS
-  CFLAGS=${CFLAGS_saved}
-  CPPFLAGS=${CPPFLAGS_saved}
-  LDFLAGS=${LDFLAGS_saved}
 dnl END NEW NEW
 
   dnl AC_CHECK_HEADER (header-file, action-if-found, [action-if-not-found])
@@ -832,6 +751,11 @@ dnl END NEW NEW
     AC_MSG_RESULT([Found])
   fi
 fi
+dnl Return CFLAGS / CPPFLAGS
+CFLAGS=${CFLAGS_saved}
+CPPFLAGS=${CPPFLAGS_saved}
+LDFLAGS=${LDFLAGS_saved}
+
 dnl Set Module Directory
 csmoddir="$PBX_MODDIR"
 # directory for modules
@@ -874,7 +798,7 @@ echo "Architecture: $build_cpu"
 echo "  Build user: $BUILD_USER"
 echo "  CPU -march: $march"
 echo "      CFLAGS: $CFLAGS $PBX_CFLAGS"
-echo "     LDFLAGS: $LDFLAGS"
+echo "     LDFLAGS: $LDFLAGS $PBX_LDFLAGS"
 echo "    PBX_TYPE: $PBX_TYPE"
 echo "     PBX_LIB: $PBX_LIB"
 echo " PBX_INCLUDE: $PBX_INCLUDE"

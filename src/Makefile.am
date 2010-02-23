@@ -27,10 +27,11 @@ chan_sccp_la_SOURCES    = chan_sccp.h          sccp_cli.h          sccp_event.h 
 			  sccp_event.c         sccp_adv_features.c sccp_mwi.c            sccp_management.c  sccp_featureButton.c \
 			  sccp_conference.c    #sccp_object2.c
 
-chan_sccp_la_CFLAGS	= $(AM_CFLAGS)
+chan_sccp_la_CPPFLAGS	= $(PBX_CPPFLAGS)
+chan_sccp_la_CFLAGS	= $(AM_CFLAGS) $(PBX_CFLAGS)
 chan_sccp_la_CFLAGS	+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
 chan_sccp_la_CFLAGS	+= -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wlong-long
-chan_sccp_la_LDFLAGS	= -avoid-version -module
+chan_sccp_la_LDFLAGS	= -avoid-version -module  $(PBX_LDFLAGS)
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
