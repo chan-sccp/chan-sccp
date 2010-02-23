@@ -317,17 +317,20 @@ void sccp_channel_send_dialednumber(sccp_channel_t * c)
  * \param c SCCP Channel
  * \param state channel state
  */
-/*void sccp_channel_set_callstate(sccp_device_t * d, sccp_channel_t * c, uint8_t state)
+void sccp_channel_setSkinnyCallstate(sccp_channel_t * c, skinny_callstate_t state)
 {
-	uint8_t instance;
+	//uint8_t instance;
+	
+	c->previousChannelState =c->state;
+	c->state = state;
+	
 	c->callstate = state;
 
-	if(!d)
-		return;
+	return;
 
-	instance = sccp_device_find_index_for_line(d, c->line->name);
-	sccp_device_sendcallstate(d, instance, c->callid, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-}*/
+	//instance = sccp_device_find_index_for_line(d, c->line->name);
+	//sccp_device_sendcallstate(d, instance, c->callid, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+}
 
 
 /*!
@@ -976,7 +979,9 @@ void sccp_channel_endcall(sccp_channel_t * c)
 		res = (c->owner->pbx || c->owner->blocker);
 
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending %s hangup request to %s\n", DEV_ID_LOG(c->device), res ? "(queue)" : "(force)", c->owner->name);
+		
 
+		
 		c->owner->hangupcause = AST_CAUSE_NORMAL_CLEARING;
 
 		/* force hanguo for invalid dials */

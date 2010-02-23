@@ -324,19 +324,19 @@ sccp_device_t * sccp_device_find_realtime(const char * name) {
 		//d = sccp_config_buildDevice(v, name, TRUE);
 
 		d = sccp_device_create();
+		if(!d) {
+			ast_log(LOG_ERROR, "SCCP: Unable to build realtime device '%s'\n", name);
+			return NULL;
+		}
+		
 		sccp_device_applyDefaults(d);
 		sccp_copy_string(d->id, name, sizeof(d->id));
 		d = sccp_config_applyDeviceConfiguration(d, variable);
 
-#ifdef CS_SCCP_REALTIME
 		d->realtime = TRUE;
-#endif
 		d = sccp_device_addToGlobals(d);
 		ast_variables_destroy(v);
 
-		if(!d) {
-			ast_log(LOG_ERROR, "SCCP: Unable to build realtime device '%s'\n", name);
-		}
 		return d;
 	}
 
@@ -663,10 +663,12 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 		if(buttonconfig->type == LINE ){
 			l = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE);
 			if(l){
+				sccp_log(10)(VERBOSE_PREFIX_3 "%s: line: '%s'\n", DEV_ID_LOG(d), l->name);
 				SCCP_LIST_LOCK(&l->channels);
 				SCCP_LIST_TRAVERSE(&l->channels, c, list) {
+					sccp_log(10)(VERBOSE_PREFIX_3 "%s: channelstate: '%d'\n", DEV_ID_LOG(c->device), c->callstate);
 					if (c->callstate == state && c->state != SCCP_CHANNELSTATE_DOWN) {
-						sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(c->device), c->callid);
+						sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(d), c->callid);
 						channelFound = TRUE;
 						break;
 					}

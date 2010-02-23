@@ -618,7 +618,10 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 
 			default:
 				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = btn[i].type;
-				r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
+				if(btn[i].instance != 0)
+					r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
+				else
+					r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = i+1;
 				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 				break;
 		}
@@ -1086,7 +1089,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r)
 	}
 	/* end line check */
 
-	c = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_RINGING);
+	c = sccp_channel_find_bystate_on_device(d, SKINNY_CALLSTATE_RINGIN);
 
 	if (c) {
     		/* Answer the ringing channel. */
