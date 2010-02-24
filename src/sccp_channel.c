@@ -1504,7 +1504,7 @@ void sccp_channel_delete_wo(sccp_channel_t * c, uint8_t list_lock, uint8_t chann
 
 	if(l) {
 		d = c->device;
-		AST_LIST_REMOVE(&l->channels, c, list);
+		SCCP_LIST_REMOVE(&l->channels, c, list);
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Channel %d deleted from line %s\n", DEV_ID_LOG(d), c->callid, l ? l->name : "(null)");
 	}
 
