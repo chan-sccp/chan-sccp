@@ -761,9 +761,9 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: TRANSVM to %s\n", d->id, l->trnsfvm);
 #ifdef CS_AST_HAS_AST_STRING_FIELD
-		ast_string_field_set(c->owner, call_forward, l->trnsfvm);
+	ast_string_field_set(c->owner, call_forward, l->trnsfvm);
 #else
-		sccp_copy_string(c->owner->call_forward, l->trnsfvm, sizeof(c->owner->call_forward));
+	sccp_copy_string(c->owner->call_forward, l->trnsfvm, sizeof(c->owner->call_forward));
 #endif
 	ast_setstate(c->owner, AST_STATE_BUSY);
 	ast_queue_control(c->owner, AST_CONTROL_BUSY);
