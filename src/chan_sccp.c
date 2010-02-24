@@ -467,12 +467,11 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 		if(!(s->device = sccp_device_find_byipaddress(s->sin.sin_addr.s_addr))) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Device attempt to reconnect failed. Restarting device\n");
 			ast_free(r);
-			sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
-			sccp_session_close(s);
 			return 0;
 		} else {
 			/* this prevent loops -FS */
 			if(s->device->session != s) {
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: cross device session\n", DEV_ID_LOG(s->device));
 				sccp_session_close(s->device->session);
 				s->device->session = s;
 			}
@@ -489,113 +488,113 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 		}
 	}
 
-  switch (mid) {
+	switch (mid) {
 
-  case AlarmMessage:
-	sccp_handle_alarm(s, r);
-	break;
-	case RegisterMessage:
-	case RegisterTokenReq:
-	sccp_handle_register(s, r);
-	break;
-  case UnregisterMessage:
-	sccp_handle_unregister(s, r);
-	break;
-  case VersionReqMessage:
-	sccp_handle_version(s, r);
-	break;
-  case CapabilitiesResMessage:
-	sccp_handle_capabilities_res(s, r);
-	break;
-  case ButtonTemplateReqMessage:
-	sccp_handle_button_template_req(s, r);
-	break;
-  case SoftKeyTemplateReqMessage:
-	sccp_handle_soft_key_template_req(s, r);
-	break;
-  case SoftKeySetReqMessage:
-	sccp_handle_soft_key_set_req(s, r);
-	break;
-  case LineStatReqMessage:
-	sccp_handle_line_number(s, r);
-	break;
-  case SpeedDialStatReqMessage:
-	sccp_handle_speed_dial_stat_req(s, r);
-	break;
-  case StimulusMessage:
-	sccp_handle_stimulus(s, r);
-	break;
-  case OffHookMessage:
-	sccp_handle_offhook(s, r);
-	break;
-  case OnHookMessage:
-	sccp_handle_onhook(s, r);
-	break;
-  case HeadsetStatusMessage:
-	sccp_handle_headset(s, r);
-	break;
-  case TimeDateReqMessage:
-	sccp_handle_time_date_req(s, r);
-	break;
-  case KeypadButtonMessage:
-	sccp_handle_keypad_button(s, r);
-	break;
-  case SoftKeyEventMessage:
-	sccp_handle_soft_key_event(s, r);
-	break;
-  case KeepAliveMessage:
-	sccp_session_sendmsg(s->device, KeepAliveAckMessage);
-	break;
-  case IpPortMessage:
-  	/* obsolete message */
-	s->rtpPort = letohs(r->msg.IpPortMessage.les_rtpMediaPort);
-	break;
-  case OpenReceiveChannelAck:
-	sccp_handle_open_receive_channel_ack(s, r);
-	break;
-  case ConnectionStatisticsRes:
-	sccp_handle_ConnectionStatistics(s,r);
-	break;
-  case ServerReqMessage:
-	sccp_handle_ServerResMessage(s,r);
-	break;
-  case ConfigStatReqMessage:
-	sccp_handle_ConfigStatMessage(s,r);
-	break;
-  case EnblocCallMessage:
-	sccp_handle_EnblocCallMessage(s,r);
-	break;
-  case RegisterAvailableLinesMessage:
-	if (s->device)
-		sccp_dev_set_registered(s->device, SKINNY_DEVICE_RS_OK);
-	break;
-  case ForwardStatReqMessage:
-	sccp_handle_forward_stat_req(s,r);
-	break;
-  case FeatureStatReqMessage:
-	sccp_handle_feature_stat_req(s,r);
-	break;
-  case ServiceURLStatReqMessage:
-	sccp_handle_services_stat_req(s,r);
-  	break;
-  case AccessoryStatusMessage:
-	sccp_handle_accessorystatus_message(s,r);
-	break;
-  case DialedPhoneBookMessage:
-	sccp_handle_dialedphonebook_message(s,r);
-	break;
-  case UpdateCapabilitiesMessage:
-	  sccp_handle_updatecapabilities_message(s,r);
-  break;
-  case StartMediaTransmissionAck:
-	  sccp_handle_startmediatransmission_ack(s, r);
-  break;
-  default:
-	sccp_handle_unknown_message(s,r);
-  }
+		case AlarmMessage:
+		      sccp_handle_alarm(s, r);
+		      break;
+		      case RegisterMessage:
+		      case RegisterTokenReq:
+		      sccp_handle_register(s, r);
+		      break;
+		case UnregisterMessage:
+		      sccp_handle_unregister(s, r);
+		      break;
+		case VersionReqMessage:
+		      sccp_handle_version(s, r);
+		      break;
+		case CapabilitiesResMessage:
+		      sccp_handle_capabilities_res(s, r);
+		      break;
+		case ButtonTemplateReqMessage:
+		      sccp_handle_button_template_req(s, r);
+		      break;
+		case SoftKeyTemplateReqMessage:
+		      sccp_handle_soft_key_template_req(s, r);
+		      break;
+		case SoftKeySetReqMessage:
+		      sccp_handle_soft_key_set_req(s, r);
+		      break;
+		case LineStatReqMessage:
+		      sccp_handle_line_number(s, r);
+		      break;
+		case SpeedDialStatReqMessage:
+		      sccp_handle_speed_dial_stat_req(s, r);
+		      break;
+		case StimulusMessage:
+		      sccp_handle_stimulus(s, r);
+		      break;
+		case OffHookMessage:
+		      sccp_handle_offhook(s, r);
+		      break;
+		case OnHookMessage:
+		      sccp_handle_onhook(s, r);
+		      break;
+		case HeadsetStatusMessage:
+		      sccp_handle_headset(s, r);
+		      break;
+		case TimeDateReqMessage:
+		      sccp_handle_time_date_req(s, r);
+		      break;
+		case KeypadButtonMessage:
+		      sccp_handle_keypad_button(s, r);
+		      break;
+		case SoftKeyEventMessage:
+		      sccp_handle_soft_key_event(s, r);
+		      break;
+		case KeepAliveMessage:
+		      sccp_session_sendmsg(s->device, KeepAliveAckMessage);
+		      break;
+		case IpPortMessage:
+		      /* obsolete message */
+		      s->rtpPort = letohs(r->msg.IpPortMessage.les_rtpMediaPort);
+		      break;
+		case OpenReceiveChannelAck:
+		      sccp_handle_open_receive_channel_ack(s, r);
+		      break;
+		case ConnectionStatisticsRes:
+		      sccp_handle_ConnectionStatistics(s,r);
+		      break;
+		case ServerReqMessage:
+		      sccp_handle_ServerResMessage(s,r);
+		      break;
+		case ConfigStatReqMessage:
+		      sccp_handle_ConfigStatMessage(s,r);
+		      break;
+		case EnblocCallMessage:
+		      sccp_handle_EnblocCallMessage(s,r);
+		      break;
+		case RegisterAvailableLinesMessage:
+		      if (s->device)
+			      sccp_dev_set_registered(s->device, SKINNY_DEVICE_RS_OK);
+		      break;
+		case ForwardStatReqMessage:
+		      sccp_handle_forward_stat_req(s,r);
+		      break;
+		case FeatureStatReqMessage:
+		      sccp_handle_feature_stat_req(s,r);
+		      break;
+		case ServiceURLStatReqMessage:
+		      sccp_handle_services_stat_req(s,r);
+		      break;
+		case AccessoryStatusMessage:
+		      sccp_handle_accessorystatus_message(s,r);
+		      break;
+		case DialedPhoneBookMessage:
+		      sccp_handle_dialedphonebook_message(s,r);
+		      break;
+		case UpdateCapabilitiesMessage:
+		      sccp_handle_updatecapabilities_message(s,r);
+		      break;
+		case StartMediaTransmissionAck:
+		      sccp_handle_startmediatransmission_ack(s, r);
+		      break;
+		default:
+		      sccp_handle_unknown_message(s,r);
+	}
 
-  ast_free(r);
-  return 1;
+	ast_free(r);
+	return 1;
 }
 
 

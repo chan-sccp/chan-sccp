@@ -127,7 +127,7 @@ void sccp_session_close(sccp_session_t * s)
 	}
 	sccp_session_unlock(s);
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Old session marked down\n", (s->device) ? s->device->id : "SCCP");
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Old session marked down\n", DEV_ID_LOG(s->device));
 
 }
 
@@ -358,6 +358,7 @@ void * sccp_socket_thread(void * ignore)
 					sccp_read_data(s);
 					while ((m = sccp_process_data(s))) {
 						if (!sccp_handle_message(m, s)) {
+							sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
 							sccp_session_close(s);
 						}
 					}
