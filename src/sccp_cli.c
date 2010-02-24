@@ -463,8 +463,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 			ast_cli(fd, "%-20s : %-20s\n", v->name , v->value);
 		}
 	}
-
-
+	sccp_device_unlock(d);
 
 	return RESULT_SUCCESS;
 }
