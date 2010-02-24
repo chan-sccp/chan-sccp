@@ -106,7 +106,6 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 								sccp_log(10)(VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled)?"on":"off");
 								if(linedevice->cfwdAll.enabled){
 									config->button.feature.status = 1;
-									break;
 								}
 							}
 						}

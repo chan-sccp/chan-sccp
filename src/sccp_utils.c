@@ -679,7 +679,6 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 			}
 		}
 	}
-
 	sccp_device_unlock(d);
 
 	return c;
@@ -1213,6 +1212,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 							if(lineDevice->device != device)
 								continue;
 
+							sccp_dev_forward_status(line, device);
 							sprintf(cfwdLineStore, "%s/%s", family,config->button.line.name);
 							if(lineDevice->cfwdAll.enabled)
 								ast_db_put(cfwdLineStore, "cfwdAll", lineDevice->cfwdAll.number);

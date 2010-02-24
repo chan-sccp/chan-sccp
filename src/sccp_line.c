@@ -254,9 +254,8 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t *device, uint8_t type, char *
 
 	//SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
 		if(linedevice && linedevice->device){
-			sccp_dev_forward_status(l, linedevice->device);
+			
 			sccp_dev_starttone(linedevice->device, SKINNY_TONE_ZIPZIP, 0, 0, 0);
-
 			sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDALL);
 		}
 	//}
