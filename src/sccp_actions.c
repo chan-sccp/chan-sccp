@@ -745,6 +745,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 	sccp_channel_t * c, * c1;
 	uint8_t stimulus;
 	uint8_t instance;
+	sccp_channel_t *holdChannel;
 
 	if (!d || !r)
 		return;
@@ -836,9 +837,12 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 					sccp_dev_set_cplane(l, d, 1);
 					sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
 				} else {
-					sccp_dev_deactivate_cplane(d);
-					sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);
-					sccp_dev_deactivate_cplane(d);
+					holdChannel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD);
+					sccp_log(1)(VERBOSE_PREFIX_3 "%s: Channel count on line %d: %d", d->id, instance, l->channelCount);
+					if(NULL != holdChannel) {
+						//sccp_device_sendcallstate(d, instance, holdChannel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
+						//sccp_dev_set_cplane(l, d, 0);
+					}
 				}
 			}
 			break;
