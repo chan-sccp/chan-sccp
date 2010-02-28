@@ -77,21 +77,32 @@ static void sccp_read_data(sccp_session_t * s)
 		return;
 	}
 
+	/* It is not sensible to make the following, commented out check,
+	   since the length of available data could have changed
+	   since the previous FIONREAD ioctl anyway.
+	   What matters is simply that there was data available,
+	   and there probably will be still until we read it. */
+
+	/* Suggestion: We should create some mechanism to assemble
+	   sccp packets from several incomplete reads,
+	   but this is rather a high level feature. (-DD) */
+
+	/*
 	if (readlen != length) {
 		ast_log(LOG_WARNING, "SCCP: read() returned %d, wanted %d: %s\n", readlen, length, strerror(errno));
 		ast_free(input);
 		sccp_session_unlock(s);
 		sccp_session_close(s);
 		return;
-	}
+	}*/
 
-	newptr = realloc(s->buffer, (uint32_t)(s->buffer_size + length));
+	newptr = realloc(s->buffer, (uint32_t)(s->buffer_size + readlen));
 	if (newptr) {
 			s->buffer = newptr;
-			memcpy(s->buffer + s->buffer_size, input, length);
-			s->buffer_size += length;
+			memcpy(s->buffer + s->buffer_size, input, readlen);
+			s->buffer_size += readlen;
 	} else {
-		ast_log(LOG_WARNING, "SCCP: unable to reallocate %d bytes for skinny a packet\n", s->buffer_size + length);
+		ast_log(LOG_WARNING, "SCCP: unable to reallocate %d bytes for skinny a packet\n", s->buffer_size + readlen);
 		ast_free(s->buffer);
 		s->buffer_size = 0;
 	}

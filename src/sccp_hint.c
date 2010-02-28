@@ -332,7 +332,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 		
 
 #ifndef CS_DYNAMIC_SPEEDDIAL
-		sccp_device_sendcallstate(subscriber->device, subscriber->instance, 0, hint->currentState, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+		sccp_device_sendcallstate(subscriber->device, subscriber->instance, 0, hint->currentState, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
 		
 		/* create CallInfoMessage */
 		REQ(r, CallInfoMessage);
