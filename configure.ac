@@ -543,10 +543,11 @@ dnl END NEW NEW
       AC_MSG_RESULT([Not Found])
     fi
     AC_MSG_CHECKING([asterisk/channel.h for 'AST_MAX_ACCOUNT_CODE'])
-    if grep -q "AST_MAX_ACCOUNT_CODE" $PBX_INCLUDE/channel.h;then 
+    if grep -q "AST_MAX_ACCOUNT_CODE" $PBX_INCLUDE/channel.h;then
+      AC_DEFINE(SCCP_MAX_ACCOUNT_CODE,AST_MAX_ACCOUNT_CODE,[Found 'AST_MAX_ACCOUNT_CODE' in asterisk/channel.h]) 
       AC_MSG_RESULT([Found])
     else
-      AC_DEFINE(AST_MAX_ACCOUNT_CODE,MAX_LANGUAGE,[Found 'AST_MAX_ACCOUNT_CODE' in asterisk/channel.h])
+      AC_DEFINE(SCCP_MAX_ACCOUNT_CODE,MAX_LANGUAGE,[Not Found 'AST_MAX_ACCOUNT_CODE' in asterisk/channel.h])
       AC_MSG_RESULT([Not Found])
     fi
     AC_MSG_CHECKING([asterisk/channel.h for 'typedef unsigned long long ast_group_t'])
@@ -791,6 +792,21 @@ AH_BOTTOM([
 ])
 
 AC_OUTPUT
+
+#
+# Fixing the PACKAGE_* redefines    
+#
+# because AM_INIT_MAKE([no-define]) doesn't work anymore since autoconf v2.59 we have to resort to remarking out 
+# the generated PACKAGE_* defines.
+# See: http://www.mail-archive.com/automake@gnu.org/msg04576.html
+# 
+# Untill the Asterisk groups stops exporting these PACKAGE_ defines or autoconf fixes this issue, these replacements will
+# have to remain.
+#
+# we are not using the PACKAGE_ define in any of the sources
+#
+sed -e "s/^\(\#define PACKAGE_[A-Z]*\)$/\/\* \1 \*\//g" src/config.h >src/config.h.tmp && mv src/config.h.tmp src/config.h
+sed -e "s/^\(\#undef PACKAGE_[A-Z]*\)$/\/\* \1 \*\//g" src/config.h.in >src/config.h.in.tmp && mv src/config.h.in.tmp src/config.h.in
 
 echo
 echo "Architecture: $build_cpu"

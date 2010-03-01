@@ -1,5 +1,9 @@
 2010-03-01  ddegroot
 
+	* [r1320] ChangeLog, README, README.in, configure, configure.ac,
+	  doc/main.doc, libtool: Updated documentation to reflect
+	  pre-bootstrapped version of configure in repository
+
 	* [r1319] ., Makefile.in[ADD], aclocal.m4[ADD], bootstrap.sh[DEL],
 	  configure[ADD], doc/Makefile.in[ADD], prepare_release[DEL], src,
 	  src/Makefile.in[ADD], src/config.h.in[ADD], tools[ADD],

@@ -473,7 +473,7 @@ struct sccp_line {
         char 					meetmenum[AST_MAX_EXTENSION];		/*!< Meetme Extension to be Dialed*/
         char 					context[AST_MAX_CONTEXT];		/*!< The context we use for Outgoing Calls. */
         char 					language[MAX_LANGUAGE];			/*!< language we use for calls */
-        char 					accountcode[AST_MAX_ACCOUNT_CODE];	/*!< accountcode used in cdr */
+        char 					accountcode[SCCP_MAX_ACCOUNT_CODE];	/*!< accountcode used in cdr */
         char 					musicclass[MAX_MUSICCLASS];		/*!< musicclass assigned when getting moh */
         int					amaflags;				/*!< amaflags */
         ast_group_t				callgroup;				/*!< callgroups assigned (seperated by commas) to this lines */
@@ -831,7 +831,7 @@ struct sccp_global_vars {
 
         char					context[AST_MAX_CONTEXT];		/*!< Global / General Context */
         char					language[MAX_LANGUAGE];			/*!< Language */
-        char					accountcode[AST_MAX_ACCOUNT_CODE];	/*!< Account Code */
+        char					accountcode[SCCP_MAX_ACCOUNT_CODE];	/*!< Account Code */
         char					musicclass[MAX_MUSICCLASS];		/*!< Music Class */
         /*char					mohinterpret[MAX_MUSICCLASS];*/		/*!< Music On Hold Interpret */
         int					amaflags;				/*!< AmaFlags */
