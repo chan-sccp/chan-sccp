@@ -1,3 +1,38 @@
+2010-03-01  ddegroot
+
+	* [r1319] ., Makefile.in[ADD], aclocal.m4[ADD], bootstrap.sh[DEL],
+	  configure[ADD], doc/Makefile.in[ADD], prepare_release[DEL], src,
+	  src/Makefile.in[ADD], src/config.h.in[ADD], tools[ADD],
+	  tools/bootstrap.sh[CPY], tools/prepare_release[CPY]: Added
+	  Pre-bootstrapped version of configure to the repository
+
+	* [r1318] doc/main.doc: Added openBSD to supported platform list.
+
+2010-02-28  davidded
+
+	* [r1317] src/sccp_actions.c, src/sccp_hint.c, src/sccp_socket.c:
+	  changed socket handling to some intermediate version
+
+2010-02-24  marcelloceschia
+
+	* [r1316] src/sccp_channel.c: revert to 1314
+
+	* [r1315] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_features.c, src/sccp_pbx.c:
+
+	* [r1314] src/sccp_featureButton.c, src/sccp_line.c,
+	  src/sccp_utils.c: cfwd status update
+
+	* [r1313] src/chan_sccp.c, src/sccp_socket.c: debug for cross
+	  session
+
+	* [r1312] src/sccp_cli.c: fixing deadlock in sccp_show_device
+
+2010-02-23  ddegroot
+
+	* [r1311] ChangeLog, autoconf/acinclude.m4, configure.ac,
+	  src/Makefile.am: Fixes for --with-asterisk=PATH
+
 2010-02-23  davidded
 
 	* [r1310] src/sccp_hint.c: fixed callstate signalling. merged MC

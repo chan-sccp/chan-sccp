@@ -123,19 +123,19 @@
  * Build instructions:
  *   - Download the Chan_SCCP sources. 
  *   - Extract the source tree to a clean directory.
- *   - To get started with configure please run: \n
- *     ./bootstrap.sh
- *   - run configure --help to get a list of all the possible configure flags\n
+ *   - To get started with configure please run (run "./configure --help" to get a list of all the possible configure flags)\n
  *     ./configure
  *   - Run make.
  *   - Run make install
  *   .
  * \code
- *       $ ./bootstrap.sh
  *       $ ./configure
  *       $ make
  *       $ make install
  * \endcode
+ * 
+ * For source code maintainers it is important to know that when you change something in one of the Makefile.am files or configure.ac 
+ * you should run ./tools/bootstrap.sh before commiting to the repository.
  *
  * \section setup_howto     How to setup Chan_SCCP
  * 
@@ -308,11 +308,11 @@
  * Being checked
  *
  * \section guest_os_free 	Free OS'es
- *   - FreeBSD
+ *   - FreeBSD\n
  *     Should work because openBSD works. Has to be confirmed
- *   - NetBSD
+ *   - NetBSD\n
  *     Should work because openBSD works. Has to be confirmed
- *   - OpenBSD
+ *   - OpenBSD\n
  *     Tested 4.6 and Asterisk 1.4.25.1
  *   .
  *

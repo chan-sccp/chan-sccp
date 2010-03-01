@@ -10,10 +10,7 @@ automake (1.10)
 libtool (2.2.2)
 m4 (1.4.5)
 
-To get started with configure please run:
-./bootstrap.sh
-
-Then run: 
+Just run:
 ./configure
 
 And finally:
@@ -22,7 +19,10 @@ make install
 
 To get the developers documentation run
 make doxygen
+
 For documentation, please see the files in the doc/html subdirectory or
 check it out on the internet:
 http://chan-sccp-b.sourceforge.net/doc/index.html.
+
+When you are making changes to the configure.ac or any of the Makefile.am files you should run ./tools/bootstrap.sh afterwards.
 

@@ -15,10 +15,9 @@ dnl cross-compile macros
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET 
-dnl AC_DISABLE_STATIC
 
-dnl AC_CONFIG_HEADER(src/config.h.in:src/config.h)
 AC_CONFIG_HEADER(src/config.h)
+
 
 AH_TOP([
 /*!
@@ -33,7 +32,6 @@ AH_TOP([
 #define CHAN_SCCP_CONFIG_H
 ])
 
-dnl AM_INIT_AUTOMAKE([gnu 1.5 no-define dist-bzip2 dist-tarZ])
 CONFIGURE_PART([Checking AutoMake:])
 AM_INIT_AUTOMAKE([1.9 -Wno-portability check-news dist-bzip2 dist-tarZ no-define nostdinc])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
@@ -45,6 +43,7 @@ AC_CONFIG_SRCDIR([src/chan_sccp.c])
 AC_COPYRIGHT("Chan_SCCP")
 AC_REVISION($Revision$) 
 # Build paths and variables
+
 dnl Create the relevant Build variables
 AC_PATH_TOOL([UNAME], [uname], No)
 if test ! x"${UNAME}" = xNo; then
