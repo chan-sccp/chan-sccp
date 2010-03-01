@@ -28,9 +28,6 @@
 /* Not Found 'AST_FLAG_MOH' in asterisk/channel.h */
 #undef AST_FLAG_MOH
 
-/* Found 'AST_MAX_ACCOUNT_CODE' in asterisk/channel.h */
-#undef AST_MAX_ACCOUNT_CODE
-
 /* The date of this build */
 #undef BUILD_DATE
 
@@ -481,25 +478,28 @@
 #undef OpenBSD
 
 /* Define to the address where bug reports for this package should be sent. */
-#undef PACKAGE_BUGREPORT
+/* #undef PACKAGE_BUGREPORT */
 
 /* Define to the full name of this package. */
-#undef PACKAGE_NAME
+/* #undef PACKAGE_NAME */
 
 /* Define to the full name and version of this package. */
-#undef PACKAGE_STRING
+/* #undef PACKAGE_STRING */
 
 /* Define to the one symbol short name of this package. */
-#undef PACKAGE_TARNAME
+/* #undef PACKAGE_TARNAME */
 
 /* Define to the home page for this package. */
-#undef PACKAGE_URL
+/* #undef PACKAGE_URL */
 
 /* Define to the version of this package. */
-#undef PACKAGE_VERSION
+/* #undef PACKAGE_VERSION */
 
 /* Define the SCCP Branch */
 #undef SCCP_BRANCH
+
+/* Not Found 'AST_MAX_ACCOUNT_CODE' in asterisk/channel.h */
+#undef SCCP_MAX_ACCOUNT_CODE
 
 /* Define the SCCP Revision */
 #undef SCCP_REVISION
