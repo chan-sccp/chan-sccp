@@ -302,18 +302,19 @@
  * \section guest_os_ibm 	IBM AIX
  *
  * \section guest_os_sun 	SUN Solaris
+ * Being checked
+ *
+ * \section guest_os_sun 	OS X
+ * Being checked
  *
  * \section guest_os_free 	Free OS'es
- *
- * \subsection gosf_fbsd 		FreeBSD
- * Tested with 6.2 and Asterisk 1.4
- *
- * \subsection gosf_nbsd 		NetBSD
- * Tested 3.1.1 and Asterisk 1.4
- * Tested 4.0 and Asterisk 1.6
- *
- * \subsection gosf_obsd 		OpenBSD
- * Tested 4.2 and Asterisk 1.4
+ *   - FreeBSD
+ *     Should work because openBSD works. Has to be confirmed
+ *   - NetBSD
+ *     Should work because openBSD works. Has to be confirmed
+ *   - OpenBSD
+ *     Tested 4.6 and Asterisk 1.4.25.1
+ *   .
  *
  * \subsection gosf_linux 		Linux
  * Tested using Debian 4.0 rc 0, centos 4.2, gentoo 2007.0, OpenSuSE 11.0
@@ -326,7 +327,17 @@
  *      - Asterisk 1.4
  *      - Asterisk 1.6
  *      - Asterisk 1.6.1
+ *      - Asterisk 1.6.2
  *      .
+ *   - Ubuntu / MintLinux
+ *     - Karmic
+ *       - Asterisk 1.4
+ *       - Asterisk 1.6
+ *       - Asterisk 1.6.1
+ *       - Asterisk 1.6.2
+ *       .
+ *     .
+ *   .
  *   - OpenSuSE:
  *      - 10.0:
  *         - Asterisk 1.4
@@ -337,11 +348,13 @@
  *         - Asterisk 1.4
  *         - Asterisk 1.6
  *         - Asterisk 1.6.1
+ *         - Asterisk 1.6.2
  *         .
  *      - 11.1:
  *         - Asterisk 1.4
  *         - Asterisk 1.6
  *         - Asterisk 1.6.1
+ *         - Asterisk 1.6.2
  *         .
  *      .
  *   .
