@@ -37,6 +37,9 @@ typedef enum {
 typedef struct sccp_event sccp_event_t;
 typedef void (*sccp_event_callback_t)(const sccp_event_t **event);
 
+
+extern struct sccp_event_subscriptions *sccp_event_listeners;
+
 /*!
  * \brief SCCP Event Structure
  */
@@ -83,11 +86,6 @@ struct sccp_event_subscriptions{
 	SCCP_LIST_HEAD(,sccp_event_subscriber_t)  subscriber;
 };
 
-
-/*!
- * \brief SCCP Event Listeners Structure
- */
-struct sccp_event_subscriptions *sccp_event_listeners;
 
 
 void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb);

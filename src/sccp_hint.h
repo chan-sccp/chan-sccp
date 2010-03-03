@@ -81,7 +81,6 @@ struct sccp_hint_list{
 };											/*!< SCCP Hint List Structure */
 
 
-SCCP_LIST_HEAD(, sccp_hint_list_t) sccp_hint_subscriptions;
 
 
 /*!

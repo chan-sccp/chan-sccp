@@ -82,6 +82,10 @@ void sccp_hint_hintStatusUpdate(sccp_hint_list_t *hint);
 void sccp_hint_notificationForSharedLine(sccp_hint_list_t *hint);
 void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint);
 
+
+
+SCCP_LIST_HEAD(, sccp_hint_list_t) sccp_hint_subscriptions;
+
 /*!
  * \brief starting hint-module
  * \todo Handle Do Not Disturb (DND) (TODO MC)

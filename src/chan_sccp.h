@@ -216,7 +216,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 typedef unsigned int ast_group_t;
 #endif
 
-struct ast_frame 				sccp_null_frame;		/*!< Asterisk Structure */
+extern struct ast_frame 				sccp_null_frame;		/*!< Asterisk Structure */
 
 
 typedef struct sccp_channel			sccp_channel_t;				/*!< SCCP Channel Structure */
@@ -949,7 +949,7 @@ struct sccp_hotline {
 	(_sched_res); \
 })
 
-struct sccp_global_vars 			* sccp_globals;
+extern struct sccp_global_vars 			* sccp_globals;
 
 uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s);
 
@@ -962,8 +962,8 @@ struct ast_channel 				* sccp_request(char *type, int format, void *data);
 int sccp_devicestate(void *data);
 
 #ifndef ASTERISK_CONF_1_2
-struct sched_context 				* sched;
-struct io_context 				* io;
+extern struct sched_context 				* sched;
+extern struct io_context 				* io;
 void 						* sccp_do_monitor(void *data); 		// ADDED IN SVN 414 -FS
 int sccp_restart_monitor(void); 							// ADDED IN SVN 414 -FS
 enum ast_bridge_result 				sccp_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo, struct ast_channel **rc, int timeoutms);
@@ -1000,7 +1000,16 @@ struct softKeySetConfiguration{
 	SCCP_LIST_ENTRY(sccp_softKeySetConfiguration_t) 	list;			/*!< Next list entry */
 };											/*!< SoftKeySet Configuration Structure */
 
-SCCP_LIST_HEAD(, sccp_softKeySetConfiguration_t) softKeySetConfig;			/*!< List of SoftKeySets */
+/*
+   struct softKeySetConfigList{
+	ast_mutex_t lock;
+	sccp_softKeySetConfiguration_t *first;
+	sccp_softKeySetConfiguration_t *last;
+	uint16_t size;
+} */
+
+SCCP_LIST_HEAD(softKeySetConfigList, sccp_softKeySetConfiguration_t);
+extern struct softKeySetConfigList softKeySetConfig;			/*!< List of SoftKeySets */
 
 #if defined(__cplusplus) || defined(c_plusplus)
 }

@@ -27,6 +27,14 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/features.h>
 #endif
 
+
+
+/*!
+ * \brief SCCP Event Listeners Structure
+ */
+struct sccp_event_subscriptions *sccp_event_listeners = 0;
+
+
 /*!
  * \brief Subscribe to an Event
  * \param eventType SCCP Event Type
