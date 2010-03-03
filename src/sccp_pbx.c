@@ -49,6 +49,13 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/features.h>
 #endif
 
+
+
+
+#ifdef CS_AST_HAS_TECH_PVT
+const struct ast_channel_tech sccp_tech;
+#endif
+
 /*!
  * \brief Call Auto Answer Thead
  *

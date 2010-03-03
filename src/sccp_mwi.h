@@ -25,6 +25,7 @@
  */
 typedef struct sccp_mailboxLine sccp_mailboxLine_t;
 
+
 /*!
  * \brief SCCP Mailbox Line Type Structure 
  *
@@ -40,6 +41,10 @@ struct sccp_mailboxLine{
  * \brief SCCP Mailbox Subscriber List Type Definition
  */
 typedef struct sccp_mailbox_subscriber_list sccp_mailbox_subscriber_list_t;
+
+
+SCCP_LIST_HEAD(mailboxSubscriptionsList, sccp_mailbox_subscriber_list_t);
+extern struct mailboxSubscriptionsList sccp_mailbox_subscriptions;
 
 /*!
  * \brief SCCP Mailbox Subscriber List Structure
@@ -80,7 +85,6 @@ struct sccp_mailbox_subscriber_list{
 #endif
 };											/*!< SCCP Mailbox Subscriber List Structure */
 
-SCCP_LIST_HEAD(, sccp_mailbox_subscriber_list_t) sccp_mailbox_subscriptions;
 
 void sccp_mwi_module_start(void);
 void sccp_mwi_module_stop(void);

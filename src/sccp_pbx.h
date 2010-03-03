@@ -27,7 +27,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c);
 void start_rtp(sccp_channel_t * sub);
 
 #ifdef CS_AST_HAS_TECH_PVT
-const struct ast_channel_tech sccp_tech;
+extern const struct ast_channel_tech sccp_tech;
 #endif
 
 void sccp_pbx_needcheckringback(sccp_device_t * d);

@@ -46,6 +46,13 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/stringfields.h>
 #endif
 
+
+/*!
+ * \brief Global list of softkeys
+ */
+//SCCP_LIST_HEAD(softKeySetConfigList, sccp_softKeySetConfiguration_t) softKeySetConfig;			/*!< List of SoftKeySets */
+struct softKeySetConfigList softKeySetConfig;			/*!< List of SoftKeySets */
+
 /*!
  * \brief Redial last Dialed Number by this Device
  * \n Usage: \ref sk_redial

@@ -76,6 +76,23 @@ static struct ast_jb_conf default_jbconf =
 };
 #endif
 
+/*!
+ * \brief	Global null frame
+ */
+struct ast_frame 				sccp_null_frame;		/*!< Asterisk Structure */
+
+/*!
+ * \brief	Global variables
+ */
+struct sccp_global_vars 		* sccp_globals = 0;
+
+/*!
+ * \brief	Global scheduler and IO context
+ */
+struct sched_context 			* sched = 0;
+struct io_context 				* io    = 0;
+
+
 #ifndef ASTERISK_CONF_1_2
 /*!
  * \brief	Buffer for Jitterbuffer use
@@ -991,6 +1008,9 @@ static int load_module(void) {
 		return AST_MODULE_LOAD_FAILURE;
 #endif
 	}
+
+	/* Initialize memory */
+	memset(&sccp_null_frame, 0, sizeof(sccp_null_frame));
 
 	sched = sched_context_create();
 	if (!sched) {
