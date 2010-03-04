@@ -606,6 +606,31 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 		case StartMediaTransmissionAck:
 		      sccp_handle_startmediatransmission_ack(s, r);
 		      break;
+		case Unknown_0x004A_Message:
+                      if (GLOB(debug) >20) {
+		        sccp_handle_unknown_message(s,r);
+		      }
+		      break;
+		case Unknown_0x0143_Message:
+                      if (GLOB(debug) >20) {
+		        sccp_handle_unknown_message(s,r);
+		      }
+		      break;
+		case Unknown_0x0144_Message:
+                      if (GLOB(debug) >20) {
+		        sccp_handle_unknown_message(s,r);
+		      }
+		      break;
+		case Unknown_0x0149_Message:
+                      if (GLOB(debug) >20) {
+		        sccp_handle_unknown_message(s,r);
+		      }
+		      break;
+		case Unknown_0x0159_Message:
+                      if (GLOB(debug) >20) {
+		        sccp_handle_unknown_message(s,r);
+		      }
+		      break;
 		default:
 		      sccp_handle_unknown_message(s,r);
 	}
