@@ -1216,7 +1216,7 @@ static const struct sccp_messagetype {
 	{ DeviceToUserDataResponseVersion1Message	, "Device To User Data Version1 Response"	},
 	{ DialedPhoneBookMessage			, "Dialed PhoneBook Message"			},
 	{ AccessoryStatusMessage			, "Accessory Status Message"			},
-	{ Unknown_0x004A_Message			, "Unknown_0x004A_Message"			},
+	{ Unknown_0x004A_Message			, "Undefined 0x004A Message"			},
 	{ RegisterAckMessage				, "Register Acknowledge"			},
 	{ StartToneMessage				, "Start Tone Message"				},
 	{ StopToneMessage				, "Stop Tone Message"				},
@@ -1302,15 +1302,15 @@ static const struct sccp_messagetype {
 	{ AuditConferenceReqMessage			, "Audit Conference Request"			},
 	{ AuditParticipantReqMessage			, "Audit Participant Request"			},
 	{ UserToDeviceDataVersion1Message		, "User To Device Data Version1 Message"	},
-	{ Unknown_0x0143_Message			, "Unknown 0x0143_Message"			},
-	{ Unknown_0x0144_Message			, "Unknown 0x0144_Message"			},
+	{ Unknown_0x0143_Message			, "Undefined 0x0143 Message"			},
+	{ Unknown_0x0144_Message			, "Undefined 0x0144 Message"			},
 	{ DisplayDynamicPromptStatusMessage		, "Display Dynamic Prompt Status Message"	},
 	{ FeatureStatAdvancedMessage			, "SpeedDial State Dynamic Message"	},
 	{ LineStatDynamicMessage			, "Line State Dynamic Message"		},
-	{ Unknown_0x0149_Message			, "Unknown 0x0149 Message"			},
+	{ Unknown_0x0149_Message			, "Unkdefined 0x0149 Message"			},
 	{ CallInfoDynamicMessage			, "Call Information Dynamic Message"		},
 	{ StartMediaTransmissionAck			, "Start Media Transmission Acknowledge"	},
-        { Unknown_0x0159_Message			, "Unknown 0x0159 Message"			},
+        { Unknown_0x0159_Message			, "Undefined 0x0159 Message"			},
 };
 
 #define SCCP_ACCESSORY_NONE			0x00 				/*!< Added for compatibility with old phones -FS */
