@@ -305,15 +305,17 @@
  * Being checked
  *
  * \section guest_os_sun 	OS X
- * Being checked
+ *   - 10.6 Snow Leopard
  *
  * \section guest_os_free 	Free OS'es
+ *   - OpenBSD 4.6
+ *      - Asterisk 1.4.25.1
+ *      - Asterisk 1.6.1.12
+ *      .
  *   - FreeBSD\n
  *     Should work because openBSD works. Has to be confirmed
  *   - NetBSD\n
  *     Should work because openBSD works. Has to be confirmed
- *   - OpenBSD\n
- *     Tested 4.6 and Asterisk 1.4.25.1
  *   .
  *
  * \subsection gosf_linux 		Linux
