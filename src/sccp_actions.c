@@ -922,7 +922,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		case SKINNY_BUTTONTYPE_DIRECTORY:
 		case SKINNY_BUTTONTYPE_TESTI:
 		case SKINNY_BUTTONTYPE_APPLICATION:
-			sccp_handle_feature_action(d, r->msg.StimulusMessage.lel_stimulusInstance, TRUE);
+			sccp_handle_feature_action(d, instance, TRUE);
 			break;
 
 		case SKINNY_BUTTONTYPE_FORWARDALL: // Call forward all
@@ -2177,13 +2177,14 @@ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_moo_t * r)
 	if (!d)
 		return;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Forward Status Request.  Line: %d\n", d->id, letohl(r->msg.ForwardStatReqMessage.lel_lineNumber));
-	l = sccp_line_find_byid(d, r->msg.ForwardStatReqMessage.lel_lineNumber);
+	uint32_t instance = letohl(r->msg.ForwardStatReqMessage.lel_lineNumber);
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Forward Status Request.  Line: %d\n", d->id, instance);
+	l = sccp_line_find_byid(d, instance);
 	if (l)
 		sccp_dev_forward_status(l, d);
 	else {
 		/* speeddial with hint. Sending empty forward message */
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send Forward Status.  Instance: %d\n", d->id, letohl(r->msg.ForwardStatReqMessage.lel_lineNumber));
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send Forward Status.  Instance: %d\n", d->id, instance);
 		REQ(r1, ForwardStatMessage);
 		r1->msg.ForwardStatMessage.lel_status = 0;
 		r1->msg.ForwardStatMessage.lel_lineNumber = r->msg.ForwardStatReqMessage.lel_lineNumber;
