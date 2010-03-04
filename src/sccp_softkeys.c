@@ -46,13 +46,6 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/stringfields.h>
 #endif
 
-
-/*!
- * \brief Global list of softkeys
- */
-//SCCP_LIST_HEAD(softKeySetConfigList, sccp_softKeySetConfiguration_t) softKeySetConfig;			/*!< List of SoftKeySets */
-struct softKeySetConfigList softKeySetConfig;			/*!< List of SoftKeySets */
-
 /*!
  * \brief Redial last Dialed Number by this Device
  * \n Usage: \ref sk_redial
@@ -694,13 +687,14 @@ void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 		return;
 
 	instance = sccp_device_find_index_for_line(d, l->name);
-	validKeyMask = letohl(r->msg.SelectSoftKeysMessage.les_validKeyMask);
+	
 	
 	REQ(r, SelectSoftKeysMessage);
 	r->msg.SelectSoftKeysMessage.lel_lineInstance  = htolel(instance);
 	r->msg.SelectSoftKeysMessage.lel_callReference = htolel(c->callid);
 	r->msg.SelectSoftKeysMessage.lel_softKeySetIndex = htolel(keymode);
-	r->msg.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF; /* htolel(65535); */
+	//r->msg.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF; /* htolel(65535); */
+	validKeyMask = 0xFFFFFFFF;
 
 	mask = 1;
 	for(i=1;i<=softkeyindex;i++){
