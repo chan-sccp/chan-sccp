@@ -100,6 +100,18 @@
 /**
  * \page build_guide Building and Installation Guide
  *
+ *   - \ref unix_pr Prerequisites
+ *   - \ref unix_bi Building and Installation
+ *   - \ref setup_howto How to setup Chan_SCCP
+ *   - \ref sccp_config_howto1 Setting Protocol
+ *   - \ref sccp_config_howto2 Sample config file
+ *   - \ref sccp_config_rt How to use RealTime Database
+ *   - \ref sccp_config_dhcp Setting up a DHCP Server
+ *   - \ref change_phone_to_sccp Hot to change the firmware to SCCP
+ *   - \ref sccp_config_sep What does a Sample SEP?????????.cnf.xml Look Like
+ *   - \ref dialplan_sample Dialplan Sample
+ *   .
+ *
  * \section unix UNIX, BSD and Linux
  * These instructions are valid for most UNIX-like operating systems, including BSD and
  * Linux variants.
@@ -374,17 +386,17 @@
  * 
  * [softkeyset]
  * type=softkeyset
- * onhook		= redial,newcall,cfwdall,dnd
+ * onhook	= redial,newcall,cfwdall,dnd
  * connected	= hold,endcall,park,select,cfwdall,cfwdbusy,idivert
- * onhold		= resume,newcall,endcall,transfer,confrn,select,dirtrfr,idivert
- * ringin		= answer,endcall,idivert
- * offhook		= redial,endcall,private,cfwdall,cfwdbusy,pickup,gpickup,meetme,barge
+ * onhold	= resume,newcall,endcall,transfer,confrn,select,dirtrfr,idivert
+ * ringin	= answer,endcall,idivert
+ * offhook	= redial,endcall,private,cfwdall,cfwdbusy,pickup,gpickup,meetme,barge
  * conntrans	= hold,endcall,transfer,confrn,park,select,dirtrfr,cfwdall,cfwdbusy
  * digitsfoll	= back,endcall
  * connconf	= hold,endcall,join
- * ringout		= endcall,transfer,cfwdall,idivert
+ * ringout	= endcall,transfer,cfwdall,idivert
  * offhookfeat	= redial,endcall
- * onhint		= pickup,barge
+ * onhint	= pickup,barge
  * \endcode
  *
  *
@@ -442,6 +454,8 @@
  * sccp restart SEP010102030404
  * \endcode
  * 
+ * \subsection sccp_config_dhcp Setting up a DHCP Server
+ *
  * dhcpd.conf:
  *
  * \code
@@ -462,43 +476,6 @@
  * }
  * \endcode
  * 
- * \subsection change_phone_to_sccp Hot to change the firmware to SCCP
- *
- *   - Copy the SCCP Firmware to your tftp directory
- *   - Set the Firmware version in OS79XX.TXT. It should containt only on line, like this:
- *     \code
- * 	 P00308010100
- *     \endcode
- *   - Set the XMLDefault.cnf.xml to should contain every used device and it firmware. It should look like this:
- *     \code
- *     <Default>
- *     <callManagerGroup>
- *       <members>
- *         <member  priority="0">
- *           <callManager>
- *             <ports>
- *               <ethernetPhonePort>2000</ethernetPhonePort>
- *             </ports>
- *             <processNodeName>10.31.150.1</processNodeName>
- *           </callManager>
- *         </member>
- *       </members>
- *     </callManagerGroup>
- *     <loadInformation6  model="IP Phone 7910">SCCP11.8-5-2S</loadInformation6>
- *     <loadInformation6  model="IP Phone 7911">SCCP11.8-5-2S</loadInformation6>
- *     <loadInformation124  model="Addon 7914">S00105000300</loadInformation124>
- *     <loadInformation9  model="IP Phone 7935"></loadInformation9>
- *     <loadInformation8  model="IP Phone 7940">P00308010100</loadInformation8>
- *     <loadInformation7  model="IP Phone 7960">P00308010100</loadInformation7>
- *     <loadInformation20000  model="IP Phone 7905"></loadInformation20000>
- *     <loadInformation30008  model="IP Phone 7902"></loadInformation30008>
- *     <loadInformation30007  model="IP Phone 7912"></loadInformation30007>
- *     </Default>
- *     \endcode
- * 
- * For more information check out : \n
- * http://www.cisco.com/en/US/products/hw/phones/ps379/products_tech_note09186a0080094584.shtml
- *
  * \subsection sccp_config_sep What does a Sample SEP?????????.cnf.xml Look Like
  * 
  * \code
@@ -633,6 +610,43 @@
  *   - 2wc: 2way and reject cause: congestion
  *   .
  * 
+ * \subsection change_phone_to_sccp Hot to change the firmware to SCCP
+ *
+ *   - Copy the SCCP Firmware to your tftp directory
+ *   - Set the Firmware version in OS79XX.TXT. It should containt only on line, like this:
+ *     \code
+ * 	 P00308010100
+ *     \endcode
+ *   - Set the XMLDefault.cnf.xml to should contain every used device and it firmware. It should look like this:
+ *     \code
+ *     <Default>
+ *     <callManagerGroup>
+ *       <members>
+ *         <member  priority="0">
+ *           <callManager>
+ *             <ports>
+ *               <ethernetPhonePort>2000</ethernetPhonePort>
+ *             </ports>
+ *             <processNodeName>10.31.150.1</processNodeName>
+ *           </callManager>
+ *         </member>
+ *       </members>
+ *     </callManagerGroup>
+ *     <loadInformation6  model="IP Phone 7910">SCCP11.8-5-2S</loadInformation6>
+ *     <loadInformation6  model="IP Phone 7911">SCCP11.8-5-2S</loadInformation6>
+ *     <loadInformation124  model="Addon 7914">S00105000300</loadInformation124>
+ *     <loadInformation9  model="IP Phone 7935"></loadInformation9>
+ *     <loadInformation8  model="IP Phone 7940">P00308010100</loadInformation8>
+ *     <loadInformation7  model="IP Phone 7960">P00308010100</loadInformation7>
+ *     <loadInformation20000  model="IP Phone 7905"></loadInformation20000>
+ *     <loadInformation30008  model="IP Phone 7902"></loadInformation30008>
+ *     <loadInformation30007  model="IP Phone 7912"></loadInformation30007>
+ *     </Default>
+ *     \endcode
+ * 
+ * For more information check out : \n
+ * http://www.cisco.com/en/US/products/hw/phones/ps379/products_tech_note09186a0080094584.shtml
+ *
  */
 
 /**
@@ -707,6 +721,40 @@
  * A: First try to work out what ./configure is complaining about, when it is. I normally tries to
  * be as explicit as possible. If you get errors trying to start configure, first try to resolve it
  *
+ * \section b B. Dialplan
+ * 
+ * Q: How do tou dial an SCCP from your dialplan
+ * 
+ * A: Use a dial statement like this
+ * \code
+ * Dial(SCCP/998,120)
+ * \endcode
+ * 
+ * Q: How to Dial an SCCP Phone with a different ring
+ * 
+ * A: Added ringer=inside to the dial statement
+ * \code
+ * Dial(SCCP/198/ringer=inside,120)
+ * \endcode
+ * 
+ * Q: Dial a line and have the phone Auto Answer
+ * 
+ * A: add the following to your dial statement
+ * \code
+ * Dial(SCCP/9291/aa=1w, 120)
+ * \endcode
+ * 
+ * aa= values:
+ *   - 1w: 1way. MIC is oFF
+ *   - 2w: 2ways. MIC is ON
+ *   - 1wb: 1way and reject cause: busy
+ *   - 1wu: 1way and reject cause: unavailable
+ *   - 1wc: 1way and reject cause: congestion
+ *   - 2wb: 2way and reject cause: busy
+ *   - 2wu: 2way and reject cause: unavailable
+ *   - 2wc: 2way and reject cause: congestion
+ *   .
+ * 
  */
 
 /**
