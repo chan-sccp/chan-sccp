@@ -390,12 +390,40 @@
  *
  * \subsection sccp_config_rt How to use RealTime Database
  *
- * Please check ./conf/tables.sql
+ * Read trunk/conf/mysql-v4.sql into your mysql 4.0 database
+ * \code
+ * mysql -p asterisk < conf/mysql-v4.sql
+ * \endcode
+ *
+ * Starting with mysql version 5.0 you can also use trunk/conf/mysql-v5.sql, here you have a seperate buttonconfig table
+ * \code
+ * mysql -p asterisk < conf/mysql-v5.sql
+ * \endcode
+ *
+ * (To upgrade from a previous database version checkout trunk/conf/database_updates)
  *  
  * Add the following lines to the sccp.conf file
  * \code
  * devicetable=sccpdevice                                 ;datebasetable for devices
  * linetable=sccpline                                     ;datebasetable for lines
+ * \endcode
+ *
+ * /etc/asterisk/res_mysql.conf:
+ * \code
+ * [general]
+ * ;dbhost = 127.0.0.1
+ * ;dbport = 3306
+ * dbname = asterisk
+ * dbuser = asterisk
+ * dbpass = asterisk_password
+ * dbsock = /var/lib/mysql/mysql.sock
+ * \endcode
+ * 
+ * /etc/asterisk/extconfig.conf:
+ * \code
+ * [settings]
+ * sccpdevices => mysql,asterisk,sccpdevices
+ * sccplines => mysql,asterisk,sccplines
  * \endcode
  *
  * Devices / Lines and Buttonconfigs are now loaded from the database. If you add a device to the sccpdevice table it will
