@@ -26,6 +26,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_utils.h"
 #include "sccp_hint.h"
 #include "sccp_device.h"
+#include "sccp_socket.h"
 #include <asterisk/utils.h>
 #include <asterisk/cli.h>
 #include <asterisk/astdb.h>
@@ -112,7 +113,6 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 
 
 	if(d->channelCount > 0) {
-#warning "Restarting channels with active channels must be revisited urgently! (-DD)"
 		/* sccp_device_clean will check active channels */
 	        //ast_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
 	        //return RESULT_SUCCESS;
@@ -122,7 +122,9 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 
 
 	sccp_device_sendReset(d, (!strcasecmp(argv[1], "reset")) ? SKINNY_DEVICE_RESET : SKINNY_DEVICE_RESTART );
-	sccp_dev_clean(d, FALSE);
+	//sccp_dev_clean(d, FALSE);
+	sccp_session_close(d->session);
+	
 
 	return RESULT_SUCCESS;
 }
