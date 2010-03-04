@@ -642,7 +642,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
  */
 void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 {
-	uint8_t lineNumber = letohs(r->msg.LineStatReqMessage.lel_lineNumber);
+	uint8_t lineNumber = letohl(r->msg.LineStatReqMessage.lel_lineNumber);
 	sccp_line_t * l = NULL;
 	sccp_moo_t * r1;
 	sccp_device_t * d;
@@ -2178,7 +2178,6 @@ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_moo_t * r)
 		return;
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Forward Status Request.  Line: %d\n", d->id, letohl(r->msg.ForwardStatReqMessage.lel_lineNumber));
-
 	l = sccp_line_find_byid(d, r->msg.ForwardStatReqMessage.lel_lineNumber);
 	if (l)
 		sccp_dev_forward_status(l, d);
