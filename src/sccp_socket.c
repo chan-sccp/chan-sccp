@@ -165,7 +165,7 @@ static void destroy_session(sccp_session_t * s)
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(s->sin.sin_addr));
 #endif
 
-		sccp_dev_clean(d, (d->realtime)?TRUE:FALSE);
+		sccp_dev_clean(d, (d->realtime)?TRUE:FALSE, 10);
 	}
 
 	/* remove the session from global list*/
