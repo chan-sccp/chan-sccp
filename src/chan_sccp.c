@@ -1204,11 +1204,12 @@ static int unload_module(void) {
 
 
 	/* removing devices */
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(devices), d, list){
+	SCCP_LIST_LOCK(&GLOB(devices));
+	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list){
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Removing device %s\n", d->id);
-		sccp_dev_clean(d, TRUE);
+		sccp_dev_clean(d, TRUE, 0);
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
+	SCCP_LIST_UNLOCK(&GLOB(devices));
 
 	if(SCCP_LIST_EMPTY(&GLOB(devices)))
 		SCCP_LIST_HEAD_DESTROY(&GLOB(devices));

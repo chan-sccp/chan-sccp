@@ -1164,7 +1164,7 @@ void * sccp_dev_postregistration(void *data)
  * \param d SCCP Device
  * \param destroy Destroy as boolean_t
  */
-void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
+void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime) {
 	sccp_buttonconfig_t	*config = NULL;
 	sccp_selectedchannel_t 	*selectedChannel = NULL;
 	sccp_line_t		*line =NULL;
@@ -1237,11 +1237,15 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy) {
 	sccp_device_unlock(d);
 	
 	if(destroy){
-		uint8_t waittime = 10;
-		if(!(d->scheduleTasks.free = sccp_sched_add(sched, waittime * 1000, sccp_device_free, d))) {
-			sleep(waittime);
-			sccp_device_free(d);
-			d=NULL;
+		if(cleanupTime > 0){
+			if(!(d->scheduleTasks.free = sccp_sched_add(sched, cleanupTime * 1000, sccp_device_free, d))) {
+				sleep(cleanupTime);
+				sccp_device_free(d);
+				d=NULL;
+			}else{
+				sccp_device_free(d);
+				d=NULL;
+			}
 		}
 		return;
 	}

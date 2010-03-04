@@ -52,7 +52,7 @@ void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint8_t insta
 void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device);
 int sccp_device_check_ringback(sccp_device_t * d);
 void * sccp_dev_postregistration(void *data);
-void sccp_dev_clean(sccp_device_t * d, boolean_t destroy);
+void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime);
 sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t instance);
 int sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName);
 
