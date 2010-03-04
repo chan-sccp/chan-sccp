@@ -219,7 +219,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 				l1 = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
 				if(l1){
 					sccp_log(10)(VERBOSE_PREFIX_3 "%s: Notify the dnd status (%s) to asterisk for line %s\n", d->id, d->dndFeature.status ? "on" : "off", l1->name);
-					if (d->dndFeature.status){
+					if (d->dndFeature.status == SCCP_DNDMODE_REJECT){
 		//				sccp_hint_notify_linestate(l1, d, SCCP_DEVICESTATE_ONHOOK, SCCP_DEVICESTATE_DND);
 						sccp_hint_lineStatusChanged(l1, d, NULL, SCCP_DEVICESTATE_ONHOOK, SCCP_DEVICESTATE_DND);
 					}else{
@@ -686,7 +686,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  */
 void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c, unsigned int keymode, unsigned int softkeyindex, unsigned int status) {
 	sccp_moo_t * r;
-	uint32_t mask;
+	uint32_t mask, validKeyMask;
 	int i, instance;
 
 
@@ -694,6 +694,8 @@ void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 		return;
 
 	instance = sccp_device_find_index_for_line(d, l->name);
+	validKeyMask = letohl(r->msg.SelectSoftKeysMessage.les_validKeyMask);
+	
 	REQ(r, SelectSoftKeysMessage);
 	r->msg.SelectSoftKeysMessage.lel_lineInstance  = htolel(instance);
 	r->msg.SelectSoftKeysMessage.lel_callReference = htolel(c->callid);
@@ -706,11 +708,11 @@ void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 	}
 
 	if(status==0)//disable softkey
-		mask = ~(r->msg.SelectSoftKeysMessage.les_validKeyMask & mask);
+		mask = ~(validKeyMask & mask);
 	else
-		mask = r->msg.SelectSoftKeysMessage.les_validKeyMask | mask;
+		mask = validKeyMask | mask;
 
-	r->msg.SelectSoftKeysMessage.les_validKeyMask = mask;
+	r->msg.SelectSoftKeysMessage.les_validKeyMask = htolel(mask);
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, keymode2str(5), 5, instance, c->callid);
 	sccp_dev_send(d, r);
 
