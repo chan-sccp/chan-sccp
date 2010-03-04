@@ -40,6 +40,8 @@ struct mailboxSubscriptionsList sccp_mailbox_subscriptions;
  * start mwi module.
  */
 void sccp_mwi_module_start(void){
+	SCCP_LIST_HEAD_INIT(&sccp_mailbox_subscriptions);
+  
 	sccp_event_subscribe(SCCP_EVENT_LINECREATED, sccp_mwi_linecreatedEvent);
 	sccp_event_subscribe(SCCP_EVENT_DEVICEATTACHED, sccp_mwi_deviceAttachedEvent);
 }
@@ -257,6 +259,8 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 		subscription = ast_malloc(sizeof(sccp_mailbox_subscriber_list_t));
 		memset(subscription, 0, sizeof(sccp_mailbox_subscriber_list_t));
 
+		
+		SCCP_LIST_HEAD_INIT(&subscription->sccp_mailboxLine);
 		//strcpy(subscription->mailbox, mailbox);
 		//strcpy(subscription->context, context);
 		sccp_copy_string(subscription->mailbox, mailbox, sizeof(subscription->mailbox));
@@ -296,6 +300,9 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 
 	if(!mailboxLine){
 		mailboxLine = ast_malloc(sizeof(sccp_mailboxLine_t));
+		memset(mailboxLine, 0, sizeof(sccp_mailboxLine_t));
+		
+		
 		mailboxLine->line = line;
 
 		line->voicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
