@@ -1,4 +1,67 @@
+2010-03-04  marcelloceschia
+
+	* [r1334] src/sccp_softkeys.c:
+
+	* [r1333] src/sccp_cli.c, src/sccp_socket.c:
+
+	* [r1332] src/sccp_utils.c:
+
+	* [r1331] src/chan_sccp.c, src/sccp_device.c, src/sccp_device.h:
+
+	* [r1330] src/sccp_actions.c, src/sccp_softkeys.c: using little and
+	  big endian convertion
+
+2010-03-04  ddegroot
+
+	* [r1329] src/sccp_protocol.h: Changed Unknown message to Undefined
+	  message for Unknown_???????_Message's
+
+	* [r1328] src/chan_sccp.c: Upped the debug log level for
+	  Unknown_0x004A_Message, Unknown_0x0143_Message,
+	  Unknown_0x0144_Message Unknown_0x0149_Message
+	  Unknown_0x0159_Message because we know they exist, we just do not
+	  implement them. They are not unknown
+
+	* [r1327] src/sccp_device.c: ENDIAN Conversion forgot on
+	  sccp_dev_send::message2str
+
+	* [r1326] src/sccp_actions.c: Fixed Little/Big Endian issue exposed
+	  on openBSD in sccp_actions.c
+	  ISSUE :: "[Chan-sccp-b-discussion] requested a line configuration
+	  for unknown line 0"
+
+	* [r1325] doc/main.doc: Updated OpenBSD Support in main.doc
+
+2010-03-03  davidded
+
+	* [r1324] libtool, src/chan_sccp.c, src/chan_sccp.h,
+	  src/sccp_event.c, src/sccp_event.h, src/sccp_hint.c,
+	  src/sccp_hint.h, src/sccp_mwi.c, src/sccp_mwi.h, src/sccp_pbx.c,
+	  src/sccp_pbx.h, src/sccp_softkeys.c: fix for MacOSX, cleaned up
+	  very ugly nonconformant global variable definitions
+
+2010-03-02  marcelloceschia
+
+	* [r1323] src/sccp_device.c: workaround for
+	  SCCP_LIST_REMOVE(&GLOB(devices), d, list) issue
+
 2010-03-01  ddegroot
+
+	* [r1322] src: Edited the svn:ignore parameters to remove Makefile
+	  / config.h warnings
+
+	* [r1321] ChangeLog, configure, configure.ac, libtool,
+	  src/chan_sccp.h, src/config.h.in: - Fixed the PACKAGE_* redefines
+	  because AM_INIT_MAKE([no-define]) doesn't work anymore since
+	  autoconf v2.59 we have to resort to remarking out
+	  the generated PACKAGE_* defines.
+	  See: http://www.mail-archive.com/automake@gnu.org/msg04576.html
+	  Untill the Asterisk groups stops exporting these PACKAGE_ defines
+	  or autoconf fixes this issue, these replacements will
+	  have to remain.
+	  we are not using the PACKAGE_ define in any of the sources
+	  - Fixed the redefine of AST_MAX_ACCOUNT_CODE: created a new
+	  define for SCCP_MAX_ACCOUNT_CODE instead
 
 	* [r1320] ChangeLog, README, README.in, configure, configure.ac,
 	  doc/main.doc, libtool: Updated documentation to reflect
