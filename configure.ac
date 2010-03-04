@@ -280,9 +280,9 @@ fi
 AM_CONDITIONAL([WANT_DEBUG],[test "${enable_debug}" = "yes"])
 
 AC_ARG_WITH([asterisk],
-    [AC_HELP_STRING([--with-asterisk=PATH],[Location of OpenSSL installation])],,[if test "x$withval" = "xyes"; then PBX_PATH="/usr"; else PBX_PATH="$withval";fi])
+    [AC_HELP_STRING([--with-asterisk=PATH],[Location of the Asterisk installation])],,[if test "x$withval" = "xyes"; then PBX_PATH="/usr"; else PBX_PATH="$withval";fi])
 AC_ARG_WITH([callweaver],
-    [AC_HELP_STRING([--with-callweaver=PATH],[Location of OpenSSL installation])],,[if test "x$withval" = "xyes"; then PBX_PATH="/usr"; else PBX_PATH="$withval";fi])
+    [AC_HELP_STRING([--with-callweaver=PATH],[Location of CallWeaver installation])],,[if test "x$withval" = "xyes"; then PBX_PATH="/usr"; else PBX_PATH="$withval";fi])
 dnl AC_ARG_WITH(asterisk-includes,
 dnl     AS_HELP_STRING([--with-asterisk-includes=PATH], [Path to Asterisk includes (defaults to PREFIX/include)]),
 dnl     [ASTERISK_CFLAGS="-I$withval"])

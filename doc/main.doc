@@ -146,24 +146,293 @@
  * asterisk templating to keep your config file shorter and easier to manager. For an untemplated version check-out 
  * ./conf/sccp_simple.conf
  *
- * \todo Documentation sccp.conf Sample (To be implemented)
+ * \subsubsection sccp_config_howto1 Setting Protocol
+ *
+ * An important part in the config file is setting up the protocol version to match you phone firmware. During phone registration
+ * you can see the version of the protocol the phone supports and the version setup in the sccp.conf file. Please try to 
+ * match them as closely as possible
+ *
+ * Currently chan_sccp-b supports the following protocol versions:
+ *   - 3-10
+ *   - 10
+ *   - 11  : for example matched by cisco 7960
+ *   - 15  : matched by 7911 
+ *   - 16
+ *   - 17  : matched by 7970
+ *   .
+ *
+ * \subsubsection sccp_config_howto2 Sample config file
+ *
+ * \code
+ * ;=========================================================================================
+ * ;
+ * ; general definitions
+ * ;
+ * ;=========================================================================================
+ * [general]
+ * servername = Asterisk
+ * keepalive = 60
+ * debug = 1
+ * context = sccp
+ * dateFormat = D.M.Y
+ * bindaddr = 0.0.0.0
+ * port = 2000
+ * disallow=all
+ * allow=alaw
+ * allow=ulaw
+ * allow=g729
+ * firstdigittimeout = 16
+ * digittimeout = 8
+ * autoanswer_ring_time = 1
+ * autoanswer_tone = 0x32
+ * remotehangup_tone = 0x32
+ * transfer_tone = 0
+ * callwaiting_tone = 0x2d
+ * musicclass=default
+ * language=en
+ * deny=0.0.0.0/0.0.0.0
+ * permit=192.168.1.0/255.255.255.0
+ * dnd = on
+ * rtptos = 184
+ * echocancel = on
+ * silencesuppression = off
+ * trustphoneip = no
+ * tos = 0x68
+ * private = on
+ * callanswerorder=oldestfirst
+ * protocol = 11
  * 
+ * hotline_enabled=yes					;can devices without configuration register
+ * hotline_context=default					; context for hotline
+ * hotline_extension=111					; extension will be dialed on offHook
+ * 
+ * ;=========================================================================================
+ * ;
+ * ; actual definitions
+ * ;
+ * ;=========================================================================================
+ * [SEP001122334455]
+ * description = Phone Number One
+ * addon = 7914
+ * devicetype = 7940
+ * park = off
+ * button = speeddial,Helpdesk, 98112, 98112@hint  	; Add SpeedDial to Helpdesk
+ * button = line, 98011					; Assign Line 98011 to Device
+ * button = line, empty					; Assign an Empty Line
+ * button = line, 98012					; Assign Line 98012 to Device
+ * button = speeddial,Phone 2 Line 1, 98021, 98021@hint	; Add SpeedDial to Phone Number Two Line 1
+ * cfwdall = off
+ * type = device
+ * keepalive = 60
+ * tzoffset = +2
+ * transfer = on
+ * park = on
+ * cfwdall = off
+ * cfwdbusy = off
+ * cfwdnoanswer = off
+ * pickupexten = off
+ * pickupcontext = sccp
+ * pickupmodeanswer = on
+ * dtmfmode = inband
+ * imageversion = P00405000700
+ * deny=0.0.0.0/0.0.0.0
+ * permit=192.168.1.5/255.255.255.255
+ * dnd = on
+ * trustphoneip = no
+ * nat=on
+ * directrtp=on
+ * earlyrtp = none
+ * private = on
+ * mwilamp = on
+ * mwioncall = off
+ * setvar=testvar=value
+ * cfwdall = on
+ * 
+ * [98011]
+ * id = 1000
+ * type = line
+ * pin = 1234
+ * label = Phone 1 Line 1
+ * description = Line 98011
+ * mailbox = 10011
+ * cid_name = MY CID
+ * cid_num = 98011
+ * accountcode=79011
+ * callgroup=1,3-4
+ * pickupgroup=1,3-5
+ * ;amaflags = 
+ * context = sccp
+ * incominglimit = 2
+ * transfer = on
+ * vmnum = 600
+ * meetmenum = 700
+ * trnsfvm = 1000
+ * secondary_dialtone_digits = 9
+ * secondary_dialtone_tone = 0x22
+ * musicclass=default
+ * language=en
+ * rtptos = 184
+ * echocancel = on
+ * silencesuppression = off
+ * setvar=testvar2=my value
+ * 
+ * [98012]
+ * id = 1001
+ * type = line
+ * pin = 4356
+ * label = Phone 1 Line 2
+ * description = Line 98012
+ * mailbox = 10012
+ * cid_name = MY LINE 2
+ * cid_num = 98012
+ * accountcode=79002
+ * callgroup=1,4-9
+ * pickupgroup=1,3-9
+ * echocancel = off
+ * context = sccp
+ * incominglimit = 2
+ * transfer = on
+ * vmnum = 600
+ * meetmenum = 700
+ * trnsfvm = 1000
+ * secondary_dialtone_digits = 9
+ * secondary_dialtone_tone = 0x22
+ * musicclass=default
+ * language=en
+ * rtptos = 184
+ * echocancel = on
+ * silencesuppression = off
+ * silencesuppression = on
+ * 
+ * 
+ * [SEP002244668800]
+ * description = Phone Number Two
+ * devicetype = 7960
+ * park = off
+ * button = speeddial,Helpdesk, 98112, 98112@hint  		; Add SpeedDial to Helpdesk (without hint)
+ * button = line, 98021
+ * button= feature,Private Call,privacy,callpresent		;set channel variable SKINNY_PRIVATE to 1 if feature is enabled
+ * button= feature,DND Busy,DND,busy				;set dnd status to busy
+ * button= feature,DND Silent,DND,silent				;set dnd status to silent
+ * button= feature,Record calls,monitor				;record calls using automon (asterisk >= 1.6 only)
+ * button= feature,call forward to *54,cfwdAll,*54			;forward all calls to *54
+ * button = speeddial,Phone 1 Line 1, 98011, 98011@hint
+ * button = speeddial,Phone 1 Line 2, 98012, 98012@hint
+ * 
+ * type = device
+ * keepalive = 60
+ * tzoffset = +2
+ * transfer = on
+ * park = on
+ * cfwdall = off
+ * cfwdbusy = off
+ * cfwdnoanswer = off
+ * pickupexten = off
+ * pickupcontext = sccp
+ * pickupmodeanswer = on
+ * dtmfmode = inband
+ * imageversion = P00405000700
+ * deny=0.0.0.0/0.0.0.0
+ * permit=192.168.1.5/255.255.255.255
+ * dnd = on
+ * trustphoneip = no
+ * nat=on
+ * directrtp=on
+ * earlyrtp = none
+ * private = on
+ * mwilamp = on
+ * mwioncall = off
+ * setvar=testvar=value
+ * cfwdall = on
+ * 
+ * [98021]
+ * id = 1000
+ * type = line
+ * pin = 1234
+ * label = Phone 2 Line 1
+ * description = Line 98021
+ * mailbox = 10021
+ * cid_name = MY CID
+ * cid_num = 98021
+ * accountcode=79021
+ * callgroup=1,3-4
+ * pickupgroup=1,3-5
+ * context = sccp
+ * incominglimit = 2
+ * transfer = on
+ * vmnum = 600
+ * meetmenum = 700
+ * trnsfvm = 1000
+ * secondary_dialtone_digits = 9
+ * secondary_dialtone_tone = 0x22
+ * musicclass=default
+ * language=en
+ * rtptos = 184
+ * echocancel = on
+ * silencesuppression = off
+ * setvar=testvar2=my value
+ * 
+ * [softkeyset]
+ * type=softkeyset
+ * onhook		= redial,newcall,cfwdall,dnd
+ * connected	= hold,endcall,park,select,cfwdall,cfwdbusy,idivert
+ * onhold		= resume,newcall,endcall,transfer,confrn,select,dirtrfr,idivert
+ * ringin		= answer,endcall,idivert
+ * offhook		= redial,endcall,private,cfwdall,cfwdbusy,pickup,gpickup,meetme,barge
+ * conntrans	= hold,endcall,transfer,confrn,park,select,dirtrfr,cfwdall,cfwdbusy
+ * digitsfoll	= back,endcall
+ * connconf	= hold,endcall,join
+ * ringout		= endcall,transfer,cfwdall,idivert
+ * offhookfeat	= redial,endcall
+ * onhint		= pickup,barge
+ * \endcode
+ *
  *
  * \subsection sccp_config_rt How to use RealTime Database
  *
  * Please check ./conf/tables.sql
- * \todo Documentation tables.sql Sample (To be implemented)
+ *  
+ * Add the following lines to the sccp.conf file
+ * \code
+ * devicetable=sccpdevice                                 ;datebasetable for devices
+ * linetable=sccpline                                     ;datebasetable for lines
+ * \endcode
  *
- *
- * \subsection dialplan_sample Dialplan Sample
+ * Devices / Lines and Buttonconfigs are now loaded from the database. If you add a device to the sccpdevice table it will
+ * automatically be read during the device registration fase. No need to unload/load the chan_sccp module.
  * 
- * \todo Documentation DialPlan Sample (To be implemented)
- * 
+ * When you change any information in the database for a specific device which you want to reset to update it's status. 
+ * You can use the standard asterisk realtime function to reload information
  *
- * \subsection sccp_config_sp How to configure SpeedDials
- * 
- * \todo Documentation SpeedDials (To be implemented)
+ * \code
+ * realtime load sccpdevice name SEP010102030404 
+ * or
+ * realtime load sccpline name 123
  *
+ * sccp reset SEP010102030404
+ * or
+ * sccp restart SEP010102030404
+ * \endcode
+ * 
+ * dhcpd.conf:
+ *
+ * \code
+ * option cisco-tftp code 150 = array of ip-address;
+ * 
+ * subnet 192.168.100.0 netmask 255.255.255.0 {
+ *         range 192.168.100.128 192.168.100.200;
+ *         default-lease-time 86400;
+ *         max-lease-time 172800;
+ *         option domain-name-servers 192.168.100.2;
+ *         option routers 192.168.100.1;
+ * }
+ * 
+ * host phone1 {
+ *         hardware ethernet 00:0c:ce:3a:88:ca;
+ *         fixed-address 192.168.100.100;
+ *         option cisco-tftp 192.168.100.2;
+ * }
+ * \endcode
  * 
  * \subsection change_phone_to_sccp Hot to change the firmware to SCCP
  *
@@ -201,6 +470,144 @@
  * 
  * For more information check out : \n
  * http://www.cisco.com/en/US/products/hw/phones/ps379/products_tech_note09186a0080094584.shtml
+ *
+ * \subsection sccp_config_sep What does a Sample SEP?????????.cnf.xml Look Like
+ * 
+ * \code
+ * SEP00A1B4F4F5.cnf.xml / SEPDefault.cnf.xml:
+ * <device> 
+ *   <sshUserId>cisco</sshUserId> 
+ *   <sshPassword>cisco</sshPassword>
+ *   <devicePool> 
+ *     <dateTimeSetting>
+ *       <name>Netherlands</name>
+ *       <dateTemplate>D-M-YA</dateTemplate>
+ *       <timeZone>W. Europe Standard/Daylight Time</timeZone>
+ *       <ntps>
+ *        <ntp>
+ *         <name>192.168.10.10.1</name>
+ *         <ntpMode>Unicast</ntpMode>
+ *        </ntp>
+ *       </ntps>
+ *     </dateTimeSetting>
+ *     <callManagerGroup> 
+ *      <members> 
+ *       <member  priority="0"> 
+ *        <callManager> 
+ *         <ports> 
+ *          <ethernetPhonePort>2000</ethernetPhonePort> 
+ *         </ports> 
+ *         <processNodeName>192.168.150.1</processNodeName> 
+ *        </callManager> 
+ *       </member> 
+ *       <member  priority="1"> 
+ *        <callManager> 
+ *         <ports> 
+ *          <ethernetPhonePort>2000</ethernetPhonePort> 
+ *         </ports> 
+ *         <processNodeName>192.168.150.2</processNodeName> 
+ *        </callManager> 
+ *       </member> 
+ *      </members> 
+ *     </callManagerGroup> 
+ *     <srstInfo>
+ *      <name>Enable</name>
+ *      <srstOption>Enable</srstOption>
+ *      <userModifiable>true</userModifiable>
+ *      <ipAddr1>192.168.150.1</ipAddr1>
+ *      <port1>2000</port1>
+ *      <ipAddr2>192.168.150.2</ipAddr2>
+ *      <port2>2000</port2>
+ *      <ipAddr3></ipAddr3>
+ *      <port3>2000</port3>
+ *     </srstInfo>
+ *   </devicePool> 
+ *   <loadInformation>P00308010100</loadInformation> 
+ *   <vendorConfig>
+ *   <disableSpeaker>false</disableSpeaker>
+ *   <disableSpeakerAndHeadset>false</disableSpeakerAndHeadset>
+ *   <forwardingDelay>1</forwardingDelay>
+ *   <pcPort>0</pcPort>
+ *   <settingsAccess>1</settingsAccess>
+ *   <garp>0</garp>
+ *   <voiceVlanAccess>0</voiceVlanAccess>
+ *   <videoCapability>0</videoCapability>
+ *   <autoSelectLineEnable>0</autoSelectLineEnable>
+ *   <webAccess>0</webAccess>
+ *   <daysDisplayNotActive>1,7</daysDisplayNotActive>
+ *   <displayOnTime>08:30</displayOnTime>
+ *   <displayOnDuration>11:30</displayOnDuration>
+ *   <displayIdleTimeout>01:00</displayIdleTimeout>
+ *   </vendorConfig>
+ *   <userLocale> 
+ *     <name>Dutch_Netherlands</name>
+ *     <langCode>nl</langCode>
+ *     <winCharSet>iso-8859-1</winCharSet>
+ *   </userLocale> 
+ *   <networkLocale>Netherlands</networkLocale> 
+ *   <networkLocaleInfo>
+ *     <name></name>
+ *     <uid>64</uid>
+ *     <version>4.0(1)</version>
+ *   </networkLocaleInfo>
+ *   <deviceSecurityMode>1</deviceSecurityMode>
+ *   <idleTimeout>3600</idleTimeout>
+ *   <authenticationURL>http://192.168.110.8/cisco_menu/authentication.php</authenticationURL>
+ *   <idleURL>http://192.168.110.8/cisco_menu/idle.php</idleURL> 
+ *   <informationURL>http://192.168.110.8/cisco_menu/help/help.php</informationURL> 
+ *   <messagesURL></messagesURL> 
+ *   <proxyServerURL></proxyServerURL> 
+ *   <servicesURL>http://192.168.110.8/cisco_menu/menu.php</servicesURL> 
+ *   <directoryURL>http://192.168.110.8/cisco_menu/directory/menu.php</directoryURL>
+ *   <dscpForSCCPPhoneConfig>96</dscpForSCCPPhoneConfig>
+ *   <dscpForSCCPPhoneServices>0</dscpForSCCPPhoneServices>
+ *   <dscpForCm2Dvce>184</dscpForCm2Dvce>
+ *   <transportLayerProtocol>4</transportLayerProtocol>
+ *   <capfAuthMode>0</capfAuthMode>
+ *   <capfList>
+ *     <capf>
+ *       <phonePort>3804</phonePort>
+ *     </capf>
+ *   </capfList>
+ *   <certHash></certHash>
+ *   <encrConfig>false</encrConfig>
+ * </device>
+ * \endcode
+ * 
+ * \subsection dialplan_sample Dialplan Sample
+ * 
+ * \subsubsection dialplan_dp1 How to Dial an SCCP Phone from your dialplan
+ * 
+ * \code
+ * Dial(SCCP/998,120)
+ * \endcode
+ * 
+ * \subsubsection dialplan_dp2 How to Dial an SCCP Phone with a different ring
+ * 
+ * \code
+ * Dial(SCCP/198/ringer=inside,120)
+ * \endcode
+ * 
+ * \subsubsection dialplan_dp3 Dial a line and have the phone Auto Answer
+ * 
+ * \code
+ * Dial(SCCP/9291/aa=1w, 120)
+ * \endcode
+ * 
+ * aa= values:
+ *   - 1w: 1way. MIC is oFF
+ *   - 2w: 2ways. MIC is ON
+ *   - 1wb: 1way and reject cause: busy
+ *   - 1wu: 1way and reject cause: unavailable
+ *   - 1wc: 1way and reject cause: congestion
+ *   - 2wb: 2way and reject cause: busy
+ *   - 2wu: 2way and reject cause: unavailable
+ *   - 2wc: 2way and reject cause: congestion
+ *   .
+ * 
+ * \subsection sccp_config_sp How to configure SpeedDials
+ * 
+ * \todo Documentation SpeedDials (To be implemented)
  *
  */
 
@@ -270,6 +677,12 @@
  * 
  * If nothing helps, send a message to our bug page via http://sourceforge.net/tracker/?group_id=186378&atid=917045.
  * Please include config.log when sending a bug about configure/make
+ *
+ * Q: How to solve compilations errors
+ *
+ * A: First try to work out what ./configure is complaining about, when it is. I normally tries to
+ * be as explicit as possible. If you get errors trying to start configure, first try to resolve it
+ *
  */
 
 /**
