@@ -1343,12 +1343,15 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const cha
 	int compareId = 0;
 	int compareDefId = 0;
 
+#if 0
 	if(NULL != subscriptionIdNum) {
-	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: channel->subscriptionId.number=%s, SubscriptionId=%s, NULL!=channel->line %s\n", (channel->subscriptionId.number)?channel->subscriptionId.number:"NULL", (subscriptionIdNum)?subscriptionIdNum:"NULL", (NULL != channel->line)?"TRUE":"FALSE");
-	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: channel->line->defaultSubscriptionId.number=%s\n", (channel->line->defaultSubscriptionId.number)?channel->line->defaultSubscriptionId.number:"NULL");
+		ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: channel->subscriptionId.number=%s, SubscriptionId=%s, NULL!=channel->line %s\n", (channel->subscriptionId.number)?channel->subscriptionId.number:"NULL", (subscriptionIdNum)?subscriptionIdNum:"NULL", (NULL != channel->line)?"TRUE":"FALSE");
+	
+		ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: channel->line->defaultSubscriptionId.number=%s\n", (channel->line->defaultSubscriptionId.number)?channel->line->defaultSubscriptionId.number:"NULL");
 	} else {
-	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: null subscriptionIdNum!\n");
+		ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: null subscriptionIdNum!\n");
 	}
+#endif
 
 	if(    NULL != subscriptionIdNum
 		&& 0    != strlen(subscriptionIdNum)
@@ -1356,17 +1359,17 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const cha
 	    && 0    != (compareDefId = strncasecmp(channel->subscriptionId.number,
 					   channel->line->defaultSubscriptionId.number,
 					   strlen(channel->subscriptionId.number)))  ) {
-	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: outer if: compare = %d\n", compareDefId);
+	//ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: outer if: compare = %d\n", compareDefId);
 			if( 0 != strncasecmp(channel->subscriptionId.number,
 				subscriptionIdNum,
 				strlen(channel->subscriptionId.number))
 				&& 0 != (compareId = strlen(channel->subscriptionId.number)) ) {
-	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: inner if: compare = %d\n", compareId);
+	//ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: inner if: compare = %d\n", compareId);
 					result = FALSE;
 			}
 	}
 
-	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId:  result: %s\n", (result)?"TRUE":"FALSE");
+	//ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId:  result: %s\n", (result)?"TRUE":"FALSE");
 
 	return result;
 }
