@@ -605,10 +605,6 @@
  *   - 2wc: 2way and reject cause: congestion
  *   .
  * 
- * \subsection sccp_config_sp How to configure SpeedDials
- * 
- * \todo Documentation SpeedDials (To be implemented)
- *
  */
 
 /**
