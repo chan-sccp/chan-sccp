@@ -432,19 +432,37 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) URL: %s\n", d->id, buttonconfig->instance, "ServiceURL" ,buttonconfig->button.service.label, buttonconfig->button.service.url);
 
 			} else if(buttonconfig->type == SPEEDDIAL && sccp_is_nonempty_string(buttonconfig->button.speeddial.label)){
-				if (sccp_is_nonempty_string(buttonconfig->button.speeddial.hint)){
-#ifdef CS_DYNAMIC_SPEEDDIAL
-					if(d->inuseprotocolversion >= 15){
-						btn[i].type = 0x15;
-					}else{
-						btn[i].type = SCCP_BUTTONTYPE_HINT;
-					}
-#else
-					btn[i].type = SCCP_BUTTONTYPE_HINT;
-#endif
+				switch(d->skinny_type)
+				{
+					case SKINNY_DEVICETYPE_CISCO7910:
+						// Consider that the speeddial buttons on the 7910 are offset by 6
+						// with respect to the mandatory first line button.
+							btn[i+6].type = SCCP_BUTTONTYPE_SPEEDDIAL;
+							btn[i+6].instance = instance;
+						break;
 
-				}else
-					btn[i].type = SCCP_BUTTONTYPE_SPEEDDIAL;
+					// MISSING HERE: TODO:
+						// List of phones with other exceptions
+						// or not configurable button layouts.
+
+					// The default case is supposed to handle all phones with 1-to-1 button mapping
+					// which is true for everthing modern with line keys besides the display.
+					default:
+						if (sccp_is_nonempty_string(buttonconfig->button.speeddial.hint)){
+#ifdef CS_DYNAMIC_SPEEDDIAL
+							if(d->inuseprotocolversion >= 15){
+								btn[i].type = 0x15;
+							}else{
+								btn[i].type = SCCP_BUTTONTYPE_HINT;
+							}
+#else
+							btn[i].type = SCCP_BUTTONTYPE_HINT;
+#endif
+						} else {
+							btn[i].type = SCCP_BUTTONTYPE_SPEEDDIAL;
+						}
+						break;
+				}
 
 				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) extension: %s\n", d->id, buttonconfig->instance, "SPEEDDIAL" ,buttonconfig->button.speeddial.label, buttonconfig->button.speeddial.ext);
 
@@ -618,10 +636,6 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 
 			default:
 				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = btn[i].type;
-				if(btn[i].instance != 0)
-					r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
-				else
-					r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = i+1;
 				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 				break;
 		}
@@ -713,10 +727,6 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_moo_t * r)
 
 	REQ(r1, SpeedDialStatMessage);
 	r1->msg.SpeedDialStatMessage.lel_speedDialNumber = htolel(wanted);
-
-	// Dirty hack by davidded for his doorbell stuff
-	if(SKINNY_DEVICETYPE_CISCO7910 == s->device->skinny_type)
-		wanted += 1;
 
 	k = sccp_dev_speed_find_byindex(s->device, wanted, SKINNY_BUTTONTYPE_SPEEDDIAL);
 	if (k) {
@@ -848,10 +858,6 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			break;
 
 		case SKINNY_BUTTONTYPE_SPEEDDIAL:
-			/* Dirty hack by davidded for his doorbell stuff */
-			if(SKINNY_DEVICETYPE_CISCO7910 == d->skinny_type)
-				instance += 1;
-
 			k = sccp_dev_speed_find_byindex(d, instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
 			if (k)
 				sccp_handle_speeddial(d, k);
