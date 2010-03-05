@@ -1238,7 +1238,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime) {
 	
 	if(destroy){
 		if(cleanupTime > 0){
-			if(!(d->scheduleTasks.free = sccp_sched_add(sched, cleanupTime * 1000, sccp_device_free, d))) {
+			if( (d->scheduleTasks.free = sccp_sched_add(sched, cleanupTime * 1000, sccp_device_free, d)) < 0 ) {
 				sleep(cleanupTime);
 				sccp_device_free(d);
 				d=NULL;
