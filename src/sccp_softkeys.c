@@ -271,7 +271,7 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 		/* removing scheduled dial */
 		SCCP_SCHED_DEL(sched, c->digittimeout);
 		/* rescheduling dial timeout (one digit) */
-		if(!(c->digittimeout = sccp_sched_add(sched, GLOB(digittimeout) * 1000, sccp_pbx_sched_dial, c))) {
+		if( (c->digittimeout = sccp_sched_add(sched, GLOB(digittimeout) * 1000, sccp_pbx_sched_dial, c)) < 0) {
 			sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_sk_backspace) Unable to reschedule dialing in '%d' s\n", GLOB(digittimeout));
 		}
 	} else if (len == 1) {
@@ -279,7 +279,7 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 		/* removing scheduled dial */
 		SCCP_SCHED_DEL(sched, c->digittimeout);
 		/* rescheduling dial timeout (no digits) */
-		if(!(c->digittimeout = sccp_sched_add(sched, GLOB(firstdigittimeout) * 1000, sccp_pbx_sched_dial, c))) {
+		if( (c->digittimeout = sccp_sched_add(sched, GLOB(firstdigittimeout) * 1000, sccp_pbx_sched_dial, c)) < 0) {
 			sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_sk_backspace) Unable to reschedule dialing in '%d' s\n", GLOB(firstdigittimeout));
 		}
 	}

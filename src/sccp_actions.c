@@ -1590,7 +1590,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 			}
 
 			/* as we're not in overlapped mode we should add timeout again */
-    		if(!(c->digittimeout = sccp_sched_add(sched, GLOB(digittimeout) * 1000, sccp_pbx_sched_dial, c))) {
+    		if( (c->digittimeout = sccp_sched_add(sched, GLOB(digittimeout) * 1000, sccp_pbx_sched_dial, c)) < 0 ) {
     			sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: Unable to reschedule dialing in '%d' ms\n", GLOB(digittimeout));
     		}
 
