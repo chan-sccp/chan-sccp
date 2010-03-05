@@ -592,6 +592,14 @@
  * \code
  * Dial(SCCP/198/ringer=inside,120)
  * \endcode
+ *
+ * ringer= values:
+ *   - outside
+ *   - inside
+ *   - feature
+ *   - silent
+ *   - urgent
+ *   .
  * 
  * \subsubsection dialplan_dp3 Dial a line and have the phone Auto Answer
  * 
@@ -735,6 +743,15 @@
  * A: Added ringer=inside to the dial statement
  * \code
  * Dial(SCCP/198/ringer=inside,120)
+ * \endcode
+ *
+ * ringer= values:
+ *   - outside
+ *   - inside
+ *   - feature
+ *   - silent
+ *   - urgent
+ *   . 
  * \endcode
  * 
  * Q: Dial a line and have the phone Auto Answer
