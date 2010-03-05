@@ -1242,9 +1242,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime) {
 				sleep(cleanupTime);
 				sccp_device_free(d);
 				d=NULL;
-			}else{
-				sccp_device_free(d);
-				d=NULL;
 			}
 		}else{
 			sccp_device_free(d);
