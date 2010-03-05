@@ -268,7 +268,8 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 #ifdef CS_AST_HAS_EXTENSION_RINGING
 		case AST_EXTENSION_RINGING:
 #ifndef CS_DYNAMIC_SPEEDDIAL		  
-			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+			//hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+			hint->currentState = SCCP_CHANNELSTATE_RINGING;
 #else
 			hint->currentState = SCCP_CHANNELSTATE_RINGING;
 #endif
@@ -654,7 +655,6 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 			case SCCP_CHANNELSTATE_RINGING:
 #ifndef CS_DYNAMIC_SPEEDDIAL		  
 				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-#warning "Haven't we found a way to make the normal line-type hint ring, too? (-DD)"
 #else
 				hint->currentState = SCCP_CHANNELSTATE_RINGING;
 #endif
