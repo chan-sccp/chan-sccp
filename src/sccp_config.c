@@ -53,7 +53,7 @@ void sccp_config_addLine(sccp_device_t *device, char *lineName, uint8_t index) {
 		return;
 
 	ast_strip(lineName);
-	config->instance = index;
+	//config->instance = index;
 	sccp_log(0)(VERBOSE_PREFIX_3 "Add line button on position: %d\n", config->instance);
 	//TODO check already existing instances
 	if (ast_strlen_zero(lineName)) {
@@ -87,8 +87,8 @@ void sccp_config_addEmpty(sccp_device_t *device, uint8_t index)
 	if(!config)
 		return;
 
-	config->instance = index;
-	sccp_log(0)(VERBOSE_PREFIX_3 "Add empty button on position: %d\n", config->instance);
+	//config->instance = index;
+	//sccp_log(0)(VERBOSE_PREFIX_3 "Add empty button on position: %d\n", config->instance);
 	config->type = EMPTY;
 	//TODO check already existing instances
 
@@ -113,7 +113,7 @@ void sccp_config_addSpeeddial(sccp_device_t *device, char *label, char *extensio
 
 
 	//TODO check already existing instances
-	config->instance = index;
+	//config->instance = index;
 	config->type = SPEEDDIAL;
 
 	sccp_copy_string(config->button.speeddial.label, ast_strip(label), sizeof(config->button.speeddial.label));
@@ -121,7 +121,7 @@ void sccp_config_addSpeeddial(sccp_device_t *device, char *label, char *extensio
 	if(hint){
 		sccp_copy_string(config->button.speeddial.hint, ast_strip(hint), sizeof(config->button.speeddial.hint));
 	}
-	sccp_log(0)(VERBOSE_PREFIX_3 "Add SPEEDDIAL button on position: %d\n", config->instance);
+	//sccp_log(0)(VERBOSE_PREFIX_3 "Add SPEEDDIAL button on position: %d\n", config->instance);
 
 
 	SCCP_LIST_LOCK(&device->buttonconfig);
@@ -146,7 +146,7 @@ void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID,
 
 
 	//TODO check already existing instances
-	config->instance = index;
+	//config->instance = index;
 	if (ast_strlen_zero(label)) {
 		config->type = EMPTY;
 	}else{
@@ -184,7 +184,7 @@ void sccp_config_addService(sccp_device_t *device, char *label, char *url, uint8
 
 
         //TODO check already existing instances
-        config->instance = index;
+        //config->instance = index;
 
         if (ast_strlen_zero(label) || ast_strlen_zero(url)) {
                 config->type = EMPTY;

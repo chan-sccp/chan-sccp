@@ -430,13 +430,15 @@ sccp_line_t * sccp_line_find_realtime_byname(const char * name)
  */
 sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint8_t instance){
 	sccp_line_t * l = NULL;
-	int i=0;
+	//int i=0;
 	sccp_buttonconfig_t	*config;
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for line with instance %d.\n", DEV_ID_LOG(d), instance);
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		if(++i == instance) {
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: button instance %d, type: %d\n", DEV_ID_LOG(d), config->instance, config->type);
+		//if(++i == instance) {
+		if(config->instance == instance) {
 			if(config->type == LINE && sccp_is_nonempty_string(config->button.line.name)){
 				l = sccp_line_find_byname_wo(config->button.line.name, TRUE);
 			}
