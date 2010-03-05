@@ -189,26 +189,26 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 		case SKINNY_DEVICETYPE_30SPPLUS:
 		case SKINNY_DEVICETYPE_30VIP:
 			for (i = 0; i < 4; i++)
-				(btn++)->type = SKINNY_BUTTONTYPE_LINE;
+				(btn++)->type = SCCP_BUTTONTYPE_LINE;
 			for (i = 0; i < 9; i++)
-				(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			/* Column 2 */
 			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
 			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
 			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
 			(btn++)->type = SKINNY_BUTTONTYPE_CALLPARK;
 			for (i = 0; i < 9; i++)
-				(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			break;
 		case SKINNY_DEVICETYPE_12SPPLUS:
 		case SKINNY_DEVICETYPE_12SP:
 		case SKINNY_DEVICETYPE_12:
-			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
-			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
 			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
-			(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-			(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-			(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
 			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
 			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
@@ -217,31 +217,31 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7902:
-			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
 			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
 			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
 			(btn++)->type = SKINNY_BUTTONTYPE_DISPLAY;
 			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
 			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
 			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
-			(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-			(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-			(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-			(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7912:
 		case SKINNY_DEVICETYPE_CISCO7911:
 		case SKINNY_DEVICETYPE_CISCO7906:
 		case SKINNY_DEVICETYPE_CISCO7905:
-			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
 			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
 			for (i = 0; i < 9; i++)
-				(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7931:
 			for (i = 0; i < 20; i++){
-				btn[i].type = SKINNY_BUTTONTYPE_MULTI;
+				btn[i].type = SCCP_BUTTONTYPE_MULTI;
 				btn[i].instance=i+1;
 			}
 			btn[20].type = SKINNY_BUTTONTYPE_MESSAGES;
@@ -256,19 +256,19 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 		case SKINNY_DEVICETYPE_CISCO7935:
 		case SKINNY_DEVICETYPE_CISCO7936:
 		case SKINNY_DEVICETYPE_CISCO7937:
-			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
-			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7910:
-			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
 			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
 			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
 			(btn++)->type = SKINNY_BUTTONTYPE_DISPLAY;
 			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
 			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
 			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
-			(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-			(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7940:
@@ -276,14 +276,14 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 		case SKINNY_DEVICETYPE_CISCO7941GE:
 		case SKINNY_DEVICETYPE_CISCO7942:
 		case SKINNY_DEVICETYPE_CISCO7945:
-			(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
-			(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
+			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7920:
 		case SKINNY_DEVICETYPE_CISCO7921:
 		case SKINNY_DEVICETYPE_CISCO7925:
 			for (i = 0; i < 6; i++)
-				(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7960:
 		case SKINNY_DEVICETYPE_CISCO7961:
@@ -291,7 +291,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 		case SKINNY_DEVICETYPE_CISCO7962:
 		case SKINNY_DEVICETYPE_CISCO7965:
 			for (i = 0; i < 6 + sccp_addons_taps(d); i++)
-				(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7970:
 		case SKINNY_DEVICETYPE_CISCO7971:
@@ -299,31 +299,31 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 		case SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR:
 			/* the nokia icc client identifies it self as SKINNY_DEVICETYPE_CISCO7970, but it can have only one line  */
 			if(!strcasecmp(d->config_type, "nokia-icc")) { // this is for nokia icc legacy support (Old releases) -FS
-				(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			} else {
 				for (i = 0; i < 8 + sccp_addons_taps(d); i++){
-					(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
+					(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 				}
 			}
 			break;
 		case SKINNY_DEVICETYPE_NOKIA_ICC:
-			(btn++)->type = SKINNY_BUTTONTYPE_MULTI;
+			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			break;
 		case SKINNY_DEVICETYPE_NOKIA_E_SERIES:
-			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
-			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
 			for (i = 0; i < 5; i++)
-				(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			break;
 		case SKINNY_DEVICETYPE_ATA186:
 		//case SKINNY_DEVICETYPE_ATA188:
-			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
 			for (i = 0; i < 4; i++)
-				(btn++)->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			break;
 		default:
 			/* at least one line */
-			(btn++)->type = SKINNY_BUTTONTYPE_LINE;
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
 			break;
 	}
 	return;
@@ -825,7 +825,7 @@ sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint8_t instance, u
 			memset(k, 0, sizeof(sccp_speed_t));
 
 			k->instance = instance;
-			k->type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+			k->type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			sccp_copy_string(k->name, config->button.speeddial.label, sizeof(k->name));
 			sccp_copy_string(k->ext, config->button.speeddial.ext, sizeof(k->ext));
 			if (!ast_strlen_zero(config->button.speeddial.hint)){

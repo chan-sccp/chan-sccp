@@ -216,7 +216,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	line_count = 0;
 	/* count the available lines on the phone */
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-		if ( (btn[i].type == SKINNY_BUTTONTYPE_LINE) || (btn[i].type == SKINNY_BUTTONTYPE_MULTI) )
+		if ( (btn[i].type == SKINNY_BUTTONTYPE_LINE) || (btn[i].type == SCCP_BUTTONTYPE_MULTI) )
 			line_count++;
 		else if (btn[i].type == SKINNY_BUTTONTYPE_UNUSED)
 			break;
@@ -416,150 +416,156 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 	if(!d->isAnonymous){
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+			if(buttonconfig->instance > 0)
+				continue;
+		  
+			for (i = 0; i < StationMaxButtonTemplateSize ; i++) {
 
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Button %d type: %d\n", d->id, buttonconfig->instance, buttonconfig->type);
+				if(buttonconfig->type == LINE 
+				    && sccp_is_nonempty_string(buttonconfig->button.line.name)
+				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE)){
+					
+					btn[i].type = SKINNY_BUTTONTYPE_LINE;
+					buttonconfig->instance = btn[i].instance = i+1;
+					break;
+					
+				}else if(buttonconfig->type == EMPTY
+				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE || btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL )){
+				  
+					btn[i].type = SKINNY_BUTTONTYPE_UNDEFINED;
+					buttonconfig->instance = btn[i].instance = i+1;
+					break;
 
-			btn[i].instance = ++instance;
-			if(buttonconfig->type == LINE && sccp_is_nonempty_string(buttonconfig->button.line.name)){
-				btn[i].type = SCCP_BUTTONTYPE_LINE;
-
-			} else if(buttonconfig->type == EMPTY){
-				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = EMPTY\n", d->id, buttonconfig->instance);
-				btn[i].type = SKINNY_BUTTONTYPE_UNDEFINED;
-
-			} else if(buttonconfig->type == SERVICE) {
-				btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
-				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) URL: %s\n", d->id, buttonconfig->instance, "ServiceURL" ,buttonconfig->button.service.label, buttonconfig->button.service.url);
-
-			} else if(buttonconfig->type == SPEEDDIAL && sccp_is_nonempty_string(buttonconfig->button.speeddial.label)){
-				switch(d->skinny_type)
-				{
-					case SKINNY_DEVICETYPE_CISCO7910:
-						// Consider that the speeddial buttons on the 7910 are offset by 6
-						// with respect to the mandatory first line button.
-							btn[i+6].type = SCCP_BUTTONTYPE_SPEEDDIAL;
-							btn[i+6].instance = instance;
-						break;
-
-					// MISSING HERE: TODO:
-						// List of phones with other exceptions
-						// or not configurable button layouts.
-
-					// The default case is supposed to handle all phones with 1-to-1 button mapping
-					// which is true for everthing modern with line keys besides the display.
-					default:
-						if (sccp_is_nonempty_string(buttonconfig->button.speeddial.hint)){
+				}else if(buttonconfig->type == SERVICE
+				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI)) {
+					
+					btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
+					buttonconfig->instance = btn[i].instance = i+1;
+					break;
+				  
+				} else if(buttonconfig->type == SPEEDDIAL 
+				    && sccp_is_nonempty_string(buttonconfig->button.speeddial.label) 
+				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) ){
+				  
+					
+					buttonconfig->instance = btn[i].instance = i+1;
+					if (sccp_is_nonempty_string(buttonconfig->button.speeddial.hint)){
 #ifdef CS_DYNAMIC_SPEEDDIAL
-							if(d->inuseprotocolversion >= 15){
-								btn[i].type = 0x15;
-							}else{
-								btn[i].type = SCCP_BUTTONTYPE_HINT;
-							}
-#else
-							btn[i].type = SCCP_BUTTONTYPE_HINT;
-#endif
-						} else {
-							btn[i].type = SCCP_BUTTONTYPE_SPEEDDIAL;
+						if(d->inuseprotocolversion >= 15){
+							      btn[i].type = 0x15;
+						}else{
+							      btn[i].type = SKINNY_BUTTONTYPE_LINE;
 						}
-						break;
+#else
+						btn[i].type = SKINNY_BUTTONTYPE_LINE;
+#endif
+					} else {
+						btn[i].type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+					}
+					break;
+				  
+				} else if(buttonconfig->type == FEATURE 
+				  && sccp_is_nonempty_string(buttonconfig->button.feature.label)
+				  && (btn[i].type == SCCP_BUTTONTYPE_MULTI)){
+				 
+					buttonconfig->instance = btn[i].instance = i+1;
+				  
+					switch(buttonconfig->button.feature.id)
+					{
+						case SCCP_FEATURE_HOLD:
+							btn[i].type = SKINNY_BUTTONTYPE_HOLD;
+							break;
+
+						case SCCP_FEATURE_TRANSFER:
+							btn[i].type = SKINNY_BUTTONTYPE_TRANSFER;
+							break;
+
+						case SCCP_FEATURE_MULTIBLINK:
+							btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+							break;
+
+						case SCCP_FEATURE_MOBILITY:
+							btn[i].type = SKINNY_BUTTONTYPE_MOBILITY;
+							break;
+
+						case SCCP_FEATURE_CONFERENCE:
+							btn[i].type = SKINNY_BUTTONTYPE_CONFERENCE;
+							break;
+
+						case SCCP_FEATURE_TEST6:
+							btn[i].type = SKINNY_BUTTONTYPE_TEST6;
+							break;
+
+						case SCCP_FEATURE_TEST7:
+							btn[i].type = SKINNY_BUTTONTYPE_TEST7;
+							break;
+
+						case SCCP_FEATURE_TEST8:
+							btn[i].type = SKINNY_BUTTONTYPE_TEST8;
+							break;
+
+						case SCCP_FEATURE_TEST9:
+							btn[i].type = SKINNY_BUTTONTYPE_TEST9;
+							break;
+
+						case SCCP_FEATURE_TESTA:
+							btn[i].type = SKINNY_BUTTONTYPE_TESTA;
+							break;
+
+						case SCCP_FEATURE_TESTB:
+							btn[i].type = SKINNY_BUTTONTYPE_TESTB;
+							break;
+
+						case SCCP_FEATURE_TESTC:
+							btn[i].type = SKINNY_BUTTONTYPE_TESTC;
+							break;
+
+						case SCCP_FEATURE_TESTD:
+							btn[i].type = SKINNY_BUTTONTYPE_TESTD;
+							break;
+
+						case SCCP_FEATURE_TESTE:
+							btn[i].type = SKINNY_BUTTONTYPE_TESTE;
+							break;
+
+						case SCCP_FEATURE_TESTF:
+							btn[i].type = SKINNY_BUTTONTYPE_TESTF;
+							break;
+
+						case SCCP_FEATURE_TESTG:
+							btn[i].type = SKINNY_BUTTONTYPE_MESSAGES;
+							break;
+
+						case SCCP_FEATURE_TESTH:
+							btn[i].type = SKINNY_BUTTONTYPE_DIRECTORY;
+							break;
+
+						case SCCP_FEATURE_TESTI:
+							btn[i].type = SKINNY_BUTTONTYPE_TESTI;
+							break;
+
+						case SCCP_FEATURE_TESTJ:
+							btn[i].type = SKINNY_BUTTONTYPE_APPLICATION;
+							break;
+
+
+						default:
+							btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
+							break;
+					  
+					}
+					break;
+				}else{
+					continue;
 				}
-
-				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s) extension: %s\n", d->id, buttonconfig->instance, "SPEEDDIAL" ,buttonconfig->button.speeddial.label, buttonconfig->button.speeddial.ext);
-
-			} else if(buttonconfig->type == FEATURE && sccp_is_nonempty_string(buttonconfig->button.feature.label)){
-
-				switch(buttonconfig->button.feature.id)
-				{
-					case SCCP_FEATURE_HOLD:
-						btn[i].type = SKINNY_BUTTONTYPE_HOLD;
-						break;
-
-					case SCCP_FEATURE_TRANSFER:
-						btn[i].type = SKINNY_BUTTONTYPE_TRANSFER;
-						break;
-
-					case SCCP_FEATURE_MULTIBLINK:
-						btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
-						break;
-
-					case SCCP_FEATURE_MOBILITY:
-						btn[i].type = SKINNY_BUTTONTYPE_MOBILITY;
-						break;
-
-					case SCCP_FEATURE_CONFERENCE:
-						btn[i].type = SKINNY_BUTTONTYPE_CONFERENCE;
-						break;
-
-					case SCCP_FEATURE_TEST6:
-						btn[i].type = SKINNY_BUTTONTYPE_TEST6;
-						break;
-
-					case SCCP_FEATURE_TEST7:
-						btn[i].type = SKINNY_BUTTONTYPE_TEST7;
-						break;
-
-					case SCCP_FEATURE_TEST8:
-						btn[i].type = SKINNY_BUTTONTYPE_TEST8;
-						break;
-
-					case SCCP_FEATURE_TEST9:
-						btn[i].type = SKINNY_BUTTONTYPE_TEST9;
-						break;
-
-					case SCCP_FEATURE_TESTA:
-						btn[i].type = SKINNY_BUTTONTYPE_TESTA;
-						break;
-
-					case SCCP_FEATURE_TESTB:
-						btn[i].type = SKINNY_BUTTONTYPE_TESTB;
-						break;
-
-					case SCCP_FEATURE_TESTC:
-						btn[i].type = SKINNY_BUTTONTYPE_TESTC;
-						break;
-
-					case SCCP_FEATURE_TESTD:
-						btn[i].type = SKINNY_BUTTONTYPE_TESTD;
-						break;
-
-					case SCCP_FEATURE_TESTE:
-						btn[i].type = SKINNY_BUTTONTYPE_TESTE;
-						break;
-
-					case SCCP_FEATURE_TESTF:
-						btn[i].type = SKINNY_BUTTONTYPE_TESTF;
-						break;
-
-					case SCCP_FEATURE_TESTG:
-						btn[i].type = SKINNY_BUTTONTYPE_MESSAGES;
-						break;
-
-					case SCCP_FEATURE_TESTH:
-						btn[i].type = SKINNY_BUTTONTYPE_DIRECTORY;
-						break;
-
-					case SCCP_FEATURE_TESTI:
-						btn[i].type = SKINNY_BUTTONTYPE_TESTI;
-						break;
-
-					case SCCP_FEATURE_TESTJ:
-						btn[i].type = SKINNY_BUTTONTYPE_APPLICATION;
-						break;
-
-
-					default:
-						btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
-						break;
-				}
-
-				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s)\n", d->id, buttonconfig->instance, "FEATURE" ,buttonconfig->button.feature.label);
+				//sccp_log(1)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s)\n", d->id, buttonconfig->instance, "FEATURE" ,buttonconfig->button.feature.label);
 			}
-			i++;
+		  
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 	}else{
 		/* reserve one line as hotline */
-		btn[i].type = SCCP_BUTTONTYPE_LINE;
+		btn[i].type = SKINNY_BUTTONTYPE_LINE;
 		btn[i].instance = 1;
 	}
 
@@ -597,35 +603,37 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 
 	REQ(r1, ButtonTemplateMessage);
 	for (i = 0; i < StationMaxButtonTemplateSize ; i++) {
+		r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
+		
 		switch (btn[i].type) {
 			case SCCP_BUTTONTYPE_HINT:
 			case SCCP_BUTTONTYPE_LINE:
 				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_LINE;
-				r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
+				//r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
 				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 				break;
 
 			case SCCP_BUTTONTYPE_SPEEDDIAL:
 				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_SPEEDDIAL;
-				r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
+				//r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
 				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 				break;
 
 			case SKINNY_BUTTONTYPE_SERVICEURL:
 				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_SERVICEURL;
-				r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
+				//r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
 				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 				break;
 
 			case SKINNY_BUTTONTYPE_FEATURE:
 				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_FEATURE;
-				r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
+				//r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
 				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 				break;
 
-			case SKINNY_BUTTONTYPE_MULTI:
+			case SCCP_BUTTONTYPE_MULTI:
 				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_DISPLAY;
-				r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
+				//r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
 				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 				break;
 
@@ -639,6 +647,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 				break;
 		}
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %d (%d)\n", d->id, i+1, btn[i].type, btn[i].instance);
 	}
 
 	r1->msg.ButtonTemplateMessage.lel_buttonOffset = htolel(0);
