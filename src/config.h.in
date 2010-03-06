@@ -187,30 +187,6 @@
 /* Define according to your operating system type. */
 #undef FreeBSD
 
-/* Define to 1 if you have the `argz_add' function. */
-#undef HAVE_ARGZ_ADD
-
-/* Define to 1 if you have the `argz_append' function. */
-#undef HAVE_ARGZ_APPEND
-
-/* Define to 1 if you have the `argz_count' function. */
-#undef HAVE_ARGZ_COUNT
-
-/* Define to 1 if you have the `argz_create_sep' function. */
-#undef HAVE_ARGZ_CREATE_SEP
-
-/* Define to 1 if you have the <argz.h> header file. */
-#undef HAVE_ARGZ_H
-
-/* Define to 1 if you have the `argz_insert' function. */
-#undef HAVE_ARGZ_INSERT
-
-/* Define to 1 if you have the `argz_next' function. */
-#undef HAVE_ARGZ_NEXT
-
-/* Define to 1 if you have the `argz_stringify' function. */
-#undef HAVE_ARGZ_STRINGIFY
-
 /* Found 'asterisk/acl.h' */
 #undef HAVE_ASTERISK_ACL_H
 
@@ -292,36 +268,8 @@
 /* Found 'asterisk/utils.h' */
 #undef HAVE_ASTERISK_UTILS_H
 
-/* Define to 1 if you have the `closedir' function. */
-#undef HAVE_CLOSEDIR
-
-/* Define to 1 if you have the declaration of `cygwin_conv_path', and to 0 if
-   you don't. */
-#undef HAVE_DECL_CYGWIN_CONV_PATH
-
-/* Define to 1 if you have the <dirent.h> header file. */
-#undef HAVE_DIRENT_H
-
-/* Define if you have the GNU dld library. */
-#undef HAVE_DLD
-
-/* Define to 1 if you have the <dld.h> header file. */
-#undef HAVE_DLD_H
-
-/* Define to 1 if you have the `dlerror' function. */
-#undef HAVE_DLERROR
-
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
-
-/* Define to 1 if you have the <dl.h> header file. */
-#undef HAVE_DL_H
-
-/* Define if you have the _dyld_func_lookup function. */
-#undef HAVE_DYLD
-
-/* Define to 1 if the system has the type `error_t'. */
-#undef HAVE_ERROR_T
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
@@ -329,20 +277,8 @@
 /* Define to 1 if you have the `c' library (-lc). */
 #undef HAVE_LIBC
 
-/* Define if you have the libdl library or equivalent. */
-#undef HAVE_LIBDL
-
-/* Define if libdlloader will be built on this platform */
-#undef HAVE_LIBDLLOADER
-
 /* Define to 1 if you have the `ltdl' library (-lltdl). */
 #undef HAVE_LIBLTDL
-
-/* Define this if a modern libltdl is already installed */
-#undef HAVE_LTDL
-
-/* Define to 1 if you have the <mach-o/dyld.h> header file. */
-#undef HAVE_MACH_O_DYLD_H
 
 /* Define to 1 if your system has a GNU libc compatible `malloc' function, and
    to 0 otherwise. */
@@ -357,17 +293,8 @@
 /* Define to 1 if you have the <netinet/in.h> header file. */
 #undef HAVE_NETINET_IN_H
 
-/* Define to 1 if you have the `opendir' function. */
-#undef HAVE_OPENDIR
-
-/* Define if libtool can extract symbol lists from object files. */
-#undef HAVE_PRELOADED_SYMBOLS
-
 /* Define to 1 if you have the <pthread.h> header file. */
 #undef HAVE_PTHREAD_H
-
-/* Define to 1 if you have the `readdir' function. */
-#undef HAVE_READDIR
 
 /* Define to 1 if your system has a GNU libc compatible `realloc' function,
    and to 0 otherwise. */
@@ -375,9 +302,6 @@
 
 /* Define to 1 if you have the `select' function. */
 #undef HAVE_SELECT
-
-/* Define if you have the shl_load function. */
-#undef HAVE_SHL_LOAD
 
 /* Define to 1 if you have the `socket' function. */
 #undef HAVE_SOCKET
@@ -409,17 +333,8 @@
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
-/* Define to 1 if you have the `strlcat' function. */
-#undef HAVE_STRLCAT
-
-/* Define to 1 if you have the `strlcpy' function. */
-#undef HAVE_STRLCPY
-
 /* Define to 1 if you have the `strncasecmp' function. */
 #undef HAVE_STRNCASECMP
-
-/* Define to 1 if you have the <sys/dl.h> header file. */
-#undef HAVE_SYS_DL_H
 
 /* Define to 1 if you have the <sys/ioctl.h> header file. */
 #undef HAVE_SYS_IOCTL_H
@@ -436,27 +351,8 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* This value is set to 1 to indicate that the system argz facility works */
-#undef HAVE_WORKING_ARGZ
-
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
-
-/* Define if the OS needs help to load dependent libraries for dlopen(). */
-#undef LTDL_DLOPEN_DEPLIBS
-
-/* Define to the system default library search path. */
-#undef LT_DLSEARCH_PATH
-
-/* The archive extension */
-#undef LT_LIBEXT
-
-/* Define to the extension used for runtime loadable modules, say, ".so". */
-#undef LT_MODULE_EXT
-
-/* Define to the name of the environment variable that determines the run-time
-   module search path. */
-#undef LT_MODULE_PATH_VAR
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
@@ -468,9 +364,6 @@
 /* Not Found 'MAX_MUSICCLASS' in asterisk/channel.h */
 #undef MAX_MUSICCLASS
 
-/* Define if dlsym() requires a leading underscore in symbol names. */
-#undef NEED_USCORE
-
 /* Define according to your operating system type. */
 #undef NetBSD
 
@@ -478,22 +371,22 @@
 #undef OpenBSD
 
 /* Define to the address where bug reports for this package should be sent. */
-/* #undef PACKAGE_BUGREPORT */
+#undef PACKAGE_BUGREPORT
 
 /* Define to the full name of this package. */
-/* #undef PACKAGE_NAME */
+#undef PACKAGE_NAME
 
 /* Define to the full name and version of this package. */
-/* #undef PACKAGE_STRING */
+#undef PACKAGE_STRING
 
 /* Define to the one symbol short name of this package. */
-/* #undef PACKAGE_TARNAME */
+#undef PACKAGE_TARNAME
 
 /* Define to the home page for this package. */
-/* #undef PACKAGE_URL */
+#undef PACKAGE_URL
 
 /* Define to the version of this package. */
-/* #undef PACKAGE_VERSION */
+#undef PACKAGE_VERSION
 
 /* Define the SCCP Branch */
 #undef SCCP_BRANCH
@@ -582,17 +475,11 @@
 /* for the places where it is not defined */
 #undef __LITTLE_ENDIAN
 
-/* Define so that glibc/gnulib argp.h does not typedef error_t. */
-#undef __error_t_defined
-
 /* Not Found 'ast_config_load' in asterisk/config.h */
 #undef ast_config_destroy
 
 /* Not Found 'ast_config_load' in asterisk/config.h */
 #undef ast_config_load
-
-/* Define to a type to use for `error_t' if it is not otherwise available. */
-#undef error_t
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */

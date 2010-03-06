@@ -113,10 +113,10 @@ case "${host}" in
     # XXX temporary hack to let FreeBSD use the default paths
     # for local stuff. We need a better solution.
     if test x"${CPPFLAGS}" = x; then
-        CPPFLAGS="-I /usr/local/include"
+        CPPFLAGS="-I/usr/local/include"
     fi
     if test x"${LDFLAGS}" = x; then
-        LDFLAGS="-L /usr/local/lib"
+        LDFLAGS="-L/usr/local/lib"
     fi
     ;;
   *openbsd*)
