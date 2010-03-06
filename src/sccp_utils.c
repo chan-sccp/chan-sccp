@@ -210,7 +210,7 @@ int sccp_addons_taps(sccp_device_t * d)
 		if(cur->type == SKINNY_DEVICETYPE_CISCO7914)
 			taps += 14;
 		if(cur->type == SKINNY_DEVICETYPE_CISCO7915 || cur->type == SKINNY_DEVICETYPE_CISCO7916)
-			taps += 20;
+			taps += 24;
 		sccp_log(22)(VERBOSE_PREFIX_3 "%s: Found (%d) taps on device addon (%d)\n", (d->id?d->id:"SCCP"), taps, cur->type);
 	}
 	SCCP_LIST_UNLOCK(&d->addons);
