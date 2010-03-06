@@ -1750,7 +1750,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Softkey: %s (%d) line=%d callid=%d\n", d->id, label2str(event), event, line, callid);
 	
 	/* we have no line and call information -> use default line */
-	if(!line && !callID && event == SKINNY_LBL_NEWCALL){
+	if(!line && !callid && event == SKINNY_LBL_NEWCALL){
 		if(d->defaultLineInstance > 0)
 			line = d->defaultLineInstance;
 		else
