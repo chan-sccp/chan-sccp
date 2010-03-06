@@ -1942,57 +1942,6 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	}
 }
 
-
-
-#ifdef CS_SCCP_PARK
-
-/*!
- * \brief Dual Structure
- */
-
-struct sccp_dual {
-
-        struct ast_channel *chan1;
-
-        struct ast_channel *chan2;
-};
-
-/*!
- * \brief Channel Park Thread
- * \param stuff Stuff
- * \todo Some work to do i guess
- * \todo replace parameter stuff with something sensable
- */
-static void * sccp_channel_park_thread(void *stuff) {
-	struct ast_channel *chan1, *chan2;
-	struct sccp_dual *dual;
-	struct ast_frame *f;
-	int ext;
-	int res;
-	char extstr[20];
-	sccp_channel_t * c;
-	memset(&extstr, 0 , sizeof(extstr));
-
-	dual = stuff;
-	chan1 = dual->chan1;
-	chan2 = dual->chan2;
-	ast_free(dual);
-	f = ast_read(chan1);
-	if (f)
-		ast_frfree(f);
-	res = ast_park_call(chan1, chan2, 0, &ext);
-	if (!res) {
-		extstr[0] = 128;
-		extstr[1] = SKINNY_LBL_CALL_PARK_AT;
-		sprintf(&extstr[2]," %d",ext);
-		c = CS_AST_CHANNEL_PVT(chan2);
-		sccp_dev_displaynotify(c->device, extstr, 10);
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(c->device), chan1->name, ext);
-	}
-	ast_hangup(chan2);
-	return NULL;
-}
-
 void sccp_channel_forward(sccp_channel_t *parent, sccp_linedevices_t *lineDevice, char *fwdNumber){
 	sccp_channel_t 	*forwarder = NULL;
 	char 		dialedNumber[256];
@@ -2049,6 +1998,57 @@ void sccp_channel_forward(sccp_channel_t *parent, sccp_linedevices_t *lineDevice
 		}
 	}
 }
+
+
+#ifdef CS_SCCP_PARK
+
+/*!
+ * \brief Dual Structure
+ */
+
+struct sccp_dual {
+
+        struct ast_channel *chan1;
+
+        struct ast_channel *chan2;
+};
+
+/*!
+ * \brief Channel Park Thread
+ * \param stuff Stuff
+ * \todo Some work to do i guess
+ * \todo replace parameter stuff with something sensable
+ */
+static void * sccp_channel_park_thread(void *stuff) {
+	struct ast_channel *chan1, *chan2;
+	struct sccp_dual *dual;
+	struct ast_frame *f;
+	int ext;
+	int res;
+	char extstr[20];
+	sccp_channel_t * c;
+	memset(&extstr, 0 , sizeof(extstr));
+
+	dual = stuff;
+	chan1 = dual->chan1;
+	chan2 = dual->chan2;
+	ast_free(dual);
+	f = ast_read(chan1);
+	if (f)
+		ast_frfree(f);
+	res = ast_park_call(chan1, chan2, 0, &ext);
+	if (!res) {
+		extstr[0] = 128;
+		extstr[1] = SKINNY_LBL_CALL_PARK_AT;
+		sprintf(&extstr[2]," %d",ext);
+		c = CS_AST_CHANNEL_PVT(chan2);
+		sccp_dev_displaynotify(c->device, extstr, 10);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(c->device), chan1->name, ext);
+	}
+	ast_hangup(chan2);
+	return NULL;
+}
+
 
 /*!
  * \brief Park an SCCP Channel
