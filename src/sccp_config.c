@@ -42,7 +42,7 @@ struct ast_config *sccp_config_getConfig(void);
  * \param lineName - Name of line
  * \param index - preferred button (position)
  */
-void sccp_config_addLine(sccp_device_t *device, char *lineName, uint8_t index) {
+void sccp_config_addLine(sccp_device_t *device, char *lineName, char *options) {
 	sccp_buttonconfig_t	*config;
 	struct composedId composedLineRegistrationId;
 
@@ -53,9 +53,8 @@ void sccp_config_addLine(sccp_device_t *device, char *lineName, uint8_t index) {
 		return;
 
 	ast_strip(lineName);
-	//config->instance = index;
 	sccp_log(0)(VERBOSE_PREFIX_3 "Add line button on position: %d\n", config->instance);
-	//TODO check already existing instances
+	
 	if (ast_strlen_zero(lineName)) {
 		config->type = EMPTY;
 	}else{
@@ -65,6 +64,11 @@ void sccp_config_addLine(sccp_device_t *device, char *lineName, uint8_t index) {
 		sccp_copy_string(config->button.line.name, composedLineRegistrationId.mainId, sizeof(config->button.line.name));
 		sccp_copy_string(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number, sizeof(config->button.line.subscriptionId.number));
 		sccp_copy_string(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name, sizeof(config->button.line.subscriptionId.name));
+		
+		if(options){
+			sccp_copy_string(config->button.line.options, options, sizeof(config->button.line.options));
+		}
+		
 	}
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_INSERT_TAIL(&device->buttonconfig, config, list);
@@ -912,12 +916,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
                                 if (!buttonName)
                                         continue;
 
-                                sccp_config_addLine(d, (buttonName)?ast_strip(buttonName):NULL, ++instance);
-
-                                if (buttonOption && !strcasecmp(buttonOption, "default")) {
-                                        d->defaultLineInstance = instance;
-                                        sccp_log(99)(VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", instance);
-                                }
+                                sccp_config_addLine(d, (buttonName)?ast_strip(buttonName):NULL, buttonOption);
                         } else if (!strcasecmp(buttonType, "empty")) {
                                 sccp_config_addEmpty(d, ++instance);
                         } else if (!strcasecmp(buttonType, "speeddial")) {
