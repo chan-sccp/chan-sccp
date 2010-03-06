@@ -1779,9 +1779,10 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 			}
 		}else {
 			k = sccp_dev_speed_find_byindex(d, line, SCCP_BUTTONTYPE_LINE);
-			if (k)
+			if (k){
 				sccp_handle_speeddial(d, k);
-			else
+				ast_free(k);
+			}else
 				sccp_sk_newcall(d, NULL, NULL);
 		}
 		break;
