@@ -66,7 +66,7 @@ static const softkeyConfigurationTemplate softKeyTemplate[] = {
 
 
 
-void sccp_config_addLine(sccp_device_t *device, char *lineName, uint8_t index);
+void sccp_config_addLine(sccp_device_t *device, char *lineName, char *options);
 void sccp_config_addEmpty(sccp_device_t *device, uint8_t index);
 void sccp_config_addSpeeddial(sccp_device_t *device, char *label, char *extension, char *hint, uint8_t index);
 void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID, char *args, uint8_t index);

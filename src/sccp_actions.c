@@ -126,7 +126,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 			sccp_copy_string(d->id, r->msg.RegisterMessage.sId.deviceName, sizeof(d->id));
 			d->realtime = TRUE;
 			d->isAnonymous = TRUE;
-			sccp_config_addLine(d, GLOB(hotline)->line->name, 1);
+			sccp_config_addLine(d, GLOB(hotline)->line->name, NULL);
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.RegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
 			d->defaultLineInstance = 1;
 			SCCP_LIST_LOCK(&GLOB(devices));
@@ -397,7 +397,7 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_moo_t * r)
  */
 static btnlist *sccp_make_button_template(sccp_device_t * d)
 {
-	int i=0, instance=0;
+	int i=0;
 	btnlist 			*btn;
 	sccp_buttonconfig_t	* buttonconfig;
 
@@ -665,11 +665,12 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
  */
 void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 {
-	uint8_t lineNumber = letohl(r->msg.LineStatReqMessage.lel_lineNumber);
-	sccp_line_t * l = NULL;
-	sccp_moo_t * r1;
-	sccp_device_t * d;
-	sccp_speed_t * k = NULL;
+	uint8_t lineNumber 	= letohl(r->msg.LineStatReqMessage.lel_lineNumber);
+	sccp_line_t 		*l = NULL;
+	sccp_moo_t 		*r1;
+	sccp_device_t 		*d;
+	sccp_speed_t 		*k = NULL;
+	sccp_buttonconfig_t	*config;
 
 	if (!s)
 		return;
@@ -712,6 +713,22 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 		/* force the forward status message. Some phone does not request it registering */
 		if (l) {
 			sccp_dev_forward_status(l, d);
+			
+			/* set default line on device */
+			SCCP_LIST_LOCK(&d->buttonconfig);
+			SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+				if(config->instance == lineNumber) {
+					if(config->type == LINE){
+						if (config->button.line.options && !strcasecmp(config->button.line.options, "default")) {
+							d->defaultLineInstance = lineNumber;
+							sccp_log(10)(VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", lineNumber);
+						}
+					}
+					break;
+				}
+			}
+			SCCP_LIST_UNLOCK(&d->buttonconfig);
+			
 		}
 		/* remove speedial if present */
 		if(k){

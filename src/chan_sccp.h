@@ -414,7 +414,8 @@ struct sccp_buttonconfig {
 
                 struct {
                         char 			name[80];				/*!< Button Name */
-						struct subscriptionId subscriptionId;
+			struct subscriptionId 	subscriptionId;
+			char			options[256];
                 } line;									/*!< SCCP Button Line Structure */
                 /*!
                  * \brief SCCP Button Speeddial Structure
