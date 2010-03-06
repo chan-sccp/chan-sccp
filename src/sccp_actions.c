@@ -1518,10 +1518,9 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * req)
   sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send date/time\n", s->device->id);
 
   /*  
-      According to SCCP protocol since version 3,
-      the first instance of asking for time and date
+      In skinny, the first instance of asking for time and date
       concludes the device registration process.
-      This is included even in the minimal subset of device registration commands.
+	  Everything happening after this step should require a registered device.
   */
   sccp_dev_set_registered(s->device, SKINNY_DEVICE_RS_OK);
 }

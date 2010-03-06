@@ -582,8 +582,8 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 		      sccp_handle_EnblocCallMessage(s,r);
 		      break;
 		case RegisterAvailableLinesMessage:
-		      if (s->device)
-			      sccp_dev_set_registered(s->device, SKINNY_DEVICE_RS_OK);
+		      //if (s->device)
+			  //    sccp_dev_set_registered(s->device, SKINNY_DEVICE_RS_OK);
 		      break;
 		case ForwardStatReqMessage:
 		      sccp_handle_forward_stat_req(s,r);
