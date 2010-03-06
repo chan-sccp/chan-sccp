@@ -814,7 +814,7 @@ sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint8_t instance, u
 	sccp_buttonconfig_t	*config;
 
 
-	if (!d || !d->session)
+	if (!d || !d->session || instance == 0)
 		return NULL;
 
 	SCCP_LIST_LOCK(&d->buttonconfig);

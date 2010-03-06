@@ -429,11 +429,14 @@ sccp_line_t * sccp_line_find_realtime_byname(const char * name)
  * \todo TODO No ID Specified only instance, should this function be renamed ?
  */
 sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint8_t instance){
-	sccp_line_t * l = NULL;
-	//int i=0;
+	sccp_line_t 		*l = NULL;
 	sccp_buttonconfig_t	*config;
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for line with instance %d.\n", DEV_ID_LOG(d), instance);
+	
+	if(instance == 0)
+		return NULL;
+	
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: button instance %d, type: %d\n", DEV_ID_LOG(d), config->instance, config->type);
