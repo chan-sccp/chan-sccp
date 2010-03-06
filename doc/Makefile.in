@@ -25,7 +25,7 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# Date:     $Date: 2010-02-12 17:10:23 +0100 (Fri, 12 Feb 2010) $
+# Date:     $Date: 2010-02-12 17:10:23 +0100 (Fr, 12. Feb 2010) $
 # Revision: $Revision: 1278 $
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
@@ -76,7 +76,6 @@ ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AR = @AR@
-ARGZ_H = @ARGZ_H@
 ASTERISK_VERSION_NUM = @ASTERISK_VERSION_NUM@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
@@ -140,7 +139,6 @@ FGREP = @FGREP@
 GREP = @GREP@
 HAVE_ASTERISK = @HAVE_ASTERISK@
 HAVE_CALLWEAVER = @HAVE_CALLWEAVER@
-INCLTDL = @INCLTDL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -148,24 +146,13 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
-LIBADD_DL = @LIBADD_DL@
-LIBADD_DLD_LINK = @LIBADD_DLD_LINK@
-LIBADD_DLOPEN = @LIBADD_DLOPEN@
-LIBADD_SHL_LOAD = @LIBADD_SHL_LOAD@
-LIBLTDL = @LIBLTDL@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LIPO = @LIPO@
 LN_S = @LN_S@
-LTDLDEPS = @LTDLDEPS@
-LTDLINCL = @LTDLINCL@
-LTDLOPEN = @LTDLOPEN@
 LTLIBOBJS = @LTLIBOBJS@
-LT_CONFIG_H = @LT_CONFIG_H@
-LT_DLLOADERS = @LT_DLLOADERS@
-LT_DLPREOPEN = @LT_DLPREOPEN@
 M4 = @M4@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
@@ -246,8 +233,6 @@ libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
 lt_ECHO = @lt_ECHO@
-ltdl_LIBOBJS = @ltdl_LIBOBJS@
-ltdl_LTLIBOBJS = @ltdl_LTLIBOBJS@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
@@ -258,8 +243,6 @@ psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
-subdirs = @subdirs@
-sys_symbol_underscore = @sys_symbol_underscore@
 sysconfdir = @sysconfdir@
 target = @target@
 target_alias = @target_alias@
