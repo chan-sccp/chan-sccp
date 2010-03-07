@@ -357,6 +357,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 				sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_channel_send_callinfo(d, c);
 				sccp_channel_forward(c, linedevice, linedevice->cfwdAll.number);
+				isRinging = TRUE;
 				continue;
 			}
 
