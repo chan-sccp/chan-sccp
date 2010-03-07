@@ -1201,7 +1201,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime) {
 	/* hang up open channels and remove device from line */
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		config->instance = 0; /* reset button configuration to rebuild template on register */
 		if(config->type == LINE ){
 			line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
 			if(!line)
@@ -1217,6 +1216,9 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime) {
 			/* remove devices from line */
 			sccp_line_removeDevice(line, d);
 		}
+		
+		
+		config->instance = 0; /* reset button configuration to rebuild template on register */
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 	/* */
