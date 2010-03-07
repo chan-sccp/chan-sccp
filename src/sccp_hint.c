@@ -355,7 +355,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 		sccp_dev_send(subscriber->device, r);
 		
 #else
-		if(subscriber->device->inuseprotocolversion >= 15){
+		//if(subscriber->device->inuseprotocolversion >= 15){
 			sccp_speed_t * k = sccp_dev_speed_find_byindex((sccp_device_t *)subscriber->device, subscriber->instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
 		  
 		  
@@ -403,7 +403,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			
 			if(k)
 				ast_free(k);
-		}
+		//}
 #endif
 		/*if(hint->currentState == SCCP_CHANNELSTATE_ONHOOK) {
 			sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_ONHOOK);
