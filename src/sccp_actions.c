@@ -416,17 +416,24 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 	if(!d->isAnonymous){
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+			sccp_log(11)(VERBOSE_PREFIX_3 "%s: searching for position for button type %d\n", DEV_ID_LOG(d), buttonconfig->type);
 			if(buttonconfig->instance > 0)
 				continue;
+			
+			if(buttonconfig->type == LINE){
+				sccp_log(11)(VERBOSE_PREFIX_3 "%s: searching for line position for line '%s'\n", DEV_ID_LOG(d), buttonconfig->button.line.name);
+			}
 		  
 			for (i = 0; i < StationMaxButtonTemplateSize ; i++) {
-
+				sccp_log(11)(VERBOSE_PREFIX_3 "%s: btn[%.2d].type = %d\n", DEV_ID_LOG(d), i, btn[i].type);
+				
 				if(buttonconfig->type == LINE 
 				    && sccp_is_nonempty_string(buttonconfig->button.line.name)
 				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE)){
 					
 					btn[i].type = SKINNY_BUTTONTYPE_LINE;
 					buttonconfig->instance = btn[i].instance = i+1;
+					sccp_log(11)(VERBOSE_PREFIX_3 "%s: add line %s on position %d\n", DEV_ID_LOG(d), buttonconfig->button.line.name, buttonconfig->instance);
 					break;
 					
 				}else if(buttonconfig->type == EMPTY
@@ -647,7 +654,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 				break;
 		}
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %d (%d)\n", d->id, i+1, btn[i].type, btn[i].instance);
+		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %d (%d)\n", d->id, i+1, r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition, r1->msg.ButtonTemplateMessage.definition[i].instanceNumber);
 	}
 
 	r1->msg.ButtonTemplateMessage.lel_buttonOffset = htolel(0);
@@ -1087,6 +1094,7 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
 			sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND);
 		}
 	}
+	ast_free(k);
 }
 
 /*!
@@ -1518,9 +1526,10 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * req)
   sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send date/time\n", s->device->id);
 
   /*  
-      In skinny, the first instance of asking for time and date
+      According to SCCP protocol since version 3,
+      the first instance of asking for time and date
       concludes the device registration process.
-	  Everything happening after this step should require a registered device.
+      This is included even in the minimal subset of device registration commands.
   */
   sccp_dev_set_registered(s->device, SKINNY_DEVICE_RS_OK);
 }
@@ -1780,7 +1789,6 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 			k = sccp_dev_speed_find_byindex(d, line, SCCP_BUTTONTYPE_LINE);
 			if (k){
 				sccp_handle_speeddial(d, k);
-				ast_free(k);
 			}else
 				sccp_sk_newcall(d, NULL, NULL);
 		}
