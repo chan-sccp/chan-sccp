@@ -301,7 +301,8 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 			if(!strcasecmp(d->config_type, "nokia-icc")) { // this is for nokia icc legacy support (Old releases) -FS
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			} else {
-				for (i = 0; i < 8 + sccp_addons_taps(d); i++){
+				uint8_t addonsTaps = sccp_addons_taps(d);
+				for (i = 0; i < 8 + addonsTaps; i++){
 					(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 				}
 			}
@@ -1200,6 +1201,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime) {
 	/* hang up open channels and remove device from line */
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+		config->instance = 0; /* reset button configuration to rebuild template on register */
 		if(config->type == LINE ){
 			line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
 			if(!line)
