@@ -2264,8 +2264,8 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
   	sccp_speed_t * k = sccp_dev_speed_find_byindex(d, instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
-	//if( (unknown == 1 && d->inuseprotocolversion >= 15)){
-	if( (unknown == 1 )){
+	if( (unknown == 1 && d->inuseprotocolversion >= 15)){
+	//if( (unknown == 1 )){
 		if (k){
 			sccp_moo_t * r1;
 			REQ(r1, FeatureStatAdvancedMessage);
