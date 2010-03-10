@@ -17,7 +17,7 @@
 typedef enum{ASTERISK=0, INTERNAL=1} sccp_hinttype_t;
 
 
-typedef struct sccp_hint_SubscribingDevice sccp_hint_SubscribingDevice_t;
+typedef struct sccp_hint_SubscribingDevice 		sccp_hint_SubscribingDevice_t;
 /*!
  *\brief SCCP Hint Subscribing Device Structure
  */
@@ -32,7 +32,7 @@ struct sccp_hint_SubscribingDevice{
 /*!
  * \brief SCCP Hint List Type Definition
  */
-typedef struct sccp_hint_list sccp_hint_list_t;
+typedef struct sccp_hint_list 				sccp_hint_list_t;
 
 /*!
  * \brief SCCP Hint List Structure
@@ -72,7 +72,11 @@ struct sccp_hint_list{
 
 		struct{
 			int				hintid;				/*!< Hint ID */
+#ifndef AST_EVENT_IE_CIDNAME
 			pthread_t 			notificationThread;		/*!< Notification Thread */
+#else
+			struct ast_event_sub 		*device_state_sub;
+#endif
 		} asterisk;								/*!< Hint Type Asterisk Structure */
 	} type;										/*!< Hint Type Structure */
 

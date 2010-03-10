@@ -65,6 +65,9 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/devicestate.h>
 #endif
 
+#include <asterisk/event.h>
+#include <asterisk/event_defs.h>
+
 void sccp_hint_notifyAsterisk(sccp_line_t *line, sccp_channelState_t state);
 static void * sccp_hint_remoteNotification_thread(void *data);
 
@@ -81,6 +84,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint);
 void sccp_hint_hintStatusUpdate(sccp_hint_list_t *hint);
 void sccp_hint_notificationForSharedLine(sccp_hint_list_t *hint);
 void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint);
+static void sccp_hint_devicestate_cb(const struct ast_event *ast_event, void *data);
 
 
 
@@ -296,21 +300,50 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 	sccp_hint_notifySubscribers(hint);
 
 	if(state == AST_EXTENSION_INUSE || state == AST_EXTENSION_BUSY){
+#ifndef AST_EVENT_IE_CIDNAME
 		if (hint->type.asterisk.notificationThread  != AST_PTHREADT_NULL) {
 			pthread_kill(hint->type.asterisk.notificationThread, SIGURG);
 			hint->type.asterisk.notificationThread = AST_PTHREADT_NULL;
 		}
 
 		if(hint->type.asterisk.notificationThread == AST_PTHREADT_NULL){
-			if (ast_pthread_create_background(&hint->type.asterisk.notificationThread, NULL, sccp_hint_remoteNotification_thread, hint) < 0) {
-				return -1;
-			}
+ 			if (ast_pthread_create_background(&hint->type.asterisk.notificationThread, NULL, sccp_hint_remoteNotification_thread, hint) < 0) {
+ 				return -1;
+ 			}
 		}
+#endif
 	}
 
 	
 	return 0;
 }
+
+#ifndef AST_EVENT_IE_CIDNAME
+/*!
+ * \brief handle AST_EVENT_DEVICE_STATE_CHANGE events subscribed by us
+ * \param ast_event event
+ * \param data hint
+ */
+static void sccp_hint_devicestate_cb(const struct ast_event *ast_event, void *data){
+	sccp_hint_list_t *hint = data;
+	enum ast_device_state state;
+	const char *cidnum;
+	const char *cidname;
+	const char *channelStr;
+	
+	if(!hint || !ast_event)
+		return;
+	
+	channelStr = ast_event_get_ie_str(ast_event, AST_EVENT_IE_DEVICE);
+	state = ast_event_get_ie_uint(ast_event, AST_EVENT_IE_STATE);
+	cidnum = ast_event_get_ie_str(ast_event, AST_EVENT_IE_CIDNUM);
+	cidname = ast_event_get_ie_str(ast_event, AST_EVENT_IE_CIDNAME);
+	
+	
+	ast_log(LOG_NOTICE, "got device state change event from asterisk channel: %s, cidname: %s, cidnum %s\n", (channelStr)?channelStr:"NULL", (cidname)?cidname:"NULL", (cidnum)?cidnum:"NULL" );
+	
+}
+#endif
 
 /*!
  * \brief send hint status to subscriber
@@ -329,7 +362,6 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 	
 	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_TRAVERSE(&hint->subscribers, subscriber, list){
-		sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "notify device: %s@%d state: %d\n", DEV_ID_LOG(subscriber->device), subscriber->instance, hint->currentState );
 		if(!subscriber->device){
 			SCCP_LIST_REMOVE(&hint->subscribers, subscriber, list);
 			continue;
@@ -353,6 +385,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 		r->msg.CallInfoMessage.lel_callRef  = htolel(0);
 		r->msg.CallInfoMessage.lel_callType = htolel(hint->callInfo.calltype);
 		sccp_dev_send(subscriber->device, r);
+		sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "notify device: %s@%d state: %d\n", DEV_ID_LOG(subscriber->device), subscriber->instance, hint->currentState );
 		
 #else
 		if(subscriber->device->inuseprotocolversion >= 15){
@@ -390,7 +423,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			if(hint->currentState > 2 ){
 				sprintf(displayMessage, "%s %s %s", 
 					(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)?hint->callInfo.calledPartyName : hint->callInfo.callingPartyName,
-					(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)? "\t<-\t" : "\t->\t",
+					(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)? " <- " : " -> ",
 					(k)?k->name:"unknown speeddial"
 				);
 			}else{
@@ -400,6 +433,8 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "set display name to: \"%s\"\n", displayMessage);
 			sccp_copy_string(r->msg.FeatureStatAdvancedMessage.DisplayName, displayMessage, sizeof(r->msg.FeatureStatAdvancedMessage.DisplayName));
 			sccp_dev_send(subscriber->device, r);
+			
+			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "notify device: %s@%d state: %d(%d)\n", DEV_ID_LOG(subscriber->device), subscriber->instance, r->msg.FeatureStatAdvancedMessage.lel_status );
 			
 			if(k)
 				ast_free(k);
@@ -481,8 +516,48 @@ void sccp_hint_notifyAsterisk(sccp_line_t *line, sccp_channelState_t state){
 		return;
 	
 #ifdef CS_NEW_DEVICESTATE
-//	//TODO set device state
+
+
+#ifndef AST_EVENT_IE_CIDNAME
 	ast_devstate_changed(sccp_channelState2AstDeviceState(state), "SCCP/%s", line->name);
+#else
+	
+	struct ast_event *event;
+	const char *cidname = "0815";
+	const char *cidnum = "0815";
+	char channelName[100];
+	
+	sprintf(channelName, "SCCP/%s", line->name);
+	
+	if (!(event = ast_event_new(
+		AST_EVENT_DEVICE_STATE_CHANGE,
+
+		AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, 	channelName,
+		AST_EVENT_IE_STATE,  AST_EVENT_IE_PLTYPE_UINT, 	sccp_channelState2AstDeviceState(state), 
+		AST_EVENT_IE_CIDNAME, AST_EVENT_IE_PLTYPE_STR, 	strdup(cidname),
+		AST_EVENT_IE_CIDNUM, AST_EVENT_IE_PLTYPE_STR, 	strdup(cidnum),
+		AST_EVENT_IE_END
+		))) {
+		
+		ast_devstate_changed(sccp_channelState2AstDeviceState(state), "%s", channelName);
+		return;
+		
+	}
+	/*
+	const char *testCidName = ast_event_get_ie_str(event, AST_EVENT_IE_CIDNAME);
+	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "hint %s has changed, cidname %s\n", channelName, (cidname)?cidname:"NULL" );
+	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "hint %s has changed, event %p\n", 	channelName, event);
+	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "hint %s has changed, state %p\n", channelName, ast_event_get_ie_raw(event, AST_EVENT_IE_STATE));
+	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "hint %s has changed, sizeof %d\n", channelName, sizeof(struct ast_event_iterator));
+	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "hint %s has changed, cidname %p\n", channelName, testCidName);
+	
+	
+	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "hint %s has changed, cidname %s\n", channelName, (testCidName)?testCidName:"NULL" );
+	*/
+	
+	ast_event_queue_and_cache(event);
+#endif
+	
 #else
 	ast_device_state_changed("SCCP/%s", line->name);
 #endif
@@ -924,7 +999,11 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context){
 		hint->hintType = ASTERISK;
 		hint->type.asterisk.notificationThread = AST_PTHREADT_NULL;
 		hint->type.asterisk.hintid = ast_extension_state_add(hint_context, hint_exten, sccp_hint_state, hint);
-		
+#if 0		
+		hint->type.asterisk.device_state_sub = ast_event_subscribe(AST_EVENT_DEVICE_STATE_CHANGE, sccp_hint_devicestate_cb, hint, 
+									   AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, strdup(hint->hint_dialplan),
+									   AST_EVENT_IE_END);
+#endif		
 		if (hint->type.asterisk.hintid > -1) {
 			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "Added hint (ASTERISK), extension %s@%s, device %s\n", hint_exten, hint_context, hint_dialplan);
