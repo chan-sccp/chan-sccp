@@ -318,7 +318,7 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 	return 0;
 }
 
-#ifndef AST_EVENT_IE_CIDNAME
+#ifdef AST_EVENT_IE_CIDNAME
 /*!
  * \brief handle AST_EVENT_DEVICE_STATE_CHANGE events subscribed by us
  * \param ast_event event
