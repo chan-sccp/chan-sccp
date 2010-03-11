@@ -456,7 +456,9 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				  
 					
 					buttonconfig->instance = btn[i].instance = i+1;
-					if (sccp_is_nonempty_string(buttonconfig->button.speeddial.hint)){
+					if (sccp_is_nonempty_string(buttonconfig->button.speeddial.hint)
+					  && btn[i].type == SCCP_BUTTONTYPE_MULTI /* we can set our feature */
+					  ){
 #ifdef CS_DYNAMIC_SPEEDDIAL
 						if(d->inuseprotocolversion >= 15){
 							      btn[i].type = 0x15;
@@ -601,6 +603,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 		return;
 	}
 
+	sccp_device_lock(d);
 	btn = sccp_make_button_template(d);
 	if (!btn) {
 		ast_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
@@ -661,7 +664,23 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 	r1->msg.ButtonTemplateMessage.lel_buttonCount = htolel(r1->msg.ButtonTemplateMessage.lel_buttonCount);
 	/* buttonCount is already in a little endian format so don't need to convert it now */
 	r1->msg.ButtonTemplateMessage.lel_totalButtonCount = r1->msg.ButtonTemplateMessage.lel_buttonCount;
+	
+	
+	/* set speeddial for older devices like 7912 */
+	uint32_t speeddialInstance = 0;
+	sccp_buttonconfig_t	*config;
+	
+	sccp_log(10)(VERBOSE_PREFIX_3 "%s: configure unconfigured speeddialbuttons \n", d->id);
+	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list){
+		/* we found a not configured speeddial */
+		if(config->type == SPEEDDIAL && config->instance == 0){
+			config->instance = speeddialInstance++;
+		}
+	}
+	/* done */
+	
 	sccp_dev_send(d, r1);
+	sccp_device_unlock(d);
 	ast_free(btn);
 }
 
@@ -1151,7 +1170,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r)
 		}
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Using line %s\n", d->id, l->name);
 		
-		if(strlen(l->adhocNumber)>0){
+		if(l && !ast_strlen_zero(l->adhocNumber) ){
 			sccp_channel_newcall(l, d, l->adhocNumber, SKINNY_CALLTYPE_OUTBOUND);
 		}else{
 		      /* make a new call with no number */
