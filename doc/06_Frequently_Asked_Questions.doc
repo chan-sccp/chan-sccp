@@ -61,7 +61,21 @@
  * A: First try to work out what ./configure is complaining about, when it is. I normally tries to
  * be as explicit as possible. If you get errors trying to start configure, first try to resolve it
  *
- * \section b B. Dialplan
+ * \section b B. Troubleshooting
+ *
+ * Q. Can't dial-in or dial-out of an SCCP Phone
+ *
+ * A. Check the context which has been set in the sccp.conf or realtime tables. 
+ *
+ * Q. No audio when calling or being called
+ *
+ * A. Set directrtp=off in you sccp.conf or realtime tables and try again
+ *
+ * Q. How do i report an Issue or Problem i have
+ *
+ * A. You can find detailed information about reporting problems/issues here: \ref Problems
+ *
+ * \section c C. Dialplan
  * 
  * Q: How do tou dial an SCCP from your dialplan
  * 
