@@ -26,10 +26,6 @@
  * <HR>
  *
  *
- *
- *
- *
- *
  * \subsection nf_shared_lines Shared Lines
  * 
  * Shared lines is simple, and is activated readily by registering multiple phones on the same line.
