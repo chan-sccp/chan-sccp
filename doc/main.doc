@@ -402,22 +402,31 @@
  *
  * \subsection sccp_config_rt How to use RealTime Database
  *
+ * \subsubsection sccp_config_rt_mysql4 MySQL 4.0
+ *
  * Read trunk/conf/mysql-v4.sql into your mysql 4.0 database
  * \code
  * mysql -p asterisk < conf/mysql-v4.sql
  * \endcode
  *
+ * (To upgrade from a previous database version checkout trunk/conf/database_updates)
+ *  
+ * /etc/asterisk/res_mysql.conf:
+ * \code
+ * [general]
+ * ;dbhost = 127.0.0.1
+ * ;dbport = 3306
+ * dbname = asterisk
+ * dbuser = asterisk
+ * dbpass = asterisk_password
+ * dbsock = /var/lib/mysql/mysql.sock
+ * \endcode
+ * 
+ * \subsubsection sccp_config_rt_mysql5 MySQL 5.0
+ *
  * Starting with mysql version 5.0 you can also use trunk/conf/mysql-v5.sql, here you have a seperate buttonconfig table
  * \code
  * mysql -p asterisk < conf/mysql-v5.sql
- * \endcode
- *
- * (To upgrade from a previous database version checkout trunk/conf/database_updates)
- *  
- * Add the following lines to the sccp.conf file
- * \code
- * devicetable=sccpdevice                                 ;datebasetable for devices
- * linetable=sccpline                                     ;datebasetable for lines
  * \endcode
  *
  * /etc/asterisk/res_mysql.conf:
@@ -431,12 +440,61 @@
  * dbsock = /var/lib/mysql/mysql.sock
  * \endcode
  * 
+ * (To upgrade from a previous database version checkout trunk/conf/database_updates)
+ *  
+ * \subsubsection sccp_config_rt_pg PostgreSQL
+ *
+ * Buttons are configured in a seperate table called buttonconfig:
+ * \code
+ * postgresql asterisk < conf/postgresql.sql
+ * \endcode
+ *
+ * /etc/asterisk/res_pgsql.conf:
+ * \code
+ * [general]
+ * dbhost = 127.0.0.1
+ * dbport = 5432
+ * dbname = asterisk
+ * dbuser = asterisk
+ * dbpass = asterisk_password
+ * \endcode
+ * 
+ * \subsubsection sccp_config_rt_sccp Chan_SCCP Configuration for Realtime
+ *
+ * Add the following lines to the sccp.conf file
+ * \code
+ * devicetable=sccpdevice                                 ;datebasetable for devices
+ * linetable=sccpline                                     ;datebasetable for lines
+ * \endcode
+ *
  * /etc/asterisk/extconfig.conf:
+ * for mysql:
  * \code
  * [settings]
  * sccpdevices => mysql,asterisk,sccpdevices
  * sccplines => mysql,asterisk,sccplines
  * \endcode
+ * or for postgresql:
+ * \code
+ * [settings]
+ * sccpdevices => pgsql,asterisk,sccpdevices
+ * sccplines => pgsql,asterisk,sccplines
+ * \endcode
+ *
+ * \subsubsection sccp_config_rt_db Loading information into the tables
+ *
+ * Connect to the dabase
+ * 
+ * \code
+ * insert into sccpdevices (type,description,tzoffset,dtmfmode,mwilamp,mwioncall,pickupexten,pickupmodeanswer,privacy,name) values ("7975","My 1st Phone",0,"on","on","on","on","on","full","SEP010102030404");
+ * insert into sccplines (id,pin,label,description,context,incominglimit,transfer,mailbox,vmnum,cid_name,cid_num,trnsfvm,secondairy_dialtone_digits,secondairy_dialtone_tone,musicclass,language,accountcode,rtptos,echocancel,silencesuppression,callgroup,pickupgroup,amaflags,setvar,name) VALUES(121,212,"Line 121","Line 121",internal,2,on,121,88121,"My Name",121,89121,10,"0x22","default","en",121,184,"on","off","1,3-5","3-5","","",121);
+ * insert into buttonconfig (device,instance,type,name,options) VALUES("SEP010102030404",1,"line",121,);
+ * insert into buttonconfig (device,instance,type,name,options) VALUES("SEP010102030404",2,"speeddial","friend","122,122@hints");
+ * insert into buttonconfig (device,instance,type,name,options) VALUES("SEP010102030404",3,"feature","dnd","busy");
+ * insert into buttonconfig (device,instance,type,name,options) VALUES("SEP010102030404",4,"feature","cfwdbusy","122");
+ * \endcode
+ *
+ * \subsubsection sccp_config_rt_use Using Realtime Database 
  *
  * Devices / Lines and Buttonconfigs are now loaded from the database. If you add a device to the sccpdevice table it will
  * automatically be read during the device registration fase. No need to unload/load the chan_sccp module.

@@ -1354,17 +1354,17 @@ static const struct sccp_extension_state {
         uint16_t extension_state;
         const char * const text;
 } sccp_extension_states[] = {
-	{ AST_EXTENSION_NOT_INUSE	,	"Not In Use"	},
-	{ AST_EXTENSION_BUSY		,	"Busy"		},
-	{ AST_EXTENSION_UNAVAILABLE	,	"Unavailable"	},
-	{ AST_EXTENSION_INUSE		,	"In Use"	},
+        { AST_EXTENSION_REMOVED         ,       "Extension Removed" 		},
+        { AST_EXTENSION_DEACTIVATED     ,       "Extension Hint Removed" 	},
+	{ AST_EXTENSION_NOT_INUSE	,	"No device INUSE or BUSY"	},
+	{ AST_EXTENSION_BUSY		,	"All devices Busy"		},
+	{ AST_EXTENSION_UNAVAILABLE	,	"All devices Unavailable/Unregistered"	},
+	{ AST_EXTENSION_INUSE		,	"One or More devices In Use"	},
 #ifdef CS_AST_HAS_EXTENSION_RINGING
-	{ AST_EXTENSION_RINGING		,	"Ringing"	},
-	{ AST_EXTENSION_INUSE		,	"Ring In Use"	},
+	{ AST_EXTENSION_RINGING		,	"All Devices Ringing"		},
 #endif
 #ifdef CS_AST_HAS_EXTENSION_ONHOLD
-	{ AST_EXTENSION_ONHOLD		,	"On Hold"	},
-	{ AST_EXTENSION_INUSE		,	"Hold In Use"	},
+	{ AST_EXTENSION_ONHOLD		,	"All Devices On Hold"		},
 #endif
 };
 /*=====================================================================================================*/
