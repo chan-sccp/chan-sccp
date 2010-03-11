@@ -1,0 +1,49 @@
+/*!
+ * \file 	index.doc
+ * \brief 	An implementation of Skinny Client Control Protocol (SCCP)
+ * \author 	Diederik de Groot <dkgroot [at] talon.nl>
+ * \since	2009-11-12
+ * \brief 	Main Documentation
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \version	$Revision$
+ * \date	$date$
+ **/
+
+/*!
+ * \file 
+ * Contains extra comments for Doxygen.
+ *
+ * You could read the documentation from this file; but it would probably
+ * be easier to go to http://chan-sccp-b.sourceforge.net 
+ *
+ **/
+
+/*!
+ * \mainpage Chan_SCCP Documentation
+ * 
+ * \section intro Introduction
+ * 
+ * Welcome to the documentation for the chan_sccp Project. 
+ * 
+ * On these pages here, you can find the documented source code, the change log.
+ * and more.
+ * 
+ * To get started have a look at the pages:\n
+ * \ref what_sccp	"What is Chan_SCCP"\n
+ * \ref build_guide 	"Building and Installation Guide"\n
+ * \ref setup_sccp      "How to setup the chan_sccp Module"\n
+ * \ref new_features    "What is new in this version (V3/Trunk)"\n
+ * \ref faq		"Frequently Asked Questions"\n
+ * \ref cons 		"Consulted Documentation"\n
+ * \ref supp_os		"Supported Operating Systems / Notes"\n
+ * \ref dev_guide	"Developer's Guide"\n
+ * \ref sources_explain "Sources Explained"\n
+ * \ref authors		"Meet the Authors"\n
+ * \ref Licensing	"Licensing"\n
+ * <a href=ChangeLog_SVN2CL.html><strong>SVN Change Log</strong></a>
+ * 
+ * See http://sourceforge.net/projects/chan-sccp-b/ for more information about
+ * the Chan_SCCP project. Please do not directly contact any of the maintainers of this project for assistance;
+ * the project provides a web site, mailing lists and IRC channels for your use.
+ **/
+
