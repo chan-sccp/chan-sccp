@@ -651,7 +651,9 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 	if(!c || !c->device)
 		return;
 
+	sccp_channel_lock(c);
 	d = c->device;
+	
 	sccp_channel_updateChannelCapability(c);
 	c->isCodecFix = TRUE;
 #ifndef ASTERISK_CONF_1_2
@@ -686,6 +688,7 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 
 		instance = sccp_device_find_index_for_line(c->device, c->line->name);
 		sccp_dev_starttone(c->device, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
+		sccp_channel_unlock(c);
 		return;
 	}
 
@@ -717,6 +720,7 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 	}
 	sccp_dev_send(c->device, r);
 	c->mediaStatus.receive = TRUE;
+	sccp_channel_unlock(c);
 
 }
 
