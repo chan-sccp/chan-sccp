@@ -675,7 +675,7 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 
 
 
-	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: channel %s payloadType %d\n", c->device->id, c->owner->name, payloadType);
+	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: channel %s payloadType %d\n", c->device->id, (c->owner)?c->owner->name:"NULL", payloadType);
 
 	/* create the rtp stuff. It must be create before setting the channel AST_STATE_UP. otherwise no audio will be played */
 	sccp_log(SCCP_VERBOSE_LEVEL_RTP)(VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", c->device->id, c->callid, codec2str(payloadType), c->line->echocancel ? "ON" : "OFF");
@@ -1397,7 +1397,8 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
 	sccp_channel_unlock(c);
 	sccp_channel_start_rtp(c);
 	sccp_channel_set_active(d, c);
-	sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CONNECTED); // this will also reopen the RTP stream
+	sccp_ast_queue_control(c, AST_CONTROL_SRCUPDATE); 	// notify changes e.g codec
+	sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CONNECTED); 	// this will also reopen the RTP stream
 
 
 #ifdef CS_MANAGER_EVENTS
