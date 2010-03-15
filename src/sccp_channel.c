@@ -1392,12 +1392,21 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
 	sccp_channel_lock(c);
 
 	c->device = d;
+	
+	/* force codec update */
+	c->isCodecFix = FALSE;
 	sccp_channel_updateChannelCapability(c);
+	c->isCodecFix = TRUE;
+	/* */
+	
+	
 	c->state = SCCP_CHANNELSTATE_HOLD;
 	sccp_channel_unlock(c);
 	sccp_channel_start_rtp(c);
 	sccp_channel_set_active(d, c);
+#ifdef CS_AST_CONTROL_SRCUPDATE
 	sccp_ast_queue_control(c, AST_CONTROL_SRCUPDATE); 	// notify changes e.g codec
+#endif
 	sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CONNECTED); 	// this will also reopen the RTP stream
 
 
