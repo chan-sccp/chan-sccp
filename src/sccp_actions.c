@@ -412,7 +412,8 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 
 
 //	sccp_device_lock(d);
-
+	uint32_t speeddialInsance = 1; /* starting instance for speeddial is 1*/
+	uint32_t lineInstance = 0;
 	if(!d->isAnonymous){
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
@@ -440,7 +441,8 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE || btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL )){
 				  
 					btn[i].type = SKINNY_BUTTONTYPE_UNDEFINED;
-					buttonconfig->instance = btn[i].instance = i+1;
+					//buttonconfig->instance = btn[i].instance = i+1;
+					buttonconfig->instance = btn[i].instance = 0;
 					break;
 
 				}else if(buttonconfig->type == SERVICE
@@ -462,6 +464,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 #ifdef CS_DYNAMIC_SPEEDDIAL
 						if(d->inuseprotocolversion >= 15){
 							      btn[i].type = 0x15;
+							      buttonconfig->instance = btn[i].instance = speeddialInsance++;
 						}else{
 							      btn[i].type = SKINNY_BUTTONTYPE_LINE;
 						}
@@ -470,6 +473,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 #endif
 					} else {
 						btn[i].type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+						buttonconfig->instance = btn[i].instance = speeddialInsance++;
 					}
 					break;
 				  
@@ -618,6 +622,11 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 		switch (btn[i].type) {
 			case SCCP_BUTTONTYPE_HINT:
 			case SCCP_BUTTONTYPE_LINE:
+				if(r1->msg.ButtonTemplateMessage.definition[i].instanceNumber == 0){
+					/* we do not need a line if it is not configured */
+					r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_UNDEFINED;
+					continue;
+				}
 				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_LINE;
 				//r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
 				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
