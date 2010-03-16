@@ -622,14 +622,14 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 		switch (btn[i].type) {
 			case SCCP_BUTTONTYPE_HINT:
 			case SCCP_BUTTONTYPE_LINE:
+			  
+				/* we do not need a line if it is not configured */
 				if(r1->msg.ButtonTemplateMessage.definition[i].instanceNumber == 0){
-					/* we do not need a line if it is not configured */
 					r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_UNDEFINED;
-					continue;
+				}else{
+					r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_LINE;
+					r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 				}
-				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_LINE;
-				//r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
-				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 				break;
 
 			case SCCP_BUTTONTYPE_SPEEDDIAL:
