@@ -519,6 +519,7 @@ void sccp_hint_notifyAsterisk(sccp_line_t *line, sccp_channelState_t state){
 
 
 #ifndef AST_EVENT_IE_CIDNAME
+	sccp_log(1)(VERBOSE_PREFIX_4 "notify asterisk to set state to %d(%d) on channel SCCP/%s\n", sccp_channelState2AstDeviceState(state), state, line->name);
 	ast_devstate_changed(sccp_channelState2AstDeviceState(state), "SCCP/%s", line->name);
 #else
 	
