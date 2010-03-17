@@ -449,7 +449,8 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI)) {
 					
 					btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
-					buttonconfig->instance = btn[i].instance = i+1;
+					//buttonconfig->instance = btn[i].instance = i+1;
+					buttonconfig->instance = btn[i].instance = speeddialInsance++;
 					break;
 				  
 				} else if(buttonconfig->type == SPEEDDIAL 
@@ -481,7 +482,8 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				  && sccp_is_nonempty_string(buttonconfig->button.feature.label)
 				  && (btn[i].type == SCCP_BUTTONTYPE_MULTI)){
 				 
-					buttonconfig->instance = btn[i].instance = i+1;
+					//buttonconfig->instance = btn[i].instance = i+1;
+					buttonconfig->instance = btn[i].instance = speeddialInsance++;
 				  
 					switch(buttonconfig->button.feature.id)
 					{
@@ -2299,7 +2301,7 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 			REQ(r1, FeatureStatAdvancedMessage);
 			r1->msg.FeatureStatAdvancedMessage.lel_instance = htolel(instance);
 			r1->msg.FeatureStatAdvancedMessage.lel_type = 0x15;
-			r1->msg.FeatureStatAdvancedMessage.lel_status = htolel(0);
+			r1->msg.FeatureStatAdvancedMessage.lel_status = 0;
 
 			sccp_copy_string(r1->msg.FeatureStatAdvancedMessage.DisplayName, k->name, sizeof(r1->msg.FeatureStatAdvancedMessage.DisplayName));
 			sccp_dev_send(d, r1);
