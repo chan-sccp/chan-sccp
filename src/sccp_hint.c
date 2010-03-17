@@ -232,7 +232,7 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 		return 0;
 	}
 
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "SCCP: get new hint state %s for %s\n", extensionstatus2str(state), hint->hint_dialplan);
+	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "SCCP: get new hint state %s(%d) for %s\n", extensionstatus2str(state), state, hint->hint_dialplan);
 	hint->callInfo.calltype = SKINNY_CALLTYPE_OUTBOUND;
 	/* converting asterisk state -> sccp state */
 	switch(state) {
