@@ -242,16 +242,11 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 		case SKINNY_DEVICETYPE_CISCO7931:
 			for (i = 0; i < 20; i++){
 				btn[i].type = SCCP_BUTTONTYPE_MULTI;
-				btn[i].instance=i+1;
 			}
 			btn[20].type = SKINNY_BUTTONTYPE_MESSAGES;
-			btn[20].instance=21;
 			btn[21].type = SKINNY_BUTTONTYPE_DIRECTORY;
-			btn[21].instance=22;
 			btn[22].type = SKINNY_BUTTONTYPE_HEADSET;
-			btn[22].instance=23;
 			btn[23].type = SKINNY_BUTTONTYPE_APPLICATION;
-			btn[23].instance=24;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7935:
 		case SKINNY_DEVICETYPE_CISCO7936:
@@ -822,6 +817,11 @@ sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint8_t instance, u
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 
 		if(config->type == SPEEDDIAL && config->instance == instance){
+		  
+			/* we are searching for hinted speeddials */
+			if(type == SCCP_BUTTONTYPE_HINT && !sccp_is_nonempty_string(config->button.speeddial.hint))
+				continue;
+		  
 			k = ast_malloc(sizeof(sccp_speed_t));
 			memset(k, 0, sizeof(sccp_speed_t));
 

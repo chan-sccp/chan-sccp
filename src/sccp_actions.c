@@ -451,8 +451,8 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI)) {
 					
 					btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
-					//buttonconfig->instance = btn[i].instance = i+1;
-					buttonconfig->instance = btn[i].instance = speeddialInsance++;
+					buttonconfig->instance = btn[i].instance = i+1;
+					//buttonconfig->instance = btn[i].instance = speeddialInsance++;
 					break;
 				  
 				} else if(buttonconfig->type == SPEEDDIAL 
@@ -470,7 +470,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 							      buttonconfig->instance = btn[i].instance = speeddialInsance++;
 						}else{
 							      btn[i].type = SKINNY_BUTTONTYPE_LINE;
-							      buttonconfig->instance = btn[i].instance = lineInstance++;
+							      buttonconfig->instance = btn[i].instance = speeddialInsance++;
 						}
 #else
 						btn[i].type = SKINNY_BUTTONTYPE_LINE;
@@ -487,7 +487,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				  && (btn[i].type == SCCP_BUTTONTYPE_MULTI)){
 				 
 					//buttonconfig->instance = btn[i].instance = i+1;
-					buttonconfig->instance = btn[i].instance = featureInstance++;
+					buttonconfig->instance = btn[i].instance = speeddialInsance++;
 				  
 					switch(buttonconfig->button.feature.id)
 					{
@@ -726,7 +726,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 
 		/* if we find no regular line - it can be a speedial with hint */
 		if (!l)
-			k = sccp_dev_speed_find_byindex(d, lineNumber, SCCP_BUTTONTYPE_LINE);
+			k = sccp_dev_speed_find_byindex(d, lineNumber, SCCP_BUTTONTYPE_HINT);
 
 
 		REQ(r1, LineStatMessage);
@@ -795,7 +795,7 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_moo_t * r)
 	REQ(r1, SpeedDialStatMessage);
 	r1->msg.SpeedDialStatMessage.lel_speedDialNumber = htolel(wanted);
 
-	k = sccp_dev_speed_find_byindex(s->device, wanted, SKINNY_BUTTONTYPE_SPEEDDIAL);
+	k = sccp_dev_speed_find_byindex(s->device, wanted, SCCP_BUTTONTYPE_SPEEDDIAL);
 	if (k) {
 		sccp_copy_string(r1->msg.SpeedDialStatMessage.speedDialDirNumber, k->ext, sizeof(r1->msg.SpeedDialStatMessage.speedDialDirNumber));
 		sccp_copy_string(r1->msg.SpeedDialStatMessage.speedDialDisplayName, k->name, sizeof(r1->msg.SpeedDialStatMessage.speedDialDisplayName));
@@ -885,7 +885,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			l = sccp_line_find_byid(d, instance);
 			if (!l) {
 				sccp_log(10)(VERBOSE_PREFIX_3 "%s: No line for instance %d. Looking for a speedial with hint\n", d->id, instance);
-				k = sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_LINE);
+				k = sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT);
 				if (k)
 					sccp_handle_speeddial(d, k);
 				else
@@ -925,7 +925,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			break;
 
 		case SKINNY_BUTTONTYPE_SPEEDDIAL:
-			k = sccp_dev_speed_find_byindex(d, instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
+			k = sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_SPEEDDIAL);
 			if (k)
 				sccp_handle_speeddial(d, k);
 			else
@@ -1078,7 +1078,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			break;
 
 		case SKINNY_BUTTONTYPE_BLFSPEEDDIAL: //busy lamp field type speeddial
-			k = sccp_dev_speed_find_byindex(d, instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
+			k = sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT);
 			if (k)
 				sccp_handle_speeddial(d, k);
 			else
@@ -1820,7 +1820,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 				sccp_feat_hotline(d, GLOB(hotline)->line);
 			}
 		}else {
-			k = sccp_dev_speed_find_byindex(d, line, SCCP_BUTTONTYPE_LINE);
+			k = sccp_dev_speed_find_byindex(d, line, SCCP_BUTTONTYPE_HINT);
 			if (k){
 				sccp_handle_speeddial(d, k);
 			}else
@@ -2292,28 +2292,30 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 	int unknown = letohl(r->msg.FeatureStatReqMessage.lel_unknown);
   	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Unknown = %d \n", d->id, instance, unknown);
 
+	
+
+#ifdef CS_DYNAMIC_SPEEDDIAL
 	/* the new speeddial style uses feature to display state
 	   unfortunately we dont know how to handle this on other way
 	*/
-
-#ifdef CS_DYNAMIC_SPEEDDIAL
-  	sccp_speed_t * k = sccp_dev_speed_find_byindex(d, instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
+  	
 	if( (unknown == 1 && d->inuseprotocolversion >= 15)){
+		sccp_speed_t * k = sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT);
 	//if( (unknown == 1 )){
 		if (k){
 			sccp_moo_t * r1;
 			REQ(r1, FeatureStatAdvancedMessage);
 			r1->msg.FeatureStatAdvancedMessage.lel_instance = htolel(instance);
-			r1->msg.FeatureStatAdvancedMessage.lel_type = 0x15;
+			r1->msg.FeatureStatAdvancedMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
 			r1->msg.FeatureStatAdvancedMessage.lel_status = 0;
 
 			sccp_copy_string(r1->msg.FeatureStatAdvancedMessage.DisplayName, k->name, sizeof(r1->msg.FeatureStatAdvancedMessage.DisplayName));
 			sccp_dev_send(d, r1);
 
 			ast_free(k);
+			return;
 		}
 		return;
-
 	}
 #endif
 
