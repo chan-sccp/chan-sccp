@@ -421,11 +421,17 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			
 			/* do not add name for TEMP_FAIL and ONHOOK */
 			if(hint->currentState > 2 ){
+#ifdef SCCP_SHOW_CID
 				sprintf(displayMessage, "%s %s %s", 
 					(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)?hint->callInfo.calledPartyName : hint->callInfo.callingPartyName,
 					(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)? " <- " : " -> ",
 					(k)?k->name:"unknown speeddial"
 				);
+#else
+				sprintf(displayMessage, "%s", 
+					(k)?k->name:"unknown speeddial"
+				);
+#endif
 			}else{
 				sccp_copy_string(displayMessage, (k)?k->name:"unknown speeddial", sizeof(displayMessage));
 			}
