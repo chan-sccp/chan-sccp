@@ -50,7 +50,32 @@ void sccp_mwi_module_start(void){
  * \brief Stop MWI Monitor
  */
 void sccp_mwi_module_stop(){
-	//TODO unsubscribe events
+	sccp_mailbox_subscriber_list_t 	*subscription = NULL;
+	sccp_mailboxLine_t		*sccp_mailboxLine = NULL;
+  
+	SCCP_LIST_LOCK(&sccp_mailbox_subscriptions);
+	while ((subscription = SCCP_LIST_REMOVE_HEAD(&sccp_mailbox_subscriptions, list))) {
+
+		/* removing lines */
+		SCCP_LIST_LOCK(&subscription->sccp_mailboxLine);
+		while ((sccp_mailboxLine = SCCP_LIST_REMOVE_HEAD(&subscription->sccp_mailboxLine, list))){
+			ast_free(sccp_mailboxLine);
+		}
+		SCCP_LIST_UNLOCK(&subscription->sccp_mailboxLine);
+		SCCP_LIST_HEAD_DESTROY(&subscription->sccp_mailboxLine);
+
+#ifdef CS_AST_HAS_EVENT		
+		/* unsubscribe asterisk event */
+		if(subscription->event_sub){
+			ast_event_unsubscribe(subscription->event_sub);
+		}
+#else
+		SCCP_SCHED_DEL(sched, subscription->schedUpdate);
+#endif
+		ast_free(subscription);
+	}
+	SCCP_LIST_UNLOCK(&sccp_mailbox_subscriptions);
+	SCCP_LIST_HEAD_DESTROY(&sccp_mailbox_subscriptions);	
 }
 
 
