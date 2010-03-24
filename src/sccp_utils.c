@@ -1378,3 +1378,18 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const cha
 
 	return result;
 }
+
+
+sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t *device, sccp_line_t *line){
+	sccp_linedevices_t *linedevice;
+	
+	if(!line || !device)
+		return NULL;
+	
+	SCCP_LIST_TRAVERSE(&line->devices, linedevice, list){
+		if(linedevice->device == device)
+			return linedevice;
+	}
+  
+	return NULL;
+}
