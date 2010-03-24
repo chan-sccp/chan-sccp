@@ -34,12 +34,15 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 
 
 
-struct mailboxSubscriptionsList sccp_mailbox_subscriptions;
+
+SCCP_LIST_HEAD(, sccp_mailbox_subscriber_list_t) sccp_mailbox_subscriptions;
+
 
 /*!
  * start mwi module.
  */
 void sccp_mwi_module_start(void){
+  /* */
 	SCCP_LIST_HEAD_INIT(&sccp_mailbox_subscriptions);
   
 	sccp_event_subscribe(SCCP_EVENT_LINECREATED, sccp_mwi_linecreatedEvent);
@@ -72,6 +75,8 @@ void sccp_mwi_module_stop(){
 #else
 		SCCP_SCHED_DEL(sched, subscription->schedUpdate);
 #endif
+
+
 		ast_free(subscription);
 	}
 	SCCP_LIST_UNLOCK(&sccp_mailbox_subscriptions);
@@ -449,7 +454,8 @@ void sccp_mwi_check(sccp_device_t *device)
 	device->voicemailStatistic.oldmsgs = 0;
 
 
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&device->buttonconfig, buttonconfig, list) {
+	SCCP_LIST_LOCK(&device->buttonconfig);
+	SCCP_LIST_TRAVERSE(&device->buttonconfig, buttonconfig, list) {
 		if(buttonconfig->type == LINE ){
 			line = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
 			if(line){
@@ -472,7 +478,7 @@ void sccp_mwi_check(sccp_device_t *device)
 			}
 		}
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
+	SCCP_LIST_UNLOCK(&device->buttonconfig);
 	sccp_device_unlock(device);
 }
 

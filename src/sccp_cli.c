@@ -1654,6 +1654,9 @@ static char *cli_show_mwi_subscriptions(struct ast_cli_entry *e, int cmd, struct
 
 	sccp_mailbox_subscriber_list_t *subscription = NULL;
 	sccp_mailboxLine_t	*mailboxLine = NULL;
+	
+	//TODO display mailbox subscriptions
+	/*
 	ast_cli(a->fd, "subscriptionsize: %d\n", sccp_mailbox_subscriptions.size);
 	SCCP_LIST_TRAVERSE(&sccp_mailbox_subscriptions, subscription, list){
 		ast_cli(a->fd, "mailbox: %s@%s\n", subscription->mailbox, subscription->context);
@@ -1672,6 +1675,7 @@ static char *cli_show_mwi_subscriptions(struct ast_cli_entry *e, int cmd, struct
 			ast_cli(a->fd, "\n");
 		}
 	}
+	*/
 	ast_cli(a->fd, "\n");
 	return CLI_SUCCESS;
 }

@@ -43,8 +43,6 @@ struct sccp_mailboxLine{
 typedef struct sccp_mailbox_subscriber_list sccp_mailbox_subscriber_list_t;
 
 
-SCCP_LIST_HEAD(mailboxSubscriptionsList, sccp_mailbox_subscriber_list_t);
-extern struct mailboxSubscriptionsList sccp_mailbox_subscriptions;
 
 /*!
  * \brief SCCP Mailbox Subscriber List Structure
