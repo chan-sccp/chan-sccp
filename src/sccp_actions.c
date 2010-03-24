@@ -436,8 +436,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 					btn[i].type = SKINNY_BUTTONTYPE_LINE;
 					//buttonconfig->instance = btn[i].instance = i+1;
 
-					buttonconfig->instance = btn[i].instance = lineInstance;
-					lineInstance++;
+					buttonconfig->instance = btn[i].instance = lineInstance++;
 
 					sccp_log(11)(VERBOSE_PREFIX_3 "%s: add line %s on position %d\n", DEV_ID_LOG(d), buttonconfig->button.line.name, buttonconfig->instance);
 					break;
@@ -470,23 +469,20 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 #ifdef CS_DYNAMIC_SPEEDDIAL
 						if(d->inuseprotocolversion >= 15){
 							      btn[i].type = 0x15;
-							      buttonconfig->instance = btn[i].instance = speeddialInsance;
-							speeddialInsance++;
-
+							      buttonconfig->instance = btn[i].instance = speeddialInsance++;
 						}else{
 							      btn[i].type = SKINNY_BUTTONTYPE_LINE;
-							      buttonconfig->instance = btn[i].instance = speeddialInsance;
-								speeddialInsance++;
+							      buttonconfig->instance = btn[i].instance = lineInstance++;;
+							      
 						}
 #else
 						btn[i].type = SKINNY_BUTTONTYPE_LINE;
-						buttonconfig->instance = btn[i].instance = lineInstance;
-						lineInstance++;
+						buttonconfig->instance = btn[i].instance = lineInstance++;;					
 #endif
 					} else {
 						btn[i].type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-						buttonconfig->instance = btn[i].instance = speeddialInsance;
-						speeddialInsance++;
+						buttonconfig->instance = btn[i].instance = speeddialInsance++;
+						
 					}
 					break;
 				  
@@ -495,8 +491,8 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				  && (btn[i].type == SCCP_BUTTONTYPE_MULTI)){
 				 
 					//buttonconfig->instance = btn[i].instance = i+1;
-					buttonconfig->instance = btn[i].instance = speeddialInsance;
-				  	speeddialInsance++;
+					buttonconfig->instance = btn[i].instance = speeddialInsance++;
+				  	
 					switch(buttonconfig->button.feature.id)
 					{
 						case SCCP_FEATURE_HOLD:
