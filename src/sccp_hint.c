@@ -560,9 +560,10 @@ void sccp_hint_notifyAsterisk(sccp_line_t *line, sccp_channelState_t state){
 	
 	
 	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "hint %s has changed, cidname %s\n", channelName, (testCidName)?testCidName:"NULL" );
-	*/
+	
 	
 	ast_event_queue_and_cache(event);
+	*/
 #endif
 	
 #else

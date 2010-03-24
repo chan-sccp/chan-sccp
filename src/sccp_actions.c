@@ -435,7 +435,10 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 					
 					btn[i].type = SKINNY_BUTTONTYPE_LINE;
 					//buttonconfig->instance = btn[i].instance = i+1;
-					buttonconfig->instance = btn[i].instance = lineInstance++;
+
+					buttonconfig->instance = btn[i].instance = lineInstance;
+					lineInstance++;
+
 					sccp_log(11)(VERBOSE_PREFIX_3 "%s: add line %s on position %d\n", DEV_ID_LOG(d), buttonconfig->button.line.name, buttonconfig->instance);
 					break;
 					
@@ -467,18 +470,23 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 #ifdef CS_DYNAMIC_SPEEDDIAL
 						if(d->inuseprotocolversion >= 15){
 							      btn[i].type = 0x15;
-							      buttonconfig->instance = btn[i].instance = speeddialInsance++;
+							      buttonconfig->instance = btn[i].instance = speeddialInsance;
+							speeddialInsance++;
+
 						}else{
 							      btn[i].type = SKINNY_BUTTONTYPE_LINE;
-							      buttonconfig->instance = btn[i].instance = speeddialInsance++;
+							      buttonconfig->instance = btn[i].instance = speeddialInsance;
+								speeddialInsance++;
 						}
 #else
 						btn[i].type = SKINNY_BUTTONTYPE_LINE;
-						buttonconfig->instance = btn[i].instance = lineInstance++;
+						buttonconfig->instance = btn[i].instance = lineInstance;
+						lineInstance++;
 #endif
 					} else {
 						btn[i].type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-						buttonconfig->instance = btn[i].instance = speeddialInsance++;
+						buttonconfig->instance = btn[i].instance = speeddialInsance;
+						speeddialInsance++;
 					}
 					break;
 				  
@@ -487,8 +495,8 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				  && (btn[i].type == SCCP_BUTTONTYPE_MULTI)){
 				 
 					//buttonconfig->instance = btn[i].instance = i+1;
-					buttonconfig->instance = btn[i].instance = speeddialInsance++;
-				  
+					buttonconfig->instance = btn[i].instance = speeddialInsance;
+				  	speeddialInsance++;
 					switch(buttonconfig->button.feature.id)
 					{
 						case SCCP_FEATURE_HOLD:
@@ -585,7 +593,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 	}else{
 		/* reserve one line as hotline */
 		btn[i].type = SKINNY_BUTTONTYPE_LINE;
-		btn[i].instance = 1;
+		SCCP_LIST_FIRST(&d->buttonconfig)->instance = btn[i].instance = 1;
 	}
 
 	return btn;
