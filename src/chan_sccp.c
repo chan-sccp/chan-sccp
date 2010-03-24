@@ -1057,11 +1057,9 @@ static int load_module(void) {
 	SCCP_LIST_HEAD_INIT(&GLOB(devices));
 	SCCP_LIST_HEAD_INIT(&GLOB(lines));
 
-	/* */
-	SCCP_LIST_HEAD_INIT(&sccp_mailbox_subscriptions);
 	SCCP_LIST_HEAD_INIT(&sccp_event_listeners->subscriber);
-
-
+	
+	
 	sccp_mwi_module_start();
 	sccp_hint_module_start();
 #ifdef CS_SCCP_CONFERENCE
@@ -1187,8 +1185,8 @@ static int unload_module(void) {
 	ast_unregister_application("SetMessage");
 	ast_unregister_application("SetCalledParty");
 	sccp_unregister_cli();
+	
 	sccp_mwi_module_stop();
-
 	sccp_hint_module_stop();
 
 	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Removing monitor thread\n");
