@@ -356,6 +356,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	char pref_buf[128];
 	char cap_buf[512];
 	struct ast_variable *v = NULL;
+	sccp_linedevices_t	*linedevice;
 
 	if (argc != 4)
 		return RESULT_SHOWUSAGE;
@@ -416,15 +417,21 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	}
 
 	ast_cli(fd, "\nLines\n");
-	ast_cli(fd, "%-4s: %-20s %-20s\n", "id", "name" , "label");
-	ast_cli(fd, "------------------------------------\n");
+	ast_cli(fd, "%-4s: %-20s %-20s %-10s %-20s\n", "id", "name" , "label", "cfwdType", "cfwdNumber");
+	ast_cli(fd, "---------------------------------------------------------------------\n");
 
 	sccp_buttonconfig_t *buttonconfig;
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 		if(buttonconfig->type == LINE ){
 			l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
 			if(l){
-				ast_cli(fd, "%4d: %-20s %-20s\n", -1, l->name , l->label);
+				linedevice = sccp_util_getDeviceConfiguration(d, l);
+				if(linedevice && linedevice->cfwdAll.enabled)
+					ast_cli(fd, "%4d: %-20s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , l->label, "all", linedevice->cfwdAll.number);
+				else if(linedevice && linedevice->cfwdBusy.enabled)
+					ast_cli(fd, "%4d: %-20s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , l->label, "busy", linedevice->cfwdBusy.number);
+				else
+					ast_cli(fd, "%4d: %-20s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , l->label, "", "");
 			}
 		}
 	}
