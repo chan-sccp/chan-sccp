@@ -65,8 +65,10 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/devicestate.h>
 #endif
 
+#ifdef AST_EVENT_IE_CIDNAME
 #include <asterisk/event.h>
 #include <asterisk/event_defs.h>
+#endif
 
 void sccp_hint_notifyAsterisk(sccp_line_t *line, sccp_channelState_t state);
 static void * sccp_hint_remoteNotification_thread(void *data);
@@ -84,8 +86,10 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint);
 void sccp_hint_hintStatusUpdate(sccp_hint_list_t *hint);
 void sccp_hint_notificationForSharedLine(sccp_hint_list_t *hint);
 void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint);
-static void sccp_hint_devicestate_cb(const struct ast_event *ast_event, void *data);
 
+#ifdef AST_EVENT_IE_CIDNAME
+static void sccp_hint_devicestate_cb(const struct ast_event *ast_event, void *data);
+#endif
 
 
 SCCP_LIST_HEAD(, sccp_hint_list_t) sccp_hint_subscriptions;
@@ -1093,7 +1097,7 @@ static void * sccp_hint_remoteNotification_thread(void *data){
 			if(!ast_channel_unlock(foundChannel))
 				goto CLEANUP;
 			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) searching for bridgedChannel\n");
-#warning "This looks very dangerous to me or needs explanation (-DD)"
+//#warning "This looks very dangerous to me or needs explanation (-DD)"
 			sleep(1);
 			i++;
 			if(ast_channel_trylock(foundChannel))
