@@ -72,7 +72,12 @@ static struct ast_jb_conf default_jbconf =
 	.flags = 0,
 	.max_size = -1,
 	.resync_threshold = -1,
-	.impl = ""
+#ifndef CS_AST_JB_TARGET_EXTRA
+        .impl = ""
+#else
+        .impl = "",
+        .target_extra = -1
+#endif
 };
 #endif
 
