@@ -750,6 +750,15 @@ dnl END NEW NEW
     AC_DEFINE(CS_AST_HAS_AST_STRING_FIELD,1,[Found 'ast_string_field_' in asterisk])
     AC_MSG_RESULT([Found])
   fi
+  dnl Check Asterisk Jitterbuffer
+  AC_MSG_CHECKING([asterisk jitterbuffer for 'target_extra'])
+  if grep -rq "target_extra" $PBX_INCLUDE/abstract_jb.h; then
+    AC_DEFINE([CS_AST_JB_TARGET_EXTRA],1,[Found 'target_extra' in asterisk/abstract_jb.h])
+    AC_MSG_RESULT([Found])
+  else
+    AC_DEFINE([CS_AST_JB_TARGET_EXTRA],0,[Did Not Found 'target_extra' in asterisk/abstract_jb.h])
+    AC_MSG_RESULT([Not Found])
+  fi
 fi
 dnl Return CFLAGS / CPPFLAGS
 CFLAGS=${CFLAGS_saved}
