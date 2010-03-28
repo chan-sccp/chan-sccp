@@ -117,7 +117,7 @@ typedef enum {
 typedef enum {
         SKINNY_CALLTYPE_INBOUND			=1,
         SKINNY_CALLTYPE_OUTBOUND		=2,
-        SKINNY_CALLTYPE_FORWARD			=3
+        SKINNY_CALLTYPE_FORWARD			=3,
 } skinny_calltype_t;								/*!< Skinny Calltype */
 
 /*!
@@ -615,6 +615,7 @@ static const struct skinny_device_state {
 #define SKINNY_STIMULUS_SELECT			0x12
 #define SKINNY_STIMULUS_PRIVACY			0x13
 #define SKINNY_STIMULUS_SERVICEURL		0x14
+#define SKINNY_STIMULUS_BLF                     0x15
 #define SKINNY_STIMULUS_MALICIOUSCALL		0x1B
 #define SKINNY_STIMULUS_GENERICAPPB1		0x21
 #define SKINNY_STIMULUS_GENERICAPPB2		0x22
@@ -654,6 +655,7 @@ static const struct skinny_stimulus {
 	{ SKINNY_STIMULUS_SELECT			,	"Select"				},
 	{ SKINNY_STIMULUS_PRIVACY			,	"Privacy"				},
 	{ SKINNY_STIMULUS_SERVICEURL			,	"ServiceURL"				},
+	{ SKINNY_STIMULUS_BLF				,	"Busy Lamp Field"			},
 	{ SKINNY_STIMULUS_MALICIOUSCALL			,	"Malicious Call"			},
 	{ SKINNY_STIMULUS_GENERICAPPB1			,	"Generic App B1"			},
 	{ SKINNY_STIMULUS_GENERICAPPB2			,	"Generic App B2"			},
@@ -1152,12 +1154,15 @@ typedef enum {
         DisplayDynamicPromptStatusMessage	= 0x0145,
         FeatureStatAdvancedMessage		= 0x0146,
         LineStatDynamicMessage			= 0x0147,
-        Unknown_0x0149_Message			= 0x0149,
+        ServiceURLStatDynamicMessage		= 0x0148,
+        SpeedDialStatDynamicMessage		= 0x0149,
         CallInfoDynamicMessage			= 0x014A,
 
         /* received from phone */
+        DialedPhoneBookAckMessage		= 0x0152,
+        Unknown_0x0153_Message			= 0x0153,
         StartMediaTransmissionAck		= 0x0154,
-        Unknown_0x0159_Message			= 0x0159
+        ExtensionDeviceCaps			= 0x0159
 } sccp_message_t;								/*!< SCCP Message Types Enum */
 
 /*!
@@ -1305,12 +1310,15 @@ static const struct sccp_messagetype {
 	{ Unknown_0x0143_Message			, "Undefined 0x0143 Message"			},
 	{ Unknown_0x0144_Message			, "Undefined 0x0144 Message"			},
 	{ DisplayDynamicPromptStatusMessage		, "Display Dynamic Prompt Status Message"	},
-	{ FeatureStatAdvancedMessage			, "SpeedDial State Dynamic Message"	},
-	{ LineStatDynamicMessage			, "Line State Dynamic Message"		},
-	{ Unknown_0x0149_Message			, "Unkdefined 0x0149 Message"			},
+	{ FeatureStatAdvancedMessage			, "SpeedDial State Dynamic Message"		},
+	{ LineStatDynamicMessage			, "Line State Dynamic Message"			},
+	{ ServiceURLStatDynamicMessage			, "Service URL Stat Dynamic Messages"		},
+	{ SpeedDialStatDynamicMessage			, "SpeedDial Stat Dynamic Message"		},
 	{ CallInfoDynamicMessage			, "Call Information Dynamic Message"		},
+	{ DialedPhoneBookAckMessage			, "Dialed PhoneBook Ack Message"	 	},
+	{ Unknown_0x0153_Message			, "Undefined 0x0153 Message"			},
 	{ StartMediaTransmissionAck			, "Start Media Transmission Acknowledge"	},
-        { Unknown_0x0159_Message			, "Undefined 0x0159 Message"			},
+        { ExtensionDeviceCaps				, "Extension Device Capabilities Message"			},
 };
 
 #define SCCP_ACCESSORY_NONE			0x00 				/*!< Added for compatibility with old phones -FS */
@@ -1619,6 +1627,14 @@ typedef union {
                 uint32_t	lel_unknown;					/*!< \todo Unknown */
                 char		phonenumber[260];				/*!< \todo I don't know if this is exact */
         } DialedPhoneBookMessage;						/*!< Dialed Phone Book Message Structure */
+        
+        
+        struct {
+                uint32_t	lel_NumberIndex; 				/*!< Number Index (this must be shifted 4 bits right) */
+                uint32_t	lel_lineinstance;				/*!< Line Instance */
+                uint32_t	lel_unknown;					/*!< \todo Unknown */
+                uint32_t	lel_unknown2;					/*!< \todo Unknown2 */
+        } DialedPhoneBookAckMessage;						/*!< Dialed Phone Book Acknowledgement Structure */
 
         /* AccessoryStatusMessage (0x0073):
          * This indicates the phone headset, handset or speaker status.
@@ -2738,6 +2754,11 @@ typedef union {
 		char	 			label[StationMaxNameSize];		/*!< Label */
 	} ServiceURLStatMessage;							/*!< Service URL Stat Message Structure */
 
+        struct {									// Used Above Protocol 7 */
+                uint32_t lel_serviceURLIndex;						/*!< Service URL Index */
+                uint32_t dummy;								/*!< Dummy */
+        } ServiceURLStatDynamicMessage;							/*!< Service URL Stat Message Structure */
+	
 	struct {
                 uint32_t 			lel_status;				/*!< Status */
 		uint32_t 			lel_callReference;			/*!< Call Reference */

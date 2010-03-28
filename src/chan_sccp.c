@@ -621,12 +621,10 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 		        sccp_handle_unknown_message(s,r);
 		      }
 		      break;
-		case Unknown_0x0149_Message:
-                      if (GLOB(debug) >20) {
-		        sccp_handle_unknown_message(s,r);
-		      }
+		case SpeedDialStatDynamicMessage:
+                      sccp_handle_speed_dial_stat_req(s,r);
 		      break;
-		case Unknown_0x0159_Message:
+		case ExtensionDeviceCaps:
                       if (GLOB(debug) >20) {
 		        sccp_handle_unknown_message(s,r);
 		      }
