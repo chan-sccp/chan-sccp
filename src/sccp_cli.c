@@ -294,6 +294,9 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Jitterbuffer resync   : %ld\n", GLOB(global_jbconf).resync_threshold);
 	ast_cli(fd, "Jitterbuffer impl     : %s\n",  GLOB(global_jbconf).impl);
 	ast_cli(fd, "Jitterbuffer log      : %s\n", (ast_test_flag(&GLOB(global_jbconf), AST_JB_LOG) ? "Yes" : "No"));
+#ifdef CS_AST_JB_TARGET_EXTRA
+        ast_cli(fd, "Jitterbuf target extra: %ld\n",  GLOB(global_jbconf).target_extra);
+#endif	
 
 	sccp_globals_unlock(lock);
 
