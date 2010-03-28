@@ -663,16 +663,30 @@ void sccp_dev_displayprompt(sccp_device_t * d, uint8_t line, uint32_t callid, ch
 
 	if (!d || !d->session)
 		return;
-	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) return; /* only for telecaster and new phones */
+		
+	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) 
+	        return; 	/* only for telecaster and new phones */
 
 	if (!msg || ast_strlen_zero(msg))
 		return;
 
-	REQ(r, DisplayPromptStatusMessage);
-	r->msg.DisplayPromptStatusMessage.lel_messageTimeout = htolel(timeout);
-	r->msg.DisplayPromptStatusMessage.lel_callReference = htolel(callid);
-	r->msg.DisplayPromptStatusMessage.lel_lineInstance = htolel(line);
-	sccp_copy_string(r->msg.DisplayPromptStatusMessage.promptMessage, msg, sizeof(r->msg.DisplayPromptStatusMessage.promptMessage));
+        if (d->inuseprotocolversion < 7) {
+                REQ(r, DisplayPromptStatusMessage);
+                r->msg.DisplayPromptStatusMessage.lel_messageTimeout = htolel(timeout);
+                r->msg.DisplayPromptStatusMessage.lel_callReference = htolel(callid);
+                r->msg.DisplayPromptStatusMessage.lel_lineInstance = htolel(line);
+                sccp_copy_string(r->msg.DisplayPromptStatusMessage.promptMessage, msg, sizeof(r->msg.DisplayPromptStatusMessage.promptMessage));
+        } else {
+        	int msg_len = strlen(msg);
+        	int hdr_len = sizeof(r->msg.DisplayDynamicPromptStatusMessage) - 3;
+                int padding = ((msg_len + hdr_len) % 4);
+                padding = (padding > 0) ? 4 - padding : 0;
+                r = sccp_build_packet(DisplayDynamicPromptStatusMessage, hdr_len + msg_len + padding);
+                r->msg.DisplayDynamicPromptStatusMessage.lel_messageTimeout = htolel(timeout);
+                r->msg.DisplayDynamicPromptStatusMessage.lel_callReference = htolel(callid);
+                r->msg.DisplayDynamicPromptStatusMessage.lel_lineInstance = htolel(line);
+		memcpy(&r->msg.DisplayDynamicPromptStatusMessage.dummy, msg, msg_len);
+        }
 	sccp_dev_send(d, r);
 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Display prompt on line %d, callid %d, timeout %d\n", d->id, line, callid, timeout);
 }
