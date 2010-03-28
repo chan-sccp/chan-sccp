@@ -28,7 +28,7 @@
  *   - \ref sccp_config_rt How to use RealTime Database
  *   - \ref sccp_config_dhcp Setting up a DHCP Server
  *   - \ref change_phone_to_sccp Hot to change the firmware to SCCP
- *   - \ref sccp_config_sep What does a Sample SEP?????????.cnf.xml Look Like
+ *   - \ref sccp_config_sep What does a Sample SEP[MacAddr].cnf.xml Look Like
  *   - \ref dialplan_sample Dialplan Sample
  *   .
  *
@@ -427,7 +427,7 @@
  * }
  * \endcode
  * 
- * \section sccp_config_sep What does a Sample SEP?????????.cnf.xml Look Like
+ * \section sccp_config_sep What does a Sample SEP[MacAddr].cnf.xml Look Like
  *
  * We have added a couple of example files in the directory conf/tftp  
  * conf/tftp/XMLDefault.cnf.xml_797x

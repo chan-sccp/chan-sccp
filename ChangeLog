@@ -1,3 +1,25 @@
+2010-03-28  ddegroot
+
+	* [r1399] src/chan_sccp.c, src/sccp_cli.c: Jitterbuffer handling
+	  for newer Asterisk versions
+
+	* [r1398] ChangeLog, Makefile.in, aclocal.m4, configure,
+	  configure.ac, libtool: Added Jitterbuffer Handling for newer
+	  Asterisk Versions
+
+	* [r1397] src/sccp_socket.c: Updated sccp_session_send2 to reduce
+	  socket timing and close socket correctly on failure
+
+	* [r1396] src/sccp_device.c: Updated sccp_dev_displayprompt to send
+	  different messages according to the protocol level in use by the
+	  phone
+
+	* [r1395] src/sccp_actions.c: Implemented DialedPhoneBookAckMessage
+	  Implemented ServiceURLStatDynamicMessage
+
+	* [r1394] src/Makefile.in, src/chan_sccp.c, src/sccp_protocol.h:
+	  Replaced unknown messages 0x0149 and 0x0159
+
 2010-03-25  marcelloceschia
 
 	* [r1393] src/sccp_hint.c: fixes compile issue and removes #warning
