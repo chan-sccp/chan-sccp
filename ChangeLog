@@ -1,3 +1,215 @@
+2010-03-25  marcelloceschia
+
+	* [r1393] src/sccp_hint.c: fixes compile issue and removes #warning
+
+	* [r1392] src/sccp_hint.c: fixes compile issue and removes #warning
+
+2010-03-24  marcelloceschia
+
+	* [r1391] src/chan_sccp.c:
+
+	* [r1390] src/sccp_hint.c: testing
+
+	* [r1389] src/sccp_cli.c, src/sccp_mwi.c, src/sccp_mwi.h:
+
+	* [r1388] src/sccp_cli.c: show cfwd status in cli
+
+	* [r1387] src/sccp_utils.c, src/sccp_utils.h: getting device
+	  configuration for line
+
+	* [r1386] src/sccp_mwi.c: fixes unload/load issue and mailbox issue
+
+	* [r1385] src/sccp_actions.c: button instance for blf with old
+	  protocol version
+
+	* [r1384] src/sccp_actions.c, src/sccp_hint.c: instances
+
+2010-03-23  marcelloceschia
+
+	* [r1383] src/sccp_hint.c: disable callinfo for dynamic speeddial
+
+2010-03-18  marcelloceschia
+
+	* [r1382] src/sccp_actions.c, src/sccp_device.c: button instances
+
+	* [r1381] src/sccp_actions.c:
+
+2010-03-17  marcelloceschia
+
+	* [r1380] src/sccp_actions.c: button instances
+
+	* [r1379] src/sccp_hint.c: debug output
+
+	* [r1378] src/sccp_hint.c: debug output
+
+2010-03-16  marcelloceschia
+
+	* [r1377] src/sccp_actions.c: based on Federicos advice we use
+	  separate instances for speeddials
+
+	* [r1376] src/sccp_actions.c: based on Federicos advice we use
+	  separet instances for speeddials
+
+2010-03-15  marcelloceschia
+
+	* [r1375] src/sccp_channel.c: push changes on resume
+
+	* [r1374] src/sccp_channel.c: push changes on resume
+
+2010-03-12  marcelloceschia
+
+	* [r1373] src/sccp_channel.c: lock
+
+2010-03-11  marcelloceschia
+
+	* [r1372] src/sccp_actions.c, src/sccp_hint.c: hint debug out
+
+2010-03-11  ddegroot
+
+	* [r1371] doc/01_Index.doc, doc/06_Frequently_Asked_Questions.doc,
+	  doc/12_Reporting_Issues_Problems.doc[ADD]: Add a section to the
+	  documentation about reporting problems and issues (including
+	  added debug reports)
+
+	* [r1370] conf/tftp[ADD], conf/tftp/XMLDefault.cnf.xml_791x[ADD],
+	  conf/tftp/XMLDefault.cnf.xml_796x[ADD],
+	  conf/tftp/XMLDefault.cnf.xml_797x[ADD], configure,
+	  doc/01_Index.doc[CPY], doc/02_What_Is_Chan_SCCP.doc[ADD],
+	  doc/03_Building_and_Installation_Guide.doc[ADD],
+	  doc/04_Setup_Guide.doc[ADD], doc/05_New_Features.doc[CPY],
+	  doc/06_Frequently_Asked_Questions.doc[ADD],
+	  doc/07_Supported_Operating_Systems.doc[ADD],
+	  doc/08_Developers_Guide.doc[ADD],
+	  doc/09_Sources_Explained.doc[ADD],
+	  doc/10_Consulted_Documentation.doc[ADD],
+	  doc/11_Licensing.doc[ADD], doc/doxygen.cfg, doc/main.doc[DEL],
+	  doc/new_features.doc[DEL], libtool: Split up the main.doc file
+	  Added XMLDefault.cnf.xml examples
+
+	* [r1369] doc/main.doc, src/config.h.in, src/sccp_protocol.h:
+	  Updated sccp_protocol.h AST_EXTENSION Mapping
+	  Extended the Realtime documentation and included Nikos Mouat
+	  PostgreSQL setup information
+
+2010-03-10  marcelloceschia
+
+	* [r1368] src/sccp_hint.c: some testings
+
+	* [r1367] src/sccp_hint.c, src/sccp_hint.h: some testings
+
+2010-03-09  marcelloceschia
+
+	* [r1366] conf/postgres.sql[ADD]: table definition for postgres;
+	  using separate button device configuration
+
+2010-03-07  marcelloceschia
+
+	* [r1365] src/sccp_channel.c:
+
+	* [r1364] src/sccp_device.c: fixes buttontemplate issue after
+	  reregistration of non realtime devices
+
+	* [r1363] src/sccp_device.c: fixes buttontemplate issue after
+	  reregistration of non realtime devices
+
+	* [r1362] src/sccp_actions.c, src/sccp_hint.c: hint testing
+
+	* [r1361] src/sccp_actions.c: hint testing
+
+	* [r1360] src/sccp_actions.c, src/sccp_hint.c: hint testing
+
+	* [r1359] src/sccp_actions.c: debug for button template
+
+	* [r1358] src/sccp_pbx.c: fixes cfwd/ring issue on single line
+
+2010-03-06  marcelloceschia
+
+	* [r1357] src/sccp_device.c, src/sccp_utils.c: do not handle
+	  instances = 0
+
+	* [r1356] src/sccp_utils.c: 7916 has 24 buttons
+
+2010-03-06  davidded
+
+	* [r1355] src/chan_sccp.c, src/sccp_actions.c: removed obsolete
+	  message
+
+2010-03-06  marcelloceschia
+
+	* [r1354] src/sccp_actions.c: using default line for new call
+
+	* [r1353] src/sccp_actions.c: using default line for new call
+
+	* [r1352] src/sccp_actions.c: using default line for new call
+
+	* [r1351] src/sccp_channel.c: fixes issue with openBSD and
+	  undefined symbol
+
+	* [r1350] src/sccp_config.c:
+
+2010-03-06  ddegroot
+
+	* [r1349] Makefile.in, aclocal.m4, configure, configure.ac,
+	  doc/Makefile.in, src/Makefile.in, src/config.h.in: Removed the
+	  space behind -L and -I in configure.ac
+
+2010-03-06  marcelloceschia
+
+	* [r1348] src/chan_sccp.h, src/sccp_actions.c, src/sccp_config.c,
+	  src/sccp_config.h: handle default line in line request
+
+2010-03-05  marcelloceschia
+
+	* [r1347] src/sccp_hint.c: no ringin notification
+
+	* [r1346] src/chan_sccp.h, src/sccp_actions.c, src/sccp_config.c,
+	  src/sccp_device.c, src/sccp_protocol.h, src/sccp_utils.c: rework
+	  on buttontemplate and buttonconfig
+
+2010-03-05  ddegroot
+
+	* [r1345] doc/main.doc: Update possible ringer options in dial
+	  string
+
+2010-03-05  marcelloceschia
+
+	* [r1344] src/sccp_device.c: do not free devices twice
+
+	* [r1343] src/sccp_device.c: remove devices with timeout 0
+
+	* [r1342] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_device.c, src/sccp_mwi.c, src/sccp_softkeys.c:
+	  ast_sched_add returns -1 on fail not 0 -> changed error handling
+
+2010-03-05  davidded
+
+	* [r1341] libtool, src/sccp_actions.c, src/sccp_hint.c: things that
+	  needed to be refurbished
+
+2010-03-04  marcelloceschia
+
+	* [r1340] src/sccp_mwi.c: init lists
+
+2010-03-04  ddegroot
+
+	* [r1339] doc/main.doc: Added Dial Statements to the FAQ
+
+	* [r1338] conf/database_updates/20091215.sql[DEL],
+	  conf/database_updates/migrate_to_mysql-v5.sql[CPY],
+	  conf/mySQL5.sql[DEL], conf/mysql-v4.sql[CPY],
+	  conf/mysql-v5.sql[CPY], conf/tables.sql[DEL], doc/main.doc:
+	  update realtime documentation
+
+	* [r1337] doc/main.doc, src/sccp_softkeys.c: Added "struct
+	  softKeySetConfigList softKeySetConfig; " back int sccp_softkeys.c
+	  again
+
+	* [r1336] configure, libtool: Updated a help message in configure
+
+	* [r1335] ChangeLog, conf/sccp.conf, conf/sccp_short.conf,
+	  conf/sccp_simple.conf, configure.ac, doc/main.doc: Added
+	  chan_sccp configuration and dialplan documentation
+
 2010-03-04  marcelloceschia
 
 	* [r1334] src/sccp_softkeys.c:
