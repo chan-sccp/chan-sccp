@@ -397,24 +397,20 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_moo_t * r)
  */
 static btnlist *sccp_make_button_template(sccp_device_t * d)
 {
-	int i=0;
-	btnlist 			*btn;
+	int 			i = 0;
+	btnlist 		* btn;
 	sccp_buttonconfig_t	* buttonconfig;
 
-
-
-	btn = ast_malloc(sizeof(btnlist)*StationMaxButtonTemplateSize);
-	if (!btn)
+	if (!(btn = malloc(sizeof(btnlist)*StationMaxButtonTemplateSize))) {
 		return NULL;
+	}
 
 	memset(btn, 0 , sizeof(btnlist)*StationMaxButtonTemplateSize);
 	sccp_dev_build_buttontemplate(d, btn);
 
-
 //	sccp_device_lock(d);
 	uint32_t speeddialInsance = 1; /* starting instance for speeddial is 1*/
 	uint32_t lineInstance = 1;
-	uint32_t featureInstance = 1;
 	if(!d->isAnonymous){
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
@@ -434,7 +430,6 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE)){
 					
 					btn[i].type = SKINNY_BUTTONTYPE_LINE;
-					//buttonconfig->instance = btn[i].instance = i+1;
 
 					buttonconfig->instance = btn[i].instance = lineInstance++;
 
@@ -445,7 +440,6 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE || btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL )){
 				  
 					btn[i].type = SKINNY_BUTTONTYPE_UNDEFINED;
-					//buttonconfig->instance = btn[i].instance = i+1;
 					buttonconfig->instance = btn[i].instance = 0;
 					break;
 
@@ -454,7 +448,6 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 					
 					btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
 					buttonconfig->instance = btn[i].instance = i+1;
-					//buttonconfig->instance = btn[i].instance = speeddialInsance++;
 					break;
 				  
 				} else if(buttonconfig->type == SPEEDDIAL 
@@ -490,7 +483,6 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				  && sccp_is_nonempty_string(buttonconfig->button.feature.label)
 				  && (btn[i].type == SCCP_BUTTONTYPE_MULTI)){
 				 
-					//buttonconfig->instance = btn[i].instance = i+1;
 					buttonconfig->instance = btn[i].instance = speeddialInsance++;
 				  	
 					switch(buttonconfig->button.feature.id)
@@ -1508,6 +1500,7 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_moo_t * r)
 {
 	/* this is from CCM7 dump */
 	sccp_device_t * d = s->device;
+	sccp_moo_t * r1 = NULL;
 
 	if (!s || !s->device) {
 		ast_log(LOG_WARNING,"Session no longer valid\n");
@@ -1515,19 +1508,26 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	uint32_t unknown1 = 0; 	/* just 4 bits filled */
-	uint32_t index = 0;		/* just 28 bits used */
+	uint32_t index 	  = 0;	/* just 28 bits used */
 	uint32_t unknown2 = 0; 	/* all 32 bits used */
 	uint32_t instance = 0; 	/* */
 
 	index = letohl(r->msg.DialedPhoneBookMessage.lel_NumberIndex);
 	unknown1 = (index | 0xFFFFFFF0) ^ 0xFFFFFFF0;
 	index = index >> 4;
+	
 	unknown2 = letohl(r->msg.DialedPhoneBookMessage.lel_unknown); // i don't understand this :)
 	instance = letohl(r->msg.DialedPhoneBookMessage.lel_lineinstance);
 
+	// Sending 0x152 Ack Message. Still have to find out the meaning for 0x153
+	REQ(r1, DialedPhoneBookAckMessage);
+	r1->msg.DialedPhoneBookAckMessage.lel_NumberIndex = r->msg.DialedPhoneBookMessage.lel_NumberIndex;  
+	r1->msg.DialedPhoneBookAckMessage.lel_lineinstance = r->msg.DialedPhoneBookMessage.lel_lineinstance;
+	r1->msg.DialedPhoneBookAckMessage.lel_unknown = r->msg.DialedPhoneBookMessage.lel_unknown;
+	r1->msg.DialedPhoneBookAckMessage.lel_unknown2 = 0;
+	sccp_dev_send(s->device, r1);
+	                                       
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Device sent Dialed PhoneBook Rec.'%u' (%u) dn '%s' (0x%08X) line instance '%d'.\n", DEV_ID_LOG(d), index, unknown1, r->msg.DialedPhoneBookMessage.phonenumber, unknown2, instance);
-
-	/* maybe we should store latest dialed numbers for each line -FS */
 }
 
 /*!
@@ -2296,8 +2296,6 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 	int unknown = letohl(r->msg.FeatureStatReqMessage.lel_unknown);
   	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Unknown = %d \n", d->id, instance, unknown);
 
-	
-
 #ifdef CS_DYNAMIC_SPEEDDIAL
 	/* the new speeddial style uses feature to display state
 	   unfortunately we dont know how to handle this on other way
@@ -2337,27 +2335,51 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
  */
 void sccp_handle_services_stat_req(sccp_session_t * s, sccp_moo_t * r)
 {
-	sccp_device_t 		* d = s->device;
-	sccp_moo_t 			* r1;
-	sccp_service_t 		* service;
+	sccp_device_t 		* d = NULL;
+	sccp_moo_t 		* r1 = NULL;
+	sccp_service_t 		* service = NULL;
 
+	if(!s || !(d = s->device)) {
+		return;
+	}
+	
 	int urlIndex = letohl(r->msg.ServiceURLStatReqMessage.lel_serviceURLIndex);
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Got ServiceURL Status Request.  Index = %d\n", d->id, urlIndex);
-	service = sccp_dev_serviceURL_find_byindex(s->device, urlIndex);
+	
+	if ((service = sccp_dev_serviceURL_find_byindex(s->device, urlIndex))) {
+		if (s->device->inuseprotocolversion < 7) {
+			REQ(r1, ServiceURLStatMessage);
+			r1->msg.ServiceURLStatMessage.lel_serviceURLIndex = htolel(urlIndex);
+			sccp_copy_string(r1->msg.ServiceURLStatMessage.URL, service->url, strlen(service->url)+1);
+			sccp_copy_string(r1->msg.ServiceURLStatMessage.label, service->label, strlen(service->label)+1);
+		} else {
+                        int URL_len = strlen(service->url);
+                        int label_len = strlen(service->label);
+                        int dummy_len = URL_len + label_len;
 
-	REQ(r1, ServiceURLStatMessage);
-	r1->msg.ServiceURLStatMessage.lel_serviceURLIndex = htolel(urlIndex);
+                        int hdr_len = sizeof(r->msg.ServiceURLStatDynamicMessage) - 1;
+                        int padding = ((dummy_len + hdr_len) % 4);
+                        padding = (padding > 0) ? 4 - padding : 0;
 
-	if (service){
-		sccp_copy_string(r1->msg.ServiceURLStatMessage.URL, service->url, strlen(service->url)+1);
-		sccp_copy_string(r1->msg.ServiceURLStatMessage.label, service->label, strlen(service->label)+1);
+                        r1 = sccp_build_packet(ServiceURLStatDynamicMessage, hdr_len + dummy_len + padding);
+                        r1->msg.ServiceURLStatDynamicMessage.lel_serviceURLIndex = htolel(urlIndex);
+
+                        if(dummy_len) {
+                                char buffer[dummy_len + 2];
+                                memset(&buffer[0], 0, dummy_len + 2);
+                                if(URL_len)
+                                        memcpy(&buffer[0], service->url, URL_len);
+                                if(label_len)
+                                        memcpy(&buffer[URL_len + 1], service->label, label_len);
+                                memcpy(&r1->msg.ServiceURLStatDynamicMessage.dummy, &buffer[0], dummy_len + 2);
+                        }
+		}
 		ast_free(service);
-	}
-	else{
+		sccp_dev_send(s->device, r1);
+	} else {
 		sccp_log(3)(VERBOSE_PREFIX_3 "%s: serviceURL %d not assigned\n", DEV_ID_LOG(s->device), urlIndex);
 	}
-	sccp_dev_send(s->device, r1);
 }
 
 
