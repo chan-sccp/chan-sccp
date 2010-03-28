@@ -444,6 +444,8 @@ int sccp_session_send(const sccp_device_t *device, sccp_moo_t * r)
  */
 int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 	ssize_t res;
+	uint32_t msgid = letohl(r->lel_messageId);
+	
 	ssize_t bytesSent;
 	ssize_t bufLen;
 	uint8_t *bufAddr;
@@ -465,10 +467,14 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 	//sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
 	
 	/* This is a just a test */
-	if(s->device && s->device->inuseprotocolversion >= 17)
-		r->lel_reserved = htolel(s->device->inuseprotocolversion);
-	else
+	if(msgid == KeepAliveAckMessage || msgid == RegisterAckMessage) {
 		r->lel_reserved = 0;
+	} else if(s->device && s->device->inuseprotocolversion >= 17) {
+//		r->lel_reserved = htolel(s->device->inuseprotocolversion);
+		r->lel_reserved = htolel(0x11); // we should always send 0x11
+	} else {
+		r->lel_reserved = 0;
+	}
 
 	res = 0;
 	finishSending = 0;
@@ -476,26 +482,30 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 	maxTries = 10;
 	bytesSent = 0;
 	bufAddr = ((uint8_t *) r);
-	bufLen = (size_t)(letohl(r->length) + 8);
+	bufLen = (ssize_t)(letohl(r->length) + 8);
 	/* sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending Packet Type %s (%d bytes)\n", s->device->id, message2str(letohl(r->lel_messageId)), letohl(r->length)); */
 	do {
 		res = write(s->fd, bufAddr+bytesSent, bufLen-bytesSent);
-		if(res >= 0)
+		if(res >= 0) {
 			bytesSent += res;
-		
-		if((bytesSent == bufLen) || (try >= maxTries))
+		}
+		if((bytesSent == bufLen) || (try >= maxTries)) {
 			finishSending = 1;
-		else
-			usleep(1000);
+		} else {
+			usleep(600);
+		}
 		try++;
 	} while(!finishSending);
 
-	if(bytesSent < bufLen)
-	 sccp_log(10)(VERBOSE_PREFIX_3 "%s: Could only send %d of %d bytes!\n", s->device->id, bytesSent, bufLen);
-
-
 	sccp_session_unlock(s);
 	ast_free(r);
+
+	if(bytesSent < bufLen) {
+        	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Could only send %d of %d bytes!\n", s->device->id, bytesSent, bufLen);
+		sccp_session_close(s);
+        	return 0;
+        }
+
 	return res;
 }
 
