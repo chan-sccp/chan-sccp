@@ -240,17 +240,37 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 	hint->callInfo.calltype = SKINNY_CALLTYPE_OUTBOUND;
 	/* converting asterisk state -> sccp state */
 	switch(state) {
+		case AST_EXTENSION_REMOVED:
+			hint->currentState = SCCP_CHANNELSTATE_ZOMBIE;
+			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(hint->callInfo.callingPartyName));
+			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(hint->callInfo.calledPartyName));
+			break;
+		case AST_EXTENSION_DEACTIVATED:
+			hint->currentState = SCCP_CHANNELSTATE_ZOMBIE;
+			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(hint->callInfo.callingPartyName));
+			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(hint->callInfo.calledPartyName));
+			break;
 		case AST_EXTENSION_NOT_INUSE:
 			hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
+			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_ON_HOOK, sizeof(hint->callInfo.callingPartyName));
+			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_ON_HOOK, sizeof(hint->callInfo.calledPartyName));
 			break;
 		case AST_EXTENSION_INUSE:
+#ifndef CS_DYNAMIC_SPEEDDIAL
 			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+#else
+			hint->currentState = SCCP_CHANNELSTATE_PROCEED;
+#endif
 			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_LINE_IN_USE, sizeof(hint->callInfo.callingPartyName));
 			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_LINE_IN_USE, sizeof(hint->callInfo.calledPartyName));
 
 			break;
 		case AST_EXTENSION_BUSY:
+#ifndef CS_DYNAMIC_SPEEDDIAL
 			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+#else
+			hint->currentState = SCCP_CHANNELSTATE_BUSY;
+#endif
 			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_BUSY, sizeof(hint->callInfo.callingPartyName));
 			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_BUSY, sizeof(hint->callInfo.calledPartyName));
 
@@ -267,40 +287,48 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 			break;
 #ifdef CS_AST_HAS_EXTENSION_ONHOLD
 		case AST_EXTENSION_ONHOLD:
+#ifndef CS_DYNAMIC_SPEEDDIAL
 			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+#else
+			hint->currentState = SCCP_CHANNELSTATE_HOLD;
+#endif
 			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_HOLD, sizeof(hint->callInfo.callingPartyName));
 			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_HOLD, sizeof(hint->callInfo.calledPartyName));
-
 			break;
 #endif
 #ifdef CS_AST_HAS_EXTENSION_RINGING
 		case AST_EXTENSION_RINGING:
 #ifndef CS_DYNAMIC_SPEEDDIAL		  
 			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-			//hint->currentState = SCCP_CHANNELSTATE_RINGING;
 #else
 			hint->currentState = SCCP_CHANNELSTATE_RINGING;
 #endif
 			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.callingPartyName));
 			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.calledPartyName));
-
 			break;
-		case AST_EXTENSION_RINGING | AST_EXTENSION_INUSE:
+		case AST_EXTENSION_INUSE | AST_EXTENSION_RINGING:
+#ifndef CS_DYNAMIC_SPEEDDIAL		  
 			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_LINE_IN_USE, sizeof(hint->callInfo.callingPartyName));
-			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_LINE_IN_USE, sizeof(hint->callInfo.calledPartyName));
-
+#else
+			hint->currentState = SCCP_CHANNELSTATE_RINGOUT;
+#endif
+			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.callingPartyName));
+			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.calledPartyName));
 			break;
 #endif
 		default:
+			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "SCCP: Unmapped hint state %d for %s\n", state, hint->hint_dialplan);
+#ifndef CS_DYNAMIC_SPEEDDIAL
 			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+#else
+			hint->currentState = SCCP_CHANNELSTATE_DOWN;
+#endif
 			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(hint->callInfo.callingPartyName));
 			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(hint->callInfo.calledPartyName));
-
-
 	}
 
 	/* push to subscribers */
+	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "SCCP: Notifying Subscribers for %s\n", hint->hint_dialplan);
 	sccp_hint_notifySubscribers(hint);
 
 	if(state == AST_EXTENSION_INUSE || state == AST_EXTENSION_BUSY){
@@ -425,10 +453,10 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			
 			/* do not add name for TEMP_FAIL and ONHOOK */
 			if(hint->currentState > 2 ){
-#ifdef SCCP_SHOW_CID
+#ifndef SCCP_HIDE_CID
 				sprintf(displayMessage, "%s %s %s", 
 					(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)?hint->callInfo.calledPartyName : hint->callInfo.callingPartyName,
-					(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)? " <- " : " -> ",
+					(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)? " -> " : " <- ",
 					(k)?k->name:"unknown speeddial"
 				);
 #else
@@ -529,11 +557,10 @@ void sccp_hint_notifyAsterisk(sccp_line_t *line, sccp_channelState_t state){
 
 
 #ifndef AST_EVENT_IE_CIDNAME
-	sccp_log(1)(VERBOSE_PREFIX_4 "notify asterisk to set state to %d(%d) on channel SCCP/%s\n", sccp_channelState2AstDeviceState(state), state, line->name);
+	sccp_log(1)(VERBOSE_PREFIX_4 "notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %d on channel SCCP/%s\n", channelstate2str(state), state, sccp_channelState2AstDeviceState(state), line->name);
 	ast_devstate_changed(sccp_channelState2AstDeviceState(state), "SCCP/%s", line->name);
 	//ast_devstate_changed(AST_DEVICE_UNKNOWN, "SCCP/%s", line->name);
 #else
-	
 	struct ast_event *event;
 	const char *cidname = "0815";
 	const char *cidnum = "0815";
@@ -551,24 +578,11 @@ void sccp_hint_notifyAsterisk(sccp_line_t *line, sccp_channelState_t state){
 		AST_EVENT_IE_END
 		))) {
 		
+		sccp_log(1)(VERBOSE_PREFIX_4 "notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %d on channel SCCP/%s\n", channelstate2str(state), state, sccp_channelState2AstDeviceState(state), line->name);
 		ast_devstate_changed(sccp_channelState2AstDeviceState(state), "%s", channelName);
 		return;
 		
 	}
-	/*
-	const char *testCidName = ast_event_get_ie_str(event, AST_EVENT_IE_CIDNAME);
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "hint %s has changed, cidname %s\n", channelName, (cidname)?cidname:"NULL" );
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "hint %s has changed, event %p\n", 	channelName, event);
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "hint %s has changed, state %p\n", channelName, ast_event_get_ie_raw(event, AST_EVENT_IE_STATE));
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "hint %s has changed, sizeof %d\n", channelName, sizeof(struct ast_event_iterator));
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "hint %s has changed, cidname %p\n", channelName, testCidName);
-	
-	
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "hint %s has changed, cidname %s\n", channelName, (testCidName)?testCidName:"NULL" );
-	
-	
-	ast_event_queue_and_cache(event);
-	*/
 #endif
 	
 #else

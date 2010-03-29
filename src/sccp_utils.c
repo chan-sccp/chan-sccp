@@ -827,6 +827,7 @@ void sccp_dev_dbclean() {
 }
 
 const char * message2str(uint32_t value) { _ARR2STR(sccp_messagetypes, type , value , text); }
+const char * channelstate2str(uint32_t value) { _ARR2STR(sccp_channelstates, channelstate, value , text); }
 const char * accessory2str(uint32_t value) { _ARR2STR(sccp_accessories, accessory , value , text); }
 const char * accessorystatus2str(uint32_t value) { _ARR2STR(sccp_accessory_states, accessory_state , value , text); }
 const char * extensionstatus2str(uint32_t value) { _ARR2STR(sccp_extension_states, extension_state , value , text); }
@@ -1109,22 +1110,63 @@ sccp_device_t * sccp_device_find_byipaddress(unsigned long s_addr){
  */
 enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state){
 	switch(state){
+	  case SCCP_CHANNELSTATE_CALLWAITING:
+	        return AST_DEVICE_INUSE;
+	        break;
+	  case SCCP_CHANNELSTATE_CALLTRANSFER:
+	        return AST_DEVICE_INUSE;
+	        break;
+	  case SCCP_CHANNELSTATE_CALLPARK:
+	        return AST_DEVICE_INUSE;
+	        break;
+	  case SCCP_CHANNELSTATE_PROCEED:
+	        return AST_DEVICE_INUSE;
+	        break;
+	  case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
+	        return AST_DEVICE_INUSE;
+	        break;
+	  case SCCP_CHANNELSTATE_INVALIDNUMBER:
+	        return AST_DEVICE_INVALID;
+	        break;
+	  case SCCP_CHANNELSTATE_BUSY:
+	        return AST_DEVICE_BUSY;
+	        break;
+	  case SCCP_CHANNELSTATE_RINGING:
+		return AST_DEVICE_RINGING;
+		break;
+	  case SCCP_CHANNELSTATE_RINGOUT:
+		return AST_DEVICE_RINGINUSE;
+		break;
+	  case SCCP_CHANNELSTATE_HOLD:
+	  	return AST_DEVICE_ONHOLD;
+		break;
+	  case SCCP_CHANNELSTATE_PROGRESS:
+                return AST_DEVICE_INUSE;
+                break;
+	  case SCCP_CHANNELSTATE_DIALING:
+		return AST_DEVICE_INUSE;
+		break;
+          case SCCP_CHANNELSTATE_CONNECTED:
+                return AST_DEVICE_INUSE;
+	  	break;
 	  case SCCP_CHANNELSTATE_ONHOOK:
+		return AST_DEVICE_NOT_INUSE;
+	  	break;
 	  case SCCP_CHANNELSTATE_DOWN:
 		return AST_DEVICE_NOT_INUSE;
-	  break;
+		break;
 	  case SCCP_CHANNELSTATE_OFFHOOK:
-		  return AST_DEVICE_INUSE;
-	  break;
+		return AST_DEVICE_INUSE;
+	  	break;
 	  case SCCP_CHANNELSTATE_CONGESTION:
-		  return AST_DEVICE_UNAVAILABLE;
-	  break;
+		return AST_DEVICE_UNAVAILABLE;
+	  	break;
 	  case SCCP_CHANNELSTATE_DND:
-		  return AST_DEVICE_UNAVAILABLE;
-	  break;
+		return AST_DEVICE_UNAVAILABLE;
+	  	break;
 	  default:
-		  return AST_DEVICE_UNKNOWN;
-	  break;
+		return AST_DEVICE_UNKNOWN;
+	  	break;
 	}
 }
 #endif

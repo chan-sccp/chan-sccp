@@ -492,7 +492,7 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 		if((bytesSent == bufLen) || (try >= maxTries)) {
 			finishSending = 1;
 		} else {
-			usleep(600);
+			usleep(1000);
 		}
 		try++;
 	} while(!finishSending);
