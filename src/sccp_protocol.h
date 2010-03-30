@@ -89,6 +89,25 @@ static const struct sccp_channelstate {
         { SCCP_CHANNELSTATE_DND, 		"DND" }
 };
 
+/*!
+ * \brief AST Device State Structure
+ */
+static const struct ast_devicestate {
+        enum ast_device_state devicestate;
+        const char * const text;
+} ast_devicestates[] = {
+	{ AST_DEVICE_UNKNOWN	,	 "Device is valid but channel doesn't know state" 	},
+	{ AST_DEVICE_NOT_INUSE	,	 "Device is not in use"					},
+	{ AST_DEVICE_INUSE	,	 "Device is in use" 					},
+	{ AST_DEVICE_BUSY	,	 "Device is busy" 					},
+	{ AST_DEVICE_INVALID	,	 "Device is invalid" 					},
+	{ AST_DEVICE_UNAVAILABLE,	 "Device is unavailable" 				},
+	{ AST_DEVICE_RINGING	,	 "Device is ringing" 					},
+	{ AST_DEVICE_RINGINUSE	,	 "Device is ringing and in use" 			},
+	{ AST_DEVICE_ONHOLD	,	 "Device is on hold" 					},
+	{ AST_DEVICE_TOTAL	,	 "Total num of device states, used for testing" 	}
+};
+
 
 
 typedef enum {

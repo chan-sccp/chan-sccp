@@ -330,23 +330,21 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 	/* push to subscribers */
 	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "SCCP: Notifying Subscribers for %s\n", hint->hint_dialplan);
 	sccp_hint_notifySubscribers(hint);
-
-	if(state == AST_EXTENSION_INUSE || state == AST_EXTENSION_BUSY){
+	
 #ifndef AST_EVENT_IE_CIDNAME
-		if (hint->type.asterisk.notificationThread  != AST_PTHREADT_NULL) {
+	if(state == AST_EXTENSION_INUSE || state == AST_EXTENSION_BUSY){
+		if (hint->type.asterisk.notificationThread != AST_PTHREADT_NULL) {
+			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "SCCP: Thread Kill %s\n", hint->hint_dialplan);
 			pthread_kill(hint->type.asterisk.notificationThread, SIGURG);
 			hint->type.asterisk.notificationThread = AST_PTHREADT_NULL;
-		}
-
-		if(hint->type.asterisk.notificationThread == AST_PTHREADT_NULL){
+		} else {
+			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "SCCP: Thread Background %s\n", hint->hint_dialplan);
  			if (ast_pthread_create_background(&hint->type.asterisk.notificationThread, NULL, sccp_hint_remoteNotification_thread, hint) < 0) {
  				return -1;
  			}
 		}
-#endif
 	}
-
-	
+#endif
 	return 0;
 }
 
@@ -557,7 +555,7 @@ void sccp_hint_notifyAsterisk(sccp_line_t *line, sccp_channelState_t state){
 
 
 #ifndef AST_EVENT_IE_CIDNAME
-	sccp_log(1)(VERBOSE_PREFIX_4 "notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %d on channel SCCP/%s\n", channelstate2str(state), state, sccp_channelState2AstDeviceState(state), line->name);
+	sccp_log(1)(VERBOSE_PREFIX_4 "notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", channelstate2str(state), state, astdevicestate2str(sccp_channelState2AstDeviceState(state)), sccp_channelState2AstDeviceState(state), line->name);
 	ast_devstate_changed(sccp_channelState2AstDeviceState(state), "SCCP/%s", line->name);
 	//ast_devstate_changed(AST_DEVICE_UNKNOWN, "SCCP/%s", line->name);
 #else
@@ -578,7 +576,7 @@ void sccp_hint_notifyAsterisk(sccp_line_t *line, sccp_channelState_t state){
 		AST_EVENT_IE_END
 		))) {
 		
-		sccp_log(1)(VERBOSE_PREFIX_4 "notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %d on channel SCCP/%s\n", channelstate2str(state), state, sccp_channelState2AstDeviceState(state), line->name);
+		sccp_log(1)(VERBOSE_PREFIX_4 "notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", channelstate2str(state), state, astdevicestate2str(sccp_channelState2AstDeviceState(state)), sccp_channelState2AstDeviceState(state), line->name);
 		ast_devstate_changed(sccp_channelState2AstDeviceState(state), "%s", channelName);
 		return;
 		
@@ -1107,6 +1105,7 @@ static void * sccp_hint_remoteNotification_thread(void *data){
 		ast_channel_lock(foundChannel);
 		sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) found remote channel %s\n", foundChannel->name);
 		i = 0;
+		// Waiting for bridged channel. Haven't found any other way
 		while (foundChannel && (bridgedChannel = ast_bridged_channel(foundChannel)) == NULL && i < 30) {
 			if(!ast_channel_unlock(foundChannel))
 				goto CLEANUP;

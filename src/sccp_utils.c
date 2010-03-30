@@ -828,6 +828,7 @@ void sccp_dev_dbclean() {
 
 const char * message2str(uint32_t value) { _ARR2STR(sccp_messagetypes, type , value , text); }
 const char * channelstate2str(uint32_t value) { _ARR2STR(sccp_channelstates, channelstate, value , text); }
+const char * astdevicestate2str(uint32_t value) { _ARR2STR(ast_devicestates, devicestate, value , text); }
 const char * accessory2str(uint32_t value) { _ARR2STR(sccp_accessories, accessory , value , text); }
 const char * accessorystatus2str(uint32_t value) { _ARR2STR(sccp_accessory_states, accessory_state , value , text); }
 const char * extensionstatus2str(uint32_t value) { _ARR2STR(sccp_extension_states, extension_state , value , text); }
