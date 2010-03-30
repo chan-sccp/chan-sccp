@@ -749,8 +749,6 @@ static int reload_config(void) {
 	}
   }
 
-  
-  sccp_mwi_module_stop();
   sccp_restart_monitor();
   return 0;
 }
