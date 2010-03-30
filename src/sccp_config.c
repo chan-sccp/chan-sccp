@@ -310,8 +310,9 @@ boolean_t sccp_config_general(void){
 	int amaflags = 0;
 	int protocolversion = 0;
 	char digittimeoutchar = '#';
-	int				tos= 0;
-	int				cos= 0;
+	int				tos = 0;
+	int				cos = 0;
+	int 			     rtpcos = 0;
 	char				pref_buf[128];
 	struct ast_hostent		ahp;
 	struct hostent			*hp;
@@ -529,15 +530,17 @@ boolean_t sccp_config_general(void){
 #endif
 			} else if (!strcasecmp(v->name, "cos")) {
 				if (sscanf(v->value, "%d", &cos) == 1)
-                                    GLOB(cos) = cos;
+                                        GLOB(cos) = cos;
                                 else
-                                    GLOB(cos) = 5;
+                                        GLOB(cos) = 5;
 			} else if (!strcasecmp(v->name, "rtptos")) {
 				if (sscanf(v->value, "%d", &GLOB(rtptos)) == 1)
-					GLOB(rtptos) &= 0xff;
+				        GLOB(rtptos) &= 0xff;
 			} else if (!strcasecmp(v->name, "rtpcos")) {
-				if (sscanf(v->value, "%d", &GLOB(rtpcos)) == 1)
-					GLOB(rtpcos) = 6;
+				if (sscanf(v->value, "%d", &rtpcos) == 1)
+                                        GLOB(rtpcos) = rtpcos;
+                                else
+                                        GLOB(rtpcos) = 6;
 			} else if (!strcasecmp(v->name, "autoanswer_ring_time")) {
 				if (sscanf(v->value, "%i", &autoanswer_ring_time) == 1) {
 					if (autoanswer_ring_time >= 0 && autoanswer_ring_time <= 255)
@@ -723,6 +726,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
  */
 sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_variable *v){
         int amaflags = 0;
+        int rtpcos = 0;
         int secondary_dialtone_tone = 0;
 
 
@@ -793,8 +797,10 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
                         if (sscanf(v->value, "%d", &l->rtptos) == 1)
                                 l->rtptos &= 0xff;
                 } else if (!strcasecmp(v->name, "rtpcos")) {
-                        if (sscanf(v->value, "%d", &l->rtpcos) == 1)
-                                l->rtpcos = 6;
+                        if (sscanf(v->value, "%d", &rtpcos) == 1)
+                                l->rtpcos = rtpcos;
+                        else
+                                l->rtpcos = GLOB(rtpcos);
                 } else if (!strcasecmp(v->name, "language")) {
                         sccp_copy_string(l->language, v->value, sizeof(l->language));
                 } else if (!strcasecmp(v->name, "musicclass")) {
