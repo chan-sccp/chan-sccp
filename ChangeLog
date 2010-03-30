@@ -1,4 +1,22 @@
+2010-03-30  marcelloceschia
+
+	* [r1402] src/chan_sccp.c: fixing mwi start/stop issue
+
+2010-03-29  ddegroot
+
+	* [r1401] src/Makefile.in, src/sccp_hint.c, src/sccp_protocol.h,
+	  src/sccp_socket.c, src/sccp_utils.c, src/sccp_utils.h: Extended
+	  AST_EXTENSION Mapping to include state 9
+	  Added ARR2STR Mapping for SCCP_EXTENSIONSTATE
+	  Extended ExtensionStatus to Asterisk Mapping in sccp_utils
+	  Changed timing in sccp_socket back to 1000 mu_sec
+
 2010-03-28  ddegroot
+
+	* [r1400] ChangeLog, configure,
+	  doc/03_Building_and_Installation_Guide.doc,
+	  doc/04_Setup_Guide.doc, doc/Makefile.in, libtool: Replaced
+	  SEP??????? with SEP[MacAddr] in documentation
 
 	* [r1399] src/chan_sccp.c, src/sccp_cli.c: Jitterbuffer handling
 	  for newer Asterisk versions

@@ -73,6 +73,7 @@ void sccp_dev_dbclean(void);
 // SCCP Lookups
 const char * message2str(uint32_t value);
 const char * channelstate2str(uint32_t value);
+const char * astdevicestate2str(uint32_t value);
 const char * accessory2str(uint32_t value);
 const char * accessorystatus2str(uint32_t value);
 const char * extensionstatus2str(uint32_t value);

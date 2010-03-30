@@ -72,11 +72,11 @@ static struct ast_jb_conf default_jbconf =
 	.flags = 0,
 	.max_size = -1,
 	.resync_threshold = -1,
-#ifndef CS_AST_JB_TARGET_EXTRA
-        .impl = ""
-#else
+#ifdef CS_AST_JB_TARGET_EXTRA
         .impl = "",
         .target_extra = -1
+#else
+        .impl = ""
 #endif
 };
 #endif
@@ -225,15 +225,17 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 	
 	/* set subscriberId for individual device addressing */
 	if (!ast_strlen_zero(lineSubscriptionId.subscriptionId.number)) {
-			sccp_copy_string(c->subscriptionId.number, lineSubscriptionId.subscriptionId.number, sizeof(c->subscriptionId.number));
-			// Here it would be nice to add the name suffix as well.
-			// However, this information is not available 
-			// without explicit lookup over all relevant devices.
-			ast_log(LOG_NOTICE, "%s: calling subscriber %s\n", l->id, c->subscriptionId.number);
+                sccp_copy_string(c->subscriptionId.number, lineSubscriptionId.subscriptionId.number, sizeof(c->subscriptionId.number));
+                if (!ast_strlen_zero(lineSubscriptionId.subscriptionId.name)) {
+		       	sccp_copy_string(c->subscriptionId.name, lineSubscriptionId.subscriptionId.name, sizeof(c->subscriptionId.name));
+        		ast_log(LOG_NOTICE, "%s: calling subscriber id=%s\n, name=%s", l->id, c->subscriptionId.number,c->subscriptionId.name);
+                } else {
+        		ast_log(LOG_NOTICE, "%s: calling subscriber id=%s\n", l->id, c->subscriptionId.number);
+                }
 	} else {
-			sccp_copy_string(c->subscriptionId.number, l->defaultSubscriptionId.number, sizeof(c->subscriptionId.number));
-			sccp_copy_string(c->subscriptionId.name, l->defaultSubscriptionId.name, sizeof(c->subscriptionId.name));
-			ast_log(LOG_NOTICE, "%s: calling all subscribers with id %s\n", l->id, c->subscriptionId.number);
+		sccp_copy_string(c->subscriptionId.number, l->defaultSubscriptionId.number, sizeof(c->subscriptionId.number));
+		sccp_copy_string(c->subscriptionId.name, l->defaultSubscriptionId.name, sizeof(c->subscriptionId.name));
+		ast_log(LOG_NOTICE, "%s: calling all subscribers\n", l->id);
 	}
 
 
@@ -999,7 +1001,6 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 	} else {
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (sccp_rtp_bridge) Native bridging '%s' and '%s'\n", c0->name, c1->name);
 #warning "The purpose of this code is obscure and must be clarified (-DD)"
-
 /*
 		sccp_pbx_set_rtp_peer(c0, pvt1->rtp, NULL, NULL, pvt1->device->codecs, 0);
 		sccp_pbx_set_rtp_peer(c1, pvt0->rtp, NULL, NULL, pvt0->device->codecs, 0);
