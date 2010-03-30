@@ -654,11 +654,6 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 static int reload_config(void) {
 	int						oldport	= ntohs(GLOB(bindaddr.sin_port));
 	int						on		= 1;
-//	int						tos		= 0;
-//	char					pref_buf[128];
-//	struct ast_hostent		ahp;
-//	struct hostent			*hp;
-//	struct ast_ha 			*na;
 #ifdef ASTERISK_CONF_1_2
 	char					iabuf[INET_ADDRSTRLEN];
 #endif
@@ -705,10 +700,18 @@ static int reload_config(void) {
 		on = 1;
 		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
 			ast_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
-		if (setsockopt(GLOB(descriptor), IPPROTO_IP, IP_TOS, &GLOB(tos), sizeof(GLOB(tos))) < 0)
-			ast_log(LOG_WARNING, "Failed to set SCCP socket TOS to IPTOS_LOWDELAY: %s\n", strerror(errno));
+                if (setsockopt(GLOB(descriptor), IPPROTO_IP, IP_TOS, &GLOB(tos), sizeof(GLOB(tos))) < 0)
+                        ast_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(tos), strerror(errno));
+                else if (GLOB(tos)) 
+                        ast_verb(2, "Using SCCP Socket ToS mark %d\n", GLOB(tos));
 		if (setsockopt(GLOB(descriptor), IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
 			ast_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
+#if defined(linux)                                                              
+                if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_PRIORITY, &GLOB(cos), sizeof(GLOB(cos))) < 0)  
+                	ast_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(cos), strerror(errno));
+                else if (GLOB(cos))
+                        ast_verb(2, "Using SCCP Socket CoS mark %d\n", GLOB(cos));
+#endif
 
 		if (GLOB(descriptor) < 0) {
 
@@ -1088,7 +1091,9 @@ static int load_module(void) {
 	GLOB(debug) = 1;
 	GLOB(fdebug) = 0;
 	GLOB(tos) = (0x68 & 0xff);
+	GLOB(cos) = 5;
 	GLOB(rtptos) = (184 & 0xff);
+	GLOB(rtpcos) = 6;
 	GLOB(echocancel) = 1;
 	GLOB(silencesuppression) = 0;
 	GLOB(dndmode) = SCCP_DNDMODE_REJECT;

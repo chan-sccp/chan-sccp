@@ -253,6 +253,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "First digit timeout   : %d\n", GLOB(firstdigittimeout));
 	ast_cli(fd, "Digit timeout         : %d\n", GLOB(digittimeout));
 	ast_cli(fd, "RTP tos               : %d\n", GLOB(rtptos));
+	ast_cli(fd, "RTP cos               : %d\n", GLOB(rtpcos));
 	ast_cli(fd, "Context               : %s\n", GLOB(context));
 	ast_cli(fd, "Language              : %s\n", GLOB(language));
 	ast_cli(fd, "Accountcode           : %s\n", GLOB(accountcode));

@@ -1644,9 +1644,15 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 
 	if (c->rtp.audio) {
 #ifdef ASTERISK_CONF_1_6
-		ast_rtp_setqos(c->rtp.audio, c->line->rtptos, 5, "SCCP RTP");
+//		ast_rtp_setqos(c->rtp.audio, c->line->rtptos, 5, "SCCP RTP");
+		ast_rtp_setqos(c->rtp.audio, c->line->rtptos, c->line->rtpcos, "SCCP RTP");
 #else
 		ast_rtp_settos(c->rtp.audio, c->line->rtptos);
+#if defined(linux)                                                              
+                if (setsockopt(c->rtp.audio, SOL_SOCKET, SO_PRIORITY, c->line->rtpcos, sizeof(c->line->rtpcos))) < 0)  
+                	ast_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", c->line->rtpcos, strerror(errno));
+#endif
+		
 #endif
 		ast_rtp_setnat(c->rtp.audio, d->nat);
 #ifdef ASTERISK_CONF_1_6
