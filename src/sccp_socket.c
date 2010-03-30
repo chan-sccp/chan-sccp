@@ -219,9 +219,18 @@ static void sccp_accept_connection(void)
 	if (setsockopt(new_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
 		ast_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
 	if (setsockopt(new_socket, IPPROTO_IP, IP_TOS, &GLOB(tos), sizeof(GLOB(tos))) < 0)
-		ast_log(LOG_WARNING, "Failed to set SCCP socket TOS to IPTOS_LOWDELAY: %s\n", strerror(errno));
+		ast_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(tos), strerror(errno));
+	else if (GLOB(tos)) 
+		ast_verb(2, "Using SCCP Socket ToS mark %d\n", GLOB(tos));
 	if (setsockopt(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
 		ast_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
+#if defined(linux)                                                              
+        if (setsockopt(new_socket, SOL_SOCKET, SO_PRIORITY, &GLOB(cos), sizeof(GLOB(cos))) < 0)  
+        	ast_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(cos), strerror(errno));
+        else if (GLOB(cos))
+                ast_verb(2, "Using SCCP Socket CoS mark %d\n", GLOB(cos));
+#endif
+                                                
 /*
 	if (setsockopt(new_socket, IPPROTO_TCP, TCP_CORK, &on, sizeof(on)) < 0)
 		ast_log(LOG_WARNING, "Failed to set SCCP socket to TCP_CORK: %s\n", strerror(errno));
@@ -239,7 +248,6 @@ static void sccp_accept_connection(void)
 #else
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", ast_inet_ntoa(s->sin.sin_addr));
 #endif
-
 
 	if (GLOB(bindaddr.sin_addr.s_addr) == INADDR_ANY) {
 		ast_ouraddrfor(&incoming.sin_addr, &s->ourip);

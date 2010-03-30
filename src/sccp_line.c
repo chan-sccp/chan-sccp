@@ -68,6 +68,7 @@ sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l)
 	l->echocancel = GLOB(echocancel); /* default value */
 	l->silencesuppression = GLOB(silencesuppression); /* default value */
 	l->rtptos = GLOB(rtptos); /* default value */
+	l->rtpcos = GLOB(rtpcos); /* default value */
 	l->transfer = TRUE; /* default value. on if the device transfer is on*/
 	l->secondary_dialtone_tone = SKINNY_TONE_OUTSIDEDIALTONE;
 	l->dndmode = SCCP_DNDMODE_OFF;

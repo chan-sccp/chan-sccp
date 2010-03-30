@@ -484,7 +484,8 @@ struct sccp_line {
         char 					cid_name[AST_MAX_EXTENSION];		/*!< Caller(Name) to use on outgoing calls*/
         char 					cid_num[AST_MAX_EXTENSION];		/*!< Caller(ID) to use on outgoing calls  */
         uint8_t 				incominglimit;				/*!< max incoming calls limit */
-        uint32_t				rtptos;					/*!< rtp stream tos */
+        uint32_t				rtptos;					/*!< rtp stream type_of_service */
+        uint32_t				rtpcos;					/*!< rtp stream class_of_service */
 /* 	sccp_channel_t 				* activeChannel; */			/* The currently active channel. */
         SCCP_LIST_HEAD(, sccp_channel_t) 	channels;				/*!< Linked list of current channels for this line */
         uint8_t 				channelCount;				/*!< Number of currently active channels */
@@ -856,8 +857,10 @@ struct sccp_global_vars {
 
         unsigned int				recorddigittimeoutchar: 1; 		/*< Record Digit Time Out Char. Whether to include the digittimeoutchar in the call logs */
 
-        uint32_t				tos;					/*!< Type of Service */
+        uint32_t				tos;					/*!< Socket Type of Service (TOS) (QOS) */
+        uint32_t				cos;					/*!< Socket Class of Service (COS) (QOS) */
         uint32_t				rtptos;					/*!< Type of Service for RTP */
+        uint32_t				rtpcos;					/*!< Class of Service for RTP */
 
         uint8_t					earlyrtp;				/*!< Channel State where to open the rtp media stream */
 
