@@ -398,26 +398,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 		}
 		
 
-#ifndef CS_DYNAMIC_SPEEDDIAL
-		sccp_device_sendcallstate(subscriber->device, subscriber->instance, 0, hint->currentState, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
-		
-		/* create CallInfoMessage */
-		REQ(r, CallInfoMessage);
-
-		/* set callInfo */
-		sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, hint->callInfo.callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
-		sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, hint->callInfo.calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
-		
-		sccp_copy_string(r->msg.CallInfoMessage.callingParty, hint->callInfo.callingParty, sizeof(r->msg.CallInfoMessage.callingParty));
-		sccp_copy_string(r->msg.CallInfoMessage.calledParty, hint->callInfo.calledParty, sizeof(r->msg.CallInfoMessage.calledParty));
-
-		r->msg.CallInfoMessage.lel_lineId   = htolel(subscriber->instance);
-		r->msg.CallInfoMessage.lel_callRef  = htolel(0);
-		r->msg.CallInfoMessage.lel_callType = htolel(hint->callInfo.calltype);
-		sccp_dev_send(subscriber->device, r);
-		sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "notify device: %s@%d state: %d\n", DEV_ID_LOG(subscriber->device), subscriber->instance, hint->currentState );
-		
-#else
+#ifdef CS_DYNAMIC_SPEEDDIAL
 		if(subscriber->device->inuseprotocolversion >= 15){
 			sccp_speed_t * k = sccp_dev_speed_find_byindex((sccp_device_t *)subscriber->device, subscriber->instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
 		  
@@ -451,20 +432,29 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			
 			/* do not add name for TEMP_FAIL and ONHOOK */
 			if(hint->currentState > 2 ){
-#ifndef SCCP_HIDE_CID
+//#ifdef SCCP_SHOW_CID
 				sprintf(displayMessage, "%s %s %s", 
 					(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)?hint->callInfo.calledPartyName : hint->callInfo.callingPartyName,
 					(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)? " -> " : " <- ",
 					(k)?k->name:"unknown speeddial"
 				);
-#else
-				sprintf(displayMessage, "%s", 
-					(k)?k->name:"unknown speeddial"
-				);
-#endif
+//#else
+//				sprintf(displayMessage, "%s", 
+//					(k)?k->name:"unknown speeddial"
+//				);
+//#endif
 			}else{
 				sccp_copy_string(displayMessage, (k)?k->name:"unknown speeddial", sizeof(displayMessage));
 			}
+			
+			sccp_moo_t *r2;
+			REQ(r2, FeatureStatAdvancedMessage);
+			r2->msg.FeatureStatAdvancedMessage.lel_status = r->msg.FeatureStatAdvancedMessage.lel_status;
+			r2->msg.FeatureStatAdvancedMessage.lel_instance = r->msg.FeatureStatAdvancedMessage.lel_instance;
+			r2->msg.FeatureStatAdvancedMessage.lel_type = r->msg.FeatureStatAdvancedMessage.lel_type;
+			memset(r2->msg.FeatureStatAdvancedMessage.DisplayName, 0, sizeof(r2->msg.FeatureStatAdvancedMessage.DisplayName));
+			sccp_dev_send(subscriber->device, r2);
+			
 			
 			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "set display name to: \"%s\"\n", displayMessage);
 			sccp_copy_string(r->msg.FeatureStatAdvancedMessage.DisplayName, displayMessage, sizeof(r->msg.FeatureStatAdvancedMessage.DisplayName));
@@ -474,8 +464,30 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			
 			if(k)
 				ast_free(k);
+			
+			continue;
 		}
 #endif
+		
+		sccp_device_sendcallstate(subscriber->device, subscriber->instance, 0, hint->currentState, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
+		
+		/* create CallInfoMessage */
+		REQ(r, CallInfoMessage);
+
+		/* set callInfo */
+		sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, hint->callInfo.callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
+		sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, hint->callInfo.calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
+		
+		sccp_copy_string(r->msg.CallInfoMessage.callingParty, hint->callInfo.callingParty, sizeof(r->msg.CallInfoMessage.callingParty));
+		sccp_copy_string(r->msg.CallInfoMessage.calledParty, hint->callInfo.calledParty, sizeof(r->msg.CallInfoMessage.calledParty));
+
+		r->msg.CallInfoMessage.lel_lineId   = htolel(subscriber->instance);
+		r->msg.CallInfoMessage.lel_callRef  = htolel(0);
+		r->msg.CallInfoMessage.lel_callType = htolel(hint->callInfo.calltype);
+		sccp_dev_send(subscriber->device, r);
+		sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "notify device: %s@%d state: %d\n", DEV_ID_LOG(subscriber->device), subscriber->instance, hint->currentState );
+
+		
 		/*if(hint->currentState == SCCP_CHANNELSTATE_ONHOOK) {
 			sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_ONHOOK);
 		}else{
