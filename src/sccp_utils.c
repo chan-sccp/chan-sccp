@@ -400,6 +400,7 @@ sccp_line_t * sccp_line_find_realtime_byname(const char * name)
 		v = variable;
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Line '%s' found in realtime table '%s'\n", name, GLOB(realtimelinetable));
 
+		ast_log(LOG_NOTICE, "SCCP: creating realtime line '%s'\n", name);
 		l = sccp_line_create();
 		l = sccp_config_applyLineConfiguration(l, variable);
 		sccp_copy_string(l->name, name, sizeof(l->name));
