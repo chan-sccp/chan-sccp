@@ -411,6 +411,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 //	sccp_device_lock(d);
 	uint32_t speeddialInsance = 1; /* starting instance for speeddial is 1*/
 	uint32_t lineInstance = 1;
+	uint32_t serviceInstance = 1;
 	if(!d->isAnonymous){
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
@@ -447,7 +448,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI)) {
 					
 					btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
-					buttonconfig->instance = btn[i].instance = i+1;
+					buttonconfig->instance = btn[i].instance = serviceInstance++;
 					break;
 				  
 				} else if(buttonconfig->type == SPEEDDIAL 
@@ -573,7 +574,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				}else{
 					continue;
 				}
-				//sccp_log(1)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s)\n", d->id, buttonconfig->instance, "FEATURE" ,buttonconfig->button.feature.label);
+				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s)\n", d->id, buttonconfig->instance, "FEATURE" ,buttonconfig->button.feature.label);
 			}
 		  
 		}
