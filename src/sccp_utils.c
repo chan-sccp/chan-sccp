@@ -357,14 +357,14 @@ sccp_line_t * sccp_line_find_byname_wo(const char * name, uint8_t realtime)
 
 	sccp_log(98)(VERBOSE_PREFIX_3 "SCCP: Looking for line '%s'\n", name);
 
-// 	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), l, list) {
+ 	SCCP_LIST_LOCK(&GLOB(lines));
+	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
 		if(!strcasecmp(l->name, name)) {
 			break;
 		}
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
-// 	SCCP_LIST_UNLOCK(&GLOB(lines));
+ 	SCCP_LIST_UNLOCK(&GLOB(lines));
 
 #ifdef CS_SCCP_REALTIME
 	if (!l && realtime)
