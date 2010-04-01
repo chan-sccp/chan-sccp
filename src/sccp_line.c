@@ -110,6 +110,7 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t *line){
 	if(l){
 		ast_log(LOG_NOTICE, "SCCP: line '%s' was created by an other thread\n", line->name);
 		ast_free(line);
+		SCCP_LIST_UNLOCK(&GLOB(lines));
 		return l;
 	}
 	
