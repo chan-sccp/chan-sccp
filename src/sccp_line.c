@@ -92,12 +92,28 @@ sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l)
  * \since 20091202 - MC
  */
 sccp_line_t *sccp_line_addToGlobals(sccp_line_t *line){
+	sccp_line_t *l =NULL;
+  
 	if(!line){
 		ast_log(LOG_ERROR, "Adding null to global line list is not allowed!\n");
 		return NULL;
 	}
   
 	SCCP_LIST_LOCK(&GLOB(lines));
+	/* does the line created by an other thread? */
+	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
+		if(!strcasecmp(l->name, line->name)) {
+			break;
+		}
+	}
+	
+	if(l){
+		ast_log(LOG_NOTICE, "SCCP: line '%s' was created by an other thread\n", line->name);
+		ast_free(line);
+		return l;
+	}
+	
+	/* line was not created */
 	SCCP_LIST_INSERT_HEAD(&GLOB(lines), line, list);
 	SCCP_LIST_UNLOCK(&GLOB(lines));
 	sccp_log(1)(VERBOSE_PREFIX_3 "Added line '%s'\n", line->name);
