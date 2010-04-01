@@ -363,7 +363,6 @@ sccp_line_t * sccp_line_find_byname_wo(const char * name, uint8_t realtime)
 			break;
 		}
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
  	SCCP_LIST_UNLOCK(&GLOB(lines));
 
 #ifdef CS_SCCP_REALTIME
