@@ -721,7 +721,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configuring line number %d\n", d->id, lineNumber);
 		l = sccp_line_find_byid(d, lineNumber);
 
-		/* if we find no regular line - it can be a speedial with hint */
+		/* if we find no regular line - it can be a speeddial with hint */
 		if (!l)
 			k = sccp_dev_speed_find_byindex(d, lineNumber, SCCP_BUTTONTYPE_HINT);
 
@@ -768,7 +768,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 			SCCP_LIST_UNLOCK(&d->buttonconfig);
 			
 		}
-		/* remove speedial if present */
+		/* remove speeddial if present */
 		if(k){
 			sccp_log(3)(VERBOSE_PREFIX_3 "%s: line is hint for %s\n", s->device->id, k->hint);
 			ast_free(k);
@@ -881,7 +881,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		case SKINNY_BUTTONTYPE_LINE: // We got a Line Request
 			l = sccp_line_find_byid(d, instance);
 			if (!l) {
-				sccp_log(10)(VERBOSE_PREFIX_3 "%s: No line for instance %d. Looking for a speedial with hint\n", d->id, instance);
+				sccp_log(10)(VERBOSE_PREFIX_3 "%s: No line for instance %d. Looking for a speeddial with hint\n", d->id, instance);
 				k = sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT);
 				if (k)
 					sccp_handle_speeddial(d, k);
@@ -960,7 +960,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 
 		case SKINNY_BUTTONTYPE_TRANSFER:
 			if (!d->transfer) {
-				sccp_log(1)(VERBOSE_PREFIX_3 "%s: Tranfer disabled on device\n", d->id);
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer disabled on device\n", d->id);
 				break;
 			}
 			c = sccp_channel_get_active(d);

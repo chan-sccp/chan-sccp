@@ -247,7 +247,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Nat                   : %s\n", (GLOB(nat)) ? "Yes" : "No");
 	ast_cli(fd, "Direct RTP            : %s\n", (GLOB(directrtp)) ? "Yes" : "No");
 	ast_cli(fd, "Keepalive             : %d\n", GLOB(keepalive));
-	ast_cli(fd, "Debug level           : %d\n", GLOB(debug));
+	ast_cli(fd, "Debug parts           : %d\n", GLOB(debug));
 	ast_cli(fd, "Filtered Debug Level  : %d\n", GLOB(fdebug));
 	ast_cli(fd, "Date format           : %s\n", GLOB(date_format));
 	ast_cli(fd, "First digit timeout   : %d\n", GLOB(firstdigittimeout));
@@ -1336,22 +1336,29 @@ static int sccp_do_fdebug(int fd, int argc, char *argv[]) {
  * \return Result as char
  */
 static char *cli_do_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
-	if (cmd == CLI_INIT) {
+/*        int i;
+        char * parts="";*/
+        if (cmd == CLI_INIT) {
 		e->command = "sccp debug";
-		e->usage =
-			"Usage: SCCP debug <level>\n"
-			"		Set the debug level of the sccp protocol from none (0) to high (10)\n";
+		e->usage = 
+			"Usage: SCCP debug <parts>\n"
+			"		Where parts is one or more (separated by comma's) of:\n";
 		return NULL;
-	} else if (cmd == CLI_GENERATE)
+	} else if (cmd == CLI_GENERATE) {
+/*                for (i=0; i<ARRAY_LEN(sccp_verbose_levels); i++) {
+                        strcat(parts,sccp_verbose_levels[i].short_name);
+                        strcat(parts,",");
+                }
+		return parts;*/
 		return NULL;
-
+        }
 	if (a->argc != 3)
 		return CLI_SHOWUSAGE;
 
 	if(sccp_do_debug(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
 		return CLI_SUCCESS;
 	else
-		return CLI_FAILURE;
+	return CLI_FAILURE;
 }
 
 #else
@@ -1656,8 +1663,10 @@ static char *cli_show_mwi_subscriptions(struct ast_cli_entry *e, int cmd, struct
 	if (a->argc != 3)
 		return CLI_SHOWUSAGE;
 
+        /*
 	sccp_mailbox_subscriber_list_t *subscription = NULL;
 	sccp_mailboxLine_t	*mailboxLine = NULL;
+	*/
 	
 	//TODO display mailbox subscriptions
 	/*

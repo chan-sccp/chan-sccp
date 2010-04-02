@@ -780,7 +780,7 @@ static const struct skinny_stimulus {
 #define SKINNY_BUTTONTYPE_AEC			0xFd
 #define SKINNY_BUTTONTYPE_UNDEFINED 		0xFF
 
-/* this is not a skinny button type. Used for speedial/line buttons */
+/* this is not a skinny button type. Used for speeddial/line buttons */
 #define SCCP_BUTTONTYPE_MULTI			0xF1
 #define SCCP_BUTTONTYPE_LINE			0xF2
 #define SCCP_BUTTONTYPE_SPEEDDIAL		0xF3
