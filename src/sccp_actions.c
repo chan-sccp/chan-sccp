@@ -415,16 +415,16 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 	if(!d->isAnonymous){
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-			sccp_log(11)(VERBOSE_PREFIX_3 "%s: searching for position for button type %d\n", DEV_ID_LOG(d), buttonconfig->type);
+			sccp_log((SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: searching for position for button type %d\n", DEV_ID_LOG(d), buttonconfig->type);
 			if(buttonconfig->instance > 0)
 				continue;
 			
 			if(buttonconfig->type == LINE){
-				sccp_log(11)(VERBOSE_PREFIX_3 "%s: searching for line position for line '%s'\n", DEV_ID_LOG(d), buttonconfig->button.line.name);
+				sccp_log((SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: searching for line position for line '%s'\n", DEV_ID_LOG(d), buttonconfig->button.line.name);
 			}
 		  
 			for (i = 0; i < StationMaxButtonTemplateSize ; i++) {
-				sccp_log(11)(VERBOSE_PREFIX_3 "%s: btn[%.2d].type = %d\n", DEV_ID_LOG(d), i, btn[i].type);
+				sccp_log((SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: btn[%.2d].type = %d\n", DEV_ID_LOG(d), i, btn[i].type);
 				
 				if(buttonconfig->type == LINE 
 				    && sccp_is_nonempty_string(buttonconfig->button.line.name)
@@ -434,7 +434,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 
 					buttonconfig->instance = btn[i].instance = lineInstance++;
 
-					sccp_log(11)(VERBOSE_PREFIX_3 "%s: add line %s on position %d\n", DEV_ID_LOG(d), buttonconfig->button.line.name, buttonconfig->instance);
+					sccp_log((SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: add line %s on position %d\n", DEV_ID_LOG(d), buttonconfig->button.line.name, buttonconfig->instance);
 					break;
 					
 				}else if(buttonconfig->type == EMPTY
@@ -1175,7 +1175,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r)
 	} else {
 		/* use default line if it is set */
 		if(d && d->defaultLineInstance > 0){
-			sccp_log(64)(VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
+			sccp_log((SCCP_VERBOSE_LEVEL_LINE & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
 			l = sccp_line_find_byid(d, d->defaultLineInstance);
 		}else{
 			l = sccp_dev_get_activeline(d);

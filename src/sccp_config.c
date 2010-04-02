@@ -926,9 +926,9 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
                         buttonOption = strsep(&splitter, ",");
                         buttonArgs = splitter;
 
-                        sccp_log(99)(VERBOSE_PREFIX_3 "ButtonType: %s\n", buttonType);
-                        sccp_log(99)(VERBOSE_PREFIX_3 "ButtonName: %s\n", buttonName);
-                        sccp_log(99)(VERBOSE_PREFIX_3 "ButtonOption: %s\n", buttonOption);
+                        sccp_log((SCCP_VERBOSE_LEVEL_CONFIG & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_3 "ButtonType: %s\n", buttonType);
+                        sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_3 "ButtonName: %s\n", buttonName);
+                        sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_3 "ButtonOption: %s\n", buttonOption);
 
                         if (!strcasecmp(buttonType, "line") && buttonName) {
                                 if (!buttonName)

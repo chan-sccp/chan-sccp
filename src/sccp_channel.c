@@ -1294,7 +1294,7 @@ int sccp_channel_hold(sccp_channel_t * c)
 	}
 
 
-	sccp_log(64)(VERBOSE_PREFIX_3 "C partyID: %u state: %d\n",c->passthrupartyid, c->state);
+	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_3 "C partyID: %u state: %d\n",c->passthrupartyid, c->state);
 
 	return 1;
 }
@@ -1429,7 +1429,7 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
 	}
 
 
-	sccp_log(64)(VERBOSE_PREFIX_3 "C partyID: %u state: %d\n",c->passthrupartyid, c->state);
+	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_3 "C partyID: %u state: %d\n",c->passthrupartyid, c->state);
 	return 1;
 }
 
@@ -1509,7 +1509,7 @@ void sccp_channel_delete_wo(sccp_channel_t * c, uint8_t list_lock, uint8_t chann
 		return;
 
 	while(channel_lock && sccp_channel_trylock(c)) {
-		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		usleep(200);
 	}
 
