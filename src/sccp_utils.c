@@ -211,7 +211,7 @@ int sccp_addons_taps(sccp_device_t * d)
 			taps += 14;
 		if(cur->type == SKINNY_DEVICETYPE_CISCO7915 || cur->type == SKINNY_DEVICETYPE_CISCO7916)
 			taps += 24;
-		sccp_log(22)(VERBOSE_PREFIX_3 "%s: Found (%d) taps on device addon (%d)\n", (d->id?d->id:"SCCP"), taps, cur->type);
+		sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Found (%d) taps on device addon (%d)\n", (d->id?d->id:"SCCP"), taps, cur->type);
 	}
 	SCCP_LIST_UNLOCK(&d->addons);
 
@@ -355,7 +355,7 @@ sccp_line_t * sccp_line_find_byname_wo(const char * name, uint8_t realtime)
 {
 	sccp_line_t * l = NULL;
 
-	sccp_log(98)(VERBOSE_PREFIX_3 "SCCP: Looking for line '%s'\n", name);
+	sccp_log(SCCP_VERBOSE_LEVEL_LINE)(VERBOSE_PREFIX_3 "SCCP: Looking for line '%s'\n", name);
 
  	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {

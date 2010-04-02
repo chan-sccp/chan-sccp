@@ -42,12 +42,12 @@ int __sccp_mutex_unlock(ast_mutex_t *p_mutex, const char *itemnametolock, const 
 #ifdef CS_LOCKS_DEBUG_ALL
 
         if (strncasecmp(filename, "sccp_socket.c", 13))
-                sccp_log(99)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Unlocking %s\n", filename, lineno, func, itemnametolock);
+                sccp_log((SCCP_VERBOSE_LEVEL_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Unlocking %s\n", filename, lineno, func, itemnametolock);
 
 #endif
 
         if (!p_mutex) {
-                sccp_log(99)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Unlocking non-existing mutex\n", filename, lineno, func);
+                sccp_log((SCCP_VERBOSE_LEVEL_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Unlocking non-existing mutex\n", filename, lineno, func);
                 return 0;
         }
 
@@ -71,7 +71,7 @@ int __sccp_mutex_unlock(ast_mutex_t *p_mutex, const char *itemnametolock, const 
 #endif
 
                 if (strncasecmp(filename, "sccp_socket", 11)) {
-                        sccp_log(99)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s now have %d locks (recursive)\n", filename, lineno, func, itemnametolock, count);
+                        sccp_log((SCCP_VERBOSE_LEVEL_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s now have %d locks (recursive)\n", filename, lineno, func, itemnametolock, count);
                 }
         }
 
@@ -81,18 +81,18 @@ int __sccp_mutex_unlock(ast_mutex_t *p_mutex, const char *itemnametolock, const 
 #ifdef CS_LOCKS_DEBUG_ALL
         if (!res) {
                 if (strncasecmp(filename, "sccp_socket.c", 13))
-                        sccp_log(99)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s was unlocked\n", filename, lineno, func, itemnametolock);
+                        sccp_log((SCCP_VERBOSE_LEVEL_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s was unlocked\n", filename, lineno, func, itemnametolock);
         }
 
 #endif
 
         if (res == EINVAL) {
-                sccp_log(99)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s had no lock by this thread. Failed unlocking\n", filename, lineno, func, itemnametolock);
+                sccp_log((SCCP_VERBOSE_LEVEL_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s had no lock by this thread. Failed unlocking\n", filename, lineno, func, itemnametolock);
         }
 
         if (res == EPERM) {
                 /* We had no lock, so okay any way*/
-                sccp_log(99)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s was not locked at all \n", filename, lineno, func, itemnametolock);
+                sccp_log((SCCP_VERBOSE_LEVEL_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s was not locked at all \n", filename, lineno, func, itemnametolock);
                 res = 0;
         }
 
@@ -114,7 +114,7 @@ int __sccp_mutex_lock(ast_mutex_t *p_mutex, const char *itemnametolock, const ch
 #ifdef CS_LOCKS_DEBUG_ALL
 
         if (strncasecmp(filename, "sccp_socket.c", 13))
-                sccp_log(99)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Locking %s\n", filename, lineno, func, itemnametolock);
+                sccp_log((SCCP_VERBOSE_LEVEL_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Locking %s\n", filename, lineno, func, itemnametolock);
 
 #endif
 
@@ -138,7 +138,7 @@ int __sccp_mutex_lock(ast_mutex_t *p_mutex, const char *itemnametolock, const ch
 #endif
 
                 if (strncasecmp(filename, "sccp_socket", 11)) {
-                        sccp_log(99)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s now have %d locks (recursive)\n", filename, lineno, func, itemnametolock, count);
+                        sccp_log((SCCP_VERBOSE_LEVEL_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s now have %d locks (recursive)\n", filename, lineno, func, itemnametolock, count);
                 }
         }
 
@@ -148,18 +148,18 @@ int __sccp_mutex_lock(ast_mutex_t *p_mutex, const char *itemnametolock, const ch
 #ifdef CS_LOCKS_DEBUG_ALL
         if (!res) {
                 if (strncasecmp(filename, "sccp_socket.c", 13))
-                        sccp_log(99)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s was locked\n", filename, lineno, func, itemnametolock);
+                        sccp_log((SCCP_VERBOSE_LEVEL_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s was locked\n", filename, lineno, func, itemnametolock);
         }
 
 #endif
 
         if (res == EDEADLK) {
                 /* We had no lock, so okey any way */
-                sccp_log(99)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s was not locked by us. Lock would cause deadlock.\n", filename, lineno, func, itemnametolock);
+                sccp_log((SCCP_VERBOSE_LEVEL_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s was not locked by us. Lock would cause deadlock.\n", filename, lineno, func, itemnametolock);
         }
 
         if (res == EINVAL) {
-                sccp_log(99)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s lock failed. No mutex.\n", filename, lineno, func, itemnametolock);
+                sccp_log((SCCP_VERBOSE_LEVEL_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s lock failed. No mutex.\n", filename, lineno, func, itemnametolock);
         }
 
         return res;
@@ -181,7 +181,7 @@ int __sccp_mutex_trylock(ast_mutex_t *p_mutex, const char *itemnametolock, const
 #ifdef CS_LOCKS_DEBUG_ALL
 
         if (strncasecmp(filename, "sccp_socket.c", 13))
-                sccp_log(99)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Trying to lock %s\n", filename, lineno, func, itemnametolock);
+                sccp_log((SCCP_VERBOSE_LEVEL_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Trying to lock %s\n", filename, lineno, func, itemnametolock);
 
 #endif
 
@@ -205,7 +205,7 @@ int __sccp_mutex_trylock(ast_mutex_t *p_mutex, const char *itemnametolock, const
 #endif
 
                 if (strncasecmp(filename, "sccp_socket", 11)) {
-                        sccp_log(99)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s now have %d locks (recursive)\n", filename, lineno, func, itemnametolock, count);
+                        sccp_log((SCCP_VERBOSE_LEVEL_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s now have %d locks (recursive)\n", filename, lineno, func, itemnametolock, count);
                 }
         }
 
@@ -215,23 +215,23 @@ int __sccp_mutex_trylock(ast_mutex_t *p_mutex, const char *itemnametolock, const
 #ifdef CS_LOCKS_DEBUG_ALL
         if (!res) {
                 if (strncasecmp(filename, "sccp_socket", 11))
-                        sccp_log(99)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s was locked\n", filename, lineno, func, itemnametolock);
+                        sccp_log((SCCP_VERBOSE_LEVEL_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s was locked\n", filename, lineno, func, itemnametolock);
         }
 
 #endif
 
         if (res == EBUSY) {
                 /* We failed to lock */
-                sccp_log(99)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s failed to lock. Not waiting around...\n", filename, lineno, func, itemnametolock);
+                sccp_log((SCCP_VERBOSE_LEVEL_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s failed to lock. Not waiting around...\n", filename, lineno, func, itemnametolock);
         }
 
         if (res == EDEADLK) {
                 /* We had no lock, so okey any way*/
-                sccp_log(99)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s was not locked. Lock would cause deadlock.\n", filename, lineno, func, itemnametolock);
+                sccp_log((SCCP_VERBOSE_LEVEL_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s was not locked. Lock would cause deadlock.\n", filename, lineno, func, itemnametolock);
         }
 
         if (res == EINVAL)
-                sccp_log(99)(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s lock failed. No mutex.\n", filename, lineno, func, itemnametolock);
+                sccp_log((SCCP_VERBOSE_LEVEL_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s lock failed. No mutex.\n", filename, lineno, func, itemnametolock);
 
         return res;
 }

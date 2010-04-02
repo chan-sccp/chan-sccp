@@ -165,7 +165,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		if (l->dndmode == SCCP_DNDMODE_REJECT || (l->dndmode == SCCP_DNDMODE_USERDEFINED && l->dnd == SCCP_DNDMODE_REJECT )) {
 			ringermode = pbx_builtin_getvar_helper(ast, "ALERT_INFO");
 			if ( ringermode && !ast_strlen_zero(ringermode) ) {
-				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found ALERT_INFO=%s\n", d->id, ringermode);
+				sccp_log((SCCP_VERBOSE_LEVEL_PBX))(VERBOSE_PREFIX_3 "%s: Found ALERT_INFO=%s\n", d->id, ringermode);
 				if (strcasecmp(ringermode, "urgent") == 0)
 					c->ringermode = SKINNY_STATION_URGENTRING;
 			} else {
@@ -433,7 +433,7 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 
 
 	while (c && sccp_channel_trylock(c)) {
-		sccp_log(64)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		sccp_log((SCCP_VERBOSE_LEVEL_PBX & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		ast_log(LOG_DEBUG, "SCCP: Waiting to lock the channel %s for hangup\n", ast->name);
 		usleep(200);
 		//c = CS_AST_CHANNEL_PVT(ast);
@@ -441,7 +441,7 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 	}
 
 	if (!c) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Asked to hangup channel %s. SCCP channel already deleted\n", ast->name);
+		sccp_log((SCCP_VERBOSE_LEVEL_PBX & SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Asked to hangup channel %s. SCCP channel already deleted\n", ast->name);
 		sccp_pbx_needcheckringback(d);
 		return 0;
 	}
@@ -484,7 +484,7 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 	sccp_line_unlock(c->line);
 
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Current channel %s-%08x state %s(%d)\n", (d)?DEV_ID_LOG(d):"(null)", l ? l->name : "(null)", c->callid, sccp_indicate2str(c->state), c->state);
+	sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Current channel %s-%08x state %s(%d)\n", (d)?DEV_ID_LOG(d):"(null)", l ? l->name : "(null)", c->callid, sccp_indicate2str(c->state), c->state);
 
 
 	/* end callforwards */
@@ -580,7 +580,7 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 
 	if( c->parentChannel){
 		/* we are a forwarded call, bridge me with my parent */
-		sccp_log(10)(VERBOSE_PREFIX_4 "SCCP: bridge me with my parent, device %s\n", DEV_ID_LOG(c->device));
+		sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_4 "SCCP: bridge me with my parent, device %s\n", DEV_ID_LOG(c->device));
 
 		struct ast_channel	*astChannel = NULL, *br = NULL, *astForwardedChannel = c->parentChannel->owner;
 
@@ -592,8 +592,8 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 		const char *bridgePeer = pbx_builtin_getvar_helper(c->owner, "BRIDGEPEER");
 		if(bridgePeer){
 			while ((astChannel = ast_channel_walk_locked(astChannel)) != NULL) {
-				sccp_log(99)(VERBOSE_PREFIX_4 "(sccp_pbx_answer) searching for channel on %s\n", bridgePeer);
-				sccp_log(99)(VERBOSE_PREFIX_4 "(sccp_pbx_answer) asterisk channels %s\n", astChannel->name);
+				sccp_log((SCCP_VERBOSE_LEVEL_PBX & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_4 "(sccp_pbx_answer) searching for channel on %s\n", bridgePeer);
+				sccp_log((SCCP_VERBOSE_LEVEL_PBX & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_4 "(sccp_pbx_answer) asterisk channels %s\n", astChannel->name);
 				if(strlen(astChannel->name) == strlen(bridgePeer) && !strncmp(astChannel->name, bridgePeer, strlen( astChannel->name ))){
 					ast_channel_unlock(astChannel);
 					br = astChannel;
@@ -738,7 +738,7 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 						return -1;
 					} else {
 						// frame->samples == 0  when frame_src is ast_prod
-						sccp_log(10)(VERBOSE_PREFIX_3 "%s: Asterisk prodded channel %s.\n", DEV_ID_LOG(c->device), ast->name);
+						sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Asterisk prodded channel %s.\n", DEV_ID_LOG(c->device), ast->name);
 					}
 				} else if (!(frame->subclass & ast->nativeformats)) {
 					char s1[512], s2[512], s3[512];
@@ -880,7 +880,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			return -1;
 
 	sccp_channel_lock(c);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Asterisk indicate '%d' (%s) condition on channel %s\n", DEV_ID_LOG(c->device), ind, sccp_control2str(ind), ast->name);
+	sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_INDICATE))(VERBOSE_PREFIX_3 "%s: Asterisk indicate '%d' (%s) condition on channel %s\n", DEV_ID_LOG(c->device), ind, sccp_control2str(ind), ast->name);
 
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
 	if (c->rtp.audio)
@@ -911,7 +911,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 #ifdef CS_AST_CONTROL_SRCUPDATE
     case AST_CONTROL_SRCUPDATE:
         /* Source media has changed. */
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
+		sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
 
 		/* change our format */
 		char s1[512], s2[512];
@@ -955,7 +955,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 #ifdef CS_AST_RTP_NEW_SOURCE
         if(c->rtp.audio) {
 		ast_rtp_new_source(c->rtp.audio);
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
+		sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
 	}
 #endif
         break;
@@ -1207,8 +1207,8 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	memset(&cidtmp, 0, sizeof(cidtmp));
 #endif
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: try to allocate channel \n");
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Line: %s\n", l->name);
+	sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: try to allocate channel \n");
+	sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Line: %s\n", l->name);
 
 	if (!l) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Unable to allocate asterisk channel %s\n", l->name);
@@ -1252,13 +1252,13 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 #ifdef ASTERISK_CONF_1_2
 	tmp = ast_channel_alloc(1);
 #else
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:     cid_num: \"%s\"\n", c->callingPartyNumber);
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:    cid_name: \"%s\"\n", c->callingPartyName);
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: accountcode: \"%s\"\n", l->accountcode);
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:       exten: \"%s\"\n", c->dialedNumber);
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:     context: \"%s\"\n", l->context);
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:    amaflags: \"%d\"\n", l->amaflags);
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP:   chan/call: \"%s-%08x\"\n", l->name, c->callid);
+	sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP:     cid_num: \"%s\"\n", c->callingPartyNumber);
+	sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP:    cid_name: \"%s\"\n", c->callingPartyName);
+	sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: accountcode: \"%s\"\n", l->accountcode);
+	sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP:       exten: \"%s\"\n", c->dialedNumber);
+	sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP:     context: \"%s\"\n", l->context);
+	sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP:    amaflags: \"%d\"\n", l->amaflags);
+	sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP:   chan/call: \"%s-%08x\"\n", l->name, c->callid);
 
 	
 	
@@ -1281,7 +1281,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	c->owner = tmp;
 //	sccp_channel_unlock(c);
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Global Capabilities: %d\n", l->id, GLOB(global_capability));
+	sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Global Capabilities: %d\n", l->id, GLOB(global_capability));
 
 //	sccp_line_lock(l);
 //	sccp_device_lock(d);
@@ -1289,12 +1289,12 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	//TODO check locking
 
 	while(sccp_line_trylock(l)) {
-		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		sccp_log((SCCP_VERBOSE_LEVEL_PBX & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		usleep(1);
 	}
 //
 //	while(sccp_device_trylock(d)) {
-//		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+//		sccp_log((SCCP_VERBOSE_LEVEL_PBX & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 //		sccp_line_unlock(l);
 //		usleep(1);
 //		sccp_line_lock(l);
@@ -1428,7 +1428,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 #endif
 	tmp->priority = 1;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%08x\n", (l)?l->id:"(null)", (l)?l->name:"(null)", (c)?c->callid:-1);
+	sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%08x\n", (l)?l->id:"(null)", (l)?l->name:"(null)", (c)?c->callid:-1);
 
 	return 1;
 }
@@ -1687,15 +1687,15 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 
 	/* set private variable */
 	if (chan && !ast_check_hangup(chan)) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: set variable SKINNY_PRIVATE to: %s\n", c->privacy ? "1" : "0");
+		sccp_log((SCCP_VERBOSE_LEVEL_PBX))(VERBOSE_PREFIX_3 "SCCP: set variable SKINNY_PRIVATE to: %s\n", c->privacy ? "1" : "0");
 
 		uint32_t result = d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
 		result |= c->privacy;
 		if(d->privacyFeature.enabled && result ){
-			sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: set variable SKINNY_PRIVATE to: %s\n", "1");
+			sccp_log((SCCP_VERBOSE_LEVEL_PBX))(VERBOSE_PREFIX_3 "SCCP: set variable SKINNY_PRIVATE to: %s\n", "1");
 			pbx_builtin_setvar_helper(chan, "SKINNY_PRIVATE", "1");
 		}else{
-			sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: set variable SKINNY_PRIVATE to: %s\n", "0");
+			sccp_log((SCCP_VERBOSE_LEVEL_PBX))(VERBOSE_PREFIX_3 "SCCP: set variable SKINNY_PRIVATE to: %s\n", "0");
 			pbx_builtin_setvar_helper(chan, "SKINNY_PRIVATE", "0");
 		}
 	}
@@ -1734,7 +1734,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 	if (!ast_strlen_zero(shortenedNumber) && !ast_check_hangup(chan)
 			&& ast_exists_extension(chan, chan->context, shortenedNumber, 1, l->cid_num) ) {
 		/* found an extension, let's dial it */
-		sccp_log(10)(VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x is dialing number %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
+		sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x is dialing number %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 		/* Answer dialplan command works only when in RINGING OR RING ast_state */
 		sccp_ast_setstate(c, AST_STATE_RING);
 		if (ast_pbx_start(chan)) {
@@ -1752,7 +1752,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 	}
 	sccp_channel_unlock(c);
 
-	sccp_log(10)(VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) quit\n", DEV_ID_LOG(d));
+	sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) quit\n", DEV_ID_LOG(d));
 
 	return NULL;
 }
@@ -1781,7 +1781,7 @@ void sccp_pbx_senddigit(sccp_channel_t * c, char digit) {
 void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 	int i;
 	struct ast_frame f = { AST_FRAME_DTMF, 0};
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending digits %s\n", DEV_ID_LOG(c->device), digits);
+	sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Sending digits %s\n", DEV_ID_LOG(c->device), digits);
 	// We don't just call sccp_pbx_senddigit due to potential overhead, and issues with locking
 	f.src = "SCCP";
 	f.offset = 0;
@@ -1795,7 +1795,7 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 //	sccp_channel_lock(c);
 	for (i = 0; digits[i] != '\0'; i++) {
 		f.subclass = digits[i];
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending digit %c\n", DEV_ID_LOG(c->device), digits[i]);
+		sccp_log((SCCP_VERBOSE_LEVEL_PBX | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Sending digit %c\n", DEV_ID_LOG(c->device), digits[i]);
 		sccp_queue_frame(c, &f);
 	}
 //	sccp_channel_unlock(c);
