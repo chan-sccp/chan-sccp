@@ -329,8 +329,8 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 	pickupexten = strdup(exten);
 
 	while ((target = ast_channel_walk_locked(target))) {
-		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
-		sccp_log(73)(VERBOSE_PREFIX_3 "SCCP: (directpickup)\n"
+		sccp_log((SCCP_VERBOSE_LEVEL_FEATURE & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		sccp_log((SCCP_VERBOSE_LEVEL_FEATURE & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_3 "SCCP: (directpickup)\n"
 					 "--------------------------------------------\n"
 					 "(pickup target)\n"
 					 "exten         = %s\n"
@@ -501,7 +501,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
 	}
 
 	while ((target = ast_channel_walk_locked(target))) {
-		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		sccp_log((SCCP_VERBOSE_LEVEL_FEATURE & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		if ((l->pickupgroup & target->callgroup) &&
 		    (!target->pbx && (target->_state == AST_STATE_RINGING || target->_state == AST_STATE_RING))) {
 

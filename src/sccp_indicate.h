@@ -19,11 +19,11 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 
 #define __sccp_indicate_lock(w, x, y, z) \
 		while(x && sccp_channel_trylock(x)) { \
-			sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__); \
+			sccp_log((SCCP_VERBOSE_LEVEL_INDICATE & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__); \
 			usleep(200);  } \
 		if (x) { \
 			if (z) \
-				sccp_log(93)(VERBOSE_PREFIX_1 "SCCP: [INDICATE] mode '%s' in file '%s', on line %d (%s)\n", "LOCK", __FILE__, __LINE__, __PRETTY_FUNCTION__); \
+				sccp_log((SCCP_VERBOSE_LEVEL_INDICATE & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_1 "SCCP: [INDICATE] mode '%s' in file '%s', on line %d (%s)\n", "LOCK", __FILE__, __LINE__, __PRETTY_FUNCTION__); \
 			__sccp_indicate_nolock(w, x, y, 0, NULL, 0, NULL); \
 			sccp_channel_unlock(x); \
 		} else { \

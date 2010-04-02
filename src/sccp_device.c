@@ -443,7 +443,7 @@ void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
 	int retry = 0;
 	while(sccp_device_trylock(d)) {
 		retry++;
-		sccp_log(99)(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s), retry: %d\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__, retry);
+		sccp_log((SCCP_VERBOSE_LEVEL_DEVICE & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s), retry: %d\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__, retry);
 		usleep(100);
 		
 		if(retry > 100){
@@ -928,7 +928,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	/* check for forward to display */
 	res = 0;
 //	while(SCCP_LIST_TRYLOCK(&d->lines)) {
-//		sccp_log(65)(VERBOSE_PREFIX_3 "[SCCP LOOP] %s in file %s, line %d (%s)\n", d->id ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+//		sccp_log((SCCP_VERBOSE_LEVEL_DEVICE & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_3 "[SCCP LOOP] %s in file %s, line %d (%s)\n", d->id ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 //		usleep(5);
 //	}
 
@@ -988,7 +988,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	}
 	/* when we are here, there's nothing to display */
 OUT:
-	sccp_log(99)(VERBOSE_PREFIX_3 "%s: \n", d->id);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_3 "%s: Finish DisplayPrompt\n", d->id);
 }
 
 /*!
@@ -1341,7 +1341,7 @@ sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t ins
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: searching for service with instance %d\n", d->id, instance);
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		sccp_log(99)(VERBOSE_PREFIX_3 "%s: instance: %d buttontype: %d\n", d->id, config->instance, config->type);
+		sccp_log(((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE) & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_3 "%s: instance: %d buttontype: %d\n", d->id, config->instance, config->type);
 
 		if(config->type == SERVICE && config->instance == instance){
 			service = ast_malloc(sizeof(sccp_service_t));
