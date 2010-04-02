@@ -902,7 +902,7 @@ struct sccp_global_vars {
 
         struct					ast_codec_pref global_codecs;		/*!< Global Asterisk Codecs */
         int					keepalive;				/*!< KeepAlive */
-        int					debug;					/*!< Debug */
+        uint32_t				debug;					/*!< Debug */
         int					fdebug;					/*!< FDebug */
         char 					date_format[7];				/*!< Date Format */
 
