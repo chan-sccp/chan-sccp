@@ -1283,6 +1283,44 @@ static struct ast_cli_entry cli_system_message = {
 };
 #endif
 
+#ifdef CS_NEW_AST_CLI
+/*!
+ * \brief Complete Debug
+ * \param line Line as char
+ * \param word Word as char
+ * \param pos Pos as int
+ * \param state State as int
+ * \return Result as char
+ */
+static char * sccp_complete_debug(const char *line, const char *word, int pos, int state)
+{
+#else
+/*!
+ * \brief Complete Debug
+ * \param line Line as char
+ * \param word Word as char
+ * \param pos Pos as int
+ * \param state State as int
+ * \return Result as char
+ */
+static char * sccp_complete_debug(char *line, char *word, int pos, int state) {
+#endif
+	int i;
+	int which = 0;
+	char * ret;
+
+	if (pos > 3)
+	return NULL;
+
+	for (i=0; i<ARRAY_LEN(sccp_verbose_levels); i++) {
+		if (!strncasecmp(word, sccp_verbose_levels[i].short_name, strlen(word))) {
+			if (++which > state)
+			        ret = strdup(sccp_verbose_levels[i].short_name);
+				break;
+		}
+	}
+	return ret;
+}
 /* ------------------------------------------------------------ */
 /*!
  * \brief Do Debug
@@ -1299,35 +1337,38 @@ static int sccp_do_debug(int fd, int argc, char *argv[]) {
         const char delimiters[] = ",";
         boolean_t subtract=0;
 
-	if ((argc < 2) || (argc > 4))
+	if ((argc < 3) || (argc > 4))
 		return RESULT_SHOWUSAGE;
 
 	if (argc == 3 || argc == 4) {
-	        debug_val=argv[2];
-	        if (strcasecmp(argv[2],"no")==0) {
-	          debug_val=argv[3];
-	          subtract=1;
-	        }
-                // parse comma separated debug_var
-                token=strtok(debug_val,delimiters);
-                while (token!=NULL) {
-                        // match debug level name to enum
-                        for (i=0; i<ARRAY_LEN(sccp_verbose_levels); i++) {
-                                if(strcasecmp(token,sccp_verbose_levels[i].short_name)==0) {
-                                        if (subtract) {
-                                                // Bitwise AND Comparison to check if already exists
-                                                if ((new_debug & sccp_verbose_levels[i].level) == sccp_verbose_levels[i].level) {
-                                                        new_debug -= sccp_verbose_levels[i].level;
-                                                }
-                                        } else {
-                                                // Bitwise AND Comparison to check if not already exists
-                                                if ((new_debug & sccp_verbose_levels[i].level) != sccp_verbose_levels[i].level) {
-                                                        new_debug += sccp_verbose_levels[i].level;
+	        // if number then parse number otherwise parse text
+		if (sscanf(argv[2], "%d", &new_debug) != 1) {
+                        debug_val=argv[2];
+                        if (strcasecmp(argv[2],"no")==0) {
+                          debug_val=argv[3];
+                          subtract=1;
+                        }
+                        // parse comma separated debug_var
+                        token=strtok(debug_val,delimiters);
+                        while (token!=NULL) {
+                                // match debug level name to enum
+                                for (i=0; i<ARRAY_LEN(sccp_verbose_levels); i++) {
+                                        if(strcasecmp(token,sccp_verbose_levels[i].short_name)==0) {
+                                                if (subtract) {
+                                                        // Bitwise AND Comparison to check if already exists
+                                                        if ((new_debug & sccp_verbose_levels[i].level) == sccp_verbose_levels[i].level) {
+                                                                new_debug -= sccp_verbose_levels[i].level;
+                                                        }
+                                                } else {
+                                                        // Bitwise AND Comparison to check if not already exists
+                                                        if ((new_debug & sccp_verbose_levels[i].level) != sccp_verbose_levels[i].level) {
+                                                                new_debug += sccp_verbose_levels[i].level;
+                                                        }
                                                 }
                                         }
                                 }
+                                token=strtok(NULL,delimiters);
                         }
-                        token=strtok(NULL,delimiters);
                 }
 	}
 	ast_cli(fd, "SCCP new debug status: ");
@@ -1359,6 +1400,7 @@ static int sccp_do_fdebug(int fd, int argc, char *argv[]) {
 	return RESULT_SUCCESS;
 }
 
+
 #ifdef ASTERISK_CONF_1_6
 /*!
  * \brief Cli Do Debug
@@ -1368,23 +1410,20 @@ static int sccp_do_fdebug(int fd, int argc, char *argv[]) {
  * \return Result as char
  */
 static char *cli_do_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
-/*        int i;
-        char * parts="";*/
         if (cmd == CLI_INIT) {
 		e->command = "sccp debug";
 		e->usage = 
-			"Usage: SCCP debug <parts>\n"
-			"		Where parts is one or more (separated by comma's) of:\n";
+			"Usage: SCCP debug [no] <level or parts>\n"
+			"		Where parts is one or more (separated by comma's) of:\n"
+			"		core, sccp, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey,\n"
+			"		indicate, pbx, socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime,\n"
+			"		lock, newcode, high\n";
 		return NULL;
 	} else if (cmd == CLI_GENERATE) {
-/*                for (i=0; i<ARRAY_LEN(sccp_verbose_levels); i++) {
-                        strcat(parts,sccp_verbose_levels[i].short_name);
-                        strcat(parts,",");
-                }
-		return parts;*/
-		return NULL;
+                return sccp_complete_debug(a->line, a->word, a->pos, a->n);
+
         }
-	if ((a->argc < 2) || (a->argc > 4))
+	if ((a->argc < 3) || (a->argc > 4))
 		return CLI_SHOWUSAGE;
 
 	if(sccp_do_debug(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
@@ -1392,7 +1431,6 @@ static char *cli_do_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args 
 	else
 	return CLI_FAILURE;
 }
-
 #else
 /*!
  * \brief CLI Enable Debug
@@ -1403,8 +1441,11 @@ static struct ast_cli_entry cli_do_debug = {
   { "sccp", "debug", NULL },
   sccp_do_debug,
   "Enable SCCP debugging",
-  "Usage: SCCP debug <level>\n"
-  "		Set the debug level of the sccp protocol from none (0) to high (10)\n"
+  "Usage: SCCP debug [no] <level or parts>\n"
+  "		Where parts is one or more (separated by comma's) of:\n"
+  "		core, sccp, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey,\n"
+  "		indicate, pbx, socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime,\n"
+  "		lock, newcode, high\n";
 };
 #endif
 
