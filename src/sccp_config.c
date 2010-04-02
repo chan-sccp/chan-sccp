@@ -156,7 +156,7 @@ void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID,
 	}else{
 		config->type = FEATURE;
 		sccp_copy_string(config->button.feature.label, ast_strip(label), sizeof(config->button.feature.label));
-		sccp_log(10)(VERBOSE_PREFIX_3 "featureID: %s\n", featureID);
+		sccp_log((SCCP_VERBOSE_LEVEL_FEATURE|SCCP_VERBOSE_LEVEL_FEATURE_BUTTON | SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "featureID: %s\n", featureID);
 		config->button.feature.id = sccp_featureStr2featureID(featureID);
 
 		if(args)
@@ -776,7 +776,7 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
                         mailbox->context = ast_strdup(context);
 
                         SCCP_LIST_INSERT_TAIL(&l->mailboxes, mailbox, list);
-                        sccp_log(10)(VERBOSE_PREFIX_3 "%s: Added mailbox '%s@%s'\n", l->name, mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
+                        sccp_log(SCCP_VERBOSE_LEVEL_CONFIG)(VERBOSE_PREFIX_3 "%s: Added mailbox '%s@%s'\n", l->name, mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
                 } else if (!strcasecmp(v->name, "vmnum")) {
                         sccp_copy_string(l->vmnum, v->value, sizeof(l->vmnum));
 		} else if (!strcasecmp(v->name, "adhocNumber")) {
@@ -846,7 +846,7 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
                         newvar = sccp_create_variable(v->value);
 
                         if (newvar) {
-                                sccp_log(10)(VERBOSE_PREFIX_3 "Add new channelvariable to line %s. Value is: %s \n",newvar->name ,newvar->value);
+                                sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_CONFIG | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "Add new channelvariable to line %s. Value is: %s \n",newvar->name ,newvar->value);
                                 newvar->next = l->variables;
                                 l->variables = newvar;
                         }
@@ -895,7 +895,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 	char 			family[25];
 
         if (!v) {
-                sccp_log(10)(VERBOSE_PREFIX_3 "no variable given\n");
+                sccp_log((SCCP_VERBOSE_LEVEL_CONFIG | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "no variable given\n");
                 return d;
         }
 
@@ -1041,7 +1041,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
                         newvar = sccp_create_variable(v->value);
 
                         if (newvar) {
-                                sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Add new channelvariable to line %s. Value is: %s \n",newvar->name ,newvar->value);
+                                sccp_log((SCCP_VERBOSE_LEVEL_CONFIG | SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "SCCP: Add new channelvariable to line %s. Value is: %s \n",newvar->name ,newvar->value);
                                 newvar->next = d->variables;
                                 d->variables = newvar;
                         }
@@ -1109,7 +1109,7 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
 	sccp_softKeySetConfiguration_t 	*softKeySetConfiguration = NULL;
 	int 			keyMode = -1;
 	int 			i=0;
-	sccp_log(10)(VERBOSE_PREFIX_3 "start reading softkeyset: %s\n", name);
+	sccp_log((SCCP_VERBOSE_LEVEL_CONFIG | SCCP_VERBOSE_LEVEL_SOFTKEY))(VERBOSE_PREFIX_3 "start reading softkeyset: %s\n", name);
 	
 	
 	softKeySetConfiguration = ast_malloc(sizeof(sccp_softKeySetConfiguration_t));
@@ -1120,7 +1120,7 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
 	
 	while(variable){
 		keyMode = -1;
-		sccp_log(10)(VERBOSE_PREFIX_3 "softkeyset: %s \n",variable->name);
+		sccp_log((SCCP_VERBOSE_LEVEL_CONFIG | SCCP_VERBOSE_LEVEL_SOFTKEY))(VERBOSE_PREFIX_3 "softkeyset: %s \n",variable->name);
 		if (!strcasecmp(variable->name, "type")){
 			
 		}else if(!strcasecmp(variable->name, "onhook")){

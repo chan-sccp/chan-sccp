@@ -117,7 +117,7 @@ sccp_channel_t * sccp_channel_allocate(sccp_line_t * l, sccp_device_t *device)
 
 	sccp_line_addChannel(l, c);
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: New channel number: %d on line %s\n", l->id, c->callid, l->name);
+	sccp_log(SCCP_VERBOSE_LEVEL_CHANNEL)(VERBOSE_PREFIX_3 "%s: New channel number: %d on line %s\n", l->id, c->callid, l->name);
 
 	return c;
 }
@@ -195,7 +195,7 @@ sccp_channel_t * sccp_channel_get_active(sccp_device_t * d) {
 	if (!d)
 		return NULL;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Getting the active channel on device.\n",d->id);
+	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Getting the active channel on device.\n",d->id);
 
 	sccp_device_lock(d);
 	c = d->active_channel;
@@ -217,7 +217,7 @@ void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * c)
 	if(!d)
 		return;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Set the active channel %d on device\n", DEV_ID_LOG(d), (c) ? c->callid : 0);
+	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Set the active channel %d on device\n", DEV_ID_LOG(d), (c) ? c->callid : 0);
 	sccp_device_lock(d);
 	d->active_channel = c;
 	d->currentLine = c->line;
@@ -278,7 +278,7 @@ void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t * c)
 	}
 
 	sccp_dev_send(device, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send callinfo for %s channel %d on line instance %d"
+	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: Send callinfo for %s channel %d on line instance %d"
 			"\n\tcallerid: %s"
 			"\n\tcallerName: %s\n", (device)?device->id:"(null)", calltype2str(c->calltype), c->callid, instance, c->callingPartyNumber, c->callingPartyName);
 
@@ -309,7 +309,7 @@ void sccp_channel_send_dialednumber(sccp_channel_t * c)
 	r->msg.DialedNumberMessage.lel_lineId   = htolel(instance);
 	r->msg.DialedNumberMessage.lel_callRef  = htolel(c->callid);
 	sccp_dev_send(device, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, c->calledPartyNumber, calltype2str(c->calltype), c->callid);
+	sccp_log(SCCP_VERBOSE_LEVEL_CHANNEL)(VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, c->calledPartyNumber, calltype2str(c->calltype), c->callid);
 }
 
 /*!
@@ -348,12 +348,12 @@ void sccp_channel_set_callingparty(sccp_channel_t * c, char *name, char *number)
 
 	if (name && strncmp(name, c->callingPartyName, StationMaxNameSize - 1)) {
 		sccp_copy_string(c->callingPartyName, name, sizeof(c->callingPartyName));
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Set callingParty Name %s on channel %d\n", DEV_ID_LOG(c->device), c->callingPartyName, c->callid);
+		sccp_log(SCCP_VERBOSE_LEVEL_CHANNEL)(VERBOSE_PREFIX_3 "%s: Set callingParty Name %s on channel %d\n", DEV_ID_LOG(c->device), c->callingPartyName, c->callid);
 	}
 
 	if (number && strncmp(number, c->callingPartyNumber, StationMaxDirnumSize - 1)) {
 		sccp_copy_string(c->callingPartyNumber, number, sizeof(c->callingPartyNumber));
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Set callingParty Number %s on channel %d\n", DEV_ID_LOG(c->device), c->callingPartyNumber, c->callid);
+		sccp_log(SCCP_VERBOSE_LEVEL_CHANNEL)(VERBOSE_PREFIX_3 "%s: Set callingParty Number %s on channel %d\n", DEV_ID_LOG(c->device), c->callingPartyNumber, c->callid);
 	}
 	return;
 }
@@ -372,12 +372,12 @@ void sccp_channel_set_calledparty(sccp_channel_t * c, char *name, char *number)
 
 	if (name && strncmp(name, c->calledPartyName, StationMaxNameSize - 1)) {
 		sccp_copy_string(c->calledPartyName, name, sizeof(c->calledPartyNumber));
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Set calledParty Name %s on channel %d\n", DEV_ID_LOG(c->device), c->calledPartyName, c->callid);
+		sccp_log(SCCP_VERBOSE_LEVEL_CHANNEL)(VERBOSE_PREFIX_3 "%s: Set calledParty Name %s on channel %d\n", DEV_ID_LOG(c->device), c->calledPartyName, c->callid);
 	}
 
 	if (number && strncmp(number, c->calledPartyNumber, StationMaxDirnumSize - 1)) {
 		sccp_copy_string(c->calledPartyNumber, number, sizeof(c->callingPartyNumber));
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Set calledParty Number %s on channel %d\n", DEV_ID_LOG(c->device), c->calledPartyNumber, c->callid);
+		sccp_log(SCCP_VERBOSE_LEVEL_CHANNEL)(VERBOSE_PREFIX_3 "%s: Set calledParty Number %s on channel %d\n", DEV_ID_LOG(c->device), c->calledPartyNumber, c->callid);
 	}
 }
 
@@ -404,7 +404,7 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * c)
 	r->msg.ConnectionStatisticsReq.lel_callReference = htolel((c) ? c->callid : 0);
 	r->msg.ConnectionStatisticsReq.lel_StatsProcessing = htolel(SKINNY_STATSPROCESSING_CLEAR);
 	sccp_dev_send(d, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Requesting CallStatisticsAndClear from Phone\n", (d && d->id)?d->id:"SCCP");
+	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Device is Requesting CallStatisticsAndClear\n", (d && d->id)?d->id:"SCCP");
 }
 
 #ifndef ASTERISK_CONF_1_2
@@ -983,15 +983,13 @@ void sccp_channel_endcall(sccp_channel_t * c)
 		/* Is there a blocker ? */
 		res = (c->owner->pbx || c->owner->blocker);
 
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending %s hangup request to %s\n", DEV_ID_LOG(c->device), res ? "(queue)" : "(force)", c->owner->name);
-		
-
+		sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Sending %s hangup request to %s\n", DEV_ID_LOG(c->device), res ? "(queue)" : "(force)", c->owner->name);
 		
 		c->owner->hangupcause = AST_CAUSE_NORMAL_CLEARING;
 
 		/* force hanguo for invalid dials */
 		if(c->state == SCCP_CHANNELSTATE_INVALIDNUMBER || c->state == SCCP_CHANNELSTATE_OFFHOOK){
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending force hangup request to %s\n", DEV_ID_LOG(c->device), c->owner->name);
+			sccp_log((SCCP_VERBOSE_LEVEL_CORE | SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Sending force hangup request to %s\n", DEV_ID_LOG(c->device), c->owner->name);
 			ast_hangup(c->owner);
 		}else{
 			if (res) {
@@ -1002,7 +1000,7 @@ void sccp_channel_endcall(sccp_channel_t * c)
 			}
 		}
 	} else {
-		sccp_log(10)(VERBOSE_PREFIX_1 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(c->device), c->callid, c->line->name);
+		sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_1 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(c->device), c->callid, c->line->name);
 	}
 }
 
@@ -1520,7 +1518,7 @@ void sccp_channel_delete_wo(sccp_channel_t * c, uint8_t list_lock, uint8_t chann
 	if(l) {
 		d = c->device;
 		AST_LIST_REMOVE(&l->channels, c, list);
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Channel %d deleted from line %s\n", DEV_ID_LOG(d), c->callid, l ? l->name : "(null)");
+		sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: Channel %d deleted from line %s\n", DEV_ID_LOG(d), c->callid, l ? l->name : "(null)");
 	}
 
 	if(channel_lock)
@@ -1774,7 +1772,7 @@ void sccp_channel_transfer(sccp_channel_t * c)
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%08X\n", (d && d->id)?d->id:"SCCP", (c->line && c->line->name)?c->line->name:"(null)", c->callid);
 
 	if (!c->owner) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: No bridged channel to transfer on %s-%08X\n", (d && d->id)?d->id:"SCCP", (c->line && c->line->name)?c->line->name:"(null)", c->callid);
+		sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: No bridged channel to transfer on %s-%08X\n", (d && d->id)?d->id:"SCCP", (c->line && c->line->name)?c->line->name:"(null)", c->callid);
 		instance = sccp_device_find_index_for_line(d, c->line->name);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
@@ -1809,13 +1807,13 @@ static void * sccp_channel_transfer_ringing_thread(void *data)
 	if (!ast)
 		return NULL;
 
-        sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: (Ringing within Transfer %s(%p)\n", ast->name, ast);
+        sccp_log(SCCP_VERBOSE_LEVEL_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: (Ringing within Transfer %s(%p)\n", ast->name, ast);
 	if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_RING) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Send ringing indication to %s(%p)\n", ast->name, ast);
+		sccp_log(SCCP_VERBOSE_LEVEL_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Send ringing indication to %s(%p)\n", ast->name, ast);
 		ast_indicate(ast, AST_CONTROL_RINGING);
 	}
 	else if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_MOH) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Started music on hold for channel %s(%p)\n", ast->name, ast);
+		sccp_log(SCCP_VERBOSE_LEVEL_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Started music on hold for channel %s(%p)\n", ast->name, ast);
 #ifdef ASTERISK_CONF_1_2
 		ast_moh_start(ast, NULL);
 #else
@@ -1875,8 +1873,9 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	astcSourceRemote = CS_AST_BRIDGED_CHANNEL(cSourceLocal->owner);
 	astcDestinationRemote = CS_AST_BRIDGED_CHANNEL(cDestinationLocal->owner);
 	astcDestinationLocal = cDestinationLocal->owner;
+
 /*
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: transferred: %s(%p)\npeer->owner: %s(%p)\ndestination: %s(%p)\nc->owner:%s(%p)\n", d->id,
+	sccp_log(SCCP_VERBOSE_LEVEL_CHANNEL)(VERBOSE_PREFIX_3 "%s: transferred: %s(%p)\npeer->owner: %s(%p)\ndestination: %s(%p)\nc->owner:%s(%p)\n", d->id,
 								(transferred&&transferred_name)?transferred->name:"", transferred?transferred:0x0,
 								(peer && peer->owner && peer->owner->name)?peer->owner->name:"", (peer && peer->owner)?peer->owner:0x0,
 								(destination && destination->name)?destination->name:"", destination?destination:0x0,

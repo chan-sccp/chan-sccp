@@ -91,7 +91,7 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 	else{
 		if(type == SCCP_CFWD_NOANSWER)
 		{
-			sccp_log(10)(VERBOSE_PREFIX_3 "### CFwdNoAnswer NOT SUPPORTED\n");
+			sccp_log((SCCP_VERBOSE_LEVEL_FEATURE))(VERBOSE_PREFIX_3 "### CFwdNoAnswer NOT SUPPORTED\n");
 			sccp_dev_displayprompt(device, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 			return NULL;
 		}
@@ -496,7 +496,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
 
 
 	if (!l->pickupgroup) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: (grouppickup) pickupgroup not configured in sccp.conf\n", d->id);
+		sccp_log((SCCP_VERBOSE_LEVEL_FEATURE))(VERBOSE_PREFIX_3 "%s: (grouppickup) pickupgroup not configured in sccp.conf\n", d->id);
 		return -1;
 	}
 
@@ -506,7 +506,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
 		    (!target->pbx && (target->_state == AST_STATE_RINGING || target->_state == AST_STATE_RING))) {
 
 			//  let's allocate a new channel if it's not already up
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Device state is '%s'\n", d->id, devicestatus2str(d->state));
+			sccp_log((SCCP_VERBOSE_LEVEL_FEATURE))(VERBOSE_PREFIX_3 "%s: Device state is '%s'\n", d->id, devicestatus2str(d->state));
 			if(!(c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_OFFHOOK))) {
 				c = sccp_channel_allocate(l, d);
 				if (!c) {
@@ -740,22 +740,22 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t line_instance) {
  */
 void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 	if(!l){
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRANSVM pressed but no line found\n", d->id);
+		sccp_log((SCCP_VERBOSE_LEVEL_FEATURE))(VERBOSE_PREFIX_3 "%s: TRANSVM pressed but no line found\n", d->id);
 		sccp_dev_displayprompt(d, 0, 0, "No line found to transfer", 5);
 		return;
 	}
 	if (!l->trnsfvm) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRANSVM pressed but not configured in sccp.conf\n", d->id);
+		sccp_log((SCCP_VERBOSE_LEVEL_FEATURE))(VERBOSE_PREFIX_3 "%s: TRANSVM pressed but not configured in sccp.conf\n", d->id);
 		return;
 	}
 	if (!c || !c->owner) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRANSVM with no channel active\n", d->id);
+		sccp_log((SCCP_VERBOSE_LEVEL_FEATURE))(VERBOSE_PREFIX_3 "%s: TRANSVM with no channel active\n", d->id);
 		sccp_dev_displayprompt(d, 0, 0, "TRANSVM with no channel active", 5);
 		return;
 	}
 
 	if (c->state != SCCP_CHANNELSTATE_RINGING && c->state != SCCP_CHANNELSTATE_CALLWAITING) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: TRANSVM pressed in no ringing state\n", d->id);
+		sccp_log((SCCP_VERBOSE_LEVEL_FEATURE))(VERBOSE_PREFIX_3 "%s: TRANSVM pressed in no ringing state\n", d->id);
 		return;
 	}
 
@@ -1128,7 +1128,7 @@ void sccp_feat_hotline(sccp_device_t *d, sccp_line_t *line) {
 	if (!d || !d->session || !line)
 		return;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: handling hotline\n", d->id);
+	sccp_log((SCCP_VERBOSE_LEVEL_FEATURE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: handling hotline\n", d->id);
 	c = sccp_channel_get_active(d);
 	if (c) {
 		sccp_channel_lock(c);

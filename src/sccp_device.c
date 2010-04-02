@@ -183,7 +183,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 	uint8_t i;
 	if (!d || !d->session)
 		return;
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Building button template %s(%d), user config %s\n",	d->id, devicetype2str(d->skinny_type), d->skinny_type, d->config_type);
+	sccp_log((SCCP_VERBOSE_LEVEL_CONFIG | SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Building button template %s(%d), user config %s\n",	d->id, devicetype2str(d->skinny_type), d->skinny_type, d->config_type);
 
 	switch (d->skinny_type) {
 		case SKINNY_DEVICETYPE_30SPPLUS:
@@ -421,7 +421,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 		r->msg.SelectSoftKeysMessage.les_validKeyMask &= htolel(~(1<<0));
 
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, keymode2str(opt), opt, line, callid);
+	sccp_log((SCCP_VERBOSE_LEVEL_SOFTKEY | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, keymode2str(opt), opt, line, callid);
 	sccp_dev_send(d, r);
 }
 
@@ -470,7 +470,7 @@ void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
 	/* when l is defined we are switching on/off the button icon */
 	r->msg.SetLampMessage.lel_lampMode = htolel( (hasMail) ? ( (l) ? SKINNY_LAMP_ON :  d->mwilamp) : SKINNY_LAMP_OFF);
 	sccp_dev_send(d, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n",DEV_ID_LOG(d), hasMail ? "ON" : "OFF", (l ? l->name : "unknown"),(l ? instance : 0));
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_MWI))(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n",DEV_ID_LOG(d), hasMail ? "ON" : "OFF", (l ? l->name : "unknown"),(l ? instance : 0));
 }
 
 /*!
@@ -503,7 +503,7 @@ void sccp_dev_set_ringer(sccp_device_t * d, uint8_t opt, uint32_t line, uint32_t
 	r->msg.SetRingerMessage.lel_lineInstance = htolel(line);
 	r->msg.SetRingerMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send ringer mode %s(%d) on device\n", d->id, station2str(opt), opt);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Send ringer mode %s(%d) on device\n", d->id, station2str(opt), opt);
 
 }
 
@@ -521,7 +521,7 @@ void sccp_dev_set_speaker(sccp_device_t * d, uint8_t mode)
 	REQ(r, SetSpeakerModeMessage);
 	r->msg.SetSpeakerModeMessage.lel_speakerMode = htolel(mode);
 	sccp_dev_send(d, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send speaker mode %d\n", d->id, mode);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Send speaker mode %d\n", d->id, mode);
 }
 
 /*!
@@ -538,7 +538,7 @@ void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode)
 	REQ(r, SetMicroModeMessage);
 	r->msg.SetMicroModeMessage.lel_micMode = htolel(mode);
 	sccp_dev_send(d, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send microphone mode %d\n", d->id, mode);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Send microphone mode %d\n", d->id, mode);
 }
 
 /*!
@@ -563,7 +563,7 @@ void sccp_dev_set_cplane(sccp_line_t * l, sccp_device_t *device, int status)
 	if (status)
 		r->msg.ActivateCallPlaneMessage.lel_lineInstance = htolel(instance);
 	sccp_dev_send(device, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send activate call plane on line %d\n", device->id, (status) ? instance : 0 );
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Send activate call plane on line %d\n", device->id, (status) ? instance : 0 );
 }
 
 /*!
@@ -574,12 +574,12 @@ void sccp_dev_set_cplane(sccp_line_t * l, sccp_device_t *device, int status)
 void sccp_dev_deactivate_cplane(sccp_device_t * d)
 {
 	if (!d) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "Null device for deactivate callplane\n");
+		sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "Null device for deactivate callplane\n");
 		return;
 	}
 
 	sccp_dev_sendmsg(d, DeactivateCallPlaneMessage);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send deactivate call plane\n", d->id);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Send deactivate call plane\n", d->id);
 }
 
 /*!
@@ -603,7 +603,7 @@ void sccp_dev_starttone(sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t 
 	r->msg.StartToneMessage.lel_callReference = htolel(callid);
 
 	sccp_dev_send(d, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending tone %s (%d)\n", d->id, tone2str(tone), tone);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Sending tone %s (%d)\n", d->id, tone2str(tone), tone);
 }
 
 /*!
@@ -622,7 +622,7 @@ void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid)
 	r->msg.StopToneMessage.lel_lineInstance = htolel(line);
 	r->msg.StopToneMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Stop tone on device\n", d->id);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Stop tone on device\n", d->id);
 }
 
 /*!
@@ -644,7 +644,7 @@ void sccp_dev_clearprompt(sccp_device_t * d, uint8_t line, uint32_t callid)
 	r->msg.ClearPromptStatusMessage.lel_callReference = htolel(callid);
 	r->msg.ClearPromptStatusMessage.lel_lineInstance  = htolel(line);
 	sccp_dev_send(d, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Clear the status prompt on line %d and callid %d\n", d->id, line, callid);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Clear the status prompt on line %d and callid %d\n", d->id, line, callid);
 }
 
 
@@ -688,7 +688,7 @@ void sccp_dev_displayprompt(sccp_device_t * d, uint8_t line, uint32_t callid, ch
 		memcpy(&r->msg.DisplayDynamicPromptStatusMessage.dummy, msg, msg_len);
         }
 	sccp_dev_send(d, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Display prompt on line %d, callid %d, timeout %d\n", d->id, line, callid, timeout);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: Display prompt on line %d, callid %d, timeout %d\n", d->id, line, callid, timeout);
 }
 
 /*!
@@ -703,7 +703,7 @@ void sccp_dev_cleardisplay(sccp_device_t * d)
 	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) return; /* only for telecaster and new phones */
 
 	sccp_dev_sendmsg(d, ClearDisplay);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Clear the display\n", d->id);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Clear the display\n", d->id);
 }
 
 
@@ -728,7 +728,7 @@ void sccp_dev_display(sccp_device_t * d, char * msg)
 	sccp_copy_string(r->msg.DisplayTextMessage.displayMessage, msg, sizeof(r->msg.DisplayTextMessage.displayMessage));
 
 	sccp_dev_send(d, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Display text\n", d->id);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Display text\n", d->id);
 }
 
 /*!
@@ -743,7 +743,7 @@ void sccp_dev_cleardisplaynotify(sccp_device_t * d)
 	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) return; /* only for telecaster and new phones */
 
 	sccp_dev_sendmsg(d, ClearNotifyMessage);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Clear the display notify message\n", d->id);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Clear the display notify message\n", d->id);
 }
 
 /*!
@@ -767,7 +767,7 @@ void sccp_dev_displaynotify(sccp_device_t * d, char * msg, uint32_t timeout)
 	r->msg.DisplayNotifyMessage.lel_displayTimeout = htolel(timeout);
 	sccp_copy_string(r->msg.DisplayNotifyMessage.displayMessage, msg, sizeof(r->msg.DisplayNotifyMessage.displayMessage));
 	sccp_dev_send(d, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Display notify with timeout %d\n", d->id, timeout);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Display notify with timeout %d\n", d->id, timeout);
 }
 
 /*!
@@ -782,7 +782,7 @@ void sccp_dev_cleardisplayprinotify(sccp_device_t * d)
 	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) return; /* only for telecaster and new phones */
 
 	sccp_dev_sendmsg(d, ClearPriNotifyMessage);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Clear the display priority notify message\n", d->id);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Clear the display priority notify message\n", d->id);
 }
 
 /*!
@@ -808,7 +808,7 @@ void sccp_dev_displayprinotify(sccp_device_t * d, char * msg, uint32_t priority,
 	r->msg.DisplayPriNotifyMessage.lel_displayTimeout = htolel(timeout);
 	sccp_copy_string(r->msg.DisplayPriNotifyMessage.displayMessage, msg, sizeof(r->msg.DisplayPriNotifyMessage.displayMessage));
 	sccp_dev_send(d, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Display notify with timeout %d and priority %d\n", d->id, timeout, priority);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Display notify with timeout %d and priority %d\n", d->id, timeout, priority);
 }
 
 /*!
@@ -877,12 +877,12 @@ sccp_line_t * sccp_dev_get_activeline(sccp_device_t * d)
 		}
 
 		if (d->currentLine) {
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Forcing the active line to %s from NULL\n", d->id, d->currentLine->name);
+			sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: Forcing the active line to %s from NULL\n", d->id, d->currentLine->name);
 		} else {
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: No lines\n", d->id);
+			sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: No lines\n", d->id);
 		}
 	} else {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: The active line is %s\n", d->id, d->currentLine->name);
+		sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: The active line is %s\n", d->id, d->currentLine->name);
 	}
 	return d->currentLine;
 }
@@ -897,7 +897,7 @@ void sccp_dev_set_activeline(sccp_device_t *device, sccp_line_t * l)
 	if (!l || !device || !device->session)
 		return;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send the active line %s\n", device->id, l->name);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: Send the active line %s\n", device->id, l->name);
 	sccp_device_lock(device);
 	device->currentLine = l;
 	sccp_device_unlock(device);
@@ -1014,8 +1014,7 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
 	// If the current line isn't in a call, and
 	// neither is the target.
 	if (SCCP_LIST_FIRST(&current->channels) == NULL && SCCP_LIST_FIRST(&wanted->channels) == NULL) {
-
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: All lines seem to be inactive, SEIZEing selected line %s\n", d->id, wanted->name);
+		sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: All lines seem to be inactive, SEIZEing selected line %s\n", d->id, wanted->name);
 		sccp_dev_set_activeline(d, wanted);
 
 		chan = sccp_channel_allocate(wanted, d);
@@ -1023,19 +1022,15 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
 			ast_log(LOG_ERROR, "%s: Failed to allocate SCCP channel.\n", d->id);
 			return;
 		}
-
 /*	} else if ( current->dnState > TsOnHook || wanted->dnState == TsOffHook) { */
 	} else if ( d->state == SCCP_DEVICESTATE_OFFHOOK) {
-	  // If the device is currently onhook, then we need to ...
-
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Selecing line %s while using line %s\n", d->id, wanted->name, current->name);
-	// XXX (1) Put current call on hold
-	// (2) Stop transmitting/recievening
-
+	        // If the device is currently onhook, then we need to ...
+		sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: Selecing line %s while using line %s\n", d->id, wanted->name, current->name);
+        	// XXX (1) Put current call on hold
+        	// (2) Stop transmitting/recievening
 	} else {
-
-	// Otherwise, just select the callplane
-	ast_log(LOG_WARNING, "%s: Unknown status while trying to select line %s.  Current line is %s\n", d->id, wanted->name, current->name);
+        	// Otherwise, just select the callplane
+        	ast_log(LOG_WARNING, "%s: Unknown status while trying to select line %s.  Current line is %s\n", d->id, wanted->name, current->name);
 	}
 }
 
@@ -1060,7 +1055,7 @@ void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint8_t insta
 	r->msg.SetLampMessage.lel_lampMode = htolel(lampMode);
 	sccp_dev_send(d, r);
 	*/
-	//sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send lamp mode %s(%d) on line %d\n", d->id, lampmode2str(lampMode), lampMode, instance );
+	//sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Send lamp mode %s(%d) on line %d\n", d->id, lampmode2str(lampMode), lampMode, instance );
 }
 
 void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {
@@ -1071,7 +1066,7 @@ void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {
 	if (!device || !device->session)
 		return;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send Forward Status.  Line: %s\n", device->id, l->name);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: Send Forward Status.  Line: %s\n", device->id, l->name);
 
 	instance = sccp_device_find_index_for_line(device, l->name);
 
@@ -1465,7 +1460,7 @@ void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32
 	r->msg.CallStateMessage.lel_priority = htolel(priority);
 	/*r->msg.CallStateMessage.lel_unknown3 = htolel(2);*/
 	sccp_dev_send(d, r);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send and Set the call state %s(%d) on call %d\n", d->id, sccp_callstate2str(state), state, callid);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Send and Set the call state %s(%d) on call %d\n", d->id, sccp_callstate2str(state), state, callid);
 }
 
 
