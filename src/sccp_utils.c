@@ -103,7 +103,7 @@ void sccp_dump_packet(unsigned char * messagebuffer, int len)
             }
         }
 		strcat(row, temp2);
-		sccp_log(10)(VERBOSE_PREFIX_1 "%s\n", row);
+		sccp_log((SCCP_VERBOSE_LEVEL_CORE))(VERBOSE_PREFIX_1 "%s\n", row);
 	}
 }
 
@@ -320,7 +320,7 @@ sccp_device_t * sccp_device_find_realtime(const char * name) {
 
 	if ((variable = ast_load_realtime(GLOB(realtimedevicetable), "name", name, NULL))) {
 		v = variable;
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Device '%s' found in realtime table '%s'\n", name, GLOB(realtimedevicetable));
+		sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "SCCP: Device '%s' found in realtime table '%s'\n", name, GLOB(realtimedevicetable));
 		//d = sccp_config_buildDevice(v, name, TRUE);
 
 		d = sccp_device_create();
@@ -340,7 +340,7 @@ sccp_device_t * sccp_device_find_realtime(const char * name) {
 		return d;
 	}
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Device '%s' not found in realtime table '%s'\n", name, GLOB(realtimedevicetable));
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "SCCP: Device '%s' not found in realtime table '%s'\n", name, GLOB(realtimedevicetable));
 	return NULL;
 }
 #endif
@@ -371,12 +371,12 @@ sccp_line_t * sccp_line_find_byname_wo(const char * name, uint8_t realtime)
 #endif
 
 	if (!l) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Line '%s' not found.\n", name);
+		sccp_log((SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "SCCP: Line '%s' not found.\n", name);
 		return NULL;
 	}
 
-//	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found line '%s'\n", DEV_ID_LOG(l->device), l->name);
-	sccp_log(98)(VERBOSE_PREFIX_3 "%s: Found line '%s'\n", "SCCP", l->name);
+//	sccp_log((SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: Found line '%s'\n", DEV_ID_LOG(l->device), l->name);
+	sccp_log((SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: Found line '%s'\n", "SCCP", l->name);
 
 	return l;
 }
@@ -397,7 +397,7 @@ sccp_line_t * sccp_line_find_realtime_byname(const char * name)
 
 	if ((variable = ast_load_realtime(GLOB(realtimelinetable), "name", name, NULL))) {
 		v = variable;
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Line '%s' found in realtime table '%s'\n", name, GLOB(realtimelinetable));
+		sccp_log((SCCP_VERBOSE_LEVEL_LINE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "SCCP: Line '%s' found in realtime table '%s'\n", name, GLOB(realtimelinetable));
 
 		ast_log(LOG_NOTICE, "SCCP: creating realtime line '%s'\n", name);
 		l = sccp_line_create();
@@ -415,7 +415,7 @@ sccp_line_t * sccp_line_find_realtime_byname(const char * name)
 		return l;
 	}
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Line '%s' not found in realtime table '%s'\n", name, GLOB(realtimelinetable));
+	sccp_log((SCCP_VERBOSE_LEVEL_LINE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "SCCP: Line '%s' not found in realtime table '%s'\n", name, GLOB(realtimelinetable));
 	return NULL;
 }
 #endif
@@ -432,14 +432,14 @@ sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint8_t instance){
 	sccp_line_t 		*l = NULL;
 	sccp_buttonconfig_t	*config;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for line with instance %d.\n", DEV_ID_LOG(d), instance);
+	sccp_log((SCCP_VERBOSE_LEVEL_LINE | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Looking for line with instance %d.\n", DEV_ID_LOG(d), instance);
 	
 	if(instance == 0)
 		return NULL;
 	
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: button instance %d, type: %d\n", DEV_ID_LOG(d), config->instance, config->type);
+		sccp_log((SCCP_VERBOSE_LEVEL_LINE | SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: button instance %d, type: %d\n", DEV_ID_LOG(d), config->instance, config->type);
 
 		if(config->type == LINE && config->instance == instance && sccp_is_nonempty_string(config->button.line.name) ){
 			l = sccp_line_find_byname_wo(config->button.line.name, TRUE);
@@ -459,12 +459,12 @@ sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint8_t instance){
 	*/
 
 	if (!l) {
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: No line found with instance %d.\n", DEV_ID_LOG(d), instance);
+		sccp_log((SCCP_VERBOSE_LEVEL_LINE | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: No line found with instance %d.\n", DEV_ID_LOG(d), instance);
 		return NULL;
 	}
 
-//	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found line %s\n", DEV_ID_LOG(l->device), l->name);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found line %s\n", "SCCP", l->name);
+//	sccp_log((SCCP_VERBOSE_LEVEL_LINE | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Found line %s\n", DEV_ID_LOG(l->device), l->name);
+	sccp_log((SCCP_VERBOSE_LEVEL_LINE | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Found line %s\n", "SCCP", l->name);
 
 	return l;
 }
@@ -479,15 +479,15 @@ sccp_channel_t * sccp_channel_find_byid(uint32_t id)
 	sccp_channel_t * c = NULL;
 	sccp_line_t * l;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %u\n", id);
+	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %u\n", id);
 
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-			sccp_log(64)(VERBOSE_PREFIX_3 "Channel %u state: %d\n", c->callid, c->state);
+			sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "Channel %u state: %d\n", c->callid, c->state);
 			if (c->callid == id && c->state != SCCP_CHANNELSTATE_DOWN) {
-				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%u)\n", DEV_ID_LOG(c->device), c->callid);
+				sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found channel (%u)\n", DEV_ID_LOG(c->device), c->callid);
 				break;
 			}
 		}
@@ -512,15 +512,15 @@ sccp_channel_t * sccp_channel_find_bypassthrupartyid(uint32_t id)
 	sccp_channel_t * c = NULL;
 	sccp_line_t * l;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u\n", id);
+	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u\n", id);
 
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-			sccp_log(10)(VERBOSE_PREFIX_3 "%u: Found channel partyID: %u state: %d\n", c->callid, c->passthrupartyid, c->state);
+			sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%u: Found channel partyID: %u state: %d\n", c->callid, c->passthrupartyid, c->state);
 			if (c->passthrupartyid == id && c->state != SCCP_CHANNELSTATE_DOWN) {
-				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%u)\n", DEV_ID_LOG(c->device), c->callid);
+				sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found channel (%u)\n", DEV_ID_LOG(c->device), c->callid);
 				break;
 			}
 		}
@@ -543,14 +543,14 @@ sccp_channel_t * sccp_channel_find_bypassthrupartyid(uint32_t id)
 sccp_channel_t * sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state) {
 	sccp_channel_t * c = NULL;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
+	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
 
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 			if (c && c->state == state) {
-				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(c->device), c->callid);
+				sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(c->device), c->callid);
 				break;
 			}
 		}
@@ -575,12 +575,12 @@ sccp_selectedchannel_t * sccp_device_find_selectedchannel(sccp_device_t * d, scc
 	if(!c || !d)
 		return NULL;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for selected channel (%d)\n", DEV_ID_LOG(d), c->callid);
+	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Looking for selected channel (%d)\n", DEV_ID_LOG(d), c->callid);
 
 	SCCP_LIST_LOCK(&d->selectedChannels);
 	SCCP_LIST_TRAVERSE(&d->selectedChannels, x, list) {
 		if (x->channel == c) {
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(d), c->callid);
+			sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(d), c->callid);
 			break;
 		}
 	}
@@ -601,7 +601,7 @@ uint8_t sccp_device_selectedchannels_count(sccp_device_t * d) {
 	if(!d)
 		return 0;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Looking for selected channels count\n", DEV_ID_LOG(d));
+	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Looking for selected channels count\n", DEV_ID_LOG(d));
 
 	SCCP_LIST_LOCK(&d->selectedChannels);
 	SCCP_LIST_TRAVERSE(&d->selectedChannels, x, list) {
@@ -621,14 +621,14 @@ uint8_t sccp_device_selectedchannels_count(sccp_device_t * d) {
 sccp_channel_t * sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t state) {
 	sccp_channel_t * c = NULL;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
+	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
 
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 			if (c->state == state) {
-				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(c->device), c->callid);
+				sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(c->device), c->callid);
 				break;
 			}
 		}
@@ -654,7 +654,7 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 	sccp_buttonconfig_t	*buttonconfig = NULL;
 	boolean_t channelFound = FALSE;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
+	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
 
 	if(!d)
 		return NULL;
@@ -666,11 +666,11 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 		if(buttonconfig->type == LINE ){
 			l = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE);
 			if(l){
-				sccp_log(10)(VERBOSE_PREFIX_3 "%s: line: '%s'\n", DEV_ID_LOG(d), l->name);
+				sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE | SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: line: '%s'\n", DEV_ID_LOG(d), l->name);
 				SCCP_LIST_LOCK(&l->channels);
 				SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 					if (c->state == state) {
-						sccp_log(10)(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(d), c->callid);
+						sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE | SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(d), c->callid);
 						channelFound = TRUE;
 						break;
 					}
@@ -695,7 +695,7 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 void sccp_ast_setstate(sccp_channel_t * c, int state) {
 	if (c && c->owner) {
 		ast_setstate(c->owner, state);
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Set asterisk state %s (%d) for call %d\n", DEV_ID_LOG(c->device), ast_state2str(state), state, c->callid);
+		sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Set asterisk state %s (%d) for call %d\n", DEV_ID_LOG(c->device), ast_state2str(state), state, c->callid);
 	}
 }
 
@@ -750,7 +750,7 @@ void sccp_dev_dbput(sccp_device_t * d) {
 		cfwdbusy[strlen(cfwdbusy)-1] = '\0';
 
 	snprintf(tmp, sizeof(tmp), "dnd=%d,cfwdall=%s,cfwdbusy=%s,cfwdnoanswer=%s", d->dndFeature.status, cfwdall, cfwdbusy, cfwdnoanswer);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Storing device status (dnd, cfwd*) in the asterisk db\n", d->id);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "%s: Storing device status (dnd, cfwd*) in the asterisk db\n", d->id);
 	if (ast_db_put("SCCP", d->id, tmp))
 		ast_log(LOG_NOTICE, "%s: Unable to store device status (dnd, cfwd*) in the asterisk db\n", d->id);
 }
@@ -765,7 +765,7 @@ void sccp_dev_dbget(sccp_device_t * d) {
 //
 // 	if (!d)
 // 		return;
-// 	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Restoring device status (dnd, cfwd*) from the asterisk db\n", d->id);
+// 	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "%s: Restoring device status (dnd, cfwd*) from the asterisk db\n", d->id);
 // 	if (ast_db_get("SCCP", d->id, result, sizeof(result))) {
 // 		return;
 // 	}
@@ -777,7 +777,7 @@ void sccp_dev_dbget(sccp_device_t * d) {
 // 				if ( (tmp1 = strsep(&tmp,"")) ) {
 // 					sscanf(tmp1, "%i", &i);
 // 					d->dnd = (i) ? 1 : 0;
-// 					sccp_log(10)(VERBOSE_PREFIX_3 "%s: dnd status is: %s\n", d->id, (d->dnd) ? "ON" : "OFF");
+// 					sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "%s: dnd status is: %s\n", d->id, (d->dnd) ? "ON" : "OFF");
 // 				}
 // 			} else if (!strcasecmp(tmp1, "cfwdall")) {
 // 				tmp1 = strsep(&tmp,"");
@@ -801,7 +801,7 @@ void sccp_dev_dbclean() {
 	entry = ast_db_gettree("SCCP", NULL);
 	while (entry) {
 		sscanf(entry->key,"/SCCP/%s", key);
-		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Looking for '%s' in the devices list\n", key);
+		sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "SCCP: Looking for '%s' in the devices list\n", key);
 			if ((strlen(key) == 15) && ((strncmp(key, "SEP",3) == 0) || (strncmp(key, "ATA",3)==0))) {
 
 			SCCP_LIST_LOCK(&GLOB(devices));
@@ -814,7 +814,7 @@ void sccp_dev_dbclean() {
 
 			if (!d) {
 				ast_db_del("SCCP", key);
-				sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: device '%s' removed from asterisk database\n", entry->key);
+				sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "SCCP: device '%s' removed from asterisk database\n", entry->key);
 			}
 
 		}
@@ -938,40 +938,6 @@ uint8_t sccp_codec_ast2skinny(int fmt) {
  *  \author Federico
  */
 int sccp_codec_skinny2ast(uint8_t fmt) {
-/*
-	switch(fmt) {
-		case 2:
-			return AST_FORMAT_ALAW;
-		case 4:
-			return AST_FORMAT_ULAW;
-		case 9:
-			return AST_FORMAT_G723_1;
-		case 12:
-			return AST_FORMAT_G729A;
-		case 80:
-			return AST_FORMAT_GSM;
-#ifndef ASTERISK_CONF_1_2
-		case 6:
-			return AST_FORMAT_G722;
-		case 82:
-			return AST_FORMAT_G726_AAL2;
-		case 103:
-			return AST_FORMAT_H264;
-#endif
-#ifdef ASTERISK_CONF_1_6
-//		case 25:
-//			return AST_FORMAT_CISCO_WIDEBAND;
-#endif
-		case 100:
-			return AST_FORMAT_H261;
-		case 101:
-			return AST_FORMAT_H263;
-		case 102:
-			return AST_FORMAT_H263_PLUS;
-		default:
-			return 0;
-	}
-*/
 	int i;
 	for (i = 1; i < ARRAY_LEN(skinny_codecs); i++) {
 	        if (skinny_codecs[i].codec == fmt) {
