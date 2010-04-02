@@ -34,6 +34,8 @@ if ENABLE_SVN2CL
             $(SVN2CL) --include-actions -i -a --group-by-day --separate-daylogs --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST); \
 	  fi; \
 	fi
+else
+	svn log > ChangeLog
 endif
 
 # Update doc/html/ChangeLog.html from SVN Log
@@ -52,4 +54,19 @@ endif
 # Update ChangeLog Files and Generate Doxygen Documentation
 doxygen: ChangeLog ChangeLog-HTML doxygen-doc
 
-all-am: ChangeLog Makefile
+deb: 
+	dpkg-buildpackage -rfakeroot
+
+rpm:    release
+	cp $(distdir).tar.gz /usr/src/packages/SOURCES/
+	cp tools/suse.spec /usr/src/packages/SOURCES/
+	cd /usr/src/packages/SOURCES/ && rpm -bb suse.spec
+
+release:
+	rm -f ChangeLog
+	$(MAKE) ChangeLog
+	echo >>NEWS
+	svn info |grep Revision >> NEWS
+	echo "Please edit the NEWS file now..."
+	/usr/bin/joe NEWS
+	$(MAKE) dist

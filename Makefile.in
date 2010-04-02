@@ -268,7 +268,6 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
-PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PBX_CFLAGS = @PBX_CFLAGS@
@@ -930,6 +929,7 @@ ChangeLog:	FORCE
 @ENABLE_SVN2CL_TRUE@            $(SVN2CL) --include-actions -i -a --group-by-day --separate-daylogs --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST); \
 @ENABLE_SVN2CL_TRUE@	  fi; \
 @ENABLE_SVN2CL_TRUE@	fi
+@ENABLE_SVN2CL_FALSE@	svn log > ChangeLog
 
 # Update doc/html/ChangeLog.html from SVN Log
 ChangeLog-HTML:	FORCE
@@ -945,7 +945,22 @@ ChangeLog-HTML:	FORCE
 # Update ChangeLog Files and Generate Doxygen Documentation
 doxygen: ChangeLog ChangeLog-HTML doxygen-doc
 
-all-am: ChangeLog Makefile
+deb: 
+	dpkg-buildpackage -rfakeroot
+
+rpm:    release
+	cp $(distdir).tar.gz /usr/src/packages/SOURCES/
+	cp tools/suse.spec /usr/src/packages/SOURCES/
+	cd /usr/src/packages/SOURCES/ && rpm -bb suse.spec
+
+release:
+	rm -f ChangeLog
+	$(MAKE) ChangeLog
+	echo >>NEWS
+	svn info |grep Revision >> NEWS
+	echo "Please edit the NEWS file now..."
+	/usr/bin/joe NEWS
+	$(MAKE) dist
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
