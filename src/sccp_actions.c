@@ -105,7 +105,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 
 	memset(&btn, 0 , sizeof(btn));
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d\n",
+	sccp_log(SCCP_VERBOSE_LEVEL_DEVICE)(VERBOSE_PREFIX_3 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d\n",
 		r->msg.RegisterMessage.sId.deviceName,
 		letohl(r->msg.RegisterMessage.sId.lel_instance),
 		devicetype2str(letohl(r->msg.RegisterMessage.lel_deviceType)),
@@ -179,9 +179,9 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Device is doing a re-registration!\n", d->id);
 	}
 #ifdef ASTERISK_CONF_1_2
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fd, ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
+	sccp_log(SCCP_VERBOSE_LEVEL_DEVICE)(VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fd, ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
 #else
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fd, ast_inet_ntoa(s->sin.sin_addr));
+	sccp_log(SCCP_VERBOSE_LEVEL_DEVICE)(VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fd, ast_inet_ntoa(s->sin.sin_addr));
 #endif
 	s->device = d;
 	d->skinny_type = letohl(r->msg.RegisterMessage.lel_deviceType);
@@ -221,7 +221,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 		else if (btn[i].type == SKINNY_BUTTONTYPE_UNUSED)
 			break;
 	}
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Phone available lines %d\n", d->id, line_count);
+	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: Phone available lines %d\n", d->id, line_count);
 	i = 0;
 	if(d->isAnonymous == TRUE){
 		sccp_device_lock(d);
@@ -248,7 +248,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 						continue;
 					}
 
-					sccp_log(10)(VERBOSE_PREFIX_3 "%s: Attaching line %s with instance %d to this device\n", d->id, l->name, buttonconfig->instance);
+					sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: Attaching line %s with instance %d to this device\n", d->id, l->name, buttonconfig->instance);
 					if (buttonconfig->instance > line_count) {
 						ast_log(LOG_WARNING, "%s: Failed to autolog into %s: Max available lines phone limit reached %s\n", d->id, buttonconfig->button.line.name, buttonconfig->button.line.name);
 						continue;
@@ -574,7 +574,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				}else{
 					continue;
 				}
-				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s)\n", d->id, buttonconfig->instance, "FEATURE" ,buttonconfig->button.feature.label);
+				sccp_log((SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE | SCCP_VERBOSE_LEVEL_FEATURE_BUTTON))(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s)\n", d->id, buttonconfig->instance, "FEATURE" ,buttonconfig->button.feature.label);
 			}
 		  
 		}
@@ -669,7 +669,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 				break;
 		}
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %d (%d)\n", d->id, i+1, r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition, r1->msg.ButtonTemplateMessage.definition[i].instanceNumber);
+		sccp_log((SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE | SCCP_VERBOSE_LEVEL_FEATURE_BUTTON))(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %d (%d)\n", d->id, i+1, r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition, r1->msg.ButtonTemplateMessage.definition[i].instanceNumber);
 	}
 
 	r1->msg.ButtonTemplateMessage.lel_buttonOffset = htolel(0);
@@ -682,7 +682,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 	uint32_t speeddialInstance = 0;
 	sccp_buttonconfig_t	*config;
 	
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: configure unconfigured speeddialbuttons \n", d->id);
+	sccp_log((SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE | SCCP_VERBOSE_LEVEL_SPEEDDIAL))(VERBOSE_PREFIX_3 "%s: configure unconfigured speeddialbuttons \n", d->id);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list){
 		/* we found a not configured speeddial */
 		if(config->type == SPEEDDIAL && config->instance == 0){
@@ -718,7 +718,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 
 
 
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Configuring line number %d\n", d->id, lineNumber);
+		sccp_log(SCCP_VERBOSE_LEVEL_LINE)(VERBOSE_PREFIX_3 "%s: Configuring line number %d\n", d->id, lineNumber);
 		l = sccp_line_find_byid(d, lineNumber);
 
 		/* if we find no regular line - it can be a speeddial with hint */
@@ -759,7 +759,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 					if(config->type == LINE){
 						if (config->button.line.options && !strcasecmp(config->button.line.options, "default")) {
 							d->defaultLineInstance = lineNumber;
-							sccp_log(10)(VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", lineNumber);
+							sccp_log(SCCP_VERBOSE_LEVEL_LINE)(VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", lineNumber);
 						}
 					}
 					break;
@@ -833,7 +833,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		return;
 	}
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d) for instance=%d\n", d->id, stimulus2str(stimulus), stimulus, instance);
+	sccp_log(SCCP_VERBOSE_LEVEL_CORE)(VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d) for instance=%d\n", d->id, stimulus2str(stimulus), stimulus, instance);
 
 	if (!instance) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Instance 0 is not a valid instance. Trying the active line %d\n", d->id, instance);
@@ -881,7 +881,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		case SKINNY_BUTTONTYPE_LINE: // We got a Line Request
 			l = sccp_line_find_byid(d, instance);
 			if (!l) {
-				sccp_log(10)(VERBOSE_PREFIX_3 "%s: No line for instance %d. Looking for a speeddial with hint\n", d->id, instance);
+				sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: No line for instance %d. Looking for a speeddial with hint\n", d->id, instance);
 				k = sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT);
 				if (k)
 					sccp_handle_speeddial(d, k);
@@ -1019,7 +1019,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			}
 			c = sccp_channel_get_active(d);
 			if (!c || !c->owner) {
-				sccp_log(10)(VERBOSE_PREFIX_3 "%s: Call forward with no channel active\n", d->id);
+				sccp_log((SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE | SCCP_VERBOSE_LEVEL_CORE | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Call forward with no channel active\n", d->id);
 				return;
 			}
 			if (c->state != SCCP_CHANNELSTATE_RINGOUT && c->state != SCCP_CHANNELSTATE_CONNECTED) {
@@ -1070,7 +1070,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			}
 			sccp_channel_park(c);
 #else
-    		sccp_log(10)(VERBOSE_PREFIX_3 "### Native park was not compiled in\n");
+    		sccp_log((SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE | SCCP_VERBOSE_LEVEL_CORE))(VERBOSE_PREFIX_3 "### Native park was not compiled in\n");
 #endif
 			break;
 
@@ -1208,7 +1208,7 @@ void sccp_handle_backspace(sccp_device_t * d, uint8_t line, uint32_t callid)
 	r->msg.BackSpaceReqMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, r);
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Backspace request on line instance %u, call %u.\n", d->id, line, callid);
+	sccp_log(SCCP_VERBOSE_LEVEL_CORE)(VERBOSE_PREFIX_3 "%s: Backspace request on line instance %u, call %u.\n", d->id, line, callid);
 }
 
 /*!
@@ -1293,12 +1293,12 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_moo_t * r)
   int astcodec;
   uint8_t n = letohl(r->msg.CapabilitiesResMessage.lel_count);
   s->device->capability = 0;
-  sccp_log(10)(VERBOSE_PREFIX_3 "%s: Device has %d Capabilities\n", s->device->id, n);
+  sccp_log((SCCP_VERBOSE_LEVEL_CORE | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Device has %d Capabilities\n", s->device->id, n);
   for (i = 0 ; i < n; i++) {
     codec = letohl(r->msg.CapabilitiesResMessage.caps[i].lel_payloadCapability);
     astcodec = sccp_codec_skinny2ast(codec);
 	s->device->capability |= astcodec;
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CISCO:%6d %-25s AST:%6d %s\n", s->device->id, codec, codec2str(codec), astcodec, ast_codec2str(astcodec));
+	sccp_log(SCCP_VERBOSE_LEVEL_DEVICE)(VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%6d %s\n", s->device->id, codec, codec2str(codec), astcodec, ast_codec2str(astcodec));
   }
 }
 
@@ -1562,7 +1562,7 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * req)
   r1->msg.DefineTimeDate.lel_milliseconds = htolel(0);
   r1->msg.DefineTimeDate.lel_systemTime = htolel(timer);
   sccp_dev_send(s->device, r1);
-  sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send date/time\n", s->device->id);
+  sccp_log(SCCP_VERBOSE_LEVEL_CORE)(VERBOSE_PREFIX_3 "%s: Send date/time\n", s->device->id);
 
   /*  
       According to SCCP protocol since version 3,
@@ -1794,7 +1794,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 		}
 	}
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Softkey: %s (%d) line=%d callid=%d\n", d->id, label2str(event), event, line, callid);
+	sccp_log(SCCP_VERBOSE_LEVEL_SOFTKEY)(VERBOSE_PREFIX_3 "%s: Got Softkey: %s (%d) line=%d callid=%d\n", d->id, label2str(event), event, line, callid);
 	
 	/* we have no line and call information -> use default line */
 	if(!line && !callid && event == SKINNY_LBL_NEWCALL){
@@ -2104,7 +2104,7 @@ void sccp_handle_version(sccp_session_t * s, sccp_moo_t * r)
 	REQ(r1, VersionMessage);
 	sccp_copy_string(r1->msg.VersionMessage.requiredVersion, s->device->imageversion, sizeof(r1->msg.VersionMessage.requiredVersion));
 	sccp_dev_send(s->device, r1);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending version number: %s\n", s->device->id, s->device->imageversion);
+	sccp_log(SCCP_VERBOSE_LEVEL_CORE)(VERBOSE_PREFIX_3 "%s: Sending version number: %s\n", s->device->id, s->device->imageversion);
 }
 
 
@@ -2139,7 +2139,7 @@ void sccp_handle_ServerResMessage(sccp_session_t * s, sccp_moo_t * r)
 
 	/* old protocol function replaced by the SEP file server addesses list */
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending servers message\n", DEV_ID_LOG(s->device));
+	sccp_log(SCCP_VERBOSE_LEVEL_CORE)(VERBOSE_PREFIX_3 "%s: Sending servers message\n", DEV_ID_LOG(s->device));
 
 	REQ(r1, ServerResMessage);
 #ifdef ASTERISK_CONF_1_2
@@ -2197,7 +2197,7 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r)
 
 	sccp_device_unlock(d);
 	sccp_dev_send(s->device, r1);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Sending ConfigStatMessage, lines %d, speeddials %d\n", d->id, lines, speeddials);
+	sccp_log(SCCP_VERBOSE_LEVEL_CORE)(VERBOSE_PREFIX_3 "%s: Sending ConfigStatMessage, lines %d, speeddials %d\n", d->id, lines, speeddials);
 }
 
 
@@ -2265,13 +2265,13 @@ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_moo_t * r)
 		return;
 
 	uint32_t instance = letohl(r->msg.ForwardStatReqMessage.lel_lineNumber);
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Forward Status Request.  Line: %d\n", d->id, instance);
+	sccp_log(SCCP_VERBOSE_LEVEL_CORE)(VERBOSE_PREFIX_3 "%s: Got Forward Status Request.  Line: %d\n", d->id, instance);
 	l = sccp_line_find_byid(d, instance);
 	if (l)
 		sccp_dev_forward_status(l, d);
 	else {
 		/* speeddial with hint. Sending empty forward message */
-		sccp_log(10)(VERBOSE_PREFIX_3 "%s: Send Forward Status.  Instance: %d\n", d->id, instance);
+		sccp_log(SCCP_VERBOSE_LEVEL_CORE)(VERBOSE_PREFIX_3 "%s: Send Forward Status.  Instance: %d\n", d->id, instance);
 		REQ(r1, ForwardStatMessage);
 		r1->msg.ForwardStatMessage.lel_status = 0;
 		r1->msg.ForwardStatMessage.lel_lineNumber = r->msg.ForwardStatReqMessage.lel_lineNumber;
@@ -2404,15 +2404,15 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 		return;
 	}
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: instance: %d, toggle: %s\n", d->id, instance, (toggleState)?"yes":"no");
+	sccp_log(SCCP_VERBOSE_LEVEL_FEATURE)(VERBOSE_PREFIX_3 "%s: instance: %d, toggle: %s\n", d->id, instance, (toggleState)?"yes":"no");
 
 
 
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list){
 		if(config->instance == instance && config->type == FEATURE){
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: toggle status from %d", d->id, config->button.feature.status);
+			sccp_log(SCCP_VERBOSE_LEVEL_FEATURE)(VERBOSE_PREFIX_3 "%s: toggle status from %d", d->id, config->button.feature.status);
 			config->button.feature.status = (config->button.feature.status==0)?1:0;
-			sccp_log(10)(VERBOSE_PREFIX_3 " to %d\n", config->button.feature.status);
+			sccp_log(SCCP_VERBOSE_LEVEL_FEATURE)(VERBOSE_PREFIX_3 " to %d\n", config->button.feature.status);
 			break;
 		}
 
@@ -2441,8 +2441,8 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 			if(!strcasecmp(config->button.feature.options, "callpresent")){
 				uint32_t res = d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
 
-				//sccp_log(10)(VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
-				//sccp_log(10)(VERBOSE_PREFIX_3 "%s: result=%d\n", d->id, res);
+				sccp_log(SCCP_VERBOSE_LEVEL_FEATURE_BUTTON)(VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
+				sccp_log(SCCP_VERBOSE_LEVEL_FEATURE_BUTTON)(VERBOSE_PREFIX_3 "%s: result=%d\n", d->id, res);
 				if( res ){
 					/* switch off */
 					d->privacyFeature.status &= ~SCCP_PRIVACYFEATURE_CALLPRESENT;
@@ -2451,7 +2451,7 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 					d->privacyFeature.status |= SCCP_PRIVACYFEATURE_CALLPRESENT;
 					config->button.feature.status = 1;
 				}
-				//sccp_log(10)(VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
+				sccp_log(SCCP_VERBOSE_LEVEL_FEATURE_BUTTON)(VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
 			}
 
 
@@ -2521,7 +2521,7 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 	}
 
 if(config){
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Status: %d\n", d->id, instance, config->button.feature.status);
+	sccp_log(SCCP_VERBOSE_LEVEL_FEATURE)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Status: %d\n", d->id, instance, config->button.feature.status);
 	sccp_feat_changed(d, config->button.feature.id);
 }
 
@@ -2552,22 +2552,22 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_moo_t * r)
 
   /* parsing audio caps */
   n = letohl(r->msg.UpdateCapabilitiesMessage.lel_audioCapCount);
-  sccp_log(10)(VERBOSE_PREFIX_3 "%s: Device has %d Audio Capabilities\n", DEV_ID_LOG(s->device), n);
+  sccp_log((SCCP_VERBOSE_LEVEL_CORE | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Device has %d Audio Capabilities\n", DEV_ID_LOG(s->device), n);
   for (i = 0 ; i < n; i++) {
     codec = letohl(r->msg.UpdateCapabilitiesMessage.audioCaps[i].lel_payloadCapability);
     astcodec = sccp_codec_skinny2ast(codec);
 	s->device->capability |= astcodec;
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CISCO:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(s->device), codec, codec2str(codec), astcodec, ast_codec2str(astcodec));
+	sccp_log(SCCP_VERBOSE_LEVEL_DEVICE)(VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(s->device), codec, codec2str(codec), astcodec, ast_codec2str(astcodec));
   }
 
   /* parsing video caps */
   n = letohl(r->msg.UpdateCapabilitiesMessage.lel_videoCapCount);
-  sccp_log(10)(VERBOSE_PREFIX_3 "%s: Device has %d Video Capabilities\n", DEV_ID_LOG(s->device), n);
+  sccp_log((SCCP_VERBOSE_LEVEL_CORE | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Device has %d Video Capabilities\n", DEV_ID_LOG(s->device), n);
   for (i = 0 ; i < n; i++) {
     codec = letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[i].lel_payloadCapability);
     astcodec = sccp_codec_skinny2ast(codec);
 	s->device->capability |= astcodec;
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: CISCO:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(s->device), codec, codec2str(codec), astcodec, ast_codec2str(astcodec));
+	sccp_log(SCCP_VERBOSE_LEVEL_DEVICE)(VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(s->device), codec, codec2str(codec), astcodec, ast_codec2str(astcodec));
   }
 }
 
