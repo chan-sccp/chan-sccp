@@ -202,7 +202,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 
 	sccp_log(64)(VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	if (SCCP_LIST_FIRST(&l->devices) == NULL) {
-		sccp_log(SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE)(VERBOSE_PREFIX_3 "SCCP/%s isn't currently registered anywhere.\n", l->name);
+		sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "SCCP/%s isn't currently registered anywhere.\n", l->name);
 #ifdef CS_AST_HAS_TECH_PVT
 		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 #endif
@@ -1226,7 +1226,7 @@ static int unload_module(void) {
 	/* removing lines */
 	SCCP_LIST_LOCK(&GLOB(lines));
 	while ((l = SCCP_LIST_REMOVE_HEAD(&GLOB(lines), list))) {
-		sccp_log(((SCCP_VERBOSE_LEVEL_CORE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "SCCP: Removing line %s\n", l->name);
+		sccp_log((SCCP_VERBOSE_LEVEL_CORE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "SCCP: Removing line %s\n", l->name);
 
 		/* removing channels */
 		SCCP_LIST_LOCK(&l->channels);
