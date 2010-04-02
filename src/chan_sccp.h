@@ -247,15 +247,54 @@ struct sccp_conference;
  */
 typedef enum {
         SCCP_VERBOSE_LEVEL_HINT 		= 1,
-        SCCP_VERBOSE_LEVEL_RTP 			= 2,
-        SCCP_VERBOSE_LEVEL_MWI 			= 1<< 15,
-        SCCP_VERBOSE_LEVEL_EVENT 		= 1 << 16
+        SCCP_VERBOSE_LEVEL_RTP 			= 1 << 2,
+        SCCP_VERBOSE_LEVEL_SCCP			= 1 << 3,
+        SCCP_VERBOSE_LEVEL_DEVICE		= 1 << 4,
+        SCCP_VERBOSE_LEVEL_LINE			= 1 << 5,
+        SCCP_VERBOSE_LEVEL_ACTION		= 1 << 6,
+        SCCP_VERBOSE_LEVEL_CHANNEL		= 1 << 7,
+        SCCP_VERBOSE_LEVEL_CLI			= 1 << 8,
+        SCCP_VERBOSE_LEVEL_CONFIG		= 1 << 9,
+        SCCP_VERBOSE_LEVEL_FEATURE		= 1 << 10,
+        SCCP_VERBOSE_LEVEL_FEATURE_BUTTON	= 1 << 11,
+        SCCP_VERBOSE_LEVEL_SOFTKEY		= 1 << 12,
+        SCCP_VERBOSE_LEVEL_INDICATE		= 1 << 13,
+        SCCP_VERBOSE_LEVEL_PBX			= 1 << 14,
+        SCCP_VERBOSE_LEVEL_SOCKET		= 1 << 15,
+        SCCP_VERBOSE_LEVEL_MWI 			= 1 << 16,
+        SCCP_VERBOSE_LEVEL_EVENT 		= 1 << 17,
+        SCCP_VERBOSE_LEVEL_ADV_FEATURE		= 1 << 18,
+        SCCP_VERBOSE_LEVEL_CONFERENCE		= 1 << 19,
 } sccp_verbose_level_t;									/*!< Verbosity Level */
 
-
-
-
-
+/*!
+ * \brief SCCP Verbose Level Structure
+ */
+static const struct sccp_verbose_level {
+        const char * const short_name;
+        sccp_verbose_level_t level;
+        const char * const text;
+} sccp_verbose_levels[] = {
+  { "hint", 		SCCP_VERBOSE_LEVEL_HINT, 		"hint debug level"		},
+  { "rtp",		SCCP_VERBOSE_LEVEL_RTP,			"rtp debug level"		},
+  { "sccp",		SCCP_VERBOSE_LEVEL_SCCP,		"sccp debug level"		},
+  { "device",		SCCP_VERBOSE_LEVEL_DEVICE,		"device debug level"		},
+  { "line",		SCCP_VERBOSE_LEVEL_LINE,		"line debug level"		},
+  { "action",		SCCP_VERBOSE_LEVEL_ACTION,		"action debug level"		},
+  { "channel",		SCCP_VERBOSE_LEVEL_CHANNEL,		"channel debug level"		},
+  { "cli",		SCCP_VERBOSE_LEVEL_CLI,			"cli debug level"		},
+  { "config",		SCCP_VERBOSE_LEVEL_CONFIG,		"config debug level"		},
+  { "feature",		SCCP_VERBOSE_LEVEL_FEATURE,		"feature debug level"		},
+  { "feature_button",	SCCP_VERBOSE_LEVEL_FEATURE_BUTTON,	"feature_button debug level"	},
+  { "softkey",		SCCP_VERBOSE_LEVEL_SOFTKEY,		"softkey debug level"		},
+  { "indicate",		SCCP_VERBOSE_LEVEL_INDICATE,		"indicate debug level"		},
+  { "pbx",		SCCP_VERBOSE_LEVEL_PBX,			"pbx debug level"		},
+  { "socket",		SCCP_VERBOSE_LEVEL_SOCKET,		"socket debug level"		},
+  { "mwi",		SCCP_VERBOSE_LEVEL_MWI,			"mwi debug level"		},
+  { "event",		SCCP_VERBOSE_LEVEL_EVENT,		"event debug level"		},
+  { "adv_feature",	SCCP_VERBOSE_LEVEL_ADV_FEATURE,		"adv_feature debug level"	},
+  { "conference",	SCCP_VERBOSE_LEVEL_CONFERENCE,		"conference debug level"	}
+};
 
 /*!
  * \brief Feature Type Enum

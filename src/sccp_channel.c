@@ -1756,13 +1756,14 @@ void sccp_channel_transfer(sccp_channel_t * c)
 	d = c->device;
 
 	if (!d->transfer || !c->line->transfer) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Tranfer disabled on device or line\n", (d && d->id)?d->id:"SCCP");
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer disabled on device or line\n", (d && d->id)?d->id:"SCCP");
 		return;
 	}
 
 	sccp_device_lock(d);
 	/* are we in the middle of a transfer? */
 	if (d->transfer_channel && (d->transfer_channel != c)) {
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion\n", (d && d->id)?d->id:"SCCP");
 		sccp_device_unlock(d);
 		sccp_channel_transfer_complete(c);
 		return;
@@ -1808,6 +1809,7 @@ static void * sccp_channel_transfer_ringing_thread(void *data)
 	if (!ast)
 		return NULL;
 
+        sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: (Ringing within Transfer %s(%p)\n", ast->name, ast);
 	if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_RING) {
 		sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Send ringing indication to %s(%p)\n", ast->name, ast);
 		ast_indicate(ast, AST_CONTROL_RINGING);
@@ -1860,8 +1862,6 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 
 	if (cDestinationLocal->state != SCCP_CHANNELSTATE_RINGOUT && cDestinationLocal->state != SCCP_CHANNELSTATE_CONNECTED) {
 		ast_log(LOG_WARNING, "SCCP: Failed to complete transfer. The channel is not ringing or connected\n");
-
-
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, instance, cDestinationLocal->callid, 0);
 		sccp_dev_displayprompt(d, instance, cDestinationLocal->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
