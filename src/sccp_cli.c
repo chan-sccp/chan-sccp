@@ -1292,19 +1292,51 @@ static struct ast_cli_entry cli_system_message = {
  * \return Result as int
  */
 static int sccp_do_debug(int fd, int argc, char *argv[]) {
-	int new_debug = 10;
+        int i;
+        uint32_t new_debug=GLOB(debug);
+        char * debug_val="";
+        char * token="";
+        const char delimiters[] = ",";
+        boolean_t subtract=0;
 
-	if ((argc < 2) || (argc > 3))
+	if ((argc < 2) || (argc > 4))
 		return RESULT_SHOWUSAGE;
 
-	if (argc == 3) {
-		if (sscanf(argv[2], "%d", &new_debug) != 1)
-			return RESULT_SHOWUSAGE;
-		new_debug = (new_debug > 99) ? 99 : new_debug; // 99 was 10
-		new_debug = (new_debug < 0) ? 0 : new_debug;
+	if (argc == 3 || argc == 4) {
+	        debug_val=argv[2];
+	        if (strcasecmp(argv[2],"no")==0) {
+	          debug_val=argv[3];
+	          subtract=1;
+	        }
+                // parse comma separated debug_var
+                token=strtok(debug_val,delimiters);
+                while (token!=NULL) {
+                        // match debug level name to enum
+                        for (i=0; i<ARRAY_LEN(sccp_verbose_levels); i++) {
+                                if(strcasecmp(token,sccp_verbose_levels[i].short_name)==0) {
+                                        if (subtract) {
+                                                // Bitwise AND Comparison to check if already exists
+                                                if ((new_debug & sccp_verbose_levels[i].level) == sccp_verbose_levels[i].level) {
+                                                        new_debug -= sccp_verbose_levels[i].level;
+                                                }
+                                        } else {
+                                                // Bitwise AND Comparison to check if not already exists
+                                                if ((new_debug & sccp_verbose_levels[i].level) != sccp_verbose_levels[i].level) {
+                                                        new_debug += sccp_verbose_levels[i].level;
+                                                }
+                                        }
+                                }
+                        }
+                        token=strtok(NULL,delimiters);
+                }
 	}
-
-	ast_cli(fd, "SCCP debug level was %d now %d\n", GLOB(debug), new_debug);
+	ast_cli(fd, "SCCP new debug status: ");
+	for (i=0; i<ARRAY_LEN(sccp_verbose_levels); i++) {
+	  if((new_debug & sccp_verbose_levels[i].level) == sccp_verbose_levels[i].level) {
+	    ast_cli(fd, "%s,", sccp_verbose_levels[i].short_name);
+	  }
+	}
+	ast_cli(fd, "\nSCCP debug level was %d now %d\n", GLOB(debug), new_debug);
 	GLOB(debug) = new_debug;
 	return RESULT_SUCCESS;
 }
@@ -1352,7 +1384,7 @@ static char *cli_do_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args 
 		return parts;*/
 		return NULL;
         }
-	if (a->argc != 3)
+	if ((a->argc < 2) || (a->argc > 4))
 		return CLI_SHOWUSAGE;
 
 	if(sccp_do_debug(a->fd, a->argc, a->argv) == RESULT_SUCCESS)

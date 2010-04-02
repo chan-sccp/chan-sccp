@@ -271,8 +271,8 @@ typedef enum {
         SCCP_VERBOSE_LEVEL_CODEC		= 1 << 22,
         SCCP_VERBOSE_LEVEL_REALTIME		= 1 << 22,
         SCCP_VERBOSE_LEVEL_LOCK			= 1 << 23,
-        SCCP_VERBOSE_LEVEL_NEWCODE		= 1 << 30,
-        SCCP_VERBOSE_LEVEL_HIGH			= 1 << 31,
+        SCCP_VERBOSE_LEVEL_NEWCODE		= 1 << 24,
+        SCCP_VERBOSE_LEVEL_HIGH			= 1 << 25,
 } sccp_verbose_level_t;									/*!< Verbosity Level */
 
 /*!
