@@ -270,7 +270,9 @@ typedef enum {
         SCCP_VERBOSE_LEVEL_SPEEDDIAL		= 1 << 21,
         SCCP_VERBOSE_LEVEL_CODEC		= 1 << 22,
         SCCP_VERBOSE_LEVEL_REALTIME		= 1 << 22,
-        SCCP_VERBOSE_LEVEL_NEWCODE		= 1 << 23,
+        SCCP_VERBOSE_LEVEL_LOCK			= 1 << 23,
+        SCCP_VERBOSE_LEVEL_NEWCODE		= 1 << 30,
+        SCCP_VERBOSE_LEVEL_HIGH			= 1 << 31,
 } sccp_verbose_level_t;									/*!< Verbosity Level */
 
 /*!
@@ -305,7 +307,9 @@ static const struct sccp_verbose_level {
   { "speeddial",	SCCP_VERBOSE_LEVEL_SPEEDDIAL,		"speeddial debug level"		},
   { "codec",		SCCP_VERBOSE_LEVEL_CODEC,		"codec debug level"		},
   { "realtime",		SCCP_VERBOSE_LEVEL_REALTIME,		"realtime debug level"		},
+  { "lock",		SCCP_VERBOSE_LEVEL_LOCK,		"lock debug level"		},
   { "newcode",		SCCP_VERBOSE_LEVEL_NEWCODE,		"newcode debug level"		},
+  { "high",		SCCP_VERBOSE_LEVEL_HIGH,		"high debug level"		},
 };
 
 /*!

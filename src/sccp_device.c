@@ -353,7 +353,7 @@ sccp_moo_t * sccp_build_packet(sccp_message_t t, size_t pkt_len)
 int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
 {
 	if(d && d->session){
-		sccp_log(99)(VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, message2str(letohl(r->lel_messageId)));
+		sccp_log((SCCP_VERBOSE_LEVEL_HIGH & SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, message2str(letohl(r->lel_messageId)));
 		return sccp_session_send(d, r);
 	}else
 		return -1;
