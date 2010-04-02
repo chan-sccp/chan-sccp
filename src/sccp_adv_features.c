@@ -68,25 +68,25 @@ void sccp_advfeat_conference(sccp_device_t *d, sccp_line_t *l, sccp_channel_t *c
 	if (!d || !d->session)
 		return;
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: handling conference\n", d->id);
+	sccp_log((SCCP_VERBOSE_LEVEL_CONFERENCE | SCCP_VERBOSE_LEVEL_ADV_FEATURE))(VERBOSE_PREFIX_3 "%s: handling conference\n", d->id);
 	c = sccp_channel_get_active(d);
 	if (c) {
                 sccp_log(10)(VERBOSE_PREFIX_3 "%s: existing call %d\n", d->id, c->callid);
 		sccp_channel_lock(c);
 		if ( (c->state == SCCP_CHANNELSTATE_DIALING) || (c->state == SCCP_CHANNELSTATE_OFFHOOK) ) {
-                        sccp_log(10)(VERBOSE_PREFIX_3 "%s: calling '**' for %d\n", d->id, c->callid);
+                        sccp_log((SCCP_VERBOSE_LEVEL_CONFERENCE | SCCP_VERBOSE_LEVEL_ADV_FEATURE | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: calling '**' for %d\n", d->id, c->callid);
 			sccp_copy_string(c->dialedNumber, "**", sizeof(c->dialedNumber));
 			sccp_channel_unlock(c);
 
 			SCCP_SCHED_DEL(sched, c->digittimeout);
-                        sccp_log(10)(VERBOSE_PREFIX_3 "%s: redirecting %d\n to '**'", d->id, c->callid);
+                        sccp_log((SCCP_VERBOSE_LEVEL_CONFERENCE | SCCP_VERBOSE_LEVEL_ADV_FEATURE))(VERBOSE_PREFIX_3 "%s: redirecting %d\n to '**'", d->id, c->callid);
                         sccp_pbx_softswitch(c);
 			return;
 		}
 		sccp_channel_unlock(c);
 		sccp_pbx_senddigits(c, "**");
 	} else {
-                sccp_log(10)(VERBOSE_PREFIX_3 "%s: new call\n", d->id);
+                sccp_log((SCCP_VERBOSE_LEVEL_CONFERENCE | SCCP_VERBOSE_LEVEL_ADV_FEATURE))(VERBOSE_PREFIX_3 "%s: new call\n", d->id);
 		if (GLOB(hotline)->line) {
 			sccp_channel_newcall(l, d, "**", SKINNY_CALLTYPE_OUTBOUND);
 		}

@@ -46,7 +46,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 	int instance;
 
 	if(debug)
-		sccp_log(93)(VERBOSE_PREFIX_1 "SCCP: [INDICATE] mode '%s' in file '%s', on line %d (%s)\n", "UNLOCK", file, line, pretty_function);
+		sccp_log((SCCP_VERBOSE_LEVEL_INDICATE))(VERBOSE_PREFIX_1 "SCCP: [INDICATE] mode '%s' in file '%s', on line %d (%s)\n", "UNLOCK", file, line, pretty_function);
 
 	if (!c) {
 		ast_log(LOG_ERROR, "SCCP: (sccp_indicate_nolock) No channel to indicate.\n");
@@ -54,7 +54,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 	}
 	d = (device)?device:c->device;
 	if (!d) {
-		sccp_log(93)(VERBOSE_PREFIX_1 "SCCP: The channel %d does not have a device\n",c->callid);
+		sccp_log((SCCP_VERBOSE_LEVEL_INDICATE))(VERBOSE_PREFIX_1 "SCCP: The channel %d does not have a device\n",c->callid);
 		return;
 	}
 
@@ -70,7 +70,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 	sccp_device_unlock(d);
 
 	/* all the check are ok. We can safely run all the dev functions with no more checks */
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Indicate SCCP state (%s) old (%s) on call %s-%08x\n",d->id, sccp_indicate2str(state), sccp_indicate2str(c->state), l->name, c->callid);
+	sccp_log((SCCP_VERBOSE_LEVEL_INDICATE | SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: Indicate SCCP state (%s) old (%s) on call %s-%08x\n",d->id, sccp_indicate2str(state), sccp_indicate2str(c->state), l->name, c->callid);
 
 	
 #warning "set state outside indication"
@@ -194,7 +194,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_BLINK);
 
 		if ( (d->dndFeature.enabled && d->dndFeature.status == SCCP_DNDMODE_SILENT) ) {
-			sccp_log(10)(VERBOSE_PREFIX_3 "%s: DND is activated on device\n",d->id);
+			sccp_log((SCCP_VERBOSE_LEVEL_INDICATE | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: DND is activated on device\n",d->id);
 			sccp_dev_set_ringer(d, SKINNY_STATION_SILENTRING, instance, c->callid);
 		}else
 			sccp_dev_set_ringer(d, c->ringermode, instance, c->callid);
@@ -239,7 +239,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		break;
 	case SCCP_CHANNELSTATE_PROCEED:
 		if(c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) { // this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app)
-			sccp_log(10)(VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
+			sccp_log((SCCP_VERBOSE_LEVEL_INDICATE | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
 			c->state = SCCP_CHANNELSTATE_CONNECTED;
 			// sccp_feat_updatecid(c);
 			return;
@@ -349,7 +349,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 	sccp_hint_lineStatusChanged(l, d, c, c->previousChannelState, c->state);
 	sccp_device_stateChanged(d);
 
-	sccp_log(10)(VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s) on call %s-%08x\n",d->id, sccp_indicate2str(state), l->name, c->callid);
+	sccp_log((SCCP_VERBOSE_LEVEL_INDICATE | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s) on call %s-%08x\n",d->id, sccp_indicate2str(state), l->name, c->callid);
 }
 
 
@@ -372,9 +372,6 @@ void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, ui
 	if(!c || !c->line)
 		return;
 
-
-
-
 //	SCCP_LIST_LOCK(&c->line->devices);
 	//TODO find working lock
 	sccp_linedevices_t *linedevice;
@@ -388,8 +385,8 @@ void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, ui
 
 
 
-			sccp_log(64)(VERBOSE_PREFIX_3 "%s: Notify remote device.\n", DEV_ID_LOG(remoteDevice));
-			sccp_log(64)(VERBOSE_PREFIX_3 "%s: channelcount: %d\n", DEV_ID_LOG(remoteDevice), c->line->channelCount);
+			sccp_log((SCCP_VERBOSE_LEVEL_INDICATE | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Notify remote device.\n", DEV_ID_LOG(remoteDevice));
+			sccp_log((SCCP_VERBOSE_LEVEL_INDICATE | SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: channelcount: %d\n", DEV_ID_LOG(remoteDevice), c->line->channelCount);
 
 			instance = sccp_device_find_index_for_line(remoteDevice, c->line->name);
 
@@ -486,6 +483,7 @@ void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, ui
 			}
 	}
 //	SCCP_LIST_UNLOCK(&c->line->devices);
+	sccp_log((SCCP_VERBOSE_LEVEL_INDICATE | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Finish to indicate state remote device SCCP (%s) on call %08x\n",device->id, sccp_indicate2str(state), c->callid);
 }
 
 
