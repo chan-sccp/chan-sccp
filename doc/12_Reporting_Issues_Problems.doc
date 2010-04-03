@@ -40,7 +40,7 @@
  * To generate a debuig report please take the following steps:
  *   - switch on the "all" section in logger.conf. 
  *   - Restart Asterisk
- *   - In cli (asterisk -rvvvvvvvvvvv) enter: sccp debug 10 (or higher)
+ *   - In cli (asterisk -rvvvvvvvvvvv) enter: sccp debug device,channel,line,event (or more or event all)
  *   - Reproduce the error you encountered. 
  *   - When done, stop asterisk
  *   - Attach the /var/log/asterisk/all (might be stored in a different location on your os) file to your error/issue report. 
