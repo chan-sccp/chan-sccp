@@ -222,7 +222,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	char pref_buf[128];
 	char cap_buf[512];
 	char buf[256];
-	char * debugparts="";
+	char * debugcategories="";
 #ifdef ASTERISK_CONF_1_2
 	char iabuf[INET_ADDRSTRLEN];
 #endif
@@ -248,7 +248,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Nat                   : %s\n", (GLOB(nat)) ? "Yes" : "No");
 	ast_cli(fd, "Direct RTP            : %s\n", (GLOB(directrtp)) ? "Yes" : "No");
 	ast_cli(fd, "Keepalive             : %d\n", GLOB(keepalive));
-	ast_cli(fd, "Debug                 : (%d) %s\n", GLOB(debug),sccp_get_debugparts(GLOB(debug),debugparts));
+	ast_cli(fd, "Debug                 : (%d) %s\n", GLOB(debug),sccp_get_debugcategories(GLOB(debug),debugcategories));
 	ast_cli(fd, "Date format           : %s\n", GLOB(date_format));
 	ast_cli(fd, "First digit timeout   : %d\n", GLOB(firstdigittimeout));
 	ast_cli(fd, "Digit timeout         : %d\n", GLOB(digittimeout));
@@ -1312,10 +1312,10 @@ static char * sccp_complete_debug(char *line, char *word, int pos, int state) {
 	if (pos > 3)
 	return NULL;
 
-	for (i=0; i<ARRAY_LEN(sccp_verbose_levels); i++) {
-		if (!strncasecmp(word, sccp_verbose_levels[i].short_name, strlen(word))) {
+	for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
+		if (!strncasecmp(word, sccp_debug_categories[i].short_name, strlen(word))) {
 			if (++which > state)
-			        ret = strdup(sccp_verbose_levels[i].short_name);
+			        ret = strdup(sccp_debug_categories[i].short_name);
 				break;
 		}
 	}
@@ -1340,8 +1340,8 @@ static int sccp_do_debug(int fd, int argc, char *argv[]) {
 	} else if (argc == 4) {
 	        new_debug=sccp_parse_debugline (argv[2],argv[3],new_debug);
 	}
-	char * debugparts="";
-	ast_cli(fd, "SCCP new debug status: (%d -> %d) %s\n", GLOB(debug), new_debug, sccp_get_debugparts(new_debug,debugparts));
+	char * debugcategories="";
+	ast_cli(fd, "SCCP new debug status: (%d -> %d) %s\n", GLOB(debug), new_debug, sccp_get_debugcategories(new_debug,debugcategories));
 	GLOB(debug) = new_debug;
 	return RESULT_SUCCESS;
 }
@@ -1358,8 +1358,8 @@ static char *cli_do_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args 
         if (cmd == CLI_INIT) {
 		e->command = "sccp debug";
 		e->usage = 
-			"Usage: SCCP debug [no] <level or parts>\n"
-			"		Where parts is one or more (separated by comma's) of:\n"
+			"Usage: SCCP debug [no] <level or categories>\n"
+			"		Where categories is one or more (separated by comma's) of:\n"
 			"		core, sccp, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey,\n"
 			"		indicate, pbx, socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime,\n"
 			"		lock, newcode, high\n";
@@ -1386,8 +1386,8 @@ static struct ast_cli_entry cli_do_debug = {
   { "sccp", "debug", NULL },
   sccp_do_debug,
   "Enable SCCP debugging",
-  "Usage: SCCP debug [no] <level or parts>\n"
-  "		Where parts is one or more (separated by comma's) of:\n"
+  "Usage: SCCP debug [no] <level or categories>\n"
+  "		Where categories is one or more (separated by comma's) of:\n"
   "		core, sccp, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey,\n"
   "		indicate, pbx, socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime,\n"
   "		lock, newcode, high\n";

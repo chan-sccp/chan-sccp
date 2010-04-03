@@ -126,7 +126,7 @@ sccp_feature_type_t sccp_featureStr2featureID(char *str);
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const char *SubscriptionIdNum);
 sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t *device, sccp_line_t *line);
 uint32_t sccp_parse_debugline (char * arg_part1,char * arg_part2, uint32_t new_debug);
-const char * sccp_get_debugparts (uint32_t debugvalue,char * dest);
+const char * sccp_get_debugcategories(uint32_t debugvalue,char * dest);
 #endif
 
 
