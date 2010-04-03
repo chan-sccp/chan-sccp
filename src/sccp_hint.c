@@ -232,11 +232,11 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 	hint = data;
 
 	if (state == -1 || !hint ){
-		sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "SCCP: get new hint, but no hint param exists\n");
+		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "SCCP: get new hint, but no hint param exists\n");
 		return 0;
 	}
 
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "SCCP: get new hint state %s(%d) for %s\n", extensionstatus2str(state), state, hint->hint_dialplan);
+	sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "SCCP: get new hint state %s(%d) for %s\n", extensionstatus2str(state), state, hint->hint_dialplan);
 	hint->callInfo.calltype = SKINNY_CALLTYPE_OUTBOUND;
 	/* converting asterisk state -> sccp state */
 	switch(state) {
@@ -317,7 +317,7 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 			break;
 #endif
 		default:
-			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "SCCP: Unmapped hint state %d for %s\n", state, hint->hint_dialplan);
+			sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "SCCP: Unmapped hint state %d for %s\n", state, hint->hint_dialplan);
 #ifndef CS_DYNAMIC_SPEEDDIAL
 			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 #else
@@ -328,17 +328,17 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 	}
 
 	/* push to subscribers */
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "SCCP: Notifying Subscribers for %s\n", hint->hint_dialplan);
+	sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "SCCP: Notifying Subscribers for %s\n", hint->hint_dialplan);
 	sccp_hint_notifySubscribers(hint);
 	
 #ifndef AST_EVENT_IE_CIDNAME
 	if(state == AST_EXTENSION_INUSE || state == AST_EXTENSION_BUSY){
 		if (hint->type.asterisk.notificationThread != AST_PTHREADT_NULL) {
-			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "SCCP: Thread Kill %s\n", hint->hint_dialplan);
+			sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "SCCP: Thread Kill %s\n", hint->hint_dialplan);
 			pthread_kill(hint->type.asterisk.notificationThread, SIGURG);
 			hint->type.asterisk.notificationThread = AST_PTHREADT_NULL;
 		} else {
-			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "SCCP: Thread Background %s\n", hint->hint_dialplan);
+			sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "SCCP: Thread Background %s\n", hint->hint_dialplan);
  			if (ast_pthread_create_background(&hint->type.asterisk.notificationThread, NULL, sccp_hint_remoteNotification_thread, hint) < 0) {
  				return -1;
  			}
@@ -386,7 +386,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 	if(!hint)
 		return;
 
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "notify subscriber of %s\n", (hint->hint_dialplan)?hint->hint_dialplan:"null");
+	sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "notify subscriber of %s\n", (hint->hint_dialplan)?hint->hint_dialplan:"null");
 	
 	
 	
@@ -456,11 +456,11 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			sccp_dev_send(subscriber->device, r2);
 			
 			
-			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "set display name to: \"%s\"\n", displayMessage);
+			sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "set display name to: \"%s\"\n", displayMessage);
 			sccp_copy_string(r->msg.FeatureStatAdvancedMessage.DisplayName, displayMessage, sizeof(r->msg.FeatureStatAdvancedMessage.DisplayName));
 			sccp_dev_send(subscriber->device, r);
 			
-			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "notify device: %s@%d state: %d(%d)\n", DEV_ID_LOG(subscriber->device), subscriber->instance, hint->currentState, r->msg.FeatureStatAdvancedMessage.lel_status );
+			sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "notify device: %s@%d state: %d(%d)\n", DEV_ID_LOG(subscriber->device), subscriber->instance, hint->currentState, r->msg.FeatureStatAdvancedMessage.lel_status );
 			
 			if(k)
 				ast_free(k);
@@ -485,7 +485,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 		r->msg.CallInfoMessage.lel_callRef  = htolel(0);
 		r->msg.CallInfoMessage.lel_callType = htolel(hint->callInfo.calltype);
 		sccp_dev_send(subscriber->device, r);
-		sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "notify device: %s@%d state: %d\n", DEV_ID_LOG(subscriber->device), subscriber->instance, hint->currentState );
+		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "notify device: %s@%d state: %d\n", DEV_ID_LOG(subscriber->device), subscriber->instance, hint->currentState );
 
 		
 		/*if(hint->currentState == SCCP_CHANNELSTATE_ONHOOK) {
@@ -538,8 +538,8 @@ void sccp_hint_hintStatusUpdate(sccp_hint_list_t *hint){
 		return;
 
 	line = sccp_line_find_byname(hint->type.internal.lineName);
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "hint %s@%s has changed\n", hint->exten, hint->context );
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "line %s has %d device%s --> notify %s\n", line->name, line->devices.size, (line->devices.size>1)?"s":"",  (line->devices.size>1)?"shared line change":"single line change");
+	sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "hint %s@%s has changed\n", hint->exten, hint->context );
+	sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "line %s has %d device%s --> notify %s\n", line->name, line->devices.size, (line->devices.size>1)?"s":"",  (line->devices.size>1)?"shared line change":"single line change");
 	
 	if( (line->devices.size >1 && line->channels.size > 1) || line->channels.size > 1 ){
 		/* line is currently shared */
@@ -622,7 +622,7 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t *hint){
 
 
 	if(line->channels.size > 0){
-		sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "%s: number of active channels %d\n", line->name, line->statistic.numberOfActiveChannels);
+		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "%s: number of active channels %d\n", line->name, line->statistic.numberOfActiveChannels);
 		if(line->channels.size == 1){
 			channel = SCCP_LIST_FIRST(&line->channels);
 			if(!channel){
@@ -692,7 +692,7 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 		hint->currentState = SCCP_CHANNELSTATE_DOWN;
 #endif
 
-		sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "no line or no device; line: %s\n", (line)?line->name:"null");
+		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "no line or no device; line: %s\n", (line)?line->name:"null");
 		goto DONE;
 	}
 	
@@ -847,7 +847,7 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 		}
 	}
 DONE:
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "set singleLineState to %d\n", hint->currentState);
+	sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "set singleLineState to %d\n", hint->currentState);
 	sccp_mutex_unlock(&hint->lock);
 }
 /*!
@@ -883,7 +883,7 @@ void sccp_hint_subscribeHint(const sccp_device_t *device, const char *hintStr, u
 		hint_context = GLOB(context);
 	}
 	/*  */
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "Dialplan %s for exten: %s and context: %s\n", hintStr, hint_exten, hint_context);
+	sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "Dialplan %s for exten: %s and context: %s\n", hintStr, hint_exten, hint_context);
 	
 
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&sccp_hint_subscriptions, hint, list){
@@ -892,7 +892,7 @@ void sccp_hint_subscribeHint(const sccp_device_t *device, const char *hintStr, u
 				&& !strcmp(hint_exten, hint->exten)
 				&& !strcmp(hint_context, hint->context)){
 		  
-			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "Hint found\n");
+			sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "Hint found\n");
 			break;
 		}
 	}
@@ -910,7 +910,7 @@ void sccp_hint_subscribeHint(const sccp_device_t *device, const char *hintStr, u
 	}
 
 	/* add subscribing device */
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "create subscriber\n");
+	sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "create subscriber\n");
 	sccp_hint_SubscribingDevice_t *subscriber;
 	subscriber = ast_malloc(sizeof(sccp_hint_SubscribingDevice_t));
 	memset(subscriber, 0, sizeof(sccp_hint_SubscribingDevice_t));
@@ -952,7 +952,7 @@ void sccp_hint_unSubscribeHint(const sccp_device_t *device, const char *hintStr,
 		hint_context = GLOB(context);
 	}
 	/*  */
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "Remove device %s from hint %s for exten: %s and context: %s\n", DEV_ID_LOG(device),hintStr, hint_exten, hint_context);
+	sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "Remove device %s from hint %s for exten: %s and context: %s\n", DEV_ID_LOG(device),hintStr, hint_exten, hint_context);
 
 
 	SCCP_LIST_LOCK(&sccp_hint_subscriptions);
@@ -979,7 +979,7 @@ void sccp_hint_unSubscribeHint(const sccp_device_t *device, const char *hintStr,
 	
 	if(subscriber){
 		SCCP_LIST_REMOVE(&hint->subscribers, subscriber, list);
-		sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "Device removed.\n");
+		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "Device removed.\n");
 	}
 	SCCP_LIST_UNLOCK(&hint->subscribers);
 }
@@ -1002,7 +1002,7 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context){
 	if(ast_strlen_zero(hint_context))
 		hint_context = GLOB(context);
 	
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "Create hint for exten: %s context: %s\n", hint_exten, hint_context);
+	sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "Create hint for exten: %s context: %s\n", hint_exten, hint_context);
 
 #ifdef CS_AST_HAS_NEW_HINT
 	ast_get_hint(hint_dialplan, sizeof(hint_dialplan) - 1, NULL, 0, NULL, hint_context, hint_exten);
@@ -1011,7 +1011,7 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context){
 #endif
 	
 	if (ast_strlen_zero(hint_dialplan)) {
-		sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "No hint configuration in the dialplan exten: %s and context: %s\n", hint_exten, hint_context);
+		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "No hint configuration in the dialplan exten: %s and context: %s\n", hint_exten, hint_context);
 		return NULL;
 	}
 	
@@ -1031,7 +1031,7 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context){
 	/* check if we have an internal hint or have to use asterisk hint system */
 	if ( strchr(hint_dialplan,'&') || strncasecmp(hint_dialplan,"SCCP",4) ) {
 		/* asterisk style hint system */
-		sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "Configuring asterisk (no sccp features) hint %s for exten: %s and context: %s\n", hint_dialplan, hint_exten, hint_context);
+		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "Configuring asterisk (no sccp features) hint %s for exten: %s and context: %s\n", hint_dialplan, hint_exten, hint_context);
 		
 		hint->hintType = ASTERISK;
 		hint->type.asterisk.notificationThread = AST_PTHREADT_NULL;
@@ -1043,7 +1043,7 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context){
 #endif		
 		if (hint->type.asterisk.hintid > -1) {
 			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "Added hint (ASTERISK), extension %s@%s, device %s\n", hint_exten, hint_context, hint_dialplan);
+			sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "Added hint (ASTERISK), extension %s@%s, device %s\n", hint_exten, hint_context, hint_dialplan);
 			
 			int state = ast_extension_state(NULL, hint_context, hint_exten);
 			sccp_hint_state(hint_context, hint_exten, state, hint);
@@ -1074,7 +1074,7 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context){
 		
 		sccp_line_t *line = sccp_line_find_byname(lineName);
 		if (!line) {
-			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "Error adding hint (SCCP) for line: %s. The line does not exist!\n", hint_dialplan);
+			sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "Error adding hint (SCCP) for line: %s. The line does not exist!\n", hint_dialplan);
 		}else{
 			sccp_hint_hintStatusUpdate(hint);
 		}	
@@ -1101,10 +1101,10 @@ static void * sccp_hint_remoteNotification_thread(void *data){
 
 	
 
-	sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_3 "searching for callInfos for asterisk channel %s\n", hint->hint_dialplan ? hint->hint_dialplan : "null");
+	sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "searching for callInfos for asterisk channel %s\n", hint->hint_dialplan ? hint->hint_dialplan : "null");
 	while ((astChannel = ast_channel_walk_locked(astChannel)) != NULL) {
-		sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) searching for channel on %s\n", hint->hint_dialplan);
-		sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) asterisk channels %s, cid_num: %s, cid_name: %s\n", astChannel->name, astChannel->cid.cid_num, astChannel->cid.cid_name);
+		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) searching for channel on %s\n", hint->hint_dialplan);
+		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) asterisk channels %s, cid_num: %s, cid_name: %s\n", astChannel->name, astChannel->cid.cid_num, astChannel->cid.cid_name);
 		if(strlen(astChannel->name) > strlen(hint->hint_dialplan) && !strncmp(astChannel->name, hint->hint_dialplan, strlen(hint->hint_dialplan))){
 			ast_channel_unlock(astChannel);
 			foundChannel = astChannel;
@@ -1115,13 +1115,13 @@ static void * sccp_hint_remoteNotification_thread(void *data){
 
 	if(foundChannel){
 		ast_channel_lock(foundChannel);
-		sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) found remote channel %s\n", foundChannel->name);
+		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) found remote channel %s\n", foundChannel->name);
 		i = 0;
 		// Waiting for bridged channel. Haven't found any other way
 		while (foundChannel && (bridgedChannel = ast_bridged_channel(foundChannel)) == NULL && i < 30) {
 			if(!ast_channel_unlock(foundChannel))
 				goto CLEANUP;
-			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) searching for bridgedChannel\n");
+			sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) searching for bridgedChannel\n");
 //#warning "This looks very dangerous to me or needs explanation (-DD)"
 			sleep(1);
 			i++;
@@ -1130,7 +1130,7 @@ static void * sccp_hint_remoteNotification_thread(void *data){
 		}
 
 		if(bridgedChannel){
-			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) asterisk bridgedChannel %s, cid_num: %s, cid_name: %s\n", bridgedChannel->name, bridgedChannel->cid.cid_num, bridgedChannel->cid.cid_name);
+			sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) asterisk bridgedChannel %s, cid_num: %s, cid_name: %s\n", bridgedChannel->name, bridgedChannel->cid.cid_num, bridgedChannel->cid.cid_name);
 
 			
 			sccp_copy_string(hint->callInfo.callingParty, foundChannel->cid.cid_num, sizeof(hint->callInfo.callingParty));
@@ -1145,7 +1145,7 @@ static void * sccp_hint_remoteNotification_thread(void *data){
 			sccp_hint_notifySubscribers(hint);
 
 		}else
-			sccp_log(SCCP_VERBOSE_LEVEL_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) no bridgedChannel channels for %s\n", foundChannel->name);
+			sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) no bridgedChannel channels for %s\n", foundChannel->name);
 		ast_channel_unlock(foundChannel);
 	}
 

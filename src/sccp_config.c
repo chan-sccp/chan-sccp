@@ -156,7 +156,7 @@ void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID,
 	}else{
 		config->type = FEATURE;
 		sccp_copy_string(config->button.feature.label, ast_strip(label), sizeof(config->button.feature.label));
-		sccp_log((SCCP_VERBOSE_LEVEL_FEATURE|SCCP_VERBOSE_LEVEL_FEATURE_BUTTON | SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "featureID: %s\n", featureID);
+		sccp_log((DEBUGCAT_FEATURE|DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "featureID: %s\n", featureID);
 		config->button.feature.id = sccp_featureStr2featureID(featureID);
 
 		if(args)
@@ -460,7 +460,8 @@ boolean_t sccp_config_general(void){
 			} else if (!strcasecmp(v->name, "recorddigittimeoutchar")) {
 				GLOB(recorddigittimeoutchar) = sccp_true(v->value);
 			} else if (!strcasecmp(v->name, "debug")) {
-				GLOB(debug) = atoi(v->value);
+			        GLOB(debug)=sccp_parse_debugline ((char *)v->value,"",GLOB(debug));
+//				GLOB(debug) = atoi(v->value);
 			} else if (!strcasecmp(v->name, "allow")) {
 				ast_parse_allow_disallow(&GLOB(global_codecs), &GLOB(global_capability), ast_strip(config_value), 1);
 			} else if (!strcasecmp(v->name, "disallow")) {
@@ -776,7 +777,7 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
                         mailbox->context = ast_strdup(context);
 
                         SCCP_LIST_INSERT_TAIL(&l->mailboxes, mailbox, list);
-                        sccp_log(SCCP_VERBOSE_LEVEL_CONFIG)(VERBOSE_PREFIX_3 "%s: Added mailbox '%s@%s'\n", l->name, mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
+                        sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_3 "%s: Added mailbox '%s@%s'\n", l->name, mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
                 } else if (!strcasecmp(v->name, "vmnum")) {
                         sccp_copy_string(l->vmnum, v->value, sizeof(l->vmnum));
 		} else if (!strcasecmp(v->name, "adhocNumber")) {
@@ -846,7 +847,7 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
                         newvar = sccp_create_variable(v->value);
 
                         if (newvar) {
-                                sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_CONFIG | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "Add new channelvariable to line %s. Value is: %s \n",newvar->name ,newvar->value);
+                                sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CONFIG | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "Add new channelvariable to line %s. Value is: %s \n",newvar->name ,newvar->value);
                                 newvar->next = l->variables;
                                 l->variables = newvar;
                         }
@@ -895,7 +896,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 	char 			family[25];
 
         if (!v) {
-                sccp_log((SCCP_VERBOSE_LEVEL_CONFIG | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "no variable given\n");
+                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "no variable given\n");
                 return d;
         }
 
@@ -926,9 +927,9 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
                         buttonOption = strsep(&splitter, ",");
                         buttonArgs = splitter;
 
-                        sccp_log((SCCP_VERBOSE_LEVEL_CONFIG & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_3 "ButtonType: %s\n", buttonType);
-                        sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_3 "ButtonName: %s\n", buttonName);
-                        sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_3 "ButtonOption: %s\n", buttonOption);
+                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "ButtonType: %s\n", buttonType);
+                        sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "ButtonName: %s\n", buttonName);
+                        sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "ButtonOption: %s\n", buttonOption);
 
                         if (!strcasecmp(buttonType, "line") && buttonName) {
                                 if (!buttonName)
@@ -1041,7 +1042,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
                         newvar = sccp_create_variable(v->value);
 
                         if (newvar) {
-                                sccp_log((SCCP_VERBOSE_LEVEL_CONFIG | SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "SCCP: Add new channelvariable to line %s. Value is: %s \n",newvar->name ,newvar->value);
+                                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_CHANNEL | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "SCCP: Add new channelvariable to line %s. Value is: %s \n",newvar->name ,newvar->value);
                                 newvar->next = d->variables;
                                 d->variables = newvar;
                         }
@@ -1109,7 +1110,7 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
 	sccp_softKeySetConfiguration_t 	*softKeySetConfiguration = NULL;
 	int 			keyMode = -1;
 	int 			i=0;
-	sccp_log((SCCP_VERBOSE_LEVEL_CONFIG | SCCP_VERBOSE_LEVEL_SOFTKEY))(VERBOSE_PREFIX_3 "start reading softkeyset: %s\n", name);
+	sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "start reading softkeyset: %s\n", name);
 	
 	
 	softKeySetConfiguration = ast_malloc(sizeof(sccp_softKeySetConfiguration_t));
@@ -1120,7 +1121,7 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
 	
 	while(variable){
 		keyMode = -1;
-		sccp_log((SCCP_VERBOSE_LEVEL_CONFIG | SCCP_VERBOSE_LEVEL_SOFTKEY))(VERBOSE_PREFIX_3 "softkeyset: %s \n",variable->name);
+		sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "softkeyset: %s \n",variable->name);
 		if (!strcasecmp(variable->name, "type")){
 			
 		}else if(!strcasecmp(variable->name, "onhook")){

@@ -292,7 +292,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, struct subscrip
 	if(!l || !device)
 		return;
 
-	sccp_log((SCCP_VERBOSE_LEVEL_HIGH & SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
+	sccp_log((DEBUGCAT_HIGH + DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
 	linedevice = ast_malloc(sizeof(sccp_linedevices_t));
 	memset(linedevice, 0, sizeof(sccp_linedevices_t));
 	linedevice->device = device;
@@ -337,7 +337,7 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device)
 	if(!l || !device)
 		return;
 
-	sccp_log((SCCP_VERBOSE_LEVEL_HIGH & SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: remove device from line %s\n", DEV_ID_LOG(device), l->name);
+	sccp_log((DEBUGCAT_HIGH + DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: remove device from line %s\n", DEV_ID_LOG(device), l->name);
 	
 	
 	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));

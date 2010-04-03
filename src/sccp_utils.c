@@ -83,27 +83,26 @@ void sccp_dump_packet(unsigned char * messagebuffer, int len)
 		if((i == rows - 1) && (len % res > 0)) // FIXED after 354 -FS
 			cols = len % res;
 
-        memset(temp2, 0, sizeof(temp2));
-		for(t = 0; t < cols; t++) {
-			memset(temp, 0, sizeof(temp));
-			sprintf(temp, "%02X ", messagebuffer[cur]);
-			strcat(row, temp);
+                memset(temp2, 0, sizeof(temp2));
+                for(t = 0; t < cols; t++) {
+		    memset(temp, 0, sizeof(temp));
+		    sprintf(temp, "%02X ", messagebuffer[cur]);
+		    strcat(row, temp);
+                    if(isPrintableChar((char)messagebuffer[cur]))
+		        sprintf(temp, "%c", messagebuffer[cur]);
+                    else
+		        sprintf(temp, ".");
+                    strcat(temp2, temp);
+                    cur++;
+                }
 
-			if(isPrintableChar((char)messagebuffer[cur]))
-				sprintf(temp, "%c", messagebuffer[cur]);
-			else
-				sprintf(temp, ".");
-            strcat(temp2, temp);
-			cur++;
-		}
-
-		if(cols < res) {
-            for(t = 0; t < res - cols; t++) {
-				strcat(row, "   ");
-            }
-        }
+                if(cols < res) {
+                    for(t = 0; t < res - cols; t++) {
+                        strcat(row, "   ");
+                    }
+                }
 		strcat(row, temp2);
-		sccp_log((SCCP_VERBOSE_LEVEL_CORE))(VERBOSE_PREFIX_1 "%s\n", row);
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_1 "%s\n", row);
 	}
 }
 
@@ -211,7 +210,7 @@ int sccp_addons_taps(sccp_device_t * d)
 			taps += 14;
 		if(cur->type == SKINNY_DEVICETYPE_CISCO7915 || cur->type == SKINNY_DEVICETYPE_CISCO7916)
 			taps += 24;
-		sccp_log((SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Found (%d) taps on device addon (%d)\n", (d->id?d->id:"SCCP"), taps, cur->type);
+		sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Found (%d) taps on device addon (%d)\n", (d->id?d->id:"SCCP"), taps, cur->type);
 	}
 	SCCP_LIST_UNLOCK(&d->addons);
 
@@ -320,7 +319,7 @@ sccp_device_t * sccp_device_find_realtime(const char * name) {
 
 	if ((variable = ast_load_realtime(GLOB(realtimedevicetable), "name", name, NULL))) {
 		v = variable;
-		sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "SCCP: Device '%s' found in realtime table '%s'\n", name, GLOB(realtimedevicetable));
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME))(VERBOSE_PREFIX_3 "SCCP: Device '%s' found in realtime table '%s'\n", name, GLOB(realtimedevicetable));
 		//d = sccp_config_buildDevice(v, name, TRUE);
 
 		d = sccp_device_create();
@@ -340,7 +339,7 @@ sccp_device_t * sccp_device_find_realtime(const char * name) {
 		return d;
 	}
 
-	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "SCCP: Device '%s' not found in realtime table '%s'\n", name, GLOB(realtimedevicetable));
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME))(VERBOSE_PREFIX_3 "SCCP: Device '%s' not found in realtime table '%s'\n", name, GLOB(realtimedevicetable));
 	return NULL;
 }
 #endif
@@ -355,7 +354,7 @@ sccp_line_t * sccp_line_find_byname_wo(const char * name, uint8_t realtime)
 {
 	sccp_line_t * l = NULL;
 
-	sccp_log(SCCP_VERBOSE_LEVEL_LINE)(VERBOSE_PREFIX_3 "SCCP: Looking for line '%s'\n", name);
+	sccp_log(DEBUGCAT_LINE)(VERBOSE_PREFIX_3 "SCCP: Looking for line '%s'\n", name);
 
  	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
@@ -371,12 +370,12 @@ sccp_line_t * sccp_line_find_byname_wo(const char * name, uint8_t realtime)
 #endif
 
 	if (!l) {
-		sccp_log((SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "SCCP: Line '%s' not found.\n", name);
+		sccp_log((DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "SCCP: Line '%s' not found.\n", name);
 		return NULL;
 	}
 
-//	sccp_log((SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: Found line '%s'\n", DEV_ID_LOG(l->device), l->name);
-	sccp_log((SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: Found line '%s'\n", "SCCP", l->name);
+//	sccp_log((DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Found line '%s'\n", DEV_ID_LOG(l->device), l->name);
+	sccp_log((DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Found line '%s'\n", "SCCP", l->name);
 
 	return l;
 }
@@ -397,7 +396,7 @@ sccp_line_t * sccp_line_find_realtime_byname(const char * name)
 
 	if ((variable = ast_load_realtime(GLOB(realtimelinetable), "name", name, NULL))) {
 		v = variable;
-		sccp_log((SCCP_VERBOSE_LEVEL_LINE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "SCCP: Line '%s' found in realtime table '%s'\n", name, GLOB(realtimelinetable));
+		sccp_log((DEBUGCAT_LINE | DEBUGCAT_REALTIME))(VERBOSE_PREFIX_3 "SCCP: Line '%s' found in realtime table '%s'\n", name, GLOB(realtimelinetable));
 
 		ast_log(LOG_NOTICE, "SCCP: creating realtime line '%s'\n", name);
 		l = sccp_line_create();
@@ -415,7 +414,7 @@ sccp_line_t * sccp_line_find_realtime_byname(const char * name)
 		return l;
 	}
 
-	sccp_log((SCCP_VERBOSE_LEVEL_LINE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "SCCP: Line '%s' not found in realtime table '%s'\n", name, GLOB(realtimelinetable));
+	sccp_log((DEBUGCAT_LINE | DEBUGCAT_REALTIME))(VERBOSE_PREFIX_3 "SCCP: Line '%s' not found in realtime table '%s'\n", name, GLOB(realtimelinetable));
 	return NULL;
 }
 #endif
@@ -432,14 +431,14 @@ sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint8_t instance){
 	sccp_line_t 		*l = NULL;
 	sccp_buttonconfig_t	*config;
 
-	sccp_log((SCCP_VERBOSE_LEVEL_LINE | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Looking for line with instance %d.\n", DEV_ID_LOG(d), instance);
+	sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Looking for line with instance %d.\n", DEV_ID_LOG(d), instance);
 	
 	if(instance == 0)
 		return NULL;
 	
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		sccp_log((SCCP_VERBOSE_LEVEL_LINE | SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: button instance %d, type: %d\n", DEV_ID_LOG(d), config->instance, config->type);
+		sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: button instance %d, type: %d\n", DEV_ID_LOG(d), config->instance, config->type);
 
 		if(config->type == LINE && config->instance == instance && sccp_is_nonempty_string(config->button.line.name) ){
 			l = sccp_line_find_byname_wo(config->button.line.name, TRUE);
@@ -459,12 +458,12 @@ sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint8_t instance){
 	*/
 
 	if (!l) {
-		sccp_log((SCCP_VERBOSE_LEVEL_LINE | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: No line found with instance %d.\n", DEV_ID_LOG(d), instance);
+		sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: No line found with instance %d.\n", DEV_ID_LOG(d), instance);
 		return NULL;
 	}
 
-//	sccp_log((SCCP_VERBOSE_LEVEL_LINE | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Found line %s\n", DEV_ID_LOG(l->device), l->name);
-	sccp_log((SCCP_VERBOSE_LEVEL_LINE | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "%s: Found line %s\n", "SCCP", l->name);
+//	sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Found line %s\n", DEV_ID_LOG(l->device), l->name);
+	sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Found line %s\n", "SCCP", l->name);
 
 	return l;
 }
@@ -479,15 +478,15 @@ sccp_channel_t * sccp_channel_find_byid(uint32_t id)
 	sccp_channel_t * c = NULL;
 	sccp_line_t * l;
 
-	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %u\n", id);
+	sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %u\n", id);
 
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-			sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "Channel %u state: %d\n", c->callid, c->state);
+			sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "Channel %u state: %d\n", c->callid, c->state);
 			if (c->callid == id && c->state != SCCP_CHANNELSTATE_DOWN) {
-				sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found channel (%u)\n", DEV_ID_LOG(c->device), c->callid);
+				sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found channel (%u)\n", DEV_ID_LOG(c->device), c->callid);
 				break;
 			}
 		}
@@ -512,15 +511,15 @@ sccp_channel_t * sccp_channel_find_bypassthrupartyid(uint32_t id)
 	sccp_channel_t * c = NULL;
 	sccp_line_t * l;
 
-	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u\n", id);
+	sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u\n", id);
 
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-			sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%u: Found channel partyID: %u state: %d\n", c->callid, c->passthrupartyid, c->state);
+			sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%u: Found channel partyID: %u state: %d\n", c->callid, c->passthrupartyid, c->state);
 			if (c->passthrupartyid == id && c->state != SCCP_CHANNELSTATE_DOWN) {
-				sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found channel (%u)\n", DEV_ID_LOG(c->device), c->callid);
+				sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found channel (%u)\n", DEV_ID_LOG(c->device), c->callid);
 				break;
 			}
 		}
@@ -543,14 +542,14 @@ sccp_channel_t * sccp_channel_find_bypassthrupartyid(uint32_t id)
 sccp_channel_t * sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state) {
 	sccp_channel_t * c = NULL;
 
-	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
+	sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
 
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 			if (c && c->state == state) {
-				sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(c->device), c->callid);
+				sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(c->device), c->callid);
 				break;
 			}
 		}
@@ -575,12 +574,12 @@ sccp_selectedchannel_t * sccp_device_find_selectedchannel(sccp_device_t * d, scc
 	if(!c || !d)
 		return NULL;
 
-	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Looking for selected channel (%d)\n", DEV_ID_LOG(d), c->callid);
+	sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Looking for selected channel (%d)\n", DEV_ID_LOG(d), c->callid);
 
 	SCCP_LIST_LOCK(&d->selectedChannels);
 	SCCP_LIST_TRAVERSE(&d->selectedChannels, x, list) {
 		if (x->channel == c) {
-			sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(d), c->callid);
+			sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(d), c->callid);
 			break;
 		}
 	}
@@ -601,7 +600,7 @@ uint8_t sccp_device_selectedchannels_count(sccp_device_t * d) {
 	if(!d)
 		return 0;
 
-	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Looking for selected channels count\n", DEV_ID_LOG(d));
+	sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Looking for selected channels count\n", DEV_ID_LOG(d));
 
 	SCCP_LIST_LOCK(&d->selectedChannels);
 	SCCP_LIST_TRAVERSE(&d->selectedChannels, x, list) {
@@ -621,14 +620,14 @@ uint8_t sccp_device_selectedchannels_count(sccp_device_t * d) {
 sccp_channel_t * sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t state) {
 	sccp_channel_t * c = NULL;
 
-	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
+	sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
 
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 			if (c->state == state) {
-				sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(c->device), c->callid);
+				sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(c->device), c->callid);
 				break;
 			}
 		}
@@ -654,7 +653,7 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 	sccp_buttonconfig_t	*buttonconfig = NULL;
 	boolean_t channelFound = FALSE;
 
-	sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
+	sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
 
 	if(!d)
 		return NULL;
@@ -666,11 +665,11 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 		if(buttonconfig->type == LINE ){
 			l = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE);
 			if(l){
-				sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE | SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: line: '%s'\n", DEV_ID_LOG(d), l->name);
+				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_CHANNEL | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: line: '%s'\n", DEV_ID_LOG(d), l->name);
 				SCCP_LIST_LOCK(&l->channels);
 				SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 					if (c->state == state) {
-						sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_BUTTONTEMPLATE | SCCP_VERBOSE_LEVEL_CHANNEL | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(d), c->callid);
+						sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_CHANNEL | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(d), c->callid);
 						channelFound = TRUE;
 						break;
 					}
@@ -695,7 +694,7 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 void sccp_ast_setstate(sccp_channel_t * c, int state) {
 	if (c && c->owner) {
 		ast_setstate(c->owner, state);
-		sccp_log((SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: Set asterisk state %s (%d) for call %d\n", DEV_ID_LOG(c->device), ast_state2str(state), state, c->callid);
+		sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Set asterisk state %s (%d) for call %d\n", DEV_ID_LOG(c->device), ast_state2str(state), state, c->callid);
 	}
 }
 
@@ -750,7 +749,7 @@ void sccp_dev_dbput(sccp_device_t * d) {
 		cfwdbusy[strlen(cfwdbusy)-1] = '\0';
 
 	snprintf(tmp, sizeof(tmp), "dnd=%d,cfwdall=%s,cfwdbusy=%s,cfwdnoanswer=%s", d->dndFeature.status, cfwdall, cfwdbusy, cfwdnoanswer);
-	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "%s: Storing device status (dnd, cfwd*) in the asterisk db\n", d->id);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME))(VERBOSE_PREFIX_3 "%s: Storing device status (dnd, cfwd*) in the asterisk db\n", d->id);
 	if (ast_db_put("SCCP", d->id, tmp))
 		ast_log(LOG_NOTICE, "%s: Unable to store device status (dnd, cfwd*) in the asterisk db\n", d->id);
 }
@@ -765,7 +764,7 @@ void sccp_dev_dbget(sccp_device_t * d) {
 //
 // 	if (!d)
 // 		return;
-// 	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "%s: Restoring device status (dnd, cfwd*) from the asterisk db\n", d->id);
+// 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME))(VERBOSE_PREFIX_3 "%s: Restoring device status (dnd, cfwd*) from the asterisk db\n", d->id);
 // 	if (ast_db_get("SCCP", d->id, result, sizeof(result))) {
 // 		return;
 // 	}
@@ -777,7 +776,7 @@ void sccp_dev_dbget(sccp_device_t * d) {
 // 				if ( (tmp1 = strsep(&tmp,"")) ) {
 // 					sscanf(tmp1, "%i", &i);
 // 					d->dnd = (i) ? 1 : 0;
-// 					sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "%s: dnd status is: %s\n", d->id, (d->dnd) ? "ON" : "OFF");
+// 					sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME))(VERBOSE_PREFIX_3 "%s: dnd status is: %s\n", d->id, (d->dnd) ? "ON" : "OFF");
 // 				}
 // 			} else if (!strcasecmp(tmp1, "cfwdall")) {
 // 				tmp1 = strsep(&tmp,"");
@@ -801,7 +800,7 @@ void sccp_dev_dbclean() {
 	entry = ast_db_gettree("SCCP", NULL);
 	while (entry) {
 		sscanf(entry->key,"/SCCP/%s", key);
-		sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "SCCP: Looking for '%s' in the devices list\n", key);
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME))(VERBOSE_PREFIX_3 "SCCP: Looking for '%s' in the devices list\n", key);
 			if ((strlen(key) == 15) && ((strncmp(key, "SEP",3) == 0) || (strncmp(key, "ATA",3)==0))) {
 
 			SCCP_LIST_LOCK(&GLOB(devices));
@@ -814,7 +813,7 @@ void sccp_dev_dbclean() {
 
 			if (!d) {
 				ast_db_del("SCCP", key);
-				sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_REALTIME))(VERBOSE_PREFIX_3 "SCCP: device '%s' removed from asterisk database\n", entry->key);
+				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME))(VERBOSE_PREFIX_3 "SCCP: device '%s' removed from asterisk database\n", entry->key);
 			}
 
 		}
@@ -1399,4 +1398,76 @@ sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t *device, sccp
 	}
   
 	return NULL;
+}
+
+/*!
+ * \brief Parse a debug parts line to debug int
+ * \param arg_part1 Argument part1
+ * \param arg_part2 Argument part2
+ * \return new_debug as uint32_t
+ */
+uint32_t sccp_parse_debugline (char * arg_part1,char * arg_part2, uint32_t new_debug) {
+        int i;
+        char * debug_val="";
+        char * token="";
+        const char delimiters[] = ",";
+        boolean_t subtract=0;
+        
+        if (sscanf(arg_part1, "%d", &new_debug) != 1) {
+                debug_val=arg_part1;
+                if (strcasecmp(arg_part1,"no")==0) {
+                  debug_val=arg_part2;
+                  subtract=1;
+                }
+                if (strcasecmp(debug_val,"none")==0) {
+                        new_debug=0;
+                } else if (strcasecmp(debug_val,"all")==0) {
+                        new_debug=0;
+                        for (i=0; i<ARRAY_LEN(sccp_verbose_levels); i++) {
+                                if (!subtract) {
+                                        new_debug += sccp_verbose_levels[i].level;
+                                }
+                        }
+                } else {
+                        // parse comma separated debug_var
+                        token=strtok(debug_val,delimiters);
+                        while (token!=NULL) {
+                                // match debug level name to enum
+                                for (i=0; i<ARRAY_LEN(sccp_verbose_levels); i++) {
+                                        if(strcasecmp(token,sccp_verbose_levels[i].short_name)==0) {
+                                                if (subtract) {
+                                                        if ((new_debug & sccp_verbose_levels[i].level) == sccp_verbose_levels[i].level) {
+                                                                new_debug -= sccp_verbose_levels[i].level;
+                                                        }
+                                                } else {
+                                                        if ((new_debug & sccp_verbose_levels[i].level) != sccp_verbose_levels[i].level) {
+                                                                new_debug += sccp_verbose_levels[i].level;
+                                                        }
+                                                }
+                                        }
+                                }
+                                token=strtok(NULL,delimiters);
+                        }
+                }
+        }
+        return new_debug;
+}
+
+const char * sccp_get_debugparts (uint32_t debugvalue,char * dest) {
+	int i;
+	boolean_t first=1;
+	char ret[1000]="";
+        for (i=0; i<ARRAY_LEN(sccp_verbose_levels); i++) {
+	  if((debugvalue & sccp_verbose_levels[i].level) == sccp_verbose_levels[i].level) {
+	    if (first) {
+	      strcat(ret,sccp_verbose_levels[i].short_name);
+	      first=0;
+	    } else {
+	      strcat(ret,", ");
+	      strcat(ret,sccp_verbose_levels[i].short_name);
+	    }
+	  }
+	}
+	dest=ret;
+	return dest;
 }

@@ -222,6 +222,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	char pref_buf[128];
 	char cap_buf[512];
 	char buf[256];
+	char * debugparts="";
 #ifdef ASTERISK_CONF_1_2
 	char iabuf[INET_ADDRSTRLEN];
 #endif
@@ -247,8 +248,8 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Nat                   : %s\n", (GLOB(nat)) ? "Yes" : "No");
 	ast_cli(fd, "Direct RTP            : %s\n", (GLOB(directrtp)) ? "Yes" : "No");
 	ast_cli(fd, "Keepalive             : %d\n", GLOB(keepalive));
-	ast_cli(fd, "Debug parts           : %d\n", GLOB(debug));
-	ast_cli(fd, "Filtered Debug Level  : %d\n", GLOB(fdebug));
+	ast_cli(fd, "Debug                 : (%d) %s\n", GLOB(debug),sccp_get_debugparts(GLOB(debug),debugparts));
+        ast_cli(fd, "Filtered Debug Level  : %d\n", GLOB(fdebug));
 	ast_cli(fd, "Date format           : %s\n", GLOB(date_format));
 	ast_cli(fd, "First digit timeout   : %d\n", GLOB(firstdigittimeout));
 	ast_cli(fd, "Digit timeout         : %d\n", GLOB(digittimeout));
@@ -1330,54 +1331,18 @@ static char * sccp_complete_debug(char *line, char *word, int pos, int state) {
  * \return Result as int
  */
 static int sccp_do_debug(int fd, int argc, char *argv[]) {
-        int i;
         uint32_t new_debug=GLOB(debug);
-        char * debug_val="";
-        char * token="";
-        const char delimiters[] = ",";
-        boolean_t subtract=0;
 
 	if ((argc < 3) || (argc > 4))
 		return RESULT_SHOWUSAGE;
 
-	if (argc == 3 || argc == 4) {
-	        // if number then parse number otherwise parse text
-		if (sscanf(argv[2], "%d", &new_debug) != 1) {
-                        debug_val=argv[2];
-                        if (strcasecmp(argv[2],"no")==0) {
-                          debug_val=argv[3];
-                          subtract=1;
-                        }
-                        // parse comma separated debug_var
-                        token=strtok(debug_val,delimiters);
-                        while (token!=NULL) {
-                                // match debug level name to enum
-                                for (i=0; i<ARRAY_LEN(sccp_verbose_levels); i++) {
-                                        if(strcasecmp(token,sccp_verbose_levels[i].short_name)==0) {
-                                                if (subtract) {
-                                                        // Bitwise AND Comparison to check if already exists
-                                                        if ((new_debug & sccp_verbose_levels[i].level) == sccp_verbose_levels[i].level) {
-                                                                new_debug -= sccp_verbose_levels[i].level;
-                                                        }
-                                                } else {
-                                                        // Bitwise AND Comparison to check if not already exists
-                                                        if ((new_debug & sccp_verbose_levels[i].level) != sccp_verbose_levels[i].level) {
-                                                                new_debug += sccp_verbose_levels[i].level;
-                                                        }
-                                                }
-                                        }
-                                }
-                                token=strtok(NULL,delimiters);
-                        }
-                }
+	if (argc == 3) {
+	        new_debug=sccp_parse_debugline (argv[2],NULL,new_debug);
+	} else if (argc == 4) {
+	        new_debug=sccp_parse_debugline (argv[2],argv[3],new_debug);
 	}
-	ast_cli(fd, "SCCP new debug status: ");
-	for (i=0; i<ARRAY_LEN(sccp_verbose_levels); i++) {
-	  if((new_debug & sccp_verbose_levels[i].level) == sccp_verbose_levels[i].level) {
-	    ast_cli(fd, "%s,", sccp_verbose_levels[i].short_name);
-	  }
-	}
-	ast_cli(fd, "\nSCCP debug level was %d now %d\n", GLOB(debug), new_debug);
+	char * debugparts="";
+	ast_cli(fd, "SCCP new debug status: (%d -> %d) %s\n", GLOB(debug), new_debug, sccp_get_debugparts(new_debug,debugparts));
 	GLOB(debug) = new_debug;
 	return RESULT_SUCCESS;
 }
