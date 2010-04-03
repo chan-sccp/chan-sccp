@@ -243,7 +243,7 @@ struct sccp_conference;
 
 
 /*!
- * \brief Verbosity Level Enum
+ * \brief SCCP Debug Category Enum
  */
 typedef enum {
         DEBUGCAT_CORE			= 1,
@@ -274,16 +274,16 @@ typedef enum {
         DEBUGCAT_MESSAGE		= 1 << 24,
         DEBUGCAT_NEWCODE		= 1 << 25,
         DEBUGCAT_HIGH			= 1 << 26,
-} sccp_verbose_level_t;									/*!< Verbosity Level */
+} sccp_debug_category_t;									/*!< SCCP Debug Category Enum */
 
 /*!
  * \brief SCCP Verbose Level Structure
  */
-static const struct sccp_verbose_level {
+static const struct sccp_debug_category {
         const char * const short_name;
-        sccp_verbose_level_t level;
+        sccp_debug_category_t category;
         const char * const text;
-} sccp_verbose_levels[] = {
+} sccp_debug_categories[] = {
   { "core",		DEBUGCAT_CORE,		"core debug level"		},
   { "sccp",		DEBUGCAT_SCCP,		"sccp debug level"		},
   { "hint", 		DEBUGCAT_HINT, 		"hint debug level"		},

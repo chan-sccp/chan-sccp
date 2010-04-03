@@ -1196,6 +1196,10 @@ sccp_feature_type_t sccp_featureStr2featureID(char *str){
 	return SCCP_FEATURE_UNKNOWN;
 }
 
+/*!
+ * \brief Handle Feature Change Event 
+ * \param event SCCP Event
+ */
 void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 	char family[25];
 	char cfwdLineStore[60];
@@ -1273,6 +1277,12 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 
 }
 
+/*!
+ * \brief Parse Composed ID
+ * \param labelString LabelString as string 
+ * \param maxLenght Maximum Length as unsigned int
+ * \return composedID as struct
+ */
 struct composedId sccp_parseComposedId(const char* labelString, unsigned int maxLength)
 {
 	const char *stringIterator = 0;
@@ -1349,6 +1359,12 @@ struct composedId sccp_parseComposedId(const char* labelString, unsigned int max
 	return id;
 }
 
+/*!
+ * \brief Match Subscription ID
+ * \param channel SCCP Channel
+ * \param subscriptionIdNum Subscription ID Number
+ * \return result as boolean
+ */
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const char *subscriptionIdNum){
 	boolean_t result = TRUE;
 	int compareId = 0;
@@ -1385,7 +1401,12 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const cha
 	return result;
 }
 
-
+/*!
+ * \brief Get Device Configuration
+ * \param device SCCP Device
+ * \param line SCCP Line
+ * \return SCCP Line Devices
+ */
 sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t *device, sccp_line_t *line){
 	sccp_linedevices_t *linedevice;
 	
@@ -1401,7 +1422,7 @@ sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t *device, sccp
 }
 
 /*!
- * \brief Parse a debug parts line to debug int
+ * \brief Parse a debug categories line to debug int
  * \param arg_part1 Argument part1
  * \param arg_part2 Argument part2
  * \return new_debug as uint32_t
@@ -1423,9 +1444,9 @@ uint32_t sccp_parse_debugline (char * arg_part1,char * arg_part2, uint32_t new_d
                         new_debug=0;
                 } else if (strcasecmp(debug_val,"all")==0) {
                         new_debug=0;
-                        for (i=0; i<ARRAY_LEN(sccp_verbose_levels); i++) {
+                        for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
                                 if (!subtract) {
-                                        new_debug += sccp_verbose_levels[i].level;
+                                        new_debug += sccp_debug_categories[i].category;
                                 }
                         }
                 } else {
@@ -1433,15 +1454,15 @@ uint32_t sccp_parse_debugline (char * arg_part1,char * arg_part2, uint32_t new_d
                         token=strtok(debug_val,delimiters);
                         while (token!=NULL) {
                                 // match debug level name to enum
-                                for (i=0; i<ARRAY_LEN(sccp_verbose_levels); i++) {
-                                        if(strcasecmp(token,sccp_verbose_levels[i].short_name)==0) {
+                                for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
+                                        if(strcasecmp(token,sccp_debug_categories[i].short_name)==0) {
                                                 if (subtract) {
-                                                        if ((new_debug & sccp_verbose_levels[i].level) == sccp_verbose_levels[i].level) {
-                                                                new_debug -= sccp_verbose_levels[i].level;
+                                                        if ((new_debug & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
+                                                                new_debug -= sccp_debug_categories[i].category;
                                                         }
                                                 } else {
-                                                        if ((new_debug & sccp_verbose_levels[i].level) != sccp_verbose_levels[i].level) {
-                                                                new_debug += sccp_verbose_levels[i].level;
+                                                        if ((new_debug & sccp_debug_categories[i].category) != sccp_debug_categories[i].category) {
+                                                                new_debug += sccp_debug_categories[i].category;
                                                         }
                                                 }
                                         }
@@ -1453,18 +1474,24 @@ uint32_t sccp_parse_debugline (char * arg_part1,char * arg_part2, uint32_t new_d
         return new_debug;
 }
 
-const char * sccp_get_debugparts (uint32_t debugvalue,char * dest) {
+/*!
+ * \brief Write the current debug value to debug categories
+ * \param debugvalue DebugValue as uint32_t
+ * \param dest string there categories are to be written
+ * \return string containing list of categories comma seperated
+ */
+const char * sccp_get_debugcategories(uint32_t debugvalue,char * dest) {
 	int i;
 	boolean_t first=1;
 	char ret[1000]="";
-        for (i=0; i<ARRAY_LEN(sccp_verbose_levels); i++) {
-	  if((debugvalue & sccp_verbose_levels[i].level) == sccp_verbose_levels[i].level) {
+        for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
+	  if((debugvalue & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
 	    if (first) {
-	      strcat(ret,sccp_verbose_levels[i].short_name);
+	      strcat(ret,sccp_debug_categories[i].short_name);
 	      first=0;
 	    } else {
 	      strcat(ret,", ");
-	      strcat(ret,sccp_verbose_levels[i].short_name);
+	      strcat(ret,sccp_debug_categories[i].short_name);
 	    }
 	  }
 	}
