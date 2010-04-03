@@ -362,7 +362,7 @@ void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_moo_t * r)
 		break;
 	}
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(d), accessory2str(d->accessoryused), accessorystatus2str(d->accessorystatus), unknown);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(d), accessory2str(d->accessoryused), accessorystatus2str(d->accessorystatus), unknown);
 }
 
 /*!
@@ -1328,7 +1328,7 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r){
 	r1->msg.SoftKeyTemplateResMessage.lel_softKeyOffset = htolel(0);
 
 	for (i = 0; i < c; i++) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i+1, label2str(softkeysmap[i]));
+		sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i+1, label2str(softkeysmap[i]));
 		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = 128;
 		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = softkeysmap[i];
 		r1->msg.SoftKeyTemplateResMessage.definition[i].lel_softKeyEvent = htolel(i+1);
@@ -1388,28 +1388,28 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 		}
 	}
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "count: %d\n", v_count);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: softkey count: %d\n", d->id, v_count);
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: TRANSFER        is %s\n", d->id, (d->transfer) ? "enabled" : "disabled");
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND             is %s\n", d->id, d->dndFeature.status ? dndmode2str(d->dndFeature.status) : "disabled");
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: PRIVATE         is %s\n", d->id, d->privacyFeature.enabled ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: TRANSFER        is %s\n", d->id, (d->transfer) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: DND             is %s\n", d->id, d->dndFeature.status ? dndmode2str(d->dndFeature.status) : "disabled");
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: PRIVATE         is %s\n", d->id, d->privacyFeature.enabled ? "enabled" : "disabled");
 #ifdef CS_SCCP_PARK
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: PARK            is  %s\n", d->id, (d->park) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: PARK            is  %s\n", d->id, (d->park) ? "enabled" : "disabled");
 #endif
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: CFWDALL         is  %s\n", d->id, (d->cfwdall) ? "enabled" : "disabled");
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: CFWDBUSY        is  %s\n", d->id, (d->cfwdbusy) ? "enabled" : "disabled");
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: CFWDNOANSWER    is  %s\n", d->id, (d->cfwdnoanswer) ? "enabled" : "disabled");
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: TRNSFVM/IDIVERT is  %s\n", d->id, (trnsfvm) ? "enabled" : "disabled");
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: MEETME          is  %s\n", d->id, (meetme) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: CFWDALL         is  %s\n", d->id, (d->cfwdall) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: CFWDBUSY        is  %s\n", d->id, (d->cfwdbusy) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: CFWDNOANSWER    is  %s\n", d->id, (d->cfwdnoanswer) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: TRNSFVM/IDIVERT is  %s\n", d->id, (trnsfvm) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: MEETME          is  %s\n", d->id, (meetme) ? "enabled" : "disabled");
 #ifdef CS_SCCP_PICKUP
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: PICKUPGROUP     is  %s\n", d->id, (pickupgroup) ? "enabled" : "disabled");
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: PICKUPEXTEN     is  %s\n", d->id, (d->pickupexten) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: PICKUPGROUP     is  %s\n", d->id, (pickupgroup) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: PICKUPEXTEN     is  %s\n", d->id, (d->pickupexten) ? "enabled" : "disabled");
 #endif
 	for (i = 0; i < v_count; i++) {
 		const uint8_t * b = v->ptr;
 		uint8_t c, j, cp = 0;
 
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Set[%-2d]= ", d->id, v->id);
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: Set[%-2d]= ", d->id, v->id);
 
 		for ( c = 0, cp=0; c < v->count;c++) {
 			r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[cp] = 0;
@@ -1470,7 +1470,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 			}
 			for (j = 0; j < sizeof(softkeysmap); j++) {
 				if (b[c] == softkeysmap[j]) {
-					sccp_log(1)("%-2d:%-10s ", c, label2str(softkeysmap[j]));
+					sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY))("%-2d:%-10s ", c, label2str(softkeysmap[j]));
 					r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[cp] = (j+1);
 					break;
 				}
@@ -1478,12 +1478,12 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 			cp++;
 		}
 
-		sccp_log(1)("\n");
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY))("\n");
 		v++;
 		iKeySetCount++;
 	};
 
-	sccp_log(1)( VERBOSE_PREFIX_3 "There are %d SoftKeySets.\n", iKeySetCount);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY))( VERBOSE_PREFIX_3 "There are %d SoftKeySets.\n", iKeySetCount);
 
 	r1->msg.SoftKeySetResMessage.lel_softKeySetCount = htolel(iKeySetCount);
 	r1->msg.SoftKeySetResMessage.lel_totalSoftKeySetCount = htolel(iKeySetCount); // <<-- for now, but should be: iTotalKeySetCount;
@@ -1562,7 +1562,7 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * req)
   r1->msg.DefineTimeDate.lel_milliseconds = htolel(0);
   r1->msg.DefineTimeDate.lel_systemTime = htolel(timer);
   sccp_dev_send(s->device, r1);
-  sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: Send date/time\n", s->device->id);
+  sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Send date/time\n", s->device->id);
 
   /*  
       According to SCCP protocol since version 3,
@@ -2295,7 +2295,7 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 
   	int instance = letohl(r->msg.FeatureStatReqMessage.lel_featureInstance);
 	int unknown = letohl(r->msg.FeatureStatReqMessage.lel_unknown);
-  	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Unknown = %d \n", d->id, instance, unknown);
+  	sccp_log((DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Unknown = %d \n", d->id, instance, unknown);
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 	/* the new speeddial style uses feature to display state
@@ -2404,15 +2404,15 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 		return;
 	}
 
-	sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_3 "%s: instance: %d, toggle: %s\n", d->id, instance, (toggleState)?"yes":"no");
+	sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: instance: %d, toggle: %s\n", d->id, instance, (toggleState)?"yes":"no");
 
 
 
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list){
 		if(config->instance == instance && config->type == FEATURE){
-			sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_3 "%s: toggle status from %d", d->id, config->button.feature.status);
+			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: toggle status from %d", d->id, config->button.feature.status);
 			config->button.feature.status = (config->button.feature.status==0)?1:0;
-			sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_3 " to %d\n", config->button.feature.status);
+			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 " to %d\n", config->button.feature.status);
 			break;
 		}
 
@@ -2431,7 +2431,7 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 		sccp_copy_string(featureOption, config->button.feature.options, sizeof(featureOption));
 	}
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s \n", d->id, config->button.feature.id, featureOption);
+	sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s \n", d->id, config->button.feature.id, featureOption);
 	switch(config->button.feature.id){
 		case SCCP_FEATURE_PRIVACY:
 
@@ -2441,8 +2441,8 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 			if(!strcasecmp(config->button.feature.options, "callpresent")){
 				uint32_t res = d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
 
-				sccp_log(DEBUGCAT_FEATURE_BUTTON)(VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
-				sccp_log(DEBUGCAT_FEATURE_BUTTON)(VERBOSE_PREFIX_3 "%s: result=%d\n", d->id, res);
+				sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
+				sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: result=%d\n", d->id, res);
 				if( res ){
 					/* switch off */
 					d->privacyFeature.status &= ~SCCP_PRIVACYFEATURE_CALLPRESENT;
@@ -2451,7 +2451,7 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 					d->privacyFeature.status |= SCCP_PRIVACYFEATURE_CALLPRESENT;
 					config->button.feature.status = 1;
 				}
-				sccp_log(DEBUGCAT_FEATURE_BUTTON)(VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
+				sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
 			}
 
 
@@ -2521,7 +2521,7 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 	}
 
 if(config){
-	sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Status: %d\n", d->id, instance, config->button.feature.status);
+	sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Status: %d\n", d->id, instance, config->button.feature.status);
 	sccp_feat_changed(d, config->button.feature.id);
 }
 

@@ -47,7 +47,7 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb)
 
 	sccp_event_subscriber_t *subscription = NULL;
 
-	sccp_log(1)(VERBOSE_PREFIX_1 "[SCCP] register event listener for %d\n", eventType);
+	sccp_log((DEBUGCAT_EVENT))(VERBOSE_PREFIX_1 "[SCCP] register event listener for %d\n", eventType);
 
 	subscription = ast_malloc(sizeof(sccp_event_subscriber_t));
 	if(!subscription){
@@ -73,9 +73,9 @@ void sccp_event_fire(const sccp_event_t* *event){
 	sccp_event_type_t type = (*event)->type;
 	sccp_event_subscriber_t *subscriber;
 
-	sccp_log(1)(VERBOSE_PREFIX_1 "[SCCP] Fire event %d\n", type);
+	sccp_log((DEBUGCAT_EVENT))(VERBOSE_PREFIX_1 "[SCCP] Fire event %d\n", type);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&sccp_event_listeners->subscriber, subscriber, list){
-		sccp_log(1)(VERBOSE_PREFIX_1 "eventtype: %d listenerType: %d, -> result: %d %s\n", type, subscriber->eventType, (subscriber->eventType & type), (subscriber->eventType & type)?"true":"false" );
+		sccp_log((DEBUGCAT_EVENT))(VERBOSE_PREFIX_1 "eventtype: %d listenerType: %d, -> result: %d %s\n", type, subscriber->eventType, (subscriber->eventType & type), (subscriber->eventType & type)?"true":"false" );
 		if(subscriber->eventType & type){
 			subscriber->callback_function(event);
 		}
