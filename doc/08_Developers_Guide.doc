@@ -28,7 +28,7 @@
  * 
  * You found a bug, please report it via : http://sourceforge.net/tracker/?group_id=186378&atid=917045. Please
  * try to describe the bug you found as clearly as possible. Please give us a step by step procedure to reproduce
- * the error. Give us some thing to work with, like "sccp debug" logging, asterisk logging, protocol analyzer pcap files etc.
+ * the error. Give us some thing to work with, like "sccp debug all" logging, asterisk logging, protocol analyzer pcap files etc.
  * 
  * \subsection dv_suggest Sending Feature Requests
  * 

@@ -66,7 +66,7 @@
  * [general]
  * servername = Asterisk
  * keepalive = 60
- * debug = 1
+ * debug = core,event,device,channel
  * context = sccp
  * dateFormat = D.M.Y
  * bindaddr = 0.0.0.0
