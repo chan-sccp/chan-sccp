@@ -102,7 +102,7 @@ int sccp_mwi_checksubscription(const void *ptr){
 	
 	char buffer[512];
 	sprintf(buffer, "%s@%s", subscription->mailbox, (subscription->context)?subscription->context:"default");
-	sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_4 "SCCP: ckecking mailbox: %s\n", buffer);
+	sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_4 "SCCP: ckecking mailbox: %s\n", buffer);
 	ast_app_inboxcount(buffer, &subscription->currentVoicemailStatistic.newmsgs, &subscription->currentVoicemailStatistic.oldmsgs);
 
 	/* update devices if something changed */
@@ -113,7 +113,7 @@ int sccp_mwi_checksubscription(const void *ptr){
 			if(line){
 
 				sccp_line_lock( line );
-				sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_4 "line: %s\n", line->name);
+				sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_4 "line: %s\n", line->name);
 				sccp_linedevices_t *lineDevice = NULL;
 
 				/* update statistics for line  */
@@ -162,7 +162,7 @@ void sccp_mwi_event(const struct ast_event *event, void *data){
 	if(!subscription || !event)
 		return;
 
-	sccp_log(SCCP_VERBOSE_LEVEL_EVENT)(VERBOSE_PREFIX_3 "Got mwi event for %s@%s\n",(subscription->mailbox)?subscription->mailbox:"NULL", (subscription->context)?subscription->context:"NULL");
+	sccp_log(DEBUGCAT_EVENT)(VERBOSE_PREFIX_3 "Got mwi event for %s@%s\n",(subscription->mailbox)?subscription->mailbox:"NULL", (subscription->context)?subscription->context:"NULL");
 
 
 	/* for calculation store previous voicemail counts */
@@ -178,7 +178,7 @@ void sccp_mwi_event(const struct ast_event *event, void *data){
 		if(line){
 
 			sccp_line_lock( line );
-			sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_4 "line: %s\n", line->name);
+			sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_4 "line: %s\n", line->name);
 			sccp_linedevices_t *lineDevice = NULL;
 
 			/* update statistics for line  */
@@ -194,7 +194,7 @@ void sccp_mwi_event(const struct ast_event *event, void *data){
 				if(0 != lineDevice && 0 != lineDevice->device) {
 					sccp_mwi_setMWILineStatus(lineDevice->device, line);
 				} else {
-					sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_4 "error: null line device.\n");
+					sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_4 "error: null line device.\n");
 				}
 
 			}
@@ -226,7 +226,7 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t **event){
 	if(!(*event))
 		return;
 
-	sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_1 "Get deviceAttachedEvent\n");
+	sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_1 "Get deviceAttachedEvent\n");
 	sccp_line_t *line = (*event)->event.deviceAttached.line;
 	sccp_device_t *device = (*event)->event.deviceAttached.device;
 
@@ -250,7 +250,7 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t **event){
 	sccp_mailbox_t *mailbox;
 	sccp_line_t *line = (*event)->event.lineCreated.line;
 	
-	sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_1 "Get linecreatedEvent\n");
+	sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_1 "Get linecreatedEvent\n");
 
 	if(!line){
 		ast_log(LOG_ERROR, "Get linecreatedEvent, but line not set\n");
@@ -294,7 +294,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 
 		sccp_copy_string(subscription->mailbox, mailbox, sizeof(subscription->mailbox));
 		sccp_copy_string(subscription->context, context, sizeof(subscription->context));
-		sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_3 "create subscription for: %s@%s\n", subscription->mailbox, subscription->context);
+		sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "create subscription for: %s@%s\n", subscription->mailbox, subscription->context);
 		
 		SCCP_LIST_LOCK(&sccp_mailbox_subscriptions);
 		SCCP_LIST_INSERT_HEAD(&sccp_mailbox_subscriptions, subscription, list);
@@ -357,7 +357,7 @@ void sccp_mwi_checkLine(sccp_line_t *line){
 	SCCP_LIST_LOCK(&line->mailboxes);
 	SCCP_LIST_TRAVERSE(&line->mailboxes, mailbox, list){
 		sprintf(buffer, "%s@%s", mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
-		sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_3 "Line: %s, Mailbox: %s\n",line->name, buffer);
+		sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "Line: %s, Mailbox: %s\n",line->name, buffer);
 		if (!ast_strlen_zero(buffer)) {
 
 #ifdef CS_AST_HAS_NEW_VOICEMAIL
@@ -368,7 +368,7 @@ void sccp_mwi_checkLine(sccp_line_t *line){
 			}
 #endif
 
-			sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_3 "Line: %s, Mailbox: %s inbox: %d\n",line->name, buffer, line->voicemailStatistic.newmsgs);
+			sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "Line: %s, Mailbox: %s inbox: %d\n",line->name, buffer, line->voicemailStatistic.newmsgs);
 		}
 	}
 	SCCP_LIST_UNLOCK(&line->mailboxes);
@@ -392,7 +392,7 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 	int retry = 0;
 	while(sccp_device_trylock(d)) {
 		retry++;
-		sccp_log((SCCP_VERBOSE_LEVEL_MWI & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s), retry: %d\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__, retry);
+		sccp_log((DEBUGCAT_MWI + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s), retry: %d\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__, retry);
 		usleep(100);
 		
 		if(retry > 100){
@@ -418,7 +418,7 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 		hasMail = d->mwilight?TRUE:FALSE;
 	}
 	sccp_dev_send(d, r);
-	sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n",DEV_ID_LOG(d), hasMail ? "ON" : "OFF", (l ? l->name : "unknown"),(l ? instance : 0));
+	sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n",DEV_ID_LOG(d), hasMail ? "ON" : "OFF", (l ? l->name : "unknown"),(l ? instance : 0));
 	
 	/* set mwi light */
 	if(d->mwilight != hasMail){
@@ -464,14 +464,14 @@ void sccp_mwi_check(sccp_device_t *device)
 				device->voicemailStatistic.oldmsgs += line->voicemailStatistic.oldmsgs;
 				device->voicemailStatistic.newmsgs += line->voicemailStatistic.newmsgs;
 
-				sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_3 "%s: line %s mwi-status: %s (%d)\n",DEV_ID_LOG(device), line->name, line->voicemailStatistic.newmsgs ? "ON" : "OFF", line->voicemailStatistic.newmsgs);
+				sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: line %s mwi-status: %s (%d)\n",DEV_ID_LOG(device), line->name, line->voicemailStatistic.newmsgs ? "ON" : "OFF", line->voicemailStatistic.newmsgs);
 				if(line->voicemailStatistic.newmsgs){
 					hasNewMessage = 1;
-					sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_3 "%s: device has voicemail: %d\n",DEV_ID_LOG(device), line->voicemailStatistic.newmsgs);
+					sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: device has voicemail: %d\n",DEV_ID_LOG(device), line->voicemailStatistic.newmsgs);
 				}
-				sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_3 "%s: current device mwi-state is: %s\n",DEV_ID_LOG(device), device->mwilight ? "ON" : "OFF");
+				sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: current device mwi-state is: %s\n",DEV_ID_LOG(device), device->mwilight ? "ON" : "OFF");
 				if(device->mwilight != hasNewMessage){
-					sccp_log(SCCP_VERBOSE_LEVEL_MWI)(VERBOSE_PREFIX_3 "%s: set device mwi-state to: %s\n",DEV_ID_LOG(device), hasNewMessage ? "ON" : "OFF");
+					sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: set device mwi-state to: %s\n",DEV_ID_LOG(device), hasNewMessage ? "ON" : "OFF");
 					device->mwilight = hasNewMessage;
 					sccp_mwi_setMWILineStatus(device, NULL);
 				}

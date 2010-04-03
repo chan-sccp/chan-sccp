@@ -200,16 +200,16 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 	}
 
 
-	sccp_log((SCCP_VERBOSE_LEVEL_SCCP & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+	sccp_log((DEBUGCAT_SCCP + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	if (SCCP_LIST_FIRST(&l->devices) == NULL) {
-		sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "SCCP/%s isn't currently registered anywhere.\n", l->name);
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "SCCP/%s isn't currently registered anywhere.\n", l->name);
 #ifdef CS_AST_HAS_TECH_PVT
 		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 #endif
 		goto OUT;
 	}
 
-	sccp_log((SCCP_VERBOSE_LEVEL_SCCP & SCCP_VERBOSE_LEVEL_HIGH))(VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+	sccp_log((DEBUGCAT_SCCP + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	/* call forward check */
 	
 	// Allocate a new SCCP channel.
@@ -251,10 +251,10 @@ if (!sccp_pbx_channel_allocate(c)) {
 
 	
 #if 0
-	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "Line %s has %d device%s\n", l->name, l->devices.size, (l->devices.size>1)?"s":"");
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "Line %s has %d device%s\n", l->name, l->devices.size, (l->devices.size>1)?"s":"");
 	if(l->devices.size < 2){
 		if(!c->owner){
-			sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE | SCCP_VERBOSE_LEVEL_CHANNEL))(VERBOSE_PREFIX_3 "%s: channel has no owner\n", l->name);
+			sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: channel has no owner\n", l->name);
 #ifdef CS_AST_HAS_TECH_PVT
 			*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 #endif
@@ -453,7 +453,7 @@ int sccp_devicestate(void *data) {
 	else
 		res = AST_DEVICE_INUSE;
 
-	sccp_log((SCCP_VERBOSE_LEVEL_DEVICE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "SCCP: Asterisk asked for the state (%d) of the line %s\n", res, (char *)data);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "SCCP: Asterisk asked for the state (%d) of the line %s\n", res, (char *)data);
 
 	return res;
 }
@@ -468,8 +468,8 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: last keepAlive within %d (%d)\n", (s->device)?s->device->id:"null", (uint32_t)(time(0) - s->lastKeepAlive), (s->device)?s->device->keepalive:0 );
 	s->lastKeepAlive = time(0); /* always update keepalive */
 
-  //sccp_log((SCCP_VERBOSE_LEVEL_CORE))(VERBOSE_PREFIX_3 "%s(%d): >> Got message %s\n", (s->device)?s->device->id:"null", s->sin.sin_addr.s_addr ,message2str(mid));
-  //sccp_log((SCCP_VERBOSE_LEVEL_CORE))(VERBOSE_PREFIX_3 "%s(%d): >> Got message %s\n", (s->device)?s->device->id:"null", (s->device)?s->device->session->sin.sin_addr.s_addr:0 ,message2str(mid));
+  //sccp_log((DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_3 "%s(%d): >> Got message %s\n", (s->device)?s->device->id:"null", s->sin.sin_addr.s_addr ,message2str(mid));
+  //sccp_log((DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_3 "%s(%d): >> Got message %s\n", (s->device)?s->device->id:"null", (s->device)?s->device->session->sin.sin_addr.s_addr:0 ,message2str(mid));
   /* try to handle nat problem.
    * devices behind nat box can not do anything after ip address change */
 //  if(s && s->device && s->device->session){
@@ -506,9 +506,9 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 
 	if (mid != KeepAliveMessage) {
 		if (s && s->device) {
-			sccp_log((SCCP_VERBOSE_LEVEL_CORE))(VERBOSE_PREFIX_3 "%s: >> Got message %s\n", s->device->id, message2str(mid));
+			sccp_log((DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_3 "%s: >> Got message %s\n", s->device->id, message2str(mid));
 		} else {
-			sccp_log((SCCP_VERBOSE_LEVEL_CORE))(VERBOSE_PREFIX_3 "SCCP: >> Got message %s\n", message2str(mid));
+			sccp_log((DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_3 "SCCP: >> Got message %s\n", message2str(mid));
 		}
 	}
 
@@ -1196,7 +1196,7 @@ static int unload_module(void) {
 	sccp_mwi_module_stop();
 	sccp_hint_module_stop();
 
-	sccp_log((SCCP_VERBOSE_LEVEL_CORE))(VERBOSE_PREFIX_3 "SCCP: Removing monitor thread\n");
+	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: Removing monitor thread\n");
 	sccp_globals_lock(monitor_lock);
 	if ((GLOB(monitor_thread) != AST_PTHREADT_NULL) && (GLOB(monitor_thread) != AST_PTHREADT_STOP)) {
 		pthread_cancel(GLOB(monitor_thread));
@@ -1211,7 +1211,7 @@ static int unload_module(void) {
 	/* removing devices */
 	SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list){
-		sccp_log((SCCP_VERBOSE_LEVEL_CORE | SCCP_VERBOSE_LEVEL_DEVICE))(VERBOSE_PREFIX_3 "SCCP: Removing device %s\n", d->id);
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "SCCP: Removing device %s\n", d->id);
 		sccp_dev_clean(d, TRUE, 0);
 	}
 	SCCP_LIST_UNLOCK(&GLOB(devices));
@@ -1226,7 +1226,7 @@ static int unload_module(void) {
 	/* removing lines */
 	SCCP_LIST_LOCK(&GLOB(lines));
 	while ((l = SCCP_LIST_REMOVE_HEAD(&GLOB(lines), list))) {
-		sccp_log((SCCP_VERBOSE_LEVEL_CORE | SCCP_VERBOSE_LEVEL_LINE))(VERBOSE_PREFIX_3 "SCCP: Removing line %s\n", l->name);
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "SCCP: Removing line %s\n", l->name);
 
 		/* removing channels */
 		SCCP_LIST_LOCK(&l->channels);
@@ -1253,9 +1253,9 @@ static int unload_module(void) {
 	SCCP_LIST_LOCK(&GLOB(sessions));
 	while ((s = SCCP_LIST_REMOVE_HEAD(&GLOB(sessions), list))) {
 #ifdef ASTERISK_CONF_1_2
-		sccp_log((SCCP_VERBOSE_LEVEL_CORE))(VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
 #else
-		sccp_log((SCCP_VERBOSE_LEVEL_CORE))(VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", ast_inet_ntoa(s->sin.sin_addr));
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", ast_inet_ntoa(s->sin.sin_addr));
 #endif
 		if (s->fd > -1)
 			close(s->fd);
@@ -1268,7 +1268,7 @@ static int unload_module(void) {
 	close(GLOB(descriptor));
 	GLOB(descriptor) = -1;
 
-	sccp_log((SCCP_VERBOSE_LEVEL_CORE | SCCP_VERBOSE_LEVEL_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Killing the socket thread\n");
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Killing the socket thread\n");
 
 	sccp_globals_lock(socket_lock);
 	if ((GLOB(socket_thread) != AST_PTHREADT_NULL) &&
@@ -1281,7 +1281,7 @@ static int unload_module(void) {
 	sccp_globals_unlock(socket_lock);
 	sccp_mutex_destroy(&GLOB(socket_lock));
 
-	sccp_log((SCCP_VERBOSE_LEVEL_CORE | SCCP_VERBOSE_LEVEL_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Killed the socket thread\n");
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Killed the socket thread\n");
 
 	if (GLOB(ha))
 		ast_free_ha(GLOB(ha));

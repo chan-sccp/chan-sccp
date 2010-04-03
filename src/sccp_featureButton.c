@@ -70,15 +70,15 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 						//break;
 					}
 
-					sccp_log((SCCP_VERBOSE_LEVEL_FEATURE_BUTTON | SCCP_VERBOSE_LEVEL_FEATURE))(VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", DEV_ID_LOG(device), device->privacyFeature.status);
+					sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", DEV_ID_LOG(device), device->privacyFeature.status);
 					if(!strcasecmp(config->button.feature.options, "callpresent")){
 						uint32_t result = device->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
-						sccp_log((SCCP_VERBOSE_LEVEL_FEATURE_BUTTON | SCCP_VERBOSE_LEVEL_FEATURE))(VERBOSE_PREFIX_3 "%s: result is %d\n", device->id, result);
+						sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: result is %d\n", device->id, result);
 						config->button.feature.status = (result)?1:0;
 					}
 					if(!strcasecmp(config->button.feature.options, "hint")){
 						uint32_t result = device->privacyFeature.status & SCCP_PRIVACYFEATURE_HINT;
-						sccp_log((SCCP_VERBOSE_LEVEL_FEATURE_BUTTON | SCCP_VERBOSE_LEVEL_FEATURE))(VERBOSE_PREFIX_3 "%s: result is %d\n", device->id, result);
+						sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: result is %d\n", device->id, result);
 						config->button.feature.status = (result)?1:0;
 					}
 				break;
@@ -103,7 +103,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 									continue;
 								}
 
-								sccp_log((SCCP_VERBOSE_LEVEL_FEATURE_BUTTON | SCCP_VERBOSE_LEVEL_FEATURE))(VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled)?"on":"off");
+								sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled)?"on":"off");
 								if(linedevice->cfwdAll.enabled){
 									config->button.feature.status = 1;
 								}

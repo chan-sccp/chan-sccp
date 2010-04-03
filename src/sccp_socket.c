@@ -138,7 +138,7 @@ void sccp_session_close(sccp_session_t * s)
 	}
 	sccp_session_unlock(s);
 
-	sccp_log((SCCP_VERBOSE_LEVEL_SOCKET))(VERBOSE_PREFIX_3 "%s: Old session marked down\n", DEV_ID_LOG(s->device));
+	sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Old session marked down\n", DEV_ID_LOG(s->device));
 
 }
 
@@ -160,9 +160,9 @@ static void destroy_session(sccp_session_t * s)
 	if (d)
 	{
 #ifdef ASTERISK_CONF_1_2
-		sccp_log((SCCP_VERBOSE_LEVEL_SOCKET))(VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
+		sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
 #else
-		sccp_log((SCCP_VERBOSE_LEVEL_SOCKET))(VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(s->sin.sin_addr));
+		sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(s->sin.sin_addr));
 #endif
 
 		sccp_dev_clean(d, (d->realtime)?TRUE:FALSE, 10);
@@ -411,7 +411,7 @@ void * sccp_socket_thread(void * ignore)
 		}
 	}
 
-	sccp_log((SCCP_VERBOSE_LEVEL_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Exit from the socket thread\n");
+	sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Exit from the socket thread\n");
 
 	return NULL;
 }
@@ -461,7 +461,7 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 	unsigned int try, maxTries;;
 
 	if (!s || s->fd <= 0) {
-		sccp_log((SCCP_VERBOSE_LEVEL_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Tried to send packet over DOWN device.\n");
+		sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Tried to send packet over DOWN device.\n");
 		ast_free(r);
 		r = NULL;
 		return -1;
@@ -491,7 +491,7 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 	bytesSent = 0;
 	bufAddr = ((uint8_t *) r);
 	bufLen = (ssize_t)(letohl(r->length) + 8);
-	/* sccp_log((SCCP_VERBOSE_LEVEL_SOCKET))(VERBOSE_PREFIX_3 "%s: Sending Packet Type %s (%d bytes)\n", s->device->id, message2str(letohl(r->lel_messageId)), letohl(r->length)); */
+	/* sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Sending Packet Type %s (%d bytes)\n", s->device->id, message2str(letohl(r->lel_messageId)), letohl(r->length)); */
 	do {
 		res = write(s->fd, bufAddr+bytesSent, bufLen-bytesSent);
 		if(res >= 0) {
@@ -509,7 +509,7 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 	ast_free(r);
 
 	if(bytesSent < bufLen) {
-        	sccp_log((SCCP_VERBOSE_LEVEL_SOCKET))(VERBOSE_PREFIX_3 "%s: Could only send %d of %d bytes!\n", s->device->id, bytesSent, bufLen);
+        	sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Could only send %d of %d bytes!\n", s->device->id, bytesSent, bufLen);
 		sccp_session_close(s);
         	return 0;
         }
