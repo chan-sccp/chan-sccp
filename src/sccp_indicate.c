@@ -221,7 +221,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 				|| c->previousChannelState == SCCP_CHANNELSTATE_OFFHOOK) {
 			sccp_channel_openreceivechannel(c);
 		} else if(c->rtp.audio) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: (for debug purposes) did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
+			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
 		}
 		/* asterisk wants rtp open before AST_STATE_UP
 		 * so we set it in OPEN_CHANNEL_ACK in sccp_actions.c.
