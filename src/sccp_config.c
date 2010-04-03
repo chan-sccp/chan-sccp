@@ -460,6 +460,7 @@ boolean_t sccp_config_general(void){
 			} else if (!strcasecmp(v->name, "recorddigittimeoutchar")) {
 				GLOB(recorddigittimeoutchar) = sccp_true(v->value);
 			} else if (!strcasecmp(v->name, "debug")) {
+			        GLOB(debug)=0;
 			        GLOB(debug)=sccp_parse_debugline ((char *)v->value,"",GLOB(debug));
 //				GLOB(debug) = atoi(v->value);
 			} else if (!strcasecmp(v->name, "allow")) {

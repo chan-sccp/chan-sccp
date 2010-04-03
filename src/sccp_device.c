@@ -131,7 +131,7 @@ sccp_device_t *sccp_device_addToGlobals(sccp_device_t *device){
 	SCCP_LIST_INSERT_HEAD(&GLOB(devices), device, list);
 	SCCP_LIST_UNLOCK(&GLOB(devices));
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "Added device '%s' (%s)\n", device->id, device->config_type);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Added device '%s' (%s)\n", device->id, device->config_type);
 	return device;
 }
 
@@ -145,15 +145,15 @@ int sccp_device_get_codec(struct ast_channel *ast)
 	sccp_channel_t *c = NULL;
 	sccp_device_t *d = NULL;
 
-	sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Asterisk requested available codecs for channel %s\n", ast->name);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Asterisk requested available codecs for channel %s\n", ast->name);
 
 	if (!(c = CS_AST_CHANNEL_PVT(ast))) {
-		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Couldn't find a channel pvt struct. Returning global capabilities\n");
+		sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Couldn't find a channel pvt struct. Returning global capabilities\n");
 		return GLOB(global_capability);
 	}
 
 	if (!(d = c->device)) {
-		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Couldn't find a device associated to channel. Returning global capabilities\n");
+		sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Couldn't find a device associated to channel. Returning global capabilities\n");
 		//return GLOB(global_capability);
 	}
 
@@ -163,7 +163,7 @@ int sccp_device_get_codec(struct ast_channel *ast)
 	ast_set_write_format(ast, c->format);
 
 	char s1[512];
-	sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) capabilities are %s (%d)\n",
+	sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) capabilities are %s (%d)\n",
 #ifndef ASTERISK_CONF_1_2
 		ast_getformatname_multiple(s1, sizeof(s1) -1, c->capability & AST_FORMAT_AUDIO_MASK),
 #else
@@ -1162,7 +1162,7 @@ void * sccp_dev_postregistration(void *data)
 
 	sccp_mwi_check(d);
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
+	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
 	return NULL;
 }
 
@@ -1308,7 +1308,7 @@ int sccp_device_free(const void *ptr){
 
 	d->ha = NULL;
 	
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: device deleted\n", d->id);
+	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: device deleted\n", d->id);
 	
 	sccp_device_unlock(d);
 	ast_mutex_destroy(&d->lock);
@@ -1339,7 +1339,7 @@ sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t ins
 		return NULL;
 
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: searching for service with instance %d\n", d->id, instance);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: searching for service with instance %d\n", d->id, instance);
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		sccp_log(((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE) + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: instance: %d buttontype: %d\n", d->id, config->instance, config->type);
@@ -1347,7 +1347,7 @@ sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t ins
 		if(config->type == SERVICE && config->instance == instance){
 			service = ast_malloc(sizeof(sccp_service_t));
 			memset(service, 0, sizeof(sccp_service_t));
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: found service: %s\n", d->id, config->button.service.label);
+			sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: found service: %s\n", d->id, config->button.service.label);
 
 			sccp_copy_string(service->label, config->button.service.label, sizeof(service->label));
 			sccp_copy_string(service->url, config->button.service.url, sizeof(service->url));
@@ -1489,7 +1489,7 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t *device){
 	uint8_t			numberOfChannels = 0;
 
 	if(!device){
-		sccp_log(1)(VERBOSE_PREFIX_3 "device is null\n");
+		sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "device is null\n");
 		return 0;
 	}
 

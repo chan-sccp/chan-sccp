@@ -420,39 +420,39 @@ enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struc
 	sccp_device_t *d = NULL;
 	enum ast_rtp_get_result res = AST_RTP_TRY_NATIVE;
 
-	sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Asterisk requested RTP peer for channel %s\n", ast->name);
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Asterisk requested RTP peer for channel %s\n", ast->name);
 
 	if (!(c = CS_AST_CHANNEL_PVT(ast))) {
-		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO PVT\n");
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO PVT\n");
 		return AST_RTP_GET_FAILED;
 	}
 
 	if (!c->rtp.audio) {
-		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO RTP\n");
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO RTP\n");
 		return AST_RTP_GET_FAILED;
 	}
 
 	*rtp = c->rtp.audio;
 	if(!(d = c->device)) {
-		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO DEVICE\n");
+		sccp_log((DEBUGCAT_RTP | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO DEVICE\n");
 		return AST_RTP_GET_FAILED;
 	}
 
 	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
-		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
 		return AST_RTP_GET_FAILED;
 	}
 
  	if (!d->directrtp) {
- 		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Direct RTP disabled\n");
+ 		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Direct RTP disabled\n");
  		return AST_RTP_GET_FAILED;
  	}
 
 	if (d->nat) {
 		res = AST_RTP_TRY_PARTIAL;
-		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Using AST_RTP_TRY_PARTIAL for channel %s\n", ast->name);
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Using AST_RTP_TRY_PARTIAL for channel %s\n", ast->name);
 	} else {
-		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Using AST_RTP_TRY_NATIVE for channel %s\n", ast->name);
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Using AST_RTP_TRY_NATIVE for channel %s\n", ast->name);
 	}
 
 	return res;
@@ -517,30 +517,30 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 	struct sockaddr_in us;
 	struct sockaddr_in them;
 
-	sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer)\n");
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer)\n");
 
 	if (!(c = CS_AST_CHANNEL_PVT(ast))) {
-		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) NO PVT\n");
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) NO PVT\n");
 		return -1;
 	}
 	if (!(l = c->line)) {
-		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) NO LINE\n");
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) NO LINE\n");
 		return -1;
 	}
 	if(!(d = c->device)) {
-		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) NO DEVICE\n");
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) NO DEVICE\n");
 		return -1;
 	}
 
 	if(!d->directrtp) {
-		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) Direct RTP disabled\n");
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) Direct RTP disabled\n");
 		return -1;
 	}
 
 	if (rtp) {
 		ast_rtp_get_peer(rtp, &them);
 
-		sccp_log(1)(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Stop media transmission on channel %d\n", DEV_ID_LOG(d), c->callid);
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Stop media transmission on channel %d\n", DEV_ID_LOG(d), c->callid);
 
 		/* Shutdown any early-media or previous media on re-invite */
 		REQ(r, StopMediaTransmission);
@@ -549,17 +549,17 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 		r->msg.StopMediaTransmission.lel_conferenceId1 = htolel(c->callid);
 		sccp_dev_send(d, r);
 
-		sccp_log(1)(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Asterisk request to set peer ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Asterisk request to set peer ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
 
-		sccp_log(1)(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Asterisk request codec '%d'\n", DEV_ID_LOG(d), codecs);
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Asterisk request codec '%d'\n", DEV_ID_LOG(d), codecs);
 
 		//fmt = ast_codec_pref_getsize(&d->codecs, ast_best_codec(d->capability));
 		int codec = ast_codec_choose(&c->codecs, codecs, 1);
-		sccp_log(1)(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Asterisk request codec '%d'\n", DEV_ID_LOG(d), codec);
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Asterisk request codec '%d'\n", DEV_ID_LOG(d), codec);
 		fmt = ast_codec_pref_getsize(&d->codecs, codec);
 
 		c->format = fmt.bits; /* updating channel format */
-		sccp_log(1)(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Setting payloadType to '%d' (%d ms)\n", DEV_ID_LOG(d), fmt.bits, fmt.cur_ms);
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Setting payloadType to '%d' (%d ms)\n", DEV_ID_LOG(d), fmt.bits, fmt.cur_ms);
 
 		r->msg.StartMediaTransmission.lel_conferenceId = htolel(c->callid);
 		r->msg.StartMediaTransmission.lel_passThruPartyId = htolel(c->callid);
@@ -578,11 +578,11 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 		if(d->inuseprotocolversion < 17) {
 			if (!d->directrtp || d->nat) {
 				ast_rtp_get_us(rtp, &us);
-				sccp_log(1)(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
+				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
 				memcpy(&r->msg.StartMediaTransmission.bel_remoteIpAddr, &us.sin_addr, 4);
 				r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(us.sin_port));
 			} else {
-				sccp_log(1)(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
+				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
 				memcpy(&r->msg.StartMediaTransmission.bel_remoteIpAddr, &them.sin_addr, 4);
 				r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(them.sin_port));
 			}
@@ -595,11 +595,11 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 		} else {
 			if (!d->directrtp || d->nat) {
 				ast_rtp_get_us(rtp, &us);
-				sccp_log(1)(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
+				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
 				memcpy(&r->msg.StartMediaTransmission_v17.bel_remoteIpAddr, &us.sin_addr, 4);
 				r->msg.StartMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(us.sin_port));
 			} else {
-				sccp_log(1)(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
+				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
 				memcpy(&r->msg.StartMediaTransmission_v17.bel_remoteIpAddr, &them.sin_addr, 4);
 				r->msg.StartMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(them.sin_port));
 			}
@@ -616,9 +616,9 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 		return 0;
 	} else {
 		if(ast->_state != AST_STATE_UP) {
-			sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) Early RTP stage, codecs=%d, nat=%d\n", codecs, d->nat);
+			sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) Early RTP stage, codecs=%d, nat=%d\n", codecs, d->nat);
 		} else {
-			sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) Native Bridge Break, codecs=%d, nat=%d\n", codecs, d->nat);
+			sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) Native Bridge Break, codecs=%d, nat=%d\n", codecs, d->nat);
 		}
 		return 0;
 	}
@@ -968,7 +968,7 @@ void sccp_channel_endcall(sccp_channel_t * c)
 	}
 
 	/* this is a station active endcall or onhook */
-    	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Ending call %d on line %s (%s)\n", DEV_ID_LOG(c->device), c->callid, c->line->name, sccp_indicate2str(c->state));
+    	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Ending call %d on line %s (%s)\n", DEV_ID_LOG(c->device), c->callid, c->line->name, sccp_indicate2str(c->state));
 	/* end callforwards */
 	sccp_channel_t	*channel;
 	SCCP_LIST_LOCK(&c->line->channels);
@@ -1082,7 +1082,7 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, sccp_device_t *device, ch
 	}
 
 	if( (c->digittimeout = sccp_sched_add(sched, GLOB(firstdigittimeout) * 1000, sccp_pbx_sched_dial, c)) < 0 ) {
-		sccp_log(1)(VERBOSE_PREFIX_1 "SCCP: Unable to schedule dialing in '%d' ms\n", GLOB(firstdigittimeout));
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_1 "SCCP: Unable to schedule dialing in '%d' ms\n", GLOB(firstdigittimeout));
 	}
 
 	return c;
