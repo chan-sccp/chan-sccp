@@ -59,7 +59,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list){
 		if(config->type == FEATURE && config->button.feature.id == featureType){
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s \n", DEV_ID_LOG(device), config->button.feature.id, (config->button.feature.options)?config->button.feature.options:"(none)");
+			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s \n", DEV_ID_LOG(device), config->button.feature.id, (config->button.feature.options)?config->button.feature.options:"(none)");
 			instance = config->instance;
 			config->button.feature.status = 0;
 			
@@ -222,7 +222,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 			sccp_copy_string(featureRequestMessage->msg.FeatureStatMessage.featureTextLabel, config->button.feature.label, strlen(config->button.feature.label)+1);
 			featureRequestMessage->msg.FeatureStatMessage.lel_featureStatus = htolel(config->button.feature.status);
 			sccp_dev_send(device, featureRequestMessage);
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Got Feature Status Request. Instance = %d Status: %d\n", device->id, instance, config->button.feature.status);
+			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: Got Feature Status Request. Instance = %d Status: %d\n", device->id, instance, config->button.feature.status);
 #else
 			/* send status using new message */
 			REQ(featureAdvancedMessage, FeatureStatAdvancedMessage);

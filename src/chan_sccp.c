@@ -614,17 +614,17 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 		      sccp_handle_startmediatransmission_ack(s, r);
 		      break;
 		case Unknown_0x004A_Message:
-                      if (GLOB(debug) >20) {
+                      if ((GLOB(debug) & DEBUGCAT_MESSAGE) == DEBUGCAT_MESSAGE) {
 		        sccp_handle_unknown_message(s,r);
 		      }
 		      break;
 		case Unknown_0x0143_Message:
-                      if (GLOB(debug) >20) {
+                      if ((GLOB(debug) & DEBUGCAT_MESSAGE) == DEBUGCAT_MESSAGE) {
 		        sccp_handle_unknown_message(s,r);
 		      }
 		      break;
 		case Unknown_0x0144_Message:
-                      if (GLOB(debug) >20) {
+                      if ((GLOB(debug) & DEBUGCAT_MESSAGE) == DEBUGCAT_MESSAGE) {
 		        sccp_handle_unknown_message(s,r);
 		      }
 		      break;
@@ -632,7 +632,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
                       sccp_handle_speed_dial_stat_req(s,r);
 		      break;
 		case ExtensionDeviceCaps:
-                      if (GLOB(debug) >20) {
+                      if ((GLOB(debug) & DEBUGCAT_MESSAGE) == DEBUGCAT_MESSAGE) {
 		        sccp_handle_unknown_message(s,r);
 		      }
 		      break;
@@ -1089,7 +1089,6 @@ static int load_module(void) {
 	GLOB(global_capability) = AST_FORMAT_ALAW|AST_FORMAT_ULAW|AST_FORMAT_G729A | AST_FORMAT_H263;
 
 	GLOB(debug) = 1;
-	GLOB(fdebug) = 0;
 	GLOB(tos) = (0x68 & 0xff);
 	GLOB(cos) = 5;
 	GLOB(rtptos) = (184 & 0xff);

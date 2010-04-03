@@ -249,7 +249,6 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Direct RTP            : %s\n", (GLOB(directrtp)) ? "Yes" : "No");
 	ast_cli(fd, "Keepalive             : %d\n", GLOB(keepalive));
 	ast_cli(fd, "Debug                 : (%d) %s\n", GLOB(debug),sccp_get_debugparts(GLOB(debug),debugparts));
-        ast_cli(fd, "Filtered Debug Level  : %d\n", GLOB(fdebug));
 	ast_cli(fd, "Date format           : %s\n", GLOB(date_format));
 	ast_cli(fd, "First digit timeout   : %d\n", GLOB(firstdigittimeout));
 	ast_cli(fd, "Digit timeout         : %d\n", GLOB(digittimeout));
@@ -1347,25 +1346,6 @@ static int sccp_do_debug(int fd, int argc, char *argv[]) {
 	return RESULT_SUCCESS;
 }
 
-static int sccp_do_fdebug(int fd, int argc, char *argv[]) {
-	int new_debug = 10;
-
-	if ((argc < 2) || (argc > 3))
-		return RESULT_SHOWUSAGE;
-
-	if (argc == 3) {
-		if (sscanf(argv[2], "%d", &new_debug) != 1)
-			return RESULT_SHOWUSAGE;
-		new_debug = (new_debug > 99) ? 99 : new_debug; // 99 was 10
-		new_debug = (new_debug < 0) ? 0 : new_debug;
-	}
-
-	ast_cli(fd, "SCCP filtered debug level was %d now %d\n", GLOB(fdebug), new_debug);
-	GLOB(fdebug) = new_debug;
-	return RESULT_SUCCESS;
-}
-
-
 #ifdef ASTERISK_CONF_1_6
 /*!
  * \brief Cli Do Debug
@@ -1471,102 +1451,6 @@ static struct ast_cli_entry cli_no_debug = {
   "Disable SCCP debugging",
   "Usage: SCCP no debug\n"
   "		Disables dumping of SCCP packets for debugging purposes\n"
-};
-#endif
-
-#ifdef ASTERISK_CONF_1_6
-/*!
- * \brief Cli Do Fdebug
- * \param e Asterisk CLI Entry
- * \param cmd Cmd as int
- * \param a Asterisk CLI Arguments
- * \return Result as char
- */
-static char *cli_do_fdebug(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
-	if (cmd == CLI_INIT) {
-		e->command = "sccp fdebug";
-		e->usage =
-			"Usage: SCCP fdebug <level>\n"
-			"		Set the filtered debug level of the sccp protocol from none (0) to high (99)\n";
-		return NULL;
-	} else if (cmd == CLI_GENERATE)
-		return NULL;
-
-	if (a->argc != 3)
-		return CLI_SHOWUSAGE;
-
-	if(sccp_do_fdebug(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
-		return CLI_SUCCESS;
-	else
-		return CLI_FAILURE;
-}
-#else
-static struct ast_cli_entry cli_do_fdebug = {
-  { "sccp", "fdebug", NULL },
-  sccp_do_fdebug,
-  "Enable SCCP filtered debugging",
-  "Usage: SCCP fdebug <level>\n"
-  "		Set the filtered debug level of the sccp protocol from none (0) to high (99)\n"
-};
-#endif
-
-/*!
- * \brief No Fdebug
- * \param fd Fd as int
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- */
-static int sccp_no_fdebug(int fd, int argc, char *argv[]) {
-	if (argc != 3)
-		return RESULT_SHOWUSAGE;
-
-	GLOB(fdebug) = 0;
-	ast_cli(fd, "SCCP Filtered Debugging Disabled\n");
-	return RESULT_SUCCESS;
-}
-
-
-
-#ifdef ASTERISK_CONF_1_6
-/*!
- * \brief Cli No Fdebug
- * \param e Asterisk CLI Entry
- * \param cmd Cmd as int
- * \param a Asterisk CLI Arguments
- * \return Result as char
- */
-static char *cli_no_fdebug(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
-	if (cmd == CLI_INIT) {
-		e->command = "sccp no fdebug";
-		e->usage =
-			"Usage: SCCP no fdebug\n"
-			"		Disables filtered dumping of SCCP packets for debugging purposes\n";
-		return NULL;
-	} else if (cmd == CLI_GENERATE)
-		return NULL;
-
-	if (a->argc != 3)
-		return CLI_SHOWUSAGE;
-
-	if(sccp_no_fdebug(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
-		return CLI_SUCCESS;
-	else
-		return CLI_FAILURE;
-}
-
-#else
-/*!
- * \brief CLI No Filtered Debug
- * \return Asterisk Cli Entry Structure
- * \note Alias for Asterisk CLI Entry
- */
-static struct ast_cli_entry cli_no_fdebug = {
-  { "sccp", "no", "fdebug", NULL },
-  sccp_no_fdebug,
-  "Disable SCCP filtered debugging",
-  "Usage: SCCP no fdebug\n"
-  "		Disables filtered dumping of SCCP packets for debugging purposes\n"
 };
 #endif
 
@@ -1838,8 +1722,6 @@ static struct ast_cli_entry cli_entries[] = {
 		AST_CLI_DEFINE(cli_system_message, "Set the SCCP system message."),
 		AST_CLI_DEFINE(cli_do_debug, "Enable SCCP debugging."),
 		AST_CLI_DEFINE(cli_no_debug, "Disable SCCP debugging."),
-		AST_CLI_DEFINE(cli_do_fdebug, "Enable SCCP filtered debugging."),
-		AST_CLI_DEFINE(cli_no_fdebug, "Disable SCCP filtered debugging."),
 		AST_CLI_DEFINE(cli_reload, "SCCP module reload."),
 		AST_CLI_DEFINE(cli_show_version, "SCCP show version."),
 		AST_CLI_DEFINE(cli_show_mwi_subscriptions, "Show all mwi subscriptions"),
@@ -1877,8 +1759,6 @@ void sccp_register_cli(void) {
   ast_cli_register(&cli_unregister);
   ast_cli_register(&cli_do_debug);
   ast_cli_register(&cli_no_debug);
-  ast_cli_register(&cli_do_fdebug);
-  ast_cli_register(&cli_no_fdebug);
   ast_cli_register(&cli_system_message);
   ast_cli_register(&cli_show_globals);
   ast_cli_register(&cli_message_devices);
@@ -1911,8 +1791,6 @@ void sccp_unregister_cli(void) {
   ast_cli_unregister(&cli_unregister);
   ast_cli_unregister(&cli_do_debug);
   ast_cli_unregister(&cli_no_debug);
-  ast_cli_unregister(&cli_do_fdebug);
-  ast_cli_unregister(&cli_no_fdebug);
   ast_cli_unregister(&cli_system_message);
   ast_cli_unregister(&cli_show_globals);
   ast_cli_unregister(&cli_message_devices);
