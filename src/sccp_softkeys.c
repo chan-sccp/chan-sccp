@@ -335,9 +335,22 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 		return;
 
 	if((numSelectedChannels = sccp_device_selectedchannels_count(d)) != 2) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: We need 2 channels to transfer\n", d->id);
-		sccp_mutex_unlock(&d->lock);
-		return;
+		if (l->channelCount == 2) {
+			sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: Automatically select the two current channels\n", d->id);
+			SCCP_LIST_LOCK(&l->channels);
+			SCCP_LIST_TRAVERSE(&l->channels, c, list) {
+				x = ast_malloc(sizeof(sccp_selectedchannel_t));
+				x->channel = c;
+				SCCP_LIST_LOCK(&d->selectedChannels);
+				SCCP_LIST_INSERT_HEAD(&d->selectedChannels, x, list);
+				SCCP_LIST_UNLOCK(&d->selectedChannels);
+			}
+			SCCP_LIST_UNLOCK(&l->channels);
+		} else {
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: We need 2 channels to transfer, please use softkey select\n", d->id);
+			sccp_mutex_unlock(&d->lock);
+			return;
+		}
 	}
 
 	SCCP_LIST_LOCK(&d->selectedChannels);
