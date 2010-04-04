@@ -252,8 +252,12 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Date format           : %s\n", GLOB(date_format));
 	ast_cli(fd, "First digit timeout   : %d\n", GLOB(firstdigittimeout));
 	ast_cli(fd, "Digit timeout         : %d\n", GLOB(digittimeout));
-	ast_cli(fd, "RTP tos               : %d\n", GLOB(rtptos));
-	ast_cli(fd, "RTP cos               : %d\n", GLOB(rtpcos));
+	ast_cli(fd, "SCCP tos (signaling)  : %d\n", GLOB(sccp_tos));
+	ast_cli(fd, "SCCP cos (signaling)  : %d\n", GLOB(sccp_cos));
+	ast_cli(fd, "AUDIO tos (rtp)       : %d\n", GLOB(audio_tos));
+	ast_cli(fd, "AUDIO cos (rtp)       : %d\n", GLOB(audio_cos));
+	ast_cli(fd, "VIDEO tos (vrtp)      : %d\n", GLOB(video_tos));
+	ast_cli(fd, "VIDEO cos (vrtp)      : %d\n", GLOB(video_cos));
 	ast_cli(fd, "Context               : %s\n", GLOB(context));
 	ast_cli(fd, "Language              : %s\n", GLOB(language));
 	ast_cli(fd, "Accountcode           : %s\n", GLOB(accountcode));

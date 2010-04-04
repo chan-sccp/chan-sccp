@@ -700,17 +700,17 @@ static int reload_config(void) {
 		on = 1;
 		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
 			ast_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
-                if (setsockopt(GLOB(descriptor), IPPROTO_IP, IP_TOS, &GLOB(tos), sizeof(GLOB(tos))) < 0)
-                        ast_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(tos), strerror(errno));
-                else if (GLOB(tos)) 
-                        ast_verb(2, "Using SCCP Socket ToS mark %d\n", GLOB(tos));
+                if (setsockopt(GLOB(descriptor), IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0)
+                        ast_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(sccp_tos), strerror(errno));
+                else if (GLOB(sccp_tos)) 
+                        ast_verb(2, "Using SCCP Socket ToS mark %d\n", GLOB(sccp_tos));
 		if (setsockopt(GLOB(descriptor), IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
 			ast_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
 #if defined(linux)                                                              
-                if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_PRIORITY, &GLOB(cos), sizeof(GLOB(cos))) < 0)  
-                	ast_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(cos), strerror(errno));
-                else if (GLOB(cos))
-                        ast_verb(2, "Using SCCP Socket CoS mark %d\n", GLOB(cos));
+                if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0)  
+                	ast_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
+                else if (GLOB(sccp_cos))
+                        ast_verb(2, "Using SCCP Socket CoS mark %d\n", GLOB(sccp_cos));
 #endif
 
 		if (GLOB(descriptor) < 0) {
@@ -1089,10 +1089,12 @@ static int load_module(void) {
 	GLOB(global_capability) = AST_FORMAT_ALAW|AST_FORMAT_ULAW|AST_FORMAT_G729A | AST_FORMAT_H263;
 
 	GLOB(debug) = 1;
-	GLOB(tos) = (0x68 & 0xff);
-	GLOB(cos) = 5;
-	GLOB(rtptos) = (184 & 0xff);
-	GLOB(rtpcos) = 6;
+	GLOB(sccp_tos) = (0x68 & 0xff); 	// AF31
+	GLOB(audio_tos) = (0xB8 & 0xff); 	// EF
+	GLOB(video_tos) = (0x88 & 0xff); 	// AF41
+	GLOB(sccp_cos) = 4;
+	GLOB(audio_cos) = 6;
+	GLOB(video_cos) = 5;
 	GLOB(echocancel) = 1;
 	GLOB(silencesuppression) = 0;
 	GLOB(dndmode) = SCCP_DNDMODE_REJECT;
