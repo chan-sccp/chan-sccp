@@ -147,10 +147,10 @@
 	<proxyServerURL></proxyServerURL>
 	<servicesURL></servicesURL>
 	
-	<dscpForSCCPPhoneConfig>96</dscpForSCCPPhoneConfig>
+	<dscpForSCCPPhoneConfig>104</dscpForSCCPPhoneConfig>
 	<dscpForSCCPPhoneServices>0</dscpForSCCPPhoneServices>
-	<dscpForCm2Dvce>96</dscpForCm2Dvce>
-	<transportLayerProtocol>1</transportLayerProtocol>
+	<dscpForCm2Dvce>184</dscpForCm2Dvce>
+	<transportLayerProtocol>4</transportLayerProtocol>
 	<dndCallAlert>5</dndCallAlert>
 	<phonePersonalization>1</phonePersonalization>
 	<rollover>0</rollover>
