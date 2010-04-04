@@ -310,9 +310,9 @@ boolean_t sccp_config_general(void){
 	int amaflags = 0;
 	int protocolversion = 0;
 	char digittimeoutchar = '#';
-	int				tos = 0;
-	int				cos = 0;
-	int 			     rtpcos = 0;
+	unsigned int			sccp_cos = 0;
+	unsigned int			audio_cos = 0;
+	unsigned int			video_cos = 0;
 	char				pref_buf[128];
 	struct ast_hostent		ahp;
 	struct hostent			*hp;
@@ -509,40 +509,111 @@ boolean_t sccp_config_general(void){
 					GLOB(earlyrtp) = SCCP_CHANNELSTATE_RINGOUT;
 				else
 					ast_log(LOG_WARNING, "Invalid earlyrtp state value at line %d, should be 'none', 'offhook', 'dial', 'ringout'\n", v->lineno);
-			} else if (!strcasecmp(v->name, "tos")) {
-				if (sscanf(v->value, "%d", &tos) == 1)
-					GLOB(tos) = tos & 0xff;
+			} else if (!strcasecmp(v->name, "sccp_tos")) {
+#ifdef ASTERISK_CONF_1_2			
+				if (sscanf(v->value, "%d", &sccp_tos) == 1)
+					GLOB(sccp_tos) = sccp_tos & 0xff;
+#else
+			        if(ast_str2tos(v->value, &GLOB(sccp_tos)))
+                                        ast_log(LOG_WARNING, "Invalid tos_audio value at line %d, refer to QoS documentation\n", v->lineno);
+#endif                                    
 				else if (!strcasecmp(v->value, "lowdelay"))
-					GLOB(tos) = IPTOS_LOWDELAY;
+					GLOB(sccp_tos) = IPTOS_LOWDELAY;
 				else if (!strcasecmp(v->value, "throughput"))
-					GLOB(tos) = IPTOS_THROUGHPUT;
+					GLOB(sccp_tos) = IPTOS_THROUGHPUT;
 				else if (!strcasecmp(v->value, "reliability"))
-					GLOB(tos) = IPTOS_RELIABILITY;
+					GLOB(sccp_tos) = IPTOS_RELIABILITY;
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
 				else if (!strcasecmp(v->value, "mincost"))
-					GLOB(tos) = IPTOS_MINCOST;
+					GLOB(sccp_tos) = IPTOS_MINCOST;
 #endif
 				else if (!strcasecmp(v->value, "none"))
-					GLOB(tos) = 0;
+					GLOB(sccp_tos) = 0;
 				else
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
-					ast_log(LOG_WARNING, "Invalid tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
+					ast_log(LOG_WARNING, "Invalid sccp_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
 #else
-					ast_log(LOG_WARNING, "Invalid tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', or 'none'\n", v->lineno);
+					ast_log(LOG_WARNING, "Invalid sccp_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', or 'none'\n", v->lineno);
 #endif
-			} else if (!strcasecmp(v->name, "cos")) {
-				if (sscanf(v->value, "%d", &cos) == 1)
-                                        GLOB(cos) = cos;
-                                else
-                                        GLOB(cos) = 5;
-			} else if (!strcasecmp(v->name, "rtptos")) {
-				if (sscanf(v->value, "%d", &GLOB(rtptos)) == 1)
-				        GLOB(rtptos) &= 0xff;
-			} else if (!strcasecmp(v->name, "rtpcos")) {
-				if (sscanf(v->value, "%d", &rtpcos) == 1)
-                                        GLOB(rtpcos) = rtpcos;
-                                else
-                                        GLOB(rtpcos) = 6;
+                                        GLOB(sccp_tos) = 0x68 & 0xff;
+			} else if (!strcasecmp(v->name, "audio_tos")) {
+#ifdef ASTERISK_CONF_1_2			
+				if (sscanf(v->value, "%d", &audio_tos) == 1)
+					GLOB(audio_tos) = audio_tos & 0xff;
+#else
+  		                if(ast_str2tos(v->value, &GLOB(audio_tos)))
+			                ast_log(LOG_WARNING, "Invalid tos_audio value at line %d, refer to QoS documentation\n", v->lineno);
+#endif                                    
+				else if (!strcasecmp(v->value, "lowdelay"))
+					GLOB(audio_tos) = IPTOS_LOWDELAY;
+				else if (!strcasecmp(v->value, "throughput"))
+					GLOB(audio_tos) = IPTOS_THROUGHPUT;
+				else if (!strcasecmp(v->value, "reliability"))
+					GLOB(audio_tos) = IPTOS_RELIABILITY;
+#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
+				else if (!strcasecmp(v->value, "mincost"))
+					GLOB(audio_tos) = IPTOS_MINCOST;
+#endif
+				else if (!strcasecmp(v->value, "none"))
+					GLOB(audio_tos) = 0;
+				else
+#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
+					ast_log(LOG_WARNING, "Invalid audio_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
+#else
+					ast_log(LOG_WARNING, "Invalid audio_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', or 'none'\n", v->lineno);
+#endif
+                                        GLOB(audio_tos) = 0xB8 & 0xff;
+			} else if (!strcasecmp(v->name, "video_tos")) {
+#ifdef ASTERISK_CONF_1_2			
+				if (sscanf(v->value, "%d", &video_tos) == 1)
+					GLOB(video_tos) = video_tos & 0xff;
+#else
+			        if(ast_str2tos(v->value, &GLOB(video_tos))) 
+			                ast_log(LOG_WARNING, "Invalid tos_audio value at line %d, refer to QoS documentation\n", v->lineno);
+#endif                                    
+				else if (!strcasecmp(v->value, "lowdelay"))
+					GLOB(video_tos) = IPTOS_LOWDELAY;
+				else if (!strcasecmp(v->value, "throughput"))
+					GLOB(video_tos) = IPTOS_THROUGHPUT;
+				else if (!strcasecmp(v->value, "reliability"))
+					GLOB(video_tos) = IPTOS_RELIABILITY;
+#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
+				else if (!strcasecmp(v->value, "mincost"))
+					GLOB(video_tos) = IPTOS_MINCOST;
+#endif
+				else if (!strcasecmp(v->value, "none"))
+					GLOB(video_tos) = 0;
+				else
+#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
+					ast_log(LOG_WARNING, "Invalid video_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
+#else
+					ast_log(LOG_WARNING, "Invalid video_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', or 'none'\n", v->lineno);
+#endif
+                                        GLOB(video_tos) = 0x88 & 0xff;
+			} else if (!strcasecmp(v->name, "sccp_cos")) {
+				if (sscanf(v->value, "%d", &sccp_cos) == 1) {
+				        if(sccp_cos < 0 || sccp_cos > 7) {
+				                ast_log(LOG_WARNING, "Invalid sccp_cos value at line %d, refer to QoS documentation\n", v->lineno);
+				        }
+                                        GLOB(sccp_cos) = sccp_cos;
+                                } else
+                                        GLOB(sccp_cos) = 4;
+			} else if (!strcasecmp(v->name, "audio_cos")) {
+				if (sscanf(v->value, "%d", &audio_cos) == 1) {
+				        if(audio_cos < 0 || audio_cos > 7) {
+				                ast_log(LOG_WARNING, "Invalid audio_cos value at line %d, refer to QoS documentation\n", v->lineno);
+				        }
+                                        GLOB(audio_cos) = audio_cos;
+                                } else
+                                        GLOB(audio_cos) = 6;
+			} else if (!strcasecmp(v->name, "video_cos")) {
+				if (sscanf(v->value, "%d", &video_cos) == 1) {
+				        if(video_cos < 0 || video_cos > 7) {
+				                ast_log(LOG_WARNING, "Invalid video_cos value at line %d, refer to QoS documentation\n", v->lineno);
+				        }
+                                        GLOB(video_cos) = video_cos;
+                                } else
+                                        GLOB(video_cos) = 5;
 			} else if (!strcasecmp(v->name, "autoanswer_ring_time")) {
 				if (sscanf(v->value, "%i", &autoanswer_ring_time) == 1) {
 					if (autoanswer_ring_time >= 0 && autoanswer_ring_time <= 255)
@@ -728,7 +799,8 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
  */
 sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_variable *v){
         int amaflags = 0;
-        int rtpcos = 0;
+        unsigned int audio_cos = 0;
+        unsigned int video_cos = 0;
         int secondary_dialtone_tone = 0;
 
 
@@ -795,14 +867,77 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
                         l->echocancel = sccp_true(v->value);
                 } else if (!strcasecmp(v->name, "silencesuppression")) {
                         l->silencesuppression = sccp_true(v->value);
-                } else if (!strcasecmp(v->name, "rtptos")) {
-                        if (sscanf(v->value, "%d", &l->rtptos) == 1)
-                                l->rtptos &= 0xff;
-                } else if (!strcasecmp(v->name, "rtpcos")) {
-                        if (sscanf(v->value, "%d", &rtpcos) == 1)
-                                l->rtpcos = rtpcos;
-                        else
-                                l->rtpcos = GLOB(rtpcos);
+
+		} else if (!strcasecmp(v->name, "audio_tos")) {
+#ifdef ASTERISK_CONF_1_2			
+			if (sscanf(v->value, "%d", &audio_tos) == 1)
+				l->audio_tos = audio_tos & 0xff;
+#else
+		        if(ast_str2tos(v->value, &l->audio_tos))
+		                ast_log(LOG_WARNING, "Invalid tos_audio value at line %d, refer to QoS documentation\n", v->lineno);
+#endif                                    
+			else if (!strcasecmp(v->value, "lowdelay"))
+				l->audio_tos = IPTOS_LOWDELAY;
+			else if (!strcasecmp(v->value, "throughput"))
+				l->audio_tos = IPTOS_THROUGHPUT;
+			else if (!strcasecmp(v->value, "reliability"))
+				l->audio_tos = IPTOS_RELIABILITY;
+#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
+			else if (!strcasecmp(v->value, "mincost"))
+				l->audio_tos = IPTOS_MINCOST;
+#endif
+			else if (!strcasecmp(v->value, "none"))
+				l->audio_tos = 0;
+			else
+#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
+				ast_log(LOG_WARNING, "Invalid audio_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
+#else
+				ast_log(LOG_WARNING, "Invalid audio_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', or 'none'\n", v->lineno);
+#endif
+                                l->audio_tos = GLOB(audio_tos);
+		} else if (!strcasecmp(v->name, "video_tos")) {
+#ifdef ASTERISK_CONF_1_2			
+			if (sscanf(v->value, "%d", &video_tos) == 1)
+				l->video_tos = video_tos & 0xff;
+#else
+		        if(ast_str2tos(v->value, &l->video_tos))
+		                ast_log(LOG_WARNING, "Invalid tos_audio value at line %d, refer to QoS documentation\n", v->lineno);
+#endif                                    
+			else if (!strcasecmp(v->value, "lowdelay"))
+				l->video_tos = IPTOS_LOWDELAY;
+			else if (!strcasecmp(v->value, "throughput"))
+				l->video_tos = IPTOS_THROUGHPUT;
+			else if (!strcasecmp(v->value, "reliability"))
+				l->video_tos = IPTOS_RELIABILITY;
+#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
+			else if (!strcasecmp(v->value, "mincost"))
+				l->video_tos = IPTOS_MINCOST;
+#endif
+			else if (!strcasecmp(v->value, "none"))
+				l->video_tos = 0;
+			else
+#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
+				ast_log(LOG_WARNING, "Invalid video_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
+#else
+				ast_log(LOG_WARNING, "Invalid video_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', or 'none'\n", v->lineno);
+#endif
+                                l->video_tos = GLOB(video_tos);
+		} else if (!strcasecmp(v->name, "audio_cos")) {
+			if (sscanf(v->value, "%d", &audio_cos) == 1) {
+			        if(audio_cos < 0 || audio_cos > 7) {
+			                ast_log(LOG_WARNING, "Invalid audio_cos value at line %d, refer to QoS documentation\n", v->lineno);
+			        }
+                                l->audio_cos = audio_cos;
+                        } else
+                                l->audio_cos = GLOB(audio_cos);
+		} else if (!strcasecmp(v->name, "video_cos")) {
+			if (sscanf(v->value, "%d", &video_cos) == 1) {
+			        if(video_cos < 0 || video_cos > 7) {
+			                ast_log(LOG_WARNING, "Invalid video_cos value at line %d, refer to QoS documentation\n", v->lineno);
+			        }
+                                l->video_cos = video_cos;
+                        } else
+                                l->video_cos = GLOB(video_cos);
                 } else if (!strcasecmp(v->name, "language")) {
                         sccp_copy_string(l->language, v->value, sizeof(l->language));
                 } else if (!strcasecmp(v->name, "musicclass")) {

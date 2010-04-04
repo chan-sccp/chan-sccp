@@ -660,7 +660,6 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 				//sccp_conference_readFrame(frame, c);
 			}
 #endif
-
 			break;
 		case 1:
 			frame = ast_rtcp_read(c->rtp.audio);	/* RTCP Control Channel */

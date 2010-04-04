@@ -1,3 +1,133 @@
+2010-04-03  ddegroot
+
+	* [r1430] src/chan_sccp.h, src/sccp_cli.c, src/sccp_utils.c,
+	  src/sccp_utils.h: renamed sccp_verbose_level to
+	  sccp_debug_category
+
+	* [r1429] doc/12_Reporting_Issues_Problems.doc: Extended the
+	  documentation regarding sccp debug categories
+
+	* [r1428] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_cli.c, src/sccp_event.c, src/sccp_featureButton.c:
+	  Updated chan_sccp.h to interpret DEBUGCAT correctly for sccp_log
+	  Removed fdebug completely
+
+	* [r1427] src/sccp_channel.c, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_indicate.c: set GLOB(debug) to 0 before reading new
+	  value
+	  Updated a couple of sccp_log lines to reduce default logging
+
+	* [r1426] conf/sccp.conf, doc/04_Setup_Guide.doc,
+	  doc/08_Developers_Guide.doc,
+	  doc/12_Reporting_Issues_Problems.doc: Updated the samples and
+	  documentation to show the new debug cli function and conf debug
+	  setting
+
+	* [r1425] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_adv_features.c, src/sccp_channel.c, src/sccp_cli.c,
+	  src/sccp_config.c, src/sccp_device.c, src/sccp_featureButton.c,
+	  src/sccp_features.c, src/sccp_hint.c, src/sccp_indicate.c,
+	  src/sccp_indicate.h, src/sccp_line.c, src/sccp_lock.c,
+	  src/sccp_mwi.c, src/sccp_pbx.c, src/sccp_socket.c,
+	  src/sccp_softkeys.c, src/sccp_utils.c, src/sccp_utils.h: Renamed
+	  SCCP_VERBOSE_LEVEL_* to DEBUGCAT_*
+	  Changed sccp_log entries with & to +
+	  Added new cli methode sccp debug [no] level|category[,category]
+	  Added new config entry debug=level|category[,category]
+	  examples:
+	  - sccp debug mwi,event,core,device
+	  - sccp debug 10
+	  - sccp debug none
+	  - sccp debug all"
+
+2010-04-02  ddegroot
+
+	* [r1424] Makefile.am, Makefile.in, autoconf/config.guess,
+	  configure, libtool, tools/suse.spec[ADD]: Added RPM generation to
+	  Makefile.am. Spec file still has to checked and tested
+
+	* [r1423] src/sccp_cli.c: Added help message and autocompletion to
+	  sccp debug
+
+	* [r1422] src/chan_sccp.h, src/sccp_cli.c: added support for sccp
+	  debug mwi,event,high
+
+	* [r1421] src/chan_sccp.h, src/sccp_device.c: debug changed from
+	  int to uint32_t
+
+	* [r1420] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_config.c, src/sccp_device.c, src/sccp_features.c,
+	  src/sccp_indicate.h, src/sccp_socket.c: Finished assigning
+	  SCCP_VERBOSE_LEVEL Enums to sccp_log
+
+	* [r1419] src/chan_sccp.c, src/chan_sccp.h,
+	  src/sccp_adv_features.c, src/sccp_device.c, src/sccp_line.c,
+	  src/sccp_lock.c, src/sccp_mwi.c, src/sccp_pbx.c,
+	  src/sccp_softkeys.c, src/sccp_utils.c: Updated the sccp_log
+	  assignments
+
+	* [r1418] src/chan_sccp.c: Fixed typo in chan_sccp sccp_log line
+
+	* [r1417] src/chan_sccp.c, src/chan_sccp.h, src/sccp_utils.c:
+	  extended sccp_verbose_level
+	  changed log levels in sccp_utils
+
+	* [r1416] src/sccp_adv_features.c, src/sccp_channel.c,
+	  src/sccp_config.c, src/sccp_device.c, src/sccp_featureButton.c,
+	  src/sccp_features.c, src/sccp_indicate.c: Changed over some more
+	  sccp_log levels
+
+	* [r1415] src/chan_sccp.h, src/sccp_actions.c: Extended chan_sccp.h
+	  SCCP_VERBOSE_LEVELS
+	  Assigned first batch of sccp_log Assignments in sccp_action.c
+
+	* [r1414] src/Makefile.in, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_channel.c, src/sccp_cli.c, src/sccp_protocol.h: Extended
+	  SCCP_VERBOSE_LEVEL
+	  renamed speedial -> speeddial
+	  renamed Tranfer -> Transfer
+
+2010-04-01  marcelloceschia
+
+	* [r1413] src/sccp_utils.c:
+
+	* [r1412] src/sccp_utils.c:
+
+	* [r1411] src/sccp_actions.c: instance for service
+
+	* [r1410] src/sccp_line.c: search for line created by other threads
+
+	* [r1409] src/sccp_line.c: search for line created by other threads
+
+	* [r1408] src/sccp_utils.c: fixes instance issue with old hint
+	  style
+
+	* [r1407] src/sccp_hint.c: fixxes hint issue with dynamich
+	  speeddial protocol versionn < 15
+
+	* [r1406] src/sccp_utils.c: debug output for realtime line
+
+2010-03-30  ddegroot
+
+	* [r1405] src/sccp_config.c: setting defaults for cos and rtpcos
+	  correctly
+
+	* [r1404] conf/sccp.conf, conf/sccp_short.conf,
+	  conf/sccp_simple.conf, src/chan_sccp.c, src/chan_sccp.h,
+	  src/sccp_channel.c, src/sccp_cli.c, src/sccp_config.c,
+	  src/sccp_line.c, src/sccp_socket.c: Added cos and rtpcos to
+	  specify Class of Service for Sockets and RTP Sockets to make QOS
+	  work better over VPN and MPLS Connections
+
+	* [r1403] ChangeLog, libtool, src/Makefile.in, src/chan_sccp.c,
+	  src/config.h.in, src/sccp_hint.c, src/sccp_protocol.h,
+	  src/sccp_utils.c, src/sccp_utils.h: Added some extra logging to
+	  sccp_hint.c
+	  Added Mapping for ast_device_state to sccp_protocol / sccp_utils
+	  for use in sccp_hints
+	  Added Support for target_extra from ast_jb_conf in newer asterisk
+	  1.6.x versions to sccp_cli and chan_sccp.c
+
 2010-03-30  marcelloceschia
 
 	* [r1402] src/chan_sccp.c: fixing mwi start/stop issue

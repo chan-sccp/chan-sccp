@@ -588,7 +588,7 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 			}
 			r->msg.StartMediaTransmission.lel_millisecondPacketSize = htolel(fmt.cur_ms);
 			r->msg.StartMediaTransmission.lel_payloadType = htolel(sccp_codec_ast2skinny(fmt.bits));
-			r->msg.StartMediaTransmission.lel_precedenceValue = htolel(l->rtptos);
+			r->msg.StartMediaTransmission.lel_precedenceValue = htolel(l->audio_tos);
 			r->msg.StartMediaTransmission.lel_ssValue = htolel(l->silencesuppression); // Silence supression
 			r->msg.StartMediaTransmission.lel_maxFramesPerPacket = htolel(0);
 			r->msg.StartMediaTransmission.lel_rtptimeout = htolel(10);
@@ -605,7 +605,7 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 			}
 			r->msg.StartMediaTransmission_v17.lel_millisecondPacketSize = htolel(fmt.cur_ms);
 			r->msg.StartMediaTransmission_v17.lel_payloadType = htolel(sccp_codec_ast2skinny(fmt.bits));
-			r->msg.StartMediaTransmission_v17.lel_precedenceValue = htolel(l->rtptos);
+			r->msg.StartMediaTransmission_v17.lel_precedenceValue = htolel(l->audio_tos);
 			r->msg.StartMediaTransmission_v17.lel_ssValue = htolel(l->silencesuppression); // Silence supression
 			r->msg.StartMediaTransmission_v17.lel_maxFramesPerPacket = htolel(0);
 			r->msg.StartMediaTransmission_v17.lel_rtptimeout = htolel(10);
@@ -808,7 +808,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 		r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(sin.sin_port));
 		r->msg.StartMediaTransmission.lel_millisecondPacketSize = htolel(packetSize);
 		r->msg.StartMediaTransmission.lel_payloadType = htolel((payloadType) ? payloadType : 4);
-		r->msg.StartMediaTransmission.lel_precedenceValue = htolel(c->line->rtptos);
+		r->msg.StartMediaTransmission.lel_precedenceValue = htolel(c->line->audio_tos);
 		r->msg.StartMediaTransmission.lel_ssValue = htolel(c->line->silencesuppression); // Silence supression
 		r->msg.StartMediaTransmission.lel_maxFramesPerPacket = htolel(0);
 		r->msg.StartMediaTransmission.lel_rtptimeout = htolel(10);
@@ -817,16 +817,16 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 		r->msg.StartMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(sin.sin_port));
 		r->msg.StartMediaTransmission_v17.lel_millisecondPacketSize = htolel(packetSize);
 		r->msg.StartMediaTransmission_v17.lel_payloadType = htolel((payloadType) ? payloadType : 4);
-		r->msg.StartMediaTransmission_v17.lel_precedenceValue = htolel(c->line->rtptos);
+		r->msg.StartMediaTransmission_v17.lel_precedenceValue = htolel(c->line->audio_tos);
 		r->msg.StartMediaTransmission_v17.lel_ssValue = htolel(c->line->silencesuppression); // Silence supression
 		r->msg.StartMediaTransmission_v17.lel_maxFramesPerPacket = htolel(0);
 		r->msg.StartMediaTransmission_v17.lel_rtptimeout = htolel(10);
 	}
 	sccp_dev_send(c->device, r);
 #ifdef ASTERISK_CONF_1_2
-	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s (%d ms), tos %d, silencesuppression: %s\n",c->device->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port), codec2str(payloadType), packetSize, c->line->rtptos, c->line->silencesuppression ? "ON" : "OFF");
+	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s (%d ms), tos %d, silencesuppression: %s\n",c->device->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port), codec2str(payloadType), packetSize, c->line->audio_tos, c->line->silencesuppression ? "ON" : "OFF");
 #else
-	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s(%d) (%d ms), tos %d, silencesuppression: %s\n",c->device->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), codec2str(payloadType),payloadType, packetSize, c->line->rtptos, c->line->silencesuppression ? "ON" : "OFF");
+	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s(%d) (%d ms), tos %d, silencesuppression: %s\n",c->device->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), codec2str(payloadType),payloadType, packetSize, c->line->audio_tos, c->line->silencesuppression ? "ON" : "OFF");
 #endif
 }
 
@@ -1642,13 +1642,12 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 
 	if (c->rtp.audio) {
 #ifdef ASTERISK_CONF_1_6
-//		ast_rtp_setqos(c->rtp.audio, c->line->rtptos, 5, "SCCP RTP");
-		ast_rtp_setqos(c->rtp.audio, c->line->rtptos, c->line->rtpcos, "SCCP RTP");
+		ast_rtp_setqos(c->rtp.audio, c->line->audio_tos, c->line->audio_cos, "SCCP RTP");
 #else
-		ast_rtp_settos(c->rtp.audio, c->line->rtptos);
+		ast_rtp_settos(c->rtp.audio, c->line->audio_tos);
 #if defined(linux)                                                              
-                if (setsockopt(c->rtp.audio, SOL_SOCKET, SO_PRIORITY, c->line->rtpcos, sizeof(c->line->rtpcos))) < 0)  
-                	ast_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", c->line->rtpcos, strerror(errno));
+                if (setsockopt(c->rtp.audio, SOL_SOCKET, SO_PRIORITY, c->line->audio_cos, sizeof(c->line->audio_cos))) < 0)  
+                	ast_log(LOG_WARNING, "Failed to set SCCP socket Audio COS to %d: %s\n", c->line->rtpcos, strerror(errno));
 #endif
 		
 #endif
@@ -1660,9 +1659,13 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 
 	if (c->rtp.video) {
 #ifdef ASTERISK_CONF_1_6
-		ast_rtp_setqos(c->rtp.video, 0, 6, "SCCP VRTP");
+		ast_rtp_setqos(c->rtp.video, c->line->audio_tos, c->line->video_cos, "SCCP VRTP");
 #else
-		ast_rtp_settos(c->rtp.video, c->line->rtptos);
+		ast_rtp_settos(c->rtp.video, c->line->video_tos);
+#if defined(linux)                                                              
+                if (setsockopt(c->rtp.video, SOL_SOCKET, SO_PRIORITY, c->line->video_cos, sizeof(c->line->video_cos))) < 0)  
+                	ast_log(LOG_WARNING, "Failed to set SCCP socket Video COS to %d: %s\n", c->line->video_cos, strerror(errno));
+#endif
 #endif
 		ast_rtp_setnat(c->rtp.video, d->nat);
 

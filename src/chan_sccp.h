@@ -541,8 +541,10 @@ struct sccp_line {
         char 					cid_name[AST_MAX_EXTENSION];		/*!< Caller(Name) to use on outgoing calls*/
         char 					cid_num[AST_MAX_EXTENSION];		/*!< Caller(ID) to use on outgoing calls  */
         uint8_t 				incominglimit;				/*!< max incoming calls limit */
-        uint32_t				rtptos;					/*!< rtp stream type_of_service */
-        uint32_t				rtpcos;					/*!< rtp stream class_of_service */
+        unsigned int				audio_tos;				/*!< audio stream type_of_service (TOS) (RTP) */
+        unsigned int				video_tos;				/*!< video stream type_of_service (TOS) (VRTP) */
+        unsigned int				audio_cos;				/*!< audio stream class_of_service (COS) (VRTP) */
+        unsigned int				video_cos;				/*!< video stream class_of_service (COS) (VRTP) */
 /* 	sccp_channel_t 				* activeChannel; */			/* The currently active channel. */
         SCCP_LIST_HEAD(, sccp_channel_t) 	channels;				/*!< Linked list of current channels for this line */
         uint8_t 				channelCount;				/*!< Number of currently active channels */
@@ -823,8 +825,10 @@ struct sccp_channel {
 		struct ast_rtp 			*video;					/*!< Video RTP session */
 	}rtp;
 
-
         struct sockaddr_in			rtp_addr;				/*!< RTP Socket Address */
+        struct sockaddr_in			rtp_peer;				/*!< RTP Socket Address */
+        struct sockaddr_in			vrtp_addr;				/*!< VRTP Socket Address */
+        struct sockaddr_in			vrtp_peer;				/*!< VRTP Socket Address */
         SCCP_LIST_ENTRY(sccp_channel_t) 	list;					/*!< Channel Linked List List */
         uint8_t					autoanswer_type;			/*!< Auto Answer Type */
         uint8_t					autoanswer_cause;			/*!< Auto Answer Cause */
@@ -913,10 +917,12 @@ struct sccp_global_vars {
 
         unsigned int				recorddigittimeoutchar: 1; 		/*< Record Digit Time Out Char. Whether to include the digittimeoutchar in the call logs */
 
-        uint32_t				tos;					/*!< Socket Type of Service (TOS) (QOS) */
-        uint32_t				cos;					/*!< Socket Class of Service (COS) (QOS) */
-        uint32_t				rtptos;					/*!< Type of Service for RTP */
-        uint32_t				rtpcos;					/*!< Class of Service for RTP */
+        unsigned int				sccp_tos;				/*!< SCCP Socket Type of Service (TOS) (QOS) (Signaling) */
+        unsigned int				audio_tos;				/*!< Audio Socket Type of Service (TOS) (QOS) (RTP) */
+        unsigned int				video_tos;				/*!< Video Socket Type of Service (TOS) (QOS) (VRTP) */
+        unsigned int				sccp_cos;				/*!< SCCP Socket Class of Service (COS) (QOS) (Signaling) */
+        unsigned int				audio_cos;				/*!< Audio Socket Class of Service (COS) (QOS) (RTP) */
+        unsigned int				video_cos;				/*!< Video Socket Class of Service (COS) (QOS) (VRTP) */
 
         uint8_t					earlyrtp;				/*!< Channel State where to open the rtp media stream */
 
