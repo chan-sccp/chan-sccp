@@ -1312,17 +1312,20 @@ static char * sccp_complete_debug(char *line, char *word, int pos, int state) {
 	int i;
 	int which = 0;
 	char * ret;
+	boolean_t found=0;
 
 	if (pos > 3)
-	return NULL;
+  	  return NULL;
 
 	for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
 		if (!strncasecmp(word, sccp_debug_categories[i].short_name, strlen(word))) {
-			if (++which > state)
-			        ret = strdup(sccp_debug_categories[i].short_name);
-				break;
+			if (++which > state) {
+			        found=1;
+			        break;
+                        }
 		}
 	}
+	ret=found ? strdup(sccp_debug_categories[i].short_name) : NULL;
 	return ret;
 }
 /* ------------------------------------------------------------ */
