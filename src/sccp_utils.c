@@ -1427,51 +1427,58 @@ sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t *device, sccp
  * \param arg_part2 Argument part2
  * \return new_debug as uint32_t
  */
-uint32_t sccp_parse_debugline (char * arg_part1,char * arg_part2, uint32_t new_debug) {
-        int i;
-        char * debug_val="";
-        char * token="";
-        const char delimiters[] = ",";
+uint32_t sccp_parse_debugline (char * arguments[], int startat, int argc, uint32_t new_debug_value) {
+        int argi,i; 
+        char * argument=""; 
+        char * token=""; 
+        const char
+        delimiters[] = " ,\t"; 
         boolean_t subtract=0;
         
-        if (sscanf(arg_part1, "%d", &new_debug) != 1) {
-                debug_val=arg_part1;
-                if (strcasecmp(arg_part1,"no")==0) {
-                  debug_val=arg_part2;
-                  subtract=1;
-                }
-                if (strcasecmp(debug_val,"none")==0) {
-                        new_debug=0;
-                } else if (strcasecmp(debug_val,"all")==0) {
-                        new_debug=0;
-                        for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
-                                if (!subtract) {
-                                        new_debug += sccp_debug_categories[i].category;
-                                }
-                        }
-                } else {
-                        // parse comma separated debug_var
-                        token=strtok(debug_val,delimiters);
-                        while (token!=NULL) {
-                                // match debug level name to enum
+        if (sscanf((char *)arguments[startat], "%d", &new_debug_value) != 1) {
+                for (argi=startat; argi<argc; argi++) {
+                        argument=(char *)arguments[argi];
+                        if (!strncmp(argument,"no",2)) 
+                        {
+                                subtract=1;
+                        } 
+                        else if (!strncmp(argument,"none",4))
+                        {
+                                new_debug_value=0;
+                                break;
+                        } 
+                        else if (!strncmp(argument,"all",3))
+                        {
+                                new_debug_value=0;
                                 for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
-                                        if(strcasecmp(token,sccp_debug_categories[i].short_name)==0) {
-                                                if (subtract) {
-                                                        if ((new_debug & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
-                                                                new_debug -= sccp_debug_categories[i].category;
-                                                        }
-                                                } else {
-                                                        if ((new_debug & sccp_debug_categories[i].category) != sccp_debug_categories[i].category) {
-                                                                new_debug += sccp_debug_categories[i].category;
+                                        if (!subtract) {
+                                                new_debug_value += sccp_debug_categories[i].category;
+                                        }
+                                }
+                        } else {
+                                // parse comma separated debug_var
+                                token=strtok(argument,delimiters);
+                                while (token!=NULL) {
+                                        // match debug level name to enum
+                                        for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
+                                                if(strcasecmp(token,sccp_debug_categories[i].short_name)==0) {
+                                                        if (subtract) {
+                                                                if ((new_debug_value & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
+                                                                        new_debug_value -= sccp_debug_categories[i].category;
+                                                                }
+                                                        } else {
+                                                                if ((new_debug_value & sccp_debug_categories[i].category) != sccp_debug_categories[i].category) {
+                                                                        new_debug_value += sccp_debug_categories[i].category;
+                                                                }
                                                         }
                                                 }
                                         }
+                                        token=strtok(NULL,delimiters);
                                 }
-                                token=strtok(NULL,delimiters);
                         }
                 }
         }
-        return new_debug;
+        return new_debug_value;
 }
 
 /*!

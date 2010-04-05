@@ -1366,13 +1366,11 @@ static char * sccp_complete_debug(char *line, char *word, int pos, int state) {
 static int sccp_do_debug(int fd, int argc, char *argv[]) {
         uint32_t new_debug=GLOB(debug);
 
-	if ((argc < 3) || (argc > 4))
+	if ((argc < 3))
 		return RESULT_SHOWUSAGE;
 
-	if (argc == 3) {
-	        new_debug=sccp_parse_debugline (argv[2],NULL,new_debug);
-	} else if (argc > 3) {
-	        new_debug=sccp_parse_debugline (argv[2],argv[3],new_debug);
+	if (argc > 2) {
+	        new_debug=sccp_parse_debugline (argv,2,argc,new_debug);
 	}
 	char * debugcategories="";
 	ast_cli(fd, "SCCP new debug status: (%d -> %d) %s\n", GLOB(debug), new_debug, sccp_get_debugcategories(new_debug,debugcategories));
@@ -1400,9 +1398,8 @@ static char *cli_do_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args 
 		return NULL;
 	} else if (cmd == CLI_GENERATE) {
                 return sccp_complete_debug(a->line, a->word, a->pos, a->n);
-
         }
-	if ((a->argc < 3) || (a->argc > 4))
+	if ((a->argc < 3))
 		return CLI_SHOWUSAGE;
 
 	if(sccp_do_debug(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
@@ -1436,7 +1433,7 @@ static struct ast_cli_entry cli_do_debug = {
  * \return Result as int
  */
 static int sccp_no_debug(int fd, int argc, char *argv[]) {
-	if (argc != 3)
+	if (argc < 3)
 		return RESULT_SHOWUSAGE;
 
 	GLOB(debug) = 0;
@@ -1464,7 +1461,7 @@ static char *cli_no_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args 
 	} else if (cmd == CLI_GENERATE)
 		return NULL;
 
-	if (a->argc != 3)
+	if (a->argc < 3)
 		return CLI_SHOWUSAGE;
 
 	if(sccp_no_debug(a->fd, a->argc, a->argv) == RESULT_SUCCESS)
