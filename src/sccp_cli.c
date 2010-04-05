@@ -1313,19 +1313,46 @@ static char * sccp_complete_debug(char *line, char *word, int pos, int state) {
 	int which = 0;
 	char * ret;
 	boolean_t found=0;
+	boolean_t debugno=0;
+
+	// extend sccp_debug_categories to add no,none and all
+        char * extended_categories[ARRAY_LEN(sccp_debug_categories)+3];
+        extended_categories[0]="no";
+        extended_categories[1]="none";
+        extended_categories[2]="all";
+	for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
+	  extended_categories[i+3]=(char *)sccp_debug_categories[i].short_name;
+	}
 
 	if (pos > 3)
   	  return NULL;
 
-	for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
-		if (!strncasecmp(word, sccp_debug_categories[i].short_name, strlen(word))) {
-			if (++which > state) {
-			        found=1;
-			        break;
-                        }
-		}
+        // check if the sccp debug line contains no before the categories  	  
+        if(!strncasecmp(line,"sccp debug no ",strlen("sccp debug no "))) {
+                debugno=1;
 	}
-	ret=found ? strdup(sccp_debug_categories[i].short_name) : NULL;
+	
+        for (i=0; i<ARRAY_LEN(extended_categories); i++) {
+                // if in debugno mode
+                if (debugno) {
+                        // skip the categories which are not currently active
+                        if((GLOB(debug) & sccp_debug_categories[i-3].category) != sccp_debug_categories[i-3].category) {
+                                continue;
+                        } 
+                        // skip "no" and "none"
+                        if ((!strncasecmp("no", extended_categories[i],strlen("no")) || !strncasecmp("none", extended_categories[i],strlen("none")) )) {
+                                continue;
+                        }
+                }
+                // find a match with partial category
+                if (!strncasecmp(word, extended_categories[i], strlen(word))) {
+                        if (++which > state) {
+                                found=1;
+                                break;
+                        }
+                }
+        }
+        ret=found ? strdup(extended_categories[i]) : NULL;
 	return ret;
 }
 /* ------------------------------------------------------------ */
@@ -1344,7 +1371,7 @@ static int sccp_do_debug(int fd, int argc, char *argv[]) {
 
 	if (argc == 3) {
 	        new_debug=sccp_parse_debugline (argv[2],NULL,new_debug);
-	} else if (argc == 4) {
+	} else if (argc > 3) {
 	        new_debug=sccp_parse_debugline (argv[2],argv[3],new_debug);
 	}
 	char * debugcategories="";
