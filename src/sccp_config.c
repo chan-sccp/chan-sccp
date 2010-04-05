@@ -518,9 +518,9 @@ boolean_t sccp_config_general(void){
 				if (sscanf(v->value, "%d", &sccp_tos) == 1)
 					GLOB(sccp_tos) = sccp_tos & 0xff;
 #else
-			        if(ast_str2tos(v->value, &sccp_tos))
+			        if(!ast_str2tos(v->value, &sccp_tos)) 
 			                GLOB(sccp_tos) = sccp_tos;
-                                else if(sscanf(v->value, "%d", &sccp_tos) == 1)
+                                else if(sscanf(v->value, "%i", &sccp_tos) == 1) 
                                         GLOB(sccp_tos) = sccp_tos & 0xff;
 #endif                                    
 				else if (!strcasecmp(v->value, "lowdelay"))
@@ -537,7 +537,7 @@ boolean_t sccp_config_general(void){
 					GLOB(sccp_tos) = 0;
 				else {
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
-					ast_log(LOG_WARNING, "Invalid sccp_tos value at line %d, should be '0x\?\?', 'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
+					ast_log(LOG_WARNING, "Invalid sccp_tos value at line %d, should be 'CS\?', 'AF\?\?', 'EF', '0x\?\?', 'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
 #else
 					ast_log(LOG_WARNING, "Invalid sccp_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', or 'none'\n", v->lineno);
 #endif
@@ -548,9 +548,9 @@ boolean_t sccp_config_general(void){
 				if (sscanf(v->value, "%d", &audio_tos) == 1)
 					GLOB(audio_tos) = audio_tos & 0xff;
 #else
-			        if(ast_str2tos(v->value, &audio_tos))
+			        if(!ast_str2tos(v->value, &audio_tos))
 			                GLOB(audio_tos) = audio_tos;
-                                else if(sscanf(v->value, "%d", &audio_tos) == 1)
+                                else if(sscanf(v->value, "%i", &audio_tos) == 1)
                                         GLOB(audio_tos) = audio_tos & 0xff;
 #endif                                    
 				else if (!strcasecmp(v->value, "lowdelay"))
@@ -567,7 +567,7 @@ boolean_t sccp_config_general(void){
 					GLOB(audio_tos) = 0;
 				else {
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
-					ast_log(LOG_WARNING, "Invalid audio_tos value at line %d, should be '0x\?\?', 'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
+					ast_log(LOG_WARNING, "Invalid audio_tos value at line %d, should be 'CS\?', 'AF\?\?', 'EF', '0x\?\?', 'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
 #else
 					ast_log(LOG_WARNING, "Invalid audio_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', or 'none'\n", v->lineno);
 #endif
@@ -578,9 +578,9 @@ boolean_t sccp_config_general(void){
 				if (sscanf(v->value, "%d", &video_tos) == 1)
 					GLOB(video_tos) = video_tos & 0xff;
 #else
-			        if(ast_str2tos(v->value, &video_tos))
+			        if(!ast_str2tos(v->value, &video_tos))
 			                GLOB(video_tos) = video_tos;
-                                else if(sscanf(v->value, "%d", &video_tos) == 1)
+                                else if(sscanf(v->value, "%i", &video_tos) == 1)
                                         GLOB(video_tos) = video_tos & 0xff;
 #endif                                    
 				else if (!strcasecmp(v->value, "lowdelay"))
@@ -597,7 +597,7 @@ boolean_t sccp_config_general(void){
 					GLOB(video_tos) = 0;
 				else {
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
-					ast_log(LOG_WARNING, "Invalid video_tos value at line %d, should be '0x\?\?', 'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
+					ast_log(LOG_WARNING, "Invalid video_tos value at line %d, should be 'CS\?', 'AF\?\?', 'EF', '0x\?\?', 'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
 #else
 					ast_log(LOG_WARNING, "Invalid video_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', or 'none'\n", v->lineno);
 #endif
@@ -887,9 +887,9 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 			if (sscanf(v->value, "%d", &audio_tos) == 1)
 				l->audio_tos = audio_tos & 0xff;
 #else
-                        if(ast_str2tos(v->value, &audio_tos))
+                        if(!ast_str2tos(v->value, &audio_tos))
                                 l->audio_tos = audio_tos;
-                        else if(sscanf(v->value, "%d", &audio_tos) == 1)
+                        else if(sscanf(v->value, "%i", &audio_tos) == 1)
                                 l->audio_tos = audio_tos & 0xff;
 #endif                                    
 			else if (!strcasecmp(v->value, "lowdelay"))
@@ -906,7 +906,7 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 				l->audio_tos = 0;
 			else {
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
-				ast_log(LOG_WARNING, "Invalid audio_tos value at line %d, should be '0x\?\?' ,'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
+				ast_log(LOG_WARNING, "Invalid audio_tos value at line %d, should be 'CS\?', 'AF\?\?', 'EF', '0x\?\?' ,'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
 #else
 				ast_log(LOG_WARNING, "Invalid audio_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', or 'none'\n", v->lineno);
 #endif
@@ -917,9 +917,9 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 			if (sscanf(v->value, "%d", &video_tos) == 1)
 				l->video_tos = video_tos & 0xff;
 #else
-                        if(ast_str2tos(v->value, &video_tos))
+                        if(!ast_str2tos(v->value, &video_tos))
                                 l->video_tos = video_tos;
-                        else if(sscanf(v->value, "%d", &video_tos) == 1)
+                        else if(sscanf(v->value, "%i", &video_tos) == 1)
                                 l->video_tos = video_tos & 0xff;
 #endif                                    
 			else if (!strcasecmp(v->value, "lowdelay"))
@@ -936,7 +936,7 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 				l->video_tos = 0;
 			else {
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
-				ast_log(LOG_WARNING, "Invalid video_tos value at line %d, should be '0x\?\?' ,'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
+				ast_log(LOG_WARNING, "Invalid video_tos value at line %d, should be 'CS\?', 'AF\?\?', 'EF', '0x\?\?' ,'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
 #else
 				ast_log(LOG_WARNING, "Invalid video_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', or 'none'\n", v->lineno);
 #endif
