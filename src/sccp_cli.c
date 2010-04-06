@@ -1324,7 +1324,7 @@ static char * sccp_complete_debug(char *line, char *word, int pos, int state) {
 	  extended_categories[i+3]=(char *)sccp_debug_categories[i].short_name;
 	}
 
-	if (pos < 3)
+	if (pos < 2)
   	  return NULL;
 
         // check if the sccp debug line contains no before the categories  	  
