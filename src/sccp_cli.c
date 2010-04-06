@@ -1343,7 +1343,12 @@ static char * sccp_complete_debug(char *line, char *word, int pos, int state) {
                         if ((!strncasecmp("no", extended_categories[i],strlen("no")) || !strncasecmp("none", extended_categories[i],strlen("none")) )) {
                                 continue;
                         }
-                }
+                } else {
+                        // skip the categories which are already active
+                        if((GLOB(debug) & sccp_debug_categories[i-3].category) == sccp_debug_categories[i-3].category) {
+                                continue;
+                        }
+                }                
                 // find a match with partial category
                 if (!strncasecmp(word, extended_categories[i], strlen(word))) {
                         if (++which > state) {
