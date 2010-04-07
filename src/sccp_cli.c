@@ -1369,7 +1369,7 @@ static char * sccp_complete_debug(char *line, char *word, int pos, int state) {
  * \return Result as int
  */
 static int sccp_do_debug(int fd, int argc, char *argv[]) {
-        uint32_t new_debug = 0;
+        uint32_t new_debug = GLOB(debug);
 
 	if ((argc < 3))
 		return RESULT_SHOWUSAGE;
