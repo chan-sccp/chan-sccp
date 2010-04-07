@@ -756,7 +756,6 @@ dnl END NEW NEW
     AC_DEFINE([CS_AST_JB_TARGET_EXTRA],1,[Found 'target_extra' in asterisk/abstract_jb.h])
     AC_MSG_RESULT([Found])
   else
-    AC_DEFINE([CS_AST_JB_TARGET_EXTRA],0,[Did Not Found 'target_extra' in asterisk/abstract_jb.h])
     AC_MSG_RESULT([Not Found])
   fi
 fi

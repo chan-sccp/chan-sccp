@@ -130,7 +130,7 @@
 /* Found 'ast_lock_track' in asterisk/lock.h */
 #undef CS_AST_HAS_TRACK
 
-/* Did Not Found 'target_extra' in asterisk/abstract_jb.h */
+/* Found 'target_extra' in asterisk/abstract_jb.h */
 #undef CS_AST_JB_TARGET_EXTRA
 
 /* Found 'New Ast Frame Structure' in asterisk/frame.h */
