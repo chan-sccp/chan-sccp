@@ -156,9 +156,6 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Asterisk request to call %s\n", l->id, ast->name);
 
-
-
-
 	//handle DND on lines
 	sccp_mutex_lock(&l->lock);
 	if (0) {
@@ -233,15 +230,15 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		   enbloc dialed numbers (such as via 7970 enbloc dialing) if they match a certain pattern.
 		   This would help users dial from call history lists on other phones, which do not have enbloc dialing,
 		   when using shared lines. */
-			if(NULL != ast->cid.cid_num && strlen(ast->cid.cid_num) > 0 && strlen(ast->cid.cid_num) < sizeof(suffixedNumber)-2 && '0' == ast->cid.cid_num[0])
-			{
-				strncpy(suffixedNumber, (const char*) ast->cid.cid_num, strlen(ast->cid.cid_num));
-				suffixedNumber[strlen(ast->cid.cid_num)+0] = '#';
-				suffixedNumber[strlen(ast->cid.cid_num)+1] = '\0';
-				sccp_channel_set_callingparty(c, ast->cid.cid_name, suffixedNumber);
-			}
-			else
-				sccp_channel_set_callingparty(c, ast->cid.cid_name, ast->cid.cid_num);
+                if(NULL != ast->cid.cid_num && strlen(ast->cid.cid_num) > 0 && strlen(ast->cid.cid_num) < sizeof(suffixedNumber)-2 && '0' == ast->cid.cid_num[0])
+                {
+                        strncpy(suffixedNumber, (const char*) ast->cid.cid_num, strlen(ast->cid.cid_num));
+                        suffixedNumber[strlen(ast->cid.cid_num)+0] = '#';
+                        suffixedNumber[strlen(ast->cid.cid_num)+1] = '\0';
+                        sccp_channel_set_callingparty(c, ast->cid.cid_name, suffixedNumber);
+                }
+                else
+                        sccp_channel_set_callingparty(c, ast->cid.cid_name, ast->cid.cid_num);
 	}
 	else
 	{
@@ -264,7 +261,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		number = NULL;
 	}
 #endif
-  /* Set the channel calledParty Name and Number 7910 compatibility*/
+        /* Set the channel calledParty Name and Number 7910 compatibility*/
 	sccp_channel_set_calledparty(c, l->cid_name, l->cid_num);
 
 	if (!c->ringermode) {
@@ -312,8 +309,6 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		c->device = SCCP_LIST_FIRST(&l->devices)->device;
 		sccp_channel_updateChannelCapability(c);
 	}
-	
-    
 
 	boolean_t isRinging = FALSE;
 
@@ -420,8 +415,6 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 	/* here the ast channel is locked */
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Asterisk request to hangup channel %s\n", ast->name);
 
-
-
 	sccp_mutex_lock(&GLOB(usecnt_lock));
 	GLOB(usecnt)--;
 	sccp_mutex_unlock(&GLOB(usecnt_lock));
@@ -429,8 +422,6 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 	ast_update_use_count();
 
 	c = CS_AST_CHANNEL_PVT(ast);
-
-
 
 	while (c && sccp_channel_trylock(c)) {
 		sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -908,60 +899,58 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		res = 0;
 		break;
 #ifdef CS_AST_CONTROL_SRCUPDATE
-    case AST_CONTROL_SRCUPDATE:
+        case AST_CONTROL_SRCUPDATE:
         /* Source media has changed. */
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
 
-		/* change our format */
-		char s1[512], s2[512];
-		ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%d) to: %s(%d) \n",
-		c->line->name,
-		c->callid,
+
+
+                /* update channel format */
+                int oldChannelFormat = c->format;
+                c->format = ast->rawreadformat;
+
+                if(oldChannelFormat != c->format ){
+                        /* notify of changing format */
+                        char s1[512], s2[512];
+                        ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%d) to: %s(%d) \n",
+                                c->line->name,
+                                c->callid,
 #ifndef ASTERISK_CONF_1_2
-		ast_getformatname_multiple(s1, sizeof(s1) -1, c->format & AST_FORMAT_AUDIO_MASK),
+                                ast_getformatname_multiple(s1, sizeof(s1) -1, c->format & AST_FORMAT_AUDIO_MASK),
 #else
-		ast_getformatname_multiple(s1, sizeof(s1) -1, c->format),
+                                ast_getformatname_multiple(s1, sizeof(s1) -1, c->format),
 #endif
-		ast->nativeformats,
+                                ast->nativeformats,
 #ifndef ASTERISK_CONF_1_2
-		ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat & AST_FORMAT_AUDIO_MASK),
+                                ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat & AST_FORMAT_AUDIO_MASK),
 #else
-		ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat),
+                                ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat),
 #endif
-		ast->rawreadformat);
+                                ast->rawreadformat);
+                        ast_set_read_format(ast, c->format);
+                        ast_set_write_format(ast, c->format);
+                }
 
-
-	/* update channel format */
-	int oldChannelFormat = c->format;
-	c->format = ast->rawreadformat;
-
-	if(oldChannelFormat != c->format ){
-		ast_set_read_format(ast, c->format);
-		ast_set_write_format(ast, c->format);
-	}
-
-	ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n",c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
-        if(c->rtp.audio){
-
-		if(oldChannelFormat != c->format){
-			if(c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE){
-				sccp_channel_closereceivechannel(c);	/* close the already openend receivechannel */
-				sccp_channel_openreceivechannel(c);	/* reopen it */
-			}
-		}
-
-	}
+                ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n",c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
+                if(c->rtp.audio){
+                        if(oldChannelFormat != c->format){
+                                if(c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE){
+                                        sccp_channel_closereceivechannel(c);	/* close the already openend receivechannel */
+                                        sccp_channel_openreceivechannel(c);	/* reopen it */
+                                }
+                        }
+                }
 #ifdef CS_AST_RTP_NEW_SOURCE
-        if(c->rtp.audio) {
-		ast_rtp_new_source(c->rtp.audio);
-		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
-	}
+                if(c->rtp.audio) {
+                        ast_rtp_new_source(c->rtp.audio);
+                        sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
+                }
 #endif
-        break;
+                break;
 #endif
 
 #ifdef CS_AST_CONTROL_HOLD
-/* when the bridged channel hold/unhold the call we are notified here */
+        /* when the bridged channel hold/unhold the call we are notified here */
 	case AST_CONTROL_HOLD:
 #ifdef ASTERISK_CONF_1_2
 		ast_moh_start(ast, c->musicclass);
