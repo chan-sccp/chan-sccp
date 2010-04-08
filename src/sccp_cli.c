@@ -1419,7 +1419,7 @@ static struct ast_cli_entry cli_do_debug = {
   "		Where categories is one or more (separated by comma's) of:\n"
   "		core, sccp, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey,\n"
   "		indicate, pbx, socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime,\n"
-  "		lock, newcode, high\n";
+  "		lock, newcode, high\n"
 };
 #endif
 
