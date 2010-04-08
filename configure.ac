@@ -394,8 +394,15 @@ CONFIGURE_PART([Checking Asterisk Headers:])
 if test "${PBX_TYPE}" = "Asterisk"; then
   AC_CHECK_HEADER(asterisk/version.h,[
     AC_MSG_CHECKING([for version in asterisk/version.h])
-    
-    AC_SUBST([ASTERISK_VERSION_NUM])
+dnl    if grep -q "ASTERISK_VERSION_NUM 999999" $PBX_INCLUDE/version.h; then
+dnl    	if grep -q "ASTERISK_VERSION \"1.6" $PBX_INCLUDE/version.h; then
+dnl        	ASTERISK_VERSION_NUM=`grep "ASTERISK_VERSION " $PBX_INCLUDE/version.h|awk -F. '{"10" $2 "0" $3}`
+dnl        else
+dnl        	ASTERISK_VERSION_NUM=`grep "ASTERISK_VERSION " $PBX_INCLUDE/version.h|awk -F. '{"10" $2 "00"}'`
+dnl        fi
+dnl        AC_DEFINE_UNQUOTED([ASTERISK_VERSION_NUM],`$ASTERISK_VERSION_NUM`, [Define ASTERISK_VERSION_NUM])
+dnl    fi
+dnl    AC_SUBST([ASTERISK_VERSION_NUM])
     dnl The rest is for backward support of old sources, should be removed shortly
     if grep -q "\"1\.6" $PBX_INCLUDE/version.h; then
       AC_DEFINE(ASTERISK_CONF_1_6, 1, [Define ASTERISK_CONF_1_6])
@@ -670,6 +677,13 @@ dnl END NEW NEW
   dnl Check Asterisk Device State Options
   if test -f $PBX_INCLUDE/devicestate.h; then
     AC_DEFINE(CS_AST_HAS_NEW_DEVICESTATE,1,[Found 'devicestate.h'])
+    AC_MSG_CHECKING([asterisk/devicestate.h for 'enum ast_device_state' in asterisk/devicestate.h])
+    if grep -q "enum ast_device_state" $PBX_INCLUDE/devicestate.h; then
+      AC_DEFINE(CS_ENUM_AST_DEVICE,1,[Found 'ENUM AST_DEVICE' in asterisk/devicestate.h])
+      AC_MSG_RESULT([Found])
+    else
+      AC_MSG_RESULT([Not Found])
+    fi
     AC_MSG_CHECKING([asterisk/devicestate.h for 'AST_DEVICE_RINGING' in asterisk/devicestate.h])
     if grep -q "AST_DEVICE_RINGING" $PBX_INCLUDE/devicestate.h; then
       AC_DEFINE(CS_AST_DEVICE_RINGING,1,[Found 'AST_DEVICE_RINGING' in asterisk/devicestate.h])

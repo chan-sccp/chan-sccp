@@ -85,66 +85,6 @@ void sccp_mwi_module_stop(){
 
 
 
-#ifndef CS_AST_HAS_EVENT
-/*!
- * \brief MWI Progress
- * \param data Data
- */
-int sccp_mwi_checksubscription(const void *ptr){
-	sccp_mailbox_subscriber_list_t 	*subscription = (sccp_mailbox_subscriber_list_t *)ptr;
-	sccp_line_t			*line=NULL;
-	sccp_mailboxLine_t 		*mailboxLine = NULL;
-	if(!subscription)
-		return -1;
-	
-	subscription->previousVoicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
-	subscription->previousVoicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
-	
-	char buffer[512];
-	sprintf(buffer, "%s@%s", subscription->mailbox, (subscription->context)?subscription->context:"default");
-	sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_4 "SCCP: ckecking mailbox: %s\n", buffer);
-	ast_app_inboxcount(buffer, &subscription->currentVoicemailStatistic.newmsgs, &subscription->currentVoicemailStatistic.oldmsgs);
-
-	/* update devices if something changed */
-	if(subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs){
-		SCCP_LIST_LOCK(&subscription->sccp_mailboxLine);
-		SCCP_LIST_TRAVERSE(&subscription->sccp_mailboxLine, mailboxLine, list){
-			line = mailboxLine->line;
-			if(line){
-
-				sccp_line_lock( line );
-				sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_4 "line: %s\n", line->name);
-				sccp_linedevices_t *lineDevice = NULL;
-
-				/* update statistics for line  */
-				line->voicemailStatistic.oldmsgs -= subscription->previousVoicemailStatistic.oldmsgs;
-				line->voicemailStatistic.newmsgs -= subscription->previousVoicemailStatistic.newmsgs;
-
-				line->voicemailStatistic.oldmsgs += subscription->currentVoicemailStatistic.oldmsgs;
-				line->voicemailStatistic.newmsgs += subscription->currentVoicemailStatistic.newmsgs;
-				/* done */
-
-				/* notify each device on line */
-				SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->devices, lineDevice, list){
-					sccp_mwi_setMWILineStatus(lineDevice->device, line);
-				}
-				SCCP_LIST_TRAVERSE_SAFE_END;
-				sccp_line_unlock( line );
-			}
-		}
-		SCCP_LIST_UNLOCK(&subscription->sccp_mailboxLine);
-	}
-		
-		
-	/* reschedule my self */
-	if( (subscription->schedUpdate = sccp_sched_add(sched, 30 * 1000, sccp_mwi_checksubscription, subscription)) < 0 ) {
-		ast_log(LOG_ERROR, "Error creating mailbox subscription.\n");
-	}
-	return 0;
-}
-#endif
-
-
 
 
 #ifdef CS_AST_HAS_EVENT
@@ -204,8 +144,65 @@ void sccp_mwi_event(const struct ast_event *event, void *data){
 	}
 	SCCP_LIST_UNLOCK(&subscription->sccp_mailboxLine);
 }
+#else
+/*!
+ * \brief MWI Progress
+ * \param data Data
+ */
+int sccp_mwi_checksubscription(const void *ptr){
+	sccp_mailbox_subscriber_list_t 	*subscription = (sccp_mailbox_subscriber_list_t *)ptr;
+	sccp_line_t			*line=NULL;
+	sccp_mailboxLine_t 		*mailboxLine = NULL;
+	if(!subscription)
+		return -1;
+	
+	subscription->previousVoicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
+	subscription->previousVoicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
+	
+	char buffer[512];
+	sprintf(buffer, "%s@%s", subscription->mailbox, (subscription->context)?subscription->context:"default");
+	sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_4 "SCCP: ckecking mailbox: %s\n", buffer);
+	ast_app_inboxcount(buffer, &subscription->currentVoicemailStatistic.newmsgs, &subscription->currentVoicemailStatistic.oldmsgs);
+
+	/* update devices if something changed */
+	if(subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs){
+		SCCP_LIST_LOCK(&subscription->sccp_mailboxLine);
+		SCCP_LIST_TRAVERSE(&subscription->sccp_mailboxLine, mailboxLine, list){
+			line = mailboxLine->line;
+			if(line){
+
+				sccp_line_lock( line );
+				sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_4 "line: %s\n", line->name);
+				sccp_linedevices_t *lineDevice = NULL;
+
+				/* update statistics for line  */
+				line->voicemailStatistic.oldmsgs -= subscription->previousVoicemailStatistic.oldmsgs;
+				line->voicemailStatistic.newmsgs -= subscription->previousVoicemailStatistic.newmsgs;
+
+				line->voicemailStatistic.oldmsgs += subscription->currentVoicemailStatistic.oldmsgs;
+				line->voicemailStatistic.newmsgs += subscription->currentVoicemailStatistic.newmsgs;
+				/* done */
+
+				/* notify each device on line */
+				SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->devices, lineDevice, list){
+					sccp_mwi_setMWILineStatus(lineDevice->device, line);
+				}
+				SCCP_LIST_TRAVERSE_SAFE_END;
+				sccp_line_unlock( line );
+			}
+		}
+		SCCP_LIST_UNLOCK(&subscription->sccp_mailboxLine);
+	}
+		
+		
+	/* reschedule my self */
+	if( (subscription->schedUpdate = sccp_sched_add(sched, 30 * 1000, sccp_mwi_checksubscription, subscription)) < 0 ) {
+		ast_log(LOG_ERROR, "Error creating mailbox subscription.\n");
+	}
+	return 0;
+}
 #endif
-//#endif
+
 
 
 /*!

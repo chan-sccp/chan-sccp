@@ -1592,8 +1592,8 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 #endif
 
 #if ASTERISK_VERSION_NUM >= 10400
-#if ASTERISK_VERSION_NUM < 10600
-//#ifdef ASTERISK_CONF_1_4
+//#if ASTERISK_VERSION_NUM < 10600
+#ifdef ASTERISK_CONF_1_4
 	if (c->rtp.audio && c->owner) {
 		c->owner->fds[0] = ast_rtp_fd(c->rtp.audio);
 		c->owner->fds[1] = ast_rtcp_fd(c->rtp.audio);
@@ -1603,9 +1603,8 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 		c->owner->fds[2] = ast_rtp_fd(c->rtp.video);
 		c->owner->fds[3] = ast_rtcp_fd(c->rtp.video);
 	}
-#else
-
-
+#endif
+#ifdef ASTERISK_CONF_1_6
 	if (c->rtp.audio && c->owner) {
 		ast_channel_set_fd(c->owner, 0, ast_rtp_fd(c->rtp.audio));
 		ast_channel_set_fd(c->owner, 1, ast_rtcp_fd(c->rtp.audio));
@@ -1614,12 +1613,9 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 	if (isVideoSupported && c->rtp.video && c->owner) {
 		ast_channel_set_fd(c->owner, 2, ast_rtp_fd(c->rtp.video));
 		ast_channel_set_fd(c->owner, 3, ast_rtcp_fd(c->rtp.video));
-
-
 		//sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Creating video rtp server connection at %s:%d\n", d->id, ast_inet_ntoa(s->ourip), ntohs(.sin_port));
 	}
 #endif
-
 	/* tell changes to asterisk */
 	if((c->rtp.audio || c->rtp.video) && c->owner) {
 		if(c->owner)
