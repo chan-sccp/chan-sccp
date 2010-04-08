@@ -1311,18 +1311,9 @@ static char * sccp_complete_debug(char *line, char *word, int pos, int state) {
 #endif
 	int i;
 	int which = 0;
-	char * ret;
-	boolean_t found=0;
+	char * ret=NULL;
 	boolean_t debugno=0;
-
-	// extend sccp_debug_categories to add no,none and all
-        char * extended_categories[ARRAY_LEN(sccp_debug_categories)+3];
-        extended_categories[0]="no";
-        extended_categories[1]="none";
-        extended_categories[2]="all";
-	for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
-	  extended_categories[i+3]=(char *)sccp_debug_categories[i].short_name;
-	}
+        char * extra_cmds[3]={"no","none","all"};
 
 	if (pos < 2)
   	  return NULL;
@@ -1332,33 +1323,35 @@ static char * sccp_complete_debug(char *line, char *word, int pos, int state) {
                 debugno=1;
 	}
 	
-        for (i=0; i<ARRAY_LEN(extended_categories); i++) {
-                // if in debugno mode
-                if (debugno) {
-                        // skip the categories which are not currently active
-                        if((GLOB(debug) & sccp_debug_categories[i-3].category) != sccp_debug_categories[i-3].category) {
+	// check extra_cmd
+        for (i=0; i<ARRAY_LEN(extra_cmds); i++) {
+                if (!strncasecmp(word, extra_cmds[i], strlen(word))) {
+                        // skip "no" and "none" if in debugno mode
+                        if (debugno && !strncasecmp("no",extra_cmds[i],strlen("no")))
                                 continue;
-                        } 
-                        // skip "no" and "none"
-                        if ((!strncasecmp("no", extended_categories[i],strlen("no")) || !strncasecmp("none", extended_categories[i],strlen("none")) )) {
-                                continue;
-                        }
-                } else {
-                        // skip the categories which are already active
-                        if((GLOB(debug) & sccp_debug_categories[i-3].category) == sccp_debug_categories[i-3].category) {
-                                continue;
-                        }
-                }                
-                // find a match with partial category
-                if (!strncasecmp(word, extended_categories[i], strlen(word))) {
-                        if (++which > state) {
-                                found=1;
-                                break;
-                        }
+                        if (++which > state)
+                                return strdup(extra_cmds[i]);
                 }
         }
-        ret=found ? strdup(extended_categories[i]) : NULL;
-	return ret;
+        // check categories
+        for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
+                // if in debugno mode
+                if (debugno) {
+                        // then skip the categories which are not currently active
+                        if ((GLOB(debug) & sccp_debug_categories[i].category) != sccp_debug_categories[i].category)
+                                continue;
+                } else {
+                        // not debugno then skip the categories which are already active
+                        if ((GLOB(debug) & sccp_debug_categories[i].category) == sccp_debug_categories[i].category)
+                                continue;
+                }
+                // find a match with partial category
+                if (!strncasecmp(word, sccp_debug_categories[i].short_name, strlen(word))) {
+                        if (++which > state) 
+                                return strdup(sccp_debug_categories[i].short_name);
+                }
+        }
+        return ret;
 }
 /* ------------------------------------------------------------ */
 /*!
