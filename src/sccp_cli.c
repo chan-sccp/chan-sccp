@@ -414,12 +414,12 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		ast_cli(fd, "\nButtonconfig\n");
-		ast_cli(fd, "%-4s: %-20s\n", "id", "type");
-		ast_cli(fd, "------------------------------------\n");
+		ast_cli(fd, "%-4s: %s\n", "id", "type");
+		ast_cli(fd, "--------------------------------\n");
 
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-			ast_cli(fd, "%4d: %-20d\n", config->instance, config->type);
+			ast_cli(fd, "%4d: %s(%d)\n", config->instance, sccp_buttontype2str(config->type), config->type);
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 	}
@@ -445,14 +445,14 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	}
 
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
-		ast_cli(fd, "\nSpeedials\n");
-		ast_cli(fd, "%-4s: %-20s %-20s\n", "id", "name" , "number");
-		ast_cli(fd, "------------------------------------\n");
+		ast_cli(fd, "\nSpeeddials\n");
+		ast_cli(fd, "%-4s: %-24s %-24s %-20s\n", "id", "name" , "number", "hint");
+		ast_cli(fd, "---------------------------------------------------------------------\n");
 
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if(config->type == SPEEDDIAL)
-				ast_cli(fd, "%4d: %-20s %-20s\n", config->instance, config->button.speeddial.label , config->button.speeddial.ext);
+				ast_cli(fd, "%4d: %-24s %-24s %-20s\n", config->instance, config->button.speeddial.label , config->button.speeddial.ext, config->button.speeddial.hint);
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 	}

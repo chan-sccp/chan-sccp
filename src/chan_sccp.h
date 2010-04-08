@@ -238,6 +238,16 @@ typedef enum { ANSWER_LAST_FIRST=1, ANSWER_OLDEST_FIRST=2 } call_answer_order_t;
 typedef enum {ON, OFF} 				light_t;				/*!< Enum Light Status */
 typedef void sk_func (sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 
+static const struct sccp_buttontype {
+        button_type_t buttontype;
+        const char * const text;
+} sccp_buttontypes[] = {
+        { LINE,		"LINE" },
+        { SPEEDDIAL,	"SPEEDDIAL" },
+        { SERVICE,	"SERVICE" },
+        { FEATURE,	"FEATURE" },
+        { EMPTY,	"EMPTY" }
+};
 
 struct sccp_conference;
 
@@ -735,7 +745,7 @@ struct sccp_device {
 
         struct{
 		softkey_modes			*modes;					/*!< used softkeySet */
-		uint8_t				size;					/*!< who many softkeysets are provieded by modes */
+		uint8_t				size;					/*!< who many softkeysets are provided by modes */
 	}softKeyConfiguration;								/*!< SoftKeySet configuration */
 
 

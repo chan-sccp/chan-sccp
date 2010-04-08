@@ -429,6 +429,7 @@ static const struct skinny_alarm {
 };
 
 /* devices type */
+#define SKINNY_DEVICETYPE_UNDEFINED			0
 #define SKINNY_DEVICETYPE_30SPPLUS			1
 #define SKINNY_DEVICETYPE_12SPPLUS			2
 #define SKINNY_DEVICETYPE_12SP				3
@@ -526,6 +527,7 @@ static const struct skinny_devicetype {
         uint16_t devicetype;
         const char * const text;
 } skinny_devicetypes[] = {
+	{ SKINNY_DEVICETYPE_UNDEFINED			,	"Undefined: Maybe you forgot the devicetype in your config"},
 	{ SKINNY_DEVICETYPE_30SPPLUS			,	"30SP plus" 				},
 	{ SKINNY_DEVICETYPE_12SPPLUS			,	"12SP plus" 				},
 	{ SKINNY_DEVICETYPE_12SP			,	"12SP"	 				},

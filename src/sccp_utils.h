@@ -78,6 +78,7 @@ const char * accessory2str(uint32_t value);
 const char * accessorystatus2str(uint32_t value);
 const char * extensionstatus2str(uint32_t value);
 const char * dndmode2str(uint32_t value);
+const char * sccp_buttontype2str(uint32_t value);
 
 // SKINNY Lookups
 const char * tone2str(uint32_t value);
