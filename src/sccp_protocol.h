@@ -14,6 +14,10 @@
 #include "sccp_labels.h"
 #include "asterisk/frame.h"
 
+#ifndef CS_AST_HAS_NEW_DEVICESTATE
+#include "asterisk/devicestate.h"
+#endif
+
 #ifndef __SCCP_PROTOCOL_H
 #define __SCCP_PROTOCOL_H
 
@@ -105,7 +109,9 @@ static const struct ast_devicestate {
 	{ AST_DEVICE_RINGING	,	 "Device is ringing" 					},
 	{ AST_DEVICE_RINGINUSE	,	 "Device is ringing and in use" 			},
 	{ AST_DEVICE_ONHOLD	,	 "Device is on hold" 					},
+#ifdef AST_DEVICE_TOTAL
 	{ AST_DEVICE_TOTAL	,	 "Total num of device states, used for testing" 	}
+#endif
 };
 
 

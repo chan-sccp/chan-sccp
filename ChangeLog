@@ -1,4 +1,83 @@
+2010-04-08  ddegroot
+
+	* [r1445] src/sccp_cli.c: Optimized the debug tabcompletion code
+
+2010-04-07  ddegroot
+
+	* [r1444] autoconf/config.guess, configure, configure.ac,
+	  src/config.h.in: Fixed error in configure with regards to "target
+	  extra"
+	  #define CS_AST_JB_TARGET_EXTRA 0 has been removed from
+	  configure.ac
+	  bug reported by Ken Walker ("Re: [Chan-sccp-b-discussion] Trunk
+	  1443 and conference state")
+
+	* [r1443] src/sccp_cli.c, src/sccp_pbx.c: Display sccp_pbx "SCCP:
+	  changing format from:" only when really changing format
+	  Reinstate sccp debug statefullness
+
+2010-04-06  ddegroot
+
+	* [r1442] src/sccp_cli.c: changed debug tabcompletions to revoke
+	  added an already assigned category
+
+2010-04-06  marcelloceschia
+
+	* [r1441] src/sccp_cli.c: show completion on pos >= 3
+
+	* [r1440] src/sccp_cli.c: show completion on pos > 3
+
+	* [r1439] src/sccp_cli.c: fixes issue with debug categories
+
+2010-04-05  ddegroot
+
+	* [r1438] conf/sccp.conf, src/sccp_config.c: Added CS?, AF??, EF as
+	  possible sccp_tos, audio_tos and video_tos values using the
+	  ast_str2tos function
+
+	* [r1437] src/sccp_cli.c, src/sccp_config.c, src/sccp_utils.c,
+	  src/sccp_utils.h: Added functionality to "sccp debug"
+	  command like "sccp debug all no event channel" is now allowed
+
+	* [r1436] src/sccp_config.c: Fixed parsing of ????_tos values
+
+	* [r1435] src/sccp_cli.c: "sccp debug no" tab completion now works
+
+	* [r1434] conf/sccp.conf, src/sccp_cli.c: Removed old rtpcos /
+	  rpttos entries from sccp.conf
+	  Fixed Tab completion for sccp debug
+
+2010-04-04  ddegroot
+
+	* [r1433] conf/tftp/XMLDefault.cnf.xml_791x,
+	  conf/tftp/XMLDefault.cnf.xml_796x,
+	  conf/tftp/XMLDefault.cnf.xml_797x: Updated sample
+	  XMLDefault.cnf.xml files to match assigned sccp_tos,audio_tos
+	  values
+
+	* [r1432] ChangeLog, Makefile.in,
+	  conf/database_updates/migrate_to_mysql-v5.sql,
+	  conf/database_updates/update_mysql_v4.sql[ADD],
+	  conf/mysql-v4.sql, conf/mysql-v5.sql, conf/postgres.sql,
+	  conf/sccp.conf, conf/sccp_short.conf, conf/sccp_simple.conf,
+	  doc/04_Setup_Guide.doc, libtool, src/Makefile.in,
+	  src/chan_sccp.c, src/chan_sccp.h, src/sccp_channel.c,
+	  src/sccp_cli.c, src/sccp_config.c, src/sccp_line.c,
+	  src/sccp_pbx.c, src/sccp_socket.c: renamed tos -> sccp_tos
+	  defaults to 0x96 (AF31)
+	  renamed cos -> sccp_cos defaults to 4
+	  renamed rtp_tos -> audio_tos defaults to 0xB8 (EF)
+	  renamed rtp_cos -> audio_cos defaults to 6
+	  added video_tos defaults to 0x88 (AF41)
+	  added video_cos defaults to 5
+	  
+	  sample config files, sql file, sql-update file and documentation
+	  has been updated accordingly
+
 2010-04-03  ddegroot
+
+	* [r1431] src/sccp_softkeys.c: Automatically select channels when
+	  only two channels are available with DirTransfer
 
 	* [r1430] src/chan_sccp.h, src/sccp_cli.c, src/sccp_utils.c,
 	  src/sccp_utils.h: renamed sccp_verbose_level to
