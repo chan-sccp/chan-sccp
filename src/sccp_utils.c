@@ -328,11 +328,10 @@ sccp_device_t * sccp_device_find_realtime(const char * name) {
 			return NULL;
 		}
 		
-		sccp_device_applyDefaults(d);
+//		sccp_device_applyDefaults(d);
 		sccp_copy_string(d->id, name, sizeof(d->id));
-		d = sccp_config_applyDeviceConfiguration(d, variable);
-
 		d->realtime = TRUE;
+		d = sccp_config_applyDeviceConfiguration(d, variable);
 		d = sccp_device_addToGlobals(d);
 		ast_variables_destroy(v);
 
@@ -830,6 +829,7 @@ const char * accessory2str(uint32_t value) { _ARR2STR(sccp_accessories, accessor
 const char * accessorystatus2str(uint32_t value) { _ARR2STR(sccp_accessory_states, accessory_state , value , text); }
 const char * extensionstatus2str(uint32_t value) { _ARR2STR(sccp_extension_states, extension_state , value , text); }
 const char * dndmode2str(uint32_t value) { _ARR2STR(sccp_dndmodes, dndmode , value , text); }
+const char * sccp_buttontype2str(uint32_t value) { _ARR2STR(sccp_buttontypes, buttontype , value, text); }
 
 const char * tone2str(uint32_t value) { _ARR2STR(skinny_tones, tone , value , text); }
 const char * alarm2str(uint32_t value) { _ARR2STR(skinny_alarms, alarm, value , text); }

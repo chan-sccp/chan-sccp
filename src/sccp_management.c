@@ -288,7 +288,8 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
                 return 0;
         }
 
-        sccp_config_addLine(d, line->name, 0);
+        // last 0 should be replaced but the number of device->buttonconfig->instance + 1
+        sccp_config_addLine(d, line->name, 0, 0);
 
         astman_append(s, "Done\r\n");
         astman_append(s, "\r\n");

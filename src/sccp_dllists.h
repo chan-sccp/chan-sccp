@@ -242,7 +242,7 @@ struct {							\
 		(head)->size++;									\
 } while (0)
 
-/* Inserts a list item at the head of a list */
+/* Inserts a list item at the tail of a list */
 #define SCCP_LIST_INSERT_TAIL(head, elm, field) do {	\
       if (!(head)->first) {								\
 		(head)->first = (elm);							\
