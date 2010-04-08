@@ -698,6 +698,13 @@ dnl END NEW NEW
     else
       AC_MSG_RESULT([Not Found])
     fi
+    AC_MSG_CHECKING([asterisk/devicestate.h for 'AST_DEVICE_TOTAL'])
+    if grep -q "AST_DEVICE_TOTAL" $PBX_INCLUDE/devicestate.h; then
+      AC_DEFINE(CS_AST_DEVICE_TOTAL,1,[Found 'AST_DEVICE_TOTAL' in asterisk/devicestate.h])
+      AC_MSG_RESULT([Found])
+    else
+      AC_MSG_RESULT([Not Found])
+    fi
   fi
   dnl Check Asterisk CLI Options
   if test -f $PBX_INCLUDE/cli.h; then

@@ -85,6 +85,9 @@
 /* Found 'AST_DEVICE_RINGINUSE' in asterisk/devicestate.h */
 #undef CS_AST_DEVICE_RINGINUSE
 
+/* Found 'AST_DEVICE_TOTAL' in asterisk/devicestate.h */
+#undef CS_AST_DEVICE_TOTAL
+
 /* Found 'ast_app_separate_args' */
 #undef CS_AST_HAS_APP_SEPARATE_ARGS
 
