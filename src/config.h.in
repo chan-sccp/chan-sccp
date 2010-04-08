@@ -151,6 +151,9 @@
 /* Using dynamic speeddials */
 #undef CS_DYNAMIC_SPEEDDIAL
 
+/* Found 'ENUM AST_DEVICE' in asterisk/devicestate.h */
+#undef CS_ENUM_AST_DEVICE
+
 /* Enable manager events */
 #undef CS_MANAGER_EVENTS
 

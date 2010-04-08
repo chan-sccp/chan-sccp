@@ -14,7 +14,7 @@
 #include "sccp_labels.h"
 #include "asterisk/frame.h"
 
-#ifndef CS_AST_HAS_NEW_DEVICESTATE
+#ifdef CS_AST_HAS_NEW_DEVICESTATE
 #include "asterisk/devicestate.h"
 #endif
 
@@ -97,7 +97,11 @@ static const struct sccp_channelstate {
  * \brief AST Device State Structure
  */
 static const struct ast_devicestate {
+#ifdef ENUM_AST_DEVICE
         enum ast_device_state devicestate;
+#else
+        int devicestate;
+#endif
         const char * const text;
 } ast_devicestates[] = {
 	{ AST_DEVICE_UNKNOWN	,	 "Device is valid but channel doesn't know state" 	},

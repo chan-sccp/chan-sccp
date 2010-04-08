@@ -96,7 +96,7 @@ void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t **mailbox);
 #ifdef CS_AST_HAS_EVENT
 void sccp_mwi_event(const struct ast_event *event, void *data);
 #else
-int sccp_mwi_checkSubscribtion(const void *ptr);
+int sccp_mwi_checksubscription(const void *ptr);
 #endif
 
 #endif /*SCCP_MWI_H_*/
