@@ -1066,7 +1066,7 @@ sccp_device_t * sccp_device_find_byipaddress(unsigned long s_addr){
 
 
 #if ASTERISK_VERSION_NUM >= 10600
-#ifdef HAVE_ASTERISK_DEVICESTATE_H
+#ifdef HAVE_PBX_DEVICESTATE_H
 /*!
  * \brief map states from sccp to ast_device_state
  * \param state SCCP Channel State
@@ -1502,6 +1502,7 @@ const char * sccp_get_debugcategories(uint32_t debugvalue,char * dest) {
 	    }
 	  }
 	}
-	strcpy(dest,ret);
+//	strcpy(dest,ret);
+	dest=ret;
 	return dest;
 }

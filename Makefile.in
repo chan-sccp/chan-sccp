@@ -25,7 +25,7 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# Date:     $Date: 2010-04-02 23:04:55 +0200 (Fr, 02. Apr 2010) $
+# Date:     $Date: 2010-04-02 23:04:55 +0200 (Fri, 02 Apr 2010) $
 # Revision: $Revision: 1424 $
 
 # Copyright (C) 2004 Oren Ben-Kiki
@@ -86,6 +86,7 @@ DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/acinclude.m4 \
+	$(top_srcdir)/autoconf/asterisk.m4 \
 	$(top_srcdir)/autoconf/libtool.m4 \
 	$(top_srcdir)/autoconf/ltoptions.m4 \
 	$(top_srcdir)/autoconf/ltsugar.m4 \
@@ -181,7 +182,7 @@ CFLAGS = @CFLAGS@
 CHANGELOG_OLDEST = @CHANGELOG_OLDEST@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
-CS_OSTYPE = @CS_OSTYPE@
+CPU_OPTIONS = @CPU_OPTIONS@
 CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
@@ -189,7 +190,6 @@ CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
-DLLWRAP = @DLLWRAP@
 DOXYGEN_PAPER_SIZE = @DOXYGEN_PAPER_SIZE@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
@@ -226,6 +226,7 @@ FGREP = @FGREP@
 GREP = @GREP@
 HAVE_ASTERISK = @HAVE_ASTERISK@
 HAVE_CALLWEAVER = @HAVE_CALLWEAVER@
+HOST_CC = @HOST_CC@
 INCLTDL = @INCLTDL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -259,7 +260,6 @@ NM = @NM@
 NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
-OSISWIN32 = @OSISWIN32@
 OTOOL = @OTOOL@
 OTOOL64 = @OTOOL64@
 PACKAGE = @PACKAGE@
@@ -267,6 +267,7 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
+PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PBX_CFLAGS = @PBX_CFLAGS@
@@ -291,7 +292,7 @@ TR = @TR@
 UNAME = @UNAME@
 VERSION = @VERSION@
 WHOAMI = @WHOAMI@
-WINDRES = @WINDRES@
+__Darwin__ = @__Darwin__@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -317,6 +318,7 @@ datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+have_host_cc = @have_host_cc@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
@@ -336,6 +338,7 @@ ltdl_LTLIBOBJS = @ltdl_LTLIBOBJS@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
+ostype = @ostype@
 pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@

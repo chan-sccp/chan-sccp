@@ -16,6 +16,9 @@
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
+/* Define if AIX */
+#undef AIX
+
 /* Define ASTERISK_CONF_1_2 */
 #undef ASTERISK_CONF_1_2
 
@@ -24,6 +27,15 @@
 
 /* Define ASTERISK_CONF_1_6 */
 #undef ASTERISK_CONF_1_6
+
+/* Define ASTERISK_CONF_1_6_0 */
+#undef ASTERISK_CONF_1_6_0
+
+/* Define ASTERISK_CONF_1_6_1 */
+#undef ASTERISK_CONF_1_6_1
+
+/* Define ASTERISK_CONF_1_6_2 */
+#undef ASTERISK_CONF_1_6_2
 
 /* Not Found 'AST_FLAG_MOH' in asterisk/channel.h */
 #undef AST_FLAG_MOH
@@ -190,12 +202,6 @@
 /* Enable extra debugging. */
 #undef DEBUG
 
-/* Define according to your operating system type. */
-#undef Darwin
-
-/* Define according to your operating system type. */
-#undef FreeBSD
-
 /* Define to 1 if you have the `argz_add' function. */
 #undef HAVE_ARGZ_ADD
 
@@ -220,93 +226,28 @@
 /* Define to 1 if you have the `argz_stringify' function. */
 #undef HAVE_ARGZ_STRINGIFY
 
-/* Found 'asterisk/acl.h' */
-#undef HAVE_ASTERISK_ACL_H
-
-/* Found 'asterisk/app.h' */
-#undef HAVE_ASTERISK_APP_H
-
-/* Found 'asterisk/astdb.h' */
-#undef HAVE_ASTERISK_ASTDB_H
-
-/* Found 'asterisk/callerid.h' */
-#undef HAVE_ASTERISK_CALLERID_H
-
-/* Found 'asterisk/causes.h' */
-#undef HAVE_ASTERISK_CAUSES_H
-
-/* Found 'asterisk/channel.h' */
-#undef HAVE_ASTERISK_CHANNEL_H
-
-/* Found 'asterisk/channel_pvt.h' */
-#undef HAVE_ASTERISK_CHANNEL_pvt_H
-
-/* Found 'asterisk/cli.h' */
-#undef HAVE_ASTERISK_CLI_H
-
-/* Found 'asterisk/config.h' */
-#undef HAVE_ASTERISK_CONFIG_H
-
-/* Found 'asterisk/devicestate.h' */
-#undef HAVE_ASTERISK_DEVICESTATE_H
-
-/* Found 'asterisk/endian.h' */
-#undef HAVE_ASTERISK_ENDIAN_H
-
-/* Found 'asterisk/event.h' */
-#undef HAVE_ASTERISK_EVENT_H
-
-/* Found 'asterisk/features.h' */
-#undef HAVE_ASTERISK_FEATURES_H
-
-/* Found 'asterisk/frame.h' */
-#undef HAVE_ASTERISK_FRAME_H
-
-/* Found 'asterisk/lock.h' */
-#undef HAVE_ASTERISK_LOCK_H
-
-/* Found 'asterisk/logger.h' */
-#undef HAVE_ASTERISK_LOGGER_H
-
-/* Found 'asterisk/manager.h' */
-#undef HAVE_ASTERISK_MANAGER_H
-
-/* Found 'asterisk/module.h' */
-#undef HAVE_ASTERISK_MODULE_H
-
-/* Found 'asterisk/musiconhold.h' */
-#undef HAVE_ASTERISK_MUSICONHOLD_H
-
-/* Found 'asterisk/options.h' */
-#undef HAVE_ASTERISK_OPTIONS_H
-
-/* Found 'asterisk/pbx.h' */
-#undef HAVE_ASTERISK_PBX_H
-
-/* Found 'asterisk/rtp.h' */
-#undef HAVE_ASTERISK_RTP_H
-
-/* Found 'asterisk/sched.h' */
-#undef HAVE_ASTERISK_SCHED_H
-
-/* Found 'asterisk/stringfields.h' */
-#undef HAVE_ASTERISK_STRINGFIELDS_H
-
-/* Found 'asterisk/strings.h' */
-#undef HAVE_ASTERISK_STRINGS_H
-
-/* Found 'asterisk/translate.h' */
-#undef HAVE_ASTERISK_TRANSLATE_H
-
-/* Found 'asterisk/utils.h' */
-#undef HAVE_ASTERISK_UTILS_H
-
 /* Define to 1 if you have the `closedir' function. */
 #undef HAVE_CLOSEDIR
 
 /* Define to 1 if you have the declaration of `cygwin_conv_path', and to 0 if
    you don't. */
 #undef HAVE_DECL_CYGWIN_CONV_PATH
+
+/* Define to 1 if you have the declaration of `INET6_ADDRSTRLEN', and to 0 if
+   you don't. */
+#undef HAVE_DECL_INET6_ADDRSTRLEN
+
+/* Define to 1 if you have the declaration of `INET_ADDRSTRLEN', and to 0 if
+   you don't. */
+#undef HAVE_DECL_INET_ADDRSTRLEN
+
+/* Define to 1 if you have the declaration of `strerror_r', and to 0 if you
+   don't. */
+#undef HAVE_DECL_STRERROR_R
+
+/* Define to 1 if you have the declaration of `tzname', and to 0 if you don't.
+   */
+#undef HAVE_DECL_TZNAME
 
 /* Define to 1 if you have the <dirent.h> header file. */
 #undef HAVE_DIRENT_H
@@ -332,6 +273,12 @@
 /* Define to 1 if the system has the type `error_t'. */
 #undef HAVE_ERROR_T
 
+/* Define to 1 if you have the `gethostbyname' function. */
+#undef HAVE_GETHOSTBYNAME
+
+/* Define to 1 if you have the `inet_ntoa' function. */
+#undef HAVE_INET_NTOA
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
@@ -346,6 +293,12 @@
 
 /* Define to 1 if you have the `ltdl' library (-lltdl). */
 #undef HAVE_LIBLTDL
+
+/* Define to 1 if you have the `pthread' library (-lpthread). */
+#undef HAVE_LIBPTHREAD
+
+/* Define to 1 if you have the `socket' library (-lsocket). */
+#undef HAVE_LIBSOCKET
 
 /* Define this if a modern libltdl is already installed */
 #undef HAVE_LTDL
@@ -363,11 +316,95 @@
 /* Define to 1 if you have the `memset' function. */
 #undef HAVE_MEMSET
 
+/* Define to 1 if you have the `mkdir' function. */
+#undef HAVE_MKDIR
+
 /* Define to 1 if you have the <netinet/in.h> header file. */
 #undef HAVE_NETINET_IN_H
 
 /* Define to 1 if you have the `opendir' function. */
 #undef HAVE_OPENDIR
+
+/* Found 'asterisk/acl.h' */
+#undef HAVE_PBX_ACL_H
+
+/* Found 'asterisk/app.h' */
+#undef HAVE_PBX_APP_H
+
+/* Found 'asterisk/astdb.h' */
+#undef HAVE_PBX_ASTDB_H
+
+/* Found 'asterisk/callerid.h' */
+#undef HAVE_PBX_CALLERID_H
+
+/* Found 'asterisk/causes.h' */
+#undef HAVE_PBX_CAUSES_H
+
+/* Found 'asterisk/channel.h' */
+#undef HAVE_PBX_CHANNEL_H
+
+/* Found 'asterisk/channel_pvt.h' */
+#undef HAVE_PBX_CHANNEL_pvt_H
+
+/* Found 'asterisk/cli.h' */
+#undef HAVE_PBX_CLI_H
+
+/* Found 'asterisk/config.h' */
+#undef HAVE_PBX_CONFIG_H
+
+/* Found 'asterisk/devicestate.h' */
+#undef HAVE_PBX_DEVICESTATE_H
+
+/* Found 'asterisk/endian.h' */
+#undef HAVE_PBX_ENDIAN_H
+
+/* Found 'asterisk/event.h' */
+#undef HAVE_PBX_EVENT_H
+
+/* Found 'asterisk/features.h' */
+#undef HAVE_PBX_FEATURES_H
+
+/* Found 'asterisk/frame.h' */
+#undef HAVE_PBX_FRAME_H
+
+/* Found 'asterisk/lock.h' */
+#undef HAVE_PBX_LOCK_H
+
+/* Found 'asterisk/logger.h' */
+#undef HAVE_PBX_LOGGER_H
+
+/* Found 'asterisk/manager.h' */
+#undef HAVE_PBX_MANAGER_H
+
+/* Found 'asterisk/module.h' */
+#undef HAVE_PBX_MODULE_H
+
+/* Found 'asterisk/musiconhold.h' */
+#undef HAVE_PBX_MUSICONHOLD_H
+
+/* Found 'asterisk/options.h' */
+#undef HAVE_PBX_OPTIONS_H
+
+/* Found 'asterisk/pbx.h' */
+#undef HAVE_PBX_PBX_H
+
+/* Found 'asterisk/rtp.h' */
+#undef HAVE_PBX_RTP_H
+
+/* Found 'asterisk/sched.h' */
+#undef HAVE_PBX_SCHED_H
+
+/* Found 'asterisk/stringfields.h' */
+#undef HAVE_PBX_STRINGFIELDS_H
+
+/* Found 'asterisk/strings.h' */
+#undef HAVE_PBX_STRINGS_H
+
+/* Found 'asterisk/translate.h' */
+#undef HAVE_PBX_TRANSLATE_H
+
+/* Found 'asterisk/utils.h' */
+#undef HAVE_PBX_UTILS_H
 
 /* Define if libtool can extract symbol lists from object files. */
 #undef HAVE_PRELOADED_SYMBOLS
@@ -412,6 +449,9 @@
 /* Define to 1 if you have the `strerror' function. */
 #undef HAVE_STRERROR
 
+/* Define to 1 if you have the `strerror_r' function. */
+#undef HAVE_STRERROR_R
+
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
 
@@ -426,6 +466,12 @@
 
 /* Define to 1 if you have the `strncasecmp' function. */
 #undef HAVE_STRNCASECMP
+
+/* Define to 1 if you have the `strsep' function. */
+#undef HAVE_STRSEP
+
+/* Define to 1 if `struct tm' is a member of `tm_zone'. */
+#undef HAVE_STRUCT_TM_TM_ZONE
 
 /* Define to 1 if you have the <sys/dl.h> header file. */
 #undef HAVE_SYS_DL_H
@@ -442,6 +488,14 @@
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
 
+/* Define to 1 if your `struct tm' has `tm_zone'. Deprecated, use
+   `HAVE_STRUCT_TM_TM_ZONE' instead. */
+#undef HAVE_TM_ZONE
+
+/* Define to 1 if you don't have `tm_zone' but do have the external array
+   `tzname'. */
+#undef HAVE_TZNAME
+
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
@@ -450,6 +504,12 @@
 
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
+
+/* cygwin detection does not work for that, anybody has an idea ? */
+#undef INET6_ADDRSTRLEN
+
+/* cygwin detection does not work for that, anybody has an idea ? */
+#undef INET_ADDRSTRLEN
 
 /* Define if the OS needs help to load dependent libraries for dlopen(). */
 #undef LTDL_DLOPEN_DEPLIBS
@@ -471,20 +531,17 @@
    */
 #undef LT_OBJDIR
 
-/* Define according to your operating system type. */
-#undef Linux
-
 /* Not Found 'MAX_MUSICCLASS' in asterisk/channel.h */
 #undef MAX_MUSICCLASS
 
 /* Define if dlsym() requires a leading underscore in symbol names. */
 #undef NEED_USCORE
 
-/* Define according to your operating system type. */
-#undef NetBSD
+/* Define to 1 if your C compiler doesn't accept -c and -o together. */
+#undef NO_MINUS_C_MINUS_O
 
-/* Define according to your operating system type. */
-#undef OpenBSD
+/* Define if OSF1 */
+#undef OSF1
 
 /* Define to the address where bug reports for this package should be sent. */
 /* #undef PACKAGE_BUGREPORT */
@@ -516,11 +573,17 @@
 /* Define the SCCP Version */
 #undef SCCP_VERSION
 
+/* needed for optional declarations to be visible */
+#undef SOLARIS
+
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/* Define according to your operating system type. */
-#undef SunOS
+/* Define to 1 if strerror_r returns char *. */
+#undef STRERROR_R_CHAR_P
+
+/* Define to 1 if your <sys/time.h> declares `struct tm'. */
+#undef TM_IN_SYS_TIME
 
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE
@@ -544,9 +607,6 @@
 #endif
 
 
-/* Define according to your operating system type. */
-#undef Unix
-
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
 #if defined AC_APPLE_UNIVERSAL_BUILD
@@ -559,9 +619,6 @@
 # endif
 #endif
 
-/* Define according to your operating system type. */
-#undef Win32
-
 /* Define to 1 if on MINIX. */
 #undef _MINIX
 
@@ -572,21 +629,20 @@
 /* Define to 1 if you need to in order for `stat' and other things to work. */
 #undef _POSIX_SOURCE
 
-/* Define for Solaris 2.5.1 so the uint32_t typedef from <sys/synch.h>,
-   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
-   #define below would cause a syntax error. */
-#undef _UINT32_T
-
-/* Define for Solaris 2.5.1 so the uint8_t typedef from <sys/synch.h>,
-   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
-   #define below would cause a syntax error. */
-#undef _UINT8_T
+/* Heya, it's windows */
+#undef _WIN32_WINNT
 
 /* for the places where it is not defined */
 #undef __BIG_ENDIAN
 
 /* Little Endian */
 #undef __BYTE_ORDER
+
+/* make sure __CYGWIN__ is defined ... */
+#undef __CYGWIN__
+
+/* Define if Darwin */
+#undef __Darwin__
 
 /* for the places where it is not defined */
 #undef __LITTLE_ENDIAN
@@ -599,6 +655,9 @@
 
 /* Not Found 'ast_config_load' in asterisk/config.h */
 #undef ast_config_load
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#undef const
 
 /* Define to a type to use for `error_t' if it is not otherwise available. */
 #undef error_t
@@ -635,17 +694,18 @@
 /* Define to `int' if <sys/types.h> does not define. */
 #undef ssize_t
 
-/* Define to the type of an unsigned integer type of width exactly 16 bits if
-   such a type exists and the standard includes do not define it. */
-#undef uint16_t
+/* Define to `uint16_t' if <sys/types.h> does not define. */
+#undef u_int16_t
 
-/* Define to the type of an unsigned integer type of width exactly 32 bits if
-   such a type exists and the standard includes do not define it. */
-#undef uint32_t
+/* Define to `uint32_t' if <sys/types.h> does not define. */
+#undef u_int32_t
 
-/* Define to the type of an unsigned integer type of width exactly 8 bits if
-   such a type exists and the standard includes do not define it. */
-#undef uint8_t
+/* Define to `uint8_t' if <sys/types.h> does not define. */
+#undef u_int8_t
+
+/* Define to empty if the keyword `volatile' does not work. Warning: valid
+   code using `volatile' can become incorrect without. Disable with care. */
+#undef volatile
 
 
 #endif /* CHAN_SCCP_CONFIG_H */

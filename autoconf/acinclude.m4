@@ -10,8 +10,8 @@ AC_DEFUN([CS_CHECK_PBX], [
     found_pbx="no";
     found_asterisk="no";
     found_callweaver="no";
-    echo $PBX_PATH
-    for dir in $PBX_PATH /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr /usr/sfw; do
+    echo "Search Path: $PBX_PATH"
+    for dir in $PBX_PATH; do
         checkdir="$dir"
         echo -n "checking $dir for PBX Installation..."
         if test -f "$dir/include/asterisk/asterisk.h"; then
