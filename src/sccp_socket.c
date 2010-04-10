@@ -509,7 +509,7 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 	ast_free(r);
 
 	if(bytesSent < bufLen) {
-        	sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Could only send %d of %d bytes!\n", s->device->id, bytesSent, bufLen);
+        	sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Could only send %d of %d bytes!\n", s->device->id, (int)bytesSent, (int)bufLen);
 		sccp_session_close(s);
         	return 0;
         }
@@ -564,14 +564,11 @@ struct in_addr * sccp_session_getINaddr(sccp_device_t *device, int type){
 	switch (type) {
 		case AF_INET:
 			return &s->sin.sin_addr;
-			break;
 		case AF_INET6:
 			//return &s->sin6.sin6_addr;
 			return NULL;
-			break;
 		default:
 			return NULL;
-			break;
 	}
 }
 

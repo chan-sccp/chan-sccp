@@ -67,7 +67,7 @@ static void * sccp_pbx_call_autoanswer_thread(void *data)
 	uint32_t *tmp = data;
 	uint32_t callid = *tmp;
 	sccp_channel_t 		*c;
-	uint8_t				instance = 0;
+	int instance = 0;
 
 	sleep(GLOB(autoanswer_ring_time));
 	pthread_testcancel();
@@ -1490,6 +1490,11 @@ int sccp_pbx_helper(sccp_channel_t * c)
  * \todo clarify Soft Switch Function
  */
 void * sccp_pbx_softswitch(sccp_channel_t * c) {
+	if (!c) {
+		ast_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) No <channel> available. Returning from dial thread.\n");
+		return NULL;
+	}
+
 	struct ast_channel * chan = c->owner;
 	struct ast_variable *v = NULL;
 	uint8_t	instance;
@@ -1499,11 +1504,6 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 	sccp_device_t * d;
 
 	char shortenedNumber[256] = { '\0' }; /* For recording the digittimeoutchar */
-
-	if (!c) {
-		ast_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) No <channel> available. Returning from dial thread.\n");
-		return NULL;
-	}
 
 	/* removing scheduled dialing */
 	SCCP_SCHED_DEL(sched, c->digittimeout);

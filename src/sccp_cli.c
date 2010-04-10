@@ -1287,6 +1287,7 @@ static struct ast_cli_entry cli_system_message = {
 };
 #endif
 
+#ifdef ASTERISK_CONF_1_6
 #ifdef CS_NEW_AST_CLI
 /*!
  * \brief Complete Debug
@@ -1353,6 +1354,7 @@ static char * sccp_complete_debug(char *line, char *word, int pos, int state) {
         }
         return ret;
 }
+#endif
 /* ------------------------------------------------------------ */
 /*!
  * \brief Do Debug
@@ -1712,19 +1714,6 @@ static char *cli_show_softkeysets(struct ast_cli_entry *e, int cmd, struct ast_c
 	ast_cli(a->fd, "\n");
 	return CLI_SUCCESS;
 }
-#else
-/*!
- * \brief CLI MWI Subscriptions
- * \return Asterisk Cli Entry Structure
- * \note Alias for Asterisk CLI Entry
- */
-static struct ast_cli_entry cli_show_softkeysets = {
-  { "sccp", "show", "softkeysets", NULL },
-  sccp_show_version,
-  "SCCP show softkeysets",
-  "Usage: SCCP show softkeysets\n"
-  "		Show the SCCP channel subscriptions\n"
-};
 #endif
 
 
@@ -1757,7 +1746,6 @@ static struct ast_cli_entry cli_entries[] = {
 		AST_CLI_DEFINE(cli_show_softkeysets, "Show all mwi configured SoftKeySets"),
 		AST_CLI_DEFINE(cli_restart, ""),
 		AST_CLI_DEFINE(cli_reset, ""),
-
 		AST_CLI_DEFINE(cli_show_device, "")
 };
 #endif
@@ -1774,8 +1762,6 @@ void sccp_register_cli(void) {
 	/* register all CLI functions */
 	ast_cli_register_multiple(cli_entries, sizeof(cli_entries)/ sizeof(struct ast_cli_entry));
 #else
-
-
   ast_cli_register(&cli_show_channels);
   ast_cli_register(&cli_show_devices);
   ast_cli_register(&cli_show_lines);
@@ -1792,7 +1778,6 @@ void sccp_register_cli(void) {
   ast_cli_register(&cli_show_globals);
   ast_cli_register(&cli_message_devices);
   ast_cli_register(&cli_remove_line_device);
-
   ast_cli_register(&cli_show_mwi_subscriptions);
 #endif
 
@@ -1824,7 +1809,6 @@ void sccp_unregister_cli(void) {
   ast_cli_unregister(&cli_show_globals);
   ast_cli_unregister(&cli_message_devices);
   ast_cli_unregister(&cli_remove_line_device);
-
   ast_cli_unregister(&cli_show_mwi_subscriptions);
 #endif
 }
