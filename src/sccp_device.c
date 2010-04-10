@@ -1197,7 +1197,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime) {
 	if(destroy)
 	{
 		if(d->list.prev == NULL && d->list.next == NULL && GLOB(devices).size > 1 ){
-#warning "we have to check why prev and next is null"
 			ast_log(LOG_ERROR, "%s: removing device from global device list. prev and next pointer ist not set while device list size is %d\n", DEV_ID_LOG(d), GLOB(devices).size);
 		}else{
 			SCCP_LIST_LOCK(&GLOB(devices));
