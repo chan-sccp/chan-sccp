@@ -304,8 +304,9 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 //		}
 //	}
 
-#warning "Check if this exception is really neccessary and eventually remove it. It might robustify codec selection for lines with only one device, but this robustification should not be required. (-DD)"	
+
 	if(l->devices.size == 1 && SCCP_LIST_FIRST(&l->devices) && SCCP_LIST_FIRST(&l->devices)->device && SCCP_LIST_FIRST(&l->devices)->device->session){
+		//TODO check if we have to do this
 		c->device = SCCP_LIST_FIRST(&l->devices)->device;
 		sccp_channel_updateChannelCapability(c);
 	}

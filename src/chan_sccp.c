@@ -1003,11 +1003,11 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 		res = AST_BRIDGE_FAILED_NOWARN;
 	} else {
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (sccp_rtp_bridge) Native bridging '%s' and '%s'\n", c0->name, c1->name);
-#warning "The purpose of this code is obscure and must be clarified (-DD)"
-/*
-		sccp_pbx_set_rtp_peer(c0, pvt1->rtp, NULL, NULL, pvt1->device->codecs, 0);
-		sccp_pbx_set_rtp_peer(c1, pvt0->rtp, NULL, NULL, pvt0->device->codecs, 0);
-*/
+
+		//TODO The purpose of this code is obscure and must be clarified (-DD)
+		//sccp_pbx_set_rtp_peer(c0, pvt1->rtp, NULL, NULL, pvt1->device->codecs, 0);
+		//sccp_pbx_set_rtp_peer(c1, pvt0->rtp, NULL, NULL, pvt0->device->codecs, 0);
+
 		res = AST_BRIDGE_FAILED; //_NOWARN;
 	}
 
