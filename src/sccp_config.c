@@ -55,9 +55,12 @@ void sccp_config_addLine(sccp_device_t *device, char *lineName, char *options, u
 	ast_strip(lineName);
 	sccp_log(0)(VERBOSE_PREFIX_3 "Add line button on position: %d\n", config->instance);
 	
+	/*
 	if (!device->realtime) {
 	        config->instance=instance;
 	}
+	*/
+	
 	if (ast_strlen_zero(lineName)) {
 		config->type = EMPTY;
 	}else{
@@ -95,9 +98,12 @@ void sccp_config_addEmpty(sccp_device_t *device, uint8_t instance)
 		return;
 
 	//config->instance = instance;
+	/*
 	if (!device->realtime) {
 	        config->instance=instance;
 	}
+	*/
+	
 	//sccp_log(0)(VERBOSE_PREFIX_3 "Add empty button on position: %d\n", config->instance);
 	config->type = EMPTY;
 	//TODO check already existing instances
@@ -124,9 +130,12 @@ void sccp_config_addSpeeddial(sccp_device_t *device, char *label, char *extensio
 
 	//TODO check already existing instances
 	//config->instance = instance;
+	/*
 	if (!device->realtime) {
 	        config->instance=instance;
 	}
+	*/
+	
 	config->type = SPEEDDIAL;
 
 	sccp_copy_string(config->button.speeddial.label, ast_strip(label), sizeof(config->button.speeddial.label));
@@ -160,9 +169,12 @@ void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID,
 
 	//TODO check already existing instances
 	//config->instance = instance;
+	/*
 	if (!device->realtime) {
 	        config->instance=instance;
 	}
+	*/
+	
 	if (ast_strlen_zero(label)) {
 		config->type = EMPTY;
 	}else{
@@ -199,11 +211,12 @@ void sccp_config_addService(sccp_device_t *device, char *label, char *url, uint8
         memset(config, 0, sizeof(sccp_buttonconfig_t));
 
 
-        //TODO check already existing instances
         //config->instance = instance;
+	/*
 	if (!device->realtime) {
 	        config->instance=instance;
 	}
+	*/
 
         if (ast_strlen_zero(label) || ast_strlen_zero(url)) {
                 config->type = EMPTY;
