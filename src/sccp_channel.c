@@ -1643,9 +1643,9 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 		ast_rtp_settos(c->rtp.audio, c->line->audio_tos);
 
 #if defined(linux)                                                              
-                int audio_cos=c->line->audio_cos;
-                if (!setsockopt( (int)c->rtp.audio, SOL_SOCKET, SO_PRIORITY, &audio_cos, sizeof(c->line->audio_cos) ))
-                	ast_log(LOG_WARNING, "Failed to set SCCP socket Audio COS to %d: %s\n", c->line->audio_cos, strerror(errno));
+//                unsigned int audio_cos=c->line->audio_cos;
+//                if (!setsockopt( (int)c->rtp.audio, SOL_SOCKET, SO_PRIORITY,(void*)&audio_cos, sizeof(audio_cos) ))
+//                	ast_log(LOG_WARNING, "Failed to set SCCP socket Audio COS to %d: %s\n", c->line->audio_cos, strerror(errno));
 #endif
 		
 #endif
@@ -1661,9 +1661,9 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 #else
 		ast_rtp_settos(c->rtp.video, c->line->video_tos);
 #if defined(linux)                                                              
-                int video_cos=c->line->video_cos;
-                if (!setsockopt( (int)c->rtp.video, SOL_SOCKET, SO_PRIORITY, &video_cos, sizeof(c->line->video_cos) ))  
-                	ast_log(LOG_WARNING, "Failed to set SCCP socket Video COS to %d: %s\n", c->line->video_cos, strerror(errno));
+//                unsigned int video_cos=c->line->video_cos;
+//                if (!setsockopt( (int)c->rtp.video, SOL_SOCKET, SO_PRIORITY, &video_cos, sizeof(c->line->video_cos) ))  
+//               	ast_log(LOG_WARNING, "Failed to set SCCP socket Video COS to %d: %s\n", c->line->video_cos, strerror(errno));
 #endif
 #endif
 		ast_rtp_setnat(c->rtp.video, d->nat);

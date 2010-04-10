@@ -311,7 +311,7 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 
         const char 	*lineName = astman_get_header(m, "Linename");
         const char 	*forwardType = astman_get_header(m, "Forwardtype");
-        const char 	*number = astman_get_header(m, "Number");
+//        const char 	*number = astman_get_header(m, "Number");
 
         //char *fwdNumber = (char *)number;
 

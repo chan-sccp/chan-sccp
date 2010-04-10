@@ -1502,6 +1502,6 @@ const char * sccp_get_debugcategories(uint32_t debugvalue,char * dest) {
 	    }
 	  }
 	}
-	dest=ret;
+	strcpy(dest,ret);
 	return dest;
 }
