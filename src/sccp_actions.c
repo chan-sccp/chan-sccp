@@ -221,7 +221,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 		else if (btn[i].type == SKINNY_BUTTONTYPE_UNUSED)
 			break;
 	}
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Phone available lines %d\n", d->id, line_count);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: Phone available lines %d\n", d->id, line_count);
 	i = 0;
 	if(d->isAnonymous == TRUE){
 		sccp_device_lock(d);
@@ -280,7 +280,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	int keepAliveInterval = d->keepalive ? d->keepalive : GLOB(keepalive);
 	keepAliveInterval = (keepAliveInterval/2) + (rand() % (keepAliveInterval/2) )+1;
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval );
+	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval );
 	REQ(r1, RegisterAckMessage);
 
 	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->length);
@@ -288,13 +288,13 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	if(r->length < 56) {
 	 		// registration request with protocol 0 version structure.
 		d->inuseprotocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), d->inuseprotocolversion);
+		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), d->inuseprotocolversion);
 	 } else if(r->msg.RegisterMessage.protocolVer > GLOB(protocolversion)) {
 		d->inuseprotocolversion = GLOB(protocolversion);
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: asked for protocol version (%d). We answered (%d) as our capability.\n", DEV_ID_LOG(d), r->msg.RegisterMessage.protocolVer, GLOB(protocolversion));
+		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: asked for protocol version (%d). We answered (%d) as our capability.\n", DEV_ID_LOG(d), r->msg.RegisterMessage.protocolVer, GLOB(protocolversion));
 	 } else if(r->msg.RegisterMessage.protocolVer <= GLOB(protocolversion)) {
 		d->inuseprotocolversion = r->msg.RegisterMessage.protocolVer;
-	 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), r->msg.RegisterMessage.protocolVer);
+	 	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), r->msg.RegisterMessage.protocolVer);
 	 }
 	if(d->inuseprotocolversion <= 3) {
 		// Our old flags for protocols from 0 to 3
