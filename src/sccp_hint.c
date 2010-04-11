@@ -381,7 +381,8 @@ static void sccp_hint_devicestate_cb(const struct ast_event *ast_event, void *da
  */
 void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
-	sccp_moo_t *r;
+	sccp_moo_t 	*r;
+	uint32_t 	state;
 	
 	if(!hint)
 		return;
@@ -397,6 +398,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			continue;
 		}
 		
+		state = hint->currentState;
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 		if(subscriber->device->inuseprotocolversion >= 15){
@@ -447,13 +449,13 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 				sccp_copy_string(displayMessage, (k)?k->name:"unknown speeddial", sizeof(displayMessage));
 			}
 			
-			sccp_moo_t *r2;
-			REQ(r2, FeatureStatAdvancedMessage);
-			r2->msg.FeatureStatAdvancedMessage.lel_status = r->msg.FeatureStatAdvancedMessage.lel_status;
-			r2->msg.FeatureStatAdvancedMessage.lel_instance = r->msg.FeatureStatAdvancedMessage.lel_instance;
-			r2->msg.FeatureStatAdvancedMessage.lel_type = r->msg.FeatureStatAdvancedMessage.lel_type;
-			memset(r2->msg.FeatureStatAdvancedMessage.DisplayName, 0, sizeof(r2->msg.FeatureStatAdvancedMessage.DisplayName));
-			sccp_dev_send(subscriber->device, r2);
+// 			sccp_moo_t *r2;
+// 			REQ(r2, FeatureStatAdvancedMessage);
+// 			r2->msg.FeatureStatAdvancedMessage.lel_status = r->msg.FeatureStatAdvancedMessage.lel_status;
+// 			r2->msg.FeatureStatAdvancedMessage.lel_instance = r->msg.FeatureStatAdvancedMessage.lel_instance;
+// 			r2->msg.FeatureStatAdvancedMessage.lel_type = r->msg.FeatureStatAdvancedMessage.lel_type;
+// 			memset(r2->msg.FeatureStatAdvancedMessage.DisplayName, 0, sizeof(r2->msg.FeatureStatAdvancedMessage.DisplayName));
+// 			sccp_dev_send(subscriber->device, r2);
 			
 			
 			sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "set display name to: \"%s\"\n", displayMessage);
@@ -467,9 +469,21 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			
 			continue;
 		}
-#endif
 		
-		sccp_device_sendcallstate(subscriber->device, subscriber->instance, 0, hint->currentState, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
+		
+		/*	
+		we have dynamic speeddial enabled, but subscriber can not handle this.
+		We have to switch back to old hint style and send old state.
+		*/
+		if(hint->currentState != SCCP_CHANNELSTATE_ONHOOK){
+			state = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+		}else{
+			state = SCCP_CHANNELSTATE_ONHOOK;
+		}
+		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "%s: can not handle dynamic speeddial, fall back to old behavior using state %d\n", DEV_ID_LOG(subscriber->device), state );
+
+#endif
+		sccp_device_sendcallstate(subscriber->device, subscriber->instance, 0, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
 		
 		/* create CallInfoMessage */
 		REQ(r, CallInfoMessage);
