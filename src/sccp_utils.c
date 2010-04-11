@@ -1438,14 +1438,14 @@ uint32_t sccp_parse_debugline (char * arguments[], int startat, int argc, uint32
         if (sscanf((char *)arguments[startat], "%d", &new_debug_value) != 1) {
                 for (argi=startat; argi<argc; argi++) {
                         argument=(char *)arguments[argi];
-                        if (!strncmp(argument,"no",2)) 
-                        {
-                                subtract=1;
-                        } 
-                        else if (!strncmp(argument,"none",4))
+                        if (!strncmp(argument,"none",4))
                         {
                                 new_debug_value=0;
                                 break;
+                        } 
+                        else if (!strncmp(argument,"no",2)) 
+                        {
+                                subtract=1;
                         } 
                         else if (!strncmp(argument,"all",3))
                         {
