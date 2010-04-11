@@ -757,6 +757,11 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 #endif
 				break;
 			case SCCP_CHANNELSTATE_GETDIGITS:
+				sccp_copy_string(hint->callInfo.callingPartyName, channel->dialedNumber, sizeof(hint->callInfo.callingPartyName));
+				sccp_copy_string(hint->callInfo.calledPartyName, channel->dialedNumber, sizeof(hint->callInfo.calledPartyName));
+
+				sccp_copy_string(hint->callInfo.callingParty, channel->dialedNumber, sizeof(hint->callInfo.callingParty));
+				sccp_copy_string(hint->callInfo.calledParty, channel->dialedNumber, sizeof(hint->callInfo.calledParty));
 				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 				break;
 			case SCCP_CHANNELSTATE_SPEEDDIAL:
@@ -809,10 +814,10 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 				if(!device || device->privacyFeature.enabled == 0 || (device->privacyFeature.enabled == 1 && channel->privacy == FALSE)) {
 					
 					sccp_copy_string(hint->callInfo.callingPartyName, channel->dialedNumber, sizeof(hint->callInfo.callingPartyName));
-					sccp_copy_string(hint->callInfo.calledPartyName, channel->calledPartyName, sizeof(hint->callInfo.calledPartyName));
+					sccp_copy_string(hint->callInfo.calledPartyName, channel->dialedNumber, sizeof(hint->callInfo.calledPartyName));
 
 					sccp_copy_string(hint->callInfo.callingParty, channel->dialedNumber, sizeof(hint->callInfo.callingParty));
-					sccp_copy_string(hint->callInfo.calledParty, channel->calledPartyNumber, sizeof(hint->callInfo.calledParty));
+					sccp_copy_string(hint->callInfo.calledParty, channel->dialedNumber, sizeof(hint->callInfo.calledParty));
 					
 
 				} else {
