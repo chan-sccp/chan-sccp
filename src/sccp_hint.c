@@ -382,7 +382,7 @@ static void sccp_hint_devicestate_cb(const struct ast_event *ast_event, void *da
 void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
 	sccp_moo_t 	*r;
-	uint32_t 	state;
+	uint32_t 	state;					/* used to fall back to old behavior */
 	
 	if(!hint)
 		return;
@@ -483,7 +483,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "%s: can not handle dynamic speeddial, fall back to old behavior using state %d\n", DEV_ID_LOG(subscriber->device), state );
 
 #endif
-		sccp_device_sendcallstate(subscriber->device, subscriber->instance, 0, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
+		sccp_device_sendcallstate(subscriber->device, subscriber->instance, 0, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		
 		/* create CallInfoMessage */
 		REQ(r, CallInfoMessage);
@@ -491,9 +491,13 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 		/* set callInfo */
 		sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, hint->callInfo.callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
 		sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, hint->callInfo.calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
+		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "%s: setting callingPartyName: '%s'\n", DEV_ID_LOG(subscriber->device), r->msg.CallInfoMessage.callingPartyName );
+		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "%s: setting calledPartyName: '%s'\n", DEV_ID_LOG(subscriber->device), r->msg.CallInfoMessage.calledPartyName );
 		
 		sccp_copy_string(r->msg.CallInfoMessage.callingParty, hint->callInfo.callingParty, sizeof(r->msg.CallInfoMessage.callingParty));
 		sccp_copy_string(r->msg.CallInfoMessage.calledParty, hint->callInfo.calledParty, sizeof(r->msg.CallInfoMessage.calledParty));
+		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "%s: setting callingParty: '%s'\n", DEV_ID_LOG(subscriber->device), r->msg.CallInfoMessage.callingParty );
+		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "%s: setting calledParty: '%s'\n", DEV_ID_LOG(subscriber->device), r->msg.CallInfoMessage.calledParty );
 
 		r->msg.CallInfoMessage.lel_lineId   = htolel(subscriber->instance);
 		r->msg.CallInfoMessage.lel_callRef  = htolel(0);
