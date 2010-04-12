@@ -969,7 +969,8 @@ void sccp_channel_endcall(sccp_channel_t * c)
 
 	/* this is a station active endcall or onhook */
     	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Ending call %d on line %s (%s)\n", DEV_ID_LOG(c->device), c->callid, c->line->name, sccp_indicate2str(c->state));
-	/* end callforwards */
+	
+	/* end all call forward channels (our childs) */
 	sccp_channel_t	*channel;
 	SCCP_LIST_LOCK(&c->line->channels);
 	SCCP_LIST_TRAVERSE(&c->line->channels, channel, list) {
@@ -978,6 +979,20 @@ void sccp_channel_endcall(sccp_channel_t * c)
 	}
 	SCCP_LIST_UNLOCK(&c->line->channels);
 	/* */
+	
+	
+	/** 
+	workaround to fix issue with 7960 and protocol version != 6
+	7960 loses callplane when cancel transfer (end call on other channel).
+	This script set the hold state for transfer_channel explicitly -MC
+	*/
+	if (c->device->transfer_channel && c->device->transfer_channel != c) {
+		uint32_t instance = sccp_device_find_index_for_line(c->device, c->device->transfer_channel->line->name); 
+		sccp_dev_set_lamp(c->device, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_WINK);
+		sccp_device_sendcallstate(c->device, instance, c->device->transfer_channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); 
+		sccp_dev_set_keyset(c->device, instance, c->device->transfer_channel->callid, KEYMODE_ONHOLD);
+		c->device->transfer_channel = NULL;
+	}
 
 	if (c->owner) {
 		/* Is there a blocker ? */
@@ -1783,7 +1798,7 @@ void sccp_channel_transfer(sccp_channel_t * c)
 		return;
 	if (c->state != SCCP_CHANNELSTATE_CALLTRANSFER)
 		sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CALLTRANSFER);
-	newcall = sccp_channel_newcall(c->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
+		newcall = sccp_channel_newcall(c->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
 	/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER*/
  	if ( blindTransfer || (newcall && newcall->owner && c->owner && CS_AST_BRIDGED_CHANNEL(c->owner)) ) {
 		pbx_builtin_setvar_helper(newcall->owner, "BLINDTRANSFER", CS_AST_BRIDGED_CHANNEL(c->owner)->name);
