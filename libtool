@@ -56,12 +56,12 @@ fast_install=needless
 
 # The host system.
 host_alias=
-host=i686-pc-linux-gnu
+host=i686-suse-linux-gnu
 host_os=linux-gnu
 
 # The build system.
 build_alias=
-build=i686-pc-linux-gnu
+build=i686-suse-linux-gnu
 build_os=linux-gnu
 
 # A sed program that does not truncate output.
