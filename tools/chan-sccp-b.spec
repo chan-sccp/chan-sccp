@@ -6,27 +6,54 @@
 # norootforbuild
 # usedforbuild    aaa_base acl alsa alsa-devel attr audit-libs autoconf automake bash bind-libs bind-utils binutils bison blocxx bzip2 coreutils cpio cpp cpp41 cracklib curl curl-devel cvs cyrus-sasl dahdi-linux dagdi-linux-devel dahdi-linux-kmp-default dahdi-tools dahdi-tools-devel db diffutils e2fsprogs expat file filesystem fillup findutils flex gawk gcc gcc-c++ gcc41 gcc41-c++ gdbm gdbm-devel gettext gettext-devel glibc glibc-devel glibc-locale gpm grep groff gzip info insserv irqbalance kernel-default klogd krb5 less libacl libattr libcom_err libgcc41 libgsm libgsm-devel libidn libidn-devel libjpeg libjpeg-devel libltdl libmudflap41 libnscd libogg libpri libss7 libstdc++-devel libstdc++41 libstdc++41-devel libtiff libtiff-devel libtool libvolume_id libxcrypt libzio limal limal-bootloader limal-perl linux-kernel-headers m4 make man mdadm mkinitrd mktemp module-init-tools ncurses ncurses-devel net-tools netcfg openldap2 openldap2-client openldap2-devel openssl openssl-devel pam pam-modules patch pcre perl perl-Bootloader perl-gettext permissions popt postgresql-devel postgresql-libs procinfo procps psmisc pwdutils rcs readline reiserfs rpm sed  speex speex-devel sqlite sqlite-devel strace sysvinit tar tcpd tcpd-devel texinfo timezone udev unixODBC unixODBC-devel unzip util-linux vim zlib zlib-devel
 
-%define         origname     chan-sccp-b
+%define 	distdir %(echo "$DISTDIR") 
+%define 	asteriskver %(echo "asterisk${ASTERISKVER}") 
+%define 	rpmversion %(echo "$RPMVERSION") 
+%define 	rpmrelease %(echo "$RPMRELEASE") 
 
-Name:           chan-sccp-b
+%define 	is_mandrake %(test -e /etc/mandrake-release && echo 1 || echo 0)
+%define 	is_suse %(test -e /etc/SuSE-release && echo 1 || echo 0)
+%define 	is_fedora %(test -e /etc/fedora-release && echo 1 || echo 0)
+
+%define 	dist redhat
+%define 	disttag rh
+%define 	asteriskver asterisk
+
+%if %is_mandrake
+	%define dist mandrake
+	%define disttag mdk
+	%define asteriskver asterisk
+%endif
+%if %is_suse
+	%define dist suse
+	%define disttag suse
+	%define asteriskver %(echo "asterisk${ASTERISKVER}") 
+%endif
+%if %is_fedora
+	%define dist fedora
+	%define disttag rhfc
+	%define asteriskver asterisk
+%endif
+%define 	packer %(finger -lp `echo "$USER"` | head -n 1 | cut -d: -f 3)
+
+Name:           chan-sccp-b_%{asteriskver}
 BuildRequires: 	bison
-BuildRequires: 	doxygen
 BuildRequires: 	m4
-BuildRequires: 	asterisk161
-BuildRequires:  asterisk161-devel
-BuildRequires:  graphviz
+BuildRequires: 	%{asteriskver}
+BuildRequires:  %{asteriskver}-devel
 
 PreReq:		pwdutils coreutils sed grep
 
 Summary:	Chan_SCCP-b
-Version: 	3.0.0
-Release: 	RC1
+Version: 	%{rpmversion}
+Release:  	%{rpmrelease}.%{disttag}
 License: 	GPL
 Group:          Productivity/Telephony/Servers
-Packager: 	Diederik de Groot <ddegroot@sourceforge.net>
+Packager: 	%packer% <chan-sccp-b-release@lists.sourceforge.net>
+Vendor:         chan-sccp-b development team <chan-sccp-b-release@lists.sourceforge.net>
 URL: 		http://chan-sccp-b.sourceforge.net/
-Source: 	trunk.tar.gz
-BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+Source: 	%{distdir}.tar.gz
+BuildRoot:      %{_tmppath}/%{name}_%{version}-%{release}-build
 
 
 
@@ -57,7 +84,8 @@ Sebastian Vetter 	:	sebbbl@users.sourceforge.net
 
 
 %prep
-%setup -n %{origname}_%{version}
+echo Building %{name}-%{version}-%{release}...
+%setup -n %{distdir}
 #%patch0 -p0 
 #%patch1 -p 0
 
