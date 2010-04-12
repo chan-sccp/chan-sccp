@@ -327,10 +327,17 @@ if test "${enable_debug}" = "yes"; then
 fi
 AM_CONDITIONAL([WANT_DEBUG],[test "${enable_debug}" = "yes"])
 
+PBX_PATH="/usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw";
 AC_ARG_WITH([asterisk],
-    [AC_HELP_STRING([--with-asterisk=PATH],[Location of the Asterisk installation])],[PBX_PATH="$withval"],[if test "x$withval" = "xyes"; then PBX_PATH="/usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw"; else PBX_PATH="$withval";fi])
+    [AC_HELP_STRING([--with-asterisk=PATH],[Location of the Asterisk installation])],[PBX_PATH="${withval}"],)
+    if test "x${PBX_PATHl}" = "xyes"; then 
+    	PBX_PATH="/usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw"; 
+    fi
 AC_ARG_WITH([callweaver],
-    [AC_HELP_STRING([--with-callweaver=PATH],[Location of CallWeaver installation])],[PBX_PATH="$withval"],[if test "x$withval" = "xyes"; then PBX_PATH="/usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw"; else PBX_PATH="$withval";fi])
+    [AC_HELP_STRING([--with-callwaver=PATH],[Location of the Callweaver installation])],[PBX_PATH="${withval}"],)
+    if test "x${PBX_PATH}" = "xyes"; then 
+    	PBX_PATH="/usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw"; 
+    fi
 dnl AC_ARG_WITH(asterisk-includes,
 dnl     AS_HELP_STRING([--with-asterisk-includes=PATH], [Path to Asterisk includes (defaults to PREFIX/include)]),
 dnl     [ASTERISK_CFLAGS="-I$withval"])
