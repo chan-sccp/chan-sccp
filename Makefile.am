@@ -58,15 +58,40 @@ deb:
 	dpkg-buildpackage -rfakeroot
 
 rpm:    release
-	cp $(distdir).tar.gz /usr/src/packages/SOURCES/
-	cp tools/suse.spec /usr/src/packages/SOURCES/
-	cd /usr/src/packages/SOURCES/ && rpm -bb suse.spec
+	@if [ ! -z "$(RPMBUILD)" ]; then \
+	  cp $(distdir).tar.gz /usr/src/packages/SOURCES/; \
+	  cp tools/chan-sccp-b.spec /usr/src/packages/SOURCES/; \
+	  export DISTDIR=${distdir}; \
+	  if [ -f /etc/SuSE-release ]; then \
+                  if [ "$(ASTERISK_VER)" == "1.4" ]; then \ 
+                          export ASTERISKVER=""; \
+                  else \
+                          export ASTERISKVER="`echo $(ASTERISK_VER)|sed 's/\.//g'`"; \
+                  fi; \
+	  fi; \
+	  if [ "$(VERSION)" == "TRUNK" ]; then \
+          	  export RPMVERSION="3.0"; \
+                  export RPMRELEASE="`svn info|grep Revision|awk -F:\  '{print $$2}'`"; \
+          else \
+                  export RPMVERSION="$(VERSION)"; \
+                  export RPMRELEASE="`svn info|grep Revision|awk -F:\  '{print $$2}'`"; \
+          fi; \
+          cd /usr/src/packages/SOURCES/ && rpmbuild -bb chan-sccp-b.spec; \
+        else \
+	  echo ""; \
+	  echo "RPM Build on your platform not (yet) supported !"; \
+	  echo "If you like you could send us the required package build file for your platform"; \
+	  echo ""; \
+	fi
 
 release:
-	rm -f ChangeLog
-	$(MAKE) ChangeLog
-	echo >>NEWS
-	svn info |grep Revision >> NEWS
-	echo "Please edit the NEWS file now..."
-	/usr/bin/joe NEWS
-	$(MAKE) dist
+	@rm -f ChangeLog
+	@$(MAKE) ChangeLog
+	@if [ "`grep $(VERSION) NEWS`" == "" ]; then \
+	  echo >>NEWS;\
+	  echo "Version: $(VERSION)" >> NEWS; \
+	  echo "Please edit the NEWS file now..."; \
+	  /usr/bin/joe NEWS; \
+	fi 
+	@$(MAKE) dist-gzip
+

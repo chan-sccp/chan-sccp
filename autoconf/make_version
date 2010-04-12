@@ -9,8 +9,9 @@ elif [ -d .svn ]; then
     BRANCH=0
     TEAM=0
     
-    REV=`svnversion -c ${1} | cut -d: -f2|sed s/M//g`
-    
+#    REV=`svnversion -c ${1} | cut -d: -f2|sed s/M//g`
+    REV=`svn info ${1} | grep Revision | awk -F:\  '{print $2;}'`
+
     if [ "x`echo ${PARTS}|grep trunk`" != "x" ]
 	then
 	echo SVN-'trunk'-r${REV}

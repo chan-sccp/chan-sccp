@@ -78,6 +78,7 @@ AMTAR = @AMTAR@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AR = @AR@
 ARGZ_H = @ARGZ_H@
+ASTERISK_VER = @ASTERISK_VER@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -190,6 +191,7 @@ PBX_MODDIR = @PBX_MODDIR@
 PBX_PATH = @PBX_PATH@
 PBX_TYPE = @PBX_TYPE@
 RANLIB = @RANLIB@
+RPMBUILD = @RPMBUILD@
 SCCP_BRANCH = @SCCP_BRANCH@
 SCCP_REVISION = @SCCP_REVISION@
 SCCP_VERSION = @SCCP_VERSION@
@@ -269,7 +271,12 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-EXTRA_DIST = doxygen.cfg doxygen-header main.doc new_features.doc
+EXTRA_DIST = doxygen.cfg doxygen-header  \
+	     01_Index.doc                            05_New_Features.doc                 09_Sources_Explained.doc \
+	     02_What_Is_Chan_SCCP.doc                06_Frequently_Asked_Questions.doc   10_Consulted_Documentation.doc \
+	     03_Building_and_Installation_Guide.doc  07_Supported_Operating_Systems.doc  11_Licensing.doc \
+	     04_Setup_Guide.doc                      08_Developers_Guide.doc             12_Reporting_Issues_Problems.doc
+
 DX_CLEANFILES = everything to clean.
 all: all-am
 

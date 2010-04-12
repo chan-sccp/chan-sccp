@@ -173,6 +173,7 @@ AC_PATH_PROGS(CAT,cat,[echo cat not found, Doh!])
 AC_PATH_PROGS(TR,tr,[echo tr not found, need this for upper/lowercase conversions])
 AC_PATH_PROGS(UNAME,uname,[echo uname not found so no version info will be available])
 AC_PATH_PROGS(WHOAMI,whoami,[echo whoami not found so no version info will be available])
+AC_PATH_PROGS(RPMBUILD,rpmbuild,[echo rpmbuild not found so your cannot build rpm packages])
 AC_PROG_CC
 AC_PROG_CC_C_O
 AC_PROG_CXX
@@ -369,6 +370,7 @@ elif test "${PBX_TYPE}" = "Callweaver"; then
    dnl Figure out the Asterisk Version
    echo "We are working on a Callweaver version"
 fi
+AC_SUBST([PBX_TYPE])
 
 dnl echo "CFLAGS: $CFLAGS"
 dnl echo "CPPFLAGS: $CPPFLAGS"
@@ -474,6 +476,7 @@ AC_SUBST(SVN)
 AC_SUBST(GREP)
 AC_SUBST(CPU_OPTIONS)
 AC_SUBST(prefix)
+AC_SUBST(RPMBUILD)
 
 dnl Doxygen
 CONFIGURE_PART([Checking for Doxygen:])
