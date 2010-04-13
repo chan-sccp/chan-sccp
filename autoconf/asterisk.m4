@@ -2,86 +2,36 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
   CONFIGURE_PART([Checking Asterisk Version:])
   AC_CHECK_HEADER([asterisk/version.h],[
     AC_MSG_CHECKING([for version in asterisk/version.h])
-dnl    if grep -q "ASTERISK_VERSION_NUM 999999" $PBX_INCLUDE/version.h; then
-dnl    	if grep -q "ASTERISK_VERSION \"1.6" $PBX_INCLUDE/version.h; then
-dnl        	ASTERISK_VERSION_NUM=`grep "ASTERISK_VERSION " $PBX_INCLUDE/version.h|awk -F. '{"10" $2 "0" $3}`
-dnl        else
-dnl        	ASTERISK_VERSION_NUM=`grep "ASTERISK_VERSION " $PBX_INCLUDE/version.h|awk -F. '{"10" $2 "00"}'`
-dnl        fi
-dnl        AC_DEFINE_UNQUOTED([ASTERISK_VERSION_NUM],`$ASTERISK_VERSION_NUM`, [Define ASTERISK_VERSION_NUM])
-dnl    fi
-dnl    AC_SUBST([ASTERISK_VERSION_NUM])
-    dnl The rest is for backward support of old sources, should be removed shortly
-    if grep -q "\"1\.2" $PBX_INCLUDE/version.h; then
+    if grep -q "1\.2" $PBX_INCLUDE/version.h; then
       AC_DEFINE(ASTERISK_CONF_1_2, 1, [Define ASTERISK_CONF_1_2])
       AC_MSG_RESULT([Found 'Asterisk Version 1.2.x'])
       REALTIME_USEABLE=0
       ASTERISK_VER=1.2
       AC_SUBST([ASTERISK_VER])
-    elif grep -q "\"SVN-branch-1\.2" $PBX_INCLUDE/version.h; then
-      AC_DEFINE(ASTERISK_CONF_1_2, 1, [Define ASTERISK_CONF_1_2])
-      AC_MSG_RESULT([Found 'Asterisk Version 1.2.x (Branch)'])
-      REALTIME_USEABLE=0
-      ASTERISK_VER=1.2
-      AC_SUBST([ASTERISK_VER])
-    elif grep -q "\"1\.4" $PBX_INCLUDE/version.h; then
+    elif grep -q "1\.4" $PBX_INCLUDE/version.h; then
       AC_DEFINE(ASTERISK_CONF_1_4, 1, [Define ASTERISK_CONF_1_4])
       AC_MSG_RESULT([Found 'Asterisk Version 1.4.x'])
-      REALTIME_USEABLE=1
-      ASTERISK_VER=1.4
-      AC_SUBST([ASTERISK_VER])
-    elif grep -q "\"SVN-branch-1\.4" $PBX_INCLUDE/version.h; then
-      AC_DEFINE(ASTERISK_CONF_1_4, 1, [Define ASTERISK_CONF_1_4])
-      AC_MSG_RESULT([Found 'Asterisk Version 1.4.x (Branch)'])
       REALTIME_USEABLE=1
       ASTERISK_VER=1.4
       AC_SUBST([ASTERISK_VER])
     elif grep -q "1\.6" $PBX_INCLUDE/version.h; then
       AC_DEFINE(ASTERISK_CONF_1_6, 1, [Define ASTERISK_CONF_1_6])
       AC_MSG_RESULT([Found 'Asterisk Version 1.6.x'])
-      REALTIME_USEABLE=1
-      if grep -q "\"1\.6\.0" $PBX_INCLUDE/version.h; then
-        AC_DEFINE(ASTERISK_CONF_1_6_0, 0, [Define ASTERISK_CONF_1_6_0])
-        AC_MSG_RESULT([Found 'Asterisk Version 1.6.1'])
-        REALTIME_USEABLE=1
-        ASTERISK_VER=1.6.0
-        AC_SUBST([ASTERISK_VER])
-      elif grep -q "\"1\.6\.1" $PBX_INCLUDE/version.h; then
-        AC_DEFINE(ASTERISK_CONF_1_6_1, 1, [Define ASTERISK_CONF_1_6_1])
-        AC_MSG_RESULT([Found 'Asterisk Version 1.6.1'])
-        REALTIME_USEABLE=1
-        ASTERISK_VER=1.6.1
-        AC_SUBST([ASTERISK_VER])
-      elif grep -q "\"1\.6\.2" $PBX_INCLUDE/version.h; then
-        AC_DEFINE(ASTERISK_CONF_1_6_2, 1, [Define ASTERISK_CONF_1_6_2])
-        AC_MSG_RESULT([Found 'Asterisk Version 1.6.2'])
-        REALTIME_USEABLE=1
-        ASTERISK_VER=1.6.2
-        AC_SUBST([ASTERISK_VER])
-        
-      elif grep -q "\"SVN-branch-1\.6\.0" $PBX_INCLUDE/version.h; then
+      if grep -q "1\.6\.0" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_6_0, 1, [Define ASTERISK_CONF_1_6_0])
-        AC_MSG_RESULT([Found 'Asterisk Version 1.6.x (Branch)'])
+        AC_MSG_RESULT([Specifically 1.6.0])
         REALTIME_USEABLE=1
         ASTERISK_VER=1.6.0
         AC_SUBST([ASTERISK_VER])
-      elif grep -q "\"SVN-branch-1\.6\.1" $PBX_INCLUDE/version.h; then
+      elif grep -q "1\.6\.1" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_6_1, 1, [Define ASTERISK_CONF_1_6_1])
-        AC_MSG_RESULT([Found 'Asterisk Version 1.6.x (Branch)'])
+        AC_MSG_RESULT([Specifically 1.6.1])
         REALTIME_USEABLE=1
         ASTERISK_VER=1.6.1
         AC_SUBST([ASTERISK_VER])
-      elif grep -q "\"SVN-branch-1\.6\.2" $PBX_INCLUDE/version.h; then
+      elif grep -q "1\.6\.2" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_6_2, 1, [Define ASTERISK_CONF_1_6_2])
-        AC_MSG_RESULT([Found 'Asterisk Version 1.6.x (Branch)'])
-        REALTIME_USEABLE=1
-        ASTERISK_VER=1.6.2
-        AC_SUBST([ASTERISK_VER])
-
-      elif grep -q "trunk" $PBX_INCLUDE/version.h; then
-        AC_DEFINE(ASTERISK_CONF_1_6_2, 1, [Define ASTERISK_CONF_1_6_2])
-        AC_MSG_RESULT([Found 'Asterisk Version 1.6.x (Trunk)'])
-        REALTIME_USEABLE=1
+        AC_MSG_RESULT([Specifically 1.6.2])
         REALTIME_USEABLE=1
         ASTERISK_VER=1.6.2
         AC_SUBST([ASTERISK_VER])
@@ -94,7 +44,29 @@ dnl    AC_SUBST([ASTERISK_VERSION_NUM])
       echo "Either install asterisk and asterisk-devel packages"
       echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
       exit
-    fi],
+    fi
+
+    PBX_VER_NUM=0
+    if grep -q "SVN-branch" $PBX_INCLUDE/version.h; then
+        PBX_VERSION_NUM="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-branch-\(.*\)-r\(.*\)M"/\1/g' |sed 's/\./0/g'`00"
+        PBX_BRANCH="BRANCH"
+        PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-branch-\(.*\)-r\(.*\)M"/\2/g'`"
+    elif grep -q "trunk" $PBX_INCLUDE/version.h; then
+        PBX_VERSION_NUM=1060299
+        PBX_BRANCH="TRUNK"
+        PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-branch-\(.*\)-r\(.*\)M"/\2/g'`"
+    else
+        PBX_VERSION_NUM="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "\(.*\)"/\1/g' |sed 's/\./0/g'`"
+        PBX_BRANCH="TGZ"
+        PBX_REVISION="00"
+    fi
+    AC_DEFINE_UNQUOTED([PBX_VERSION_NUM],`echo ${PBX_VERSION_NUM}`,[PBX Version Number])
+    AC_SUBST([PBX_VERSION_NUM])
+    AC_DEFINE_UNQUOTED([PBX_BRANCH],`echo ${PBX_BRANCH}`,[PBX Branch Type])
+    AC_SUBST([PBX_BRANCH])
+    AC_DEFINE_UNQUOTED([PBX_REVISION],`echo ${PBX_REVISION}`,[PBX Revision Number])
+    AC_SUBST([PBX_REVISION])
+    ],
     [AC_MSG_RESULT(Not Found 'asterisk/version.h')]
   )
 ])

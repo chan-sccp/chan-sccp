@@ -561,6 +561,18 @@
 /* Define to the version of this package. */
 /* #undef PACKAGE_VERSION */
 
+/* PBX Branch Type */
+#undef PBX_BRANCH
+
+/* PBX Revision Number */
+#undef PBX_REVISION
+
+/* PBX Type */
+#undef PBX_TYPE
+
+/* PBX Version Number */
+#undef PBX_VERSION_NUM
+
 /* Define the SCCP Branch */
 #undef SCCP_BRANCH
 
