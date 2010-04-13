@@ -333,7 +333,7 @@ else
         GDB_FLAGS=""
 fi
 AC_ARG_ENABLE(debug,
-	[AC_HELP_STRING([--enable-debug],[build with debug information])],,[enable_debug="no"])
+	[AC_HELP_STRING([--enable-debug],[build with debug information])],[enable_debug="yes"],)
 if test "${enable_debug}" = "yes"; then
    AC_DEFINE([DEBUG],[],[Enable extra debugging.])
    enable_do_crash="yes"
