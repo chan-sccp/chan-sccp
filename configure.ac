@@ -369,6 +369,14 @@ if test "${PBX_TYPE}" = "Asterisk"; then
 elif test "${PBX_TYPE}" = "Callweaver"; then
    dnl Figure out the Asterisk Version
    echo "We are working on a Callweaver version"
+else
+   echo ""
+   echo ""
+   echo "PBX type could not be determined"
+   echo "================================"
+   echo "Either install asterisk and asterisk-devel packages"
+   echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
+   exit
 fi
 AC_SUBST([PBX_TYPE])
 

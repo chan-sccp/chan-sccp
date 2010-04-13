@@ -36,7 +36,7 @@ dnl    AC_SUBST([ASTERISK_VERSION_NUM])
       REALTIME_USEABLE=1
       ASTERISK_VER=1.4
       AC_SUBST([ASTERISK_VER])
-    elif grep -q "\"1\.6" $PBX_INCLUDE/version.h; then
+    elif grep -q "1\.6" $PBX_INCLUDE/version.h; then
       AC_DEFINE(ASTERISK_CONF_1_6, 1, [Define ASTERISK_CONF_1_6])
       AC_MSG_RESULT([Found 'Asterisk Version 1.6.x'])
       REALTIME_USEABLE=1
@@ -87,7 +87,13 @@ dnl    AC_SUBST([ASTERISK_VERSION_NUM])
         AC_SUBST([ASTERISK_VER])
       fi
     else 
-      AC_MSG_RESULT([Asterisk Version could not be determined'])
+      echo ""
+      echo ""
+      echo "PBX version could not be determined"
+      echo "==================================="
+      echo "Either install asterisk and asterisk-devel packages"
+      echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
+      exit
     fi],
     [AC_MSG_RESULT(Not Found 'asterisk/version.h')]
   )

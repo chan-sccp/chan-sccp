@@ -25,8 +25,8 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# Date:     $Date: 2010-04-02 23:04:55 +0200 (Fri, 02 Apr 2010) $
-# Revision: $Revision: 1424 $
+# Date:     $Date: 2010-04-12 19:15:22 +0200 (Mon, 12 Apr 2010) $
+# Revision: $Revision: 1465 $
 
 # Copyright (C) 2004 Oren Ben-Kiki
 # This file is distributed under the same terms as the Automake macro files.
@@ -268,6 +268,7 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
+PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PBX_CFLAGS = @PBX_CFLAGS@
@@ -951,8 +952,7 @@ doxygen: ChangeLog ChangeLog-HTML doxygen-doc
 deb: 
 	dpkg-buildpackage -rfakeroot
 
-#rpm:    release
-rpm:    
+rpm:    release
 	@if [ ! -z "$(RPMBUILD)" ]; then \
 	  cp $(distdir).tar.gz /usr/src/packages/SOURCES/; \
 	  cp tools/chan-sccp-b.spec /usr/src/packages/SOURCES/; \
