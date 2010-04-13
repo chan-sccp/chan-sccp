@@ -986,13 +986,13 @@ void sccp_channel_endcall(sccp_channel_t * c)
 	7960 loses callplane when cancel transfer (end call on other channel).
 	This script set the hold state for transfer_channel explicitly -MC
 	*/
-// 	if (c->device->transfer_channel && c->device->transfer_channel != c) {
-// 		uint32_t instance = sccp_device_find_index_for_line(c->device, c->device->transfer_channel->line->name); 
-// 		sccp_dev_set_lamp(c->device, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_WINK);
-// 		sccp_device_sendcallstate(c->device, instance, c->device->transfer_channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); 
-// 		sccp_dev_set_keyset(c->device, instance, c->device->transfer_channel->callid, KEYMODE_ONHOLD);
-// 		c->device->transfer_channel = NULL;
-// 	}
+	if (c->device->transfer_channel && c->device->transfer_channel != c) {
+		uint32_t instance = sccp_device_find_index_for_line(c->device, c->device->transfer_channel->line->name); 
+		sccp_dev_set_lamp(c->device, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_WINK);
+		sccp_device_sendcallstate(c->device, instance, c->device->transfer_channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); 
+		sccp_dev_set_keyset(c->device, instance, c->device->transfer_channel->callid, KEYMODE_ONHOLD);
+		c->device->transfer_channel = NULL;
+	}
 
 	if (c->owner) {
 		/* Is there a blocker ? */
