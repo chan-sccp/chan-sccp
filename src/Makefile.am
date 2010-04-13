@@ -28,7 +28,7 @@ chan_sccp_la_SOURCES    = chan_sccp.h          sccp_cli.h          sccp_event.h 
 			  sccp_conference.c    #sccp_object2.c
 
 chan_sccp_la_CPPFLAGS	= $(PBX_CPPFLAGS)
-chan_sccp_la_CFLAGS	= $(AM_CFLAGS) $(PBX_CFLAGS)
+chan_sccp_la_CFLAGS	= $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS)
 chan_sccp_la_CFLAGS	+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
 chan_sccp_la_CFLAGS	+= -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wlong-long
 chan_sccp_la_LDFLAGS	= -avoid-version -module  $(PBX_LDFLAGS)
@@ -36,8 +36,12 @@ chan_sccp_la_LDFLAGS	= -avoid-version -module  $(PBX_LDFLAGS)
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
 	@test -z "$(csmoddir)" || $(mkdir_p) "$(DESTDIR)$(csmoddir)"
-	@$(INSTALL) $(INSTALL_STRIP_FLAG) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)" 
-	@if [ -d "$(DESTDIR)$(csmoddir)" ]; then                                                         \
+	@if [ "s(strip_binaries)" == "yes" ]; then \
+	        $(INSTALL) $(INSTALL_STRIP_FLAG) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; \
+	else \
+	        $(INSTALL) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; \
+	fi
+	@if [ -d "$(DESTDIR)$(csmoddir)" ]; then                                          \
 		echo    "=============================================================="; \
 		echo    "Installed chan_sccp.so to '$(DESTDIR)$(csmoddir)'...";           \
 		echo    "=============================================================="; \

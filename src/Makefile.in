@@ -164,11 +164,13 @@ CHANGELOG_OLDEST = @CHANGELOG_OLDEST@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CPU_OPTIONS = @CPU_OPTIONS@
+CUT = @CUT@
 CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
+DATE = @DATE@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DOXYGEN_PAPER_SIZE = @DOXYGEN_PAPER_SIZE@
@@ -204,9 +206,12 @@ ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
+FINGER = @FINGER@
+GDB_FLAGS = @GDB_FLAGS@
 GREP = @GREP@
 HAVE_ASTERISK = @HAVE_ASTERISK@
 HAVE_CALLWEAVER = @HAVE_CALLWEAVER@
+HEAD = @HEAD@
 HOST_CC = @HOST_CC@
 INCLTDL = @INCLTDL@
 INSTALL = @INSTALL@
@@ -248,7 +253,6 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
-PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PBX_BRANCH = @PBX_BRANCH@
@@ -331,6 +335,7 @@ psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
+strip_binaries = @strip_binaries@
 subdirs = @subdirs@
 sys_symbol_underscore = @sys_symbol_underscore@
 sysconfdir = @sysconfdir@
@@ -359,10 +364,10 @@ chan_sccp_la_SOURCES = chan_sccp.h          sccp_cli.h          sccp_event.h    
 			  sccp_conference.c    #sccp_object2.c
 
 chan_sccp_la_CPPFLAGS = $(PBX_CPPFLAGS)
-chan_sccp_la_CFLAGS = $(AM_CFLAGS) $(PBX_CFLAGS) -D_REENTRANT \
-	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall -Wstrict-prototypes \
-	-Wmissing-prototypes -Wmissing-declarations -Wnested-externs \
-	-Wlong-long
+chan_sccp_la_CFLAGS = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) \
+	-D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall \
+	-Wstrict-prototypes -Wmissing-prototypes \
+	-Wmissing-declarations -Wnested-externs -Wlong-long
 chan_sccp_la_LDFLAGS = -avoid-version -module  $(PBX_LDFLAGS)
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -869,8 +874,12 @@ uninstall-am: uninstall-csmodLTLIBRARIES
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
 	@test -z "$(csmoddir)" || $(mkdir_p) "$(DESTDIR)$(csmoddir)"
-	@$(INSTALL) $(INSTALL_STRIP_FLAG) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)" 
-	@if [ -d "$(DESTDIR)$(csmoddir)" ]; then                                                         \
+	@if [ "s(strip_binaries)" == "yes" ]; then \
+	        $(INSTALL) $(INSTALL_STRIP_FLAG) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; \
+	else \
+	        $(INSTALL) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; \
+	fi
+	@if [ -d "$(DESTDIR)$(csmoddir)" ]; then                                          \
 		echo    "=============================================================="; \
 		echo    "Installed chan_sccp.so to '$(DESTDIR)$(csmoddir)'...";           \
 		echo    "=============================================================="; \

@@ -46,15 +46,21 @@ AC_REVISION($Revision$)
 
 dnl Create the relevant Build variables
 AC_PATH_TOOL([UNAME], [uname], No)
+AC_PATH_PROGS(DATE,date,[echo date not found so no daten info will be available])
+AC_PATH_PROGS(UNAME,uname,[echo uname not found so no version info will be available])
+AC_PATH_PROGS(WHOAMI,whoami,[echo whoami not found so no builduser info will be available])
+AC_PATH_PROGS(FINGER,finger,[echo finger not found so no builduser info will be available])
+AC_PATH_PROGS(HEAD,head,[echo finger not found so no builduser info will be available])
+AC_PATH_PROGS(CUT,cut,[echo finger not found so no builduser info will be available])
 if test ! x"${UNAME}" = xNo; then
     if test -n $BUILD_OS ; then
         BUILD_DATE="`date -u "+%Y-%m-%d %H:%M:%S"` UTC"
-	AC_DEFINE_UNQUOTED([BUILD_DATE],"`date -u "+%Y-%m-%d %H:%M:%S"` UTC",[The date of this build])
+	AC_DEFINE_UNQUOTED([BUILD_DATE],"`${DATE} -u "+%Y-%m-%d %H:%M:%S"` UTC",[The date of this build])
 	AC_DEFINE_UNQUOTED([BUILD_OS],"`${UNAME} -s`",[Operating System we are building on])
 	AC_DEFINE_UNQUOTED([BUILD_MACHINE],"`${UNAME} -m`",[Machine we are building on])
 	AC_DEFINE_UNQUOTED([BUILD_HOSTNAME],"`${UNAME} -n`",[Hostname of our Box])
 	AC_DEFINE_UNQUOTED([BUILD_KERNEL],"`${UNAME} -r`",[Kernel version of this build])
-	AC_DEFINE_UNQUOTED([BUILD_USER],"`${WHOAMI}`",[building user])
+	AC_DEFINE_UNQUOTED([BUILD_USER],"`${FINGER} -lp $(echo "$USER") | ${HEAD} -n 1 | ${CUT} -d: -f 3`",[building user])
 	AC_SUBST([BUILD_DATE])
 	AC_SUBST([BUILD_OS])
 	AC_SUBST([BUILD_MACHINE])
@@ -319,14 +325,31 @@ AC_ARG_ENABLE(optimization,
 	[OPTIMIZECPU="$enableval"],[OPTIMIZECPU="yes"])
 
 dnl Enable debugging
+if test "${SCCP_BRANCH}" == "TRUNK"; then 
+	strip_binaries="no"
+        GDB_FLAGS="-g"
+else 
+	strip_binaries="yes"
+        GDB_FLAGS=""
+fi
 AC_ARG_ENABLE(debug,
 	[AC_HELP_STRING([--enable-debug],[build with debug information])],,[enable_debug="no"])
 if test "${enable_debug}" = "yes"; then
    AC_DEFINE([DEBUG],[],[Enable extra debugging.])
    enable_do_crash="yes"
    enable_debug_mutex="yes"
+   strip_binaries="no"
+   GDB_FLAGS="-g"
+else
+   AC_DEFINE([DEBUG],[],[Disabled extra debugging.])
+   enable_do_crash="no"
+   enable_debug_mutex="no"
+   strip_binaries="yes"
+   GDB_FLAGS=""
 fi
 AM_CONDITIONAL([WANT_DEBUG],[test "${enable_debug}" = "yes"])
+AC_SUBST([strip_binaries])
+AC_SUBST([GDB_FLAGS])
 
 PBX_PATH="/usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw";
 AC_ARG_WITH([asterisk],
