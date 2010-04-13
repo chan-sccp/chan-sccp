@@ -2,7 +2,7 @@
 
 # libtool - Provide generalized library-building support services.
 # Generated automatically by config.status (Chan_SCCP) TRUNK
-# Libtool was configured on host spr4:
+# Libtool was configured on host worf:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 #
 #   Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005,
@@ -52,32 +52,32 @@ build_libtool_libs=yes
 pic_mode=default
 
 # Whether or not to optimize for fast installation.
-fast_install=needless
+fast_install=yes
 
 # The host system.
 host_alias=
-host=i686-suse-linux-gnu
+host=i686-pc-linux-gnu
 host_os=linux-gnu
 
 # The build system.
 build_alias=
-build=i686-suse-linux-gnu
+build=i686-pc-linux-gnu
 build_os=linux-gnu
 
 # A sed program that does not truncate output.
-SED="/usr/bin/sed"
+SED="/bin/sed"
 
 # Sed that helps us avoid accidentally triggering echo(1) options like -n.
 Xsed="$SED -e 1s/^X//"
 
 # A grep program that handles long lines.
-GREP="/usr/bin/grep"
+GREP="/bin/grep"
 
 # An ERE matcher.
-EGREP="/usr/bin/grep -E"
+EGREP="/bin/grep -E"
 
 # A literal string matcher.
-FGREP="/usr/bin/grep -F"
+FGREP="/bin/grep -F"
 
 # A BSD- or MS-compatible name lister.
 NM="/usr/bin/nm -B"
@@ -86,7 +86,7 @@ NM="/usr/bin/nm -B"
 LN_S="ln -s"
 
 # What is the maximum length of a command?
-max_cmd_len=1572864
+max_cmd_len=98304
 
 # Object file suffix (normally "o").
 objext=o
@@ -129,7 +129,7 @@ old_postinstall_cmds="chmod 644 \$oldlib~\$RANLIB \$oldlib"
 old_postuninstall_cmds=""
 
 # A C compiler.
-LTCC="gcc"
+LTCC="distcc gcc"
 
 # LTCC compiler flags.
 LTCFLAGS=" -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"
@@ -205,7 +205,7 @@ runpath_var=LD_RUN_PATH
 shlibpath_var=LD_LIBRARY_PATH
 
 # Is shlibpath searched before the hard-coded library search path?
-shlibpath_overrides_runpath=yes
+shlibpath_overrides_runpath=no
 
 # Format of library name prefix.
 libname_spec="lib\$name"
@@ -234,10 +234,10 @@ finish_eval=""
 hardcode_into_libs=yes
 
 # Compile-time system search path for libraries.
-sys_lib_search_path_spec="/usr/lib/gcc/i586-suse-linux/4.4 /usr/i586-suse-linux/lib /usr/lib /lib"
+sys_lib_search_path_spec="/usr/lib/gcc/i486-linux-gnu/4.3.2 /usr/lib /lib"
 
 # Run-time system search path for libraries.
-sys_lib_dlsearch_path_spec="/lib /usr/lib /usr/X11R6/lib/Xaw3d /usr/X11R6/lib /usr/lib/Xaw3d /usr/i386-suse-linux/lib /usr/local/lib /opt/kde3/lib /usr/lib/ghostscript/Omni "
+sys_lib_dlsearch_path_spec="/lib /usr/lib /lib/i486-linux-gnu /usr/lib/i486-linux-gnu /usr/local/lib "
 
 # Whether dlopen is supported.
 dlopen_support=unknown
@@ -254,13 +254,13 @@ striplib="strip --strip-unneeded"
 
 
 # The linker used to build libraries.
-LD="/usr/i586-suse-linux/bin/ld"
+LD="/usr/bin/ld"
 
 # Commands used to build an old-style archive.
 old_archive_cmds="\$AR \$AR_FLAGS \$oldlib\$oldobjs~\$RANLIB \$oldlib"
 
 # A language specific compiler.
-CC="gcc"
+CC="distcc gcc"
 
 # Is the compiler the GNU compiler?
 with_gcc=yes
@@ -8916,13 +8916,13 @@ build_old_libs=`case $build_libtool_libs in yes) echo no;; *) echo yes;; esac`
 # ### BEGIN LIBTOOL TAG CONFIG: CXX
 
 # The linker used to build libraries.
-LD="/usr/i586-suse-linux/bin/ld"
+LD="/usr/bin/ld"
 
 # Commands used to build an old-style archive.
 old_archive_cmds="\$AR \$AR_FLAGS \$oldlib\$oldobjs~\$RANLIB \$oldlib"
 
 # A language specific compiler.
-CC="g++"
+CC="distcc gcc"
 
 # Is the compiler the GNU compiler?
 with_gcc=yes
@@ -9047,17 +9047,17 @@ file_list_spec=""
 hardcode_action=immediate
 
 # The directories searched by this compiler when creating a shared library.
-compiler_lib_search_dirs="/usr/lib/gcc/i586-suse-linux/4.4 /usr/lib/gcc/i586-suse-linux/4.4 /usr/lib/gcc/i586-suse-linux/4.4/../../../../i586-suse-linux/lib /usr/lib/gcc/i586-suse-linux/4.4/../../.."
+compiler_lib_search_dirs="/usr/lib/gcc/i486-linux-gnu/4.3.2 /usr/lib/gcc/i486-linux-gnu/4.3.2 /usr/lib/gcc/i486-linux-gnu/4.3.2/../../../../lib /lib/../lib /usr/lib/../lib /usr/lib/gcc/i486-linux-gnu/4.3.2/../../.."
 
 # Dependencies to place before and after the objects being linked to
 # create a shared library.
-predep_objects="/usr/lib/gcc/i586-suse-linux/4.4/../../../crti.o /usr/lib/gcc/i586-suse-linux/4.4/crtbeginS.o"
-postdep_objects="/usr/lib/gcc/i586-suse-linux/4.4/crtendS.o /usr/lib/gcc/i586-suse-linux/4.4/../../../crtn.o"
+predep_objects="/usr/lib/gcc/i486-linux-gnu/4.3.2/../../../../lib/crti.o /usr/lib/gcc/i486-linux-gnu/4.3.2/crtbeginS.o"
+postdep_objects="/usr/lib/gcc/i486-linux-gnu/4.3.2/crtendS.o /usr/lib/gcc/i486-linux-gnu/4.3.2/../../../../lib/crtn.o"
 predeps=""
-postdeps="-lstdc++ -lm -lgcc_s -lc -lgcc_s"
+postdeps="-lgcc -lgcc_s -lc -lgcc -lgcc_s"
 
 # The library search path used internally by the compiler when linking
 # a shared library.
-compiler_lib_search_path="-L/usr/lib/gcc/i586-suse-linux/4.4 -L/usr/lib/gcc/i586-suse-linux/4.4 -L/usr/lib/gcc/i586-suse-linux/4.4/../../../../i586-suse-linux/lib -L/usr/lib/gcc/i586-suse-linux/4.4/../../.."
+compiler_lib_search_path="-L/usr/lib/gcc/i486-linux-gnu/4.3.2 -L/usr/lib/gcc/i486-linux-gnu/4.3.2 -L/usr/lib/gcc/i486-linux-gnu/4.3.2/../../../../lib -L/lib/../lib -L/usr/lib/../lib -L/usr/lib/gcc/i486-linux-gnu/4.3.2/../../.."
 
 # ### END LIBTOOL TAG CONFIG: CXX
