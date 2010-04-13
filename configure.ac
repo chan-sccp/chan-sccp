@@ -360,6 +360,7 @@ PBX_MANDATORY="yes"
 CS_CHECK_PBX
 
 if test "${PBX_TYPE}" = "Asterisk"; then
+   AC_DEFINE([PBX_TYPE],"ASTERISK",[PBX Type])
    dnl Figure out the Asterisk Version
    GET_ASTERISK_VERSION
    dnl Run Standard Asterisk Header Tests
@@ -367,6 +368,7 @@ if test "${PBX_TYPE}" = "Asterisk"; then
    dnl Check the found Asterisk for their content
    CHECK_ASTERISK_HEADER_CONTENT
 elif test "${PBX_TYPE}" = "Callweaver"; then
+   AC_DEFINE([PBX_TYPE],"|CALLWEAVER",[PBX Type])
    dnl Figure out the Asterisk Version
    echo "We are working on a Callweaver version"
 else
