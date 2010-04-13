@@ -266,7 +266,8 @@ struct ast_variable * sccp_create_variable(const char *buf) {
 
 	if ((varval = strchr(varname,'='))) {
 		*varval++ = '\0';
-#ifndef ASTERISK_CONF_1_6
+//#ifndef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM < 10600
 		if ((tmpvar = ast_variable_new(varname, varval))) {
 #else
 		if ((tmpvar = ast_variable_new(varname, varval, "" ))) {

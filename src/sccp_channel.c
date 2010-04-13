@@ -986,13 +986,13 @@ void sccp_channel_endcall(sccp_channel_t * c)
 	7960 loses callplane when cancel transfer (end call on other channel).
 	This script set the hold state for transfer_channel explicitly -MC
 	*/
-	if (c->device->transfer_channel && c->device->transfer_channel != c) {
-		uint32_t instance = sccp_device_find_index_for_line(c->device, c->device->transfer_channel->line->name); 
-		sccp_dev_set_lamp(c->device, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_WINK);
-		sccp_device_sendcallstate(c->device, instance, c->device->transfer_channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); 
-		sccp_dev_set_keyset(c->device, instance, c->device->transfer_channel->callid, KEYMODE_ONHOLD);
-		c->device->transfer_channel = NULL;
-	}
+// 	if (c->device->transfer_channel && c->device->transfer_channel != c) {
+// 		uint32_t instance = sccp_device_find_index_for_line(c->device, c->device->transfer_channel->line->name); 
+// 		sccp_dev_set_lamp(c->device, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_WINK);
+// 		sccp_device_sendcallstate(c->device, instance, c->device->transfer_channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); 
+// 		sccp_dev_set_keyset(c->device, instance, c->device->transfer_channel->callid, KEYMODE_ONHOLD);
+// 		c->device->transfer_channel = NULL;
+// 	}
 
 	if (c->owner) {
 		/* Is there a blocker ? */
@@ -1652,7 +1652,8 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 
 
 	if (c->rtp.audio) {
-#ifdef ASTERISK_CONF_1_6
+//#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 		ast_rtp_setqos(c->rtp.audio, c->line->audio_tos, c->line->audio_cos, "SCCP RTP");
 #else
 		ast_rtp_settos(c->rtp.audio, c->line->audio_tos);
@@ -1665,13 +1666,15 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 		
 #endif
 		ast_rtp_setnat(c->rtp.audio, d->nat);
-#ifdef ASTERISK_CONF_1_6
+//#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 		ast_rtp_codec_setpref(c->rtp.audio, &c->codecs);
 #endif
 	}
 
 	if (c->rtp.video) {
-#ifdef ASTERISK_CONF_1_6
+//#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 		ast_rtp_setqos(c->rtp.video, c->line->audio_tos, c->line->video_cos, "SCCP VRTP");
 #else
 		ast_rtp_settos(c->rtp.video, c->line->video_tos);
