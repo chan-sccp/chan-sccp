@@ -297,9 +297,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	 	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), r->msg.RegisterMessage.protocolVer);
 	 }
 	 
-	if(d->skinny_type == SKINNY_DEVICETYPE_CISCO7960){
-		d->inuseprotocolversion = 6;
-	}
+	
 	if(d->inuseprotocolversion <= 3) {
 		// Our old flags for protocols from 0 to 3
 		r1->msg.RegisterAckMessage.unknown1 = 0x00;
