@@ -399,7 +399,8 @@ boolean_t sccp_config_general(void){
 				}
 			} else if (!strcasecmp(v->name, "permit") || !strcasecmp(v->name, "deny")) {
 
-#ifndef	ASTERISK_CONF_1_6
+//#ifndef	ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM < 10600
 				GLOB(ha) = ast_append_ha(v->name, v->value, GLOB(ha));
 #else
 				GLOB(ha) = ast_append_ha(v->name, v->value, GLOB(ha), NULL);
@@ -407,7 +408,8 @@ boolean_t sccp_config_general(void){
 
 			} else if (!strcasecmp(v->name, "localnet")) {
 
-#ifndef	ASTERISK_CONF_1_6
+//#ifndef	ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM < 10600
 				if (!(na = ast_append_ha("d", v->value, GLOB(localaddr))))
 #else
 				if (!(na = ast_append_ha("d", v->value, GLOB(localaddr), NULL)))
@@ -1097,7 +1099,8 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
                 } else if (!strcasecmp(v->name, "keepalive")) {
                         d->keepalive = atoi(v->value);
                 } else if (!strcasecmp(v->name, "permit") || !strcasecmp(v->name, "deny")) {
-#ifndef ASTERISK_CONF_1_6
+//#ifndef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM < 10600
                         d->ha = ast_append_ha(v->name, v->value, d->ha);
 #else
                         d->ha = ast_append_ha(v->name, v->value, d->ha, NULL );
@@ -1267,7 +1270,8 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 struct ast_config *sccp_config_getConfig() {
 	struct ast_config *cfg = NULL;
 	
-#ifndef ASTERISK_CONF_1_6
+//#ifndef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM < 10600
 	cfg = ast_config_load("sccp.conf");
 
 	if (!cfg)
