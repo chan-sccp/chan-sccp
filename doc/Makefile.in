@@ -25,8 +25,8 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# Date:     $Date: 2010-02-12 17:10:23 +0100 (Fri, 12 Feb 2010) $
-# Revision: $Revision: 1278 $
+# Date:     $Date: 2010-04-12 19:15:22 +0200 (Mon, 12 Apr 2010) $
+# Revision: $Revision: 1465 $
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -181,6 +181,7 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
+PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PBX_CFLAGS = @PBX_CFLAGS@
