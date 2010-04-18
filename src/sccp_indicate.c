@@ -371,6 +371,11 @@ void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, ui
 	if(!c || !c->line)
 		return;
 
+	/* do not propagate status of hotline */
+	if(c->line == GLOB(hotline)->line)
+		return;
+	
+	
 //	SCCP_LIST_LOCK(&c->line->devices);
 	//TODO find working lock
 	sccp_linedevices_t *linedevice;
