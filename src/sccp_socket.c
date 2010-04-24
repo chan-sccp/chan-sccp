@@ -220,15 +220,11 @@ static void sccp_accept_connection(void)
 		ast_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
 	if (setsockopt(new_socket, IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0)
 		ast_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(sccp_tos), strerror(errno));
-	else if (GLOB(sccp_tos)) 
-		ast_log(LOG_WARNING, "Using SCCP Socket ToS mark %d\n", GLOB(sccp_tos));
 	if (setsockopt(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
 		ast_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
 #if defined(linux)                                                              
         if (setsockopt(new_socket, SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0)  
         	ast_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
-        else if (GLOB(sccp_cos))
-                ast_log(LOG_WARNING, "Using SCCP Socket CoS mark %d\n", GLOB(sccp_cos));
 #endif
                                                 
 /*
