@@ -1,10 +1,13 @@
 /*!
  * \file 	sccp_dllists.h
  * \brief 	SCCP Double Linked Lists Header
- * \author 	Sergio Chersovani <mlists [at] c-net.it>
  * \note	Double Linked List Code derived from Asterisk 1.6.1 "dlinkedlists.h"
+ * \author	Sergio Chersovani <mlists [at] c-net.it>
+ *		Mark Spencer <markster@digium.com>
+ *              Kevin P. Fleming <kpfleming@digium.com>
  * \note  	File is not directly included to get benefit of lists also in previous Asterisk releases (like 1.2)
- * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License Version 3. 
+ *		See the LICENSE file at the top of the source tree.
  * \date        $Date$
  * \version     $Revision$  
  */

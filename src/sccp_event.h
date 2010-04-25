@@ -2,7 +2,8 @@
  * \file 	sccp_event.h
  * \brief 	SCCP Event Header
  * \author 	Marcello Ceschia <marcello [at] ceschia.de>
- * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License Version 3. 
+ *		See the LICENSE file at the top of the source tree.
  * \since	2009-09-02
  * \date        $Date$
  * \version     $Revision$  

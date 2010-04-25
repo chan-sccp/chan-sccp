@@ -2,7 +2,8 @@
  * \file 	sccp_features.c
  * \brief 	SCCP Features Class
  * \author 	Federico Santulli <fsantulli [at] users.sourceforge.net >
- * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License Version 3. 
+ *		See the LICENSE file at the top of the source tree.
  * \since 	2009-01-16
  * \date        $Date$
  * \version     $Revision$
