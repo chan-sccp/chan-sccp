@@ -470,7 +470,7 @@
 /* Define to 1 if you have the `strsep' function. */
 #undef HAVE_STRSEP
 
-/* Define to 1 if `tm_zone' is member of `struct tm'. */
+/* Define to 1 if `struct tm' is a member of `tm_zone'. */
 #undef HAVE_STRUCT_TM_TM_ZONE
 
 /* Define to 1 if you have the <sys/dl.h> header file. */
@@ -544,19 +544,22 @@
 #undef OSF1
 
 /* Define to the address where bug reports for this package should be sent. */
-/* #undef PACKAGE_BUGREPORT */
+#undef PACKAGE_BUGREPORT
 
 /* Define to the full name of this package. */
-/* #undef PACKAGE_NAME */
+#undef PACKAGE_NAME
 
 /* Define to the full name and version of this package. */
-/* #undef PACKAGE_STRING */
+#undef PACKAGE_STRING
 
 /* Define to the one symbol short name of this package. */
-/* #undef PACKAGE_TARNAME */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
 
 /* Define to the version of this package. */
-/* #undef PACKAGE_VERSION */
+#undef PACKAGE_VERSION
 
 /* PBX Branch Type */
 #undef PBX_BRANCH
