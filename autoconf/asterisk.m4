@@ -1,16 +1,8 @@
 dnl FILE: asterisk.m4
 dnl COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
 dnl CREATED BY: Created by Diederik de Groot
-dnl LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
-dnl  
-dnl This file is free software; as a special exception the author gives
-dnl unlimited permission to copy and/or distribute it, with or without 
-dnl modifications, as long as this notice is preserved.
-dnl 
-dnl This program is distributed in the hope that it will be useful, but
-dnl WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
-dnl implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-dnl
+dnl LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
+dnl          See the LICENSE file at the top of the source tree.
 dnl DATE: $Date: $
 dnl REVISION: $Revision: $
 AC_DEFUN([GET_ASTERISK_VERSION], [
