@@ -1,7 +1,18 @@
+# FILE: spec file for package chan-sccp-b (Version trunk)
+# COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
+# CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
+# LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
+#  
+# This file is free software; as a special exception the author gives
+# unlimited permission to copy and/or distribute it, with or without 
+# modifications, as long as this notice is preserved.
+# 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# spec file for package chan-sccp-b (Version trunk)
-#
-#
+# DATE:     $Date: $
+# REVISION: $Revision: $
 
 # norootforbuild
 # usedforbuild    aaa_base acl alsa alsa-devel attr audit-libs autoconf automake bash bind-libs bind-utils binutils bison blocxx bzip2 coreutils cpio cpp cpp41 cracklib curl curl-devel cvs cyrus-sasl dahdi-linux dagdi-linux-devel dahdi-linux-kmp-default dahdi-tools dahdi-tools-devel db diffutils e2fsprogs expat file filesystem fillup findutils flex gawk gcc gcc-c++ gcc41 gcc41-c++ gdbm gdbm-devel gettext gettext-devel glibc glibc-devel glibc-locale gpm grep groff gzip info insserv irqbalance kernel-default klogd krb5 less libacl libattr libcom_err libgcc41 libgsm libgsm-devel libidn libidn-devel libjpeg libjpeg-devel libltdl libmudflap41 libnscd libogg libpri libss7 libstdc++-devel libstdc++41 libstdc++41-devel libtiff libtiff-devel libtool libvolume_id libxcrypt libzio limal limal-bootloader limal-perl linux-kernel-headers m4 make man mdadm mkinitrd mktemp module-init-tools ncurses ncurses-devel net-tools netcfg openldap2 openldap2-client openldap2-devel openssl openssl-devel pam pam-modules patch pcre perl perl-Bootloader perl-gettext permissions popt postgresql-devel postgresql-libs procinfo procps psmisc pwdutils rcs readline reiserfs rpm sed  speex speex-devel sqlite sqlite-devel strace sysvinit tar tcpd tcpd-devel texinfo timezone udev unixODBC unixODBC-devel unzip util-linux vim zlib zlib-devel
