@@ -157,6 +157,9 @@
 /* Found 'CS_AST_SCHED_DEL' in asterisk/sched.h */
 #undef CS_AST_SCHED_DEL
 
+/* Found 'AST_FORMAT_SIREN7' in asterisk/frame.h */
+#undef CS_CODEC_G722_1_24K
+
 /* Debug SCCP indications */
 #undef CS_DEBUG_INDICATIONS
 
@@ -544,22 +547,22 @@
 #undef OSF1
 
 /* Define to the address where bug reports for this package should be sent. */
-#undef PACKAGE_BUGREPORT
+/* #undef PACKAGE_BUGREPORT */
 
 /* Define to the full name of this package. */
-#undef PACKAGE_NAME
+/* #undef PACKAGE_NAME */
 
 /* Define to the full name and version of this package. */
-#undef PACKAGE_STRING
+/* #undef PACKAGE_STRING */
 
 /* Define to the one symbol short name of this package. */
-#undef PACKAGE_TARNAME
+/* #undef PACKAGE_TARNAME */
 
 /* Define to the home page for this package. */
-#undef PACKAGE_URL
+/* #undef PACKAGE_URL */
 
 /* Define to the version of this package. */
-#undef PACKAGE_VERSION
+/* #undef PACKAGE_VERSION */
 
 /* PBX Branch Type */
 #undef PBX_BRANCH
