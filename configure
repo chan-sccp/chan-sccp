@@ -20850,6 +20850,18 @@ $as_echo "Found" >&6; }
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Not Found" >&5
 $as_echo "Not Found" >&6; }
     fi
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking asterisk/frame.h for 'AST_FORMAT_SIREN7'" >&5
+$as_echo_n "checking asterisk/frame.h for 'AST_FORMAT_SIREN7'... " >&6; }
+    if grep -q "AST_FORMAT_SIREN7" $PBX_INCLUDE/frame.h; then
+
+$as_echo "#define CS_CODEC_G722_1_24K 1" >>confdefs.h
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found" >&5
+$as_echo "Found" >&6; }
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Not Found" >&5
+$as_echo "Not Found" >&6; }
+    fi
   fi
     if test -f $PBX_INCLUDE/devicestate.h; then
 
