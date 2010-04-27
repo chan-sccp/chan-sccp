@@ -1074,7 +1074,7 @@ sccp_device_t * sccp_device_find_byipaddress(unsigned long s_addr){
  * \param state SCCP Channel State
  * \return asterisk device state
  */
-enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state){
+enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state){	  
 	switch(state){
 	  case SCCP_CHANNELSTATE_CALLWAITING:
 	        return AST_DEVICE_INUSE;
