@@ -306,12 +306,12 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 		r1->msg.RegisterAckMessage.unknown3 = 0x00;
 	} else if (d->inuseprotocolversion <= 10) {
 		/* CCM 4.1.3 Sets this bytes this way Proto v6 */
-		r1->msg.RegisterAckMessage.unknown1 = 0x00; // 0x00;
+		r1->msg.RegisterAckMessage.unknown1 = 0x20; // 0x00;
 		r1->msg.RegisterAckMessage.unknown2 = 0x00; // 0x00;
 		r1->msg.RegisterAckMessage.unknown3 = 0xFE; // 0xFE;
 	} else if (d->inuseprotocolversion >= 11) {
 		/* CCM7 Sets this bytes this way Proto v11 */
-		r1->msg.RegisterAckMessage.unknown1 = 0x00; // 0x00;
+		r1->msg.RegisterAckMessage.unknown1 = 0x20; // 0x00;
 		r1->msg.RegisterAckMessage.unknown2 = 0xF1; // 0xF1;
 		r1->msg.RegisterAckMessage.unknown3 = 0xFF; // 0xFF;
 	}

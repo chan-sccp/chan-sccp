@@ -11,8 +11,8 @@
 
 %define 	distdir %(echo "$DISTDIR") 
 %define 	asteriskver %(echo "asterisk${ASTERISKVER}") 
-%define 	rpmversion %(echo "$RPMVERSION") 
-%define 	rpmrelease %(echo "$RPMRELEASE") 
+%define 	rpmversion %(echo "${RPMVERSION}_${RPMBRANCH}") 
+%define 	rpmrelease %(echo "$RPMREVISION") 
 
 %define 	is_mandrake %(test -e /etc/mandrake-release && echo 1 || echo 0)
 %define 	is_suse %(test -e /etc/SuSE-release && echo 1 || echo 0)
