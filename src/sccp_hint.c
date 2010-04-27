@@ -865,6 +865,8 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 		if(lineDevice){
 			if(lineDevice->device->dndFeature.enabled && lineDevice->device->dndFeature.status == SCCP_DNDMODE_REJECT){
 				hint->currentState = SCCP_CHANNELSTATE_DND;
+				sccp_copy_string(hint->callInfo.callingPartyName,  SKINNY_DISP_DND, sizeof(hint->callInfo.callingPartyName));
+				sccp_copy_string(hint->callInfo.calledPartyName,  SKINNY_DISP_DND, sizeof(hint->callInfo.calledPartyName));
 			}else{
 				hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
 			}
