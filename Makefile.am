@@ -13,6 +13,7 @@ EXTRA_DIST 			=
 SUBDIRS 			= src doc
 ACLOCAL_AMFLAGS                 = -I autoconf
 AM_CPPFLAGS                     = $(LTDLINCL)
+distdir = $(PACKAGE)-$(SCCP_VERSION)_$(SCCP_BRANCH)
 	
 # Update libtool if necessary	
 libtool: @LIBTOOL_DEPS@
@@ -54,7 +55,7 @@ deb:
 	dpkg-buildpackage -rfakeroot
 
 rpm:    release
-	@if [ ! -z "$(RPMBUILD)" ]; then \
+	@if test ! -z "$(RPMBUILD)" ; then \
 	  cp $(distdir).tar.gz /usr/src/packages/SOURCES/; \
 	  cp tools/chan-sccp-b.spec /usr/src/packages/SOURCES/; \
 	  export DISTDIR=${distdir}; \
@@ -65,13 +66,9 @@ rpm:    release
                           export ASTERISKVER="`echo $(ASTERISK_VER)|sed 's/\.//g'`"; \
                   fi; \
 	  fi; \
-	  if [ "$(VERSION)" == "TRUNK" ]; then \
-          	  export RPMVERSION="3.0"; \
-                  export RPMRELEASE="`svn info|grep Revision|awk -F:\  '{print $$2}'`"; \
-          else \
-                  export RPMVERSION="$(VERSION)"; \
-                  export RPMRELEASE="`svn info|grep Revision|awk -F:\  '{print $$2}'`"; \
-          fi; \
+          export RPMVERSION="$(SCCP_VERSION)"; \
+          export RPMBRANCH="$(SCCP_BRANCH)"; \
+          export RPMREVISION="$(SCCP_REVISION"; \
           cd /usr/src/packages/SOURCES/ && rpmbuild -bb chan-sccp-b.spec; \
         else \
 	  echo ""; \
@@ -83,9 +80,9 @@ rpm:    release
 release:
 	@rm -f ChangeLog
 	@$(MAKE) ChangeLog
-	@if [ "`grep $(VERSION) NEWS`" == "" ]; then \
+	@if [ "`grep $(SCCP_VERSION)_$(SCCP_BRANCH) NEWS`" == "" ]; then \
 	  echo >>NEWS;\
-	  echo "Version: $(VERSION)" >> NEWS; \
+	  echo "Version: $(SCCP_VERSION)_$(SCCP_BRANCH)" >> NEWS; \
 	  echo "Please edit the NEWS file now..."; \
 	  /usr/bin/joe NEWS; \
 	fi 

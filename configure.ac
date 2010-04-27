@@ -8,7 +8,7 @@ dnl REVISION: $Revision$
 dnl NOTE: Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.53)
 AC_INIT([Chan_SCCP],
-        [TRUNK],
+        [3.0_TRUNK],
         [https://sourceforge.net/projects/chan-sccp-b/],
         [Chan_SCCP])
 
@@ -59,15 +59,25 @@ AC_PATH_PROGS(WHOAMI,whoami,[echo whoami not found so no builduser info will be 
 AC_PATH_PROGS(FINGER,finger,[echo finger not found so no builduser info will be available])
 AC_PATH_PROGS(HEAD,head,[echo finger not found so no builduser info will be available])
 AC_PATH_PROGS(CUT,cut,[echo finger not found so no builduser info will be available])
+AC_PATH_PROGS(AWK,awk,[echo awk not found so no builduser info will be available])
 if test ! x"${UNAME}" = xNo; then
     if test -n $BUILD_OS ; then
         BUILD_DATE="`date -u "+%Y-%m-%d %H:%M:%S"` UTC"
-	AC_DEFINE_UNQUOTED([BUILD_DATE],"`${DATE} -u "+%Y-%m-%d %H:%M:%S"` UTC",[The date of this build])
-	AC_DEFINE_UNQUOTED([BUILD_OS],"`${UNAME} -s`",[Operating System we are building on])
-	AC_DEFINE_UNQUOTED([BUILD_MACHINE],"`${UNAME} -m`",[Machine we are building on])
-	AC_DEFINE_UNQUOTED([BUILD_HOSTNAME],"`${UNAME} -n`",[Hostname of our Box])
-	AC_DEFINE_UNQUOTED([BUILD_KERNEL],"`${UNAME} -r`",[Kernel version of this build])
-	AC_DEFINE_UNQUOTED([BUILD_USER],"`${FINGER} -lp $(echo "$USER") | ${HEAD} -n 1 | ${CUT} -d: -f 3`",[building user])
+        BUILD_OS="`${UNAME} -s`"
+        BUILD_MACHINE="`${UNAME} -m`"
+        BUILD_HOSTNAME="`${UNAME} -n`"
+        BUILD_KERNEL="`${UNAME} -r`"
+        if test ! x"${AWK}" = xNo; then
+                BUILD_USER="`${FINGER} -lp $(echo "$USER") | ${HEAD} -n 1 | ${AWK} -F:\  '{print $3}'`"
+        else
+                BUILD_USER="`${WHOAMI}`"
+        fi
+	AC_DEFINE_UNQUOTED([BUILD_DATE],"`echo ${BUILD_DATE}`",[The date of this build])
+	AC_DEFINE_UNQUOTED([BUILD_OS],"`echo ${BUILD_OS}`",[Operating System we are building on])
+	AC_DEFINE_UNQUOTED([BUILD_MACHINE],"`echo ${BUILD_MACHINE}`",[Machine we are building on])
+	AC_DEFINE_UNQUOTED([BUILD_HOSTNAME],"`echo ${BUILD_HOSTNAME}`",[Hostname of our Box])
+	AC_DEFINE_UNQUOTED([BUILD_KERNEL],"`echo ${BUILD_KERNEL}`",[Kernel version of this build])
+	AC_DEFINE_UNQUOTED([BUILD_USER],"`echo ${BUILD_USER}`",[building user])
 	AC_SUBST([BUILD_DATE])
 	AC_SUBST([BUILD_OS])
 	AC_SUBST([BUILD_MACHINE])
@@ -76,8 +86,6 @@ if test ! x"${UNAME}" = xNo; then
 	AC_SUBST([BUILD_USER])
     fi
 fi
-
-AC_DEFINE_UNQUOTED([BUILD_USER],"`${WHOAMI}`",[building user])
 
 ac_default_prefix=/usr
 if test ${sysconfdir} = '${prefix}/etc'; then
@@ -509,8 +517,6 @@ if test -z "${csmoddir}"; then
 fi
 AC_SUBST([csmoddir])
 
-AC_DEFINE_UNQUOTED([BUILD_USER],"`${WHOAMI}`",[building user])
-
 # substitutes
 AC_SUBST(SVN)
 AC_SUBST(GREP)
@@ -542,8 +548,14 @@ AH_BOTTOM([
 #endif /* CHAN_SCCP_CONFIG_H */
 ])
 
-AC_OUTPUT
+VERSION="`echo ${SCCP_VERSION}_${SCCP_BRANCH}`"
+PACKAGE_STRING="`echo Chan_SCCP_${VERSION}`"
+PACKAGE_TARNAME="`echo Chan_SCCP_${VERSION}`"
+AC_SUBST([VERSION])
+AC_SUBST([PACKAGE_STRING])
+AC_SUBST([PACKAGE_TARNAME])
 
+AC_OUTPUT
 #
 # Fixing the PACKAGE_* redefines    
 #
@@ -560,13 +572,16 @@ sed -e "s/^\(\#define PACKAGE_[A-Z]*\)$/\/\* \1 \*\//g" src/config.h >src/config
 sed -e "s/^\(\#undef PACKAGE_[A-Z]*\)$/\/\* \1 \*\//g" src/config.h.in >src/config.h.in.tmp && mv src/config.h.in.tmp src/config.h.in
 
 echo
-echo "Architecture: $build_cpu"
-echo "  Build user: $BUILD_USER"
-echo "  CPU -march: $march"
-echo "      CFLAGS: $CFLAGS $PBX_CFLAGS"
-echo "     LDFLAGS: $LDFLAGS $PBX_LDFLAGS"
-echo "    PBX_TYPE: $PBX_TYPE"
-echo "     PBX_LIB: $PBX_LIB"
-echo " PBX_INCLUDE: $PBX_INCLUDE"
-echo "      config: /etc"
-echo "     modules: ${csmoddir}"
+echo "Operating System : $BUILD_OS"
+echo "          Kernel : $BUILD_KERNEL"
+echo "    Architecture : $BUILD_MACHINE"
+echo "      Build user : $BUILD_USER"
+echo "         Version : ${SCCP_VERSION}_${SCCP_BRANCH}_r${SCCP_REVISION}"
+#echo "      CPU -march : $march"
+echo "          CFLAGS : $CFLAGS $PBX_CFLAGS"
+echo "         LDFLAGS : $LDFLAGS $PBX_LDFLAGS"
+echo "        PBX_TYPE : $PBX_TYPE"
+echo "         PBX_LIB : $PBX_LIB"
+echo "     PBX_INCLUDE : $PBX_INCLUDE"
+echo "          config : /etc"
+echo "         modules : ${csmoddir}"

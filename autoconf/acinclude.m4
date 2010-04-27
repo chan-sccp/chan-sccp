@@ -263,15 +263,19 @@ AC_DEFUN([CS_GET_VERSION], [
       SCCP_VERSION="${FIFTH_PART}"
       SCCP_BRANCH="${FIFTH_PART}"
     else
-      SCCP_VERSION="TRUNK"
-      SCCP_BRANCH="TRUNK"
+      if test -f .version; then
+        SCCP_VERSION="`cat .version|cut -d_ -f1`"
+        SCCP_BRANCH="`cat .version|cut -d_ -f2`"
+      else 
+        SCCP_VERSION="TRUNK"
+        SCCP_BRANCH="TRUNK"
+      fi
     fi
     SCCP_REVISION="`svnversion . |cut -dM -f1`"
-    
   elif test -f .version;then
-    SCCP_VERSION="`cat .version`"
-    if test -f .svnbranch;then
-      SCCP_BRANCH="`cat .svnbranch`"
+    SCCP_VERSION="`cat .version|cut -d_ -f1`"
+    SCCP_BRANCH="`cat .version|cut -d_ -f2`"
+    if test -f .revision;then
       SCCP_REVISION="`cat .revision`"
     fi
   else
@@ -286,11 +290,11 @@ AC_DEFUN([CS_GET_VERSION], [
   AC_SUBST([SCCP_BRANCH])
   AC_SUBST([SCCP_REVISION])
   if test "${SCCP_BRANCH}" = "TRUNK"; then
-    PACKAGE_NAME="Chan_SCCP_(${SCCP_BRANCH}_r${SCCP_REVISION})"
-    PACKAGE_VERSION="${SCCP_BRANCH}_r${SCCP_REVISION}"
-  else
-    PACKAGE_NAME="Chan_SCCP_${SCCP_VERSION}_(${SCCP_BRANCH}_r${SCCP_REVISION})"
+    PACKAGE_NAME="Chan_SCCP_(${SCCP_VERSION}_${SCCP_BRANCH})"
     PACKAGE_VERSION="${SCCP_VERSION}_${SCCP_BRANCH}_r${SCCP_REVISION}"
+  else
+    PACKAGE_NAME="Chan_SCCP_${SCCP_VERSION}_(${SCCP_BRANCH})"
+    PACKAGE_VERSION="${SCCP_VERSION}_${SCCP_BRANCH}"
   fi
   AC_SUBST([PACKAGE_NAME])
 ])
