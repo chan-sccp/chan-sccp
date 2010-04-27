@@ -218,7 +218,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 
 
 
-	if ( d->dndFeature.status == SCCP_DNDMODE_REJECT || d->dndFeature.status == SCCP_DNDMODE_OFF) {
+	//if ( d->dndFeature.status == SCCP_DNDMODE_REJECT || d->dndFeature.status == SCCP_DNDMODE_OFF) {
 		sccp_buttonconfig_t *buttonconfig;
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 			if(buttonconfig->type == LINE ){
@@ -227,7 +227,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 					sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: Notify the dnd status (%s) to asterisk for line %s\n", d->id, d->dndFeature.status ? "on" : "off", l1->name);
 					if (d->dndFeature.status == SCCP_DNDMODE_REJECT){
 		//				sccp_hint_notify_linestate(l1, d, SCCP_DEVICESTATE_ONHOOK, SCCP_DEVICESTATE_DND);
-						sccp_hint_lineStatusChanged(l1, d, NULL, SCCP_DEVICESTATE_ONHOOK, SCCP_DEVICESTATE_DND);
+						sccp_hint_lineStatusChanged(l1, d, NULL, SCCP_DEVICESTATE_ONHOOK, SCCP_CHANNELSTATE_DND);
 					}else{
 		//	 			sccp_hint_notify_linestate(l1, d, SCCP_DEVICESTATE_DND, SCCP_DEVICESTATE_ONHOOK);
 						sccp_hint_lineStatusChanged(l1, d, NULL, SCCP_DEVICESTATE_DND, SCCP_DEVICESTATE_ONHOOK);
@@ -235,7 +235,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 				}
 			}
 		}
-	}
+	//}
 
 	sccp_feat_changed(d, SCCP_FEATURE_DND);
 	sccp_dev_check_displayprompt(d);
