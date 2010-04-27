@@ -185,9 +185,6 @@ void sccp_hint_eventListener(const sccp_event_t **event){
 void sccp_hint_deviceRegistered(const sccp_device_t *device){
 	sccp_buttonconfig_t *config;
 	
-	if(!device->buttonconfig)
-		return;
-
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 
 		if(config->type == SPEEDDIAL){
@@ -533,6 +530,7 @@ void sccp_hint_lineStatusChanged(sccp_line_t *line, sccp_device_t *device, sccp_
 	if(!line)
 		return;
 
+
 	SCCP_LIST_LOCK(&sccp_hint_subscriptions);
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list){
 		if(	strlen(line->name) == strlen(hint->type.internal.lineName)
@@ -863,6 +861,7 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 	}else{
 		sccp_linedevices_t *lineDevice = SCCP_LIST_FIRST(&line->devices);
 		if(lineDevice){
+		  
 			if(lineDevice->device->dndFeature.enabled && lineDevice->device->dndFeature.status == SCCP_DNDMODE_REJECT){
 				hint->currentState = SCCP_CHANNELSTATE_DND;
 				sccp_copy_string(hint->callInfo.callingPartyName,  SKINNY_DISP_DND, sizeof(hint->callInfo.callingPartyName));
