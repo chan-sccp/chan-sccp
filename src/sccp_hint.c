@@ -188,7 +188,6 @@ void sccp_hint_deviceRegistered(const sccp_device_t *device){
 	if(!device->buttonconfig)
 		return;
 
-	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 
 		if(config->type == SPEEDDIAL){
@@ -199,7 +198,6 @@ void sccp_hint_deviceRegistered(const sccp_device_t *device){
 
 		}
 	}
-	SCCP_LIST_UNLOCK(&device->buttonconfig)
 }
 
 /*!
