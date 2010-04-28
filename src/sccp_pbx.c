@@ -871,7 +871,21 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	if (!c->device)
 			return -1;
 
-	sccp_channel_lock(c);
+	//sccp_channel_lock(c);
+	//avoid deadlock @see https://sourceforge.net/tracker/?func=detail&aid=2979751&group_id=186378&atid=917045 -MC
+	int counter = 0;
+	while (c && sccp_channel_trylock(c)) {
+		counter++;
+		if(counter > 200){
+			ast_log(LOG_ERROR, "Unable to lock channel in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+			return -1;
+		}
+		sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
+		usleep(10);
+		
+	}
+	
+	
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "%s: Asterisk indicate '%d' (%s) condition on channel %s\n", DEV_ID_LOG(c->device), ind, sccp_control2str(ind), ast->name);
 
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
