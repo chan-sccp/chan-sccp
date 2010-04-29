@@ -1432,6 +1432,11 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 #endif
 	tmp->priority = 1;
 
+	// export sccp informations in asterisk dialplan
+	pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_MAC" , c->device->id);
+	pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_IP"  , ast_inet_ntoa(c->device->session->sin.sin_addr));
+	pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_TYPE", devicetype2str(c->device->skinny_type));
+
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%08x\n", (l)?l->id:"(null)", (l)?l->name:"(null)", (c)?c->callid:-1);
 
 	return 1;
