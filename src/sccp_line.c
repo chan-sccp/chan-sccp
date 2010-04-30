@@ -248,12 +248,12 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t *device, uint8_t type, char *
 	if (type == SCCP_CFWD_NONE) {
 		linedevice->cfwdAll.enabled = 0;
 		linedevice->cfwdBusy.enabled = 0;
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call Forward disabled on line\n", l->name);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call Forward disabled on line %s\n", DEV_ID_LOG(device), l->name);
 	} else {
 		if (!number || ast_strlen_zero(number)) {
 			linedevice->cfwdAll.enabled = 0;
 			linedevice->cfwdBusy.enabled = 0;
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call Forward to an empty number. Invalid\n", l->name);
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call Forward to an empty number. Invalid\n", DEV_ID_LOG(device));
 		}else{
 			switch(type){
 			case SCCP_CFWD_ALL:
@@ -268,7 +268,7 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t *device, uint8_t type, char *
 				linedevice->cfwdAll.enabled = 0;
 				linedevice->cfwdBusy.enabled = 0;
 			}
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call Forward enabled on line %s to number %s\n", l->name, l->name, number);
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call Forward enabled on line %s to number %s\n", DEV_ID_LOG(device), l->name, number);
 		}
 	}
 	// sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, l->instance, 0, 0);
