@@ -471,19 +471,23 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			continue;
 		}
 		
-		
 		/*	
 		we have dynamic speeddial enabled, but subscriber can not handle this.
 		We have to switch back to old hint style and send old state.
+		*/
+		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "%s: can not handle dynamic speeddial, fall back to old behavior using state %d\n", DEV_ID_LOG(subscriber->device), state );
+
+#endif
+		/* 
+		With the old hint style we should only use SCCP_CHANNELSTATE_ONHOOK and SCCP_CHANNELSTATE_CALLREMOTEMULTILINE as callstate,
+		otherwise we get a callplane on device -> set all states except onhook to SCCP_CHANNELSTATE_CALLREMOTEMULTILINE -MC
 		*/
 		if(hint->currentState != SCCP_CHANNELSTATE_ONHOOK){
 			state = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 		}else{
 			state = SCCP_CHANNELSTATE_ONHOOK;
 		}
-		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "%s: can not handle dynamic speeddial, fall back to old behavior using state %d\n", DEV_ID_LOG(subscriber->device), state );
 
-#endif
 		sccp_device_sendcallstate(subscriber->device, subscriber->instance, 0, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
 		
 		/* create CallInfoMessage */
@@ -507,11 +511,11 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "notify device: %s@%d state: %d\n", DEV_ID_LOG(subscriber->device), subscriber->instance, hint->currentState );
 
 		
-		/*if(hint->currentState == SCCP_CHANNELSTATE_ONHOOK) {
+		if(hint->currentState == SCCP_CHANNELSTATE_ONHOOK) {
 			sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_ONHOOK);
 		}else{
 			sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_INUSEHINT);
-		}*/
+		}
 	}
 	SCCP_LIST_UNLOCK(&hint->subscribers);
 }
