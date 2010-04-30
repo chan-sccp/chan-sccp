@@ -115,7 +115,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 
 	/* ip address range check */
 	if (GLOB(ha) && !ast_apply_ha(GLOB(ha), &s->sin)) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Rejecting device: Ip address denied\n", r->msg.RegisterMessage.sId.deviceName);
+		ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.RegisterMessage.sId.deviceName);
 		sccp_session_reject(s, "Device ip not authorized");
 		return;
 	}
@@ -134,7 +134,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 			SCCP_LIST_INSERT_HEAD(&GLOB(devices), d, list);
 			SCCP_LIST_UNLOCK(&GLOB(devices));
 		}else{
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Rejecting device: not found\n", r->msg.RegisterMessage.sId.deviceName);
+			ast_log(LOG_NOTICE, "%s: Rejecting device: not found\n", r->msg.RegisterMessage.sId.deviceName);
 			sccp_session_reject(s, "Unknown Device");
 			return;
 		}
@@ -149,19 +149,19 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 					break;
 				} else {
 #ifdef ASTERISK_CONF_1_2
-					sccp_log(1)(VERBOSE_PREFIX_3 "%s: device ip address does not match the permithost = %s (%s)\n", r->msg.RegisterMessage.sId.deviceName, permithost->name, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr));
+					ast_log(LOG_NOTICE, "%s: device ip address does not match the permithost = %s (%s)\n", r->msg.RegisterMessage.sId.deviceName, permithost->name, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr));
 #else
-					sccp_log(1)(VERBOSE_PREFIX_3 "%s: device ip address does not match the permithost = %s (%s)\n", r->msg.RegisterMessage.sId.deviceName, permithost->name, ast_inet_ntoa(sin.sin_addr));
+					ast_log(LOG_NOTICE, "%s: device ip address does not match the permithost = %s (%s)\n", r->msg.RegisterMessage.sId.deviceName, permithost->name, ast_inet_ntoa(sin.sin_addr));
 #endif
 				}
 			} else {
-				sccp_log(1)(VERBOSE_PREFIX_3 "%s: Invalid address resolution for permithost = %s\n", r->msg.RegisterMessage.sId.deviceName, permithost->name);
+				ast_log(LOG_NOTICE, "%s: Invalid address resolution for permithost = %s\n", r->msg.RegisterMessage.sId.deviceName, permithost->name);
 			}
 		}
 		SCCP_LIST_UNLOCK(&d->permithosts);
 
 		if (i) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Rejecting device: Ip address denied\n", r->msg.RegisterMessage.sId.deviceName);
+			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.RegisterMessage.sId.deviceName);
 			sccp_session_reject(s, "Device ip not authorized");
 			return;
 		}
