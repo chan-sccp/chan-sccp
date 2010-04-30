@@ -635,6 +635,12 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t *hint){
 	sccp_channel_t *channel = NULL;
 	
 	
+	memset(hint->callInfo.callingPartyName, 0, sizeof(hint->callInfo.callingPartyName));
+	memset(hint->callInfo.callingParty, 0, sizeof(hint->callInfo.callingParty));
+	
+	memset(hint->callInfo.calledPartyName, 0, sizeof(hint->callInfo.calledPartyName));
+	memset(hint->callInfo.calledParty, 0, sizeof(hint->callInfo.calledParty));
+	
 	hint->callInfo.calltype = SKINNY_CALLTYPE_OUTBOUND;
 
 	if(!line){
@@ -721,8 +727,16 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 	}
 	
 
-	sccp_copy_string(hint->callInfo.callingPartyName, "", sizeof(hint->callInfo.callingPartyName));
-	sccp_copy_string(hint->callInfo.calledPartyName,  "", sizeof(hint->callInfo.calledPartyName));
+	//sccp_copy_string(hint->callInfo.callingPartyName, "", sizeof(hint->callInfo.callingPartyName));
+	//sccp_copy_string(hint->callInfo.calledPartyName,  "", sizeof(hint->callInfo.calledPartyName));
+	
+	memset(hint->callInfo.callingPartyName, 0, sizeof(hint->callInfo.callingPartyName));
+	memset(hint->callInfo.callingParty, 0, sizeof(hint->callInfo.callingParty));
+	
+	memset(hint->callInfo.calledPartyName, 0, sizeof(hint->callInfo.calledPartyName));
+	memset(hint->callInfo.calledParty, 0, sizeof(hint->callInfo.calledParty));
+	
+	
 
 	channel = SCCP_LIST_FIRST(&line->channels);
 
