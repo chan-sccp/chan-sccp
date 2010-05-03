@@ -1548,7 +1548,7 @@ static struct ast_cli_entry cli_reload = {
  * \return Result as int
  */
 static int sccp_show_version(int fd, int argc, char *argv[]) {
-	ast_cli(fd, "Skinny Client Control Protocol (SCCP). Release: %s - %s (built by '%s' on '%s')\n", SCCP_BRANCH, SCCP_REVISION, BUILD_USER, BUILD_DATE);
+	ast_cli(fd, "Skinny Client Control Protocol (SCCP). Release: %s %s - %s (built by '%s' on '%s')\n", SCCP_VERSION, SCCP_BRANCH, SCCP_REVISION, BUILD_USER, BUILD_DATE);
 	return RESULT_SUCCESS;
 }
 
