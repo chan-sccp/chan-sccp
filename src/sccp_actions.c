@@ -193,12 +193,12 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	d->protocolversion = r->msg.RegisterMessage.protocolVer;
 	
 	
-	//TODO check if we can delete device (realtime)
-	if(d->protocolversion > 0 && d->protocolversion < SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW){
-		ast_log(LOG_NOTICE, "%s: Rejecting device: Protocol version of device %d < %d\n", r->msg.RegisterMessage.sId.deviceName, d->protocolversion, SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW);
-		sccp_session_reject(s, "unsupported protocol version");
-		return;
-	}
+//	//TODO check if we can delete device (realtime)
+//	if(d->protocolversion > 0 && d->protocolversion < SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW){
+//		ast_log(LOG_NOTICE, "%s: Rejecting device: Protocol version of device %d < %d\n", r->msg.RegisterMessage.sId.deviceName, d->protocolversion, SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW);
+//		sccp_session_reject(s, "unsupported protocol version");
+//		return;
+//	}
 
 
 	/* set softkey definition */
