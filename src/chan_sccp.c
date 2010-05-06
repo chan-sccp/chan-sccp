@@ -11,6 +11,12 @@
  * \date        $Date$
  * \version     $Revision$
  */
+ 
+/*!
+ * \remarks	Purpose: 	This source file should be used only for asterisk module related content. 
+ * 		When to use:	Methods communicating to asterisk about module initialization, status, destruction
+ *   		Relationships: 	Main hub for all other sourcefiles.
+ */
 
 #define AST_MODULE "chan_sccp"
 

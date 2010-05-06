@@ -467,6 +467,14 @@ AC_ARG_WITH(manager,
 	        AC_DEFINE(CS_SCCP_MANAGER, 1, [Enable manager console control])
 ])
 
+AC_ARG_WITH(functions, 
+  AC_HELP_STRING([--with-functions], [Build dialplan functions (default is YES)]), 
+  ac_cv_use_functions=no, ac_cv_use_functions=yes)
+	AS_IF([test "${ac_cv_use_functions}" == "yes"], [
+	        AC_DEFINE(CS_SCCP_FUNCTIONS, 1, [Enable manager console control])
+])
+
+
 AC_ARG_WITH(indications, 
   AC_HELP_STRING([--with-indications], [Debug SCCP indications (default is NO)]), 
   ac_cv_debug_indications=yes, ac_cv_debug_indications=no)

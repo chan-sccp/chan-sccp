@@ -9,6 +9,17 @@
  * \version     $Revision$
  */
 
+/*!
+ * \remarks	Purpose: 	SCCP Features
+ * 		When to use:	Only methods directly related to handling phone features should be stored in this source file.
+ *                              Phone Features are Capabilities of the phone, like:
+ *                                - CallForwarding
+ *                                - Dialing
+ *                                - Changing to Do Not Disturb(DND) Status
+ *   		Relationships: 	These Features are called by FeatureButtons. Features can in turn call on Actions.
+ *                              
+ */
+ 
 #include "config.h"
 
 #ifndef ASTERISK_CONF_1_2

@@ -8,6 +8,11 @@
  * \version     $Revision$  
  */
 
+/*!
+ * \remarks	Purpose: 	SCCP Conference
+ * 		When to use:	Only methods directly related to the sccp conference implementation should be stored in this source file.
+ *   		Relationships: 	
+ */
 #include "config.h"
 
 #ifdef CS_SCCP_CONFERENCE

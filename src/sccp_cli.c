@@ -10,6 +10,13 @@
  * \date        $Date$
  * \version     $Revision$  
  */
+
+/*!
+ * \remarks	Purpose: 	SCCP CLI
+ * 		When to use:	Only methods directly related to the asterisk cli interface should be stored in this source file.
+ *   		Relationships: 	Calls ???
+ */
+ 
 #include "config.h"
 
 #ifndef ASTERISK_CONF_1_2

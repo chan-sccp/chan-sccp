@@ -11,6 +11,11 @@
  * \date        $Date$
  * \version     $Revision$  
  */
+
+/*!
+ * \remarks     Only methods directly related to chan-sccp configuration should be stored in this source file.
+ */  
+ 
 #include "config.h"
 
 #include "asterisk.h"

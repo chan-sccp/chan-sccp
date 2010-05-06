@@ -11,6 +11,15 @@
  * \date        $Date$
  * \version     $Revision$
  */
+
+/*!
+ * \remarks	Purpose: 	SCCP Actions
+ * 		When to use:	Only methods directly related to sccp actions should be stored in this source file. 
+ *                              Actions handle all the message interactions from and to SCCP phones
+ *   		Relationships: 	Other Function wanting to communicate to phones
+ *                              Phones Requesting function to be performed
+ */
+
 #include "config.h"
 
 #ifndef ASTERISK_CONF_1_2
