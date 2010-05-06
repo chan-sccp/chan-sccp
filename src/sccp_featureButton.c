@@ -8,6 +8,16 @@
  * \date        $Date$
  * \version     $Revision$  
  */ 
+
+/*!
+ * \remarks	Purpose: 	SCCP FeatureButton
+ * 		When to use:	Only methods directly related to the phone featureButtons should be stored in this source file.
+ *                              FeatureButtons are the ones at the bottom of the display, not to be confused with speeddial 
+ *                              buttons on the right side of the display.
+ *   		Relationships: 	Call SCCP Features
+ *                              
+ */
+ 
 #include "config.h"
 
 #ifndef ASTERISK_CONF_1_2

@@ -10,6 +10,14 @@
  * \date        $Date$
  * \version     $Revision$  
  */
+
+/*!
+ * \remarks	Purpose: 	SCCP Device
+ * 		When to use:	Only methods directly related to sccp devices should be stored in this source file.
+ *   		Relationships: 	SCCP Device -> SCCP DeviceLine -> SCCP Line
+ *   			 	SCCP Line -> SCCP ButtonConfig -> SCCP Device
+ */
+ 
 #include "config.h"
 
 #ifndef ASTERISK_CONF_1_2

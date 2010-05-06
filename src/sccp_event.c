@@ -8,6 +8,13 @@
  * \date        $Date$
  * \version     $Revision$  
  */
+
+/*!
+ * \remarks	Purpose: 	SCCP Event
+ * 		When to use:	Only methods directly related to sccp events should be stored in this source file.
+ *   		Relationships: 	SCCP Hint
+ */
+ 
 #include "config.h"
 #ifndef ASTERISK_CONF_1_2
 #include <asterisk.h>

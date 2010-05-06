@@ -11,6 +11,13 @@
  * \date        $Date$
  * \version     $Revision$
  */
+ 
+/*!
+ * \remarks	Purpose: 	SCCP Channels
+ * 		When to use:	Only methods directly related to sccp channels should be stored in this source file. 
+ *   		Relationships: 	SCCP Channels connect Asterisk Channels to SCCP Lines
+ */
+   
 #include "config.h"
 
 #ifndef ASTERISK_CONF_1_2
