@@ -9,6 +9,12 @@
  * \version     $Revision$  
  */
 
+/*!
+ * \remarks	Purpose: 	SCCP Hint
+ * 		When to use:	Does the business of hint status
+ *   		Relationships: 	
+ */
+
 /*! 
  <h2>how does hint update works:</h2>
  \section hint_update How does hint update work
@@ -203,11 +209,15 @@ void sccp_hint_deviceRegistered(const sccp_device_t *device){
  */
 void sccp_hint_deviceUnRegistered(const sccp_device_t *device){
 	sccp_buttonconfig_t *config;
+	sccp_device_t 	*d;
 
 	if(!device)
 		return;
 	
-	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+	d = (sccp_device_t *)device;
+	
+	SCCP_LIST_LOCK(&d->buttonconfig);
+	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 
 		if(config->type == SPEEDDIAL){
 			if (ast_strlen_zero(config->button.speeddial.hint)){
@@ -217,6 +227,7 @@ void sccp_hint_deviceUnRegistered(const sccp_device_t *device){
 
 		}
 	}
+	SCCP_LIST_UNLOCK(&d->buttonconfig);
 }
 
 

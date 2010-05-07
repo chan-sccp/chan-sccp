@@ -1377,28 +1377,21 @@ sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t ins
  */
 int sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName)
 {
-	int i=0;
 	sccp_buttonconfig_t	*config;
-	boolean_t	found = FALSE;
 
-	if(!d)
-		return -1;
-
-	if(!lineName)
+	if(!d || !lineName)
 		return -1;
 
 	/* device is already locked by parent function */
 	//SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		i++;
 		if(config->type == LINE && (config->button.line.name) && lineName && !strcasecmp(config->button.line.name, lineName)){
-			found = TRUE;
 			break;
 		}
 	}
 	//SCCP_LIST_UNLOCK(&d->buttonconfig);
 
-	return (found)? i : 0;
+	return (config)? config->instance : 0;
 }
 
 /*!
