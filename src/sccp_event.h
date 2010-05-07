@@ -1,7 +1,7 @@
 /*!
  * \file 	sccp_event.h
  * \brief 	SCCP Event Header
- * \author 	Marcello Ceschia <marcello [at] ceschia.de>
+ * \author 	Marcello Ceschia <marcelloceschia [at] users.sourceforge.net>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \since	2009-09-02
@@ -22,14 +22,14 @@
  * \brief SCCP Event Type ENUM
  */
 typedef enum {
-	SCCP_EVENT_LINECREATED = 1,
-	SCCP_EVENT_LINECHANGED = 1 << 1,
-	SCCP_EVENT_LINEDELETED = 1 << 2,
-	SCCP_EVENT_DEVICEATTACHED = 1 << 3,
-	SCCP_EVENT_DEVICEDETACHED = 1 << 4,
-	SCCP_EVENT_DEVICEREGISTERED = 1 << 5,
-	SCCP_EVENT_DEVICEUNREGISTERED  = 1 << 6,
-	SCCP_EVENT_FEATURECHANGED  = 1 << 7
+	SCCP_EVENT_LINECREATED		= 1 << 0,
+	SCCP_EVENT_LINECHANGED		= 1 << 1,
+	SCCP_EVENT_LINEDELETED		= 1 << 2,
+	SCCP_EVENT_DEVICEATTACHED	= 1 << 3,					/*!< device attached to line */
+	SCCP_EVENT_DEVICEDETACHED	= 1 << 4,					/*!< device removed from line */
+	SCCP_EVENT_DEVICEREGISTERED	= 1 << 5,					/*!< device registers successfully */
+	SCCP_EVENT_DEVICEUNREGISTERED	= 1 << 6,					/*!< device isnt registered any more */
+	SCCP_EVENT_FEATURECHANGED	= 1 << 7					/*!< some feature (e.g. cfwd, dnd) is changed */
 } sccp_event_type_t;									/*!< SCCP Event Type ENUM */
 
 /*!
