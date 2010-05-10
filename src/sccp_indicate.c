@@ -27,6 +27,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_utils.h"
 #include "sccp_features.h"
 #include "sccp_hint.h"
+#include "sccp_event.h"
 
 /*!
  * \brief Indicate Without Lock
@@ -337,16 +338,26 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_ast_setstate(c, AST_STATE_DIALING);
 		break;
 	}
+	
+	
 
 	/* notify all remote devices */
 	__sccp_indicate_remote_device(device, c, state, debug, file, line,pretty_function);
 
 	/* notify features */
 	sccp_feat_channelStateChanged(device, c);
+	
+	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
+	memset(event, 0, sizeof(sccp_event_t));
+	event->type = SCCP_EVENT_LINESTATUSCHANGED;
+	event->event.lineStatusChanged.line = c->line;
+	event->event.lineStatusChanged.device = device;
+	event->event.lineStatusChanged.state = state;
+	sccp_event_fire((const sccp_event_t **)&event);
 
 	/* notify state change to hint system (incl. asterisk ) */
 	sccp_hint_lineStatusChanged(l, d, c, c->previousChannelState, c->state);
-	sccp_device_stateChanged(d);
+	//sccp_device_stateChanged(d);
 
 	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s) on call %s-%08x\n",d->id, sccp_indicate2str(state), l->name, c->callid);
 }
