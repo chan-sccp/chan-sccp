@@ -63,15 +63,6 @@ void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32
 int sccp_device_free(const void *ptr);
 boolean_t sccp_device_isVideoSupported(const sccp_device_t *device);
 
-/*!
- * \brief State Change for Device
- *
- * notify device, that some global device state is changed.
- * usefull to poll data (e.g mwi status)
- *
- * \param device SCCP Device
- */
-void sccp_device_stateChanged(sccp_device_t *device);
 uint8_t sccp_device_numberOfChannels(const sccp_device_t *device);
 
 #define REQ(x,y) x = sccp_build_packet(y, sizeof(x->msg.y))
