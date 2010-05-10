@@ -1466,18 +1466,6 @@ void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32
 }
 
 
-/*!
- * \brief Handle State Changed on Device
- * \param device SCCP Device
- */
-void sccp_device_stateChanged(sccp_device_t *device)
-{
-        if (!device)
-                return;
-
-        sccp_mwi_check(device);
-}
-
 /**
  * get number of channels that the device owns
  * \param device sccp device
