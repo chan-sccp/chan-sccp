@@ -32,7 +32,7 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l);
 void sccp_mwi_linecreatedEvent(const sccp_event_t **event);
 void sccp_mwi_deviceAttachedEvent(const sccp_event_t **event);
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *line);
-
+void sccp_mwi_lineStatusChangedEvent(const sccp_event_t **event);
 
 
 
@@ -48,6 +48,7 @@ void sccp_mwi_module_start(void){
   
 	sccp_event_subscribe(SCCP_EVENT_LINECREATED, sccp_mwi_linecreatedEvent);
 	sccp_event_subscribe(SCCP_EVENT_DEVICEATTACHED, sccp_mwi_deviceAttachedEvent);
+	sccp_event_subscribe(SCCP_EVENT_LINESTATUSCHANGED, sccp_mwi_lineStatusChangedEvent);
 }
 
 /*!
@@ -241,6 +242,20 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t **event){
 }
 
 
+void sccp_mwi_lineStatusChangedEvent(const sccp_event_t **event){
+	if(!(*event))
+		return;
+
+	sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_1 "Get lineStatusChangedEvent\n");
+	sccp_device_t *device = (*event)->event.lineStatusChanged.device;
+
+	if(!device)
+		return;
+	
+	sccp_mwi_check(device);
+}
+
+
 void sccp_mwi_linecreatedEvent(const sccp_event_t **event){
 	if(!(*event))
 		return;
@@ -406,7 +421,7 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 
 	REQ(r, SetLampMessage);
 	r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
-	r->msg.SetLampMessage.lel_stimulusInstance = (l ? htolel(instance) : 0);
+	r->msg.SetLampMessage.lel_stimulusInstance = htolel(instance);
 
 	if(l){
 		r->msg.SetLampMessage.lel_lampMode = htolel( (l->voicemailStatistic.newmsgs) ? SKINNY_LAMP_ON :  SKINNY_LAMP_OFF);
@@ -418,6 +433,7 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 	sccp_dev_send(d, r);
 	sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n",DEV_ID_LOG(d), hasMail ? "ON" : "OFF", (l ? l->name : "unknown"),(l ? instance : 0));
 	
+	
 	/* set mwi light */
 	if(d->mwilight != hasMail){
 		d->mwilight = hasMail;
@@ -426,6 +442,7 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 		r->msg.SetLampMessage.lel_stimulusInstance = 0;
 		r->msg.SetLampMessage.lel_lampMode = htolel( (d->mwilight) ? d->mwilamp :  SKINNY_LAMP_OFF);
 		sccp_dev_send(d, r);
+		sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s) %d\n",DEV_ID_LOG(d), hasMail ? "ON" : "OFF", "unknown",(l ? instance : 0));
 	}	
 	/* */ 
 	
@@ -446,8 +463,55 @@ void sccp_mwi_check(sccp_device_t *device)
 	if(!device)
 		return;
 
-	sccp_device_lock(device);
+	
+	
+	
+	/* check if we have an active channel */
+	boolean_t hasActiveChannel = FALSE;
+	sccp_buttonconfig_t	*config;
+	sccp_channel_t		*c;
+	
+	SCCP_LIST_LOCK(&device->buttonconfig);
+	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+		if(config->type == LINE){
+			line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
+			if(!line)
+				continue;
 
+
+			SCCP_LIST_LOCK(&line->channels);
+			SCCP_LIST_TRAVERSE(&line->channels, c, list) {
+				if(c->device == device && c->state != SCCP_CHANNELSTATE_ONHOOK && c->state != SCCP_CHANNELSTATE_DOWN){
+					hasActiveChannel = TRUE;
+					break;
+				}
+			}
+			SCCP_LIST_UNLOCK(&line->channels);
+			
+			if(hasActiveChannel)
+				break;
+		}
+	}
+	SCCP_LIST_UNLOCK(&device->buttonconfig);
+	
+	/* disable mwi light if we have an active channel */
+	if(hasActiveChannel == TRUE){
+		sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: we have an active channel, disable mwi light\n",DEV_ID_LOG(device));
+		if(device->mwilight){
+			sccp_moo_t *r;
+			REQ(r, SetLampMessage);
+			r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
+			r->msg.SetLampMessage.lel_stimulusInstance = 0;
+			r->msg.SetLampMessage.lel_lampMode = htolel(SKINNY_LAMP_OFF);
+			sccp_dev_send(device, r);
+			sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s) %d\n",DEV_ID_LOG(device), "OFF", "unknown", 0);
+			return;
+		}
+	}		
+	/* */ 
+	
+	
+	sccp_device_lock(device);
 	device->voicemailStatistic.newmsgs = 0;
 	device->voicemailStatistic.oldmsgs = 0;
 
