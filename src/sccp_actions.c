@@ -429,7 +429,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 	sccp_dev_build_buttontemplate(d, btn);
 
 //	sccp_device_lock(d);
-	uint32_t speeddialInsance = 1; /* starting instance for speeddial is 1*/
+	uint32_t speeddialInstance = 1; /* starting instance for speeddial is 1*/
 	uint32_t lineInstance = 1;
 	uint32_t serviceInstance = 1;
 	if(!d->isAnonymous){
@@ -483,7 +483,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 #ifdef CS_DYNAMIC_SPEEDDIAL
 						if(d->inuseprotocolversion >= 15){
 							      btn[i].type = 0x15;
-							      buttonconfig->instance = btn[i].instance = speeddialInsance++;
+							      buttonconfig->instance = btn[i].instance = speeddialInstance++;
 						}else{
 							      btn[i].type = SKINNY_BUTTONTYPE_LINE;
 							      buttonconfig->instance = btn[i].instance = lineInstance++;;
@@ -495,7 +495,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 #endif
 					} else {
 						btn[i].type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-						buttonconfig->instance = btn[i].instance = speeddialInsance++;
+						buttonconfig->instance = btn[i].instance = speeddialInstance++;
 						
 					}
 					break;
@@ -504,7 +504,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				  && sccp_is_nonempty_string(buttonconfig->button.feature.label)
 				  && (btn[i].type == SCCP_BUTTONTYPE_MULTI)){
 				 
-					buttonconfig->instance = btn[i].instance = speeddialInsance++;
+					buttonconfig->instance = btn[i].instance = speeddialInstance++;
 				  	
 					switch(buttonconfig->button.feature.id)
 					{

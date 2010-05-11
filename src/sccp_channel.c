@@ -951,7 +951,8 @@ void sccp_channel_updatemediatype(sccp_channel_t * c) {
                                         bridged->pvt->rawreadformat
                                 #endif
                                         );
-                if(!(bridged->nativeformats & c->owner->nativeformats) && (bridged->nativeformats & c->device->capability)) {
+                if(!(bridged->nativeformats & c->owner->nativeformats) == (bridged->nativeformats & c->device->capability)) {
+                		ast_log(LOG_NOTICE, "%s: Doing the dirty thing.\n", DEV_ID_LOG(c->device));
                         c->owner->nativeformats = c->format = bridged->nativeformats;
                         sccp_channel_closereceivechannel(c);
                         usleep(100);
