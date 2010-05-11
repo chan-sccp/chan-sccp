@@ -161,9 +161,9 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOOK);
 
 
-		//sccp_handle_time_date_req(d->session, NULL);
-		//if (c == d->active_channel)
-	//		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
+		sccp_handle_time_date_req(d->session, NULL);/* we need datetime on hangup for 7936 */
+		if (c == d->active_channel)
+			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 
 		if (c->previousChannelState == SCCP_CHANNELSTATE_RINGING)
 			sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
