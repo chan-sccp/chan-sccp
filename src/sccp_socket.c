@@ -484,7 +484,7 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 	res = 0;
 	finishSending = 0;
 	try = 1;
-	maxTries = 10;
+	maxTries = 500;
 	bytesSent = 0;
 	bufAddr = ((uint8_t *) r);
 	bufLen = (ssize_t)(letohl(r->length) + 8);
@@ -497,7 +497,7 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 		if((bytesSent == bufLen) || (try >= maxTries)) {
 			finishSending = 1;
 		} else {
-			usleep(1000);
+			usleep(10);
 		}
 		try++;
 	} while(!finishSending);
