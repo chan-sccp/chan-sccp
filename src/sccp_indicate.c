@@ -99,9 +99,9 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		break;
 	case SCCP_CHANNELSTATE_GETDIGITS:
 		c->state = SCCP_CHANNELSTATE_OFFHOOK;
-		sccp_dev_set_mwi(d, l, 0);
-		if (!d->mwioncall)
-			sccp_dev_set_mwi(d, NULL, 0);
+		//sccp_dev_set_mwi(d, l, 0);
+		//if (!d->mwioncall)
+		//	sccp_dev_set_mwi(d, NULL, 0);
 
 		//sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 		//sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
