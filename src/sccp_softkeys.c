@@ -100,7 +100,7 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey NewCall Pressed\n", DEV_ID_LOG(d));
 	if (!l){
 		/* use default line if it is set */
-		if(d && d->defaultLineInstance >0){
+		if(d && d->defaultLineInstance > 0){
 			sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
 			l = sccp_line_find_byid(d, d->defaultLineInstance);
 		}
@@ -453,8 +453,17 @@ void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Call Forward All Pressed\n", DEV_ID_LOG(d));
         if (!l && d) {
-                l = sccp_line_find_byid(d, 1);
+	  
+		if(d->defaultLineInstance > 0){
+			l = sccp_line_find_byid(d, d->defaultLineInstance);
+		}if(!l){
+			l = d->currentLine;
+		}if(!l){
+			l = sccp_line_find_byid(d, 1);
+		}
         }
+        
+        
 	if(l){
 		sccp_feat_handle_callforward(l, d, SCCP_CFWD_ALL);
 	}else
