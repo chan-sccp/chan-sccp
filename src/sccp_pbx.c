@@ -995,9 +995,16 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		} else
 			res = -1;
 	break;
+#ifdef 	AST_CONTROL_SRCCHANGE
+	case AST_CONTROL_SRCCHANGE:
+		//TODO handle src update
+	  
+	  
+	break;
+#endif
 	default:
-	  ast_log(LOG_WARNING, "SCCP: Don't know how to indicate condition %d\n", ind);
-	  res = -1;
+		ast_log(LOG_WARNING, "SCCP: Don't know how to indicate condition %d\n", ind);
+		res = -1;
 	}
 
 	sccp_channel_unlock(c);
