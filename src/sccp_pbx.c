@@ -995,8 +995,9 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		} else
 			res = -1;
 	break;
-#ifdef 	AST_CONTROL_SRCCHANGE
+#ifdef AST_CONTROL_SRCCHANGE
 	case AST_CONTROL_SRCCHANGE:
+		//TODO check this
 		/* Source media has changed. */
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
 
