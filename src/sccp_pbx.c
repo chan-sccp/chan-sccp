@@ -916,7 +916,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		break;
 #ifdef CS_AST_CONTROL_SRCUPDATE
         case AST_CONTROL_SRCUPDATE:
-        /* Source media has changed. */
+		/* Source media has changed. */
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
 
 
@@ -997,8 +997,52 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	break;
 #ifdef 	AST_CONTROL_SRCCHANGE
 	case AST_CONTROL_SRCCHANGE:
-		//TODO handle src update
-		res = -1;
+		/* Source media has changed. */
+		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
+
+
+
+                /* update channel format */
+                int oldChannelFormat = c->format;
+                c->format = ast->rawreadformat;
+
+                if(oldChannelFormat != c->format ){
+                        /* notify of changing format */
+                        char s1[512], s2[512];
+                        ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%d) to: %s(%d) \n",
+                                c->line->name,
+                                c->callid,
+#ifndef ASTERISK_CONF_1_2
+                                ast_getformatname_multiple(s1, sizeof(s1) -1, c->format & AST_FORMAT_AUDIO_MASK),
+#else
+                                ast_getformatname_multiple(s1, sizeof(s1) -1, c->format),
+#endif
+                                ast->nativeformats,
+#ifndef ASTERISK_CONF_1_2
+                                ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat & AST_FORMAT_AUDIO_MASK),
+#else
+                                ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat),
+#endif
+                                ast->rawreadformat);
+                        ast_set_read_format(ast, c->format);
+                        ast_set_write_format(ast, c->format);
+                }
+
+                ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n",c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
+                if(c->rtp.audio){
+                        if(oldChannelFormat != c->format){
+                                if(c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE){
+                                        sccp_channel_closereceivechannel(c);	/* close the already openend receivechannel */
+                                        sccp_channel_openreceivechannel(c);	/* reopen it */
+                                }
+                        }
+                }
+#ifdef CS_AST_RTP_NEW_SOURCE
+                if(c->rtp.audio) {
+                        ast_rtp_new_source(c->rtp.audio);
+                        sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
+                }
+#endif
 	break;
 #endif
 	default:
