@@ -998,8 +998,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 #ifdef 	AST_CONTROL_SRCCHANGE
 	case AST_CONTROL_SRCCHANGE:
 		//TODO handle src update
-	  
-	  
+		res = -1;
 	break;
 #endif
 	default:
