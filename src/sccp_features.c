@@ -569,8 +569,8 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
 				sccp_channel_t *remote = CS_AST_CHANNEL_PVT(target);
 				if(remote){
 					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) remote channel is SCCP -> correct cid\n");
-					sccp_copy_string(name, remote->callingPartyName, sizeof(name));
-					sccp_copy_string(number, remote->callingPartyNumber, sizeof(number));
+					name = strdup(remote->callingPartyName);
+					number = strdup(remote->callingPartyNumber);
 				}
 				remote = NULL;
 			}
