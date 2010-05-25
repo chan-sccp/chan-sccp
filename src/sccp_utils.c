@@ -1385,7 +1385,7 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const cha
 #endif
 
 	/* we are calling a line with suffix, but device does not have a subscriptionIdNum -> skip it -> return false */
-	if(NULL != subscriptionIdNum && (channel->subscriptionId.number != NULL))
+	if((NULL == subscriptionIdNum || strlen(subscriptionIdNum) == 0) && (channel->subscriptionId.number == NULL || strlen(channel->subscriptionId.number) == 0 ))
 		return FALSE;
 
 	if(    NULL != subscriptionIdNum
