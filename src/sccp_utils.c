@@ -1364,7 +1364,7 @@ struct composedId sccp_parseComposedId(const char* labelString, unsigned int max
 /*!
  * \brief Match Subscription ID
  * \param channel SCCP Channel
- * \param subscriptionIdNum Subscription ID Number
+ * \param subscriptionIdNum Subscription ID Number for linedevice
  * \return result as boolean
  */
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const char *subscriptionIdNum){
@@ -1372,6 +1372,8 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const cha
 	int compareId = 0;
 	int compareDefId = 0;
 
+	
+	
 #if 0
 	if(NULL != subscriptionIdNum) {
 		ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: channel->subscriptionId.number=%s, SubscriptionId=%s, NULL!=channel->line %s\n", (channel->subscriptionId.number)?channel->subscriptionId.number:"NULL", (subscriptionIdNum)?subscriptionIdNum:"NULL", (NULL != channel->line)?"TRUE":"FALSE");
@@ -1381,6 +1383,10 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const cha
 		ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: null subscriptionIdNum!\n");
 	}
 #endif
+
+	/* we are calling a line with suffix, but device does not have a subscriptionIdNum -> skip it -> return false */
+	if(NULL != subscriptionIdNum && (channel->subscriptionId.number != NULL))
+		return FALSE;
 
 	if(    NULL != subscriptionIdNum
 		&& 0    != strlen(subscriptionIdNum)
