@@ -1375,17 +1375,16 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const cha
 	
 	
 #if 0
-	if(NULL != subscriptionIdNum) {
-		ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: channel->subscriptionId.number=%s, SubscriptionId=%s, NULL!=channel->line %s\n", (channel->subscriptionId.number)?channel->subscriptionId.number:"NULL", (subscriptionIdNum)?subscriptionIdNum:"NULL", (NULL != channel->line)?"TRUE":"FALSE");
-	
-		ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: channel->line->defaultSubscriptionId.number=%s\n", (channel->line->defaultSubscriptionId.number)?channel->line->defaultSubscriptionId.number:"NULL");
-	} else {
-		ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: null subscriptionIdNum!\n");
-	}
+	ast_log(LOG_NOTICE, "channel->subscriptionId.number=%s, length=%d\n", channel->subscriptionId.number, strlen(channel->subscriptionId.number));
+	ast_log(LOG_NOTICE, "subscriptionIdNum=%s, length=%d\n", subscriptionIdNum?subscriptionIdNum:"NULL", subscriptionIdNum?strlen(subscriptionIdNum):-1);
+
+	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: channel->subscriptionId.number=%s, SubscriptionId=%s\n", (channel->subscriptionId.number)?channel->subscriptionId.number:"NULL", (subscriptionIdNum)?subscriptionIdNum:"NULL");
 #endif
 
+	
+
 	/* we are calling a line with suffix, but device does not have a subscriptionIdNum -> skip it -> return false */
-	if((NULL == subscriptionIdNum || strlen(subscriptionIdNum) == 0) && (channel->subscriptionId.number == NULL || strlen(channel->subscriptionId.number) == 0 ))
+	if( strlen(subscriptionIdNum) == 0 && strlen(channel->subscriptionId.number) != 0 )
 		return FALSE;
 
 	if(    NULL != subscriptionIdNum
