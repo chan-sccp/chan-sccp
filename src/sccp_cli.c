@@ -987,7 +987,7 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 	char cap_buf[512];
 	struct ast_variable *v = NULL;
 
-	ast_cli(fd, "\n%-16s %-16s %-4s %-4s %-16s\n", "NAME","DEVICE","MWI","Chs","Active Channel");
+	ast_cli(fd, "\n%-16s %-16s %-5s %-4s %-4s %-16s\n", "NAME","DEVICE", "SUFFIX", "MWI","Chs","Active Channel");
 	ast_cli(fd, "================ ================ ==== ==== =================================================\n");
 
 	SCCP_LIST_LOCK(&GLOB(lines));
@@ -1013,9 +1013,10 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 			ast_getformatname_multiple(cap_buf, sizeof(cap_buf),  c->owner->nativeformats);
 		}
 
-		ast_cli(fd, "%-16s %-16s %-4s %-4d %-10s %-10s %-16s %-10s\n",
+		ast_cli(fd, "%-16s %-16s %-5s %-4s %-4d %-10s %-10s %-16s %-10s\n",
 			l->name,
 			"--",
+			"",
 			(l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
 			l->channelCount,
 			(c) ? sccp_indicate2str(c->state) : "--",
@@ -1029,9 +1030,10 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 			if(!linedevice->device)
 				continue;
 			d=linedevice->device;
-			ast_cli(fd, "%-16s %-16s %-4s %-4d %-10s %-10s %-16s %-10s\n",
+			ast_cli(fd, "%-16s %-16s %-5s %-4s %-4d %-10s %-10s %-16s %-10s\n",
 				"",
 				(d) ? d->id : "--",
+				linedevice->subscriptionId.number,
 				(l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
 				l->channelCount,
 				(c) ? sccp_indicate2str(c->state) : "--",
