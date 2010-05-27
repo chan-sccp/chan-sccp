@@ -374,7 +374,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	struct ast_variable *v = NULL;
 	sccp_linedevices_t	*linedevice;
 
-	if (argc != 4)
+	if (argc < 4)
 		return RESULT_SHOWUSAGE;
 
 	d = sccp_device_find_byid(argv[3], TRUE);
@@ -433,21 +433,21 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	}
 
 	ast_cli(fd, "\nLines\n");
-	ast_cli(fd, "%-4s: %-20s %-20s %-10s %-20s\n", "id", "name" , "label", "cfwdType", "cfwdNumber");
+	ast_cli(fd, "%-4s: %-20s %-5s %-20s %-10s %-20s\n", "id", "name", "suffix", "label", "cfwdType", "cfwdNumber");
 	ast_cli(fd, "---------------------------------------------------------------------\n");
 
 	sccp_buttonconfig_t *buttonconfig;
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 		if(buttonconfig->type == LINE ){
-			l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
+			l = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE);
 			if(l){
 				linedevice = sccp_util_getDeviceConfiguration(d, l);
 				if(linedevice && linedevice->cfwdAll.enabled)
-					ast_cli(fd, "%4d: %-20s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , l->label, "all", linedevice->cfwdAll.number);
+					ast_cli(fd, "%4d: %-20s %-5s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , buttonconfig->button.line.subscriptionId.number, l->label, "all", linedevice->cfwdAll.number);
 				else if(linedevice && linedevice->cfwdBusy.enabled)
-					ast_cli(fd, "%4d: %-20s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , l->label, "busy", linedevice->cfwdBusy.number);
+					ast_cli(fd, "%4d: %-20s %-5s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , buttonconfig->button.line.subscriptionId.number, l->label, "busy", linedevice->cfwdBusy.number);
 				else
-					ast_cli(fd, "%4d: %-20s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , l->label, "", "");
+					ast_cli(fd, "%4d: %-20s %-5s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , buttonconfig->button.line.subscriptionId.number, l->label, "", "");
 			}
 		}
 	}
@@ -489,7 +489,80 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 		}
 	}
 	sccp_device_unlock(d);
+	
 
+	int instance = 1;
+	int status = 1;
+	
+	
+	if (argc > 4){
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: argv[4]=%s\n", d->id, argv[4]);
+		instance =  atoi(argv[4]);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: instance=%d(%s)\n", d->id, instance, argv[4]);
+	}
+	
+	if (argc > 5){
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: argv[5]=%s\n", d->id, argv[5]);
+		status =  atoi(argv[5]);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: status=%d(%s)\n", d->id, status, argv[5]);
+	}
+#if 0	
+	sccp_moo_t 	*r1 = NULL, *r = NULL;
+	REQ(r1, ForwardStatMessage);
+	r1->msg.ForwardStatMessage.lel_status = htolel(status);
+	r1->msg.ForwardStatMessage.lel_lineNumber = htolel(instance);
+	
+	
+	r1->msg.ForwardStatMessage.lel_cfwdallstatus = htolel(status);
+	if(status)
+		sccp_copy_string(r1->msg.ForwardStatMessage.cfwdallnumber, "1234", sizeof(r1->msg.ForwardStatMessage.cfwdallnumber));
+	
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Send Forward Status Line: %s, ForwardStatMessage.lel_status=%d\n", d->id, l->name, r1->msg.ForwardStatMessage.lel_status);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Send Forward Status Line: %s, ForwardStatMessage.lel_lineNumber=%d\n", d->id, l->name, r1->msg.ForwardStatMessage.lel_lineNumber);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Send Forward Status Line: %s, ForwardStatMessage.lel_cfwdallstatus=%d\n", d->id, l->name, r1->msg.ForwardStatMessage.lel_cfwdallstatus);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Send Forward Status Line: %s, ForwardStatMessage.lel_cfwdallstatus=%s\n", d->id, l->name, r1->msg.ForwardStatMessage.cfwdallnumber);
+	
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Send Forward Status Line: %s, ForwardStatMessage.lel_cfwdbusystatus=%d\n", d->id, l->name, r1->msg.ForwardStatMessage.lel_cfwdbusystatus);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Send Forward Status Line: %s, ForwardStatMessage.lel_cfwdallstatus=%s\n", d->id, l->name, r1->msg.ForwardStatMessage.cfwdbusynumber);
+	sccp_dev_send(d, r1);
+	
+	
+// 	usleep(300);
+// 	REQ(r, SetLampMessage);
+// 	r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_FORWARDALL);
+// 	r->msg.SetLampMessage.lel_stimulusInstance = htolel(instance);
+// 	r->msg.SetLampMessage.lel_lampMode = htolel(SKINNY_LAMP_ON);
+// 	sccp_dev_send(d, r);
+
+
+ 	
+//  	REQ(r1, ButtonTemplateMessage);
+//  	r1->msg.ButtonTemplateMessage.lel_buttonOffset = htolel(instance-1);
+//  	
+//  	//r1->msg.ButtonTemplateMessage.definition[instance-1].instanceNumber = instance;
+//  	//r1->msg.ButtonTemplateMessage.definition[instance-1].buttonDefinition = htolel(SKINNY_BUTTONTYPE_TRANSFER);
+// 	
+// 	r1->msg.ButtonTemplateMessage.definition[0].instanceNumber = instance;
+//  	r1->msg.ButtonTemplateMessage.definition[0].buttonDefinition = htolel(SKINNY_BUTTONTYPE_TRANSFER);
+//  	
+//  	r1->msg.ButtonTemplateMessage.lel_buttonCount = htolel(1);
+//  	r1->msg.ButtonTemplateMessage.lel_totalButtonCount = htolel(22);
+// // 	sccp_dev_send(d, r1);
+// 	
+// 	sccp_dev_send(d, r1);
+	
+	
+	char tmp[256] = "linename";
+	strcat(tmp," " SKINNY_DISP_CFWDALL ":");
+	strcat(tmp," 1234");
+	
+	REQ(r1, LineStatMessage);
+	r1->msg.LineStatMessage.lel_lineNumber = htolel(instance);
+	sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, tmp, sizeof(r1->msg.LineStatMessage.lineDirNumber));
+	sccp_copy_string(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName, "test", sizeof(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName));
+	sccp_copy_string(r1->msg.LineStatMessage.lineDisplayName, "label", sizeof(r1->msg.LineStatMessage.lineDisplayName));
+	sccp_dev_send(d, r1);
+#endif
 	return RESULT_SUCCESS;
 }
 
@@ -512,7 +585,7 @@ static char *cli_show_device(struct ast_cli_entry *e, int cmd, struct ast_cli_ar
 		} else if (cmd == CLI_GENERATE){
 			return sccp_complete_device(a->line, a->word, a->pos, a->n);
 		}
-		if (a->argc != 4)
+		if (a->argc < 4)
 			return CLI_SHOWUSAGE;
 
 		if(sccp_show_device(a->fd, a->argc, a->argv) == RESULT_SUCCESS){
