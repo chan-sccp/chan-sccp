@@ -1113,6 +1113,7 @@ static int load_module(void) {
 	GLOB(protocolversion) = SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH;
 	GLOB(amaflags) = ast_cdr_amaflags2int("documentation");
 	GLOB(callAnswerOrder) = ANSWER_OLDEST_FIRST;
+	GLOB(socket_thread) = AST_PTHREADT_NULL;
 	GLOB(hotline) = ast_malloc(sizeof(sccp_hotline_t));
 	memset(GLOB(hotline),0,sizeof(sccp_hotline_t));
 
