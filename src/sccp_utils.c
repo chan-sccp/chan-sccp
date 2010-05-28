@@ -670,9 +670,16 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 				SCCP_LIST_LOCK(&l->channels);
 				SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 					if (c->state == state) {
-						sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_CHANNEL | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(d), c->callid);
-						channelFound = TRUE;
-						break;
+						
+						/* check that subscriptionId matches */
+						if( sccp_util_matchSubscriptionId(c, buttonconfig->button.line.subscriptionId.number)){
+							sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_CHANNEL | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(d), c->callid);
+							channelFound = TRUE;
+							break; 
+						}else{
+							sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_CHANNEL | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Found channel (%d), but it does not match subscriptionId %s \n", DEV_ID_LOG(d), c->callid, buttonconfig->button.line.subscriptionId.number);
+						}	
+						
 					}
 				}
 				SCCP_LIST_UNLOCK(&l->channels);
