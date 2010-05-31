@@ -5,10 +5,10 @@
  * \note	Reworked, but based on chan_sccp code.
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License. 
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \date        $Date$
- * \version     $Revision$  
+ * \version     $Revision$
  */
 
 /*!
@@ -16,7 +16,7 @@
  * 		When to use:	Only methods directly related to the asterisk cli interface should be stored in this source file.
  *   		Relationships: 	Calls ???
  */
- 
+
 #include "config.h"
 
 #ifndef ASTERISK_CONF_1_2
@@ -122,8 +122,8 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 
 	if(d->channelCount > 0) {
 		/* sccp_device_clean will check active channels */
-	        //ast_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
-	        //return RESULT_SUCCESS;
+		//ast_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
+		//return RESULT_SUCCESS;
 	}
 	sccp_device_unlock(d);
 	//ast_cli(fd, "%s: Turn off the monitored line lamps to permit the %s\n", argv[2], argv[1]);
@@ -132,7 +132,7 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 	sccp_device_sendReset(d, (!strcasecmp(argv[1], "reset")) ? SKINNY_DEVICE_RESET : SKINNY_DEVICE_RESTART );
 	//sccp_dev_clean(d, FALSE);
 	sccp_session_close(d->session);
-	
+
 
 	return RESULT_SUCCESS;
 }
@@ -308,8 +308,8 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Jitterbuffer impl     : %s\n",  GLOB(global_jbconf).impl);
 	ast_cli(fd, "Jitterbuffer log      : %s\n", (ast_test_flag(&GLOB(global_jbconf), AST_JB_LOG) ? "Yes" : "No"));
 #ifdef CS_AST_JB_TARGET_EXTRA
-        ast_cli(fd, "Jitterbuf target extra: %ld\n",  GLOB(global_jbconf).target_extra);
-#endif	
+	ast_cli(fd, "Jitterbuf target extra: %ld\n",  GLOB(global_jbconf).target_extra);
+#endif
 
 	sccp_globals_unlock(lock);
 
@@ -1397,45 +1397,45 @@ static char * sccp_complete_debug(char *line, char *word, int pos, int state) {
 	int which = 0;
 	char * ret=NULL;
 	boolean_t debugno=0;
-        char * extra_cmds[3]={"no","none","all"};
+	char * extra_cmds[3]={"no","none","all"};
 
 	if (pos < 2)
   	  return NULL;
 
-        // check if the sccp debug line contains no before the categories  	  
-        if(!strncasecmp(line,"sccp debug no ",strlen("sccp debug no "))) {
-                debugno=1;
+	// check if the sccp debug line contains no before the categories
+	if(!strncasecmp(line,"sccp debug no ",strlen("sccp debug no "))) {
+		debugno=1;
 	}
-	
+
 	// check extra_cmd
-        for (i=0; i<ARRAY_LEN(extra_cmds); i++) {
-                if (!strncasecmp(word, extra_cmds[i], strlen(word))) {
-                        // skip "no" and "none" if in debugno mode
-                        if (debugno && !strncasecmp("no",extra_cmds[i],strlen("no")))
-                                continue;
-                        if (++which > state)
-                                return strdup(extra_cmds[i]);
-                }
-        }
-        // check categories
-        for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
-                // if in debugno mode
-                if (debugno) {
-                        // then skip the categories which are not currently active
-                        if ((GLOB(debug) & sccp_debug_categories[i].category) != sccp_debug_categories[i].category)
-                                continue;
-                } else {
-                        // not debugno then skip the categories which are already active
-                        if ((GLOB(debug) & sccp_debug_categories[i].category) == sccp_debug_categories[i].category)
-                                continue;
-                }
-                // find a match with partial category
-                if (!strncasecmp(word, sccp_debug_categories[i].short_name, strlen(word))) {
-                        if (++which > state) 
-                                return strdup(sccp_debug_categories[i].short_name);
-                }
-        }
-        return ret;
+	for (i=0; i<ARRAY_LEN(extra_cmds); i++) {
+		if (!strncasecmp(word, extra_cmds[i], strlen(word))) {
+			// skip "no" and "none" if in debugno mode
+			if (debugno && !strncasecmp("no",extra_cmds[i],strlen("no")))
+				continue;
+			if (++which > state)
+				return strdup(extra_cmds[i]);
+		}
+	}
+	// check categories
+	for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
+		// if in debugno mode
+		if (debugno) {
+			// then skip the categories which are not currently active
+			if ((GLOB(debug) & sccp_debug_categories[i].category) != sccp_debug_categories[i].category)
+				continue;
+		} else {
+			// not debugno then skip the categories which are already active
+			if ((GLOB(debug) & sccp_debug_categories[i].category) == sccp_debug_categories[i].category)
+				continue;
+		}
+		// find a match with partial category
+		if (!strncasecmp(word, sccp_debug_categories[i].short_name, strlen(word))) {
+			if (++which > state)
+				return strdup(sccp_debug_categories[i].short_name);
+		}
+	}
+	return ret;
 }
 #endif
 /* ------------------------------------------------------------ */
@@ -1453,7 +1453,7 @@ static int sccp_do_debug(int fd, int argc, char *argv[]) {
 		return RESULT_SHOWUSAGE;
 
 	if (argc > 2) {
-	        new_debug=sccp_parse_debugline (argv,2,argc,new_debug);
+		new_debug=sccp_parse_debugline (argv,2,argc,new_debug);
 	}
 	char * debugcategories="";
 	ast_cli(fd, "SCCP new debug status: (%d -> %d) %s\n", GLOB(debug), new_debug, sccp_get_debugcategories(new_debug,debugcategories));
@@ -1470,9 +1470,9 @@ static int sccp_do_debug(int fd, int argc, char *argv[]) {
  * \return Result as char
  */
 static char *cli_do_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
-        if (cmd == CLI_INIT) {
+	if (cmd == CLI_INIT) {
 		e->command = "sccp debug";
-		e->usage = 
+		e->usage =
 			"Usage: SCCP debug [no] <level or categories>\n"
 			"		Where categories is one or more (separated by comma's) of:\n"
 			"		core, sccp, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey,\n"
@@ -1480,8 +1480,8 @@ static char *cli_do_debug(struct ast_cli_entry *e, int cmd, struct ast_cli_args 
 			"		lock, newcode, high\n";
 		return NULL;
 	} else if (cmd == CLI_GENERATE) {
-                return sccp_complete_debug(a->line, a->word, a->pos, a->n);
-        }
+		return sccp_complete_debug(a->line, a->word, a->pos, a->n);
+	}
 	if ((a->argc < 3))
 		return CLI_SHOWUSAGE;
 
@@ -1699,11 +1699,11 @@ static char *cli_show_mwi_subscriptions(struct ast_cli_entry *e, int cmd, struct
 	if (a->argc != 3)
 		return CLI_SHOWUSAGE;
 
-        /*
+	/*
 	sccp_mailbox_subscriber_list_t *subscription = NULL;
 	sccp_mailboxLine_t	*mailboxLine = NULL;
 	*/
-	
+
 	//TODO display mailbox subscriptions
 	/*
 	ast_cli(a->fd, "subscriptionsize: %d\n", sccp_mailbox_subscriptions.size);

@@ -80,10 +80,10 @@ static struct ast_jb_conf default_jbconf =
 	.max_size = -1,
 	.resync_threshold = -1,
 #ifdef CS_AST_JB_TARGET_EXTRA
-        .impl = "",
-        .target_extra = -1
+	.impl = "",
+	.target_extra = -1
 #else
-        .impl = ""
+	.impl = ""
 #endif
 };
 #endif
@@ -221,24 +221,24 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 	
 	// Allocate a new SCCP channel.
 	/* on multiline phone we set the line when answering or switching lines */
-	 c = sccp_channel_allocate(l, NULL);
-	 if (!c) {
+	c = sccp_channel_allocate(l, NULL);
+	if (!c) {
 #ifdef CS_AST_HAS_TECH_PVT
 		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 #endif
 		goto OUT;
-	 }
+	}
 
 	
 	/* set subscriberId for individual device addressing */
 	if (!ast_strlen_zero(lineSubscriptionId.subscriptionId.number)) {
-                sccp_copy_string(c->subscriptionId.number, lineSubscriptionId.subscriptionId.number, sizeof(c->subscriptionId.number));
-                if (!ast_strlen_zero(lineSubscriptionId.subscriptionId.name)) {
-		       	sccp_copy_string(c->subscriptionId.name, lineSubscriptionId.subscriptionId.name, sizeof(c->subscriptionId.name));
-        		ast_log(LOG_NOTICE, "%s: calling subscriber id=%s\n, name=%s", l->id, c->subscriptionId.number,c->subscriptionId.name);
-                } else {
-        		ast_log(LOG_NOTICE, "%s: calling subscriber id=%s\n", l->id, c->subscriptionId.number);
-                }
+		sccp_copy_string(c->subscriptionId.number, lineSubscriptionId.subscriptionId.number, sizeof(c->subscriptionId.number));
+		if (!ast_strlen_zero(lineSubscriptionId.subscriptionId.name)) {
+			sccp_copy_string(c->subscriptionId.name, lineSubscriptionId.subscriptionId.name, sizeof(c->subscriptionId.name));
+			ast_log(LOG_NOTICE, "%s: calling subscriber id=%s\n, name=%s", l->id, c->subscriptionId.number,c->subscriptionId.name);
+		} else {
+			ast_log(LOG_NOTICE, "%s: calling subscriber id=%s\n", l->id, c->subscriptionId.number);
+		}
 	} else {
 		sccp_copy_string(c->subscriptionId.number, l->defaultSubscriptionId.number, sizeof(c->subscriptionId.number));
 		sccp_copy_string(c->subscriptionId.name, l->defaultSubscriptionId.name, sizeof(c->subscriptionId.name));
@@ -246,7 +246,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 	}
 
 
-if (!sccp_pbx_channel_allocate(c)) {
+	if (!sccp_pbx_channel_allocate(c)) {
 #ifdef CS_AST_HAS_TECH_PVT
 		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 #endif
@@ -336,9 +336,9 @@ if (!sccp_pbx_channel_allocate(c)) {
 	}*/
 
 
-	 c->format = oldformat;
-	 c->isCodecFix = TRUE;
-	 sccp_channel_updateChannelCapability(c);
+	c->format = oldformat;
+	c->isCodecFix = TRUE;
+	sccp_channel_updateChannelCapability(c);
 
 	/* we don't need to parse any options when we have a call forward status */
 // 	if (c->owner && !ast_strlen_zero(c->owner->call_forward))
@@ -351,11 +351,11 @@ if (!sccp_pbx_channel_allocate(c)) {
 			if (!strncasecmp(optv[opti], "aa", 2)) {
 				/* let's use the old style auto answer aa1w and aa2w */
 				if (!strncasecmp(optv[opti], "aa1w", 4)) {
-						c->autoanswer_type = SCCP_AUTOANSWER_1W;
-						optv[opti]+=4;
+					c->autoanswer_type = SCCP_AUTOANSWER_1W;
+					optv[opti]+=4;
 				} else if (!strncasecmp(optv[opti], "aa2w", 4)) {
-						c->autoanswer_type = SCCP_AUTOANSWER_2W;
-						optv[opti]+=4;
+					c->autoanswer_type = SCCP_AUTOANSWER_2W;
+					optv[opti]+=4;
 				} else if (!strncasecmp(optv[opti], "aa=", 3)) {
 					optv[opti] += 3;
 					if (!strncasecmp(optv[opti], "1w", 2)) {
@@ -524,8 +524,8 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 		case AlarmMessage:
 		      sccp_handle_alarm(s, r);
 		      break;
-		      case RegisterMessage:
-		      case RegisterTokenReq:
+		case RegisterMessage:
+		case RegisterTokenReq:
 		      sccp_handle_register(s, r);
 		      break;
 		case UnregisterMessage:
@@ -621,26 +621,26 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 		      sccp_handle_startmediatransmission_ack(s, r);
 		      break;
 		case Unknown_0x004A_Message:
-                      if ((GLOB(debug) & DEBUGCAT_MESSAGE) == DEBUGCAT_MESSAGE) {
-		        sccp_handle_unknown_message(s,r);
+		      if ((GLOB(debug) & DEBUGCAT_MESSAGE) == DEBUGCAT_MESSAGE) {
+			sccp_handle_unknown_message(s,r);
 		      }
 		      break;
 		case Unknown_0x0143_Message:
-                      if ((GLOB(debug) & DEBUGCAT_MESSAGE) == DEBUGCAT_MESSAGE) {
-		        sccp_handle_unknown_message(s,r);
+		      if ((GLOB(debug) & DEBUGCAT_MESSAGE) == DEBUGCAT_MESSAGE) {
+			sccp_handle_unknown_message(s,r);
 		      }
 		      break;
 		case Unknown_0x0144_Message:
-                      if ((GLOB(debug) & DEBUGCAT_MESSAGE) == DEBUGCAT_MESSAGE) {
-		        sccp_handle_unknown_message(s,r);
+		      if ((GLOB(debug) & DEBUGCAT_MESSAGE) == DEBUGCAT_MESSAGE) {
+			sccp_handle_unknown_message(s,r);
 		      }
 		      break;
 		case SpeedDialStatDynamicMessage:
-                      sccp_handle_speed_dial_stat_req(s,r);
+		      sccp_handle_speed_dial_stat_req(s,r);
 		      break;
 		case ExtensionDeviceCaps:
-                      if ((GLOB(debug) & DEBUGCAT_MESSAGE) == DEBUGCAT_MESSAGE) {
-		        sccp_handle_unknown_message(s,r);
+		      if ((GLOB(debug) & DEBUGCAT_MESSAGE) == DEBUGCAT_MESSAGE) {
+			sccp_handle_unknown_message(s,r);
 		      }
 		      break;
 		default:
@@ -707,62 +707,61 @@ static int reload_config(void) {
 		on = 1;
 		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
 			ast_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
-                if (setsockopt(GLOB(descriptor), IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0)
-                        ast_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(sccp_tos), strerror(errno));
-                else if (GLOB(sccp_tos)) 
-                        ast_log(LOG_WARNING, "Using SCCP Socket ToS mark %d\n", GLOB(sccp_tos));
+		if (setsockopt(GLOB(descriptor), IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0)
+			ast_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(sccp_tos), strerror(errno));
+		else if (GLOB(sccp_tos)) 
+			ast_log(LOG_WARNING, "Using SCCP Socket ToS mark %d\n", GLOB(sccp_tos));
 		if (setsockopt(GLOB(descriptor), IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
 			ast_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
 #if defined(linux)                                                              
-                if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0)  
-                	ast_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
-                else if (GLOB(sccp_cos))
-                        ast_log(LOG_WARNING, "Using SCCP Socket CoS mark %d\n", GLOB(sccp_cos));
+		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0)  
+			ast_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
+		else if (GLOB(sccp_cos))
+			ast_log(LOG_WARNING, "Using SCCP Socket CoS mark %d\n", GLOB(sccp_cos));
 #endif
 
 		if (GLOB(descriptor) < 0) {
-
 			ast_log(LOG_WARNING, "Unable to create SCCP socket: %s\n", strerror(errno));
-	}
-	else
-	{
-		if (bind(GLOB(descriptor), (struct sockaddr *)&GLOB(bindaddr), sizeof(GLOB(bindaddr))) < 0) {
-#ifdef ASTERISK_CONF_1_2
-			ast_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n",	ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
-#else
-			ast_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n",	ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)),strerror(errno));
-#endif
-			close(GLOB(descriptor));
-			GLOB(descriptor) = -1;
-			return 0;
 		}
+		else
+		{
+			if (bind(GLOB(descriptor), (struct sockaddr *)&GLOB(bindaddr), sizeof(GLOB(bindaddr))) < 0) {
 #ifdef ASTERISK_CONF_1_2
-		ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+				ast_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n",	ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
 #else
-		ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", 	ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+				ast_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n",	ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)),strerror(errno));
+#endif
+				close(GLOB(descriptor));
+				GLOB(descriptor) = -1;
+				return 0;
+			}
+#ifdef ASTERISK_CONF_1_2
+			ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+#else
+			ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", 	ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
 #endif
 
-		if (listen(GLOB(descriptor), DEFAULT_SCCP_BACKLOG)) {
+			if (listen(GLOB(descriptor), DEFAULT_SCCP_BACKLOG)) {
 #ifdef ASTERISK_CONF_1_2
-			ast_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
+				ast_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
 #else
-			ast_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)),	strerror(errno));
+				ast_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)),	strerror(errno));
 #endif
-			close(GLOB(descriptor));
-			GLOB(descriptor) = -1;
-			return 0;
+				close(GLOB(descriptor));
+				GLOB(descriptor) = -1;
+				return 0;
+			}
+#ifdef ASTERISK_CONF_1_2
+			sccp_log(0)(VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+#else
+			sccp_log(0)(VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+#endif
+			ast_pthread_create(&GLOB(socket_thread), NULL, sccp_socket_thread, NULL);
 		}
-#ifdef ASTERISK_CONF_1_2
-		sccp_log(0)(VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
-#else
-		sccp_log(0)(VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
-#endif
-		ast_pthread_create(&GLOB(socket_thread), NULL, sccp_socket_thread, NULL);
 	}
-  }
 
-  sccp_restart_monitor();
-  return 0;
+	sccp_restart_monitor();
+	return 0;
 }
 
 
@@ -770,26 +769,26 @@ static int reload_config(void) {
  * \brief 	create a hotline
  */
 void *sccp_create_hotline(void){
-      sccp_line_t	*hotline;
+	sccp_line_t	*hotline;
 
-      hotline = sccp_line_create();
-      sccp_copy_string(hotline->name, "Hotline", sizeof(hotline->name));
-      sccp_copy_string(hotline->cid_name, "hotline", sizeof(hotline->cid_name));
-      sccp_copy_string(hotline->cid_num, "hotline", sizeof(hotline->cid_name));
-      sccp_copy_string(hotline->context, "default", sizeof(hotline->context));
-      sccp_copy_string(hotline->label, "hotline", sizeof(hotline->label));
-      sccp_copy_string(hotline->adhocNumber, "111", sizeof(hotline->adhocNumber));
-      
-      //sccp_copy_string(hotline->mailbox, "hotline", sizeof(hotline->mailbox));
+	hotline = sccp_line_create();
+	sccp_copy_string(hotline->name, "Hotline", sizeof(hotline->name));
+	sccp_copy_string(hotline->cid_name, "hotline", sizeof(hotline->cid_name));
+	sccp_copy_string(hotline->cid_num, "hotline", sizeof(hotline->cid_name));
+	sccp_copy_string(hotline->context, "default", sizeof(hotline->context));
+	sccp_copy_string(hotline->label, "hotline", sizeof(hotline->label));
+	sccp_copy_string(hotline->adhocNumber, "111", sizeof(hotline->adhocNumber));
 
-      SCCP_LIST_LOCK(&GLOB(lines));
-      SCCP_LIST_INSERT_HEAD(&GLOB(lines), hotline, list);
-      SCCP_LIST_UNLOCK(&GLOB(lines));
+	//sccp_copy_string(hotline->mailbox, "hotline", sizeof(hotline->mailbox));
 
-      GLOB(hotline)->line = hotline;
-      sccp_copy_string(GLOB(hotline)->exten, "111", sizeof(GLOB(hotline)->exten));
+	SCCP_LIST_LOCK(&GLOB(lines));
+	SCCP_LIST_INSERT_HEAD(&GLOB(lines), hotline, list);
+	SCCP_LIST_UNLOCK(&GLOB(lines));
 
-      return NULL;
+	GLOB(hotline)->line = hotline;
+	sccp_copy_string(GLOB(hotline)->exten, "111", sizeof(GLOB(hotline)->exten));
+
+	return NULL;
 }
 
 /*!
@@ -1331,7 +1330,7 @@ int usecount() {
  * \return 	the asterisk key
  */
 char *key() {
-        return ASTERISK_GPL_KEY;
+	return ASTERISK_GPL_KEY;
 }
 
 /*!
