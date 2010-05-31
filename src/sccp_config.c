@@ -52,11 +52,11 @@ void sccp_config_addLine(sccp_device_t *device, char *lineName, char *options, u
 	sccp_buttonconfig_t	*config;
 	struct composedId composedLineRegistrationId;
 
-	config = ast_malloc(sizeof(sccp_buttonconfig_t));
-	memset(config, 0, sizeof(sccp_buttonconfig_t));
-	memset(&composedLineRegistrationId, 0, sizeof(struct composedId));
+	config = ast_calloc(1, sizeof(sccp_buttonconfig_t));
 	if(!config)
 		return;
+
+	memset(&composedLineRegistrationId, 0, sizeof(struct composedId));
 
 	ast_strip(lineName);
 	sccp_log(0)(VERBOSE_PREFIX_3 "Add line button on position: %d\n", config->instance);
@@ -98,8 +98,7 @@ void sccp_config_addEmpty(sccp_device_t *device, uint8_t instance)
 {
 	sccp_buttonconfig_t	*config;
 
-	config = ast_malloc(sizeof(sccp_buttonconfig_t));
-	memset(config, 0, sizeof(sccp_buttonconfig_t));
+	config = ast_calloc(1, sizeof(sccp_buttonconfig_t));
 	if(!config)
 		return;
 
@@ -130,8 +129,9 @@ void sccp_config_addEmpty(sccp_device_t *device, uint8_t instance)
 void sccp_config_addSpeeddial(sccp_device_t *device, char *label, char *extension, char *hint, uint8_t instance){
 	sccp_buttonconfig_t	*config;
 
-	config = ast_malloc(sizeof(sccp_buttonconfig_t));
-	memset(config, 0, sizeof(sccp_buttonconfig_t));
+	config = ast_calloc(1, sizeof(sccp_buttonconfig_t));
+	if (!config)
+		return;
 
 
 	//TODO check already existing instances
@@ -169,8 +169,10 @@ void sccp_config_addSpeeddial(sccp_device_t *device, char *label, char *extensio
 void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID, char *args, uint8_t instance){
 	sccp_buttonconfig_t	*config;
 
-	config = ast_malloc(sizeof(sccp_buttonconfig_t));
-	memset(config, 0, sizeof(sccp_buttonconfig_t));
+	config = ast_calloc(1, sizeof(sccp_buttonconfig_t));
+
+	if (!config)
+		return;
 
 
 	//TODO check already existing instances
@@ -213,9 +215,10 @@ void sccp_config_addService(sccp_device_t *device, char *label, char *url, uint8
 {
 	sccp_buttonconfig_t	*config;
 
-	config = ast_malloc(sizeof(sccp_buttonconfig_t));
-	memset(config, 0, sizeof(sccp_buttonconfig_t));
+	config = ast_calloc(1, sizeof(sccp_buttonconfig_t));
 
+	if (!config)
+		return;
 
 	//config->instance = instance;
 	/*
@@ -1297,8 +1300,7 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
 	sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "start reading softkeyset: %s\n", name);
 
 
-	softKeySetConfiguration = ast_malloc(sizeof(sccp_softKeySetConfiguration_t));
-	memset(softKeySetConfiguration, 0, sizeof(sccp_softKeySetConfiguration_t));
+	softKeySetConfiguration = ast_calloc(1, sizeof(sccp_softKeySetConfiguration_t));
 
 	sccp_copy_string(softKeySetConfiguration->name, name, sizeof(softKeySetConfiguration->name));
 	softKeySetConfiguration->numberOfSoftKeySets = 0;
@@ -1345,19 +1347,18 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
 		}
 
 		for(i=0;i < ( sizeof(SoftKeyModes)/sizeof(softkey_modes) ); i++){
- 			if(SoftKeyModes[i].id == keyMode){
- 				uint8_t *softkeyset = ast_malloc(StationMaxSoftKeySetDefinition * sizeof(uint8_t));
-				memset(softkeyset, 0, StationMaxSoftKeySetDefinition * sizeof(uint8_t));
- 				keySetSize = sccp_config_readSoftSet(softkeyset, variable->value);
+			if(SoftKeyModes[i].id == keyMode){
+				uint8_t *softkeyset = ast_calloc(StationMaxSoftKeySetDefinition, sizeof(uint8_t));
+				keySetSize = sccp_config_readSoftSet(softkeyset, variable->value);
 
- 				if(keySetSize > 0){
+				if(keySetSize > 0){
 					softKeySetConfiguration->modes[i].id = keyMode;
- 					softKeySetConfiguration->modes[i].ptr = softkeyset;
- 					softKeySetConfiguration->modes[i].count = keySetSize;
- 				}else{
- 					ast_free(softkeyset);
- 				}
- 			}
+					softKeySetConfiguration->modes[i].ptr = softkeyset;
+					softKeySetConfiguration->modes[i].count = keySetSize;
+				}else{
+					ast_free(softkeyset);
+				}
+			}
 		}
 
 
