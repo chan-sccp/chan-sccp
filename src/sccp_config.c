@@ -851,6 +851,13 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 
 
 	while (v) {
+
+		if(!(v->name)) {
+			ast_log(LOG_WARNING, "Null variable name in configuration\n");
+		} else if(!(v->value)) {
+			ast_log(LOG_WARNING, "Null variable value in configuration\n");
+		} else {
+			//ast_verbose(VERBOSE_PREFIX_3, "Processing variable name \"%s\", value \"%s\"\n", v->name, v->value);
 		if ((!strcasecmp(v->name, "line") )
 #ifdef CS_SCCP_REALTIME
 				|| (!strcasecmp(v->name, "name"))
@@ -884,19 +891,19 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 
 			mbox = context = ast_strdupa(v->value);
 
-			if (ast_strlen_zero(mbox))
-				continue;
+			if (!ast_strlen_zero(mbox)) {
 
-			if (!(mailbox = ast_calloc(1, sizeof(*mailbox))))
-				continue;
+				mailbox = ast_calloc(1, sizeof(*mailbox));
 
+				if(NULL != mailbox) {
+					strsep(&context, "@");
+					mailbox->mailbox = ast_strdup(mbox);
+					mailbox->context = ast_strdup(context);
 
-			strsep(&context, "@");
-			mailbox->mailbox = ast_strdup(mbox);
-			mailbox->context = ast_strdup(context);
-
-			SCCP_LIST_INSERT_TAIL(&l->mailboxes, mailbox, list);
-			sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_3 "%s: Added mailbox '%s@%s'\n", l->name, mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
+					SCCP_LIST_INSERT_TAIL(&l->mailboxes, mailbox, list);
+					sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_3 "%s: Added mailbox '%s@%s'\n", l->name, mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
+				}
+			}
 		} else if (!strcasecmp(v->name, "vmnum")) {
 			sccp_copy_string(l->vmnum, v->value, sizeof(l->vmnum));
 		} else if (!strcasecmp(v->name, "adhocNumber")) {
@@ -1050,7 +1057,12 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 				l->dndmode = sccp_true(v->value);
 			}
 		} else {
-			ast_log(LOG_WARNING, "Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
+			if(v->name && v->value) {
+				ast_log(LOG_WARNING, "Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
+			} else {
+				ast_log(LOG_WARNING, "Null param in config at line %d.\n", v->lineno);
+			}
+		}
 		}
 
 		v = v->next;
