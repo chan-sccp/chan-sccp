@@ -65,7 +65,9 @@ AC_DEFUN([CS_CHECK_PBX], [
         echo "no"
     done
     if test x_$found_pbx != x_yes; then
-        AC_MSG_ERROR([Cannot find pbx libraries - these are required.\nPlease install either the asterisk-devel or callweaver-devel package.\nOr run ./configure --with-asterisk=PATH with PATH pointing to the directory where you installed asterisk])
+	AC_MSG_NOTICE([Please install either the asterisk-devel or callweaver-devel package.])
+	AC_MSG_NOTICE([Or run ./configure --with-asterisk=PATH with PATH pointing to the directory where you installed asterisk])
+        AC_MSG_ERROR([Cannot find pbx libraries - these are required.])
     else
        if test x_$found_asterisk = x_yes; then
          printf "Asterisk found in $checkdir\n";
