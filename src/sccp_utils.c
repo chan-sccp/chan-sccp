@@ -1376,10 +1376,42 @@ struct composedId sccp_parseComposedId(const char* labelString, unsigned int max
  */
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const char *subscriptionIdNum){
 	boolean_t result = TRUE;
+	boolean_t filterPhones = FALSE;
+	/* 
 	int compareId = 0;
 	int compareDefId = 0;
+	*/
 
-	
+
+	/* Determine if the phones registered on the shared line shall be filtered at all:
+	   only if a non-trivial subscription id is specified with the calling channel,
+	   which is not the default subscription id of the shared line denoting all devices,
+	   the phones are addressed individually. (-DD) */
+
+	filterPhones = FALSE; /* set the default to call all phones */
+
+	/* First condition: Non-trivial subscriptionId specified for matching in call. */
+	if( strlen(channel->subscriptionId.number) != 0 ) 
+	{
+		/* Second condition: SubscriptionId does not match default subscriptionId of line. */
+		if( 0 != strncasecmp(channel->subscriptionId.number, channel->line->defaultSubscriptionId.number, strlen(channel->subscriptionId.number)) )
+		{
+			filterPhones = TRUE;
+		}
+	} 
+
+	if( FALSE == filterPhones )
+	{
+		/* Accept phone for calling if all phones shall be called. */
+		result = TRUE;
+	}
+	else if(    0 != strlen(subscriptionIdNum) /* We already know that we won't search for a trivial subscriptionId. */
+	         && 0 != strncasecmp(channel->subscriptionId.number, subscriptionIdNum, strlen(channel->subscriptionId.number)) ) /* Do the match! */
+	{
+		result = FALSE;
+	}
+
+#if 0
 	/* we are calling a line with no or default subscriptionIdNum -> let all devices get the call -> return true */
 	if( strlen(channel->subscriptionId.number) == 0 ){
 		result = TRUE;
@@ -1415,6 +1447,8 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const cha
 			}
 	}
 DONE:
+#endif
+
 #if 0
 	ast_log(LOG_NOTICE, "channel->subscriptionId.number=%s, length=%d\n", channel->subscriptionId.number, strlen(channel->subscriptionId.number));
 	ast_log(LOG_NOTICE, "subscriptionIdNum=%s, length=%d\n", subscriptionIdNum?subscriptionIdNum:"NULL", subscriptionIdNum?strlen(subscriptionIdNum):-1);
