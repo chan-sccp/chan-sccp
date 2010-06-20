@@ -1379,11 +1379,20 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const cha
 	int compareId = 0;
 	int compareDefId = 0;
 
-	/* we are calling a line with no subscriptionIdNum -> let all devices get the call -> return true */
+	
+	/* we are calling a line with no or default subscriptionIdNum -> let all devices get the call -> return true */
 	if( strlen(channel->subscriptionId.number) == 0 ){
 		result = TRUE;
 		goto DONE;
 	}
+#if 0
+	/* channel->line has a defaultSubscriptionId -> if we wish to ring all devices -> remove the #if */
+	if( strlen(channel->line->defaultSubscriptionId.number) && 0 == strncasecmp(channel->subscriptionId.number, channel->line->defaultSubscriptionId.number, strlen(channel->subscriptionId.number)) ){
+		result = TRUE;
+		goto DONE;
+	}
+#endif
+	
 	/* we are calling a line with suffix, but device does not have a subscriptionIdNum -> skip it -> return false */
 	else if( strlen(subscriptionIdNum) == 0 && strlen(channel->subscriptionId.number) != 0 ){
 		result = FALSE;
@@ -1406,13 +1415,13 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const cha
 			}
 	}
 DONE:
-//#if 0
+#if 0
 	ast_log(LOG_NOTICE, "channel->subscriptionId.number=%s, length=%d\n", channel->subscriptionId.number, strlen(channel->subscriptionId.number));
 	ast_log(LOG_NOTICE, "subscriptionIdNum=%s, length=%d\n", subscriptionIdNum?subscriptionIdNum:"NULL", subscriptionIdNum?strlen(subscriptionIdNum):-1);
 
 	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: channel->subscriptionId.number=%s, SubscriptionId=%s\n", (channel->subscriptionId.number)?channel->subscriptionId.number:"NULL", (subscriptionIdNum)?subscriptionIdNum:"NULL");
 	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: result: %d\n", result);
-//#endif
+#endif
 	return result;
 }
 
