@@ -1388,7 +1388,9 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const cha
 	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: channel->subscriptionId.number=%s, SubscriptionId=%s\n", (channel->subscriptionId.number)?channel->subscriptionId.number:"NULL", (subscriptionIdNum)?subscriptionIdNum:"NULL");
 #endif
 
-	
+	/* we are calling a line with no subscriptionIdNum -> let all devices get the call -> return true */
+	if( strlen(channel->subscriptionId.number) == 0 )
+		return TRUE;
 
 	/* we are calling a line with suffix, but device does not have a subscriptionIdNum -> skip it -> return false */
 	if( strlen(subscriptionIdNum) == 0 && strlen(channel->subscriptionId.number) != 0 )
