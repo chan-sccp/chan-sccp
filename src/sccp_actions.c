@@ -599,6 +599,13 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 		  
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
+
+		// all non defined buttons are set to UNUSED
+		for (i = 0; i < StationMaxButtonTemplateSize ; i++) {
+			if(btn[i].type == SCCP_BUTTONTYPE_MULTI)
+			{ btn[i].type = SKINNY_BUTTONTYPE_UNUSED; }
+		}
+
 	}else{
 		/* reserve one line as hotline */
 		btn[i].type = SKINNY_BUTTONTYPE_LINE;
