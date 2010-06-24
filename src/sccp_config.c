@@ -372,13 +372,14 @@ boolean_t sccp_config_general(void){
 		return FALSE;
 	}
 
-	while (v) {
+	for(; v; v = v->next) {
 		sccp_copy_string(config_value, v->value, sizeof(config_value));
 
 #ifndef ASTERISK_CONF_1_2
 		/* handle jb in configuration just let asterisk do that */
 		if (!ast_jb_read_conf(&GLOB(global_jbconf), v->name, v->value)){
 			// Found a jb parameter
+			continue;
 		}
 #endif
 
@@ -743,7 +744,6 @@ boolean_t sccp_config_general(void){
 		} else {
 			ast_log(LOG_WARNING, "Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
 		}
-		v = v->next;
 	}
 
 	ast_codec_pref_string(&GLOB(global_codecs), pref_buf, sizeof(pref_buf) - 1);
@@ -903,6 +903,7 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 					SCCP_LIST_INSERT_TAIL(&l->mailboxes, mailbox, list);
 					sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_3 "%s: Added mailbox '%s@%s'\n", l->name, mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
 				}
+				ast_free(mbox);
 			}
 		} else if (!strcasecmp(v->name, "vmnum")) {
 			sccp_copy_string(l->vmnum, v->value, sizeof(l->vmnum));
