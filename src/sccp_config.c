@@ -903,7 +903,6 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 					SCCP_LIST_INSERT_TAIL(&l->mailboxes, mailbox, list);
 					sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_3 "%s: Added mailbox '%s@%s'\n", l->name, mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
 				}
-				ast_free(mbox);
 			}
 		} else if (!strcasecmp(v->name, "vmnum")) {
 			sccp_copy_string(l->vmnum, v->value, sizeof(l->vmnum));
