@@ -429,7 +429,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 	sccp_dev_build_buttontemplate(d, btn);
 
 //	sccp_device_lock(d);
-	uint32_t speeddialInstance = 1; /* starting instance for speeddial is 1*/
+	uint32_t speeddialInsance = 1; /* starting instance for speeddial is 1*/
 	uint32_t lineInstance = 1;
 	uint32_t serviceInstance = 1;
 	if(!d->isAnonymous){
@@ -483,7 +483,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 #ifdef CS_DYNAMIC_SPEEDDIAL
 						if(d->inuseprotocolversion >= 15){
 							      btn[i].type = 0x15;
-							      buttonconfig->instance = btn[i].instance = speeddialInstance++;
+							      buttonconfig->instance = btn[i].instance = speeddialInsance++;
 						}else{
 							      btn[i].type = SKINNY_BUTTONTYPE_LINE;
 							      buttonconfig->instance = btn[i].instance = lineInstance++;;
@@ -495,7 +495,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 #endif
 					} else {
 						btn[i].type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-						buttonconfig->instance = btn[i].instance = speeddialInstance++;
+						buttonconfig->instance = btn[i].instance = speeddialInsance++;
 						
 					}
 					break;
@@ -504,7 +504,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				  && sccp_is_nonempty_string(buttonconfig->button.feature.label)
 				  && (btn[i].type == SCCP_BUTTONTYPE_MULTI)){
 				 
-					buttonconfig->instance = btn[i].instance = speeddialInstance++;
+					buttonconfig->instance = btn[i].instance = speeddialInsance++;
 				  	
 					switch(buttonconfig->button.feature.id)
 					{
@@ -638,7 +638,11 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	sccp_device_lock(d);
-	btn = sccp_make_button_template(d);
+	if(!d->buttonTemplate)
+		btn = sccp_make_button_template(d);
+	else
+		btn = d->buttonTemplate;
+	
 	if (!btn) {
 		ast_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
 		sccp_session_close(s);
@@ -714,13 +718,16 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 		/* we found a not configured speeddial */
 		if(config->type == SPEEDDIAL && config->instance == 0){
 			config->instance = speeddialInstance++;
+		}else if(config->type == SPEEDDIAL && config->instance != 0){
+			speeddialInstance = config->instance;
 		}
 	}
 	/* done */
+	d->buttonTemplate = btn;
 	
 	sccp_dev_send(d, r1);
 	sccp_device_unlock(d);
-	ast_free(btn);
+	//ast_free(btn);
 }
 
 /*!
@@ -765,7 +772,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 		sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, ((l) ? l->name : (k)?k->name:""), sizeof(r1->msg.LineStatMessage.lineDirNumber));
 
 		/* lets set the device description for the first line, so it will be display on top of device -MC*/
-		if(lineNumber == 1 && l){
+		if(lineNumber == 1){
 			sccp_copy_string(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName, (d->description), sizeof(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName));
 		}else{
 			sccp_copy_string(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName, ((l) ? l->description : (k)?k->name:""), sizeof(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName));
