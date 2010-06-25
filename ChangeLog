@@ -1,3 +1,307 @@
+2010-06-25  ddegroot
+
+	* [r1545] .version: Release Candidate RC1
+
+2010-06-25  marcelloceschia
+
+	* [r1543] src/sccp_pbx.c: fixes: 3021117
+
+2010-06-24  marcelloceschia
+
+	* [r1542] src/sccp_line.c:
+
+	* [r1541] src/chan_sccp.h: buttonTemplate
+
+	* [r1540] src/sccp_config.c: fixes seg fault
+
+	* [r1539] src/sccp_actions.c: using device description for top
+	  right
+
+	* [r1538] src/sccp_config.c: using for-loop to parse general
+	  section
+
+2010-06-23  progs
+
+	* [r1537] src/sccp_actions.c: expansion module 7914 buttons text
+	  (Thanks to Guillaume Bour)
+	  
+	  buttons after the last defined into sccp.conf all displays the
+	  last button
+	  text
+	  Example:
+	  sccp.conf
+	  ; phone buttons
+	  button = line, 160
+	  button = empty
+	  button = empty
+	  button = empty
+	  button = empty
+	  button = empty
+	  
+	  ; expansion module #1
+	  button = speeddial,112,112,112@default
+	  button = empty
+	  button = speeddial,113,112,112@default
+	  
+	  Expansion module display:
+	  . 112
+	  .
+	  . 113
+	  . 113
+	  . 113
+	  . 113
+	  . 113
+	  . 113
+	  . 113
+	  . 113
+	  . 113
+	  . 113
+	  . 113
+	  . 113
+	  
+	  2d button is empty (button = empty). Buttons after the 3d may be
+	  also
+	  empty, but all display '113' (value of the last defined button).
+	  
+	  My patch correct this by setting SKINNY_BUTTONTYPE_UNUSED value
+	  to
+	  undefined buttons
+	  
+	  Guillaume Bour - Proformatique
+
+2010-06-20  davidded
+
+	* [r1536] src/sccp_utils.c: simplified and fixed subscription id
+	  matching)
+
+2010-06-20  marcelloceschia
+
+	* [r1535] src/sccp_utils.c: calling line with no subscriptionIdNum
+	  should ring all devices - fixed
+
+	* [r1534] src/sccp_utils.c: calling line with no subscriptionIdNum
+	  should ring all devices - fixed
+
+	* [r1533] src/sccp_utils.c: calling line with no subscriptionIdNum
+	  should ring all devices - fixed
+
+	* [r1532] src/sccp_utils.c: calling line with no subscriptionIdNum
+	  should ring all devices - fixed
+
+2010-06-15  progs
+
+	* [r1531] autoconf/acinclude.m4, configure: correctly print error
+	  message when no pbx is found
+	  
+	  '\n' is not catched by AC_MSG_ERROR.
+
+2010-06-01  davidded
+
+	* [r1530] src/sccp_config.c: fixed stack overflow by wrong control
+	  flow for empty mailbox handler
+
+2010-05-31  progs
+
+	* [r1529] src/sccp_config.c: use ast_calloc instead of
+	  ast_malloc+memset
+
+	* [r1528] src/chan_sccp.c, src/sccp_cli.c, src/sccp_config.c:
+	  cleanup code
+
+	* [r1527] libtool[DEL]: remove libtool which is useless
+	  
+	  Any generated file may not be present in repository.
+
+2010-05-28  progs
+
+	* [r1526] src/chan_sccp.c: fix crash when unloading module without
+	  sccp.conf file
+	  
+	  The socket_thread global variable isn't correctly initialized, so
+	  when
+	  chan_sccp loads without sccp.conf, the socket thread isn't
+	  created, but
+	  GLOB(socket_thread) 0 instead of AST_PTHREADT_NULL (-1), so at
+	  unload, it
+	  tries to stop this unexistant thread.
+
+2010-05-28  marcelloceschia
+
+	* [r1525] src/sccp_utils.c: fixes issue: answering shared lines
+	  with suffix
+
+2010-05-27  marcelloceschia
+
+	* [r1524] src/sccp_cli.c: display suffix for line
+
+	* [r1523] src/sccp_cli.c: display suffix for line
+
+2010-05-26  marcelloceschia
+
+	* [r1522] src/sccp_utils.c: fixes shared lines suffix request
+
+2010-05-25  marcelloceschia
+
+	* [r1521] src/sccp_utils.c: do not call device without
+	  subscriptionIdNum while calling line with subscriptionId
+
+	* [r1520] src/sccp_utils.c: do not call device without
+	  subscriptionIdNum while calling line with subscriptionId
+
+2010-05-24  marcelloceschia
+
+	* [r1519] src/sccp_features.c: fixes gpickup issue
+
+2010-05-13  marcelloceschia
+
+	* [r1518] src/sccp_indicate.c: revert to 1509 except mwi check
+
+2010-05-12  marcelloceschia
+
+	* [r1517] src/sccp_pbx.c: handle AST_CONTROL_SRCCHANGE
+
+	* [r1516] src/sccp_pbx.c: handle AST_CONTROL_SRCCHANGE
+
+	* [r1515] src/sccp_pbx.c: handle AST_CONTROL_SRCCHANGE
+
+	* [r1514] src/sccp_pbx.c: handle AST_CONTROL_SRCCHANGE
+
+2010-05-11  marcelloceschia
+
+	* [r1513] src/sccp_indicate.c: we need speeker and date-time
+
+	* [r1512] src/sccp_softkeys.c: use d->defaultLineInstance or
+	  d->currentLine to enable cfwd
+
+	* [r1511] src/sccp_indicate.c: cleanup
+
+2010-05-11  davidded
+
+	* [r1510] libtool, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_indicate.c, src/sccp_socket.c: cleanup
+
+2010-05-10  marcelloceschia
+
+	* [r1509] src/sccp_mwi.c: disable mwi-light on active channel
+
+	* [r1508] src/sccp_indicate.c: use event system instead of
+	  sccp_device_stateChanged
+
+	* [r1507] src/sccp_device.c, src/sccp_device.h: removed function
+	  sccp_device_stateChanged
+
+	* [r1506] src/sccp_event.h: add SCCP_EVENT_LINESTATUSCHANGED
+
+2010-05-07  marcelloceschia
+
+	* [r1505] src/sccp_device.c, src/sccp_hint.c:
+
+	* [r1504] src/sccp_event.h: documentation
+
+2010-05-06  ddegroot
+
+	* [r1503] configure, configure.ac, src/chan_sccp.c,
+	  src/sccp_actions.c, src/sccp_channel.c, src/sccp_cli.c,
+	  src/sccp_conference.c, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_event.c, src/sccp_featureButton.c, src/sccp_features.c:
+	  Started add remarks in the top of all file to descript their
+	  purpose, use and relations ships.
+
+	* [r1502] Makefile.in, autoconf/acinclude.m4,
+	  conf/tftp/XMLDefault.cnf.xml_797x, configure, src/chan_sccp.c,
+	  src/chan_sccp.h, src/sccp_adv_features.c,
+	  src/sccp_adv_features.h, src/sccp_cli.c, src/sccp_dllists.h,
+	  src/sccp_features.c, src/sccp_features.h, src/sccp_lists.h,
+	  src/sccp_lock.c, src/sccp_lock.h: converted all files to unix
+	  format, removing incidental \r at end of line
+
+2010-05-05  marcelloceschia
+
+	* [r1501] src/sccp_actions.c: disable protocol version check < v2
+
+2010-05-04  ddegroot
+
+	* [r1500] LICENSE, Makefile.am, Makefile.in, configure.ac, libtool,
+	  src/Makefile.in, src/chan_sccp.c, src/chan_sccp.h,
+	  src/sccp_actions.c, src/sccp_actions.h, src/sccp_adv_features.c,
+	  src/sccp_adv_features.h, src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_cli.c, src/sccp_cli.h, src/sccp_conference.c,
+	  src/sccp_conference.h, src/sccp_config.c, src/sccp_config.h,
+	  src/sccp_device.c, src/sccp_device.h, src/sccp_dllists.h,
+	  src/sccp_event.c, src/sccp_event.h, src/sccp_featureButton.c,
+	  src/sccp_featureButton.h, src/sccp_features.c,
+	  src/sccp_features.h, src/sccp_hint.c, src/sccp_hint.h,
+	  src/sccp_indicate.h, src/sccp_labels.h, src/sccp_line.c,
+	  src/sccp_line.h, src/sccp_lock.c, src/sccp_lock.h,
+	  src/sccp_management.c, src/sccp_management.h, src/sccp_mwi.c,
+	  src/sccp_mwi.h, src/sccp_pbx.c, src/sccp_pbx.h,
+	  src/sccp_protocol.h, src/sccp_socket.c, src/sccp_socket.h,
+	  src/sccp_softkeys.c, src/sccp_softkeys.h, src/sccp_utils.c,
+	  src/sccp_utils.h: License GPLv1 reinstated until further notice,
+	  while GPLv3 Upgrade Discovery is in progress
+
+2010-05-03  ddegroot
+
+	* [r1499] src/Makefile.in, src/chan_sccp.c, src/sccp_cli.c: Updated
+	  SCCP_VERSION number in "sccp show version"
+
+2010-05-03  marcelloceschia
+
+	* [r1498] src/sccp_channel.c: fixes issue 2993849 (CfwdAll -
+	  Asterisk crashes) - thx to ericsesterhenn
+
+2010-04-30  marcelloceschia
+
+	* [r1497] src/sccp_pbx.c: fixes issue with export variables e.g.
+	  SCCP_DEVICE_MAC
+
+	* [r1496] src/sccp_actions.c: check for lowest protocol version
+
+	* [r1495] src/sccp_actions.c: check for lowest protocol version
+
+	* [r1494] src/sccp_actions.c: throw registration errors as NOTICE
+
+	* [r1493] src/sccp_hint.c: clear callinfo on status change
+
+	* [r1492] src/sccp_line.c: some debug output for cfwd
+
+	* [r1491] src/sccp_hint.c: fixes issue with dnd and hint (old hint
+	  style)
+
+2010-04-29  ddegroot
+
+	* [r1490] Makefile.in, configure, src/sccp_pbx.c: Commited
+	  Guillaume Bour Patch (chanvars.20100429.patch) from patches ID:
+	  2994228
+	  Thanks Guillaume
+
+2010-04-28  marcelloceschia
+
+	* [r1489] src/sccp_pbx.c: avoid deadlock @see
+	  https://sourceforge.net/tracker/?func=detail&aid=2979751&group_id=186378&atid=917045
+
+2010-04-27  marcelloceschia
+
+	* [r1488] src/sccp_hint.c, src/sccp_softkeys.c: update hint status
+	  on dnd change every time
+
+	* [r1487] src/sccp_utils.c: new line on eof
+
+	* [r1486] src/chan_sccp.c: DEBUGCAT_HINT for sccp_devicestate
+
+	* [r1485] src/sccp_hint.c:
+
+2010-04-27  ddegroot
+
+	* [r1484] NEWS: Updated News File
+
+	* [r1483] .version[ADD], ChangeLog, Makefile.am, Makefile.in, NEWS,
+	  autoconf/acinclude.m4, autoconf/make_version[DEL], configure,
+	  configure.ac, libtool, src/chan_sccp.c, src/sccp_actions.c,
+	  tools/chan-sccp-b.spec: Updated Version / Revisions Number Check
+	  in configure and makefile for distribution (make dist)
+	  Added .version to specify major and minor numbers
+
 2010-04-27  marcelloceschia
 
 	* [r1482] src/sccp_hint.c:
