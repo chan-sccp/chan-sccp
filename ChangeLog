@@ -1,5 +1,9 @@
 2010-06-25  ddegroot
 
+	* [r1550] .version: Changed .version to V3.0_PreRC2
+
+	* [r1547] ChangeLog, NEWS, configure: V3.0 Release Candidate 1
+
 	* [r1545] .version: Release Candidate RC1
 
 2010-06-25  marcelloceschia

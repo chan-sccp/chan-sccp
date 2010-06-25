@@ -9,7 +9,7 @@
 
 include $(top_srcdir)/amdoxygen.am
 AUTOMAKE_OPTS			= gnu silent-rules
-EXTRA_DIST 			= 
+EXTRA_DIST 			= .version tools conf
 SUBDIRS 			= src doc
 ACLOCAL_AMFLAGS                 = -I autoconf
 AM_CPPFLAGS                     = $(LTDLINCL)
@@ -60,7 +60,7 @@ rpm:    release
 	  cp tools/chan-sccp-b.spec /usr/src/packages/SOURCES/; \
 	  export DISTDIR=${distdir}; \
 	  if [ -f /etc/SuSE-release ]; then \
-                  if [ "$(ASTERISK_VER)" == "1.4" ]; then \ 
+                  if [ "$(ASTERISK_VER)" == "1.4" ]; then \
                           export ASTERISKVER=""; \
                   else \
                           export ASTERISKVER="`echo $(ASTERISK_VER)|sed 's/\.//g'`"; \
