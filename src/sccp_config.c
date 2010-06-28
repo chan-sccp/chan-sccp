@@ -502,7 +502,7 @@ boolean_t sccp_config_general(void){
 			GLOB(recorddigittimeoutchar) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "debug")) {
 			GLOB(debug)=0;
-			debug_arr[0]=strdup((char *)v->value);
+			debug_arr[0]=(char *)v->value;
 			GLOB(debug)=sccp_parse_debugline(debug_arr,0,1,GLOB(debug));
 		} else if (!strcasecmp(v->name, "allow")) {
 			ast_parse_allow_disallow(&GLOB(global_codecs), &GLOB(global_capability), ast_strip(config_value), 1);
