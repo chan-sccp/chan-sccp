@@ -52,7 +52,7 @@ endif
 doxygen: ChangeLog ChangeLog-HTML doxygen-doc
 
 deb: 
-	dpkg-buildpackage -rfakeroot
+	dpkg-buildpackage -rfakeroot -us -uc
 
 rpm:    release
 	@if test ! -z "$(RPMBUILD)" ; then \
