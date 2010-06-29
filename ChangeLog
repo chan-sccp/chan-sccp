@@ -1,4 +1,13 @@
+2010-06-28  progs
+
+	* [r1552] src/sccp_config.c: fix little memory leak
+
 2010-06-25  ddegroot
+
+	* [r1551] ChangeLog, INSTALL, Makefile.am, Makefile.in, aclocal.m4,
+	  autoconf/config.guess, autoconf/config.sub, configure,
+	  doc/Makefile.in, src/Makefile.in, src/config.h.in: Fix
+	  Makefile.am "make rpm" for Release Candidate 1
 
 	* [r1550] .version: Changed .version to V3.0_PreRC2
 
