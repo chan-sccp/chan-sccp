@@ -1576,8 +1576,30 @@ static struct ast_cli_entry cli_no_debug = {
  * \return Result as int
  */
 static int sccp_do_reload(int fd, int argc, char *argv[]) {
+#ifdef CS_ADV_FEATURES
+	ast_cli(fd, "SCCP reloading configuration.\n");
+/*
+(sccp_cli.c)        set global variable reloading=true
+(sccp_cli.c)        set all devices + lines to pendingDelete
+(sccp_config.c)     load global parameters
+(sccp_config.c)     load device parameters 
+(sccp_config.c)       - if device already exists remove device.pendingDelete
+(sccp_config.c)       - set device.pendingUpdate where device restart necessary
+(sccp_config.c)     load line parameters set device.pendingUpdate where necessary
+(sccp_config.c)       - if line already exists remove line.pendingDelete
+(sccp_config.c)       - set device.pendingUpdate where device restart necessary
+(sccp_cli.c)        start thread to restart devices with pendingUpdate with 5 minute timeout
+(sccp_cli.c)          - skip device if it holds an active channel (device will restart on hangup 
+(sccp_channel.c)            (hangup function needs to check pendingUpdate)
+(sccp_cli.c)          - if pendingDelete the remove buttonconfig, line, device
+(sccp_cli.c)          - if pendingUpdate then set pendingUpdate to false and send restart to device
+(sccp_cli.c)        print reload statistics (number of device restarted, number of devices with open channels)
+*/
+        return RESULT_SUCCESS;
+#else
 	ast_cli(fd, "SCCP configuration reload not implemented yet! use unload and load.\n");
 	return RESULT_SUCCESS;
+#endif
 }
 
 #ifdef ASTERISK_CONF_1_6
