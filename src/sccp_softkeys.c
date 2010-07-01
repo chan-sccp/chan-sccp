@@ -53,6 +53,22 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 //SCCP_LIST_HEAD(softKeySetConfigList, sccp_softKeySetConfiguration_t) softKeySetConfig;	/*!< List of SoftKeySets */
 struct softKeySetConfigList softKeySetConfig;							/*!< List of SoftKeySets */
  
+void sccp_softkey_pre_reload(void)
+{
+	sccp_softKeySetConfiguration_t * k;
+
+	SCCP_LIST_LOCK(&softKeySetConfig);
+	while((k = SCCP_LIST_REMOVE_HEAD(&softKeySetConfig, list))) {
+		ast_free(k);
+	}
+	SCCP_LIST_UNLOCK(&softKeySetConfig);
+}
+
+void sccp_softkey_post_reload(void)
+{
+
+}
+
 /*!
  * \brief Redial last Dialed Number by this Device
  * \n Usage: \ref sk_redial

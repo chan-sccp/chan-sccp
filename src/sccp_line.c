@@ -30,6 +30,22 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_mwi.h"
 #include <asterisk/utils.h>
 
+void sccp_line_pre_reload(void)
+{
+	sccp_line_t* l;
+
+	SCCP_LIST_LOCK(&GLOB(lines));
+	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list){
+		l->pendingDelete = 1;
+		l->pendingUpdate = 0;
+	}
+	SCCP_LIST_UNLOCK(&GLOB(lines));
+}
+
+void sccp_line_post_reload(void)
+{
+
+}
 
 /*!
  * \brief Build Default SCCP Line.

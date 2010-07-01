@@ -13,6 +13,9 @@
 #ifndef __SCCP_SOFTKEYS_H
 #define __SCCP_SOFTKEYS_H
 
+void sccp_softkey_pre_reload(void);
+void sccp_softkey_post_reload(void);
+
 void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 void sccp_sk_hold(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);

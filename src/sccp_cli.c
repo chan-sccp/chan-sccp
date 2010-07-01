@@ -35,6 +35,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_hint.h"
 #include "sccp_device.h"
 #include "sccp_socket.h"
+#include "sccp_config.h"
 #include <asterisk/utils.h>
 #include <asterisk/cli.h>
 #include <asterisk/astdb.h>
@@ -1582,21 +1583,21 @@ static int sccp_do_reload(int fd, int argc, char *argv[]) {
 	sccp_device_t * d;
 
 //(sccp_cli.c)        set global variable reloading=true
-        readingtype=SCCP_CONFIG_READRELOAD;
+//                    > readingtype is not a global variable -romain
+	readingtype=SCCP_CONFIG_READRELOAD;
 
-//(sccp_cli.c)        set all devices + lines to pendingDelete
-	SCCP_LIST_LOCK(&GLOB(devices));
-	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
-	  d->pendingDelete=true;
-	}
-	SCCP_LIST_UNLOCK(&GLOB(devices));
+//(sccp_config.c)        set all devices + lines to pendingDelete
+	/* done by readDevicesLines */
 	
 // (sccp_config.c)     load global parameters
-        if (sccp_config_general()) {
-          // (sccp_config.c)     load device parameters 
-          sccp_config_readDevicesLines(readingtype);
-        }
-        
+	if (!sccp_config_general()) {
+		ast_cli(fd, "Unable to reload configuration.\n");
+		return RESULT_FAILURE;
+	}
+
+	// (sccp_config.c)     load device parameters 
+	sccp_config_readDevicesLines(readingtype);
+
 /*
 (sccp_config.c)       - if device already exists remove device.pendingDelete
 (sccp_config.c)       - set device.pendingUpdate where device restart necessary
@@ -1612,6 +1613,7 @@ static int sccp_do_reload(int fd, int argc, char *argv[]) {
                     }
 (sccp_cli.c)        print reload statistics (number of device restarted, number of devices with open channels)
 */
+
         return RESULT_SUCCESS;
 #else
 	ast_cli(fd, "SCCP configuration reload not implemented yet! use unload and load.\n");

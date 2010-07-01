@@ -268,16 +268,19 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 	// we might have been asked to create a device for realtime addition,
 	// thus causing an infinite loop / recursion.
 	d = sccp_device_find_byid(deviceName, FALSE);
-	if (d) {
+	if (d && !d->pendingDelete) {
 		ast_log(LOG_WARNING, "SCCP: Device '%s' already exists\n", deviceName);
 		return d;
 	}
 
 
 	/* create new device with default values */
-	d= sccp_device_create();
-	memset(d->id, 0, sizeof(d->id));
-	sccp_copy_string(d->id, deviceName, sizeof(d->id));	/* set device name */
+	if (!d) {
+		d= sccp_device_create();
+		memset(d->id, 0, sizeof(d->id));
+		sccp_copy_string(d->id, deviceName, sizeof(d->id));	/* set device name */
+	}
+
 	d= sccp_config_applyDeviceConfiguration(d, variable); 	/* apply configuration using variable */
 
 
@@ -290,7 +293,10 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 		d->phonemessage=strdup(message);						//set message on device if we have a result
 	}
 
-	sccp_device_addToGlobals(d);
+	if (!d->pendingDelete)
+		sccp_device_addToGlobals(d);
+	else
+		d->pendingDelete = 0;
 
 	return d;
 }
@@ -314,12 +320,14 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 
 
 	/* search for existing line */
-	if (line) {
+	if (line && !line->pendingDelete) {
 		ast_log(LOG_WARNING, "SCCP: Line '%s' already exists\n", name);
 		return line;
 	}
 
-	line = sccp_line_create();
+	if (!line)
+		line = sccp_line_create();
+
 	line = sccp_config_applyLineConfiguration(line, variable);
 
 	sccp_copy_string(line->name, name, sizeof(line->name));
@@ -328,7 +336,10 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 #endif
 
 	// TODO: Load status of feature (DND, CFwd, etc.) from astdb.
-	sccp_line_addToGlobals(line);
+	if (!line->pendingDelete)
+		sccp_line_addToGlobals(line);
+	else
+		line->pendingDelete = 0;
 	return line;
 }
 
@@ -775,6 +786,12 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 	ast_log(LOG_NOTICE, "Loading Devices and Lines from config\n");
 
+	if (readingtype == SCCP_CONFIG_READRELOAD) {
+		sccp_device_pre_reload();
+		sccp_line_pre_reload();
+		sccp_softkey_pre_reload();
+	}
+
 	cfg = sccp_config_getConfig();
 	if (!cfg) {
 		ast_log(LOG_NOTICE, "Unable to load config file sccp.conf, SCCP disabled\n");
@@ -832,6 +849,12 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 		}
 	}
 	ast_config_destroy(cfg);
+
+	if (readingtype == SCCP_CONFIG_READRELOAD) {
+		sccp_device_post_reload();
+		sccp_line_post_reload();
+		sccp_softkey_post_reload();
+	}
 }
 
 

@@ -9,7 +9,7 @@
  * \note	Reworked, but based on chan_sccp code.
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License. 
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \warning 	File has been Lined up using 8 Space TABS
  * \date        $Date$
@@ -57,8 +57,6 @@ extern "C" {
 #ifdef CS_AST_HAS_ENDIAN
 #include <asterisk/endian.h>
 #endif
-
-
 
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
@@ -588,7 +586,7 @@ struct sccp_line {
 #ifdef CS_DYNAMIC_CONFIG
         /* this is for reload routines */
         unsigned int				pendingDelete: 1;			/*!< this bit will tell the scheduler to delete this line when unused */
-/*	sccp_line_t				pendingUpdate;*/			/* this will contain the updated line struct once reloaded from config to update the line when unused */
+	unsigned int				pendingUpdate:1;			/*!< this bit will tell the scheduler to update this line when unused */
 #endif
 
 
@@ -612,6 +610,7 @@ struct sccp_line {
 
 	uint32_t				configurationStatus;			/*!< what is the current configuration status - @see sccp_config_status_t */
 	char 					adhocNumber[AST_MAX_EXTENSION];		/*!< number that should be dialed when device offhocks this line */
+
 };											/*!< SCCP Line Structure */
 
 /*!
@@ -628,8 +627,8 @@ struct sccp_speed {
         SCCP_LIST_ENTRY(sccp_speed_t) 		list;					/*!< SpeedDial Linked List Entry */
 
 #ifdef CS_DYNAMIC_CONFIG
-	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this line when unused */
-	sccp_speed_t				pendingUpdate;				/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this speed when unused */
+	unsigned int*				pendingUpdate:1;			/*!< this bit will tell the scheduler to update this speed when unused */
 #endif
 
 };
@@ -723,9 +722,9 @@ struct sccp_device {
 
 #ifdef CS_DYNAMIC_CONFIG
 	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this line when unused */
-	sccp_device_t				pendingUpdate;				/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+	unsigned int				pendingUpdate:1;			/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 
-	SCCP_LIST_ENTRY(sccp_device_t) 		list;
+	//SCCP_LIST_ENTRY(sccp_device_t) 		list;
 #endif
 
         boolean_t 				isAnonymous;				/*!< Device is connected Anonymously (Guest) */
@@ -779,7 +778,7 @@ struct sccp_addon {
 
 #ifdef CS_DYNAMIC_CONFIG
 	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this line when unused */
-	sccp_addon_t				pendingUpdate;				/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+	unsigned int				pendingUpdate:1;			/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
 };
 
@@ -857,7 +856,7 @@ struct sccp_channel {
         uint8_t					ss_data; 				/*!< Simple Switch Integer param */
 #ifdef CS_DYNAMIC_CONFIG
 	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this line when unused */
-	sccp_channel_t				pendingUpdate;				/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+	unsigned int				pendingUpdate:1;			/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
 
 	struct {
@@ -981,7 +980,7 @@ struct sccp_global_vars {
 
 #ifdef CS_DYNAMIC_CONFIG
 	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this line when unused */
-	struct sccp_global_vars			pendingUpdate;				/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
+	unsigned int				pendingUpdate:1;			/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
 
         pthread_t				mwiMonitorThread; 			/*!< MWI Monitor Thread */ // MC
