@@ -104,7 +104,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	const char 		*ringermode = NULL;
 	pthread_attr_t 		attr;
 	pthread_t t;
-	char 			suffixedNumber[255] = { '\0' }; //!< For saving the digittimeoutchar to the logs */
+	char 			suffixedNumber[255] = { '\0' };  /*!< For saving the digittimeoutchar to the logs */
 	boolean_t		hasSession = FALSE;
 
 	/* why let the phone ringing on a call forward ??? */

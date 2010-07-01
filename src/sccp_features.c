@@ -1126,6 +1126,7 @@ int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum) {
 	return 1;
 #endif
 }
+
 /*!
  * \brief Hotline Feature
  *
@@ -1133,6 +1134,7 @@ int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum) {
  * is picked up or the "New Call" Button is pressed. No number has to be given.
  *
  * \param d SCCP Device
+ * \param line SCCP Line
  */
 void sccp_feat_hotline(sccp_device_t *d, sccp_line_t *line) {
 	sccp_channel_t * c = NULL;

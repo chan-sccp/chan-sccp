@@ -44,9 +44,10 @@ struct ast_config *sccp_config_getConfig(void);
 
 /*!
  * \brief Add Line to device.
- * \param device - Device
- * \param lineName - Name of line
- * \param instance - preferred button (position)
+ * \param device Device
+ * \param lineName Name of line
+ * \param options  Line Options
+ * \param instance preferred button (position)
  */
 void sccp_config_addLine(sccp_device_t *device, char *lineName, char *options, uint32_t instance) {
 	sccp_buttonconfig_t	*config;
@@ -807,7 +808,9 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			/* check minimum requirements for a line */
 			if ( !ast_strlen_zero( ast_variable_retrieve(cfg, cat, "label") ) ) {
 				;
-				//TODO why are these params required? - MC
+				// \todo TODO why are these params required? - MC
+				// \todo They are used to check if we can find the minimal required values for a line in the config file / database to see if we have a complete device. We could have used other parameters. - DdG
+				// \todo Maybe some warnings should be added to notify when one of them is missing so that people know what needs to fixed in the config - DdG
 			} else if ( !ast_strlen_zero( ast_variable_retrieve(cfg, cat, "pin") ) ) {
 				;
 			} else if ( !ast_strlen_zero( ast_variable_retrieve(cfg, cat, "cid_name") ) ) {

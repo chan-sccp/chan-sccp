@@ -1289,8 +1289,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 /*!
  * \brief Parse Composed ID
  * \param labelString LabelString as string 
- * \param maxLenght Maximum Length as unsigned int
- * \return composedID as struct
+ * \param maxLength Maximum Length as unsigned int
  */
 struct composedId sccp_parseComposedId(const char* labelString, unsigned int maxLength)
 {
@@ -1481,9 +1480,11 @@ sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t *device, sccp
 
 /*!
  * \brief Parse a debug categories line to debug int
- * \param arg_part1 Argument part1
- * \param arg_part2 Argument part2
- * \return new_debug as uint32_t
+ * \param arguments Array of Arguments
+ * \param startat Start Point in the Arguments Array
+ * \param argc Count of Arguments
+ * \param new_debug_value as uint32_t
+ * \return new_debug_value as uint32_t
  */
 uint32_t sccp_parse_debugline (char * arguments[], int startat, int argc, uint32_t new_debug_value) {
         int argi,i; 

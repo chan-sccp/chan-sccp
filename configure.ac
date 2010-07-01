@@ -511,6 +511,13 @@ AC_ARG_WITH(dynamic_speeddial,
        	AC_DEFINE(CS_DYNAMIC_SPEEDDIAL, 1, [Using dynamic speeddials])
 ])
 
+AC_ARG_WITH(dynamic_config, 
+  AC_HELP_STRING([--with-dynamic-config], [Using dynamicly reloadable configuration file (default is NO)]), 
+  ac_cv_dynamic_config=yes, ac_cv_dynamic_config=no)
+    AS_IF([test "${ac_cv_dynamic_config}" == "yes"], [
+       	AC_DEFINE(CS_DYNAMIC_CONFIG, 1, [Using dynamic configuration file])
+])
+
 dnl Return CFLAGS / CPPFLAGS
 CFLAGS=${CFLAGS_saved}
 CPPFLAGS=${CPPFLAGS_saved}
