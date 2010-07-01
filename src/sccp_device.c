@@ -48,6 +48,23 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #define  REF_DEBUG 1
 
+void sccp_device_pre_reload(void)
+{
+	sccp_device_t * d;
+
+	SCCP_LIST_LOCK(&GLOB(devices));
+	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list){
+		d->pendingDelete = 1;
+		d->pendingUpdate = 0;
+	}
+	SCCP_LIST_UNLOCK(&GLOB(devices));
+}
+
+void sccp_device_post_reload(void)
+{
+
+}
+
 /*!
  * \brief create a device and adding default values.
  * \return device with default/global values

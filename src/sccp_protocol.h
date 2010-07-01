@@ -646,7 +646,7 @@ typedef enum {
         SCCP_DEVICESTATE_UNAVAILABLE		=2,
         SCCP_DEVICESTATE_DND			=3,
         SCCP_DEVICESTATE_FWDALL			=4
-} sccp_devicestate_t;								/*!< Internal Chan_SCCP Device State */
+}sccp_devicestate_t;								/*!< Internal Chan_SCCP Device State */
 
 /*!
  * \brief Skinny Device State Structure

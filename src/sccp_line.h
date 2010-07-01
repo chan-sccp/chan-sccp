@@ -15,6 +15,9 @@
 #define __SCCP_LINE_H
 
 
+void sccp_line_pre_reload(void);
+void sccp_line_post_reload(void);
+
 sccp_line_t * sccp_line_create(void);
 sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l);
 sccp_line_t *sccp_line_addToGlobals(sccp_line_t *line);
