@@ -1046,7 +1046,7 @@ static const struct skinny_codec {
 #define SCCP_DNDMODE_USERDEFINED		3 				/*!< the user defines the mode by pressing the softkey */
 
 /*!
- * \brief Skinny DNDMode Structure
+ * \brief SCCP DNDMode Structure
  */
 static const struct sccp_dndmode {
         uint8_t dndmode;

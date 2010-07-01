@@ -19,6 +19,7 @@ typedef enum{ASTERISK=0, INTERNAL=1} sccp_hinttype_t;
 
 
 typedef struct sccp_hint_SubscribingDevice 		sccp_hint_SubscribingDevice_t;
+
 /*!
  *\brief SCCP Hint Subscribing Device Structure
  */
@@ -64,7 +65,7 @@ struct sccp_hint_list{
 	} callInfo;									/*!< Call Information Structure */
 
 	/*!
-	 * \brief Hint Type Structure
+	 * \brief SCCP Hint Type Structure
 	 */
 	union sccp_hint_type{
 		struct{
