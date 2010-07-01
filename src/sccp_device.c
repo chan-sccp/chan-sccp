@@ -1183,6 +1183,7 @@ void * sccp_dev_postregistration(void *data)
  *
  * \param d SCCP Device
  * \param destroy Destroy as boolean_t
+ * \param cleanupTime Clean-up Time as uint8
  */
 void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime) {
 	sccp_buttonconfig_t	*config = NULL;

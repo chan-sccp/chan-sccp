@@ -322,7 +322,6 @@ void sccp_channel_send_dialednumber(sccp_channel_t * c)
 
 /*!
  * \brief Set Call State for SCCP Channel c, and Send this State to SCCP Device d.
- * \param d device to send call state
  * \param c SCCP Channel
  * \param state channel state
  */

@@ -47,11 +47,8 @@ struct sccp_event_subscriptions *sccp_event_listeners = 0;
  * \brief Subscribe to an Event
  * \param eventType SCCP Event Type
  * \param cb SCCP Event Call Back
- * \param file File as char
- * \param caller Caller as char
- * \param line Line as int
  */
-void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb){
+void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb) {
 
 	sccp_event_subscriber_t *subscription = NULL;
 

@@ -147,9 +147,10 @@ void sccp_mwi_event(const struct ast_event *event, void *data){
 	SCCP_LIST_UNLOCK(&subscription->sccp_mailboxLine);
 }
 #else
+
 /*!
  * \brief MWI Progress
- * \param data Data
+ * \param ptr Pointer to Mailbox Subscriber list Entry
  */
 int sccp_mwi_checksubscription(const void *ptr){
 	sccp_mailbox_subscriber_list_t 	*subscription = (sccp_mailbox_subscriber_list_t *)ptr;

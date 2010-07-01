@@ -1,3 +1,27 @@
+2010-06-30  ddegroot
+
+	* [r1555] src/sccp_cli.c: Added SCCP RELOAD Plan
+
+2010-06-29  ddegroot
+
+	* [r1554] Makefile.am, Makefile.in: Changed debian deb package Make
+	  command to non-signed
+
+	* [r1553] AUTHORS, ChangeLog, Makefile.in, debian[ADD],
+	  debian/README.Debian[ADD], debian/chan-sccp-b-dev.dirs[ADD],
+	  debian/chan-sccp-b-dev.install[ADD],
+	  debian/chan-sccp-b.default.ex[ADD],
+	  debian/chan-sccp-b.doc-base.EX[ADD],
+	  debian/chan-sccp-b1.dirs[ADD], debian/chan-sccp-b1.install[ADD],
+	  debian/changelog[ADD], debian/compat[ADD], debian/control[ADD],
+	  debian/copyright[ADD], debian/cron.d.ex[ADD], debian/dirs[ADD],
+	  debian/docs[ADD], debian/menu.ex[ADD], debian/postinst.ex[ADD],
+	  debian/postrm.ex[ADD], debian/preinst.ex[ADD],
+	  debian/prerm.ex[ADD], debian/rules[ADD], debian/watch.ex[ADD]:
+	  Added debian package generation (make deb)
+	  Added Romain Bignon to the AUTHORS file
+	  Updated ChangeLogs
+
 2010-06-28  progs
 
 	* [r1552] src/sccp_config.c: fix little memory leak
