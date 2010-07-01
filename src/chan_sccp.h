@@ -361,14 +361,14 @@ typedef enum {
 } sccp_feature_type_t;									/*!< Feature Type */
 
 /*!
- * \brief Feature Configuration Structure
+ * \brief SCCP Feature Configuration Structure
  */
 
 typedef struct {
         boolean_t				enabled;				/*!< Feature Enabled */
         boolean_t				initialized;				/*!< Feature Enabled */
-        uint32_t					status;					/*!< Feature State */
-} sccp_featureConfiguration_t;								/*!< Feature Configuration */
+        uint32_t				status;					/*!< Feature State */
+} sccp_featureConfiguration_t;								/*!< SCCP Feature Configuration */
 
 
 /*!
@@ -403,7 +403,7 @@ struct sccp_mailbox {
 #define SCCP_PRIVACYFEATURE_CALLPRESENT		1 << 2;
 
 /*!
- * \brief Currently Selected Channel Structure
+ * \brief SCCP Currently Selected Channel Structure
  */
 
 struct sccp_selectedchannel {
