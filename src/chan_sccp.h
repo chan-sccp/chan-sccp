@@ -238,6 +238,10 @@ typedef enum { ANSWER_LAST_FIRST=1, ANSWER_OLDEST_FIRST=2 } call_answer_order_t;
 typedef enum {ON, OFF} 				light_t;				/*!< Enum Light Status */
 typedef void sk_func (sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 
+
+/*!
+ * \brief SCCP ButtonType Structure
+ */
 static const struct sccp_buttontype {
         button_type_t buttontype;
         const char * const text;

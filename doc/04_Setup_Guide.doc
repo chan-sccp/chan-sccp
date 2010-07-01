@@ -294,7 +294,7 @@
  *
  * The chan_sccp module can be loaded using the following lines in asterisk module.conf:
  * \code
- * noload => chan_skinn.so
+ * noload => chan_skinny.so
  * load => chan_sccp.conf
  * \endcode
  *
