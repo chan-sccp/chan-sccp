@@ -628,7 +628,7 @@ struct sccp_speed {
 
 #ifdef CS_DYNAMIC_CONFIG
 	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this speed when unused */
-	unsigned int*				pendingUpdate:1;			/*!< this bit will tell the scheduler to update this speed when unused */
+	unsigned int				pendingUpdate:1;			/*!< this bit will tell the scheduler to update this speed when unused */
 #endif
 
 };

@@ -166,6 +166,9 @@
 /* Using dynamic speeddials */
 #undef CS_DYNAMIC_SPEEDDIAL
 
+/* Using dynamic reloadable configuration file */
+#undef CS_DYNAMIC_CONFIG
+
 /* Found 'ENUM AST_DEVICE' in asterisk/devicestate.h */
 #undef CS_ENUM_AST_DEVICE
 

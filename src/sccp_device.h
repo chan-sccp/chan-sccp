@@ -15,8 +15,11 @@
 #define __SCCP_DEVICE_H
 
 
+#ifdef CS_DYNAMIC_CONFIG
 void sccp_device_pre_reload(void);
 void sccp_device_post_reload(void);
+#endif
+
 sccp_device_t * sccp_device_create(void);
 sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d);
 sccp_device_t *sccp_device_addToGlobals(sccp_device_t *device);
