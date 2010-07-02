@@ -55,6 +55,9 @@ void sccp_device_pre_reload(void)
 
 	SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list){
+		ast_free_ha(d->ha);
+		d->ha = NULL;
+
 		d->pendingDelete = 1;
 		d->pendingUpdate = 0;
 	}

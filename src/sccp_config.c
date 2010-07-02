@@ -387,7 +387,11 @@ boolean_t sccp_config_general(void){
 	struct ast_ha 			*na;
 	char 				config_value[256];
 
-
+	/* Cleanup for reload */
+	ast_free_ha(GLOB(ha));
+	GLOB(ha) = NULL;
+	ast_free_ha(GLOB(localaddr));
+	GLOB(localaddr) = NULL;
 
 	cfg = sccp_config_getConfig();
 	if (!cfg) {
@@ -1223,8 +1227,10 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 		} else if (!strcasecmp(v->name, "pickupexten")) {
 			d->pickupexten = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "pickupcontext")) {
-			if (!ast_strlen_zero(v->value))
+			if (!ast_strlen_zero(v->value)) {
+				free(d->pickupcontext);
 				d->pickupcontext = strdup(v->value);
+			}
 		} else if (!strcasecmp(v->name, "pickupmodeanswer")) {
 			d->pickupmodeanswer = sccp_true(v->value);
 #endif
