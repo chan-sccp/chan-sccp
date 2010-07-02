@@ -66,7 +66,25 @@ void sccp_device_pre_reload(void)
 
 void sccp_device_post_reload(void)
 {
+	sccp_device_t * d;
 
+	SCCP_LIST_LOCK(&GLOB(devices));
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(devices), d, list){
+		if (!d->pendingDelete && !d->pendingUpdate)
+			continue;
+
+		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+		//sccp_dev_clean(d, FALSE);
+		sccp_session_close(d->session);
+
+		if (d->pendingDelete)
+			SCCP_LIST_REMOVE_CURRENT(list);
+		else
+			d->pendingUpdate = 0;
+	}
+	SCCP_LIST_TRAVERSE_SAFE_END
+
+	SCCP_LIST_UNLOCK(&GLOB(devices));
 }
 #endif /* CS_DYNAMIC_CONFIG */
 
