@@ -30,6 +30,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_mwi.h"
 #include <asterisk/utils.h>
 
+#ifdef CS_DYNAMIC_CONFIG
 void sccp_line_pre_reload(void)
 {
 	sccp_line_t* l;
@@ -46,6 +47,7 @@ void sccp_line_post_reload(void)
 {
 
 }
+#endif /* CS_DYNAMIC_CONFIG */
 
 /*!
  * \brief Build Default SCCP Line.

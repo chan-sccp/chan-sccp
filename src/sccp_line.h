@@ -15,8 +15,10 @@
 #define __SCCP_LINE_H
 
 
+#ifdef CS_DYNAMIC_CONFIG
 void sccp_line_pre_reload(void);
 void sccp_line_post_reload(void);
+#endif
 
 sccp_line_t * sccp_line_create(void);
 sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l);

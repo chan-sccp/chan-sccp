@@ -1580,7 +1580,6 @@ static int sccp_do_reload(int fd, int argc, char *argv[]) {
 #ifdef CS_DYNAMIC_CONFIG
 	ast_cli(fd, "SCCP reloading configuration.\n");
 	sccp_readingtype_t readingtype;
-	sccp_device_t * d;
 
 //(sccp_cli.c)        set global variable reloading=true
 //                    > readingtype is not a global variable -romain

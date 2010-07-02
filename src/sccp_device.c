@@ -48,6 +48,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #define  REF_DEBUG 1
 
+#ifdef CS_DYNAMIC_CONFIG
 void sccp_device_pre_reload(void)
 {
 	sccp_device_t * d;
@@ -64,6 +65,7 @@ void sccp_device_post_reload(void)
 {
 
 }
+#endif /* CS_DYNAMIC_CONFIG */
 
 /*!
  * \brief create a device and adding default values.

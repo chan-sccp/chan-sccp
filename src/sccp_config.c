@@ -268,7 +268,11 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 	// we might have been asked to create a device for realtime addition,
 	// thus causing an infinite loop / recursion.
 	d = sccp_device_find_byid(deviceName, FALSE);
-	if (d && !d->pendingDelete) {
+	if (d 
+#ifdef CS_DYNAMIC_CONFIG
+		&& !d->pendingDelete
+#endif
+		) {
 		ast_log(LOG_WARNING, "SCCP: Device '%s' already exists\n", deviceName);
 		return d;
 	}
@@ -293,10 +297,15 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 		d->phonemessage=strdup(message);						//set message on device if we have a result
 	}
 
+#ifdef CS_DYNAMIC_CONFIG
 	if (!d->pendingDelete)
 		sccp_device_addToGlobals(d);
 	else
 		d->pendingDelete = 0;
+#else
+	sccp_device_addToGlobals(d);
+#endif
+
 
 	return d;
 }
@@ -320,7 +329,11 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 
 
 	/* search for existing line */
-	if (line && !line->pendingDelete) {
+	if (line
+#ifdef CS_DYNAMIC_CONFIG
+		&& !line->pendingDelete
+#endif
+		) {
 		ast_log(LOG_WARNING, "SCCP: Line '%s' already exists\n", name);
 		return line;
 	}
@@ -336,10 +349,15 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 #endif
 
 	// TODO: Load status of feature (DND, CFwd, etc.) from astdb.
+#ifdef CS_DYNAMIC_CONFIG
 	if (!line->pendingDelete)
 		sccp_line_addToGlobals(line);
 	else
 		line->pendingDelete = 0;
+#else
+	sccp_line_addToGlobals(line);
+#endif /* CS_DYNAMIC_CONFIG */
+
 	return line;
 }
 
@@ -786,11 +804,13 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 	ast_log(LOG_NOTICE, "Loading Devices and Lines from config\n");
 
+#ifdef CS_DYNAMIC_CONFIG
 	if (readingtype == SCCP_CONFIG_READRELOAD) {
 		sccp_device_pre_reload();
 		sccp_line_pre_reload();
 		sccp_softkey_pre_reload();
 	}
+#endif
 
 	cfg = sccp_config_getConfig();
 	if (!cfg) {
@@ -850,11 +870,13 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	}
 	ast_config_destroy(cfg);
 
+#ifdef CS_DYNAMIC_CONFIG
 	if (readingtype == SCCP_CONFIG_READRELOAD) {
 		sccp_device_post_reload();
 		sccp_line_post_reload();
 		sccp_softkey_post_reload();
 	}
+#endif
 }
 
 
