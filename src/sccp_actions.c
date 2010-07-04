@@ -723,11 +723,14 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 		}
 	}
 	/* done */
-	d->buttonTemplate = btn;
+	
 	
 	sccp_dev_send(d, r1);
 	sccp_device_unlock(d);
-	//ast_free(btn);
+	
+	
+	//d->buttonTemplate = btn;  /* do not save the button template, maybe this causes the line display issue */
+	ast_free(btn);
 }
 
 /*!

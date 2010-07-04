@@ -1357,6 +1357,10 @@ int sccp_device_free(const void *ptr){
 
 	d->ha = NULL;
 	
+	if(d->buttonTemplate){
+		ast_free(d->buttonTemplate);
+	}
+	
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: device deleted\n", d->id);
 	
 	sccp_device_unlock(d);
