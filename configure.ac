@@ -511,6 +511,15 @@ AC_ARG_WITH(dynamic_speeddial,
        	AC_DEFINE(CS_DYNAMIC_SPEEDDIAL, 1, [Using dynamic speeddials])
 ])
 
+AC_ARG_WITH(dynamic_speeddial_cid, 
+  AC_HELP_STRING([--with-dynamic-speeddial-cid], [Using dynamic speeddials call info (default is NO)]), 
+  ac_cv_dynamic_speeddial_cid=yes, ac_cv_dynamic_speeddial_cid=no)
+    
+AS_IF([test "${ac_cv_dynamic_speeddial_cid}" == "yes"], [
+       	AC_DEFINE(CS_DYNAMIC_SPEEDDIAL_CID, 1, [Using dynamic speeddials with callinfo])
+])
+
+
 AC_ARG_WITH(dynamic_config, 
   AC_HELP_STRING([--with-dynamic-config], [Using dynamicly reloadable configuration file (default is NO)]), 
   ac_cv_dynamic_config=yes, ac_cv_dynamic_config=no)
