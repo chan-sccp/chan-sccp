@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS `sccpdevices` (
   `transfer` varchar(5) default 'on',
   `cfwdall` varchar(5) default 'on',
   `cfwdbusy` varchar(5) default 'on',
-  `dtmfmode` varchar(5) default NULL,
+  `dtmfmode` varchar(10) default NULL,
   `imageversion` varchar(45) default NULL,
   `deny` varchar(45) default NULL,
   `permit` varchar(45) default NULL,
