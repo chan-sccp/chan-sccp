@@ -496,7 +496,7 @@ void sccp_mwi_check(sccp_device_t *device)
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 	
 	/* disable mwi light if we have an active channel */
-	if(hasActiveChannel == TRUE){
+	if(hasActiveChannel == TRUE && !device->mwioncall){
 		sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: we have an active channel, disable mwi light\n",DEV_ID_LOG(device));
 		if(device->mwilight){
 			sccp_moo_t *r;
