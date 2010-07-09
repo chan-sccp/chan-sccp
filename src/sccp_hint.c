@@ -435,7 +435,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 				break;
 				
 				case SCCP_CHANNELSTATE_DND:
-					r->msg.FeatureStatAdvancedMessage.lel_status = htolel(SCCP_BLF_STATUS_DND); /* ringin */
+					r->msg.FeatureStatAdvancedMessage.lel_status = htolel(SCCP_BLF_STATUS_DND); /* dnd */
 				break;
 				
 				default:
@@ -446,7 +446,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			
 			/* do not add name for TEMP_FAIL and ONHOOK */
 			if(hint->currentState > 2 ){
-#ifdef SCCP_SHOW_CID
+#ifdef CS_DYNAMIC_SPEEDDIAL_CID
 				sprintf(displayMessage, "%s %s %s", 
 					(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)?hint->callInfo.calledPartyName : hint->callInfo.callingPartyName,
 					(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)? " -> " : " <- ",
