@@ -87,20 +87,16 @@ void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, sccp_channel_t * c)
 		sccp_moo_t 	*r1 = NULL;
 		char *data = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"Key:Directories\"/><ExecuteItem Priority=\"0\"URL=\"Key:KeyPad3\"/></CiscoIPPhoneExecute>";
 	
-	
-		int dummy_len = strlen(data);
-
-		int hdr_len = 40 - 1;
-		int padding = ((dummy_len + hdr_len) % 4);
-		padding = (padding > 0) ? 4 - padding : 0;
-		int size = hdr_len + dummy_len + padding;
+		int dummy_len, msgSize, hdr_len, padding;
 		
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: dummy_len=%d\n", d->id, dummy_len);
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: hdr_len=%d\n", d->id, hdr_len);
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: padding=%d\n", d->id, padding);
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: size=%d\n", d->id, size);
+		dummy_len = strlen(data);
+		hdr_len = 40 - 1;
+		padding = ((dummy_len + hdr_len) % 4);
+		padding = (padding > 0) ? 4 - padding : 0;
+		msgSize = hdr_len + dummy_len + padding;
 
-		r1 = sccp_build_packet(UserToDeviceDataVersion1Message, size);
+
+		r1 = sccp_build_packet(UserToDeviceDataVersion1Message, msgSize);
 		r1->msg.UserToDeviceDataVersion1Message.lel_callReference = htolel(1);
 		r1->msg.UserToDeviceDataVersion1Message.lel_transactionId = htolel(1);
 		r1->msg.UserToDeviceDataVersion1Message.lel_sequenceFlag = 0x0002;
@@ -109,10 +105,10 @@ void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, sccp_channel_t * c)
 
 		if(dummy_len) {
 			char buffer[dummy_len + 2];
-			memset(&buffer[0], 0, dummy_len + 2);
+			memset(&buffer[0], 0, sizeof(buffer));
 			memcpy(&buffer[0], data, dummy_len);
 			
-			memcpy(&r1->msg.UserToDeviceDataVersion1Message.dummy, &buffer[0], dummy_len + 2);
+			memcpy(&r1->msg.UserToDeviceDataVersion1Message.dummy, &buffer[0], sizeof(buffer));
 			sccp_dev_send(d, r1);
 		}
 		return;
