@@ -1300,6 +1300,11 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 				newvar->next = d->variables;
 				d->variables = newvar;
 			}
+#ifdef CS_ADV_FEATURES
+		} else if (!strcasecmp(v->name, "useRedialMenu")) {
+			d->useRedialMenu = sccp_true(v->value);
+		
+#endif
 		} else {
 			ast_log(LOG_WARNING, "SCCP: Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
 		}

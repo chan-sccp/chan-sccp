@@ -166,7 +166,11 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 	d->softKeyConfiguration.modes = (softkey_modes *)SoftKeyModes;
 	d->softKeyConfiguration.size = sizeof(SoftKeyModes)/sizeof(softkey_modes);
 
-	  return d;
+#ifdef CS_ADV_FEATURES
+	d->useRedialMenu = FALSE;
+#endif
+	
+	return d;
 }
 
 

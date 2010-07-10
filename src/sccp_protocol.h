@@ -1728,6 +1728,21 @@ typedef union {
                 uint32_t	lel_unknown2;					/*!< \todo Unknown2 */
         } DialedPhoneBookAckMessage;						/*!< Dialed Phone Book Acknowledgement Structure */
 
+
+	struct {
+		uint32_t	lel_appID;
+		uint32_t	lel_lineInstance;
+		uint32_t	lel_callReference;
+		uint32_t	lel_transactionId;
+		uint32_t	lel_dataLength;
+		uint32_t	lel_sequenceFlag;
+		uint32_t	lel_displayPriority;
+		uint32_t	lel_conferenceID;
+		uint32_t	lel_appInstanceId;
+		uint32_t	lel_routing;
+		uint32_t	dummy;
+	} UserToDeviceDataVersion1Message;
+
         /* AccessoryStatusMessage (0x0073):
          * This indicates the phone headset, handset or speaker status.
          *
@@ -2572,53 +2587,53 @@ typedef union {
 	} LineStatMessage;								/*!< Line Status Messages Structure */
 
 	struct {
-		uint32_t 	lel_year;						/*!< Year */
-		uint32_t 	lel_month;						/*!< Month */
-		uint32_t 	lel_dayOfWeek;						/*!< Day of the Week (\todo Starting su=0|1)*/
-		uint32_t 	lel_day;						/*!< Day */
-		uint32_t 	lel_hour;						/*!< Hour */
-		uint32_t 	lel_minute;						/*!< Minute */
-		uint32_t 	lel_seconds;						/*!< Seconds */
-		uint32_t 	lel_milliseconds;					/*!< MilliSeconds */
-		uint32_t 	lel_systemTime;						/*!< System Time */
+		uint32_t 			lel_year;				/*!< Year */
+		uint32_t 			lel_month;				/*!< Month */
+		uint32_t 			lel_dayOfWeek;				/*!< Day of the Week (\todo Starting su=0|1)*/
+		uint32_t 			lel_day;				/*!< Day */
+		uint32_t 			lel_hour;				/*!< Hour */
+		uint32_t 			lel_minute;				/*!< Minute */
+		uint32_t 			lel_seconds;				/*!< Seconds */
+		uint32_t 			lel_milliseconds;			/*!< MilliSeconds */
+		uint32_t 			lel_systemTime;				/*!< System Time */
 	} DefineTimeDate;								/*!< Definition of Date/Time Structure */
 
 	struct {} StartSessionTransmission;						/*!< Start Session Transmission Structure */
 	struct {} StopSessionTransmission;						/*!< Stop Session Transmission Structure */
 
 	struct {
-		uint32_t 	lel_buttonOffset;					/*!< Button OffSet */
-		uint32_t 	lel_buttonCount;					/*!< Button Count */
-		uint32_t 	lel_totalButtonCount;					/*!< Total Number of Buttons */
-		StationButtonDefinition definition[StationMaxButtonTemplateSize];	/*!< Station Button Definition */
+		uint32_t 			lel_buttonOffset;			/*!< Button OffSet */
+		uint32_t 			lel_buttonCount;			/*!< Button Count */
+		uint32_t 			lel_totalButtonCount;			/*!< Total Number of Buttons */
+		StationButtonDefinition 	definition[StationMaxButtonTemplateSize];/*!< Station Button Definition */
 	} ButtonTemplateMessage;							/*!< Button Template Message Structure */
 
 	struct {
-		uint32_t 	lel_buttonOffset;					/*!< Button OffSet */
-		uint32_t 	lel_buttonCount;					/*!< Button Count */
-		uint32_t 	lel_totalButtonCount;					/*!< Total Number of Buttons */
-		StationButtonDefinition definition[1];					/*!< Station Button Definition */
+		uint32_t 			lel_buttonOffset;			/*!< Button OffSet */
+		uint32_t 			lel_buttonCount;			/*!< Button Count */
+		uint32_t 			lel_totalButtonCount;			/*!< Total Number of Buttons */
+		StationButtonDefinition 	definition[1];				/*!< Station Button Definition */
 	} ButtonTemplateMessageSingle;							/*!< Button Template Message Structure */
 
 
 	struct {
-		char 		requiredVersion[StationMaxVersionSize];			/*!< Required Version */
+		char 				requiredVersion[StationMaxVersionSize];	/*!< Required Version */
 	} VersionMessage;								/*!< Version Message Structure */
 
 	struct {
-		char	 	displayMessage[StationMaxDisplayTextSize];		/*!< Display Message */
+		char	 			displayMessage[StationMaxDisplayTextSize];/*!< Display Message */
 /*		uint32_t 	lel_displayTimeout;*/ 					/*!< Display Timeout */
 	} DisplayTextMessage;								/*!< Display Text Message */
 
 	struct {
-		uint32_t unknown;
+		uint32_t 			unknown;
 	} ClearDisplay;
 
 	struct {} CapabilitiesReqMessage;						/*!< Capabilities Reqest Message Structure */
 	struct {} EnunciatorCommandMessage;						/*!< Enunciator Command Message Structure */
 
 	struct {
-		char 		text[StationMaxDisplayTextSize];			/*!< Text */
+		char 				text[StationMaxDisplayTextSize];	/*!< Text */
 	} RegisterRejectMessage;							/*!< Register Reject Message Structure */
 
 
