@@ -765,6 +765,10 @@ struct sccp_device {
 	struct sccp_conference			*conference;				/*!< conference we are part of */
 	
 	btnlist 				*buttonTemplate;
+	
+#ifdef CS_ADV_FEATURES
+	boolean_t				useRedialMenu;
+#endif
 };
 
 // Number of additional keys per addon -FS
