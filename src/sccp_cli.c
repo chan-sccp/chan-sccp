@@ -420,7 +420,9 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Device State (Acc.): %s\n", accessorystatus2str(d->accessorystatus));
 	ast_cli(fd, "Last Used Accessory: %s\n", accessory2str(d->accessoryused));
 	ast_cli(fd, "Last dialed number : %s\n", d->lastNumber);
+#ifdef CS_ADV_FEATURES
 	ast_cli(fd, "Use Placed Clalls  : %s\n", (d->useRedialMenu) ? "ON" : "OFF");
+#endif
 
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		ast_cli(fd, "\nButtonconfig\n");
