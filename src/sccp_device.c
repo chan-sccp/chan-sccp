@@ -471,7 +471,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 
 	r->msg.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF; /* htolel(65535); */
 
-	if ((opt == KEYMODE_ONHOOK || opt == KEYMODE_OFFHOOK || opt == KEYMODE_OFFHOOKFEAT) && (ast_strlen_zero(d->lastNumber)))
+	if ((opt == KEYMODE_ONHOOK || opt == KEYMODE_OFFHOOK || opt == KEYMODE_OFFHOOKFEAT) && (ast_strlen_zero(d->lastNumber) && !d->useRedialMenu))
 		r->msg.SelectSoftKeysMessage.les_validKeyMask &= htolel(~(1<<0));
 
 
