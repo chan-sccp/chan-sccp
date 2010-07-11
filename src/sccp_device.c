@@ -471,8 +471,20 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 
 	r->msg.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF; /* htolel(65535); */
 
-	if ((opt == KEYMODE_ONHOOK || opt == KEYMODE_OFFHOOK || opt == KEYMODE_OFFHOOKFEAT) && (ast_strlen_zero(d->lastNumber) && !d->useRedialMenu))
+	if (
+	      (
+		    opt == KEYMODE_ONHOOK || opt == KEYMODE_OFFHOOK || opt == KEYMODE_OFFHOOKFEAT
+	      ) 
+	      && 
+	      (
+			ast_strlen_zero(d->lastNumber) 
+#ifndef CS_ADV_FEATURES
+			&& !d->useRedialMenu
+#endif
+	      )
+	   ){
 		r->msg.SelectSoftKeysMessage.les_validKeyMask &= htolel(~(1<<0));
+	    }
 
 
 	sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, keymode2str(opt), opt, line, callid);
