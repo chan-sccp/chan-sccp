@@ -910,16 +910,15 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_CONGESTION);
 		break;
 	case AST_CONTROL_PROGRESS:
+		sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_PROGRESS);
+		break;
 	case AST_CONTROL_PROCEEDING:
 		sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_PROCEED);
-		res = 0;
 		break;
 #ifdef CS_AST_CONTROL_SRCUPDATE
         case AST_CONTROL_SRCUPDATE:
 		/* Source media has changed. */
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
-
-
 
                 /* update channel format */
                 int oldChannelFormat = c->format;
@@ -977,6 +976,12 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		break;
 	case AST_CONTROL_UNHOLD:
 		ast_moh_stop(ast);
+#ifdef CS_AST_RTP_NEW_SOURCE
+                if(c->rtp.audio) {
+                        ast_rtp_new_source(c->rtp.audio);
+                        sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
+                }
+#endif
 		res = 0;
 		break;
 #endif
@@ -1688,7 +1693,10 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 				if(c->owner && !ast_check_hangup(c->owner))
 					pbx_builtin_setvar_helper(c->owner, "SCCP_MEETME_ROOM", shortenedNumber);
 				sccp_copy_string(shortenedNumber, c->line->meetmenum, sizeof(shortenedNumber));
-				sccp_copy_string(c->dialedNumber, SKINNY_DISP_CONFERENCE, sizeof(c->dialedNumber));
+				
+				//sccp_copy_string(c->dialedNumber, SKINNY_DISP_CONFERENCE, sizeof(c->dialedNumber));
+				sccp_feat_meetme_start(c);       /* Copied from Federico Santulli */
+				sccp_channel_unlock(c);
 			} else {
 				// without a number we can also close the call. Isn't it true ?
 				sccp_channel_unlock(c);

@@ -962,6 +962,10 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 			sccp_copy_string(l->adhocNumber, v->value, sizeof(l->adhocNumber));
 		} else if (!strcasecmp(v->name, "meetmenum")) {
 			sccp_copy_string(l->meetmenum, v->value, sizeof(l->meetmenum));
+		} else if (!strcasecmp(v->name, "meetme")) {
+			l->meetme = sccp_true(v->value);
+		} else if (!strcasecmp(v->name, "meetmeopts")) {
+			sccp_copy_string(l->meetmeopts, v->value, sizeof(l->meetmeopts));
 		} else if (!strcasecmp(v->name, "transfer")) {
 			l->transfer = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "incominglimit")) {

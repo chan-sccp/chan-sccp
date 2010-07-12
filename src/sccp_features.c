@@ -928,12 +928,11 @@ sccp_channel_t * sccp_feat_handle_meetme(sccp_line_t * l, sccp_device_t *d) {
 	sccp_channel_set_active(d, c);
 	sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 
-	sccp_channel_unlock(c);
-
 	/* ok the number exist. allocate the asterisk channel */
 	if (!sccp_pbx_channel_allocate(c)) {
 		ast_log(LOG_WARNING, "%s: (handle_meetme) Unable to allocate a new channel for line %s\n", d->id, l->name);
 		sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CONGESTION);
+		sccp_channel_unlock(c);
 		return c;
 	}
 
@@ -943,7 +942,117 @@ sccp_channel_t * sccp_feat_handle_meetme(sccp_line_t * l, sccp_device_t *d) {
 		sccp_channel_openreceivechannel(c);
 	}
 
+        /* removing scheduled dial */
+        SCCP_SCHED_DEL(sched, c->digittimeout);
+
+        if(!(c->digittimeout = sccp_sched_add(sched, GLOB(firstdigittimeout) * 1000, sccp_pbx_sched_dial, c))) {
+                sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Unable to schedule dialing in '%d' ms\n", GLOB(firstdigittimeout));
+        }
+
+        sccp_channel_unlock(c);
+
 	return c;
+}
+
+/*!
+ * \brief a Meetme Application Thread
+ * \param data Data
+ * \author Federico Santulli
+ */
+static void * sccp_feat_meetme_thread(void * data)
+{
+        sccp_channel_t * c = data;
+        sccp_device_t * d = NULL;
+        struct ast_app *app;
+
+        char ext[AST_MAX_EXTENSION];
+        char context[AST_MAX_CONTEXT];  
+
+        char meetmeopts[AST_MAX_CONTEXT];
+#ifdef ASTERISK_CONF_1_6
+        struct pbx_find_info q = { .stacklen = 0 };
+#define SCCP_CONF_SPACER ','
+#endif
+
+#ifdef ASTERISK_CONF_1_4
+#define SCCP_CONF_SPACER '|'
+#endif
+
+#ifndef ASTERISK_CONF_1_2
+        unsigned int eid = ast_random();
+#else
+        unsigned int eid = random();
+#define SCCP_CONF_SPACER '|'
+#endif
+
+       	d = c->device;
+        if (!(app = pbx_findapp("MeetMe"))) {
+                ast_log(LOG_WARNING, "SCCP: No MeetMe application available!\n");
+                sccp_channel_lock(c);
+                sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_DIALING);
+                sccp_channel_set_calledparty(c, SKINNY_DISP_CONFERENCE, c->dialedNumber);
+                sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_PROCEED);
+                sccp_channel_send_callinfo(d,c);
+                sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_INVALIDCONFERENCE);
+                sccp_channel_unlock(c);
+                return NULL;
+        }
+
+        // SKINNY_DISP_CAN_NOT_COMPLETE_CONFERENCE
+        if(c && c->owner) {
+                if(!c->owner->context || ast_strlen_zero(c->owner->context))
+                        return NULL;
+                snprintf(meetmeopts, sizeof(meetmeopts), "%s%c%s", c->dialedNumber, SCCP_CONF_SPACER, (c->line->meetmeopts&& !ast_strlen_zero(c->line->meetmeopts)) ? c->line->meetmeopts : "qd");
+                sccp_copy_string(context, c->owner->context, sizeof(context));
+                snprintf(ext, sizeof(ext), "sccp_meetme_temp_conference_%ud", eid);
+
+                if (!ast_exists_extension(NULL, context, ext, 1, NULL)) {
+                        ast_add_extension(context, 1, ext, 1, NULL, NULL, "MeetMe",
+                                 meetmeopts, NULL, "sccp_feat_meetme_thread");
+                }
+
+                sccp_copy_string(c->owner->exten, ext, sizeof(c->owner->exten));
+
+                sccp_channel_lock(c);
+                sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_DIALING);
+                sccp_channel_set_calledparty(c, SKINNY_DISP_CONFERENCE, c->dialedNumber);
+                sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_PROCEED);
+                sccp_channel_send_callinfo(d,c);
+                sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
+                sccp_channel_unlock(c);
+
+                if (ast_pbx_run(c->owner)) {
+                        sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_INVALIDCONFERENCE);
+                }
+#ifdef ASTERISK_CONF_1_6
+                if (pbx_find_extension(NULL, NULL, &q, context, ext, 1, NULL, "", E_MATCH)) {
+                        ast_context_remove_extension(context, ext, 1, NULL);
+                }
+#else
+                ast_context_remove_extension(context, ext, 1, NULL);
+#endif
+        }
+
+        return NULL;
+}
+ 
+
+/*!
+ * \brief Start a Meetme Application Thread
+ * \param c SCCP Channel
+ * \author Federico Santulli
+ */
+void sccp_feat_meetme_start(sccp_channel_t * c)
+{
+        pthread_attr_t attr;
+        pthread_t t;
+
+        pthread_attr_init(&attr);
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+        if (ast_pthread_create(&t, &attr, sccp_feat_meetme_thread, c) < 0) {
+                ast_log(LOG_WARNING, "SCCP: Cannot create a MeetMe thread (%s).\n", strerror(errno));
+        }
+        pthread_attr_destroy(&attr);
 }
 
 /*!

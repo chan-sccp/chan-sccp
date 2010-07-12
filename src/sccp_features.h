@@ -23,6 +23,8 @@ sccp_channel_t * sccp_feat_handle_directpickup(sccp_line_t * l, sccp_device_t *d
 
 void sccp_feat_updatecid(sccp_channel_t * c);
 
+// MeetMe start function
+void sccp_feat_meetme_start(sccp_channel_t * c);
 // Voicemail wrapper
 void sccp_feat_voicemail(sccp_device_t * d, uint8_t line_instance);
 // Divert call to VoiceMail (was TRANSFVM)

@@ -1414,7 +1414,10 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 				if (sccp_is_nonempty_string(l->trnsfvm))
 					trnsfvm = 1;
 
-				if (sccp_is_nonempty_string(l->meetmenum))
+				if (l->meetme)
+					meetme = 1;
+
+				if (sccp_is_nonempty_string(l->meetmenum)) 		/*! \todo >> TO BE REMOVED */
 					meetme = 1;
 
 #ifdef CS_SCCP_PICKUP
