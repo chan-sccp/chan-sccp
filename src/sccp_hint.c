@@ -93,6 +93,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint);
 void sccp_hint_hintStatusUpdate(sccp_hint_list_t *hint);
 void sccp_hint_notificationForSharedLine(sccp_hint_list_t *hint);
 void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint);
+void sccp_hint_handleFeatureChangeEvent(const sccp_event_t **event);
 
 #ifdef AST_EVENT_IE_CIDNAME
 static void sccp_hint_devicestate_cb(const struct ast_event *ast_event, void *data);
@@ -110,6 +111,7 @@ void sccp_hint_module_start(){
 	SCCP_LIST_HEAD_INIT(&sccp_hint_subscriptions);
 	
 	sccp_event_subscribe(SCCP_EVENT_DEVICEREGISTERED | SCCP_EVENT_DEVICEUNREGISTERED | SCCP_EVENT_DEVICEDETACHED, sccp_hint_eventListener);
+	sccp_event_subscribe(SCCP_EVENT_FEATURECHANGED, sccp_hint_handleFeatureChangeEvent);
 }
 
 /*!
@@ -1217,3 +1219,38 @@ CLEANUP:
 }
 
 
+/*!
+ * \brief Handle Feature Change Event 
+ * \param event SCCP Event
+ */
+void sccp_hint_handleFeatureChangeEvent(const sccp_event_t **event){
+	sccp_buttonconfig_t *buttonconfig;
+	sccp_device_t *d;
+	sccp_line_t * line = NULL;
+  
+	switch((*event)->event.featureChanged.featureType) {
+		case SCCP_FEATURE_DND:
+			
+			d = (*event)->event.featureChanged.device;
+			
+			SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+				if(buttonconfig->type == LINE ){
+					line = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
+					if(line){
+						sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: Notify the dnd status (%s) to asterisk for line %s\n", d->id, d->dndFeature.status ? "on" : "off", line->name);
+						if (d->dndFeature.status == SCCP_DNDMODE_REJECT){
+			//				sccp_hint_notify_linestate(l1, d, SCCP_DEVICESTATE_ONHOOK, SCCP_DEVICESTATE_DND);
+							sccp_hint_lineStatusChanged(line, d, NULL, SCCP_DEVICESTATE_ONHOOK, SCCP_CHANNELSTATE_DND);
+						}else{
+			//	 			sccp_hint_notify_linestate(l1, d, SCCP_DEVICESTATE_DND, SCCP_DEVICESTATE_ONHOOK);
+							sccp_hint_lineStatusChanged(line, d, NULL, SCCP_DEVICESTATE_DND, SCCP_DEVICESTATE_ONHOOK);
+						}
+					}
+				}
+			}
+		break;
+		
+		default:
+		break;
+	}
+}
