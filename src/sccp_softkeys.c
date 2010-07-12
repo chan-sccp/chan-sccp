@@ -254,21 +254,38 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 		return;
 	}
 
-	switch (d->dndFeature.status) {
-		case SCCP_DNDMODE_OFF:
+	if(!strcasecmp(d->dndFeature.configOptions, "reject")){
+		/* use busy */
+		if(d->dndFeature.status == SCCP_DNDMODE_OFF)
 			d->dndFeature.status = SCCP_DNDMODE_REJECT;
-			break;
-		case SCCP_DNDMODE_REJECT:
+		else
+			d->dndFeature.status = SCCP_DNDMODE_OFF;
+		
+	}else if(!strcasecmp(d->dndFeature.configOptions, "silent")){
+		/* use silent */
+		if(d->dndFeature.status == SCCP_DNDMODE_OFF)
 			d->dndFeature.status = SCCP_DNDMODE_SILENT;
-			break;
-		case SCCP_DNDMODE_SILENT:
+		else
 			d->dndFeature.status = SCCP_DNDMODE_OFF;
-			break;
-		default:
-			d->dndFeature.status = SCCP_DNDMODE_OFF;
-			break;
+		
+	}else{
+		/* for all other config us the toggle mode */
+		switch (d->dndFeature.status) {
+			case SCCP_DNDMODE_OFF:
+				d->dndFeature.status = SCCP_DNDMODE_REJECT;
+				break;
+			case SCCP_DNDMODE_REJECT:
+				d->dndFeature.status = SCCP_DNDMODE_SILENT;
+				break;
+			case SCCP_DNDMODE_SILENT:
+				d->dndFeature.status = SCCP_DNDMODE_OFF;
+				break;
+			default:
+				d->dndFeature.status = SCCP_DNDMODE_OFF;
+				break;
+		}
+		
 	}
-
 
 
 	//if ( d->dndFeature.status == SCCP_DNDMODE_REJECT || d->dndFeature.status == SCCP_DNDMODE_OFF) {

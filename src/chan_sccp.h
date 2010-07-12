@@ -366,6 +366,7 @@ typedef struct {
 	boolean_t				enabled;				/*!< Feature Enabled */
 	boolean_t				initialized;				/*!< Feature Enabled */
 	uint32_t				status;					/*!< Feature State */
+	char					configOptions[255];			/*!< space for config values */
 } sccp_featureConfiguration_t;								/*!< SCCP Feature Configuration */
 
 

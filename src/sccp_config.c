@@ -1240,7 +1240,12 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 #endif
 		} else if (!strcasecmp(v->name, "dnd")) {
 			/* 0 is off and 1 (on) is reject */
-			//d->dndFeature.enabled = sccp_true(v->value);
+			if (!strcasecmp(v->value, "off")){
+				d->dndFeature.enabled = FALSE;
+			}else{
+				d->dndFeature.enabled = TRUE;
+			}
+			sccp_copy_string(d->dndFeature.configOptions, v->value, sizeof(d->dndFeature.configOptions));
 		} else if (!strcasecmp(v->name, "nat")) {
 			d->nat = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "directrtp")) {
