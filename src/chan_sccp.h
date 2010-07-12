@@ -545,7 +545,9 @@ struct sccp_line {
 
 	SCCP_LIST_HEAD(, sccp_mailbox_t) 	mailboxes;				/*!< Mailbox Linked List Entry. To check for messages */
 	char 					vmnum[AST_MAX_EXTENSION];		/*!< Voicemail number to Dial */
-	char 					meetmenum[AST_MAX_EXTENSION];		/*!< Meetme Extension to be Dialed*/
+	unsigned int 				meetme:1;				/*!< Meetme on/off */
+	char 					meetmenum[AST_MAX_EXTENSION];		/*!< Meetme Extension to be Dialed (\todo TO BE REMOVED) */
+	char 					meetmeopts[AST_MAX_CONTEXT];		/*!< Meetme Options to be Used*/
 	char 					context[AST_MAX_CONTEXT];		/*!< The context we use for Outgoing Calls. */
 	char 					language[MAX_LANGUAGE];			/*!< language we use for calls */
 	char 					accountcode[SCCP_MAX_ACCOUNT_CODE];	/*!< accountcode used in cdr */
