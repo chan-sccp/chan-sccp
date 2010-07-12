@@ -478,7 +478,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 	      && 
 	      (
 			ast_strlen_zero(d->lastNumber) 
-#ifndef CS_ADV_FEATURES
+#ifdef CS_ADV_FEATURES
 			&& !d->useRedialMenu
 #endif
 	      )
