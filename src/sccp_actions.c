@@ -2526,6 +2526,7 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: dndmode %d is %s\n", d->id, d->dndFeature.status, (d->dndFeature.status)?"on":"off");
 			sccp_dev_check_displayprompt(d);
+			sccp_feat_changed(d, SCCP_FEATURE_DND);
 		break;
 #ifdef CS_SCCP_FEATURE_MONITOR
 		case SCCP_FEATURE_MONITOR:
