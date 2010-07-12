@@ -64,7 +64,7 @@
  *      - cfwnoaswer,number	= Forward on no-answer (not implemented yet)
  *      - DND,busy		= Do-not-disturb, return Busy signal to Caller
  *      - DND,silent		= Do-not-disturb, return nothing to caller
- * 	- monitor		= Record Calls using AutoMon (asterisk 1.6.x only)
+ *      - monitor		= Record Calls using AutoMon (asterisk 1.6.x only)
  *      .
  *   .
  * 

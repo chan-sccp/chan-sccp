@@ -163,11 +163,14 @@
 /* Debug SCCP indications */
 #undef CS_DEBUG_INDICATIONS
 
+/* Using dynamic configuration file */
+#undef CS_DYNAMIC_CONFIG
+
 /* Using dynamic speeddials */
 #undef CS_DYNAMIC_SPEEDDIAL
 
-/* Using dynamic reloadable configuration file */
-#undef CS_DYNAMIC_CONFIG
+/* Using dynamic speeddials with callinfo */
+#undef CS_DYNAMIC_SPEEDDIAL_CID
 
 /* Found 'ENUM AST_DEVICE' in asterisk/devicestate.h */
 #undef CS_ENUM_AST_DEVICE
