@@ -690,7 +690,7 @@ static int reload_config(void) {
 	sccp_log(0)(VERBOSE_PREFIX_2 "Platform byte order   : BIG ENDIAN\n");
 #endif
 
-	if( !sccp_config_general() ){
+	if( !sccp_config_general(SCCP_CONFIG_READINITIAL) ){
 		return 0;
 	}
 	sccp_config_readDevicesLines(SCCP_CONFIG_READINITIAL);

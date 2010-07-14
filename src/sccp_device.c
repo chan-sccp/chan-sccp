@@ -55,9 +55,9 @@ void sccp_device_pre_reload(void)
 
 	SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list){
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: Setting Device to Pending Delete=1\n", d->id);
 		ast_free_ha(d->ha);
 		d->ha = NULL;
-
 		d->pendingDelete = 1;
 		d->pendingUpdate = 0;
 	}
@@ -73,14 +73,17 @@ void sccp_device_post_reload(void)
 		if (!d->pendingDelete && !d->pendingUpdate)
 			continue;
 
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Sending Device Reset\n");
 		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 		//sccp_dev_clean(d, FALSE);
 		sccp_session_close(d->session);
 
-		if (d->pendingDelete)
+		if (d->pendingDelete) {
+			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Remove Device from List\n");
 			SCCP_LIST_REMOVE_CURRENT(list);
-		else
+		} else {
 			d->pendingUpdate = 0;
+		}
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END
 
