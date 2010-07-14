@@ -567,14 +567,10 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: status=%d(%s)\n", d->id, status, argv[5]);
 	}
 
-
-	
-	
-	
-	
-
-#if 0	
+#ifdef CS_ADV_FEATURES
 	sccp_moo_t 	*r1 = NULL;
+
+/*
 // 	struct {
 // 		uint32_t	lel_appID;
 // 		uint32_t	lel_lineInstance;
@@ -663,16 +659,34 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 // 	
 // 	sccp_dev_send(d, r1);
 	
-	
-	char tmp[256] = "linename";
-	strcat(tmp," " SKINNY_DISP_CFWDALL ":");
-	strcat(tmp," 1234");
+*/	
+	char tmp1[256] = "linename";
+	strcat(tmp1," 1234");
 	
 	REQ(r1, LineStatMessage);
 	r1->msg.LineStatMessage.lel_lineNumber = htolel(instance);
-	sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, tmp, sizeof(r1->msg.LineStatMessage.lineDirNumber));
-	sccp_copy_string(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName, "test", sizeof(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName));
-	sccp_copy_string(r1->msg.LineStatMessage.lineDisplayName, "label", sizeof(r1->msg.LineStatMessage.lineDisplayName));
+	sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, tmp1, sizeof(r1->msg.LineStatMessage.lineDirNumber));
+	sccp_copy_string(r1->msg.LineStatMessage.lineDisplayName, "labellabel", sizeof(r1->msg.LineStatMessage.lineDisplayName));
+	sccp_dev_send(d, r1);
+
+	usleep(1000);
+	char tmp2[256] = "linename";
+	strcat(tmp2," 1234");
+	
+	REQ(r1, LineStatMessage);
+	r1->msg.LineStatMessage.lel_lineNumber = htolel(instance);
+	sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, tmp2, sizeof(r1->msg.LineStatMessage.lineDirNumber));
+	sccp_copy_string(r1->msg.LineStatMessage.lineDisplayName, "                    ", sizeof(r1->msg.LineStatMessage.lineDisplayName));
+	sccp_dev_send(d, r1);
+
+	usleep(1000);
+	char tmp3[256] = "linename";
+	strcat(tmp3," 1234");
+	
+	REQ(r1, LineStatMessage);
+	r1->msg.LineStatMessage.lel_lineNumber = htolel(instance);
+	sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, tmp3, sizeof(r1->msg.LineStatMessage.lineDirNumber));
+	sccp_copy_string(r1->msg.LineStatMessage.lineDisplayName, "my", sizeof(r1->msg.LineStatMessage.lineDisplayName));
 	sccp_dev_send(d, r1);
 #endif
 	return RESULT_SUCCESS;

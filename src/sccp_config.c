@@ -1123,9 +1123,6 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 #endif
 			} else if (!strcasecmp(v->name, "trnsfvm")) {
 				if (!ast_strlen_zero(v->value)) {
-#ifdef CS_DYNAMIC_CONFIG
-					if (!strcasecmp(l->trnsfvm, v->value)) {l->pendingUpdate=1;}
-#endif
 					l->trnsfvm = strdup(v->value);
 				}
 			} else if (!strcasecmp(v->name, "secondary_dialtone_digits")) {
