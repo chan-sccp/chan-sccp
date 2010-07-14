@@ -37,6 +37,7 @@ void sccp_line_pre_reload(void)
 
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list){
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: Setting Line to Pending Delete=1\n", l->name);
 		l->pendingDelete = 1;
 		l->pendingUpdate = 0;
 	}

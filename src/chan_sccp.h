@@ -214,8 +214,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 typedef unsigned int ast_group_t;
 #endif
 
-extern struct ast_frame 				sccp_null_frame;		/*!< Asterisk Structure */
-
+extern struct ast_frame 			sccp_null_frame;			/*!< Asterisk Frame Structure */
 
 typedef struct sccp_channel			sccp_channel_t;				/*!< SCCP Channel Structure */
 typedef struct sccp_session			sccp_session_t;				/*!< SCCP Session Structure */
@@ -229,12 +228,13 @@ typedef struct sccp_hostname			sccp_hostname_t;			/*!< SCCP HostName Structure *
 typedef struct sccp_selectedchannel		sccp_selectedchannel_t;			/*!< SCCP Selected Channel Structure */
 typedef struct sccp_ast_channel_name		sccp_ast_channel_name_t;		/*!< SCCP Asterisk Channel Name Structure */
 typedef struct sccp_buttonconfig		sccp_buttonconfig_t;			/*!< SCCP Button Config Structure */
-typedef struct sccp_hotline			sccp_hotline_t;
+typedef struct sccp_hotline			sccp_hotline_t;				/*!< SCCP Hotline Structure */
 typedef enum { FALSE=0, TRUE=1 } 		boolean_t;				/*!< Asterisk Reverses True and False; nice !! */
+typedef enum {ON, OFF} 				light_t;				/*!< Enum Light Status */
+
+typedef void sk_func (sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 typedef enum { LINE, SPEEDDIAL, SERVICE, FEATURE, EMPTY } button_type_t;		/*!< Enum Button Type */
 typedef enum { ANSWER_LAST_FIRST=1, ANSWER_OLDEST_FIRST=2 } call_answer_order_t;	/*!< Enum Call Answer Order */
-typedef enum {ON, OFF} 				light_t;				/*!< Enum Light Status */
-typedef void sk_func (sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 
 
 /*!
@@ -258,34 +258,34 @@ struct sccp_conference;
  * \brief SCCP Debug Category Enum
  */
 typedef enum {
-	DEBUGCAT_CORE			= 1,
-	DEBUGCAT_SCCP			= 1 << 1,
-	DEBUGCAT_HINT 		= 1 << 2,
-	DEBUGCAT_RTP 			= 1 << 3,
-	DEBUGCAT_DEVICE		= 1 << 4,
-	DEBUGCAT_LINE			= 1 << 5,
-	DEBUGCAT_ACTION		= 1 << 6,
-	DEBUGCAT_CHANNEL		= 1 << 7,
-	DEBUGCAT_CLI			= 1 << 8,
-	DEBUGCAT_CONFIG		= 1 << 9,
-	DEBUGCAT_FEATURE		= 1 << 10,
-	DEBUGCAT_FEATURE_BUTTON	= 1 << 11,
-	DEBUGCAT_SOFTKEY		= 1 << 12,
-	DEBUGCAT_INDICATE		= 1 << 13,
-	DEBUGCAT_PBX			= 1 << 14,
-	DEBUGCAT_SOCKET		= 1 << 15,
-	DEBUGCAT_MWI 			= 1 << 16,
-	DEBUGCAT_EVENT 		= 1 << 17,
-	DEBUGCAT_ADV_FEATURE		= 1 << 18,
-	DEBUGCAT_CONFERENCE		= 1 << 19,
-	DEBUGCAT_BUTTONTEMPLATE	= 1 << 20,
-	DEBUGCAT_SPEEDDIAL		= 1 << 21,
-	DEBUGCAT_CODEC		= 1 << 22,
-	DEBUGCAT_REALTIME		= 1 << 22,
-	DEBUGCAT_LOCK			= 1 << 23,
-	DEBUGCAT_MESSAGE		= 1 << 24,
-	DEBUGCAT_NEWCODE		= 1 << 25,
-	DEBUGCAT_HIGH			= 1 << 26,
+	DEBUGCAT_CORE				= 1,
+	DEBUGCAT_SCCP				= 1 << 1,
+	DEBUGCAT_HINT 				= 1 << 2,
+	DEBUGCAT_RTP 				= 1 << 3,
+	DEBUGCAT_DEVICE				= 1 << 4,
+	DEBUGCAT_LINE				= 1 << 5,
+	DEBUGCAT_ACTION				= 1 << 6,
+	DEBUGCAT_CHANNEL			= 1 << 7,
+	DEBUGCAT_CLI				= 1 << 8,
+	DEBUGCAT_CONFIG				= 1 << 9,
+	DEBUGCAT_FEATURE			= 1 << 10,
+	DEBUGCAT_FEATURE_BUTTON			= 1 << 11,
+	DEBUGCAT_SOFTKEY			= 1 << 12,
+	DEBUGCAT_INDICATE			= 1 << 13,
+	DEBUGCAT_PBX				= 1 << 14,
+	DEBUGCAT_SOCKET				= 1 << 15,
+	DEBUGCAT_MWI 				= 1 << 16,
+	DEBUGCAT_EVENT 				= 1 << 17,
+	DEBUGCAT_ADV_FEATURE			= 1 << 18,
+	DEBUGCAT_CONFERENCE			= 1 << 19,
+	DEBUGCAT_BUTTONTEMPLATE			= 1 << 20,
+	DEBUGCAT_SPEEDDIAL			= 1 << 21,
+	DEBUGCAT_CODEC				= 1 << 22,
+	DEBUGCAT_REALTIME			= 1 << 22,
+	DEBUGCAT_LOCK				= 1 << 23,
+	DEBUGCAT_MESSAGE			= 1 << 24,
+	DEBUGCAT_NEWCODE			= 1 << 25,
+	DEBUGCAT_HIGH				= 1 << 26,
 } sccp_debug_category_t;									/*!< SCCP Debug Category Enum */
 
 /*!
@@ -299,30 +299,30 @@ static const struct sccp_debug_category {
   { "core",		DEBUGCAT_CORE,		"core debug level"		},
   { "sccp",		DEBUGCAT_SCCP,		"sccp debug level"		},
   { "hint", 		DEBUGCAT_HINT, 		"hint debug level"		},
-  { "rtp",		DEBUGCAT_RTP,			"rtp debug level"		},
-  { "device",		DEBUGCAT_DEVICE,		"device debug level"		},
+  { "rtp",		DEBUGCAT_RTP,		"rtp debug level"		},
+  { "device",		DEBUGCAT_DEVICE,	"device debug level"		},
   { "line",		DEBUGCAT_LINE,		"line debug level"		},
-  { "action",		DEBUGCAT_ACTION,		"action debug level"		},
-  { "channel",		DEBUGCAT_CHANNEL,		"channel debug level"		},
-  { "cli",		DEBUGCAT_CLI,			"cli debug level"		},
-  { "config",		DEBUGCAT_CONFIG,		"config debug level"		},
-  { "feature",		DEBUGCAT_FEATURE,		"feature debug level"		},
-  { "feature_button",	DEBUGCAT_FEATURE_BUTTON,	"feature_button debug level"	},
-  { "softkey",		DEBUGCAT_SOFTKEY,		"softkey debug level"		},
-  { "indicate",		DEBUGCAT_INDICATE,		"indicate debug level"		},
-  { "pbx",		DEBUGCAT_PBX,			"pbx debug level"		},
-  { "socket",		DEBUGCAT_SOCKET,		"socket debug level"		},
-  { "mwi",		DEBUGCAT_MWI,			"mwi debug level"		},
+  { "action",		DEBUGCAT_ACTION,	"action debug level"		},
+  { "channel",		DEBUGCAT_CHANNEL,	"channel debug level"		},
+  { "cli",		DEBUGCAT_CLI,		"cli debug level"		},
+  { "config",		DEBUGCAT_CONFIG,	"config debug level"		},
+  { "feature",		DEBUGCAT_FEATURE,	"feature debug level"		},
+  { "feature_button",	DEBUGCAT_FEATURE_BUTTON,"feature_button debug level"	},
+  { "softkey",		DEBUGCAT_SOFTKEY,	"softkey debug level"		},
+  { "indicate",		DEBUGCAT_INDICATE,	"indicate debug level"		},
+  { "pbx",		DEBUGCAT_PBX,		"pbx debug level"		},
+  { "socket",		DEBUGCAT_SOCKET,	"socket debug level"		},
+  { "mwi",		DEBUGCAT_MWI,		"mwi debug level"		},
   { "event",		DEBUGCAT_EVENT,		"event debug level"		},
-  { "adv_feature",	DEBUGCAT_ADV_FEATURE,		"adv_feature debug level"	},
-  { "conference",	DEBUGCAT_CONFERENCE,		"conference debug level"	},
-  { "buttontemplate",	DEBUGCAT_BUTTONTEMPLATE,	"buttontemplate debug level"	},
-  { "speeddial",	DEBUGCAT_SPEEDDIAL,		"speeddial debug level"		},
+  { "adv_feature",	DEBUGCAT_ADV_FEATURE,	"adv_feature debug level"	},
+  { "conference",	DEBUGCAT_CONFERENCE,	"conference debug level"	},
+  { "buttontemplate",	DEBUGCAT_BUTTONTEMPLATE,"buttontemplate debug level"	},
+  { "speeddial",	DEBUGCAT_SPEEDDIAL,	"speeddial debug level"		},
   { "codec",		DEBUGCAT_CODEC,		"codec debug level"		},
-  { "realtime",		DEBUGCAT_REALTIME,		"realtime debug level"		},
+  { "realtime",		DEBUGCAT_REALTIME,	"realtime debug level"		},
   { "lock",		DEBUGCAT_LOCK,		"lock debug level"		},
-  { "message",		DEBUGCAT_MESSAGE,		"message debug level"		},
-  { "newcode",		DEBUGCAT_NEWCODE,		"newcode debug level"		},
+  { "message",		DEBUGCAT_MESSAGE,	"message debug level"		},
+  { "newcode",		DEBUGCAT_NEWCODE,	"newcode debug level"		},
   { "high",		DEBUGCAT_HIGH,		"high debug level"		},
 };
 
@@ -431,8 +431,8 @@ struct sccp_cfwd_information{
  * \brief for addressing individual devices on shared line
  */
 struct  subscriptionId{
-	char				number[AST_MAX_EXTENSION];			/*!< will be added to cid */
-	char				name[AST_MAX_EXTENSION];			/*!< will be added to cidName */
+	char					number[AST_MAX_EXTENSION];		/*!< will be added to cid */
+	char					name[AST_MAX_EXTENSION];		/*!< will be added to cidName */
 };
 
 /*!

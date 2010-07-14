@@ -1274,9 +1274,7 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 		found_linedevice=0;
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
-//			if(!linedevice->device)
-//                                continue;
-			if (d=linedevice->device) {
+			if ((d=linedevice->device)) {
                                 ast_cli(fd, "%-16s %-16s %-6s %-4s %-4d %-10s %-10s %-16s %-10s\n",
                                         l->name,
                                         (d) ? d->id : "--",
@@ -1840,22 +1838,17 @@ static struct ast_cli_entry cli_no_debug = {
 static int sccp_do_reload(int fd, int argc, char *argv[]) {
 #ifdef CS_DYNAMIC_CONFIG
 	ast_cli(fd, "SCCP reloading configuration.\n");
-	sccp_readingtype_t readingtype;
+	ast_cli(fd, "SCCP configuration reload partially implemented ! use unload and load instead for now.\n");
 
-//(sccp_cli.c)        set global variable reloading=true
-//                    > readingtype is not a global variable -romain
+	/* maybe we should make this a global variable so we do not have to pass it around - DdG ??*/
+	sccp_readingtype_t readingtype;
 	readingtype=SCCP_CONFIG_READRELOAD;
 
-//(sccp_config.c)        set all devices + lines to pendingDelete
-	/* done by readDevicesLines */
-	
-// (sccp_config.c)     load global parameters
-	if (!sccp_config_general()) {
+	if (!sccp_config_general(readingtype)) {
 		ast_cli(fd, "Unable to reload configuration.\n");
 		return RESULT_FAILURE;
 	}
 
-	// (sccp_config.c)     load device parameters 
 	sccp_config_readDevicesLines(readingtype);
 
 /*

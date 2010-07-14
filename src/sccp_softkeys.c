@@ -60,6 +60,7 @@ void sccp_softkey_pre_reload(void)
 
 	SCCP_LIST_LOCK(&softKeySetConfig);
 	while((k = SCCP_LIST_REMOVE_HEAD(&softKeySetConfig, list))) {
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Setting SoftkeySetConfig to Pending Delete=1\n");
 		ast_free(k);
 	}
 	SCCP_LIST_UNLOCK(&softKeySetConfig);

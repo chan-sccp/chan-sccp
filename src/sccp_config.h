@@ -75,7 +75,7 @@ void sccp_config_addService(sccp_device_t *device, char *label, char *url, uint8
 
 sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char *deviceName, boolean_t isRealtime);
 sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *lineName, boolean_t isRealtime);
-boolean_t sccp_config_general(void);
+boolean_t sccp_config_general(sccp_readingtype_t readingtype);
 void sccp_config_readDevicesLines(sccp_readingtype_t readingtype);
 
 sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_variable *v);

@@ -287,7 +287,6 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 
 	d= sccp_config_applyDeviceConfiguration(d, variable); 	/* apply configuration using variable */
 
-
 #ifdef CS_SCCP_REALTIME
 	d->realtime = isRealtime;
 #endif
@@ -298,14 +297,16 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 	}
 
 #ifdef CS_DYNAMIC_CONFIG
-	if (!d->pendingDelete)
+	if (!d->pendingDelete){
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s: Adding device to Globals\n", d->id);
 		sccp_device_addToGlobals(d);
-	else
+	} else {
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s: Removing pendingDelete\n", d->id);
 		d->pendingDelete = 0;
+	}
 #else
 	sccp_device_addToGlobals(d);
 #endif
-
 
 	return d;
 }
@@ -350,10 +351,13 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 
 	// TODO: Load status of feature (DND, CFwd, etc.) from astdb.
 #ifdef CS_DYNAMIC_CONFIG
-	if (!line->pendingDelete)
+	if (!line->pendingDelete) {
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s: Adding line to Globals to 0\n", line->name);
 		sccp_line_addToGlobals(line);
-	else
+	} else {
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s: Removing pendingDelete\n", line->name);
 		line->pendingDelete = 0;
+	}
 #else
 	sccp_line_addToGlobals(line);
 #endif /* CS_DYNAMIC_CONFIG */
@@ -361,7 +365,7 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 	return line;
 }
 
-boolean_t sccp_config_general(void){
+boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 	struct ast_config		*cfg;
 	struct ast_variable		*v;
 	int firstdigittimeout = 0;
@@ -432,11 +436,13 @@ boolean_t sccp_config_general(void){
 		} else if (!strcasecmp(v->name, "servername")) {
 			sccp_copy_string(GLOB(servername), v->value, sizeof(GLOB(servername)));
 		} else if (!strcasecmp(v->name, "bindaddr")) {
-			if (!(hp = ast_gethostbyname(v->value, &ahp))) {
-				ast_log(LOG_WARNING, "Invalid address: %s. SCCP disabled\n", v->value);
-				return 0;
-			} else {
-				memcpy(&GLOB(bindaddr.sin_addr), hp->h_addr, sizeof(GLOB(bindaddr.sin_addr)));
+			if (readingtype == SCCP_CONFIG_READINITIAL) {
+				if (!(hp = ast_gethostbyname(v->value, &ahp))) {
+					ast_log(LOG_WARNING, "Invalid address: %s. SCCP disabled\n", v->value);
+					return 0;
+				} else {
+					memcpy(&GLOB(bindaddr.sin_addr), hp->h_addr, sizeof(GLOB(bindaddr.sin_addr)));
+				}
 			}
 		} else if (!strcasecmp(v->name, "permit") || !strcasecmp(v->name, "deny")) {
 
@@ -508,10 +514,12 @@ boolean_t sccp_config_general(void){
 		} else if (!strcasecmp(v->name, "dateformat")) {
 			sccp_copy_string (GLOB(date_format), v->value, sizeof(GLOB(date_format)));
 		} else if (!strcasecmp(v->name, "port")) {
-			if (sscanf(v->value, "%i", &GLOB(ourport)) == 1) {
-				GLOB(bindaddr.sin_port) = htons(GLOB(ourport));
-			} else {
-				ast_log(LOG_WARNING, "Invalid port number '%s' at line %d of SCCP.CONF\n", v->value, v->lineno);
+			if (readingtype == SCCP_CONFIG_READINITIAL) {
+				if (sscanf(v->value, "%i", &GLOB(ourport)) == 1) {
+					GLOB(bindaddr.sin_port) = htons(GLOB(ourport));
+				} else {
+					ast_log(LOG_WARNING, "Invalid port number '%s' at line %d of SCCP.CONF\n", v->value, v->lineno);
+				}
 			}
 		} else if (!strcasecmp(v->name, "firstdigittimeout")) {
 			if (sscanf(v->value, "%i", &firstdigittimeout) == 1) {
@@ -535,9 +543,11 @@ boolean_t sccp_config_general(void){
 		} else if (!strcasecmp(v->name, "recorddigittimeoutchar")) {
 			GLOB(recorddigittimeoutchar) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "debug")) {
-			GLOB(debug)=0;
-			debug_arr[0]=(char *)v->value;
-			GLOB(debug)=sccp_parse_debugline(debug_arr,0,1,GLOB(debug));
+			if (readingtype == SCCP_CONFIG_READINITIAL) {
+				GLOB(debug)=0;
+				debug_arr[0]=(char *)v->value;
+				GLOB(debug)=sccp_parse_debugline(debug_arr,0,1,GLOB(debug));
+			}
 		} else if (!strcasecmp(v->name, "allow")) {
 			ast_parse_allow_disallow(&GLOB(global_codecs), &GLOB(global_capability), ast_strip(config_value), 1);
 		} else if (!strcasecmp(v->name, "disallow")) {
@@ -813,9 +823,13 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	ast_log(LOG_NOTICE, "Loading Devices and Lines from config\n");
 
 #ifdef CS_DYNAMIC_CONFIG
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "Checking ReadingType\n");
 	if (readingtype == SCCP_CONFIG_READRELOAD) {
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Device Pre Reload\n");
 		sccp_device_pre_reload();
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Line Pre Reload\n");
 		sccp_line_pre_reload();
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Softkey Pre Reload\n");
 		sccp_softkey_pre_reload();
 	}
 #endif
@@ -879,9 +893,13 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	ast_config_destroy(cfg);
 
 #ifdef CS_DYNAMIC_CONFIG
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "Checking ReadingType\n");
 	if (readingtype == SCCP_CONFIG_READRELOAD) {
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Device Post Reload\n");
 		sccp_device_post_reload();
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Line Post Reload\n");
 		sccp_line_post_reload();
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Softkey Post Reload\n");
 		sccp_softkey_post_reload();
 	}
 #endif
