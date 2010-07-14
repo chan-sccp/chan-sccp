@@ -80,6 +80,8 @@ const char * accessorystatus2str(uint32_t value);
 const char * extensionstatus2str(uint32_t value);
 const char * dndmode2str(uint32_t value);
 const char * sccp_buttontype2str(uint32_t value);
+const char * callforward2str(uint32_t value);
+const char * callforward2longstr(uint32_t value);
 
 // SKINNY Lookups
 const char * tone2str(uint32_t value);
@@ -95,11 +97,10 @@ const char * keymode2str(uint32_t value);
 const char * deviceregistrationstatus2str(uint32_t value);
 const char * devicestatus2str(uint32_t value) ;
 const char * codec2str(uint32_t value);
+const char * skinny_ringermode2str(uint8_t type);
 
 const char * array2str(uint8_t type, uint32_t value);
 
-const char * skinny_ringermode2str(uint8_t type);
-const char * sccp_dndmode2str(uint8_t type);
 uint8_t sccp_codec_ast2skinny(int fmt);
 int sccp_codec_skinny2ast(uint8_t fmt);
 

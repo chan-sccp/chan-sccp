@@ -1002,7 +1002,18 @@ static void * sccp_feat_meetme_thread(void * data)
         if(c && c->owner) {
                 if(!c->owner->context || ast_strlen_zero(c->owner->context))
                         return NULL;
-                snprintf(meetmeopts, sizeof(meetmeopts), "%s%c%s", c->dialedNumber, SCCP_CONF_SPACER, (c->line->meetmeopts&& !ast_strlen_zero(c->line->meetmeopts)) ? c->line->meetmeopts : "qd");
+		/* replaced by meetmeopts in global, device, line */
+//              snprintf(meetmeopts, sizeof(meetmeopts), "%s%c%s", c->dialedNumber, SCCP_CONF_SPACER, (c->line->meetmeopts&& !ast_strlen_zero(c->line->meetmeopts)) ? c->line->meetmeopts : "qd");
+		if (!ast_strlen_zero(c->line->meetmeopts)) {
+                  snprintf(meetmeopts, sizeof(meetmeopts), "%s%c%s", c->dialedNumber, SCCP_CONF_SPACER, c->line->meetmeopts);
+		} else if (!ast_strlen_zero(d->meetmeopts)) {
+                  snprintf(meetmeopts, sizeof(meetmeopts), "%s%c%s", c->dialedNumber, SCCP_CONF_SPACER, d->meetmeopts);
+		} else if (!ast_strlen_zero(GLOB(meetmeopts))) {
+                  snprintf(meetmeopts, sizeof(meetmeopts), "%s%c%s", c->dialedNumber, SCCP_CONF_SPACER, GLOB(meetmeopts));
+		} else {
+                  snprintf(meetmeopts, sizeof(meetmeopts), "%s%c%s", c->dialedNumber, SCCP_CONF_SPACER, "qd");
+		}
+		
                 sccp_copy_string(context, c->owner->context, sizeof(context));
                 snprintf(ext, sizeof(ext), "sccp_meetme_temp_conference_%ud", eid);
 

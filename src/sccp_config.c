@@ -775,6 +775,10 @@ boolean_t sccp_config_general(void){
 				if(GLOB(hotline)->line)
 					sccp_copy_string(GLOB(hotline)->line->adhocNumber, v->value, sizeof(GLOB(hotline)->line->adhocNumber) );
 
+		} else if (!strcasecmp(v->name, "meetme")) {
+			GLOB(meetme) = sccp_true(v->value);
+		} else if (!strcasecmp(v->name, "meetmeopts")) {
+			sccp_copy_string(GLOB(meetmeopts), v->value, sizeof(GLOB(meetmeopts)));
 		} else {
 			ast_log(LOG_WARNING, "Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
 		}
@@ -1314,6 +1318,10 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 			d->useRedialMenu = sccp_true(v->value);
 		
 #endif
+		} else if (!strcasecmp(v->name, "meetme")) {
+			d->meetme = sccp_true(v->value);
+		} else if (!strcasecmp(v->name, "meetmeopts")) {
+			sccp_copy_string(d->meetmeopts, v->value, sizeof(d->meetmeopts));
 		} else {
 			ast_log(LOG_WARNING, "SCCP: Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
 		}

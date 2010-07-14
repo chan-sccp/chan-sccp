@@ -839,6 +839,8 @@ const char * accessorystatus2str(uint32_t value) { _ARR2STR(sccp_accessory_state
 const char * extensionstatus2str(uint32_t value) { _ARR2STR(sccp_extension_states, extension_state , value , text); }
 const char * dndmode2str(uint32_t value) { _ARR2STR(sccp_dndmodes, dndmode , value , text); }
 const char * sccp_buttontype2str(uint32_t value) { _ARR2STR(sccp_buttontypes, buttontype , value, text); }
+const char * callforward2str(uint32_t value) { _ARR2STR(sccp_callforwardstates, callforwardstate, value, text); }
+const char * callforward2longstr(uint32_t value) { _ARR2STR(sccp_callforwardstates, callforwardstate, value, longtext); }
 
 const char * tone2str(uint32_t value) { _ARR2STR(skinny_tones, tone , value , text); }
 const char * alarm2str(uint32_t value) { _ARR2STR(skinny_alarms, alarm, value , text); }
