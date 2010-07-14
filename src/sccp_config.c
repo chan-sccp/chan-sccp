@@ -85,7 +85,7 @@ void sccp_config_addLine(sccp_device_t *device, char *lineName, char *options, u
 	}
 	
 #ifdef CS_DYNAMIC_CONFIG
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: Checking buttonconfig %d:%d against previous\n", device->id, index, config->instance);
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: Checking buttonconfig %d:%d against previous\n", device->id, index, config->index);
 	addbutton=1;
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, old_config, list) {
@@ -98,13 +98,13 @@ void sccp_config_addLine(sccp_device_t *device, char *lineName, char *options, u
 			    (!strcasecmp(old_config->button.line.options, config->button.line.options)) 
 			   ) {
 			    	addbutton=0;
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Button %s already exists: %d:%d\n", config->button.line.name, index, config->instance);
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Button %s already exists: %d:%d\n", config->button.line.name, index, config->index);
 				break;
 			}
 		}
 	}
 	if (addbutton==1) {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "New Button %s at %d:%d\n", config->button.line.name, index, config->instance);
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "New Button %s at %d:%d\n", config->button.line.name, index, config->index);
 		device->pendingUpdate=1;
 		SCCP_LIST_INSERT_TAIL(&device->buttonconfig, config, list);
 		device->configurationStatistic.numberOfLines++;
@@ -136,24 +136,22 @@ void sccp_config_addEmpty(sccp_device_t *device, uint16_t index)
 	if(!config)
 		return;
 
-	//sccp_log(0)(VERBOSE_PREFIX_3 "Add empty button on position: %d\n", config->instance);
 	config->type = EMPTY;
-	//TODO check already existing indexs
 #ifdef CS_DYNAMIC_CONFIG
-	config->instance = index;
+	config->index = index;
 
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: Checking buttonconfig %d:%d against previous\n", device->id, index, config->instance);
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: Checking buttonconfig %d:%d against previous\n", device->id, index, config->index);
 	addbutton=1;
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, old_config, list) {
-		if ((old_config->type == EMPTY) && (old_config->instance==config->instance)) {
+		if ((old_config->type == EMPTY) && (old_config->index==config->index)) {
 		    	addbutton=0;
-			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Button %s already exists: %d:%d\n", config->button.line.name, index, config->instance);
+			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Button %s already exists: %d:%d\n", config->button.line.name, index, config->index);
 			break;
 		}
 	}
 	if (addbutton==1) {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "New Button %s at %d:%d\n", config->button.line.name, index, config->instance);
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "New Button %s at %d:%d\n", config->button.line.name, index, config->index);
 		device->pendingUpdate=1;
 		SCCP_LIST_INSERT_TAIL(&device->buttonconfig, config, list);
 	}
@@ -195,33 +193,33 @@ void sccp_config_addSpeeddial(sccp_device_t *device, char *label, char *extensio
 	}
 
 #ifdef CS_DYNAMIC_CONFIG
-	config->instance = index;
+	config->index = index;
 
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: Checking buttonconfig %d:%d against previous\n", device->id, index, config->instance);
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: Checking buttonconfig %d:%d against previous\n", device->id, index, config->index);
 	addbutton=1;
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, old_config, list) {
-		if ((old_config->type == SPEEDDIAL) && (old_config->instance==config->instance)) {
+		if ((old_config->type == SPEEDDIAL) && (old_config->index==config->index)) {
 			if (
 			    (!strcasecmp(old_config->button.speeddial.label,config->button.speeddial.label)) &&
 			    (!strcasecmp(old_config->button.speeddial.ext,config->button.speeddial.ext)) &&
 			    (!strcasecmp(old_config->button.speeddial.hint,config->button.speeddial.hint))
    			   ) {
 				addbutton=0;
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Button %s already exists: %d:%d\n", config->button.line.name, index, config->instance);
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Button %s already exists: %d:%d\n", config->button.line.name, index, config->index);
 				break;
 			}
 		}
 	}
 	if (addbutton==1) {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "New Button %s at %d:%d\n", config->button.line.name, index, config->instance);
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "New Button %s at %d:%d\n", config->button.line.name, index, config->index);
 		device->pendingUpdate=1;
 		SCCP_LIST_INSERT_TAIL(&device->buttonconfig, config, list);
 	        device->configurationStatistic.numberOfSpeeddials++;
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 #else
-	sccp_log(0)(VERBOSE_PREFIX_3 "Add empty button on position: %d\n", config-instance);
+	sccp_log(0)(VERBOSE_PREFIX_3 "Add empty button on position: %d\n", config->instance);
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_INSERT_TAIL(&device->buttonconfig, config, list);
 	device->configurationStatistic.numberOfSpeeddials++;
@@ -264,20 +262,20 @@ void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID,
 	}
 
 #ifdef CS_DYNAMIC_CONFIG
-	config->instance = index;
+	config->index = index;
 
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: Checking buttonconfig %d:%d against previous\n", device->id, index, config->instance);
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: Checking buttonconfig %d:%d against previous\n", device->id, index, config->index);
 	addbutton=1;
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, old_config, list) {
-		if ((old_config->type == FEATURE) && (old_config->instance==config->instance)) {
+		if ((old_config->type == FEATURE) && (old_config->index==config->index)) {
 			if (
 			    (!strcasecmp(old_config->button.feature.label,config->button.feature.label)) &&
 			    (old_config->button.feature.id == config->button.feature.id) &&
 			    (!strcasecmp(old_config->button.feature.options,config->button.feature.options)) 
    			   ) {
 				addbutton=0;
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Button %s already exists: %d:%d\n", config->button.line.name, index, config->instance);
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Button %s already exists: %d:%d\n", config->button.line.name, index, config->index);
 				break;
 			}
 		}
@@ -290,7 +288,7 @@ void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID,
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 #else
-	sccp_log(0)(VERBOSE_PREFIX_3 "Add FEATURE button on position: %d, featureID: %d, args: %s\n", config-instance, config->button.feature.id, (config->button.feature.options)?config->button.feature.options:"(none)");
+	sccp_log(0)(VERBOSE_PREFIX_3 "Add FEATURE button on position: %d, featureID: %d, args: %s\n", config->instance, config->button.feature.id, (config->button.feature.options)?config->button.feature.options:"(none)");
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_INSERT_TAIL(&device->buttonconfig, config, list);
 	device->configurationStatistic.numberOfFeatures++;
@@ -328,32 +326,32 @@ void sccp_config_addService(sccp_device_t *device, char *label, char *url, uint1
 	}
 
 #ifdef CS_DYNAMIC_CONFIG
-	config->instance = index;
+	config->index = index;
 
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: Checking buttonconfig %d:%d against previous\n", device->id, index, config->instance);
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: Checking buttonconfig %d:%d against previous\n", device->id, index, config->index);
 	addbutton=1;
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, old_config, list) {
-		if ((old_config->type == SERVICE) && (old_config->instance==config->instance)) {
+		if ((old_config->type == SERVICE) && (old_config->index==config->index)) {
 			if (
 			    (!strcasecmp(old_config->button.service.label, config->button.service.label)) &&
 			    (!strcasecmp(old_config->button.service.url, config->button.service.url))
    			   ) {
 				addbutton=0;
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Button %s already exists: %d:%d\n", config->button.line.name, index, config->instance);
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Button %s already exists: %d:%d\n", config->button.line.name, index, config->index);
 				break;
 			}
 		}
 	}
 	if (addbutton==1) {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "New Button %s at %d:%d\n", config->button.line.name, index, config->instance);
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "New Button %s at %d:%d\n", config->button.line.name, index, config->index);
 		device->pendingUpdate=1;
 		SCCP_LIST_INSERT_TAIL(&device->buttonconfig, config, list);
 		device->configurationStatistic.numberOfServices++;
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 #else
-	sccp_log(0)(VERBOSE_PREFIX_3 "Add SERVICE button on position: %d\n", config-instance);
+	sccp_log(0)(VERBOSE_PREFIX_3 "Add SERVICE button on position: %d\n", config->instance);
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_INSERT_TAIL(&device->buttonconfig, config, list);
 	device->configurationStatistic.numberOfServices++;
