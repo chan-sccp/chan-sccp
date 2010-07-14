@@ -925,227 +925,255 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 
 
 	while (v) {
-
 		if(!(v->name)) {
 			ast_log(LOG_WARNING, "Null variable name in configuration\n");
 		} else if(!(v->value)) {
 			ast_log(LOG_WARNING, "Null variable value in configuration\n");
 		} else {
 			//ast_verbose(VERBOSE_PREFIX_3, "Processing variable name \"%s\", value \"%s\"\n", v->name, v->value);
-		if ((!strcasecmp(v->name, "line") )
+			if ((!strcasecmp(v->name, "line") )
 #ifdef CS_SCCP_REALTIME
 				|| (!strcasecmp(v->name, "name"))
 #endif
-		   ) {
-		} else if (!strcasecmp(v->name, "type")) {
-		  //skip;
-		} else if (!strcasecmp(v->name, "id")) {
-			sccp_copy_string(l->id, v->value, sizeof(l->id));
-		} else if (!strcasecmp(v->name, "pin")) {
-			sccp_copy_string(l->pin, v->value, sizeof(l->pin));
-		} else if (!strcasecmp(v->name, "label")) {
-			sccp_copy_string(l->label, v->value, sizeof(l->label));
-		} else if (!strcasecmp(v->name, "description")) {
-			sccp_copy_string(l->description, v->value, sizeof(l->description));
-		} else if (!strcasecmp(v->name, "context")) {
-			sccp_copy_string(l->context, v->value, sizeof(l->context));
-		} else if (!strcasecmp(v->name, "cid_name")) {
-			sccp_copy_string(l->cid_name, v->value, sizeof(l->cid_name));
-		} else if (!strcasecmp(v->name, "cid_num")) {
-			sccp_copy_string(l->cid_num, v->value, sizeof(l->cid_num));
-		} else if (!strcasecmp(v->name, "defaultSubscriptionId_name")) { // Subscription IDs
-			sccp_copy_string(l->defaultSubscriptionId.name, v->value, sizeof(l->defaultSubscriptionId.name));
-		} else if (!strcasecmp(v->name, "defaultSubscriptionId_number")) {
-			sccp_copy_string(l->defaultSubscriptionId.number, v->value, sizeof(l->defaultSubscriptionId.number));
-		} else if (!strcasecmp(v->name, "callerid")) {
-			ast_log(LOG_WARNING, "obsolete callerid param. Use cid_num and cid_name\n");
-		} else if (!strcasecmp(v->name, "mailbox")) {
-			sccp_mailbox_t *mailbox = NULL;
-			char *context, *mbox = NULL;
+			) {
+				// do nothing
+			} else if (!strcasecmp(v->name, "type")) {
+			  //skip;
+			} else if (!strcasecmp(v->name, "id")) {
+#ifdef CS_DYNAMIC_CONFIG
+				if (!strcasecmp(l->id, v->value)) {l->pendingUpdate=1;}
+#endif		
+				sccp_copy_string(l->id, v->value, sizeof(l->id));
+			} else if (!strcasecmp(v->name, "pin")) {
+#ifdef CS_DYNAMIC_CONFIG
+				if (!strcasecmp(l->pin, v->value)) {l->pendingUpdate=1;}
+#endif
+				sccp_copy_string(l->pin, v->value, sizeof(l->pin));
+			} else if (!strcasecmp(v->name, "label")) {
+#ifdef CS_DYNAMIC_CONFIG
+				if (!strcasecmp(l->label, v->value)) {l->pendingUpdate=1;}
+#endif
+				sccp_copy_string(l->label, v->value, sizeof(l->label));
+			} else if (!strcasecmp(v->name, "description")) {
+#ifdef CS_DYNAMIC_CONFIG
+				if (!strcasecmp(l->description, v->value)) {l->pendingUpdate=1;}
+#endif
+				sccp_copy_string(l->description, v->value, sizeof(l->description));
+			} else if (!strcasecmp(v->name, "context")) {
+				sccp_copy_string(l->context, v->value, sizeof(l->context));
+			} else if (!strcasecmp(v->name, "cid_name")) {
+				sccp_copy_string(l->cid_name, v->value, sizeof(l->cid_name));
+			} else if (!strcasecmp(v->name, "cid_num")) {
+				sccp_copy_string(l->cid_num, v->value, sizeof(l->cid_num));
+			} else if (!strcasecmp(v->name, "defaultSubscriptionId_name")) { // Subscription IDs
+#ifdef CS_DYNAMIC_CONFIG
+				if (!strcasecmp(l->defaultSubscriptionId.name, v->value)) {l->pendingUpdate=1;}
+#endif
+				sccp_copy_string(l->defaultSubscriptionId.name, v->value, sizeof(l->defaultSubscriptionId.name));
+			} else if (!strcasecmp(v->name, "defaultSubscriptionId_number")) {
+#ifdef CS_DYNAMIC_CONFIG
+				if (!strcasecmp(l->defaultSubscriptionId.number, v->value)) {l->pendingUpdate=1;}
+#endif
+				sccp_copy_string(l->defaultSubscriptionId.number, v->value, sizeof(l->defaultSubscriptionId.number));
+			} else if (!strcasecmp(v->name, "callerid")) {
+				ast_log(LOG_WARNING, "obsolete callerid param. Use cid_num and cid_name\n");
+			} else if (!strcasecmp(v->name, "mailbox")) {
+				sccp_mailbox_t *mailbox = NULL;
+				char *context, *mbox = NULL;
 
-			mbox = context = ast_strdupa(v->value);
+				mbox = context = ast_strdupa(v->value);
 
-			if (!ast_strlen_zero(mbox)) {
+				if (!ast_strlen_zero(mbox)) {
 
-				mailbox = ast_calloc(1, sizeof(*mailbox));
+					mailbox = ast_calloc(1, sizeof(*mailbox));
 
-				if(NULL != mailbox) {
-					strsep(&context, "@");
-					mailbox->mailbox = ast_strdup(mbox);
-					mailbox->context = ast_strdup(context);
+					if(NULL != mailbox) {
+						strsep(&context, "@");
+						mailbox->mailbox = ast_strdup(mbox);
+						mailbox->context = ast_strdup(context);
 
-					SCCP_LIST_INSERT_TAIL(&l->mailboxes, mailbox, list);
-					sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_3 "%s: Added mailbox '%s@%s'\n", l->name, mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
+						SCCP_LIST_INSERT_TAIL(&l->mailboxes, mailbox, list);
+						sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_3 "%s: Added mailbox '%s@%s'\n", l->name, mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
+					}
 				}
-			}
-		} else if (!strcasecmp(v->name, "vmnum")) {
-			sccp_copy_string(l->vmnum, v->value, sizeof(l->vmnum));
-		} else if (!strcasecmp(v->name, "adhocNumber")) {
-			sccp_copy_string(l->adhocNumber, v->value, sizeof(l->adhocNumber));
-		} else if (!strcasecmp(v->name, "meetmenum")) {
-			sccp_copy_string(l->meetmenum, v->value, sizeof(l->meetmenum));
-		} else if (!strcasecmp(v->name, "meetme")) {
-			l->meetme = sccp_true(v->value);
-		} else if (!strcasecmp(v->name, "meetmeopts")) {
-			sccp_copy_string(l->meetmeopts, v->value, sizeof(l->meetmeopts));
-		} else if (!strcasecmp(v->name, "transfer")) {
-			l->transfer = sccp_true(v->value);
-		} else if (!strcasecmp(v->name, "incominglimit")) {
-			l->incominglimit = atoi(v->value);
-			if (l->incominglimit < 1)
-				l->incominglimit = 1;
-		} else if (!strcasecmp(v->name, "echocancel")) {
-			l->echocancel = sccp_true(v->value);
-		} else if (!strcasecmp(v->name, "silencesuppression")) {
-			l->silencesuppression = sccp_true(v->value);
-		} else if (!strcasecmp(v->name, "audio_tos")) {
+			} else if (!strcasecmp(v->name, "vmnum")) {
+				sccp_copy_string(l->vmnum, v->value, sizeof(l->vmnum));
+			} else if (!strcasecmp(v->name, "adhocNumber")) {
+#ifdef CS_DYNAMIC_CONFIG
+				if (!strcasecmp(l->adhocNumber, v->value)) {l->pendingUpdate=1;}
+#endif
+				sccp_copy_string(l->adhocNumber, v->value, sizeof(l->adhocNumber));
+			} else if (!strcasecmp(v->name, "meetmenum")) {
+				sccp_copy_string(l->meetmenum, v->value, sizeof(l->meetmenum));
+			} else if (!strcasecmp(v->name, "meetme")) {
+				l->meetme = sccp_true(v->value);
+			} else if (!strcasecmp(v->name, "meetmeopts")) {
+				sccp_copy_string(l->meetmeopts, v->value, sizeof(l->meetmeopts));
+			} else if (!strcasecmp(v->name, "transfer")) {
+				l->transfer = sccp_true(v->value);
+			} else if (!strcasecmp(v->name, "incominglimit")) {
+#ifdef CS_DYNAMIC_CONFIG
+				if (l->incominglimit != atoi(v->value)) {l->pendingUpdate=1;}
+#endif
+				l->incominglimit = atoi(v->value);
+				if (l->incominglimit < 1)
+					l->incominglimit = 1;
+			} else if (!strcasecmp(v->name, "echocancel")) {
+				l->echocancel = sccp_true(v->value);
+			} else if (!strcasecmp(v->name, "silencesuppression")) {
+				l->silencesuppression = sccp_true(v->value);
+			} else if (!strcasecmp(v->name, "audio_tos")) {
 #ifdef ASTERISK_CONF_1_2
-			if (sscanf(v->value, "%d", &audio_tos) == 1)
-				l->audio_tos = audio_tos & 0xff;
+				if (sscanf(v->value, "%d", &audio_tos) == 1)
+					l->audio_tos = audio_tos & 0xff;
 #else
-			if(!ast_str2tos(v->value, &audio_tos))
-				l->audio_tos = audio_tos;
-			else if(sscanf(v->value, "%i", &audio_tos) == 1)
-				l->audio_tos = audio_tos & 0xff;
+				if(!ast_str2tos(v->value, &audio_tos))
+					l->audio_tos = audio_tos;
+				else if(sscanf(v->value, "%i", &audio_tos) == 1)
+					l->audio_tos = audio_tos & 0xff;
 #endif
-			else if (!strcasecmp(v->value, "lowdelay"))
-				l->audio_tos = IPTOS_LOWDELAY;
-			else if (!strcasecmp(v->value, "throughput"))
-				l->audio_tos = IPTOS_THROUGHPUT;
-			else if (!strcasecmp(v->value, "reliability"))
-				l->audio_tos = IPTOS_RELIABILITY;
+				else if (!strcasecmp(v->value, "lowdelay"))
+					l->audio_tos = IPTOS_LOWDELAY;
+				else if (!strcasecmp(v->value, "throughput"))
+					l->audio_tos = IPTOS_THROUGHPUT;
+				else if (!strcasecmp(v->value, "reliability"))
+					l->audio_tos = IPTOS_RELIABILITY;
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
-			else if (!strcasecmp(v->value, "mincost"))
-				l->audio_tos = IPTOS_MINCOST;
+				else if (!strcasecmp(v->value, "mincost"))
+					l->audio_tos = IPTOS_MINCOST;
 #endif
-			else if (!strcasecmp(v->value, "none"))
-				l->audio_tos = 0;
-			else {
+				else if (!strcasecmp(v->value, "none"))
+					l->audio_tos = 0;
+				else {
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
-				ast_log(LOG_WARNING, "Invalid audio_tos value at line %d, should be 'CS\?', 'AF\?\?', 'EF', '0x\?\?' ,'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
+					ast_log(LOG_WARNING, "Invalid audio_tos value at line %d, should be 'CS\?', 'AF\?\?', 'EF', '0x\?\?' ,'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
 #else
-				ast_log(LOG_WARNING, "Invalid audio_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', or 'none'\n", v->lineno);
+					ast_log(LOG_WARNING, "Invalid audio_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', or 'none'\n", v->lineno);
 #endif
-				l->audio_tos = GLOB(audio_tos);
-			}
-		} else if (!strcasecmp(v->name, "video_tos")) {
+					l->audio_tos = GLOB(audio_tos);
+				}
+			} else if (!strcasecmp(v->name, "video_tos")) {
 #ifdef ASTERISK_CONF_1_2
-			if (sscanf(v->value, "%d", &video_tos) == 1)
-				l->video_tos = video_tos & 0xff;
+				if (sscanf(v->value, "%d", &video_tos) == 1)
+					l->video_tos = video_tos & 0xff;
 #else
-			if(!ast_str2tos(v->value, &video_tos))
-				l->video_tos = video_tos;
-			else if(sscanf(v->value, "%i", &video_tos) == 1)
-				l->video_tos = video_tos & 0xff;
+				if(!ast_str2tos(v->value, &video_tos))
+					l->video_tos = video_tos;
+				else if(sscanf(v->value, "%i", &video_tos) == 1)
+					l->video_tos = video_tos & 0xff;
 #endif
-			else if (!strcasecmp(v->value, "lowdelay"))
-				l->video_tos = IPTOS_LOWDELAY;
-			else if (!strcasecmp(v->value, "throughput"))
-				l->video_tos = IPTOS_THROUGHPUT;
-			else if (!strcasecmp(v->value, "reliability"))
-				l->video_tos = IPTOS_RELIABILITY;
+				else if (!strcasecmp(v->value, "lowdelay"))
+					l->video_tos = IPTOS_LOWDELAY;
+				else if (!strcasecmp(v->value, "throughput"))
+					l->video_tos = IPTOS_THROUGHPUT;
+				else if (!strcasecmp(v->value, "reliability"))
+					l->video_tos = IPTOS_RELIABILITY;
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
-			else if (!strcasecmp(v->value, "mincost"))
-				l->video_tos = IPTOS_MINCOST;
+				else if (!strcasecmp(v->value, "mincost"))
+					l->video_tos = IPTOS_MINCOST;
 #endif
-			else if (!strcasecmp(v->value, "none"))
-				l->video_tos = 0;
-			else {
+				else if (!strcasecmp(v->value, "none"))
+					l->video_tos = 0;
+				else {
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
-				ast_log(LOG_WARNING, "Invalid video_tos value at line %d, should be 'CS\?', 'AF\?\?', 'EF', '0x\?\?' ,'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
+					ast_log(LOG_WARNING, "Invalid video_tos value at line %d, should be 'CS\?', 'AF\?\?', 'EF', '0x\?\?' ,'lowdelay', 'throughput', 'reliability', 'mincost', or 'none'\n", v->lineno);
 #else
-				ast_log(LOG_WARNING, "Invalid video_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', or 'none'\n", v->lineno);
+					ast_log(LOG_WARNING, "Invalid video_tos value at line %d, should be 'lowdelay', 'throughput', 'reliability', or 'none'\n", v->lineno);
 #endif
-				l->video_tos = GLOB(video_tos);
-			}
-		} else if (!strcasecmp(v->name, "audio_cos")) {
-			if (sscanf(v->value, "%d", &audio_cos) == 1) {
-				if(audio_cos < 0 || audio_cos > 7) {
-					ast_log(LOG_WARNING, "Invalid audio_cos value at line %d, refer to QoS documentation\n", v->lineno);
+					l->video_tos = GLOB(video_tos);
 				}
-				l->audio_cos = audio_cos;
-			} else
-				l->audio_cos = GLOB(audio_cos);
-		} else if (!strcasecmp(v->name, "video_cos")) {
-			if (sscanf(v->value, "%d", &video_cos) == 1) {
-				if(video_cos < 0 || video_cos > 7) {
-					ast_log(LOG_WARNING, "Invalid video_cos value at line %d, refer to QoS documentation\n", v->lineno);
-				}
-				l->video_cos = video_cos;
-			} else
-				l->video_cos = GLOB(video_cos);
-		} else if (!strcasecmp(v->name, "language")) {
-			sccp_copy_string(l->language, v->value, sizeof(l->language));
-		} else if (!strcasecmp(v->name, "musicclass")) {
-			sccp_copy_string(l->musicclass, v->value, sizeof(l->musicclass));
-		} else if (!strcasecmp(v->name, "accountcode")) {
-			sccp_copy_string(l->accountcode, v->value, sizeof(l->accountcode));
-		} else if (!strcasecmp(v->name, "amaflags")) {
-			amaflags = ast_cdr_amaflags2int(v->value);
+			} else if (!strcasecmp(v->name, "audio_cos")) {
+				if (sscanf(v->value, "%d", &audio_cos) == 1) {
+					if(audio_cos < 0 || audio_cos > 7) {
+						ast_log(LOG_WARNING, "Invalid audio_cos value at line %d, refer to QoS documentation\n", v->lineno);
+					}
+					l->audio_cos = audio_cos;
+				} else
+					l->audio_cos = GLOB(audio_cos);
+			} else if (!strcasecmp(v->name, "video_cos")) {
+				if (sscanf(v->value, "%d", &video_cos) == 1) {
+					if(video_cos < 0 || video_cos > 7) {
+						ast_log(LOG_WARNING, "Invalid video_cos value at line %d, refer to QoS documentation\n", v->lineno);
+					}
+					l->video_cos = video_cos;
+				} else
+					l->video_cos = GLOB(video_cos);
+			} else if (!strcasecmp(v->name, "language")) {
+#ifdef CS_DYNAMIC_CONFIG
+				if (!strcasecmp(l->language, v->value)) {l->pendingUpdate=1;}
+#endif
+				sccp_copy_string(l->language, v->value, sizeof(l->language));
+			} else if (!strcasecmp(v->name, "musicclass")) {
+				sccp_copy_string(l->musicclass, v->value, sizeof(l->musicclass));
+			} else if (!strcasecmp(v->name, "accountcode")) {
+				sccp_copy_string(l->accountcode, v->value, sizeof(l->accountcode));
+			} else if (!strcasecmp(v->name, "amaflags")) {
+				amaflags = ast_cdr_amaflags2int(v->value);
 
-			if (amaflags < 0) {
-				ast_log(LOG_WARNING, "Invalid AMA Flags: %s at line %d\n", v->value, v->lineno);
-			} else {
-				l->amaflags = amaflags;
-			}
-		} else if (!strcasecmp(v->name, "callgroup")) {
-			l->callgroup = ast_get_group(v->value);
+				if (amaflags < 0) {
+					ast_log(LOG_WARNING, "Invalid AMA Flags: %s at line %d\n", v->value, v->lineno);
+				} else {
+					l->amaflags = amaflags;
+				}
+			} else if (!strcasecmp(v->name, "callgroup")) {
+				l->callgroup = ast_get_group(v->value);
 #ifdef CS_SCCP_PICKUP
-		} else if (!strcasecmp(v->name, "pickupgroup")) {
-			l->pickupgroup = ast_get_group(v->value);
+			} else if (!strcasecmp(v->name, "pickupgroup")) {
+				l->pickupgroup = ast_get_group(v->value);
 #endif
-		} else if (!strcasecmp(v->name, "trnsfvm")) {
-			if (!ast_strlen_zero(v->value)) {
-				l->trnsfvm = strdup(v->value);
-			}
-		} else if (!strcasecmp(v->name, "secondary_dialtone_digits")) {
-			if (strlen(v->value) > 9)
-				ast_log(LOG_WARNING, "secondary_dialtone_digits value '%s' is too long at line %d of SCCP.CONF. Max 9 digits\n", v->value, v->lineno);
+			} else if (!strcasecmp(v->name, "trnsfvm")) {
+				if (!ast_strlen_zero(v->value)) {
+#ifdef CS_DYNAMIC_CONFIG
+					if (!strcasecmp(l->trnsfvm, v->value)) {l->pendingUpdate=1;}
+#endif
+					l->trnsfvm = strdup(v->value);
+				}
+			} else if (!strcasecmp(v->name, "secondary_dialtone_digits")) {
+				if (strlen(v->value) > 9)
+					ast_log(LOG_WARNING, "secondary_dialtone_digits value '%s' is too long at line %d of SCCP.CONF. Max 9 digits\n", v->value, v->lineno);
 
-			sccp_copy_string(l->secondary_dialtone_digits, v->value, sizeof(l->secondary_dialtone_digits));
-		} else if (!strcasecmp(v->name, "secondary_dialtone_tone")) {
-			if (sscanf(v->value, "%i", &secondary_dialtone_tone) == 1) {
-				if (secondary_dialtone_tone >= 0 && secondary_dialtone_tone <= 255)
-					l->secondary_dialtone_tone = secondary_dialtone_tone;
-				else
-					l->secondary_dialtone_tone = SKINNY_TONE_OUTSIDEDIALTONE;
+				sccp_copy_string(l->secondary_dialtone_digits, v->value, sizeof(l->secondary_dialtone_digits));
+			} else if (!strcasecmp(v->name, "secondary_dialtone_tone")) {
+				if (sscanf(v->value, "%i", &secondary_dialtone_tone) == 1) {
+					if (secondary_dialtone_tone >= 0 && secondary_dialtone_tone <= 255)
+						l->secondary_dialtone_tone = secondary_dialtone_tone;
+					else
+						l->secondary_dialtone_tone = SKINNY_TONE_OUTSIDEDIALTONE;
+				} else {
+					ast_log(LOG_WARNING, "Invalid secondary_dialtone_tone value '%s' at line %d of SCCP.CONF. Default is OutsideDialtone (0x22)\n", v->value, v->lineno);
+				}
+			} else if (!strcasecmp(v->name, "setvar")) {
+
+				struct ast_variable *newvar = NULL;
+
+				newvar = sccp_create_variable(v->value);
+
+				if (newvar) {
+					sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CONFIG | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "Add new channelvariable to line %s. Value is: %s \n",newvar->name ,newvar->value);
+					newvar->next = l->variables;
+					l->variables = newvar;
+				}
+			} else if (!strcasecmp(v->name, "dnd")) {
+				if (!strcasecmp(v->value, "reject")) {
+					l->dndmode = SCCP_DNDMODE_REJECT;
+				} else if (!strcasecmp(v->value, "silent")) {
+					l->dndmode = SCCP_DNDMODE_SILENT;
+				} else if (!strcasecmp(v->value, "user")) {
+					l->dndmode = SCCP_DNDMODE_USERDEFINED;
+				} else {
+					/* 0 is off and 1 (on) is reject */
+					l->dndmode = sccp_true(v->value);
+				}
 			} else {
-				ast_log(LOG_WARNING, "Invalid secondary_dialtone_tone value '%s' at line %d of SCCP.CONF. Default is OutsideDialtone (0x22)\n", v->value, v->lineno);
-			}
-		} else if (!strcasecmp(v->name, "setvar")) {
-
-			struct ast_variable *newvar = NULL;
-
-			newvar = sccp_create_variable(v->value);
-
-			if (newvar) {
-				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CONFIG | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "Add new channelvariable to line %s. Value is: %s \n",newvar->name ,newvar->value);
-				newvar->next = l->variables;
-				l->variables = newvar;
-			}
-		} else if (!strcasecmp(v->name, "dnd")) {
-			if (!strcasecmp(v->value, "reject")) {
-				l->dndmode = SCCP_DNDMODE_REJECT;
-			} else if (!strcasecmp(v->value, "silent")) {
-				l->dndmode = SCCP_DNDMODE_SILENT;
-			} else if (!strcasecmp(v->value, "user")) {
-				l->dndmode = SCCP_DNDMODE_USERDEFINED;
-			} else {
-				/* 0 is off and 1 (on) is reject */
-				l->dndmode = sccp_true(v->value);
-			}
-		} else {
-			if(v->name && v->value) {
-				ast_log(LOG_WARNING, "Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
-			} else {
-				ast_log(LOG_WARNING, "Null param in config at line %d.\n", v->lineno);
+				if(v->name && v->value) {
+					ast_log(LOG_WARNING, "Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
+				} else {
+					ast_log(LOG_WARNING, "Null param in config at line %d.\n", v->lineno);
+				}
 			}
 		}
-		}
-
 		v = v->next;
 	}
-
 	return l;
 }
 
@@ -1186,17 +1214,26 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 			|| (!strcasecmp(v->name, "name"))
 #endif
 		   ) {
-
+		        // do nothing
 		} else if (!strcasecmp(v->name, "keepalive")) {
 			d->keepalive = atoi(v->value);
 		} else if (!strcasecmp(v->name, "permit") || !strcasecmp(v->name, "deny")) {
-//#ifndef ASTERISK_CONF_1_6
+#ifdef CS_DYNAMIC_CONFIG
+			struct ast_ha *oldha;
+			oldha = d->ha;
+#endif
 #if ASTERISK_VERSION_NUM < 10600
 			d->ha = ast_append_ha(v->name, v->value, d->ha);
 #else
 			d->ha = ast_append_ha(v->name, v->value, d->ha, NULL );
 #endif
+#ifdef CS_DYNAMIC_CONFIG
+			if (d->ha != oldha) {d->pendingUpdate=1;}
+#endif
 		} else if (!strcasecmp(v->name, "button")) {
+#ifdef CS_DYNAMIC_CONFIG
+			/*! \todo romain: how are we going to compare a new buttonconfig to a previous one ? */
+#endif
 			sccp_log(0)(VERBOSE_PREFIX_3 "Found buttonconfig: %s\n", v->value);
 			sccp_copy_string(k_button, v->value, sizeof(k_button));
 			splitter = k_button;
@@ -1206,48 +1243,83 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 			buttonArgs = splitter;
 
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "ButtonType: %s\n", buttonType);
-			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "ButtonName: %s\n", buttonName);
-			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "ButtonOption: %s\n", buttonOption);
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "ButtonName: %s\n", buttonName);
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "ButtonOption: %s\n", buttonOption);
 
 			if (!strcasecmp(buttonType, "line") && buttonName) {
 				if (!buttonName)
 					continue;
-
 				sccp_config_addLine(d, (buttonName)?ast_strip(buttonName):NULL, buttonOption, ++instance);
 			} else if (!strcasecmp(buttonType, "empty")) {
 				sccp_config_addEmpty(d, ++instance);
 			} else if (!strcasecmp(buttonType, "speeddial")) {
 				sccp_config_addSpeeddial(d, (buttonName)?ast_strip(buttonName):"speeddial", (buttonOption)?ast_strip(buttonOption):NULL, (buttonArgs)?ast_strip(buttonArgs):NULL, ++instance);
-			} else if (!strcasecmp(buttonType, "feature") && buttonName) {
+		} else if (!strcasecmp(buttonType, "feature") && buttonName) {
 				sccp_config_addFeature(d, (buttonName)?ast_strip(buttonName):"feature", (buttonOption)?ast_strip(buttonOption):NULL, buttonArgs, ++instance );
 			} else if (!strcasecmp(buttonType, "service") && buttonName && !ast_strlen_zero(buttonName) ) {
 				sccp_config_addService(d, (buttonName)?ast_strip(buttonName):"service", (buttonOption)?ast_strip(buttonOption):NULL, ++instance);
 			}
 		} else if (!strcasecmp(v->name, "permithost")) {
+#ifdef CS_DYNAMIC_CONFIG
+			/*! \todo romain: how are we going to compare permithosts to a previous definition ? */
+#endif
 			sccp_permithost_addnew(d, v->value);
 		} else if ((!strcasecmp(v->name, "type")) || !strcasecmp(v->name, "devicetype")){
 			if (strcasecmp(v->value, "device")){
+#ifdef CS_DYNAMIC_CONFIG
+				if (!strcasecmp(d->config_type, v->value)) {d->pendingUpdate=1;}
+#endif
 				sccp_copy_string(d->config_type, v->value, sizeof(d->config_type));
 			}
 		} else if (!strcasecmp(v->name, "addon")) {
+#ifdef CS_DYNAMIC_CONFIG
+			/*! \todo romain: how are we going to compare addons to previous definitions ? */
+#endif
 			sccp_addon_addnew(d, v->value);
 		} else if (!strcasecmp(v->name, "tzoffset")) {
+#ifdef CS_DYNAMIC_CONFIG
+			if (d->tz_offset != atoi(v->value)) {d->pendingUpdate=1;}
+#endif
 			d->tz_offset = atoi(v->value);
 		} else if (!strcasecmp(v->name, "description")) {
+#ifdef CS_DYNAMIC_CONFIG
+			if (!strcasecmp(d->description, v->value)) {d->pendingUpdate=1;}
+#endif
 			sccp_copy_string(d->description, v->value, sizeof(d->description));
 		} else if (!strcasecmp(v->name, "imageversion")) {
+#ifdef CS_DYNAMIC_CONFIG
+			if (!strcasecmp(d->imageversion, v->value)) {d->pendingUpdate=1;}
+#endif
 			sccp_copy_string(d->imageversion, v->value, sizeof(d->imageversion));
 		} else if (!strcasecmp(v->name, "allow")) {
+#ifdef CS_DYNAMIC_CONFIG
+			/*! \todo romain: how are we going to compare allow to previous definitions ? */
+#endif
 			ast_parse_allow_disallow(&d->codecs, &d->capability, ast_strip(config_value), 1);
 		} else if (!strcasecmp(v->name, "disallow")) {
+#ifdef CS_DYNAMIC_CONFIG
+			/*! \todo romain: how are we going to compare disallow to previous definitions ? */
+#endif
 			ast_parse_allow_disallow(&d->codecs, &d->capability, ast_strip(config_value), 0);
 		} else if (!strcasecmp(v->name, "transfer")) {
+#ifdef CS_DYNAMIC_CONFIG
+			if (d->transfer != sccp_true(v->value)) {d->pendingUpdate=1;}
+#endif
 			d->transfer = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "cfwdall")) {
+#ifdef CS_DYNAMIC_CONFIG
+			if (d->cfwdall != sccp_true(v->value)) {d->pendingUpdate=1;}
+#endif
 			d->cfwdall = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "cfwdbusy")) {
+#ifdef CS_DYNAMIC_CONFIG
+			if (d->cfwdbusy != sccp_true(v->value)) {d->pendingUpdate=1;}
+#endif
 			d->cfwdbusy = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "cfwdnoanswer")) {
+#ifdef CS_DYNAMIC_CONFIG
+			if (d->cfwdnoanswer != sccp_true(v->value)) {d->pendingUpdate=1;}
+#endif
 			d->cfwdnoanswer = sccp_true(v->value);
 #ifdef CS_SCCP_PICKUP
 		} else if (!strcasecmp(v->name, "pickupexten")) {
