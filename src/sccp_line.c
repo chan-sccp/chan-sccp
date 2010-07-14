@@ -98,6 +98,8 @@ sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l)
 	sccp_copy_string(l->language, GLOB(language), sizeof(l->language));
 	sccp_copy_string(l->accountcode, GLOB(accountcode), sizeof(l->accountcode));
 	sccp_copy_string(l->musicclass, GLOB(musicclass), sizeof(l->musicclass));
+	l->meetme = GLOB(meetme);
+	sccp_copy_string(l->meetmeopts, GLOB(meetmeopts), sizeof(l->meetmeopts));
 	l->amaflags = GLOB(amaflags);
 	l->callgroup = GLOB(callgroup);
 #ifdef CS_SCCP_PICKUP

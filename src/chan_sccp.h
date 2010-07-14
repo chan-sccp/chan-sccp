@@ -459,7 +459,7 @@ struct sccp_linedevices {
 	sccp_cfwd_information_t			cfwdBusy;				/*!< cfwd information */
 
 	struct  subscriptionId			subscriptionId;				/*!< for addressing individual devices on shared line */
-
+	char                                    label[80];                              /*!<  */
 	SCCP_LIST_ENTRY(sccp_linedevices_t) 	list;					/*!< Device Linked List Entry */
 };											/*!< SCCP Line-Device Structure */
 
@@ -584,7 +584,7 @@ struct sccp_line {
 	unsigned int				spareBit5: 1;				/*!< SpareBit5 */
 	unsigned int				spareBit6: 1;				/*!< SpareBit6 */
 #ifdef CS_SCCP_REALTIME
-	boolean_t		realtime:1;			/*!< is it a realtimeconfiguration*/
+	boolean_t				realtime:1;				/*!< is it a realtimeconfiguration*/
 #endif
 	struct ast_variable			* variables;				/*!< Channel variables to set */
 	unsigned int				dnd: 3;					/*!< dnd on line */
@@ -669,6 +669,8 @@ struct sccp_device {
 
 	struct ast_ha				*ha;					/*!< Permit or Deny Connections to the Main Socket */
 	uint32_t				conferenceid;				/*!< Conference ID */
+	unsigned int 				meetme:1;				/*!< Meetme on/off */
+	char 					meetmeopts[AST_MAX_CONTEXT];		/*!< Meetme Options to be Used*/
 
 	unsigned int				mwilamp: 3;				/*!< MWI/Lamp to indicate MailBox Messages */
 	unsigned int				mwioncall: 1;				/*!< MWI On Call Support (Boolean, default=on) */
@@ -692,7 +694,6 @@ struct sccp_device {
 	unsigned int				directrtp: 1;				/*!< Direct RTP Support (Boolean, default=on) */
 	unsigned int				trustphoneip: 1;			/*!< Trust Phone IP Support (Boolean, default=on) */
 	unsigned int				needcheckringback: 1;			/*!< Need to Check Ring Back Support (Boolean, default=on) */
-
 
 	boolean_t				realtime;				/*!< is it a realtime configuration*/
 	sccp_channel_t   			* active_channel;			/*!< Active SCCP Channel */
@@ -985,6 +986,8 @@ struct sccp_global_vars {
 	char 					realtimedevicetable[45];		/*!< Database Table Name for SCCP Devices*/
 	char 					realtimelinetable[45];			/*!< Database Table Name for SCCP Lines*/
 #endif
+	unsigned int 				meetme: 1;				/*!< Meetme on/off */
+	char 					meetmeopts[AST_MAX_CONTEXT];		/*!< Meetme Options to be Used*/
 #ifndef ASTERISK_CONF_1_2
 
 	struct ast_jb_conf			global_jbconf;				/*!< Global Jitter Buffer Configuration */

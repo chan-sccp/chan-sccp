@@ -90,6 +90,50 @@ static char * sccp_complete_device(char *line, char *word, int pos, int state) {
 	return ret;
 }
 
+/* ------------------------------------------------------------ */
+#ifdef CS_NEW_AST_CLI
+/*!
+ * \brief Complete Line
+ * \param line Line as char
+ * \param word Word as char
+ * \param pos Pos as int
+ * \param state State as int
+ * \return Result as char
+ */
+static char * sccp_complete_line(const char *line, const char *word, int pos, int state)
+{
+#else
+/*!
+ * \brief Complete Line
+ * \param line Line as char
+ * \param word Word as char
+ * \param pos Pos as int
+ * \param state State as int
+ * \return Result as char
+ */
+static char * sccp_complete_line(char *line, char *word, int pos, int state) {
+#endif
+	sccp_line_t * l;
+	int which = 0;
+	char * ret;
+
+	if (pos > 3)
+	return NULL;
+
+	SCCP_LIST_LOCK(&GLOB(lines));
+	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
+		if (!strncasecmp(word, l->id, strlen(word))) {
+			if (++which > state)
+				break;
+		}
+	}
+	SCCP_LIST_UNLOCK(&GLOB(lines));
+
+	ret = l ? strdup(l->id) : NULL;
+
+	return ret;
+}
+
 /*!
  * \brief Reset/Restart
  * \param fd Fd as int
@@ -360,7 +404,7 @@ static struct ast_cli_entry cli_show_globals = {
 
 /* ------------------------------------------------------------ */
 /*!
- * \brief Show Line
+ * \brief Show Device
  * \param fd Fd as int
  * \param argc Argc as int
  * \param argv[] Argv[] as char
@@ -426,8 +470,8 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		ast_cli(fd, "\nButtonconfig\n");
-		ast_cli(fd, "%-4s: %s\n", "id", "type");
-		ast_cli(fd, "--------------------------------\n");
+		ast_cli(fd, "%-4s: %-23s\n", "id", "type");
+		ast_cli(fd, "---- ------------------------\n");
 
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
@@ -437,8 +481,8 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	}
 
 	ast_cli(fd, "\nLines\n");
-	ast_cli(fd, "%-4s: %-20s %-5s %-20s %-10s %-20s\n", "id", "name", "suffix", "label", "cfwdType", "cfwdNumber");
-	ast_cli(fd, "---------------------------------------------------------------------\n");
+	ast_cli(fd, "%-4s: %-23s %-6s %-20s %-10s %-20s\n", "id", "name", "suffix", "label", "cfwdType", "cfwdNumber");
+	ast_cli(fd, "---- ------------------------ ------ -------------------- ---------- --------------------\n");
 
 	sccp_buttonconfig_t *buttonconfig;
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
@@ -447,49 +491,61 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 			if(l){
 				linedevice = sccp_util_getDeviceConfiguration(d, l);
 				if(linedevice && linedevice->cfwdAll.enabled)
-					ast_cli(fd, "%4d: %-20s %-5s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , buttonconfig->button.line.subscriptionId.number, l->label, "all", linedevice->cfwdAll.number);
+					ast_cli(fd, "%4d: %-23s %-6s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , buttonconfig->button.line.subscriptionId.number, l->label, "all", linedevice->cfwdAll.number);
 				else if(linedevice && linedevice->cfwdBusy.enabled)
-					ast_cli(fd, "%4d: %-20s %-5s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , buttonconfig->button.line.subscriptionId.number, l->label, "busy", linedevice->cfwdBusy.number);
+					ast_cli(fd, "%4d: %-23s %-6s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , buttonconfig->button.line.subscriptionId.number, l->label, "busy", linedevice->cfwdBusy.number);
 				else
-					ast_cli(fd, "%4d: %-20s %-5s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , buttonconfig->button.line.subscriptionId.number, l->label, "", "");
+					ast_cli(fd, "%4d: %-23s %-6s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , buttonconfig->button.line.subscriptionId.number, l->label, "", "");
 			}
 		}
 	}
 
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		ast_cli(fd, "\nSpeeddials\n");
-		ast_cli(fd, "%-4s: %-24s %-24s %-20s\n", "id", "name" , "number", "hint");
-		ast_cli(fd, "---------------------------------------------------------------------\n");
+		ast_cli(fd, "%-4s: %-30s %-20s %-20s\n", "id", "name" , "number", "hint");
+		ast_cli(fd, "---- ------------------------------- -------------------- ------------------------\n");
 
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if(config->type == SPEEDDIAL)
-				ast_cli(fd, "%4d: %-24s %-24s %-20s\n", config->instance, config->button.speeddial.label , config->button.speeddial.ext, config->button.speeddial.hint);
+				ast_cli(fd, "%4d: %-30s %-20s %-20s\n", config->instance, config->button.speeddial.label , config->button.speeddial.ext, config->button.speeddial.hint);
+		}
+		SCCP_LIST_UNLOCK(&d->buttonconfig);
+	}
+
+	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
+		ast_cli(fd, "\nFeatures\n");
+		ast_cli(fd, "%-4s: %-30s %-40s\n", "id", "label" , "options");
+		ast_cli(fd, "---- ------------------------------- ---------------------------------------------\n");
+
+		SCCP_LIST_LOCK(&d->buttonconfig);
+		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+			if(config->type == FEATURE)
+				ast_cli(fd, "%4d: %-30s %-40s\n", config->instance, config->button.feature.label , config->button.feature.options);
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 	}
 
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		ast_cli(fd, "\nService URLs\n");
-		ast_cli(fd, "%-4s: %-20s %-20s\n", "id", "label" , "URL");
-		ast_cli(fd, "------------------------------------\n");
+		ast_cli(fd, "%-4s: %-30s %-20s\n", "id", "label" , "URL");
+		ast_cli(fd, "---- ------------------------------- ---------------------------------------------\n");
 
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if(config->type == SERVICE)
-				ast_cli(fd, "%4d: %-20s %-20s\n", config->instance, config->button.service.label , config->button.service.url);
+				ast_cli(fd, "%4d: %-30s %-20s\n", config->instance, config->button.service.label , config->button.service.url);
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
-
 	}
 
 	if (d->variables) {
 		ast_cli(fd, "\nDevice variables\n");
-		ast_cli(fd, "%-4s: %-20s \n", "name" , "value");
-		ast_cli(fd, "------------------------------------\n");
+		ast_cli(fd, "%-36s %-40s \n", "name" , "value");
+		ast_cli(fd, "------------------------------------ ---------------------------------------------\n");
 
 		for (v = d->variables ; v ; v = v->next) {
-			ast_cli(fd, "%-20s : %-20s\n", v->name , v->value);
+			ast_cli(fd, "%-36s %-40s\n", v->name , v->value);
 		}
 	}
 	sccp_device_unlock(d);
@@ -666,6 +722,149 @@ static struct ast_cli_entry cli_show_device = {
 #endif
 /* ------------------------------------------------------------ */
 
+/* ------------------------------------------------------------ */
+/*!
+ * \brief Show Line
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
+static int sccp_show_line(int fd, int argc, char * argv[]) {
+	sccp_line_t 		* l;
+	sccp_linedevices_t	* linedevice;
+	struct ast_variable 	* v = NULL;
+	char 			group_buf[256];
+
+	if (argc < 4)
+                return RESULT_SHOWUSAGE;
+
+	l = sccp_line_find_byname(argv[3]);
+	if (!l) {
+		ast_cli(fd, "Can't find settings for line %s\n", argv[3]);
+		return RESULT_SUCCESS;
+	}
+	sccp_device_lock(l);
+
+	ast_cli(fd, "Current settings for selected Line\n");
+	ast_cli(fd, "----------------------------------\n\n");
+        ast_cli(fd, "Name                  : %s\n", l->name ? l->name : "<not set>");
+        ast_cli(fd, "Description           : %s\n", l->description ? l->description : "<not set>");
+        ast_cli(fd, "Label                 : %s\n", l->label ? l->label : "<not set>");
+        ast_cli(fd, "ID                    : %s\n", l->id ? l->id : "<not set>");
+        ast_cli(fd, "Pin                   : %s\n", l->pin ? l->pin : "<not set>");
+        ast_cli(fd, "VoiceMail number      : %s\n", l->vmnum ? l->vmnum : "<not set>");
+        ast_cli(fd, "Transfer to Voicemail : %s\n", l->trnsfvm ? l->trnsfvm : "No");
+        ast_cli(fd, "MeetMe enabled        : %s\n", l->meetme ? "Yes" : "No");
+        ast_cli(fd, "MeetMe number         : %s\n", l->meetmenum ? l->meetmenum : "No");
+        ast_cli(fd, "MeetMe Options        : %s\n", l->meetmeopts ? l->meetmeopts : "<not set>");
+        ast_cli(fd, "Context               : %s\n", l->context ? l->context : "<not set>");
+        ast_cli(fd, "Language              : %s\n", l->language ? l->language : "<not set>");
+        ast_cli(fd, "Account Code          : %s\n", l->accountcode ? l->accountcode : "<not set>");
+        ast_cli(fd, "Music Class           : %s\n", l->musicclass ? l->musicclass : "<not set>");  
+        ast_cli(fd, "AmaFlags              : %d\n", l->amaflags);
+        ast_cli(fd, "Call Group            : %s\n", sccp_print_group(group_buf, sizeof(group_buf), l->callgroup));
+#ifdef CS_SCCP_PICKUP
+        ast_cli(fd, "Pickup Group          : %s\n", sccp_print_group(group_buf, sizeof(group_buf), l->pickupgroup));
+#endif
+        ast_cli(fd, "Caller ID name        : %s\n", l->cid_name ? l->cid_name : "<not set>");
+        ast_cli(fd, "Caller ID number      : %s\n", l->cid_num ? l->cid_num : "<not set>");  
+        ast_cli(fd, "Incoming Calls limit  : %d\n", l->incominglimit);
+        ast_cli(fd, "Audio TOS             : %d\n", l->audio_tos);
+        ast_cli(fd, "Audio COS             : %d\n", l->audio_cos);
+        ast_cli(fd, "Video TOS             : %d\n", l->video_tos);
+        ast_cli(fd, "Video COS             : %d\n", l->video_cos);
+        ast_cli(fd, "Active Channel Count  : %d\n", l->channelCount); 
+        ast_cli(fd, "Sec. Dialtone Digits  : %s\n", l->secondary_dialtone_digits ? l->secondary_dialtone_digits : "<not set>");
+        ast_cli(fd, "Sec. Dialtone         : 0x%02x\n", l->secondary_dialtone_tone);
+        ast_cli(fd, "Echo Cancellation     : %s\n", l->echocancel ? "Yes" : "No");
+        ast_cli(fd, "Silence Suppression   : %s\n", l->silencesuppression ? "Yes" : "No");
+        ast_cli(fd, "Can Transfer          : %s\n", l->transfer ? "Yes" : "No");
+        ast_cli(fd, "Can DND               : %s\n", (l->dndmode) ? dndmode2str(l->dndmode) : "Disabled");
+#ifdef CS_SCCP_REALTIME
+        ast_cli(fd, "Is Realtime Line      : %s\n", l->realtime ? "Yes" : "No");
+#endif
+#ifdef CS_DYNAMIC_CONFIG
+        ast_cli(fd, "Pending Delete        : %s\n", l->pendingUpdate ? "Yes" : "No");
+        ast_cli(fd, "Pending Update        : %s\n", l->pendingDelete ? "Yes" : "No");
+#endif
+        ast_cli(fd, "Adhoc Number Assigned : %s\n", l->adhocNumber ? l->adhocNumber : "No");
+        ast_cli(fd, "Message Waiting New.  : %i\n", l->voicemailStatistic.newmsgs);
+        ast_cli(fd, "Message Waiting Old.  : %i\n", l->voicemailStatistic.oldmsgs);
+	if (SCCP_LIST_FIRST(&l->devices)) {
+		ast_cli(fd, "\nLine Assigned to Device\n");
+		ast_cli(fd, "=========================\n");
+		ast_cli(fd, "%-15s %-25s %-25s\n", "", "call forward all", "call forward busy");
+		ast_cli(fd, "--------------- ------------------------- -------------------------\n");
+		ast_cli(fd, "%-15s %-4s %-20s %-4s %-20s\n", "device", "on/off" , "number" , "on/off" , "number");
+		ast_cli(fd, "--------------- ---- -------------------- ---- --------------------\n");
+
+		SCCP_LIST_LOCK(&l->devices);
+		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+                        if (linedevice) 
+    			        ast_cli(fd, "%-11s: %-4s %-20s %-4s %-20s\n", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number ? linedevice->cfwdAll.number : "<not set>", linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number ? linedevice->cfwdBusy.number : "<not set>");
+		}
+		SCCP_LIST_UNLOCK(&l->devices);
+	}
+
+        if (l->variables) {
+                ast_cli(fd, "\nLine variables\n");
+		ast_cli(fd, "=========================\n");
+                ast_cli(fd, "%-20s: %-20s \n", "name" , "value");
+                ast_cli(fd, "-------------------- --------------------\n");
+
+                for (v = l->variables ; v ; v = v->next) {
+                        ast_cli(fd, "%-20s : %-20s\n", v->name , v->value);
+                }
+        }
+        sccp_line_unlock(l);
+
+	return RESULT_SUCCESS;
+}
+
+
+#ifdef ASTERISK_CONF_1_6
+/*!
+ * \brief Show Line
+ * \param e Asterisk CLI Entry
+ * \param cmd Command as int
+ * \param a Args as int
+ * \return Result as int
+ */
+static char *cli_show_line(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a){
+	if (cmd == CLI_INIT) {
+			e->command = "sccp show line";
+			e->usage =
+				"Usage:  sccp show line <lineNum>\n";
+			return NULL;
+		} else if (cmd == CLI_GENERATE){
+			return sccp_complete_line(a->line, a->word, a->pos, a->n);
+		}
+		if (a->argc < 4)
+			return CLI_SHOWUSAGE;
+
+		if(sccp_show_line(a->fd, a->argc, a->argv) == RESULT_SUCCESS){
+			return CLI_SUCCESS;
+		}else
+			return CLI_FAILURE;
+
+}
+
+#else
+/*!
+ * \brief Show Device
+ * \return Result as Cli Entry Struct
+ */
+static struct ast_cli_entry cli_show_device = {
+  { "sccp", "show", "line", NULL },
+  sccp_show_device,
+  "Show SCCP Line Information",
+  "Usage: sccp show line <lineNum>\n",
+  sccp_complete_line
+};
+#endif
+/* ------------------------------------------------------------ */
+
 
 
 #ifdef ASTERISK_CONF_1_6
@@ -812,7 +1011,7 @@ static int sccp_show_channels(int fd, int argc, char * argv[]) {
 	sccp_line_t * l;
 
 	ast_cli(fd, "\n%-5s %-10s %-16s %-16s %-16s %-10s %-10s\n", "ID","LINE","DEVICE","AST STATE","SCCP STATE","CALLED", "CODEC");
-	ast_cli(fd, "===== ========== ================ ================ ================ ========== ==========\n");
+	ast_cli(fd, "===== ========== ================ ================ ================ ========== ================\n");
 
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
@@ -1040,11 +1239,13 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 	sccp_line_t * l = NULL;
 	sccp_channel_t * c = NULL;
 	sccp_device_t * d = NULL;
+	boolean_t found_linedevice;
 	char cap_buf[512];
 	struct ast_variable *v = NULL;
 
-	ast_cli(fd, "\n%-16s %-16s %-5s %-4s %-4s %-16s\n", "NAME","DEVICE", "SUFFIX", "MWI","Chs","Active Channel");
-	ast_cli(fd, "================ ================ ==== ==== =================================================\n");
+//	ast_cli(fd, "%-16s %-16s %-6s %-6s %-4d %-10s %-10s %-16s %-10s\n",
+	ast_cli(fd, "\n%-16s %-16s %-6s %-4s %-4s %-16s\n", "NAME","DEVICE", "SUFFIX", "MWI","Chs","Active Channel");
+	ast_cli(fd, "================ ================ ====== ==== ==== =============================================\n");
 
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines),l,list) {
@@ -1069,40 +1270,45 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 			ast_getformatname_multiple(cap_buf, sizeof(cap_buf),  c->owner->nativeformats);
 		}
 
-		ast_cli(fd, "%-16s %-16s %-5s %-4s %-4d %-10s %-10s %-16s %-10s\n",
-			l->name,
-			"--",
-			"",
-			(l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
-			l->channelCount,
-			(c) ? sccp_indicate2str(c->state) : "--",
-			(c) ? calltype2str(c->calltype) : "",
-			(c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->calledPartyName : c->callingPartyName ) : "",
-			cap_buf);
-
 		sccp_linedevices_t *linedevice;
+		found_linedevice=0;
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
-			if(!linedevice->device)
-				continue;
-			d=linedevice->device;
-			ast_cli(fd, "%-16s %-16s %-5s %-4s %-4d %-10s %-10s %-16s %-10s\n",
-				"",
-				(d) ? d->id : "--",
-				linedevice->subscriptionId.number,
-				(l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
-				l->channelCount,
-				(c) ? sccp_indicate2str(c->state) : "--",
-				(c) ? calltype2str(c->calltype) : "",
-				(c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->calledPartyName : c->callingPartyName ) : "",
-				cap_buf);
+//			if(!linedevice->device)
+//                                continue;
+			if (d=linedevice->device) {
+                                ast_cli(fd, "%-16s %-16s %-6s %-4s %-4d %-10s %-10s %-16s %-10s\n",
+                                        l->name,
+                                        (d) ? d->id : "--",
+                                        linedevice->subscriptionId.number,
+                                        (l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
+                                        l->channelCount,
+                                        (c) ? sccp_indicate2str(c->state) : "--",
+                                        (c) ? calltype2str(c->calltype) : "",
+                                        (c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->calledPartyName : c->callingPartyName ) : "",
+                                        cap_buf);
+				found_linedevice=1;
+                        }
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
+		
+		if (found_linedevice==0) {
+                        ast_cli(fd, "%-16s %-16s %-6s %-4s %-4d %-10s %-10s %-16s %-10s\n",
+                        l->name,
+                        "--",
+                        "",
+                        (l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
+                        l->channelCount,
+                        (c) ? sccp_indicate2str(c->state) : "--",
+                        (c) ? calltype2str(c->calltype) : "",
+                        (c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->calledPartyName : c->callingPartyName ) : "",
+                        cap_buf);
+                }
 		for (v = l->variables ; v ; v = v->next)
-			ast_cli(fd, "Variable: %-20s : %-20s\n", v->name , v->value);
+			ast_cli(fd, "%-16s Variable         %-16s %-20s\n", "", v->name , v->value);
 
 		if(strcmp(l->defaultSubscriptionId.number, "") || strcmp(l->defaultSubscriptionId.name, ""))
-			ast_cli(fd, "Default Subscription Id: Number=%s, Name=%s\n", l->defaultSubscriptionId.number,  l->defaultSubscriptionId.name);
+			ast_cli(fd, "%-16s Subscription Id  %-16s %-20s\n", "", l->defaultSubscriptionId.number,  l->defaultSubscriptionId.name);
 
 
 	}
@@ -1911,8 +2117,10 @@ static struct ast_cli_entry cli_entries[] = {
 		AST_CLI_DEFINE(cli_show_channels, "Show all SCCP channels."),
 		AST_CLI_DEFINE(cli_unregister, "Unregister an SCCP device"),
 		AST_CLI_DEFINE(cli_show_devices, "Show all SCCP Devices."),
+		AST_CLI_DEFINE(cli_show_device, "Show an SCCP Device"),
 		AST_CLI_DEFINE(cli_message_devices, "Send a message to all SCCP Devices."),
 		AST_CLI_DEFINE(cli_show_lines, "Show All SCCP Lines."),
+		AST_CLI_DEFINE(cli_show_line, "Show an SCCP Line."),
 		AST_CLI_DEFINE(cli_remove_line_device, "Remove a line from device."),
 		AST_CLI_DEFINE(cli_show_sessions, "Show All SCCP Sessions."),
 		AST_CLI_DEFINE(cli_system_message, "Set the SCCP system message."),
@@ -1923,8 +2131,7 @@ static struct ast_cli_entry cli_entries[] = {
 		AST_CLI_DEFINE(cli_show_mwi_subscriptions, "Show all mwi subscriptions"),
 		AST_CLI_DEFINE(cli_show_softkeysets, "Show all mwi configured SoftKeySets"),
 		AST_CLI_DEFINE(cli_restart, ""),
-		AST_CLI_DEFINE(cli_reset, ""),
-		AST_CLI_DEFINE(cli_show_device, "")
+		AST_CLI_DEFINE(cli_reset, "")
 };
 #endif
 
@@ -1942,9 +2149,10 @@ void sccp_register_cli(void) {
 #else
   ast_cli_register(&cli_show_channels);
   ast_cli_register(&cli_show_devices);
-  ast_cli_register(&cli_show_lines);
-  ast_cli_register(&cli_show_sessions);
   ast_cli_register(&cli_show_device);
+  ast_cli_register(&cli_show_lines);
+  ast_cli_register(&cli_show_line);
+  ast_cli_register(&cli_show_sessions);
   ast_cli_register(&cli_show_version);
   ast_cli_register(&cli_reload);
   ast_cli_register(&cli_restart);
@@ -1973,9 +2181,10 @@ void sccp_unregister_cli(void) {
 #else
   ast_cli_unregister(&cli_show_channels);
   ast_cli_unregister(&cli_show_devices);
-  ast_cli_unregister(&cli_show_lines);
-  ast_cli_unregister(&cli_show_sessions);
   ast_cli_unregister(&cli_show_device);
+  ast_cli_unregister(&cli_show_lines);
+  ast_cli_unregister(&cli_show_line);
+  ast_cli_unregister(&cli_show_sessions);
   ast_cli_unregister(&cli_show_version);
   ast_cli_unregister(&cli_reload);
   ast_cli_unregister(&cli_restart);

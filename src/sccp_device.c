@@ -156,6 +156,8 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 #else
 	d->park = 0;
 #endif
+	d->meetme=GLOB(meetme);
+	sccp_copy_string(d->meetmeopts, GLOB(meetmeopts), sizeof(d->meetmeopts));
 
 	/* reset statistic */
 	d->configurationStatistic.numberOfLines=0;

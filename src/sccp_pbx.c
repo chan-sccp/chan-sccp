@@ -1654,6 +1654,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 	switch(c->ss_action) {
 		case SCCP_SS_GETFORWARDEXTEN:
 //				sccp_channel_unlock(c);
+			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Forward Extension\n", d->id);
 			if(!ast_strlen_zero(shortenedNumber)) {
 				sccp_line_cfwd(l, d, c->ss_data, shortenedNumber);
 			}
@@ -1662,6 +1663,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 			return NULL; // leave simple switch without dial
 #ifdef CS_SCCP_PICKUP
 		case SCCP_SS_GETPICKUPEXTEN:
+			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Pickup Extension\n", d->id);
 //				sccp_channel_unlock(c);
 			// like we're dialing but we're not :)
 			instance = sccp_device_find_index_for_line(d, c->line->name);
@@ -1688,6 +1690,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 #endif
 		case SCCP_SS_GETMEETMEROOM:
 //				sccp_channel_unlock(c);
+			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme request\n", d->id);
 			if(!ast_strlen_zero(shortenedNumber) && !ast_strlen_zero(c->line->meetmenum)) {
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme request for room '%s' on extension '%s'\n", d->id, shortenedNumber, c->line->meetmenum);
 				if(c->owner && !ast_check_hangup(c->owner))
@@ -1695,7 +1698,9 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 				sccp_copy_string(shortenedNumber, c->line->meetmenum, sizeof(shortenedNumber));
 				
 				//sccp_copy_string(c->dialedNumber, SKINNY_DISP_CONFERENCE, sizeof(c->dialedNumber));
+        			sccp_log(1)(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Start Meetme Thread\n", d->id);
 				sccp_feat_meetme_start(c);       /* Copied from Federico Santulli */
+        			sccp_log(1)(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme Thread Started\n", d->id);
 				sccp_channel_unlock(c);
 			} else {
 				// without a number we can also close the call. Isn't it true ?
@@ -1707,6 +1712,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 		case SCCP_SS_GETBARGEEXTEN:
 //				sccp_channel_unlock(c);
 			// like we're dialing but we're not :)
+			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Barge Extension\n", d->id);
 			instance = sccp_device_find_index_for_line(d, c->line->name);
 			sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_DIALING);
 			sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); 
@@ -1727,6 +1733,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 			}
 			return NULL; // leave simpleswitch without dial
 		case SCCP_SS_GETCBARGEROOM:
+			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Conference Barge Extension\n", d->id);
 			// like we're dialing but we're not :)
 			instance = sccp_device_find_index_for_line(d, c->line->name);
 
@@ -1748,6 +1755,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 			}
 			return NULL; // leave simpleswitch without dial
 		case SCCP_SS_DIAL:
+			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension\n", d->id);
 		default:
 		break;
 	}

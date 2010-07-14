@@ -134,11 +134,23 @@ typedef enum {
 #define SCCP_CFWD_ALL				1
 #define SCCP_CFWD_BUSY				2
 #define SCCP_CFWD_NOANSWER			3
+/*!
+ * \brief SCCP CallForwardState Structure
+ */
+static const struct sccp_callforwardstate {
+        int callforwardstate;
+        const char * const text;
+        const char * const longtext;
+} sccp_callforwardstates[] = {
+	{ SCCP_CFWD_NONE	, "None"	, "No Call Forward" },
+	{ SCCP_CFWD_ALL		, "All"		, "All Calls are forwarded" },
+	{ SCCP_CFWD_BUSY	, "Busy"	, "Call is forwarded when busy" },
+	{ SCCP_CFWD_NOANSWER	, "NoAnswer"	, "Call is forwarded when no-answer" },
+};
 
 /*
  * SCCP/Skinny Lookup Types
  */
-
 #define SCCP_MESSAGE 		0
 #define SCCP_ACCESSORY 		1
 #define SCCP_ACCESSORY_STATE	2
@@ -531,6 +543,7 @@ static const struct skinny_alarm {
 #define SKINNY_DEVICETYPE_GATEWAY_AN 			30027 				/*!< Analog gateway */
 #define SKINNY_DEVICETYPE_GATEWAY_BRI 			30028 				/*!< BRI gateway */
 #define SKINNY_DEVICETYPE_NOKIA_ICC 			376 				/*!< nokia icc client V2 */
+
 /*!
  * \brief Skinny DeviceType Structure
  */
@@ -617,7 +630,6 @@ static const struct skinny_devicetype {
 	{ SKINNY_DEVICETYPE_CISCO7975			,	"Cisco 7975"				},
 	{ SKINNY_DEVICETYPE_CISCO7985			,	"Cisco 7985"				},
 	{ SKINNY_DEVICETYPE_NOKIA_ICC			,	"Nokia ICC client"			},
-	
 };
 
 #define SKINNY_DEVICE_RS_NONE			0
