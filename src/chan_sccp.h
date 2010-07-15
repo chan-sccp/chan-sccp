@@ -834,6 +834,19 @@ struct sccp_channel {
 	char					callingPartyName[StationMaxNameSize];	/*!< Calling Party Name */
 	char					callingPartyNumber[StationMaxDirnumSize];/*!< Calling Party Number */
 
+#ifdef CS_ADV_FEATURES
+        char 					originalCalledPartyName[StationMaxNameSize];	/*!< Original Calling Party Name */
+        char					originalCalledParty[StationMaxDirnumSize];	/*!< Original Calling Party ID */
+        char					lastRedirectingPartyName[StationMaxNameSize];	/*!< Original Called Party Name */
+        char					lastRedirectingParty[StationMaxDirnumSize];	/*!< Original Called Party ID */
+        uint32_t				originalCdpnRedirectReason;			/*!< Original Called Party Redirect Reason */
+        uint32_t				lastRedirectingReason;				/*!< Last Redirecting Reason */
+        char					cgpnVoiceMailbox[StationMaxDirnumSize];		/*!< Calling Party Voicemail Box */
+        char					cdpnVoiceMailbox[StationMaxDirnumSize];		/*!< Called Party Voicemail Box */
+        char					originalCdpnVoiceMailbox[StationMaxDirnumSize];	/*!< Original Called Party VoiceMail Box */
+        char					lastRedirectingVoiceMailbox[StationMaxDirnumSize];/*!< Last Redirecting VoiceMail Box */
+#endif
+
 	uint32_t				callid;					/*!< Call ID */
 	uint32_t				passthrupartyid;			/*!< Pass Through ID */
 	//uint32_t				conferenceid; 				/*!< Conference ID. This will be used in native conferencing mode and will differ from callid  -FS*/

@@ -263,6 +263,32 @@ void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t * c)
 		if (c->calledPartyNumber)
 			sccp_copy_string(r->msg.CallInfoMessage.calledParty, c->calledPartyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
 
+#ifdef CS_ADV_FEATURES
+		if (c->originalCalledPartyName)
+			sccp_copy_string(r->msg.CallInfoMessage.originalCalledPartyName, c->originalCalledPartyName, sizeof(r->msg.CallInfoMessage.originalCalledPartyName));
+		if (c->originalCalledParty)
+			sccp_copy_string(r->msg.CallInfoMessage.originalCalledParty, c->originalCalledParty, sizeof(r->msg.CallInfoMessage.originalCalledParty));
+
+		if (c->lastRedirectingPartyName)
+			sccp_copy_string(r->msg.CallInfoMessage.lastRedirectingPartyName, c->lastRedirectingPartyName, sizeof(r->msg.CallInfoMessage.lastRedirectingPartyName));
+		if (c->lastRedirectingParty)
+			sccp_copy_string(r->msg.CallInfoMessage.lastRedirectingParty, c->lastRedirectingParty, sizeof(r->msg.CallInfoMessage.lastRedirectingParty));
+
+		if (c->originalCdpnRedirectReason)
+			r->msg.CallInfoMessage.originalCdpnRedirectReason =  htolel(c->originalCdpnRedirectReason);
+		if (c->lastRedirectingReason)
+			r->msg.CallInfoMessage.lastRedirectingReason = htolel(c->lastRedirectingReason);
+
+		if (c->cgpnVoiceMailbox)
+			sccp_copy_string(r->msg.CallInfoMessage.cgpnVoiceMailbox, c->cgpnVoiceMailbox, sizeof(r->msg.CallInfoMessage.cgpnVoiceMailbox));
+		if (c->cdpnVoiceMailbox)
+			sccp_copy_string(r->msg.CallInfoMessage.cdpnVoiceMailbox, c->cdpnVoiceMailbox, sizeof(r->msg.CallInfoMessage.cdpnVoiceMailbox));
+
+		if (c->originalCdpnVoiceMailbox)
+			sccp_copy_string(r->msg.CallInfoMessage.originalCdpnVoiceMailbox, c->originalCdpnVoiceMailbox, sizeof(r->msg.CallInfoMessage.originalCdpnVoiceMailbox));
+		if (c->lastRedirectingVoiceMailbox)
+			sccp_copy_string(r->msg.CallInfoMessage.lastRedirectingVoiceMailbox, c->lastRedirectingVoiceMailbox, sizeof(r->msg.CallInfoMessage.lastRedirectingVoiceMailbox));
+#endif
 		r->msg.CallInfoMessage.lel_lineId   = htolel(instance);
 		r->msg.CallInfoMessage.lel_callRef  = htolel(c->callid);
 		r->msg.CallInfoMessage.lel_callType = htolel(c->calltype);
@@ -278,6 +304,33 @@ void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t * c)
 			sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, c->calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
 		if (c->calledPartyNumber)
 			sccp_copy_string(r->msg.CallInfoMessage.calledParty, c->calledPartyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
+
+#ifdef CS_ADV_FEATURES
+		if (c->originalCalledPartyName)
+			sccp_copy_string(r->msg.CallInfoMessage.originalCalledPartyName, c->originalCalledPartyName, sizeof(r->msg.CallInfoMessage.originalCalledPartyName));
+		if (c->originalCalledParty)
+			sccp_copy_string(r->msg.CallInfoMessage.originalCalledParty, c->originalCalledParty, sizeof(r->msg.CallInfoMessage.originalCalledParty));
+
+		if (c->lastRedirectingPartyName)
+			sccp_copy_string(r->msg.CallInfoMessage.lastRedirectingPartyName, c->lastRedirectingPartyName, sizeof(r->msg.CallInfoMessage.lastRedirectingPartyName));
+		if (c->lastRedirectingParty)
+			sccp_copy_string(r->msg.CallInfoMessage.lastRedirectingParty, c->lastRedirectingParty, sizeof(r->msg.CallInfoMessage.lastRedirectingParty));
+
+		if (c->originalCdpnRedirectReason)
+			r->msg.CallInfoMessage.originalCdpnRedirectReason = htolel(c->originalCdpnRedirectReason);
+		if (c->lastRedirectingReason)
+			r->msg.CallInfoMessage.lastRedirectingReason = htolel(c->lastRedirectingReason);
+
+		if (c->cgpnVoiceMailbox)
+			sccp_copy_string(r->msg.CallInfoMessage.cgpnVoiceMailbox, c->cgpnVoiceMailbox, sizeof(r->msg.CallInfoMessage.cgpnVoiceMailbox));
+		if (c->cdpnVoiceMailbox)
+			sccp_copy_string(r->msg.CallInfoMessage.cdpnVoiceMailbox, c->cdpnVoiceMailbox, sizeof(r->msg.CallInfoMessage.cdpnVoiceMailbox));
+
+		if (c->originalCdpnVoiceMailbox)
+			sccp_copy_string(r->msg.CallInfoMessage.originalCdpnVoiceMailbox, c->originalCdpnVoiceMailbox, sizeof(r->msg.CallInfoMessage.originalCdpnVoiceMailbox));
+		if (c->lastRedirectingVoiceMailbox)
+			sccp_copy_string(r->msg.CallInfoMessage.lastRedirectingVoiceMailbox, c->lastRedirectingVoiceMailbox, sizeof(r->msg.CallInfoMessage.lastRedirectingVoiceMailbox));
+#endif
 
 		r->msg.CallInfoMessage.lel_lineId   = htolel(instance);
 		r->msg.CallInfoMessage.lel_callRef  = htolel(c->callid);
