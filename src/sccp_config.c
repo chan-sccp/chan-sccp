@@ -1386,7 +1386,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 		} else if ((!strcasecmp(v->name, "type")) || !strcasecmp(v->name, "devicetype")){
 			if (strcasecmp(v->value, "device")){
 #ifdef CS_DYNAMIC_CONFIG
-				if (!strcasecmp(d->config_type, v->value)) {d->pendingUpdate=1;}
+				if (strcasecmp(d->config_type, v->value)) {d->pendingUpdate=1;}
 #endif
 				sccp_copy_string(d->config_type, v->value, sizeof(d->config_type));
 			}
@@ -1402,12 +1402,12 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 			d->tz_offset = atoi(v->value);
 		} else if (!strcasecmp(v->name, "description")) {
 #ifdef CS_DYNAMIC_CONFIG
-			if (!strcasecmp(d->description, v->value)) {d->pendingUpdate=1;}
+			if (strcmp(d->description, v->value)) {d->pendingUpdate=1;}
 #endif
 			sccp_copy_string(d->description, v->value, sizeof(d->description));
 		} else if (!strcasecmp(v->name, "imageversion")) {
 #ifdef CS_DYNAMIC_CONFIG
-			if (!strcasecmp(d->imageversion, v->value)) {d->pendingUpdate=1;}
+			if (strcmp(d->imageversion, v->value)) {d->pendingUpdate=1;}
 #endif
 			sccp_copy_string(d->imageversion, v->value, sizeof(d->imageversion));
 		} else if (!strcasecmp(v->name, "allow")) {
