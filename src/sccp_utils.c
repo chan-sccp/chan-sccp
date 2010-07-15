@@ -1152,7 +1152,7 @@ enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state
  * \param str Feature Str as char
  * \return Feature Type
  */
-sccp_feature_type_t sccp_featureStr2featureID(char *str){
+sccp_feature_type_t sccp_featureStr2featureID(const char *str){
 	if(!str)
 		return SCCP_FEATURE_UNKNOWN;
 	if(!strcasecmp(str, "cfwdall")){

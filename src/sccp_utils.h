@@ -125,7 +125,7 @@ sccp_device_t * sccp_device_find_byipaddress(unsigned long s_addr);
 enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state);
 #endif
 #endif
-sccp_feature_type_t sccp_featureStr2featureID(char *str);
+sccp_feature_type_t sccp_featureStr2featureID(const char *str);
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const char *SubscriptionIdNum);
 sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t *device, sccp_line_t *line);
 uint32_t sccp_parse_debugline (char * arguments[], int startat, int argc, uint32_t new_debug);
