@@ -155,16 +155,17 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 			if (config->pendingUpdate ||
 			    strcmp(config->button.feature.label, name) ||
 			    config->button.feature.id != sccp_featureStr2featureID(options) ||
-			    (!args && config->button.feature.options[0] != '\0') || (args && strcmp(config->button.speeddial.hint, args))) {
+			    (!args && config->button.feature.options[0] != '\0') || (args && strcmp(config->button.feature.options, args))) {
 				config->pendingUpdate = 1;
 
+				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "featureID: %s\n", options);
+
 				sccp_copy_string(config->button.feature.label, name, sizeof(config->button.feature.label));
-				sccp_log((DEBUGCAT_FEATURE|DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "featureID: %s\n", options);
 				config->button.feature.id = sccp_featureStr2featureID(options);
 
 				if(args)
 					sccp_copy_string(config->button.feature.options, args, sizeof(config->button.feature.options));
-			}
+			}			
 			break;
 		case EMPTY:
 			config->type = EMPTY;
@@ -173,9 +174,9 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 
 	if (config->pendingUpdate) {
 		device->pendingUpdate = 1;
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s Button '%s' Updated at %d\n", sccp_buttontype2str(type), config->button.line.name, config->index);
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s Button '%s' Updated at %d\n", sccp_buttontype2str(type), name, config->index);
 	} else {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s Button '%s' Unchanged at %d\n", sccp_buttontype2str(type), config->button.line.name, config->index);
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s Button '%s' Unchanged at %d\n", sccp_buttontype2str(type), name, config->index);
 	}
 }
 #else /* CS_DYNAMIC_CONFIG */
