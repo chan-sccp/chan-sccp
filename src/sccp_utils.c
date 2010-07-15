@@ -1567,3 +1567,54 @@ const char * sccp_get_debugcategories(uint32_t debugvalue,char * dest) {
 	dest=ret;
 	return dest;
 }
+
+/*!
+ * \brief create a LineStatDynamicMessage
+ * \param lineInstance the line instance
+ * \param dirNum the dirNum (e.g. line->cid_num)
+ * \param fqdn line description (top right o the first line)
+ * \param lineDisplayName label on the display
+ * \return LineStatDynamicMessage as sccp_moo_t *
+ */
+sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const char *dirNum, const char *fqdn, const char *lineDisplayName){
+	sccp_moo_t *r1 		= NULL;
+	int dirNum_len 		= (dirNum != NULL) ? strlen(dirNum):0;
+        int FQDN_len 		= (fqdn != NULL) ? strlen(fqdn):0;
+	int lineDisplayName_len = (lineDisplayName != NULL) ? strlen(lineDisplayName):0;
+        int dummy_len 		= dirNum_len + FQDN_len + lineDisplayName_len;
+	
+	
+
+	int hdr_len = 8-1;
+	int padding = 4; /* after each string + 1*/
+	int size = hdr_len + dummy_len + padding;
+	
+	
+	/* message size must be muliple of 4 */
+	if( (size % 4) > 0 ){
+	      size = size + (4 - (size % 4));
+	}
+
+		  
+	
+	
+	r1 = sccp_build_packet(LineStatDynamicMessage, size);
+	r1->msg.LineStatDynamicMessage.lel_lineNumber = htolel(lineInstance);
+	r1->msg.LineStatDynamicMessage.lel_lineType = htolel(0x0f);
+	
+	if(dummy_len) {
+		char buffer[dummy_len + padding];
+		memset(&buffer[0], 0, sizeof(buffer));
+		
+		if(dirNum_len)
+			memcpy(&buffer[0], dirNum, dirNum_len);
+		if(FQDN_len)
+			memcpy(&buffer[dirNum_len + 1], fqdn, FQDN_len);
+		if(lineDisplayName_len)
+			memcpy(&buffer[dirNum_len + FQDN_len + 2], lineDisplayName, lineDisplayName_len);
+		
+		memcpy(&r1->msg.LineStatDynamicMessage.dummy, &buffer[0], sizeof(buffer));
+	}
+	
+	return r1;	
+}
