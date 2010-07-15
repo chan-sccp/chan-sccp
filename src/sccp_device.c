@@ -1029,6 +1029,91 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 // 		}
 // 	}
 
+#ifdef CS_ADV_FEATURES
+	/*!
+	 * \todo New Feature to Display DND / CallForward Status and Privacy Status per Line
+	 * This is only a proof of concept for now.
+	 * Issues: 
+	 *   - Number of calls to "sccp_dev_check_displayprompt" should be checked, or maybe done per line
+	 *   - DND per line might be a nice feature
+	 *   - Privacy status check is not right yet
+	 *   - Message Waiting Could be integrated as well.
+	 */
+	sccp_moo_t 		*r1 = NULL;        
+	sccp_buttonconfig_t 	*buttonconfig;
+	sccp_linedevices_t 	*linedevice;
+	sccp_line_t 		*l;
+	int 			instance;	
+	sccp_log((DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_3 "%s: Checking Cfwd / DND\n", d->id);
+	/* walk the buttonconfig list for this device */
+	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+		if(buttonconfig->type == LINE ){
+			memset(tmp, 0, sizeof(tmp));
+			/* get the line associated with this button */
+			l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
+			if (l) {
+				sccp_log((DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_3 "%s: Checking Cfwd for line %s\n", d->id, l->name);
+				/* get the linedevice and instance number */
+				linedevice = sccp_util_getDeviceConfiguration(d, l);
+				instance = sccp_device_find_index_for_line(d, l->name);
+				if (linedevice && instance ) {
+					/* add some spaces to delete what was here before */
+					/* this methode needs to be refined keeping in mind proportional fonts */
+					strcat(tmp, "        ");
+					/* overwrite the original line label */
+					strcat(tmp, l->label);
+
+					/* add a status block */
+					strcat(tmp, " [");
+					
+					/* check DND status */
+					if (d->dndFeature.enabled==TRUE) {
+						if (d->dndFeature.status==SCCP_DNDMODE_REJECT) {
+							strcat(tmp,"B");
+						} else if (d->dndFeature.status==SCCP_DNDMODE_SILENT) {
+							strcat(tmp,"S");
+						} else if (d->dndFeature.status==SCCP_DNDMODE_USERDEFINED) {
+							strcat(tmp,"O");
+						} else {
+							strcat(tmp, "_");
+						}
+					/* DND per line would be a nice feature as well */
+//					} else if(l && (l->dndmode != SCCP_DNDMODE_OFF)) {
+					}
+					
+					/* check Privacy status */
+					/* Marcello: Need some help here */
+					if(d->privacyFeature.enabled==TRUE && (d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT)){
+						strcat(tmp, "_");
+//						strcat(tmp, "P");
+					} else {
+						strcat(tmp, "_");
+					}
+					
+					/* check cfwr status */
+					if((linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled)) {
+						if (linedevice->cfwdAll.enabled == SCCP_CFWD_ALL) {
+							strcat(tmp, "A->");
+						} else if (linedevice->cfwdBusy.enabled){
+							strcat(tmp, "B->");
+						}
+						strcat(tmp, linedevice->cfwdAll.number);
+					} else {
+						strcat(tmp, "_");
+					}
+					
+					/* end the status block */
+					strcat(tmp, "]");
+					
+					/* Send the new button infomation using buildLineStatDynamicMessage */
+					sccp_log((DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_3 "%s: Sending LineStatDynamicMessage for line %s\n", d->id, l->name);
+					r1=sccp_utils_buildLineStatDynamicMessage(instance,d->description,"",tmp);
+					sccp_dev_send(d, r1);
+				}
+			}
+		}
+	}
+#endif
 
 	if (d->dndFeature.enabled && d->dndFeature.status ) {
 		if (d->dndFeature.status == SCCP_DNDMODE_REJECT )

@@ -869,7 +869,7 @@ static char *cli_show_line(struct ast_cli_entry *e, int cmd, struct ast_cli_args
 
 #else
 /*!
- * \brief Show Device
+ * \brief Show Line
  * \return Result as Cli Entry Struct
  */
 static struct ast_cli_entry cli_show_line = {
