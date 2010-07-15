@@ -872,9 +872,9 @@ static char *cli_show_line(struct ast_cli_entry *e, int cmd, struct ast_cli_args
  * \brief Show Device
  * \return Result as Cli Entry Struct
  */
-static struct ast_cli_entry cli_show_device = {
+static struct ast_cli_entry cli_show_line = {
   { "sccp", "show", "line", NULL },
-  sccp_show_device,
+  sccp_show_line,
   "Show SCCP Line Information",
   "Usage: sccp show line <lineNum>\n",
   sccp_complete_line
