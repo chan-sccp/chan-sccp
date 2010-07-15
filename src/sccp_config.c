@@ -911,6 +911,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 {
 	struct ast_config *cfg = NULL;
+
 	char *cat = NULL;
 	struct ast_variable *v = NULL;
 	uint8_t device_count=0;
@@ -937,7 +938,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	}
 
 	while ( ( cat = ast_category_browse(cfg,cat)) ){
-
+		
 		const char *utype;
 		if (!strcasecmp(cat, "general"))
 			continue;
@@ -946,7 +947,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 		utype = ast_variable_retrieve(cfg, cat, "type");
 
 		if (!utype) {
-			ast_log(LOG_WARNING, "Section '%s' lacks type\n", cat);
+			ast_log(LOG_WARNING, "Section '%s' is missing a type paramater\n", cat);
 			continue;
 		} else if ( !strcasecmp(utype,"device") ){
 			// check minimum requirements for a device
@@ -961,22 +962,15 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			}
 		} else if ( !strcasecmp(utype,"line") ) {
 			/* check minimum requirements for a line */
-			if ( !ast_strlen_zero( ast_variable_retrieve(cfg, cat, "label") ) ) {
-				;
-				// \todo TODO why are these params required? - MC
-				// \todo They are used to check if we can find the minimal required values for a line in the config file / database to see if we have a complete device. We could have used other parameters. - DdG
-				// \todo Maybe some warnings should be added to notify when one of them is missing so that people know what needs to fixed in the config - DdG
-			} else if ( !ast_strlen_zero( ast_variable_retrieve(cfg, cat, "pin") ) ) {
-				;
-			} else if ( !ast_strlen_zero( ast_variable_retrieve(cfg, cat, "cid_name") ) ) {
-				;
-			} else if ( !ast_strlen_zero( ast_variable_retrieve(cfg, cat, "cid_num") ) ) {
-				;
-			} else {
+			// \todo TODO why are these params required? - MC
+			// \todo They are used to check if we can find the minimal required values for a line in the config file / database to see if we have a complete device. We could have used other parameters. - DdG
+			// \todo Maybe some warnings should be added to notify when one of them is missing so that people know what needs to fixed in the config - DdG
+			if ( (!(!ast_strlen_zero( ast_variable_retrieve(cfg, cat, "label")))  && (!ast_strlen_zero( ast_variable_retrieve(cfg, cat, "cid_name"))) && (!ast_strlen_zero( ast_variable_retrieve(cfg, cat, "cid_num")))) ) {
 				ast_log(LOG_WARNING, "Unknown type '%s' for '%s' in %s\n", utype, cat, "sccp.conf");
 				continue;
 			}
 			line_count++;
+			
 			v = ast_variable_browse(cfg, cat);
 			sccp_config_buildLine(v, cat, FALSE);
 			ast_verbose(VERBOSE_PREFIX_3 "found line %d: %s\n", line_count, cat);
@@ -1280,9 +1274,17 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
  * \note also used by realtime functionality to line device from Asterisk Variable
  * \todo this function should be called sccp_config_applyDeviceConfiguration
  */
-sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast_variable *v){
-	char 			message[256]="";//device message
+sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *device, struct ast_variable *v){
+	sccp_device_t 	       * d = NULL;
+	char 			message[256] = "";//device message
 	int				res;
+
+	/* create temp device */
+	if (!d) {
+		d= sccp_device_create();
+		memset(d->id, 0, sizeof(d->id));
+		sccp_copy_string(d->id, device->id, sizeof(d->id));	/* set device name */
+	}
 
 	/* for button config */
 	char 			*buttonType = NULL, *buttonName = NULL, *buttonOption=NULL, *buttonArgs=NULL;
@@ -1367,66 +1369,30 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 #endif /* CS_DYNAMIC_CONFIG */
 
 		} else if (!strcasecmp(v->name, "permithost")) {
-#ifdef CS_DYNAMIC_CONFIG
-			/*! \todo romain: how are we going to compare permithosts to a previous definition ? */
-#endif
 			sccp_permithost_addnew(d, v->value);
 		} else if ((!strcasecmp(v->name, "type")) || !strcasecmp(v->name, "devicetype")){
 			if (strcasecmp(v->value, "device")){
-#ifdef CS_DYNAMIC_CONFIG
-				if (strcasecmp(d->config_type, v->value)) {sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Config Changed %s\n", v->name); d->pendingUpdate=1;}
-#endif
 				sccp_copy_string(d->config_type, v->value, sizeof(d->config_type));
 			}
 		} else if (!strcasecmp(v->name, "addon")) {
-#ifdef CS_DYNAMIC_CONFIG
-			/*! \todo romain: how are we going to compare addons to previous definitions ? */
-#endif
 			sccp_addon_addnew(d, v->value);
 		} else if (!strcasecmp(v->name, "tzoffset")) {
-#ifdef CS_DYNAMIC_CONFIG
-			if (d->tz_offset != atoi(v->value)) {sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Config Changed %s\n", v->name);d->pendingUpdate=1;}
-#endif
 			d->tz_offset = atoi(v->value);
 		} else if (!strcasecmp(v->name, "description")) {
-#ifdef CS_DYNAMIC_CONFIG
-			if (strcmp(d->description, v->value)) {sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Config Changed %s\n", v->name);d->pendingUpdate=1;}
-#endif
 			sccp_copy_string(d->description, v->value, sizeof(d->description));
 		} else if (!strcasecmp(v->name, "imageversion")) {
-#ifdef CS_DYNAMIC_CONFIG
-			if (strcmp(d->imageversion, v->value)) {sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Config Changed %s\n", v->name);d->pendingUpdate=1;}
-#endif
 			sccp_copy_string(d->imageversion, v->value, sizeof(d->imageversion));
 		} else if (!strcasecmp(v->name, "allow")) {
-#ifdef CS_DYNAMIC_CONFIG
-			/*! \todo romain: how are we going to compare allow to previous definitions ? */
-#endif
 			ast_parse_allow_disallow(&d->codecs, &d->capability, ast_strip(config_value), 1);
 		} else if (!strcasecmp(v->name, "disallow")) {
-#ifdef CS_DYNAMIC_CONFIG
-			/*! \todo romain: how are we going to compare disallow to previous definitions ? */
-#endif
 			ast_parse_allow_disallow(&d->codecs, &d->capability, ast_strip(config_value), 0);
 		} else if (!strcasecmp(v->name, "transfer")) {
-#ifdef CS_DYNAMIC_CONFIG
-			if (d->transfer != sccp_true(v->value)) {sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Config Changed %s\n", v->name);d->pendingUpdate=1;}
-#endif
 			d->transfer = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "cfwdall")) {
-#ifdef CS_DYNAMIC_CONFIG
-			if (d->cfwdall != sccp_true(v->value)) {sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Config Changed %s\n", v->name);d->pendingUpdate=1;}
-#endif
 			d->cfwdall = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "cfwdbusy")) {
-#ifdef CS_DYNAMIC_CONFIG
-			if (d->cfwdbusy != sccp_true(v->value)) {sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Config Changed %s\n", v->name);d->pendingUpdate=1;}
-#endif
 			d->cfwdbusy = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "cfwdnoanswer")) {
-#ifdef CS_DYNAMIC_CONFIG
-			if (d->cfwdnoanswer != sccp_true(v->value)) {sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Config Changed %s\n", v->name);d->pendingUpdate=1;}
-#endif
 			d->cfwdnoanswer = sccp_true(v->value);
 #ifdef CS_SCCP_PICKUP
 		} else if (!strcasecmp(v->name, "pickupexten")) {
@@ -1525,6 +1491,50 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 
 		v = v->next;
 	}
+
+#ifdef CS_DYNAMIC_CONFIG
+	/* compare temporiry d to device */
+	if (d && device) {
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: privacyFeature.status %d:%d\n", d->id,d->privacyFeature.status,device->privacyFeature.status);
+//		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s:  %d:%d\n", d->id,d->,device->);
+		if (
+//			setvar			//list str
+//			permithost 		//list
+//			addon			//list
+//			d->allow		//ip list
+//			d->disallow		//ip list
+//			(d->privacyFeature.status == device->privacyFeature.status) &&		//enum
+			(!strcmp(d->description, device->description)) && 	 		//str
+			(!strcmp(d->imageversion, device->imageversion)) &&			//str
+			(!strcmp(d->softkeyDefinition, device->softkeyDefinition)) &&		//str
+			(!strcmp(d->meetmeopts, device->meetmeopts)) &&				//str
+			(d->tz_offset == device->tz_offset) && 			 		//val
+			(d->earlyrtp == device->earlyrtp) &&					//enum
+			(d->dtmfmode == device->dtmfmode) &&					//enum
+			(d->mwilamp == device->mwilamp) &&					//enum
+			(d->dndFeature.enabled == d->dndFeature.enabled) &&			//boolean
+			(d->overlapFeature.enabled == d->overlapFeature.enabled) &&		//boolean
+			(d->privacyFeature.enabled == d->privacyFeature.enabled) &&		//boolean
+			(d->transfer == device->transfer) &&					//boolean*/
+			(d->cfwdall == device->cfwdall) &&					//boolean
+			(d->cfwdbusy == device->cfwdbusy) &&					//boolean
+			(d->cfwdnoanswer == device->cfwdnoanswer) &&				//boolean
+			(d->nat == device->nat) &&						//boolean
+			(d->directrtp == device->directrtp) &&					//boolean
+			(d->trustphoneip == device->trustphoneip) &&				//boolean
+			(d->park == device->park)  &&						//boolean
+			(d->useRedialMenu == device->useRedialMenu) &&				//boolean
+			(d->meetme == device->meetme) && 					//boolean*/
+			(d->mwioncall == device->mwioncall)					//boolean
+		) {
+			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: pendingUpdate not needed\n", d->id);
+		} else {
+			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: set pendingUpdate\n", d->id);
+			d->pendingUpdate=1;
+		}
+	}
+#endif
+	device=d;										//copy temp d to device
 
 	res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
 
