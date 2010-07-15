@@ -1,3 +1,170 @@
+2010-07-14  ddegroot
+
+	* [r1587] src/sccp_config.c: Fix original loading index
+
+	* [r1586] src/chan_sccp.h, src/sccp_config.c, src/sccp_config.h:
+	  Added "sccp reload" buttonconfig check if already exists
+
+	* [r1585] src/sccp_cli.c, src/sccp_config.c: Fix sccp reload code
+	  (segfault)
+
+	* [r1584] src/sccp_config.c: Added first pendingUpdate lines
+
+	* [r1583] src/chan_sccp.c, src/chan_sccp.h, src/sccp_cli.c,
+	  src/sccp_config.c, src/sccp_config.h, src/sccp_device.c,
+	  src/sccp_line.c, src/sccp_softkeys.c: Added Logging to CLI reload
+	  command (sccp debug newcode used for sccp reload command logging)
+	  Modified sccp.conf parse for debug,port and bindaddr to only be
+	  loaded on initial module start
+
+	* [r1582] conf/sccp.conf, src/chan_sccp.h, src/sccp_cli.c,
+	  src/sccp_config.c, src/sccp_device.c, src/sccp_features.c,
+	  src/sccp_line.c, src/sccp_pbx.c, src/sccp_protocol.h,
+	  src/sccp_utils.c, src/sccp_utils.h: New CLI Function "sccp show
+	  line <linenumber>
+	  Updated layout for sccp show device and sccp show channels
+	  
+	  Added extra Logging to sccp_pbx_softswitch
+	  Added meetme and meetmeoptions to sccp_line, sccp_device and
+	  sccp_global_vars
+	  Added callforwardstate Lookup to sccp_protocol.h
+	  Added callforward2str to sccp_utils.?
+	  Added callforward2longstr to sccp_utils.?
+	  Added sccp_complete_line to sccp_config.c
+	  Added sccp_show_line to sccp_config.c
+
+2010-07-13  marcelloceschia
+
+	* [r1581] src/sccp_softkeys.c: removed unused code
+
+2010-07-12  marcelloceschia
+
+	* [r1580] src/sccp_hint.c, src/sccp_softkeys.c: subscribe feature
+	  changes in hint module
+
+	* [r1579] src/sccp_actions.c: doing dnd issue
+
+	* [r1578] src/chan_sccp.h, src/sccp_config.c, src/sccp_softkeys.c:
+	  doing dnd issue
+
+2010-07-12  ddegroot
+
+	* [r1577] conf/sccp.conf, conf/sccp_short.conf,
+	  conf/sccp_simple.conf, configure, src/chan_sccp.h,
+	  src/sccp_actions.c, src/sccp_config.c, src/sccp_features.c,
+	  src/sccp_features.h, src/sccp_pbx.c: Updated Meetme
+	  Implementation
+	  Added two new parameters to config
+	  - meetme (on/off)
+	  - meetmeopts (options to send to meetme application)
+	  meetmenum is to be removed in the near future
+
+	* [r1576] configure, configure.ac, doc/05_New_Features.doc,
+	  src/config.h.in: Fixed --with-dynamic-speeddials-cid
+	  Update documentation
+	  Fixed sccp-device useRedialMenu
+
+2010-07-12  progs
+
+	* [r1575] src/sccp_device.c: fix compilation (typo)
+
+2010-07-11  marcelloceschia
+
+	* [r1574] src/sccp_device.c:
+
+	* [r1573] src/sccp_device.c: enable redial softkey if useRedialMenu
+	  = ON
+
+	* [r1572] src/sccp_cli.c: fixes compile issue
+
+	* [r1571] src/sccp_cli.c: fixes compile issue
+
+2010-07-10  marcelloceschia
+
+	* [r1570] src/sccp_softkeys.c: if we build with
+	  --with-advanced-functions, we can use a new device configuration
+	  option: useRedialMenu = on, to use placed calls menu instead of
+	  the normal redial
+
+	* [r1569] src/chan_sccp.h, src/sccp_cli.c, src/sccp_config.c,
+	  src/sccp_device.c, src/sccp_protocol.h, src/sccp_softkeys.c: if
+	  we build with --with-advanced-functions, we can use a new device
+	  configuration option: useRedialMenu = on, to use placed calls
+	  menu instead of the normal redial
+
+2010-07-09  marcelloceschia
+
+	* [r1568] configure, configure.ac, src/sccp_hint.c: add configure
+	  option --with-dynamic-speeddial-cid to enable callinf for dynamic
+	  speeddials
+
+2010-07-09  ddegroot
+
+	* [r1567] conf/database_updates/update_mysql_v4.sql,
+	  conf/database_updates/update_mysql_v5.sql[ADD],
+	  conf/mysql-v4.sql, conf/postgres.sql: Updated update_mysql_v?
+	  script (as per maillist message : 201007070917.24727)
+
+	* [r1566] conf/mysql-v4.sql, conf/mysql-v5.sql, conf/postgres.sql:
+	  Added 'NAT' Column to the mysql/postgresql samples. (as per
+	  message: 201007070917.24727)
+
+2010-07-09  marcelloceschia
+
+	* [r1565] src/sccp_mwi.c: check mwioncall befor disable mwi light
+	  on call
+
+2010-07-04  marcelloceschia
+
+	* [r1564] src/sccp_actions.c, src/sccp_device.c: do not save button
+	  template
+
+2010-07-02  progs
+
+	* [r1563] src/sccp_device.c: restart updated devices, and delete
+	  removed devices
+
+	* [r1562] src/chan_sccp.h, src/sccp_config.c, src/sccp_device.c:
+	  correctly load the global config
+
+	* [r1561] src/chan_sccp.h, src/config.h.in, src/sccp_cli.c,
+	  src/sccp_config.c, src/sccp_device.c, src/sccp_device.h,
+	  src/sccp_line.c, src/sccp_line.h, src/sccp_softkeys.c,
+	  src/sccp_softkeys.h: fix compilation
+
+2010-07-01  progs
+
+	* [r1560] src/chan_sccp.h, src/sccp_cli.c, src/sccp_config.c,
+	  src/sccp_device.c, src/sccp_device.h, src/sccp_line.c,
+	  src/sccp_line.h, src/sccp_protocol.h, src/sccp_softkeys.c,
+	  src/sccp_softkeys.h: [wip] reload feature
+
+2010-07-01  ddegroot
+
+	* [r1559] doc/05_New_Features.doc: added "monitor" feature
+
+	* [r1558] configure, src/chan_sccp.h, src/sccp_hint.h,
+	  src/sccp_protocol.h: Fixed a couple of comments
+
+	* [r1557] doc/04_Setup_Guide.doc, src/chan_sccp.h: Fixed spelling
+	  mistake in then Setup Guide
+	  Added documentation header for SCCP ButtonType
+
+	* [r1556] ChangeLog, Makefile.in, configure, configure.ac,
+	  doc/01_Index.doc, doc/02_What_Is_Chan_SCCP.doc,
+	  doc/03_Building_and_Installation_Guide.doc,
+	  doc/04_Setup_Guide.doc, doc/05_New_Features.doc,
+	  doc/06_Frequently_Asked_Questions.doc,
+	  doc/07_Supported_Operating_Systems.doc,
+	  doc/08_Developers_Guide.doc, doc/09_Sources_Explained.doc,
+	  doc/10_Consulted_Documentation.doc, doc/11_Licensing.doc,
+	  doc/12_Reporting_Issues_Problems.doc, doc/doxygen.cfg,
+	  src/sccp_channel.c, src/sccp_cli.c, src/sccp_config.c,
+	  src/sccp_device.c, src/sccp_event.c, src/sccp_features.c,
+	  src/sccp_mwi.c, src/sccp_pbx.c, src/sccp_utils.c: Fixed
+	  documentation missing paramater declarations
+	  Added scafolding for cli : "sccp reload" function
+
 2010-06-30  ddegroot
 
 	* [r1555] src/sccp_cli.c: Added SCCP RELOAD Plan

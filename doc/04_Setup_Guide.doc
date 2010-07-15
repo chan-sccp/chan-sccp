@@ -56,6 +56,9 @@
  *   .
  *
  * \subsection sccp_config_howto2 Sample config file
+ * 
+ * Make sure you pay attention to the context used in the config file. And check if this context exists in your dialplan.
+ * Also check the deny/permit entries to make sure they cover your network/devices and check if the bindaddr is actually reachable from the addresses you have permitted to connect.
  *
  * \code
  * ;=========================================================================================
@@ -98,6 +101,8 @@
  * trustphoneip = no
  * private = on
  * callanswerorder=oldestfirst
+ * meetme = on
+ * meetme = qxd
  * protocol = 11
  * 
  * hotline_enabled=yes					;can devices without configuration register
@@ -143,6 +148,8 @@
  * private = on
  * mwilamp = on
  * mwioncall = off
+ * meetme = on
+ * meetmeopts = qd
  * setvar=testvar=value
  * cfwdall = on
  * 
@@ -174,6 +181,8 @@
  * video_tos = 0x88
  * video_cos = 5
  * echocancel = on
+ * meetme = on
+ * meetme = qxd
  * silencesuppression = off
  * setvar=testvar2=my value
  * 

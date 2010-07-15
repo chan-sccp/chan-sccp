@@ -66,6 +66,8 @@
  * Q. Can't dial-in or dial-out of an SCCP Phone
  *
  * A. Check the context which has been set in the sccp.conf or realtime tables. 
+ *    Please make sure you have a corresponding context in your dialplan (extensions.conf / extenstions.ael). You can
+ *    also change the sccp.conf context(s) to a context you already use in your dialplan.
  *
  * Q. No audio when calling or being called
  *

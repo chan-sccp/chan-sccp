@@ -2230,10 +2230,11 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r)
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 
 	REQ(r1, ConfigStatMessage);
-	sccp_copy_string(r1->msg.ConfigStatMessage.deviceName, s->device->id, sizeof(r1->msg.ConfigStatMessage.deviceName));
-	r1->msg.ConfigStatMessage.lel_stationInstance 	= htolel(1);
-	r1->msg.ConfigStatMessage.lel_numberLines	    = htolel(lines);
-	r1->msg.ConfigStatMessage.lel_numberSpeedDials 	= htolel(speeddials);
+	sccp_copy_string(r1->msg.ConfigStatMessage.station_identifier.deviceName, s->device->id, sizeof(r1->msg.ConfigStatMessage.station_identifier.deviceName));
+	r1->msg.ConfigStatMessage.station_identifier.lel_stationUserId 		= htolel(0);
+	r1->msg.ConfigStatMessage.station_identifier.lel_stationInstance 	= htolel(1);
+	r1->msg.ConfigStatMessage.lel_numberLines	    			= htolel(lines);
+	r1->msg.ConfigStatMessage.lel_numberSpeedDials 				= htolel(speeddials);
 
 	sccp_device_unlock(d);
 	sccp_dev_send(s->device, r1);

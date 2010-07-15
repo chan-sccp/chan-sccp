@@ -568,7 +568,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	}
 
 #ifdef CS_ADV_FEATURES
-	sccp_moo_t 	*r1 = NULL;
+//	sccp_moo_t 	*r1 = NULL;
 
 /*
 // 	struct {
@@ -633,33 +633,35 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Send Forward Status Line: %s, ForwardStatMessage.lel_cfwdbusystatus=%d\n", d->id, l->name, r1->msg.ForwardStatMessage.lel_cfwdbusystatus);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Send Forward Status Line: %s, ForwardStatMessage.lel_cfwdallstatus=%s\n", d->id, l->name, r1->msg.ForwardStatMessage.cfwdbusynumber);
 	sccp_dev_send(d, r1);
-	
-	
-// 	usleep(300);
-// 	REQ(r, SetLampMessage);
-// 	r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_FORWARDALL);
-// 	r->msg.SetLampMessage.lel_stimulusInstance = htolel(instance);
-// 	r->msg.SetLampMessage.lel_lampMode = htolel(SKINNY_LAMP_ON);
-// 	sccp_dev_send(d, r);
+*/
 
+/*
+ 	usleep(300);
+ 	REQ(r, SetLampMessage);
+ 	r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_FORWARDALL);
+ 	r->msg.SetLampMessage.lel_stimulusInstance = htolel(instance);
+ 	r->msg.SetLampMessage.lel_lampMode = htolel(SKINNY_LAMP_ON);
+ 	sccp_dev_send(d, r);
+*/
 
- 	
-//  	REQ(r1, ButtonTemplateMessage);
-//  	r1->msg.ButtonTemplateMessage.lel_buttonOffset = htolel(instance-1);
-//  	
-//  	//r1->msg.ButtonTemplateMessage.definition[instance-1].instanceNumber = instance;
-//  	//r1->msg.ButtonTemplateMessage.definition[instance-1].buttonDefinition = htolel(SKINNY_BUTTONTYPE_TRANSFER);
-// 	
-// 	r1->msg.ButtonTemplateMessage.definition[0].instanceNumber = instance;
-//  	r1->msg.ButtonTemplateMessage.definition[0].buttonDefinition = htolel(SKINNY_BUTTONTYPE_TRANSFER);
-//  	
-//  	r1->msg.ButtonTemplateMessage.lel_buttonCount = htolel(1);
-//  	r1->msg.ButtonTemplateMessage.lel_totalButtonCount = htolel(22);
-// // 	sccp_dev_send(d, r1);
-// 	
-// 	sccp_dev_send(d, r1);
-	
-*/	
+/*
+ 	usleep(300);
+  	REQ(r1, ButtonTemplateMessage);
+  	r1->msg.ButtonTemplateMessage.lel_buttonOffset 			= htolel(0);
+  	r1->msg.ButtonTemplateMessage.lel_buttonCount 			= htolel(2);
+  	r1->msg.ButtonTemplateMessage.lel_totalButtonCount 		= htolel(6);
+  	//r1->msg.ButtonTemplateMessage.definition[instance-1].instanceNumber = instance;
+  	//r1->msg.ButtonTemplateMessage.definition[instance-1].buttonDefinition = htolel(SKINNY_BUTTONTYPE_TRANSFER);
+ 	r1->msg.ButtonTemplateMessage.definition[0].instanceNumber 	= htolel(0);
+  	r1->msg.ButtonTemplateMessage.definition[0].buttonDefinition 	= htolel(SKINNY_BUTTONTYPE_TRANSFER);
+ 	r1->msg.ButtonTemplateMessage.definition[1].instanceNumber 	= htolel(1);
+  	r1->msg.ButtonTemplateMessage.definition[1].buttonDefinition 	= htolel(SKINNY_BUTTONTYPE_TRANSFER);
+ 	r1->msg.ButtonTemplateMessage.definition[2].instanceNumber 	= htolel(2);
+  	r1->msg.ButtonTemplateMessage.definition[2].buttonDefinition 	= htolel(SKINNY_BUTTONTYPE_TRANSFER);
+ 	sccp_dev_send(d, r1);
+*/
+
+/*
 	char tmp1[256] = "linename";
 	strcat(tmp1," 1234");
 	
@@ -688,6 +690,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, tmp3, sizeof(r1->msg.LineStatMessage.lineDirNumber));
 	sccp_copy_string(r1->msg.LineStatMessage.lineDisplayName, "my", sizeof(r1->msg.LineStatMessage.lineDisplayName));
 	sccp_dev_send(d, r1);
+*/
 #endif
 	return RESULT_SUCCESS;
 }
