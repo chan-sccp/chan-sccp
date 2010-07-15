@@ -1104,13 +1104,13 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 					
 					/* check Privacy status */
 					/* Marcello: Need some help here */
-					if(d->privacyFeature.enabled==TRUE && (d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT)){
+/*					if((d->privacyFeature.enabled == TRUE) && (d->privacyFeature.status == SCCP_PRIVACYFEATURE_CALLPRESENT)){
 						strcat(tmp, "_");
 //						strcat(tmp, "P");
 					} else {
 						strcat(tmp, "_");
 					}
-					
+*/					
 					/* check cfwr status */
 					if((linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled)) {
 						if (linedevice->cfwdAll.enabled == SCCP_CFWD_ALL) {
@@ -1249,7 +1249,7 @@ void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {
 
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
-		if(linedevice->device == device);
+		if((linedevice->device == device))
 			break;
 	}
 	SCCP_LIST_UNLOCK(&l->devices);

@@ -49,6 +49,7 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 	unsigned new = 0;
 	uint16_t highest_index = 0;
 
+	sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_1 "%s: Loading/Checking ButtonConfig\n", device->id);
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 		/* If the index is < 0, we will add the new button at the
@@ -56,8 +57,10 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 		if (index < 0 && config->index > highest_index)
 			highest_index = config->index;
 		/* In other case, we try to find the button at this index. */
-		else if (config->index == index)
+		else if (config->index == index) {
+			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Found Existing button at %d\n", config->index);
 			break;
+		}
 	}
 
 	if (index == -1) {
@@ -81,6 +84,7 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 
 	config->pendingDelete = 0; 
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Check %s Button against Existing button at %d\n", sccp_buttontype2str(type), config->button.line.name, config->index);
 	switch(type) {
 		case LINE:
 		{
@@ -89,6 +93,7 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 			memset(&composedLineRegistrationId, 0, sizeof(struct composedId));
 
 			if (ast_strlen_zero(name)) {
+				sccp_log(0)(VERBOSE_PREFIX_1 "%s: Faulty Button Configutation found at index: %s", device->id, config->index);
 				if (config->type != EMPTY)
 					config->pendingUpdate = 1;
 				config->type = EMPTY;
@@ -102,15 +107,19 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 				if (strcmp(config->button.line.name, composedLineRegistrationId.mainId) ||
 				    strcmp(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number) ||
 				    strcmp(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name) ||
-				    (!options && config->button.line.options[0] != '\0') || (options && strcmp(config->button.line.options, options)))
+				    (!options && config->button.line.options[0] != '\0') || (options && strcmp(config->button.line.options, options))) {
+					sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s Button '%s' Updated at %d\n", sccp_buttontype2str(type), config->button.line.name, config->index);
 					config->pendingUpdate = 1;
 
-				sccp_copy_string(config->button.line.name, composedLineRegistrationId.mainId, sizeof(config->button.line.name));
-				sccp_copy_string(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number, sizeof(config->button.line.subscriptionId.number));
-				sccp_copy_string(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name, sizeof(config->button.line.subscriptionId.name));
+					sccp_copy_string(config->button.line.name, composedLineRegistrationId.mainId, sizeof(config->button.line.name));
+					sccp_copy_string(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number, sizeof(config->button.line.subscriptionId.number));
+					sccp_copy_string(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name, sizeof(config->button.line.subscriptionId.name));
 
-				if(options){
-					sccp_copy_string(config->button.line.options, options, sizeof(config->button.line.options));
+					if(options){
+						sccp_copy_string(config->button.line.options, options, sizeof(config->button.line.options));
+					}
+				} else {
+					sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s Button '%s' Unchanged at %d\n", sccp_buttontype2str(type), config->button.line.name, config->index);
 				}
 			}
 			break;
