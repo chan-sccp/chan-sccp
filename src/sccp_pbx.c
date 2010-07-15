@@ -1575,7 +1575,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 	struct ast_channel * chan = c->owner;
 	struct ast_variable *v = NULL;
 	uint8_t	instance;
-	int len = 0;
+	unsigned int len = 0;
 
 	sccp_line_t * l;
 	sccp_device_t * d;

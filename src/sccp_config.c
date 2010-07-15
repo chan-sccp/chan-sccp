@@ -85,8 +85,10 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 
 	config->pendingDelete = 0; 
 
-	if (ast_strlen_zero(name))
+	if (ast_strlen_zero(name)) {
+		sccp_log(0)(VERBOSE_PREFIX_1 "%s: Faulty Button Configutation found at index: %d", device->id, config->index);
 		type = EMPTY;
+	}
 
 	if (config->type != type)
 		config->pendingUpdate = 1;
@@ -95,9 +97,7 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 		case LINE:
 		{
 			struct composedId composedLineRegistrationId;
-
 			memset(&composedLineRegistrationId, 0, sizeof(struct composedId));
-
 			composedLineRegistrationId = sccp_parseComposedId(name, 80);
 
 			config->type = LINE;
@@ -109,7 +109,6 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 			    strcmp(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number) ||
 			    strcmp(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name) ||
 			    (!options && config->button.line.options[0] != '\0') || (options && strcmp(config->button.line.options, options))) {
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s Button '%s' Updated at %d\n", sccp_buttontype2str(type), config->button.line.name, config->index);
 				config->pendingUpdate = 1;
 
 				sccp_copy_string(config->button.line.name, composedLineRegistrationId.mainId, sizeof(config->button.line.name));
@@ -119,8 +118,6 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 				if(options){
 					sccp_copy_string(config->button.line.options, options, sizeof(config->button.line.options));
 				}
-			} else {
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s Button '%s' Unchanged at %d\n", sccp_buttontype2str(type), config->button.line.name, config->index);
 			}
 			break;
 		}
@@ -139,7 +136,6 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 					sccp_copy_string(config->button.speeddial.hint, args, sizeof(config->button.speeddial.hint));
 				}
 			}
-
 			break;
 		case SERVICE:
 			config->type = SERVICE;
@@ -169,16 +165,18 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 				if(args)
 					sccp_copy_string(config->button.feature.options, args, sizeof(config->button.feature.options));
 			}
-
 			break;
 		case EMPTY:
 			config->type = EMPTY;
 			break;
 	}
 
-	if (config->pendingUpdate)
+	if (config->pendingUpdate) {
 		device->pendingUpdate = 1;
-
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s Button '%s' Updated at %d\n", sccp_buttontype2str(type), config->button.line.name, config->index);
+	} else {
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s Button '%s' Unchanged at %d\n", sccp_buttontype2str(type), config->button.line.name, config->index);
+	}
 }
 #else /* CS_DYNAMIC_CONFIG */
 
@@ -783,7 +781,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 			}
 		} else if (!strcasecmp(v->name, "sccp_cos")) {
 			if (sscanf(v->value, "%d", &sccp_cos) == 1) {
-				if(sccp_cos < 0 || sccp_cos > 7) {
+				if(sccp_cos > 7) {
 					ast_log(LOG_WARNING, "Invalid sccp_cos value at line %d, refer to QoS documentation\n", v->lineno);
 				}
 				GLOB(sccp_cos) = sccp_cos;
@@ -791,7 +789,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 				GLOB(sccp_cos) = 4;
 		} else if (!strcasecmp(v->name, "audio_cos")) {
 			if (sscanf(v->value, "%d", &audio_cos) == 1) {
-				if(audio_cos < 0 || audio_cos > 7) {
+				if(audio_cos > 7) {
 					ast_log(LOG_WARNING, "Invalid audio_cos value at line %d, refer to QoS documentation\n", v->lineno);
 				}
 				GLOB(audio_cos) = audio_cos;
@@ -799,7 +797,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 				GLOB(audio_cos) = 6;
 		} else if (!strcasecmp(v->name, "video_cos")) {
 			if (sscanf(v->value, "%d", &video_cos) == 1) {
-				if(video_cos < 0 || video_cos > 7) {
+				if(video_cos > 7) {
 					ast_log(LOG_WARNING, "Invalid video_cos value at line %d, refer to QoS documentation\n", v->lineno);
 				}
 				GLOB(video_cos) = video_cos;
@@ -1181,7 +1179,7 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 				}
 			} else if (!strcasecmp(v->name, "audio_cos")) {
 				if (sscanf(v->value, "%d", &audio_cos) == 1) {
-					if(audio_cos < 0 || audio_cos > 7) {
+					if(audio_cos > 7) {
 						ast_log(LOG_WARNING, "Invalid audio_cos value at line %d, refer to QoS documentation\n", v->lineno);
 					}
 					l->audio_cos = audio_cos;
@@ -1189,7 +1187,7 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 					l->audio_cos = GLOB(audio_cos);
 			} else if (!strcasecmp(v->name, "video_cos")) {
 				if (sscanf(v->value, "%d", &video_cos) == 1) {
-					if(video_cos < 0 || video_cos > 7) {
+					if(video_cos > 7) {
 						ast_log(LOG_WARNING, "Invalid video_cos value at line %d, refer to QoS documentation\n", v->lineno);
 					}
 					l->video_cos = video_cos;
@@ -1589,7 +1587,7 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
 	int 			keySetSize;
 	sccp_softKeySetConfiguration_t 	*softKeySetConfiguration = NULL;
 	int 			keyMode = -1;
-	size_t 			i=0;
+	unsigned int		i=0;
 	sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "start reading softkeyset: %s\n", name);
 
 

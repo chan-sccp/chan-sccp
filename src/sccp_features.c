@@ -81,7 +81,7 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
-		if(linedevice->device == device);
+		if(linedevice->device == device)
 			break;
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
@@ -1344,7 +1344,7 @@ void sccp_feat_monitor(sccp_device_t *device, sccp_channel_t *channel){
 #ifdef CS_SCCP_FEATURE_MONITOR
 	struct ast_call_feature *feat;
 	struct ast_frame f = { AST_FRAME_DTMF, };
-	int j;
+	unsigned int j;
 
 	if(!channel)
 		return;
