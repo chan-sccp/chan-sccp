@@ -354,6 +354,7 @@ if test "${enable_debug}" = "yes"; then
    enable_do_crash="yes"
    enable_debug_mutex="yes"
    strip_binaries="no"
+   CFLAGS="$CFLAGS -Wall -Wextra -Wno-unused-parameter"
    GDB_FLAGS="-g"
 else
    AC_DEFINE([DEBUG],[],[Disabled extra debugging.])

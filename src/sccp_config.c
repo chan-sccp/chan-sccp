@@ -41,6 +41,141 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 struct ast_config *sccp_config_getConfig(void);
 
+#ifdef CS_DYNAMIC_CONFIG
+void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
+                           const char* name, const char* options, const char* args)
+{
+	sccp_buttonconfig_t *config = NULL;
+	unsigned new = 0;
+	uint16_t highest_index = 0;
+
+	SCCP_LIST_LOCK(&device->buttonconfig);
+	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+		/* If the index is < 0, we will add the new button at the
+		 * bottom of the list, so we have to calculate the highest ID. */
+		if (index < 0 && config->index > highest_index)
+			highest_index = config->index;
+		/* In other case, we try to find the button at this index. */
+		else if (config->index == index)
+			break;
+	}
+
+	if (index == -1) {
+		index = highest_index + 1;
+		config = NULL;
+	}
+
+	/* If a config at this position is not found, recreate one. */
+	if ((!config || config->index != index)) {
+		config = ast_calloc(1, sizeof(*config));
+		if (!config)
+			return;
+
+		config->index = index;
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "New %s Button %s at : %d:%d\n", sccp_buttontype2str(type), name, index, config->index);
+		device->pendingUpdate=1;
+		SCCP_LIST_INSERT_TAIL(&device->buttonconfig, config, list);
+		config->pendingUpdate=1;
+		new = 1;
+	}
+	SCCP_LIST_UNLOCK(&device->buttonconfig);
+
+	config->pendingDelete = 0; 
+	switch(type) {
+		case LINE:
+		{
+			struct composedId composedLineRegistrationId;
+
+			memset(&composedLineRegistrationId, 0, sizeof(struct composedId));
+
+			if (ast_strlen_zero(name)) {
+				if (config->type != EMPTY)
+					config->pendingUpdate = 1;
+				config->type = EMPTY;
+			} else {
+				composedLineRegistrationId = sccp_parseComposedId(name, 80);
+
+				config->type = LINE;
+				if (new)
+					device->configurationStatistic.numberOfLines++;
+
+				if (strcmp(config->button.line.name, composedLineRegistrationId.mainId) ||
+				    strcmp(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number) ||
+				    strcmp(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name) ||
+				    (!options && config->button.line.options[0] != '\0') || (options && strcmp(config->button.line.options, options)))
+					config->pendingUpdate = 1;
+
+				sccp_copy_string(config->button.line.name, composedLineRegistrationId.mainId, sizeof(config->button.line.name));
+				sccp_copy_string(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number, sizeof(config->button.line.subscriptionId.number));
+				sccp_copy_string(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name, sizeof(config->button.line.subscriptionId.name));
+
+				if(options){
+					sccp_copy_string(config->button.line.options, options, sizeof(config->button.line.options));
+				}
+			}
+			break;
+		}
+		case SPEEDDIAL:
+			if (strcmp(config->button.speeddial.label, name) ||
+			    strcmp(config->button.speeddial.ext, options) ||
+			    (!args && config->button.speeddial.hint[0] != '\0') || (args && strcmp(config->button.speeddial.hint, args)))
+				config->pendingUpdate = 1;
+
+			sccp_copy_string(config->button.speeddial.label, name, sizeof(config->button.speeddial.label));
+			sccp_copy_string(config->button.speeddial.ext, options, sizeof(config->button.speeddial.ext));
+			if(args){
+				sccp_copy_string(config->button.speeddial.hint, args, sizeof(config->button.speeddial.hint));
+			}
+
+			break;
+		case SERVICE:
+			if (ast_strlen_zero(name) || ast_strlen_zero(options)) {
+				if (config->type != EMPTY)
+					config->pendingUpdate = 1;
+				config->type = EMPTY;
+			} else {
+				config->type = SERVICE;
+
+				if (strcmp(config->button.service.label, name) ||
+				    strcmp(config->button.service.url, options))
+					config->pendingUpdate = 1;
+
+				sccp_copy_string(config->button.service.label, name, sizeof(config->button.service.label));
+				sccp_copy_string(config->button.service.url, options, sizeof(config->button.service.url));
+			}
+			break;
+		case FEATURE:
+			if (ast_strlen_zero(name)) {
+				if (config->type != EMPTY)
+					config->pendingUpdate = 1;
+				config->type = EMPTY;
+			}else{
+				config->type = FEATURE;
+
+				if (strcmp(config->button.feature.label, name) ||
+				    config->button.feature.id != sccp_featureStr2featureID(options) ||
+				    (!args && config->button.feature.options[0] != '\0') || (args && strcmp(config->button.speeddial.hint, args)))
+					config->pendingUpdate = 1;
+
+				sccp_copy_string(config->button.feature.label, name, sizeof(config->button.feature.label));
+				sccp_log((DEBUGCAT_FEATURE|DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "featureID: %s\n", options);
+				config->button.feature.id = sccp_featureStr2featureID(options);
+
+				if(args)
+					sccp_copy_string(config->button.feature.options, args, sizeof(config->button.feature.options));
+			}
+
+			break;
+		case EMPTY:
+			config->type = EMPTY;
+			break;
+	}
+
+	if (config->pendingUpdate)
+		device->pendingUpdate = 1;
+
+}
+#else /* CS_DYNAMIC_CONFIG */
 
 /*!
  * \brief Add Line to device.
@@ -50,8 +185,8 @@ struct ast_config *sccp_config_getConfig(void);
  * \param index Index Preferred Button Position as int
  */
 void sccp_config_addLine(sccp_device_t *device, char *lineName, char *options, uint16_t index) {
-	sccp_buttonconfig_t	*config;
 	struct composedId composedLineRegistrationId;
+	sccp_buttonconfig_t	*config;
 
 	config = ast_calloc(1, sizeof(sccp_buttonconfig_t));
 	if(!config)
@@ -202,7 +337,7 @@ void sccp_config_addService(sccp_device_t *device, char *label, char *url, uint1
 	device->configurationStatistic.numberOfServices++;
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 }
-
+#endif /* CS_DYNAMIC_CONFIG */
 
 
 /**
@@ -1186,8 +1321,10 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 #endif
 		} else if (!strcasecmp(v->name, "button")) {
 #ifdef CS_DYNAMIC_CONFIG
-			/*! \todo romain: how are we going to compare a new buttonconfig to a previous one ? */
-#endif
+			button_type_t type;
+			unsigned i;
+#endif /* CS_DYNAMIC_CONFIG */
+
 			sccp_log(0)(VERBOSE_PREFIX_3 "Found buttonconfig: %s\n", v->value);
 			sccp_copy_string(k_button, v->value, sizeof(k_button));
 			splitter = k_button;
@@ -1196,10 +1333,27 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 			buttonOption = strsep(&splitter, ",");
 			buttonArgs = splitter;
 
+#ifdef CS_DYNAMIC_CONFIG
+			for (i = 0; i < ARRAY_LEN(sccp_buttontypes) && strcasecmp(buttonType, sccp_buttontypes[i].text); ++i)
+				;
+
+			if (i >= ARRAY_LEN(sccp_buttontypes)) {
+				ast_log(LOG_WARNING, "Unknown button type '%s' at line %d.\n", buttonType, v->lineno);
+				continue;
+			}
+
+			type = sccp_buttontypes[i].buttontype;
+#endif
+
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "ButtonType: %s\n", buttonType);
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "ButtonName: %s\n", buttonName);
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "ButtonOption: %s\n", buttonOption);
 
+#ifdef CS_DYNAMIC_CONFIG
+			sccp_config_addButton(d, ++instance, type, buttonName?ast_strip(buttonName):buttonType,
+					                           buttonOption?ast_strip(buttonOption):NULL,
+								   buttonArgs?ast_strip(buttonArgs):NULL);
+#else
 			if (!strcasecmp(buttonType, "line") && buttonName) {
 				if (!buttonName)
 					continue;
@@ -1207,12 +1361,14 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 			} else if (!strcasecmp(buttonType, "empty")) {
 				sccp_config_addEmpty(d, ++instance);
 			} else if (!strcasecmp(buttonType, "speeddial")) {
-				sccp_config_addSpeeddial(d, (buttonName)?ast_strip(buttonName):"speeddial", (buttonOption)?ast_strip(buttonOption):NULL, (buttonArgs)?ast_strip(buttonArgs):NULL, ++instance);
-		} else if (!strcasecmp(buttonType, "feature") && buttonName) {
+				sccp_config_addSpeeddial(d, (buttonName)?ast_strip(buttonName):"speeddial", (buttonOption)?ast_strip(buttonOption):NULL, (buttonArgs)?ast_strip(buttonArgs) :NULL, ++instance);
+			} else if (!strcasecmp(buttonType, "feature") && buttonName) {
 				sccp_config_addFeature(d, (buttonName)?ast_strip(buttonName):"feature", (buttonOption)?ast_strip(buttonOption):NULL, buttonArgs, ++instance );
 			} else if (!strcasecmp(buttonType, "service") && buttonName && !ast_strlen_zero(buttonName) ) {
 				sccp_config_addService(d, (buttonName)?ast_strip(buttonName):"service", (buttonOption)?ast_strip(buttonOption):NULL, ++instance);
 			}
+#endif /* CS_DYNAMIC_CONFIG */
+
 		} else if (!strcasecmp(v->name, "permithost")) {
 #ifdef CS_DYNAMIC_CONFIG
 			/*! \todo romain: how are we going to compare permithosts to a previous definition ? */

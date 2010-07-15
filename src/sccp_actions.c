@@ -136,7 +136,11 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 			sccp_copy_string(d->id, r->msg.RegisterMessage.sId.deviceName, sizeof(d->id));
 			d->realtime = TRUE;
 			d->isAnonymous = TRUE;
+#ifdef CS_DYNAMIC_CONFIG
+			sccp_config_addButton(d, -1, LINE, GLOB(hotline)->line->name, NULL, NULL);
+#else
 			sccp_config_addLine(d, GLOB(hotline)->line->name, NULL, 0);
+#endif
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.RegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
 			d->defaultLineInstance = 1;
 			SCCP_LIST_LOCK(&GLOB(devices));
