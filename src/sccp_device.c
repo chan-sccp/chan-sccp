@@ -52,14 +52,21 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 void sccp_device_pre_reload(void)
 {
 	sccp_device_t * d;
+	sccp_buttonconfig_t * config;
 
 	SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list){
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: Setting Device to Pending Delete=1\n", d->id);
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s: Setting Device to Pending Delete=1\n", d->id);
 		ast_free_ha(d->ha);
 		d->ha = NULL;
 		d->pendingDelete = 1;
 		d->pendingUpdate = 0;
+		SCCP_LIST_LOCK(&d->buttonconfig);
+		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list){
+			config->pendingDelete = 1;
+			config->pendingUpdate = 0;
+		}
+		SCCP_LIST_UNLOCK(&d->buttonconfig);
 	}
 	SCCP_LIST_UNLOCK(&GLOB(devices));
 }
@@ -67,6 +74,7 @@ void sccp_device_pre_reload(void)
 void sccp_device_post_reload(void)
 {
 	sccp_device_t * d;
+	sccp_buttonconfig_t *config;
 
 	SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(devices), d, list){
@@ -83,6 +91,19 @@ void sccp_device_post_reload(void)
 			SCCP_LIST_REMOVE_CURRENT(list);
 		} else {
 			d->pendingUpdate = 0;
+			SCCP_LIST_LOCK(&d->buttonconfig);
+			SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list){
+				if (!config->pendingDelete && !config->pendingUpdate)
+					continue;
+
+				if (d->pendingDelete) {
+					sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
+					SCCP_LIST_REMOVE_CURRENT(list);
+				} else {
+					config->pendingUpdate = 0;
+				}
+			}
+			SCCP_LIST_UNLOCK(&d->buttonconfig);
 		}
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END
