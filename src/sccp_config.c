@@ -1311,17 +1311,10 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 		} else if (!strcasecmp(v->name, "keepalive")) {
 			d->keepalive = atoi(v->value);
 		} else if (!strcasecmp(v->name, "permit") || !strcasecmp(v->name, "deny")) {
-#ifdef CS_DYNAMIC_CONFIG
-			struct ast_ha *oldha;
-			oldha = d->ha;
-#endif
 #if ASTERISK_VERSION_NUM < 10600
 			d->ha = ast_append_ha(v->name, v->value, d->ha);
 #else
 			d->ha = ast_append_ha(v->name, v->value, d->ha, NULL );
-#endif
-#ifdef CS_DYNAMIC_CONFIG
-			if (d->ha != oldha) {d->pendingUpdate=1;}
 #endif
 		} else if (!strcasecmp(v->name, "button")) {
 #ifdef CS_DYNAMIC_CONFIG
@@ -1381,7 +1374,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 		} else if ((!strcasecmp(v->name, "type")) || !strcasecmp(v->name, "devicetype")){
 			if (strcasecmp(v->value, "device")){
 #ifdef CS_DYNAMIC_CONFIG
-				if (strcasecmp(d->config_type, v->value)) {d->pendingUpdate=1;}
+				if (strcasecmp(d->config_type, v->value)) {sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Config Changed %s\n", v->name); d->pendingUpdate=1;}
 #endif
 				sccp_copy_string(d->config_type, v->value, sizeof(d->config_type));
 			}
@@ -1392,17 +1385,17 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 			sccp_addon_addnew(d, v->value);
 		} else if (!strcasecmp(v->name, "tzoffset")) {
 #ifdef CS_DYNAMIC_CONFIG
-			if (d->tz_offset != atoi(v->value)) {d->pendingUpdate=1;}
+			if (d->tz_offset != atoi(v->value)) {sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Config Changed %s\n", v->name);d->pendingUpdate=1;}
 #endif
 			d->tz_offset = atoi(v->value);
 		} else if (!strcasecmp(v->name, "description")) {
 #ifdef CS_DYNAMIC_CONFIG
-			if (strcmp(d->description, v->value)) {d->pendingUpdate=1;}
+			if (strcmp(d->description, v->value)) {sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Config Changed %s\n", v->name);d->pendingUpdate=1;}
 #endif
 			sccp_copy_string(d->description, v->value, sizeof(d->description));
 		} else if (!strcasecmp(v->name, "imageversion")) {
 #ifdef CS_DYNAMIC_CONFIG
-			if (strcmp(d->imageversion, v->value)) {d->pendingUpdate=1;}
+			if (strcmp(d->imageversion, v->value)) {sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Config Changed %s\n", v->name);d->pendingUpdate=1;}
 #endif
 			sccp_copy_string(d->imageversion, v->value, sizeof(d->imageversion));
 		} else if (!strcasecmp(v->name, "allow")) {
@@ -1417,22 +1410,22 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 			ast_parse_allow_disallow(&d->codecs, &d->capability, ast_strip(config_value), 0);
 		} else if (!strcasecmp(v->name, "transfer")) {
 #ifdef CS_DYNAMIC_CONFIG
-			if (d->transfer != sccp_true(v->value)) {d->pendingUpdate=1;}
+			if (d->transfer != sccp_true(v->value)) {sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Config Changed %s\n", v->name);d->pendingUpdate=1;}
 #endif
 			d->transfer = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "cfwdall")) {
 #ifdef CS_DYNAMIC_CONFIG
-			if (d->cfwdall != sccp_true(v->value)) {d->pendingUpdate=1;}
+			if (d->cfwdall != sccp_true(v->value)) {sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Config Changed %s\n", v->name);d->pendingUpdate=1;}
 #endif
 			d->cfwdall = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "cfwdbusy")) {
 #ifdef CS_DYNAMIC_CONFIG
-			if (d->cfwdbusy != sccp_true(v->value)) {d->pendingUpdate=1;}
+			if (d->cfwdbusy != sccp_true(v->value)) {sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Config Changed %s\n", v->name);d->pendingUpdate=1;}
 #endif
 			d->cfwdbusy = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "cfwdnoanswer")) {
 #ifdef CS_DYNAMIC_CONFIG
-			if (d->cfwdnoanswer != sccp_true(v->value)) {d->pendingUpdate=1;}
+			if (d->cfwdnoanswer != sccp_true(v->value)) {sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Config Changed %s\n", v->name);d->pendingUpdate=1;}
 #endif
 			d->cfwdnoanswer = sccp_true(v->value);
 #ifdef CS_SCCP_PICKUP
