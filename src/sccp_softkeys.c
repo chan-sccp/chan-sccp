@@ -782,7 +782,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c, unsigned int keymode, unsigned int softkeyindex, unsigned int status) {
 	sccp_moo_t * r;
 	uint32_t mask, validKeyMask;
-	int i, instance;
+	unsigned i, instance;
 
 
 	if(!l || !c || !d || !d->session)
