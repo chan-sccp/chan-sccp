@@ -373,7 +373,6 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 		return d;
 	}
 
-
 	/* create new device with default values */
 	if (!d) {
 		d= sccp_device_create();
@@ -1274,17 +1273,49 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
  * \note also used by realtime functionality to line device from Asterisk Variable
  * \todo this function should be called sccp_config_applyDeviceConfiguration
  */
-sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *device, struct ast_variable *v){
-	sccp_device_t 	       * d = NULL;
+sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast_variable *v){
+	sccp_device_t 	       * temp_d = NULL;
 	char 			message[256] = "";//device message
 	int				res;
-
-	/* create temp device */
-	if (!d) {
-		d= sccp_device_create();
-		memset(d->id, 0, sizeof(d->id));
-		sccp_copy_string(d->id, device->id, sizeof(d->id));	/* set device name */
-	}
+	
+#ifdef CS_DYNAMIC_CONFIG
+	/* copy d to temp_d structure */
+        temp_d= sccp_device_create();
+        memset(temp_d->id, 0, sizeof(d->id));
+	sccp_copy_string(temp_d->id, d->id, sizeof(temp_d->id));     /* set device name */
+//	temp_d->setvar			//list str
+//	temp_d->permithost 		//list
+//	temp_d->addon			//list
+//	temp_d->allow			//ip list
+//	temp_d->disallow		//ip list
+	temp_d->privacyFeature.status = d->privacyFeature.status;
+	memset(temp_d->description, 0, sizeof(d->description));
+	sccp_copy_string(temp_d->description, d->description, sizeof(temp_d->description));
+	memset(temp_d->imageversion, 0, sizeof(d->imageversion));
+	sccp_copy_string(temp_d->imageversion, d->imageversion, sizeof(temp_d->imageversion));
+	memset(temp_d->softkeyDefinition, 0, sizeof(d->softkeyDefinition));
+	sccp_copy_string(temp_d->softkeyDefinition, d->softkeyDefinition, sizeof(temp_d->softkeyDefinition));
+	memset(temp_d->meetmeopts, 0, sizeof(d->meetmeopts));
+	sccp_copy_string(temp_d->meetmeopts, d->meetmeopts, sizeof(temp_d->meetmeopts));
+	temp_d->tz_offset = d->tz_offset;
+	temp_d->earlyrtp = d->earlyrtp;
+	temp_d->dtmfmode = d->dtmfmode;
+	temp_d->mwilamp = d->mwilamp;
+	temp_d->dndFeature.enabled = d->dndFeature.enabled;
+	temp_d->overlapFeature.enabled = d->overlapFeature.enabled;
+	temp_d->privacyFeature.enabled = d->privacyFeature.enabled;
+	temp_d->transfer = d->transfer;
+	temp_d->cfwdall = d->cfwdall;
+	temp_d->cfwdbusy = d->cfwdbusy;
+	temp_d->cfwdnoanswer = d->cfwdnoanswer;
+	temp_d->nat = d->nat;
+	temp_d->directrtp = d->directrtp;
+	temp_d->trustphoneip = d->trustphoneip;
+	temp_d->park = d->park;
+	temp_d->useRedialMenu = d->useRedialMenu;
+	temp_d->meetme = d->meetme;
+	temp_d->mwioncall = d->mwioncall;
+#endif	
 
 	/* for button config */
 	char 			*buttonType = NULL, *buttonName = NULL, *buttonOption=NULL, *buttonArgs=NULL;
@@ -1494,48 +1525,47 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *device, struc
 
 #ifdef CS_DYNAMIC_CONFIG
 	/* compare temporiry d to device */
-	if (d && device) {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: privacyFeature.status %d:%d\n", d->id,d->privacyFeature.status,device->privacyFeature.status);
-//		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s:  %d:%d\n", d->id,d->,device->);
+	if (d && temp_d) {
+//		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: privacyFeature.status %d:%d\n", temp_d->id,temp_d->privacyFeature.status,d->privacyFeature.status);
 		if (
-//			setvar			//list str
-//			permithost 		//list
-//			addon			//list
-//			d->allow		//ip list
-//			d->disallow		//ip list
-//			(d->privacyFeature.status == device->privacyFeature.status) &&		//enum
-			(!strcmp(d->description, device->description)) && 	 		//str
-			(!strcmp(d->imageversion, device->imageversion)) &&			//str
-			(!strcmp(d->softkeyDefinition, device->softkeyDefinition)) &&		//str
-			(!strcmp(d->meetmeopts, device->meetmeopts)) &&				//str
-			(d->tz_offset == device->tz_offset) && 			 		//val
-			(d->earlyrtp == device->earlyrtp) &&					//enum
-			(d->dtmfmode == device->dtmfmode) &&					//enum
-			(d->mwilamp == device->mwilamp) &&					//enum
-			(d->dndFeature.enabled == d->dndFeature.enabled) &&			//boolean
-			(d->overlapFeature.enabled == d->overlapFeature.enabled) &&		//boolean
-			(d->privacyFeature.enabled == d->privacyFeature.enabled) &&		//boolean
-			(d->transfer == device->transfer) &&					//boolean*/
-			(d->cfwdall == device->cfwdall) &&					//boolean
-			(d->cfwdbusy == device->cfwdbusy) &&					//boolean
-			(d->cfwdnoanswer == device->cfwdnoanswer) &&				//boolean
-			(d->nat == device->nat) &&						//boolean
-			(d->directrtp == device->directrtp) &&					//boolean
-			(d->trustphoneip == device->trustphoneip) &&				//boolean
-			(d->park == device->park)  &&						//boolean
-			(d->useRedialMenu == device->useRedialMenu) &&				//boolean
-			(d->meetme == device->meetme) && 					//boolean*/
-			(d->mwioncall == device->mwioncall)					//boolean
+//			temp_d->setvar			//list str
+//			temp_d->permithost	 		//list
+//			temp_d->addon			//list
+//			temp_d->allow			//ip list
+//			temp_d->disallow			//ip list
+//			(temp_d->privacyFeature.status == d->privacyFeature.status) &&		//enum
+			(!strcmp(temp_d->description, d->description)) && 	 		//str
+			(!strcmp(temp_d->imageversion, d->imageversion)) &&			//str
+			(!strcmp(temp_d->softkeyDefinition, d->softkeyDefinition)) &&		//str
+			(!strcmp(temp_d->meetmeopts, d->meetmeopts)) &&				//str
+			(temp_d->tz_offset == d->tz_offset) && 			 		//val
+			(temp_d->earlyrtp == d->earlyrtp) &&					//enum
+			(temp_d->dtmfmode == d->dtmfmode) &&					//enum
+			(temp_d->mwilamp == d->mwilamp) &&					//enum
+			(temp_d->dndFeature.enabled == d->dndFeature.enabled) &&		//boolean
+			(temp_d->overlapFeature.enabled == d->overlapFeature.enabled) &&	//boolean
+			(temp_d->privacyFeature.enabled == d->privacyFeature.enabled) &&	//boolean
+			(temp_d->transfer == d->transfer) &&					//boolean*/
+			(temp_d->cfwdall == d->cfwdall) &&					//boolean
+			(temp_d->cfwdbusy == d->cfwdbusy) &&					//boolean
+			(temp_d->cfwdnoanswer == d->cfwdnoanswer) &&				//boolean
+			(temp_d->nat == d->nat) &&						//boolean
+			(temp_d->directrtp == d->directrtp) &&					//boolean
+			(temp_d->trustphoneip == d->trustphoneip) &&				//boolean
+			(temp_d->park == d->park)  &&						//boolean
+			(temp_d->useRedialMenu == d->useRedialMenu) &&				//boolean
+			(temp_d->meetme == d->meetme) && 					//boolean*/
+			(temp_d->mwioncall == d->mwioncall)					//boolean
 		) {
-			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: pendingUpdate not needed\n", d->id);
+			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: pendingUpdate not needed\n", temp_d->id);
+			temp_d->pendingDelete=0;
 		} else {
-			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: set pendingUpdate\n", d->id);
-			d->pendingUpdate=1;
+			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: set pendingUpdate\n", temp_d->id);
+			temp_d->pendingUpdate=1;
+			temp_d->pendingDelete=0;
 		}
 	}
 #endif
-	device=d;										//copy temp d to device
-
 	res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
 
 	if (!res)
