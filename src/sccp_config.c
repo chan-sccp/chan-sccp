@@ -8,7 +8,7 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \todo 	using generic function to configure structures, this can also be used to reconfigure structure on-line
- * \date        $Date$
+* \date        $Date$
  * \version     $Revision$
  */
 

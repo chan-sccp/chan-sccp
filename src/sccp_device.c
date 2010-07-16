@@ -1710,10 +1710,20 @@ sccp_device_t * sccp_dev_copy(sccp_device_t *orig_device){
 	new_device->ha = NULL;
 	ast_copy_ha(orig_device->ha, new_device->ha);
 
+
+// ast_variable_new definition in asterisk 1.4.27
+// struct ast_variable *ast_variable_new(const char *name, const char *value)
+// ast_variable_new definition in asterisk 1.6.1.18
+// struct ast_variable *ast_variable_new(const char *name, const char *value, const char *filename)
+
 	struct ast_variable* v;
 	for (v = orig_device->variables; v; v = v->next)
 	{
+#ifdef ASTERISK_CONF_1_6
+		struct ast_variable *new_v = ast_variable_new(v->name, v->value, "sccp.conf");
+#else
 		struct ast_variable *new_v = ast_variable_new(v->name, v->value);
+#endif
 		new_v->next = new_device->variables;
 		new_device->variables = new_v;
 	}
@@ -1798,12 +1808,146 @@ sccp_device_t * sccp_dev_copy(sccp_device_t *orig_device){
 }
 
 /*!
- * Checks two devices against one another and returns a boolean if different
+ * Checks two devices against one another and returns a sccp_diff_t if different
  * \param device_a sccp device
  * \param device_b sccp device
- * \return true/false
+ * \return sccp_diff_t
  */
-boolean_t sccp_dev_diff(sccp_device_t *device_a, sccp_device_t *device_b){
-	return FALSE;
+sccp_diff_t sccp_dev_diff(sccp_device_t *device_a, sccp_device_t *device_b){
+	sccp_diff_t res=NO_CHANGES;
+	
+	if (device_a && device_b) {
+		if (        								// check changes requiring reset
+//		    device_a->permithost	 							//list
+//		    device_a->addon									//list
+//		    device_a->allow									//ip list
+//		    device_a->disallow								//ip list
+		    (strcmp(device_a->description, device_b->description)) || 	 	
+		    (strcmp(device_a->imageversion, device_b->imageversion)) ||		
+		    (strcmp(device_a->softkeyDefinition, device_b->softkeyDefinition)) ||
+		    (device_a->tz_offset != device_b->tz_offset) || 			
+		    (device_a->earlyrtp != device_b->earlyrtp) ||				
+		    (device_a->nat != device_b->nat) ||					
+		    (device_a->directrtp != device_b->directrtp) ||
+		    (device_a->trustphoneip != device_b->trustphoneip) ) { 
+		        res=CHANGES_NEED_RESET;
+		} else if ( 								// check minor changes
+//		    device_a->setvar								//list str
+		    (!strcmp(device_a->meetmeopts, device_b->meetmeopts)) ||
+		    (device_a->dtmfmode != device_b->dtmfmode) ||
+		    (device_a->mwilamp != device_b->mwilamp) ||
+		    (device_a->privacyFeature.status != device_b->privacyFeature.status) ||
+		    (device_a->dndFeature.enabled != device_b->dndFeature.enabled) ||
+		    (device_a->overlapFeature.enabled != device_b->overlapFeature.enabled) ||
+		    (device_a->privacyFeature.enabled != device_b->privacyFeature.enabled) ||
+		    (device_a->transfer != device_b->transfer) ||	
+		    (device_a->cfwdall != device_b->cfwdall) ||	
+		    (device_a->cfwdbusy != device_b->cfwdbusy) ||	
+		    (device_a->cfwdnoanswer != device_b->cfwdnoanswer) ||
+		    (device_a->park != device_b->park)  ||		
+		    (device_a->meetme != device_b->meetme) || 	
+#ifdef CS_ADV_FEATURES
+		    (device_a->useRedialMenu != device_b->useRedialMenu) ||
+#endif /* CS_ADV_FEATURES */
+		    (device_a->mwioncall != device_b->mwioncall) ) {
+		     	res=MINOR_CHANGES;
+		} else {								// check lower level changes	
+		        // changes in buttonconfig
+			sccp_buttonconfig_t *buttonconfig_a=NULL;
+			sccp_buttonconfig_t *buttonconfig_b=NULL;
+
+			SCCP_LIST_LOCK(&device_a->buttonconfig);
+			SCCP_LIST_LOCK(&device_b->buttonconfig);
+			buttonconfig_b=SCCP_LIST_FIRST(&device_b->buttonconfig);
+                        SCCP_LIST_TRAVERSE(&device_a->buttonconfig, buttonconfig_a, list) {
+       				if ((res = sccp_buttonconfig_diff(buttonconfig_a,buttonconfig_b) != NO_CHANGES)) {
+        				break;
+				} 
+				buttonconfig_b=SCCP_LIST_NEXT(buttonconfig_b,list);
+                        }
+			SCCP_LIST_UNLOCK(&device_a->buttonconfig);
+			SCCP_LIST_UNLOCK(&device_b->buttonconfig);
+
+			//sccp_hostname_t permithosts
+			//sccp_selectedchannel_t selectedChannels
+			//sccp_addon_t addons
+        	}
+        } else {
+            res=NO_STRUCTS_TO_COMPARE; 
+	}
+	return res;
+}
+
+/*!
+ * Checks two buttonconfig against one another and returns a sccp_diff_t if different
+ * \param device_a sccp device
+ * \param device_b sccp device
+ * \return sccp_diff_t
+ */
+sccp_diff_t sccp_buttonconfig_diff(sccp_buttonconfig_t *buttonconfig_a, sccp_buttonconfig_t *buttonconfig_b){
+	sccp_diff_t res=NO_CHANGES;
+	
+	if (buttonconfig_a && buttonconfig_b) {
+		if (      									// check changes requiring reset  
+			!(
+				(buttonconfig_a->index == buttonconfig_b->index) &&
+				(buttonconfig_a->type == buttonconfig_b->type)
+			)
+                ) { 
+		        res=CHANGES_NEED_RESET;
+		} else if ( 									// check minor changes
+		        !(
+				(buttonconfig_a->instance == buttonconfig_b->instance)
+                        )
+                ) {
+		     	res=MINOR_CHANGES;
+                } else {									// check lower level changes
+                        switch (buttonconfig_a->type) {
+                                case LINE:
+                                {
+                                        if ( (strcmp(buttonconfig_a->button.line.name,                  buttonconfig_b->button.line.name)) ||
+                                             (strcmp(buttonconfig_a->button.line.subscriptionId.number, buttonconfig_b->button.line.subscriptionId.number)) ||
+                                             (strcmp(buttonconfig_a->button.line.subscriptionId.name,   buttonconfig_b->button.line.subscriptionId.name)) ||
+                                             (!buttonconfig_a->button.line.options[0] && buttonconfig_b->button.line.options[0] != '\0') || (strcmp(buttonconfig_a->button.line.options, buttonconfig_a->button.line.options))) {
+                                                res=CHANGES_NEED_RESET;
+                                                break;
+                                        }
+                                }
+                                case SPEEDDIAL:
+                                {
+                                        if ( (strcmp(buttonconfig_a->button.speeddial.label, 		buttonconfig_b->button.speeddial.label)) ||
+                                             (strcmp(buttonconfig_a->button.speeddial.ext, 		buttonconfig_b->button.speeddial.ext)) ||
+                                             (!buttonconfig_a->button.speeddial.hint[0] && buttonconfig_b->button.speeddial.hint[0] != '\0') || (strcmp(buttonconfig_a->button.speeddial.hint, buttonconfig_b->button.speeddial.hint))) {
+                                               res=CHANGES_NEED_RESET;
+                                                break;
+                                        }
+                                }
+                                case SERVICE:
+                                {
+                                        if ( (strcmp(buttonconfig_a->button.service.label, 		buttonconfig_b->button.service.label)) ||
+                                             (strcmp(buttonconfig_a->button.service.url, 		buttonconfig_b->button.service.url))) {
+                                               res=CHANGES_NEED_RESET;
+                                                break;
+                                        }
+                                }
+                                case FEATURE:
+                                {
+                                        if ( (strcmp(buttonconfig_a->button.feature.label, buttonconfig_b->button.feature.label)) ||
+                                             (buttonconfig_a->button.feature.id != buttonconfig_b->button.feature.id) ||
+                                             (buttonconfig_a->button.feature.options[0] && buttonconfig_b->button.feature.options[0] != '\0') || (strcmp(buttonconfig_a->button.feature.options, buttonconfig_b->button.feature.options))) {
+                                               res=CHANGES_NEED_RESET;
+                                                break;
+                                        }
+                                }
+                                case EMPTY:
+                                {
+                                        // nothing to check
+                                }
+                        }
+                }
+	} else {
+		res=NO_STRUCTS_TO_COMPARE; 
+	}
+	return res;
 }
 #endif

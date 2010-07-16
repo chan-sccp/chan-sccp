@@ -73,8 +73,16 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t *device);
 #define REQ(x,y) x = sccp_build_packet(y, sizeof(x->msg.y))
 #define REQCMD(x,y) x = sccp_build_packet(y, 0)
 
+#ifdef CS_DYNAMIC_CONFIG
 sccp_device_t * sccp_dev_copy(sccp_device_t *orig_device);
-boolean_t sccp_dev_diff(sccp_device_t *device_a, sccp_device_t *device_b);
+
+typedef enum {
+        NO_STRUCTS_TO_COMPARE, NO_CHANGES, MINOR_CHANGES, CHANGES_NEED_RESET
+} sccp_diff_t;
+
+sccp_diff_t sccp_dev_diff(sccp_device_t *device_a, sccp_device_t *device_b);
+sccp_diff_t sccp_buttonconfig_diff(sccp_buttonconfig_t *buttonconfig_a, sccp_buttonconfig_t *buttonconfig_b);
+#endif
 
 #endif /* __SCCP_DEVICE_H */
 
