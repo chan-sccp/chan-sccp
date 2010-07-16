@@ -1250,7 +1250,8 @@ void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {
 
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
-		if((linedevice->device == device))
+		/* \todo fix the ";" issue */
+		if((linedevice->device == device));
 			break;
 	}
 	SCCP_LIST_UNLOCK(&l->devices);

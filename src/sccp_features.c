@@ -81,7 +81,8 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
-		if(linedevice->device == device)
+		/* \todo fix this ";" issue */
+		if(linedevice->device == device);
 			break;
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
