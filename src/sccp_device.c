@@ -1005,6 +1005,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	int timeout = 0;
 	uint8_t res = 0;
 
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_1 "%s: (sccp_dev_check_displayprompt) Send Current Options to Device\n", d->id);
 	if (!d || !d->session)
 		return;
 
