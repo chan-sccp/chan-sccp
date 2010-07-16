@@ -82,7 +82,7 @@ void sccp_duplicate_device_selectedchannel_list(sccp_device_t *new_device,sccp_d
 void sccp_duplicate_device_addon_list(sccp_device_t *new_device, sccp_device_t *orig_device);
 
 typedef enum {
-        NO_STRUCTS_TO_COMPARE, NO_CHANGES, MINOR_CHANGES, CHANGES_NEED_RESET
+        NO_CHANGES, MINOR_CHANGES, CHANGES_NEED_RESET
 } sccp_diff_t;
 
 sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b);
