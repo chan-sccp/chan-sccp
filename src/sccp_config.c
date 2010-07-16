@@ -376,7 +376,6 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 	/* create new device with default values */
 	if (!d) {
 		d= sccp_device_create();
-		memset(d->id, 0, sizeof(d->id));
 		sccp_copy_string(d->id, deviceName, sizeof(d->id));	/* set device name */
 	}
 
@@ -1281,42 +1280,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 #ifdef CS_DYNAMIC_CONFIG
 	/* copy d to temp_d structure */
         temp_d= sccp_device_create();
-        memset(temp_d->id, 0, sizeof(d->id));
-	sccp_copy_string(temp_d->id, d->id, sizeof(temp_d->id));     /* set device name */
-//	temp_d->setvar			//list str
-//	temp_d->permithost 		//list
-//	temp_d->addon			//list
-//	temp_d->allow			//ip list
-//	temp_d->disallow		//ip list
-	temp_d->privacyFeature.status = d->privacyFeature.status;
-	memset(temp_d->description, 0, sizeof(d->description));
-	sccp_copy_string(temp_d->description, d->description, sizeof(temp_d->description));
-	memset(temp_d->imageversion, 0, sizeof(d->imageversion));
-	sccp_copy_string(temp_d->imageversion, d->imageversion, sizeof(temp_d->imageversion));
-	memset(temp_d->softkeyDefinition, 0, sizeof(d->softkeyDefinition));
-	sccp_copy_string(temp_d->softkeyDefinition, d->softkeyDefinition, sizeof(temp_d->softkeyDefinition));
-	memset(temp_d->meetmeopts, 0, sizeof(d->meetmeopts));
-	sccp_copy_string(temp_d->meetmeopts, d->meetmeopts, sizeof(temp_d->meetmeopts));
-	temp_d->tz_offset = d->tz_offset;
-	temp_d->earlyrtp = d->earlyrtp;
-	temp_d->dtmfmode = d->dtmfmode;
-	temp_d->mwilamp = d->mwilamp;
-	temp_d->dndFeature.enabled = d->dndFeature.enabled;
-	temp_d->overlapFeature.enabled = d->overlapFeature.enabled;
-	temp_d->privacyFeature.enabled = d->privacyFeature.enabled;
-	temp_d->transfer = d->transfer;
-	temp_d->cfwdall = d->cfwdall;
-	temp_d->cfwdbusy = d->cfwdbusy;
-	temp_d->cfwdnoanswer = d->cfwdnoanswer;
-	temp_d->nat = d->nat;
-	temp_d->directrtp = d->directrtp;
-	temp_d->trustphoneip = d->trustphoneip;
-	temp_d->park = d->park;
-#ifdef CS_ADV_FEATURES
-	temp_d->useRedialMenu = d->useRedialMenu;
-#endif /* CS_ADV_FEATURES */
-	temp_d->meetme = d->meetme;
-	temp_d->mwioncall = d->mwioncall;
+	memcpy(temp_d, d, sizeof(*d));
 #endif /* CS_DYNAMIC_CONFIG */
 
 	/* for button config */
@@ -1562,12 +1526,11 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 			(temp_d->mwioncall == d->mwioncall)					//boolean
 		) {
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: pendingUpdate not needed\n", temp_d->id);
-			temp_d->pendingDelete=0;
 		} else {
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: set pendingUpdate\n", temp_d->id);
-			temp_d->pendingUpdate=1;
-			temp_d->pendingDelete=0;
+			d->pendingUpdate=1;
 		}
+		d->pendingDelete=0;
 	}
 #endif /* CS_DYNAMIC_CONFIG */
 	res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
