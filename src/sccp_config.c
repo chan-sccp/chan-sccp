@@ -1273,15 +1273,8 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
  * \todo this function should be called sccp_config_applyDeviceConfiguration
  */
 sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast_variable *v){
-	sccp_device_t 	       * temp_d = NULL;
 	char 			message[256] = "";//device message
 	int				res;
-	
-#ifdef CS_DYNAMIC_CONFIG
-	/* copy d to temp_d structure */
-        temp_d= sccp_device_create();
-	memcpy(temp_d, d, sizeof(*d));
-#endif /* CS_DYNAMIC_CONFIG */
 
 	/* for button config */
 	char 			*buttonType = NULL, *buttonName = NULL, *buttonOption=NULL, *buttonArgs=NULL;
@@ -1291,6 +1284,14 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 	char			config_value[256];
 	char 			lastNumber[AST_MAX_EXTENSION]=""; /*!< device last dialed number */
 	char 			family[25];
+
+#ifdef CS_DYNAMIC_CONFIG
+	sccp_device_t 	       * temp_d = NULL;
+	/* copy d to temp_d structure */
+	temp_d = ast_calloc(1, sizeof(sccp_device_t));
+	memcpy(temp_d, d, sizeof(*temp_d));
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: privacyFeature.status %X:%X\n", temp_d->id,temp_d->privacyFeature.status,d->privacyFeature.status);
+#endif /* CS_DYNAMIC_CONFIG */
 
 	if (!v) {
 		sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "no variable given\n");
@@ -1424,8 +1425,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 			sccp_copy_string(d->softkeyDefinition, v->value, sizeof(d->softkeyDefinition));
 		} else if (!strcasecmp(v->name, "privacy")) {
 			if (!strcasecmp(v->value, "full")) {
-				d->privacyFeature.status = 0;
-				d->privacyFeature.status = ~d->privacyFeature.status;
+				d->privacyFeature.status = ~0;
 			} else {
 				d->privacyFeature.status = 0;
 			}
@@ -1491,14 +1491,15 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 
 #ifdef CS_DYNAMIC_CONFIG
 	/* compare temporiry d to device */
-	if (d && temp_d) {
-//		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: privacyFeature.status %d:%d\n", temp_d->id,temp_d->privacyFeature.status,d->privacyFeature.status);
+	if (temp_d) {
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: privacyFeature.status %X:%X\n", temp_d->id,temp_d->privacyFeature.status,d->privacyFeature.status);
 		if (
 //			temp_d->setvar			//list str
 //			temp_d->permithost	 		//list
 //			temp_d->addon			//list
 //			temp_d->allow			//ip list
 //			temp_d->disallow			//ip list
+//			/* XXX the status is always reset to 0 because of sccp_config_restoreDeviceFeatureStatus() -romain */
 //			(temp_d->privacyFeature.status == d->privacyFeature.status) &&		//enum
 			(!strcmp(temp_d->description, d->description)) && 	 		//str
 			(!strcmp(temp_d->imageversion, d->imageversion)) &&			//str
@@ -1530,7 +1531,8 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: set pendingUpdate\n", temp_d->id);
 			d->pendingUpdate=1;
 		}
-		d->pendingDelete=0;
+		ast_free(temp_d);
+
 	}
 #endif /* CS_DYNAMIC_CONFIG */
 	res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
