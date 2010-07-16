@@ -1706,8 +1706,17 @@ sccp_device_t * sccp_dev_copy(sccp_device_t *orig_device){
 	
 	/* copy structs over */		
 	// ast_codec_pref  codecs
-	// ast_ha          ha
-	// ast_variable	   variables
+
+	new_device->ha = NULL;
+	ast_copy_ha(orig_device->ha, new_device->ha);
+
+	struct ast_variable* v;
+	for (v = orig_device->variables; v; v = v->next)
+	{
+		struct ast_variable *new_v = ast_variable_new(v->name, v->value);
+		new_v->next = new_device->variables;
+		new_device->variables = new_v;
+	}
 	// sccp_channel_t  *active_channel
 	// sccp_channel_t  *transfer_channel
 	// sccp_channel_t  *conference_channel
