@@ -527,7 +527,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
 {
 	sccp_moo_t * r;
-	int instance;
+	uint16_t instance;
 	if (!d)
 		return;
 
@@ -643,7 +643,7 @@ void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode)
 void sccp_dev_set_cplane(sccp_line_t * l, sccp_device_t *device, int status)
 {
 	sccp_moo_t * r;
-	int 	instance=0;
+	uint16_t 	instance=0;
 	if (!l)
 		return;
 
@@ -1025,6 +1025,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 //	}
 
 
+#if 0 /* why the fuck is it commented? -romain */
 // 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 // 		if(buttonconfig->type == LINE ){
 // 			l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
@@ -1049,6 +1050,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 //
 // 		}
 // 	}
+#endif
 
 #ifdef CS_ADV_FEATURES
 	/*!
@@ -1064,7 +1066,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	sccp_buttonconfig_t 	*buttonconfig;
 	sccp_linedevices_t 	*linedevice;
 	sccp_line_t 		*l;
-	int 			instance;	
+	uint16_t 			instance;	
 	sccp_log((DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_3 "%s: Checking Cfwd / DND\n", d->id);
 	/* walk the buttonconfig list for this device */
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
@@ -1238,7 +1240,7 @@ void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint8_t insta
 void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {
 	sccp_moo_t 				*r1 = NULL;
 	sccp_linedevices_t 		*linedevice = NULL;
-	int 					instance;
+	uint16_t 					instance;
 
 	if (!device || !device->session)
 		return;
@@ -1547,7 +1549,7 @@ sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t ins
  * \return Status as int
  * \note device should be locked by parent fuction
  */
-int sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName)
+uint16_t sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName)
 {
 	sccp_buttonconfig_t	*config;
 

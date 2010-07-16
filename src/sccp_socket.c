@@ -282,7 +282,7 @@ static sccp_moo_t * sccp_process_data(sccp_session_t * s)
 
 	packSize += 8;
 
-	if ((packSize) > s->buffer_size)
+	if (s->buffer_size < 0 || (packSize) > (uint32_t)s->buffer_size)
 		return NULL; /* Not enough data, yet. */
 
 	m = ast_malloc(SCCP_MAX_PACKET);
