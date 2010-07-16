@@ -99,7 +99,6 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 
 		sccp_line_cfwd(l, device, SCCP_CFWD_NONE, NULL);
 		sccp_dev_sendmsg(device, DeactivateCallPlaneMessage);
-		sccp_dev_check_displayprompt(device);
 	}
 	else{
 		if(type == SCCP_CFWD_NOANSWER)
