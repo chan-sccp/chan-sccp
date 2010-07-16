@@ -74,14 +74,19 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t *device);
 #define REQCMD(x,y) x = sccp_build_packet(y, 0)
 
 #ifdef CS_DYNAMIC_CONFIG
-sccp_device_t * sccp_dev_copy(sccp_device_t *orig_device);
+sccp_device_t * sccp_clone_device(sccp_device_t *orig_device);
+
+void sccp_duplicate_device_buttonconfig_list(sccp_device_t *new_device, sccp_device_t *orig_device);
+void sccp_duplicate_device_hostname_list(sccp_device_t *new_device, sccp_device_t *orig_device);
+void sccp_duplicate_device_selectedchannel_list(sccp_device_t *new_device,sccp_device_t *orig_device);
+void sccp_duplicate_device_addon_list(sccp_device_t *new_device, sccp_device_t *orig_device);
 
 typedef enum {
         NO_STRUCTS_TO_COMPARE, NO_CHANGES, MINOR_CHANGES, CHANGES_NEED_RESET
 } sccp_diff_t;
 
-sccp_diff_t sccp_dev_diff(sccp_device_t *device_a, sccp_device_t *device_b);
-sccp_diff_t sccp_buttonconfig_diff(sccp_buttonconfig_t *buttonconfig_a, sccp_buttonconfig_t *buttonconfig_b);
+sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b);
+sccp_diff_t sccp_buttonconfig_changed(sccp_buttonconfig_t *buttonconfig_a, sccp_buttonconfig_t *buttonconfig_b);
 #endif
 
 #endif /* __SCCP_DEVICE_H */

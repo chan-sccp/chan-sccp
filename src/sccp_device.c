@@ -46,6 +46,12 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/devicestate.h>
 #endif
 
+#ifdef CS_DYNAMIC_CONFIG
+#include <asterisk/acl.h>
+#include <asterisk/frame.h>
+#include <asterisk/config.h>
+#endif
+
 #define  REF_DEBUG 1
 
 #ifdef CS_DYNAMIC_CONFIG
@@ -1685,54 +1691,41 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t *device){
  * \param device sccp device
  * \return new_device as sccp_device_t
  */
-sccp_device_t * sccp_dev_copy(sccp_device_t *orig_device){
+sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
 	sccp_device_t * new_device = NULL;
 	
 	new_device=ast_calloc(1, sizeof(sccp_device_t));
 
-	ast_mutex_init(&new_device->lock);
 	sccp_device_lock(orig_device);
 	memcpy(new_device, orig_device, sizeof(*new_device));
 
 	/* copy strings over */    // are the ok after the memcpy ? 
-	// id
-	// description
-	// config_type
-	// imageversion
-	// lastNumber
-	// meetmeopts
-	// pickupcontext
-	// phonemessage
-	// softkeyDefinition
-	// videoSink
+	// id,description,config_type,imageversion,lastNumber,meetmeopts,pickupcontext,phonemessage,softkeyDefinition,videoSink
 	
-	/* copy structs over */		
 	// ast_codec_pref  codecs
+	uint8_t codec_counter;
+	for(codec_counter=0;codec_counter<31;codec_counter++) {
+                ast_codec_pref_append(&new_device->codecs, ast_codec_pref_index(&orig_device->codecs , codec_counter + 1));
+	}
 
-/*
-	new_device->ha = NULL;
-	ast_copy_ha(orig_device->ha, new_device->ha);
-*/
+	// ast_ha ha
+	ast_free_ha(new_device->ha);
+	new_device->ha=ast_duplicate_ha_list(orig_device->ha);
 
-// ast_variable_new definition in asterisk 1.4.27
-// struct ast_variable *ast_variable_new(const char *name, const char *value)
-// ast_variable_new definition in asterisk 1.6.1.18
-// struct ast_variable *ast_variable_new(const char *name, const char *value, const char *filename)
-
-/*
-	struct ast_variable* v;
-	new_device->variables = NULL;
+        // ast_variable variables
+	struct ast_variable *v;
+	new_device->variables=NULL;
 	for (v = orig_device->variables; v; v = v->next)
 	{
 #ifdef ASTERISK_CONF_1_6
-		struct ast_variable *new_v = ast_variable_new(v->name, v->value, "sccp.conf");
+		struct ast_variable *new_v = ast_variable_new(v->name, v->value, v->file);
 #else
 		struct ast_variable *new_v = ast_variable_new(v->name, v->value);
 #endif
 		new_v->next = new_device->variables;
 		new_device->variables = new_v;
 	}
-*/
+
 	// sccp_channel_t  *active_channel
 	// sccp_channel_t  *transfer_channel
 	// sccp_channel_t  *conference_channel
@@ -1754,9 +1747,21 @@ sccp_device_t * sccp_dev_copy(sccp_device_t *orig_device){
 	// btnlist		buttonTemplate
 	// softKeyConfiguration
 
-
 	/* copy lists over */
-	//butonconfig
+	sccp_duplicate_device_buttonconfig_list(new_device,orig_device);
+	sccp_duplicate_device_hostname_list(new_device,orig_device);
+	sccp_duplicate_device_selectedchannel_list(new_device,orig_device);  
+        sccp_duplicate_device_addon_list(new_device,orig_device);
+
+	sccp_device_unlock(orig_device);
+	return new_device;
+}
+
+/*!
+ * Copy the list of buttonconfig from another device
+ * \param device original sccp device from which to copy the list
+ */
+void sccp_duplicate_device_buttonconfig_list(sccp_device_t *new_device, sccp_device_t *orig_device) {
 	sccp_buttonconfig_t *orig_buttonconfig=NULL;
 	sccp_buttonconfig_t *new_buttonconfig=NULL;
 
@@ -1768,50 +1773,62 @@ sccp_device_t * sccp_dev_copy(sccp_device_t *orig_device){
 		SCCP_LIST_INSERT_TAIL(&new_device->buttonconfig, new_buttonconfig, list);
 	}
 	SCCP_LIST_UNLOCK(&orig_device->buttonconfig);
+}
 
-	//butonconfig
-	sccp_hostname_t *orig_permithosts=NULL;
-	sccp_hostname_t *new_permithosts=NULL;
+/*!
+ * Copy the list of permitshosts from another device
+ * \param device original sccp device from which to copy the list
+ */
+void sccp_duplicate_device_hostname_list(sccp_device_t *new_device,sccp_device_t *orig_device) {
+	sccp_hostname_t *orig_permithost=NULL;
+	sccp_hostname_t *new_permithost=NULL;
 
 	SCCP_LIST_HEAD_INIT(&new_device->permithosts);
 	SCCP_LIST_LOCK(&orig_device->permithosts);
-	SCCP_LIST_TRAVERSE(&orig_device->permithosts, orig_permithosts, list){
-		new_permithosts=ast_calloc(1, sizeof(sccp_hostname_t));
-		memcpy(new_permithosts, orig_permithosts, sizeof(*new_permithosts));
-		SCCP_LIST_INSERT_TAIL(&new_device->permithosts, new_permithosts, list);
+	SCCP_LIST_TRAVERSE(&orig_device->permithosts, orig_permithost, list){
+		new_permithost=ast_calloc(1, sizeof(sccp_hostname_t));
+		memcpy(new_permithost, orig_permithost, sizeof(*new_permithost));
+		SCCP_LIST_INSERT_TAIL(&new_device->permithosts, new_permithost, list);
 	}
 	SCCP_LIST_UNLOCK(&orig_device->permithosts);
-	
-	//selectedChannels
-	sccp_selectedchannel_t *orig_selectedChannels=NULL;
-	sccp_selectedchannel_t *new_selectedChannels=NULL;
+}
+
+/*!
+ * Copy the list of selectchannels from another device
+ * \param device original sccp device from which to copy the list
+ */
+void sccp_duplicate_device_selectedchannel_list(sccp_device_t *new_device,sccp_device_t *orig_device) {
+	sccp_selectedchannel_t *orig_selectedChannel=NULL;
+	sccp_selectedchannel_t *new_selectedChannel=NULL;
 
 	SCCP_LIST_HEAD_INIT(&new_device->selectedChannels);
 	SCCP_LIST_LOCK(&orig_device->selectedChannels);
-	SCCP_LIST_TRAVERSE(&orig_device->selectedChannels, orig_selectedChannels, list){
-		new_selectedChannels=ast_calloc(1, sizeof(sccp_selectedchannel_t));
-		memcpy(new_selectedChannels, orig_selectedChannels, sizeof(*new_selectedChannels));
-		SCCP_LIST_INSERT_TAIL(&new_device->selectedChannels, new_selectedChannels, list);
-	}
+	SCCP_LIST_TRAVERSE(&orig_device->selectedChannels, orig_selectedChannel, list){
+		new_selectedChannel=ast_calloc(1, sizeof(sccp_selectedchannel_t));
+		memcpy(new_selectedChannel, orig_selectedChannel, sizeof(*new_selectedChannel));
+		SCCP_LIST_INSERT_TAIL(&new_device->selectedChannels, new_selectedChannel, list);
+        }
 	SCCP_LIST_UNLOCK(&orig_device->selectedChannels);
+}
 
-	//addons
-	sccp_addon_t *orig_addons=NULL;
-	sccp_addon_t *new_addons=NULL;
+
+/*!
+ * Copy the list of addons from another device
+ * \param device original sccp device from which to copy the list
+ */
+void sccp_duplicate_device_addon_list(sccp_device_t *new_device, sccp_device_t *orig_device) {
+	sccp_addon_t *orig_addon=NULL;
+	sccp_addon_t *new_addon=NULL;
 
 	SCCP_LIST_HEAD_INIT(&new_device->addons);
 	SCCP_LIST_LOCK(&orig_device->addons);
-	SCCP_LIST_TRAVERSE(&orig_device->addons, orig_addons, list){
-		new_addons=ast_calloc(1, sizeof(sccp_addon_t));
-		memcpy(new_addons, orig_addons, sizeof(*new_addons));
-		SCCP_LIST_INSERT_TAIL(&new_device->addons, new_addons, list);
+	SCCP_LIST_TRAVERSE(&orig_device->addons, orig_addon, list){
+		new_addon=ast_calloc(1, sizeof(sccp_addon_t));
+		memcpy(new_addon, orig_addon, sizeof(*new_addon));
+		SCCP_LIST_INSERT_TAIL(&new_device->addons, new_addon, list);
 	}
 	SCCP_LIST_UNLOCK(&orig_device->addons);
-	
-	
-	sccp_device_unlock(orig_device);
-	return new_device;
-}
+}	
 
 /*!
  * Checks two devices against one another and returns a sccp_diff_t if different
@@ -1819,7 +1836,7 @@ sccp_device_t * sccp_dev_copy(sccp_device_t *orig_device){
  * \param device_b sccp device
  * \return sccp_diff_t
  */
-sccp_diff_t sccp_dev_diff(sccp_device_t *device_a, sccp_device_t *device_b){
+sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b){
 	sccp_diff_t res=NO_CHANGES;
 	
 	if (device_a && device_b) {
@@ -1866,7 +1883,7 @@ sccp_diff_t sccp_dev_diff(sccp_device_t *device_a, sccp_device_t *device_b){
 			SCCP_LIST_LOCK(&device_b->buttonconfig);
 			buttonconfig_b=SCCP_LIST_FIRST(&device_b->buttonconfig);
                         SCCP_LIST_TRAVERSE(&device_a->buttonconfig, buttonconfig_a, list) {
-       				if ((res = sccp_buttonconfig_diff(buttonconfig_a,buttonconfig_b) != NO_CHANGES)) {
+       				if ((res = sccp_buttonconfig_changed(buttonconfig_a,buttonconfig_b) != NO_CHANGES)) {
         				break;
 				} 
 				buttonconfig_b=SCCP_LIST_NEXT(buttonconfig_b,list);
@@ -1890,7 +1907,7 @@ sccp_diff_t sccp_dev_diff(sccp_device_t *device_a, sccp_device_t *device_b){
  * \param device_b sccp device
  * \return sccp_diff_t
  */
-sccp_diff_t sccp_buttonconfig_diff(sccp_buttonconfig_t *buttonconfig_a, sccp_buttonconfig_t *buttonconfig_b){
+sccp_diff_t sccp_buttonconfig_changed(sccp_buttonconfig_t *buttonconfig_a, sccp_buttonconfig_t *buttonconfig_b){
 	sccp_diff_t res=NO_CHANGES;
 	
 	if (buttonconfig_a && buttonconfig_b) {
