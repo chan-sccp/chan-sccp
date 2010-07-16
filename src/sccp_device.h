@@ -73,5 +73,8 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t *device);
 #define REQ(x,y) x = sccp_build_packet(y, sizeof(x->msg.y))
 #define REQCMD(x,y) x = sccp_build_packet(y, 0)
 
-#endif /* __SCCP_CLI_H */
+sccp_device_t * sccp_dev_copy(sccp_device_t *orig_device);
+boolean_t sccp_dev_diff(sccp_device_t *device_a, sccp_device_t *device_b);
+
+#endif /* __SCCP_DEVICE_H */
 
