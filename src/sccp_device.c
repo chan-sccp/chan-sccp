@@ -1457,7 +1457,6 @@ int sccp_device_free(const void *ptr){
 	sccp_hostname_t 	*permithost = NULL;
 
 	
-	
 	sccp_device_lock(d);
 	/* remove button config */
 	/* only generated on read config, so do not remove on reset/restart*/
@@ -1640,7 +1639,7 @@ void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32
 }
 
 
-/**
+/*!
  * get number of channels that the device owns
  * \param device sccp device
  * \note device should be locked by parent functions
@@ -1678,3 +1677,124 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t *device){
 	return numberOfChannels;
 }
 
+#ifdef CS_DYNAMIC_CONFIG
+/*!
+ * copy the structure content of one device to a new one
+ * \param device sccp device
+ * \return new_device as sccp_device_t
+ */
+sccp_device_t * sccp_dev_copy(sccp_device_t *orig_device){
+	sccp_device_t * new_device = NULL;
+	
+	new_device=ast_calloc(1, sizeof(sccp_device_t));
+
+	ast_mutex_init(&new_device->lock);
+	sccp_device_lock(orig_device);
+	memcpy(new_device, orig_device, sizeof(*new_device));
+
+	/* copy strings over */    // are the ok after the memcpy ? 
+	// id
+	// description
+	// config_type
+	// imageversion
+	// lastNumber
+	// meetmeopts
+	// pickupcontext
+	// phonemessage
+	// softkeyDefinition
+	// videoSink
+	
+	/* copy structs over */		
+	// ast_codec_pref  codecs
+	// ast_ha          ha
+	// ast_variable	   variables
+	// sccp_channel_t  *active_channel
+	// sccp_channel_t  *transfer_channel
+	// sccp_channel_t  *conference_channel
+	// sccp_line_t     *currentLine
+	// sccp_session_t  * session
+	// sccp_featureConfiguration_t 	privacyFeature
+	// sccp_featureConfiguration_t 	overlapFeature
+	// sccp_featureConfiguration_t  monitorFeature;
+	// sccp_featureConfiguration_t  dndFeature;    
+	// sccp_featureConfiguration_t  priFeature;    
+	// sccp_featureConfiguration_t  mobFeature;    
+	// light_t	   mwiLight
+	// accessoryStatus
+	// configurationStatistic
+	// voicemailStatistic
+	// softKeyConfiguration
+	// scheduleTasks
+	// sccp_conference	conference
+	// btnlist		buttonTemplate
+	// softKeyConfiguration
+
+
+	/* copy lists over */
+	//butonconfig
+	sccp_buttonconfig_t *orig_buttonconfig=NULL;
+	sccp_buttonconfig_t *new_buttonconfig=NULL;
+
+	SCCP_LIST_HEAD_INIT(&new_device->buttonconfig);
+	SCCP_LIST_LOCK(&orig_device->buttonconfig);
+	SCCP_LIST_TRAVERSE(&orig_device->buttonconfig, orig_buttonconfig, list){
+		new_buttonconfig=ast_calloc(1, sizeof(sccp_buttonconfig_t));
+		memcpy(new_buttonconfig, orig_buttonconfig, sizeof(*new_buttonconfig));
+		SCCP_LIST_INSERT_TAIL(&new_device->buttonconfig, new_buttonconfig, list);
+	}
+	SCCP_LIST_UNLOCK(&orig_device->buttonconfig);
+
+	//butonconfig
+	sccp_hostname_t *orig_permithosts=NULL;
+	sccp_hostname_t *new_permithosts=NULL;
+
+	SCCP_LIST_HEAD_INIT(&new_device->permithosts);
+	SCCP_LIST_LOCK(&orig_device->permithosts);
+	SCCP_LIST_TRAVERSE(&orig_device->permithosts, orig_permithosts, list){
+		new_permithosts=ast_calloc(1, sizeof(sccp_hostname_t));
+		memcpy(new_permithosts, orig_permithosts, sizeof(*new_permithosts));
+		SCCP_LIST_INSERT_TAIL(&new_device->permithosts, new_permithosts, list);
+	}
+	SCCP_LIST_UNLOCK(&orig_device->permithosts);
+	
+	//selectedChannels
+	sccp_selectedchannel_t *orig_selectedChannels=NULL;
+	sccp_selectedchannel_t *new_selectedChannels=NULL;
+
+	SCCP_LIST_HEAD_INIT(&new_device->selectedChannels);
+	SCCP_LIST_LOCK(&orig_device->selectedChannels);
+	SCCP_LIST_TRAVERSE(&orig_device->selectedChannels, orig_selectedChannels, list){
+		new_selectedChannels=ast_calloc(1, sizeof(sccp_selectedchannel_t));
+		memcpy(new_selectedChannels, orig_selectedChannels, sizeof(*new_selectedChannels));
+		SCCP_LIST_INSERT_TAIL(&new_device->selectedChannels, new_selectedChannels, list);
+	}
+	SCCP_LIST_UNLOCK(&orig_device->selectedChannels);
+
+	//addons
+	sccp_addon_t *orig_addons=NULL;
+	sccp_addon_t *new_addons=NULL;
+
+	SCCP_LIST_HEAD_INIT(&new_device->addons);
+	SCCP_LIST_LOCK(&orig_device->addons);
+	SCCP_LIST_TRAVERSE(&orig_device->addons, orig_addons, list){
+		new_addons=ast_calloc(1, sizeof(sccp_addon_t));
+		memcpy(new_addons, orig_addons, sizeof(*new_addons));
+		SCCP_LIST_INSERT_TAIL(&new_device->addons, new_addons, list);
+	}
+	SCCP_LIST_UNLOCK(&orig_device->addons);
+	
+	
+	sccp_device_unlock(orig_device);
+	return new_device;
+}
+
+/*!
+ * Checks two devices against one another and returns a boolean if different
+ * \param device_a sccp device
+ * \param device_b sccp device
+ * \return true/false
+ */
+boolean_t sccp_dev_diff(sccp_device_t *device_a, sccp_device_t *device_b){
+	return FALSE;
+}
+#endif

@@ -1288,8 +1288,12 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 #ifdef CS_DYNAMIC_CONFIG
 	sccp_device_t 	       * temp_d = NULL;
 	/* copy d to temp_d structure */
-	temp_d = ast_calloc(1, sizeof(sccp_device_t));
-	memcpy(temp_d, d, sizeof(*temp_d));
+
+	// next lines replaced by sccp_dev_copy
+//	temp_d = ast_calloc(1, sizeof(sccp_device_t));
+//	memcpy(temp_d, d, sizeof(*temp_d));
+	temp_d=sccp_dev_copy(d);
+	
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: privacyFeature.status %X:%X\n", temp_d->id,temp_d->privacyFeature.status,d->privacyFeature.status);
 #endif /* CS_DYNAMIC_CONFIG */
 
@@ -1489,6 +1493,22 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 		v = v->next;
 	}
 
+	res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
+
+	if (!res)
+		d->phonemessage=strdup(message);									//set message on device if we have a result
+
+
+	sprintf(family, "SCCP/%s", d->id);
+	res = ast_db_get(family, "lastDialedNumber", lastNumber, sizeof(lastNumber));
+	if(!res){
+		sccp_copy_string(d->lastNumber, lastNumber, sizeof(d->lastNumber));
+	}
+
+	 /* load saved settings from ast db */
+	sccp_config_restoreDeviceFeatureStatus(d);
+
+
 #ifdef CS_DYNAMIC_CONFIG
 	/* compare temporiry d to device */
 	if (temp_d) {
@@ -1535,21 +1555,6 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 
 	}
 #endif /* CS_DYNAMIC_CONFIG */
-	res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
-
-	if (!res)
-		d->phonemessage=strdup(message);									//set message on device if we have a result
-
-
-	sprintf(family, "SCCP/%s", d->id);
-	res = ast_db_get(family, "lastDialedNumber", lastNumber, sizeof(lastNumber));
-	if(!res){
-		sccp_copy_string(d->lastNumber, lastNumber, sizeof(d->lastNumber));
-	}
-
-	 /* load saved settings from ast db */
-	sccp_config_restoreDeviceFeatureStatus(d);
-
 	return d;
 }
 
