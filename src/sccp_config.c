@@ -1292,7 +1292,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 	// next lines replaced by sccp_dev_copy
 //	temp_d = ast_calloc(1, sizeof(sccp_device_t));
 //	memcpy(temp_d, d, sizeof(*temp_d));
-	temp_d=sccp_dev_copy(d);
+	temp_d=sccp_clone_device(d);
 	
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: privacyFeature.status %X:%X\n", temp_d->id,temp_d->privacyFeature.status,d->privacyFeature.status);
 #endif /* CS_DYNAMIC_CONFIG */
