@@ -1719,6 +1719,7 @@ sccp_device_t * sccp_dev_copy(sccp_device_t *orig_device){
 
 /*
 	struct ast_variable* v;
+	new_device->variables = NULL;
 	for (v = orig_device->variables; v; v = v->next)
 	{
 #ifdef ASTERISK_CONF_1_6
