@@ -1312,10 +1312,12 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 	temp_d->directrtp = d->directrtp;
 	temp_d->trustphoneip = d->trustphoneip;
 	temp_d->park = d->park;
+#ifdef CS_ADV_FEATURES
 	temp_d->useRedialMenu = d->useRedialMenu;
+#endif /* CS_ADV_FEATURES */
 	temp_d->meetme = d->meetme;
 	temp_d->mwioncall = d->mwioncall;
-#endif	
+#endif /* CS_DYNAMIC_CONFIG */
 
 	/* for button config */
 	char 			*buttonType = NULL, *buttonName = NULL, *buttonOption=NULL, *buttonArgs=NULL;
@@ -1553,7 +1555,9 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 			(temp_d->directrtp == d->directrtp) &&					//boolean
 			(temp_d->trustphoneip == d->trustphoneip) &&				//boolean
 			(temp_d->park == d->park)  &&						//boolean
+#ifdef CS_ADV_FEATURES
 			(temp_d->useRedialMenu == d->useRedialMenu) &&				//boolean
+#endif /* CS_ADV_FEATURES */
 			(temp_d->meetme == d->meetme) && 					//boolean*/
 			(temp_d->mwioncall == d->mwioncall)					//boolean
 		) {
@@ -1565,7 +1569,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 			temp_d->pendingDelete=0;
 		}
 	}
-#endif
+#endif /* CS_DYNAMIC_CONFIG */
 	res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
 
 	if (!res)
