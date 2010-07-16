@@ -117,12 +117,11 @@ void sccp_device_post_reload(void)
  * \return device with default/global values
  */
 sccp_device_t * sccp_device_create(void){
-	sccp_device_t * d = ast_malloc(sizeof(sccp_device_t));
+	sccp_device_t * d = ast_calloc(1, sizeof(sccp_device_t));
 	if (!d) {
 		sccp_log(0)(VERBOSE_PREFIX_3 "Unable to allocate memory for a device\n");
 		return NULL;
 	}
-	memset(d, 0, sizeof(sccp_device_t));
 	ast_mutex_init(&d->lock);
 
 	d = sccp_device_applyDefaults(d);
