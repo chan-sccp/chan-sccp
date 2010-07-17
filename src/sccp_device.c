@@ -37,6 +37,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_line.h"
 #include "sccp_mwi.h"
 #include "sccp_config.h"
+#include "sccp_conference.h"
 
 #include <asterisk/app.h>
 #include <asterisk/pbx.h>
@@ -1743,47 +1744,37 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
                 }
         }
         
-	// sccp_featureConfiguration_t 	privacyFeature
 	new_device->privacyFeature = orig_device->privacyFeature;
-        sccp_copy_string(new_device->privacyFeature.configOptions, orig_device->privacyFeature.configOptions, sizeof(orig_device->privacyFeature.configOptions));
-
-	// sccp_featureConfiguration_t 	overlapFeature
         new_device->overlapFeature = orig_device->privacyFeature;
-        sccp_copy_string(new_device->overlapFeature.configOptions, orig_device->overlapFeature.configOptions, sizeof(orig_device->overlapFeature.configOptions));
-
-	// sccp_featureConfiguration_t  monitorFeature;
         new_device->monitorFeature = orig_device->privacyFeature;
-        sccp_copy_string(new_device->monitorFeature.configOptions, orig_device->monitorFeature.configOptions, sizeof(orig_device->monitorFeature.configOptions));
-
-	// sccp_featureConfiguration_t  dndFeature;    
         new_device->dndFeature = orig_device->privacyFeature;
-        sccp_copy_string(new_device->dndFeature.configOptions, orig_device->dndFeature.configOptions, sizeof(orig_device->dndFeature.configOptions));
-
-	// sccp_featureConfiguration_t  priFeature;    
         new_device->priFeature = orig_device->privacyFeature;
-        sccp_copy_string(new_device->priFeature.configOptions, orig_device->priFeature.configOptions, sizeof(orig_device->priFeature.configOptions));
-
-	// sccp_featureConfiguration_t  mobFeature;    
         new_device->mobFeature = orig_device->privacyFeature;
-        sccp_copy_string(new_device->mobFeature.configOptions, orig_device->mobFeature.configOptions, sizeof(orig_device->mobFeature.configOptions));
-
-	// accessoryStatus
 	new_device->accessoryStatus = orig_device->accessoryStatus;
-	
-	// configurationStatistic
 	new_device->configurationStatistic = orig_device->configurationStatistic;
-	
-	// voicemailStatistic
 	new_device->voicemailStatistic = orig_device->voicemailStatistic;
-	
+
 	// softKeyConfiguration
 	new_device->softKeyConfiguration = orig_device->softKeyConfiguration;
-	new_device->softKeyConfiguration.modes = orig_device->softKeyConfiguration.modes;
+	softkey_modes 	*skm = orig_device->softKeyConfiguration.modes;
+	new_device->softKeyConfiguration.modes = skm;
 	new_device->softKeyConfiguration.size = orig_device->softKeyConfiguration.size;
 	
 	// scheduleTasks
-	// sccp_conference	conference
-	// btnlist		buttonTemplate
+	new_device->scheduleTasks = orig_device->scheduleTasks;
+#ifdef CS_SCCP_CONFERENCE
+	// sccp_conference	*conference
+	new_device->conference = calloc(1,sizeof(sccp_conference_t));
+	memcpy(new_device->conference,orig_device->conference,sizeof(sccp_conference_t));
+#endif
+	// btnlist		*buttonTemplate
+//	new_device->buttonTemplate = calloc(1,sizeof(btnlist));
+//	memcpy(new_device->btnTemplate,orig_device->btnTemplate,sizeof(btnlist));
+	// char 		*pickupcontext
+	sccp_copy_string(new_device->pickupcontext,orig_device->pickupcontext,strlen(orig_device->pickupcontext) * sizeof(char));
+	// char 		*phonemessage
+	sccp_copy_string(new_device->phonemessage,orig_device->phonemessage,strlen(orig_device->phonemessage) * sizeof(char));
+
 	// softKeyConfiguration
 
 	/* copy lists over */
@@ -1807,7 +1798,7 @@ void sccp_duplicate_device_buttonconfig_list(sccp_device_t *new_device, sccp_dev
 	SCCP_LIST_HEAD_INIT(&new_device->buttonconfig);
 	SCCP_LIST_LOCK(&orig_device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&orig_device->buttonconfig, orig_buttonconfig, list){
-		new_buttonconfig=ast_malloc(sizeof(sccp_buttonconfig_t));
+		new_buttonconfig=ast_calloc(1,sizeof(sccp_buttonconfig_t));
 		memcpy(new_buttonconfig, orig_buttonconfig, sizeof(*new_buttonconfig));
 		SCCP_LIST_INSERT_TAIL(&new_device->buttonconfig, new_buttonconfig, list);
 	}
@@ -1825,7 +1816,7 @@ void sccp_duplicate_device_hostname_list(sccp_device_t *new_device,sccp_device_t
 	SCCP_LIST_HEAD_INIT(&new_device->permithosts);
 	SCCP_LIST_LOCK(&orig_device->permithosts);
 	SCCP_LIST_TRAVERSE(&orig_device->permithosts, orig_permithost, list){
-		new_permithost=ast_malloc(sizeof(sccp_hostname_t));
+		new_permithost=ast_calloc(1,sizeof(sccp_hostname_t));
 		memcpy(new_permithost, orig_permithost, sizeof(*new_permithost));
 		SCCP_LIST_INSERT_TAIL(&new_device->permithosts, new_permithost, list);
 	}
@@ -1843,7 +1834,7 @@ void sccp_duplicate_device_selectedchannel_list(sccp_device_t *new_device,sccp_d
 	SCCP_LIST_HEAD_INIT(&new_device->selectedChannels);
 	SCCP_LIST_LOCK(&orig_device->selectedChannels);
 	SCCP_LIST_TRAVERSE(&orig_device->selectedChannels, orig_selectedChannel, list){
-		new_selectedChannel=ast_malloc(sizeof(sccp_selectedchannel_t));
+		new_selectedChannel=ast_calloc(1,sizeof(sccp_selectedchannel_t));
 		memcpy(new_selectedChannel, orig_selectedChannel, sizeof(*new_selectedChannel));
 		SCCP_LIST_INSERT_TAIL(&new_device->selectedChannels, new_selectedChannel, list);
         }
@@ -1862,7 +1853,7 @@ void sccp_duplicate_device_addon_list(sccp_device_t *new_device, sccp_device_t *
 	SCCP_LIST_HEAD_INIT(&new_device->addons);
 	SCCP_LIST_LOCK(&orig_device->addons);
 	SCCP_LIST_TRAVERSE(&orig_device->addons, orig_addon, list){
-		new_addon=ast_malloc(sizeof(sccp_addon_t));
+		new_addon=ast_calloc(1,sizeof(sccp_addon_t));
 		memcpy(new_addon, orig_addon, sizeof(*new_addon));
 		SCCP_LIST_INSERT_TAIL(&new_device->addons, new_addon, list);
 	}
