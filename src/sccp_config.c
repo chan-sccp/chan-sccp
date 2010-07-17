@@ -188,7 +188,7 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
  * \param options  Line Options
  * \param index Index Preferred Button Position as int
  */
-void sccp_config_addLine(sccp_device_t *device, char *lineName, char *options, uint16_t index) {
+void sccp_config_addLine(sccp_device_t *device, char *lineName, char *options, uint16_t instance) {
 	struct composedId composedLineRegistrationId;
 	sccp_buttonconfig_t	*config;
 
@@ -226,9 +226,9 @@ void sccp_config_addLine(sccp_device_t *device, char *lineName, char *options, u
 /**
  * Add an Empty Button to device.
  * \param device SCCP Device
- * \param index Index Preferred Button Position as int
+ * \param instance Index Preferred Button Position as int
  */
-void sccp_config_addEmpty(sccp_device_t *device, uint16_t index)
+void sccp_config_addEmpty(sccp_device_t *device, uint16_t instance)
 {
 	sccp_buttonconfig_t	*config;
 
@@ -249,9 +249,9 @@ void sccp_config_addEmpty(sccp_device_t *device, uint16_t index)
  * \param label Label as char
  * \param extension Extension as char
  * \param hint Hint as char
- * \param index Index Preferred Button Position as int
+ * \param instance Index Preferred Button Position as int
  */
-void sccp_config_addSpeeddial(sccp_device_t *device, char *label, char *extension, char *hint, uint16_t index){
+void sccp_config_addSpeeddial(sccp_device_t *device, char *label, char *extension, char *hint, uint16_t instance){
 	sccp_buttonconfig_t	*config;
 	config = ast_calloc(1, sizeof(sccp_buttonconfig_t));
 	if (!config)
@@ -279,9 +279,9 @@ void sccp_config_addSpeeddial(sccp_device_t *device, char *label, char *extensio
  * \param label Label as char
  * \param featureID featureID as char
  * \param args Arguments as char
- * \param index Index Preferred Button Position as int
+ * \param instance Index Preferred Button Position as int
  */
-void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID, char *args, uint16_t index){
+void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID, char *args, uint16_t instance){
 	sccp_buttonconfig_t	*config;
 
 	config = ast_calloc(1, sizeof(sccp_buttonconfig_t));
@@ -316,9 +316,9 @@ void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID,
  * \param device SCCP Device
  * \param label Label as char
  * \param url URL as char
- * \param index Index Preferred Button Position as int
+ * \param instance Index Preferred Button Position as int
  */
-void sccp_config_addService(sccp_device_t *device, char *label, char *url, uint16_t index)
+void sccp_config_addService(sccp_device_t *device, char *label, char *url, uint16_t instance)
 {
 	sccp_buttonconfig_t	*config;
 
@@ -1277,7 +1277,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 	/* for button config */
 	char 			*buttonType = NULL, *buttonName = NULL, *buttonOption=NULL, *buttonArgs=NULL;
 	char 			k_button[256];
-	uint8_t			instance=0;
+	uint16_t		instance=0;
 	char 			*splitter;
 	char			config_value[256];
 
@@ -1288,7 +1288,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 	// next lines replaced by sccp_dev_copy
 //	temp_d = ast_calloc(1, sizeof(sccp_device_t));
 //	memcpy(temp_d, d, sizeof(*temp_d));
-	if (d && d->pendingDelete==1) {
+	if (d && d->pendingDelete==1 && !d->realtime) {
 		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: cloning device\n", d->id);
 		temp_d=sccp_clone_device(d);
 	}
@@ -1496,7 +1496,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 
 #ifdef CS_DYNAMIC_CONFIG
 	/* compare temporiry d to device */
-	if (d->pendingDelete==1 && temp_d) {
+	if (d->pendingDelete==1 && !d->realtime && temp_d) {
 		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: privacyFeature.status %X:%X\n", temp_d->id,temp_d->privacyFeature.status,d->privacyFeature.status);
 		if (
 //			temp_d->setvar			//list str
@@ -1538,7 +1538,8 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 		}
 		
 		// removing temp_d
-		ast_free(temp_d);
+		sccp_dev_clean(temp_d,FALSE,0);
+		sccp_device_free(temp_d);
 		temp_d=NULL;
 	}
 #endif /* CS_DYNAMIC_CONFIG */

@@ -101,7 +101,7 @@ static const struct ast_devicestate {
 #ifdef ENUM_AST_DEVICE
         enum ast_device_state devicestate;
 #else
-        int devicestate;
+        uint8_t devicestate;
 #endif
         const char * const text;
 } ast_devicestates[] = {
@@ -138,7 +138,7 @@ typedef enum {
  * \brief SCCP CallForwardState Structure
  */
 static const struct sccp_callforwardstate {
-        int callforwardstate;
+        uint8_t callforwardstate;
         const char * const text;
         const char * const longtext;
 } sccp_callforwardstates[] = {
@@ -988,7 +988,7 @@ typedef enum {
 static const struct skinny_codec {
 //        uint32_t codec;
         skinny_media_payload codec;
-        uint32_t astcodec;
+        int astcodec;
         const char * const text;
 } skinny_codecs[] = {
 	{ SKINNY_CODEC_NONE		, 0,				"No codec"		},

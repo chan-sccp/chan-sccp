@@ -532,7 +532,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
 {
 	sccp_moo_t * r;
-	uint16_t instance;
+	uint8_t instance;
 	if (!d)
 		return;
 
@@ -915,7 +915,7 @@ void sccp_dev_displayprinotify(sccp_device_t * d, char * msg, uint32_t priority,
  * \param type Type as uint8_t
  * \return SCCP Speed
  */
-sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint8_t instance, uint8_t type)
+sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, uint8_t type)
 {
 	sccp_speed_t 		* k = NULL;
 	sccp_buttonconfig_t	*config;
@@ -1227,7 +1227,7 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
  * \param instance Instance as uint8_t
  * \param lampMode LampMode as uint8_t
  */
-void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint8_t instance, uint8_t lampMode)
+void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t instance, uint8_t lampMode)
 {
 /*
    sccp_moo_t * r;
@@ -1245,9 +1245,9 @@ void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint8_t insta
 }
 
 void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {
-	sccp_moo_t 				*r1 = NULL;
-	sccp_linedevices_t 		*linedevice = NULL;
-	uint16_t 					instance;
+	sccp_moo_t 		*r1 = NULL;
+	sccp_linedevices_t 	*linedevice = NULL;
+	uint16_t 		instance;
 
 	if (!device || !device->session)
 		return;
@@ -1392,8 +1392,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime) {
 		}
 	}
 
-	
-
 	/* hang up open channels and remove device from line */
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
@@ -1412,14 +1410,9 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime) {
 			/* remove devices from line */
 			sccp_line_removeDevice(line, d);
 		}
-		
-		
 		config->instance = 0; /* reset button configuration to rebuild template on register */
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
-	/* */
-
-
 
 	/* removing addons */
 	if(destroy){
@@ -1519,7 +1512,7 @@ boolean_t sccp_device_isVideoSupported(const sccp_device_t *device){
  * \param instance Instance as uint8_t
  * \return SCCP Service
  */
-sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t instance)
+sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t instance)
 {
 	sccp_service_t 		* service = NULL;
 	sccp_buttonconfig_t	* config=NULL;
@@ -1733,22 +1726,61 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
 		new_device->variables = new_v;
 	}
 
+	// I guess the next fout should be skipped, only there lists initialized. A cloned device should not have active channels
 	// sccp_channel_t  *active_channel
 	// sccp_channel_t  *transfer_channel
 	// sccp_channel_t  *conference_channel
+	// sccp_session_t  *session
+	
 	// sccp_line_t     *currentLine
-	// sccp_session_t  * session
+	sccp_buttonconfig_t *orig_buttonconfig = NULL;
+	SCCP_LIST_TRAVERSE(&orig_device->buttonconfig, orig_buttonconfig, list) {
+                if(orig_buttonconfig->type == LINE ){
+	                new_device->currentLine = sccp_line_find_byid(new_device,orig_buttonconfig->instance);
+	                if (new_device->currentLine) {
+	                        break;
+                        }
+                }
+        }
+        
 	// sccp_featureConfiguration_t 	privacyFeature
+	new_device->privacyFeature = orig_device->privacyFeature;
+        sccp_copy_string(new_device->privacyFeature.configOptions, orig_device->privacyFeature.configOptions, sizeof(orig_device->privacyFeature.configOptions));
+
 	// sccp_featureConfiguration_t 	overlapFeature
+        new_device->overlapFeature = orig_device->privacyFeature;
+        sccp_copy_string(new_device->overlapFeature.configOptions, orig_device->overlapFeature.configOptions, sizeof(orig_device->overlapFeature.configOptions));
+
 	// sccp_featureConfiguration_t  monitorFeature;
+        new_device->monitorFeature = orig_device->privacyFeature;
+        sccp_copy_string(new_device->monitorFeature.configOptions, orig_device->monitorFeature.configOptions, sizeof(orig_device->monitorFeature.configOptions));
+
 	// sccp_featureConfiguration_t  dndFeature;    
+        new_device->dndFeature = orig_device->privacyFeature;
+        sccp_copy_string(new_device->dndFeature.configOptions, orig_device->dndFeature.configOptions, sizeof(orig_device->dndFeature.configOptions));
+
 	// sccp_featureConfiguration_t  priFeature;    
+        new_device->priFeature = orig_device->privacyFeature;
+        sccp_copy_string(new_device->priFeature.configOptions, orig_device->priFeature.configOptions, sizeof(orig_device->priFeature.configOptions));
+
 	// sccp_featureConfiguration_t  mobFeature;    
-	// light_t	   mwiLight
+        new_device->mobFeature = orig_device->privacyFeature;
+        sccp_copy_string(new_device->mobFeature.configOptions, orig_device->mobFeature.configOptions, sizeof(orig_device->mobFeature.configOptions));
+
 	// accessoryStatus
+	new_device->accessoryStatus = orig_device->accessoryStatus;
+	
 	// configurationStatistic
+	new_device->configurationStatistic = orig_device->configurationStatistic;
+	
 	// voicemailStatistic
+	new_device->voicemailStatistic = orig_device->voicemailStatistic;
+	
 	// softKeyConfiguration
+	new_device->softKeyConfiguration = orig_device->softKeyConfiguration;
+	new_device->softKeyConfiguration.modes = orig_device->softKeyConfiguration.modes;
+	new_device->softKeyConfiguration.size = orig_device->softKeyConfiguration.size;
+	
 	// scheduleTasks
 	// sccp_conference	conference
 	// btnlist		buttonTemplate

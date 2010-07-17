@@ -38,7 +38,7 @@ sccp_device_t * sccp_device_find_byid(const char * name, boolean_t useRealtime);
 
 sccp_line_t * sccp_line_find_byname_wo(const char * name, uint8_t realtime);
 #define sccp_line_find_byname(x) sccp_line_find_byname_wo(x, 1)
-sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint8_t instance);
+sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint16_t instance);
 
 #ifdef CS_SCCP_REALTIME
 sccp_device_t * sccp_device_find_realtime(const char * name);
@@ -61,7 +61,7 @@ void sccp_dev_dbclean(void);
 
 #define _ARR2STR(arrayname, lookup_var, lookup_val, return_var) \
         ({ \
-        int i; \
+        uint32_t i; \
         for (i = 0; i < ARRAY_LEN(arrayname); i++) { \
                 if (arrayname[i].lookup_var == lookup_val) { \
                         return arrayname[i].return_var; \
@@ -101,8 +101,8 @@ const char * skinny_ringermode2str(uint8_t type);
 
 const char * array2str(uint8_t type, uint32_t value);
 
-uint8_t sccp_codec_ast2skinny(int fmt);
-int sccp_codec_skinny2ast(uint8_t fmt);
+uint32_t sccp_codec_ast2skinny(int fmt);
+int sccp_codec_skinny2ast(uint32_t fmt);
 
 struct composedId sccp_parseComposedId(const char* labelString, unsigned int maxLength);
 

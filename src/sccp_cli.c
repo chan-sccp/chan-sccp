@@ -1670,7 +1670,7 @@ static char * sccp_complete_debug(const char *line, const char *word, int pos, i
  */
 static char * sccp_complete_debug(char *line, char *word, int pos, int state) {
 #endif
-	int i;
+	uint8_t i;
 	int which = 0;
 	char * ret=NULL;
 	boolean_t debugno=0;

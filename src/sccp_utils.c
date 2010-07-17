@@ -428,7 +428,7 @@ sccp_line_t * sccp_line_find_realtime_byname(const char * name)
  * \return SCCP Line (can be null)
  * \todo TODO No ID Specified only instance, should this function be renamed ?
  */
-sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint8_t instance){
+sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint16_t instance){
 	sccp_line_t 		*l = NULL;
 	sccp_buttonconfig_t	*config;
 
@@ -910,7 +910,7 @@ const char * array2str(uint8_t type, uint32_t value) {
  * \param fmt Asterisk Codec as type of AST_FORMAT_*
  * \return Skinny Codec
  */
-uint8_t sccp_codec_ast2skinny(int fmt) {
+uint32_t sccp_codec_ast2skinny(int fmt) {
 /*	switch(fmt) {
 	case AST_FORMAT_ALAW:
 		return 2;
@@ -933,7 +933,7 @@ uint8_t sccp_codec_ast2skinny(int fmt) {
 	default:
 		return 0;
 	}*/
-	int i;
+	uint32_t i;
 	for (i = 1; i < ARRAY_LEN(skinny_codecs); i++) {
 	        if (skinny_codecs[i].astcodec == fmt) {
 	                return skinny_codecs[i].codec;
@@ -947,8 +947,8 @@ uint8_t sccp_codec_ast2skinny(int fmt) {
  * \version 20090708
  *  \author Federico
  */
-int sccp_codec_skinny2ast(uint8_t fmt) {
-	int i;
+int sccp_codec_skinny2ast(uint32_t fmt) {
+	uint32_t i;
 	for (i = 1; i < ARRAY_LEN(skinny_codecs); i++) {
 	        if (skinny_codecs[i].codec == fmt) {
 	                return skinny_codecs[i].astcodec;
@@ -1296,7 +1296,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 struct composedId sccp_parseComposedId(const char* labelString, unsigned int maxLength)
 {
 	const char *stringIterator = 0;
-	int i = 0;
+	uint32_t i = 0;
 	boolean_t endDetected = FALSE;
 	int state = 0;
 	struct composedId id;
@@ -1490,7 +1490,8 @@ sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t *device, sccp
  * \return new_debug_value as uint32_t
  */
 uint32_t sccp_parse_debugline (char * arguments[], int startat, int argc, uint32_t new_debug_value) {
-        int argi,i; 
+        int argi;
+        uint32_t i; 
         char * argument=""; 
         char * token=""; 
         const char
@@ -1550,7 +1551,7 @@ uint32_t sccp_parse_debugline (char * arguments[], int startat, int argc, uint32
  * \return string containing list of categories comma seperated
  */
 const char * sccp_get_debugcategories(uint32_t debugvalue,char * dest) {
-	int i;
+	uint32_t i;
 	boolean_t first=1;
 	char ret[1000]="";
         for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
