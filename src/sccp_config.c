@@ -1273,8 +1273,6 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
  * \todo this function should be called sccp_config_applyDeviceConfiguration
  */
 sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast_variable *v){
-	char 			message[256] = "";//device message
-	int				res;
 
 	/* for button config */
 	char 			*buttonType = NULL, *buttonName = NULL, *buttonOption=NULL, *buttonArgs=NULL;
@@ -1282,8 +1280,6 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 	uint8_t			instance=0;
 	char 			*splitter;
 	char			config_value[256];
-	char 			lastNumber[AST_MAX_EXTENSION]=""; /*!< device last dialed number */
-	char 			family[25];
 
 #ifdef CS_DYNAMIC_CONFIG
 	sccp_device_t 	       * temp_d = NULL;
@@ -1292,9 +1288,10 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 	// next lines replaced by sccp_dev_copy
 //	temp_d = ast_calloc(1, sizeof(sccp_device_t));
 //	memcpy(temp_d, d, sizeof(*temp_d));
-	temp_d=sccp_clone_device(d);
-	
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: privacyFeature.status %X:%X\n", temp_d->id,temp_d->privacyFeature.status,d->privacyFeature.status);
+	if (d && d->pendingDelete==1) {
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: cloning device\n", d->id);
+		temp_d=sccp_clone_device(d);
+	}
 #endif /* CS_DYNAMIC_CONFIG */
 
 	if (!v) {
@@ -1493,25 +1490,13 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 		v = v->next;
 	}
 
-	res=ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
-
-	if (!res)
-		d->phonemessage=strdup(message);									//set message on device if we have a result
-
-
-	sprintf(family, "SCCP/%s", d->id);
-	res = ast_db_get(family, "lastDialedNumber", lastNumber, sizeof(lastNumber));
-	if(!res){
-		sccp_copy_string(d->lastNumber, lastNumber, sizeof(d->lastNumber));
-	}
-
 	 /* load saved settings from ast db */
 	sccp_config_restoreDeviceFeatureStatus(d);
 
 
 #ifdef CS_DYNAMIC_CONFIG
 	/* compare temporiry d to device */
-	if (temp_d) {
+	if (d->pendingDelete==1 && temp_d) {
 		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: privacyFeature.status %X:%X\n", temp_d->id,temp_d->privacyFeature.status,d->privacyFeature.status);
 		if (
 //			temp_d->setvar			//list str
@@ -1551,8 +1536,10 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: set pendingUpdate\n", temp_d->id);
 			d->pendingUpdate=1;
 		}
+		
+		// removing temp_d
 		ast_free(temp_d);
-
+		temp_d=NULL;
 	}
 #endif /* CS_DYNAMIC_CONFIG */
 	return d;
@@ -1758,6 +1745,59 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 		device->privacyFeature.status = 0;
 	}
 
+	/* Message */
+	char 			message[256] = "";
+	res=ast_db_get("SCCPM", device->id, message, sizeof(message));			//load save message from ast_db
+	if (!res)
+		device->phonemessage=strdup(message);					//set message on device if we have a result
+
+
+	/* lastDialedNumber */
+	char 			lastNumber[AST_MAX_EXTENSION]="";
+	sprintf(family, "SCCP/%s", device->id);
+	res = ast_db_get(family, "lastDialedNumber", lastNumber, sizeof(lastNumber));
+	if(!res){
+		sccp_copy_string(device->lastNumber, lastNumber, sizeof(device->lastNumber));
+	}
+
+	/* Call Forward */
+#ifdef CS_ADV_FEATURES
+	sccp_buttonconfig_t     *config;
+	sccp_line_t             *line;
+	sccp_linedevices_t      *lineDevice;
+	char cfwdLineStore[60];
+	
+	sccp_device_lock(device);
+	SCCP_LIST_LOCK(&device->buttonconfig);
+	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list){
+		if(config->type == LINE ){
+			if ((line = sccp_line_find_byname_wo(config->button.line.name,FALSE))) {
+				SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list){
+					if(lineDevice->device != device)
+						continue;
+					
+					
+					sprintf(family, "SCCP/%s/%s", device->id, config->button.line.name);
+					res = ast_db_get(family, "cfwdAll", cfwdLineStore, sizeof(cfwdLineStore));
+					if(!res){
+						sccp_copy_string(lineDevice->cfwdAll.number, cfwdLineStore, sizeof(lineDevice->cfwdAll.number));
+						lineDevice->cfwdAll.enabled=TRUE;
+					}
+					/* implement when sccp_utils.c sccp_util_handleFeatureChangeEvent is implemented for cfwdBusy
+					res = ast_db_get(family, "cfwdBusy", cfwdLineStore, sizeof(cfwdLineStore));
+					if(!res){
+						sccp_copy_string(lineDevice->cfwdAll.number, cfwdLineStore, sizeof(lineDevice->cfwdAll.number));
+						 lineDevice->cfwdBusy.enabled=TRUE;
+					}
+					*/
+				}
+			}
+		}
+	}
+	SCCP_LIST_UNLOCK(&device->buttonconfig);
+	sccp_device_unlock(device);
+#endif
+	
 	/* initialize so called priority feature */
 	device->priFeature.status = 0x010101;
 	device->priFeature.initialized = 0;
