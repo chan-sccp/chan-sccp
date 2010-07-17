@@ -49,17 +49,17 @@ void sccp_dev_displaynotify(sccp_device_t * d, char * msg, uint32_t timeout);
 void sccp_dev_cleardisplayprinotify(sccp_device_t * d);
 void sccp_dev_displayprinotify(sccp_device_t * d, char * msg, uint32_t priority, uint32_t timeout);
 
-sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint8_t instance, uint8_t type);
+sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, uint8_t type);
 sccp_line_t * sccp_dev_get_activeline(sccp_device_t * d);
 void sccp_dev_set_activeline(sccp_device_t *device, sccp_line_t * l);
 void sccp_dev_check_displayprompt(sccp_device_t * d);
 void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * l);
-void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint8_t instance, uint8_t lampMode);
+void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t instance, uint8_t lampMode);
 void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device);
 int sccp_device_check_ringback(sccp_device_t * d);
 void * sccp_dev_postregistration(void *data);
 void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime);
-sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint8_t instance);
+sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t instance);
 uint16_t sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName);
 
 void sccp_device_removeLine(sccp_device_t *device, sccp_line_t * l);

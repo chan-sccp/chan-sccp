@@ -469,7 +469,7 @@ struct sccp_linedevices {
  */
 
 struct sccp_buttonconfig {
-	uint32_t				instance;				/*!< Instance on device */
+	uint16_t				instance;				/*!< Instance on device */
 	uint16_t				index;					/*!< buttonconfig index */
 	button_type_t 				type;					/*!< Button type (e.g. line, speeddial, feature, empty) */
 	SCCP_LIST_ENTRY(sccp_buttonconfig_t) 	list;					/*!< Button Linked List Entry */
@@ -627,7 +627,7 @@ struct sccp_line {
  */
 struct sccp_speed {
 	uint8_t 				config_instance;			/*!< The instance of the speeddial in the sccp.conf */
-	uint8_t 				instance;				/*!< The instance on the current device */
+	uint16_t 				instance;				/*!< The instance on the current device */
 	uint8_t 				type;					/*!< SpeedDial Button Type (SKINNY_BUTTONTYPE_SPEEDDIAL or SKINNY_BUTTONTYPE_LINE (hint)) */
 	char 					name[StationMaxNameSize];		/*!< The name of the speed dial button */
 	char 					ext[AST_MAX_EXTENSION];			/*!< The number to dial when it's hit */
