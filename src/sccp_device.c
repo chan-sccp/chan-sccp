@@ -1718,7 +1718,6 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
         struct ast_ha * hal;				// not sure this construction will help
 	hal=ast_duplicate_ha_list(orig_device->ha);
 	new_device->ha=hal;
-	ast_free(hal);					// do i now also loose the content of new_device->ha ?
 
         // ast_variable variables
 	struct ast_variable *v;
@@ -1776,7 +1775,7 @@ void sccp_duplicate_device_buttonconfig_list(sccp_device_t *new_device, sccp_dev
 	SCCP_LIST_HEAD_INIT(&new_device->buttonconfig);
 	SCCP_LIST_LOCK(&orig_device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&orig_device->buttonconfig, orig_buttonconfig, list){
-		new_buttonconfig=ast_calloc(1, sizeof(sccp_buttonconfig_t));
+		new_buttonconfig=ast_malloc(sizeof(sccp_buttonconfig_t));
 		memcpy(new_buttonconfig, orig_buttonconfig, sizeof(*new_buttonconfig));
 		SCCP_LIST_INSERT_TAIL(&new_device->buttonconfig, new_buttonconfig, list);
 	}
@@ -1794,7 +1793,7 @@ void sccp_duplicate_device_hostname_list(sccp_device_t *new_device,sccp_device_t
 	SCCP_LIST_HEAD_INIT(&new_device->permithosts);
 	SCCP_LIST_LOCK(&orig_device->permithosts);
 	SCCP_LIST_TRAVERSE(&orig_device->permithosts, orig_permithost, list){
-		new_permithost=ast_calloc(1, sizeof(sccp_hostname_t));
+		new_permithost=ast_malloc(sizeof(sccp_hostname_t));
 		memcpy(new_permithost, orig_permithost, sizeof(*new_permithost));
 		SCCP_LIST_INSERT_TAIL(&new_device->permithosts, new_permithost, list);
 	}
@@ -1812,7 +1811,7 @@ void sccp_duplicate_device_selectedchannel_list(sccp_device_t *new_device,sccp_d
 	SCCP_LIST_HEAD_INIT(&new_device->selectedChannels);
 	SCCP_LIST_LOCK(&orig_device->selectedChannels);
 	SCCP_LIST_TRAVERSE(&orig_device->selectedChannels, orig_selectedChannel, list){
-		new_selectedChannel=ast_calloc(1, sizeof(sccp_selectedchannel_t));
+		new_selectedChannel=ast_malloc(sizeof(sccp_selectedchannel_t));
 		memcpy(new_selectedChannel, orig_selectedChannel, sizeof(*new_selectedChannel));
 		SCCP_LIST_INSERT_TAIL(&new_device->selectedChannels, new_selectedChannel, list);
         }
@@ -1831,7 +1830,7 @@ void sccp_duplicate_device_addon_list(sccp_device_t *new_device, sccp_device_t *
 	SCCP_LIST_HEAD_INIT(&new_device->addons);
 	SCCP_LIST_LOCK(&orig_device->addons);
 	SCCP_LIST_TRAVERSE(&orig_device->addons, orig_addon, list){
-		new_addon=ast_calloc(1, sizeof(sccp_addon_t));
+		new_addon=ast_malloc(sizeof(sccp_addon_t));
 		memcpy(new_addon, orig_addon, sizeof(*new_addon));
 		SCCP_LIST_INSERT_TAIL(&new_device->addons, new_addon, list);
 	}
@@ -1848,10 +1847,6 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	sccp_diff_t res=NO_CHANGES;
 	
 	if (        								// check changes requiring reset
-//	    device_a->permithost	 					//list
-//	    device_a->addon							//list
-//	    device_a->allow							//ip list
-//	    device_a->disallow							//ip list
             (strcmp(device_a->description, device_b->description)) || 	 	
             (strcmp(device_a->imageversion, device_b->imageversion)) ||		
             (strcmp(device_a->softkeyDefinition, device_b->softkeyDefinition)) ||
@@ -1862,7 +1857,6 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
             (device_a->trustphoneip != device_b->trustphoneip) ) { 
                 res=CHANGES_NEED_RESET;
         } else if ( 								// check minor changes
-//	    device_a->setvar							//list str
             (!strcmp(device_a->meetmeopts, device_b->meetmeopts)) ||
             (device_a->dtmfmode != device_b->dtmfmode) ||
             (device_a->mwilamp != device_b->mwilamp) ||
@@ -1899,6 +1893,10 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 		//sccp_hostname_t permithosts
 		//sccp_selectedchannel_t selectedChannels
 		//sccp_addon_t addons
+		//device_a->permithost
+		//device_a->allow
+	    	//device_a->disallow
+	    	//device_a->setvar
        	}
 	return res;
 }
