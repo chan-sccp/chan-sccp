@@ -161,6 +161,8 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 #define htoles(x) bswap_16(x)
 #endif
 
+#define SCCP_TECHTYPE_STR "SCCP"
+
 /* Versioning */
 #ifndef SCCP_VERSION
 #define SCCP_VERSION "custom"

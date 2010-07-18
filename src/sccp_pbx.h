@@ -21,6 +21,10 @@
 #define sccp_rtp_read	ast_rtp_instance_write
 #endif
 
+#if ASTERISK_VERSION_NUM >= 10400
+extern struct ast_rtp_protocol sccp_rtp;		/*!< rtp definition, see sccp_pbx.c */
+#endif
+
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c);
 int sccp_pbx_sched_dial(const void *data);
 int sccp_pbx_helper(sccp_channel_t * c);

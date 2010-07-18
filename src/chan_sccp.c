@@ -105,33 +105,6 @@ struct sched_context 			* sched = 0;
 struct io_context 				* io    = 0;
 
 
-#if ASTERISK_VERSION_NUM >= 10400
-/*!
- * \brief	Buffer for Jitterbuffer use
- */
-#ifndef CS_AST_HAS_RTP_ENGINE
-struct ast_rtp_protocol sccp_rtp = {
-	.type = "SCCP",
-	.get_rtp_info = sccp_channel_get_rtp_peer,
-	.set_rtp_peer = sccp_channel_set_rtp_peer,
-	.get_vrtp_info = sccp_channel_get_vrtp_peer,
-	.get_codec = sccp_device_get_codec,
-};
-#else
-/*!
- * \brief using rtp enginge
- */
-struct ast_rtp_glue sccp_rtp = {
-	.type = "SCCP",
-	.get_rtp_info = sccp_channel_get_rtp_peer,
-	.get_vrtp_info = sccp_channel_get_vrtp_peer,
-	.update_peer = sccp_channel_set_rtp_peer,
-	.get_codec = sccp_device_get_codec,
-};
-#endif
-
-#endif
-
 #ifdef CS_AST_HAS_TECH_PVT
 /*!
  * \brief	handle request coming from asterisk
