@@ -1215,41 +1215,6 @@ static int sccp_pbx_sendtext(struct ast_channel *ast, char *text) {
 	return 0;
 }
 
-#ifdef CS_AST_HAS_TECH_PVT
-/*!
- * \brief SCCP Tech Structure
- */
-const struct ast_channel_tech sccp_tech = {
-	.type = "SCCP",
-	.description = "Skinny Client Control Protocol (SCCP)",
-	.capabilities = AST_FORMAT_ALAW|AST_FORMAT_ULAW|AST_FORMAT_G729A |AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS,
-	.properties = AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
-	.requester = sccp_request,
-	.devicestate = sccp_devicestate,
-	.call = sccp_pbx_call,
-	.hangup = sccp_pbx_hangup,
-	.answer = sccp_pbx_answer,
-	.read = sccp_pbx_read,
-	.write = sccp_pbx_write,
-	.write_video = sccp_pbx_write,
-	.indicate = sccp_pbx_indicate,
-	.fixup = sccp_pbx_fixup,
-#if ASTERISK_VERSION_NUM >= 10400
-	.send_digit_begin = sccp_pbx_recvdigit_begin,
-	.send_digit_end = sccp_pbx_recvdigit_end,
-#else
-	.send_digit = sccp_pbx_recvdigit_end,
-#endif
-	.send_text = sccp_pbx_sendtext,
-#if ASTERISK_VERSION_NUM >= 10400
-	.bridge = ast_rtp_bridge,
-#endif
-#if ASTERISK_VERSION_NUM >= 10600
-	.early_bridge = ast_rtp_early_bridge,
-#endif
-};
-#endif
-
 /*!
  * \brief Allocate an Asterisk Channel
  * \param c SCCP Channel
@@ -1939,3 +1904,67 @@ int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
 
 	return 0;
 }
+
+
+#ifdef CS_AST_HAS_TECH_PVT
+/*!
+ * \brief SCCP Tech Structure
+ */
+const struct ast_channel_tech sccp_tech = {
+	.type = SCCP_TECHTYPE_STR,
+	.description = "Skinny Client Control Protocol (SCCP)",
+	.capabilities = AST_FORMAT_ALAW|AST_FORMAT_ULAW|AST_FORMAT_G729A |AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS,
+	.properties = AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
+	.requester = sccp_request,
+	.devicestate = sccp_devicestate,
+	.call = sccp_pbx_call,
+	.hangup = sccp_pbx_hangup,
+	.answer = sccp_pbx_answer,
+	.read = sccp_pbx_read,
+	.write = sccp_pbx_write,
+	.write_video = sccp_pbx_write,
+	.indicate = sccp_pbx_indicate,
+	.fixup = sccp_pbx_fixup,
+#ifndef ASTERISK_CONF_1_2
+	.send_digit_begin = sccp_pbx_recvdigit_begin,
+	.send_digit_end = sccp_pbx_recvdigit_end,
+#else
+	.send_digit = sccp_pbx_recvdigit_end,
+#endif
+	.send_text = sccp_pbx_sendtext,
+#ifndef ASTERISK_CONF_1_2
+	.bridge = ast_rtp_bridge,
+#endif
+#ifdef ASTERISK_CONF_1_6
+	.early_bridge = ast_rtp_early_bridge,
+#endif
+};
+#endif
+
+
+#ifndef ASTERISK_CONF_1_2
+/*!
+ * \brief	Buffer for Jitterbuffer use
+ */
+#ifndef CS_AST_HAS_RTP_ENGINE
+struct ast_rtp_protocol sccp_rtp = {
+	.type = SCCP_TECHTYPE_STR,
+	.get_rtp_info = sccp_channel_get_rtp_peer,
+	.set_rtp_peer = sccp_channel_set_rtp_peer,
+	.get_vrtp_info = sccp_channel_get_vrtp_peer,
+	.get_codec = sccp_device_get_codec,
+};
+#else
+/*!
+ * \brief using rtp enginge
+ */
+struct ast_rtp_glue sccp_rtp = {
+	.type = SCCP_TECHTYPE_STR,
+	.get_rtp_info = sccp_channel_get_rtp_peer,
+	.get_vrtp_info = sccp_channel_get_vrtp_peer,
+	.update_peer = sccp_channel_set_rtp_peer,
+	.get_codec = sccp_device_get_codec,
+};
+#endif
+
+#endif
