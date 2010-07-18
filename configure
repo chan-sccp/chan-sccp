@@ -20217,7 +20217,7 @@ if test "x$ac_cv_header_asterisk_version_h" = x""yes; then :
 
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for version in asterisk/version.h" >&5
 $as_echo_n "checking for version in asterisk/version.h... " >&6; }
-    if grep -q "\"1\.2" $PBX_INCLUDE/version.h; then
+    if grep -q "1\.2" $PBX_INCLUDE/version.h; then
 
 $as_echo "#define ASTERISK_CONF_1_2 1" >>confdefs.h
 
@@ -20226,7 +20226,7 @@ $as_echo "Found 'Asterisk Version 1.2.x'" >&6; }
       REALTIME_USEABLE=0
       ASTERISK_VER=1.2
 
-    elif grep -q "\"1\.4" $PBX_INCLUDE/version.h; then
+    elif grep -q "1\.4" $PBX_INCLUDE/version.h; then
 
 $as_echo "#define ASTERISK_CONF_1_4 1" >>confdefs.h
 
@@ -20235,13 +20235,13 @@ $as_echo "Found 'Asterisk Version 1.4.x'" >&6; }
       REALTIME_USEABLE=1
       ASTERISK_VER=1.4
 
-    elif grep -q "\"1\.6" $PBX_INCLUDE/version.h; then
+    elif grep -q "1\.6" $PBX_INCLUDE/version.h; then
 
 $as_echo "#define ASTERISK_CONF_1_6 1" >>confdefs.h
 
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version 1.6.x'" >&5
 $as_echo "Found 'Asterisk Version 1.6.x'" >&6; }
-      if grep -q "\"1\.6\.0" $PBX_INCLUDE/version.h; then
+      if grep -q "1\.6\.0" $PBX_INCLUDE/version.h; then
 
 $as_echo "#define ASTERISK_CONF_1_6_0 1" >>confdefs.h
 
@@ -20250,7 +20250,7 @@ $as_echo "Specifically 1.6.0" >&6; }
         REALTIME_USEABLE=1
         ASTERISK_VER=1.6.0
 
-      elif grep -q "\"1\.6\.1" $PBX_INCLUDE/version.h; then
+      elif grep -q "1\.6\.1" $PBX_INCLUDE/version.h; then
 
 $as_echo "#define ASTERISK_CONF_1_6_1 1" >>confdefs.h
 
@@ -20259,7 +20259,7 @@ $as_echo "Specifically 1.6.1" >&6; }
         REALTIME_USEABLE=1
         ASTERISK_VER=1.6.1
 
-      elif grep -q "\"1\.6\.2" $PBX_INCLUDE/version.h; then
+      elif grep -q "1\.6\.2" $PBX_INCLUDE/version.h; then
 
 $as_echo "#define ASTERISK_CONF_1_6_2 1" >>confdefs.h
 
@@ -20292,7 +20292,7 @@ $as_echo "Found 'Asterisk Version SVN Trunk --> Using 1.8.x as version number'" 
     if grep -q "SVN-branch" $PBX_INCLUDE/version.h; then
         PBX_VERSION_NUM="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-branch-\(.*\)-r\(.*\)M"/\1/g' |sed 's/\./0/g'`"
         PBX_BRANCH="BRANCH"
-        PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-branch-\(.*\)-r\(.*\)"/\2/g'`"
+        PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-branch-\(.*\)-r\(.*\)M"/\2/g'`"
     elif grep -q "trunk" $PBX_INCLUDE/version.h; then
         PBX_VERSION_NUM=10800
         PBX_BRANCH="TRUNK"
@@ -20311,7 +20311,7 @@ _ACEOF
 
 
 cat >>confdefs.h <<_ACEOF
-#define PBX_BRANCH `echo ${PBX_BRANCH}`
+#define PBX_BRANCH "`echo ${PBX_BRANCH}`"
 _ACEOF
 
 
@@ -20329,7 +20329,7 @@ _ACEOF
 
 
 cat >>confdefs.h <<_ACEOF
-#define ASTERISK_BRANCH `echo ${PBX_BRANCH}`
+#define ASTERISK_BRANCH "`echo ${PBX_BRANCH}`"
 _ACEOF
 
 
