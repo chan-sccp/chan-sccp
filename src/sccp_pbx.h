@@ -36,7 +36,7 @@ void sccp_pbx_needcheckringback(sccp_device_t * d);
 void sccp_pbx_senddigit(sccp_channel_t * c, char digit);
 void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]);
 void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f);
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 int sccp_ast_queue_control(sccp_channel_t * c, enum ast_control_frame_type control);
 #else
 int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control);

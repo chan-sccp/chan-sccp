@@ -87,7 +87,7 @@ void sccp_register_management(void)
 	/* Register manager commands */
 	ast_manager_register2(
 		"SCCPListDevices",
-#ifndef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM < 10600
 		EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG,
 #else
 		EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING,
@@ -99,7 +99,7 @@ void sccp_register_management(void)
 
 	ast_manager_register2(
 		"SCCPDeviceRestart",
-#ifndef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM < 10600
 		EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG,
 #else
 		EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING,
@@ -110,7 +110,7 @@ void sccp_register_management(void)
 
 	ast_manager_register2(
 		"SCCPDeviceAddLine",
-#ifndef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM < 10600
 		EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG,
 #else
 		EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING,
@@ -121,7 +121,7 @@ void sccp_register_management(void)
 
 	ast_manager_register2(
 		"SCCPDeviceUpdate",
-#ifndef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM < 10600
 		EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG,
 #else
 		EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING,
@@ -132,7 +132,7 @@ void sccp_register_management(void)
 
 	ast_manager_register2(
 		"SCCPLineForwardUpdate",
-#ifndef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM < 10600
 		EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG,
 #else
 		EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING,
@@ -170,7 +170,7 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 //	if (!ast_strlen_zero(id))
 	snprintf(idtext, sizeof(idtext), "ActionID: %s\r\n", id);
 
-#ifndef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM < 10600
 	astman_send_ack(s, m, "Device status list will follow");
 #else
 	astman_send_listack(s, m, "Device status list will follow", "start");

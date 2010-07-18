@@ -507,7 +507,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 	for(; v; v = v->next) {
 		sccp_copy_string(config_value, v->value, sizeof(config_value));
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 		/* handle jb in configuration just let asterisk do that */
 		if (!ast_jb_read_conf(&GLOB(global_jbconf), v->name, v->value)){
 			// Found a jb parameter
@@ -540,7 +540,6 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 			}
 		} else if (!strcasecmp(v->name, "permit") || !strcasecmp(v->name, "deny")) {
 
-//#ifndef	ASTERISK_CONF_1_6
 #if ASTERISK_VERSION_NUM < 10600
 			GLOB(ha) = ast_append_ha(v->name, v->value, GLOB(ha));
 #else
@@ -549,7 +548,6 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 
 		} else if (!strcasecmp(v->name, "localnet")) {
 
-//#ifndef	ASTERISK_CONF_1_6
 #if ASTERISK_VERSION_NUM < 10600
 			if (!(na = ast_append_ha("d", v->value, GLOB(localaddr))))
 #else
@@ -689,7 +687,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 			else
 				ast_log(LOG_WARNING, "Invalid earlyrtp state value at line %d, should be 'none', 'offhook', 'dial', 'ringout'\n", v->lineno);
 		} else if (!strcasecmp(v->name, "sccp_tos")) {
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 			if (sscanf(v->value, "%d", &sccp_tos) == 1)
 				GLOB(sccp_tos) = sccp_tos & 0xff;
 #else
@@ -719,7 +717,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 				GLOB(sccp_tos) = 0x68 & 0xff;
 			}
 		} else if (!strcasecmp(v->name, "audio_tos")) {
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 			if (sscanf(v->value, "%d", &audio_tos) == 1)
 				GLOB(audio_tos) = audio_tos & 0xff;
 #else
@@ -749,7 +747,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 				GLOB(audio_tos) = 0xB8 & 0xff;
 			}
 		} else if (!strcasecmp(v->name, "video_tos")) {
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 			if (sscanf(v->value, "%d", &video_tos) == 1)
 				GLOB(video_tos) = video_tos & 0xff;
 #else
@@ -1111,7 +1109,7 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 			} else if (!strcasecmp(v->name, "silencesuppression")) {
 				l->silencesuppression = sccp_true(v->value);
 			} else if (!strcasecmp(v->name, "audio_tos")) {
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 				if (sscanf(v->value, "%d", &audio_tos) == 1)
 					l->audio_tos = audio_tos & 0xff;
 #else
@@ -1141,7 +1139,7 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 					l->audio_tos = GLOB(audio_tos);
 				}
 			} else if (!strcasecmp(v->name, "video_tos")) {
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 				if (sscanf(v->value, "%d", &video_tos) == 1)
 					l->video_tos = video_tos & 0xff;
 #else
@@ -1533,7 +1531,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 struct ast_config *sccp_config_getConfig() {
 	struct ast_config *cfg = NULL;
 
-//#ifndef ASTERISK_CONF_1_6
+//#if ASTERISK_VERSION_NUM < 10600
 #if ASTERISK_VERSION_NUM < 10600
 	cfg = ast_config_load("sccp.conf");
 

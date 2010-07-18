@@ -50,7 +50,7 @@ extern "C" {
 #include "sccp_dllists.h"
 //#include "sccp_conference.h"
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 #include "asterisk/abstract_jb.h"
 #endif
 
@@ -1002,7 +1002,7 @@ struct sccp_global_vars {
 #endif
 	unsigned int 				meetme: 1;				/*!< Meetme on/off */
 	char 					meetmeopts[AST_MAX_CONTEXT];		/*!< Meetme Options to be Used*/
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 
 	struct ast_jb_conf			global_jbconf;				/*!< Global Jitter Buffer Configuration */
 #endif
@@ -1071,7 +1071,7 @@ struct ast_channel 				* sccp_request(char *type, int format, void *data);
 
 int sccp_devicestate(void *data);
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 extern struct sched_context 				* sched;
 extern struct io_context 				* io;
 void 						* sccp_do_monitor(void *data); 		// ADDED IN SVN 414 -FS

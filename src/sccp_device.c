@@ -20,7 +20,7 @@
  
 #include "config.h"
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
@@ -249,7 +249,7 @@ int sccp_device_get_codec(struct ast_channel *ast)
 
 	char s1[512];
 	sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) capabilities are %s (%d)\n",
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 		ast_getformatname_multiple(s1, sizeof(s1) -1, c->capability & AST_FORMAT_AUDIO_MASK),
 #else
 		ast_getformatname_multiple(s1, sizeof(s1) -1, c->capability),
@@ -1718,7 +1718,7 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
 	new_device->variables=NULL;
 	for (v = orig_device->variables; v; v = v->next)
 	{
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 		struct ast_variable *new_v = ast_variable_new(v->name, v->value, v->file);
 #else
 		struct ast_variable *new_v = ast_variable_new(v->name, v->value);

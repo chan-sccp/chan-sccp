@@ -12,7 +12,7 @@
  */
 
 #include "config.h"
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
@@ -267,7 +267,7 @@ struct ast_variable * sccp_create_variable(const char *buf) {
 
 	if ((varval = strchr(varname,'='))) {
 		*varval++ = '\0';
-//#ifndef ASTERISK_CONF_1_6
+//#if ASTERISK_VERSION_NUM < 10600
 #if ASTERISK_VERSION_NUM < 10600
 		if ((tmpvar = ast_variable_new(varname, varval))) {
 #else
@@ -910,7 +910,7 @@ uint32_t sccp_codec_ast2skinny(int fmt) {
 		return 9;
 	case AST_FORMAT_G729A:
 		return 12;
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 	case AST_FORMAT_G726_AAL2:
 		return 82;
 #endif
@@ -1066,7 +1066,7 @@ sccp_device_t * sccp_device_find_byipaddress(unsigned long s_addr){
 }
 
 
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUM >= 1060000
 #ifdef HAVE_PBX_DEVICESTATE_H
 /*!
  * \brief map states from sccp to ast_device_state

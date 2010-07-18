@@ -13,7 +13,7 @@
 
 #include "config.h"
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 #include <asterisk.h>
 #endif
 #include <asterisk/musiconhold.h>
@@ -118,7 +118,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	char * name, * number, *cidtmp; // For the callerid parse below
 #endif
 
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	// if channel type is undefined, set to SCCP
 	if (!ast->type) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Channel type undefined, setting to type 'SCCP'\n");
@@ -558,7 +558,7 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 {
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
 
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	// if channel type is undefined, set to SCCP
 	if (!ast->type) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Channel type undefined, setting to type 'SCCP'\n");
@@ -635,7 +635,7 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
 	struct ast_frame *frame = NULL;
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 	frame = &ast_null_frame;
 #else
 	frame = NULL;
@@ -689,7 +689,7 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 		//				DEV_ID_LOG(c->device),
 		//				ast_getformatname(frame->subclass),
 		//				frame->subclass);
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 		if (!(frame->subclass & (ast->nativeformats & AST_FORMAT_AUDIO_MASK)))
 #else
 		if (!(frame->subclass & (ast->nativeformats)))
@@ -737,7 +737,7 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 					ast_log(LOG_WARNING, "%s: Asked to transmit frame type %d, while native formats are %s(%d) read/write = %s(%d)/%s(%d)\n",
 						DEV_ID_LOG(c->device),
 						frame->subclass,
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 						ast_getformatname_multiple(s1, sizeof(s1) - 1, ast->nativeformats & AST_FORMAT_AUDIO_MASK),
 						ast->nativeformats & AST_FORMAT_AUDIO_MASK,
 #else
@@ -766,7 +766,7 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 				break;
 
 			case AST_FRAME_TEXT:
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 			case AST_FRAME_MODEM:
 #endif
 			default:
@@ -844,7 +844,7 @@ static char *sccp_control2str(int state) {
 		}
 }
 
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 /*!
  * \brief Indicate to Asterisk Channel
  * \param ast Asterisk Channel as ast_channel
@@ -930,13 +930,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
                         ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%d) to: %s(%d) \n",
                                 c->line->name,
                                 c->callid,
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
                                 ast_getformatname_multiple(s1, sizeof(s1) -1, c->format & AST_FORMAT_AUDIO_MASK),
 #else
                                 ast_getformatname_multiple(s1, sizeof(s1) -1, c->format),
 #endif
                                 ast->nativeformats,
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
                                 ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat & AST_FORMAT_AUDIO_MASK),
 #else
                                 ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat),
@@ -967,7 +967,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 #ifdef CS_AST_CONTROL_HOLD
         /* when the bridged channel hold/unhold the call we are notified here */
 	case AST_CONTROL_HOLD:
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 		ast_moh_start(ast, c->musicclass);
 #else
 		ast_moh_start(ast, data, c->musicclass);
@@ -1018,13 +1018,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
                         ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%d) to: %s(%d) \n",
                                 c->line->name,
                                 c->callid,
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
                                 ast_getformatname_multiple(s1, sizeof(s1) -1, c->format & AST_FORMAT_AUDIO_MASK),
 #else
                                 ast_getformatname_multiple(s1, sizeof(s1) -1, c->format),
 #endif
                                 ast->nativeformats,
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
                                 ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat & AST_FORMAT_AUDIO_MASK),
 #else
                                 ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat),
@@ -1107,7 +1107,7 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 	return 0;
 }
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 /*!
  * \brief Receive First Digit from Asterisk Channel
  * \param ast Asterisk Channel as ast_channel
@@ -1119,7 +1119,7 @@ static int sccp_pbx_recvdigit_begin(struct ast_channel *ast, char digit) {
 }
 #endif
 
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 /*!
  * \brief Receive Last Digit from Asterisk Channel
  * \param ast Asterisk Channel as ast_channel
@@ -1234,17 +1234,17 @@ const struct ast_channel_tech sccp_tech = {
 	.write_video = sccp_pbx_write,
 	.indicate = sccp_pbx_indicate,
 	.fixup = sccp_pbx_fixup,
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 	.send_digit_begin = sccp_pbx_recvdigit_begin,
 	.send_digit_end = sccp_pbx_recvdigit_end,
 #else
 	.send_digit = sccp_pbx_recvdigit_end,
 #endif
 	.send_text = sccp_pbx_sendtext,
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 	.bridge = ast_rtp_bridge,
 #endif
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 	.early_bridge = ast_rtp_early_bridge,
 #endif
 };
@@ -1309,7 +1309,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 
 
 
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	tmp = ast_channel_alloc(1);
 #else
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP:     cid_num: \"%s\"\n", c->callingPartyNumber);
@@ -1390,7 +1390,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 //	sccp_device_unlock(d);
 
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 	ast_jb_configure(tmp, &GLOB(global_jbconf));
 #endif
 
@@ -1398,13 +1398,13 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	sccp_log(2)(VERBOSE_PREFIX_3 "%s: Channel %s, capabilities: CHANNEL %s(%d) PREFERRED %s(%d) USED %s(%d)\n",
 	l->id,
 	tmp->name,
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 	ast_getformatname_multiple(s1, sizeof(s1) -1, c->capability & AST_FORMAT_AUDIO_MASK),
 #else
 	ast_getformatname_multiple(s1, sizeof(s1) -1, c->capability),
 #endif
 	c->capability,
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 	ast_getformatname_multiple(s2, sizeof(s2) -1, tmp->nativeformats & AST_FORMAT_AUDIO_MASK),
 #else
 	ast_getformatname_multiple(s2, sizeof(s2) -1, tmp->nativeformats),
@@ -1920,7 +1920,7 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
  * \param c SCCP Channel
  * \param control as Asterisk Control Frame Type
  */
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 int sccp_ast_queue_control(sccp_channel_t * c, enum ast_control_frame_type control)
 #else
 int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)

@@ -19,6 +19,9 @@
 /* Define if AIX */
 #undef AIX
 
+/* ASTERISK Branch Type */
+#undef ASTERISK_BRANCH
+
 /* Define ASTERISK_CONF_1_2 */
 #undef ASTERISK_CONF_1_2
 
@@ -39,6 +42,12 @@
 
 /* Define ASTERISK_CONF_1_8 */
 #undef ASTERISK_CONF_1_8
+
+/* ASTERISK Revision Number */
+#undef ASTERISK_REVISION
+
+/* ASTERISK Version Number */
+#undef ASTERISK_VERSION_NUM
 
 /* Not Found 'AST_FLAG_MOH' in asterisk/channel.h */
 #undef AST_FLAG_MOH

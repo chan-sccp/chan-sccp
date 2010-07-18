@@ -19,7 +19,7 @@
 
 #include "config.h"
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
@@ -276,7 +276,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	char cap_buf[512];
 	char buf[256];
 	char * debugcategories="";
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
 
@@ -293,7 +293,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 #endif
 	ast_cli(fd, "Protocol Version      : %d\n", GLOB(protocolversion));
 	ast_cli(fd, "Server Name           : %s\n", GLOB(servername));
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	ast_cli(fd, "Bind Address          : %s:%d\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
 #else
 	ast_cli(fd, "Bind Address          : %s:%d\n", ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
@@ -362,7 +362,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 }
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief Cli Show Globals
  * \param e Asterisk CLI Entry
@@ -696,7 +696,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 }
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 
 /*!
  * \brief Show Device
@@ -840,7 +840,7 @@ static int sccp_show_line(int fd, int argc, char * argv[]) {
 }
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief Show Line
  * \param e Asterisk CLI Entry
@@ -884,7 +884,7 @@ static struct ast_cli_entry cli_show_line = {
 
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief CLI Reset
  * \param e Asterisk Cli Entry
@@ -927,7 +927,7 @@ static struct ast_cli_entry cli_reset = {
 #endif
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief Cli Restart
  * \param e Asterisk CLI Entry
@@ -971,7 +971,7 @@ static struct ast_cli_entry cli_restart = {
 
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief Cli Unregister
  * \param e Asterisk CLI Entry
@@ -1052,7 +1052,7 @@ static int sccp_show_channels(int fd, int argc, char * argv[]) {
 }
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief Cli Show Channels
  * \param e Asterisk CLI Entry
@@ -1077,7 +1077,7 @@ static char *cli_show_channels(struct ast_cli_entry *e, int cmd, struct ast_cli_
 }
 #endif
 
-#ifndef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM < 10600
 /*!
  * \brief CLI Show Channels
  * \return Asterisk Cli Entry Structure
@@ -1101,7 +1101,7 @@ static struct ast_cli_entry cli_show_channels = {
  */
 static int sccp_show_devices(int fd, int argc, char * argv[]) {
 	sccp_device_t * d;
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
 
@@ -1110,7 +1110,7 @@ static int sccp_show_devices(int fd, int argc, char * argv[]) {
 
 	SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 		ast_cli(fd, "%-40s %-20s %-16s %-10s\n",// %-10s %-16s %c%c %-10s\n",
 			d->description,
 			(d->session) ? ast_inet_ntoa(iabuf, sizeof(iabuf), d->session->sin.sin_addr) : "--",
@@ -1133,7 +1133,7 @@ static int sccp_show_devices(int fd, int argc, char * argv[]) {
 
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief Cli Show Devices
  * \param e Asterisk CLI Entry
@@ -1202,7 +1202,7 @@ static int sccp_message_devices(int fd, int argc, char * argv[]) {
 }
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief Cli Message Devices
  * \param e Asterisk CLI Entry
@@ -1333,7 +1333,7 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 }
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief Cli Show Lines
  * \param e Asterisk CLI Entry
@@ -1425,7 +1425,7 @@ static int sccp_remove_line_from_device(int fd, int argc, char * argv[])
 }
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief Cli Remove Line Device
  * \param e Asterisk CLI Entry
@@ -1477,7 +1477,7 @@ static struct ast_cli_entry cli_remove_line_device = {
 static int sccp_show_sessions(int fd, int argc, char * argv[]) {
 	sccp_session_t * s = NULL;
 	sccp_device_t * d = NULL;
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
 
@@ -1490,7 +1490,7 @@ static int sccp_show_sessions(int fd, int argc, char * argv[]) {
 		d = s->device;
 		if (d) {
 			sccp_device_lock(d);
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 			ast_cli(fd, "%-10d %-15s %-4d %-15s %-15s %-15s\n",
 				s->fd,
 				ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr),
@@ -1516,7 +1516,7 @@ static int sccp_show_sessions(int fd, int argc, char * argv[]) {
 }
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief Cli Show Sessions
  * \param e Asterisk CLI Entry
@@ -1603,7 +1603,7 @@ static int sccp_system_message(int fd, int argc, char * argv[]) {
 }
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief Cli System Message
  * \param e Asterisk CLI Entry
@@ -1647,7 +1647,7 @@ static struct ast_cli_entry cli_system_message = {
 };
 #endif
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 #ifdef CS_NEW_AST_CLI
 /*!
  * \brief Complete Debug
@@ -1738,7 +1738,7 @@ static int sccp_do_debug(int fd, int argc, char *argv[]) {
 	return RESULT_SUCCESS;
 }
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief Cli Do Debug
  * \param e Asterisk CLI Entry
@@ -1803,7 +1803,7 @@ static int sccp_no_debug(int fd, int argc, char *argv[]) {
 
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief Cli No Debug
  * \param e Asterisk CLI Entry
@@ -1891,7 +1891,7 @@ static int sccp_do_reload(int fd, int argc, char *argv[]) {
 #endif
 }
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief Cli Reload
  * \param e Asterisk CLI Entry
@@ -1946,7 +1946,7 @@ static int sccp_show_version(int fd, int argc, char *argv[]) {
 }
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief CLI Show Version
  * \param e Asterisk CLI Entry
@@ -1989,7 +1989,7 @@ static struct ast_cli_entry cli_show_version = {
 #endif
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief CLI MWI Subscriptions
  * \param e Asterisk CLI Entry
@@ -2056,7 +2056,7 @@ static struct ast_cli_entry cli_show_mwi_subscriptions = {
 
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief CLI MWI Subscriptions
  * \param e Asterisk CLI Entry
@@ -2111,7 +2111,7 @@ static char *cli_show_softkeysets(struct ast_cli_entry *e, int cmd, struct ast_c
 #endif
 
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 
 /*!
  * \brief Asterisk Cli Entry
@@ -2153,7 +2153,7 @@ static struct ast_cli_entry cli_entries[] = {
  */
 void sccp_register_cli(void) {
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 	/* register all CLI functions */
 	ast_cli_register_multiple(cli_entries, sizeof(cli_entries)/ sizeof(struct ast_cli_entry));
 #else
@@ -2185,7 +2185,7 @@ void sccp_register_cli(void) {
  */
 void sccp_unregister_cli(void) {
 
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 	/* unregister CLI functions */
 	ast_cli_unregister_multiple(cli_entries, sizeof(cli_entries) / sizeof(struct ast_cli_entry));
 #else
