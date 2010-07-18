@@ -267,7 +267,6 @@ struct ast_variable * sccp_create_variable(const char *buf) {
 
 	if ((varval = strchr(varname,'='))) {
 		*varval++ = '\0';
-//#if ASTERISK_VERSION_NUM < 10600
 #if ASTERISK_VERSION_NUM < 10600
 		if ((tmpvar = ast_variable_new(varname, varval))) {
 #else
@@ -1066,7 +1065,7 @@ sccp_device_t * sccp_device_find_byipaddress(unsigned long s_addr){
 }
 
 
-#if ASTERISK_VERSION_NUM >= 1060000
+#if ASTERISK_VERSION_NUM >= 10600
 #ifdef HAVE_PBX_DEVICESTATE_H
 /*!
  * \brief map states from sccp to ast_device_state
