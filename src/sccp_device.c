@@ -1913,9 +1913,55 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
                 }
 		SCCP_LIST_UNLOCK(&device_a->buttonconfig);
 		SCCP_LIST_UNLOCK(&device_b->buttonconfig);
+
 		//sccp_hostname_t permithosts
+		sccp_hostname_t *permithosts_a=NULL;
+		sccp_hostname_t *permithosts_b=NULL;
+                SCCP_LIST_LOCK(&device_a->permithosts);
+		SCCP_LIST_LOCK(&device_b->permithosts);
+		permithosts_b=SCCP_LIST_FIRST(&device_b->permithosts);
+                SCCP_LIST_TRAVERSE(&device_a->permithosts, permithosts_a, list) {
+     			if (!strcmp(permithosts_a->name,permithosts_b->name)) {
+     			        res=CHANGES_NEED_RESET;
+      		 	        break;
+                        } 
+                        permithosts_b=SCCP_LIST_NEXT(permithosts_b,list);
+                }
+		SCCP_LIST_UNLOCK(&device_a->permithosts);
+		SCCP_LIST_UNLOCK(&device_b->permithosts);
+		
 		//sccp_selectedchannel_t selectedChannels
+		sccp_selectedchannel_t *selectedChannels_a=NULL;
+		sccp_selectedchannel_t *selectedChannels_b=NULL;
+                SCCP_LIST_LOCK(&device_a->selectedChannels);
+		SCCP_LIST_LOCK(&device_b->selectedChannels);
+		selectedChannels_b=SCCP_LIST_FIRST(&device_b->selectedChannels);
+                SCCP_LIST_TRAVERSE(&device_a->selectedChannels, selectedChannels_a, list) {
+     			if (selectedChannels_a->channel->callid != selectedChannels_b->channel->callid) {
+     			        res=CHANGES_NEED_RESET;
+      		 	        break;
+                        } 
+                        selectedChannels_b=SCCP_LIST_NEXT(selectedChannels_b,list);
+                }
+		SCCP_LIST_UNLOCK(&device_a->selectedChannels);
+		SCCP_LIST_UNLOCK(&device_b->selectedChannels);
+
 		//sccp_addon_t addons
+		sccp_addon_t *addons_a=NULL;
+		sccp_addon_t *addons_b=NULL;
+                SCCP_LIST_LOCK(&device_a->addons);
+		SCCP_LIST_LOCK(&device_b->addons);
+		addons_b=SCCP_LIST_FIRST(&device_b->addons);
+                SCCP_LIST_TRAVERSE(&device_a->addons, addons_a, list) {
+     			if ((addons_a->type!=addons_b->type) || !strcmp(addons_a->device->id,addons_b->device->id)) {
+     			        res=CHANGES_NEED_RESET;
+      		 	        break;
+                        }
+                        addons_b=SCCP_LIST_NEXT(addons_b,list);
+                }
+		SCCP_LIST_UNLOCK(&device_a->addons);
+		SCCP_LIST_UNLOCK(&device_b->addons);
+
 		//device_a->permithost
 		//device_a->allow
 	    	//device_a->disallow
@@ -1923,6 +1969,7 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
        	}
 	return res;
 }
+
 
 /*!
  * Checks two buttonconfig against one another and returns a sccp_diff_t if different
