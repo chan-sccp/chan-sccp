@@ -1343,7 +1343,14 @@ void sccp_feat_monitor(sccp_device_t *device, sccp_channel_t *channel){
 #if ASTERISK_VERSION_NUM >= 10600
 #ifdef CS_SCCP_FEATURE_MONITOR
 	struct ast_call_feature *feat;
+/*      // replaced because it produced compiler warnings
+        // warning: missing initializer
+        // warning: (near initialization for ‘f.datalen’)
 	struct ast_frame f = { AST_FRAME_DTMF, };
+*/
+	struct ast_frame f;
+	f.frametype=AST_FRAME_DTMF;
+	
 	unsigned int j;
 
 	if(!channel)

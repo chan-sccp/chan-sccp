@@ -1494,7 +1494,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_IP"  , ast_inet_ntoa(c->device->session->sin.sin_addr));
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_TYPE", devicetype2str(c->device->skinny_type));
 	}
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%08x\n", (l)?l->id:"(null)", (l)?l->name:"(null)", (c)?c->callid:-1);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%s\n", (l)?l->id:"(null)", (l)?l->name:"(null)", (c)?(char *)c->callid:"(null)");
 
 	return 1;
 }
@@ -1818,10 +1818,11 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 			sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 		}
 #ifdef CS_MANAGER_EVENTS
-	if (GLOB(callevents))
-		manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate",
-			"Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %d\r\n",
-			chan->name, chan->uniqueid, "SCCP", (d)?DEV_ID_LOG(d):"(null)", (l)?l->name:"(null)", (c)?c->callid:-1);
+	        if (GLOB(callevents)) {
+        		manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate",
+	        		"Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %s\r\n",
+		        	chan->name, chan->uniqueid, "SCCP", (d)?DEV_ID_LOG(d):"(null)", (l)?l->name:"(null)", (c)?(char *)c->callid:"(null)");
+                }
 #endif
 	} else {
 		/* timeout and no extension match */
@@ -1840,14 +1841,18 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
  * \param digit Digit as char
  */
 void sccp_pbx_senddigit(sccp_channel_t * c, char digit) {
+        
+/*      // replaced because it produced compiler warnings
+        // warning: missing initializer
+        // warning: (near initialization for ‘f.datalen’)
+
 	struct ast_frame f = { AST_FRAME_DTMF, };
-
-	f.src = "SCCP";
-	f.subclass = digit;
-
-//	sccp_channel_lock(c);
-	sccp_queue_frame(c, &f);
-//	sccp_channel_unlock(c);
+*/
+	struct ast_frame f;
+	f.frametype= AST_FRAME_DTMF;
+        f.src = "SCCP";
+        f.subclass = digit;
+        sccp_queue_frame(c, &f);
 }
 
 /*!
@@ -1857,25 +1862,28 @@ void sccp_pbx_senddigit(sccp_channel_t * c, char digit) {
  */
 void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 	int i;
+/*      // replaced because it produced compiler warnings
+        // warning: missing initializer
+        // warning: (near initialization for ‘f.datalen’)
 	struct ast_frame f = { AST_FRAME_DTMF, 0};
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Sending digits %s\n", DEV_ID_LOG(c->device), digits);
-	// We don't just call sccp_pbx_senddigit due to potential overhead, and issues with locking
-	f.src = "SCCP";
-	f.offset = 0;
+*/
+        struct ast_frame f;
+        f.frametype=AST_FRAME_DTMF;
+        sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Sending digits %s\n", DEV_ID_LOG(c->device), digits);
+        // We don't just call sccp_pbx_senddigit due to potential overhead, and issues with locking
+        f.src = "SCCP";
+        f.offset = 0;
+        f.datalen = 0;
 #ifdef CS_AST_NEW_FRAME_STRUCT
-	f.data.ptr = NULL;
+        f.data.ptr = NULL;
 #else
-	f.data = NULL;
+        f.data = NULL;
 #endif
-	f.datalen = 0;
-
-//	sccp_channel_lock(c);
-	for (i = 0; digits[i] != '\0'; i++) {
-		f.subclass = digits[i];
-		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Sending digit %c\n", DEV_ID_LOG(c->device), digits[i]);
-		sccp_queue_frame(c, &f);
-	}
-//	sccp_channel_unlock(c);
+        for (i = 0; digits[i] != '\0'; i++) {
+                f.subclass = digits[i];
+                sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Sending digit %c\n", DEV_ID_LOG(c->device), digits[i]);
+                sccp_queue_frame(c, &f);
+        }
 }
 
 /*!
@@ -1918,8 +1926,13 @@ int sccp_ast_queue_control(sccp_channel_t * c, enum ast_control_frame_type contr
 int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
 #endif
 {
+/*      // replaced because it produced compiler warnings
+        // warning: missing initializer
+        // warning: (near initialization for ‘f.datalen’)
 	struct ast_frame f = { AST_FRAME_CONTROL, };
-
+*/
+        struct ast_frame f;
+        f.frametype = AST_FRAME_CONTROL;
 	f.subclass = control;
 
 	sccp_queue_frame(c, &f);

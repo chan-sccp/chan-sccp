@@ -63,7 +63,6 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #define ast_free free
 #endif
 
-
 static uint32_t callCount = 1;
 AST_MUTEX_DEFINE_STATIC(callCountLock);
 

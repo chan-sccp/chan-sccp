@@ -1497,45 +1497,22 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 #ifdef CS_DYNAMIC_CONFIG
 	/* compare temporiry d to device */
 	if (d->pendingDelete==1 && !d->realtime && temp_d) {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: privacyFeature.status %X:%X\n", temp_d->id,temp_d->privacyFeature.status,d->privacyFeature.status);
-		if (
-//			temp_d->setvar			//list str
-//			temp_d->permithost	 		//list
-//			temp_d->addon			//list
-//			temp_d->allow			//ip list
-//			temp_d->disallow			//ip list
-//			/* XXX the status is always reset to 0 because of sccp_config_restoreDeviceFeatureStatus() -romain */
-//			(temp_d->privacyFeature.status == d->privacyFeature.status) &&		//enum
-			(!strcmp(temp_d->description, d->description)) && 	 		//str
-			(!strcmp(temp_d->imageversion, d->imageversion)) &&			//str
-			(!strcmp(temp_d->softkeyDefinition, d->softkeyDefinition)) &&		//str
-			(!strcmp(temp_d->meetmeopts, d->meetmeopts)) &&				//str
-			(temp_d->tz_offset == d->tz_offset) && 			 		//val
-			(temp_d->earlyrtp == d->earlyrtp) &&					//enum
-			(temp_d->dtmfmode == d->dtmfmode) &&					//enum
-			(temp_d->mwilamp == d->mwilamp) &&					//enum
-			(temp_d->dndFeature.enabled == d->dndFeature.enabled) &&		//boolean
-			(temp_d->overlapFeature.enabled == d->overlapFeature.enabled) &&	//boolean
-			(temp_d->privacyFeature.enabled == d->privacyFeature.enabled) &&	//boolean
-			(temp_d->transfer == d->transfer) &&					//boolean*/
-			(temp_d->cfwdall == d->cfwdall) &&					//boolean
-			(temp_d->cfwdbusy == d->cfwdbusy) &&					//boolean
-			(temp_d->cfwdnoanswer == d->cfwdnoanswer) &&				//boolean
-			(temp_d->nat == d->nat) &&						//boolean
-			(temp_d->directrtp == d->directrtp) &&					//boolean
-			(temp_d->trustphoneip == d->trustphoneip) &&				//boolean
-			(temp_d->park == d->park)  &&						//boolean
-#ifdef CS_ADV_FEATURES
-			(temp_d->useRedialMenu == d->useRedialMenu) &&				//boolean
-#endif /* CS_ADV_FEATURES */
-			(temp_d->meetme == d->meetme) && 					//boolean*/
-			(temp_d->mwioncall == d->mwioncall)					//boolean
-		) {
-			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: pendingUpdate not needed\n", temp_d->id);
-		} else {
-			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: set pendingUpdate\n", temp_d->id);
-			d->pendingUpdate=1;
-		}
+	        sccp_device_lock(d);
+	        sccp_device_lock(temp_d);
+	        switch (sccp_device_changed(temp_d,d)) {
+	                case NO_CHANGES: {
+        			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: no changes detected\n", temp_d->id);
+	                }
+	                case MINOR_CHANGES: {
+		        	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: minor changes detected, no reset required\n", temp_d->id);
+	                }
+	                case CHANGES_NEED_RESET: {
+        			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: major changes detected, reset required -> pendingUpdate=1\n", temp_d->id);
+	        		d->pendingUpdate=1;
+	                }
+	        }
+		sccp_device_unlock(temp_d);
+		sccp_device_unlock(d);
 		
 		// removing temp_d
 		sccp_dev_clean(temp_d,FALSE,0);
