@@ -468,7 +468,7 @@ void sccp_mwi_check(sccp_device_t *device)
 	
 	
 	/* check if we have an active channel */
-	boolean_t hasActiveChannel = FALSE;
+	boolean_t hasActiveChannel = FALSE, hasRinginChannel = FALSE;
 	sccp_buttonconfig_t	*config;
 	sccp_channel_t		*c;
 	
@@ -482,10 +482,11 @@ void sccp_mwi_check(sccp_device_t *device)
 
 			SCCP_LIST_LOCK(&line->channels);
 			SCCP_LIST_TRAVERSE(&line->channels, c, list) {
-				if(c->device == device && c->state != SCCP_CHANNELSTATE_ONHOOK && c->state != SCCP_CHANNELSTATE_DOWN){
+				if(c->device == device && c->state != SCCP_CHANNELSTATE_ONHOOK && c->state != SCCP_CHANNELSTATE_DOWN && c->state != SCCP_CHANNELSTATE_RINGING){
 					hasActiveChannel = TRUE;
-					break;
 				}
+				if(c->device == device && c->state == SCCP_CHANNELSTATE_RINGING)
+					hasRinginChannel = TRUE;
 			}
 			SCCP_LIST_UNLOCK(&line->channels);
 			
@@ -495,8 +496,8 @@ void sccp_mwi_check(sccp_device_t *device)
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 	
-	/* disable mwi light if we have an active channel */
-	if(hasActiveChannel == TRUE && !device->mwioncall){
+	/* disable mwi light if we have an active channel, but no ringin */
+	if((hasActiveChannel == TRUE && hasRinginChannel != TRUE) && !device->mwioncall){
 		sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: we have an active channel, disable mwi light\n",DEV_ID_LOG(device));
 		if(device->mwilight){
 			sccp_moo_t *r;
