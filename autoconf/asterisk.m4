@@ -43,6 +43,12 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
         ASTERISK_VER=1.6.2
         AC_SUBST([ASTERISK_VER])
       fi
+    elif grep -q "\"SVN-trunk" $PBX_INCLUDE/version.h; then
+      AC_DEFINE(ASTERISK_CONF_1_8, 1, [Define ASTERISK_CONF_1_8])
+      AC_MSG_RESULT([Found 'Asterisk Version SVN Trunk --> Using 1.8.x as version number'])
+      REALTIME_USEABLE=1
+      ASTERISK_VER=1.8
+      AC_SUBST([ASTERISK_VER])
     else 
       echo ""
       echo ""
@@ -59,7 +65,7 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
         PBX_BRANCH="BRANCH"
         PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-branch-\(.*\)-r\(.*\)M"/\2/g'`"
     elif grep -q "trunk" $PBX_INCLUDE/version.h; then
-        PBX_VERSION_NUM=1060299
+        PBX_VERSION_NUM=1080099
         PBX_BRANCH="TRUNK"
         PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-trunk-r\(.*\)M"/\1/g'`"
     else
@@ -85,29 +91,30 @@ AC_DEFUN([FIND_ASTERISK_HEADERS],[
     AC_CHECK_HEADER([asterisk/acl.h],		AC_DEFINE(HAVE_PBX_ACL_H,1,[Found 'asterisk/acl.h']),,        	 	[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/app.h],		AC_DEFINE(HAVE_PBX_APP_H,1,[Found 'asterisk/app.h']),,			[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/astdb.h],		AC_DEFINE(HAVE_PBX_ASTDB_H,1,[Found 'asterisk/astdb.h']),,   		[ #include <asterisk.h>])
-    AC_CHECK_HEADER([asterisk/callerid.h],	AC_DEFINE(HAVE_PBX_CALLERID_H,1,[Found 'asterisk/callerid.h']),, 		[ #include <asterisk.h>])
-    AC_CHECK_HEADER([asterisk/causes.h],	AC_DEFINE(HAVE_PBX_CAUSES_H,1,[Found 'asterisk/causes.h']),,      		[ #include <asterisk.h>])
+    AC_CHECK_HEADER([asterisk/callerid.h],	AC_DEFINE(HAVE_PBX_CALLERID_H,1,[Found 'asterisk/callerid.h']),, 	[ #include <asterisk.h>])
+    AC_CHECK_HEADER([asterisk/causes.h],	AC_DEFINE(HAVE_PBX_CAUSES_H,1,[Found 'asterisk/causes.h']),,      	[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/channel.h],	AC_DEFINE(HAVE_PBX_CHANNEL_H,1,[Found 'asterisk/channel.h']),,		[ #include <asterisk.h>])
-    AC_CHECK_HEADER([asterisk/channel_pvt.h],	AC_DEFINE(HAVE_PBX_CHANNEL_pvt_H,1,[Found 'asterisk/channel_pvt.h']),, 	[ #include <asterisk.h> ]) 
+    AC_CHECK_HEADER([asterisk/channel_pvt.h],	AC_DEFINE(HAVE_PBX_CHANNEL_pvt_H,1,[Found 'asterisk/channel_pvt.h']),, 	[ #include <asterisk.h>]) 
     AC_CHECK_HEADER([asterisk/cli.h],		AC_DEFINE(HAVE_PBX_CLI_H,1,[Found 'asterisk/cli.h']),,       	  	[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/config.h],	AC_DEFINE(HAVE_PBX_CONFIG_H,1,[Found 'asterisk/config.h']),,		[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/devicestate.h],	AC_DEFINE(HAVE_PBX_DEVICESTATE_H,1,[Found 'asterisk/devicestate.h']),,	[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/endian.h],	AC_DEFINE(HAVE_PBX_ENDIAN_H,1,[Found 'asterisk/endian.h']),,		[ #include <asterisk.h>])
-    AC_CHECK_HEADER([asterisk/event.h],		AC_DEFINE(HAVE_PBX_EVENT_H,1,[Found 'asterisk/event.h']),,			[ #include <asterisk.h>])
+    AC_CHECK_HEADER([asterisk/event.h],		AC_DEFINE(HAVE_PBX_EVENT_H,1,[Found 'asterisk/event.h']),,		[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/features.h],	AC_DEFINE(HAVE_PBX_FEATURES_H,1,[Found 'asterisk/features.h']),,    	[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/frame.h],		AC_DEFINE(HAVE_PBX_FRAME_H,1,[Found 'asterisk/frame.h']),,     	  	[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/logger.h],	AC_DEFINE(HAVE_PBX_LOGGER_H,1,[Found 'asterisk/logger.h']),,		[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/manager.h],	AC_DEFINE(HAVE_PBX_MANAGER_H,1,[Found 'asterisk/manager.h']),,     	[ #include <asterisk.h>])
-    AC_CHECK_HEADER([asterisk/module.h],	AC_DEFINE(HAVE_PBX_MODULE_H,1,[Found 'asterisk/module.h']),,      		[ #include <asterisk.h>])
+    AC_CHECK_HEADER([asterisk/module.h],	AC_DEFINE(HAVE_PBX_MODULE_H,1,[Found 'asterisk/module.h']),,      	[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/musiconhold.h],	AC_DEFINE(HAVE_PBX_MUSICONHOLD_H,1,[Found 'asterisk/musiconhold.h']),, 	[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/options.h],	AC_DEFINE(HAVE_PBX_OPTIONS_H,1,[Found 'asterisk/options.h']),,     	[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/pbx.h],		AC_DEFINE(HAVE_PBX_PBX_H,1,[Found 'asterisk/pbx.h']),,			[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/rtp.h],		AC_DEFINE(HAVE_PBX_RTP_H,1,[Found 'asterisk/rtp.h']),,			[ #include <asterisk.h>])
-    AC_CHECK_HEADER([asterisk/sched.h],		AC_DEFINE(HAVE_PBX_SCHED_H,1,[Found 'asterisk/sched.h']),,			[ #include <asterisk.h>])
+    AC_CHECK_HEADER([asterisk/rtp_engine.h],	AC_DEFINE(HAVE_PBX_RTP_H,1,[Found 'asterisk/rtp_engine.h']),,		[ #include <asterisk.h>])
+    AC_CHECK_HEADER([asterisk/sched.h],		AC_DEFINE(HAVE_PBX_SCHED_H,1,[Found 'asterisk/sched.h']),,		[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/strings.h],	AC_DEFINE(HAVE_PBX_STRINGS_H,1,[Found 'asterisk/strings.h']),,		[ #include <asterisk.h>])
-    AC_CHECK_HEADER([asterisk/stringfields.h],	AC_DEFINE(HAVE_PBX_STRINGFIELDS_H,1,[Found 'asterisk/stringfields.h']),,	[ #include <asterisk.h>])
+    AC_CHECK_HEADER([asterisk/stringfields.h],	AC_DEFINE(HAVE_PBX_STRINGFIELDS_H,1,[Found 'asterisk/stringfields.h']),,[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/translate.h],	AC_DEFINE(HAVE_PBX_TRANSLATE_H,1,[Found 'asterisk/translate.h']),,   	[ #include <asterisk.h>])
-    AC_CHECK_HEADER([asterisk/utils.h],		AC_DEFINE(HAVE_PBX_UTILS_H,1,[Found 'asterisk/utils.h']),,       		[ #include <asterisk.h>])
+    AC_CHECK_HEADER([asterisk/utils.h],		AC_DEFINE(HAVE_PBX_UTILS_H,1,[Found 'asterisk/utils.h']),,       	[ #include <asterisk.h>])
   ])
 ])
 
@@ -145,6 +152,16 @@ AC_DEFUN([CHECK_ASTERISK_HEADER_CONTENT],[
     AC_MSG_CHECKING([asterisk/rtp.h for 'void ast_rtp_new_source'])
     if grep -q "void ast_rtp_new_source" $PBX_INCLUDE/rtp.h;then 
       AC_DEFINE(CS_AST_RTP_NEW_SOURCE,1,[Found 'void ast_rtp_new_source' in asterisk/rtp.h])
+      AC_MSG_RESULT([Found])
+    else
+      AC_MSG_RESULT([Not Found])
+    fi
+  fi
+  dnl Check Asterisk RTP 1.8 Options
+  if test -f $PBX_INCLUDE/rtp_engine.h; then
+    AC_MSG_CHECKING([asterisk/rtp_engine.h for 'ast_rtp_instance_new'])
+    if grep -q "ast_rtp_instance_new" $PBX_INCLUDE/rtp_engine.h;then 
+      AC_DEFINE(CS_AST_RTP_INSTANCE_NEW,1,[Found 'void ast_rtp_instance_new' in asterisk/rtp_engine.h])
       AC_MSG_RESULT([Found])
     else
       AC_MSG_RESULT([Not Found])

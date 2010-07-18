@@ -20032,7 +20032,7 @@ $as_echo "#define DEBUG /**/" >>confdefs.h
    enable_do_crash="yes"
    enable_debug_mutex="yes"
    strip_binaries="no"
-   CFLAGS="$CFLAGS -Wall -Wextra -Wno-unused-parameter"
+   CFLAGS="$CFLAGS -O0 -Os -Wall -Wextra -Wno-unused-parameter"
    GDB_FLAGS="-g"
 else
 
@@ -20269,6 +20269,15 @@ $as_echo "Specifically 1.6.2" >&6; }
         ASTERISK_VER=1.6.2
 
       fi
+    elif grep -q "\"SVN-trunk" $PBX_INCLUDE/version.h; then
+
+$as_echo "#define ASTERISK_CONF_1_8 1" >>confdefs.h
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version SVN Trunk --> Using 1.8.x as version number'" >&5
+$as_echo "Found 'Asterisk Version SVN Trunk --> Using 1.8.x as version number'" >&6; }
+      REALTIME_USEABLE=1
+      ASTERISK_VER=1.8
+
     else
       echo ""
       echo ""
@@ -20285,7 +20294,7 @@ $as_echo "Specifically 1.6.2" >&6; }
         PBX_BRANCH="BRANCH"
         PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-branch-\(.*\)-r\(.*\)M"/\2/g'`"
     elif grep -q "trunk" $PBX_INCLUDE/version.h; then
-        PBX_VERSION_NUM=1060299
+        PBX_VERSION_NUM=1080099
         PBX_BRANCH="TRUNK"
         PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-trunk-r\(.*\)M"/\1/g'`"
     else
@@ -20544,6 +20553,15 @@ $as_echo "#define HAVE_PBX_RTP_H 1" >>confdefs.h
 fi
 
 
+    ac_fn_c_check_header_compile "$LINENO" "asterisk/rtp_engine.h" "ac_cv_header_asterisk_rtp_engine_h" " #include <asterisk.h>
+"
+if test "x$ac_cv_header_asterisk_rtp_engine_h" = x""yes; then :
+
+$as_echo "#define HAVE_PBX_RTP_H 1" >>confdefs.h
+
+fi
+
+
     ac_fn_c_check_header_compile "$LINENO" "asterisk/sched.h" "ac_cv_header_asterisk_sched_h" " #include <asterisk.h>
 "
 if test "x$ac_cv_header_asterisk_sched_h" = x""yes; then :
@@ -20675,6 +20693,20 @@ $as_echo_n "checking asterisk/rtp.h for 'void ast_rtp_new_source'... " >&6; }
     if grep -q "void ast_rtp_new_source" $PBX_INCLUDE/rtp.h;then
 
 $as_echo "#define CS_AST_RTP_NEW_SOURCE 1" >>confdefs.h
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found" >&5
+$as_echo "Found" >&6; }
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Not Found" >&5
+$as_echo "Not Found" >&6; }
+    fi
+  fi
+    if test -f $PBX_INCLUDE/rtp_engine.h; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking asterisk/rtp_engine.h for 'ast_rtp_instance_new'" >&5
+$as_echo_n "checking asterisk/rtp_engine.h for 'ast_rtp_instance_new'... " >&6; }
+    if grep -q "ast_rtp_instance_new" $PBX_INCLUDE/rtp_engine.h;then
+
+$as_echo "#define CS_AST_RTP_INSTANCE_NEW 1" >>confdefs.h
 
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found" >&5
 $as_echo "Found" >&6; }
