@@ -23,6 +23,8 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #ifdef CS_AST_HAS_EVENT
 #include "asterisk/event.h"
+#else
+#define SCCP_MWI_CHECK_INTERVAL 30
 #endif
 
 #include <asterisk/app.h>
@@ -199,7 +201,7 @@ int sccp_mwi_checksubscription(const void *ptr){
 		
 		
 	/* reschedule my self */
-	if( (subscription->schedUpdate = sccp_sched_add(sched, 30 * 1000, sccp_mwi_checksubscription, subscription)) < 0 ) {
+	if( (subscription->schedUpdate = sccp_sched_add(sched, SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0 ) {
 		ast_log(LOG_ERROR, "Error creating mailbox subscription.\n");
 	}
 	return 0;
@@ -328,7 +330,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 										AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, S_OR(subscription->context, "default"),
 										AST_EVENT_IE_END);
 #else
-		if( (subscription->schedUpdate = sccp_sched_add(sched, 30 * 1000, sccp_mwi_checksubscription, subscription)) < 0 ) {
+		if( (subscription->schedUpdate = sccp_sched_add(sched, SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0 ) {
 			ast_log(LOG_ERROR, "Error creating mailbox subscription.\n");
 		}
 										
