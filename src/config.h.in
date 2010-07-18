@@ -37,6 +37,9 @@
 /* Define ASTERISK_CONF_1_6_2 */
 #undef ASTERISK_CONF_1_6_2
 
+/* Define ASTERISK_CONF_1_8 */
+#undef ASTERISK_CONF_1_8
+
 /* Not Found 'AST_FLAG_MOH' in asterisk/channel.h */
 #undef AST_FLAG_MOH
 
@@ -150,6 +153,9 @@
 
 /* Found 'New Ast Frame Structure' in asterisk/frame.h */
 #undef CS_AST_NEW_FRAME_STRUCT
+
+/* Found 'void ast_rtp_instance_new' in asterisk/rtp_engine.h */
+#undef CS_AST_RTP_INSTANCE_NEW
 
 /* Found 'void ast_rtp_new_source' in asterisk/rtp.h */
 #undef CS_AST_RTP_NEW_SOURCE
@@ -400,7 +406,7 @@
 /* Found 'asterisk/pbx.h' */
 #undef HAVE_PBX_PBX_H
 
-/* Found 'asterisk/rtp.h' */
+/* Found 'asterisk/rtp_engine.h' */
 #undef HAVE_PBX_RTP_H
 
 /* Found 'asterisk/sched.h' */

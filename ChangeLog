@@ -1,3 +1,188 @@
+2010-07-18  ddegroot
+
+	* [r1625] src/sccp_channel.c, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_features.c, src/sccp_pbx.c: replaced occurences of
+	  "struct ast_frame f = { AST_FRAME_CONTROL, };" with "struct
+	  ast_frame f; f.frametype = AST_FRAME_CONTROL;" to prevent
+	  compiler warnings about missing initializers
+	  used the sccp_device_changed function in sccp_config to track
+	  changes in devices after reloading
+
+2010-07-18  marcelloceschia
+
+	* [r1624] src/sccp_mwi.c: define SCCP_MWI_CHECK_INTERVAL
+
+	* [r1623] src/sccp_mwi.c: fixes mwi light issue on ringin
+
+2010-07-18  ddegroot
+
+	* [r1622] src/sccp_actions.c, src/sccp_utils.c: Fixed sccp_actions
+	  : sccp_handle_stimulus when switching between calls on multple
+	  linebutton lines
+
+2010-07-17  ddegroot
+
+	* [r1621] src/sccp_device.c: Extended sccp_device_clone further
+
+	* [r1620] src/chan_sccp.h, src/sccp_cli.c, src/sccp_config.c,
+	  src/sccp_device.c, src/sccp_device.h, src/sccp_protocol.h,
+	  src/sccp_utils.c, src/sccp_utils.h: Fixed a couple of compiler
+	  warnings because of misalligned int <-> unint??_t declararions.
+
+	* [r1619] src/sccp_config.c, src/sccp_device.c: Moved Message /
+	  lastDialedNumber loading from database to sccp_config:
+	  sccp_config_restoreDeviceFeatureStatus
+	  Added cfwd loading from database to sccp_config:
+	  sccp_config_restoreDeviceFeatureStatus
+	  changed calloc to malloc in sccp_device : sccp_device_clone
+
+2010-07-16  ddegroot
+
+	* [r1618] src/sccp_device.c, src/sccp_device.h: sccp_device_clone
+	  reconsiderations
+
+	* [r1617] src/sccp_config.c, src/sccp_device.c, src/sccp_device.h:
+	  Updated sccp_device_clone function
+
+	* [r1616] src/sccp_features.c: removed a supporflous call to
+	  sccp_dev_check_displayprompt
+
+	* [r1615] src/sccp_device.c: Added sccp_log messages when
+	  sccp_dev_check_displayprompt is called
+
+	* [r1614] src/sccp_device.c: Proof of concept
+	  "sccp_dev_check_displayprompt" to display CFWD/DND/Private Status
+	  per line Taken out. To many resources with larger number of
+	  phones
+
+2010-07-16  progs
+
+	* [r1613] src/sccp_device.c: fix segfault
+
+2010-07-16  ddegroot
+
+	* [r1612] src/sccp_device.c: Remarked ast_ha code in sccp_device:
+	  sccp_dev_copy
+
+	* [r1611] src/sccp_config.c, src/sccp_device.c, src/sccp_device.h:
+	  Updated function sccp_dev_diff
+	  Added function sccp_buttonconfig_diff
+
+2010-07-16  progs
+
+	* [r1610] src/sccp_device.c: copy ha and variables
+
+2010-07-16  ddegroot
+
+	* [r1609] src/sccp_config.c, src/sccp_device.c, src/sccp_device.h:
+	  Created new functions
+	  sccp_dev_copy: create a new device instance and copy all values
+	  from another
+	  sccp_dev_diff: return a boolean after checking if two devices are
+	  differnt.
+	  
+	  The new function are not ready yet. They are in skeleton fase
+
+	* [r1608] src/sccp_device.c, src/sccp_featureButton.c,
+	  src/sccp_features.c, src/sccp_utils.c: Re-inserted the ";".
+	  Marcello will sort them out tonight
+
+2010-07-16  progs
+
+	* [r1607] src/sccp_config.c: several fixes
+
+	* [r1606] src/sccp_config.c, src/sccp_device.c: cleanup
+
+	* [r1605] src/sccp_device.c, src/sccp_device.h, src/sccp_socket.c,
+	  src/sccp_softkeys.c: fix signs issues
+
+	* [r1604] src/sccp_config.c: fix compilation without
+	  CS_ADV_FEATURES
+
+2010-07-16  ddegroot
+
+	* [r1603] INSTALL, Makefile.in, aclocal.m4, autoconf/config.guess,
+	  autoconf/config.sub, autoconf/depcomp, autoconf/install-sh,
+	  autoconf/missing, configure, doc/Makefile.in, src/config.h.in:
+	  Fix for the HOST_CC problem (chan-sccp-b-Bugs-3030295)
+
+	* [r1602] src/sccp_config.c: Fixed memory leak in device structure
+	  copy
+
+2010-07-15  ddegroot
+
+	* [r1601] src/sccp_config.c: Changed
+	  sccp_config_applyDeviceConfiguration to check differences
+	  afterwards
+	  Main problem in this case was the templated sccp.conf values been
+	  parsed before the actual values
+
+	* [r1600] src/sccp_config.c: Added logging to sccp_config.c to keep
+	  track of sccp.conf parsed parameters
+
+	* [r1599] src/sccp_config.c: Fixed type
+
+	* [r1598] src/Makefile.in, src/sccp_config.c,
+	  src/sccp_featureButton.c, src/sccp_features.c, src/sccp_line.c,
+	  src/sccp_pbx.c: Removed ";" from strange line
+	  "if(linedevice->device == device);"
+	  Added logging to sccp_config.c
+	  Removed some suppurflous checks while load tos/cos values
+
+2010-07-15  progs
+
+	* [r1597] src/sccp_config.c: fixes
+
+	* [r1596] src/sccp_config.c: fix checks to determine if a device
+	  has to be updated or no
+
+2010-07-15  ddegroot
+
+	* [r1595] src/sccp_config.c, src/sccp_device.c: Added some logging
+	  to sccp_config.c:addButton
+
+2010-07-15  progs
+
+	* [r1594] INSTALL, Makefile.in, aclocal.m4, autoconf/config.guess,
+	  autoconf/config.sub, autoconf/depcomp, autoconf/install-sh,
+	  autoconf/missing, configure, configure.ac, doc/Makefile.in,
+	  src/Makefile.in, src/chan_sccp.h, src/config.h.in,
+	  src/sccp_actions.c, src/sccp_config.c, src/sccp_config.h,
+	  src/sccp_device.c, src/sccp_management.c: function addButton
+
+	* [r1593] src/sccp_utils.c, src/sccp_utils.h:
+	  sccp_featureStr2featureID is constant
+
+2010-07-15  ddegroot
+
+	* [r1592] src/sccp_cli.c, src/sccp_device.c: Proof of concept for
+	  "sccp_dev_check_displayprompt" to indicate line status
+	  (DND/Cfwd/Private)
+
+2010-07-15  progs
+
+	* [r1591] src/sccp_cli.c: fix compilation
+
+2010-07-15  ddegroot
+
+	* [r1590] src/sccp_config.c: Reverted back to old addLine,
+	  addSpeedDial, addEmpty, etc functions
+
+2010-07-15  marcelloceschia
+
+	* [r1589] src/sccp_utils.c, src/sccp_utils.h: add
+	  LineStatDynamicMessage builder
+
+2010-07-15  ddegroot
+
+	* [r1588] ChangeLog, doc/04_Setup_Guide.doc,
+	  doc/06_Frequently_Asked_Questions.doc, src/chan_sccp.h,
+	  src/sccp_actions.c, src/sccp_channel.c, src/sccp_cli.c,
+	  src/sccp_protocol.h: Updated documentation
+	  Updated some protocol definitions
+	  added originalCalledPartyName to sccp_channel_send_callinfo (To
+	  get CallerID to work on Forwarded Numbers)
+
 2010-07-14  ddegroot
 
 	* [r1587] src/sccp_config.c: Fix original loading index
