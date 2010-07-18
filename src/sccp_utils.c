@@ -448,16 +448,6 @@ sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint16_t instance){
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 
-	/*
-	SCCP_LIST_LOCK(&d->lines);
-	SCCP_LIST_TRAVERSE(&d->lines, l, listperdevice) {
-		if(l->instance == instance) {
-			break;
-		}
-	}
-	SCCP_LIST_UNLOCK(&d->lines);
-	*/
-
 	if (!l) {
 		sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: No line found with instance %d.\n", DEV_ID_LOG(d), instance);
 		return NULL;

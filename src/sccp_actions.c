@@ -938,25 +938,43 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Line Key press on line %s\n", d->id, (l) ? l->name : "(nil)");
 			if ( (c = sccp_channel_get_active(d)) ) {
-			    if(c->state != SCCP_CHANNELSTATE_CONNECTED)
-			    {
-				    sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call not in progress. Closing line %s\n", d->id, (l) ? l->name : "(nil)");
-				    sccp_channel_endcall(c);
-					sccp_dev_deactivate_cplane(d);
-				    return;
-			    }
-
-			} else {
-				if (!l->channelCount) {
-					sccp_dev_set_activeline(d, l);
-					sccp_dev_set_cplane(l, d, 1);
-					sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
+			    	sccp_log(DEBUGCAT_ACTION)(VERBOSE_PREFIX_3 "%s: gotten active channel %d on line %s\n", d->id, c->callid, (l) ? l->name : "(nil)");
+			    	if(c->state != SCCP_CHANNELSTATE_CONNECTED)
+			    	{
+				    	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call not in progress. Closing line %s\n", d->id, (l) ? l->name : "(nil)");
+				    	sccp_channel_endcall(c);
+				    	sccp_dev_deactivate_cplane(d);
+				    	return;
 				} else {
-					holdChannel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD);
-					sccp_log(1)(VERBOSE_PREFIX_3 "%s: Channel count on line %d: %d", d->id, instance, l->channelCount);
-					if(NULL != holdChannel) {
-						//sccp_device_sendcallstate(d, instance, holdChannel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
-						//sccp_dev_set_cplane(l, d, 0);
+					if (sccp_channel_hold(c)) {
+						sccp_log(DEBUGCAT_ACTION)(VERBOSE_PREFIX_3 "%s: call (%d) put on hold on line %s\n", d->id, c->callid, l->name);
+					} else {
+						sccp_log(1)(VERBOSE_PREFIX_3 "%s: Hold failed for call (%d), line %s\n", d->id, c->callid, l->name);
+					}
+				}
+			} else {
+				sccp_log(DEBUGCAT_ACTION)(VERBOSE_PREFIX_3 "%s: no activate channel on line %d\n", d->id, instance);
+			}
+			if (!l->channelCount) {
+				sccp_log(DEBUGCAT_ACTION)(VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n", d->id, (l) ? l->name : "(nil)");
+				sccp_dev_set_activeline(d, l);
+				sccp_dev_set_cplane(l, d, 1);
+				sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
+			} else {
+				holdChannel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD);
+				sccp_log(DEBUGCAT_ACTION)(VERBOSE_PREFIX_3 "%s: Channel count on line %d = %d", d->id, instance, l->channelCount);
+				if(NULL != holdChannel) {
+					if (l->channelCount == 1) {
+						c = SCCP_LIST_FIRST(&l->channels);
+						sccp_log(DEBUGCAT_ACTION)(VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d", d->id, c->callid, instance);
+						sccp_dev_set_activeline(d, l);
+						sccp_channel_resume(d,c);
+						sccp_dev_set_cplane(l, d, 1);
+					} else {
+						sccp_log(DEBUGCAT_ACTION)(VERBOSE_PREFIX_3 "%s: Switch to line %d", d->id, instance);
+						sccp_dev_set_activeline(d, l);
+	//					sccp_device_sendcallstate(d, sccp_device_find_index_for_line(d, l->name), holdChannel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
+						sccp_dev_set_cplane(l, d, 1);
 					}
 				}
 			}
