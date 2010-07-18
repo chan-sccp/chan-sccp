@@ -28,9 +28,9 @@ void sccp_channel_set_callingparty(sccp_channel_t * c, char *name, char *number)
 void sccp_channel_set_calledparty(sccp_channel_t * c, char *name, char *number);
 void sccp_channel_connect(sccp_channel_t * c);
 void sccp_channel_disconnect(sccp_channel_t * c);
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struct ast_rtp **rtp);
-#ifdef ASTERISK_CONF_1_4
+#if ASTERISK_VERSION_NUM >= 10400 && ASTERISK_VERSION_NUM < 10600
 int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, int codecs, int nat_active);
 #else
 int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, struct ast_rtp *trtp, int codecs, int nat_active);

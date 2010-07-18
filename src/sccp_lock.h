@@ -16,7 +16,7 @@
 #define sccp_mutex_init(x)          ast_mutex_init(x)
 #define sccp_mutex_destroy(x)       ast_mutex_destroy(x)
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 /* Channel Mutex Macros for Asterisk 1.4 and above */
 #define sccp_ast_channel_lock(x)    ast_channel_lock(x)
 #define sccp_ast_channel_unlock(x)  ast_channel_unlock(x)

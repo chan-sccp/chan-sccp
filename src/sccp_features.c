@@ -22,7 +22,7 @@
  
 #include "config.h"
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
@@ -354,7 +354,7 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 					 "exten         = %s\n"
 					 "macro context = %s\n"
 					 "context	    = %s\n"
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 					 "dialcontext   = %s\n"
 #endif
 					 "pbx		    = %s\n"
@@ -368,14 +368,14 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 					 target->exten?target->exten:"(NULL)",
 					 target->macrocontext?target->macrocontext:"(NULL)",
 					 target->context?target->context:"(NULL)",
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 					 target->dialcontext?target->dialcontext:"(NULL)",
 #endif
 					 target->pbx?"on":"off",
 					 target->_state);
 
 		if ((!strcasecmp(target->macroexten, pickupexten) || !strcasecmp(target->exten, pickupexten)) &&
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 			((!ast_strlen_zero(d->pickupcontext)?(!strcasecmp(target->context, d->pickupcontext)):1) ||
 			 (!ast_strlen_zero(d->pickupcontext)?(!strcasecmp(target->macrocontext, d->pickupcontext)):1)) &&
 #else
@@ -969,16 +969,16 @@ static void * sccp_feat_meetme_thread(void * data)
         char context[AST_MAX_CONTEXT];  
 
         char meetmeopts[AST_MAX_CONTEXT];
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
         struct pbx_find_info q = { .stacklen = 0 };
 #define SCCP_CONF_SPACER ','
 #endif
 
-#ifdef ASTERISK_CONF_1_4
+#if ASTERISK_VERSION_NUM >= 10400 && ASTERISK_VERSION_NUM < 10600
 #define SCCP_CONF_SPACER '|'
 #endif
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
         unsigned int eid = ast_random();
 #else
         unsigned int eid = random();
@@ -1035,7 +1035,7 @@ static void * sccp_feat_meetme_thread(void * data)
                 if (ast_pbx_run(c->owner)) {
                         sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_INVALIDCONFERENCE);
                 }
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
                 if (pbx_find_extension(NULL, NULL, &q, context, ext, 1, NULL, "", E_MATCH)) {
                         ast_context_remove_extension(context, ext, 1, NULL);
                 }

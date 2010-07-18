@@ -22,7 +22,7 @@
 
 #include "config.h"
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
@@ -51,7 +51,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/features.h>
 #endif
 
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 /*!
  * \brief Host Access Rule Structure
  */
@@ -109,7 +109,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	struct sockaddr_in sin;
 	sccp_hostname_t		*permithost;
 
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
 
@@ -161,7 +161,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 				if (s->sin.sin_addr.s_addr == sin.sin_addr.s_addr) {
 					break;
 				} else {
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 					ast_log(LOG_NOTICE, "%s: device ip address does not match the permithost = %s (%s)\n", r->msg.RegisterMessage.sId.deviceName, permithost->name, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr));
 #else
 					ast_log(LOG_NOTICE, "%s: device ip address does not match the permithost = %s (%s)\n", r->msg.RegisterMessage.sId.deviceName, permithost->name, ast_inet_ntoa(sin.sin_addr));
@@ -192,7 +192,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	if (d->session) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Device is doing a re-registration!\n", d->id);
 	}
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fd, ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
 #else
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fd, ast_inet_ntoa(s->sin.sin_addr));
@@ -1983,7 +1983,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 	struct sockaddr_in sin;
 	sccp_channel_t * c;
 	sccp_device_t * d;
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
 	char ipAddr[16];
@@ -2015,7 +2015,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 
 	sin.sin_port = ipPort;
 
-#ifdef	ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u\n",
 			d->id,
 			status, (d->trustphoneip ? "Phone" : "Connection"),
@@ -2079,7 +2079,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 		memcpy(&c->rtp_addr, &sin, sizeof(sin));
 		if (c->rtp.audio) {
 			sccp_channel_startmediatransmission(c);				/*!< Starting Media Transmission Earlier to fix 2 second delay - Copied from v2 - FS */
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port));
 			ast_rtp_set_peer(c->rtp.audio, &sin);
 #else
@@ -2091,7 +2091,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 			if(c->state == SCCP_CHANNELSTATE_CONNECTED)
 				sccp_ast_setstate(c, AST_STATE_UP);
 		} else {
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 			ast_log(LOG_ERROR,  "%s: Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port));
 #else
 			ast_log(LOG_ERROR,  "%s: Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
@@ -2127,7 +2127,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 
 
 
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Set the RTP video media address to %s:%d\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), vsin.sin_addr), ntohs(vsin.sin_port));
 			ast_rtp_set_peer(c->rtp.video, &vsin);
 #else
@@ -2195,7 +2195,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_moo_t * r)
 void sccp_handle_ServerResMessage(sccp_session_t * s, sccp_moo_t * r)
 {
 	sccp_moo_t * r1;
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
 
@@ -2204,7 +2204,7 @@ void sccp_handle_ServerResMessage(sccp_session_t * s, sccp_moo_t * r)
 	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: Sending servers message\n", DEV_ID_LOG(s->device));
 
 	REQ(r1, ServerResMessage);
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	sccp_copy_string(r1->msg.ServerResMessage.server[0].serverName, ast_inet_ntoa(iabuf, sizeof(iabuf), s->ourip), sizeof(r1->msg.ServerResMessage.server[0].serverName));
 #else
 	sccp_copy_string(r1->msg.ServerResMessage.server[0].serverName, ast_inet_ntoa(s->ourip), sizeof(r1->msg.ServerResMessage.server[0].serverName));
@@ -2646,7 +2646,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 {
 	struct sockaddr_in sin;
 	sccp_device_t * d;
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
 
@@ -2665,7 +2665,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 	memcpy(&sin.sin_addr, &r->msg.StartMediaTransmissionAck.bel_ipAddr, sizeof(sin.sin_addr));
 	sin.sin_port = ipPort;
 
-#ifdef	ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	sccp_log(8)(VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n",
 			DEV_ID_LOG(d),
 			status,

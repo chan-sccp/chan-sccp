@@ -13,7 +13,7 @@
 
 #include "config.h"
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
@@ -150,7 +150,7 @@ void sccp_session_close(sccp_session_t * s)
 static void destroy_session(sccp_session_t * s)
 {
 	sccp_device_t * d;
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
 
@@ -160,7 +160,7 @@ static void destroy_session(sccp_session_t * s)
 	d = s->device;
 	if (d)
 	{
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 		sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
 #else
 		sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(s->sin.sin_addr));
@@ -202,7 +202,7 @@ static void sccp_accept_connection(void)
 	socklen_t length = (socklen_t)(sizeof(struct sockaddr_in));
 	int on = 1;
 
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
 
@@ -240,7 +240,7 @@ static void sccp_accept_connection(void)
 
 	s->fd = new_socket;
 	s->lastKeepAlive = time(0);
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
 #else
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", ast_inet_ntoa(s->sin.sin_addr));
@@ -252,7 +252,7 @@ static void sccp_accept_connection(void)
 		memcpy(&s->ourip, &GLOB(bindaddr.sin_addr.s_addr), sizeof(s->ourip));
 	}
 
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Using ip %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), s->ourip));
 #else
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Using ip %s\n", ast_inet_ntoa(s->ourip));

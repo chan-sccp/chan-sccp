@@ -21,7 +21,7 @@
 #define AST_MODULE "chan_sccp"
 
 #include "config.h"
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
@@ -67,7 +67,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/frame.h>
 #include <asterisk/channel.h>
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 
 void *sccp_create_hotline(void);
 
@@ -105,7 +105,7 @@ struct sched_context 			* sched = 0;
 struct io_context 				* io    = 0;
 
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 /*!
  * \brief	Buffer for Jitterbuffer use
  */
@@ -661,12 +661,12 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 static int reload_config(void) {
 	int						oldport	= ntohs(GLOB(bindaddr.sin_port));
 	int						on		= 1;
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	char					iabuf[INET_ADDRSTRLEN];
 #endif
 
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 	/* Copy the default jb config over global_jbconf */
 	memcpy(&GLOB(global_jbconf), &default_jbconf, sizeof(struct ast_jb_conf));
 
@@ -726,7 +726,7 @@ static int reload_config(void) {
 		else
 		{
 			if (bind(GLOB(descriptor), (struct sockaddr *)&GLOB(bindaddr), sizeof(GLOB(bindaddr))) < 0) {
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 				ast_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n",	ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
 #else
 				ast_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n",	ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)),strerror(errno));
@@ -735,14 +735,14 @@ static int reload_config(void) {
 				GLOB(descriptor) = -1;
 				return 0;
 			}
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 			ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
 #else
 			ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", 	ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
 #endif
 
 			if (listen(GLOB(descriptor), DEFAULT_SCCP_BACKLOG)) {
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 				ast_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
 #else
 				ast_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)),	strerror(errno));
@@ -751,7 +751,7 @@ static int reload_config(void) {
 				GLOB(descriptor) = -1;
 				return 0;
 			}
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 			sccp_log(0)(VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
 #else
 			sccp_log(0)(VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
@@ -932,7 +932,7 @@ static int sccp_setmessage_exec(struct ast_channel *chan, void *data) {
 	return 0;
 }
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 /*!
  * \brief	Initialize and Astersik RTP Bridge
  * \param	c0	Asterisk Channel 0
@@ -1024,7 +1024,7 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 }
 #endif
 
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 /*!
  * \brief 	Load the actual chan_sccp module
  * \return	Success as int
@@ -1038,7 +1038,7 @@ static int load_module(void) {
 	sccp_event_listeners = ast_malloc(sizeof(struct sccp_event_subscriptions));
 	if (!sccp_globals || !sccp_event_listeners) {
 		ast_log(LOG_ERROR, "No free memory for SCCP global vars. SCCP channel type disabled\n");
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 		return -1;
 #else
 		return AST_MODULE_LOAD_FAILURE;
@@ -1129,7 +1129,7 @@ static int load_module(void) {
 		}
 	}
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 #ifndef CS_AST_HAS_RTP_ENGINE
 	ast_rtp_proto_register(&sccp_rtp);
 #else
@@ -1170,7 +1170,7 @@ int sccp_sched_free(void *ptr){
 #endif
 
 
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 /*!
  * \brief 	Unload the chan_sccp module
  * \return	Success as int
@@ -1185,7 +1185,7 @@ static int unload_module(void) {
 	sccp_device_t * d;
 	sccp_session_t * s;
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 	ast_rtp_proto_unregister(&sccp_rtp);
 #endif
 #ifdef CS_SCCP_MANAGER
@@ -1260,7 +1260,7 @@ static int unload_module(void) {
 	/* removing sessions */
 	SCCP_LIST_LOCK(&GLOB(sessions));
 	while ((s = SCCP_LIST_REMOVE_HEAD(&GLOB(sessions), list))) {
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
 #else
 		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", ast_inet_ntoa(s->sin.sin_addr));
@@ -1309,7 +1309,7 @@ static int unload_module(void) {
 	return 0;
 }
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 //AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY, "Skinny Client Control Protocol (SCCP). Release: " SCCP_BRANCH " - " SCCP_REVISION " (built by '" BUILD_USER "' on '" BUILD_DATE "')");
 AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY, "Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION " " SCCP_BRANCH " (built by '" BUILD_USER "' on '" BUILD_DATE "')");
 #else

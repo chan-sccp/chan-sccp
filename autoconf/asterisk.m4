@@ -61,23 +61,30 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
 
     PBX_VER_NUM=0
     if grep -q "SVN-branch" $PBX_INCLUDE/version.h; then
-        PBX_VERSION_NUM="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-branch-\(.*\)-r\(.*\)M"/\1/g' |sed 's/\./0/g'`00"
+        PBX_VERSION_NUM="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-branch-\(.*\)-r\(.*\)M"/\1/g' |sed 's/\./0/g'`"
         PBX_BRANCH="BRANCH"
-        PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-branch-\(.*\)-r\(.*\)M"/\2/g'`"
+        PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-branch-\(.*\)-r\(.*\)"/\2/g'`"
     elif grep -q "trunk" $PBX_INCLUDE/version.h; then
-        PBX_VERSION_NUM=1080099
+        PBX_VERSION_NUM=10800
         PBX_BRANCH="TRUNK"
-        PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-trunk-r\(.*\)M"/\1/g'`"
+        PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-trunk-r\(.*\)"/\1/g'`"
     else
-        PBX_VERSION_NUM="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "\(.*\)"/\1/g' |sed 's/\./0/g'`"
+        PBX_VERSION_NUM="`grep 'ASTERISK_VERSION_NUM ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION_NUM \(.*\)/\1/g'`"
         PBX_BRANCH="TGZ"
-        PBX_REVISION="00"
+        PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "\(.*\)"/\1/g' | sed 's/\./0/g'`"
+        PBX_REVISION=${PBX_REVISION:${#PBX_REVISION}-2:2}
     fi
     AC_DEFINE_UNQUOTED([PBX_VERSION_NUM],`echo ${PBX_VERSION_NUM}`,[PBX Version Number])
     AC_SUBST([PBX_VERSION_NUM])
     AC_DEFINE_UNQUOTED([PBX_BRANCH],`echo ${PBX_BRANCH}`,[PBX Branch Type])
     AC_SUBST([PBX_BRANCH])
     AC_DEFINE_UNQUOTED([PBX_REVISION],`echo ${PBX_REVISION}`,[PBX Revision Number])
+    AC_SUBST([PBX_REVISION])
+    AC_DEFINE_UNQUOTED([ASTERISK_VERSION_NUM],`echo ${PBX_VERSION_NUM}`,[ASTERISK Version Number])
+    AC_SUBST([PBX_VERSION_NUM])
+    AC_DEFINE_UNQUOTED([ASTERISK_BRANCH],`echo ${PBX_BRANCH}`,[ASTERISK Branch Type])
+    AC_SUBST([PBX_BRANCH])
+    AC_DEFINE_UNQUOTED([ASTERISK_REVISION],`echo ${PBX_REVISION}`,[ASTERISK Revision Number])
     AC_SUBST([PBX_REVISION])
     ],
     [AC_MSG_RESULT(Not Found 'asterisk/version.h')]

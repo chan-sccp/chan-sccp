@@ -20,7 +20,7 @@
    
 #include "config.h"
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 #include <asterisk.h>
 #include "asterisk/abstract_jb.h"
 #endif
@@ -175,13 +175,13 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
 	sccp_log(2)(VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d) USED: %s(%d) \n",
 	channel->line->name,
 	channel->callid,
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 	ast_getformatname_multiple(s1, sizeof(s1) -1, channel->capability & AST_FORMAT_AUDIO_MASK),
 #else
 	ast_getformatname_multiple(s1, sizeof(s1) -1, channel->capability),
 #endif
 	channel->capability,
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 	ast_getformatname_multiple(s2, sizeof(s2) -1, channel->format & AST_FORMAT_AUDIO_MASK),
 #else
 	ast_getformatname_multiple(s2, sizeof(s2) -1, channel->format),
@@ -466,7 +466,7 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * c)
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Device is Requesting CallStatisticsAndClear\n", (d && d->id)?d->id:"SCCP");
 }
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 /*!
  * \brief Get RTP Peer from Channel
  * \param ast Asterisk Channel
@@ -542,7 +542,7 @@ enum ast_rtp_glue_result sccp_channel_get_vrtp_peer(struct ast_channel *ast, str
 
 
 
-#ifdef ASTERISK_CONF_1_4
+#if ASTERISK_VERSION_NUM >= 10400 && ASTERISK_VERSION_NUM < 10600
 /*!
  * \brief Set RTP Peer from Channel
  * \param ast Asterisk Channel
@@ -715,7 +715,7 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 	
 	sccp_channel_updateChannelCapability(c);
 	c->isCodecFix = TRUE;
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 	struct ast_format_list fmt = ast_codec_pref_getsize(&c->codecs, c->format);
 	payloadType = sccp_codec_ast2skinny(fmt.bits);
 	packetSize = fmt.cur_ms;
@@ -808,11 +808,11 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 	struct ast_hostent ahp;
 	struct hostent *hp;
 	int payloadType;
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
 	int packetSize;
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 	struct ast_format_list fmt;
 #endif
 
@@ -853,7 +853,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 		}
 	}
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 	fmt = ast_codec_pref_getsize(&c->device->codecs, c->format);
 	payloadType = sccp_codec_ast2skinny(fmt.bits);
 	packetSize = fmt.cur_ms;
@@ -882,7 +882,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 		r->msg.StartMediaTransmission_v17.lel_rtptimeout = htolel(10);
 	}
 	sccp_dev_send(c->device, r);
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s (%d ms), tos %d, silencesuppression: %s\n",c->device->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port), codec2str(payloadType), packetSize, c->line->audio_tos, c->line->silencesuppression ? "ON" : "OFF");
 #else
 	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s(%d) (%d ms), tos %d, silencesuppression: %s\n",c->device->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), codec2str(payloadType),payloadType, packetSize, c->line->audio_tos, c->line->silencesuppression ? "ON" : "OFF");
@@ -1319,7 +1319,7 @@ int sccp_channel_hold(sccp_channel_t * c)
 	peer = CS_AST_BRIDGED_CHANNEL(c->owner);
 
 	if (peer) {
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 		ast_moh_start(peer, NULL);
 #else
 #ifdef CS_AST_RTP_NEW_SOURCE
@@ -1616,7 +1616,7 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 	sccp_session_t * s;
 	sccp_line_t * l = NULL;
 	sccp_device_t * d = NULL;
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
 	boolean_t isVideoSupported = FALSE;
@@ -1644,7 +1644,7 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 
 /* No need to lock, because already locked in the sccp_indicate.c */
 /*	sccp_channel_lock(c); */
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), s->ourip));
 #else
 	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", d->id, ast_inet_ntoa(s->ourip));
@@ -1658,7 +1658,7 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 		c->rtp.video = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
 
 
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	if (c->rtp.audio && c->owner)
 		c->owner->fds[0] = ast_rtp_fd(c->rtp.audio);
 
@@ -1668,7 +1668,7 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 
 #if ASTERISK_VERSION_NUM >= 10400
 //#if ASTERISK_VERSION_NUM < 10600
-#ifdef ASTERISK_CONF_1_4
+#if ASTERISK_VERSION_NUM >= 10400 && ASTERISK_VERSION_NUM < 10600
 	if (c->rtp.audio && c->owner) {
 		c->owner->fds[0] = ast_rtp_fd(c->rtp.audio);
 		c->owner->fds[1] = ast_rtcp_fd(c->rtp.audio);
@@ -1679,7 +1679,7 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 		c->owner->fds[3] = ast_rtcp_fd(c->rtp.video);
 	}
 #endif
-#ifdef ASTERISK_CONF_1_6
+#if ASTERISK_VERSION_NUM >= 10600
 	if (c->rtp.audio && c->owner) {
 		ast_channel_set_fd(c->owner, 0, ast_rtp_fd(c->rtp.audio));
 		ast_channel_set_fd(c->owner, 1, ast_rtcp_fd(c->rtp.audio));
@@ -1712,7 +1712,7 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 
 
 	if (c->rtp.audio) {
-//#ifdef ASTERISK_CONF_1_6
+//#if ASTERISK_VERSION_NUM >= 10600
 #if ASTERISK_VERSION_NUM >= 10600
 		ast_rtp_setqos(c->rtp.audio, c->line->audio_tos, c->line->audio_cos, "SCCP RTP");
 #else
@@ -1726,14 +1726,14 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 		
 #endif
 		ast_rtp_setnat(c->rtp.audio, d->nat);
-//#ifdef ASTERISK_CONF_1_6
+//#if ASTERISK_VERSION_NUM >= 10600
 #if ASTERISK_VERSION_NUM >= 10600
 		ast_rtp_codec_setpref(c->rtp.audio, &c->codecs);
 #endif
 	}
 
 	if (c->rtp.video) {
-//#ifdef ASTERISK_CONF_1_6
+//#if ASTERISK_VERSION_NUM >= 10600
 #if ASTERISK_VERSION_NUM >= 10600
 		ast_rtp_setqos(c->rtp.video, c->line->audio_tos, c->line->video_cos, "SCCP VRTP");
 #else
@@ -1894,7 +1894,7 @@ static void * sccp_channel_transfer_ringing_thread(void *data)
 	}
 	else if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_MOH) {
 		sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Started music on hold for channel %s(%p)\n", ast->name, ast);
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 		ast_moh_start(ast, NULL);
 #else
 		ast_moh_start(ast, NULL, NULL);
@@ -2186,7 +2186,7 @@ void sccp_channel_park(sccp_channel_t * c) {
 	}
 	sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CALLPARK);
 
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	chan1m = ast_channel_alloc(0);
 #else
     /* This should definetly fix CDR */
@@ -2201,7 +2201,7 @@ void sccp_channel_park(sccp_channel_t * c) {
 		sccp_dev_displayprompt(c->device, instance, c->callid, SKINNY_DISP_NO_PARK_NUMBER_AVAILABLE, 0);
 		return;
 	}
-#ifdef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM < 10400
 	chan2m = ast_channel_alloc(0);
 #else
 	// chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, "SCCP/%s", l->name,  NULL, 0, NULL);

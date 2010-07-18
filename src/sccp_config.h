@@ -16,7 +16,7 @@
 #include "config.h"
 #include <stdint.h>
 
-#ifndef ASTERISK_CONF_1_2
+#if ASTERISK_VERSION_NUM >= 10400
 #include <asterisk.h>
 #endif
 #include "asterisk/channel.h"
