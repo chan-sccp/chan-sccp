@@ -413,13 +413,16 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 	if(chan1 && chan2){
 		//for using the sccp_channel_transfer_complete function
 		//chan2 must be in RINGOUT or CONNECTED state
+		sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: (sccp_sk_dirtrfr) First Channel Status (%d), Second Channel Status (%d)\n", DEV_ID_LOG(d), chan1->state, chan2->state);
 		if(chan2->state != SCCP_CHANNELSTATE_CONNECTED && chan1->state == SCCP_CHANNELSTATE_CONNECTED){
 			tmp = chan1;
 			chan1 = chan2;
 			chan2 = tmp;
 		} else if (chan1->state == SCCP_CHANNELSTATE_HOLD && chan2->state == SCCP_CHANNELSTATE_HOLD){
 			//resume chan2 if both channels are on hold
+			sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: (sccp_sk_dirtrfr) Resuming Second Channel (%d)\n", DEV_ID_LOG(d), chan2->state);
 			sccp_channel_resume(d, chan2);
+			sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: (sccp_sk_dirtrfr) Resumed Second Channel (%d)\n", DEV_ID_LOG(d), chan2->state);
 		}
 		sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: (sccp_sk_dirtrfr) First Channel Status (%d), Second Channel Status (%d)\n", DEV_ID_LOG(d), chan1->state, chan2->state);
 		sccp_device_lock(d);
