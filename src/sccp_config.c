@@ -1500,13 +1500,16 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 		switch (sccp_device_changed(temp_d,d)) {
 			case NO_CHANGES: {
 				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: no changes detected\n", temp_d->id);
+				break;
 			}
 			case MINOR_CHANGES: {
 				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: minor changes detected, no reset required\n", temp_d->id);
+				break;
 			}
 			case CHANGES_NEED_RESET: {
 				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: major changes detected, reset required -> pendingUpdate=1\n", temp_d->id);
 				d->pendingUpdate=1;
+				break;
 			}
 		}
 		sccp_device_unlock(temp_d);
