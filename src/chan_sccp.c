@@ -6,14 +6,14 @@
  * \note	Reworked, but based on chan_sccp code.
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License. 
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \date        $Date$
  * \version     $Revision$
  */
- 
+
 /*!
- * \remarks	Purpose: 	This source file should be used only for asterisk module related content. 
+ * \remarks	Purpose: 	This source file should be used only for asterisk module related content.
  * 		When to use:	Methods communicating to asterisk about module initialization, status, destruction
  *   		Relationships: 	Main hub for all other sourcefiles.
  */
@@ -191,7 +191,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 
 	sccp_log((DEBUGCAT_SCCP + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	/* call forward check */
-	
+
 	// Allocate a new SCCP channel.
 	/* on multiline phone we set the line when answering or switching lines */
 	c = sccp_channel_allocate(l, NULL);
@@ -202,7 +202,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 		goto OUT;
 	}
 
-	
+
 	/* set subscriberId for individual device addressing */
 	if (!ast_strlen_zero(lineSubscriptionId.subscriptionId.number)) {
 		sccp_copy_string(c->subscriptionId.number, lineSubscriptionId.subscriptionId.number, sizeof(c->subscriptionId.number));
@@ -229,7 +229,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 	}
 
 
-	
+
 #if 0
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "Line %s has %d device%s\n", l->name, l->devices.size, (l->devices.size>1)?"s":"");
 	if(l->devices.size < 2){
@@ -368,13 +368,13 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 					c->ringermode = SKINNY_STATION_URGENTRING;
 				else
 					c->ringermode = SKINNY_STATION_OUTSIDERING;
-			
+
 			} else {
 				ast_log(LOG_WARNING, "%s: Wrong option %s\n", l->id, optv[opti]);
 			}
 		}
-		
-		
+
+
 	}
 
 OUT:
@@ -394,8 +394,8 @@ int sccp_devicestate(void *data) {
 	sccp_line_t * l =  NULL;
 	int res = AST_DEVICE_UNKNOWN;
 	char *lineName = NULL, *options = NULL;
-	
-	
+
+
 	/* exclude options */
 	lineName = strdup(data);
 	if ((options = strchr(lineName, '/'))) {
@@ -682,12 +682,12 @@ static int reload_config(void) {
 			ast_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
 		if (setsockopt(GLOB(descriptor), IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0)
 			ast_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(sccp_tos), strerror(errno));
-		else if (GLOB(sccp_tos)) 
+		else if (GLOB(sccp_tos))
 			ast_log(LOG_WARNING, "Using SCCP Socket ToS mark %d\n", GLOB(sccp_tos));
 		if (setsockopt(GLOB(descriptor), IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
 			ast_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
-#if defined(linux)                                                              
-		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0)  
+#if defined(linux)
+		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0)
 			ast_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
 		else if (GLOB(sccp_cos))
 			ast_log(LOG_WARNING, "Using SCCP Socket CoS mark %d\n", GLOB(sccp_cos));
@@ -1042,8 +1042,8 @@ static int load_module(void) {
 	SCCP_LIST_HEAD_INIT(&GLOB(lines));
 
 	SCCP_LIST_HEAD_INIT(&sccp_event_listeners->subscriber);
-	
-	
+
+
 	sccp_mwi_module_start();
 	sccp_hint_module_start();
 #ifdef CS_SCCP_CONFERENCE
@@ -1135,10 +1135,10 @@ static int load_module(void) {
 int sccp_sched_free(void *ptr){
 	if(!ptr)
 		return -1;
-	
+
 	ast_free(ptr);
 	return 0;
-	
+
 }
 #endif
 
@@ -1173,7 +1173,7 @@ static int unload_module(void) {
 	ast_unregister_application("SetMessage");
 	ast_unregister_application("SetCalledParty");
 	sccp_unregister_cli();
-	
+
 	sccp_mwi_module_stop();
 	sccp_hint_module_stop();
 

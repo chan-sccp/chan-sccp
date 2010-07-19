@@ -8,7 +8,7 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \date        $Date$
- * \version     $Revision$  
+ * \version     $Revision$
  */
 
 /*!
@@ -17,7 +17,7 @@
  *   		Relationships: 	SCCP Device -> SCCP DeviceLine -> SCCP Line
  *   			 	SCCP Line -> SCCP ButtonConfig -> SCCP Device
  */
- 
+
 #include "config.h"
 
 #if ASTERISK_VERSION_NUM >= 10400
@@ -201,7 +201,7 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 #ifdef CS_ADV_FEATURES
 	d->useRedialMenu = FALSE;
 #endif
-	
+
 	return d;
 }
 
@@ -506,10 +506,10 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 	if (
 	      (
 		    opt == KEYMODE_ONHOOK || opt == KEYMODE_OFFHOOK || opt == KEYMODE_OFFHOOKFEAT
-	      ) 
-	      && 
+	      )
+	      &&
 	      (
-			ast_strlen_zero(d->lastNumber) 
+			ast_strlen_zero(d->lastNumber)
 #ifdef CS_ADV_FEATURES
 			&& !d->useRedialMenu
 #endif
@@ -537,13 +537,13 @@ void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
 	if (!d)
 		return;
 
-	
+
 	int retry = 0;
 	while(sccp_device_trylock(d)) {
 		retry++;
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s), retry: %d\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__, retry);
 		usleep(100);
-		
+
 		if(retry > 100){
 		     return;
 		}
@@ -580,10 +580,10 @@ void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
  */
 void sccp_dev_set_ringer(sccp_device_t * d, uint8_t opt, uint32_t line, uint32_t callid)
 {
-        sccp_moo_t * r;
+	sccp_moo_t * r;
 
-        if (!d || !d->session)
-                return;
+	if (!d || !d->session)
+		return;
   // If we have multiple calls ringing at once, this has lead to
   // never ending rings even after termination of the alerting call.
   // Obviously the ringermode is no longer a per-device state but
@@ -612,7 +612,7 @@ void sccp_dev_set_ringer(sccp_device_t * d, uint8_t opt, uint32_t line, uint32_t
  */
 void sccp_dev_set_speaker(sccp_device_t * d, uint8_t mode)
 {
-        sccp_moo_t * r;
+	sccp_moo_t * r;
 	if (!d || !d->session)
 		return;
 
@@ -629,7 +629,7 @@ void sccp_dev_set_speaker(sccp_device_t * d, uint8_t mode)
  */
 void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode)
 {
-        sccp_moo_t * r;
+	sccp_moo_t * r;
 	if (!d || !d->session)
 		return;
 
@@ -690,7 +690,7 @@ void sccp_dev_deactivate_cplane(sccp_device_t * d)
  */
 void sccp_dev_starttone(sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t callid, uint32_t timeout)
 {
-        sccp_moo_t * r;
+	sccp_moo_t * r;
 	if (!d || !d->session)
 		return;
 
@@ -712,10 +712,10 @@ void sccp_dev_starttone(sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t 
  */
 void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid)
 {
-        sccp_moo_t * r;
+	sccp_moo_t * r;
 
-        if (!d || !d->session)
-                return;
+	if (!d || !d->session)
+		return;
 	REQ(r, StopToneMessage);
 	r->msg.StopToneMessage.lel_lineInstance = htolel(line);
 	r->msg.StopToneMessage.lel_callReference = htolel(callid);
@@ -757,34 +757,34 @@ void sccp_dev_clearprompt(sccp_device_t * d, uint8_t line, uint32_t callid)
  */
 void sccp_dev_displayprompt(sccp_device_t * d, uint8_t line, uint32_t callid, char * msg, int timeout)
 {
-        sccp_moo_t * r;
+	sccp_moo_t * r;
 
 	if (!d || !d->session)
 		return;
-		
-	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) 
-	        return; 	/* only for telecaster and new phones */
+
+	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk")))
+		return; 	/* only for telecaster and new phones */
 
 	if (!msg || ast_strlen_zero(msg))
 		return;
 
-        if (d->inuseprotocolversion < 7) {
-                REQ(r, DisplayPromptStatusMessage);
-                r->msg.DisplayPromptStatusMessage.lel_messageTimeout = htolel(timeout);
-                r->msg.DisplayPromptStatusMessage.lel_callReference = htolel(callid);
-                r->msg.DisplayPromptStatusMessage.lel_lineInstance = htolel(line);
-                sccp_copy_string(r->msg.DisplayPromptStatusMessage.promptMessage, msg, sizeof(r->msg.DisplayPromptStatusMessage.promptMessage));
-        } else {
-        	int msg_len = strlen(msg);
-        	int hdr_len = sizeof(r->msg.DisplayDynamicPromptStatusMessage) - 3;
-                int padding = ((msg_len + hdr_len) % 4);
-                padding = (padding > 0) ? 4 - padding : 0;
-                r = sccp_build_packet(DisplayDynamicPromptStatusMessage, hdr_len + msg_len + padding);
-                r->msg.DisplayDynamicPromptStatusMessage.lel_messageTimeout = htolel(timeout);
-                r->msg.DisplayDynamicPromptStatusMessage.lel_callReference = htolel(callid);
-                r->msg.DisplayDynamicPromptStatusMessage.lel_lineInstance = htolel(line);
+	if (d->inuseprotocolversion < 7) {
+		REQ(r, DisplayPromptStatusMessage);
+		r->msg.DisplayPromptStatusMessage.lel_messageTimeout = htolel(timeout);
+		r->msg.DisplayPromptStatusMessage.lel_callReference = htolel(callid);
+		r->msg.DisplayPromptStatusMessage.lel_lineInstance = htolel(line);
+		sccp_copy_string(r->msg.DisplayPromptStatusMessage.promptMessage, msg, sizeof(r->msg.DisplayPromptStatusMessage.promptMessage));
+	} else {
+		int msg_len = strlen(msg);
+		int hdr_len = sizeof(r->msg.DisplayDynamicPromptStatusMessage) - 3;
+		int padding = ((msg_len + hdr_len) % 4);
+		padding = (padding > 0) ? 4 - padding : 0;
+		r = sccp_build_packet(DisplayDynamicPromptStatusMessage, hdr_len + msg_len + padding);
+		r->msg.DisplayDynamicPromptStatusMessage.lel_messageTimeout = htolel(timeout);
+		r->msg.DisplayDynamicPromptStatusMessage.lel_callReference = htolel(callid);
+		r->msg.DisplayDynamicPromptStatusMessage.lel_lineInstance = htolel(line);
 		memcpy(&r->msg.DisplayDynamicPromptStatusMessage.dummy, msg, msg_len);
-        }
+	}
 	sccp_dev_send(d, r);
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Display prompt on line %d, callid %d, timeout %d\n", d->id, line, callid, timeout);
 }
@@ -852,7 +852,7 @@ void sccp_dev_cleardisplaynotify(sccp_device_t * d)
  */
 void sccp_dev_displaynotify(sccp_device_t * d, char * msg, uint32_t timeout)
 {
-        sccp_moo_t * r;
+	sccp_moo_t * r;
 
 	if (!d || !d->session)
 		return;
@@ -929,11 +929,11 @@ sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, 
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 
 		if(config->type == SPEEDDIAL && config->instance == instance){
-		  
+
 			/* we are searching for hinted speeddials */
 			if(type == SCCP_BUTTONTYPE_HINT && !sccp_is_nonempty_string(config->button.speeddial.hint))
 				continue;
-		  
+
 			k = ast_malloc(sizeof(sccp_speed_t));
 			memset(k, 0, sizeof(sccp_speed_t));
 
@@ -1064,17 +1064,17 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 //	/*!
 //	 * \todo New Feature to Display DND / CallForward Status and Privacy Status per Line
 //	 * This is only a proof of concept for now.
-//	 * Issues: 
+//	 * Issues:
 //	 *   - Number of calls to "sccp_dev_check_displayprompt" should be checked, or maybe done per line
 //	 *   - DND per line might be a nice feature
 //	 *   - Privacy status check is not right yet
 //	 *   - Message Waiting Could be integrated as well.
 //	 */
-//	sccp_moo_t 		*r1 = NULL;        
+//	sccp_moo_t 		*r1 = NULL;
 //	sccp_buttonconfig_t 	*buttonconfig;
 //	sccp_linedevices_t 	*linedevice;
 //	sccp_line_t 		*l;
-//	uint16_t 			instance;	
+//	uint16_t 			instance;
 //	sccp_log((DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_3 "%s: Checking Cfwd / DND\n", d->id);
 //	/* walk the buttonconfig list for this device */
 //	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
@@ -1096,7 +1096,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 //
 //					/* add a status block */
 //					strcat(tmp, " [");
-//					
+//
 //					/* check DND status */
 //					if (d->dndFeature.enabled==TRUE) {
 //						if (d->dndFeature.status==SCCP_DNDMODE_REJECT) {
@@ -1111,7 +1111,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 //					/* DND per line would be a nice feature as well */
 //					//} else if(l && (l->dndmode != SCCP_DNDMODE_OFF)) {
 //					}
-//					
+//
 //					/* check Privacy status */
 //					/* Marcello: Need some help here */
 //					if(d->privacyFeature.enabled==TRUE && isPrivicyEnabled){
@@ -1119,7 +1119,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 //					} else {
 //						strcat(tmp, "_");
 //					}
-//					
+//
 //					/* check cfwr status */
 //					if((linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled)) {
 //						if (linedevice->cfwdAll.enabled == SCCP_CFWD_ALL) {
@@ -1131,10 +1131,10 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 //					} else {
 //						strcat(tmp, "_");
 //					}
-//					
+//
 //					/* end the status block */
 //					strcat(tmp, "]");
-//					
+//
 //					/* Send the new button infomation using buildLineStatDynamicMessage */
 //					sccp_log((DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_3 "%s: Sending LineStatDynamicMessage for line %s\n", d->id, l->name);
 //					r1=sccp_utils_buildLineStatDynamicMessage(instance,d->description,"",tmp);
@@ -1211,13 +1211,13 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
 		}
 /*	} else if ( current->dnState > TsOnHook || wanted->dnState == TsOffHook) { */
 	} else if ( d->state == SCCP_DEVICESTATE_OFFHOOK) {
-	        // If the device is currently onhook, then we need to ...
+		// If the device is currently onhook, then we need to ...
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Selecing line %s while using line %s\n", d->id, wanted->name, current->name);
-        	// XXX (1) Put current call on hold
-        	// (2) Stop transmitting/recievening
+		// XXX (1) Put current call on hold
+		// (2) Stop transmitting/recievening
 	} else {
-        	// Otherwise, just select the callplane
-        	ast_log(LOG_WARNING, "%s: Unknown status while trying to select line %s.  Current line is %s\n", d->id, wanted->name, current->name);
+		// Otherwise, just select the callplane
+		ast_log(LOG_WARNING, "%s: Unknown status while trying to select line %s.  Current line is %s\n", d->id, wanted->name, current->name);
 	}
 }
 
@@ -1376,7 +1376,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime) {
 		return;
 
 	sccp_device_lock(d);
-	
+
 	sprintf(family, "SCCP/%s", d->id);
 	ast_db_del(family, "lastDialedNumber");
 	if(!ast_strlen_zero(d->lastNumber))
@@ -1407,7 +1407,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime) {
 				}
 			}
 			SCCP_LIST_TRAVERSE_SAFE_END;
-			
+
 			/* remove devices from line */
 			sccp_line_removeDevice(line, d);
 		}
@@ -1429,7 +1429,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime) {
 
 	d->session = NULL;
 	sccp_device_unlock(d);
-	
+
 	if(destroy){
 		if(cleanupTime > 0){
 			if( (d->scheduleTasks.free = sccp_sched_add(sched, cleanupTime * 1000, sccp_device_free, d)) < 0 ) {
@@ -1458,7 +1458,7 @@ int sccp_device_free(const void *ptr){
 	sccp_buttonconfig_t	*config = NULL;
 	sccp_hostname_t 	*permithost = NULL;
 
-	
+
 	sccp_device_lock(d);
 	/* remove button config */
 	/* only generated on read config, so do not remove on reset/restart*/
@@ -1470,7 +1470,7 @@ int sccp_device_free(const void *ptr){
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 	SCCP_LIST_HEAD_DESTROY(&d->buttonconfig);
 	/* */
-	
+
 	/* removing permithosts */
 	SCCP_LIST_LOCK(&d->permithosts);
 	while((permithost = SCCP_LIST_REMOVE_HEAD(&d->permithosts, list))) {
@@ -1486,13 +1486,13 @@ int sccp_device_free(const void *ptr){
 	}
 
 	d->ha = NULL;
-	
+
 	if(d->buttonTemplate){
 		ast_free(d->buttonTemplate);
 	}
-	
+
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: device deleted\n", d->id);
-	
+
 	sccp_device_unlock(d);
 	ast_mutex_destroy(&d->lock);
 	ast_free(d);
@@ -1687,33 +1687,33 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t *device){
  */
 sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
 	sccp_device_t * new_device = NULL;
-	
+
 	new_device=ast_calloc(1, sizeof(sccp_device_t));
 
 	sccp_device_lock(orig_device);
 	memcpy(new_device, orig_device, sizeof(*new_device));
 
-	/* copy strings over */    // are the ok after the memcpy ? 
+	/* copy strings over */    // are the ok after the memcpy ?
 	// id,description,config_type,imageversion,lastNumber,meetmeopts,pickupcontext,phonemessage,softkeyDefinition,videoSink
-	
+
 	// ast_codec_pref  codecs
 	// this should already be correct from the memcpy. no need to regenerate ?
 	/*
 	uint8_t codec_counter;
-        struct ast_codec_pref pref;			
+	struct ast_codec_pref pref;
 	for(codec_counter=0;codec_counter<31;codec_counter++) {
-                ast_codec_pref_append(&pref,ast_codec_pref_index(&orig_device->codecs , codec_counter+1));
+		ast_codec_pref_append(&pref,ast_codec_pref_index(&orig_device->codecs , codec_counter+1));
 	}
 	new_device->codecs=pref;
 	*/
 
 	// ast_ha ha
 //	ast_free_ha(new_device->ha);			// would cause a memory leak
-        struct ast_ha * hal;				// not sure this construction will help
+	struct ast_ha * hal;				// not sure this construction will help
 	hal=ast_duplicate_ha_list(orig_device->ha);
 	new_device->ha=hal;
 
-        // ast_variable variables
+	// ast_variable variables
 	struct ast_variable *v;
 	new_device->variables=NULL;
 	for (v = orig_device->variables; v; v = v->next)
@@ -1732,24 +1732,24 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
 	// sccp_channel_t  *transfer_channel
 	// sccp_channel_t  *conference_channel
 	// sccp_session_t  *session
-	
+
 	// sccp_line_t     *currentLine
 	sccp_buttonconfig_t *orig_buttonconfig = NULL;
 	SCCP_LIST_TRAVERSE(&orig_device->buttonconfig, orig_buttonconfig, list) {
-                if(orig_buttonconfig->type == LINE ){
-	                new_device->currentLine = sccp_line_find_byid(new_device,orig_buttonconfig->instance);
-	                if (new_device->currentLine) {
-	                        break;
-                        }
-                }
-        }
-        
+		if(orig_buttonconfig->type == LINE ){
+			new_device->currentLine = sccp_line_find_byid(new_device,orig_buttonconfig->instance);
+			if (new_device->currentLine) {
+				break;
+			}
+		}
+	}
+
 	new_device->privacyFeature = orig_device->privacyFeature;
-        new_device->overlapFeature = orig_device->privacyFeature;
-        new_device->monitorFeature = orig_device->privacyFeature;
-        new_device->dndFeature = orig_device->privacyFeature;
-        new_device->priFeature = orig_device->privacyFeature;
-        new_device->mobFeature = orig_device->privacyFeature;
+	new_device->overlapFeature = orig_device->privacyFeature;
+	new_device->monitorFeature = orig_device->privacyFeature;
+	new_device->dndFeature = orig_device->privacyFeature;
+	new_device->priFeature = orig_device->privacyFeature;
+	new_device->mobFeature = orig_device->privacyFeature;
 	new_device->accessoryStatus = orig_device->accessoryStatus;
 	new_device->configurationStatistic = orig_device->configurationStatistic;
 	new_device->voicemailStatistic = orig_device->voicemailStatistic;
@@ -1759,7 +1759,7 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
 	softkey_modes 	*skm = orig_device->softKeyConfiguration.modes;
 	new_device->softKeyConfiguration.modes = skm;
 	new_device->softKeyConfiguration.size = orig_device->softKeyConfiguration.size;
-	
+
 	// scheduleTasks
 	new_device->scheduleTasks = orig_device->scheduleTasks;
 #ifdef CS_SCCP_CONFERENCE
@@ -1780,8 +1780,8 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
 	/* copy lists over */
 	sccp_duplicate_device_buttonconfig_list(new_device,orig_device);
 	sccp_duplicate_device_hostname_list(new_device,orig_device);
-	sccp_duplicate_device_selectedchannel_list(new_device,orig_device);  
-        sccp_duplicate_device_addon_list(new_device,orig_device);
+	sccp_duplicate_device_selectedchannel_list(new_device,orig_device);
+	sccp_duplicate_device_addon_list(new_device,orig_device);
 
 	sccp_device_unlock(orig_device);
 	return new_device;
@@ -1837,7 +1837,7 @@ void sccp_duplicate_device_selectedchannel_list(sccp_device_t *new_device,sccp_d
 		new_selectedChannel=ast_calloc(1,sizeof(sccp_selectedchannel_t));
 		memcpy(new_selectedChannel, orig_selectedChannel, sizeof(*new_selectedChannel));
 		SCCP_LIST_INSERT_TAIL(&new_device->selectedChannels, new_selectedChannel, list);
-        }
+	}
 	SCCP_LIST_UNLOCK(&orig_device->selectedChannels);
 }
 
@@ -1858,7 +1858,7 @@ void sccp_duplicate_device_addon_list(sccp_device_t *new_device, sccp_device_t *
 		SCCP_LIST_INSERT_TAIL(&new_device->addons, new_addon, list);
 	}
 	SCCP_LIST_UNLOCK(&orig_device->addons);
-}	
+}
 
 /*!
  * Checks two devices against one another and returns a sccp_diff_t if different
@@ -1868,97 +1868,97 @@ void sccp_duplicate_device_addon_list(sccp_device_t *new_device, sccp_device_t *
  */
 sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b){
 	sccp_diff_t res=NO_CHANGES;
-	
-	if (        								// check changes requiring reset
-            (strcmp(device_a->description, device_b->description)) || 	 	
-            (strcmp(device_a->imageversion, device_b->imageversion)) ||		
-            (strcmp(device_a->softkeyDefinition, device_b->softkeyDefinition)) ||
-            (device_a->tz_offset != device_b->tz_offset) || 			
-            (device_a->earlyrtp != device_b->earlyrtp) ||				
-            (device_a->nat != device_b->nat) ||					
-            (device_a->directrtp != device_b->directrtp) ||
-            (device_a->trustphoneip != device_b->trustphoneip) ) { 
-                res=CHANGES_NEED_RESET;
-        } else if ( 								// check minor changes
-            (!strcmp(device_a->meetmeopts, device_b->meetmeopts)) ||
-            (device_a->dtmfmode != device_b->dtmfmode) ||
-            (device_a->mwilamp != device_b->mwilamp) ||
-            (device_a->privacyFeature.status != device_b->privacyFeature.status) ||
-            (device_a->dndFeature.enabled != device_b->dndFeature.enabled) ||
-            (device_a->overlapFeature.enabled != device_b->overlapFeature.enabled) ||
-            (device_a->privacyFeature.enabled != device_b->privacyFeature.enabled) ||
-            (device_a->transfer != device_b->transfer) ||	
-            (device_a->cfwdall != device_b->cfwdall) ||	
-            (device_a->cfwdbusy != device_b->cfwdbusy) ||	
-            (device_a->cfwdnoanswer != device_b->cfwdnoanswer) ||
-            (device_a->park != device_b->park)  ||		
-            (device_a->meetme != device_b->meetme) || 	
+
+	if (									// check changes requiring reset
+	    (strcmp(device_a->description, device_b->description)) ||
+	    (strcmp(device_a->imageversion, device_b->imageversion)) ||
+	    (strcmp(device_a->softkeyDefinition, device_b->softkeyDefinition)) ||
+	    (device_a->tz_offset != device_b->tz_offset) ||
+	    (device_a->earlyrtp != device_b->earlyrtp) ||
+	    (device_a->nat != device_b->nat) ||
+	    (device_a->directrtp != device_b->directrtp) ||
+	    (device_a->trustphoneip != device_b->trustphoneip) ) {
+		res=CHANGES_NEED_RESET;
+	} else if ( 								// check minor changes
+	    (!strcmp(device_a->meetmeopts, device_b->meetmeopts)) ||
+	    (device_a->dtmfmode != device_b->dtmfmode) ||
+	    (device_a->mwilamp != device_b->mwilamp) ||
+	    (device_a->privacyFeature.status != device_b->privacyFeature.status) ||
+	    (device_a->dndFeature.enabled != device_b->dndFeature.enabled) ||
+	    (device_a->overlapFeature.enabled != device_b->overlapFeature.enabled) ||
+	    (device_a->privacyFeature.enabled != device_b->privacyFeature.enabled) ||
+	    (device_a->transfer != device_b->transfer) ||
+	    (device_a->cfwdall != device_b->cfwdall) ||
+	    (device_a->cfwdbusy != device_b->cfwdbusy) ||
+	    (device_a->cfwdnoanswer != device_b->cfwdnoanswer) ||
+	    (device_a->park != device_b->park)  ||
+	    (device_a->meetme != device_b->meetme) ||
 #ifdef CS_ADV_FEATURES
 	    (device_a->useRedialMenu != device_b->useRedialMenu) ||
 #endif /* CS_ADV_FEATURES */
 	    (device_a->mwioncall != device_b->mwioncall) ) {
 	     	res=MINOR_CHANGES;
-	} else {								// check lower level changes	
-	        // changes in buttonconfig
+	} else {								// check lower level changes
+		// changes in buttonconfig
 		sccp_buttonconfig_t *buttonconfig_a=NULL;
 		sccp_buttonconfig_t *buttonconfig_b=NULL;
-                SCCP_LIST_LOCK(&device_a->buttonconfig);
+		SCCP_LIST_LOCK(&device_a->buttonconfig);
 		SCCP_LIST_LOCK(&device_b->buttonconfig);
 		buttonconfig_b=SCCP_LIST_FIRST(&device_b->buttonconfig);
-                SCCP_LIST_TRAVERSE(&device_a->buttonconfig, buttonconfig_a, list) {
+		SCCP_LIST_TRAVERSE(&device_a->buttonconfig, buttonconfig_a, list) {
      			if ((res = sccp_buttonconfig_changed(buttonconfig_a,buttonconfig_b) != NO_CHANGES)) {
-      		 	        break;
-                        } 
-                        buttonconfig_b=SCCP_LIST_NEXT(buttonconfig_b,list);
-                }
+      		 		break;
+			}
+			buttonconfig_b=SCCP_LIST_NEXT(buttonconfig_b,list);
+		}
 		SCCP_LIST_UNLOCK(&device_a->buttonconfig);
 		SCCP_LIST_UNLOCK(&device_b->buttonconfig);
 
 		//sccp_hostname_t permithosts
 		sccp_hostname_t *permithosts_a=NULL;
 		sccp_hostname_t *permithosts_b=NULL;
-                SCCP_LIST_LOCK(&device_a->permithosts);
+		SCCP_LIST_LOCK(&device_a->permithosts);
 		SCCP_LIST_LOCK(&device_b->permithosts);
 		permithosts_b=SCCP_LIST_FIRST(&device_b->permithosts);
-                SCCP_LIST_TRAVERSE(&device_a->permithosts, permithosts_a, list) {
+		SCCP_LIST_TRAVERSE(&device_a->permithosts, permithosts_a, list) {
      			if (!strcmp(permithosts_a->name,permithosts_b->name)) {
-     			        res=CHANGES_NEED_RESET;
-      		 	        break;
-                        } 
-                        permithosts_b=SCCP_LIST_NEXT(permithosts_b,list);
-                }
+     				res=CHANGES_NEED_RESET;
+      		 		break;
+			}
+			permithosts_b=SCCP_LIST_NEXT(permithosts_b,list);
+		}
 		SCCP_LIST_UNLOCK(&device_a->permithosts);
 		SCCP_LIST_UNLOCK(&device_b->permithosts);
-		
+
 		//sccp_selectedchannel_t selectedChannels
 		sccp_selectedchannel_t *selectedChannels_a=NULL;
 		sccp_selectedchannel_t *selectedChannels_b=NULL;
-                SCCP_LIST_LOCK(&device_a->selectedChannels);
+		SCCP_LIST_LOCK(&device_a->selectedChannels);
 		SCCP_LIST_LOCK(&device_b->selectedChannels);
 		selectedChannels_b=SCCP_LIST_FIRST(&device_b->selectedChannels);
-                SCCP_LIST_TRAVERSE(&device_a->selectedChannels, selectedChannels_a, list) {
+		SCCP_LIST_TRAVERSE(&device_a->selectedChannels, selectedChannels_a, list) {
      			if (selectedChannels_a->channel->callid != selectedChannels_b->channel->callid) {
-     			        res=CHANGES_NEED_RESET;
-      		 	        break;
-                        } 
-                        selectedChannels_b=SCCP_LIST_NEXT(selectedChannels_b,list);
-                }
+     				res=CHANGES_NEED_RESET;
+      		 		break;
+			}
+			selectedChannels_b=SCCP_LIST_NEXT(selectedChannels_b,list);
+		}
 		SCCP_LIST_UNLOCK(&device_a->selectedChannels);
 		SCCP_LIST_UNLOCK(&device_b->selectedChannels);
 
 		//sccp_addon_t addons
 		sccp_addon_t *addons_a=NULL;
 		sccp_addon_t *addons_b=NULL;
-                SCCP_LIST_LOCK(&device_a->addons);
+		SCCP_LIST_LOCK(&device_a->addons);
 		SCCP_LIST_LOCK(&device_b->addons);
 		addons_b=SCCP_LIST_FIRST(&device_b->addons);
-                SCCP_LIST_TRAVERSE(&device_a->addons, addons_a, list) {
+		SCCP_LIST_TRAVERSE(&device_a->addons, addons_a, list) {
      			if ((addons_a->type!=addons_b->type) || !strcmp(addons_a->device->id,addons_b->device->id)) {
-     			        res=CHANGES_NEED_RESET;
-      		 	        break;
-                        }
-                        addons_b=SCCP_LIST_NEXT(addons_b,list);
-                }
+     				res=CHANGES_NEED_RESET;
+      		 		break;
+			}
+			addons_b=SCCP_LIST_NEXT(addons_b,list);
+		}
 		SCCP_LIST_UNLOCK(&device_a->addons);
 		SCCP_LIST_UNLOCK(&device_b->addons);
 
@@ -1979,64 +1979,64 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
  */
 sccp_diff_t sccp_buttonconfig_changed(sccp_buttonconfig_t *buttonconfig_a, sccp_buttonconfig_t *buttonconfig_b){
 	sccp_diff_t res=NO_CHANGES;
-	
-        if (      									// check changes requiring reset  
-                !(
-                        (buttonconfig_a->index == buttonconfig_b->index) &&
-                        (buttonconfig_a->type == buttonconfig_b->type)
-                )
-        ) { 
-                res=CHANGES_NEED_RESET;
-        } else if ( 									// check minor changes
-                !(
-                        (buttonconfig_a->instance == buttonconfig_b->instance)
-                )
-        ) {
-                res=MINOR_CHANGES;
-        } else {									// check lower level changes
-                switch (buttonconfig_a->type) {
-                        case LINE:
-                        {
-                                if ( (strcmp(buttonconfig_a->button.line.name,                  buttonconfig_b->button.line.name)) ||
-                                     (strcmp(buttonconfig_a->button.line.subscriptionId.number, buttonconfig_b->button.line.subscriptionId.number)) ||
-                                     (strcmp(buttonconfig_a->button.line.subscriptionId.name,   buttonconfig_b->button.line.subscriptionId.name)) ||
-                                     (!buttonconfig_a->button.line.options[0] && buttonconfig_b->button.line.options[0] != '\0') || (strcmp(buttonconfig_a->button.line.options, buttonconfig_a->button.line.options))) {
-                                        res=CHANGES_NEED_RESET;
-                                        break;
-                                }
-                        }
-                        case SPEEDDIAL:
-                        {
-                                if ( (strcmp(buttonconfig_a->button.speeddial.label, 		buttonconfig_b->button.speeddial.label)) ||
-                                     (strcmp(buttonconfig_a->button.speeddial.ext, 		buttonconfig_b->button.speeddial.ext)) ||
-                                     (!buttonconfig_a->button.speeddial.hint[0] && buttonconfig_b->button.speeddial.hint[0] != '\0') || (strcmp(buttonconfig_a->button.speeddial.hint, buttonconfig_b->button.speeddial.hint))) {
-                                       res=CHANGES_NEED_RESET;
-                                        break;
-                                }
-                        }
-                        case SERVICE:
-                        {
-                                if ( (strcmp(buttonconfig_a->button.service.label, 		buttonconfig_b->button.service.label)) ||
-                                     (strcmp(buttonconfig_a->button.service.url, 		buttonconfig_b->button.service.url))) {
-                                       res=CHANGES_NEED_RESET;
-                                        break;
-                                }
-                        }
-                        case FEATURE:
-                        {
-                                if ( (strcmp(buttonconfig_a->button.feature.label, buttonconfig_b->button.feature.label)) ||
-                                     (buttonconfig_a->button.feature.id != buttonconfig_b->button.feature.id) ||
-                                     (buttonconfig_a->button.feature.options[0] && buttonconfig_b->button.feature.options[0] != '\0') || (strcmp(buttonconfig_a->button.feature.options, buttonconfig_b->button.feature.options))) {
-                                       res=CHANGES_NEED_RESET;
-                                        break;
-                                }
-                        }
-                        case EMPTY:
-                        {
-                                // nothing to check
-                        }
-                }
-        }
+
+	if (      									// check changes requiring reset
+	       !(
+	                (buttonconfig_a->index == buttonconfig_b->index) &&
+	                (buttonconfig_a->type == buttonconfig_b->type)
+	        )
+	) {
+		res=CHANGES_NEED_RESET;
+	} else if ( 									// check minor changes
+	        !(
+	                (buttonconfig_a->instance == buttonconfig_b->instance)
+	        )
+	) {
+		res=MINOR_CHANGES;
+	} else {									// check lower level changes
+		switch (buttonconfig_a->type) {
+			case LINE:
+			{
+				if ( (strcmp(buttonconfig_a->button.line.name,		  buttonconfig_b->button.line.name)) ||
+				     (strcmp(buttonconfig_a->button.line.subscriptionId.number, buttonconfig_b->button.line.subscriptionId.number)) ||
+				     (strcmp(buttonconfig_a->button.line.subscriptionId.name,   buttonconfig_b->button.line.subscriptionId.name)) ||
+				     (!buttonconfig_a->button.line.options[0] && buttonconfig_b->button.line.options[0] != '\0') || (strcmp(buttonconfig_a->button.line.options, buttonconfig_a->button.line.options))) {
+					res=CHANGES_NEED_RESET;
+					break;
+				}
+			}
+			case SPEEDDIAL:
+			{
+				if ( (strcmp(buttonconfig_a->button.speeddial.label, 		buttonconfig_b->button.speeddial.label)) ||
+				     (strcmp(buttonconfig_a->button.speeddial.ext, 		buttonconfig_b->button.speeddial.ext)) ||
+				     (!buttonconfig_a->button.speeddial.hint[0] && buttonconfig_b->button.speeddial.hint[0] != '\0') || (strcmp(buttonconfig_a->button.speeddial.hint, buttonconfig_b->button.speeddial.hint))) {
+				       res=CHANGES_NEED_RESET;
+					break;
+				}
+			}
+			case SERVICE:
+			{
+				if ( (strcmp(buttonconfig_a->button.service.label, 		buttonconfig_b->button.service.label)) ||
+				     (strcmp(buttonconfig_a->button.service.url, 		buttonconfig_b->button.service.url))) {
+				       res=CHANGES_NEED_RESET;
+					break;
+				}
+			}
+			case FEATURE:
+			{
+				if ( (strcmp(buttonconfig_a->button.feature.label, buttonconfig_b->button.feature.label)) ||
+				     (buttonconfig_a->button.feature.id != buttonconfig_b->button.feature.id) ||
+				     (buttonconfig_a->button.feature.options[0] && buttonconfig_b->button.feature.options[0] != '\0') || (strcmp(buttonconfig_a->button.feature.options, buttonconfig_b->button.feature.options))) {
+				       res=CHANGES_NEED_RESET;
+					break;
+				}
+			}
+			case EMPTY:
+			{
+				// nothing to check
+			}
+		}
+	}
 	return res;
 }
 #endif

@@ -8,7 +8,7 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \date        $Date$
- * \version     $Revision$  
+ * \version     $Revision$
  */
 
 #include "config.h"
@@ -52,7 +52,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  */
 //SCCP_LIST_HEAD(softKeySetConfigList, sccp_softKeySetConfiguration_t) softKeySetConfig;	/*!< List of SoftKeySets */
 struct softKeySetConfigList softKeySetConfig;							/*!< List of SoftKeySets */
- 
+
 #ifdef CS_DYNAMIC_CONFIG
 void sccp_softkey_pre_reload(void)
 {
@@ -82,14 +82,14 @@ void sccp_softkey_post_reload(void)
 void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Redial Pressed\n", DEV_ID_LOG(d));
-	
+
 #ifdef CS_ADV_FEATURES
 	if(d->useRedialMenu){
 		sccp_moo_t 	*r1 = NULL;
 		char *data = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"Key:Directories\"/><ExecuteItem Priority=\"0\"URL=\"Key:KeyPad3\"/></CiscoIPPhoneExecute>";
-	
+
 		int dummy_len, msgSize, hdr_len, padding;
-		
+
 		dummy_len = strlen(data);
 		hdr_len = 40 - 1;
 		padding = ((dummy_len + hdr_len) % 4);
@@ -108,14 +108,14 @@ void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, sccp_channel_t * c)
 			char buffer[dummy_len + 2];
 			memset(&buffer[0], 0, sizeof(buffer));
 			memcpy(&buffer[0], data, dummy_len);
-			
+
 			memcpy(&r1->msg.UserToDeviceDataVersion1Message.dummy, &buffer[0], sizeof(buffer));
 			sccp_dev_send(d, r1);
 		}
 		return;
-	}	
+	}
 #endif
-	
+
 
 	if (ast_strlen_zero(d->lastNumber)) {
 		sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: No number to redial\n", d->id);
@@ -139,7 +139,7 @@ void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, sccp_channel_t * c)
 	if (!l)
 		l = d->currentLine;
 	sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND);
-	
+
 }
 
 /*!
@@ -161,7 +161,7 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 	}
 	if(!l)
 		l = d->currentLine;
-	
+
 	if(strlen(l->adhocNumber)>0)
 		sccp_channel_newcall(l, d, l->adhocNumber, SKINNY_CALLTYPE_OUTBOUND);
 	else
@@ -248,7 +248,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey DND Pressed\n", DEV_ID_LOG(d));
 	/* actually the line param is not used */
-	
+
 
 	if (!d->dndFeature.enabled) {
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_DND " " SKINNY_DISP_SERVICE_IS_NOT_ACTIVE, 10);
@@ -261,14 +261,14 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 			d->dndFeature.status = SCCP_DNDMODE_REJECT;
 		else
 			d->dndFeature.status = SCCP_DNDMODE_OFF;
-		
+
 	}else if(!strcasecmp(d->dndFeature.configOptions, "silent")){
 		/* config is set to: dnd=silent */
 		if(d->dndFeature.status == SCCP_DNDMODE_OFF)
 			d->dndFeature.status = SCCP_DNDMODE_SILENT;
 		else
 			d->dndFeature.status = SCCP_DNDMODE_OFF;
-		
+
 	}else{
 		/* for all other config us the toggle mode */
 		switch (d->dndFeature.status) {
@@ -285,7 +285,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 				d->dndFeature.status = SCCP_DNDMODE_OFF;
 				break;
 		}
-		
+
 	}
 	sccp_feat_changed(d, SCCP_FEATURE_DND); /* notify the modules the the DND-feature changed state */
 	sccp_dev_check_displayprompt(d); /* //TODO we should use the feature changed event to check displayprompt */
@@ -502,8 +502,8 @@ void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Call Forward All Pressed\n", DEV_ID_LOG(d));
-        if (!l && d) {
-	  
+	if (!l && d) {
+
 		if(d->defaultLineInstance > 0){
 			l = sccp_line_find_byid(d, d->defaultLineInstance);
 		}if(!l){
@@ -511,9 +511,9 @@ void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 		}if(!l){
 			l = sccp_line_find_byid(d, 1);
 		}
-        }
-        
-        
+	}
+
+
 	if(l){
 		sccp_feat_handle_callforward(l, d, SCCP_CFWD_ALL);
 	}else
@@ -664,9 +664,9 @@ void sccp_sk_join(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 void sccp_sk_barge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Barge Pressed\n", DEV_ID_LOG(d));
-        if (!l && d) {
-                l = sccp_line_find_byid(d, 1);
-        }
+	if (!l && d) {
+		l = sccp_line_find_byid(d, 1);
+	}
 	if(l)
 		sccp_feat_handle_barge(l,d);
 	else
@@ -683,9 +683,9 @@ void sccp_sk_barge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey cBarge Pressed\n", DEV_ID_LOG(d));
-        if (!l && d) {
-                l = sccp_line_find_byid(d, 1);
-        }
+	if (!l && d) {
+		l = sccp_line_find_byid(d, 1);
+	}
 	if(l)
 		sccp_feat_handle_cbarge(l,d);
 	else
@@ -704,9 +704,9 @@ void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 void sccp_sk_meetme(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Meetme Pressed\n", DEV_ID_LOG(d));
-        if (!l && d) {
-                l = sccp_line_find_byid(d, 1);
-        }
+	if (!l && d) {
+		l = sccp_line_find_byid(d, 1);
+	}
 	if(l)
 		sccp_feat_handle_meetme(l, d);
 	else
@@ -789,8 +789,8 @@ void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 		return;
 
 	instance = sccp_device_find_index_for_line(d, l->name);
-	
-	
+
+
 	REQ(r, SelectSoftKeysMessage);
 	r->msg.SelectSoftKeysMessage.lel_lineInstance  = htolel(instance);
 	r->msg.SelectSoftKeysMessage.lel_callReference = htolel(c->callid);

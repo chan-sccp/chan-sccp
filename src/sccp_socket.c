@@ -8,7 +8,7 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \date        $Date$
- * \version     $Revision$  
+ * \version     $Revision$
  */
 
 #include "config.h"
@@ -223,11 +223,11 @@ static void sccp_accept_connection(void)
 		ast_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(sccp_tos), strerror(errno));
 	if (setsockopt(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
 		ast_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
-#if defined(linux)                                                              
-        if (setsockopt(new_socket, SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0)  
-        	ast_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
+#if defined(linux)
+	if (setsockopt(new_socket, SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0)
+		ast_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
 #endif
-                                                
+
 /*
 	if (setsockopt(new_socket, IPPROTO_TCP, TCP_CORK, &on, sizeof(on)) < 0)
 		ast_log(LOG_WARNING, "Failed to set SCCP socket to TCP_CORK: %s\n", strerror(errno));
@@ -450,7 +450,7 @@ int sccp_session_send(const sccp_device_t *device, sccp_moo_t * r)
 int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 	ssize_t res;
 	uint32_t msgid = letohl(r->lel_messageId);
-	
+
 	ssize_t bytesSent;
 	ssize_t bufLen;
 	uint8_t *bufAddr;
@@ -470,7 +470,7 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 	sccp_session_lock(s);
 
 	//sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
-	
+
 	/* This is a just a test */
 	if(msgid == KeepAliveAckMessage || msgid == RegisterAckMessage) {
 		r->lel_reserved = 0;
@@ -506,10 +506,10 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 	ast_free(r);
 
 	if(bytesSent < bufLen) {
-        	sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Could only send %d of %d bytes!\n", s->device->id, (int)bytesSent, (int)bufLen);
+		sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Could only send %d of %d bytes!\n", s->device->id, (int)bytesSent, (int)bufLen);
 		sccp_session_close(s);
-        	return 0;
-        }
+		return 0;
+	}
 
 	return res;
 }

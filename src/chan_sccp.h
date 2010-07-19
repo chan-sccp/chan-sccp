@@ -770,9 +770,9 @@ struct sccp_device {
 
 	char 					videoSink[MAXHOSTNAMELEN];		/*!< sink to send video*/
 	struct sccp_conference			*conference;				/*!< conference we are part of */
-	
+
 	btnlist 				*buttonTemplate;
-	
+
 #ifdef CS_ADV_FEATURES
 	boolean_t				useRedialMenu;
 #endif
