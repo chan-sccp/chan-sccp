@@ -1771,9 +1771,11 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
 //	new_device->buttonTemplate = calloc(1,sizeof(btnlist));
 //	memcpy(new_device->btnTemplate,orig_device->btnTemplate,sizeof(btnlist));
 	// char 		*pickupcontext
-	sccp_copy_string(new_device->pickupcontext,orig_device->pickupcontext,strlen(orig_device->pickupcontext) * sizeof(char));
+	if (orig_device->pickupcontext)
+		new_device->pickupcontext = strdup(orig_device->pickupcontext);
 	// char 		*phonemessage
-	sccp_copy_string(new_device->phonemessage,orig_device->phonemessage,strlen(orig_device->phonemessage) * sizeof(char));
+	if (orig_device->phonemessage)
+		new_device->phonemessage = strdup(orig_device->phonemessage);
 
 	// softKeyConfiguration
 
