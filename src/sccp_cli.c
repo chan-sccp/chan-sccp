@@ -549,18 +549,18 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 		}
 	}
 	sccp_device_unlock(d);
-	
+
 
 	int instance = 1;
 	int status = 1;
-	
-	
+
+
 	if (argc > 4){
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: argv[4]=%s\n", d->id, argv[4]);
 		instance =  atoi(argv[4]);
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: instance=%d(%s)\n", d->id, instance, argv[4]);
 	}
-	
+
 	if (argc > 5){
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: argv[5]=%s\n", d->id, argv[5]);
 		status =  atoi(argv[5]);
@@ -585,15 +585,15 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 // 		char		*data;
 // 	} UserToDeviceDataVersion1Message;
 	char *data = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"Key:Directories\"/><ExecuteItem Priority=\"0\"URL=\"Key:KeyPad1\"/></CiscoIPPhoneExecute>";
-	
-	
+
+
 	int dummy_len = strlen(data);
 
 	int hdr_len = 40 - 1;
 	int padding = ((dummy_len + hdr_len) % 4);
 	padding = (padding > 0) ? 4 - padding : 0;
 	int size = hdr_len + dummy_len + padding;
-	
+
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: dummy_len=%d\n", d->id, dummy_len);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: hdr_len=%d\n", d->id, hdr_len);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: padding=%d\n", d->id, padding);
@@ -610,7 +610,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 		char buffer[dummy_len + 2];
 		memset(&buffer[0], 0, dummy_len + 2);
 		memcpy(&buffer[0], data, dummy_len);
-		
+
 		memcpy(&r1->msg.UserToDeviceDataVersion1Message.dummy, &buffer[0], dummy_len + 2);
 		sccp_dev_send(d, r1);
 	}
@@ -619,17 +619,17 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	REQ(r1, ForwardStatMessage);
 	r1->msg.ForwardStatMessage.lel_status = htolel(status);
 	r1->msg.ForwardStatMessage.lel_lineNumber = htolel(instance);
-	
-	
+
+
 	r1->msg.ForwardStatMessage.lel_cfwdallstatus = htolel(status);
 	if(status)
 		sccp_copy_string(r1->msg.ForwardStatMessage.cfwdallnumber, "1234", sizeof(r1->msg.ForwardStatMessage.cfwdallnumber));
-	
+
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Send Forward Status Line: %s, ForwardStatMessage.lel_status=%d\n", d->id, l->name, r1->msg.ForwardStatMessage.lel_status);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Send Forward Status Line: %s, ForwardStatMessage.lel_lineNumber=%d\n", d->id, l->name, r1->msg.ForwardStatMessage.lel_lineNumber);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Send Forward Status Line: %s, ForwardStatMessage.lel_cfwdallstatus=%d\n", d->id, l->name, r1->msg.ForwardStatMessage.lel_cfwdallstatus);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Send Forward Status Line: %s, ForwardStatMessage.lel_cfwdallstatus=%s\n", d->id, l->name, r1->msg.ForwardStatMessage.cfwdallnumber);
-	
+
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Send Forward Status Line: %s, ForwardStatMessage.lel_cfwdbusystatus=%d\n", d->id, l->name, r1->msg.ForwardStatMessage.lel_cfwdbusystatus);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Send Forward Status Line: %s, ForwardStatMessage.lel_cfwdallstatus=%s\n", d->id, l->name, r1->msg.ForwardStatMessage.cfwdbusynumber);
 	sccp_dev_send(d, r1);
@@ -664,7 +664,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 /*
 	char tmp1[256] = "linename";
 	strcat(tmp1," 1234");
-	
+
 	REQ(r1, LineStatMessage);
 	r1->msg.LineStatMessage.lel_lineNumber = htolel(instance);
 	sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, tmp1, sizeof(r1->msg.LineStatMessage.lineDirNumber));
@@ -674,7 +674,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	usleep(1000);
 	char tmp2[256] = "linename";
 	strcat(tmp2," 1234");
-	
+
 	REQ(r1, LineStatMessage);
 	r1->msg.LineStatMessage.lel_lineNumber = htolel(instance);
 	sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, tmp2, sizeof(r1->msg.LineStatMessage.lineDirNumber));
@@ -684,7 +684,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	usleep(1000);
 	char tmp3[256] = "linename";
 	strcat(tmp3," 1234");
-	
+
 	REQ(r1, LineStatMessage);
 	r1->msg.LineStatMessage.lel_lineNumber = htolel(instance);
 	sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, tmp3, sizeof(r1->msg.LineStatMessage.lineDirNumber));
@@ -778,20 +778,20 @@ static int sccp_show_line(int fd, int argc, char * argv[]) {
         ast_cli(fd, "Context               : %s\n", l->context ? l->context : "<not set>");
         ast_cli(fd, "Language              : %s\n", l->language ? l->language : "<not set>");
         ast_cli(fd, "Account Code          : %s\n", l->accountcode ? l->accountcode : "<not set>");
-        ast_cli(fd, "Music Class           : %s\n", l->musicclass ? l->musicclass : "<not set>");  
+        ast_cli(fd, "Music Class           : %s\n", l->musicclass ? l->musicclass : "<not set>");
         ast_cli(fd, "AmaFlags              : %d\n", l->amaflags);
         ast_cli(fd, "Call Group            : %s\n", sccp_print_group(group_buf, sizeof(group_buf), l->callgroup));
 #ifdef CS_SCCP_PICKUP
         ast_cli(fd, "Pickup Group          : %s\n", sccp_print_group(group_buf, sizeof(group_buf), l->pickupgroup));
 #endif
         ast_cli(fd, "Caller ID name        : %s\n", l->cid_name ? l->cid_name : "<not set>");
-        ast_cli(fd, "Caller ID number      : %s\n", l->cid_num ? l->cid_num : "<not set>");  
+        ast_cli(fd, "Caller ID number      : %s\n", l->cid_num ? l->cid_num : "<not set>");
         ast_cli(fd, "Incoming Calls limit  : %d\n", l->incominglimit);
         ast_cli(fd, "Audio TOS             : %d\n", l->audio_tos);
         ast_cli(fd, "Audio COS             : %d\n", l->audio_cos);
         ast_cli(fd, "Video TOS             : %d\n", l->video_tos);
         ast_cli(fd, "Video COS             : %d\n", l->video_cos);
-        ast_cli(fd, "Active Channel Count  : %d\n", l->channelCount); 
+        ast_cli(fd, "Active Channel Count  : %d\n", l->channelCount);
         ast_cli(fd, "Sec. Dialtone Digits  : %s\n", l->secondary_dialtone_digits ? l->secondary_dialtone_digits : "<not set>");
         ast_cli(fd, "Sec. Dialtone         : 0x%02x\n", l->secondary_dialtone_tone);
         ast_cli(fd, "Echo Cancellation     : %s\n", l->echocancel ? "Yes" : "No");
@@ -818,7 +818,7 @@ static int sccp_show_line(int fd, int argc, char * argv[]) {
 
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-                        if (linedevice) 
+                        if (linedevice)
     			        ast_cli(fd, "%-11s: %-4s %-20s %-4s %-20s\n", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number ? linedevice->cfwdAll.number : "<not set>", linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number ? linedevice->cfwdBusy.number : "<not set>");
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
@@ -1306,7 +1306,7 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
                         }
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
-		
+
 		if (found_linedevice==0) {
                         ast_cli(fd, "%-16s %-16s %-6s %-4s %-4d %-10s %-10s %-16s %-10s\n",
                         l->name,
@@ -1854,19 +1854,25 @@ static struct ast_cli_entry cli_no_debug = {
  */
 static int sccp_do_reload(int fd, int argc, char *argv[]) {
 #ifdef CS_DYNAMIC_CONFIG
+	sccp_readingtype_t readingtype;
+
 	ast_cli(fd, "SCCP reloading configuration.\n");
 	ast_cli(fd, "SCCP configuration reload partially implemented ! use unload and load instead for now.\n");
 
+	ast_mutex_lock(&GLOB(lock));
+
 	/* maybe we should make this a global variable so we do not have to pass it around - DdG ??*/
-	sccp_readingtype_t readingtype;
 	readingtype=SCCP_CONFIG_READRELOAD;
 
 	if (!sccp_config_general(readingtype)) {
 		ast_cli(fd, "Unable to reload configuration.\n");
+		ast_mutex_unlock(&GLOB(lock));
 		return RESULT_FAILURE;
 	}
 
 	sccp_config_readDevicesLines(readingtype);
+
+	ast_mutex_unlock(&GLOB(lock));
 
 /*
 (sccp_config.c)       - if device already exists remove device.pendingDelete
@@ -1876,7 +1882,7 @@ static int sccp_do_reload(int fd, int argc, char *argv[]) {
 (sccp_config.c)       - set device.pendingUpdate where device restart necessary
                     }
 (sccp_cli.c)        restart devices with pendingUpdate/pendingDelete {
-(sccp_cli.c)          - skip device if it holds an active channel (device will restart on hangup 
+(sccp_cli.c)          - skip device if it holds an active channel (device will restart on hangup
 (sccp_channel.c)            (hangup function needs to check pendingUpdate/pendingDelete and react accordingly)
 (sccp_cli.c)          - if pendingDelete the remove buttonconfig, line, device
 (sccp_cli.c)          - if pendingUpdate then set pendingUpdate to false and send restart to device
