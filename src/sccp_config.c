@@ -1688,8 +1688,16 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 	if(!device)
 		return;
 
-	char 	buffer[256];
-	char 	family[40];
+#ifndef ASTDB_FAMILY_KEY_LEN
+#define ASTDB_FAMILY_KEY_LEN 256
+#endif
+
+#ifndef ASTDB_RESULT_LEN
+#define ASTDB_RESULT_LEN 256
+#endif
+
+	char 	buffer[ASTDB_RESULT_LEN];
+	char 	family[ASTDB_FAMILY_KEY_LEN];
 	int 	res;
 
 	sprintf(family, "SCCP/%s", device->id);
@@ -1724,10 +1732,9 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 	}
 
 	/* Message */
-	char 			message[256] = "";
-	res=ast_db_get("SCCPM", device->id, message, sizeof(message));			//load save message from ast_db
+	res=ast_db_get("SCCPM", device->id, buffer, sizeof(buffer));			//load save message from ast_db
 	if (!res)
-		device->phonemessage=strdup(message);					//set message on device if we have a result
+		device->phonemessage=strdup(buffer);					//set message on device if we have a result
 
 
 	/* lastDialedNumber */
@@ -1743,7 +1750,6 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 	sccp_line_t             *line;
 	sccp_linedevices_t      *lineDevice;
 	
-
 	sccp_device_lock(device);
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list){
@@ -1753,7 +1759,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 					if(lineDevice->device != device)
 						continue;
 
-                                        memset(family,0,sizeof(family));
+                                        memset(family,0,ASTDB_FAMILY_KEY_LEN * sizeof(char));
                                         sprintf(family, "SCCP/%s/%s", device->id, config->button.line.name);
 					res = ast_db_get(family, "cfwdAll", buffer, sizeof(buffer));
 					if(!res){
