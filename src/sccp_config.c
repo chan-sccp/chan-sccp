@@ -1491,7 +1491,6 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 	 /* load saved settings from ast db */
 	sccp_config_restoreDeviceFeatureStatus(d);
 
-
 #ifdef CS_DYNAMIC_CONFIG
 	/* compare temporiry d to device */
 	if (d->pendingDelete==1 && !d->realtime && temp_d) {
@@ -1690,7 +1689,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 		return;
 
 	char 	buffer[256];
-	char 	family[25];
+	char 	family[40];
 	int 	res;
 
 	sprintf(family, "SCCP/%s", device->id);
@@ -1733,7 +1732,6 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 
 	/* lastDialedNumber */
 	char 			lastNumber[AST_MAX_EXTENSION]="";
-	sprintf(family, "SCCP/%s", device->id);
 	res = ast_db_get(family, "lastDialedNumber", lastNumber, sizeof(lastNumber));
 	if(!res){
 		sccp_copy_string(device->lastNumber, lastNumber, sizeof(device->lastNumber));
@@ -1744,7 +1742,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 	sccp_buttonconfig_t     *config;
 	sccp_line_t             *line;
 	sccp_linedevices_t      *lineDevice;
-	char cfwdLineStore[60];
+	
 
 	sccp_device_lock(device);
 	SCCP_LIST_LOCK(&device->buttonconfig);
@@ -1755,13 +1753,14 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 					if(lineDevice->device != device)
 						continue;
 
-
-					sprintf(family, "SCCP/%s/%s", device->id, config->button.line.name);
-					res = ast_db_get(family, "cfwdAll", cfwdLineStore, sizeof(cfwdLineStore));
+                                        memset(family,0,sizeof(family));
+                                        sprintf(family, "SCCP/%s/%s", device->id, config->button.line.name);
+					res = ast_db_get(family, "cfwdAll", buffer, sizeof(buffer));
 					if(!res){
-						sccp_copy_string(lineDevice->cfwdAll.number, cfwdLineStore, sizeof(lineDevice->cfwdAll.number));
+						sccp_copy_string(lineDevice->cfwdAll.number, buffer, sizeof(lineDevice->cfwdAll.number));
 						lineDevice->cfwdAll.enabled=TRUE;
 					}
+					
 					/* implement when sccp_utils.c sccp_util_handleFeatureChangeEvent is implemented for cfwdBusy
 					res = ast_db_get(family, "cfwdBusy", cfwdLineStore, sizeof(cfwdLineStore));
 					if(!res){

@@ -1495,7 +1495,7 @@ int sccp_device_free(const void *ptr){
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: device deleted\n", d->id);
 
 	sccp_device_unlock(d);
-	ast_mutex_destroy(&d->lock);
+        ast_mutex_destroy(&d->lock);
 	ast_free(d);
 
 	return 0;
