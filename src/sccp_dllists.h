@@ -30,7 +30,7 @@ struct name {						\
 #define SCCP_LIST_HEAD_SET(head, entry) do {	\
 	(head)->first = (entry);					\
 	(head)->last = (entry);						\
-	if(entrs)									\
+	if(entry)									\
 		(head)->size = 1;						\
 	ast_mutex_init(&(head)->lock);				\
 } while (0)
