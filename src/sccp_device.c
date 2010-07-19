@@ -1918,6 +1918,12 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 			}
 			buttonconfig_b=SCCP_LIST_NEXT(buttonconfig_b,list);
 		}
+		buttonconfig_a=SCCP_LIST_LAST(&device_a->buttonconfig);
+		buttonconfig_b=SCCP_LIST_LAST(&device_b->buttonconfig);
+		if (buttonconfig_a->index != buttonconfig_b->index) {
+		        res=CHANGES_NEED_RESET;
+		        sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset -> number of buttonconfig changed");
+		}
 		SCCP_LIST_UNLOCK(&device_a->buttonconfig);
 		SCCP_LIST_UNLOCK(&device_b->buttonconfig);
 
@@ -1934,6 +1940,12 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
       		 		break;
 			}
 			permithosts_b=SCCP_LIST_NEXT(permithosts_b,list);
+		}
+		permithosts_a=SCCP_LIST_LAST(&device_a->permithosts);
+		permithosts_b=SCCP_LIST_LAST(&device_b->permithosts);
+		if (!strcmp(permithosts_a->name,permithosts_b->name)) {
+		        res=CHANGES_NEED_RESET;
+		        sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset -> number of permithosts changed");
 		}
 		SCCP_LIST_UNLOCK(&device_a->permithosts);
 		SCCP_LIST_UNLOCK(&device_b->permithosts);
@@ -1952,6 +1964,12 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 			}
 			selectedChannels_b=SCCP_LIST_NEXT(selectedChannels_b,list);
 		}
+		selectedChannels_a=SCCP_LIST_LAST(&device_a->selectedChannels);
+		selectedChannels_b=SCCP_LIST_LAST(&device_b->selectedChannels);
+		if (selectedChannels_a->channel->callid != selectedChannels_b->channel->callid) {
+		        res=CHANGES_NEED_RESET;
+		        sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset -> number of selectedChannels changed");
+		}
 		SCCP_LIST_UNLOCK(&device_a->selectedChannels);
 		SCCP_LIST_UNLOCK(&device_b->selectedChannels);
 
@@ -1968,6 +1986,12 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
       		 		break;
 			}
 			addons_b=SCCP_LIST_NEXT(addons_b,list);
+		}
+		addons_a=SCCP_LIST_LAST(&device_a->addons);
+		addons_b=SCCP_LIST_LAST(&device_b->addons);
+		if (!strcmp(addons_a->device->id,addons_b->device->id)) {
+		        res=CHANGES_NEED_RESET;
+		        sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset -> number of addons changed");
 		}
 		SCCP_LIST_UNLOCK(&device_a->addons);
 		SCCP_LIST_UNLOCK(&device_b->addons);

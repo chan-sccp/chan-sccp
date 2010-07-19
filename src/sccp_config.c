@@ -1759,7 +1759,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 					if(lineDevice->device != device)
 						continue;
 
-                                        memset(family,0,ASTDB_FAMILY_KEY_LEN * sizeof(char));
+                                        memset(family,0,ASTDB_FAMILY_KEY_LEN);
                                         sprintf(family, "SCCP/%s/%s", device->id, config->button.line.name);
 					res = ast_db_get(family, "cfwdAll", buffer, sizeof(buffer));
 					if(!res){
