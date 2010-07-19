@@ -1906,92 +1906,86 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	     	res=MINOR_CHANGES;
 	} else {								// check lower level changes
 		// changes in buttonconfig
-		sccp_buttonconfig_t *buttonconfig_a=NULL;
-		sccp_buttonconfig_t *buttonconfig_b=NULL;
 		SCCP_LIST_LOCK(&device_a->buttonconfig);
 		SCCP_LIST_LOCK(&device_b->buttonconfig);
-		buttonconfig_b=SCCP_LIST_FIRST(&device_b->buttonconfig);
-		SCCP_LIST_TRAVERSE(&device_a->buttonconfig, buttonconfig_a, list) {
-     			if ((res = sccp_buttonconfig_changed(buttonconfig_a,buttonconfig_b) != NO_CHANGES)) {
-     			        sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset -> buttonconfig");
-      		 		break;
+		if (device_a->buttonconfig.size != device_b->buttonconfig.size) {
+			sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset -> buttonconfig");
+			res = CHANGES_NEED_RESET;
+		} else {
+			sccp_buttonconfig_t *bc_a = SCCP_LIST_FIRST(&device_a->buttonconfig);
+			sccp_buttonconfig_t *bc_b = SCCP_LIST_FIRST(&device_b->buttonconfig);
+			do {
+				if ((res = sccp_buttonconfig_changed(bc_a, bc_b)) != NO_CHANGES) {
+					sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset -> buttonconfig");
+					break;
+				}
+				bc_a = SCCP_LIST_NEXT(bc_a, list);
+				bc_b = SCCP_LIST_NEXT(bc_b, list);
 			}
-			buttonconfig_b=SCCP_LIST_NEXT(buttonconfig_b,list);
-		}
-		buttonconfig_a=SCCP_LIST_LAST(&device_a->buttonconfig);
-		buttonconfig_b=SCCP_LIST_LAST(&device_b->buttonconfig);
-		if (buttonconfig_a->index != buttonconfig_b->index) {
-		        res=CHANGES_NEED_RESET;
-		        sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset -> number of buttonconfig changed");
+			while (bc_a && bc_b);
 		}
 		SCCP_LIST_UNLOCK(&device_a->buttonconfig);
 		SCCP_LIST_UNLOCK(&device_b->buttonconfig);
 
 		//sccp_hostname_t permithosts
-		sccp_hostname_t *permithosts_a=NULL;
-		sccp_hostname_t *permithosts_b=NULL;
 		SCCP_LIST_LOCK(&device_a->permithosts);
 		SCCP_LIST_LOCK(&device_b->permithosts);
-		permithosts_b=SCCP_LIST_FIRST(&device_b->permithosts);
-		SCCP_LIST_TRAVERSE(&device_a->permithosts, permithosts_a, list) {
-     			if (!strcmp(permithosts_a->name,permithosts_b->name)) {
-     				res=CHANGES_NEED_RESET;
-     			        sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset -> permithosts");
-      		 		break;
-			}
-			permithosts_b=SCCP_LIST_NEXT(permithosts_b,list);
-		}
-		permithosts_a=SCCP_LIST_LAST(&device_a->permithosts);
-		permithosts_b=SCCP_LIST_LAST(&device_b->permithosts);
-		if (!strcmp(permithosts_a->name,permithosts_b->name)) {
-		        res=CHANGES_NEED_RESET;
-		        sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset -> number of permithosts changed");
+		if (device_a->permithosts.size != device_b->permithosts.size) {
+			res = CHANGES_NEED_RESET;
+		} else {
+			sccp_hostname_t *ph_a = SCCP_LIST_FIRST(&device_a->permithosts);
+			sccp_hostname_t *ph_b = SCCP_LIST_FIRST(&device_b->permithosts);
+			do {
+				if (strcmp(ph_a->name, ph_b->name)) {
+					res = CHANGES_NEED_RESET;
+					sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset -> permithosts");
+					break;
+				}
+				ph_a = SCCP_LIST_NEXT(ph_a, list);
+				ph_b = SCCP_LIST_NEXT(ph_b, list);
+			} while (ph_a && ph_b);
 		}
 		SCCP_LIST_UNLOCK(&device_a->permithosts);
 		SCCP_LIST_UNLOCK(&device_b->permithosts);
 
 		//sccp_selectedchannel_t selectedChannels
-		sccp_selectedchannel_t *selectedChannels_a=NULL;
-		sccp_selectedchannel_t *selectedChannels_b=NULL;
 		SCCP_LIST_LOCK(&device_a->selectedChannels);
 		SCCP_LIST_LOCK(&device_b->selectedChannels);
-		selectedChannels_b=SCCP_LIST_FIRST(&device_b->selectedChannels);
-		SCCP_LIST_TRAVERSE(&device_a->selectedChannels, selectedChannels_a, list) {
-     			if (selectedChannels_a->channel->callid != selectedChannels_b->channel->callid) {
-     				res=CHANGES_NEED_RESET;
-     			        sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset -> selectedChannels");
-      		 		break;
-			}
-			selectedChannels_b=SCCP_LIST_NEXT(selectedChannels_b,list);
-		}
-		selectedChannels_a=SCCP_LIST_LAST(&device_a->selectedChannels);
-		selectedChannels_b=SCCP_LIST_LAST(&device_b->selectedChannels);
-		if (selectedChannels_a->channel->callid != selectedChannels_b->channel->callid) {
-		        res=CHANGES_NEED_RESET;
-		        sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset -> number of selectedChannels changed");
+		if (device_a->selectedChannels.size != device_b->selectedChannels.size) {
+			res = CHANGES_NEED_RESET;
+		} else {
+			sccp_selectedchannel_t *sc_a = SCCP_LIST_FIRST(&device_a->selectedChannels);
+			sccp_selectedchannel_t *sc_b = SCCP_LIST_FIRST(&device_b->selectedChannels);
+			do {
+				if (sc_a->channel->callid != sc_b->channel->callid) {
+					res = CHANGES_NEED_RESET;
+					sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset -> selectedChannels");
+					break;
+				}
+				sc_a = SCCP_LIST_NEXT(sc_a, list);
+				sc_b = SCCP_LIST_NEXT(sc_b, list);
+			} while (sc_a && sc_b);
 		}
 		SCCP_LIST_UNLOCK(&device_a->selectedChannels);
 		SCCP_LIST_UNLOCK(&device_b->selectedChannels);
 
 		//sccp_addon_t addons
-		sccp_addon_t *addons_a=NULL;
-		sccp_addon_t *addons_b=NULL;
 		SCCP_LIST_LOCK(&device_a->addons);
 		SCCP_LIST_LOCK(&device_b->addons);
-		addons_b=SCCP_LIST_FIRST(&device_b->addons);
-		SCCP_LIST_TRAVERSE(&device_a->addons, addons_a, list) {
-     			if ((addons_a->type!=addons_b->type) || !strcmp(addons_a->device->id,addons_b->device->id)) {
-     				res=CHANGES_NEED_RESET;
-     			        sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset -> addons");
-      		 		break;
-			}
-			addons_b=SCCP_LIST_NEXT(addons_b,list);
-		}
-		addons_a=SCCP_LIST_LAST(&device_a->addons);
-		addons_b=SCCP_LIST_LAST(&device_b->addons);
-		if (!strcmp(addons_a->device->id,addons_b->device->id)) {
-		        res=CHANGES_NEED_RESET;
-		        sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset -> number of addons changed");
+		if (device_a->addons.size != device_b->addons.size) {
+			res = CHANGES_NEED_RESET;
+		} else {
+			sccp_addon_t *a_a = SCCP_LIST_FIRST(&device_a->addons);
+			sccp_addon_t *a_b = SCCP_LIST_FIRST(&device_b->addons);
+			do {
+				if (a_a->type != a_b->type || strcmp(a_a->device->id, a_b->device->id)) {
+					res = CHANGES_NEED_RESET;
+					sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset -> addons");
+					break;
+				}
+				a_a = SCCP_LIST_NEXT(a_a, list);
+				a_b = SCCP_LIST_NEXT(a_b, list);
+			} while (a_a && a_b);
 		}
 		SCCP_LIST_UNLOCK(&device_a->addons);
 		SCCP_LIST_UNLOCK(&device_b->addons);
@@ -2079,7 +2073,7 @@ sccp_diff_t sccp_buttonconfig_changed(sccp_buttonconfig_t *buttonconfig_a, sccp_
 			}
 		}
 	}
-	
+
 	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_1 "sccp_button_changed: Returning : %d\n", res);
 	return res;
 }
