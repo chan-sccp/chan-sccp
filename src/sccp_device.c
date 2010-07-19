@@ -1745,11 +1745,11 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
 	}
 
 	new_device->privacyFeature = orig_device->privacyFeature;
-	new_device->overlapFeature = orig_device->privacyFeature;
-	new_device->monitorFeature = orig_device->privacyFeature;
-	new_device->dndFeature = orig_device->privacyFeature;
-	new_device->priFeature = orig_device->privacyFeature;
-	new_device->mobFeature = orig_device->privacyFeature;
+	new_device->overlapFeature = orig_device->overlapFeature;
+	new_device->monitorFeature = orig_device->monitorFeature;
+	new_device->dndFeature = orig_device->dndFeature;
+	new_device->priFeature = orig_device->priFeature;
+	new_device->mobFeature = orig_device->mobFeature;
 	new_device->accessoryStatus = orig_device->accessoryStatus;
 	new_device->configurationStatistic = orig_device->configurationStatistic;
 	new_device->voicemailStatistic = orig_device->voicemailStatistic;
