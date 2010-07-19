@@ -8,7 +8,7 @@
  *		File is not directly included to get benefit from lists also in
  *		previous Asterisk releases (like 1.2)
  * \date        $Date$
- * \version     $Revision$  
+ * \version     $Revision$
  */
 #ifndef _SCCP_LISTS_H
 #define _SCCP_LISTS_H
@@ -16,7 +16,7 @@
 
 #define SCCP_LIST_HEAD(name, type)
 
-/*! 
+/*!
  * \brief Main List Head Structure
  */
 struct name {
@@ -27,7 +27,7 @@ struct name {
 } 										/*!< Main List Head Structure */
 
 /*!
- * \brief Initialize List head 
+ * \brief Initialize List head
  */
 #define SCCP_LIST_HEAD_SET(head, entry) do {
 	(head)->first = (entry);
@@ -36,41 +36,41 @@ struct name {
 } while (0)
 
 #define SCCP_LIST_ENTRY(type)
-/*! 
- * \brief List Item 
+/*!
+ * \brief List Item
  */
 struct {
 	type *next;
 }
 
 /*!
- * \brief List First Item 
+ * \brief List First Item
  */
 #define	SCCP_LIST_FIRST(head)	((head)->first)
 
-/*! 
+/*!
  * \brief List Last Item
  */
 #define	SCCP_LIST_LAST(head)	((head)->last)
 
 /*!
- * \brief List Next Item 
+ * \brief List Next Item
  */
 #define SCCP_LIST_NEXT(elm, field)	((elm)->field.next)
 
 /*!
- * \brief List Clear 
+ * \brief List Clear
  */
 #define	SCCP_LIST_EMPTY(head)	(SCCP_LIST_FIRST(head) == NULL)
 
 /*!
- * \brief List Explore Routine 
+ * \brief List Explore Routine
  */
 #define SCCP_LIST_TRAVERSE(head,var,field)
 for ((var) = (head)->first; (var); (var) = (var)->field.next)
 
 /*!
- * \brief List Safe Explore Routine 
+ * \brief List Safe Explore Routine
  */
 #define SCCP_LIST_TRAVERSE_SAFE_BEGIN(head, var, field) {
 	typeof((head)) __list_head = head;
@@ -87,7 +87,7 @@ for ((var) = (head)->first; (var); (var) = (var)->field.next)
 }
 
 /*!
- * Current List Item Removal 
+ * Current List Item Removal
  */
 #define SCCP_LIST_REMOVE_CURRENT(field) do {
 	__new_prev->field.next = NULL;
@@ -102,7 +102,7 @@ for ((var) = (head)->first; (var); (var) = (var)->field.next)
 } while (0)
 
 /*!
- * Move Current List Item 
+ * Move Current List Item
  */
 #define SCCP_LIST_MOVE_CURRENT(newhead, field) do {
 	typeof ((newhead)->first) __list_cur = __new_prev;
@@ -111,7 +111,7 @@ for ((var) = (head)->first; (var); (var) = (var)->field.next)
 } while (0)
 
 /*!
- * List Item Insertion before Current 
+ * List Item Insertion before Current
  */
 #define SCCP_LIST_INSERT_BEFORE_CURRENT(elm, field) do {
 	if (__list_prev)
@@ -127,12 +127,12 @@ for ((var) = (head)->first; (var); (var) = (var)->field.next)
 } while (0)
 
 /*!
- * List Traverse End (Parentesis) 
+ * List Traverse End (Parentesis)
  */
 #define SCCP_LIST_TRAVERSE_SAFE_END }
 
 /*!
- * List Head Init 
+ * List Head Init
  */
 #define SCCP_LIST_HEAD_INIT(head) {
 	(head)->first = NULL;
@@ -152,7 +152,7 @@ for ((var) = (head)->first; (var); (var) = (var)->field.next)
 }
 
 /*!
- * List Item Insertion After 
+ * List Item Insertion After
  */
 #define SCCP_LIST_INSERT_AFTER(head, listelm, elm, field) do {
 	(elm)->field.next = (listelm)->field.next;
@@ -163,7 +163,7 @@ for ((var) = (head)->first; (var); (var) = (var)->field.next)
 } while (0)
 
 /*!
- * List Insertion in Alphanumeric Order 
+ * List Insertion in Alphanumeric Order
  */
 #define SCCP_LIST_INSERT_SORTALPHA(head, elm, field, sortfield) do {
 	if (!(head)->first)
@@ -199,7 +199,7 @@ for ((var) = (head)->first; (var); (var) = (var)->field.next)
 } while (0)
 
 /*!
- * Inserts a list item at the head of a list 
+ * Inserts a list item at the head of a list
  */
 #define SCCP_LIST_INSERT_TAIL(head, elm, field) do {
       if (!(head)->first) {
@@ -213,7 +213,7 @@ for ((var) = (head)->first; (var); (var) = (var)->field.next)
 } while (0)
 
 /*!
- * Append a whole list to another 
+ * Append a whole list to another
  */
 #define SCCP_LIST_APPEND_LIST(head, list, field) do {
       if (!(head)->first) {
@@ -228,7 +228,7 @@ for ((var) = (head)->first; (var); (var) = (var)->field.next)
 } while (0)
 
 /*!
- * Remove the head item from a list giving back a pointer to it. 
+ * Remove the head item from a list giving back a pointer to it.
  */
 #define SCCP_LIST_REMOVE_HEAD(head, field) ({
 		typeof((head)->first) cur = (head)->first;
@@ -242,12 +242,12 @@ for ((var) = (head)->first; (var); (var) = (var)->field.next)
 	})
 
 /*!
- * Remove an item from a list 
+ * Remove an item from a list
  */
 #define SCCP_LIST_REMOVE(head, elm, field) ({
-	__typeof(elm) __res = NULL; 
+	__typeof(elm) __res = NULL;
 	if ((head)->first == (elm)) {
-		__res = (head)->first;		      
+		__res = (head)->first;
 		(head)->first = (elm)->field.next;
 		if ((head)->last == (elm))
 			(head)->last = NULL;
@@ -255,14 +255,14 @@ for ((var) = (head)->first; (var); (var) = (var)->field.next)
 		typeof(elm) curelm = (head)->first;
 		while (curelm && (curelm->field.next != (elm)))
 			curelm = curelm->field.next;
-		if (curelm) { 
-			__res = (elm); 
+		if (curelm) {
+			__res = (elm);
 			curelm->field.next = (elm)->field.next;
 			if ((head)->last == (elm))
 				(head)->last = curelm;
-		} 
+		}
 	}
-	(elm)->field.next = NULL;				   
+	(elm)->field.next = NULL;
 	(__res); \
 })
 

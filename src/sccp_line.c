@@ -8,7 +8,7 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \date        $Date$
- * \version     $Revision$  
+ * \version     $Revision$
  */
 
 #include "config.h"
@@ -69,7 +69,7 @@ sccp_line_t * sccp_line_create(void) {
 	SCCP_LIST_HEAD_INIT(&l->channels);
 	SCCP_LIST_HEAD_INIT(&l->devices);
 	SCCP_LIST_HEAD_INIT(&l->mailboxes);
-	
+
 	return l;
 }
 
@@ -83,7 +83,7 @@ sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l)
 	if(!l)
 		return NULL;
 
-	
+
 	l->incominglimit = 99; /* default value */
 	l->echocancel = GLOB(echocancel); /* default value */
 	l->silencesuppression = GLOB(silencesuppression); /* default value */
@@ -117,12 +117,12 @@ sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l)
  */
 sccp_line_t *sccp_line_addToGlobals(sccp_line_t *line){
 	sccp_line_t *l =NULL;
-  
+
 	if(!line){
 		ast_log(LOG_ERROR, "Adding null to global line list is not allowed!\n");
 		return NULL;
 	}
-  
+
 	SCCP_LIST_LOCK(&GLOB(lines));
 	/* does the line created by an other thread? */
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
@@ -130,14 +130,14 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t *line){
 			break;
 		}
 	}
-	
+
 	if(l){
 		ast_log(LOG_NOTICE, "SCCP: line '%s' was created by an other thread\n", line->name);
 		ast_free(line);
 		SCCP_LIST_UNLOCK(&GLOB(lines));
 		return l;
 	}
-	
+
 	/* line was not created */
 	SCCP_LIST_INSERT_HEAD(&GLOB(lines), line, list);
 	SCCP_LIST_UNLOCK(&GLOB(lines));
@@ -149,7 +149,7 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t *line){
 	event->type=SCCP_EVENT_LINECREATED;
 	event->event.lineCreated.line = line;
 	sccp_event_fire((const sccp_event_t **)&event);
-	
+
 	return line;
 }
 
@@ -296,7 +296,7 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t *device, uint8_t type, char *
 
 	//SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
 		if(linedevice && linedevice->device){
-			
+
 			sccp_dev_starttone(linedevice->device, SKINNY_TONE_ZIPZIP, 0, 0, 0);
 			sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDALL);
 		}
@@ -311,8 +311,8 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t *device, uint8_t type, char *
  */
 void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, struct subscriptionId *subscriptionId)
 {
-	
-        sccp_linedevices_t *linedevice;
+
+	sccp_linedevices_t *linedevice;
 	if(!l || !device)
 		return;
 
@@ -325,7 +325,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, struct subscrip
 		sccp_copy_string(linedevice->subscriptionId.name,  subscriptionId->name, sizeof(linedevice->subscriptionId.name));
 		sccp_copy_string(linedevice->subscriptionId.number, subscriptionId->number, sizeof(linedevice->subscriptionId.number));
 	}
-	
+
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_INSERT_HEAD(&l->devices, linedevice, list);
 	SCCP_LIST_UNLOCK(&l->devices);
@@ -362,8 +362,8 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device)
 		return;
 
 	sccp_log((DEBUGCAT_HIGH + DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: remove device from line %s\n", DEV_ID_LOG(device), l->name);
-	
-	
+
+
 	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
 	memset(event, 0, sizeof(sccp_event_t));
 
@@ -371,7 +371,7 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device)
 	event->event.deviceAttached.line = l;
 	event->event.deviceAttached.device = device;
 	sccp_event_fire((const sccp_event_t**)&event);
-	
+
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 		if (linedevice->device == device) {
@@ -387,7 +387,7 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device)
 		}
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
-	
+
 }
 
 

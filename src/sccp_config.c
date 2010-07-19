@@ -83,7 +83,7 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 
-	config->pendingDelete = 0; 
+	config->pendingDelete = 0;
 
 	if (ast_strlen_zero(name)) {
 		sccp_log(0)(VERBOSE_PREFIX_1 "%s: Faulty Button Configutation found at index: %d", device->id, config->index);
@@ -165,7 +165,7 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 
 				if(args)
 					sccp_copy_string(config->button.feature.options, args, sizeof(config->button.feature.options));
-			}			
+			}
 			break;
 		case EMPTY:
 			config->type = EMPTY;
@@ -215,7 +215,7 @@ void sccp_config_addLine(sccp_device_t *device, char *lineName, char *options, u
 			sccp_copy_string(config->button.line.options, options, sizeof(config->button.line.options));
 		}
 	}
-	
+
 	sccp_log(0)(VERBOSE_PREFIX_3 "Add line button on position: %d\n", config->instance);
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_INSERT_TAIL(&device->buttonconfig, config, list);
@@ -364,7 +364,7 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 	// we might have been asked to create a device for realtime addition,
 	// thus causing an infinite loop / recursion.
 	d = sccp_device_find_byid(deviceName, FALSE);
-	if (d 
+	if (d
 #ifdef CS_DYNAMIC_CONFIG
 		&& !d->pendingDelete
 #endif
@@ -934,7 +934,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	}
 
 	while ( ( cat = ast_category_browse(cfg,cat)) ){
-		
+
 		const char *utype;
 		if (!strcasecmp(cat, "general"))
 			continue;
@@ -966,7 +966,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				continue;
 			}
 			line_count++;
-			
+
 			v = ast_variable_browse(cfg, cat);
 			sccp_config_buildLine(v, cat, FALSE);
 			ast_verbose(VERBOSE_PREFIX_3 "found line %d: %s\n", line_count, cat);
@@ -1028,7 +1028,7 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 			} else if (!strcasecmp(v->name, "id")) {
 #ifdef CS_DYNAMIC_CONFIG
 				if (!strcasecmp(l->id, v->value)) {l->pendingUpdate=1;}
-#endif		
+#endif
 				sccp_copy_string(l->id, v->value, sizeof(l->id));
 			} else if (!strcasecmp(v->name, "pin")) {
 #ifdef CS_DYNAMIC_CONFIG
@@ -1306,7 +1306,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 			|| (!strcasecmp(v->name, "name"))
 #endif
 		   ) {
-		        // do nothing
+			// do nothing
 		} else if (!strcasecmp(v->name, "keepalive")) {
 			d->keepalive = atoi(v->value);
 		} else if (!strcasecmp(v->name, "permit") || !strcasecmp(v->name, "deny")) {
@@ -1475,7 +1475,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 #ifdef CS_ADV_FEATURES
 		} else if (!strcasecmp(v->name, "useRedialMenu")) {
 			d->useRedialMenu = sccp_true(v->value);
-		
+
 #endif
 		} else if (!strcasecmp(v->name, "meetme")) {
 			d->meetme = sccp_true(v->value);
@@ -1495,23 +1495,23 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 #ifdef CS_DYNAMIC_CONFIG
 	/* compare temporiry d to device */
 	if (d->pendingDelete==1 && !d->realtime && temp_d) {
-	        sccp_device_lock(d);
-	        sccp_device_lock(temp_d);
-	        switch (sccp_device_changed(temp_d,d)) {
-	                case NO_CHANGES: {
-        			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: no changes detected\n", temp_d->id);
-	                }
-	                case MINOR_CHANGES: {
-		        	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: minor changes detected, no reset required\n", temp_d->id);
-	                }
-	                case CHANGES_NEED_RESET: {
-        			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: major changes detected, reset required -> pendingUpdate=1\n", temp_d->id);
-	        		d->pendingUpdate=1;
-	                }
-	        }
+		sccp_device_lock(d);
+		sccp_device_lock(temp_d);
+		switch (sccp_device_changed(temp_d,d)) {
+			case NO_CHANGES: {
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: no changes detected\n", temp_d->id);
+			}
+			case MINOR_CHANGES: {
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: minor changes detected, no reset required\n", temp_d->id);
+			}
+			case CHANGES_NEED_RESET: {
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: major changes detected, reset required -> pendingUpdate=1\n", temp_d->id);
+				d->pendingUpdate=1;
+			}
+		}
 		sccp_device_unlock(temp_d);
 		sccp_device_unlock(d);
-		
+
 		// removing temp_d
 		sccp_dev_clean(temp_d,FALSE,0);
 		sccp_device_free(temp_d);
@@ -1742,7 +1742,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 	sccp_line_t             *line;
 	sccp_linedevices_t      *lineDevice;
 	char cfwdLineStore[60];
-	
+
 	sccp_device_lock(device);
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list){
@@ -1751,8 +1751,8 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 				SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list){
 					if(lineDevice->device != device)
 						continue;
-					
-					
+
+
 					sprintf(family, "SCCP/%s/%s", device->id, config->button.line.name);
 					res = ast_db_get(family, "cfwdAll", cfwdLineStore, sizeof(cfwdLineStore));
 					if(!res){
@@ -1773,7 +1773,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 	sccp_device_unlock(device);
 #endif
-	
+
 	/* initialize so called priority feature */
 	device->priFeature.status = 0x010101;
 	device->priFeature.initialized = 0;
