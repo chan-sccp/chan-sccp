@@ -1695,24 +1695,7 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
 	sccp_device_lock(orig_device);
 	memcpy(new_device, orig_device, sizeof(*new_device));
 
-	new_device->list.next = new_device->list.prev = NULL;
-
-	/* copy strings over */    // are the ok after the memcpy ?
-	// id,description,config_type,imageversion,lastNumber,meetmeopts,pickupcontext,phonemessage,softkeyDefinition,videoSink
-
-	// ast_codec_pref  codecs
-	// this should already be correct from the memcpy. no need to regenerate ?
-	/*
-	uint8_t codec_counter;
-	struct ast_codec_pref pref;
-	for(codec_counter=0;codec_counter<31;codec_counter++) {
-		ast_codec_pref_append(&pref,ast_codec_pref_index(&orig_device->codecs , codec_counter+1));
-	}
-	new_device->codecs=pref;
-	*/
-
 	// ast_ha ha
-//	ast_free_ha(new_device->ha);			// would cause a memory leak
 	struct ast_ha * hal;				// not sure this construction will help
 	hal=ast_duplicate_ha_list(orig_device->ha);
 	new_device->ha=hal;
@@ -1731,7 +1714,7 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
 		new_device->variables = new_v;
 	}
 
-	// I guess the next fout should be skipped, only there lists initialized. A cloned device should not have active channels
+	// These pointer can be skipped, because the refer to the current state
 	// sccp_channel_t  *active_channel
 	// sccp_channel_t  *transfer_channel
 	// sccp_channel_t  *conference_channel
@@ -1748,6 +1731,7 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
 		}
 	}
 
+	// features
 	new_device->privacyFeature = orig_device->privacyFeature;
 	new_device->overlapFeature = orig_device->overlapFeature;
 	new_device->monitorFeature = orig_device->monitorFeature;
@@ -1774,16 +1758,18 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
 	// btnlist		*buttonTemplate
 //	new_device->buttonTemplate = calloc(1,sizeof(btnlist));
 //	memcpy(new_device->btnTemplate,orig_device->btnTemplate,sizeof(btnlist));
+
 	// char 		*pickupcontext
 	if (orig_device->pickupcontext)
 		new_device->pickupcontext = strdup(orig_device->pickupcontext);
+		
 	// char 		*phonemessage
 	if (orig_device->phonemessage)
 		new_device->phonemessage = strdup(orig_device->phonemessage);
 
 	// softKeyConfiguration
 
-	/* copy lists over */
+	/* copy list-items over */
 	sccp_duplicate_device_buttonconfig_list(new_device,orig_device);
 	sccp_duplicate_device_hostname_list(new_device,orig_device);
 	sccp_duplicate_device_selectedchannel_list(new_device,orig_device);

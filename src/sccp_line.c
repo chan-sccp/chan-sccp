@@ -431,3 +431,84 @@ void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t *channel)
 	SCCP_LIST_REMOVE(&l->channels, channel, list);
 }
 
+#ifdef CS_DYNAMIC_CONFIG
+/*!
+ * copy the structure content of one line to a new one
+ * \param line sccp line
+ * \return new_line as sccp_line_t
+ */
+sccp_line_t * sccp_clone_line(sccp_line_t *orig_line){
+	sccp_line_t * new_line = NULL;
+
+	new_line=ast_calloc(1, sizeof(sccp_line_t));
+
+	sccp_device_lock(orig_line);
+	memcpy(new_line, orig_line, sizeof(*new_line));
+
+	/* remaining values to be copied */
+	// char 		*trnsfvm;
+	new_line->trnsfvm=strdup(orig_line->trnsfvm);
+	
+	// struct ast_variable	* variables;				
+	struct ast_variable *v;
+	new_line->variables=NULL;
+	for (v = orig_line->variables; v; v = v->next)
+	{
+#if ASTERISK_VERSION_NUM >= 10600
+		struct ast_variable *new_v = ast_variable_new(v->name, v->value, v->file);
+#else
+		struct ast_variable *new_v = ast_variable_new(v->name, v->value);
+#endif
+		new_v->next = new_line->variables;
+		new_line->variables = new_v;
+	}
+
+	/* copy list-items over */
+	sccp_duplicate_line_mailbox_list(new_line,orig_line);
+//	SCCP_LIST_HEAD(,sccp_linedevices_t)	devices;				
+	
+	sccp_line_unlock(orig_line);
+	return new_line;
+}
+
+/*!
+ * Copy the list of mailbox from another line
+ * \param device original sccp line from which to copy the list
+ */
+void sccp_duplicate_line_mailbox_list(sccp_line_t *new_line, sccp_line_t *orig_line) {
+	sccp_mailbox_t *orig_mailbox=NULL;
+	sccp_mailbox_t *new_mailbox=NULL;
+
+	SCCP_LIST_HEAD_INIT(&new_line->mailboxes);
+	SCCP_LIST_LOCK(&orig_line->mailboxes);
+	SCCP_LIST_TRAVERSE(&orig_line->mailboxes, orig_mailbox, list){
+		new_mailbox=ast_calloc(1,sizeof(sccp_mailbox_t));
+		new_mailbox->mailbox=strdup(orig_mailbox->mailbox);
+		new_mailbox->context=strdup(orig_mailbox->context);
+		SCCP_LIST_INSERT_TAIL(&new_line->mailboxes, new_mailbox, list);
+	}
+	SCCP_LIST_UNLOCK(&orig_line->mailboxes);
+}
+
+/*!
+ * Copy the list of linedevices from another line
+ * \param device original sccp line from which to copy the list
+ */
+void sccp_duplicate_line_linedevices_list(sccp_line_t *new_line, sccp_line_t *orig_line) {
+	sccp_linedevices_t *orig_linedevices=NULL;
+	sccp_linedevices_t *new_linedevices=NULL;
+
+	SCCP_LIST_HEAD_INIT(&new_line->devices);
+	SCCP_LIST_LOCK(&orig_line->devices);
+	SCCP_LIST_TRAVERSE(&orig_line->devices, orig_linedevices, list){
+		new_linedevices=ast_calloc(1,sizeof(sccp_linedevices_t));
+		memcpy(new_linedevices, orig_linedevices, sizeof(*new_linedevices));
+		new_linedevices->device=sccp_device_find_byid(orig_linedevices->device->id, TRUE);
+//		memcpy(new_linedevices->cfwdAll, orig_linedevices->cfwdAll, sizeof(sccp_cfwd_information_t));
+//		memcpy(new_linedevices->cfwdBusy, orig_linedevices->cfwdBusy, sizeof(sccp_cfwd_information_t));
+		SCCP_LIST_INSERT_TAIL(&new_line->devices, new_linedevices, list);
+	}
+	SCCP_LIST_UNLOCK(&orig_line->devices);
+}
+
+#endif

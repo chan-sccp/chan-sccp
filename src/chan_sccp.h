@@ -1017,6 +1017,7 @@ struct sccp_global_vars {
 	pthread_t				mwiMonitorThread; 			/*!< MWI Monitor Thread */ // MC
 	boolean_t				allowAnonymus;				/*!< Allow Anonymous/Guest Devices */
 	sccp_hotline_t				* hotline;				/*!< HotLine */
+	boolean_t				reload_in_progress;			/*!< Reload in Progress */
 };											/*!< SCCP Global Varable Structure */
 
 
