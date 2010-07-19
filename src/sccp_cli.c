@@ -754,7 +754,7 @@ static int sccp_show_line(int fd, int argc, char * argv[]) {
 	char 			group_buf[256];
 
 	if (argc < 4)
-                return RESULT_SHOWUSAGE;
+		return RESULT_SHOWUSAGE;
 
 	l = sccp_line_find_byname(argv[3]);
 	if (!l) {
@@ -765,49 +765,49 @@ static int sccp_show_line(int fd, int argc, char * argv[]) {
 
 	ast_cli(fd, "Current settings for selected Line\n");
 	ast_cli(fd, "----------------------------------\n\n");
-        ast_cli(fd, "Name                  : %s\n", l->name ? l->name : "<not set>");
-        ast_cli(fd, "Description           : %s\n", l->description ? l->description : "<not set>");
-        ast_cli(fd, "Label                 : %s\n", l->label ? l->label : "<not set>");
-        ast_cli(fd, "ID                    : %s\n", l->id ? l->id : "<not set>");
-        ast_cli(fd, "Pin                   : %s\n", l->pin ? l->pin : "<not set>");
-        ast_cli(fd, "VoiceMail number      : %s\n", l->vmnum ? l->vmnum : "<not set>");
-        ast_cli(fd, "Transfer to Voicemail : %s\n", l->trnsfvm ? l->trnsfvm : "No");
-        ast_cli(fd, "MeetMe enabled        : %s\n", l->meetme ? "Yes" : "No");
-        ast_cli(fd, "MeetMe number         : %s\n", l->meetmenum ? l->meetmenum : "No");
-        ast_cli(fd, "MeetMe Options        : %s\n", l->meetmeopts ? l->meetmeopts : "<not set>");
-        ast_cli(fd, "Context               : %s\n", l->context ? l->context : "<not set>");
-        ast_cli(fd, "Language              : %s\n", l->language ? l->language : "<not set>");
-        ast_cli(fd, "Account Code          : %s\n", l->accountcode ? l->accountcode : "<not set>");
-        ast_cli(fd, "Music Class           : %s\n", l->musicclass ? l->musicclass : "<not set>");
-        ast_cli(fd, "AmaFlags              : %d\n", l->amaflags);
-        ast_cli(fd, "Call Group            : %s\n", sccp_print_group(group_buf, sizeof(group_buf), l->callgroup));
+	ast_cli(fd, "Name                  : %s\n", l->name ? l->name : "<not set>");
+	ast_cli(fd, "Description           : %s\n", l->description ? l->description : "<not set>");
+	ast_cli(fd, "Label                 : %s\n", l->label ? l->label : "<not set>");
+	ast_cli(fd, "ID                    : %s\n", l->id ? l->id : "<not set>");
+	ast_cli(fd, "Pin                   : %s\n", l->pin ? l->pin : "<not set>");
+	ast_cli(fd, "VoiceMail number      : %s\n", l->vmnum ? l->vmnum : "<not set>");
+	ast_cli(fd, "Transfer to Voicemail : %s\n", l->trnsfvm ? l->trnsfvm : "No");
+	ast_cli(fd, "MeetMe enabled        : %s\n", l->meetme ? "Yes" : "No");
+	ast_cli(fd, "MeetMe number         : %s\n", l->meetmenum ? l->meetmenum : "No");
+	ast_cli(fd, "MeetMe Options        : %s\n", l->meetmeopts ? l->meetmeopts : "<not set>");
+	ast_cli(fd, "Context               : %s\n", l->context ? l->context : "<not set>");
+	ast_cli(fd, "Language              : %s\n", l->language ? l->language : "<not set>");
+	ast_cli(fd, "Account Code          : %s\n", l->accountcode ? l->accountcode : "<not set>");
+	ast_cli(fd, "Music Class           : %s\n", l->musicclass ? l->musicclass : "<not set>");
+	ast_cli(fd, "AmaFlags              : %d\n", l->amaflags);
+	ast_cli(fd, "Call Group            : %s\n", sccp_print_group(group_buf, sizeof(group_buf), l->callgroup));
 #ifdef CS_SCCP_PICKUP
-        ast_cli(fd, "Pickup Group          : %s\n", sccp_print_group(group_buf, sizeof(group_buf), l->pickupgroup));
+	ast_cli(fd, "Pickup Group          : %s\n", sccp_print_group(group_buf, sizeof(group_buf), l->pickupgroup));
 #endif
-        ast_cli(fd, "Caller ID name        : %s\n", l->cid_name ? l->cid_name : "<not set>");
-        ast_cli(fd, "Caller ID number      : %s\n", l->cid_num ? l->cid_num : "<not set>");
-        ast_cli(fd, "Incoming Calls limit  : %d\n", l->incominglimit);
-        ast_cli(fd, "Audio TOS             : %d\n", l->audio_tos);
-        ast_cli(fd, "Audio COS             : %d\n", l->audio_cos);
-        ast_cli(fd, "Video TOS             : %d\n", l->video_tos);
-        ast_cli(fd, "Video COS             : %d\n", l->video_cos);
-        ast_cli(fd, "Active Channel Count  : %d\n", l->channelCount);
-        ast_cli(fd, "Sec. Dialtone Digits  : %s\n", l->secondary_dialtone_digits ? l->secondary_dialtone_digits : "<not set>");
-        ast_cli(fd, "Sec. Dialtone         : 0x%02x\n", l->secondary_dialtone_tone);
-        ast_cli(fd, "Echo Cancellation     : %s\n", l->echocancel ? "Yes" : "No");
-        ast_cli(fd, "Silence Suppression   : %s\n", l->silencesuppression ? "Yes" : "No");
-        ast_cli(fd, "Can Transfer          : %s\n", l->transfer ? "Yes" : "No");
-        ast_cli(fd, "Can DND               : %s\n", (l->dndmode) ? dndmode2str(l->dndmode) : "Disabled");
+	ast_cli(fd, "Caller ID name        : %s\n", l->cid_name ? l->cid_name : "<not set>");
+	ast_cli(fd, "Caller ID number      : %s\n", l->cid_num ? l->cid_num : "<not set>");
+	ast_cli(fd, "Incoming Calls limit  : %d\n", l->incominglimit);
+	ast_cli(fd, "Audio TOS             : %d\n", l->audio_tos);
+	ast_cli(fd, "Audio COS             : %d\n", l->audio_cos);
+	ast_cli(fd, "Video TOS             : %d\n", l->video_tos);
+	ast_cli(fd, "Video COS             : %d\n", l->video_cos);
+	ast_cli(fd, "Active Channel Count  : %d\n", l->channelCount);
+	ast_cli(fd, "Sec. Dialtone Digits  : %s\n", l->secondary_dialtone_digits ? l->secondary_dialtone_digits : "<not set>");
+	ast_cli(fd, "Sec. Dialtone         : 0x%02x\n", l->secondary_dialtone_tone);
+	ast_cli(fd, "Echo Cancellation     : %s\n", l->echocancel ? "Yes" : "No");
+	ast_cli(fd, "Silence Suppression   : %s\n", l->silencesuppression ? "Yes" : "No");
+	ast_cli(fd, "Can Transfer          : %s\n", l->transfer ? "Yes" : "No");
+	ast_cli(fd, "Can DND               : %s\n", (l->dndmode) ? dndmode2str(l->dndmode) : "Disabled");
 #ifdef CS_SCCP_REALTIME
-        ast_cli(fd, "Is Realtime Line      : %s\n", l->realtime ? "Yes" : "No");
+	ast_cli(fd, "Is Realtime Line      : %s\n", l->realtime ? "Yes" : "No");
 #endif
 #ifdef CS_DYNAMIC_CONFIG
-        ast_cli(fd, "Pending Delete        : %s\n", l->pendingUpdate ? "Yes" : "No");
-        ast_cli(fd, "Pending Update        : %s\n", l->pendingDelete ? "Yes" : "No");
+	ast_cli(fd, "Pending Delete        : %s\n", l->pendingUpdate ? "Yes" : "No");
+	ast_cli(fd, "Pending Update        : %s\n", l->pendingDelete ? "Yes" : "No");
 #endif
-        ast_cli(fd, "Adhoc Number Assigned : %s\n", l->adhocNumber ? l->adhocNumber : "No");
-        ast_cli(fd, "Message Waiting New.  : %i\n", l->voicemailStatistic.newmsgs);
-        ast_cli(fd, "Message Waiting Old.  : %i\n", l->voicemailStatistic.oldmsgs);
+	ast_cli(fd, "Adhoc Number Assigned : %s\n", l->adhocNumber ? l->adhocNumber : "No");
+	ast_cli(fd, "Message Waiting New.  : %i\n", l->voicemailStatistic.newmsgs);
+	ast_cli(fd, "Message Waiting Old.  : %i\n", l->voicemailStatistic.oldmsgs);
 	if (SCCP_LIST_FIRST(&l->devices)) {
 		ast_cli(fd, "\nLine Assigned to Device\n");
 		ast_cli(fd, "=========================\n");
@@ -818,23 +818,23 @@ static int sccp_show_line(int fd, int argc, char * argv[]) {
 
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-                        if (linedevice)
-    			        ast_cli(fd, "%-11s: %-4s %-20s %-4s %-20s\n", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number ? linedevice->cfwdAll.number : "<not set>", linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number ? linedevice->cfwdBusy.number : "<not set>");
+			if (linedevice)
+    				ast_cli(fd, "%-11s: %-4s %-20s %-4s %-20s\n", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number ? linedevice->cfwdAll.number : "<not set>", linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number ? linedevice->cfwdBusy.number : "<not set>");
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
 	}
 
-        if (l->variables) {
-                ast_cli(fd, "\nLine variables\n");
+	if (l->variables) {
+		ast_cli(fd, "\nLine variables\n");
 		ast_cli(fd, "=========================\n");
-                ast_cli(fd, "%-20s: %-20s \n", "name" , "value");
-                ast_cli(fd, "-------------------- --------------------\n");
+		ast_cli(fd, "%-20s: %-20s \n", "name" , "value");
+		ast_cli(fd, "-------------------- --------------------\n");
 
-                for (v = l->variables ; v ; v = v->next) {
-                        ast_cli(fd, "%-20s : %-20s\n", v->name , v->value);
-                }
-        }
-        sccp_line_unlock(l);
+		for (v = l->variables ; v ; v = v->next) {
+			ast_cli(fd, "%-20s : %-20s\n", v->name , v->value);
+		}
+	}
+	sccp_line_unlock(l);
 
 	return RESULT_SUCCESS;
 }
@@ -1292,35 +1292,35 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
 			if ((d=linedevice->device)) {
-                                ast_cli(fd, "%-16s %-16s %-6s %-4s %-4d %-10s %-10s %-16s %-10s\n",
-                                        l->name,
-                                        (d) ? d->id : "--",
-                                        linedevice->subscriptionId.number,
-                                        (l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
-                                        l->channelCount,
-                                        (c) ? sccp_indicate2str(c->state) : "--",
-                                        (c) ? calltype2str(c->calltype) : "",
-                                        (c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->calledPartyName : c->callingPartyName ) : "",
-                                        cap_buf);
+				ast_cli(fd, "%-16s %-16s %-6s %-4s %-4d %-10s %-10s %-16s %-10s\n",
+					l->name,
+					(d) ? d->id : "--",
+					linedevice->subscriptionId.number,
+					(l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
+					l->channelCount,
+					(c) ? sccp_indicate2str(c->state) : "--",
+					(c) ? calltype2str(c->calltype) : "",
+					(c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->calledPartyName : c->callingPartyName ) : "",
+					cap_buf);
 				found_linedevice=1;
-                        }
+			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
 
 		if (found_linedevice==0) {
-                        ast_cli(fd, "%-16s %-16s %-6s %-4s %-4d %-10s %-10s %-16s %-10s\n",
-                        l->name,
-                        "--",
-                        "",
-                        (l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
-                        l->channelCount,
-                        (c) ? sccp_indicate2str(c->state) : "--",
-                        (c) ? calltype2str(c->calltype) : "",
-                        (c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->calledPartyName : c->callingPartyName ) : "",
-                        cap_buf);
-                }
+			ast_cli(fd, "%-16s %-16s %-6s %-4s %-4d %-10s %-10s %-16s %-10s\n",
+			l->name,
+			"--",
+			"",
+			(l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
+			l->channelCount,
+			(c) ? sccp_indicate2str(c->state) : "--",
+			(c) ? calltype2str(c->calltype) : "",
+			(c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->calledPartyName : c->callingPartyName ) : "",
+			cap_buf);
+		}
 		for (v = l->variables ; v ; v = v->next)
-			ast_cli(fd, "%-16s Variable         %-16s %-20s\n", "", v->name , v->value);
+			ast_cli(fd, "%-16s Variable	 %-16s %-20s\n", "", v->name , v->value);
 
 		if(strcmp(l->defaultSubscriptionId.number, "") || strcmp(l->defaultSubscriptionId.name, ""))
 			ast_cli(fd, "%-16s Subscription Id  %-16s %-20s\n", "", l->defaultSubscriptionId.number,  l->defaultSubscriptionId.name);
@@ -1724,7 +1724,7 @@ static char * sccp_complete_debug(char *line, char *word, int pos, int state) {
  * \return Result as int
  */
 static int sccp_do_debug(int fd, int argc, char *argv[]) {
-        uint32_t new_debug = GLOB(debug);
+	uint32_t new_debug = GLOB(debug);
 
 	if ((argc < 3))
 		return RESULT_SHOWUSAGE;
@@ -1856,41 +1856,31 @@ static int sccp_do_reload(int fd, int argc, char *argv[]) {
 #ifdef CS_DYNAMIC_CONFIG
 	sccp_readingtype_t readingtype;
 
-	ast_cli(fd, "SCCP reloading configuration.\n");
-	ast_cli(fd, "SCCP configuration reload partially implemented ! use unload and load instead for now.\n");
+	if (&GLOB(reload_in_progress) == FALSE ) {
+		ast_cli(fd, "SCCP reloading configuration.\n");
+		ast_cli(fd, "SCCP configuration reload partially implemented ! use unload and load instead for now.\n");
 
-	//ast_mutex_lock(&GLOB(lock));
 
-	/* maybe we should make this a global variable so we do not have to pass it around - DdG ??*/
-	readingtype=SCCP_CONFIG_READRELOAD;
+		readingtype = SCCP_CONFIG_READRELOAD;
 
-	if (!sccp_config_general(readingtype)) {
-		ast_cli(fd, "Unable to reload configuration.\n");
-		//ast_mutex_unlock(&GLOB(lock));
-		return RESULT_FAILURE;
+		ast_mutex_lock(&GLOB(lock));
+		GLOB(reload_in_progress) = TRUE;
+		ast_mutex_unlock(&GLOB(lock));
+
+		if (!sccp_config_general(readingtype)) {
+			ast_cli(fd, "Unable to reload configuration.\n");
+			ast_mutex_unlock(&GLOB(lock));
+			return RESULT_FAILURE;
+		}
+		sccp_config_readDevicesLines(readingtype);
+		
+		ast_mutex_lock(&GLOB(lock));
+		GLOB(reload_in_progress) = FALSE;
+		ast_mutex_unlock(&GLOB(lock));
+	} else {
+		ast_cli(fd, "SCCP reloading already in progress.\n");
 	}
-
-	sccp_config_readDevicesLines(readingtype);
-
-	//ast_mutex_unlock(&GLOB(lock));
-
-/*
-(sccp_config.c)       - if device already exists remove device.pendingDelete
-(sccp_config.c)       - set device.pendingUpdate where device restart necessary
-(sccp_config.c)     load line parameters set device.pendingUpdate where necessary {
-(sccp_config.c)       - if line already exists remove line.pendingDelete
-(sccp_config.c)       - set device.pendingUpdate where device restart necessary
-                    }
-(sccp_cli.c)        restart devices with pendingUpdate/pendingDelete {
-(sccp_cli.c)          - skip device if it holds an active channel (device will restart on hangup
-(sccp_channel.c)            (hangup function needs to check pendingUpdate/pendingDelete and react accordingly)
-(sccp_cli.c)          - if pendingDelete the remove buttonconfig, line, device
-(sccp_cli.c)          - if pendingUpdate then set pendingUpdate to false and send restart to device
-                    }
-(sccp_cli.c)        print reload statistics (number of device restarted, number of devices with open channels)
-*/
-
-        return RESULT_SUCCESS;
+	return RESULT_SUCCESS;
 #else
 	ast_cli(fd, "SCCP configuration reload not implemented yet! use unload and load.\n");
 	return RESULT_SUCCESS;
