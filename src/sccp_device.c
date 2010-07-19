@@ -1694,6 +1694,8 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
 	sccp_device_lock(orig_device);
 	memcpy(new_device, orig_device, sizeof(*new_device));
 
+	new_device->list.next = new_device->list.prev = NULL;
+
 	/* copy strings over */    // are the ok after the memcpy ?
 	// id,description,config_type,imageversion,lastNumber,meetmeopts,pickupcontext,phonemessage,softkeyDefinition,videoSink
 
