@@ -1859,20 +1859,20 @@ static int sccp_do_reload(int fd, int argc, char *argv[]) {
 	ast_cli(fd, "SCCP reloading configuration.\n");
 	ast_cli(fd, "SCCP configuration reload partially implemented ! use unload and load instead for now.\n");
 
-	ast_mutex_lock(&GLOB(lock));
+	//ast_mutex_lock(&GLOB(lock));
 
 	/* maybe we should make this a global variable so we do not have to pass it around - DdG ??*/
 	readingtype=SCCP_CONFIG_READRELOAD;
 
 	if (!sccp_config_general(readingtype)) {
 		ast_cli(fd, "Unable to reload configuration.\n");
-		ast_mutex_unlock(&GLOB(lock));
+		//ast_mutex_unlock(&GLOB(lock));
 		return RESULT_FAILURE;
 	}
 
 	sccp_config_readDevicesLines(readingtype);
 
-	ast_mutex_unlock(&GLOB(lock));
+	//ast_mutex_unlock(&GLOB(lock));
 
 /*
 (sccp_config.c)       - if device already exists remove device.pendingDelete
