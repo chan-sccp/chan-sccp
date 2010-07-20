@@ -8,28 +8,27 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \todo 	using generic function to configure structures, this can also be used to reconfigure structure on-line
- * \date        $Date$
- * \version     $Revision$
- */
-
-/*!
+ * \note 	To find out more about the reload function see \ref sccp_config_reload
  * \remarks     Only methods directly related to chan-sccp configuration should be stored in this source file.
+ *
+ * $Date$
+ * $Revision$
  */
-
-/*!
- * <h2>How was the new cli command "sccp reload" implemented</h2>
- * \section sccp_reload How was the new cli command "sccp reload" implemented
- * 
- * 
+ 
+/*! 
+ * \file
+ * \ref sccp_config
  *
+ * \page sccp_config Loading sccp.conf/realtime configuration implementation
  *
+ * \section sccp_config_reload How was the new cli command "sccp reload" implemented
+ * 
  * \code
  * sccp_cli.c
  * 	new implementation of cli reload command 
  * 		checks if no other reload command is currently running
  * 		starts loading global settings from sccp.conf (sccp_config_general)
- * 		starts loading devices and lines from sccp.conf
- * 		(sccp_config_readDevicesLines)
+ * 		starts loading devices and lines from sccp.conf(sccp_config_readDevicesLines)
  * 
  * sccp_config.c
  * 	modified sccp_config_general
@@ -44,22 +43,24 @@
  * 		calls sccp_config_buildDevice as usual
  * 			calls sccp_config_buildDevice as usual
  * 				find device
- * 				makes clone of device if exists (via sccp_device_clone)
+ * 					makes clone of device if exists (sccp_device_clone)
  * 				parses sccp.conf for device
  * 				checks if clone and device are still the same for critical values (via sccp_device_changed)
  * 				if not it sets pendingUpdate on device
  * 			calls sccp_config_buildLine as usual
- * 				find device
- * 				makes clone of device if exists (via sccp_line_clone)
- * 				parses sccp.conf for device
- * 				checks if clone and device are still the same for critical values (via sccp_line_changed)
- *			 	if not it sets pendingUpdate on device
+ * 				find line
+ * 					makes clone of line if exists (sccp_line_clone)
+ * 				or create new line
+ * 				parses sccp.conf for line
+ * 				checks if clone and line are still the same for critical values (via sccp_line_changed)
+ *			 	if not it sets pendingUpdate on line
  * 			calls sccp_config_softKeySet as usual ***
- * 				find device
- * 				makes clone of device if exists (via sccp_softkeyset_clone) ***
- *			 	parses sccp.conf for device
- * 				checks if clone and device are still the same for critical values (via sccp_softkeyset_changed) ***
- * 				if not it sets pendingUpdate on device
+ * 				find softKeySet
+ * 					makes clone of softKeySet if exists (sccp_softkeyset_clone) ***
+ *				or create new softKeySet
+ *			 	parses sccp.conf for softKeySet
+ * 				checks if clone and softKeySet are still the same for critical values (via sccp_softkeyset_changed) ***
+ * 				if not it sets pendingUpdate on softKeySet[A
  * 
  * 		checks pendingDelete and pendingUpdate for
  *			skip when call in progress

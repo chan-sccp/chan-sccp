@@ -1,4 +1,158 @@
+2010-07-20  ddegroot
+
+	* [r1656] src/sccp_config.c: Added sccp reload documentation to
+	  sccp_config
+	  Readded sccp_device_free to buildDevice
+
+2010-07-20  progs
+
+	* [r1655] src/sccp_device.c: oops compilation
+
+	* [r1654] src/sccp_device.c: fix two-lock on device mutex, free the
+	  device when pendingDelete
+
+2010-07-20  ddegroot
+
+	* [r1653] autoconf/asterisk.m4, configure, src/chan_sccp.h: Fix for
+	  the misdetection of Asterisk 1.6.1.20 as version 1.2.x by
+	  configure reported by Pavel Troller @ 07/20/2010 09:43:37 AM
+	  [Chan-sccp-b-discussion] Asterisk 1.6.1.20 misdetected as 1.2.x
+	  by configure
+
+2010-07-20  progs
+
+	* [r1652] src/sccp_cli.c: prevent race condition
+
+2010-07-20  ddegroot
+
+	* [r1651] src/sccp_cli.c, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_line.c: changed a couple of the DEBUGCAT_??? assignments
+	  for sccp reload related code
+
+	* [r1650] src/chan_sccp.c, src/chan_sccp.h, src/sccp_cli.c,
+	  src/sccp_config.c, src/sccp_device.c, src/sccp_device.h,
+	  src/sccp_line.c, src/sccp_line.h: This commit is "sccp reload"
+	  related
+	  Added sccp_line_clone
+	  Added sccp_line_changed
+	  Added sccp_line_clean
+	  Modified sccp_line_delete_wo_lock to use sccp_line_clean(l,TRUE);
+	  Added global variable reload_in_progress
+	  Modified sccp_cli to use reload_in_progress
+	  Removed Glob(lock) during the reload process
+	  Fixed sccp_device_changed
+	  Fixed sccp_config_applyLineConfiguration to not include mailbox
+	  entries twice
+
+2010-07-19  ddegroot
+
+	* [r1649] src/Makefile.in, src/chan_sccp.h, src/sccp_cli.c,
+	  src/sccp_device.c, src/sccp_line.c, src/sccp_line.h: Added a
+	  global variable reload_in_progress
+	  Added check for reload_in_progress to sccp_cli.c
+	  Added sccp_line_clone function to sccp_line.c / sccp_line.h
+
+2010-07-19  progs
+
+	* [r1648] src/sccp_device.c: remove the device from list only if it
+	  is in
+
+	* [r1647] src/sccp_device.c: fix the copy device entry
+
+	* [r1646] src/sccp_cli.c: right, lock doesn't work, will fix it
+	  tomorrow
+
+	* [r1645] src/sccp_config.c: remove useless checks in
+	  sccp_config_addButton()
+
+	* [r1644] src/sccp_device.c: fix sccp_device_changed()
+
+	* [r1643] src/sccp_cli.c: lock mutex while reloading
+
+	* [r1642] src/sccp_device.c: fix comparison of lists
+
+2010-07-19  ddegroot
+
+	* [r1641] src/sccp_dllists.h: Fixed typo in line 33. entrs should
+	  be entry
+
+2010-07-19  progs
+
+	* [r1640] src/Makefile.am, src/sccp_lists.h[DEL]: remove
+	  sccp_lists.h which is unused and pretty CRAP.
+
+2010-07-19  ddegroot
+
+	* [r1639] src/sccp_config.c, src/sccp_device.c: Added checks for
+	  difference in number of SCCP_LIST_ entries in sccp_device_changed
+
+	* [r1638] src/sccp_config.c: Using ASTDB_RESULT_LEN and
+	  ASTDB_FAMILY_KEY_LEN in sccp_config.c
+
+	* [r1637] src/sccp_config.c, src/sccp_device.c: Fixed segementation
+	  fault on sccp reload, when executing
+	  sccp_config_restoreDeviceFeatureStatus
+
+	* [r1636] src/sccp_config.c: reversed the order of the switch
+	  statement from most important to least
+
+	* [r1635] src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_softkeys.c: Added some logging to sccp_device_changed
+	  Added some logging to sccp_softkeys_changed (Check Transfer bug
+	  reported)
+	  Added break statement to switch in sccp_config
+
+2010-07-19  progs
+
+	* [r1634] src/sccp_device.c: copy the right values
+
+	* [r1633] src/sccp_device.c: fix crash: use strdup instead of
+	  sccp_copy_string() to NULL
+
+	* [r1632] src/chan_sccp.c, src/chan_sccp.h, src/sccp_config.c,
+	  src/sccp_device.c, src/sccp_device.h, src/sccp_line.c,
+	  src/sccp_line.h, src/sccp_lists.h, src/sccp_socket.c,
+	  src/sccp_softkeys.c, src/sccp_utils.c: use tabs instead spaces to
+	  indent, removed trailing spaces
+
 2010-07-18  ddegroot
+
+	* [r1631] src/sccp_features.c, src/sccp_pbx.c: Revert to previous
+	  ast_frame declarations.
+
+	* [r1630] autoconf/asterisk.m4, configure: Update asterisk.m4 when
+	  compiling against SVN-Branch
+
+2010-07-18  marcelloceschia
+
+	* [r1629] src/chan_sccp.c, src/chan_sccp.h, src/sccp_pbx.c,
+	  src/sccp_pbx.h: fixes issue: WARNING[18444]: rtp.c:4480
+	  ast_rtp_bridge: Can't find native functions for channel
+	  'SCCP/XXX'
+
+2010-07-18  ddegroot
+
+	* [r1628] src/sccp_utils.c: Fixed missing
+	  sccp_channelState2AstDeviceState because of wrong
+	  ASTERISK_VERSION_NUM assignment
+
+	* [r1627] autoconf/asterisk.m4, configure, src/chan_sccp.c,
+	  src/chan_sccp.h, src/config.h.in, src/sccp_actions.c,
+	  src/sccp_adv_features.c, src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_cli.c, src/sccp_config.c, src/sccp_config.h,
+	  src/sccp_device.c, src/sccp_event.c, src/sccp_featureButton.c,
+	  src/sccp_features.c, src/sccp_indicate.c, src/sccp_line.c,
+	  src/sccp_lock.c, src/sccp_lock.h, src/sccp_management.c,
+	  src/sccp_object2.c, src/sccp_object2.h, src/sccp_pbx.c,
+	  src/sccp_pbx.h, src/sccp_protocol.h, src/sccp_socket.c,
+	  src/sccp_softkeys.c, src/sccp_utils.c: Updated asterisk version
+	  and SVN revision detection
+	  Replaced all occurences of ASTERISK_CONF_?_? with
+	  ASTERISK_VERSION_NUM checks. This is a more flexibel method and
+	  should last into future version of asterisk
+
+	* [r1626] ChangeLog, autoconf/asterisk.m4, configure, configure.ac,
+	  src/config.h.in: Added check for rtp_engine.h to configure script
 
 	* [r1625] src/sccp_channel.c, src/sccp_config.c, src/sccp_device.c,
 	  src/sccp_features.c, src/sccp_pbx.c: replaced occurences of

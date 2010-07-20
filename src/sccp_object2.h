@@ -4,8 +4,9 @@
  * \author	Diederik de Groot <ddegroot [at] users.sourceforge.net>
  * \note	SCCP Object Reference Container derived from Asterisk 1.6.1 "astobj2.h"
  * 		The original astobj2 which was made by Marta Carbone, Luigi Rizzo - Univ. di Pisa, Italy
- * \date    	$Date: 2010-02-08 21:32:08 +0100 (Mon, 08 Feb 2010) $
- * \version 	$Revision: 1232 $
+ *
+ * $Date: 2010-02-08 21:32:08 +0100 (Mon, 08 Feb 2010) $
+ * $Revision: 1232 $
  */
 
 #ifndef _SCCP_SCCPOBJ2_H

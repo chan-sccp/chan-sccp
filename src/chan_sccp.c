@@ -8,14 +8,12 @@
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
- * \date        $Date$
- * \version     $Revision$
- */
-
-/*!
  * \remarks	Purpose: 	This source file should be used only for asterisk module related content.
  * 		When to use:	Methods communicating to asterisk about module initialization, status, destruction
  *   		Relationships: 	Main hub for all other sourcefiles.
+ *
+ * $Date$
+ * $Revision$
  */
 
 #define AST_MODULE "chan_sccp"
