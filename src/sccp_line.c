@@ -32,6 +32,10 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/utils.h>
 
 #ifdef CS_DYNAMIC_CONFIG
+/*!
+ * \brief run before reload is start on lines
+ * \note See \ref sccp_config_reload
+ */
 void sccp_line_pre_reload(void)
 {
 	sccp_line_t* l;
@@ -45,6 +49,11 @@ void sccp_line_pre_reload(void)
 	SCCP_LIST_UNLOCK(&GLOB(lines));
 }
 
+/*!
+ * \brief run after the new line config is loaded during the reload process
+ * \note See \ref sccp_config_reload
+ * \todo to be implemented correctly (***)
+ */
 void sccp_line_post_reload(void)
 {
 
@@ -83,7 +92,6 @@ sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l)
 {
 	if(!l)
 		return NULL;
-
 
 	l->incominglimit = 99; /* default value */
 	l->echocancel = GLOB(echocancel); /* default value */
@@ -452,7 +460,7 @@ void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t *channel)
 #ifdef CS_DYNAMIC_CONFIG
 /*!
  * copy the structure content of one line to a new one
- * \param line sccp line
+ * \param orig_line sccp line
  * \return new_line as sccp_line_t
  */
 sccp_line_t * sccp_clone_line(sccp_line_t *orig_line){
@@ -493,7 +501,8 @@ sccp_line_t * sccp_clone_line(sccp_line_t *orig_line){
 
 /*!
  * Copy the list of mailbox from another line
- * \param device original sccp line from which to copy the list
+ * \param new_line original sccp line to which the list is copied
+ * \param orig_line original sccp line from which to copy the list
  */
 void sccp_duplicate_line_mailbox_list(sccp_line_t *new_line, sccp_line_t *orig_line) {
 	sccp_mailbox_t *orig_mailbox=NULL;
@@ -512,7 +521,8 @@ void sccp_duplicate_line_mailbox_list(sccp_line_t *new_line, sccp_line_t *orig_l
 
 /*!
  * Copy the list of linedevices from another line
- * \param device original sccp line from which to copy the list
+ * \param new_line original sccp line to which the list is copied
+ * \param orig_line original sccp line from which to copy the list
  */
 void sccp_duplicate_line_linedevices_list(sccp_line_t *new_line, sccp_line_t *orig_line) {
 	sccp_linedevices_t *orig_linedevices=NULL;
@@ -532,9 +542,9 @@ void sccp_duplicate_line_linedevices_list(sccp_line_t *new_line, sccp_line_t *or
 }
 
 /*!
- * Checks two devices against one another and returns a sccp_diff_t if different
- * \param device_a sccp device
- * \param device_b sccp device
+ * Checks two lines against one another and returns a sccp_diff_t if different
+ * \param line_a SCCP Line
+ * \param line_b SCCP Line
  * \return sccp_diff_t
  */
 sccp_diff_t sccp_line_changed(sccp_line_t *line_a,sccp_line_t *line_b) {
@@ -657,7 +667,5 @@ sccp_diff_t sccp_line_changed(sccp_line_t *line_a,sccp_line_t *line_b) {
 	*/
 	sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "(sccp_line_changed) Returning : %d\n", res);
 	return res;
-
-
 }
 #endif

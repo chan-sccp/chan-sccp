@@ -7,15 +7,13 @@
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
- * \date        $Date$
- * \version     $Revision$
- */
-
-/*!
  * \remarks	Purpose: 	SCCP Device
  * 		When to use:	Only methods directly related to sccp devices should be stored in this source file.
  *   		Relationships: 	SCCP Device -> SCCP DeviceLine -> SCCP Line
  *   			 	SCCP Line -> SCCP ButtonConfig -> SCCP Device
+ *
+ * \date        $Date$
+ * \version     $Revision$
  */
 
 #include "config.h"
@@ -28,7 +26,7 @@
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #include "sccp_lock.h"
-#include "sccp_utils.h"
+include "sccp_utils.h"
 #include "sccp_device.h"
 #include "sccp_socket.h"
 #include "sccp_channel.h"
@@ -56,6 +54,10 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #define  REF_DEBUG 1
 
 #ifdef CS_DYNAMIC_CONFIG
+/*!
+ * \brief run before reload is start on devices
+ * \note See \ref sccp_config_reload
+ */
 void sccp_device_pre_reload(void)
 {
 	sccp_device_t * d;
@@ -78,6 +80,10 @@ void sccp_device_pre_reload(void)
 	SCCP_LIST_UNLOCK(&GLOB(devices));
 }
 
+/*!
+ * \brief run after the new device config is loaded during the reload process
+ * \note See \ref sccp_config_reload
+ */
 void sccp_device_post_reload(void)
 {
 	sccp_device_t * d;
@@ -218,8 +224,10 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 }
 
 
-
-
+/*!
+ * \brief Add a device to the global sccp_list 
+ * \param device SCCP Device
+ */
 sccp_device_t *sccp_device_addToGlobals(sccp_device_t *device){
 	if(!device)
 		return NULL;
@@ -457,14 +465,15 @@ int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
 		return -1;
 }
 
-
-
+/*!
+ * \brief Send an SCCP message to a device
+ * \param d SCCP Device
+ * \param t SCCP Message
+ */
 void sccp_dev_sendmsg(sccp_device_t * d, sccp_message_t t) {
 	if (d)
 		sccp_session_sendmsg(d, t);
 }
-
-
 
 /*!
  * \brief Register a Device
@@ -488,6 +497,7 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 		sccp_dev_postregistration(d);
 	}
 }
+
 /*!
  * \brief Sets the SCCP Device's SoftKey Mode Specified by opt
  * \param d SCCP Device
@@ -1257,6 +1267,11 @@ void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t inst
 	//sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send lamp mode %s(%d) on line %d\n", d->id, lampmode2str(lampMode), lampMode, instance );
 }
 
+/*!
+ * \brief Send forward status to a line on a device
+ * \param l SCCP Line
+ * \param device SCCP Device
+ */
 void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {
 	sccp_moo_t 		*r1 = NULL;
 	sccp_linedevices_t 	*linedevice = NULL;
@@ -1512,6 +1527,11 @@ int sccp_device_free(const void *ptr){
 	return 0;
 }
 
+/*!
+ * \brief is Video Support on a Device
+ * \param device SCCP Device
+ * \return result as boolean_t
+ */
 boolean_t sccp_device_isVideoSupported(const sccp_device_t *device){
 	//if(device->capability & AST_FORMAT_VIDEO_MASK)
 	//	return TRUE;
@@ -1694,7 +1714,7 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t *device){
 #ifdef CS_DYNAMIC_CONFIG
 /*!
  * copy the structure content of one device to a new one
- * \param device sccp device
+ * \param orig_device sccp device
  * \return new_device as sccp_device_t
  */
 sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
@@ -1794,7 +1814,8 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
 
 /*!
  * Copy the list of buttonconfig from another device
- * \param device original sccp device from which to copy the list
+ * \param new_device original sccp device to which the list is copied
+ * \param orig_device original sccp device from which to copy the list
  */
 void sccp_duplicate_device_buttonconfig_list(sccp_device_t *new_device, sccp_device_t *orig_device) {
 	sccp_buttonconfig_t *orig_buttonconfig=NULL;
@@ -1812,7 +1833,8 @@ void sccp_duplicate_device_buttonconfig_list(sccp_device_t *new_device, sccp_dev
 
 /*!
  * Copy the list of permitshosts from another device
- * \param device original sccp device from which to copy the list
+ * \param new_device original sccp device to which the list is copied
+ * \param orig_device original sccp device from which to copy the list
  */
 void sccp_duplicate_device_hostname_list(sccp_device_t *new_device,sccp_device_t *orig_device) {
 	sccp_hostname_t *orig_permithost=NULL;
@@ -1830,7 +1852,8 @@ void sccp_duplicate_device_hostname_list(sccp_device_t *new_device,sccp_device_t
 
 /*!
  * Copy the list of selectchannels from another device
- * \param device original sccp device from which to copy the list
+ * \param new_device original sccp device to which the list is copied
+ * \param orig_device original sccp device from which to copy the list
  */
 void sccp_duplicate_device_selectedchannel_list(sccp_device_t *new_device,sccp_device_t *orig_device) {
 	sccp_selectedchannel_t *orig_selectedChannel=NULL;
@@ -1849,7 +1872,8 @@ void sccp_duplicate_device_selectedchannel_list(sccp_device_t *new_device,sccp_d
 
 /*!
  * Copy the list of addons from another device
- * \param device original sccp device from which to copy the list
+ * \param new_device new sccp device to which the list is copied
+ * \param orig_device original sccp device from which to copy the list
  */
 void sccp_duplicate_device_addon_list(sccp_device_t *new_device, sccp_device_t *orig_device) {
 	sccp_addon_t *orig_addon=NULL;
@@ -1869,7 +1893,7 @@ void sccp_duplicate_device_addon_list(sccp_device_t *new_device, sccp_device_t *
  * Checks two devices against one another and returns a sccp_diff_t if different
  * \param device_a sccp device
  * \param device_b sccp device
- * \return sccp_diff_t
+ * \return res as sccp_diff_t
  */
 sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b){
 	sccp_diff_t res=NO_CHANGES;
@@ -2004,9 +2028,9 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 
 /*!
  * Checks two buttonconfig against one another and returns a sccp_diff_t if different
- * \param device_a sccp device
- * \param device_b sccp device
- * \return sccp_diff_t
+ * \param buttonconfig_a SCCP buttonconfig
+ * \param buttonconfig_b SCCP buttonconfig
+ * \return res as sccp_diff_t
  */
 sccp_diff_t sccp_buttonconfig_changed(sccp_buttonconfig_t *buttonconfig_a, sccp_buttonconfig_t *buttonconfig_b){
 	sccp_diff_t res=NO_CHANGES;

@@ -1,5 +1,31 @@
 2010-07-20  ddegroot
 
+	* [r1665] src/sccp_channel.c, src/sccp_cli.c, src/sccp_config.c,
+	  src/sccp_device.c, src/sccp_line.c: Fixed pendingUpdate being set
+	  by addButton on normal load
+	  Reenabled code in sccp_channel_endcall
+	  Changed analysis for selectedChannel change in
+	  sccp_device_changed
+	  Fixed analysis for mailboxes change in sccp_line_changed
+
+	* [r1664] ChangeLog, configure, configure.ac: Added "experimental /
+	  don't use" to configure option --with-dynamic-config
+
+	* [r1663] src/sccp_channel.c, src/sccp_device.c: Temporarily
+	  removed channel_endcall CS_DYNAMIC_CONFIG Parts
+
+2010-07-20  progs
+
+	* [r1662] src/sccp_lock.h: oops, remove debug messages
+
+	* [r1661] src/sccp_config.c, src/sccp_device.c, src/sccp_line.c,
+	  src/sccp_lock.h, src/sccp_mwi.c: fix mutex issues
+
+2010-07-20  ddegroot
+
+	* [r1660] src/sccp_channel.c: Added check for pendingUpdate /
+	  pendingDelete to sccp_channel_endcall (sccp reload related)
+
 	* [r1659] ChangeLog, doc/doxygen.cfg, src/sccp_hint.c: Moved the
 	  hint update doxygen description in to a seperate section
 	  updated the preprocessor settings in doxygen.cfg
