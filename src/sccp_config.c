@@ -14,32 +14,32 @@
  * $Date$
  * $Revision$
  */
- 
-/*! 
+
+/*!
  * \file
  * \ref sccp_config
  *
  * \page sccp_config Loading sccp.conf/realtime configuration implementation
  *
  * \section sccp_config_reload How was the new cli command "sccp reload" implemented
- * 
+ *
  * \code
  * sccp_cli.c
- * 	new implementation of cli reload command 
+ * 	new implementation of cli reload command
  * 		checks if no other reload command is currently running
  * 		starts loading global settings from sccp.conf (sccp_config_general)
  * 		starts loading devices and lines from sccp.conf(sccp_config_readDevicesLines)
- * 
+ *
  * sccp_config.c
  * 	modified sccp_config_general
  * 		skips reading new variable values for bindaddr, port, debug when reloading
- * 
+ *
  * 	modified sccp_config_readDevicesLines
- * 		sets pendingDelete for 
- * 			devices (via sccp_device_pre_reload), 
+ * 		sets pendingDelete for
+ * 			devices (via sccp_device_pre_reload),
  * 			lines (via sccp_line_pre_reload)
  * 			softkey (via sccp_softkey_pre_reload)
- * 
+ *
  * 		calls sccp_config_buildDevice as usual
  * 			calls sccp_config_buildDevice as usual
  * 				find device
@@ -61,10 +61,10 @@
  *			 	parses sccp.conf for softKeySet
  * 				checks if clone and softKeySet are still the same for critical values (via sccp_softkeyset_changed) ***
  * 				if not it sets pendingUpdate on softKeySet[A
- * 
+ *
  * 		checks pendingDelete and pendingUpdate for
  *			skip when call in progress
- * 			devices (via sccp_device_post_reload), 
+ * 			devices (via sccp_device_post_reload),
  * 				resets GLOB(device) if pendingUpdate
  * 				removes GLOB(devices) with pendingDelete
  * 			lines (via sccp_line_post_reload)
@@ -420,10 +420,10 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 	}
 #ifdef CS_DYNAMIC_CONFIG
 	/* clone d to temp_d */
-	sccp_device_t 	       * temp_d = NULL;
-	if (d && d->pendingDelete==1 && !d->realtime) {
+	sccp_device_t *temp_d = NULL;
+	if (d && d->pendingDelete && !d->realtime) {
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: cloning device\n", d->id);
-		temp_d=sccp_clone_device(d);
+		temp_d = sccp_clone_device(d);
 	}
 #endif /* CS_DYNAMIC_CONFIG */
 
@@ -431,7 +431,7 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 
 #ifdef CS_DYNAMIC_CONFIG
 	/* compare temporairy temp_d to d */
-	if (d->pendingDelete==1 && !d->realtime && temp_d) {
+	if (temp_d) {
 		sccp_device_lock(d);
 		sccp_device_lock(temp_d);
 		switch (sccp_device_changed(temp_d,d)) {
@@ -1168,29 +1168,29 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 				mbox = context = ast_strdupa(v->value);
 				boolean_t mailbox_exists=FALSE;
 
-                                strsep(&context, "@");
+				strsep(&context, "@");
 
-                                // Check mailboxes list 
+				// Check mailboxes list
 				SCCP_LIST_LOCK(&l->mailboxes);
 				SCCP_LIST_TRAVERSE(&l->mailboxes,mailbox,list) {
-					if ( (!ast_strlen_zero(mbox)) ) {
-                                                if ( strcmp(mailbox->mailbox,mbox) || strcmp(mailbox->mailbox,mbox) ) {
-                                                        mailbox_exists=TRUE;
-                                                }
+					if ((!ast_strlen_zero(mbox))) {
+						if (!strcmp(mailbox->mailbox,mbox) || !strcmp(mailbox->mailbox,mbox)) {
+							mailbox_exists=TRUE;
+						}
 					}
-		                }
-                                if ( (!mailbox_exists) && (!ast_strlen_zero(mbox)) ) {
-                                        // Add mailbox entry
-                                        mailbox = ast_calloc(1, sizeof(*mailbox));
+				}
+				if ((!mailbox_exists) && (!ast_strlen_zero(mbox))) {
+					// Add mailbox entry
+					mailbox = ast_calloc(1, sizeof(*mailbox));
 
-                                        if(NULL != mailbox) {
-                                                mailbox->mailbox = ast_strdup(mbox);
-                                                mailbox->context = ast_strdup(context);
+					if(NULL != mailbox) {
+						mailbox->mailbox = ast_strdup(mbox);
+						mailbox->context = ast_strdup(context);
 
-                                                SCCP_LIST_INSERT_TAIL(&l->mailboxes, mailbox, list);
-                                                sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_3 "%s: Added mailbox '%s@%s'\n", l->name, mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
-                                        }
-                                }
+						SCCP_LIST_INSERT_TAIL(&l->mailboxes, mailbox, list);
+						sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_3 "%s: Added mailbox '%s@%s'\n", l->name, mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
+					}
+				}
 				SCCP_LIST_UNLOCK(&l->mailboxes);
 			} else if (!strcasecmp(v->name, "vmnum")) {
 				sccp_copy_string(l->vmnum, v->value, sizeof(l->vmnum));
@@ -1436,7 +1436,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 
 #ifdef CS_DYNAMIC_CONFIG
 			sccp_config_addButton(d, ++instance, type, buttonName?ast_strip(buttonName):buttonType,
-					                           buttonOption?ast_strip(buttonOption):NULL,
+								   buttonOption?ast_strip(buttonOption):NULL,
 								   buttonArgs?ast_strip(buttonArgs):NULL);
 #else
 			if (!strcasecmp(buttonType, "line") && buttonName) {
@@ -1819,8 +1819,8 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 					if(lineDevice->device != device)
 						continue;
 
-                                        memset(family,0,ASTDB_FAMILY_KEY_LEN);
-                                        sprintf(family, "SCCP/%s/%s", device->id, config->button.line.name);
+					memset(family,0,ASTDB_FAMILY_KEY_LEN);
+					sprintf(family, "SCCP/%s/%s", device->id, config->button.line.name);
 					res = ast_db_get(family, "cfwdAll", buffer, sizeof(buffer));
 					if(!res){
 						sccp_copy_string(lineDevice->cfwdAll.number, buffer, sizeof(lineDevice->cfwdAll.number));

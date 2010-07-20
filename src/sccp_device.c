@@ -93,17 +93,17 @@ void sccp_device_post_reload(void)
 		if (sccp_device_numberOfChannels(d) == 0) {	// if device has no open channel
                         sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Sending Device Reset\n");
                         sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
-                        //sccp_dev_clean(d, FALSE);
                         sccp_session_close(d->session);
 		} else {				// skip this device. it will receive reset from sccp_channel_endcall upon completion of the call (***)
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", d->id);
+			sccp_device_unlock(d);
 		        break;
 		}
 
 		if (d->pendingDelete) {
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Remove Device from List\n");
 			SCCP_LIST_REMOVE_CURRENT(list);
-			sccp_dev_clean(d, TRUE, 0);
+			sccp_dev_clean(d, FALSE, 0);
 			sccp_device_free(d);
 		} else {
 			d->pendingUpdate = 0;
@@ -548,7 +548,6 @@ void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
 	if (!d)
 		return;
 
-
 	int retry = 0;
 	while(sccp_device_trylock(d)) {
 		retry++;
@@ -556,7 +555,8 @@ void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
 		usleep(100);
 
 		if(retry > 100){
-		     return;
+			sccp_device_unlock(d);
+			return;
 		}
 	}
 
@@ -1396,9 +1396,8 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		ast_db_put(family, "lastDialedNumber", d->lastNumber);
 
 	if(remove_from_global) {
-		if(d->list.prev == NULL && d->list.next == NULL && GLOB(devices).first != d) {
-			if (GLOB(devices).size > 1)
-				ast_log(LOG_ERROR, "%s: removing device from global devices list. prev and next pointer ist not set while device list size is %d\n", DEV_ID_LOG(d), GLOB(devices).size);
+		if(d->list.prev == NULL && d->list.next == NULL && GLOB(devices).size > 1) {
+			ast_log(LOG_ERROR, "%s: removing device from global devices list. prev and next pointer ist not set while device list size is %d\n", DEV_ID_LOG(d), GLOB(devices).size);
 		} else {
 			SCCP_LIST_LOCK(&GLOB(devices));
 			SCCP_LIST_REMOVE(&GLOB(devices), d, list);
@@ -1697,14 +1696,14 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t *device){
  * \param device sccp device
  * \return new_device as sccp_device_t
  */
-sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
-	sccp_device_t * new_device = NULL;
-
-	new_device=ast_calloc(1, sizeof(sccp_device_t));
+sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
+{
+	sccp_device_t* new_device = ast_calloc(1, sizeof(sccp_device_t));
 
 	sccp_device_lock(orig_device);
 	memcpy(new_device, orig_device, sizeof(*new_device));
 
+	bzero(&new_device->lock, sizeof(new_device->lock));
 	ast_mutex_init(&new_device->lock);
 
 	// ast_ha ha
@@ -1903,8 +1902,8 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	    (device_a->useRedialMenu != device_b->useRedialMenu) ||
 #endif /* CS_ADV_FEATURES */
 	    (device_a->mwioncall != device_b->mwioncall) ) {
-	        sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "Minor changes\n");
-	     	res=MINOR_CHANGES;
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "Minor changes\n");
+		res=MINOR_CHANGES;
 	}
 
 	// changes in buttonconfig
@@ -1912,14 +1911,14 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	SCCP_LIST_LOCK(&device_b->buttonconfig);
 	if (device_a->buttonconfig.size != device_b->buttonconfig.size) {
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "buttonconfig: Changes need reset\n");
-		return CHANGES_NEED_RESET;
+		res = CHANGES_NEED_RESET;
 	} else {
 		sccp_buttonconfig_t *bc_a = SCCP_LIST_FIRST(&device_a->buttonconfig);
 		sccp_buttonconfig_t *bc_b = SCCP_LIST_FIRST(&device_b->buttonconfig);
 		while (bc_a && bc_b) {
 			if ((res = sccp_buttonconfig_changed(bc_a, bc_b)) != NO_CHANGES) {
 				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "buttonconfig: Changes need reset\n");
-				return res;
+				break;
 			}
 			bc_a = SCCP_LIST_NEXT(bc_a, list);
 			bc_b = SCCP_LIST_NEXT(bc_b, list);
@@ -1933,14 +1932,15 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	SCCP_LIST_LOCK(&device_b->permithosts);
 	if (device_a->permithosts.size != device_b->permithosts.size) {
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "permithosts: Changes need reset\n");
-		return CHANGES_NEED_RESET;
+		res = CHANGES_NEED_RESET;
 	} else {
 		sccp_hostname_t *ph_a = SCCP_LIST_FIRST(&device_a->permithosts);
 		sccp_hostname_t *ph_b = SCCP_LIST_FIRST(&device_b->permithosts);
 		while (ph_a && ph_b) {
 			if (strcmp(ph_a->name, ph_b->name)) {
 				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "permithosts: Changes need reset\n");
-				return CHANGES_NEED_RESET;
+				res = CHANGES_NEED_RESET;
+				break;
 			}
 			ph_a = SCCP_LIST_NEXT(ph_a, list);
 			ph_b = SCCP_LIST_NEXT(ph_b, list);
@@ -1954,14 +1954,15 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	SCCP_LIST_LOCK(&device_b->selectedChannels);
 	if (device_a->selectedChannels.size != device_b->selectedChannels.size) {
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "selectedChannels: Changes need reset\n");
-		return CHANGES_NEED_RESET;
+		res = CHANGES_NEED_RESET;
 	} else {
 		sccp_selectedchannel_t *sc_a = SCCP_LIST_FIRST(&device_a->selectedChannels);
 		sccp_selectedchannel_t *sc_b = SCCP_LIST_FIRST(&device_b->selectedChannels);
 		while (sc_a && sc_b) {
 			if (sc_a->channel->callid != sc_b->channel->callid) {
 				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "selectedChannels: Changes need reset\n");
-				return CHANGES_NEED_RESET;
+				res = CHANGES_NEED_RESET;
+				break;
 			}
 			sc_a = SCCP_LIST_NEXT(sc_a, list);
 			sc_b = SCCP_LIST_NEXT(sc_b, list);
@@ -1975,14 +1976,15 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	SCCP_LIST_LOCK(&device_b->addons);
 	if (device_a->addons.size != device_b->addons.size) {
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "addons: Changes need reset\n");
-		return CHANGES_NEED_RESET;
+		res = CHANGES_NEED_RESET;
 	} else {
 		sccp_addon_t *a_a = SCCP_LIST_FIRST(&device_a->addons);
 		sccp_addon_t *a_b = SCCP_LIST_FIRST(&device_b->addons);
 		while (a_a && a_b) {
 			if (a_a->type != a_b->type || strcmp(a_a->device->id, a_b->device->id)) {
 				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "addons: Changes need reset\n");
-				return CHANGES_NEED_RESET;
+				res = CHANGES_NEED_RESET;
+				break;
 			}
 			a_a = SCCP_LIST_NEXT(a_a, list);
 			a_b = SCCP_LIST_NEXT(a_b, list);
