@@ -1,3 +1,9 @@
+2010-07-20  ddegroot
+
+	* [r1659] ChangeLog, doc/doxygen.cfg, src/sccp_hint.c: Moved the
+	  hint update doxygen description in to a seperate section
+	  updated the preprocessor settings in doxygen.cfg
+
 2010-07-20  progs
 
 	* [r1658] src/sccp_device.c: fix check and free buttoconfigs
