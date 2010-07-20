@@ -7,8 +7,9 @@
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
- * \date        $Date$
- * \version     $Revision$
+ * 
+ * $Date$
+ * $Revision$
  */
 
 /*!
@@ -1851,6 +1852,8 @@ static struct ast_cli_entry cli_no_debug = {
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \note To find out more about the reload function see \ref sccp_config_reload
  */
 static int sccp_do_reload(int fd, int argc, char *argv[]) {
 #ifdef CS_DYNAMIC_CONFIG

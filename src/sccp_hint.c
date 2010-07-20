@@ -5,19 +5,18 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \since 	2009-01-16
- * \date        $Date$
- * \version     $Revision$  
+ * \remarks	Purpose: 	SCCP Hint
+ * 		When to use:	Does the business of hint status
+ *
+ * $Date$
+ * $Revision$  
  */
 
 /*!
- * \remarks	Purpose: 	SCCP Hint
- * 		When to use:	Does the business of hint status
- *   		Relationships: 	
- */
-
-/*! 
- <h2>how does hint update works:</h2>
- \section hint_update How does hint update work
+ * \file
+ * \page sccp_hint How do hints work in chan-sccp-b
+ * \section hint_update How does hint update work
+ 
  \dot
  digraph updateHint {
 	asteriskEvent[ label="asterisk event" shape=rect];

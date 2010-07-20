@@ -8,8 +8,9 @@
  * \note  	File is not directly included to get benefit of lists also in previous Asterisk releases (like 1.2)
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License. 
  *		See the LICENSE file at the top of the source tree.
- * \date        $Date$
- * \version     $Revision$  
+ *
+ * $Date$
+ * $Revision$  
  */
  
 #ifndef _SCCP_DLLISTS_H

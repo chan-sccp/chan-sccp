@@ -90,15 +90,21 @@ void sccp_device_post_reload(void)
 
 		sccp_device_lock(d);
 
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Sending Device Reset\n");
-		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
-		//sccp_dev_clean(d, FALSE);
-		sccp_session_close(d->session);
+		if (sccp_device_numberOfChannels(d) > 0) {	// if device has no open channel 
+                        sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Sending Device Reset\n");
+                        sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+                        //sccp_dev_clean(d, FALSE);
+                        sccp_session_close(d->session);
+		} else {				// skip this device. it will receive reset from sccp_channel_endcall upon completion of the call (***)
+			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", d->id);
+		        break;
+		}
 
 		if (d->pendingDelete) {
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Remove Device from List\n");
 			SCCP_LIST_REMOVE_CURRENT(list);
 			sccp_dev_clean(d, TRUE, 0);
+			sccp_device_free(d);
 		} else {
 			d->pendingUpdate = 0;
 			SCCP_LIST_LOCK(&d->buttonconfig);
