@@ -7,7 +7,7 @@
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
- * 
+ *
  * $Date$
  * $Revision$
  */
@@ -460,14 +460,16 @@ sccp_line_t * sccp_clone_line(sccp_line_t *orig_line){
 
 	new_line=ast_calloc(1, sizeof(sccp_line_t));
 
-	sccp_device_lock(orig_line);
+	sccp_line_lock(orig_line);
 	memcpy(new_line, orig_line, sizeof(*new_line));
+
+	ast_mutex_init(&new_line->lock);
 
 	/* remaining values to be copied */
 	// char 		*trnsfvm;
 	new_line->trnsfvm=ast_strdup(orig_line->trnsfvm);
-	
-	// struct ast_variable	* variables;				
+
+	// struct ast_variable	* variables;
 	struct ast_variable *v;
 	new_line->variables=NULL;
 	for (v = orig_line->variables; v; v = v->next)
@@ -484,7 +486,7 @@ sccp_line_t * sccp_clone_line(sccp_line_t *orig_line){
 	/* copy list-items over */
 	sccp_duplicate_line_mailbox_list(new_line,orig_line);
 	sccp_duplicate_line_linedevices_list(new_line, orig_line);
-	
+
 	sccp_line_unlock(orig_line);
 	return new_line;
 }
@@ -537,7 +539,7 @@ void sccp_duplicate_line_linedevices_list(sccp_line_t *new_line, sccp_line_t *or
  */
 sccp_diff_t sccp_line_changed(sccp_line_t *line_a,sccp_line_t *line_b) {
 	sccp_diff_t res=NO_CHANGES;
-	
+
 	sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "(sccp_line_changed) Checking line_a: %s against line_b: %s\n", line_a->id, line_b->id);
 	if (									// check changes requiring reset
 		(strcmp(line_a->id, line_b->id)) ||
@@ -545,10 +547,10 @@ sccp_diff_t sccp_line_changed(sccp_line_t *line_a,sccp_line_t *line_b) {
 		(strcmp(line_a->name, line_b->name)) ||
 		(strcmp(line_a->description, line_b->description)) ||
 		(strcmp(line_a->label, line_b->label)) ||
-#ifdef CS_SCCP_REALTIME	
-		(line_a->realtime != line_b->realtime) ||		
+#ifdef CS_SCCP_REALTIME
+		(line_a->realtime != line_b->realtime) ||
 #endif
-		(strcmp(line_a->adhocNumber, line_b->adhocNumber)) 
+		(strcmp(line_a->adhocNumber, line_b->adhocNumber))
 		) {
 	        sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "Changes need reset\n");
 		return CHANGES_NEED_RESET;
@@ -645,10 +647,10 @@ sccp_diff_t sccp_line_changed(sccp_line_t *line_a,sccp_line_t *line_b) {
 
 	/* \todo Still to implement */
 /*
-	char 					* trnsfvm;				
-	struct ast_variable			* variables;				
+	char 					* trnsfvm;
+	struct ast_variable			* variables;
 */
-	
+
 	sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "(sccp_line_changed) Returning : %d\n", res);
 	return res;
 
