@@ -178,7 +178,13 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 
 /*! \todo I don't like the -1 returned value */
 #define sccp_true(x) (ast_true(x) ? 1 : 0)
-#define sccp_log(x) if ((sccp_globals->debug & x) == x)  ast_verbose
+
+// debug parameter has to match all DEBUGCATegories simultanously given on sccp_log line 
+/*#define sccp_log(x) if ((sccp_globals->debug & x) == x)  ast_verbose */
+
+// changed debug parameter to match any DEBUGCATegories given on an sccp_log line
+#define sccp_log(x) if ((sccp_globals->debug & x) > 0)  ast_verbose
+
 #define GLOB(x) sccp_globals->x
 
 /* macro for memory alloc and free*/
