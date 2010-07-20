@@ -16,6 +16,73 @@
  * \remarks     Only methods directly related to chan-sccp configuration should be stored in this source file.
  */
 
+/*!
+ * <h2>How was the new cli command "sccp reload" implemented</h2>
+ * \section sccp_reload How was the new cli command "sccp reload" implemented
+ * 
+ * 
+ *
+ *
+ * \code
+ * sccp_cli.c
+ * 	new implementation of cli reload command 
+ * 		checks if no other reload command is currently running
+ * 		starts loading global settings from sccp.conf (sccp_config_general)
+ * 		starts loading devices and lines from sccp.conf
+ * 		(sccp_config_readDevicesLines)
+ * 
+ * sccp_config.c
+ * 	modified sccp_config_general
+ * 		skips reading new variable values for bindaddr, port, debug when reloading
+ * 
+ * 	modified sccp_config_readDevicesLines
+ * 		sets pendingDelete for 
+ * 			devices (via sccp_device_pre_reload), 
+ * 			lines (via sccp_line_pre_reload)
+ * 			softkey (via sccp_softkey_pre_reload)
+ * 
+ * 		calls sccp_config_buildDevice as usual
+ * 			calls sccp_config_buildDevice as usual
+ * 				find device
+ * 				makes clone of device if exists (via sccp_device_clone)
+ * 				parses sccp.conf for device
+ * 				checks if clone and device are still the same for critical values (via sccp_device_changed)
+ * 				if not it sets pendingUpdate on device
+ * 			calls sccp_config_buildLine as usual
+ * 				find device
+ * 				makes clone of device if exists (via sccp_line_clone)
+ * 				parses sccp.conf for device
+ * 				checks if clone and device are still the same for critical values (via sccp_line_changed)
+ *			 	if not it sets pendingUpdate on device
+ * 			calls sccp_config_softKeySet as usual ***
+ * 				find device
+ * 				makes clone of device if exists (via sccp_softkeyset_clone) ***
+ *			 	parses sccp.conf for device
+ * 				checks if clone and device are still the same for critical values (via sccp_softkeyset_changed) ***
+ * 				if not it sets pendingUpdate on device
+ * 
+ * 		checks pendingDelete and pendingUpdate for
+ *			skip when call in progress
+ * 			devices (via sccp_device_post_reload), 
+ * 				resets GLOB(device) if pendingUpdate
+ * 				removes GLOB(devices) with pendingDelete
+ * 			lines (via sccp_line_post_reload)
+ * 				resets GLOB(lines) if pendingUpdate
+ * 				removes GLOB(lines) with pendingDelete
+ * 			softkey (via sccp_softkey_post_reload) ***
+ * 				resets GLOB(softkeyset) if pendingUpdate ***
+ * 				removes GLOB(softkeyset) with pendingDelete ***
+ *
+ * channel.c
+ * 	sccp_channel_endcall ***
+ *		reset device if still device->pendingUpdate,line->pendingUpdate or softkeyset->pendingUpdate
+ *
+ * \endcode
+ *
+ * lines marked with "***" still need be implemented
+ *
+ */
+
 #include "config.h"
 
 #include "asterisk.h"
@@ -386,7 +453,7 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 
 		// removing temp_d
 		sccp_dev_clean(temp_d,FALSE,0);
-//		sccp_device_free(temp_d);
+		sccp_device_free(temp_d);
 		temp_d=NULL;
 	}
 #endif /* CS_DYNAMIC_CONFIG */
