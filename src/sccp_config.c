@@ -350,8 +350,46 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 		d= sccp_device_create();
 		sccp_copy_string(d->id, deviceName, sizeof(d->id));	/* set device name */
 	}
+#ifdef CS_DYNAMIC_CONFIG
+	/* clone d to temp_d */
+	sccp_device_t 	       * temp_d = NULL;
+	if (d && d->pendingDelete==1 && !d->realtime) {
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: cloning device\n", d->id);
+		temp_d=sccp_clone_device(d);
+	}
+#endif /* CS_DYNAMIC_CONFIG */
 
 	d= sccp_config_applyDeviceConfiguration(d, variable); 	/* apply configuration using variable */
+
+#ifdef CS_DYNAMIC_CONFIG
+	/* compare temporairy temp_d to d */
+	if (d->pendingDelete==1 && !d->realtime && temp_d) {
+		sccp_device_lock(d);
+		sccp_device_lock(temp_d);
+		switch (sccp_device_changed(temp_d,d)) {
+			case CHANGES_NEED_RESET: {
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: major changes detected, reset required -> pendingUpdate=1\n", temp_d->id);
+				d->pendingUpdate=1;
+				break;
+			}
+			case MINOR_CHANGES: {
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: minor changes detected, no reset required\n", temp_d->id);
+				break;
+			}
+			case NO_CHANGES: {
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: no changes detected\n", temp_d->id);
+				break;
+			}
+		}
+		sccp_device_unlock(temp_d);
+		sccp_device_unlock(d);
+
+		// removing temp_d
+		sccp_dev_clean(temp_d,FALSE,0);
+//		sccp_device_free(temp_d);
+		temp_d=NULL;
+	}
+#endif /* CS_DYNAMIC_CONFIG */
 
 #ifdef CS_SCCP_REALTIME
 	d->realtime = isRealtime;
@@ -384,7 +422,7 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
  * \param isRealtime is Realtime as Boolean
  */
 sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *lineName, boolean_t isRealtime){
-	sccp_line_t 	*line = NULL;
+	sccp_line_t 	*l = NULL;
 	char *name = (char *)lineName;
 
 	name = ast_strip(name);
@@ -392,43 +430,82 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 	// However, do not look into realtime, since
 	// we might have been asked to create a device for realtime addition,
 	// thus causing an infinite loop / recursion.
-	line = sccp_line_find_byname_wo(name, FALSE);
+	l = sccp_line_find_byname_wo(name, FALSE);
 
 
 	/* search for existing line */
-	if (line
+	if (l
 #ifdef CS_DYNAMIC_CONFIG
-		&& !line->pendingDelete
+		&& !l->pendingDelete
 #endif
 		) {
 		ast_log(LOG_WARNING, "SCCP: Line '%s' already exists\n", name);
-		return line;
+		return l;
 	}
 
-	if (!line)
-		line = sccp_line_create();
+	if (!l)
+		l = sccp_line_create();
 
-	line = sccp_config_applyLineConfiguration(line, variable);
+#ifdef CS_DYNAMIC_CONFIG
+	/* clone l to temp_l */
+	sccp_line_t 	       * temp_l = NULL;
+	if (l && l->pendingDelete==1 && !l->realtime) {
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: cloning line\n", name);
+		temp_l=sccp_clone_line(l);
+	}
+#endif /* CS_DYNAMIC_CONFIG */
 
-	sccp_copy_string(line->name, name, sizeof(line->name));
+	l = sccp_config_applyLineConfiguration(l, variable); /* apply configuration using variable */
+
+#ifdef CS_DYNAMIC_CONFIG
+	/* compare temporairy temp_l to l */
+	if (l->pendingDelete==1 && !l->realtime && temp_l) {
+		sccp_line_lock(l);
+		sccp_line_lock(temp_l);
+		switch (sccp_line_changed(temp_l,l)) {
+			case CHANGES_NEED_RESET: {
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: major changes detected, reset required -> pendingUpdate=1\n", temp_l->name);
+				l->pendingUpdate=1;
+				break;
+			}
+			case MINOR_CHANGES: {
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: minor changes detected, no reset required\n", temp_l->name);
+				break;
+			}
+			case NO_CHANGES: {
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: no changes detected\n", temp_l->name);
+				break;
+			}
+		}
+		sccp_line_unlock(temp_l);
+		sccp_line_unlock(l);
+
+		// removing temp_d
+		sccp_line_clean(temp_l,FALSE);
+//		sccp_line_free(temp_l);
+		temp_l=NULL;
+	}
+#endif /* CS_DYNAMIC_CONFIG */
+
+	sccp_copy_string(l->name, name, sizeof(l->name));
 #ifdef CS_SCCP_REALTIME
-	line->realtime = isRealtime;
+	l->realtime = isRealtime;
 #endif
 
 	// TODO: Load status of feature (DND, CFwd, etc.) from astdb.
 #ifdef CS_DYNAMIC_CONFIG
-	if (!line->pendingDelete) {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s: Adding line to Globals to 0\n", line->name);
-		sccp_line_addToGlobals(line);
+	if (!l->pendingDelete) {
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s: Adding line to Globals to 0\n", l->name);
+		sccp_line_addToGlobals(l);
 	} else {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s: Removing pendingDelete\n", line->name);
-		line->pendingDelete = 0;
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s: Removing pendingDelete\n", l->name);
+		l->pendingDelete = 0;
 	}
 #else
-	sccp_line_addToGlobals(line);
+	sccp_line_addToGlobals(l);
 #endif /* CS_DYNAMIC_CONFIG */
 
-	return line;
+	return l;
 }
 
 boolean_t sccp_config_general(sccp_readingtype_t readingtype){
@@ -998,24 +1075,12 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 			} else if (!strcasecmp(v->name, "type")) {
 			  //skip;
 			} else if (!strcasecmp(v->name, "id")) {
-#ifdef CS_DYNAMIC_CONFIG
-				if (!strcasecmp(l->id, v->value)) {l->pendingUpdate=1;}
-#endif
 				sccp_copy_string(l->id, v->value, sizeof(l->id));
 			} else if (!strcasecmp(v->name, "pin")) {
-#ifdef CS_DYNAMIC_CONFIG
-				if (!strcasecmp(l->pin, v->value)) {l->pendingUpdate=1;}
-#endif
 				sccp_copy_string(l->pin, v->value, sizeof(l->pin));
 			} else if (!strcasecmp(v->name, "label")) {
-#ifdef CS_DYNAMIC_CONFIG
-				if (!strcasecmp(l->label, v->value)) {l->pendingUpdate=1;}
-#endif
 				sccp_copy_string(l->label, v->value, sizeof(l->label));
 			} else if (!strcasecmp(v->name, "description")) {
-#ifdef CS_DYNAMIC_CONFIG
-				if (!strcasecmp(l->description, v->value)) {l->pendingUpdate=1;}
-#endif
 				sccp_copy_string(l->description, v->value, sizeof(l->description));
 			} else if (!strcasecmp(v->name, "context")) {
 				sccp_copy_string(l->context, v->value, sizeof(l->context));
@@ -1024,42 +1089,44 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 			} else if (!strcasecmp(v->name, "cid_num")) {
 				sccp_copy_string(l->cid_num, v->value, sizeof(l->cid_num));
 			} else if (!strcasecmp(v->name, "defaultSubscriptionId_name")) { // Subscription IDs
-#ifdef CS_DYNAMIC_CONFIG
-				if (!strcasecmp(l->defaultSubscriptionId.name, v->value)) {l->pendingUpdate=1;}
-#endif
 				sccp_copy_string(l->defaultSubscriptionId.name, v->value, sizeof(l->defaultSubscriptionId.name));
 			} else if (!strcasecmp(v->name, "defaultSubscriptionId_number")) {
-#ifdef CS_DYNAMIC_CONFIG
-				if (!strcasecmp(l->defaultSubscriptionId.number, v->value)) {l->pendingUpdate=1;}
-#endif
 				sccp_copy_string(l->defaultSubscriptionId.number, v->value, sizeof(l->defaultSubscriptionId.number));
 			} else if (!strcasecmp(v->name, "callerid")) {
 				ast_log(LOG_WARNING, "obsolete callerid param. Use cid_num and cid_name\n");
 			} else if (!strcasecmp(v->name, "mailbox")) {
 				sccp_mailbox_t *mailbox = NULL;
 				char *context, *mbox = NULL;
-
 				mbox = context = ast_strdupa(v->value);
+				boolean_t mailbox_exists=FALSE;
 
-				if (!ast_strlen_zero(mbox)) {
+                                strsep(&context, "@");
 
-					mailbox = ast_calloc(1, sizeof(*mailbox));
-
-					if(NULL != mailbox) {
-						strsep(&context, "@");
-						mailbox->mailbox = ast_strdup(mbox);
-						mailbox->context = ast_strdup(context);
-
-						SCCP_LIST_INSERT_TAIL(&l->mailboxes, mailbox, list);
-						sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_3 "%s: Added mailbox '%s@%s'\n", l->name, mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
+                                // Check mailboxes list 
+				SCCP_LIST_LOCK(&l->mailboxes);
+				SCCP_LIST_TRAVERSE(&l->mailboxes,mailbox,list) {
+					if ( (!ast_strlen_zero(mbox)) ) {
+                                                if ( strcmp(mailbox->mailbox,mbox) || strcmp(mailbox->mailbox,mbox) ) {
+                                                        mailbox_exists=TRUE;
+                                                }
 					}
-				}
+		                }
+                                if ( (!mailbox_exists) && (!ast_strlen_zero(mbox)) ) {
+                                        // Add mailbox entry
+                                        mailbox = ast_calloc(1, sizeof(*mailbox));
+
+                                        if(NULL != mailbox) {
+                                                mailbox->mailbox = ast_strdup(mbox);
+                                                mailbox->context = ast_strdup(context);
+
+                                                SCCP_LIST_INSERT_TAIL(&l->mailboxes, mailbox, list);
+                                                sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_3 "%s: Added mailbox '%s@%s'\n", l->name, mailbox->mailbox, (mailbox->context)?mailbox->context:"default");
+                                        }
+                                }
+				SCCP_LIST_UNLOCK(&l->mailboxes);
 			} else if (!strcasecmp(v->name, "vmnum")) {
 				sccp_copy_string(l->vmnum, v->value, sizeof(l->vmnum));
 			} else if (!strcasecmp(v->name, "adhocNumber")) {
-#ifdef CS_DYNAMIC_CONFIG
-				if (!strcasecmp(l->adhocNumber, v->value)) {l->pendingUpdate=1;}
-#endif
 				sccp_copy_string(l->adhocNumber, v->value, sizeof(l->adhocNumber));
 			} else if (!strcasecmp(v->name, "meetmenum")) {
 				sccp_copy_string(l->meetmenum, v->value, sizeof(l->meetmenum));
@@ -1070,9 +1137,6 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 			} else if (!strcasecmp(v->name, "transfer")) {
 				l->transfer = sccp_true(v->value);
 			} else if (!strcasecmp(v->name, "incominglimit")) {
-#ifdef CS_DYNAMIC_CONFIG
-				if (l->incominglimit != atoi(v->value)) {l->pendingUpdate=1;}
-#endif
 				l->incominglimit = atoi(v->value);
 				if (l->incominglimit < 1)
 					l->incominglimit = 1;
@@ -1157,9 +1221,6 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 				} else
 					l->video_cos = GLOB(video_cos);
 			} else if (!strcasecmp(v->name, "language")) {
-#ifdef CS_DYNAMIC_CONFIG
-				if (!strcasecmp(l->language, v->value)) {l->pendingUpdate=1;}
-#endif
 				sccp_copy_string(l->language, v->value, sizeof(l->language));
 			} else if (!strcasecmp(v->name, "musicclass")) {
 				sccp_copy_string(l->musicclass, v->value, sizeof(l->musicclass));
@@ -1251,18 +1312,6 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 	char 			*splitter;
 	char			config_value[256];
 
-#ifdef CS_DYNAMIC_CONFIG
-	sccp_device_t 	       * temp_d = NULL;
-	/* copy d to temp_d structure */
-
-	// next lines replaced by sccp_dev_copy
-//	temp_d = ast_calloc(1, sizeof(sccp_device_t));
-//	memcpy(temp_d, d, sizeof(*temp_d));
-	if (d && d->pendingDelete==1 && !d->realtime) {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: cloning device\n", d->id);
-		temp_d=sccp_clone_device(d);
-	}
-#endif /* CS_DYNAMIC_CONFIG */
 
 	if (!v) {
 		sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "no variable given\n");
@@ -1463,35 +1512,6 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 	 /* load saved settings from ast db */
 	sccp_config_restoreDeviceFeatureStatus(d);
 
-#ifdef CS_DYNAMIC_CONFIG
-	/* compare temporiry d to device */
-	if (d->pendingDelete==1 && !d->realtime && temp_d) {
-		sccp_device_lock(d);
-		sccp_device_lock(temp_d);
-		switch (sccp_device_changed(temp_d,d)) {
-			case CHANGES_NEED_RESET: {
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: major changes detected, reset required -> pendingUpdate=1\n", temp_d->id);
-				d->pendingUpdate=1;
-				break;
-			}
-			case MINOR_CHANGES: {
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: minor changes detected, no reset required\n", temp_d->id);
-				break;
-			}
-			case NO_CHANGES: {
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: no changes detected\n", temp_d->id);
-				break;
-			}
-		}
-		sccp_device_unlock(temp_d);
-		sccp_device_unlock(d);
-
-		// removing temp_d
-		sccp_dev_clean(temp_d,FALSE,0);
-		sccp_device_free(temp_d);
-		temp_d=NULL;
-	}
-#endif /* CS_DYNAMIC_CONFIG */
 	return d;
 }
 

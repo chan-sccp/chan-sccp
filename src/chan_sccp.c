@@ -91,7 +91,7 @@ static struct ast_jb_conf default_jbconf =
 /*!
  * \brief	Global null frame
  */
-struct ast_frame 				sccp_null_frame;		/*!< Asterisk Structure */
+struct ast_frame 			sccp_null_frame;		/*!< Asterisk Structure */
 
 /*!
  * \brief	Global variables
@@ -102,7 +102,7 @@ struct sccp_global_vars 		* sccp_globals = 0;
  * \brief	Global scheduler and IO context
  */
 struct sched_context 			* sched = 0;
-struct io_context 				* io    = 0;
+struct io_context 			* io    = 0;
 
 
 #ifdef CS_AST_HAS_TECH_PVT
@@ -729,11 +729,13 @@ static int reload_config(void) {
 #else
 			sccp_log(0)(VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
 #endif
+			GLOB(reload_in_progress) = FALSE;
 			ast_pthread_create(&GLOB(socket_thread), NULL, sccp_socket_thread, NULL);
 		}
 	}
 
 	sccp_restart_monitor();
+	
 	return 0;
 }
 

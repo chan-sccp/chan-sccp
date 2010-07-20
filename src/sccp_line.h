@@ -24,6 +24,7 @@ sccp_line_t * sccp_line_create(void);
 sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l);
 sccp_line_t *sccp_line_addToGlobals(sccp_line_t *line);
 void sccp_line_kill(sccp_line_t * l);
+void sccp_line_clean(sccp_line_t * l,boolean_t destroy);
 void sccp_line_delete_nolock(sccp_line_t * l);
 void sccp_line_cfwd(sccp_line_t * l, sccp_device_t *device, uint8_t type, char * number);
 void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, struct subscriptionId *subscriptionId);
@@ -34,6 +35,7 @@ void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t *channel);
 sccp_line_t * sccp_clone_line(sccp_line_t *orig_line);
 void sccp_duplicate_line_mailbox_list(sccp_line_t *new_line, sccp_line_t *orig_line);
 void sccp_duplicate_line_linedevices_list(sccp_line_t *new_line, sccp_line_t *orig_line);
+sccp_diff_t sccp_line_changed(sccp_line_t *line_a,sccp_line_t *line_b);
 #endif /* CS_DYNAMIC_CONFIG */
 
 #endif /* __SCCP_LINE_H */

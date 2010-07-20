@@ -80,11 +80,6 @@ void sccp_duplicate_device_buttonconfig_list(sccp_device_t *new_device, sccp_dev
 void sccp_duplicate_device_hostname_list(sccp_device_t *new_device, sccp_device_t *orig_device);
 void sccp_duplicate_device_selectedchannel_list(sccp_device_t *new_device,sccp_device_t *orig_device);
 void sccp_duplicate_device_addon_list(sccp_device_t *new_device, sccp_device_t *orig_device);
-
-typedef enum {
-        NO_CHANGES, MINOR_CHANGES, CHANGES_NEED_RESET
-} sccp_diff_t;
-
 sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b);
 sccp_diff_t sccp_buttonconfig_changed(sccp_buttonconfig_t *buttonconfig_a, sccp_buttonconfig_t *buttonconfig_b);
 #endif

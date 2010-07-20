@@ -233,6 +233,7 @@ typedef struct sccp_buttonconfig		sccp_buttonconfig_t;			/*!< SCCP Button Config
 typedef struct sccp_hotline			sccp_hotline_t;				/*!< SCCP Hotline Structure */
 typedef enum { FALSE=0, TRUE=1 } 		boolean_t;				/*!< Asterisk Reverses True and False; nice !! */
 typedef enum {ON, OFF} 				light_t;				/*!< Enum Light Status */
+typedef enum { NO_CHANGES=0, MINOR_CHANGES=1, CHANGES_NEED_RESET=2} sccp_diff_t;	/*!< SCCP Diff Structure */
 
 typedef void sk_func (sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 typedef enum { LINE, SPEEDDIAL, SERVICE, FEATURE, EMPTY } button_type_t;		/*!< Enum Button Type */

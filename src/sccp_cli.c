@@ -1856,7 +1856,7 @@ static int sccp_do_reload(int fd, int argc, char *argv[]) {
 #ifdef CS_DYNAMIC_CONFIG
 	sccp_readingtype_t readingtype;
 
-	if (&GLOB(reload_in_progress) == FALSE ) {
+	if ( GLOB(reload_in_progress)==FALSE ) {
 		ast_cli(fd, "SCCP reloading configuration.\n");
 		ast_cli(fd, "SCCP configuration reload partially implemented ! use unload and load instead for now.\n");
 
@@ -1877,7 +1877,7 @@ static int sccp_do_reload(int fd, int argc, char *argv[]) {
 		ast_mutex_lock(&GLOB(lock));
 		GLOB(reload_in_progress) = FALSE;
 		ast_mutex_unlock(&GLOB(lock));
-	} else {
+        } else {
 		ast_cli(fd, "SCCP reloading already in progress.\n");
 	}
 	return RESULT_SUCCESS;
