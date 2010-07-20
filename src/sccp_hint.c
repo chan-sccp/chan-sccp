@@ -4,6 +4,7 @@
  * \author 	Marcello Ceschia < marcello.ceschia@users.sourceforge.net >
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
+ * \note	For more information about how does hint update works, see \ref hint_update
  * \since 	2009-01-16
  * \remarks	Purpose: 	SCCP Hint
  * 		When to use:	Does the business of hint status
