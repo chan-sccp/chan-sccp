@@ -173,13 +173,17 @@ void sccp_line_kill(sccp_line_t * l) {
 }
 
 /*!
- * \brief Delete an SCCP line
+ * \brief Clean Line
+ *
+ *  clean up memory allocated by the line.
+ *  if destroy is true, line will be removed from global device list
+ *
  * \param l SCCP Line
- * \note Should be Called without a lock on l->lock
+ * \param remove_from_global as boolean_t
+ *
+ * \todo integrate sccp_line_clean and sccp_line_delete_nolock into sccp_line_delete
  */
-void sccp_line_delete_nolock(sccp_line_t * l)
-{
-
+void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global) {
 	sccp_device_t 		*d;
 	sccp_linedevices_t	*linedevice;
 
@@ -189,11 +193,16 @@ void sccp_line_delete_nolock(sccp_line_t * l)
 	sccp_line_kill(l);
 
 	/* remove from the global lines list */
-	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_REMOVE(&GLOB(lines), l, list);
-	SCCP_LIST_UNLOCK(&GLOB(lines));
-
-	//d = l->device;
+	if (remove_from_global) {
+		if(l->list.prev == NULL && l->list.next == NULL && GLOB(lines).first != l) {
+			if (GLOB(lines).size > 1)
+				ast_log(LOG_ERROR, "%s: removing line from global lines list. prev and next pointer ist not set while lines list size is %d\n", l->name, GLOB(lines).size);
+		} else {
+			SCCP_LIST_LOCK(&GLOB(lines));
+			SCCP_LIST_REMOVE(&GLOB(lines), l, list);
+			SCCP_LIST_UNLOCK(&GLOB(lines));
+		}
+	}
 
 	SCCP_LIST_LOCK(&l->devices);
 	while( (linedevice = SCCP_LIST_REMOVE_HEAD(&l->devices, list))){
@@ -218,8 +227,9 @@ void sccp_line_delete_nolock(sccp_line_t * l)
 	if (l->trnsfvm)
 		ast_free(l->trnsfvm);
 
-	sccp_mutex_destroy(&l->lock);
-
+	if (remove_from_global) {
+		sccp_mutex_destroy(&l->lock);
+	}
 	sccp_mailbox_t *mailbox = NULL;
 
 	while( (mailbox = SCCP_LIST_REMOVE_HEAD(&l->mailboxes, list))){
@@ -233,10 +243,17 @@ void sccp_line_delete_nolock(sccp_line_t * l)
 			sccp_free(mailbox->context);
 		sccp_free(mailbox);
 	}
-
-
-
 	ast_free(l);
+}
+
+
+/*!
+ * \brief Delete an SCCP line
+ * \param l SCCP Line
+ * \note Should be Called without a lock on l->lock
+ */
+void sccp_line_delete_nolock(sccp_line_t * l) {
+	sccp_line_clean(l, TRUE);
 }
 
 /*!
@@ -447,7 +464,7 @@ sccp_line_t * sccp_clone_line(sccp_line_t *orig_line){
 
 	/* remaining values to be copied */
 	// char 		*trnsfvm;
-	new_line->trnsfvm=strdup(orig_line->trnsfvm);
+	new_line->trnsfvm=ast_strdup(orig_line->trnsfvm);
 	
 	// struct ast_variable	* variables;				
 	struct ast_variable *v;
@@ -465,7 +482,7 @@ sccp_line_t * sccp_clone_line(sccp_line_t *orig_line){
 
 	/* copy list-items over */
 	sccp_duplicate_line_mailbox_list(new_line,orig_line);
-//	SCCP_LIST_HEAD(,sccp_linedevices_t)	devices;				
+	sccp_duplicate_line_linedevices_list(new_line, orig_line);
 	
 	sccp_line_unlock(orig_line);
 	return new_line;
@@ -483,8 +500,8 @@ void sccp_duplicate_line_mailbox_list(sccp_line_t *new_line, sccp_line_t *orig_l
 	SCCP_LIST_LOCK(&orig_line->mailboxes);
 	SCCP_LIST_TRAVERSE(&orig_line->mailboxes, orig_mailbox, list){
 		new_mailbox=ast_calloc(1,sizeof(sccp_mailbox_t));
-		new_mailbox->mailbox=strdup(orig_mailbox->mailbox);
-		new_mailbox->context=strdup(orig_mailbox->context);
+		new_mailbox->mailbox=ast_strdup(orig_mailbox->mailbox);
+		new_mailbox->context=ast_strdup(orig_mailbox->context);
 		SCCP_LIST_INSERT_TAIL(&new_line->mailboxes, new_mailbox, list);
 	}
 	SCCP_LIST_UNLOCK(&orig_line->mailboxes);
@@ -511,4 +528,129 @@ void sccp_duplicate_line_linedevices_list(sccp_line_t *new_line, sccp_line_t *or
 	SCCP_LIST_UNLOCK(&orig_line->devices);
 }
 
+/*!
+ * Checks two devices against one another and returns a sccp_diff_t if different
+ * \param device_a sccp device
+ * \param device_b sccp device
+ * \return sccp_diff_t
+ */
+sccp_diff_t sccp_line_changed(sccp_line_t *line_a,sccp_line_t *line_b) {
+	sccp_diff_t res=NO_CHANGES;
+	
+	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "(sccp_line_changed) Checking line_a: %s against line_b: %s\n", line_a->id, line_b->id);
+	if (									// check changes requiring reset
+		(strcmp(line_a->id, line_b->id)) ||
+		(strcmp(line_a->pin, line_b->pin)) ||
+		(strcmp(line_a->name, line_b->name)) ||
+		(strcmp(line_a->description, line_b->description)) ||
+		(strcmp(line_a->label, line_b->label)) ||
+#ifdef CS_SCCP_REALTIME	
+		(line_a->realtime != line_b->realtime) ||		
+#endif
+		(strcmp(line_a->adhocNumber, line_b->adhocNumber)) 
+		) {
+	        sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Changes need reset\n");
+		return CHANGES_NEED_RESET;
+	} else if ( 								// check minor changes
+		(strcmp(line_a->vmnum, line_b->vmnum)) ||
+		(line_a->meetme != line_b->meetme) ||
+		(strcmp(line_a->meetmenum, line_b->id)) ||
+		(strcmp(line_a->meetmeopts, line_b->id)) ||
+		(strcmp(line_a->context, line_b->context)) ||
+		(strcmp(line_a->language, line_b->language)) ||
+		(strcmp(line_a->accountcode, line_b->accountcode)) ||
+		(strcmp(line_a->musicclass, line_b->musicclass)) ||
+		(line_a->amaflags != line_b->amaflags) ||
+		(strcmp(line_a->cid_name, line_b->cid_name)) ||
+		(strcmp(line_a->cid_num, line_b->cid_num)) ||
+		(line_a->incominglimit != line_b->incominglimit) ||
+		(line_a->audio_tos != line_b->audio_tos) ||
+		(line_a->video_tos != line_b->video_tos) ||
+		(line_a->audio_cos != line_b->audio_cos) ||
+		(line_a->video_cos != line_b->video_cos) ||
+		(line_a->channelCount != line_b->channelCount) ||
+		(strcmp(line_a->secondary_dialtone_digits, line_b->secondary_dialtone_digits)) ||
+		(line_a->secondary_dialtone_tone != line_b->secondary_dialtone_tone) ||
+		(line_a->echocancel != line_b->echocancel) ||
+		(line_a->silencesuppression != line_b->silencesuppression) ||
+		(line_a->transfer != line_b->transfer) ||
+		(line_a->spareBit4 != line_b->spareBit4) ||
+		(line_a->spareBit5 != line_b->spareBit5) ||
+		(line_a->spareBit6 != line_b->spareBit6) ||
+		(line_a->dnd != line_b->dnd) ||
+		(line_a->dndmode != line_b->dndmode) ||
+		(line_a->pendingDelete != line_b->pendingDelete) ||
+		(line_a->pendingUpdate != line_b->pendingUpdate) ||
+		(line_a->statistic.numberOfActiveDevices != line_b->statistic.numberOfActiveDevices) ||
+		(line_a->statistic.numberOfActiveChannels != line_b->statistic.numberOfActiveChannels) ||
+		(line_a->statistic.numberOfHoldChannels != line_b->statistic.numberOfHoldChannels) ||
+		(line_a->statistic.numberOfDNDDevices != line_b->statistic.numberOfDNDDevices) ||
+		(line_a->voicemailStatistic.newmsgs != line_b->voicemailStatistic.newmsgs) ||
+		(line_a->voicemailStatistic.oldmsgs != line_b->voicemailStatistic.oldmsgs) ||
+		(line_a->configurationStatus != line_b->configurationStatus) ||
+		(line_a->callgroup != line_b->callgroup) ||
+		#ifdef CS_SCCP_PICKUP
+		(line_a->pickupgroup != line_b->pickupgroup) ||
+		#endif
+		(strcmp(line_a->defaultSubscriptionId.number, line_b->defaultSubscriptionId.number)) ||
+		(strcmp(line_a->defaultSubscriptionId.name, line_b->defaultSubscriptionId.name))
+		) {
+	        sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Minor changes\n");
+	     	res=MINOR_CHANGES;
+	}
+	// changes in sccp_mailbox_t *orig_mailbox
+	SCCP_LIST_LOCK(&line_a->mailboxes);
+	SCCP_LIST_LOCK(&line_b->mailboxes);
+	if (line_a->mailboxes.size != line_b->mailboxes.size) {
+		sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "mailboxes: Changes need reset\n");
+		res=MINOR_CHANGES;
+	} else {
+		sccp_mailbox_t *mb_a = SCCP_LIST_FIRST(&line_a->mailboxes);
+		sccp_mailbox_t *mb_b = SCCP_LIST_FIRST(&line_b->mailboxes);
+		while (mb_a && mb_b) {
+			if ((strcmp(mb_a->mailbox,mb_b->mailbox)) || (strcmp(mb_a->context,mb_b->context))) {
+				sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "mailboxes: Changes need reset\n");
+				res=MINOR_CHANGES;
+				break;
+			}
+			mb_a = SCCP_LIST_NEXT(mb_a, list);
+			mb_b = SCCP_LIST_NEXT(mb_b, list);
+		}
+	}
+	SCCP_LIST_UNLOCK(&line_a->mailboxes);
+	SCCP_LIST_UNLOCK(&line_b->mailboxes);
+
+	// changes in sccp_linedevices_t *orig_linedevices
+	SCCP_LIST_LOCK(&line_a->devices);
+	SCCP_LIST_LOCK(&line_b->devices);
+	if (line_a->devices.size != line_b->devices.size) {
+		sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "devices: Changes need reset\n");
+		res=CHANGES_NEED_RESET;
+	} else {
+		sccp_linedevices_t *dev_a = SCCP_LIST_FIRST(&line_a->devices);
+		sccp_linedevices_t *dev_b = SCCP_LIST_FIRST(&line_b->devices);
+		while (dev_a && dev_b) {
+			if (strcmp(dev_a->device->id,dev_b->device->id)) {
+				sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "devices: Changes need reset\n");
+				 res=CHANGES_NEED_RESET;
+				 break;
+			}
+			dev_a = SCCP_LIST_NEXT(dev_a, list);
+			dev_b = SCCP_LIST_NEXT(dev_b, list);
+		}
+	}
+	SCCP_LIST_UNLOCK(&line_a->devices);
+	SCCP_LIST_UNLOCK(&line_b->devices);
+
+	/* \todo Still to implement */
+/*
+	char 					* trnsfvm;				
+	struct ast_variable			* variables;				
+*/
+	
+	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "(sccp_line_changed) Returning : %d\n", res);
+	return res;
+
+
+}
 #endif
