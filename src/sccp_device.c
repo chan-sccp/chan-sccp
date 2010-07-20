@@ -90,7 +90,7 @@ void sccp_device_post_reload(void)
 
 		sccp_device_lock(d);
 
-		if (sccp_device_numberOfChannels(d) > 0) {	// if device has no open channel 
+		if (sccp_device_numberOfChannels(d) == 0) {	// if device has no open channel
                         sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Sending Device Reset\n");
                         sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
                         //sccp_dev_clean(d, FALSE);
@@ -114,6 +114,7 @@ void sccp_device_post_reload(void)
 
 				if (d->pendingDelete) {
 					sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
+					ast_free(config);
 					SCCP_LIST_REMOVE_CURRENT(list);
 				} else {
 					config->pendingUpdate = 0;
