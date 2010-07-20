@@ -40,8 +40,8 @@
 #define sccp_line_unlock(x)         ast_mutex_unlock(&x->lock)
 #define sccp_line_trylock(x)		ast_mutex_trylock(&x->lock)
 /* Macro for Devices */
-#define sccp_device_lock(x)		    do { ast_mutex_lock(&x->lock); ast_log(LOG_WARNING, "device %p lock\n", x); } while(0)
-#define sccp_device_unlock(x)		do { ast_mutex_unlock(&x->lock); ast_log(LOG_WARNING, "device %p unlock\n", x); } while(0)
+#define sccp_device_lock(x)		    ast_mutex_lock(&x->lock)
+#define sccp_device_unlock(x)		ast_mutex_unlock(&x->lock)
 #define sccp_device_trylock(x)		ast_mutex_trylock(&x->lock)
 /* Macro for Channels */
 #define sccp_channel_lock_dbg(x,w,y,z) ast_mutex_lock(&x->lock)
