@@ -1860,13 +1860,12 @@ static int sccp_do_reload(int fd, int argc, char *argv[]) {
 		ast_cli(fd, "SCCP reloading configuration.\n");
 		ast_cli(fd, "SCCP configuration reload partially implemented ! use unload and load instead for now.\n");
 
-
 		readingtype = SCCP_CONFIG_READRELOAD;
 
 		ast_mutex_lock(&GLOB(lock));
 		GLOB(reload_in_progress) = TRUE;
 		ast_mutex_unlock(&GLOB(lock));
-
+\
 		if (!sccp_config_general(readingtype)) {
 			ast_cli(fd, "Unable to reload configuration.\n");
 			ast_mutex_unlock(&GLOB(lock));
