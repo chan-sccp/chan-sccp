@@ -1023,6 +1023,12 @@ void sccp_channel_updatemediatype(sccp_channel_t * c) {
 void sccp_channel_endcall(sccp_channel_t * c)
 {
 	uint8_t res = 0;
+#ifdef CS_DYNAMIC_CONFIG
+        sccp_device_t 	*d;
+        sccp_line_t	*l;
+	sccp_buttonconfig_t *buttonconfig=NULL;
+        boolean_t reset_needed=FALSE;	
+#endif
 
 	if (!c || !c->line){
 		ast_log(LOG_WARNING, "No channel or line or device to hangup\n");
@@ -1055,19 +1061,25 @@ void sccp_channel_endcall(sccp_channel_t * c)
 		c->device->transfer_channel = NULL;
 	}
 
-/*
 #ifdef CS_DYNAMIC_CONFIG
-        boolean_t reset_needed=FALSE;	
-	if (c->device->pendingUpdate) {
+        d=c->device;
+        l=c->line;
+
+        if (d->pendingUpdate==1) {
 	        reset_needed=TRUE;
-	        c->device->pendingUpdate=0;
 	}
-        if (c->line->pendingUpdate) {
+        if (l->pendingUpdate==1) {
 	        reset_needed=TRUE;
-	        c->line->pendingUpdate=0;
 	}
+
+	SCCP_LIST_LOCK(&d->buttonconfig);
+	SCCP_LIST_TRAVERSE(&d->buttonconfig,buttonconfig,list) {
+                if (buttonconfig->pendingUpdate==1) {
+                        reset_needed=TRUE;
+                }
+        }
+        SCCP_LIST_UNLOCK(&d->buttonconfig);
 #endif	
-*/
 
 	if (c->owner) {
 		/* Is there a blocker ? */
@@ -1093,56 +1105,49 @@ void sccp_channel_endcall(sccp_channel_t * c)
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_1 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(c->device), c->callid, c->line->name);
 	}
 
-/*
 #ifdef CS_DYNAMIC_CONFIG
-        sccp_device_t 	*d = c->device;
-        sccp_line_t	*l = c->line;
-	sccp_buttonconfig_t *buttonconfig=NULL;
-
-	SCCP_LIST_LOCK(&d->buttonconfig);
-	SCCP_LIST_TRAVERSE(&d->buttonconfig,buttonconfig,list) {
-                if (buttonconfig->pendingUpdate) {
-                        reset_needed=TRUE;
-                }
-        }
-        SCCP_LIST_UNLOCK(&d->buttonconfig);
         
         if (reset_needed) {
                 sccp_device_lock(d);
-                sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: Sending Device Reset\n", d->id);
+
+                sccp_log(0)(VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf\n", d->id);
                 sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
                 sccp_session_close(d->session);
+	        d->pendingUpdate=0;
+                sccp_device_unlock(d);
 
 		if (d->pendingDelete) {
-			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: Remove Device from List\n", d->id);
+			sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Remove Device from List\n", d->id);
 			sccp_dev_clean(d, TRUE, 0);
 			sccp_device_free(d);
 		}
 
 		if (c->line->pendingDelete) {
-			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: Remove Linee from List\n", l->name);
+			sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Remove Linee from List\n", l->name);
 			sccp_line_clean(l, TRUE);
 // ???			sccp_line_free(l);		// \todo (does not exist (yet) !!)
 		}
-                
+		sccp_line_lock(l);
+	        l->pendingUpdate=0;
+		sccp_line_unlock(l);
+
                 SCCP_LIST_LOCK(&d->buttonconfig);
-                SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list){
+                SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, buttonconfig, list){
                         if (!buttonconfig->pendingDelete && !buttonconfig->pendingUpdate)
                                 continue;
 
                         if (d->pendingDelete) {
-                                sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
-// ???                                SCCP_LIST_REMOVE_CURRENT(list);  // \\todo produces error
+                                sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
                                 ast_free(buttonconfig);
+                                SCCP_LIST_REMOVE_CURRENT(list);
                         } else {
                                 buttonconfig->pendingUpdate = 0;
                         }
                 }
+                SCCP_LIST_TRAVERSE_SAFE_END
                 SCCP_LIST_UNLOCK(&d->buttonconfig);
-                sccp_device_unlock(d);
 	}
 #endif
-*/
 }
 
 /*!

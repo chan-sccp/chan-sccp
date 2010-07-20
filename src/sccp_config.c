@@ -144,22 +144,15 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 
 		config->index = index;
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "New %s Button %s at : %d:%d\n", sccp_buttontype2str(type), name, index, config->index);
-		device->pendingUpdate=1;
 		SCCP_LIST_INSERT_TAIL(&device->buttonconfig, config, list);
-		config->pendingUpdate=1;
 		new = 1;
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
-
-	config->pendingDelete = 0;
 
 	if (ast_strlen_zero(name)) {
 		sccp_log(0)(VERBOSE_PREFIX_1 "%s: Faulty Button Configutation found at index: %d", device->id, config->index);
 		type = EMPTY;
 	}
-
-	if (config->type != type)
-		config->pendingUpdate = 1;
 
 	switch(type) {
 		case LINE:
@@ -210,13 +203,6 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 		case EMPTY:
 			config->type = EMPTY;
 			break;
-	}
-
-	if (config->pendingUpdate) {
-		device->pendingUpdate = 1;
-		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "%s Button '%s' Updated at %d\n", sccp_buttontype2str(type), name, config->index);
-	} else {
-		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "%s Button '%s' Unchanged at %d\n", sccp_buttontype2str(type), name, config->index);
 	}
 }
 #else /* CS_DYNAMIC_CONFIG */

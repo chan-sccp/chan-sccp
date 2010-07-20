@@ -468,15 +468,18 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 #ifdef CS_ADV_FEATURES
 	ast_cli(fd, "Use Placed Calls   : %s\n", (d->useRedialMenu) ? "ON" : "OFF");
 #endif
-
+#ifdef CS_DYNAMIC_CONFIG
+	ast_cli(fd, "PendingUpdate      : %s\n", d->pendingUpdate ? "Yes" : "No");
+	ast_cli(fd, "PendingDelete      : %s\n", d->pendingDelete ? "Yes" : "No");
+#endif
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		ast_cli(fd, "\nButtonconfig\n");
-		ast_cli(fd, "%-4s: %-23s\n", "id", "type");
-		ast_cli(fd, "---- ------------------------\n");
+		ast_cli(fd, "%-4s: %-23s %3s %3s\n", "id", "type", "Upd", "Del");
+		ast_cli(fd, "---- ------------------------------\n");
 
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-			ast_cli(fd, "%4d: %s(%d)\n", config->instance, sccp_buttontype2str(config->type), config->type);
+			ast_cli(fd, "%4d: %20s(%d) %3s %3s\n", config->instance, sccp_buttontype2str(config->type), config->type, config->pendingUpdate ? "Yes" : "No", config->pendingDelete ? "Yes" : "No");
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 	}

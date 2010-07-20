@@ -108,7 +108,7 @@ void sccp_device_post_reload(void)
 		} else {
 			d->pendingUpdate = 0;
 			SCCP_LIST_LOCK(&d->buttonconfig);
-			SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list){
+			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list){
 				if (!config->pendingDelete && !config->pendingUpdate)
 					continue;
 
@@ -120,6 +120,7 @@ void sccp_device_post_reload(void)
 					config->pendingUpdate = 0;
 				}
 			}
+			SCCP_LIST_TRAVERSE_SAFE_END
 			SCCP_LIST_UNLOCK(&d->buttonconfig);
 		}
 		sccp_device_unlock(d);
@@ -1961,8 +1962,8 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 		sccp_selectedchannel_t *sc_b = SCCP_LIST_FIRST(&device_b->selectedChannels);
 		while (sc_a && sc_b) {
 			if (sc_a->channel->callid != sc_b->channel->callid) {
-				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "selectedChannels: Changes need reset\n");
-				res = CHANGES_NEED_RESET;
+				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "selectedChannels: Minot changes\n");
+				res = MINOR_CHANGES;
 				break;
 			}
 			sc_a = SCCP_LIST_NEXT(sc_a, list);
@@ -1994,7 +1995,7 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	SCCP_LIST_UNLOCK(&device_a->addons);
 	SCCP_LIST_UNLOCK(&device_b->addons);
 
-	/* \todo still to implement */
+	/* \todo still to implement a check for device->setvar (ast_variables *variables) */
 	//device_a->setvar
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1 "(sccp_device_changed) Returning : %d\n", res);
 	return res;
