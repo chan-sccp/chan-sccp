@@ -1112,6 +1112,11 @@ struct softKeySetConfiguration{
 	softkey_modes 				modes[16];				/*!< SoftKeySet modes, see KEYMODE_* */
 	uint8_t					numberOfSoftKeySets;			/*!< How many SoftKeySets we definde? */
 	SCCP_LIST_ENTRY(sccp_softKeySetConfiguration_t) 	list;			/*!< Next list entry */
+
+#ifdef CS_DYNAMIC_CONFIG
+	unsigned int				pendingDelete:1;
+	unsigned int				pendingUpdate:1;
+#endif
 };											/*!< SoftKeySet Configuration Structure */
 
 /*
