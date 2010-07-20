@@ -1856,29 +1856,32 @@ static int sccp_do_reload(int fd, int argc, char *argv[]) {
 #ifdef CS_DYNAMIC_CONFIG
 	sccp_readingtype_t readingtype;
 
-	if ( GLOB(reload_in_progress)==FALSE ) {
-		ast_cli(fd, "SCCP reloading configuration.\n");
-		ast_cli(fd, "SCCP configuration reload partially implemented ! use unload and load instead for now.\n");
-
-		readingtype = SCCP_CONFIG_READRELOAD;
-
-		ast_mutex_lock(&GLOB(lock));
-		GLOB(reload_in_progress) = TRUE;
-		ast_mutex_unlock(&GLOB(lock));
-\
-		if (!sccp_config_general(readingtype)) {
-			ast_cli(fd, "Unable to reload configuration.\n");
-			ast_mutex_unlock(&GLOB(lock));
-			return RESULT_FAILURE;
-		}
-		sccp_config_readDevicesLines(readingtype);
-		
-		ast_mutex_lock(&GLOB(lock));
-		GLOB(reload_in_progress) = FALSE;
-		ast_mutex_unlock(&GLOB(lock));
-        } else {
+	ast_mutex_lock(&GLOB(lock));
+	if (GLOB(reload_in_progress) == TRUE) {
 		ast_cli(fd, "SCCP reloading already in progress.\n");
+		ast_mutex_unlock(&GLOB(lock));
+		return RESULT_FAILURE;
 	}
+
+	ast_cli(fd, "SCCP reloading configuration.\n");
+	ast_cli(fd, "SCCP configuration reload partially implemented ! use unload and load instead for now.\n");
+
+	readingtype = SCCP_CONFIG_READRELOAD;
+
+	GLOB(reload_in_progress) = TRUE;
+	ast_mutex_unlock(&GLOB(lock));
+\
+	if (!sccp_config_general(readingtype)) {
+		ast_cli(fd, "Unable to reload configuration.\n");
+		ast_mutex_unlock(&GLOB(lock));
+		return RESULT_FAILURE;
+	}
+	sccp_config_readDevicesLines(readingtype);
+
+	ast_mutex_lock(&GLOB(lock));
+	GLOB(reload_in_progress) = FALSE;
+	ast_mutex_unlock(&GLOB(lock));
+
 	return RESULT_SUCCESS;
 #else
 	ast_cli(fd, "SCCP configuration reload not implemented yet! use unload and load.\n");
