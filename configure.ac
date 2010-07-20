@@ -522,7 +522,7 @@ AS_IF([test "${ac_cv_dynamic_speeddial_cid}" == "yes"], [
 
 dnl << Temporary additions. For Development Only
 AC_ARG_WITH(dynamic_config, 
-  AC_HELP_STRING([--with-dynamic-config], [Using dynamicly reloadable configuration file (default is NO)]), 
+  AC_HELP_STRING([--with-dynamic-config], [Using dynamicly reloadable configuration file (default is NO) (experimental / under development / don't use yet)]), 
   ac_cv_dynamic_config=yes, ac_cv_dynamic_config=no)
     AS_IF([test "${ac_cv_dynamic_config}" == "yes"], [
        	AC_DEFINE(CS_DYNAMIC_CONFIG, 1, [Using dynamic configuration file])
