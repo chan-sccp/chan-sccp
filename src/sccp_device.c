@@ -1703,7 +1703,8 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
 	sccp_device_lock(orig_device);
 	memcpy(new_device, orig_device, sizeof(*new_device));
 
-	bzero(&new_device->lock, sizeof(new_device->lock));
+//	bzero(&new_device->lock, sizeof(new_device->lock));		// replaced by memset. asterisk > 1.6 does not allow bzero
+        memset(&new_device->lock, 0, sizeof(new_device->lock));
 	ast_mutex_init(&new_device->lock);
 
 	// ast_ha ha

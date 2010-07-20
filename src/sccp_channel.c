@@ -1055,6 +1055,7 @@ void sccp_channel_endcall(sccp_channel_t * c)
 		c->device->transfer_channel = NULL;
 	}
 
+/*
 #ifdef CS_DYNAMIC_CONFIG
         boolean_t reset_needed=FALSE;	
 	if (c->device->pendingUpdate) {
@@ -1066,6 +1067,7 @@ void sccp_channel_endcall(sccp_channel_t * c)
 	        c->line->pendingUpdate=0;
 	}
 #endif	
+*/
 
 	if (c->owner) {
 		/* Is there a blocker ? */
@@ -1091,6 +1093,7 @@ void sccp_channel_endcall(sccp_channel_t * c)
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_1 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(c->device), c->callid, c->line->name);
 	}
 
+/*
 #ifdef CS_DYNAMIC_CONFIG
         sccp_device_t 	*d = c->device;
         sccp_line_t	*l = c->line;
@@ -1139,6 +1142,7 @@ void sccp_channel_endcall(sccp_channel_t * c)
                 sccp_device_unlock(d);
 	}
 #endif
+*/
 }
 
 /*!
