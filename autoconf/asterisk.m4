@@ -9,34 +9,34 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
   CONFIGURE_PART([Checking Asterisk Version:])
   AC_CHECK_HEADER([asterisk/version.h],[
     AC_MSG_CHECKING([for version in asterisk/version.h])
-    if grep -q "1\.2" $PBX_INCLUDE/version.h; then
+    if grep -q "\"1\.2" $PBX_INCLUDE/version.h; then
       AC_DEFINE(ASTERISK_CONF_1_2, 1, [Define ASTERISK_CONF_1_2])
       AC_MSG_RESULT([Found 'Asterisk Version 1.2.x'])
       REALTIME_USEABLE=0
       ASTERISK_VER=1.2
       AC_SUBST([ASTERISK_VER])
-    elif grep -q "1\.4" $PBX_INCLUDE/version.h; then
+    elif grep -q "\"1\.4" $PBX_INCLUDE/version.h; then
       AC_DEFINE(ASTERISK_CONF_1_4, 1, [Define ASTERISK_CONF_1_4])
       AC_MSG_RESULT([Found 'Asterisk Version 1.4.x'])
       REALTIME_USEABLE=1
       ASTERISK_VER=1.4
       AC_SUBST([ASTERISK_VER])
-    elif grep -q "1\.6" $PBX_INCLUDE/version.h; then
+    elif grep -q "\"1\.6" $PBX_INCLUDE/version.h; then
       AC_DEFINE(ASTERISK_CONF_1_6, 1, [Define ASTERISK_CONF_1_6])
       AC_MSG_RESULT([Found 'Asterisk Version 1.6.x'])
-      if grep -q "1\.6\.0" $PBX_INCLUDE/version.h; then
+      if grep -q "\"1\.6\.0" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_6_0, 1, [Define ASTERISK_CONF_1_6_0])
         AC_MSG_RESULT([Specifically 1.6.0])
         REALTIME_USEABLE=1
         ASTERISK_VER=1.6.0
         AC_SUBST([ASTERISK_VER])
-      elif grep -q "1\.6\.1" $PBX_INCLUDE/version.h; then
+      elif grep -q "\"1\.6\.1" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_6_1, 1, [Define ASTERISK_CONF_1_6_1])
         AC_MSG_RESULT([Specifically 1.6.1])
         REALTIME_USEABLE=1
         ASTERISK_VER=1.6.1
         AC_SUBST([ASTERISK_VER])
-      elif grep -q "1\.6\.2" $PBX_INCLUDE/version.h; then
+      elif grep -q "\"1\.6\.2" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_6_2, 1, [Define ASTERISK_CONF_1_6_2])
         AC_MSG_RESULT([Specifically 1.6.2])
         REALTIME_USEABLE=1
@@ -49,6 +49,50 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
       REALTIME_USEABLE=1
       ASTERISK_VER=1.8
       AC_SUBST([ASTERISK_VER])
+    elif grep -q "\"SVN-branch" $PBX_INCLUDE/version.h; then
+      if grep -q "\"SVN-branch-1\.2" $PBX_INCLUDE/version.h; then
+        AC_DEFINE(ASTERISK_CONF_1_2, 1, [Define ASTERISK_CONF_1_2])
+        AC_MSG_RESULT([Found 'Asterisk Version 1.2.x'])
+        REALTIME_USEABLE=0
+        ASTERISK_VER=1.2
+        AC_SUBST([ASTERISK_VER])
+      elif grep -q "\"SVN-branch-1\.4" $PBX_INCLUDE/version.h; then
+        AC_DEFINE(ASTERISK_CONF_1_4, 1, [Define ASTERISK_CONF_1_4])
+        AC_MSG_RESULT([Found 'Asterisk Version 1.4.x'])
+        REALTIME_USEABLE=1
+        ASTERISK_VER=1.4
+        AC_SUBST([ASTERISK_VER])
+      elif grep -q "\"SVN-branch-1\.6" $PBX_INCLUDE/version.h; then
+        AC_DEFINE(ASTERISK_CONF_1_6, 1, [Define ASTERISK_CONF_1_6])
+        AC_MSG_RESULT([Found 'Asterisk Version 1.6.x'])
+        if grep -q "\"SVN-branch-1\.6\.0" $PBX_INCLUDE/version.h; then
+          AC_DEFINE(ASTERISK_CONF_1_6_0, 1, [Define ASTERISK_CONF_1_6_0])
+          AC_MSG_RESULT([Specifically 1.6.0])
+          REALTIME_USEABLE=1
+          ASTERISK_VER=1.6.0
+          AC_SUBST([ASTERISK_VER])
+        elif grep -q "\"SVN-branch-1\.6\.1" $PBX_INCLUDE/version.h; then
+          AC_DEFINE(ASTERISK_CONF_1_6_1, 1, [Define ASTERISK_CONF_1_6_1])
+          AC_MSG_RESULT([Specifically 1.6.1])
+          REALTIME_USEABLE=1
+          ASTERISK_VER=1.6.1
+          AC_SUBST([ASTERISK_VER])
+        elif grep -q "\"SVN-branch-1\.6\.2" $PBX_INCLUDE/version.h; then
+          AC_DEFINE(ASTERISK_CONF_1_6_2, 1, [Define ASTERISK_CONF_1_6_2])
+          AC_MSG_RESULT([Specifically 1.6.2])
+          REALTIME_USEABLE=1
+          ASTERISK_VER=1.6.2
+          AC_SUBST([ASTERISK_VER])
+        fi
+      else
+        echo ""
+        echo ""
+        echo "PBX branch version could not be determined"
+        echo "==================================="
+        echo "Either install asterisk and asterisk-devel packages"
+        echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
+        exit
+      fi
     else 
       echo ""
       echo ""
