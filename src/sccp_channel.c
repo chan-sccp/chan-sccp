@@ -39,6 +39,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_line.h"
 #include "sccp_channel.h"
 #include "sccp_indicate.h"
+#include "sccp_socket.h"
 
 #include <asterisk/pbx.h>
 #include <asterisk/utils.h>
@@ -1039,8 +1040,7 @@ void sccp_channel_endcall(sccp_channel_t * c)
 			 sccp_channel_endcall(channel);
 	}
 	SCCP_LIST_UNLOCK(&c->line->channels);
-	/* */
-	
+
 	
 	/** 
 	workaround to fix issue with 7960 and protocol version != 6
@@ -1054,6 +1054,18 @@ void sccp_channel_endcall(sccp_channel_t * c)
 		sccp_dev_set_keyset(c->device, instance, c->device->transfer_channel->callid, KEYMODE_ONHOLD);
 		c->device->transfer_channel = NULL;
 	}
+
+#ifdef CS_DYNAMIC_CONFIG
+        boolean_t reset_needed=FALSE;	
+	if (c->device->pendingUpdate) {
+	        reset_needed=TRUE;
+	        c->device->pendingUpdate=0;
+	}
+        if (c->line->pendingUpdate) {
+	        reset_needed=TRUE;
+	        c->line->pendingUpdate=0;
+	}
+#endif	
 
 	if (c->owner) {
 		/* Is there a blocker ? */
@@ -1078,6 +1090,55 @@ void sccp_channel_endcall(sccp_channel_t * c)
 	} else {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_1 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(c->device), c->callid, c->line->name);
 	}
+
+#ifdef CS_DYNAMIC_CONFIG
+        sccp_device_t 	*d = c->device;
+        sccp_line_t	*l = c->line;
+	sccp_buttonconfig_t *buttonconfig=NULL;
+
+	SCCP_LIST_LOCK(&d->buttonconfig);
+	SCCP_LIST_TRAVERSE(&d->buttonconfig,buttonconfig,list) {
+                if (buttonconfig->pendingUpdate) {
+                        reset_needed=TRUE;
+                }
+        }
+        SCCP_LIST_UNLOCK(&d->buttonconfig);
+        
+        if (reset_needed) {
+                sccp_device_lock(d);
+                sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: Sending Device Reset\n", d->id);
+                sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+                sccp_session_close(d->session);
+
+		if (d->pendingDelete) {
+			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: Remove Device from List\n", d->id);
+			sccp_dev_clean(d, TRUE, 0);
+			sccp_device_free(d);
+		}
+
+		if (c->line->pendingDelete) {
+			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: Remove Linee from List\n", l->name);
+			sccp_line_clean(l, TRUE);
+// ???			sccp_line_free(l);		// \todo (does not exist (yet) !!)
+		}
+                
+                SCCP_LIST_LOCK(&d->buttonconfig);
+                SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list){
+                        if (!buttonconfig->pendingDelete && !buttonconfig->pendingUpdate)
+                                continue;
+
+                        if (d->pendingDelete) {
+                                sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
+// ???                                SCCP_LIST_REMOVE_CURRENT(list);  // \\todo produces error
+                                ast_free(buttonconfig);
+                        } else {
+                                buttonconfig->pendingUpdate = 0;
+                        }
+                }
+                SCCP_LIST_UNLOCK(&d->buttonconfig);
+                sccp_device_unlock(d);
+	}
+#endif
 }
 
 /*!
