@@ -1,4 +1,28 @@
+2010-07-20  progs
+
+	* [r1658] src/sccp_device.c: fix check and free buttoconfigs
+
 2010-07-20  ddegroot
+
+	* [r1657] ChangeLog, src/chan_sccp.c, src/chan_sccp.h,
+	  src/sccp_actions.c, src/sccp_actions.h, src/sccp_adv_features.c,
+	  src/sccp_adv_features.h, src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_cli.c, src/sccp_cli.h, src/sccp_conference.c,
+	  src/sccp_conference.h, src/sccp_config.c, src/sccp_config.h,
+	  src/sccp_device.c, src/sccp_device.h, src/sccp_dllists.h,
+	  src/sccp_event.c, src/sccp_event.h, src/sccp_featureButton.c,
+	  src/sccp_featureButton.h, src/sccp_features.c,
+	  src/sccp_features.h, src/sccp_hint.c, src/sccp_hint.h,
+	  src/sccp_indicate.c, src/sccp_indicate.h, src/sccp_labels.h,
+	  src/sccp_line.c, src/sccp_line.h, src/sccp_lock.c,
+	  src/sccp_lock.h, src/sccp_management.c, src/sccp_management.h,
+	  src/sccp_mwi.c, src/sccp_mwi.h, src/sccp_object2.c,
+	  src/sccp_object2.h, src/sccp_pbx.c, src/sccp_pbx.h,
+	  src/sccp_protocol.h, src/sccp_socket.c, src/sccp_socket.h,
+	  src/sccp_softkeys.c, src/sccp_softkeys.h, src/sccp_utils.c,
+	  src/sccp_utils.h: Changed Data/Version in all headers
+	  Added checked if active lines to sccp_device_post_reload
+	  Updated sccp reload documentation in sccp_config
 
 	* [r1656] src/sccp_config.c: Added sccp reload documentation to
 	  sccp_config
