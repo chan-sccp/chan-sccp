@@ -8,7 +8,7 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \todo 	using generic function to configure structures, this can also be used to reconfigure structure on-line
-* \date        $Date$
+ * \date        $Date$
  * \version     $Revision$
  */
 
@@ -58,7 +58,7 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 			highest_index = config->index;
 		/* In other case, we try to find the button at this index. */
 		else if (config->index == index) {
-			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Found Existing button at %d\n", config->index);
+			sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "Found Existing button at %d\n", config->index);
 			break;
 		}
 	}
@@ -75,7 +75,7 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 			return;
 
 		config->index = index;
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "New %s Button %s at : %d:%d\n", sccp_buttontype2str(type), name, index, config->index);
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "New %s Button %s at : %d:%d\n", sccp_buttontype2str(type), name, index, config->index);
 		device->pendingUpdate=1;
 		SCCP_LIST_INSERT_TAIL(&device->buttonconfig, config, list);
 		config->pendingUpdate=1;
@@ -146,9 +146,9 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 
 	if (config->pendingUpdate) {
 		device->pendingUpdate = 1;
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s Button '%s' Updated at %d\n", sccp_buttontype2str(type), name, config->index);
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "%s Button '%s' Updated at %d\n", sccp_buttontype2str(type), name, config->index);
 	} else {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s Button '%s' Unchanged at %d\n", sccp_buttontype2str(type), name, config->index);
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "%s Button '%s' Unchanged at %d\n", sccp_buttontype2str(type), name, config->index);
 	}
 }
 #else /* CS_DYNAMIC_CONFIG */
@@ -354,7 +354,7 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 	/* clone d to temp_d */
 	sccp_device_t 	       * temp_d = NULL;
 	if (d && d->pendingDelete==1 && !d->realtime) {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: cloning device\n", d->id);
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: cloning device\n", d->id);
 		temp_d=sccp_clone_device(d);
 	}
 #endif /* CS_DYNAMIC_CONFIG */
@@ -368,16 +368,16 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 		sccp_device_lock(temp_d);
 		switch (sccp_device_changed(temp_d,d)) {
 			case CHANGES_NEED_RESET: {
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: major changes detected, reset required -> pendingUpdate=1\n", temp_d->id);
+				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: major changes detected, reset required -> pendingUpdate=1\n", temp_d->id);
 				d->pendingUpdate=1;
 				break;
 			}
 			case MINOR_CHANGES: {
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: minor changes detected, no reset required\n", temp_d->id);
+				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: minor changes detected, no reset required\n", temp_d->id);
 				break;
 			}
 			case NO_CHANGES: {
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: no changes detected\n", temp_d->id);
+				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: no changes detected\n", temp_d->id);
 				break;
 			}
 		}
@@ -402,10 +402,10 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 
 #ifdef CS_DYNAMIC_CONFIG
 	if (!d->pendingDelete){
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s: Adding device to Globals\n", d->id);
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "%s: Adding device to Globals\n", d->id);
 		sccp_device_addToGlobals(d);
 	} else {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s: Removing pendingDelete\n", d->id);
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "%s: Removing pendingDelete\n", d->id);
 		d->pendingDelete = 0;
 	}
 #else
@@ -450,7 +450,7 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 	/* clone l to temp_l */
 	sccp_line_t 	       * temp_l = NULL;
 	if (l && l->pendingDelete==1 && !l->realtime) {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: cloning line\n", name);
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: cloning line\n", name);
 		temp_l=sccp_clone_line(l);
 	}
 #endif /* CS_DYNAMIC_CONFIG */
@@ -464,16 +464,16 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 		sccp_line_lock(temp_l);
 		switch (sccp_line_changed(temp_l,l)) {
 			case CHANGES_NEED_RESET: {
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: major changes detected, reset required -> pendingUpdate=1\n", temp_l->name);
+				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: major changes detected, reset required -> pendingUpdate=1\n", temp_l->name);
 				l->pendingUpdate=1;
 				break;
 			}
 			case MINOR_CHANGES: {
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: minor changes detected, no reset required\n", temp_l->name);
+				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: minor changes detected, no reset required\n", temp_l->name);
 				break;
 			}
 			case NO_CHANGES: {
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1  "%s: no changes detected\n", temp_l->name);
+				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: no changes detected\n", temp_l->name);
 				break;
 			}
 		}
@@ -495,10 +495,10 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 	// TODO: Load status of feature (DND, CFwd, etc.) from astdb.
 #ifdef CS_DYNAMIC_CONFIG
 	if (!l->pendingDelete) {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s: Adding line to Globals to 0\n", l->name);
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "%s: Adding line to Globals to 0\n", l->name);
 		sccp_line_addToGlobals(l);
 	} else {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s: Removing pendingDelete\n", l->name);
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "%s: Removing pendingDelete\n", l->name);
 		l->pendingDelete = 0;
 	}
 #else
@@ -965,13 +965,13 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	ast_log(LOG_NOTICE, "Loading Devices and Lines from config\n");
 
 #ifdef CS_DYNAMIC_CONFIG
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "Checking ReadingType\n");
+	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1 "Checking ReadingType\n");
 	if (readingtype == SCCP_CONFIG_READRELOAD) {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Device Pre Reload\n");
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "Device Pre Reload\n");
 		sccp_device_pre_reload();
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Line Pre Reload\n");
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "Line Pre Reload\n");
 		sccp_line_pre_reload();
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Softkey Pre Reload\n");
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "Softkey Pre Reload\n");
 		sccp_softkey_pre_reload();
 	}
 #endif
@@ -1028,13 +1028,13 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	ast_config_destroy(cfg);
 
 #ifdef CS_DYNAMIC_CONFIG
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "Checking ReadingType\n");
+	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1 "Checking ReadingType\n");
 	if (readingtype == SCCP_CONFIG_READRELOAD) {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Device Post Reload\n");
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "Device Post Reload\n");
 		sccp_device_post_reload();
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Line Post Reload\n");
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "Line Post Reload\n");
 		sccp_line_post_reload();
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "Softkey Post Reload\n");
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "Softkey Post Reload\n");
 		sccp_softkey_post_reload();
 	}
 #endif
