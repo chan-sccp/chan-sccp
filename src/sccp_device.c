@@ -26,7 +26,7 @@
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #include "sccp_lock.h"
-include "sccp_utils.h"
+#include "sccp_utils.h"
 #include "sccp_device.h"
 #include "sccp_socket.h"
 #include "sccp_channel.h"
