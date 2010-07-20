@@ -98,7 +98,7 @@ void sccp_device_post_reload(void)
 		if (d->pendingDelete) {
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Remove Device from List\n");
 			SCCP_LIST_REMOVE_CURRENT(list);
-			sccp_device_free(d, TRUE, 0);
+			sccp_dev_clean(d, TRUE, 0);
 		} else {
 			d->pendingUpdate = 0;
 			SCCP_LIST_LOCK(&d->buttonconfig);
