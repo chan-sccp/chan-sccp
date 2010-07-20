@@ -88,6 +88,8 @@ void sccp_device_post_reload(void)
 		if (!d->pendingDelete && !d->pendingUpdate)
 			continue;
 
+		sccp_device_lock(d);
+
 		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Sending Device Reset\n");
 		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 		//sccp_dev_clean(d, FALSE);
@@ -96,6 +98,7 @@ void sccp_device_post_reload(void)
 		if (d->pendingDelete) {
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Remove Device from List\n");
 			SCCP_LIST_REMOVE_CURRENT(list);
+			sccp_device_free(d, TRUE, 0);
 		} else {
 			d->pendingUpdate = 0;
 			SCCP_LIST_LOCK(&d->buttonconfig);
@@ -112,6 +115,7 @@ void sccp_device_post_reload(void)
 			}
 			SCCP_LIST_UNLOCK(&d->buttonconfig);
 		}
+		sccp_device_unlock(d);
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END
 
@@ -1360,7 +1364,7 @@ void * sccp_dev_postregistration(void *data)
  *  if destroy is true, device will be removed from global device list
  *
  * \param d SCCP Device
- * \param remove_from_global as boolean_t 
+ * \param remove_from_global as boolean_t
  * \param cleanupTime Clean-up Time as uint8
  *
  * \todo integrate sccp_dev_clean and sccp_dev_free into sccp_device_delete
@@ -1459,8 +1463,6 @@ int sccp_device_free(const void *ptr){
 	sccp_device_t 		*d = (sccp_device_t *)ptr;
 	sccp_buttonconfig_t	*config = NULL;
 	sccp_hostname_t 	*permithost = NULL;
-
-	ast_mutex_lock(&d->lock);
 
 	sccp_device_lock(d);
 	/* remove button config */
@@ -1696,6 +1698,8 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
 	sccp_device_lock(orig_device);
 	memcpy(new_device, orig_device, sizeof(*new_device));
 
+	ast_mutex_init(&new_device->lock);
+
 	// ast_ha ha
 	struct ast_ha * hal;				// not sure this construction will help
 	hal=ast_duplicate_ha_list(orig_device->ha);
@@ -1763,7 +1767,7 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device){
 	// char 		*pickupcontext
 	if (orig_device->pickupcontext)
 		new_device->pickupcontext = ast_strdup(orig_device->pickupcontext);
-		
+
 	// char 		*phonemessage
 	if (orig_device->phonemessage)
 		new_device->phonemessage = ast_strdup(orig_device->phonemessage);
