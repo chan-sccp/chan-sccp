@@ -225,7 +225,7 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 
 
 /*!
- * \brief Add a device to the global sccp_list 
+ * \brief Add a device to the global sccp_list
  * \param device SCCP Device
  */
 sccp_device_t *sccp_device_addToGlobals(sccp_device_t *device){
@@ -2040,16 +2040,16 @@ sccp_diff_t sccp_buttonconfig_changed(sccp_buttonconfig_t *buttonconfig_a, sccp_
 	       !(
 			(buttonconfig_a->index == buttonconfig_b->index) &&
 			(buttonconfig_a->type == buttonconfig_b->type)
-		)
+	        )
 	) {
-   		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "Changes need reset\n");
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "Changes need reset\n");
 		res=CHANGES_NEED_RESET;
 	} else if ( 									// check minor changes
-		!(
+	        !(
 			(buttonconfig_a->instance == buttonconfig_b->instance)
-		)
+	        )
 	) {
-   		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "Minor changes\n");
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "Minor changes\n");
 		res=MINOR_CHANGES;
 	} else {									// check lower level changes
 		switch (buttonconfig_a->type) {
@@ -2058,7 +2058,7 @@ sccp_diff_t sccp_buttonconfig_changed(sccp_buttonconfig_t *buttonconfig_a, sccp_
 				if ( (strcmp(buttonconfig_a->button.line.name,		  	buttonconfig_b->button.line.name)) ||
 				     (strcmp(buttonconfig_a->button.line.subscriptionId.number, buttonconfig_b->button.line.subscriptionId.number)) ||
 				     (strcmp(buttonconfig_a->button.line.subscriptionId.name,   buttonconfig_b->button.line.subscriptionId.name)) ||
-				     (!buttonconfig_a->button.line.options[0] && buttonconfig_b->button.line.options[0] != '\0') || (strcmp(buttonconfig_a->button.line.options, buttonconfig_a->button.line.options))) {
+				     (strcmp(buttonconfig_a->button.line.options, buttonconfig_a->button.line.options))) {
 					res=CHANGES_NEED_RESET;
 			  		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "line: changes need reset\n");
 					break;
@@ -2068,7 +2068,7 @@ sccp_diff_t sccp_buttonconfig_changed(sccp_buttonconfig_t *buttonconfig_a, sccp_
 			{
 				if ( (strcmp(buttonconfig_a->button.speeddial.label, 		buttonconfig_b->button.speeddial.label)) ||
 				     (strcmp(buttonconfig_a->button.speeddial.ext, 		buttonconfig_b->button.speeddial.ext)) ||
-				     (!buttonconfig_a->button.speeddial.hint[0] && buttonconfig_b->button.speeddial.hint[0] != '\0') || (strcmp(buttonconfig_a->button.speeddial.hint, buttonconfig_b->button.speeddial.hint))) {
+				     (strcmp(buttonconfig_a->button.speeddial.hint, buttonconfig_b->button.speeddial.hint))) {
 					res=CHANGES_NEED_RESET;
 			  		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "speeddial: changes need reset\n");
 					break;
@@ -2079,7 +2079,7 @@ sccp_diff_t sccp_buttonconfig_changed(sccp_buttonconfig_t *buttonconfig_a, sccp_
 				if ( (strcmp(buttonconfig_a->button.service.label, 		buttonconfig_b->button.service.label)) ||
 				     (strcmp(buttonconfig_a->button.service.url, 		buttonconfig_b->button.service.url))) {
 				       res=CHANGES_NEED_RESET;
-			  		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "service: changes need reset\n");
+					sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "service: changes need reset\n");
 					break;
 				}
 			}
@@ -2087,9 +2087,9 @@ sccp_diff_t sccp_buttonconfig_changed(sccp_buttonconfig_t *buttonconfig_a, sccp_
 			{
 				if ( (strcmp(buttonconfig_a->button.feature.label, 		buttonconfig_b->button.feature.label)) ||
 				     (buttonconfig_a->button.feature.id 	!=		buttonconfig_b->button.feature.id) ||
-				     (!buttonconfig_a->button.feature.options[0] && buttonconfig_b->button.feature.options[0] != '\0') || (strcmp(buttonconfig_a->button.feature.options, buttonconfig_b->button.feature.options))) {
- 					res=CHANGES_NEED_RESET;
-			  		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "feature: changes need reset\n");
+				     (strcmp(buttonconfig_a->button.feature.options, buttonconfig_b->button.feature.options))) {
+					res=CHANGES_NEED_RESET;
+					sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "feature: changes need reset\n");
 					break;
 				}
 			}
