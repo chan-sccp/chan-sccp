@@ -1463,8 +1463,7 @@ sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t *device, sccp
 		return NULL;
 
 	SCCP_LIST_TRAVERSE(&line->devices, linedevice, list){
-		/* \todo fix this ";" issue */
-		if(linedevice->device == device);
+		if(linedevice->device == device)
 			return linedevice;
 	}
 

@@ -91,7 +91,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t *owner){
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Creating %d created; Owner: %s \n", owner->device->id, conference->id, owner->device->id);
 	
 	if (ast_pthread_create_background(&moderator->joinThread, NULL, sccp_conference_join_thread, moderator) < 0) {
-		//TODO throw error
+		// \todo TODO throw error
 		return conference;
 	}
 	
@@ -188,7 +188,7 @@ void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_
 
 	if(0 != sccp_conference_addAstChannelToConferenceBridge(part, currentParticipantPeer) )
 	{
-		// Todo: error handling
+		// \todo Todo: error handling
 	}
 
 	if (ast_pthread_create_background(&part->joinThread, NULL, sccp_conference_join_thread, part) < 0) {

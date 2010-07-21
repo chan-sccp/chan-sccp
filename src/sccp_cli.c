@@ -1281,7 +1281,7 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 	SCCP_LIST_TRAVERSE(&GLOB(lines),l,list) {
 
 		c = NULL;
-		//TODO handle shared line
+		// \todo TODO handle shared line
 		d = NULL;
 
 		if (d) {
@@ -2028,7 +2028,7 @@ static char *cli_show_mwi_subscriptions(struct ast_cli_entry *e, int cmd, struct
 	sccp_mailboxLine_t	*mailboxLine = NULL;
 	*/
 
-	//TODO display mailbox subscriptions
+	// \todo TODO display mailbox subscriptions
 	/*
 	ast_cli(a->fd, "subscriptionsize: %d\n", sccp_mailbox_subscriptions.size);
 	SCCP_LIST_TRAVERSE(&sccp_mailbox_subscriptions, subscription, list){

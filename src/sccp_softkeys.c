@@ -289,7 +289,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 
 	}
 	sccp_feat_changed(d, SCCP_FEATURE_DND); /* notify the modules the the DND-feature changed state */
-	sccp_dev_check_displayprompt(d); /* //TODO we should use the feature changed event to check displayprompt */
+	sccp_dev_check_displayprompt(d); /* // \todo TODO we should use the feature changed event to check displayprompt */
 }
 
 

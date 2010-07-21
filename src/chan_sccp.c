@@ -278,7 +278,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 				continue;
 
 			device = linedevice->device;
-			//TODO check capability on shared lines
+			// \todo TODO check capability on shared lines
 			format &= device->capability;
 			if(device->session)
 				hasSession = TRUE;
@@ -407,7 +407,7 @@ int sccp_devicestate(void *data) {
 	else if (SCCP_LIST_FIRST(&l->devices) == NULL)
 		res = AST_DEVICE_UNAVAILABLE;
 
-	//TODO handle dnd on device
+	// \todo TODO handle dnd on device
 //	else if ((l->device->dnd && l->device->dndmode == SCCP_DNDMODE_REJECT)
 //			|| (l->dnd && (l->dndmode == SCCP_DNDMODE_REJECT
 //					|| (l->dndmode == SCCP_DNDMODE_USERDEFINED && l->dnd == SCCP_DNDMODE_REJECT) )) )
@@ -983,7 +983,7 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 	} else {
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (sccp_rtp_bridge) Native bridging '%s' and '%s'\n", c0->name, c1->name);
 
-		//TODO The purpose of this code is obscure and must be clarified (-DD)
+		// \todo TODO The purpose of this code is obscure and must be clarified (-DD)
 		//sccp_pbx_set_rtp_peer(c0, pvt1->rtp, NULL, NULL, pvt1->device->codecs, 0);
 		//sccp_pbx_set_rtp_peer(c1, pvt0->rtp, NULL, NULL, pvt0->device->codecs, 0);
 

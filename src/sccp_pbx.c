@@ -309,7 +309,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 #endif
 
 	if(l->devices.size == 1 && SCCP_LIST_FIRST(&l->devices) && SCCP_LIST_FIRST(&l->devices)->device && SCCP_LIST_FIRST(&l->devices)->device->session){
-		//TODO check if we have to do this
+		// \todo TODO check if we have to do this
 		c->device = SCCP_LIST_FIRST(&l->devices)->device;
 		sccp_channel_updateChannelCapability(c);
 	}
@@ -1003,7 +1003,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	break;
 #ifdef AST_CONTROL_SRCCHANGE
 	case AST_CONTROL_SRCCHANGE:
-		//TODO check this
+		// \todo TODO check this
 		/* Source media has changed. */
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
 
@@ -1312,7 +1312,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 //	sccp_line_lock(l);
 //	sccp_device_lock(d);
 
-	//TODO check locking
+	// \todo TODO check locking
 
 	while(sccp_line_trylock(l)) {
 		sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
