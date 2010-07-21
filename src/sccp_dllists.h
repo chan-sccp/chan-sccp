@@ -95,6 +95,7 @@ struct {							\
 	}														\
 	if (!__list_next)										\
 		__list_head->last = __list_prev; 					\
+	__list_head->size--; \
 	} while (0)
 
 /* Move Current List Item */
