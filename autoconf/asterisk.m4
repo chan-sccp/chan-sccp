@@ -160,7 +160,7 @@ AC_DEFUN([FIND_ASTERISK_HEADERS],[
     AC_CHECK_HEADER([asterisk/options.h],	AC_DEFINE(HAVE_PBX_OPTIONS_H,1,[Found 'asterisk/options.h']),,     	[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/pbx.h],		AC_DEFINE(HAVE_PBX_PBX_H,1,[Found 'asterisk/pbx.h']),,			[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/rtp.h],		AC_DEFINE(HAVE_PBX_RTP_H,1,[Found 'asterisk/rtp.h']),,			[ #include <asterisk.h>])
-    AC_CHECK_HEADER([asterisk/rtp_engine.h],	AC_DEFINE(HAVE_PBX_RTP_H,1,[Found 'asterisk/rtp_engine.h']),,		[ #include <asterisk.h>])
+    AC_CHECK_HEADER([asterisk/rtp_engine.h],	AC_DEFINE(HAVE_PBX_RTP_H,2,[Found 'asterisk/rtp_engine.h']),,		[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/sched.h],		AC_DEFINE(HAVE_PBX_SCHED_H,1,[Found 'asterisk/sched.h']),,		[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/strings.h],	AC_DEFINE(HAVE_PBX_STRINGS_H,1,[Found 'asterisk/strings.h']),,		[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/stringfields.h],	AC_DEFINE(HAVE_PBX_STRINGFIELDS_H,1,[Found 'asterisk/stringfields.h']),,[ #include <asterisk.h>])
