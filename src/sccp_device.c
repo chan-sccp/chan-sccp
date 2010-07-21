@@ -1455,6 +1455,12 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	}
 	SCCP_LIST_UNLOCK(&d->selectedChannels);
 
+	if (d->session) {
+		sccp_session_lock(d->session);
+		d->session->device = NULL;
+		sccp_session_unlock(d->session);
+	}
+
 	d->session = NULL;
 	sccp_device_unlock(d);
 
@@ -1727,6 +1733,7 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
 //	bzero(&new_device->lock, sizeof(new_device->lock));		// replaced by memset. asterisk > 1.6 does not allow bzero
 	memset(&new_device->lock, 0, sizeof(new_device->lock));
 	ast_mutex_init(&new_device->lock);
+	new_device->session = NULL;
 
 	// ast_ha ha
 	struct ast_ha * hal;				// not sure this construction will help
