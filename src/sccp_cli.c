@@ -474,12 +474,21 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 #endif
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		ast_cli(fd, "\nButtonconfig\n");
+		
+#ifdef CS_DYNAMIC_CONFIG
 		ast_cli(fd, "%-4s: %-23s %3s %3s\n", "id", "type", "Upd", "Del");
+#else
+		ast_cli(fd, "%-4s: %-23s %3s %3s\n", "id", "type", "", "");
+#endif
 		ast_cli(fd, "---- ------------------------------\n");
 
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+#ifdef CS_DYNAMIC_CONFIG
 			ast_cli(fd, "%4d: %20s(%d) %3s %3s\n", config->instance, sccp_buttontype2str(config->type), config->type, config->pendingUpdate ? "Yes" : "No", config->pendingDelete ? "Yes" : "No");
+#else
+			ast_cli(fd, "%4d: %20s(%d)\n", config->instance, sccp_buttontype2str(config->type), config->type);
+#endif
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 	}
