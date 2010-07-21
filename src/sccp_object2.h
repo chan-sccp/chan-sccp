@@ -3,7 +3,7 @@
  * \brief 	SCCP Replacement containers for sccp data structures.
  * \author	Diederik de Groot <ddegroot [at] users.sourceforge.net>
  * \note	SCCP Object Reference Container derived from Asterisk 1.6.1 "astobj2.h"
- * 		    The original astobj2 which was made by Marta Carbone, Luigi Rizzo - Univ. di Pisa, Italy
+ * 		The original astobj2 which was made by Marta Carbone, Luigi Rizzo - Univ. di Pisa, Italy
  *
  * $Date: 2010-02-08 21:32:08 +0100 (Mon, 08 Feb 2010) $
  * $Revision: 1232 $
@@ -414,7 +414,7 @@ typedef void (*so2_destructor_fn)(void *);
 #endif
 
 void *_so2_alloc_debug(const size_t data_size, so2_destructor_fn destructor_fn, char *tag,
-                       const char *file, int line, const char *funcname, int ref_debug);
+			const char *file, int line, const char *funcname, int ref_debug);
 void *_so2_alloc(const size_t data_size, so2_destructor_fn destructor_fn);
 
 /*! @} */
@@ -629,44 +629,42 @@ so2_callback_fn so2_match_by_addr;
  * A callback function will return a combination of CMP_MATCH and CMP_STOP.
  * The latter will terminate the search in a container.
  */
-enum _cb_results
-{
-    CMP_MATCH	= 0x1,	/*!< the object matches the request */
-    CMP_STOP	= 0x2,	/*!< stop the search now */
+enum _cb_results {
+	CMP_MATCH	= 0x1,	/*!< the object matches the request */
+	CMP_STOP	= 0x2,	/*!< stop the search now */
 };
 
 /*! \brief
  * Flags passed to so2_callback() and so2_hash_fn() to modify its behaviour.
  */
-enum search_flags
-{
-    /*! Unlink the object for which the callback function
-     *  returned CMP_MATCH . This is the only way to extract
-     *  objects from a container. */
-    OBJ_UNLINK	 = (1 << 0),
-    /*! On match, don't return the object hence do not increase
-     *  its refcount. */
-    OBJ_NODATA	 = (1 << 1),
-    /*! Don't stop at the first match in so2_callback()
-     *  \note This is not fully implemented.   Using OBJ_MULTIME with OBJ_NODATA
-     *  is perfectly fine.  The part that is not implemented is the case where
-     *  multiple objects should be returned by so2_callback().
-     */
-    OBJ_MULTIPLE = (1 << 2),
-    /*! obj is an object of the same type as the one being searched for,
-     *  so use the object's hash function for optimized searching.
-     *  The search function is unaffected (i.e. use the one passed as
-     *  argument, or match_by_addr if none specified). */
-    OBJ_POINTER	 = (1 << 3),
-    /*!
-     * \brief Continue if a match is not found in the hashed out bucket
-     *
-     * This flag is to be used in combination with OBJ_POINTER.  This tells
-     * the so2_callback() core to keep searching through the rest of the
-     * buckets if a match is not found in the starting bucket defined by
-     * the hash value on the argument.
-     */
-    OBJ_CONTINUE     = (1 << 4),
+enum search_flags {
+	/*! Unlink the object for which the callback function
+	 *  returned CMP_MATCH . This is the only way to extract
+	 *  objects from a container. */
+	OBJ_UNLINK	 = (1 << 0),
+	/*! On match, don't return the object hence do not increase
+	 *  its refcount. */
+	OBJ_NODATA	 = (1 << 1),
+	/*! Don't stop at the first match in so2_callback()
+	 *  \note This is not fully implemented.   Using OBJ_MULTIME with OBJ_NODATA
+	 *  is perfectly fine.  The part that is not implemented is the case where
+	 *  multiple objects should be returned by so2_callback().
+	 */
+	OBJ_MULTIPLE = (1 << 2),
+	/*! obj is an object of the same type as the one being searched for,
+	 *  so use the object's hash function for optimized searching.
+	 *  The search function is unaffected (i.e. use the one passed as
+	 *  argument, or match_by_addr if none specified). */
+	OBJ_POINTER	 = (1 << 3),
+	/*!
+	 * \brief Continue if a match is not found in the hashed out bucket
+	 *
+	 * This flag is to be used in combination with OBJ_POINTER.  This tells
+	 * the so2_callback() core to keep searching through the rest of the
+	 * buckets if a match is not found in the starting bucket defined by
+	 * the hash value on the argument.
+	 */
+	OBJ_CONTINUE     = (1 << 4),
 };
 
 /*!
@@ -716,11 +714,11 @@ struct so2_container;
 #endif
 
 struct so2_container *_so2_container_alloc(const unsigned int n_buckets,
-                    so2_hash_fn *hash_fn, so2_callback_fn *cmp_fn);
+					   so2_hash_fn *hash_fn, so2_callback_fn *cmp_fn);
 struct so2_container *_so2_container_alloc_debug(const unsigned int n_buckets,
-                    so2_hash_fn *hash_fn, so2_callback_fn *cmp_fn,
-                    char *tag, char *file, int line, const char *funcname,
-                    int ref_debug);
+						 so2_hash_fn *hash_fn, so2_callback_fn *cmp_fn,
+						 char *tag, char *file, int line, const char *funcname,
+						 int ref_debug);
 
 /*! \brief
  * Returns the number of elements in a container.
@@ -801,10 +799,9 @@ void *_so2_unlink(struct so2_container *c, void *obj);
 
 
 /*! \brief Used as return value if the flag OBJ_MULTIPLE is set */
-struct so2_list
-{
-    struct so2_list *next;
-    void *obj;	/* pointer to the user portion of the object */
+struct so2_list {
+	struct so2_list *next;
+	void *obj;	/* pointer to the user portion of the object */
 };
 
 /*@} */
@@ -899,11 +896,11 @@ struct so2_list
 #endif
 
 void *_so2_callback_debug(struct so2_container *c, enum search_flags flags,
-                          so2_callback_fn *cb_fn, void *arg, char *tag,
-                          char *file, int line, const char *funcname);
+						  so2_callback_fn *cb_fn, void *arg, char *tag,
+						  char *file, int line, const char *funcname);
 void *_so2_callback(struct so2_container *c,
-                    enum search_flags flags,
-                    so2_callback_fn *cb_fn, void *arg);
+				   enum search_flags flags,
+				   so2_callback_fn *cb_fn, void *arg);
 
 /*! so2_find() is a short hand for so2_callback(c, flags, c->cmp_fn, arg)
  * XXX possibly change order of arguments ?
@@ -1004,31 +1001,29 @@ void *_so2_find(struct so2_container *c, void *arg, enum search_flags flags);
  * Details are in the implementation of so2_iterator_next()
  * A freshly-initialized iterator has bucket=0, version=0.
  */
-struct so2_iterator
-{
-    /*! the container */
-    struct so2_container *c;
-    /*! operation flags */
-    int flags;
-    /*! current bucket */
-    int bucket;
-    /*! container version */
-    unsigned int c_version;
-    /*! pointer to the current object */
-    void *obj;
-    /*! container version when the object was created */
-    unsigned int version;
+struct so2_iterator {
+	/*! the container */
+	struct so2_container *c;
+	/*! operation flags */
+	int flags;
+	/*! current bucket */
+	int bucket;
+	/*! container version */
+	unsigned int c_version;
+	/*! pointer to the current object */
+	void *obj;
+	/*! container version when the object was created */
+	unsigned int version;
 };
 
 /*! Flags that can be passed to so2_iterator_init() to modify the behavior
  * of the iterator.
  */
-enum so2_iterator_flags
-{
-    /*! Prevents so2_iterator_next() from locking the container
-     * while retrieving the next object from it.
-     */
-    SO2_ITERATOR_DONTLOCK = (1 << 0),
+enum so2_iterator_flags {
+	/*! Prevents so2_iterator_next() from locking the container
+	 * while retrieving the next object from it.
+	 */
+	SO2_ITERATOR_DONTLOCK = (1 << 0),
 };
 
 /*!
@@ -1084,14 +1079,14 @@ int sccpobj2_init(void);
 /* QuickFix for missing linkedlist.h entry in versions lower than asterisk 1.6 */
 /*#if ASTERISK_VERSION_NUM < 10600
 #define AST_LIST_REMOVE_CURRENT(field) do { \
-        __new_prev->field.next = NULL;
+        __new_prev->field.next = NULL;                         
         __new_prev = __list_prev;
-        if (__list_prev)
-                __list_prev->field.next = __list_next;
-        else
-                __list_head->first = __list_next;
-        if (!__list_next)
-                __list_head->last = __list_prev;
+        if (__list_prev)                                        
+                __list_prev->field.next = __list_next;           
+        else                                   
+                __list_head->first = __list_next;     
+        if (!__list_next)                            
+                __list_head->last = __list_prev;            
         } while (0)
 #endif
 */
