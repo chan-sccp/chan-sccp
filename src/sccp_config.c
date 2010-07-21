@@ -546,7 +546,7 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 	l->realtime = isRealtime;
 #endif
 
-	// TODO: Load status of feature (DND, CFwd, etc.) from astdb.
+	//  \todo TODO: Load status of feature (DND, CFwd, etc.) from astdb.
 #ifdef CS_DYNAMIC_CONFIG
 	if (!l->pendingDelete) {
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "%s: Adding line to Globals to 0\n", l->name);
@@ -1061,7 +1061,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			}
 		} else if ( !strcasecmp(utype,"line") ) {
 			/* check minimum requirements for a line */
-			// \todo TODO why are these params required? - MC
+			// \todo  \todo TODO why are these params required? - MC
 			// \todo They are used to check if we can find the minimal required values for a line in the config file / database to see if we have a complete device. We could have used other parameters. - DdG
 			// \todo Maybe some warnings should be added to notify when one of them is missing so that people know what needs to fixed in the config - DdG
 			if ( (!(!ast_strlen_zero( ast_variable_retrieve(cfg, cat, "label")))  && (!ast_strlen_zero( ast_variable_retrieve(cfg, cat, "cid_name"))) && (!ast_strlen_zero( ast_variable_retrieve(cfg, cat, "cid_num")))) ) {

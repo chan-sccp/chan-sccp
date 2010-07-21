@@ -180,7 +180,7 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 //	d->dndmode = GLOB(dndmode);
 	d->trustphoneip = GLOB(trustphoneip);
 	//d->privacyFeature.enabled = GLOB(private);
-	//TODO use global cnf
+	// \todo use global cnf
 	d->privacyFeature.enabled = TRUE;
 	d->monitorFeature.enabled = TRUE;
 	d->overlapFeature.enabled = GLOB(useoverlap);
@@ -458,8 +458,7 @@ sccp_moo_t * sccp_build_packet(sccp_message_t t, size_t pkt_len)
 int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
 {
 	if(d && d->session){
-		sccp_log((DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, message2str(letohl(r->lel_messageId)));
-//		sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, message2str(letohl(r->lel_messageId)));
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, message2str(letohl(r->lel_messageId)));
 		return sccp_session_send(d, r);
 	}else
 		return -1;
@@ -767,8 +766,6 @@ void sccp_dev_clearprompt(sccp_device_t * d, uint8_t line, uint32_t callid)
 	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Clear the status prompt on line %d and callid %d\n", d->id, line, callid);
 }
 
-
-
 /*!
  * \brief Send Display Prompt to Device
  * \param d SCCP Device
@@ -1027,6 +1024,10 @@ void sccp_dev_set_activeline(sccp_device_t *device, sccp_line_t * l)
 /*!
  * \brief Reschedule Display Prompt Check
  * \param d SCCP Device
+ *
+ * \todo We have to decide on a standardized implementation of displayprompt to be used
+ *	 For DND/Cfwd/Message/Voicemail/Private Status for Devices and Individual Lines
+ *	 If necessary devicetypes could be deviced into 3-4 groups depending on their capability for displaying status the best way
  */
 void sccp_dev_check_displayprompt(sccp_device_t * d)
 {
@@ -1041,20 +1042,36 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	sccp_dev_clearprompt(d, 0, 0);
 	sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
 
-	if (d->phonemessage) 										// display message if set
+	if (d->phonemessage) 								// display message if set
 		sccp_dev_displayprompt(d,0,0,d->phonemessage,0);
 
-	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK); 				/* this is for redial softkey */
+	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK); 					/* this is for redial softkey */
 
 	/* check for forward to display */
 	res = 0;
-//	while(SCCP_LIST_TRYLOCK(&d->lines)) {
-//		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "[SCCP LOOP] %s in file %s, line %d (%s)\n", d->id ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
-//		usleep(5);
-//	}
 
+#if CS_ADV_FEATURES
+	sccp_buttonconfig_t 	*buttonconfig;
+	sccp_linedevices_t 	*linedevice;
+	sccp_line_t 		*l;
+	
+	SCCP_LIST_LOCK(&d->buttonconfig);
+ 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+ 		if(buttonconfig->type == LINE ){
+ 			l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
+ 			if (l) {
+				linedevice = sccp_util_getDeviceConfiguration(d, l);
+	 			if (linedevice && (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled) ) {
+ 					sccp_dev_forward_status(l, d);
+ 				}
+			}
+		}
+	}
+	SCCP_LIST_UNLOCK(&d->buttonconfig);
+	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK); 					/* this is for redial softkey */
+#endif
 
-#if 0 // Old code to check and set CallForward Indication. Implemenation moved / We might need a check in this location later on - DdG/MC
+#if 0 // Old code to check and set CallForward Indication. Implemention moved / We might need a check in this location later on - DdG/MC
 // 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 // 		if(buttonconfig->type == LINE ){
 // 			l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
@@ -1217,7 +1234,7 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
 	current = sccp_dev_get_activeline(d);
 
 //	if (!wanted || !current || wanted->device != d || current == wanted)
-	if (!wanted || !current ||  current == wanted)
+	if (!wanted || !current || current == wanted)
 		return;
 
 	// If the current line isn't in a call, and
@@ -1249,6 +1266,8 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
  * \param stimulus Stimulus as uint16_t
  * \param instance Instance as uint8_t
  * \param lampMode LampMode as uint8_t
+ *
+ * \todo: dev_set_lamp (SetLampMessage) ToBeRemoved / Moved / Reimplemented ?
  */
 void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t instance, uint8_t lampMode)
 {
@@ -1271,6 +1290,8 @@ void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t inst
  * \brief Send forward status to a line on a device
  * \param l SCCP Line
  * \param device SCCP Device
+ *
+ * \todo integration this function correctly into check sccp_dev_check_displayprompt
  */
 void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {
 	sccp_moo_t 		*r1 = NULL;
@@ -1284,13 +1305,7 @@ void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {
 
 	instance = sccp_device_find_index_for_line(device, l->name);
 
-	SCCP_LIST_LOCK(&l->devices);
-	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
-		/* \todo fix the ";" issue */
-		if((linedevice->device == device));
-			break;
-	}
-	SCCP_LIST_UNLOCK(&l->devices);
+	linedevice=sccp_util_getDeviceConfiguration(device,l);
 
 	if(!linedevice){
 		ast_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
@@ -1309,6 +1324,24 @@ void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {
 	}
 	sccp_dev_send(device, r1);
 
+#ifdef CS_ADV_FEATURES
+	char tmp[256] = "";
+
+	memset(tmp, 0, sizeof(tmp));
+	if (linedevice->cfwdAll.enabled) {
+		strcat(tmp, SKINNY_DISP_CFWDALL ":");
+		strcat(tmp, SKINNY_DISP_FORWARDED_TO " ");
+		strcat(tmp, linedevice->cfwdAll.number);
+	}else if (linedevice->cfwdBusy.enabled) {
+		strcat(tmp, SKINNY_DISP_CFWDBUSY ":");
+		strcat(tmp, SKINNY_DISP_FORWARDED_TO " ");
+		strcat(tmp, linedevice->cfwdBusy.number);
+	}
+	sccp_dev_displayprompt(device, 0, 0, tmp, 0);
+#endif
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Sent Forward Status.  Line: %s\n", device->id, l->name);
+
+	// \todo What to do with this lineStatusChanges in sccp_dev_forward_status
 	/*
 	if (l->cfwd_type == SCCP_CFWD_ALL){
 		//sccp_hint_notify_linestate(l,device, SCCP_DEVICESTATE_ONHOOK, SCCP_DEVICESTATE_FWDALL);
@@ -1390,7 +1423,7 @@ void * sccp_dev_postregistration(void *data)
  * \param remove_from_global as boolean_t
  * \param cleanupTime Clean-up Time as uint8
  *
- * \todo integrate sccp_dev_clean and sccp_dev_free into sccp_device_delete
+ * \todo integrate sccp_dev_clean and sccp_dev_free into sccp_device_delete -DdG
  */
 void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cleanupTime) {
 	sccp_buttonconfig_t	*config = NULL;
@@ -1596,13 +1629,11 @@ uint16_t sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName
 		return -1;
 
 	/* device is already locked by parent function */
-	//SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		if(config->type == LINE && (config->button.line.name) && lineName && !strcasecmp(config->button.line.name, lineName)){
 			break;
 		}
 	}
-	//SCCP_LIST_UNLOCK(&d->buttonconfig);
 
 	return (config)? config->instance : 0;
 }
@@ -1611,6 +1642,8 @@ uint16_t sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName
  * \brief Remove Line from Device
  * \param device SCCP Device
  * \param line SCCP Line
+ *
+ * \todo Should this be implemented or removed ? 
  */
 void sccp_device_removeLine(sccp_device_t *device, sccp_line_t * line)
 {
@@ -1622,7 +1655,7 @@ void sccp_device_removeLine(sccp_device_t *device, sccp_line_t * line)
 //		if(config->type == LINE && (config->button.line.name) && line && !strcasecmp(config->button.line.name, line->name)){
 //			config->button.line.reference = NULL;
 //
-//			//TODO implement remove
+//			// \todo implement remove
 //			//SCCP_LIST_REMOVE_CURRENT(config);
 //		}
 //	}
@@ -1696,7 +1729,6 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t *device){
 	}
 
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
-
 		if(config->type == LINE){
 			l = sccp_line_find_byname_wo(config->button.line.name, FALSE);
 			if(!l)
@@ -1709,8 +1741,6 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t *device){
 					numberOfChannels++;
 			}
 			SCCP_LIST_UNLOCK(&l->channels);
-
-
 		}
 	}
 
@@ -2026,7 +2056,7 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	SCCP_LIST_UNLOCK(&device_a->addons);
 	SCCP_LIST_UNLOCK(&device_b->addons);
 
-	/* \todo still to implement a check for device->setvar (ast_variables *variables) */
+	/* \todo still to implement a check for device->setvar (ast_variables *variables) in sccp_device_changed */
 	//device_a->setvar
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1 "(sccp_device_changed) Returning : %d\n", res);
 	return res;

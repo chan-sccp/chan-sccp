@@ -389,7 +389,7 @@ void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, ui
 	
 	
 //	SCCP_LIST_LOCK(&c->line->devices);
-	//TODO find working lock
+	// \todo TODO find working lock
 	sccp_linedevices_t *linedevice;
 	SCCP_LIST_TRAVERSE(&c->line->devices, linedevice, list) {
 			if(!linedevice->device)

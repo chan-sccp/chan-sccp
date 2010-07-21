@@ -154,7 +154,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 		}
 	} else if (d->ha && !ast_apply_ha(d->ha, &s->sin)) {
 
-		//TODO check anonymous devices for permit hosts
+		// \todo TODO check anonymous devices for permit hosts
 		SCCP_LIST_LOCK(&d->permithosts);
 		SCCP_LIST_TRAVERSE(&d->permithosts, permithost, list) {
 			if ((hp = ast_gethostbyname(permithost->name, &ahp))) {
@@ -207,7 +207,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	d->protocolversion = r->msg.RegisterMessage.protocolVer;
 	
 	
-//	//TODO check if we can delete device (realtime)
+//	// \todo TODO check if we can delete device (realtime)
 //	if(d->protocolversion > 0 && d->protocolversion < SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW){
 //		ast_log(LOG_NOTICE, "%s: Rejecting device: Protocol version of device %d < %d\n", r->msg.RegisterMessage.sId.deviceName, d->protocolversion, SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW);
 //		sccp_session_reject(s, "unsupported protocol version");
@@ -889,7 +889,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		      return;
 		}
 		//instance = l->instance;
-		//TODO set index
+		// \todo TODO set index
 		instance = 1;
 	}
 

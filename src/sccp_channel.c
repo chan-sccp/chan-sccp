@@ -2151,7 +2151,7 @@ void sccp_channel_forward(sccp_channel_t *parent, sccp_linedevices_t *lineDevice
 	if (!sccp_pbx_channel_allocate(forwarder)) {
 		ast_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", lineDevice->device->id, forwarder->line->name);
 
-		//TODO cleanup allocation
+		// \todo TODO cleanup allocation
 		sccp_channel_cleanbeforedelete(forwarder);
 		ast_free(forwarder);
 	}

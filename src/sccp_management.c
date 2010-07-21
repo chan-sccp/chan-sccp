@@ -309,7 +309,7 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
  * \param s Management Session
  * \param m Message 
  * \return Success as int
- * //TODO
+ * // \todo TODO This function does not do anything. Has the implementation of this function moved somewhere else ?
  */
 int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 {
