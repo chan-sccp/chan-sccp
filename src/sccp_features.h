@@ -2,12 +2,12 @@
  * \file 	sccp_features.h
  * \brief 	SCCP Features Header
  * \author 	Federico Santulli <fsantulli [at] users.sourceforge.net >
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License. 
- *		See the LICENSE file at the top of the source tree.
+ * \note    This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *		    See the LICENSE file at the top of the source tree.
  * \since 	2009-01-16
  *
  * $Date$
- * $Revision$  
+ * $Revision$
  */
 
 #ifndef __SCCP_FEATURES_H

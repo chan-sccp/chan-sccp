@@ -1,21 +1,19 @@
 /*!
- * \file 	sccp_event.c
- * \brief 	SCCP Event Class
- * \author 	Marcello Ceschia <marcello [at] ceschia.de>
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \file    sccp_event.c
+ * \brief   SCCP Event Class
+ * \author  Marcello Ceschia <marcello [at] ceschia.de>
+ * \note    This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *          See the LICENSE file at the top of the source tree.
  * \since	2009-09-02
- * 
- * $Date$
- * $Revision$  
- */
-
-/*!
+ *
  * \remarks	Purpose: 	SCCP Event
  * 		When to use:	Only methods directly related to sccp events should be stored in this source file.
- *   		Relationships: 	SCCP Hint
+ *    Relationships: 	SCCP Hint
+ *
+ * $Date$
+ * $Revision$
  */
- 
+
 #include "config.h"
 #if ASTERISK_VERSION_NUM >= 10400
 #include <asterisk.h>
@@ -49,22 +47,24 @@ struct sccp_event_subscriptions *sccp_event_listeners = 0;
  * \param eventType SCCP Event Type
  * \param cb SCCP Event Call Back
  */
-void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb) {
+void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb)
+{
 
-	sccp_event_subscriber_t *subscription = NULL;
+    sccp_event_subscriber_t *subscription = NULL;
 
-	sccp_log((DEBUGCAT_EVENT))(VERBOSE_PREFIX_1 "[SCCP] register event listener for %d\n", eventType);
+    sccp_log((DEBUGCAT_EVENT))(VERBOSE_PREFIX_1 "[SCCP] register event listener for %d\n", eventType);
 
-	subscription = ast_malloc(sizeof(sccp_event_subscriber_t));
-	if(!subscription){
-		ast_log(LOG_ERROR, "fail to alloc mem for subscription\n");
-		return;
-	}
+    subscription = ast_malloc(sizeof(sccp_event_subscriber_t));
+    if (!subscription)
+    {
+        ast_log(LOG_ERROR, "fail to alloc mem for subscription\n");
+        return;
+    }
 
-	subscription->callback_function = cb;
-	subscription->eventType = eventType;
+    subscription->callback_function = cb;
+    subscription->eventType = eventType;
 
-	SCCP_LIST_INSERT_TAIL(&sccp_event_listeners->subscriber, subscription, list);
+    SCCP_LIST_INSERT_TAIL(&sccp_event_listeners->subscriber, subscription, list);
 }
 
 /*!
@@ -72,21 +72,24 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb)
  * \param event SCCP Event
  * \note event will be freed after event is fired
  */
-void sccp_event_fire(const sccp_event_t* *event){
-	if( *event == NULL)
-		return;
+void sccp_event_fire(const sccp_event_t* *event)
+{
+    if ( *event == NULL)
+        return;
 
-	sccp_event_type_t type = (*event)->type;
-	sccp_event_subscriber_t *subscriber;
+    sccp_event_type_t type = (*event)->type;
+    sccp_event_subscriber_t *subscriber;
 
-	sccp_log((DEBUGCAT_EVENT))(VERBOSE_PREFIX_1 "[SCCP] Fire event %d\n", type);
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&sccp_event_listeners->subscriber, subscriber, list){
-		sccp_log((DEBUGCAT_EVENT))(VERBOSE_PREFIX_1 "eventtype: %d listenerType: %d, -> result: %d %s\n", type, subscriber->eventType, (subscriber->eventType & type), (subscriber->eventType & type)?"true":"false" );
-		if(subscriber->eventType & type){
-			subscriber->callback_function(event);
-		}
-	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
+    sccp_log((DEBUGCAT_EVENT))(VERBOSE_PREFIX_1 "[SCCP] Fire event %d\n", type);
+    SCCP_LIST_TRAVERSE_SAFE_BEGIN(&sccp_event_listeners->subscriber, subscriber, list)
+    {
+        sccp_log((DEBUGCAT_EVENT))(VERBOSE_PREFIX_1 "eventtype: %d listenerType: %d, -> result: %d %s\n", type, subscriber->eventType, (subscriber->eventType & type), (subscriber->eventType & type)?"true":"false" );
+        if (subscriber->eventType & type)
+        {
+            subscriber->callback_function(event);
+        }
+    }
+    SCCP_LIST_TRAVERSE_SAFE_END;
 
-	free((void *) *event);
+    free((void *) *event);
 }
