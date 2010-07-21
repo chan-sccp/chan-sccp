@@ -2,11 +2,11 @@
  * \file 	sccp_mwi.h
  * \brief 	SCCP Message Waiting Indicator Header
  * \author 	Marcello Ceschia <marcello [at] ceschia.de>
- * \note    This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		    See the LICENSE file at the top of the source tree.
- *
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *		See the LICENSE file at the top of the source tree.
+ * 
  * $Date$
- * $Revision$
+ * $Revision$  
  */
 
 #ifndef SCCP_MWI_H_
@@ -29,15 +29,14 @@ typedef struct sccp_mailboxLine sccp_mailboxLine_t;
 
 
 /*!
- * \brief SCCP Mailbox Line Type Structure
+ * \brief SCCP Mailbox Line Type Structure 
  *
  * holding line information for mailbox subscription
  *
  */
-struct sccp_mailboxLine
-{
-    sccp_line_t		*line;
-    SCCP_LIST_ENTRY(sccp_mailboxLine_t) list;
+struct sccp_mailboxLine{
+	sccp_line_t		*line;
+	SCCP_LIST_ENTRY(sccp_mailboxLine_t) list;
 };
 
 /*!
@@ -49,43 +48,40 @@ typedef struct sccp_mailbox_subscriber_list sccp_mailbox_subscriber_list_t;
 
 /*!
  * \brief SCCP Mailbox Subscriber List Structure
- *
+ * 
  * we hold a mailbox event subscription in sccp_mailbox_subscription_t.
  * Each line that holds a subscription for this mailbox is listed in
  */
-struct sccp_mailbox_subscriber_list
-{
-    char mailbox[60];
-    char context[60];
+struct sccp_mailbox_subscriber_list{
+	char mailbox[60];
+	char context[60];
 
-    SCCP_LIST_HEAD(, sccp_mailboxLine_t) sccp_mailboxLine;
-    SCCP_LIST_ENTRY(sccp_mailbox_subscriber_list_t) list;
+	SCCP_LIST_HEAD(, sccp_mailboxLine_t) sccp_mailboxLine;
+	SCCP_LIST_ENTRY(sccp_mailbox_subscriber_list_t) list;
 
-    /*!
-     * \brief Current Voicemail Statistic Structure
-     */
-    struct
-    {
-        int			newmsgs;					/*!< New Messages */
-        int			oldmsgs;					/*!< Old Messages */
-    }currentVoicemailStatistic;							/*!< Current Voicemail Statistic Structure */
+	/*!
+	 * \brief Current Voicemail Statistic Structure 
+	 */
+	struct{
+		int			newmsgs;					/*!< New Messages */
+		int			oldmsgs;					/*!< Old Messages */
+	}currentVoicemailStatistic;							/*!< Current Voicemail Statistic Structure */
 
-    /*!
-     * \brief Previous Voicemail Statistic Structure
-     */
-    struct
-    {
-        int			newmsgs;					/*!< New Messages */
-        int			oldmsgs;					/*!< Old Messages */
-    }previousVoicemailStatistic;							/*!< Previous Voicemail Statistic Structure */
+	/*!
+	 * \brief Previous Voicemail Statistic Structure 
+	 */
+	struct{
+		int			newmsgs;					/*!< New Messages */
+		int			oldmsgs;					/*!< Old Messages */
+	}previousVoicemailStatistic;							/*!< Previous Voicemail Statistic Structure */
 
 #ifdef CS_AST_HAS_EVENT
-    /*!
-     * \brief Asterisk Event Subscribers Structure
-     */
-    struct ast_event_sub 		*event_sub;
+	/*!
+	 * \brief Asterisk Event Subscribers Structure
+	 */
+	struct ast_event_sub 		*event_sub;
 #else
-    int				schedUpdate;
+	int				schedUpdate;
 #endif
 };											/*!< SCCP Mailbox Subscriber List Structure */
 

@@ -2,13 +2,13 @@
  * \file 	sccp_hint.h
  * \brief 	SCCP Hint Header
  * \author 	Marcello Ceschia <marcelloceschia [at] users.sourceforge.net>
- * \note    This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		    See the LICENSE file at the top of the source tree.
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *		See the LICENSE file at the top of the source tree.
  * \since 	2009-01-16
  *
  * $Date$
- * $Revision$
- */
+ * $Revision$  
+ */ 
 
 #ifndef SCCP_HINT_H_
 #define SCCP_HINT_H_
@@ -24,13 +24,12 @@ typedef struct sccp_hint_SubscribingDevice 		sccp_hint_SubscribingDevice_t;
 /*!
  *\brief SCCP Hint Subscribing Device Structure
  */
-struct sccp_hint_SubscribingDevice
-{
+struct sccp_hint_SubscribingDevice{
 
-    const sccp_device_t				* device;			/*!< SCCP Device */
-    uint8_t						instance;			/*!< Instance */
+	const sccp_device_t				* device;			/*!< SCCP Device */
+	uint8_t						instance;			/*!< Instance */
 
-    SCCP_LIST_ENTRY(sccp_hint_SubscribingDevice_t) 	list;				/*!< Hint Subscribing Device Linked List Entry*/
+	SCCP_LIST_ENTRY(sccp_hint_SubscribingDevice_t) 	list;				/*!< Hint Subscribing Device Linked List Entry*/
 };											/*!< SCCP Hint Subscribing Device Structure */
 
 /*!
@@ -45,52 +44,47 @@ typedef struct sccp_hint_list 				sccp_hint_list_t;
  * Each line that holds a subscription for this mailbox is listed in
  *
  */
-struct sccp_hint_list
-{
-    ast_mutex_t 					lock;				/*!< Asterisk Lock */
+struct sccp_hint_list{
+	ast_mutex_t 					lock;				/*!< Asterisk Lock */
+  
+	char 						exten[AST_MAX_EXTENSION];							/*!< Extension for Hint */
+	char 						context[AST_MAX_CONTEXT];							/*!< Context for Hint */
+	char 						hint_dialplan[256];							/*!< e.g. IAX2/station123 */
 
-    char 						exten[AST_MAX_EXTENSION];							/*!< Extension for Hint */
-    char 						context[AST_MAX_CONTEXT];							/*!< Context for Hint */
-    char 						hint_dialplan[256];							/*!< e.g. IAX2/station123 */
+	sccp_channelState_t 				currentState;			/*!< current State */
+	sccp_hinttype_t					hintType;			/*!< Type of Hint*/
 
-    sccp_channelState_t 				currentState;			/*!< current State */
-    sccp_hinttype_t					hintType;			/*!< Type of Hint*/
+	/*!
+	 * \brief Call Information Structure
+	 */
+	struct{
+		char 					callingPartyName[StationMaxNameSize];	/*!< Calling Party Name */
+		char 					calledPartyName[StationMaxNameSize];	/*!< Called Party Name */
+		char 					callingParty[StationMaxNameSize];	/*!< Calling Party Number */
+		char 					calledParty[StationMaxNameSize];	/*!< Called Party Number */
+		skinny_calltype_t 			calltype;			/*!< Skinny Call Type */
+	} callInfo;									/*!< Call Information Structure */
 
-    /*!
-     * \brief Call Information Structure
-     */
-    struct
-    {
-        char 					callingPartyName[StationMaxNameSize];	/*!< Calling Party Name */
-        char 					calledPartyName[StationMaxNameSize];	/*!< Called Party Name */
-        char 					callingParty[StationMaxNameSize];	/*!< Calling Party Number */
-        char 					calledParty[StationMaxNameSize];	/*!< Called Party Number */
-        skinny_calltype_t 			calltype;			/*!< Skinny Call Type */
-    } callInfo;									/*!< Call Information Structure */
+	/*!
+	 * \brief SCCP Hint Type Structure
+	 */
+	union sccp_hint_type{
+		struct{
+			char 				lineName[AST_MAX_EXTENSION];	/*!< Line Name */
+		} internal;								/*!< Hint Type Internal Structure */
 
-    /*!
-     * \brief SCCP Hint Type Structure
-     */
-    union sccp_hint_type
-    {
-        struct
-        {
-            char 				lineName[AST_MAX_EXTENSION];	/*!< Line Name */
-        } internal;								/*!< Hint Type Internal Structure */
-
-        struct
-        {
-            int				hintid;				/*!< Hint ID */
+		struct{
+			int				hintid;				/*!< Hint ID */
 #ifndef AST_EVENT_IE_CIDNAME
-            pthread_t 			notificationThread;		/*!< Notification Thread */
+			pthread_t 			notificationThread;		/*!< Notification Thread */
 #else
-            struct ast_event_sub 		*device_state_sub;
+			struct ast_event_sub 		*device_state_sub;
 #endif
-        } asterisk;								/*!< Hint Type Asterisk Structure */
-    } type;										/*!< Hint Type Structure */
+		} asterisk;								/*!< Hint Type Asterisk Structure */
+	} type;										/*!< Hint Type Structure */
 
-    SCCP_LIST_HEAD(, sccp_hint_SubscribingDevice_t) subscribers;			/*!< Hint Type Subscribers Linked List Entry */
-    SCCP_LIST_ENTRY(sccp_hint_list_t) 		list;				/*!< Hint Type Linked List Entry */
+	SCCP_LIST_HEAD(, sccp_hint_SubscribingDevice_t) subscribers;			/*!< Hint Type Subscribers Linked List Entry */
+	SCCP_LIST_ENTRY(sccp_hint_list_t) 		list;				/*!< Hint Type Linked List Entry */
 };											/*!< SCCP Hint List Structure */
 
 

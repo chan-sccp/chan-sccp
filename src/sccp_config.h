@@ -5,11 +5,11 @@
  * \note	Reworked, but based on chan_sccp code.
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
- * \note    This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *          See the LICENSE file at the top of the source tree.
- *
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *		See the LICENSE file at the top of the source tree.
+ * 
  * $Date$
- * $Revision$
+ * $Revision$  
  */
 #ifndef __SCCP_CONFIG_H
 #define __SCCP_CONFIG_H
@@ -29,41 +29,39 @@
 /*!
  * \brief Soft Key Configuration Template Structure
  */
-typedef struct
-{
-    const char configVar[50];			/*!< Config Variable as Character */
-    const int softkey;				/*!< Softkey as Int */
+typedef struct {
+  const char configVar[50];			/*!< Config Variable as Character */
+  const int softkey;				/*!< Softkey as Int */
 } softkeyConfigurationTemplate;			/*!< Soft Key Configuration Template Structure */
 
-static const softkeyConfigurationTemplate softKeyTemplate[] =
-{
-    {"redial", SKINNY_LBL_REDIAL},
-    {"newcall", SKINNY_LBL_NEWCALL},
-    {"cfwdall", SKINNY_LBL_CFWDALL},
-    {"cfwdbusy", SKINNY_LBL_CFWDBUSY},
-    {"cfwdnoanswer", SKINNY_LBL_CFWDNOANSWER},
-    {"pickup", SKINNY_LBL_PICKUP},
-    {"gpickup", SKINNY_LBL_GPICKUP},
-    {"conflist", SKINNY_LBL_CONFLIST},
-    {"dnd", SKINNY_LBL_DND},
-    {"hold", SKINNY_LBL_HOLD},
-    {"endcall", SKINNY_LBL_ENDCALL},
-    {"park", SKINNY_LBL_PARK},
-    {"select", SKINNY_LBL_SELECT},
-    {"idivert", SKINNY_LBL_IDIVERT},
-    {"resume", SKINNY_LBL_RESUME},
-    {"newcall", SKINNY_LBL_NEWCALL},
-    {"transfer", SKINNY_LBL_TRANSFER},
-    {"dirtrfr", SKINNY_LBL_DIRTRFR},
-    {"answer", SKINNY_LBL_ANSWER},
-    {"transvm", SKINNY_LBL_TRNSFVM},
-    {"private", SKINNY_LBL_PRIVATE},
-    {"meetme", SKINNY_LBL_MEETME},
-    {"barge", SKINNY_LBL_BARGE},
-    {"cbarge", SKINNY_LBL_CBARGE},
-    {"conf", SKINNY_LBL_CONFRN},
-    {"back", SKINNY_LBL_BACKSPACE},
-    {"join", SKINNY_LBL_JOIN},
+static const softkeyConfigurationTemplate softKeyTemplate[] = {
+        {"redial", SKINNY_LBL_REDIAL},
+        {"newcall", SKINNY_LBL_NEWCALL},
+        {"cfwdall", SKINNY_LBL_CFWDALL},
+        {"cfwdbusy", SKINNY_LBL_CFWDBUSY},
+        {"cfwdnoanswer", SKINNY_LBL_CFWDNOANSWER},
+        {"pickup", SKINNY_LBL_PICKUP},
+        {"gpickup", SKINNY_LBL_GPICKUP},
+        {"conflist", SKINNY_LBL_CONFLIST},
+        {"dnd", SKINNY_LBL_DND},
+        {"hold", SKINNY_LBL_HOLD},
+        {"endcall", SKINNY_LBL_ENDCALL},
+        {"park", SKINNY_LBL_PARK},
+        {"select", SKINNY_LBL_SELECT},
+        {"idivert", SKINNY_LBL_IDIVERT},
+        {"resume", SKINNY_LBL_RESUME},
+        {"newcall", SKINNY_LBL_NEWCALL},
+        {"transfer", SKINNY_LBL_TRANSFER},
+        {"dirtrfr", SKINNY_LBL_DIRTRFR},
+        {"answer", SKINNY_LBL_ANSWER},
+        {"transvm", SKINNY_LBL_TRNSFVM},
+        {"private", SKINNY_LBL_PRIVATE},
+        {"meetme", SKINNY_LBL_MEETME},
+        {"barge", SKINNY_LBL_BARGE},
+        {"cbarge", SKINNY_LBL_CBARGE},
+        {"conf", SKINNY_LBL_CONFRN},
+        {"back", SKINNY_LBL_BACKSPACE},
+        {"join", SKINNY_LBL_JOIN},
 };
 
 
