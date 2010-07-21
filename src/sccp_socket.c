@@ -383,9 +383,9 @@ void * sccp_socket_thread(void * ignore)
 			}
 			if (s->fd > 0) {
 				/* we increase additionalTime for wireless devices */
-				if(s->device && (s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920
-									|| s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921
-									|| s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925)){
+				if(s->device && (s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 ||
+				                 s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 ||
+				                 s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925)){
 					keepaliveAdditionalTime = 30;
 
 				}
