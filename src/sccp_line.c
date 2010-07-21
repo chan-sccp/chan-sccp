@@ -512,8 +512,10 @@ void sccp_duplicate_line_mailbox_list(sccp_line_t *new_line, sccp_line_t *orig_l
 	SCCP_LIST_LOCK(&orig_line->mailboxes);
 	SCCP_LIST_TRAVERSE(&orig_line->mailboxes, orig_mailbox, list){
 		new_mailbox=ast_calloc(1,sizeof(sccp_mailbox_t));
-		new_mailbox->mailbox=ast_strdup(orig_mailbox->mailbox);
-		new_mailbox->context=ast_strdup(orig_mailbox->context);
+		if (orig_mailbox->mailbox)
+			new_mailbox->mailbox=ast_strdup(orig_mailbox->mailbox);
+		if (orig_mailbox->context)
+			new_mailbox->context=ast_strdup(orig_mailbox->context);
 		SCCP_LIST_INSERT_TAIL(&new_line->mailboxes, new_mailbox, list);
 	}
 	SCCP_LIST_UNLOCK(&orig_line->mailboxes);
@@ -621,17 +623,17 @@ sccp_diff_t sccp_line_changed(sccp_line_t *line_a,sccp_line_t *line_b) {
 		sccp_mailbox_t *mb_a = SCCP_LIST_FIRST(&line_a->mailboxes);
 		sccp_mailbox_t *mb_b = SCCP_LIST_FIRST(&line_b->mailboxes);
 		while (mb_a && mb_b) {
-			if ((!mb_a->mailbox[0] && mb_a->mailbox[0] != '\0') ) {
-				if ( (strcmp(mb_a->mailbox,mb_b->mailbox)) || (strcmp(mb_a->context,mb_b->context)) ) {
-					sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "mailboxes: %s,%s\n",mb_a->mailbox,mb_b->mailbox);
-					sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "mailboxes: %s,%s\n",mb_a->context,mb_b->context);
-					sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "mailboxes: Changes need reset\n");
-					res=MINOR_CHANGES;
-					break;
-				}
+			/* First comparison is to know if the values are not both NULL */
+			if ((mb_a->mailbox != mb_b->mailbox && (!mb_a->mailbox || !mb_b->mailbox || strcmp(mb_a->mailbox,mb_b->mailbox))) ||
+			    (mb_a->context != mb_b->context && (!mb_a->context || !mb_b->context || strcmp(mb_a->context,mb_b->context)))) {
+				sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "mailboxes: %s,%s\n",mb_a->mailbox,mb_b->mailbox);
+				sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "mailboxes: %s,%s\n",mb_a->context,mb_b->context);
+				sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "mailboxes: Changes need reset\n");
+				res=MINOR_CHANGES;
+				break;
 			}
 			mb_a = SCCP_LIST_NEXT(mb_a, list);
-			mb_b = SCCP_LIST_NEXT(mb_b, list);			
+			mb_b = SCCP_LIST_NEXT(mb_b, list);
 		}
 	}
 	SCCP_LIST_UNLOCK(&line_a->mailboxes);
@@ -647,12 +649,10 @@ sccp_diff_t sccp_line_changed(sccp_line_t *line_a,sccp_line_t *line_b) {
 		sccp_linedevices_t *dev_a = SCCP_LIST_FIRST(&line_a->devices);
 		sccp_linedevices_t *dev_b = SCCP_LIST_FIRST(&line_b->devices);
 		while (dev_a && dev_b) {
-			if ( (!dev_a->device->id[0] && dev_a->device->id[0] != '\0') ) {
-				if ( (strcmp(dev_a->device->id,dev_b->device->id)) ) {
-					sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "devices: Changes need reset\n");
-					res=CHANGES_NEED_RESET;
-					break;
-				}
+			if ((strcmp(dev_a->device->id,dev_b->device->id))) {
+				sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "devices: Changes need reset\n");
+				res=CHANGES_NEED_RESET;
+				break;
 			}
 			dev_a = SCCP_LIST_NEXT(dev_a, list);
 			dev_b = SCCP_LIST_NEXT(dev_b, list);
@@ -661,9 +661,9 @@ sccp_diff_t sccp_line_changed(sccp_line_t *line_a,sccp_line_t *line_b) {
 	SCCP_LIST_UNLOCK(&line_a->devices);
 	SCCP_LIST_UNLOCK(&line_b->devices);
 
-	/* \todo still to implement 
-	a check for device->setvar (ast_variables *variables) 
-	a check for device->trnsfvwm (char  *trnsfvm) 
+	/* \todo still to implement
+	a check for device->setvar (ast_variables *variables)
+	a check for device->trnsfvwm (char  *trnsfvm)
 	*/
 	sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "(sccp_line_changed) Returning : %d\n", res);
 	return res;
