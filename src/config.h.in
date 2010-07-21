@@ -70,7 +70,7 @@
 /* building user */
 #undef BUILD_USER
 
-/* Debug SCCP advanced functions */
+/* Debug SCCP advanced functions (experimental/dev only) */
 #undef CS_ADV_FEATURES
 
 /* Found 'struct ast_callerid' in asterisk/channel.h */
@@ -178,7 +178,7 @@
 /* Debug SCCP indications */
 #undef CS_DEBUG_INDICATIONS
 
-/* Using dynamic configuration file */
+/* sccp reload (experimental/dev only) */
 #undef CS_DYNAMIC_CONFIG
 
 /* Using dynamic speeddials */
@@ -208,7 +208,7 @@
 /* Enable DIRTRFR function */
 #undef CS_SCCP_DIRTRFR
 
-/* Debug SCCP feature monitor */
+/* SCCP feature monitor */
 #undef CS_SCCP_FEATURE_MONITOR
 
 /* Enable manager console control */
@@ -223,7 +223,7 @@
 /* Enable pickup function */
 #undef CS_SCCP_PICKUP
 
-/* Debug SCCP realtime */
+/* SCCP realtime */
 #undef CS_SCCP_REALTIME
 
 /* Disabled extra debugging. */
@@ -571,22 +571,22 @@
 #undef OSF1
 
 /* Define to the address where bug reports for this package should be sent. */
-/* #undef PACKAGE_BUGREPORT */
+#undef PACKAGE_BUGREPORT
 
 /* Define to the full name of this package. */
-/* #undef PACKAGE_NAME */
+#undef PACKAGE_NAME
 
 /* Define to the full name and version of this package. */
-/* #undef PACKAGE_STRING */
+#undef PACKAGE_STRING
 
 /* Define to the one symbol short name of this package. */
-/* #undef PACKAGE_TARNAME */
+#undef PACKAGE_TARNAME
 
 /* Define to the home page for this package. */
-/* #undef PACKAGE_URL */
+#undef PACKAGE_URL
 
 /* Define to the version of this package. */
-/* #undef PACKAGE_VERSION */
+#undef PACKAGE_VERSION
 
 /* PBX Branch Type */
 #undef PBX_BRANCH

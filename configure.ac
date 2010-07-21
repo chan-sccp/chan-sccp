@@ -484,25 +484,25 @@ AC_ARG_WITH(indications,
 ])
 
 AC_ARG_WITH(realtime, 
-  AC_HELP_STRING([--with-realtime], [Debug SCCP realtime (default is YES)]), 
+  AC_HELP_STRING([--with-realtime], [realtime support (default is YES)]), 
   ac_cv_realtime=no, ac_cv_realtime=yes)
     AS_IF([test "${ac_cv_realtime}" == "yes"], [
-    	AC_DEFINE(CS_SCCP_REALTIME, 1, [Debug SCCP realtime])
+    	AC_DEFINE(CS_SCCP_REALTIME, 1, [SCCP realtime])
 ])
 
 AC_ARG_WITH(feature_monitor, 
-  AC_HELP_STRING([--with-feature-monitor], [Debug SCCP feature monitor (default is NO)]), 
+  AC_HELP_STRING([--with-feature-monitor], [feature monitor (default is NO)]), 
   ac_cv_feature_monitor=yes, ac_cv_feature_monitor=no)
     AS_IF([test "${ac_cv_feature_monitor}" == "yes"], [
-       	AC_DEFINE(CS_SCCP_FEATURE_MONITOR, 1, [Debug SCCP feature monitor])
+       	AC_DEFINE(CS_SCCP_FEATURE_MONITOR, 1, [SCCP feature monitor])
 ])
 
 
 AC_ARG_WITH(advanced_functions, 
-  AC_HELP_STRING([--with-advanced-functions], [Debug SCCP advanced functions (default is NO)]), 
+  AC_HELP_STRING([--with-advanced-functions], [advanced functions (experimental/dev only)(default is NO)]), 
     ac_cv_advanced_functions=yes, ac_cv_advanced_functions=no)
     AS_IF([test "${ac_cv_advanced_functions}" == "yes"], [
-       	AC_DEFINE(CS_ADV_FEATURES, 1, [Debug SCCP advanced functions])
+       	AC_DEFINE(CS_ADV_FEATURES, 1, [Debug SCCP advanced functions (experimental/dev only)])
 ])
 
 AC_ARG_WITH(dynamic_speeddial, 
@@ -522,10 +522,10 @@ AS_IF([test "${ac_cv_dynamic_speeddial_cid}" == "yes"], [
 
 dnl << Temporary additions. For Development Only
 AC_ARG_WITH(dynamic_config, 
-  AC_HELP_STRING([--with-dynamic-config], [Using dynamicly reloadable configuration file (default is NO) (experimental / under development / don't use yet)]), 
+  AC_HELP_STRING([--with-dynamic-config], [sccp reload (experimental/dev only)(default is NO)]), 
   ac_cv_dynamic_config=yes, ac_cv_dynamic_config=no)
     AS_IF([test "${ac_cv_dynamic_config}" == "yes"], [
-       	AC_DEFINE(CS_DYNAMIC_CONFIG, 1, [Using dynamic configuration file])
+       	AC_DEFINE(CS_DYNAMIC_CONFIG, 1, [sccp reload (experimental/dev only)])
 ])
 dnl Temporary additions. For Development Only >>
 
