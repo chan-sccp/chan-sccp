@@ -6,13 +6,13 @@
  *		Mark Spencer <markster@digium.com>
  *              Kevin P. Fleming <kpfleming@digium.com>
  * \note  	File is not directly included to get benefit of lists also in previous Asterisk releases (like 1.2)
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License. 
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
  * $Date$
- * $Revision$  
+ * $Revision$
  */
- 
+
 #ifndef _SCCP_DLLISTS_H
 #define _SCCP_DLLISTS_H
 
@@ -302,14 +302,15 @@ struct {							\
 			(elm)->field.next->field.prev = NULL;				\
 		if ((head)->last == (elm))								\
 			(head)->last = NULL;								\
-	} else {													\
+		(head)->size--;												\
+	} else if ((elm)->field.prev != NULL) {													\
 		(elm)->field.prev->field.next = (elm)->field.next;		\
 		if ((elm)->field.next)									\
 			(elm)->field.next->field.prev = (elm)->field.prev;	\
 		if ((head)->last == (elm))								\
 			(head)->last = (elm)->field.prev;					\
+		(head)->size--;												\
 	}															\
-	(head)->size--;												\
 	(elm)->field.next = NULL;									\
 	(elm)->field.prev = NULL;									\
 	(__res);													\
