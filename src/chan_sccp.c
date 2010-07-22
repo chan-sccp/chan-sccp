@@ -554,6 +554,10 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 		case OpenReceiveChannelAck:
 		      sccp_handle_open_receive_channel_ack(s, r);
 		      break;
+		      
+		case OpenMultiMediaReceiveChannelAckMessage:
+		      sccp_handle_OpenMultiMediaReceiveAck(s, r);
+		      break;		  
 		case ConnectionStatisticsRes:
 		      sccp_handle_ConnectionStatistics(s,r);
 		      break;
