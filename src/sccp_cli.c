@@ -459,6 +459,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Can CFWNOANSWER    : %s\n", (d->cfwdnoanswer) ? "Yes" : "No");
 	ast_cli(fd, "Dtmf mode          : %s\n", (d->dtmfmode) ? "Out-of-Band" : "In-Band");
 	ast_cli(fd, "Nat                : %s\n", (d->nat) ? "Yes" : "No");
+	ast_cli(fd, "Videosupport?      : %s\n", sccp_device_isVideoSupported(d) ? "Yes" : "No");
 	ast_cli(fd, "Direct RTP         : %s\n", (d->directrtp) ? "Yes" : "No");
 	ast_cli(fd, "Trust phone ip     : %s\n", (d->trustphoneip) ? "Yes" : "No");
 	ast_cli(fd, "Early RTP          : %s\n", (d->earlyrtp) ? "Yes" : "No");
