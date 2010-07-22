@@ -38,6 +38,7 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r);
+void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_version(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_ServerResMessage(sccp_session_t * s, sccp_moo_t * r);

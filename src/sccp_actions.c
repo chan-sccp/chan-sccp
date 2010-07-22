@@ -2102,47 +2102,99 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 
 
 		if(c->rtp.video){
-			struct sockaddr_in vsin;
-			vsin.sin_family = AF_INET;
+			sccp_channel_startMultiMediaTransmission(c);
+		}
 
-			if(!ast_strlen_zero(d->videoSink)){
-
-				struct ast_hostent ahp;
-				struct hostent *hp;
-
-				if ( !(hp = ast_gethostbyname(d->videoSink, &ahp)) ){
-					memcpy(&vsin, hp->h_addr, sizeof(vsin));
-					vsin.sin_port = ipPort;
-
-				}else{
-					/* test server */
-					//inet_aton("172.17.1.101", &vsin.sin_addr);
-					//vsin.sin_port = htons(12345);
-				}
+		sccp_channel_unlock(c);
+	} else {
+		ast_log(LOG_ERROR, "%s: No channel with this PassThruId!\n", d->id);
+	}
+}
 
 
-			}else{
-				inet_aton("172.17.1.101", &vsin.sin_addr);
-				vsin.sin_port = htons(12345);
-			}
+
+void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r){
+	struct sockaddr_in sin;
+	sccp_channel_t * c;
+	sccp_device_t * d;
+#if ASTERISK_VERSION_NUM < 10400
+	char iabuf[INET_ADDRSTRLEN];
+#endif
+	char ipAddr[16];
+	uint32_t status = 0, ipPort = 0, partyID = 0;
+
+	if (!s || !(d = s->device))
+		return;
+
+	d = s->device;
+	memset(ipAddr, 0, 16);
+	if(d->inuseprotocolversion < 17) {
+		ipPort = htons(htolel(r->msg.OpenMultiMediaReceiveChannelAckMessage.lel_portNumber));
+		partyID = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.lel_passThruPartyId);
+		status = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.lel_orcStatus);
+		memcpy(&ipAddr, &r->msg.OpenMultiMediaReceiveChannelAckMessage.bel_ipAddr, 4);
+	} else {
+		ipPort = htons(htolel(r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.lel_portNumber));
+		partyID = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.lel_passThruPartyId);
+		status = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.lel_orcStatus);
+		memcpy(&ipAddr, &r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.bel_ipAddr, 16);
+	}
 
 
+	sin.sin_family = AF_INET;
+	if (d->trustphoneip)
+		memcpy(&sin.sin_addr, &ipAddr, sizeof(sin.sin_addr));
+	else
+		memcpy(&sin.sin_addr, &s->sin.sin_addr, sizeof(sin.sin_addr));
+
+	sin.sin_port = ipPort;
 
 #if ASTERISK_VERSION_NUM < 10400
-			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Set the RTP video media address to %s:%d\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), vsin.sin_addr), ntohs(vsin.sin_port));
-			ast_rtp_set_peer(c->rtp.video, &vsin);
+	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u\n",
+			d->id,
+			status, (d->trustphoneip ? "Phone" : "Connection"),
+			ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr),
+			ntohs(sin.sin_port),
+			partyID);
 #else
-			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Set the RTP video media address to %s:%d\n", d->id, ast_inet_ntoa(vsin.sin_addr), ntohs(vsin.sin_port));
-			ast_rtp_set_peer(c->rtp.video, &vsin);
+	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u\n",
+		d->id,
+		status, (d->trustphoneip ? "Phone" : "Connection"),
+		ast_inet_ntoa(sin.sin_addr),
+		ntohs(sin.sin_port),
+		partyID);
+#endif
+	if (status) {
+		/* rtp error from the phone */
+		ast_log(LOG_ERROR, "%s: (OpenMultiMediaReceiveChannelAck) Device error (%d) ! No RTP media available\n", d->id, status);
+		return;
+	}
 
-			//struct sockaddr_in us;
-			//ast_rtp_get_us(c->rtp.video, &us);
+	c = sccp_channel_find_bypassthrupartyid(partyID);
+	/* prevent a segmentation fault on fast hangup after answer, failed voicemail for example */
+	if (c) { // && c->state != SCCP_CHANNELSTATE_DOWN) {
+		if(c->state ==  SCCP_CHANNELSTATE_INVALIDNUMBER)
+			return;
 
 
-
-			//sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: our video media address is %s:%d\n", d->id, ast_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
-
-
+		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
+		sccp_channel_lock(c);
+		memcpy(&c->vrtp_addr, &sin, sizeof(sin));
+		if (c->rtp.video) {
+#if ASTERISK_VERSION_NUM < 10400
+			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port));
+			ast_rtp_set_peer(c->rtp.video, &sin);
+#else
+			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
+			ast_rtp_set_peer(c->rtp.video, &sin);
+#endif
+			if(c->state == SCCP_CHANNELSTATE_CONNECTED)
+				sccp_ast_setstate(c, AST_STATE_UP);
+		} else {
+#if ASTERISK_VERSION_NUM < 10400
+			ast_log(LOG_ERROR,  "%s: Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port));
+#else
+			ast_log(LOG_ERROR,  "%s: Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 #endif
 		}
 
@@ -2151,6 +2203,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 		ast_log(LOG_ERROR, "%s: No channel with this PassThruId!\n", d->id);
 	}
 }
+
 
 /*!
  * \brief Handle Version for Session

@@ -1688,8 +1688,9 @@ typedef struct{
 typedef struct{
 	uint32_t		bitRate;					/*!< BitRate (default 384) */
 	uint32_t		pictureFormatCount;				/*!< Picture Format Count (default 0) */
-	pictureFormat_t		pictureFormat[5];				/*!< Picture Format Array */
+	pictureFormat_t		pictureFormat[3];				/*!< Picture Format Array */
 	uint32_t		confServiceNum;					/*!< Conf Service Number */
+	uint32_t		dummy;						/*!< dummy */
 	h261VideoCapability_t	h261VideoCapability;				/*!< H261 Video Capability */
 	h263VideoCapability_t	h263VideoCapability;				/*!< H263 Video Capability */
 	vieoVideoCapability_t	vieoVideoCapability;				/*!< vieo Video Capability */
@@ -2368,6 +2369,33 @@ typedef union {
                 uint32_t 			lel_passThruPartyId;			/*!< Pass Through Party ID */
                 uint32_t 			lel_callReference;			/*!< Call Reference */
         } OpenReceiveChannelAck_v17;							/*!< Open Receive Channel Acknowledgement v17 */
+        
+        
+        struct {
+		uint32_t 			lel_orcStatus; 				/*!< receiveChanStatus */
+		uint32_t 			bel_ipAddr; 				/*!< This field is apparently in big-endian format,
+												even though most other fields are in
+												little-endian format. */
+		uint32_t 			lel_portNumber;
+		uint32_t 			lel_passThruPartyId;
+		uint32_t 			lel_callReference;
+	  
+	} OpenMultiMediaReceiveChannelAckMessage;
+	
+	
+	struct {
+		uint32_t 			lel_orcStatus; 				/*!< status */
+		uint32_t 			lel_unknown1;				/*!< I think this switches from IPv4 to IPv6 (0x00 in IPv4) */
+		/* include IPv6 support */
+                char 				bel_ipAddr[16]; 			/*!< This field is apparently in big-endian format,
+                                                                                             even though most other fields are in
+										             little-endian format. */
+		uint32_t 			lel_portNumber;
+		uint32_t 			lel_passThruPartyId;
+		uint32_t 			lel_callReference;
+	  
+	} OpenMultiMediaReceiveChannelAckMessage_v17;
+        
 
         struct {
                 char				DirectoryNumber[StationMaxDirnumSize];	/*!< Directory Number */
@@ -2913,11 +2941,26 @@ typedef union {
 		videoParameter_t		videoParameter;				/*!< Video Parameter */
 		dataParameter_t			dataParameter;				/*!< Data Parameter */
 		
-		uint32_t			unknown[8];				/*!< Unknown */
+		uint32_t			unknown[12];				/*!< Unknown */
 	} OpenMultiMediaChannelMessage;							/*!< Open Multi Media Channel Message Structure */
 
 	/*!
 	 * \since 20100104 -MC
+	 * \note update 20100722
+	 * 0000   ac 00 00 00 00 00 00 00 32 01 00 00 0b 00 00 01
+	  0010   82 00 00 01 67 00 00 00 ac 11 01 66 45 15 00 00
+	  0020   0b 00 00 01 00 00 00 00 61 00 00 00 88 00 00 00
+	  0030   00 0f 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+	  0040   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+	  0050   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+	  0060   00 00 00 00 40 00 00 00 32 00 00 00 5b 52 3a 4c
+	  0070   50 20 2d 20 48 50 3a 20 30 2c 20 4e f8 15 24 00
+	  0080   c4 02 89 09 9c ee 5a 0a 88 06 18 00 54 ef 5a 0a
+	  0090   64 7e fb 77 58 31 f8 77 ff ff ff ff 64 ef 5a 0a
+	  00a0   c2 b7 fc 77 78 07 18 00 20 16 24 00 40 16 24 00
+	  00b0   20 16 24 00
+	 * 
+	 * 
 	 */
 	struct{
 		uint32_t			lel_conferenceID;			/*!< Conference ID */
@@ -2936,6 +2979,8 @@ typedef union {
 		audioParameter_t		audioParameter;				/*!< Audio Parameter */
 		videoParameter_t		videoParameter;				/*!< Video Parameter */
 		dataParameter_t			dataParameter;				/*!< Data Parameter */
+		
+		uint32_t			unknown[12];				/*!< Unknown */
 		
 	} StartMultiMediaTransmission;							/*!< Start MultiMedia Transmission Message Structure */
 	
