@@ -12,7 +12,7 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \warning 	File has been Lined up using 8 Space TABS
- * 
+ *
  * $Date$
  * $Revision$
  */
@@ -179,8 +179,8 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 /*! \todo I don't like the -1 returned value */
 #define sccp_true(x) (ast_true(x) ? 1 : 0)
 
-// debug parameter has to match all DEBUGCATegories simultanously given on sccp_log line 
-//#define sccp_log(x) if ((sccp_globals->debug & x) == x)  ast_verbose 
+// debug parameter has to match all DEBUGCATegories simultanously given on sccp_log line
+//#define sccp_log(x) if ((sccp_globals->debug & x) == x)  ast_verbose
 
 // changed debug parameter to match any DEBUGCATegories given on an sccp_log line
 #define sccp_log(x) if ((sccp_globals->debug & x) != 0)  ast_verbose
@@ -645,11 +645,6 @@ struct sccp_speed {
 
 	SCCP_LIST_ENTRY(sccp_speed_t) 		list;					/*!< SpeedDial Linked List Entry */
 
-#ifdef CS_DYNAMIC_CONFIG
-	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this speed when unused */
-	unsigned int				pendingUpdate:1;			/*!< this bit will tell the scheduler to update this speed when unused */
-#endif
-
 };
 
 /*!
@@ -799,11 +794,6 @@ struct sccp_addon {
 	int 					type;					/*!< Add-On Type */
 	SCCP_LIST_ENTRY(sccp_addon_t) 		list;					/*!< Linked List Entry for this Add-On */
 	sccp_device_t * 			device;					/*!< Device Associated with this Add-On */
-
-#ifdef CS_DYNAMIC_CONFIG
-	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this line when unused */
-	unsigned int				pendingUpdate:1;			/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
-#endif
 };
 
 /*!
@@ -891,10 +881,6 @@ struct sccp_channel {
 	char 					musicclass[MAX_MUSICCLASS];		/*!< Music Class */
 	uint8_t					ss_action; 				/*!< Simple Switch Action. This is used in dial thread to collect numbers for callforward, pickup and so on -FS*/
 	uint8_t					ss_data; 				/*!< Simple Switch Integer param */
-#ifdef CS_DYNAMIC_CONFIG
-	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this line when unused */
-	unsigned int				pendingUpdate:1;			/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
-#endif
 
 	struct {
 		boolean_t transmit;							/*!< have we oppend transmitport already */
@@ -1015,11 +1001,6 @@ struct sccp_global_vars {
 #if ASTERISK_VERSION_NUM >= 10400
 
 	struct ast_jb_conf			global_jbconf;				/*!< Global Jitter Buffer Configuration */
-#endif
-
-#ifdef CS_DYNAMIC_CONFIG
-	unsigned int				pendingDelete:1;			/*!< this bit will tell the scheduler to delete this line when unused */
-	unsigned int				pendingUpdate:1;			/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 #endif
 
 	pthread_t				mwiMonitorThread; 			/*!< MWI Monitor Thread */ // MC
