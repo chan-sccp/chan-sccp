@@ -1097,10 +1097,13 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 #ifdef CS_DYNAMIC_CONFIG
 	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1 "Checking ReadingType\n");
 	if (readingtype == SCCP_CONFIG_READRELOAD) {
-		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "Device Post Reload\n");
-		sccp_device_post_reload();
+		/* IMPORTANT: The line_post_reload function may change the pendingUpdate field of
+		 * devices, so it's really important to call it *before* calling device_post_real().
+		 */
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "Line Post Reload\n");
 		sccp_line_post_reload();
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "Device Post Reload\n");
+		sccp_device_post_reload();
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "Softkey Post Reload\n");
 		sccp_softkey_post_reload();
 	}

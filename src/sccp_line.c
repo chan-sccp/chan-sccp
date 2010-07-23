@@ -75,16 +75,7 @@ void sccp_line_post_reload(void)
 				continue;
 
 			sccp_device_lock(ld->device);
-
-			if (sccp_device_numberOfChannels(ld->device) == 0) {
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Sending Device Reset\n");
-				sccp_device_sendReset(ld->device, SKINNY_DEVICE_RESTART);
-				sccp_session_close(ld->device->session);
-			} else { // skip this device. it will receive reset from sccp_channel_endcall upon completion of the call (***)
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", ld->device->id);
-				ld->device->pendingUpdate = 1;
-			}
-
+			ld->device->pendingUpdate = 1;
 			sccp_device_unlock(ld->device);
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
