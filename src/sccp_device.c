@@ -68,7 +68,8 @@ void sccp_device_pre_reload(void)
 		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s: Setting Device to Pending Delete=1\n", d->id);
 		ast_free_ha(d->ha);
 		d->ha = NULL;
-		d->pendingDelete = 1;
+		if (!d->realtime) /* don't want to reset hotline devices. */
+			d->pendingDelete = 1;
 		d->pendingUpdate = 0;
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list){
@@ -96,39 +97,43 @@ void sccp_device_post_reload(void)
 
 		sccp_device_lock(d);
 
-		if (sccp_device_numberOfChannels(d) == 0) {	// if device has no open channel
-			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Sending Device Reset\n");
-			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
-			sccp_session_close(d->session);
-		} else {				// skip this device. it will receive reset from sccp_channel_endcall upon completion of the call (***)
+		// skip this device. it will receive reset from sccp_channel_endcall upon completion of the call (***)
+		if (sccp_device_numberOfChannels(d) > 0 && !d->pendingDelete) {
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", d->id);
 			sccp_device_unlock(d);
-			break;
+			continue;
 		}
+
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Sending Device Reset\n");
+		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+		sccp_session_close(d->session);
 
 		if (d->pendingDelete) {
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Remove Device from List\n");
-			SCCP_LIST_REMOVE_CURRENT(list);
+			sccp_device_unlock(d);
 			sccp_dev_clean(d, FALSE, 0);
 			sccp_device_free(d);
-		} else {
-			d->pendingUpdate = 0;
-			SCCP_LIST_LOCK(&d->buttonconfig);
-			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list){
-				if (!config->pendingDelete && !config->pendingUpdate)
-					continue;
-
-				if (d->pendingDelete) {
-					sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
-					ast_free(config);
-					SCCP_LIST_REMOVE_CURRENT(list);
-				} else {
-					config->pendingUpdate = 0;
-				}
-			}
-			SCCP_LIST_TRAVERSE_SAFE_END
-			SCCP_LIST_UNLOCK(&d->buttonconfig);
+			SCCP_LIST_REMOVE_CURRENT(list);
+			continue;
 		}
+
+		d->pendingUpdate = 0;
+		SCCP_LIST_LOCK(&d->buttonconfig);
+		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list){
+			if (!config->pendingDelete && !config->pendingUpdate)
+				continue;
+
+			if (config->pendingDelete) {
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
+				ast_free(config);
+				SCCP_LIST_REMOVE_CURRENT(list);
+			} else {
+				config->pendingUpdate = 0;
+			}
+		}
+		SCCP_LIST_TRAVERSE_SAFE_END
+		SCCP_LIST_UNLOCK(&d->buttonconfig);
+
 		sccp_device_unlock(d);
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END
@@ -1054,7 +1059,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	sccp_buttonconfig_t 	*buttonconfig;
 	sccp_linedevices_t 	*linedevice;
 	sccp_line_t 		*l;
-	
+
 	SCCP_LIST_LOCK(&d->buttonconfig);
  	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
  		if(buttonconfig->type == LINE ){
@@ -1643,7 +1648,7 @@ uint16_t sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName
  * \param device SCCP Device
  * \param line SCCP Line
  *
- * \todo Should this be implemented or removed ? 
+ * \todo Should this be implemented or removed ?
  */
 void sccp_device_removeLine(sccp_device_t *device, sccp_line_t * line)
 {
@@ -1947,26 +1952,6 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	    (device_a->trustphoneip != device_b->trustphoneip) ) {
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "Changes need reset\n");
 		return CHANGES_NEED_RESET;
-	} else if ( 								// check minor changes
-	    (strcmp(device_a->meetmeopts, device_b->meetmeopts)) ||
-	    (device_a->dtmfmode != device_b->dtmfmode) ||
-	    (device_a->mwilamp != device_b->mwilamp) ||
-	    (device_a->privacyFeature.status != device_b->privacyFeature.status) ||
-	    (device_a->dndFeature.enabled != device_b->dndFeature.enabled) ||
-	    (device_a->overlapFeature.enabled != device_b->overlapFeature.enabled) ||
-	    (device_a->privacyFeature.enabled != device_b->privacyFeature.enabled) ||
-	    (device_a->transfer != device_b->transfer) ||
-	    (device_a->cfwdall != device_b->cfwdall) ||
-	    (device_a->cfwdbusy != device_b->cfwdbusy) ||
-	    (device_a->cfwdnoanswer != device_b->cfwdnoanswer) ||
-	    (device_a->park != device_b->park)  ||
-	    (device_a->meetme != device_b->meetme) ||
-#ifdef CS_ADV_FEATURES
-	    (device_a->useRedialMenu != device_b->useRedialMenu) ||
-#endif /* CS_ADV_FEATURES */
-	    (device_a->mwioncall != device_b->mwioncall) ) {
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "Minor changes\n");
-		res=MINOR_CHANGES;
 	}
 
 	// changes in buttonconfig
@@ -1990,6 +1975,9 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	SCCP_LIST_UNLOCK(&device_a->buttonconfig);
 	SCCP_LIST_UNLOCK(&device_b->buttonconfig);
 
+	if (res == CHANGES_NEED_RESET)
+		return res;
+
 	//sccp_hostname_t permithosts
 	SCCP_LIST_LOCK(&device_a->permithosts);
 	SCCP_LIST_LOCK(&device_b->permithosts);
@@ -2012,27 +2000,8 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	SCCP_LIST_UNLOCK(&device_a->permithosts);
 	SCCP_LIST_UNLOCK(&device_b->permithosts);
 
-	//sccp_selectedchannel_t selectedChannels
-	SCCP_LIST_LOCK(&device_a->selectedChannels);
-	SCCP_LIST_LOCK(&device_b->selectedChannels);
-	if (device_a->selectedChannels.size != device_b->selectedChannels.size) {
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "selectedChannels: Changes need reset\n");
-		res = CHANGES_NEED_RESET;
-	} else {
-		sccp_selectedchannel_t *sc_a = SCCP_LIST_FIRST(&device_a->selectedChannels);
-		sccp_selectedchannel_t *sc_b = SCCP_LIST_FIRST(&device_b->selectedChannels);
-		while (sc_a && sc_b) {
-			if (sc_a->channel->callid != sc_b->channel->callid) {
-				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "selectedChannels: Minot changes\n");
-				res = MINOR_CHANGES;
-				break;
-			}
-			sc_a = SCCP_LIST_NEXT(sc_a, list);
-			sc_b = SCCP_LIST_NEXT(sc_b, list);
-		}
-	}
-	SCCP_LIST_UNLOCK(&device_a->selectedChannels);
-	SCCP_LIST_UNLOCK(&device_b->selectedChannels);
+	if (res == CHANGES_NEED_RESET)
+		return res;
 
 	//sccp_addon_t addons
 	SCCP_LIST_LOCK(&device_a->addons);
@@ -2055,6 +2024,55 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	}
 	SCCP_LIST_UNLOCK(&device_a->addons);
 	SCCP_LIST_UNLOCK(&device_b->addons);
+
+	if (res == CHANGES_NEED_RESET)
+		return res;
+
+	if ( 								// check minor changes
+	    (strcmp(device_a->meetmeopts, device_b->meetmeopts)) ||
+	    (device_a->dtmfmode != device_b->dtmfmode) ||
+	    (device_a->mwilamp != device_b->mwilamp) ||
+	    (device_a->privacyFeature.status != device_b->privacyFeature.status) ||
+	    (device_a->dndFeature.enabled != device_b->dndFeature.enabled) ||
+	    (device_a->overlapFeature.enabled != device_b->overlapFeature.enabled) ||
+	    (device_a->privacyFeature.enabled != device_b->privacyFeature.enabled) ||
+	    (device_a->transfer != device_b->transfer) ||
+	    (device_a->cfwdall != device_b->cfwdall) ||
+	    (device_a->cfwdbusy != device_b->cfwdbusy) ||
+	    (device_a->cfwdnoanswer != device_b->cfwdnoanswer) ||
+	    (device_a->park != device_b->park)  ||
+	    (device_a->meetme != device_b->meetme) ||
+#ifdef CS_ADV_FEATURES
+	    (device_a->useRedialMenu != device_b->useRedialMenu) ||
+#endif /* CS_ADV_FEATURES */
+	    (device_a->mwioncall != device_b->mwioncall) ) {
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "Minor changes\n");
+		return MINOR_CHANGES;
+	}
+
+	//sccp_selectedchannel_t selectedChannels
+	SCCP_LIST_LOCK(&device_a->selectedChannels);
+	SCCP_LIST_LOCK(&device_b->selectedChannels);
+	if (device_a->selectedChannels.size != device_b->selectedChannels.size) {
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))
+		         (VERBOSE_PREFIX_3 "selectedChannels: Minor changes (%d vs %d)\n",
+		                           device_a->selectedChannels.size, device_b->selectedChannels.size);
+		res = MINOR_CHANGES;
+	} else {
+		sccp_selectedchannel_t *sc_a = SCCP_LIST_FIRST(&device_a->selectedChannels);
+		sccp_selectedchannel_t *sc_b = SCCP_LIST_FIRST(&device_b->selectedChannels);
+		while (sc_a && sc_b) {
+			if (sc_a->channel->callid != sc_b->channel->callid) {
+				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "selectedChannels: Minor changes (diff)\n");
+				res = MINOR_CHANGES;
+				break;
+			}
+			sc_a = SCCP_LIST_NEXT(sc_a, list);
+			sc_b = SCCP_LIST_NEXT(sc_b, list);
+		}
+	}
+	SCCP_LIST_UNLOCK(&device_a->selectedChannels);
+	SCCP_LIST_UNLOCK(&device_b->selectedChannels);
 
 	/* \todo still to implement a check for device->setvar (ast_variables *variables) in sccp_device_changed */
 	//device_a->setvar

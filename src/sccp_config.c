@@ -114,7 +114,7 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
                            const char* name, const char* options, const char* args)
 {
 	sccp_buttonconfig_t *config = NULL;
-	unsigned new = 0;
+	boolean_t new = FALSE;
 	uint16_t highest_index = 0;
 
 	sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_1 "%s: Loading/Checking ButtonConfig\n", device->id);
@@ -131,7 +131,7 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 		}
 	}
 
-	if (index == -1) {
+	if (index < 0) {
 		index = highest_index + 1;
 		config = NULL;
 	}
@@ -145,8 +145,10 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 		config->index = index;
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "New %s Button %s at : %d:%d\n", sccp_buttontype2str(type), name, index, config->index);
 		SCCP_LIST_INSERT_TAIL(&device->buttonconfig, config, list);
-		new = 1;
+		new = TRUE;
 	}
+	else
+		config->pendingDelete = 0;
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 
 	if (ast_strlen_zero(name)) {
@@ -382,6 +384,9 @@ void sccp_config_addService(sccp_device_t *device, char *label, char *url, uint1
 sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char *deviceName, boolean_t isRealtime){
 	sccp_device_t 	*d = NULL;
 	int		res;
+#ifdef CS_DYNAMIC_CONFIG
+	boolean_t	is_new = FALSE;
+#endif
 	char 		message[256]=""; /*!< device message */
 
 
@@ -392,7 +397,7 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 	d = sccp_device_find_byid(deviceName, FALSE);
 	if (d
 #ifdef CS_DYNAMIC_CONFIG
-		&& !d->pendingDelete
+		&& !d->pendingDelete && !d->realtime
 #endif
 		) {
 		ast_log(LOG_WARNING, "SCCP: Device '%s' already exists\n", deviceName);
@@ -401,19 +406,30 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 
 	/* create new device with default values */
 	if (!d) {
-		d= sccp_device_create();
+		d = sccp_device_create();
 		sccp_copy_string(d->id, deviceName, sizeof(d->id));	/* set device name */
+#ifdef CS_DYNAMIC_CONFIG
+		is_new = TRUE;
+#endif
 	}
+
 #ifdef CS_DYNAMIC_CONFIG
 	/* clone d to temp_d */
 	sccp_device_t *temp_d = NULL;
-	if (d && d->pendingDelete && !d->realtime) {
+	if (d->pendingDelete) {
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: cloning device\n", d->id);
 		temp_d = sccp_clone_device(d);
+	} else if (d->realtime) {
+		/* if the device was realtime (for example an hotline), force
+		 * reset of the device.
+		 */
+		d->defaultLineInstance = 0;
+		d->isAnonymous = FALSE;
+		d->pendingUpdate = 1;
 	}
 #endif /* CS_DYNAMIC_CONFIG */
 
-	d= sccp_config_applyDeviceConfiguration(d, variable); 	/* apply configuration using variable */
+	d = sccp_config_applyDeviceConfiguration(d, variable); 	/* apply configuration using variable */
 
 #ifdef CS_DYNAMIC_CONFIG
 	/* compare temporairy temp_d to d */
@@ -445,9 +461,7 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 	}
 #endif /* CS_DYNAMIC_CONFIG */
 
-#ifdef CS_SCCP_REALTIME
 	d->realtime = isRealtime;
-#endif
 
 	res = ast_db_get("SCCPM", d->id, message, sizeof(message));				//load save message from ast_db
 	if (!res) {
@@ -455,7 +469,7 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 	}
 
 #ifdef CS_DYNAMIC_CONFIG
-	if (!d->pendingDelete){
+	if (is_new) {
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "%s: Adding device to Globals\n", d->id);
 		sccp_device_addToGlobals(d);
 	} else {
@@ -536,7 +550,6 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 
 		// removing temp_d
 		sccp_line_clean(temp_l,FALSE);
-//		sccp_line_free(temp_l);
 		temp_l=NULL;
 	}
 #endif /* CS_DYNAMIC_CONFIG */

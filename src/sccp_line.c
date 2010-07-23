@@ -29,6 +29,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_channel.h"
 #include "sccp_features.h"
 #include "sccp_mwi.h"
+#include "sccp_socket.h"
 #include <asterisk/utils.h>
 
 #ifdef CS_DYNAMIC_CONFIG
@@ -43,7 +44,9 @@ void sccp_line_pre_reload(void)
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list){
 		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: Setting Line to Pending Delete=1\n", l->name);
-		l->pendingDelete = 1;
+		/* Don't want to include the hotline line */
+		if (l->realtime == FALSE)
+			l->pendingDelete = 1;
 		l->pendingUpdate = 0;
 	}
 	SCCP_LIST_UNLOCK(&GLOB(lines));
@@ -56,7 +59,47 @@ void sccp_line_pre_reload(void)
  */
 void sccp_line_post_reload(void)
 {
+	sccp_line_t* l;
+	sccp_linedevices_t* ld;
 
+	SCCP_LIST_LOCK(&GLOB(lines));
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), l, list){
+		if (!l->pendingDelete && !l->pendingUpdate)
+			continue;
+
+		sccp_line_lock(l);
+
+		SCCP_LIST_LOCK(&l->devices);
+		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+			if (!ld->device)
+				continue;
+
+			sccp_device_lock(ld->device);
+
+			if (sccp_device_numberOfChannels(ld->device) == 0) {
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Sending Device Reset\n");
+				sccp_device_sendReset(ld->device, SKINNY_DEVICE_RESTART);
+				sccp_session_close(ld->device->session);
+			} else { // skip this device. it will receive reset from sccp_channel_endcall upon completion of the call (***)
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", ld->device->id);
+				ld->device->pendingUpdate = 1;
+			}
+
+			sccp_device_unlock(ld->device);
+		}
+		SCCP_LIST_UNLOCK(&l->devices);
+
+		sccp_line_unlock(l);
+
+		if (l->pendingDelete) {
+			/* the mutex is destroyed by sccp_line_clean(), it has to be
+			 * released before calling it. */
+			sccp_line_clean(l, FALSE);
+			SCCP_LIST_REMOVE_CURRENT(list);
+		}
+	}
+	SCCP_LIST_TRAVERSE_SAFE_END
+	SCCP_LIST_UNLOCK(&GLOB(lines));
 }
 #endif /* CS_DYNAMIC_CONFIG */
 
@@ -236,9 +279,7 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global) {
 	if (l->trnsfvm)
 		ast_free(l->trnsfvm);
 
-	if (remove_from_global) {
-		sccp_mutex_destroy(&l->lock);
-	}
+	sccp_mutex_destroy(&l->lock);
 	sccp_mailbox_t *mailbox = NULL;
 
 	while( (mailbox = SCCP_LIST_REMOVE_HEAD(&l->mailboxes, list))){
@@ -638,28 +679,6 @@ sccp_diff_t sccp_line_changed(sccp_line_t *line_a,sccp_line_t *line_b) {
 	}
 	SCCP_LIST_UNLOCK(&line_a->mailboxes);
 	SCCP_LIST_UNLOCK(&line_b->mailboxes);
-
-	// changes in sccp_linedevices_t *orig_linedevices
-	SCCP_LIST_LOCK(&line_a->devices);
-	SCCP_LIST_LOCK(&line_b->devices);
-	if (line_a->devices.size != line_b->devices.size) {
-		sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "devices: Changes need reset\n");
-		res=CHANGES_NEED_RESET;
-	} else {
-		sccp_linedevices_t *dev_a = SCCP_LIST_FIRST(&line_a->devices);
-		sccp_linedevices_t *dev_b = SCCP_LIST_FIRST(&line_b->devices);
-		while (dev_a && dev_b) {
-			if ((strcmp(dev_a->device->id,dev_b->device->id))) {
-				sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "devices: Changes need reset\n");
-				res=CHANGES_NEED_RESET;
-				break;
-			}
-			dev_a = SCCP_LIST_NEXT(dev_a, list);
-			dev_b = SCCP_LIST_NEXT(dev_b, list);
-		}
-	}
-	SCCP_LIST_UNLOCK(&line_a->devices);
-	SCCP_LIST_UNLOCK(&line_b->devices);
 
 	/* \todo still to implement
 	a check for device->setvar (ast_variables *variables)

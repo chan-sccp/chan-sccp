@@ -554,10 +554,10 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 		case OpenReceiveChannelAck:
 		      sccp_handle_open_receive_channel_ack(s, r);
 		      break;
-		      
+
 		case OpenMultiMediaReceiveChannelAckMessage:
 		      sccp_handle_OpenMultiMediaReceiveAck(s, r);
-		      break;		  
+		      break;
 		case ConnectionStatisticsRes:
 		      sccp_handle_ConnectionStatistics(s,r);
 		      break;
@@ -737,7 +737,7 @@ static int reload_config(void) {
 	}
 
 	sccp_restart_monitor();
-	
+
 	return 0;
 }
 
@@ -749,6 +749,7 @@ void *sccp_create_hotline(void){
 	sccp_line_t	*hotline;
 
 	hotline = sccp_line_create();
+	hotline->realtime = TRUE;
 	sccp_copy_string(hotline->name, "Hotline", sizeof(hotline->name));
 	sccp_copy_string(hotline->cid_name, "hotline", sizeof(hotline->cid_name));
 	sccp_copy_string(hotline->cid_num, "hotline", sizeof(hotline->cid_name));
