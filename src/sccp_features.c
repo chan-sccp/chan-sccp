@@ -408,7 +408,8 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 
 			res = 0;
 			if(d->pickupmodeanswer) {
-				if ((res = ast_answer(c->owner))) {
+				if ((res = ast_answer(c->owner))) {  // \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
+				      
 					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (directpickup) Unable to answer '%s'\n", c->owner->name);
 					res = -1;
 				}
@@ -579,7 +580,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
 
 			res = 0;
 			if(d->pickupmodeanswer) {
-				if ((res = ast_answer(c->owner))) {
+				if ((res = ast_answer(c->owner))) { // \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
 					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Unable to answer '%s'\n", c->owner->name);
 					res = -1;
 				}
@@ -591,9 +592,9 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
 
 			if(res==0)
 			{
-				if ((res = ast_channel_masquerade(target, c->owner))) {
+				if ((res = ast_channel_masquerade(target, c->owner))) { // \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
 					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);
-					res = -1;
+					res = -1;			// \todo remove line : res value is being set to 0 in line 694 any way
 				} else {
 					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
 					sccp_channel_lock(c);
@@ -987,7 +988,7 @@ static void * sccp_feat_meetme_thread(void * data)
 #endif
 
        	d = c->device;
-        if (!(app = pbx_findapp("MeetMe"))) {
+        if (!(app = pbx_findapp("MeetMe"))) {	// \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
                 ast_log(LOG_WARNING, "SCCP: No MeetMe application available!\n");
                 sccp_channel_lock(c);
                 sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_DIALING);

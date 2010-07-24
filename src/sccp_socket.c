@@ -482,7 +482,7 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 		r->lel_reserved = 0;
 	}
 
-	res = 0;
+	res = 0;		// \todo value stored in res is necer read because of line 494
 	finishSending = 0;
 	try = 1;
 	maxTries = 500;

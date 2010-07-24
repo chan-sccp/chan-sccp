@@ -245,11 +245,11 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 			break;
 	}
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: Phone available lines %d\n", d->id, line_count);
-	i = 0;
+//	i = 0;		// \todo remove line : never used again after this point
 	if(d->isAnonymous == TRUE){
 		sccp_device_lock(d);
 		d->currentLine = GLOB(hotline)->line;
-		defaultLineSet = TRUE;
+//		defaultLineSet = TRUE;   // \todo remove line : never used again after this point
 
 		sccp_device_unlock(d);
 
@@ -1991,7 +1991,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 	char ipAddr[16];
 	uint32_t status = 0, ipPort = 0, partyID = 0;
 
-	if (!s || !(d = s->device))
+	if (!s || !s->device)
 		return;
 
 	d = s->device;
@@ -2124,7 +2124,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r){
 	char ipAddr[16];
 	uint32_t status = 0, ipPort = 0, partyID = 0;
 
-	if (!s || !(d = s->device))
+	if (!s || !s->device)
 		return;
 
 	d = s->device;

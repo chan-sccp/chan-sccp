@@ -787,9 +787,9 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 
 void sccp_channel_openMultiMediaChannel(sccp_channel_t *channel){
 	sccp_moo_t 	* r;
-	uint16_t	instance;
+//	uint16_t	instance;
 
-	instance = sccp_device_find_index_for_line(channel->device, channel->line->name);
+//	instance = sccp_device_find_index_for_line(channel->device, channel->line->name);   // \todo remove line. Variable never used afterwards in this function
 
 	r = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(r->msg.OpenMultiMediaChannelMessage));
 	r->lel_reserved = 0;
@@ -831,7 +831,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t *channel){
 
 void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 	sccp_moo_t 		* r;
-	uint16_t		instance;
+//	uint16_t		instance;
 	sccp_device_t 		* d = NULL;
 	struct sockaddr_in 	sin;
 	struct ast_hostent	ahp;
@@ -867,7 +867,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 		}
 	}
 
-	instance = sccp_device_find_index_for_line(channel->device, channel->line->name);
+//	instance = sccp_device_find_index_for_line(channel->device, channel->line->name); // \todo remove line. Variable never used afterwards in this function
 
 	r = sccp_build_packet(StartMultiMediaTransmission, sizeof(r->msg.StartMultiMediaTransmission));
 	r->lel_reserved = 0;

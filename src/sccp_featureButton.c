@@ -153,7 +153,6 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 				case SCCP_FEATURE_MULTIBLINK:
 					buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 					config->button.feature.status = device->priFeature.status;
-					buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 					break;
 
 				case SCCP_FEATURE_MOBILITY:

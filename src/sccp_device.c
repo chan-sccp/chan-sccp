@@ -253,7 +253,7 @@ sccp_device_t *sccp_device_addToGlobals(sccp_device_t *device){
 int sccp_device_get_codec(struct ast_channel *ast)
 {
 	sccp_channel_t *c = NULL;
-	sccp_device_t *d = NULL;
+//	sccp_device_t *d = NULL;
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Asterisk requested available codecs for channel %s\n", ast->name);
 
@@ -262,7 +262,8 @@ int sccp_device_get_codec(struct ast_channel *ast)
 		return GLOB(global_capability);
 	}
 
-	if (!(d = c->device)) {
+//	if (!(d = c->device)) {   // \todo remove line: value is never actually stored in d.
+	if (!c->device) {
 		sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Couldn't find a device associated to channel. Returning global capabilities\n");
 		//return GLOB(global_capability);
 	}
@@ -1038,7 +1039,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 {
 	char tmp[256] = "";
 	int timeout = 0;
-	uint8_t res = 0;
+//	uint8_t res = 0;
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_1 "%s: (sccp_dev_check_displayprompt) Send Current Options to Device\n", d->id);
 	if (!d || !d->session)
@@ -1053,7 +1054,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK); 					/* this is for redial softkey */
 
 	/* check for forward to display */
-	res = 0;
+//	res = 0;	// \todo remove line: res never gets used
 
 #if CS_ADV_FEATURES
 	sccp_buttonconfig_t 	*buttonconfig;
