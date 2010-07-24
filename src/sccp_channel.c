@@ -244,8 +244,8 @@ void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * c)
  */
 void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t * c)
 {
-	sccp_moo_t * r;
-	uint8_t			instance =0;
+	sccp_moo_t 	* r;
+	uint8_t		instance =0;
 
 	if(!device || !c)
 		return;
@@ -356,9 +356,9 @@ void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t * c)
  */
 void sccp_channel_send_dialednumber(sccp_channel_t * c)
 {
-	sccp_moo_t 		*r;
+	sccp_moo_t 	*r;
 	sccp_device_t	*device;
-	uint8_t instance;
+	uint8_t 	instance;
 
 	if (ast_strlen_zero(c->calledPartyNumber))
 		return;
@@ -385,7 +385,7 @@ void sccp_channel_send_dialednumber(sccp_channel_t * c)
  */
 void sccp_channel_setSkinnyCallstate(sccp_channel_t * c, skinny_callstate_t state)
 {
-	//uint8_t instance;
+	//uint16_t instance;
 
 	c->previousChannelState =c->state;
 	c->state = state;
@@ -705,15 +705,12 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
  */
 void sccp_channel_openreceivechannel(sccp_channel_t * c)
 {
-	sccp_moo_t * r;
-	sccp_device_t * d = NULL;
-	int payloadType;
-	int packetSize;
-	struct sockaddr_in them;
-	uint8_t	instance;
-
-
-
+	sccp_moo_t 		* r;
+	sccp_device_t 		* d = NULL;
+	int 			payloadType;
+	int 			packetSize;
+	struct sockaddr_in 	them;
+	uint16_t		instance;
 
 	if(!c || !c->device)
 		return;
@@ -732,15 +729,11 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 	packetSize = 20;
 #endif
 
-
-
 	if(!payloadType){
 		c->isCodecFix = FALSE;
 		sccp_channel_updateChannelCapability(c);
 		c->isCodecFix = TRUE;
 	}
-
-
 
 	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: channel %s payloadType %d\n", c->device->id, (c->owner)?c->owner->name:"NULL", payloadType);
 
@@ -793,9 +786,8 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 }
 
 void sccp_channel_openMultiMediaChannel(sccp_channel_t *channel){
-	sccp_moo_t * r;
-	uint8_t	instance;
-
+	sccp_moo_t 	* r;
+	uint16_t	instance;
 
 	instance = sccp_device_find_index_for_line(channel->device, channel->line->name);
 
@@ -838,17 +830,17 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t *channel){
 }
 
 void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
-	sccp_moo_t * r;
-	uint8_t	instance;
-	sccp_device_t * d = NULL;
-	struct sockaddr_in sin;
-	struct ast_hostent ahp;
-	struct hostent *hp;
-	int payloadType; /* \todo unused? */
+	sccp_moo_t 		* r;
+	uint16_t		instance;
+	sccp_device_t 		* d = NULL;
+	struct sockaddr_in 	sin;
+	struct ast_hostent	ahp;
+	struct hostent 		*hp;
+	int 			payloadType; /* \todo unused? */
 #if ASTERISK_VERSION_NUM < 10400
-	char iabuf[INET_ADDRSTRLEN];
+	char 			iabuf[INET_ADDRSTRLEN];
 #endif
-	int packetSize; /* \todo unused? */
+	int 			packetSize; /* \todo unused? */
 
 	if (!channel->rtp.video) {
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: can't start vrtp media transmission, maybe channel is down %s-%08X\n", channel->device->id, channel->line->name, channel->callid);
@@ -860,8 +852,6 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 
 
 	ast_rtp_get_us(channel->rtp.video, &sin);
-
-
 
 	if (channel->device->nat) {
 		if (GLOB(externip.sin_addr.s_addr)) {
@@ -1503,9 +1493,9 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
  */
 int sccp_channel_hold(sccp_channel_t * c)
 {
-	sccp_line_t * l;
-	sccp_device_t * d;
-	int instance;
+	sccp_line_t 	* l;
+	sccp_device_t 	* d;
+	uint16_t 	instance;
 
 	if (!c)
 		return 0;
@@ -1604,10 +1594,10 @@ int sccp_channel_hold(sccp_channel_t * c)
  */
 int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
 {
-	sccp_line_t * l;
+	sccp_line_t 	* l;
 	sccp_device_t 	*d;
-	sccp_channel_t * hold;
-	int instance;
+	sccp_channel_t 	* hold;
+	uint16_t 	instance;
 
 	if (!c || !c->owner)
 		return 0;
@@ -2038,10 +2028,10 @@ void sccp_channel_destroy_rtp(sccp_channel_t * c)
  */
 void sccp_channel_transfer(sccp_channel_t * c)
 {
-	sccp_device_t * d;
-	sccp_channel_t * newcall = NULL;
+	sccp_device_t 	* d;
+	sccp_channel_t 	* newcall = NULL;
 	uint32_t	blindTransfer = 0;
-	uint8_t		instance;
+	uint16_t	instance;
 
 	if (!c)
 		return;
@@ -2107,13 +2097,13 @@ static void * sccp_channel_transfer_ringing_thread(void *data)
 	if (!ast)
 		return NULL;
 
-	sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: (Ringing within Transfer %s(%p)\n", ast->name, ast);
+	sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: (Ringing within Transfer %s(%p)\n", ast->name, (void *) ast);
 	if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_RING) {
-		sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Send ringing indication to %s(%p)\n", ast->name, ast);
+		sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Send ringing indication to %s(%p)\n", ast->name, (void *) ast);
 		ast_indicate(ast, AST_CONTROL_RINGING);
 	}
 	else if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_MOH) {
-		sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Started music on hold for channel %s(%p)\n", ast->name, ast);
+		sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Started music on hold for channel %s(%p)\n", ast->name, (void *) ast);
 #if ASTERISK_VERSION_NUM < 10400
 		ast_moh_start(ast, NULL);
 #else
@@ -2134,11 +2124,11 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	char *name, *number, *cidtmp;
 #endif
 	struct ast_channel	*astcSourceRemote = NULL, *astcDestinationLocal = NULL, *astcDestinationRemote = NULL;
-	sccp_channel_t * cSourceLocal;
-	sccp_device_t * d = NULL;
-	pthread_attr_t attr;
-	pthread_t t;
-	uint8_t			instance;
+	sccp_channel_t 		* cSourceLocal;
+	sccp_device_t 		* d = NULL;
+	pthread_attr_t 		attr;
+	pthread_t 		t;
+	uint16_t		instance;
 
 	if (!cDestinationLocal)
 		return;
@@ -2374,12 +2364,12 @@ static void * sccp_channel_park_thread(void *stuff) {
  * \param c SCCP Channel
  */
 void sccp_channel_park(sccp_channel_t * c) {
-	sccp_device_t * d;
-	sccp_line_t      * l;
-	struct sccp_dual *dual;
-	struct ast_channel *chan1m, *chan2m, *bridged;
-	pthread_t th;
-	uint8_t		instance;
+	sccp_device_t 		* d;
+	sccp_line_t      	* l;
+	struct sccp_dual 	* dual;
+	struct ast_channel 	* chan1m, * chan2m, * bridged;
+	pthread_t 		th;
+	uint16_t		instance;
 
 	if (!c)
 		return;

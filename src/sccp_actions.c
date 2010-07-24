@@ -434,9 +434,9 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 	sccp_dev_build_buttontemplate(d, btn);
 
 //	sccp_device_lock(d);
-	uint32_t speeddialInsance = 1; /* starting instance for speeddial is 1*/
-	uint32_t lineInstance = 1;
-	uint32_t serviceInstance = 1;
+	uint16_t speeddialInstance = 1; /* starting instance for speeddial is 1*/
+	uint16_t lineInstance = 1;
+	uint16_t serviceInstance = 1;
 	if(!d->isAnonymous){
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
@@ -488,7 +488,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 #ifdef CS_DYNAMIC_SPEEDDIAL
 						if(d->inuseprotocolversion >= 15){
 							      btn[i].type = 0x15;
-							      buttonconfig->instance = btn[i].instance = speeddialInsance++;
+							      buttonconfig->instance = btn[i].instance = speeddialInstance++;
 						}else{
 							      btn[i].type = SKINNY_BUTTONTYPE_LINE;
 							      buttonconfig->instance = btn[i].instance = lineInstance++;;
@@ -500,7 +500,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 #endif
 					} else {
 						btn[i].type = SKINNY_BUTTONTYPE_SPEEDDIAL;
-						buttonconfig->instance = btn[i].instance = speeddialInsance++;
+						buttonconfig->instance = btn[i].instance = speeddialInstance++;
 						
 					}
 					break;
@@ -509,7 +509,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				  && sccp_is_nonempty_string(buttonconfig->button.feature.label)
 				  && (btn[i].type == SCCP_BUTTONTYPE_MULTI)){
 				 
-					buttonconfig->instance = btn[i].instance = speeddialInsance++;
+					buttonconfig->instance = btn[i].instance = speeddialInstance++;
 				  	
 					switch(buttonconfig->button.feature.id)
 					{
@@ -1409,6 +1409,9 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r){
 void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 {
 	sccp_device_t 		*d = s->device;
+	if (!d)						// moved because would otherwise lead to null pointer dereference in the next lines.
+		return;
+
 	const softkey_modes 	*v = d->softKeyConfiguration.modes;
 	const	uint8_t		v_count = d->softKeyConfiguration.size;
 	int 			iKeySetCount = 0;
@@ -1420,8 +1423,6 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 #ifdef CS_SCCP_PICKUP
 	uint8_t 		pickupgroup= 0;
 #endif
-	if (!d)
-		return;
 
 	//sccp_device_lock(d);
 
