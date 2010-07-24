@@ -160,7 +160,7 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 			l = sccp_line_find_byid(d, d->defaultLineInstance);
 		}
 	}
-	if(!l)
+	if(!l && d && d->currentLine)
 		l = d->currentLine;
 
 	if(strlen(l->adhocNumber)>0)
@@ -381,12 +381,13 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 
 	sccp_selectedchannel_t *x;
 	sccp_channel_t *chan1 = NULL, *chan2 = NULL, *tmp = NULL;
-	uint8_t numSelectedChannels = 0;
+//	uint8_t numSelectedChannels = 0;
 
 	if(!d)
 		return;
 
-	if((numSelectedChannels = sccp_device_selectedchannels_count(d)) != 2) {
+//	if((numSelectedChannels = sccp_device_selectedchannels_count(d)) != 2) {  // \todo remove line: numSelectedChannels never gets used
+	if((sccp_device_selectedchannels_count(d)) != 2) {
 		if (l->channelCount == 2) {
 			sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: Automatically select the two current channels\n", d->id);
 			SCCP_LIST_LOCK(&l->channels);
