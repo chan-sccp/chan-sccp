@@ -1806,7 +1806,6 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
 			}
 		}
 	}
-
 	// features
 	new_device->privacyFeature = orig_device->privacyFeature;
 	new_device->overlapFeature = orig_device->overlapFeature;
@@ -1826,11 +1825,15 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
 
 	// scheduleTasks
 	new_device->scheduleTasks = orig_device->scheduleTasks;
+
+/*	\todo produces a memcpy fault when compiled --with-conference. Copy Function of this structure has to be build.
 #ifdef CS_SCCP_CONFERENCE
 	// sccp_conference	*conference
 	new_device->conference = calloc(1,sizeof(sccp_conference_t));
 	memcpy(new_device->conference,orig_device->conference,sizeof(sccp_conference_t));
 #endif
+*/
+
 	// btnlist		*buttonTemplate
 //	new_device->buttonTemplate = calloc(1,sizeof(btnlist));
 //	memcpy(new_device->btnTemplate,orig_device->btnTemplate,sizeof(btnlist));
@@ -1843,9 +1846,7 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
 	if (orig_device->phonemessage)
 		new_device->phonemessage = ast_strdup(orig_device->phonemessage);
 
-	// softKeyConfiguration
-
-	/* copy list-items over */
+	// copy list-items over 
 	sccp_duplicate_device_buttonconfig_list(new_device,orig_device);
 	sccp_duplicate_device_hostname_list(new_device,orig_device);
 	sccp_duplicate_device_selectedchannel_list(new_device,orig_device);
