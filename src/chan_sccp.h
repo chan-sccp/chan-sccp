@@ -295,7 +295,7 @@ typedef enum {
 	DEBUGCAT_LOCK				= 1 << 23,
 	DEBUGCAT_MESSAGE			= 1 << 24,
 	DEBUGCAT_NEWCODE			= 1 << 25,
-	DEBUGCAT_HIGH				= 1 << 26,
+	DEBUGCAT_HIGH				= 1 << 26
 } sccp_debug_category_t;									/*!< SCCP Debug Category Enum */
 
 /*!

@@ -1093,12 +1093,12 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(newchan);
 
 	if (!c) {
-		ast_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", oldchan->name, oldchan, newchan->name, newchan);
+		ast_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", oldchan->name, (void *)oldchan, newchan->name, (void *)newchan);
 		return -1;
 	}
 	sccp_mutex_lock(&c->lock);
 	if (c->owner != oldchan) {
-		ast_log(LOG_WARNING, "SCCP: old channel wasn't %p but was %p\n", oldchan, c->owner);
+		ast_log(LOG_WARNING, "SCCP: old channel wasn't %p but was %p\n", (void *)oldchan, (void *)c->owner);
 		sccp_mutex_unlock(&c->lock);
 		return -1;
 	}

@@ -193,8 +193,8 @@ typedef enum {
 
 typedef enum {
         SKINNY_CALLTYPE_INBOUND			=1,
-        SKINNY_CALLTYPE_OUTBOUND		=2,
-        SKINNY_CALLTYPE_FORWARD			=3,
+	SKINNY_CALLTYPE_OUTBOUND		=2,
+        SKINNY_CALLTYPE_FORWARD			=3
 } skinny_calltype_t;								/*!< Skinny Calltype */
 
 /*!
@@ -979,7 +979,7 @@ typedef enum {
         SKINNY_CODEC_H264		= 103,
         SKINNY_CODEC_T120		= 105,
         SKINNY_CODEC_H224		= 106,
-        SKINNY_CODEC_RFC2833_DYNPAYLOAD	= 257,
+        SKINNY_CODEC_RFC2833_DYNPAYLOAD	= 257
 } skinny_media_payload;
 
 /*!
@@ -1072,7 +1072,7 @@ static const struct sccp_dndmode {
 	{ SCCP_DNDMODE_REJECT		,	"Reject"	},
 	{ SCCP_DNDMODE_SILENT		,	"Silent"	},
 	{ SCCP_DNDMODE_USERDEFINED	,	"User Defined"	},
-};;
+};
 
 #define SCCP_BLINDTRANSFER_RING			0 				/*!< default */
 #define SCCP_BLINDTRANSFER_MOH			1 				/*!< music on hold */
