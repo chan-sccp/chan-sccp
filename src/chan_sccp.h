@@ -681,7 +681,7 @@ struct sccp_device {
 	unsigned int				mwilamp: 3;				/*!< MWI/Lamp to indicate MailBox Messages */
 	unsigned int				mwioncall: 1;				/*!< MWI On Call Support (Boolean, default=on) */
 	unsigned int				softkeysupport: 1;			/*!< Soft Key Support (Boolean, default=on) */
-	unsigned int				mwilight: 1;				/*!< MWI/Light Support (Boolean, default=on) \todo MWI/Light or Lamp was soll es sein */
+	uint64_t				mwilight;				/*!< MWI/Light bit field to to store mwi light for each line and device (offset 0 is current device state) */
 
 	unsigned int				transfer: 1;				/*!< Transfer Support (Boolean, default=on) */
 	//unsigned int				conference: 1;				/*!< Conference Support (Boolean, default=on) */
