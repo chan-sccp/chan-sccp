@@ -238,6 +238,22 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_BUSY, 0);
 		sccp_ast_setstate(c, AST_STATE_BUSY);
 		break;
+	case SCCP_CHANNELSTATE_PROGRESS:				/* \todo SCCP_CHANNELSTATE_PROGRESS To be checked */
+		sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_PROGRESS (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
+		if(c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) { // this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app)
+			sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
+			c->state = SCCP_CHANNELSTATE_CONNECTED;
+			// sccp_feat_updatecid(c);
+			return;
+		}
+		sccp_dev_stoptone(d, instance, c->callid);
+		sccp_channel_send_callinfo(d, c);
+		if (!c->rtp.audio) {
+			sccp_channel_openreceivechannel(c);
+		}
+		sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); 
+		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
+		break;
 	case SCCP_CHANNELSTATE_PROCEED:
 		if(c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) { // this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app)
 			sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
@@ -294,6 +310,12 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 	case SCCP_CHANNELSTATE_CALLCONFERENCE:
 		sccp_device_sendcallstate(d, instance,c->callid, SCCP_CHANNELSTATE_CALLCONFERENCE, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		break;
+	case SCCP_CHANNELSTATE_INVALIDCONFERENCE:				/* \todo SCCP_CHANNELSTATE_INVALIDCONFERENCE To be implemented */
+		sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_INVALIDCONFERENCE (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
+		break;
+	case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:				/* \todo SCCP_CHANNELSTATE_CONNECTEDCONFERENCE To be implemented */
+		sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_CONNECTEDCONFERENCE (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
+		break;
 	case SCCP_CHANNELSTATE_CALLPARK:
 		sccp_device_sendcallstate(d, instance,c->callid, SCCP_CHANNELSTATE_CALLPARK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		break;
@@ -338,8 +360,13 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_DIGITSFOLL);
 		sccp_ast_setstate(c, AST_STATE_DIALING);
 		break;
+	case SCCP_CHANNELSTATE_BLINDTRANSFER:					/* \todo SCCP_CHANNELSTATE_BLINDTRANSFER To be implemented */
+		sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_BLINDTRANSFER (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
+		break;
+	default:								/* \todo SCCP_CHANNELSTATE:default To be implemented */
+		sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE:default  (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
+		break;
 	}
-	
 	
 
 	/* notify all remote devices */
