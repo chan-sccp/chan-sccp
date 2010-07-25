@@ -592,6 +592,9 @@ void sccp_mwi_check(sccp_device_t *device)
 					r->msg.SetLampMessage.lel_lampMode = htolel( (device->mwilight) ? device->mwilamp :  SKINNY_LAMP_OFF);
 					sccp_dev_send(device, r);
 					sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: Turn %s the MWI light\n",DEV_ID_LOG(device), (device->mwilight > 0) ? "ON" : "OFF");
+					
+					/* we should check the display only once, maybe we need a priority stack -MC */
+					sccp_dev_check_displayprompt(device);
 				}
 				/* */
 			}
@@ -599,8 +602,7 @@ void sccp_mwi_check(sccp_device_t *device)
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 	
-	/* we should check the display only once, maybe we need a priority stack -MC */
-	sccp_dev_check_displayprompt(device);
+	
 	
 	sccp_device_unlock(device);
 }
