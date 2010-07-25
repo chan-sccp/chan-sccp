@@ -21,6 +21,10 @@ void sccp_device_pre_reload(void);
 void sccp_device_post_reload(void);
 #endif
 
+
+//#define sccp_dev_check_displayprompt(x) sccp_dev_check_displayprompt_debug(x, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+void sccp_dev_check_displayprompt(sccp_device_t * d);
+
 sccp_device_t * sccp_device_create(void);
 sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d);
 sccp_device_t *sccp_device_addToGlobals(sccp_device_t *device);
@@ -53,7 +57,7 @@ void sccp_dev_displayprinotify(sccp_device_t * d, char * msg, uint32_t priority,
 sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, uint8_t type);
 sccp_line_t * sccp_dev_get_activeline(sccp_device_t * d);
 void sccp_dev_set_activeline(sccp_device_t *device, sccp_line_t * l);
-void sccp_dev_check_displayprompt(sccp_device_t * d);
+
 void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * l);
 void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t instance, uint8_t lampMode);
 void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device);

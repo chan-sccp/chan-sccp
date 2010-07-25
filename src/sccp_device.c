@@ -559,43 +559,43 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
  */
 void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
 {
-	sccp_moo_t * r;
-	uint8_t instance;
-	if (!d)
-		return;
-
-	int retry = 0;
-	while(sccp_device_trylock(d)) {
-		retry++;
-		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s), retry: %d\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__, retry);
-		usleep(100);
-
-		if(retry > 100){
-			sccp_device_unlock(d);
-			return;
-		}
-	}
-
-	if (l) {
-		instance = sccp_device_find_index_for_line(d, l->name);
-	} else {
-		if (d->mwilight == hasMail) {
-			sccp_device_unlock(d);
-			return;
-		}
-		d->mwilight = hasMail;
-		instance = 0;
-	}
-	sccp_device_unlock(d);
-
-
-	REQ(r, SetLampMessage);
-	r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
-	r->msg.SetLampMessage.lel_stimulusInstance = (l ? htolel(instance) : 0);
-	/* when l is defined we are switching on/off the button icon */
-	r->msg.SetLampMessage.lel_lampMode = htolel( (hasMail) ? ( (l) ? SKINNY_LAMP_ON :  d->mwilamp) : SKINNY_LAMP_OFF);
-	sccp_dev_send(d, r);
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_MWI))(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n",DEV_ID_LOG(d), hasMail ? "ON" : "OFF", (l ? l->name : "unknown"),(l ? instance : 0));
+// 	sccp_moo_t * r;
+// 	uint8_t instance;
+// 	if (!d)
+// 		return;
+// 
+// 	int retry = 0;
+// 	while(sccp_device_trylock(d)) {
+// 		retry++;
+// 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s), retry: %d\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__, retry);
+// 		usleep(100);
+// 
+// 		if(retry > 100){
+// 			sccp_device_unlock(d);
+// 			return;
+// 		}
+// 	}
+// 
+// 	if (l) {
+// 		instance = sccp_device_find_index_for_line(d, l->name);
+// 	} else {
+// 		if (d->mwilight == hasMail) {
+// 			sccp_device_unlock(d);
+// 			return;
+// 		}
+// 		d->mwilight = hasMail;
+// 		instance = 0;
+// 	}
+// 	sccp_device_unlock(d);
+// 
+// 
+// 	REQ(r, SetLampMessage);
+// 	r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
+// 	r->msg.SetLampMessage.lel_stimulusInstance = (l ? htolel(instance) : 0);
+// 	/* when l is defined we are switching on/off the button icon */
+// 	r->msg.SetLampMessage.lel_lampMode = htolel( (hasMail) ? ( (l) ? SKINNY_LAMP_ON :  d->mwilamp) : SKINNY_LAMP_OFF);
+// 	sccp_dev_send(d, r);
+// 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_MWI))(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n",DEV_ID_LOG(d), hasMail ? "ON" : "OFF", (l ? l->name : "unknown"),(l ? instance : 0));
 }
 
 /*!
@@ -1041,22 +1041,22 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	int timeout = 0;
 //	uint8_t res = 0;
 
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_1 "%s: (sccp_dev_check_displayprompt) Send Current Options to Device\n", d->id);
+	//sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_1 "%s: %s:%d %s: (sccp_dev_check_displayprompt) Send Current Options to Device\n", file, pretty_function, line, d->id);
 	if (!d || !d->session)
 		return;
 
 	sccp_dev_clearprompt(d, 0, 0);
-	sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
 
-	if (d->phonemessage) 								// display message if set
+	if (d->phonemessage){ 								// display message if set
 		sccp_dev_displayprompt(d,0,0,d->phonemessage,0);
-
-	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK); 					/* this is for redial softkey */
+		goto OUT;
+	}
 
 	/* check for forward to display */
 //	res = 0;	// \todo remove line: res never gets used
 
-#if CS_ADV_FEATURES
+#if 0 // CS_ADV_FEATURES
+	/* we should not do this, is requested by device and have to be set on status change -MC */
 	sccp_buttonconfig_t 	*buttonconfig;
 	sccp_linedevices_t 	*linedevice;
 	sccp_line_t 		*l;
@@ -1200,6 +1200,8 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " (Silent) <<<", 0);
 		else
 			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " <<<", 0);
+		
+		goto OUT;
 	}
 
 	if (!ast_db_get("SCCP/message", "timeout", tmp, sizeof(tmp))) {
@@ -1218,7 +1220,12 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 		sccp_dev_displayprinotify(d, buffer, 5, 10);
 		goto OUT;
 	}
+	
 	/* when we are here, there's nothing to display */
+	sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
+	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);/* this is for redial softkey */
+	
+	
 OUT:
 	sccp_log((DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: Finish DisplayPrompt\n", d->id);
 }
