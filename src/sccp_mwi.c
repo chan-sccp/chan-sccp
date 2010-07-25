@@ -424,7 +424,7 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 		status = l->voicemailStatistic.newmsgs ? 1 : 0;
 	}
 
-	mask = status << instance;
+	mask = 1 << instance;
 
 	/* update status */
 	if(status){
@@ -432,6 +432,7 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 		newState |= mask;
 	}else{
 		/* deactivate */
+		newState = d->mwilight;
 		newState &= ~mask;
 	}
 
@@ -444,11 +445,13 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 		r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
 		r->msg.SetLampMessage.lel_stimulusInstance = htolel(instance);
 		//r->msg.SetLampMessage.lel_lampMode = htolel( (l->voicemailStatistic.newmsgs) ? SKINNY_LAMP_ON :  SKINNY_LAMP_OFF);
-		r->msg.SetLampMessage.lel_lampMode = htolel( (d->mwilight) ? d->mwilamp :  SKINNY_LAMP_OFF);
+		r->msg.SetLampMessage.lel_lampMode = htolel( (status) ? d->mwilamp :  SKINNY_LAMP_OFF);
 		
 		sccp_dev_send(d, r);
 		sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n",DEV_ID_LOG(d), (mask > 0) ? "ON" : "OFF", (l ? l->name : "unknown"),(l ? instance : 0));
 	}
+
+	
 
 	sccp_mwi_check(d);
 
@@ -570,38 +573,38 @@ void sccp_mwi_check(sccp_device_t *device)
 				//sccp_mwi_setMWILineStatus(device, line); /* set mwi-line-status */
 				device->voicemailStatistic.oldmsgs += line->voicemailStatistic.oldmsgs;
 				device->voicemailStatistic.newmsgs += line->voicemailStatistic.newmsgs;
-
-				/* set mwi light */
-				mask = device->mwilight & ~(1<<0); /* status without mwi light for device (1<<0)*/
-				status = (mask > 0) ? 1 : 0;
-								
-				if( (device->mwilight & (1<<0)) != status ){
-					/* update status */
-					if(status){
-						/* activate */
-						device->mwilight |= (1<<0);
-					}else{
-						/* deactivate */
-						device->mwilight &= ~(1<<0);
-					}
-					
-					
-					REQ(r, SetLampMessage);
-					r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
-					r->msg.SetLampMessage.lel_stimulusInstance = 0;
-					r->msg.SetLampMessage.lel_lampMode = htolel( (device->mwilight) ? device->mwilamp :  SKINNY_LAMP_OFF);
-					sccp_dev_send(device, r);
-					sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: Turn %s the MWI light\n",DEV_ID_LOG(device), (device->mwilight > 0) ? "ON" : "OFF");
-					
-					/* we should check the display only once, maybe we need a priority stack -MC */
-					sccp_dev_check_displayprompt(device);
-				}
-				/* */
 			}
 		}
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
+
 	
+	/* set mwi light */
+	mask = device->mwilight & ~(1<<0); /* status without mwi light for device (1<<0)*/
+	status = (mask > 0) ? 1 : 0;
+					
+	if( (device->mwilight & (1<<0)) != status ){
+		/* update status */
+		if(status){
+			/* activate */
+			device->mwilight |= (1<<0);
+		}else{
+			/* deactivate */
+			device->mwilight &= ~(1<<0);
+		}
+		
+		
+		REQ(r, SetLampMessage);
+		r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
+		//r->msg.SetLampMessage.lel_stimulusInstance = 0;
+		r->msg.SetLampMessage.lel_lampMode = htolel( (device->mwilight) ? device->mwilamp :  SKINNY_LAMP_OFF);
+		sccp_dev_send(device, r);
+		sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: Turn %s the MWI light\n",DEV_ID_LOG(device), (device->mwilight > 0) ? "ON" : "OFF");
+		
+		/* we should check the display only once, maybe we need a priority stack -MC */
+		sccp_dev_check_displayprompt(device);
+	}
+	/* */
 	
 	
 	sccp_device_unlock(device);
