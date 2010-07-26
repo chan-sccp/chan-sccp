@@ -192,6 +192,13 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 
 	if (d->session) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Device is doing a re-registration!\n", d->id);
+#ifdef CS_DYNAMIC_CONFIG
+		sccp_session_close(d->session);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Previous Session Closed!\n", d->id);
+		destroy_session(d->session);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Previous Session Destoyed!\n", d->id);
+		d->session=NULL;
+#endif
 	}
 #if ASTERISK_VERSION_NUM < 10400
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fd, ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
