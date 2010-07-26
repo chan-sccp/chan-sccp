@@ -43,6 +43,15 @@
 /* Define ASTERISK_CONF_1_8 */
 #undef ASTERISK_CONF_1_8
 
+/* Define ASTERISK_CONF_1_8_0 */
+#undef ASTERISK_CONF_1_8_0
+
+/* Define ASTERISK_CONF_1_8_1 */
+#undef ASTERISK_CONF_1_8_1
+
+/* Define ASTERISK_CONF_1_8_2 */
+#undef ASTERISK_CONF_1_8_2
+
 /* ASTERISK Revision Number */
 #undef ASTERISK_REVISION
 
