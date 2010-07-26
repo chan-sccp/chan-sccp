@@ -1696,7 +1696,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 	else if (event == 15)
 		resp = '#';
 
-	if (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED) {
+	if (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED || c->state == SCCP_CHANNELSTATE_PROGRESS) {	// added PROGRESS to make sending digits possible during progress state (Pavel Troller)
 		/* we have to unlock 'cause the senddigit lock the channel */
 		sccp_channel_unlock(c);
 //		sccp_dev_starttone(d, (uint8_t) event);
