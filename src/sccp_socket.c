@@ -148,7 +148,7 @@ void sccp_session_close(sccp_session_t * s)
  * \brief Destroy Socket Session
  * \param s SCCP Session
  */
-static void destroy_session(sccp_session_t * s)
+void destroy_session(sccp_session_t * s)
 {
 	sccp_device_t * d;
 #if ASTERISK_VERSION_NUM < 10400
