@@ -116,7 +116,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 
 	memset(&btn, 0 , sizeof(btn));
 
-	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d\n",
+	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d\n",
 		r->msg.RegisterMessage.sId.deviceName,
 		letohl(r->msg.RegisterMessage.sId.lel_instance),
 		devicetype2str(letohl(r->msg.RegisterMessage.lel_deviceType)),
@@ -191,14 +191,12 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	if (d->session) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Device is doing a re-registration!\n", d->id);
-#ifdef CS_DYNAMIC_CONFIG
+		sccp_log(1)(VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", d->id);
 		sccp_session_close(d->session);
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Previous Session Closed!\n", d->id);
+		sccp_log(1)(VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
 		destroy_session(d->session);
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Previous Session Destoyed!\n", d->id);
+		sccp_log(1)(VERBOSE_PREFIX_3 "Previous Session for %s Destoyed!\n", d->id);
 		d->session=NULL;
-#endif
 	}
 #if ASTERISK_VERSION_NUM < 10400
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fd, ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
@@ -1707,7 +1705,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 		/* we have to unlock 'cause the senddigit lock the channel */
 		sccp_channel_unlock(c);
 //		sccp_dev_starttone(d, (uint8_t) event);
-    	sccp_pbx_senddigit(c, resp);
+	    	sccp_pbx_senddigit(c, resp);
     	return;
 	}
 
@@ -1729,7 +1727,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 
 				/* we shouldn't start pbx another time */
 				sccp_channel_unlock(c);
-		    	sccp_pbx_senddigit(c, resp);
+			    	sccp_pbx_senddigit(c, resp);
 		    	return;
 			}
 
