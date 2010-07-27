@@ -82,7 +82,7 @@ static void * sccp_hint_remoteNotification_thread(void *data);
 
 
 sccp_hint_list_t *sccp_hint_create(char *hint_context, char *hint_exten);
-void sccp_hint_subscribeHint(const sccp_device_t *device, const char *hintStr, uint8_t instance);
+void sccp_hint_subscribeHint(const sccp_device_t *device, const char *hintStr, const uint8_t instance, const uint8_t positionOnDevice);
 void sccp_hint_unSubscribeHint(const sccp_device_t *device, const char *hintStr, uint8_t instance);
 
 void sccp_hint_eventListener(const sccp_event_t **event);
@@ -136,6 +136,23 @@ void sccp_hint_module_stop()
 	}
 	SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
 }
+
+/*! \brief can we us cid for device?
+ * 
+ */
+static boolean_t sccp_hint_isCIDavailabe(const sccp_device_t *device, const uint8_t positionOnDevice){
+  
+	if( (	device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 
+	      || device->skinny_type == SKINNY_DEVICETYPE_CISCO7971 
+	      || device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 
+	      || device->skinny_type == SKINNY_DEVICETYPE_CISCO7985) 
+	  && positionOnDevice <= 8)
+	  
+		return TRUE;
+  
+	return FALSE;
+}
+
 
 /*!
  * \brief Event Listener for Hints
@@ -192,14 +209,16 @@ void sccp_hint_eventListener(const sccp_event_t **event){
  */
 void sccp_hint_deviceRegistered(const sccp_device_t *device){
 	sccp_buttonconfig_t *config;
+	uint8_t positionOnDevice = 0;
 	
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
-
+		positionOnDevice++;
+		
 		if(config->type == SPEEDDIAL){
 			if (ast_strlen_zero(config->button.speeddial.hint)){
 				continue;
 			}
-			sccp_hint_subscribeHint(device, config->button.speeddial.hint, config->instance);
+			sccp_hint_subscribeHint(device, config->button.speeddial.hint, config->instance, positionOnDevice);
 
 		}
 	}
@@ -448,17 +467,20 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			
 			/* do not add name for TEMP_FAIL and ONHOOK */
 			if(hint->currentState > 2 ){
-#ifdef CS_DYNAMIC_SPEEDDIAL_CID
-				sprintf(displayMessage, "%s %s %s", 
-					(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)?hint->callInfo.calledPartyName : hint->callInfo.callingPartyName,
-					(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)? " -> " : " <- ",
-					(k)?k->name:"unknown speeddial"
-				);
-#else
-				sprintf(displayMessage, "%s", 
-					(k)?k->name:"unknown speeddial"
-				);
-#endif
+//#ifdef CS_DYNAMIC_SPEEDDIAL_CID
+				if(sccp_hint_isCIDavailabe(subscriber->device, subscriber->positionOnDevice) == TRUE){
+					sprintf(displayMessage, "%s %s %s", 
+						(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)?hint->callInfo.calledPartyName : hint->callInfo.callingPartyName,
+						(hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND)? " -> " : " <- ",
+						(k)?k->name:"unknown speeddial"
+					);
+				}else{
+//#else
+					sprintf(displayMessage, "%s", 
+						(k)?k->name:"unknown speeddial"
+					);
+				}
+//#endif
 			}else{
 				sccp_copy_string(displayMessage, (k)?k->name:"unknown speeddial", sizeof(displayMessage));
 			}
@@ -914,8 +936,9 @@ DONE:
  * \param device SCCP Device
  * \param hintStr Asterisk Hint Name as char
  * \param instance Instance as int
+ * \param positionOnDevice button index on device (used to detect devicetype)
  */
-void sccp_hint_subscribeHint(const sccp_device_t *device, const char *hintStr, uint8_t instance){
+void sccp_hint_subscribeHint(const sccp_device_t *device, const char *hintStr, const uint8_t instance, const uint8_t positionOnDevice){
 	sccp_hint_list_t *hint = NULL;
 
 	char buffer[256] = "";
@@ -976,6 +999,7 @@ void sccp_hint_subscribeHint(const sccp_device_t *device, const char *hintStr, u
 	
 	subscriber->device = device;
 	subscriber->instance = instance;
+	subscriber->positionOnDevice = positionOnDevice;
 
 	SCCP_LIST_INSERT_HEAD(&hint->subscribers, subscriber, list);
 

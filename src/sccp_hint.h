@@ -28,6 +28,7 @@ struct sccp_hint_SubscribingDevice{
 
 	const sccp_device_t				* device;			/*!< SCCP Device */
 	uint8_t						instance;			/*!< Instance */
+	uint8_t						positionOnDevice;		/*!< Instance */
 
 	SCCP_LIST_ENTRY(sccp_hint_SubscribingDevice_t) 	list;				/*!< Hint Subscribing Device Linked List Entry*/
 };											/*!< SCCP Hint Subscribing Device Structure */
