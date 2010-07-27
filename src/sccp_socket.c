@@ -124,24 +124,6 @@ void sccp_session_close(sccp_session_t * s)
 	if (!s)
 		return;
 
-#ifdef CS_DYNAMIC_CONFIG
-	if (GLOB(regcontext)) {
-		sccp_line_t             *l = NULL;
-		sccp_buttonconfig_t     *config;
-		sccp_device_t     	*d = s->device;
-
-		sccp_log((DEBUGCAT_SOCKET | DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_3 "%s: Unregistering Extension from regcontext %s.\n", DEV_ID_LOG(d), GLOB(regcontext));
-		
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-			if(config->type == LINE) {
-				l = sccp_line_find_byname_wo(config->button.line.name, TRUE);
-				unregister_exten(l,&(config->button.line.subscriptionId));
-			}
-		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
-	}
-#endif
 	// fire event for new device
 	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
 	memset(event, 0, sizeof(sccp_event_t));
