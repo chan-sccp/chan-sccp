@@ -535,7 +535,7 @@
  * For more information check out : \n
  * http://www.cisco.com/en/US/products/hw/phones/ps379/products_tech_note09186a0080094584.shtml
  *
- * \section DUNDi DUNDi Lookup
+ * \section DUNDi Asterisk Clustering and DUNDi Lookup
  * DUNDi is a peer-to-peer system for locating Internet Gateways to telephony services. 
  * Unlike traditional centralized services (such as the remarkably simple and concise ENUM standard), 
  * DUNDi is fully distributed with no centralized authority whatsoever.
