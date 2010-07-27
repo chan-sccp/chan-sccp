@@ -479,8 +479,8 @@ struct sccp_linedevices {
  */
 
 struct sccp_buttonconfig {
-	uint16_t				instance;				/*!< Instance on device */
-	uint16_t				index;					/*!< buttonconfig index */
+	uint8_t					instance;				/*!< Instance on device */
+//	uint8_t					position;				/*!< button position on device */
 	button_type_t 				type;					/*!< Button type (e.g. line, speeddial, feature, empty) */
 	SCCP_LIST_ENTRY(sccp_buttonconfig_t) 	list;					/*!< Button Linked List Entry */
 
