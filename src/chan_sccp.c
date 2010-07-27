@@ -1225,6 +1225,7 @@ static int unload_module(void) {
 
 		//if (l->cfwd_num)
 		//	ast_free(l->cfwd_num);
+
 		if (l->trnsfvm)
 			ast_free(l->trnsfvm);
 		ast_free(l);

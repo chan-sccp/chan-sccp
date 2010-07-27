@@ -1,4 +1,211 @@
+2010-07-27  marcelloceschia
+
+	* [r1707] src/sccp_channel.c: fixes Invalid SCCP message! with
+	  protocol version > 11
+
+2010-07-27  progs
+
+	* [r1706] src/chan_sccp.h, src/sccp_hint.c, src/sccp_mwi.c: fixes
+	  compilation and some warnings
+
+	* [r1705] src/sccp_featureButton.c, src/sccp_features.c: remove the
+	  comments which became obsolete by r1704
+
+2010-07-27  marcelloceschia
+
+	* [r1704] src/sccp_featureButton.c, src/sccp_features.c: solve
+	  empty body issue
+
+	* [r1703] src/chan_sccp.h:
+
+	* [r1702] src/sccp_channel.c: remove warings
+
+	* [r1701] src/sccp_hint.c, src/sccp_hint.h: use cid for dynamic
+	  speeddial only for devices 7970-7985 where button position <= 8
+
+2010-07-26  ddegroot
+
+	* [r1700] src/sccp_actions.c: Removed the #ifdef CS_DYNAMIC_CONFIG
+	  around session removal for re-registring devices
+
+	* [r1699] autoconf/asterisk.m4, configure, src/config.h.in:
+	  configure support for asterisk 1.8.0 beta...
+	  We are not able to compile against 1.8.0 right now though !!!
+
+	* [r1698] src/sccp_actions.c, src/sccp_socket.c, src/sccp_socket.h:
+	  Fix for device registration after hard reset
+
+2010-07-26  progs
+
+	* [r1697] src/sccp_pbx.c: fix crash (and fix indentation)
+
+2010-07-26  ddegroot
+
+	* [r1695] src/sccp_actions.c: Allow Sending Digits during
+	  SCCP_CHANNELSTATE_PROGRESS (Solution by Pavel Troller)
+	  Re: [Chan-sccp-b-discussion] Receiving PROGRESS disables further
+	  dialling
+	  07/26/2010 08:14:27 AM
+
+2010-07-25  ddegroot
+
+	* [r1694] src/sccp_indicate.c: Changed handling of
+	  SCCP_CHANNELSTATE_PROGRESS
+
+2010-07-25  marcelloceschia
+
+	* [r1693] src/sccp_mwi.c: fixes mwi light issue
+
+	* [r1692] src/sccp_device.c, src/sccp_device.h:
+	  sccp_dev_check_displayprompt
+
+	* [r1691] src/sccp_mwi.c: checking for mwi light status
+
+	* [r1690] src/sccp_mwi.c: checking for mwi light status
+
+	* [r1689] src/chan_sccp.h: use bit filed for mwi light
+
+2010-07-25  ddegroot
+
+	* [r1688] src/sccp_indicate.c, src/sccp_protocol.h: Added
+	  implementation for SCCP_CHANNELSTATE_PROGRESS
+
+2010-07-24  ddegroot
+
+	* [r1687] src/sccp_device.c: Remarked sccp_conference_t structure
+	  copy out in sccp_clone_device
+
+	* [r1686] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_device.c, src/sccp_featureButton.c, src/sccp_features.c,
+	  src/sccp_socket.c, src/sccp_softkeys.c: Search and remarked
+	  unused variables and null pointer dereferences
+
+	* [r1685] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_channel.c, src/sccp_pbx.c, src/sccp_protocol.h:
+	  Corrected a some of the variable types used for "instance"
+
+2010-07-23  progs
+
+	* [r1684] src/sccp_config.c, src/sccp_line.c: fix deadlock
+
+	* [r1683] src/chan_sccp.c, src/chan_sccp.h, src/config.h.in,
+	  src/sccp_channel.c, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_line.c: a lot of bugfixes in the reload feature
+	  
+	  It should now correctly works with the hotline, it checks if a
+	  line has
+	  been changed and restarts attached devices.
+	  And, of course, a lot of fixes.
+
+2010-07-22  marcelloceschia
+
+	* [r1682] src/chan_sccp.c, src/sccp_actions.c, src/sccp_actions.h,
+	  src/sccp_channel.c, src/sccp_protocol.h: some testing with
+	  protocol version 11
+
+	* [r1681] src/sccp_cli.c: some debug output
+
+2010-07-21  ddegroot
+
+	* [r1680] src/chan_sccp.c, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_cli.c, src/sccp_conference.c, src/sccp_config.c,
+	  src/sccp_device.c, src/sccp_indicate.c, src/sccp_management.c,
+	  src/sccp_mwi.c, src/sccp_pbx.c, src/sccp_softkeys.c,
+	  src/sccp_utils.c: Added message when CfwdAll has been set
+	  Added "\todo" to comment lines with the word "TODO" in it
+
+2010-07-21  progs
+
+	* [r1679] src/sccp_dllists.h: correctly decrease the counter
+
+	* [r1678] src/sccp_device.c: remove the reference to the cleaned
+	  device in session
+
+	* [r1677] src/sccp_dllists.h, src/sccp_socket.c: fix
+	  SCCP_LIST_REMOVE when the entry is not in the list
+
+2010-07-21  marcelloceschia
+
+	* [r1676] src/sccp_cli.c: fixes compile issue pendingUpdate
+
+2010-07-21  progs
+
+	* [r1675] src/chan_sccp.c, src/chan_sccp.h, src/config.h.in,
+	  src/sccp_actions.c, src/sccp_actions.h, src/sccp_adv_features.c,
+	  src/sccp_adv_features.h, src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_cli.c, src/sccp_cli.h, src/sccp_conference.c,
+	  src/sccp_conference.h, src/sccp_config.c, src/sccp_config.h,
+	  src/sccp_device.c, src/sccp_device.h, src/sccp_dllists.h,
+	  src/sccp_event.c, src/sccp_event.h, src/sccp_featureButton.c,
+	  src/sccp_featureButton.h, src/sccp_features.c,
+	  src/sccp_features.h, src/sccp_hint.c, src/sccp_hint.h,
+	  src/sccp_indicate.c, src/sccp_indicate.h, src/sccp_labels.h,
+	  src/sccp_line.c, src/sccp_line.h, src/sccp_lock.c,
+	  src/sccp_lock.h, src/sccp_management.c, src/sccp_management.h,
+	  src/sccp_mwi.c, src/sccp_mwi.h, src/sccp_object2.c,
+	  src/sccp_object2.h, src/sccp_pbx.c, src/sccp_pbx.h,
+	  src/sccp_protocol.h, src/sccp_socket.c, src/sccp_socket.h,
+	  src/sccp_softkeys.c, src/sccp_softkeys.h, src/sccp_utils.c,
+	  src/sccp_utils.h: Revert "Ran a code style check over all
+	  sources. Actual functionality is not impacted."
+	  
+	  This reverts commit 6a106b879051a3765964f8abc6cf8027e0cf8678.
+
+2010-07-21  ddegroot
+
+	* [r1674] src/chan_sccp.c, src/chan_sccp.h, src/config.h.in,
+	  src/sccp_actions.c, src/sccp_actions.h, src/sccp_adv_features.c,
+	  src/sccp_adv_features.h, src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_cli.c, src/sccp_cli.h, src/sccp_conference.c,
+	  src/sccp_conference.h, src/sccp_config.c, src/sccp_config.h,
+	  src/sccp_device.c, src/sccp_device.h, src/sccp_dllists.h,
+	  src/sccp_event.c, src/sccp_event.h, src/sccp_featureButton.c,
+	  src/sccp_featureButton.h, src/sccp_features.c,
+	  src/sccp_features.h, src/sccp_hint.c, src/sccp_hint.h,
+	  src/sccp_indicate.c, src/sccp_indicate.h, src/sccp_labels.h,
+	  src/sccp_line.c, src/sccp_line.h, src/sccp_lock.c,
+	  src/sccp_lock.h, src/sccp_management.c, src/sccp_management.h,
+	  src/sccp_mwi.c, src/sccp_mwi.h, src/sccp_object2.c,
+	  src/sccp_object2.h, src/sccp_pbx.c, src/sccp_pbx.h,
+	  src/sccp_protocol.h, src/sccp_socket.c, src/sccp_socket.h,
+	  src/sccp_softkeys.c, src/sccp_softkeys.h, src/sccp_utils.c,
+	  src/sccp_utils.h: Ran a code style check over all sources. Actual
+	  functionality is not impacted.
+
+2010-07-21  progs
+
+	* [r1673] src/sccp_device.c, src/sccp_line.c: the morning commit to
+	  fix the night craps
+
+2010-07-21  ddegroot
+
+	* [r1672] Makefile.in, aclocal.m4, autoconf/config.guess,
+	  autoconf/config.sub, configure, configure.ac, doc/Makefile.in,
+	  src/Makefile.in, src/config.h.in, src/sccp_device.c,
+	  src/sccp_line.c: Fixed a couple of spaces to tabs
+	  Changed the help string in configure.ac for --with parameters
+
+2010-07-21  marcelloceschia
+
+	* [r1671] configure: rtp_engine for configure
+
+	* [r1670] Makefile.in, aclocal.m4, autoconf/config.guess,
+	  autoconf/config.sub, doc/Makefile.in, src/Makefile.in: rtp_engine
+	  for configure
+
+	* [r1669] autoconf/asterisk.m4: rtp_engine
+
 2010-07-20  ddegroot
+
+	* [r1668] src/chan_sccp.h: Fixed debug match any DebugCategory
+	  Bitwise Operator Expression
+
+	* [r1667] src/chan_sccp.h, src/sccp_device.c: changed debug
+	  parameter to match any DEBUGCATegories given on an sccp_log line
+	  fixed missing # in sccp_device.c
+
+	* [r1666] ChangeLog, configure, src/sccp_device.c, src/sccp_line.c:
+	  Updated doxygen documentation in sccp_device.c and sccp_line.c
 
 	* [r1665] src/sccp_channel.c, src/sccp_cli.c, src/sccp_config.c,
 	  src/sccp_device.c, src/sccp_line.c: Fixed pendingUpdate being set

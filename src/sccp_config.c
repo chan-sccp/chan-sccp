@@ -600,6 +600,12 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 	struct hostent			*hp;
 	struct ast_ha 			*na;
 	char 				config_value[256];
+#ifdef CS_DYNAMIC_CONFIG	
+	char newcontexts[AST_MAX_CONTEXT];
+	char oldcontexts[AST_MAX_CONTEXT];
+	char *stringp, *context, *oldregcontext;
+#endif
+	
 
 	/* Cleanup for reload */
 	ast_free_ha(GLOB(ha));
@@ -997,6 +1003,23 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 			GLOB(meetme) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "meetmeopts")) {
 			sccp_copy_string(GLOB(meetmeopts), v->value, sizeof(GLOB(meetmeopts)));
+#ifdef CS_DYNAMIC_CONFIG
+		} else if (!strcasecmp(v->name, "regcontext")) {
+			ast_copy_string(newcontexts, v->value, sizeof(newcontexts));
+			stringp = newcontexts;
+			/* Initialize copy of current global_regcontext for later use in removing stale contexts */
+			ast_copy_string(oldcontexts, GLOB(regcontext), sizeof(oldcontexts));
+			oldregcontext = oldcontexts;
+			/* Let's remove any contexts that are no longer defined in regcontext */
+			cleanup_stale_contexts(stringp, oldregcontext);
+			/* Create contexts if they don't exist already */
+			while ((context = strsep(&stringp, "&"))) {
+				ast_copy_string(GLOB(used_context), context, sizeof(GLOB(used_context)));
+				ast_context_find_or_create(NULL, NULL, context, "SCCP");
+			}
+			ast_copy_string(GLOB(regcontext), v->value, sizeof(GLOB(regcontext)));
+			continue;
+#endif
 		} else {
 			ast_log(LOG_WARNING, "Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
 		}
@@ -1012,6 +1035,35 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 	return TRUE;
 }
 
+#ifdef CS_DYNAMIC_CONFIG
+/*!
+ * \brief Cleanup Stale Contexts (regcontext)
+ * \param new New Context as Character
+ * \param old Old Context as Character
+ */
+void cleanup_stale_contexts(char *new, char *old)
+{
+ 	char *oldcontext, *newcontext, *stalecontext, *stringp, newlist[AST_MAX_CONTEXT];
+
+  	while ((oldcontext = strsep(&old, "&"))) {
+                stalecontext = '\0';
+                ast_copy_string(newlist, new, sizeof(newlist));
+                stringp = newlist;
+                while ((newcontext = strsep(&stringp, "&"))) {
+                        if (strcmp(newcontext, oldcontext) == 0) {
+  			        /* This is not the context you're looking for */
+                 	        stalecontext = '\0';
+                	        break;
+                        } else if (strcmp(newcontext, oldcontext)) {
+        	         	stalecontext = oldcontext;
+                        }
+         	 
+         	}
+ 	 	if (stalecontext)
+ 	 		ast_context_destroy(ast_context_find(stalecontext), "SCCP");
+ 	}
+}
+#endif
 
 /**
  * \brief Read Lines from the Config File
@@ -1350,6 +1402,10 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 					/* 0 is off and 1 (on) is reject */
 					l->dndmode = sccp_true(v->value);
 				}
+#ifdef CS_DYNAMIC_CONFIG
+	                } else if (!strcasecmp(v->name, "regexten")) {
+               	                ast_copy_string(l->regexten, v->value, sizeof(l->regexten));
+#endif
 			} else {
 				if(v->name && v->value) {
 					ast_log(LOG_WARNING, "Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
