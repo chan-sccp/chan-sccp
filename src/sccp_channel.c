@@ -714,10 +714,6 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 
 	if(!c || !c->device)
 		return;
-	
-	/* currently we do not know later versions */
-	if(c->device->inuseprotocolversion > 11)
-		return;
 		
 
 	sccp_channel_lock(c);
@@ -817,7 +813,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t *channel){
 
 	r->msg.OpenMultiMediaChannelMessage.videoParameter.bitRate							= 0;
 	r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormatCount						= 0;
-	//r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormat[5];				/*!< Picture Format Array */
+	//r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormat[5];/*!< Picture Format Array */
 	r->msg.OpenMultiMediaChannelMessage.videoParameter.confServiceNum						= 0;
 	r->msg.OpenMultiMediaChannelMessage.videoParameter.h261VideoCapability.temporalSpatialTradeOffCapability	= htolel(0x00000040);
 	r->msg.OpenMultiMediaChannelMessage.videoParameter.h261VideoCapability.stillImageTransmission			= htolel(0x00000032);
@@ -828,10 +824,10 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t *channel){
 	r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.bandwidth				= htolel(0x202c3020);
 
 	r->msg.OpenMultiMediaChannelMessage.dataParameter.protocolDependentData 					= 0;
-	r->msg.OpenMultiMediaChannelMessage.dataParameter.maxBitRate  = 0;
+	r->msg.OpenMultiMediaChannelMessage.dataParameter.maxBitRate  							= 0;
 
 // 	20 5b 52 3a  4c 50 20 2d
-// 0070   20 48 50 3a 20 30 2c 20
+//      20 48 50 3a  20 30 2c 20
 	//r->msg.OpenMultiMediaChannelMessage.unknown[8];				/*!< Unknown */
 	ast_log(LOG_NOTICE, "%s: send sccp_channel_openMultiMediaChannel\n", channel->device->id);
 	sccp_dev_send(channel->device, r);
