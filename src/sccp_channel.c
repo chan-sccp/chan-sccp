@@ -837,10 +837,15 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 	struct ast_hostent	ahp;
 	struct hostent 		*hp;
 	int 			payloadType; /* \todo unused? */
+	int 			packetSize; /* \todo unused? */
 #if ASTERISK_VERSION_NUM < 10400
 	char 			iabuf[INET_ADDRSTRLEN];
 #endif
-	int 			packetSize; /* \todo unused? */
+	
+	
+	payloadType = 97;
+	packetSize = 3840;
+	
 
 	if (!channel->rtp.video) {
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: can't start vrtp media transmission, maybe channel is down %s-%08X\n", channel->device->id, channel->line->name, channel->callid);
@@ -882,10 +887,10 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 // 		r->msg.StartMultiMediaTransmission.lel_remotePortNumber 							= htolel(ntohs(sin.sin_port));
 // 		r->msg.StartMultiMediaTransmission.lel_callReference								= htolel(channel->callid);
 // 		r->msg.StartMultiMediaTransmission.lel_payload_rfc_number							= htolel(0);
-// 		r->msg.StartMultiMediaTransmission.lel_payloadType								= htolel(97);
+ 		r->msg.StartMultiMediaTransmission.lel_payloadType								= htolel(payloadType);
 		r->msg.StartMultiMediaTransmission.lel_DSCPValue								= htolel(136);
 
-		r->msg.StartMultiMediaTransmission.audioParameter.millisecondPacketSize 					= htolel(3840);
+		r->msg.StartMultiMediaTransmission.audioParameter.millisecondPacketSize 					= htolel(packetSize);
 		r->msg.StartMultiMediaTransmission.audioParameter.lel_echoCancelType  						= 0;
 		r->msg.StartMultiMediaTransmission.audioParameter.lel_g723BitRate  						= htolel(0x00000132);
 
