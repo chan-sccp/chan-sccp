@@ -2,7 +2,7 @@
  * \file 	sccp_features.c
  * \brief 	SCCP Features Class
  * \author 	Federico Santulli <fsantulli [at] users.sourceforge.net >
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License. 
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \since 	2009-01-16
  *
@@ -18,9 +18,9 @@
  *                                - Dialing
  *                                - Changing to Do Not Disturb(DND) Status
  *   		Relationships: 	These Features are called by FeatureButtons. Features can in turn call on Actions.
- *                              
+ *
  */
- 
+
 #include "config.h"
 
 #if ASTERISK_VERSION_NUM >= 10400
@@ -82,7 +82,6 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
-		/* \todo fix this ";" issue */
 		if(linedevice->device == device)
 			break;
 	}
@@ -409,7 +408,7 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 			res = 0;
 			if(d->pickupmodeanswer) {
 				if ((res = ast_answer(c->owner))) {  // \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
-				      
+
 					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (directpickup) Unable to answer '%s'\n", c->owner->name);
 					res = -1;
 				}
@@ -968,7 +967,7 @@ static void * sccp_feat_meetme_thread(void * data)
         struct ast_app *app;
 
         char ext[AST_MAX_EXTENSION];
-        char context[AST_MAX_CONTEXT];  
+        char context[AST_MAX_CONTEXT];
 
         char meetmeopts[AST_MAX_CONTEXT];
 #if ASTERISK_VERSION_NUM >= 10600
@@ -1015,7 +1014,7 @@ static void * sccp_feat_meetme_thread(void * data)
 		} else {
                   snprintf(meetmeopts, sizeof(meetmeopts), "%s%c%s", c->dialedNumber, SCCP_CONF_SPACER, "qd");
 		}
-		
+
                 sccp_copy_string(context, c->owner->context, sizeof(context));
                 snprintf(ext, sizeof(ext), "sccp_meetme_temp_conference_%ud", eid);
 
@@ -1048,7 +1047,7 @@ static void * sccp_feat_meetme_thread(void * data)
 
         return NULL;
 }
- 
+
 
 /*!
  * \brief Start a Meetme Application Thread
@@ -1346,7 +1345,7 @@ void sccp_feat_monitor(sccp_device_t *device, sccp_channel_t *channel){
 #ifdef CS_SCCP_FEATURE_MONITOR
 	struct ast_call_feature *feat;
 	struct ast_frame f = { AST_FRAME_DTMF, };
-	
+
 	unsigned int j;
 
 	if(!channel)
