@@ -7,18 +7,18 @@
  * \since 	2009-06-15
  *
  * $Date$
- * $Revision$  
- */ 
+ * $Revision$
+ */
 
 /*!
  * \remarks	Purpose: 	SCCP FeatureButton
  * 		When to use:	Only methods directly related to the phone featureButtons should be stored in this source file.
- *                              FeatureButtons are the ones at the bottom of the display, not to be confused with speeddial 
+ *                              FeatureButtons are the ones at the bottom of the display, not to be confused with speeddial
  *                              buttons on the right side of the display.
  *   		Relationships: 	Call SCCP Features
- *                              
+ *
  */
- 
+
 #include "config.h"
 
 #if ASTERISK_VERSION_NUM >= 10400
@@ -26,7 +26,7 @@
 #endif
 #include "chan_sccp.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$") 
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #include "sccp_protocol.h"
 #include "sccp_lock.h"
@@ -48,7 +48,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \brief Feature Button Changed
  *
  * fetch the new sate, and send status to device
- * 
+ *
  * \param device SCCP Device
  * \param featureType SCCP Feature Type
  */
@@ -74,7 +74,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s \n", DEV_ID_LOG(device), config->button.feature.id, (config->button.feature.options)?config->button.feature.options:"(none)");
 			instance = config->instance;
 			config->button.feature.status = 0;
-			
+
 			switch(config->button.feature.id){
 				case SCCP_FEATURE_PRIVACY:
 					if(!device->privacyFeature.enabled){
@@ -105,7 +105,6 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 
 								SCCP_LIST_LOCK(&line->devices);
 								SCCP_LIST_TRAVERSE(&line->devices, linedevice, list){
-									/* \todo fix this ";" issue */
 									if(linedevice->device == device)
 										break;
 								}
@@ -244,7 +243,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 			sccp_copy_string(featureAdvancedMessage->msg.FeatureStatAdvancedMessage.DisplayName, config->button.feature.label, strlen(config->button.feature.label)+1);
 			sccp_dev_send(device, featureAdvancedMessage);
 #endif
-		} 
+		}
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 }
