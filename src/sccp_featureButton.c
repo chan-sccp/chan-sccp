@@ -106,7 +106,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 								SCCP_LIST_LOCK(&line->devices);
 								SCCP_LIST_TRAVERSE(&line->devices, linedevice, list){
 									/* \todo fix this ";" issue */
-									if(linedevice->device == device);
+									if(linedevice->device == device)
 										break;
 								}
 								SCCP_LIST_UNLOCK(&line->devices);
