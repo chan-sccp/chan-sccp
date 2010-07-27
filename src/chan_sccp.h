@@ -600,7 +600,7 @@ struct sccp_line {
 	struct ast_variable			* variables;				/*!< Channel variables to set */
 	unsigned int				dnd: 3;					/*!< dnd on line */
 	uint8_t 				dndmode;				/*!< dnd mode: see SCCP_DNDMODE_* */
-	struct  subscriptionId			defaultSubscriptionId;     /*!< default subscription id for shared lines */
+	struct  subscriptionId			defaultSubscriptionId;     		/*!< default subscription id for shared lines */
 
 #ifdef CS_DYNAMIC_CONFIG
 	/* this is for reload routines */
@@ -630,6 +630,10 @@ struct sccp_line {
 	uint32_t				configurationStatus;			/*!< what is the current configuration status - @see sccp_config_status_t */
 	char 					adhocNumber[AST_MAX_EXTENSION];		/*!< number that should be dialed when device offhocks this line */
 
+#ifdef CS_DYNAMIC_CONFIG	
+	char 					regexten[AST_MAX_EXTENSION];		/*!< Extension for auto-extension (DUNDI)*/
+	char 					regcontext[AST_MAX_CONTEXT];		/*!< Context for auto-extension (DUNDI)*/
+#endif
 };											/*!< SCCP Line Structure */
 
 /*!
@@ -1007,6 +1011,10 @@ struct sccp_global_vars {
 	boolean_t				allowAnonymus;				/*!< Allow Anonymous/Guest Devices */
 	sccp_hotline_t				* hotline;				/*!< HotLine */
 	boolean_t				reload_in_progress;			/*!< Reload in Progress */
+#ifdef CS_DYNAMIC_CONFIG
+	char 					used_context[AST_MAX_EXTENSION];	/*!< placeholder to check if context are already used in regcontext (DUNDI)*/
+	char 					regcontext[AST_MAX_CONTEXT];		/*!< Context for auto-extension (DUNDI)*/
+#endif
 };											/*!< SCCP Global Varable Structure */
 
 

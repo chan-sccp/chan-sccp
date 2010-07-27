@@ -232,9 +232,9 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global) {
 
 	if (!l)
 		return;
-
+		
 	sccp_line_kill(l);
-
+	
 	/* remove from the global lines list */
 	if (remove_from_global) {
 		if(l->list.prev == NULL && l->list.next == NULL && GLOB(lines).first != l) {
@@ -253,7 +253,9 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global) {
 			if(!linedevice->device)
 				continue;
 			d = linedevice->device;
-
+#ifdef CS_DYNAMIC_CONFIG
+			unregister_exten(l,&(linedevice->subscriptionId));
+#endif
 			/* remove the line from the device lines list */
 			//SCCP_LIST_LOCK(&d->lines);
 			//SCCP_LIST_REMOVE(&d->lines, l, listperdevice);
@@ -386,6 +388,9 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, struct subscrip
 
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_INSERT_HEAD(&l->devices, linedevice, list);
+#ifdef CS_DYNAMIC_CONFIG
+	register_exten(l,&(linedevice->subscriptionId));
+#endif
 	SCCP_LIST_UNLOCK(&l->devices);
 
 	sccp_line_lock(l);
@@ -490,6 +495,94 @@ void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t *channel)
 }
 
 #ifdef CS_DYNAMIC_CONFIG
+/*!
+ * \brief Register Extension to Asterisk regcontext
+ * \param l SCCP Line
+ * \note used for DUNDi Discovery \ref DUNDi
+ */
+void register_exten(sccp_line_t *l,struct subscriptionId *subscriptionId)
+{
+	char multi[256];
+	char name[256];
+        char *stringp, *ext, *context;
+
+        if (ast_strlen_zero(GLOB(regcontext)))
+                return;
+
+        ast_copy_string(multi, S_OR(l->regexten, l->name), sizeof(multi));
+	stringp = multi;
+        while ((ext = strsep(&stringp, "&"))) {
+                if ((context = strchr(ext, '@'))) {
+                        *context++ = '\0'; /* split ext@context */
+                        if (!ast_context_find(context)) {
+                                ast_log(LOG_WARNING, "Context %s must exist in regcontext= in sccp.conf\n", context);
+                                continue;
+                        }
+                } else {
+                        context = GLOB(regcontext);
+                }
+		if (!ast_canmatch_extension(NULL, context, ext, 1, NULL)) {
+			sccp_log((DEBUGCAT_LINE|DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_1 "Registering RegContext: %s, Extension, %s Line %s\n", context, ext, l->name);
+			ast_add_extension(context, 1, ext, 1, NULL, NULL, "Noop",
+				 ast_strdup(l->name), ast_free_ptr, "SCCP");
+		}
+		// parse subscriptionId
+		if (subscriptionId->number && (strcmp(subscriptionId->number,""))) {
+			strcat(ext, "@");
+			strcat(ext, subscriptionId->number);
+			ast_copy_string(name, l->name, sizeof(name));
+			strcat(name, subscriptionId->name);
+			if (!ast_canmatch_extension(NULL, context, ext, 2, NULL)) {
+				sccp_log((DEBUGCAT_LINE|DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_1 "Registering RegContext: %s, Extension, %s Line %s Subscription number [%s]\n", context, ext, l->name, subscriptionId->number);
+				ast_add_extension(context, 1, ext, 2, NULL, NULL, "Noop",
+					ast_strdup(name), ast_free_ptr, "SCCP");
+			}
+		}
+        }
+}
+
+/*!
+ * \brief Unregister Extension to Asterisk regcontext
+ * \param l SCCP Line
+ * \note used for DUNDi Discovery \ref DUNDi
+ */
+void unregister_exten(sccp_line_t *l,struct subscriptionId *subscriptionId)
+{
+ 	char multi[256];
+ 	char *stringp, *ext, *context;
+
+	if (ast_strlen_zero(GLOB(regcontext)))
+                return;
+
+	ast_copy_string(multi, S_OR(l->regexten, l->name), sizeof(multi));
+	stringp = multi;
+	while ((ext = strsep(&stringp, "&"))) {
+	        if ((context = strchr(ext, '@'))) {
+	                *context++ = '\0'; /* split ext@context */
+	                if (!ast_context_find(context)) {
+	                        ast_log(LOG_WARNING, "Context %s must exist in regcontext= in sccp.conf!\n", context);
+                                continue;
+                        }
+                } else { 
+                        context = GLOB(regcontext);
+                }
+                if (ast_canmatch_extension(NULL, context, ext, 1, NULL)) {
+			sccp_log((DEBUGCAT_LINE|DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_1 "Unregistering RegContext: %s, Extension, %s Line %s\n", context, ext, l->name);
+			ast_context_remove_extension(context, ext, 1, NULL);
+		}
+		// parse subscriptionId
+		if (subscriptionId->number && (strcmp(subscriptionId->number,""))) {
+			strcat(ext, "@");
+			strcat(ext, subscriptionId->number);
+			if (ast_canmatch_extension(NULL, context, ext, 2, NULL)) {
+				sccp_log((DEBUGCAT_LINE|DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_1 "Unregistering RegContext: %s, Extension, %s Line %s Subscription number [%s]\n", context, ext, l->name, subscriptionId->number);
+				ast_context_remove_extension(context, ext, 2, NULL);
+			}
+		}
+        }
+}
+
+
 /*!
  * copy the structure content of one line to a new one
  * \param orig_line sccp line
