@@ -80,12 +80,8 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 		return NULL;
 	}
 
-	SCCP_LIST_LOCK(&l->devices);
-	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
-		if(linedevice->device == device)
-			break;
-	}
-	SCCP_LIST_UNLOCK(&l->devices);
+	linedevice=sccp_util_getDeviceConfiguration(device, l);
+	
 
 	if(!linedevice){
 		ast_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
