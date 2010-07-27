@@ -253,9 +253,6 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global) {
 			if(!linedevice->device)
 				continue;
 			d = linedevice->device;
-#ifdef CS_DYNAMIC_CONFIG
-			unregister_exten(l,&(linedevice->subscriptionId));
-#endif
 			/* remove the line from the device lines list */
 			//SCCP_LIST_LOCK(&d->lines);
 			//SCCP_LIST_REMOVE(&d->lines, l, listperdevice);
@@ -442,6 +439,9 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device)
 			SCCP_LIST_REMOVE(&l->devices, linedevice, list);
 			SCCP_LIST_UNLOCK(&l->devices);
 
+#ifdef CS_DYNAMIC_CONFIG
+			unregister_exten(l,&(linedevice->subscriptionId));
+#endif
 			sccp_line_lock(l);
 			l->statistic.numberOfActiveDevices--;
 			sccp_line_unlock(l);

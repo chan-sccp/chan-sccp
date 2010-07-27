@@ -733,6 +733,7 @@ static int reload_config(void) {
 #endif
 			GLOB(reload_in_progress) = FALSE;
 			ast_pthread_create(&GLOB(socket_thread), NULL, sccp_socket_thread, NULL);
+			
 		}
 	}
 

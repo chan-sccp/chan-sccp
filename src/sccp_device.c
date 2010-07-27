@@ -1475,10 +1475,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 			if(!line)
 				continue;
 
-#ifdef CS_DYNAMIC_CONFIG		
-			unregister_exten(line,&(config->button.line.subscriptionId));
-#endif
-
 			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->channels, channel, list) {
 				if(channel->device == d){
 					sccp_channel_endcall(channel);
