@@ -714,6 +714,11 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 
 	if(!c || !c->device)
 		return;
+	
+	/* currently we do not know later versions */
+	if(c->device->inuseprotocolversion > 11)
+		return;
+		
 
 	sccp_channel_lock(c);
 	d = c->device;
@@ -787,9 +792,12 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 
 void sccp_channel_openMultiMediaChannel(sccp_channel_t *channel){
 	sccp_moo_t 	* r;
-//	uint16_t	instance;
+	
+	
+	/* currently we do not know later versions */
+	if(channel->device && channel->device->inuseprotocolversion > 11)
+		return;
 
-//	instance = sccp_device_find_index_for_line(channel->device, channel->line->name);   // \todo remove line. Variable never used afterwards in this function
 
 	r = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(r->msg.OpenMultiMediaChannelMessage));
 	r->lel_reserved = 0;
