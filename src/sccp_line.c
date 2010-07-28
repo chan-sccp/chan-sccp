@@ -597,9 +597,8 @@ void unregister_exten(sccp_line_t *l,struct subscriptionId *subscriptionId)
  * \return new_line as sccp_line_t
  */
 sccp_line_t * sccp_clone_line(sccp_line_t *orig_line){
-	sccp_line_t * new_line = NULL;
-
-	new_line=ast_calloc(1, sizeof(sccp_line_t));
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "%s: Creating Clone (from %p)\n", orig_line->name, (void *)orig_line);
+	sccp_line_t * new_line = ast_calloc(1, sizeof(sccp_line_t));
 
 	sccp_line_lock(orig_line);
 	memcpy(new_line, orig_line, sizeof(*new_line));
@@ -629,6 +628,7 @@ sccp_line_t * sccp_clone_line(sccp_line_t *orig_line){
 	sccp_duplicate_line_linedevices_list(new_line, orig_line);
 
 	sccp_line_unlock(orig_line);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "%s: Clone Created (%p)\n", new_line->name, (void *)new_line);
 	return new_line;
 }
 

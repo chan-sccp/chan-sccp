@@ -1769,12 +1769,13 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t *device){
  */
 sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
 {
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "%s: Creating Clone (from %p)\n", orig_device->id, (void *)orig_device);
+
 	sccp_device_t* new_device = ast_calloc(1, sizeof(sccp_device_t));
 
 	sccp_device_lock(orig_device);
 	memcpy(new_device, orig_device, sizeof(*new_device));
 
-//	bzero(&new_device->lock, sizeof(new_device->lock));		// replaced by memset. asterisk > 1.6 does not allow bzero
 	memset(&new_device->lock, 0, sizeof(new_device->lock));
 	ast_mutex_init(&new_device->lock);
 	new_device->session = NULL;
@@ -1861,6 +1862,7 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
 	sccp_duplicate_device_addon_list(new_device,orig_device);
 
 	sccp_device_unlock(orig_device);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "%s: Clone Created (%p)\n", new_device->id, (void *)new_device);
 	return new_device;
 }
 
@@ -2017,14 +2019,14 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	SCCP_LIST_LOCK(&device_a->addons);
 	SCCP_LIST_LOCK(&device_b->addons);
 	if (device_a->addons.size != device_b->addons.size) {
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "addons: Changes need reset\n");
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "addons: Changes need reset: size_a %d, size_b %d\n", device_a->addons.size, device_b->addons.size);
 		res = CHANGES_NEED_RESET;
 	} else {
 		sccp_addon_t *a_a = SCCP_LIST_FIRST(&device_a->addons);
 		sccp_addon_t *a_b = SCCP_LIST_FIRST(&device_b->addons);
 		while (a_a && a_b) {
 			if (a_a->type != a_b->type || strcmp(a_a->device->id, a_b->device->id)) {
-				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "addons: Changes need reset\n");
+				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "addons: Changes need reset: type_a %d, type_b %d\n", a_a->type, a_b->type);
 				res = CHANGES_NEED_RESET;
 				break;
 			}
