@@ -455,7 +455,7 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 		sccp_device_unlock(d);
 
 		// removing temp_d
-		sccp_dev_clean(temp_d,FALSE,0);
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: Removing Cloned Device\n", temp_d->id);
 		sccp_device_free(temp_d);
 		temp_d=NULL;
 	}
@@ -549,7 +549,8 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 		sccp_line_unlock(l);
 
 		// removing temp_d
-		sccp_line_clean(temp_l,FALSE);
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: Remove Cloned Line\n", temp_l->name);
+		sccp_line_free(temp_l);
 		temp_l=NULL;
 	}
 #endif /* CS_DYNAMIC_CONFIG */

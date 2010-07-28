@@ -253,10 +253,6 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global) {
 			if(!linedevice->device)
 				continue;
 			d = linedevice->device;
-			/* remove the line from the device lines list */
-			//SCCP_LIST_LOCK(&d->lines);
-			//SCCP_LIST_REMOVE(&d->lines, l, listperdevice);
-			//SCCP_LIST_UNLOCK(&d->lines);
 			sccp_device_lock(d);
 			d->linesCount--;
 			sccp_device_unlock(d);
@@ -265,16 +261,27 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global) {
 		}
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
+	
+	sccp_line_free(l);
+}
 
+/*!
+ * \brief Free a Line as scheduled command
+ * \param ptr SCCP Line Pointer
+ * \return success as int
+ */
+int sccp_line_free(const void *ptr) {
+	sccp_line_t	*l=(sccp_line_t *)ptr;
+	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: Line FREE\n", l->name);
+	
+	sccp_line_lock(l);
 	if (l->trnsfvm)
 		ast_free(l->trnsfvm);
 
-	sccp_mutex_destroy(&l->lock);
 	sccp_mailbox_t *mailbox = NULL;
-
 	while( (mailbox = SCCP_LIST_REMOVE_HEAD(&l->mailboxes, list))){
 		if(!mailbox)
-			return;
+			break;
 
 		sccp_mwi_unsubscribeMailbox(&mailbox);
 		if (mailbox->mailbox)
@@ -284,9 +291,10 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global) {
 		sccp_free(mailbox);
 	}
 	ast_free(l);
+	sccp_line_unlock(l);
+	ast_mutex_destroy(&l->lock);
+	return 0;
 }
-
-
 /*!
  * \brief Delete an SCCP line
  * \param l SCCP Line

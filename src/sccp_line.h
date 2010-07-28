@@ -26,6 +26,7 @@ sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l);
 sccp_line_t *sccp_line_addToGlobals(sccp_line_t *line);
 void sccp_line_kill(sccp_line_t * l);
 void sccp_line_clean(sccp_line_t * l,boolean_t destroy);
+int sccp_line_free(const void *ptr);
 void sccp_line_delete_nolock(sccp_line_t * l);
 void sccp_line_cfwd(sccp_line_t * l, sccp_device_t *device, uint8_t type, char * number);
 void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, struct subscriptionId *subscriptionId);
