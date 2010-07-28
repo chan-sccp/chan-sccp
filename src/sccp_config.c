@@ -600,12 +600,12 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 	struct hostent			*hp;
 	struct ast_ha 			*na;
 	char 				config_value[256];
-#ifdef CS_DYNAMIC_CONFIG	
+#ifdef CS_DYNAMIC_CONFIG
 	char newcontexts[AST_MAX_CONTEXT];
 	char oldcontexts[AST_MAX_CONTEXT];
 	char *stringp, *context, *oldregcontext;
 #endif
-	
+
 
 	/* Cleanup for reload */
 	ast_free_ha(GLOB(ha));
@@ -1015,7 +1015,11 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 			/* Create contexts if they don't exist already */
 			while ((context = strsep(&stringp, "&"))) {
 				ast_copy_string(GLOB(used_context), context, sizeof(GLOB(used_context)));
+#if ASTERISK_VERSION_NUM < 10600
+				ast_context_find_or_create(NULL, context, "SCCP");
+#else
 				ast_context_find_or_create(NULL, NULL, context, "SCCP");
+#endif
 			}
 			ast_copy_string(GLOB(regcontext), v->value, sizeof(GLOB(regcontext)));
 			continue;
@@ -1043,25 +1047,25 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
  */
 void cleanup_stale_contexts(char *new, char *old)
 {
- 	char *oldcontext, *newcontext, *stalecontext, *stringp, newlist[AST_MAX_CONTEXT];
+	char *oldcontext, *newcontext, *stalecontext, *stringp, newlist[AST_MAX_CONTEXT];
 
-  	while ((oldcontext = strsep(&old, "&"))) {
-                stalecontext = '\0';
-                ast_copy_string(newlist, new, sizeof(newlist));
-                stringp = newlist;
-                while ((newcontext = strsep(&stringp, "&"))) {
-                        if (strcmp(newcontext, oldcontext) == 0) {
-  			        /* This is not the context you're looking for */
-                 	        stalecontext = '\0';
-                	        break;
-                        } else if (strcmp(newcontext, oldcontext)) {
-        	         	stalecontext = oldcontext;
-                        }
-         	 
-         	}
- 	 	if (stalecontext)
- 	 		ast_context_destroy(ast_context_find(stalecontext), "SCCP");
- 	}
+	while ((oldcontext = strsep(&old, "&"))) {
+		stalecontext = '\0';
+		ast_copy_string(newlist, new, sizeof(newlist));
+		stringp = newlist;
+		while ((newcontext = strsep(&stringp, "&"))) {
+			if (strcmp(newcontext, oldcontext) == 0) {
+				/* This is not the context you're looking for */
+				stalecontext = '\0';
+				break;
+			} else if (strcmp(newcontext, oldcontext)) {
+				stalecontext = oldcontext;
+			}
+
+		}
+		if (stalecontext)
+			ast_context_destroy(ast_context_find(stalecontext), "SCCP");
+	}
 }
 #endif
 
@@ -1403,8 +1407,8 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 					l->dndmode = sccp_true(v->value);
 				}
 #ifdef CS_DYNAMIC_CONFIG
-	                } else if (!strcasecmp(v->name, "regexten")) {
-               	                ast_copy_string(l->regexten, v->value, sizeof(l->regexten));
+			} else if (!strcasecmp(v->name, "regexten")) {
+				ast_copy_string(l->regexten, v->value, sizeof(l->regexten));
 #endif
 			} else {
 				if(v->name && v->value) {

@@ -845,11 +845,11 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 #if ASTERISK_VERSION_NUM < 10400
 	char 			iabuf[INET_ADDRSTRLEN];
 #endif
-	
-	
+
+
 	payloadType = 97;
 	packetSize = 3840;
-	
+
 
 	if (!channel->rtp.video) {
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: can't start vrtp media transmission, maybe channel is down %s-%08X\n", channel->device->id, channel->line->name, channel->callid);
