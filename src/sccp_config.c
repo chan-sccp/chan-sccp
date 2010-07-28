@@ -1443,6 +1443,30 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 	char 			*splitter;
 	char			config_value[256];
 
+#ifdef CS_DYNAMIC_CONFIG
+	if (d->pendingDelete) {
+		// remove all addons before adding them again (to find differences later on in sccp_device_change)
+		sccp_addon_t	*addon;
+		SCCP_LIST_LOCK(&d->addons);
+		while((addon = SCCP_LIST_REMOVE_HEAD(&d->addons,list))) {
+			ast_free(addon);
+			addon=NULL;
+		}
+		SCCP_LIST_UNLOCK(&d->addons);
+		SCCP_LIST_HEAD_DESTROY(&d->addons);
+		SCCP_LIST_HEAD_INIT(&d->addons);
+
+		/* removing permithosts */
+		sccp_hostname_t	*permithost;
+		SCCP_LIST_LOCK(&d->permithosts);
+		while((permithost = SCCP_LIST_REMOVE_HEAD(&d->permithosts, list))) {
+			ast_free(permithost);
+		}
+		SCCP_LIST_UNLOCK(&d->permithosts);
+		SCCP_LIST_HEAD_DESTROY(&d->permithosts);
+		SCCP_LIST_HEAD_INIT(&d->permithosts);
+	}
+#endif
 
 	if (!v) {
 		sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "no variable given\n");
