@@ -1538,6 +1538,7 @@ int sccp_device_free(const void *ptr){
 	sccp_buttonconfig_t	*config = NULL;
 	sccp_hostname_t 	*permithost = NULL;
 
+	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: Device FREE\n", d->id);
 	sccp_device_lock(d);
 	/* remove button config */
 	/* only generated on read config, so do not remove on reset/restart*/
@@ -1570,7 +1571,7 @@ int sccp_device_free(const void *ptr){
 		ast_free(d->buttonTemplate);
 	}
 
-	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: device deleted\n", d->id);
+	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Device Deleted\n", d->id);
 
 	sccp_device_unlock(d);
 	ast_mutex_destroy(&d->lock);
@@ -2033,7 +2034,6 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	}
 	SCCP_LIST_UNLOCK(&device_a->addons);
 	SCCP_LIST_UNLOCK(&device_b->addons);
-
 	if (res == CHANGES_NEED_RESET)
 		return res;
 
