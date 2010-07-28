@@ -1228,7 +1228,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	int fmt;
 
 
-	#ifndef CS_AST_CHANNEL_HAS_CID
+#ifndef CS_AST_CHANNEL_HAS_CID
 	char cidtmp[256];
 	memset(&cidtmp, 0, sizeof(cidtmp));
 #endif
