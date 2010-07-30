@@ -98,7 +98,7 @@ void sccp_device_post_reload(void)
 		sccp_device_lock(d);
 
 		// skip this device. it will receive reset from sccp_channel_endcall upon completion of the call (***)
-		if (sccp_device_numberOfChannels(d) > 0 && !d->pendingDelete) {
+		if (sccp_device_numberOfChannels(d) > 0) {
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", d->id);
 			sccp_device_unlock(d);
 			continue;
@@ -110,10 +110,10 @@ void sccp_device_post_reload(void)
 
 		if (d->pendingDelete) {
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Remove Device from List\n");
+			SCCP_LIST_REMOVE_CURRENT(list);
 			sccp_device_unlock(d);
 			sccp_dev_clean(d, FALSE, 0);
-			sccp_device_free(d);
-			SCCP_LIST_REMOVE_CURRENT(list);
+			sccp_device_destroy(d);
 			continue;
 		}
 
@@ -125,8 +125,8 @@ void sccp_device_post_reload(void)
 
 			if (config->pendingDelete) {
 				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
-				ast_free(config);
 				SCCP_LIST_REMOVE_CURRENT(list);
+				ast_free(config);
 			} else {
 				config->pendingUpdate = 0;
 			}
@@ -1514,13 +1514,13 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 
 	if(remove_from_global){
 		if(cleanupTime > 0){
-			if( (d->scheduleTasks.free = sccp_sched_add(sched, cleanupTime * 1000, sccp_device_free, d)) < 0 ) {
+			if( (d->scheduleTasks.free = sccp_sched_add(sched, cleanupTime * 1000, sccp_device_destroy, d)) < 0 ) {
 				sleep(cleanupTime);
-				sccp_device_free(d);
+				sccp_device_destroy(d);
 				d=NULL;
 			}
 		}else{
-			sccp_device_free(d);
+			sccp_device_destroy(d);
 			d=NULL;
 		}
 		return;
@@ -1535,7 +1535,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
  * \param ptr SCCP Device Pointer
  * \return success as int
  */
-int sccp_device_free(const void *ptr){
+int sccp_device_destroy(const void *ptr){
 	sccp_device_t 		*d = (sccp_device_t *)ptr;
 	sccp_buttonconfig_t	*config = NULL;
 	sccp_hostname_t 	*permithost = NULL;
