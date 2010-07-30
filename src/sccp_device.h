@@ -70,7 +70,7 @@ uint16_t sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName
 void sccp_device_removeLine(sccp_device_t *device, sccp_line_t * l);
 int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type);
 void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, uint8_t state, skinny_callPriority_t priority, skinny_callinfo_visibility_t visibility);
-int sccp_device_free(const void *ptr);
+int sccp_device_destroy(const void *ptr);
 boolean_t sccp_device_isVideoSupported(const sccp_device_t *device);
 
 uint8_t sccp_device_numberOfChannels(const sccp_device_t *device);
