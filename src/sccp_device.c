@@ -1451,7 +1451,9 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		return;
 
 	sccp_device_lock(d);
+	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE); 	/* set correct register state */
 
+	d->mwilight = 0; 					/* reset mwi light*/
 	sprintf(family, "SCCP/%s", d->id);
 	ast_db_del(family, "lastDialedNumber");
 	if(!ast_strlen_zero(d->lastNumber))
