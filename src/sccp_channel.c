@@ -1267,8 +1267,8 @@ void sccp_channel_endcall(sccp_channel_t * c)
 
 		if (d->pendingDelete) {
 			sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Remove Device from List\n", d->id);
-			sccp_dev_clean(d, TRUE, 0);
-			sccp_device_free(d);
+//			sccp_dev_clean(d, TRUE, 0);
+			sccp_device_destroy(d);
 		}
 
 		if (l->pendingDelete) {

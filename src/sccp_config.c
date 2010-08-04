@@ -456,7 +456,7 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 
 		// removing temp_d
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: Removing Cloned Device\n", temp_d->id);
-		sccp_device_free(temp_d);
+		sccp_device_destroy(temp_d);
 		temp_d=NULL;
 	}
 #endif /* CS_DYNAMIC_CONFIG */
