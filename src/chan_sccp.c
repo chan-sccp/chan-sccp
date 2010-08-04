@@ -750,7 +750,9 @@ void *sccp_create_hotline(void){
 	sccp_line_t	*hotline;
 
 	hotline = sccp_line_create();
+#ifdef CS_SCCP_REALTIME
 	hotline->realtime = TRUE;
+#endif
 	sccp_copy_string(hotline->name, "Hotline", sizeof(hotline->name));
 	sccp_copy_string(hotline->cid_name, "hotline", sizeof(hotline->cid_name));
 	sccp_copy_string(hotline->cid_num, "hotline", sizeof(hotline->cid_name));
