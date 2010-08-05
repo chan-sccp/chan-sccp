@@ -550,7 +550,7 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 
 		// removing temp_d
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: Remove Cloned Line\n", temp_l->name);
-		sccp_line_free(temp_l);
+		sccp_line_destroy(temp_l);
 		temp_l=NULL;
 	}
 #endif /* CS_DYNAMIC_CONFIG */

@@ -1,3 +1,60 @@
+2010-08-04  marcelloceschia
+
+	* [r1718] src/chan_sccp.c: fixes reatime compile issue reportet by
+	  daniel.hojka
+
+2010-08-04  ddegroot
+
+	* [r1717] src/sccp_channel.c, src/sccp_config.c: Adapted config and
+	  channel to funcation namechange (sccp_device-free ->
+	  sccp_device_destroy)
+
+2010-07-30  marcelloceschia
+
+	* [r1716] src/sccp_device.c, src/sccp_device.h: rename _free into
+	  _destroy
+
+	* [r1715] src/sccp_device.c: reset some states on clenup
+
+2010-07-28  ddegroot
+
+	* [r1714] src/sccp_config.c, src/sccp_device.c, src/sccp_line.c:
+	  Fix difference in addons / permit hosts during sccp reload
+
+	* [r1713] src/sccp_config.c, src/sccp_device.c, src/sccp_line.c,
+	  src/sccp_line.h: Fix for sccp reload when in the middle of a call
+
+2010-07-28  progs
+
+	* [r1712] src/sccp_channel.c, src/sccp_config.c, src/sccp_pbx.c:
+	  fix compilation with asterisk 1.4
+
+2010-07-27  ddegroot
+
+	* [r1711] src/chan_sccp.c, src/sccp_device.c, src/sccp_line.c,
+	  src/sccp_socket.c: Moved unregister_exten call to only one
+	  location in sccp_line.c:sccp_line_removeDevice
+
+2010-07-27  marcelloceschia
+
+	* [r1710] src/sccp_channel.c: my fault
+
+2010-07-27  ddegroot
+
+	* [r1709] doc/04_Setup_Guide.doc, src/sccp_features.c: replaced
+	  if(linedevice->device == device) with
+	  sccp_util_getDeviceConfiguration
+
+	* [r1708] ChangeLog, conf/sccp.conf, doc/04_Setup_Guide.doc,
+	  src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_cli.c, src/sccp_config.c, src/sccp_config.h,
+	  src/sccp_device.c, src/sccp_line.c, src/sccp_line.h,
+	  src/sccp_socket.c: Added regcontext and regexten to sccp.conf
+	  Added register/unregister regexten to regcontext implementation
+	  when lines are connected and disconnected to/from a device for
+	  Cluster/DUNDi purpose
+	  Updated documentation about Clustering and DUNDi
+
 2010-07-27  marcelloceschia
 
 	* [r1707] src/sccp_channel.c: fixes Invalid SCCP message! with
