@@ -262,7 +262,7 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global) {
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
 	
-	sccp_line_free(l);
+	sccp_line_destroy(l);
 }
 
 /*!
@@ -270,7 +270,7 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global) {
  * \param ptr SCCP Line Pointer
  * \return success as int
  */
-int sccp_line_free(const void *ptr) {
+int sccp_line_destroy(const void *ptr) {
 	sccp_line_t	*l=(sccp_line_t *)ptr;
 	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: Line FREE\n", l->name);
 	
@@ -506,6 +506,7 @@ void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t *channel)
 /*!
  * \brief Register Extension to Asterisk regcontext
  * \param l SCCP Line
+ * \param subscriptionId subscriptionId
  * \note used for DUNDi Discovery \ref DUNDi
  */
 void register_exten(sccp_line_t *l,struct subscriptionId *subscriptionId)
@@ -552,6 +553,7 @@ void register_exten(sccp_line_t *l,struct subscriptionId *subscriptionId)
 /*!
  * \brief Unregister Extension to Asterisk regcontext
  * \param l SCCP Line
+ * \param subscriptionId subscriptionId
  * \note used for DUNDi Discovery \ref DUNDi
  */
 void unregister_exten(sccp_line_t *l,struct subscriptionId *subscriptionId)
