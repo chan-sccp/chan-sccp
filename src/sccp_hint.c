@@ -76,6 +76,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/event.h>
 #include <asterisk/event_defs.h>
 #endif
+#include <signal.h>
 
 void sccp_hint_notifyAsterisk(sccp_line_t *line, sccp_channelState_t state);
 static void * sccp_hint_remoteNotification_thread(void *data);

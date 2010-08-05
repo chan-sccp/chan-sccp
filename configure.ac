@@ -209,6 +209,7 @@ AC_FUNC_STRERROR_R
 AC_LANG_C
 AC_C_CONST
 AC_C_INLINE 		dnl wanted by: src/chan_sccp.h:138
+ACX_PTHREAD 
 
 # LibTool
 CONFIGURE_PART([Checking Libtool:])
@@ -250,7 +251,7 @@ AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep strcas
 
 AC_HEADER_STDC    
 AC_HEADER_STDBOOL 
-AC_CHECK_HEADERS([netinet/in.h])
+AC_CHECK_HEADERS([netinet/in.h fcntl.h])
 
 AC_STRUCT_TM
 AC_STRUCT_TIMEZONE

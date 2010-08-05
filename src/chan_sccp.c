@@ -43,6 +43,8 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_conference.h"
 #include <ctype.h>
 #include <unistd.h>
+#include <signal.h>
+
 #include <asterisk/pbx.h>
 #ifdef CS_AST_HAS_APP_SEPARATE_ARGS
 #include <asterisk/app.h>
