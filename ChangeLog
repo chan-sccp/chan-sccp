@@ -1,3 +1,22 @@
+2010-08-05  ddegroot
+
+	* [r1720] ChangeLog, INSTALL, Makefile.in, aclocal.m4,
+	  autoconf/config.guess, autoconf/config.sub, autoconf/depcomp,
+	  autoconf/install-sh, autoconf/missing, configure,
+	  doc/Makefile.in, src/Makefile.in, src/config.h.in,
+	  src/sccp_config.c, src/sccp_line.c, src/sccp_line.h: Update to
+	  automake/autoconf 1.11+
+	  rename sccp_line_free to sccp_line_destroy
+
+	* [r1719] INSTALL, Makefile.in, aclocal.m4,
+	  autoconf/acx_pthread.m4[ADD], autoconf/asterisk.m4,
+	  autoconf/config.guess, autoconf/config.sub, autoconf/depcomp,
+	  autoconf/install-sh, autoconf/missing, configure, configure.ac,
+	  doc/Makefile.in, src/Makefile.am, src/Makefile.in,
+	  src/chan_sccp.c, src/config.h.in, src/sccp_hint.c: Changed to
+	  configure.ac to provide better support for compilation under
+	  (Free)BSD
+
 2010-08-04  marcelloceschia
 
 	* [r1718] src/chan_sccp.c: fixes reatime compile issue reportet by
