@@ -32,12 +32,12 @@ chan_sccp_la_LDFLAGS	= -avoid-version -module  $(PBX_LDFLAGS) $(PTHREAD_LIBS)
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
 	@test -z "$(csmoddir)" || $(mkdir_p) "$(DESTDIR)$(csmoddir)"
-	@if [ "s(strip_binaries)" == "yes" ]; then \
+	@if test "$(strip_binaries)"=="yes" ]; then \
 	        $(INSTALL) $(INSTALL_STRIP_FLAG) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; \
 	else \
 	        $(INSTALL) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; \
 	fi
-	@if [ -d "$(DESTDIR)$(csmoddir)" ]; then                                          \
+	@if test -d "$(DESTDIR)$(csmoddir)"; then                                          \
 		echo    "=============================================================="; \
 		echo    "Installed chan_sccp.so to '$(DESTDIR)$(csmoddir)'...";           \
 		echo    "=============================================================="; \
