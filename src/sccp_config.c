@@ -214,7 +214,7 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
  * \param device Device
  * \param lineName Name of line
  * \param options  Line Options
- * \param index Index Preferred Button Position as int
+ * \param instance Line Instance as uint16
  */
 void sccp_config_addLine(sccp_device_t *device, char *lineName, char *options, uint16_t instance) {
 	struct composedId composedLineRegistrationId;

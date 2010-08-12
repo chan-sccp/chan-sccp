@@ -1907,22 +1907,137 @@ const struct ast_channel_tech sccp_tech = {
 	.write_video = sccp_pbx_write,
 	.indicate = sccp_pbx_indicate,
 	.fixup = sccp_pbx_fixup,
-#ifndef ASTERISK_CONF_1_2
+	.send_text = sccp_pbx_sendtext,
+\	
+#if ASTERISK_VERSION_NUM < 10400	
+	.send_digit = sccp_pbx_recvdigit_end,
+#else
 	.send_digit_begin = sccp_pbx_recvdigit_begin,
 	.send_digit_end = sccp_pbx_recvdigit_end,
-#else
-	.send_digit = sccp_pbx_recvdigit_end,
-#endif
-	.send_text = sccp_pbx_sendtext,
-#ifndef ASTERISK_CONF_1_2
 	.bridge = ast_rtp_bridge,
+#ifdef CS_ADV_FEATURES	
+	.transfer = sccp_pbx_transfer,			// new >1.4.0
+	.func_channel_read = acf_channel_read,		// new
 #endif
-#ifdef ASTERISK_CONF_1_6
+#endif
+#if ASTERISK_VERSION_NUM >= 10600
 	.early_bridge = ast_rtp_early_bridge,
+#ifdef CS_ADV_FEATURES	
+	.get_pvt_uniqueid = sccp_pbx_get_callid,	// new >1.6.0
+#endif
 #endif
 };
 #endif
 
+#ifdef CS_ADV_FEATURES	
+/*!
+ * \brief Handle Dialplan Transfer 
+ *
+ * This will allow asterisk to transfer an SCCP Channel via the dialplan transfer function
+ *
+ * \param ast Asterisk Channel
+ * \param dest Destination as char *
+ * \return result as int
+ */
+int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
+{
+//  	struct ast_pvt *p = ast->tech_pvt;
+        int res=0;
+        sccp_device_t *d;
+        sccp_channel_t *c;
+        sccp_channel_t *newcall;
+
+        if (dest == NULL) {      /* functions below do not take a NULL */
+  		dest = "";
+		return -1;
+	}
+	sccp_log(1)(VERBOSE_PREFIX_1 "Transferring '%s' to '%s'\n", ast->name, dest);
+        if (ast->_state == AST_STATE_RING) {
+        	// Blindtransfer needs to be implemented correctly
+//                res = sccp_blindxfer(p, dest);
+		;
+	} else {
+        	// Transfer needs to be implemented correctly
+		c=ast->tech_pvt;
+		d = c->device;
+		if (!d->transfer || !c->line->transfer) {
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer disabled on device or line\n", (d && d->id)?d->id:"SCCP");
+			return -1;
+		}
+		sccp_device_lock(d);
+		d->transfer_channel = c;
+		sccp_device_unlock(d);		
+		sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CALLTRANSFER);
+		newcall = sccp_channel_newcall(c->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
+		pbx_builtin_setvar_helper(newcall->owner, "BLINDTRANSFER", CS_AST_BRIDGED_CHANNEL(c->owner)->name);
+		pbx_builtin_setvar_helper(CS_AST_BRIDGED_CHANNEL(c->owner), "BLINDTRANSFER", newcall->owner->name);
+		sccp_channel_transfer_complete(c);
+		res=0;
+//		res=sccp_channel_transfer(p,dest);
+	}
+   	return res;
+}
+#endif
+
+#ifdef CS_ADV_FEATURES
+/*! 
+ * \brief Deliver SCCP call ID for the call
+ * \param ast Asterisk Channel
+ * \return result as char *
+ */
+const char *sccp_pbx_get_callid(struct ast_channel *ast)
+{ 
+	sccp_channel_t *c;
+	char *callid="";
+	
+	sccp_log(1)(VERBOSE_PREFIX_1 "Get CallID '%s'", ast->name);
+	if ( (c = ast->tech_pvt) ) {
+		sprintf(callid,"%d",c->callid);
+	}
+	sccp_log(1)(VERBOSE_PREFIX_1 "Get CallID Returning'%s'", callid);
+	
+	return callid;
+}
+
+#ifdef CS_ADV_FEATURES	
+#if ASTERISK_VERSION_NUM >= 10600
+int acf_channel_read(struct ast_channel *ast, const char *funcname, char *args, char *buf, size_t buflen)
+#else
+int acf_channel_read(struct ast_channel *ast, char *funcname, char *args, char *buf, size_t buflen)
+#endif
+{
+ 	sccp_channel_t *c;
+	sccp_device_t *d;
+        int res = 0;
+
+#ifdef CS_AST_HAS_TECH_PVT
+	if (!ast || ast->tech != &sccp_tech) {
+	        ast_log(LOG_ERROR, "This function requires a valid SCCP channel\n");
+ 	        return -1;
+	}
+#endif
+	c=ast->tech_pvt;
+	if (( d = c->device)) {
+		sccp_device_unlock(d);
+
+		if (!strcasecmp(args, "peerip")) {
+			ast_copy_string(buf, c->rtp_peer.sin_addr.s_addr ? ast_inet_ntoa(c->rtp_peer.sin_addr) : "", buflen);
+		} else if (!strcasecmp(args, "recvip")) {
+			ast_copy_string(buf, c->rtp_addr.sin_addr.s_addr ? ast_inet_ntoa(c->rtp_addr.sin_addr) : "", buflen);
+		} else if (!strcasecmp(args, "from")) {
+			ast_copy_string(buf, (char *)c->device->id, buflen);
+		} else {
+			res = -1;
+		}
+		
+		sccp_device_unlock(d);
+	} else {
+		res=-1;
+	}
+	return res;
+}
+#endif
+#endif
 
 #ifndef ASTERISK_CONF_1_2
 /*!
