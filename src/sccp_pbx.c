@@ -634,7 +634,7 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 {
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
-	struct ast_frame *frame = NULL;
+	struct ast_frame *frame;
 
 #if ASTERISK_VERSION_NUM >= 10400
 	frame = &ast_null_frame;
@@ -1807,7 +1807,14 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
  * \param digit Digit as char
  */
 void sccp_pbx_senddigit(sccp_channel_t * c, char digit) {
-	struct ast_frame f = { AST_FRAME_DTMF, };
+	//struct ast_frame f = { AST_FRAME_DTMF, };
+	struct ast_frame f;
+#if ASTERISK_VERSION_NUM >= 10400
+	f = ast_null_frame;
+#else
+	f = NULL;
+#endif
+	f.frametype = AST_FRAME_DTMF;
 	f.src = "SCCP";
 	f.subclass = digit;
 	sccp_queue_frame(c, &f);
@@ -1820,7 +1827,15 @@ void sccp_pbx_senddigit(sccp_channel_t * c, char digit) {
  */
 void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 	int i;
-	struct ast_frame f = { AST_FRAME_DTMF, 0};
+//	struct ast_frame f = { AST_FRAME_DTMF, 0};
+	struct ast_frame f;
+#if ASTERISK_VERSION_NUM >= 10400
+	f = ast_null_frame;
+#else
+	f = NULL;
+#endif
+	f.frametype = AST_FRAME_DTMF;
+	        	
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Sending digits %s\n", DEV_ID_LOG(c->device), digits);
 	// We don't just call sccp_pbx_senddigit due to potential overhead, and issues with locking
 	f.src = "SCCP";
@@ -1880,7 +1895,15 @@ int sccp_ast_queue_control(sccp_channel_t * c, enum ast_control_frame_type contr
 int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
 #endif
 {
-	struct ast_frame f = { AST_FRAME_CONTROL, };
+//	struct ast_frame f = { AST_FRAME_CONTROL, };
+	struct ast_frame f;
+#if ASTERISK_VERSION_NUM >= 10400
+	f = ast_null_frame;
+#else
+	f = NULL;
+#endif
+        f.frametype = AST_FRAME_DTMF;
+        	
 	f.subclass = control;
 	sccp_queue_frame(c, &f);
 
@@ -1908,7 +1931,7 @@ const struct ast_channel_tech sccp_tech = {
 	.indicate = sccp_pbx_indicate,
 	.fixup = sccp_pbx_fixup,
 	.send_text = sccp_pbx_sendtext,
-\	
+	
 #if ASTERISK_VERSION_NUM < 10400	
 	.send_digit = sccp_pbx_recvdigit_end,
 #else
