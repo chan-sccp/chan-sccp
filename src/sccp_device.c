@@ -112,8 +112,7 @@ void sccp_device_post_reload(void)
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Remove Device from List\n");
 			SCCP_LIST_REMOVE_CURRENT(list);
 			sccp_device_unlock(d);
-			sccp_dev_clean(d, FALSE, 0);
-			sccp_device_destroy(d);
+			sccp_dev_clean(d, TRUE, 0);
 			continue;
 		}
 
@@ -488,6 +487,7 @@ void sccp_dev_sendmsg(sccp_device_t * d, sccp_message_t t) {
 void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 {
 	char servername[StationMaxDisplayNotifySize];
+	sccp_moo_t 		*r;
 
 	if (d->registrationState == opt)
 		return;
@@ -497,6 +497,15 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 
 	/* Handle registration completion. */
 	if (opt == SKINNY_DEVICE_RS_OK) {
+	  
+		/* this message is mandatory to finish process */
+		REQ(r, SetLampMessage);
+		r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
+		r->msg.SetLampMessage.lel_stimulusInstance = 0;
+		r->msg.SetLampMessage.lel_lampMode = htolel(SKINNY_LAMP_OFF);
+		sccp_dev_send(d, r);
+	  
+	  
 		snprintf(servername, sizeof(servername), "%s %s", GLOB(servername), SKINNY_DISP_CONNECTED);
 		sccp_dev_displaynotify(d, servername, 5);
 		sccp_dev_postregistration(d);
@@ -1460,13 +1469,9 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		ast_db_put(family, "lastDialedNumber", d->lastNumber);
 
 	if(remove_from_global) {
-		if(d->list.prev == NULL && d->list.next == NULL && GLOB(devices).size > 1) {
-			ast_log(LOG_ERROR, "%s: removing device from global devices list. prev and next pointer ist not set while device list size is %d\n", DEV_ID_LOG(d), GLOB(devices).size);
-		} else {
-			SCCP_LIST_LOCK(&GLOB(devices));
-			SCCP_LIST_REMOVE(&GLOB(devices), d, list);
-			SCCP_LIST_UNLOCK(&GLOB(devices));
-		}
+		SCCP_LIST_LOCK(&GLOB(devices));
+		SCCP_LIST_REMOVE(&GLOB(devices), d, list);
+		SCCP_LIST_UNLOCK(&GLOB(devices));
 	}
 
 	/* hang up open channels and remove device from line */

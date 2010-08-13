@@ -1112,7 +1112,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 		if (!strcasecmp(cat, "general"))
 			continue;
 
-		ast_log(LOG_NOTICE, "Parsing category: %s\n", cat);
 		utype = ast_variable_retrieve(cfg, cat, "type");
 
 		if (!utype) {
@@ -1475,7 +1474,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 
 	while (v) {
 		sccp_copy_string(config_value, v->value, sizeof(config_value));
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s = %s\n", v->name, config_value);
+		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s = %s\n", v->name, config_value);
 
 		if ((!strcasecmp(v->name, "device"))
 #ifdef CS_SCCP_REALTIME

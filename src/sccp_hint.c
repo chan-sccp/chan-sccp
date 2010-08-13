@@ -703,8 +703,8 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t *hint){
 			hint->callInfo.calltype = channel->calltype;
 			if(channel->state != SCCP_CHANNELSTATE_ONHOOK && channel->state != SCCP_CHANNELSTATE_DOWN){
 				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-				sccp_copy_string(hint->callInfo.callingPartyName, channel->callingPartyName, sizeof(hint->callInfo.callingPartyName));
-				sccp_copy_string(hint->callInfo.calledPartyName, channel->calledPartyName, sizeof(hint->callInfo.calledPartyName));
+				sccp_copy_string(hint->callInfo.callingPartyName, channel->callInfo.callingPartyName, sizeof(hint->callInfo.callingPartyName));
+				sccp_copy_string(hint->callInfo.calledPartyName, channel->callInfo.calledPartyName, sizeof(hint->callInfo.calledPartyName));
 
 			}else{
 				hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
@@ -832,11 +832,11 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 				if(!device || device->privacyFeature.enabled == 0 || (device->privacyFeature.enabled == 1 && channel->privacy == FALSE)) {
 
-					sccp_copy_string(hint->callInfo.callingPartyName,   channel->callingPartyName, sizeof(hint->callInfo.callingPartyName));
-					sccp_copy_string(hint->callInfo.calledPartyName,   channel->calledPartyName, sizeof(hint->callInfo.calledPartyName));
+					sccp_copy_string(hint->callInfo.callingPartyName,   channel->callInfo.callingPartyName, sizeof(hint->callInfo.callingPartyName));
+					sccp_copy_string(hint->callInfo.calledPartyName,   channel->callInfo.calledPartyName, sizeof(hint->callInfo.calledPartyName));
 
-					sccp_copy_string(hint->callInfo.callingParty,  channel->callingPartyNumber, sizeof(hint->callInfo.callingParty));
-					sccp_copy_string(hint->callInfo.calledParty,  channel->calledPartyNumber, sizeof(hint->callInfo.calledParty));
+					sccp_copy_string(hint->callInfo.callingParty,  channel->callInfo.callingPartyNumber, sizeof(hint->callInfo.callingParty));
+					sccp_copy_string(hint->callInfo.calledParty,  channel->callInfo.calledPartyNumber, sizeof(hint->callInfo.calledParty));
 
 
 				} else {
@@ -853,11 +853,11 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t *hint){
 #endif
 				if(!device || device->privacyFeature.enabled == 0 || (device->privacyFeature.enabled == 1 && channel->privacy == FALSE)) {
 
-					sccp_copy_string(hint->callInfo.callingPartyName,   channel->callingPartyName, sizeof(hint->callInfo.callingPartyName));
-					sccp_copy_string(hint->callInfo.calledPartyName,   channel->calledPartyName, sizeof(hint->callInfo.calledPartyName));
+					sccp_copy_string(hint->callInfo.callingPartyName,   channel->callInfo.callingPartyName, sizeof(hint->callInfo.callingPartyName));
+					sccp_copy_string(hint->callInfo.calledPartyName,   channel->callInfo.calledPartyName, sizeof(hint->callInfo.calledPartyName));
 
-					sccp_copy_string(hint->callInfo.callingParty,  channel->callingPartyNumber, sizeof(hint->callInfo.callingParty));
-					sccp_copy_string(hint->callInfo.calledParty,  channel->calledPartyNumber, sizeof(hint->callInfo.calledParty));
+					sccp_copy_string(hint->callInfo.callingParty,  channel->callInfo.callingPartyNumber, sizeof(hint->callInfo.callingParty));
+					sccp_copy_string(hint->callInfo.calledParty,  channel->callInfo.calledPartyNumber, sizeof(hint->callInfo.calledParty));
 
 
 				} else {

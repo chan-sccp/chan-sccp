@@ -583,7 +583,72 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 		status =  atoi(argv[5]);
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: status=%d(%s)\n", d->id, status, argv[5]);
 	}
+	
+	sccp_device_sendcallstate(d, 3, 1, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); 
+	sccp_moo_t * r;
+	int fld_num = 16;
+	char *fields[fld_num];
+	int fields_len[fld_num];
+	int i = 0;
+	int dummy_len = 0;
 
+	// this set every field to NULL
+	memset(fields, 0, sizeof(fields));
+	fields[0x00] = "callingParty";
+	fields[0x01] = "originalCallingParty";
+	fields[0x02] = "calledParty";
+	fields[0x03] = "originalCalledParty";
+	fields[0x04] = "lastRedirectingParty";
+	fields[0x05] = "cgpnVoiceMailbox";
+	fields[0x06] = "cdpnVoiceMailbox";
+	fields[0x07] = "originalCdpnVoiceMailbox";
+	fields[0x08] = "lastRedirectingVoiceMailbox";
+	fields[0x09] = "callingPartyName";
+	fields[0x0A] = "calledPartyName";
+	fields[0x0B] = "originalCalledPartyName";
+	fields[0x0C] = "lastRedirectingPartyName";
+	fields[0x0D] = "*54"; // cd->originalCalledPartyName; //this should be set only if call is a forward
+	fields[0x0E] = "cgpnVoiceMailboxName";
+	fields[0x0F] = "cdpnVoiceMailboxName";
+	
+
+	for (i=0;i<fld_num;i++) {
+		if(fields[i]) {
+			fields_len[i] = strlen(fields[i]);
+			dummy_len += fields_len[i];
+		} else {
+			fields_len[i] = 0;
+		}
+	}
+
+	int hdr_len = sizeof(r->msg.CallInfoDynamicMessage) + (fld_num - 4);
+	int padding = ((dummy_len + hdr_len) % 4);
+	padding = (padding > 0) ? 4 - padding : 0;
+
+	r = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len + padding);
+	r->msg.CallInfoDynamicMessage.lel_lineId   = htolel(3);
+	r->msg.CallInfoDynamicMessage.lel_callRef  = htolel(1);
+	r->msg.CallInfoDynamicMessage.lel_callType = htolel(1);
+	r->msg.CallInfoDynamicMessage.partyPIRestrictionBits = 0;
+	r->msg.CallInfoDynamicMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED);
+	r->msg.CallInfoDynamicMessage.lel_callInstance = htolel(status);
+	r->msg.CallInfoDynamicMessage.lel_originalCdpnRedirectReason = htolel(instance);
+	r->msg.CallInfoDynamicMessage.lel_lastRedirectingReason = htolel(instance);
+
+	if(dummy_len) {
+		char buffer[dummy_len + fld_num];
+		memset(&buffer[0], 0, dummy_len + fld_num);
+		int pos = 0;
+		for(i=0;i<fld_num;i++) {
+			if(fields[i])
+				memcpy(&buffer[pos], fields[i], fields_len[i]);
+			pos += fields_len[i] + 1;
+		}
+		memcpy(&r->msg.CallInfoDynamicMessage.dummy, &buffer[0], dummy_len + fld_num);
+	}
+	sccp_dump_packet((unsigned char *)&r->msg, hdr_len + dummy_len + padding);
+	sccp_dev_send(d, r);
+	sccp_device_sendcallstate(d, 3, 1, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); 
 #ifdef CS_ADV_FEATURES
 //	sccp_moo_t 	*r1 = NULL;
 
@@ -1060,7 +1125,7 @@ static int sccp_show_channels(int fd, int argc, char * argv[]) {
 				(c->device)?c->device->description:"(unknown)",
 				(c->owner) ? ast_state2str(c->owner->_state) : "(none)",
 				sccp_indicate2str(c->state),
-				c->calledPartyNumber,
+				c->callInfo.calledPartyNumber,
 				(c->format)?codec2str(sccp_codec_ast2skinny(c->format)):"(none)");
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
@@ -1319,7 +1384,7 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 					l->channelCount,
 					(c) ? sccp_indicate2str(c->state) : "--",
 					(c) ? calltype2str(c->calltype) : "",
-					(c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->calledPartyName : c->callingPartyName ) : "",
+					(c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->callInfo.calledPartyName : c->callInfo.callingPartyName ) : "",
 					cap_buf);
 				found_linedevice=1;
 			}
@@ -1335,7 +1400,7 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 			l->channelCount,
 			(c) ? sccp_indicate2str(c->state) : "--",
 			(c) ? calltype2str(c->calltype) : "",
-			(c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->calledPartyName : c->callingPartyName ) : "",
+			(c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->callInfo.calledPartyName : c->callInfo.callingPartyName ) : "",
 			cap_buf);
 		}
 		for (v = l->variables ; v ; v = v->next)

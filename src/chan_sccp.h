@@ -420,7 +420,28 @@ struct sccp_selectedchannel {
 	SCCP_LIST_ENTRY(sccp_selectedchannel_t) list;					/*!< Selected Channel Linked List Entry */
 };											/*!< SCCP Selected Channel Structure */
 
+struct sccp_callinfo{
+	char					calledPartyName[StationMaxNameSize];		/*!< Called Party Name */
+	char					calledPartyNumber[StationMaxDirnumSize];	/*!< Called Party Number */
+	char					callingPartyName[StationMaxNameSize];		/*!< Calling Party Name */
+	char					callingPartyNumber[StationMaxDirnumSize];	/*!< Calling Party Number */
 
+#ifdef CS_ADV_FEATURES
+        char 					originalCallingPartyName[StationMaxNameSize];	/*!< Original Calling Party Name */
+        char					originalCallingPartyNumber[StationMaxDirnumSize];/*!< Original Calling Party ID */
+        char 					originalCalledPartyName[StationMaxNameSize];	/*!< Original Calling Party Name */
+        char					originalCalledPartyNumber[StationMaxDirnumSize];/*!< Original Calling Party ID */        
+        char					lastRedirectingPartyName[StationMaxNameSize];	/*!< Original Called Party Name */
+        char					lastRedirectingPartyNumber[StationMaxDirnumSize];/*!< Original Called Party ID */
+        char					cgpnVoiceMailbox[StationMaxDirnumSize];		/*!< Calling Party Voicemail Box */
+        char					cdpnVoiceMailbox[StationMaxDirnumSize];		/*!< Called Party Voicemail Box */
+        char					originalCdpnVoiceMailbox[StationMaxDirnumSize];	/*!< Original Called Party VoiceMail Box */
+        char					lastRedirectingVoiceMailbox[StationMaxDirnumSize];/*!< Last Redirecting VoiceMail Box */
+        
+        uint32_t				originalCdpnRedirectReason;			/*!< Original Called Party Redirect Reason */
+        uint32_t				lastRedirectingReason;				/*!< Last Redirecting Reason */
+#endif
+};
 
 /*!
  * \brief SCCP cfwd information
@@ -833,23 +854,7 @@ struct sccp_channel {
 	struct ast_codec_pref 			codecs;					/*!< Asterisk Codec Channel Preference */
 	int 					capability;				/*!< channel Capability */
 
-	char					calledPartyName[StationMaxNameSize];	/*!< Called Party Name */
-	char					calledPartyNumber[StationMaxDirnumSize];/*!< Called Party Number */
-	char					callingPartyName[StationMaxNameSize];	/*!< Calling Party Name */
-	char					callingPartyNumber[StationMaxDirnumSize];/*!< Calling Party Number */
-
-#ifdef CS_ADV_FEATURES
-        char 					originalCalledPartyName[StationMaxNameSize];	/*!< Original Calling Party Name */
-        char					originalCalledParty[StationMaxDirnumSize];	/*!< Original Calling Party ID */
-        char					lastRedirectingPartyName[StationMaxNameSize];	/*!< Original Called Party Name */
-        char					lastRedirectingParty[StationMaxDirnumSize];	/*!< Original Called Party ID */
-        uint32_t				originalCdpnRedirectReason;			/*!< Original Called Party Redirect Reason */
-        uint32_t				lastRedirectingReason;				/*!< Last Redirecting Reason */
-        char					cgpnVoiceMailbox[StationMaxDirnumSize];		/*!< Calling Party Voicemail Box */
-        char					cdpnVoiceMailbox[StationMaxDirnumSize];		/*!< Called Party Voicemail Box */
-        char					originalCdpnVoiceMailbox[StationMaxDirnumSize];	/*!< Original Called Party VoiceMail Box */
-        char					lastRedirectingVoiceMailbox[StationMaxDirnumSize];/*!< Last Redirecting VoiceMail Box */
-#endif
+	struct 	sccp_callinfo			callInfo;
 
 	uint32_t				callid;					/*!< Call ID */
 	uint32_t				passthrupartyid;			/*!< Pass Through ID */
