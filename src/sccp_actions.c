@@ -95,26 +95,18 @@ void sccp_handle_unknown_message(sccp_session_t * s, sccp_moo_t * r)
  * \param s SCCP Session as sccp_session_t
  * \param r SCCP MOO T as sccp_moo_t
  */
-void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
-{
-	sccp_buttonconfig_t		*buttonconfig = NULL;
-	boolean_t				defaultLineSet = FALSE;
-// 	pthread_attr_t 	attr;
-	sccp_device_t 	* d;
-	btnlist 		btn[StationMaxButtonTemplateSize];
-	sccp_line_t *l;
-	sccp_moo_t 		* r1;
-	uint8_t i = 0, line_count = 0;
+void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r){
+	sccp_device_t 		*d;
+	sccp_moo_t 		*r1;
+	uint8_t 		i = 0;
 	struct ast_hostent	ahp;
 	struct hostent		*hp;
-	struct sockaddr_in sin;
+	struct sockaddr_in 	sin;
 	sccp_hostname_t		*permithost;
 
 #if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
-
-	memset(&btn, 0 , sizeof(btn));
 
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d\n",
 		r->msg.RegisterMessage.sId.deviceName,
@@ -212,97 +204,9 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	d->protocolversion = r->msg.RegisterMessage.protocolVer;
 	
 	
-//	// \todo TODO check if we can delete device (realtime)
-//	if(d->protocolversion > 0 && d->protocolversion < SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW){
-//		ast_log(LOG_NOTICE, "%s: Rejecting device: Protocol version of device %d < %d\n", r->msg.RegisterMessage.sId.deviceName, d->protocolversion, SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW);
-//		sccp_session_reject(s, "unsupported protocol version");
-//		return;
-//	}
-
-
-	/* set softkey definition */
-	sccp_softKeySetConfiguration_t *softkeyset;
-
-	if(!ast_strlen_zero(d->softkeyDefinition)){
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: searching for softkeyset: %s!\n", d->id, d->softkeyDefinition);
-		SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
-			if (!strcasecmp(d->softkeyDefinition, softkeyset->name)) {
-				sccp_log(1)(VERBOSE_PREFIX_3 "%s: using softkeyset: %s!\n", d->id, softkeyset->name);
-				d->softKeyConfiguration.modes = softkeyset->modes;
-				d->softKeyConfiguration.size = softkeyset->numberOfSoftKeySets;
-			}
-		}
-	}
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: d->softkeyDefinition=%s!\n", d->id, d->softkeyDefinition);
-	/* end softkey definition */
 	sccp_device_unlock(d);
 
-
-	/* pre-attach lines. We will wait for button template req if the phone does support it */
-	sccp_dev_build_buttontemplate(d, btn);
-
-	line_count = 0;
-	/* count the available lines on the phone */
-	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-		if ( (btn[i].type == SKINNY_BUTTONTYPE_LINE) || (btn[i].type == SCCP_BUTTONTYPE_MULTI) )
-			line_count++;
-		else if (btn[i].type == SKINNY_BUTTONTYPE_UNUSED)
-			break;
-	}
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: Phone available lines %d\n", d->id, line_count);
-//	i = 0;		// \todo remove line : never used again after this point
-	if(d->isAnonymous == TRUE){
-		sccp_device_lock(d);
-		d->currentLine = GLOB(hotline)->line;
-//		defaultLineSet = TRUE;   // \todo remove line : never used again after this point
-
-		sccp_device_unlock(d);
-
-		sccp_line_addDevice(GLOB(hotline)->line, d, NULL);
-		sccp_hint_lineStatusChanged(GLOB(hotline)->line, d, NULL, SCCP_DEVICESTATE_UNAVAILABLE ,SCCP_DEVICESTATE_ONHOOK);
-	}else{
-
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-			if(!buttonconfig)
-				continue;
-
-			if(buttonconfig->type == LINE ){
-				if(sccp_is_nonempty_string(buttonconfig->button.line.name)){
-					l = sccp_line_find_byname(buttonconfig->button.line.name);
-
-					if (!l) {
-						ast_log(LOG_ERROR, "%s: Failed to autolog into %s: Couldn't find line %s\n", d->id, buttonconfig->button.line.name, buttonconfig->button.line.name);
-						continue;
-					}
-
-					sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Attaching line %s with instance %d to this device\n", d->id, l->name, buttonconfig->instance);
-					if (buttonconfig->instance > line_count) {
-						ast_log(LOG_WARNING, "%s: Failed to autolog into %s: Max available lines phone limit reached %s\n", d->id, buttonconfig->button.line.name, buttonconfig->button.line.name);
-						continue;
-					}
-
-					sccp_device_lock(d);
-					if (defaultLineSet == FALSE){
-						d->currentLine = l;
-						defaultLineSet = TRUE;
-					}
-					sccp_device_unlock(d);
-
-					sccp_line_addDevice(l, d, &(buttonconfig->button.line.subscriptionId));
-
-					/* notify the line is on */
-					sccp_hint_lineStatusChanged(l, d, NULL, SCCP_DEVICESTATE_UNAVAILABLE ,SCCP_DEVICESTATE_ONHOOK);
-					l = NULL;
-				}
-			}
-		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
-	}
-	l = NULL;
-	buttonconfig = NULL;
-
-
+	
 	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
 	int keepAliveInterval = d->keepalive ? d->keepalive : GLOB(keepalive);
 	keepAliveInterval = (keepAliveInterval/2) + (rand() % (keepAliveInterval/2) )+1;
@@ -351,11 +255,93 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	sccp_session_send(d, r1);
 	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_PROGRESS);
 	
+	
+	sccp_handle_AvailableLines(s, r);
+	
 	// Ask for the capabilities of the device
 	// to proceed with registration according to sccp protocol specification 3.0
 	sccp_dev_sendmsg(d, CapabilitiesReqMessage);
 
 }
+
+
+void sccp_handle_AvailableLines(sccp_session_t * s, sccp_moo_t * r){
+	uint8_t i = 0, line_count = 0;
+	sccp_device_t 		*d;
+	btnlist 		btn[StationMaxButtonTemplateSize];
+	sccp_line_t 		*l;
+	sccp_buttonconfig_t	*buttonconfig = NULL;
+	boolean_t		defaultLineSet = FALSE;
+	
+	line_count = 0;
+	
+	d = s->device;
+	
+	/* pre-attach lines. We will wait for button template req if the phone does support it */
+	memset(&btn, 0 , sizeof(btn));
+	sccp_dev_build_buttontemplate(d, btn);
+	
+	/* count the available lines on the phone */
+	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
+		if ( (btn[i].type == SKINNY_BUTTONTYPE_LINE) || (btn[i].type == SCCP_BUTTONTYPE_MULTI) )
+			line_count++;
+		else if (btn[i].type == SKINNY_BUTTONTYPE_UNUSED)
+			break;
+	}
+	
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: Phone available lines %d\n", d->id, line_count);
+	if(d->isAnonymous == TRUE){
+	  
+		sccp_device_lock(d);
+		d->currentLine = GLOB(hotline)->line;
+		sccp_device_unlock(d);
+
+		sccp_line_addDevice(GLOB(hotline)->line, d, NULL);
+		sccp_hint_lineStatusChanged(GLOB(hotline)->line, d, NULL, SCCP_DEVICESTATE_UNAVAILABLE ,SCCP_DEVICESTATE_ONHOOK);
+	}else{
+
+		SCCP_LIST_LOCK(&d->buttonconfig);
+		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+			if(!buttonconfig)
+				continue;
+
+			if(buttonconfig->type == LINE ){
+				if(sccp_is_nonempty_string(buttonconfig->button.line.name)){
+					l = sccp_line_find_byname(buttonconfig->button.line.name);
+
+					if (!l) {
+						ast_log(LOG_ERROR, "%s: Failed to autolog into %s: Couldn't find line %s\n", d->id, buttonconfig->button.line.name, buttonconfig->button.line.name);
+						continue;
+					}
+
+					sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Attaching line %s with instance %d to this device\n", d->id, l->name, buttonconfig->instance);
+					if (buttonconfig->instance > line_count) {
+						ast_log(LOG_WARNING, "%s: Failed to autolog into %s: Max available lines phone limit reached %s\n", d->id, buttonconfig->button.line.name, buttonconfig->button.line.name);
+						continue;
+					}
+
+					sccp_device_lock(d);
+					if (defaultLineSet == FALSE){
+						d->currentLine = l;
+						defaultLineSet = TRUE;
+					}
+					sccp_device_unlock(d);
+
+					sccp_line_addDevice(l, d, &(buttonconfig->button.line.subscriptionId));
+
+					/* notify the line is on */
+					sccp_hint_lineStatusChanged(l, d, NULL, SCCP_DEVICESTATE_UNAVAILABLE ,SCCP_DEVICESTATE_ONHOOK);
+					l = NULL;
+				}
+			}
+		}
+		SCCP_LIST_UNLOCK(&d->buttonconfig);
+	}
+	l = NULL;
+	buttonconfig = NULL;
+}
+
+
 
 /*!
  * \brief Handle Accessory Status Message

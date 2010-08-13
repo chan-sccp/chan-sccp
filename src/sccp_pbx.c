@@ -51,6 +51,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/features.h>
 #endif
 
+AST_THREADSTORAGE_EXTERNAL(ast_str_thread_global_buf);
 
 
 
@@ -133,6 +134,11 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		ast_log(LOG_WARNING, "SCCP: Asterisk request to call %s channel: %s, but we don't have this channel!\n", dest, ast->name);
 		return -1;
 	}
+
+#include "asterisk/threadstorage.h"
+	struct ast_str *out = ast_str_thread_get(&ast_str_thread_global_buf, 16);
+	if (pbx_builtin_serialize_variables(ast, &out))
+		sccp_log(1)(VERBOSE_PREFIX_3 "Variables:\n%s\n", ast_str_buffer(out));
 
 	l = c->line;
 	if(l){
@@ -1103,7 +1109,11 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 		return -1;
 	}
 
-	c->owner = newchan;
+	c->owner = newchan;	
+	ast_log(LOG_WARNING, "sccp_pbx_fixup(new: %s - cid_num %s\n", newchan->name, (newchan->cid.cid_num)?newchan->cid.cid_num:"NULL");
+	ast_log(LOG_WARNING, "sccp_pbx_fixup(new: %s - cid_name %s\n", newchan->name, newchan->cid.cid_name?newchan->cid.cid_name:"NULL");
+	
+	
 	sccp_mutex_unlock(&c->lock);
 	return 0;
 }
@@ -1256,20 +1266,20 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 
 		/* append subscriptionId to cid */
 		if(linedevice && !ast_strlen_zero(linedevice->subscriptionId.number)){
-			sprintf(c->callingPartyNumber, "%s%s", l->cid_num, linedevice->subscriptionId.number);
+			sprintf(c->callInfo.callingPartyNumber, "%s%s", l->cid_num, linedevice->subscriptionId.number);
 		}else{
-			sprintf(c->callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number)?l->defaultSubscriptionId.number:"");
+			sprintf(c->callInfo.callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number)?l->defaultSubscriptionId.number:"");
 		}
 
 		if(linedevice && !ast_strlen_zero(linedevice->subscriptionId.name)){
-			sprintf(c->callingPartyName, "%s%s", l->cid_name, linedevice->subscriptionId.name);
+			sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, linedevice->subscriptionId.name);
 		}else{
-			sprintf(c->callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name)?l->defaultSubscriptionId.name:"");
+			sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name)?l->defaultSubscriptionId.name:"");
 		}
 
 	}else{
-		sprintf(c->callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number)?l->defaultSubscriptionId.number:"");
-		sprintf(c->callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name)?l->defaultSubscriptionId.name:"");
+		sprintf(c->callInfo.callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number)?l->defaultSubscriptionId.number:"");
+		sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name)?l->defaultSubscriptionId.name:"");
 	}
 
 
@@ -1278,8 +1288,8 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 #if ASTERISK_VERSION_NUM < 10400
 	tmp = ast_channel_alloc(1);
 #else
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP:     cid_num: \"%s\"\n", c->callingPartyNumber);
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP:    cid_name: \"%s\"\n", c->callingPartyName);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP:     cid_num: \"%s\"\n", c->callInfo.callingPartyNumber);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP:    cid_name: \"%s\"\n", c->callInfo.callingPartyName);
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: accountcode: \"%s\"\n", l->accountcode);
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP:       exten: \"%s\"\n", c->dialedNumber);
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP:     context: \"%s\"\n", l->context);
@@ -1290,7 +1300,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 
 
 	/* This should definetly fix CDR */
-    	tmp = ast_channel_alloc(1, AST_STATE_DOWN, c->callingPartyNumber, c->callingPartyName, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
+    	tmp = ast_channel_alloc(1, AST_STATE_DOWN, c->callInfo.callingPartyNumber, c->callInfo.callingPartyName, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
 #endif
        // tmp = ast_channel_alloc(1); function changed in 1.4.0
        // Note: Assuming AST_STATE_DOWN is starting state
@@ -1419,12 +1429,12 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 
 #ifdef CS_AST_CHANNEL_HAS_CID
 	if (l->cid_num){
-		tmp->cid.cid_num = strdup(c->callingPartyNumber);
+		tmp->cid.cid_num = strdup(c->callInfo.callingPartyNumber);
 	}
 	if (l->cid_name)
-		tmp->cid.cid_name = strdup(c->callingPartyName);
+		tmp->cid.cid_name = strdup(c->callInfo.callingPartyName);
 #else
-	snprintf(cidtmp, sizeof(cidtmp), "\"%s\" <%s>", c->callingPartyName, c->callingPartyNumber);
+	snprintf(cidtmp, sizeof(cidtmp), "\"%s\" <%s>", c->callInfo.callingPartyName, c->callInfo.callingPartyNumber);
 	tmp->callerid = strdup(cidtmp);
 #endif
 
@@ -1946,7 +1956,7 @@ const struct ast_channel_tech sccp_tech = {
 #if ASTERISK_VERSION_NUM >= 10600
 	.early_bridge = ast_rtp_early_bridge,
 #ifdef CS_ADV_FEATURES	
-	.get_pvt_uniqueid = sccp_pbx_get_callid,	// new >1.6.0
+	//.get_pvt_uniqueid = sccp_pbx_get_callid,	// new >1.6.0
 #endif
 #endif
 };
@@ -2007,14 +2017,15 @@ int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
  * \brief Deliver SCCP call ID for the call
  * \param ast Asterisk Channel
  * \return result as char *
+ * 
  */
 const char *sccp_pbx_get_callid(struct ast_channel *ast)
 { 
 	sccp_channel_t *c;
 	char *callid="";
 	
-	sccp_log(1)(VERBOSE_PREFIX_1 "Get CallID '%s'", ast->name);
-	if ( (c = ast->tech_pvt) ) {
+	c = CS_AST_CHANNEL_PVT(ast);
+	if (c) {
 		sprintf(callid,"%d",c->callid);
 	}
 	sccp_log(1)(VERBOSE_PREFIX_1 "Get CallID Returning'%s'", callid);
@@ -2039,8 +2050,8 @@ int acf_channel_read(struct ast_channel *ast, char *funcname, char *args, char *
  	        return -1;
 	}
 #endif
-	c=ast->tech_pvt;
-	if (( d = c->device)) {
+	c = CS_AST_CHANNEL_PVT(ast);
+	if ( (d = c->device) ) {
 		sccp_device_unlock(d);
 
 		if (!strcasecmp(args, "peerip")) {

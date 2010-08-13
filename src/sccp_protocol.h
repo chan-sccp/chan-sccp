@@ -617,6 +617,7 @@ static const struct skinny_devicetype {
 	{ SKINNY_DEVICETYPE_CISCO7912			,	"Cisco 7912"				},
 	{ SKINNY_DEVICETYPE_CISCO7931			,	"Cisco 7931"				},
 	{ SKINNY_DEVICETYPE_CISCO7921			,	"Cisco 7921"				},
+	{ SKINNY_DEVICETYPE_CISCO7925			,	"Cisco 7925"				},
 	{ SKINNY_DEVICETYPE_CISCO7935			,	"Cisco 7935"				},
 	{ SKINNY_DEVICETYPE_CISCO7936			,	"Cisco 7936"				},
 	{ SKINNY_DEVICETYPE_CISCO7937			,	"Cisco 7937"				},
@@ -1830,8 +1831,8 @@ typedef union {
                 uint32_t 	lel_lineId;					/*!< Line ID */
                 uint32_t 	lel_callRef;					/*!< Call Reference */
                 uint32_t 	lel_callType; 					/*!< Call Type (INBOUND=1, OUTBOUND=2, FORWARD=3) */
-                uint32_t 	originalCdpnRedirectReason;			/*!< Original CalledParty Redirect Reason */
-                uint32_t 	lastRedirectingReason;				/*!< Last Redirecting Reason */
+                uint32_t 	lel_originalCdpnRedirectReason;			/*!< Original CalledParty Redirect Reason */
+                uint32_t 	lel_lastRedirectingReason;				/*!< Last Redirecting Reason */
                 uint32_t 	lel_callInstance;				/*!< Call Instance */
                 uint32_t 	lel_callSecurityStatus;				/*!< Call Security Status */
                 uint32_t 	partyPIRestrictionBits;				/*!< Party PI Restriction Bits Structure

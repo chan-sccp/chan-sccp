@@ -558,6 +558,39 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
 				ast_callerid_parse(cidtmp, &name, &number);
 			}
 #endif
+
+
+
+#ifdef CS_AST_CHANNEL_HAS_CID				
+			if(original && original->cid.cid_name)
+				sccp_copy_string(c->callInfo.originalCalledPartyName, original->cid.cid_name, sizeof(c->callInfo.originalCalledPartyName));
+			if(original && original->cid.cid_num)
+				sccp_copy_string(c->callInfo.originalCalledPartyNumber, original->cid.cid_num, sizeof(c->callInfo.originalCalledPartyNumber));
+			
+			
+			if(target->cid.cid_name){
+				sccp_copy_string(c->callInfo.callingPartyName, name, sizeof(c->callInfo.callingPartyName));
+			}
+			if(target->cid.cid_num){
+				sccp_copy_string(c->callInfo.callingPartyNumber, number, sizeof(c->callInfo.callingPartyNumber));
+			}
+
+
+			/* we use the  original->cid.cid_name to do the magic */
+			if(target->cid.cid_ani){
+				sccp_copy_string(c->callInfo.callingPartyNumber, number, sizeof(c->callInfo.callingPartyNumber));
+				sccp_copy_string(c->callInfo.callingPartyName, number, sizeof(c->callInfo.callingPartyName));
+			}
+			sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) asterisk remote channel cid_ani = '%s'\n",  (target->cid.cid_ani)?target->cid.cid_ani:""); /* remote cid_num */
+			sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) asterisk remote channel cid_dnid = '%s'\n", (target->cid.cid_dnid)?target->cid.cid_dnid:"");
+			sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) asterisk remote channel cid_name = '%s'\n", (target->cid.cid_name)?target->cid.cid_name:"");
+			sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) asterisk remote channel cid_num = '%s'\n",  (target->cid.cid_num)?target->cid.cid_num:"");
+			sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) asterisk remote channel cid_rdnis = '%s'\n", (target->cid.cid_rdnis)?target->cid.cid_rdnis:"");
+
+#endif
+
+
+
 #ifndef CS_AST_HAS_TECH_PVT
 			if (!strcasecmp(target->type, "SCCP")){
 #else
@@ -565,10 +598,11 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
 #endif
 				sccp_channel_t *remote = CS_AST_CHANNEL_PVT(target);
 				if(remote){
-					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) remote channel is SCCP -> correct cid\n");
-					name = strdup(remote->callingPartyName);
-					number = strdup(remote->callingPartyNumber);
+					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) remote channel is SCCP %s -> correct cid\n", remote->owner->name);
+					name = strdup(remote->callInfo.callingPartyName);
+					number = strdup(remote->callInfo.callingPartyNumber);
 				}
+
 				remote = NULL;
 			}
 			original->hangupcause = AST_CAUSE_CALL_REJECTED;
@@ -596,7 +630,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
 
 					/* searching callerid */
 					c->calltype = SKINNY_CALLTYPE_INBOUND;
-					sccp_channel_set_callingparty(c, name, number);
+					//sccp_channel_set_callingparty(c, name, number);
 					if(d->pickupmodeanswer) {
 						sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_CONNECTED);
 					} else {

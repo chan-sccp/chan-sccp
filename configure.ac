@@ -182,6 +182,13 @@ if test "$have_host_cc" = "no"; then
 fi
 AC_SUBST(HOST_CC)
 
+dnl Clang defaults to gnu99 mode, while asterisk needs gnu89
+case $CC in
+ clang)
+ CFLAGS="$CFLAGS -std=gnu89"
+ ;;
+esac
+
 # Checks for programs.
 CONFIGURE_PART([Checking for standard programs:])
 AC_PATH_PROGS(GREP, ggrep grep,[echo Missing grep so skipping but I doubt we will get anywhere])
