@@ -426,8 +426,7 @@ struct sccp_callinfo{
 	char					callingPartyName[StationMaxNameSize];		/*!< Calling Party Name */
 	char					callingPartyNumber[StationMaxDirnumSize];	/*!< Calling Party Number */
 
-#ifdef CS_ADV_FEATURES
-        char 					originalCallingPartyName[StationMaxNameSize];	/*!< Original Calling Party Name */
+	char 					originalCallingPartyName[StationMaxNameSize];	/*!< Original Calling Party Name */
         char					originalCallingPartyNumber[StationMaxDirnumSize];/*!< Original Calling Party ID */
         char 					originalCalledPartyName[StationMaxNameSize];	/*!< Original Calling Party Name */
         char					originalCalledPartyNumber[StationMaxDirnumSize];/*!< Original Calling Party ID */        
@@ -440,7 +439,6 @@ struct sccp_callinfo{
         
         uint32_t				originalCdpnRedirectReason;			/*!< Original Called Party Redirect Reason */
         uint32_t				lastRedirectingReason;				/*!< Last Redirecting Reason */
-#endif
 };
 
 /*!
