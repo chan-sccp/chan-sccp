@@ -57,7 +57,7 @@ AST_THREADSTORAGE_EXTERNAL(ast_str_thread_global_buf);
 
 #ifdef CS_AST_HAS_TECH_PVT
 const struct ast_channel_tech sccp_tech;
-#endif
+#endif // CS_AST_HAS_TECH_PVT
 
 /*!
  * \brief Call Auto Answer Thead
@@ -118,7 +118,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char * name, * number, *cidtmp; // For the callerid parse below
-#endif
+#endif // CS_AST_CHANNEL_HAS_CID
 
 #if ASTERISK_VERSION_NUM < 10400
 	// if channel type is undefined, set to SCCP
@@ -126,7 +126,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Channel type undefined, setting to type 'SCCP'\n");
 		ast->type = "SCCP";
 	}
-#endif
+#endif // ASTERISK_VERSION_NUM < 10400
 
 	c = CS_AST_CHANNEL_PVT(ast);
 
@@ -253,7 +253,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	{
 		sccp_channel_set_callingparty(c, ast->cid.cid_name, ast->cid.cid_num);
 	}
-#else
+#else // CS_AST_CHANNEL_HAS_CID
 	if (ast->callerid && (cidtmp = strdup(ast->callerid))) {
 		ast_callerid_parse(cidtmp, &name, &number);
 		sccp_channel_set_callingparty(c, name, number);
@@ -452,7 +452,7 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere");
 		c->answered_elsewhere = TRUE;
 	}
-#endif
+#endif // AST_FLAG_ANSWERED_ELSEWHERE
 	d = c->device;
 	if(c->state != SCCP_CHANNELSTATE_DOWN) {
 		if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_channel_get_active(d))
@@ -467,7 +467,7 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 	if(c->conference){
 		sccp_conference_removeParticipant(c->conference, c);
 	}
-#endif
+#endif // CS_SCCP_CONFERENCE
 
 	if (c->rtp.audio) {
 		sccp_channel_closereceivechannel(c);
@@ -571,7 +571,7 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Channel type undefined, setting to type 'SCCP'\n");
 		ast->type = "SCCP";
 	}
-#endif
+#endif // ASTERISK_VERSION_NUM < 10400
 
 	if (!c || !c->line || (!c->device && !c->parentChannel) ) {
 		ast_log(LOG_ERROR, "SCCP: Answered %s but no SCCP channel\n", ast->name);
@@ -646,7 +646,7 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 	frame = &ast_null_frame;
 #else
 	frame = NULL;
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
 
 	if(!c || !c->rtp.audio)
 		return frame;
@@ -659,7 +659,7 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 			if(c->conference){
 				//sccp_conference_readFrame(frame, c);
 			}
-#endif
+#endif // CS_SCCP_CONFERENCE
 			break;
 		case 1:
 			frame = ast_rtcp_read(c->rtp.audio);	/* RTCP Control Channel */
@@ -684,7 +684,7 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 		case 3:
 			frame = ast_rtp_instance_read(c->rtp.video, 1); /* RTCP Control Channel for video */
 			break;
-#endif
+#endif // CS_AST_HAS_RTP_ENGINE
 
 
 		default:
@@ -700,7 +700,7 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 		if (!(frame->subclass & (ast->nativeformats & AST_FORMAT_AUDIO_MASK)))
 #else
 		if (!(frame->subclass & (ast->nativeformats)))
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
 		{
 		      sccp_log(1)(VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n",
 						DEV_ID_LOG(c->device),
@@ -750,7 +750,7 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 #else
 						ast_getformatname_multiple(s1, sizeof(s1) - 1, ast->nativeformats),
 						ast->nativeformats,
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
 						ast_getformatname_multiple(s2, sizeof(s2) - 1, ast->readformat),
 						ast->readformat,
 						ast_getformatname_multiple(s3, sizeof(s3) - 1, ast->writeformat),
@@ -775,7 +775,7 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 			case AST_FRAME_TEXT:
 #if ASTERISK_VERSION_NUM >= 10400
 			case AST_FRAME_MODEM:
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
 			default:
 				ast_log(LOG_WARNING, "%s: Can't send %d type frames with SCCP write on channel %s\n", DEV_ID_LOG(c->device), frame->frametype, ast->name);
 				break;
@@ -826,23 +826,23 @@ static char *sccp_control2str(int state) {
 				return "Hold";
 		case AST_CONTROL_UNHOLD:
 				return "UnHold";
-#endif
+#endif // CS_AST_CONTROL_HOLD
 #ifdef CS_AST_CONTROL_VIDUPDATE
 		case AST_CONTROL_VIDUPDATE:
 				return "VideoFrameUpdate";
-#endif
+#endif // CS_AST_CONTROL_VIDUPDATE
 #ifdef AST_CONTROL_T38
 		case AST_CONTROL_T38:
 				return "T38RequestNotification";
-#endif
+#endif // AST_CONTROL_T38
 #ifdef AST_CONTROL_T38_PARAMETERS
 		case AST_CONTROL_T38_PARAMETERS:
 				return "T38RequestNotification";
-#endif
+#endif // AST_CONTROL_T38_PARAMETERS
 #ifdef CS_AST_CONTROL_SRCUPDATE
 		case AST_CONTROL_SRCUPDATE:
 				return "MediaSourceUpdate";
-#endif
+#endif // CS_AST_CONTROL_SRCUPDATE
 
 		case -1:
 				return "ChannelProdding";
@@ -869,7 +869,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind) {
  * \return Result as int
  */
 static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data, size_t datalen) {
-#endif
+#endif // ASTERISK_VERSION_NUM < 10400
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
 	int res = 0;
 	if (!c)
@@ -941,13 +941,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 				ast_getformatname_multiple(s1, sizeof(s1) -1, c->format & AST_FORMAT_AUDIO_MASK),
 #else
 				ast_getformatname_multiple(s1, sizeof(s1) -1, c->format),
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
 				ast->nativeformats,
 #if ASTERISK_VERSION_NUM >= 10400
 				ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat & AST_FORMAT_AUDIO_MASK),
 #else
 				ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat),
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
 				ast->rawreadformat);
 			ast_set_read_format(ast, c->format);
 			ast_set_write_format(ast, c->format);
@@ -967,9 +967,9 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			ast_rtp_new_source(c->rtp.audio);
 			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
 		}
-#endif
+#endif // CS_AST_RTP_NEW_SOURCE
 		break;
-#endif
+#endif // CS_AST_CONTROL_SRCUPDATE
 
 #ifdef CS_AST_CONTROL_HOLD
 	/* when the bridged channel hold/unhold the call we are notified here */
@@ -978,7 +978,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		ast_moh_start(ast, c->musicclass);
 #else
 		ast_moh_start(ast, data, c->musicclass);
-#endif
+#endif // ASTERISK_VERSION_NUM < 10400
 		res = 0;
 		break;
 	case AST_CONTROL_UNHOLD:
@@ -988,10 +988,10 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			ast_rtp_new_source(c->rtp.audio);
 			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
 		}
-#endif
+#endif // CS_AST_RTP_NEW_SOURCE
 		res = 0;
 		break;
-#endif
+#endif // CS_AST_CONTROL_HOLD
 	case -1: // Asterisk prod the channel
 		res = -1;
 		break;
@@ -1000,7 +1000,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		sccp_pbx_update_connectedline(ast, data, datalen);
 		sccp_indicate_nolock(c->device, c, c->state);
 	break;
-#endif
+#endif // CS_AST_CONTROL_CONNECTED_LINE
 	case AST_CONTROL_VIDUPDATE:	/* Request a video frame update */
 		if (c->rtp.video) {
 			res = 0;
@@ -1029,13 +1029,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			        ast_getformatname_multiple(s1, sizeof(s1) -1, c->format & AST_FORMAT_AUDIO_MASK),
 #else
 			        ast_getformatname_multiple(s1, sizeof(s1) -1, c->format),
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
 			        ast->nativeformats,
 #if ASTERISK_VERSION_NUM >= 10400
 			        ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat & AST_FORMAT_AUDIO_MASK),
 #else
 			        ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat),
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
 			        ast->rawreadformat);
 			ast_set_read_format(ast, c->format);
 			ast_set_write_format(ast, c->format);
@@ -1055,9 +1055,9 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			ast_rtp_new_source(c->rtp.audio);
 			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
 		}
-#endif
+#endif // CS_AST_RTP_NEW_SOURCE
 	break;
-#endif
+#endif // AST_CONTROL_SRCCHANGE
 	default:
 		ast_log(LOG_WARNING, "SCCP: Don't know how to indicate condition %d\n", ind);
 		res = -1;
@@ -1084,7 +1084,7 @@ static void sccp_pbx_update_connectedline(sccp_channel_t *channel, const void *d
 
 	sccp_channel_set_calledparty(c, ast_channel->connected.id.name, ast_channel->connected.id.number);
 }
-#endif
+#endif // CS_AST_CONTROL_CONNECTED_LINE
 
 
 /*!
@@ -1128,7 +1128,7 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 static int sccp_pbx_recvdigit_begin(struct ast_channel *ast, char digit) {
 	return -1;
 }
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
 
 #if ASTERISK_VERSION_NUM < 10400
 /*!
@@ -1149,7 +1149,7 @@ static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit) {
  * \todo FIXME Always returns -1
  */
 static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit, unsigned int duration) {
-#endif
+#endif // ASTERISK_VERSION_NUM < 10400
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
 	sccp_device_t * d = NULL;
 	uint8_t			instance;
@@ -1207,7 +1207,7 @@ static int sccp_pbx_sendtext(struct ast_channel *ast, const char *text) {
  * \return Succes as int
  */
 static int sccp_pbx_sendtext(struct ast_channel *ast, char *text) {
-#endif
+#endif // CS_AST_HAS_TECH_PVT
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(ast);
 	sccp_device_t * d;
 	uint8_t			instance;
@@ -1241,7 +1241,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char cidtmp[256];
 	memset(&cidtmp, 0, sizeof(cidtmp));
-#endif
+#endif // CS_AST_CHANNEL_HAS_CID
 
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: try to allocate channel \n");
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Line: %s\n", l->name);
@@ -1301,7 +1301,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 
 	/* This should definetly fix CDR */
     	tmp = ast_channel_alloc(1, AST_STATE_DOWN, c->callInfo.callingPartyNumber, c->callInfo.callingPartyName, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
-#endif
+#endif // ASTERISK_VERSION_NUM < 10400
        // tmp = ast_channel_alloc(1); function changed in 1.4.0
        // Note: Assuming AST_STATE_DOWN is starting state
 	if (!tmp) {
@@ -1359,7 +1359,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	ast_string_field_build(tmp, name, "SCCP/%s-%08x", l->name, c->callid);
 #else
 	snprintf(tmp->name, sizeof(tmp->name), "SCCP/%s-%08x", l->name, c->callid);
-#endif
+#endif // CS_AST_HAS_AST_STRING_FIELD
 
 	sccp_line_unlock(l);
 	sccp_channel_unlock(c);
@@ -1368,7 +1368,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 
 #if ASTERISK_VERSION_NUM >= 10400
 	ast_jb_configure(tmp, &GLOB(global_jbconf));
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
 
 	char s1[512], s2[512];
 	sccp_log(2)(VERBOSE_PREFIX_3 "%s: Channel %s, capabilities: CHANNEL %s(%d) PREFERRED %s(%d) USED %s(%d)\n",
@@ -1378,13 +1378,13 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	ast_getformatname_multiple(s1, sizeof(s1) -1, c->capability & AST_FORMAT_AUDIO_MASK),
 #else
 	ast_getformatname_multiple(s1, sizeof(s1) -1, c->capability),
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
 	c->capability,
 #if ASTERISK_VERSION_NUM >= 10400
 	ast_getformatname_multiple(s2, sizeof(s2) -1, tmp->nativeformats & AST_FORMAT_AUDIO_MASK),
 #else
 	ast_getformatname_multiple(s2, sizeof(s2) -1, tmp->nativeformats),
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
 	tmp->nativeformats,
 	ast_getformatname(fmt),
 	fmt);
@@ -1414,7 +1414,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 	tmp->pvt->fixup	= sccp_pbx_fixup;
 	tmp->pvt->send_digit = sccp_pbx_recvdigit;
 	tmp->pvt->send_text = sccp_pbx_sendtext;
-#endif
+#endif // CS_AST_HAS_TECH_PVT
 
 	tmp->adsicpe = AST_ADSI_UNAVAILABLE;
 
@@ -1436,7 +1436,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 #else
 	snprintf(cidtmp, sizeof(cidtmp), "\"%s\" <%s>", c->callInfo.callingPartyName, c->callInfo.callingPartyNumber);
 	tmp->callerid = strdup(cidtmp);
-#endif
+#endif // CS_AST_CHANNEL_HAS_CID
 
 	sccp_copy_string(tmp->context, l->context, sizeof(tmp->context));
 	if (!ast_strlen_zero(l->language))
@@ -1444,24 +1444,24 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 		ast_string_field_set(tmp, language, l->language);
 #else
 		sccp_copy_string(tmp->language, l->language, sizeof(tmp->language));
-#endif
+#endif // CS_AST_HAS_AST_STRING_FIELD
 	if (!ast_strlen_zero(l->accountcode))
 #ifdef CS_AST_HAS_AST_STRING_FIELD
 		ast_string_field_set(tmp, accountcode, l->accountcode);
 #else
 		sccp_copy_string(tmp->accountcode, l->accountcode, sizeof(tmp->accountcode));
-#endif
+#endif // CS_AST_HAS_AST_STRING_FIELD
 	if (!ast_strlen_zero(l->musicclass))
 #ifdef CS_AST_HAS_AST_STRING_FIELD
 		ast_string_field_set(tmp, musicclass, c->musicclass);
 #else
 		sccp_copy_string(tmp->musicclass, l->musicclass, sizeof(tmp->musicclass));
-#endif
+#endif // CS_AST_HAS_AST_STRING_FIELD
 	tmp->amaflags = l->amaflags;
 #ifdef CS_SCCP_PICKUP
 	tmp->callgroup = l->callgroup;
 	tmp->pickupgroup = l->pickupgroup;
-#endif
+#endif // CS_SCCP_PICKUP
 	tmp->priority = 1;
 
 	// export sccp informations in asterisk dialplan
@@ -1663,7 +1663,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 				sccp_channel_endcall(c);
 			}
 			return NULL; // leave simpleswitch without dial
-#endif
+#endif // CS_SCCP_PICKUP
 		case SCCP_SS_GETMEETMEROOM:
 //				sccp_channel_unlock(c);
 			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme request\n", d->id);
@@ -1799,7 +1799,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 				"Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %s\r\n",
 				chan->name, chan->uniqueid, "SCCP", (d)?DEV_ID_LOG(d):"(null)", (l)?l->name:"(null)", (c)?(char *)c->callid:"(null)");
 		}
-#endif
+#endif // CS_MANAGER_EVENTS
 	} else {
 		/* timeout and no extension match */
 		sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
@@ -1823,7 +1823,7 @@ void sccp_pbx_senddigit(sccp_channel_t * c, char digit) {
 	f = ast_null_frame;
 #else
 	f = NULL;
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
 	f.frametype = AST_FRAME_DTMF;
 	f.src = "SCCP";
 	f.subclass = digit;
@@ -1843,7 +1843,7 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 	f = ast_null_frame;
 #else
 	f = NULL;
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
 	f.frametype = AST_FRAME_DTMF;
 	        	
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Sending digits %s\n", DEV_ID_LOG(c->device), digits);
@@ -1855,7 +1855,7 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 	f.data.ptr = NULL;
 #else
 	f.data = NULL;
-#endif
+#endif // CS_AST_NEW_FRAME_STRUCT
 	for (i = 0; digits[i] != '\0'; i++) {
 		f.subclass = digits[i];
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Sending digit %c\n", DEV_ID_LOG(c->device), digits[i]);
@@ -1903,7 +1903,7 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f)
 int sccp_ast_queue_control(sccp_channel_t * c, enum ast_control_frame_type control)
 #else
 int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
 {
 //	struct ast_frame f = { AST_FRAME_CONTROL, };
 	struct ast_frame f;
@@ -1911,7 +1911,7 @@ int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
 	f = ast_null_frame;
 #else
 	f = NULL;
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
         f.frametype = AST_FRAME_DTMF;
         	
 	f.subclass = control;
@@ -1920,6 +1920,29 @@ int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
 	return 0;
 }
 
+#if ASTERISK_VERSION_NUM >= 10600
+#ifdef CS_ADV_FEATURES
+static const char *sccp_pbx_get_callid(struct ast_channel *ast);
+/*! 
+ * \brief Deliver SCCP call ID for the call
+ * \param ast Asterisk Channel
+ * \return result as char *
+ * 
+ */
+static const char *sccp_pbx_get_callid(struct ast_channel *ast)
+{ 
+	sccp_channel_t *c;
+	c = CS_AST_CHANNEL_PVT(ast);
+	if (c) {
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "Get CallID is Returning '%i'", c->callid);
+		return (char *)&c->callid;
+	} else {
+		return "";
+	}
+}
+
+#endif // CS_ADV_FEATURES
+#endif // ASTERISK_VERSION_NUM >= 10600
 
 #ifdef CS_AST_HAS_TECH_PVT
 /*!
@@ -1951,16 +1974,17 @@ const struct ast_channel_tech sccp_tech = {
 #ifdef CS_ADV_FEATURES	
 	.transfer = sccp_pbx_transfer,			// new >1.4.0
 	.func_channel_read = acf_channel_read,		// new
-#endif
-#endif
+#endif // CS_ADV_FEATURES
+#endif // ASTERISK_VERSION_NUM < 10400
+
 #if ASTERISK_VERSION_NUM >= 10600
 	.early_bridge = ast_rtp_early_bridge,
 #ifdef CS_ADV_FEATURES	
-	//.get_pvt_uniqueid = sccp_pbx_get_callid,	// new >1.6.0
-#endif
-#endif
+	.get_pvt_uniqueid = sccp_pbx_get_callid,	// new >1.6.0
+#endif // CS_ADV_FEATURES
+#endif // ASTERISK_VERSION_NUM >= 10600
 };
-#endif
+#endif // CS_AST_HAS_TECH_PVT
 
 #ifdef CS_ADV_FEATURES	
 /*!
@@ -2010,35 +2034,15 @@ int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
 	}
    	return res;
 }
-#endif
+#endif // CS_ADV_FEATURES
 
-#ifdef CS_ADV_FEATURES
-/*! 
- * \brief Deliver SCCP call ID for the call
- * \param ast Asterisk Channel
- * \return result as char *
- * 
- */
-const char *sccp_pbx_get_callid(struct ast_channel *ast)
-{ 
-	sccp_channel_t *c;
-	char *callid="";
-	
-	c = CS_AST_CHANNEL_PVT(ast);
-	if (c) {
-		sprintf(callid,"%d",c->callid);
-	}
-	sccp_log(1)(VERBOSE_PREFIX_1 "Get CallID Returning'%s'", callid);
-	
-	return callid;
-}
 
 #ifdef CS_ADV_FEATURES	
 #if ASTERISK_VERSION_NUM >= 10600
 int acf_channel_read(struct ast_channel *ast, const char *funcname, char *args, char *buf, size_t buflen)
 #else
 int acf_channel_read(struct ast_channel *ast, char *funcname, char *args, char *buf, size_t buflen)
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10600
 {
  	sccp_channel_t *c;
 	sccp_device_t *d;
@@ -2049,7 +2053,7 @@ int acf_channel_read(struct ast_channel *ast, char *funcname, char *args, char *
 	        ast_log(LOG_ERROR, "This function requires a valid SCCP channel\n");
  	        return -1;
 	}
-#endif
+#endif // CS_AST_HAS_TECH_PVT
 	c = CS_AST_CHANNEL_PVT(ast);
 	if ( (d = c->device) ) {
 		sccp_device_unlock(d);
@@ -2070,8 +2074,7 @@ int acf_channel_read(struct ast_channel *ast, char *funcname, char *args, char *
 	}
 	return res;
 }
-#endif
-#endif
+#endif // CS_ADV_FEATURES
 
 #ifndef ASTERISK_CONF_1_2
 /*!
@@ -2096,6 +2099,5 @@ struct ast_rtp_glue sccp_rtp = {
 	.update_peer = sccp_channel_set_rtp_peer,
 	.get_codec = sccp_device_get_codec,
 };
-#endif
-
-#endif
+#endif // CS_AST_HAS_RTP_ENGINE
+#endif // ASTERISK_CONF_1_2
