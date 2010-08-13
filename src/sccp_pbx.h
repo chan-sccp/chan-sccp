@@ -20,11 +20,11 @@
 #define sccp_rtp_read	ast_rtp_write
 #else
 #define sccp_rtp_read	ast_rtp_instance_write
-#endif
+#endif // CS_AST_HAS_RTP_ENGINE
 
 #if ASTERISK_VERSION_NUM >= 10400
 extern struct ast_rtp_protocol sccp_rtp;		/*!< rtp definition, see sccp_pbx.c */
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
 
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c);
 int sccp_pbx_sched_dial(const void *data);
@@ -34,28 +34,30 @@ void start_rtp(sccp_channel_t * sub);
 
 #ifdef CS_AST_HAS_TECH_PVT
 extern const struct ast_channel_tech sccp_tech;
-#endif
+#endif // CS_AST_HAS_TECH_PVT
 
 void sccp_pbx_needcheckringback(sccp_device_t * d);
 
 void sccp_pbx_senddigit(sccp_channel_t * c, char digit);
 void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]);
 void sccp_queue_frame(sccp_channel_t * c, struct ast_frame * f);
+
 #if ASTERISK_VERSION_NUM >= 10400
 int sccp_ast_queue_control(sccp_channel_t * c, enum ast_control_frame_type control);
 #else
 int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control);
-#endif
+#endif // ASTERISK_VERSION_NUM >= 10400
+
 #ifdef CS_AST_CONTROL_CONNECTED_LINE
 static void sccp_pbx_update_connectedline(sccp_channel_t *channel, const void *data, size_t datalen);
-#endif
+#endif // CS_AST_CONTROL_CONNECTED_LINE
+
 #ifdef CS_ADV_FEATURES
 int sccp_pbx_transfer(struct ast_channel *ast, const char *dest);
-const char *sccp_pbx_get_callid(struct ast_channel *ast);
 #if ASTERISK_VERSION_NUM >= 10600
 int acf_channel_read(struct ast_channel *ast, const char *funcname, char *args, char *buf, size_t buflen);
 #else
 int acf_channel_read(struct ast_channel *ast, char *funcname, char *args, char *buf, size_t buflen);
-#endif
-#endif
-#endif
+#endif // CS_ADV_FEATURES
+#endif // ASTERISK_VERSION_NUM >= 10600
+#endif // __SCCP_PBX_H
