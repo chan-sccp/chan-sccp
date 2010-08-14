@@ -67,6 +67,9 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \param device SCCP Device
  * \param type CallForward Type (NONE, ALL, BUSY, NOANSWER) as SCCP_CFWD_*
  * \return SCCP Channel
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *device, uint8_t type)
 {
@@ -692,6 +695,9 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
 /*!
  * \brief Update Caller ID
  * \param c SCCP Channel
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_feat_updatecid(sccp_channel_t * c) {
 	struct ast_channel * target = NULL;

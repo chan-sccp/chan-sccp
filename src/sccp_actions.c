@@ -94,6 +94,9 @@ void sccp_handle_unknown_message(sccp_session_t * s, sccp_moo_t * r)
  * \brief Handle Device Registration
  * \param s SCCP Session as sccp_session_t
  * \param r SCCP MOO T as sccp_moo_t
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r){
 	sccp_device_t 		*d;
@@ -264,7 +267,14 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r){
 
 }
 
-
+/*!
+ * \brief Handle Available Lines
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP MOO T as sccp_moo_t
+ *
+ * \callgraph
+ * \callergraph
+ */
 void sccp_handle_AvailableLines(sccp_session_t * s, sccp_moo_t * r){
 	uint8_t i = 0, line_count = 0;
 	sccp_device_t 		*d;
@@ -842,6 +852,9 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_moo_t * r)
  * \brief Handle Stimulus for Session
  * \param s SCCP Session as sccp_session_t
  * \param r SCCP Message as sccp_moo_t
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 {

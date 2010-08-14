@@ -73,6 +73,9 @@ AST_MUTEX_DEFINE_STATIC(callCountLock);
  * \param l SCCP Line
  * \param device SCCP Device
  * \return SCCP Channel
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_channel_t * sccp_channel_allocate(sccp_line_t * l, sccp_device_t *device)
 {
@@ -241,6 +244,9 @@ void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * c)
  * \brief Send Call Information to Device/Channel
  * \param device SCCP Device
  * \param c SCCP Channel
+ *
+ * \callgraph
+ * \callergraph
  */
 static void sccp_channel_send_staticCallinfo(sccp_device_t *device, sccp_channel_t * c)
 {
@@ -350,7 +356,14 @@ static void sccp_channel_send_staticCallinfo(sccp_device_t *device, sccp_channel
 
 }
 
-
+/*!
+ * \brief Send Call Information to Device/Channel via CallInfoDynamicMessage
+ * \param device SCCP Device
+ * \param c SCCP Channel
+ *
+ * \callgraph
+ * \callergraph
+ */
 static void sccp_channel_send_dynamicCallinfo(sccp_device_t *device, sccp_channel_t * channel){
 	sccp_moo_t * r;
 	int dataSize = 16;
@@ -519,6 +532,9 @@ void sccp_channel_setSkinnyCallstate(sccp_channel_t * c, skinny_callstate_t stat
  * \param c SCCP Channel
  * \param name Name as char
  * \param number Number as char
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_channel_set_callingparty(sccp_channel_t * c, char *name, char *number)
 {
@@ -544,6 +560,9 @@ void sccp_channel_set_callingparty(sccp_channel_t * c, char *name, char *number)
  * \param c SCCP Channel
  * \param name Called Party Name
  * \param number Called Party Number
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_channel_set_calledparty(sccp_channel_t * c, char *name, char *number)
 {
@@ -1286,6 +1305,9 @@ void sccp_channel_updatemediatype(sccp_channel_t * c) {
 /*!
  * \brief Hangup this channel.
  * \param c SCCP Channel
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_channel_endcall(sccp_channel_t * c)
 {
@@ -1422,6 +1444,9 @@ void sccp_channel_endcall(sccp_channel_t * c)
  * \param dial Dialed Number as char
  * \param calltype Calltype as int
  * \return SCCP Channel or NULL if something is wrong
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, sccp_device_t *device, char * dial, uint8_t calltype)
 {
@@ -1504,6 +1529,9 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, sccp_device_t *device, ch
  * \param device SCCP Device who answers
  * \param c incoming SCCP channel
  * \todo handle codec choose
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 {
@@ -1614,6 +1642,9 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
  *
  * \param c SCCP Channel
  * \return Status as in (0 if something was wrong, otherwise 1)
+ *
+ * \callgraph
+ * \callergraph
  */
 int sccp_channel_hold(sccp_channel_t * c)
 {
@@ -1715,6 +1746,9 @@ int sccp_channel_hold(sccp_channel_t * c)
  * \param device device who resumes the channel
  * \param c channel
  * \return 0 if something was wrong, otherwise 1
+ *
+ * \callgraph
+ * \callergraph
  */
 int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
 {
@@ -1847,6 +1881,9 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
  * \brief Cleanup Channel before Free.
  * \param c SCCP Channel
  * \note we assume channel is locked
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_channel_cleanbeforedelete(sccp_channel_t *c)   // we assume channel is locked
 {
@@ -1908,6 +1945,9 @@ void sccp_channel_cleanbeforedelete(sccp_channel_t *c)   // we assume channel is
  * \param list_lock List Lock as int
  * \param channel_lock Channel Lock as int
  * \note We assume channel is locked
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_channel_delete_wo(sccp_channel_t * c, uint8_t list_lock, uint8_t channel_lock)   // We assume channel is locked
 {
@@ -2149,6 +2189,9 @@ void sccp_channel_destroy_rtp(sccp_channel_t * c)
 /*!
  * \brief Handle Transfer Request (Pressing the Transfer Softkey)
  * \param c SCCP Channel
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_channel_transfer(sccp_channel_t * c)
 {
@@ -2205,6 +2248,9 @@ void sccp_channel_transfer(sccp_channel_t * c)
 
 /*!
  * \brief Handle Transfer Ringing Thread
+ *
+ * \callgraph
+ * \callergraph
  */
 static void * sccp_channel_transfer_ringing_thread(void *data)
 {
@@ -2242,6 +2288,9 @@ static void * sccp_channel_transfer_ringing_thread(void *data)
  * \brief Bridge Two Channels
  * \param cDestinationLocal Local Destination SCCP Channel
  * \todo Find a way solve the chan->state problem
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 #ifndef CS_AST_CHANNEL_HAS_CID
@@ -2376,6 +2425,15 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	}
 }
 
+/*!
+ * \brief Forward a Channel
+ * \param parent SCCP parent channel
+ * \param lineDevice SCCP LineDevice
+ * \param fwdNumber fwdNumber as char *
+ *
+ * \callgraph
+ * \callergraph
+ */
 void sccp_channel_forward(sccp_channel_t *parent, sccp_linedevices_t *lineDevice, char *fwdNumber){
 	sccp_channel_t 	*forwarder = NULL;
 	char 		dialedNumber[256];
@@ -2439,7 +2497,6 @@ void sccp_channel_forward(sccp_channel_t *parent, sccp_linedevices_t *lineDevice
 /*!
  * \brief Dual Structure
  */
-
 struct sccp_dual {
 	struct ast_channel *chan1;
 
@@ -2600,9 +2657,6 @@ void sccp_channel_park(sccp_channel_t * c) {
 		ast_free(dual);
 	}
 }
-
-
-
 
 #endif
 

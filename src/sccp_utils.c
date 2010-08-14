@@ -284,6 +284,9 @@ struct ast_variable * sccp_create_variable(const char *buf) {
  * \param name Device ID (hostname)
  * \param useRealtime Use RealTime as Boolean
  * \return SCCP Device - can bee null if device is not found
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_device_t * sccp_device_find_byid(const char * name, boolean_t useRealtime)
 {
@@ -310,6 +313,9 @@ sccp_device_t * sccp_device_find_byid(const char * name, boolean_t useRealtime)
  * \brief Find Device via RealTime
  * \param name Device ID (hostname)
  * \return SCCP Device - can bee null if device is not found
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_device_t * sccp_device_find_realtime(const char * name) {
 	sccp_device_t *d = NULL;
@@ -350,6 +356,9 @@ sccp_device_t * sccp_device_find_realtime(const char * name) {
  * \param name Line Name
  * \param realtime Use Realtime as Boolean
  * \return SCCP Line
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_line_t * sccp_line_find_byname_wo(const char * name, uint8_t realtime)
 {
@@ -386,6 +395,9 @@ sccp_line_t * sccp_line_find_byname_wo(const char * name, uint8_t realtime)
  * \brief Find Line via Realtime
  * \param name Line Name
  * \return SCCP Line
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_line_t * sccp_line_find_realtime_byname(const char * name)
 {
@@ -427,6 +439,9 @@ sccp_line_t * sccp_line_find_realtime_byname(const char * name)
  * \param instance line instance as int
  * \return SCCP Line (can be null)
  * \todo TODO No ID Specified only instance, should this function be renamed ?
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint16_t instance){
 	sccp_line_t 		*l = NULL;
@@ -463,6 +478,9 @@ sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint16_t instance){
  * \brief Find Line by ID
  * \param id ID as int
  * \return SCCP Channel (can be null)
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_channel_t * sccp_channel_find_byid(uint32_t id)
 {
@@ -496,6 +514,9 @@ sccp_channel_t * sccp_channel_find_byid(uint32_t id)
  * \brief Find Channel by Pass Through Party ID
  * \param id Party ID
  * \return SCCP Channel - cann bee NULL if no channel with this id was found
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_channel_t * sccp_channel_find_bypassthrupartyid(uint32_t id)
 {
@@ -529,6 +550,9 @@ sccp_channel_t * sccp_channel_find_bypassthrupartyid(uint32_t id)
  * \param l SCCP Line
  * \param state State
  * \return SCCP Channel
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_channel_t * sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state) {
 	sccp_channel_t * c = NULL;
@@ -558,6 +582,9 @@ sccp_channel_t * sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t stat
  * \param d SCCP Device
  * \param c channel
  * \return x SelectedChannel
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_selectedchannel_t * sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * c) {
 	sccp_selectedchannel_t *x = NULL;
@@ -607,6 +634,9 @@ uint8_t sccp_device_selectedchannels_count(sccp_device_t * d) {
  * \param l SCCP Line
  * \param state State
  * \return SCCP Channel
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_channel_t * sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t state) {
 	sccp_channel_t * c = NULL;
@@ -636,6 +666,9 @@ sccp_channel_t * sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t 
  * \param d SCCP Device
  * \param state State as int
  * \return SCCP Channel
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t state)
 {
@@ -1200,6 +1233,9 @@ sccp_feature_type_t sccp_featureStr2featureID(const char *str){
 /*!
  * \brief Handle Feature Change Event
  * \param event SCCP Event
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 	char family[25];
@@ -1282,6 +1318,9 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
  * \brief Parse Composed ID
  * \param labelString LabelString as string
  * \param maxLength Maximum Length as unsigned int
+ *
+ * \callgraph
+ * \callergraph
  */
 struct composedId sccp_parseComposedId(const char* labelString, unsigned int maxLength)
 {
@@ -1364,6 +1403,9 @@ struct composedId sccp_parseComposedId(const char* labelString, unsigned int max
  * \param channel SCCP Channel
  * \param subscriptionIdNum Subscription ID Number for linedevice
  * \return result as boolean
+ *
+ * \callgraph
+ * \callergraph
  */
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const char *subscriptionIdNum){
 	boolean_t result = TRUE;
@@ -1455,6 +1497,9 @@ DONE:
  * \param device SCCP Device
  * \param line SCCP Line
  * \return SCCP Line Devices
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t *device, sccp_line_t *line){
 	sccp_linedevices_t *linedevice;
@@ -1566,6 +1611,9 @@ const char * sccp_get_debugcategories(uint32_t debugvalue,char * dest) {
  * \param fqdn line description (top right o the first line)
  * \param lineDisplayName label on the display
  * \return LineStatDynamicMessage as sccp_moo_t *
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const char *dirNum, const char *fqdn, const char *lineDisplayName){
 	sccp_moo_t *r1 		= NULL;

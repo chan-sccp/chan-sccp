@@ -99,6 +99,9 @@ static void * sccp_pbx_call_autoanswer_thread(void *data)
  * \param dest Destination as char
  * \param timeout Timeout after which incoming call is cancelled as int
  * \return Success as int
+ *
+ * \callgraph
+ * \callergraph
  */
 static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	sccp_line_t		* l;
@@ -415,6 +418,9 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
  * \brief Handle Hangup Request by Asterisk
  * \param ast Asterisk Channel as ast_channel
  * \return Success as int
+ *
+ * \callgraph
+ * \callergraph
  */
 static int sccp_pbx_hangup(struct ast_channel * ast) {
 	sccp_channel_t * c;
@@ -560,6 +566,9 @@ void sccp_pbx_needcheckringback(sccp_device_t * d) {
  * \param ast Asterisk Channel as ast_channel
  * \return Success as int
  * \note we have no bridged channel at this point
+ *
+ * \callgraph
+ * \callergraph
  */
 static int sccp_pbx_answer(struct ast_channel *ast)
 {
@@ -857,6 +866,9 @@ static char *sccp_control2str(int state) {
  * \param ast Asterisk Channel as ast_channel
  * \param ind AST_CONTROL_* State as int (Indication)
  * \return Result as int
+ *
+ * \callgraph
+ * \callergraph
  */
 static int sccp_pbx_indicate(struct ast_channel *ast, int ind) {
 #else
@@ -867,6 +879,9 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind) {
  * \param data Data
  * \param datalen Data Length as size_t
  * \return Result as int
+ *
+ * \callgraph
+ * \callergraph
  */
 static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data, size_t datalen) {
 #endif // ASTERISK_VERSION_NUM < 10400
@@ -1230,6 +1245,9 @@ static int sccp_pbx_sendtext(struct ast_channel *ast, char *text) {
  * \brief Allocate an Asterisk Channel
  * \param c SCCP Channel
  * \return 1 on Success as uint8_t
+ *
+ * \callgraph
+ * \callergraph
  */
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 //	sccp_device_t 			*d = c->device;
@@ -1922,7 +1940,6 @@ int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
 
 #if ASTERISK_VERSION_NUM >= 10600
 #ifdef CS_ADV_FEATURES
-static const char *sccp_pbx_get_callid(struct ast_channel *ast);
 /*! 
  * \brief Deliver SCCP call ID for the call
  * \param ast Asterisk Channel

@@ -57,6 +57,9 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 /*!
  * \brief run before reload is start on devices
  * \note See \ref sccp_config_reload
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_device_pre_reload(void)
 {
@@ -84,6 +87,9 @@ void sccp_device_pre_reload(void)
 /*!
  * \brief run after the new device config is loaded during the reload process
  * \note See \ref sccp_config_reload
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_device_post_reload(void)
 {
@@ -144,6 +150,9 @@ void sccp_device_post_reload(void)
 /*!
  * \brief create a device and adding default values.
  * \return device with default/global values
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_device_t * sccp_device_create(void){
 	sccp_device_t * d = ast_calloc(1, sizeof(sccp_device_t));
@@ -164,6 +173,9 @@ sccp_device_t * sccp_device_create(void){
 /*!
  * \brief Apply Device Defaults
  * \return SCCP Device with default values
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 {
@@ -459,6 +471,9 @@ sccp_moo_t * sccp_build_packet(sccp_message_t t, size_t pkt_len)
  * \param d SCCP Device
  * \param r SCCP MOO Message
  * \return Status as int
+ *
+ * \callgraph
+ * \callergraph
  */
 int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
 {
@@ -473,6 +488,9 @@ int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
  * \brief Send an SCCP message to a device
  * \param d SCCP Device
  * \param t SCCP Message
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_dev_sendmsg(sccp_device_t * d, sccp_message_t t) {
 	if (d)
@@ -565,6 +583,9 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
  * \param d SCCP Device
  * \param l SCCP Line
  * \param hasMail Mail Indicator Status as uint8_t
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
 {
@@ -681,6 +702,9 @@ void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode)
  * \param device SCCP Device
  * \param status Status as int
  * \todo What does this function do exactly (ActivateCallPlaneMessage) ?
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_dev_set_cplane(sccp_line_t * l, sccp_device_t *device, int status)
 {
@@ -704,6 +728,9 @@ void sccp_dev_set_cplane(sccp_line_t * l, sccp_device_t *device, int status)
  * \brief Set Call Plane to In-Active on  Line on Device
  * \param d device
  * \todo What does this function do exactly (DeactivateCallPlaneMessage) ?
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_dev_deactivate_cplane(sccp_device_t * d)
 {
@@ -764,6 +791,9 @@ void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid)
  * \param d SCCP Device
  * \param line Line as uint8_t
  * \param callid Call ID uint32_t
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_dev_clearprompt(sccp_device_t * d, uint8_t line, uint32_t callid)
 {
@@ -788,6 +818,9 @@ void sccp_dev_clearprompt(sccp_device_t * d, uint8_t line, uint32_t callid)
  * \param callid Call ID uint32_t
  * \param msg Msg as char
  * \param timeout Timeout as int
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_dev_displayprompt(sccp_device_t * d, uint8_t line, uint32_t callid, char * msg, int timeout)
 {
@@ -826,6 +859,9 @@ void sccp_dev_displayprompt(sccp_device_t * d, uint8_t line, uint32_t callid, ch
 /*!
  * \brief Send Clear Display to Device
  * \param d SCCP Device
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_dev_cleardisplay(sccp_device_t * d)
 {
@@ -843,6 +879,9 @@ void sccp_dev_cleardisplay(sccp_device_t * d)
  * \brief Send Display to Device
  * \param d SCCP Device
  * \param msg Msg as char
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_dev_display(sccp_device_t * d, char * msg)
 {
@@ -866,6 +905,9 @@ void sccp_dev_display(sccp_device_t * d, char * msg)
 /*!
  * \brief Send Clear Display Notification to Device
  * \param d SCCP Device
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_dev_cleardisplaynotify(sccp_device_t * d)
 {
@@ -883,6 +925,9 @@ void sccp_dev_cleardisplaynotify(sccp_device_t * d)
  * \param d SCCP Device
  * \param msg Msg as char
  * \param timeout Timeout as uint32_t
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_dev_displaynotify(sccp_device_t * d, char * msg, uint32_t timeout)
 {
@@ -905,6 +950,9 @@ void sccp_dev_displaynotify(sccp_device_t * d, char * msg, uint32_t timeout)
 /*!
  * \brief Send Clear Display Notification to Device
  * \param d SCCP Device
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_dev_cleardisplayprinotify(sccp_device_t * d)
 {
@@ -923,6 +971,9 @@ void sccp_dev_cleardisplayprinotify(sccp_device_t * d)
  * \param msg Msg as char
  * \param priority Priority as uint32_t
  * \param timeout Timeout as uint32_t
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_dev_displayprinotify(sccp_device_t * d, char * msg, uint32_t priority, uint32_t timeout)
 {
@@ -1043,6 +1094,9 @@ void sccp_dev_set_activeline(sccp_device_t *device, sccp_line_t * l)
  * \todo We have to decide on a standardized implementation of displayprompt to be used
  *	 For DND/Cfwd/Message/Voicemail/Private Status for Devices and Individual Lines
  *	 If necessary devicetypes could be deviced into 3-4 groups depending on their capability for displaying status the best way
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_dev_check_displayprompt(sccp_device_t * d)
 {
@@ -1314,6 +1368,9 @@ void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t inst
  * \param device SCCP Device
  *
  * \todo integration this function correctly into check sccp_dev_check_displayprompt
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {
 	sccp_moo_t 		*r1 = NULL;
@@ -1406,6 +1463,9 @@ int sccp_device_check_ringback(sccp_device_t * d)
 /*!
  * \brief Handle Post Device Registration
  * \param data Data
+ *
+ * \callgraph
+ * \callergraph
  */
 void * sccp_dev_postregistration(void *data)
 {
@@ -1446,6 +1506,9 @@ void * sccp_dev_postregistration(void *data)
  * \param cleanupTime Clean-up Time as uint8
  *
  * \todo integrate sccp_dev_clean and sccp_dev_free into sccp_device_delete -DdG
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cleanupTime) {
 	sccp_buttonconfig_t	*config = NULL;
@@ -1539,6 +1602,9 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
  * \brief Free a Device as scheduled command
  * \param ptr SCCP Device Pointer
  * \return success as int
+ *
+ * \callgraph
+ * \callergraph
  */
 int sccp_device_destroy(const void *ptr){
 	sccp_device_t 		*d = (sccp_device_t *)ptr;
@@ -1665,6 +1731,9 @@ uint16_t sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName
  * \param line SCCP Line
  *
  * \todo Should this be implemented or removed ?
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_device_removeLine(sccp_device_t *device, sccp_line_t * line)
 {
@@ -1714,6 +1783,9 @@ int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type)
  * \param state Call State as int
  * \param priority Priority as skinny_callPriority_t
  * \param visibility Visibility as skinny_callinfo_visibility_t
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, uint8_t state, skinny_callPriority_t priority, skinny_callinfo_visibility_t visibility)
 {
@@ -1773,6 +1845,9 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t *device){
  * copy the structure content of one device to a new one
  * \param orig_device sccp device
  * \return new_device as sccp_device_t
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
 {
@@ -1955,6 +2030,8 @@ void sccp_duplicate_device_addon_list(sccp_device_t *new_device, sccp_device_t *
  * \param device_a sccp device
  * \param device_b sccp device
  * \return res as sccp_diff_t
+ * \callgraph
+ * \callergraph
  */
 sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b){
 	sccp_diff_t res=NO_CHANGES;

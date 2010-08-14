@@ -118,6 +118,9 @@ static void sccp_read_data(sccp_session_t * s)
 /*!
  * \brief Socket Session Close
  * \param s SCCP Session
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_session_close(sccp_session_t * s)
 {
@@ -147,6 +150,9 @@ void sccp_session_close(sccp_session_t * s)
 /*!
  * \brief Destroy Socket Session
  * \param s SCCP Session
+ *
+ * \callgraph
+ * \callergraph
  */
 void destroy_session(sccp_session_t * s)
 {
