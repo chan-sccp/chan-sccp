@@ -122,8 +122,7 @@ struct ast_config *sccp_config_getConfig(void);
  * \callgraph
  * \callergraph
  */
-void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
-                           const char* name, const char* options, const char* args)
+void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,const char* name, const char* options, const char* args)
 {
 	sccp_buttonconfig_t *config = NULL;
 	boolean_t new = FALSE;
