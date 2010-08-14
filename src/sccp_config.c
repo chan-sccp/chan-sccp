@@ -111,10 +111,13 @@ struct ast_config *sccp_config_getConfig(void);
 
 #ifdef CS_DYNAMIC_CONFIG
 /*!
- * \brief add Button to a device 
- * \param device SCCP Device
- * \param index Button Index
- * \param type Type of Button
+ * \brief add a Button to a device 
+ * \param device the SCCP Device where to add the button
+ * \param index         the index of the button (-1 to add the line at the end)
+ * \param type          type of button
+ * \param name          name
+ * \param option        option
+ * \param args          args
  *
  * \callgraph
  * \callergraph

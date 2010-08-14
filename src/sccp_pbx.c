@@ -50,6 +50,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #ifdef CS_SCCP_PICKUP
 #include <asterisk/features.h>
 #endif
+#include <asterisk/threadstorage.h>
 
 AST_THREADSTORAGE_EXTERNAL(ast_str_thread_global_buf);
 
@@ -138,7 +139,6 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		return -1;
 	}
 
-#include "asterisk/threadstorage.h"
 	struct ast_str *out = ast_str_thread_get(&ast_str_thread_global_buf, 16);
 	if (pbx_builtin_serialize_variables(ast, &out))
 		sccp_log(1)(VERBOSE_PREFIX_3 "Variables:\n%s\n", ast_str_buffer(out));
