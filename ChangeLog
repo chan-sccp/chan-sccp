@@ -1,3 +1,51 @@
+2010-08-13  ddegroot
+
+	* [r1730] src/sccp_pbx.c, src/sccp_pbx.h: fixed sccp_pbx_get_callid
+
+2010-08-13  marcelloceschia
+
+	* [r1729] src/sccp_config.c: fixes compile issue
+
+	* [r1728] src/chan_sccp.h, src/sccp_config.c: fixes compile issue
+
+	* [r1727] configure, src/Makefile.in, src/sccp_cli.c: do some
+	  changes for callinfo
+
+	* [r1726] Makefile.in, aclocal.m4, configure, configure.ac,
+	  doc/Makefile.in, src/chan_sccp.c, src/chan_sccp.h,
+	  src/sccp_actions.c, src/sccp_actions.h, src/sccp_channel.c,
+	  src/sccp_cli.c, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_features.c, src/sccp_hint.c, src/sccp_pbx.c,
+	  src/sccp_protocol.h: do some changes for callinfo
+
+2010-08-12  ddegroot
+
+	* [r1725] src/sccp_features.c, src/sccp_pbx.c: Getting rid of
+	  compile warnings for ast_frame without a correct initializer
+
+	* [r1724] src/sccp_config.c, src/sccp_pbx.c, src/sccp_pbx.h:
+	  Extended ast_channel_tech with new callback functions found in
+	  1.6.x
+	  Partially implemented call transfer via dialplan "transfer"
+	  function. Needs to be extended and checked
+	  Fixed a doxygen parameter entry in sccp_config.c
+
+2010-08-06  ddegroot
+
+	* [r1723] ChangeLog, INSTALL, Makefile.in, aclocal.m4,
+	  autoconf/config.guess, autoconf/config.sub, configure,
+	  doc/Makefile.in, src/Makefile.in: Fixed Substitution failuer in
+	  asterisk.m4
+	  Fixed Pthread detection on BSD Platform
+	  Fixed Compiling against Pthread library on BSD Platform
+	  Fixed make install errornous "s" instead of "$"
+
+	* [r1722] INSTALL, Makefile.in, aclocal.m4, autoconf/config.guess,
+	  autoconf/config.sub, configure, doc/Makefile.in, src/Makefile.am,
+	  src/Makefile.in: Update Makefile.am
+
+	* [r1721] src/Makefile.am: Fix Makefile.am for other shell types
+
 2010-08-05  ddegroot
 
 	* [r1720] ChangeLog, INSTALL, Makefile.in, aclocal.m4,

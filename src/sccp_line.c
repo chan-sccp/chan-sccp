@@ -36,6 +36,9 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 /*!
  * \brief run before reload is start on lines
  * \note See \ref sccp_config_reload
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_line_pre_reload(void)
 {
@@ -56,6 +59,9 @@ void sccp_line_pre_reload(void)
  * \brief run after the new line config is loaded during the reload process
  * \note See \ref sccp_config_reload
  * \todo to be implemented correctly (***)
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_line_post_reload(void)
 {
@@ -100,6 +106,9 @@ void sccp_line_post_reload(void)
  * Creates an SCCP Line with default/global values
  *
  * \return Default SCCP Line
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_line_t * sccp_line_create(void) {
 	sccp_line_t * l = ast_malloc(sizeof(sccp_line_t));
@@ -121,6 +130,9 @@ sccp_line_t * sccp_line_create(void) {
  * \brief Apply Default Configuration to SCCP Line
  * \param l SCCP Line
  * \return SCCP line
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_line_t *sccp_line_applyDefaults(sccp_line_t *l)
 {
@@ -201,6 +213,9 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t *line){
  * \brief Kill all Channels of a specific Line
  * \param l SCCP Line
  * \note Should be Called with a lock on l->lock
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_line_kill(sccp_line_t * l) {
 	sccp_channel_t * c;
@@ -225,6 +240,9 @@ void sccp_line_kill(sccp_line_t * l) {
  * \param remove_from_global as boolean_t
  *
  * \todo integrate sccp_line_clean and sccp_line_delete_nolock into sccp_line_delete
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global) {
 	sccp_device_t 		*d;
@@ -269,6 +287,9 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global) {
  * \brief Free a Line as scheduled command
  * \param ptr SCCP Line Pointer
  * \return success as int
+ *
+ * \callgraph
+ * \callergraph
  */
 int sccp_line_destroy(const void *ptr) {
 	sccp_line_t	*l=(sccp_line_t *)ptr;
@@ -311,6 +332,9 @@ void sccp_line_delete_nolock(sccp_line_t * l) {
  * \param type Call Forward Type as uint8_t
  * \param number Number to which should be forwarded
  * \todo we should check, that extension is reachable on line
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_line_cfwd(sccp_line_t * l, sccp_device_t *device, uint8_t type, char * number) {
 	sccp_linedevices_t *linedevice;
@@ -597,6 +621,9 @@ void unregister_exten(sccp_line_t *l,struct subscriptionId *subscriptionId)
  * copy the structure content of one line to a new one
  * \param orig_line sccp line
  * \return new_line as sccp_line_t
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_line_t * sccp_clone_line(sccp_line_t *orig_line){
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "%s: Creating Clone (from %p)\n", orig_line->name, (void *)orig_line);
@@ -683,6 +710,9 @@ void sccp_duplicate_line_linedevices_list(sccp_line_t *new_line, sccp_line_t *or
  * \param line_a SCCP Line
  * \param line_b SCCP Line
  * \return sccp_diff_t
+ *
+ * \callgraph
+ * \callergraph
  */
 sccp_diff_t sccp_line_changed(sccp_line_t *line_a,sccp_line_t *line_b) {
 	sccp_diff_t res=NO_CHANGES;
