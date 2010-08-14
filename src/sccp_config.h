@@ -69,17 +69,7 @@ static const softkeyConfigurationTemplate softKeyTemplate[] = {
 
 
 #ifdef CS_DYNAMIC_CONFIG
-/** Add a button to a device
- *
- * @param device  the device instance where to add the button
- * @param index  the index of the button (-1 to add the line at the end)
- * @param type  type of button
- * @param name  name
- * @param option  option
- * @param args  args
- */
-void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
-                           const char* name, const char* option, const char* args);
+void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,const char* name, const char* option, const char* args);
 #else
 void sccp_config_addLine(sccp_device_t *device, char *lineName, char *options, uint16_t index);
 void sccp_config_addEmpty(sccp_device_t *device, uint16_t index);

@@ -359,7 +359,7 @@ static void sccp_channel_send_staticCallinfo(sccp_device_t *device, sccp_channel
 /*!
  * \brief Send Call Information to Device/Channel via CallInfoDynamicMessage
  * \param device SCCP Device
- * \param c SCCP Channel
+ * \param channel SCCP Channel
  *
  * \callgraph
  * \callergraph
@@ -464,9 +464,14 @@ static void sccp_channel_send_dynamicCallinfo(sccp_device_t *device, sccp_channe
 
 /*!
  * \brief Send Call Information to Device/Channel
+ *
  * Wrapper function that calls sccp_channel_send_staticCallinfo or sccp_channel_send_dynamicCallinfo
+ *
  * \param device SCCP Device
- * \param c SCCP Channel
+ * \param channel SCCP Channel
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t *channel){
 	if(device->inuseprotocolversion < 7){
@@ -481,6 +486,9 @@ void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t *channel){
 /*!
  * \brief Send Dialed Number to SCCP Channel device
  * \param c SCCP Channel
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_channel_send_dialednumber(sccp_channel_t * c)
 {
@@ -510,6 +518,9 @@ void sccp_channel_send_dialednumber(sccp_channel_t * c)
  * \brief Set Call State for SCCP Channel c, and Send this State to SCCP Device d.
  * \param c SCCP Channel
  * \param state channel state
+ *
+ * \callgraph
+ * \callergraph
  */
 void sccp_channel_setSkinnyCallstate(sccp_channel_t * c, skinny_callstate_t state)
 {

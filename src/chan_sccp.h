@@ -414,12 +414,14 @@ struct sccp_mailbox {
 /*!
  * \brief SCCP Currently Selected Channel Structure
  */
-
 struct sccp_selectedchannel {
 	sccp_channel_t 				* channel;				/*!< SCCP Channel */
 	SCCP_LIST_ENTRY(sccp_selectedchannel_t) list;					/*!< Selected Channel Linked List Entry */
 };											/*!< SCCP Selected Channel Structure */
 
+/*!
+ * \brief SCCP CallInfo Structure
+ */
 struct sccp_callinfo{
 	char					calledPartyName[StationMaxNameSize];		/*!< Called Party Name */
 	char					calledPartyNumber[StationMaxDirnumSize];	/*!< Called Party Number */
@@ -439,7 +441,7 @@ struct sccp_callinfo{
         
         uint32_t				originalCdpnRedirectReason;			/*!< Original Called Party Redirect Reason */
         uint32_t				lastRedirectingReason;				/*!< Last Redirecting Reason */
-};
+};												/*!< SCCP CallInfo Structure */
 
 /*!
  * \brief SCCP cfwd information
