@@ -1944,7 +1944,8 @@ int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
  * \brief Deliver SCCP call ID for the call
  * \param ast Asterisk Channel
  * \return result as char *
- * 
+ *
+ * \test Deliver SCCP Call ID needs to be tested
  */
 static const char *sccp_pbx_get_callid(struct ast_channel *ast)
 { 
@@ -2004,6 +2005,7 @@ const struct ast_channel_tech sccp_tech = {
 #endif // CS_AST_HAS_TECH_PVT
 
 #ifdef CS_ADV_FEATURES	
+
 /*!
  * \brief Handle Dialplan Transfer 
  *
@@ -2012,6 +2014,8 @@ const struct ast_channel_tech sccp_tech = {
  * \param ast Asterisk Channel
  * \param dest Destination as char *
  * \return result as int
+ *
+ * \test Dialplan Transfer Needs to be tested
  */
 int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
 {
@@ -2055,6 +2059,18 @@ int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
 
 
 #ifdef CS_ADV_FEATURES	
+/*!
+ * \brief ACF Channel Read callback
+ *
+ * \param ast Asterisk Channel
+ * \param funcname	functionname as const char *
+ * \param args		arguments as char *
+ * \param buf		buffer as char *
+ * \param buflen 	bufferlenght as size_t
+ * \return result as int
+ *
+ * \test ACF Channel Read Needs to be tested
+ */
 #if ASTERISK_VERSION_NUM >= 10600
 int acf_channel_read(struct ast_channel *ast, const char *funcname, char *args, char *buf, size_t buflen)
 #else
