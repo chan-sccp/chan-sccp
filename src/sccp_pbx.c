@@ -1939,7 +1939,6 @@ int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
 }
 
 #if ASTERISK_VERSION_NUM >= 10600
-#ifdef CS_ADV_FEATURES
 /*! 
  * \brief Deliver SCCP call ID for the call
  * \param ast Asterisk Channel
@@ -1948,18 +1947,20 @@ int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
  * \test Deliver SCCP Call ID needs to be tested
  */
 static const char *sccp_pbx_get_callid(struct ast_channel *ast)
-{ 
+{
+	char callid[8];
+  
 	sccp_channel_t *c;
 	c = CS_AST_CHANNEL_PVT(ast);
 	if (c) {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "Get CallID is Returning '%i'", c->callid);
-		return (char *)&c->callid;
+		sprintf(callid, "%i", c->callid);
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "Get CallID is Returning %s ('%i')", callid, c->callid);
+		return (char *)&callid;
 	} else {
 		return "";
 	}
 }
 
-#endif // CS_ADV_FEATURES
 #endif // ASTERISK_VERSION_NUM >= 10600
 
 #ifdef CS_AST_HAS_TECH_PVT
@@ -1989,22 +1990,20 @@ const struct ast_channel_tech sccp_tech = {
 	.send_digit_begin = sccp_pbx_recvdigit_begin,
 	.send_digit_end = sccp_pbx_recvdigit_end,
 	.bridge = ast_rtp_bridge,
-#ifdef CS_ADV_FEATURES	
+
 	.transfer = sccp_pbx_transfer,			// new >1.4.0
 	.func_channel_read = acf_channel_read,		// new
-#endif // CS_ADV_FEATURES
+
 #endif // ASTERISK_VERSION_NUM < 10400
 
 #if ASTERISK_VERSION_NUM >= 10600
 	.early_bridge = ast_rtp_early_bridge,
-#ifdef CS_ADV_FEATURES	
 	.get_pvt_uniqueid = sccp_pbx_get_callid,	// new >1.6.0
-#endif // CS_ADV_FEATURES
 #endif // ASTERISK_VERSION_NUM >= 10600
 };
 #endif // CS_AST_HAS_TECH_PVT
 
-#ifdef CS_ADV_FEATURES	
+
 
 /*!
  * \brief Handle Dialplan Transfer 
@@ -2055,10 +2054,10 @@ int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
 	}
    	return res;
 }
-#endif // CS_ADV_FEATURES
 
 
-#ifdef CS_ADV_FEATURES	
+
+
 /*!
  * \brief ACF Channel Read callback
  *
@@ -2107,7 +2106,7 @@ int acf_channel_read(struct ast_channel *ast, char *funcname, char *args, char *
 	}
 	return res;
 }
-#endif // CS_ADV_FEATURES
+
 
 #ifndef ASTERISK_CONF_1_2
 /*!
