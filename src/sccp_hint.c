@@ -342,15 +342,6 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.callingPartyName));
 			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.calledPartyName));
 			break;
-		case AST_EXTENSION_INUSE | AST_EXTENSION_RINGING:
-#ifndef CS_DYNAMIC_SPEEDDIAL
-			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-#else
-			hint->currentState = SCCP_CHANNELSTATE_RINGOUT;
-#endif
-			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.callingPartyName));
-			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.calledPartyName));
-			break;
 #endif
 		default:
 			sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "SCCP: Unmapped hint state %d for %s\n", state, hint->hint_dialplan);
