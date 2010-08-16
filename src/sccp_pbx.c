@@ -1815,7 +1815,9 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 		if (GLOB(callevents)) {
 			manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate",
 				"Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %s\r\n",
-				chan->name, chan->uniqueid, "SCCP", (d)?DEV_ID_LOG(d):"(null)", (l)?l->name:"(null)", (c)?(char *)c->callid:"(null)");
+				chan->name, chan->uniqueid, "SCCP", (d)?DEV_ID_LOG(d):"(null)", (l)?l->name:"(null)", (c)?(char *)&c->callid:"(null)");
+//				"Channel: %s\r\nUniqueid: %i\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %s\r\n",
+//				chan->name, chan->uniqueid, "SCCP", (d)?DEV_ID_LOG(d):"(null)", (l)?l->name:"(null)", (c)?(char *)c->callid:"(null)");
 		}
 #endif // CS_MANAGER_EVENTS
 	} else {
