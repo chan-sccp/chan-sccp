@@ -52,7 +52,11 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #endif
 #include <asterisk/threadstorage.h>
 
+#if ASTERISK_VERSION_NUM >= 10600
 AST_THREADSTORAGE_EXTERNAL(ast_str_thread_global_buf);
+#else
+extern struct ast_threadstorage ast_str_thread_global_buf;
+#endif
 
 
 
@@ -139,9 +143,15 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		return -1;
 	}
 
+#if ASTERISK_VERSION_NUM >= 10600
 	struct ast_str *out = ast_str_thread_get(&ast_str_thread_global_buf, 16);
 	if (pbx_builtin_serialize_variables(ast, &out))
 		sccp_log(1)(VERBOSE_PREFIX_3 "Variables:\n%s\n", ast_str_buffer(out));
+#else
+	char out[1024];
+	if (pbx_builtin_serialize_variables(ast, out, sizeof out))
+		sccp_log(1)(VERBOSE_PREFIX_3 "Variables:\n%s\n", out);
+#endif
 
 	l = c->line;
 	if(l){
@@ -1124,11 +1134,11 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 		return -1;
 	}
 
-	c->owner = newchan;	
+	c->owner = newchan;
 	ast_log(LOG_WARNING, "sccp_pbx_fixup(new: %s - cid_num %s\n", newchan->name, (newchan->cid.cid_num)?newchan->cid.cid_num:"NULL");
 	ast_log(LOG_WARNING, "sccp_pbx_fixup(new: %s - cid_name %s\n", newchan->name, newchan->cid.cid_name?newchan->cid.cid_name:"NULL");
-	
-	
+
+
 	sccp_mutex_unlock(&c->lock);
 	return 0;
 }
@@ -1865,7 +1875,7 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]) {
 	f = NULL;
 #endif // ASTERISK_VERSION_NUM >= 10400
 	f.frametype = AST_FRAME_DTMF;
-	        	
+
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Sending digits %s\n", DEV_ID_LOG(c->device), digits);
 	// We don't just call sccp_pbx_senddigit due to potential overhead, and issues with locking
 	f.src = "SCCP";
@@ -1933,7 +1943,7 @@ int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
 	f = NULL;
 #endif // ASTERISK_VERSION_NUM >= 10400
         f.frametype = AST_FRAME_DTMF;
-        	
+
 	f.subclass = control;
 	sccp_queue_frame(c, &f);
 
@@ -1941,7 +1951,7 @@ int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
 }
 
 #if ASTERISK_VERSION_NUM >= 10600
-/*! 
+/*!
  * \brief Deliver SCCP call ID for the call
  * \param ast Asterisk Channel
  * \return result as char *
@@ -1951,7 +1961,7 @@ int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
 static const char *sccp_pbx_get_callid(struct ast_channel *ast)
 {
 	char callid[8];
-  
+
 	sccp_channel_t *c;
 	c = CS_AST_CHANNEL_PVT(ast);
 	if (c) {
@@ -1985,8 +1995,8 @@ const struct ast_channel_tech sccp_tech = {
 	.indicate = sccp_pbx_indicate,
 	.fixup = sccp_pbx_fixup,
 	.send_text = sccp_pbx_sendtext,
-	
-#if ASTERISK_VERSION_NUM < 10400	
+
+#if ASTERISK_VERSION_NUM < 10400
 	.send_digit = sccp_pbx_recvdigit_end,
 #else
 	.send_digit_begin = sccp_pbx_recvdigit_begin,
@@ -2008,7 +2018,7 @@ const struct ast_channel_tech sccp_tech = {
 
 
 /*!
- * \brief Handle Dialplan Transfer 
+ * \brief Handle Dialplan Transfer
  *
  * This will allow asterisk to transfer an SCCP Channel via the dialplan transfer function
  *
@@ -2045,7 +2055,7 @@ int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
 		}
 		sccp_device_lock(d);
 		d->transfer_channel = c;
-		sccp_device_unlock(d);		
+		sccp_device_unlock(d);
 		sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CALLTRANSFER);
 		newcall = sccp_channel_newcall(c->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
 		pbx_builtin_setvar_helper(newcall->owner, "BLINDTRANSFER", CS_AST_BRIDGED_CHANNEL(c->owner)->name);
@@ -2101,7 +2111,7 @@ int acf_channel_read(struct ast_channel *ast, char *funcname, char *args, char *
 		} else {
 			res = -1;
 		}
-		
+
 		sccp_device_unlock(d);
 	} else {
 		res=-1;
