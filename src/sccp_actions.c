@@ -347,7 +347,7 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_moo_t * r){
 				}
 			}
 		}
-		SCCP_LIST_TRAVERSE_SAFE_END
+		SCCP_LIST_TRAVERSE_SAFE_END;
 		//SCCP_LIST_UNLOCK(&d->buttonconfig);
 	}
 	l = NULL;
