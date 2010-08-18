@@ -111,7 +111,7 @@ struct ast_config *sccp_config_getConfig(void);
 
 #ifdef CS_DYNAMIC_CONFIG
 /*!
- * \brief add a Button to a device 
+ * \brief add a Button to a device
  * \param device the SCCP Device where to add the button
  * \param index         the index of the button (-1 to add the line at the end)
  * \param type          type of button
@@ -1061,6 +1061,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 		GLOB(bindaddr.sin_port) = ntohs(DEFAULT_SCCP_PORT);
 	}
 	GLOB(bindaddr.sin_family) = AF_INET;
+	ast_config_destroy(cfg);
 	return TRUE;
 }
 
