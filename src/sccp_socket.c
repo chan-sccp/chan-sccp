@@ -402,6 +402,45 @@ void * sccp_socket_thread(void * ignore)
 					sccp_session_close(s);
 					destroy_session(s);
 				}
+#ifdef CS_DYNAMIC_CONFIG
+
+				if (s->device && (s->device->pendingUpdate || s->device->pendingDelete) && sccp_device_numberOfChannels(s->device) == 0) {
+					sccp_device_t *d = s->device;
+
+					sccp_device_lock(d);
+
+					sccp_log(1)(VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf\n", d->id);
+					sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+					sccp_session_close(d->session);
+					d->pendingUpdate=0;
+					sccp_device_unlock(d);
+
+					if (d->pendingDelete) {
+						sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Remove Device from List\n", d->id);
+						sccp_dev_clean(d, TRUE, 0);
+					}
+					else {
+						sccp_buttonconfig_t *buttonconfig;
+
+						SCCP_LIST_LOCK(&d->buttonconfig);
+						SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, buttonconfig, list){
+							if (!buttonconfig->pendingDelete && !buttonconfig->pendingUpdate)
+								continue;
+
+							if (d->pendingDelete) {
+								sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
+								ast_free(buttonconfig);
+								SCCP_LIST_REMOVE_CURRENT(list);
+							} else {
+								buttonconfig->pendingUpdate = 0;
+							}
+						}
+						SCCP_LIST_TRAVERSE_SAFE_END
+						SCCP_LIST_UNLOCK(&d->buttonconfig);
+					}
+				}
+#endif
+
 			} else {
 				/* session is gone */
 				sccp_session_close(s);
