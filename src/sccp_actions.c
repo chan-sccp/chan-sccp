@@ -312,7 +312,7 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_moo_t * r){
 
 		//SCCP_LIST_LOCK(&d->buttonconfig);
 		//SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-		/* see commit 1741 */
+		/* see commit 1742 */
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, buttonconfig, list) {
 			if(!buttonconfig)
 				continue;
