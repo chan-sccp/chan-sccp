@@ -250,9 +250,9 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global) {
 
 	if (!l)
 		return;
-		
+
 	sccp_line_kill(l);
-	
+
 	/* remove from the global lines list */
 	if (remove_from_global) {
 		if(l->list.prev == NULL && l->list.next == NULL && GLOB(lines).first != l) {
@@ -279,7 +279,7 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global) {
 		}
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
-	
+
 	sccp_line_destroy(l);
 }
 
@@ -294,7 +294,7 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global) {
 int sccp_line_destroy(const void *ptr) {
 	sccp_line_t	*l=(sccp_line_t *)ptr;
 	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: Line FREE\n", l->name);
-	
+
 	sccp_line_lock(l);
 	if (l->trnsfvm)
 		ast_free(l->trnsfvm);
@@ -311,9 +311,9 @@ int sccp_line_destroy(const void *ptr) {
 			sccp_free(mailbox->context);
 		sccp_free(mailbox);
 	}
-	ast_free(l);
 	sccp_line_unlock(l);
 	ast_mutex_destroy(&l->lock);
+	ast_free(l);
 	return 0;
 }
 /*!
@@ -597,7 +597,7 @@ void unregister_exten(sccp_line_t *l,struct subscriptionId *subscriptionId)
 	                        ast_log(LOG_WARNING, "Context %s must exist in regcontext= in sccp.conf!\n", context);
                                 continue;
                         }
-                } else { 
+                } else {
                         context = GLOB(regcontext);
                 }
                 if (ast_canmatch_extension(NULL, context, ext, 1, NULL)) {
