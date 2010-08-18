@@ -674,11 +674,6 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 #ifndef CS_AST_HAS_RTP_ENGINE
 		case 0:
 			frame = ast_rtp_read(c->rtp.audio);	/* RTP Audio */
-#ifdef 	CS_SCCP_CONFERENCE
-			if(c->conference){
-				//sccp_conference_readFrame(frame, c);
-			}
-#endif // CS_SCCP_CONFERENCE
 			break;
 		case 1:
 			frame = ast_rtcp_read(c->rtp.audio);	/* RTCP Control Channel */
@@ -708,6 +703,11 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 
 		default:
 			return frame;
+	}
+	
+	if(!frame){
+		ast_log(LOG_WARNING, "%s: error reading frame == NULL\n", DEV_ID_LOG(c->device));
+		return frame;
 	}
 
 	if (frame->frametype == AST_FRAME_VOICE) {
