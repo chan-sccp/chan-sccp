@@ -393,11 +393,10 @@ OUT:
 int sccp_devicestate(void *data) {
 	sccp_line_t * l =  NULL;
 	int res = AST_DEVICE_UNKNOWN;
-	char *lineName = NULL, *options = NULL;
+	char *lineName = (char*)data, *options = NULL;
 
 
 	/* exclude options */
-	lineName = strdup(data);
 	if ((options = strchr(lineName, '/'))) {
 		*options = '\0';
 		options++;
@@ -734,7 +733,7 @@ static int reload_config(void) {
 #endif
 			GLOB(reload_in_progress) = FALSE;
 			ast_pthread_create(&GLOB(socket_thread), NULL, sccp_socket_thread, NULL);
-			
+
 		}
 	}
 
