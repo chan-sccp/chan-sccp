@@ -310,8 +310,9 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_moo_t * r){
 		sccp_hint_lineStatusChanged(GLOB(hotline)->line, d, NULL, SCCP_DEVICESTATE_UNAVAILABLE ,SCCP_DEVICESTATE_ONHOOK);
 	}else{
 
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+		//SCCP_LIST_LOCK(&d->buttonconfig);
+		//SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, buttonconfig, list) {
 			if(!buttonconfig)
 				continue;
 
@@ -345,7 +346,8 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_moo_t * r){
 				}
 			}
 		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
+		SCCP_LIST_TRAVERSE_SAFE_END
+		//SCCP_LIST_UNLOCK(&d->buttonconfig);
 	}
 	l = NULL;
 	buttonconfig = NULL;
