@@ -245,7 +245,7 @@ typedef enum { NO_CHANGES=0, MINOR_CHANGES=1, CHANGES_NEED_RESET=2} sccp_diff_t;
 typedef void sk_func (sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 typedef enum { LINE, SPEEDDIAL, SERVICE, FEATURE, EMPTY } button_type_t;		/*!< Enum Button Type */
 typedef enum { ANSWER_LAST_FIRST=1, ANSWER_OLDEST_FIRST=2 } call_answer_order_t;	/*!< Enum Call Answer Order */
-
+typedef enum { SCCP_RTP_STATUS_RECEIVE = 1, SCCP_RTP_STATUS_TRANSMIT = 1 << 1 } sccp_rtp_status_t;	/*!< RTP status information */
 
 /*!
  * \brief SCCP ButtonType Structure
@@ -431,14 +431,14 @@ struct sccp_callinfo{
 	char 					originalCallingPartyName[StationMaxNameSize];	/*!< Original Calling Party Name */
         char					originalCallingPartyNumber[StationMaxDirnumSize];/*!< Original Calling Party ID */
         char 					originalCalledPartyName[StationMaxNameSize];	/*!< Original Calling Party Name */
-        char					originalCalledPartyNumber[StationMaxDirnumSize];/*!< Original Calling Party ID */        
+        char					originalCalledPartyNumber[StationMaxDirnumSize];/*!< Original Calling Party ID */
         char					lastRedirectingPartyName[StationMaxNameSize];	/*!< Original Called Party Name */
         char					lastRedirectingPartyNumber[StationMaxDirnumSize];/*!< Original Called Party ID */
         char					cgpnVoiceMailbox[StationMaxDirnumSize];		/*!< Calling Party Voicemail Box */
         char					cdpnVoiceMailbox[StationMaxDirnumSize];		/*!< Called Party Voicemail Box */
         char					originalCdpnVoiceMailbox[StationMaxDirnumSize];	/*!< Original Called Party VoiceMail Box */
         char					lastRedirectingVoiceMailbox[StationMaxDirnumSize];/*!< Last Redirecting VoiceMail Box */
-        
+
         uint32_t				originalCdpnRedirectReason;			/*!< Original Called Party Redirect Reason */
         uint32_t				lastRedirectingReason;				/*!< Last Redirecting Reason */
 };												/*!< SCCP CallInfo Structure */
@@ -651,7 +651,7 @@ struct sccp_line {
 	uint32_t				configurationStatus;			/*!< what is the current configuration status - @see sccp_config_status_t */
 	char 					adhocNumber[AST_MAX_EXTENSION];		/*!< number that should be dialed when device offhocks this line */
 
-#ifdef CS_DYNAMIC_CONFIG	
+#ifdef CS_DYNAMIC_CONFIG
 	char 					regexten[AST_MAX_EXTENSION];		/*!< Extension for auto-extension (DUNDI)*/
 	char 					regcontext[AST_MAX_CONTEXT];		/*!< Context for auto-extension (DUNDI)*/
 #endif
@@ -842,6 +842,16 @@ struct sccp_session {
 	unsigned int				needcheckringback: 1;			/*!< Need Check Ring Back. (0/1) default 1 */
 };											/*!< SCCP Sesson Structure */								/*!< SCCP Session Structure */
 
+
+struct sccp_rtp{
+
+	uint8_t						status;
+	struct ast_rtp	 			*rtp;				/*!< Asterisk RTP */
+	struct sockaddr_in			addr;				/*!< RTP Socket Address */
+	struct sockaddr_in			peer;				/*!< RTP Socket Address */
+
+};
+
 /*!
  * \brief SCCP Channel Structure
  * \note This contains the current channel information
@@ -869,17 +879,14 @@ struct sccp_channel {
 	sccp_device_t 	 			* device;				/*!< SCCP Device */
 
 	struct ast_channel 	 		* owner;				/*!< Asterisk Channel Owner */
-	sccp_line_t		 		* line;					/*!< SCCP Line */
+	sccp_line_t		 			* line;					/*!< SCCP Line */
 
-	struct{
-		struct ast_rtp	 		*audio;					/*!< Asterisk RTP */
-		struct ast_rtp 			*video;					/*!< Video RTP session */
-	}rtp;
+	struct {
+		struct sccp_rtp	 		audio;					/*!< Asterisk RTP */
+		struct sccp_rtp 		video;					/*!< Video RTP session */
+	} rtp;
 
-	struct sockaddr_in			rtp_addr;				/*!< RTP Socket Address */
-	struct sockaddr_in			rtp_peer;				/*!< RTP Socket Address */
-	struct sockaddr_in			vrtp_addr;				/*!< VRTP Socket Address */
-	struct sockaddr_in			vrtp_peer;				/*!< VRTP Socket Address */
+
 	SCCP_LIST_ENTRY(sccp_channel_t) 	list;					/*!< Channel Linked List List */
 	uint8_t					autoanswer_type;			/*!< Auto Answer Type */
 	uint8_t					autoanswer_cause;			/*!< Auto Answer Cause */

@@ -6,16 +6,16 @@
  * \note	Reworked, but based on chan_sccp code.
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License. 
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
- * 
+ *
  * $Date$
  * $Revision$
  */
 
 /*!
  * \remarks	Purpose: 	SCCP Actions
- * 		When to use:	Only methods directly related to sccp actions should be stored in this source file. 
+ * 		When to use:	Only methods directly related to sccp actions should be stored in this source file.
  *                              Actions handle all the message interactions from and to SCCP phones
  *   		Relationships: 	Other Function wanting to communicate to phones
  *                              Phones Requesting function to be performed
@@ -200,16 +200,16 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r){
 #endif
 	s->device = d;
 	d->skinny_type = letohl(r->msg.RegisterMessage.lel_deviceType);
-	
+
 	d->session = s;
 	s->lastKeepAlive = time(0);
 	d->mwilight = 0;
 	d->protocolversion = r->msg.RegisterMessage.protocolVer;
-	
-	
+
+
 	sccp_device_unlock(d);
 
-	
+
 	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
 	int keepAliveInterval = d->keepalive ? d->keepalive : GLOB(keepalive);
 	keepAliveInterval = (keepAliveInterval/2) + (rand() % (keepAliveInterval/2) )+1;
@@ -230,8 +230,8 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r){
 		d->inuseprotocolversion = r->msg.RegisterMessage.protocolVer;
 	 	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), r->msg.RegisterMessage.protocolVer);
 	 }
-	 
-	
+
+
 	if(d->inuseprotocolversion <= 3) {
 		// Our old flags for protocols from 0 to 3
 		r1->msg.RegisterAckMessage.unknown1 = 0x00;
@@ -257,10 +257,10 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r){
 	memcpy(r1->msg.RegisterAckMessage.dateTemplate, GLOB(date_format), sizeof(r1->msg.RegisterAckMessage.dateTemplate));
 	sccp_session_send(d, r1);
 	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_PROGRESS);
-	
-	
+
+
 	sccp_handle_AvailableLines(s, r);
-	
+
 	// Ask for the capabilities of the device
 	// to proceed with registration according to sccp protocol specification 3.0
 	sccp_dev_sendmsg(d, CapabilitiesReqMessage);
@@ -282,15 +282,15 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_moo_t * r){
 	sccp_line_t 		*l;
 	sccp_buttonconfig_t	*buttonconfig = NULL;
 	boolean_t		defaultLineSet = FALSE;
-	
+
 	line_count = 0;
-	
+
 	d = s->device;
-	
+
 	/* pre-attach lines. We will wait for button template req if the phone does support it */
 	memset(&btn, 0 , sizeof(btn));
 	sccp_dev_build_buttontemplate(d, btn);
-	
+
 	/* count the available lines on the phone */
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 		if ( (btn[i].type == SKINNY_BUTTONTYPE_LINE) || (btn[i].type == SCCP_BUTTONTYPE_MULTI) )
@@ -298,10 +298,10 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_moo_t * r){
 		else if (btn[i].type == SKINNY_BUTTONTYPE_UNUSED)
 			break;
 	}
-	
+
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: Phone available lines %d\n", d->id, line_count);
 	if(d->isAnonymous == TRUE){
-	  
+
 		sccp_device_lock(d);
 		d->currentLine = GLOB(hotline)->line;
 		sccp_device_unlock(d);
@@ -446,44 +446,44 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 			sccp_log((DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: searching for position for button type %d\n", DEV_ID_LOG(d), buttonconfig->type);
 			if(buttonconfig->instance > 0)
 				continue;
-			
+
 			if(buttonconfig->type == LINE){
 				sccp_log((DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: searching for line position for line '%s'\n", DEV_ID_LOG(d), buttonconfig->button.line.name);
 			}
-		  
+
 			for (i = 0; i < StationMaxButtonTemplateSize ; i++) {
 				sccp_log((DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: btn[%.2d].type = %d\n", DEV_ID_LOG(d), i, btn[i].type);
-				
-				if(buttonconfig->type == LINE 
+
+				if(buttonconfig->type == LINE
 				    && sccp_is_nonempty_string(buttonconfig->button.line.name)
 				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE)){
-					
+
 					btn[i].type = SKINNY_BUTTONTYPE_LINE;
 
 					buttonconfig->instance = btn[i].instance = lineInstance++;
 
 					sccp_log((DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: add line %s on position %d\n", DEV_ID_LOG(d), buttonconfig->button.line.name, buttonconfig->instance);
 					break;
-					
+
 				}else if(buttonconfig->type == EMPTY
 				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE || btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL )){
-				  
+
 					btn[i].type = SKINNY_BUTTONTYPE_UNDEFINED;
 					buttonconfig->instance = btn[i].instance = 0;
 					break;
 
 				}else if(buttonconfig->type == SERVICE
 				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI)) {
-					
+
 					btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
 					buttonconfig->instance = btn[i].instance = serviceInstance++;
 					break;
-				  
-				} else if(buttonconfig->type == SPEEDDIAL 
-				    && sccp_is_nonempty_string(buttonconfig->button.speeddial.label) 
+
+				} else if(buttonconfig->type == SPEEDDIAL
+				    && sccp_is_nonempty_string(buttonconfig->button.speeddial.label)
 				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) ){
-				  
-					
+
+
 					buttonconfig->instance = btn[i].instance = i+1;
 					if (sccp_is_nonempty_string(buttonconfig->button.speeddial.hint)
 					  && btn[i].type == SCCP_BUTTONTYPE_MULTI /* we can set our feature */
@@ -495,25 +495,25 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 						}else{
 							      btn[i].type = SKINNY_BUTTONTYPE_LINE;
 							      buttonconfig->instance = btn[i].instance = lineInstance++;;
-							      
+
 						}
 #else
 						btn[i].type = SKINNY_BUTTONTYPE_LINE;
-						buttonconfig->instance = btn[i].instance = lineInstance++;;					
+						buttonconfig->instance = btn[i].instance = lineInstance++;;
 #endif
 					} else {
 						btn[i].type = SKINNY_BUTTONTYPE_SPEEDDIAL;
 						buttonconfig->instance = btn[i].instance = speeddialInstance++;
-						
+
 					}
 					break;
-				  
-				} else if(buttonconfig->type == FEATURE 
+
+				} else if(buttonconfig->type == FEATURE
 				  && sccp_is_nonempty_string(buttonconfig->button.feature.label)
 				  && (btn[i].type == SCCP_BUTTONTYPE_MULTI)){
-				 
+
 					buttonconfig->instance = btn[i].instance = speeddialInstance++;
-				  	
+
 					switch(buttonconfig->button.feature.id)
 					{
 						case SCCP_FEATURE_HOLD:
@@ -596,7 +596,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 						default:
 							btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
 							break;
-					  
+
 					}
 					break;
 				}else{
@@ -604,7 +604,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				}
 				sccp_log((DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_FEATURE_BUTTON))(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s)\n", d->id, buttonconfig->instance, "FEATURE" ,buttonconfig->button.feature.label);
 			}
-		  
+
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 
@@ -650,7 +650,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 		btn = sccp_make_button_template(d);
 	else
 		btn = d->buttonTemplate;
-	
+
 	if (!btn) {
 		ast_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
 		sccp_session_close(s);
@@ -660,11 +660,11 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 	REQ(r1, ButtonTemplateMessage);
 	for (i = 0; i < StationMaxButtonTemplateSize ; i++) {
 		r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
-		
+
 		switch (btn[i].type) {
 			case SCCP_BUTTONTYPE_HINT:
 			case SCCP_BUTTONTYPE_LINE:
-			  
+
 				/* we do not need a line if it is not configured */
 				if(r1->msg.ButtonTemplateMessage.definition[i].instanceNumber == 0){
 					r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_UNDEFINED;
@@ -715,12 +715,12 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 	r1->msg.ButtonTemplateMessage.lel_buttonCount = htolel(r1->msg.ButtonTemplateMessage.lel_buttonCount);
 	/* buttonCount is already in a little endian format so don't need to convert it now */
 	r1->msg.ButtonTemplateMessage.lel_totalButtonCount = r1->msg.ButtonTemplateMessage.lel_buttonCount;
-	
-	
+
+
 	/* set speeddial for older devices like 7912 */
 	uint32_t speeddialInstance = 0;
 	sccp_buttonconfig_t	*config;
-	
+
 	sccp_log((DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_SPEEDDIAL))(VERBOSE_PREFIX_3 "%s: configure unconfigured speeddialbuttons \n", d->id);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list){
 		/* we found a not configured speeddial */
@@ -731,12 +731,12 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 		}
 	}
 	/* done */
-	
-	
+
+
 	sccp_dev_send(d, r1);
 	sccp_device_unlock(d);
-	
-	
+
+
 	//d->buttonTemplate = btn;  /* do not save the button template, maybe this causes the line display issue */
 	ast_free(btn);
 }
@@ -796,7 +796,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 		/* force the forward status message. Some phone does not request it registering */
 		if (l) {
 			sccp_dev_forward_status(l, d);
-			
+
 			/* set default line on device */
 			SCCP_LIST_LOCK(&d->buttonconfig);
 			SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
@@ -811,7 +811,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 				}
 			}
 			SCCP_LIST_UNLOCK(&d->buttonconfig);
-			
+
 		}
 		/* remove speeddial if present */
 		if(k){
@@ -937,12 +937,12 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 					sccp_log(1)(VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
 				return;
 			}
-			
+
 			if(strlen(l->adhocNumber) > 0){
 				sccp_feat_hotline(d, l);
 				return;
 			}
-			
+
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Line Key press on line %s\n", d->id, (l) ? l->name : "(nil)");
 			if ( (c = sccp_channel_get_active(d)) ) {
 			    	sccp_log(DEBUGCAT_ACTION)(VERBOSE_PREFIX_3 "%s: gotten active channel %d on line %s\n", d->id, c->callid, (l) ? l->name : "(nil)");
@@ -1247,7 +1247,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r)
 			l = sccp_dev_get_activeline(d);
 		}
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Using line %s\n", d->id, l->name);
-		
+
 		if(l && !ast_strlen_zero(l->adhocNumber) ){
 			sccp_channel_newcall(l, d, l->adhocNumber, SKINNY_CALLTYPE_OUTBOUND);
 		}else{
@@ -1586,18 +1586,18 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_moo_t * r)
 	index = letohl(r->msg.DialedPhoneBookMessage.lel_NumberIndex);
 	unknown1 = (index | 0xFFFFFFF0) ^ 0xFFFFFFF0;
 	index = index >> 4;
-	
+
 	unknown2 = letohl(r->msg.DialedPhoneBookMessage.lel_unknown); // i don't understand this :)
 	instance = letohl(r->msg.DialedPhoneBookMessage.lel_lineinstance);
 
 	// Sending 0x152 Ack Message. Still have to find out the meaning for 0x153
 	REQ(r1, DialedPhoneBookAckMessage);
-	r1->msg.DialedPhoneBookAckMessage.lel_NumberIndex = r->msg.DialedPhoneBookMessage.lel_NumberIndex;  
+	r1->msg.DialedPhoneBookAckMessage.lel_NumberIndex = r->msg.DialedPhoneBookMessage.lel_NumberIndex;
 	r1->msg.DialedPhoneBookAckMessage.lel_lineinstance = r->msg.DialedPhoneBookMessage.lel_lineinstance;
 	r1->msg.DialedPhoneBookAckMessage.lel_unknown = r->msg.DialedPhoneBookMessage.lel_unknown;
 	r1->msg.DialedPhoneBookAckMessage.lel_unknown2 = 0;
 	sccp_dev_send(s->device, r1);
-	                                       
+
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Device sent Dialed PhoneBook Rec.'%u' (%u) dn '%s' (0x%08X) line instance '%d'.\n", DEV_ID_LOG(d), index, unknown1, r->msg.DialedPhoneBookMessage.phonenumber, unknown2, instance);
 }
 
@@ -1634,7 +1634,7 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * req)
   sccp_dev_send(s->device, r1);
   sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Send date/time\n", s->device->id);
 
-  /*  
+  /*
       According to SCCP protocol since version 3,
       the first instance of asking for time and date
       concludes the device registration process.
@@ -1865,7 +1865,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	sccp_log(DEBUGCAT_SOFTKEY)(VERBOSE_PREFIX_3 "%s: Got Softkey: %s (%d) line=%d callid=%d\n", d->id, label2str(event), event, line, callid);
-	
+
 	/* we have no line and call information -> use default line */
 	if(!line && !callid && event == SKINNY_LBL_NEWCALL){
 		if(d->defaultLineInstance > 0)
@@ -2084,20 +2084,25 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
 		sccp_channel_lock(c);
-		memcpy(&c->rtp_addr, &sin, sizeof(sin));
-		if (c->rtp.audio) {
+		memcpy(&c->rtp.audio.addr, &sin, sizeof(sin));
+
+		if (c->rtp.audio.rtp) {
 			sccp_channel_startmediatransmission(c);				/*!< Starting Media Transmission Earlier to fix 2 second delay - Copied from v2 - FS */
+
 #if ASTERISK_VERSION_NUM < 10400
 			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port));
-			ast_rtp_set_peer(c->rtp.audio, &sin);
+			ast_rtp_set_peer(c->rtp.audio.rtp, &sin);
 #else
 			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
-			ast_rtp_set_peer(c->rtp.audio, &sin);
+			ast_rtp_set_peer(c->rtp.audio.rtp, &sin);
 #endif
-			// sccp_dev_stoptone(d, c->line->instance, c->callid);
-			//sccp_channel_startmediatransmission(c);			/*!< Moved to 9 lines before - Copied from v2 - FS */
-			if(c->state == SCCP_CHANNELSTATE_CONNECTED)
+			/* update status */
+			c->rtp.audio.status |=  SCCP_RTP_STATUS_RECEIVE;
+			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
+			if(c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE) ){
 				sccp_ast_setstate(c, AST_STATE_UP);
+			}
+
 		} else {
 #if ASTERISK_VERSION_NUM < 10400
 			ast_log(LOG_ERROR,  "%s: Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port));
@@ -2108,7 +2113,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 		}
 
 
-		if(c->rtp.video){
+		if(c->rtp.video.rtp){
 			sccp_channel_startMultiMediaTransmission(c);
 		}
 
@@ -2186,14 +2191,14 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r){
 
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
 		sccp_channel_lock(c);
-		memcpy(&c->vrtp_addr, &sin, sizeof(sin));
-		if (c->rtp.video) {
+		memcpy(&c->rtp.video.addr, &sin, sizeof(sin));
+		if (c->rtp.video.rtp) {
 #if ASTERISK_VERSION_NUM < 10400
 			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port));
-			ast_rtp_set_peer(c->rtp.video, &sin);
+			ast_rtp_set_peer(c->rtp.video.rtp, &sin);
 #else
 			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
-			ast_rtp_set_peer(c->rtp.video, &sin);
+			ast_rtp_set_peer(c->rtp.video.rtp, &sin);
 #endif
 			if(c->state == SCCP_CHANNELSTATE_CONNECTED)
 				sccp_ast_setstate(c, AST_STATE_UP);
@@ -2425,7 +2430,7 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 	/* the new speeddial style uses feature to display state
 	   unfortunately we dont know how to handle this on other way
 	*/
-  	
+
 	if( (unknown == 1 && d->inuseprotocolversion >= 15)){
 		sccp_speed_t * k = sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT);
 	//if( (unknown == 1 )){
@@ -2467,11 +2472,11 @@ void sccp_handle_services_stat_req(sccp_session_t * s, sccp_moo_t * r)
 	if(!s || !(d = s->device)) {
 		return;
 	}
-	
+
 	int urlIndex = letohl(r->msg.ServiceURLStatReqMessage.lel_serviceURLIndex);
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Got ServiceURL Status Request.  Index = %d\n", d->id, urlIndex);
-	
+
 	if ((service = sccp_dev_serviceURL_find_byindex(s->device, urlIndex))) {
 		if (s->device->inuseprotocolversion < 7) {
 			REQ(r1, ServiceURLStatMessage);
@@ -2707,6 +2712,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 {
 	struct sockaddr_in sin;
 	sccp_device_t * d;
+	sccp_channel_t *c;
 #if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
@@ -2725,6 +2731,15 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 	sin.sin_family = AF_INET;
 	memcpy(&sin.sin_addr, &r->msg.StartMediaTransmissionAck.bel_ipAddr, sizeof(sin.sin_addr));
 	sin.sin_port = ipPort;
+
+	c = sccp_channel_find_bypassthrupartyid(partyID);
+
+	/* update status */
+	c->rtp.audio.status |=  SCCP_RTP_STATUS_TRANSMIT;
+	/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
+	if(c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE) ){
+		sccp_ast_setstate(c, AST_STATE_UP);
+	}
 
 #if ASTERISK_VERSION_NUM < 10400
 	sccp_log(8)(VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n",
