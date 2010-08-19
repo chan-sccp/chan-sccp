@@ -485,7 +485,7 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 	}
 #endif // CS_SCCP_CONFERENCE
 
-	if (c->rtp.audio) {
+	if (c->rtp.audio.rtp) {
 		sccp_channel_closereceivechannel(c);
 		usleep(200);
 		sccp_channel_destroy_rtp(c);
@@ -667,36 +667,36 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 	frame = NULL;
 #endif // ASTERISK_VERSION_NUM >= 10400
 
-	if(!c || !c->rtp.audio)
+	if(!c || !c->rtp.audio.rtp)
 		return frame;
 
 	switch(ast->fdno) {
 #ifndef CS_AST_HAS_RTP_ENGINE
 		case 0:
-			frame = ast_rtp_read(c->rtp.audio);	/* RTP Audio */
+			frame = ast_rtp_read(c->rtp.audio.rtp);	/* RTP Audio */
 			break;
 		case 1:
-			frame = ast_rtcp_read(c->rtp.audio);	/* RTCP Control Channel */
+			frame = ast_rtcp_read(c->rtp.audio.rtp);	/* RTCP Control Channel */
 			break;
 		case 2:
-			frame = ast_rtp_read(c->rtp.video);	/* RTP Video */
+			frame = ast_rtp_read(c->rtp.video.rtp);	/* RTP Video */
 			//ast_log(LOG_NOTICE, "%s: Got Video frame from device\n", DEV_ID_LOG(c->device));
 			break;
 		case 3:
-			frame = ast_rtcp_read(c->rtp.video);	/* RTCP Control Channel for video */
+			frame = ast_rtcp_read(c->rtp.video.rtp);	/* RTCP Control Channel for video */
 			break;
 #else
 		case 0:
-			frame = ast_rtp_instance_read(c->rtp.audio, 0); /* RTP Audio */
+			frame = ast_rtp_instance_read(c->rtp.audio.rtp, 0); /* RTP Audio */
 			break;
 		case 1:
-			frame = ast_rtp_instance_read(c->rtp.audio, 1); /* RTCP Control Channel */
+			frame = ast_rtp_instance_read(c->rtp.audio.rtp, 1); /* RTCP Control Channel */
 			break;
 		case 2:
-			frame = ast_rtp_instance_read(c->rtp.video, 0); /* RTP Video */
+			frame = ast_rtp_instance_read(c->rtp.video.rtp, 0); /* RTP Video */
 			break;
 		case 3:
-			frame = ast_rtp_instance_read(c->rtp.video, 1); /* RTCP Control Channel for video */
+			frame = ast_rtp_instance_read(c->rtp.video.rtp, 1); /* RTCP Control Channel for video */
 			break;
 #endif // CS_AST_HAS_RTP_ENGINE
 
@@ -704,7 +704,7 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 		default:
 			return frame;
 	}
-	
+
 	if(!frame){
 		ast_log(LOG_WARNING, "%s: error reading frame == NULL\n", DEV_ID_LOG(c->device));
 		return frame;
@@ -777,15 +777,15 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 					//return -1;
 
 				}
-				if (c->rtp.audio){
-					res = sccp_rtp_read(c->rtp.audio, frame);
+				if (c->rtp.audio.rtp){
+					res = sccp_rtp_read(c->rtp.audio.rtp, frame);
 				}
 				break;
 			case AST_FRAME_IMAGE:
 			case AST_FRAME_VIDEO:
 				//ast_log(LOG_NOTICE, "%s: Got Video frame type %d\n", DEV_ID_LOG(c->device), frame->subclass);
-				if (c && c->rtp.video){
-					res = sccp_rtp_read(c->rtp.video, frame);
+				if (c && c->rtp.video.rtp){
+					res = sccp_rtp_read(c->rtp.video.rtp, frame);
 				}else{
 					//ast_log(LOG_NOTICE, "%s: drop video frame\n", DEV_ID_LOG(c->device));
 				}
@@ -921,7 +921,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "%s: Asterisk indicate '%d' (%s) condition on channel %s\n", DEV_ID_LOG(c->device), ind, sccp_control2str(ind), ast->name);
 
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
-	if (c->rtp.audio)
+	if (c->rtp.audio.rtp)
 		res = -1;
 
 	switch(ind) {
@@ -979,7 +979,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		}
 
 		ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n",c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
-		if(c->rtp.audio){
+		if(c->rtp.audio.rtp){
 			if(oldChannelFormat != c->format){
 				if(c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE){
 					sccp_channel_closereceivechannel(c);	/* close the already openend receivechannel */
@@ -988,8 +988,8 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			}
 		}
 #ifdef CS_AST_RTP_NEW_SOURCE
-		if(c->rtp.audio) {
-			ast_rtp_new_source(c->rtp.audio);
+		if(c->rtp.audio.rtp) {
+			ast_rtp_new_source(c->rtp.audio.rtp);
 			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
 		}
 #endif // CS_AST_RTP_NEW_SOURCE
@@ -1009,8 +1009,8 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	case AST_CONTROL_UNHOLD:
 		ast_moh_stop(ast);
 #ifdef CS_AST_RTP_NEW_SOURCE
-		if(c->rtp.audio) {
-			ast_rtp_new_source(c->rtp.audio);
+		if(c->rtp.audio.rtp) {
+			ast_rtp_new_source(c->rtp.audio.rtp);
 			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
 		}
 #endif // CS_AST_RTP_NEW_SOURCE
@@ -1027,7 +1027,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	break;
 #endif // CS_AST_CONTROL_CONNECTED_LINE
 	case AST_CONTROL_VIDUPDATE:	/* Request a video frame update */
-		if (c->rtp.video) {
+		if (c->rtp.video.rtp) {
 			res = 0;
 		} else
 			res = -1;
@@ -1067,7 +1067,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		}
 
 		ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n",c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
-		if(c->rtp.audio){
+		if(c->rtp.audio.rtp){
 			if(oldChannelFormat != c->format){
 				if(c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE){
 					sccp_channel_closereceivechannel(c);	/* close the already openend receivechannel */
@@ -1076,8 +1076,8 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			}
 		}
 #ifdef CS_AST_RTP_NEW_SOURCE
-		if(c->rtp.audio) {
-			ast_rtp_new_source(c->rtp.audio);
+		if(c->rtp.audio.rtp) {
+			ast_rtp_new_source(c->rtp.audio.rtp);
 			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
 		}
 #endif // CS_AST_RTP_NEW_SOURCE
@@ -2103,9 +2103,9 @@ int acf_channel_read(struct ast_channel *ast, char *funcname, char *args, char *
 		sccp_device_unlock(d);
 
 		if (!strcasecmp(args, "peerip")) {
-			ast_copy_string(buf, c->rtp_peer.sin_addr.s_addr ? ast_inet_ntoa(c->rtp_peer.sin_addr) : "", buflen);
+			ast_copy_string(buf, c->rtp.audio.peer.sin_addr.s_addr ? ast_inet_ntoa(c->rtp.audio.peer.sin_addr) : "", buflen);
 		} else if (!strcasecmp(args, "recvip")) {
-			ast_copy_string(buf, c->rtp_addr.sin_addr.s_addr ? ast_inet_ntoa(c->rtp_addr.sin_addr) : "", buflen);
+			ast_copy_string(buf, c->rtp.audio.addr.sin_addr.s_addr ? ast_inet_ntoa(c->rtp.audio.addr.sin_addr) : "", buflen);
 		} else if (!strcasecmp(args, "from")) {
 			ast_copy_string(buf, (char *)c->device->id, buflen);
 		} else {

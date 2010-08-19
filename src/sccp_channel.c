@@ -637,12 +637,12 @@ enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struc
 		return AST_RTP_GET_FAILED;
 	}
 
-	if (!c->rtp.audio) {
+	if (!c->rtp.audio.rtp) {
 		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO RTP\n");
 		return AST_RTP_GET_FAILED;
 	}
 
-	*rtp = c->rtp.audio;
+	*rtp = c->rtp.audio.rtp;
 	if(!(d = c->device)) {
 		sccp_log((DEBUGCAT_RTP | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO DEVICE\n");
 		return AST_RTP_GET_FAILED;
@@ -677,7 +677,7 @@ enum ast_rtp_glue_result sccp_channel_get_vrtp_peer(struct ast_channel *ast, str
 #endif
 
 	sccp_channel_t *c = NULL;
-	if (!(c = CS_AST_CHANNEL_PVT(ast)) || !(c->rtp.video)) {
+	if (!(c = CS_AST_CHANNEL_PVT(ast)) || !(c->rtp.video.rtp)) {
 #ifndef CS_AST_HAS_RTP_ENGINE
 		return AST_RTP_GET_FAILED;
 #else
@@ -687,7 +687,7 @@ enum ast_rtp_glue_result sccp_channel_get_vrtp_peer(struct ast_channel *ast, str
 #ifdef CS_AST_HAS_RTP_ENGINE
 	ao2_ref(c->rtp.video, +1);
 #endif
-	*rtp = c->rtp.video;
+	*rtp = c->rtp.video.rtp;
 	return AST_RTP_TRY_PARTIAL;
 }
 
@@ -885,11 +885,11 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 
 	/* create the rtp stuff. It must be create before setting the channel AST_STATE_UP. otherwise no audio will be played */
 	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", c->device->id, c->callid, codec2str(payloadType), c->line->echocancel ? "ON" : "OFF");
-	if (!c->rtp.audio) {
+	if (!c->rtp.audio.rtp) {
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Starting RTP on channel %s-%08X\n", DEV_ID_LOG(c->device), c->line->name, c->callid);
 		sccp_channel_start_rtp(c);
 	}
-	if (!c->rtp.audio) {
+	if (!c->rtp.audio.rtp) {
 		ast_log(LOG_WARNING, "%s: Error opening RTP for channel %s-%08X\n", DEV_ID_LOG(c->device), c->line->name, c->callid);
 
 		instance = sccp_device_find_index_for_line(c->device, c->line->name);
@@ -902,7 +902,7 @@ void sccp_channel_openreceivechannel(sccp_channel_t * c)
 
 	if(d->inuseprotocolversion >= 17) {
 		r = sccp_build_packet(OpenReceiveChannel, sizeof(r->msg.OpenReceiveChannel_v17));
-		ast_rtp_get_peer(c->rtp.audio, &them);
+		ast_rtp_get_peer(c->rtp.audio.rtp, &them);
 		memcpy(&r->msg.OpenReceiveChannel_v17.bel_remoteIpAddr, &them.sin_addr, 4);
 		r->msg.OpenReceiveChannel_v17.lel_conferenceId = htolel(c->callid);
 		r->msg.OpenReceiveChannel_v17.lel_passThruPartyId = htolel(c->passthrupartyid) ;
@@ -995,7 +995,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 	packetSize = 3840;
 
 
-	if (!channel->rtp.video) {
+	if (!channel->rtp.video.rtp) {
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: can't start vrtp media transmission, maybe channel is down %s-%08X\n", channel->device->id, channel->line->name, channel->callid);
 		return;
 	}
@@ -1004,7 +1004,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 		return;
 
 
-	ast_rtp_get_us(channel->rtp.video, &sin);
+	ast_rtp_get_us(channel->rtp.video.rtp, &sin);
 
 	if (channel->device->nat) {
 		if (GLOB(externip.sin_addr.s_addr)) {
@@ -1114,7 +1114,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 	struct ast_format_list fmt;
 #endif
 
-	if (!c->rtp.audio) {
+	if (!c->rtp.audio.rtp) {
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: can't start rtp media transmission, maybe channel is down %s-%08X\n", c->device->id, c->line->name, c->callid);
 		return;
 	}
@@ -1123,7 +1123,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 		return;
 
 
-	ast_rtp_get_us(c->rtp.audio, &sin);
+	ast_rtp_get_us(c->rtp.audio.rtp, &sin);
 
 	if(d->inuseprotocolversion < 17) {
 		REQ(r, StartMediaTransmission);
@@ -1197,6 +1197,7 @@ void sccp_channel_closereceivechannel(sccp_channel_t * c)
 	sccp_moo_t * r;
 	sccp_device_t * d = c->device;
 
+	sccp_channel_lock(c);
 	if(d) {
 		REQ(r, CloseReceiveChannel);
 		r->msg.CloseReceiveChannel.lel_conferenceId = htolel(c->callid);
@@ -1207,6 +1208,10 @@ void sccp_channel_closereceivechannel(sccp_channel_t * c)
 	}
 	c->isCodecFix = FALSE;
 	c->mediaStatus.receive = FALSE;
+	/* update status */
+	c->rtp.audio.status &= ~SCCP_RTP_STATUS_RECEIVE;
+	sccp_channel_unlock(c);
+
 	sccp_channel_stopmediatransmission(c);
 }
 
@@ -1235,11 +1240,15 @@ void sccp_channel_stopmediatransmission(sccp_channel_t * c)
 		sccp_dev_send(d, r);
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Stop media transmission on channel %d\n",(d && d->id)?d->id:"(none)", c->callid);
 	}
+	sccp_channel_lock(c);
 	c->mediaStatus.transmit = FALSE;
 	// stopping rtp
-	if(c->rtp.audio) {
+	if(c->rtp.audio.rtp) {
 		sccp_channel_stop_rtp(c);
 	}
+	/* update status */
+	c->rtp.audio.status &= ~SCCP_RTP_STATUS_TRANSMIT;
+	sccp_channel_unlock(c);
 
 	/* requesting statistics */
 	sccp_channel_StatisticsRequest(c);
@@ -1451,7 +1460,7 @@ sccp_channel_t * sccp_channel_newcall(sccp_line_t * l, sccp_device_t *device, ch
 	sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 
 
-	if (device->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp.audio) {
+	if (device->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp.audio.rtp) {
 		sccp_channel_openreceivechannel(c);
 	}
 
@@ -1633,7 +1642,7 @@ int sccp_channel_hold(sccp_channel_t * c)
 		ast_moh_start(peer, NULL);
 #else
 #ifdef CS_AST_RTP_NEW_SOURCE
-		ast_rtp_new_source(c->rtp.audio);
+		ast_rtp_new_source(c->rtp.audio.rtp);
 #endif
 		ast_moh_start(peer, NULL, l->musicclass);
 #endif
@@ -1757,8 +1766,8 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
 	if (peer) {
 		ast_moh_stop(peer);
 #ifdef CS_AST_RTP_NEW_SOURCE
-		if(c->rtp.audio)
-			ast_rtp_new_source(c->rtp.audio);
+		if(c->rtp.audio.rtp)
+			ast_rtp_new_source(c->rtp.audio.rtp);
 #endif
 
 		// this is for STABLE version
@@ -1768,8 +1777,8 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
 	}
 #else
 #ifdef CS_AST_RTP_NEW_SOURCE
-	if(c->rtp.audio)
-		ast_rtp_new_source(c->rtp.audio);
+	if(c->rtp.audio.rtp)
+		ast_rtp_new_source(c->rtp.audio.rtp);
 #endif
 	sccp_ast_queue_control(c, AST_CONTROL_UNHOLD);
 #endif
@@ -1853,7 +1862,7 @@ void sccp_channel_cleanbeforedelete(sccp_channel_t *c)   // we assume channel is
 	if (c->state != SCCP_CHANNELSTATE_DOWN)
 		sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_ONHOOK);
 
-	if (c->rtp.audio || c->rtp.video)
+	if (c->rtp.audio.rtp || c->rtp.video.rtp)
 		sccp_channel_stop_rtp(c);
 
 
@@ -1970,16 +1979,16 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 #endif
 
 	/* finally we deal with this -FS SVN 423*/
-	c->rtp.audio = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
+	c->rtp.audio.rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
 
 	/* can we handle video */
 	if(isVideoSupported)
-		c->rtp.video = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
+		c->rtp.video.rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
 
 
 #if ASTERISK_VERSION_NUM < 10400
-	if (c->rtp.audio && c->owner)
-		c->owner->fds[0] = ast_rtp_fd(c->rtp.audio);
+	if (c->rtp.audio.rtp && c->owner)
+		c->owner->fds[0] = ast_rtp_fd(c->rtp.audio.rtp);
 
 	if(isVideoSupported && c->rtp.video && c->owner)
 		c->owner->fds[0] = ast_rtp_fd(c->rtp.video);
@@ -1988,9 +1997,9 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 #if ASTERISK_VERSION_NUM >= 10400
 //#if ASTERISK_VERSION_NUM < 10600
 #if ASTERISK_VERSION_NUM >= 10400 && ASTERISK_VERSION_NUM < 10600
-	if (c->rtp.audio && c->owner) {
-		c->owner->fds[0] = ast_rtp_fd(c->rtp.audio);
-		c->owner->fds[1] = ast_rtcp_fd(c->rtp.audio);
+	if (c->rtp.audio.rtp && c->owner) {
+		c->owner->fds[0] = ast_rtp_fd(c->rtp.audio.rtp);
+		c->owner->fds[1] = ast_rtcp_fd(c->rtp.audio.rtp);
 	}
 
 	if (isVideoSupported && c->rtp.video && c->owner) {
@@ -1999,25 +2008,25 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 	}
 #endif
 #if ASTERISK_VERSION_NUM >= 10600
-	if (c->rtp.audio && c->owner) {
-		ast_channel_set_fd(c->owner, 0, ast_rtp_fd(c->rtp.audio));
-		ast_channel_set_fd(c->owner, 1, ast_rtcp_fd(c->rtp.audio));
+	if (c->rtp.audio.rtp && c->owner) {
+		ast_channel_set_fd(c->owner, 0, ast_rtp_fd(c->rtp.audio.rtp));
+		ast_channel_set_fd(c->owner, 1, ast_rtcp_fd(c->rtp.audio.rtp));
 	}
 
-	if (isVideoSupported && c->rtp.video && c->owner) {
-		ast_channel_set_fd(c->owner, 2, ast_rtp_fd(c->rtp.video));
-		ast_channel_set_fd(c->owner, 3, ast_rtcp_fd(c->rtp.video));
+	if (isVideoSupported && c->rtp.video.rtp && c->owner) {
+		ast_channel_set_fd(c->owner, 2, ast_rtp_fd(c->rtp.video.rtp));
+		ast_channel_set_fd(c->owner, 3, ast_rtcp_fd(c->rtp.video.rtp));
 		//sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Creating video rtp server connection at %s:%d\n", d->id, ast_inet_ntoa(s->ourip), ntohs(.sin_port));
 	}
 #endif
 	/* tell changes to asterisk */
-	if((c->rtp.audio || c->rtp.video) && c->owner) {
+	if((c->rtp.audio.rtp || c->rtp.video.rtp) && c->owner) {
 		if(c->owner)
 			ast_queue_frame(c->owner, &sccp_null_frame);
 	}
 
-	if(c->rtp.audio){
-		ast_rtp_codec_setpref(c->rtp.audio, &c->codecs);
+	if(c->rtp.audio.rtp){
+		ast_rtp_codec_setpref(c->rtp.audio.rtp, &c->codecs);
 		ast_codec_pref_string(&c->codecs, pref_buf, sizeof(pref_buf) - 1);
 		sccp_log(2)(VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, set pef: %s\n",
 			    c->line->name,
@@ -2030,30 +2039,30 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 
 
 
-	if (c->rtp.audio) {
+	if (c->rtp.audio.rtp) {
 //#if ASTERISK_VERSION_NUM >= 10600
 #if ASTERISK_VERSION_NUM >= 10600
-		ast_rtp_setqos(c->rtp.audio, c->line->audio_tos, c->line->audio_cos, "SCCP RTP");
+		ast_rtp_setqos(c->rtp.audio.rtp, c->line->audio_tos, c->line->audio_cos, "SCCP RTP");
 #else
-		ast_rtp_settos(c->rtp.audio, c->line->audio_tos);
+		ast_rtp_settos(c->rtp.audio.rtp, c->line->audio_tos);
 
 #if defined(linux)
 //		unsigned int audio_cos=c->line->audio_cos;
-//		if (!setsockopt( (int)c->rtp.audio, SOL_SOCKET, SO_PRIORITY,(void*)&audio_cos, sizeof(audio_cos) ))
+//		if (!setsockopt( (int)c->rtp.audio.rtp, SOL_SOCKET, SO_PRIORITY,(void*)&audio_cos, sizeof(audio_cos) ))
 //			ast_log(LOG_WARNING, "Failed to set SCCP socket Audio COS to %d: %s\n", c->line->audio_cos, strerror(errno));
 #endif
 
 #endif
-		ast_rtp_setnat(c->rtp.audio, d->nat);
+		ast_rtp_setnat(c->rtp.audio.rtp, d->nat);
 //#if ASTERISK_VERSION_NUM >= 10600
 #if ASTERISK_VERSION_NUM >= 10600
-		ast_rtp_codec_setpref(c->rtp.audio, &c->codecs);
+		ast_rtp_codec_setpref(c->rtp.audio.rtp, &c->codecs);
 #endif
 	}
 
-	if (c->rtp.video) {
+	if (c->rtp.video.rtp) {
 #if ASTERISK_VERSION_NUM >= 10600
-		ast_rtp_setqos(c->rtp.video, c->line->audio_tos, c->line->video_cos, "SCCP VRTP");
+		ast_rtp_setqos(c->rtp.video.rtp, c->line->audio_tos, c->line->video_cos, "SCCP VRTP");
 #else
 		ast_rtp_settos(c->rtp.video, c->line->video_tos);
 #if defined(linux)
@@ -2062,16 +2071,16 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 //		ast_log(LOG_WARNING, "Failed to set SCCP socket Video COS to %d: %s\n", c->line->video_cos, strerror(errno));
 #endif
 #endif
-		ast_rtp_setnat(c->rtp.video, d->nat);
+		ast_rtp_setnat(c->rtp.video.rtp, d->nat);
 
-		ast_rtp_setdtmf(c->rtp.video, 0);
-		ast_rtp_setdtmfcompensate(c->rtp.video, 0);
-		ast_rtp_set_rtptimeout(c->rtp.video, 10);
-		ast_rtp_set_rtpholdtimeout(c->rtp.video, 0);
-		ast_rtp_set_rtpkeepalive(c->rtp.video, 0);
+		ast_rtp_setdtmf(c->rtp.video.rtp, 0);
+		ast_rtp_setdtmfcompensate(c->rtp.video.rtp, 0);
+		ast_rtp_set_rtptimeout(c->rtp.video.rtp, 10);
+		ast_rtp_set_rtpholdtimeout(c->rtp.video.rtp, 0);
+		ast_rtp_set_rtpkeepalive(c->rtp.video.rtp, 0);
 		//ast_rtp_set_constantssrc(c->rtp.video);
 		//ast_rtp_set_constantssrc(c->rtp.video);
-		ast_rtp_set_m_type(c->rtp.video, AST_FORMAT_H263);
+		ast_rtp_set_m_type(c->rtp.video.rtp, AST_FORMAT_H263);
 
 	}
 
@@ -2092,14 +2101,14 @@ void sccp_channel_stop_rtp(sccp_channel_t * c)
 		d = c->device;
 	}
 
-	if (c->rtp.audio) {
+	if (c->rtp.audio.rtp) {
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Stopping phone media transmission on channel %s-%08X\n", (d && d->id)?d->id:"SCCP", l?l->name:"(null)", c->callid);
-		ast_rtp_stop(c->rtp.audio);
+		ast_rtp_stop(c->rtp.audio.rtp);
 	}
 
-	if (c->rtp.video) {
+	if (c->rtp.video.rtp) {
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Stopping video media transmission on channel %s-%08X\n", (d && d->id)?d->id:"SCCP", l?l->name:"(null)", c->callid);
-		ast_rtp_stop(c->rtp.video);
+		ast_rtp_stop(c->rtp.video.rtp);
 	}
 }
 
@@ -2116,16 +2125,16 @@ void sccp_channel_destroy_rtp(sccp_channel_t * c)
 		d = c->device;
 	}
 
-	if (c->rtp.audio) {
+	if (c->rtp.audio.rtp) {
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: destroying phone media transmission on channel %s-%08X\n", (d && d->id)?d->id:"SCCP", l?l->name:"(null)", c->callid);
-		ast_rtp_destroy(c->rtp.audio);
-		c->rtp.audio = NULL;
+		ast_rtp_destroy(c->rtp.audio.rtp);
+		c->rtp.audio.rtp = NULL;
 	}
 
-	if (c->rtp.video) {
+	if (c->rtp.video.rtp) {
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: destroying video media transmission on channel %s-%08X\n", (d && d->id)?d->id:"SCCP", l?l->name:"(null)", c->callid);
-		ast_rtp_destroy(c->rtp.video);
-		c->rtp.video = NULL;
+		ast_rtp_destroy(c->rtp.video.rtp);
+		c->rtp.video.rtp = NULL;
 	}
 }
 
