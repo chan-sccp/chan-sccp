@@ -7,7 +7,7 @@
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
- * 
+ *
  * $Date$
  * $Revision$
  */
@@ -478,7 +478,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 #endif
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		ast_cli(fd, "\nButtonconfig\n");
-		
+
 #ifdef CS_DYNAMIC_CONFIG
 		ast_cli(fd, "%-4s: %-23s %3s %3s\n", "id", "type", "Upd", "Del");
 #else
@@ -1854,7 +1854,7 @@ static struct ast_cli_entry cli_no_debug = {
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
- * 
+ *
  * \note To find out more about the reload function see \ref sccp_config_reload
  */
 static int sccp_do_reload(int fd, int argc, char *argv[]) {
@@ -1869,7 +1869,6 @@ static int sccp_do_reload(int fd, int argc, char *argv[]) {
 	}
 
 	ast_cli(fd, "SCCP reloading configuration.\n");
-	ast_cli(fd, "SCCP configuration reload partially implemented ! use unload and load instead for now.\n");
 
 	readingtype = SCCP_CONFIG_READRELOAD;
 
