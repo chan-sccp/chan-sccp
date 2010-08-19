@@ -7,7 +7,7 @@
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
- * 
+ *
  * $Date$
  * $Revision$
  */
@@ -81,6 +81,7 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t *device);
 #ifdef CS_DYNAMIC_CONFIG
 sccp_device_t * sccp_clone_device(sccp_device_t *orig_device);
 
+boolean_t sccp_device_check_update(sccp_device_t *d);
 void sccp_duplicate_device_buttonconfig_list(sccp_device_t *new_device, sccp_device_t *orig_device);
 void sccp_duplicate_device_hostname_list(sccp_device_t *new_device, sccp_device_t *orig_device);
 void sccp_duplicate_device_selectedchannel_list(sccp_device_t *new_device,sccp_device_t *orig_device);
