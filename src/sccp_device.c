@@ -84,6 +84,53 @@ void sccp_device_pre_reload(void)
 	SCCP_LIST_UNLOCK(&GLOB(devices));
 }
 
+boolean_t sccp_device_check_update(sccp_device_t *d)
+{
+	if (!d->pendingUpdate && !d->pendingDelete)
+		return FALSE;
+
+	sccp_device_lock(d);
+
+	if (sccp_device_numberOfChannels(d) > 0) {
+		sccp_device_unlock(d);
+		return FALSE;
+	}
+
+	sccp_log(1)(VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf\n", d->id);
+	sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+	sccp_session_close(d->session);
+	d->pendingUpdate = 0;
+
+	if (d->pendingDelete) {
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Remove Device from List\n", d->id);
+		sccp_device_unlock(d);
+		sccp_dev_clean(d, TRUE, 0);
+	}
+	else {
+		sccp_buttonconfig_t *buttonconfig;
+
+		SCCP_LIST_LOCK(&d->buttonconfig);
+		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, buttonconfig, list){
+			if (!buttonconfig->pendingDelete && !buttonconfig->pendingUpdate)
+				continue;
+
+			if (d->pendingDelete) {
+				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
+				ast_free(buttonconfig);
+				SCCP_LIST_REMOVE_CURRENT(list);
+			} else {
+				buttonconfig->pendingUpdate = 0;
+			}
+		}
+		SCCP_LIST_TRAVERSE_SAFE_END
+		SCCP_LIST_UNLOCK(&d->buttonconfig);
+
+		sccp_device_unlock(d);
+	}
+
+	return TRUE;
+}
+
 /*!
  * \brief run after the new device config is loaded during the reload process
  * \note See \ref sccp_config_reload
@@ -94,52 +141,17 @@ void sccp_device_pre_reload(void)
 void sccp_device_post_reload(void)
 {
 	sccp_device_t * d;
-	sccp_buttonconfig_t *config;
 
 	SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(devices), d, list){
 		if (!d->pendingDelete && !d->pendingUpdate)
 			continue;
 
-		sccp_device_lock(d);
-
-		// skip this device. it will receive reset from sccp_channel_endcall upon completion of the call (***)
-		if (sccp_device_numberOfChannels(d) > 0) {
+		/* Because of the previous check, the only reason that the device hasn't
+		 * been updated, and because it is during a call.
+		 */
+		if (!sccp_device_check_update(d))
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", d->id);
-			sccp_device_unlock(d);
-			continue;
-		}
-
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Sending Device Reset\n");
-		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
-		sccp_session_close(d->session);
-
-		if (d->pendingDelete) {
-			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Remove Device from List\n");
-			SCCP_LIST_REMOVE_CURRENT(list);
-			sccp_device_unlock(d);
-			sccp_dev_clean(d, TRUE, 0);
-			continue;
-		}
-
-		d->pendingUpdate = 0;
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list){
-			if (!config->pendingDelete && !config->pendingUpdate)
-				continue;
-
-			if (config->pendingDelete) {
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
-				SCCP_LIST_REMOVE_CURRENT(list);
-				ast_free(config);
-			} else {
-				config->pendingUpdate = 0;
-			}
-		}
-		SCCP_LIST_TRAVERSE_SAFE_END
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
-
-		sccp_device_unlock(d);
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END
 
@@ -515,15 +527,15 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 
 	/* Handle registration completion. */
 	if (opt == SKINNY_DEVICE_RS_OK) {
-	  
+
 		/* this message is mandatory to finish process */
 		REQ(r, SetLampMessage);
 		r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
 		r->msg.SetLampMessage.lel_stimulusInstance = 0;
 		r->msg.SetLampMessage.lel_lampMode = htolel(SKINNY_LAMP_OFF);
 		sccp_dev_send(d, r);
-	  
-	  
+
+
 		snprintf(servername, sizeof(servername), "%s %s", GLOB(servername), SKINNY_DISP_CONNECTED);
 		sccp_dev_displaynotify(d, servername, 5);
 		sccp_dev_postregistration(d);
@@ -593,19 +605,19 @@ void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
 // 	uint8_t instance;
 // 	if (!d)
 // 		return;
-// 
+//
 // 	int retry = 0;
 // 	while(sccp_device_trylock(d)) {
 // 		retry++;
 // 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s), retry: %d\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__, retry);
 // 		usleep(100);
-// 
+//
 // 		if(retry > 100){
 // 			sccp_device_unlock(d);
 // 			return;
 // 		}
 // 	}
-// 
+//
 // 	if (l) {
 // 		instance = sccp_device_find_index_for_line(d, l->name);
 // 	} else {
@@ -617,8 +629,8 @@ void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
 // 		instance = 0;
 // 	}
 // 	sccp_device_unlock(d);
-// 
-// 
+//
+//
 // 	REQ(r, SetLampMessage);
 // 	r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
 // 	r->msg.SetLampMessage.lel_stimulusInstance = (l ? htolel(instance) : 0);
@@ -1263,7 +1275,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " (Silent) <<<", 0);
 		else
 			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " <<<", 0);
-		
+
 		goto OUT;
 	}
 
@@ -1283,12 +1295,12 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 		sccp_dev_displayprinotify(d, buffer, 5, 10);
 		goto OUT;
 	}
-	
+
 	/* when we are here, there's nothing to display */
 	sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
 	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);/* this is for redial softkey */
-	
-	
+
+
 OUT:
 	sccp_log((DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: Finish DisplayPrompt\n", d->id);
 }
@@ -1937,7 +1949,7 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
 	if (orig_device->phonemessage)
 		new_device->phonemessage = ast_strdup(orig_device->phonemessage);
 
-	// copy list-items over 
+	// copy list-items over
 	sccp_duplicate_device_buttonconfig_list(new_device,orig_device);
 	sccp_duplicate_device_hostname_list(new_device,orig_device);
 	sccp_duplicate_device_selectedchannel_list(new_device,orig_device);
