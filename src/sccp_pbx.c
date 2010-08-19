@@ -52,7 +52,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #endif
 #include <asterisk/threadstorage.h>
 
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUM >= 10602
 AST_THREADSTORAGE_EXTERNAL(ast_str_thread_global_buf);
 #else
 extern struct ast_threadstorage ast_str_thread_global_buf;
