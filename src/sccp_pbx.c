@@ -1960,14 +1960,14 @@ int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
  */
 static const char *sccp_pbx_get_callid(struct ast_channel *ast)
 {
-	char callid[8];
+	static char callid[8];
 
 	sccp_channel_t *c;
 	c = CS_AST_CHANNEL_PVT(ast);
 	if (c) {
-		sprintf(callid, "%i", c->callid);
+		snprintf(callid, sizeof callid, "%i", c->callid);
 		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "Get CallID is Returning %s ('%i')", callid, c->callid);
-		return (char *)&callid;
+		return callid;
 	} else {
 		return "";
 	}
