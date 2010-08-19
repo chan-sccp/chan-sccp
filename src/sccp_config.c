@@ -1712,9 +1712,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
  */
 struct ast_config *sccp_config_getConfig() {
 	struct ast_config *cfg = NULL;
-	struct ast_variable *v = NULL;
 
-//#if ASTERISK_VERSION_NUM < 10600
 #if ASTERISK_VERSION_NUM < 10600
 	cfg = ast_config_load("sccp.conf");
 
@@ -1728,10 +1726,10 @@ struct ast_config *sccp_config_getConfig() {
 		cfg = ast_config_load2("sccp_v3.conf", "chan_sccp", config_flags);
 #endif
 	/* Warn user when old entries exist in sccp.conf */
-	v = ast_variable_browse(cfg, "devices");
-	if (v) {
+	if (cfg && ast_variable_browse(cfg, "devices")) {
 		ast_log(LOG_WARNING, "\n\n --> You are using an old configuration format, pleas update your sccp.conf!!\n --> Loading of module chan_sccp with current sccp.conf has terminated\n --> Check http://chan-sccp-b.sourceforge.net/doc_setup.shtml for more information.\n\n");
-		cfg = ast_config_new();
+		ast_config_destroy(cfg);
+		return NULL;
 	}
 
 	return cfg;
