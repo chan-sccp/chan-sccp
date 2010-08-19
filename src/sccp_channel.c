@@ -2002,9 +2002,9 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 		c->owner->fds[1] = ast_rtcp_fd(c->rtp.audio.rtp);
 	}
 
-	if (isVideoSupported && c->rtp.video && c->owner) {
-		c->owner->fds[2] = ast_rtp_fd(c->rtp.video);
-		c->owner->fds[3] = ast_rtcp_fd(c->rtp.video);
+	if (isVideoSupported && c->rtp.video.rtp && c->owner) {
+		c->owner->fds[2] = ast_rtp_fd(c->rtp.video.rtp);
+		c->owner->fds[3] = ast_rtcp_fd(c->rtp.video.rtp);
 	}
 #endif
 #if ASTERISK_VERSION_NUM >= 10600
@@ -2064,7 +2064,7 @@ void sccp_channel_start_rtp(sccp_channel_t * c)
 #if ASTERISK_VERSION_NUM >= 10600
 		ast_rtp_setqos(c->rtp.video.rtp, c->line->audio_tos, c->line->video_cos, "SCCP VRTP");
 #else
-		ast_rtp_settos(c->rtp.video, c->line->video_tos);
+		ast_rtp_settos(c->rtp.video.rtp, c->line->video_tos);
 #if defined(linux)
 //		unsigned int video_cos=c->line->video_cos;
 //		if (!setsockopt( (int)c->rtp.video, SOL_SOCKET, SO_PRIORITY, &video_cos, sizeof(c->line->video_cos) ))
