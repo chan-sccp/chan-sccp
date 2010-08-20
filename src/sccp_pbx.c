@@ -50,13 +50,8 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #ifdef CS_SCCP_PICKUP
 #include <asterisk/features.h>
 #endif
-#include <asterisk/threadstorage.h>
 
-#if ASTERISK_VERSION_NUM >= 10602
-AST_THREADSTORAGE_EXTERNAL(ast_str_thread_global_buf);
-#else
-extern struct ast_threadstorage ast_str_thread_global_buf;
-#endif
+
 
 
 
@@ -142,16 +137,6 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		ast_log(LOG_WARNING, "SCCP: Asterisk request to call %s channel: %s, but we don't have this channel!\n", dest, ast->name);
 		return -1;
 	}
-
-#if ASTERISK_VERSION_NUM >= 10600
-	struct ast_str *out = ast_str_thread_get(&ast_str_thread_global_buf, 16);
-	if (pbx_builtin_serialize_variables(ast, &out))
-		sccp_log(1)(VERBOSE_PREFIX_3 "Variables:\n%s\n", ast_str_buffer(out));
-#else
-	char out[1024];
-	if (pbx_builtin_serialize_variables(ast, out, sizeof out))
-		sccp_log(1)(VERBOSE_PREFIX_3 "Variables:\n%s\n", out);
-#endif
 
 	l = c->line;
 	if(l){
