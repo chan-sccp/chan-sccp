@@ -377,22 +377,30 @@
  *
  * Add the following lines to the sccp.conf file
  * \code
- * devicetable=sccpdevice                                 ;datebasetable for devices
+ * devicetable=sccpdevice	                          ;datebasetable for devices
  * linetable=sccpline                                     ;datebasetable for lines
  * \endcode
  *
  * /etc/asterisk/extconfig.conf:
- * for mysql:
+ * for mysql v4:
  * \code
  * [settings]
- * sccpdevices => mysql,asterisk,sccpdevices
- * sccplines => mysql,asterisk,sccplines
+ * sccpdevice => mysql,asterisk,sccpdevices
+ * sccpline => mysql,asterisk,sccplines
  * \endcode
+ *
+ * for mysql v5:
+ * \code
+ * [settings]
+ * sccpdevice => mysql,asterisk,sccpdeviceconfig
+ * sccpline => mysql,asterisk,sccpline
+ * \endcode
+ *
  * or for postgresql:
  * \code
  * [settings]
- * sccpdevices => pgsql,asterisk,sccpdevices
- * sccplines => pgsql,asterisk,sccplines
+ * sccpdevice => pgsql,asterisk,sccpdevices
+ * sccpline => pgsql,asterisk,sccplines
  * \endcode
  *
  * \subsection sccp_config_rt_db Loading information into the tables
