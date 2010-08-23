@@ -1595,6 +1595,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 
 	if(remove_from_global){
 		if(cleanupTime > 0){
+			sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: Device planned to be free'd in %d secs.\n", d->id, cleanupTime);
 			if( (d->scheduleTasks.free = sccp_sched_add(sched, cleanupTime * 1000, sccp_device_destroy, d)) < 0 ) {
 				sleep(cleanupTime);
 				sccp_device_destroy(d);
