@@ -2312,25 +2312,47 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 
 		/* changing callerid for source part */
 		cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
-		if(cSourceRemote){
-			if(cSourceLocal->calltype == SKINNY_CALLTYPE_INBOUND){
-				/* copy old callerid */
-				sccp_copy_string(cSourceRemote->callInfo.originalCalledPartyName, cSourceRemote->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.originalCalledPartyName));
-				sccp_copy_string(cSourceRemote->callInfo.originalCalledPartyNumber, cSourceRemote->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.originalCalledPartyNumber));
+		if(cSourceRemote) {
+#ifndef CS_AST_HAS_TECH_PVT
+			if (!strncasecmp(astcSourceRemote->type,"SCCP",4)) {
+#else
+			if (!strncasecmp(astcSourceRemote->tech->type,"SCCP",4)) {
+#endif
+				// SCCP CallerID Exchange
+				if(cSourceLocal->calltype == SKINNY_CALLTYPE_INBOUND){
+					/* copy old callerid */
+					sccp_copy_string(cSourceRemote->callInfo.originalCalledPartyName, cSourceRemote->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.originalCalledPartyName));
+					sccp_copy_string(cSourceRemote->callInfo.originalCalledPartyNumber, cSourceRemote->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.originalCalledPartyNumber));
 
-				sccp_copy_string(cSourceRemote->callInfo.calledPartyName, cDestinationLocal->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.calledPartyName));
-				sccp_copy_string(cSourceRemote->callInfo.calledPartyNumber, cDestinationLocal->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.calledPartyNumber));
+					sccp_copy_string(cSourceRemote->callInfo.calledPartyName, cDestinationLocal->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.calledPartyName));
+					sccp_copy_string(cSourceRemote->callInfo.calledPartyNumber, cDestinationLocal->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.calledPartyNumber));
 
-			}else if(cSourceLocal->calltype == SKINNY_CALLTYPE_OUTBOUND){
-				/* copy old callerid */
-				sccp_copy_string(cSourceRemote->callInfo.originalCallingPartyName, cSourceRemote->callInfo.callingPartyName, sizeof(cSourceRemote->callInfo.originalCallingPartyName));
-				sccp_copy_string(cSourceRemote->callInfo.originalCallingPartyNumber, cSourceRemote->callInfo.callingPartyNumber, sizeof(cSourceRemote->callInfo.originalCallingPartyNumber));
+				}else if(cSourceLocal->calltype == SKINNY_CALLTYPE_OUTBOUND){
+					/* copy old callerid */
+					sccp_copy_string(cSourceRemote->callInfo.originalCallingPartyName, cSourceRemote->callInfo.callingPartyName, sizeof(cSourceRemote->callInfo.originalCallingPartyName));
+					sccp_copy_string(cSourceRemote->callInfo.originalCallingPartyNumber, cSourceRemote->callInfo.callingPartyNumber, sizeof(cSourceRemote->callInfo.originalCallingPartyNumber));
 
-				sccp_copy_string(cSourceRemote->callInfo.callingPartyName, cDestinationLocal->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.callingPartyName));
-				sccp_copy_string(cSourceRemote->callInfo.callingPartyNumber, cDestinationLocal->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.callingPartyNumber));
+					sccp_copy_string(cSourceRemote->callInfo.callingPartyName, cDestinationLocal->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.callingPartyName));
+					sccp_copy_string(cSourceRemote->callInfo.callingPartyNumber, cDestinationLocal->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.callingPartyNumber));
+				}
+
+				sccp_channel_send_callinfo(cSourceRemote->device, cSourceRemote);
+#ifndef CS_AST_HAS_TECH_PVT
+			} else if (!strncasecmp(astcSourceRemote->type,"SIP",3)) {
+#else
+			} else if (!strncasecmp(astcSourceRemote->tech->type,"SIP",3)) {
+#endif
+				// SIP CallerID Exchange
+				;
+#ifndef CS_AST_HAS_TECH_PVT
+			} else if (!strncasecmp(astcSourceRemote->type,"IAX",3)) {
+#else
+			} else if (!strncasecmp(astcSourceRemote->tech->type,"IAX",3)) {
+#endif
+				// IAX CallerID Exchange
+				;
 			}
-
-			sccp_channel_send_callinfo(cSourceRemote->device, cSourceRemote);
+			
 		}
 
 	}
@@ -2367,6 +2389,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 #else
 	if (strncasecmp(astcDestinationRemote->tech->type,"SCCP",4)) {
 #endif
+		/*! \todo how about other types like SIP and IAX... How are we going to implement the callerid exchange for them. */ 
 		return;
 	}
 
@@ -2374,67 +2397,79 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	cDestinationRemote = CS_AST_CHANNEL_PVT(astcDestinationRemote);
 
 	if (cDestinationRemote) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer confirmation destination on channel %s\n", d->id, astcDestinationRemote->name);
-		/* display the transferred CID info to destination */
+#ifndef CS_AST_HAS_TECH_PVT
+		if (!strncasecmp(astcDestinationRemote->type,"SCCP",4)) {
+#else
+		if (!strncasecmp(astcDestinationRemote->tech->type,"SCCP",4)) {
+#endif
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer confirmation destination on channel %s\n", d->id, astcDestinationRemote->name);
+			/* display the transferred CID info to destination */
 #ifdef CS_AST_CHANNEL_HAS_CID
-		//sccp_channel_set_callingparty(cDestinationLocal, astcSourceRemote->cid.cid_name, astcSourceRemote->cid.cid_num);
+			//sccp_channel_set_callingparty(cDestinationLocal, astcSourceRemote->cid.cid_name, astcSourceRemote->cid.cid_num);
 
 
-		/* change callInfo on destination part */
-		sccp_copy_string(cDestinationRemote->callInfo.originalCallingPartyName, cDestinationLocal->callInfo.callingPartyName, sizeof(cDestinationRemote->callInfo.originalCallingPartyName));
-		sccp_copy_string(cDestinationRemote->callInfo.originalCallingPartyNumber, cDestinationLocal->callInfo.callingPartyNumber, sizeof(cDestinationRemote->callInfo.originalCallingPartyNumber));
+			/* change callInfo on destination part */
+			sccp_copy_string(cDestinationRemote->callInfo.originalCallingPartyName, cDestinationLocal->callInfo.callingPartyName, sizeof(cDestinationRemote->callInfo.originalCallingPartyName));
+			sccp_copy_string(cDestinationRemote->callInfo.originalCallingPartyNumber, cDestinationLocal->callInfo.callingPartyNumber, sizeof(cDestinationRemote->callInfo.originalCallingPartyNumber));
 
-		if(cSourceLocal->calltype == SKINNY_CALLTYPE_INBOUND){
-			//sccp_log(1)(VERBOSE_PREFIX_3 "%s: is was a inbound call for me\n", d->id);
-			sccp_copy_string(cDestinationRemote->callInfo.callingPartyName, cSourceLocal->callInfo.callingPartyName, sizeof(cDestinationRemote->callInfo.originalCallingPartyName));
-			sccp_copy_string(cDestinationRemote->callInfo.callingPartyNumber, cSourceLocal->callInfo.callingPartyNumber, sizeof(cDestinationRemote->callInfo.originalCallingPartyNumber));
-		}else{
-			//sccp_log(1)(VERBOSE_PREFIX_3 "%s: is was a outbound call for me\n", d->id);
-			sccp_copy_string(cDestinationRemote->callInfo.callingPartyName, cSourceLocal->callInfo.calledPartyName, sizeof(cDestinationRemote->callInfo.originalCallingPartyName));
-			sccp_copy_string(cDestinationRemote->callInfo.callingPartyNumber, cSourceLocal->callInfo.calledPartyNumber, sizeof(cDestinationRemote->callInfo.originalCallingPartyNumber));
-		}
-		sccp_channel_send_callinfo(cDestinationRemote->device, cDestinationRemote);
-
-
-		/* change callInfo on our source */
-		if(cSourceRemote){
 			if(cSourceLocal->calltype == SKINNY_CALLTYPE_INBOUND){
-				/* copy old callerid */
-				sccp_copy_string(cSourceRemote->callInfo.originalCalledPartyName, cSourceRemote->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.originalCalledPartyName));
-				sccp_copy_string(cSourceRemote->callInfo.originalCalledPartyNumber, cSourceRemote->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.originalCalledPartyNumber));
+				//sccp_log(1)(VERBOSE_PREFIX_3 "%s: is was a inbound call for me\n", d->id);
+				sccp_copy_string(cDestinationRemote->callInfo.callingPartyName, cSourceLocal->callInfo.callingPartyName, sizeof(cDestinationRemote->callInfo.originalCallingPartyName));
+				sccp_copy_string(cDestinationRemote->callInfo.callingPartyNumber, cSourceLocal->callInfo.callingPartyNumber, sizeof(cDestinationRemote->callInfo.originalCallingPartyNumber));
+			}else{
+				//sccp_log(1)(VERBOSE_PREFIX_3 "%s: is was a outbound call for me\n", d->id);
+				sccp_copy_string(cDestinationRemote->callInfo.callingPartyName, cSourceLocal->callInfo.calledPartyName, sizeof(cDestinationRemote->callInfo.originalCallingPartyName));
+				sccp_copy_string(cDestinationRemote->callInfo.callingPartyNumber, cSourceLocal->callInfo.calledPartyNumber, sizeof(cDestinationRemote->callInfo.originalCallingPartyNumber));
+			}
+			sccp_channel_send_callinfo(cDestinationRemote->device, cDestinationRemote);
 
-				sccp_copy_string(cSourceRemote->callInfo.calledPartyName, cDestinationLocal->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.calledPartyName));
-				sccp_copy_string(cSourceRemote->callInfo.calledPartyNumber, cDestinationLocal->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.calledPartyNumber));
 
-			}else if(cSourceLocal->calltype == SKINNY_CALLTYPE_OUTBOUND){
-				/* copy old callerid */
-				sccp_copy_string(cSourceRemote->callInfo.originalCallingPartyName, cSourceRemote->callInfo.callingPartyName, sizeof(cSourceRemote->callInfo.originalCallingPartyName));
-				sccp_copy_string(cSourceRemote->callInfo.originalCallingPartyNumber, cSourceRemote->callInfo.callingPartyNumber, sizeof(cSourceRemote->callInfo.originalCallingPartyNumber));
+			/* change callInfo on our source */
+			if(cSourceRemote){
+#ifndef CS_AST_HAS_TECH_PVT
+				if (!strncasecmp(astcSourceRemote->type,"SCCP",4)) {
+#else
+				if (!strncasecmp(astcSourceRemote->tech->type,"SCCP",4)) {
+#endif
+					if(cSourceLocal->calltype == SKINNY_CALLTYPE_INBOUND){
+						/* copy old callerid */
+						sccp_copy_string(cSourceRemote->callInfo.originalCalledPartyName, cSourceRemote->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.originalCalledPartyName));
+						sccp_copy_string(cSourceRemote->callInfo.originalCalledPartyNumber, cSourceRemote->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.originalCalledPartyNumber));
 
-				sccp_copy_string(cSourceRemote->callInfo.callingPartyName, cDestinationLocal->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.callingPartyName));
-				sccp_copy_string(cSourceRemote->callInfo.callingPartyNumber, cDestinationLocal->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.callingPartyNumber));
+						sccp_copy_string(cSourceRemote->callInfo.calledPartyName, cDestinationLocal->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.calledPartyName));
+						sccp_copy_string(cSourceRemote->callInfo.calledPartyNumber, cDestinationLocal->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.calledPartyNumber));
+
+					}else if(cSourceLocal->calltype == SKINNY_CALLTYPE_OUTBOUND){
+						/* copy old callerid */
+						sccp_copy_string(cSourceRemote->callInfo.originalCallingPartyName, cSourceRemote->callInfo.callingPartyName, sizeof(cSourceRemote->callInfo.originalCallingPartyName));
+						sccp_copy_string(cSourceRemote->callInfo.originalCallingPartyNumber, cSourceRemote->callInfo.callingPartyNumber, sizeof(cSourceRemote->callInfo.originalCallingPartyNumber));
+
+						sccp_copy_string(cSourceRemote->callInfo.callingPartyName, cDestinationLocal->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.callingPartyName));
+						sccp_copy_string(cSourceRemote->callInfo.callingPartyNumber, cDestinationLocal->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.callingPartyNumber));
+					}
+
+					sccp_channel_send_callinfo(cSourceRemote->device, cSourceRemote);
+				}
 			}
 
-			sccp_channel_send_callinfo(cSourceRemote->device, cSourceRemote);
-		}
-
 #else
-		if (astcSourceRemote->callerid && (cidtmp = strdup(astcSourceRemote->callerid))) {
-			ast_callerid_parse(cidtmp, &name, &number);
-			sccp_channel_set_callingparty(cDestinationLocal, name, number);
-			if(cidtmp)
-				ast_free(cidtmp);
-			if(name)
-				ast_free(name);
-			if(number)
-				ast_free(number);
-		}
+			if (astcSourceRemote->callerid && (cidtmp = strdup(astcSourceRemote->callerid))) {
+				ast_callerid_parse(cidtmp, &name, &number);
+				sccp_channel_set_callingparty(cDestinationLocal, name, number);
+				if(cidtmp)
+					ast_free(cidtmp);
+				if(name)
+					ast_free(name);
+				if(number)
+					ast_free(number);
+			}
 #endif
-		//sccp_channel_send_callinfo(d, cDestinationLocal);
+			//sccp_channel_send_callinfo(d, cDestinationLocal);
+		}
 		if (GLOB(transfer_tone) && cDestinationLocal->state == SCCP_CHANNELSTATE_CONNECTED)
-			/* while connected not all the tones can be played */
+		/* while connected not all the tones can be played */
 
-			sccp_dev_starttone(cDestinationLocal->device, GLOB(autoanswer_tone), instance, cDestinationLocal->callid, 0);
+		sccp_dev_starttone(cDestinationLocal->device, GLOB(autoanswer_tone), instance, cDestinationLocal->callid, 0);
 	}
 }
 
