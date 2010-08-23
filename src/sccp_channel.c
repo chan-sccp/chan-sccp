@@ -2246,9 +2246,6 @@ static void * sccp_channel_transfer_ringing_thread(void *data)
  * \callergraph
  */
 void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
-#ifndef CS_AST_CHANNEL_HAS_CID
-	char *name, *number, *cidtmp;
-#endif
 	struct ast_channel	*astcSourceRemote = NULL, *astcDestinationLocal = NULL, *astcDestinationRemote = NULL;
 	sccp_channel_t 		* cSourceLocal;
 	sccp_channel_t 		* cSourceRemote = NULL;
