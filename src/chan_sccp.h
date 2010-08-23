@@ -213,6 +213,12 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 #define CS_AST_CHANNEL_PVT(x) x->pvt->pvt
 #endif
 
+#ifdef CS_AST_HAS_TECH_PVT
+#define CS_AST_CHANNEL_PVT_IS_SCCP(x) !strncasecmp(x->tech->type,"SCCP",4)
+#else
+#define CS_AST_CHANNEL_PVT_IS_SCCP(x) !strncasecmp(x->type,"SCCP",4)
+#endif
+
 #ifdef CS_AST_HAS_BRIDGED_CHANNEL
 #define CS_AST_BRIDGED_CHANNEL(x) ast_bridged_channel(x)
 #else

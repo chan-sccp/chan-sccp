@@ -2313,11 +2313,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 		/* changing callerid for source part */
 		cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
 		if(cSourceRemote) {
-#ifndef CS_AST_HAS_TECH_PVT
-			if (!strncasecmp(astcSourceRemote->type,"SCCP",4)) {
-#else
-			if (!strncasecmp(astcSourceRemote->tech->type,"SCCP",4)) {
-#endif
+			if (CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote)) {
 				// SCCP CallerID Exchange
 				if(cSourceLocal->calltype == SKINNY_CALLTYPE_INBOUND){
 					/* copy old callerid */
@@ -2337,24 +2333,18 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 				}
 
 				sccp_channel_send_callinfo(cSourceRemote->device, cSourceRemote);
+			} else {
+				// Other Tech->Type CallerID Exchange
+				// \todo Implement SIP CallerID Exchange
+				// \todo Implement IAX CallerID Exchange
+				// \todo Implement Generic CallerID Exchange
 #ifndef CS_AST_HAS_TECH_PVT
-			} else if (!strncasecmp(astcSourceRemote->type,"SIP",3)) {
+				sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: Blind %s Transfer, callerid exchange need to be implemented\n", astcSourceRemote->type);
 #else
-			} else if (!strncasecmp(astcSourceRemote->tech->type,"SIP",3)) {
-#endif
-				// SIP CallerID Exchange
-				;
-#ifndef CS_AST_HAS_TECH_PVT
-			} else if (!strncasecmp(astcSourceRemote->type,"IAX",3)) {
-#else
-			} else if (!strncasecmp(astcSourceRemote->tech->type,"IAX",3)) {
-#endif
-				// IAX CallerID Exchange
-				;
+				sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: Blind %s Transfer, callerid exchange need to be implemented\n", astcSourceRemote->tech->type);
+#endif				
 			}
-			
 		}
-
 	}
 	if (ast_channel_masquerade(astcDestinationLocal, astcSourceRemote)) {
 		ast_log(LOG_WARNING, "SCCP: Failed to masquerade %s into %s\n", astcDestinationLocal->name, astcSourceRemote->name);
@@ -2384,11 +2374,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 		return;
 	}
 
-#ifndef CS_AST_HAS_TECH_PVT
-	if (strncasecmp(astcDestinationRemote->type,"SCCP",4)) {
-#else
-	if (strncasecmp(astcDestinationRemote->tech->type,"SCCP",4)) {
-#endif
+	if (!CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote)) {
 		/*! \todo how about other types like SIP and IAX... How are we going to implement the callerid exchange for them. */ 
 		return;
 	}
@@ -2397,11 +2383,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	cDestinationRemote = CS_AST_CHANNEL_PVT(astcDestinationRemote);
 
 	if (cDestinationRemote) {
-#ifndef CS_AST_HAS_TECH_PVT
-		if (!strncasecmp(astcDestinationRemote->type,"SCCP",4)) {
-#else
-		if (!strncasecmp(astcDestinationRemote->tech->type,"SCCP",4)) {
-#endif
+		if (CS_AST_CHANNEL_PVT_IS_SCCP(astcDestinationRemote)) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer confirmation destination on channel %s\n", d->id, astcDestinationRemote->name);
 			/* display the transferred CID info to destination */
 #ifdef CS_AST_CHANNEL_HAS_CID
@@ -2426,11 +2408,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 
 			/* change callInfo on our source */
 			if(cSourceRemote){
-#ifndef CS_AST_HAS_TECH_PVT
-				if (!strncasecmp(astcSourceRemote->type,"SCCP",4)) {
-#else
-				if (!strncasecmp(astcSourceRemote->tech->type,"SCCP",4)) {
-#endif
+				if (CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote)) {
 					if(cSourceLocal->calltype == SKINNY_CALLTYPE_INBOUND){
 						/* copy old callerid */
 						sccp_copy_string(cSourceRemote->callInfo.originalCalledPartyName, cSourceRemote->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.originalCalledPartyName));
