@@ -533,6 +533,7 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 		r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
 		r->msg.SetLampMessage.lel_stimulusInstance = 0;
 		r->msg.SetLampMessage.lel_lampMode = htolel(SKINNY_LAMP_OFF);
+		d->mwilight &= ~(1<<0);
 		sccp_dev_send(d, r);
 
 
@@ -1727,14 +1728,17 @@ uint16_t sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName
 	if(!d || !lineName)
 		return -1;
 
+	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: sccp_device_find_index_for_line searching for %s\n", DEV_ID_LOG(d), lineName);
 	/* device is already locked by parent function */
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		if(config->type == LINE && (config->button.line.name) && lineName && !strcasecmp(config->button.line.name, lineName)){
+		if(config->type == LINE && (config->button.line.name) && !strcasecmp(config->button.line.name, lineName)){
+			sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: sccp_device_find_index_for_line found: %d\n", DEV_ID_LOG(d), config->instance);
 			break;
 		}
 	}
-
-	return (config)? config->instance : 0;
+	
+	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: sccp_device_find_index_for_line return: %d\n", DEV_ID_LOG(d), config->instance);
+	return (config)? config->instance : -2;
 }
 
 /*!
