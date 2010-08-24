@@ -404,8 +404,12 @@ void * sccp_socket_thread(void * ignore)
 				}
 #ifdef CS_DYNAMIC_CONFIG
 
-				if (s->device)
-					sccp_device_check_update(s->device);
+				if (s->device) {
+					ast_mutex_lock(&GLOB(lock));
+					if (GLOB(reload_in_progress) == FALSE)
+						sccp_device_check_update(s->device);
+					ast_mutex_unlock(&GLOB(lock));
+				}
 #endif
 
 			} else {

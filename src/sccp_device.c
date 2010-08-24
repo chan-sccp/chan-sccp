@@ -1737,7 +1737,7 @@ uint16_t sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName
 			break;
 		}
 	}
-	
+
 	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: sccp_device_find_index_for_line return: %d\n", DEV_ID_LOG(d), config->instance);
 	return (config)? config->instance : -2;
 }
