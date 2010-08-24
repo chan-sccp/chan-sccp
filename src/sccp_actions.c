@@ -737,11 +737,16 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 
 
 	sccp_dev_send(d, r1);
-	sccp_device_unlock(d);
 
-
-	//d->buttonTemplate = btn;  /* do not save the button template, maybe this causes the line display issue */
+	/* do not save the button template, maybe this causes the line display issue -marcello */
+#if 0
+	d->buttonTemplate = btn;
+#else
+	d->buttonTemplate = NULL;
 	ast_free(btn);
+#endif
+
+	sccp_device_unlock(d);
 }
 
 /*!
