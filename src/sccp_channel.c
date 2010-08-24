@@ -1549,14 +1549,14 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 	}
 
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Answer the channel %s-%08X\n", DEV_ID_LOG(d), l->name, c->callid);
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Answer the channel %s-%08X\n", DEV_ID_LOG(d), l->name, c->callid);
 
 	/* end callforwards */
 	sccp_channel_t	*channel;
 	SCCP_LIST_LOCK(&c->line->channels);
 	SCCP_LIST_TRAVERSE(&c->line->channels, channel, list) {
 		if(channel->parentChannel == c){
-			 sccp_log(1)(VERBOSE_PREFIX_3 "%s: Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
+			 sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
 			 sccp_channel_endcall(channel);
 		}
 	}
@@ -1576,7 +1576,7 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 	}
 #endif
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Answering channel with state '%s' (%d)\n", DEV_ID_LOG(c->device), ast_state2str(c->owner->_state), c->owner->_state);
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Answering channel with state '%s' (%d)\n", DEV_ID_LOG(c->device), ast_state2str(c->owner->_state), c->owner->_state);
 	ast_queue_control(c->owner, AST_CONTROL_ANSWER);
 
 	/* @Marcello: Here you assume that it is not neccessary to tell the phone
@@ -1631,7 +1631,7 @@ int sccp_channel_hold(sccp_channel_t * c)
 		return 0;
 	}
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Hold the channel %s-%08X\n", d->id, l->name, c->callid);
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Hold the channel %s-%08X\n", d->id, l->name, c->callid);
 
 #ifndef CS_AST_CONTROL_HOLD
 	struct ast_channel * peer;
@@ -1659,7 +1659,7 @@ int sccp_channel_hold(sccp_channel_t * c)
 	sccp_device_lock(d);
 
 	if (!c->owner) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "C owner disappeared! Can't free ressources\n");
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "C owner disappeared! Can't free ressources\n");
 		sccp_device_unlock(d);
 		return 0;
 	}
@@ -1748,17 +1748,17 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
 	sccp_device_lock(d);
 	if (d->transfer_channel == c) {
 		d->transfer_channel = NULL;
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer on the channel %s-%08X\n", d->id, l->name, c->callid);
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Transfer on the channel %s-%08X\n", d->id, l->name, c->callid);
 	}
 
 	if (d->conference_channel == c) {
 		d->conference_channel = NULL;
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Conference on the channel %s-%08X\n", d->id, l->name, c->callid);
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Conference on the channel %s-%08X\n", d->id, l->name, c->callid);
 	}
 
 	sccp_device_unlock(d);
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Resume the channel %s-%08X\n", d->id, l->name, c->callid);
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Resume the channel %s-%08X\n", d->id, l->name, c->callid);
 
 #ifndef CS_AST_CONTROL_HOLD
 	struct ast_channel * peer;
@@ -2164,14 +2164,14 @@ void sccp_channel_transfer(sccp_channel_t * c)
 	d = c->device;
 
 	if (!d->transfer || !c->line->transfer) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer disabled on device or line\n", (d && d->id)?d->id:"SCCP");
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Transfer disabled on device or line\n", (d && d->id)?d->id:"SCCP");
 		return;
 	}
 
 	sccp_device_lock(d);
 	/* are we in the middle of a transfer? */
 	if (d->transfer_channel && (d->transfer_channel != c)) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion\n", (d && d->id)?d->id:"SCCP");
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion\n", (d && d->id)?d->id:"SCCP");
 		sccp_device_unlock(d);
 		sccp_channel_transfer_complete(c);
 		return;
@@ -2179,7 +2179,7 @@ void sccp_channel_transfer(sccp_channel_t * c)
 
 	d->transfer_channel = c;
 	sccp_device_unlock(d);
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%08X\n", (d && d->id)?d->id:"SCCP", (c->line && c->line->name)?c->line->name:"(null)", c->callid);
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%08X\n", (d && d->id)?d->id:"SCCP", (c->line && c->line->name)?c->line->name:"(null)", c->callid);
 
 	if (!c->owner) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: No bridged channel to transfer on %s-%08X\n", (d && d->id)?d->id:"SCCP", (c->line && c->line->name)?c->line->name:"(null)", c->callid);
@@ -2270,7 +2270,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	cSourceLocal = d->transfer_channel;
 	sccp_device_unlock(d);
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Complete transfer from %s-%08X\n", d->id, cDestinationLocal->line->name, cDestinationLocal->callid);
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Complete transfer from %s-%08X\n", d->id, cDestinationLocal->line->name, cDestinationLocal->callid);
 	instance = sccp_device_find_index_for_line(d, cDestinationLocal->line->name);
 
 	if (cDestinationLocal->state != SCCP_CHANNELSTATE_RINGOUT && cDestinationLocal->state != SCCP_CHANNELSTATE_CONNECTED) {
@@ -2281,14 +2281,13 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	}
 
 	if (!cDestinationLocal->owner || !cSourceLocal->owner) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer error, asterisk channel error %s-%08X and %s-%08X\n", d->id, cDestinationLocal->line->name, cDestinationLocal->callid, cSourceLocal->line->name, cSourceLocal->callid);
+			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Transfer error, asterisk channel error %s-%08X and %s-%08X\n", d->id, cDestinationLocal->line->name, cDestinationLocal->callid, cSourceLocal->line->name, cSourceLocal->callid);
 		return;
 	}
 
 	astcSourceRemote = CS_AST_BRIDGED_CHANNEL(cSourceLocal->owner);
 	astcDestinationRemote = CS_AST_BRIDGED_CHANNEL(cDestinationLocal->owner);
 	astcDestinationLocal = cDestinationLocal->owner;
-
 
 	if (!astcSourceRemote || !astcDestinationLocal) {
 		ast_log(LOG_WARNING, "SCCP: Failed to complete transfer. Missing asterisk transferred or transferee channel\n");
@@ -2298,7 +2297,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	}
 
 	if (cDestinationLocal->state == SCCP_CHANNELSTATE_RINGOUT) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Blind transfer. Signalling ringing state to %s\n", d->id, astcSourceRemote->name);
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Blind transfer. Signalling ringing state to %s\n", d->id, astcSourceRemote->name);
 		ast_indicate(astcSourceRemote, AST_CONTROL_RINGING); // Shouldn't this be ALERTING?
 		/* starting the ringing thread */
 		pthread_attr_init(&attr);
@@ -2332,15 +2331,8 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 				sccp_channel_send_callinfo(cSourceRemote->device, cSourceRemote);
 			} else {
 				// Other Tech->Type CallerID Exchange
-				// \todo Implement SIP CallerID Exchange
-				// \todo Implement IAX CallerID Exchange
-				// \todo Implement Generic CallerID Exchange
 				/*! \todo how about other types like SIP and IAX... How are we going to implement the callerid exchange for them. */ 
-#ifndef CS_AST_HAS_TECH_PVT
-				sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: Blind %s Transfer, callerid exchange need to be implemented\n", astcSourceRemote->type);
-#else
-				sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: Blind %s Transfer, callerid exchange need to be implemented\n", astcSourceRemote->tech->type);
-#endif				
+				sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: Blind %s Transfer, callerid exchange need to be implemented\n", CS_AST_CHANNEL_PVT_TYPE(astcSourceRemote));
 			}
 		}
 	}
@@ -2352,11 +2344,11 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	}
 
 	if (cDestinationLocal->state == SCCP_CHANNELSTATE_RINGOUT) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Blind transfer. Signalling ringing state to %s\n", d->id, astcSourceRemote->name);
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Blind transfer. Signalling ringing state to %s\n", d->id, astcSourceRemote->name);
 	}
 
 	if (!cSourceLocal->owner){
-		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Peer owner disappeared! Can't free ressources\n");
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: Peer owner disappeared! Can't free ressources\n");
 		return;
 	}
 
@@ -2374,27 +2366,37 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 
 	/* it's a SCCP channel destination on transfer */
 	cDestinationRemote = CS_AST_CHANNEL_PVT(astcDestinationRemote);
-	if (cDestinationRemote && CS_AST_CHANNEL_PVT_IS_SCCP(astcDestinationRemote) ) {
+	if (cDestinationRemote) {
+		sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: Transfer for Channel Type %s\n", CS_AST_CHANNEL_PVT_TYPE(astcSourceRemote));
 
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer confirmation destination on channel %s\n", d->id, astcDestinationRemote->name);
+		if (CS_AST_CHANNEL_PVT_IS_SCCP(astcDestinationRemote)) {	/* change callInfo on our destination */
+			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Transfer confirmation destination on channel %s\n", d->id, astcDestinationRemote->name);
 
+			/* change callInfo on destination part */
+			sccp_copy_string(cDestinationRemote->callInfo.originalCallingPartyName, cDestinationLocal->callInfo.callingPartyName, sizeof(cDestinationRemote->callInfo.originalCallingPartyName));
+			sccp_copy_string(cDestinationRemote->callInfo.originalCallingPartyNumber, cDestinationLocal->callInfo.callingPartyNumber, sizeof(cDestinationRemote->callInfo.originalCallingPartyNumber));
 
-		/* change callInfo on destination part */
-		sccp_copy_string(cDestinationRemote->callInfo.originalCallingPartyName, cDestinationLocal->callInfo.callingPartyName, sizeof(cDestinationRemote->callInfo.originalCallingPartyName));
-		sccp_copy_string(cDestinationRemote->callInfo.originalCallingPartyNumber, cDestinationLocal->callInfo.callingPartyNumber, sizeof(cDestinationRemote->callInfo.originalCallingPartyNumber));
-
-		if(cSourceLocal->calltype == SKINNY_CALLTYPE_INBOUND){
-			sccp_copy_string(cDestinationRemote->callInfo.callingPartyName, cSourceLocal->callInfo.callingPartyName, sizeof(cDestinationRemote->callInfo.originalCallingPartyName));
-			sccp_copy_string(cDestinationRemote->callInfo.callingPartyNumber, cSourceLocal->callInfo.callingPartyNumber, sizeof(cDestinationRemote->callInfo.originalCallingPartyNumber));
-		}else{
-			sccp_copy_string(cDestinationRemote->callInfo.callingPartyName, cSourceLocal->callInfo.calledPartyName, sizeof(cDestinationRemote->callInfo.originalCallingPartyName));
-			sccp_copy_string(cDestinationRemote->callInfo.callingPartyNumber, cSourceLocal->callInfo.calledPartyNumber, sizeof(cDestinationRemote->callInfo.originalCallingPartyNumber));
-		}
-		sccp_channel_send_callinfo(cDestinationRemote->device, cDestinationRemote);
-
-
+			if(cSourceLocal->calltype == SKINNY_CALLTYPE_INBOUND){
+				sccp_copy_string(cDestinationRemote->callInfo.callingPartyName, cSourceLocal->callInfo.callingPartyName, sizeof(cDestinationRemote->callInfo.originalCallingPartyName));
+				sccp_copy_string(cDestinationRemote->callInfo.callingPartyNumber, cSourceLocal->callInfo.callingPartyNumber, sizeof(cDestinationRemote->callInfo.originalCallingPartyNumber));
+			}else{
+				sccp_copy_string(cDestinationRemote->callInfo.callingPartyName, cSourceLocal->callInfo.calledPartyName, sizeof(cDestinationRemote->callInfo.originalCallingPartyName));
+				sccp_copy_string(cDestinationRemote->callInfo.callingPartyNumber, cSourceLocal->callInfo.calledPartyNumber, sizeof(cDestinationRemote->callInfo.originalCallingPartyNumber));
+			}
+			sccp_channel_send_callinfo(cDestinationRemote->device, cDestinationRemote);
+		} else {
+			sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: %s Transfer, callerid exchange need to be implemented\n", CS_AST_CHANNEL_PVT_TYPE(astcDestinationRemote));
+			if (CS_AST_CHANNEL_PVT_CMP_TYPE(astcDestinationRemote,"SIP")) {
+//				sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: %s Transfer, cid_num '%s', cid_name '%s'\n", CS_AST_CHANNEL_PVT_TYPE(astcSourceRemote), astcSourceRemote->cid_num, astcSourceRemote->cid_name);
+				;
+			}
+		} // if (CS_AST_CHANNEL_PVT_IS_SCCP(astcDestinationRemote)) {
+	}
+	if (cSourceRemote) {
 		/* change callInfo on our source */
-		if(cSourceRemote && CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote) ){
+		if(CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote) ){ /* change callInfo on our source */
+			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Transfer confirmation destination on channel %s\n", d->id, astcSourceRemote->name);
+
 			if(cSourceLocal->calltype == SKINNY_CALLTYPE_INBOUND){
 				/* copy old callerid */
 				sccp_copy_string(cSourceRemote->callInfo.originalCalledPartyName, cSourceRemote->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.originalCalledPartyName));
@@ -2413,13 +2415,18 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 			}
 
 			sccp_channel_send_callinfo(cSourceRemote->device, cSourceRemote);
-			
-		}
-		if (GLOB(transfer_tone) && cDestinationLocal->state == SCCP_CHANNELSTATE_CONNECTED){
-		/* while connected not all the tones can be played */
-			sccp_dev_starttone(cDestinationLocal->device, GLOB(autoanswer_tone), instance, cDestinationLocal->callid, 0);
-		}
+		} else {
+			sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: %s Transfer, callerid exchange need to be implemented\n", CS_AST_CHANNEL_PVT_TYPE(astcSourceRemote));
+			if (CS_AST_CHANNEL_PVT_CMP_TYPE(astcSourceRemote,"SIP")) {
+//				sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: %s Transfer, cid_num '%s', cid_name '%s'\n", CS_AST_CHANNEL_PVT_TYPE(astcSourceRemote), astcSourceRemote->cid_num, astcSourceRemote->cid_name);
+				;
+			}
+		} // if (CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote)) {
 	}
+	if (GLOB(transfer_tone) && cDestinationLocal->state == SCCP_CHANNELSTATE_CONNECTED){
+		/* while connected not all the tones can be played */
+		sccp_dev_starttone(cDestinationLocal->device, GLOB(autoanswer_tone), instance, cDestinationLocal->callid, 0);
+	} // if (GLOB(transfer_tone) && cDestinationLocal->state == SCCP_CHANNELSTATE_CONNECTED){
 }
 
 /*!
@@ -2530,7 +2537,7 @@ static void * sccp_channel_park_thread(void *stuff) {
 		sprintf(&extstr[2]," %d",ext);
 		c = CS_AST_CHANNEL_PVT(chan2);
 		sccp_dev_displaynotify(c->device, extstr, 10);
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(c->device), chan1->name, ext);
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(c->device), chan1->name, ext);
 	}
 	ast_hangup(chan2);
 	return NULL;
@@ -2558,17 +2565,17 @@ void sccp_channel_park(sccp_channel_t * c) {
 		return;
 
 	if (!d->park) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Park disabled on device\n", d->id);
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Park disabled on device\n", d->id);
 		return;
 	}
 
 	if (!c->owner) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Can't Park: no asterisk channel\n", d->id);
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Can't Park: no asterisk channel\n", d->id);
 		return;
 	}
 	bridged = CS_AST_BRIDGED_CHANNEL(c->owner);
 	if (!bridged) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Can't Park: no asterisk bridged channel\n", d->id);
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Can't Park: no asterisk bridged channel\n", d->id);
 		return;
 	}
 	sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CALLPARK);
@@ -2582,7 +2589,7 @@ void sccp_channel_park(sccp_channel_t * c) {
 	// chan1m = ast_channel_alloc(0); function changed in 1.4.0
 	// Assuming AST_STATE_DOWN is suitable.. need to check
 	if (!chan1m) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Park Failed: can't create asterisk channel\n", d->id);
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Park Failed: can't create asterisk channel\n", d->id);
 
 		instance = sccp_device_find_index_for_line(c->device, c->line->name);
 		sccp_dev_displayprompt(c->device, instance, c->callid, SKINNY_DISP_NO_PARK_NUMBER_AVAILABLE, 0);
@@ -2598,7 +2605,7 @@ void sccp_channel_park(sccp_channel_t * c) {
 	// chan2m = ast_channel_alloc(0); function changed in 1.4.0
 	// Assuming AST_STATE_DOWN is suitable.. need to check
 	if (!chan2m) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Park Failed: can't create asterisk channel\n", d->id);
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Park Failed: can't create asterisk channel\n", d->id);
 
 		instance = sccp_device_find_index_for_line(c->device, c->line->name);
 		sccp_dev_displayprompt(c->device, instance, c->callid, SKINNY_DISP_NO_PARK_NUMBER_AVAILABLE, 0);
