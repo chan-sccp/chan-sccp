@@ -1877,7 +1877,6 @@ static int sccp_do_reload(int fd, int argc, char *argv[]) {
 \
 	if (!sccp_config_general(readingtype)) {
 		ast_cli(fd, "Unable to reload configuration.\n");
-		ast_mutex_unlock(&GLOB(lock));
 		return RESULT_FAILURE;
 	}
 	sccp_config_readDevicesLines(readingtype);
