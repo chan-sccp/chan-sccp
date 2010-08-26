@@ -1633,7 +1633,6 @@ int sccp_channel_hold(sccp_channel_t * c)
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Hold the channel %s-%08X\n", d->id, l->name, c->callid);
 
-#ifndef CS_AST_CONTROL_HOLD
 	struct ast_channel * peer;
 	peer = CS_AST_BRIDGED_CHANNEL(c->owner);
 
@@ -1646,7 +1645,7 @@ int sccp_channel_hold(sccp_channel_t * c)
 #endif
 		ast_moh_start(peer, NULL, l->musicclass);
 #endif
-#ifndef CS_AST_HAS_FLAG_MOH
+#ifdef CS_AST_HAS_FLAG_MOH
 		ast_set_flag(peer, AST_FLAG_MOH);
 #endif
 	}
@@ -1655,7 +1654,9 @@ int sccp_channel_hold(sccp_channel_t * c)
 		ast_log(LOG_ERROR, "SCCP: Cannot find bridged channel on '%s'\n", c->owner->name);
 		return 0;
 	}
-#else
+
+#ifdef CS_AST_CONTROL_HOLD
+	/* why the device is locked? -romain */
 	sccp_device_lock(d);
 
 	if (!c->owner) {
@@ -1760,7 +1761,6 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Resume the channel %s-%08X\n", d->id, l->name, c->callid);
 
-#ifndef CS_AST_CONTROL_HOLD
 	struct ast_channel * peer;
 	peer = CS_AST_BRIDGED_CHANNEL(c->owner);
 	if (peer) {
@@ -1771,11 +1771,12 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
 #endif
 
 		// this is for STABLE version
-#ifndef CS_AST_HAS_FLAG_MOH
+#ifdef CS_AST_HAS_FLAG_MOH
 		ast_clear_flag(peer, AST_FLAG_MOH);
 #endif
 	}
-#else
+
+#ifdef CS_AST_CONTROL_HOLD
 #ifdef CS_AST_RTP_NEW_SOURCE
 	if(c->rtp.audio.rtp)
 		ast_rtp_new_source(c->rtp.audio.rtp);
@@ -2331,7 +2332,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 				sccp_channel_send_callinfo(cSourceRemote->device, cSourceRemote);
 			} else {
 				// Other Tech->Type CallerID Exchange
-				/*! \todo how about other types like SIP and IAX... How are we going to implement the callerid exchange for them. */ 
+				/*! \todo how about other types like SIP and IAX... How are we going to implement the callerid exchange for them. */
 				sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: Blind %s Transfer, callerid exchange need to be implemented\n", CS_AST_CHANNEL_PVT_TYPE(astcSourceRemote));
 			}
 		}
