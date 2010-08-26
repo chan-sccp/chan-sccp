@@ -85,6 +85,7 @@ release:
 	  echo "Version: $(SCCP_VERSION)_$(SCCP_BRANCH)" >> NEWS; \
 	  echo "Please edit the NEWS file now..."; \
 	  /usr/bin/joe NEWS; \
+	  /usr/bin/debchange; \
 	fi 
 	@$(MAKE) dist-gzip
 
