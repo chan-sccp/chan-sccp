@@ -2,5 +2,21 @@ chan-sccp-b (3.0.0-1) unstable; urgency=low
 
   * Release Candidate 1
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Sat, 26 Jun 2010 11:42:19 +0200
+ -- Diederik de Groot <dkgroot@sourceforge.net>  Thu, 26 Aug 2010 13:56:42 +0200
+
+chan-sccp-b (3.0.0-2) unstable; urgency=low
+
+  * Release Candidate 2
+  * 
+  * Added Functionionality:
+  *  - sccp reload
+  *  - dynamic speeddial with and without callerid
+  * 
+  * Fixed/Improved:
+  *  - bugs reported by users
+  *  - transfer + callerid
+  *  - callerid passing
+  * 
+
+ -- Diederik de Groot <dkgroot@sourceforge.net>  Thu, 26 Aug 2010 13:58:53 +0200
 
