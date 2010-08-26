@@ -1,8 +1,16 @@
-Version: 3.0_PreRC1
-Prelease Version of Release Candidate to check all configure and makefile
-scripts. To make sure everything works correctly.
+Version: 3.0_RC2
+================
+Added Functionionality:
+ - sccp reload
+ - dynamic speeddial with and without callerid
+
+Fixed/Improved:
+ - bugs reported by users
+ - transfer + callerid
+ - callerid passing
 
 Version: 3.0_RC1
+================
 Added Functionality: 
  - HotLine
  - Shared Lines
@@ -15,3 +23,7 @@ Fixed/Improved:
  - Group pickup
  - Call parking
 
+Version: 3.0_PreRC1
+===================
+Prelease Version of Release Candidate to check all configure and makefile
+scripts. To make sure everything works correctly.
