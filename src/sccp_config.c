@@ -116,7 +116,7 @@ struct ast_config *sccp_config_getConfig(void);
  * \param index         the index of the button (-1 to add the line at the end)
  * \param type          type of button
  * \param name          name
- * \param option        option
+ * \param options       options
  * \param args          args
  *
  * \callgraph

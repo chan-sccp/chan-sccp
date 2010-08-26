@@ -1,3 +1,279 @@
+2010-08-24  progs
+
+	* [r1796] src/sccp_device.c, src/sccp_socket.c: fix race condition
+
+	* [r1795] src/sccp_cli.c: fix double mutex unlock
+
+	* [r1794] src/sccp_actions.c: fix crash: do not keep pointer to
+	  free'd button template
+
+2010-08-24  ddegroot
+
+	* [r1793] src/chan_sccp.h, src/sccp_channel.c: Update Transfer
+
+2010-08-23  marcelloceschia
+
+	* [r1792] src/sccp_channel.c:
+
+	* [r1791] src/sccp_channel.c:
+
+2010-08-23  ddegroot
+
+	* [r1790] src/chan_sccp.h, src/sccp_channel.c: Fix for blind
+	  transfer between SCCP and other Asterisk Channel Types
+
+2010-08-23  progs
+
+	* [r1789] src/sccp_channel.c, src/sccp_device.c: fix transfer crash
+
+2010-08-23  marcelloceschia
+
+	* [r1788] src/sccp_actions.c, src/sccp_device.c, src/sccp_mwi.c:
+	  fixes mwi issue
+
+2010-08-22  ddegroot
+
+	* [r1787] doc/04_Setup_Guide.doc: Updated realtime documentation
+	  (Thanks Thomas McConnell)
+
+2010-08-20  marcelloceschia
+
+	* [r1756] src/sccp_pbx.c: remove ast_str_thread_global_buf, was
+	  only for debug
+
+2010-08-19  progs
+
+	* [r1755] src/sccp_cli.c: not necessary message on reload
+
+2010-08-19  ddegroot
+
+	* [r1754] src/sccp_pbx.c: AST_THREADSTORAGE_EXTERNAL supported
+	  starting with asterisk 1.6.2
+
+2010-08-19  progs
+
+	* [r1753] src/sccp_device.c, src/sccp_device.h, src/sccp_socket.c:
+	  factorization of code to reset a device after a config reload ->
+	  sccp_device_check_update()
+
+	* [r1752] src/sccp_pbx.c: use static value in sccp_pbx_get_callid()
+	  (based on patch from Raoul Schroeder)
+
+	* [r1751] src/sccp_channel.c: fix compilation with asterisk1.4
+
+	* [r1750] src/sccp_config.c: fix memory leak and crash
+
+2010-08-19  marcelloceschia
+
+	* [r1749] src/chan_sccp.h, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_features.c, src/sccp_indicate.c, src/sccp_pbx.c: changes
+	  rtp handling
+
+2010-08-19  ddegroot
+
+	* [r1748] src/sccp_config.c: added check for old sccp.conf v2
+	  format to warn users
+
+2010-08-18  progs
+
+	* [r1747] src/sccp_channel.c, src/sccp_socket.c: fix reload of a
+	  device during a conversation
+
+	* [r1746] src/chan_sccp.c: fix memory leak
+
+	* [r1745] src/sccp_line.c: fix fucking crash
+
+	* [r1744] src/sccp_config.c: fix memory leak
+
+2010-08-18  marcelloceschia
+
+	* [r1743] src/sccp_actions.c:
+
+	* [r1742] src/sccp_actions.c:
+	  =======================================================================
+	  === Currently Held Locks
+	  ==============================================
+	  =======================================================================
+	  ===
+	  === <pending> <lock#> (<file>): <lock type> <line num> <function>
+	  <lock
+	  name> <lock addr> (times locked)
+	  ===
+	  === Thread ID: -1221596272 (tps_processing_function started at [
+	  451]
+	  taskprocessor.c ast_taskprocessor_get())
+	  === ---> Lock #0 (event.c): RDLOCK 1171 handle_event
+	  &(&ast_event_subs[event_types[i]])->lock 0x827e598 (1)
+	  /usr/sbin/asterisk(ast_bt_get_addresses+0x1a) [0x814efca]
+	  /usr/sbin/asterisk [0x810e923]
+	  /usr/sbin/asterisk [0x81d3602]
+	  /usr/sbin/asterisk [0x81ec6a9]
+	  /lib/i686/cmov/libpthread.so.0 [0xb73954c0]
+	  /lib/i686/cmov/libc.so.6(clone+0x5e) [0xb75c584e]
+	  === ---> Lock #1 (sccp_mwi.c): MUTEX 120 sccp_mwi_event
+	  &(&subscription->sccp_mailboxLine)->lock 0x8781d70 (1)
+	  /usr/sbin/asterisk(ast_bt_get_addresses+0x1a) [0x814efca]
+	  /usr/lib/asterisk/modules/chan_sccp.so [0xb60de146]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_mwi_event+0xe8)
+	  [0xb60df8a4]
+	  /usr/sbin/asterisk [0x810e78f]
+	  /usr/sbin/asterisk [0x81d3602]
+	  /usr/sbin/asterisk [0x81ec6a9]
+	  /lib/i686/cmov/libpthread.so.0 [0xb73954c0]
+	  /lib/i686/cmov/libc.so.6(clone+0x5e) [0xb75c584e]
+	  === ---> Lock #2 (sccp_mwi.c): MUTEX 125 sccp_mwi_event
+	  &line->lock
+	  0x86157d8 (1)
+	  /usr/sbin/asterisk(ast_bt_get_addresses+0x1a) [0x814efca]
+	  /usr/lib/asterisk/modules/chan_sccp.so [0xb60de146]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_mwi_event+0x133)
+	  [0xb60df8ef]
+	  /usr/sbin/asterisk [0x810e78f]
+	  /usr/sbin/asterisk [0x81d3602]
+	  /usr/sbin/asterisk [0x81ec6a9]
+	  /lib/i686/cmov/libpthread.so.0 [0xb73954c0]
+	  /lib/i686/cmov/libc.so.6(clone+0x5e) [0xb75c584e]
+	  === ---> Lock #3 (sccp_mwi.c): MUTEX 411
+	  sccp_mwi_setMWILineStatus
+	  &d->lock 0x87676a8 (1)
+	  /usr/sbin/asterisk(ast_bt_get_addresses+0x1a) [0x814efca]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_mwi_setMWILineStatus+0xee)
+	  [0xb60dec48]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_mwi_event+0x1c2)
+	  [0xb60df97e]
+	  /usr/sbin/asterisk [0x810e78f]
+	  /usr/sbin/asterisk [0x81d3602]
+	  /usr/sbin/asterisk [0x81ec6a9]
+	  /lib/i686/cmov/libpthread.so.0 [0xb73954c0]
+	  /lib/i686/cmov/libc.so.6(clone+0x5e) [0xb75c584e]
+	  === ---> Waiting for Lock #4 (sccp_mwi.c): MUTEX 518
+	  sccp_mwi_check
+	  &(&device->buttonconfig)->lock 0x8767e68 (1)
+	  /usr/sbin/asterisk(ast_bt_get_addresses+0x1a) [0x814efca]
+	  /usr/lib/asterisk/modules/chan_sccp.so [0xb60de146]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_mwi_check+0x48)
+	  [0xb60de6fe]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_mwi_setMWILineStatus+0x368)
+	  [0xb60deec2]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_mwi_event+0x1c2)
+	  [0xb60df97e]
+	  /usr/sbin/asterisk [0x810e78f]
+	  /usr/sbin/asterisk [0x81d3602]
+	  /usr/sbin/asterisk [0x81ec6a9]
+	  /lib/i686/cmov/libpthread.so.0 [0xb73954c0]
+	  /lib/i686/cmov/libc.so.6(clone+0x5e) [0xb75c584e]
+	  === --- ---> Locked Here: sccp_actions.c line 313
+	  (sccp_handle_AvailableLines)
+	  ===
+	  -------------------------------------------------------------------
+	  ===
+	  === Thread ID: -1380791408 (sccp_socket_thread started at [ 736]
+	  chan_sccp.c reload_config())
+	  === ---> Lock #0 (sccp_socket.c): MUTEX 371 sccp_socket_thread
+	  &(&sccp_globals->sessions)->lock 0xad525e74 (1)
+	  /usr/sbin/asterisk(ast_bt_get_addresses+0x1a) [0x814efca]
+	  /usr/lib/asterisk/modules/chan_sccp.so [0xb60cf545]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_socket_thread+0x19f)
+	  [0xb60d0592]
+	  /usr/sbin/asterisk [0x81ec6a9]
+	  /lib/i686/cmov/libpthread.so.0 [0xb73954c0]
+	  /lib/i686/cmov/libc.so.6(clone+0x5e) [0xb75c584e]
+	  === ---> Lock #1 (sccp_actions.c): MUTEX 313
+	  sccp_handle_AvailableLines
+	  &(&d->buttonconfig)->lock 0x8767e68 (1)
+	  /usr/sbin/asterisk(ast_bt_get_addresses+0x1a) [0x814efca]
+	  /usr/lib/asterisk/modules/chan_sccp.so [0xb60c080b]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_handle_AvailableLines+0x1b2)
+	  [0xb60c4ec8]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_handle_register+0x868)
+	  [0xb60c596a]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_handle_message+0x3c7)
+	  [0xb60a8587]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_socket_thread+0x711)
+	  [0xb60d0b04]
+	  /usr/sbin/asterisk [0x81ec6a9]
+	  /lib/i686/cmov/libpthread.so.0 [0xb73954c0]
+	  /lib/i686/cmov/libc.so.6(clone+0x5e) [0xb75c584e]
+	  === ---> Waiting for Lock #2 (event.c): WRLOCK 716
+	  ast_event_sub_activate &(&ast_event_subs[sub->type])->lock
+	  0x827e598 (1)
+	  /usr/sbin/asterisk(ast_bt_get_addresses+0x1a) [0x814efca]
+	  /usr/sbin/asterisk(ast_event_sub_activate+0x480) [0x8110280]
+	  /usr/sbin/asterisk(ast_event_subscribe+0xf9) [0x81105a9]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_mwi_addMailboxSubscription+0x303)
+	  [0xb60df5b5]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_mwi_linecreatedEvent+0xa9)
+	  [0xb60df799]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_event_fire+0xc1)
+	  [0xb60dd635]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_line_addToGlobals+0x1ee)
+	  [0xb60cf191]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_line_find_realtime_byname+0xf9)
+	  [0xb60bdea7]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_line_find_byname_wo+0xed)
+	  [0xb60be039]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_handle_AvailableLines+0x235)
+	  [0xb60c4f4b]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_handle_register+0x868)
+	  [0xb60c596a]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_handle_message+0x3c7)
+	  [0xb60a8587]
+	  /usr/lib/asterisk/modules/chan_sccp.so(sccp_socket_thread+0x711)
+	  [0xb60d0b04]
+	  /usr/sbin/asterisk [0x81ec6a9]
+	  /lib/i686/cmov/libpthread.so.0 [0xb73954c0]
+	  /lib/i686/cmov/libc.so.6(clone+0x5e) [0xb75c584e]
+	  ===
+	  -------------------------------------------------------------------
+	  ===
+	  =======================================================================
+	  asterisk*CLI>
+
+	* [r1741] src/sccp_actions.c:
+	  =======================================================================
+
+	* [r1740] src/sccp_actions.c: fixes deadlock after core module
+	  load, reported by robert
+
+	* [r1739] src/sccp_pbx.c: fixes null frame in sccp_pbx_read,
+	  reported by robert
+
+2010-08-17  marcelloceschia
+
+	* [r1738] src/sccp_channel.c: changing callerid for cSourceRemote
+	  after blind transfer
+
+2010-08-17  progs
+
+	* [r1737] src/sccp_pbx.c: fix compilation on asterisk 1.4
+
+2010-08-16  ddegroot
+
+	* [r1736] src/sccp_hint.c, src/sccp_pbx.c, src/sccp_pbx.h: Fixed a
+	  couple of compile errors/warnings
+
+2010-08-14  marcelloceschia
+
+	* [r1735] src/sccp_channel.c: do some fixes for callInfo after
+	  transfer
+
+	* [r1734] src/sccp_pbx.c: removed adv features for normal functions
+
+2010-08-14  ddegroot
+
+	* [r1733] doc/doxygen.cfg, src/sccp_config.c, src/sccp_pbx.c:
+	  Update doxygen docs
+
+	* [r1732] doc/doxygen.cfg, src/chan_sccp.h, src/sccp_channel.c,
+	  src/sccp_config.c, src/sccp_config.h, src/sccp_pbx.c: Added some
+	  more callgraph / callergraph doxygen entries
+
+	* [r1731] ChangeLog, doc/doxygen.cfg, src/sccp_actions.c,
+	  src/sccp_channel.c, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_features.c, src/sccp_indicate.c, src/sccp_line.c,
+	  src/sccp_pbx.c, src/sccp_socket.c, src/sccp_utils.c: Added some
+	  \callgraph and \callergraph entries for doxygen
+
 2010-08-13  ddegroot
 
 	* [r1730] src/sccp_pbx.c, src/sccp_pbx.h: fixed sccp_pbx_get_callid
