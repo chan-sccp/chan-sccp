@@ -30,6 +30,8 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_hint.h"
 #include "sccp_event.h"
 
+static void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, uint8_t state, uint8_t debug, char * file, int line, const char * pretty_function);
+
 /*!
  * \brief Indicate Without Lock
  * \param device SCCP Device
@@ -93,7 +95,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
 		sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 		sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-		sccp_dev_set_cplane(l, d, 1);
+		sccp_dev_set_cplane(l, instance, d, 1);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 0);
 		sccp_dev_set_keyset(d, instance,c->callid, KEYMODE_OFFHOOK);
 
@@ -113,7 +115,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 0);
 		sccp_dev_set_keyset(d, instance,c->callid, KEYMODE_DIGITSFOLL);
-		sccp_dev_set_cplane(l, d, 1);
+		sccp_dev_set_cplane(l, instance, d, 1);
 		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, 0);
 
 		/* for earlyrtp take a look at sccp_feat_handle_callforward because we have no c->owner here */
@@ -134,7 +136,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 0);
 		sccp_dev_set_keyset(d, instance,c->callid, KEYMODE_OFFHOOK);
-		sccp_dev_set_cplane(l, d, 1);
+		sccp_dev_set_cplane(l, instance, d, 1);
 		sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 		/* for earlyrtp take a look at sccp_channel_newcall because we have no c->owner here */
 		break;
@@ -214,7 +216,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 	//	sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
 		sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_channel_send_callinfo(d, c);
-		sccp_dev_set_cplane(l, d, 1);
+		sccp_dev_set_cplane(l, instance, d, 1);
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_CONNECTED);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CONNECTED, 0);
 		// if no rtp or was in old openreceivechannel (note that rtp doens't reinitialize as channel was in hold state or offhook state due to a transfer abort)
@@ -407,12 +409,21 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
  * \param pretty_function Pretty Function as char
  * \todo Explain Pretty Function
  */
-void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, uint8_t state, uint8_t debug, char * file, int line, const char * pretty_function)
+static void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, uint8_t state, uint8_t debug, char * file, int line, const char * pretty_function)
 {
 	sccp_device_t	*remoteDevice;
 	int instance;
+	uint32_t privacyStatus;
 
 	if(!c || !c->line)
+		return;
+	
+	
+	if(c->device)
+		privacyStatus = c->device->privacyFeature.status & SCCP_PRIVACYFEATURE_HINT;
+	
+	/* do not display private lines */
+	if(c->privacy || privacyStatus > 0 )
 		return;
 
 	/* do not propagate status of hotline */

@@ -258,9 +258,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r){
 	sccp_session_send(d, r1);
 	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_PROGRESS);
 
-
-	sccp_handle_AvailableLines(s, r);
-
 	// Ask for the capabilities of the device
 	// to proceed with registration according to sccp protocol specification 3.0
 	sccp_dev_sendmsg(d, CapabilitiesReqMessage);
@@ -308,8 +305,16 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE)){
 
 					btn[i].type = SKINNY_BUTTONTYPE_LINE;
-
-					buttonconfig->instance = btn[i].instance = lineInstance++;
+					btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name);
+					
+					/* check for existence */
+					if(btn[i].ptr == NULL){
+						btn[i].type = SKINNY_BUTTONTYPE_UNDEFINED;
+						buttonconfig->instance = btn[i].instance = 0;
+						ast_log(LOG_WARNING, "%s: line %s does not exists\n", DEV_ID_LOG(d), buttonconfig->button.line.name);
+					}else{
+						buttonconfig->instance = btn[i].instance = lineInstance++;
+					}
 
 					sccp_log((DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: add line %s on position %d\n", DEV_ID_LOG(d), buttonconfig->button.line.name, buttonconfig->instance);
 					break;
@@ -491,13 +496,18 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_moo_t * r){
 	line_count = 0;
 
 	d = s->device;
-
-	/* pre-attach lines. We will wait for button template req if the phone does support it */
-	if(d->buttonTemplate){
-		ast_free(d->buttonTemplate);
+	
+	/** \TODO why do we get the message twice  */
+	if(d->linesRegistered)
+		return;
+	
+	sccp_device_lock(d);
+	btn = d->buttonTemplate;
+	
+	if(!btn){
+		sccp_log(DEBUGCAT_BUTTONTEMPLATE)(VERBOSE_PREFIX_3 "%s: no buttontemplate\n", DEV_ID_LOG(d));
 	}
-	btn = d->buttonTemplate = sccp_make_button_template(d);
-
+	
 	/* count the available lines on the phone */
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 		if ( (btn[i].type == SKINNY_BUTTONTYPE_LINE) || (btn[i].type == SCCP_BUTTONTYPE_MULTI) )
@@ -513,52 +523,39 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_moo_t * r){
 		d->currentLine = GLOB(hotline)->line;
 		sccp_device_unlock(d);
 
-		sccp_line_addDevice(GLOB(hotline)->line, d, NULL);
+		sccp_line_addDevice(GLOB(hotline)->line, d, 1, NULL);
 		sccp_hint_lineStatusChanged(GLOB(hotline)->line, d, NULL, SCCP_DEVICESTATE_UNAVAILABLE ,SCCP_DEVICESTATE_ONHOOK);
 	}else{
+	
+		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
+			if(btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].ptr ){
+				l = btn[i].ptr;
 
-		//SCCP_LIST_LOCK(&d->buttonconfig);
-		//SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-		/* see commit 1742 */
-		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, buttonconfig, list) {
-			if(!buttonconfig)
-				continue;
+				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Attaching line %s with instance %d to this device\n", d->id, l->name, btn[i].instance);
 
-			if(buttonconfig->type == LINE ){
-				if(sccp_is_nonempty_string(buttonconfig->button.line.name)){
-					l = sccp_line_find_byname(buttonconfig->button.line.name);
-
-					if (!l) {
-						ast_log(LOG_ERROR, "%s: Failed to autolog into %s: Couldn't find line %s\n", d->id, buttonconfig->button.line.name, buttonconfig->button.line.name);
-						continue;
-					}
-
-					sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Attaching line %s with instance %d to this device\n", d->id, l->name, buttonconfig->instance);
-					if (buttonconfig->instance > line_count) {
-						ast_log(LOG_WARNING, "%s: Failed to autolog into %s: Max available lines phone limit reached %s\n", d->id, buttonconfig->button.line.name, buttonconfig->button.line.name);
-						continue;
-					}
-
-					sccp_device_lock(d);
-					if (defaultLineSet == FALSE){
-						d->currentLine = l;
-						defaultLineSet = TRUE;
-					}
-					sccp_device_unlock(d);
-
-					sccp_line_addDevice(l, d, &(buttonconfig->button.line.subscriptionId));
-
-					/* notify the line is on */
-					sccp_hint_lineStatusChanged(l, d, NULL, SCCP_DEVICESTATE_UNAVAILABLE ,SCCP_DEVICESTATE_ONHOOK);
-					l = NULL;
+				sccp_device_lock(d);
+				if (defaultLineSet == FALSE){
+					d->currentLine = l;
+					defaultLineSet = TRUE;
 				}
+				sccp_device_unlock(d);
+				
+				SCCP_LIST_LOCK(&d->buttonconfig);
+				SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+					if(btn[i].instance == buttonconfig->instance && buttonconfig->type == LINE ){
+						sccp_line_addDevice(l, d, btn[i].instance, &(buttonconfig->button.line.subscriptionId));
+						/* notify the line is on */
+						sccp_hint_lineStatusChanged(l, d, NULL, SCCP_DEVICESTATE_UNAVAILABLE ,SCCP_DEVICESTATE_ONHOOK);
+						continue;
+					}
+				}
+				SCCP_LIST_UNLOCK(&d->buttonconfig);
 			}
+			
 		}
-		SCCP_LIST_TRAVERSE_SAFE_END;
-		//SCCP_LIST_UNLOCK(&d->buttonconfig);
 	}
-	l = NULL;
-	buttonconfig = NULL;
+	d->linesRegistered = TRUE;
+	sccp_device_unlock(d);
 }
 
 
@@ -649,11 +646,14 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	sccp_device_lock(d);
-	if(!d->buttonTemplate)
-		btn = sccp_make_button_template(d);
-	else
-		btn = d->buttonTemplate;
-
+	
+	/* pre-attach lines. We will wait for button template req if the phone does support it */
+	if(d->buttonTemplate){
+		ast_free(d->buttonTemplate);
+	}
+	btn = d->buttonTemplate = sccp_make_button_template(d);
+	
+	
 	if (!btn) {
 		ast_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
 		sccp_session_close(s);
@@ -737,15 +737,6 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 
 
 	sccp_dev_send(d, r1);
-
-	/* do not save the button template, maybe this causes the line display issue -marcello */
-#if 0
-	d->buttonTemplate = btn;
-#else
-	d->buttonTemplate = NULL;
-	ast_free(btn);
-#endif
-
 	sccp_device_unlock(d);
 }
 
@@ -803,7 +794,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 
 		/* force the forward status message. Some phone does not request it registering */
 		if (l) {
-			sccp_dev_forward_status(l, d);
+			sccp_dev_forward_status(l, lineNumber, d);
 
 			/* set default line on device */
 			SCCP_LIST_LOCK(&d->buttonconfig);
@@ -971,9 +962,9 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 				sccp_log(DEBUGCAT_ACTION)(VERBOSE_PREFIX_3 "%s: no activate channel on line %d\n", d->id, instance);
 			}
 			if (!l->channelCount) {
-				sccp_log(DEBUGCAT_ACTION)(VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n", d->id, (l) ? l->name : "(nil)");
+				sccp_log(DEBUGCAT_ACTION)(VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
 				sccp_dev_set_activeline(d, l);
-				sccp_dev_set_cplane(l, d, 1);
+				sccp_dev_set_cplane(l, instance, d, 1);
 				sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
 			} else {
 				holdChannel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD);
@@ -984,12 +975,11 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 						sccp_log(DEBUGCAT_ACTION)(VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d", d->id, c->callid, instance);
 						sccp_dev_set_activeline(d, l);
 						sccp_channel_resume(d,c);
-						sccp_dev_set_cplane(l, d, 1);
+						sccp_dev_set_cplane(l, instance, d, 1);
 					} else {
 						sccp_log(DEBUGCAT_ACTION)(VERBOSE_PREFIX_3 "%s: Switch to line %d", d->id, instance);
 						sccp_dev_set_activeline(d, l);
-	//					sccp_device_sendcallstate(d, sccp_device_find_index_for_line(d, l->name), holdChannel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
-						sccp_dev_set_cplane(l, d, 1);
+						sccp_dev_set_cplane(l, instance, d, 1);
 					}
 				}
 			}
@@ -1180,6 +1170,7 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
 	c = sccp_channel_get_active(d);
 	if (c) {
 		sccp_channel_lock(c);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: channel state %d\n", DEV_ID_LOG(d), c->state);
 		if ( (c->state == SCCP_CHANNELSTATE_DIALING) || (c->state == SCCP_CHANNELSTATE_OFFHOOK) ) {
 			len = strlen(c->dialedNumber);
 			sccp_copy_string(c->dialedNumber+len, k->ext, sizeof(c->dialedNumber)-len);
@@ -1659,7 +1650,7 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * req)
 void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 {
 	int event;
-	uint8_t line;
+	uint8_t lineInstance;
 	uint32_t callid;
 	char resp = '\0';
 	int len = 0;
@@ -1673,11 +1664,11 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 	d = s->device;
 
 	event = letohl(r->msg.KeypadButtonMessage.lel_kpButton);
-	line = letohl(r->msg.KeypadButtonMessage.lel_lineInstance);
+	lineInstance = letohl(r->msg.KeypadButtonMessage.lel_lineInstance);
 	callid = letohl(r->msg.KeypadButtonMessage.lel_callReference);
 
-	if (line)
-		l = sccp_line_find_byid(s->device, line);
+	if (lineInstance)
+		l = sccp_line_find_byid(s->device, lineInstance);
 
 	if (l && callid)
 		c = sccp_channel_find_byid(callid);
@@ -1692,7 +1683,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	if (!c) {
-		ast_log(LOG_NOTICE, "Device %s sent a Keypress, but there is no active channel!\n", d->id);
+		ast_log(LOG_NOTICE, "Device %s sent a Keypress, but there is no active channel!\n", DEV_ID_LOG(d));
 		return;
 	}
 
@@ -1750,7 +1741,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 				/* set it to offhook state because the sccp_sk_gpickup function look for an offhook channel */
 				c->state = SCCP_CHANNELSTATE_OFFHOOK;
 				sccp_channel_unlock(c);
-				sccp_sk_gpickup(c->device, c->line, c);
+				sccp_sk_gpickup(c->device, c->line, lineInstance, c);
 				return;
 			}
 #endif
@@ -1792,7 +1783,7 @@ void sccp_handle_dialtone_nolock(sccp_channel_t * c)
 	sccp_line_t * l = NULL;
 	sccp_device_t * d = NULL;
 	int len = 0, len1 = 0;
-	int instance;
+	uint8_t instance;
 
 	if(!c)
 		return;
@@ -1819,8 +1810,6 @@ void sccp_handle_dialtone_nolock(sccp_channel_t * c)
 
 
 	if (len == 0 && c->state != SCCP_CHANNELSTATE_OFFHOOK) {
-		uint8_t instance;
-		instance = sccp_device_find_index_for_line(d, c->line->name);
 		sccp_dev_stoptone(d, instance, c->callid);
 		sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, c->callid, 0);
 	} else if (len == 1) {
@@ -1854,7 +1843,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 	sccp_line_t * l = NULL;
 	sccp_speed_t * k = NULL;
 	uint32_t event = letohl(r->msg.SoftKeyEventMessage.lel_softKeyEvent);
-	uint32_t line = letohl(r->msg.SoftKeyEventMessage.lel_lineInstance);
+	uint32_t lineInstance = letohl(r->msg.SoftKeyEventMessage.lel_lineInstance);
 	uint32_t callid = letohl(r->msg.SoftKeyEventMessage.lel_callReference);
 
 	if (!d)
@@ -1872,113 +1861,113 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 		}
 	}
 
-	sccp_log(DEBUGCAT_SOFTKEY)(VERBOSE_PREFIX_3 "%s: Got Softkey: %s (%d) line=%d callid=%d\n", d->id, label2str(event), event, line, callid);
+	sccp_log(DEBUGCAT_SOFTKEY)(VERBOSE_PREFIX_3 "%s: Got Softkey: %s (%d) line=%d callid=%d\n", d->id, label2str(event), event, lineInstance, callid);
 
 	/* we have no line and call information -> use default line */
-	if(!line && !callid && event == SKINNY_LBL_NEWCALL){
+	if(!lineInstance && !callid && event == SKINNY_LBL_NEWCALL){
 		if(d->defaultLineInstance > 0)
-			line = d->defaultLineInstance;
+			lineInstance = d->defaultLineInstance;
 		else
 			l = d->currentLine;
 	}
 
-	if (line)
-		l = sccp_line_find_byid(s->device, line);
+	if (lineInstance)
+		l = sccp_line_find_byid(s->device, lineInstance);
 
 
-	if (line && callid)
+	if (lineInstance && callid)
 		c = sccp_channel_find_byid(callid);
 
 	switch (event) {
 	case SKINNY_LBL_REDIAL:
-		sccp_sk_redial(d, l, c);
+		sccp_sk_redial(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_NEWCALL:
 		if(d->isAnonymous){
 			sccp_feat_hotline(d, GLOB(hotline)->line);
 		}else if (l){
 			if(strlen(l->adhocNumber)==0)
-				sccp_sk_newcall(d, l, c);
+				sccp_sk_newcall(d, l, lineInstance, c);
 			else{
 				sccp_feat_hotline(d, GLOB(hotline)->line);
 			}
 		}else {
-			k = sccp_dev_speed_find_byindex(d, line, SCCP_BUTTONTYPE_HINT);
+			k = sccp_dev_speed_find_byindex(d, lineInstance, SCCP_BUTTONTYPE_HINT);
 			if (k){
 				sccp_handle_speeddial(d, k);
 			}else
-				sccp_sk_newcall(d, NULL, NULL);
+				sccp_sk_newcall(d, NULL, 0, NULL);
 		}
 		break;
 	case SKINNY_LBL_CONFRN:
-		sccp_sk_conference(d, l, c);
+		sccp_sk_conference(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_MEETME:
-		sccp_sk_meetme(d, l, c);
+		sccp_sk_meetme(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_JOIN:
-		sccp_sk_join(d, l, c);
+		sccp_sk_join(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_BARGE:
-		sccp_sk_barge(d, l, c);
+		sccp_sk_barge(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_CBARGE:
-		sccp_sk_cbarge(d, l, c);
+		sccp_sk_cbarge(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_HOLD:
-		sccp_sk_hold(d, l, c);
+		sccp_sk_hold(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_TRANSFER:
-		sccp_sk_transfer(d, l, c);
+		sccp_sk_transfer(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_CFWDALL:
-		sccp_sk_cfwdall(d, l, c);
+		sccp_sk_cfwdall(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_CFWDBUSY:
-		sccp_sk_cfwdbusy(d, l, c);
+		sccp_sk_cfwdbusy(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_CFWDNOANSWER:
-		sccp_sk_cfwdnoanswer(d, l, c);
+		sccp_sk_cfwdnoanswer(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_BACKSPACE:
-		sccp_sk_backspace(d, l, c);
+		sccp_sk_backspace(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_ENDCALL:
-		sccp_sk_endcall(d, l, c);
+		sccp_sk_endcall(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_RESUME:
-		sccp_sk_resume(d, l, c);
+		sccp_sk_resume(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_ANSWER:
-		sccp_sk_answer(d, l, c);
+		sccp_sk_answer(d, l, lineInstance, c);
 		break;
 #ifdef CS_SCCP_PARK
 	case SKINNY_LBL_PARK:
-		sccp_sk_park(d, l, c);
+		sccp_sk_park(d, l, lineInstance, c);
 		break;
 #endif
 	case SKINNY_LBL_TRNSFVM:
 	case SKINNY_LBL_IDIVERT:
-		sccp_sk_trnsfvm(d, l, c);
+		sccp_sk_trnsfvm(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_DND:
-		sccp_sk_dnd(d, l, c);
+		sccp_sk_dnd(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_DIRTRFR:
-		sccp_sk_dirtrfr(d, l, c);
+		sccp_sk_dirtrfr(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_SELECT:
-		sccp_sk_select(d, l, c);
+		sccp_sk_select(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_PRIVATE:
-		sccp_sk_private(d, l, c);
+		sccp_sk_private(d, l, lineInstance, c);
 		break;
 #ifdef CS_SCCP_PICKUP
 	case SKINNY_LBL_PICKUP:
-		sccp_sk_pickup(d, l, c);
+		sccp_sk_pickup(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_GPICKUP:
-		sccp_sk_gpickup(d, l, c);
+		sccp_sk_gpickup(d, l, lineInstance, c);
 		break;
 #endif
 	default:
@@ -2405,7 +2394,7 @@ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_moo_t * r)
 	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: Got Forward Status Request.  Line: %d\n", d->id, instance);
 	l = sccp_line_find_byid(d, instance);
 	if (l)
-		sccp_dev_forward_status(l, d);
+		sccp_dev_forward_status(l, instance, d);
 	else {
 		/* speeddial with hint. Sending empty forward message */
 		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: Send Forward Status.  Instance: %d\n", d->id, instance);

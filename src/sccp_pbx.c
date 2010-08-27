@@ -143,8 +143,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 		sccp_linedevices_t *linedevice;
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
-			if(!linedevice->device)
-				continue;
+			assert(linedevice->device);
 
 			if(linedevice->device->session)
 				hasSession = TRUE;
@@ -349,14 +348,12 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
-			if(!linedevice->device)
-				continue;
+			assert(linedevice->device);
 
 			/* do we have cfwd enabled? */
 			if(linedevice->cfwdAll.enabled ){
 				ast_log(LOG_NOTICE, "%s: initialize cfwd for line %s\n", linedevice->device->id, l->name);
-				int instance = sccp_device_find_index_for_line(linedevice->device, l->name);
-				sccp_device_sendcallstate(linedevice->device, instance,c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance,c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_channel_send_callinfo(linedevice->device, c);
 				sccp_channel_forward(c, linedevice, linedevice->cfwdAll.number);
 				isRinging = TRUE;
@@ -506,8 +503,8 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 		sccp_linedevices_t	*linedevice;
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			if(!linedevice->device)
-				continue;
+			assert(linedevice->device);
+
 			d = linedevice->device;
 			sccp_indicate_nolock(d, c, SKINNY_CALLSTATE_ONHOOK);
 		}
@@ -1609,6 +1606,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 		return NULL;
 	}
 
+	instance = sccp_device_find_index_for_line(d, c->line->name);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) New call on line %s\n", DEV_ID_LOG(d), l->name);
 
 	/* assign callerid name and number */
@@ -1655,7 +1653,6 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Pickup Extension\n", d->id);
 //				sccp_channel_unlock(c);
 			// like we're dialing but we're not :)
-			instance = sccp_device_find_index_for_line(d, c->line->name);
 
 			sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_DIALING);
 			sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -1702,7 +1699,6 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 //				sccp_channel_unlock(c);
 			// like we're dialing but we're not :)
 			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Barge Extension\n", d->id);
-			instance = sccp_device_find_index_for_line(d, c->line->name);
 			sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_DIALING);
 			sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			sccp_channel_send_callinfo(d, c);
@@ -1724,7 +1720,6 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 		case SCCP_SS_GETCBARGEROOM:
 			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Conference Barge Extension\n", d->id);
 			// like we're dialing but we're not :)
-			instance = sccp_device_find_index_for_line(d, c->line->name);
 
 			sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_DIALING);
 			sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -1789,11 +1784,9 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 
 	/* proceed call state is needed to display the called number.
 	The phone will not display callinfo in offhook state */
-	instance = sccp_device_find_index_for_line(d, c->line->name);
 	sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 	sccp_channel_send_callinfo(d, c);
 
-	instance = sccp_device_find_index_for_line(d, c->line->name);
 	sccp_dev_clearprompt(d, instance, c->callid);
 	sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 

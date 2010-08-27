@@ -80,7 +80,7 @@ void sccp_softkey_post_reload(void)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Redial Pressed\n", DEV_ID_LOG(d));
 
@@ -150,7 +150,7 @@ void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, sccp_channel_t * c)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey NewCall Pressed\n", DEV_ID_LOG(d));
 	if (!l){
@@ -177,7 +177,7 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_hold(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_hold(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Hold Pressed\n", DEV_ID_LOG(d));
 	if (!c) {
@@ -194,7 +194,7 @@ void sccp_sk_hold(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Resume Pressed\n", DEV_ID_LOG(d));
 	if (!c) {
@@ -211,7 +211,7 @@ void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Transfer Pressed\n", DEV_ID_LOG(d));
 	if (!c) {
@@ -228,7 +228,7 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey EndCall Pressed\n", DEV_ID_LOG(d));
 	if (!c) {
@@ -245,7 +245,7 @@ void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey DND Pressed\n", DEV_ID_LOG(d));
 	/* actually the line param is not used */
@@ -300,11 +300,10 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Backspace Pressed\n", DEV_ID_LOG(d));
 	int len;
-	int instance;
 
 	if (!c || !l)
 		return;
@@ -347,10 +346,9 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 	sccp_channel_unlock(c);
 
 	sccp_device_lock(c->device);
-	instance = sccp_device_find_index_for_line(c->device, c->line->name);
 	sccp_device_unlock(c->device);
 
-	sccp_handle_backspace(d, instance, c->callid);
+	sccp_handle_backspace(d, lineInstance, c->callid);
 }
 
 
@@ -361,9 +359,9 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
-	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Answer Pressed\n", DEV_ID_LOG(d));
+	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Answer Pressed, instance: %d\n", DEV_ID_LOG(d), lineInstance);
 	sccp_channel_answer(d, c);
 }
 
@@ -375,7 +373,7 @@ void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Direct Transfer Pressed\n", DEV_ID_LOG(d));
 
@@ -445,13 +443,12 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Select Pressed\n", DEV_ID_LOG(d));
 	sccp_selectedchannel_t *x = NULL;
 	sccp_moo_t * r1;
 	uint8_t numSelectedChannels = 0, status = 0;
-	int instance;
 
 	if(!d) {
 		sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "SCCP: (sccp_sk_select) Can't select a channel without a device\n");
@@ -480,10 +477,9 @@ void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: (sccp_sk_select) '%d' channels selected\n", DEV_ID_LOG(d), numSelectedChannels);
 
-	instance = sccp_device_find_index_for_line(d, l->name);
 	REQ(r1, CallSelectStatMessage);
 	r1->msg.CallSelectStatMessage.lel_status = htolel(status);
-	r1->msg.CallSelectStatMessage.lel_lineInstance = htolel(instance);
+	r1->msg.CallSelectStatMessage.lel_lineInstance = htolel(lineInstance);
 	r1->msg.CallSelectStatMessage.lel_callReference = htolel(c->callid);
 	sccp_dev_send(d, r1);
 
@@ -504,7 +500,7 @@ void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Call Forward All Pressed\n", DEV_ID_LOG(d));
 	if (!l && d) {
@@ -522,7 +518,7 @@ void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 	if(l){
 		sccp_feat_handle_callforward(l, d, SCCP_CFWD_ALL);
 	}else
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", DEV_ID_LOG(d), 1);
 
 }
 
@@ -533,7 +529,7 @@ void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Call Forward Busy Pressed\n", DEV_ID_LOG(d));
 	if(!l && d) {
@@ -553,7 +549,7 @@ void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c) {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Call Forward NoAnswer Pressed\n", DEV_ID_LOG(d));
 	if(!l && d) {
 		l = sccp_line_find_byid(d, 1);
@@ -575,7 +571,7 @@ void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_park(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+void sccp_sk_park(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c) {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Park Pressed\n", DEV_ID_LOG(d));
 #ifdef CS_SCCP_PARK
 	sccp_channel_park(c);
@@ -591,7 +587,7 @@ void sccp_sk_park(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c) {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Transfer Voicemail Pressed\n", DEV_ID_LOG(d));
 	sccp_feat_idivert(d, l, c);
 }
@@ -603,26 +599,21 @@ void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c) {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Private Pressed\n", DEV_ID_LOG(d));
-	uint8_t	instance;
 
 	if (!d->privacyFeature.enabled) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: private function is not active on this device\n", d->id);
 		return;
 	}
 
-	instance = sccp_device_find_index_for_line(d, l->name);
 	sccp_mutex_lock(&c->lock);
 	c->privacy = (c->privacy) ? FALSE : TRUE;
 	if(c->privacy){
-		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_PRIVATE, 0);
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_PRIVATE, 0);
 	}else{
-		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 1);
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, 1);
 	}
-
-	/* force update on remote devices */
-	__sccp_indicate_remote_device(d, c, c->state, 0,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Private %s on call %d\n", d->id, c->privacy ? "enabled" : "disabled", c->callid);
 	sccp_mutex_unlock(&c->lock);
@@ -637,10 +628,10 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  */
-void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Conference Pressed\n", DEV_ID_LOG(d));
-	sccp_feat_conference(d, l, c);
+	sccp_feat_conference(d, l, lineInstance, c);
 }
 
 
@@ -652,10 +643,10 @@ void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param c SCCP Channel
  * \todo Conferencing option needs to be build and implemented
  */
-void sccp_sk_join(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_join(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Join Pressed\n", DEV_ID_LOG(d));
-	sccp_feat_join(d, l, c);
+	sccp_feat_join(d, l, lineInstance, c);
 }
 
 
@@ -666,14 +657,14 @@ void sccp_sk_join(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_barge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_barge(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Barge Pressed\n", DEV_ID_LOG(d));
 	if (!l && d) {
 		l = sccp_line_find_byid(d, 1);
 	}
 	if(l)
-		sccp_feat_handle_barge(l,d);
+		sccp_feat_handle_barge(l, lineInstance,d);
 	else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
 }
@@ -685,14 +676,14 @@ void sccp_sk_barge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey cBarge Pressed\n", DEV_ID_LOG(d));
 	if (!l && d) {
 		l = sccp_line_find_byid(d, 1);
 	}
 	if(l)
-		sccp_feat_handle_cbarge(l,d);
+		sccp_feat_handle_cbarge(l, lineInstance,d);
 	else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
 }
@@ -706,14 +697,14 @@ void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  */
-void sccp_sk_meetme(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_meetme(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Meetme Pressed\n", DEV_ID_LOG(d));
 	if (!l && d) {
 		l = sccp_line_find_byid(d, 1);
 	}
 	if(l)
-		sccp_feat_handle_meetme(l, d);
+		sccp_feat_handle_meetme(l, lineInstance, d);
 	else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
 }
@@ -727,7 +718,7 @@ void sccp_sk_meetme(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Pickup Pressed\n", DEV_ID_LOG(d));
 #ifndef CS_SCCP_PICKUP
@@ -737,7 +728,7 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 		l = sccp_line_find_byid(d, 1);
 	}
 	if(l)
-		sccp_feat_handle_directpickup(l, d);
+		sccp_feat_handle_directpickup(l, lineInstance, d);
 	else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
 #endif
@@ -752,7 +743,7 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Group Pickup Pressed\n", DEV_ID_LOG(d));
 #ifndef CS_SCCP_PICKUP
@@ -784,20 +775,18 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \todo use SoftKeyLabel instead of softkeyindex
  *
  */
-void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c, unsigned int keymode, unsigned int softkeyindex, unsigned int status) {
+void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c, unsigned int keymode, unsigned int softkeyindex, unsigned int status) {
 	sccp_moo_t * r;
 	uint32_t mask, validKeyMask;
-	unsigned i, instance;
+	unsigned i;
 
 
 	if(!l || !c || !d || !d->session)
 		return;
 
-	instance = sccp_device_find_index_for_line(d, l->name);
-
 
 	REQ(r, SelectSoftKeysMessage);
-	r->msg.SelectSoftKeysMessage.lel_lineInstance  = htolel(instance);
+	r->msg.SelectSoftKeysMessage.lel_lineInstance  = htolel(lineInstance);
 	r->msg.SelectSoftKeysMessage.lel_callReference = htolel(c->callid);
 	r->msg.SelectSoftKeysMessage.lel_softKeySetIndex = htolel(keymode);
 	//r->msg.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF; /* htolel(65535); */
@@ -814,7 +803,7 @@ void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 		mask = validKeyMask | mask;
 
 	r->msg.SelectSoftKeysMessage.les_validKeyMask = htolel(mask);
-	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, keymode2str(5), 5, instance, c->callid);
+	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, keymode2str(5), 5, lineInstance, c->callid);
 	sccp_dev_send(d, r);
 
 }

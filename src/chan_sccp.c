@@ -572,7 +572,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 		      sccp_handle_EnblocCallMessage(s,r);
 		      break;
 		case RegisterAvailableLinesMessage:
-		      //sccp_handle_AvailableLines(s, r);
+		      sccp_handle_AvailableLines(s, r);
 		      break;
 		case ForwardStatReqMessage:
 		      sccp_handle_forward_stat_req(s,r);
@@ -1226,12 +1226,7 @@ static int unload_module(void) {
 		SCCP_LIST_UNLOCK(&l->channels);
 		SCCP_LIST_HEAD_DESTROY(&l->channels);
 
-		//if (l->cfwd_num)
-		//	ast_free(l->cfwd_num);
-
-		if (l->trnsfvm)
-			ast_free(l->trnsfvm);
-		ast_free(l);
+		sccp_line_clean(l, FALSE);
 	}
 	SCCP_LIST_UNLOCK(&GLOB(lines));
 	SCCP_LIST_HEAD_DESTROY(&GLOB(lines));

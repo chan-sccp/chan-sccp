@@ -116,8 +116,8 @@ boolean_t sccp_device_check_update(sccp_device_t *d)
 
 			if (d->pendingDelete) {
 				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
-				ast_free(buttonconfig);
 				SCCP_LIST_REMOVE_CURRENT(list);
+				ast_free(buttonconfig);
 			} else {
 				buttonconfig->pendingUpdate = 0;
 			}
@@ -504,7 +504,7 @@ int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
  * \callgraph
  * \callergraph
  */
-void sccp_dev_sendmsg(sccp_device_t * d, sccp_message_t t) {
+void sccp_dev_sendmsg(const sccp_device_t * d, sccp_message_t t) {
 	if (d)
 		sccp_session_sendmsg(d, t);
 }
@@ -648,18 +648,9 @@ void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
  * \param line Line Number as uint32_t
  * \param callid Call ID as uint32_t
  */
-void sccp_dev_set_ringer(sccp_device_t * d, uint8_t opt, uint32_t line, uint32_t callid)
+void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInstance, uint32_t callid)
 {
 	sccp_moo_t * r;
-
-	if (!d || !d->session)
-		return;
-  // If we have multiple calls ringing at once, this has lead to
-  // never ending rings even after termination of the alerting call.
-  // Obviously the ringermode is no longer a per-device state but
-  // rather per line/per call.
-	//if (d->ringermode == opt)
-	//	return;
 
 	//d->ringermode = opt;
 	REQ(r, SetRingerMessage);
@@ -668,10 +659,10 @@ void sccp_dev_set_ringer(sccp_device_t * d, uint8_t opt, uint32_t line, uint32_t
 	   the following actually needs to be set to 1 as the original comment says.
 	   Curiously, the variable is not set to 1 ... */
 	r->msg.SetRingerMessage.lel_unknown1 = htolel(1);/* always 1 */
-	r->msg.SetRingerMessage.lel_lineInstance = htolel(line);
+	r->msg.SetRingerMessage.lel_lineInstance = htolel(lineInstance);
 	r->msg.SetRingerMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, r);
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send ringer mode %s(%d) on device\n", d->id, station2str(opt), opt);
+	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send ringer mode %s(%d) on device\n", DEV_ID_LOG(d), station2str(opt), opt);
 
 }
 
@@ -719,22 +710,21 @@ void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode)
  * \callgraph
  * \callergraph
  */
-void sccp_dev_set_cplane(sccp_line_t * l, sccp_device_t *device, int status)
+void sccp_dev_set_cplane(sccp_line_t * l, uint8_t lineInstance, sccp_device_t *device, int status)
 {
 	sccp_moo_t * r;
-	uint16_t 	instance=0;
 	if (!l)
 		return;
 
 	if (!device)
 		return;
 
-	instance = sccp_device_find_index_for_line(device, l->name);
 	REQ(r, ActivateCallPlaneMessage);
 	if (status)
-		r->msg.ActivateCallPlaneMessage.lel_lineInstance = htolel(instance);
+		r->msg.ActivateCallPlaneMessage.lel_lineInstance = htolel(lineInstance);
 	sccp_dev_send(device, r);
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send activate call plane on line %d\n", device->id, (status) ? instance : 0 );
+	
+	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send activate call plane on line %d\n", device->id, (status) ? lineInstance : 0 );
 }
 
 /*!
@@ -808,20 +798,17 @@ void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid)
  * \callgraph
  * \callergraph
  */
-void sccp_dev_clearprompt(sccp_device_t * d, uint8_t line, uint32_t callid)
+void sccp_dev_clearprompt(const sccp_device_t * d, uint8_t lineInstance, uint32_t callid)
 {
 	sccp_moo_t * r;
-
-	if (!d || !d->session)
-		return;
 
 	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) return; /* only for telecaster and new phones */
 
 	REQ(r, ClearPromptStatusMessage);
 	r->msg.ClearPromptStatusMessage.lel_callReference = htolel(callid);
-	r->msg.ClearPromptStatusMessage.lel_lineInstance  = htolel(line);
+	r->msg.ClearPromptStatusMessage.lel_lineInstance  = htolel(lineInstance);
 	sccp_dev_send(d, r);
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Clear the status prompt on line %d and callid %d\n", d->id, line, callid);
+	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Clear the status prompt on line %d and callid %d\n", d->id, lineInstance, callid);
 }
 
 /*!
@@ -1385,17 +1372,14 @@ void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t inst
  * \callgraph
  * \callergraph
  */
-void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {
+void sccp_dev_forward_status(sccp_line_t *l, uint8_t lineInstance, sccp_device_t *device) {
 	sccp_moo_t 		*r1 = NULL;
 	sccp_linedevices_t 	*linedevice = NULL;
-	uint16_t 		instance;
 
 	if (!device || !device->session)
 		return;
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Send Forward Status.  Line: %s\n", device->id, l->name);
-
-	instance = sccp_device_find_index_for_line(device, l->name);
 
 	linedevice=sccp_util_getDeviceConfiguration(device,l);
 
@@ -1406,7 +1390,7 @@ void sccp_dev_forward_status(sccp_line_t * l, sccp_device_t *device) {
 
 	REQ(r1, ForwardStatMessage);
 	r1->msg.ForwardStatMessage.lel_status = (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled)? htolel(1) : 0;
-	r1->msg.ForwardStatMessage.lel_lineNumber = htolel(instance);
+	r1->msg.ForwardStatMessage.lel_lineNumber = htolel(lineInstance);
 	if (linedevice->cfwdAll.enabled) {
 			r1->msg.ForwardStatMessage.lel_cfwdallstatus = htolel(1);
 			sccp_copy_string(r1->msg.ForwardStatMessage.cfwdallnumber, linedevice->cfwdAll.number, sizeof(r1->msg.ForwardStatMessage.cfwdallnumber));
@@ -1571,6 +1555,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		config->instance = 0; /* reset button configuration to rebuild template on register */
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
+	d->linesRegistered = FALSE;
 
 	/* removing addons */
 	if(remove_from_global){
@@ -1591,6 +1576,11 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	}
 
 	d->session = NULL;
+	if(d->buttonTemplate){
+		ast_free(d->buttonTemplate);
+		d->buttonTemplate = NULL;
+	}
+	
 	sccp_device_unlock(d);
 
 	if(remove_from_global){
@@ -1653,10 +1643,6 @@ int sccp_device_destroy(const void *ptr){
 	}
 
 	d->ha = NULL;
-
-	if(d->buttonTemplate){
-		ast_free(d->buttonTemplate);
-	}
 
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Device Deleted\n", d->id);
 
@@ -1722,7 +1708,7 @@ sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t in
  * \return Status as int
  * \note device should be locked by parent fuction
  */
-uint16_t sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName)
+uint8_t sccp_device_find_index_for_line(const sccp_device_t * d, const char *lineName)
 {
 	sccp_buttonconfig_t	*config;
 
@@ -1738,7 +1724,7 @@ uint16_t sccp_device_find_index_for_line(const sccp_device_t * d, char *lineName
 		}
 	}
 
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: sccp_device_find_index_for_line return: %d\n", DEV_ID_LOG(d), config->instance);
+	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: sccp_device_find_index_for_line return: %d\n", DEV_ID_LOG(d), config? config->instance: -2);
 	return (config)? config->instance : -2;
 }
 

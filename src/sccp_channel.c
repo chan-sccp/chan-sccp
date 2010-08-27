@@ -474,6 +474,8 @@ static void sccp_channel_send_dynamicCallinfo(sccp_device_t *device, sccp_channe
  * \callergraph
  */
 void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t *channel){
+  
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: send callInfo of callid %d\n", DEV_ID_LOG(device), (channel) ? channel->callid : 0);
 	if(device->inuseprotocolversion < 7){
 		/* fallback to CallInfoMessage */
 		return sccp_channel_send_staticCallinfo(device, channel);
@@ -524,17 +526,10 @@ void sccp_channel_send_dialednumber(sccp_channel_t * c)
  */
 void sccp_channel_setSkinnyCallstate(sccp_channel_t * c, skinny_callstate_t state)
 {
-	//uint16_t instance;
-
 	c->previousChannelState =c->state;
 	c->state = state;
 
-	//c->callstate = state;
-
 	return;
-
-	//instance = sccp_device_find_index_for_line(d, c->line->name);
-	//sccp_device_sendcallstate(d, instance, c->callid, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 }
 
 
@@ -1020,8 +1015,6 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 		}
 	}
 
-//	instance = sccp_device_find_index_for_line(channel->device, channel->line->name); // \todo remove line. Variable never used afterwards in this function
-
 	r = sccp_build_packet(StartMultiMediaTransmission, sizeof(r->msg.StartMultiMediaTransmission));
 	r->lel_reserved = 0;
 
@@ -1356,7 +1349,7 @@ void sccp_channel_endcall(sccp_channel_t * c)
 	This script set the hold state for transfer_channel explicitly -MC
 	*/
 	if(c->device && c->device->transfer_channel && c->device->transfer_channel != c) {
-		uint32_t instance = sccp_device_find_index_for_line(c->device, c->device->transfer_channel->line->name);
+		uint8_t instance = sccp_device_find_index_for_line(c->device, c->device->transfer_channel->line->name);
 		sccp_dev_set_lamp(c->device, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_WINK);
 		sccp_device_sendcallstate(c->device, instance, c->device->transfer_channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_dev_set_keyset(c->device, instance, c->device->transfer_channel->callid, KEYMODE_ONHOLD);
@@ -1621,12 +1614,13 @@ int sccp_channel_hold(sccp_channel_t * c)
 		return 0;
 	}
 
-	instance = sccp_device_find_index_for_line(d, l->name);
+	
 	/* put on hold an active call */
 	if (c->state != SCCP_CHANNELSTATE_CONNECTED && c->state != SCCP_CHANNELSTATE_PROCEED) { // TOLL FREE NUMBERS STAYS ALWAYS IN CALL PROGRESS STATE
 		/* something wrong on the code let's notify it for a fix */
 		ast_log(LOG_ERROR, "%s can't put on hold an inactive channel %s-%08X (%s)\n", d->id, l->name, c->callid, sccp_indicate2str(c->state));
 		/* hard button phones need it */
+		instance = sccp_device_find_index_for_line(d, l->name);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 		return 0;
 	}
@@ -1727,7 +1721,7 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
 	if(d != device)
 		d = device;
 
-	instance = sccp_device_find_index_for_line(d, l->name);
+	
 
 
 	/* look if we have a call to put on hold */
@@ -1741,6 +1735,7 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
 	if (c->state != SCCP_CHANNELSTATE_HOLD && c->state != SCCP_CHANNELSTATE_CALLTRANSFER && c->state != SCCP_CHANNELSTATE_CALLCONFERENCE) {
 		/* something wrong on the code let's notify it for a fix */
 		ast_log(LOG_ERROR, "%s can't resume the channel %s-%08X. Not on hold\n", d->id, l->name, c->callid);
+		instance = sccp_device_find_index_for_line(d, l->name);
 		sccp_dev_displayprompt(d, instance, c->callid, "No active call to put on hold",5);
 		return 0;
 	}
@@ -2296,7 +2291,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 		sccp_dev_displayprompt(d, instance, cDestinationLocal->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
 	}
-
+	
 	if (cDestinationLocal->state == SCCP_CHANNELSTATE_RINGOUT) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Blind transfer. Signalling ringing state to %s\n", d->id, astcSourceRemote->name);
 		ast_indicate(astcSourceRemote, AST_CONTROL_RINGING); // Shouldn't this be ALERTING?
@@ -2336,6 +2331,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 				sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: Blind %s Transfer, callerid exchange need to be implemented\n", CS_AST_CHANNEL_PVT_TYPE(astcSourceRemote));
 			}
 		}
+		
 	}
 	if (ast_channel_masquerade(astcDestinationLocal, astcSourceRemote)) {
 		ast_log(LOG_WARNING, "SCCP: Failed to masquerade %s into %s\n", astcDestinationLocal->name, astcSourceRemote->name);
@@ -2367,10 +2363,12 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 
 	/* it's a SCCP channel destination on transfer */
 	cDestinationRemote = CS_AST_CHANNEL_PVT(astcDestinationRemote);
+	
+	/* change callInfo on our destination */
 	if (cDestinationRemote) {
 		sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: Transfer for Channel Type %s\n", CS_AST_CHANNEL_PVT_TYPE(astcSourceRemote));
 
-		if (CS_AST_CHANNEL_PVT_IS_SCCP(astcDestinationRemote)) {	/* change callInfo on our destination */
+		if (CS_AST_CHANNEL_PVT_IS_SCCP(astcDestinationRemote)) {
 			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Transfer confirmation destination on channel %s\n", d->id, astcDestinationRemote->name);
 
 			/* change callInfo on destination part */
@@ -2385,16 +2383,16 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 				sccp_copy_string(cDestinationRemote->callInfo.callingPartyNumber, cSourceLocal->callInfo.calledPartyNumber, sizeof(cDestinationRemote->callInfo.originalCallingPartyNumber));
 			}
 			sccp_channel_send_callinfo(cDestinationRemote->device, cDestinationRemote);
+			
+			
 		} else {
+			ast_set_callerid(astcDestinationRemote, cSourceLocal->callInfo.callingPartyNumber, cSourceLocal->callInfo.callingPartyName, NULL);
 			sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: %s Transfer, callerid exchange need to be implemented\n", CS_AST_CHANNEL_PVT_TYPE(astcDestinationRemote));
-			if (CS_AST_CHANNEL_PVT_CMP_TYPE(astcDestinationRemote,"SIP")) {
-//				sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: %s Transfer, cid_num '%s', cid_name '%s'\n", CS_AST_CHANNEL_PVT_TYPE(astcSourceRemote), astcSourceRemote->cid_num, astcSourceRemote->cid_name);
-				;
-			}
-		} // if (CS_AST_CHANNEL_PVT_IS_SCCP(astcDestinationRemote)) {
+		} // no sccp channel
 	}
+	
+	/* change callInfo on our source */
 	if (cSourceRemote) {
-		/* change callInfo on our source */
 		if(CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote) ){ /* change callInfo on our source */
 			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Transfer confirmation destination on channel %s\n", d->id, astcSourceRemote->name);
 

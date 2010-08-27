@@ -29,7 +29,7 @@ void sccp_line_clean(sccp_line_t * l,boolean_t destroy);
 int sccp_line_destroy(const void *ptr);
 void sccp_line_delete_nolock(sccp_line_t * l);
 void sccp_line_cfwd(sccp_line_t * l, sccp_device_t *device, uint8_t type, char * number);
-void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, struct subscriptionId *subscriptionId);
+void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, uint8_t lineInstance, struct subscriptionId *subscriptionId);
 void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device);
 void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t *channel);
 void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t *channel);

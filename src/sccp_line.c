@@ -245,7 +245,6 @@ void sccp_line_kill(sccp_line_t * l) {
  * \callergraph
  */
 void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global) {
-	sccp_device_t 		*d;
 	sccp_linedevices_t	*linedevice;
 
 	if (!l)
@@ -268,18 +267,10 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global) {
 	SCCP_LIST_LOCK(&l->devices);
 	while( (linedevice = SCCP_LIST_REMOVE_HEAD(&l->devices, list))){
 		if(linedevice) {
-			if(!linedevice->device)
-				continue;
-			d = linedevice->device;
-			sccp_device_lock(d);
-			d->linesCount--;
-			sccp_device_unlock(d);
-
 			ast_free(linedevice);
 		}
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
-
 	sccp_line_destroy(l);
 }
 
@@ -381,15 +372,10 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t *device, uint8_t type, char *
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Call Forward enabled on line %s to number %s\n", DEV_ID_LOG(device), l->name, number);
 		}
 	}
-	// sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, l->instance, 0, 0);
-
-	//SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
-		if(linedevice && linedevice->device){
-
-			sccp_dev_starttone(linedevice->device, SKINNY_TONE_ZIPZIP, 0, 0, 0);
-			sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDALL);
-		}
-	//}
+	if(linedevice && linedevice->device){
+		sccp_dev_starttone(linedevice->device, SKINNY_TONE_ZIPZIP, 0, 0, 0);
+		sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDALL);
+	}
 }
 
 /*!
@@ -398,17 +384,28 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t *device, uint8_t type, char *
  * \param device SCCP Device
  * \param subscriptionId Subscription ID for addressing individual devices on the line
  */
-void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, struct subscriptionId *subscriptionId)
+void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, uint8_t lineInstance, struct subscriptionId *subscriptionId)
 {
+	sccp_linedevices_t *linedevice = NULL;
 
-	sccp_linedevices_t *linedevice;
 	if(!l || !device)
 		return;
+	
+	linedevice = sccp_util_getDeviceConfiguration(device, l);
+	if(linedevice){
+		sccp_log(DEBUGCAT_LINE)(VERBOSE_PREFIX_3 "%s: device already registered for line '%s'\n", DEV_ID_LOG(device), l->name);
+		return;
+	}else{
+		sccp_log(DEBUGCAT_LINE)(VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
+		linedevice = ast_malloc(sizeof(sccp_linedevices_t));
+		memset(linedevice, 0, sizeof(sccp_linedevices_t));
+	}
 
-	sccp_log((DEBUGCAT_HIGH + DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
-	linedevice = ast_malloc(sizeof(sccp_linedevices_t));
-	memset(linedevice, 0, sizeof(sccp_linedevices_t));
+	
+	
 	linedevice->device = device;
+	linedevice->lineInstance = lineInstance;
+	linedevice->line = l;
 
 	if(NULL != subscriptionId) {
 		sccp_copy_string(linedevice->subscriptionId.name,  subscriptionId->name, sizeof(linedevice->subscriptionId.name));
@@ -465,11 +462,9 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device)
 	sccp_event_fire((const sccp_event_t**)&event);
 
 	SCCP_LIST_LOCK(&l->devices);
-	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
 		if (linedevice->device == device) {
-			SCCP_LIST_LOCK(&l->devices);
-			SCCP_LIST_REMOVE(&l->devices, linedevice, list);
-			SCCP_LIST_UNLOCK(&l->devices);
+			SCCP_LIST_REMOVE_CURRENT(list);
 
 #ifdef CS_DYNAMIC_CONFIG
 			unregister_exten(l,&(linedevice->subscriptionId));
@@ -478,9 +473,9 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device)
 			l->statistic.numberOfActiveDevices--;
 			sccp_line_unlock(l);
 			ast_free(linedevice);
-			break;
 		}
 	}
+	SCCP_LIST_TRAVERSE_SAFE_END;
 	SCCP_LIST_UNLOCK(&l->devices);
 
 }

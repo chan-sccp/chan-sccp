@@ -448,7 +448,9 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 		r->msg.SetLampMessage.lel_lampMode = htolel( (status) ? d->mwilamp :  SKINNY_LAMP_OFF);
 
 		sccp_dev_send(d, r);
-		sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n",DEV_ID_LOG(d), (mask > 0) ? "ON" : "OFF", (l ? l->name : "unknown"),(l ? instance : 0));
+		sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n",DEV_ID_LOG(d), (mask > 0) ? "ON" : "OFF", (l ? l->name : "unknown"),instance );
+	}else{
+		sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: Device already know status %s on line %s (%d)\n",DEV_ID_LOG(d), (mask > 0) ? "ON" : "OFF", (l ? l->name : "unknown"), instance );
 	}
 
 
