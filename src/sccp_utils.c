@@ -1249,6 +1249,8 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 	if(!(*event) || !device )
 		return;
 
+	
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: got FeatureChangeEvent %d\n", DEV_ID_LOG(device), (*event)->event.featureChanged.featureType);
 	sccp_device_lock(device);
 	sprintf(family, "SCCP/%s", device->id);
 	sccp_device_unlock(device);
@@ -1263,17 +1265,19 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 						SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list){
 							if(lineDevice->device != device)
 								continue;
-
-							sccp_dev_forward_status(line, device);
+							
+							uint8_t instance = sccp_device_find_index_for_line(device, line->name);
+							sccp_dev_forward_status(line, instance, device);
 							sprintf(cfwdLineStore, "%s/%s", family,config->button.line.name);
-							if(lineDevice->cfwdAll.enabled)
+							if(lineDevice->cfwdAll.enabled){
 								ast_db_put(cfwdLineStore, "cfwdAll", lineDevice->cfwdAll.number);
-							else
+								sccp_log(1)(VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);
+							}else{
 								ast_db_del(cfwdLineStore, "cfwdAll");
+							}
 						}
 					}
 				}
-
 			}
 
 			break;

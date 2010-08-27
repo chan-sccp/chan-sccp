@@ -76,7 +76,6 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 	sccp_channel_t * c = NULL;
 	struct ast_channel * bridge = NULL;
 	sccp_linedevices_t	*linedevice;
-	int instance;
 
 	if (!l || !device || !device->id || ast_strlen_zero(device->id)){
 		ast_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
@@ -107,10 +106,6 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 			return NULL;
 		}
 	}
-
-	sccp_device_lock(device);
-	instance = sccp_device_find_index_for_line(device, l->name);
-	sccp_device_unlock(device);
 
 	/* look if we have a call  */
 	c = sccp_channel_get_active(device);
@@ -151,7 +146,7 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 				if(number) {
 					sccp_line_cfwd(l, device, type, number);
 					// we are on call, so no tone has been played until now :)
-					sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, instance, 0, 0);
+					sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, 0, 0);
 
 					sccp_channel_endcall(c);
 					ast_free(number);
@@ -167,7 +162,7 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 			}
 		} else if(c->state == SCCP_CHANNELSTATE_OFFHOOK && ast_strlen_zero(c->dialedNumber)) {
  			// we are dialing but without entering a number :D -FS
-			sccp_dev_stoptone(device, instance, (c && c->callid)?c->callid:0);
+			sccp_dev_stoptone(device, linedevice->lineInstance, (c && c->callid)?c->callid:0);
 			// changing SS_DIALING mode to SS_GETFORWARDEXTEN
 			sccp_channel_lock(c);
 			c->ss_action = SCCP_SS_GETFORWARDEXTEN; /* Simpleswitch will catch a number to be dialed */
@@ -227,23 +222,21 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
  * \param d SCCP Device
  * \return SCCP Channel
  */
-sccp_channel_t * sccp_feat_handle_directpickup(sccp_line_t * l, sccp_device_t *d)
+sccp_channel_t * sccp_feat_handle_directpickup(sccp_line_t * l, uint8_t lineInstance, sccp_device_t *d)
 {
 	sccp_channel_t * c;
-	int instance;
 
 	if (!l || !d || strlen(d->id) < 3){
 		ast_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
 		return NULL;
 	}
 
-	instance = sccp_device_find_index_for_line(d, l->name);
 	/* look if we have a call */
 	if ( (c = sccp_channel_get_active(d)) ) {
 		// we have a channel, checking if
 		if(c->state == SCCP_CHANNELSTATE_OFFHOOK && (!c->dialedNumber || (c->dialedNumber && ast_strlen_zero(c->dialedNumber)))) {
  			// we are dialing but without entering a number :D -FS
-			sccp_dev_stoptone(d, instance, (c && c->callid)?c->callid:0);
+			sccp_dev_stoptone(d, lineInstance, (c && c->callid)?c->callid:0);
 			sccp_channel_lock(c);
 			// changing SS_DIALING mode to SS_GETFORWARDEXTEN
 			c->ss_action = SCCP_SS_GETPICKUPEXTEN; /* Simpleswitch will catch a number to be dialed */
@@ -736,19 +729,18 @@ void sccp_feat_updatecid(sccp_channel_t * c) {
  * \param d SCCP Device
  * \param line_instance Line Instance as int
  */
-void sccp_feat_voicemail(sccp_device_t * d, uint8_t line_instance) {
+void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance) {
 
 	sccp_channel_t * c;
 	sccp_line_t * l;
-	uint8_t		instance;
 
-	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Voicemail Button pressed on line (%d)\n", d->id, line_instance);
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Voicemail Button pressed on line (%d)\n", d->id, lineInstance);
 
 	c = sccp_channel_get_active(d);
 	if (c) {
 		sccp_channel_lock(c);
 		if (!c->line || ast_strlen_zero(c->line->vmnum)) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, line_instance);
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, lineInstance);
 			sccp_channel_unlock(c);
 			return;
 		}
@@ -759,25 +751,26 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t line_instance) {
 			sccp_pbx_softswitch(c);
 			return;
 		}
-		instance = sccp_device_find_index_for_line(d, c->line->name);
-		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+		
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 		sccp_channel_unlock(c);
 		return;
 	}
 
-	if (!line_instance)
-		line_instance = 1;
-
-	l = sccp_line_find_byid(d, line_instance);
+	if (!lineInstance)
+		l = sccp_line_find_byid(d, 1);
+	else
+		l = sccp_line_find_byid(d, lineInstance);
+	
 	if (!l) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, line_instance);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, lineInstance);
 		return;
 	}
 	if (!ast_strlen_zero(l->vmnum)) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Dialing voicemail %s\n", d->id, l->vmnum);
 		sccp_channel_newcall(l, d, l->vmnum, SKINNY_CALLTYPE_OUTBOUND);
 	} else {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, line_instance);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, lineInstance);
 	}
 }
 
@@ -827,13 +820,13 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  */
-void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c) {
 #ifdef CS_SCCP_CONFERENCE
 	sccp_buttonconfig_t 	*config = NULL;
 	sccp_channel_t 		*channel = NULL;
 	sccp_selectedchannel_t 	*selectedChannel = NULL;
 	sccp_line_t 		*line = NULL;
-	boolean_t			selectedFound = FALSE;
+	boolean_t		selectedFound = FALSE;
 
 
 	if(!d || !c)
@@ -843,8 +836,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 	uint8_t num = sccp_device_numberOfChannels(d);
 	sccp_device_unlock(d);
 	if(num < 2){
-		uint8_t instance = sccp_device_find_index_for_line(d, l->name);
-		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 		return;
 	}
 
@@ -885,8 +877,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
 
 #else
 	/* sorry but this is private code -FS */
-	uint8_t instance = sccp_device_find_index_for_line(d, l->name);
-	sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 	ast_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
 #endif
 }
@@ -899,13 +890,13 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  */
-void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c) {
 #ifdef CS_ADV_FEATURES
-	sccp_advfeat_join(d, l, c);
+	sccp_advfeat_join(d, l, lineInstance, c);
 #else
 	/* sorry but this is private code -FS */
 	uint8_t instance = sccp_device_find_index_for_line(d, l->name);
-	sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 #endif
 }
 
@@ -917,22 +908,20 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  */
-sccp_channel_t * sccp_feat_handle_meetme(sccp_line_t * l, sccp_device_t *d) {
+sccp_channel_t * sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_t *d) {
 	sccp_channel_t * c;
-	int instance;
 
 	if (!l || !d || !d->id || ast_strlen_zero(d->id)) {
 		ast_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
 		return NULL;
 	}
 
-	instance = sccp_device_find_index_for_line(d, l->name);
 	/* look if we have a call */
 	if ( (c = sccp_channel_get_active(d)) ) {
 		// we have a channel, checking if
 		if(c->state == SCCP_CHANNELSTATE_OFFHOOK && (!c->dialedNumber || (c->dialedNumber && ast_strlen_zero(c->dialedNumber)))) {
  			// we are dialing but without entering a number :D -FS
-			sccp_dev_stoptone(d, instance, (c && c->callid)?c->callid:0);
+			sccp_dev_stoptone(d, lineInstance, (c && c->callid)?c->callid:0);
 			sccp_channel_lock(c);
 			// changing SS_DIALING mode to SS_GETFORWARDEXTEN
 			c->ss_action = SCCP_SS_GETMEETMEROOM; /* Simpleswitch will catch a number to be dialed */
@@ -951,7 +940,7 @@ sccp_channel_t * sccp_feat_handle_meetme(sccp_line_t * l, sccp_device_t *d) {
 	c = sccp_channel_allocate(l, d);
 
 	if (!c) {
-		ast_log(LOG_ERROR, "%s: (handle_meetme) Can't allocate SCCP channel for line %s\n", d->id, l->name);
+		ast_log(LOG_ERROR, "%s: (handle_meetme) Can't allocate SCCP channel for line %s\n", DEV_ID_LOG(d), l->name);
 		return NULL;
 	}
 
@@ -1109,9 +1098,8 @@ void sccp_feat_meetme_start(sccp_channel_t * c)
  * \param d SCCP Device
  * \return SCCP Channel
  */
-sccp_channel_t * sccp_feat_handle_barge(sccp_line_t * l, sccp_device_t *d) {
+sccp_channel_t * sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t *d) {
 	sccp_channel_t * c;
-	int instance;
 
 	if (!l || !d || !d->id || ast_strlen_zero(d->id)) {
 		ast_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
@@ -1119,13 +1107,12 @@ sccp_channel_t * sccp_feat_handle_barge(sccp_line_t * l, sccp_device_t *d) {
 	}
 
 
-	instance = sccp_device_find_index_for_line(d, l->name);
 	/* look if we have a call */
 	if ( (c = sccp_channel_get_active(d)) ) {
 		// we have a channel, checking if
 		if(c->state == SCCP_CHANNELSTATE_OFFHOOK && (!c->dialedNumber || (c->dialedNumber && ast_strlen_zero(c->dialedNumber)))) {
  			// we are dialing but without entering a number :D -FS
-			sccp_dev_stoptone(d, instance, (c && c->callid)?c->callid:0);
+			sccp_dev_stoptone(d, lineInstance, (c && c->callid)?c->callid:0);
 			sccp_channel_lock(c);
 			// changing SS_DIALING mode to SS_GETFORWARDEXTEN
 			c->ss_action = SCCP_SS_GETBARGEEXTEN; /* Simpleswitch will catch a number to be dialed */
@@ -1201,22 +1188,20 @@ int sccp_feat_barge(sccp_channel_t * c, char *exten) {
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  */
-sccp_channel_t * sccp_feat_handle_cbarge(sccp_line_t * l, sccp_device_t *d) {
+sccp_channel_t * sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t *d) {
 	sccp_channel_t * c;
-	int instance;
 
 	if (!l || !d || strlen(d->id) < 3){
 		ast_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
 		return NULL;
 	}
 
-	instance = sccp_device_find_index_for_line(d, l->name);
-	/* look if we have a call */
+/* look if we have a call */
 	if ( (c = sccp_channel_get_active(d)) ) {
 		// we have a channel, checking if
 		if(c->state == SCCP_CHANNELSTATE_OFFHOOK && (!c->dialedNumber || (c->dialedNumber && ast_strlen_zero(c->dialedNumber)))) {
  			// we are dialing but without entering a number :D -FS
-			sccp_dev_stoptone(d, instance, (c && c->callid)?c->callid:0);
+			sccp_dev_stoptone(d, lineInstance, (c && c->callid)?c->callid:0);
 			sccp_channel_lock(c);
 			// changing SS_DIALING mode to SS_GETFORWARDEXTEN
 			c->ss_action = SCCP_SS_GETCBARGEROOM; /* Simpleswitch will catch a number to be dialed */
@@ -1329,8 +1314,6 @@ void sccp_feat_hotline(sccp_device_t *d, sccp_line_t *line) {
  */
 void sccp_feat_changed(sccp_device_t *device, sccp_feature_type_t featureType){
 	if(device){
-
-
 		sccp_featButton_changed(device, featureType);
 
 		sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
@@ -1342,8 +1325,6 @@ void sccp_feat_changed(sccp_device_t *device, sccp_feature_type_t featureType){
 		sccp_event_fire((const sccp_event_t **)&event);
 
 	}
-
-
 }
 
 /*!

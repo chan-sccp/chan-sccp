@@ -500,6 +500,10 @@ typedef struct sccp_linedevices			sccp_linedevices_t;			/*!< SCCP Line Connected
  */
 struct sccp_linedevices {
 	sccp_device_t 				* device;				/*!< SCCP Device */
+	sccp_line_t 				*line;					/*!< SCCP Line */
+	uint8_t					lineInstance;				/*!< line instance of this->line on this->device */
+	
+	
 	sccp_cfwd_information_t			cfwdAll;				/*!< cfwd information */
 	sccp_cfwd_information_t			cfwdBusy;				/*!< cfwd information */
 
@@ -702,7 +706,7 @@ struct sccp_device {
 	uint8_t 				registrationState;			/*!< If the device has been fully registered yet */
 	struct ast_codec_pref 			codecs;					/*!< Asterisk Codec Device Preference */
 	sccp_devicestate_t 			state;					/*!< Device State (SCCP_DEVICE_ONHOOK or SCCP_DEVICE_OFFHOOK) */
-/*      uint8_t 				ringermode;*/				/* Ringer Mode. Need it for the ringback */
+	boolean_t				linesRegistered;				/*!< do we answered  RegisterAvailableLinesMessage */
 
 	char 					lastNumber[AST_MAX_EXTENSION];		/*!< Last Dialed Number */
 	int 					capability;				/*!< Asterisk Codec Capability */

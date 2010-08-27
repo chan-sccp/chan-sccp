@@ -811,21 +811,21 @@ static int sccp_show_line(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Adhoc Number Assigned : %s\n", l->adhocNumber ? l->adhocNumber : "No");
 	ast_cli(fd, "Message Waiting New.  : %i\n", l->voicemailStatistic.newmsgs);
 	ast_cli(fd, "Message Waiting Old.  : %i\n", l->voicemailStatistic.oldmsgs);
-	if (SCCP_LIST_FIRST(&l->devices)) {
-		ast_cli(fd, "\nLine Assigned to Device\n");
-		ast_cli(fd, "=========================\n");
-		ast_cli(fd, "%-15s %-25s %-25s\n", "", "call forward all", "call forward busy");
-		ast_cli(fd, "--------------- ------------------------- -------------------------\n");
-		ast_cli(fd, "%-15s %-4s %-20s %-4s %-20s\n", "device", "on/off" , "number" , "on/off" , "number");
-		ast_cli(fd, "--------------- ---- -------------------- ---- --------------------\n");
+	
+	ast_cli(fd, "\nLine Assigned to Device %d\n", l->devices.size);
+	ast_cli(fd, "=========================\n");
+	ast_cli(fd, "%-15s %-25s %-25s\n", "", "call forward all", "call forward busy");
+	ast_cli(fd, "--------------- ------------------------- -------------------------\n");
+	ast_cli(fd, "%-15s %-4s %-20s %-4s %-20s\n", "device", "on/off" , "number" , "on/off" , "number");
+	ast_cli(fd, "--------------- ---- -------------------- ---- --------------------\n");
 
-		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			if (linedevice)
-    				ast_cli(fd, "%-11s: %-4s %-20s %-4s %-20s\n", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number ? linedevice->cfwdAll.number : "<not set>", linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number ? linedevice->cfwdBusy.number : "<not set>");
-		}
-		SCCP_LIST_UNLOCK(&l->devices);
+	SCCP_LIST_LOCK(&l->devices);
+	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+		if (linedevice)
+    			ast_cli(fd, "%-11s: %-4s %-20s %-4s %-20s\n", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number ? linedevice->cfwdAll.number : "<not set>", linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number ? linedevice->cfwdBusy.number : "<not set>");
 	}
+	SCCP_LIST_UNLOCK(&l->devices);
+	
 
 	if (l->variables) {
 		ast_cli(fd, "\nLine variables\n");

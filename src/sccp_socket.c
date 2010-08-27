@@ -436,7 +436,7 @@ void * sccp_socket_thread(void * ignore)
  * \param device SCCP Device
  * \param t SCCP Message
  */
-void sccp_session_sendmsg(sccp_device_t *device, sccp_message_t t)
+void sccp_session_sendmsg(const sccp_device_t *device, sccp_message_t t)
 {
 	if(!device || !device->session)
 		return;
