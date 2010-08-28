@@ -1383,8 +1383,16 @@ void sccp_dev_forward_status(sccp_line_t *l, uint8_t lineInstance, sccp_device_t
 
 	linedevice=sccp_util_getDeviceConfiguration(device,l);
 
+	//TODO check for forward status during registration -MC
 	if(!linedevice){
-		ast_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
+		if(device->registrationState == SKINNY_DEVICE_RS_OK){
+			ast_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
+		}
+		
+		REQ(r1, ForwardStatMessage);
+		r1->msg.ForwardStatMessage.lel_lineNumber = htolel(lineInstance);
+		sccp_dev_send(device, r1);
+		
 		return;
 	}
 
