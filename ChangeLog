@@ -1,4 +1,51 @@
+2010-08-28  ddegroot
+
+	* [r1806] src/sccp_features.c: Compile warning against asterisk 1.4
+
+2010-08-28  marcelloceschia
+
+	* [r1805] src/sccp_device.c: remove "Device does not have line
+	  configured" during registration
+
+2010-08-27  marcelloceschia
+
+	* [r1804] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_adv_features.c, src/sccp_adv_features.h,
+	  src/sccp_channel.c, src/sccp_cli.c, src/sccp_device.c,
+	  src/sccp_device.h, src/sccp_features.c, src/sccp_features.h,
+	  src/sccp_indicate.c, src/sccp_indicate.h, src/sccp_line.c,
+	  src/sccp_line.h, src/sccp_mwi.c, src/sccp_pbx.c,
+	  src/sccp_socket.c, src/sccp_socket.h, src/sccp_softkeys.c,
+	  src/sccp_softkeys.h, src/sccp_utils.c: impr. for lineInstsce
+
 2010-08-26  ddegroot
+
+	* [r1803] debian/changelog: Debian Package File Update
+
+	* [r1802] Makefile.am, debian/changelog, debian/rules: Update
+	  Debian Package Files
+
+2010-08-26  progs
+
+	* [r1801] src/sccp_channel.c: correctly play moh even if
+	  CONTROL_HOLD is defined
+
+2010-08-26  ddegroot
+
+	* [r1800] doc/doxygen.cfg: Update doxygen settings
+
+	* [r1799] ChangeLog, debian/changelog, doc/doxygen.cfg: * Release
+	  Candidate 2
+	  *
+	  * Added Functionionality:
+	  * - sccp reload
+	  * - dynamic speeddial with and without callerid
+	  *
+	  * Fixed/Improved:
+	  * - bugs reported by users
+	  * - transfer + callerid
+	  * - callerid passing
+	  *
 
 	* [r1797] .version, ChangeLog, Makefile.in, NEWS, aclocal.m4,
 	  configure, doc/Makefile.in, src/Makefile.in, src/sccp_config.c:
