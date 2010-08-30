@@ -17,9 +17,9 @@
 #include <asterisk/pbx.h>
 
 #ifndef CS_AST_HAS_RTP_ENGINE
-#define sccp_rtp_read	ast_rtp_write
+#define sccp_rtp_write	ast_rtp_write
 #else
-#define sccp_rtp_read	ast_rtp_instance_write
+#define sccp_rtp_write	ast_rtp_instance_write
 #endif // CS_AST_HAS_RTP_ENGINE
 
 #if ASTERISK_VERSION_NUM >= 10400

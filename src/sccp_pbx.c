@@ -662,7 +662,11 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 			break;
 		case 2:
 			frame = ast_rtp_read(c->rtp.video.rtp);	/* RTP Video */
-			//ast_log(LOG_NOTICE, "%s: Got Video frame from device\n", DEV_ID_LOG(c->device));
+			sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: Got Video frame from device; frametype: %d, subclass:%d\n", DEV_ID_LOG(c->device), frame->frametype, frame->subclass);
+			if(frame){
+				frame->frametype = AST_FRAME_VIDEO;
+				frame->subclass = AST_FORMAT_H264;
+			}
 			break;
 		case 3:
 			frame = ast_rtcp_read(c->rtp.video.rtp);	/* RTCP Control Channel for video */
@@ -691,6 +695,7 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 		ast_log(LOG_WARNING, "%s: error reading frame == NULL\n", DEV_ID_LOG(c->device));
 		return frame;
 	}
+	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast->fdno, frame->frametype, ast_getformatname(frame->subclass), frame->subclass);
 
 	if (frame->frametype == AST_FRAME_VOICE) {
 		//sccp_log(1)(VERBOSE_PREFIX_3 "%s: read format: %s(%d)\n",
@@ -703,7 +708,7 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 		if (!(frame->subclass & (ast->nativeformats)))
 #endif // ASTERISK_VERSION_NUM >= 10400
 		{
-		      sccp_log(1)(VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n",
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n",
 						DEV_ID_LOG(c->device),
 						ast->name,
 						ast_getformatname(ast->nativeformats),
@@ -760,14 +765,14 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 
 				}
 				if (c->rtp.audio.rtp){
-					res = sccp_rtp_read(c->rtp.audio.rtp, frame);
+					res = sccp_rtp_write(c->rtp.audio.rtp, frame);
 				}
 				break;
 			case AST_FRAME_IMAGE:
 			case AST_FRAME_VIDEO:
 				//ast_log(LOG_NOTICE, "%s: Got Video frame type %d\n", DEV_ID_LOG(c->device), frame->subclass);
 				if (c && c->rtp.video.rtp){
-					res = sccp_rtp_read(c->rtp.video.rtp, frame);
+					res = sccp_rtp_write(c->rtp.video.rtp, frame);
 				}else{
 					//ast_log(LOG_NOTICE, "%s: drop video frame\n", DEV_ID_LOG(c->device));
 				}
@@ -1623,7 +1628,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 	len = strlen(shortenedNumber);
 	assert(strlen(c->dialedNumber) == len);
 
-	if(GLOB(digittimeoutchar) == shortenedNumber[len-1])
+	if(len > 0 && GLOB(digittimeoutchar) == shortenedNumber[len-1])
 	{
 		shortenedNumber[len-1] = '\0';
 
@@ -1960,7 +1965,7 @@ static const char *sccp_pbx_get_callid(struct ast_channel *ast)
 const struct ast_channel_tech sccp_tech = {
 	.type = SCCP_TECHTYPE_STR,
 	.description = "Skinny Client Control Protocol (SCCP)",
-	.capabilities = AST_FORMAT_ALAW|AST_FORMAT_ULAW|AST_FORMAT_G729A |AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS,
+	.capabilities = AST_FORMAT_ALAW|AST_FORMAT_ULAW|AST_FORMAT_G722|AST_FORMAT_G729A |AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS,
 	.properties = AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
 	.requester = sccp_request,
 	.devicestate = sccp_devicestate,
