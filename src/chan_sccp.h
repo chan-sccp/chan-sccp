@@ -47,6 +47,7 @@ extern "C" {
 #include <asterisk/config.h>
 #include <asterisk/sched.h>
 #include <asterisk/version.h>
+#include <asterisk/causes.h>
 
 #include "sccp_dllists.h"
 //#include "sccp_conference.h"
