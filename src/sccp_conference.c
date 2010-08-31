@@ -35,7 +35,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t *owner){
 
 	sccp_conference_t *conference = NULL;
 	sccp_conference_participant_t *moderator = NULL;
-	int 	confCapabilities = AST_BRIDGE_CAPABILITY_MULTIMIX | AST_BRIDGE_CAPABILITY_THREAD | AST_BRIDGE_CAPABILITY_VIDEO;
+	//int 	confCapabilities = AST_BRIDGE_CAPABILITY_MULTIMIX | AST_BRIDGE_CAPABILITY_THREAD | AST_BRIDGE_CAPABILITY_VIDEO;
 
 	if(!owner)
 		return NULL;
@@ -288,5 +288,7 @@ static void * sccp_conference_join_thread(void *data){
 	//sccp_conference_removeParticipant(participant->conference, participant->channel);
 	
 	participant->joinThread = AST_PTHREADT_NULL;
+	
+	return NULL;
 }
 #endif
