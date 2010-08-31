@@ -1591,7 +1591,7 @@ uint32_t sccp_parse_debugline (char * arguments[], int startat, int argc, uint32
 const char * sccp_get_debugcategories(uint32_t debugvalue,char * dest) {
 	uint32_t i;
 	boolean_t first=1;
-	char ret[1000]="";
+	static char ret[1000]="";
 	for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
 		if((debugvalue & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
 			if (first) {
