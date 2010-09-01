@@ -485,9 +485,8 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
  * \callgraph
  * \callergraph
  */
-void sccp_handle_AvailableLines(sccp_session_t * s, sccp_moo_t * r){
+void sccp_handle_AvailableLines(sccp_device_t *d){
 	uint8_t i = 0, line_count = 0;
-	sccp_device_t 		*d;
 	btnlist 		*btn;
 	sccp_line_t 		*l;
 	sccp_buttonconfig_t	*buttonconfig = NULL;
@@ -495,7 +494,6 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_moo_t * r){
 
 	line_count = 0;
 
-	d = s->device;
 	
 	/** \TODO why do we get the message twice  */
 	if(d->linesRegistered)

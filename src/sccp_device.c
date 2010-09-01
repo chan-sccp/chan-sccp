@@ -36,6 +36,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_mwi.h"
 #include "sccp_config.h"
 #include "sccp_conference.h"
+#include "sccp_actions.h"
 
 #include <asterisk/app.h>
 #include <asterisk/pbx.h>
@@ -536,6 +537,11 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 		d->mwilight &= ~(1<<0);
 		sccp_dev_send(d, r);
 
+		if(!d->linesRegistered){
+			sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(d));
+			sccp_handle_AvailableLines(d);
+			d->linesRegistered = TRUE;
+		}
 
 		snprintf(servername, sizeof(servername), "%s %s", GLOB(servername), SKINNY_DISP_CONNECTED);
 		sccp_dev_displaynotify(d, servername, 5);
@@ -1531,6 +1537,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE); 	/* set correct register state */
 
 	d->mwilight = 0; 					/* reset mwi light*/
+	d->linesRegistered = FALSE;
 	sprintf(family, "SCCP/%s", d->id);
 	ast_db_del(family, "lastDialedNumber");
 	if(!ast_strlen_zero(d->lastNumber))
@@ -1667,9 +1674,10 @@ int sccp_device_destroy(const void *ptr){
  * \return result as boolean_t
  */
 boolean_t sccp_device_isVideoSupported(const sccp_device_t *device){
-	//if(device->capability & AST_FORMAT_VIDEO_MASK)
-	//	return TRUE;
-
+#ifdef CS_SCCP_VIDEO
+	if(device->capability & AST_FORMAT_VIDEO_MASK)
+		return TRUE;
+#endif
 	return FALSE;
 }
 

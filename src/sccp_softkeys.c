@@ -163,6 +163,11 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	if(!l && d && d->currentLine)
 		l = d->currentLine;
 
+	if(!l){
+		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 1);
+		sccp_dev_displayprompt(d, 0, 0, "No call to put on hold.",5);
+		return;
+	}
 	if(strlen(l->adhocNumber)>0)
 		sccp_channel_newcall(l, d, l->adhocNumber, SKINNY_CALLTYPE_OUTBOUND);
 	else
