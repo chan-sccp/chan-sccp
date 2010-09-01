@@ -169,6 +169,8 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Asterisk asked to create a channel type=%s, format=%d, line=%s, subscriptionId.number=%s, options=%s\n", type, format, lineSubscriptionId.mainId, lineSubscriptionId.subscriptionId.number, (options) ? options : "");
 
+	
+	
 	l = sccp_line_find_byname(lineSubscriptionId.mainId);
 
 	if (!l) {
@@ -572,7 +574,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 		      sccp_handle_EnblocCallMessage(s,r);
 		      break;
 		case RegisterAvailableLinesMessage:
-		      sccp_handle_AvailableLines(s, r);
+		      sccp_handle_AvailableLines(s->device);
 		      break;
 		case ForwardStatReqMessage:
 		      sccp_handle_forward_stat_req(s,r);
@@ -1217,14 +1219,14 @@ static int unload_module(void) {
 	while ((l = SCCP_LIST_REMOVE_HEAD(&GLOB(lines), list))) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "SCCP: Removing line %s\n", l->name);
 
-		/* removing channels */
-		SCCP_LIST_LOCK(&l->channels);
-		while ((c = SCCP_LIST_REMOVE_HEAD(&l->channels, list))) {
-			sccp_channel_cleanbeforedelete(c);
-			sccp_channel_delete_no_lock(c);
-		}
-		SCCP_LIST_UNLOCK(&l->channels);
-		SCCP_LIST_HEAD_DESTROY(&l->channels);
+// 		/* removing channels */
+// 		SCCP_LIST_LOCK(&l->channels);
+// 		while ((c = SCCP_LIST_REMOVE_HEAD(&l->channels, list))) {
+// 			sccp_channel_cleanbeforedelete(c);
+// 			sccp_channel_delete_no_lock(c);
+// 		}
+// 		SCCP_LIST_UNLOCK(&l->channels);
+// 		SCCP_LIST_HEAD_DESTROY(&l->channels);
 
 		sccp_line_clean(l, FALSE);
 	}
