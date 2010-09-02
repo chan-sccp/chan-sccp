@@ -123,6 +123,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	char * name, * number, *cidtmp; // For the callerid parse below
 #endif // CS_AST_CHANNEL_HAS_CID
 
+
 #if ASTERISK_VERSION_NUM < 10400
 	// if channel type is undefined, set to SCCP
 	if (!ast->type) {
@@ -225,6 +226,12 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 // 	sccp_mutex_unlock(&d->lock);
 
   /* Set the channel callingParty Name and Number */
+	sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3  "SCCP: (sccp_pbx_call) asterisk cid_num = '%s'\n", (ast->cid.cid_num)?ast->cid.cid_num:"");
+	sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3  "SCCP: (sccp_pbx_call) asterisk cid_name = '%s'\n", (ast->cid.cid_name)?ast->cid.cid_name:"");
+	sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3  "SCCP: (sccp_pbx_call) asterisk cid_dnid = '%s'\n", (ast->cid.cid_dnid)?ast->cid.cid_dnid:"");
+	sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3  "SCCP: (sccp_pbx_call) asterisk cid_ani = '%s'\n", (ast->cid.cid_ani)?ast->cid.cid_ani:"");
+	sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3  "SCCP: (sccp_pbx_call) asterisk cid_ani2 = '%i'\n", (ast->cid.cid_ani)?ast->cid.cid_ani2:-1);
+	sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3  "SCCP: (sccp_pbx_call) asterisk cid_rdnis = '%s'\n", (ast->cid.cid_rdnis)?ast->cid.cid_rdnis:"");
 #ifdef CS_AST_CHANNEL_HAS_CID
 	if(GLOB(recorddigittimeoutchar))
 	{
@@ -242,14 +249,19 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 			suffixedNumber[strlen(ast->cid.cid_num)+0] = '#';
 			suffixedNumber[strlen(ast->cid.cid_num)+1] = '\0';
 			sccp_channel_set_callingparty(c, ast->cid.cid_name, suffixedNumber);
-		}
-		else
+		} else
 			sccp_channel_set_callingparty(c, ast->cid.cid_name, ast->cid.cid_num);
+			
 	}
 	else
 	{
 		sccp_channel_set_callingparty(c, ast->cid.cid_name, ast->cid.cid_num);
 	}
+	
+	/* check if we have an forwared call */
+	if(!ast_strlen_zero(ast->cid.cid_ani) && strncmp(ast->cid.cid_ani, c->callInfo.callingPartyNumber, strlen(ast->cid.cid_ani))){
+		sccp_copy_string(c->callInfo.originalCalledPartyNumber, ast->cid.cid_ani, sizeof(c->callInfo.originalCalledPartyNumber));
+	}	
 #else // CS_AST_CHANNEL_HAS_CID
 	if (ast->callerid && (cidtmp = strdup(ast->callerid))) {
 		ast_callerid_parse(cidtmp, &name, &number);
@@ -1616,7 +1628,6 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 
 	/* assign callerid name and number */
 	sccp_channel_set_callingparty(c, l->cid_name, l->cid_num);
-
 
 	// we use shortenedNumber but why ???
 	// If the timeout digit has been used to terminate the number

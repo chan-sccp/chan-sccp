@@ -898,7 +898,7 @@ struct sccp_channel {
 	sccp_device_t 	 			* device;				/*!< SCCP Device */
 
 	struct ast_channel 	 		* owner;				/*!< Asterisk Channel Owner */
-	sccp_line_t		 			* line;					/*!< SCCP Line */
+	sccp_line_t	 			* line;					/*!< SCCP Line */
 
 	struct {
 		struct sccp_rtp	 		audio;					/*!< Asterisk RTP */
