@@ -2446,7 +2446,6 @@ void sccp_channel_forward(sccp_channel_t *parent, sccp_linedevices_t *lineDevice
 		return;
 	}
 
-
 	sccp_copy_string(dialedNumber, fwdNumber, sizeof(dialedNumber));
 
 
@@ -2462,24 +2461,30 @@ void sccp_channel_forward(sccp_channel_t *parent, sccp_linedevices_t *lineDevice
 	forwarder->parentChannel = parent;
 	forwarder->ss_action = SCCP_SS_DIAL; /* softswitch will catch the number to be dialed */
 	forwarder->ss_data = 0; // nothing to pass to action
-
 	forwarder->calltype = SKINNY_CALLTYPE_OUTBOUND;
 
-
 	/* copy the number to dial in the ast->exten */
-
 	sccp_copy_string(forwarder->dialedNumber, dialedNumber, sizeof(forwarder->dialedNumber));
+	sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "Incoming: %s Forwarded By: %s Forwarded To: %s", parent->callInfo.callingPartyName, lineDevice->line->cid_name, dialedNumber);
 	sccp_channel_unlock(forwarder);
 
 	/* ok the number exist. allocate the asterisk channel */
 	if (!sccp_pbx_channel_allocate(forwarder)) {
 		ast_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", lineDevice->device->id, forwarder->line->name);
-
-		// \todo TODO cleanup allocation
 		sccp_channel_cleanbeforedelete(forwarder);
 		ast_free(forwarder);
 	}
 
+	/* setting callerid */
+	char 		fwd_from_name[254];
+	sprintf(fwd_from_name, "%s -> %s",lineDevice->line->cid_num,parent->callInfo.callingPartyName);
+	ast_set_callerid(forwarder->owner, parent->callInfo.callingPartyNumber, fwd_from_name, parent->callInfo.calledPartyNumber);
+	forwarder->owner->cid.cid_ani = strdup(dialedNumber);
+	forwarder->owner->cid.cid_ani2 = -1;
+	forwarder->owner->cid.cid_dnid = strdup(dialedNumber);
+	forwarder->owner->cid.cid_rdnis = strdup(forwarder->line->cid_num);
+
+	/* dial forwarder */
 	sccp_copy_string(forwarder->owner->exten, dialedNumber, sizeof(forwarder->owner->exten));
 	sccp_ast_setstate(forwarder, AST_STATE_OFFHOOK);
 	if (!ast_strlen_zero(dialedNumber) && !ast_check_hangup(forwarder->owner)
