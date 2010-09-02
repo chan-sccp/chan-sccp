@@ -30,13 +30,15 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <signal.h>
 #include <sys/ioctl.h>
 #include <asterisk/utils.h>
+#include "asterisk/compat.h"
 
 sccp_session_t * sccp_session_find(const sccp_device_t *device);
 
 int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r);
 
 /* file descriptors of active sockets */
-static fd_set	active_fd_set;
+//static fd_set	active_fd_set;
+static int	active_fd_set;
 
 
 /*!
@@ -137,7 +139,7 @@ void sccp_session_close(sccp_session_t * s)
 
 	sccp_session_lock(s);
 	if (s->fd > 0) {
-		FD_CLR(s->fd, &active_fd_set);
+		//FD_CLR(s->fd, &active_fd_set);
 		close(s->fd);
 		s->fd = -1;
 	}
@@ -183,7 +185,7 @@ void destroy_session(sccp_session_t * s)
 
 	/* closing fd's */
 	if (s->fd > 0) {
-		FD_CLR(s->fd, &active_fd_set);
+		//FD_CLR(s->fd, &active_fd_set);
 		close(s->fd);
 	}
 	/* freeing buffers */
@@ -329,12 +331,19 @@ static sccp_moo_t * sccp_process_data(sccp_session_t * s)
  */
 void * sccp_socket_thread(void * ignore)
 {
-	fd_set fset;
-	int res, maxfd = FD_SETSIZE;
+	//fd_set fset;
+	struct pollfd fds[1];
+
+	fds[0].fd = GLOB(descriptor);
+	fds[0].events = POLLIN;
+	fds[0].revents = 0;
+
+	
+	int res/*, maxfd = FD_SETSIZE*/;
 	time_t now;
 	sccp_session_t * s = NULL;
 	sccp_moo_t * m;
-	struct timeval tv;
+	//struct timeval tv;
 	sigset_t sigs;
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
@@ -349,35 +358,53 @@ void * sccp_socket_thread(void * ignore)
 	sigaddset(&sigs, SIGURG);
 //	pthread_sigmask(SIG_BLOCK, &sigs, NULL);
 
-	FD_ZERO(&active_fd_set);
-	FD_SET(GLOB(descriptor), &active_fd_set);
-	maxfd = GLOB(descriptor);
+	//FD_ZERO(&active_fd_set);
+	//FD_SET(GLOB(descriptor), &active_fd_set);
+	//maxfd = GLOB(descriptor);
 	uint8_t keepaliveAdditionalTime = 0;
 
 	while (GLOB(descriptor) > -1)
 	{
-		fset = active_fd_set;
-		tv.tv_sec = 0;
-		tv.tv_usec = 500000;
-		res = select(maxfd + 1, &fset, 0, 0, &tv);
+		//fset = active_fd_set;
+		//tv.tv_sec = 0;
+		//tv.tv_usec = 500000;
+		//res = select(maxfd + 1, &fset, 0, 0, &tv);
+		fds[0].fd = GLOB(descriptor);
+		res = ast_poll(fds, 1, 20);
+		
 		maxfd = GLOB(descriptor);
 
-		if (res == -1) {
-			ast_log(LOG_ERROR, "SCCP select() returned -1. errno: %s\n", strerror(errno));
-			continue;
+// 		if (res == -1) {
+// 			ast_log(LOG_ERROR, "SCCP select() returned -1. errno: %s\n", strerror(errno));
+// 			continue;
+// 		}
+		if (res < 0) {
+			ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
+			return NULL;
+		} else if(res == 0){
+			/* poll timeout */
+		} else{
+			sccp_accept_connection();
 		}
 
-		now = time(0);
+		
 		SCCP_LIST_LOCK(&GLOB(sessions));
 		SCCP_LIST_TRAVERSE(&GLOB(sessions), s, list) {
 			keepaliveAdditionalTime = 10;
 			if (s->fd > 0) {
-				if (s->fd > maxfd)
-					maxfd = s->fd;
+// 				if (s->fd > maxfd)
+// 					maxfd = s->fd;
 				/* we give the device a little delay after the TCP connection to start sending registration packets */
-				if (!FD_ISSET(s->fd, &active_fd_set) && now > s->lastKeepAlive + 1)
-					FD_SET(s->fd, &active_fd_set);
-				if (FD_ISSET(s->fd, &fset)) {
+// 					if (!FD_ISSET(s->fd, &active_fd_set) && now > s->lastKeepAlive + 1)
+// 						FD_SET(s->fd, &active_fd_set);
+// 				if(s->fd == active_fd_set && now > s->lastKeepAlive + 1 ){
+// 					fds[0].fd = s->fd;
+// 				}
+				
+				fds[0].fd = s->fd;
+				res = ast_poll(fds, 1, 20);
+				if (res > 0) {
+					/* we have new data -> continue */
 					sccp_read_data(s);
 					while ((m = sccp_process_data(s))) {
 						if (!sccp_handle_message(m, s)) {
@@ -385,32 +412,32 @@ void * sccp_socket_thread(void * ignore)
 							sccp_session_close(s);
 						}
 					}
-				}
-			}
-			if (s->fd > 0) {
-				/* we increase additionalTime for wireless devices */
-				if(s->device && (s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 ||
-				                 s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 ||
-				                 s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925)){
-					keepaliveAdditionalTime = 30;
+				} else {
+					now = time(0);
+					/* we increase additionalTime for wireless devices */
+					if(s->device && (s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 ||
+							s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 ||
+							s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925)){
+						keepaliveAdditionalTime = 30;
 
-				}
+					}
 
-				if (s->device && s->device->keepalive && (now > ((s->lastKeepAlive + s->device->keepalive) + keepaliveAdditionalTime) ) ) {
-					//ast_log(LOG_WARNING, "%s: Device lastKeepAlive %s, now %s\n", (s->device) ? s->device->id : "SCCP", ctime(&s->lastKeepAlive), ctime(&now));
-					ast_log(LOG_WARNING, "%s: Dead device does not send a keepalive message in %d+%d seconds. Will be removed\n", (s->device) ? s->device->id : "SCCP", GLOB(keepalive), keepaliveAdditionalTime);
-					sccp_session_close(s);
-					destroy_session(s);
-				}
+					if (s->device && s->device->keepalive && (now > ((s->lastKeepAlive + s->device->keepalive) + keepaliveAdditionalTime) ) ) {
+						//ast_log(LOG_WARNING, "%s: Device lastKeepAlive %s, now %s\n", (s->device) ? s->device->id : "SCCP", ctime(&s->lastKeepAlive), ctime(&now));
+						ast_log(LOG_WARNING, "%s: Dead device does not send a keepalive message in %d+%d seconds. Will be removed\n", (s->device) ? s->device->id : "SCCP", GLOB(keepalive), keepaliveAdditionalTime);
+						sccp_session_close(s);
+						destroy_session(s);
+					}
 #ifdef CS_DYNAMIC_CONFIG
 
-				if (s->device) {
-					ast_mutex_lock(&GLOB(lock));
-					if (GLOB(reload_in_progress) == FALSE)
-						sccp_device_check_update(s->device);
-					ast_mutex_unlock(&GLOB(lock));
-				}
+					if (s->device) {
+						ast_mutex_lock(&GLOB(lock));
+						if (GLOB(reload_in_progress) == FALSE)
+							sccp_device_check_update(s->device);
+						ast_mutex_unlock(&GLOB(lock));
+					}
 #endif
+				}
 
 			} else {
 				/* session is gone */
@@ -420,9 +447,10 @@ void * sccp_socket_thread(void * ignore)
 		}
 		SCCP_LIST_UNLOCK(&GLOB(sessions));
 
-		if ( (GLOB(descriptor)> -1) && FD_ISSET(GLOB(descriptor), &fset)) {
-			sccp_accept_connection();
-		}
+// 			if ( (GLOB(descriptor)> -1) && FD_ISSET(GLOB(descriptor), &fset)) {
+// 				sccp_accept_connection();
+// 			}
+		
 	}
 
 	sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Exit from the socket thread\n");
