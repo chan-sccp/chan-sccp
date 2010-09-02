@@ -31,6 +31,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_mwi.h"
 #include "sccp_socket.h"
 #include <asterisk/utils.h>
+#include <asterisk/astdb.h>
 
 #ifdef CS_DYNAMIC_CONFIG
 /*!
@@ -425,7 +426,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, uint8_t lineIns
 	
 	
 	/* read cfw status from db */
-#include <asterisk/astdb.h>
+
 #ifndef ASTDB_FAMILY_KEY_LEN
 #define ASTDB_FAMILY_KEY_LEN 100
 #endif
