@@ -528,6 +528,13 @@ AS_IF([test "${ac_cv_dynamic_speeddial_cid}" == "yes"], [
        	AC_DEFINE(CS_DYNAMIC_SPEEDDIAL_CID, 1, [Using dynamic speeddials with callinfo])
 ])
 
+AC_ARG_WITH(video, 
+  AC_HELP_STRING([--with-streaming-video], [Using streaming video (default is NO)]), 
+  ac_cv_streaming_video_=yes, ac_cv_streaming_video=no)
+AS_IF([test "${ac_cv_streaming_video}" == "yes"], [
+       	AC_DEFINE(CS_SCCP_VIDEO, 1, [Using streaming video])
+])
+
 dnl << Temporary additions. For Development Only
 AC_ARG_WITH(dynamic_config, 
   AC_HELP_STRING([--with-dynamic-config], [sccp reload (experimental/dev only)(default is NO)]), 
