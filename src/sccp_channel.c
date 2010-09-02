@@ -2509,7 +2509,8 @@ void sccp_channel_forward(sccp_channel_t *parent, sccp_linedevices_t *lineDevice
 		sccp_channel_set_originalCalledparty(forwarder, parent->callInfo.callingPartyName, parent->callInfo.callingPartyNumber);
 
 		/* Other Channels */
-		ast_set_callerid(forwarder->owner, parent->callInfo.callingPartyNumber, fwd_from_name, parent->callInfo.calledPartyNumber);
+		forwarder->owner->cid.cid_num = strdup(parent->callInfo.callingPartyNumber);
+		forwarder->owner->cid.cid_name = strdup(fwd_from_name);
 #ifdef CS_AST_CHANNEL_HAS_CID
 		forwarder->owner->cid.cid_ani = strdup(dialedNumber);
 		forwarder->owner->cid.cid_ani2 = -1;
