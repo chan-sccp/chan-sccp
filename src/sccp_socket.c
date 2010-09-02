@@ -336,7 +336,6 @@ void * sccp_socket_thread(void * ignore)
 	fds[0].revents = 0;
 	
 	int res;
-	int maxfd;
 	time_t now;
 	sccp_session_t * s = NULL;
 	sccp_moo_t * m;
@@ -359,7 +358,6 @@ void * sccp_socket_thread(void * ignore)
 		fds[0].fd = GLOB(descriptor);
 		res = ast_poll(fds, 1, 20);
 		
-		maxfd = GLOB(descriptor);
 		if (res < 0) {
 			ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
 			usleep(10000);
