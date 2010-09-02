@@ -422,6 +422,38 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, uint8_t lineIns
 	sccp_line_lock(l);
 	l->statistic.numberOfActiveDevices++;
 	sccp_line_unlock(l);
+	
+	
+	/* read cfw status from db */
+#include <asterisk/astdb.h>
+#ifndef ASTDB_FAMILY_KEY_LEN
+#define ASTDB_FAMILY_KEY_LEN 100
+#endif
+#ifndef ASTDB_RESULT_LEN
+#define ASTDB_RESULT_LEN 80
+#endif
+	int 	res;
+	char 	family[ASTDB_FAMILY_KEY_LEN];
+	char 	buffer[ASTDB_RESULT_LEN];
+
+	
+	memset(family,0,ASTDB_FAMILY_KEY_LEN);
+	sprintf(family, "SCCP/%s/%s", device->id, l->name);
+	res = ast_db_get(family, "cfwdAll", buffer, sizeof(buffer));
+	if(!res){
+		linedevice->cfwdAll.enabled = TRUE;
+		sccp_copy_string(linedevice->cfwdAll.number, buffer, sizeof(linedevice->cfwdAll.number));
+	}
+	
+	res = ast_db_get(family, "cfwdBusy", buffer, sizeof(buffer));
+	if(!res){
+		linedevice->cfwdBusy.enabled = TRUE;
+		sccp_copy_string(linedevice->cfwdBusy.number, buffer, sizeof(linedevice->cfwdAll.number));
+	}
+	
+	if(linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled){
+		sccp_dev_forward_status(l, lineInstance, device);
+	}
 
 
 	// fire event for new device
