@@ -332,11 +332,8 @@ static sccp_moo_t * sccp_process_data(sccp_session_t * s)
 void * sccp_socket_thread(void * ignore)
 {
 	struct pollfd fds[1];
-
-	fds[0].fd = GLOB(descriptor);
 	fds[0].events = POLLIN;
 	fds[0].revents = 0;
-
 	
 	int res;
 	int maxfd;
@@ -365,23 +362,49 @@ void * sccp_socket_thread(void * ignore)
 		maxfd = GLOB(descriptor);
 		if (res < 0) {
 			ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
+			usleep(10000);
 			return NULL;
 		} else if(res == 0){
-			sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Poll Timeout\n");
+			// poll timeout
 		} else{
 			sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
 			sccp_accept_connection();
 		}
 
-		
 		SCCP_LIST_LOCK(&GLOB(sessions));
 		SCCP_LIST_TRAVERSE(&GLOB(sessions), s, list) {
 			keepaliveAdditionalTime = 10;
-			sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_1 "%s: Checking Session\n", (s->device) ? s->device->id : "SCCP");
+			/* we increase additionalTime for wireless devices */
+			if(s->device && (s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 ||
+					s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 ||
+					s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925)){
+				keepaliveAdditionalTime += 20;
+			}
+#ifdef CS_DYNAMIC_CONFIG
+			if (s->device) {
+				ast_mutex_lock(&GLOB(lock));
+				if (GLOB(reload_in_progress) == FALSE)
+					sccp_device_check_update(s->device);
+				ast_mutex_unlock(&GLOB(lock));
+			}
+#endif
 			if (s->fd > 0) {
 				fds[0].fd = s->fd;
 				res = ast_poll(fds, 1, 20);
-				if (res > 0) {
+				if (res < 0) {
+					ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
+					usleep(10000);
+					return NULL;
+				} else if (res == 0){
+					// poll timeout
+					now = time(0);
+					if (s->device && s->device->keepalive && (now > ((s->lastKeepAlive + s->device->keepalive) + keepaliveAdditionalTime) ) ) {
+						sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Session Keepalive %s Expired, now %s\n", (s->device) ? s->device->id : "SCCP", ctime(&s->lastKeepAlive), ctime(&now));
+						ast_log(LOG_WARNING, "%s: Dead device does not send a keepalive message in %d+%d seconds. Will be removed\n", (s->device) ? s->device->id : "SCCP", GLOB(keepalive), keepaliveAdditionalTime);
+						sccp_session_close(s);
+						destroy_session(s);
+					}
+				} else {
 					/* we have new data -> continue */
 					sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Session New Data Arriving\n", (s->device) ? s->device->id : "SCCP");
 					sccp_read_data(s);
@@ -391,34 +414,7 @@ void * sccp_socket_thread(void * ignore)
 							sccp_session_close(s);
 						}
 					}
-				} else {
-					now = time(0);
-					/* we increase additionalTime for wireless devices */
-					sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Session Keepalive\n", (s->device) ? s->device->id : "SCCP");
-					if(s->device && (s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 ||
-							s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 ||
-							s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925)){
-						keepaliveAdditionalTime = 30;
-
-					}
-
-					if (s->device && s->device->keepalive && (now > ((s->lastKeepAlive + s->device->keepalive) + keepaliveAdditionalTime) ) ) {
-						//ast_log(LOG_WARNING, "%s: Device lastKeepAlive %s, now %s\n", (s->device) ? s->device->id : "SCCP", ctime(&s->lastKeepAlive), ctime(&now));
-						ast_log(LOG_WARNING, "%s: Dead device does not send a keepalive message in %d+%d seconds. Will be removed\n", (s->device) ? s->device->id : "SCCP", GLOB(keepalive), keepaliveAdditionalTime);
-						sccp_session_close(s);
-						destroy_session(s);
-					}
-#ifdef CS_DYNAMIC_CONFIG
-
-					if (s->device) {
-						ast_mutex_lock(&GLOB(lock));
-						if (GLOB(reload_in_progress) == FALSE)
-							sccp_device_check_update(s->device);
-						ast_mutex_unlock(&GLOB(lock));
-					}
-#endif
 				}
-
 			} else {
 				/* session is gone */
 				sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Session is Gone\n", (s->device) ? s->device->id : "SCCP");
