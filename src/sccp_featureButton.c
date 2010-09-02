@@ -103,15 +103,12 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 							line = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
 							if(line){
 
-								SCCP_LIST_LOCK(&line->devices);
-								SCCP_LIST_TRAVERSE(&line->devices, linedevice, list){
-									if(linedevice->device == device)
-										break;
-								}
-								SCCP_LIST_UNLOCK(&line->devices);
+								linedevice=sccp_util_getDeviceConfiguration(device, line);
 
 								if(!linedevice){
-									ast_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
+									if(device->registrationState == SKINNY_DEVICE_RS_OK){
+										ast_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
+									}
 									continue;
 								}
 
