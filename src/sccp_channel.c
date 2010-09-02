@@ -2502,22 +2502,16 @@ void sccp_channel_forward(sccp_channel_t *parent, sccp_linedevices_t *lineDevice
 
 	/* setting callerid */
 	char 		fwd_from_name[254];
-	if (parent->callInfo.callingPartyName && lineDevice->line->cid_num) {
-		sprintf(fwd_from_name, "%s -> %s",lineDevice->line->cid_num,parent->callInfo.callingPartyName);
+	sprintf(fwd_from_name, "%s -> %s",lineDevice->line->cid_num,parent->callInfo.callingPartyName);
 
-		/* SCCP */
-		sccp_channel_set_originalCalledparty(forwarder, parent->callInfo.callingPartyName, parent->callInfo.callingPartyNumber);
-
-		/* Other Channels */
-		forwarder->owner->cid.cid_num = strdup(parent->callInfo.callingPartyNumber);
-		forwarder->owner->cid.cid_name = strdup(fwd_from_name);
+	forwarder->owner->cid.cid_num = strdup(parent->callInfo.callingPartyNumber);
+	forwarder->owner->cid.cid_name = strdup(fwd_from_name);
 #ifdef CS_AST_CHANNEL_HAS_CID
-		forwarder->owner->cid.cid_ani = strdup(dialedNumber);
-		forwarder->owner->cid.cid_ani2 = -1;
-		forwarder->owner->cid.cid_dnid = strdup(dialedNumber);
-		forwarder->owner->cid.cid_rdnis = strdup(forwarder->line->cid_num);
+	forwarder->owner->cid.cid_ani = strdup(dialedNumber);
+	forwarder->owner->cid.cid_ani2 = -1;
+	forwarder->owner->cid.cid_dnid = strdup(dialedNumber);
+	forwarder->owner->cid.cid_rdnis = strdup(forwarder->line->cid_num);
 #endif
-	}
 
 	/* dial forwarder */
 	sccp_copy_string(forwarder->owner->exten, dialedNumber, sizeof(forwarder->owner->exten));
