@@ -27,6 +27,7 @@ void sccp_channel_send_dialednumber(sccp_channel_t * c);
 void sccp_channel_setSkinnyCallstate(sccp_channel_t * c, skinny_callstate_t state);
 void sccp_channel_set_callingparty(sccp_channel_t * c, char *name, char *number);
 void sccp_channel_set_calledparty(sccp_channel_t * c, char *name, char *number);
+void sccp_channel_set_originalCalledparty(sccp_channel_t * c, char *name, char *number);
 void sccp_channel_connect(sccp_channel_t * c);
 void sccp_channel_disconnect(sccp_channel_t * c);
 #if ASTERISK_VERSION_NUM >= 10400
