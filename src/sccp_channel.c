@@ -560,7 +560,6 @@ void sccp_channel_set_callingparty(sccp_channel_t * c, char *name, char *number)
 	return;
 }
 
-
 /*!
  * \brief Set CalledParty on SCCP Channel c
  * \param c SCCP Channel
@@ -584,6 +583,32 @@ void sccp_channel_set_calledparty(sccp_channel_t * c, char *name, char *number)
 		sccp_copy_string(c->callInfo.calledPartyNumber, number, sizeof(c->callInfo.callingPartyNumber));
 		sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "%s: Set calledParty Number %s on channel %d\n", DEV_ID_LOG(c->device), c->callInfo.calledPartyNumber, c->callid);
 	}
+}
+
+/*!
+ * \brief Set Original CalledParty on SCCP Channel c (Used during Forward)
+ * \param c SCCP Channel
+ * \param name Name as char
+ * \param number Number as char
+ *
+ * \callgraph
+ * \callergraph
+ */
+void sccp_channel_set_originalCalledparty(sccp_channel_t * c, char *name, char *number)
+{
+	if (!c)
+		return;
+
+	if (name && strncmp(name, c->callInfo.originalCalledPartyName, StationMaxNameSize - 1)) {
+		sccp_copy_string(c->callInfo.originalCalledPartyName, name, sizeof(c->callInfo.originalCalledPartyName));
+		sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "%s: Set originalCalledParty Name %s on channel %d\n", DEV_ID_LOG(c->device), c->callInfo.originalCalledPartyName, c->callid);
+	}
+
+	if (number && strncmp(number, c->callInfo.originalCalledPartyNumber, StationMaxDirnumSize - 1)) {
+		sccp_copy_string(c->callInfo.originalCalledPartyNumber, number, sizeof(c->callInfo.originalCalledPartyNumber));
+		sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "%s: Set originalCalledParty Number %s on channel %d\n", DEV_ID_LOG(c->device), c->callInfo.originalCalledPartyNumber, c->callid);
+	}
+	return;
 }
 
 /*!
@@ -2477,12 +2502,21 @@ void sccp_channel_forward(sccp_channel_t *parent, sccp_linedevices_t *lineDevice
 
 	/* setting callerid */
 	char 		fwd_from_name[254];
-	sprintf(fwd_from_name, "%s -> %s",lineDevice->line->cid_num,parent->callInfo.callingPartyName);
-	ast_set_callerid(forwarder->owner, parent->callInfo.callingPartyNumber, fwd_from_name, parent->callInfo.calledPartyNumber);
-	forwarder->owner->cid.cid_ani = strdup(dialedNumber);
-	forwarder->owner->cid.cid_ani2 = -1;
-	forwarder->owner->cid.cid_dnid = strdup(dialedNumber);
-	forwarder->owner->cid.cid_rdnis = strdup(forwarder->line->cid_num);
+	if (parent->callInfo.callingPartyName && lineDevice->line->cid_num) {
+		sprintf(fwd_from_name, "%s -> %s",lineDevice->line->cid_num,parent->callInfo.callingPartyName);
+
+		/* SCCP */
+		sccp_channel_set_originalCalledparty(forwarder, parent->callInfo.callingPartyName, parent->callInfo.callingPartyNumber);
+
+		/* Other Channels */
+		ast_set_callerid(forwarder->owner, parent->callInfo.callingPartyNumber, fwd_from_name, parent->callInfo.calledPartyNumber);
+#ifdef CS_AST_CHANNEL_HAS_CID
+		forwarder->owner->cid.cid_ani = strdup(dialedNumber);
+		forwarder->owner->cid.cid_ani2 = -1;
+		forwarder->owner->cid.cid_dnid = strdup(dialedNumber);
+		forwarder->owner->cid.cid_rdnis = strdup(forwarder->line->cid_num);
+#endif
+	}
 
 	/* dial forwarder */
 	sccp_copy_string(forwarder->owner->exten, dialedNumber, sizeof(forwarder->owner->exten));
