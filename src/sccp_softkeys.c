@@ -152,6 +152,7 @@ void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, const uint32_t lineInst
  */
 void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
+	int length=0;
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey NewCall Pressed\n", DEV_ID_LOG(d));
 	if (!l){
 		/* use default line if it is set */
@@ -160,6 +161,7 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 			l = sccp_line_find_byid(d, d->defaultLineInstance);
 		}
 	}
+
 	if(!l && d && d->currentLine)
 		l = d->currentLine;
 
@@ -167,11 +169,13 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 1);
 		sccp_dev_displayprompt(d, 0, 0, "No call to put on hold.",5);
 		return;
+	} else {
+		length=strlen(l->adhocNumber);
+		if (length > 0)
+			sccp_channel_newcall(l, d, l->adhocNumber, SKINNY_CALLTYPE_OUTBOUND);
+		else
+			sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
 	}
-	if(strlen(l->adhocNumber)>0)
-		sccp_channel_newcall(l, d, l->adhocNumber, SKINNY_CALLTYPE_OUTBOUND);
-	else
-		sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
 }
 
 
