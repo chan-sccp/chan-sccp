@@ -30,16 +30,16 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <signal.h>
 #include <sys/ioctl.h>
 #include <asterisk/utils.h>
-#include "asterisk/compat.h"
+
+#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
+#include <sys/poll.h>
+#else
+#include <asterisk/poll-compat.h>
+#endif
 
 sccp_session_t * sccp_session_find(const sccp_device_t *device);
 
 int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r);
-
-/* file descriptors of active sockets */
-//static fd_set	active_fd_set;
-static int	active_fd_set;
-
 
 /*!
  * \brief Read Data From Socket
@@ -331,7 +331,6 @@ static sccp_moo_t * sccp_process_data(sccp_session_t * s)
  */
 void * sccp_socket_thread(void * ignore)
 {
-	//fd_set fset;
 	struct pollfd fds[1];
 
 	fds[0].fd = GLOB(descriptor);
@@ -339,11 +338,11 @@ void * sccp_socket_thread(void * ignore)
 	fds[0].revents = 0;
 
 	
-	int res/*, maxfd = FD_SETSIZE*/;
+	int res;
+	int maxfd;
 	time_t now;
 	sccp_session_t * s = NULL;
 	sccp_moo_t * m;
-	//struct timeval tv;
 	sigset_t sigs;
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
@@ -356,34 +355,21 @@ void * sccp_socket_thread(void * ignore)
 	sigaddset(&sigs, SIGPIPE);
 	sigaddset(&sigs, SIGWINCH);
 	sigaddset(&sigs, SIGURG);
-//	pthread_sigmask(SIG_BLOCK, &sigs, NULL);
-
-	//FD_ZERO(&active_fd_set);
-	//FD_SET(GLOB(descriptor), &active_fd_set);
-	//maxfd = GLOB(descriptor);
 	uint8_t keepaliveAdditionalTime = 0;
 
 	while (GLOB(descriptor) > -1)
 	{
-		//fset = active_fd_set;
-		//tv.tv_sec = 0;
-		//tv.tv_usec = 500000;
-		//res = select(maxfd + 1, &fset, 0, 0, &tv);
 		fds[0].fd = GLOB(descriptor);
 		res = ast_poll(fds, 1, 20);
 		
 		maxfd = GLOB(descriptor);
-
-// 		if (res == -1) {
-// 			ast_log(LOG_ERROR, "SCCP select() returned -1. errno: %s\n", strerror(errno));
-// 			continue;
-// 		}
 		if (res < 0) {
 			ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
 			return NULL;
 		} else if(res == 0){
-			/* poll timeout */
+			sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Poll Timeout\n");
 		} else{
+			sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
 			sccp_accept_connection();
 		}
 
@@ -391,20 +377,13 @@ void * sccp_socket_thread(void * ignore)
 		SCCP_LIST_LOCK(&GLOB(sessions));
 		SCCP_LIST_TRAVERSE(&GLOB(sessions), s, list) {
 			keepaliveAdditionalTime = 10;
+			sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_1 "%s: Checking Session\n", (s->device) ? s->device->id : "SCCP");
 			if (s->fd > 0) {
-// 				if (s->fd > maxfd)
-// 					maxfd = s->fd;
-				/* we give the device a little delay after the TCP connection to start sending registration packets */
-// 					if (!FD_ISSET(s->fd, &active_fd_set) && now > s->lastKeepAlive + 1)
-// 						FD_SET(s->fd, &active_fd_set);
-// 				if(s->fd == active_fd_set && now > s->lastKeepAlive + 1 ){
-// 					fds[0].fd = s->fd;
-// 				}
-				
 				fds[0].fd = s->fd;
 				res = ast_poll(fds, 1, 20);
 				if (res > 0) {
 					/* we have new data -> continue */
+					sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Session New Data Arriving\n", (s->device) ? s->device->id : "SCCP");
 					sccp_read_data(s);
 					while ((m = sccp_process_data(s))) {
 						if (!sccp_handle_message(m, s)) {
@@ -415,6 +394,7 @@ void * sccp_socket_thread(void * ignore)
 				} else {
 					now = time(0);
 					/* we increase additionalTime for wireless devices */
+					sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Session Keepalive\n", (s->device) ? s->device->id : "SCCP");
 					if(s->device && (s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 ||
 							s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 ||
 							s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925)){
@@ -441,16 +421,12 @@ void * sccp_socket_thread(void * ignore)
 
 			} else {
 				/* session is gone */
+				sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Session is Gone\n", (s->device) ? s->device->id : "SCCP");
 				sccp_session_close(s);
 				destroy_session(s);
 			}
 		}
 		SCCP_LIST_UNLOCK(&GLOB(sessions));
-
-// 			if ( (GLOB(descriptor)> -1) && FD_ISSET(GLOB(descriptor), &fset)) {
-// 				sccp_accept_connection();
-// 			}
-		
 	}
 
 	sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Exit from the socket thread\n");
