@@ -235,6 +235,9 @@
 /* SCCP realtime */
 #undef CS_SCCP_REALTIME
 
+/* Using streaming video */
+#undef CS_SCCP_VIDEO
+
 /* Disabled extra debugging. */
 #undef DEBUG
 
@@ -372,6 +375,9 @@
 
 /* Found 'asterisk/astdb.h' */
 #undef HAVE_PBX_ASTDB_H
+
+/* Found 'asterisk/astobj2.h' */
+#undef HAVE_PBX_ASTOBJ2_H
 
 /* Found 'asterisk/callerid.h' */
 #undef HAVE_PBX_CALLERID_H

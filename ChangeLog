@@ -1,3 +1,7 @@
+2010-08-29  ddegroot
+
+	* [r1807] ChangeLog, Makefile.in: Pre Update RC2
+
 2010-08-28  ddegroot
 
 	* [r1806] src/sccp_features.c: Compile warning against asterisk 1.4

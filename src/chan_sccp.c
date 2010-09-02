@@ -1163,7 +1163,6 @@ int unload_module() {
 #else
 static int unload_module(void) {
 #endif
-	sccp_channel_t *c;
 	sccp_line_t * l;
 	sccp_device_t * d;
 	sccp_session_t * s;
@@ -1218,16 +1217,6 @@ static int unload_module(void) {
 	SCCP_LIST_LOCK(&GLOB(lines));
 	while ((l = SCCP_LIST_REMOVE_HEAD(&GLOB(lines), list))) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "SCCP: Removing line %s\n", l->name);
-
-// 		/* removing channels */
-// 		SCCP_LIST_LOCK(&l->channels);
-// 		while ((c = SCCP_LIST_REMOVE_HEAD(&l->channels, list))) {
-// 			sccp_channel_cleanbeforedelete(c);
-// 			sccp_channel_delete_no_lock(c);
-// 		}
-// 		SCCP_LIST_UNLOCK(&l->channels);
-// 		SCCP_LIST_HEAD_DESTROY(&l->channels);
-
 		sccp_line_clean(l, FALSE);
 	}
 	SCCP_LIST_UNLOCK(&GLOB(lines));

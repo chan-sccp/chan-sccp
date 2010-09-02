@@ -186,6 +186,8 @@ AC_DEFUN([FIND_ASTERISK_HEADERS],[
     AC_CHECK_HEADER([asterisk/stringfields.h],	AC_DEFINE(HAVE_PBX_STRINGFIELDS_H,1,[Found 'asterisk/stringfields.h']),,[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/translate.h],	AC_DEFINE(HAVE_PBX_TRANSLATE_H,1,[Found 'asterisk/translate.h']),,   	[ #include <asterisk.h>])
     AC_CHECK_HEADER([asterisk/utils.h],		AC_DEFINE(HAVE_PBX_UTILS_H,1,[Found 'asterisk/utils.h']),,       	[ #include <asterisk.h>])
+    AC_CHECK_HEADER([asterisk/astobj.h],	AC_DEFINE(HAVE_PBX_ASTOBJ2_H,1,[Found 'asterisk/astobj.h']),,       	[ #include <asterisk.h>])
+    AC_CHECK_HEADER([asterisk/astobj2.h],	AC_DEFINE(HAVE_PBX_ASTOBJ2_H,1,[Found 'asterisk/astobj2.h']),,       	[ #include <asterisk.h>])
   ])
 ])
 
