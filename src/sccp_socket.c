@@ -391,8 +391,8 @@ void * sccp_socket_thread(void * ignore)
 				res = ast_poll(fds, 1, 20);
 				if (res < 0) {
 					ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
-					usleep(10000);
-					return NULL;
+					sccp_session_close(s);
+					destroy_session(s);
 				} else if (res == 0){
 					// poll timeout
 					now = time(0);
