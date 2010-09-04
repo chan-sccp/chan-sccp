@@ -177,7 +177,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r){
 	}
 
 	sccp_device_lock(d);
-
+	d->linesRegistered = FALSE;
 	/* test the localnet to understand if the device is behind NAT */
 	if (GLOB(localaddr) && ast_apply_ha(GLOB(localaddr), &s->sin)) {
 		/* ok the device is natted */
@@ -219,8 +219,8 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r){
 
 	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->length);
 
-	if(r->length < 56) {
-	 		// registration request with protocol 0 version structure.
+	if(r->length < 56 && d->protocolversion == 0) {
+	 	// registration request with protocol 0 version structure.
 		d->inuseprotocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
 		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), d->inuseprotocolversion);
 	 } else if(r->msg.RegisterMessage.protocolVer > GLOB(protocolversion)) {
@@ -493,7 +493,6 @@ void sccp_handle_AvailableLines(sccp_device_t *d){
 	boolean_t		defaultLineSet = FALSE;
 
 	line_count = 0;
-
 	
 	/** \TODO why do we get the message twice  */
 	if(d->linesRegistered)
@@ -2107,11 +2106,6 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 			sccp_channel_endcall(c); // FS - 350
 		}
 
-
-		if(c->rtp.video.rtp){
-			sccp_channel_startMultiMediaTransmission(c);
-		}
-
 		sccp_channel_unlock(c);
 	} else {
 		ast_log(LOG_ERROR, "%s: No channel with this PassThruId!\n", d->id);
@@ -2140,6 +2134,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r){
 		partyID = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.lel_passThruPartyId);
 		status = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.lel_orcStatus);
 		memcpy(&ipAddr, &r->msg.OpenMultiMediaReceiveChannelAckMessage.bel_ipAddr, 4);
+		memcpy(&sin.sin_addr, &r->msg.OpenMultiMediaReceiveChannelAckMessage.bel_ipAddr, sizeof(sin.sin_addr));
 	} else {
 		ipPort = htons(htolel(r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.lel_portNumber));
 		partyID = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.lel_passThruPartyId);
@@ -2149,10 +2144,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r){
 
 
 	sin.sin_family = AF_INET;
-	if (d->trustphoneip)
-		memcpy(&sin.sin_addr, &ipAddr, sizeof(sin.sin_addr));
-	else
-		memcpy(&sin.sin_addr, &s->sin.sin_addr, sizeof(sin.sin_addr));
+	//memcpy(&sin.sin_addr, &s->sin.sin_addr, sizeof(sin.sin_addr));
 
 	sin.sin_port = ipPort;
 
@@ -2187,7 +2179,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r){
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
 		sccp_channel_lock(c);
 		memcpy(&c->rtp.video.addr, &sin, sizeof(sin));
-		if (c->rtp.video.rtp) {
+		if (c->rtp.video.rtp || sccp_channel_start_vrtp(c) ) {
 #if ASTERISK_VERSION_NUM < 10400
 			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port));
 			ast_rtp_set_peer(c->rtp.video.rtp, &sin);
@@ -2204,6 +2196,23 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r){
 			ast_log(LOG_ERROR,  "%s: Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 #endif
 		}
+
+		sccp_moo_t * r1;
+		
+		r1 = sccp_build_packet(MiscellaneousCommandMessage, sizeof(r->msg.MiscellaneousCommandMessage));
+		r1->msg.MiscellaneousCommandMessage.lel_conferenceId 		= htolel(c->callid);
+		r1->msg.MiscellaneousCommandMessage.lel_passThruPartyId		= htolel(c->passthrupartyid);
+		r1->msg.MiscellaneousCommandMessage.lel_callReference		= htolel(c->callid);
+		r1->msg.MiscellaneousCommandMessage.lel_miscCommandType		= htolel(1);/* videoFastUpdatePicture */
+		sccp_dev_send(c->device, r1);
+		
+		r1 = sccp_build_packet(Unknown_0x0141_Message, sizeof(r->msg.Unknown_0x0141_Message));
+		r1->msg.Unknown_0x0141_Message.lel_conferenceID 		= htolel(c->callid);
+		r1->msg.Unknown_0x0141_Message.lel_passThruPartyId		= htolel(c->passthrupartyid);
+		r1->msg.Unknown_0x0141_Message.lel_callReference		= htolel(c->callid);
+		r1->msg.Unknown_0x0141_Message.lel_maxBitRate			= htolel(0x00000c80);
+		sccp_dev_send(c->device, r1);
+
 
 		sccp_channel_unlock(c);
 	} else {

@@ -894,9 +894,6 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
 #ifdef CS_ADV_FEATURES
 	sccp_advfeat_join(d, l, lineInstance, c);
 #else
-	/* sorry but this is private code -FS */
-	// \todo instance is not used - remove ?
-//	uint8_t instance = sccp_device_find_index_for_line(d, l->name); 
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 #endif
 }

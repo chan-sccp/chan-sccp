@@ -46,6 +46,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/devicestate.h>
 #endif
 
+
 #ifdef CS_DYNAMIC_CONFIG
 #include <asterisk/acl.h>
 #include <asterisk/frame.h>
@@ -1386,49 +1387,46 @@ void sccp_dev_forward_status(sccp_line_t *l, uint8_t lineInstance, sccp_device_t
 		return;
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Send Forward Status.  Line: %s\n", device->id, l->name);
-
+	REQ(r1, ForwardStatMessage);
+	r1->msg.ForwardStatMessage.lel_lineNumber = htolel(lineInstance);
+	
+	
 	linedevice=sccp_util_getDeviceConfiguration(device,l);
 
 	//TODO check for forward status during registration -MC
 	if(!linedevice){
-		if(device->registrationState == SKINNY_DEVICE_RS_OK){
-			ast_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
-		}
-		
-		REQ(r1, ForwardStatMessage);
-		r1->msg.ForwardStatMessage.lel_lineNumber = htolel(lineInstance);
-		sccp_dev_send(device, r1);
-		
-		return;
-	}
-
-	REQ(r1, ForwardStatMessage);
-	r1->msg.ForwardStatMessage.lel_status = (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled)? htolel(1) : 0;
-	r1->msg.ForwardStatMessage.lel_lineNumber = htolel(lineInstance);
-	if (linedevice->cfwdAll.enabled) {
+ 		if(device->registrationState == SKINNY_DEVICE_RS_OK){
+ 			ast_log(LOG_NOTICE, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
+ 		}
+	}else{
+		r1->msg.ForwardStatMessage.lel_status = (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled)? htolel(1) : 0;
+		if (linedevice->cfwdAll.enabled) {
 			r1->msg.ForwardStatMessage.lel_cfwdallstatus = htolel(1);
 			sccp_copy_string(r1->msg.ForwardStatMessage.cfwdallnumber, linedevice->cfwdAll.number, sizeof(r1->msg.ForwardStatMessage.cfwdallnumber));
-	}else if (linedevice->cfwdBusy.enabled) {
+		}else if (linedevice->cfwdBusy.enabled) {
 			r1->msg.ForwardStatMessage.lel_cfwdbusystatus = htolel(1);
 			sccp_copy_string(r1->msg.ForwardStatMessage.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(r1->msg.ForwardStatMessage.cfwdbusynumber));
+		}
+		
+#ifdef CS_ADV_FEATURES
+		char tmp[256] = "";
+
+		memset(tmp, 0, sizeof(tmp));
+		if (linedevice->cfwdAll.enabled) {
+			strcat(tmp, SKINNY_DISP_CFWDALL ":");
+			strcat(tmp, SKINNY_DISP_FORWARDED_TO " ");
+			strcat(tmp, linedevice->cfwdAll.number);
+		}else if (linedevice->cfwdBusy.enabled) {
+			strcat(tmp, SKINNY_DISP_CFWDBUSY ":");
+			strcat(tmp, SKINNY_DISP_FORWARDED_TO " ");
+			strcat(tmp, linedevice->cfwdBusy.number);
+		}
+		sccp_dev_displayprompt(device, 0, 0, tmp, 0);
+#endif
 	}
 	sccp_dev_send(device, r1);
 
-#ifdef CS_ADV_FEATURES
-	char tmp[256] = "";
 
-	memset(tmp, 0, sizeof(tmp));
-	if (linedevice->cfwdAll.enabled) {
-		strcat(tmp, SKINNY_DISP_CFWDALL ":");
-		strcat(tmp, SKINNY_DISP_FORWARDED_TO " ");
-		strcat(tmp, linedevice->cfwdAll.number);
-	}else if (linedevice->cfwdBusy.enabled) {
-		strcat(tmp, SKINNY_DISP_CFWDBUSY ":");
-		strcat(tmp, SKINNY_DISP_FORWARDED_TO " ");
-		strcat(tmp, linedevice->cfwdBusy.number);
-	}
-	sccp_dev_displayprompt(device, 0, 0, tmp, 0);
-#endif
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Sent Forward Status.  Line: %s\n", device->id, l->name);
 
 	// \todo What to do with this lineStatusChanges in sccp_dev_forward_status

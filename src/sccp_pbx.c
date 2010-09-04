@@ -259,9 +259,10 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	}
 	
 	/* check if we have an forwared call */
-	if(!ast_strlen_zero(ast->cid.cid_ani) && strncmp(ast->cid.cid_ani, c->callInfo.callingPartyNumber, strlen(ast->cid.cid_ani))){
+	if(!ast_strlen_zero(ast->cid.cid_ani) && strncmp(ast->cid.cid_ani, c->callInfo.callingPartyNumber, strlen(ast->cid.cid_ani) )){
 		sccp_copy_string(c->callInfo.originalCalledPartyNumber, ast->cid.cid_ani, sizeof(c->callInfo.originalCalledPartyNumber));
-	}	
+	}
+
 #else // CS_AST_CHANNEL_HAS_CID
 	if (ast->callerid && (cidtmp = strdup(ast->callerid))) {
 		ast_callerid_parse(cidtmp, &name, &number);
@@ -673,12 +674,14 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 			frame = ast_rtcp_read(c->rtp.audio.rtp);	/* RTCP Control Channel */
 			break;
 		case 2:
+#ifdef CS_SCCP_VIDEO
 			frame = ast_rtp_read(c->rtp.video.rtp);	/* RTP Video */
-			sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: Got Video frame from device; frametype: %d, subclass:%d\n", DEV_ID_LOG(c->device), frame->frametype, frame->subclass);
-			if(frame){
-				frame->frametype = AST_FRAME_VIDEO;
-				frame->subclass = AST_FORMAT_H264;
-			}
+// 			sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: Got Video frame from device; frametype: %d, subclass:%d\n", DEV_ID_LOG(c->device), frame->frametype, frame->subclass);
+  			if(frame){
+  				frame->frametype = AST_FRAME_VIDEO;
+  				frame->subclass = c->rtp.video.readFormat;
+  			}
+#endif
 			break;
 		case 3:
 			frame = ast_rtcp_read(c->rtp.video.rtp);	/* RTCP Control Channel for video */
@@ -782,8 +785,17 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 				break;
 			case AST_FRAME_IMAGE:
 			case AST_FRAME_VIDEO:
-				//ast_log(LOG_NOTICE, "%s: Got Video frame type %d\n", DEV_ID_LOG(c->device), frame->subclass);
-				if (c && c->rtp.video.rtp){
+#ifdef CS_SCCP_VIDEO
+				if ( (c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) == 0 
+						&& c->device 
+						&& (c->device->capability & frame->subclass) ) {
+						  
+					c->rtp.video.writeFormat = frame->subclass;
+					sccp_channel_openMultiMediaChannel(c);
+					//ast_log(LOG_NOTICE, "%s: Got Video frame type (%s)%d sampling: %d\n", DEV_ID_LOG(c->device), ast_codec2str(frame->subclass), frame->subclass, frame->samples);
+				}
+#endif
+				if (c->rtp.video.rtp){
 					res = sccp_rtp_write(c->rtp.video.rtp, frame);
 				}else{
 					//ast_log(LOG_NOTICE, "%s: drop video frame\n", DEV_ID_LOG(c->device));

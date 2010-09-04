@@ -61,6 +61,7 @@ void sccp_channel_cleanbeforedelete(sccp_channel_t *c);
 int sccp_channel_hold(sccp_channel_t * c);
 int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c);
 void sccp_channel_start_rtp(sccp_channel_t * c);
+boolean_t sccp_channel_start_vrtp(sccp_channel_t * c);
 void sccp_channel_stop_rtp(sccp_channel_t * c);
 void sccp_channel_destroy_rtp(sccp_channel_t * c);
 void sccp_channel_transfer(sccp_channel_t * c);
