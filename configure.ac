@@ -369,7 +369,7 @@ else
    enable_do_crash="no"
    enable_debug_mutex="no"
    strip_binaries="yes"
-   GDB_FLAGS=""
+   GDB_FLAGS="$GDB_FLAGS"
 fi
 AM_CONDITIONAL([WANT_DEBUG],[test "${enable_debug}" = "yes"])
 AC_SUBST([strip_binaries])
@@ -529,8 +529,8 @@ AS_IF([test "${ac_cv_dynamic_speeddial_cid}" == "yes"], [
 ])
 
 AC_ARG_WITH(video, 
-  AC_HELP_STRING([--with-streaming-video], [Using streaming video (default is NO)]), 
-  ac_cv_streaming_video_=yes, ac_cv_streaming_video=no)
+  AC_HELP_STRING([--with-video], [Using streaming video (default is NO)]), 
+  ac_cv_streaming_video=yes, ac_cv_streaming_video=no)
 AS_IF([test "${ac_cv_streaming_video}" == "yes"], [
        	AC_DEFINE(CS_SCCP_VIDEO, 1, [Using streaming video])
 ])
