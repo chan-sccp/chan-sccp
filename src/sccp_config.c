@@ -1929,49 +1929,11 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 
 
 	/* lastDialedNumber */
-	char 			lastNumber[AST_MAX_EXTENSION]="";
+	char lastNumber[AST_MAX_EXTENSION]="";
 	res = ast_db_get(family, "lastDialedNumber", lastNumber, sizeof(lastNumber));
 	if(!res){
 		sccp_copy_string(device->lastNumber, lastNumber, sizeof(device->lastNumber));
 	}
-
-	/* Call Forward */
-#ifdef CS_ADV_FEATURES
-	sccp_buttonconfig_t     *config;
-	sccp_line_t             *line;
-	sccp_linedevices_t      *lineDevice;
-
-	sccp_device_lock(device);
-	SCCP_LIST_LOCK(&device->buttonconfig);
-	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list){
-		if(config->type == LINE ){
-			if ((line = sccp_line_find_byname_wo(config->button.line.name,FALSE))) {
-				SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list){
-					if(lineDevice->device != device)
-						continue;
-
-					memset(family,0,ASTDB_FAMILY_KEY_LEN);
-					sprintf(family, "SCCP/%s/%s", device->id, config->button.line.name);
-					res = ast_db_get(family, "cfwdAll", buffer, sizeof(buffer));
-					if(!res){
-						sccp_copy_string(lineDevice->cfwdAll.number, buffer, sizeof(lineDevice->cfwdAll.number));
-						lineDevice->cfwdAll.enabled=TRUE;
-					}
-
-					/* implement when sccp_utils.c sccp_util_handleFeatureChangeEvent is implemented for cfwdBusy
-					res = ast_db_get(family, "cfwdBusy", cfwdLineStore, sizeof(cfwdLineStore));
-					if(!res){
-						sccp_copy_string(lineDevice->cfwdAll.number, cfwdLineStore, sizeof(lineDevice->cfwdAll.number));
-						 lineDevice->cfwdBusy.enabled=TRUE;
-					}
-					*/
-				}
-			}
-		}
-	}
-	SCCP_LIST_UNLOCK(&device->buttonconfig);
-	sccp_device_unlock(device);
-#endif
 
 	/* initialize so called priority feature */
 	device->priFeature.status = 0x010101;

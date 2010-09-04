@@ -1258,6 +1258,7 @@ typedef enum {
         UserToDeviceDataVersion1Message		= 0x013F,
 
         /* sent by us */
+	Unknown_0x0141_Message			= 0x0141,
         Unknown_0x0143_Message			= 0x0143,
         Unknown_0x0144_Message			= 0x0144,
         DisplayDynamicPromptStatusMessage	= 0x0145,
@@ -1783,6 +1784,14 @@ typedef union {
                 uint32_t	lel_unknown2;					/*!< Unknown */
                 uint32_t	lel_unknown3;					/*!< Unknown */
         } Unknown_0x004A_Message;						/*!< \todo Unknown 0x004A Message Structure */
+
+
+	struct { // INCOMPLETE
+		uint32_t 	lel_conferenceID;				/*!< Conference ID */
+		uint32_t 	lel_passThruPartyId;
+		uint32_t 	lel_callReference;				/*!< Call Reference */
+		uint32_t 	lel_maxBitRate;					/*!< maxBitRate */
+        } Unknown_0x0141_Message;						/*!< \todo Unknown 0x0141 Message Structure */
 
         struct { // INCOMPLETE
                 uint32_t nn;
@@ -2574,6 +2583,13 @@ typedef union {
                 uint32_t 			lel_conferenceId1;			/*!< Conference ID 1 */
                 uint32_t 			lel_unknown1; 				/*!< Unknown (proto v17) */
         } StopMediaTransmission;							/*!< Stop Media Transmission Structure */
+        
+        struct {
+                uint32_t 			lel_conferenceId;			/*!< Conference ID */
+                uint32_t 			lel_passThruPartyId;			/*!< Pass Through Party ID */
+                uint32_t 			lel_conferenceId1;			/*!< Conference ID 1 */
+                uint32_t 			lel_unknown1; 				/*!< Unknown (proto v17) */
+        } StopMultiMediaTransmission;
 
         struct {} StartMediaReception;
 
@@ -2741,6 +2757,7 @@ typedef union {
 		uint32_t 			lel_passThruPartyId;			/*!< Pass Through Party ID */
 		uint32_t 			lel_callReference;			/*!< Call Reference */
 		uint32_t 			lel_miscCommandType;			/*!< Miscellaneous Command Type */
+		uint32_t			unknown[10];
 	} MiscellaneousCommandMessage;							/*!< Miscellaneous Command Message Structure */
 
 	struct {
@@ -2847,6 +2864,14 @@ typedef union {
 		/* version 5 fields */
 		uint32_t 			lel_conferenceId1;			/*!< Conference ID 1 */
 	} CloseReceiveChannel;								/*!< Close Receive Channel */
+	
+	
+	struct {
+		uint32_t 			lel_conferenceId;			/*!< Conference ID */
+		uint32_t 			lel_passThruPartyId;			/*!< Pass Through Party ID */
+		/* version 5 fields */
+		uint32_t 			lel_conferenceId1;			/*!< Conference ID 1 */
+	} CloseMultiMediaReceiveChannel;
 
 	struct {			// Request Statistics from Phone
 		char				DirectoryNumber[StationMaxDirnumSize];	/*!< Directory Number */

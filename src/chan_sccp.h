@@ -50,7 +50,6 @@ extern "C" {
 #include <asterisk/causes.h>
 
 #include "sccp_dllists.h"
-//#include "sccp_conference.h"
 
 #if ASTERISK_VERSION_NUM >= 10400
 #include "asterisk/abstract_jb.h"
@@ -707,7 +706,7 @@ struct sccp_device {
 	uint8_t 				registrationState;			/*!< If the device has been fully registered yet */
 	struct ast_codec_pref 			codecs;					/*!< Asterisk Codec Device Preference */
 	sccp_devicestate_t 			state;					/*!< Device State (SCCP_DEVICE_ONHOOK or SCCP_DEVICE_OFFHOOK) */
-	boolean_t				linesRegistered;				/*!< do we answered  RegisterAvailableLinesMessage */
+	boolean_t				linesRegistered;			/*!< do we answered  RegisterAvailableLinesMessage */
 
 	char 					lastNumber[AST_MAX_EXTENSION];		/*!< Last Dialed Number */
 	int 					capability;				/*!< Asterisk Codec Capability */
@@ -866,8 +865,11 @@ struct sccp_rtp{
 
 	uint8_t						status;
 	struct ast_rtp	 			*rtp;				/*!< Asterisk RTP */
+	boolean_t						isStarted;			/*!< is rtp server started */
 	struct sockaddr_in			addr;				/*!< RTP Socket Address */
 	struct sockaddr_in			peer;				/*!< RTP Socket Address */
+	uint32_t						readFormat;		/*!< current read format */
+	uint32_t						writeFormat;		/*!< current write format */
 
 };
 
