@@ -7,9 +7,9 @@
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
- * 
+ *
  * $Date$
- * $Revision$  
+ * $Revision$
  */
 #ifndef __SCCP_CLI_H
 #define __SCCP_CLI_H
@@ -63,18 +63,18 @@ void sccp_unregister_cli(void);
 #else
   #define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER)		\
 	static struct ast_cli_entry _FUNCTION_NAME = {						\
-	  { CLI_COMMAND },									\
-	  _CALLED_FUNCTION,									\
-	  _DESCR,										\
-	  _USAGE										\
-	  , _COMPLETER										\
+	  .cmda = { CLI_COMMAND },								\
+	  .handler = _CALLED_FUNCTION,								\
+	  .summary = _DESCR,									\
+	  .usage = _USAGE,									\
+	  .generator = _COMPLETER								\
 	};
   #define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)				\
 	static struct ast_cli_entry _FUNCTION_NAME = {						\
-	  { CLI_COMMAND },									\
-	  _CALLED_FUNCTION,									\
-	  _DESCR,										\
-	  _USAGE										\
+	  .cmda = { CLI_COMMAND },									\
+	  .handler = _CALLED_FUNCTION,									\
+	  .summary = _DESCR,										\
+	  .usage = _USAGE										\
 	};
 #endif // ASTERISK_VERSION_NUM >= 10600
 
