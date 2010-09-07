@@ -152,9 +152,15 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
 // 		if(sccp_device_isVideoSupported(channel->device)){
 // 			channel->capability |= channel->device->capability;
 // 		}
-
 		memcpy(&channel->codecs, &channel->device->codecs, sizeof(channel->codecs));
+		
+		
+		/* asterisk requested format, we can not handle with this device */
+		if( !(channel->format & channel->capability) ){
+			channel->format = ast_codec_choose(&channel->codecs, channel->capability, 1);
+		}
 	}
+	
 
 	if(channel->isCodecFix == FALSE){
 		/* we does not have set a preferred format before */
@@ -962,10 +968,10 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t *channel){
 	uint32_t	skinnyFormat;
 	uint32_t	payloadType;
 
-	/* currently we do not know later versions */
-	if(channel->device && channel->device->inuseprotocolversion > 11 && !(channel->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) ){
-		return;
-	}
+ 	/* currently we do not know later versions */
+ 	if(channel->device && channel->device->inuseprotocolversion > 11 && !(channel->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) ){
+ 		return;
+ 	}
 	
 	channel->rtp.video.status |= SCCP_RTP_STATUS_RECEIVE;
 	skinnyFormat = sccp_codec_ast2skinny(channel->rtp.video.writeFormat);
@@ -1056,10 +1062,11 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 		}
 	}
 
-	r = sccp_build_packet(StartMultiMediaTransmission, sizeof(r->msg.StartMultiMediaTransmission));
-	r->lel_reserved = 0;
+	
+	
 
 	if(d->inuseprotocolversion < 17) {
+		r = sccp_build_packet(StartMultiMediaTransmission, sizeof(r->msg.StartMultiMediaTransmission));
 		r->msg.StartMultiMediaTransmission.lel_conferenceID 								= htolel(channel->callid);
 		r->msg.StartMultiMediaTransmission.lel_passThruPartyId								= htolel(channel->passthrupartyid);
 		r->msg.StartMultiMediaTransmission.lel_payloadCapability							= htolel(skinnyFormat);
@@ -1107,10 +1114,59 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 		r->msg.StartMultiMediaTransmission.unknown[9]		  							= htolel(0x00241620);
 		r->msg.StartMultiMediaTransmission.unknown[10]		  							= htolel(0x00241640);
 		r->msg.StartMultiMediaTransmission.unknown[11]		  							= r->msg.StartMultiMediaTransmission.unknown[9];
+		
 	} else {
-// 		r->msg.StartMultiMediaTransmission.lel_conferenceID 								= htolel(channel->callid);
-// 		r->msg.StartMultiMediaTransmission.lel_passThruPartyId								= htolel(channel->passthrupartyid);
-// 		r->msg.StartMultiMediaTransmission.lel_payloadCapability							= htolel(SKINNY_CODEC_H264);
+	  
+		r = sccp_build_packet(StartMultiMediaTransmission, sizeof(r->msg.StartMultiMediaTransmission_v17));
+		r->msg.StartMultiMediaTransmission_v17.lel_conferenceID 							= htolel(channel->callid);
+		r->msg.StartMultiMediaTransmission_v17.lel_passThruPartyId							= htolel(channel->passthrupartyid);
+		r->msg.StartMultiMediaTransmission_v17.lel_payloadCapability							= htolel(skinnyFormat);
+
+		memcpy(&r->msg.StartMultiMediaTransmission_v17.bel_remoteIpAddr, &sin.sin_addr, 4);
+
+ 		r->msg.StartMultiMediaTransmission_v17.lel_remotePortNumber 							= htolel(ntohs(sin.sin_port));
+ 		r->msg.StartMultiMediaTransmission_v17.lel_callReference							= htolel(channel->callid);
+ 		//r->msg.StartMultiMediaTransmission_v17.lel_payload_rfc_number							= htolel(0);
+ 		r->msg.StartMultiMediaTransmission_v17.lel_payloadType								= payloadType;
+		r->msg.StartMultiMediaTransmission_v17.lel_DSCPValue								= htolel(136);
+
+		r->msg.StartMultiMediaTransmission_v17.audioParameter.millisecondPacketSize 					= htolel(packetSize);
+		r->msg.StartMultiMediaTransmission_v17.audioParameter.lel_echoCancelType  					= 0;
+		r->msg.StartMultiMediaTransmission_v17.audioParameter.lel_g723BitRate  						= htolel(0x00000132);
+
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.bitRate							= 0;
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormatCount					= 0;
+
+
+		//r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormat[5];						/*!< Picture Format Array */
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.confServiceNum						= 0;
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.dummy							= 0;
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.h261VideoCapability.temporalSpatialTradeOffCapability	= htolel(0x00000040);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.h261VideoCapability.stillImageTransmission		= htolel(0x00000032);
+
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.h263VideoCapability.h263CapabilityBitfield			= htolel(0x4c3a525b);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.h263VideoCapability.annexNandwFutureUse			= htolel(0x202d2050);
+
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.vieoVideoCapability.modelNumber				= htolel(0x203a5048);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.vieoVideoCapability.bandwidth					= htolel(0x4e202c30);
+
+		r->msg.StartMultiMediaTransmission_v17.dataParameter.protocolDependentData 						= htolel(0x002415f8);
+		r->msg.StartMultiMediaTransmission_v17.dataParameter.maxBitRate  							= htolel(0x098902c4);
+
+		r->msg.StartMultiMediaTransmission_v17.unknown[0]		  							= htolel(0x0a5aee9c);
+		r->msg.StartMultiMediaTransmission_v17.unknown[1]		  							= htolel(0x00180688);
+		r->msg.StartMultiMediaTransmission_v17.unknown[2]		  							= htolel(0x0a5aef54);
+		r->msg.StartMultiMediaTransmission_v17.unknown[3]		  							= htolel(0x77fb7e64);
+		r->msg.StartMultiMediaTransmission_v17.unknown[4]		  							= htolel(0x77f83158);
+		r->msg.StartMultiMediaTransmission_v17.unknown[5]		  							= htolel(0xffffffff);
+		r->msg.StartMultiMediaTransmission_v17.unknown[6]		  							= r->msg.StartMultiMediaTransmission_v17.unknown[2];
+		r->msg.StartMultiMediaTransmission_v17.unknown[7]		  							= htolel(0x77fcb7c2);
+		r->msg.StartMultiMediaTransmission_v17.unknown[8]		  							= htolel(0x00180778);
+		r->msg.StartMultiMediaTransmission_v17.unknown[9]		  							= htolel(0x00241620);
+		r->msg.StartMultiMediaTransmission_v17.unknown[10]		  							= htolel(0x00241640);
+		r->msg.StartMultiMediaTransmission_v17.unknown[11]		  							= r->msg.StartMultiMediaTransmission_v17.unknown[9];
+	  
+	  
 	}
 
 
