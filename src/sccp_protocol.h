@@ -96,6 +96,44 @@ static const struct sccp_channelstate {
         { SCCP_CHANNELSTATE_DND, 		"DND" }
 };
 
+typedef enum {
+		SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE =0,
+		SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE,
+		SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB,
+		SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB,
+		SKINNY_MISCCOMMANDTYPE_LOSTPICTURE,
+		SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE,
+		SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE,
+		SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF
+} sccp_miscCommandType_t;								/*!< misccommand types */
+
+/*
+static const value_string skinny_miscCommandType[] = {
+	{0  , "videoFreezePicture"},
+	{1  , "videoFastUpdatePicture"},
+	{2  , "videoFastUpdateGOB"},
+	{3  , "videoFastUpdateMB"},
+	{4  , "lostPicture"},
+	{5  , "lostPartialPicture"},
+	{6  , "recoveryReferencePicture"},
+	{7  , "temporalSpatialTradeOff"},
+	{0  , NULL}
+};
+*/
+
+/*
+ static const value_string skinny_formatTypes[] = {
+ {1  , "sqcif (128x96)"},
+ {2  , "qcif (176x144)"},
+ {3  , "cif (352x288)"},
+ {4  , "4cif (704x576)"},
+ {5  , "16cif (1408x1152)"},
+ {6  , "custom_base"},
+ {0  , NULL}
+ };
+*/
+
+
 /*!
  * \brief AST Device State Structure
  */
@@ -2546,7 +2584,7 @@ typedef union {
                 uint32_t 			lel_conferenceId;			/*!< Conference ID */
                 uint32_t 			lel_passThruPartyId;			/*!< Pass Through Party ID */
                 uint32_t 			lel_unknown1;				/*!< Unknown */
-                char bel_remoteIpAddr[16]; 						/*!< This field is apparently in big-endian
+                char 				bel_remoteIpAddr[16];			/*!< This field is apparently in big-endian
                                                                                              format, even though most other fields are
 										             little-endian. */
                 uint32_t 			lel_remotePortNumber;			/*!< Remote Port Number */
@@ -3011,6 +3049,29 @@ typedef union {
 		uint32_t			unknown[12];				/*!< Unknown */
 		
 	} StartMultiMediaTransmission;							/*!< Start MultiMedia Transmission Message Structure */
+	
+	
+	struct{
+		uint32_t			lel_conferenceID;			/*!< Conference ID */
+		uint32_t 			lel_passThruPartyId;			/*!< Pass Through Party ID */
+		skinny_media_payload		lel_payloadCapability;			/*!< payload capability */
+		
+		char 				bel_remoteIpAddr[16]; 			/*!< This field is apparently in big-endian
+                                                                                             format, even though most other fields are
+                                                                                             little-endian. */
+                uint32_t 			lel_remotePortNumber;			/*!< Remote Port Number */
+                uint32_t			lel_callReference;			/*!< Call Reference */
+                uint32_t			lel_payload_rfc_number;			/*!< Payload RFC Number */
+                uint32_t			lel_payloadType;			/*!< payload type */
+                uint32_t			lel_DSCPValue;				/*!< DSCP Value */
+		
+		audioParameter_t		audioParameter;				/*!< Audio Parameter */
+		videoParameter_t		videoParameter;				/*!< Video Parameter */
+		dataParameter_t			dataParameter;				/*!< Data Parameter */
+		
+		uint32_t			unknown[12];				/*!< Unknown */
+		
+	} StartMultiMediaTransmission_v17;							/*!< Start MultiMedia Transmission Message Structure */
 	
 	struct {
 		uint32_t 			lel_displayTimeout;			/*!< Display Timeout */
