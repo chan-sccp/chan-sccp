@@ -67,7 +67,7 @@ void sccp_unregister_cli(void);
 	  _CALLED_FUNCTION,									\
 	  _DESCR,										\
 	  _USAGE										\
-/*	  , _COMPLETER*/										\
+	  , _COMPLETER										\
 	};
   #define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)				\
 	static struct ast_cli_entry _FUNCTION_NAME = {						\
