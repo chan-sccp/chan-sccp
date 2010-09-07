@@ -1591,21 +1591,36 @@ uint32_t sccp_parse_debugline (char * arguments[], int startat, int argc, uint32
 const char * sccp_get_debugcategories(uint32_t debugvalue,char * dest) {
 	uint32_t i;
 	boolean_t first=1;
-	static char ret[1000]="";
-	for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
-		if((debugvalue & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
-			if (first) {
-				strcat(ret,sccp_debug_categories[i].short_name);
-				first=0;
-			} else {
-				strcat(ret,", ");
-				strcat(ret,sccp_debug_categories[i].short_name);
+	char *res="";
+	char *tmpres=NULL;
+	char *sep=", ";
+	
+	res=ast_malloc((16) * sizeof(char *));		// 16=longest debug_category
+	if (res!=NULL) {
+		memset(res, 0, (16) * sizeof(char *));
+		for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
+			if((debugvalue & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
+				tmpres=ast_realloc(res,(strlen(sccp_debug_categories[i].short_name)+strlen(sep)+1) * sizeof(char *));
+				if (tmpres!=NULL) {
+					res=tmpres;
+					if (first) {
+						strcat(res,sccp_debug_categories[i].short_name);
+						first=0;
+					} else {
+						strcat(res,", ");
+						strcat(res,sccp_debug_categories[i].short_name);
+					}
+				} else {
+					ast_free(res);
+					return NULL;
+				}
 			}
 		}
+	}else{
+		ast_free(res);
+		return NULL;
 	}
-//	strcpy(dest,ret);
-	dest=ret;
-	return dest;
+	return res;
 }
 
 /*!
@@ -1661,3 +1676,65 @@ sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 
 	return r1;
 }
+
+/*!
+ * \brief explode string to string array
+ * \param str String to explode
+ * \param str String to use as seperator
+ * \return array of string
+ */
+char **explode(char *str,char *sep) {
+	int nn=0;
+	char *tmp="";
+	char *ds=strdup(str);
+	char **res = (char**)ast_malloc((strlen(str)/2)*sizeof(char*));
+	if (res!=NULL) {
+//		memset(res, 0, (strlen(str)/2)*sizeof(char*));
+		tmp = strtok(ds, sep);
+		for (nn = 0; tmp != NULL; ++nn) 
+		{
+		  	res[nn] = strdup(tmp);
+		  	tmp = strtok(NULL, sep);
+		}
+	} else {
+		ast_free(res);
+		return NULL;
+	}
+	return res;
+}
+
+/*!
+ * \brief implode string array to string
+ * \param str Array of String to implode
+ * \param str String to use as seperator
+ * \return string
+ */
+char *implode(char *str[],char *sep) {
+	int nn=0;
+	char *res="";
+	char *tmpres=NULL;
+
+	res=ast_malloc((strlen(str[0])*strlen(sep)+1) * sizeof(char *));
+	memset(res, 0, (strlen(str[0])*strlen(sep)+1) * sizeof(char *));
+	if (res!=NULL) {
+		strcat(res,str[nn]);
+		nn++;
+		while(str[nn]!=NULL) {
+			tmpres=ast_realloc(res,(strlen(res)+strlen(str[nn])+strlen(sep)+1) * sizeof(char *));
+			if (tmpres!=NULL) {
+				res=tmpres;
+				strcat(res,sep);
+				strcat(res,str[nn]);
+			} else {
+				ast_free(res);
+				return NULL;
+			}
+			nn++;
+		}
+	}else{
+		ast_free(res);
+		return NULL;
+	}
+	return res;
+}
+
