@@ -299,9 +299,9 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 static char show_globals_usage[] = "Usage: sccp show globals\n"
 				   "       Lists global settings for the SCCP subsystem.\n";
 				 
-static char *show_globals_cli_command[] = { "sccp", "show", "globals", NULL };
-CLI_ENTRY( cli_show_globals, sccp_show_globals, show_globals_cli_command, "List defined SCCP global settings", show_globals_usage)
-
+#define CLI_COMMAND "sccp", "show", "globals", NULL
+CLI_ENTRY( cli_show_globals, sccp_show_globals, "List defined SCCP global settings", show_globals_usage)
+#undef CLI_COMMAND
 
 /* --------------------------------------------------------------------------------------------------------SHOW DEVICES- */
 /*!
@@ -345,8 +345,9 @@ static int sccp_show_devices(int fd, int argc, char * argv[]) {
 static char show_devices_usage[] = "Usage: sccp show devices\n"
 				   "       Lists defined SCCP devices.\n";
 				 
-static char *show_devices_cli_command[] = { "sccp", "show", "devices", NULL };
-CLI_ENTRY( cli_show_devices, sccp_show_devices, show_devices_cli_command, "List defined SCCP devices", show_devices_usage)
+#define CLI_COMMAND "sccp", "show", "devices", NULL
+CLI_ENTRY( cli_show_devices, sccp_show_devices, "List defined SCCP devices", show_devices_usage)
+#undef CLI_COMMAND
 
 
 /* --------------------------------------------------------------------------------------------------------SHOW DEVICE- */
@@ -519,8 +520,9 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 static char show_device_usage[] = "Usage: sccp show device <deviceId>\n"
 				  "       Lists device settings for the SCCP subsystem.\n";
 				 
-static char *show_device_cli_command[] = { "sccp", "show", "device", NULL };
-CLI_ENTRY_COMPLETE(cli_show_device,sccp_show_device,show_device_cli_command,"Lists device settings",show_device_usage, sccp_complete_device)
+#define CLI_COMMAND "sccp", "show", "device", NULL
+CLI_ENTRY_COMPLETE(cli_show_device,sccp_show_device,"Lists device settings",show_device_usage, sccp_complete_device)
+#undef CLI_COMMAND
 
 /* ---------------------------------------------------------------------------------------------------------SHOW LINES- */
 /*!
@@ -613,9 +615,9 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 static char show_lines_usage[] = "Usage: sccp show lines\n"
 				 "       Lists all lines known to the SCCP subsystem.\n";
 				 
-static char *show_lines_command[] = { "sccp", "show", "lines", NULL };
-
-CLI_ENTRY(cli_show_lines,sccp_show_lines,show_lines_command,"List defined SCCP Lines",show_lines_usage)
+#define CLI_COMMAND "sccp", "show", "lines", NULL
+CLI_ENTRY(cli_show_lines,sccp_show_lines,"List defined SCCP Lines",show_lines_usage)
+#undef CLI_COMMAND
 
 /* -----------------------------------------------------------------------------------------------------------SHOW LINE- */
 /*!
@@ -722,9 +724,9 @@ static int sccp_show_line(int fd, int argc, char * argv[]) {
 static char show_line_usage[] = "Usage: sccp show line <lineId>\n"
 				"       List defined SCCP line settings.\n";
 				 
-static char *show_line_cli_command[] = { "sccp", "show", "line", NULL };
-CLI_ENTRY_COMPLETE(cli_show_line,sccp_show_line,show_line_cli_command,"List defined SCCP line settings",show_line_usage, sccp_complete_line)
-
+#define CLI_COMMAND "sccp", "show", "line", NULL
+CLI_ENTRY_COMPLETE(cli_show_line,sccp_show_line,"List defined SCCP line settings",show_line_usage, sccp_complete_line)
+#undef CLI_COMMAND 
 /* --------------------------------------------------------------------------------------------------------SHOW CHANNELS- */
 /*!
  * \brief Show Channels
@@ -764,9 +766,9 @@ static int sccp_show_channels(int fd, int argc, char * argv[]) {
 static char show_channels_usage[] = "Usage: sccp show channels\n"
 				    "       Lists active channels for the SCCP subsystem.\n";
 				 
-static char *show_channels_cli_command[] = { "sccp", "show", "channels", NULL };
-CLI_ENTRY(cli_show_channels,sccp_show_channels,show_channels_cli_command,"Lists active SCCP channels",show_channels_usage)
-
+#define CLI_COMMAND "sccp", "show", "channels", NULL
+CLI_ENTRY(cli_show_channels,sccp_show_channels,"Lists active SCCP channels",show_channels_usage)
+#undef CLI_COMMAND
 /* -------------------------------------------------------------------------------------------------------SHOW SESSIONS- */
 /*!
  * \brief Show Sessions
@@ -819,9 +821,9 @@ static int sccp_show_sessions(int fd, int argc, char * argv[]) {
 static char show_sessions_usage[] = "Usage: sccp show sessions\n"
 				 "	Show All SCCP Sessions.\n";
 				 
-static char *show_sessions_cli_command[] = { "sccp", "show", "sessions", NULL };
-CLI_ENTRY(cli_show_sessions,sccp_show_sessions,show_sessions_cli_command,"Show all SCCP sessions",show_sessions_usage)
-
+#define CLI_COMMAND "sccp", "show", "sessions", NULL
+CLI_ENTRY(cli_show_sessions,sccp_show_sessions,"Show all SCCP sessions",show_sessions_usage)
+#undef CLI_COMMAND
 /* -----------------------------------------------------------------------------------------------------MESSAGE DEVICES- */
 /*!
  * \brief Message Devices
@@ -833,7 +835,7 @@ CLI_ENTRY(cli_show_sessions,sccp_show_sessions,show_sessions_cli_command,"Show a
 static int sccp_message_devices(int fd, int argc, char * argv[]) {
 	sccp_device_t * d;
 	int msgtimeout=10;
-	int blink=1;
+	int beep=0;
 
 	if (argc < 4)
 		return RESULT_SHOWUSAGE;
@@ -841,19 +843,24 @@ static int sccp_message_devices(int fd, int argc, char * argv[]) {
 	if (ast_strlen_zero(argv[3]))
 		return RESULT_SHOWUSAGE;
 
-	if (argc == 6 && !strcmp(argv[4], "beep") && sscanf(argv[5], "%d", &msgtimeout) != 1) {
-		blink=1;
-	}
-	if (argc == 5 && sscanf(argv[4], "%d", &msgtimeout) != 1) {
-		msgtimeout=10;
+	if (argc > 5) {
+		if (!strcmp(argv[4], "beep")) {
+			beep=1;
+			if (sscanf(argv[5], "%d", &msgtimeout) != 1) {
+				msgtimeout=10;
+			}
+		}
+		if (sscanf(argv[4], "%d", &msgtimeout) != 1) {
+			msgtimeout=10;
+		}
 	}
 
 	SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
 		sccp_dev_displaynotify(d,argv[3],msgtimeout);
 		
-		if (blink) {
-			// Implement MWI Blink
+		if (beep) {
+			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
 		}
 	}
 	SCCP_LIST_UNLOCK(&GLOB(devices));
@@ -863,9 +870,9 @@ static int sccp_message_devices(int fd, int argc, char * argv[]) {
 static char message_devices_usage[] = "Usage: sccp message devices <message text> [beep] [timeout]\n"
 				      "       Send a message to all SCCP Devices + phone beep + timeout.\n";
 				 
-static char *message_devices_cli_command[] = { "sccp", "message", "devices", NULL };
-CLI_ENTRY(cli_message_devices,sccp_message_devices,message_devices_cli_command,"Send a message to all SCCP Devices",message_devices_usage)
-
+#define CLI_COMMAND "sccp", "message", "devices", NULL
+CLI_ENTRY(cli_message_devices,sccp_message_devices,"Send a message to all SCCP Devices",message_devices_usage)
+#undef CLI_COMMAND
 /* -----------------------------------------------------------------------------------------------------MESSAGE DEVICE- */
 /* Not implemented Yet */
 /*!
@@ -882,9 +889,9 @@ static int sccp_message_device(int fd, int argc, char * argv[]) {
 static char message_device_usage[] = "Usage: sccp message <deviceId> <message text> [beep] [timeout]\n"
 				      "       Send a message to an SCCP Device + phone beep + timeout.\n";
 				 
-static char *message_device_cli_command[] = { "sccp", "message", "device", NULL };
-CLI_ENTRY_COMPLETE(cli_message_device,sccp_message_device,message_device_cli_command,"Send a message to SCCP Device",message_device_usage,sccp_complete_device)
-
+#define CLI_COMMAND "sccp", "message", "device", NULL
+CLI_ENTRY_COMPLETE(cli_message_device,sccp_message_device,"Send a message to SCCP Device",message_device_usage,sccp_complete_device)
+#undef CLI_COMMAND
 /* ------------------------------------------------------------------------------------------------------SYSTEM MESSAGE- */
 /*!
  * \brief System Message
@@ -937,9 +944,9 @@ static char system_message_usage[] = "Usage: sccp system message <message text> 
 				      "       The default optional timeout is 0 (forever)\n"
 				      "       Example: sccp system message \"The boss is gone. Let's have some fun!\"  10\n";
 				 
-static char *system_message_cli_command[] = { "sccp", "system", "message", NULL };
-CLI_ENTRY(cli_system_message,sccp_system_message,system_message_cli_command,"Send a system wide message to all SCCP Devices",system_message_usage)
-
+#define CLI_COMMAND "sccp", "system", "message", NULL
+CLI_ENTRY(cli_system_message,sccp_system_message,"Send a system wide message to all SCCP Devices",system_message_usage)
+#undef CLI_COMMAND
 
 /* --------------------------------------------------------------------------------------------REMOVE_LINE_FROM_DEVICE- */
 /*!
@@ -957,9 +964,9 @@ static int sccp_remove_line_from_device(int fd, int argc, char * argv[])
 static char remove_line_device_usage[] = "Usage: sccp remove line <deviceID> <lineID>\n"
 				 "       Remove a line from device.\n";
 				 
-static char *remove_line_device_cli_command[] = { "sccp", "remove", "line", NULL };
-CLI_ENTRY(cli_remove_line_device,sccp_remove_line_from_device,remove_line_device_cli_command,"Remove a line from device",remove_line_device_usage)
-
+#define CLI_COMMAND "sccp", "remove", "line", NULL
+CLI_ENTRY(cli_remove_line_device,sccp_remove_line_from_device,"Remove a line from device",remove_line_device_usage)
+#undef CLI_COMMAND
 
 /* ---------------------------------------------------------------------------------------------SHOW_MWI_SUBSCRIPTIONS- */
 /* Not implemented Yet */
@@ -970,9 +977,9 @@ static int sccp_show_mwi_subscriptions(int fd, int argc, char * argv[]) {
 static char show_mwi_subscriptions_usage[] = "Usage: sccp show sessions\n"
 				 "	Show All SCCP Sessions.\n";
 				 
-static char *show_mwi_subscriptions_cli_command[] = { "sccp", "show", "sessions", NULL };
-CLI_ENTRY(cli_show_mwi_subscriptions,sccp_show_mwi_subscriptions,show_mwi_subscriptions_cli_command,"Show all SCCP sessions",show_mwi_subscriptions_usage)
-
+#define CLI_COMMAND "sccp", "show", "sessions", NULL
+CLI_ENTRY(cli_show_mwi_subscriptions,sccp_show_mwi_subscriptions,"Show all SCCP sessions",show_mwi_subscriptions_usage)
+#undef CLI_COMMAND
 /* --------------------------------------------------------------------------------------------------SHOW_SOKFTKEYSETS- */
 /*!
  * \brief Show Sessions
@@ -1015,9 +1022,9 @@ static int sccp_show_softkeysets(int fd, int argc, char * argv[]) {
 static char show_softkeysets_usage[] = "Usage: sccp show softkeysets\n"
 				 "	Show the configured SoftKeySets.\n";
 				 
-static char *show_softkeysets_cli_command[] = { "sccp", "show", "softkeyssets", NULL };
-CLI_ENTRY(cli_show_softkeysets,sccp_show_softkeysets,show_softkeysets_cli_command,"Show configured SoftKeySets",show_softkeysets_usage)
-
+#define CLI_COMMAND "sccp", "show", "softkeyssets", NULL
+CLI_ENTRY(cli_show_softkeysets,sccp_show_softkeysets,"Show configured SoftKeySets",show_softkeysets_usage)
+#undef CLI_COMMAND
 
 /* ------------------------------------------------------------------------------------------------------------DO DEBUG- */
 /*!
@@ -1048,9 +1055,9 @@ static char do_debug_usage[] = "Usage: SCCP debug [no] <level or categories>\n"
 			       "       indicate, pbx, socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime,\n"
 			       "       lock, newcode, high\n";
 
-static char *do_debug_cli_command[] = { "sccp", "debug", NULL };
-CLI_ENTRY_COMPLETE(cli_do_debug,sccp_do_debug,do_debug_cli_command,"Set SCCP Debugging Types",do_debug_usage, sccp_complete_debug)
-
+#define CLI_COMMAND "sccp", "debug", NULL
+CLI_ENTRY_COMPLETE(cli_do_debug,sccp_do_debug,"Set SCCP Debugging Types",do_debug_usage, sccp_complete_debug)
+#undef CLI_COMMAND
 /* ------------------------------------------------------------------------------------------------------------NO DEBUG- */
 /*!
  * \brief No Debug
@@ -1071,9 +1078,9 @@ static int sccp_no_debug(int fd, int argc, char *argv[]) {
 static char no_debug_usage[] = "Usage: SCCP no debug\n"
 			       "       Disables dumping of SCCP packets for debugging purposes\n";
 
-static char *no_debug_cli_command[] = { "sccp", "no", "debug", NULL };
-CLI_ENTRY(cli_no_debug,sccp_no_debug,no_debug_cli_command,"Set SCCP Debugging Types",no_debug_usage)
-
+#define CLI_COMMAND "sccp", "no", "debug", NULL
+CLI_ENTRY(cli_no_debug,sccp_no_debug,"Set SCCP Debugging Types",no_debug_usage)
+#undef CLI_COMMAND
 /* --------------------------------------------------------------------------------------------------------------RELOAD- */
 /*!
  * \brief Do Reload
@@ -1122,9 +1129,9 @@ static int sccp_reload(int fd, int argc, char *argv[]) {
 static char reload_usage[] = "Usage: SCCP reload\n"
 			     "       Reloads SCCP configuration from sccp.conf (It will close all active connections)\n";
 
-static char *reload_cli_command[] = { "sccp", "reload", NULL };
-CLI_ENTRY(cli_reload,sccp_reload,reload_cli_command,"Reload the SCCP configuration",reload_usage)
-
+#define CLI_COMMAND "sccp", "reload", NULL
+CLI_ENTRY(cli_reload,sccp_reload,"Reload the SCCP configuration",reload_usage)
+#undef CLI_COMMAND
 /* -------------------------------------------------------------------------------------------------------SHOW VERSION- */
 /*!
  * \brief Show Version
@@ -1141,9 +1148,9 @@ static int sccp_show_version(int fd, int argc, char *argv[]) {
 static char show_version_usage[] = "Usage: SCCP show version\n"
 			           "       Show SCCP version details\n";
 
-static char *show_version_cli_command[] = { "sccp", "show", "version", NULL };
-CLI_ENTRY(cli_show_version,sccp_show_version,show_version_cli_command,"Show SCCP version details",show_version_usage)
-
+#define CLI_COMMAND "sccp", "show", "version", NULL
+CLI_ENTRY(cli_show_version,sccp_show_version,"Show SCCP version details",show_version_usage)
+#undef CLI_COMMAND
 /* -------------------------------------------------------------------------------------------------------RESET_RESTART- */
 /*!
  * \brief Reset/Restart
@@ -1196,18 +1203,16 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 static char reset_usage[] = "Usage: SCCP reset\n"
 		            "       sccp reset <deviceId> [restart]\n";
 
-static char *reset_cli_command[] = { "sccp", "reset", NULL };
-
-CLI_ENTRY_COMPLETE(cli_reset,sccp_reset_restart,reset_cli_command,"Show SCCP version details",reset_usage, sccp_complete_device)
-
+#define CLI_COMMAND "sccp", "reset", NULL
+CLI_ENTRY_COMPLETE(cli_reset,sccp_reset_restart,"Show SCCP version details",reset_usage, sccp_complete_device)
+#undef CLI_COMMAND
 /* -------------------------------------------------------------------------------------------------------------RESTART- */
 static char restart_usage[] = "Usage: SCCP restart\n"
 			      "       sccp restart <deviceId>\n";
 
-static char *restart_cli_command[] = { "sccp", "restart", NULL };
-
-CLI_ENTRY_COMPLETE(cli_restart,sccp_reset_restart,restart_cli_command,"Restart an SCCP device",restart_usage, sccp_complete_device)
-
+#define CLI_COMMAND "sccp", "restart", NULL
+CLI_ENTRY_COMPLETE(cli_restart,sccp_reset_restart,"Restart an SCCP device",restart_usage, sccp_complete_device)
+#undef CLI_COMMAND
 /* ----------------------------------------------------------------------------------------------------------UNREGISTER- */
 /*!
  * \brief Unregister
@@ -1261,10 +1266,9 @@ static int sccp_unregister(int fd, int argc, char * argv[]) {
 static char unregister_usage[] = "Usage: SCCP unregister <deviceId>\n"
 		                 "       Unregister an SCCP device\n";
 
-static char *unregister_cli_command[] = { "sccp", "unregister", NULL };
-
-CLI_ENTRY_COMPLETE(cli_unregister,sccp_unregister,unregister_cli_command,"Unregister an SCCP device",unregister_usage, sccp_complete_device)
-
+#define CLI_COMMAND "sccp", "unregister", NULL
+CLI_ENTRY_COMPLETE(cli_unregister,sccp_unregister,"Unregister an SCCP device",unregister_usage, sccp_complete_device)
+#undef CLI_COMMAND
 
 
 
@@ -1323,6 +1327,7 @@ void sccp_register_cli(void) {
   ast_cli_register(&cli_show_line);
   ast_cli_register(&cli_show_sessions);
   ast_cli_register(&cli_show_version);
+  ast_cli_register(&cli_show_softkeysets);
   ast_cli_register(&cli_reload);
   ast_cli_register(&cli_restart);
   ast_cli_register(&cli_reset);
@@ -1356,6 +1361,7 @@ void sccp_unregister_cli(void) {
   ast_cli_unregister(&cli_show_line);
   ast_cli_unregister(&cli_show_sessions);
   ast_cli_unregister(&cli_show_version);
+  ast_cli_unregister(&cli_show_softkeysets);
   ast_cli_unregister(&cli_reload);
   ast_cli_unregister(&cli_restart);
   ast_cli_unregister(&cli_reset);
