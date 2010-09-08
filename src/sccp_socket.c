@@ -37,6 +37,13 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/poll-compat.h>
 #endif
 
+
+#ifdef ast_poll
+#define sccp_socket_poll ast_poll
+#else
+#define sccp_socket_poll poll
+#endif
+
 sccp_session_t * sccp_session_find(const sccp_device_t *device);
 
 int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r);
@@ -356,7 +363,7 @@ void * sccp_socket_thread(void * ignore)
 	while (GLOB(descriptor) > -1)
 	{
 		fds[0].fd = GLOB(descriptor);
-		res = ast_poll(fds, 1, 20);
+		res = sccp_socket_poll(fds, 1, 20);
 		
 		if (res < 0) {
 			ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
@@ -388,7 +395,7 @@ void * sccp_socket_thread(void * ignore)
 #endif
 			if (s->fd > 0) {
 				fds[0].fd = s->fd;
-				res = ast_poll(fds, 1, 20);
+				res = sccp_socket_poll(fds, 1, 20);
 				if (res < 0) {
 					ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
 					sccp_session_close(s);
