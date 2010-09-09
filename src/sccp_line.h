@@ -33,9 +33,9 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, uint8_t lineIns
 void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device);
 void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t *channel);
 void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t *channel);
-#ifdef CS_DYNAMIC_CONFIG
 void register_exten(sccp_line_t *l,struct subscriptionId *subscriptionId);
 void unregister_exten(sccp_line_t *l,struct subscriptionId *subscriptionId);
+#ifdef CS_DYNAMIC_CONFIG
 sccp_line_t * sccp_clone_line(sccp_line_t *orig_line);
 void sccp_duplicate_line_mailbox_list(sccp_line_t *new_line, sccp_line_t *orig_line);
 void sccp_duplicate_line_linedevices_list(sccp_line_t *new_line, sccp_line_t *orig_line);
