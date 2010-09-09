@@ -625,11 +625,11 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 	struct hostent			*hp;
 	struct ast_ha 			*na;
 	char 				config_value[256];
-#ifdef CS_DYNAMIC_CONFIG
+
 	char newcontexts[AST_MAX_CONTEXT];
 	char oldcontexts[AST_MAX_CONTEXT];
 	char *stringp, *context, *oldregcontext;
-#endif
+
 
 
 	/* Cleanup for reload */
