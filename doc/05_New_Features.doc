@@ -349,7 +349,7 @@
  *
  *
  *
- * \subsection nf_sccp_dialplan	 	How to use dialplan functions
+ * \subsection nf_sccp_function	 	How to use dialplan functions
  * 
  * We have added new dialplan function SCCPDEVICE and SCCPLINE to provide the ability to ask information about sccp device
  * sccp lines. 

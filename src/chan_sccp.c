@@ -855,6 +855,9 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 {
 	sccp_device_t *d;
 	char *colname;
+	char tmp[1024]="";
+	char lbuf[1024]="";
+	int first=0;
 
 	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
@@ -948,9 +951,28 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 		sccp_buttonconfig_t *config;
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list){
-			snprintf(buf, len, "%d=%s ", config->instance, sccp_buttontype2str(config->type));
+			switch (config->type) {
+				case LINE:
+					snprintf(tmp,sizeof(tmp),"[%d,%s,%s,%s]",config->instance, sccp_buttontype2str(config->type), config->button.line.name, "test");
+				case SPEEDDIAL:
+					snprintf(tmp,sizeof(tmp),"[%d,%s,%s,%s]",config->instance, sccp_buttontype2str(config->type), config->button.speeddial.label, config->button.speeddial.ext);
+				case SERVICE:
+					snprintf(tmp,sizeof(tmp),"[%d,%s,%s,%s]",config->instance, sccp_buttontype2str(config->type), config->button.service.label, config->button.service.url);
+				case FEATURE:
+					snprintf(tmp,sizeof(tmp),"[%d,%s,%s,%s]",config->instance, sccp_buttontype2str(config->type), config->button.feature.label, config->button.feature.options);
+				case EMPTY:
+					snprintf(tmp,sizeof(tmp),"[%d,%s]",config->instance, sccp_buttontype2str(config->type));
+			}
+			if (first==0) {
+				first=1;
+				strcat(lbuf,tmp);
+			} else {
+				strcat(lbuf,",");
+				strcat(lbuf,tmp);
+			}
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
+		snprintf(buf,len,"[ %s ]",lbuf);
 	} else if (!strcasecmp(colname , "pending_delete")) {
 #ifdef CS_DYNAMIC_CONFIG
 		ast_copy_string(buf, d->pendingDelete ? "yes" : "no", len);		
@@ -1019,6 +1041,9 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 {
 	sccp_line_t *l;
 	char *colname;
+	char tmp[1024]="";
+	char lbuf[1024]="";
+	int first=0;
 
 	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
@@ -1133,14 +1158,38 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 		snprintf(buf, len, "%d", l->voicemailStatistic.oldmsgs);
 	} else if (!strcasecmp(colname , "num_lines")) {
 		snprintf(buf, len, "%d", l->devices.size);
-	} else if (!strcasecmp(colname , "lines")) {
+	} else if (!strcasecmp(colname , "cfwd")) {
 		sccp_linedevices_t *linedevice;
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 			if (linedevice)
-				snprintf(buf, len, "%s [cfwdAll:%s,%s,cfwdBusy:%s,%s]", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number ? linedevice->cfwdAll.number : "<not set>", linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number ? linedevice->cfwdBusy.number : "<not set>");
+				snprintf(tmp, sizeof(tmp), "[id:%s,cfwdAll:%s,num:%s,cfwdBusy:%s,num:%s]", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number ? linedevice->cfwdAll.number : "<not set>", linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number ? linedevice->cfwdBusy.number : "<not set>");
+			if (first==0) {
+				first=1;
+				strcat(lbuf,tmp);
+			} else {
+				strcat(lbuf,",");
+				strcat(lbuf,tmp);
+			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
+		snprintf(buf,len,"%s",lbuf);
+	} else if (!strcasecmp(colname , "devices")) {
+		sccp_linedevices_t *linedevice;
+		SCCP_LIST_LOCK(&l->devices);
+		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+			if (linedevice)
+				snprintf(tmp, sizeof(tmp), "%s", linedevice->device->id);
+			if (first==0) {
+				first=1;
+				strcat(lbuf,tmp);
+			} else {
+				strcat(lbuf,",");
+				strcat(lbuf,tmp);
+			}
+		}
+		SCCP_LIST_UNLOCK(&l->devices);
+		snprintf(buf,len,"%s",lbuf);
 	} else  if (!strncasecmp(colname, "chanvar[", 8)) {
 		char *chanvar=colname + 8;
 		struct ast_variable *v;
