@@ -1,5 +1,13 @@
 2010-09-09  ddegroot
 
+	* [r1841] src/chan_sccp.c: Added reference to documentation for
+	  Dialplan Functions
+
+	* [r1840] ChangeLog, doc/05_New_Features.doc, src/chan_sccp.c,
+	  src/sccp_cli.c: Extend SCCPLINE dialplan function
+	  Fixed Line Lock in sccp_cli.c
+	  Updated Dialplan Functions Documentation
+
 	* [r1839] ChangeLog, NEWS,
 	  doc/03_Building_and_Installation_Guide.doc,
 	  doc/05_New_Features.doc, doc/06_Frequently_Asked_Questions.doc,
