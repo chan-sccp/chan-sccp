@@ -1118,12 +1118,13 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 		ast_copy_string(buf, "not supported", len);
 #endif
 		
-#ifdef CS_DYNAMIC_CONFIG
+	/* regexten feature -- */
 	} else if (!strcasecmp(colname , "regexten")) {
 		ast_copy_string(buf, l->regexten ? l->regexten : "Unset", len);
 	} else if (!strcasecmp(colname , "regcontext")) {
 		ast_copy_string(buf, l->regcontext ? l->regcontext : "Unset", len);
-#endif
+	/* -- regexten feature */
+	
 	} else if (!strcasecmp(colname , "adhoc_number")) {
 		ast_copy_string(buf, l->adhocNumber ? l->adhocNumber : "No", len);
 	} else if (!strcasecmp(colname , "newmsgs")) {

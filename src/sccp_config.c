@@ -1028,7 +1028,8 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 			GLOB(meetme) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "meetmeopts")) {
 			sccp_copy_string(GLOB(meetmeopts), v->value, sizeof(GLOB(meetmeopts)));
-#ifdef CS_DYNAMIC_CONFIG
+
+//begin regexten feature			
 		} else if (!strcasecmp(v->name, "regcontext")) {
 			ast_copy_string(newcontexts, v->value, sizeof(newcontexts));
 			stringp = newcontexts;
@@ -1048,7 +1049,8 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 			}
 			ast_copy_string(GLOB(regcontext), v->value, sizeof(GLOB(regcontext)));
 			continue;
-#endif
+//end regexten feature
+			
 		} else {
 			ast_log(LOG_WARNING, "Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
 		}
@@ -1065,7 +1067,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 	return TRUE;
 }
 
-#ifdef CS_DYNAMIC_CONFIG
+
 /*!
  * \brief Cleanup Stale Contexts (regcontext)
  * \param new New Context as Character
@@ -1093,7 +1095,7 @@ void cleanup_stale_contexts(char *new, char *old)
 			ast_context_destroy(ast_context_find(stalecontext), "SCCP");
 	}
 }
-#endif
+
 
 /**
  * \brief Read Lines from the Config File
@@ -1438,10 +1440,10 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 					/* 0 is off and 1 (on) is reject */
 					l->dndmode = sccp_true(v->value);
 				}
-#ifdef CS_DYNAMIC_CONFIG
+
 			} else if (!strcasecmp(v->name, "regexten")) {
 				ast_copy_string(l->regexten, v->value, sizeof(l->regexten));
-#endif
+
 			} else {
 				if(v->name && v->value) {
 					ast_log(LOG_WARNING, "Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);

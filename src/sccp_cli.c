@@ -298,9 +298,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "RemoteHangup tone     : %d\n", GLOB(remotehangup_tone));
 	ast_cli(fd, "Transfer tone         : %d\n", GLOB(transfer_tone));
 	ast_cli(fd, "CallWaiting tone      : %d\n", GLOB(callwaiting_tone));
-#ifdef CS_DYNAMIC_CONFIG
 	ast_cli(fd, "Registration Context  : %s\n", GLOB(regcontext) ? GLOB(regcontext) : "Unset");
-#endif
 	ast_cli(fd, "Jitterbuffer enabled  : %s\n", (ast_test_flag(&GLOB(global_jbconf), AST_JB_ENABLED) ? "Yes" : "No"));
 	ast_cli(fd, "Jitterbuffer forced   : %s\n", (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED) ? "Yes" : "No"));
 	ast_cli(fd, "Jitterbuffer max size : %ld\n", GLOB(global_jbconf).max_size);
@@ -704,9 +702,11 @@ static int sccp_show_line(int fd, int argc, char * argv[]) {
 #ifdef CS_DYNAMIC_CONFIG
 	ast_cli(fd, "Pending Delete        : %s\n", l->pendingUpdate ? "Yes" : "No");
 	ast_cli(fd, "Pending Update        : %s\n", l->pendingDelete ? "Yes" : "No");
+#endif
+	
 	ast_cli(fd, "Registration Extension: %s\n", l->regexten ? l->regexten : "Unset");
 	ast_cli(fd, "Registration Context  : %s\n", l->regcontext ? l->regcontext : "Unset");
-#endif
+
 	ast_cli(fd, "Adhoc Number Assigned : %s\n", l->adhocNumber ? l->adhocNumber : "No");
 	ast_cli(fd, "Message Waiting New.  : %i\n", l->voicemailStatistic.newmsgs);
 	ast_cli(fd, "Message Waiting Old.  : %i\n", l->voicemailStatistic.oldmsgs);

@@ -669,10 +669,8 @@ struct sccp_line {
 	uint32_t				configurationStatus;			/*!< what is the current configuration status - @see sccp_config_status_t */
 	char 					adhocNumber[AST_MAX_EXTENSION];		/*!< number that should be dialed when device offhocks this line */
 
-#ifdef CS_DYNAMIC_CONFIG
 	char 					regexten[AST_MAX_EXTENSION];		/*!< Extension for auto-extension (DUNDI)*/
 	char 					regcontext[AST_MAX_CONTEXT];		/*!< Context for auto-extension (DUNDI)*/
-#endif
 };											/*!< SCCP Line Structure */
 
 /*!

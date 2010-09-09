@@ -554,9 +554,9 @@ void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t *channel)
 	SCCP_LIST_REMOVE(&l->channels, channel, list);
 }
 
-#ifdef CS_DYNAMIC_CONFIG
+
 /*!
- * \brief Register Extension to Asterisk regcontext
+ * \brief Register Extension to Asterisk regextension
  * \param l SCCP Line
  * \param subscriptionId subscriptionId
  * \note used for DUNDi Discovery \ref DUNDi
@@ -644,7 +644,7 @@ void unregister_exten(sccp_line_t *l,struct subscriptionId *subscriptionId)
         }
 }
 
-
+#ifdef CS_DYNAMIC_CONFIG
 /*!
  * copy the structure content of one line to a new one
  * \param orig_line sccp line
