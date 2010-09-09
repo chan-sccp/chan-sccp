@@ -879,6 +879,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 			return -1;
 	}
 	
+	sccp_device_lock(d);
 	if (!strcasecmp(colname, "ip")) {
 		sccp_session_t *s=d->session;
 		if (s) {
@@ -929,7 +930,11 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 	} else if (!strcasecmp(colname , "mwi_light")) {
 		ast_copy_string(buf, d->mwilight ? "ON" : "OFF", len);
 	} else if (!strcasecmp(colname , "dynamic") || !strcasecmp(colname , "realtime")) {
+#ifdef CS_SCCP_REALTIME
 		ast_copy_string(buf, d->realtime ? "yes" : "no", len);
+#else
+		ast_copy_string(buf, "not supported", len);		
+#endif
 	} else if (!strcasecmp(colname , "active_channel")) {
 		snprintf(buf, len, "%d", d->active_channel->callid);
 	} else if (!strcasecmp(colname , "transfer_channel")) {
@@ -940,19 +945,22 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 		ast_copy_string(buf, d->currentLine->id, len);
 	} else if (!strcasecmp(colname , "button_config")) {
 		sccp_buttonconfig_t *config;
-		ast_copy_string(buf, "[", len);
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list){
-			snprintf(buf, len, "%d", config->instance);
-			ast_copy_string(buf, "=", len);
-			ast_copy_string(buf, sccp_buttontype2str(config->type), len);
-			ast_copy_string(buf, ",", len);
+			snprintf(buf, len, "%d=%s ", config->instance, sccp_buttontype2str(config->type));
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
-		ast_copy_string(buf, "]", len);		
+	} else if (!strcasecmp(colname , "pending_delete")) {
 #ifdef CS_DYNAMIC_CONFIG
-	} else if (!strcasecmp(colname , "needs_reset")) {
-		ast_copy_string(buf, d->pendingUpdate>0 ? "yes" : "no", len);		
+		ast_copy_string(buf, d->pendingDelete ? "yes" : "no", len);		
+#else
+		ast_copy_string(buf, "not supported", len);
+#endif
+	} else if (!strcasecmp(colname , "pending_update")) {
+#ifdef CS_DYNAMIC_CONFIG
+		ast_copy_string(buf, d->pendingUpdate ? "yes" : "no", len);		
+#else
+		ast_copy_string(buf, "not supported", len);
 #endif
 	} else  if (!strncasecmp(colname, "chanvar[", 8)) {
 		char *chanvar=colname + 8;
@@ -978,6 +986,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 	} else {
 		buf[0] = '\0';
 	}
+	sccp_device_unlock(d);
 	return 0;
 }
 
@@ -1040,6 +1049,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 		if ( !(l = sccp_line_find_byname_wo(data, TRUE)) )
 			return -1;
 	}
+	sccp_device_lock(l);	
 	
 	if (!strcasecmp(colname , "id")) {
 		ast_copy_string(buf, l->id, len);
@@ -1047,12 +1057,82 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 		ast_copy_string(buf, l->name, len);
 	} else if (!strcasecmp(colname , "description")) {
 		ast_copy_string(buf, l->description, len);
-#ifdef CS_SCCP_PICKUP
-	} else if (!strcasecmp(colname , "pickupgroup")) {
-//		sccp_print_group(buf, sizeof(buf), GLOB(callgroup))	
+	} else if (!strcasecmp(colname , "label")) {
+		ast_copy_string(buf, l->label, len);	
+	} else if (!strcasecmp(colname , "vmnum")) {
+		ast_copy_string(buf, l->vmnum, len);	
+	} else if (!strcasecmp(colname , "trnsfvm")) {
+		ast_copy_string(buf, l->trnsfvm, len);	
+	} else if (!strcasecmp(colname , "meetme")) {
+		ast_copy_string(buf, l->meetme ? "on" : "off", len);	
+	} else if (!strcasecmp(colname , "meetmenum")) {
+		ast_copy_string(buf, l->meetmenum, len);	
+	} else if (!strcasecmp(colname , "meetmeopts")) {
+		ast_copy_string(buf, l->meetmeopts, len);	
+	} else if (!strcasecmp(colname , "context")) {
+		ast_copy_string(buf, l->context, len);	
+	} else if (!strcasecmp(colname , "language")) {
+		ast_copy_string(buf, l->language, len);	
+	} else if (!strcasecmp(colname , "accountcode")) {
+		ast_copy_string(buf, l->accountcode, len);	
+	} else if (!strcasecmp(colname , "musicclass")) {
+		ast_copy_string(buf, l->musicclass, len);	
+	} else if (!strcasecmp(colname , "amaflags")) {
+		ast_copy_string(buf, l->amaflags ? "yes" : "no" , len);	
 	} else if (!strcasecmp(colname , "callgroup")) {
-//		sccp_print_group(buf, sizeof(buf), GLOB(callgroup))
+		ast_print_group(buf, len, l->callgroup);	
+	} else if (!strcasecmp(colname , "pickupgroup")) {
+#ifdef CS_SCCP_PICKUP
+		ast_print_group(buf, len, l->pickupgroup);
+#else
+		ast_copy_string(buf, "not supported", len);
 #endif
+	} else if (!strcasecmp(colname , "cid_name")) {
+		ast_copy_string(buf, l->cid_name ? l->cid_name : "<not set>", len);
+	} else if (!strcasecmp(colname , "cid_num")) {
+		ast_copy_string(buf, l->cid_num ? l->cid_num : "<not set>", len);
+	} else if (!strcasecmp(colname , "incoming_limit")) {
+		snprintf(buf, len, "%d", l->incominglimit);
+	} else if (!strcasecmp(colname , "channel_count")) {
+		snprintf(buf, len, "%d", l->channelCount);
+	} else if (!strcasecmp(colname , "dynamic") || !strcasecmp(colname , "realtime")) {
+#ifdef CS_SCCP_REALTIME	
+		ast_copy_string(buf, l->realtime ? "Yes" : "No", len);
+#else
+		ast_copy_string(buf, "not supported", len);
+#endif		
+	} else if (!strcasecmp(colname , "pending_delete")) {
+#ifdef CS_DYNAMIC_CONFIG
+		ast_copy_string(buf, l->pendingDelete ? "yes" : "no", len);		
+#else
+		ast_copy_string(buf, "not supported", len);
+#endif
+	} else if (!strcasecmp(colname , "pending_update")) {
+#ifdef CS_DYNAMIC_CONFIG
+		ast_copy_string(buf, l->pendingUpdate ? "yes" : "no", len);		
+#else
+		ast_copy_string(buf, "not supported", len);
+#endif
+	} else if (!strcasecmp(colname , "regexten")) {
+		ast_copy_string(buf, l->regexten ? l->regexten : "Unset", len);
+	} else if (!strcasecmp(colname , "regcontext")) {
+		ast_copy_string(buf, l->regcontext ? l->regcontext : "Unset", len);
+	} else if (!strcasecmp(colname , "adhoc_number")) {
+		ast_copy_string(buf, l->adhocNumber ? l->adhocNumber : "No", len);
+	} else if (!strcasecmp(colname , "newmsgs")) {
+		snprintf(buf, len, "%d", l->voicemailStatistic.newmsgs);
+	} else if (!strcasecmp(colname , "oldmsgs")) {
+		snprintf(buf, len, "%d", l->voicemailStatistic.oldmsgs);
+	} else if (!strcasecmp(colname , "num_lines")) {
+		snprintf(buf, len, "%d", l->devices.size);
+	} else if (!strcasecmp(colname , "lines")) {
+		sccp_linedevices_t *linedevice;
+		SCCP_LIST_LOCK(&l->devices);
+		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+			if (linedevice)
+				snprintf(buf, len, "%s [cfwdAll:%s,%s,cfwdBusy:%s,%s]", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number ? linedevice->cfwdAll.number : "<not set>", linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number ? linedevice->cfwdBusy.number : "<not set>");
+		}
+		SCCP_LIST_UNLOCK(&l->devices);
 	} else  if (!strncasecmp(colname, "chanvar[", 8)) {
 		char *chanvar=colname + 8;
 		struct ast_variable *v;
@@ -1066,6 +1146,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 	} else {
 		buf[0] = '\0';
 	}
+	sccp_line_unlock(l);
 	return 0;
 }
 

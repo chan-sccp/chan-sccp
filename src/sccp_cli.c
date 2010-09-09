@@ -661,7 +661,7 @@ static int sccp_show_line(int fd, int argc, char * argv[]) {
 		ast_cli(fd, "Can't find settings for line %s\n", argv[3]);
 		return RESULT_SUCCESS;
 	}
-	sccp_device_lock(l);
+	sccp_line_lock(l);
 
 	ast_cli(fd, "Current settings for selected Line\n");
 	ast_cli(fd, "----------------------------------\n\n");
