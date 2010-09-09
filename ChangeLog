@@ -1,3 +1,129 @@
+2010-09-07  progs
+
+	* [r1837] src/sccp_cli.c, src/sccp_cli.h: fix warnings
+
+2010-09-07  ddegroot
+
+	* [r1836] src/sccp_cli.h: Added CLI Command Completion back in for
+	  Asterisk 1.4
+
+	* [r1835] src/sccp_cli.c, src/sccp_cli.h: Asterisk 1.4 fix for CLI
+
+	* [r1834] src/sccp_cli.c, src/sccp_cli.h, src/sccp_utils.c,
+	  src/sccp_utils.h: Simplified cli programming via MACRO to combat
+	  asterisk version differences
+	  Fixed sccp debug category printing
+	  Fixed sccp show line tab-completion
+	  Added new sccp_utils function implode/explode (also know as split
+	  and join)
+
+2010-09-07  marcelloceschia
+
+	* [r1833] src/sccp_protocol.h:
+
+	* [r1832] src/sccp_channel.c: fixes: unsupported formate request by
+	  asterisk
+
+2010-09-04  marcelloceschia
+
+	* [r1831] aclocal.m4, configure, src/Makefile.in, src/chan_sccp.h,
+	  src/sccp_actions.c, src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_cli.c, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_features.c, src/sccp_pbx.c, src/sccp_protocol.h: playing
+	  with protocol version 11
+
+	* [r1830] Makefile.in, autoconf/config.guess, autoconf/config.sub,
+	  configure, configure.ac, doc/Makefile.in: fixes configure options
+
+2010-09-02  marcelloceschia
+
+	* [r1829] src/sccp_line.c: fixes: nested extern declaration
+
+2010-09-02  ddegroot
+
+	* [r1828] src/sccp_channel.c: Simplified sccp_channel_forward
+
+	* [r1827] src/sccp_channel.c: sccp_channel.c replaced
+	  ast_set_callerid
+
+	* [r1826] src/sccp_channel.c, src/sccp_channel.h: Update
+	  sccp_channel_forward for callerid information
+
+2010-09-02  marcelloceschia
+
+	* [r1825] src/sccp_featureButton.c, src/sccp_line.c: restore cfwd
+	  status
+
+2010-09-02  ddegroot
+
+	* [r1824] src/chan_sccp.h, src/sccp_channel.c, src/sccp_pbx.c:
+	  CallForward Display Original Caller Id + Forward Status
+
+	* [r1823] src/sccp_socket.c: Fix sccp_socket_thread per device
+	  communication on socket error
+
+	* [r1822] src/sccp_softkeys.c: Change Softkeys NewCall to support
+	  7936 (Raoul Schroeder: 09/02/2010 01:32:11 PM)
+
+	* [r1821] src/sccp_socket.c: Removed maxfd
+
+	* [r1820] src/sccp_socket.c: sccp_socket code cleanup
+
+	* [r1819] src/sccp_socket.c: Cleaned up sccp_socket.c and added
+	  some debug lines (DEBUGCAT_SOCKET)
+
+2010-09-02  marcelloceschia
+
+	* [r1818] src/sccp_socket.c: test impl for poll
+
+2010-09-02  ddegroot
+
+	* [r1817] .version, ChangeLog, autoconf/asterisk.m4, configure,
+	  configure.ac, src/chan_sccp.c, src/config.h.in: Added
+	  --with-streaming-video option to configure (experimental... don't
+	  use, yet !)
+	  Added astobj2.h asterisk header check
+
+2010-09-01  marcelloceschia
+
+	* [r1816] src/chan_sccp.c: fixes compile issue
+
+	* [r1815] src/sccp_actions.c, src/sccp_actions.h,
+	  src/sccp_device.c, src/sccp_softkeys.c: fixes issue with 7936 and
+	  all devices that does not support RegisterAvailableLinesMessage
+	  
+	  
+	  M sccp_actions.h
+	  M sccp_actions.c
+	  M sccp_softkeys.c
+	  M sccp_device.c
+
+2010-08-31  marcelloceschia
+
+	* [r1814] src/sccp_conference.c: fixes warning: unused variable
+	  ‘confCapabilities’
+	  fixes warning: control reaches end of non-void function
+	  Diese und die folgenden Zeilen werden ignoriert --
+	  
+	  M sccp_conference.c
+
+	* [r1813] src/chan_sccp.h: fixes: warning:
+	  AST_CAUSE_ANSWERED_ELSEWHERE redefined
+
+	* [r1812] src/sccp_conference.h: fixes: Invalid number of character
+	  ({) when these macros are defined: '__cplusplus'
+
+	* [r1811] src/sccp_utils.c: fixes issue: Returning pointer to local
+	  array variable
+
+	* [r1810] src/sccp_channel.c: fixes callInfoMessage with
+	  protocolversion = 12
+
+2010-08-30  marcelloceschia
+
+	* [r1809] src/sccp_pbx.c, src/sccp_pbx.h: check for len > 0 and
+	  rename sccp_rtp_read -> sccp_rtp_write
+
 2010-08-29  ddegroot
 
 	* [r1807] ChangeLog, Makefile.in: Pre Update RC2

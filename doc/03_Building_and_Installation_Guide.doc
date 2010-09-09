@@ -20,6 +20,7 @@
 /*!
  * \page build_guide Building and Installation Guide
  *
+ *   - \ref unix_pre Precompiled for your Platform
  *   - \ref unix_pr Prerequisites
  *   - \ref unix_bi Building and Installation
  *   - \ref setup_howto How to setup Chan_SCCP
@@ -35,6 +36,10 @@
  * \section unix UNIX, BSD and Linux
  * These instructions are valid for most UNIX-like operating systems, including BSD and
  * Linux variants.
+ *
+ * \subsection unix_pre Precompiled for your Platform
+ * On http://chan-sccp-b.sourceforge.net/download.shtml you can find links to lot of precompiled versions of chan-sccp-b. 
+ * You can just at the specific repository file specific to your platform to your system and install chan-sccp-b from there.
  *
  * \subsection unix_pr Prerequisites
  * The following prerequisites are required:

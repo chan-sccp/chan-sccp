@@ -79,7 +79,7 @@
  *
  * \section c C. Dialplan
  * 
- * Q: How do tou dial an SCCP from your dialplan
+ * Q: How do you dial an SCCP from your dialplan
  * 
  * A: Use a dial statement like this
  * \code
@@ -121,5 +121,26 @@
  *   - 2wc: 2way and reject cause: congestion
  *   .
  * 
+ * 
+ * Q: Get infomation about the SCCP device or line from the dialplan.
+ * 
+ * A: use the SCCPDEVICE, SCCPLINE and SCCPCHANNEL functions.
+ * 
+ * example:
+ * \code
+ * Set(my_ip=${SCCPDEVICE(current,ip)});
+ * \endcode
+ *
+ * to set the variable my_ip to the ip-address of the current device. 
+ * 
+ * example:
+ * \code
+ * Set(some_ip=${SCCPDEVICE(SEP001B54CA6543,cidname)});
+ * \endcode
+ * 
+ * to set the variable some_ip to the cidname of the device with Mac-Address 00:1B:54:CA:65:43. 
+ * 
+ * see \ref nf_sccp_dialplan How to use dialplan functions
+ *
  **/
 
