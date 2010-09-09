@@ -119,6 +119,14 @@ static char * sccp_complete_line(const char *line, const char *word, int pos, in
 }
 
 #if ASTERISK_VERSION_NUM >= 10600
+/*!
+ * \brief Complete Debug
+ * \param line Line as char
+ * \param word Word as char
+ * \param pos Pos as int
+ * \param state State as int
+ * \return Result as char
+ */
 static char * sccp_complete_debug(char *line, char *word, int pos, int state) {
 #else
 static char * sccp_complete_debug(const char *line, const char *word, int pos, int state) {

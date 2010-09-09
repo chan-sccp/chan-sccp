@@ -836,9 +836,247 @@ int sccp_restart_monitor(void)
 }
 
 /*!
- * \brief 	Set the Called Party name a number over an SCCP channel made by chan_sccp.
+ * \brief  ${SCCPDEVICE()} Dialplan function - reads device data 
+ * \param chan Asterisk Channel
+ * \param cmd Command as char
+ * \param data Extra data as char
+ * \param buf Buffer as chan*
+ * \param len Lenght as size_t
+ * \return Status as int
+ *
+ * \author Diederik de Groot <ddegroot@users.sourceforce.net>
  */
-static char *sccp_setcalledparty_descrip = "  SetCalledParty(\"Name\" <ext>) sets the name and number of the called party for use with chan_sccp\n";
+#if ASTERISK_VERSION_NUM >= 10600
+static int sccp_func_sccpdevice(struct ast_channel *chan, const char *cmd, char *data, char *buf, size_t len)
+#else
+static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data, char *buf, size_t len)
+#endif
+{
+	sccp_device_t *d;
+	char *colname;
+
+	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
+		static int deprecation_warning = 0;
+		*colname++ = '\0';
+		if (deprecation_warning++ % 10 == 0)
+			ast_log(LOG_WARNING, "SCCPDEVICE(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
+	} else if ((colname = strchr(data, ',')))
+		*colname++ = '\0';
+	else
+		colname = "ip";
+
+	if (!strncasecmp(data,"current",7)) {	
+		sccp_channel_t *c;
+		c=CS_AST_CHANNEL_PVT(chan);
+
+		if (!c ||!c->device)
+		        return -1;
+		        
+		d = c->device;
+		                        
+	} else {
+		if ( !(d = sccp_device_find_byid(data, TRUE)) )
+			return -1;
+	}
+	
+	if (!strcasecmp(colname, "ip")) {
+		sccp_session_t *s=d->session;
+		if (s) {
+#if ASTERISK_VERSION_NUM < 10400
+			ast_copy_string(buf, s->sin.sin_addr.s_addr ? ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr) : "", len);
+#else
+			ast_copy_string(buf, s->sin.sin_addr.s_addr ? ast_inet_ntoa(s->sin.sin_addr) : "", len);
+#endif
+		}
+	} else if (!strcasecmp(colname , "id")) {
+		ast_copy_string(buf, d->id, len);
+	} else if (!strcasecmp(colname , "status")) {
+		ast_copy_string(buf, devicestatus2str(d->state), len);
+	} else if (!strcasecmp(colname , "description")) {
+		ast_copy_string(buf, d->description, len);
+	} else if (!strcasecmp(colname , "config_type")) {
+		ast_copy_string(buf, d->config_type, len);
+	} else if (!strcasecmp(colname , "skinny_type")) {
+		ast_copy_string(buf, devicetype2str(d->skinny_type), len);
+	} else if (!strcasecmp(colname , "tz_offset")) {
+		snprintf(buf, len, "%d", d->tz_offset);
+	} else if (!strcasecmp(colname , "image_version")) {
+		ast_copy_string(buf, d->imageversion, len);
+	} else if (!strcasecmp(colname , "accessory_status")) {
+		ast_copy_string(buf, accessorystatus2str(d->accessorystatus), len);
+	} else if (!strcasecmp(colname , "registration_state")) {
+		ast_copy_string(buf, deviceregistrationstatus2str(d->registrationState), len);
+	} else if (!strcasecmp(colname , "codecs")) {
+		ast_getformatname_multiple(buf, len -1, d->capability);
+	} else if (!strcasecmp(colname , "state")) {
+		ast_copy_string(buf, accessorystatus2str(d->accessorystatus), len);
+	} else if (!strcasecmp(colname , "lines_registered")) {
+		ast_copy_string(buf, d->linesRegistered ? "yes" : "no", len);
+	} else if (!strcasecmp(colname , "lines_count")) {
+		snprintf(buf, len, "%d", d->linesCount);
+	} else if (!strcasecmp(colname , "last_number")) {
+		ast_copy_string(buf, d->lastNumber, len);
+	} else if (!strcasecmp(colname , "capability")) {
+		snprintf(buf, len, "%d", d->capability);
+	} else if (!strcasecmp(colname , "early_rtp")) {
+		snprintf(buf, len, "%d", d->earlyrtp);
+	} else if (!strcasecmp(colname , "channel_count")) {
+		snprintf(buf, len, "%d", d->channelCount);
+	} else if (!strcasecmp(colname , "supported_protocol_version")) {
+		snprintf(buf, len, "%d", d->protocolversion);
+	} else if (!strcasecmp(colname , "used_protocol_version")) {
+		snprintf(buf, len, "%d", d->inuseprotocolversion);
+	} else if (!strcasecmp(colname , "mwi_light")) {
+		ast_copy_string(buf, d->mwilight ? "ON" : "OFF", len);
+	} else if (!strcasecmp(colname , "dynamic") || !strcasecmp(colname , "realtime")) {
+		ast_copy_string(buf, d->realtime ? "yes" : "no", len);
+	} else if (!strcasecmp(colname , "active_channel")) {
+		snprintf(buf, len, "%d", d->active_channel->callid);
+	} else if (!strcasecmp(colname , "transfer_channel")) {
+		snprintf(buf, len, "%d", d->transfer_channel->callid);
+	} else if (!strcasecmp(colname , "conference_channel")) {
+		snprintf(buf, len, "%d", d->conference_channel->callid);
+	} else if (!strcasecmp(colname , "current_line")) {
+		ast_copy_string(buf, d->currentLine->id, len);
+	} else if (!strcasecmp(colname , "button_config")) {
+		sccp_buttonconfig_t *config;
+		ast_copy_string(buf, "[", len);
+		SCCP_LIST_LOCK(&d->buttonconfig);
+		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list){
+			snprintf(buf, len, "%d", config->instance);
+			ast_copy_string(buf, "=", len);
+			ast_copy_string(buf, sccp_buttontype2str(config->type), len);
+			ast_copy_string(buf, ",", len);
+		}
+		SCCP_LIST_UNLOCK(&d->buttonconfig);
+		ast_copy_string(buf, "]", len);		
+#ifdef CS_DYNAMIC_CONFIG
+	} else if (!strcasecmp(colname , "needs_reset")) {
+		ast_copy_string(buf, d->pendingUpdate>0 ? "yes" : "no", len);		
+#endif
+	} else  if (!strncasecmp(colname, "chanvar[", 8)) {
+		char *chanvar=colname + 8;
+		struct ast_variable *v;
+	
+		chanvar = strsep(&chanvar, "]");
+		for (v = d->variables ; v ; v = v->next) {
+			if (!strcasecmp(v->name, chanvar)) {
+				ast_copy_string(buf, v->value, len);
+			}
+		}
+	} else  if (!strncasecmp(colname, "codec[", 6)) {
+		char *codecnum;
+		int codec = 0;
+		
+		codecnum = colname + 6;					// move past the '[' 
+		codecnum = strsep(&codecnum, "]"); 			// trim trailing ']' if any 
+		if((codec = ast_codec_pref_index(&d->codecs, atoi(codecnum)))) {
+			ast_copy_string(buf, ast_getformatname(codec), len);
+		} else {
+			buf[0] = '\0';
+		}
+	} else {
+		buf[0] = '\0';
+	}
+	return 0;
+}
+
+/*! \brief Stucture to declare a dialplan function: SCCPDEVICE */
+static struct ast_custom_function sccpdevice_function = {
+	.name = "SCCPDEVICE",
+	.synopsis = "Retrieves information about an SCCP Device",
+	.syntax = "Usage: SCCPDEVICE(deviceId,<option>)",
+	.read = sccp_func_sccpdevice,
+};
+
+/*!
+ * \brief  ${SCCPLINE()} Dialplan function - reads sccp line data 
+ * \param chan Asterisk Channel
+ * \param cmd Command as char
+ * \param data Extra data as char
+ * \param buf Buffer as chan*
+ * \param len Lenght as size_t
+ * \return Status as int
+ *
+ * \author Diederik de Groot <ddegroot@users.sourceforce.net>
+ */
+#if ASTERISK_VERSION_NUM >= 10600
+static int sccp_func_sccpline(struct ast_channel *chan, const char *cmd, char *data, char *buf, size_t len)
+#else
+static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, char *buf, size_t len)
+#endif
+{
+	sccp_line_t *l;
+	char *colname;
+
+	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
+		static int deprecation_warning = 0;
+		*colname++ = '\0';
+		if (deprecation_warning++ % 10 == 0)
+			ast_log(LOG_WARNING, "SCCPLINE(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
+	} else if ((colname = strchr(data, ',')))
+		*colname++ = '\0';
+	else
+		colname = "ip";
+
+	if (!strncasecmp(data,"current",7)) {	
+		sccp_channel_t *c;
+		c=CS_AST_CHANNEL_PVT(chan);
+
+		if (!c ||!c->line)
+		        return -1;
+		        
+		l = c->line;
+	} else if (!strncasecmp(data,"parent",7)) {	
+		sccp_channel_t *c;
+		c=CS_AST_CHANNEL_PVT(chan);
+
+		if (!c ||!c->parentChannel || !c->parentChannel->line)
+		        return -1;
+		        
+		l = c->parentChannel->line;
+		                        
+	} else {
+		if ( !(l = sccp_line_find_byname_wo(data, TRUE)) )
+			return -1;
+	}
+	
+	if (!strcasecmp(colname , "id")) {
+		ast_copy_string(buf, l->id, len);
+	} else if (!strcasecmp(colname , "name")) {
+		ast_copy_string(buf, l->name, len);
+	} else if (!strcasecmp(colname , "description")) {
+		ast_copy_string(buf, l->description, len);
+#ifdef CS_SCCP_PICKUP
+	} else if (!strcasecmp(colname , "pickupgroup")) {
+//		sccp_print_group(buf, sizeof(buf), GLOB(callgroup))	
+	} else if (!strcasecmp(colname , "callgroup")) {
+//		sccp_print_group(buf, sizeof(buf), GLOB(callgroup))
+#endif
+	} else  if (!strncasecmp(colname, "chanvar[", 8)) {
+		char *chanvar=colname + 8;
+		struct ast_variable *v;
+	
+		chanvar = strsep(&chanvar, "]");
+		for (v = l->variables ; v ; v = v->next) {
+			if (!strcasecmp(v->name, chanvar)) {
+				ast_copy_string(buf, v->value, len);
+			}
+		}
+	} else {
+		buf[0] = '\0';
+	}
+	return 0;
+}
+
+/*! \brief Stucture to declare a dialplan function: SCCPLINE */
+static struct ast_custom_function sccpline_function = {
+	.name = "SCCPLINE",
+	.synopsis = "Retrieves information about an SCCP Line",
+	.syntax = "Usage: SCCPLINE(deviceId,<option>)",
+	.read = sccp_func_sccpline,
+};
+
 
 /*!
  * \brief 	Set the Name and Number of the Called Party to the Calling Phone
@@ -846,7 +1084,7 @@ static char *sccp_setcalledparty_descrip = "  SetCalledParty(\"Name\" <ext>) set
  * \param 	data CallerId in format "Name" \<number\>
  * \return	Success as int
  */
-static int sccp_setcalledparty_exec(struct ast_channel *chan, void *data) {
+static int sccp_app_calledparty(struct ast_channel *chan, void *data) {
 	char tmp[256] = "";
 	char * num, * name;
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(chan);
@@ -869,8 +1107,15 @@ static int sccp_setcalledparty_exec(struct ast_channel *chan, void *data) {
 	return 0;
 }
 
+/*! \brief Stucture to declare a dialplan function: SETCALLEDPARTY */
+static char *calledparty_name="SetCalledParty";
+static char *calledparty_synopsis="Sets the callerid of the called party";
+static char *calledparty_descr= "Usage: SetCalledParty(\"Name\" <ext>)"
+				"Sets the name and number of the called party for use with chan_sccp\n";
 
-static char *sccp_setmessage_descrip = "  SetMessage(\"Message\") sets a display message for use with chan_sccp. Clear the display with empty message\n";
+
+
+
 /*!
  * \brief	It allows you to send a message to the calling device.
  * \author	Frank Segtrop <fs@matflow.net>
@@ -878,7 +1123,7 @@ static char *sccp_setmessage_descrip = "  SetMessage(\"Message\") sets a displa
  * \param	data message to sent - if empty clear display
  * \version	20071112_1944
  */
-static int sccp_setmessage_exec(struct ast_channel *chan, void *data) {
+static int sccp_app_setmessage(struct ast_channel *chan, void *data) {
 	char tmp[256] 		= "";
 	sccp_channel_t 	* c = NULL;
 	sccp_device_t 	* d;
@@ -912,7 +1157,45 @@ static int sccp_setmessage_exec(struct ast_channel *chan, void *data) {
 		ast_db_del("SCCPM", d->id);
 	}
 	sccp_device_unlock(d);
+
 	return 0;
+}
+
+
+static char *setmessage_name="SetMessage";
+static char *setmessage_synopsis="Send a Message to the current Phone";
+static char *setmessage_descr=	"Usage: SetMessage(\"Message\")\n"
+				"       Send a Message to the Calling Device\n";
+
+
+static int sccp_register_dialplan_functions(void)
+{
+	int result = 0;
+
+	/* Register application functions */
+	result += ast_register_application(calledparty_name,sccp_app_calledparty, calledparty_synopsis, calledparty_descr);
+	result += ast_register_application(setmessage_name,sccp_app_setmessage, setmessage_synopsis, setmessage_descr);
+
+	/* Register dialplan functions */
+	result +=ast_custom_function_register(&sccpdevice_function);
+	result +=ast_custom_function_register(&sccpline_function);
+
+	return result;
+}
+
+static int sccp_unregister_dialplan_functions(void)
+{
+	int result = 0;
+
+	/* Unregister applications functions */
+	result += ast_unregister_application("SetCalledParty");
+	result += ast_unregister_application("SetMessage");
+
+	/* Unregister dial plan functions */
+	result += ast_custom_function_unregister(&sccpdevice_function);
+	result += ast_custom_function_unregister(&sccpline_function);
+
+	return result;
 }
 
 #if ASTERISK_VERSION_NUM >= 10400
@@ -1125,9 +1408,8 @@ static int load_module(void) {
 #endif
 
 	sccp_register_cli();
-	ast_register_application("SetCalledParty", sccp_setcalledparty_exec, "Sets the name of the called party", sccp_setcalledparty_descrip);
-	ast_register_application("SetMessage", sccp_setmessage_exec, "Sets a message on the calling device", sccp_setmessage_descrip);
-
+	sccp_register_dialplan_functions();
+	
 	/* And start the monitor for the first time */
 	sccp_restart_monitor();
 
@@ -1179,8 +1461,7 @@ static int unload_module(void) {
 #else
 	ast_channel_unregister("SCCP");
 #endif
-	ast_unregister_application("SetMessage");
-	ast_unregister_application("SetCalledParty");
+	sccp_unregister_dialplan_functions();
 	sccp_unregister_cli();
 
 	sccp_mwi_module_stop();

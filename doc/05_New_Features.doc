@@ -23,6 +23,8 @@
  * \ref nf_adhoc_plar		"How to use the adhoc option on a line (PLAR)"\n
  * \ref nf_dynamic_speeddial   	"How to use Dynamic SpeedDials"\n
  * \ref nf_sccp_softkeys   	"How to use the Soft Keys on the Phone"\n
+ * \ref nf_sccp_reload   	"How to use Reload"\n
+ * \ref nf_sccp_function   	"How to use Dialplan Function"\n
  * <HR>
  *
  *
@@ -328,4 +330,68 @@
  * Using the GroupPickup Button Makes it possible to Pickup a Ringing Line in defined in your PickupGroup
  * This is equivalent to using the keys defined in features.conf under pickupexten
  * <HR>
+ *
+ *
+ * 
+ *
+ *
+ *
+ *
+ * \subsection nf_sccp_reload	 	Reload Howto
+ * 
+ * When chan-sccp-b has been configured with the --with-dynamic-config during the build fase. The new "sccp reload" function 
+ * will be availble in from the CLI inside asterisk. When run, chan_sccp-b will reload the sccp.conf file and update all it's 
+ * structures. When necessary phones will be sent a reset to make them reload their configuration. When a phone is currently
+ * in used, but would need to be reset, it will reset as soon as the current call is hungup.
+ *
+ * 
+ *
+ *
+ *
+ *
+ * \subsection nf_sccp_dialplan	 	How to use dialplan functions
+ * 
+ * We have added new dialplan function SCCPDEVICE and SCCPLINE to provide the ability to ask information about sccp device
+ * sccp lines. 
+ *
+ * \subsubsection nf_sccp_dialplan_sccpdevice SCCPDEVICE
+ *
+ * Usage: SCCPDEVICE([deviceId|current],[option]);
+ * 
+ * the first param can be either "current" or a device ID like "SEP????????????" 
+ * 
+ * the second param defines the information to be retrieved and can be on of these:
+ * ip, id, status, description, config_type, skinny_type, tz_offset, image_version, accessory_status, registration_state
+ * codecs, state, lines_registered, lines_count, last_number, capability, early_rtp, channel_count, supported_protocol_version
+ * used_protocol_version, mwi_light, dynamic|realtime, active_channel, transfer_channel, conference_channel, current_line
+ * button_config, needs_reset, chanvar[varname], codec[codecname]
+ * 
+ * Within the dialplan you can use the function SCCPDEVICE to retrieve information about an SCCP Device like this:
+ * \code
+ * Set(my_ip=${SCCPDEVICE(current,ip)});
+ * \endcode
+ * to put the ip-address of your current device in a variable called "my_ip"
+ *
+ * \subsubsection nf_sccp_dialplan_sccpline SCCPLINE
+ *
+ * \code
+ * Set(my_ip=${SCCPDEVICE(current,ip)});
+ * \endcode
+ *
+ * \subsubsection nf_sccp_dialplan_sccpline SCCPLINE
+ *
+ * Usage: SCCPLINE([current|parent|linename],[option]);
+ * 
+ * the first param can be either "current", "parent" or a line name assigned to the line. 
+ * "parent" refers to the line who forwarded the call to you and is only filled if this channel has been forwarded.
+ * 
+ * the second param defines the information to be retrieved and can be on of these:
+ * id, name, description, chanvar[varname] (more to come shortly)
+ * 
+ * Within the dialplan you can use the function SCCPLINE to retrieve information about an SCCP Line like this:
+ * \code
+ * Set(my_line_name=${SCCPDEVICE(current,name)});
+ * \endcode
+ * to put the line name of your current channel in a variable called "my_line_name"
+ *
  */

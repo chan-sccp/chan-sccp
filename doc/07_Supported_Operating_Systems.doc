@@ -49,6 +49,34 @@
  *   .
  *
  * \subsection supp_freeos_linux Linux
+ *   - RedHat:  
+ *      - RedHat 5.0
+ *       - Asterisk 1.4
+ *       - Asterisk 1.6
+ *       - Asterisk 1.6.1
+ *       - Asterisk 1.6.2
+ *       .
+ *      - RedHat 5.5
+ *       - Asterisk 1.4
+ *       - Asterisk 1.6
+ *       - Asterisk 1.6.1
+ *       - Asterisk 1.6.2
+ *       .
+ *      .
+ *   - Fedora:  
+ *      - Fedora 12
+ *       - Asterisk 1.4
+ *       - Asterisk 1.6
+ *       - Asterisk 1.6.1
+ *       - Asterisk 1.6.2
+ *       .
+ *      - Fedora 13
+ *       - Asterisk 1.4
+ *       - Asterisk 1.6
+ *       - Asterisk 1.6.1
+ *       - Asterisk 1.6.2
+ *       .
+ *      .
  *   - Centos:  
  *      - Asterisk 1.4
  *      - Asterisk 1.6
@@ -67,8 +95,13 @@
  *       - Asterisk 1.6.1
  *       - Asterisk 1.6.2
  *       .
+ *     - Lucid
+ *       - Asterisk 1.4
+ *       - Asterisk 1.6
+ *       - Asterisk 1.6.1
+ *       - Asterisk 1.6.2
+ *       .
  *     .
- *   .
  *   - OpenSuSE:
  *      - 10.0:
  *         - Asterisk 1.4
@@ -88,6 +121,12 @@
  *         - Asterisk 1.6.2
  *         .
  *      - 11.2:
+ *         - Asterisk 1.4
+ *         - Asterisk 1.6
+ *         - Asterisk 1.6.1
+ *         - Asterisk 1.6.2
+ *         .
+ *      - 11.3:
  *         - Asterisk 1.4
  *         - Asterisk 1.6
  *         - Asterisk 1.6.1
