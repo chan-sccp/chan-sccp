@@ -210,14 +210,14 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 		sccp_copy_string(c->subscriptionId.number, lineSubscriptionId.subscriptionId.number, sizeof(c->subscriptionId.number));
 		if (!ast_strlen_zero(lineSubscriptionId.subscriptionId.name)) {
 			sccp_copy_string(c->subscriptionId.name, lineSubscriptionId.subscriptionId.name, sizeof(c->subscriptionId.name));
-			ast_log(LOG_NOTICE, "%s: calling subscriber id=%s\n, name=%s", l->id, c->subscriptionId.number,c->subscriptionId.name);
+			//ast_log(LOG_NOTICE, "%s: calling subscriber id=%s\n, name=%s", l->id, c->subscriptionId.number,c->subscriptionId.name);
 		} else {
-			ast_log(LOG_NOTICE, "%s: calling subscriber id=%s\n", l->id, c->subscriptionId.number);
+			//ast_log(LOG_NOTICE, "%s: calling subscriber id=%s\n", l->id, c->subscriptionId.number);
 		}
 	} else {
 		sccp_copy_string(c->subscriptionId.number, l->defaultSubscriptionId.number, sizeof(c->subscriptionId.number));
 		sccp_copy_string(c->subscriptionId.name, l->defaultSubscriptionId.name, sizeof(c->subscriptionId.name));
-		ast_log(LOG_NOTICE, "%s: calling all subscribers\n", l->id);
+		//ast_log(LOG_NOTICE, "%s: calling all subscribers\n", l->id);
 	}
 
 
@@ -310,7 +310,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 		}
 	}*/
 
-
+	
 	c->format = oldformat;
 	c->isCodecFix = TRUE;
 	sccp_channel_updateChannelCapability(c);
@@ -1104,21 +1104,26 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 		ast_copy_string(buf, "not supported", len);
 #endif		
 	} else if (!strcasecmp(colname , "pending_delete")) {
+		
 #ifdef CS_DYNAMIC_CONFIG
 		ast_copy_string(buf, l->pendingDelete ? "yes" : "no", len);		
 #else
 		ast_copy_string(buf, "not supported", len);
 #endif
 	} else if (!strcasecmp(colname , "pending_update")) {
+		
 #ifdef CS_DYNAMIC_CONFIG
 		ast_copy_string(buf, l->pendingUpdate ? "yes" : "no", len);		
 #else
 		ast_copy_string(buf, "not supported", len);
 #endif
+		
+#ifdef CS_DYNAMIC_CONFIG
 	} else if (!strcasecmp(colname , "regexten")) {
 		ast_copy_string(buf, l->regexten ? l->regexten : "Unset", len);
 	} else if (!strcasecmp(colname , "regcontext")) {
 		ast_copy_string(buf, l->regcontext ? l->regcontext : "Unset", len);
+#endif
 	} else if (!strcasecmp(colname , "adhoc_number")) {
 		ast_copy_string(buf, l->adhocNumber ? l->adhocNumber : "No", len);
 	} else if (!strcasecmp(colname , "newmsgs")) {

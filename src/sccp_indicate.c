@@ -412,6 +412,9 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 static void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t * c, uint8_t state, uint8_t debug, char * file, int line, const char * pretty_function)
 {
 	sccp_device_t	*remoteDevice;
+	struct ast_channel *astBridge;
+	sccp_channel_t *sccpBridge;
+	
 	int instance;
 	uint32_t privacyStatus;
 
@@ -429,20 +432,38 @@ static void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t 
 	/* do not propagate status of hotline */
 	if(c->line == GLOB(hotline)->line)
 		return;
+	
+	const char *bridgePeer = c->owner ? pbx_builtin_getvar_helper(c->owner, "BRIDGEPEER") : NULL;
+	astBridge = c->owner ? ast_get_channel_by_name_locked(bridgePeer) : NULL;
+	if (astBridge && CS_AST_CHANNEL_PVT_IS_SCCP(astBridge)) {
+		sccpBridge = CS_AST_CHANNEL_PVT(astBridge);
+	}
+	if(astBridge){
+		ast_channel_unlock(astBridge);
+	}
 
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: channel: %s\n", DEV_ID_LOG(remoteDevice), c->owner?c->owner->name:"NULL");
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: astBridge: %s\n", DEV_ID_LOG(remoteDevice), astBridge?astBridge->name:"NULL");
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: sccpBridge: %s\n", DEV_ID_LOG(remoteDevice), sccpBridge?sccpBridge->callid:"NULL");
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: sccpBridge->device: %s\n", DEV_ID_LOG(remoteDevice), sccpBridge?DEV_ID_LOG(sccpBridge->device):"NULL");
+	
+	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: ANSWER BRIDGEPEER: %s\n", bridgePeer?bridgePeer:"(null)");
 
 //	SCCP_LIST_LOCK(&c->line->devices);
 	// \todo TODO find working lock
 	sccp_linedevices_t *linedevice;
 	SCCP_LIST_TRAVERSE(&c->line->devices, linedevice, list) {
-			if(!linedevice->device)
-				continue;
 			remoteDevice=linedevice->device;
 
 			if(device && remoteDevice == device)
 				continue;
-
-
+			
+			/* do not publish status we already know, because we are part of it */
+			if(sccpBridge && sccpBridge->device == remoteDevice)
+				continue;
+			
+			
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s: channel: %s sccpBridge->device: %s\n", DEV_ID_LOG(remoteDevice), c->owner?c->owner->name:"NULL", sccpBridge?DEV_ID_LOG(sccpBridge->device):"NULL");
 
 			sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Notify remote device.\n", DEV_ID_LOG(remoteDevice));
 			sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: channelcount: %d\n", DEV_ID_LOG(remoteDevice), c->line->channelCount);
