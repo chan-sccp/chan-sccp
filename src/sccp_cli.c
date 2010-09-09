@@ -877,7 +877,7 @@ static int sccp_message_devices(int fd, int argc, char * argv[]) {
 
 	SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
-		sccp_dev_displaynotify(d,argv[3],msgtimeout);
+		    sccp_dev_displaynotify(d,argv[3],msgtimeout);
 
 		if (beep) {
 			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
