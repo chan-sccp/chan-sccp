@@ -1253,30 +1253,30 @@ static char *setmessage_descr=	"Usage: SetMessage(\"Message\")\n"
 
 static int sccp_register_dialplan_functions(void)
 {
-	int result = 0;
+	int result;
 
 	/* Register application functions */
-	result += ast_register_application(calledparty_name,sccp_app_calledparty, calledparty_synopsis, calledparty_descr);
-	result += ast_register_application(setmessage_name,sccp_app_setmessage, setmessage_synopsis, setmessage_descr);
+	result = ast_register_application(calledparty_name,sccp_app_calledparty, calledparty_synopsis, calledparty_descr);
+	result |= ast_register_application(setmessage_name,sccp_app_setmessage, setmessage_synopsis, setmessage_descr);
 
 	/* Register dialplan functions */
-	result +=ast_custom_function_register(&sccpdevice_function);
-	result +=ast_custom_function_register(&sccpline_function);
+	result |=ast_custom_function_register(&sccpdevice_function);
+	result |=ast_custom_function_register(&sccpline_function);
 
 	return result;
 }
 
 static int sccp_unregister_dialplan_functions(void)
 {
-	int result = 0;
+	int result;
 
 	/* Unregister applications functions */
-	result += ast_unregister_application("SetCalledParty");
-	result += ast_unregister_application("SetMessage");
+	result = ast_unregister_application("SetCalledParty");
+	result |= ast_unregister_application("SetMessage");
 
 	/* Unregister dial plan functions */
-	result += ast_custom_function_unregister(&sccpdevice_function);
-	result += ast_custom_function_unregister(&sccpline_function);
+	result |= ast_custom_function_unregister(&sccpdevice_function);
+	result |= ast_custom_function_unregister(&sccpline_function);
 
 	return result;
 }

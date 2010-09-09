@@ -981,11 +981,31 @@ static int sccp_remove_line_from_device(int fd, int argc, char * argv[])
 	return RESULT_FAILURE;
 }
 
-static char remove_line_device_usage[] = "Usage: sccp remove line <deviceID> <lineID>\n"
+static char remove_line_from_device_usage[] = "Usage: sccp remove line <deviceID> <lineID>\n"
 				 "       Remove a line from device.\n";
 
 #define CLI_COMMAND "sccp", "remove", "line", NULL
-CLI_ENTRY(cli_remove_line_device,sccp_remove_line_from_device,"Remove a line from device",remove_line_device_usage)
+CLI_ENTRY(cli_remove_line_from_device,sccp_remove_line_from_device,"Remove a line from device",remove_line_from_device_usage)
+#undef CLI_COMMAND
+
+/* -------------------------------------------------------------------------------------------------ADD_LINE_TO_DEVICE- */
+/*!
+ * \brief Add Line To Device
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
+static int sccp_add_line_to_device(int fd, int argc, char * argv[])
+{
+	return RESULT_FAILURE;
+}
+
+static char add_line_to_device_usage[] = "Usage: sccp add line <deviceID> <lineID>\n"
+  				  	 "       Add a line to a device.\n";
+
+#define CLI_COMMAND "sccp", "add", "line", NULL
+CLI_ENTRY(cli_add_line_to_device,sccp_add_line_to_device,"Add a line to a device",add_line_to_device_usage)
 #undef CLI_COMMAND
 
 /* ---------------------------------------------------------------------------------------------SHOW_MWI_SUBSCRIPTIONS- */
@@ -1318,7 +1338,8 @@ static struct ast_cli_entry cli_entries[] = {
 		AST_CLI_DEFINE(cli_system_message, "Set the SCCP system message."),
 		AST_CLI_DEFINE(cli_message_devices, "Send a message to all SCCP Devices."),
 		AST_CLI_DEFINE(cli_message_device, "Send a message to an SCCP Device."),
-		AST_CLI_DEFINE(cli_remove_line_device, "Remove a line from device."),
+		AST_CLI_DEFINE(cli_remove_line_from_device, "Remove a line from a device."),
+		AST_CLI_DEFINE(cli_add_line_to_device, "Add a line to a device."),
 		AST_CLI_DEFINE(cli_show_sessions, "Show All SCCP Sessions."),
 		AST_CLI_DEFINE(cli_do_debug, "Enable SCCP debugging."),
 		AST_CLI_DEFINE(cli_no_debug, "Disable SCCP debugging."),
@@ -1358,7 +1379,8 @@ void sccp_register_cli(void) {
   ast_cli_register(&cli_show_globals);
   ast_cli_register(&cli_message_devices);
   ast_cli_register(&cli_message_device);
-  ast_cli_register(&cli_remove_line_device);
+  ast_cli_register(&cli_remove_line_from_device);
+  ast_cli_register(&cli_add_line_to_device);
   ast_cli_register(&cli_show_mwi_subscriptions);
 #endif
 
@@ -1392,7 +1414,8 @@ void sccp_unregister_cli(void) {
   ast_cli_unregister(&cli_show_globals);
   ast_cli_unregister(&cli_message_devices);
   ast_cli_unregister(&cli_message_device);
-  ast_cli_unregister(&cli_remove_line_device);
+  ast_cli_unregister(&cli_remove_line_from_device);
+  ast_cli_unregister(&cli_add_line_to_device);
   ast_cli_unregister(&cli_show_mwi_subscriptions);
 #endif
 }
