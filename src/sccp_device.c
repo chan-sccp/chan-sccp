@@ -1816,7 +1816,7 @@ void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32
 	r->msg.CallStateMessage.lel_callReference = htolel(callid);
 	r->msg.CallStateMessage.lel_visibility = htolel(visibility);
 	r->msg.CallStateMessage.lel_priority = htolel(priority);
-	r->msg.CallStateMessage.lel_unknown3 = htolel(2);
+	/*r->msg.CallStateMessage.lel_unknown3 = htolel(2);*/
 	sccp_dev_send(d, r);
 	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send and Set the call state %s(%d) on call %d\n", d->id, sccp_callstate2str(state), state, callid);
 }
