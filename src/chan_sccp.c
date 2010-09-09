@@ -845,6 +845,7 @@ int sccp_restart_monitor(void)
  * \return Status as int
  *
  * \author Diederik de Groot <ddegroot@users.sourceforce.net>
+ * \ref nf_sccp_dialplan_sccpdevice
  */
 #if ASTERISK_VERSION_NUM >= 10600
 static int sccp_func_sccpdevice(struct ast_channel *chan, const char *cmd, char *data, char *buf, size_t len)
@@ -1008,6 +1009,7 @@ static struct ast_custom_function sccpdevice_function = {
  * \return Status as int
  *
  * \author Diederik de Groot <ddegroot@users.sourceforce.net>
+ * \ref nf_sccp_dialplan_sccpline
  */
 #if ASTERISK_VERSION_NUM >= 10600
 static int sccp_func_sccpline(struct ast_channel *chan, const char *cmd, char *data, char *buf, size_t len)
