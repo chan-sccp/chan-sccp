@@ -1042,10 +1042,10 @@ struct sccp_global_vars {
 	boolean_t				allowAnonymus;				/*!< Allow Anonymous/Guest Devices */
 	sccp_hotline_t				* hotline;				/*!< HotLine */
 	boolean_t				reload_in_progress;			/*!< Reload in Progress */
-#ifdef CS_DYNAMIC_CONFIG
+
 	char 					used_context[AST_MAX_EXTENSION];	/*!< placeholder to check if context are already used in regcontext (DUNDI)*/
 	char 					regcontext[AST_MAX_CONTEXT];		/*!< Context for auto-extension (DUNDI)*/
-#endif
+
 };											/*!< SCCP Global Varable Structure */
 
 
