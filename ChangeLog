@@ -1,3 +1,16 @@
+2010-09-09  ddegroot
+
+	* [r1839] ChangeLog, NEWS,
+	  doc/03_Building_and_Installation_Guide.doc,
+	  doc/05_New_Features.doc, doc/06_Frequently_Asked_Questions.doc,
+	  doc/07_Supported_Operating_Systems.doc, src/chan_sccp.c,
+	  src/sccp_cli.c: Added SCCPDEVICE and SCCPLINE dialplan functions
+	  to chan_sccp.c
+
+2010-09-08  marcelloceschia
+
+	* [r1838] src/sccp_socket.c: fixes: ast_poll for asterisk 1.4.22
+
 2010-09-07  progs
 
 	* [r1837] src/sccp_cli.c, src/sccp_cli.h: fix warnings

@@ -364,7 +364,7 @@
  * ip, id, status, description, config_type, skinny_type, tz_offset, image_version, accessory_status, registration_state
  * codecs, state, lines_registered, lines_count, last_number, capability, early_rtp, channel_count, supported_protocol_version
  * used_protocol_version, mwi_light, dynamic|realtime, active_channel, transfer_channel, conference_channel, current_line
- * button_config, needs_reset, chanvar[varname], codec[codecname]
+ * button_config, pending_update, pending_delete, chanvar[varname], codec[codecname]
  * 
  * Within the dialplan you can use the function SCCPDEVICE to retrieve information about an SCCP Device like this:
  * \code
@@ -386,7 +386,9 @@
  * "parent" refers to the line who forwarded the call to you and is only filled if this channel has been forwarded.
  * 
  * the second param defines the information to be retrieved and can be on of these:
- * id, name, description, chanvar[varname] (more to come shortly)
+ * id, name, description, label, vmnum, trnsfvm, meetme, meetmenum, meetmeopts, context, language, accountcode,
+ * musicclass, amaflags, callgroup, pickupgroup, cid_name, cid_num, incoming_limit, channel_count, dynamic|realtime,
+ * pending_delete, pending_update, regexten, regcontext, adhoc_number, newmsgs, oldmsgs, num_lines, lines, chanvar[varname] 
  * 
  * Within the dialplan you can use the function SCCPLINE to retrieve information about an SCCP Line like this:
  * \code
