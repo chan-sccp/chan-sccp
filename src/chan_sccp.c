@@ -878,12 +878,12 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 #endif
 			c=CS_AST_CHANNEL_PVT(chan);
 		} else {
-			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "sccp_func_sccpdevice: Not an SCCP channel");
+			ast_log(LOG_WARNING, "sccp_func_sccpdevice: Not an SCCP channel\n");
 		        return -1;
 		}
 
 		if (!c ||!c->device) {
-			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "sccp_func_sccpdevice: SCCP Device not available");
+			ast_log(LOG_WARNING, "sccp_func_sccpdevice: SCCP Device not available\n");
 		        return -1;
 		}
 		        
@@ -891,7 +891,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 		                        
 	} else {
 		if ( !(d = sccp_device_find_byid(data, TRUE)) ) {
-			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "sccp_func_sccpdevice: SCCP Device not available");
+			ast_log(LOG_WARNING,  "sccp_func_sccpdevice: SCCP Device not available\n");
 			return -1;
 		}
 	}
@@ -1077,14 +1077,12 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 #endif
 			c=CS_AST_CHANNEL_PVT(chan);
 		} else {
-			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "sccp_func_sccpdevice: Not an SCCP Channel");
-			ast_copy_string(buf, "Not an SCCP channel", len);
+			ast_log(LOG_WARNING, "sccp_func_sccpdevice: Not an SCCP Channel\n");
 		        return -1;
 		}
 
 		if (!c || !c->line) {
-			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "sccp_func_sccpdevice: SCCP Line not available");
-			ast_copy_string(buf, "Line not available", len);
+			ast_log(LOG_WARNING, "sccp_func_sccpdevice: SCCP Line not available\n");
 			return -1;
 		}
 		l = c->line;
@@ -1096,21 +1094,18 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 #endif
 			c=CS_AST_CHANNEL_PVT(chan);
 		} else {
-			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "sccp_func_sccpdevice: Not an SCCP Channel");
-			ast_copy_string(buf, "Not an SCCP channel", len);
+			ast_log(LOG_WARNING, "sccp_func_sccpdevice: Not an SCCP Channel\n");
 		        return -1;
 		}
 		
 		if (!c || !c->parentChannel || !c->parentChannel->line) {
-			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "sccp_func_sccpdevice: SCCP Line not available");
-			ast_copy_string(buf, "Line not available", len);
+			ast_log(LOG_WARNING, "sccp_func_sccpdevice: SCCP Line not available\n");
 			return -1;
 		}
 		l = c->parentChannel->line;
 	} else {
 		if ( !(l = sccp_line_find_byname_wo(data, TRUE)) ) {
-			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "sccp_func_sccpdevice: SCCP Line not available");
-			ast_copy_string(buf, "Line not available", len);
+			ast_log(LOG_WARNING, "sccp_func_sccpdevice: SCCP Line not available\n");
 			return -1;
 		}
 	}
