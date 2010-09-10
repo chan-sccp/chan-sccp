@@ -193,7 +193,15 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 	ast_free( x ); \
 	(x) = NULL; \
 }
-/* */
+/* 
+ * sccp_free_ptr should be used when a function pointer for free() needs to be p
+ * as the argument to a function. Otherwise, astmm will cause seg faults.
+ */
+static void sccp_free_ptr(void *ptr) attribute_unused;
+static void sccp_free_ptr(void *ptr)
+{
+ 	sccp_free(ptr);
+}
 
 #define SCCP_FILE_VERSION(file, version) \
 	static void __attribute__((constructor)) __register_file_version(void) \
@@ -436,7 +444,7 @@ struct sccp_selectedchannel {
 /*!
  * \brief SCCP CallInfo Structure
  */
-struct sccp_callinfo{
+struct sccp_callinfo {
 	char					calledPartyName[StationMaxNameSize];		/*!< Called Party Name */
 	char					calledPartyNumber[StationMaxDirnumSize];	/*!< Called Party Number */
 	char					callingPartyName[StationMaxNameSize];		/*!< Calling Party Name */
@@ -906,7 +914,7 @@ struct sccp_channel {
 	} rtp;
 
 
-	SCCP_LIST_ENTRY(sccp_channel_t) 	list;					/*!< Channel Linked List List */
+	SCCP_LIST_ENTRY(sccp_channel_t) 	list;					/*!< Channel Linked List */
 	uint8_t					autoanswer_type;			/*!< Auto Answer Type */
 	uint8_t					autoanswer_cause;			/*!< Auto Answer Cause */
 	boolean_t				answered_elsewhere;			/*!< Answered Elsewhere */
@@ -929,9 +937,7 @@ struct sccp_channel {
 	struct sccp_conference			*conference;				/*!< are we part of a conference? */
 	sccp_channel_t				*parentChannel;				/*!< if we are a cfwd channel, our parent is this */
 
-
 	struct  subscriptionId			subscriptionId;
-
 };											/*!< SCCP Channel Structure */
 
 /*!
