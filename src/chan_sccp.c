@@ -871,16 +871,29 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 
 	if (!strncasecmp(data,"current",7)) {	
 		sccp_channel_t *c;
-		c=CS_AST_CHANNEL_PVT(chan);
-
-		if (!c ||!c->device)
+#ifndef CS_AST_HAS_TECH_PVT
+		if (!strcasecmp(chan->type, "SCCP")){
+#else
+		if (!strcasecmp(chan->tech->type, "SCCP")){
+#endif
+			c=CS_AST_CHANNEL_PVT(chan);
+		} else {
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "sccp_func_sccpdevice: Not an SCCP channel");
 		        return -1;
+		}
+
+		if (!c ||!c->device) {
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "sccp_func_sccpdevice: SCCP Device not available");
+		        return -1;
+		}
 		        
 		d = c->device;
 		                        
 	} else {
-		if ( !(d = sccp_device_find_byid(data, TRUE)) )
+		if ( !(d = sccp_device_find_byid(data, TRUE)) ) {
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "sccp_func_sccpdevice: SCCP Device not available");
 			return -1;
+		}
 	}
 	
 	sccp_device_lock(d);
@@ -953,7 +966,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list){
 			switch (config->type) {
 				case LINE:
-					snprintf(tmp,sizeof(tmp),"[%d,%s,%s,%s]",config->instance, sccp_buttontype2str(config->type), config->button.line.name, "test");
+					snprintf(tmp,sizeof(tmp),"[%d,%s,%s]",config->instance, sccp_buttontype2str(config->type), config->button.line.name);
 				case SPEEDDIAL:
 					snprintf(tmp,sizeof(tmp),"[%d,%s,%s,%s]",config->instance, sccp_buttontype2str(config->type), config->button.speeddial.label, config->button.speeddial.ext);
 				case SERVICE:
@@ -1040,6 +1053,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 #endif
 {
 	sccp_line_t *l;
+	sccp_channel_t *c;
 	char *colname;
 	char tmp[1024]="";
 	char lbuf[1024]="";
@@ -1055,26 +1069,50 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 	else
 		colname = "ip";
 
-	if (!strncasecmp(data,"current",7)) {	
-		sccp_channel_t *c;
-		c=CS_AST_CHANNEL_PVT(chan);
-
-		if (!c ||!c->line)
+	if (!strncasecmp(data,"current",7)) {
+#ifndef CS_AST_HAS_TECH_PVT
+		if (!strcasecmp(chan->type, "SCCP")){
+#else
+		if (!strcasecmp(chan->tech->type, "SCCP")){
+#endif
+			c=CS_AST_CHANNEL_PVT(chan);
+		} else {
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "sccp_func_sccpdevice: Not an SCCP Channel");
+			ast_copy_string(buf, "Not an SCCP channel", len);
 		        return -1;
-		        
-		l = c->line;
-	} else if (!strncasecmp(data,"parent",7)) {	
-		sccp_channel_t *c;
-		c=CS_AST_CHANNEL_PVT(chan);
+		}
 
-		if (!c ||!c->parentChannel || !c->parentChannel->line)
-		        return -1;
-		        
-		l = c->parentChannel->line;
-		                        
-	} else {
-		if ( !(l = sccp_line_find_byname_wo(data, TRUE)) )
+		if (!c || !c->line) {
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "sccp_func_sccpdevice: SCCP Line not available");
+			ast_copy_string(buf, "Line not available", len);
 			return -1;
+		}
+		l = c->line;
+	} else if (!strncasecmp(data,"parent",7)) {
+#ifndef CS_AST_HAS_TECH_PVT
+		if (!strcasecmp(chan->type, "SCCP")){
+#else
+		if (!strcasecmp(chan->tech->type, "SCCP")){
+#endif
+			c=CS_AST_CHANNEL_PVT(chan);
+		} else {
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "sccp_func_sccpdevice: Not an SCCP Channel");
+			ast_copy_string(buf, "Not an SCCP channel", len);
+		        return -1;
+		}
+		
+		if (!c || !c->parentChannel || !c->parentChannel->line) {
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "sccp_func_sccpdevice: SCCP Line not available");
+			ast_copy_string(buf, "Line not available", len);
+			return -1;
+		}
+		l = c->parentChannel->line;
+	} else {
+		if ( !(l = sccp_line_find_byname_wo(data, TRUE)) ) {
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "sccp_func_sccpdevice: SCCP Line not available");
+			ast_copy_string(buf, "Line not available", len);
+			return -1;
+		}
 	}
 	sccp_device_lock(l);	
 	
