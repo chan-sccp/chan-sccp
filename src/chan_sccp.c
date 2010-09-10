@@ -1303,7 +1303,7 @@ static int sccp_func_sccpchannel(struct ast_channel *chan, char *cmd, char *data
 		        return -1;
 		}
 	} else {
-		uint32_t callid=((uint32_t)atoi(data));
+		uint32_t callid=atoi(data);
 		if ( !(c = sccp_channel_find_byid(callid)) ) {
 			ast_log(LOG_WARNING,  "SCCPCHANNEL(): SCCP Channel not available\n");
 			return -1;
