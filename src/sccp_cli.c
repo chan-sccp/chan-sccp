@@ -703,7 +703,7 @@ static int sccp_show_line(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Pending Delete        : %s\n", l->pendingUpdate ? "Yes" : "No");
 	ast_cli(fd, "Pending Update        : %s\n", l->pendingDelete ? "Yes" : "No");
 #endif
-	
+
 	ast_cli(fd, "Registration Extension: %s\n", l->regexten ? l->regexten : "Unset");
 	ast_cli(fd, "Registration Context  : %s\n", l->regcontext ? l->regcontext : "Unset");
 
@@ -1201,8 +1201,21 @@ CLI_ENTRY(cli_show_version,sccp_show_version,"Show SCCP version details",show_ve
  */
 static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 	sccp_device_t * d;
+	boolean_t restart = TRUE;
 
-	if (argc != 3)
+	if (argc < 3 || argc > 4)
+		return RESULT_SHOWUSAGE;
+
+	if (!strcasecmp(argv[1], "reset")) {
+		if (argc == 4) {
+			if (strcasecmp(argv[3], "restart"))
+				return RESULT_SHOWUSAGE;
+			restart = TRUE;
+		}
+		else
+			restart = FALSE;
+	}
+	else if (argc != 3)
 		return RESULT_SHOWUSAGE;
 
 	ast_cli(fd, "%s: %s request sent to the device\n", argv[2], argv[1]);
@@ -1230,7 +1243,7 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 	}
 	sccp_device_unlock(d);
 
-	if (!strcasecmp(argv[1], "reset") && strcasecmp(argv[3], "restart"))
+	if (!restart)
 		sccp_device_sendReset(d, SKINNY_DEVICE_RESET );
 	else
 		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART );
