@@ -227,7 +227,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	char pref_buf[128];
 	char cap_buf[512];
 	char buf[256];
-	char * debugcategories="";
+	char *debugcategories;
 #if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
@@ -235,6 +235,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	sccp_globals_lock(lock);
 	ast_codec_pref_string(&GLOB(global_codecs), pref_buf, sizeof(pref_buf) - 1);
 	ast_getformatname_multiple(cap_buf, sizeof(cap_buf), GLOB(global_capability)),
+	debugcategories = sccp_get_debugcategories(GLOB(debug));
 
 	ast_cli(fd, "SCCP channel driver global settings\n");
 	ast_cli(fd, "------------------------------------\n\n");
@@ -253,7 +254,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Nat                   : %s\n", (GLOB(nat)) ? "Yes" : "No");
 	ast_cli(fd, "Direct RTP            : %s\n", (GLOB(directrtp)) ? "Yes" : "No");
 	ast_cli(fd, "Keepalive             : %d\n", GLOB(keepalive));
-	ast_cli(fd, "Debug                 : (%d) %s\n", GLOB(debug),sccp_get_debugcategories(GLOB(debug),debugcategories));
+	ast_cli(fd, "Debug                 : (%d) %s\n", GLOB(debug), debugcategories);
 	ast_cli(fd, "Date format           : %s\n", GLOB(date_format));
 	ast_cli(fd, "First digit timeout   : %d\n", GLOB(firstdigittimeout));
 	ast_cli(fd, "Digit timeout         : %d\n", GLOB(digittimeout));
@@ -309,6 +310,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Jitterbuf target extra: %ld\n",  GLOB(global_jbconf).target_extra);
 #endif
 
+	ast_free(debugcategories);
 	sccp_globals_unlock(lock);
 
 	return RESULT_SUCCESS;
@@ -1077,14 +1079,17 @@ CLI_ENTRY(cli_show_softkeysets,sccp_show_softkeysets,"Show configured SoftKeySet
 static int sccp_do_debug(int fd, int argc, char *argv[]) {
 	uint32_t new_debug = GLOB(debug);
 
-	if ((argc < 3))
-		return RESULT_SHOWUSAGE;
-
 	if (argc > 2) {
 		new_debug=sccp_parse_debugline (argv,2,argc,new_debug);
 	}
-	char * debugcategories="";
-	ast_cli(fd, "SCCP new debug status: (%d -> %d) %s\n", GLOB(debug), new_debug, sccp_get_debugcategories(new_debug,debugcategories));
+
+	char * debugcategories = sccp_get_debugcategories(new_debug);
+	if (argc > 2)
+		ast_cli(fd, "SCCP new debug status: (%d -> %d) %s\n", GLOB(debug), new_debug, debugcategories);
+	else
+		ast_cli(fd, "SCCP debug status: (%d) %s\n", GLOB(debug), debugcategories);
+	ast_free(debugcategories);
+
 	GLOB(debug) = new_debug;
 	return RESULT_SUCCESS;
 }
