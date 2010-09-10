@@ -1238,6 +1238,7 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 
 	if(d->channelCount > 0) {
 		/* sccp_device_clean will check active channels */
+		/* \todo implement a check for active channels before sending reset */
 		//ast_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
 		//return RESULT_SUCCESS;
 	}
@@ -1338,27 +1339,27 @@ CLI_ENTRY_COMPLETE(cli_unregister,sccp_unregister,"Unregister an SCCP device",un
  * \todo add short description
  */
 static struct ast_cli_entry cli_entries[] = {
-		AST_CLI_DEFINE(cli_show_globals, "Show SCCP global settings."),
-		AST_CLI_DEFINE(cli_show_devices, "Show all SCCP Devices."),
-		AST_CLI_DEFINE(cli_show_device, "Show an SCCP Device"),
-		AST_CLI_DEFINE(cli_show_lines, "Show All SCCP Lines."),
-		AST_CLI_DEFINE(cli_show_line, "Show an SCCP Line."),
-		AST_CLI_DEFINE(cli_show_channels, "Show all SCCP channels."),
-		AST_CLI_DEFINE(cli_show_version, "SCCP show version."),
-		AST_CLI_DEFINE(cli_show_mwi_subscriptions, "Show all mwi subscriptions"),
-		AST_CLI_DEFINE(cli_show_softkeysets, "Show all mwi configured SoftKeySets"),
-		AST_CLI_DEFINE(cli_unregister, "Unregister an SCCP device"),
-		AST_CLI_DEFINE(cli_system_message, "Set the SCCP system message."),
-		AST_CLI_DEFINE(cli_message_devices, "Send a message to all SCCP Devices."),
-		AST_CLI_DEFINE(cli_message_device, "Send a message to an SCCP Device."),
-		AST_CLI_DEFINE(cli_remove_line_from_device, "Remove a line from a device."),
-		AST_CLI_DEFINE(cli_add_line_to_device, "Add a line to a device."),
-		AST_CLI_DEFINE(cli_show_sessions, "Show All SCCP Sessions."),
-		AST_CLI_DEFINE(cli_do_debug, "Enable SCCP debugging."),
-		AST_CLI_DEFINE(cli_no_debug, "Disable SCCP debugging."),
-		AST_CLI_DEFINE(cli_reload, "SCCP module reload."),
-		AST_CLI_DEFINE(cli_restart, "Restart an SCCP device"),
-		AST_CLI_DEFINE(cli_reset, "Reset an SCCP Device")
+	AST_CLI_DEFINE(cli_show_globals, "Show SCCP global settings."),
+	AST_CLI_DEFINE(cli_show_devices, "Show all SCCP Devices."),
+	AST_CLI_DEFINE(cli_show_device, "Show an SCCP Device"),
+	AST_CLI_DEFINE(cli_show_lines, "Show All SCCP Lines."),
+	AST_CLI_DEFINE(cli_show_line, "Show an SCCP Line."),
+	AST_CLI_DEFINE(cli_show_channels, "Show all SCCP channels."),
+	AST_CLI_DEFINE(cli_show_version, "SCCP show version."),
+	AST_CLI_DEFINE(cli_show_mwi_subscriptions, "Show all mwi subscriptions"),
+	AST_CLI_DEFINE(cli_show_softkeysets, "Show all mwi configured SoftKeySets"),
+	AST_CLI_DEFINE(cli_unregister, "Unregister an SCCP device"),
+	AST_CLI_DEFINE(cli_system_message, "Set the SCCP system message."),
+	AST_CLI_DEFINE(cli_message_devices, "Send a message to all SCCP Devices."),
+	AST_CLI_DEFINE(cli_message_device, "Send a message to an SCCP Device."),
+	AST_CLI_DEFINE(cli_remove_line_from_device, "Remove a line from a device."),
+	AST_CLI_DEFINE(cli_add_line_to_device, "Add a line to a device."),
+	AST_CLI_DEFINE(cli_show_sessions, "Show All SCCP Sessions."),
+	AST_CLI_DEFINE(cli_do_debug, "Enable SCCP debugging."),
+	AST_CLI_DEFINE(cli_no_debug, "Disable SCCP debugging."),
+	AST_CLI_DEFINE(cli_reload, "SCCP module reload."),
+	AST_CLI_DEFINE(cli_restart, "Restart an SCCP device"),
+	AST_CLI_DEFINE(cli_reset, "Reset an SCCP Device")
 };
 #endif
 
@@ -1374,27 +1375,27 @@ void sccp_register_cli(void) {
 	/* register all CLI functions */
 	ast_cli_register_multiple(cli_entries, sizeof(cli_entries)/ sizeof(struct ast_cli_entry));
 #else
-  ast_cli_register(&cli_show_channels);
-  ast_cli_register(&cli_show_devices);
-  ast_cli_register(&cli_show_device);
-  ast_cli_register(&cli_show_lines);
-  ast_cli_register(&cli_show_line);
-  ast_cli_register(&cli_show_sessions);
-  ast_cli_register(&cli_show_version);
-  ast_cli_register(&cli_show_softkeysets);
-  ast_cli_register(&cli_reload);
-  ast_cli_register(&cli_restart);
-  ast_cli_register(&cli_reset);
-  ast_cli_register(&cli_unregister);
-  ast_cli_register(&cli_do_debug);
-  ast_cli_register(&cli_no_debug);
-  ast_cli_register(&cli_system_message);
-  ast_cli_register(&cli_show_globals);
-  ast_cli_register(&cli_message_devices);
-  ast_cli_register(&cli_message_device);
-  ast_cli_register(&cli_remove_line_from_device);
-  ast_cli_register(&cli_add_line_to_device);
-  ast_cli_register(&cli_show_mwi_subscriptions);
+	ast_cli_register(&cli_show_channels);
+	ast_cli_register(&cli_show_devices);
+	ast_cli_register(&cli_show_device);
+	ast_cli_register(&cli_show_lines);
+	ast_cli_register(&cli_show_line);
+	ast_cli_register(&cli_show_sessions);
+	ast_cli_register(&cli_show_version);
+	ast_cli_register(&cli_show_softkeysets);
+	ast_cli_register(&cli_reload);
+	ast_cli_register(&cli_restart);
+	ast_cli_register(&cli_reset);
+	ast_cli_register(&cli_unregister);
+	ast_cli_register(&cli_do_debug);
+	ast_cli_register(&cli_no_debug);
+	ast_cli_register(&cli_system_message);
+	ast_cli_register(&cli_show_globals);
+	ast_cli_register(&cli_message_devices);
+	ast_cli_register(&cli_message_device);
+	ast_cli_register(&cli_remove_line_from_device);
+	ast_cli_register(&cli_add_line_to_device);
+	ast_cli_register(&cli_show_mwi_subscriptions);
 #endif
 
 }
@@ -1409,26 +1410,26 @@ void sccp_unregister_cli(void) {
 	/* unregister CLI functions */
 	ast_cli_unregister_multiple(cli_entries, sizeof(cli_entries) / sizeof(struct ast_cli_entry));
 #else
-  ast_cli_unregister(&cli_show_channels);
-  ast_cli_unregister(&cli_show_devices);
-  ast_cli_unregister(&cli_show_device);
-  ast_cli_unregister(&cli_show_lines);
-  ast_cli_unregister(&cli_show_line);
-  ast_cli_unregister(&cli_show_sessions);
-  ast_cli_unregister(&cli_show_version);
-  ast_cli_unregister(&cli_show_softkeysets);
-  ast_cli_unregister(&cli_reload);
-  ast_cli_unregister(&cli_restart);
-  ast_cli_unregister(&cli_reset);
-  ast_cli_unregister(&cli_unregister);
-  ast_cli_unregister(&cli_do_debug);
-  ast_cli_unregister(&cli_no_debug);
-  ast_cli_unregister(&cli_system_message);
-  ast_cli_unregister(&cli_show_globals);
-  ast_cli_unregister(&cli_message_devices);
-  ast_cli_unregister(&cli_message_device);
-  ast_cli_unregister(&cli_remove_line_from_device);
-  ast_cli_unregister(&cli_add_line_to_device);
-  ast_cli_unregister(&cli_show_mwi_subscriptions);
+	ast_cli_unregister(&cli_show_channels);
+	ast_cli_unregister(&cli_show_devices);
+	ast_cli_unregister(&cli_show_device);
+	ast_cli_unregister(&cli_show_lines);
+	ast_cli_unregister(&cli_show_line);
+	ast_cli_unregister(&cli_show_sessions);
+	ast_cli_unregister(&cli_show_version);
+	ast_cli_unregister(&cli_show_softkeysets);
+	ast_cli_unregister(&cli_reload);
+	ast_cli_unregister(&cli_restart);
+	ast_cli_unregister(&cli_reset);
+	ast_cli_unregister(&cli_unregister);
+	ast_cli_unregister(&cli_do_debug);
+	ast_cli_unregister(&cli_no_debug);
+	ast_cli_unregister(&cli_system_message);
+	ast_cli_unregister(&cli_show_globals);
+	ast_cli_unregister(&cli_message_devices);
+	ast_cli_unregister(&cli_message_device);
+	ast_cli_unregister(&cli_remove_line_from_device);
+	ast_cli_unregister(&cli_add_line_to_device);
+	ast_cli_unregister(&cli_show_mwi_subscriptions);
 #endif
 }
