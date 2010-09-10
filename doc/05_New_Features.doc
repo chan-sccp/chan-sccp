@@ -351,8 +351,9 @@
  *
  * \subsection nf_sccp_function	 	How to use dialplan functions
  * 
- * We have added new dialplan function SCCPDEVICE and SCCPLINE to provide the ability to ask information about sccp device
- * sccp lines. 
+ * We have added new dialplan function \ref nf_sccp_dialplan_sccpdevice SCCPDEVICE, 
+ * \ref nf_sccp_dialplan_sccpline SCCPLINE and nf_sccp_dialplan_sccpchannel SCCPCHANNEL
+ * to provide the ability to ask information about sccp device, sccp lines and sccp channels. 
  *
  * \subsubsection nf_sccp_dialplan_sccpdevice SCCPDEVICE
  *
@@ -369,14 +370,13 @@
  * Within the dialplan you can use the function SCCPDEVICE to retrieve information about an SCCP Device like this:
  * \code
  * Set(my_ip=${SCCPDEVICE(current,ip)});
+ * Set(my_id=${SCCPDEVICE(current,id)});
+ * Set(my_codecs=${SCCPDEVICE(current,codecs)});
+ * Set(my_codec_g792=${SCCPDEVICE(current,codec[g792])});
+ * Set(my_button_config=${SCCPDEVICE(current,button_config)});
+ * Set(other_button_config=${SCCPDEVICE(SEP001122334455,button_config)});
  * \endcode
- * to put the ip-address of your current device in a variable called "my_ip"
- *
- * \subsubsection nf_sccp_dialplan_sccpline SCCPLINE
- *
- * \code
- * Set(my_ip=${SCCPDEVICE(current,ip)});
- * \endcode
+ * to put the information of a/the device in a dialplan variable.
  *
  * \subsubsection nf_sccp_dialplan_sccpline SCCPLINE
  *
@@ -393,7 +393,39 @@
  * Within the dialplan you can use the function SCCPLINE to retrieve information about an SCCP Line like this:
  * \code
  * Set(my_line_name=${SCCPDEVICE(current,name)});
+ * Set(my_line_descr=${SCCPLINE(current,description)});
+ * Set(my_line_devices=${SCCPLINE(current,devices)});
+ * Set(parent_line_id=${SCCPLINE(parent,id)});
+ * Set(other_line_id=${SCCPLINE(98011,id)});
+ * Set(other_line_devices=${SCCPLINE(98011,devices)});
  * \endcode
- * to put the line name of your current channel in a variable called "my_line_name"
+ * to put the information of a/the line in a dialplan variable.
+ *
+ * \subsubsection nf_sccp_dialplan_sccpchannel SCCPCHANNEL
+ *
+ * Usage: SCCPCHANNEL([current|callid],[option]);
+ * 
+ * the first param can be either "current" or a callid assigned to the channel. 
+ * 
+ * the second param defines the information to be retrieved and can be on of these:
+ * callid, format, isCodecFix, codecs, capability, calledPartyName, calledPartyNumber, callingPartyName, callingPartyNumber
+ * originalCallingPartyName, originalCallingPartyNumber, originalCalledPartyName, originalCalledPartyNumber, lastRedirectingPartyName
+ * lastRedirectingPartyNumber, cgpnVoiceMailbox, cdpnVoiceMailbox, originalCdpnVoiceMailbox, lastRedirectingVoiceMailbox, 
+ * passthrupartyid, state, previous_state, calltype, dialed_number, device, line, answered_elsewhere, privacy, monitorEnabled, parent
+ * 
+ * Within the dialplan you can use the function SCCPCHANNEL to retrieve information about an SCCP channel like this:
+ * \code
+ * Set(my_channel_callid=${SCCPCHANNEL(current,callid)});
+ * Set(my_channel_device=${SCCPCHANNEL(current,device)});
+ * Set(my_channel_line=${SCCPCHANNEL(current,line)});
+ * Set(my_channel_capability=${SCCPCHANNEL(current,capability)});
+ * Set(my_channel_called=${SCCPCHANNEL(current,calledPartyName)});
+ * Set(my_channel_calling=${SCCPCHANNEL(current,callingPartyName)});
+ * Set(my_channel_state=${SCCPCHANNEL(current,state)});
+ * Set(my_channel_calltype=${SCCPCHANNEL(current,calltype)});
+ * Set(my_channel_dialed_number=${SCCPCHANNEL(current,dialed_number)});
+ * Set(other_channel_dialed_number=${SCCPCHANNEL(4,dialed_number)});
+ * \endcode
+ * to put the information of the/a channel in a dialplan variable.
  *
  */

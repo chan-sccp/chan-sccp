@@ -585,7 +585,7 @@ void register_exten(sccp_line_t *l,struct subscriptionId *subscriptionId)
 		if (!ast_canmatch_extension(NULL, context, ext, 1, NULL)) {
 			sccp_log((DEBUGCAT_LINE|DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_1 "Registering RegContext: %s, Extension, %s Line %s\n", context, ext, l->name);
 			ast_add_extension(context, 1, ext, 1, NULL, NULL, "Noop",
-				 ast_strdup(l->name), ast_free_ptr, "SCCP");
+				 ast_strdup(l->name), sccp_free_ptr, "SCCP");
 		}
 		// parse subscriptionId
 		if (subscriptionId->number && (strcmp(subscriptionId->number,""))) {
@@ -596,7 +596,7 @@ void register_exten(sccp_line_t *l,struct subscriptionId *subscriptionId)
 			if (!ast_canmatch_extension(NULL, context, ext, 2, NULL)) {
 				sccp_log((DEBUGCAT_LINE|DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_1 "Registering RegContext: %s, Extension, %s Line %s Subscription number [%s]\n", context, ext, l->name, subscriptionId->number);
 				ast_add_extension(context, 1, ext, 2, NULL, NULL, "Noop",
-					ast_strdup(name), ast_free_ptr, "SCCP");
+					ast_strdup(name), sccp_free_ptr, "SCCP");
 			}
 		}
         }

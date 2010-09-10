@@ -878,12 +878,12 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 #endif
 			c=CS_AST_CHANNEL_PVT(chan);
 		} else {
-			ast_log(LOG_WARNING, "sccp_func_sccpdevice: Not an SCCP channel\n");
+			ast_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");
 		        return -1;
 		}
 
 		if (!c ||!c->device) {
-			ast_log(LOG_WARNING, "sccp_func_sccpdevice: SCCP Device not available\n");
+			ast_log(LOG_WARNING, "SCCPDEVICE(): SCCP Device not available\n");
 		        return -1;
 		}
 		        
@@ -891,7 +891,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 		                        
 	} else {
 		if ( !(d = sccp_device_find_byid(data, TRUE)) ) {
-			ast_log(LOG_WARNING,  "sccp_func_sccpdevice: SCCP Device not available\n");
+			ast_log(LOG_WARNING,  "SCCPDEVICE(): SCCP Device not available\n");
 			return -1;
 		}
 	}
@@ -925,6 +925,8 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 	} else if (!strcasecmp(colname , "registration_state")) {
 		ast_copy_string(buf, deviceregistrationstatus2str(d->registrationState), len);
 	} else if (!strcasecmp(colname , "codecs")) {
+		ast_codec_pref_string(&d->codecs, buf, sizeof(buf) - 1);
+	} else if (!strcasecmp(colname , "capability")) {
 		ast_getformatname_multiple(buf, len -1, d->capability);
 	} else if (!strcasecmp(colname , "state")) {
 		ast_copy_string(buf, accessorystatus2str(d->accessorystatus), len);
@@ -1020,6 +1022,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 			buf[0] = '\0';
 		}
 	} else {
+		ast_log(LOG_WARNING, "SCCPDEVICE(): unknown function option: %s", data);
 		buf[0] = '\0';
 	}
 	sccp_device_unlock(d);
@@ -1067,7 +1070,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 	} else if ((colname = strchr(data, ',')))
 		*colname++ = '\0';
 	else
-		colname = "ip";
+		colname = "id";
 
 	if (!strncasecmp(data,"current",7)) {
 #ifndef CS_AST_HAS_TECH_PVT
@@ -1077,12 +1080,12 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 #endif
 			c=CS_AST_CHANNEL_PVT(chan);
 		} else {
-			ast_log(LOG_WARNING, "sccp_func_sccpdevice: Not an SCCP Channel\n");
+			ast_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n");
 		        return -1;
 		}
 
 		if (!c || !c->line) {
-			ast_log(LOG_WARNING, "sccp_func_sccpdevice: SCCP Line not available\n");
+			ast_log(LOG_WARNING, "SCCPLINE(): SCCP Line not available\n");
 			return -1;
 		}
 		l = c->line;
@@ -1094,12 +1097,12 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 #endif
 			c=CS_AST_CHANNEL_PVT(chan);
 		} else {
-			ast_log(LOG_WARNING, "sccp_func_sccpdevice: Not an SCCP Channel\n");
+			ast_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n");
 		        return -1;
 		}
 		
 		if (!c || !c->parentChannel || !c->parentChannel->line) {
-			ast_log(LOG_WARNING, "sccp_func_sccpdevice: SCCP Line not available\n");
+			ast_log(LOG_WARNING, "SCCPLINE(): SCCP Line not available\n");
 			return -1;
 		}
 		l = c->parentChannel->line;
@@ -1234,6 +1237,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 			}
 		}
 	} else {
+		ast_log(LOG_WARNING, "SCCPLINE(): unknown function option: %s", data);
 		buf[0] = '\0';
 	}
 	sccp_line_unlock(l);
@@ -1244,8 +1248,159 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 static struct ast_custom_function sccpline_function = {
 	.name = "SCCPLINE",
 	.synopsis = "Retrieves information about an SCCP Line",
-	.syntax = "Usage: SCCPLINE(deviceId,<option>)",
+	.syntax = "Usage: SCCPLINE(lineName,<option>)",
 	.read = sccp_func_sccpline,
+};
+
+/*!
+ * \brief  ${SCCPCHANNEL()} Dialplan function - reads sccp line data 
+ * \param chan Asterisk Channel
+ * \param cmd Command as char
+ * \param data Extra data as char
+ * \param buf Buffer as chan*
+ * \param len Lenght as size_t
+ * \return Status as int
+ *
+ * \author Diederik de Groot <ddegroot@users.sourceforce.net>
+ * \ref nf_sccp_dialplan_sccpchannel
+ */
+#if ASTERISK_VERSION_NUM >= 10600
+static int sccp_func_sccpchannel(struct ast_channel *chan, const char *cmd, char *data, char *buf, size_t len)
+#else
+static int sccp_func_sccpchannel(struct ast_channel *chan, char *cmd, char *data, char *buf, size_t len)
+#endif
+{
+	sccp_channel_t *c;
+	char *colname;
+//	char tmp[1024]="";
+//	char lbuf[1024]="";
+//	int first=0;
+
+	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
+		static int deprecation_warning = 0;
+		*colname++ = '\0';
+		if (deprecation_warning++ % 10 == 0)
+			ast_log(LOG_WARNING, "SCCPCHANNEL(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
+	} else if ((colname = strchr(data, ',')))
+		*colname++ = '\0';
+	else
+		colname = "callid";
+
+	if (!strncasecmp(data,"current",7)) {	
+#ifndef CS_AST_HAS_TECH_PVT
+		if (!strcasecmp(chan->type, "SCCP")){
+#else
+		if (!strcasecmp(chan->tech->type, "SCCP")){
+#endif
+			c=CS_AST_CHANNEL_PVT(chan);
+		} else {
+			ast_log(LOG_WARNING, "SCCPCHANNEL(): Not an SCCP channel\n");
+		        return -1;
+		}
+
+		if (!c) {
+			ast_log(LOG_WARNING, "SCCPCHANNEL(): SCCP Channel not available\n");
+		        return -1;
+		}
+	} else {
+		if ( !(c = sccp_channel_find_byid((uint32_t)data)) ) {
+			ast_log(LOG_WARNING,  "SCCPCHANNEL(): SCCP Channel not available\n");
+			return -1;
+		}
+	}
+	sccp_channel_lock(c);
+
+	if (!strcasecmp(colname , "callid") || !strcasecmp(colname , "id")) {
+		snprintf(buf, len, "%d", c->callid);
+	} else if (!strcasecmp(colname , "format")) {
+		snprintf(buf, len, "%d", c->format);
+	} else if (!strcasecmp(colname , "isCodecFix")) {
+		ast_copy_string(buf, c->isCodecFix ? "yes" : "no", len);
+	} else if (!strcasecmp(colname , "codecs")) {
+		ast_codec_pref_string(&c->codecs, buf, sizeof(buf) - 1);
+	} else if (!strcasecmp(colname , "capability")) {
+		ast_getformatname_multiple(buf, len -1, c->capability);
+	} else if (!strcasecmp(colname , "calledPartyName")) {
+		ast_copy_string(buf, c->callInfo.calledPartyName, len);
+	} else if (!strcasecmp(colname , "calledPartyNumber")) {
+		ast_copy_string(buf, c->callInfo.calledPartyNumber, len);
+	} else if (!strcasecmp(colname , "callingPartyName")) {
+		ast_copy_string(buf, c->callInfo.callingPartyName , len);
+	} else if (!strcasecmp(colname , "callingPartyNumber")) {
+		ast_copy_string(buf, c->callInfo.callingPartyNumber , len);
+	} else if (!strcasecmp(colname , "originalCallingPartyName")) {
+		ast_copy_string(buf, c->callInfo.originalCallingPartyName , len);
+	} else if (!strcasecmp(colname , "originalCallingPartyNumber")) {
+		ast_copy_string(buf, c->callInfo.originalCallingPartyNumber , len);
+	} else if (!strcasecmp(colname , "originalCalledPartyName")) {
+		ast_copy_string(buf, c->callInfo.originalCalledPartyName , len);
+	} else if (!strcasecmp(colname , "originalCalledPartyNumber")) {
+		ast_copy_string(buf, c->callInfo.originalCalledPartyNumber , len);
+	} else if (!strcasecmp(colname , "lastRedirectingPartyName")) {
+		ast_copy_string(buf, c->callInfo.lastRedirectingPartyName , len);
+	} else if (!strcasecmp(colname , "lastRedirectingPartyNumber")) {
+		ast_copy_string(buf, c->callInfo.lastRedirectingPartyNumber , len);
+	} else if (!strcasecmp(colname , "cgpnVoiceMailbox")) {
+		ast_copy_string(buf, c->callInfo.cgpnVoiceMailbox , len);
+	} else if (!strcasecmp(colname , "cdpnVoiceMailbox")) {
+		ast_copy_string(buf, c->callInfo.cdpnVoiceMailbox , len);
+	} else if (!strcasecmp(colname , "originalCdpnVoiceMailbox")) {
+		ast_copy_string(buf, c->callInfo.originalCdpnVoiceMailbox , len);
+	} else if (!strcasecmp(colname , "lastRedirectingVoiceMailbox")) {
+		ast_copy_string(buf, c->callInfo.lastRedirectingVoiceMailbox , len);
+	} else if (!strcasecmp(colname , "passthrupartyid")) {
+		snprintf(buf, len, "%d", c->passthrupartyid);
+	} else if (!strcasecmp(colname , "state")) {
+		ast_copy_string(buf, channelstate2str(c->state), len);
+	} else if (!strcasecmp(colname , "previous_state")) {
+		ast_copy_string(buf, channelstate2str(c->previousChannelState), len);
+	} else if (!strcasecmp(colname , "calltype")) {
+		ast_copy_string(buf, calltype2str(c->calltype), len);
+	} else if (!strcasecmp(colname , "dialed_number")) {
+		ast_copy_string(buf, c->dialedNumber, len);
+	} else if (!strcasecmp(colname , "device")) {
+		ast_copy_string(buf, c->device->id, len);
+	} else if (!strcasecmp(colname , "line")) {
+		ast_copy_string(buf, c->line->name, len);
+	} else if (!strcasecmp(colname , "answered_elsewhere")) {
+		ast_copy_string(buf, c->answered_elsewhere ? "yes" : "no", len);
+	} else if (!strcasecmp(colname , "privacy")) {
+		ast_copy_string(buf, c->privacy ? "yes" : "no", len);
+	} else if (!strcasecmp(colname , "ss_action")) {
+		snprintf(buf, len, "%d", c->ss_action);
+	} else if (!strcasecmp(colname , "monitorEnabled")) {
+		ast_copy_string(buf, c->monitorEnabled ? "yes" : "no", len);
+	} else if (!strcasecmp(colname , "conference")) {
+		/*! \todo needs to be implemented */
+	} else if (!strcasecmp(colname , "parent")) {
+		snprintf(buf, len, "%d", c->parentChannel->callid);
+	} else if (!strcasecmp(colname , "peer")) {
+		/*! \todo needs to be implemented */
+	} else  if (!strncasecmp(colname, "codec[", 6)) {
+		char *codecnum;
+		int codec = 0;
+		
+		codecnum = colname + 6;					// move past the '[' 
+		codecnum = strsep(&codecnum, "]"); 			// trim trailing ']' if any 
+		if((codec = ast_codec_pref_index(&c->codecs, atoi(codecnum)))) {
+			ast_copy_string(buf, ast_getformatname(codec), len);
+		} else {
+			buf[0] = '\0';
+		}
+	} else {
+		ast_log(LOG_WARNING, "SCCPCHANNEL(): unknown function option: %s", data);
+		buf[0] = '\0';
+	}
+	sccp_channel_unlock(c);
+	return 0;
+}
+
+/*! \brief Stucture to declare a dialplan function: SCCPCHANNEL */
+static struct ast_custom_function sccpchannel_function = {
+	.name = "SCCPCHANNEL",
+	.synopsis = "Retrieves information about an SCCP Line",
+	.syntax = "Usage: SCCPCHANNEL(deviceId,<option>)",
+	.read = sccp_func_sccpchannel,
 };
 
 
@@ -1350,6 +1505,7 @@ static int sccp_register_dialplan_functions(void)
 	/* Register dialplan functions */
 	result |=ast_custom_function_register(&sccpdevice_function);
 	result |=ast_custom_function_register(&sccpline_function);
+	result |=ast_custom_function_register(&sccpchannel_function);
 
 	return result;
 }
@@ -1365,6 +1521,7 @@ static int sccp_unregister_dialplan_functions(void)
 	/* Unregister dial plan functions */
 	result |= ast_custom_function_unregister(&sccpdevice_function);
 	result |= ast_custom_function_unregister(&sccpline_function);
+	result |= ast_custom_function_unregister(&sccpchannel_function);
 
 	return result;
 }
