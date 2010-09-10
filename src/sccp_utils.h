@@ -130,7 +130,7 @@ sccp_feature_type_t sccp_featureStr2featureID(const char *str);
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t *channel, const char *SubscriptionIdNum);
 sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t *device, sccp_line_t *line);
 uint32_t sccp_parse_debugline (char * arguments[], int startat, int argc, uint32_t new_debug);
-const char * sccp_get_debugcategories(uint32_t debugvalue,char * dest);
+char * sccp_get_debugcategories(uint32_t debugvalue);
 sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const char *dirNum, const char *fqdn, const char *lineDisplayName);
 char **explode(char *str,char *sep);
 char *implode(char *str[],char *sep);

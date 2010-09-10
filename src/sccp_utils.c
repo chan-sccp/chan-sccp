@@ -1249,7 +1249,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 	if(!(*event) || !device )
 		return;
 
-	
+
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: got FeatureChangeEvent %d\n", DEV_ID_LOG(device), (*event)->event.featureChanged.featureType);
 	sccp_device_lock(device);
 	sprintf(family, "SCCP/%s", device->id);
@@ -1265,7 +1265,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 						SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list){
 							if(lineDevice->device != device)
 								continue;
-							
+
 							uint8_t instance = sccp_device_find_index_for_line(device, line->name);
 							sccp_dev_forward_status(line, instance, device);
 							sprintf(cfwdLineStore, "%s/%s", family,config->button.line.name);
@@ -1585,41 +1585,33 @@ uint32_t sccp_parse_debugline (char * arguments[], int startat, int argc, uint32
 /*!
  * \brief Write the current debug value to debug categories
  * \param debugvalue DebugValue as uint32_t
- * \param dest string there categories are to be written
- * \return string containing list of categories comma seperated
+ * \return string containing list of categories comma seperated (you need to free it)
  */
-const char * sccp_get_debugcategories(uint32_t debugvalue,char * dest) {
+char * sccp_get_debugcategories(uint32_t debugvalue) {
 	uint32_t i;
-	boolean_t first=1;
-	char *res="";
-	char *tmpres=NULL;
-	char *sep=", ";
-	
-	res=ast_malloc((16) * sizeof(char *));		// 16=longest debug_category
-	if (res!=NULL) {
-		memset(res, 0, (16) * sizeof(char *));
-		for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
-			if((debugvalue & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
-				tmpres=ast_realloc(res,(strlen(sccp_debug_categories[i].short_name)+strlen(sep)+1) * sizeof(char *));
-				if (tmpres!=NULL) {
-					res=tmpres;
-					if (first) {
-						strcat(res,sccp_debug_categories[i].short_name);
-						first=0;
-					} else {
-						strcat(res,", ");
-						strcat(res,sccp_debug_categories[i].short_name);
-					}
-				} else {
-					ast_free(res);
-					return NULL;
-				}
+	char *res = NULL;
+	const char *sep = ", ";
+	size_t size = 0;
+
+	for (i = 0; i < ARRAY_LEN(sccp_debug_categories); ++i) {
+		if ((debugvalue & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
+			size_t new_size = size;
+			new_size += strlen(sccp_debug_categories[i].short_name) + sizeof(sep) + 1;
+			res = ast_realloc(res, new_size);
+			if (!res)
+				return NULL;
+
+			if (size == 0) {
+				strcpy(res, sccp_debug_categories[i].short_name);
+			} else {
+				strcat(res, sep);
+				strcat(res, sccp_debug_categories[i].short_name);
 			}
+
+			size = new_size;
 		}
-	}else{
-		ast_free(res);
-		return NULL;
 	}
+
 	return res;
 }
 
@@ -1691,7 +1683,7 @@ char **explode(char *str,char *sep) {
 	if (res!=NULL) {
 //		memset(res, 0, (strlen(str)/2)*sizeof(char*));
 		tmp = strtok(ds, sep);
-		for (nn = 0; tmp != NULL; ++nn) 
+		for (nn = 0; tmp != NULL; ++nn)
 		{
 		  	res[nn] = strdup(tmp);
 		  	tmp = strtok(NULL, sep);
