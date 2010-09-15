@@ -1031,8 +1031,9 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 #endif
 
 
-	payloadType = 99;
-	channel->rtp.video.readFormat = AST_FORMAT_H264;
+	//payloadType = 99;
+	payloadType = 97;
+	channel->rtp.video.readFormat = AST_FORMAT_H263;
 	skinnyFormat = sccp_codec_ast2skinny(channel->rtp.video.readFormat);
 	packetSize = 3840;
 
@@ -1081,7 +1082,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 
 		r->msg.StartMultiMediaTransmission.audioParameter.millisecondPacketSize 					= htolel(packetSize);
 		r->msg.StartMultiMediaTransmission.audioParameter.lel_echoCancelType  						= 0;
-		r->msg.StartMultiMediaTransmission.audioParameter.lel_g723BitRate  						= htolel(0x00000132);
+		//r->msg.StartMultiMediaTransmission.audioParameter.lel_g723BitRate  						= htolel(0x00000132);
 
 		r->msg.StartMultiMediaTransmission.videoParameter.bitRate							= 0;
 		r->msg.StartMultiMediaTransmission.videoParameter.pictureFormatCount						= 0;
@@ -1109,10 +1110,10 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 		r->msg.StartMultiMediaTransmission.unknown[4]		  							= htolel(0x77f83158);
 		r->msg.StartMultiMediaTransmission.unknown[5]		  							= htolel(0xffffffff);
 		r->msg.StartMultiMediaTransmission.unknown[6]		  							= r->msg.StartMultiMediaTransmission.unknown[2];
-		r->msg.StartMultiMediaTransmission.unknown[7]		  							= htolel(0x77fcb7c2);
-		r->msg.StartMultiMediaTransmission.unknown[8]		  							= htolel(0x00180778);
-		r->msg.StartMultiMediaTransmission.unknown[9]		  							= htolel(0x00241620);
-		r->msg.StartMultiMediaTransmission.unknown[10]		  							= htolel(0x00241640);
+		r->msg.StartMultiMediaTransmission.unknown[7]		  							= htolel(0x77fcb7c2);/* same */
+		r->msg.StartMultiMediaTransmission.unknown[8]		  							= htolel(0x00180778);/* same */
+		r->msg.StartMultiMediaTransmission.unknown[9]		  							= htolel(0x076d0a58);
+		r->msg.StartMultiMediaTransmission.unknown[10]		  							= htolel(0x076d0a78);
 		r->msg.StartMultiMediaTransmission.unknown[11]		  							= r->msg.StartMultiMediaTransmission.unknown[9];
 		
 	} else {
@@ -2583,9 +2584,10 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	}
 	
 	/* change callInfo on our source */
+	cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
 	if (cSourceRemote) {
 		if(CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote) ){ /* change callInfo on our source */
-			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Transfer confirmation destination on channel %s\n", d->id, astcSourceRemote->name);
+			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Transfer confirmation source on channel %s\n", DEV_ID_LOG(d), astcSourceRemote->name);
 
 			if(cSourceLocal->calltype == SKINNY_CALLTYPE_INBOUND){
 				/* copy old callerid */
@@ -2594,7 +2596,9 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 
 				sccp_copy_string(cSourceRemote->callInfo.calledPartyName, cDestinationLocal->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.calledPartyName));
 				sccp_copy_string(cSourceRemote->callInfo.calledPartyNumber, cDestinationLocal->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.calledPartyNumber));
-
+				
+				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: set originalCalledPartyNumber %s, calledPartyNumber %s\n", DEV_ID_LOG(cSourceRemote->device), cSourceRemote->callInfo.originalCalledPartyNumber, cSourceRemote->callInfo.calledPartyNumber);
+				
 			}else if(cSourceLocal->calltype == SKINNY_CALLTYPE_OUTBOUND){
 				/* copy old callerid */
 				sccp_copy_string(cSourceRemote->callInfo.originalCallingPartyName, cSourceRemote->callInfo.callingPartyName, sizeof(cSourceRemote->callInfo.originalCallingPartyName));
@@ -2602,6 +2606,8 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 
 				sccp_copy_string(cSourceRemote->callInfo.callingPartyName, cDestinationLocal->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.callingPartyName));
 				sccp_copy_string(cSourceRemote->callInfo.callingPartyNumber, cDestinationLocal->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.callingPartyNumber));
+				
+				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: set originalCalledPartyNumber %s, calledPartyNumber %s\n", DEV_ID_LOG(cSourceRemote->device), cSourceRemote->callInfo.originalCalledPartyNumber, cSourceRemote->callInfo.calledPartyNumber);
 			}
 
 			sccp_channel_send_callinfo(cSourceRemote->device, cSourceRemote);
