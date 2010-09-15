@@ -228,9 +228,9 @@ static void sccp_free_ptr(void *ptr)
 #endif
 
 #ifdef CS_AST_HAS_TECH_PVT
-#define CS_AST_CHANNEL_PVT_CMP_TYPE(x,y) !strncasecmp(x->tech->type,"y",strlen(y))
+#define CS_AST_CHANNEL_PVT_CMP_TYPE(x,y) !strncasecmp(x->tech->type, y, strlen(y))
 #else
-#define CS_AST_CHANNEL_PVT_CMP_TYPE(x,y) !strncasecmp(x->type,"y",strlen(y))
+#define CS_AST_CHANNEL_PVT_CMP_TYPE(x,y) !strncasecmp(x->type, y, strlen(y))
 #endif
 
 #define CS_AST_CHANNEL_PVT_IS_SCCP(x) CS_AST_CHANNEL_PVT_CMP_TYPE(x,"SCCP")
