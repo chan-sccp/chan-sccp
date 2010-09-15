@@ -222,12 +222,81 @@ void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  */
 void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
+	sccp_buttonconfig_t 	*config = NULL;
+	sccp_channel_t 		*channel = NULL;
+	sccp_line_t 		*line = NULL;
+	sccp_channel_t 		*transfereeChannel = NULL, *transferingChannel = NULL;
+	
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Transfer Pressed\n", DEV_ID_LOG(d));
 	if (!c) {
 		sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: Transfer when there is no active call\n", d->id);
 		return;
 	}
-	sccp_channel_transfer(c);
+	
+	
+	/* if we have selected channels, check the number of cahnnel */
+	if(d->selectedChannels.size == 2){
+		sccp_selectedchannel_t 	*selectedChannel = NULL;
+	  
+		SCCP_LIST_TRAVERSE(&d->selectedChannels, selectedChannel, list) {
+		  
+			if(selectedChannel->channel->state == SCCP_CHANNELSTATE_HOLD){
+				transferingChannel = selectedChannel->channel;
+			}else{
+				transfereeChannel = selectedChannel->channel;
+			}
+			
+		}
+		SCCP_LIST_UNLOCK(&d->selectedChannels);
+	}else{
+	
+		/* lets search the cahnnel */
+		uint8_t num = sccp_device_numberOfChannels(d);
+		switch(num){
+			case 1:
+				sccp_channel_transfer(c);
+				return;
+			break;
+			
+			case 2:
+				/* lets select the channels */
+				SCCP_LIST_LOCK(&d->buttonconfig);
+				SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+					if(config->type == LINE){
+						line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
+						if(!line)
+							continue;
+
+						SCCP_LIST_LOCK(&line->channels);
+						SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
+							if(channel->device == d){
+								if(channel->state == SCCP_CHANNELSTATE_HOLD){
+									transferingChannel = channel;
+								}else{
+									transfereeChannel = channel;
+								}
+							}
+						}
+						SCCP_LIST_UNLOCK(&line->channels);
+					}
+				}
+				SCCP_LIST_UNLOCK(&d->buttonconfig);
+			break;
+			
+			default:
+				sccp_dev_displayprompt(d, lineInstance, c->callid, "use select to complete transfer", 5);
+				return;
+			break;
+		}
+	}
+	
+	if(transfereeChannel && transferingChannel){
+		d->transfer_channel = transferingChannel;
+		sccp_channel_transfer_complete(transfereeChannel);
+	}else{
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
+	}
+	
 }
 
 /*!
