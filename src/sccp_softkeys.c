@@ -234,7 +234,7 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 	}
 	
 	
-	/* if we have selected channels, check the number of cahnnel */
+	/* if we have selected channels, check the number of channels */
 	if(d->selectedChannels.size == 2){
 		sccp_selectedchannel_t 	*selectedChannel = NULL;
 	  
@@ -249,15 +249,14 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 		}
 		SCCP_LIST_UNLOCK(&d->selectedChannels);
 	}else{
-	
-		/* lets search the cahnnel */
+		/* lets search the channel */
 		uint8_t num = sccp_device_numberOfChannels(d);
 		sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: number of channels %d\n", DEV_ID_LOG(d), num );
 		switch(num){
 			case 1:
 				sccp_channel_transfer(c);
 				return;
-			break;
+				break;
 			
 			case 2:
 				/* lets select the channels */
@@ -284,24 +283,25 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 					}
 				}
 				SCCP_LIST_UNLOCK(&d->buttonconfig);
-			break;
+				break;
 			
 			default:
-				sccp_dev_displayprompt(d, lineInstance, c->callid, "use select to complete transfer", 5);
+				sccp_dev_displayprompt(d, lineInstance, c->callid, "Use SELECT to complete transfer", 5);
 				return;
-			break;
+				break;
 		}
 	}
 	
 	if(transfereeChannel && transferingChannel){
 		d->transfer_channel = transferingChannel;
 		sccp_channel_transfer_complete(transfereeChannel);
-	}else{
+	} else {
 		if(!transfereeChannel)
-			sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: missing transfereeChannel\n", DEV_ID_LOG(d) );
-		
+			sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: missing transferee channel\n", DEV_ID_LOG(d) );
+
 		if(!transferingChannel)
-			sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: missing transferingChannel\n", DEV_ID_LOG(d) );
+			sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: missing transfering channel\n", DEV_ID_LOG(d) );
+
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 	}
 	
