@@ -252,6 +252,7 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 	
 		/* lets search the cahnnel */
 		uint8_t num = sccp_device_numberOfChannels(d);
+		sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: number of channels %d\n", DEV_ID_LOG(d), num );
 		switch(num){
 			case 1:
 				sccp_channel_transfer(c);
@@ -270,7 +271,9 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 						SCCP_LIST_LOCK(&line->channels);
 						SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
 							if(channel->device == d){
-								if(channel->state == SCCP_CHANNELSTATE_HOLD){
+								sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: state: %d\n", channel->owner->name, channel->state );
+							  
+								if(channel == d->transfer_channel || channel->state == SCCP_CHANNELSTATE_HOLD || channel->state == SCCP_CHANNELSTATE_CALLTRANSFER){
 									transferingChannel = channel;
 								}else{
 									transfereeChannel = channel;
@@ -294,6 +297,11 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 		d->transfer_channel = transferingChannel;
 		sccp_channel_transfer_complete(transfereeChannel);
 	}else{
+		if(!transfereeChannel)
+			sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: missing transfereeChannel\n", DEV_ID_LOG(d) );
+		
+		if(!transferingChannel)
+			sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: missing transferingChannel\n", DEV_ID_LOG(d) );
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 	}
 	
