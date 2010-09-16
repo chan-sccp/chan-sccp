@@ -2,7 +2,7 @@
  * \file 	sccp_event.c
  * \brief 	SCCP Event Class
  * \author 	Marcello Ceschia <marcello [at] ceschia.de>
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \since	2009-09-02
  * 
@@ -36,13 +36,10 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/features.h>
 #endif
 
-
-
 /*!
  * \brief SCCP Event Listeners Structure
  */
 struct sccp_event_subscriptions *sccp_event_listeners = 0;
-
 
 /*!
  * \brief Subscribe to an Event
@@ -57,7 +54,7 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb)
 
 	subscription = ast_malloc(sizeof(sccp_event_subscriber_t));
 	if(!subscription){
-		ast_log(LOG_ERROR, "fail to alloc mem for subscription\n");
+		ast_log(LOG_ERROR, "Failed to allocate memory for subscription\n");
 		return;
 	}
 

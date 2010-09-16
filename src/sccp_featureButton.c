@@ -2,7 +2,7 @@
  * \file 	sccp_featureButton.c
  * \brief 	SCCP FeatureButton Class
  * \author 	Marcello Ceschia <marcello [at] ceschia.de>
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \since 	2009-06-15
  *
@@ -66,8 +66,6 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 		return;
 	}
 
-
-
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list){
 		if(config->type == FEATURE && config->button.feature.id == featureType){
@@ -79,7 +77,6 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 				case SCCP_FEATURE_PRIVACY:
 					if(!device->privacyFeature.enabled){
 						config->button.feature.status = 0;
-						//break;
 					}
 
 					sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", DEV_ID_LOG(device), device->privacyFeature.status);
@@ -97,7 +94,6 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 				case SCCP_FEATURE_CFWDALL:
 
 					/* get current state */
-
 					SCCP_LIST_TRAVERSE(&device->buttonconfig, buttonconfig, list) {
 						if(buttonconfig->type == LINE ){
 							line = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
@@ -221,17 +217,6 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 
 			}
 
-
-			/* send status using old message */
-#if 0
-			REQ(featureRequestMessage, FeatureStatMessage);
-			featureRequestMessage->msg.FeatureStatMessage.lel_featureInstance = htolel(instance);
-			featureRequestMessage->msg.FeatureStatMessage.lel_featureID = htolel(buttonID);
-			sccp_copy_string(featureRequestMessage->msg.FeatureStatMessage.featureTextLabel, config->button.feature.label, strlen(config->button.feature.label)+1);
-			featureRequestMessage->msg.FeatureStatMessage.lel_featureStatus = htolel(config->button.feature.status);
-			sccp_dev_send(device, featureRequestMessage);
-			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: Got Feature Status Request. Instance = %d Status: %d\n", device->id, instance, config->button.feature.status);
-#else
 			/* send status using new message */
 			REQ(featureAdvancedMessage, FeatureStatAdvancedMessage);
 			featureAdvancedMessage->msg.FeatureStatAdvancedMessage.lel_instance = htolel(instance);
@@ -239,7 +224,8 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 			featureAdvancedMessage->msg.FeatureStatAdvancedMessage.lel_status = htolel(config->button.feature.status);
 			sccp_copy_string(featureAdvancedMessage->msg.FeatureStatAdvancedMessage.DisplayName, config->button.feature.label, strlen(config->button.feature.label)+1);
 			sccp_dev_send(device, featureAdvancedMessage);
-#endif
+
+			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: Got Feature Status Request. Instance = %d Status: %d\n", device->id, instance, config->button.feature.status);
 		}
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);

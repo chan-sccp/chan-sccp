@@ -189,6 +189,11 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 
 /* macro for memory alloc and free*/
 #define sccp_alloc(x)	ast_alloc(x)
+
+#ifndef ast_free
+#define ast_free free
+#endif
+
 #define sccp_free(x){ \
 	ast_free( x ); \
 	(x) = NULL; \
