@@ -2,7 +2,7 @@
  * \file 	sccp_mwi.c
  * \brief 	SCCP Message Waiting Indicator Class
  * \author 	Marcello Ceschia <marcello.ceschia [at] users.sourceforge.net>
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
  * $Date$
@@ -36,8 +36,6 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t **event);
 void sccp_mwi_deviceAttachedEvent(const sccp_event_t **event);
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *line);
 void sccp_mwi_lineStatusChangedEvent(const sccp_event_t **event);
-
-
 
 SCCP_LIST_HEAD(, sccp_mailbox_subscriber_list_t) sccp_mailbox_subscriptions;
 
@@ -108,7 +106,6 @@ void sccp_mwi_event(const struct ast_event *event, void *data){
 		return;
 
 	sccp_log(DEBUGCAT_EVENT)(VERBOSE_PREFIX_3 "Got mwi event for %s@%s\n",(subscription->mailbox)?subscription->mailbox:"NULL", (subscription->context)?subscription->context:"NULL");
-
 
 	/* for calculation store previous voicemail counts */
 	subscription->previousVoicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
@@ -220,11 +217,13 @@ void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t **mailbox){
 
 	// \todo TODO implement sccp_mwi_unsubscribeMailbox
 	return;
-
-
 }
 
 
+/*!
+ * \brief Device Attached Event 
+ * \param event SCCP Event
+ */
 void sccp_mwi_deviceAttachedEvent(const sccp_event_t **event){
 	if(!(*event))
 		return;
@@ -246,6 +245,10 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t **event){
 }
 
 
+/*!
+ * \brief Line Status Changed Event 
+ * \param event SCCP Event
+ */
 void sccp_mwi_lineStatusChangedEvent(const sccp_event_t **event){
 	if(!(*event))
 		return;
@@ -260,6 +263,10 @@ void sccp_mwi_lineStatusChangedEvent(const sccp_event_t **event){
 }
 
 
+/*!
+ * \brief Line Created Event 
+ * \param event SCCP Event
+ */
 void sccp_mwi_linecreatedEvent(const sccp_event_t **event){
 	if(!(*event))
 		return;
@@ -283,12 +290,15 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t **event){
 	return;
 }
 
-
-
+/*!
+ * \brief Add Mailbox Subscription
+ * \param mailbox Mailbox as char
+ * \param context Mailbox Context
+ * \param line SCCP Line
+ */
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *line){
-	sccp_mailbox_subscriber_list_t *subscription = NULL;
-	sccp_mailboxLine_t	*mailboxLine = NULL;
-
+	sccp_mailbox_subscriber_list_t	*subscription = NULL;
+	sccp_mailboxLine_t		*mailboxLine = NULL;
 
 	SCCP_LIST_LOCK(&sccp_mailbox_subscriptions);
 	SCCP_LIST_TRAVERSE(&sccp_mailbox_subscriptions, subscription, list){
@@ -306,7 +316,6 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 		subscription = ast_malloc(sizeof(sccp_mailbox_subscriber_list_t));
 		memset(subscription, 0, sizeof(sccp_mailbox_subscriber_list_t));
 
-
 		SCCP_LIST_HEAD_INIT(&subscription->sccp_mailboxLine);
 
 		sccp_copy_string(subscription->mailbox, mailbox, sizeof(subscription->mailbox));
@@ -317,12 +326,10 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 		SCCP_LIST_INSERT_HEAD(&sccp_mailbox_subscriptions, subscription, list);
 		SCCP_LIST_UNLOCK(&sccp_mailbox_subscriptions);
 
-
 		/* get initial value */
 		char buffer[512];
 		sprintf(buffer, "%s@%s", subscription->mailbox, (subscription->context)?subscription->context:"default");
 		ast_app_inboxcount(buffer, &subscription->currentVoicemailStatistic.newmsgs, &subscription->currentVoicemailStatistic.oldmsgs);
-
 
 #ifdef CS_AST_HAS_EVENT
 		/* register asterisk event */
@@ -348,20 +355,16 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 		mailboxLine = ast_malloc(sizeof(sccp_mailboxLine_t));
 		memset(mailboxLine, 0, sizeof(sccp_mailboxLine_t));
 
-
 		mailboxLine->line = line;
 
 		line->voicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
 		line->voicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
-
 
 		SCCP_LIST_LOCK(&subscription->sccp_mailboxLine);
 		SCCP_LIST_INSERT_HEAD(&subscription->sccp_mailboxLine, mailboxLine, list);
 		SCCP_LIST_UNLOCK(&subscription->sccp_mailboxLine);
 	}
 }
-
-
 
 /*!
  * \brief Check Line for MWI Status
@@ -470,14 +473,11 @@ void sccp_mwi_check(sccp_device_t *device)
 	sccp_line_t		*line = NULL;
 	sccp_moo_t 		*r;
 
-	uint8_t status;
-	uint64_t mask;
+	uint8_t 			status;
+	uint64_t 		mask;
 
 	if(!device)
 		return;
-
-
-
 
 	/* check if we have an active channel */
 	boolean_t hasActiveChannel = FALSE, hasRinginChannel = FALSE;
@@ -491,7 +491,6 @@ void sccp_mwi_check(sccp_device_t *device)
 			line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
 			if(!line)
 				continue;
-
 
 			SCCP_LIST_LOCK(&line->channels);
 			SCCP_LIST_TRAVERSE(&line->channels, c, list) {
@@ -513,7 +512,6 @@ void sccp_mwi_check(sccp_device_t *device)
 	if((hasActiveChannel == TRUE && hasRinginChannel != TRUE) && !device->mwioncall){
 		sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "%s: we have an active channel, disable mwi light\n",DEV_ID_LOG(device));
 		if(device->mwilight && (device->mwilight & 1)>0 ){
-
 			device->mwilight &= ~(1<<0); /* set mwi light for device to off */
 
 			REQ(r, SetLampMessage);
@@ -525,13 +523,10 @@ void sccp_mwi_check(sccp_device_t *device)
 			return;
 		}
 	}
-	/* */
-
 
 	sccp_device_lock(device);
 	device->voicemailStatistic.newmsgs = 0;
 	device->voicemailStatistic.oldmsgs = 0;
-
 
 	/* update number of voicemails on device */
 	SCCP_LIST_LOCK(&device->buttonconfig);
@@ -548,7 +543,6 @@ void sccp_mwi_check(sccp_device_t *device)
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 
-
 	/* set mwi light */
 	mask = device->mwilight & ~(1<<0); /* status without mwi light for device (1<<0)*/
 	status = (mask > 0) ? 1 : 0;
@@ -563,7 +557,6 @@ void sccp_mwi_check(sccp_device_t *device)
 			device->mwilight &= ~(1<<0);
 		}
 
-
 		REQ(r, SetLampMessage);
 		r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
 		//r->msg.SetLampMessage.lel_stimulusInstance = 0;
@@ -574,9 +567,6 @@ void sccp_mwi_check(sccp_device_t *device)
 		/* we should check the display only once, maybe we need a priority stack -MC */
 		sccp_dev_check_displayprompt(device);
 	}
-	/* */
-
 
 	sccp_device_unlock(device);
 }
-

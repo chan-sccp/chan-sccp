@@ -2,10 +2,10 @@
  * \file 	sccp_cli.c
  * \brief 	SCCP CLI Class
  * \author 	Sergio Chersovani <mlists [at] c-net.it>
- * \note	Reworked, but based on chan_sccp code.
+ * \note		Reworked, but based on chan_sccp code.
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
  * $Date$
@@ -60,7 +60,6 @@ static char * sccp_complete_device(char *line, char *word, int pos, int state) {
 #else
 static char * sccp_complete_device(const char *line, const char *word, int pos, int state) {
 #endif
-	sccp_log(1)("sccp_complete_device,line=%s,word=%s,pos=%i,state=%i\n",line,word,pos,state);
 	sccp_device_t * d;
 	int which = 0;
 	char * ret;
@@ -95,7 +94,6 @@ static char * sccp_complete_line(char *line, char *word, int pos, int state) {
 #else
 static char * sccp_complete_line(const char *line, const char *word, int pos, int state) {
 #endif
-	sccp_log(1)("complete_line line=%s, word=%s, pos=%i, state=%i",line,word,pos,state);
 	sccp_line_t * l;
 	int which = 0;
 	char * ret;
@@ -105,7 +103,6 @@ static char * sccp_complete_line(const char *line, const char *word, int pos, in
 
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
-//		sccp_log(1)("word=%s,l-id=%s",word,l->id);
 		if (!strncasecmp(word, l->name, strlen(word))) {
 			if (++which > state)
 				break;
@@ -560,7 +557,6 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 	char cap_buf[512];
 	struct ast_variable *v = NULL;
 
-//	ast_cli(fd, "%-16s %-16s %-6s %-6s %-4d %-10s %-10s %-16s %-10s\n",
 	ast_cli(fd, "\n%-16s %-16s %-6s %-4s %-4s %-16s\n", "NAME","DEVICE", "SUFFIX", "MWI","Chs","Active Channel");
 	ast_cli(fd, "================ ================ ====== ==== ==== =============================================\n");
 
@@ -568,7 +564,7 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 	SCCP_LIST_TRAVERSE(&GLOB(lines),l,list) {
 
 		c = NULL;
-		// \todo TODO handle shared line
+		// \todo handle shared line
 		d = NULL;
 
 		if (d) {

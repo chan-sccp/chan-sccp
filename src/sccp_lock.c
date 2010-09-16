@@ -2,8 +2,8 @@
  * \file 	sccp_lock.c
  * \brief 	SCCP Lock Class
  * \author 	Federico Santulli <fsantulli [at] users.sourceforge.net>
- * \note	Mutex lock code derived from Asterisk 1.4
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note		Mutex lock code derived from Asterisk 1.4
+ * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * 
  * $Date$
@@ -35,7 +35,8 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \param lineno LineNumber as int
  * \param func Function as char
  * \return Result as int
- * \note You need to enable CS_AST_DEBUG__LOCKS for this function
+ *
+ * \note You need to enable DEBUG__LOCKS for this function
  */
 int __sccp_mutex_unlock(ast_mutex_t *p_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func)
 {
