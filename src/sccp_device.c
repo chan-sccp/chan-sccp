@@ -86,6 +86,15 @@ void sccp_device_pre_reload(void)
 	SCCP_LIST_UNLOCK(&GLOB(devices));
 }
 
+/*!
+ * \brief Check Device Update Status
+ * \note See \ref sccp_config_reload
+ * \param d SCCP Device
+ * \return Result as Boolean
+ *
+ * \callgraph
+ * \callergraph
+ */
 boolean_t sccp_device_check_update(sccp_device_t *d)
 {
 	if (!d->pendingUpdate && !d->pendingDelete)
@@ -150,7 +159,7 @@ void sccp_device_post_reload(void)
 			continue;
 
 		/* Because of the previous check, the only reason that the device hasn't
-		 * been updated, and because it is during a call.
+		 * been updated will be because it is currently engaged in a call.
 		 */
 		if (!sccp_device_check_update(d))
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", d->id);
@@ -186,6 +195,7 @@ sccp_device_t * sccp_device_create(void){
 
 /*!
  * \brief Apply Device Defaults
+ * \param d SCCP Device
  * \return SCCP Device with default values
  *
  * \callgraph
@@ -207,10 +217,8 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 	d->codecs = GLOB(global_codecs);
 	d->transfer = 1;
 	d->state = SCCP_DEVICESTATE_ONHOOK;
-//	d->dndmode = GLOB(dndmode);
 	d->trustphoneip = GLOB(trustphoneip);
-	//d->privacyFeature.enabled = GLOB(private);
-	// \todo use global cnf
+	/*! \todo use global cnf */
 	d->privacyFeature.enabled = TRUE;
 	d->monitorFeature.enabled = TRUE;
 	d->overlapFeature.enabled = GLOB(useoverlap);
@@ -241,7 +249,6 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 	d->configurationStatistic.numberOfLines=0;
 	d->configurationStatistic.numberOfSpeeddials=0;
 	d->configurationStatistic.numberOfFeatures=0;
-	/* */
 
 	d->softKeyConfiguration.modes = (softkey_modes *)SoftKeyModes;
 	d->softKeyConfiguration.size = sizeof(SoftKeyModes)/sizeof(softkey_modes);
@@ -257,6 +264,7 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 /*!
  * \brief Add a device to the global sccp_list
  * \param device SCCP Device
+ * \return SCCP Device
  */
 sccp_device_t *sccp_device_addToGlobals(sccp_device_t *device){
 	if(!device)
@@ -278,7 +286,6 @@ sccp_device_t *sccp_device_addToGlobals(sccp_device_t *device){
 int sccp_device_get_codec(struct ast_channel *ast)
 {
 	sccp_channel_t *c = NULL;
-//	sccp_device_t *d = NULL;
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Asterisk requested available codecs for channel %s\n", ast->name);
 
@@ -287,10 +294,8 @@ int sccp_device_get_codec(struct ast_channel *ast)
 		return GLOB(global_capability);
 	}
 
-//	if (!(d = c->device)) {   // \todo remove line: value is never actually stored in d.
 	if (!c->device) {
 		sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Couldn't find a device associated to channel. Returning global capabilities\n");
-		//return GLOB(global_capability);
 	}
 
 	/* update channel capabilities */
@@ -428,7 +433,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
 		case SKINNY_DEVICETYPE_CISCO7971:
 		case SKINNY_DEVICETYPE_CISCO7975:
 		case SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR:
-			/* the nokia icc client identifies it self as SKINNY_DEVICETYPE_CISCO7970, but it can have only one line  */
+			/* the nokia icc client identifies it self as SKINNY_DEVICETYPE_CISCO7970, but it can only have one line  */
 			if(!strcasecmp(d->config_type, "nokia-icc")) { // this is for nokia icc legacy support (Old releases) -FS
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			} else {
@@ -494,7 +499,7 @@ int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
 	if(d && d->session){
 		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, message2str(letohl(r->lel_messageId)));
 		return sccp_session_send(d, r);
-	}else
+	} else
 		return -1;
 }
 
@@ -592,61 +597,10 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 		r->msg.SelectSoftKeysMessage.les_validKeyMask &= htolel(~(1<<0));
 	    }
 
-
 	sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, keymode2str(opt), opt, line, callid);
 	sccp_dev_send(d, r);
 }
 
-
-/*!
- * \brief Set Message Waiting Indicator (MWI or LAMP) on Device
- * \param d SCCP Device
- * \param l SCCP Line
- * \param hasMail Mail Indicator Status as uint8_t
- *
- * \callgraph
- * \callergraph
- */
-void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
-{
-// 	sccp_moo_t * r;
-// 	uint8_t instance;
-// 	if (!d)
-// 		return;
-//
-// 	int retry = 0;
-// 	while(sccp_device_trylock(d)) {
-// 		retry++;
-// 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s), retry: %d\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__, retry);
-// 		usleep(100);
-//
-// 		if(retry > 100){
-// 			sccp_device_unlock(d);
-// 			return;
-// 		}
-// 	}
-//
-// 	if (l) {
-// 		instance = sccp_device_find_index_for_line(d, l->name);
-// 	} else {
-// 		if (d->mwilight == hasMail) {
-// 			sccp_device_unlock(d);
-// 			return;
-// 		}
-// 		d->mwilight = hasMail;
-// 		instance = 0;
-// 	}
-// 	sccp_device_unlock(d);
-//
-//
-// 	REQ(r, SetLampMessage);
-// 	r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
-// 	r->msg.SetLampMessage.lel_stimulusInstance = (l ? htolel(instance) : 0);
-// 	/* when l is defined we are switching on/off the button icon */
-// 	r->msg.SetLampMessage.lel_lampMode = htolel( (hasMail) ? ( (l) ? SKINNY_LAMP_ON :  d->mwilamp) : SKINNY_LAMP_OFF);
-// 	sccp_dev_send(d, r);
-// 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_MWI))(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n",DEV_ID_LOG(d), hasMail ? "ON" : "OFF", (l ? l->name : "unknown"),(l ? instance : 0));
-}
 
 /*!
  * \brief Set Ringer on Device
@@ -659,7 +613,6 @@ void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInsta
 {
 	sccp_moo_t * r;
 
-	//d->ringermode = opt;
 	REQ(r, SetRingerMessage);
 	r->msg.SetRingerMessage.lel_ringMode = htolel(opt);
 	/* Note that for distinctive ringing to work with the higher protocol versions
@@ -1052,7 +1005,6 @@ sccp_line_t * sccp_dev_get_activeline(sccp_device_t * d)
 {
 	sccp_buttonconfig_t *buttonconfig;
 
-	/* What's up if the currentLine is NULL? let's do the check */
 	if (!d || !d->session)
 		return NULL;
 
@@ -1307,7 +1259,6 @@ OUT:
  */
 void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
 {
-	/* XXX rework this */
 	sccp_line_t * current;
 	sccp_channel_t * chan = NULL;
 
@@ -1316,12 +1267,10 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
 
 	current = sccp_dev_get_activeline(d);
 
-//	if (!wanted || !current || wanted->device != d || current == wanted)
 	if (!wanted || !current || current == wanted)
 		return;
 
-	// If the current line isn't in a call, and
-	// neither is the target.
+	// If the current line isn't in a call, and neither is the target.
 	if (SCCP_LIST_FIRST(&current->channels) == NULL && SCCP_LIST_FIRST(&wanted->channels) == NULL) {
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: All lines seem to be inactive, SEIZEing selected line %s\n", d->id, wanted->name);
 		sccp_dev_set_activeline(d, wanted);
@@ -1331,16 +1280,68 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
 			ast_log(LOG_ERROR, "%s: Failed to allocate SCCP channel.\n", d->id);
 			return;
 		}
-/*	} else if ( current->dnState > TsOnHook || wanted->dnState == TsOffHook) { */
 	} else if ( d->state == SCCP_DEVICESTATE_OFFHOOK) {
 		// If the device is currently onhook, then we need to ...
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Selecing line %s while using line %s\n", d->id, wanted->name, current->name);
 		// XXX (1) Put current call on hold
-		// (2) Stop transmitting/recievening
+		// (2) Stop transmitting/receiving
 	} else {
 		// Otherwise, just select the callplane
 		ast_log(LOG_WARNING, "%s: Unknown status while trying to select line %s.  Current line is %s\n", d->id, wanted->name, current->name);
 	}
+}
+
+/*!
+ * \brief Set Message Waiting Indicator (MWI or LAMP) on Device
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param hasMail Mail Indicator Status as uint8_t
+ *
+ * \deprecated 
+ * \todo should this be implemented or removed
+ *
+ * \callgraph
+ * \callergraph
+ */
+void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
+{
+// 	sccp_moo_t * r;
+// 	uint8_t instance;
+// 	if (!d)
+// 		return;
+//
+// 	int retry = 0;
+// 	while(sccp_device_trylock(d)) {
+// 		retry++;
+// 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s), retry: %d\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__, retry);
+// 		usleep(100);
+//
+// 		if(retry > 100){
+// 			sccp_device_unlock(d);
+// 			return;
+// 		}
+// 	}
+//
+// 	if (l) {
+// 		instance = sccp_device_find_index_for_line(d, l->name);
+// 	} else {
+// 		if (d->mwilight == hasMail) {
+// 			sccp_device_unlock(d);
+// 			return;
+// 		}
+// 		d->mwilight = hasMail;
+// 		instance = 0;
+// 	}
+// 	sccp_device_unlock(d);
+//
+//
+// 	REQ(r, SetLampMessage);
+// 	r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
+// 	r->msg.SetLampMessage.lel_stimulusInstance = (l ? htolel(instance) : 0);
+// 	/* when l is defined we are switching on/off the button icon */
+// 	r->msg.SetLampMessage.lel_lampMode = htolel( (hasMail) ? ( (l) ? SKINNY_LAMP_ON :  d->mwilamp) : SKINNY_LAMP_OFF);
+// 	sccp_dev_send(d, r);
+// 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_MWI))(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n",DEV_ID_LOG(d), hasMail ? "ON" : "OFF", (l ? l->name : "unknown"),(l ? instance : 0));
 }
 
 /*!
@@ -1350,6 +1351,7 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
  * \param instance Instance as uint8_t
  * \param lampMode LampMode as uint8_t
  *
+ * \deprecated 
  * \todo: dev_set_lamp (SetLampMessage) ToBeRemoved / Moved / Reimplemented ?
  */
 void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t instance, uint8_t lampMode)
@@ -1693,7 +1695,6 @@ sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t in
 	if (!d || !d->session)
 		return NULL;
 
-
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: searching for service with instance %d\n", d->id, instance);
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
@@ -1712,7 +1713,6 @@ sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t in
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 
 	return service;
-
 }
 
 /*!
@@ -1747,6 +1747,7 @@ uint8_t sccp_device_find_index_for_line(const sccp_device_t * d, const char *lin
  * \param device SCCP Device
  * \param line SCCP Line
  *
+ * \deprecated 
  * \todo Should this be implemented or removed ?
  *
  * \callgraph
@@ -1790,8 +1791,6 @@ int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type)
 	return 1;
 }
 
-/* temporary function for hints */
-
 /*!
  * \brief Send Call State to Device
  * \param d SCCP Device
@@ -1823,7 +1822,7 @@ void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32
 
 
 /*!
- * get number of channels that the device owns
+ * \brief Get the number of channels that the device owns
  * \param device sccp device
  * \note device should be locked by parent functions
  */
@@ -1859,7 +1858,7 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t *device){
 
 #ifdef CS_DYNAMIC_CONFIG
 /*!
- * copy the structure content of one device to a new one
+ * \brief Copy the structure content of one device to a new one
  * \param orig_device sccp device
  * \return new_device as sccp_device_t
  *
@@ -1897,12 +1896,6 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
 		new_v->next = new_device->variables;
 		new_device->variables = new_v;
 	}
-
-	// These pointer can be skipped, because the refer to the current state
-	// sccp_channel_t  *active_channel
-	// sccp_channel_t  *transfer_channel
-	// sccp_channel_t  *conference_channel
-	// sccp_session_t  *session
 
 	// sccp_line_t     *currentLine
 	sccp_buttonconfig_t *orig_buttonconfig = NULL;
