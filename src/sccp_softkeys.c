@@ -233,6 +233,10 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 		return;
 	}
 	
+	if(d->transfer_channel && d->transfer_channel != c){
+        	sccp_channel_transfer_complete(c);
+                return;
+	}
 	
 	/* if we have selected channels, check the number of channels */
 	if(d->selectedChannels.size == 2){
