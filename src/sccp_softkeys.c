@@ -2,10 +2,10 @@
  * \file 	sccp_softkeys.c
  * \brief 	SCCP SoftKeys Class
  * \author 	Sergio Chersovani <mlists [at] c-net.it>
- * \note	Reworked, but based on chan_sccp code.
+ * \note		Reworked, but based on chan_sccp code.
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
  * $Date$
@@ -51,10 +51,12 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 /*!
  * \brief Global list of softkeys
  */
-//SCCP_LIST_HEAD(softKeySetConfigList, sccp_softKeySetConfiguration_t) softKeySetConfig;	/*!< List of SoftKeySets */
 struct softKeySetConfigList softKeySetConfig;							/*!< List of SoftKeySets */
 
 #ifdef CS_DYNAMIC_CONFIG
+/*!
+ * \brief Softkey Pre Reload
+ */
 void sccp_softkey_pre_reload(void)
 {
 	sccp_softKeySetConfiguration_t * k;
@@ -67,6 +69,9 @@ void sccp_softkey_pre_reload(void)
 	SCCP_LIST_UNLOCK(&softKeySetConfig);
 }
 
+/*!
+ * \brief Softkey Post Reload
+ */
 void sccp_softkey_post_reload(void)
 {
 
@@ -97,7 +102,6 @@ void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, const uint32_t lineInst
 		padding = (padding > 0) ? 4 - padding : 0;
 		msgSize = hdr_len + dummy_len + padding;
 
-
 		r1 = sccp_build_packet(UserToDeviceDataVersion1Message, msgSize);
 		r1->msg.UserToDeviceDataVersion1Message.lel_callReference = htolel(1);
 		r1->msg.UserToDeviceDataVersion1Message.lel_transactionId = htolel(1);
@@ -116,7 +120,6 @@ void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, const uint32_t lineInst
 		return;
 	}
 #endif
-
 
 	if (ast_strlen_zero(d->lastNumber)) {
 		sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: No number to redial\n", d->id);
@@ -334,12 +337,12 @@ void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  * \param d SCCP Device
  * \param l SCCP Line
  * \param c SCCP Channel
+ *
+ * \todo The line param is not used 
  */
 void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey DND Pressed\n", DEV_ID_LOG(d));
-	/* actually the line param is not used */
-
 
 	if (!d->dndFeature.enabled) {
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_DND " " SKINNY_DISP_SERVICE_IS_NOT_ACTIVE, 10);
@@ -379,7 +382,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance
 
 	}
 	sccp_feat_changed(d, SCCP_FEATURE_DND); /* notify the modules the the DND-feature changed state */
-	sccp_dev_check_displayprompt(d); /* // \todo TODO we should use the feature changed event to check displayprompt */
+	sccp_dev_check_displayprompt(d);	/*! \todo TODO we should use the feature changed event to check displayprompt */
 }
 
 
@@ -469,12 +472,10 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 
 	sccp_selectedchannel_t *x;
 	sccp_channel_t *chan1 = NULL, *chan2 = NULL, *tmp = NULL;
-//	uint8_t numSelectedChannels = 0;
 
 	if(!d)
 		return;
 
-//	if((numSelectedChannels = sccp_device_selectedchannels_count(d)) != 2) {  // \todo remove line: numSelectedChannels never gets used
 	if((sccp_device_selectedchannels_count(d)) != 2) {
 		if (l->channelCount == 2) {
 			sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: Automatically select the two current channels\n", d->id);
@@ -520,9 +521,7 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 
 		sccp_device_unlock(d);
 		sccp_channel_transfer_complete(chan2);
-
 	}
-
 }
 
 
@@ -572,14 +571,6 @@ void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 	r1->msg.CallSelectStatMessage.lel_lineInstance = htolel(lineInstance);
 	r1->msg.CallSelectStatMessage.lel_callReference = htolel(c->callid);
 	sccp_dev_send(d, r1);
-
-	/*
-	if(numSelectedChannels >= 2)
-		sccp_sk_set_keystate(d, l, c, KEYMODE_CONNTRANS, 5, 1);
-	else
-		sccp_sk_set_keystate(d, l, c, KEYMODE_CONNTRANS, 5, 0);
-	*/
-
 }
 
 
@@ -604,12 +595,10 @@ void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		}
 	}
 
-
-	if(l){
+	if(l)
 		sccp_feat_handle_callforward(l, d, SCCP_CFWD_ALL);
-	}else
+	else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", DEV_ID_LOG(d), 1);
-
 }
 
 /*!
@@ -625,11 +614,11 @@ void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 	if(!l && d) {
 		l = sccp_line_find_byid(d, 1);
 	}
+
 	if(l)
 		sccp_feat_handle_callforward(l, d, SCCP_CFWD_BUSY);
 	else
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
-
 }
 
 /*!
@@ -870,10 +859,8 @@ void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, const uint32_t lin
 	uint32_t mask, validKeyMask;
 	unsigned i;
 
-
 	if(!l || !c || !d || !d->session)
 		return;
-
 
 	REQ(r, SelectSoftKeysMessage);
 	r->msg.SelectSoftKeysMessage.lel_lineInstance  = htolel(lineInstance);
@@ -895,5 +882,4 @@ void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, const uint32_t lin
 	r->msg.SelectSoftKeysMessage.les_validKeyMask = htolel(mask);
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, keymode2str(5), 5, lineInstance, c->callid);
 	sccp_dev_send(d, r);
-
 }

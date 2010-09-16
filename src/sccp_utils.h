@@ -135,5 +135,3 @@ sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 char **explode(char *str,char *sep);
 char *implode(char *str[],char *sep);
 #endif
-
-

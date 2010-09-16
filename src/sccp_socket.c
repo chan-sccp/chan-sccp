@@ -2,10 +2,10 @@
  * \file 	sccp_socket.c
  * \brief 	SCCP Socket Class
  * \author 	Sergio Chersovani <mlists [at] c-net.it>
- * \note	Reworked, but based on chan_sccp code.
+ * \note		Reworked, but based on chan_sccp code.
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
  * $Date$
@@ -78,7 +78,6 @@ static void sccp_read_data(sccp_session_t * s)
 	}
 
 	input = ast_malloc(length + 1);
-/*	memset(input, 0, length+1); */
 
 	if ((readlen = read(s->fd, input, length)) < 0) {
 		ast_log(LOG_WARNING, "SCCP: read() returned %s\n", strerror(errno));
@@ -88,24 +87,9 @@ static void sccp_read_data(sccp_session_t * s)
 		return;
 	}
 
-	/* It is not sensible to make the following, commented out check,
-	   since the length of available data could have changed
-	   since the previous FIONREAD ioctl anyway.
-	   What matters is simply that there was data available,
-	   and there probably will be still until we read it. */
-
-	/* Suggestion: We should create some mechanism to assemble
+	/* \todo Suggestion: We should create some mechanism to assemble
 	   sccp packets from several incomplete reads,
 	   but this is rather a high level feature. (-DD) */
-
-	/*
-	if (readlen != length) {
-		ast_log(LOG_WARNING, "SCCP: read() returned %d, wanted %d: %s\n", readlen, length, strerror(errno));
-		ast_free(input);
-		sccp_session_unlock(s);
-		sccp_session_close(s);
-		return;
-	}*/
 
 	newptr = realloc(s->buffer, (uint32_t)(s->buffer_size + readlen));
 	if (newptr) {
@@ -146,7 +130,6 @@ void sccp_session_close(sccp_session_t * s)
 
 	sccp_session_lock(s);
 	if (s->fd > 0) {
-		//FD_CLR(s->fd, &active_fd_set);
 		close(s->fd);
 		s->fd = -1;
 	}
@@ -192,7 +175,6 @@ void destroy_session(sccp_session_t * s)
 
 	/* closing fd's */
 	if (s->fd > 0) {
-		//FD_CLR(s->fd, &active_fd_set);
 		close(s->fd);
 	}
 	/* freeing buffers */
@@ -243,11 +225,6 @@ static void sccp_accept_connection(void)
 	if (setsockopt(new_socket, SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0)
 		ast_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
 #endif
-
-/*
-	if (setsockopt(new_socket, IPPROTO_TCP, TCP_CORK, &on, sizeof(on)) < 0)
-		ast_log(LOG_WARNING, "Failed to set SCCP socket to TCP_CORK: %s\n", strerror(errno));
-*/
 
 	s = ast_malloc(sizeof(struct sccp_session));
 	memset(s, 0, sizeof(sccp_session_t));
@@ -485,25 +462,19 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r){
 		r = NULL;
 		return -1;
 	}
-//	if(!s->device){
-//		ast_free(r);
-//		return -1;
-//	}
 	sccp_session_lock(s);
 
 	//sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
 
-	/* This is a just a test */
 	if(msgid == KeepAliveAckMessage || msgid == RegisterAckMessage) {
 		r->lel_reserved = 0;
 	} else if(s->device && s->device->inuseprotocolversion >= 17) {
-//		r->lel_reserved = htolel(s->device->inuseprotocolversion);
 		r->lel_reserved = htolel(0x11); // we should always send 0x11
 	} else {
 		r->lel_reserved = 0;
 	}
 
-	res = 0;		// \todo value stored in res is necer read because of line 494
+	res = 0;
 	finishSending = 0;
 	try = 1;
 	maxTries = 500;
@@ -547,13 +518,11 @@ sccp_session_t * sccp_session_find(const sccp_device_t *device)
 	if(!device)
 		return NULL;
 
-	//SCCP_LIST_LOCK(&GLOB(sessions));
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
 		if(session->device && session->device == device)
 			break;
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
-	//SCCP_LIST_UNLOCK(&GLOB(sessions));
 	return session;
 }
 
