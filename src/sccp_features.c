@@ -73,8 +73,8 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  */
 sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *device, uint8_t type)
 {
-	sccp_channel_t * c = NULL;
-	struct ast_channel * bridge = NULL;
+	sccp_channel_t 		*c = NULL;
+	struct ast_channel 	*bridge = NULL;
 	sccp_linedevices_t	*linedevice;
 
 	if (!l || !device || !device->id || ast_strlen_zero(device->id)){
@@ -92,11 +92,10 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 
 	/* if call forward is active and you asked about the same call forward maybe you would disable */
 	if( 	(linedevice->cfwdAll.enabled && type == SCCP_CFWD_ALL)
-			|| (linedevice->cfwdBusy.enabled && type == SCCP_CFWD_BUSY)
-			|| type == SCCP_CFWD_ALL ){
+			|| (linedevice->cfwdBusy.enabled && type == SCCP_CFWD_BUSY) ){
 
 		sccp_line_cfwd(l, device, SCCP_CFWD_NONE, NULL);
-		sccp_dev_sendmsg(device, DeactivateCallPlaneMessage);
+		return NULL;
 	}
 	else{
 		if(type == SCCP_CFWD_NOANSWER)
