@@ -2,10 +2,10 @@
  * \file 	sccp_line.c
  * \brief 	SCCP Line
  * \author 	Sergio Chersovani <mlists [at] c-net.it>
- * \note	Reworked, but based on chan_sccp code.
+ * \note		Reworked, but based on chan_sccp code.
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
  * $Date$
@@ -402,8 +402,6 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, uint8_t lineIns
 		memset(linedevice, 0, sizeof(sccp_linedevices_t));
 	}
 
-	
-	
 	linedevice->device = device;
 	linedevice->lineInstance = lineInstance;
 	linedevice->line = l;
@@ -426,7 +424,6 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, uint8_t lineIns
 	
 	
 	/* read cfw status from db */
-
 #ifndef ASTDB_FAMILY_KEY_LEN
 #define ASTDB_FAMILY_KEY_LEN 100
 #endif
@@ -456,11 +453,9 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, uint8_t lineIns
 		sccp_dev_forward_status(l, lineInstance, device);
 	}
 
-
 	// fire event for new device
 	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
 	memset(event, 0, sizeof(sccp_event_t));
-
 	event->type=SCCP_EVENT_DEVICEATTACHED;
 	event->event.deviceAttached.line = l;
 	event->event.deviceAttached.device = device;
@@ -485,7 +480,6 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device)
 
 	sccp_log((DEBUGCAT_HIGH + DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: remove device from line %s\n", DEV_ID_LOG(device), l->name);
 
-
 	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
 	memset(event, 0, sizeof(sccp_event_t));
 
@@ -498,7 +492,6 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t *device)
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
 		if (linedevice->device == device) {
 			SCCP_LIST_REMOVE_CURRENT(list);
-
 #ifdef CS_DYNAMIC_CONFIG
 			unregister_exten(l,&(linedevice->subscriptionId));
 #endif
@@ -563,25 +556,25 @@ void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t *channel)
  */
 void register_exten(sccp_line_t *l,struct subscriptionId *subscriptionId)
 {
-	char multi[256];
+         char multi[256];
 	char name[256];
-        char *stringp, *ext, *context;
+	char *stringp, *ext, *context;
 
-        if (ast_strlen_zero(GLOB(regcontext)))
-                return;
+	if (ast_strlen_zero(GLOB(regcontext)))
+	         return;
 
-        ast_copy_string(multi, S_OR(l->regexten, l->name), sizeof(multi));
-	stringp = multi;
-        while ((ext = strsep(&stringp, "&"))) {
-                if ((context = strchr(ext, '@'))) {
-                        *context++ = '\0'; /* split ext@context */
-                        if (!ast_context_find(context)) {
-                                ast_log(LOG_WARNING, "Context %s must exist in regcontext= in sccp.conf\n", context);
-                                continue;
-                        }
-                } else {
-                        context = GLOB(regcontext);
-                }
+         ast_copy_string(multi, S_OR(l->regexten, l->name), sizeof(multi));
+         stringp = multi;
+         while ((ext = strsep(&stringp, "&"))) {
+                  if ((context = strchr(ext, '@'))) {
+                           *context++ = '\0'; 		/* split ext@context */
+                           if (!ast_context_find(context)) {
+                                    ast_log(LOG_WARNING, "Context %s must exist in regcontext= in sccp.conf\n", context);
+                                    continue;
+                           }
+                  } else {
+                           context = GLOB(regcontext);
+                  }
 		if (!ast_canmatch_extension(NULL, context, ext, 1, NULL)) {
 			sccp_log((DEBUGCAT_LINE|DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_1 "Registering RegContext: %s, Extension, %s Line %s\n", context, ext, l->name);
 			ast_add_extension(context, 1, ext, 1, NULL, NULL, "Noop",
@@ -595,11 +588,10 @@ void register_exten(sccp_line_t *l,struct subscriptionId *subscriptionId)
 			strcat(name, subscriptionId->name);
 			if (!ast_canmatch_extension(NULL, context, ext, 2, NULL)) {
 				sccp_log((DEBUGCAT_LINE|DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_1 "Registering RegContext: %s, Extension, %s Line %s Subscription number [%s]\n", context, ext, l->name, subscriptionId->number);
-				ast_add_extension(context, 1, ext, 2, NULL, NULL, "Noop",
-					ast_strdup(name), sccp_free_ptr, "SCCP");
+				ast_add_extension(context, 1, ext, 2, NULL, NULL, "Noop",ast_strdup(name), sccp_free_ptr, "SCCP");
 			}
 		}
-        }
+         }
 }
 
 /*!
@@ -619,19 +611,19 @@ void unregister_exten(sccp_line_t *l,struct subscriptionId *subscriptionId)
 	ast_copy_string(multi, S_OR(l->regexten, l->name), sizeof(multi));
 	stringp = multi;
 	while ((ext = strsep(&stringp, "&"))) {
-	        if ((context = strchr(ext, '@'))) {
-	                *context++ = '\0'; /* split ext@context */
-	                if (!ast_context_find(context)) {
-	                        ast_log(LOG_WARNING, "Context %s must exist in regcontext= in sccp.conf!\n", context);
-                                continue;
-                        }
-                } else {
-                        context = GLOB(regcontext);
-                }
-                if (ast_canmatch_extension(NULL, context, ext, 1, NULL)) {
-			sccp_log((DEBUGCAT_LINE|DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_1 "Unregistering RegContext: %s, Extension, %s Line %s\n", context, ext, l->name);
-			ast_context_remove_extension(context, ext, 1, NULL);
-		}
+	         if ((context = strchr(ext, '@'))) {
+	                  *context++ = '\0'; 		/* split ext@context */
+	                  if (!ast_context_find(context)) {
+	                           ast_log(LOG_WARNING, "Context %s must exist in regcontext= in sccp.conf!\n", context);
+                                    continue;
+                           }
+                  } else {
+                           context = GLOB(regcontext);
+                  }
+                  if (ast_canmatch_extension(NULL, context, ext, 1, NULL)) {
+                           sccp_log((DEBUGCAT_LINE|DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_1 "Unregistering RegContext: %s, Extension, %s Line %s\n", context, ext, l->name);
+                           ast_context_remove_extension(context, ext, 1, NULL);
+                  }
 		// parse subscriptionId
 		if (subscriptionId->number && (strcmp(subscriptionId->number,""))) {
 			strcat(ext, "@");
@@ -663,10 +655,8 @@ sccp_line_t * sccp_clone_line(sccp_line_t *orig_line){
 	ast_mutex_init(&new_line->lock);
 
 	/* remaining values to be copied */
-	// char 		*trnsfvm;
 	new_line->trnsfvm=ast_strdup(orig_line->trnsfvm);
 
-	// struct ast_variable	* variables;
 	struct ast_variable *v;
 	new_line->variables=NULL;
 	for (v = orig_line->variables; v; v = v->next)
@@ -726,8 +716,6 @@ void sccp_duplicate_line_linedevices_list(sccp_line_t *new_line, sccp_line_t *or
 		new_linedevices=ast_calloc(1,sizeof(sccp_linedevices_t));
 		memcpy(new_linedevices, orig_linedevices, sizeof(*new_linedevices));
 		new_linedevices->device=sccp_device_find_byid(orig_linedevices->device->id, TRUE);
-//		memcpy(new_linedevices->cfwdAll, orig_linedevices->cfwdAll, sizeof(sccp_cfwd_information_t));
-//		memcpy(new_linedevices->cfwdBusy, orig_linedevices->cfwdBusy, sizeof(sccp_cfwd_information_t));
 		SCCP_LIST_INSERT_TAIL(&new_line->devices, new_linedevices, list);
 	}
 	SCCP_LIST_UNLOCK(&orig_line->devices);

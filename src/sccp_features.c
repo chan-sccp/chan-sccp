@@ -2,7 +2,7 @@
  * \file 	sccp_features.c
  * \brief 	SCCP Features Class
  * \author 	Federico Santulli <fsantulli [at] users.sourceforge.net >
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \since 	2009-01-16
  *
@@ -53,11 +53,6 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #ifdef CS_SCCP_PARK
 #include <asterisk/features.h>
 #endif
-#ifndef ast_free
-#define ast_free free
-#endif
-
-
 #include "sccp_featureButton.h"
 #include "sccp_conference.h"
 
@@ -137,10 +132,10 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 				}
 				// cleaning unused vars
 				if(cidtmp)
-					ast_free(cidtmp);
+					sccp_free(cidtmp);
 
 				if(name)
-					ast_free(name);
+					sccp_free(name);
 #endif
 				if(number) {
 					sccp_line_cfwd(l, device, type, number);
@@ -148,7 +143,7 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 					sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, 0, 0);
 
 					sccp_channel_endcall(c);
-					ast_free(number);
+					sccp_free(number);
 					return NULL;
 				}
 				// if we where here it's cause there is no number in callerid,, so put call on hold and ask for a call forward number :) -FS
@@ -455,22 +450,18 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 			}
 
 			if(name)
-				ast_free(name);
-			name = NULL;
+				sccp_free(name);
 			if(number)
-				ast_free(number);
-			number = NULL;
+				sccp_free(number);
 			if(cidtmp)
-				ast_free(cidtmp);
-			cidtmp = NULL;
-
+				sccp_free(cidtmp);
 			break;
 		} else {
 			res = -1;
 		}
 		sccp_ast_channel_unlock(target);
 	}
-	ast_free(pickupexten);
+	sccp_free(pickupexten);
 	pickupexten = NULL;
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (directpickup) quit\n");
 	return res;
@@ -661,14 +652,11 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
 			}
 
 			if(name)
-				ast_free(name);
-			name = NULL;
+				sccp_free(name);
 			if(number)
-				ast_free(number);
-			number = NULL;
+				sccp_free(number);
 			if(cidtmp)
-				ast_free(cidtmp);
-			cidtmp = NULL;
+				sccp_free(cidtmp);
 
 			res = 0;
 
@@ -718,9 +706,9 @@ void sccp_feat_updatecid(sccp_channel_t * c) {
 
 	sccp_channel_set_callingparty(c, name, number);
 
-	ast_free(name);
-	ast_free(number);
-	ast_free(cidtmp);
+	sccp_free(name);
+	sccp_free(number);
+	sccp_free(cidtmp);
 }
 
 /*!
