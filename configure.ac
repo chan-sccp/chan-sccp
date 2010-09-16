@@ -514,22 +514,22 @@ AC_ARG_WITH(advanced_functions,
 ])
 
 AC_ARG_WITH(dynamic_speeddial, 
-  AC_HELP_STRING([--with-dynamic-speeddial], [Using dynamic speeddials (default is NO)]), 
-  ac_cv_dynamic_speeddial=yes, ac_cv_dynamic_speeddial=no)
+  AC_HELP_STRING([--with-dynamic-speeddial], [Using dynamic speeddials (default is YES)]), 
+  ac_cv_dynamic_speeddial=no, ac_cv_dynamic_speeddial=yes)
     AS_IF([test "${ac_cv_dynamic_speeddial}" == "yes"], [
        	AC_DEFINE(CS_DYNAMIC_SPEEDDIAL, 1, [Using dynamic speeddials])
 ])
 
 AC_ARG_WITH(dynamic_speeddial_cid, 
-  AC_HELP_STRING([--with-dynamic-speeddial-cid], [Using dynamic speeddials with call info (default is NO)]), 
-  ac_cv_dynamic_speeddial_cid=yes, ac_cv_dynamic_speeddial_cid=no)
+  AC_HELP_STRING([--with-dynamic-speeddial-cid], [Using dynamic speeddials with call info (default is YES)]), 
+  ac_cv_dynamic_speeddial_cid=no, ac_cv_dynamic_speeddial_cid=yes)
 AS_IF([test "${ac_cv_dynamic_speeddial_cid}" == "yes"], [
        	AC_DEFINE(CS_DYNAMIC_SPEEDDIAL, 1, [Using dynamic speeddials])
        	AC_DEFINE(CS_DYNAMIC_SPEEDDIAL_CID, 1, [Using dynamic speeddials with callinfo])
 ])
 
 AC_ARG_WITH(video, 
-  AC_HELP_STRING([--with-video], [Using streaming video (default is NO)]), 
+  AC_HELP_STRING([--with-video], [Using streaming video (experimental/dev only)(default is NO)]), 
   ac_cv_streaming_video=yes, ac_cv_streaming_video=no)
 AS_IF([test "${ac_cv_streaming_video}" == "yes"], [
        	AC_DEFINE(CS_SCCP_VIDEO, 1, [Using streaming video])
@@ -537,8 +537,8 @@ AS_IF([test "${ac_cv_streaming_video}" == "yes"], [
 
 dnl << Temporary additions. For Development Only
 AC_ARG_WITH(dynamic_config, 
-  AC_HELP_STRING([--with-dynamic-config], [sccp reload (experimental/dev only)(default is NO)]), 
-  ac_cv_dynamic_config=yes, ac_cv_dynamic_config=no)
+  AC_HELP_STRING([--with-dynamic-config], [sccp reload (default is YES)]), 
+  ac_cv_dynamic_config=no, ac_cv_dynamic_config=yes)
     AS_IF([test "${ac_cv_dynamic_config}" == "yes"], [
        	AC_DEFINE(CS_DYNAMIC_CONFIG, 1, [sccp reload (experimental/dev only)])
 ])

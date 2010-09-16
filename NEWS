@@ -1,4 +1,4 @@
-Version: 3.0_PreRC3
+Version: 3.0_RC3
 ===================
 Added Functionality:
  - Dialplan Function SCCPDEVICE, SCCPLINE and SCCPCHANNEL
@@ -28,9 +28,3 @@ Fixed/Improved:
  - Direct transfer
  - Group pickup
  - Call parking
-
-Version: 3.0_PreRC1
-===================
-Prelease Version of Release Candidate to check all configure and makefile
-scripts. To make sure everything works correctly.
-
