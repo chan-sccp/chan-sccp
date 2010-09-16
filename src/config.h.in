@@ -91,6 +91,9 @@
 /* Found 'AST_CONTROL_HOLD' in asterisk/frame.h */
 #undef CS_AST_CONTROL_HOLD
 
+/* Found 'AST_CONTROL_SRCCHANGE' in asterisk/frame.h */
+#undef CS_AST_CONTROL_SRCCHANGE
+
 /* Found 'AST_CONTROL_SRCUPDATE' in asterisk/frame.h */
 #undef CS_AST_CONTROL_SRCUPDATE
 

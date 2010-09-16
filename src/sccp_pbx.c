@@ -862,11 +862,11 @@ static char *sccp_control2str(int state) {
 		case AST_CONTROL_VIDUPDATE:
 				return "VideoFrameUpdate";
 #endif // CS_AST_CONTROL_VIDUPDATE
-#ifdef AST_CONTROL_T38
+#ifdef CS_AST_CONTROL_T38
 		case AST_CONTROL_T38:
 				return "T38RequestNotification";
 #endif // AST_CONTROL_T38
-#ifdef AST_CONTROL_T38_PARAMETERS
+#ifdef CS_AST_CONTROL_T38_PARAMETERS
 		case AST_CONTROL_T38_PARAMETERS:
 				return "T38RequestNotification";
 #endif // AST_CONTROL_T38_PARAMETERS
@@ -937,167 +937,327 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		res = -1;
 
 	switch(ind) {
-
-	case AST_CONTROL_RINGING:
-		if(SKINNY_CALLTYPE_OUTBOUND == c->calltype)
-		{
-			// Allow signalling of RINGOUT only on outbound calls.
-			// Otherwise, there are some issues with late arriving ringing
-			// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
-			sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_RINGOUT);
-		}
-		break;
-	case AST_CONTROL_BUSY:
-		sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_BUSY);
-		break;
-	case AST_CONTROL_CONGESTION:
-		sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_CONGESTION);
-		break;
-	case AST_CONTROL_PROGRESS:
-		sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_PROGRESS);
-		break;
-	case AST_CONTROL_PROCEEDING:
-		sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_PROCEED);
-		break;
+		case AST_CONTROL_RINGING:
+			if(SKINNY_CALLTYPE_OUTBOUND == c->calltype)
+			{
+				// Allow signalling of RINGOUT only on outbound calls.
+				// Otherwise, there are some issues with late arriving ringing
+				// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
+				sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_RINGOUT);
+			}
+			break;
+		case AST_CONTROL_BUSY:
+			sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_BUSY);
+			break;
+		case AST_CONTROL_CONGESTION:
+			sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_CONGESTION);
+			break;
+		case AST_CONTROL_PROGRESS:
+			sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_PROGRESS);
+			break;
+		case AST_CONTROL_PROCEEDING:
+			sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_PROCEED);
+			break;
 #ifdef CS_AST_CONTROL_SRCUPDATE
-	case AST_CONTROL_SRCUPDATE:
-		/* Source media has changed. */
-		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
+		case AST_CONTROL_SRCUPDATE:
+			/* Source media has changed. */
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
 
-		/* update channel format */
-		int oldChannelFormat = c->format;
-		c->format = ast->rawreadformat;
+			/* update channel format */
+			int oldChannelFormat = c->format;
+			c->format = ast->rawreadformat;
 
-		if(oldChannelFormat != c->format ){
-			/* notify of changing format */
-			char s1[512], s2[512];
-			ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%d) to: %s(%d) \n",
-				c->line->name,
-				c->callid,
+			if(oldChannelFormat != c->format ){
+				/* notify of changing format */
+				char s1[512], s2[512];
+				ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%d) to: %s(%d) \n",
+					c->line->name,
+					c->callid,
 #if ASTERISK_VERSION_NUM >= 10400
-				ast_getformatname_multiple(s1, sizeof(s1) -1, c->format & AST_FORMAT_AUDIO_MASK),
+					ast_getformatname_multiple(s1, sizeof(s1) -1, c->format & AST_FORMAT_AUDIO_MASK),
 #else
-				ast_getformatname_multiple(s1, sizeof(s1) -1, c->format),
+					ast_getformatname_multiple(s1, sizeof(s1) -1, c->format),
 #endif // ASTERISK_VERSION_NUM >= 10400
-				ast->nativeformats,
+					ast->nativeformats,
 #if ASTERISK_VERSION_NUM >= 10400
-				ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat & AST_FORMAT_AUDIO_MASK),
+					ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat & AST_FORMAT_AUDIO_MASK),
 #else
-				ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat),
+					ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat),
 #endif // ASTERISK_VERSION_NUM >= 10400
-				ast->rawreadformat);
-			ast_set_read_format(ast, c->format);
-			ast_set_write_format(ast, c->format);
-		}
+					ast->rawreadformat);
+				ast_set_read_format(ast, c->format);
+				ast_set_write_format(ast, c->format);
+			}
 
-		ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n",c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
-		if(c->rtp.audio.rtp){
-			if(oldChannelFormat != c->format){
-				if(c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE){
-					sccp_channel_closereceivechannel(c);	/* close the already openend receivechannel */
-					sccp_channel_openreceivechannel(c);	/* reopen it */
+			ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n",c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
+			if(c->rtp.audio.rtp){
+				if(oldChannelFormat != c->format){
+					if(c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE){
+						sccp_channel_closereceivechannel(c);	/* close the already openend receivechannel */
+						sccp_channel_openreceivechannel(c);	/* reopen it */
+					}
 				}
 			}
-		}
 #ifdef CS_AST_RTP_NEW_SOURCE
-		if(c->rtp.audio.rtp) {
-			ast_rtp_new_source(c->rtp.audio.rtp);
-			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
-		}
+			if(c->rtp.audio.rtp) {
+				ast_rtp_new_source(c->rtp.audio.rtp);
+				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
+			}
 #endif // CS_AST_RTP_NEW_SOURCE
-		break;
+			break;
 #endif // CS_AST_CONTROL_SRCUPDATE
 
 #ifdef CS_AST_CONTROL_HOLD
-	/* when the bridged channel hold/unhold the call we are notified here */
-	case AST_CONTROL_HOLD:
+		/* when the bridged channel hold/unhold the call we are notified here */
+		case AST_CONTROL_HOLD:
 #if ASTERISK_VERSION_NUM < 10400
-		ast_moh_start(ast, c->musicclass);
+			ast_moh_start(ast, c->musicclass);
 #else
-		ast_moh_start(ast, data, c->musicclass);
+			ast_moh_start(ast, data, c->musicclass);
 #endif // ASTERISK_VERSION_NUM < 10400
-		res = 0;
-		break;
-	case AST_CONTROL_UNHOLD:
-		ast_moh_stop(ast);
-#ifdef CS_AST_RTP_NEW_SOURCE
-		if(c->rtp.audio.rtp) {
-			ast_rtp_new_source(c->rtp.audio.rtp);
-			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
-		}
-#endif // CS_AST_RTP_NEW_SOURCE
-		res = 0;
-		break;
-#endif // CS_AST_CONTROL_HOLD
-	case -1: // Asterisk prod the channel
-		res = -1;
-		break;
-#ifdef CS_AST_CONTROL_CONNECTED_LINE
-	case AST_CONTROL_CONNECTED_LINE:
-		sccp_pbx_update_connectedline(ast, data, datalen);
-		sccp_indicate_nolock(c->device, c, c->state);
-	break;
-#endif // CS_AST_CONTROL_CONNECTED_LINE
-	case AST_CONTROL_VIDUPDATE:	/* Request a video frame update */
-		if (c->rtp.video.rtp) {
 			res = 0;
-		} else
+			break;
+		case AST_CONTROL_UNHOLD:
+			ast_moh_stop(ast);
+#ifdef CS_AST_RTP_NEW_SOURCE
+			if(c->rtp.audio.rtp) {
+				ast_rtp_new_source(c->rtp.audio.rtp);
+				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
+			}
+#endif // CS_AST_RTP_NEW_SOURCE
+			res = 0;
+			break;
+#endif // CS_AST_CONTROL_HOLD
+		case -1: // Asterisk prod the channel
 			res = -1;
-	break;
-#ifdef AST_CONTROL_SRCCHANGE
-	case AST_CONTROL_SRCCHANGE:
-		// \todo TODO check this
-		/* Source media has changed. */
-		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
+			break;
+#ifdef CS_AST_CONTROL_CONNECTED_LINE
+		case AST_CONTROL_CONNECTED_LINE:
+			sccp_pbx_update_connectedline(ast, data, datalen);
+			sccp_indicate_nolock(c->device, c, c->state);
+			break;
+#endif // CS_AST_CONTROL_CONNECTED_LINE
+		case AST_CONTROL_VIDUPDATE:	/* Request a video frame update */
+			if (c->rtp.video.rtp) {
+				res = 0;
+			} else
+				res = -1;
+			break;
+#ifdef CS_AST_CONTROL_SRCCHANGE
+		case AST_CONTROL_SRCCHANGE:
+			// \todo TODO check this
+			/* Source media has changed. */
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
 
 
 
-		/* update channel format */
-		int oldChannelFormat = c->format;
-		c->format = ast->rawreadformat;
+			/* update channel format */
+			int oldChannelFormat = c->format;
+			c->format = ast->rawreadformat;
 
-		if(oldChannelFormat != c->format ){
-			/* notify of changing format */
-			char s1[512], s2[512];
-			ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%d) to: %s(%d) \n",
-			        c->line->name,
-			        c->callid,
+			if(oldChannelFormat != c->format ){
+				/* notify of changing format */
+				char s1[512], s2[512];
+				ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%d) to: %s(%d) \n",
+					c->line->name,
+					c->callid,
 #if ASTERISK_VERSION_NUM >= 10400
-			        ast_getformatname_multiple(s1, sizeof(s1) -1, c->format & AST_FORMAT_AUDIO_MASK),
+					ast_getformatname_multiple(s1, sizeof(s1) -1, c->format & AST_FORMAT_AUDIO_MASK),
 #else
-			        ast_getformatname_multiple(s1, sizeof(s1) -1, c->format),
+					ast_getformatname_multiple(s1, sizeof(s1) -1, c->format),
 #endif // ASTERISK_VERSION_NUM >= 10400
-			        ast->nativeformats,
+					ast->nativeformats,
 #if ASTERISK_VERSION_NUM >= 10400
-			        ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat & AST_FORMAT_AUDIO_MASK),
+					ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat & AST_FORMAT_AUDIO_MASK),
 #else
-			        ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat),
+					ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat),
 #endif // ASTERISK_VERSION_NUM >= 10400
-			        ast->rawreadformat);
-			ast_set_read_format(ast, c->format);
-			ast_set_write_format(ast, c->format);
-		}
+					ast->rawreadformat);
+				ast_set_read_format(ast, c->format);
+				ast_set_write_format(ast, c->format);
+			}
 
-		ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n",c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
-		if(c->rtp.audio.rtp){
-			if(oldChannelFormat != c->format){
-				if(c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE){
-					sccp_channel_closereceivechannel(c);	/* close the already openend receivechannel */
-					sccp_channel_openreceivechannel(c);	/* reopen it */
+			ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n",c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
+			if(c->rtp.audio.rtp){
+				if(oldChannelFormat != c->format){
+					if(c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE){
+						sccp_channel_closereceivechannel(c);	/* close the already openend receivechannel */
+						sccp_channel_openreceivechannel(c);	/* reopen it */
+					}
 				}
 			}
-		}
 #ifdef CS_AST_RTP_NEW_SOURCE
-		if(c->rtp.audio.rtp) {
-			ast_rtp_new_source(c->rtp.audio.rtp);
-			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
-		}
+			if(c->rtp.audio.rtp) {
+				ast_rtp_new_source(c->rtp.audio.rtp);
+				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
+			}
 #endif // CS_AST_RTP_NEW_SOURCE
-	break;
-#endif // AST_CONTROL_SRCCHANGE
-	default:
-		ast_log(LOG_WARNING, "SCCP: Don't know how to indicate condition %d\n", ind);
-		res = -1;
+			break;
+#endif // CS_AST_CONTROL_SRCCHANGE
+		default:
+			ast_log(LOG_WARNING, "SCCP: Don't know how to indicate condition %d\n", ind);
+			res = -1;
+
+		case AST_CONTROL_RINGING:
+			if(SKINNY_CALLTYPE_OUTBOUND == c->calltype)
+			{
+				// Allow signalling of RINGOUT only on outbound calls.
+				// Otherwise, there are some issues with late arriving ringing
+				// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
+				sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_RINGOUT);
+			}
+			break;
+		case AST_CONTROL_BUSY:
+			sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_BUSY);
+			break;
+		case AST_CONTROL_CONGESTION:
+			sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_CONGESTION);
+			break;
+		case AST_CONTROL_PROGRESS:
+			sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_PROGRESS);
+			break;
+		case AST_CONTROL_PROCEEDING:
+			sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_PROCEED);
+			break;
+#ifdef CS_AST_CONTROL_SRCUPDATE
+		case AST_CONTROL_SRCUPDATE:
+			/* Source media has changed. */
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
+
+			/* update channel format */
+			int oldChannelFormat = c->format;
+			c->format = ast->rawreadformat;
+
+			if(oldChannelFormat != c->format ){
+				/* notify of changing format */
+				char s1[512], s2[512];
+				ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%d) to: %s(%d) \n",
+					c->line->name,
+					c->callid,
+#if ASTERISK_VERSION_NUM >= 10400
+					ast_getformatname_multiple(s1, sizeof(s1) -1, c->format & AST_FORMAT_AUDIO_MASK),
+#else
+					ast_getformatname_multiple(s1, sizeof(s1) -1, c->format),
+#endif // ASTERISK_VERSION_NUM >= 10400
+					ast->nativeformats,
+#if ASTERISK_VERSION_NUM >= 10400
+					ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat & AST_FORMAT_AUDIO_MASK),
+#else
+					ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat),
+#endif // ASTERISK_VERSION_NUM >= 10400
+					ast->rawreadformat);
+				ast_set_read_format(ast, c->format);
+				ast_set_write_format(ast, c->format);
+			}
+
+			ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n",c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
+			if(c->rtp.audio.rtp){
+				if(oldChannelFormat != c->format){
+					if(c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE){
+						sccp_channel_closereceivechannel(c);	/* close the already openend receivechannel */
+						sccp_channel_openreceivechannel(c);	/* reopen it */
+					}
+				}
+			}
+#ifdef CS_AST_RTP_NEW_SOURCE
+			if(c->rtp.audio.rtp) {
+				ast_rtp_new_source(c->rtp.audio.rtp);
+				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
+			}
+#endif // CS_AST_RTP_NEW_SOURCE
+			break;
+#endif // CS_AST_CONTROL_SRCUPDATE
+
+#ifdef CS_AST_CONTROL_HOLD
+		/* when the bridged channel hold/unhold the call we are notified here */
+		case AST_CONTROL_HOLD:
+#if ASTERISK_VERSION_NUM < 10400
+			ast_moh_start(ast, c->musicclass);
+#else
+			ast_moh_start(ast, data, c->musicclass);
+#endif // ASTERISK_VERSION_NUM < 10400
+			res = 0;
+			break;
+		case AST_CONTROL_UNHOLD:
+			ast_moh_stop(ast);
+#ifdef CS_AST_RTP_NEW_SOURCE
+			if(c->rtp.audio.rtp) {
+				ast_rtp_new_source(c->rtp.audio.rtp);
+				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
+			}
+#endif // CS_AST_RTP_NEW_SOURCE
+			res = 0;
+			break;
+#endif // CS_AST_CONTROL_HOLD
+		case -1: // Asterisk prod the channel
+			res = -1;
+			break;
+#ifdef CS_AST_CONTROL_CONNECTED_LINE
+		case AST_CONTROL_CONNECTED_LINE:
+			sccp_pbx_update_connectedline(ast, data, datalen);
+			sccp_indicate_nolock(c->device, c, c->state);
+			break;
+#endif // CS_AST_CONTROL_CONNECTED_LINE
+		case AST_CONTROL_VIDUPDATE:	/* Request a video frame update */
+			if (c->rtp.video.rtp) {
+				res = 0;
+			} else
+				res = -1;
+			break;
+#ifdef CS_AST_CONTROL_SRCCHANGE
+		case AST_CONTROL_SRCCHANGE:
+			// \todo TODO check this
+			/* Source media has changed. */
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
+
+
+
+			/* update channel format */
+			int oldChannelFormat = c->format;
+			c->format = ast->rawreadformat;
+
+			if(oldChannelFormat != c->format ){
+				/* notify of changing format */
+				char s1[512], s2[512];
+				ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%d) to: %s(%d) \n",
+					c->line->name,
+					c->callid,
+#if ASTERISK_VERSION_NUM >= 10400
+					ast_getformatname_multiple(s1, sizeof(s1) -1, c->format & AST_FORMAT_AUDIO_MASK),
+#else
+					ast_getformatname_multiple(s1, sizeof(s1) -1, c->format),
+#endif // ASTERISK_VERSION_NUM >= 10400
+					ast->nativeformats,
+#if ASTERISK_VERSION_NUM >= 10400
+					ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat & AST_FORMAT_AUDIO_MASK),
+#else
+					ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat),
+#endif // ASTERISK_VERSION_NUM >= 10400
+					ast->rawreadformat);
+				ast_set_read_format(ast, c->format);
+				ast_set_write_format(ast, c->format);
+			}
+
+			ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n",c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
+			if(c->rtp.audio.rtp){
+				if(oldChannelFormat != c->format){
+					if(c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE){
+						sccp_channel_closereceivechannel(c);	/* close the already openend receivechannel */
+						sccp_channel_openreceivechannel(c);	/* reopen it */
+					}
+				}
+			}
+#ifdef CS_AST_RTP_NEW_SOURCE
+			if(c->rtp.audio.rtp) {
+				ast_rtp_new_source(c->rtp.audio.rtp);
+				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
+			}
+#endif // CS_AST_RTP_NEW_SOURCE
+			break;
+#endif // CS_AST_CONTROL_SRCCHANGE
+		default:
+			ast_log(LOG_WARNING, "SCCP: Don't know how to indicate condition %d\n", ind);
+			res = -1;
 	}
 
 	sccp_channel_unlock(c);

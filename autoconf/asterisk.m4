@@ -409,6 +409,13 @@ AC_DEFUN([CHECK_ASTERISK_HEADER_CONTENT],[
     else
       AC_MSG_RESULT([Not Found])
     fi
+    AC_MSG_CHECKING([asterisk/frame.h for 'AST_CONTROL_SRCCHANGE'])
+    if grep -q "AST_CONTROL_SRCCHANGE" $PBX_INCLUDE/frame.h; then
+      AC_DEFINE(CS_AST_CONTROL_SRCCHANGE,1,[Found 'AST_CONTROL_SRCCHANGE' in asterisk/frame.h])
+      AC_MSG_RESULT([Found])
+    else
+      AC_MSG_RESULT([Not Found])
+    fi
   fi
   dnl Check Asterisk Device State Options
   if test -f $PBX_INCLUDE/devicestate.h; then
