@@ -507,7 +507,7 @@ AC_ARG_WITH(feature_monitor,
 
 
 AC_ARG_WITH(advanced_functions, 
-  AC_HELP_STRING([--with-advanced-functions], [advanced functions (experimental/dev only)(default is NO)]), 
+  AC_HELP_STRING([--with-advanced-functions], [advanced functions (experimental/dev only)(asterisk 1.6.2 required)(default is NO)]), 
     ac_cv_advanced_functions=yes, ac_cv_advanced_functions=no)
     AS_IF([test "${ac_cv_advanced_functions}" == "yes"], [
        	AC_DEFINE(CS_ADV_FEATURES, 1, [Debug SCCP advanced functions (experimental/dev only)])
@@ -616,6 +616,7 @@ echo
 echo "Operating System : $BUILD_OS"
 echo "          Kernel : $BUILD_KERNEL"
 echo "    Architecture : $BUILD_MACHINE"
+echo "Asterisk Version : $ASTERISK_VER"
 echo "      Build user : $BUILD_USER"
 echo "         Version : ${SCCP_VERSION}_${SCCP_BRANCH}_r${SCCP_REVISION}"
 #echo "      CPU -march : $march"

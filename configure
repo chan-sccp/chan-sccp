@@ -1722,8 +1722,8 @@ Optional Packages:
   --with-realtime         realtime support (default is YES)
   --with-feature-monitor  feature monitor (default is NO)
   --with-advanced-functions
-                          advanced functions (experimental/dev only)(default
-                          is NO)
+                          advanced functions (experimental/dev only)(asterisk
+                          1.6.2 required)(default is NO)
   --with-dynamic-speeddial
                           Using dynamic speeddials (default is YES)
   --with-dynamic-speeddial-cid
@@ -26821,6 +26821,7 @@ echo
 echo "Operating System : $BUILD_OS"
 echo "          Kernel : $BUILD_KERNEL"
 echo "    Architecture : $BUILD_MACHINE"
+echo "Asterisk Version : $ASTERISK_VER"
 echo "      Build user : $BUILD_USER"
 echo "         Version : ${SCCP_VERSION}_${SCCP_BRANCH}_r${SCCP_REVISION}"
 #echo "      CPU -march : $march"
