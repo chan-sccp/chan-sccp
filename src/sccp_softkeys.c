@@ -278,7 +278,7 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 							  
 								if(channel == d->transfer_channel || channel->state == SCCP_CHANNELSTATE_HOLD || channel->state == SCCP_CHANNELSTATE_CALLTRANSFER){
 									transferingChannel = channel;
-								}else{
+								}else if(channel->calltype == SKINNY_CALLTYPE_OUTBOUND){
 									transfereeChannel = channel;
 								}
 							}
