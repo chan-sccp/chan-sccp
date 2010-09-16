@@ -890,11 +890,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  */
 void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c) {
-#ifdef CS_ADV_FEATURES
-	sccp_advfeat_join(d, l, lineInstance, c);
-#else
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
-#endif
 }
 
 /*!
@@ -1167,14 +1163,10 @@ sccp_channel_t * sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, s
  * \return Success as int
  */
 int sccp_feat_barge(sccp_channel_t * c, char *exten) {
-#ifdef CS_ADV_FEATURES
-	return sccp_advfeat_barge(c, exten);
-#else
 	/* sorry but this is private code -FS */
 	uint8_t instance = sccp_device_find_index_for_line(c->device, c->line->name);
 	sccp_dev_displayprompt(c->device, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 	return 1;
-#endif
 }
 
 /*!
@@ -1256,14 +1248,10 @@ sccp_channel_t * sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, 
  * \return Success as int
  */
 int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum) {
-#ifdef CS_ADV_FEATURES
-	return sccp_advfeat_cbarge(c, conferencenum);
-#else
 	/* sorry but this is private code -FS */
 	uint8_t instance = sccp_device_find_index_for_line(c->device, c->line->name);
 	sccp_dev_displayprompt(c->device, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 	return 1;
-#endif
 }
 
 /*!
