@@ -602,33 +602,32 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
  */
 boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 	struct ast_config		*cfg;
-	struct ast_variable		*v;
-	int firstdigittimeout = 0;
-	int digittimeout = 0;
-	int autoanswer_ring_time = 0;
-	int autoanswer_tone = 0;
-	int remotehangup_tone = 0;
-	int transfer_tone = 0;
-	int callwaiting_tone = 0;
-	int amaflags = 0;
-	int protocolversion = 0;
-	char digittimeoutchar = '#';
-	char *debug_arr[1];
-	unsigned int			sccp_tos = 0;
-	unsigned int			audio_tos = 0;
-	unsigned int			video_tos = 0;
-	unsigned int			sccp_cos = 0;
-	unsigned int			audio_cos = 0;
-	unsigned int			video_cos = 0;
-	char				pref_buf[128];
-	struct ast_hostent		ahp;
-	struct hostent			*hp;
-	struct ast_ha 			*na;
-	char 				config_value[256];
-
-	char newcontexts[AST_MAX_CONTEXT];
-	char oldcontexts[AST_MAX_CONTEXT];
-	char *stringp, *context, *oldregcontext;
+	struct ast_variable	*v;
+	int 			firstdigittimeout = 0;
+	int 			digittimeout = 0;
+	int 			autoanswer_ring_time = 0;
+	int 			autoanswer_tone = 0;
+	int 			remotehangup_tone = 0;
+	int 			transfer_tone = 0;
+	int 			callwaiting_tone = 0;
+	int 			amaflags = 0;
+	int 			protocolversion = 0;
+	char 			digittimeoutchar = '#';
+	char 			*debug_arr[1];
+	unsigned int		sccp_tos = 0;
+	unsigned int		audio_tos = 0;
+	unsigned int		video_tos = 0;
+	unsigned int		sccp_cos = 0;
+	unsigned int		audio_cos = 0;
+	unsigned int		video_cos = 0;
+	char			pref_buf[128];
+	struct ast_hostent	ahp;
+	struct hostent		*hp;
+	struct ast_ha 		*na;
+	char 			config_value[256];
+	char 			newcontexts[AST_MAX_CONTEXT];
+	char 			oldcontexts[AST_MAX_CONTEXT];
+	char 			*stringp, *context, *oldregcontext;
 
 
 
@@ -1029,7 +1028,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 		} else if (!strcasecmp(v->name, "meetmeopts")) {
 			sccp_copy_string(GLOB(meetmeopts), v->value, sizeof(GLOB(meetmeopts)));
 
-//begin regexten feature			
+		/* begin regexten feature */			
 		} else if (!strcasecmp(v->name, "regcontext")) {
 			ast_copy_string(newcontexts, v->value, sizeof(newcontexts));
 			stringp = newcontexts;
@@ -1049,8 +1048,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 			}
 			ast_copy_string(GLOB(regcontext), v->value, sizeof(GLOB(regcontext)));
 			continue;
-//end regexten feature
-			
+		/* end regexten feature */
 		} else {
 			ast_log(LOG_WARNING, "Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
 		}
@@ -1136,7 +1134,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 		return;
 	}
 
-
 	while ( ( cat = ast_category_browse(cfg,cat)) ){
 
 		const char *utype;
@@ -1161,9 +1158,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			}
 		} else if ( !strcasecmp(utype,"line") ) {
 			/* check minimum requirements for a line */
-			// \todo  \todo TODO why are these params required? - MC
-			// \todo They are used to check if we can find the minimal required values for a line in the config file / database to see if we have a complete device. We could have used other parameters. - DdG
-			// \todo Maybe some warnings should be added to notify when one of them is missing so that people know what needs to fixed in the config - DdG
 			if ( (!(!ast_strlen_zero( ast_variable_retrieve(cfg, cat, "label")))  && (!ast_strlen_zero( ast_variable_retrieve(cfg, cat, "cid_name"))) && (!ast_strlen_zero( ast_variable_retrieve(cfg, cat, "cid_num")))) ) {
 				ast_log(LOG_WARNING, "Unknown type '%s' for '%s' in %s\n", utype, cat, "sccp.conf");
 				continue;
@@ -1710,7 +1704,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 
 /**
  * \brief Find the Correct Config File
- * \return Asterisk Config
+ * \return Asterisk Config Object as ast_config
  */
 struct ast_config *sccp_config_getConfig() {
 	struct ast_config *cfg = NULL;
@@ -1787,14 +1781,13 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name){
 		}else if(!strcasecmp(variable->name, "onhint")){
 			keyMode = KEYMODE_INUSEHINT;
 		}else{
-
+			// do nothing
 		}
 
 		if(keyMode == -1){
 			variable = variable->next;
 			continue;
 		}
-
 
 		if(softKeySetConfiguration->numberOfSoftKeySets < (keyMode+1) ){
 			softKeySetConfiguration->numberOfSoftKeySets = keyMode+1;
@@ -1927,7 +1920,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 	/* Message */
 	res=ast_db_get("SCCPM", device->id, buffer, sizeof(buffer));			//load save message from ast_db
 	if (!res)
-		device->phonemessage=strdup(buffer);					//set message on device if we have a result
+		device->phonemessage=strdup(buffer);				//set message on device if we have a result
 
 
 	/* lastDialedNumber */
