@@ -22,6 +22,7 @@
 #include "asterisk/bridging.h"
 #include "asterisk/bridging_features.h"
 
+#if ASTERISK_VERSION_NUM >= 10602 
 static int lastConferenceID = 0;
 static void * sccp_conference_join_thread(void *data);
 
@@ -291,4 +292,5 @@ static void * sccp_conference_join_thread(void *data){
 	
 	return NULL;
 }
-#endif
+#endif // ASTERISK_VERSION_NUM
+#endif // CS_SCCP_CONFERENCE
