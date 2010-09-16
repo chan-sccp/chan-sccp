@@ -41,6 +41,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/callerid.h>
 #include <asterisk/utils.h>
 #include <asterisk/causes.h>
+#include <asterisk/frame.h>
 #ifdef CS_AST_HAS_AST_STRING_FIELD
 #include <asterisk/stringfields.h>
 #endif
