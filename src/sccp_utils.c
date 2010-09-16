@@ -2,10 +2,10 @@
  * \file 	sccp_utils.c
  * \brief 	SCCP Utils Class
  * \author 	Sergio Chersovani <mlists [at] c-net.it>
- * \note	Reworked, but based on chan_sccp code.
+ * \note		Reworked, but based on chan_sccp code.
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
  * $Date$
@@ -34,7 +34,6 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/channel_pvt.h>
 #endif
 #include <asterisk/devicestate.h>
-
 
 /*!
  * \brief is Printable Character
@@ -80,7 +79,6 @@ void sccp_dump_packet(unsigned char * messagebuffer, int len)
 	for(i = 0; i < rows; i++)
 	{
 		memset(row, 0, sizeof(row));
-//		sprintf(row, "%04d: %08X - ", i, cur);
 		sprintf(row, "%08X - ", cur);
 		if((i == rows - 1) && (len % res > 0)) // FIXED after 354 -FS
 			cols = len % res;
@@ -124,9 +122,6 @@ void sccp_permithost_addnew(sccp_device_t * d, const char * config_string)
 		ast_log(LOG_WARNING, "Error adding the permithost = %s to the list\n", config_string);
 	}
 }
-
-
-
 
 /*!
  * \brief Add New AddOn/Sidecar to Device's AddOn Linked List
@@ -321,14 +316,12 @@ sccp_device_t * sccp_device_find_realtime(const char * name) {
 	sccp_device_t *d = NULL;
 	struct ast_variable *v, *variable;
 
-	/* No martini, no party ! */
 	if(ast_strlen_zero(GLOB(realtimedevicetable)))
 		return NULL;
 
 	if ((variable = ast_load_realtime(GLOB(realtimedevicetable), "name", name, NULL))) {
 		v = variable;
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME))(VERBOSE_PREFIX_3 "SCCP: Device '%s' found in realtime table '%s'\n", name, GLOB(realtimedevicetable));
-		//d = sccp_config_buildDevice(v, name, TRUE);
 
 		d = sccp_device_create();
 		if(!d) {
@@ -336,7 +329,6 @@ sccp_device_t * sccp_device_find_realtime(const char * name) {
 			return NULL;
 		}
 
-//		sccp_device_applyDefaults(d);
 		sccp_copy_string(d->id, name, sizeof(d->id));
 		d->realtime = TRUE;
 		d = sccp_config_applyDeviceConfiguration(d, variable);
@@ -384,7 +376,6 @@ sccp_line_t * sccp_line_find_byname_wo(const char * name, uint8_t realtime)
 		return NULL;
 	}
 
-//	sccp_log((DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Found line '%s'\n", DEV_ID_LOG(l->device), l->name);
 	sccp_log((DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Found line '%s'\n", "SCCP", l->name);
 
 	return l;
@@ -438,6 +429,7 @@ sccp_line_t * sccp_line_find_realtime_byname(const char * name)
  * \param d SCCP Device
  * \param instance line instance as int
  * \return SCCP Line (can be null)
+ *
  * \todo TODO No ID Specified only instance, should this function be renamed ?
  *
  * \callgraph
@@ -468,7 +460,6 @@ sccp_line_t * sccp_line_find_byid(sccp_device_t * d, uint16_t instance){
 		return NULL;
 	}
 
-//	sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Found line %s\n", DEV_ID_LOG(l->device), l->name);
 	sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Found line %s\n", "SCCP", l->name);
 
 	return l;
@@ -682,7 +673,6 @@ sccp_channel_t * sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t 
 	if(!d)
 		return NULL;
 
-
 	sccp_device_lock(d);
 
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
@@ -732,47 +722,12 @@ void sccp_ast_setstate(sccp_channel_t * c, int state) {
 /*!
  * \brief Safe current device state to astDB
  * \param d SCCP Device
- * \todo TODO we shoud do this on feature_state_changed
  */
 void sccp_dev_dbput(sccp_device_t * d) {
 	char tmp[1024] = "", cfwdall[1024] = "", cfwdbusy[1024] = "", cfwdnoanswer[1024] = "";
 
 	if (!d)
 		return;
-/*
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-		if(buttonconfig->type == LINE ){
-			l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
-			if(l){
-				if (l->cfwd_type == SCCP_CFWD_ALL) {
-					snprintf(tmp, sizeof(tmp), "%d:%s;", buttonconfig->instance, l->cfwd_num);
-					strncat(cfwdall, tmp, sizeof(cfwdall) - strlen(cfwdall));
-				} else if (l->cfwd_type == SCCP_CFWD_BUSY) {
-					snprintf(tmp, sizeof(tmp), "%d:%s;", buttonconfig->instance, l->cfwd_num);
-					strncat(cfwdbusy, tmp, sizeof(cfwdbusy) - strlen(cfwdbusy));
-				} else if (l->cfwd_type == SCCP_CFWD_NOANSWER) {
-					snprintf(tmp, sizeof(tmp), "%d:%s;", buttonconfig->instance, l->cfwd_num);
-					strncat(cfwdnoanswer, tmp, sizeof(cfwdnoanswer) - strlen(cfwdnoanswer));
-				}
-			}
-		}
-	}
-	*/
-//	SCCP_LIST_LOCK(&d->lines);
-//	SCCP_LIST_TRAVERSE(&d->lines, l, listperdevice) {
-//		instance = sccp_device_find_index_for_line(d, l->name);
-//		if (l->cfwd_type == SCCP_CFWD_ALL) {
-//			snprintf(tmp, sizeof(tmp), "%d:%s;", instance, l->cfwd_num);
-//			strncat(cfwdall, tmp, sizeof(cfwdall) - strlen(cfwdall));
-//		} else if (l->cfwd_type == SCCP_CFWD_BUSY) {
-//			snprintf(tmp, sizeof(tmp), "%d:%s;", instance, l->cfwd_num);
-//			strncat(cfwdbusy, tmp, sizeof(cfwdbusy) - strlen(cfwdbusy));
-//		} else if (l->cfwd_type == SCCP_CFWD_NOANSWER) {
-//			snprintf(tmp, sizeof(tmp), "%d:%s;", instance, l->cfwd_num);
-//			strncat(cfwdnoanswer, tmp, sizeof(cfwdnoanswer) - strlen(cfwdnoanswer));
-//		}
-//	}
-//	SCCP_LIST_UNLOCK(&d->lines);
 
 	if (!ast_strlen_zero(cfwdall))
 		cfwdall[strlen(cfwdall)-1] = '\0';
@@ -788,6 +743,8 @@ void sccp_dev_dbput(sccp_device_t * d) {
 /*!
  * \brief read device state from astDB
  * \param d SCCP Device
+ *
+ * \todo Reimplement\Remove code below
  */
 void sccp_dev_dbget(sccp_device_t * d) {
 // 	char result[256]="", *tmp, *tmp1, *r;
@@ -934,28 +891,6 @@ const char * array2str(uint8_t type, uint32_t value) {
  * \return Skinny Codec
  */
 uint32_t sccp_codec_ast2skinny(int fmt) {
-/*	switch(fmt) {
-	case AST_FORMAT_ALAW:
-		return 2;
-	case AST_FORMAT_ULAW:
-		return 4;
-	case AST_FORMAT_G723_1:
-		return 9;
-	case AST_FORMAT_G729A:
-		return 12;
-#if ASTERISK_VERSION_NUM >= 10400
-	case AST_FORMAT_G726_AAL2:
-		return 82;
-#endif
-	case AST_FORMAT_H261:
-		return 100;
-	case AST_FORMAT_H263:
-		return 101;
-	case AST_FORMAT_G722:
-		return 6;
-	default:
-		return 0;
-	}*/
 	uint32_t i;
 	for (i = 1; i < ARRAY_LEN(skinny_codecs); i++) {
 		if (skinny_codecs[i].astcodec == fmt) {
@@ -965,10 +900,10 @@ uint32_t sccp_codec_ast2skinny(int fmt) {
 	return 0;
 }
 
-
 /*!
- * \version 20090708
- *  \author Federico
+ * \brief Convert Skinny Codec 2 Asterisk Codec
+ * \param fmt Skinny Codec as type of SKINNY_CODECS_*
+ * \return Skinny Codec
  */
 int sccp_codec_skinny2ast(uint32_t fmt) {
 	uint32_t i;
@@ -1035,6 +970,14 @@ char *ast_strip(char *s) {
 #endif
 
 #ifndef CS_AST_HAS_APP_SEPARATE_ARGS
+/*!
+ * \brief Seperate App Args
+ * \param buf Buffer as Char
+ * \param delim Delimiter as Char
+ * \param array Array as Char Array
+ * \param arraylen Array Length as Int
+ * \return argc Unsigned Int
+ */
 unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arraylen) {
 	int argc;
 	char *scan;
@@ -1071,7 +1014,10 @@ unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arr
 
 /*!
  * \brief get the SoftKeyIndex for a given SoftKeyLabel on specified keymode
- *
+ * \param d SCCP Device
+ * \param keymode KeyMode as Unsigned Int
+ * \param softkey SoftKey as Unsigned Int
+ * \return Result as int
  *
  * \todo implement function for finding index of given SoftKey
  */
@@ -1245,10 +1191,8 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t **event){
 	sccp_linedevices_t 	*lineDevice;
 	sccp_device_t *device = (*event)->event.featureChanged.device;
 
-
 	if(!(*event) || !device )
 		return;
-
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: got FeatureChangeEvent %d\n", DEV_ID_LOG(device), (*event)->event.featureChanged.featureType);
 	sccp_device_lock(device);
@@ -1645,9 +1589,6 @@ sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 		size = size + (4 - (size % 4));
 	}
 
-
-
-
 	r1 = sccp_build_packet(LineStatDynamicMessage, size);
 	r1->msg.LineStatDynamicMessage.lel_lineNumber = htolel(lineInstance);
 	r1->msg.LineStatDynamicMessage.lel_lineType = htolel(0x0f);
@@ -1673,7 +1614,7 @@ sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
  * \brief explode string to string array
  * \param str String to explode
  * \param str String to use as seperator
- * \return array of string
+ * \return array of string (Needs to be freed afterwards)
  */
 char **explode(char *str,char *sep) {
 	int nn=0;
@@ -1681,7 +1622,6 @@ char **explode(char *str,char *sep) {
 	char *ds=strdup(str);
 	char **res = (char**)ast_malloc((strlen(str)/2)*sizeof(char*));
 	if (res!=NULL) {
-//		memset(res, 0, (strlen(str)/2)*sizeof(char*));
 		tmp = strtok(ds, sep);
 		for (nn = 0; tmp != NULL; ++nn)
 		{
@@ -1689,7 +1629,6 @@ char **explode(char *str,char *sep) {
 		  	tmp = strtok(NULL, sep);
 		}
 	} else {
-		ast_free(res);
 		return NULL;
 	}
 	return res;
@@ -1699,7 +1638,7 @@ char **explode(char *str,char *sep) {
  * \brief implode string array to string
  * \param str Array of String to implode
  * \param str String to use as seperator
- * \return string
+ * \return string (Needs to be freed afterwards)
  */
 char *implode(char *str[],char *sep) {
 	int nn=0;
@@ -1718,13 +1657,12 @@ char *implode(char *str[],char *sep) {
 				strcat(res,sep);
 				strcat(res,str[nn]);
 			} else {
-				ast_free(res);
 				return NULL;
 			}
+			ast_free(tmpres);
 			nn++;
 		}
 	}else{
-		ast_free(res);
 		return NULL;
 	}
 	return res;
