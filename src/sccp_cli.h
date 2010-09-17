@@ -27,7 +27,9 @@ void sccp_unregister_cli(void);
   #define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER)			\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {		\
 		static char *cli_command[] = { CLI_COMMAND };					\
-		char *command=implode( cli_command," \t");						\
+		char *command=NULL;\
+		if(!implode( cli_command," \t", &command))\
+			return CLI_FAILURE;\
 		if (cmd == CLI_INIT) {								\
 			e->command = strdup(command);								\
 			e->usage = _USAGE;							\
@@ -42,12 +44,14 @@ void sccp_unregister_cli(void);
 			return CLI_SUCCESS;							\
 		else										\
 			return CLI_FAILURE;							\
-                  ast_free(command);								\
+                ast_free(command);								\
 	};
   #define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)					\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {		\
 		static char *cli_command[] = { CLI_COMMAND };					\
-		char *command=implode( cli_command," \t");						\
+		char *command=NULL;\
+		if(!implode( cli_command," \t", &command))\
+			return CLI_FAILURE;\
 		if (cmd == CLI_INIT) {								\
 			e->command = strdup(command);						\
 			e->usage = _USAGE;							\
@@ -62,7 +66,7 @@ void sccp_unregister_cli(void);
 			return CLI_SUCCESS;							\
 		else										\
 			return CLI_FAILURE;							\
-                  ast_free(command);								\
+                ast_free(command);								\
 	};
 #else
   #define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER)			\

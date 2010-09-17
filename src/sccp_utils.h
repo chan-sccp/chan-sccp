@@ -133,5 +133,5 @@ uint32_t sccp_parse_debugline (char * arguments[], int startat, int argc, uint32
 char * sccp_get_debugcategories(uint32_t debugvalue);
 sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const char *dirNum, const char *fqdn, const char *lineDisplayName);
 char **explode(char *str,char *sep);
-char *implode(char *str[],char *sep);
+boolean_t implode(char *str[],char *sep, char **res);
 #endif
