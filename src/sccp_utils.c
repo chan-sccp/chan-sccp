@@ -1640,31 +1640,29 @@ char **explode(char *str,char *sep) {
  * \param str String to use as seperator
  * \return string (Needs to be freed afterwards)
  */
-char *implode(char *str[],char *sep) {
+boolean_t implode(char *str[],char *sep, char **res) {
 	int nn=0;
-	char *res="";
-	char *tmpres=NULL;
 
-	res=ast_malloc((strlen(str[0])*strlen(sep)+1) * sizeof(char *));
-	memset(res, 0, (strlen(str[0])*strlen(sep)+1) * sizeof(char *));
-	if (res!=NULL) {
-		strcat(res,str[nn]);
-		nn++;
-		while(str[nn]!=NULL) {
-			tmpres=ast_realloc(res,(strlen(res)+strlen(str[nn])+strlen(sep)+1) * sizeof(char *));
-			if (tmpres!=NULL) {
-				res=tmpres;
-				strcat(res,sep);
-				strcat(res,str[nn]);
+	if(*res){
+		sccp_free(*res);
+	}
+	
+	*res = ast_malloc((strlen(str[0])*strlen(sep)+1) * sizeof(char *));
+	memset(*res, 0, (strlen(str[0])*strlen(sep)+1) * sizeof(char *));
+	if (*res != NULL) {
+		strcat(*res,str[nn]);
+		for(nn = 1; str[nn] != NULL; nn++){
+			*res = ast_realloc(*res, ( strlen(*res) + strlen(str[nn]) + strlen(sep)+1 ) * sizeof(char *));
+			if (*res != NULL) {
+				strcat(*res,sep);
+				strcat(*res,str[nn]);
 			} else {
-				return NULL;
+				return FALSE;
 			}
-			ast_free(tmpres);
-			nn++;
 		}
 	}else{
-		return NULL;
+		return FALSE;
 	}
-	return res;
+	return TRUE;
 }
 
