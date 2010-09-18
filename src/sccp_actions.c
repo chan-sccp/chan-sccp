@@ -1409,8 +1409,6 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 	if (!d)						// moved because would otherwise lead to null pointer dereference in the next lines.
 		return;
 
-	const softkey_modes 	*v = d->softKeyConfiguration.modes;
-	const	uint8_t		v_count = d->softKeyConfiguration.size;
 	int 			iKeySetCount = 0;
 	sccp_moo_t 		*r1;
 	uint8_t 		i = 0;
@@ -1422,6 +1420,27 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 #endif
 
 	//sccp_device_lock(d);
+	
+	/* set softkey definition */
+	sccp_softKeySetConfiguration_t *softkeyset;
+	
+	if(!ast_strlen_zero(d->softkeyDefinition)){
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: searching for softkeyset: %s!\n", d->id, d->softkeyDefinition);
+		SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
+			if (!strcasecmp(d->softkeyDefinition, softkeyset->name)) {
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: using softkeyset: %s!\n", d->id, softkeyset->name);
+				d->softKeyConfiguration.modes = softkeyset->modes;
+				d->softKeyConfiguration.size = softkeyset->numberOfSoftKeySets;
+			}
+		}
+	}
+	sccp_log(1)(VERBOSE_PREFIX_3 "%s: d->softkeyDefinition=%s!\n", d->id, d->softkeyDefinition);
+	/* end softkey definition */ 
+	
+	
+	const softkey_modes 	*v = d->softKeyConfiguration.modes;
+	const	uint8_t		v_count = d->softKeyConfiguration.size;
+	
 
 	REQ(r1, SoftKeySetResMessage);
 	r1->msg.SoftKeySetResMessage.lel_softKeySetOffset = htolel(0);
@@ -1438,7 +1457,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 				if (l->meetme)
 					meetme = 1;
 
-				if (sccp_is_nonempty_string(l->meetmenum)) 		/*! \todo >> TO BE REMOVED */
+				if (sccp_is_nonempty_string(l->meetmenum))
 					meetme = 1;
 
 #ifdef CS_SCCP_PICKUP
