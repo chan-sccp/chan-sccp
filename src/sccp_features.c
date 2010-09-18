@@ -961,6 +961,19 @@ sccp_channel_t * sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, 
 	return c;
 }
 
+struct meetmeAppConfig {
+      char *appName;
+      char *defaultMeetmeOption;
+};
+
+struct meetmeAppConfig meetmeApps[] ={
+      {"MeetMe", "qd"},
+      {"ConfBridge", "Mac"},
+      {"Konference", "MTV"}
+};
+
+
+
 /*!
  * \brief a Meetme Application Thread
  * \param data Data
@@ -970,7 +983,8 @@ static void * sccp_feat_meetme_thread(void * data)
 {
         sccp_channel_t * c = data;
         sccp_device_t * d = NULL;
-        struct ast_app *app;
+
+	struct meetmeAppConfig *app = NULL;
 
         char ext[AST_MAX_EXTENSION];
         char context[AST_MAX_CONTEXT];
@@ -993,7 +1007,21 @@ static void * sccp_feat_meetme_thread(void * data)
 #endif
 
        	d = c->device;
-        if (!(app = pbx_findapp("MeetMe"))) {	// \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
+	
+	
+	/* searching for meetme app */
+	uint32_t i;
+	for(i=0; i < sizeof(meetmeApps)/sizeof(struct meetmeAppConfig);i++ ){
+		if(pbx_findapp(meetmeApps[i].appName)){
+			app = &(meetmeApps[i]);
+			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: using '%s' for meetme\n", meetmeApps[i].appName);
+			break;
+		}
+	}
+	/* finish searching for meetme app */
+	
+	
+        if (!app) {	// \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
                 ast_log(LOG_WARNING, "SCCP: No MeetMe application available!\n");
                 sccp_channel_lock(c);
                 sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_DIALING);
@@ -1018,15 +1046,15 @@ static void * sccp_feat_meetme_thread(void * data)
 		} else if (!ast_strlen_zero(GLOB(meetmeopts))) {
                   snprintf(meetmeopts, sizeof(meetmeopts), "%s%c%s", c->dialedNumber, SCCP_CONF_SPACER, GLOB(meetmeopts));
 		} else {
-                  snprintf(meetmeopts, sizeof(meetmeopts), "%s%c%s", c->dialedNumber, SCCP_CONF_SPACER, "qd");
+                  snprintf(meetmeopts, sizeof(meetmeopts), "%s%c%s", c->dialedNumber, SCCP_CONF_SPACER, app->defaultMeetmeOption);
 		}
 
                 sccp_copy_string(context, c->owner->context, sizeof(context));
                 snprintf(ext, sizeof(ext), "sccp_meetme_temp_conference_%ud", eid);
 
                 if (!ast_exists_extension(NULL, context, ext, 1, NULL)) {
-                        ast_add_extension(context, 1, ext, 1, NULL, NULL, "MeetMe",
-                                 meetmeopts, NULL, "sccp_feat_meetme_thread");
+                        ast_add_extension(context, 1, ext, 1, NULL, NULL, app->appName, meetmeopts, NULL, "sccp_feat_meetme_thread");
+			ast_log(LOG_WARNING, "SCCP: create extension exten => %s,%d,%s(%s)\n", ext, 1, app->appName, meetmeopts);
                 }
 
                 sccp_copy_string(c->owner->exten, ext, sizeof(c->owner->exten));
@@ -1041,6 +1069,7 @@ static void * sccp_feat_meetme_thread(void * data)
 
                 if (ast_pbx_run(c->owner)) {
                         sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_INVALIDCONFERENCE);
+			ast_log(LOG_WARNING, "SCCP: SCCP_CHANNELSTATE_INVALIDCONFERENCE\n");
                 }
 #if ASTERISK_VERSION_NUM >= 10600
                 if (pbx_find_extension(NULL, NULL, &q, context, ext, 1, NULL, "", E_MATCH)) {
