@@ -1586,6 +1586,7 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 				sccp_feat_meetme_start(c);       /* Copied from Federico Santulli */
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme Thread Started\n", d->id);
 				sccp_channel_unlock(c);
+				return NULL;
 			} else {
 				// without a number we can also close the call. Isn't it true ?
 				sccp_channel_unlock(c);
