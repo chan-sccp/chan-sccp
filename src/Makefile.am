@@ -31,11 +31,11 @@ chan_sccp_la_LDFLAGS	= -avoid-version -module  $(PBX_LDFLAGS) $(PTHREAD_LIBS)
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
-	@test -z "$(csmoddir)" || $(mkdir_p) "$(DESTDIR)$(csmoddir)"
+	@test -z "$(csmoddir)" || $(mkdir_p) "$(csmoddir)"
 	@if test "x$(strip_binaries)"=="xyes" ; then \
-	        $(INSTALL) $(INSTALL_STRIP_FLAG) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; \
+	        $(INSTALL) $(INSTALL_STRIP_FLAG) .libs/chan_sccp.so "$(csmoddir)"; \
 	else \
-	        $(INSTALL) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; \
+	        $(INSTALL) .libs/chan_sccp.so "$(csmoddir)"; \
 	fi
 	@if test -d "$(DESTDIR)$(csmoddir)"; then                                          \
 		echo    "=============================================================="; \

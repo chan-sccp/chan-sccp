@@ -10,9 +10,9 @@
 include $(top_srcdir)/amdoxygen.am
 AUTOMAKE_OPTS			= gnu silent-rules
 EXTRA_DIST 			= .version tools conf
-SUBDIRS 			= src doc
-ACLOCAL_AMFLAGS                 = -I autoconf
-AM_CPPFLAGS                     = $(LTDLINCL)
+SUBDIRS 				= src doc
+ACLOCAL_AMFLAGS			= -I autoconf
+AM_CPPFLAGS			= $(LTDLINCL)
 distdir = $(PACKAGE)-$(SCCP_VERSION)_$(SCCP_BRANCH)
 	
 # Update libtool if necessary	
