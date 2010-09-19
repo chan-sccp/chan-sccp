@@ -375,16 +375,16 @@ AM_CONDITIONAL([WANT_DEBUG],[test "${enable_debug}" = "yes"])
 AC_SUBST([strip_binaries])
 AC_SUBST([GDB_FLAGS])
 
-PBX_PATH="/usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw";
+PBX_PATH="$prefix /usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw";
 AC_ARG_WITH([asterisk],
     [AC_HELP_STRING([--with-asterisk=PATH],[Location of the Asterisk installation])],[PBX_PATH="${withval}"],)
     if test "x${PBX_PATHl}" = "xyes"; then 
-    	PBX_PATH="/usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw"; 
+    	PBX_PATH="$prefix /usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw"; 
     fi
 AC_ARG_WITH([callweaver],
     [AC_HELP_STRING([--with-callwaver=PATH],[Location of the Callweaver installation])],[PBX_PATH="${withval}"],)
     if test "x${PBX_PATH}" = "xyes"; then 
-    	PBX_PATH="/usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw"; 
+    	PBX_PATH="$prefix /usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw"; 
     fi
 dnl AC_ARG_WITH(asterisk-includes,
 dnl     AS_HELP_STRING([--with-asterisk-includes=PATH], [Path to Asterisk includes (defaults to PREFIX/include)]),
@@ -396,7 +396,7 @@ dnl AC_ARG_WITH(callweaver-includes,
 dnl     AS_HELP_STRING([--with-callweaver-includes=PATH], [Path to CallWeaver includes (defaults to PREFIX/include)]),
 dnl     [CALLWEAVER_CFLAGS="-I$withval"])
 dnl AC_ARG_WITH(callweaver-libs,
-dnl     AS_HELP_STRING([--with-callweaver-libs=PATH], [Path to CallWeaver includes (defaults to PREFIX/lib)]),
+dnl     AS_HELP_STRING([--with-callweaver-libs=PATH], [Path to CallWeaver includes (defaults to PREFIXp/lib)]),
 dnl     [CALLWEAVER_LDFLAGS="-L$withval"])
    
 CFLAGS_saved="$CFLAGS"
@@ -550,11 +550,19 @@ CPPFLAGS=${CPPFLAGS_saved}
 LDFLAGS=${LDFLAGS_saved}
 
 dnl Set Module Directory
-csmoddir="$PBX_MODDIR"
-# directory for modules
-if test -z "${csmoddir}"; then
-  # fallback to asterisk modules directory
-  csmoddir="${PBX_LIB}/asterisk/modules"
+if test "x${prefix}" != "xNONE"; then
+  if test "${build_cpu}" = "x86_64"; then
+  	csmoddir=${prefix}/lib64/asterisk/modules;
+  else
+  	csmoddir=${prefix}/lib/asterisk/modules;
+  fi
+elif test -z "${csmoddir}"; then
+   csmoddir="${DESTDIR}${PBX_MODDIR}"
+   # directory for modules
+   if test -z "${csmoddir}"; then
+     # fallback to asterisk modules directory
+     csmoddir="${PBX_LIB}/asterisk/modules"
+   fi
 fi
 AC_SUBST([csmoddir])
 

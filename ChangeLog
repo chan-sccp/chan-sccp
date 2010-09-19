@@ -1,4 +1,78 @@
 ------------------------------------------------------------------------
+r1877 | ddegroot | 2010-09-16 21:39:06 +0200 (Do, 16. Sep 2010) | 4 Zeilen
+
+Cleanup Code
+Fix implode in sccp_utils
+Free command after using implode function in sccp_cli
+
+------------------------------------------------------------------------
+r1876 | ddegroot | 2010-09-16 20:51:24 +0200 (Do, 16. Sep 2010) | 2 Zeilen
+
+cleanup code
+
+------------------------------------------------------------------------
+r1875 | ddegroot | 2010-09-16 20:05:35 +0200 (Do, 16. Sep 2010) | 2 Zeilen
+
+Patched sccp_conference to only compile when asterisk version >= 1.6.2 (BUG Report: 3067479)
+
+------------------------------------------------------------------------
+r1874 | ddegroot | 2010-09-16 19:50:29 +0200 (Do, 16. Sep 2010) | 2 Zeilen
+
+Cleaned up code
+
+------------------------------------------------------------------------
+r1873 | ddegroot | 2010-09-16 19:09:03 +0200 (Do, 16. Sep 2010) | 2 Zeilen
+
+Cleanup sccp_config and sccp_device
+
+------------------------------------------------------------------------
+r1872 | marcelloceschia | 2010-09-16 18:14:57 +0200 (Do, 16. Sep 2010) | 1 Zeile
+
+fixes compile issue
+------------------------------------------------------------------------
+r1871 | ddegroot | 2010-09-16 15:34:57 +0200 (Do, 16. Sep 2010) | 2 Zeilen
+
+Fix double entries in sccp_pbx.c switch 
+
+------------------------------------------------------------------------
+r1870 | ddegroot | 2010-09-16 15:22:52 +0200 (Do, 16. Sep 2010) | 5 Zeilen
+
+Added CS_AST_CONTROL_SRCCHANGE to asterisk.m4
+set with-dynamic-callerid / with-dynamic-callerid-cid and with-dynamic-config to default=yes in configure.ac
+Fixed sccp_pbx.c to use CS_AST_CONTROL_SRCCHANGE
+
+
+------------------------------------------------------------------------
+r1869 | marcelloceschia | 2010-09-16 15:13:26 +0200 (Do, 16. Sep 2010) | 1 Zeile
+
+transferer only for calltype == outbound
+------------------------------------------------------------------------
+r1868 | marcelloceschia | 2010-09-16 15:12:42 +0200 (Do, 16. Sep 2010) | 1 Zeile
+
+fixes unknown condition 25
+------------------------------------------------------------------------
+r1867 | ddegroot | 2010-09-16 14:23:34 +0200 (Do, 16. Sep 2010) | 2 Zeilen
+
+Cleanup adv_features
+
+------------------------------------------------------------------------
+r1866 | ddegroot | 2010-09-16 14:10:38 +0200 (Do, 16. Sep 2010) | 5 Zeilen
+
+Fix transfer for 2 lines (including old behaviour)
+Cleanup sccp_channel
+Removed old code from adv_features
+
+
+------------------------------------------------------------------------
+r1865 | marcelloceschia | 2010-09-16 12:54:17 +0200 (Do, 16. Sep 2010) | 1 Zeile
+
+fixes: end call after disable cfwd
+------------------------------------------------------------------------
+r1862 | ddegroot | 2010-09-15 15:33:05 +0200 (Mi, 15. Sep 2010) | 2 Zeilen
+
+Fixed Spelling Errors
+
+------------------------------------------------------------------------
 r1861 | marcelloceschia | 2010-09-15 14:46:07 +0200 (Mi, 15. Sep 2010) | 1 Zeile
 
 fixes: transfer issue
