@@ -892,13 +892,14 @@ static char message_devices_usage[] = "Usage: sccp message devices <message text
 CLI_ENTRY(cli_message_devices,sccp_message_devices,"Send a message to all SCCP Devices",message_devices_usage)
 #undef CLI_COMMAND
 /* -----------------------------------------------------------------------------------------------------MESSAGE DEVICE- */
-/* Not implemented Yet */
 /*!
  * \brief Message Device
  * \param fd Fd as int
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ *
+ * \todo TO BE IMPLEMENTED: sccp message device
  */
 static int sccp_message_device(int fd, int argc, char * argv[]) {
 	return RESULT_FAILURE;
@@ -973,6 +974,8 @@ CLI_ENTRY(cli_system_message,sccp_system_message,"Send a system wide message to 
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ *
+ * \todo TO BE IMPLEMENTED: sccp message device
  */
 static int sccp_remove_line_from_device(int fd, int argc, char * argv[])
 {
@@ -996,27 +999,64 @@ CLI_ENTRY(cli_remove_line_from_device,sccp_remove_line_from_device,"Remove a lin
  */
 static int sccp_add_line_to_device(int fd, int argc, char * argv[])
 {
-	return RESULT_FAILURE;
+	sccp_device_t	*d;
+	sccp_line_t	*l;
+
+	if (argc < 5)
+		return RESULT_SHOWUSAGE;
+
+	if (ast_strlen_zero(argv[5]))
+		return RESULT_SHOWUSAGE;
+
+	d = sccp_device_find_byid(argv[4], FALSE);
+	l = sccp_line_find_byname(argv[5]);
+
+	if (!d) {
+		ast_log(LOG_ERROR, "Error: Device not found");
+		return RESULT_FAILURE;
+	}
+
+	if (!l) {
+		ast_log(LOG_ERROR, "Error: Device not found");
+		return RESULT_FAILURE;
+	}
+
+#ifdef CS_DYNAMIC_CONFIG
+	sccp_config_addButton(d, -1, LINE, l->name, NULL, NULL);
+#else
+	sccp_config_addLine(d, l->name, 0, 0);
+#endif
+	
+	ast_cli(fd, "Error: Line %s has been added to device %s", l->name, d->id);
+	return RESULT_SUCCESS;
 }
 
 static char add_line_to_device_usage[] = "Usage: sccp add line <deviceID> <lineID>\n"
   				  	 "       Add a line to a device.\n";
 
 #define CLI_COMMAND "sccp", "add", "line", NULL
-CLI_ENTRY(cli_add_line_to_device,sccp_add_line_to_device,"Add a line to a device",add_line_to_device_usage)
+CLI_ENTRY_COMPLETE(cli_add_line_to_device,sccp_add_line_to_device,"Add a line to a device",add_line_to_device_usage,sccp_complete_device)
 #undef CLI_COMMAND
 
 /* ---------------------------------------------------------------------------------------------SHOW_MWI_SUBSCRIPTIONS- */
-/* Not implemented Yet */
+/*!
+ * \brief Show MWI Subscriptions
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ *
+ * \todo TO BE IMPLEMENTED: sccp show mwi subscriptions 
+ */
 static int sccp_show_mwi_subscriptions(int fd, int argc, char * argv[]) {
 	return RESULT_FAILURE;
 }
 
-static char show_mwi_subscriptions_usage[] = "Usage: sccp show sessions\n"
-				 "	Show All SCCP Sessions.\n";
+static char show_mwi_subscriptions_usage[] = "Usage: sccp show mwi subscriptions\n"
+				 "	Show All SCCP MWI Subscriptions.\n";
 
-#define CLI_COMMAND "sccp", "show", "sessions", NULL
-CLI_ENTRY(cli_show_mwi_subscriptions,sccp_show_mwi_subscriptions,"Show all SCCP sessions",show_mwi_subscriptions_usage)
+#define CLI_COMMAND "sccp", "show", "mwi", "subscriptions", NULL
+CLI_ENTRY(cli_show_mwi_subscriptions,sccp_show_mwi_subscriptions,"Show all SCCP MWI subscriptions",show_mwi_subscriptions_usage)
 #undef CLI_COMMAND
 /* --------------------------------------------------------------------------------------------------SHOW_SOKFTKEYSETS- */
 /*!
