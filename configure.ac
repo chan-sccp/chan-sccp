@@ -552,7 +552,9 @@ LDFLAGS=${LDFLAGS_saved}
 dnl Set Module Directory
 if test "x${prefix}" != "xNONE"; then
   if test "${build_cpu}" = "x86_64"; then
-  	csmoddir=${prefix}/lib64/asterisk/modules;
+dnl	asterisk do not respect the x64 arch, so we havt to copy to lib
+dnl  	csmoddir=${prefix}/lib64/asterisk/modules;
+  	csmoddir=${prefix}/lib/asterisk/modules;
   else
   	csmoddir=${prefix}/lib/asterisk/modules;
   fi
