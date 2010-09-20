@@ -30,59 +30,59 @@ void sccp_unregister_cli(void);
 		char *command=NULL;								\
 		if(!implode( cli_command," ", &command))						\
 			return CLI_FAILURE;							\
-		if (cmd == CLI_INIT) {								\
-			e->command = strdup(command);						\
+		if (cmd == CLI_INIT) {							\
+			e->command = strdup(command);				\
 			e->usage = _USAGE;							\
+			ast_free(command);							\
 			return NULL;								\
 		} else if (cmd == CLI_GENERATE) 							\
 			return _COMPLETER((char *)a->line, (char *)a->word, a->pos, a->n);		\
-												\
-		if (a->argc < (int)sizeof(*cli_command)-1) 						\
-			return CLI_SHOWUSAGE;							\
-												\
+														\
+		if (a->argc < (int)sizeof(*cli_command)-1) 	\
+			return CLI_SHOWUSAGE;						\
+														\
 		if(_CALLED_FUNCTION(a->fd, a->argc, a->argv) == RESULT_SUCCESS)			\
 			return CLI_SUCCESS;							\
-		else										\
+		else											\
 			return CLI_FAILURE;							\
-                ast_free(command);									\
 	};
   #define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)					\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {		\
 		static char *cli_command[] = { CLI_COMMAND };					\
 		char *command=NULL;								\
-		if(!implode( cli_command," ", &command))						\
+		if(!implode( cli_command," ", &command))		\
 			return CLI_FAILURE;							\
-		if (cmd == CLI_INIT) {								\
-			e->command = strdup(command);						\
+		if (cmd == CLI_INIT) {							\
+			e->command = strdup(command);				\
 			e->usage = _USAGE;							\
+			ast_free(command);							\
 			return NULL;								\
-		} else if (cmd == CLI_GENERATE)							\
+		} else if (cmd == CLI_GENERATE)					\
 			return NULL;								\
-												\
-		if (a->argc < (int)sizeof(*cli_command)-1)	 					\
-			return CLI_SHOWUSAGE;							\
-												\
+														\
+		if (a->argc < (int)sizeof(*cli_command)-1)	 	\
+			return CLI_SHOWUSAGE;						\
+														\
 		if(_CALLED_FUNCTION(a->fd, a->argc, a->argv) == RESULT_SUCCESS)			\
 			return CLI_SUCCESS;							\
-		else										\
+		else											\
 			return CLI_FAILURE;							\
-                ast_free(command);									\
 	};
 #else
   #define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER)			\
 	static struct ast_cli_entry _FUNCTION_NAME = {						\
 	  .cmda = { CLI_COMMAND },									\
 	  .handler = _CALLED_FUNCTION,								\
-	  .summary = _DESCR,									\
-	  .usage = _USAGE,									\
+	  .summary = _DESCR,										\
+	  .usage = _USAGE,											\
 	  .generator = _COMPLETER									\
 	};
   #define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)					\
-	static struct ast_cli_entry _FUNCTION_NAME = {						\
+	static struct ast_cli_entry _FUNCTION_NAME = {				\
 	  .cmda = { CLI_COMMAND },									\
 	  .handler = _CALLED_FUNCTION,								\
-	  .summary = _DESCR,									\
-	  .usage = _USAGE										\
+	  .summary = _DESCR,										\
+	  .usage = _USAGE											\
 	};
 #endif // ASTERISK_VERSION_NUM >= 10600
 
