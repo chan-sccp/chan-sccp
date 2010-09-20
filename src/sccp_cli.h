@@ -38,13 +38,14 @@ void sccp_unregister_cli(void);
 		} else if (cmd == CLI_GENERATE) 							\
 			return _COMPLETER((char *)a->line, (char *)a->word, a->pos, a->n);		\
 														\
-		if (a->argc < (int)sizeof(*cli_command)-1) 	\
+		if (a->argc < (int)(ARRAY_LEN(cli_command)-1)) 	\
 			return CLI_SHOWUSAGE;						\
 														\
 		if(_CALLED_FUNCTION(a->fd, a->argc, a->argv) == RESULT_SUCCESS)			\
 			return CLI_SUCCESS;							\
-		else											\
+		else{											\
 			return CLI_FAILURE;							\
+		}\
 	};
   #define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)					\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {		\
@@ -60,7 +61,7 @@ void sccp_unregister_cli(void);
 		} else if (cmd == CLI_GENERATE)					\
 			return NULL;								\
 														\
-		if (a->argc < (int)sizeof(*cli_command)-1)	 	\
+		if (a->argc < (int)(ARRAY_LEN(cli_command)-1))	 	\
 			return CLI_SHOWUSAGE;						\
 														\
 		if(_CALLED_FUNCTION(a->fd, a->argc, a->argv) == RESULT_SUCCESS)			\
