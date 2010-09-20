@@ -1968,7 +1968,11 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 		sccp_sk_select(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_PRIVATE:
-		sccp_sk_private(d, l, lineInstance, c);
+		if(!c){
+			//TODO send error message
+		}else{
+			sccp_sk_private(d, l, lineInstance, c);
+		}
 		break;
 #ifdef CS_SCCP_PICKUP
 	case SKINNY_LBL_PICKUP:
