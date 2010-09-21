@@ -1177,7 +1177,12 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
 		sccp_pbx_senddigits(c, k->ext);
 	} else {
 		// Pull up a channel
-		l = d->currentLine;
+		if(d->defaultLineInstance > 0){
+			sccp_log((DEBUGCAT_LINE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
+			l = sccp_line_find_byid(d, d->defaultLineInstance);
+		}else{
+			l = d->currentLine;
+		}
 		if (l) {
 			sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND);
 		}
