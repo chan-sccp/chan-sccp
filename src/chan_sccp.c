@@ -478,6 +478,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 			if(s->device->session != s) {
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: cross device session\n", DEV_ID_LOG(s->device));
 				sccp_session_close(s->device->session);
+				ast_free(r);
 				return 0;/* closes s */
 			}
 		}
