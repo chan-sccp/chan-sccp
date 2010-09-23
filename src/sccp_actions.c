@@ -2715,7 +2715,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 
 	c = sccp_channel_find_bypassthrupartyid(partyID);
 	if(!c || status){
-	      ast_log(LOG_WARNING, "%s: Channel with passthrupartyid %d not found\n", DEV_ID_LOG(d), partyID);
+	      ast_log(LOG_WARNING, "%s: Channel with passthrupartyid %d not found, please report this to developer\n", DEV_ID_LOG(d), partyID);
 	      sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET));
 	      return;
 	}
