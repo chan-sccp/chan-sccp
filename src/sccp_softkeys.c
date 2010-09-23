@@ -681,8 +681,15 @@ void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c) {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Private Pressed\n", DEV_ID_LOG(d));
 
+	
 	if (!d->privacyFeature.enabled) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: private function is not active on this device\n", d->id);
+		sccp_dev_displayprompt(d, lineInstance, 0, "PRIVATE function is not active", 5);
+		return;
+	}
+	
+	if(!c){
+		sccp_dev_displayprompt(d, lineInstance, 0, "PRIVATE with no channel active", 5);
 		return;
 	}
 
