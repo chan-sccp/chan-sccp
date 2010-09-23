@@ -501,7 +501,9 @@ void sccp_handle_AvailableLines(sccp_device_t *d){
 	btn = d->buttonTemplate;
 	
 	if(!btn){
-		sccp_log(DEBUGCAT_BUTTONTEMPLATE)(VERBOSE_PREFIX_3 "%s: no buttontemplate\n", DEV_ID_LOG(d));
+		sccp_log(DEBUGCAT_BUTTONTEMPLATE)(VERBOSE_PREFIX_3 "%s: no buttontemplate, reset device\n", DEV_ID_LOG(d));
+		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+		return;
 	}
 	
 	/* count the available lines on the phone */
@@ -1973,11 +1975,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 		sccp_sk_select(d, l, lineInstance, c);
 		break;
 	case SKINNY_LBL_PRIVATE:
-		if(!c){
-			//TODO send error message
-		}else{
-			sccp_sk_private(d, l, lineInstance, c);
-		}
+		sccp_sk_private(d, l, lineInstance, c);
 		break;
 #ifdef CS_SCCP_PICKUP
 	case SKINNY_LBL_PICKUP:
