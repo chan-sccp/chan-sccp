@@ -2714,6 +2714,10 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 	sin.sin_port = ipPort;
 
 	c = sccp_channel_find_bypassthrupartyid(partyID);
+	if(!c){
+	      ast_log(LOG_WARNING, "%s: Channel with passthrupartyid %d not found\n", DEV_ID_LOG(d), partyID);
+	      return;
+	}
 
 	/* update status */
 	c->rtp.audio.status |=  SCCP_RTP_STATUS_TRANSMIT;
@@ -2723,7 +2727,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 #if ASTERISK_VERSION_NUM < 10400
-	sccp_log(8)(VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n",
+	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n",
 		DEV_ID_LOG(d),
 		status,
 		ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr),
@@ -2731,7 +2735,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 		callID, callID1,
 		partyID);
 #else
-	sccp_log(8)(VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n",
+	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n",
 		DEV_ID_LOG(d),
 		status,
 		ast_inet_ntoa(sin.sin_addr),
