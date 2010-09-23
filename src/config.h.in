@@ -223,7 +223,7 @@
 /* SCCP feature monitor */
 #undef CS_SCCP_FEATURE_MONITOR
 
-/* Enable manager console control */
+/* Enable Dialplan Functions */
 #undef CS_SCCP_FUNCTIONS
 
 /* Enable manager console control */
