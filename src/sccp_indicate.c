@@ -232,9 +232,10 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		/* asterisk wants rtp open before AST_STATE_UP
 		 * so we set it in OPEN_CHANNEL_ACK in sccp_actions.c.
 		 */
-		if(d->earlyrtp)
+		if(d->earlyrtp){
 			sccp_ast_setstate(c, AST_STATE_UP);
-		sccp_channel_updatemediatype(c);				/*!< Copied from v2 - FS */
+		}
+		sccp_channel_updatemediatype(c);
 		break;
 	case SCCP_CHANNELSTATE_BUSY:
 		/* it will be emulated if the rtp audio stream is open */
@@ -245,21 +246,20 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		break;
 	case SCCP_CHANNELSTATE_PROGRESS:				/* \todo SCCP_CHANNELSTATE_PROGRESS To be checked */
 		sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_PROGRESS (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
-#ifdef CS_ADV_FEATURES
-		if ((c->owner->_state != AST_STATE_UP) && c->previousChannelState != SCCP_CHANNELSTATE_PROGRESS && c->calltype != SKINNY_CALLTYPE_OUTBOUND){
-                        if (!d->earlyrtp) {
+		
+		/* */
+		if (c->previousChannelState != SCCP_CHANNELSTATE_PROGRESS){
+                        if (d->earlyrtp != SCCP_CHANNELSTATE_OFFHOOK || d->earlyrtp != SCCP_CHANNELSTATE_DIALING) {
 				sccp_dev_starttone(c->device, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
+                        }else{
+				//TODO fake ringing?
                         }
-			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); /* send connected, so it is not listed as missed call*/
+                        
+                        /* dont send SKINNY_CALLSTATE_PROCEED !!! */
+			//sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			sccp_dev_displayprompt(d, instance, c->callid, "Call Progress", 0);
 			sccp_channel_send_callinfo(d, c);
-			c->state = SCCP_CHANNELSTATE_PROGRESS;
-                        if (!d->earlyrtp) {
-	        		break;
-                        }
 	        }
-#endif
-		return;
 		break;
 	case SCCP_CHANNELSTATE_PROCEED:
 		if(c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) { // this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app)
