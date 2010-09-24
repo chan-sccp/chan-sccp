@@ -615,6 +615,8 @@ const char * sccp_indicate2str(uint8_t state)
 				return "InvalidNumber";
 		case SCCP_CHANNELSTATE_DIALING:
 				return "Dialing";
+		case SCCP_CHANNELSTATE_PROGRESS;
+				return "Progress";
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
 				return "DigitsFoll";
 		case SCCP_CHANNELSTATE_SPEEDDIAL:
