@@ -213,6 +213,7 @@ sccp_channel_t * sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t *de
 /*!
  * \brief Handle Direct Pickup of Line
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param d SCCP Device
  * \return SCCP Channel
  */
@@ -714,7 +715,7 @@ void sccp_feat_updatecid(sccp_channel_t * c) {
 /*!
  * \brief Handle VoiceMail
  * \param d SCCP Device
- * \param line_instance Line Instance as int
+ * \param lineInstance LineInstance as uint8_t
  */
 void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance) {
 
@@ -802,6 +803,7 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
  * \brief Handle Conference
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  * \return Success as int
  * \todo Conferencing option needs to be build and implemented
@@ -873,6 +875,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
  * \brief Handle Join a Conference
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
@@ -884,6 +887,7 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
 /*!
  * \brief Handle 3-Way Phone Based Conferencing on a Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param d SCCP Device
  * \return SCCP Channel
  * \todo Conferencing option needs to be build and implemented
@@ -1105,6 +1109,7 @@ void sccp_feat_meetme_start(sccp_channel_t * c)
 /*!
  * \brief Handle Barging into a Call
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param d SCCP Device
  * \return SCCP Channel
  */
@@ -1189,6 +1194,7 @@ int sccp_feat_barge(sccp_channel_t * c, char *exten) {
 /*!
  * \brief Handle Barging into a Conference
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param d SCCP Device
  * \return SCCP Channel
  * \todo Conferencing option needs to be build and implemented

@@ -1613,7 +1613,7 @@ sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 /*!
  * \brief explode string to string array
  * \param str String to explode
- * \param str String to use as seperator
+ * \param sep String to use as seperator
  * \return array of string (Needs to be freed afterwards)
  */
 char **explode(char *str,char *sep) {
@@ -1637,8 +1637,9 @@ char **explode(char *str,char *sep) {
 /*!
  * \brief implode string array to string
  * \param str Array of String to implode
- * \param str String to use as seperator
- * \return string (Needs to be freed afterwards)
+ * \param sep String to use as seperator
+ * \param res Result String
+ * \return success as boolean
  */
 boolean_t implode(char *str[],char *sep, char **res) {
 	int nn=0;

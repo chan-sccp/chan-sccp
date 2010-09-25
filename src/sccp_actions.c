@@ -478,8 +478,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 
 /*!
  * \brief Handle Available Lines
- * \param s SCCP Session as sccp_session_t
- * \param r SCCP MOO T as sccp_moo_t
+ * \param d SCCP device
  *
  * \callgraph
  * \callergraph

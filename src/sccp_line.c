@@ -383,6 +383,7 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t *device, uint8_t type, char *
  * \brief Attach a Device to a line
  * \param l SCCP Line
  * \param device SCCP Device
+ * \param lineInstance lineInstance as uint8_t
  * \param subscriptionId Subscription ID for addressing individual devices on the line
  */
 void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, uint8_t lineInstance, struct subscriptionId *subscriptionId)
