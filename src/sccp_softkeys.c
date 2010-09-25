@@ -83,6 +83,7 @@ void sccp_softkey_post_reload(void)
  * \n Usage: \ref sk_redial
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
@@ -151,6 +152,7 @@ void sccp_sk_redial(sccp_device_t * d , sccp_line_t * l, const uint32_t lineInst
  * \n Usage: \ref sk_newcall
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
@@ -187,6 +189,7 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  * \n Usage: \ref sk_hold
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_hold(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
@@ -204,6 +207,7 @@ void sccp_sk_hold(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstanc
  * \n Usage: \ref sk_resume
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
@@ -221,6 +225,7 @@ void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  * \n Usage: \ref sk_transfer
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
@@ -319,6 +324,7 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
  * \n Usage: \ref sk_endcall
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
@@ -336,6 +342,7 @@ void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  * \n Usage: \ref sk_dnd
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  *
  * \todo The line param is not used 
@@ -391,6 +398,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance
  * \n Usage: \ref sk_backspace
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
@@ -450,6 +458,7 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIn
  * \n Usage: \ref sk_answer
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
@@ -464,6 +473,7 @@ void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  * \n Usage: \ref sk_dirtrfr
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
@@ -530,6 +540,7 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  * \n Usage: \ref sk_select
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
@@ -579,6 +590,7 @@ void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  * \n Usage: \ref sk_cfwdall
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
@@ -606,6 +618,7 @@ void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  * \n Usage: \ref sk_cfwdbusy
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
@@ -626,6 +639,7 @@ void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
  * \n Usage: \ref sk_cfwdnoanswer
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c) {
@@ -648,6 +662,7 @@ void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, const uint32_t lin
  * \n Usage: \ref sk_park
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_park(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c) {
@@ -664,6 +679,7 @@ void sccp_sk_park(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstanc
  * \n Usage: \ref sk_transfer
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c) {
@@ -676,6 +692,7 @@ void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  * \n Usage: \ref sk_private
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c) {
@@ -710,6 +727,7 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  * \n Usage: \ref sk_conference
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
@@ -726,6 +744,7 @@ void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, const uint32_t lineI
  * \n Usage: \ref sk_join
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  * \todo Conferencing option needs to be build and implemented
  */
@@ -741,6 +760,7 @@ void sccp_sk_join(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstanc
  * \n Usage: \ref sk_barge
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_barge(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
@@ -760,6 +780,7 @@ void sccp_sk_barge(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstan
  * \n Usage: \ref sk_cbarge
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
@@ -779,6 +800,7 @@ void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  * \n Usage: \ref sk_meetme
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
@@ -802,6 +824,7 @@ void sccp_sk_meetme(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  * \n Usage: \ref sk_pickup
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
@@ -827,6 +850,7 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  * \n Usage: \ref sk_gpickup
  * \param d SCCP Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  */
 void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
@@ -852,14 +876,13 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  *
  * \param d SCCP Device
  * \param l active line
+ * \param lineInstance lineInstance as uint8_t
  * \param c active channel
  * \param keymode int of KEYMODE_*
  * \param softkeyindex index of the SoftKey to set
  * \param status 0 for off otherwise on
  *
- *
  * \todo use SoftKeyLabel instead of softkeyindex
- *
  */
 void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c, unsigned int keymode, unsigned int softkeyindex, unsigned int status) {
 	sccp_moo_t * r;

@@ -606,7 +606,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
  * \brief Set Ringer on Device
  * \param d SCCP Device
  * \param opt Option as uint8_t
- * \param line Line Number as uint32_t
+ * \param lineInstance LineInstance as uint32_t
  * \param callid Call ID as uint32_t
  */
 void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInstance, uint32_t callid)
@@ -663,6 +663,7 @@ void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode)
 /*!
  * \brief Set Call Plane to Active on  Line on Device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as unint8_t
  * \param device SCCP Device
  * \param status Status as int
  * \todo What does this function do exactly (ActivateCallPlaneMessage) ?
@@ -752,7 +753,7 @@ void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid)
 /*!
  * \brief Send Clear Prompt to Device
  * \param d SCCP Device
- * \param line Line as uint8_t
+ * \param lineInstance LineInstance as uint8_t
  * \param callid Call ID uint32_t
  *
  * \callgraph
@@ -1374,6 +1375,7 @@ void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t inst
 /*!
  * \brief Send forward status to a line on a device
  * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
  * \param device SCCP Device
  *
  * \todo integration this function correctly into check sccp_dev_check_displayprompt

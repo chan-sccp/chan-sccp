@@ -401,6 +401,18 @@ dnl echo "CFLAGS: $CFLAGS"
 dnl echo "CPPFLAGS: $CPPFLAGS"
 dnl echo "LDFLAGS: $LDFLAGS"
 
+dnl Doxygen
+CONFIGURE_PART([Checking for Doxygen:])
+DX_HTML_FEATURE(ON)
+DX_CHM_FEATURE(OFF)
+DX_CHI_FEATURE(OFF)
+DX_MAN_FEATURE(ON)
+DX_RTF_FEATURE(OFF)
+DX_XML_FEATURE(OFF)
+DX_PDF_FEATURE(OFF)
+DX_PS_FEATURE(OFF)
+DX_INIT_DOXYGEN($PACKAGE, doc/doxygen.cfg)
+
 dnl Optimize for host cpu version
 AC_ARG_ENABLE(optimization,     
 	[AC_HELP_STRING([--disable-optimization],[no detection or tuning flags for cpu version])],
@@ -594,17 +606,6 @@ AC_SUBST(CPU_OPTIONS)
 AC_SUBST(prefix)
 AC_SUBST(RPMBUILD)
 
-dnl Doxygen
-CONFIGURE_PART([Checking for Doxygen:])
-DX_HTML_FEATURE(ON)
-DX_CHM_FEATURE(OFF)
-DX_CHI_FEATURE(OFF)
-DX_MAN_FEATURE(ON)
-DX_RTF_FEATURE(OFF)
-DX_XML_FEATURE(OFF)
-DX_PDF_FEATURE(OFF)
-DX_PS_FEATURE(OFF)
-DX_INIT_DOXYGEN($PACKAGE, doc/doxygen.cfg)
 
 CONFIGURE_PART([Generating Configuration and Makefiles])
 AC_CONFIG_FILES([
