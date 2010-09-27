@@ -377,8 +377,8 @@
  *
  * Add the following lines to the sccp.conf file
  * \code
- * devicetable=sccpdevice	                          ;datebasetable for devices
- * linetable=sccpline                                     ;datebasetable for lines
+ * devicetable=sccpdevice	                          ; datebasetable for devices
+ * linetable=sccpline                                     ; datebasetable for lines
  * \endcode
  *
  * /etc/asterisk/extconfig.conf:
@@ -392,7 +392,7 @@
  * for mysql v5:
  * \code
  * [settings]
- * sccpdevice => mysql,asterisk,sccpdeviceconfig
+ * sccpdevice => mysql,asterisk,sccpdeviceconfig	  ; make use of the sccpdeviceconfig view instead of sccpdevice
  * sccpline => mysql,asterisk,sccpline
  * \endcode
  *

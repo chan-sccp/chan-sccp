@@ -79,7 +79,7 @@
 /* building user */
 #undef BUILD_USER
 
-/* Debug SCCP advanced functions (experimental/dev only) */
+/* advanced functions enabled */
 #undef CS_ADV_FEATURES
 
 /* Found 'struct ast_callerid' in asterisk/channel.h */
@@ -187,22 +187,22 @@
 /* Found 'AST_FORMAT_SIREN7' in asterisk/frame.h */
 #undef CS_CODEC_G722_1_24K
 
-/* Debug SCCP indications */
+/* debug indications enabled */
 #undef CS_DEBUG_INDICATIONS
 
-/* sccp reload (experimental/dev only) */
+/* sccp reload enabled */
 #undef CS_DYNAMIC_CONFIG
 
-/* Using dynamic speeddials */
+/* dynamic speeddials enabled */
 #undef CS_DYNAMIC_SPEEDDIAL
 
-/* Using dynamic speeddials with callinfo */
+/* dynamic speeddials with callinfo enabled */
 #undef CS_DYNAMIC_SPEEDDIAL_CID
 
 /* Found 'ENUM AST_DEVICE' in asterisk/devicestate.h */
 #undef CS_ENUM_AST_DEVICE
 
-/* Enable manager events */
+/* manager events enabled */
 #undef CS_MANAGER_EVENTS
 
 /* Found 'new ast_cli_generator definition' in asterisk/cli.h */
@@ -214,28 +214,28 @@
 /* Found 'new ast_devstate_changed' in asterisk/devicestate.h */
 #undef CS_NEW_DEVICESTATE
 
-/* Enable conference function */
+/* conference enabled */
 #undef CS_SCCP_CONFERENCE
 
-/* Enable DIRTRFR function */
+/* direct transfer enabled */
 #undef CS_SCCP_DIRTRFR
 
-/* SCCP feature monitor */
+/* feature monitor enabled */
 #undef CS_SCCP_FEATURE_MONITOR
 
-/* Enable Dialplan Functions */
+/* dialplan function enabled */
 #undef CS_SCCP_FUNCTIONS
 
-/* Enable manager console control */
+/* manager console control enabled */
 #undef CS_SCCP_MANAGER
 
-/* Enable park function */
+/* park functionality enabled */
 #undef CS_SCCP_PARK
 
-/* Enable pickup function */
+/* pickup function enabled */
 #undef CS_SCCP_PICKUP
 
-/* SCCP realtime */
+/* realtime enabled */
 #undef CS_SCCP_REALTIME
 
 /* Using streaming video */
