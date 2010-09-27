@@ -967,6 +967,40 @@ static char system_message_usage[] = "Usage: sccp system message <message text> 
 CLI_ENTRY(cli_system_message,sccp_system_message,"Send a system wide message to all SCCP Devices",system_message_usage)
 #undef CLI_COMMAND
 
+/* -----------------------------------------------------------------------------------------------------DND DEVICE- */
+/*!
+ * \brief Message Device
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ */
+static int sccp_dnd_device(int fd, int argc, char * argv[]) {
+	sccp_device_t *d = NULL;
+
+	if (argc < 3)
+		return RESULT_SHOWUSAGE;
+
+	d = sccp_device_find_byid(argv[3], TRUE);
+	if (!d) {
+		ast_cli(fd, "Can't find device %s\n", argv[3]);
+		return RESULT_SUCCESS;
+	}
+	sccp_device_lock(d);
+
+	sccp_sk_dnd(d, NULL, 0, NULL);
+
+	sccp_device_unlock(d);
+
+	return RESULT_SUCCESS;
+}
+
+static char dnd_device_usage[] = "Usage: sccp dnd <deviceId>\n"
+				      "       Send a dnd to an SCCP Device.\n";
+
+#define CLI_COMMAND "sccp", "dnd", "device", NULL
+CLI_ENTRY_COMPLETE(cli_dnd_device,sccp_dnd_device,"Send a dnd to SCCP Device",dnd_device_usage,sccp_complete_device)
+#undef CLI_COMMAND
 /* --------------------------------------------------------------------------------------------REMOVE_LINE_FROM_DEVICE- */
 /*!
  * \brief Remove Line From Device
@@ -1026,7 +1060,7 @@ static int sccp_add_line_to_device(int fd, int argc, char * argv[])
 #else
 	sccp_config_addLine(d, l->name, 0, 0);
 #endif
-	
+
 	ast_cli(fd, "Error: Line %s has been added to device %s", l->name, d->id);
 	return RESULT_SUCCESS;
 }
@@ -1046,7 +1080,7 @@ CLI_ENTRY_COMPLETE(cli_add_line_to_device,sccp_add_line_to_device,"Add a line to
  * \param argv[] Argv[] as char
  * \return Result as int
  *
- * \todo TO BE IMPLEMENTED: sccp show mwi subscriptions 
+ * \todo TO BE IMPLEMENTED: sccp show mwi subscriptions
  */
 static int sccp_show_mwi_subscriptions(int fd, int argc, char * argv[]) {
 	return RESULT_FAILURE;
@@ -1434,6 +1468,7 @@ void sccp_register_cli(void) {
 	ast_cli_register(&cli_show_globals);
 	ast_cli_register(&cli_message_devices);
 	ast_cli_register(&cli_message_device);
+	ast_cli_register(&cli_dnd_device);
 	ast_cli_register(&cli_remove_line_from_device);
 	ast_cli_register(&cli_add_line_to_device);
 	ast_cli_register(&cli_show_mwi_subscriptions);
@@ -1469,6 +1504,7 @@ void sccp_unregister_cli(void) {
 	ast_cli_unregister(&cli_show_globals);
 	ast_cli_unregister(&cli_message_devices);
 	ast_cli_unregister(&cli_message_device);
+	ast_cli_unregister(&cli_dnd_device);
 	ast_cli_unregister(&cli_remove_line_from_device);
 	ast_cli_unregister(&cli_add_line_to_device);
 	ast_cli_unregister(&cli_show_mwi_subscriptions);
