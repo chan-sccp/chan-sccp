@@ -249,7 +249,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		
 		/* */
 		if (c->previousChannelState != SCCP_CHANNELSTATE_PROGRESS){
-                        if (d->earlyrtp != SCCP_CHANNELSTATE_OFFHOOK || d->earlyrtp != SCCP_CHANNELSTATE_DIALING) {
+                        if (d->earlyrtp != SCCP_CHANNELSTATE_OFFHOOK && d->earlyrtp != SCCP_CHANNELSTATE_DIALING) {
 				sccp_dev_starttone(c->device, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
                         }else{
 				//TODO fake ringing?
@@ -264,7 +264,6 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 	case SCCP_CHANNELSTATE_PROCEED:
 		if(c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) { // this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app)
 			sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
-			c->state = SCCP_CHANNELSTATE_CONNECTED;
 			// sccp_feat_updatecid(c);
 			return;
 		}
@@ -273,9 +272,6 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		// sccp_dev_set_keyset(d, l->instance, c->callid, KEYMODE_CONNECTED);
 		sccp_channel_send_callinfo(d, c);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
-		if (!c->rtp.audio.rtp) {
-			sccp_channel_openreceivechannel(c);
-		}
 		break;
 	case SCCP_CHANNELSTATE_HOLD:
 		sccp_channel_closereceivechannel(c);
