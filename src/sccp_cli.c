@@ -1430,6 +1430,7 @@ static struct ast_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_remove_line_from_device, "Remove a line from a device."),
 	AST_CLI_DEFINE(cli_add_line_to_device, "Add a line to a device."),
 	AST_CLI_DEFINE(cli_show_sessions, "Show All SCCP Sessions."),
+	AST_CLI_DEFINE(cli_dnd_device, "Set DND on a device"),
 	AST_CLI_DEFINE(cli_do_debug, "Enable SCCP debugging."),
 	AST_CLI_DEFINE(cli_no_debug, "Disable SCCP debugging."),
 	AST_CLI_DEFINE(cli_reload, "SCCP module reload."),
