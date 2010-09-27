@@ -429,7 +429,7 @@ fi
 AC_MSG_NOTICE([--enable-optimization: ${OPTIMIZECPU}])
 
 AC_ARG_ENABLE(debug,
-	[AC_HELP_STRING([--enable-debug],[build with debug information])],enable_debug=$enableval,enable_debug=no)
+	[AC_HELP_STRING([--enable-debug],[enable debug information])],enable_debug=$enableval,enable_debug=no)
 if test "${enable_debug}" = "yes"; then
    AC_DEFINE([DEBUG],[],[Enable extra debugging.])
    enable_do_crash="yes"
@@ -451,114 +451,113 @@ AC_SUBST([GDB_FLAGS])
 
 dnl Add Arguments to configure
 AC_ARG_ENABLE(pickup, 
-  AC_HELP_STRING([--disable-pickup], [build with pickup function (default is YES)]), 
+  AC_HELP_STRING([--disable-pickup], [disable pickup function]), 
   ac_cv_use_pickup=$enableval, ac_cv_use_pickup=yes)
 	AS_IF([test "${ac_cv_use_pickup}" == "yes"], [
-        	AC_DEFINE(CS_SCCP_PICKUP, 1, [Enable pickup function])
+        	AC_DEFINE(CS_SCCP_PICKUP, 1, [pickup function enabled])
 ])
 AC_MSG_NOTICE([--enable-pickup: ${ac_cv_use_pickup}])
 
 AC_ARG_ENABLE(park, 
-  AC_HELP_STRING([--disable-park], [build with park funktion (default is YES)]), 
+  AC_HELP_STRING([--disable-park], [disable park functionality]), 
   ac_cv_use_park=$enableval, ac_cv_use_park=yes)
 	AS_IF([test "${ac_cv_use_park}" == "yes"], [
-        	AC_DEFINE(CS_SCCP_PARK, 1, [Enable park function])
+        	AC_DEFINE(CS_SCCP_PARK, 1, [park functionality enabled])
 ])
 AC_MSG_NOTICE([--enable-park: ${ac_cv_use_park}])
 
 AC_ARG_ENABLE(dirtrfr, 
-  AC_HELP_STRING([--disable-dirtrfr], [Build DIRTRFR functions (default is YES)]), 
+  AC_HELP_STRING([--disable-dirtrfr], [disable direct transfer]), 
   ac_cv_use_dirtrfr=$enableval, ac_cv_use_dirtrfr=yes)
 	AS_IF([test "${ac_cv_use_dirtrfr}" == "yes"], [
-        	AC_DEFINE(CS_SCCP_DIRTRFR, 1, [Enable DIRTRFR function])
+        	AC_DEFINE(CS_SCCP_DIRTRFR, 1, [direct transfer enabled])
 ])
 AC_MSG_NOTICE([--enable-dirtrfr: ${ac_cv_use_dirtrfr}])
 
 AC_ARG_ENABLE(monitor, 
-  AC_HELP_STRING([--disable-monitor], [Build monitor functions (default is YES)]), 
+  AC_HELP_STRING([--disable-monitor], [disable feature monitor)]), 
   ac_cv_use_monitor=$enableval, ac_cv_use_monitor=yes)
 	AS_IF([test "${ac_cv_use_monitor}" == "yes"], [
-        	AC_DEFINE(CS_SCCP_FEATURE_MONITOR, 1, [Enable monitor function])
+        	AC_DEFINE(CS_SCCP_FEATURE_MONITOR, 1, [feature monitor enabled])
 ])
 AC_MSG_NOTICE([--enable-monitor: ${ac_cv_use_monitor}])
 
 AC_ARG_ENABLE(conference, 
-  AC_HELP_STRING([--enable-conference], [Build conference functions (default is NO)]), 
+  AC_HELP_STRING([--enable-conference], [enable conference (>ast 1.6.2)(experimental)]), 
   ac_cv_use_conference=$enableval, ac_cv_use_conference=no)
 	AS_IF([test "${ac_cv_use_conference}" == "yes"], [
-        	AC_DEFINE(CS_SCCP_CONFERENCE, 1, [Enable conference function])
+        	AC_DEFINE(CS_SCCP_CONFERENCE, 1, [conference enabled])
 ])
 AC_MSG_NOTICE([--enable-conference: ${ac_cv_use_conference}])
 
 AC_ARG_ENABLE(manager, 
-  AC_HELP_STRING([--disable-manager], [Build manager functions (default is YES)]), 
+  AC_HELP_STRING([--disable-manager], [disabled ast manager events]), 
   ac_cv_use_manager=$enableval, ac_cv_use_manager=yes)
 	AS_IF([test "${ac_cv_use_manager}" == "yes"], [
-        	AC_DEFINE(CS_MANAGER_EVENTS, 1, [Enable manager events])
-	        AC_DEFINE(CS_SCCP_MANAGER, 1, [Enable manager console control])
+        	AC_DEFINE(CS_MANAGER_EVENTS, 1, [manager events enabled])
+	        AC_DEFINE(CS_SCCP_MANAGER, 1, [manager console control enabled])
 ])
 AC_MSG_NOTICE([--enable-manager: ${ac_cv_use_manager}])
 
 AC_ARG_ENABLE(functions, 
-  AC_HELP_STRING([--disable-functions], [Build dialplan functions (default is YES)]), 
+  AC_HELP_STRING([--disable-functions], [disabled Dialplan functions]), 
   ac_cv_use_functions=$enableval, ac_cv_use_functions=yes)
 	AS_IF([test "${ac_cv_use_functions}" == "yes"], [
-	        AC_DEFINE(CS_SCCP_FUNCTIONS, 1, [Enable Dialplan Functions])
+	        AC_DEFINE(CS_SCCP_FUNCTIONS, 1, [dialplan function enabled])
 ])
 AC_MSG_NOTICE([--enable-functions: ${ac_cv_use_functions}])
 
 AC_ARG_ENABLE(indications, 
-  AC_HELP_STRING([--enable-indications], [Debug SCCP indications (default is NO)]), 
+  AC_HELP_STRING([--enable-indications], [enabled debug indications]), 
   ac_cv_debug_indications=$enableval, ac_cv_debug_indications=no)
 	AS_IF([test "${ac_cv_debug_indications}" == "yes"], [
-        	AC_DEFINE(CS_DEBUG_INDICATIONS, 1, [Debug SCCP indications])
+        	AC_DEFINE(CS_DEBUG_INDICATIONS, 1, [debug indications enabled])
 ])
 AC_MSG_NOTICE([--enable-indications: ${ac_cv_debug_indications}])
 
 AC_ARG_ENABLE(realtime, 
-  AC_HELP_STRING([--disable-realtime], [realtime support (default is YES)]), 
+  AC_HELP_STRING([--disable-realtime], [disabled realtime support]), 
   ac_cv_realtime=$enableval, ac_cv_realtime=yes)
     AS_IF([test "${ac_cv_realtime}" == "yes"], [
-    	AC_DEFINE(CS_SCCP_REALTIME, 1, [SCCP realtime])
+    	AC_DEFINE(CS_SCCP_REALTIME, 1, [realtime enabled])
 ])
 AC_MSG_NOTICE([--enable-realtime: ${ac_cv_realtime}])
 
 AC_ARG_ENABLE(feature_monitor, 
-  AC_HELP_STRING([--enable-feature-monitor], [feature monitor (default is NO)]), 
+  AC_HELP_STRING([--enable-feature-monitor], [enabled feature monitor]), 
   ac_cv_feature_monitor=$enableval, ac_cv_feature_monitor=no)
     AS_IF([test "${ac_cv_feature_monitor}" == "yes"], [
-       	AC_DEFINE(CS_SCCP_FEATURE_MONITOR, 1, [SCCP feature monitor])
+       	AC_DEFINE(CS_SCCP_FEATURE_MONITOR, 1, [feature monitor enabled])
 ])
 AC_MSG_NOTICE([--enable-feature-monitor: ${ac_cv_feature_monitor}])
 
-
 AC_ARG_ENABLE(advanced_functions, 
-  AC_HELP_STRING([--enable-advanced-functions], [advanced functions (experimental/dev only)(asterisk 1.6.2 required)(default is NO)]), 
+  AC_HELP_STRING([--enable-advanced-functions], [enabled advanced functions (experimental)]), 
     ac_cv_advanced_functions=$enableval, ac_cv_advanced_functions=no)
     AS_IF([test "${ac_cv_advanced_functions}" == "yes"], [
-       	AC_DEFINE(CS_ADV_FEATURES, 1, [Debug SCCP advanced functions (experimental/dev only)])
+       	AC_DEFINE(CS_ADV_FEATURES, 1, [advanced functions enabled])
 ])
 AC_MSG_NOTICE([--enable-advanced-functions: ${ac_cv_advanced_functions}])
 
 AC_ARG_ENABLE(dynamic_speeddial, 
-  AC_HELP_STRING([--disable-dynamic-speeddial], [Using dynamic speeddials (default is YES)]), 
+  AC_HELP_STRING([--disable-dynamic-speeddial], [disable dynamic speeddials]), 
   ac_cv_dynamic_speeddial=$enableval, ac_cv_dynamic_speeddial=yes)
     AS_IF([test "${ac_cv_dynamic_speeddial}" == "yes"], [
-       	AC_DEFINE(CS_DYNAMIC_SPEEDDIAL, 1, [Using dynamic speeddials])
+       	AC_DEFINE(CS_DYNAMIC_SPEEDDIAL, 1, [dynamic speeddials enabled])
 ])
 AC_MSG_NOTICE([--enable-dynamic-speeddial: ${ac_cv_dynamic_speeddial}])
 
 AC_ARG_ENABLE(dynamic_speeddial_cid, 
-  AC_HELP_STRING([--disable-dynamic-speeddial-cid], [Using dynamic speeddials with call info (default is YES)]), 
+  AC_HELP_STRING([--disable-dynamic-speeddial-cid], [disable dynamic speeddials with call info]), 
   ac_cv_dynamic_speeddial_cid=$enableval, ac_cv_dynamic_speeddial_cid=yes)
 AS_IF([test "${ac_cv_dynamic_speeddial_cid}" == "yes"], [
-       	AC_DEFINE(CS_DYNAMIC_SPEEDDIAL, 1, [Using dynamic speeddials])
-       	AC_DEFINE(CS_DYNAMIC_SPEEDDIAL_CID, 1, [Using dynamic speeddials with callinfo])
+       	AC_DEFINE(CS_DYNAMIC_SPEEDDIAL, 1, [dynamic speeddials enabled])
+       	AC_DEFINE(CS_DYNAMIC_SPEEDDIAL_CID, 1, [dynamic speeddials with callinfo enabled])
 ])
 AC_MSG_NOTICE([--enable-dynamic-speeddial_cid: ${ac_cv_dynamic_speeddial_cid}])
 
 AC_ARG_ENABLE(video, 
-  AC_HELP_STRING([--enable-video], [Using streaming video (experimental/dev only)(default is NO)]), 
+  AC_HELP_STRING([--enable-video], [enable streaming video (experimental)]), 
   ac_cv_streaming_video=$enableval, ac_cv_streaming_video=no)
 AS_IF([test "${ac_cv_streaming_video}" == "yes"], [
        	AC_DEFINE(CS_SCCP_VIDEO, 1, [Using streaming video])
@@ -567,10 +566,10 @@ AC_MSG_NOTICE([--enable-video: ${ac_cv_streaming_video}])
 
 dnl << Temporary additions. For Development Only
 AC_ARG_ENABLE(dynamic_config, 
-  AC_HELP_STRING([--disable-dynamic-config], [sccp reload (default is YES)]), 
+  AC_HELP_STRING([--disable-dynamic-config], [disable sccp reload]), 
   ac_cv_dynamic_config=$enableval, ac_cv_dynamic_config=yes)
     AS_IF([test "${ac_cv_dynamic_config}" == "yes"], [
-       	AC_DEFINE(CS_DYNAMIC_CONFIG, 1, [sccp reload (experimental/dev only)])
+       	AC_DEFINE(CS_DYNAMIC_CONFIG, 1, [sccp reload enabled])
 ])
 AC_MSG_NOTICE([--enable-dynamic-config: ${ac_cv_dynamic_config}])
 dnl Temporary additions. For Development Only >>
