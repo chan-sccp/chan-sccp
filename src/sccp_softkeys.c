@@ -227,20 +227,26 @@ void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
+ *
+ * \todo discus Marcello's transfer experiment
  */
 void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
+	/* Marcello's transfer experiment Remarked out becasue David/Steven advised against it - MC */
+#if 0
 	sccp_buttonconfig_t 	*config = NULL;
 	sccp_channel_t 		*channel = NULL;
 	sccp_line_t 		*line = NULL;
 	sccp_channel_t 		*transfereeChannel = NULL, *transferingChannel = NULL;
-	
+#endif	
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Transfer Pressed\n", DEV_ID_LOG(d));
 	if (!c) {
 		sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: Transfer when there is no active call\n", d->id);
 		return;
 	}
-	
+
+	/* Marcello's transfer experiment Remarked out becasue David/Steven advised against it - MC */
+#if 0	
 	if(d->transfer_channel && d->transfer_channel != c){
         	sccp_channel_transfer_complete(c);
                 return;
@@ -316,7 +322,8 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 	}
-	
+#endif
+	sccp_channel_transfer(c);	
 }
 
 /*!
