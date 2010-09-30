@@ -415,6 +415,16 @@ typedef enum {
 	SCCP_CONFIG_READRELOAD
 }sccp_readingtype_t;									/*!< Reading Type */
 
+
+/*!
+ * \brief Status of configuration change
+ */
+typedef enum {
+	SCCP_CONFIG_NOUPDATENEEDED=0,
+	SCCP_CONFIG_NEEDDEVICERESET
+}sccp_configurationchange_t;								/*!< configuration state change */
+
+
 /*!
  * \brief SCCP Mailbox Type Definition
  */
