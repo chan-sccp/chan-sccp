@@ -1184,7 +1184,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list){
 		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: reload realtime line\n", l->name);
 		if (l->realtime == TRUE){
-			v = sccp_line_find_realtime_byname(l->name);
+			v = ast_load_realtime(GLOB(realtimelinetable), "name", l->name, NULL);
 			if(!v){
 				l->pendingDelete = 1;
 				continue;
