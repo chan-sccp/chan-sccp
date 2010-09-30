@@ -84,7 +84,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype);
 void cleanup_stale_contexts(char *new, char *old);
 void sccp_config_readDevicesLines(sccp_readingtype_t readingtype);
 
-sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_variable *v);
+sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_variable *v);
 sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast_variable *v);
 
 void sccp_config_softKeySet(struct ast_variable *variable, const char *name);
