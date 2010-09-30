@@ -404,12 +404,12 @@ sccp_line_t * sccp_line_find_realtime_byname(const char * name)
 
 		ast_log(LOG_NOTICE, "SCCP: creating realtime line '%s'\n", name);
 		l = sccp_line_create();
-		l = sccp_config_applyLineConfiguration(l, variable);
+		sccp_config_applyLineConfiguration(l, variable);
+		
 		sccp_copy_string(l->name, name, sizeof(l->name));
-#ifdef CS_SCCP_REALTIME
 		l->realtime = TRUE;
-#endif
 		l = sccp_line_addToGlobals(l);
+		
 		ast_variables_destroy(v);
 
 		if(!l) {

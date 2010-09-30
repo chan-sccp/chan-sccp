@@ -540,7 +540,7 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 	}
 #endif /* CS_DYNAMIC_CONFIG */
 
-	l = sccp_config_applyLineConfiguration(l, variable); /* apply configuration using variable */
+	sccp_config_applyLineConfiguration(l, variable); /* apply configuration using variable */
 
 #ifdef CS_DYNAMIC_CONFIG
 	/* compare temporairy temp_l to l */
@@ -1179,6 +1179,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 #ifdef CS_SCCP_REALTIME	
 	/* reload realtime lines */
 	sccp_line_t *l;
+	sccp_configurationchange_t res;
 	
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list){
@@ -1189,7 +1190,11 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				l->pendingDelete = 1;
 				continue;
 			}
-			sccp_config_applyLineConfiguration(l, v);
+
+			res = sccp_config_applyLineConfiguration(l, v);
+			if(res == SCCP_CONFIG_NEEDDEVICERESET){
+				l->pendingUpdate = 1;
+			}
 			ast_variables_destroy(v);
 		}
 	}
@@ -1227,8 +1232,9 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
  * \callgraph
  * \callergraph
  */
-sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_variable *v){
+sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_variable *v){
 	int amaflags = 0;
+	sccp_configurationchange_t res = SCCP_CONFIG_NOUPDATENEEDED;
 	unsigned int audio_tos = 0;
 	unsigned int video_tos = 0;
 	unsigned int audio_cos = 0;
@@ -1256,6 +1262,9 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 			} else if (!strcasecmp(v->name, "pin")) {
 				sccp_copy_string(l->pin, v->value, sizeof(l->pin));
 			} else if (!strcasecmp(v->name, "label")) {
+				if(strcmp(l->label, v->value)==0){
+					res = SCCP_CONFIG_NEEDDEVICERESET;
+				}
 				sccp_copy_string(l->label, v->value, sizeof(l->label));
 			} else if (!strcasecmp(v->name, "description")) {
 				sccp_copy_string(l->description, v->value, sizeof(l->description));
@@ -1471,7 +1480,7 @@ sccp_line_t *sccp_config_applyLineConfiguration(sccp_line_t *l, struct ast_varia
 		}
 		v = v->next;
 	}
-	return l;
+	return res;
 }
 
 
