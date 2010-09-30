@@ -1174,6 +1174,29 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 		}
 	}
 	ast_config_destroy(cfg);
+	
+	
+#ifdef CS_SCCP_REALTIME	
+	/* reload realtime lines */
+	sccp_line_t *l;
+	
+	SCCP_LIST_LOCK(&GLOB(lines));
+	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list){
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: reload realtime line\n", l->name);
+		if (l->realtime == TRUE){
+			v = sccp_line_find_realtime_byname(l->name);
+			if(!v){
+				l->pendingDelete = 1;
+				continue;
+			}
+			sccp_config_applyLineConfiguration(l, v);
+			ast_variables_destroy(v);
+		}
+	}
+	SCCP_LIST_UNLOCK(&GLOB(lines));
+	/* finished realtime line reload */
+#endif
+	
 
 #ifdef CS_DYNAMIC_CONFIG
 	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1 "Checking ReadingType\n");
