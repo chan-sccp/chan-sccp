@@ -1186,12 +1186,14 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: reload realtime line\n", l->name);
 		if (l->realtime == TRUE){
 			v = ast_load_realtime(GLOB(realtimelinetable), "name", l->name, NULL);
+			/* we did not find this line, mark it for deletion */ 
 			if(!v){
 				l->pendingDelete = 1;
 				continue;
 			}
 
 			res = sccp_config_applyLineConfiguration(l, v);
+			/* check if we did some changes that needs a device update */
 			if(res == SCCP_CONFIG_NEEDDEVICERESET){
 				l->pendingUpdate = 1;
 			}
