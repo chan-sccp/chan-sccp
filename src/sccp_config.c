@@ -1264,7 +1264,7 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t *l, st
 			} else if (!strcasecmp(v->name, "pin")) {
 				sccp_copy_string(l->pin, v->value, sizeof(l->pin));
 			} else if (!strcasecmp(v->name, "label")) {
-				if(strcmp(l->label, v->value)==0){
+				if(strcasecmp(l->label, v->value) != 0){
 					res = SCCP_CONFIG_NEEDDEVICERESET;
 				}
 				sccp_copy_string(l->label, v->value, sizeof(l->label));
