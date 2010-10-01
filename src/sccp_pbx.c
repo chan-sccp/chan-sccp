@@ -755,18 +755,19 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 			case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
 				if ( (c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) == 0 
+						&& c->rtp.video.rtp
 						&& c->device 
-						&& (c->device->capability & frame->subclass) ) {
-						  
-					c->rtp.video.writeFormat = frame->subclass;
-					sccp_channel_openMultiMediaChannel(c);
-					//ast_log(LOG_NOTICE, "%s: Got Video frame type (%s)%d sampling: %d\n", DEV_ID_LOG(c->device), ast_codec2str(frame->subclass), frame->subclass, frame->samples);
+					//	&& (c->device->capability & frame->subclass) 
+				   ) {
+					ast_log(LOG_NOTICE, "%s: got video frame\n", DEV_ID_LOG(c->device));  
+ 					c->rtp.video.writeFormat = frame->subclass;
+ 					sccp_channel_openMultiMediaChannel(c);
 				}
 #endif
-				if (c->rtp.video.rtp){
+				if (c->rtp.video.rtp && (c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) != 0 ){
 					res = sccp_rtp_write(c->rtp.video.rtp, frame);
 				}else{
-					//ast_log(LOG_NOTICE, "%s: drop video frame\n", DEV_ID_LOG(c->device));
+					ast_log(LOG_NOTICE, "%s: drop video frame\n", DEV_ID_LOG(c->device));
 				}
 				break;
 
@@ -1143,7 +1144,7 @@ static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit, unsigned 
 	}
 
 	if (digit > 16) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Cisco phones can't play this type of dtmf. Sinding it inband\n", d->id);
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s: Cisco phones can't play this type of dtmf. Sending it inband\n", d->id);
 		return -1;
 	}
 
@@ -1644,6 +1645,9 @@ void * sccp_pbx_softswitch(sccp_channel_t * c) {
 	/* set private variable */
 	if (chan && !ast_check_hangup(chan)) {
 		sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "SCCP: set variable SKINNY_PRIVATE to: %s\n", c->privacy ? "1" : "0");
+		if(c->privacy){
+			chan->cid.cid_pres = AST_PRES_PROHIB_USER_NUMBER_NOT_SCREENED;
+		}
 
 		uint32_t result = d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
 		result |= c->privacy;
