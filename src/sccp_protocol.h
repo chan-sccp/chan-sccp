@@ -1847,7 +1847,7 @@ typedef union {
 		uint32_t 	lel_instance;					/*!< Instance */
                 uint32_t 	lel_type;					/*!< always 0x15 */
                 uint32_t 	lel_status;					/*!< status */
-		char	 	DisplayName[StationMaxNameSize];		/*!< SpeedDial Display Name */
+		char	 	DisplayName[StationMaxNameSize];		/*!< SpeedDial Display Name */ //TODO shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146
 	} FeatureStatAdvancedMessage;						/*!< Speed Dial Stat Dynamic Message Structure */
 
         struct {
@@ -3009,6 +3009,24 @@ typedef union {
 		
 		uint32_t			unknown[12];				/*!< Unknown */
 	} OpenMultiMediaChannelMessage;							/*!< Open Multi Media Channel Message Structure */
+	
+	
+	struct{
+		uint32_t			lel_conferenceID;			/*!< Conference ID */
+		uint32_t 			lel_passThruPartyId;			/*!< Pass Through Party ID */
+		skinny_media_payload		lel_payloadCapability;			/*!< payload capability */
+		uint32_t 			lel_lineInstance;			/*!< Line Instance */
+		uint32_t			lel_callReference;			/*!< Call Reference */
+		uint32_t			lel_payload_rfc_number;			/*!<  */
+		uint32_t			lel_payloadType;			/*!< payload type */
+		uint32_t			lel_isConferenceCreator;		/*!< we can set it to 0 */
+		
+		audioParameter_t		audioParameter;				/*!< Audio Parameter */
+		videoParameter_t		videoParameter;				/*!< Video Parameter */
+		dataParameter_t			dataParameter;				/*!< Data Parameter */
+		
+		uint32_t			unknown[19];				/*!< Unknown */
+	} OpenMultiMediaChannelMessage_v17;						/*!< Open Multi Media Channel Message Structure */
 
 	/*!
 	 * \since 20100104 -MC
@@ -3055,6 +3073,7 @@ typedef union {
 		uint32_t			lel_conferenceID;			/*!< Conference ID */
 		uint32_t 			lel_passThruPartyId;			/*!< Pass Through Party ID */
 		skinny_media_payload		lel_payloadCapability;			/*!< payload capability */
+		uint32_t			unknown1;				/*!<  */
 		
 		char 				bel_remoteIpAddr[16]; 			/*!< This field is apparently in big-endian
                                                                                              format, even though most other fields are
