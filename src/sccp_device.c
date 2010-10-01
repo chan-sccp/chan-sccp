@@ -1614,8 +1614,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		}
 		return;
 	}
-
-	d->session = NULL;
 }
 
 
