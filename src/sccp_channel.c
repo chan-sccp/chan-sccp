@@ -972,7 +972,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t *channel){
 	channel->rtp.video.status |= SCCP_RTP_STATUS_RECEIVE;
 	skinnyFormat = sccp_codec_ast2skinny(channel->rtp.video.writeFormat);
 	
-	sampleRate = ast_rtp_lookup_sample_rate(1, channel->rtp.video.writeFormat);
+	//sampleRate = ast_rtp_lookup_sample_rate(1, channel->rtp.video.writeFormat);
 	payloadType = ast_rtp_lookup_code(channel->rtp.video.rtp, 1, channel->rtp.video.writeFormat);
 	lineInstance = sccp_device_find_index_for_line(channel->device, channel->line->name);
 
