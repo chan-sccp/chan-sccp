@@ -684,7 +684,7 @@ void sccp_dev_set_cplane(sccp_line_t * l, uint8_t lineInstance, sccp_device_t *d
 	if (status)
 		r->msg.ActivateCallPlaneMessage.lel_lineInstance = htolel(lineInstance);
 	sccp_dev_send(device, r);
-	
+
 	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send activate call plane on line %d\n", device->id, (status) ? lineInstance : 0 );
 }
 
@@ -1298,7 +1298,7 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
  * \param l SCCP Line
  * \param hasMail Mail Indicator Status as uint8_t
  *
- * \deprecated 
+ * \deprecated
  * \todo should this be implemented or removed
  *
  * \callgraph
@@ -1352,7 +1352,7 @@ void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
  * \param instance Instance as uint8_t
  * \param lampMode LampMode as uint8_t
  *
- * \deprecated 
+ * \deprecated
  * \todo: dev_set_lamp (SetLampMessage) ToBeRemoved / Moved / Reimplemented ?
  */
 void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t instance, uint8_t lampMode)
@@ -1393,8 +1393,8 @@ void sccp_dev_forward_status(sccp_line_t *l, uint8_t lineInstance, sccp_device_t
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Send Forward Status.  Line: %s\n", device->id, l->name);
 	REQ(r1, ForwardStatMessage);
 	r1->msg.ForwardStatMessage.lel_lineNumber = htolel(lineInstance);
-	
-	
+
+
 	linedevice=sccp_util_getDeviceConfiguration(device,l);
 
 	//TODO check for forward status during registration -MC
@@ -1411,7 +1411,7 @@ void sccp_dev_forward_status(sccp_line_t *l, uint8_t lineInstance, sccp_device_t
 			r1->msg.ForwardStatMessage.lel_cfwdbusystatus = htolel(1);
 			sccp_copy_string(r1->msg.ForwardStatMessage.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(r1->msg.ForwardStatMessage.cfwdbusynumber));
 		}
-		
+
 #ifdef CS_ADV_FEATURES
 		char tmp[256] = "";
 
@@ -1597,7 +1597,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		ast_free(d->buttonTemplate);
 		d->buttonTemplate = NULL;
 	}
-	
+
 	sccp_device_unlock(d);
 
 	if(remove_from_global){
@@ -1749,7 +1749,7 @@ uint8_t sccp_device_find_index_for_line(const sccp_device_t * d, const char *lin
  * \param device SCCP Device
  * \param line SCCP Line
  *
- * \deprecated 
+ * \deprecated
  * \todo Should this be implemented or removed ?
  *
  * \callgraph
@@ -2057,6 +2057,9 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	    (device_a->earlyrtp != device_b->earlyrtp) ||
 	    (device_a->nat != device_b->nat) ||
 	    (device_a->directrtp != device_b->directrtp) ||
+	    (device_a->cfwdall != device_b->cfwdall) ||
+	    (device_a->cfwdbusy != device_b->cfwdbusy) ||
+	    (device_a->cfwdnoanswer != device_b->cfwdnoanswer) ||
 	    (device_a->trustphoneip != device_b->trustphoneip) ) {
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "Changes need reset\n");
 		return CHANGES_NEED_RESET;
@@ -2144,9 +2147,6 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	    (device_a->overlapFeature.enabled != device_b->overlapFeature.enabled) ||
 	    (device_a->privacyFeature.enabled != device_b->privacyFeature.enabled) ||
 	    (device_a->transfer != device_b->transfer) ||
-	    (device_a->cfwdall != device_b->cfwdall) ||
-	    (device_a->cfwdbusy != device_b->cfwdbusy) ||
-	    (device_a->cfwdnoanswer != device_b->cfwdnoanswer) ||
 	    (device_a->park != device_b->park)  ||
 	    (device_a->meetme != device_b->meetme) ||
 #ifdef CS_ADV_FEATURES
