@@ -2118,7 +2118,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r){
 
 	d = s->device;
 	memset(ipAddr, 0, 16);
-	if(d->inuseprotocolversion < 17) {
+	if(d->inuseprotocolversion < 15) {
 		ipPort = htons(htolel(r->msg.OpenMultiMediaReceiveChannelAckMessage.lel_portNumber));
 		partyID = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.lel_passThruPartyId);
 		status = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.lel_orcStatus);
@@ -2129,6 +2129,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r){
 		partyID = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.lel_passThruPartyId);
 		status = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.lel_orcStatus);
 		memcpy(&ipAddr, &r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.bel_ipAddr, 16);
+		memcpy(&sin.sin_addr, &r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.bel_ipAddr, sizeof(sin.sin_addr));
 	}
 
 
@@ -2713,11 +2714,17 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 	sin.sin_port = ipPort;
 
 	c = sccp_channel_find_bypassthrupartyid(partyID);
-	if(!c || status){
-	      ast_log(LOG_WARNING, "%s: Channel with passthrupartyid %d not found, please report this to developer\n", DEV_ID_LOG(d), partyID);
-	      sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
+	if(!c){
+	      ast_log(LOG_WARNING, "%s: Channel with passthrupartyid %u not found, please report this to developer\n", DEV_ID_LOG(d), partyID);
 	      return;
 	}
+	if(status){
+	      ast_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call\n", DEV_ID_LOG(d));
+	      sccp_channel_endcall(c);
+	      return;
+	}
+	
+	
 
 	/* update status */
 	c->rtp.audio.status |=  SCCP_RTP_STATUS_TRANSMIT;
