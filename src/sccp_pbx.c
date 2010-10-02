@@ -56,6 +56,16 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 const struct ast_channel_tech sccp_tech;
 #endif // CS_AST_HAS_TECH_PVT
 
+#ifdef CS_AST_RTP_NEW_SOURCE		
+#define RTP_NEW_SOURCE(_c,_log) \
+if(c->rtp.audio.rtp) { \
+	ast_rtp_new_source(c->rtp.audio.rtp); \
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: " #_log "\n"); \
+}
+#else
+#define RTP_NEW_SOURCE(_c,_log)
+#endif			
+
 /*!
  * \brief Call Auto Answer Thead
  *
@@ -106,15 +116,15 @@ static void * sccp_pbx_call_autoanswer_thread(void *data)
  */
 static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	sccp_line_t		* l;
-	sccp_channel_t 		*c;
-	const char 		*ringermode = NULL;
+	sccp_channel_t 		* c;
+	const char 		* ringermode = NULL;
 	pthread_attr_t 		attr;
 	pthread_t t;
 	char 			suffixedNumber[255] = { '\0' };  /*!< For saving the digittimeoutchar to the logs */
 	boolean_t		hasSession = FALSE;
 
 	if (!ast_strlen_zero(ast->call_forward)) {
-		ast_queue_control(ast, AST_CONTROL_PROGRESS);
+		ast_queue_control(ast, -1); 	/* Prod Channel if in the middle of a call_forward instead of proceed*/
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Forwarding Call to '%s'\n", ast->call_forward);
 		return 0;
 	}
@@ -598,7 +608,7 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 			return 0;
 		}else{
 			/* we have no bridge and can not make a masquerade -> end call */
-			ast_log(LOG_ERROR, "SCCP: We did not found bridge channel for call forwarding call. Hangup\n");
+			ast_log(LOG_ERROR, "SCCP: We did not find bridge channel for call forwarding call. Hangup\n");
 			sccp_channel_endcall(c);
 		}
 		return -1;
@@ -973,13 +983,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 					}
 				}
 			}
-#ifdef CS_AST_RTP_NEW_SOURCE
-			if(c->rtp.audio.rtp) {
-				ast_rtp_new_source(c->rtp.audio.rtp);
-				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
-			}
-#endif // CS_AST_RTP_NEW_SOURCE
-
+			RTP_NEW_SOURCE(c,"Source Update\n");
 			break;
 #endif //defined(CS_AST_CONTROL_SRCCHANGE) || defined(CS_AST_CONTROL_SRCUPDATE)
 
@@ -996,18 +1000,10 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			break;
 		case AST_CONTROL_UNHOLD:
 			ast_moh_stop(ast);
-#ifdef CS_AST_RTP_NEW_SOURCE
-			if(c->rtp.audio.rtp) {
-				ast_rtp_new_source(c->rtp.audio.rtp);
-				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Source UPDATE ok\n");
-			}
-#endif // CS_AST_RTP_NEW_SOURCE
+			RTP_NEW_SOURCE(c,"Source Update");
 			res = 0;
 			break;
 #endif // CS_AST_CONTROL_HOLD
-		case -1: // Asterisk prod the channel
-			res = -1;
-			break;
 #ifdef CS_AST_CONTROL_CONNECTED_LINE
 		case AST_CONTROL_CONNECTED_LINE:
 			sccp_pbx_update_connectedline(ast, data, datalen);
@@ -1020,7 +1016,9 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			} else
 				res = -1;
 			break;
-
+		case -1: // Asterisk prod the channel
+			res = -1;
+			break;
 		default:
 			ast_log(LOG_WARNING, "SCCP: Don't know how to indicate condition %d\n", ind);
 			res = -1;
