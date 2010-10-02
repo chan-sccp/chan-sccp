@@ -576,7 +576,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
 
 #endif
 			sccp_channel_t *remote=NULL;
-			if((remote = get_sccp_channel_from_ast(target))) {
+			if((remote = get_sccp_channel_from_ast_channel(target))) {
 				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) remote channel is SCCP %s -> correct cid\n", remote->owner->name);
 				name = strdup(remote->callInfo.callingPartyName);
 				number = strdup(remote->callInfo.callingPartyNumber);
