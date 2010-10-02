@@ -279,7 +279,7 @@ struct ast_variable * sccp_create_variable(const char *buf) {
  * \param ast_chan Asterisk Channel
  * \return SCCP Channel on Success or Null on Fail
  */
-sccp_channel_t * get_sccp_channel_from_ast(struct ast_channel *ast_chan) {
+sccp_channel_t * get_sccp_channel_from_ast_channel(struct ast_channel *ast_chan) {
 #ifndef CS_AST_HAS_TECH_PVT
 	if (!strncasecmp(ast_chan->type, "SCCP", 4)){
 #else

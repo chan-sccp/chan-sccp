@@ -31,7 +31,7 @@ char * sccp_addons_list(sccp_device_t * d);
 void sccp_safe_sleep(int ms);
 struct ast_variable * sccp_create_variable(const char *buf);
 void sccp_device_add_line(sccp_device_t * d, char * name);
-sccp_channel_t * get_sccp_channel_from_ast(struct ast_channel *ast_chan);
+sccp_channel_t * get_sccp_channel_from_ast_channel(struct ast_channel *ast_chan);
 sccp_selectedchannel_t * sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * c);
 uint8_t sccp_device_selectedchannels_count(sccp_device_t * d);
 

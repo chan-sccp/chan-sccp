@@ -720,6 +720,8 @@ struct sccp_device {
 	char 					description[40];			/*!< Internal Description. Skinny protocol does not use it */
 	char 					config_type[10];			/*!< Model of this Phone used for setting up features/softkeys/buttons etc. */
 	uint32_t 				skinny_type;				/*!< Model of this Phone sent by the station, devicetype*/
+	skinny_devfeature_t			device_features;			/*!< Model Features */
+	uint32_t				maxstreams;				/*!< Maximum number of Stream supported by the device */
 	int 					tz_offset;				/*!< Timezone OffSet */
 	char 					imageversion[StationMaxVersionSize];	/*!< Version to Send to the phone */
 	uint8_t 				accessoryused;				/*!< Accessory Used. This are for support of message 0x0073 AccessoryStatusMessage - Protocol v.11 CCM7 -FS */

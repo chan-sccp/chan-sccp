@@ -858,7 +858,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 
 	if (!strncasecmp(data,"current",7)) {	
 		sccp_channel_t *c;
-		if(!(c = get_sccp_channel_from_ast(chan))) {
+		if(!(c = get_sccp_channel_from_ast_channel(chan))) {
 			ast_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");
 		        return -1;
 		}
@@ -1054,7 +1054,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 		colname = "id";
 
 	if (!strncasecmp(data,"current",7)) {
-		if(!(c = get_sccp_channel_from_ast(chan))) {
+		if(!(c = get_sccp_channel_from_ast_channel(chan))) {
 			ast_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n");
 		        return -1;
 		}
@@ -1065,7 +1065,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 		}
 		l = c->line;
 	} else if (!strncasecmp(data,"parent",7)) {
-		if(!(c = get_sccp_channel_from_ast(chan))) {
+		if(!(c = get_sccp_channel_from_ast_channel(chan))) {
 			ast_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n");
 		        return -1;
 		}
@@ -1256,7 +1256,7 @@ static int sccp_func_sccpchannel(struct ast_channel *chan, char *cmd, char *data
 		colname = "callid";
 
 	if (!strncasecmp(data,"current",7)) {	
-		if(!(c = get_sccp_channel_from_ast(chan))) {
+		if(!(c = get_sccp_channel_from_ast_channel(chan))) {
 			ast_log(LOG_WARNING, "SCCPCHANNEL(): Not an SCCP channel\n");
 		        return -1;
 		}
@@ -1379,7 +1379,7 @@ static int sccp_app_calledparty(struct ast_channel *chan, void *data) {
 	char * num, * name;
 	sccp_channel_t * c=NULL;
 
-	if(!(c = get_sccp_channel_from_ast(chan))) {
+	if(!(c = get_sccp_channel_from_ast_channel(chan))) {
 		ast_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");
 		return 0;
 	}
@@ -1415,7 +1415,7 @@ static int sccp_app_setmessage(struct ast_channel *chan, void *data) {
 	sccp_channel_t 	* c = NULL;
 	sccp_device_t 	* d;
 
-	if(!(c = get_sccp_channel_from_ast(chan))) {
+	if(!(c = get_sccp_channel_from_ast_channel(chan))) {
 		ast_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");
 		return 0;
 	}
