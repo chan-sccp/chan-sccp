@@ -859,7 +859,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 	if (!strncasecmp(data,"current",7)) {	
 		sccp_channel_t *c;
 		if(!(c = get_sccp_channel_from_ast_channel(chan))) {
-			ast_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");
+/*			ast_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");*/
 		        return -1;
 		}
 
@@ -1055,7 +1055,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 
 	if (!strncasecmp(data,"current",7)) {
 		if(!(c = get_sccp_channel_from_ast_channel(chan))) {
-			ast_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n");
+/*			ast_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n");*/
 		        return -1;
 		}
 
@@ -1066,7 +1066,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 		l = c->line;
 	} else if (!strncasecmp(data,"parent",7)) {
 		if(!(c = get_sccp_channel_from_ast_channel(chan))) {
-			ast_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n");
+/*			ast_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n");*/
 		        return -1;
 		}
 		
@@ -1241,9 +1241,6 @@ static int sccp_func_sccpchannel(struct ast_channel *chan, char *cmd, char *data
 {
 	sccp_channel_t *c;
 	char *colname;
-//	char tmp[1024]="";
-//	char lbuf[1024]="";
-//	int first=0;
 
 	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
@@ -1257,7 +1254,7 @@ static int sccp_func_sccpchannel(struct ast_channel *chan, char *cmd, char *data
 
 	if (!strncasecmp(data,"current",7)) {	
 		if(!(c = get_sccp_channel_from_ast_channel(chan))) {
-			ast_log(LOG_WARNING, "SCCPCHANNEL(): Not an SCCP channel\n");
+/*			ast_log(LOG_WARNING, "SCCPCHANNEL(): Not an SCCP channel\n");*/
 		        return -1;
 		}
 
