@@ -2879,7 +2879,7 @@ void sccp_channel_park(sccp_channel_t * c) {
 
 	dual = ast_malloc(sizeof(struct sccp_dual));
 	if (dual) {
-		memset(d, 0, sizeof(*dual));
+		memset(dual, 0, sizeof(struct sccp_dual));
 		dual->chan1 = chan1m;
 		dual->chan2 = chan2m;
 		if (!ast_pthread_create(&th, NULL, sccp_channel_park_thread, dual))

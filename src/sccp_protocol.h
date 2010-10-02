@@ -249,6 +249,22 @@ static const struct skinny_calltype {
         { SKINNY_CALLTYPE_FORWARD 			,	"Forward" 				},
 };
 
+typedef enum {
+        SKINNY_DEVFEATURE_DYNAMIC_MESSAGE	= 1 << 24,
+	SKINNY_DEVFEATURE_ABBREVIATED_DIAL	= 1 << 31,
+} skinny_devfeature_t;								/*!< Skinny Device Feature Enum */
+
+/*!
+ * \brief Skinny Device Feature Structure
+ */
+static const struct skinny_devfeature {
+        skinny_devfeature_t device_feature;
+        const char * const text;
+} skinny_devfeatures [] = {
+        { SKINNY_DEVFEATURE_DYNAMIC_MESSAGE	,	"Dynamic Messages" 				},
+        { SKINNY_DEVFEATURE_ABBREVIATED_DIAL	,	"Abbreviated Dial"				},
+};
+
 
 typedef enum {
         SKINNY_CALLPRIORITY_HIGHEST		=0,

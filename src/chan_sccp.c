@@ -69,6 +69,12 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #if ASTERISK_VERSION_NUM >= 10400
 
+#ifdef CS_AST_HAS_TECH_PVT
+#define SET_CAUSE(x)	*cause = x;
+#else
+#define SET_CAUSE(x)
+#endif
+                        
 void *sccp_create_hotline(void);
 
 /*!
@@ -137,23 +143,17 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 
 
 	memset(&lineSubscriptionId, 0, sizeof(struct composedId));
-#ifdef CS_AST_HAS_TECH_PVT
-	*cause = AST_CAUSE_NOTDEFINED;
-#endif
+	SET_CAUSE(AST_CAUSE_NOTDEFINED);
 
 	if (!type) {
 		ast_log(LOG_NOTICE, "Attempt to call the wrong type of channel\n");
-#ifdef CS_AST_HAS_TECH_PVT
-		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
-#endif
+		SET_CAUSE(AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 		goto OUT;
 	}
 
 	if (!data) {
 		ast_log(LOG_NOTICE, "Attempt to call SCCP/ failed\n");
-#ifdef CS_AST_HAS_TECH_PVT
-		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
-#endif
+		SET_CAUSE(AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 		goto OUT;
 	}
 
@@ -175,9 +175,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 
 	if (!l) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP/%s does not exist!\n", lineSubscriptionId.mainId);
-#ifdef CS_AST_HAS_TECH_PVT
-		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
-#endif
+		SET_CAUSE(AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 		goto OUT;
 	}
 
@@ -185,9 +183,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 	sccp_log((DEBUGCAT_SCCP + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	if (SCCP_LIST_FIRST(&l->devices) == NULL) {
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "SCCP/%s isn't currently registered anywhere.\n", l->name);
-#ifdef CS_AST_HAS_TECH_PVT
-		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
-#endif
+		SET_CAUSE(AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 		goto OUT;
 	}
 
@@ -198,9 +194,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 	/* on multiline phone we set the line when answering or switching lines */
 	c = sccp_channel_allocate(l, NULL);
 	if (!c) {
-#ifdef CS_AST_HAS_TECH_PVT
-		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
-#endif
+		SET_CAUSE(AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 		goto OUT;
 	}
 
@@ -222,9 +216,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 
 
 	if (!sccp_pbx_channel_allocate(c)) {
-#ifdef CS_AST_HAS_TECH_PVT
-		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
-#endif
+		SET_CAUSE(AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 		sccp_channel_delete(c);
 		c = NULL;
 		goto OUT;
@@ -237,9 +229,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 	if(l->devices.size < 2){
 		if(!c->owner){
 			sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: channel has no owner\n", l->name);
-#ifdef CS_AST_HAS_TECH_PVT
-			*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
-#endif
+			SET_CAUSE(AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 			sccp_channel_delete(c);
 			c = NULL;
 			goto OUT;
@@ -292,9 +282,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 
 	if (l->devices.size == 0) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP/%s we have no registered devices for this line.\n", l->name);
-#ifdef CS_AST_HAS_TECH_PVT
-		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
-#endif
+		SET_CAUSE(AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 		goto OUT;
 	}
 	/*
@@ -303,9 +291,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data) {
 		res = ast_translator_best_choice(&format, &GLOB(global_capability));
 		if (res < 0) {
 			ast_log(LOG_NOTICE, "Asked to get a channel of unsupported format '%d'\n", oldformat);
-#ifdef CS_AST_HAS_TECH_PVT
-			*cause = AST_CAUSE_CHANNEL_UNACCEPTABLE;
-#endif
+			SET_CAUSE(AST_CAUSE_CHANNEL_UNACCEPTABLE);
 			goto OUT;
 		}
 	}*/
@@ -872,13 +858,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 
 	if (!strncasecmp(data,"current",7)) {	
 		sccp_channel_t *c;
-#ifndef CS_AST_HAS_TECH_PVT
-		if (!strcasecmp(chan->type, "SCCP")){
-#else
-		if (!strcasecmp(chan->tech->type, "SCCP")){
-#endif
-			c=CS_AST_CHANNEL_PVT(chan);
-		} else {
+		if(!(c = get_sccp_channel_from_ast(chan))) {
 			ast_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");
 		        return -1;
 		}
@@ -1074,13 +1054,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 		colname = "id";
 
 	if (!strncasecmp(data,"current",7)) {
-#ifndef CS_AST_HAS_TECH_PVT
-		if (!strcasecmp(chan->type, "SCCP")){
-#else
-		if (!strcasecmp(chan->tech->type, "SCCP")){
-#endif
-			c=CS_AST_CHANNEL_PVT(chan);
-		} else {
+		if(!(c = get_sccp_channel_from_ast(chan))) {
 			ast_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n");
 		        return -1;
 		}
@@ -1091,13 +1065,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 		}
 		l = c->line;
 	} else if (!strncasecmp(data,"parent",7)) {
-#ifndef CS_AST_HAS_TECH_PVT
-		if (!strcasecmp(chan->type, "SCCP")){
-#else
-		if (!strcasecmp(chan->tech->type, "SCCP")){
-#endif
-			c=CS_AST_CHANNEL_PVT(chan);
-		} else {
+		if(!(c = get_sccp_channel_from_ast(chan))) {
 			ast_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n");
 		        return -1;
 		}
@@ -1288,13 +1256,7 @@ static int sccp_func_sccpchannel(struct ast_channel *chan, char *cmd, char *data
 		colname = "callid";
 
 	if (!strncasecmp(data,"current",7)) {	
-#ifndef CS_AST_HAS_TECH_PVT
-		if (!strcasecmp(chan->type, "SCCP")){
-#else
-		if (!strcasecmp(chan->tech->type, "SCCP")){
-#endif
-			c=CS_AST_CHANNEL_PVT(chan);
-		} else {
+		if(!(c = get_sccp_channel_from_ast(chan))) {
 			ast_log(LOG_WARNING, "SCCPCHANNEL(): Not an SCCP channel\n");
 		        return -1;
 		}
@@ -1415,15 +1377,12 @@ static struct ast_custom_function sccpchannel_function = {
 static int sccp_app_calledparty(struct ast_channel *chan, void *data) {
 	char tmp[256] = "";
 	char * num, * name;
-	sccp_channel_t * c = CS_AST_CHANNEL_PVT(chan);
+	sccp_channel_t * c=NULL;
 
-#ifndef CS_AST_HAS_TECH_PVT
-	if (strcasecmp(chan->type, "SCCP") != 0)
+	if(!(c = get_sccp_channel_from_ast(chan))) {
+		ast_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");
 		return 0;
-#else
-	if (strcasecmp(chan->tech->type, "SCCP") != 0)
-		return 0;
-#endif
+	}
 
 	if (!data || !c)
 		return 0;
@@ -1456,14 +1415,10 @@ static int sccp_app_setmessage(struct ast_channel *chan, void *data) {
 	sccp_channel_t 	* c = NULL;
 	sccp_device_t 	* d;
 
-	c = CS_AST_CHANNEL_PVT(chan);
-#ifndef CS_AST_HAS_TECH_PVT
- 	if (strcasecmp(chan->type, "SCCP") != 0)
- 		return 0;
-#else
- 	if (strcasecmp(chan->tech->type, "SCCP") != 0)
- 		return 0;
-#endif
+	if(!(c = get_sccp_channel_from_ast(chan))) {
+		ast_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");
+		return 0;
+	}
 
  	if (!data || !c ||!c->device)
  		return 0;

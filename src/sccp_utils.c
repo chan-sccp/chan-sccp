@@ -275,6 +275,23 @@ struct ast_variable * sccp_create_variable(const char *buf) {
 }
 
 /*!
+ * \brief Retrieve the SCCP Channel from an Asterisk Channel
+ * \param ast_chan Asterisk Channel
+ * \return SCCP Channel on Success or Null on Fail
+ */
+sccp_channel_t * get_sccp_channel_from_ast(struct ast_channel *ast_chan) {
+#ifndef CS_AST_HAS_TECH_PVT
+	if (!strncasecmp(ast_chan->type, "SCCP", 4)){
+#else
+        if (!strncasecmp(ast_chan->tech->type, "SCCP", 4)){
+#endif
+		return CS_AST_CHANNEL_PVT(ast_chan);
+	} else {
+		return NULL;
+	}
+}
+
+/*!
  * \brief Find Device by ID
  * \param name Device ID (hostname)
  * \param useRealtime Use RealTime as Boolean
@@ -789,7 +806,7 @@ void sccp_dev_dbclean() {
 	while (entry) {
 		sscanf(entry->key,"/SCCP/%s", key);
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME))(VERBOSE_PREFIX_3 "SCCP: Looking for '%s' in the devices list\n", key);
-			if ((strlen(key) == 15) && ((strncmp(key, "SEP",3) == 0) || (strncmp(key, "ATA",3)==0))) {
+			if ((strlen(key) == 15) && (!strncmp(key, "SEP", 3) || !strncmp(key, "ATA", 3) || !strncmp(key, "VGC", 3) || !strncmp(key, "SKIGW", 5))) {			
 
 			SCCP_LIST_LOCK(&GLOB(devices));
 			SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {

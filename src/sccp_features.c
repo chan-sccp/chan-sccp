@@ -575,21 +575,11 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
 			sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) asterisk remote channel cid_rdnis = '%s'\n", (target->cid.cid_rdnis)?target->cid.cid_rdnis:"");
 
 #endif
-
-
-
-#ifndef CS_AST_HAS_TECH_PVT
-			if (!strcasecmp(target->type, "SCCP")){
-#else
-			if (!strcasecmp(target->tech->type, "SCCP")){
-#endif
-				sccp_channel_t *remote = CS_AST_CHANNEL_PVT(target);
-				if(remote){
-					sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) remote channel is SCCP %s -> correct cid\n", remote->owner->name);
-					name = strdup(remote->callInfo.callingPartyName);
-					number = strdup(remote->callInfo.callingPartyNumber);
-				}
-
+			sccp_channel_t *remote=NULL;
+			if((remote = get_sccp_channel_from_ast(target))) {
+				sccp_log(1)(VERBOSE_PREFIX_3  "SCCP: (grouppickup) remote channel is SCCP %s -> correct cid\n", remote->owner->name);
+				name = strdup(remote->callInfo.callingPartyName);
+				number = strdup(remote->callInfo.callingPartyNumber);
 				remote = NULL;
 			}
 			original->hangupcause = AST_CAUSE_CALL_REJECTED;
