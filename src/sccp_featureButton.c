@@ -211,6 +211,10 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 				case SCCP_FEATURE_TESTJ:
 					buttonID = SKINNY_BUTTONTYPE_APPLICATION;
 					break;
+					
+				case SCCP_FEATURE_PICKUP:
+					buttonID = SKINNY_STIMULUS_GROUPCALLPICKUP;
+					break;
 
 				default:
 				break;
@@ -225,7 +229,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 			sccp_copy_string(featureAdvancedMessage->msg.FeatureStatAdvancedMessage.DisplayName, config->button.feature.label, strlen(config->button.feature.label)+1);
 			sccp_dev_send(device, featureAdvancedMessage);
 
-			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: Got Feature Status Request. Instance = %d Status: %d\n", device->id, instance, config->button.feature.status);
+			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: Got Feature Status Request. Instance = %d Label: %s Status: %d\n", DEV_ID_LOG(device), instance, config->button.feature.label, config->button.feature.status);
 		}
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
