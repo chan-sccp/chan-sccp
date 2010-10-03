@@ -388,6 +388,10 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 						case SCCP_FEATURE_CONFERENCE:
 							btn[i].type = SKINNY_BUTTONTYPE_CONFERENCE;
 							break;
+						
+						case SCCP_FEATURE_PICKUP:
+							btn[i].type = SKINNY_STIMULUS_GROUPCALLPICKUP;
+							break;
 
 						case SCCP_FEATURE_TEST6:
 							btn[i].type = SKINNY_BUTTONTYPE_TEST6;
@@ -613,8 +617,7 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_moo_t * r)
 	sccp_session_send(d, r1);
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: unregister request sent\n", DEV_ID_LOG(d));
 
-	if (d)
-		sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);
+	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);
 	sccp_session_close(s);
 
 }
@@ -1137,6 +1140,31 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 				sccp_handle_speeddial(d, k);
 			else
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
+			break;
+			
+		case SKINNY_STIMULUS_GROUPCALLPICKUP: /*!< pickup feature button */
+		  
+			if(d->defaultLineInstance > 0){
+				sccp_log((DEBUGCAT_FEATURE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
+				l = sccp_line_find_byid(d, d->defaultLineInstance);
+				//sccp_feat_handle_directpickup(l, d->defaultLineInstance, d);
+				//TODO use feature map or sccp_feat_handle_directpickup
+				sccp_channel_newcall(l, d, "*8", SKINNY_CALLTYPE_OUTBOUND);
+				return;
+			}
+			
+			/* no default line set, use first line */
+			if(!l){
+				l = sccp_line_find_byid(d, 1);
+			}
+			if(l){
+				//sccp_feat_handle_directpickup(l, 1, d);
+				//TODO use feature map or sccp_feat_handle_directpickup
+				sccp_channel_newcall(d->currentLine, d, "*8", SKINNY_CALLTYPE_OUTBOUND);
+			}
+			  
+		  
+			
 			break;
 
 		default:

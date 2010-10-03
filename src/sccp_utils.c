@@ -1187,6 +1187,8 @@ sccp_feature_type_t sccp_featureStr2featureID(const char *str){
 		return SCCP_FEATURE_TESTI;
 	}else if(!strcasecmp(str, "testJ")){
 		return SCCP_FEATURE_TESTJ;
+	}else if(!strcasecmp(str, "pickup")){
+		return SCCP_FEATURE_PICKUP;
 	}
 
 

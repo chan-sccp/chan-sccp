@@ -392,7 +392,8 @@ typedef enum {
 	SCCP_FEATURE_TESTG,
 	SCCP_FEATURE_TESTH,
 	SCCP_FEATURE_TESTI,
-	SCCP_FEATURE_TESTJ
+	SCCP_FEATURE_TESTJ,
+	SCCP_FEATURE_PICKUP
 } sccp_feature_type_t;									/*!< Feature Type */
 
 /*!
