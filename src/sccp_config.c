@@ -98,12 +98,15 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_event.h"
 #include "sccp_device.h"
 #include "sccp_line.h"
+#include "sccp_featureButton.h"
 #include <asterisk/astdb.h>
 
 #ifdef CS_AST_HAS_EVENT
 #include "sccp_mwi.h"
 #include "asterisk/event.h"
 #endif
+
+#include <asterisk/devicestate.h>
 
 
 
@@ -127,6 +130,9 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 	sccp_buttonconfig_t *config = NULL;
 	boolean_t new = FALSE;
 	uint16_t highest_index = 0;
+	sccp_devstate_specifier_t *dspec;
+
+	dspec = ast_calloc(1, sizeof(sccp_devstate_specifier_t));
 
 	sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_1 "%s: Loading/Checking ButtonConfig\n", device->id);
 	SCCP_LIST_LOCK(&device->buttonconfig);
@@ -210,8 +216,22 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 			sccp_copy_string(config->button.feature.label, name, sizeof(config->button.feature.label));
 			config->button.feature.id = sccp_featureStr2featureID(options);
 
-			if(args)
-				sccp_copy_string(config->button.feature.options, args, sizeof(config->button.feature.options));
+		if(args) {
+			sccp_copy_string(config->button.feature.options, args, sizeof(config->button.feature.options));
+			sccp_log(0)(VERBOSE_PREFIX_3 "Arguments present on feature button: %d\n", config->instance);
+
+			/* Check for the presence of a devicestate specifier and register in device list. */
+			if((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && (strncmp("",config->button.feature.options,254))) {
+				sccp_log(0)(VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
+				SCCP_LIST_LOCK(&device->devstateSpecifiers);
+				sccp_copy_string(dspec->specifier, config->button.feature.options, sizeof(config->button.feature.options));
+				SCCP_LIST_INSERT_TAIL(&device->devstateSpecifiers, dspec, list);
+				SCCP_LIST_UNLOCK(&device->devstateSpecifiers);
+			}
+		}
+
+		sccp_log((DEBUGCAT_FEATURE|DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "Configured feature button with featureID: %s args: %s\n", options, args);
+
 			break;
 		case EMPTY:
 			config->type = EMPTY;
@@ -322,8 +342,11 @@ void sccp_config_addSpeeddial(sccp_device_t *device, char *label, char *extensio
  */
 void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID, char *args, uint16_t instance){
 	sccp_buttonconfig_t	*config;
+	sccp_devstate_specifier_t *dspec;
 
 	config = ast_calloc(1, sizeof(sccp_buttonconfig_t));
+	dspec = ast_calloc(1, sizeof(sccp_devstate_specifier_t));
+
 
 	if (!config)
 		return;
@@ -334,12 +357,24 @@ void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID,
 	}else{
 		config->type = FEATURE;
 		sccp_copy_string(config->button.feature.label, ast_strip(label), sizeof(config->button.feature.label));
-		sccp_log((DEBUGCAT_FEATURE|DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "featureID: %s\n", featureID);
 		config->button.feature.id = sccp_featureStr2featureID(featureID);
 
-		if(args)
+		if(args) {
 			sccp_copy_string(config->button.feature.options, (args)?ast_strip(args):"", sizeof(config->button.feature.options));
+			sccp_log(0)(VERBOSE_PREFIX_3 "Arguments present on feature button: %d\n", config->instance);
 
+			/* Check for the presence of a devicestate specifier and register in device list.
+			   */
+			if((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && (strncmp("",config->button.feature.options,254))) {
+				sccp_log(0)(VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
+				SCCP_LIST_LOCK(&device->devstateSpecifiers);
+				sccp_copy_string(dspec->specifier, config->button.feature.options, sizeof(config->button.feature.options));
+				SCCP_LIST_INSERT_TAIL(&device->devstateSpecifiers, dspec, list);
+				SCCP_LIST_UNLOCK(&device->devstateSpecifiers);
+			}
+		}
+
+		sccp_log((DEBUGCAT_FEATURE|DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "featureID: %s args: %s\n", featureID, (config->button.feature.options)?(config->button.feature.options):(""));
 	}
 
 	sccp_log(0)(VERBOSE_PREFIX_3 "Add FEATURE button on position: %d, featureID: %d, args: %s\n", config->instance, config->button.feature.id, (config->button.feature.options)?config->button.feature.options:"(none)");
@@ -1908,6 +1943,9 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 	if(!device)
 		return;
 
+	char buf[256] = "";
+	sccp_devstate_specifier_t *specifier;
+
 #ifndef ASTDB_FAMILY_KEY_LEN
 #define ASTDB_FAMILY_KEY_LEN 256
 #endif
@@ -1967,5 +2005,31 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 	/* initialize so called priority feature */
 	device->priFeature.status = 0x010101;
 	device->priFeature.initialized = 0;
+
+	/* Read and initialize custom devicestate entries */
+	SCCP_LIST_LOCK(&device->devstateSpecifiers);
+	SCCP_LIST_TRAVERSE(&device->devstateSpecifiers, specifier, list) {
+		/* Check if there is already a devicestate entry */
+		res = ast_db_get(devstate_astdb_family, specifier->specifier, buf, sizeof(buf));
+		if(!res) {
+			sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_1 "%s: Found Existing Custom Devicestate Entry: %s, state: %s\n", device->id, 
+					specifier->specifier, buf);
+		/* If not present, add a new devicestate entry. Default: NOT_INUSE */
+		} else {
+			ast_db_put(devstate_astdb_family, specifier->specifier, "NOT_INUSE");
+			sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_1 "%s: Initialized Devicestate Entry: %s\n", device->id, specifier->specifier);
+		}
+		/* Register as generic hint watcher */
+		//ast_devstate_add(&sccp_devstateFeatureState_cb, (void *) device);
+		specifier->sub = ast_event_subscribe(AST_EVENT_DEVICE_STATE, sccp_devstateFeatureState_cb, device,
+												  //     AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, strdup(hint->hint_dialplan),
+																							  AST_EVENT_IE_END);
+	}
+	SCCP_LIST_UNLOCK(&device->devstateSpecifiers);
+
+
+
 }
+
+
 
