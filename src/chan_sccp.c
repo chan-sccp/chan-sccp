@@ -1871,3 +1871,5 @@ char *description() {
 	return ("Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION " " SCCP_BRANCH " - " SCCP_REVISION " (built by '" BUILD_USER "' on '" BUILD_DATE "')");
 }
 #endif
+
+const char devstate_astdb_family[] = "CustomDevstate";
