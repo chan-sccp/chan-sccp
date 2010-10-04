@@ -526,7 +526,8 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 		sccp_pbx_needcheckringback(d);
 	}
 	sccp_channel_cleanbeforedelete(c);
-	sccp_channel_delete_wo(c,0,1);
+	sccp_channel_unlock(c);
+	sccp_channel_delete_wo(c,0,0);
 
 	return 0;
 }
