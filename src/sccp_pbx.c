@@ -526,9 +526,7 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 		sccp_pbx_needcheckringback(d);
 	}
 	sccp_channel_cleanbeforedelete(c);
-	sccp_channel_unlock(c);
-
-	sccp_channel_delete_wo(c,0,0);
+	sccp_channel_delete_wo(c,0,1);
 
 	return 0;
 }
@@ -852,7 +850,10 @@ static char *sccp_control2str(int state) {
 		case AST_CONTROL_SRCUPDATE:
 				return "MediaSourceUpdate";
 #endif // CS_AST_CONTROL_SRCUPDATE
-
+#ifdef CS_AST_CONTROL_SRCCHANGE
+		case AST_CONTROL_SRCCHANGE:
+				return "MediaSourceChange";
+#endif // CS_AST_CONTROL_SRCCHANGE
 		case -1:
 				return "ChannelProdding";
 		default:
@@ -1897,6 +1898,7 @@ const struct ast_channel_tech sccp_tech = {
  * \return result as int
  *
  * \test Dialplan Transfer Needs to be tested
+ * \todo pbx_transfer needs to be implemented correctly
  */
 int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
 {
@@ -1911,13 +1913,13 @@ int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
 	}
 	sccp_log(1)(VERBOSE_PREFIX_1 "Transferring '%s' to '%s'\n", ast->name, dest);
         if (ast->_state == AST_STATE_RING) {
-
         	// \todo Blindtransfer needs to be implemented correctly
-//                res = sccp_blindxfer(p, dest);
-		;
+//              res = sccp_blindxfer(p, dest);
+        	res = -1;
 	} else {
         	// \todo Transfer needs to be implemented correctly
-		c=ast->tech_pvt;
+// SOMETHING LIKE THIS
+/*		c=ast->tech_pvt;
 		d = c->device;
 		if (!d->transfer || !c->line->transfer) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer disabled on device or line\n", (d && d->id)?d->id:"SCCP");
@@ -1931,8 +1933,12 @@ int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
 		pbx_builtin_setvar_helper(newcall->owner, "BLINDTRANSFER", CS_AST_BRIDGED_CHANNEL(c->owner)->name);
 		pbx_builtin_setvar_helper(CS_AST_BRIDGED_CHANNEL(c->owner), "BLINDTRANSFER", newcall->owner->name);
 		sccp_channel_transfer_complete(c);
-		res=0;
-//		res=sccp_channel_transfer(p,dest);
+*/
+// OR
+/*
+		res=sccp_channel_transfer(p,dest);
+*/		
+		res = -1;
 	}
    	return res;
 }
