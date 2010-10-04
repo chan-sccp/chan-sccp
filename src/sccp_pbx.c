@@ -893,8 +893,9 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	if (!c)
 		return -1;
 
+
 	if (!c->device)
-			return -1;
+		return -1;
 
 	//sccp_channel_lock(c);
 	//avoid deadlock @see https://sourceforge.net/tracker/?func=detail&aid=2979751&group_id=186378&atid=917045 -MC
@@ -909,11 +910,15 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		usleep(10);
 	}
 
+	if(c->state == SCCP_CHANNELSTATE_DOWN) {
+	        sccp_channel_unlock(c);
+	        return -1;
+	}
+
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "%s: Asterisk indicate '%d' (%s) condition on channel %s\n", DEV_ID_LOG(c->device), ind, sccp_control2str(ind), ast->name);
 
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
-	if (c->rtp.audio.rtp)
-		res = -1;
+	res = (c->rtp.audio.rtp ? -1 : 0);
 
 	switch(ind) {
 		case AST_CONTROL_RINGING:
@@ -940,6 +945,9 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 
 #ifdef CS_AST_CONTROL_SRCCHANGE
 		case AST_CONTROL_SRCCHANGE:
+			RTP_NEW_SOURCE(c,"Source Change");
+			res = 0;
+			break;
 #endif //CS_AST_CONTROL_SRCCHANGE
 #ifdef CS_AST_CONTROL_SRCUPDATE
 		case AST_CONTROL_SRCUPDATE:
@@ -985,10 +993,9 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 				}
 			}
 			RTP_NEW_SOURCE(c,"Source Update\n");
+			res = 0;
 			break;
 #endif //defined(CS_AST_CONTROL_SRCCHANGE) || defined(CS_AST_CONTROL_SRCUPDATE)
-
-
 #ifdef CS_AST_CONTROL_HOLD
 		/* when the bridged channel hold/unhold the call we are notified here */
 		case AST_CONTROL_HOLD:
@@ -1903,9 +1910,11 @@ const struct ast_channel_tech sccp_tech = {
 int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
 {
         int res=0;
+/*
         sccp_device_t *d;
         sccp_channel_t *c;
         sccp_channel_t *newcall;
+*/
 
         if (dest == NULL) {      /* functions below do not take a NULL */
   		dest = "";
@@ -1914,27 +1923,12 @@ int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
 	sccp_log(1)(VERBOSE_PREFIX_1 "Transferring '%s' to '%s'\n", ast->name, dest);
         if (ast->_state == AST_STATE_RING) {
         	// \todo Blindtransfer needs to be implemented correctly
-//              res = sccp_blindxfer(p, dest);
+/*
+		res = sccp_blindxfer(p, dest);
+*/
         	res = -1;
 	} else {
         	// \todo Transfer needs to be implemented correctly
-// SOMETHING LIKE THIS
-/*		c=ast->tech_pvt;
-		d = c->device;
-		if (!d->transfer || !c->line->transfer) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Transfer disabled on device or line\n", (d && d->id)?d->id:"SCCP");
-			return -1;
-		}
-		sccp_device_lock(d);
-		d->transfer_channel = c;
-		sccp_device_unlock(d);
-		sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_CALLTRANSFER);
-		newcall = sccp_channel_newcall(c->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
-		pbx_builtin_setvar_helper(newcall->owner, "BLINDTRANSFER", CS_AST_BRIDGED_CHANNEL(c->owner)->name);
-		pbx_builtin_setvar_helper(CS_AST_BRIDGED_CHANNEL(c->owner), "BLINDTRANSFER", newcall->owner->name);
-		sccp_channel_transfer_complete(c);
-*/
-// OR
 /*
 		res=sccp_channel_transfer(p,dest);
 */		
@@ -1942,8 +1936,6 @@ int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
 	}
    	return res;
 }
-
-
 
 
 /*!

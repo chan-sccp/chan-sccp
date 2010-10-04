@@ -263,9 +263,9 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	/* parse the devstate string */
 	/* If it is the custom family, isolate the specifier. */
 	sccp_device_t *device;
-	int res = 0;
+//	int res = 0;
 	size_t len = strlen("Custom:");
-	char *sspecifier = 0;
+//	char *sspecifier = 0;
 	const char *dev;
 
 	if(!data || !ast_event)
@@ -278,19 +278,23 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	device = (sccp_device_t *) data;
 
 	if (!strncasecmp(dev, "Custom:", len)) {
-		sspecifier = dev + len;
 
 		/* In theory we could check here first
 		   if the device has at all subscribed to that feature button.
 		   For now, however, it is sufficient to simply update all devstate buttons on the device. 
 		   Maybe this is not much more inefficient than checking the list at first. */
-	/*SCCP_LIST_LOCK(&device->devstateSpecifiers);
-	SCCP_LIST_TRAVERSE(&device->devstateSpecifiers, specifier, list) {
-	// Check if subscription matches.
-		if(!strncmp(sspecifier,specifier->specifier,254)) */
+/*
+		sspecifier = dev + len;
+		SCCP_LIST_LOCK(&device->devstateSpecifiers);
+		SCCP_LIST_TRAVERSE(&device->devstateSpecifiers, specifier, list) {
+
+		// Check if subscription matches.
+		if(!strncmp(sspecifier,specifier->specifier,254)) 
+*/
 		sccp_featButton_changed(device, SCCP_FEATURE_DEVSTATE);
-	/*}
-	SCCP_LIST_UNLOCK(&device->devstateSpecifiers); */
+/*	}
+	SCCP_LIST_UNLOCK(&device->devstateSpecifiers); 
+*/
 
 	}
 }
