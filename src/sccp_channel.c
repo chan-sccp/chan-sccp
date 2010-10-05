@@ -389,7 +389,7 @@ static void sccp_channel_send_dynamicCallinfo(sccp_device_t *device, sccp_channe
 	sccp_device_unlock(device);
 	memset(data, 0, sizeof(data));
 
-	if (device->inuseprotocolversion < 17) {
+	if (device->inuseprotocolversion < 16) {
 		usableFields = 12;
 		
 		data[0] = (strlen(channel->callInfo.callingPartyNumber) > 0) 		? channel->callInfo.callingPartyNumber : NULL;
