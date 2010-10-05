@@ -539,6 +539,22 @@ AC_ARG_ENABLE(advanced_functions,
 ])
 AC_MSG_NOTICE([--enable-advanced-functions: ${ac_cv_advanced_functions}])
 
+AC_ARG_ENABLE(experimental_mode, 
+  AC_HELP_STRING([--enable-experimental-mode], [enabled experimental mode (only for developers)]), 
+    ac_cv_experimental_mode=$enableval, ac_cv_experimental_mode=no)
+    AS_IF([test "${ac_cv_experimental_mode}" == "yes"], [
+       	AC_DEFINE(CS_EXPERIMENTAL, 1, [experimental mode enabled])
+])
+AC_MSG_NOTICE([--enable-experimental-mode: ${ac_cv_experimental_mode} (only for developers)])
+
+AC_ARG_ENABLE(devstate_feature, 
+  AC_HELP_STRING([--enable-devstate-feature], [enabled device state feature button]), 
+    ac_cv_devstate_feature=$enableval, ac_cv_devstate_feature=no)
+    AS_IF([test "${ac_cv_devstate_feature}" == "yes"], [
+       	AC_DEFINE(CS_DEVSTATE_FEATURE, 1, [devstate feature enabled])
+])
+AC_MSG_NOTICE([--enable-devstate-feature: ${ac_cv_devstate_feature}])
+
 AC_ARG_ENABLE(dynamic_speeddial, 
   AC_HELP_STRING([--disable-dynamic-speeddial], [disable dynamic speeddials]), 
   ac_cv_dynamic_speeddial=$enableval, ac_cv_dynamic_speeddial=yes)

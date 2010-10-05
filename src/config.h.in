@@ -190,6 +190,9 @@
 /* debug indications enabled */
 #undef CS_DEBUG_INDICATIONS
 
+/* devstate feature enabled */
+#undef CS_DEVSTATE_FEATURE
+
 /* sccp reload enabled */
 #undef CS_DYNAMIC_CONFIG
 
@@ -201,6 +204,9 @@
 
 /* Found 'ENUM AST_DEVICE' in asterisk/devicestate.h */
 #undef CS_ENUM_AST_DEVICE
+
+/* experimental mode enabled */
+#undef CS_EXPERIMENTAL
 
 /* manager events enabled */
 #undef CS_MANAGER_EVENTS
