@@ -58,4 +58,5 @@ int acf_channel_read(struct ast_channel *ast, const char *funcname, char *args, 
 #else
 int acf_channel_read(struct ast_channel *ast, char *funcname, char *args, char *buf, size_t buflen);
 #endif // ASTERISK_VERSION_NUM >= 10600
+
 #endif // __SCCP_PBX_H
