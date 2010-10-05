@@ -375,7 +375,8 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT); /* send connected, so it is not listed as missed call*/
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 	//	sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
-		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOOK);
+		//sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOOK);
+		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOOKSTEALABLE);
 		break;
 	case SCCP_CHANNELSTATE_INVALIDNUMBER:
 		/* this is for the earlyrtp. The 7910 does not play tones if a rtp stream is open */
@@ -539,7 +540,7 @@ static void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t 
 					sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, (!c->privacy)?SKINNY_CALLINFO_VISIBILITY_DEFAULT:SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 					sccp_channel_send_callinfo(remoteDevice, c);
 					//sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CONNECTED, 0);
-					sccp_dev_set_keyset(remoteDevice, instance, c->callid, KEYMODE_ONHOOK);
+					sccp_dev_set_keyset(remoteDevice, instance, c->callid, KEYMODE_ONHOOKSTEALABLE);
 // 					sccp_dev_set_keyset(remoteDevice, instance, c->callid, KEYMODE_ONHOOK);
 					break;
 				case SCCP_CHANNELSTATE_BUSY:

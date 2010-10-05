@@ -1919,6 +1919,11 @@ int sccp_channel_resume(sccp_device_t *device, sccp_channel_t * c)
  			return 0;
  	}
 
+	if (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED)
+	{
+		sccp_channel_hold(c);
+	}
+
 	/* resume an active call */
 	if (c->state != SCCP_CHANNELSTATE_HOLD && c->state != SCCP_CHANNELSTATE_CALLTRANSFER && c->state != SCCP_CHANNELSTATE_CALLCONFERENCE) {
 		/* something wrong on the code let's notify it for a fix */

@@ -2014,6 +2014,9 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 	case SKINNY_LBL_GPICKUP:
 		sccp_sk_gpickup(d, l, lineInstance, c);
 		break;
+	case SKINNY_LBL_INTRCPT:
+		sccp_sk_resume(d, l, lineInstance, c);
+		break;
 #endif
 	default:
 		ast_log(LOG_WARNING, "Don't know how to handle keypress %d\n", event);
