@@ -42,12 +42,15 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #ifdef CS_SCCP_PICKUP
 #include <asterisk/features.h>
 #endif
+#ifdef CS_DEVSTATE_FEATURE
+#include <asterisk/astdb.h>
+#endif
 
 
 /*!
  * \brief Feature Button Changed
  *
- * fetch the new sate, and send status to device
+ * fetch the new state, and send status to device
  *
  * \param device SCCP Device
  * \param featureType SCCP Feature Type
@@ -60,6 +63,10 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 	sccp_line_t			*line;
 	uint8_t				instance=0;
 	uint8_t				buttonID=SKINNY_BUTTONTYPE_FEATURE;  // Default feature type.
+#ifdef CS_DEVSTATE_FEATURE
+	char buf[254] = "";
+	int res = 0;
+#endif
 
 
 	if(!device){
@@ -133,6 +140,28 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 				case SCCP_FEATURE_MONITOR:
 					config->button.feature.status = (device->monitorFeature.status)?1:0;
 				break;
+
+#ifdef CS_DEVSTATE_FEATURE
+				/**
+				  Handling of custom devicestate toggle button feature
+				  */
+				case SCCP_FEATURE_DEVSTATE:
+				    /* we check which devicestate this button is assigned to, and fetch the respective status from the astdb. 
+					   Note that this relies on the functionality of the asterisk custom devicestate module. */
+
+				    res = ast_db_get(devstate_astdb_family, config->button.feature.options, buf, sizeof(buf));
+					sccp_log((DEBUGCAT_FEATURE_BUTTON))(VERBOSE_PREFIX_3 "%s: devstate feature state: %s state: %s res: %d\n", DEV_ID_LOG(device), config->button.feature.options, buf, res);
+					if(!res) {
+						if(!strncmp("INUSE", buf, 254))
+							config->button.feature.status = 1;
+						else
+							config->button.feature.status = 0;
+					}
+				break;
+
+
+
+#endif
 
 				case SCCP_FEATURE_HOLD:
 					buttonID = SKINNY_BUTTONTYPE_HOLD;
@@ -234,3 +263,35 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 }
+
+
+#ifdef CS_DEVSTATE_FEATURE
+
+void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
+{
+	/* parse the devstate string */
+	/* If it is the custom family, isolate the specifier. */
+	sccp_device_t *device;
+	size_t len = strlen("Custom:");
+	char *sspecifier = 0;
+	const char *dev;
+
+	if(!data || !ast_event)
+		return;
+
+	dev = ast_event_get_ie_str(ast_event, AST_EVENT_IE_DEVICE);
+
+	sccp_log((DEBUGCAT_FEATURE_BUTTON))(VERBOSE_PREFIX_3 "got device state change event from asterisk channel: %s\n", (dev)?dev:"NULL" );
+
+	device = (sccp_device_t *) data;
+
+	/* Note that we update all devstate feature buttons if we receive an event for one of them,
+	   which we registered for. This will lead to unneccesary updates with multiple buttons.
+	   In the future we might need a more elegant hint-registry for this type of notification,
+	   which should be global to chan-sccp-b, not for each device. For now, this suffices.*/
+	if (!strncasecmp(dev, "Custom:", len)) {
+		sspecifier = (char *) (dev + len);
+		sccp_featButton_changed(device, SCCP_FEATURE_DEVSTATE);
+	}
+}
+#endif
