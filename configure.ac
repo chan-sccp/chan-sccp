@@ -46,7 +46,6 @@ AM_DISABLE_STATIC([])
 
 # check existence of the package
 AC_CONFIG_SRCDIR([src/chan_sccp.c]) 
-
 AC_COPYRIGHT("Chan_SCCP")
 AC_REVISION($Revision$) 
 # Build paths and variables
@@ -435,7 +434,8 @@ if test "${enable_debug}" = "yes"; then
    enable_do_crash="yes"
    enable_debug_mutex="yes"
    strip_binaries="no"
-   CFLAGS="$CFLAGS -O0 -Os -Wall -Wextra -Wno-unused-parameter"
+   CFLAGS_saved="$CFLAGS_saved -O0 -Os -Wall -Wextra -Wno-unused-parameter"
+   CFLAGS="$CFLAGS_saved"
    GDB_FLAGS="-g"
 else
    AC_DEFINE([DEBUG],[],[Disabled extra debugging.])
