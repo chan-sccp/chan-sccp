@@ -66,6 +66,13 @@ if(c->rtp.audio.rtp) { \
 #define RTP_NEW_SOURCE(_c,_log)
 #endif			
 
+
+/* Structure to pass data to the thread */
+struct sccp_answer_conveyor_struct {
+	uint32_t callid;
+	sccp_linedevices_t *linedevice;
+};
+
 /*!
  * \brief Call Auto Answer Thead
  *
@@ -74,29 +81,36 @@ if(c->rtp.audio.rtp) { \
  */
 static void * sccp_pbx_call_autoanswer_thread(void *data)
 {
-	uint32_t *tmp = data;
-	uint32_t callid = *tmp;
+	struct sccp_answer_conveyor_struct *conveyor = data;
 	sccp_channel_t 		*c;
 	int instance = 0;
 
 	sleep(GLOB(autoanswer_ring_time));
 	pthread_testcancel();
-	c = sccp_channel_find_byid(callid);
-	if (!c || !c->device)
+
+	if(!conveyor)
+		return NULL;
+
+	if(!conveyor->linedevice)
+		return NULL;
+
+	c = sccp_channel_find_byid(conveyor->callid);
+	if (!c)
 		return NULL;
 
 	if (c->state != SCCP_CHANNELSTATE_RINGING)
 		return NULL;
 
-	sccp_channel_answer(c->device, c);
+	sccp_channel_answer(conveyor->linedevice->device, c);
+
 	if (GLOB(autoanswer_tone) != SKINNY_TONE_SILENCE && GLOB(autoanswer_tone) != SKINNY_TONE_NOTONE){
-		sccp_device_lock(c->device);
-		instance = sccp_device_find_index_for_line(c->device, c->line->name);
-		sccp_device_unlock(c->device);
-		sccp_dev_starttone(c->device, GLOB(autoanswer_tone), instance, c->callid, 0);
+		sccp_device_lock(conveyor->linedevice->device);
+		instance = sccp_device_find_index_for_line(conveyor->linedevice->device, c->line->name);
+		sccp_device_unlock(conveyor->linedevice->device);
+		sccp_dev_starttone(conveyor->linedevice->device, GLOB(autoanswer_tone), instance, c->callid, 0);
 	}
 	if (c->autoanswer_type == SCCP_AUTOANSWER_1W)
-		sccp_dev_set_microphone(c->device, SKINNY_STATIONMIC_OFF);
+		sccp_dev_set_microphone(conveyor->linedevice->device, SKINNY_STATIONMIC_OFF);
 
 	return NULL;
 }
@@ -404,11 +418,18 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 				sccp_indicate_lock(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
 				isRinging = TRUE;
 				if (c->autoanswer_type) {
-					sccp_log(1)(VERBOSE_PREFIX_3 "%s: Running the autoanswer thread on %s\n", DEV_ID_LOG(linedevice->device), ast->name);
-					pthread_attr_init(&attr);
-					pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-					if (ast_pthread_create(&t, &attr, sccp_pbx_call_autoanswer_thread, &c->callid)) {
-						ast_log(LOG_WARNING, "%s: Unable to create switch thread for channel (%s-%08x) %s\n", DEV_ID_LOG(linedevice->device), l->name, c->callid, strerror(errno));
+
+					struct sccp_answer_conveyor_struct *conveyor = calloc(1, sizeof(struct sccp_answer_conveyor_struct));
+					if(conveyor){
+						sccp_log(1)(VERBOSE_PREFIX_3 "%s: Running the autoanswer thread on %s\n", DEV_ID_LOG(linedevice->device), ast->name);
+						conveyor->callid   = c->callid;
+						conveyor->linedevice  = linedevice;
+
+						pthread_attr_init(&attr);
+						pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+						if (ast_pthread_create(&t, &attr, sccp_pbx_call_autoanswer_thread, conveyor)) {
+							ast_log(LOG_WARNING, "%s: Unable to create switch thread for channel (%s-%08x) %s\n", DEV_ID_LOG(linedevice->device), l->name, c->callid, strerror(errno));
+						}
 					}
 				}
 			}
