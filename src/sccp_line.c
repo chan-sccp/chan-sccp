@@ -410,6 +410,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t *device, uint8_t lineIns
 	if(NULL != subscriptionId) {
 		sccp_copy_string(linedevice->subscriptionId.name,  subscriptionId->name, sizeof(linedevice->subscriptionId.name));
 		sccp_copy_string(linedevice->subscriptionId.number, subscriptionId->number, sizeof(linedevice->subscriptionId.number));
+		sccp_copy_string(linedevice->subscriptionId.aux, subscriptionId->aux, sizeof(linedevice->subscriptionId.aux));
 	}
 
 	SCCP_LIST_LOCK(&l->devices);

@@ -202,8 +202,28 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		if ( (d->dndFeature.enabled && d->dndFeature.status == SCCP_DNDMODE_SILENT) ) {
 			sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: DND is activated on device\n",d->id);
 			sccp_dev_set_ringer(d, SKINNY_STATION_SILENTRING, instance, c->callid);
-		}else
-			sccp_dev_set_ringer(d, c->ringermode, instance, c->callid);
+		} else {
+		
+			sccp_linedevices_t *ownlinedevice;
+			sccp_device_t	*remoteDevice;
+			SCCP_LIST_TRAVERSE(&c->line->devices, ownlinedevice, list) {
+				remoteDevice=ownlinedevice->device;
+
+				if(d && remoteDevice && remoteDevice == d) {
+					sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found matching linedevice. Aux parameter = %s\n",d->id,ownlinedevice->subscriptionId.aux);
+					/** Check the auxiliary parameter of the linedevice to enable silent ringing
+					 for certain devices on a certain line.**/
+					if(0 == strncmp(ownlinedevice->subscriptionId.aux, "silent", 6)) {
+						sccp_dev_set_ringer(d, SKINNY_STATION_SILENTRING, instance, c->callid);
+						sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Forcing silent ring for specific device.\n",d->id);
+					} else {
+						sccp_dev_set_ringer(d, c->ringermode, instance, c->callid);
+						sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Normal ring occurred.\n",d->id);
+					}
+				} 
+			}
+
+		}
 
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGIN);
 		sccp_dev_displayprompt(d, instance, c->callid, "Incoming Call", 0);
