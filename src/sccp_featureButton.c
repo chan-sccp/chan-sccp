@@ -285,6 +285,15 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 
 	device = (sccp_device_t *) data;
 
+	if(!device) {
+		sccp_log((DEBUGCAT_FEATURE_BUTTON))(VERBOSE_PREFIX_3 "NULL device in devstate event callback.\n" );
+		return;
+	}
+	if(!dev) {
+		sccp_log((DEBUGCAT_FEATURE_BUTTON))(VERBOSE_PREFIX_3 "NULL devstate string in devstate event callback.\n" );
+		return;
+	}
+
 	/* Note that we update all devstate feature buttons if we receive an event for one of them,
 	   which we registered for. This will lead to unneccesary updates with multiple buttons.
 	   In the future we might need a more elegant hint-registry for this type of notification,
