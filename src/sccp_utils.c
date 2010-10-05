@@ -1149,6 +1149,10 @@ sccp_feature_type_t sccp_featureStr2featureID(const char *str){
 		return SCCP_FEATURE_DND;
 	}else if(!strcasecmp(str, "monitor")){
 		return SCCP_FEATURE_MONITOR;
+#ifdef CS_DEVSTATE_FEATURE
+	}else if(!strcasecmp(str, "devstate")){
+		return SCCP_FEATURE_DEVSTATE;
+#endif
 	}else if(!strcasecmp(str, "hold")){
 		return SCCP_FEATURE_HOLD;
 	}else if(!strcasecmp(str, "transfer")){

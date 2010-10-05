@@ -53,6 +53,10 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/config.h>
 #endif
 
+#ifdef CS_DEVSTATE_FEATURE
+#include <asterisk/event.h>
+#endif
+
 #define  REF_DEBUG 1
 
 #ifdef CS_DYNAMIC_CONFIG
@@ -1528,6 +1532,10 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	sccp_selectedchannel_t 	*selectedChannel = NULL;
 	sccp_line_t		*line =NULL;
 	sccp_channel_t		*channel=NULL;
+#ifdef CS_DEVSTATE_FEATURE
+	sccp_devstate_specifier_t *specifier;
+#endif
+
 
 	char family[25];
 
@@ -1597,6 +1605,18 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		ast_free(d->buttonTemplate);
 		d->buttonTemplate = NULL;
 	}
+
+
+#ifdef CS_DEVSTATE_FEATURE
+	/* Unregister event subscriptions originating from devstate feature*/
+	    SCCP_LIST_LOCK(&d->devstateSpecifiers);
+		SCCP_LIST_TRAVERSE(&d->devstateSpecifiers, specifier, list) {
+			ast_event_unsubscribe(specifier->sub);
+			sccp_log(DEBUGCAT_FEATURE_BUTTON)(VERBOSE_PREFIX_1 "%s: Removed Devicestate Subscription: %s\n", d->id, specifier->specifier);
+		}
+		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
+#endif
+
 
 	sccp_device_unlock(d);
 

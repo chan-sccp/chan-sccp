@@ -51,6 +51,9 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #ifdef CS_SCCP_PICKUP
 #include <asterisk/features.h>
 #endif
+#ifdef CS_DEVSTATE_FEATURE
+#include <asterisk/astdb.h>
+#endif
 
 #if ASTERISK_VERSION_NUM < 10400
 /*!
@@ -2540,7 +2543,10 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 	uint32_t featureStat1 = 0;
 	uint32_t featureStat2 = 0;
 	uint32_t featureStat3 = 0;
-
+#ifdef CS_DEVSTATE_FEATURE
+	int res = 0;
+	char buf[254] = "";
+#endif
 
 	if(!d){
 		return;
@@ -2634,6 +2640,23 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 		break;
 #endif
 
+#ifdef CS_DEVSTATE_FEATURE
+		/**
+		  * Handling of custom devicestate toggle buttons.
+		  */
+		case SCCP_FEATURE_DEVSTATE:
+			/* Set the appropriate devicestate, toggle it and write to the devstate astdb..*/
+
+			//config->button.feature.status = (config->button.feature.status)?0:1;
+			config->button.feature.status = !(config->button.feature.status)?0:1;
+			strncpy(buf, (config->button.feature.status)?("INUSE"):("NOT_INUSE"), sizeof(buf));
+			res = ast_db_put(devstate_astdb_family, config->button.feature.options, buf);
+
+			ast_devstate_changed(ast_devstate_val(buf), "Custom:%s", config->button.feature.options);
+			sccp_log((DEBUGCAT_FEATURE_BUTTON))(VERBOSE_PREFIX_3 "%s: devstate feature change: %s state: %d res: %d\n", DEV_ID_LOG(d), config->button.feature.options, config->button.feature.status, res);
+		break;
+
+#endif
 		case SCCP_FEATURE_MULTIBLINK:
 			featureStat1 = ( d->priFeature.status & 0xf            ) - 1;
 			featureStat2 = ((d->priFeature.status & 0xf00) >> 8    ) - 1;
