@@ -1344,20 +1344,6 @@ void sccp_feat_channelStateChanged(sccp_device_t *device, sccp_channel_t * chann
 			}
 		break;
 
-		case SCCP_CHANNELSTATE_DOWN:
-		case SCCP_CHANNELSTATE_ONHOOK:
-		case SCCP_CHANNELSTATE_BUSY:
-		case SCCP_CHANNELSTATE_CONGESTION:
-		case SCCP_CHANNELSTATE_INVALIDNUMBER:
-		case SCCP_CHANNELSTATE_ZOMBIE:
-		/* Todo: In the event a call is terminated,
-		   the channel monitor should be turned off (it implicitly is by ending the call),
-		   and the feature button should be reset to disabled state. */
-		device->monitorFeature.status = 0;
-		sccp_feat_changed(device, SCCP_FEATURE_MONITOR);
-		break;
-
-
 		default:
 		break;
 	}

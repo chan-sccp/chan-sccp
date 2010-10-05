@@ -48,7 +48,6 @@ extern "C" {
 #include <asterisk/sched.h>
 #include <asterisk/version.h>
 #include <asterisk/causes.h>
-#include <asterisk/event.h>
 
 #include "sccp_dllists.h"
 
@@ -262,7 +261,6 @@ typedef struct sccp_device			sccp_device_t;				/*!< SCCP Device Structure */
 typedef struct sccp_addon			sccp_addon_t; 				/*!< SCCP Add-On Structure */	// Added on SVN 327 -FS
 typedef struct sccp_hint			sccp_hint_t;				/*!< SCCP Hint Structure */
 typedef struct sccp_hostname			sccp_hostname_t;			/*!< SCCP HostName Structure */
-typedef struct sccp_devstate_specifier	sccp_devstate_specifier_t;			/*!< SCCP Custom DeviceState Specifier Structure */
 typedef struct sccp_selectedchannel		sccp_selectedchannel_t;			/*!< SCCP Selected Channel Structure */
 typedef struct sccp_ast_channel_name		sccp_ast_channel_name_t;		/*!< SCCP Asterisk Channel Name Structure */
 typedef struct sccp_buttonconfig		sccp_buttonconfig_t;			/*!< SCCP Button Config Structure */
@@ -395,8 +393,7 @@ typedef enum {
 	SCCP_FEATURE_TESTH,
 	SCCP_FEATURE_TESTI,
 	SCCP_FEATURE_TESTJ,
-	SCCP_FEATURE_PICKUP,
-	SCCP_FEATURE_DEVSTATE
+	SCCP_FEATURE_PICKUP
 } sccp_feature_type_t;									/*!< Feature Type */
 
 /*!
@@ -608,18 +605,6 @@ struct sccp_hostname {
 	char 					name[MAXHOSTNAMELEN];			/*!< Name of the Host */
 	SCCP_LIST_ENTRY(sccp_hostname_t) 	list;					/*!< Host Linked List Entry */
 };											/*!< SCCP Hostname Structure */
-
-/*!
- * \brief SCCP devstate registrations per device
- */
-struct sccp_devstate_specifier {
-	char 					specifier[254];			/*!< Name of the Custom  Devstate Extension */
-	struct ast_event_sub*   sub; /* Asterisk event Subscription related to the devstate extension. */
-	/* Note that the length of the specifier matches the length of "options" of the sccp_feature.options field,
-	 to which it corresponds.*/
-	SCCP_LIST_ENTRY(sccp_devstate_specifier_t) 	list;					/*!< Specifier Linked List Entry */
-};											/*!< SCCP Devstate Specifier Structure */
-
 
 /*!
  * \brief SCCP Line Structure
@@ -839,7 +824,6 @@ struct sccp_device {
 	sccp_featureConfiguration_t 		dndFeature;				/*!< dnd Feature */
 	sccp_featureConfiguration_t 		priFeature;				/*!< priority Feature */
 	sccp_featureConfiguration_t 		mobFeature;				/*!< priority Feature */
-	SCCP_LIST_HEAD(,sccp_devstate_specifier_t)	devstateSpecifiers;		/*!< List of Custom DeviceState entries the phone monitors. */
 
 
 	char 					softkeyDefinition[50];			/*!< requested softKey configuration */
@@ -1196,8 +1180,6 @@ struct softKeySetConfiguration{
 
 SCCP_LIST_HEAD(softKeySetConfigList, sccp_softKeySetConfiguration_t);
 extern struct softKeySetConfigList softKeySetConfig;			/*!< List of SoftKeySets */
-
-extern const char devstate_astdb_family[];
 
 #if defined(__cplusplus) || defined(c_plusplus)
 }
