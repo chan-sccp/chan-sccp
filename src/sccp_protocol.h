@@ -3217,6 +3217,7 @@ static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_TRNSFVM,
 	SKINNY_LBL_DIRTRFR,
 	SKINNY_LBL_IDIVERT,
+	SKINNY_LBL_INTRCPT,
 //	SKINNY_LBL_CBARGE,
 };											/*!< Soft Keys Map as INT */
 
@@ -3239,8 +3240,9 @@ typedef struct {
 #define KEYMODE_DIGITSFOLL			6
 #define KEYMODE_CONNCONF			7
 #define KEYMODE_RINGOUT 			8
-#define KEYMODE_OFFHOOKFEAT 			9
+#define KEYMODE_OFFHOOKFEAT 		9
 #define KEYMODE_INUSEHINT			10
+#define KEYMODE_ONHOOKSTEALABLE		11
 
 /*!
  * \brief Skinny KeyMode Structure
@@ -3260,6 +3262,7 @@ static const struct skinny_keymode {
 	{ KEYMODE_RINGOUT	,	"Ring Out"				},
 	{ KEYMODE_OFFHOOKFEAT	,	"Off Hook with Features"		},
 	{ KEYMODE_INUSEHINT	,	"In Use Hint"				},
+	{ KEYMODE_ONHOOKSTEALABLE	,	"On Hook with Stealable Remote Call"				},
 };
 
 static uint8_t skSet_Onhook [] = {
@@ -3274,6 +3277,21 @@ static uint8_t skSet_Onhook [] = {
 #endif
 //	SKINNY_LBL_CONFLIST,
         SKINNY_LBL_DND,
+};										/*!< SKINNY SoftKeys Set "Onhook" as INT */
+
+static uint8_t skSet_OnhookStealable [] = {
+        SKINNY_LBL_REDIAL,
+        SKINNY_LBL_NEWCALL,
+        SKINNY_LBL_CFWDALL,
+//	SKINNY_LBL_CFWDBUSY,
+//	SKINNY_LBL_CFWDNOANSWER,
+#ifdef CS_SCCP_PICKUP
+        SKINNY_LBL_PICKUP,
+        SKINNY_LBL_GPICKUP,
+#endif
+//	SKINNY_LBL_CONFLIST,
+        SKINNY_LBL_DND,
+		SKINNY_LBL_RESUME,
 };										/*!< SKINNY SoftKeys Set "Onhook" as INT */
 
 static uint8_t skSet_Connected [] = {
@@ -3405,6 +3423,7 @@ static const softkey_modes SoftKeyModes [] = {
         { KEYMODE_RINGOUT,		skSet_RingOut,		sizeof(skSet_RingOut)/sizeof(uint8_t)},
         { KEYMODE_OFFHOOKFEAT,		skSet_Offhookfeat,	sizeof(skSet_Offhookfeat)/sizeof(uint8_t)},
         { KEYMODE_INUSEHINT,		skSet_InUseHint,	sizeof(skSet_InUseHint)/sizeof(uint8_t)},
+        { KEYMODE_ONHOOKSTEALABLE,	skSet_OnhookStealable,	sizeof(skSet_OnhookStealable)/sizeof(uint8_t)},
 };										/*!< SoftKey Modes Constants*/
 
 #endif /* __SCCP_PROTOCOL_H */
