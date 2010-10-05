@@ -511,6 +511,7 @@ struct sccp_cfwd_information{
 struct  subscriptionId{
 	char					number[AST_MAX_EXTENSION];		/*!< will be added to cid */
 	char					name[AST_MAX_EXTENSION];		/*!< will be added to cidName */
+	char					aux[AST_MAX_EXTENSION];		/*!< auxiliary parameter. Allows for phone-specific behaviour on a line. */
 };
 
 /*!

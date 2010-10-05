@@ -1322,6 +1322,11 @@ struct composedId sccp_parseComposedId(const char* labelString, unsigned int max
 						i = 0;
 						state = 1;
 						break;
+					case '!':
+						id.mainId[i] = '\0';
+						i = 0;
+						state = 3;
+						break;
 					default:
 						id.mainId[i] = *stringIterator;
 						i++;
@@ -1341,6 +1346,11 @@ struct composedId sccp_parseComposedId(const char* labelString, unsigned int max
 						i = 0;
 						state = 2;
 						break;
+					case '!':
+						id.subscriptionId.number[i] = '\0';
+						i = 0;
+						state = 3;
+						break;
 					default:
 						id.subscriptionId.number[i] = *stringIterator;
 						i++;
@@ -1355,8 +1365,27 @@ struct composedId sccp_parseComposedId(const char* labelString, unsigned int max
 						endDetected = TRUE;
 						id.subscriptionId.name[i] = '\0';
 						break;
+					case '!':
+						id.subscriptionId.name[i] = '\0';
+						i = 0;
+						state = 3;
+						break;
 					default:
 						id.subscriptionId.name[i] = *stringIterator;
+						i++;
+						break;
+				}
+				break;
+
+			case 3: // parsing of auxiliary parameter
+				assert (i < sizeof(id.subscriptionId.name));
+				switch (*stringIterator) {
+					case '\0':
+						endDetected = TRUE;
+						id.subscriptionId.aux[i] = '\0';
+						break;
+					default:
+						id.subscriptionId.aux[i] = *stringIterator;
 						i++;
 						break;
 				}

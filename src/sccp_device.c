@@ -2238,6 +2238,7 @@ sccp_diff_t sccp_buttonconfig_changed(sccp_buttonconfig_t *buttonconfig_a, sccp_
 				if ( (strcmp(buttonconfig_a->button.line.name,		  	buttonconfig_b->button.line.name)) ||
 				     (strcmp(buttonconfig_a->button.line.subscriptionId.number, buttonconfig_b->button.line.subscriptionId.number)) ||
 				     (strcmp(buttonconfig_a->button.line.subscriptionId.name,   buttonconfig_b->button.line.subscriptionId.name)) ||
+				     (strcmp(buttonconfig_a->button.line.subscriptionId.aux,   buttonconfig_b->button.line.subscriptionId.aux)) ||
 				     (strcmp(buttonconfig_a->button.line.options, buttonconfig_a->button.line.options))) {
 					res=CHANGES_NEED_RESET;
 			  		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "line: changes need reset\n");
