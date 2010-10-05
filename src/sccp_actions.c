@@ -52,8 +52,6 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/features.h>
 #endif
 
-#include <asterisk/astdb.h>
-
 #if ASTERISK_VERSION_NUM < 10400
 /*!
  * \brief Host Access Rule Structure
@@ -2542,8 +2540,6 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 	uint32_t featureStat1 = 0;
 	uint32_t featureStat2 = 0;
 	uint32_t featureStat3 = 0;
-	int res = 0;
-	char buf[254] = "";
 
 
 	if(!d){
@@ -2637,34 +2633,6 @@ void sccp_handle_feature_action(sccp_device_t *d, int instance, boolean_t toggle
 			sccp_feat_monitor(d, channel);
 		break;
 #endif
-		/**
-		  * Handling of custom devicestate toggle buttons.
-		  */
-		case SCCP_FEATURE_DEVSTATE:
-			/* Todo: Set the appropriate devicestate, toggle it.
-			   Don't change the feature button status here, since
-			   this must be propagated through the asterisk devstate callback.*/
-
-			/* Fetching should not be necessary here. 
-			   To provide proper initialization in case of a missing initial event, we do it here nevertheless. */
-			/*
-			res = ast_db_get(devstate_astdb_family, config->button.feature.options, buf, sizeof(buf));
-			if(!res) {
-				if(!strncmp("INUSE", buf, 254))
-					config->button.feature.status = 1;
-				else
-					config->button.feature.status = 0;
-			}
-			*/
-
-			//config->button.feature.status = (config->button.feature.status)?0:1;
-			config->button.feature.status = !(config->button.feature.status)?0:1;
-			strncpy(buf, (config->button.feature.status)?("INUSE"):("NOT_INUSE"), sizeof(buf));
-			res = ast_db_put(devstate_astdb_family, config->button.feature.options, buf);
-
-			ast_devstate_changed(ast_devstate_val(buf), "Custom:%s", config->button.feature.options);
-			sccp_log((DEBUGCAT_FEATURE_BUTTON))(VERBOSE_PREFIX_3 "%s: devstate feature change: %s state: %d res: %d\n", DEV_ID_LOG(d), config->button.feature.options, config->button.feature.status, res);
-		break;
 
 		case SCCP_FEATURE_MULTIBLINK:
 			featureStat1 = ( d->priFeature.status & 0xf            ) - 1;

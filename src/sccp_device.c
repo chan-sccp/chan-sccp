@@ -37,7 +37,6 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_config.h"
 #include "sccp_conference.h"
 #include "sccp_actions.h"
-#include "sccp_featureButton.h"
 
 #include <asterisk/app.h>
 #include <asterisk/pbx.h>
@@ -1529,7 +1528,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	sccp_selectedchannel_t 	*selectedChannel = NULL;
 	sccp_line_t		*line =NULL;
 	sccp_channel_t		*channel=NULL;
-	sccp_devstate_specifier_t *specifier;
 
 	char family[25];
 
@@ -1599,18 +1597,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		ast_free(d->buttonTemplate);
 		d->buttonTemplate = NULL;
 	}
-
-
-	/* Unregister as generic hint watcher originating from devstate feature*/
-	//ast_devstate_del(&sccp_devstateFeatureState_cb, (void *) d);
-    /* Read and initialize custom devicestate entries */
-	    SCCP_LIST_LOCK(&d->devstateSpecifiers);
-		SCCP_LIST_TRAVERSE(&d->devstateSpecifiers, specifier, list) {
-			ast_event_unsubscribe(specifier->sub);
-			sccp_log(DEBUGCAT_FEATURE_BUTTON)(VERBOSE_PREFIX_1 "%s: Removed Devicestate Subscription: %s\n", d->id, specifier->specifier);
-		}
-		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
-
 
 	sccp_device_unlock(d);
 
