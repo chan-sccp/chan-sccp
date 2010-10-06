@@ -1,3 +1,208 @@
+2010-10-06  progs
+
+	* [r1966] src/sccp_actions.c: fix uninitialized variable
+
+	* [r1965] src/sccp_indicate.c: send CALLSTATE_PROCEED (revert
+	  commit r1916)
+
+2010-10-06  marcelloceschia
+
+	* [r1964] src/sccp_actions.c, src/sccp_featureButton.c: fixes:
+	  #3081549 (Conflict cwdAll-feature/softkey button)
+
+	* [r1963] src/sccp_featureButton.c: changeing cfwdall button
+
+	* [r1962] src/sccp_actions.c, src/sccp_featureButton.c: changeing
+	  cfwdall button
+
+	* [r1961] src/sccp_featureButton.c: fixes: #3081549 (Conflict
+	  cwdAll-feature/softkey button)
+
+	* [r1960] src/sccp_featureButton.c: fixes: #3081549 (Conflict
+	  cwdAll-feature/softkey button)
+
+2010-10-05  marcelloceschia
+
+	* [r1959] src/sccp_protocol.h: shrink softkeysmap
+
+2010-10-05  davidded
+
+	* [r1958] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_indicate.c, src/sccp_labels.h, src/sccp_protocol.h:
+	  steal a call remotely
+
+	* [r1957] src/sccp_featureButton.c: fix in devstate feature
+
+	* [r1956] src/sccp_pbx.c, src/sccp_pbx.h: reinstated the autoanswer
+	  function
+
+	* [r1955] src/chan_sccp.h, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_indicate.c, src/sccp_line.c, src/sccp_utils.c: auxiliary
+	  parameter for subscription id (silent option per linedevice)
+
+2010-10-05  ddegroot
+
+	* [r1954] configure, configure.ac: Fixed --enable-debug
+
+2010-10-05  davidded
+
+	* [r1953] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_config.c, src/sccp_device.c, src/sccp_featureButton.c,
+	  src/sccp_featureButton.h, src/sccp_features.c, src/sccp_utils.c:
+	  reestablished devstate feature again
+
+2010-10-05  ddegroot
+
+	* [r1952] configure, configure.ac, doc/05_New_Features.doc,
+	  src/config.h.in: added --enable-experimental-mode and
+	  --enable-devstate-feature to configure.ac
+
+2010-10-05  progs
+
+	* [r1950] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_config.c, src/sccp_device.c, src/sccp_featureButton.c,
+	  src/sccp_featureButton.h, src/sccp_features.c, src/sccp_utils.c:
+	  Revert "toggle feature devstate functionality"
+	  
+	  This reverts commit r1944
+	  
+	  PLEASE FUCKING CHECK IF YOUR COMMITS WORK WITH ASTERISK 1.4.
+	  THANKS.
+
+2010-10-05  marcelloceschia
+
+	* [r1949] src/sccp_line.c: fixes issue #3071875 (CfwdAll feature
+	  button turned off after reset)
+
+	* [r1948] src/sccp_channel.c: fixes issue #3080116 (CP-7921 -
+	  caller/callee ID problem (same as # 3074747) )
+
+2010-10-04  ddegroot
+
+	* [r1947] src/sccp_pbx.c: Reinserted sccp_channel_unlock in
+	  sccp_pbx_hangup
+
+	* [r1946] src/sccp_featureButton.c, src/sccp_pbx.c: Fixed Compile
+	  Warnings
+
+	* [r1945] src/sccp_pbx.c: Remarked implementation of
+	  sccp_pbx_transfer temporarily. Needs to be implemented correctly
+	  later.
+
+2010-10-03  davidded
+
+	* [r1944] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_config.c, src/sccp_device.c, src/sccp_featureButton.c,
+	  src/sccp_featureButton.h, src/sccp_features.c, src/sccp_utils.c:
+	  toggle feature devstate functionality
+
+2010-10-03  marcelloceschia
+
+	* [r1943] src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_featureButton.c, src/sccp_utils.c: feature: add pickup
+	  button that dials *8
+	  configuration: button = feature,Pickup,pickup
+	  Attention could be changed in future
+
+2010-10-02  ddegroot
+
+	* [r1942] src/sccp_actions.c, src/sccp_pbx.c: added RTP_NEW_SOURCE
+	  macro
+
+	* [r1941] src/chan_sccp.c: Removed "Channel not SCCP"-warnings when
+	  applied to Other Channel Types in Dialplan Functions
+
+	* [r1940] src/chan_sccp.c, src/chan_sccp.h, src/sccp_features.c,
+	  src/sccp_utils.c, src/sccp_utils.h: Factored out
+	  CS_AST_HAS_TECH_PVT checks for setting *cause
+	  Changed sccp_utils.c get_sccp_channel_from_ast to
+	  get_sccp_channel_from_ast_channel
+
+	* [r1939] src/chan_sccp.c, src/sccp_channel.c, src/sccp_features.c,
+	  src/sccp_protocol.h, src/sccp_utils.c, src/sccp_utils.h: Replaced
+	  CS_AST_CHANNEL_PVT(ast_chan) by get_sccp_channel_from_ast
+	  Added SET_CAUSE macro to chan_sccp.c
+
+2010-10-01  marcelloceschia
+
+	* [r1938] src/sccp_channel.c: fixes asterisk 1.4 compile warning
+
+	* [r1937] src/sccp_device.c:
+
+	* [r1936] src/sccp_pbx.c:
+
+	* [r1935] src/sccp_actions.c: protocol improvement
+
+	* [r1934] src/sccp_channel.c, src/sccp_channel.h: fixes: 3074747,
+	  protocol improvement
+
+	* [r1933] src/sccp_protocol.h: v17 video protocol
+
+2010-10-01  progs
+
+	* [r1932] src/sccp_device.c: changing cfwd* setting need reset of
+	  device
+
+2010-10-01  marcelloceschia
+
+	* [r1931] src/sccp_line.c: fixes: issue #3070173 (Dynamic Speeddial
+	  does not update its status)
+
+	* [r1930] src/sccp_config.c: realtime line reload, fixes device
+	  reload if label changed
+
+2010-09-30  marcelloceschia
+
+	* [r1929] src/sccp_config.c: commenting changes
+
+	* [r1928] src/sccp_config.h: testing: realtime line reload
+
+	* [r1927] src/chan_sccp.h, src/sccp_config.c, src/sccp_utils.c:
+	  testing: realtime line relaod
+
+	* [r1926] src/sccp_config.c: testing: realtime line relaod
+
+	* [r1925] src/sccp_config.c: testing: realtime line relaod
+
+2010-09-29  ddegroot
+
+	* [r1924] src/sccp_softkeys.c: Reverted to previous Transfer
+	  Methode. Commented out Marcello's Transfer Experiment Code until
+	  further notice, as per his request.
+
+2010-09-27  ddegroot
+
+	* [r1923] src/sccp_cli.c: Added sccp_dnd_device cli function for
+	  asterisk >1.4
+
+	* [r1922] configure, configure.ac, doc/04_Setup_Guide.doc,
+	  src/config.h.in: Updated configure enable/disable comments
+	  (Steven Lam)
+
+2010-09-27  progs
+
+	* [r1920] src/sccp_cli.c: new command 'dnd' to change the dnd
+	  status of a device
+
+2010-09-27  marcelloceschia
+
+	* [r1919] src/sccp_indicate.c: fixes issue reported by Pavel
+
+2010-09-25  ddegroot
+
+	* [r1918] ChangeLog, configure, configure.ac, src/sccp_actions.c,
+	  src/sccp_device.c, src/sccp_features.c, src/sccp_indicate.c,
+	  src/sccp_line.c, src/sccp_softkeys.c, src/sccp_utils.c: Moved
+	  doxygen entries up in configure.ac
+	  Added parameter comments for documentation
+
+2010-09-24  marcelloceschia
+
+	* [r1917] src/sccp_indicate.c: sccp_indicate2str for progress
+
+	* [r1916] src/sccp_indicate.c: revert patch 1705, but dont send
+	  PROCEED
+
 2010-09-23  marcelloceschia
 
 	* [r1915] src/chan_sccp.c:

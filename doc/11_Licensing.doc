@@ -17,10 +17,11 @@
  * be easier to go to http://chan-sccp-b.sourceforge.net 
  *
  **/
+
 /*!
  * \page Licensing Licensing Information
  *
  * \section license Chan_SCCP License
- * \verbinclude COPYING
+ * \include COPYING
  **/
 
