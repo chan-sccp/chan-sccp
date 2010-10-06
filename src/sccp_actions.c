@@ -308,7 +308,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 
 					btn[i].type = SKINNY_BUTTONTYPE_LINE;
 					btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name);
-					
+
 					/* check for existence */
 					if(btn[i].ptr == NULL){
 						btn[i].type = SKINNY_BUTTONTYPE_UNDEFINED;
@@ -380,6 +380,10 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 							btn[i].type = SKINNY_BUTTONTYPE_TRANSFER;
 							break;
 
+						case SCCP_FEATURE_CFWDALL:
+							btn[i].type = SKINNY_BUTTONTYPE_FORWARDALL;
+							break;
+
 						case SCCP_FEATURE_MULTIBLINK:
 							btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 							break;
@@ -391,7 +395,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 						case SCCP_FEATURE_CONFERENCE:
 							btn[i].type = SKINNY_BUTTONTYPE_CONFERENCE;
 							break;
-						
+
 						case SCCP_FEATURE_PICKUP:
 							btn[i].type = SKINNY_STIMULUS_GROUPCALLPICKUP;
 							break;
@@ -498,20 +502,20 @@ void sccp_handle_AvailableLines(sccp_device_t *d){
 	boolean_t		defaultLineSet = FALSE;
 
 	line_count = 0;
-	
+
 	/** \todo why do we get the message twice  */
 	if(d->linesRegistered)
 		return;
-	
+
 	sccp_device_lock(d);
 	btn = d->buttonTemplate;
-	
+
 	if(!btn){
 		sccp_log(DEBUGCAT_BUTTONTEMPLATE)(VERBOSE_PREFIX_3 "%s: no buttontemplate, reset device\n", DEV_ID_LOG(d));
 		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 		return;
 	}
-	
+
 	/* count the available lines on the phone */
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 		if ( (btn[i].type == SKINNY_BUTTONTYPE_LINE) || (btn[i].type == SCCP_BUTTONTYPE_MULTI) )
@@ -530,7 +534,7 @@ void sccp_handle_AvailableLines(sccp_device_t *d){
 		sccp_line_addDevice(GLOB(hotline)->line, d, 1, NULL);
 		sccp_hint_lineStatusChanged(GLOB(hotline)->line, d, NULL, SCCP_DEVICESTATE_UNAVAILABLE ,SCCP_DEVICESTATE_ONHOOK);
 	}else{
-	
+
 		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 			if(btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].ptr ){
 				l = btn[i].ptr;
@@ -543,7 +547,7 @@ void sccp_handle_AvailableLines(sccp_device_t *d){
 					defaultLineSet = TRUE;
 				}
 				sccp_device_unlock(d);
-				
+
 				SCCP_LIST_LOCK(&d->buttonconfig);
 				SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 					if(btn[i].instance == buttonconfig->instance && buttonconfig->type == LINE ){
@@ -555,7 +559,7 @@ void sccp_handle_AvailableLines(sccp_device_t *d){
 				}
 				SCCP_LIST_UNLOCK(&d->buttonconfig);
 			}
-			
+
 		}
 	}
 	d->linesRegistered = TRUE;
@@ -649,14 +653,14 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	sccp_device_lock(d);
-	
+
 	/* pre-attach lines. We will wait for button template req if the phone does support it */
 	if(d->buttonTemplate){
 		ast_free(d->buttonTemplate);
 	}
 	btn = d->buttonTemplate = sccp_make_button_template(d);
-	
-	
+
+
 	if (!btn) {
 		ast_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
 		sccp_session_close(s);
@@ -896,7 +900,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			sccp_feat_hotline(d, l);
 		      return;
 		}
-		// \todo TODO set index 
+		// \todo TODO set index
 		instance = 1;
 	}
 
@@ -1144,9 +1148,9 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			else
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
 			break;
-			
+
 		case SKINNY_STIMULUS_GROUPCALLPICKUP: /*!< pickup feature button */
-		  
+
 			if(d->defaultLineInstance > 0){
 				sccp_log((DEBUGCAT_FEATURE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
 				l = sccp_line_find_byid(d, d->defaultLineInstance);
@@ -1155,7 +1159,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 				sccp_channel_newcall(l, d, "*8", SKINNY_CALLTYPE_OUTBOUND);
 				return;
 			}
-			
+
 			/* no default line set, use first line */
 			if(!l){
 				l = sccp_line_find_byid(d, 1);
@@ -1165,9 +1169,9 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 				//TODO use feature map or sccp_feat_handle_directpickup
 				sccp_channel_newcall(d->currentLine, d, "*8", SKINNY_CALLTYPE_OUTBOUND);
 			}
-			  
-		  
-			
+
+
+
 			break;
 
 		default:
@@ -1457,10 +1461,10 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 #endif
 
 	//sccp_device_lock(d);
-	
+
 	/* set softkey definition */
 	sccp_softKeySetConfiguration_t *softkeyset;
-	
+
 	if(!ast_strlen_zero(d->softkeyDefinition)){
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: searching for softkeyset: %s!\n", d->id, d->softkeyDefinition);
 		SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
@@ -1472,12 +1476,12 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 		}
 	}
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: d->softkeyDefinition=%s!\n", d->id, d->softkeyDefinition);
-	/* end softkey definition */ 
-	
-	
+	/* end softkey definition */
+
+
 	const softkey_modes 	*v = d->softKeyConfiguration.modes;
 	const	uint8_t		v_count = d->softKeyConfiguration.size;
-	
+
 
 	REQ(r1, SoftKeySetResMessage);
 	r1->msg.SoftKeySetResMessage.lel_softKeySetOffset = htolel(0);
@@ -1750,7 +1754,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 		resp = '#';
 
 	/* added PROGRESS to make sending digits possible during progress state (Pavel Troller) */
-	if (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED || c->state == SCCP_CHANNELSTATE_PROGRESS) {	
+	if (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED || c->state == SCCP_CHANNELSTATE_PROGRESS) {
 		/* we have to unlock 'cause the senddigit lock the channel */
 		sccp_channel_unlock(c);
 	    	sccp_pbx_senddigit(c, resp);
@@ -2220,14 +2224,14 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r){
 		}
 
 		sccp_moo_t * r1;
-		
+
 		r1 = sccp_build_packet(MiscellaneousCommandMessage, sizeof(r->msg.MiscellaneousCommandMessage));
 		r1->msg.MiscellaneousCommandMessage.lel_conferenceId 		= htolel(c->callid);
 		r1->msg.MiscellaneousCommandMessage.lel_passThruPartyId		= htolel(c->passthrupartyid);
 		r1->msg.MiscellaneousCommandMessage.lel_callReference		= htolel(c->callid);
 		r1->msg.MiscellaneousCommandMessage.lel_miscCommandType		= htolel(1);/* videoFastUpdatePicture */
 		sccp_dev_send(c->device, r1);
-		
+
 		r1 = sccp_build_packet(Unknown_0x0141_Message, sizeof(r->msg.Unknown_0x0141_Message));
 		r1->msg.Unknown_0x0141_Message.lel_conferenceID 		= htolel(c->callid);
 		r1->msg.Unknown_0x0141_Message.lel_passThruPartyId		= htolel(c->passthrupartyid);
@@ -2447,7 +2451,7 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
   	sccp_log((DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Unknown = %d \n", d->id, instance, unknown);
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
-	/* 
+	/*
 	 * the new speeddial style uses feature to display state
 	 * unfortunately we dont know how to handle this on other way
 	 */
@@ -2777,8 +2781,8 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 	      sccp_channel_endcall(c);
 	      return;
 	}
-	
-	
+
+
 
 	/* update status */
 	c->rtp.audio.status |=  SCCP_RTP_STATUS_TRANSMIT;
