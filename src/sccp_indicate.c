@@ -77,8 +77,8 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 	sccp_device_unlock(d);
 
 	/* all the check are ok. We can safely run all the dev functions with no more checks */
-	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Indicate SCCP state (%s) old (%s) on call %s-%08x\n",d->id, sccp_indicate2str(state), sccp_indicate2str(c->state), l->name, c->callid);
-
+	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: 1-Indicate SCCP state %d (%s),previous state %d (%s) on call %s-%08x\n",d->id, state, sccp_indicate2str(state), c->state, sccp_indicate2str(c->state), l->name, c->callid);
+	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: 2-Indicate SCCP state %d (%s),previous channelState %d (%s) on call %s-%08x\n",d->id, state, sccp_indicate2str(state), c->previousChannelState, sccp_indicate2str(c->previousChannelState), l->name, c->callid);
 
 	sccp_channel_setSkinnyCallstate(c, state);
 
