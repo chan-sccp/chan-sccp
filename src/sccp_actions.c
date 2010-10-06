@@ -380,10 +380,6 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 							btn[i].type = SKINNY_BUTTONTYPE_TRANSFER;
 							break;
 
-						case SCCP_FEATURE_CFWDALL:
-							btn[i].type = SKINNY_BUTTONTYPE_FORWARDALL;
-							break;
-
 						case SCCP_FEATURE_MULTIBLINK:
 							btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 							break;
