@@ -103,7 +103,7 @@ DX_PS_GOAL = doxygen-ps
 doxygen-ps: @DX_DOCDIR@/@PACKAGE@.ps
 
 @DX_DOCDIR@/@PACKAGE@.ps: @DX_DOCDIR@/@PACKAGE@.tag
-	cd @DX_DOCDIR@/latex; \
+	cd doc/latex; \
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out; \
 	$(DX_LATEX) refman.tex; \
 	$(MAKEINDEX_PATH) refman.idx; \
@@ -132,7 +132,7 @@ DX_PDF_GOAL = doxygen-pdf
 doxygen-pdf: @DX_DOCDIR@/@PACKAGE@.pdf
 
 @DX_DOCDIR@/@PACKAGE@.pdf: @DX_DOCDIR@/@PACKAGE@.tag
-	cd @DX_DOCDIR@/latex; \
+	cd doc/latex; \
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out; \
 	$(DX_PDFLATEX) refman.tex; \
 	$(DX_MAKEINDEX) refman.idx; \

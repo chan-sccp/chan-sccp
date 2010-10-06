@@ -886,7 +886,7 @@ uninstall-am:
 @DX_COND_doc_TRUE@@DX_COND_ps_TRUE@doxygen-ps: @DX_DOCDIR@/@PACKAGE@.ps
 
 @DX_COND_doc_TRUE@@DX_COND_ps_TRUE@@DX_DOCDIR@/@PACKAGE@.ps: @DX_DOCDIR@/@PACKAGE@.tag
-@DX_COND_doc_TRUE@@DX_COND_ps_TRUE@	cd @DX_DOCDIR@/latex; \
+@DX_COND_doc_TRUE@@DX_COND_ps_TRUE@	cd doc/latex; \
 @DX_COND_doc_TRUE@@DX_COND_ps_TRUE@	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out; \
 @DX_COND_doc_TRUE@@DX_COND_ps_TRUE@	$(DX_LATEX) refman.tex; \
 @DX_COND_doc_TRUE@@DX_COND_ps_TRUE@	$(MAKEINDEX_PATH) refman.idx; \
@@ -903,7 +903,7 @@ uninstall-am:
 @DX_COND_doc_TRUE@@DX_COND_pdf_TRUE@doxygen-pdf: @DX_DOCDIR@/@PACKAGE@.pdf
 
 @DX_COND_doc_TRUE@@DX_COND_pdf_TRUE@@DX_DOCDIR@/@PACKAGE@.pdf: @DX_DOCDIR@/@PACKAGE@.tag
-@DX_COND_doc_TRUE@@DX_COND_pdf_TRUE@	cd @DX_DOCDIR@/latex; \
+@DX_COND_doc_TRUE@@DX_COND_pdf_TRUE@	cd doc/latex; \
 @DX_COND_doc_TRUE@@DX_COND_pdf_TRUE@	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out; \
 @DX_COND_doc_TRUE@@DX_COND_pdf_TRUE@	$(DX_PDFLATEX) refman.tex; \
 @DX_COND_doc_TRUE@@DX_COND_pdf_TRUE@	$(DX_MAKEINDEX) refman.idx; \
