@@ -821,35 +821,35 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 static char *sccp_control2str(int state) {
 		switch(state) {
 		case AST_CONTROL_HANGUP:
-				return "Hangup";
+				return "Other end has hungup";
 		case AST_CONTROL_RING:
-				return "Ring";
+				return "Local Ring";
 		case AST_CONTROL_RINGING:
-				return "Ringing";
+				return "Remote end is ringing";
 		case AST_CONTROL_ANSWER:
-				return "Answer";
+				return "Remote end has answered";
 		case AST_CONTROL_BUSY:
-				return "Busy";
+				return "Remote end is busy";
 		case AST_CONTROL_TAKEOFFHOOK:
-				return "TakeOffHook";
+				return "Make it go off hook";
 		case AST_CONTROL_OFFHOOK:
-				return "OffHook";
+				return "Line is off hook";
 		case AST_CONTROL_CONGESTION:
-				return "Congestion";
+				return "Congestion (all cirtuits are busy)";
 		case AST_CONTROL_FLASH:
-				return "Flash";
+				return "Flash Hook";
 		case AST_CONTROL_WINK:
 				return "Wink";
 		case AST_CONTROL_OPTION:
-				return "Option";
+				return "Set a low-level option";
 		case AST_CONTROL_RADIO_KEY:
-				return "RadioKey";
+				return "Key Radio";
 		case AST_CONTROL_RADIO_UNKEY:
-				return "RadioUnKey";
+				return "Un-key Radio";
 		case AST_CONTROL_PROGRESS:
-				return "Progress";
+				return "Remote end is making progress";
 		case AST_CONTROL_PROCEEDING:
-				return "Proceeding";
+				return "Remote end is proceeding";
 #ifdef CS_AST_CONTROL_HOLD
 		case AST_CONTROL_HOLD:
 				return "Hold";
@@ -858,26 +858,26 @@ static char *sccp_control2str(int state) {
 #endif // CS_AST_CONTROL_HOLD
 #ifdef CS_AST_CONTROL_VIDUPDATE
 		case AST_CONTROL_VIDUPDATE:
-				return "VideoFrameUpdate";
+				return "Video Frame Update";
 #endif // CS_AST_CONTROL_VIDUPDATE
 #ifdef CS_AST_CONTROL_T38
 		case AST_CONTROL_T38:
-				return "T38RequestNotification";
+				return "T38 Request Notification";
 #endif // AST_CONTROL_T38
 #ifdef CS_AST_CONTROL_T38_PARAMETERS
 		case AST_CONTROL_T38_PARAMETERS:
-				return "T38RequestNotification";
+				return "T38 Request Notification";
 #endif // AST_CONTROL_T38_PARAMETERS
 #ifdef CS_AST_CONTROL_SRCUPDATE
 		case AST_CONTROL_SRCUPDATE:
-				return "MediaSourceUpdate";
+				return "Media Source Update";
 #endif // CS_AST_CONTROL_SRCUPDATE
 #ifdef CS_AST_CONTROL_SRCCHANGE
 		case AST_CONTROL_SRCCHANGE:
-				return "MediaSourceChange";
+				return "Media Source Change";
 #endif // CS_AST_CONTROL_SRCCHANGE
 		case -1:
-				return "ChannelProdding";
+				return "Channel Prodding (Stop Tone)";
 		default:
 				return "Unknown";
 		}

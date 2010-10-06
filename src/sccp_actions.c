@@ -1150,9 +1150,13 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			if(d->defaultLineInstance > 0){
 				sccp_log((DEBUGCAT_FEATURE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
 				l = sccp_line_find_byid(d, d->defaultLineInstance);
+				/*! \todo use feature map or sccp_feat_handle_directpickup */
+#ifdef CS_EXPERIMENTAL
 				//sccp_feat_handle_directpickup(l, d->defaultLineInstance, d);
-				//TODO use feature map or sccp_feat_handle_directpickup
+				sccp_channel_newcall(l, d, (char *) ast_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND);
+#else
 				sccp_channel_newcall(l, d, "*8", SKINNY_CALLTYPE_OUTBOUND);
+#endif
 				return;
 			}
 
@@ -1161,9 +1165,13 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 				l = sccp_line_find_byid(d, 1);
 			}
 			if(l){
+				/*! \todo use feature map or sccp_feat_handle_directpickup */
+#ifdef CS_EXPERIMENTAL
 				//sccp_feat_handle_directpickup(l, 1, d);
-				//TODO use feature map or sccp_feat_handle_directpickup
+				sccp_channel_newcall(d->currentLine, d, (char *) ast_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND);
+#else
 				sccp_channel_newcall(d->currentLine, d, "*8", SKINNY_CALLTYPE_OUTBOUND);
+#endif
 			}
 
 
