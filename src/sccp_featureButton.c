@@ -101,6 +101,7 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 					}
 				break;
 				case SCCP_FEATURE_CFWDALL:
+					buttonID = SKINNY_BUTTONTYPE_FORWARDALL;
 
 					/* get current state */
 					SCCP_LIST_TRAVERSE(&device->buttonconfig, buttonconfig, list) {
@@ -178,10 +179,6 @@ void sccp_featButton_changed(sccp_device_t *device, sccp_feature_type_t featureT
 
 				case SCCP_FEATURE_TRANSFER:
 					buttonID = SKINNY_BUTTONTYPE_TRANSFER;
-					break;
-
-				case SCCP_FEATURE_CFWDALL:
-					buttonID = SKINNY_BUTTONTYPE_FORWARDALL;
 					break;
 
 				case SCCP_FEATURE_MULTIBLINK:
