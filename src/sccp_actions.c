@@ -864,7 +864,7 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_moo_t * r)
 void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 {
 	sccp_device_t * d = s->device;
-	sccp_line_t * l;
+	sccp_line_t * l = NULL;
 	sccp_speed_t * k;
 	sccp_channel_t * c, * c1;
 	uint8_t stimulus;
