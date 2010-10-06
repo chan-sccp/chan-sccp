@@ -203,7 +203,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 			sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: DND is activated on device\n",d->id);
 			sccp_dev_set_ringer(d, SKINNY_STATION_SILENTRING, instance, c->callid);
 		} else {
-		
+
 			sccp_linedevices_t *ownlinedevice;
 			sccp_device_t	*remoteDevice;
 			SCCP_LIST_TRAVERSE(&c->line->devices, ownlinedevice, list) {
@@ -220,7 +220,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 						sccp_dev_set_ringer(d, c->ringermode, instance, c->callid);
 						sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Normal ring occurred.\n",d->id);
 					}
-				} 
+				}
 			}
 
 		}
@@ -266,7 +266,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		break;
 	case SCCP_CHANNELSTATE_PROGRESS:				/* \todo SCCP_CHANNELSTATE_PROGRESS To be checked */
 		sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_PROGRESS (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
-		
+
 		/* */
 		if (c->previousChannelState != SCCP_CHANNELSTATE_PROGRESS){
                         if (d->earlyrtp != SCCP_CHANNELSTATE_OFFHOOK && d->earlyrtp != SCCP_CHANNELSTATE_DIALING) {
@@ -274,9 +274,8 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
                         }else{
 				//TODO fake ringing?
                         }
-                        
-                        /* dont send SKINNY_CALLSTATE_PROCEED !!! */
-			//sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+
+			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			sccp_dev_displayprompt(d, instance, c->callid, "Call Progress", 0);
 			sccp_channel_send_callinfo(d, c);
 	        }
@@ -338,7 +337,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		break;
 	case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:				/* \todo SCCP_CHANNELSTATE_CONNECTEDCONFERENCE To be implemented */
 		sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_CONNECTEDCONFERENCE (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
-		
+
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 		sccp_dev_stoptone(d, instance, c->callid);
 	//	sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
@@ -363,8 +362,8 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		if(d->earlyrtp)
 			sccp_ast_setstate(c, AST_STATE_UP);
 		sccp_channel_updatemediatype(c);				/*!< Copied from v2 - FS */
-		
-		
+
+
 		break;
 	case SCCP_CHANNELSTATE_CALLPARK:
 		sccp_device_sendcallstate(d, instance,c->callid, SCCP_CHANNELSTATE_CALLPARK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -461,11 +460,11 @@ static void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t 
 
 	if(!c || !c->line)
 		return;
-	
-	
+
+
 	if(c->device)
 		privacyStatus = c->device->privacyFeature.status & SCCP_PRIVACYFEATURE_HINT;
-	
+
 	/* do not display private lines */
 	if(c->privacy || privacyStatus > 0 )
 		return;
@@ -473,7 +472,7 @@ static void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t 
 	/* do not propagate status of hotline */
 	if(c->line == GLOB(hotline)->line)
 		return;
-	
+
 
 //	SCCP_LIST_LOCK(&c->line->devices);
 	// \todo TODO find working lock
@@ -483,10 +482,10 @@ static void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t 
 
 			if(device && remoteDevice == device)
 				continue;
-			
+
 			//TODO do not publish status we already know, because we are part of it
-			
-			
+
+
 			sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Notify remote device.\n", DEV_ID_LOG(remoteDevice));
 			sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: channelcount: %d\n", DEV_ID_LOG(remoteDevice), c->line->channelCount);
 
