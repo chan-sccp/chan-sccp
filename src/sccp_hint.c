@@ -336,7 +336,7 @@ int sccp_hint_state(char *context, char* exten, enum ast_extension_states state,
 			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 #else
 			hint->currentState = SCCP_CHANNELSTATE_RINGING;
-#endif // CS_DYNAMIC_SPEEDDIAL 
+#endif // CS_DYNAMIC_SPEEDDIAL
 			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.callingPartyName));
 			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.calledPartyName));
 			break;
@@ -413,10 +413,10 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 
 	sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "notify subscriber of %s\n", (hint->hint_dialplan)?hint->hint_dialplan:"null");
 
-	SCCP_LIST_LOCK(&hint->subscribers);
-	SCCP_LIST_TRAVERSE(&hint->subscribers, subscriber, list){
+	//SCCP_LIST_LOCK(&hint->subscribers);
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&hint->subscribers, subscriber, list){
 		if(!subscriber->device){
-			SCCP_LIST_REMOVE(&hint->subscribers, subscriber, list);
+			SCCP_LIST_REMOVE_CURRENT(list);
 			continue;
 		}
 
@@ -428,7 +428,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 
 			REQ(r, FeatureStatAdvancedMessage);
 			r->msg.FeatureStatAdvancedMessage.lel_instance = htolel(subscriber->instance);
-			r->msg.FeatureStatAdvancedMessage.lel_type = 0x15;
+			r->msg.FeatureStatAdvancedMessage.lel_type = SKINNY_BUTTONTYPE_BLFSPEEDDIAL;
 
 			switch(hint->currentState){
 				case SCCP_CHANNELSTATE_ONHOOK:
@@ -526,7 +526,8 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 			sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_INUSEHINT);
 		}
 	}
-	SCCP_LIST_UNLOCK(&hint->subscribers);
+	SCCP_LIST_TRAVERSE_SAFE_END
+	//SCCP_LIST_UNLOCK(&hint->subscribers);
 }
 
 /*!
@@ -1014,16 +1015,14 @@ void sccp_hint_unSubscribeHint(const sccp_device_t *device, const char *hintStr,
 	sccp_hint_SubscribingDevice_t *subscriber;
 
 	SCCP_LIST_LOCK(&hint->subscribers);
-	SCCP_LIST_TRAVERSE(&hint->subscribers, subscriber, list){
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&hint->subscribers, subscriber, list){
 		if(subscriber->device == device)
 			break;
+		SCCP_LIST_REMOVE_CURRENT(list);
 	}
-
-	if(subscriber){
-		SCCP_LIST_REMOVE(&hint->subscribers, subscriber, list);
-		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "Device removed.\n");
-	}
+	SCCP_LIST_TRAVERSE_SAFE_END
 	SCCP_LIST_UNLOCK(&hint->subscribers);
+
 }
 
 
