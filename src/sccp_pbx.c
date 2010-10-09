@@ -181,38 +181,6 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: Asterisk request to call %s\n", l->id, ast->name);
 
-	//handle DND on lines
-	sccp_mutex_lock(&l->lock);
-
-	/*! \todo reimplement DNDMODE_REJECT, DNDMODE_USERDEFINED, URGENTRING ? */
-#if 0
-	/* curently we do not allow cfwd for the whole line */
-	if (l->dndmode == SCCP_DNDMODE_REJECT || (l->dndmode == SCCP_DNDMODE_USERDEFINED && l->dnd == SCCP_DNDMODE_REJECT )) {
-		ringermode = pbx_builtin_getvar_helper(ast, "ALERT_INFO");
-		if ( ringermode && !ast_strlen_zero(ringermode) ) {
-			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "line %s: Found ALERT_INFO=%s\n", l->name, ringermode);
-			if (strcasecmp(ringermode, "urgent") == 0)
-				c->ringermode = SKINNY_STATION_URGENTRING;
-		} else {
-			sccp_mutex_unlock(&l->lock);
-			ast_setstate(ast, AST_STATE_BUSY);
-			ast_queue_control(ast, AST_CONTROL_BUSY);
-			sccp_log(1)(VERBOSE_PREFIX_4 "DND for line \"%s\" is on. Call %s rejected\n", l->name, ast->name);
-			return 0;
-		}
-
-	}
-	/* else if (l->dndmode == SCCP_DNDMODE_SILENT || (l->dndmode == SCCP_DNDMODE_USERDEFINED && l->dnd == SCCP_DNDMODE_SILENT ) ) {
-		// disable the ringer and autoanswer options
-		c->ringermode = SKINNY_STATION_SILENTRING;
-		c->autoanswer_type = SCCP_AUTOANSWER_NONE;
-		sccp_log(1)(VERBOSE_PREFIX_3 "%s: DND (silent) for line \"%s\" is on. Set the ringer = silent and autoanswer = off for %s\n", d->id, l->name, ast->name);
-	}*/
-
-#endif
-	sccp_mutex_unlock(&l->lock);
-	//end DND handling
-
 	/* if incoming call limit is reached send BUSY */
 	sccp_mutex_lock(&l->lock);
 	if ( l->channelCount > l->incominglimit ) { /* >= just to be sure :-) */
@@ -224,28 +192,6 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	}
 	sccp_mutex_unlock(&l->lock);
 
-	/* \todo reimplement Autoanswer check ? */
-// 	if (c->autoanswer_type) {
-// 		if (d->channelCount > 1) {
-// 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Autoanswer requested, but the device is in use\n", l->id);
-// 			c->autoanswer_type = SCCP_AUTOANSWER_NONE;
-// 			if (c->autoanswer_cause) {
-// 				switch (c->autoanswer_cause) {
-// 					case AST_CAUSE_CONGESTION:
-// 						ast_queue_control(ast, AST_CONTROL_CONGESTION);
-// 						break;
-// 					default:
-// 						ast_queue_control(ast, AST_CONTROL_BUSY);
-// 						break;
-// 				}
-// 				sccp_mutex_unlock(&d->lock);
-// 				return 0;
-// 			}
-// 		} else {
-// 			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Autoanswer requested and activated %s\n", d->id, (c->autoanswer_type == SCCP_AUTOANSWER_1W) ? "with MIC OFF" : "with MIC ON");
-// 		}
-// 	}
-// 	sccp_mutex_unlock(&d->lock);
 
   /* Set the channel callingParty Name and Number */
 	sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3  "SCCP: (sccp_pbx_call) asterisk cid_num = '%s'\n", (ast->cid.cid_num)?ast->cid.cid_num:"");
@@ -327,25 +273,6 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 			c->ringermode = SKINNY_STATION_URGENTRING;
 	}
 
-	/*! \todo Reimplement CALLWAITING, RINGING ? */
-#if 0
-	if ( sccp_channel_get_active(d) ) {
-		sccp_indicate_lock(c, SCCP_CHANNELSTATE_CALLWAITING);
-		ast_queue_control(ast, AST_CONTROL_RINGING);
-	} else {
-		sccp_indicate_lock(c, SCCP_CHANNELSTATE_RINGING);
-		ast_queue_control(ast, AST_CONTROL_RINGING);
-		if (c->autoanswer_type) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: Running the autoanswer thread on %s\n", d->id, ast->name);
-			pthread_attr_init(&attr);
-			pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-			if (ast_pthread_create(&t, &attr, sccp_pbx_call_autoanswer_thread, &c->callid)) {
-				ast_log(LOG_WARNING, "%s: Unable to create switch thread for channel (%s-%08x) %s\n", d->id, l->name, c->callid, strerror(errno));
-			}
-		}
-	}
-#endif
-
 	if(l->devices.size == 1 && SCCP_LIST_FIRST(&l->devices) && SCCP_LIST_FIRST(&l->devices)->device && SCCP_LIST_FIRST(&l->devices)->device->session){
 		// \todo TODO check if we have to do this
 		c->device = SCCP_LIST_FIRST(&l->devices)->device;
@@ -354,88 +281,62 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 
 	boolean_t isRinging = FALSE;
 	
-	/*! \todo Reimplement Call to single Device ? */
-#if 0
-	if(c->device){
-		if(c->device->session){ // Call to a single device
-			if ( sccp_channel_get_active(c->device) ) {
-				sccp_indicate_lock(c->device, c, SCCP_CHANNELSTATE_CALLWAITING);
-				isRinging = TRUE;
-			} else {
-				if(c->device->dndFeature.enabled && c->device->dndFeature.status == SCCP_DNDMODE_REJECT ){
-					sccp_log(1)(VERBOSE_PREFIX_3 "%s: is on dnd\n", c->device->id);
-				}else{
-					sccp_indicate_lock(c->device, c, SCCP_CHANNELSTATE_RINGING);
-					isRinging = TRUE;
-					if (c->autoanswer_type) {
-						sccp_log(1)(VERBOSE_PREFIX_3 "%s: Running the autoanswer thread on %s\n", c->device->id, ast->name);
-						pthread_attr_init(&attr);
-						pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-						if (ast_pthread_create(&t, &attr, sccp_pbx_call_autoanswer_thread, &c->callid)) {
-							ast_log(LOG_WARNING, "%s: Unable to create switch thread for channel (%s-%08x) %s\n", c->device->id, l->name, c->callid, strerror(errno));
-						}
+	sccp_linedevices_t *linedevice;
+
+	SCCP_LIST_LOCK(&l->devices);
+	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
+		assert(linedevice->device);
+
+		/* do we have cfwd enabled? */
+		if(linedevice->cfwdAll.enabled ){
+			ast_log(LOG_NOTICE, "%s: initialize cfwd for line %s\n", linedevice->device->id, l->name);
+			sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance,c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+			sccp_channel_send_callinfo(linedevice->device, c);
+			sccp_channel_forward(c, linedevice, linedevice->cfwdAll.number);
+			isRinging = TRUE;
+			continue;
+		}
+
+
+
+		if(!linedevice->device->session)
+			continue;
+
+		/* check if c->subscriptionId.number is matching deviceSubscriptionID */
+		/* This means that we call only those devices on a shared line
+		    which match the specified subscription id in the dial parameters. */
+		if( !sccp_util_matchSubscriptionId(c, linedevice->subscriptionId.number) ){
+			continue;
+		}
+
+		if ( sccp_channel_get_active(linedevice->device) ) {
+			sccp_indicate_lock(linedevice->device, c, SCCP_CHANNELSTATE_CALLWAITING);
+			isRinging = TRUE;
+		} else {
+			if(linedevice->device->dndFeature.enabled && linedevice->device->dndFeature.status == SCCP_DNDMODE_REJECT)
+				continue;
+
+			sccp_indicate_lock(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
+			isRinging = TRUE;
+			if (c->autoanswer_type) {
+
+				struct sccp_answer_conveyor_struct *conveyor = calloc(1, sizeof(struct sccp_answer_conveyor_struct));
+				if(conveyor){
+					sccp_log(1)(VERBOSE_PREFIX_3 "%s: Running the autoanswer thread on %s\n", DEV_ID_LOG(linedevice->device), ast->name);
+					conveyor->callid   = c->callid;
+					conveyor->linedevice  = linedevice;
+
+					pthread_attr_init(&attr);
+					pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+					if (ast_pthread_create(&t, &attr, sccp_pbx_call_autoanswer_thread, conveyor)) {
+						ast_log(LOG_WARNING, "%s: Unable to create switch thread for channel (%s-%08x) %s\n", DEV_ID_LOG(linedevice->device), l->name, c->callid, strerror(errno));
 					}
 				}
 			}
 		}
-	}else{
-#endif
-		sccp_linedevices_t *linedevice;
+	}
+	SCCP_LIST_UNLOCK(&l->devices);
 
-		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
-			assert(linedevice->device);
-
-			/* do we have cfwd enabled? */
-			if(linedevice->cfwdAll.enabled ){
-				ast_log(LOG_NOTICE, "%s: initialize cfwd for line %s\n", linedevice->device->id, l->name);
-				sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance,c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-				sccp_channel_send_callinfo(linedevice->device, c);
-				sccp_channel_forward(c, linedevice, linedevice->cfwdAll.number);
-				isRinging = TRUE;
-				continue;
-			}
-
-
-
-			if(!linedevice->device->session)
-				continue;
-
-			/* check if c->subscriptionId.number is matching deviceSubscriptionID */
-			/* This means that we call only those devices on a shared line
-			   which match the specified subscription id in the dial parameters. */
-			if( !sccp_util_matchSubscriptionId(c, linedevice->subscriptionId.number) ){
-				continue;
-			}
-
-			if ( sccp_channel_get_active(linedevice->device) ) {
-				sccp_indicate_lock(linedevice->device, c, SCCP_CHANNELSTATE_CALLWAITING);
-				isRinging = TRUE;
-			} else {
-				if(linedevice->device->dndFeature.enabled && linedevice->device->dndFeature.status == SCCP_DNDMODE_REJECT)
-					continue;
-
-				sccp_indicate_lock(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
-				isRinging = TRUE;
-				if (c->autoanswer_type) {
-
-					struct sccp_answer_conveyor_struct *conveyor = calloc(1, sizeof(struct sccp_answer_conveyor_struct));
-					if(conveyor){
-						sccp_log(1)(VERBOSE_PREFIX_3 "%s: Running the autoanswer thread on %s\n", DEV_ID_LOG(linedevice->device), ast->name);
-						conveyor->callid   = c->callid;
-						conveyor->linedevice  = linedevice;
-
-						pthread_attr_init(&attr);
-						pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-						if (ast_pthread_create(&t, &attr, sccp_pbx_call_autoanswer_thread, conveyor)) {
-							ast_log(LOG_WARNING, "%s: Unable to create switch thread for channel (%s-%08x) %s\n", DEV_ID_LOG(linedevice->device), l->name, c->callid, strerror(errno));
-						}
-					}
-				}
-			}
-		}
-		SCCP_LIST_UNLOCK(&l->devices);
-/* 	} */
 
 	if (isRinging){
 		ast_queue_control(ast, AST_CONTROL_RINGING);
@@ -959,7 +860,8 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_CONGESTION);
 			break;
 		case AST_CONTROL_PROGRESS:
-			sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_PROGRESS);
+			//sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_PROGRESS);
+			sccp_pbx_answer(ast);//TODO FIXIT dirty hack
 			break;
 		case AST_CONTROL_PROCEEDING:
 			sccp_indicate_nolock(c->device, c, SCCP_CHANNELSTATE_PROCEED);
