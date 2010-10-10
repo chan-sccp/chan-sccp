@@ -135,4 +135,7 @@ char * sccp_get_debugcategories(uint32_t debugvalue);
 sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const char *dirNum, const char *fqdn, const char *lineDisplayName);
 char **explode(char *str,char *sep);
 boolean_t implode(char *str[],char *sep, char **res);
+#ifdef HAVE_LIBGC
+void gc_warn_proc(char *msg, GC_word p);
+#endif
 #endif

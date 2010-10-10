@@ -305,7 +305,7 @@ AC_DEFUN([CS_GET_VERSION], [
 ## Doxygen Defaults. ##
 ## ------------------##
 
-DX_ENV=""
+#DX_ENV=""
 AC_DEFUN([DX_FEATURE_doc],  ON)
 AC_DEFUN([DX_FEATURE_dot],  ON)
 AC_DEFUN([DX_FEATURE_man],  OFF)

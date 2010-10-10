@@ -249,11 +249,9 @@ AC_CHECK_HEADERS([sys/socket.h])
 AC_CHECK_HEADERS([netinet/in.h])
 AC_CHECK_HEADERS([pthread.h])
 
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
-AC_FUNC_MALLOC 
-AC_FUNC_REALLOC
-AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep strcasecmp strchr strdup strerror strncasecmp strerror strchr]) 
+dnl AC_FUNC_MALLOC
+dnl AC_FUNC_REALLOC
+AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep strcasecmp strchr strdup strerror strncasecmp strerror strchr malloc calloc realloc free]) 
 
 AC_HEADER_STDC    
 AC_HEADER_STDBOOL 
@@ -402,6 +400,14 @@ dnl echo "LDFLAGS: $LDFLAGS"
 
 dnl Doxygen
 CONFIGURE_PART([Checking for Doxygen:])
+AC_ARG_ENABLE(devdoc, 
+  AC_HELP_STRING([--enable-devdoc], [enable developer documentation]), 
+  ac_cv_use_devdoc=$enableval, ac_cv_use_devdoc=no)
+AS_IF([test "${ac_cv_use_devdoc}" == "yes"], 
+  [DX_ENV_APPEND([INPUT],[. doc src])],
+  [DX_ENV_APPEND([INPUT],[. doc])]
+)
+AC_MSG_NOTICE([--enable-devdoc: ${ac_cv_use_devdoc}])
 DX_HTML_FEATURE(ON)
 DX_CHM_FEATURE(OFF)
 DX_CHI_FEATURE(OFF)
@@ -430,7 +436,8 @@ AC_MSG_NOTICE([--enable-optimization: ${OPTIMIZECPU}])
 AC_ARG_ENABLE(debug,
 	[AC_HELP_STRING([--enable-debug],[enable debug information])],enable_debug=$enableval,enable_debug=no)
 if test "${enable_debug}" = "yes"; then
-   AC_DEFINE([DEBUG],[],[Enable extra debugging.])
+   AC_DEFINE([GC_DEBUG],[1],[Enable extra garbage collection debugging.])
+   AC_DEFINE([DEBUG],[1],[Extra debugging.])
    enable_do_crash="yes"
    enable_debug_mutex="yes"
    strip_binaries="no"
@@ -438,7 +445,7 @@ if test "${enable_debug}" = "yes"; then
    CFLAGS="$CFLAGS_saved"
    GDB_FLAGS="-g"
 else
-   AC_DEFINE([DEBUG],[],[Disabled extra debugging.])
+   AC_DEFINE([DEBUG],[0],[Extra debugging.])
    enable_do_crash="no"
    enable_debug_mutex="no"
    strip_binaries="yes"
@@ -590,6 +597,30 @@ AC_ARG_ENABLE(dynamic_config,
 AC_MSG_NOTICE([--enable-dynamic-config: ${ac_cv_dynamic_config}])
 dnl Temporary additions. For Development Only >>
 
+AC_ARG_WITH(
+  libgc,
+  [AC_HELP_STRING(
+     [--with-libgc=yes|no],
+     [use libgc as allocator])],
+  uselibgc="$withval"
+)
+
+if test "x$uselibgc" = "xyes"; then
+    AC_CHECK_LIB(gc,GC_malloc,
+      [
+         AC_CHECK_LIB(gc,GC_pthread_create,
+            [
+               AC_DEFINE(HAVE_LIBGC, 1, [Define to 1 if libgc is available])
+	       GCLIBS="-lgc"
+	       msg_gc=yes
+            ]
+	)
+      ],
+      AC_MSG_ERROR(*** LIBGC support will not be built (LIBGC library not found) ***)
+    )
+fi
+AC_SUBST(GCLIBS)
+
 dnl Return CFLAGS / CPPFLAGS
 CFLAGS=${CFLAGS_saved}
 CPPFLAGS=${CPPFLAGS_saved}
@@ -665,8 +696,8 @@ echo "Asterisk Version : $ASTERISK_VER"
 echo "      Build user : $BUILD_USER"
 echo "         Version : ${SCCP_VERSION}_${SCCP_BRANCH}_r${SCCP_REVISION}"
 #echo "      CPU -march : $march"
-echo "          CFLAGS : $CFLAGS $PBX_CFLAGS"
-echo "         LDFLAGS : $LDFLAGS $PBX_LDFLAGS"
+echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${GCLIBS}"
+echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${GCLIBS}"
 echo "        PBX_TYPE : $PBX_TYPE"
 echo "         PBX_LIB : $PBX_LIB"
 echo "     PBX_INCLUDE : $PBX_INCLUDE"
