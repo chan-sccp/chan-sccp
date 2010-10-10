@@ -1158,22 +1158,50 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c) {
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
 
-		/* append subscriptionId to cid */
-		if(linedevice && !ast_strlen_zero(linedevice->subscriptionId.number)){
-			sprintf(c->callInfo.callingPartyNumber, "%s%s", l->cid_num, linedevice->subscriptionId.number);
-		}else{
-			sprintf(c->callInfo.callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number)?l->defaultSubscriptionId.number:"");
-		}
+		switch(c->calltype){
+		  case SKINNY_CALLTYPE_INBOUND:
+			/* append subscriptionId to cid */
+			if(linedevice && !ast_strlen_zero(linedevice->subscriptionId.number)){
+				sprintf(c->callInfo.calledPartyNumber, "%s%s", l->cid_num, linedevice->subscriptionId.number);
+			}else{
+				sprintf(c->callInfo.calledPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number)?l->defaultSubscriptionId.number:"");
+			}
 
-		if(linedevice && !ast_strlen_zero(linedevice->subscriptionId.name)){
-			sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, linedevice->subscriptionId.name);
-		}else{
-			sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name)?l->defaultSubscriptionId.name:"");
-		}
+			if(linedevice && !ast_strlen_zero(linedevice->subscriptionId.name)){
+				sprintf(c->callInfo.calledPartyName, "%s%s", l->cid_name, linedevice->subscriptionId.name);
+			}else{
+				sprintf(c->callInfo.calledPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name)?l->defaultSubscriptionId.name:"");
+			}
+		    break;
+		  case SKINNY_CALLTYPE_FORWARD:
+		  case SKINNY_CALLTYPE_OUTBOUND:
+			/* append subscriptionId to cid */
+			if(linedevice && !ast_strlen_zero(linedevice->subscriptionId.number)){
+				sprintf(c->callInfo.callingPartyNumber, "%s%s", l->cid_num, linedevice->subscriptionId.number);
+			}else{
+				sprintf(c->callInfo.callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number)?l->defaultSubscriptionId.number:"");
+			}
 
+			if(linedevice && !ast_strlen_zero(linedevice->subscriptionId.name)){
+				sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, linedevice->subscriptionId.name);
+			}else{
+				sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name)?l->defaultSubscriptionId.name:"");
+			}
+			break;
+		}
 	}else{
-		sprintf(c->callInfo.callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number)?l->defaultSubscriptionId.number:"");
-		sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name)?l->defaultSubscriptionId.name:"");
+	  
+		switch(c->calltype){
+		  case SKINNY_CALLTYPE_INBOUND:
+			sprintf(c->callInfo.calledPartyNumber, 	"%s%s", l->cid_num, 	(l->defaultSubscriptionId.number)?l->defaultSubscriptionId.number:"");
+			sprintf(c->callInfo.calledPartyName, 	"%s%s", l->cid_name, 	(l->defaultSubscriptionId.name)?l->defaultSubscriptionId.name:"");
+		    break;
+		  case SKINNY_CALLTYPE_FORWARD:
+		  case SKINNY_CALLTYPE_OUTBOUND:
+			sprintf(c->callInfo.callingPartyNumber,	"%s%s", l->cid_num, 	(l->defaultSubscriptionId.number)?l->defaultSubscriptionId.number:"");
+			sprintf(c->callInfo.callingPartyName, 	"%s%s", l->cid_name, 	(l->defaultSubscriptionId.name)?l->defaultSubscriptionId.name:"");
+		    break;
+		}
 	}
 
 #if ASTERISK_VERSION_NUM < 10400

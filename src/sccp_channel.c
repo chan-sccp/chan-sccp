@@ -265,8 +265,9 @@ static void sccp_channel_send_staticCallinfo(sccp_device_t *device, sccp_channel
 	REQ(r, CallInfoMessage);
 
 	if(c->device == device){
-		if (c->callInfo.callingPartyName)
+		if (c->callInfo.callingPartyName){
 			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, c->callInfo.callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
+		}
 		if (c->callInfo.callingPartyNumber)
 			sccp_copy_string(r->msg.CallInfoMessage.callingParty, c->callInfo.callingPartyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
 
@@ -306,8 +307,9 @@ static void sccp_channel_send_staticCallinfo(sccp_device_t *device, sccp_channel
 		r->msg.CallInfoMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
 	}else{
 		/* remote device notification */
-		if (c->callInfo.callingPartyName)
+		if (c->callInfo.callingPartyName){
 			sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, c->callInfo.callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
+		}
 		if (c->callInfo.callingPartyNumber)
 			sccp_copy_string(r->msg.CallInfoMessage.callingParty, c->callInfo.callingPartyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
 
@@ -425,7 +427,7 @@ static void sccp_channel_send_dynamicCallinfo(sccp_device_t *device, sccp_channe
 			data_len[i] = strlen(data[i]);
 			dummy_len += data_len[i];
 		} else {
-			data_len[i] = 0;
+			data_len[i] = 0;//TODO this should be 1?
 		}
 	}
 
@@ -450,9 +452,13 @@ static void sccp_channel_send_dynamicCallinfo(sccp_device_t *device, sccp_channe
 		memset(&buffer[0], 0, bufferSize);
 		int pos = 0;
 		for(i=0; i<usableFields; i++) {
-			if(data[i])
+			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3  "SCCP: cid field %d, value: '%s'\n", i, (data[i])?data[i]:"");
+			if(data[i]){
 				memcpy(&buffer[pos], data[i], data_len[i]);
-			pos += data_len[i] + 1;
+				pos += data_len[i] + 1;
+			}else{
+				pos += 1;
+			}
 		}
 		memcpy(&r->msg.CallInfoDynamicMessage.dummy, &buffer[0], bufferSize);
 	}
@@ -2121,7 +2127,6 @@ void sccp_channel_delete_wo(sccp_channel_t * c, uint8_t list_lock, uint8_t chann
 /*!
  * \brief Create a new RTP Source.
  * \param c SCCP Channel
- * \todo Add Video Capability
  */
 boolean_t sccp_channel_start_rtp(sccp_channel_t * c)
 {
@@ -2224,7 +2229,6 @@ boolean_t sccp_channel_start_rtp(sccp_channel_t * c)
 /*!
  * \brief Create a new RTP Source.
  * \param c SCCP Channel
- * \todo Add Video Capability
  */
 boolean_t sccp_channel_start_vrtp(sccp_channel_t * c)
 {
@@ -2653,7 +2657,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	if (GLOB(transfer_tone) && cDestinationLocal->state == SCCP_CHANNELSTATE_CONNECTED){
 		/* while connected not all the tones can be played */
 		sccp_dev_starttone(cDestinationLocal->device, GLOB(autoanswer_tone), instance, cDestinationLocal->callid, 0);
-	} // if (GLOB(transfer_tone) && cDestinationLocal->state == SCCP_CHANNELSTATE_CONNECTED){
+	} 
 }
 
 /*!
