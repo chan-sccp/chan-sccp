@@ -581,7 +581,11 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 #ifdef CS_DYNAMIC_CONFIG
 	/* clone l to temp_l */
 	sccp_line_t 	       * temp_l = NULL;
+#ifdef CS_SCCP_REALTIME
 	if (l && l->pendingDelete==1 && !l->realtime) {
+#else	  
+	if (l && l->pendingDelete==1) {
+#endif
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: cloning line\n", name);
 		temp_l=sccp_clone_line(l);
 	}
