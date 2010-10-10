@@ -190,17 +190,56 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 
 #define GLOB(x) sccp_globals->x
 
-/* macro for memory alloc and free*/
-#define sccp_alloc(x)	ast_alloc(x)
+#ifdef HAVE_LIBGC
+	#if HAVE_LIBPTHREAD > 0
+		#define GC_THREADS
+		#define GC_REDIRECT_TO_LOCAL
+		#include "gc/gc_local_alloc.h"
+	#else
+		#include "gc/gc.h"
+	#endif
 
-#ifndef ast_free
-#define ast_free free
+	#undef malloc
+	#define malloc(x) GC_MALLOC(x)
+	#undef ast_malloc
+	#define ast_malloc(x) GC_MALLOC(x)
+
+	#undef calloc
+	#define calloc(n,x) GC_MALLOC((n)*(x))  
+	#undef ast_calloc
+	#define ast_calloc(n,x) GC_MALLOC((n)*(x))  
+
+	#undef realloc
+	#define realloc(p,x) GC_REALLOC((p),(x))
+	#undef ast_realloc
+	#define ast_realloc(p,x) GC_REALLOC((p),(x))
+
+	#undef free
+	#undef ast_free
+	#if DEBUG > 0
+		#define free(x) { (x) = NULL; GC_FREE(x); }
+		#define ast_free(x) { (x) = NULL; GC_FREE(x); }
+		#define sccp_free(x) { (x) = NULL; GC_FREE(x); }
+	#else
+		#define free(x) { (x) = NULL; }
+		#define ast_free(x) { (x) = NULL; }
+		#define sccp_free(x) { (x) = NULL; }
+	#endif
+
+	#define CHECK_LEAKS() GC_gcollect()
+#else
+	#ifndef ast_free
+	#define ast_free free
+	#endif
+
+	#define sccp_free(x){ \
+		ast_free( x ); \
+		(x) = NULL; \
+	}
+	#define CHECK_LEAKS() 
 #endif
 
-#define sccp_free(x){ \
-	ast_free( x ); \
-	(x) = NULL; \
-}
+/* macro for memory alloc and free*/
 /* 
  * sccp_free_ptr should be used when a function pointer for free() needs to be p
  * as the argument to a function. Otherwise, astmm will cause seg faults.

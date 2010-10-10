@@ -85,5 +85,9 @@ void sccp_event_fire(const sccp_event_t* *event){
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
 
+#ifdef HAVE_LIBGC
+	*event=NULL;
+#else
 	free((void *) *event);
+#endif
 }

@@ -1719,3 +1719,13 @@ boolean_t implode(char *str[],char *sep, char **res) {
 	return TRUE;
 }
 
+#ifdef HAVE_LIBGC
+void gc_warn_proc(char *msg, GC_word p)
+{
+	ast_log(LOG_WARNING, msg, (unsigned long)p);
+}
+#endif
+
+
+
+                        

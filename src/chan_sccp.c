@@ -1581,6 +1581,14 @@ int load_module() {
 #else
 static int load_module(void) {
 #endif
+
+#ifdef HAVE_LIBGC
+	GC_INIT();
+	(void) GC_set_warn_proc(gc_warn_proc);
+	#if DEBUG > 0
+		 GC_find_leak = 1;
+	#endif
+#endif
 	/* make globals */
 	sccp_globals = ast_malloc(sizeof(struct sccp_global_vars));
 	sccp_event_listeners = ast_malloc(sizeof(struct sccp_event_subscriptions));
@@ -1836,7 +1844,10 @@ static int unload_module(void) {
 	ast_mutex_destroy(&GLOB(usecnt_lock));
 	ast_mutex_destroy(&GLOB(lock));
 	ast_free(sccp_globals);
-
+	
+#ifdef HAVE_LIBGC
+	CHECK_LEAKS();
+#endif
 	return 0;
 }
 

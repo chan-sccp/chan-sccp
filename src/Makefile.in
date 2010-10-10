@@ -86,7 +86,9 @@ am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 am__installdirs = "$(DESTDIR)$(csmoddir)"
 LTLIBRARIES = $(csmod_LTLIBRARIES)
-chan_sccp_la_LIBADD =
+am__DEPENDENCIES_1 =
+chan_sccp_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 am_chan_sccp_la_OBJECTS = chan_sccp_la-chan_sccp.lo \
 	chan_sccp_la-sccp_channel.lo chan_sccp_la-sccp_device.lo \
 	chan_sccp_la-sccp_indicate.lo chan_sccp_la-sccp_pbx.lo \
@@ -204,6 +206,7 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FINGER = @FINGER@
+GCLIBS = @GCLIBS@
 GDB_FLAGS = @GDB_FLAGS@
 GREP = @GREP@
 HAVE_ASTERISK = @HAVE_ASTERISK@
@@ -366,11 +369,13 @@ chan_sccp_la_SOURCES = chan_sccp.h          sccp_cli.h          sccp_event.h    
 			  sccp_conference.c    #sccp_object2.c
 
 chan_sccp_la_CPPFLAGS = $(PBX_CPPFLAGS)
+chan_sccp_la_LIBADD = $(PTHREAD_CFLAGS) $(GCLIBS)
 chan_sccp_la_CFLAGS = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) \
-	$(PTHREAD_CFLAGS) -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC \
-	-pipe -Wall -Wstrict-prototypes -Wmissing-prototypes \
+	$(PTHREAD_CFLAGS) $(GCLIBS) -D_REENTRANT -D_GNU_SOURCE \
+	-DCRYPTO -fPIC -pipe -Wall -DGC_FIND_LEAK -DGC_PRINT_STATS \
+	-Wstrict-prototypes -Wmissing-prototypes \
 	-Wmissing-declarations -Wnested-externs -Wlong-long
-chan_sccp_la_LDFLAGS = -avoid-version -module  $(PBX_LDFLAGS) $(PTHREAD_LIBS)
+chan_sccp_la_LDFLAGS = -avoid-version -module  $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS)
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
