@@ -194,25 +194,31 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 	#if HAVE_LIBPTHREAD > 0
 		#define GC_THREADS
 		#define GC_REDIRECT_TO_LOCAL
-		#include "gc/gc_local_alloc.h"
-	#else
-		#include "gc/gc.h"
+		#include <gc/gc_local_alloc.h>
 	#endif
+	#include <gc/gc.h>
+	#include <gc/gc_allocator.h>
 
 	#undef malloc
-	#define malloc(x) GC_MALLOC(x)
 	#undef ast_malloc
+	#undef calloc
+	#undef ast_calloc
+	#undef realloc
+	#undef ast_realloc
+	#undef strdup
+	#undef ast_strdup
+
+	#define malloc(x) GC_MALLOC(x)
 	#define ast_malloc(x) GC_MALLOC(x)
 
-	#undef calloc
 	#define calloc(n,x) GC_MALLOC((n)*(x))  
-	#undef ast_calloc
 	#define ast_calloc(n,x) GC_MALLOC((n)*(x))  
 
-	#undef realloc
 	#define realloc(p,x) GC_REALLOC((p),(x))
-	#undef ast_realloc
 	#define ast_realloc(p,x) GC_REALLOC((p),(x))
+	
+	#define strdup(s) GC_STRDUP((s))
+	#define ast_strdup(s) GC_STRDUP((s))
 
 	#undef free
 	#undef ast_free
