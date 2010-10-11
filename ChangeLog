@@ -1,3 +1,58 @@
+2010-10-10  ddegroot
+
+	* [r1977] configure, src/Makefile.in, src/sccp_featureButton.c:
+	  Fixed DND feature button when using shared lines on phones with
+	  protocol <15
+
+2010-10-10  marcelloceschia
+
+	* [r1976] src/sccp_channel.c, src/sccp_pbx.c: fixes callerid issue
+	  when calleridname is empty
+
+2010-10-10  ddegroot
+
+	* [r1975] Makefile.in, autoconf/acinclude.m4, configure,
+	  configure.ac, doc/Makefile.in, doc/doxygen.cfg, src/Makefile.am,
+	  src/Makefile.in, src/chan_sccp.c, src/chan_sccp.h,
+	  src/config.h.in, src/sccp_channel.c, src/sccp_event.c,
+	  src/sccp_utils.c, src/sccp_utils.h: Option --with-libgc to enable
+	  Garbage Collection (Experimental)
+	  Doxygen now generated user documentation by default. To Enable
+	  Developer Documentation add --enable-devdoc to configure options.
+
+2010-10-10  marcelloceschia
+
+	* [r1974] src/sccp_config.c: fixes compile issue with
+	  --disable-realtime
+
+	* [r1973] src/sccp_config.c: fixes compile issue with
+	  --disable-realtime
+
+	* [r1972] src/sccp_line.c: fixes compile issue with
+	  --disable-realtime
+
+2010-10-09  marcelloceschia
+
+	* [r1971] src/sccp_pbx.c: remove unused code
+
+2010-10-07  marcelloceschia
+
+	* [r1970] src/sccp_indicate.c: use 1915 progress indication
+
+	* [r1969] src/sccp_hint.c: fixes deadlock in hint
+
+2010-10-06  ddegroot
+
+	* [r1968] src/sccp_actions.c, src/sccp_indicate.c, src/sccp_pbx.c:
+	  Changed pickup static string "*8" to ast_pickup_ext() function
+	  Extended the logging on indications to be easier to read
+	  Added sccp_log line to sccp_indicate.c to signal the differnce
+	  between c->state and c->previousChannelState
+
+	* [r1967] ChangeLog, Makefile.in, amdoxygen.am, configure,
+	  doc/11_Licensing.doc: fixed make doxygen-pdf (searcg path change
+	  and changed \verbinclude to \include)
+
 2010-10-06  progs
 
 	* [r1966] src/sccp_actions.c: fix uninitialized variable

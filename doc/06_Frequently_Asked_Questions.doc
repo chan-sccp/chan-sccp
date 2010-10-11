@@ -140,7 +140,7 @@
  * 
  * to set the variable some_ip to the cidname of the device with Mac-Address 00:1B:54:CA:65:43. 
  * 
- * see \ref nf_sccp_dialplan How to use dialplan functions
+ * see \ref nf_sccp_function How to use dialplan functions
  *
  **/
 
