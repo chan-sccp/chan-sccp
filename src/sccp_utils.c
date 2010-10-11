@@ -761,7 +761,7 @@ void sccp_dev_dbput(sccp_device_t * d) {
  * \brief read device state from astDB
  * \param d SCCP Device
  *
- * \todo Reimplement\Remove code below
+ * \todo Reimplement/Remove code below
  */
 void sccp_dev_dbget(sccp_device_t * d) {
 // 	char result[256]="", *tmp, *tmp1, *r;

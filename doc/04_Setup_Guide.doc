@@ -56,7 +56,7 @@
  *   - 17  : matched by 7970
  *   .
  *
- * \subsection sccp_config_howto2 Sample config file
+ * \subsection sccp_config_howto2 Sample config files
  * 
  * Make sure you pay attention to the context used in the config file. And check if this context exists in your dialplan.
  * Also check the deny/permit entries to make sure they cover your network/devices and check if the bindaddr is actually reachable from the addresses you have permitted to connect.
@@ -123,7 +123,7 @@
  * park = off
  * button = speeddial,Helpdesk, 98112, 98112@hint  	; Add SpeedDial to Helpdesk
  * button = line, 98011					; Assign Line 98011 to Device
- * button = line, empty					; Assign an Empty Line
+ * button = empty					; Assign an Empty Button
  * button = line, 98012					; Assign Line 98012 to Device
  * button = speeddial,Phone 2 Line 1, 98021, 98021@hint	; Add SpeedDial to Phone Number Two Line 1
  * cfwdall = off
@@ -301,6 +301,9 @@
  * offhookfeat	= redial,endcall
  * onhint	= pickup,barge
  * \endcode
+ *
+ * For more config samples look in the conf directory in the root of the project. Here you will find sccp.conf, sccp_simple.conf and
+ * sccp_short.conf
  *
  * \section sccp_config_load_module_howto How to load the Chan_SCCP
  *
