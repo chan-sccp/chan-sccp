@@ -136,6 +136,6 @@ sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 char **explode(char *str,char *sep);
 boolean_t implode(char *str[],char *sep, char **res);
 #ifdef HAVE_LIBGC
-void gc_warn_proc(char *msg, GC_word p);
+void gc_warn_handler(char *msg, GC_word p);
 #endif
 #endif

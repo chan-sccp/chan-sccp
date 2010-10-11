@@ -1950,13 +1950,13 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
 /*	\todo produces a memcpy fault when compiled --with-conference. Copy Function of this structure has to be build.
 #ifdef CS_SCCP_CONFERENCE
 	// sccp_conference	*conference
-	new_device->conference = calloc(1,sizeof(sccp_conference_t));
+	new_device->conference = ast_calloc(1,sizeof(sccp_conference_t));
 	memcpy(new_device->conference,orig_device->conference,sizeof(sccp_conference_t));
 #endif
 */
 
 	// btnlist		*buttonTemplate
-//	new_device->buttonTemplate = calloc(1,sizeof(btnlist));
+//	new_device->buttonTemplate = ast_calloc(1,sizeof(btnlist));
 //	memcpy(new_device->btnTemplate,orig_device->btnTemplate,sizeof(btnlist));
 
 	// char 		*pickupcontext

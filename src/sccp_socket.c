@@ -91,7 +91,7 @@ static void sccp_read_data(sccp_session_t * s)
 	   sccp packets from several incomplete reads,
 	   but this is rather a high level feature. (-DD) */
 
-	newptr = realloc(s->buffer, (uint32_t)(s->buffer_size + readlen));
+	newptr = ast_realloc(s->buffer, (uint32_t)(s->buffer_size + readlen));
 	if (newptr) {
 			s->buffer = newptr;
 			memcpy(s->buffer + s->buffer_size, input, readlen);

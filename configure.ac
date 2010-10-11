@@ -612,6 +612,7 @@ if test "x$uselibgc" = "xyes"; then
             [
                AC_DEFINE(HAVE_LIBGC, 1, [Define to 1 if libgc is available])
 	       GCLIBS="-lgc"
+	       GCFLAGS="-DGC_LINUX_THREADS -D_REENTRANT"
 	       msg_gc=yes
             ]
 	)
@@ -619,7 +620,11 @@ if test "x$uselibgc" = "xyes"; then
       AC_MSG_ERROR(*** LIBGC support will not be built (LIBGC library not found) ***)
     )
 fi
+if test "${enable_debug}" = "yes"; then
+	GCFLAGS="$GCFLAGS -DGC_FIND_LEAK -DGC_PRINT_STATS"
+fi
 AC_SUBST(GCLIBS)
+AC_SUBST(GCFLAGS)
 
 dnl Return CFLAGS / CPPFLAGS
 CFLAGS=${CFLAGS_saved}
