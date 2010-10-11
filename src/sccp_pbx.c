@@ -320,7 +320,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 			isRinging = TRUE;
 			if (c->autoanswer_type) {
 
-				struct sccp_answer_conveyor_struct *conveyor = calloc(1, sizeof(struct sccp_answer_conveyor_struct));
+				struct sccp_answer_conveyor_struct *conveyor = ast_calloc(1, sizeof(struct sccp_answer_conveyor_struct));
 				if(conveyor){
 					sccp_log(1)(VERBOSE_PREFIX_3 "%s: Running the autoanswer thread on %s\n", DEV_ID_LOG(linedevice->device), ast->name);
 					conveyor->callid   = c->callid;

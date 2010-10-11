@@ -191,13 +191,14 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 #define GLOB(x) sccp_globals->x
 
 #ifdef HAVE_LIBGC
-	#if HAVE_LIBPTHREAD > 0
+	#if HAVE_LIBPTHREAD
 		#define GC_THREADS
+		#undef _REENTRANT
+		#define _REENTRANT
 		#define GC_REDIRECT_TO_LOCAL
 		#include <gc/gc_local_alloc.h>
 	#endif
 	#include <gc/gc.h>
-	#include <gc/gc_allocator.h>
 
 	#undef malloc
 	#undef ast_malloc

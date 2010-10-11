@@ -1584,7 +1584,7 @@ static int load_module(void) {
 
 #ifdef HAVE_LIBGC
 	GC_INIT();
-	(void) GC_set_warn_proc(gc_warn_proc);
+	(void) GC_set_warn_proc(gc_warn_handler);
 	#if DEBUG > 0
 		 GC_find_leak = 1;
 	#endif

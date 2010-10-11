@@ -278,7 +278,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 	btnlist 		* btn;
 	sccp_buttonconfig_t	* buttonconfig;
 
-	if (!(btn = malloc(sizeof(btnlist)*StationMaxButtonTemplateSize))) {
+	if (!(btn = ast_malloc(sizeof(btnlist)*StationMaxButtonTemplateSize))) {
 		return NULL;
 	}
 

@@ -206,6 +206,7 @@ EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FINGER = @FINGER@
+GCFLAGS = @GCFLAGS@
 GCLIBS = @GCLIBS@
 GDB_FLAGS = @GDB_FLAGS@
 GREP = @GREP@
@@ -372,9 +373,9 @@ chan_sccp_la_CPPFLAGS = $(PBX_CPPFLAGS)
 chan_sccp_la_LIBADD = $(PTHREAD_CFLAGS) $(GCLIBS)
 chan_sccp_la_CFLAGS = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) \
 	$(PTHREAD_CFLAGS) $(GCLIBS) -D_REENTRANT -D_GNU_SOURCE \
-	-DCRYPTO -fPIC -pipe -Wall -DGC_FIND_LEAK -DGC_PRINT_STATS \
-	-Wstrict-prototypes -Wmissing-prototypes \
-	-Wmissing-declarations -Wnested-externs -Wlong-long
+	-DCRYPTO -fPIC -pipe -Wall $(GCFLAGS) -Wstrict-prototypes \
+	-Wmissing-prototypes -Wmissing-declarations -Wnested-externs \
+	-Wlong-long
 chan_sccp_la_LDFLAGS = -avoid-version -module  $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS)
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am

@@ -1692,7 +1692,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 			d->pickupexten = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "pickupcontext")) {
 			if (!ast_strlen_zero(v->value)) {
-				free(d->pickupcontext);
+				ast_free(d->pickupcontext);
 				d->pickupcontext = strdup(v->value);
 			}
 		} else if (!strcasecmp(v->name, "pickupmodeanswer")) {

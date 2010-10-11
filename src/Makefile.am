@@ -26,7 +26,7 @@ chan_sccp_la_SOURCES    = chan_sccp.h          sccp_cli.h          sccp_event.h 
 chan_sccp_la_CPPFLAGS	= $(PBX_CPPFLAGS)
 chan_sccp_la_LIBADD	= $(PTHREAD_CFLAGS) $(GCLIBS)
 chan_sccp_la_CFLAGS	= $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(GCLIBS)
-chan_sccp_la_CFLAGS	+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall -DGC_FIND_LEAK -DGC_PRINT_STATS
+chan_sccp_la_CFLAGS	+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall $(GCFLAGS)
 chan_sccp_la_CFLAGS	+= -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wlong-long
 chan_sccp_la_LDFLAGS	= -avoid-version -module  $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS)
 
