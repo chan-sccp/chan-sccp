@@ -404,8 +404,8 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 	sccp_moo_t * r;
 	int instance = 0;
 	uint8_t status = 0;
-	uint64_t mask;
-	uint64_t newState = 0;
+	uint32_t mask;
+	uint32_t newState = 0;
 
 	if (!d)
 		return;
