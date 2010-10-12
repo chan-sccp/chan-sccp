@@ -214,9 +214,7 @@ sccp_channel_t * sccp_channel_get_active(sccp_device_t * d) {
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Getting the active channel on device.\n",d->id);
 
-	sccp_device_lock(d);
 	c = d->active_channel;
-	sccp_device_unlock(d);
 
 	if(c && c->state == SCCP_CHANNELSTATE_DOWN)
 		return NULL;

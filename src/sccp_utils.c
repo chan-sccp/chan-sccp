@@ -1722,8 +1722,8 @@ boolean_t implode(char *str[],char *sep, char **res) {
 #ifdef HAVE_LIBGC
 void gc_warn_handler(char *msg, GC_word p)
 {
-	ast_log(LOG_WARNING, "LIBGC: WARNING");
-	ast_log(LOG_WARNING, msg, (unsigned long)p);
+	ast_log(LOG_ERROR, "LIBGC: WARNING");
+	ast_log(LOG_ERROR, msg, (unsigned long)p);
 }
 #endif
 

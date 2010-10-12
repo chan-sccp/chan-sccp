@@ -54,21 +54,21 @@ int sccp_session_send2(sccp_session_t *s, sccp_moo_t * r);
  */
 static void sccp_read_data(sccp_session_t * s)
 {
-	int64_t ioctl_len;
-	int32_t length, readlen;
+	int bytesAvailable;
+	int16_t length, readlen;
 	char * input, * newptr;
 
 	/* called while we have GLOB(sessions) list lock */
 	sccp_session_lock(s);
 
-	if (ioctl(s->fd, FIONREAD, &ioctl_len) == -1) {
+	if (ioctl(s->fd, FIONREAD, &bytesAvailable) == -1) {
 		ast_log(LOG_WARNING, "SCCP: FIONREAD ioctl failed: %s\n", strerror(errno));
 		sccp_session_unlock(s);
 		sccp_session_close(s);
 		return;
 	}
 
-	length = (int32_t)ioctl_len;
+	length = (int16_t)bytesAvailable;
 
 	if (!length) {
 		/* probably a CLOSE_WAIT */
