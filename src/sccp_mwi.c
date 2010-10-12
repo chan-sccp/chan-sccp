@@ -473,8 +473,8 @@ void sccp_mwi_check(sccp_device_t *device)
 	sccp_line_t		*line = NULL;
 	sccp_moo_t 		*r;
 
-	uint8_t 			status;
-	uint64_t 		mask;
+	uint8_t			status;
+	uint32_t 		mask;
 
 	if(!device)
 		return;
