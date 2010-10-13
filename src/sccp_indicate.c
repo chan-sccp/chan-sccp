@@ -77,7 +77,7 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 	sccp_device_unlock(d);
 
 	/* all the check are ok. We can safely run all the dev functions with no more checks */
-	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: 1-Indicate SCCP state %d (%s),previous state %d (%s) on call %s-%08x\n",d->id, state, sccp_indicate2str(state), c->state, sccp_indicate2str(c->state), l->name, c->callid);
+	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: 1-Indicate SCCP state %d (%s),channel state %d (%s) on call %s-%08x\n",d->id, state, sccp_indicate2str(state), c->state, sccp_indicate2str(c->state), l->name, c->callid);
 	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: 2-Indicate SCCP state %d (%s),previous channelState %d (%s) on call %s-%08x\n",d->id, state, sccp_indicate2str(state), c->previousChannelState, sccp_indicate2str(c->previousChannelState), l->name, c->callid);
 
 	sccp_channel_setSkinnyCallstate(c, state);
@@ -266,35 +266,23 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_ast_setstate(c, AST_STATE_BUSY);
 		break;
 	case SCCP_CHANNELSTATE_PROGRESS:				/* \todo SCCP_CHANNELSTATE_PROGRESS To be checked */
-		sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_PROGRESS (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
-#ifdef CS_ADV_FEATURES
-		if ((c->owner->_state != AST_STATE_UP) && c->previousChannelState != SCCP_CHANNELSTATE_PROGRESS && c->calltype != SKINNY_CALLTYPE_OUTBOUND){
-			if (!d->earlyrtp) {
-				sccp_dev_starttone(c->device, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
-			}
-			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); /* send connected, so it is not listed as missed call*/
-			sccp_dev_displayprompt(d, instance, c->callid, "Call Progress", 0);
-			sccp_channel_send_callinfo(d, c);
-			c->state = SCCP_CHANNELSTATE_PROGRESS;
-			if (!d->earlyrtp) {
-				break;
-			}
-		}
-#endif
-		if (!c->rtp.audio.rtp) {
-			if (d->earlyrtp) {
+		sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_2 "%s: SCCP_CHANNELSTATE_PROGRESS\n", d->id);
+		if(c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) { // this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app)
+			sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
+			c->state = SCCP_CHANNELSTATE_CONNECTED;
+		} else {
+			sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) from (%s)\n",sccp_indicate2str(c->previousChannelState));
+			if (!c->rtp.audio.rtp) {
 				sccp_channel_openreceivechannel(c);
-			} else {
-				sccp_dev_starttone(c->device, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
 			}
+			sccp_dev_displayprompt(d, instance, c->callid, "Call Progress", 0);		
 		}
 		break;
 	case SCCP_CHANNELSTATE_PROCEED:
 		if(c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) { // this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app)
 			sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
-			// c->state = SCCP_CHANNELSTATE_CONNECTED; // (since r1915)
 			return;
-		}
+		} else {
 		sccp_dev_stoptone(d, instance, c->callid);
 		sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); /* send connected, so it is not listed as missed call*/
 		sccp_channel_send_callinfo(d, c);
@@ -302,8 +290,6 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		if (!c->rtp.audio.rtp) {
 			if (d->earlyrtp) {
 				sccp_channel_openreceivechannel(c);
-			} else {
-				sccp_dev_starttone(c->device, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
 			}
 		}
 		break;
