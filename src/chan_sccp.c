@@ -619,10 +619,10 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 
 
 /**
- * \brief reload the configuration from sccp.conf
+ * \brief load the configuration from sccp.conf
  *
  */
-static int reload_config(void) {
+static int load_config(void) {
 	int						oldport	= ntohs(GLOB(bindaddr.sin_port));
 	int						on		= 1;
 #if ASTERISK_VERSION_NUM < 10400
@@ -1674,7 +1674,7 @@ static int load_module(void) {
 
 	sccp_create_hotline();
 
-	if (!reload_config()) {
+	if (!load_config()) {
 #ifdef CS_AST_HAS_TECH_PVT
 		if (ast_channel_register(&sccp_tech)) {
 #else

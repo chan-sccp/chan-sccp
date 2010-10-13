@@ -220,7 +220,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r){
 	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval );
 	REQ(r1, RegisterAckMessage);
 
-	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->length);
+//	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->length);
 
 	if(r->length < 56 && d->protocolversion == 0) {
 	 	// registration request with protocol 0 version structure.

@@ -1239,8 +1239,8 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list){
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: reload realtime line\n", l->name);
 		if (l->realtime == TRUE){
+			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: reload realtime line\n", l->name);
 			v = ast_load_realtime(GLOB(realtimelinetable), "name", l->name, NULL);
 			/* we did not find this line, mark it for deletion */ 
 			if(!v){
@@ -1581,10 +1581,33 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 		SCCP_LIST_LOCK(&d->permithosts);
 		while((permithost = SCCP_LIST_REMOVE_HEAD(&d->permithosts, list))) {
 			ast_free(permithost);
+			permithost=NULL;
 		}
 		SCCP_LIST_UNLOCK(&d->permithosts);
 		SCCP_LIST_HEAD_DESTROY(&d->permithosts);
 		SCCP_LIST_HEAD_INIT(&d->permithosts);
+
+		/* removing buttonconfigs */
+		sccp_buttonconfig_t	*buttonconfig;
+		SCCP_LIST_LOCK(&d->buttonconfig);
+		while((buttonconfig = SCCP_LIST_REMOVE_HEAD(&d->buttonconfig, list))) {
+			ast_free(buttonconfig);
+			buttonconfig=NULL;
+		}
+		SCCP_LIST_UNLOCK(&d->buttonconfig);
+		SCCP_LIST_HEAD_DESTROY(&d->buttonconfig);
+		SCCP_LIST_HEAD_INIT(&d->buttonconfig);
+
+		/* removing selectedchannels */
+		sccp_selectedchannel_t	*selectedchannel;
+		SCCP_LIST_LOCK(&d->selectedChannels);
+		while((selectedchannel = SCCP_LIST_REMOVE_HEAD(&d->selectedChannels, list))) {
+			ast_free(selectedchannel);
+			selectedchannel=NULL;
+		}
+		SCCP_LIST_UNLOCK(&d->selectedChannels);
+		SCCP_LIST_HEAD_DESTROY(&d->selectedChannels);
+		SCCP_LIST_HEAD_INIT(&d->selectedChannels);
 	}
 #endif
 
