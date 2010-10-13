@@ -759,6 +759,7 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance) {
  * \param c SCCP Channel
  */
 void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
+	int instance;
 	if(!l){
 		sccp_log((DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: TRANSVM pressed but no line found\n", d->id);
 		sccp_dev_displayprompt(d, 0, 0, "No line found to transfer", 5);
@@ -785,6 +786,8 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c) {
 #else
 	sccp_copy_string(c->owner->call_forward, l->trnsfvm, sizeof(c->owner->call_forward));
 #endif
+	instance = sccp_device_find_index_for_line(d, l->name);
+	sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); /* send connected, so it is not listed as missed call*/
 	ast_setstate(c->owner, AST_STATE_BUSY);
 	ast_queue_control(c->owner, AST_CONTROL_BUSY);
 }
