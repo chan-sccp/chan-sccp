@@ -703,6 +703,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 	v = ast_variable_browse(cfg, "general");
 	if (!v) {
 		ast_log(LOG_WARNING, "Missing [general] section, SCCP disabled\n");
+		ast_config_destroy(cfg);
 		return FALSE;
 	}
 
