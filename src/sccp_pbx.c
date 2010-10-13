@@ -697,8 +697,6 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 #endif
 				if (c->rtp.video.rtp && (c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) != 0 ){
 					res = sccp_rtp_write(c->rtp.video.rtp, frame);
-				}else{
-					ast_log(LOG_NOTICE, "%s: drop video frame\n", DEV_ID_LOG(c->device));
 				}
 				break;
 
