@@ -290,7 +290,8 @@ static sccp_moo_t * sccp_process_data(sccp_session_t * s)
 		ast_log(LOG_WARNING, "SCCP: Oversize packet mid: %d, our packet size: %zd, phone packet size: %d\n", letohl(m->lel_messageId), SCCP_MAX_PACKET, packSize);
 
 	memcpy(m, s->buffer, (packSize < SCCP_MAX_PACKET ? packSize : SCCP_MAX_PACKET) );
-
+	m->length = letohl(m->length);
+	
 	s->buffer_size -= packSize;
 
 	if (s->buffer_size) {
