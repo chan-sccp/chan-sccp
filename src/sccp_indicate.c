@@ -179,10 +179,11 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_RINGOUT, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_channel_send_callinfo(d, c);
 		if (!c->rtp.audio.rtp) {
-			if (d->earlyrtp == SCCP_CHANNELSTATE_RINGOUT) {
+			if (d->earlyrtp) {
 				sccp_channel_openreceivechannel(c);
+			} else {
+				sccp_dev_starttone(c->device, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
 			}
-			sccp_dev_starttone(d, SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
 		}
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGOUT);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_RING_OUT, 0);
@@ -283,8 +284,9 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		if (!c->rtp.audio.rtp) {
 			if (d->earlyrtp) {
 				sccp_channel_openreceivechannel(c);
+			} else {
+				sccp_dev_starttone(c->device, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
 			}
-			sccp_dev_starttone(c->device, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
 		}
 		break;
 	case SCCP_CHANNELSTATE_PROCEED:
@@ -300,8 +302,9 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		if (!c->rtp.audio.rtp) {
 			if (d->earlyrtp) {
 				sccp_channel_openreceivechannel(c);
+			} else {
+				sccp_dev_starttone(c->device, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
 			}
-			sccp_dev_starttone(c->device, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
 		}
 		break;
 	case SCCP_CHANNELSTATE_HOLD:
