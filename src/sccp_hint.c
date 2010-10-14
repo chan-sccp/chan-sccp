@@ -20,35 +20,34 @@
 
  \dot
  digraph updateHint {
-	asteriskEvent[ label="asterisk event" shape=rect];
-	sccp_hint_state[ label="sccp_hint_state" shape=rect style=rounded URL="\ref sccp_hint_state"];
-	and[label="and" shape=circle]
-	sccp_hint_list_t[ label="sccp_hint_list_t" shape=circle URL="\ref sccp_hint_list_t"];
-	sccp_hint_remoteNotification_thread[ label="sccp_hint_remoteNotification_thread" shape=rect style=rounded  URL="\ref sccp_hint_remoteNotification_thread"];
-	sccp_hint_notifySubscribers[ label="sccp_hint_notifySubscribers" shape=rect style=rounded URL="\ref sccp_hint_notifySubscribers"];
+	asteriskEvent[ label="asterisk event" shape=rect fontsize=8];
+	sccp_hint_state[ label="sccp_hint_state" shape=rect style=rounded URL="\ref sccp_hint_state" fontsize=8];
+	and[label="and" shape=circle fontsize=8]
+	sccp_hint_list_t[ label="sccp_hint_list_t" shape=circle URL="\ref sccp_hint_list_t" fontsize=8];
+	sccp_hint_remoteNotification_thread[ label="sccp_hint_remoteNotification_thread" shape=rect style=rounded  URL="\ref sccp_hint_remoteNotification_thread" fontsize=8];
+	sccp_hint_notifySubscribers[ label="sccp_hint_notifySubscribers" shape=rect style=rounded URL="\ref sccp_hint_notifySubscribers" fontsize=8];
 
-	lineStatusChanged[label="line status changed" shape=rect];
-	sccp_hint_lineStatusChanged[label="sccp_hint_lineStatusChanged" shape=rect style=rounded URL="\ref sccp_hint_lineStatusChanged"];
-	sccp_hint_hintStatusUpdate[label="sccp_hint_hintStatusUpdate" shape=rect style=rounded URL="\ref sccp_hint_hintStatusUpdate"];
-	checkShared[label="is shared line?" shape=diamond];
-	sccp_hint_notificationForSharedLine[label="sccp_hint_notificationForSharedLine" shape=rect style=rounded URL="\ref sccp_hint_notificationForSharedLine"];
-	sccp_hint_notificationForSingleLine[label="sccp_hint_notificationForSingleLine" shape=rect style=rounded URL="\ref sccp_hint_notificationForSingleLine"];
-
+	lineStatusChanged[label="line status changed" shape=rect fontsize=8];
+	sccp_hint_lineStatusChanged[label="sccp_hint_lineStatusChanged" shape=rect style=rounded URL="\ref sccp_hint_lineStatusChanged" fontsize=8];
+	sccp_hint_hintStatusUpdate[label="sccp_hint_hintStatusUpdate" shape=rect style=rounded URL="\ref sccp_hint_hintStatusUpdate" fontsize=8];
+	checkShared[label="is shared line?" shape=diamond fontsize=8];
+	sccp_hint_notificationForSharedLine[label="sccp_hint_notificationForSharedLine" shape=rect style=rounded URL="\ref sccp_hint_notificationForSharedLine" fontsize=8];
+	sccp_hint_notificationForSingleLine[label="sccp_hint_notificationForSingleLine" shape=rect style=rounded URL="\ref sccp_hint_notificationForSingleLine" fontsize=8];
 
 	end[shape=point];
 	asteriskEvent -> sccp_hint_state;
 	sccp_hint_state -> and;
-	and -> sccp_hint_list_t[label="update"];
+	and -> sccp_hint_list_t[label="update" fontsize=7];
 	and -> sccp_hint_remoteNotification_thread;
-	sccp_hint_remoteNotification_thread -> sccp_hint_list_t[label="update"];
+	sccp_hint_remoteNotification_thread -> sccp_hint_list_t[label="update" fontsize=7];
 
 	lineStatusChanged -> sccp_hint_lineStatusChanged;
 	sccp_hint_lineStatusChanged -> sccp_hint_hintStatusUpdate;
 	sccp_hint_hintStatusUpdate -> checkShared;
-	checkShared -> sccp_hint_notificationForSingleLine[label="no"];
-	checkShared -> sccp_hint_notificationForSharedLine[label="yes"];
-	sccp_hint_notificationForSingleLine -> sccp_hint_list_t[label="update"];
-	sccp_hint_notificationForSharedLine -> sccp_hint_list_t[label="update"];
+	checkShared -> sccp_hint_notificationForSingleLine[label="no" fontsize=7];
+	checkShared -> sccp_hint_notificationForSharedLine[label="yes" fontsize=7];
+	sccp_hint_notificationForSingleLine -> sccp_hint_list_t[label="update" fontsize=7];
+	sccp_hint_notificationForSharedLine -> sccp_hint_list_t[label="update" fontsize=7];
 
 	sccp_hint_list_t -> sccp_hint_notifySubscribers;
 	sccp_hint_notifySubscribers -> end;

@@ -1,3 +1,71 @@
+2010-10-13  ddegroot
+
+	* [r1993] src/sccp_indicate.c: Fix Typo
+
+	* [r1992] src/sccp_features.c, src/sccp_indicate.c: Fixed PROGRESS
+	  / Dial with Music on Hold
+	  Removed Missed Call Message when pressing Divert to Voicemail
+	  Button on incoming call
+
+2010-10-13  marcelloceschia
+
+	* [r1991] src/sccp_pbx.c: removing debug log
+
+	* [r1990] src/sccp_config.c: fixing leak
+
+2010-10-13  ddegroot
+
+	* [r1989] src/sccp_indicate.c: Updated logic in sccp_indicate
+
+	* [r1988] src/sccp_indicate.c: removed extra return, should not be
+	  there
+
+	* [r1987] src/chan_sccp.c, src/sccp_actions.c, src/sccp_config.c,
+	  src/sccp_indicate.c: Fix for sccp reload (buttonconfig changes)
+	  Early RTP openreceivechannel patch for indicate
+	  rename reload_config in chan_sccp.c to load_config.
+
+2010-10-13  marcelloceschia
+
+	* [r1986] src/sccp_socket.c: correct packSize
+
+2010-10-13  davidded
+
+	* [r1985] src/sccp_pbx.c: restored signalling behaviour, other
+	  changes forthcoming
+
+2010-10-12  ddegroot
+
+	* [r1984] src/Makefile.in, src/sccp_channel.c, src/sccp_socket.c,
+	  src/sccp_utils.c: Changed ioctrl bytesAvailable to int
+	  Changed libgc message to error
+	  Removed Lock in sccp_channel
+
+2010-10-12  marcelloceschia
+
+	* [r1983] src/chan_sccp.h: just using uint32 for masking buttons
+
+	* [r1982] src/sccp_mwi.c: just using uint32 for masking buttons
+
+	* [r1981] src/sccp_mwi.c: just using uint32 for masking buttons
+
+2010-10-11  ddegroot
+
+	* [r1980] Makefile.in, configure, configure.ac, doc/Makefile.in,
+	  src/Makefile.am, src/Makefile.in, src/chan_sccp.c,
+	  src/chan_sccp.h, src/sccp_actions.c, src/sccp_config.c,
+	  src/sccp_device.c, src/sccp_event.c, src/sccp_pbx.c,
+	  src/sccp_socket.c, src/sccp_utils.c, src/sccp_utils.h: Changed a
+	  couple of malloc's / free's to ast_malloc and ast_free
+	  Updated libgc Make Parameters
+
+	* [r1979] src/chan_sccp.h: Fix "module unload chan_sccp" when using
+	  garbage collector
+
+	* [r1978] ChangeLog, doc/04_Setup_Guide.doc,
+	  doc/06_Frequently_Asked_Questions.doc, src/sccp_utils.c: Fixed
+	  documentation links
+
 2010-10-10  ddegroot
 
 	* [r1977] configure, src/Makefile.in, src/sccp_featureButton.c:
