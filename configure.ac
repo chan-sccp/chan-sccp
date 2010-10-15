@@ -200,7 +200,7 @@ AC_PATH_PROGS(CAT,cat,[echo cat not found, Doh!])
 AC_PATH_PROGS(TR,tr,[echo tr not found, need this for upper/lowercase conversions])
 AC_PATH_PROGS(UNAME,uname,[echo uname not found so no version info will be available])
 AC_PATH_PROGS(WHOAMI,whoami,[echo whoami not found so no version info will be available])
-AC_PATH_PROGS(RPMBUILD,rpmbuild,[echo rpmbuild not found so your cannot build rpm packages])
+AC_PATH_PROGS(RPMBUILD,rpmbuild,[echo rpmbuild not found so you cannot build rpm packages (no problem)])
 AC_PROG_CC
 AC_PROG_CC_C_O
 AC_PROG_CXX

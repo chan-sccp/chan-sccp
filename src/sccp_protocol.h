@@ -1877,7 +1877,7 @@ typedef union {
                  * padded by 4
                  */
                 uint32_t	dummy; 						/*!< Dummy, this is just for addressing, it doesn't matter */
-        } DisplayDynamicPromptStatusMessage;  // this is just the header :)	/*!< Display Dynamic Prompt Status Message Structure */
+        } DisplayDynamicPromptStatusMessage;  					/*!< Display Dynamic Prompt Status Message Structure */
 
         struct {
                 uint32_t 	lel_lineNumber;					/*!< Line Number */
