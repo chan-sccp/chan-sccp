@@ -235,34 +235,25 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 
 	#define CHECK_LEAKS() GC_gcollect()
 #else
-	#ifdef __AST_DEBUG_MALLOC
-		#undef malloc
-		#undef calloc
-		#undef realloc
-		#undef strdup
-		#undef strndup
-		#undef asprintf
-		#undef vasprintf
+	#undef malloc
+	#undef calloc
+	#undef realloc
+	#undef strdup
+	#undef strndup
+	#undef asprintf
+	#undef vasprintf
 
-		#define malloc ast_malloc
-		#define calloc ast_calloc
-		#define calloc_cache ast_calloc_cache
-		#define realloc ast_realloc
-		#define strdup ast_strdup
-		#define strndup ast_strndup
-		#define asprintf ast_asprintf
-		#define vasprintf ast_vasprintf
+	#define malloc ast_malloc
+	#define calloc ast_calloc
+	#define calloc_cache ast_calloc_cache
+	#define realloc ast_realloc
+	#define strdup ast_strdup
+	#define strndup ast_strndup
+	#define asprintf ast_asprintf
+	#define vasprintf ast_vasprintf
 
-		#ifndef ast_free
-			#define ast_free free
-		#else
-			#undef free
-			#define free ast_free
-		#endif
-	#else
-		#ifndef ast_free
-			#define ast_free free
-		#endif
+	#ifndef ast_free
+		#define ast_free free
 	#endif
 	#define sccp_free(x){ \
 		ast_free( x ); \
