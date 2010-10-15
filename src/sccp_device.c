@@ -1417,17 +1417,32 @@ void sccp_dev_forward_status(sccp_line_t *l, uint8_t lineInstance, sccp_device_t
 		}
 
 #ifdef CS_ADV_FEATURES
-		char tmp[256] = "";
+		char tmp[256];
+		size_t len = sizeof(tmp);
+		char *s = tmp;
+		sccp_line_t* line = NULL;
+		sccp_linedevices_t* ld = NULL;
 
-		memset(tmp, 0, sizeof(tmp));
-		if (linedevice->cfwdAll.enabled) {
-			strcat(tmp, SKINNY_DISP_CFWDALL ":");
-			strcat(tmp, SKINNY_DISP_FORWARDED_TO " ");
-			strcat(tmp, linedevice->cfwdAll.number);
-		}else if (linedevice->cfwdBusy.enabled) {
-			strcat(tmp, SKINNY_DISP_CFWDBUSY ":");
-			strcat(tmp, SKINNY_DISP_FORWARDED_TO " ");
-			strcat(tmp, linedevice->cfwdBusy.number);
+		/* List every forwarded lines on the device prompt. */
+		SCCP_LIST_TRAVERSE(&GLOB(lines), line, list) {
+			SCCP_LIST_TRAVERSE(&line->devices, ld, list){
+				if(ld->device == device) {
+					if (s != tmp)
+						ast_build_string(&s, &len, ", ");
+					if (ld->cfwdAll.enabled) {
+						ast_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, ld->cfwdAll.number);
+					} else if (ld->cfwdBusy.enabled) {
+						ast_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, ld->cfwdBusy.number);
+					}
+				}
+			}
+		}
+		/* There isn't any forward on device's lines. Send an empty message
+		 * to hide the message.
+		 */
+		if (s == tmp) {
+			tmp[0] = ' ';
+			tmp[1] = '\0';
 		}
 		sccp_dev_displayprompt(device, 0, 0, tmp, 0);
 #endif
