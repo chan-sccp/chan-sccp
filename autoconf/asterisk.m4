@@ -200,15 +200,29 @@ AC_DEFUN([CHECK_ASTERISK_HEADER_CONTENT],[
   dnl Check Asterisk RealTime Options
   if test $REALTIME_USEABLE = 1 ; then
     AC_CHECK_HEADER(asterisk/buildopts.h,
-      AC_MSG_CHECKING([checking version in asterisk/buildopts.h])
-      AC_EGREP_HEADER([define DEBUG_CHANNEL_LOCKS], asterisk/buildopts.h,
+      AC_MSG_CHECKING([checking DEBUG_CHANNEL_LOCKS in asterisk/buildopts.h])
+      if grep -q "define DEBUG_CHANNEL_LOCKS" $PBX_INCLUDE/buildopts.h; then
         AC_DEFINE(CS_AST_DEBUG_CHANNEL_LOCKS,1,[Found 'DEBUG_CHANNEL_LOCKS' in asterisk/buildopts.h])
-      )
-      AC_EGREP_HEADER([define DEBUG_THREADS], asterisk/buildopts.h,
-        AC_DEFINE(CS_AST_DEBUG_THREADS,1,[Found 'DEBUG_THREADS' in asterisk/buildopts.h])
-      )
-      AC_MSG_RESULT(['OK'])
+        AC_MSG_RESULT([Found])
+      else
+      	AC_MSG_RESULT([Not Found])
+      fi
+      AC_MSG_CHECKING([checking DEBUG_THREADS in asterisk/buildopts.h])
+      if grep -q "define DEBUG_THREADS" $PBX_INCLUDE/buildopts.h; then
+        AC_DEFINE(CS_AST_DEBUG_THREADS,1,[Found 'CS_AST_DEBUG_THREADS' in asterisk/buildopts.h])
+        AC_MSG_RESULT([Found])
+      else
+      	AC_MSG_RESULT([Not Found])
+      fi
     )
+    dnl Check Asterisk Jitterbuffer
+    AC_MSG_CHECKING([asterisk jitterbuffer for 'target_extra'])
+    if grep -rq "target_extra" $PBX_INCLUDE/abstract_jb.h; then
+      AC_DEFINE([CS_AST_JB_TARGET_EXTRA],1,[Found 'target_extra' in asterisk/abstract_jb.h])
+      AC_MSG_RESULT([Found])
+    else
+      AC_MSG_RESULT([Not Found])
+    fi
   fi
   dnl Check Asterisk Schedule Options
   if test -f $PBX_INCLUDE/sched.h; then
@@ -513,13 +527,5 @@ AC_DEFUN([CHECK_ASTERISK_HEADER_CONTENT],[
   if grep -rq "ast_string_field_" $PBX_INCLUDE/; then
     AC_DEFINE(CS_AST_HAS_AST_STRING_FIELD,1,[Found 'ast_string_field_' in asterisk])
     AC_MSG_RESULT([Found])
-  fi
-  dnl Check Asterisk Jitterbuffer
-  AC_MSG_CHECKING([asterisk jitterbuffer for 'target_extra'])
-  if grep -rq "target_extra" $PBX_INCLUDE/abstract_jb.h; then
-    AC_DEFINE([CS_AST_JB_TARGET_EXTRA],1,[Found 'target_extra' in asterisk/abstract_jb.h])
-    AC_MSG_RESULT([Found])
-  else
-    AC_MSG_RESULT([Not Found])
   fi
 ])

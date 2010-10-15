@@ -20,6 +20,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_lock.h"
 #include "sccp_device.h"
 #include <asterisk/lock.h>
+#include <asterisk/utils.h>
 #ifndef CS_AST_HAS_TECH_PVT
 #include <asterisk/_pvt.h>
 #endif
@@ -121,6 +122,9 @@ int __sccp_mutex_lock(ast_mutex_t *p_mutex, const char *itemnametolock, const ch
 
 #endif
 
+#ifdef CS_LOCKS_DEBUG_ALL
+	log_show_lock(p_mutex);
+#endif
 #ifdef CS_AST_DEBUG_THREADS
         res = __ast_pthread_mutex_lock(filename, lineno, func, itemnametolock, p_mutex);
 
@@ -139,7 +143,6 @@ int __sccp_mutex_lock(ast_mutex_t *p_mutex, const char *itemnametolock, const ch
 
         if ((count = p_mutex->track.reentrancy)) {
 #endif
-
                 if (strncasecmp(filename, "sccp_socket", 11)) {
                         sccp_log((DEBUGCAT_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s now have %d locks (recursive)\n", filename, lineno, func, itemnametolock, count);
                 }
@@ -153,7 +156,6 @@ int __sccp_mutex_lock(ast_mutex_t *p_mutex, const char *itemnametolock, const ch
                 if (strncasecmp(filename, "sccp_socket.c", 13))
                         sccp_log((DEBUGCAT_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s was locked\n", filename, lineno, func, itemnametolock);
         }
-
 #endif
 
         if (res == EDEADLK) {
@@ -182,12 +184,14 @@ int __sccp_mutex_trylock(ast_mutex_t *p_mutex, const char *itemnametolock, const
         int res;
 
 #ifdef CS_LOCKS_DEBUG_ALL
-
         if (strncasecmp(filename, "sccp_socket.c", 13))
                 sccp_log((DEBUGCAT_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Trying to lock %s\n", filename, lineno, func, itemnametolock);
 
 #endif
 
+#ifdef CS_LOCKS_DEBUG_ALL
+	log_show_lock(p_mutex);
+#endif
 #ifdef CS_AST_DEBUG_THREADS
         res = __ast_pthread_mutex_trylock(filename, lineno, func, itemnametolock, p_mutex);
 

@@ -109,7 +109,7 @@
 /* Found 'DEBUG_CHANNEL_LOCKS' in asterisk/buildopts.h */
 #undef CS_AST_DEBUG_CHANNEL_LOCKS
 
-/* Found 'DEBUG_THREADS' in asterisk/buildopts.h */
+/* Found 'CS_AST_DEBUG_THREADS' in asterisk/buildopts.h */
 #undef CS_AST_DEBUG_THREADS
 
 /* Found 'AST_DEVICE_ONHOLD' in asterisk/devicestate.h */

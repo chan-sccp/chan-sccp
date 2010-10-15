@@ -6254,7 +6254,7 @@ fi
 
   test -n "$RPMBUILD" && break
 done
-test -n "$RPMBUILD" || RPMBUILD="echo rpmbuild not found so your cannot build rpm packages"
+test -n "$RPMBUILD" || RPMBUILD="echo rpmbuild not found so you cannot build rpm packages (no problem)"
 
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -20820,42 +20820,46 @@ $as_echo "${T_MD}Checking Asterisk Header Content:${T_ME}" >&6; }
     if test $REALTIME_USEABLE = 1 ; then
     ac_fn_c_check_header_mongrel "$LINENO" "asterisk/buildopts.h" "ac_cv_header_asterisk_buildopts_h" "$ac_includes_default"
 if test "x$ac_cv_header_asterisk_buildopts_h" = x""yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking checking version in asterisk/buildopts.h" >&5
-$as_echo_n "checking checking version in asterisk/buildopts.h... " >&6; }
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <asterisk/buildopts.h>
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "define DEBUG_CHANNEL_LOCKS" >/dev/null 2>&1; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking checking DEBUG_CHANNEL_LOCKS in asterisk/buildopts.h" >&5
+$as_echo_n "checking checking DEBUG_CHANNEL_LOCKS in asterisk/buildopts.h... " >&6; }
+      if grep -q "define DEBUG_CHANNEL_LOCKS" $PBX_INCLUDE/buildopts.h; then
 
 $as_echo "#define CS_AST_DEBUG_CHANNEL_LOCKS 1" >>confdefs.h
 
-
-fi
-rm -f conftest*
-
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <asterisk/buildopts.h>
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "define DEBUG_THREADS" >/dev/null 2>&1; then :
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found" >&5
+$as_echo "Found" >&6; }
+      else
+      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Not Found" >&5
+$as_echo "Not Found" >&6; }
+      fi
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking checking DEBUG_THREADS in asterisk/buildopts.h" >&5
+$as_echo_n "checking checking DEBUG_THREADS in asterisk/buildopts.h... " >&6; }
+      if grep -q "define DEBUG_THREADS" $PBX_INCLUDE/buildopts.h; then
 
 $as_echo "#define CS_AST_DEBUG_THREADS 1" >>confdefs.h
 
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found" >&5
+$as_echo "Found" >&6; }
+      else
+      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Not Found" >&5
+$as_echo "Not Found" >&6; }
+      fi
 
 fi
-rm -f conftest*
-
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: 'OK'" >&5
-$as_echo "'OK'" >&6; }
-
-fi
 
 
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking asterisk jitterbuffer for 'target_extra'" >&5
+$as_echo_n "checking asterisk jitterbuffer for 'target_extra'... " >&6; }
+    if grep -rq "target_extra" $PBX_INCLUDE/abstract_jb.h; then
+
+$as_echo "#define CS_AST_JB_TARGET_EXTRA 1" >>confdefs.h
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found" >&5
+$as_echo "Found" >&6; }
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Not Found" >&5
+$as_echo "Not Found" >&6; }
+    fi
   fi
     if test -f $PBX_INCLUDE/sched.h; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking asterisk/sched.h for 'define AST_SCHED_DEL'" >&5
@@ -21343,18 +21347,6 @@ $as_echo "#define CS_AST_HAS_AST_STRING_FIELD 1" >>confdefs.h
 
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found" >&5
 $as_echo "Found" >&6; }
-  fi
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking asterisk jitterbuffer for 'target_extra'" >&5
-$as_echo_n "checking asterisk jitterbuffer for 'target_extra'... " >&6; }
-  if grep -rq "target_extra" $PBX_INCLUDE/abstract_jb.h; then
-
-$as_echo "#define CS_AST_JB_TARGET_EXTRA 1" >>confdefs.h
-
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found" >&5
-$as_echo "Found" >&6; }
-  else
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: Not Found" >&5
-$as_echo "Not Found" >&6; }
   fi
 
 elif test "${PBX_TYPE}" = "Callweaver"; then
