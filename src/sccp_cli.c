@@ -902,6 +902,7 @@ CLI_ENTRY(cli_message_devices,sccp_message_devices,"Send a message to all SCCP D
  * \todo TO BE IMPLEMENTED: sccp message device
  */
 static int sccp_message_device(int fd, int argc, char * argv[]) {
+	ast_cli(fd, "Command has not been fully implemented yet!\n");
 	return RESULT_FAILURE;
 }
 
@@ -1013,6 +1014,7 @@ CLI_ENTRY_COMPLETE(cli_dnd_device,sccp_dnd_device,"Send a dnd to SCCP Device",dn
  */
 static int sccp_remove_line_from_device(int fd, int argc, char * argv[])
 {
+	ast_cli(fd, "Command has not been fully implemented yet!\n");
 	return RESULT_FAILURE;
 }
 
@@ -1039,19 +1041,18 @@ static int sccp_add_line_to_device(int fd, int argc, char * argv[])
 	if (argc < 5)
 		return RESULT_SHOWUSAGE;
 
-	if (ast_strlen_zero(argv[5]))
+	if (ast_strlen_zero(argv[4]))
 		return RESULT_SHOWUSAGE;
 
-	d = sccp_device_find_byid(argv[4], FALSE);
-	l = sccp_line_find_byname(argv[5]);
-
+	d = sccp_device_find_byid(argv[3], FALSE);
 	if (!d) {
-		ast_log(LOG_ERROR, "Error: Device not found");
+		ast_log(LOG_ERROR, "Error: Device %s not found", argv[3]);
 		return RESULT_FAILURE;
 	}
 
+	l = sccp_line_find_byname(argv[4]);
 	if (!l) {
-		ast_log(LOG_ERROR, "Error: Device not found");
+		ast_log(LOG_ERROR, "Error: Line %s not found", argv[4]);
 		return RESULT_FAILURE;
 	}
 
@@ -1061,7 +1062,7 @@ static int sccp_add_line_to_device(int fd, int argc, char * argv[])
 	sccp_config_addLine(d, l->name, 0, 0);
 #endif
 
-	ast_cli(fd, "Error: Line %s has been added to device %s", l->name, d->id);
+	ast_cli(fd, "Line %s has been added to device %s\n", l->name, d->id);
 	return RESULT_SUCCESS;
 }
 
@@ -1083,6 +1084,7 @@ CLI_ENTRY_COMPLETE(cli_add_line_to_device,sccp_add_line_to_device,"Add a line to
  * \todo TO BE IMPLEMENTED: sccp show mwi subscriptions
  */
 static int sccp_show_mwi_subscriptions(int fd, int argc, char * argv[]) {
+	ast_cli(fd, "Command has not been fully implemented yet!\n");
 	return RESULT_FAILURE;
 }
 
