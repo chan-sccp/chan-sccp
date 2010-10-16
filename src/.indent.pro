@@ -1,0 +1,11 @@
+-linux 
+-l500 
+-lc500 
+-cp81 
+-c81 
+-cd81 
+-hnl 
+-nbbo 
+-lp 
+-ppi4
+
