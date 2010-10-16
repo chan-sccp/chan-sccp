@@ -3,9 +3,9 @@
  * \brief 	SCCP CLI Header
  * \author 	Sergio Chersovani <mlists [at] c-net.it>
  * \note	Reworked, but based on chan_sccp code.
- *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *        	Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *		Modified by Jan Czmok and Julien Goodwin
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
  * $Date$
@@ -28,11 +28,14 @@ void sccp_unregister_cli(void);
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {	\
 		static char *cli_command[] = { CLI_COMMAND };					\
 		char *command=NULL;								\
-		if(!implode( cli_command," ", &command))					\
-			return CLI_FAILURE;							\
 		if (cmd == CLI_INIT) {								\
+			if(!implode( cli_command," ", &command)) {				\
+				ast_free(command);						\
+				return CLI_FAILURE;						\
+			}									\
 			e->command = strdup(command);						\
 			e->usage = _USAGE;							\
+			ast_free(command);							\
 			return NULL;								\
 		} else if (cmd == CLI_GENERATE) 						\
 			return _COMPLETER((char *)a->line, (char *)a->word, a->pos, a->n);	\
@@ -44,18 +47,19 @@ void sccp_unregister_cli(void);
 			return CLI_SUCCESS;							\
 		else										\
 			return CLI_FAILURE;							\
-		ast_free(command);								\
 	};
   #define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)				\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {	\
 		static char *cli_command[] = { CLI_COMMAND };					\
 		char *command=NULL;								\
-		if(!implode( cli_command," ", &command))					\
-			return CLI_FAILURE;							\
 		if (cmd == CLI_INIT) {								\
+			if(!implode( cli_command," ", &command)) {				\
+				ast_free(command);						\
+				return CLI_FAILURE;						\
+			}									\
 			e->command = strdup(command);						\
 			e->usage = _USAGE;							\
-			return NULL;								\
+			ast_free(command);							\
 		} else if (cmd == CLI_GENERATE)							\
 			return NULL;								\
 												\
@@ -66,7 +70,6 @@ void sccp_unregister_cli(void);
 			return CLI_SUCCESS;							\
 		else										\
 			return CLI_FAILURE;							\
-		ast_free(command);								\
 	};
 #else
   #define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER)		\
