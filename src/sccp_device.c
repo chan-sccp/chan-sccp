@@ -1550,14 +1550,13 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 #ifdef CS_DEVSTATE_FEATURE
 	sccp_devstate_specifier_t *specifier;
 #endif
-
-
 	char family[25];
-
 
 	if (!d)
 		return;
 
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_1 "SCCP: Clean Device %s\n", d->id);
+	
 	sccp_device_lock(d);
 	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE); 	/* set correct register state */
 
@@ -1574,6 +1573,21 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		SCCP_LIST_UNLOCK(&GLOB(devices));
 	}
 
+        /* unsubscribe hints */                                 /* prevent loop:sccp_dev_clean =>  
+                                                                                sccp_line_removeDevice => 
+                                                                                sccp_event_fire => 
+                                                                                sccp_hint_eventListener => 
+                                                                                sccp_hint_lineStatusChanged => 
+                                                                                sccp_hint_hintStatusUpdate => 
+                                                                                sccp_hint_notifySubscribers => 
+                                                                                sccp_dev_speed_find_byindex */
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "SCCP: Unregister Device%s\n", d->id);
+	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
+	memset(event, 0, sizeof(sccp_event_t));
+	event->type=SCCP_EVENT_DEVICEUNREGISTERED;
+	event->event.deviceRegistered.device = d;
+	sccp_event_fire((const sccp_event_t**)&event);
+
 	/* hang up open channels and remove device from line */
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
@@ -1582,14 +1596,16 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 			if(!line)
 				continue;
 
-			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->channels, channel, list) {
+			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->channels, channel, list) {				
 				if(channel->device == d){
+					sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "SCCP: Hangup open channel on line %s device %s\n", line->name, d->id);
 					sccp_channel_endcall(channel);
 				}
 			}
 			SCCP_LIST_TRAVERSE_SAFE_END;
 
 			/* remove devices from line */
+			sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "SCCP: Remove Line %s from device %s\n", line->name, d->id);
 			sccp_line_removeDevice(line, d);
 		}
 		config->instance = 0; /* reset button configuration to rebuild template on register */
@@ -1637,7 +1653,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 
 	if(remove_from_global){
 		if(cleanupTime > 0){
-			sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: Device planned to be free'd in %d secs.\n", d->id, cleanupTime);
+			sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2  "%s: Device planned to be free'd in %d secs.\n", d->id, cleanupTime);
 			if( (d->scheduleTasks.free = sccp_sched_add(sched, cleanupTime * 1000, sccp_device_destroy, d)) < 0 ) {
 				sleep(cleanupTime);
 				sccp_device_destroy(d);
@@ -1665,7 +1681,7 @@ int sccp_device_destroy(const void *ptr){
 	sccp_buttonconfig_t	*config = NULL;
 	sccp_hostname_t 	*permithost = NULL;
 
-	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: Device FREE\n", d->id);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: Destroy Device\n", d->id);
 	sccp_device_lock(d);
 	/* remove button config */
 	/* only generated on read config, so do not remove on reset/restart*/
@@ -1694,7 +1710,7 @@ int sccp_device_destroy(const void *ptr){
 
 	d->ha = NULL;
 
-	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Device Deleted\n", d->id);
+	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Device Destroyed\n", d->id);
 
 	sccp_device_unlock(d);
 	ast_mutex_destroy(&d->lock);
