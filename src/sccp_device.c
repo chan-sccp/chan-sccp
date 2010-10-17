@@ -1548,7 +1548,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	sccp_line_t		*line =NULL;
 	sccp_channel_t		*channel=NULL;
 #ifdef CS_DEVSTATE_FEATURE
-	sccp_devstate_specifier_t *specifier;
+	sccp_devstate_specifier_t *devstateSpecifier;
 #endif
 	char family[25];
 
@@ -1637,17 +1637,15 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		d->buttonTemplate = NULL;
 	}
 
-
 #ifdef CS_DEVSTATE_FEATURE
 	/* Unregister event subscriptions originating from devstate feature*/
-	    SCCP_LIST_LOCK(&d->devstateSpecifiers);
-		SCCP_LIST_TRAVERSE(&d->devstateSpecifiers, specifier, list) {
-			ast_event_unsubscribe(specifier->sub);
-			sccp_log(DEBUGCAT_FEATURE_BUTTON)(VERBOSE_PREFIX_1 "%s: Removed Devicestate Subscription: %s\n", d->id, specifier->specifier);
-		}
-		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
+	SCCP_LIST_LOCK(&d->devstateSpecifiers);
+	SCCP_LIST_TRAVERSE(&d->devstateSpecifiers, devstateSpecifier, list) {
+		ast_event_unsubscribe(devstateSpecifier->sub);
+		sccp_log(DEBUGCAT_FEATURE_BUTTON)(VERBOSE_PREFIX_1 "%s: Removed Devicestate Subscription: %s\n", d->id, devstateSpecifier->specifier);
+	}
+	SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
 #endif
-
 
 	sccp_device_unlock(d);
 
@@ -1683,6 +1681,7 @@ int sccp_device_destroy(const void *ptr){
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: Destroy Device\n", d->id);
 	sccp_device_lock(d);
+
 	/* remove button config */
 	/* only generated on read config, so do not remove on reset/restart*/
 	SCCP_LIST_LOCK(&d->buttonconfig);
@@ -1692,7 +1691,6 @@ int sccp_device_destroy(const void *ptr){
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 	SCCP_LIST_HEAD_DESTROY(&d->buttonconfig);
-	/* */
 
 	/* removing permithosts */
 	SCCP_LIST_LOCK(&d->permithosts);
@@ -1701,6 +1699,16 @@ int sccp_device_destroy(const void *ptr){
 	}
 	SCCP_LIST_UNLOCK(&d->permithosts);
 	SCCP_LIST_HEAD_DESTROY(&d->permithosts);
+
+#ifdef CS_DEVSTATE_FEATURE
+	/* removing devstate_specifier */
+	sccp_devstate_specifier_t *devstateSpecifier;
+	SCCP_LIST_LOCK(&d->devstateSpecifiers);
+	while((devstateSpecifiers = SCCP_LIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
+		ast_free(devstateSpecifiers);
+	}
+	SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
+#endif
 
 	/* destroy selected channels list */
 	SCCP_LIST_HEAD_DESTROY(&d->selectedChannels);
