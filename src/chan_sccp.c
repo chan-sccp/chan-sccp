@@ -527,6 +527,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 		      break;
 		case TimeDateReqMessage:
 		      sccp_handle_time_date_req(s, r);
+		      sccp_dev_set_registered(s->device, SKINNY_DEVICE_RS_OK);
 		      break;
 		case KeypadButtonMessage:
 		      sccp_handle_keypad_button(s, r);
