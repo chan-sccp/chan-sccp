@@ -1514,6 +1514,7 @@ void sccp_channel_updatemediatype(sccp_channel_t * c) {
  */
 void sccp_channel_endcall(sccp_channel_t * c)
 {
+	struct ast_channel * bridged = NULL;
 	uint8_t res = 0;
 
 	if (!c || !c->line){
@@ -1522,7 +1523,7 @@ void sccp_channel_endcall(sccp_channel_t * c)
 	}
 
 	/* this is a station active endcall or onhook */
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Ending call %d on line %s (%s)\n", DEV_ID_LOG(c->device), c->callid, c->line->name, sccp_indicate2str(c->state));
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_2 "%s: Ending call %d on line %s (%s)\n", DEV_ID_LOG(c->device), c->callid, c->line->name, sccp_indicate2str(c->state));
 
 	/* end all call forward channels (our childs) */
 	sccp_channel_t	*channel;
@@ -1547,28 +1548,62 @@ void sccp_channel_endcall(sccp_channel_t * c)
 		c->device->transfer_channel = NULL;
 	}
 
-	if (c->owner) {
-		/* Is there a blocker ? */
-		res = (c->owner->pbx || c->owner->blocker);
-
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Sending %s hangup request to %s\n", DEV_ID_LOG(c->device), res ? "(queue)" : "(force)", c->owner->name);
-
-		c->owner->hangupcause = AST_CAUSE_NORMAL_CLEARING;
-
-		/* force hangup for invalid dials */
-		if(c->state == SCCP_CHANNELSTATE_INVALIDNUMBER || c->state == SCCP_CHANNELSTATE_OFFHOOK){
-			sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Sending force hangup request to %s\n", DEV_ID_LOG(c->device), c->owner->name);
-			ast_hangup(c->owner);
-		} else {
-			if (res) {
-				c->owner->_softhangup |= AST_SOFTHANGUP_DEV;
-				ast_queue_hangup(c->owner);
-			} else {
-				ast_hangup(c->owner);
-			}
+	/* checking for ast_channel owner */
+	if(!c->owner) {
+		sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "sccp_end_call: No ast channel owner\n");
+		return;
+	}
+	/* is owner ast_channel a zombie ? */
+	if(ast_test_flag(c->owner, AST_FLAG_ZOMBIE)) {
+		sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "sccp_end_call: ast channel owner is a zombie\n");
+		return; /* c->owner is zombie, leaving */
+	}
+	/* channel is hanging up */
+	if(c->owner->_softhangup != 0) {
+		sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "sccp_end_call: ast channel owner is already hanging up\n");
+		return;
+	}
+	/* check for briged ast_channel */
+	if((bridged = CS_AST_BRIDGED_CHANNEL(c->owner))) {
+		/* is bridged ast_channel a zombie ? */
+		if(ast_test_flag(bridged, AST_FLAG_ZOMBIE)) {
+			sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "sccp_end_call: bridged ast channel is a zombie\n");
+			return; /* bridged channel is zombie, leaving */
 		}
-	} else {
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_1 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(c->device), c->callid, c->line->name);
+		/* channel is hanging up */
+		if(bridged->_softhangup != 0) {
+			sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "sccp_end_call: bridged ast channel is already hanging up\n");
+			return;
+		}
+	}
+	if(c->state != SCCP_CHANNELSTATE_ZOMBIE) {
+		if (c->owner) {
+			/* Is there a blocker ? */
+			res = (c->owner->pbx || c->owner->blocker);
+
+			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Sending %s hangup request to %s\n", DEV_ID_LOG(c->device), res ? "(queue)" : "(force)", c->owner->name);
+			
+			if ((c->owner->_softhangup & AST_SOFTHANGUP_APPUNLOAD) != 0) {
+				c->owner->hangupcause = AST_CAUSE_CHANNEL_UNACCEPTABLE;
+			}else {
+				c->owner->hangupcause = AST_CAUSE_NORMAL_CLEARING;
+			}
+
+			/* force hangup for invalid dials */
+			if(c->state == SCCP_CHANNELSTATE_INVALIDNUMBER || c->state == SCCP_CHANNELSTATE_OFFHOOK){
+				sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Sending force hangup request to %s\n", DEV_ID_LOG(c->device), c->owner->name);
+				ast_hangup(c->owner);
+			} else {
+				if (res) {
+					c->owner->_softhangup |= AST_SOFTHANGUP_DEV;
+					ast_queue_hangup(c->owner);
+				} else {
+					ast_hangup(c->owner);
+				}
+			}
+		} else {
+			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_1 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(c->device), c->callid, c->line->name);
+		}
 	}
 }
 

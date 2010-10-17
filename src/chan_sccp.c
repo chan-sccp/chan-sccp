@@ -1735,17 +1735,33 @@ int unload_module() {
 #else
 static int unload_module(void) {
 #endif
-	sccp_line_t * l;
 	sccp_device_t * d;
+	sccp_line_t * l;
+	sccp_channel_t	*c;
 	sccp_session_t * s;
+	int openchannels=0;
 
+	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
+
+	/* temporary fix to close open channels */
+	/* \todo Temporary fix to unload Module. Needs to be looked at */ 
+	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_2 "SCCP: Hangup open channels\n");
+	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
+		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->channels, c, list) {
+			c->owner->_softhangup = AST_SOFTHANGUP_APPUNLOAD;
+			sccp_channel_endcall(c);
+			usleep(200);		// wait for sccp_pbx_hangup
+			openchannels++;
+		}
+		SCCP_LIST_TRAVERSE_SAFE_END;
+	}
+	usleep(openchannels * 10000); // wait for everything to settle
+
+	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_2 "SCCP: Unregister SCCP RTP protocol\n");
 #if ASTERISK_VERSION_NUM >= 10400
 	ast_rtp_proto_unregister(&sccp_rtp);
 #endif
-#ifdef CS_SCCP_MANAGER
-	sccp_unregister_management();
-#endif
-
+	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_2 "SCCP: Unregister SCCP Channel Tech\n");
 #ifdef CS_AST_HAS_TECH_PVT
 	ast_channel_unregister(&sccp_tech);
 #else
@@ -1757,7 +1773,7 @@ static int unload_module(void) {
 	sccp_mwi_module_stop();
 	sccp_hint_module_stop();
 
-	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: Removing monitor thread\n");
+	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_2 "SCCP: Removing monitor thread\n");
 	sccp_globals_lock(monitor_lock);
 	if ((GLOB(monitor_thread) != AST_PTHREADT_NULL) && (GLOB(monitor_thread) != AST_PTHREADT_STOP)) {
 		pthread_cancel(GLOB(monitor_thread));
@@ -1768,8 +1784,12 @@ static int unload_module(void) {
 	sccp_globals_unlock(monitor_lock);
 	sccp_mutex_destroy(&GLOB(monitor_lock));
 
+#ifdef CS_SCCP_MANAGER
+	sccp_unregister_management();
+#endif
 
 	/* removing devices */
+	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_2 "SCCP: Removing Devices\n");
 	SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list){
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "SCCP: Removing device %s\n", d->id);
@@ -1781,10 +1801,12 @@ static int unload_module(void) {
 		SCCP_LIST_HEAD_DESTROY(&GLOB(devices));
 
 	/* hotline will be removed by line removing function */
+	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_2 "SCCP: Removing Hotline\n");
 	GLOB(hotline)->line = NULL;
 	ast_free(GLOB(hotline));
 
 	/* removing lines */
+	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_2 "SCCP: Removing Lines\n");
 	SCCP_LIST_LOCK(&GLOB(lines));
 	while ((l = SCCP_LIST_REMOVE_HEAD(&GLOB(lines), list))) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "SCCP: Removing line %s\n", l->name);
@@ -1793,10 +1815,8 @@ static int unload_module(void) {
 	SCCP_LIST_UNLOCK(&GLOB(lines));
 	SCCP_LIST_HEAD_DESTROY(&GLOB(lines));
 
-
-
-
 	/* removing sessions */
+	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_2 "SCCP: Removing Sessions\n");
 	SCCP_LIST_LOCK(&GLOB(sessions));
 	while ((s = SCCP_LIST_REMOVE_HEAD(&GLOB(sessions), list))) {
 #if ASTERISK_VERSION_NUM < 10400
@@ -1812,11 +1832,11 @@ static int unload_module(void) {
 	SCCP_LIST_UNLOCK(&GLOB(sessions));
 	SCCP_LIST_HEAD_DESTROY(&GLOB(sessions));
 
+	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_2 "SCCP: Removing Descriptor\n");
 	close(GLOB(descriptor));
 	GLOB(descriptor) = -1;
 
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Killing the socket thread\n");
-
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET))(VERBOSE_PREFIX_2 "SCCP: Killing the socket thread\n");
 	sccp_globals_lock(socket_lock);
 	if ((GLOB(socket_thread) != AST_PTHREADT_NULL) &&
 		(GLOB(socket_thread) != AST_PTHREADT_STOP)) {
@@ -1827,15 +1847,16 @@ static int unload_module(void) {
 	GLOB(socket_thread) = AST_PTHREADT_STOP;
 	sccp_globals_unlock(socket_lock);
 	sccp_mutex_destroy(&GLOB(socket_lock));
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET))(VERBOSE_PREFIX_2 "SCCP: Killed the socket thread\n");
 
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Killed the socket thread\n");
-
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET))(VERBOSE_PREFIX_2 "SCCP: Removing bind\n");
 	if (GLOB(ha))
 		ast_free_ha(GLOB(ha));
 
 	if (GLOB(localaddr))
 		ast_free_ha(GLOB(localaddr));
 
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET))(VERBOSE_PREFIX_2 "SCCP: Removing io/sched\n");
 	if (io)
 		io_context_destroy(io);
 	if (sched)
@@ -1844,6 +1865,8 @@ static int unload_module(void) {
 	ast_mutex_destroy(&GLOB(usecnt_lock));
 	ast_mutex_destroy(&GLOB(lock));
 	ast_free(sccp_globals);
+
+	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_1 "Module chan_sccp unloaded\n");
 	
 #ifdef HAVE_LIBGC
 	CHECK_LEAKS();
