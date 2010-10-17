@@ -508,7 +508,7 @@ void sccp_handle_AvailableLines(sccp_device_t *d){
 	sccp_device_unlock(d);
 
 	if(!btn){
-		sccp_log((DEBUGCAT_CORE | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: no buttontemplate, reset device\n", DEV_ID_LOG(d));
+		sccp_log(DEBUGCAT_BUTTONTEMPLATE)(VERBOSE_PREFIX_3 "%s: no buttontemplate, reset device\n", DEV_ID_LOG(d));
 		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 		return;
 	}
@@ -1697,12 +1697,7 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * req)
       concludes the device registration process.
       This is included even in the minimal subset of device registration commands.
   */
-  
-  /* 
-   * Remarked out and moved to chan_sccp.c/sccp_handle_message/TimeDateReqMessage
-   * Leafs to availableLinesLoop to loop: sccp_handle_time_date_req => sccp_dev_set_registered => sccp_handle_AvailableLines 
-   */
-  // sccp_dev_set_registered(s->device, SKINNY_DEVICE_RS_OK);
+  sccp_dev_set_registered(s->device, SKINNY_DEVICE_RS_OK);
 }
 
 /*!

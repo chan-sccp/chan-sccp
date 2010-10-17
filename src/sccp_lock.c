@@ -44,12 +44,10 @@ int __sccp_mutex_unlock(ast_mutex_t *p_mutex, const char *itemnametolock, const 
         int res = 0;
 
 #ifdef CS_LOCKS_DEBUG_ALL
-
         if (strncasecmp(filename, "sccp_socket.c", 13))
                 sccp_log((DEBUGCAT_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Unlocking %s\n", filename, lineno, func, itemnametolock);
 
 #endif
-
         if (!p_mutex) {
                 sccp_log((DEBUGCAT_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Unlocking non-existing mutex\n", filename, lineno, func);
                 return 0;
@@ -60,13 +58,11 @@ int __sccp_mutex_unlock(ast_mutex_t *p_mutex, const char *itemnametolock, const 
 
 #else
         res = ast_mutex_unlock(p_mutex);
-
 #endif
 
 #ifdef CS_LOCKS_DEBUG_ALL
 #ifdef CS_AST_DEBUG_THREADS
         int count = 0;
-
 #ifndef CS_AST_HAS_TRACK
         if ((count = p_mutex->reentrancy)) {
 #else
@@ -116,13 +112,9 @@ int __sccp_mutex_unlock(ast_mutex_t *p_mutex, const char *itemnametolock, const 
 int __sccp_mutex_lock(ast_mutex_t *p_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func) {
         int res;
 #ifdef CS_LOCKS_DEBUG_ALL
-
         if (strncasecmp(filename, "sccp_socket.c", 13))
                 sccp_log((DEBUGCAT_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Locking %s\n", filename, lineno, func, itemnametolock);
 
-#endif
-
-#ifdef CS_LOCKS_DEBUG_ALL
 	log_show_lock(p_mutex);
 #endif
 #ifdef CS_AST_DEBUG_THREADS
@@ -130,7 +122,6 @@ int __sccp_mutex_lock(ast_mutex_t *p_mutex, const char *itemnametolock, const ch
 
 #else
         res = ast_mutex_lock(p_mutex);
-
 #endif
 
 #ifdef CS_LOCKS_DEBUG_ALL
@@ -187,30 +178,23 @@ int __sccp_mutex_trylock(ast_mutex_t *p_mutex, const char *itemnametolock, const
         if (strncasecmp(filename, "sccp_socket.c", 13))
                 sccp_log((DEBUGCAT_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Trying to lock %s\n", filename, lineno, func, itemnametolock);
 
-#endif
-
-#ifdef CS_LOCKS_DEBUG_ALL
 	log_show_lock(p_mutex);
 #endif
 #ifdef CS_AST_DEBUG_THREADS
         res = __ast_pthread_mutex_trylock(filename, lineno, func, itemnametolock, p_mutex);
-
 #else
         res = ast_mutex_trylock(p_mutex);
-
 #endif
 
 #ifdef CS_LOCKS_DEBUG_ALL
 #ifdef CS_AST_DEBUG_THREADS
         int count = 0;
-
 #ifndef CS_AST_HAS_TRACK
         if ((count = p_mutex->reentrancy)) {
 #else
 
         if ((count = p_mutex->track.reentrancy)) {
 #endif
-
                 if (strncasecmp(filename, "sccp_socket", 11)) {
                         sccp_log((DEBUGCAT_LOCK))(VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s now have %d locks (recursive)\n", filename, lineno, func, itemnametolock, count);
                 }
