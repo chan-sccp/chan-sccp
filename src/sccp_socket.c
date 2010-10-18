@@ -148,6 +148,7 @@ void sccp_session_close(sccp_session_t * s)
  */
 void destroy_session(sccp_session_t * s)
 {
+	// Called with &GLOB(sessions) locked
 	sccp_device_t * d;
 #if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
@@ -157,21 +158,27 @@ void destroy_session(sccp_session_t * s)
 		return;
 
 	d = s->device;
-	if (d)
+	
+	if (d && (d->session == s))
 	{
 #if ASTERISK_VERSION_NUM < 10400
 		sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
 #else
 		sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(s->sin.sin_addr));
 #endif
-
+		sccp_device_lock(d);
+		d->session = NULL;
+		d->registrationState = SKINNY_DEVICE_RS_NONE;
+		d->needcheckringback = 0;
+		sccp_device_unlock(d);
 		sccp_dev_clean(d, (d->realtime)?TRUE:FALSE, 10);
 	}
 
-	/* remove the session from global list*/
-	SCCP_LIST_LOCK(&GLOB(sessions));
+	/* 
+	 * remove the session from global list
+	 * (already locked in socket_thread)
+	 */
 	SCCP_LIST_REMOVE(&GLOB(sessions), s, list);
-	SCCP_LIST_UNLOCK(&GLOB(sessions));
 
 	/* closing fd's */
 	if (s->fd > 0) {
@@ -324,11 +331,13 @@ void * sccp_socket_thread(void * ignore)
 	time_t now;
 	sccp_session_t * s = NULL;
 	sccp_moo_t * m;
-	sigset_t sigs;
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
+	//I think asterisk should set these, it's a bit strange for a plugin to catch signals
+/*
+	sigset_t sigs;
 	sigemptyset(&sigs);
 	sigaddset(&sigs, SIGHUP);
 	sigaddset(&sigs, SIGTERM);
@@ -336,6 +345,7 @@ void * sccp_socket_thread(void * ignore)
 	sigaddset(&sigs, SIGPIPE);
 	sigaddset(&sigs, SIGWINCH);
 	sigaddset(&sigs, SIGURG);
+*/
 	uint8_t keepaliveAdditionalTime = 0;
 
 	while (GLOB(descriptor) > -1)
