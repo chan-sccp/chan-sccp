@@ -145,7 +145,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r){
 				// wait for destroy_session to finish
 				usleep(destroy_timeout * 1100);	// destroy_timeout + 10%
 			}
-			sccp_log(1)(VERBOSE_PREFIX_3 "Previous Session for %s Destoyed!\n", d->id);
 		}
 	}
 
