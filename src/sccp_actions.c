@@ -109,6 +109,8 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r){
 	struct hostent		*hp;
 	struct sockaddr_in 	sin;
 	sccp_hostname_t		*permithost;
+	boolean_t		isRealtime=0;
+	uint8_t			destroy_timeout=2;
 
 #if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
@@ -128,6 +130,26 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r){
 		return;
 	}
 
+	// Search for already known devices
+	d = sccp_device_find_byid(r->msg.RegisterMessage.sId.deviceName, FALSE);
+	if (d) {
+		if (d->session) {
+#ifdef CS_SCCP_REALTIME
+			isRealtime=d->realtime;
+#endif
+			sccp_log(1)(VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", d->id);
+			sccp_session_close(d->session);
+			sccp_log(1)(VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
+			destroy_session(d->session, destroy_timeout);
+			if(isRealtime) {
+				// wait for destroy_session to finish
+				usleep(destroy_timeout * 1100);	// destroy_timeout + 10%
+			}
+			sccp_log(1)(VERBOSE_PREFIX_3 "Previous Session for %s Destoyed!\n", d->id);
+		}
+	}
+
+	// search for all devices including realtime
 	d = sccp_device_find_byid(r->msg.RegisterMessage.sId.deviceName, TRUE);
 	if (!d) {
 		if(GLOB(allowAnonymus)){
@@ -188,14 +210,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r){
 		d->nat = 1;
 	}
 
-	if (d->session) {
-		sccp_log(1)(VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", d->id);
-		sccp_session_close(d->session);
-		sccp_log(1)(VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
-		destroy_session(d->session, 0);
-		sccp_log(1)(VERBOSE_PREFIX_3 "Previous Session for %s Destoyed!\n", d->id);
-		d->session=NULL;
-	}
 #if ASTERISK_VERSION_NUM < 10400
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fd, ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
 #else
@@ -209,9 +223,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r){
 	d->mwilight = 0;
 	d->protocolversion = r->msg.RegisterMessage.protocolVer;
 
-
 	sccp_device_unlock(d);
-
 
 	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
 	int keepAliveInterval = d->keepalive ? d->keepalive : GLOB(keepalive);
@@ -226,13 +238,13 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r){
 	 	// registration request with protocol 0 version structure.
 		d->inuseprotocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
 		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), d->inuseprotocolversion);
-	 } else if(r->msg.RegisterMessage.protocolVer > GLOB(protocolversion)) {
+	} else if(r->msg.RegisterMessage.protocolVer > GLOB(protocolversion)) {
 		d->inuseprotocolversion = GLOB(protocolversion);
 		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: asked for protocol version (%d). We answered (%d) as our capability.\n", DEV_ID_LOG(d), r->msg.RegisterMessage.protocolVer, GLOB(protocolversion));
-	 } else if(r->msg.RegisterMessage.protocolVer <= GLOB(protocolversion)) {
+	} else if(r->msg.RegisterMessage.protocolVer <= GLOB(protocolversion)) {
 		d->inuseprotocolversion = r->msg.RegisterMessage.protocolVer;
 	 	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), r->msg.RegisterMessage.protocolVer);
-	 }
+	}
 
 
 	if(d->inuseprotocolversion <= 3) {
