@@ -1704,8 +1704,8 @@ int sccp_device_destroy(const void *ptr){
 	/* removing devstate_specifier */
 	sccp_devstate_specifier_t *devstateSpecifier;
 	SCCP_LIST_LOCK(&d->devstateSpecifiers);
-	while((devstateSpecifiers = SCCP_LIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
-		ast_free(devstateSpecifiers);
+	while((devstateSpecifier = SCCP_LIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
+		ast_free(devstateSpecifier);
 	}
 	SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
 #endif
