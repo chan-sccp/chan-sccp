@@ -120,13 +120,14 @@ void sccp_session_close(sccp_session_t * s)
 	if (!s)
 		return;
 
-	// fire event for new device
-	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
-	memset(event, 0, sizeof(sccp_event_t));
-
-	event->type=SCCP_EVENT_DEVICEUNREGISTERED;
-	event->event.deviceRegistered.device = s->device;
-	sccp_event_fire( (const sccp_event_t **)&event);
+	// fire event to set device unregistered
+	if (s->device) {
+		sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
+		memset(event, 0, sizeof(sccp_event_t));
+		event->type=SCCP_EVENT_DEVICEUNREGISTERED;
+		event->event.deviceRegistered.device = s->device;
+		sccp_event_fire( (const sccp_event_t **)&event);
+	}
 
 	sccp_session_lock(s);
 	if (s->fd > 0) {
