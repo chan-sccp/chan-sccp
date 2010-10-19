@@ -121,6 +121,7 @@ void sccp_session_close(sccp_session_t * s)
 		return;
 
 	// fire event to set device unregistered
+	
 	if (s->device) {
 		sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
 		memset(event, 0, sizeof(sccp_event_t));
@@ -147,7 +148,7 @@ void sccp_session_close(sccp_session_t * s)
  * \callgraph
  * \callergraph
  */
-void destroy_session(sccp_session_t * s)
+void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 {
 	// Called with &GLOB(sessions) locked
 	sccp_device_t * d;
@@ -172,7 +173,7 @@ void destroy_session(sccp_session_t * s)
 		d->registrationState = SKINNY_DEVICE_RS_NONE;
 		d->needcheckringback = 0;
 		sccp_device_unlock(d);
-		sccp_dev_clean(d, (d->realtime)?TRUE:FALSE, 10);
+		sccp_dev_clean(d, (d->realtime)?TRUE:FALSE, cleanupTime);
 	}
 
 	/* 
@@ -388,7 +389,7 @@ void * sccp_socket_thread(void * ignore)
 				if (res < 0) {
 					ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
 					sccp_session_close(s);
-					destroy_session(s);
+					destroy_session(s,10);
 				} else if (res == 0){
 					// poll timeout
 					now = time(0);
@@ -396,7 +397,7 @@ void * sccp_socket_thread(void * ignore)
 						sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Session Keepalive %s Expired, now %s\n", (s->device) ? s->device->id : "SCCP", ctime(&s->lastKeepAlive), ctime(&now));
 						ast_log(LOG_WARNING, "%s: Dead device does not send a keepalive message in %d+%d seconds. Will be removed\n", (s->device) ? s->device->id : "SCCP", GLOB(keepalive), keepaliveAdditionalTime);
 						sccp_session_close(s);
-						destroy_session(s);
+						destroy_session(s,10);
 					}
 				} else {
 					/* we have new data -> continue */
@@ -413,7 +414,7 @@ void * sccp_socket_thread(void * ignore)
 				/* session is gone */
 				sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Session is Gone\n", (s->device) ? s->device->id : "SCCP");
 				sccp_session_close(s);
-				destroy_session(s);
+				destroy_session(s,10);
 			}
 		}
 		SCCP_LIST_UNLOCK(&GLOB(sessions));
