@@ -192,7 +192,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r){
 		sccp_log(1)(VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", d->id);
 		sccp_session_close(d->session);
 		sccp_log(1)(VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
-		destroy_session(d->session);
+		destroy_session(d->session, 0);
 		sccp_log(1)(VERBOSE_PREFIX_3 "Previous Session for %s Destoyed!\n", d->id);
 		d->session=NULL;
 	}
