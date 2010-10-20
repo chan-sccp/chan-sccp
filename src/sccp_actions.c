@@ -1216,16 +1216,26 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
 	if (c) {
 		sccp_channel_lock(c);
 		sccp_log(1)(VERBOSE_PREFIX_3 "%s: channel state %d\n", DEV_ID_LOG(d), c->state);
+		
+		// Channel already in use
 		if ( (c->state == SCCP_CHANNELSTATE_DIALING) || (c->state == SCCP_CHANNELSTATE_OFFHOOK) ) {
 			len = strlen(c->dialedNumber);
 			sccp_copy_string(c->dialedNumber+len, k->ext, sizeof(c->dialedNumber)-len);
 			sccp_channel_unlock(c);
-
 			SCCP_SCHED_DEL(sched, c->digittimeout);
 			sccp_pbx_softswitch(c);
-
 			return;
-		}
+		} else if (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED){
+			// automatically put on hold
+			sccp_log(DEBUGCAT_ACTION)(VERBOSE_PREFIX_3 "%s: automatically put call %d on hold %d\n", DEV_ID_LOG(d), c->callid, c->state);
+			sccp_channel_unlock(c);
+			sccp_channel_hold(c);
+			l = d->currentLine;
+			sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND);
+			return;
+		} 
+		
+		// Channel not in use
 		sccp_channel_unlock(c);
 		sccp_pbx_senddigits(c, k->ext);
 	} else {

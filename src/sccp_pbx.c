@@ -1808,10 +1808,10 @@ static const char *sccp_pbx_get_callid(struct ast_channel *ast)
 	static char callid[8];
 
 	sccp_channel_t *c;
-	c = CS_AST_CHANNEL_PVT(ast);
+	c = get_sccp_channel_from_ast_channel(ast);
 	if (c) {
 		snprintf(callid, sizeof callid, "%i", c->callid);
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "Get CallID is Returning %s ('%i')", callid, c->callid);
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "Get CallID is Returning %s ('%i')\n", callid, c->callid);
 		return callid;
 	} else {
 		return "";

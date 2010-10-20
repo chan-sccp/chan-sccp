@@ -603,26 +603,22 @@ void sccp_hint_notifyAsterisk(sccp_line_t *line, sccp_channelState_t state){
 	ast_devstate_changed(sccp_channelState2AstDeviceState(state), "SCCP/%s", line->name);
 #else
 	struct ast_event *event;
-	const char *cidname = "0815";
-	const char *cidnum = "0815";
 	char channelName[100];
 
 	sprintf(channelName, "SCCP/%s", line->name);
 
 	if (!(event = ast_event_new(
 		AST_EVENT_DEVICE_STATE_CHANGE,
-
 		AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, 	channelName,
 		AST_EVENT_IE_STATE,  AST_EVENT_IE_PLTYPE_UINT, 	sccp_channelState2AstDeviceState(state),
-		AST_EVENT_IE_CIDNAME, AST_EVENT_IE_PLTYPE_STR, 	strdup(cidname),
-		AST_EVENT_IE_CIDNUM, AST_EVENT_IE_PLTYPE_STR, 	strdup(cidnum),
+		AST_EVENT_IE_CIDNAME, AST_EVENT_IE_PLTYPE_STR, 	strdup(l->cid_name),
+		AST_EVENT_IE_CIDNUM, AST_EVENT_IE_PLTYPE_STR, 	strdup(l->cid_num),
 		AST_EVENT_IE_END
 		))) {
 
 		sccp_log(1)(VERBOSE_PREFIX_4 "notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", channelstate2str(state), state, astdevicestate2str(sccp_channelState2AstDeviceState(state)), sccp_channelState2AstDeviceState(state), line->name);
 		ast_devstate_changed(sccp_channelState2AstDeviceState(state), "%s", channelName);
 		return;
-
 	}
 #endif // AST_EVENT_IE_CIDNAME
 
