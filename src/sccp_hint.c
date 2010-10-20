@@ -412,7 +412,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 
 	sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "notify subscriber of %s\n", (hint->hint_dialplan)?hint->hint_dialplan:"null");
 
-	//SCCP_LIST_LOCK(&hint->subscribers);
+	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&hint->subscribers, subscriber, list){
 		if(!subscriber->device){
 			SCCP_LIST_REMOVE_CURRENT(list);
@@ -526,7 +526,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 		}
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END
-	//SCCP_LIST_UNLOCK(&hint->subscribers);
+	SCCP_LIST_UNLOCK(&hint->subscribers);
 }
 
 /*!

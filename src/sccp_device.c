@@ -1567,12 +1567,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	if(!ast_strlen_zero(d->lastNumber))
 		ast_db_put(family, "lastDialedNumber", d->lastNumber);
 
-	if(remove_from_global) {
-		SCCP_LIST_LOCK(&GLOB(devices));
-		SCCP_LIST_REMOVE(&GLOB(devices), d, list);
-		SCCP_LIST_UNLOCK(&GLOB(devices));
-	}
-
         /* unsubscribe hints */                                 /* prevent loop:sccp_dev_clean =>  
                                                                                 sccp_line_removeDevice => 
                                                                                 sccp_event_fire => 
@@ -1587,6 +1581,12 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	event->type=SCCP_EVENT_DEVICEUNREGISTERED;
 	event->event.deviceRegistered.device = d;
 	sccp_event_fire((const sccp_event_t**)&event);
+
+	if(remove_from_global) {
+		SCCP_LIST_LOCK(&GLOB(devices));
+		SCCP_LIST_REMOVE(&GLOB(devices), d, list);
+		SCCP_LIST_UNLOCK(&GLOB(devices));
+	}
 
 	/* hang up open channels and remove device from line */
 	SCCP_LIST_LOCK(&d->buttonconfig);
