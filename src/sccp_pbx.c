@@ -57,10 +57,10 @@ const struct ast_channel_tech sccp_tech;
 #endif // CS_AST_HAS_TECH_PVT
 
 #ifdef CS_AST_RTP_NEW_SOURCE		
-#define RTP_NEW_SOURCE(_c,_log) \
-if(c->rtp.audio.rtp) { \
-	ast_rtp_new_source(c->rtp.audio.rtp); \
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: " #_log "\n"); \
+#define RTP_NEW_SOURCE(_c,_log) 								\
+if(c->rtp.audio.rtp) { 										\
+	ast_rtp_new_source(c->rtp.audio.rtp); 							\
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: " #_log "\n"); 	\
 }
 #else
 #define RTP_NEW_SOURCE(_c,_log)
@@ -916,7 +916,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 					}
 				}
 			}
-			RTP_NEW_SOURCE(c,"Source Update\n");
+			RTP_NEW_SOURCE(c,"Source Update: RTP NEW SOURCE");
 			res = 0;
 			break;
 #endif //defined(CS_AST_CONTROL_SRCCHANGE) || defined(CS_AST_CONTROL_SRCUPDATE)
