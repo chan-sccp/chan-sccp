@@ -401,6 +401,8 @@ static void sccp_hint_devicestate_cb(const struct ast_event *ast_event, void *da
 /*!
  * \brief send hint status to subscriber
  * \param hint SCCP Hint Linked List Pointer
+ *
+ * \todo Check if the actual device still exists while going throughthe hint->subscribers and not pointing at rubish
  */
 void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
