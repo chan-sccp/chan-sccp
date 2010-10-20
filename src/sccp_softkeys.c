@@ -172,7 +172,7 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 
 	if(!l){
 		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 1);
-		sccp_dev_displayprompt(d, 0, 0, "No call to put on hold.",5);
+		sccp_dev_displayprompt(d, 0, 0, "No line available",5);
 		return;
 	} else {
 		length=strlen(l->adhocNumber);
@@ -196,6 +196,7 @@ void sccp_sk_hold(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstanc
 {
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Hold Pressed\n", DEV_ID_LOG(d));
 	if (!c) {
+		sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: No call to put on hold, check your softkeyset, hold should not be available in this situation.\n", DEV_ID_LOG(d));
 		sccp_dev_displayprompt(d, 0, 0, "No call to put on hold.",5);
 		return;
 	}
@@ -505,12 +506,18 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 				SCCP_LIST_UNLOCK(&d->selectedChannels);
 			}
 			SCCP_LIST_UNLOCK(&l->channels);
+		} else if (l->channelCount < 2) {
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: Not enough channels to transfer\n", d->id);
+			sccp_dev_displayprompt(d, lineInstance, c->callid, "Not enough calls to trnsf", 5);
+//			sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
+			return;
 		} else {
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s: We need 2 channels to transfer, please use softkey select\n", d->id);
-			sccp_mutex_unlock(&d->lock);
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: More than 2 channels to transfer, please use softkey select\n", d->id);
+			sccp_dev_displayprompt(d, lineInstance, c->callid, "More than 2 calls, use " SKINNY_DISP_SELECT, 5);
+//			sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 			return;
 		}
-	}
+	} 
 
 	SCCP_LIST_LOCK(&d->selectedChannels);
 	x = SCCP_LIST_FIRST(&d->selectedChannels);
@@ -521,6 +528,7 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	if(chan1 && chan2){
 		//for using the sccp_channel_transfer_complete function
 		//chan2 must be in RINGOUT or CONNECTED state
+		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_CALL_TRANSFER, 5);
 		sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: (sccp_sk_dirtrfr) First Channel Status (%d), Second Channel Status (%d)\n", DEV_ID_LOG(d), chan1->state, chan2->state);
 		if(chan2->state != SCCP_CHANNELSTATE_CONNECTED && chan1->state == SCCP_CHANNELSTATE_CONNECTED){
 			tmp = chan1;
@@ -535,8 +543,8 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: (sccp_sk_dirtrfr) First Channel Status (%d), Second Channel Status (%d)\n", DEV_ID_LOG(d), chan1->state, chan2->state);
 		sccp_device_lock(d);
 		d->transfer_channel = chan1;
-
 		sccp_device_unlock(d);
+
 		sccp_channel_transfer_complete(chan2);
 	}
 }

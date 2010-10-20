@@ -388,9 +388,10 @@ typedef enum {
 	DEBUGCAT_CODEC				= 1 << 22,
 	DEBUGCAT_REALTIME			= 1 << 22,
 	DEBUGCAT_LOCK				= 1 << 23,
-	DEBUGCAT_MESSAGE			= 1 << 24,
-	DEBUGCAT_NEWCODE			= 1 << 25,
-	DEBUGCAT_HIGH				= 1 << 26
+	DEBUGCAT_THREADLOCK			= 1 << 24,
+	DEBUGCAT_MESSAGE			= 1 << 25,
+	DEBUGCAT_NEWCODE			= 1 << 26,
+	DEBUGCAT_HIGH				= 1 << 27
 } sccp_debug_category_t;									/*!< SCCP Debug Category Enum */
 
 /*!
@@ -426,6 +427,7 @@ static const struct sccp_debug_category {
   { "codec",		DEBUGCAT_CODEC,		"codec debug level"		},
   { "realtime",		DEBUGCAT_REALTIME,	"realtime debug level"		},
   { "lock",		DEBUGCAT_LOCK,		"lock debug level"		},
+  { "threadlock",	DEBUGCAT_THREADLOCK,	"thread-lock debug level"	},
   { "message",		DEBUGCAT_MESSAGE,	"message debug level"		},
   { "newcode",		DEBUGCAT_NEWCODE,	"newcode debug level"		},
   { "high",		DEBUGCAT_HIGH,		"high debug level"		},
