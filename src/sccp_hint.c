@@ -412,7 +412,6 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 
 	sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "notify subscriber of %s\n", (hint->hint_dialplan)?hint->hint_dialplan:"null");
 
-	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&hint->subscribers, subscriber, list){
 		if(!subscriber->device){
 			SCCP_LIST_REMOVE_CURRENT(list);
@@ -526,7 +525,6 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t *hint){
 		}
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END
-	SCCP_LIST_UNLOCK(&hint->subscribers);
 }
 
 /*!
@@ -1009,11 +1007,17 @@ void sccp_hint_unSubscribeHint(const sccp_device_t *device, const char *hintStr,
 
 	sccp_hint_SubscribingDevice_t *subscriber;
 
+	/* All subscriptions that have this device should be removed */
 	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&hint->subscribers, subscriber, list){
+		// break should not be here.
+/*
 		if(subscriber->device == device)
 			break;
 		SCCP_LIST_REMOVE_CURRENT(list);
+*/
+		if(subscriber->device == device)
+			SCCP_LIST_REMOVE_CURRENT(list);
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END
 	SCCP_LIST_UNLOCK(&hint->subscribers);

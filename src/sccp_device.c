@@ -1575,7 +1575,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
                                                                                 sccp_hint_hintStatusUpdate => 
                                                                                 sccp_hint_notifySubscribers => 
                                                                                 sccp_dev_speed_find_byindex */
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "SCCP: Unregister Device%s\n", d->id);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "SCCP: Unregister Device %s\n", d->id);
 	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
 	memset(event, 0, sizeof(sccp_event_t));
 	event->type=SCCP_EVENT_DEVICEUNREGISTERED;
