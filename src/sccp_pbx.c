@@ -446,6 +446,7 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 	}else{
 		sccp_channel_send_callinfo(d, c);
 		sccp_pbx_needcheckringback(d);
+		sccp_dev_check_displayprompt(d);
 	}
 	sccp_channel_cleanbeforedelete(c);
 	sccp_channel_unlock(c);
