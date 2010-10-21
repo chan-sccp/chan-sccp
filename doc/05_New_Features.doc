@@ -18,13 +18,14 @@
  * \section se_new_features New features in this version (V3/Trunk)
  * 
  * \ref nf_shared_lines 	"How to use Shared Lines on a device"\n
- * \ref nf_phone_buttons 	"How to set Phone Buttons on a device"\n
+ * \ref nf_phone_buttons 	"How to set Phone Buttons on a device (softkeys)"\n
  * \ref nf_hotline		"How to use the Hotline option on a device"\n
  * \ref nf_adhoc_plar		"How to use the adhoc option on a line (PLAR)"\n
  * \ref nf_dynamic_speeddial   	"How to use Dynamic SpeedDials"\n
  * \ref nf_sccp_softkeys   	"How to use the Soft Keys on the Phone"\n
  * \ref nf_sccp_reload   	"How to use Reload"\n
  * \ref nf_sccp_function   	"How to use Dialplan Function"\n
+ * \ref nf_devicestate		"How to use device state\m"
  * <HR>
  *
  *
@@ -59,19 +60,21 @@
  *   - service: Adds a service url 
  *   - Feature buttons have an on/off status represented on the device with a tick-box and can be used to set the device in a particular state. 
  *     Currently Possible [option1],[option2] combinations:
- *      - privacy,callpresent	= Make a private call, number is suppressed
- *      - privacy,hint		= Make a private call, hint is suppressed
- *      - cfwdall,number	= Forward all calls
- *      - cfwbusy,number	= Forward on busy
- *      - cfwnoaswer,number	= Forward on no-answer (not implemented yet)
- *      - DND,busy		= Do-not-disturb, return Busy signal to Caller
- *      - DND,silent		= Do-not-disturb, return nothing to caller
- *      - monitor		= Record Calls using AutoMon (asterisk 1.6.x only)
- *      - hold			= 
- *      - transfer		= 
- *      - multiblink		= 
- *      - mobility		= 
- *      - conference		= 
+ *      - privacy,callpresent		= Make a private call, number is suppressed
+ *      - privacy,hint			= Make a private call, hint is suppressed
+ *      - cfwdall,number		= Forward all calls
+ *      - cfwbusy,number		= Forward on busy
+ *      - cfwnoaswer,number		= Forward on no-answer (not implemented yet)
+ *      - DND,busy			= Do-not-disturb, return Busy signal to Caller
+ *      - DND,silent			= Do-not-disturb, return nothing to caller
+ *      - monitor			= Record Calls using AutoMon (asterisk 1.6.x only)
+ *      - devstate,custom_devstate	= Device State Feature Button (asterisk 1.6.1 and up). 
+					  custom_devstate is the name of the custom devicestate to be toggled (\ref nf_devicestate)
+ *      - hold				= To be implemented
+ *      - transfer			= To be implemented
+ *      - multiblink			= To be implemented
+ *      - mobility			= To be implemented
+ *      - conference			= To be implemented
  *      .
  *   .
  * 
@@ -94,19 +97,20 @@
  *
  *
  *
- * \subsection nf_dynamic_speeddial How to use Dynamic SpeedDials
+ * \subsection nf_dynamic_speeddial How to use Dynamic SpeedDials (now on by default)
  * 
  * Dynamic SpeedDials give additional information about the status of the lines assigned the speeddial. The
- * Icon displayed changes to indicate "IDLE", "DND", "IN USE" and "RINGING". The only limitation with 
- * dynamic speeddials is that they do not display the in- or out-going number on the speeddial. This however
- * is a limitation in the Cisco Protocol which can not be overcome at this moment.
+ * Icon displayed changes to indicate "IDLE", "DND", "IN USE" and "RINGING". In the latest version this feature is 
  * 
- * To use Dynamic SpeedDials instead of Normal SpeedDials you need to use a configure parameters during compilation
+ * To use Normal SpeedDials(olod behaviour) instead of Dynamic SpeedDials you need to use a configure parameters during compilation
  * \code
- * ./configure --with-dynamic-speeddial
+ * ./configure --disable-speeddial
  * \endcode
  *
- * Dynamic SpeedDial is currently switch off by default.
+ * --disable-dynamic-speeddial = Do not use any dynamic speeddial
+ * --disable-dynamic-speeddial-cid = Do not display the calledid information on the dynamic speeddial
+ *
+ * Dynamic SpeedDial is now switched on by default !!.
  * <HR> 
  *
  *
@@ -188,6 +192,8 @@
  * The [mysoftkeyset] section about contains the state of the phone as the first part (before the equal sign) and the 
  * softbuttons shown during this state in the second part.
  * 
+ * Multiple softkey set can be created and attached to different devices. 
+ *
  * \subsection sk_softkeys_avail	These are the softkeys available
  * \subsubsection sk_redial 		How to use the Redial Softkey
  *
@@ -213,8 +219,8 @@
  *
  * \subsubsection sk_transfer	 	How to use the Transfer Softkey
  *
- * Using the Transfer 		Button you can Transfer the Currentline to another Number
- *
+ * Using the Transfer 			Button you can Transfer the Currentline to another Number
+ * 					You can also use a speeddial during transfer
  *
  * \subsubsection sk_endcall 		How to use the End Call Softkey
  *
@@ -417,6 +423,9 @@
  * originalCallingPartyName, originalCallingPartyNumber, originalCalledPartyName, originalCalledPartyNumber, lastRedirectingPartyName
  * lastRedirectingPartyNumber, cgpnVoiceMailbox, cdpnVoiceMailbox, originalCdpnVoiceMailbox, lastRedirectingVoiceMailbox, 
  * passthrupartyid, state, previous_state, calltype, dialed_number, device, line, answered_elsewhere, privacy, monitorEnabled, parent
+ *
+ * De carefull with SCCPCHANNEL, When calling this you must provide a valid SCCP Channel. So check if the channel is of 
+ * type SCCP before calling this function !
  * 
  * Within the dialplan you can use the function SCCPCHANNEL to retrieve information about an SCCP channel like this:
  * \code
@@ -433,4 +442,38 @@
  * \endcode
  * to put the information of the/a channel in a dialplan variable.
  *
+ *
+ *
+ *
+ *
+ * \subsection nf_devicestate         How to use devicestate
+ *
+ * When chan-sccp-b is used with asterisk 1.6.1 and up, you have the option to use configure directive --enable-devstate-feature.
+ * This will make chan-sccp-b report back the device_state back to asterisk, to be used by for example the 
+ * Dialplan DEVSTATE function as such:
+ *
+ * exten => s,1,NoOp(My phone state is currently ${DEVSTATE(SCCP/98011)})
+ * 
+ * \subsubsection nf_customdevicestate	Custom Device State
+ *
+ * If you add a new devstate button to you sccp.conf like so, you will have a new custom device state which can be set and monitored
+ * \code
+ * button = feature, Coffee is Ready, devstate, coffee
+ * \endcode
+ *
+ * When you press this button the device state will go from NOT_INUSE to INUSE and back again
+ *
+ * You can then switch the feature devstate button on and of from the dialplan with
+ * \code
+ * exten => s,1,Set(DEVSTATE(Custom:coffee)=INUSE)
+ * \endcode
+ * To signal everyone that the coffee is ready.
+ *
+ * From the console(CLI) this can be handled via:
+ * \code
+ * devstate change Custom:coffee INUSE
+ * \endcode
+ * 
+ * The new phones models with lighted buttons will nicely light up their buttons upon "INUSE".
+ * 
  */
