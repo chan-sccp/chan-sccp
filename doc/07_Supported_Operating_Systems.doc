@@ -49,6 +49,14 @@
  *   .
  *
  * \subsection supp_freeos_linux Linux
+ *   - Embedded OS:  
+ *      - Horstbox 2.09
+ *       - Compile script created, testing underway (MC)
+ *         checkout: 
+ *         - http://gforge.willwebhosting.de/gf/project/horstbox/tracker/?action=TrackerItemEdit&tracker_item_id=219&tracker_id=219
+ *         - http://gforge.willwebhosting.de/gf/download/trackeritem/219/158/sccp.mk
+ *         .
+ *       .
  *   - RedHat:  
  *      - RedHat 5.0
  *       - Asterisk 1.4

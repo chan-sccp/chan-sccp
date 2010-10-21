@@ -22,19 +22,8 @@
  * \page cons Consulted Documentation
  * The following documents have been useful to us:
  *  - http://hisown.com/Talks/VoIP%20-%20Excerpt%20(SCCP).pdf
- *  - http://www.javvin.com/protocolSS7SCCP.html
  *  - http://www.javvin.com/protocolSCCP.html
  *  - http://www.cisco.com/en/US/products/hw/phones/ps379/products_tech_note09186a0080094584.shtml
- *  - http://tools.ietf.org/html/draft-ietf-mmusic-sccp-00
- *  - http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-Q.711-200103-I!!PDF-E&type=items
- *  - http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-Q.713-200103-I!!PDF-E&type=items
- *  - http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-Q.714-200105-I!!PDF-E&type=items
- *  - http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-Q.715-200204-I!!PDF-E&type=items
- *  - http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-Q.716-199303-I!!PDF-E&type=items
- *  - http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-Q.751.4-199805-I!!PDF-E&type=items
- *  - http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-Q.786-199303-I!!PDF-E&type=items
- *  - http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-Q.2220-200212-I!!PDF-E&type=items
- *  - http://en.wikipedia.org/wiki/Signalling_Connection_Control_Part
  *  .
  **/
 

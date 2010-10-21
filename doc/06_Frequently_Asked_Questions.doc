@@ -67,15 +67,28 @@
  *
  * A. Check the context which has been set in the sccp.conf or realtime tables. 
  *    Please make sure you have a corresponding context in your dialplan (extensions.conf / extenstions.ael). You can
- *    also change the sccp.conf context(s) to a context you already use in your dialplan.
+ *    also change the sccp.conf context(s) to a context you already use in your dialplan (like default / from-internal-users).
  *
  * Q. No audio when calling or being called
  *
  * A. Set directrtp=off in you sccp.conf or realtime tables and try again
  *
+ * Q. No DMTF at all
+ *
+ * A. Set directrtp=off in your sccp.conf or realtime tables and give it another try. You can also specify the type of
+ *    DTMF used per device with dtmfmode=inband/outofband (inband can be heard, out-of-band is rfc2833 and can not be heard). 
+ *    to use inband you will also need earlyrtp=on to be able to use DTMF in IVR's for example.
+ *
+ * Q. No DMTF during calls
+ *
+ * A. Set earlyrtp=on or ringout in your sccp.conf or realtime tables and try again, this will make it possible for inband
+ *    DTMF tones to be received and heard starting at call progress
+ *
  * Q. How do i report an Issue or Problem i have
  *
- * A. You can find detailed information about reporting problems/issues here: \ref Problems
+ * A. You can find detailed information about reporting problems/issues here: \ref Problems. Please do set you debug levels 
+ *    according to the issue you have. Otherwise we have to wade through piles of uninformative messages to get to the correct
+ *    location. And try to describe you issue as exact as possible.
  *
  * \section c C. Dialplan
  * 

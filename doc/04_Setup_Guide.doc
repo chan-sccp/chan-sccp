@@ -53,18 +53,21 @@
  *   - 11  : for example matched by cisco 7960
  *   - 15  : matched by 7911 
  *   - 16
- *   - 17  : matched by 7970
+ *   - 17  : matched by the 7970 and 7975 's 
  *   .
  *
  * \subsection sccp_config_howto2 Sample config files
  * 
  * Make sure you pay attention to the context used in the config file. And check if this context exists in your dialplan.
- * Also check the deny/permit entries to make sure they cover your network/devices and check if the bindaddr is actually reachable from the addresses you have permitted to connect.
+ * Also check the deny/permit entries to make sure they cover your network/devices and check if the bindaddr is actually 
+ * reachable from the addresses you have permitted to connect.
  *
  * \code
  * ;=========================================================================================
  * ;
  * ; general definitions
+ * ; 
+ * ; (Don't use this version, take one from the conf samples directory !!!!)
  * ;
  * ;=========================================================================================
  * [general]
@@ -494,6 +497,10 @@
  * 
  * \subsection dialplan_dp3 Dial a line and have the phone Auto Answer
  * 
+ * The Dial Command consist of the Channel type, Extension(Number), Options and Timeout. They can either be seperated by 
+ * slash or comma.
+ * Dial(ChannelType/Extension/Options/Timeout)
+ * 
  * \code
  * Dial(SCCP/9291/aa=1w, 120)
  * \endcode
@@ -545,6 +552,8 @@
  * 
  * For more information check out : \n
  * http://www.cisco.com/en/US/products/hw/phones/ps379/products_tech_note09186a0080094584.shtml
+ * http://www.cisco.com/en/US/docs/voice_ip_comm/cucme/command/reference/cmeallht.pdf
+ * http://www.cisco.com/en/US/docs/voice_ip_comm/cucme/admin/configuration/guide/cmelabel.html
  *
  * \section DUNDi Asterisk Clustering and DUNDi Lookup
  * DUNDi is a peer-to-peer system for locating Internet Gateways to telephony services. 

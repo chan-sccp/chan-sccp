@@ -61,9 +61,7 @@
  *   - Download the Chan_SCCP sources. 
  *   - Extract the source tree to a clean directory.
  *   - To get started with configure please run (run "./configure --help" to get a list of all the possible configure flags)\n
- *     ./configure
- *   - Run make.
- *   - Run make install
+ *   - Some of the configure switches have changed during the latest development, please check before running configure
  *   .
  * \code
  *       $ ./configure
