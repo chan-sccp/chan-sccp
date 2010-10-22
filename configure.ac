@@ -635,9 +635,10 @@ dnl Set Module Directory
 if test "x${prefix}" != "xNONE"; then
   if test "${build_cpu}" = "x86_64"; then
 	if test -d ${prefix}/lib64/asterisk/modules; then
-  		csmoddir=${prefix}/lib64/asterisk/modules;
+  		csmoddir=${prefix}/lib64/asterisk/modules
 	else
-	  	csmoddir=${prefix}/lib/asterisk/modules;
+	  	csmoddir=${prefix}/lib/asterisk/modules
+	fi
   else
   	csmoddir=${prefix}/lib/asterisk/modules;
   fi
