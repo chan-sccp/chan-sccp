@@ -1,5 +1,11 @@
 2010-10-22  ddegroot
 
+	* [r2025] configure, configure.ac, src/Makefile.am,
+	  src/Makefile.in: RPM Target Fix
+
+	* [r2023] ChangeLog, Makefile.in, configure: Update ChangeLog to
+	  RC3
+
 	* [r2022] .version, ChangeLog, Makefile.am, Makefile.in, NEWS,
 	  configure, configure.ac, debian/changelog: Issue of Chan_SCCP
 	  V3.0 Release Candidate 3
