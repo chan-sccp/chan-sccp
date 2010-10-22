@@ -32,11 +32,11 @@ chan_sccp_la_LDFLAGS	= -avoid-version -module  $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
-	@test -z "$(csmoddir)" || $(mkdir_p) "$(csmoddir)"
+	@test -z "$(DESTDIR)$(csmoddir)" || $(mkdir_p) "$(DESTDIR)$(csmoddir)"
 	@if test "x$(strip_binaries)"=="xyes" ; then \
-	        $(INSTALL) $(INSTALL_STRIP_FLAG) .libs/chan_sccp.so "$(csmoddir)"; \
+	        $(INSTALL) $(INSTALL_STRIP_FLAG) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; \
 	else \
-	        $(INSTALL) .libs/chan_sccp.so "$(csmoddir)"; \
+	        $(INSTALL) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; \
 	fi
 	@if test -d "$(DESTDIR)$(csmoddir)"; then                                          \
 		echo    "=============================================================="; \
@@ -45,5 +45,3 @@ install-csmodLTLIBRARIES:
 		echo    "Please restart asterisk to use the new version of chan_sccp.so"; \
 		echo    "=============================================================="; \
 	fi
-
-#	@$(install_sh_PROGRAM) .libs/chan_sccp.so $(DESTDIR)$(csmoddir)/chan_sccp.so
