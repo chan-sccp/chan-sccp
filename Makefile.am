@@ -80,7 +80,7 @@ rpm:    release
 release:
 	@rm -f ChangeLog
 	@$(MAKE) ChangeLog
-	@if [ "`grep $(SCCP_VERSION)_$(SCCP_BRANCH) NEWS`" == "" ]; then \
+	@if [ "`grep -i $(SCCP_VERSION)_$(SCCP_BRANCH) NEWS`" == "" ]; then \
 	  echo >>NEWS;\
 	  echo "Version: $(SCCP_VERSION)_$(SCCP_BRANCH)" >> NEWS; \
 	  echo "Please edit the NEWS file now..."; \
