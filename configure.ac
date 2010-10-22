@@ -555,7 +555,7 @@ AC_ARG_ENABLE(experimental_mode,
 AC_MSG_NOTICE([--enable-experimental-mode: ${ac_cv_experimental_mode} (only for developers)])
 
 AC_ARG_ENABLE(devstate_feature, 
-  AC_HELP_STRING([--enable-devstate-feature], [enabled device state feature button]), 
+  AC_HELP_STRING([--enable-devstate-feature], [enabled device state feature button (experimental)]), 
     ac_cv_devstate_feature=$enableval, ac_cv_devstate_feature=no)
     AS_IF([test "${ac_cv_devstate_feature}" == "yes"], [
        	AC_DEFINE(CS_DEVSTATE_FEATURE, 1, [devstate feature enabled])
@@ -601,7 +601,7 @@ AC_ARG_WITH(
   libgc,
   [AC_HELP_STRING(
      [--with-libgc=yes|no],
-     [use libgc as allocator])],
+     [use garbage collector (libgc) as allocator (experimental)])],
   uselibgc="$withval"
 )
 

@@ -1,3 +1,25 @@
+chan-sccp-b (3.0.0-3) unstable; urgency=low
+
+  * Release Candidate 3
+  * 
+  * Added Functionality:
+  *  - Dialplan Function SCCPDEVICE, SCCPLINE and SCCPCHANNEL
+  *  - DevState Feature Button
+  *  - some parameters in configure have change from --with to --enable/disable.
+  *    A couple of parameters which used to be disabled are now enabled by
+  *    default. Please Check them !!
+  *  - Dynamic Speeddials (and dynamic speeddials with call info) for newer SCCP
+  *  - Phones
+  *  - Early Beginnings of Video Support
+  *    
+  * Fixed/Improved:
+  *  - bug fixes for device re-registering
+  *  - bug fixes for hints
+  *  - bug fixes for channel indications (DTMF / Inband Messages during Progress)
+  *  - configure script, os detection
+  *  - lots of small bugs reported by users
+  *  - documentation updates
+
 chan-sccp-b (3.0.0-2) unstable; urgency=low
 
   * Release Candidate 2
@@ -11,8 +33,9 @@ chan-sccp-b (3.0.0-2) unstable; urgency=low
   *  - transfer + callerid
   *  - callerid passing
   * 
+  * 
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Thu, 26 Aug 2010 13:58:53 +0200
+ -- Diederik de Groot <dkgroot@sourceforge.net>  Fri, 22 Oct 2010 11:19:26 +0200
 
 chan-sccp-b (3.0.0-1) unstable; urgency=low
 

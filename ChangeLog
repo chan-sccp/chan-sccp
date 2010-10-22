@@ -1,3 +1,140 @@
+2010-10-21  ddegroot
+
+	* [r2021] doc/03_Building_and_Installation_Guide.doc,
+	  doc/04_Setup_Guide.doc, doc/05_New_Features.doc,
+	  doc/06_Frequently_Asked_Questions.doc,
+	  doc/07_Supported_Operating_Systems.doc,
+	  doc/10_Consulted_Documentation.doc: Update Doxygen Documentation
+
+2010-10-20  ddegroot
+
+	* [r2020] src/sccp_pbx.c: Fix: Get back "Your current options"
+	  after hangup
+
+	* [r2019] src/sccp_device.c: Fix: Bring back "Your current options"
+	  message in most cases (Bug: #3071857, "Status Message on the
+	  bottom line....")
+
+	* [r2018] src/sccp_pbx.c: tiny cleanup
+
+	* [r2017] src/sccp_hint.c: Added Todo Notice in sccp_hint
+
+	* [r2016] src/sccp_device.c, src/sccp_hint.c: Fix: break removed
+	  from sccp_hint_unSubscribeHint
+
+	* [r2015] src/sccp_device.c, src/sccp_hint.c: Fix hint Removal
+	  without LIST Lock
+
+	* [r2014] src/chan_sccp.h, src/sccp_actions.c, src/sccp_hint.c,
+	  src/sccp_lock.c, src/sccp_pbx.c, src/sccp_softkeys.c: Added
+	  displayprompts to dirtrfr, so people know what is going on
+	  Added sccp debug threadlocks, to make it easier to find deadlocks
+	  Pressing speeddial while in a call, will automatically put the
+	  call on hold and execute the speeddial. Will also work correctly
+	  with transfer.
+	  Removed strange hardcoded cidnum and cidname from
+	  sccp_hint.c/notify_message (this function should be checked)
+	  Fix for sccp_pbx_get_callid getting the correct PVT
+
+2010-10-19  ddegroot
+
+	* [r2013] src/sccp_actions.c: Removed suppourflous debug line
+
+	* [r2012] src/sccp_actions.c, src/sccp_socket.c: Moved
+	  destroy_session, on re-registering devices toward the beginning,
+	  and wait until device_stroy for realtime devices has finished
+	  Reduced the destroy_session-> device_destroy time from 10 to 5
+	  seconds (should be long enough)
+
+	* [r2011] src/sccp_actions.c, src/sccp_socket.c, src/sccp_socket.h:
+	  Changed cleanup/destroy behaviour on re-registering devices.
+	  Destroy Immediately on re-register
+
+	* [r2010] src/sccp_device.c, src/sccp_socket.c: Fix for
+	  devstate-feature
+	  Added Check for sccp_socket_close
+
+2010-10-18  ddegroot
+
+	* [r2009] src/sccp_socket.c: Removed double lock in sccp_socket:
+	  destroy_session
+
+2010-10-17  ddegroot
+
+	* [r2008] src/chan_sccp.c, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_indicate.c, src/sccp_lock.c: Memory leak : reverted
+	  changes
+
+	* [r2007] src/chan_sccp.c, src/sccp_actions.c, src/sccp_indicate.c:
+	  Fixed Deadlock in sccp_actions/sccp_handle_AvailableLines
+
+	* [r2006] src/sccp_device.c: On device destroy the devstate
+	  structure should be deleted as well.
+
+	* [r2005] src/chan_sccp.c, src/sccp_channel.c, src/sccp_device.c,
+	  src/sccp_labels.h: Fix for sccp_dev_cleanup to prevent
+	  loop:sccp_dev_clean => sccp_line_removeDevice => sccp_event_fire
+	  => sccp_hint_eventListener => sccp_hint_lineStatusChanged =>
+	  sccp_hint_hintStatusUpdate => sccp_hint_notifySubscribers =>
+	  sccp_dev_speed_find_byindex
+	  Temporary Fix for unload module to hangup open channels before
+	  starting the unload.
+
+2010-10-16  ddegroot
+
+	* [r2004] src/.indent.pro[ADD]: Added .indent.pro default settings
+	  file for the "indent" program
+
+	* [r2003] src/sccp_cli.h: Fixed possible memory leak: implode usage
+	  in sccp_cli.h
+
+	* [r2002] src/sccp_cli.c, src/sccp_cli.h: Fixed cli usage message
+	  Fixed possible memory leak from sccp_utils.c implode when not
+	  correctly freed in sccp_cli.h
+	  Fixed "sccp add line" cli command
+
+2010-10-15  ddegroot
+
+	* [r2001] autoconf/asterisk.m4, configure, configure.ac,
+	  src/config.h.in, src/sccp_lock.c, src/sccp_lock.h,
+	  src/sccp_protocol.h: Fixed autoconf/asterisk to detect DEBUG
+	  settings in asterisk correctly
+	  Added log_show_lock(p_mutex) to sccp_lock.c to make lock
+	  debugging easier. Will only display lock information if asterisk
+	  has DEBUG_CHANNEL_LOCKS enabled
+
+	* [r2000] src/sccp_pbx.c: prevent sccp_pbx_softswitch from being
+	  executed twice (Pavel Troller)
+
+	* [r1999] src/chan_sccp.h: removed #undef free, make sure to always
+	  use either ast_free or sccp_free. Never free.
+
+2010-10-15  progs
+
+	* [r1998] src/sccp_socket.c: Revert "Removed Global Lock, not
+	  necessary just to read if we are currently in a reload"
+	  
+	  This reverts commit 7da11b7e76b3a6ebcdd580129ff818010e63b0f7.
+	  
+	  We want to prevent reload during a device update.
+
+	* [r1997] src/sccp_device.c: display every forwarded lines on the
+	  device prompt, and hide message when there aren't forwarded lines
+	  anymore
+
+2010-10-14  ddegroot
+
+	* [r1996] src/sccp_socket.c: Removed Global Lock, not necessary
+	  just to read if we are currently in a reload
+
+	* [r1995] src/chan_sccp.h: Fix to compile and run against asterisk
+	  without DEBUG_MALLOC
+
+	* [r1994] ChangeLog, configure, doc/doxygen.cfg, src/chan_sccp.h,
+	  src/sccp_hint.c: Change fontsize in sccp_hints dotgraph
+	  Change to use only asterisk astmm.h to improve memory leak
+	  checking
+
 2010-10-13  ddegroot
 
 	* [r1993] src/sccp_indicate.c: Fix Typo
