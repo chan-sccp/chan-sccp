@@ -1711,16 +1711,16 @@ Optional Features:
   --enable-conference     enable conference (>ast 1.6.2)(experimental)
   --disable-manager       disabled ast manager events
   --disable-functions     disabled Dialplan functions
-  --enable-indications    enabled debug indications
+  --enable-indications    enable debug indications
   --disable-realtime      disabled realtime support
   --enable-feature-monitor
-                          enabled feature monitor
+                          enable feature monitor
   --enable-advanced-functions
-                          enabled advanced functions (experimental)
+                          enable advanced functions (experimental)
   --enable-experimental-mode
-                          enabled experimental mode (only for developers)
+                          enable experimental mode (only for developers)
   --enable-devstate-feature
-                          enabled device state feature button (experimental)
+                          enable device state feature button (experimental)
   --disable-dynamic-speeddial
                           disable dynamic speeddials
   --disable-dynamic-speeddial-cid

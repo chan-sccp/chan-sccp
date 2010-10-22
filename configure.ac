@@ -515,7 +515,7 @@ AC_ARG_ENABLE(functions,
 AC_MSG_NOTICE([--enable-functions: ${ac_cv_use_functions}])
 
 AC_ARG_ENABLE(indications, 
-  AC_HELP_STRING([--enable-indications], [enabled debug indications]), 
+  AC_HELP_STRING([--enable-indications], [enable debug indications]), 
   ac_cv_debug_indications=$enableval, ac_cv_debug_indications=no)
 	AS_IF([test "${ac_cv_debug_indications}" == "yes"], [
         	AC_DEFINE(CS_DEBUG_INDICATIONS, 1, [debug indications enabled])
@@ -531,7 +531,7 @@ AC_ARG_ENABLE(realtime,
 AC_MSG_NOTICE([--enable-realtime: ${ac_cv_realtime}])
 
 AC_ARG_ENABLE(feature_monitor, 
-  AC_HELP_STRING([--enable-feature-monitor], [enabled feature monitor]), 
+  AC_HELP_STRING([--enable-feature-monitor], [enable feature monitor]), 
   ac_cv_feature_monitor=$enableval, ac_cv_feature_monitor=no)
     AS_IF([test "${ac_cv_feature_monitor}" == "yes"], [
        	AC_DEFINE(CS_SCCP_FEATURE_MONITOR, 1, [feature monitor enabled])
@@ -539,7 +539,7 @@ AC_ARG_ENABLE(feature_monitor,
 AC_MSG_NOTICE([--enable-feature-monitor: ${ac_cv_feature_monitor}])
 
 AC_ARG_ENABLE(advanced_functions, 
-  AC_HELP_STRING([--enable-advanced-functions], [enabled advanced functions (experimental)]), 
+  AC_HELP_STRING([--enable-advanced-functions], [enable advanced functions (experimental)]), 
     ac_cv_advanced_functions=$enableval, ac_cv_advanced_functions=no)
     AS_IF([test "${ac_cv_advanced_functions}" == "yes"], [
        	AC_DEFINE(CS_ADV_FEATURES, 1, [advanced functions enabled])
@@ -547,7 +547,7 @@ AC_ARG_ENABLE(advanced_functions,
 AC_MSG_NOTICE([--enable-advanced-functions: ${ac_cv_advanced_functions}])
 
 AC_ARG_ENABLE(experimental_mode, 
-  AC_HELP_STRING([--enable-experimental-mode], [enabled experimental mode (only for developers)]), 
+  AC_HELP_STRING([--enable-experimental-mode], [enable experimental mode (only for developers)]), 
     ac_cv_experimental_mode=$enableval, ac_cv_experimental_mode=no)
     AS_IF([test "${ac_cv_experimental_mode}" == "yes"], [
        	AC_DEFINE(CS_EXPERIMENTAL, 1, [experimental mode enabled])
@@ -555,7 +555,7 @@ AC_ARG_ENABLE(experimental_mode,
 AC_MSG_NOTICE([--enable-experimental-mode: ${ac_cv_experimental_mode} (only for developers)])
 
 AC_ARG_ENABLE(devstate_feature, 
-  AC_HELP_STRING([--enable-devstate-feature], [enabled device state feature button (experimental)]), 
+  AC_HELP_STRING([--enable-devstate-feature], [enable device state feature button (experimental)]), 
     ac_cv_devstate_feature=$enableval, ac_cv_devstate_feature=no)
     AS_IF([test "${ac_cv_devstate_feature}" == "yes"], [
        	AC_DEFINE(CS_DEVSTATE_FEATURE, 1, [devstate feature enabled])
