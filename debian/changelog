@@ -20,6 +20,8 @@ chan-sccp-b (3.0.0-3) unstable; urgency=low
   *  - lots of small bugs reported by users
   *  - documentation updates
 
+ -- Diederik de Groot <dkgroot@sourceforge.net>  Fri, 22 Oct 2010 11:19:26 +0200
+
 chan-sccp-b (3.0.0-2) unstable; urgency=low
 
   * Release Candidate 2
@@ -35,7 +37,7 @@ chan-sccp-b (3.0.0-2) unstable; urgency=low
   * 
   * 
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Fri, 22 Oct 2010 11:19:26 +0200
+ -- Diederik de Groot <dkgroot@sourceforge.net>  Fri, 14 Sept 2010 11:19:26 +0200
 
 chan-sccp-b (3.0.0-1) unstable; urgency=low
 
