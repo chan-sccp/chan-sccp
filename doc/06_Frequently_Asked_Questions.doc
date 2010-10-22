@@ -70,8 +70,15 @@
  *    also change the sccp.conf context(s) to a context you already use in your dialplan (like default / from-internal-users).
  *
  * Q. No audio when calling or being called
+ * 
+ * A. Normally this comes down to the need for in-direct rtp traffic, because there is a firewall between your phones which
+ * is performing Network Address Translations (NAT). You can check this via: http://www.amibehindnat.com.
+ * Simple solution: Turn directrtp=off in you sccp.conf or realtime tables and try again.
  *
- * A. Set directrtp=off in you sccp.conf or realtime tables and try again
+ * Also check your settings for sccp.conf: externip and localnet
+ * In rtp.conf you can make the block of used rtp port smaller and forward this whole block of UDP ports to your asterisk box.
+ *
+ * Read more here: \ref NAT Troubles using VOIP and SCCP through a Firewall (NAT)
  *
  * Q. No DMTF at all
  *

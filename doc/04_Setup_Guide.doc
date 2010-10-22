@@ -619,6 +619,51 @@
  *  - http://www.voip-info.org/wiki/view/Asterisk+DUNDi+Call+Routing
  *  - http://leifmadsen.com/papers/dundi-intro.pdf
  * 
+ * 
+ *  
+ * \section NAT Troubles using VOIP and SCCP through a Firewall (NAT)
+ * 
+ * What is this NAT and why does this cause problems with VOIP, RTP and sound ?
+ *
+ * In addition, the way in which conventional VoIP protocols are designed is also posing a problem to VoIP traffic passing 
+ * through NAT. Conventional VoIP protocols only deal with the signalling of a telephone connection. The audio traffic is 
+ * handled by another protocol and to make matters worse, the port on which the audio traffic is sent is random. 
+ * The NAT router may be able to handle the signalling traffic, but it has no way of knowing that the audio traffic is 
+ * related to the signalling and should hence be passed to the same device the signalling traffic is passed to. 
+ * As a result, the audio traffic is not translated properly between the address spaces. 
+ * 
+ * At first, for both the calling and the called party everything will appear just fine. The called party will see the 
+ * calling party's Caller ID and the telephone will ring while the calling party will hear a ringing feedback tone at the 
+ * other end. When the called party picks up the telephone, both the ringing and the associated ringing feedback tone at 
+ * the other end will stop as one would expect. However, the calling party will not hear the called party (one way audio) 
+ * and the called party may not hear the calling party either (no audio). 
+ * 
+ * The issue of NAT Traversal is a major problem for the widespread deployment of VOIP. Yet, the issue is non-trivial and 
+ * there are no simple solutions. In general terms there are two ways to deal with this problem: 
+ * - Don't use NAT, i.e. public ip-addresses for a your phone (not a solution)
+ * - Build a tunnel between the networks that need to communicate with each other, No NAT Required over the tunnel.
+ * - Put Asterisk on the Firewall and make it the go-between / proxy. See next point. (For SCCP: set directrtp=off in your config).
+ * - Use a Firewall Connection Tracking Plugin which records outgoing VOIP Connections and Maps there return RTP connections. 
+ *   For example for iptables this plugin is called: nf_nat_sip.ko or nf_nat_h323.ko. At this moment in time we do not have a 
+ *   version for sccp, yet. (But for SIP and H323 it works very well).
+ * .
+ * Other works arounds:
+ * - Use static ip-address on your phones and creates forwards in your firewall for the SCCP port and a block of RTP ports for this phone.
+ * - Put a SIP-Proxy on the Firewall and reroute the packets. You could use for example : SER (Sip Express Router), SIPProxd or RTPProxy.
+ * - Use a STUN Server: http://www.voip-info.org/wiki/view/STUN, http://tools.ietf.org/html/draft-ietf-sipping-nat-scenarios-13 
+ * - Find and IAX2 provider instead of SIP. IAX can encapsulate RTP with its packets and therefor traverse NAT without any
+ *   problems. 
+ * .
+ * 
+ * You can find more infomation about VOIP and NAT here
+ * - [http://www.snom.com/whitepapers/FAQ-03-10-20-cs.pdf: Operating phones behind NAT]
+ * - [http://www.cisco.com/warp/public/788/voip/voip-nat.html: VOIP traversal of NAT and firewall]
+ * - [http://www.intertex.se/upfiles/IntertexSIPWhitePaper.pdf: White Paper: The SIP Protocol and Firewall Traversal]
+ * - [http://www.newport-networks.com/whitepapers/nat-traversal1.html: Newport Networks White Paper NAT Traversal for Multimedia over IP]
+ * - [http://www.eyeball.com/technology/whitepapers/EyeballAnyfirewallWhitePaper.pdf: White Paper: NAT Traversal for VoIP and Internet Communications using STUN, TURN and ICE]
+ * - [http://sipath.sf.net/: Use a SIP- and RTP-Proxy combination on your NAT/Firewall/Router - as done by the SIPatH Project]
+ *
+ * 
  **/
 
 
