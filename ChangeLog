@@ -1,3 +1,9 @@
+2010-10-22  ddegroot
+
+	* [r2022] .version, ChangeLog, Makefile.am, Makefile.in, NEWS,
+	  configure, configure.ac, debian/changelog: Issue of Chan_SCCP
+	  V3.0 Release Candidate 3
+
 2010-10-21  ddegroot
 
 	* [r2021] doc/03_Building_and_Installation_Guide.doc,
