@@ -797,7 +797,7 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 		fmt = ast_codec_pref_getsize(&d->codecs, codec);
 
 		c->format = fmt.bits; 						/* updating channel format */
-		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Setting payloadType to '%llu' (%d)\n", DEV_ID_LOG(d), fmt.bits, fmt.cur_ms);
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Setting payloadType to '%d' (%d ms)\n", DEV_ID_LOG(d), fmt.bits, fmt.cur_ms);
 
 		r->msg.StartMediaTransmission.lel_conferenceId = htolel(c->callid);
 		r->msg.StartMediaTransmission.lel_passThruPartyId = htolel(c->callid);
@@ -1479,7 +1479,7 @@ void sccp_channel_updatemediatype(sccp_channel_t * c) {
 		return;
 	}
 	if(c->state != SCCP_CHANNELSTATE_ZOMBIE) {
-		ast_log(LOG_NOTICE, "%s: Channel %s -> nativeformats:%llu - r:%llu/w:%llu - rr:%llu/rw:%llu \n",
+		ast_log(LOG_NOTICE, "%s: Channel %s -> nativeformats:%d - r:%d/w:%d - rr:%d/rw:%d\n",
 					DEV_ID_LOG(c->device),
 					bridged->name,
 					bridged->nativeformats,
@@ -2440,12 +2440,7 @@ static void * sccp_channel_transfer_ringing_thread(void *data)
 		return NULL;
 
 	sleep(1);
-#if ASTERISK_VERSION_NUM >= 10800
-	if ( (ast = ast_channel_get_by_name(name)) )
-		sccp_ast_channel_lock(ast);
-#else
 	ast = ast_get_channel_by_name_locked(name);
-#endif
 	ast_free(name);
 
 	if (!ast)
@@ -2678,7 +2673,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
  */
 void sccp_channel_forward(sccp_channel_t *parent, sccp_linedevices_t *lineDevice, char *fwdNumber){
 	sccp_channel_t 	*forwarder = NULL;
-	char 		dialedNumber[AST_MAX_EXTENSION];
+	char 		dialedNumber[256];
 
 	if(!parent){
 		ast_log(LOG_ERROR, "We can not forward a call without parent channel\n");
@@ -2718,37 +2713,15 @@ void sccp_channel_forward(sccp_channel_t *parent, sccp_linedevices_t *lineDevice
 	char 		fwd_from_name[254];
 	sprintf(fwd_from_name, "%s -> %s",lineDevice->line->cid_num,parent->callInfo.callingPartyName);
 
-	sccp_set_ast_callerid_redirect(forwarder->owner, parent, forwarder, dialedNumber);
-/*
-#if ASTERISK_VERSION_NUM >=10800
-	forwarder->owner->caller.id.number.valid = 1;						//cid_num
-	forwarder->owner->caller.id.number.str = strdup(parent->callInfo.callingPartyNumber);	//cid_num
-	forwarder->owner->caller.id.number.presentation = forwarder->privacy;			//privacy
-	forwarder->owner->caller.id.name.valid = 1;						//cid_name
-	forwarder->owner->caller.id.name.str = strdup(fwd_from_name);				//cid_name
-  #ifdef CS_AST_CHANNEL_HAS_CID
-	forwarder->owner->caller.ani.number.valid = 1;						//ani
-	forwarder->owner->caller.ani.number.str = strdup(dialedNumber);				//ani
-	forwarder->owner->caller.ani2 = -1);							//ani2
-        forwarder->owner->redirecting.from.number.valid = 1;					//rdnis
-	forwarder->owner->redirecting.from.number.str = strdup(forwarder->line->cid_num);	//rdnis
-        forwarder->owner->redirecting.to.number.valid = 1;					//rdnis
-	forwarder->owner->redirecting.to.number.str = strdup(forwarder->dialedNumber);		//rdnis
-	++forwarder->owner->redirecting.count;
-	//	forwarder->owner->redirecting.reason
-  #endif // CS_AST_CHANNEL_HAS_CID
-  
-#else  // ASTERISK_VERSION_NUM >=10800
 	forwarder->owner->cid.cid_num = strdup(parent->callInfo.callingPartyNumber);
 	forwarder->owner->cid.cid_name = strdup(fwd_from_name);
-  #ifdef CS_AST_CHANNEL_HAS_CID
+#ifdef CS_AST_CHANNEL_HAS_CID
 	forwarder->owner->cid.cid_ani = strdup(dialedNumber);
 	forwarder->owner->cid.cid_ani2 = -1;
 	forwarder->owner->cid.cid_dnid = strdup(dialedNumber);
 	forwarder->owner->cid.cid_rdnis = strdup(forwarder->line->cid_num);
-  #endif // CS_AST_CHANNEL_HAS_CID
-#endif // ASTERISK_VERSION_NUM >=10800
-*/
+#endif
+
 	/* dial forwarder */
 	sccp_copy_string(forwarder->owner->exten, dialedNumber, sizeof(forwarder->owner->exten));
 	sccp_ast_setstate(forwarder, AST_STATE_OFFHOOK);
@@ -2771,9 +2744,8 @@ void sccp_channel_forward(sccp_channel_t *parent, sccp_linedevices_t *lineDevice
  */
 struct sccp_dual {
 	struct ast_channel *chan1;
+
 	struct ast_channel *chan2;
-	int seqno;			/*!< Sequence number */
-        const char *parkexten;		/*!< Parking Extension we got back */
 };
 
 /*!
@@ -2783,62 +2755,32 @@ struct sccp_dual {
  * \todo replace parameter stuff with something sensable
  */
 static void * sccp_channel_park_thread(void *stuff) {
-	struct ast_channel *transferee, *transferer;
-	sccp_channel_t *sccp_channel_transferee, *sccp_channel_transferer;
+	struct ast_channel *chan1, *chan2;
 	struct sccp_dual *dual;
 	struct ast_frame *f;
 	int ext;
 	int res;
 	char extstr[20];
+	sccp_channel_t * c;
 	memset(&extstr, 0 , sizeof(extstr));
 
 	dual = stuff;
-	transferee = dual->chan1;
-	transferer = dual->chan2;
-	if (!transferee || !transferer) {
-		ast_log(LOG_ERROR, "Missing channels for parking! Transferer %s Transferee %s\n", transferer ? "<available>" : "<missing>", transferee ? "<available>" : "<missing>" );
-		free(dual);
-		return NULL;		
-	}
-	sccp_channel_transferee = get_sccp_channel_from_ast_channel(transferee);
-	sccp_channel_transferer = get_sccp_channel_from_ast_channel(transferer);
-	sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_1 "SCCP Park: Transferer channel %s, Transferee %s\n", transferer->name, transferee->name);
-	
-        if (ast_do_masquerade(transferee)) {
-	        ast_log(LOG_WARNING, "Masquerade failed.\n");
-	        sccp_indicate_nolock(sccp_channel_transferer->device, sccp_channel_transferer, SCCP_CHANNELSTATE_CONGESTION); // or should we use SCCP_CHANNELSTATE_INVALIDNUMBER
-	        free(dual);
-	        return NULL;
-	}
-	
-	f = ast_read(transferee);
+	chan1 = dual->chan1;
+	chan2 = dual->chan2;
+	ast_free(dual);
+	f = ast_read(chan1);
 	if (f)
 		ast_frfree(f);
-
-#if ASTERISK_VERSION_NUM >= 10800
-	res = ast_park_call(transferee, transferer, 0, dual->parkexten, &ext);
-#else
-	res = ast_park_call(transferee, transferer, 0, &ext);
-#endif
-	// Send message to the phone
+	res = ast_park_call(chan1, chan2, 0, &ext);
 	if (!res) {
-//		extstr[0] = 128;
+		extstr[0] = 128;
 		extstr[1] = SKINNY_LBL_CALL_PARK_AT;
 		sprintf(&extstr[2]," %d",ext);
-		sccp_dev_displaynotify(sccp_channel_transferer->device, extstr, 10);
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(sccp_channel_transferer->device), transferee->name, ext);
+		c = CS_AST_CHANNEL_PVT(chan2);
+		sccp_dev_displaynotify(c->device, extstr, 10);
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(c->device), chan1->name, ext);
 	}
-
-	if (!res)       {
-                /* Transfer succeeded */
-  	        transferer->hangupcause = AST_CAUSE_NORMAL_CLEARING;
-		ast_hangup(transferer); /* This will cause a BYE */ 
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: %s Call Parked on %d\n", DEV_ID_LOG(sccp_channel_transferer->device), transferee->name, ext);
-        } else {
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_2 "%s: %s Call Park Failed\n", DEV_ID_LOG(sccp_channel_transferer->device), transferee->name);
-	        /* Do not hangup call */
-        }
-	ast_free(dual);
+	ast_hangup(chan2);
 	return NULL;
 }
 
@@ -2882,11 +2824,7 @@ void sccp_channel_park(sccp_channel_t * c) {
 #if ASTERISK_VERSION_NUM < 10400
 	chan1m = ast_channel_alloc(0);
 #else
-	#if ASTERISK_VERSION_NUM >=10800
-		chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, (char *)c->dialedNumber, l->context, c->owner->linkedid, l->amaflags, "SCCP/%s-%08x", l->name, ast_atomic_fetchadd_int((int *)c->callid, +1));
-	#else
-		chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
-	#endif
+	chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
 #endif
 	if (!chan1m) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Park Failed: can't create asterisk channel\n", d->id);
@@ -2898,11 +2836,7 @@ void sccp_channel_park(sccp_channel_t * c) {
 #if ASTERISK_VERSION_NUM < 10400
 	chan2m = ast_channel_alloc(0);
 #else
-	#if ASTERISK_VERSION_NUM >=10800
-		chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, (char *)c->dialedNumber, l->context, c->owner->linkedid, l->amaflags, "SCCP/%s-%08x", l->name, ast_atomic_fetchadd_int((int *)c->callid, +1));
-	#else
-		chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, (char *)c->dialedNumber, l->context, c->owner->linkedid, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
-	#endif
+	chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
 #endif
 	if (!chan2m) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Park Failed: can't create asterisk channel\n", d->id);

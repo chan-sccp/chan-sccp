@@ -13,20 +13,17 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
       AC_DEFINE(ASTERISK_CONF_1_2, 1, [Define ASTERISK_CONF_1_2])
       AC_MSG_RESULT([Found 'Asterisk Version 1.2.x'])
       REALTIME_USEABLE=0
-      ASTERISK_VER_GROUP=1.2
       ASTERISK_VER=1.2
       AC_SUBST([ASTERISK_VER])
     elif grep -q "\"1\.4" $PBX_INCLUDE/version.h; then
       AC_DEFINE(ASTERISK_CONF_1_4, 1, [Define ASTERISK_CONF_1_4])
       AC_MSG_RESULT([Found 'Asterisk Version 1.4.x'])
       REALTIME_USEABLE=1
-      ASTERISK_VER_GROUP=1.4
       ASTERISK_VER=1.4
       AC_SUBST([ASTERISK_VER])
     elif grep -q "\"1\.6" $PBX_INCLUDE/version.h; then
       AC_DEFINE(ASTERISK_CONF_1_6, 1, [Define ASTERISK_CONF_1_6])
       AC_MSG_RESULT([Found 'Asterisk Version 1.6.x'])
-      ASTERISK_VER_GROUP=1.6
       if grep -q "\"1\.6\.0" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_6_0, 1, [Define ASTERISK_CONF_1_6_0])
         AC_MSG_RESULT([Specifically 1.6.0])
@@ -49,7 +46,6 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
     elif grep -q "\"1\.8" $PBX_INCLUDE/version.h; then
       AC_DEFINE(ASTERISK_CONF_1_8, 1, [Define ASTERISK_CONF_1_8])
       AC_MSG_RESULT([Found 'Asterisk Version 1.8.x'])
-      ASTERISK_VER_GROUP=1.8
       if grep -q "\"1\.8\.0" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_8_0, 1, [Define ASTERISK_CONF_1_8_0])
         AC_MSG_RESULT([Specifically 1.8.0])
@@ -73,7 +69,6 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
       AC_DEFINE(ASTERISK_CONF_1_8, 1, [Define ASTERISK_CONF_1_8])
       AC_MSG_RESULT([Found 'Asterisk Version SVN Trunk --> Using 1.8.x as version number'])
       REALTIME_USEABLE=1
-      ASTERISK_VER_GROUP=1.8
       ASTERISK_VER=1.8
       AC_SUBST([ASTERISK_VER])
     elif grep -q "\"SVN-branch" $PBX_INCLUDE/version.h; then
@@ -81,20 +76,17 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
         AC_DEFINE(ASTERISK_CONF_1_2, 1, [Define ASTERISK_CONF_1_2])
         AC_MSG_RESULT([Found 'Asterisk Version 1.2.x'])
         REALTIME_USEABLE=0
-	ASTERISK_VER_GROUP=1.2
         ASTERISK_VER=1.2
         AC_SUBST([ASTERISK_VER])
       elif grep -q "\"SVN-branch-1\.4" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_4, 1, [Define ASTERISK_CONF_1_4])
         AC_MSG_RESULT([Found 'Asterisk Version 1.4.x'])
         REALTIME_USEABLE=1
-	ASTERISK_VER_GROUP=1.4
         ASTERISK_VER=1.4
         AC_SUBST([ASTERISK_VER])
       elif grep -q "\"SVN-branch-1\.6" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_6, 1, [Define ASTERISK_CONF_1_6])
         AC_MSG_RESULT([Found 'Asterisk Version 1.6.x'])
-	ASTERISK_VER_GROUP=1.8
         if grep -q "\"SVN-branch-1\.6\.0" $PBX_INCLUDE/version.h; then
           AC_DEFINE(ASTERISK_CONF_1_6_0, 1, [Define ASTERISK_CONF_1_6_0])
           AC_MSG_RESULT([Specifically 1.6.0])
@@ -112,29 +104,6 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
           AC_MSG_RESULT([Specifically 1.6.2])
           REALTIME_USEABLE=1
           ASTERISK_VER=1.6.2
-          AC_SUBST([ASTERISK_VER])
-        fi
-      elif grep -q "\"SVN-branch-1\.8" $PBX_INCLUDE/version.h; then
-        AC_DEFINE(ASTERISK_CONF_1_8, 1, [Define ASTERISK_CONF_1_8])
-        AC_MSG_RESULT([Found 'Asterisk Version 1.8.x'])
-	ASTERISK_VER_GROUP=1.8
-        if grep -q "\"SVN-branch-1\.8\.0" $PBX_INCLUDE/version.h; then
-          AC_DEFINE(ASTERISK_CONF_1_8_0, 1, [Define ASTERISK_CONF_1_8_0])
-          AC_MSG_RESULT([Specifically 1.8.0])
-          REALTIME_USEABLE=1
-          ASTERISK_VER=1.8.0
-          AC_SUBST([ASTERISK_VER])
-        elif grep -q "\"SVN-branch-1\.8\.1" $PBX_INCLUDE/version.h; then
-          AC_DEFINE(ASTERISK_CONF_1_8_1, 1, [Define ASTERISK_CONF_1_8_1])
-          AC_MSG_RESULT([Specifically 1.8.1])
-          REALTIME_USEABLE=1
-          ASTERISK_VER=1.8.1
-          AC_SUBST([ASTERISK_VER])
-        elif grep -q "\"SVN-branch-1\.8\.2" $PBX_INCLUDE/version.h; then
-          AC_DEFINE(ASTERISK_CONF_1_8_2, 1, [Define ASTERISK_CONF_1_8_2])
-          AC_MSG_RESULT([Specifically 1.8.2])
-          REALTIME_USEABLE=1
-          ASTERISK_VER=1.8.2
           AC_SUBST([ASTERISK_VER])
         fi
       else
@@ -558,88 +527,5 @@ AC_DEFUN([CHECK_ASTERISK_HEADER_CONTENT],[
   if grep -rq "ast_string_field_" $PBX_INCLUDE/; then
     AC_DEFINE(CS_AST_HAS_AST_STRING_FIELD,1,[Found 'ast_string_field_' in asterisk])
     AC_MSG_RESULT([Found])
-  fi
-
-
-
-  dnl Asterisk 1.8 specific tests and settings
-  if test "${ASTERISK_VER_GROUP}" == "1.8"; then
-	if test "${ac_cv_have_variable_fdset}x" = "0x"; then
-		AC_RUN_IFELSE(
-			AC_LANG_PROGRAM([
-			#include <unistd.h>
-			#include <sys/types.h>
-			#include <stdlib.h>
-			], 
-			[
-			if (getuid() != 0) { exit(1); }
-			]),
-				dnl if ok then yes
-				AC_DEFINE([CONFIGURE_RAN_AS_ROOT], 1, [Some configure tests will unexpectedly fail if configure is run by a non-root user.  These may be able to be tested at runtime.]))
-			fi
-
-	AC_MSG_CHECKING(if we can increase the maximum select-able file descriptor)
-	AC_RUN_IFELSE(
-		AC_LANG_PROGRAM([
-			#include <stdio.h>
-			#include <sys/select.h>
-			#include <sys/time.h>  
-			#include <sys/resource.h>
-			#include <string.h>
-			#include <errno.h>     
-			#include <stdlib.h>
-			#include <sys/types.h>
-			#include <sys/stat.h>  
-			#include <fcntl.h>   
-			#include <unistd.h>
-			], [
-				dnl run program
-				[
-				struct rlimit rlim = { FD_SETSIZE * 2, FD_SETSIZE * 2 };
-				int fd0, fd1;
-				struct timeval tv = { 0, };
-				struct ast_fdset { long fds_bits[[1024]]; } fds = { { 0, } };
-				if (setrlimit(RLIMIT_NOFILE, &rlim)) { exit(1); }
-				if ((fd0 = open("/dev/null", O_RDONLY)) < 0) { exit(1); }
-				if (dup2(fd0, (fd1 = FD_SETSIZE + 1)) < 0) { exit(1); }  
-				FD_SET(fd0, (fd_set *) &fds);
-				FD_SET(fd1, (fd_set *) &fds);
-				if (select(FD_SETSIZE + 2, (fd_set *) &fds, NULL, NULL, &tv) < 0) { exit(1); }
-				exit(0)
-				]
-			]),
-			dnl if ok then yes
-			AC_MSG_RESULT(yes)
-			AC_DEFINE([HAVE_VARIABLE_FDSET], 1, [Define to 1 if your system can support larger than default select bitmasks.]),
-			dnl if nok else no
-			AC_MSG_RESULT(no),
-			dnl print cross-compile
-			AC_MSG_RESULT(cross-compile)
-	)
-
-	AC_CHECK_SIZEOF([int])
-	AC_CHECK_SIZEOF([long])
-	AC_CHECK_SIZEOF([long long])
-	AC_CHECK_SIZEOF([char *])
-	AC_CHECK_SIZEOF(long)
-	AC_CHECK_SIZEOF(long long)
-	AC_COMPUTE_INT([ac_cv_sizeof_fd_set_fds_bits], [sizeof(foo.fds_bits[[0]])], [$ac_includes_default
-	fd_set foo;])
-	# This doesn't actually work; what it does is to use the variable set in the
-	# previous test as a cached value to set the right output variables.
-	AC_CHECK_SIZEOF(fd_set.fds_bits)
-
-	# Set a type compatible with the previous.  We cannot just use a generic type
-	# for these bits, because on big-endian systems, the bits won't match up
-	# correctly if the size is wrong.  
-	if test $ac_cv_sizeof_int = $ac_cv_sizeof_fd_set_fds_bits; then
-	  AC_DEFINE([TYPEOF_FD_SET_FDS_BITS], [int], [Define to a type of the same size as fd_set.fds_bits[[0]]])
-	  else if test $ac_cv_sizeof_long = $ac_cv_sizeof_fd_set_fds_bits; then
-	    AC_DEFINE([TYPEOF_FD_SET_FDS_BITS], [long], [Define to a type of the same size as fd_set.fds_bits[[0]]])
-	    else if test $ac_cv_sizeof_long_long = $ac_cv_sizeof_fd_set_fds_bits; then
-	      AC_DEFINE([TYPEOF_FD_SET_FDS_BITS], [long long], [Define to a type of the same size as fd_set.fds_bits[[0]]])
-	    fi
-	  fi
-	fi
   fi
 ])
