@@ -15,7 +15,7 @@
 #include "config.h"
 
 #if ASTERISK_VERSION_NUM >= 10400
-  #include <asterisk.h>
+#include <asterisk.h>
 #endif
 #include <asterisk/musiconhold.h>
 #include "chan_sccp.h"
@@ -36,20 +36,20 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #include <asterisk/pbx.h>
 #ifndef CS_AST_HAS_TECH_PVT
-  #include <asterisk/channel_pvt.h>
+#include <asterisk/channel_pvt.h>
 #endif
 #include <asterisk/callerid.h>
 #include <asterisk/utils.h>
 #include <asterisk/causes.h>
 #include <asterisk/frame.h>
 #ifdef CS_AST_HAS_AST_STRING_FIELD
-  #include <asterisk/stringfields.h>
+#include <asterisk/stringfields.h>
 #endif
 #ifdef CS_MANAGER_EVENTS
-  #include <asterisk/manager.h>
+#include <asterisk/manager.h>
 #endif
 #ifdef CS_SCCP_PICKUP
-  #include <asterisk/features.h>
+#include <asterisk/features.h>
 #endif
 
 #ifdef CS_AST_HAS_TECH_PVT
@@ -57,18 +57,15 @@ const struct ast_channel_tech sccp_tech;
 #endif // CS_AST_HAS_TECH_PVT
 
 #ifdef CS_AST_RTP_NEW_SOURCE		
-  #define RTP_NEW_SOURCE(_c,_log) 								\
-	if(c->rtp.audio.rtp) { 										\
-		ast_rtp_new_source(c->rtp.audio.rtp); 							\
-		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: " #_log "\n"); 	\
-	}
+#define RTP_NEW_SOURCE(_c,_log) 								\
+if(c->rtp.audio.rtp) { 										\
+	ast_rtp_new_source(c->rtp.audio.rtp); 							\
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: " #_log "\n"); 	\
+}
 #else
-  #define RTP_NEW_SOURCE(_c,_log)
+#define RTP_NEW_SOURCE(_c,_log)
 #endif			
 
-#ifdef CS_AST_CONTROL_CONNECTED_LINE
-static void sccp_pbx_update_connectedline(sccp_channel_t *channel, const void *data, size_t datalen);
-#endif // CS_AST_CONTROL_CONNECTED_LINE
 
 /* Structure to pass data to the thread */
 struct sccp_answer_conveyor_struct {
@@ -196,11 +193,61 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout) {
 	sccp_mutex_unlock(&l->lock);
 
 
-	/* Set the channel callingParty Name and Number */
-	if (!parse_get_ast_callerid(ast, c)) {
-		// WARN
+  /* Set the channel callingParty Name and Number */
+	sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3  "SCCP: (sccp_pbx_call) asterisk cid_num = '%s'\n", (ast->cid.cid_num)?ast->cid.cid_num:"");
+	sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3  "SCCP: (sccp_pbx_call) asterisk cid_name = '%s'\n", (ast->cid.cid_name)?ast->cid.cid_name:"");
+	sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3  "SCCP: (sccp_pbx_call) asterisk cid_dnid = '%s'\n", (ast->cid.cid_dnid)?ast->cid.cid_dnid:"");
+	sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3  "SCCP: (sccp_pbx_call) asterisk cid_ani = '%s'\n", (ast->cid.cid_ani)?ast->cid.cid_ani:"");
+	sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3  "SCCP: (sccp_pbx_call) asterisk cid_ani2 = '%i'\n", (ast->cid.cid_ani)?ast->cid.cid_ani2:-1);
+	sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3  "SCCP: (sccp_pbx_call) asterisk cid_rdnis = '%s'\n", (ast->cid.cid_rdnis)?ast->cid.cid_rdnis:"");
+#ifdef CS_AST_CHANNEL_HAS_CID
+	if(GLOB(recorddigittimeoutchar))
+	{
+		/* The hack to add the # at the end of the incoming number
+		   is only applied for numbers beginning with a 0,
+		   which is appropriate for Germany and other countries using similar numbering plan.
+		   The option should be generalized, moved to the dialplan, or otherwise be replaced. */
+		/* Also, we require an option whether to add the timeout suffix to certain
+		   enbloc dialed numbers (such as via 7970 enbloc dialing) if they match a certain pattern.
+		   This would help users dial from call history lists on other phones, which do not have enbloc dialing,
+		   when using shared lines. */
+		if(NULL != ast->cid.cid_num && strlen(ast->cid.cid_num) > 0 && strlen(ast->cid.cid_num) < sizeof(suffixedNumber)-2 && '0' == ast->cid.cid_num[0])
+		{
+			strncpy(suffixedNumber, (const char*) ast->cid.cid_num, strlen(ast->cid.cid_num));
+			suffixedNumber[strlen(ast->cid.cid_num)+0] = '#';
+			suffixedNumber[strlen(ast->cid.cid_num)+1] = '\0';
+			sccp_channel_set_callingparty(c, ast->cid.cid_name, suffixedNumber);
+		} else
+			sccp_channel_set_callingparty(c, ast->cid.cid_name, ast->cid.cid_num);
+			
+	}
+	else
+	{
+		sccp_channel_set_callingparty(c, ast->cid.cid_name, ast->cid.cid_num);
 	}
 	
+	/* check if we have an forwared call */
+	if(!ast_strlen_zero(ast->cid.cid_ani) && strncmp(ast->cid.cid_ani, c->callInfo.callingPartyNumber, strlen(ast->cid.cid_ani) )){
+		sccp_copy_string(c->callInfo.originalCalledPartyNumber, ast->cid.cid_ani, sizeof(c->callInfo.originalCalledPartyNumber));
+	}
+
+#else // CS_AST_CHANNEL_HAS_CID
+	if (ast->callerid && (cidtmp = strdup(ast->callerid))) {
+		ast_callerid_parse(cidtmp, &name, &number);
+		sccp_channel_set_callingparty(c, name, number);
+		if(cidtmp)
+			ast_free(cidtmp);
+		cidtmp = NULL;
+
+		if(name)
+			ast_free(name);
+		name = NULL;
+
+		if(number)
+			ast_free(number);
+		number = NULL;
+	}
+#endif
 	/* Set the channel calledParty Name and Number 7910 compatibility*/
 	sccp_channel_set_calledparty(c, l->cid_name, l->cid_num);
 
@@ -542,7 +589,7 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 		case 3:
 			frame = ast_rtcp_read(c->rtp.video.rtp);	/* RTCP Control Channel for video */
 			break;
-#else// CS_AST_HAS_RTP_ENGINE
+#else
 		case 0:
 			frame = ast_rtp_instance_read(c->rtp.audio.rtp, 0); /* RTP Audio */
 			break;
@@ -573,7 +620,7 @@ static struct ast_frame * sccp_pbx_read(struct ast_channel *ast)
 		//				frame->subclass);
 #if ASTERISK_VERSION_NUM >= 10400
 		if (!(frame->subclass & (ast->nativeformats & AST_FORMAT_AUDIO_MASK)))
-#else // ASTERISK_VERSION_NUM >= 10400
+#else
 		if (!(frame->subclass & (ast->nativeformats)))
 #endif // ASTERISK_VERSION_NUM >= 10400
 		{
@@ -622,7 +669,7 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
 #if ASTERISK_VERSION_NUM >= 10400
 					ast_getformatname_multiple(s1, sizeof(s1) - 1, ast->nativeformats & AST_FORMAT_AUDIO_MASK),
 					ast->nativeformats & AST_FORMAT_AUDIO_MASK,
-#else // ASTERISK_VERSION_NUM >= 10400
+#else
 					ast_getformatname_multiple(s1, sizeof(s1) - 1, ast->nativeformats),
 					ast->nativeformats,
 #endif // ASTERISK_VERSION_NUM >= 10400
@@ -648,7 +695,7 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame) {
  					c->rtp.video.writeFormat = frame->subclass;
  					sccp_channel_openMultiMediaChannel(c);
 				}
-#endif // CS_SCCP_VIDEO
+#endif
 				if (c->rtp.video.rtp && (c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) != 0 ){
 					res = sccp_rtp_write(c->rtp.video.rtp, frame);
 				}
@@ -747,7 +794,7 @@ static char *sccp_control2str(int state) {
  * \callergraph
  */
 static int sccp_pbx_indicate(struct ast_channel *ast, int ind) {
-#else // ASTERISK_VERSION_NUM < 10400
+#else
 /*!
  * \brief Indicate to Asterisk Channel
  * \param ast Asterisk Channel as ast_channel
@@ -847,13 +894,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 				c->callid,
 #if ASTERISK_VERSION_NUM >= 10400
 				ast_getformatname_multiple(s1, sizeof(s1) -1, c->format & AST_FORMAT_AUDIO_MASK),
-#else // ASTERISK_VERSION_NUM >= 10400
+#else
 				ast_getformatname_multiple(s1, sizeof(s1) -1, c->format),
 #endif // ASTERISK_VERSION_NUM >= 10400
 				ast->nativeformats,
 #if ASTERISK_VERSION_NUM >= 10400
 				ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat & AST_FORMAT_AUDIO_MASK),
-#else // ASTERISK_VERSION_NUM >= 10400
+#else
 				ast_getformatname_multiple(s2, sizeof(s2) -1, ast->rawreadformat),
 #endif // ASTERISK_VERSION_NUM >= 10400
 				ast->rawreadformat);
@@ -879,7 +926,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		case AST_CONTROL_HOLD:
 #if ASTERISK_VERSION_NUM < 10400
 			ast_moh_start(ast, c->musicclass);
-#else // ASTERISK_VERSION_NUM < 10400
+#else
 			ast_moh_start(ast, data, c->musicclass);
 #endif // ASTERISK_VERSION_NUM < 10400
 			res = 0;
