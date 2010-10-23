@@ -138,4 +138,5 @@ boolean_t implode(char *str[],char *sep, char **res);
 #ifdef HAVE_LIBGC
 void gc_warn_handler(char *msg, GC_word p);
 #endif
+const char *sccp_inet_ntoa(struct in_addr ia);
 #endif

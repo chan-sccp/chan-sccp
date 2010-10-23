@@ -431,46 +431,59 @@ int sccp_devicestate(void *data) {
  * \param 	s Session as sccp_session_t
  */
 uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
-	uint32_t  mid = letohl(r->lel_messageId);
-	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: last keepAlive within %d (%d)\n", (s->device)?s->device->id:"null", (uint32_t)(time(0) - s->lastKeepAlive), (s->device)?s->device->keepalive:0 );
-	s->lastKeepAlive = time(0); /* always update keepalive */
-
-  //sccp_log((DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_3 "%s(%d): >> Got message %s\n", (s->device)?s->device->id:"null", s->sin.sin_addr.s_addr ,message2str(mid));
-  //sccp_log((DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_3 "%s(%d): >> Got message %s\n", (s->device)?s->device->id:"null", (s->device)?s->device->session->sin.sin_addr.s_addr:0 ,message2str(mid));
-  /* try to handle nat problem.
-   * devices behind nat box can not do anything after ip address change */
-//  if(s && s->device && s->device->session){
-//	    if(s->sin.sin_addr.s_addr != s->device->session->sin.sin_addr.s_addr){
-//		  ast_log(LOG_WARNING, "We have one device with diffenent ip addresse. Restart each session.\n");
-//		  s->device->nat = 1;
-//		  //sccp_moo_t * r;
-//		  //REQ(r, Reset);
-//		  //r->msg.Reset.lel_resetType = htolel(SKINNY_DEVICE_RESTART);
-//		  //sccp_dev_send(s->device, r);
-//		  sccp_session_close(s);
-//		  sccp_session_close(s->device->session);
-//
-//	}
-//  }
-
-	if ( (!s->device) && (mid != RegisterMessage && mid != UnregisterMessage && mid != RegisterTokenReq && mid != AlarmMessage && mid != KeepAliveMessage && mid != IpPortMessage)) {
-		ast_log(LOG_WARNING, "SCCP: Client sent %s without first registering. Attempting reconnect.\n", message2str(mid));
-		if(!(s->device = sccp_device_find_byipaddress(s->sin.sin_addr.s_addr))) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Device attempt to reconnect failed. Restarting device\n");
-			ast_free(r);
-			return 0;
-		} else {
-			/* this prevent loops -FS */
-			if(s->device->session != s) {
-				sccp_log(1)(VERBOSE_PREFIX_3 "%s: cross device session\n", DEV_ID_LOG(s->device));
-				sccp_session_close(s->device->session);
-				ast_free(r);
-				return 0;/* closes s */
-			}
-		}
+	if (!s)  {
+		ast_log(LOG_ERROR, "%s: (sccp_handle_message) Client does not have a sessions, Required !\n", s->device->id?s->device->id:"SCCP");
+		ast_free(r);
+		return -1;
 	}
 
+	if (!r)  {
+		ast_log(LOG_ERROR, "%s: (sccp_handle_message) No Message Specified.\n, Required !", s->device->id?s->device->id:"SCCP");
+		ast_free(r);
+		return 0;
+	}
+	uint32_t  mid = letohl(r->lel_messageId);
+	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: last keepAlive within %d (%d)\n", (s->device)?s->device->id:"null", (uint32_t)(time(0) - s->lastKeepAlive), (s->device)?s->device->keepalive:0 );
 
+	
+	s->lastKeepAlive = time(0); /* always update keepalive */
+
+	/* Check if all necessary information is available */
+	if ( (!s->device) && (mid != RegisterMessage && mid != UnregisterMessage && mid != RegisterTokenReq && mid != AlarmMessage && mid != KeepAliveMessage && mid != IpPortMessage)) {
+		ast_log(LOG_WARNING, "SCCP: Client sent %s without first registering. Attempting reconnect.\n", message2str(mid));
+		if(s->device != sccp_device_find_byipaddress(s->sin.sin_addr.s_addr)) {
+			// IP Address has changed mid session
+			if( s->device->nat == 1) {		
+				// We are natted, what should we do, Not doing anything for now, just sending warning -- DdG
+				ast_log(LOG_WARNING, "%s: Device (%s) attempted to send messages via a different ip-address (%s).\n", DEV_ID_LOG(s->device), sccp_inet_ntoa(s->sin.sin_addr), sccp_inet_ntoa(s->device->session->sin.sin_addr));
+				// \todo write auto recover ip-address change during session with natted device should be be implemented
+				/*
+				s->device->session->sin.sin_addr.s_addr = s->sin.sin_addr.s_addr;
+				s->device->nat = 1;
+				sccp_device_reset(s->device, r);
+				sccp_session_unlock(s);
+				sccp_session_close(s,5);
+				sccp_session_close(s->device->session,5);
+				destroy_session(s,5);
+				destroy_session(s->device->session,5);
+				sccp_session_lock(s);
+				*/
+			} else {
+				// We are not natted, but the ip-address has changed
+				ast_log(LOG_ERROR, "(sccp_handle_message): SCCP: Device is attempting to send message via a different ip-address.\nIf this is behind a firewall please set it up in sccp.conf with nat=1.\n");
+				sccp_session_unlock(s);
+				ast_free(r);
+				return 0;
+			}
+		} else if(!s->device->session || s->device->session != s) {
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s: cross device session (Removing Old Session)\n", DEV_ID_LOG(s->device));
+				sccp_session_unlock(s);
+				sccp_session_close(s->device->session);
+				destroy_session(s->device->session,2);
+				ast_free(r);
+				return 0;
+		}
+	}
 
 	if (mid != KeepAliveMessage) {
 		if (s && s->device) {
@@ -481,7 +494,6 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 	}
 
 	switch (mid) {
-
 		case AlarmMessage:
 		      sccp_handle_alarm(s, r);
 		      break;
@@ -491,6 +503,13 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 		      break;
 		case UnregisterMessage:
 		      sccp_handle_unregister(s, r);
+		      break;
+		case KeepAliveMessage:
+		      sccp_session_sendmsg(s->device, KeepAliveAckMessage);
+		      break;
+		case IpPortMessage:
+		      /* obsolete message */
+		      s->rtpPort = letohs(r->msg.IpPortMessage.les_rtpMediaPort);
 		      break;
 		case VersionReqMessage:
 		      sccp_handle_version(s, r);
@@ -534,17 +553,9 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 		case SoftKeyEventMessage:
 		      sccp_handle_soft_key_event(s, r);
 		      break;
-		case KeepAliveMessage:
-		      sccp_session_sendmsg(s->device, KeepAliveAckMessage);
-		      break;
-		case IpPortMessage:
-		      /* obsolete message */
-		      s->rtpPort = letohs(r->msg.IpPortMessage.les_rtpMediaPort);
-		      break;
 		case OpenReceiveChannelAck:
 		      sccp_handle_open_receive_channel_ack(s, r);
 		      break;
-
 		case OpenMultiMediaReceiveChannelAckMessage:
 		      sccp_handle_OpenMultiMediaReceiveAck(s, r);
 		      break;
