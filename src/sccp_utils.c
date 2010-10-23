@@ -1727,4 +1727,18 @@ void gc_warn_handler(char *msg, GC_word p)
 }
 #endif
 
+/*!
+ * \brief sccp_inet_ntoa: Helper Function. Chooses correct asterisk ast_inet_ntoa
+ * ast_inet_ntoa: Recursive thread safe replacement of inet_ntoa 
+ */
+const char *sccp_inet_ntoa(struct in_addr ia)
+{
+#if ASTERISK_VERSION_NUM < 10400
+	char iabuf[INET_ADDRSTRLEN];
+	return ast_inet_ntoa(iabuf, sizeof(iabuf), ia);
+#else
+	return ast_inet_ntoa(ia);
+#endif
+}
+
                         
