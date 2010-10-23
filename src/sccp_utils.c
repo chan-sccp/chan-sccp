@@ -274,22 +274,6 @@ struct ast_variable * sccp_create_variable(const char *buf) {
 	return NULL;
 }
 
-/*!
- * \brief Retrieve the SCCP Channel from an Asterisk Channel
- * \param ast_chan Asterisk Channel
- * \return SCCP Channel on Success or Null on Fail
- */
-sccp_channel_t * get_sccp_channel_from_ast_channel(struct ast_channel *ast_chan) {
-#ifndef CS_AST_HAS_TECH_PVT
-	if (!strncasecmp(ast_chan->type, "SCCP", 4)){
-#else
-        if (!strncasecmp(ast_chan->tech->type, "SCCP", 4)){
-#endif
-		return CS_AST_CHANNEL_PVT(ast_chan);
-	} else {
-		return NULL;
-	}
-}
 
 /*!
  * \brief Find Device by ID
@@ -1727,9 +1711,31 @@ void gc_warn_handler(char *msg, GC_word p)
 }
 #endif
 
+
+// ------------------------------------------------------------------------------------------- AST_VERSION WRAPPER FUNCTIONS
+/*!
+ * \brief Retrieve the SCCP Channel from an Asterisk Channel
+ * \param ast_chan Asterisk Channel
+ * \return SCCP Channel on Success or Null on Fail
+ *
+ * \note AST VERSION WRAPPER
+ */
+sccp_channel_t * get_sccp_channel_from_ast_channel(struct ast_channel *ast_chan) {
+#ifndef CS_AST_HAS_TECH_PVT
+	if (!strncasecmp(ast_chan->type, "SCCP", 4)){
+#else
+        if (!strncasecmp(ast_chan->tech->type, "SCCP", 4)){
+#endif
+		return CS_AST_CHANNEL_PVT(ast_chan);
+	} else {
+		return NULL;
+	}
+}
+
 /*!
  * \brief sccp_inet_ntoa: Helper Function. Chooses correct asterisk ast_inet_ntoa
  * ast_inet_ntoa: Recursive thread safe replacement of inet_ntoa 
+ * \note AST VERSION WRAPPER
  */
 const char *sccp_inet_ntoa(struct in_addr ia)
 {
@@ -1741,4 +1747,119 @@ const char *sccp_inet_ntoa(struct in_addr ia)
 #endif
 }
 
-                        
+/*
+ * \brief SCCP get_ast_callerid()
+ * \note AST VERSION WRAPPER
+ */
+boolean_t parse_ast_callerid(struct ast_channel *ast_chan, sccp_channel_t *c) {
+/*
+#ifdef CS_AST_CHANNEL_HAS_CID
+	if(GLOB(recorddigittimeoutchar))
+	{*/
+		/* The hack to add the # at the end of the incoming number
+		   is only applied for numbers beginning with a 0,
+		   which is appropriate for Germany and other countries using similar numbering plan.
+		   The option should be generalized, moved to the dialplan, or otherwise be replaced. */
+		/* Also, we require an option whether to add the timeout suffix to certain
+		   enbloc dialed numbers (such as via 7970 enbloc dialing) if they match a certain pattern.
+		   This would help users dial from call history lists on other phones, which do not have enbloc dialing,
+		   when using shared lines. */
+/*		if(NULL != ast->cid.cid_num && strlen(ast->cid.cid_num) > 0 && strlen(ast->cid.cid_num) < sizeof(suffixedNumber)-2 && '0' == ast->cid.cid_num[0])
+		{
+			strncpy(suffixedNumber, (const char*) ast->cid.cid_num, strlen(ast->cid.cid_num));
+			suffixedNumber[strlen(ast->cid.cid_num)+0] = '#';
+			suffixedNumber[strlen(ast->cid.cid_num)+1] = '\0';
+			sccp_channel_set_callingparty(c, ast->cid.cid_name, suffixedNumber);
+		} else
+			sccp_channel_set_callingparty(c, ast->cid.cid_name, ast->cid.cid_num);
+			
+	}
+	else
+	{
+		sccp_channel_set_callingparty(c, ast->cid.cid_name, ast->cid.cid_num);
+	}
+	
+	/* check if we have an forwared call */
+/*	if(!ast_strlen_zero(ast->cid.cid_ani) && strncmp(ast->cid.cid_ani, c->callInfo.callingPartyNumber, strlen(ast->cid.cid_ani) )){
+		sccp_copy_string(c->callInfo.originalCalledPartyNumber, ast->cid.cid_ani, sizeof(c->callInfo.originalCalledPartyNumber));
+	}
+
+#else // CS_AST_CHANNEL_HAS_CID
+	if (ast->callerid && (cidtmp = strdup(ast->callerid))) {
+		ast_callerid_parse(cidtmp, &name, &number);
+		sccp_channel_set_callingparty(c, name, number);
+		if(cidtmp)
+			ast_free(cidtmp);
+		cidtmp = NULL;
+
+		if(name)
+			ast_free(name);
+		name = NULL;
+
+		if(number)
+			ast_free(number);
+		number = NULL;
+	}
+#endif // CS_AST_CHANNEL_HAS_CID
+*/
+
+
+
+	return TRUE;
+}
+
+/*
+ * \brief SCCP set_ast_callerid()
+ * \note AST VERSION WRAPPER
+ *
+ * \todo implement 1.8.x 
+ */
+void sccp_set_ast_callerid(struct ast_channel *ast_chan, sccp_channel_t *caller, char dialedNumber[AST_MAX_EXTENSION]) {
+#if ASTERISK_VERSION_NUM < 10800								// ast 1.2
+	ast_chan->cid.cid_num = strdup(parent->callInfo.callingPartyNumber);			// cid_num
+	ast_chan->cid.cid_name = strdup(caller->callInfo.callingPartyName);			// cid_name
+  #ifdef CS_AST_CHANNEL_HAS_CID									// ast 1.6.x
+	ast_chan->cid.cid_ani = strdup(dialedNumber);						// ani
+	ast_chan->cid.cid_ani2 = -1;								// ani2
+	ast_chan->cid.cid_dnid = strdup(dialedNumber);						// dnid
+  #endif // CS_AST_CHANNEL_HAS_CID
+#else 												// ast 1.8.x
+	ast_chan->caller.id.number.valid = 1;							//cid_num
+	ast_chan->caller.id.number.str = strdup(caller->callInfo.callingPartyNumber);		//cid_num
+	ast_chan->caller.id.number.presentation = caller->privacy;				//privacy
+	ast_chan->caller.id.name.valid = 1;							//cid_name
+	ast_chan->caller.id.name.str = strdup(caller->callInfo.callingPartyName);		//cid_name
+	ast_chan->caller.ani.number.valid = 1;							//ani
+	ast_chan->caller.ani.number.str = strdup(dialedNumber);					//ani
+	ast_chan->caller.ani2 = -1);								//ani2
+	//	ast_chan->redirecting.reason
+#endif // ASTERISK_VERSION_NUM < 10800
+}
+
+/*
+ * \brief SCCP set_ast_callerid()
+ *
+ * \todo implement 1.8.x ast_reason
+ */
+void sccp_set_ast_callerid_redirect(ast_channel *ast_chan, sccp_channel_t *parent, sccp_channel_t *forwarder), dialedNumber[AST_MAX_EXTENSION]) {
+	// update standard callerid information via sccp_set_ast_callerid
+	sccp_set_ast_callerid(ast_c, parent, dialedNumber);
+	
+	// update redirection caller information
+#if ASTERISK_VERSION_NUM < 10800								// ast 1.2
+  #ifdef CS_AST_CHANNEL_HAS_CID									// ast 1.6.x
+	//forwarder->privacy;									// privacy
+	ast_chan->cid.cid_rdnis = strdup(forwarder->line->cid_num);				// rdnis
+	ast_chan->cid.cid_dnid = strdup(dialedNumber);						// dnid
+  #endif // CS_AST_CHANNEL_HAS_CID	
+#else  												// ast 1.8.x
+	ast_chan->caller.id.number.valid = 1;							// update privacy
+	ast_chan->caller.id.number.presentation = forwarder->privacy;				// set privacy to forwarder
+	ast_chan->redirecting.from.number.valid = 1;						// update rdnis
+	ast_chan->redirecting.from.number.str = strdup(forwarder->line->cid_num);		// rdnis
+	ast_chan->redirecting.to.number.valid = 1;						// update dnid
+	ast_chan->redirecting.to.number.str = strdup(dialedNumber);				// dnid
+	++ast_chan->redirecting.count;
+#endif // ASTERISK_VERSION_NUM < 10800
+}
+

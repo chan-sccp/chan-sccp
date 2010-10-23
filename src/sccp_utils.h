@@ -15,7 +15,9 @@
 #define __SCCP_UTILS_H
 
 #include "sccp_event.h"
-#include "asterisk/version.h"
+#ifndef ASTERISK_VERSION_NUM
+  #include <asterisk/version.h>
+#endif
 
 
 void sccp_dump_packet(unsigned char * messagebuffer, int len);
@@ -31,7 +33,6 @@ char * sccp_addons_list(sccp_device_t * d);
 void sccp_safe_sleep(int ms);
 struct ast_variable * sccp_create_variable(const char *buf);
 void sccp_device_add_line(sccp_device_t * d, char * name);
-sccp_channel_t * get_sccp_channel_from_ast_channel(struct ast_channel *ast_chan);
 sccp_selectedchannel_t * sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * c);
 uint8_t sccp_device_selectedchannels_count(sccp_device_t * d);
 
@@ -138,5 +139,11 @@ boolean_t implode(char *str[],char *sep, char **res);
 #ifdef HAVE_LIBGC
 void gc_warn_handler(char *msg, GC_word p);
 #endif
+// ------------------------------------------------------------------------------------------- AST_VERSION WRAPPER FUNCTIONS
+sccp_channel_t * get_sccp_channel_from_ast_channel(struct ast_channel *ast_chan);
 const char *sccp_inet_ntoa(struct in_addr ia);
+#define sccp_parse_ast_callerid sccp_get_ast_callerid
+boolean_t sccp_get_ast_callerid(struct ast_channel *ast_chan, sccp_channel_t *c);
+void sccp_set_ast_callerid(struct ast_channel *ast_chan, sccp_channel_t *caller, char dialedNumber[AST_MAX_EXTENSION]);
+void sccp_set_ast_callerid_redirect(struct ast_channel *ast_chan, sccp_channel_t *parent, sccp_channel_t *forwarder, char dialedNumber[AST_MAX_EXTENSION]);
 #endif

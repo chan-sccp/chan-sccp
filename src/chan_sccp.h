@@ -46,16 +46,21 @@ extern "C" {
 #include <asterisk/logger.h>
 #include <asterisk/config.h>
 #include <asterisk/sched.h>
-#include <asterisk/version.h>
+#ifndef ASTERISK_VERSION_NUM
+  #include <asterisk/version.h>
+#endif
 #include <asterisk/causes.h>
+#if ASTERISK_VERSION_NUM > 10800
+#include <asterisk/frame_defs.h>
+#endif
 
 #include "sccp_dllists.h"
 
 #if ASTERISK_VERSION_NUM >= 10400
-#include "asterisk/abstract_jb.h"
+  #include "asterisk/abstract_jb.h"
 #endif
 #ifdef CS_DEVSTATE_FEATURE
-#include <asterisk/event.h>
+  #include <asterisk/event.h>
 #endif
 
 #ifdef CS_AST_HAS_ENDIAN
@@ -65,7 +70,7 @@ extern "C" {
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
 #ifndef AST_CAUSE_ANSWERED_ELSEWHERE
-#define AST_CAUSE_ANSWERED_ELSEWHERE 200
+  #define AST_CAUSE_ANSWERED_ELSEWHERE 200
 #endif
 
 #define SCCP_LITTLE_ENDIAN   1234 /* byte 0 is least significant (i386) */
