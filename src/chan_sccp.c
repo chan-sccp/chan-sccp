@@ -20,7 +20,7 @@
 
 #include "config.h"
 #if ASTERISK_VERSION_NUM >= 10400
-#include <asterisk.h>
+  #include <asterisk.h>
 #endif
 #include "chan_sccp.h"
 
@@ -47,20 +47,20 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #include <asterisk/pbx.h>
 #ifdef CS_AST_HAS_APP_SEPARATE_ARGS
-#include <asterisk/app.h>
+  #include <asterisk/app.h>
 #endif
 #ifndef CS_AST_HAS_TECH_PVT
-#include <asterisk/channel_pvt.h>
+  #include <asterisk/channel_pvt.h>
 #endif
 #include <asterisk/callerid.h>
 #include <asterisk/utils.h>
 #include <asterisk/causes.h>
 #ifdef CS_AST_HAS_NEW_DEVICESTATE
-#include <asterisk/devicestate.h>
+  #include <asterisk/devicestate.h>
 #endif
 #include <asterisk/translate.h>
 #ifdef CS_AST_HAS_AST_STRING_FIELD
-#include <asterisk/stringfields.h>
+  #include <asterisk/stringfields.h>
 #endif
 #include <asterisk/astdb.h>
 #include <asterisk/rtp.h>
@@ -70,9 +70,9 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #if ASTERISK_VERSION_NUM >= 10400
 
 #ifdef CS_AST_HAS_TECH_PVT
-#define SET_CAUSE(x)	*cause = x;
+  #define SET_CAUSE(x)	*cause = x;
 #else
-#define SET_CAUSE(x)
+  #define SET_CAUSE(x)
 #endif
                         
 void *sccp_create_hotline(void);
@@ -1382,7 +1382,11 @@ static struct ast_custom_function sccpchannel_function = {
  * \param 	data CallerId in format "Name" \<number\>
  * \return	Success as int
  */
+#if ASTERISK_VERSION_NUM >= 10800
+static int sccp_app_calledparty(struct ast_channel *chan, const char *data) {
+#else
 static int sccp_app_calledparty(struct ast_channel *chan, void *data) {
+#endif
 	char tmp[256] = "";
 	char * num, * name;
 	sccp_channel_t * c=NULL;
@@ -1418,7 +1422,11 @@ static char *calledparty_descr= "Usage: SetCalledParty(\"Name\" <ext>)"
  * \param	data message to sent - if empty clear display
  * \version	20071112_1944
  */
+#if ASTERISK_VERSION_NUM >= 10800
+static int sccp_app_setmessage(struct ast_channel *chan, const char *data) {
+#else
 static int sccp_app_setmessage(struct ast_channel *chan, void *data) {
+#endif
 	char tmp[256] 		= "";
 	sccp_channel_t 	* c = NULL;
 	sccp_device_t 	* d;
