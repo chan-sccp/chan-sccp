@@ -1,5 +1,8 @@
 2010-10-22  ddegroot
 
+	* [r2032] ChangeLog, configure, configure.ac: Fix for x86_64 module
+	  directory on some platforms (line OpenSuSE)
+
 	* [r2031] configure.ac: Fix for installation path /usr/lib64/ on
 	  some x86_64 machines
 
