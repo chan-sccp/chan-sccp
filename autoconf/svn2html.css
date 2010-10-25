@@ -5,11 +5,16 @@ body {
   margin-right: 1.5em;
   margin-top: 1.5em;
   margin-bottom: 1em;
-  font-family: Helvetica, Arial, sans-serif;
 }
 
 ul.changelog_entries {
+  margin-left: 0.7em;
+  margin-right: 0.7em;
+  padding-left: 0.7em;
+  padding-right: 0.7em;
+  padding-bottom: 0.7em;
   background: #fefefe;
+  border: 1px dashed #88aa88;
 }
 
 li.changelog_entry {

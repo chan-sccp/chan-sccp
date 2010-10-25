@@ -943,7 +943,12 @@ ChangeLog:	FORCE
 @ENABLE_SVN2CL_TRUE@	@if svnrev=`svn info |grep Revision`; then \
 @ENABLE_SVN2CL_TRUE@	  if [ -z "`cat ChangeLog 2>/dev/null| grep "\[r$${svnrev:10}\]"`" ];then \
 @ENABLE_SVN2CL_TRUE@            echo "Generating ChangeLog from SVN $(CHANGELOG_OLDEST)->HEAD"; \
-@ENABLE_SVN2CL_TRUE@            $(SVN2CL) --include-actions -i -a --group-by-day --separate-daylogs --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST); \
+@ENABLE_SVN2CL_TRUE@            $(SVN2CL) --include-actions -i -a --group-by-day --separate-daylogs \
+@ENABLE_SVN2CL_TRUE@            	--include-rev \
+@ENABLE_SVN2CL_TRUE@             	--revision-link='http://chan-sccp-b.svn.sourceforge.net/viewvc/chan-sccp-b/trunk/?pathrev=' \
+@ENABLE_SVN2CL_TRUE@              	--ticket-link='http://sourceforge.net/tracker/?func=detail&group_id=186378&atid=917045&aid=' \
+@ENABLE_SVN2CL_TRUE@              	--ignore-message-starting='#' \
+@ENABLE_SVN2CL_TRUE@              	--revision HEAD:$(CHANGELOG_OLDEST); \
 @ENABLE_SVN2CL_TRUE@	  fi; \
 @ENABLE_SVN2CL_TRUE@	fi
 @ENABLE_SVN2CL_FALSE@	svn log > ChangeLog
@@ -954,7 +959,9 @@ ChangeLog-HTML:	FORCE
 @ENABLE_SVN2CL_TRUE@	  if [ -z "`cat doc/html/ChangeLog_SVN2CL.html 2>/dev/null| grep "\[r$${svnrev:10}\]"`" ];then \
 @ENABLE_SVN2CL_TRUE@            echo "Generating doc/html/ChangeLog_SVN2CL.html from SVN $(CHANGELOG_OLDEST)->HEAD"; \
 @ENABLE_SVN2CL_TRUE@            if [ ! -d doc/html ]; then mkdir doc/html;fi; \
-@ENABLE_SVN2CL_TRUE@            $(SVN2CL) --include-actions -i -a --group-by-day --title "Chan_SCCP-b ChangeLog" --separate-daylogs --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST) --html -o doc/html/ChangeLog_SVN2CL.html --revision-link 'http://chan-sccp-b.svn.sourceforge.net/viewvc/chan-sccp-b?view=rev&revision='; \
+@ENABLE_SVN2CL_TRUE@            $(SVN2CL) --include-actions -i -a --group-by-day --title "Chan_SCCP-b ChangeLog" --separate-daylogs --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST) --html -o doc/html/ChangeLog_SVN2CL.html \
+@ENABLE_SVN2CL_TRUE@            --revision-link 'http://chan-sccp-b.svn.sourceforge.net/viewvc/chan-sccp-b?view=rev&revision=' \
+@ENABLE_SVN2CL_TRUE@            --ticket-link='http://sourceforge.net/tracker/?func=detail&group_id=186378&atid=917045&aid='; \
 @ENABLE_SVN2CL_TRUE@            cp autoconf/svn2html.css doc/html/; \
 @ENABLE_SVN2CL_TRUE@	  fi; \
 @ENABLE_SVN2CL_TRUE@	fi

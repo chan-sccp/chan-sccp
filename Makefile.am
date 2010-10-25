@@ -28,7 +28,12 @@ if ENABLE_SVN2CL
 	@if svnrev=`svn info |grep Revision`; then \
 	  if [ -z "`cat ChangeLog 2>/dev/null| grep "\[r$${svnrev:10}\]"`" ];then \
             echo "Generating ChangeLog from SVN $(CHANGELOG_OLDEST)->HEAD"; \
-            $(SVN2CL) --include-actions -i -a --group-by-day --separate-daylogs --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST); \
+            $(SVN2CL) --include-actions -i -a --group-by-day --separate-daylogs \
+            	--include-rev \
+             	--revision-link='http://chan-sccp-b.svn.sourceforge.net/viewvc/chan-sccp-b/trunk/?pathrev=' \
+              	--ticket-link='http://sourceforge.net/tracker/?func=detail&group_id=186378&atid=917045&aid=' \
+              	--ignore-message-starting='#' \
+              	--revision HEAD:$(CHANGELOG_OLDEST); \
 	  fi; \
 	fi
 else
@@ -42,7 +47,9 @@ if ENABLE_SVN2CL
 	  if [ -z "`cat doc/html/ChangeLog_SVN2CL.html 2>/dev/null| grep "\[r$${svnrev:10}\]"`" ];then \
             echo "Generating doc/html/ChangeLog_SVN2CL.html from SVN $(CHANGELOG_OLDEST)->HEAD"; \
             if [ ! -d doc/html ]; then mkdir doc/html;fi; \
-            $(SVN2CL) --include-actions -i -a --group-by-day --title "Chan_SCCP-b ChangeLog" --separate-daylogs --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST) --html -o doc/html/ChangeLog_SVN2CL.html --revision-link 'http://chan-sccp-b.svn.sourceforge.net/viewvc/chan-sccp-b?view=rev&revision='; \
+            $(SVN2CL) --include-actions -i -a --group-by-day --title "Chan_SCCP-b ChangeLog" --separate-daylogs --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST) --html -o doc/html/ChangeLog_SVN2CL.html \
+            --revision-link 'http://chan-sccp-b.svn.sourceforge.net/viewvc/chan-sccp-b?view=rev&revision=' \
+            --ticket-link='http://sourceforge.net/tracker/?func=detail&group_id=186378&atid=917045&aid='; \
             cp autoconf/svn2html.css doc/html/; \
 	  fi; \
 	fi
