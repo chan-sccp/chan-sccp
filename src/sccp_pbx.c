@@ -996,7 +996,10 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 		ast_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", oldchan->name, (void *)oldchan, newchan->name, (void *)newchan);
 		return -1;
 	}
-	sccp_mutex_lock(&c->lock);
+	while (c->owner && sccp_ast_channel_trylock(c)) {
+		SCCP_CHANNEL_DEADLOCK_AVOIDANCE(c->owner);
+	}
+	//sccp_mutex_lock(&c->lock);
 	if (c->owner != oldchan) {
 		ast_log(LOG_WARNING, "SCCP: old channel wasn't %p but was %p\n", (void *)oldchan, (void *)c->owner);
 		sccp_mutex_unlock(&c->lock);
@@ -1007,7 +1010,7 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 	ast_log(LOG_WARNING, "sccp_pbx_fixup(new: %s - cid_num %s\n", newchan->name, (newchan->cid.cid_num)?newchan->cid.cid_num:"NULL");
 	ast_log(LOG_WARNING, "sccp_pbx_fixup(new: %s - cid_name %s\n", newchan->name, newchan->cid.cid_name?newchan->cid.cid_name:"NULL");
 
-	sccp_mutex_unlock(&c->lock);
+	sccp_channel_unlock(c);
 	return 0;
 }
 
