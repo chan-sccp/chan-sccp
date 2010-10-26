@@ -148,31 +148,34 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
 // 			channel->capability |= channel->device->capability;
 // 		}
 		memcpy(&channel->codecs, &channel->device->codecs, sizeof(channel->codecs));
-		
-		
+
+
 		/* asterisk requested format, we can not handle with this device */
 		if( !(channel->format & channel->capability) ){
 			channel->format = ast_codec_choose(&channel->codecs, channel->capability, 1);
 		}
 	}
-	
+
 
 	if(channel->isCodecFix == FALSE){
 		/* we does not have set a preferred format before */
 		channel->format = ast_codec_choose(&channel->codecs, channel->capability, 1);
 	}
 
+	/* Check here, because if channel->owner becomes NULL we want to do the check just after */
+	while (channel->owner && sccp_ast_channel_trylock(channel->owner)) {
+		SCCP_CHANNEL_DEADLOCK_AVOIDANCE(channel);
+	}
 	if(channel->owner){
-		ast_channel_lock(channel->owner);
 		channel->owner->nativeformats = channel->format; /* if we set nativeformats to a single format, we force asterisk to translate stream */
 
 		channel->owner->rawreadformat = channel->format;
 		channel->owner->rawwriteformat = channel->format;
-		
+
 
 		channel->owner->writeformat	= channel->format; /*|AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS;*/
 		channel->owner->readformat 	= channel->format; /*|AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS;*/
-		
+
 // 		if( (channel->capability & AST_FORMAT_VIDEO_MASK) ){
 // 			channel->owner->writeformat |= (channel->capability & AST_FORMAT_VIDEO_MASK);
 // 			channel->owner->readformat |= (channel->capability & AST_FORMAT_VIDEO_MASK);
@@ -180,7 +183,7 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
 
 		ast_set_read_format(channel->owner, channel->format);
 		ast_set_write_format(channel->owner, channel->format);
-		ast_channel_unlock(channel->owner);
+		sccp_ast_channel_unlock(channel->owner);
 	}
 
 	sccp_log(2)(VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d) USED: %s(%d) \n",
@@ -386,7 +389,7 @@ static void sccp_channel_send_dynamicCallinfo(sccp_device_t *device, sccp_channe
 
 	if (device->inuseprotocolversion < 16) {
 		usableFields = 12;
-		
+
 		data[0] = (strlen(channel->callInfo.callingPartyNumber) > 0) 		? channel->callInfo.callingPartyNumber : NULL;
 		data[1] = (strlen(channel->callInfo.calledPartyNumber) > 0) 		? channel->callInfo.calledPartyNumber : NULL;
 		data[2] = (strlen(channel->callInfo.originalCalledPartyNumber) > 0) 	? channel->callInfo.originalCalledPartyNumber : NULL;
@@ -477,9 +480,9 @@ static void sccp_channel_send_dynamicCallinfo(sccp_device_t *device, sccp_channe
  * \callergraph
  */
 void sccp_channel_send_callinfo(sccp_device_t *device, sccp_channel_t *channel){
-  
+
 	sccp_log(1)(VERBOSE_PREFIX_3 "%s: send callInfo of callid %d\n", DEV_ID_LOG(device), (channel) ? channel->callid : 0);
-	
+
 	if(device->inuseprotocolversion < 7){
 		/* fallback to CallInfoMessage */
 		return sccp_channel_send_staticCallinfo(device, channel);
@@ -967,10 +970,10 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t *channel){
  	if(channel->device && (channel->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) ){
  		return;
  	}
-	
+
 	channel->rtp.video.status |= SCCP_RTP_STATUS_RECEIVE;
 	skinnyFormat = sccp_codec_ast2skinny(channel->rtp.video.writeFormat);
-	
+
 	//sampleRate = ast_rtp_lookup_sample_rate(1, channel->rtp.video.writeFormat);
 	payloadType = ast_rtp_lookup_code(channel->rtp.video.rtp, 1, channel->rtp.video.writeFormat);
 	lineInstance = sccp_device_find_index_for_line(channel->device, channel->line->name);
@@ -981,10 +984,10 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t *channel){
 	}
 	sampleRate = 3840;
 
-	
+
 	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Open receive multimedia channel with format %s[%d] skinnyFormat %s[%d], payload %d\n", DEV_ID_LOG(channel->device), ast_codec2str(channel->rtp.video.writeFormat), channel->rtp.video.writeFormat, codec2str(skinnyFormat),skinnyFormat, payloadType);
-	
-	
+
+
 	if(channel->device->inuseprotocolversion < 15) {
 		r = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(r->msg.OpenMultiMediaChannelMessage));
 
@@ -1014,7 +1017,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t *channel){
 	// 	r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.annexNandwFutureUse			= htolel(0x2d20504c);
 	// 	r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.modelNumber				= htolel(0x3a504820);
 	// 	r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.bandwidth				= htolel(0x202c3020);
-		
+
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.h263CapabilityBitfield			= htolel(0x4c3a525b);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.annexNandwFutureUse			= htolel(0x202d2050);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.modelNumber				= htolel(0x203a5048);
@@ -1022,7 +1025,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t *channel){
 
 		r->msg.OpenMultiMediaChannelMessage.dataParameter.protocolDependentData 					= 0;
 		r->msg.OpenMultiMediaChannelMessage.dataParameter.maxBitRate  							= 0;
-		
+
 		sccp_dump_packet((unsigned char *)&r->msg, sizeof(r->msg.OpenMultiMediaChannelMessage));
 	}else{
 		r = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(r->msg.OpenMultiMediaChannelMessage_v17));
@@ -1053,7 +1056,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t *channel){
 	// 	r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.annexNandwFutureUse			= htolel(0x2d20504c);
 	// 	r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.modelNumber				= htolel(0x3a504820);
 	// 	r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.bandwidth				= htolel(0x202c3020);
-		
+
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.h263VideoCapability.h263CapabilityBitfield		= htolel(0x4c3a525b);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.h263VideoCapability.annexNandwFutureUse			= htolel(0x202d2050);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.vieoVideoCapability.modelNumber				= htolel(0x203a5048);
@@ -1061,7 +1064,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t *channel){
 
 		r->msg.OpenMultiMediaChannelMessage_v17.dataParameter.protocolDependentData 					= 0;
 		r->msg.OpenMultiMediaChannelMessage_v17.dataParameter.maxBitRate  						= 0;
-		
+
 		sccp_dump_packet((unsigned char *)&r->msg, sizeof(r->msg.OpenMultiMediaChannelMessage_v17));
 	}
 
@@ -1081,7 +1084,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 	char 			iabuf[INET_ADDRSTRLEN];
 #endif
 
-	
+
 	channel->rtp.video.readFormat = AST_FORMAT_H264;
 	skinnyFormat = sccp_codec_ast2skinny(channel->rtp.video.readFormat);
 	packetSize = 3840;
@@ -1096,18 +1099,18 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 	if(!(d = channel->device))
 		return;
 
-	
+
 	/* lookup payloadType */
 	payloadType = ast_rtp_lookup_code(channel->rtp.video.rtp, 1, channel->rtp.video.readFormat);
 	if(payloadType == -1){
-		//TODO handle payload error 
+		//TODO handle payload error
 		payloadType = 97;
 	}
-	ast_rtp_set_m_type(channel->rtp.video.rtp, payloadType); 
+	ast_rtp_set_m_type(channel->rtp.video.rtp, payloadType);
 	//ast_rtp_set_rtpmap_type(channel->rtp.video.rtp, payloadType, "video", ast_rtp_lookup_mime_subtype(1, channel->rtp.video.readFormat, 0), 0);
 
-	
-	
+
+
 	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: using payload %d\n", channel->device->id, payloadType);
 
 	ast_rtp_get_us(channel->rtp.video.rtp, &sin);
@@ -1175,9 +1178,9 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 		r->msg.StartMultiMediaTransmission.unknown[9]		  							= htolel(0x076d0a58);
 		r->msg.StartMultiMediaTransmission.unknown[10]		  							= htolel(0x076d0a78);
 		r->msg.StartMultiMediaTransmission.unknown[11]		  							= r->msg.StartMultiMediaTransmission.unknown[9];
-		
+
 	} else {
-	  
+
 		r = sccp_build_packet(StartMultiMediaTransmission, sizeof(r->msg.StartMultiMediaTransmission_v17));
 		r->msg.StartMultiMediaTransmission_v17.lel_conferenceID 							= htolel(channel->callid);
 		r->msg.StartMultiMediaTransmission_v17.lel_passThruPartyId							= htolel(channel->passthrupartyid);
@@ -1226,8 +1229,8 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 		r->msg.StartMultiMediaTransmission_v17.unknown[9]		  						= htolel(0x076d0a58);
 		r->msg.StartMultiMediaTransmission_v17.unknown[10]		  						= htolel(0x076d0a78);
 		r->msg.StartMultiMediaTransmission_v17.unknown[11]		  						= r->msg.StartMultiMediaTransmission_v17.unknown[9];
-	  
-	  
+
+
 	}
 
 #if ASTERISK_VERSION_NUM < 10400
@@ -1236,7 +1239,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t *channel){
 	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s(%d) (%d ms), payloadType %d, tos %d, silencesuppression: %s\n",channel->device->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), ast_codec2str(channel->rtp.video.readFormat),channel->rtp.video.readFormat, packetSize, payloadType, channel->line->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
 #endif
 	sccp_dev_send(channel->device, r);
-	
+
 	r = sccp_build_packet(FlowControlCommandMessage, sizeof(r->msg.FlowControlCommandMessage));
 	r->msg.FlowControlCommandMessage.lel_conferenceID 			= htolel(channel->callid);
 	r->msg.FlowControlCommandMessage.lel_passThruPartyId			= htolel(channel->passthrupartyid);
@@ -1376,7 +1379,7 @@ void sccp_channel_closereceivechannel(sccp_channel_t * c)
 	c->isCodecFix = FALSE;
 	c->mediaStatus.receive = FALSE;
 	c->rtp.audio.status &= ~SCCP_RTP_STATUS_RECEIVE;
-	
+
 	if(c->rtp.video.rtp){
 		REQ(r, CloseMultiMediaReceiveChannel);
 		r->msg.CloseMultiMediaReceiveChannel.lel_conferenceId = htolel(c->callid);
@@ -1384,7 +1387,7 @@ void sccp_channel_closereceivechannel(sccp_channel_t * c)
 		r->msg.CloseMultiMediaReceiveChannel.lel_conferenceId1 = htolel(c->callid);
 		sccp_dev_send(d, r);
 	}
-	
+
 	sccp_channel_unlock(c);
 
 	sccp_channel_stopmediatransmission(c);
@@ -1422,7 +1425,7 @@ void sccp_channel_stopmediatransmission(sccp_channel_t * c)
 		sccp_channel_stop_rtp(c);
 	}
 	c->rtp.audio.status &= ~SCCP_RTP_STATUS_TRANSMIT;
-	
+
 	// stopping vrtp
 	if(c->rtp.video.rtp ) {
 		REQ(r, StopMultiMediaTransmission);
@@ -1431,7 +1434,7 @@ void sccp_channel_stopmediatransmission(sccp_channel_t * c)
 		r->msg.StopMultiMediaTransmission.lel_conferenceId1 = htolel(c->callid);
 		sccp_dev_send(d, r);
 	}
-	
+
 	sccp_channel_unlock(c);
 
 	/* requesting statistics */
@@ -1552,7 +1555,7 @@ void sccp_channel_endcall(sccp_channel_t * c)
 		res = (c->owner->pbx || c->owner->blocker);
 
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Sending %s hangup request to %s\n", DEV_ID_LOG(c->device), res ? "(queue)" : "(force)", c->owner->name);
-		
+
 		if ((c->owner->_softhangup & AST_SOFTHANGUP_APPUNLOAD) != 0) {
 			c->owner->hangupcause = AST_CAUSE_CHANNEL_UNACCEPTABLE;
 		}else {
@@ -1713,11 +1716,11 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 	c->device = d;
 
 	sccp_channel_updateChannelCapability(c);
-	
+
 	const char *bridgePeer = pbx_builtin_getvar_helper(c->owner, "BRIDGEPEER");
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: ANSWER BRIDGEPEER: %s\n", bridgePeer?bridgePeer:"(null)");
-	
-	
+
+
 	/*
 	c->owner->nativeformats = device->capability;
 	c->format = ast_codec_choose(&device->codecs, device->capability, 1);
@@ -1807,7 +1810,7 @@ int sccp_channel_hold(sccp_channel_t * c)
 		return 0;
 	}
 
-	
+
 	/* put on hold an active call */
 	if (c->state != SCCP_CHANNELSTATE_CONNECTED && c->state != SCCP_CHANNELSTATE_PROCEED) { // TOLL FREE NUMBERS STAYS ALWAYS IN CALL PROGRESS STATE
 		/* something wrong on the code let's notify it for a fix */
@@ -2223,7 +2226,7 @@ boolean_t sccp_channel_start_rtp(sccp_channel_t * c)
 		ast_rtp_codec_setpref(c->rtp.audio.rtp, &c->codecs);
 #endif
 	}
-	
+
 	return TRUE;
 }
 
@@ -2520,7 +2523,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 		sccp_dev_displayprompt(d, instance, cDestinationLocal->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
 	}
-	
+
 	if (cDestinationLocal->state == SCCP_CHANNELSTATE_RINGOUT) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Blind transfer. Signalling ringing state to %s\n", d->id, astcSourceRemote->name);
 		ast_indicate(astcSourceRemote, AST_CONTROL_RINGING); // Shouldn't this be ALERTING?
@@ -2560,7 +2563,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 				sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: Blind %s Transfer, callerid exchange need to be implemented\n", CS_AST_CHANNEL_PVT_TYPE(astcSourceRemote));
 			}
 		}
-		
+
 	}
 	if (ast_channel_masquerade(astcDestinationLocal, astcSourceRemote)) {
 		ast_log(LOG_WARNING, "SCCP: Failed to masquerade %s into %s\n", astcDestinationLocal->name, astcSourceRemote->name);
@@ -2592,7 +2595,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 
 	/* it's a SCCP channel destination on transfer */
 	cDestinationRemote = CS_AST_CHANNEL_PVT(astcDestinationRemote);
-	
+
 	/* change callInfo on our destination */
 	if (cDestinationRemote) {
 		sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: Transfer for Channel Type %s\n", CS_AST_CHANNEL_PVT_TYPE(astcSourceRemote));
@@ -2612,14 +2615,14 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 				sccp_copy_string(cDestinationRemote->callInfo.callingPartyNumber, cSourceLocal->callInfo.calledPartyNumber, sizeof(cDestinationRemote->callInfo.originalCallingPartyNumber));
 			}
 			sccp_channel_send_callinfo(cDestinationRemote->device, cDestinationRemote);
-			
-			
+
+
 		} else {
 			ast_set_callerid(astcDestinationRemote, cSourceLocal->callInfo.callingPartyNumber, cSourceLocal->callInfo.callingPartyName, NULL);
 			sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: %s Transfer, callerid exchange need to be implemented\n", CS_AST_CHANNEL_PVT_TYPE(astcDestinationRemote));
 		} // no sccp channel
 	}
-	
+
 	/* change callInfo on our source */
 	cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
 	if (cSourceRemote) {
@@ -2633,9 +2636,9 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 
 				sccp_copy_string(cSourceRemote->callInfo.calledPartyName, cDestinationLocal->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.calledPartyName));
 				sccp_copy_string(cSourceRemote->callInfo.calledPartyNumber, cDestinationLocal->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.calledPartyNumber));
-				
+
 				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: set originalCalledPartyNumber %s, calledPartyNumber %s\n", DEV_ID_LOG(cSourceRemote->device), cSourceRemote->callInfo.originalCalledPartyNumber, cSourceRemote->callInfo.calledPartyNumber);
-				
+
 			}else if(cSourceLocal->calltype == SKINNY_CALLTYPE_OUTBOUND){
 				/* copy old callerid */
 				sccp_copy_string(cSourceRemote->callInfo.originalCallingPartyName, cSourceRemote->callInfo.callingPartyName, sizeof(cSourceRemote->callInfo.originalCallingPartyName));
@@ -2643,7 +2646,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 
 				sccp_copy_string(cSourceRemote->callInfo.callingPartyName, cDestinationLocal->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.callingPartyName));
 				sccp_copy_string(cSourceRemote->callInfo.callingPartyNumber, cDestinationLocal->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.callingPartyNumber));
-				
+
 				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: set originalCalledPartyNumber %s, calledPartyNumber %s\n", DEV_ID_LOG(cSourceRemote->device), cSourceRemote->callInfo.originalCalledPartyNumber, cSourceRemote->callInfo.calledPartyNumber);
 			}
 
@@ -2659,7 +2662,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal) {
 	if (GLOB(transfer_tone) && cDestinationLocal->state == SCCP_CHANNELSTATE_CONNECTED){
 		/* while connected not all the tones can be played */
 		sccp_dev_starttone(cDestinationLocal->device, GLOB(autoanswer_tone), instance, cDestinationLocal->callid, 0);
-	} 
+	}
 }
 
 /*!
