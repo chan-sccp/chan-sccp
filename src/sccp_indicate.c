@@ -269,10 +269,10 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_2 "%s: SCCP_CHANNELSTATE_PROGRESS\n", d->id);
 		if(c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) { // this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app)
 			sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
-			c->state = SCCP_CHANNELSTATE_CONNECTED;
+//			c->state = SCCP_CHANNELSTATE_CONNECTED;
 		} else {
 			sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) from (%s)\n",sccp_indicate2str(c->previousChannelState));
-			if (!c->rtp.audio.rtp) {
+			if (!c->rtp.audio.rtp && d->earlyrtp) {
 				sccp_channel_openreceivechannel(c);
 			}
 			sccp_dev_displayprompt(d, instance, c->callid, "Call Progress", 0);		
@@ -287,10 +287,8 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 		sccp_device_sendcallstate(d, instance,c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT); /* send connected, so it is not listed as missed call*/
 		sccp_channel_send_callinfo(d, c);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
-		if (!c->rtp.audio.rtp) {
-			if (d->earlyrtp) {
-				sccp_channel_openreceivechannel(c);
-			}
+		if (!c->rtp.audio.rtp && d->earlyrtp) {
+			sccp_channel_openreceivechannel(c);
 		}
 		break;
 	case SCCP_CHANNELSTATE_HOLD:
