@@ -522,9 +522,9 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 			}
 		}
 
-		ast_log(LOG_ERROR, "SCCP: bridge: %s\n", (br)?br->name:" -- no bridged found -- ");
 		/* did we find our bridge */
 		if(br){
+			ast_log(LOG_NOTICE, "SCCP: bridge: %s\n", (br)?br->name:" -- no bridged found -- ");
 			c->parentChannel = NULL;
 			ast_channel_masquerade(astForwardedChannel, br); /* bridge me */
 			return 0;
@@ -988,6 +988,7 @@ static void sccp_pbx_update_connectedline(sccp_channel_t *channel, const void *d
  * \return Success as int
  */
 static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newchan) {
+	int deadlock_counter=0;
 	sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: we gote a fixup request for %s\n", newchan->name);
 
 	sccp_channel_t * c = CS_AST_CHANNEL_PVT(newchan);
@@ -996,20 +997,18 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 		ast_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", oldchan->name, (void *)oldchan, newchan->name, (void *)newchan);
 		return -1;
 	}
-	while (c->owner && sccp_channel_trylock(c)) {
-		AST_CHANNEL_DEADLOCK_AVOIDANCE(c->owner);
-	}
-	if (c->owner != oldchan) {
-		ast_log(LOG_WARNING, "SCCP: old channel wasn't %p but was %p\n", (void *)oldchan, (void *)c->owner);
-		sccp_mutex_unlock(&c->lock);
-		return -1;
-	}
-
+	
 	c->owner = newchan;
-	ast_log(LOG_WARNING, "sccp_pbx_fixup(new: %s - cid_num %s\n", newchan->name, (newchan->cid.cid_num)?newchan->cid.cid_num:"NULL");
-	ast_log(LOG_WARNING, "sccp_pbx_fixup(new: %s - cid_name %s\n", newchan->name, newchan->cid.cid_name?newchan->cid.cid_name:"NULL");
-
-	sccp_channel_unlock(c);
+	
+	while (c->owner !=newchan && sccp_channel_trylock(c) && deadlock_counter++ < 200) {
+		c->owner = newchan;
+		sccp_channel_unlock(c);
+		
+		ast_channel_unlock(c->owner);
+		sleep(1);
+		ast_channel_lock(c->owner);
+	}
+	
 	return 0;
 }
 
