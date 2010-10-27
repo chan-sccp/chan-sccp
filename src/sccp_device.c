@@ -1073,7 +1073,9 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 		return;
 
 	sccp_dev_clearprompt(d, 0, 0);
-	sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
+	/* Do not erase the prompt with this useless message, for example if
+	 * there is a call forward enabled. */
+	//sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
 
 	if (d->phonemessage){ 								// display message if set
 		sccp_dev_displayprompt(d,0,0,d->phonemessage,0);
