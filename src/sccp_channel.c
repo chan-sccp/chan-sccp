@@ -165,7 +165,7 @@ void sccp_channel_updateChannelCapability(sccp_channel_t *channel){
 	/* Check here, because if channel->owner becomes NULL we want to do the check just after */
 	while (channel->owner && sccp_ast_channel_trylock(channel->owner)) {
 		sccp_channel_unlock(channel);
-		sleep(1);
+		usleep(1);
 		sccp_channel_lock(channel);
 	}
 	if(channel->owner){
