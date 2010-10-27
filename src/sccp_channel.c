@@ -1753,6 +1753,7 @@ void sccp_channel_answer(sccp_device_t *device, sccp_channel_t * c)
 		if(channel->parentChannel == c){
 			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
 			sccp_channel_endcall(channel);
+			c->answered_elsewhere = TRUE;
 		}
 	}
 	SCCP_LIST_UNLOCK(&c->line->channels);
