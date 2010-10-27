@@ -379,7 +379,15 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t *device, uint8_t type, char *
 	}
 	if(linedevice && linedevice->device){
 		sccp_dev_starttone(linedevice->device, SKINNY_TONE_ZIPZIP, 0, 0, 0);
-		sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDALL);
+		switch(type){
+			case SCCP_CFWD_ALL:
+				sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDALL);
+			case SCCP_CFWD_BUSY:
+				sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDBUSY);
+			default:
+				sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDALL);
+		}
+		sccp_dev_forward_status(l, linedevice->lineInstance, device);
 	}
 }
 
