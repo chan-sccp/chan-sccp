@@ -22,7 +22,11 @@
 	#define sccp_ast_channel_lock(x)    	ast_channel_lock(x)
 	#define sccp_ast_channel_unlock(x)  	ast_channel_unlock(x)
 	#define sccp_ast_channel_trylock(x) 	ast_channel_trylock(x)
-	#define SCCP_CHANNEL_DEADLOCK_AVOIDANCE(x)	DEADLOCK_AVOIDANCE(&x->lock)
+	#if ASTERISK_VERSION_NUM >= 10600
+		#define SCCP_CHANNEL_DEADLOCK_AVOIDANCE(x)	CHANNEL_DEADLOCK_AVOIDANCE(x)
+	#else
+		#define SCCP_CHANNEL_DEADLOCK_AVOIDANCE(x)	DEADLOCK_AVOIDANCE(&x->lock)
+	#endif
 #else
 	/* Channel Mutex Macros for Asterisk 1.2 */
 	#define sccp_ast_channel_lock(x)    	sccp_mutex_lock(&x->lock)

@@ -999,7 +999,6 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 	while (c->owner && sccp_ast_channel_trylock(c)) {
 		SCCP_CHANNEL_DEADLOCK_AVOIDANCE(c->owner);
 	}
-	//sccp_mutex_lock(&c->lock);
 	if (c->owner != oldchan) {
 		ast_log(LOG_WARNING, "SCCP: old channel wasn't %p but was %p\n", (void *)oldchan, (void *)c->owner);
 		sccp_mutex_unlock(&c->lock);
