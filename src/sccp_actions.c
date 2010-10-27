@@ -96,6 +96,12 @@ static sccp_device_t *check_session_message_device( sccp_session_t *s, sccp_moo_
 	if (s != s->device->session) {
 		ast_log(LOG_WARNING,"(%s) Provided Session and Device Session are not the same!!\n", msg);
 	}
+
+	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {
+		uint32_t mid = letohl(r->lel_messageId);
+		ast_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(d), message2str(mid), mid, r->length);
+		sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
+	}	
 	
 	return d;
 }

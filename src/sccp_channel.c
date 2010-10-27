@@ -821,7 +821,7 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 		if(d->inuseprotocolversion < 17) {
 			if (!d->directrtp || d->nat) {
 				ast_rtp_get_us(rtp, &us);
-				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
+				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (No DirectRTP & NAT) ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
 				memcpy(&r->msg.StartMediaTransmission.bel_remoteIpAddr, &us.sin_addr, 4);
 				r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(us.sin_port));
 			} else {
@@ -838,7 +838,7 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 		} else {
 			if (!d->directrtp || d->nat) {
 				ast_rtp_get_us(rtp, &us);
-				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
+				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (No DirectRTP & NAT) ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
 				memcpy(&r->msg.StartMediaTransmission_v17.bel_remoteIpAddr, &us.sin_addr, 4);
 				r->msg.StartMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(us.sin_port));
 			} else {
