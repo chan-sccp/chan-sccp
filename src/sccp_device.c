@@ -1073,9 +1073,6 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 		return;
 
 	sccp_dev_clearprompt(d, 0, 0);
-	/* Do not erase the prompt with this useless message, for example if
-	 * there is a call forward enabled. */
-	//sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
 
 	if (d->phonemessage){ 								// display message if set
 		sccp_dev_displayprompt(d,0,0,d->phonemessage,0);
@@ -1083,31 +1080,11 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	}
 
 	/* check for forward to display */
-//	res = 0;	// \todo remove line: res never gets used
-
-#if 0 // CS_ADV_FEATURES
-	/* we should not do this, is requested by device and have to be set on status change -MC */
-	sccp_buttonconfig_t 	*buttonconfig;
-	sccp_linedevices_t 	*linedevice;
-	sccp_line_t 		*l;
-
-	SCCP_LIST_LOCK(&d->buttonconfig);
- 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
- 		if(buttonconfig->type == LINE ){
- 			l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
- 			if (l) {
-				linedevice = sccp_util_getDeviceConfiguration(d, l);
-	 			if (linedevice && (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled) ) {
- 					sccp_dev_forward_status(l, d);
- 				}
-			}
-		}
-	}
-	SCCP_LIST_UNLOCK(&d->buttonconfig);
-	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK); 					/* this is for redial softkey */
-#endif
+	if (sccp_dev_display_cfwd(d, FALSE) == TRUE)
+		goto OUT;
 
 #if 0 // Old code to check and set CallForward Indication. Implemention moved / We might need a check in this location later on - DdG/MC
+//	res = 0;
 // 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 // 		if(buttonconfig->type == LINE ){
 // 			l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
@@ -1379,6 +1356,43 @@ void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t inst
 	//sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send lamp mode %s(%d) on line %d\n", d->id, lampmode2str(lampMode), lampMode, instance );
 }
 
+boolean_t sccp_dev_display_cfwd(sccp_device_t* device, boolean_t force)
+{
+	boolean_t ret = TRUE;
+	char tmp[256];
+	size_t len = sizeof(tmp);
+	char *s = tmp;
+	sccp_line_t* line = NULL;
+	sccp_linedevices_t* ld = NULL;
+
+	/* List every forwarded lines on the device prompt. */
+	SCCP_LIST_TRAVERSE(&GLOB(lines), line, list) {
+		SCCP_LIST_TRAVERSE(&line->devices, ld, list){
+			if(ld->device == device) {
+				if (s != tmp)
+					ast_build_string(&s, &len, ", ");
+				if (ld->cfwdAll.enabled) {
+					ast_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, ld->cfwdAll.number);
+				} else if (ld->cfwdBusy.enabled) {
+					ast_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, ld->cfwdBusy.number);
+				}
+			}
+		}
+	}
+	/* There isn't any forward on device's lines. */
+	if (s == tmp) {
+		ret = FALSE;
+		if (force) {
+			/* Send an empty message to hide the message. */
+			tmp[0] = ' ';
+			tmp[1] = '\0';
+		}
+	}
+	sccp_dev_displayprompt(device, 0, 0, tmp, 0);
+
+	return ret;
+}
+
 /*!
  * \brief Send forward status to a line on a device
  * \param l SCCP Line
@@ -1419,36 +1433,7 @@ void sccp_dev_forward_status(sccp_line_t *l, uint8_t lineInstance, sccp_device_t
 			sccp_copy_string(r1->msg.ForwardStatMessage.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(r1->msg.ForwardStatMessage.cfwdbusynumber));
 		}
 
-#ifdef CS_ADV_FEATURES
-		char tmp[256];
-		size_t len = sizeof(tmp);
-		char *s = tmp;
-		sccp_line_t* line = NULL;
-		sccp_linedevices_t* ld = NULL;
-
-		/* List every forwarded lines on the device prompt. */
-		SCCP_LIST_TRAVERSE(&GLOB(lines), line, list) {
-			SCCP_LIST_TRAVERSE(&line->devices, ld, list){
-				if(ld->device == device) {
-					if (s != tmp)
-						ast_build_string(&s, &len, ", ");
-					if (ld->cfwdAll.enabled) {
-						ast_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, ld->cfwdAll.number);
-					} else if (ld->cfwdBusy.enabled) {
-						ast_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, ld->cfwdBusy.number);
-					}
-				}
-			}
-		}
-		/* There isn't any forward on device's lines. Send an empty message
-		 * to hide the message.
-		 */
-		if (s == tmp) {
-			tmp[0] = ' ';
-			tmp[1] = '\0';
-		}
-		sccp_dev_displayprompt(device, 0, 0, tmp, 0);
-#endif
+		sccp_dev_display_cfwd(device, TRUE);
 	}
 	sccp_dev_send(device, r1);
 
