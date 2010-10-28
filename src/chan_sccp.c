@@ -1419,7 +1419,7 @@ static char *calledparty_descr= "Usage: SetCalledParty(\"Name\" <ext>)"
  * \version	20071112_1944
  */
 static int sccp_app_setmessage(struct ast_channel *chan, void *data) {
-	char tmp[256] 		= "";
+	char *text = data;
 	sccp_channel_t 	* c = NULL;
 	sccp_device_t 	* d;
 
@@ -1428,18 +1428,17 @@ static int sccp_app_setmessage(struct ast_channel *chan, void *data) {
 		return 0;
 	}
 
- 	if (!data || !c ||!c->device)
+ 	if (!text || !c ||!c->device)
  		return 0;
-
- 	sccp_copy_string(tmp, (char *)data, sizeof(tmp));
 
 	d = c->device;
 	sccp_device_lock(d);
-	if (strlen(tmp)>0) {
-		sccp_dev_displayprinotify(d,tmp,5,0);
-		sccp_dev_displayprompt(d,0,0,tmp,0);
-		d->phonemessage = strdup(tmp);
-		ast_db_put("SCCPM", d->id, tmp);
+	ast_free(d->phonemessage);
+	if (text[0] != '\0') {
+		sccp_dev_displayprinotify(d,text,5,0);
+		sccp_dev_displayprompt(d,0,0,text,0);
+		d->phonemessage = ast_strdup(text);
+		ast_db_put("SCCPM", d->id, text);
 	}
 	else {
 		sccp_dev_displayprinotify(d,"Message off",5,1);
