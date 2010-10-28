@@ -47,14 +47,11 @@ void sccp_line_pre_reload(void)
 
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list){
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: Setting Line to Pending Delete=1\n", l->name);
 		/* Don't want to include the hotline line */
-#ifdef CS_SCCP_REALTIME
-		if (l->realtime == FALSE)
+		if (l->realtime == FALSE) {
 			l->pendingDelete = 1;
-#else
-		l->pendingDelete = 1;
-#endif
+			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: Setting Line to Pending Delete=1\n", l->name);
+		}
 		l->pendingUpdate = 0;
 	}
 	SCCP_LIST_UNLOCK(&GLOB(lines));

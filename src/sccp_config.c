@@ -1240,11 +1240,12 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list){
-		if (l->realtime == TRUE){
+		if (l->realtime == TRUE && l != GLOB(hotline)->line){
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: reload realtime line\n", l->name);
 			v = ast_load_realtime(GLOB(realtimelinetable), "name", l->name, NULL);
 			/* we did not find this line, mark it for deletion */ 
 			if(!v){
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: realtime line not found - set pendingDelet=1\n", l->name);
 				l->pendingDelete = 1;
 				continue;
 			}
