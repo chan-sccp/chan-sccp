@@ -1301,6 +1301,15 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t *l, st
 	unsigned int video_cos = 0;
 	int secondary_dialtone_tone = 0;
 
+#ifdef CS_DYNAMIC_CONFIG
+	if (l->pendingDelete) {
+		/* removing variables */
+		if (l->variables) {
+			ast_variables_destroy(l->variables);
+			l->variables = NULL;
+		}
+	}
+#endif
 
 	while (v) {
 		if(!(v->name)) {
@@ -1577,6 +1586,12 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 		SCCP_LIST_UNLOCK(&d->addons);
 		SCCP_LIST_HEAD_DESTROY(&d->addons);
 		SCCP_LIST_HEAD_INIT(&d->addons);
+
+		/* removing variables */
+		if (d->variables) {
+			ast_variables_destroy(d->variables);
+			d->variables = NULL;
+		}
 
 		/* removing permithosts */
 		sccp_hostname_t	*permithost;
