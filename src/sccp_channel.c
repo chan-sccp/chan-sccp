@@ -1845,16 +1845,11 @@ int sccp_channel_hold(sccp_channel_t * c)
 	}
 
 #ifdef CS_AST_CONTROL_HOLD
-	/* why the device is locked? -romain */
-	sccp_device_lock(d);
-
 	if (!c->owner) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "C owner disappeared! Can't free ressources\n");
-		sccp_device_unlock(d);
 		return 0;
 	}
 	sccp_ast_queue_control(c, AST_CONTROL_HOLD);
-	sccp_device_unlock(d);
 #endif
 
 	sccp_device_lock(d);
