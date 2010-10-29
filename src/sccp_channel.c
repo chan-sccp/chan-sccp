@@ -1843,11 +1843,6 @@ int sccp_channel_hold(sccp_channel_t * c)
 		ast_set_flag(peer, AST_FLAG_MOH);
 #endif
 	}
-	else
-	{
-		ast_log(LOG_ERROR, "SCCP: Cannot find bridged channel on '%s'\n", c->owner->name);
-		return 0;
-	}
 
 #ifdef CS_AST_CONTROL_HOLD
 	/* why the device is locked? -romain */
