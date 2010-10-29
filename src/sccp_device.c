@@ -1359,7 +1359,7 @@ void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t inst
 boolean_t sccp_dev_display_cfwd(sccp_device_t* device, boolean_t force)
 {
 	boolean_t ret = TRUE;
-	char tmp[256];
+	char tmp[256] = {0};
 	size_t len = sizeof(tmp);
 	char *s = tmp;
 	sccp_line_t* line = NULL;
@@ -1544,7 +1544,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		return;
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_1 "SCCP: Clean Device %s\n", d->id);
-	
+
 	sccp_device_lock(d);
 	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE); 	/* set correct register state */
 
@@ -1555,13 +1555,13 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	if(!ast_strlen_zero(d->lastNumber))
 		ast_db_put(family, "lastDialedNumber", d->lastNumber);
 
-        /* unsubscribe hints */                                 /* prevent loop:sccp_dev_clean =>  
-                                                                                sccp_line_removeDevice => 
-                                                                                sccp_event_fire => 
-                                                                                sccp_hint_eventListener => 
-                                                                                sccp_hint_lineStatusChanged => 
-                                                                                sccp_hint_hintStatusUpdate => 
-                                                                                sccp_hint_notifySubscribers => 
+        /* unsubscribe hints */                                 /* prevent loop:sccp_dev_clean =>
+                                                                                sccp_line_removeDevice =>
+                                                                                sccp_event_fire =>
+                                                                                sccp_hint_eventListener =>
+                                                                                sccp_hint_lineStatusChanged =>
+                                                                                sccp_hint_hintStatusUpdate =>
+                                                                                sccp_hint_notifySubscribers =>
                                                                                 sccp_dev_speed_find_byindex */
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "SCCP: Unregister Device %s\n", d->id);
 	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
@@ -1584,7 +1584,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 			if(!line)
 				continue;
 
-			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->channels, channel, list) {				
+			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->channels, channel, list) {
 				if(channel->device == d){
 					sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "SCCP: Hangup open channel on line %s device %s\n", line->name, d->id);
 					sccp_channel_endcall(channel);
