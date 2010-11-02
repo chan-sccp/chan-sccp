@@ -129,7 +129,7 @@ boolean_t sccp_device_check_update(sccp_device_t *d)
 			if (!buttonconfig->pendingDelete && !buttonconfig->pendingUpdate)
 				continue;
 
-			if (d->pendingDelete) {
+			if (buttonconfig->pendingDelete) {
 				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
 				SCCP_LIST_REMOVE_CURRENT(list);
 				ast_free(buttonconfig);
@@ -2246,7 +2246,8 @@ sccp_diff_t sccp_buttonconfig_changed(sccp_buttonconfig_t *buttonconfig_a, sccp_
 	if (      									// check changes requiring reset
 	       !(
 			(buttonconfig_a->index == buttonconfig_b->index) &&
-			(buttonconfig_a->type == buttonconfig_b->type)
+			(buttonconfig_a->type == buttonconfig_b->type) &&
+			(buttonconfig_b->pendingDelete == 0)
 	        )
 	) {
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "Changes need reset\n");
