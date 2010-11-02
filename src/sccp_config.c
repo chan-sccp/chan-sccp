@@ -157,7 +157,7 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 	}
 
 	/* If a config at this position is not found, recreate one. */
-	if ((!config || config->index != index)) {
+	if (!config || config->index != index) {
 		config = ast_calloc(1, sizeof(*config));
 		if (!config)
 			return;
@@ -166,6 +166,7 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "New %s Button %s at : %d:%d\n", sccp_buttontype2str(type), name, index, config->index);
 		SCCP_LIST_INSERT_TAIL(&device->buttonconfig, config, list);
 		new = TRUE;
+		device->pendingUpdate = 1;
 	}
 	else
 		config->pendingDelete = 0;
@@ -374,7 +375,7 @@ void sccp_config_addFeature(sccp_device_t *device, char *label, char *featureID,
 
 #ifdef CS_DEVSTATE_FEATURE
 			/* Check for the presence of a devicestate specifier and register in device list.
-			   */
+			*/
 			if((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && (strncmp("",config->button.feature.options,254))) {
 				sccp_log(0)(VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
 				SCCP_LIST_LOCK(&device->devstateSpecifiers);
@@ -458,9 +459,9 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 	d = sccp_device_find_byid(deviceName, FALSE);
 	if (d
 #ifdef CS_DYNAMIC_CONFIG
-		&& !d->pendingDelete && !d->realtime
+			&& !d->pendingDelete && !d->realtime
 #endif
-		) {
+	   ) {
 		ast_log(LOG_WARNING, "SCCP: Device '%s' already exists\n", deviceName);
 		return d;
 	}
@@ -499,18 +500,18 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 		sccp_device_lock(temp_d);
 		switch (sccp_device_changed(temp_d,d)) {
 			case CHANGES_NEED_RESET: {
-				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: major changes detected, reset required -> pendingUpdate=1\n", temp_d->id);
-				d->pendingUpdate=1;
-				break;
-			}
+							 sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: major changes detected, reset required -> pendingUpdate=1\n", temp_d->id);
+							 d->pendingUpdate=1;
+							 break;
+						 }
 			case MINOR_CHANGES: {
-				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: minor changes detected, no reset required\n", temp_d->id);
-				break;
-			}
+						    sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: minor changes detected, no reset required\n", temp_d->id);
+						    break;
+					    }
 			case NO_CHANGES: {
-				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: no changes detected\n", temp_d->id);
-				break;
-			}
+						 sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: no changes detected\n", temp_d->id);
+						 break;
+					 }
 		}
 		sccp_device_unlock(temp_d);
 		sccp_device_unlock(d);
@@ -532,6 +533,7 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 #ifdef CS_DYNAMIC_CONFIG
 	if (is_new) {
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "%s: Adding device to Globals\n", d->id);
+		d->pendingUpdate = 0;
 		sccp_device_addToGlobals(d);
 	} else {
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "%s: Removing pendingDelete\n", d->id);
@@ -568,9 +570,9 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 	/* search for existing line */
 	if (l
 #ifdef CS_DYNAMIC_CONFIG
-		&& !l->pendingDelete
+			&& !l->pendingDelete
 #endif
-		) {
+	   ) {
 		ast_log(LOG_WARNING, "SCCP: Line '%s' already exists\n", name);
 		return l;
 	}
@@ -582,11 +584,11 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 	/* clone l to temp_l */
 	sccp_line_t 	       * temp_l = NULL;
 
-	if (l && l->pendingDelete==1 
+	if (l && l->pendingDelete==1
 #ifdef CS_SCCP_REALTIME
-	  && !l->realtime
+			&& !l->realtime
 #endif
-	) {
+	   ) {
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: cloning line\n", name);
 		temp_l=sccp_clone_line(l);
 	}
@@ -596,27 +598,27 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable *variable, const char *li
 
 #ifdef CS_DYNAMIC_CONFIG
 	/* compare temporairy temp_l to l */
-	if (l->pendingDelete==1 
-#ifdef CS_SCCP_REALTIME	  
-	  && !l->realtime 
+	if (l->pendingDelete==1
+#ifdef CS_SCCP_REALTIME
+			&& !l->realtime
 #endif
-	  && temp_l) {
+			&& temp_l) {
 		sccp_line_lock(l);
 		sccp_line_lock(temp_l);
 		switch (sccp_line_changed(temp_l,l)) {
 			case CHANGES_NEED_RESET: {
-				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: major changes detected, reset required -> pendingUpdate=1\n", temp_l->name);
-				l->pendingUpdate=1;
-				break;
-			}
+							 sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: major changes detected, reset required -> pendingUpdate=1\n", temp_l->name);
+							 l->pendingUpdate=1;
+							 break;
+						 }
 			case MINOR_CHANGES: {
-				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: minor changes detected, no reset required\n", temp_l->name);
-				break;
-			}
+						    sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: minor changes detected, no reset required\n", temp_l->name);
+						    break;
+					    }
 			case NO_CHANGES: {
-				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: no changes detected\n", temp_l->name);
-				break;
-			}
+						 sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: no changes detected\n", temp_l->name);
+						 break;
+					 }
 		}
 		sccp_line_unlock(temp_l);
 		sccp_line_unlock(l);
@@ -754,11 +756,11 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 #if ASTERISK_VERSION_NUM < 10600
 			if (!(na = ast_append_ha("d", v->value, GLOB(localaddr))))
 #else
-			if (!(na = ast_append_ha("d", v->value, GLOB(localaddr), NULL)))
+				if (!(na = ast_append_ha("d", v->value, GLOB(localaddr), NULL)))
 #endif
-				ast_log(LOG_WARNING, "Invalid localnet value: %s\n", v->value);
-			else
-				GLOB(localaddr) = na;
+					ast_log(LOG_WARNING, "Invalid localnet value: %s\n", v->value);
+				else
+					GLOB(localaddr) = na;
 		} else if (!strcasecmp(v->name, "externip")) {
 			if (!(hp = ast_gethostbyname(v->value, &ahp)))
 				ast_log(LOG_WARNING, "Invalid address for externip keyword: %s\n", v->value);
@@ -1057,7 +1059,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 			else
 				GLOB(callAnswerOrder) = ANSWER_LAST_FIRST;
 		} else if (!strcasecmp(v->name, "mwioncall")) {
-				GLOB(mwioncall) = sccp_true(v->value);
+			GLOB(mwioncall) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "blindtransferindication")) {
 			if (!strcasecmp(v->value, "moh"))
 				GLOB(blindtransferindication) = SCCP_BLINDTRANSFER_MOH;
@@ -1067,25 +1069,25 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 				ast_log(LOG_WARNING, "Invalid blindtransferindication value at line %d, should be 'moh' or 'ring'\n", v->lineno);
 #ifdef CS_SCCP_REALTIME
 		}  else if (!strcasecmp(v->name, "devicetable")) {
-				sccp_copy_string(GLOB(realtimedevicetable), v->value, sizeof(GLOB(realtimedevicetable)));
+			sccp_copy_string(GLOB(realtimedevicetable), v->value, sizeof(GLOB(realtimedevicetable)));
 		}  else if (!strcasecmp(v->name, "linetable")) {
-				sccp_copy_string(GLOB(realtimelinetable) , v->value, sizeof(GLOB(realtimelinetable)) );
+			sccp_copy_string(GLOB(realtimelinetable) , v->value, sizeof(GLOB(realtimelinetable)) );
 #endif
 		} else if (!strcasecmp(v->name, "hotline_enabled")) {
-				GLOB(allowAnonymus) = sccp_true(v->value);
+			GLOB(allowAnonymus) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "hotline_context")) {
-				sccp_copy_string(GLOB(hotline)->line->context , v->value, sizeof(GLOB(hotline)->line->context) );
+			sccp_copy_string(GLOB(hotline)->line->context , v->value, sizeof(GLOB(hotline)->line->context) );
 		} else if (!strcasecmp(v->name, "hotline_extension")) {
-				sccp_copy_string(GLOB(hotline)->exten , v->value, sizeof(GLOB(hotline)->exten) );
-				if(GLOB(hotline)->line)
-					sccp_copy_string(GLOB(hotline)->line->adhocNumber, v->value, sizeof(GLOB(hotline)->line->adhocNumber) );
+			sccp_copy_string(GLOB(hotline)->exten , v->value, sizeof(GLOB(hotline)->exten) );
+			if(GLOB(hotline)->line)
+				sccp_copy_string(GLOB(hotline)->line->adhocNumber, v->value, sizeof(GLOB(hotline)->line->adhocNumber) );
 
 		} else if (!strcasecmp(v->name, "meetme")) {
 			GLOB(meetme) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "meetmeopts")) {
 			sccp_copy_string(GLOB(meetmeopts), v->value, sizeof(GLOB(meetmeopts)));
 
-		/* begin regexten feature */			
+			/* begin regexten feature */
 		} else if (!strcasecmp(v->name, "regcontext")) {
 			ast_copy_string(newcontexts, v->value, sizeof(newcontexts));
 			stringp = newcontexts;
@@ -1105,7 +1107,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype){
 			}
 			ast_copy_string(GLOB(regcontext), v->value, sizeof(GLOB(regcontext)));
 			continue;
-		/* end regexten feature */
+			/* end regexten feature */
 		} else {
 			ast_log(LOG_WARNING, "Unknown param at line %d: %s = %s\n", v->lineno, v->name, v->value);
 		}
@@ -1231,19 +1233,19 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 		}
 	}
 	ast_config_destroy(cfg);
-	
-	
-#ifdef CS_SCCP_REALTIME	
+
+
+#ifdef CS_SCCP_REALTIME
 	/* reload realtime lines */
 	sccp_line_t *l;
 	sccp_configurationchange_t res;
-	
+
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list){
 		if (l->realtime == TRUE && l != GLOB(hotline)->line){
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: reload realtime line\n", l->name);
 			v = ast_load_realtime(GLOB(realtimelinetable), "name", l->name, NULL);
-			/* we did not find this line, mark it for deletion */ 
+			/* we did not find this line, mark it for deletion */
 			if(!v){
 				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%s: realtime line not found - set pendingDelet=1\n", l->name);
 				l->pendingDelete = 1;
@@ -1261,7 +1263,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	SCCP_LIST_UNLOCK(&GLOB(lines));
 	/* finished realtime line reload */
 #endif
-	
+
 
 #ifdef CS_DYNAMIC_CONFIG
 	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1 "Checking ReadingType\n");
@@ -1320,12 +1322,12 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t *l, st
 			//ast_verbose(VERBOSE_PREFIX_3, "Processing variable name \"%s\", value \"%s\"\n", v->name, v->value);
 			if ((!strcasecmp(v->name, "line") )
 #ifdef CS_SCCP_REALTIME
-				|| (!strcasecmp(v->name, "name"))
+					|| (!strcasecmp(v->name, "name"))
 #endif
-			) {
+			   ) {
 				// do nothing
 			} else if (!strcasecmp(v->name, "type")) {
-			  //skip;
+				//skip;
 			} else if (!strcasecmp(v->name, "id")) {
 				sccp_copy_string(l->id, v->value, sizeof(l->id));
 			} else if (!strcasecmp(v->name, "pin")) {
@@ -1603,28 +1605,6 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 		SCCP_LIST_UNLOCK(&d->permithosts);
 		SCCP_LIST_HEAD_DESTROY(&d->permithosts);
 		SCCP_LIST_HEAD_INIT(&d->permithosts);
-
-		/* removing buttonconfigs */
-		sccp_buttonconfig_t	*buttonconfig;
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		while((buttonconfig = SCCP_LIST_REMOVE_HEAD(&d->buttonconfig, list))) {
-			ast_free(buttonconfig);
-			buttonconfig=NULL;
-		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
-		SCCP_LIST_HEAD_DESTROY(&d->buttonconfig);
-		SCCP_LIST_HEAD_INIT(&d->buttonconfig);
-
-		/* removing selectedchannels */
-		sccp_selectedchannel_t	*selectedchannel;
-		SCCP_LIST_LOCK(&d->selectedChannels);
-		while((selectedchannel = SCCP_LIST_REMOVE_HEAD(&d->selectedChannels, list))) {
-			ast_free(selectedchannel);
-			selectedchannel=NULL;
-		}
-		SCCP_LIST_UNLOCK(&d->selectedChannels);
-		SCCP_LIST_HEAD_DESTROY(&d->selectedChannels);
-		SCCP_LIST_HEAD_INIT(&d->selectedChannels);
 	}
 #endif
 
@@ -1639,7 +1619,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 
 		if ((!strcasecmp(v->name, "device"))
 #ifdef CS_SCCP_REALTIME
-			|| (!strcasecmp(v->name, "name"))
+				|| (!strcasecmp(v->name, "name"))
 #endif
 		   ) {
 			// do nothing
@@ -1683,8 +1663,8 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t *d, struct ast
 
 #ifdef CS_DYNAMIC_CONFIG
 			sccp_config_addButton(d, ++instance, type, buttonName?ast_strip(buttonName):buttonType,
-								   buttonOption?ast_strip(buttonOption):NULL,
-								   buttonArgs?ast_strip(buttonArgs):NULL);
+					buttonOption?ast_strip(buttonOption):NULL,
+					buttonArgs?ast_strip(buttonArgs):NULL);
 #else
 			if (!strcasecmp(buttonType, "line") && buttonName) {
 				if (!buttonName)
@@ -2077,7 +2057,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t *device){
 		/* Check if there is already a devicestate entry */
 		res = ast_db_get(devstate_astdb_family, specifier->specifier, buf, sizeof(buf));
 		if(!res) {
-			sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_1 "%s: Found Existing Custom Devicestate Entry: %s, state: %s\n", device->id, 
+			sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_1 "%s: Found Existing Custom Devicestate Entry: %s, state: %s\n", device->id,
 					specifier->specifier, buf);
 		/* If not present, add a new devicestate entry. Default: NOT_INUSE */
 		} else {
