@@ -166,7 +166,12 @@ void sccp_config_addButton(sccp_device_t *device, int index, button_type_t type,
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "New %s Button %s at : %d:%d\n", sccp_buttontype2str(type), name, index, config->index);
 		SCCP_LIST_INSERT_TAIL(&device->buttonconfig, config, list);
 		new = TRUE;
-		device->pendingUpdate = 1;
+#ifdef CS_DYNAMIC_CONFIG
+		ast_mutex_lock(&GLOB(lock));
+		if (GLOB(reload_in_progress) == TRUE)
+			device->pendingUpdate = 1;
+		ast_mutex_unlock(&GLOB(lock));
+#endif
 	}
 	else
 		config->pendingDelete = 0;
