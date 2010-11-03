@@ -1722,9 +1722,22 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * r)
 	time_t timer = 0;
 	struct tm * cmtime = NULL;
 	sccp_device_t *d = NULL;
-	if (!(d = check_session_message_device(s,r,"Dialed Phonebook")) ) {
+
+	if (!s || (s->fd < 0)) {
+		ast_log(LOG_ERROR,"(Time Date Request) Session no longer valid\n");
 		return;
 	}
+	
+	if (!(d = s->device)) {
+		ast_log(LOG_ERROR,"No valid Device available to handle Time Date Request for");
+		return;
+	}
+
+	if (s != s->device->session) {
+		ast_log(LOG_WARNING,"(Time Date Request) Provided Session and Device Session are not the same!!\n");
+		return;
+	}
+
 	sccp_moo_t * r1;
 	REQ(r1, DefineTimeDate);
 
@@ -1749,7 +1762,9 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * r)
 	concludes the device registration process.
 	This is included even in the minimal subset of device registration commands.
 */
-	sccp_dev_set_registered(s->device, SKINNY_DEVICE_RS_OK);
+	if (d->registrationState != SKINNY_DEVICE_RS_OK) {
+		sccp_dev_set_registered(s->device, SKINNY_DEVICE_RS_OK);
+	}
 }
 
 
