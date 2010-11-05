@@ -1916,8 +1916,6 @@ int acf_channel_read(struct ast_channel *ast, char *funcname, char *args, char *
 #endif // ASTERISK_VERSION_NUM >= 10600
 {
  	sccp_channel_t *c;
-	sccp_device_t *d;
-        int res = 0;
 
 #ifdef CS_AST_HAS_TECH_PVT
 	if (!ast || ast->tech != &sccp_tech) {
@@ -1926,24 +1924,19 @@ int acf_channel_read(struct ast_channel *ast, char *funcname, char *args, char *
 	}
 #endif // CS_AST_HAS_TECH_PVT
 	c = CS_AST_CHANNEL_PVT(ast);
-	if ( (d = c->device) ) {
-		sccp_device_unlock(d);
+	if (c == NULL)
+		return -1;
 
-		if (!strcasecmp(args, "peerip")) {
-			ast_copy_string(buf, c->rtp.audio.peer.sin_addr.s_addr ? ast_inet_ntoa(c->rtp.audio.peer.sin_addr) : "", buflen);
-		} else if (!strcasecmp(args, "recvip")) {
-			ast_copy_string(buf, c->rtp.audio.addr.sin_addr.s_addr ? ast_inet_ntoa(c->rtp.audio.addr.sin_addr) : "", buflen);
-		} else if (!strcasecmp(args, "from")) {
-			ast_copy_string(buf, (char *)c->device->id, buflen);
-		} else {
-			res = -1;
-		}
-
-		sccp_device_unlock(d);
+	if (!strcasecmp(args, "peerip")) {
+		ast_copy_string(buf, c->rtp.audio.peer.sin_addr.s_addr ? ast_inet_ntoa(c->rtp.audio.peer.sin_addr) : "", buflen);
+	} else if (!strcasecmp(args, "recvip")) {
+		ast_copy_string(buf, c->rtp.audio.addr.sin_addr.s_addr ? ast_inet_ntoa(c->rtp.audio.addr.sin_addr) : "", buflen);
+	} else if (!strcasecmp(args, "from") && c->device) {
+		ast_copy_string(buf, (char *)c->device->id, buflen);
 	} else {
-		res=-1;
+		return -1;
 	}
-	return res;
+	return 0;
 }
 
 
