@@ -375,7 +375,7 @@ static int sccp_pbx_hangup(struct ast_channel * ast) {
 	while (c && sccp_channel_trylock(c)) {
 		sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		ast_log(LOG_DEBUG, "SCCP: Waiting to lock the channel %s for hangup\n", ast->name);
-		usleep(200);
+		AST_CHANNEL_DEADLOCK_AVOIDANCE(c->owner);
 	}
 
 	if (!c) {
