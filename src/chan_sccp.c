@@ -1383,7 +1383,7 @@ static struct ast_custom_function sccpchannel_function = {
  * \return	Success as int
  */
 static int sccp_app_calledparty(struct ast_channel *chan, void *data) {
-	char tmp[256] = "";
+	char *text = data;
 	char * num, * name;
 	sccp_channel_t * c=NULL;
 
@@ -1392,11 +1392,10 @@ static int sccp_app_calledparty(struct ast_channel *chan, void *data) {
 		return 0;
 	}
 
-	if (!data || !c)
+	if (!text || !c)
 		return 0;
 
-	sccp_copy_string(tmp, (char *)data, sizeof(tmp));
-	ast_callerid_parse(tmp, &name, &num);
+	ast_callerid_parse(text, &name, &num);
 	sccp_channel_set_calledparty(c, name, num);
 
 	return 0;
