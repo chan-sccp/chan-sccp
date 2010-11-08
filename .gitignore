@@ -1,0 +1,12 @@
+Makefile
+config.log
+config.status
+doc/Makefile
+doc/html/
+doc/man/
+doxygen.warn
+libtool
+src/.deps/
+src/Makefile
+src/config.h
+src/stamp-h1
