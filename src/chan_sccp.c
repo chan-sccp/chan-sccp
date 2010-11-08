@@ -1092,7 +1092,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 			return -1;
 		}
 	}
-	sccp_device_lock(l);	
+	sccp_line_lock(l);	
 	
 	if (!strcasecmp(colname , "id")) {
 		ast_copy_string(buf, l->id, len);
