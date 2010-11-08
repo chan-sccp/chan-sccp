@@ -1478,8 +1478,8 @@ static int sccp_unregister_dialplan_functions(void)
 	int result;
 
 	/* Unregister applications functions */
-	result = ast_unregister_application("SetCalledParty");
-	result |= ast_unregister_application("SetMessage");
+	result = ast_unregister_application(calledparty_name);
+	result |= ast_unregister_application(setmessage_name);
 
 	/* Unregister dial plan functions */
 	result |= ast_custom_function_unregister(&sccpdevice_function);
