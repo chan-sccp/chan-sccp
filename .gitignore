@@ -1,4 +1,5 @@
 Makefile
+autom4te.cache/
 config.log
 config.status
 doc/Makefile
@@ -7,6 +8,10 @@ doc/man/
 doxygen.warn
 libtool
 src/.deps/
+src/.libs/
+src/*.la
+src/*.lo
+src/*.o
 src/Makefile
 src/config.h
 src/stamp-h1
