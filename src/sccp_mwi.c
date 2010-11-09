@@ -132,14 +132,13 @@ void sccp_mwi_event(const struct ast_event *event, void *data){
 			/* done */
 
 			/* notify each device on line */
-			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->devices, lineDevice, list){
+			SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list){
 				if(NULL != lineDevice && NULL != lineDevice->device) {
 					sccp_mwi_setMWILineStatus(lineDevice->device, line);
 				} else {
 					sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_4 "error: null line device.\n");
 				}
 			}
-			SCCP_LIST_TRAVERSE_SAFE_END;
 			sccp_line_unlock( line );
 		}
 	}
@@ -187,10 +186,9 @@ int sccp_mwi_checksubscription(const void *ptr){
 				/* done */
 
 				/* notify each device on line */
-				SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->devices, lineDevice, list){
+				SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list){
 					sccp_mwi_setMWILineStatus(lineDevice->device, line);
 				}
-				SCCP_LIST_TRAVERSE_SAFE_END;
 				sccp_line_unlock( line );
 			}
 		}
@@ -282,10 +280,9 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t **event){
 	}
 
 	if(line && (&line->mailboxes) != NULL){
-		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->mailboxes, mailbox, list){
+		SCCP_LIST_TRAVERSE(&line->mailboxes, mailbox, list){
 			sccp_mwi_addMailboxSubscription(mailbox->mailbox, (mailbox->context)?mailbox->context:"default", line);
 		}
-		SCCP_LIST_TRAVERSE_SAFE_END;
 	}
 	return;
 }
