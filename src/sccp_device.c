@@ -158,7 +158,7 @@ void sccp_device_post_reload(void)
 	sccp_device_t * d;
 
 	SCCP_LIST_LOCK(&GLOB(devices));
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(devices), d, list){
+	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list){
 		if (!d->pendingDelete && !d->pendingUpdate)
 			continue;
 
@@ -168,7 +168,6 @@ void sccp_device_post_reload(void)
 		if (!sccp_device_check_update(d))
 			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", d->id);
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END
 
 	SCCP_LIST_UNLOCK(&GLOB(devices));
 }
@@ -1584,13 +1583,12 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 			if(!line)
 				continue;
 
-			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->channels, channel, list) {
+			SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
 				if(channel->device == d){
 					sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "SCCP: Hangup open channel on line %s device %s\n", line->name, d->id);
 					sccp_channel_endcall(channel);
 				}
 			}
-			SCCP_LIST_TRAVERSE_SAFE_END;
 
 			/* remove devices from line */
 			sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "SCCP: Remove Line %s from device %s\n", line->name, d->id);

@@ -925,7 +925,7 @@ void sccp_hint_subscribeHint(const sccp_device_t *device, const char *hintStr, c
 
 	sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "Dialplan %s for exten: %s and context: %s\n", hintStr, hint_exten, hint_context);
 
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&sccp_hint_subscriptions, hint, list){
+	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list){
 		if(	strlen(hint_exten) == strlen(hint->exten)
 			&& strlen(hint_context) == strlen(hint->context)
 			&& !strcmp(hint_exten, hint->exten)
@@ -935,7 +935,6 @@ void sccp_hint_subscribeHint(const sccp_device_t *device, const char *hintStr, c
 			break;
 		}
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
 
 	/* we have no hint */
 	if(!hint){

@@ -531,11 +531,10 @@ sccp_session_t * sccp_session_find(const sccp_device_t *device)
 	if(!device)
 		return NULL;
 
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
+	SCCP_LIST_TRAVERSE(&GLOB(sessions), session, list) {
 		if(session->device && session->device == device)
 			break;
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
 	return session;
 }
 

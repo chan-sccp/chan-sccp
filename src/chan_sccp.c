@@ -1756,13 +1756,12 @@ static int unload_module(void) {
 	/* \todo Temporary fix to unload Module. Needs to be looked at */ 
 	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_2 "SCCP: Hangup open channels\n");
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
-		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->channels, c, list) {
+		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 			c->owner->_softhangup = AST_SOFTHANGUP_APPUNLOAD;
 			sccp_channel_endcall(c);
 			usleep(200);		// wait for sccp_pbx_hangup
 			openchannels++;
 		}
-		SCCP_LIST_TRAVERSE_SAFE_END;
 	}
 	usleep(openchannels * 10000); // wait for everything to settle
 

@@ -77,13 +77,12 @@ void sccp_event_fire(const sccp_event_t* *event){
 	sccp_event_subscriber_t *subscriber;
 
 	sccp_log((DEBUGCAT_EVENT))(VERBOSE_PREFIX_1 "[SCCP] Fire event %d\n", type);
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&sccp_event_listeners->subscriber, subscriber, list){
+	SCCP_LIST_TRAVERSE(&sccp_event_listeners->subscriber, subscriber, list){
 		sccp_log((DEBUGCAT_EVENT))(VERBOSE_PREFIX_1 "eventtype: %d listenerType: %d, -> result: %d %s\n", type, subscriber->eventType, (subscriber->eventType & type), (subscriber->eventType & type)?"true":"false" );
 		if(subscriber->eventType & type){
 			subscriber->callback_function(event);
 		}
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
 
 #ifdef HAVE_LIBGC
 	*event=NULL;
