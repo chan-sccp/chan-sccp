@@ -960,14 +960,19 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 			switch (config->type) {
 				case LINE:
 					snprintf(tmp,sizeof(tmp),"[%d,%s,%s]",config->instance, sccp_buttontype2str(config->type), config->button.line.name);
+					break;
 				case SPEEDDIAL:
 					snprintf(tmp,sizeof(tmp),"[%d,%s,%s,%s]",config->instance, sccp_buttontype2str(config->type), config->button.speeddial.label, config->button.speeddial.ext);
+					break;
 				case SERVICE:
 					snprintf(tmp,sizeof(tmp),"[%d,%s,%s,%s]",config->instance, sccp_buttontype2str(config->type), config->button.service.label, config->button.service.url);
+					break;
 				case FEATURE:
 					snprintf(tmp,sizeof(tmp),"[%d,%s,%s,%s]",config->instance, sccp_buttontype2str(config->type), config->button.feature.label, config->button.feature.options);
+					break;
 				case EMPTY:
 					snprintf(tmp,sizeof(tmp),"[%d,%s]",config->instance, sccp_buttontype2str(config->type));
+					break;
 			}
 			if (first==0) {
 				first=1;
