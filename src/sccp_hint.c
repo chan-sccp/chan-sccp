@@ -1128,7 +1128,6 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context){
 static void * sccp_hint_remoteNotification_thread(void *data){
 	sccp_hint_list_t  *hint = data;
 
-	sccp_moo_t *r = NULL;
 	struct ast_channel *astChannel = NULL;
 	struct ast_channel *bridgedChannel = NULL;
 	struct ast_channel *foundChannel = NULL;
@@ -1142,27 +1141,19 @@ static void * sccp_hint_remoteNotification_thread(void *data){
 		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) searching for channel on %s\n", hint->hint_dialplan);
 		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) asterisk channels %s, cid_num: %s, cid_name: %s\n", astChannel->name, astChannel->cid.cid_num, astChannel->cid.cid_name);
 		if(strlen(astChannel->name) > strlen(hint->hint_dialplan) && !strncmp(astChannel->name, hint->hint_dialplan, strlen(hint->hint_dialplan))){
-			ast_channel_unlock(astChannel);
 			foundChannel = astChannel;
 			break;
 		}
-		ast_channel_unlock(astChannel);
 	}
 
 	if(foundChannel){
-		ast_channel_lock(foundChannel);
 		sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) found remote channel %s\n", foundChannel->name);
 		i = 0;
-		// Waiting for bridged channel. Haven't found any other way
-		while (foundChannel && (bridgedChannel = ast_bridged_channel(foundChannel)) == NULL && i < 30) {
-			if(!ast_channel_unlock(foundChannel))
-				goto CLEANUP;
-			sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) searching for bridgedChannel\n");
-			/*! #warning "This looks very dangerous to me or needs explanation (-DD)" */
+		while (((bridgedChannel = ast_bridged_channel(foundChannel)) == NULL) && (i < 30)) {
+			sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "(sccp_hint_state) waiting for bridge	dChannel\n");
+			AST_CHANNEL_DEADLOCK_AVOIDANCE(foundChannel);
 			sleep(1);
 			i++;
-			if(ast_channel_trylock(foundChannel))
-				goto CLEANUP;
 		}
 
 		if(bridgedChannel){
@@ -1183,9 +1174,6 @@ static void * sccp_hint_remoteNotification_thread(void *data){
 	}
 
 CLEANUP:
-	if(r){
-		sccp_free(r);
-	}
 	if(hint)
 		hint->type.asterisk.notificationThread = AST_PTHREADT_NULL;
 	return NULL;
