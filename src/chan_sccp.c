@@ -471,13 +471,11 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 			} else {
 				// We are not natted, but the ip-address has changed
 				ast_log(LOG_ERROR, "(sccp_handle_message): SCCP: Device is attempting to send message via a different ip-address.\nIf this is behind a firewall please set it up in sccp.conf with nat=1.\n");
-				sccp_session_unlock(s);
 				ast_free(r);
 				return 0;
 			}
 		} else if(!s->device->session || s->device->session != s) {
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: cross device session (Removing Old Session)\n", DEV_ID_LOG(s->device));
-				sccp_session_unlock(s);
 				sccp_session_close(s->device->session);
 				destroy_session(s->device->session,2);
 				ast_free(r);
