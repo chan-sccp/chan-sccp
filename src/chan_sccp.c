@@ -452,6 +452,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 	/* Check if all necessary information is available */
 	if ( (!s->device) && (mid != RegisterMessage && mid != UnregisterMessage && mid != RegisterTokenReq && mid != AlarmMessage && mid != KeepAliveMessage && mid != IpPortMessage)) {
 		ast_log(LOG_WARNING, "SCCP: Client sent %s without first registering. Attempting reconnect.\n", message2str(mid));
+	} else if (s->device) {
 		if(s->device != sccp_device_find_byipaddress(s->sin.sin_addr.s_addr)) {
 			// IP Address has changed mid session
 			if( s->device->nat == 1) {		
@@ -475,7 +476,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s) {
 				ast_free(r);
 				return 0;
 			}
-		} else if(!s->device->session || s->device->session != s) {
+		} else if(s->device && (!s->device->session || s->device->session != s)) {
 				sccp_log(1)(VERBOSE_PREFIX_3 "%s: cross device session (Removing Old Session)\n", DEV_ID_LOG(s->device));
 				sccp_session_close(s->device->session);
 				destroy_session(s->device->session,2);
@@ -1758,16 +1759,22 @@ static int unload_module(void) {
 
 	/* temporary fix to close open channels */
 	/* \todo Temporary fix to unload Module. Needs to be looked at */ 
+	struct ast_channel *astChannel=NULL;
+	
 	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_2 "SCCP: Hangup open channels\n");
-	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
-		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-			c->owner->_softhangup = AST_SOFTHANGUP_APPUNLOAD;
-			sccp_channel_endcall(c);
-			usleep(200);		// wait for sccp_pbx_hangup
-			openchannels++;
+	while ((astChannel = ast_channel_walk_locked(astChannel)) != NULL) {
+		if ( !ast_check_hangup(astChannel) ) {
+			if ( (c=get_sccp_channel_from_ast_channel(astChannel)) ) {
+				astChannel->hangupcause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
+				astChannel->_softhangup = AST_SOFTHANGUP_APPUNLOAD;
+				sccp_channel_endcall(c);
+				ast_safe_sleep(astChannel, 100);
+				openchannels++;
+			}
 		}
+		ast_channel_unlock(astChannel);
 	}
-	usleep(openchannels * 10000); // wait for everything to settle
+	sccp_safe_sleep(openchannels * 1000); // wait for everything to settle
 
 	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_2 "SCCP: Unregister SCCP RTP protocol\n");
 #if ASTERISK_VERSION_NUM >= 10400
@@ -1803,12 +1810,11 @@ static int unload_module(void) {
 	/* removing devices */
 	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_2 "SCCP: Removing Devices\n");
 	SCCP_LIST_LOCK(&GLOB(devices));
-	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list){
+	while ((d = SCCP_LIST_REMOVE_HEAD(&GLOB(devices), list))) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "SCCP: Removing device %s\n", d->id);
 		sccp_dev_clean(d, TRUE, 0);
 	}
 	SCCP_LIST_UNLOCK(&GLOB(devices));
-
 	if(SCCP_LIST_EMPTY(&GLOB(devices)))
 		SCCP_LIST_HEAD_DESTROY(&GLOB(devices));
 
@@ -1825,7 +1831,8 @@ static int unload_module(void) {
 		sccp_line_clean(l, FALSE);
 	}
 	SCCP_LIST_UNLOCK(&GLOB(lines));
-	SCCP_LIST_HEAD_DESTROY(&GLOB(lines));
+	if(SCCP_LIST_EMPTY(&GLOB(lines)))
+		SCCP_LIST_HEAD_DESTROY(&GLOB(lines));
 
 	/* removing sessions */
 	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_2 "SCCP: Removing Sessions\n");
@@ -1842,7 +1849,9 @@ static int unload_module(void) {
 		ast_free(s);
 	}
 	SCCP_LIST_UNLOCK(&GLOB(sessions));
-	SCCP_LIST_HEAD_DESTROY(&GLOB(sessions));
+
+	if(SCCP_LIST_EMPTY(&GLOB(sessions)))
+		SCCP_LIST_HEAD_DESTROY(&GLOB(sessions));
 
 	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_2 "SCCP: Removing Descriptor\n");
 	close(GLOB(descriptor));
