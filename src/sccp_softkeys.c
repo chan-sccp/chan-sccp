@@ -257,6 +257,7 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 	if(d->selectedChannels.size == 2){
 		sccp_selectedchannel_t 	*selectedChannel = NULL;
 	  
+		SCCP_LIST_LOCK(&d->selectedChannels);
 		SCCP_LIST_TRAVERSE(&d->selectedChannels, selectedChannel, list) {
 		  
 			if(selectedChannel->channel->state == SCCP_CHANNELSTATE_HOLD){
