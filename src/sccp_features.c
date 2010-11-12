@@ -422,9 +422,9 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 						sccp_dev_stoptone(d, instance, c->callid);
 						sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 
-						sccp_device_lock(c);
+						sccp_device_lock(d);
 						d->active_channel = NULL;
-						sccp_device_unlock(c);
+						sccp_device_unlock(d);
 
 						sccp_channel_lock(c);
 						c->ringermode = SKINNY_STATION_OUTSIDERING;	// default ring
