@@ -448,8 +448,9 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 				}
 				sccp_ast_channel_unlock(target);
 				ast_hangup(original);
+			} else {
+				sccp_ast_channel_unlock(target);
 			}
-
 			if(name)
 				sccp_free(name);
 			if(number)
