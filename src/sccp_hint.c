@@ -1144,6 +1144,7 @@ static void * sccp_hint_remoteNotification_thread(void *data){
 			foundChannel = astChannel;
 			break;
 		}
+		ast_channel_unlock(astChannel);
 	}
 
 	if(foundChannel){
