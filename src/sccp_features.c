@@ -641,6 +641,8 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t *d)
 				}
 				sccp_ast_channel_unlock(target);
 				ast_hangup(original);
+			} else {
+				sccp_ast_channel_unlock(target);
 			}
 
 			if(name)
