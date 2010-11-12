@@ -511,8 +511,7 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 		const char *bridgePeer = pbx_builtin_getvar_helper(c->owner, "BRIDGEPEER");
 		if(bridgePeer){
 			while ((astChannel = ast_channel_walk_locked(astChannel)) != NULL) {
-				sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH))(VERBOSE_PREFIX_4 "(sccp_pbx_answer) searching for channel on %s\n", bridgePeer);
-				sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH))(VERBOSE_PREFIX_4 "(sccp_pbx_answer) asterisk channels %s\n", astChannel->name);
+				sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH))(VERBOSE_PREFIX_4 "(sccp_pbx_answer) searching for channel where %s == %s\n", bridgePeer, astChannel->name);
 				if(strlen(astChannel->name) == strlen(bridgePeer) && !strncmp(astChannel->name, bridgePeer, strlen( astChannel->name ))){
 					ast_channel_unlock(astChannel);
 					br = astChannel;
@@ -525,14 +524,56 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 		/* did we find our bridge */
 		if(br){
 			ast_log(LOG_NOTICE, "SCCP: bridge: %s\n", (br)?br->name:" -- no bridged found -- ");
-			c->parentChannel = NULL;
-			ast_channel_masquerade(astForwardedChannel, br); /* bridge me */
+
+			/* set the channel and the bridge to state UP to fix problem with fast pickup / autoanswer */
+			ast_setstate(ast, AST_STATE_UP); 
+			ast_setstate(br, AST_STATE_UP); 
+			
+			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "(sccp_pbx_answer) Going to Masquerade %s into %s\n",br->name, astForwardedChannel->name);
+			if (ast_channel_masquerade(astForwardedChannel, br)) {
+				ast_log(LOG_ERROR, "(sccp_pbx_answer) Failed to masquerade bridge into forwarded channel\n");
+				return -1;
+			} else {
+				c->parentChannel = NULL;
+				sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "(sccp_pbx_answer) Masqueraded into %s\n", astForwardedChannel->name);
+			}
+
+			if (ast_do_masquerade(astForwardedChannel)) {
+				sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "(sccp_pbx_answer) Failed to perform masquerade\n");
+				return -1;
+			} else {
+				astForwardedChannel->hangupcause = AST_CAUSE_ANSWERED_ELSEWHERE;
+			}
+			
+			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: ast %s\n", ast_state2str(ast->_state));
+			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: astForwardedChannel %s\n", ast_state2str(astForwardedChannel->_state));
+			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: br %s\n", ast_state2str(br->_state));
+			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: astChannel %s\n", ast_state2str(astChannel->_state));
+			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) ============================================== \n");
 			return 0;
 		}else{
 			/* we have no bridge and can not make a masquerade -> end call */
-			ast_log(LOG_ERROR, "SCCP: We did not find bridge channel for call forwarding call. Hangup\n");
-			sccp_channel_endcall(c);
+			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) no bridge. channel state: ast %s\n", ast_state2str(ast->_state));
+			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) no bridge. channel state: astForwardedChannel %s\n", ast_state2str(astForwardedChannel->_state));
+			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) ============================================== \n");
+			if ( ast->_state == AST_STATE_RING && astForwardedChannel->_state == AST_STATE_DOWN ) {
+				sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "SCCP: Receiver Hungup\n");
+				astForwardedChannel->hangupcause = AST_CAUSE_CALL_REJECTED;
+				astForwardedChannel->_softhangup |= AST_SOFTHANGUP_DEV;
+				ast_queue_hangup(astForwardedChannel);
+//				sccp_channel_endcall(c->parentChannel);
+				return 0;
+			} else {
+				ast_log(LOG_ERROR, "SCCP: We did not find bridge channel for call forwarding call. Hangup\n");
+				astForwardedChannel->hangupcause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
+				astForwardedChannel->_softhangup |= AST_SOFTHANGUP_DEV;
+				ast_queue_hangup(astForwardedChannel);
+//				sccp_channel_endcall(c->parentChannel);
+				sccp_channel_endcall(c);
+				return -1;
+			}
 		}
+		/* we should never get here */
 		return -1;
 	}
 
