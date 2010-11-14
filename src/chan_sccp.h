@@ -192,6 +192,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 
 #ifdef HAVE_LIBGC
 	#if HAVE_LIBPTHREAD
+		#define GC_PTHREADS
 		#define GC_THREADS
 		#undef _REENTRANT
 		#define _REENTRANT
