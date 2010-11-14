@@ -1797,7 +1797,9 @@ static int unload_module(void) {
 	if ((GLOB(monitor_thread) != AST_PTHREADT_NULL) && (GLOB(monitor_thread) != AST_PTHREADT_STOP)) {
 		pthread_cancel(GLOB(monitor_thread));
 		pthread_kill(GLOB(monitor_thread), SIGURG);
+#ifndef HAVE_LIBGC
 		pthread_join(GLOB(monitor_thread), NULL);
+#endif
 	}
 	GLOB(monitor_thread) = AST_PTHREADT_STOP;
 	sccp_globals_unlock(monitor_lock);
@@ -1859,11 +1861,12 @@ static int unload_module(void) {
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET))(VERBOSE_PREFIX_2 "SCCP: Killing the socket thread\n");
 	sccp_globals_lock(socket_lock);
-	if ((GLOB(socket_thread) != AST_PTHREADT_NULL) &&
-		(GLOB(socket_thread) != AST_PTHREADT_STOP)) {
+	if ( (GLOB(socket_thread) != AST_PTHREADT_NULL) && (GLOB(socket_thread) != AST_PTHREADT_STOP)) {
 		pthread_cancel(GLOB(socket_thread));
 		pthread_kill(GLOB(socket_thread), SIGURG);
+#ifndef HAVE_LIBGC
 		pthread_join(GLOB(socket_thread), NULL);
+#endif
 	}
 	GLOB(socket_thread) = AST_PTHREADT_STOP;
 	sccp_globals_unlock(socket_lock);
@@ -1887,11 +1890,12 @@ static int unload_module(void) {
 	ast_mutex_destroy(&GLOB(lock));
 	ast_free(sccp_globals);
 
-	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_1 "Module chan_sccp unloaded\n");
-	
+	ast_log(LOG_NOTICE, "Running Cleanup\n");
 #ifdef HAVE_LIBGC
 	CHECK_LEAKS();
+//	GC_gcollect();
 #endif
+	ast_log(LOG_NOTICE, "Module chan_sccp unloaded\n");
 	return 0;
 }
 
