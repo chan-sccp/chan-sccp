@@ -238,11 +238,8 @@ int sccp_manager_restart_device(struct mansession *s, const struct message *m)
 		return 0;
 	}
 
-	sccp_device_lock(d);
-
 	if (!d->session) {
 		astman_send_error(s, m, "Device not registered");
-		sccp_device_unlock(d);
 		return 0;
 	}
 
