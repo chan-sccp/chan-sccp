@@ -455,9 +455,6 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIn
 	sccp_handle_dialtone_nolock(c);
 	sccp_channel_unlock(c);
 
-	sccp_device_lock(c->device);
-	sccp_device_unlock(c->device);
-
 	sccp_handle_backspace(d, lineInstance, c->callid);
 }
 
