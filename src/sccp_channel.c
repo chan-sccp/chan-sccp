@@ -1563,10 +1563,13 @@ void sccp_channel_endcall(sccp_channel_t * c)
 
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Sending %s hangup request to %s\n", DEV_ID_LOG(c->device), res ? "(queue)" : "(force)", c->owner->name);
 
+		c->owner->hangupcause = AST_CAUSE_NORMAL_CLEARING;
 		if ((c->owner->_softhangup & AST_SOFTHANGUP_APPUNLOAD) != 0) {
 			c->owner->hangupcause = AST_CAUSE_CHANNEL_UNACCEPTABLE;
 		}else {
-			c->owner->hangupcause = AST_CAUSE_NORMAL_CLEARING;
+			if (c->owner->masq!=NULL) {	// we are masquerading
+				c->owner->hangupcause = AST_CAUSE_ANSWERED_ELSEWHERE;
+			}
 		}
 
 		/* force hangup for invalid dials */
