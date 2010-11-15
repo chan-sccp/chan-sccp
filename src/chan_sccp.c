@@ -1524,8 +1524,8 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 	/* Ensure neither channel got hungup during lock avoidance */
 	if (ast_check_hangup(c0) || ast_check_hangup(c1)) {
 		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (sccp_rtp_bridge) Got hangup while attempting to bridge '%s' and '%s'\n", c0->name, c1->name);
-		ast_channel_unlock(c0);
 		ast_channel_unlock(c1);
+		ast_channel_unlock(c0);
 		return AST_BRIDGE_FAILED;
 	}
 
@@ -1540,8 +1540,8 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 	/* Check if a bridge is possible (partial/native) */
 	if (audio_p0_res == AST_RTP_GET_FAILED || audio_p1_res == AST_RTP_GET_FAILED) {
 		/* Somebody doesn't want to play... */
-		sccp_ast_channel_unlock(c0);
 		sccp_ast_channel_unlock(c1);
+		sccp_ast_channel_unlock(c0);
 		return AST_BRIDGE_FAILED_NOWARN;
 	}
 
@@ -1552,8 +1552,8 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 		/* In order to do Packet2Packet bridging both sides must be in the same rawread/rawwrite */
 		if (c0->rawreadformat != c1->rawwriteformat || c1->rawreadformat != c0->rawwriteformat) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (sccp_rtp_bridge) Cannot packet2packet bridge - raw formats are incompatible\n");
-			sccp_ast_channel_unlock(c0);
 			sccp_ast_channel_unlock(c1);
+			sccp_ast_channel_unlock(c0);
 			return AST_BRIDGE_FAILED_NOWARN;
 		}
 
@@ -1562,8 +1562,8 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 		fmt1 = ast_codec_pref_getsize(&pvt1->device->codecs, c1->rawreadformat);
 		if (fmt0.cur_ms != fmt1.cur_ms) {
 			sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: (sccp_rtp_bridge) Cannot packet2packet bridge - packetization settings prevent it\n");
-			sccp_ast_channel_unlock(c0);
 			sccp_ast_channel_unlock(c1);
+			sccp_ast_channel_unlock(c0);
 			return AST_BRIDGE_FAILED_NOWARN;
 		}
 
@@ -1579,8 +1579,8 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 		res = AST_BRIDGE_FAILED; //_NOWARN;
 	}
 
-	sccp_ast_channel_unlock(c0);
 	sccp_ast_channel_unlock(c1);
+	sccp_ast_channel_unlock(c0);
 
 	return res;
 }

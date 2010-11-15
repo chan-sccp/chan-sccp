@@ -2126,8 +2126,8 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 			bc_b = SCCP_LIST_NEXT(bc_b, list);
 		}
 	}
-	SCCP_LIST_UNLOCK(&device_a->buttonconfig);
 	SCCP_LIST_UNLOCK(&device_b->buttonconfig);
+	SCCP_LIST_UNLOCK(&device_a->buttonconfig);
 
 	if (res == CHANGES_NEED_RESET)
 		return res;
@@ -2151,8 +2151,8 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 			ph_b = SCCP_LIST_NEXT(ph_b, list);
 		}
 	}
-	SCCP_LIST_UNLOCK(&device_a->permithosts);
 	SCCP_LIST_UNLOCK(&device_b->permithosts);
+	SCCP_LIST_UNLOCK(&device_a->permithosts);
 
 	if (res == CHANGES_NEED_RESET)
 		return res;
@@ -2176,8 +2176,8 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 			a_b = SCCP_LIST_NEXT(a_b, list);
 		}
 	}
-	SCCP_LIST_UNLOCK(&device_a->addons);
 	SCCP_LIST_UNLOCK(&device_b->addons);
+	SCCP_LIST_UNLOCK(&device_a->addons);
 	if (res == CHANGES_NEED_RESET)
 		return res;
 
@@ -2221,8 +2221,8 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 			sc_b = SCCP_LIST_NEXT(sc_b, list);
 		}
 	}
-	SCCP_LIST_UNLOCK(&device_a->selectedChannels);
 	SCCP_LIST_UNLOCK(&device_b->selectedChannels);
+	SCCP_LIST_UNLOCK(&device_a->selectedChannels);
 
 	/* \todo still to implement a check for device->setvar (ast_variables *variables) in sccp_device_changed */
 	//device_a->setvar
