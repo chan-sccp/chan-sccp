@@ -835,8 +835,8 @@ sccp_diff_t sccp_line_changed(sccp_line_t *line_a,sccp_line_t *line_b) {
 			mb_b = SCCP_LIST_NEXT(mb_b, list);
 		}
 	}
-	SCCP_LIST_UNLOCK(&line_a->mailboxes);
 	SCCP_LIST_UNLOCK(&line_b->mailboxes);
+	SCCP_LIST_UNLOCK(&line_a->mailboxes);
 
 	/* \todo still to implement
 	a check for device->setvar (ast_variables *variables)
