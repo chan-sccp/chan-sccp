@@ -537,13 +537,6 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 				c->parentChannel = NULL;
 				sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "(sccp_pbx_answer) Masqueraded into %s\n", astForwardedChannel->name);
 			}
-
-			if (ast_do_masquerade(astForwardedChannel)) {
-				sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "(sccp_pbx_answer) Failed to perform masquerade\n");
-				return -1;
-			} else {
-				astForwardedChannel->hangupcause = AST_CAUSE_ANSWERED_ELSEWHERE;
-			}
 			
 			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: ast %s\n", ast_state2str(ast->_state));
 			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: astForwardedChannel %s\n", ast_state2str(astForwardedChannel->_state));
