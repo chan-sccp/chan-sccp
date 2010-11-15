@@ -1522,8 +1522,6 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 	uint8_t 		pickupgroup= 0;
 #endif
 
-	//sccp_device_lock(d);
-
 	/* set softkey definition */
 	sccp_softKeySetConfiguration_t *softkeyset;
 

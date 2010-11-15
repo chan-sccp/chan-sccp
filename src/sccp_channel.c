@@ -2159,10 +2159,6 @@ boolean_t sccp_channel_start_rtp(sccp_channel_t * c)
 	else
 		return FALSE;
 
-	sccp_device_lock(d);
-	//isVideoSupported = sccp_device_isVideoSupported(d);
-	sccp_device_unlock(d);
-
 	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: do we have video support? %s\n", d->id, isVideoSupported?"yes":"no");
 
 /* No need to lock, because already locked in the sccp_indicate.c */
