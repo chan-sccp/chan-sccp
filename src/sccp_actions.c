@@ -702,6 +702,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 
 	if (!btn) {
 		ast_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
+		sccp_device_unlock(d);
 		sccp_session_close(s);
 		return;
 	}
