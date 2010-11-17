@@ -788,7 +788,10 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
  * \param s SCCP Session as sccp_session_t
  * \param r SCCP Message as sccp_moo_t
  *
- * \lock	device, device->buttonconfig
+ * \lock
+ * 	- device->buttonconfig in sccp_line_find_byid()
+ * 	  - lines in sccp_line_find_byid()
+ * 	- device->buttonconfig
  */
 void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 {

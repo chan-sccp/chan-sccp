@@ -458,7 +458,7 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
  * 
  * \lock
  * 	- device->buttonconfig
- * 	  - lines (by sccp_line_find_byname_wo)
+ * 	  - lines in sccp_line_find_byname_wo()
  */
 sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 {
