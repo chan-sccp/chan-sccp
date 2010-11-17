@@ -1351,6 +1351,7 @@ static int sccp_unregister(int fd, int argc, char *argv[])
 	if (!d) {
 		ast_cli(fd, "Can't find device %s\n", argv[2]);
 		return RESULT_SUCCESS;
+	}
 
 	sccp_device_lock(d);
 
