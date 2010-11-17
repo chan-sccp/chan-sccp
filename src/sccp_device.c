@@ -1391,7 +1391,9 @@ boolean_t sccp_dev_display_cfwd(sccp_device_t * device, boolean_t force)
 	sccp_linedevices_t *ld = NULL;
 
 	/* List every forwarded lines on the device prompt. */
+	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), line, list) {
+		SCCP_LIST_LOCK(&line->devices);
 		SCCP_LIST_TRAVERSE(&line->devices, ld, list) {
 			if (ld->device == device) {
 				if (s != tmp)
@@ -1402,8 +1404,10 @@ boolean_t sccp_dev_display_cfwd(sccp_device_t * device, boolean_t force)
 					ast_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, ld->cfwdBusy.number);
 				}
 			}
+		SCCP_LIST_UNLOCK(&line->devices);
 		}
 	}
+	SCCP_LIST_UNLOCK(&GLOB(lines));
 	/* There isn't any forward on device's lines. */
 	if (s == tmp) {
 		ret = FALSE;
