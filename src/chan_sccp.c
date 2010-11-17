@@ -1766,7 +1766,7 @@ static int unload_module(void)
 	sccp_channel_t *c;
 	sccp_session_t *s;
 	int openchannels = 0;
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
 
