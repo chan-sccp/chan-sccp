@@ -378,10 +378,7 @@ CLI_ENTRY(cli_show_devices, sccp_show_devices, "List defined SCCP devices", show
  * 	- device->buttonconfig is not always locked
  *
  * \lock
- * 	- devices in sccp_device_find_byid()
  * 	- device
- * 	  - device->buttonconfig
- * 	  - lines in sccp_line_find_byname_wo()
  * 	  - device->buttonconfig
  */
 static int sccp_show_device(int fd, int argc, char *argv[])
@@ -834,6 +831,8 @@ CLI_ENTRY(cli_show_sessions, sccp_show_sessions, "Show all SCCP sessions", show_
  * 
  * \lock
  * 	- devices
+ * 	  - see sccp_dev_displaynotify()
+ * 	  - see sccp_dev_starttone()
  */
 static int sccp_message_devices(int fd, int argc, char *argv[])
 {
@@ -961,6 +960,7 @@ CLI_ENTRY(cli_system_message, sccp_system_message, "Send a system wide message t
  * 
  * \lock
  * 	- device
+ * 	  - see sccp_sk_dnd()
  */
 static int sccp_dnd_device(int fd, int argc, char *argv[])
 {

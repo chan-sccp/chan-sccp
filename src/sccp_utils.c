@@ -458,7 +458,7 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
  * 
  * \lock
  * 	- device->buttonconfig
- * 	  - lines in sccp_line_find_byname_wo()
+ * 	  - see sccp_line_find_byname_wo()
  */
 sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 {
@@ -718,7 +718,7 @@ sccp_channel_t *sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t s
  * 
  * \lock
  * 	- device
- * 	  - lines (by sccp_line_find_byname_wo)
+ * 	  - see sccp_line_find_byname_wo()
  * 	  - line->channels
  */
 sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t state)
@@ -1365,7 +1365,6 @@ sccp_feature_type_t sccp_featureStr2featureID(const char *str)
  * 
  * \lock
  * 	- device
- * 	- lines (by sccp_line_find_byname_wo)
  */
 void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 {

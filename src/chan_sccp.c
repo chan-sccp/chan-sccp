@@ -1423,6 +1423,8 @@ static char *calledparty_descr = "Usage: SetCalledParty(\"Name\" <ext>)" "Sets t
  * 
  * \lock
  * 	- device
+ * 	  - see sccp_dev_displayprinotify()
+ * 	  - see sccp_dev_displayprompt()
  */
 static int sccp_app_setmessage(struct ast_channel *chan, void *data)
 {

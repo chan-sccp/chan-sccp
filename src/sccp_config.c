@@ -463,8 +463,8 @@ void sccp_config_addService(sccp_device_t * device, char *label, char *url, uint
  * \callergraph
  * 
  * \lock
- * 	- devices in sccp_device_find_byid()
  * 	- device
+ * 	  - see sccp_device_changed()
  */
 sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char *deviceName, boolean_t isRealtime)
 {
@@ -577,8 +577,8 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
  * \callergraph
  * 
  * \lock
- * 	- lines in sccp_line_find_byname_wo()
  * 	- line
+ * 	  - see sccp_line_changed()
  */
 sccp_line_t *sccp_config_buildLine(struct ast_variable * variable, const char *lineName, boolean_t isRealtime)
 {
@@ -1188,6 +1188,7 @@ void cleanup_stale_contexts(char *new, char *old)
  * 
  * \lock
  * 	- lines
+ * 	  - see sccp_config_applyLineConfiguration()
  */
 void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 {

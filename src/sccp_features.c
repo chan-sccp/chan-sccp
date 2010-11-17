@@ -66,6 +66,8 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  *
  * \lock
  * 	- channel
+ * 	  - see sccp_channel_set_active()
+ * 	  - see sccp_indicate_nolock()
  */
 sccp_channel_t *sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8_t type)
 {
@@ -214,6 +216,8 @@ sccp_channel_t *sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * de
  *
  * \lock
  * 	- channel
+ * 	  - see sccp_channel_set_active()
+ * 	  - see sccp_indicate_nolock()
  */
 sccp_channel_t *sccp_feat_handle_directpickup(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
 {
@@ -292,6 +296,7 @@ sccp_channel_t *sccp_feat_handle_directpickup(sccp_line_t * l, uint8_t lineInsta
  * 	- asterisk channel
  * 	  - device
  * 	  - channel
+ * 	    - see sccp_indicate_nolock()
  */
 int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 {
@@ -451,7 +456,12 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
  * \lock
  * 	- asterisk channel
  * 	  - channel
+ * 	    - see sccp_indicate_nolock()
+ *	    - see sccp_device_find_index_for_line()
+ *	    - see sccp_dev_stoptone()
+ *	    - see sccp_dev_set_speaker()
  * 	    - device
+ * 	    - see sccp_indicate_nolock()
  */
 int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 {
@@ -682,6 +692,7 @@ void sccp_feat_updatecid(sccp_channel_t * c)
  *
  * \lock
  * 	- channel
+ * 	  - see sccp_dev_displayprompt()
  */
 void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 {
@@ -782,9 +793,13 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  *
  * \lock
  * 	- device
+ * 	  - see sccp_device_numberOfChannels()
  * 	- device->selectedChannels
+ * 	  - see sccp_conference_addParticipant()
  * 	- device->buttonconfig
+ * 	  - see sccp_line_find_byname_wo()
  * 	  - line->channels
+ * 	    - see sccp_conference_addParticipant()
  */
 void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
 {
@@ -871,6 +886,12 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
  *
  * \lock
  * 	- channel
+ * 	  - see sccp_indicate_nolock()
+ * 	- channel
+ * 	  - see sccp_channel_set_active()
+ * 	  - see sccp_indicate_nolock()
+ * 	  - see sccp_pbx_channel_allocate()
+ * 	  - see sccp_channel_openreceivechannel()
  */
 sccp_channel_t *sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
 {
@@ -963,7 +984,12 @@ struct meetmeAppConfig meetmeApps[] = {
  *
  * \lock
  * 	- channel
- */
+ *	  - see sccp_indicate_nolock()
+ *	  - see sccp_channel_set_calledparty()
+ *	  - see sccp_channel_setSkinnyCallstate()
+ *	  - see sccp_channel_send_callinfo()
+ *	  - see sccp_indicate_nolock()
+*/
 static void *sccp_feat_meetme_thread(void *data)
 {
 	sccp_channel_t *c = data;
@@ -1092,6 +1118,7 @@ void sccp_feat_meetme_start(sccp_channel_t * c)
  *
  * \lock
  * 	- channel
+ * 	  - see sccp_indicate_nolock()
  */
 sccp_channel_t *sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
 {
@@ -1183,6 +1210,10 @@ int sccp_feat_barge(sccp_channel_t * c, char *exten)
  *
  * \lock
  * 	- channel
+ * 	  - see sccp_indicate_nolock()
+ * 	- channel
+ * 	  - see sccp_channel_set_active()
+ * 	  - see sccp_indicate_nolock()
  */
 sccp_channel_t *sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
 {

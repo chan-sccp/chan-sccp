@@ -137,7 +137,6 @@ void sccp_handle_unknown_message(sccp_session_t * s, sccp_moo_t * r)
  * \callergraph
  * 
  * \lock
- * 	- devices in sccp_device_find_byid()
  * 	- devices
  * 	- device->permithosts
  * 	- device
@@ -311,6 +310,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
  *
  * \lock
  * 	- device->buttonconfig
+ * 	  - see sccp_line_find_byname()
  */
 static btnlist *sccp_make_button_template(sccp_device_t * d)
 {
@@ -526,6 +526,8 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
  * \lock
  * 	- device
  * 	- device->buttonconfig
+ * 	  - see sccp_line_addDevice()
+ * 	  - see sccp_hint_lineStatusChanged()
  */
 void sccp_handle_AvailableLines(sccp_device_t * d)
 {
@@ -673,6 +675,8 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_moo_t * r)
  * 
  * \lock
  * 	- device
+ * 	  - see sccp_make_button_template()
+ * 	  - see sccp_dev_send()
  */
 void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -789,8 +793,6 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
  * \param r SCCP Message as sccp_moo_t
  *
  * \lock
- * 	- device->buttonconfig in sccp_line_find_byid()
- * 	  - lines in sccp_line_find_byid()
  * 	- device->buttonconfig
  */
 void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
@@ -906,6 +908,7 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_moo_t * r)
  * \lock
  * 	- channel
  * 	- device
+ * 	  - see sccp_device_find_index_for_line()
  */
 void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -1781,6 +1784,9 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * r)
  *
  * \lock
  * 	- channel
+ * 	  - see sccp_device_find_index_for_line()
+ * 	  - see sccp_dev_displayprompt()
+ * 	  - see sccp_handle_dialtone_nolock()
  */
 void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -2113,6 +2119,8 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
  *
  * \lock
  * 	- channel
+ * 	  - see sccp_channel_startmediatransmission()
+ * 	  - see sccp_channel_endcall()
  */
 void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -2191,6 +2199,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
  *
  * \lock
  * 	- channel
+ * 	  - see sccp_dev_send()
  */
 void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -2465,9 +2474,6 @@ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_moo_t * r)
  * 
  * \warning
  * 	- device->buttonconfig is not always locked
- *
- * \lock
- * 	- device
  */
 void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 {
