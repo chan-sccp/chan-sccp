@@ -44,7 +44,6 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #    include "asterisk/event.h"
 #endif
 /* --- CLI Tab Completion ---------------------------------------------------------------------------------------------- */
-#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief Complete Device
  * \param line Line as char
@@ -53,12 +52,12 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \param state State as int
  * \return Result as char
  */
+#if ASTERISK_VERSION_NUM >= 10600
 static char *sccp_complete_device(char *line, char *word, int pos, int state)
-{
 #else
 static char *sccp_complete_device(const char *line, const char *word, int pos, int state)
-{
 #endif
+{
 	sccp_device_t *d;
 	int which = 0;
 	char *ret;
@@ -80,7 +79,6 @@ static char *sccp_complete_device(const char *line, const char *word, int pos, i
 	return ret;
 }
 
-#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief Complete Line
  * \param line Line as char
@@ -89,12 +87,12 @@ static char *sccp_complete_device(const char *line, const char *word, int pos, i
  * \param state State as int
  * \return Result as char
  */
+#if ASTERISK_VERSION_NUM >= 10600
 static char *sccp_complete_line(char *line, char *word, int pos, int state)
-{
 #else
 static char *sccp_complete_line(const char *line, const char *word, int pos, int state)
-{
 #endif
+{
 	sccp_line_t *l;
 	int which = 0;
 	char *ret;
