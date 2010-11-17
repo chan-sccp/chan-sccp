@@ -101,6 +101,8 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 
 /*!
  * Add channel to conference bridge
+ * 
+ * \lock	asterisk channel
  */
 int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_t * participant, struct ast_channel *currentParticipantPeer)
 {
@@ -145,6 +147,8 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
  *
  * @param conference conference
  * @param participant participant to remove
+ *
+ * \lock	conference->participants
  */
 void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * channel)
 {
@@ -208,6 +212,8 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
  *
  * \todo implement this
  * \todo check if the are enough participants in conference
+ *
+ * \lock	conference->participants
  */
 void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_channel_t * participant)
 {
@@ -232,6 +238,13 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_chan
 		sccp_conference_end(conference);
 }
 
+/*!
+ * End conference
+ *
+ * @param conference conference
+ *
+ * \lock	conference->participants
+ */
 void sccp_conference_end(sccp_conference_t * conference)
 {
 	sccp_conference_participant_t *part = NULL;

@@ -65,6 +65,8 @@ AST_MUTEX_DEFINE_STATIC(callCountLock);
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	callCountLock
  */
 sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 {
@@ -126,6 +128,8 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 /*!
  * \brief Update Channel Capability
  * \param channel SCCP Channel
+ * 
+ * \lock	channel->owner, channel
  */
 void sccp_channel_updateChannelCapability(sccp_channel_t * channel)
 {
@@ -225,6 +229,8 @@ sccp_channel_t *sccp_channel_get_active(sccp_device_t * d)
  * \brief Set SCCP Channel to Active
  * \param d SCCP Device
  * \param c SCCP Channel
+ * 
+ * \lock	device
  */
 void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * c)
 {
@@ -245,6 +251,8 @@ void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * c)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	device
  */
 static void sccp_channel_send_staticCallinfo(sccp_device_t * device, sccp_channel_t * c)
 {
@@ -357,6 +365,8 @@ static void sccp_channel_send_staticCallinfo(sccp_device_t * device, sccp_channe
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	device
  */
 static void sccp_channel_send_dynamicCallinfo(sccp_device_t * device, sccp_channel_t * channel)
 {
@@ -865,6 +875,8 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
  * We will get a OpenReceiveChannelAck message that includes all information.
  *
  * \param c SCCP Channel
+ * 
+ * \lock	channel
  */
 void sccp_channel_openreceivechannel(sccp_channel_t * c)
 {
@@ -1336,6 +1348,8 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
  * \brief Tell Device to Close an RTP Receive Channel and Stop Media Transmission
  * \param c SCCP Channel
  * \note sccp_channel_stopmediatransmission is explicit call within this function!
+ * 
+ * \lock	channel
  */
 void sccp_channel_closereceivechannel(sccp_channel_t * c)
 {
@@ -1373,6 +1387,8 @@ void sccp_channel_closereceivechannel(sccp_channel_t * c)
  *
  * Also RTP will be Stopped/Destroyed and Call Statistic is requested.
  * \param c SCCP Channel
+ * 
+ * \lock	channel
  */
 void sccp_channel_stopmediatransmission(sccp_channel_t * c)
 {
@@ -1482,6 +1498,8 @@ void sccp_channel_updatemediatype(sccp_channel_t * c)
  *
  * \callgraph
  * \callergraph
+ *
+ * \lock	line->channels
  */
 void sccp_channel_endcall(sccp_channel_t * c)
 {
@@ -1560,6 +1578,8 @@ void sccp_channel_endcall(sccp_channel_t * c)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	channel
  */
 sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, char *dial, uint8_t calltype)
 {
@@ -1641,6 +1661,8 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, ch
  *
  * \callgraph
  * \callergraph
+ *
+ * \lock	line, line->channels
  */
 void sccp_channel_answer(sccp_device_t * device, sccp_channel_t * c)
 {
@@ -1752,6 +1774,8 @@ void sccp_channel_answer(sccp_device_t * device, sccp_channel_t * c)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	device
  */
 int sccp_channel_hold(sccp_channel_t * c)
 {
@@ -1840,6 +1864,8 @@ int sccp_channel_hold(sccp_channel_t * c)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	device, channel
  */
 int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * c)
 {
@@ -1966,6 +1992,8 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * c)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	device, device->selectedChannels
  */
 void sccp_channel_cleanbeforedelete(sccp_channel_t * c)				// we assume channel is locked
 {
@@ -2026,6 +2054,8 @@ void sccp_channel_cleanbeforedelete(sccp_channel_t * c)				// we assume channel 
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	channel
  */
 void sccp_channel_delete_wo(sccp_channel_t * c, uint8_t list_lock, uint8_t channel_lock)	// We assume channel is locked
 {
@@ -2060,6 +2090,8 @@ void sccp_channel_delete_wo(sccp_channel_t * c, uint8_t list_lock, uint8_t chann
 /*!
  * \brief Create a new RTP Source.
  * \param c SCCP Channel
+ * 
+ * \lock	device
  */
 boolean_t sccp_channel_start_rtp(sccp_channel_t * c)
 {
@@ -2283,6 +2315,8 @@ void sccp_channel_destroy_rtp(sccp_channel_t * c)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	device
  */
 void sccp_channel_transfer(sccp_channel_t * c)
 {
@@ -2342,6 +2376,8 @@ void sccp_channel_transfer(sccp_channel_t * c)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	asterisk channel
  */
 static void *sccp_channel_transfer_ringing_thread(void *data)
 {
@@ -2381,6 +2417,8 @@ static void *sccp_channel_transfer_ringing_thread(void *data)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	device
  */
 void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal)
 {
@@ -2581,6 +2619,8 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	channel
  */
 void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevice, char *fwdNumber)
 {

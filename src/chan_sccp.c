@@ -723,6 +723,8 @@ static int load_config(void)
 
 /*!
  * \brief 	create a hotline
+ * 
+ * \lock	lines
  */
 void *sccp_create_hotline(void)
 {
@@ -754,6 +756,8 @@ void *sccp_create_hotline(void)
 /*!
  * \brief 	start monitoring thread of chan_sccp
  * \param 	data
+ * 
+ * \lock	monitor_lock
  */
 void *sccp_do_monitor(void *data)
 {
@@ -784,6 +788,8 @@ void *sccp_do_monitor(void *data)
 /*!
  * \brief 	restart the monitoring thread of chan_sccp
  * \return	Success as int
+ * 
+ * \lock	monitor_lock
  */
 int sccp_restart_monitor(void)
 {
@@ -823,6 +829,8 @@ int sccp_restart_monitor(void)
  *
  * \author Diederik de Groot <ddegroot@users.sourceforce.net>
  * \ref nf_sccp_dialplan_sccpdevice
+ * 
+ * \lock	device, device->buttonconfig
  */
 #if ASTERISK_VERSION_NUM >= 10600
 static int sccp_func_sccpdevice(struct ast_channel *chan, const char *cmd, char *data, char *buf, size_t len)
@@ -1024,6 +1032,8 @@ static struct ast_custom_function sccpdevice_function = {
  *
  * \author Diederik de Groot <ddegroot@users.sourceforce.net>
  * \ref nf_sccp_dialplan_sccpline
+ * 
+ * \lock	line, line->devices
  */
 #if ASTERISK_VERSION_NUM >= 10600
 static int sccp_func_sccpline(struct ast_channel *chan, const char *cmd, char *data, char *buf, size_t len)
@@ -1227,6 +1237,8 @@ static struct ast_custom_function sccpline_function = {
  *
  * \author Diederik de Groot <ddegroot@users.sourceforce.net>
  * \ref nf_sccp_dialplan_sccpchannel
+ * 
+ * \lock	channel
  */
 #if ASTERISK_VERSION_NUM >= 10600
 static int sccp_func_sccpchannel(struct ast_channel *chan, const char *cmd, char *data, char *buf, size_t len)
@@ -1396,6 +1408,8 @@ static char *calledparty_descr = "Usage: SetCalledParty(\"Name\" <ext>)" "Sets t
  * \param	chan asterisk channel
  * \param	data message to sent - if empty clear display
  * \version	20071112_1944
+ * 
+ * \lock	device
  */
 static int sccp_app_setmessage(struct ast_channel *chan, void *data)
 {
@@ -1476,6 +1490,8 @@ static int sccp_unregister_dialplan_functions(void)
  * \param	rc	Asterisk Channel
  * \param	timeoutms Time Out in Millisecs as int
  * \return 	Asterisk Bridge Result as enum
+ * 
+ * \lock	asterisk channel0, asterisk channel1
  */
 enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo, struct ast_channel **rc, int timeoutms)
 {
@@ -1714,6 +1730,8 @@ int sccp_sched_free(void *ptr)
 /*!
  * \brief 	Unload the chan_sccp module
  * \return	Success as int
+ * 
+ * \lock	lines, monitor_lock, devices, lines, socket_lock
  */
 int unload_module()
 {

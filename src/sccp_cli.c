@@ -51,6 +51,8 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \param pos Pos as int
  * \param state State as int
  * \return Result as char
+ *
+ * \lock	devices
  */
 #if ASTERISK_VERSION_NUM >= 10600
 static char *sccp_complete_device(char *line, char *word, int pos, int state)
@@ -86,6 +88,8 @@ static char *sccp_complete_device(const char *line, const char *word, int pos, i
  * \param pos Pos as int
  * \param state State as int
  * \return Result as char
+ * 
+ * \lock	lines
  */
 #if ASTERISK_VERSION_NUM >= 10600
 static char *sccp_complete_line(char *line, char *word, int pos, int state)
@@ -217,6 +221,8 @@ static char *sccp_print_group(char *buf, int buflen, ast_group_t group)
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \lock	globals
  */
 static int sccp_show_globals(int fd, int argc, char *argv[])
 {
@@ -323,6 +329,8 @@ CLI_ENTRY(cli_show_globals, sccp_show_globals, "List defined SCCP global setting
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \lock	devices
  */
 static int sccp_show_devices(int fd, int argc, char *argv[])
 {
@@ -362,6 +370,8 @@ CLI_ENTRY(cli_show_devices, sccp_show_devices, "List defined SCCP devices", show
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \lock	device, device->buttonconfig
  */
 static int sccp_show_device(int fd, int argc, char *argv[])
 {
@@ -532,6 +542,8 @@ CLI_ENTRY_COMPLETE(cli_show_device, sccp_show_device, "Lists device settings", s
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \lock	lines, line
  */
 static int sccp_show_lines(int fd, int argc, char *argv[])
 {
@@ -605,6 +617,8 @@ CLI_ENTRY(cli_show_lines, sccp_show_lines, "List defined SCCP Lines", show_lines
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \lock	line, line->devices
  */
 static int sccp_show_line(int fd, int argc, char *argv[])
 {
@@ -714,6 +728,8 @@ CLI_ENTRY_COMPLETE(cli_show_line, sccp_show_line, "List defined SCCP line settin
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \lock	lines, line, line->channels
  */
 static int sccp_show_channels(int fd, int argc, char *argv[])
 {
@@ -749,6 +765,8 @@ CLI_ENTRY(cli_show_channels, sccp_show_channels, "Lists active SCCP channels", s
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \lock	sessions, session, session->device
  */
 static int sccp_show_sessions(int fd, int argc, char *argv[])
 {
@@ -792,6 +810,8 @@ CLI_ENTRY(cli_show_sessions, sccp_show_sessions, "Show all SCCP sessions", show_
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \lock	devices
  */
 static int sccp_message_devices(int fd, int argc, char *argv[])
 {
@@ -916,6 +936,8 @@ CLI_ENTRY(cli_system_message, sccp_system_message, "Send a system wide message t
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \lock	device
  */
 static int sccp_dnd_device(int fd, int argc, char *argv[])
 {
@@ -1137,6 +1159,8 @@ CLI_ENTRY(cli_no_debug, sccp_no_debug, "Set SCCP Debugging Types", no_debug_usag
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \lock	globals
  *
  * \note To find out more about the reload function see \ref sccp_config_reload
  */
@@ -1207,6 +1231,8 @@ CLI_ENTRY(cli_show_version, sccp_show_version, "Show SCCP version details", show
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \lock	device
  */
 static int sccp_reset_restart(int fd, int argc, char *argv[])
 {
@@ -1278,6 +1304,8 @@ CLI_ENTRY_COMPLETE(cli_restart, sccp_reset_restart, "Restart an SCCP device", re
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \lock	device
  */
 static int sccp_unregister(int fd, int argc, char *argv[])
 {

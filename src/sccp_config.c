@@ -120,6 +120,8 @@ struct ast_config *sccp_config_getConfig(void);
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	device->buttonconfig, globals
  */
 void sccp_config_addButton(sccp_device_t * device, int index, button_type_t type, const char *name, const char *options, const char *args)
 {
@@ -252,6 +254,8 @@ void sccp_config_addButton(sccp_device_t * device, int index, button_type_t type
  * \param lineName Name of line
  * \param options  Line Options
  * \param instance Line Instance as uint16
+ * 
+ * \lock	device->buttonconfig
  */
 void sccp_config_addLine(sccp_device_t * device, char *lineName, char *options, uint16_t instance)
 {
@@ -294,6 +298,8 @@ void sccp_config_addLine(sccp_device_t * device, char *lineName, char *options, 
  * Add an Empty Button to device.
  * \param device SCCP Device
  * \param instance Index Preferred Button Position as int
+ * 
+ * \lock	device->buttonconfig
  */
 void sccp_config_addEmpty(sccp_device_t * device, uint16_t instance)
 {
@@ -317,6 +323,8 @@ void sccp_config_addEmpty(sccp_device_t * device, uint16_t instance)
  * \param extension Extension as char
  * \param hint Hint as char
  * \param instance Index Preferred Button Position as int
+ * 
+ * \lock	device->buttonconfig
  */
 void sccp_config_addSpeeddial(sccp_device_t * device, char *label, char *extension, char *hint, uint16_t instance)
 {
@@ -347,6 +355,8 @@ void sccp_config_addSpeeddial(sccp_device_t * device, char *label, char *extensi
  * \param featureID featureID as char
  * \param args Arguments as char
  * \param instance Index Preferred Button Position as int
+ * 
+ * \lock	device->buttonconfig
  */
 void sccp_config_addFeature(sccp_device_t * device, char *label, char *featureID, char *args, uint16_t instance)
 {
@@ -403,6 +413,8 @@ void sccp_config_addFeature(sccp_device_t * device, char *label, char *featureID
  * \param label Label as char
  * \param url URL as char
  * \param instance Index Preferred Button Position as int
+ * 
+ * \lock	device->buttonconfig
  */
 void sccp_config_addService(sccp_device_t * device, char *label, char *url, uint16_t instance)
 {
@@ -440,6 +452,8 @@ void sccp_config_addService(sccp_device_t * device, char *label, char *url, uint
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	device
  */
 sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char *deviceName, boolean_t isRealtime)
 {
@@ -550,6 +564,8 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	line
  */
 sccp_line_t *sccp_config_buildLine(struct ast_variable * variable, const char *lineName, boolean_t isRealtime)
 {
@@ -1156,6 +1172,8 @@ void cleanup_stale_contexts(char *new, char *old)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	lines
  */
 void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 {
@@ -1281,6 +1299,8 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	line->mailboxes
  */
 sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, struct ast_variable *v)
 {
@@ -1553,6 +1573,8 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, s
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	device->adons, device->permithosts
  */
 sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct ast_variable * v)
 {
@@ -1961,6 +1983,8 @@ int sccp_config_getSoftkeyLbl(char *key)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	device->devstateSpecifiers
  */
 void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 {
