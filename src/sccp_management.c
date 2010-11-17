@@ -177,6 +177,7 @@ int sccp_manager_show_lines(struct mansession *s, const struct message *m)
  * \return Success as int
  * 
  * \lock
+ * 	- devices in sccp_device_find_byid()
  * 	- device
  */
 int sccp_manager_restart_device(struct mansession *s, const struct message *m)
@@ -227,6 +228,12 @@ int sccp_manager_restart_device(struct mansession *s, const struct message *m)
  * \param s Management Session
  * \param m Message 
  * \return Success as int
+ * 
+ * \lock
+ * 	- devices in sccp_device_find_byid()
+ * 	- lines in sccp_line_find_byname_wo()
+ * 	- device->buttonconfig in sccp_config_addButton()
+ * 	  - globals in sccp_config_addButton()
  */
 static int sccp_manager_device_add_line(struct mansession *s, const struct message *m)
 {
@@ -279,6 +286,10 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
  * \param m Message 
  * \return Success as int
  * // \todo TODO This function does not do anything. Has the implementation of this function moved somewhere else ?
+ *
+ * \lock
+ * 	- devices in sccp_device_find_byid()
+ * 	- lines in sccp_line_find_byname_wo()
  */
 int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 {
@@ -359,6 +370,11 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
  * \param s Management Session
  * \param m Message 
  * \return Success as int
+ * 
+ * \lock
+ * 	- devices in sccp_device_find_byid()
+ * 	- device in sccp_handle_soft_key_template_req()
+ * 	- device in sccp_handle_button_template_req()
  */
 static int sccp_manager_device_update(struct mansession *s, const struct message *m)
 {
