@@ -1043,7 +1043,6 @@ static int sccp_pbx_recvdigit_begin(struct ast_channel *ast, char digit)
  * \todo FIXME Always returns -1
  */
 static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit)
-{
 #else
 /*!
  * \brief Receive Last Digit from Asterisk Channel
@@ -1054,8 +1053,8 @@ static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit)
  * \todo FIXME Always returns -1
  */
 static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit, unsigned int duration)
-{
 #endif										// ASTERISK_VERSION_NUM < 10400
+{
 	sccp_channel_t *c = CS_AST_CHANNEL_PVT(ast);
 	sccp_device_t *d = NULL;
 	uint8_t instance;
@@ -1105,7 +1104,6 @@ static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit, unsigned 
  * \return Succes as int
  */
 static int sccp_pbx_sendtext(struct ast_channel *ast, const char *text)
-{
 #else
 /*!
  * \brief Send Text to Asterisk Channel
@@ -1114,8 +1112,8 @@ static int sccp_pbx_sendtext(struct ast_channel *ast, const char *text)
  * \return Succes as int
  */
 static int sccp_pbx_sendtext(struct ast_channel *ast, char *text)
-{
 #endif										// CS_AST_HAS_TECH_PVT
+{
 	sccp_channel_t *c = CS_AST_CHANNEL_PVT(ast);
 	sccp_device_t *d;
 	uint8_t instance;

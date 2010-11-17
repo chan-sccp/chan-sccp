@@ -114,7 +114,6 @@ struct io_context *io = 0;
  * \return	Asterisk Channel
  */
 struct ast_channel *sccp_request(const char *type, int format, void *data, int *cause)
-{
 #else
 /*!
  * \brief	handle request coming from asterisk
@@ -127,9 +126,8 @@ struct ast_channel *sccp_request(const char *type, int format, void *data, int *
  * 	- line->devices is not always locked
  */
 struct ast_channel *sccp_request(char *type, int format, void *data)
-{
 #endif
-
+{
 	struct composedId lineSubscriptionId;
 	sccp_line_t *l = NULL;
 	sccp_channel_t *c = NULL;
@@ -1598,12 +1596,10 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
  * \return	Success as int
  */
 int load_module()
-{
 #else
 static int load_module(void)
-{
 #endif
-
+{
 #ifdef HAVE_LIBGC
 	GC_INIT();
 	(void)GC_set_warn_proc(gc_warn_handler);
@@ -1761,17 +1757,18 @@ int sccp_sched_free(void *ptr)
  * 	- socket_lock
  */
 int unload_module()
-{
-	char iabuf[INET_ADDRSTRLEN];
 #else
 static int unload_module(void)
-{
 #endif
+{
 	sccp_device_t *d;
 	sccp_line_t *l;
 	sccp_channel_t *c;
 	sccp_session_t *s;
 	int openchannels = 0;
+#if ASTERISK_VERSION_NUM >= 10400
+	char iabuf[INET_ADDRSTRLEN];
+#endif
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
 

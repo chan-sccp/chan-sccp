@@ -711,12 +711,10 @@ enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struc
  */
 #ifndef CS_AST_HAS_RTP_ENGINE
 enum ast_rtp_get_result sccp_channel_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp **rtp)
-{
 #else
 enum ast_rtp_glue_result sccp_channel_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp_instance **rtp)
-{
 #endif
-
+{
 	sccp_channel_t *c = NULL;
 	if (!(c = CS_AST_CHANNEL_PVT(ast)) || !(c->rtp.video.rtp)) {
 #ifndef CS_AST_HAS_RTP_ENGINE
