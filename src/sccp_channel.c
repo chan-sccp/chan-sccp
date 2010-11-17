@@ -2413,7 +2413,8 @@ void sccp_channel_transfer(sccp_channel_t * c)
  * \callgraph
  * \callergraph
  * 
- * \lock	asterisk channel
+ * \lock
+ * 	- asterisk channel
  */
 static void *sccp_channel_transfer_ringing_thread(void *data)
 {

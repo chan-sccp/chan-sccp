@@ -1016,11 +1016,6 @@ CLI_ENTRY(cli_remove_line_from_device, sccp_remove_line_from_device, "Remove a l
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
- * 
- * \lock
- * 	- devices in sccp_device_find_byid()
- * 	- lines in sccp_line_find_byname()
- * 	- see sccp_config_addButton()
  */
 static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 {
