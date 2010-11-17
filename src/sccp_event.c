@@ -15,27 +15,24 @@
  * 		When to use:	Only methods directly related to sccp events should be stored in this source file.
  *   		Relationships: 	SCCP Hint
  */
- 
+
 #include "config.h"
 #if ASTERISK_VERSION_NUM >= 10400
-#include <asterisk.h>
+#    include <asterisk.h>
 #endif
 #include "chan_sccp.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-
 #include "sccp_lock.h"
 #include "sccp_event.h"
-
 #include <asterisk/pbx.h>
 #include <asterisk/utils.h>
 #ifdef CS_AST_HAS_NEW_DEVICESTATE
-#include <asterisk/devicestate.h>
+#    include <asterisk/devicestate.h>
 #endif
 #ifdef CS_SCCP_PICKUP
-#include <asterisk/features.h>
+#    include <asterisk/features.h>
 #endif
-
 /*!
  * \brief SCCP Event Listeners Structure
  */
@@ -46,14 +43,15 @@ struct sccp_event_subscriptions *sccp_event_listeners = 0;
  * \param eventType SCCP Event Type
  * \param cb SCCP Event Call Back
  */
-void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb) {
+void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb)
+{
 
 	sccp_event_subscriber_t *subscription = NULL;
 
-	sccp_log((DEBUGCAT_EVENT))(VERBOSE_PREFIX_1 "[SCCP] register event listener for %d\n", eventType);
+	sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_1 "[SCCP] register event listener for %d\n", eventType);
 
 	subscription = ast_malloc(sizeof(sccp_event_subscriber_t));
-	if(!subscription){
+	if (!subscription) {
 		ast_log(LOG_ERROR, "Failed to allocate memory for subscription\n");
 		return;
 	}
@@ -69,24 +67,25 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb)
  * \param event SCCP Event
  * \note event will be freed after event is fired
  */
-void sccp_event_fire(const sccp_event_t* *event){
-	if( *event == NULL)
+void sccp_event_fire(const sccp_event_t * *event)
+{
+	if (*event == NULL)
 		return;
 
 	sccp_event_type_t type = (*event)->type;
 	sccp_event_subscriber_t *subscriber;
 
-	sccp_log((DEBUGCAT_EVENT))(VERBOSE_PREFIX_1 "[SCCP] Fire event %d\n", type);
-	SCCP_LIST_TRAVERSE(&sccp_event_listeners->subscriber, subscriber, list){
-		sccp_log((DEBUGCAT_EVENT))(VERBOSE_PREFIX_1 "eventtype: %d listenerType: %d, -> result: %d %s\n", type, subscriber->eventType, (subscriber->eventType & type), (subscriber->eventType & type)?"true":"false" );
-		if(subscriber->eventType & type){
+	sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_1 "[SCCP] Fire event %d\n", type);
+	SCCP_LIST_TRAVERSE(&sccp_event_listeners->subscriber, subscriber, list) {
+		sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_1 "eventtype: %d listenerType: %d, -> result: %d %s\n", type, subscriber->eventType, (subscriber->eventType & type), (subscriber->eventType & type) ? "true" : "false");
+		if (subscriber->eventType & type) {
 			subscriber->callback_function(event);
 		}
 	}
 
 #ifdef HAVE_LIBGC
-	*event=NULL;
+	*event = NULL;
 #else
-	ast_free((void *) *event);
+	ast_free((void *)*event);
 #endif
 }

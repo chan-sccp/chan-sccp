@@ -12,14 +12,14 @@
  * $Revision$  
  */
 #ifndef __SCCP_INDICATE_H
-#define __SCCP_INDICATE_H
+#    define __SCCP_INDICATE_H
 
-#define SCCP_INDICATE_NOLOCK 	0
-#define SCCP_INDICATE_LOCK		1
+#    define SCCP_INDICATE_NOLOCK 	0
+#    define SCCP_INDICATE_LOCK		1
 
-void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t state, uint8_t debug, char * file, int line, const char * pretty_function);
+void __sccp_indicate_nolock(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function);
 
-#define __sccp_indicate_lock(w, x, y, z) \
+#    define __sccp_indicate_lock(w, x, y, z) \
 		while(x && sccp_channel_trylock(x)) { \
 			sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__); \
 			usleep(200);  } \
@@ -32,17 +32,15 @@ void __sccp_indicate_nolock(sccp_device_t *device, sccp_channel_t * c, uint8_t s
 			ast_log(LOG_ERROR, "SCCP: (sccp_indicate_lock) No channel to indicate.\n"); \
 		} \
 
-const char * sccp_indicate2str(uint8_t state);
-const char * sccp_callstate2str(uint8_t state);
+const char *sccp_indicate2str(uint8_t state);
+const char *sccp_callstate2str(uint8_t state);
 
+#    ifdef CS_DEBUG_INDICATIONS
+#        define sccp_indicate_lock(x, y, z)	__sccp_indicate_lock(x, y, z, 1)
+#        define sccp_indicate_nolock(x, y, z)	__sccp_indicate_nolock(x, y, z, 1, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#    else
+#        define sccp_indicate_lock(x, y, z)	__sccp_indicate_lock(x, y, z, 0)
+#        define sccp_indicate_nolock(x, y, z)	__sccp_indicate_nolock(x, y, z, 0, NULL, 0, NULL)
+#    endif
 
-#ifdef CS_DEBUG_INDICATIONS
-#define sccp_indicate_lock(x, y, z)	__sccp_indicate_lock(x, y, z, 1)
-#define sccp_indicate_nolock(x, y, z)	__sccp_indicate_nolock(x, y, z, 1, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#else
-#define sccp_indicate_lock(x, y, z)	__sccp_indicate_lock(x, y, z, 0)
-#define sccp_indicate_nolock(x, y, z)	__sccp_indicate_nolock(x, y, z, 0, NULL, 0, NULL)
-#endif
-
-#endif /* __SCCP_INDICATE_H */
-
+#endif										/* __SCCP_INDICATE_H */

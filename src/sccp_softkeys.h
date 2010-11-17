@@ -12,12 +12,12 @@
  * $Revision$  
  */
 #ifndef __SCCP_SOFTKEYS_H
-#define __SCCP_SOFTKEYS_H
+#    define __SCCP_SOFTKEYS_H
 
-#ifdef CS_DYNAMIC_CONFIG
+#    ifdef CS_DYNAMIC_CONFIG
 void sccp_softkey_pre_reload(void);
 void sccp_softkey_post_reload(void);
-#endif
+#    endif
 
 void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
 void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);

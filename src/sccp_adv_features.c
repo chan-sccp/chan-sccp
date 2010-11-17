@@ -15,13 +15,12 @@
 #include "config.h"
 
 #if ASTERISK_VERSION_NUM >= 10400
-#include <asterisk.h>
+#    include <asterisk.h>
 #endif
 
 #include "chan_sccp.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-
 #include "sccp_features.h"
 #include "sccp_lock.h"
 #include "sccp_actions.h"
@@ -35,24 +34,22 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/utils.h>
 #include <asterisk/causes.h>
 #ifndef CS_AST_HAS_TECH_PVT
-#include <asterisk/channel_pvt.h>
+#    include <asterisk/channel_pvt.h>
 #endif
 #include <asterisk/callerid.h>
 #include <asterisk/musiconhold.h>
 #ifdef CS_SCCP_PARK
-#include <asterisk/features.h>
+#    include <asterisk/features.h>
 #endif
- 
 #include "sccp_adv_features.h"
-
 /*!
  * \brief Dummy Procedure 1
  */
 void dummyproc1(void)
 {
-        /* this is a dummy proc */
-        if (0)
-                dummyproc2();
+	/* this is a dummy proc */
+	if (0)
+		dummyproc2();
 }
 
 /*!
@@ -60,8 +57,7 @@ void dummyproc1(void)
  */
 void dummyproc2(void)
 {
-        /* this is a dummy proc */
-        if (0)
-                dummyproc1();
+	/* this is a dummy proc */
+	if (0)
+		dummyproc1();
 }
- 
