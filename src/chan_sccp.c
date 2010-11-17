@@ -1746,11 +1746,8 @@ int sccp_sched_free(void *ptr)
  * \brief 	Unload the chan_sccp module
  * \return	Success as int
  * 
- * \warning
- * 	- lines is not always locked
- * 	- line->channels is not always locked
- *
  * \lock
+ * 	- channel->owner
  * 	- lines
  * 	- monitor_lock
  * 	- devices
