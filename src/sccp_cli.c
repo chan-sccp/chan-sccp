@@ -1083,8 +1083,8 @@ CLI_ENTRY(cli_show_mwi_subscriptions, sccp_show_mwi_subscriptions, "Show all SCC
  * \param argv[] Argv[] as char
  * \return Result as int
  * 
- * \warning
- * 	- softKeySetConfig is not always locked
+ * \lock
+ * 	- softKeySetConfig
  */
 static int sccp_show_softkeysets(int fd, int argc, char *argv[])
 {
@@ -1094,8 +1094,10 @@ static int sccp_show_softkeysets(int fd, int argc, char *argv[])
 	uint8_t i = 0;
 	uint8_t v_count = 0;
 	uint8_t c = 0;
-	SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
-		v_count = sizeof(softkeyset->modes) / sizeof(softkey_modes);
+
+	SCCP_LIST_LOCK(&softKeySetConfig);
+	SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list){
+		v_count = sizeof(softkeyset->modes)/sizeof(softkey_modes);
 
 		ast_cli(fd, "name: %s\n", softkeyset->name);
 		ast_cli(fd, "number of softkeysets: %d\n", v_count);
@@ -1114,6 +1116,7 @@ static int sccp_show_softkeysets(int fd, int argc, char *argv[])
 		ast_cli(fd, "\n");
 
 	}
+	SCCP_LIST_UNLOCK(&softKeySetConfig);
 	ast_cli(fd, "\n");
 	return RESULT_SUCCESS;
 }

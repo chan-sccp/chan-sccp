@@ -1870,11 +1870,11 @@ struct ast_config *sccp_config_getConfig()
  * \param variable list of configuration variables
  * \param name name of this configuration (context)
  * 
- * \warning
- * 	- softKeySetConfig is not always locked
- *
  * \callgraph
  * \callergraph
+ *
+ * \lock
+ *	- softKeySetConfig
  */
 void sccp_config_softKeySet(struct ast_variable *variable, const char *name)
 {
@@ -1947,7 +1947,9 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name)
 		variable = variable->next;
 	}
 
+	SCCP_LIST_LOCK(&softKeySetConfig);
 	SCCP_LIST_INSERT_HEAD(&softKeySetConfig, softKeySetConfiguration, list);
+	SCCP_LIST_UNLOCK(&softKeySetConfig);
 }
 
 /**
