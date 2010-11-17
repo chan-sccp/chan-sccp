@@ -1516,8 +1516,10 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r)
  * \param r SCCP Message as sccp_moo_t
  * 
  * \warning
- * 	- softKeySetConfig is not always locked
  * 	- device->buttonconfig is not always locked
+ *
+ * \lock
+ *	- softKeySetConfig
  */
 void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -1541,6 +1543,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 
 	if (!ast_strlen_zero(d->softkeyDefinition)) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: searching for softkeyset: %s!\n", d->id, d->softkeyDefinition);
+		SCCP_LIST_LOCK(&softKeySetConfig);
 		SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
 			if (!strcasecmp(d->softkeyDefinition, softkeyset->name)) {
 				sccp_log(1) (VERBOSE_PREFIX_3 "%s: using softkeyset: %s!\n", d->id, softkeyset->name);
@@ -1548,6 +1551,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 				d->softKeyConfiguration.size = softkeyset->numberOfSoftKeySets;
 			}
 		}
+		SCCP_LIST_UNLOCK(&softKeySetConfig);
 	}
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: d->softkeyDefinition=%s!\n", d->id, d->softkeyDefinition);
 	/* end softkey definition */
