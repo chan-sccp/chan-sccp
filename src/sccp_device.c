@@ -59,6 +59,10 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock
+ * 	- devices
+ * 	  - device->buttonconfig
  */
 void sccp_device_pre_reload(void)
 {
@@ -92,7 +96,9 @@ void sccp_device_pre_reload(void)
  * \callgraph
  * \callergraph
  * 
- * \lock	device, device->buttonconfig
+ * \lock
+ * 	- device
+ * 	  - device->buttonconfig
  */
 boolean_t sccp_device_check_update(sccp_device_t * d)
 {
@@ -146,7 +152,12 @@ boolean_t sccp_device_check_update(sccp_device_t * d)
  * \callgraph
  * \callergraph
  * 
- * \lock	devices
+ * \lock
+ * 	- devices
+ * 	  - device in sccp_device_check_update()
+ * 	    - lines in sccp_device_check_update()
+ * 	    - line->channels in sccp_device_check_update()
+ * 	    - device->buttonconfig in sccp_device_check_update()
  */
 void sccp_device_post_reload(void)
 {
@@ -264,7 +275,8 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t * d)
  * \param device SCCP Device
  * \return SCCP Device
  * 
- * \lock	devices
+ * \lock
+ * 	- devices
  */
 sccp_device_t *sccp_device_addToGlobals(sccp_device_t * device)
 {
@@ -965,7 +977,8 @@ void sccp_dev_displayprinotify(sccp_device_t * d, char *msg, uint32_t priority, 
  * \param type Type as uint8_t
  * \return SCCP Speed
  * 
- * \lock	device->buttonconfig
+ * \lock
+ * 	- device->buttonconfig
  */
 sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, uint8_t type)
 {
@@ -1005,6 +1018,9 @@ sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, 
  * \brief Send Get Activeline to Device
  * \param d SCCP Device
  * \return SCCP Line
+ * 
+ * \warning
+ * 	- device->buttonconfig is not always locked
  */
 sccp_line_t *sccp_dev_get_activeline(sccp_device_t * d)
 {
@@ -1039,7 +1055,8 @@ sccp_line_t *sccp_dev_get_activeline(sccp_device_t * d)
  * \param device SCCP Device
  * \param l SCCP Line
  * 
- * \lock	device
+ * \lock
+ * 	- device
  */
 void sccp_dev_set_activeline(sccp_device_t * device, sccp_line_t * l)
 {
@@ -1357,6 +1374,13 @@ void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t inst
 	//sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send lamp mode %s(%d) on line %d\n", d->id, lampmode2str(lampMode), lampMode, instance );
 }
 
+/*!
+ * \brief Display Call Forward
+ * 
+ * \warning
+ * 	- lines is not always locked
+ * 	- line->devices is not always locked
+ */
 boolean_t sccp_dev_display_cfwd(sccp_device_t * device, boolean_t force)
 {
 	boolean_t ret = TRUE;
@@ -1456,7 +1480,11 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
  * \param d SCCP Device
  * \return Result as int
  * 
- * \lock	device
+ * \lock
+ * 	- device
+ * 	- device in sccp_channel_find_bystate_on_device()
+ * 	 -lines in sccp_channel_find_bystate_on_device()
+ * 	- line->channels in sccp_channel_find_bystate_on_device()
  */
 int sccp_device_check_ringback(sccp_device_t * d)
 {
@@ -1532,7 +1560,17 @@ void *sccp_dev_postregistration(void *data)
  * \callgraph
  * \callergraph
  * 
- * \lock	device, devices, device->buttonconfig, device->selectedChannels, device->session, device->devstateSpecifiers
+ * \warning
+ * 	- line->channels is not always locked
+ * 
+ * \lock
+ * 	- device
+ * 	  - devices
+ * 	  - device->buttonconfig
+ * 	    - lines
+ * 	  - device->selectedChannels
+ * 	  - device->session
+ * 	  - device->devstateSpecifiers
  */
 void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cleanupTime)
 {
@@ -1664,7 +1702,11 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
  * \callgraph
  * \callergraph
  * 
- * \lock	device, device->buttonconfig, device->permithosts, device->devstateSpecifiers
+ * \lock
+ * 	- device
+ * 	  - device->buttonconfig
+ * 	  - device->permithosts
+ * 	  - device->devstateSpecifiers
  */
 int sccp_device_destroy(const void *ptr)
 {
@@ -1740,7 +1782,8 @@ boolean_t sccp_device_isVideoSupported(const sccp_device_t * device)
  * \param instance Instance as uint8_t
  * \return SCCP Service
  * 
- * \lock	device>buttonconfig
+ * \lock
+ * 	- device->buttonconfig
  */
 sccp_service_t *sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t instance)
 {
@@ -1776,6 +1819,9 @@ sccp_service_t *sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t ins
  * \param lineName Line Name as char
  * \return Status as int
  * \note device should be locked by parent fuction
+ * 
+ * \warning
+ * 	- device->buttonconfig is not always locked
  */
 uint8_t sccp_device_find_index_for_line(const sccp_device_t * d, const char *lineName)
 {
@@ -1878,8 +1924,13 @@ void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32
  * \brief Get the number of channels that the device owns
  * \param device sccp device
  * \note device should be locked by parent functions
+ * 
+ * \warning
+ * 	- device-buttonconfig is not always locked
  *
- * \lock	line->channels
+ * \lock
+ * 	- lines in sccp_line_find_byname_wo()
+ * 	- line->channels
  */
 uint8_t sccp_device_numberOfChannels(const sccp_device_t * device)
 {
@@ -1920,7 +1971,8 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t * device)
  * \callgraph
  * \callergraph
  * 
- * \lock	device
+ * \lock
+ * 	- device
  */
 sccp_device_t *sccp_clone_device(sccp_device_t * orig_device)
 {
@@ -2021,7 +2073,8 @@ sccp_device_t *sccp_clone_device(sccp_device_t * orig_device)
  * 
  * \note	orig_device locked by parent function
  *
- * \lock	device->buttonconfig
+ * \lock
+ * 	- device->buttonconfig
  */
 void sccp_duplicate_device_buttonconfig_list(sccp_device_t * new_device, sccp_device_t * orig_device)
 {
@@ -2045,7 +2098,8 @@ void sccp_duplicate_device_buttonconfig_list(sccp_device_t * new_device, sccp_de
  * 
  * \note	orig_device locked by parent function
  *
- * \lock	device->permithosts
+ * \lock
+ * 	- device->permithosts
  */
 void sccp_duplicate_device_hostname_list(sccp_device_t * new_device, sccp_device_t * orig_device)
 {
@@ -2069,7 +2123,8 @@ void sccp_duplicate_device_hostname_list(sccp_device_t * new_device, sccp_device
  * 
  * \note	orig_device locked by parent function
  *
- * \lock	device->selectedChannels
+ * \lock
+ * 	- device->selectedChannels
  */
 void sccp_duplicate_device_selectedchannel_list(sccp_device_t * new_device, sccp_device_t * orig_device)
 {
@@ -2093,7 +2148,8 @@ void sccp_duplicate_device_selectedchannel_list(sccp_device_t * new_device, sccp
  * 
  * \note	orig_device locked by parent function
  *
- * \lock	device->addons
+ * \lock
+ * 	- device->addons
  */
 void sccp_duplicate_device_addon_list(sccp_device_t * new_device, sccp_device_t * orig_device)
 {
@@ -2120,7 +2176,15 @@ void sccp_duplicate_device_addon_list(sccp_device_t * new_device, sccp_device_t 
  *
  * \note	device_a, device_b locked by parent function
  *
- * \lock	device_a->buttonconfig, device_b->buttonconfig, device_a->permithosts, device_b->permithosts, device_a->addons, device_b->addons, device_a->selectedChannels, device_b->selectedChannels
+ * \lock
+ * 	- device_a->buttonconfig
+ * 	- device_b->buttonconfig
+ * 	- device_a->permithosts
+ * 	- device_b->permithosts
+ * 	- device_a->addons
+ * 	- device_b->addons
+ * 	- device_a->selectedChannels
+ * 	- device_b->selectedChannels
  */
 sccp_diff_t sccp_device_changed(sccp_device_t * device_a, sccp_device_t * device_b)
 {

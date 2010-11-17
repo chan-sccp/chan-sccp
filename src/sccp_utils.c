@@ -107,6 +107,9 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
  * \brief Add Host to the Permithost Linked List
  * \param d SCCP Device
  * \param config_string as Character
+ * 
+ * \warning
+ * 	- device->permithosts is not always locked
  */
 void sccp_permithost_addnew(sccp_device_t * d, const char *config_string)
 {
@@ -124,6 +127,9 @@ void sccp_permithost_addnew(sccp_device_t * d, const char *config_string)
  * \brief Add New AddOn/Sidecar to Device's AddOn Linked List
  * \param d SCCP Device
  * \param addon_config_type AddOn Type as Character
+ * 
+ * \warning
+ * 	- device->addons is not always locked
  */
 void sccp_addon_addnew(sccp_device_t * d, const char *addon_config_type)
 {
@@ -180,7 +186,8 @@ void sccp_addon_addnew(sccp_device_t * d, const char *addon_config_type)
  * \param d SCCP Device
  * \return taps (Number of Buttons on AddOn Device)
  * 
- * \lock	device->addons
+ * \lock
+ * 	- device->addons
  */
 int sccp_addons_taps(sccp_device_t * d)
 {
@@ -291,7 +298,8 @@ sccp_channel_t *get_sccp_channel_from_ast_channel(struct ast_channel * ast_chan)
  * \callgraph
  * \callergraph
  * 
- * \lock	devices
+ * \lock
+ * 	- devices
  */
 sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime)
 {
@@ -363,7 +371,8 @@ sccp_device_t *sccp_device_find_realtime(const char *name)
  * \callgraph
  * \callergraph
  * 
- * \lock	lines
+ * \lock
+ * 	- lines
  */
 sccp_line_t *sccp_line_find_byname_wo(const char *name, uint8_t realtime)
 {
@@ -447,7 +456,9 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
  * \callgraph
  * \callergraph
  * 
- * \lock	device->buttonconfig
+ * \lock
+ * 	- device->buttonconfig
+ * 	  - lines (by sccp_line_find_byname_wo)
  */
 sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 {
@@ -488,7 +499,9 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
  * \callgraph
  * \callergraph
  * 
- * \lock	lines, line->channels
+ * \lock
+ * 	- lines
+ * 	  - line->channels
  */
 sccp_channel_t *sccp_channel_find_byid(uint32_t id)
 {
@@ -526,7 +539,9 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t id)
  * \callgraph
  * \callergraph
  * 
- * \lock	lines, line->channels
+ * \lock
+ * 	- lines
+ * 	  - line->channels
  */
 sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t id)
 {
@@ -564,7 +579,9 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t id)
  * \callgraph
  * \callergraph
  * 
- * \lock	lines, line->channels
+ * \lock
+ * 	- lines
+ * 	  - line->channels
  */
 sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state)
 {
@@ -599,7 +616,8 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state
  * \callgraph
  * \callergraph
  * 
- * \lock	device->selectedChannels
+ * \lock
+ * 	- device->selectedChannels
  */
 sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * c)
 {
@@ -627,7 +645,8 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp
  * \param d SCCP Device
  * \return count Number of Selected Channels
  * 
- * \lock	device->selectedChannels
+ * \lock
+ * 	- device->selectedChannels
  */
 uint8_t sccp_device_selectedchannels_count(sccp_device_t * d)
 {
@@ -657,7 +676,9 @@ uint8_t sccp_device_selectedchannels_count(sccp_device_t * d)
  * \callgraph
  * \callergraph
  * 
- * \lock	lines, line->channels
+ * \lock
+ * 	- lines
+ * 	  - line->channels
  */
 sccp_channel_t *sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t state)
 {
@@ -692,7 +713,13 @@ sccp_channel_t *sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t s
  * \callgraph
  * \callergraph
  * 
- * \lock	device, line->channels
+ * \warning
+ * 	- device->buttonconfig is not always locked
+ * 
+ * \lock
+ * 	- device
+ * 	  - lines (by sccp_line_find_byname_wo)
+ * 	  - line->channels
  */
 sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t state)
 {
@@ -816,7 +843,8 @@ void sccp_dev_dbget(sccp_device_t * d)
 /*!
  * \brief Clean Asterisk Database Entries in the "SCCP" Family
  * 
- * \lock	devices
+ * \lock
+ * 	- devices
  */
 void sccp_dev_dbclean()
 {
@@ -1169,7 +1197,8 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
  * \param s_addr IP Address as unsigned long
  * \return SCCP Device
  * 
- * \lock	devices
+ * \lock
+ * 	- devices
  */
 sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr)
 {
@@ -1330,7 +1359,13 @@ sccp_feature_type_t sccp_featureStr2featureID(const char *str)
  * \callgraph
  * \callergraph
  * 
- * \lock	device
+ * \warning
+ * 	- device->buttonconfig is not always locked
+ * 	- line->devices is not always locked
+ * 
+ * \lock
+ * 	- device
+ * 	- lines (by sccp_line_find_byname_wo)
  */
 void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 {
@@ -1612,6 +1647,9 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
  *
  * \callgraph
  * \callergraph
+ * 
+ * \warning
+ * 	- line->devices is not always locked
  */
 sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t * device, sccp_line_t * line)
 {

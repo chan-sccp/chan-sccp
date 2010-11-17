@@ -44,7 +44,11 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
  * \callgraph
  * \callergraph
  * 
- * \lock	device
+ * \warning
+ * 	- line->devices is not always locked
+ * 
+ * \lock
+ * 	- device
  */
 void __sccp_indicate_nolock(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
 {
@@ -436,6 +440,9 @@ void __sccp_indicate_nolock(sccp_device_t * device, sccp_channel_t * c, uint8_t 
  * \param line Line as int
  * \param pretty_function Pretty Function as char
  * \todo Explain Pretty Function
+ * 
+ * \warning
+ * 	- line->devices is not always locked
  */
 static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
 {

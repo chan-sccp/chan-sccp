@@ -39,7 +39,8 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \callgraph
  * \callergraph
  * 
- * \lock	lines
+ * \lock
+ * 	- lines
  */
 void sccp_line_pre_reload(void)
 {
@@ -69,7 +70,10 @@ void sccp_line_pre_reload(void)
  * \callgraph
  * \callergraph
  * 
- * \lock	lines, line, line->devices
+ * \lock
+ * 	lines
+ * 	  - line
+ * 	     - line->devices
  */
 void sccp_line_post_reload(void)
 {
@@ -177,7 +181,8 @@ sccp_line_t *sccp_line_applyDefaults(sccp_line_t * l)
  * \param line line pointer
  * \since 20091202 - MC
  * 
- * \lock	lines
+ * \lock
+ * 	- lines
  */
 sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
 {
@@ -225,7 +230,8 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
  * \callgraph
  * \callergraph
  *
- * \lock	line->channels
+ * \lock
+ * 	- line->channels
  */
 void sccp_line_kill(sccp_line_t * l)
 {
@@ -255,7 +261,9 @@ void sccp_line_kill(sccp_line_t * l)
  * \callgraph
  * \callergraph
  * 
- * \lock	lines, line->devices
+ * \lock
+ * 	- lines
+ * 	- line->devices
  */
 void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
 {
@@ -296,7 +304,8 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
  * \callgraph
  * \callergraph
  * 
- * \lock	line
+ * \lock
+ * 	- line
  */
 int sccp_line_destroy(const void *ptr)
 {
@@ -346,7 +355,8 @@ void sccp_line_delete_nolock(sccp_line_t * l)
  * \callgraph
  * \callergraph
  * 
- * \lock	line->devices
+ * \lock
+ * 	- line->devices
  */
 void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char *number)
 {
@@ -414,7 +424,8 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char 
  * \param lineInstance lineInstance as uint8_t
  * \param subscriptionId Subscription ID for addressing individual devices on the line
  * 
- * \lock	line->devices
+ * \lock
+ * 	line->devices
  */
 void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineInstance, struct subscriptionId *subscriptionId)
 {
@@ -502,7 +513,9 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
  * \param l SCCP Line
  * \param device SCCP Device
  * 
- * \lock	line->devices
+ * \lock
+ * 	- line->devices
+ * 	  - line
  */
 void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 {
@@ -545,7 +558,11 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
  * \param l SCCP Line
  * \param channel SCCP Channel
  * 
- * \lock	line
+ * \lock
+ * 	- line
+ * 
+ * \warning
+ * 	- line->channels is not always locked
  */
 void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel)
 {
@@ -569,7 +586,11 @@ void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel)
  * \param l SCCP Line
  * \param channel SCCP Channel
  * 
- * \lock	line
+ * \lock
+ * 	- line
+ * 
+ * \warning
+ * 	- line->channels is not always locked
  */
 void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t * channel)
 {
@@ -679,7 +700,8 @@ void unregister_exten(sccp_line_t * l, struct subscriptionId *subscriptionId)
  * \callgraph
  * \callergraph
  * 
- * \lock	line
+ * \lock
+ * 	- line
  */
 sccp_line_t *sccp_clone_line(sccp_line_t * orig_line)
 {
@@ -722,7 +744,8 @@ sccp_line_t *sccp_clone_line(sccp_line_t * orig_line)
  * 
  * \note	orig_line locked by parent
  *
- * \lock	line->mailboxes
+ * \lock
+ * 	- line->mailboxes
  */
 void sccp_duplicate_line_mailbox_list(sccp_line_t * new_line, sccp_line_t * orig_line)
 {
@@ -749,7 +772,8 @@ void sccp_duplicate_line_mailbox_list(sccp_line_t * new_line, sccp_line_t * orig
  * 
  * \note	orig_line locked by parent
  *
- * \lock	line->devices
+ * \lock
+ * 	- line->devices
  */
 void sccp_duplicate_line_linedevices_list(sccp_line_t * new_line, sccp_line_t * orig_line)
 {
@@ -776,7 +800,9 @@ void sccp_duplicate_line_linedevices_list(sccp_line_t * new_line, sccp_line_t * 
  * \callgraph
  * \callergraph
  * 
- * \lock	line_a->mailboxes, line_b->mailboxes
+ * \lock
+ * 	- line_a->mailboxes
+ * 	- line_b->mailboxes
  */
 sccp_diff_t sccp_line_changed(sccp_line_t * line_a, sccp_line_t * line_b)
 {

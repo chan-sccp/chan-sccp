@@ -47,7 +47,8 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r);
  * \brief Read Data From Socket
  * \param s SCCP Session
  * 
- * \lock	session
+ * \lock
+ * 	- session
  */
 static void sccp_read_data(sccp_session_t * s)
 {
@@ -111,7 +112,8 @@ static void sccp_read_data(sccp_session_t * s)
  * \callgraph
  * \callergraph
  *
- * \lock	session
+ * \lock
+ * 	- session
  */
 void sccp_session_close(sccp_session_t * s)
 {
@@ -146,7 +148,11 @@ void sccp_session_close(sccp_session_t * s)
  * \callgraph
  * \callergraph
  *
- * \lock	device
+ * \lock
+ * 	- device
+ * 
+ * \warning
+ * 	- sessions is not always locked
  */
 void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 {
@@ -198,7 +204,8 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 /*!
  * \brief Socket Accept Connection
  *
- * \lock	sessions
+ * \lock
+ * 	- sessions
  */
 static void sccp_accept_connection(void)
 {
@@ -323,7 +330,9 @@ static sccp_moo_t *sccp_process_data(sccp_session_t * s)
  * \brief Socket Thread
  * \param ignore None
  * 
- * \locks	sessions, globals
+ * \locks
+ * 	- sessions
+ * 	  - globals
  */
 void *sccp_socket_thread(void *ignore)
 {
@@ -457,7 +466,8 @@ int sccp_session_send(const sccp_device_t * device, sccp_moo_t * r)
  * \param r Message SCCP Moo Message (will be freed)
  * \return Result as Int
  *
- * \lock	session
+ * \lock
+ * 	- session
  */
 int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -525,6 +535,9 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
  * \brief Find session for device
  * \param device SCCP Device
  * \return SCCP Session
+ * 
+ * \warning
+ * 	- sessions is not always locked
  */
 sccp_session_t *sccp_session_find(const sccp_device_t * device)
 {

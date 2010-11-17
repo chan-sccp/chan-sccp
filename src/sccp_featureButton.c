@@ -50,8 +50,12 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  *
  * \param device SCCP Device
  * \param featureType SCCP Feature Type
+ * 
+ * \warning
+ * 	- device->buttonconfig is not always locked
  *
- * \lock	device->buttonconfig
+ * \lock
+ * 	- device->buttonconfig
  */
 void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 {

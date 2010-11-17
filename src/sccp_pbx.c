@@ -122,7 +122,10 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
  * \callgraph
  * \callergraph
  * 
- * \lock	line->devices
+ * \lock
+ * 	- line->devices
+ * 	- line
+ * 	- line->devices
  */
 static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 {
@@ -343,7 +346,12 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
  * \callgraph
  * \callergraph
  * 
- * \lock	usecnt_lock, channel, line, line->channels, line->devices
+ * \lock
+ * 	- usecnt_lock
+ * 	- channel
+ * 	  - line
+ * 	  - line->channels
+ * 	  - line->devices
  */
 static int sccp_pbx_hangup(struct ast_channel *ast)
 {
@@ -450,7 +458,8 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
  *
  * \param d SCCP Device
  * 
- * \lock	device->session
+ * \lock
+ * 	- device->session
  */
 void sccp_pbx_needcheckringback(sccp_device_t * d)
 {
@@ -804,7 +813,6 @@ static char *sccp_control2str(int state)
  * \callergraph
  */
 static int sccp_pbx_indicate(struct ast_channel *ast, int ind)
-{
 #else
 /*!
  * \brief Indicate to Asterisk Channel
@@ -817,12 +825,12 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind)
  * \callgraph
  * \callergraph
  * 
- * \lock	channel
+ * \lock
+ * 	- channel
  */
 static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data, size_t datalen)
-{
 #endif										// ASTERISK_VERSION_NUM < 10400
-
+{
 	int oldChannelFormat;
 	sccp_channel_t *c = CS_AST_CHANNEL_PVT(ast);
 	int res = 0;
@@ -1134,7 +1142,12 @@ static int sccp_pbx_sendtext(struct ast_channel *ast, char *text)
  * \callgraph
  * \callergraph
  * 
- * \lock	line->devices, channel, line, usecnt_lock
+ * \lock
+ * 	- line->devices
+ * 	- channel
+ * 	  - line
+ * 	  - channel->owner (in sccp_channel_updateChannelCapability)
+ * 	- usecnt_lock
  */
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c)
 {
@@ -1413,7 +1426,8 @@ int sccp_pbx_helper(sccp_channel_t * c)
  * \param c SCCP Channel as sccp_channel_t
  * \todo clarify Soft Switch Function
  *
- * \lock	channel
+ * \lock
+ * 	- channel
  */
 void *sccp_pbx_softswitch(sccp_channel_t * c)
 {

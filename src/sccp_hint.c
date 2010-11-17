@@ -112,7 +112,8 @@ void sccp_hint_module_start()
 /*!
  * \brief stop hint-module
  *
- * \lock	sccp_hint_subscriptions
+ * \lock
+ * 	- sccp_hint_subscriptions
  */
 void sccp_hint_module_stop()
 {
@@ -152,7 +153,8 @@ static boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uin
  * \brief Event Listener for Hints
  * \param event SCCP Event
  * 
- * \lock	device
+ * \lock
+ * 	- device
  */
 void sccp_hint_eventListener(const sccp_event_t ** event)
 {
@@ -203,6 +205,9 @@ void sccp_hint_eventListener(const sccp_event_t ** event)
  * \param device SCCP Device
  * 
  * \note	device locked by parent
+ * 
+ * \warning
+ * 	- device->buttonconfig is not always locked
  */
 void sccp_hint_deviceRegistered(const sccp_device_t * device)
 {
@@ -228,7 +233,8 @@ void sccp_hint_deviceRegistered(const sccp_device_t * device)
  *
  * \note	device locked by parent
  *
- * \lock	device->buttonconfig
+ * \lock
+ * 	- device->buttonconfig
  */
 void sccp_hint_deviceUnRegistered(const sccp_device_t * device)
 {
@@ -535,7 +541,8 @@ SCCP_LIST_TRAVERSE_SAFE_END}
  * \param previousState Previous Channel State
  * \param state		New Channel State
  * 
- * \lock	sccp_hint_subscriptions
+ * \lock
+ * 	- sccp_hint_subscriptions
  */
 void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device, sccp_channel_t * channel, sccp_channelState_t previousState, sccp_channelState_t state)
 {
@@ -696,7 +703,8 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t * hint)
  * \brief set hint status for a line with less or eq one channel
  * \param hint	SCCP Hint Linked List Pointer
  * 
- * \lock	hint
+ * \lock
+ * 	- hint
  */
 void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 {
@@ -888,7 +896,11 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
  * \param instance Instance as int
  * \param positionOnDevice button index on device (used to detect devicetype)
  * 
- * \lock	sccp_hint_subscriptions
+ * \warning
+ * 	- sccp_hint_subscriptions is not always locked
+ * 
+ * \lock
+ * 	- sccp_hint_subscriptions
  */
 void sccp_hint_subscribeHint(const sccp_device_t * device, const char *hintStr, const uint8_t instance, const uint8_t positionOnDevice)
 {
@@ -960,7 +972,8 @@ void sccp_hint_subscribeHint(const sccp_device_t * device, const char *hintStr, 
  * \param hintStr Hint String (Extension at Context) as char
  * \param instance Instance as int
  * 
- * \lock	sccp_hint_subscriptions
+ * \lock
+ * 	- sccp_hint_subscriptions
  */
 void sccp_hint_unSubscribeHint(const sccp_device_t * device, const char *hintStr, uint8_t instance)
 {
@@ -1115,7 +1128,8 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
  * \brief thread for searching callinfo on none sccp channels
  * \param data Data
  * 
- * \lock	asterisk channel
+ * \lock
+ * 	- asterisk channel
  */
 static void *sccp_hint_remoteNotification_thread(void *data)
 {
@@ -1176,6 +1190,9 @@ static void *sccp_hint_remoteNotification_thread(void *data)
 /*!
  * \brief Handle Feature Change Event
  * \param event SCCP Event
+ * 
+ * \warning
+ * 	- device->buttonconfig is not always locked
  */
 void sccp_hint_handleFeatureChangeEvent(const sccp_event_t ** event)
 {
