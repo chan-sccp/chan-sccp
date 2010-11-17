@@ -85,7 +85,7 @@
 #        define SCCP_RWLIST_TRYLOCK(x)		ast_rwlock_trylock(&(x)->lock)
 #        define SCCP_RWLIST_TRYRDLOCK(x)	ast_rwlock_tryrdlock(&(x)->lock)
 #        define SCCP_RWLIST_TRYWRLOCK(x)	ast_rwlock_trywrlock(&(x)->lock)
-#    else // CS_AST_DEBUG_CHANNEL_LOCKS
+#    else									// CS_AST_DEBUG_CHANNEL_LOCKS
 	/* Macro for Generic Mutex */
 int __sccp_mutex_lock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func);
 int __sccp_mutex_unlock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func);

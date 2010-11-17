@@ -1404,7 +1404,7 @@ boolean_t sccp_dev_display_cfwd(sccp_device_t * device, boolean_t force)
 					ast_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, ld->cfwdBusy.number);
 				}
 			}
-		SCCP_LIST_UNLOCK(&line->devices);
+			SCCP_LIST_UNLOCK(&line->devices);
 		}
 	}
 	SCCP_LIST_UNLOCK(&GLOB(lines));
