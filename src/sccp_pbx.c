@@ -1532,7 +1532,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * c)
 		return NULL;
 	}
 
-	instance = *(d, c->line->name);
+	instance = sccp_device_find_index_for_line(d, c->line->name);
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) New call on line %s\n", DEV_ID_LOG(d), l->name);
 
 	/* assign callerid name and number */
