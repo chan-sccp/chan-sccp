@@ -77,6 +77,14 @@
 #        define SCCP_LIST_LOCK(x)		ast_mutex_lock(&(x)->lock)
 #        define SCCP_LIST_UNLOCK(x)		ast_mutex_unlock(&(x)->lock)
 #        define SCCP_LIST_TRYLOCK(x)		ast_mutex_trylock(&(x)->lock)
+
+	/* Macro for read/write Lists */
+#        define SCCP_RWLIST_RDLOCK(x)		ast_rwlock_rdlock(&(x)->lock)
+#        define SCCP_RWLIST_WRLOCK(x)		ast_rwlock_wrlock(&(x)->lock)
+#        define SCCP_RWLIST_UNLOCK(x)		ast_rwlock_unlock(&(x)->lock)
+#        define SCCP_RWLIST_TRYLOCK(x)		ast_rwlock_trylock(&(x)->lock)
+#        define SCCP_RWLIST_TRYRDLOCK(x)	ast_rwlock_tryrdlock(&(x)->lock)
+#        define SCCP_RWLIST_TRYWRLOCK(x)	ast_rwlock_trywrlock(&(x)->lock)
 #    else // CS_AST_DEBUG_CHANNEL_LOCKS
 	/* Macro for Generic Mutex */
 int __sccp_mutex_lock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func);
@@ -117,5 +125,14 @@ int __sccp_mutex_trylock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, 
 #        define SCCP_LIST_LOCK(a)		__sccp_mutex_lock(&(a)->lock, "(SCCP LIST [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #        define SCCP_LIST_UNLOCK(a)		__sccp_mutex_unlock(&(a)->lock, "(SCCP LIST [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #        define SCCP_LIST_TRYLOCK(a)		__sccp_mutex_trylock(&(a)->lock, "(SCCP LIST [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
+
+	/* Macro for read/write Lists */
+	/* \todo add __sccp_rwlock implementation for debugging in sccp_lock.c */
+#        define SCCP_RWLIST_RDLOCK(x)		ast_rwlock_rdlock(&(x)->rwlock)
+#        define SCCP_RWLIST_WRLOCK(x)		ast_rwlock_wrlock(&(x)->rwlock)
+#        define SCCP_RWLIST_UNLOCK(x)		ast_rwlock_unlock(&(x)->rwlock)
+#        define SCCP_RWLIST_TRYLOCK(x)		ast_rwlock_trylock(&(x)->rwlock)
+#        define SCCP_RWLIST_TRYRDLOCK(x)	ast_rwlock_tryrdlock(&(x)->rwlock)
+#        define SCCP_RWLIST_TRYWRLOCK(x)	ast_rwlock_trywrlock(&(x)->rwlock)
 #    endif									// CS_AST_DEBUG_CHANNEL_LOCKS
 #endif										// __SCCP_LOCK_H
