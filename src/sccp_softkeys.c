@@ -718,7 +718,7 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		return;
 	}
 
-	sccp_mutex_lock(&c->lock);
+	sccp_channel_lock(c);
 	c->privacy = (c->privacy) ? FALSE : TRUE;
 	if (c->privacy) {
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_PRIVATE, 0);
@@ -727,7 +727,7 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	}
 
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Private %s on call %d\n", d->id, c->privacy ? "enabled" : "disabled", c->callid);
-	sccp_mutex_unlock(&c->lock);
+	sccp_channel_unlock(c);
 }
 
 /*!
