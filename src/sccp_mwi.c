@@ -97,6 +97,7 @@ void sccp_mwi_module_stop()
  * \lock
  * 	- subscription->sccp_mailboxLine
  * 	  - line
+ * 	    - see sccp_mwi_setMWILineStatus()
  */
 void sccp_mwi_event(const struct ast_event *event, void *data)
 {
@@ -160,6 +161,7 @@ void sccp_mwi_event(const struct ast_event *event, void *data)
  * \lock
  * 	- subscription->sccp_mailboxLine
  * 	  - line
+ * 	    - see sccp_mwi_setMWILineStatus()
  */
 int sccp_mwi_checksubscription(const void *ptr)
 {
@@ -308,12 +310,12 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t ** event)
  * \param context Mailbox Context
  * \param line SCCP Line
  * 
+ * \warning
+ * 	- subscription->sccp_mailboxLine is not always locked
+ * 
  * \lock
  * 	- sccp_mailbox_subscriptions
  * 	- subscription->sccp_mailboxLine
- * 
- * \warning
- * 	- subscription->sccp_mailboxLine is not always locked
  */
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t * line)
 {
@@ -420,6 +422,9 @@ void sccp_mwi_checkLine(sccp_line_t * line)
  * 
  * \lock
  * 	- device
+ * 	  - see sccp_device_find_index_for_line()
+ * 	  - see sccp_dev_send()
+ * 	  - see sccp_mwi_check()
  */
 void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 {
@@ -489,9 +494,13 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
  * 
  * \lock
  * 	- device->buttonconfig
+ * 	  - see sccp_line_find_byname_wo()
  * 	  - line->channels
  * 	- device
  * 	  - device->buttonconfig
+ * 	    - see sccp_line_find_byname_wo()
+ * 	  - see sccp_dev_send()
+ * 	  - see sccp_dev_check_displayprompt()
  */
 void sccp_mwi_check(sccp_device_t * device)
 {

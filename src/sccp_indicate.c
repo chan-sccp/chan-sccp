@@ -49,6 +49,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
  * 
  * \lock
  * 	- device
+ * 	  - see sccp_device_find_index_for_line()
  */
 void __sccp_indicate_nolock(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
 {

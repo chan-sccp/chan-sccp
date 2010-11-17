@@ -98,6 +98,9 @@ void sccp_device_pre_reload(void)
  * 
  * \lock
  * 	- device
+ * 	  - see sccp_device_numberOfChannels()
+ * 	  - see sccp_device_sendReset()
+ * 	  - see sccp_session_close()
  * 	  - device->buttonconfig
  */
 boolean_t sccp_device_check_update(sccp_device_t * d)
@@ -154,10 +157,7 @@ boolean_t sccp_device_check_update(sccp_device_t * d)
  * 
  * \lock
  * 	- devices
- * 	  - device in sccp_device_check_update()
- * 	    - lines in sccp_device_check_update()
- * 	    - line->channels in sccp_device_check_update()
- * 	    - device->buttonconfig in sccp_device_check_update()
+ * 	  - see sccp_device_check_update()
  */
 void sccp_device_post_reload(void)
 {
@@ -1482,9 +1482,6 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
  * 
  * \lock
  * 	- device
- * 	- device in sccp_channel_find_bystate_on_device()
- * 	 -lines in sccp_channel_find_bystate_on_device()
- * 	- line->channels in sccp_channel_find_bystate_on_device()
  */
 int sccp_device_check_ringback(sccp_device_t * d)
 {
@@ -1565,9 +1562,13 @@ void *sccp_dev_postregistration(void *data)
  * 
  * \lock
  * 	- device
+ * 	  - see sccp_dev_set_registered()
+ * 	  - see sccp_event_fire()
  * 	  - devices
  * 	  - device->buttonconfig
- * 	    - lines
+ * 	    - see sccp_line_find_byname_wo()
+ * 	    - see sccp_channel_endcall()
+ * 	    - see sccp_line_removeDevice()
  * 	  - device->selectedChannels
  * 	  - device->session
  * 	  - device->devstateSpecifiers
@@ -1929,7 +1930,6 @@ void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32
  * 	- device-buttonconfig is not always locked
  *
  * \lock
- * 	- lines in sccp_line_find_byname_wo()
  * 	- line->channels
  */
 uint8_t sccp_device_numberOfChannels(const sccp_device_t * device)
@@ -1973,6 +1973,11 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t * device)
  * 
  * \lock
  * 	- device
+ * 	  - see sccp_line_find_byid()
+ * 	  - see sccp_duplicate_device_buttonconfig_list()
+ *	  - see sccp_duplicate_device_hostname_list()
+ *	  - see sccp_duplicate_device_selectedchannel_list()
+ *	  - see sccp_duplicate_device_addon_list()
  */
 sccp_device_t *sccp_clone_device(sccp_device_t * orig_device)
 {

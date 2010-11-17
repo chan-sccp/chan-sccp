@@ -237,7 +237,7 @@ void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  * \lock
  * 	- device->selectedChannels
  * 	- device->buttonconfig
- * 	  - lines in sccp_line_find_byname_wo()
+ * 	  - see sccp_line_find_byname_wo()
  * 	  - line->channels
  */
 void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
@@ -420,7 +420,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance
  *
  * \lock
  * 	- channel
- * 	  - channel->device
+ * 	  - see sccp_handle_dialtone_nolock()
  */
 void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
@@ -491,7 +491,6 @@ void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  * \param c SCCP Channel
  *
  * \lock
- * 	- device->selectedChannels in sccp_device_selectedchannels_count()
  * 	- line->channels
  * 	  - device->selectedChannels
  * 	- device->selectedChannels
@@ -730,7 +729,8 @@ void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  * \param c SCCP Channel
  *
  * \lock
- * 	- session, channel + session
+ * 	- channel
+ * 	  - see sccp_dev_displayprompt()
  */
 void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {

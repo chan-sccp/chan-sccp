@@ -126,6 +126,12 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
  * 	- line->devices
  * 	- line
  * 	- line->devices
+ * 	  - see sccp_device_sendcallstate()
+ * 	  - see sccp_channel_send_callinfo()
+ * 	  - see sccp_channel_forward()
+ * 	  - see sccp_util_matchSubscriptionId()
+ * 	  - see sccp_channel_get_active()
+ * 	  - see sccp_indicate_lock()
  */
 static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 {
@@ -349,9 +355,21 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
  * \lock
  * 	- usecnt_lock
  * 	- channel
+ * 	  - sccp_channel_get_active()
+ * 	  - see sccp_dev_starttone()
+ * 	  - see sccp_indicate_nolock()
+ * 	  - see sccp_conference_removeParticipant()
+ * 	  - see sccp_channel_closereceivechannel()
+ * 	  - see sccp_channel_destroy_rtp()
  * 	  - line
  * 	  - line->channels
+ * 	    - see sccp_channel_endcall()
  * 	  - line->devices
+ * 	    - sccp_indicate_nolock()
+ * 	  - see sccp_channel_send_callinfo()
+ * 	  - see sccp_pbx_needcheckringback()
+ * 	  - see sccp_dev_check_displayprompt()
+ * 	  - see sccp_channel_cleanbeforedelete()
  */
 static int sccp_pbx_hangup(struct ast_channel *ast)
 {
@@ -827,6 +845,8 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind)
  * 
  * \lock
  * 	- channel
+ * 	  - see sccp_channel_closereceivechannel()
+ * 	  - see sccp_channel_openreceivechannel()
  */
 static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data, size_t datalen)
 #endif										// ASTERISK_VERSION_NUM < 10400
@@ -1144,7 +1164,7 @@ static int sccp_pbx_sendtext(struct ast_channel *ast, char *text)
  * 	- line->devices
  * 	- channel
  * 	  - line
- * 	  - channel->owner (in sccp_channel_updateChannelCapability)
+ * 	  - see sccp_channel_updateChannelCapability()
  * 	- usecnt_lock
  */
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c)
@@ -1426,6 +1446,21 @@ int sccp_pbx_helper(sccp_channel_t * c)
  *
  * \lock
  * 	- channel
+ * 	  - see sccp_pbx_senddigits()
+ * 	  - see sccp_channel_set_calledparty()
+ * 	  - see sccp_indicate_nolock()
+ * 	- channel
+ * 	  - see sccp_line_cfwd()
+ * 	  - see sccp_indicate_nolock()
+ * 	  - see sccp_device_sendcallstate()
+ * 	  - see sccp_channel_send_callinfo()
+ * 	  - see sccp_dev_clearprompt()
+ * 	  - see sccp_dev_displayprompt()
+ * 	  - see sccp_feat_meetme_start()
+ * 	  - see sccp_ast_setstate()
+ * 	  - see ast_pbx_start()
+ * 	  - see sccp_indicate_nolock()
+ * 	  - see manager_event()
  */
 void *sccp_pbx_softswitch(sccp_channel_t * c)
 {
@@ -1497,7 +1532,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * c)
 		return NULL;
 	}
 
-	instance = sccp_device_find_index_for_line(d, c->line->name);
+	instance = *(d, c->line->name);
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) New call on line %s\n", DEV_ID_LOG(d), l->name);
 
 	/* assign callerid name and number */

@@ -71,9 +71,11 @@ void sccp_line_pre_reload(void)
  * \callergraph
  * 
  * \lock
- * 	lines
+ * 	- lines
  * 	  - line
  * 	     - line->devices
+ * 	       - device
+ * 	  - see sccp_line_clean()
  */
 void sccp_line_post_reload(void)
 {
@@ -232,6 +234,7 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
  *
  * \lock
  * 	- line->channels
+ * 	  - see sccp_channel_endcall();
  */
 void sccp_line_kill(sccp_line_t * l)
 {
@@ -306,6 +309,7 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
  * 
  * \lock
  * 	- line
+ * 	  - see sccp_mwi_unsubscribeMailbox()
  */
 int sccp_line_destroy(const void *ptr)
 {
@@ -425,7 +429,9 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char 
  * \param subscriptionId Subscription ID for addressing individual devices on the line
  * 
  * \lock
- * 	line->devices
+ * 	- line->devices
+ * 	  - see register_exten()
+ * 	- line
  */
 void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineInstance, struct subscriptionId *subscriptionId)
 {
@@ -515,6 +521,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
  * 
  * \lock
  * 	- line->devices
+ * 	  - see unregister_exten()
  * 	  - line
  */
 void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
@@ -558,11 +565,11 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
  * \param l SCCP Line
  * \param channel SCCP Channel
  * 
- * \lock
- * 	- line
- * 
  * \warning
  * 	- line->channels is not always locked
+ * 
+ * \lock
+ * 	- line
  */
 void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel)
 {
@@ -586,11 +593,11 @@ void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel)
  * \param l SCCP Line
  * \param channel SCCP Channel
  * 
- * \lock
- * 	- line
- * 
  * \warning
  * 	- line->channels is not always locked
+ * 
+ * \lock
+ * 	- line
  */
 void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t * channel)
 {
@@ -702,6 +709,8 @@ void unregister_exten(sccp_line_t * l, struct subscriptionId *subscriptionId)
  * 
  * \lock
  * 	- line
+ * 	  - see sccp_duplicate_line_mailbox_list()
+ * 	  - see sccp_duplicate_line_linedevices_list()
  */
 sccp_line_t *sccp_clone_line(sccp_line_t * orig_line)
 {
@@ -774,6 +783,7 @@ void sccp_duplicate_line_mailbox_list(sccp_line_t * new_line, sccp_line_t * orig
  *
  * \lock
  * 	- line->devices
+ * 	  - see sccp_device_find_byid()
  */
 void sccp_duplicate_line_linedevices_list(sccp_line_t * new_line, sccp_line_t * orig_line)
 {

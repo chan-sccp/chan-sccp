@@ -154,7 +154,6 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
  *
  * \lock
  * 	- conference->participants
- * 	- asterisk channel in sccp_conference_addAstChannelToConferenceBridge()
  */
 void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * channel)
 {

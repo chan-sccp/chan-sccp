@@ -68,8 +68,6 @@ AST_MUTEX_DEFINE_STATIC(callCountLock);
  * 
  * \lock
  * 	- callCountLock
- * 	- channel->owner in sccp_channel_updateChannelCapability()
- * 	- line in sccp_line_addChannel()
  */
 sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 {
@@ -260,6 +258,7 @@ void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * c)
  * 
  * \lock
  * 	- device
+ * 	  - see sccp_device_find_index_for_line()
  */
 static void sccp_channel_send_staticCallinfo(sccp_device_t * device, sccp_channel_t * c)
 {
@@ -374,7 +373,8 @@ static void sccp_channel_send_staticCallinfo(sccp_device_t * device, sccp_channe
  * \callergraph
  * 
  * \lock
- * 	device
+ * 	- device
+ * 	  - see sccp_device_find_index_for_line()
  */
 static void sccp_channel_send_dynamicCallinfo(sccp_device_t * device, sccp_channel_t * channel)
 {
@@ -884,8 +884,11 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
  * 
  * \lock
  * 	- channel
- * 	  - channel->owner in sccp_channel_updateChannelCapability()
- * 	  - device in sccp_channel_start_rtp()
+ * 	  - see sccp_channel_updateChannelCapability()
+ * 	  - see sccp_channel_start_rtp()
+ * 	  - see sccp_device_find_index_for_line()
+ * 	  - see sccp_dev_starttone()
+ * 	  - see sccp_dev_send()
  */
 void sccp_channel_openreceivechannel(sccp_channel_t * c)
 {
@@ -1360,6 +1363,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
  * 
  * \lock
  * 	- channel
+ * 	  - see sccp_dev_send()
  */
 void sccp_channel_closereceivechannel(sccp_channel_t * c)
 {
@@ -1400,6 +1404,8 @@ void sccp_channel_closereceivechannel(sccp_channel_t * c)
  * 
  * \lock
  * 	- channel
+ * 	  - see sccp_channel_stop_rtp()
+ * 	  - see sccp_dev_send()
  */
 void sccp_channel_stopmediatransmission(sccp_channel_t * c)
 {
@@ -1446,12 +1452,6 @@ void sccp_channel_stopmediatransmission(sccp_channel_t * c)
  * \brief Update Channel Media Type / Native Bridged Format Match
  * \param c SCCP Channel
  * \note Copied function from v2 (FS)
- * 
- * \lock
- * 	- channel in sccp_channel_closereceivechannel()
- * 	- channel in sccp_channel_openreceivechannel()
- * 	  - channel->owner in sccp_channel_updateChannelCapability()
- * 	  - device in sccp_channel_start_rtp()
  */
 void sccp_channel_updatemediatype(sccp_channel_t * c)
 {
@@ -1518,6 +1518,7 @@ void sccp_channel_updatemediatype(sccp_channel_t * c)
  *
  * \lock
  * 	- line->channels
+ * 	  - see sccp_channel_endcall()
  */
 void sccp_channel_endcall(sccp_channel_t * c)
 {
@@ -1598,24 +1599,9 @@ void sccp_channel_endcall(sccp_channel_t * c)
  * \callergraph
  * 
  * \lock
- * 	- device in sccp_channel_hold()
- * 	- callCountLock in sccp_channel_allocate()
- * 	- channel->owner in sccp_channel_allocate()
- * 	- line in sccp_channel_allocate()
  * 	- channel
- * 	  - device in sccp_channel_set_active()
- * 	  - device in sccp_indicate_nolock()
- * 	- line->devices in sccp_pbx_channel_allocate()
- * 	- channel in sccp_pbx_channel_allocate()
- * 	  - line in sccp_pbx_channel_allocate()
- * 	  - channel->owner in sccp_pbx_channel_allocate()
- * 	- usecnt_lock in sccp_pbx_channel_allocate()
- * 	- channel in sccp_indicate_lock()
- * 	  - device in sccp_indicate_lock()
- * 	- channel in sccp_channel_openreceivechannel()
- * 	  - channel->owner in sccp_channel_openreceivechannel()
- * 	  - device in sccp_channel_openreceivechannel()
- * 	- channel in sccp_pbx_softswitch()
+ * 	  - see sccp_channel_set_active()
+ * 	  - see sccp_indicate_nolock()
  */
 sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, char *dial, uint8_t calltype)
 {
@@ -1700,11 +1686,8 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, ch
  *
  * \lock
  * 	- line
- * 	- channel->owner in sccp_channel_updateChannelCapability()
  * 	- line->channels
- * 	- device in sccp_channel_set_active()
- * 	- device in sccp_dev_set_activeline()
- * 	- device in sccp_indicate_nolock()
+ * 	  - see sccp_channel_endcall()
  */
 void sccp_channel_answer(sccp_device_t * device, sccp_channel_t * c)
 {
@@ -1819,8 +1802,6 @@ void sccp_channel_answer(sccp_device_t * device, sccp_channel_t * c)
  * 
  * \lock
  * 	- device
- * 	- channel in sccp_indicate_lock()
- * 	  - device in sccp_indicate_lock()
  */
 int sccp_channel_hold(sccp_channel_t * c)
 {
@@ -1911,13 +1892,9 @@ int sccp_channel_hold(sccp_channel_t * c)
  * \callergraph
  * 
  * \lock
- * 	- device in sccp_channel_hold()
  * 	- device
  * 	- channel
- * 	  - channel->owner in sccp_channel_updateChannelCapability()
- * 	- device in sccp_channel_set_active()
- * 	- channel in sccp_indicate_lock()
- * 	  - device in sccp_indicate_lock()
+ * 	  - see sccp_channel_updateChannelCapability()
  * 	- channel
  */
 int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * c)
@@ -2047,11 +2024,9 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * c)
  * \callergraph
  * 
  * \lock
- * 	- device in sccp_indicate_nolock()
- * 	- line in sccp_line_removeChannel()
  * 	- device
- * 	- device->selectedChannels in sccp_device_find_selectedchannel()
- * 	- device->selectedChannels
+ * 	  - see sccp_device_find_selectedchannel()
+ * 	  - device->selectedChannels
  */
 void sccp_channel_cleanbeforedelete(sccp_channel_t * c)				// we assume channel is locked
 {
@@ -2112,6 +2087,9 @@ void sccp_channel_cleanbeforedelete(sccp_channel_t * c)				// we assume channel 
  *
  * \callgraph
  * \callergraph
+ *
+ * \warning
+ * 	- line->channels is not always locked
  * 
  * \lock
  * 	- channel
@@ -2149,9 +2127,6 @@ void sccp_channel_delete_wo(sccp_channel_t * c, uint8_t list_lock, uint8_t chann
 /*!
  * \brief Create a new RTP Source.
  * \param c SCCP Channel
- * 
- * \lock
- * 	- device
  */
 boolean_t sccp_channel_start_rtp(sccp_channel_t * c)
 {
@@ -2378,9 +2353,6 @@ void sccp_channel_destroy_rtp(sccp_channel_t * c)
  * 
  * \lock
  * 	- device
- * 	- channel in sccp_indicate_lock()
- * 	  - device in sccp_indicate_lock()
- * 	- see sccp_channel_newcall
  */
 void sccp_channel_transfer(sccp_channel_t * c)
 {
@@ -2686,15 +2658,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal)
  * \callergraph
  * 
  * \lock
- * 	- callCountLock in sccp_channel_allocate()
- * 	- channel->owner in sccp_channel_allocate()
- * 	- line in sccp_channel_allocate()
  * 	- channel
- * 	- line->devices in sccp_pbx_channel_allocate()
- * 	- channel in sccp_pbx_channel_allocate()
- * 	  - line in sccp_pbx_channel_allocate()
- * 	  - channel->owner in sccp_pbx_channel_allocate()
- * 	- usecnt_lock in sccp_pbx_channel_allocate()
  */
 void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevice, char *fwdNumber)
 {
@@ -2812,10 +2776,6 @@ static void *sccp_channel_park_thread(void *stuff)
 /*!
  * \brief Park an SCCP Channel
  * \param c SCCP Channel
- * 
- * \lock
- * 	- channel in sccp_indicate_lock()
- * 	  - device in sccp_indicate_lock()
  */
 void sccp_channel_park(sccp_channel_t * c)
 {

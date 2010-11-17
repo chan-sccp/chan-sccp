@@ -155,6 +155,8 @@ static boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uin
  * 
  * \lock
  * 	- device
+ * 	  - see sccp_hint_deviceRegistered()
+ * 	  - see sccp_hint_deviceUnRegistered()
  */
 void sccp_hint_eventListener(const sccp_event_t ** event)
 {
@@ -235,6 +237,7 @@ void sccp_hint_deviceRegistered(const sccp_device_t * device)
  *
  * \lock
  * 	- device->buttonconfig
+ * 	  - see sccp_hint_unSubscribeHint()
  */
 void sccp_hint_deviceUnRegistered(const sccp_device_t * device)
 {
@@ -543,6 +546,8 @@ SCCP_LIST_TRAVERSE_SAFE_END}
  * 
  * \lock
  * 	- sccp_hint_subscriptions
+ * 	  - see sccp_hint_hintStatusUpdate()
+ * 	  - see sccp_hint_notifySubscribers()
  */
 void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device, sccp_channel_t * channel, sccp_channelState_t previousState, sccp_channelState_t state)
 {
@@ -705,6 +710,7 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t * hint)
  * 
  * \lock
  * 	- hint
+ * 	  - see sccp_line_find_byname_wo()
  */
 void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 {
@@ -974,6 +980,7 @@ void sccp_hint_subscribeHint(const sccp_device_t * device, const char *hintStr, 
  * 
  * \lock
  * 	- sccp_hint_subscriptions
+ * 	- hint->subscribers
  */
 void sccp_hint_unSubscribeHint(const sccp_device_t * device, const char *hintStr, uint8_t instance)
 {
@@ -1130,6 +1137,7 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
  * 
  * \lock
  * 	- asterisk channel
+ * 	  - see sccp_hint_notifySubscribers()
  */
 static void *sccp_hint_remoteNotification_thread(void *data)
 {

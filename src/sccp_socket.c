@@ -333,6 +333,14 @@ static sccp_moo_t *sccp_process_data(sccp_session_t * s)
  * \locks
  * 	- sessions
  * 	  - globals
+ * 	    - see sccp_device_check_update()
+ * 	  - see sccp_socket_poll()
+ * 	  - see sccp_session_close()
+ * 	  - see destroy_session()
+ * 	  - see sccp_read_data()
+ * 	  - see sccp_process_data()
+ * 	  - see sccp_handle_message()
+ * 	  - see sccp_device_sendReset()
  */
 void *sccp_socket_thread(void *ignore)
 {
