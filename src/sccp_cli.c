@@ -21,12 +21,11 @@
 #include "config.h"
 
 #if ASTERISK_VERSION_NUM >= 10400
-#include <asterisk.h>
+#    include <asterisk.h>
 #endif
 #include "chan_sccp.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-
 #include "sccp_lock.h"
 #include "sccp_cli.h"
 #include "sccp_mwi.h"
@@ -41,11 +40,9 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/cli.h>
 #include <asterisk/astdb.h>
 #include <asterisk/pbx.h>
-
 #ifdef CS_AST_HAS_EVENT
-#include "asterisk/event.h"
+#    include "asterisk/event.h"
 #endif
-
 /* --- CLI Tab Completion ---------------------------------------------------------------------------------------------- */
 #if ASTERISK_VERSION_NUM >= 10600
 /*!
@@ -56,16 +53,18 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \param state State as int
  * \return Result as char
  */
-static char * sccp_complete_device(char *line, char *word, int pos, int state) {
+static char *sccp_complete_device(char *line, char *word, int pos, int state)
+{
 #else
-static char * sccp_complete_device(const char *line, const char *word, int pos, int state) {
+static char *sccp_complete_device(const char *line, const char *word, int pos, int state)
+{
 #endif
-	sccp_device_t * d;
+	sccp_device_t *d;
 	int which = 0;
-	char * ret;
+	char *ret;
 
 	if (pos > 3)
-	return NULL;
+		return NULL;
 
 	SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
@@ -90,16 +89,18 @@ static char * sccp_complete_device(const char *line, const char *word, int pos, 
  * \param state State as int
  * \return Result as char
  */
-static char * sccp_complete_line(char *line, char *word, int pos, int state) {
+static char *sccp_complete_line(char *line, char *word, int pos, int state)
+{
 #else
-static char * sccp_complete_line(const char *line, const char *word, int pos, int state) {
+static char *sccp_complete_line(const char *line, const char *word, int pos, int state)
+{
 #endif
-	sccp_line_t * l;
+	sccp_line_t *l;
 	int which = 0;
-	char * ret;
+	char *ret;
 
 	if (pos > 3)
-	return NULL;
+		return NULL;
 
 	SCCP_LIST_LOCK(&GLOB(lines));
 	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
@@ -124,36 +125,37 @@ static char * sccp_complete_line(const char *line, const char *word, int pos, in
  * \param state State as int
  * \return Result as char
  */
-static char * sccp_complete_debug(char *line, char *word, int pos, int state) {
+static char *sccp_complete_debug(char *line, char *word, int pos, int state)
+{
 #else
-static char * sccp_complete_debug(const char *line, const char *word, int pos, int state) {
+static char *sccp_complete_debug(const char *line, const char *word, int pos, int state)
+{
 #endif
 	uint8_t i;
 	int which = 0;
-	char * ret=NULL;
-	boolean_t debugno=0;
-	char * extra_cmds[3]={"no","none","all"};
+	char *ret = NULL;
+	boolean_t debugno = 0;
+	char *extra_cmds[3] = { "no", "none", "all" };
 
 	if (pos < 2)
-  	  return NULL;
+		return NULL;
 
 	// check if the sccp debug line contains no before the categories
-	if(!strncasecmp(line,"sccp debug no ",strlen("sccp debug no "))) {
-		debugno=1;
+	if (!strncasecmp(line, "sccp debug no ", strlen("sccp debug no "))) {
+		debugno = 1;
 	}
-
 	// check extra_cmd
-	for (i=0; i<ARRAY_LEN(extra_cmds); i++) {
+	for (i = 0; i < ARRAY_LEN(extra_cmds); i++) {
 		if (!strncasecmp(word, extra_cmds[i], strlen(word))) {
 			// skip "no" and "none" if in debugno mode
-			if (debugno && !strncasecmp("no",extra_cmds[i],strlen("no")))
+			if (debugno && !strncasecmp("no", extra_cmds[i], strlen("no")))
 				continue;
 			if (++which > state)
 				return strdup(extra_cmds[i]);
 		}
 	}
 	// check categories
-	for (i=0; i<ARRAY_LEN(sccp_debug_categories); i++) {
+	for (i = 0; i < ARRAY_LEN(sccp_debug_categories); i++) {
 		// if in debugno mode
 		if (debugno) {
 			// then skip the categories which are not currently active
@@ -175,7 +177,6 @@ static char * sccp_complete_debug(const char *line, const char *word, int pos, i
 
 /* --- Support Functions ---------------------------------------------------------------------------------------------- */
 
-
 /*!
  * \brief Print Group
  * \param buf Buf as char
@@ -183,34 +184,33 @@ static char * sccp_complete_debug(const char *line, const char *word, int pos, i
  * \param group Group as ast_group_t
  * \return Result as char
  */
-static char *sccp_print_group(char *buf, int buflen, ast_group_t group) {
+static char *sccp_print_group(char *buf, int buflen, ast_group_t group)
+{
 	unsigned int i;
-	int first=1;
+	int first = 1;
 	char num[3];
 	uint8_t max = (sizeof(ast_group_t) * 8) - 1;
 
 	buf[0] = '\0';
 
 	if (!group)
-		return(buf);
+		return (buf);
 
-	for (i=0; i<=max; i++) {
+	for (i = 0; i <= max; i++) {
 		if (group & ((ast_group_t) 1 << i)) {
-	   		if (!first) {
+			if (!first) {
 				strncat(buf, ", ", buflen);
 			} else {
-				first=0;
-	  		}
+				first = 0;
+			}
 			snprintf(num, sizeof(num), "%u", i);
 			strncat(buf, num, buflen);
 		}
 	}
-	return(buf);
+	return (buf);
 }
 
 /* --- CLI Functions -------------------------------------------------------------------------------------------------- */
-
-
 
 /* -------------------------------------------------------------------------------------------------------SHOW GLOBALS- */
 /*!
@@ -220,7 +220,8 @@ static char *sccp_print_group(char *buf, int buflen, ast_group_t group) {
  * \param argv[] Argv[] as char
  * \return Result as int
  */
-static int sccp_show_globals(int fd, int argc, char * argv[]) {
+static int sccp_show_globals(int fd, int argc, char *argv[])
+{
 	char pref_buf[128];
 	char cap_buf[512];
 	char buf[256];
@@ -231,8 +232,7 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 
 	sccp_globals_lock(lock);
 	ast_codec_pref_string(&GLOB(global_codecs), pref_buf, sizeof(pref_buf) - 1);
-	ast_getformatname_multiple(cap_buf, sizeof(cap_buf), GLOB(global_capability)),
-	debugcategories = sccp_get_debugcategories(GLOB(debug));
+	ast_getformatname_multiple(cap_buf, sizeof(cap_buf), GLOB(global_capability)), debugcategories = sccp_get_debugcategories(GLOB(debug));
 
 	ast_cli(fd, "SCCP channel driver global settings\n");
 	ast_cli(fd, "------------------------------------\n\n");
@@ -301,10 +301,10 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "Jitterbuffer forced   : %s\n", (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED) ? "Yes" : "No"));
 	ast_cli(fd, "Jitterbuffer max size : %ld\n", GLOB(global_jbconf).max_size);
 	ast_cli(fd, "Jitterbuffer resync   : %ld\n", GLOB(global_jbconf).resync_threshold);
-	ast_cli(fd, "Jitterbuffer impl     : %s\n",  GLOB(global_jbconf).impl);
+	ast_cli(fd, "Jitterbuffer impl     : %s\n", GLOB(global_jbconf).impl);
 	ast_cli(fd, "Jitterbuffer log      : %s\n", (ast_test_flag(&GLOB(global_jbconf), AST_JB_LOG) ? "Yes" : "No"));
 #ifdef CS_AST_JB_TARGET_EXTRA
-	ast_cli(fd, "Jitterbuf target extra: %ld\n",  GLOB(global_jbconf).target_extra);
+	ast_cli(fd, "Jitterbuf target extra: %ld\n", GLOB(global_jbconf).target_extra);
 #endif
 
 	ast_free(debugcategories);
@@ -313,13 +313,11 @@ static int sccp_show_globals(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
-static char show_globals_usage[] = "Usage: sccp show globals\n"
-				   "       Lists global settings for the SCCP subsystem.\n";
+static char show_globals_usage[] = "Usage: sccp show globals\n" "       Lists global settings for the SCCP subsystem.\n";
 
 #define CLI_COMMAND "sccp", "show", "globals", NULL
-CLI_ENTRY( cli_show_globals, sccp_show_globals, "List defined SCCP global settings", show_globals_usage)
+CLI_ENTRY(cli_show_globals, sccp_show_globals, "List defined SCCP global settings", show_globals_usage)
 #undef CLI_COMMAND
-
 /* --------------------------------------------------------------------------------------------------------SHOW DEVICES- */
 /*!
  * \brief Show Devices
@@ -328,45 +326,37 @@ CLI_ENTRY( cli_show_globals, sccp_show_globals, "List defined SCCP global settin
  * \param argv[] Argv[] as char
  * \return Result as int
  */
-static int sccp_show_devices(int fd, int argc, char * argv[]) {
-	sccp_device_t * d;
+static int sccp_show_devices(int fd, int argc, char *argv[])
+{
+	sccp_device_t *d;
 #if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
 
-	ast_cli(fd, "\n%-40s %-20s %-16s %-10s\n", "NAME","ADDRESS","MAC","Reg. State");
+	ast_cli(fd, "\n%-40s %-20s %-16s %-10s\n", "NAME", "ADDRESS", "MAC", "Reg. State");
 	ast_cli(fd, "======================================== ==================== ================ ==========\n");
 
 	SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
 #if ASTERISK_VERSION_NUM < 10400
-		ast_cli(fd, "%-40s %-20s %-16s %-10s\n",// %-10s %-16s %c%c %-10s\n",
-			d->description,
-			(d->session) ? ast_inet_ntoa(iabuf, sizeof(iabuf), d->session->sin.sin_addr) : "--",
-			d->id,
-			deviceregistrationstatus2str(d->registrationState)
-		);
+		ast_cli(fd, "%-40s %-20s %-16s %-10s\n",			// %-10s %-16s %c%c %-10s\n",
+			d->description, (d->session) ? ast_inet_ntoa(iabuf, sizeof(iabuf), d->session->sin.sin_addr) : "--", d->id, deviceregistrationstatus2str(d->registrationState)
+		    );
 #else
-		ast_cli(fd, "%-40s %-20s %-16s %-10s\n",// %-10s %-16s %c%c %-10s\n",
-			d->description,
-			(d->session) ? ast_inet_ntoa(d->session->sin.sin_addr) : "--",
-			d->id,
-			deviceregistrationstatus2str(d->registrationState)
-		);
+		ast_cli(fd, "%-40s %-20s %-16s %-10s\n",			// %-10s %-16s %c%c %-10s\n",
+			d->description, (d->session) ? ast_inet_ntoa(d->session->sin.sin_addr) : "--", d->id, deviceregistrationstatus2str(d->registrationState)
+		    );
 #endif
 	}
 	SCCP_LIST_UNLOCK(&GLOB(devices));
 	return RESULT_SUCCESS;
 }
 
-static char show_devices_usage[] = "Usage: sccp show devices\n"
-				   "       Lists defined SCCP devices.\n";
+static char show_devices_usage[] = "Usage: sccp show devices\n" "       Lists defined SCCP devices.\n";
 
 #define CLI_COMMAND "sccp", "show", "devices", NULL
-CLI_ENTRY( cli_show_devices, sccp_show_devices, "List defined SCCP devices", show_devices_usage)
+CLI_ENTRY(cli_show_devices, sccp_show_devices, "List defined SCCP devices", show_devices_usage)
 #undef CLI_COMMAND
-
-
 /* --------------------------------------------------------------------------------------------------------SHOW DEVICE- */
 /*!
  * \brief Show Device
@@ -375,14 +365,15 @@ CLI_ENTRY( cli_show_devices, sccp_show_devices, "List defined SCCP devices", sho
  * \param argv[] Argv[] as char
  * \return Result as int
  */
-static int sccp_show_device(int fd, int argc, char * argv[]) {
-	sccp_device_t 	* d;
-	sccp_buttonconfig_t	*config = NULL;
-	sccp_line_t 		* l;
+static int sccp_show_device(int fd, int argc, char *argv[])
+{
+	sccp_device_t *d;
+	sccp_buttonconfig_t *config = NULL;
+	sccp_line_t *l;
 	char pref_buf[128];
 	char cap_buf[512];
 	struct ast_variable *v = NULL;
-	sccp_linedevices_t	*linedevice;
+	sccp_linedevices_t *linedevice;
 
 	if (argc < 4)
 		return RESULT_SHOWUSAGE;
@@ -395,9 +386,7 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	sccp_device_lock(d);
 
 	ast_codec_pref_string(&d->codecs, pref_buf, sizeof(pref_buf) - 1);
-	ast_getformatname_multiple(cap_buf, sizeof(cap_buf), d->capability),
-
-	ast_cli(fd, "Current settings for selected Device\n");
+	ast_getformatname_multiple(cap_buf, sizeof(cap_buf), d->capability), ast_cli(fd, "Current settings for selected Device\n");
 	ast_cli(fd, "------------------------------------\n\n");
 	ast_cli(fd, "MAC-Address        : %s\n", d->id);
 	ast_cli(fd, "Protocol Version   : Supported '%d', In Use '%d'\n", d->protocolversion, d->inuseprotocolversion);
@@ -466,66 +455,66 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 
 	sccp_buttonconfig_t *buttonconfig;
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-		if(buttonconfig->type == LINE ){
+		if (buttonconfig->type == LINE) {
 			l = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE);
-			if(l){
+			if (l) {
 				linedevice = sccp_util_getDeviceConfiguration(d, l);
-				if(linedevice && linedevice->cfwdAll.enabled)
-					ast_cli(fd, "%4d: %-23s %-6s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , buttonconfig->button.line.subscriptionId.number, l->label, "all", linedevice->cfwdAll.number);
-				else if(linedevice && linedevice->cfwdBusy.enabled)
-					ast_cli(fd, "%4d: %-23s %-6s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , buttonconfig->button.line.subscriptionId.number, l->label, "busy", linedevice->cfwdBusy.number);
+				if (linedevice && linedevice->cfwdAll.enabled)
+					ast_cli(fd, "%4d: %-23s %-6s %-20s %-10s %-20s\n", buttonconfig->instance, l->name, buttonconfig->button.line.subscriptionId.number, l->label, "all", linedevice->cfwdAll.number);
+				else if (linedevice && linedevice->cfwdBusy.enabled)
+					ast_cli(fd, "%4d: %-23s %-6s %-20s %-10s %-20s\n", buttonconfig->instance, l->name, buttonconfig->button.line.subscriptionId.number, l->label, "busy", linedevice->cfwdBusy.number);
 				else
-					ast_cli(fd, "%4d: %-23s %-6s %-20s %-10s %-20s\n", buttonconfig->instance, l->name , buttonconfig->button.line.subscriptionId.number, l->label, "", "");
+					ast_cli(fd, "%4d: %-23s %-6s %-20s %-10s %-20s\n", buttonconfig->instance, l->name, buttonconfig->button.line.subscriptionId.number, l->label, "", "");
 			}
 		}
 	}
 
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		ast_cli(fd, "\nSpeeddials\n");
-		ast_cli(fd, "%-4s: %-30s %-20s %-20s\n", "id", "name" , "number", "hint");
+		ast_cli(fd, "%-4s: %-30s %-20s %-20s\n", "id", "name", "number", "hint");
 		ast_cli(fd, "---- ------------------------------- -------------------- ------------------------\n");
 
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-			if(config->type == SPEEDDIAL)
-				ast_cli(fd, "%4d: %-30s %-20s %-20s\n", config->instance, config->button.speeddial.label , config->button.speeddial.ext, config->button.speeddial.hint);
+			if (config->type == SPEEDDIAL)
+				ast_cli(fd, "%4d: %-30s %-20s %-20s\n", config->instance, config->button.speeddial.label, config->button.speeddial.ext, config->button.speeddial.hint);
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 	}
 
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		ast_cli(fd, "\nFeatures\n");
-		ast_cli(fd, "%-4s: %-30s %-40s\n", "id", "label" , "options");
+		ast_cli(fd, "%-4s: %-30s %-40s\n", "id", "label", "options");
 		ast_cli(fd, "---- ------------------------------- ---------------------------------------------\n");
 
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-			if(config->type == FEATURE)
-				ast_cli(fd, "%4d: %-30s %-40s\n", config->instance, config->button.feature.label , config->button.feature.options);
+			if (config->type == FEATURE)
+				ast_cli(fd, "%4d: %-30s %-40s\n", config->instance, config->button.feature.label, config->button.feature.options);
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 	}
 
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		ast_cli(fd, "\nService URLs\n");
-		ast_cli(fd, "%-4s: %-30s %-20s\n", "id", "label" , "URL");
+		ast_cli(fd, "%-4s: %-30s %-20s\n", "id", "label", "URL");
 		ast_cli(fd, "---- ------------------------------- ---------------------------------------------\n");
 
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-			if(config->type == SERVICE)
-				ast_cli(fd, "%4d: %-30s %-20s\n", config->instance, config->button.service.label , config->button.service.url);
+			if (config->type == SERVICE)
+				ast_cli(fd, "%4d: %-30s %-20s\n", config->instance, config->button.service.label, config->button.service.url);
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 	}
 
 	if (d->variables) {
 		ast_cli(fd, "\nDevice variables\n");
-		ast_cli(fd, "%-36s %-40s \n", "name" , "value");
+		ast_cli(fd, "%-36s %-40s \n", "name", "value");
 		ast_cli(fd, "------------------------------------ ---------------------------------------------\n");
 
-		for (v = d->variables ; v ; v = v->next) {
-			ast_cli(fd, "%-36s %-40s\n", v->name , v->value);
+		for (v = d->variables; v; v = v->next) {
+			ast_cli(fd, "%-36s %-40s\n", v->name, v->value);
 		}
 	}
 	sccp_device_unlock(d);
@@ -533,14 +522,11 @@ static int sccp_show_device(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
-
-static char show_device_usage[] = "Usage: sccp show device <deviceId>\n"
-				  "       Lists device settings for the SCCP subsystem.\n";
+static char show_device_usage[] = "Usage: sccp show device <deviceId>\n" "       Lists device settings for the SCCP subsystem.\n";
 
 #define CLI_COMMAND "sccp", "show", "device", NULL
-CLI_ENTRY_COMPLETE(cli_show_device,sccp_show_device,"Lists device settings",show_device_usage, sccp_complete_device)
+CLI_ENTRY_COMPLETE(cli_show_device, sccp_show_device, "Lists device settings", show_device_usage, sccp_complete_device)
 #undef CLI_COMMAND
-
 /* ---------------------------------------------------------------------------------------------------------SHOW LINES- */
 /*!
  * \brief Show Lines
@@ -549,19 +535,20 @@ CLI_ENTRY_COMPLETE(cli_show_device,sccp_show_device,"Lists device settings",show
  * \param argv[] Argv[] as char
  * \return Result as int
  */
-static int sccp_show_lines(int fd, int argc, char * argv[]) {
-	sccp_line_t * l = NULL;
-	sccp_channel_t * c = NULL;
-	sccp_device_t * d = NULL;
+static int sccp_show_lines(int fd, int argc, char *argv[])
+{
+	sccp_line_t *l = NULL;
+	sccp_channel_t *c = NULL;
+	sccp_device_t *d = NULL;
 	boolean_t found_linedevice;
 	char cap_buf[512];
 	struct ast_variable *v = NULL;
 
-	ast_cli(fd, "\n%-16s %-16s %-6s %-4s %-4s %-16s\n", "NAME","DEVICE", "SUFFIX", "MWI","Chs","Active Channel");
+	ast_cli(fd, "\n%-16s %-16s %-6s %-4s %-4s %-16s\n", "NAME", "DEVICE", "SUFFIX", "MWI", "Chs", "Active Channel");
 	ast_cli(fd, "================ ================ ====== ==== ==== =============================================\n");
 
 	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_TRAVERSE(&GLOB(lines),l,list) {
+	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
 
 		c = NULL;
 		// \todo handle shared line
@@ -578,49 +565,29 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 
 		memset(&cap_buf, 0, sizeof(cap_buf));
 
-
 		if (c && c->owner) {
-			ast_getformatname_multiple(cap_buf, sizeof(cap_buf),  c->owner->nativeformats);
+			ast_getformatname_multiple(cap_buf, sizeof(cap_buf), c->owner->nativeformats);
 		}
 
 		sccp_linedevices_t *linedevice;
-		found_linedevice=0;
+		found_linedevice = 0;
 		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
-			if ((d=linedevice->device)) {
-				ast_cli(fd, "%-16s %-16s %-6s %-4s %-4d %-10s %-10s %-16s %-10s\n",
-					l->name,
-					(d) ? d->id : "--",
-					linedevice->subscriptionId.number,
-					(l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
-					l->channelCount,
-					(c) ? sccp_indicate2str(c->state) : "--",
-					(c) ? calltype2str(c->calltype) : "",
-					(c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->callInfo.calledPartyName : c->callInfo.callingPartyName ) : "",
-					cap_buf);
-				found_linedevice=1;
+		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+			if ((d = linedevice->device)) {
+				ast_cli(fd, "%-16s %-16s %-6s %-4s %-4d %-10s %-10s %-16s %-10s\n", l->name, (d) ? d->id : "--", linedevice->subscriptionId.number, (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", l->channelCount, (c) ? sccp_indicate2str(c->state) : "--", (c) ? calltype2str(c->calltype) : "", (c) ? ((c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->callInfo.calledPartyName : c->callInfo.callingPartyName) : "", cap_buf);
+				found_linedevice = 1;
 			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
 
-		if (found_linedevice==0) {
-			ast_cli(fd, "%-16s %-16s %-6s %-4s %-4d %-10s %-10s %-16s %-10s\n",
-			l->name,
-			"--",
-			"",
-			(l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
-			l->channelCount,
-			(c) ? sccp_indicate2str(c->state) : "--",
-			(c) ? calltype2str(c->calltype) : "",
-			(c) ? ( (c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->callInfo.calledPartyName : c->callInfo.callingPartyName ) : "",
-			cap_buf);
+		if (found_linedevice == 0) {
+			ast_cli(fd, "%-16s %-16s %-6s %-4s %-4d %-10s %-10s %-16s %-10s\n", l->name, "--", "", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", l->channelCount, (c) ? sccp_indicate2str(c->state) : "--", (c) ? calltype2str(c->calltype) : "", (c) ? ((c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->callInfo.calledPartyName : c->callInfo.callingPartyName) : "", cap_buf);
 		}
-		for (v = l->variables ; v ; v = v->next)
-			ast_cli(fd, "%-16s Variable	 %-16s %-20s\n", "", v->name , v->value);
+		for (v = l->variables; v; v = v->next)
+			ast_cli(fd, "%-16s Variable	 %-16s %-20s\n", "", v->name, v->value);
 
-		if(strcmp(l->defaultSubscriptionId.number, "") || strcmp(l->defaultSubscriptionId.name, ""))
-			ast_cli(fd, "%-16s Subscription Id  %-16s %-20s\n", "", l->defaultSubscriptionId.number,  l->defaultSubscriptionId.name);
-
+		if (strcmp(l->defaultSubscriptionId.number, "") || strcmp(l->defaultSubscriptionId.name, ""))
+			ast_cli(fd, "%-16s Subscription Id  %-16s %-20s\n", "", l->defaultSubscriptionId.number, l->defaultSubscriptionId.name);
 
 	}
 	SCCP_LIST_UNLOCK(&GLOB(lines));
@@ -628,13 +595,11 @@ static int sccp_show_lines(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
-static char show_lines_usage[] = "Usage: sccp show lines\n"
-				 "       Lists all lines known to the SCCP subsystem.\n";
+static char show_lines_usage[] = "Usage: sccp show lines\n" "       Lists all lines known to the SCCP subsystem.\n";
 
 #define CLI_COMMAND "sccp", "show", "lines", NULL
-CLI_ENTRY(cli_show_lines,sccp_show_lines,"List defined SCCP Lines",show_lines_usage)
+CLI_ENTRY(cli_show_lines, sccp_show_lines, "List defined SCCP Lines", show_lines_usage)
 #undef CLI_COMMAND
-
 /* -----------------------------------------------------------------------------------------------------------SHOW LINE- */
 /*!
  * \brief Show Line
@@ -643,11 +608,12 @@ CLI_ENTRY(cli_show_lines,sccp_show_lines,"List defined SCCP Lines",show_lines_us
  * \param argv[] Argv[] as char
  * \return Result as int
  */
-static int sccp_show_line(int fd, int argc, char * argv[]) {
-	sccp_line_t 		* l;
-	sccp_linedevices_t	* linedevice;
-	struct ast_variable 	* v = NULL;
-	char 			group_buf[256];
+static int sccp_show_line(int fd, int argc, char *argv[])
+{
+	sccp_line_t *l;
+	sccp_linedevices_t *linedevice;
+	struct ast_variable *v = NULL;
+	char group_buf[256];
 
 	if (argc < 4)
 		return RESULT_SHOWUSAGE;
@@ -713,25 +679,24 @@ static int sccp_show_line(int fd, int argc, char * argv[]) {
 	ast_cli(fd, "=========================\n");
 	ast_cli(fd, "%-15s %-25s %-25s\n", "", "call forward all", "call forward busy");
 	ast_cli(fd, "--------------- ------------------------- -------------------------\n");
-	ast_cli(fd, "%-15s %-4s %-20s %-4s %-20s\n", "device", "on/off" , "number" , "on/off" , "number");
+	ast_cli(fd, "%-15s %-4s %-20s %-4s %-20s\n", "device", "on/off", "number", "on/off", "number");
 	ast_cli(fd, "--------------- ---- -------------------- ---- --------------------\n");
 
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 		if (linedevice)
-    			ast_cli(fd, "%-11s: %-4s %-20s %-4s %-20s\n", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number ? linedevice->cfwdAll.number : "<not set>", linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number ? linedevice->cfwdBusy.number : "<not set>");
+			ast_cli(fd, "%-11s: %-4s %-20s %-4s %-20s\n", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number ? linedevice->cfwdAll.number : "<not set>", linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number ? linedevice->cfwdBusy.number : "<not set>");
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
-
 
 	if (l->variables) {
 		ast_cli(fd, "\nLine variables\n");
 		ast_cli(fd, "=========================\n");
-		ast_cli(fd, "%-20s: %-20s \n", "name" , "value");
+		ast_cli(fd, "%-20s: %-20s \n", "name", "value");
 		ast_cli(fd, "-------------------- --------------------\n");
 
-		for (v = l->variables ; v ; v = v->next) {
-			ast_cli(fd, "%-20s : %-20s\n", v->name , v->value);
+		for (v = l->variables; v; v = v->next) {
+			ast_cli(fd, "%-20s : %-20s\n", v->name, v->value);
 		}
 	}
 	sccp_line_unlock(l);
@@ -739,11 +704,10 @@ static int sccp_show_line(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
-static char show_line_usage[] = "Usage: sccp show line <lineId>\n"
-				"       List defined SCCP line settings.\n";
+static char show_line_usage[] = "Usage: sccp show line <lineId>\n" "       List defined SCCP line settings.\n";
 
 #define CLI_COMMAND "sccp", "show", "line", NULL
-CLI_ENTRY_COMPLETE(cli_show_line,sccp_show_line,"List defined SCCP line settings",show_line_usage, sccp_complete_line)
+CLI_ENTRY_COMPLETE(cli_show_line, sccp_show_line, "List defined SCCP line settings", show_line_usage, sccp_complete_line)
 #undef CLI_COMMAND
 /* --------------------------------------------------------------------------------------------------------SHOW CHANNELS- */
 /*!
@@ -753,11 +717,12 @@ CLI_ENTRY_COMPLETE(cli_show_line,sccp_show_line,"List defined SCCP line settings
  * \param argv[] Argv[] as char
  * \return Result as int
  */
-static int sccp_show_channels(int fd, int argc, char * argv[]) {
-	sccp_channel_t * c;
-	sccp_line_t * l;
+static int sccp_show_channels(int fd, int argc, char *argv[])
+{
+	sccp_channel_t *c;
+	sccp_line_t *l;
 
-	ast_cli(fd, "\n%-5s %-10s %-16s %-16s %-16s %-10s %-10s\n", "ID","LINE","DEVICE","AST STATE","SCCP STATE","CALLED", "CODEC");
+	ast_cli(fd, "\n%-5s %-10s %-16s %-16s %-16s %-10s %-10s\n", "ID", "LINE", "DEVICE", "AST STATE", "SCCP STATE", "CALLED", "CODEC");
 	ast_cli(fd, "===== ========== ================ ================ ================ ========== ================\n");
 
 	SCCP_LIST_LOCK(&GLOB(lines));
@@ -765,14 +730,7 @@ static int sccp_show_channels(int fd, int argc, char * argv[]) {
 		sccp_line_lock(l);
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-			ast_cli(fd, "%.5d %-10s %-16s %-16s %-16s %-10s %-10s\n",
-				c->callid,
-				c->line->name,
-				(c->device)?c->device->description:"(unknown)",
-				(c->owner) ? ast_state2str(c->owner->_state) : "(none)",
-				sccp_indicate2str(c->state),
-				c->callInfo.calledPartyNumber,
-				(c->format)?codec2str(sccp_codec_ast2skinny(c->format)):"(none)");
+			ast_cli(fd, "%.5d %-10s %-16s %-16s %-16s %-10s %-10s\n", c->callid, c->line->name, (c->device) ? c->device->description : "(unknown)", (c->owner) ? ast_state2str(c->owner->_state) : "(none)", sccp_indicate2str(c->state), c->callInfo.calledPartyNumber, (c->format) ? codec2str(sccp_codec_ast2skinny(c->format)) : "(none)");
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
 		sccp_line_unlock(l);
@@ -781,11 +739,10 @@ static int sccp_show_channels(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
-static char show_channels_usage[] = "Usage: sccp show channels\n"
-				    "       Lists active channels for the SCCP subsystem.\n";
+static char show_channels_usage[] = "Usage: sccp show channels\n" "       Lists active channels for the SCCP subsystem.\n";
 
 #define CLI_COMMAND "sccp", "show", "channels", NULL
-CLI_ENTRY(cli_show_channels,sccp_show_channels,"Lists active SCCP channels",show_channels_usage)
+CLI_ENTRY(cli_show_channels, sccp_show_channels, "Lists active SCCP channels", show_channels_usage)
 #undef CLI_COMMAND
 /* -------------------------------------------------------------------------------------------------------SHOW SESSIONS- */
 /*!
@@ -795,9 +752,10 @@ CLI_ENTRY(cli_show_channels,sccp_show_channels,"Lists active SCCP channels",show
  * \param argv[] Argv[] as char
  * \return Result as int
  */
-static int sccp_show_sessions(int fd, int argc, char * argv[]) {
-	sccp_session_t * s = NULL;
-	sccp_device_t * d = NULL;
+static int sccp_show_sessions(int fd, int argc, char *argv[])
+{
+	sccp_session_t *s = NULL;
+	sccp_device_t *d = NULL;
 #if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
@@ -812,21 +770,9 @@ static int sccp_show_sessions(int fd, int argc, char * argv[]) {
 		if (d) {
 			sccp_device_lock(d);
 #if ASTERISK_VERSION_NUM < 10400
-			ast_cli(fd, "%-10d %-15s %-4d %-15s %-15s %-15s\n",
-				s->fd,
-				ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr),
-				(uint32_t)(time(0) - s->lastKeepAlive),
-				(d) ? d->id : "--",
-				(d) ? devicestatus2str(d->state) : "--",
-				(d) ? devicetype2str(d->skinny_type) : "--");
+			ast_cli(fd, "%-10d %-15s %-4d %-15s %-15s %-15s\n", s->fd, ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr), (uint32_t) (time(0) - s->lastKeepAlive), (d) ? d->id : "--", (d) ? devicestatus2str(d->state) : "--", (d) ? devicetype2str(d->skinny_type) : "--");
 #else
-			ast_cli(fd, "%-10d %-15s %-4d %-15s %-15s %-15s\n",
-				s->fd,
-				ast_inet_ntoa(s->sin.sin_addr),
-				(uint32_t)(time(0) - s->lastKeepAlive),
-				(d) ? d->id : "--",
-				(d) ? devicestatus2str(d->state) : "--",
-				(d) ? devicetype2str(d->skinny_type) : "--");
+			ast_cli(fd, "%-10d %-15s %-4d %-15s %-15s %-15s\n", s->fd, ast_inet_ntoa(s->sin.sin_addr), (uint32_t) (time(0) - s->lastKeepAlive), (d) ? d->id : "--", (d) ? devicestatus2str(d->state) : "--", (d) ? devicetype2str(d->skinny_type) : "--");
 #endif
 			sccp_device_unlock(d);
 		}
@@ -836,11 +782,10 @@ static int sccp_show_sessions(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
-static char show_sessions_usage[] = "Usage: sccp show sessions\n"
-				 "	Show All SCCP Sessions.\n";
+static char show_sessions_usage[] = "Usage: sccp show sessions\n" "	Show All SCCP Sessions.\n";
 
 #define CLI_COMMAND "sccp", "show", "sessions", NULL
-CLI_ENTRY(cli_show_sessions,sccp_show_sessions,"Show all SCCP sessions",show_sessions_usage)
+CLI_ENTRY(cli_show_sessions, sccp_show_sessions, "Show all SCCP sessions", show_sessions_usage)
 #undef CLI_COMMAND
 /* -----------------------------------------------------------------------------------------------------MESSAGE DEVICES- */
 /*!
@@ -850,10 +795,11 @@ CLI_ENTRY(cli_show_sessions,sccp_show_sessions,"Show all SCCP sessions",show_ses
  * \param argv[] Argv[] as char
  * \return Result as int
  */
-static int sccp_message_devices(int fd, int argc, char * argv[]) {
-	sccp_device_t * d;
-	int msgtimeout=10;
-	int beep=0;
+static int sccp_message_devices(int fd, int argc, char *argv[])
+{
+	sccp_device_t *d;
+	int msgtimeout = 10;
+	int beep = 0;
 
 	if (argc < 4)
 		return RESULT_SHOWUSAGE;
@@ -863,19 +809,19 @@ static int sccp_message_devices(int fd, int argc, char * argv[]) {
 
 	if (argc > 5) {
 		if (!strcmp(argv[4], "beep")) {
-			beep=1;
+			beep = 1;
 			if (sscanf(argv[5], "%d", &msgtimeout) != 1) {
-				msgtimeout=10;
+				msgtimeout = 10;
 			}
 		}
 		if (sscanf(argv[4], "%d", &msgtimeout) != 1) {
-			msgtimeout=10;
+			msgtimeout = 10;
 		}
 	}
 
 	SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
-		    sccp_dev_displaynotify(d,argv[3],msgtimeout);
+		sccp_dev_displaynotify(d, argv[3], msgtimeout);
 
 		if (beep) {
 			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
@@ -885,11 +831,10 @@ static int sccp_message_devices(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
-static char message_devices_usage[] = "Usage: sccp message devices <message text> [beep] [timeout]\n"
-				      "       Send a message to all SCCP Devices + phone beep + timeout.\n";
+static char message_devices_usage[] = "Usage: sccp message devices <message text> [beep] [timeout]\n" "       Send a message to all SCCP Devices + phone beep + timeout.\n";
 
 #define CLI_COMMAND "sccp", "message", "devices", NULL
-CLI_ENTRY(cli_message_devices,sccp_message_devices,"Send a message to all SCCP Devices",message_devices_usage)
+CLI_ENTRY(cli_message_devices, sccp_message_devices, "Send a message to all SCCP Devices", message_devices_usage)
 #undef CLI_COMMAND
 /* -----------------------------------------------------------------------------------------------------MESSAGE DEVICE- */
 /*!
@@ -901,16 +846,16 @@ CLI_ENTRY(cli_message_devices,sccp_message_devices,"Send a message to all SCCP D
  *
  * \todo TO BE IMPLEMENTED: sccp message device
  */
-static int sccp_message_device(int fd, int argc, char * argv[]) {
+static int sccp_message_device(int fd, int argc, char *argv[])
+{
 	ast_cli(fd, "Command has not been fully implemented yet!\n");
 	return RESULT_FAILURE;
 }
 
-static char message_device_usage[] = "Usage: sccp message <deviceId> <message text> [beep] [timeout]\n"
-				      "       Send a message to an SCCP Device + phone beep + timeout.\n";
+static char message_device_usage[] = "Usage: sccp message <deviceId> <message text> [beep] [timeout]\n" "       Send a message to an SCCP Device + phone beep + timeout.\n";
 
 #define CLI_COMMAND "sccp", "message", "device", NULL
-CLI_ENTRY_COMPLETE(cli_message_device,sccp_message_device,"Send a message to SCCP Device",message_device_usage,sccp_complete_device)
+CLI_ENTRY_COMPLETE(cli_message_device, sccp_message_device, "Send a message to SCCP Device", message_device_usage, sccp_complete_device)
 #undef CLI_COMMAND
 /* ------------------------------------------------------------------------------------------------------SYSTEM MESSAGE- */
 /*!
@@ -920,7 +865,8 @@ CLI_ENTRY_COMPLETE(cli_message_device,sccp_message_device,"Send a message to SCC
  * \param argv[] Argv[] as char
  * \return Result as int
  */
-static int sccp_system_message(int fd, int argc, char * argv[]) {
+static int sccp_system_message(int fd, int argc, char *argv[])
+{
 	int res;
 	int timeout = 0;
 	if ((argc < 3) || (argc > 5))
@@ -960,14 +906,11 @@ static int sccp_system_message(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
-static char system_message_usage[] = "Usage: sccp system message <message text> [beep] [timeout]\n"
-				      "       The default optional timeout is 0 (forever)\n"
-				      "       Example: sccp system message \"The boss is gone. Let's have some fun!\"  10\n";
+static char system_message_usage[] = "Usage: sccp system message <message text> [beep] [timeout]\n" "       The default optional timeout is 0 (forever)\n" "       Example: sccp system message \"The boss is gone. Let's have some fun!\"  10\n";
 
 #define CLI_COMMAND "sccp", "system", "message", NULL
-CLI_ENTRY(cli_system_message,sccp_system_message,"Send a system wide message to all SCCP Devices",system_message_usage)
+CLI_ENTRY(cli_system_message, sccp_system_message, "Send a system wide message to all SCCP Devices", system_message_usage)
 #undef CLI_COMMAND
-
 /* -----------------------------------------------------------------------------------------------------DND DEVICE- */
 /*!
  * \brief Message Device
@@ -976,7 +919,8 @@ CLI_ENTRY(cli_system_message,sccp_system_message,"Send a system wide message to 
  * \param argv[] Argv[] as char
  * \return Result as int
  */
-static int sccp_dnd_device(int fd, int argc, char * argv[]) {
+static int sccp_dnd_device(int fd, int argc, char *argv[])
+{
 	sccp_device_t *d = NULL;
 
 	if (argc < 3)
@@ -996,11 +940,10 @@ static int sccp_dnd_device(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
-static char dnd_device_usage[] = "Usage: sccp dnd <deviceId>\n"
-				      "       Send a dnd to an SCCP Device.\n";
+static char dnd_device_usage[] = "Usage: sccp dnd <deviceId>\n" "       Send a dnd to an SCCP Device.\n";
 
 #define CLI_COMMAND "sccp", "dnd", "device", NULL
-CLI_ENTRY_COMPLETE(cli_dnd_device,sccp_dnd_device,"Send a dnd to SCCP Device",dnd_device_usage,sccp_complete_device)
+CLI_ENTRY_COMPLETE(cli_dnd_device, sccp_dnd_device, "Send a dnd to SCCP Device", dnd_device_usage, sccp_complete_device)
 #undef CLI_COMMAND
 /* --------------------------------------------------------------------------------------------REMOVE_LINE_FROM_DEVICE- */
 /*!
@@ -1012,19 +955,17 @@ CLI_ENTRY_COMPLETE(cli_dnd_device,sccp_dnd_device,"Send a dnd to SCCP Device",dn
  *
  * \todo TO BE IMPLEMENTED: sccp message device
  */
-static int sccp_remove_line_from_device(int fd, int argc, char * argv[])
+static int sccp_remove_line_from_device(int fd, int argc, char *argv[])
 {
 	ast_cli(fd, "Command has not been fully implemented yet!\n");
 	return RESULT_FAILURE;
 }
 
-static char remove_line_from_device_usage[] = "Usage: sccp remove line <deviceID> <lineID>\n"
-				 "       Remove a line from device.\n";
+static char remove_line_from_device_usage[] = "Usage: sccp remove line <deviceID> <lineID>\n" "       Remove a line from device.\n";
 
 #define CLI_COMMAND "sccp", "remove", "line", NULL
-CLI_ENTRY(cli_remove_line_from_device,sccp_remove_line_from_device,"Remove a line from device",remove_line_from_device_usage)
+CLI_ENTRY(cli_remove_line_from_device, sccp_remove_line_from_device, "Remove a line from device", remove_line_from_device_usage)
 #undef CLI_COMMAND
-
 /* -------------------------------------------------------------------------------------------------ADD_LINE_TO_DEVICE- */
 /*!
  * \brief Add Line To Device
@@ -1033,10 +974,10 @@ CLI_ENTRY(cli_remove_line_from_device,sccp_remove_line_from_device,"Remove a lin
  * \param argv[] Argv[] as char
  * \return Result as int
  */
-static int sccp_add_line_to_device(int fd, int argc, char * argv[])
+static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 {
-	sccp_device_t	*d;
-	sccp_line_t	*l;
+	sccp_device_t *d;
+	sccp_line_t *l;
 
 	if (argc < 5)
 		return RESULT_SHOWUSAGE;
@@ -1055,7 +996,6 @@ static int sccp_add_line_to_device(int fd, int argc, char * argv[])
 		ast_log(LOG_ERROR, "Error: Line %s not found", argv[4]);
 		return RESULT_FAILURE;
 	}
-
 #ifdef CS_DYNAMIC_CONFIG
 	sccp_config_addButton(d, -1, LINE, l->name, NULL, NULL);
 #else
@@ -1066,13 +1006,11 @@ static int sccp_add_line_to_device(int fd, int argc, char * argv[])
 	return RESULT_SUCCESS;
 }
 
-static char add_line_to_device_usage[] = "Usage: sccp add line <deviceID> <lineID>\n"
-  				  	 "       Add a line to a device.\n";
+static char add_line_to_device_usage[] = "Usage: sccp add line <deviceID> <lineID>\n" "       Add a line to a device.\n";
 
 #define CLI_COMMAND "sccp", "add", "line", NULL
-CLI_ENTRY_COMPLETE(cli_add_line_to_device,sccp_add_line_to_device,"Add a line to a device",add_line_to_device_usage,sccp_complete_device)
+CLI_ENTRY_COMPLETE(cli_add_line_to_device, sccp_add_line_to_device, "Add a line to a device", add_line_to_device_usage, sccp_complete_device)
 #undef CLI_COMMAND
-
 /* ---------------------------------------------------------------------------------------------SHOW_MWI_SUBSCRIPTIONS- */
 /*!
  * \brief Show MWI Subscriptions
@@ -1083,16 +1021,16 @@ CLI_ENTRY_COMPLETE(cli_add_line_to_device,sccp_add_line_to_device,"Add a line to
  *
  * \todo TO BE IMPLEMENTED: sccp show mwi subscriptions
  */
-static int sccp_show_mwi_subscriptions(int fd, int argc, char * argv[]) {
+static int sccp_show_mwi_subscriptions(int fd, int argc, char *argv[])
+{
 	ast_cli(fd, "Command has not been fully implemented yet!\n");
 	return RESULT_FAILURE;
 }
 
-static char show_mwi_subscriptions_usage[] = "Usage: sccp show mwi subscriptions\n"
-				 "	Show All SCCP MWI Subscriptions.\n";
+static char show_mwi_subscriptions_usage[] = "Usage: sccp show mwi subscriptions\n" "	Show All SCCP MWI Subscriptions.\n";
 
 #define CLI_COMMAND "sccp", "show", "mwi", "subscriptions", NULL
-CLI_ENTRY(cli_show_mwi_subscriptions,sccp_show_mwi_subscriptions,"Show all SCCP MWI subscriptions",show_mwi_subscriptions_usage)
+CLI_ENTRY(cli_show_mwi_subscriptions, sccp_show_mwi_subscriptions, "Show all SCCP MWI subscriptions", show_mwi_subscriptions_usage)
 #undef CLI_COMMAND
 /* --------------------------------------------------------------------------------------------------SHOW_SOKFTKEYSETS- */
 /*!
@@ -1102,24 +1040,25 @@ CLI_ENTRY(cli_show_mwi_subscriptions,sccp_show_mwi_subscriptions,"Show all SCCP 
  * \param argv[] Argv[] as char
  * \return Result as int
  */
-static int sccp_show_softkeysets(int fd, int argc, char * argv[]) {
+static int sccp_show_softkeysets(int fd, int argc, char *argv[])
+{
 	sccp_softKeySetConfiguration_t *softkeyset = NULL;
 
 	ast_cli(fd, "SoftKeySets: %d\n", softKeySetConfig.size);
 	uint8_t i = 0;
 	uint8_t v_count = 0;
-	uint8_t c=0;
-	SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list){
-		v_count = sizeof(softkeyset->modes)/sizeof(softkey_modes);
+	uint8_t c = 0;
+	SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
+		v_count = sizeof(softkeyset->modes) / sizeof(softkey_modes);
 
 		ast_cli(fd, "name: %s\n", softkeyset->name);
-		ast_cli(fd, "number of softkeysets: %d\n", v_count );
+		ast_cli(fd, "number of softkeysets: %d\n", v_count);
 
 		for (i = 0; i < v_count; i++) {
 			const uint8_t *b = softkeyset->modes[i].ptr;
 			ast_cli(fd, "      Set[%-2d]= ", i);
 
-			for ( c = 0; c < softkeyset->modes[i].count; c++) {
+			for (c = 0; c < softkeyset->modes[i].count; c++) {
 				ast_cli(fd, "%-2d:%-10s ", c, label2str(b[c]));
 			}
 
@@ -1133,13 +1072,11 @@ static int sccp_show_softkeysets(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
-static char show_softkeysets_usage[] = "Usage: sccp show softkeysets\n"
-				 "	Show the configured SoftKeySets.\n";
+static char show_softkeysets_usage[] = "Usage: sccp show softkeysets\n" "	Show the configured SoftKeySets.\n";
 
 #define CLI_COMMAND "sccp", "show", "softkeyssets", NULL
-CLI_ENTRY(cli_show_softkeysets,sccp_show_softkeysets,"Show configured SoftKeySets",show_softkeysets_usage)
+CLI_ENTRY(cli_show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeySets", show_softkeysets_usage)
 #undef CLI_COMMAND
-
 /* ------------------------------------------------------------------------------------------------------------DO DEBUG- */
 /*!
  * \brief Do Debug
@@ -1148,14 +1085,15 @@ CLI_ENTRY(cli_show_softkeysets,sccp_show_softkeysets,"Show configured SoftKeySet
  * \param argv[] Argv[] as char
  * \return Result as int
  */
-static int sccp_do_debug(int fd, int argc, char *argv[]) {
+static int sccp_do_debug(int fd, int argc, char *argv[])
+{
 	uint32_t new_debug = GLOB(debug);
 
 	if (argc > 2) {
-		new_debug=sccp_parse_debugline (argv,2,argc,new_debug);
+		new_debug = sccp_parse_debugline(argv, 2, argc, new_debug);
 	}
 
-	char * debugcategories = sccp_get_debugcategories(new_debug);
+	char *debugcategories = sccp_get_debugcategories(new_debug);
 	if (argc > 2)
 		ast_cli(fd, "SCCP new debug status: (%d -> %d) %s\n", GLOB(debug), new_debug, debugcategories);
 	else
@@ -1166,14 +1104,10 @@ static int sccp_do_debug(int fd, int argc, char *argv[]) {
 	return RESULT_SUCCESS;
 }
 
-static char do_debug_usage[] = "Usage: SCCP debug [no] <level or categories>\n"
-			       "       Where categories is one or more (separated by comma's) of:\n"
-			       "       core, sccp, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey,\n"
-			       "       indicate, pbx, socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime,\n"
-			       "       lock, newcode, high\n";
+static char do_debug_usage[] = "Usage: SCCP debug [no] <level or categories>\n" "       Where categories is one or more (separated by comma's) of:\n" "       core, sccp, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey,\n" "       indicate, pbx, socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime,\n" "       lock, newcode, high\n";
 
 #define CLI_COMMAND "sccp", "debug", NULL
-CLI_ENTRY_COMPLETE(cli_do_debug,sccp_do_debug,"Set SCCP Debugging Types",do_debug_usage, sccp_complete_debug)
+CLI_ENTRY_COMPLETE(cli_do_debug, sccp_do_debug, "Set SCCP Debugging Types", do_debug_usage, sccp_complete_debug)
 #undef CLI_COMMAND
 /* ------------------------------------------------------------------------------------------------------------NO DEBUG- */
 /*!
@@ -1183,7 +1117,8 @@ CLI_ENTRY_COMPLETE(cli_do_debug,sccp_do_debug,"Set SCCP Debugging Types",do_debu
  * \param argv[] Argv[] as char
  * \return Result as int
  */
-static int sccp_no_debug(int fd, int argc, char *argv[]) {
+static int sccp_no_debug(int fd, int argc, char *argv[])
+{
 	if (argc < 3)
 		return RESULT_SHOWUSAGE;
 
@@ -1192,11 +1127,10 @@ static int sccp_no_debug(int fd, int argc, char *argv[]) {
 	return RESULT_SUCCESS;
 }
 
-static char no_debug_usage[] = "Usage: SCCP no debug\n"
-			       "       Disables dumping of SCCP packets for debugging purposes\n";
+static char no_debug_usage[] = "Usage: SCCP no debug\n" "       Disables dumping of SCCP packets for debugging purposes\n";
 
 #define CLI_COMMAND "sccp", "no", "debug", NULL
-CLI_ENTRY(cli_no_debug,sccp_no_debug,"Set SCCP Debugging Types",no_debug_usage)
+CLI_ENTRY(cli_no_debug, sccp_no_debug, "Set SCCP Debugging Types", no_debug_usage)
 #undef CLI_COMMAND
 /* --------------------------------------------------------------------------------------------------------------RELOAD- */
 /*!
@@ -1208,7 +1142,8 @@ CLI_ENTRY(cli_no_debug,sccp_no_debug,"Set SCCP Debugging Types",no_debug_usage)
  *
  * \note To find out more about the reload function see \ref sccp_config_reload
  */
-static int sccp_reload(int fd, int argc, char *argv[]) {
+static int sccp_reload(int fd, int argc, char *argv[])
+{
 #ifdef CS_DYNAMIC_CONFIG
 	sccp_readingtype_t readingtype;
 
@@ -1225,7 +1160,7 @@ static int sccp_reload(int fd, int argc, char *argv[]) {
 
 	GLOB(reload_in_progress) = TRUE;
 	ast_mutex_unlock(&GLOB(lock));
-\
+
 	if (!sccp_config_general(readingtype)) {
 		ast_cli(fd, "Unable to reload configuration.\n");
 		return RESULT_FAILURE;
@@ -1243,11 +1178,10 @@ static int sccp_reload(int fd, int argc, char *argv[]) {
 #endif
 }
 
-static char reload_usage[] = "Usage: SCCP reload\n"
-			     "       Reloads SCCP configuration from sccp.conf (It will close all active connections)\n";
+static char reload_usage[] = "Usage: SCCP reload\n" "       Reloads SCCP configuration from sccp.conf (It will close all active connections)\n";
 
 #define CLI_COMMAND "sccp", "reload", NULL
-CLI_ENTRY(cli_reload,sccp_reload,"Reload the SCCP configuration",reload_usage)
+CLI_ENTRY(cli_reload, sccp_reload, "Reload the SCCP configuration", reload_usage)
 #undef CLI_COMMAND
 /* -------------------------------------------------------------------------------------------------------SHOW VERSION- */
 /*!
@@ -1257,16 +1191,16 @@ CLI_ENTRY(cli_reload,sccp_reload,"Reload the SCCP configuration",reload_usage)
  * \param argv[] Argv[] as char
  * \return Result as int
  */
-static int sccp_show_version(int fd, int argc, char *argv[]) {
+static int sccp_show_version(int fd, int argc, char *argv[])
+{
 	ast_cli(fd, "Skinny Client Control Protocol (SCCP). Release: %s %s - %s (built by '%s' on '%s')\n", SCCP_VERSION, SCCP_BRANCH, SCCP_REVISION, BUILD_USER, BUILD_DATE);
 	return RESULT_SUCCESS;
 }
 
-static char show_version_usage[] = "Usage: SCCP show version\n"
-			           "       Show SCCP version details\n";
+static char show_version_usage[] = "Usage: SCCP show version\n" "       Show SCCP version details\n";
 
 #define CLI_COMMAND "sccp", "show", "version", NULL
-CLI_ENTRY(cli_show_version,sccp_show_version,"Show SCCP version details",show_version_usage)
+CLI_ENTRY(cli_show_version, sccp_show_version, "Show SCCP version details", show_version_usage)
 #undef CLI_COMMAND
 /* -------------------------------------------------------------------------------------------------------RESET_RESTART- */
 /*!
@@ -1276,8 +1210,9 @@ CLI_ENTRY(cli_show_version,sccp_show_version,"Show SCCP version details",show_ve
  * \param argv[] Argv[] as char
  * \return Result as int
  */
-static int sccp_reset_restart(int fd, int argc, char * argv[]) {
-	sccp_device_t * d;
+static int sccp_reset_restart(int fd, int argc, char *argv[])
+{
+	sccp_device_t *d;
 	boolean_t restart = TRUE;
 
 	if (argc < 3 || argc > 4)
@@ -1288,11 +1223,9 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 			if (strcasecmp(argv[3], "restart"))
 				return RESULT_SHOWUSAGE;
 			restart = TRUE;
-		}
-		else
+		} else
 			restart = FALSE;
-	}
-	else if (argc != 3)
+	} else if (argc != 3)
 		return RESULT_SHOWUSAGE;
 
 	ast_cli(fd, "%s: %s request sent to the device\n", argv[2], argv[1]);
@@ -1304,7 +1237,6 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 		return RESULT_SUCCESS;
 	}
 
-
 	sccp_device_lock(d);
 	if (!d->session) {
 		ast_cli(fd, "%s: device not registered\n", argv[2]);
@@ -1312,8 +1244,7 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 		return RESULT_SUCCESS;
 	}
 
-
-	if(d->channelCount > 0) {
+	if (d->channelCount > 0) {
 		/* sccp_device_clean will check active channels */
 		/* \todo implement a check for active channels before sending reset */
 		//ast_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
@@ -1322,27 +1253,25 @@ static int sccp_reset_restart(int fd, int argc, char * argv[]) {
 	sccp_device_unlock(d);
 
 	if (!restart)
-		sccp_device_sendReset(d, SKINNY_DEVICE_RESET );
+		sccp_device_sendReset(d, SKINNY_DEVICE_RESET);
 	else
-		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART );
+		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 	sccp_session_close(d->session);
 
 	return RESULT_SUCCESS;
 }
 
 /* --------------------------------------------------------------------------------------------------------------RESET- */
-static char reset_usage[] = "Usage: SCCP reset\n"
-		            "       sccp reset <deviceId> [restart]\n";
+static char reset_usage[] = "Usage: SCCP reset\n" "       sccp reset <deviceId> [restart]\n";
 
 #define CLI_COMMAND "sccp", "reset", NULL
-CLI_ENTRY_COMPLETE(cli_reset,sccp_reset_restart,"Show SCCP version details",reset_usage, sccp_complete_device)
+CLI_ENTRY_COMPLETE(cli_reset, sccp_reset_restart, "Show SCCP version details", reset_usage, sccp_complete_device)
 #undef CLI_COMMAND
 /* -------------------------------------------------------------------------------------------------------------RESTART- */
-static char restart_usage[] = "Usage: SCCP restart\n"
-			      "       sccp restart <deviceId>\n";
+static char restart_usage[] = "Usage: SCCP restart\n" "       sccp restart <deviceId>\n";
 
 #define CLI_COMMAND "sccp", "restart", NULL
-CLI_ENTRY_COMPLETE(cli_restart,sccp_reset_restart,"Restart an SCCP device",restart_usage, sccp_complete_device)
+CLI_ENTRY_COMPLETE(cli_restart, sccp_reset_restart, "Restart an SCCP device", restart_usage, sccp_complete_device)
 #undef CLI_COMMAND
 /* ----------------------------------------------------------------------------------------------------------UNREGISTER- */
 /*!
@@ -1352,9 +1281,10 @@ CLI_ENTRY_COMPLETE(cli_restart,sccp_reset_restart,"Restart an SCCP device",resta
  * \param argv[] Argv[] as char
  * \return Result as int
  */
-static int sccp_unregister(int fd, int argc, char * argv[]) {
-	sccp_moo_t * r;
-	sccp_device_t * d;
+static int sccp_unregister(int fd, int argc, char *argv[])
+{
+	sccp_moo_t *r;
+	sccp_device_t *d;
 
 	if (argc != 3)
 		return RESULT_SHOWUSAGE;
@@ -1366,13 +1296,13 @@ static int sccp_unregister(int fd, int argc, char * argv[]) {
 	if (!d) {
 #ifdef CS_SCCP_REALTIME
 		d = sccp_device_find_realtime_byid(argv[2]);
-		if(!d)
+		if (!d)
 			ast_cli(fd, "Can't find device %s\n", argv[2]);
 #else
 		ast_cli(fd, "Can't find device %s\n", argv[2]);
 #endif
 	}
-	if(!d)
+	if (!d)
 		return RESULT_SUCCESS;
 
 	sccp_device_lock(d);
@@ -1394,17 +1324,11 @@ static int sccp_unregister(int fd, int argc, char * argv[]) {
 	return RESULT_SUCCESS;
 }
 
-static char unregister_usage[] = "Usage: SCCP unregister <deviceId>\n"
-		                 "       Unregister an SCCP device\n";
+static char unregister_usage[] = "Usage: SCCP unregister <deviceId>\n" "       Unregister an SCCP device\n";
 
 #define CLI_COMMAND "sccp", "unregister", NULL
-CLI_ENTRY_COMPLETE(cli_unregister,sccp_unregister,"Unregister an SCCP device",unregister_usage, sccp_complete_device)
+CLI_ENTRY_COMPLETE(cli_unregister, sccp_unregister, "Unregister an SCCP device", unregister_usage, sccp_complete_device)
 #undef CLI_COMMAND
-
-
-
-
-
 /* --- Register Cli Entries-------------------------------------------------------------------------------------------- */
 #if ASTERISK_VERSION_NUM >= 10600
 /*!
@@ -1441,17 +1365,15 @@ static struct ast_cli_entry cli_entries[] = {
 };
 #endif
 
-
-
-
 /*!
  * register CLI functions from asterisk
  */
-void sccp_register_cli(void) {
+void sccp_register_cli(void)
+{
 
 #if ASTERISK_VERSION_NUM >= 10600
 	/* register all CLI functions */
-	ast_cli_register_multiple(cli_entries, sizeof(cli_entries)/ sizeof(struct ast_cli_entry));
+	ast_cli_register_multiple(cli_entries, sizeof(cli_entries) / sizeof(struct ast_cli_entry));
 #else
 	ast_cli_register(&cli_show_channels);
 	ast_cli_register(&cli_show_devices);
@@ -1479,11 +1401,11 @@ void sccp_register_cli(void) {
 
 }
 
-
 /*!
  * unregister CLI functions from asterisk
  */
-void sccp_unregister_cli(void) {
+void sccp_unregister_cli(void)
+{
 
 #if ASTERISK_VERSION_NUM >= 10600
 	/* unregister CLI functions */

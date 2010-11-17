@@ -12,7 +12,7 @@
  * $Revision$
  */
 #ifndef __SCCP_CLI_H
-#define __SCCP_CLI_H
+#    define __SCCP_CLI_H
 
 void sccp_register_cli(void);
 void sccp_unregister_cli(void);
@@ -23,8 +23,8 @@ void sccp_unregister_cli(void);
 //   param3=cli string to be types as array of strings
 //   param4=registration description
 //   param5=usage string
-#if ASTERISK_VERSION_NUM >= 10600
-  #define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER)		\
+#    if ASTERISK_VERSION_NUM >= 10600
+#        define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER)		\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {	\
 		static char *cli_command[] = { CLI_COMMAND };					\
 		char *command=NULL;								\
@@ -48,7 +48,7 @@ void sccp_unregister_cli(void);
 		else										\
 			return CLI_FAILURE;							\
 	};
-  #define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)				\
+#        define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)				\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {	\
 		static char *cli_command[] = { CLI_COMMAND };					\
 		char *command=NULL;								\
@@ -71,8 +71,8 @@ void sccp_unregister_cli(void);
 		else										\
 			return CLI_FAILURE;							\
 	};
-#else
-  #define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER)		\
+#    else
+#        define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER)		\
 	static struct ast_cli_entry _FUNCTION_NAME = {						\
 	  .cmda = { CLI_COMMAND },								\
 	  .handler = _CALLED_FUNCTION,								\
@@ -80,14 +80,13 @@ void sccp_unregister_cli(void);
 	  .usage = _USAGE,									\
 	  .generator = _COMPLETER								\
 	};
-  #define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)				\
+#        define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)				\
 	static struct ast_cli_entry _FUNCTION_NAME = {						\
 	  .cmda = { CLI_COMMAND },								\
 	  .handler = _CALLED_FUNCTION,								\
 	  .summary = _DESCR,									\
 	  .usage = _USAGE									\
 	};
-#endif // ASTERISK_VERSION_NUM >= 10600
+#    endif									// ASTERISK_VERSION_NUM >= 10600
 
-
-#endif // __SCCP_CLI_H
+#endif										// __SCCP_CLI_H

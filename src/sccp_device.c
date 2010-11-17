@@ -19,12 +19,11 @@
 #include "config.h"
 
 #if ASTERISK_VERSION_NUM >= 10400
-#include <asterisk.h>
+#    include <asterisk.h>
 #endif
 #include "chan_sccp.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-
 #include "sccp_lock.h"
 #include "sccp_utils.h"
 #include "sccp_device.h"
@@ -37,28 +36,22 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_config.h"
 #include "sccp_conference.h"
 #include "sccp_actions.h"
-
 #include <asterisk/app.h>
 #include <asterisk/pbx.h>
 #include <asterisk/astdb.h>
 #include <asterisk/utils.h>
 #ifdef CS_AST_HAS_NEW_DEVICESTATE
-#include <asterisk/devicestate.h>
+#    include <asterisk/devicestate.h>
 #endif
-
-
 #ifdef CS_DYNAMIC_CONFIG
-#include <asterisk/acl.h>
-#include <asterisk/frame.h>
-#include <asterisk/config.h>
+#    include <asterisk/acl.h>
+#    include <asterisk/frame.h>
+#    include <asterisk/config.h>
 #endif
-
 #ifdef CS_DEVSTATE_FEATURE
-#include <asterisk/event.h>
+#    include <asterisk/event.h>
 #endif
-
 #define  REF_DEBUG 1
-
 #ifdef CS_DYNAMIC_CONFIG
 /*!
  * \brief run before reload is start on devices
@@ -69,19 +62,19 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  */
 void sccp_device_pre_reload(void)
 {
-	sccp_device_t * d;
-	sccp_buttonconfig_t * config;
+	sccp_device_t *d;
+	sccp_buttonconfig_t *config;
 
 	SCCP_LIST_LOCK(&GLOB(devices));
-	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list){
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_2 "%s: Setting Device to Pending Delete=1\n", d->id);
+	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
+		sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_2 "%s: Setting Device to Pending Delete=1\n", d->id);
 		ast_free_ha(d->ha);
 		d->ha = NULL;
-		if (!d->realtime) /* don't want to reset hotline devices. */
+		if (!d->realtime)						/* don't want to reset hotline devices. */
 			d->pendingDelete = 1;
 		d->pendingUpdate = 0;
 		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list){
+		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			config->pendingDelete = 1;
 			config->pendingUpdate = 0;
 		}
@@ -99,7 +92,7 @@ void sccp_device_pre_reload(void)
  * \callgraph
  * \callergraph
  */
-boolean_t sccp_device_check_update(sccp_device_t *d)
+boolean_t sccp_device_check_update(sccp_device_t * d)
 {
 	if (!d->pendingUpdate && !d->pendingDelete)
 		return FALSE;
@@ -111,34 +104,32 @@ boolean_t sccp_device_check_update(sccp_device_t *d)
 		return FALSE;
 	}
 
-	sccp_log(1)(VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf\n", d->id);
+	sccp_log(1) (VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf\n", d->id);
 	sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 	sccp_session_close(d->session);
 	d->pendingUpdate = 0;
 
 	if (d->pendingDelete) {
-		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Remove Device from List\n", d->id);
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Remove Device from List\n", d->id);
 		sccp_device_unlock(d);
 		sccp_dev_clean(d, TRUE, 0);
-	}
-	else {
+	} else {
 		sccp_buttonconfig_t *buttonconfig;
 
 		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, buttonconfig, list){
+		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, buttonconfig, list) {
 			if (!buttonconfig->pendingDelete && !buttonconfig->pendingUpdate)
 				continue;
 
 			if (buttonconfig->pendingDelete) {
-				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
+				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
 				SCCP_LIST_REMOVE_CURRENT(list);
 				ast_free(buttonconfig);
 			} else {
 				buttonconfig->pendingUpdate = 0;
 			}
 		}
-		SCCP_LIST_TRAVERSE_SAFE_END
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
+		SCCP_LIST_TRAVERSE_SAFE_END SCCP_LIST_UNLOCK(&d->buttonconfig);
 
 		sccp_device_unlock(d);
 	}
@@ -155,10 +146,10 @@ boolean_t sccp_device_check_update(sccp_device_t *d)
  */
 void sccp_device_post_reload(void)
 {
-	sccp_device_t * d;
+	sccp_device_t *d;
 
 	SCCP_LIST_LOCK(&GLOB(devices));
-	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list){
+	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
 		if (!d->pendingDelete && !d->pendingUpdate)
 			continue;
 
@@ -166,12 +157,12 @@ void sccp_device_post_reload(void)
 		 * been updated will be because it is currently engaged in a call.
 		 */
 		if (!sccp_device_check_update(d))
-			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", d->id);
+			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", d->id);
 	}
 
 	SCCP_LIST_UNLOCK(&GLOB(devices));
 }
-#endif /* CS_DYNAMIC_CONFIG */
+#endif										/* CS_DYNAMIC_CONFIG */
 
 /*!
  * \brief create a device and adding default values.
@@ -180,10 +171,11 @@ void sccp_device_post_reload(void)
  * \callgraph
  * \callergraph
  */
-sccp_device_t * sccp_device_create(void){
-	sccp_device_t * d = ast_calloc(1, sizeof(sccp_device_t));
+sccp_device_t *sccp_device_create(void)
+{
+	sccp_device_t *d = ast_calloc(1, sizeof(sccp_device_t));
 	if (!d) {
-		sccp_log(0)(VERBOSE_PREFIX_3 "Unable to allocate memory for a device\n");
+		sccp_log(0) (VERBOSE_PREFIX_3 "Unable to allocate memory for a device\n");
 		return NULL;
 	}
 	ast_mutex_init(&d->lock);
@@ -204,9 +196,9 @@ sccp_device_t * sccp_device_create(void){
  * \callgraph
  * \callergraph
  */
-sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
+sccp_device_t *sccp_device_applyDefaults(sccp_device_t * d)
 {
-	if(!d)
+	if (!d)
 		return NULL;
 
 	d->linesCount = 0;
@@ -245,16 +237,16 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 #else
 	d->park = 0;
 #endif
-	d->meetme=GLOB(meetme);
+	d->meetme = GLOB(meetme);
 	sccp_copy_string(d->meetmeopts, GLOB(meetmeopts), sizeof(d->meetmeopts));
 
 	/* reset statistic */
-	d->configurationStatistic.numberOfLines=0;
-	d->configurationStatistic.numberOfSpeeddials=0;
-	d->configurationStatistic.numberOfFeatures=0;
+	d->configurationStatistic.numberOfLines = 0;
+	d->configurationStatistic.numberOfSpeeddials = 0;
+	d->configurationStatistic.numberOfFeatures = 0;
 
-	d->softKeyConfiguration.modes = (softkey_modes *)SoftKeyModes;
-	d->softKeyConfiguration.size = sizeof(SoftKeyModes)/sizeof(softkey_modes);
+	d->softKeyConfiguration.modes = (softkey_modes *) SoftKeyModes;
+	d->softKeyConfiguration.size = sizeof(SoftKeyModes) / sizeof(softkey_modes);
 
 #ifdef CS_ADV_FEATURES
 	d->useRedialMenu = FALSE;
@@ -263,21 +255,21 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t *d)
 	return d;
 }
 
-
 /*!
  * \brief Add a device to the global sccp_list
  * \param device SCCP Device
  * \return SCCP Device
  */
-sccp_device_t *sccp_device_addToGlobals(sccp_device_t *device){
-	if(!device)
+sccp_device_t *sccp_device_addToGlobals(sccp_device_t * device)
+{
+	if (!device)
 		return NULL;
 
 	SCCP_LIST_LOCK(&GLOB(devices));
 	SCCP_LIST_INSERT_HEAD(&GLOB(devices), device, list);
 	SCCP_LIST_UNLOCK(&GLOB(devices));
 
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Added device '%s' (%s)\n", device->id, device->config_type);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Added device '%s' (%s)\n", device->id, device->config_type);
 	return device;
 }
 
@@ -290,15 +282,15 @@ int sccp_device_get_codec(struct ast_channel *ast)
 {
 	sccp_channel_t *c = NULL;
 
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Asterisk requested available codecs for channel %s\n", ast->name);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Asterisk requested available codecs for channel %s\n", ast->name);
 
 	if (!(c = CS_AST_CHANNEL_PVT(ast))) {
-		sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Couldn't find a channel pvt struct. Returning global capabilities\n");
+		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Couldn't find a channel pvt struct. Returning global capabilities\n");
 		return GLOB(global_capability);
 	}
 
 	if (!c->device) {
-		sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Couldn't find a device associated to channel. Returning global capabilities\n");
+		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Couldn't find a device associated to channel. Returning global capabilities\n");
 	}
 
 	/* update channel capabilities */
@@ -307,13 +299,13 @@ int sccp_device_get_codec(struct ast_channel *ast)
 	ast_set_write_format(ast, c->format);
 
 	char s1[512];
-	sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) capabilities are %s (%d)\n",
+	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) capabilities are %s (%d)\n",
 #if ASTERISK_VERSION_NUM >= 10400
-		ast_getformatname_multiple(s1, sizeof(s1) -1, c->capability & AST_FORMAT_AUDIO_MASK),
+				    ast_getformatname_multiple(s1, sizeof(s1) - 1, c->capability & AST_FORMAT_AUDIO_MASK),
 #else
-		ast_getformatname_multiple(s1, sizeof(s1) -1, c->capability),
+				    ast_getformatname_multiple(s1, sizeof(s1) - 1, c->capability),
 #endif
-		c->capability);
+				    c->capability);
 
 	return c->capability;
 }
@@ -323,148 +315,149 @@ int sccp_device_get_codec(struct ast_channel *ast)
  * \param d device
  * \param btn buttonlist
  */
-void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
+void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
+{
 	uint8_t i;
 	if (!d || !d->session)
 		return;
-	sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Building button template %s(%d), user config %s\n",	d->id, devicetype2str(d->skinny_type), d->skinny_type, d->config_type);
+	sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Building button template %s(%d), user config %s\n", d->id, devicetype2str(d->skinny_type), d->skinny_type, d->config_type);
 
 	switch (d->skinny_type) {
-		case SKINNY_DEVICETYPE_30SPPLUS:
-		case SKINNY_DEVICETYPE_30VIP:
-			for (i = 0; i < 4; i++)
-				(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			for (i = 0; i < 9; i++)
-				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-			/* Column 2 */
-			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
-			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
-			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
-			(btn++)->type = SKINNY_BUTTONTYPE_CALLPARK;
-			for (i = 0; i < 9; i++)
-				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-			break;
-		case SKINNY_DEVICETYPE_12SPPLUS:
-		case SKINNY_DEVICETYPE_12SP:
-		case SKINNY_DEVICETYPE_12:
+	case SKINNY_DEVICETYPE_30SPPLUS:
+	case SKINNY_DEVICETYPE_30VIP:
+		for (i = 0; i < 4; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
+		for (i = 0; i < 9; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+		/* Column 2 */
+		(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
+		(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
+		(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
+		(btn++)->type = SKINNY_BUTTONTYPE_CALLPARK;
+		for (i = 0; i < 9; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+		break;
+	case SKINNY_DEVICETYPE_12SPPLUS:
+	case SKINNY_DEVICETYPE_12SP:
+	case SKINNY_DEVICETYPE_12:
+		(btn++)->type = SCCP_BUTTONTYPE_LINE;
+		(btn++)->type = SCCP_BUTTONTYPE_LINE;
+		(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
+		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+		(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
+		(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
+		(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
+		(btn++)->type = SKINNY_BUTTONTYPE_CALLPARK;
+		(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
+		(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
+		break;
+	case SKINNY_DEVICETYPE_CISCO7902:
+		(btn++)->type = SCCP_BUTTONTYPE_LINE;
+		(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
+		(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
+		(btn++)->type = SKINNY_BUTTONTYPE_DISPLAY;
+		(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
+		(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
+		(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
+		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+		(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
+		break;
+	case SKINNY_DEVICETYPE_CISCO7912:
+	case SKINNY_DEVICETYPE_CISCO7911:
+	case SKINNY_DEVICETYPE_CISCO7906:
+	case SKINNY_DEVICETYPE_CISCO7905:
+		(btn++)->type = SCCP_BUTTONTYPE_LINE;
+		(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
+		for (i = 0; i < 9; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
-			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
-			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
-			(btn++)->type = SKINNY_BUTTONTYPE_CALLPARK;
-			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
-			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
-			break;
-		case SKINNY_DEVICETYPE_CISCO7902:
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
-			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
-			(btn++)->type = SKINNY_BUTTONTYPE_DISPLAY;
-			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
-			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
-			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
-			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
-			break;
-		case SKINNY_DEVICETYPE_CISCO7912:
-		case SKINNY_DEVICETYPE_CISCO7911:
-		case SKINNY_DEVICETYPE_CISCO7906:
-		case SKINNY_DEVICETYPE_CISCO7905:
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
-			for (i = 0; i < 9; i++)
-				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-			break;
-		case SKINNY_DEVICETYPE_CISCO7931:
-			for (i = 0; i < 20; i++){
-				btn[i].type = SCCP_BUTTONTYPE_MULTI;
+		break;
+	case SKINNY_DEVICETYPE_CISCO7931:
+		for (i = 0; i < 20; i++) {
+			btn[i].type = SCCP_BUTTONTYPE_MULTI;
+		}
+		btn[20].type = SKINNY_BUTTONTYPE_MESSAGES;
+		btn[21].type = SKINNY_BUTTONTYPE_DIRECTORY;
+		btn[22].type = SKINNY_BUTTONTYPE_HEADSET;
+		btn[23].type = SKINNY_BUTTONTYPE_APPLICATION;
+		break;
+	case SKINNY_DEVICETYPE_CISCO7935:
+	case SKINNY_DEVICETYPE_CISCO7936:
+	case SKINNY_DEVICETYPE_CISCO7937:
+		(btn++)->type = SCCP_BUTTONTYPE_LINE;
+		(btn++)->type = SCCP_BUTTONTYPE_LINE;
+		break;
+	case SKINNY_DEVICETYPE_CISCO7910:
+		(btn++)->type = SCCP_BUTTONTYPE_LINE;
+		(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
+		(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
+		(btn++)->type = SKINNY_BUTTONTYPE_DISPLAY;
+		(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
+		(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
+		(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
+		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+		(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
+		break;
+	case SKINNY_DEVICETYPE_CISCO7940:
+	case SKINNY_DEVICETYPE_CISCO7941:
+	case SKINNY_DEVICETYPE_CISCO7941GE:
+	case SKINNY_DEVICETYPE_CISCO7942:
+	case SKINNY_DEVICETYPE_CISCO7945:
+		(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+		(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+		break;
+	case SKINNY_DEVICETYPE_CISCO7920:
+	case SKINNY_DEVICETYPE_CISCO7921:
+	case SKINNY_DEVICETYPE_CISCO7925:
+		for (i = 0; i < 6; i++)
+			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+		break;
+	case SKINNY_DEVICETYPE_CISCO7960:
+	case SKINNY_DEVICETYPE_CISCO7961:
+	case SKINNY_DEVICETYPE_CISCO7961GE:
+	case SKINNY_DEVICETYPE_CISCO7962:
+	case SKINNY_DEVICETYPE_CISCO7965:
+		for (i = 0; i < 6 + sccp_addons_taps(d); i++)
+			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+		break;
+	case SKINNY_DEVICETYPE_CISCO7970:
+	case SKINNY_DEVICETYPE_CISCO7971:
+	case SKINNY_DEVICETYPE_CISCO7975:
+	case SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR:
+		/* the nokia icc client identifies it self as SKINNY_DEVICETYPE_CISCO7970, but it can only have one line  */
+		if (!strcasecmp(d->config_type, "nokia-icc")) {			// this is for nokia icc legacy support (Old releases) -FS
+			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+		} else {
+			uint8_t addonsTaps = sccp_addons_taps(d);
+			for (i = 0; i < 8 + addonsTaps; i++) {
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			}
-			btn[20].type = SKINNY_BUTTONTYPE_MESSAGES;
-			btn[21].type = SKINNY_BUTTONTYPE_DIRECTORY;
-			btn[22].type = SKINNY_BUTTONTYPE_HEADSET;
-			btn[23].type = SKINNY_BUTTONTYPE_APPLICATION;
-			break;
-		case SKINNY_DEVICETYPE_CISCO7935:
-		case SKINNY_DEVICETYPE_CISCO7936:
-		case SKINNY_DEVICETYPE_CISCO7937:
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			break;
-		case SKINNY_DEVICETYPE_CISCO7910:
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
-			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
-			(btn++)->type = SKINNY_BUTTONTYPE_DISPLAY;
-			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
-			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
-			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
+		}
+		break;
+	case SKINNY_DEVICETYPE_NOKIA_ICC:
+		(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+		break;
+	case SKINNY_DEVICETYPE_NOKIA_E_SERIES:
+		(btn++)->type = SCCP_BUTTONTYPE_LINE;
+		(btn++)->type = SCCP_BUTTONTYPE_LINE;
+		for (i = 0; i < 5; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
-			break;
-		case SKINNY_DEVICETYPE_CISCO7940:
-		case SKINNY_DEVICETYPE_CISCO7941:
-		case SKINNY_DEVICETYPE_CISCO7941GE:
-		case SKINNY_DEVICETYPE_CISCO7942:
-		case SKINNY_DEVICETYPE_CISCO7945:
-			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-			break;
-		case SKINNY_DEVICETYPE_CISCO7920:
-		case SKINNY_DEVICETYPE_CISCO7921:
-		case SKINNY_DEVICETYPE_CISCO7925:
-			for (i = 0; i < 6; i++)
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-			break;
-		case SKINNY_DEVICETYPE_CISCO7960:
-		case SKINNY_DEVICETYPE_CISCO7961:
-		case SKINNY_DEVICETYPE_CISCO7961GE:
-		case SKINNY_DEVICETYPE_CISCO7962:
-		case SKINNY_DEVICETYPE_CISCO7965:
-			for (i = 0; i < 6 + sccp_addons_taps(d); i++)
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-			break;
-		case SKINNY_DEVICETYPE_CISCO7970:
-		case SKINNY_DEVICETYPE_CISCO7971:
-		case SKINNY_DEVICETYPE_CISCO7975:
-		case SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR:
-			/* the nokia icc client identifies it self as SKINNY_DEVICETYPE_CISCO7970, but it can only have one line  */
-			if(!strcasecmp(d->config_type, "nokia-icc")) { // this is for nokia icc legacy support (Old releases) -FS
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-			} else {
-				uint8_t addonsTaps = sccp_addons_taps(d);
-				for (i = 0; i < 8 + addonsTaps; i++){
-					(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-				}
-			}
-			break;
-		case SKINNY_DEVICETYPE_NOKIA_ICC:
-			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-			break;
-		case SKINNY_DEVICETYPE_NOKIA_E_SERIES:
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			for (i = 0; i < 5; i++)
-				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-			break;
-		case SKINNY_DEVICETYPE_ATA186:
+		break;
+	case SKINNY_DEVICETYPE_ATA186:
 		//case SKINNY_DEVICETYPE_ATA188:
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			for (i = 0; i < 4; i++)
-				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-			break;
-		default:
-			/* at least one line */
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			break;
+		(btn++)->type = SCCP_BUTTONTYPE_LINE;
+		for (i = 0; i < 4; i++)
+			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+		break;
+	default:
+		/* at least one line */
+		(btn++)->type = SCCP_BUTTONTYPE_LINE;
+		break;
 	}
 	return;
 }
@@ -475,14 +468,14 @@ void sccp_dev_build_buttontemplate(sccp_device_t *d, btnlist * btn) {
  * \param[out] pkt_len Packet Length
  * \return SCCP Message
  */
-sccp_moo_t * sccp_build_packet(sccp_message_t t, size_t pkt_len)
+sccp_moo_t *sccp_build_packet(sccp_message_t t, size_t pkt_len)
 {
-	sccp_moo_t * r = ast_malloc(sizeof(sccp_moo_t));
+	sccp_moo_t *r = ast_malloc(sizeof(sccp_moo_t));
 	if (!r) {
 		ast_log(LOG_WARNING, "SCCP: Packet memory allocation error\n");
 		return NULL;
 	}
-	memset(r, 0,  pkt_len + 12);
+	memset(r, 0, pkt_len + 12);
 	r->length = htolel(pkt_len + 4);
 	r->lel_messageId = htolel(t);
 	return r;
@@ -499,8 +492,8 @@ sccp_moo_t * sccp_build_packet(sccp_message_t t, size_t pkt_len)
  */
 int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
 {
-	if(d && d->session){
-		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, message2str(letohl(r->lel_messageId)));
+	if (d && d->session) {
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, message2str(letohl(r->lel_messageId)));
 		return sccp_session_send(d, r);
 	} else
 		return -1;
@@ -514,7 +507,8 @@ int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
  * \callgraph
  * \callergraph
  */
-void sccp_dev_sendmsg(const sccp_device_t * d, sccp_message_t t) {
+void sccp_dev_sendmsg(const sccp_device_t * d, sccp_message_t t)
+{
 	if (d)
 		sccp_session_sendmsg(d, t);
 }
@@ -527,11 +521,10 @@ void sccp_dev_sendmsg(const sccp_device_t * d, sccp_message_t t) {
 void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 {
 	char servername[StationMaxDisplayNotifySize];
-	sccp_moo_t 		*r;
+	sccp_moo_t *r;
 
 	if (d->registrationState == opt)
 		return;
-
 
 	d->registrationState = opt;
 
@@ -543,11 +536,11 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 		r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
 		r->msg.SetLampMessage.lel_stimulusInstance = 0;
 		r->msg.SetLampMessage.lel_lampMode = htolel(SKINNY_LAMP_OFF);
-		d->mwilight &= ~(1<<0);
+		d->mwilight &= ~(1 << 0);
 		sccp_dev_send(d, r);
 
-		if(!d->linesRegistered){
-			sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(d));
+		if (!d->linesRegistered) {
+			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(d));
 			sccp_handle_AvailableLines(d);
 			d->linesRegistered = TRUE;
 		}
@@ -566,44 +559,39 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
  * \param opt KEYMODE of KEYMODE_*
  * \todo Disable DirTrfr by Default
  */
-void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid, uint8_t opt) {
-	sccp_moo_t * r;
+void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid, uint8_t opt)
+{
+	sccp_moo_t *r;
 	if (!d)
 		return;
 
 	if (!d->softkeysupport)
-		return; /* the device does not support softkeys */
+		return;								/* the device does not support softkeys */
 
 	/*let's activate the transfer */
 	if (opt == KEYMODE_CONNECTED)
-		opt = ( (/* d->conference && */ d->conference_channel) ? KEYMODE_CONNCONF : (d->transfer) ? KEYMODE_CONNTRANS : KEYMODE_CONNECTED );
+		opt = (( /* d->conference && */ d->conference_channel) ? KEYMODE_CONNCONF : (d->transfer) ? KEYMODE_CONNTRANS : KEYMODE_CONNECTED);
 
 	REQ(r, SelectSoftKeysMessage);
-	r->msg.SelectSoftKeysMessage.lel_lineInstance  = htolel(line);
+	r->msg.SelectSoftKeysMessage.lel_lineInstance = htolel(line);
 	r->msg.SelectSoftKeysMessage.lel_callReference = htolel(callid);
 	r->msg.SelectSoftKeysMessage.lel_softKeySetIndex = htolel(opt);
 
-	r->msg.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF; /* htolel(65535); */
+	r->msg.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF;		/* htolel(65535); */
 
-	if (
-	      (
-		    opt == KEYMODE_ONHOOK || opt == KEYMODE_OFFHOOK || opt == KEYMODE_OFFHOOKFEAT
-	      )
-	      &&
-	      (
-			ast_strlen_zero(d->lastNumber)
+	if ((opt == KEYMODE_ONHOOK || opt == KEYMODE_OFFHOOK || opt == KEYMODE_OFFHOOKFEAT)
+	    && (ast_strlen_zero(d->lastNumber)
 #ifdef CS_ADV_FEATURES
-			&& !d->useRedialMenu
+		&& !d->useRedialMenu
 #endif
-	      )
-	   ){
-		r->msg.SelectSoftKeysMessage.les_validKeyMask &= htolel(~(1<<0));
-	    }
+	    )
+	    ) {
+		r->msg.SelectSoftKeysMessage.les_validKeyMask &= htolel(~(1 << 0));
+	}
 
-	sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, keymode2str(opt), opt, line, callid);
+	sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, keymode2str(opt), opt, line, callid);
 	sccp_dev_send(d, r);
 }
-
 
 /*!
  * \brief Set Ringer on Device
@@ -614,18 +602,18 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
  */
 void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInstance, uint32_t callid)
 {
-	sccp_moo_t * r;
+	sccp_moo_t *r;
 
 	REQ(r, SetRingerMessage);
 	r->msg.SetRingerMessage.lel_ringMode = htolel(opt);
 	/* Note that for distinctive ringing to work with the higher protocol versions
 	   the following actually needs to be set to 1 as the original comment says.
 	   Curiously, the variable is not set to 1 ... */
-	r->msg.SetRingerMessage.lel_unknown1 = htolel(1);/* always 1 */
+	r->msg.SetRingerMessage.lel_unknown1 = htolel(1);			/* always 1 */
 	r->msg.SetRingerMessage.lel_lineInstance = htolel(lineInstance);
 	r->msg.SetRingerMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, r);
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send ringer mode %s(%d) on device\n", DEV_ID_LOG(d), station2str(opt), opt);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send ringer mode %s(%d) on device\n", DEV_ID_LOG(d), station2str(opt), opt);
 
 }
 
@@ -636,14 +624,14 @@ void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInsta
  */
 void sccp_dev_set_speaker(sccp_device_t * d, uint8_t mode)
 {
-	sccp_moo_t * r;
+	sccp_moo_t *r;
 	if (!d || !d->session)
 		return;
 
 	REQ(r, SetSpeakerModeMessage);
 	r->msg.SetSpeakerModeMessage.lel_speakerMode = htolel(mode);
 	sccp_dev_send(d, r);
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send speaker mode %d\n", d->id, mode);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send speaker mode %d\n", d->id, mode);
 }
 
 /*!
@@ -653,14 +641,14 @@ void sccp_dev_set_speaker(sccp_device_t * d, uint8_t mode)
  */
 void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode)
 {
-	sccp_moo_t * r;
+	sccp_moo_t *r;
 	if (!d || !d->session)
 		return;
 
 	REQ(r, SetMicroModeMessage);
 	r->msg.SetMicroModeMessage.lel_micMode = htolel(mode);
 	sccp_dev_send(d, r);
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send microphone mode %d\n", d->id, mode);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send microphone mode %d\n", d->id, mode);
 }
 
 /*!
@@ -674,9 +662,9 @@ void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode)
  * \callgraph
  * \callergraph
  */
-void sccp_dev_set_cplane(sccp_line_t * l, uint8_t lineInstance, sccp_device_t *device, int status)
+void sccp_dev_set_cplane(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * device, int status)
 {
-	sccp_moo_t * r;
+	sccp_moo_t *r;
 	if (!l)
 		return;
 
@@ -688,7 +676,7 @@ void sccp_dev_set_cplane(sccp_line_t * l, uint8_t lineInstance, sccp_device_t *d
 		r->msg.ActivateCallPlaneMessage.lel_lineInstance = htolel(lineInstance);
 	sccp_dev_send(device, r);
 
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send activate call plane on line %d\n", device->id, (status) ? lineInstance : 0 );
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send activate call plane on line %d\n", device->id, (status) ? lineInstance : 0);
 }
 
 /*!
@@ -702,12 +690,12 @@ void sccp_dev_set_cplane(sccp_line_t * l, uint8_t lineInstance, sccp_device_t *d
 void sccp_dev_deactivate_cplane(sccp_device_t * d)
 {
 	if (!d) {
-		sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "Null device for deactivate callplane\n");
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Null device for deactivate callplane\n");
 		return;
 	}
 
 	sccp_dev_sendmsg(d, DeactivateCallPlaneMessage);
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send deactivate call plane\n", d->id);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send deactivate call plane\n", d->id);
 }
 
 /*!
@@ -720,7 +708,7 @@ void sccp_dev_deactivate_cplane(sccp_device_t * d)
  */
 void sccp_dev_starttone(sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t callid, uint32_t timeout)
 {
-	sccp_moo_t * r;
+	sccp_moo_t *r;
 	if (!d || !d->session)
 		return;
 
@@ -731,7 +719,7 @@ void sccp_dev_starttone(sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t 
 	r->msg.StartToneMessage.lel_callReference = htolel(callid);
 
 	sccp_dev_send(d, r);
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Sending tone %s (%d)\n", d->id, tone2str(tone), tone);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending tone %s (%d)\n", d->id, tone2str(tone), tone);
 }
 
 /*!
@@ -742,7 +730,7 @@ void sccp_dev_starttone(sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t 
  */
 void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid)
 {
-	sccp_moo_t * r;
+	sccp_moo_t *r;
 
 	if (!d || !d->session)
 		return;
@@ -750,7 +738,7 @@ void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid)
 	r->msg.StopToneMessage.lel_lineInstance = htolel(line);
 	r->msg.StopToneMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, r);
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Stop tone on device\n", d->id);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Stop tone on device\n", d->id);
 }
 
 /*!
@@ -764,15 +752,16 @@ void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid)
  */
 void sccp_dev_clearprompt(const sccp_device_t * d, uint8_t lineInstance, uint32_t callid)
 {
-	sccp_moo_t * r;
+	sccp_moo_t *r;
 
-	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) return; /* only for telecaster and new phones */
+	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
+		return;								/* only for telecaster and new phones */
 
 	REQ(r, ClearPromptStatusMessage);
 	r->msg.ClearPromptStatusMessage.lel_callReference = htolel(callid);
-	r->msg.ClearPromptStatusMessage.lel_lineInstance  = htolel(lineInstance);
+	r->msg.ClearPromptStatusMessage.lel_lineInstance = htolel(lineInstance);
 	sccp_dev_send(d, r);
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Clear the status prompt on line %d and callid %d\n", d->id, lineInstance, callid);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Clear the status prompt on line %d and callid %d\n", d->id, lineInstance, callid);
 }
 
 /*!
@@ -786,15 +775,15 @@ void sccp_dev_clearprompt(const sccp_device_t * d, uint8_t lineInstance, uint32_
  * \callgraph
  * \callergraph
  */
-void sccp_dev_displayprompt(sccp_device_t * d, uint8_t line, uint32_t callid, char * msg, int timeout)
+void sccp_dev_displayprompt(sccp_device_t * d, uint8_t line, uint32_t callid, char *msg, int timeout)
 {
-	sccp_moo_t * r;
+	sccp_moo_t *r;
 
 	if (!d || !d->session)
 		return;
 
-	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk")))
-		return; 	/* only for telecaster and new phones */
+	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
+		return;								/* only for telecaster and new phones */
 
 	if (!msg || ast_strlen_zero(msg))
 		return;
@@ -817,7 +806,7 @@ void sccp_dev_displayprompt(sccp_device_t * d, uint8_t line, uint32_t callid, ch
 		memcpy(&r->msg.DisplayDynamicPromptStatusMessage.dummy, msg, msg_len);
 	}
 	sccp_dev_send(d, r);
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Display prompt on line %d, callid %d, timeout %d\n", d->id, line, callid, timeout);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display prompt on line %d, callid %d, timeout %d\n", d->id, line, callid, timeout);
 }
 
 /*!
@@ -832,12 +821,12 @@ void sccp_dev_cleardisplay(sccp_device_t * d)
 	if (!d || !d->session)
 		return;
 
-	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) return; /* only for telecaster and new phones */
+	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
+		return;								/* only for telecaster and new phones */
 
 	sccp_dev_sendmsg(d, ClearDisplay);
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Clear the display\n", d->id);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Clear the display\n", d->id);
 }
-
 
 /*!
  * \brief Send Display to Device
@@ -847,14 +836,15 @@ void sccp_dev_cleardisplay(sccp_device_t * d)
  * \callgraph
  * \callergraph
  */
-void sccp_dev_display(sccp_device_t * d, char * msg)
+void sccp_dev_display(sccp_device_t * d, char *msg)
 {
-	sccp_moo_t * r;
+	sccp_moo_t *r;
 
 	if (!d || !d->session)
 		return;
 
-	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) return; /* only for telecaster and new phones */
+	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
+		return;								/* only for telecaster and new phones */
 
 	if (!msg || ast_strlen_zero(msg))
 		return;
@@ -863,7 +853,7 @@ void sccp_dev_display(sccp_device_t * d, char * msg)
 	sccp_copy_string(r->msg.DisplayTextMessage.displayMessage, msg, sizeof(r->msg.DisplayTextMessage.displayMessage));
 
 	sccp_dev_send(d, r);
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Display text\n", d->id);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Display text\n", d->id);
 }
 
 /*!
@@ -878,10 +868,11 @@ void sccp_dev_cleardisplaynotify(sccp_device_t * d)
 	if (!d || !d->session)
 		return;
 
-	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) return; /* only for telecaster and new phones */
+	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
+		return;								/* only for telecaster and new phones */
 
 	sccp_dev_sendmsg(d, ClearNotifyMessage);
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_3 "%s: Clear the display notify message\n", d->id);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Clear the display notify message\n", d->id);
 }
 
 /*!
@@ -893,13 +884,14 @@ void sccp_dev_cleardisplaynotify(sccp_device_t * d)
  * \callgraph
  * \callergraph
  */
-void sccp_dev_displaynotify(sccp_device_t * d, char * msg, uint32_t timeout)
+void sccp_dev_displaynotify(sccp_device_t * d, char *msg, uint32_t timeout)
 {
-	sccp_moo_t * r;
+	sccp_moo_t *r;
 
 	if (!d || !d->session)
 		return;
-	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) return; /* only for telecaster and new phones */
+	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
+		return;								/* only for telecaster and new phones */
 
 	if (!msg || ast_strlen_zero(msg))
 		return;
@@ -908,7 +900,7 @@ void sccp_dev_displaynotify(sccp_device_t * d, char * msg, uint32_t timeout)
 	r->msg.DisplayNotifyMessage.lel_displayTimeout = htolel(timeout);
 	sccp_copy_string(r->msg.DisplayNotifyMessage.displayMessage, msg, sizeof(r->msg.DisplayNotifyMessage.displayMessage));
 	sccp_dev_send(d, r);
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Display notify with timeout %d\n", d->id, timeout);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Display notify with timeout %d\n", d->id, timeout);
 }
 
 /*!
@@ -923,10 +915,11 @@ void sccp_dev_cleardisplayprinotify(sccp_device_t * d)
 	if (!d || !d->session)
 		return;
 
-	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) return; /* only for telecaster and new phones */
+	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
+		return;								/* only for telecaster and new phones */
 
 	sccp_dev_sendmsg(d, ClearPriNotifyMessage);
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_3 "%s: Clear the display priority notify message\n", d->id);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Clear the display priority notify message\n", d->id);
 }
 
 /*!
@@ -939,14 +932,15 @@ void sccp_dev_cleardisplayprinotify(sccp_device_t * d)
  * \callgraph
  * \callergraph
  */
-void sccp_dev_displayprinotify(sccp_device_t * d, char * msg, uint32_t priority, uint32_t timeout)
+void sccp_dev_displayprinotify(sccp_device_t * d, char *msg, uint32_t priority, uint32_t timeout)
 {
-	sccp_moo_t * r;
+	sccp_moo_t *r;
 
 	if (!d || !d->session)
 		return;
 
-	if (d->skinny_type < 6 || d->skinny_type ==  SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type,"kirk"))) return; /* only for telecaster and new phones */
+	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
+		return;								/* only for telecaster and new phones */
 
 	if (!msg || ast_strlen_zero(msg))
 		return;
@@ -955,7 +949,7 @@ void sccp_dev_displayprinotify(sccp_device_t * d, char * msg, uint32_t priority,
 	r->msg.DisplayPriNotifyMessage.lel_displayTimeout = htolel(timeout);
 	sccp_copy_string(r->msg.DisplayPriNotifyMessage.displayMessage, msg, sizeof(r->msg.DisplayPriNotifyMessage.displayMessage));
 	sccp_dev_send(d, r);
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Display notify with timeout %d and priority %d\n", d->id, timeout, priority);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Display notify with timeout %d and priority %d\n", d->id, timeout, priority);
 }
 
 /*!
@@ -967,9 +961,8 @@ void sccp_dev_displayprinotify(sccp_device_t * d, char * msg, uint32_t priority,
  */
 sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, uint8_t type)
 {
-	sccp_speed_t 		* k = NULL;
-	sccp_buttonconfig_t	*config;
-
+	sccp_speed_t *k = NULL;
+	sccp_buttonconfig_t *config;
 
 	if (!d || !d->session || instance == 0)
 		return NULL;
@@ -977,10 +970,10 @@ sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, 
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 
-		if(config->type == SPEEDDIAL && config->instance == instance){
+		if (config->type == SPEEDDIAL && config->instance == instance) {
 
 			/* we are searching for hinted speeddials */
-			if(type == SCCP_BUTTONTYPE_HINT && !sccp_is_nonempty_string(config->button.speeddial.hint))
+			if (type == SCCP_BUTTONTYPE_HINT && !sccp_is_nonempty_string(config->button.speeddial.hint))
 				continue;
 
 			k = ast_malloc(sizeof(sccp_speed_t));
@@ -990,7 +983,7 @@ sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, 
 			k->type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			sccp_copy_string(k->name, config->button.speeddial.label, sizeof(k->name));
 			sccp_copy_string(k->ext, config->button.speeddial.ext, sizeof(k->ext));
-			if (!ast_strlen_zero(config->button.speeddial.hint)){
+			if (!ast_strlen_zero(config->button.speeddial.hint)) {
 				sccp_copy_string(k->hint, config->button.speeddial.hint, sizeof(k->hint));
 			}
 		}
@@ -1005,7 +998,7 @@ sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, 
  * \param d SCCP Device
  * \return SCCP Line
  */
-sccp_line_t * sccp_dev_get_activeline(sccp_device_t * d)
+sccp_line_t *sccp_dev_get_activeline(sccp_device_t * d)
 {
 	sccp_buttonconfig_t *buttonconfig;
 
@@ -1014,21 +1007,21 @@ sccp_line_t * sccp_dev_get_activeline(sccp_device_t * d)
 
 	if (!d->currentLine) {
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-			if(buttonconfig->type == LINE ){
-				d->currentLine = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
-				if(d->currentLine){
+			if (buttonconfig->type == LINE) {
+				d->currentLine = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE);
+				if (d->currentLine) {
 					break;
 				}
 			}
 		}
 
 		if (d->currentLine) {
-			sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Forcing the active line to %s from NULL\n", d->id, d->currentLine->name);
+			sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Forcing the active line to %s from NULL\n", d->id, d->currentLine->name);
 		} else {
-			sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: No lines\n", d->id);
+			sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No lines\n", d->id);
 		}
 	} else {
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: The active line is %s\n", d->id, d->currentLine->name);
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: The active line is %s\n", d->id, d->currentLine->name);
 	}
 	return d->currentLine;
 }
@@ -1038,12 +1031,12 @@ sccp_line_t * sccp_dev_get_activeline(sccp_device_t * d)
  * \param device SCCP Device
  * \param l SCCP Line
  */
-void sccp_dev_set_activeline(sccp_device_t *device, sccp_line_t * l)
+void sccp_dev_set_activeline(sccp_device_t * device, sccp_line_t * l)
 {
 	if (!l || !device || !device->session)
 		return;
 
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Send the active line %s\n", device->id, l->name);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Send the active line %s\n", device->id, l->name);
 	sccp_device_lock(device);
 	device->currentLine = l;
 	sccp_device_unlock(device);
@@ -1065,7 +1058,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 {
 	char tmp[256] = "";
 	int timeout = 0;
-//	uint8_t res = 0;
+//      uint8_t res = 0;
 
 	//sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_1 "%s: %s:%d %s: (sccp_dev_check_displayprompt) Send Current Options to Device\n", file, pretty_function, line, d->id);
 	if (!d || !d->session)
@@ -1073,8 +1066,8 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 
 	sccp_dev_clearprompt(d, 0, 0);
 
-	if (d->phonemessage){ 								// display message if set
-		sccp_dev_displayprompt(d,0,0,d->phonemessage,0);
+	if (d->phonemessage) {							// display message if set
+		sccp_dev_displayprompt(d, 0, 0, d->phonemessage, 0);
 		goto OUT;
 	}
 
@@ -1082,126 +1075,126 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	if (sccp_dev_display_cfwd(d, FALSE) == TRUE)
 		goto OUT;
 
-#if 0 // Old code to check and set CallForward Indication. Implemention moved / We might need a check in this location later on - DdG/MC
-//	res = 0;
-// 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-// 		if(buttonconfig->type == LINE ){
-// 			l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
-// 			if (l && l->cfwd_type != SCCP_CFWD_NONE && l->cfwd_num) {
-// 				res = 1;
-// 				// tmp[0] = '\0';
-// 				memset(tmp, 0, sizeof(tmp));
-// 				instance = sccp_device_find_index_for_line(d, l->name);
+#if 0										// Old code to check and set CallForward Indication. Implemention moved / We might need a check in this location later on - DdG/MC
+//      res = 0;
+//      SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+//              if(buttonconfig->type == LINE ){
+//                      l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
+//                      if (l && l->cfwd_type != SCCP_CFWD_NONE && l->cfwd_num) {
+//                              res = 1;
+//                              // tmp[0] = '\0';
+//                              memset(tmp, 0, sizeof(tmp));
+//                              instance = sccp_device_find_index_for_line(d, l->name);
 //
-// 				if (l->cfwd_type == SCCP_CFWD_ALL) {
-// 					strcat(tmp, SKINNY_DISP_CFWDALL ":");
-// 					sccp_dev_set_lamp(d, SKINNY_STIMULUS_FORWARDALL, instance, SKINNY_LAMP_ON);
-// 				} else if (l->cfwd_type == SCCP_CFWD_BUSY) {
-// 					strcat(tmp, SKINNY_DISP_CFWDBUSY ":");
-// 					sccp_dev_set_lamp(d, SKINNY_STIMULUS_FORWARDBUSY, instance, SKINNY_LAMP_ON);
-// 				}
-// 				strcat(tmp, SKINNY_DISP_FORWARDED_TO " ");
-// 				strcat(tmp, l->cfwd_num);
-// 				sccp_dev_displayprompt(d, 0, 0, tmp, 0);
-// 				sccp_dev_set_keyset(d, instance, 0, KEYMODE_ONHOOK); /* this is for redial softkey */
-// 			}
+//                              if (l->cfwd_type == SCCP_CFWD_ALL) {
+//                                      strcat(tmp, SKINNY_DISP_CFWDALL ":");
+//                                      sccp_dev_set_lamp(d, SKINNY_STIMULUS_FORWARDALL, instance, SKINNY_LAMP_ON);
+//                              } else if (l->cfwd_type == SCCP_CFWD_BUSY) {
+//                                      strcat(tmp, SKINNY_DISP_CFWDBUSY ":");
+//                                      sccp_dev_set_lamp(d, SKINNY_STIMULUS_FORWARDBUSY, instance, SKINNY_LAMP_ON);
+//                              }
+//                              strcat(tmp, SKINNY_DISP_FORWARDED_TO " ");
+//                              strcat(tmp, l->cfwd_num);
+//                              sccp_dev_displayprompt(d, 0, 0, tmp, 0);
+//                              sccp_dev_set_keyset(d, instance, 0, KEYMODE_ONHOOK); /* this is for redial softkey */
+//                      }
 //
-// 		}
-// 	}
+//              }
+//      }
 #endif
 
-#if 0 // Proof of concept. Remarked out because issues where found on newer devices. This proof of concept will be implemented correctly in a later stadium - DdG
+#if 0										// Proof of concept. Remarked out because issues where found on newer devices. This proof of concept will be implemented correctly in a later stadium - DdG
 //#ifdef CS_ADV_FEATURES
-//	/*!
-//	 * \todo New Feature to Display DND / CallForward Status and Privacy Status per Line
-//	 * This is only a proof of concept for now.
-//	 * Issues:
-//	 *   - Number of calls to "sccp_dev_check_displayprompt" should be checked, or maybe done per line
-//	 *   - DND per line might be a nice feature
-//	 *   - Privacy status check is not right yet
-//	 *   - Message Waiting Could be integrated as well.
-//	 */
-//	sccp_moo_t 		*r1 = NULL;
-//	sccp_buttonconfig_t 	*buttonconfig;
-//	sccp_linedevices_t 	*linedevice;
-//	sccp_line_t 		*l;
-//	uint16_t 			instance;
-//	sccp_log((DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_3 "%s: Checking Cfwd / DND\n", d->id);
-//	/* walk the buttonconfig list for this device */
-//	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-//		if(buttonconfig->type == LINE ){
-//			memset(tmp, 0, sizeof(tmp));
-//			/* get the line associated with this button */
-//			l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
-//			if (l) {
-//				sccp_log((DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_3 "%s: Checking Cfwd for line %s\n", d->id, l->name);
-//				/* get the linedevice and instance number */
-//				linedevice = sccp_util_getDeviceConfiguration(d, l);
-//				instance = sccp_device_find_index_for_line(d, l->name);
-//				if (linedevice && instance ) {
-//					/* add some spaces to delete what was here before */
-//					/* this methode needs to be refined keeping in mind proportional fonts */
-//					strcat(tmp, "        ");
-//					/* overwrite the original line label */
-//					strcat(tmp, l->label);
+//      /*!
+//       * \todo New Feature to Display DND / CallForward Status and Privacy Status per Line
+//       * This is only a proof of concept for now.
+//       * Issues:
+//       *   - Number of calls to "sccp_dev_check_displayprompt" should be checked, or maybe done per line
+//       *   - DND per line might be a nice feature
+//       *   - Privacy status check is not right yet
+//       *   - Message Waiting Could be integrated as well.
+//       */
+//      sccp_moo_t              *r1 = NULL;
+//      sccp_buttonconfig_t     *buttonconfig;
+//      sccp_linedevices_t      *linedevice;
+//      sccp_line_t             *l;
+//      uint16_t                        instance;
+//      sccp_log((DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_3 "%s: Checking Cfwd / DND\n", d->id);
+//      /* walk the buttonconfig list for this device */
+//      SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+//              if(buttonconfig->type == LINE ){
+//                      memset(tmp, 0, sizeof(tmp));
+//                      /* get the line associated with this button */
+//                      l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
+//                      if (l) {
+//                              sccp_log((DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_3 "%s: Checking Cfwd for line %s\n", d->id, l->name);
+//                              /* get the linedevice and instance number */
+//                              linedevice = sccp_util_getDeviceConfiguration(d, l);
+//                              instance = sccp_device_find_index_for_line(d, l->name);
+//                              if (linedevice && instance ) {
+//                                      /* add some spaces to delete what was here before */
+//                                      /* this methode needs to be refined keeping in mind proportional fonts */
+//                                      strcat(tmp, "        ");
+//                                      /* overwrite the original line label */
+//                                      strcat(tmp, l->label);
 //
-//					/* add a status block */
-//					strcat(tmp, " [");
+//                                      /* add a status block */
+//                                      strcat(tmp, " [");
 //
-//					/* check DND status */
-//					if (d->dndFeature.enabled==TRUE) {
-//						if (d->dndFeature.status==SCCP_DNDMODE_REJECT) {
-//							strcat(tmp,"B");
-//						} else if (d->dndFeature.status==SCCP_DNDMODE_SILENT) {
-//							strcat(tmp,"S");
-//						} else if (d->dndFeature.status==SCCP_DNDMODE_USERDEFINED) {
-//							strcat(tmp,"O");
-//						} else {
-//							strcat(tmp, "_");
-//						}
-//					/* DND per line would be a nice feature as well */
-//					//} else if(l && (l->dndmode != SCCP_DNDMODE_OFF)) {
-//					}
+//                                      /* check DND status */
+//                                      if (d->dndFeature.enabled==TRUE) {
+//                                              if (d->dndFeature.status==SCCP_DNDMODE_REJECT) {
+//                                                      strcat(tmp,"B");
+//                                              } else if (d->dndFeature.status==SCCP_DNDMODE_SILENT) {
+//                                                      strcat(tmp,"S");
+//                                              } else if (d->dndFeature.status==SCCP_DNDMODE_USERDEFINED) {
+//                                                      strcat(tmp,"O");
+//                                              } else {
+//                                                      strcat(tmp, "_");
+//                                              }
+//                                      /* DND per line would be a nice feature as well */
+//                                      //} else if(l && (l->dndmode != SCCP_DNDMODE_OFF)) {
+//                                      }
 //
-//					/* check Privacy status */
-//					/* Marcello: Need some help here */
-//					if(d->privacyFeature.enabled==TRUE && isPrivicyEnabled){
-//						strcat(tmp, "P");
-//					} else {
-//						strcat(tmp, "_");
-//					}
+//                                      /* check Privacy status */
+//                                      /* Marcello: Need some help here */
+//                                      if(d->privacyFeature.enabled==TRUE && isPrivicyEnabled){
+//                                              strcat(tmp, "P");
+//                                      } else {
+//                                              strcat(tmp, "_");
+//                                      }
 //
-//					/* check cfwr status */
-//					if((linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled)) {
-//						if (linedevice->cfwdAll.enabled == SCCP_CFWD_ALL) {
-//							strcat(tmp, "A->");
-//						} else if (linedevice->cfwdBusy.enabled){
-//							strcat(tmp, "B->");
-//						}
-//						strcat(tmp, linedevice->cfwdAll.number);
-//					} else {
-//						strcat(tmp, "_");
-//					}
+//                                      /* check cfwr status */
+//                                      if((linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled)) {
+//                                              if (linedevice->cfwdAll.enabled == SCCP_CFWD_ALL) {
+//                                                      strcat(tmp, "A->");
+//                                              } else if (linedevice->cfwdBusy.enabled){
+//                                                      strcat(tmp, "B->");
+//                                              }
+//                                              strcat(tmp, linedevice->cfwdAll.number);
+//                                      } else {
+//                                              strcat(tmp, "_");
+//                                      }
 //
-//					/* end the status block */
-//					strcat(tmp, "]");
+//                                      /* end the status block */
+//                                      strcat(tmp, "]");
 //
-//					/* Send the new button infomation using buildLineStatDynamicMessage */
-//					sccp_log((DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_3 "%s: Sending LineStatDynamicMessage for line %s\n", d->id, l->name);
-//					r1=sccp_utils_buildLineStatDynamicMessage(instance,d->description,"",tmp);
-//					sccp_dev_send(d, r1);
-//				}
-//			}
-//		}
-//	}
+//                                      /* Send the new button infomation using buildLineStatDynamicMessage */
+//                                      sccp_log((DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_3 "%s: Sending LineStatDynamicMessage for line %s\n", d->id, l->name);
+//                                      r1=sccp_utils_buildLineStatDynamicMessage(instance,d->description,"",tmp);
+//                                      sccp_dev_send(d, r1);
+//                              }
+//                      }
+//              }
+//      }
 //#endif
 #endif
 
-	if (d->dndFeature.enabled && d->dndFeature.status ) {
-		if (d->dndFeature.status == SCCP_DNDMODE_REJECT )
+	if (d->dndFeature.enabled && d->dndFeature.status) {
+		if (d->dndFeature.status == SCCP_DNDMODE_REJECT)
 			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " (" SKINNY_DISP_BUSY ") <<<", 0);
 
-		else if (d->dndFeature.status == SCCP_DNDMODE_SILENT )
+		else if (d->dndFeature.status == SCCP_DNDMODE_SILENT)
 			/* no internal label for the silent string */
 			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " (Silent) <<<", 0);
 		else
@@ -1229,11 +1222,10 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 
 	/* when we are here, there's nothing to display */
 	sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
-	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);/* this is for redial softkey */
+	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);				/* this is for redial softkey */
 
-
-OUT:
-	sccp_log((DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: Finish DisplayPrompt\n", d->id);
+ OUT:
+	sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Finish DisplayPrompt\n", d->id);
 }
 
 /*!
@@ -1243,8 +1235,8 @@ OUT:
  */
 void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
 {
-	sccp_line_t * current;
-	sccp_channel_t * chan = NULL;
+	sccp_line_t *current;
+	sccp_channel_t *chan = NULL;
 
 	if (!d || !d->session)
 		return;
@@ -1256,7 +1248,7 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
 
 	// If the current line isn't in a call, and neither is the target.
 	if (SCCP_LIST_FIRST(&current->channels) == NULL && SCCP_LIST_FIRST(&wanted->channels) == NULL) {
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: All lines seem to be inactive, SEIZEing selected line %s\n", d->id, wanted->name);
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: All lines seem to be inactive, SEIZEing selected line %s\n", d->id, wanted->name);
 		sccp_dev_set_activeline(d, wanted);
 
 		chan = sccp_channel_allocate(wanted, d);
@@ -1264,9 +1256,9 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
 			ast_log(LOG_ERROR, "%s: Failed to allocate SCCP channel.\n", d->id);
 			return;
 		}
-	} else if ( d->state == SCCP_DEVICESTATE_OFFHOOK) {
+	} else if (d->state == SCCP_DEVICESTATE_OFFHOOK) {
 		// If the device is currently onhook, then we need to ...
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Selecing line %s while using line %s\n", d->id, wanted->name, current->name);
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Selecing line %s while using line %s\n", d->id, wanted->name, current->name);
 		// XXX (1) Put current call on hold
 		// (2) Stop transmitting/receiving
 	} else {
@@ -1289,43 +1281,43 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
  */
 void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
 {
-// 	sccp_moo_t * r;
-// 	uint8_t instance;
-// 	if (!d)
-// 		return;
+//      sccp_moo_t * r;
+//      uint8_t instance;
+//      if (!d)
+//              return;
 //
-// 	int retry = 0;
-// 	while(sccp_device_trylock(d)) {
-// 		retry++;
-// 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s), retry: %d\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__, retry);
-// 		usleep(100);
+//      int retry = 0;
+//      while(sccp_device_trylock(d)) {
+//              retry++;
+//              sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s), retry: %d\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__, retry);
+//              usleep(100);
 //
-// 		if(retry > 100){
-// 			sccp_device_unlock(d);
-// 			return;
-// 		}
-// 	}
+//              if(retry > 100){
+//                      sccp_device_unlock(d);
+//                      return;
+//              }
+//      }
 //
-// 	if (l) {
-// 		instance = sccp_device_find_index_for_line(d, l->name);
-// 	} else {
-// 		if (d->mwilight == hasMail) {
-// 			sccp_device_unlock(d);
-// 			return;
-// 		}
-// 		d->mwilight = hasMail;
-// 		instance = 0;
-// 	}
-// 	sccp_device_unlock(d);
+//      if (l) {
+//              instance = sccp_device_find_index_for_line(d, l->name);
+//      } else {
+//              if (d->mwilight == hasMail) {
+//                      sccp_device_unlock(d);
+//                      return;
+//              }
+//              d->mwilight = hasMail;
+//              instance = 0;
+//      }
+//      sccp_device_unlock(d);
 //
 //
-// 	REQ(r, SetLampMessage);
-// 	r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
-// 	r->msg.SetLampMessage.lel_stimulusInstance = (l ? htolel(instance) : 0);
-// 	/* when l is defined we are switching on/off the button icon */
-// 	r->msg.SetLampMessage.lel_lampMode = htolel( (hasMail) ? ( (l) ? SKINNY_LAMP_ON :  d->mwilamp) : SKINNY_LAMP_OFF);
-// 	sccp_dev_send(d, r);
-// 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_MWI))(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n",DEV_ID_LOG(d), hasMail ? "ON" : "OFF", (l ? l->name : "unknown"),(l ? instance : 0));
+//      REQ(r, SetLampMessage);
+//      r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
+//      r->msg.SetLampMessage.lel_stimulusInstance = (l ? htolel(instance) : 0);
+//      /* when l is defined we are switching on/off the button icon */
+//      r->msg.SetLampMessage.lel_lampMode = htolel( (hasMail) ? ( (l) ? SKINNY_LAMP_ON :  d->mwilamp) : SKINNY_LAMP_OFF);
+//      sccp_dev_send(d, r);
+//      sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_MWI))(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n",DEV_ID_LOG(d), hasMail ? "ON" : "OFF", (l ? l->name : "unknown"),(l ? instance : 0));
 }
 
 /*!
@@ -1355,19 +1347,19 @@ void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t inst
 	//sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send lamp mode %s(%d) on line %d\n", d->id, lampmode2str(lampMode), lampMode, instance );
 }
 
-boolean_t sccp_dev_display_cfwd(sccp_device_t* device, boolean_t force)
+boolean_t sccp_dev_display_cfwd(sccp_device_t * device, boolean_t force)
 {
 	boolean_t ret = TRUE;
-	char tmp[256] = {0};
+	char tmp[256] = { 0 };
 	size_t len = sizeof(tmp);
 	char *s = tmp;
-	sccp_line_t* line = NULL;
-	sccp_linedevices_t* ld = NULL;
+	sccp_line_t *line = NULL;
+	sccp_linedevices_t *ld = NULL;
 
 	/* List every forwarded lines on the device prompt. */
 	SCCP_LIST_TRAVERSE(&GLOB(lines), line, list) {
-		SCCP_LIST_TRAVERSE(&line->devices, ld, list){
-			if(ld->device == device) {
+		SCCP_LIST_TRAVERSE(&line->devices, ld, list) {
+			if (ld->device == device) {
 				if (s != tmp)
 					ast_build_string(&s, &len, ", ");
 				if (ld->cfwdAll.enabled) {
@@ -1403,31 +1395,31 @@ boolean_t sccp_dev_display_cfwd(sccp_device_t* device, boolean_t force)
  * \callgraph
  * \callergraph
  */
-void sccp_dev_forward_status(sccp_line_t *l, uint8_t lineInstance, sccp_device_t *device) {
-	sccp_moo_t 		*r1 = NULL;
-	sccp_linedevices_t 	*linedevice = NULL;
+void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * device)
+{
+	sccp_moo_t *r1 = NULL;
+	sccp_linedevices_t *linedevice = NULL;
 
 	if (!device || !device->session)
 		return;
 
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Send Forward Status.  Line: %s\n", device->id, l->name);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Send Forward Status.  Line: %s\n", device->id, l->name);
 	REQ(r1, ForwardStatMessage);
 	r1->msg.ForwardStatMessage.lel_lineNumber = htolel(lineInstance);
 
-
-	linedevice=sccp_util_getDeviceConfiguration(device,l);
+	linedevice = sccp_util_getDeviceConfiguration(device, l);
 
 	//TODO check for forward status during registration -MC
-	if(!linedevice){
- 		if(device->registrationState == SKINNY_DEVICE_RS_OK){
- 			ast_log(LOG_NOTICE, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
- 		}
-	}else{
-		r1->msg.ForwardStatMessage.lel_status = (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled)? htolel(1) : 0;
+	if (!linedevice) {
+		if (device->registrationState == SKINNY_DEVICE_RS_OK) {
+			ast_log(LOG_NOTICE, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
+		}
+	} else {
+		r1->msg.ForwardStatMessage.lel_status = (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled) ? htolel(1) : 0;
 		if (linedevice->cfwdAll.enabled) {
 			r1->msg.ForwardStatMessage.lel_cfwdallstatus = htolel(1);
 			sccp_copy_string(r1->msg.ForwardStatMessage.cfwdallnumber, linedevice->cfwdAll.number, sizeof(r1->msg.ForwardStatMessage.cfwdallnumber));
-		}else if (linedevice->cfwdBusy.enabled) {
+		} else if (linedevice->cfwdBusy.enabled) {
 			r1->msg.ForwardStatMessage.lel_cfwdbusystatus = htolel(1);
 			sccp_copy_string(r1->msg.ForwardStatMessage.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(r1->msg.ForwardStatMessage.cfwdbusynumber));
 		}
@@ -1436,18 +1428,17 @@ void sccp_dev_forward_status(sccp_line_t *l, uint8_t lineInstance, sccp_device_t
 	}
 	sccp_dev_send(device, r1);
 
-
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Sent Forward Status.  Line: %s\n", device->id, l->name);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Sent Forward Status.  Line: %s\n", device->id, l->name);
 
 	// \todo What to do with this lineStatusChanges in sccp_dev_forward_status
 	/*
-	if (l->cfwd_type == SCCP_CFWD_ALL){
-		//sccp_hint_notify_linestate(l,device, SCCP_DEVICESTATE_ONHOOK, SCCP_DEVICESTATE_FWDALL);
-		sccp_hint_lineStatusChanged(l, device, NULL, SCCP_DEVICESTATE_ONHOOK, SCCP_DEVICESTATE_FWDALL);
-	}else{
-		sccp_hint_lineStatusChanged(l, device, NULL, SCCP_DEVICESTATE_FWDALL, SCCP_DEVICESTATE_ONHOOK);
-	}
-	*/
+	   if (l->cfwd_type == SCCP_CFWD_ALL){
+	   //sccp_hint_notify_linestate(l,device, SCCP_DEVICESTATE_ONHOOK, SCCP_DEVICESTATE_FWDALL);
+	   sccp_hint_lineStatusChanged(l, device, NULL, SCCP_DEVICESTATE_ONHOOK, SCCP_DEVICESTATE_FWDALL);
+	   }else{
+	   sccp_hint_lineStatusChanged(l, device, NULL, SCCP_DEVICESTATE_FWDALL, SCCP_DEVICESTATE_ONHOOK);
+	   }
+	 */
 }
 
 /*!
@@ -1457,7 +1448,7 @@ void sccp_dev_forward_status(sccp_line_t *l, uint8_t lineInstance, sccp_device_t
  */
 int sccp_device_check_ringback(sccp_device_t * d)
 {
-	sccp_channel_t * c;
+	sccp_channel_t *c;
 
 	sccp_device_lock(d);
 	d->needcheckringback = 0;
@@ -1486,14 +1477,14 @@ int sccp_device_check_ringback(sccp_device_t * d)
  * \callgraph
  * \callergraph
  */
-void * sccp_dev_postregistration(void *data)
+void *sccp_dev_postregistration(void *data)
 {
-	sccp_device_t * d = data;
+	sccp_device_t *d = data;
 
 	if (!d)
 		return NULL;
 
-	sccp_log(2)(VERBOSE_PREFIX_3 "%s: Device registered; performing post registration tasks...\n", d->id);
+	sccp_log(2) (VERBOSE_PREFIX_3 "%s: Device registered; performing post registration tasks...\n", d->id);
 
 	/* turn off the device MWI light. We need to force it off on some phone (7910 for example) */
 	sccp_dev_set_mwi(d, NULL, 0);
@@ -1501,16 +1492,16 @@ void * sccp_dev_postregistration(void *data)
 	sccp_dev_check_displayprompt(d);
 
 	// Post event to interested listeners (hints, mwi) that device was registered.
-	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
+	sccp_event_t *event = ast_malloc(sizeof(sccp_event_t));
 	memset(event, 0, sizeof(sccp_event_t));
 
-	event->type=SCCP_EVENT_DEVICEREGISTERED;
+	event->type = SCCP_EVENT_DEVICEREGISTERED;
 	event->event.deviceRegistered.device = d;
-	sccp_event_fire( (const sccp_event_t **)&event);
+	sccp_event_fire((const sccp_event_t **)&event);
 
 	sccp_mwi_check(d);
 
-	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
 	return NULL;
 }
 
@@ -1529,11 +1520,12 @@ void * sccp_dev_postregistration(void *data)
  * \callgraph
  * \callergraph
  */
-void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cleanupTime) {
-	sccp_buttonconfig_t	*config = NULL;
-	sccp_selectedchannel_t 	*selectedChannel = NULL;
-	sccp_line_t		*line =NULL;
-	sccp_channel_t		*channel=NULL;
+void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cleanupTime)
+{
+	sccp_buttonconfig_t *config = NULL;
+	sccp_selectedchannel_t *selectedChannel = NULL;
+	sccp_line_t *line = NULL;
+	sccp_channel_t *channel = NULL;
 #ifdef CS_DEVSTATE_FEATURE
 	sccp_devstate_specifier_t *devstateSpecifier;
 #endif
@@ -1542,34 +1534,34 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	if (!d)
 		return;
 
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_1 "SCCP: Clean Device %s\n", d->id);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "SCCP: Clean Device %s\n", d->id);
 
 	sccp_device_lock(d);
-	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE); 	/* set correct register state */
+	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);			/* set correct register state */
 
-	d->mwilight = 0; 					/* reset mwi light*/
+	d->mwilight = 0;							/* reset mwi light */
 	d->linesRegistered = FALSE;
 	sprintf(family, "SCCP/%s", d->id);
 	ast_db_del(family, "lastDialedNumber");
-	if(!ast_strlen_zero(d->lastNumber))
+	if (!ast_strlen_zero(d->lastNumber))
 		ast_db_put(family, "lastDialedNumber", d->lastNumber);
 
-        /* unsubscribe hints */                                 /* prevent loop:sccp_dev_clean =>
-                                                                                sccp_line_removeDevice =>
-                                                                                sccp_event_fire =>
-                                                                                sccp_hint_eventListener =>
-                                                                                sccp_hint_lineStatusChanged =>
-                                                                                sccp_hint_hintStatusUpdate =>
-                                                                                sccp_hint_notifySubscribers =>
-                                                                                sccp_dev_speed_find_byindex */
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "SCCP: Unregister Device %s\n", d->id);
-	sccp_event_t *event =ast_malloc(sizeof(sccp_event_t));
+	/* unsubscribe hints *//* prevent loop:sccp_dev_clean =>
+	   sccp_line_removeDevice =>
+	   sccp_event_fire =>
+	   sccp_hint_eventListener =>
+	   sccp_hint_lineStatusChanged =>
+	   sccp_hint_hintStatusUpdate =>
+	   sccp_hint_notifySubscribers =>
+	   sccp_dev_speed_find_byindex */
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Unregister Device %s\n", d->id);
+	sccp_event_t *event = ast_malloc(sizeof(sccp_event_t));
 	memset(event, 0, sizeof(sccp_event_t));
-	event->type=SCCP_EVENT_DEVICEUNREGISTERED;
+	event->type = SCCP_EVENT_DEVICEUNREGISTERED;
 	event->event.deviceRegistered.device = d;
-	sccp_event_fire((const sccp_event_t**)&event);
+	sccp_event_fire((const sccp_event_t **)&event);
 
-	if(remove_from_global) {
+	if (remove_from_global) {
 		SCCP_LIST_LOCK(&GLOB(devices));
 		SCCP_LIST_REMOVE(&GLOB(devices), d, list);
 		SCCP_LIST_UNLOCK(&GLOB(devices));
@@ -1578,35 +1570,35 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	/* hang up open channels and remove device from line */
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		if(config->type == LINE ){
+		if (config->type == LINE) {
 			line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
-			if(!line)
+			if (!line)
 				continue;
 
 			SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
-				if(channel->device == d){
-					sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "SCCP: Hangup open channel on line %s device %s\n", line->name, d->id);
+				if (channel->device == d) {
+					sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channel on line %s device %s\n", line->name, d->id);
 					sccp_channel_endcall(channel);
 				}
 			}
 
 			/* remove devices from line */
-			sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "SCCP: Remove Line %s from device %s\n", line->name, d->id);
+			sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Remove Line %s from device %s\n", line->name, d->id);
 			sccp_line_removeDevice(line, d);
 		}
-		config->instance = 0; /* reset button configuration to rebuild template on register */
+		config->instance = 0;						/* reset button configuration to rebuild template on register */
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 	d->linesRegistered = FALSE;
 
 	/* removing addons */
-	if(remove_from_global){
+	if (remove_from_global) {
 		sccp_addons_clear(d);
 	}
 
 	/* removing selected channels */
 	SCCP_LIST_LOCK(&d->selectedChannels);
-	while((selectedChannel = SCCP_LIST_REMOVE_HEAD(&d->selectedChannels, list))) {
+	while ((selectedChannel = SCCP_LIST_REMOVE_HEAD(&d->selectedChannels, list))) {
 		ast_free(selectedChannel);
 	}
 	SCCP_LIST_UNLOCK(&d->selectedChannels);
@@ -1618,39 +1610,37 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	}
 
 	d->session = NULL;
-	if(d->buttonTemplate){
+	if (d->buttonTemplate) {
 		ast_free(d->buttonTemplate);
 		d->buttonTemplate = NULL;
 	}
-
 #ifdef CS_DEVSTATE_FEATURE
-	/* Unregister event subscriptions originating from devstate feature*/
+	/* Unregister event subscriptions originating from devstate feature */
 	SCCP_LIST_LOCK(&d->devstateSpecifiers);
 	SCCP_LIST_TRAVERSE(&d->devstateSpecifiers, devstateSpecifier, list) {
 		ast_event_unsubscribe(devstateSpecifier->sub);
-		sccp_log(DEBUGCAT_FEATURE_BUTTON)(VERBOSE_PREFIX_1 "%s: Removed Devicestate Subscription: %s\n", d->id, devstateSpecifier->specifier);
+		sccp_log(DEBUGCAT_FEATURE_BUTTON) (VERBOSE_PREFIX_1 "%s: Removed Devicestate Subscription: %s\n", d->id, devstateSpecifier->specifier);
 	}
 	SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
 #endif
 
 	sccp_device_unlock(d);
 
-	if(remove_from_global){
-		if(cleanupTime > 0){
-			sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2  "%s: Device planned to be free'd in %d secs.\n", d->id, cleanupTime);
-			if( (d->scheduleTasks.free = sccp_sched_add(sched, cleanupTime * 1000, sccp_device_destroy, d)) < 0 ) {
+	if (remove_from_global) {
+		if (cleanupTime > 0) {
+			sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "%s: Device planned to be free'd in %d secs.\n", d->id, cleanupTime);
+			if ((d->scheduleTasks.free = sccp_sched_add(sched, cleanupTime * 1000, sccp_device_destroy, d)) < 0) {
 				sleep(cleanupTime);
 				sccp_device_destroy(d);
-				d=NULL;
+				d = NULL;
 			}
-		}else{
+		} else {
 			sccp_device_destroy(d);
-			d=NULL;
+			d = NULL;
 		}
 		return;
 	}
 }
-
 
 /*!
  * \brief Free a Device as scheduled command
@@ -1660,18 +1650,19 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
  * \callgraph
  * \callergraph
  */
-int sccp_device_destroy(const void *ptr){
-	sccp_device_t 		*d = (sccp_device_t *)ptr;
-	sccp_buttonconfig_t	*config = NULL;
-	sccp_hostname_t 	*permithost = NULL;
+int sccp_device_destroy(const void *ptr)
+{
+	sccp_device_t *d = (sccp_device_t *) ptr;
+	sccp_buttonconfig_t *config = NULL;
+	sccp_hostname_t *permithost = NULL;
 
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1  "%s: Destroy Device\n", d->id);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Destroy Device\n", d->id);
 	sccp_device_lock(d);
 
 	/* remove button config */
-	/* only generated on read config, so do not remove on reset/restart*/
+	/* only generated on read config, so do not remove on reset/restart */
 	SCCP_LIST_LOCK(&d->buttonconfig);
-	while((config = SCCP_LIST_REMOVE_HEAD(&d->buttonconfig, list))) {
+	while ((config = SCCP_LIST_REMOVE_HEAD(&d->buttonconfig, list))) {
 		ast_free(config);
 		config = NULL;
 	}
@@ -1680,7 +1671,7 @@ int sccp_device_destroy(const void *ptr){
 
 	/* removing permithosts */
 	SCCP_LIST_LOCK(&d->permithosts);
-	while((permithost = SCCP_LIST_REMOVE_HEAD(&d->permithosts, list))) {
+	while ((permithost = SCCP_LIST_REMOVE_HEAD(&d->permithosts, list))) {
 		ast_free(permithost);
 	}
 	SCCP_LIST_UNLOCK(&d->permithosts);
@@ -1690,7 +1681,7 @@ int sccp_device_destroy(const void *ptr){
 	/* removing devstate_specifier */
 	sccp_devstate_specifier_t *devstateSpecifier;
 	SCCP_LIST_LOCK(&d->devstateSpecifiers);
-	while((devstateSpecifier = SCCP_LIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
+	while ((devstateSpecifier = SCCP_LIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
 		ast_free(devstateSpecifier);
 	}
 	SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
@@ -1698,13 +1689,13 @@ int sccp_device_destroy(const void *ptr){
 
 	/* destroy selected channels list */
 	SCCP_LIST_HEAD_DESTROY(&d->selectedChannels);
-	if (d->ha){
+	if (d->ha) {
 		ast_free_ha(d->ha);
 	}
 
 	d->ha = NULL;
 
-	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Device Destroyed\n", d->id);
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Device Destroyed\n", d->id);
 
 	sccp_device_unlock(d);
 	ast_mutex_destroy(&d->lock);
@@ -1718,9 +1709,10 @@ int sccp_device_destroy(const void *ptr){
  * \param device SCCP Device
  * \return result as boolean_t
  */
-boolean_t sccp_device_isVideoSupported(const sccp_device_t *device){
+boolean_t sccp_device_isVideoSupported(const sccp_device_t * device)
+{
 #ifdef CS_SCCP_VIDEO
-	if(device->capability & AST_FORMAT_VIDEO_MASK)
+	if (device->capability & AST_FORMAT_VIDEO_MASK)
 		return TRUE;
 #endif
 	return FALSE;
@@ -1732,23 +1724,23 @@ boolean_t sccp_device_isVideoSupported(const sccp_device_t *device){
  * \param instance Instance as uint8_t
  * \return SCCP Service
  */
-sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t instance)
+sccp_service_t *sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t instance)
 {
-	sccp_service_t 		* service = NULL;
-	sccp_buttonconfig_t	* config=NULL;
+	sccp_service_t *service = NULL;
+	sccp_buttonconfig_t *config = NULL;
 
 	if (!d || !d->session)
 		return NULL;
 
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: searching for service with instance %d\n", d->id, instance);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: searching for service with instance %d\n", d->id, instance);
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		sccp_log(((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE) + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: instance: %d buttontype: %d\n", d->id, config->instance, config->type);
+		sccp_log(((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE) + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: instance: %d buttontype: %d\n", d->id, config->instance, config->type);
 
-		if(config->type == SERVICE && config->instance == instance){
+		if (config->type == SERVICE && config->instance == instance) {
 			service = ast_malloc(sizeof(sccp_service_t));
 			memset(service, 0, sizeof(sccp_service_t));
-			sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_3 "%s: found service: %s\n", d->id, config->button.service.label);
+			sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: found service: %s\n", d->id, config->button.service.label);
 
 			sccp_copy_string(service->label, config->button.service.label, sizeof(service->label));
 			sccp_copy_string(service->url, config->button.service.url, sizeof(service->url));
@@ -1769,22 +1761,22 @@ sccp_service_t * sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t in
  */
 uint8_t sccp_device_find_index_for_line(const sccp_device_t * d, const char *lineName)
 {
-	sccp_buttonconfig_t	*config;
+	sccp_buttonconfig_t *config;
 
-	if(!d || !lineName)
+	if (!d || !lineName)
 		return -1;
 
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: sccp_device_find_index_for_line searching for %s\n", DEV_ID_LOG(d), lineName);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: sccp_device_find_index_for_line searching for %s\n", DEV_ID_LOG(d), lineName);
 	/* device is already locked by parent function */
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		if(config->type == LINE && (config->button.line.name) && !strcasecmp(config->button.line.name, lineName)){
-			sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: sccp_device_find_index_for_line found: %d\n", DEV_ID_LOG(d), config->instance);
+		if (config->type == LINE && (config->button.line.name) && !strcasecmp(config->button.line.name, lineName)) {
+			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: sccp_device_find_index_for_line found: %d\n", DEV_ID_LOG(d), config->instance);
 			break;
 		}
 	}
 
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: sccp_device_find_index_for_line return: %d\n", DEV_ID_LOG(d), config? config->instance: -2);
-	return (config)? config->instance : -2;
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: sccp_device_find_index_for_line return: %d\n", DEV_ID_LOG(d), config ? config->instance : -2);
+	return (config) ? config->instance : -2;
 }
 
 /*!
@@ -1798,21 +1790,21 @@ uint8_t sccp_device_find_index_for_line(const sccp_device_t * d, const char *lin
  * \callgraph
  * \callergraph
  */
-void sccp_device_removeLine(sccp_device_t *device, sccp_line_t * line)
+void sccp_device_removeLine(sccp_device_t * device, sccp_line_t * line)
 {
-//	sccp_buttonconfig_t	*config;
+//      sccp_buttonconfig_t     *config;
 //
 //
-//	SCCP_LIST_LOCK(&device->buttonconfig);
-//	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
-//		if(config->type == LINE && (config->button.line.name) && line && !strcasecmp(config->button.line.name, line->name)){
-//			config->button.line.reference = NULL;
+//      SCCP_LIST_LOCK(&device->buttonconfig);
+//      SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+//              if(config->type == LINE && (config->button.line.name) && line && !strcasecmp(config->button.line.name, line->name)){
+//                      config->button.line.reference = NULL;
 //
-//			// \todo implement remove
-//			//SCCP_LIST_REMOVE_CURRENT(config);
-//		}
-//	}
-//	SCCP_LIST_UNLOCK(&device->buttonconfig);
+//                      // \todo implement remove
+//                      //SCCP_LIST_REMOVE_CURRENT(config);
+//              }
+//      }
+//      SCCP_LIST_UNLOCK(&device->buttonconfig);
 
 }
 
@@ -1824,10 +1816,9 @@ void sccp_device_removeLine(sccp_device_t *device, sccp_line_t * line)
  */
 int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type)
 {
-	sccp_moo_t * r;
+	sccp_moo_t *r;
 
-
-	if(!d)
+	if (!d)
 		return 0;
 
 	REQ(r, Reset);
@@ -1850,7 +1841,7 @@ int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type)
  */
 void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, uint8_t state, skinny_callPriority_t priority, skinny_callinfo_visibility_t visibility)
 {
-	sccp_moo_t * r;
+	sccp_moo_t *r;
 
 	if (!d)
 		return;
@@ -1860,38 +1851,37 @@ void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32
 	r->msg.CallStateMessage.lel_callReference = htolel(callid);
 	r->msg.CallStateMessage.lel_visibility = htolel(visibility);
 	r->msg.CallStateMessage.lel_priority = htolel(priority);
-	/*r->msg.CallStateMessage.lel_unknown3 = htolel(2);*/
+	/*r->msg.CallStateMessage.lel_unknown3 = htolel(2); */
 	sccp_dev_send(d, r);
-	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send and Set the call state %s(%d) on call %d\n", d->id, sccp_callstate2str(state), state, callid);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send and Set the call state %s(%d) on call %d\n", d->id, sccp_callstate2str(state), state, callid);
 }
-
 
 /*!
  * \brief Get the number of channels that the device owns
  * \param device sccp device
  * \note device should be locked by parent functions
  */
-uint8_t sccp_device_numberOfChannels(const sccp_device_t *device){
-	sccp_buttonconfig_t 	*config;
-	sccp_channel_t 		*c;
-	sccp_line_t 		*l;
-	uint8_t			numberOfChannels = 0;
+uint8_t sccp_device_numberOfChannels(const sccp_device_t * device)
+{
+	sccp_buttonconfig_t *config;
+	sccp_channel_t *c;
+	sccp_line_t *l;
+	uint8_t numberOfChannels = 0;
 
-	if(!device){
-		sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "device is null\n");
+	if (!device) {
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "device is null\n");
 		return 0;
 	}
 
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
-		if(config->type == LINE){
+		if (config->type == LINE) {
 			l = sccp_line_find_byname_wo(config->button.line.name, FALSE);
-			if(!l)
+			if (!l)
 				continue;
-
 
 			SCCP_LIST_LOCK(&l->channels);
 			SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-				if(c->device == device)
+				if (c->device == device)
 					numberOfChannels++;
 			}
 			SCCP_LIST_UNLOCK(&l->channels);
@@ -1910,11 +1900,11 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t *device){
  * \callgraph
  * \callergraph
  */
-sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
+sccp_device_t *sccp_clone_device(sccp_device_t * orig_device)
 {
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "%s: Creating Clone (from %p)\n", orig_device->id, (void *)orig_device);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "%s: Creating Clone (from %p)\n", orig_device->id, (void *)orig_device);
 
-	sccp_device_t* new_device = ast_calloc(1, sizeof(sccp_device_t));
+	sccp_device_t *new_device = ast_calloc(1, sizeof(sccp_device_t));
 
 	sccp_device_lock(orig_device);
 	memcpy(new_device, orig_device, sizeof(*new_device));
@@ -1924,20 +1914,19 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
 	new_device->session = NULL;
 
 	// ast_ha ha
-	struct ast_ha * hal;				// not sure this construction will help
-	hal=ast_duplicate_ha_list(orig_device->ha);
-	new_device->ha=hal;
+	struct ast_ha *hal;							// not sure this construction will help
+	hal = ast_duplicate_ha_list(orig_device->ha);
+	new_device->ha = hal;
 
 	// ast_variable variables
 	struct ast_variable *v;
-	new_device->variables=NULL;
-	for (v = orig_device->variables; v; v = v->next)
-	{
-#if ASTERISK_VERSION_NUM >= 10600
+	new_device->variables = NULL;
+	for (v = orig_device->variables; v; v = v->next) {
+#    if ASTERISK_VERSION_NUM >= 10600
 		struct ast_variable *new_v = ast_variable_new(v->name, v->value, v->file);
-#else
+#    else
 		struct ast_variable *new_v = ast_variable_new(v->name, v->value);
-#endif
+#    endif
 		new_v->next = new_device->variables;
 		new_device->variables = new_v;
 	}
@@ -1945,8 +1934,8 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
 	// sccp_line_t     *currentLine
 	sccp_buttonconfig_t *orig_buttonconfig = NULL;
 	SCCP_LIST_TRAVERSE(&orig_device->buttonconfig, orig_buttonconfig, list) {
-		if(orig_buttonconfig->type == LINE ){
-			new_device->currentLine = sccp_line_find_byid(new_device,orig_buttonconfig->instance);
+		if (orig_buttonconfig->type == LINE) {
+			new_device->currentLine = sccp_line_find_byid(new_device, orig_buttonconfig->instance);
 			if (new_device->currentLine) {
 				break;
 			}
@@ -1965,7 +1954,7 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
 
 	// softKeyConfiguration
 	new_device->softKeyConfiguration = orig_device->softKeyConfiguration;
-	softkey_modes 	*skm = orig_device->softKeyConfiguration.modes;
+	softkey_modes *skm = orig_device->softKeyConfiguration.modes;
 	new_device->softKeyConfiguration.modes = skm;
 	new_device->softKeyConfiguration.size = orig_device->softKeyConfiguration.size;
 
@@ -1980,26 +1969,26 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
 #endif
 */
 
-	// btnlist		*buttonTemplate
-//	new_device->buttonTemplate = ast_calloc(1,sizeof(btnlist));
-//	memcpy(new_device->btnTemplate,orig_device->btnTemplate,sizeof(btnlist));
+	// btnlist              *buttonTemplate
+//      new_device->buttonTemplate = ast_calloc(1,sizeof(btnlist));
+//      memcpy(new_device->btnTemplate,orig_device->btnTemplate,sizeof(btnlist));
 
-	// char 		*pickupcontext
+	// char                 *pickupcontext
 	if (orig_device->pickupcontext)
 		new_device->pickupcontext = ast_strdup(orig_device->pickupcontext);
 
-	// char 		*phonemessage
+	// char                 *phonemessage
 	if (orig_device->phonemessage)
 		new_device->phonemessage = ast_strdup(orig_device->phonemessage);
 
 	// copy list-items over
-	sccp_duplicate_device_buttonconfig_list(new_device,orig_device);
-	sccp_duplicate_device_hostname_list(new_device,orig_device);
-	sccp_duplicate_device_selectedchannel_list(new_device,orig_device);
-	sccp_duplicate_device_addon_list(new_device,orig_device);
+	sccp_duplicate_device_buttonconfig_list(new_device, orig_device);
+	sccp_duplicate_device_hostname_list(new_device, orig_device);
+	sccp_duplicate_device_selectedchannel_list(new_device, orig_device);
+	sccp_duplicate_device_addon_list(new_device, orig_device);
 
 	sccp_device_unlock(orig_device);
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "%s: Clone Created (%p)\n", new_device->id, (void *)new_device);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "%s: Clone Created (%p)\n", new_device->id, (void *)new_device);
 	return new_device;
 }
 
@@ -2008,14 +1997,15 @@ sccp_device_t * sccp_clone_device(sccp_device_t *orig_device)
  * \param new_device original sccp device to which the list is copied
  * \param orig_device original sccp device from which to copy the list
  */
-void sccp_duplicate_device_buttonconfig_list(sccp_device_t *new_device, sccp_device_t *orig_device) {
-	sccp_buttonconfig_t *orig_buttonconfig=NULL;
-	sccp_buttonconfig_t *new_buttonconfig=NULL;
+void sccp_duplicate_device_buttonconfig_list(sccp_device_t * new_device, sccp_device_t * orig_device)
+{
+	sccp_buttonconfig_t *orig_buttonconfig = NULL;
+	sccp_buttonconfig_t *new_buttonconfig = NULL;
 
 	SCCP_LIST_HEAD_INIT(&new_device->buttonconfig);
 	SCCP_LIST_LOCK(&orig_device->buttonconfig);
-	SCCP_LIST_TRAVERSE(&orig_device->buttonconfig, orig_buttonconfig, list){
-		new_buttonconfig=ast_calloc(1,sizeof(sccp_buttonconfig_t));
+	SCCP_LIST_TRAVERSE(&orig_device->buttonconfig, orig_buttonconfig, list) {
+		new_buttonconfig = ast_calloc(1, sizeof(sccp_buttonconfig_t));
 		memcpy(new_buttonconfig, orig_buttonconfig, sizeof(*new_buttonconfig));
 		SCCP_LIST_INSERT_TAIL(&new_device->buttonconfig, new_buttonconfig, list);
 	}
@@ -2027,14 +2017,15 @@ void sccp_duplicate_device_buttonconfig_list(sccp_device_t *new_device, sccp_dev
  * \param new_device original sccp device to which the list is copied
  * \param orig_device original sccp device from which to copy the list
  */
-void sccp_duplicate_device_hostname_list(sccp_device_t *new_device,sccp_device_t *orig_device) {
-	sccp_hostname_t *orig_permithost=NULL;
-	sccp_hostname_t *new_permithost=NULL;
+void sccp_duplicate_device_hostname_list(sccp_device_t * new_device, sccp_device_t * orig_device)
+{
+	sccp_hostname_t *orig_permithost = NULL;
+	sccp_hostname_t *new_permithost = NULL;
 
 	SCCP_LIST_HEAD_INIT(&new_device->permithosts);
 	SCCP_LIST_LOCK(&orig_device->permithosts);
-	SCCP_LIST_TRAVERSE(&orig_device->permithosts, orig_permithost, list){
-		new_permithost=ast_calloc(1,sizeof(sccp_hostname_t));
+	SCCP_LIST_TRAVERSE(&orig_device->permithosts, orig_permithost, list) {
+		new_permithost = ast_calloc(1, sizeof(sccp_hostname_t));
 		memcpy(new_permithost, orig_permithost, sizeof(*new_permithost));
 		SCCP_LIST_INSERT_TAIL(&new_device->permithosts, new_permithost, list);
 	}
@@ -2046,34 +2037,35 @@ void sccp_duplicate_device_hostname_list(sccp_device_t *new_device,sccp_device_t
  * \param new_device original sccp device to which the list is copied
  * \param orig_device original sccp device from which to copy the list
  */
-void sccp_duplicate_device_selectedchannel_list(sccp_device_t *new_device,sccp_device_t *orig_device) {
-	sccp_selectedchannel_t *orig_selectedChannel=NULL;
-	sccp_selectedchannel_t *new_selectedChannel=NULL;
+void sccp_duplicate_device_selectedchannel_list(sccp_device_t * new_device, sccp_device_t * orig_device)
+{
+	sccp_selectedchannel_t *orig_selectedChannel = NULL;
+	sccp_selectedchannel_t *new_selectedChannel = NULL;
 
 	SCCP_LIST_HEAD_INIT(&new_device->selectedChannels);
 	SCCP_LIST_LOCK(&orig_device->selectedChannels);
-	SCCP_LIST_TRAVERSE(&orig_device->selectedChannels, orig_selectedChannel, list){
-		new_selectedChannel=ast_calloc(1,sizeof(sccp_selectedchannel_t));
+	SCCP_LIST_TRAVERSE(&orig_device->selectedChannels, orig_selectedChannel, list) {
+		new_selectedChannel = ast_calloc(1, sizeof(sccp_selectedchannel_t));
 		memcpy(new_selectedChannel, orig_selectedChannel, sizeof(*new_selectedChannel));
 		SCCP_LIST_INSERT_TAIL(&new_device->selectedChannels, new_selectedChannel, list);
 	}
 	SCCP_LIST_UNLOCK(&orig_device->selectedChannels);
 }
 
-
 /*!
  * Copy the list of addons from another device
  * \param new_device new sccp device to which the list is copied
  * \param orig_device original sccp device from which to copy the list
  */
-void sccp_duplicate_device_addon_list(sccp_device_t *new_device, sccp_device_t *orig_device) {
-	sccp_addon_t *orig_addon=NULL;
-	sccp_addon_t *new_addon=NULL;
+void sccp_duplicate_device_addon_list(sccp_device_t * new_device, sccp_device_t * orig_device)
+{
+	sccp_addon_t *orig_addon = NULL;
+	sccp_addon_t *new_addon = NULL;
 
 	SCCP_LIST_HEAD_INIT(&new_device->addons);
 	SCCP_LIST_LOCK(&orig_device->addons);
-	SCCP_LIST_TRAVERSE(&orig_device->addons, orig_addon, list){
-		new_addon=ast_calloc(1,sizeof(sccp_addon_t));
+	SCCP_LIST_TRAVERSE(&orig_device->addons, orig_addon, list) {
+		new_addon = ast_calloc(1, sizeof(sccp_addon_t));
 		memcpy(new_addon, orig_addon, sizeof(*new_addon));
 		SCCP_LIST_INSERT_TAIL(&new_device->addons, new_addon, list);
 	}
@@ -2088,38 +2080,30 @@ void sccp_duplicate_device_addon_list(sccp_device_t *new_device, sccp_device_t *
  * \callgraph
  * \callergraph
  */
-sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b){
-	sccp_diff_t res=NO_CHANGES;
+sccp_diff_t sccp_device_changed(sccp_device_t * device_a, sccp_device_t * device_b)
+{
+	sccp_diff_t res = NO_CHANGES;
 
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1 "(sccp_device_changed) Checking device_a: %s against device_b: %s\n", device_a->id, device_b->id);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "(sccp_device_changed) Checking device_a: %s against device_b: %s\n", device_a->id, device_b->id);
 	if (									// check changes requiring reset
-	    (strcmp(device_a->description, device_b->description)) ||
-	    (strcmp(device_a->imageversion, device_b->imageversion)) ||
-	    (strcmp(device_a->softkeyDefinition, device_b->softkeyDefinition)) ||
-	    (device_a->tz_offset != device_b->tz_offset) ||
-	    (device_a->earlyrtp != device_b->earlyrtp) ||
-	    (device_a->nat != device_b->nat) ||
-	    (device_a->directrtp != device_b->directrtp) ||
-	    (device_a->cfwdall != device_b->cfwdall) ||
-	    (device_a->cfwdbusy != device_b->cfwdbusy) ||
-	    (device_a->cfwdnoanswer != device_b->cfwdnoanswer) ||
-	    (device_a->trustphoneip != device_b->trustphoneip) ) {
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "Changes need reset\n");
+		   (strcmp(device_a->description, device_b->description)) ||
+		   (strcmp(device_a->imageversion, device_b->imageversion)) ||
+		   (strcmp(device_a->softkeyDefinition, device_b->softkeyDefinition)) || (device_a->tz_offset != device_b->tz_offset) || (device_a->earlyrtp != device_b->earlyrtp) || (device_a->nat != device_b->nat) || (device_a->directrtp != device_b->directrtp) || (device_a->cfwdall != device_b->cfwdall) || (device_a->cfwdbusy != device_b->cfwdbusy) || (device_a->cfwdnoanswer != device_b->cfwdnoanswer) || (device_a->trustphoneip != device_b->trustphoneip)) {
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Changes need reset\n");
 		return CHANGES_NEED_RESET;
 	}
-
 	// changes in buttonconfig
 	SCCP_LIST_LOCK(&device_a->buttonconfig);
 	SCCP_LIST_LOCK(&device_b->buttonconfig);
 	if (device_a->buttonconfig.size != device_b->buttonconfig.size) {
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "buttonconfig: Changes need reset\n");
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "buttonconfig: Changes need reset\n");
 		res = CHANGES_NEED_RESET;
 	} else {
 		sccp_buttonconfig_t *bc_a = SCCP_LIST_FIRST(&device_a->buttonconfig);
 		sccp_buttonconfig_t *bc_b = SCCP_LIST_FIRST(&device_b->buttonconfig);
 		while (bc_a && bc_b) {
 			if ((res = sccp_buttonconfig_changed(bc_a, bc_b)) != NO_CHANGES) {
-				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "buttonconfig: Changes need reset\n");
+				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "buttonconfig: Changes need reset\n");
 				break;
 			}
 			bc_a = SCCP_LIST_NEXT(bc_a, list);
@@ -2136,14 +2120,14 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	SCCP_LIST_LOCK(&device_a->permithosts);
 	SCCP_LIST_LOCK(&device_b->permithosts);
 	if (device_a->permithosts.size != device_b->permithosts.size) {
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "permithosts: Changes need reset\n");
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "permithosts: Changes need reset\n");
 		res = CHANGES_NEED_RESET;
 	} else {
 		sccp_hostname_t *ph_a = SCCP_LIST_FIRST(&device_a->permithosts);
 		sccp_hostname_t *ph_b = SCCP_LIST_FIRST(&device_b->permithosts);
 		while (ph_a && ph_b) {
 			if (strcmp(ph_a->name, ph_b->name)) {
-				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "permithosts: Changes need reset\n");
+				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "permithosts: Changes need reset\n");
 				res = CHANGES_NEED_RESET;
 				break;
 			}
@@ -2161,14 +2145,14 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	SCCP_LIST_LOCK(&device_a->addons);
 	SCCP_LIST_LOCK(&device_b->addons);
 	if (device_a->addons.size != device_b->addons.size) {
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "addons: Changes need reset: size_a %d, size_b %d\n", device_a->addons.size, device_b->addons.size);
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "addons: Changes need reset: size_a %d, size_b %d\n", device_a->addons.size, device_b->addons.size);
 		res = CHANGES_NEED_RESET;
 	} else {
 		sccp_addon_t *a_a = SCCP_LIST_FIRST(&device_a->addons);
 		sccp_addon_t *a_b = SCCP_LIST_FIRST(&device_b->addons);
 		while (a_a && a_b) {
 			if (a_a->type != a_b->type || strcmp(a_a->device->id, a_b->device->id)) {
-				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "addons: Changes need reset: type_a %d, type_b %d\n", a_a->type, a_b->type);
+				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "addons: Changes need reset: type_a %d, type_b %d\n", a_a->type, a_b->type);
 				res = CHANGES_NEED_RESET;
 				break;
 			}
@@ -2181,39 +2165,30 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 	if (res == CHANGES_NEED_RESET)
 		return res;
 
-	if ( 								// check minor changes
-	    (strcmp(device_a->meetmeopts, device_b->meetmeopts)) ||
-	    (device_a->dtmfmode != device_b->dtmfmode) ||
-	    (device_a->mwilamp != device_b->mwilamp) ||
-	    (device_a->privacyFeature.status != device_b->privacyFeature.status) ||
-	    (device_a->dndFeature.enabled != device_b->dndFeature.enabled) ||
-	    (device_a->overlapFeature.enabled != device_b->overlapFeature.enabled) ||
-	    (device_a->privacyFeature.enabled != device_b->privacyFeature.enabled) ||
-	    (device_a->transfer != device_b->transfer) ||
-	    (device_a->park != device_b->park)  ||
-	    (device_a->meetme != device_b->meetme) ||
-#ifdef CS_ADV_FEATURES
-	    (device_a->useRedialMenu != device_b->useRedialMenu) ||
-#endif /* CS_ADV_FEATURES */
-	    (device_a->mwioncall != device_b->mwioncall) ) {
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "Minor changes\n");
+	if (									// check minor changes
+		   (strcmp(device_a->meetmeopts, device_b->meetmeopts)) ||
+		   (device_a->dtmfmode != device_b->dtmfmode) ||
+		   (device_a->mwilamp != device_b->mwilamp) || (device_a->privacyFeature.status != device_b->privacyFeature.status) || (device_a->dndFeature.enabled != device_b->dndFeature.enabled) || (device_a->overlapFeature.enabled != device_b->overlapFeature.enabled) || (device_a->privacyFeature.enabled != device_b->privacyFeature.enabled) || (device_a->transfer != device_b->transfer) || (device_a->park != device_b->park) || (device_a->meetme != device_b->meetme) ||
+#    ifdef CS_ADV_FEATURES
+		   (device_a->useRedialMenu != device_b->useRedialMenu) ||
+#    endif									/* CS_ADV_FEATURES */
+		   (device_a->mwioncall != device_b->mwioncall)) {
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Minor changes\n");
 		return MINOR_CHANGES;
 	}
-
 	//sccp_selectedchannel_t selectedChannels
 	SCCP_LIST_LOCK(&device_a->selectedChannels);
 	SCCP_LIST_LOCK(&device_b->selectedChannels);
 	if (device_a->selectedChannels.size != device_b->selectedChannels.size) {
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))
-		         (VERBOSE_PREFIX_3 "selectedChannels: Minor changes (%d vs %d)\n",
-		                           device_a->selectedChannels.size, device_b->selectedChannels.size);
+		    (VERBOSE_PREFIX_3 "selectedChannels: Minor changes (%d vs %d)\n", device_a->selectedChannels.size, device_b->selectedChannels.size);
 		res = MINOR_CHANGES;
 	} else {
 		sccp_selectedchannel_t *sc_a = SCCP_LIST_FIRST(&device_a->selectedChannels);
 		sccp_selectedchannel_t *sc_b = SCCP_LIST_FIRST(&device_b->selectedChannels);
 		while (sc_a && sc_b) {
 			if (sc_a->channel->callid != sc_b->channel->callid) {
-				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "selectedChannels: Minor changes (diff)\n");
+				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "selectedChannels: Minor changes (diff)\n");
 				res = MINOR_CHANGES;
 				break;
 			}
@@ -2226,10 +2201,9 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
 
 	/* \todo still to implement a check for device->setvar (ast_variables *variables) in sccp_device_changed */
 	//device_a->setvar
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1 "(sccp_device_changed) Returning : %d\n", res);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "(sccp_device_changed) Returning : %d\n", res);
 	return res;
 }
-
 
 /*!
  * Checks two buttonconfig against one another and returns a sccp_diff_t if different
@@ -2237,77 +2211,66 @@ sccp_diff_t sccp_device_changed(sccp_device_t *device_a, sccp_device_t *device_b
  * \param buttonconfig_b SCCP buttonconfig
  * \return res as sccp_diff_t
  */
-sccp_diff_t sccp_buttonconfig_changed(sccp_buttonconfig_t *buttonconfig_a, sccp_buttonconfig_t *buttonconfig_b){
-	sccp_diff_t res=NO_CHANGES;
+sccp_diff_t sccp_buttonconfig_changed(sccp_buttonconfig_t * buttonconfig_a, sccp_buttonconfig_t * buttonconfig_b)
+{
+	sccp_diff_t res = NO_CHANGES;
 
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1 "(sccp_button_changed) Checking buttonconfigs: %d\n", buttonconfig_a->index);
-	if (      									// check changes requiring reset
-	       !(
-			(buttonconfig_a->index == buttonconfig_b->index) &&
-			(buttonconfig_a->type == buttonconfig_b->type) &&
-			(buttonconfig_b->pendingDelete == 0)
-	        )
-	) {
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "Changes need reset\n");
-		res=CHANGES_NEED_RESET;
-	} else if ( 									// check minor changes
-	        !(
-			(buttonconfig_a->instance == buttonconfig_b->instance)
-	        )
-	) {
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "Minor changes\n");
-		res=MINOR_CHANGES;
-	} else {									// check lower level changes
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "(sccp_button_changed) Checking buttonconfigs: %d\n", buttonconfig_a->index);
+	if (									// check changes requiring reset
+		   !((buttonconfig_a->index == buttonconfig_b->index) && (buttonconfig_a->type == buttonconfig_b->type) && (buttonconfig_b->pendingDelete == 0)
+		   )
+	    ) {
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Changes need reset\n");
+		res = CHANGES_NEED_RESET;
+	} else if (								// check minor changes
+			  !((buttonconfig_a->instance == buttonconfig_b->instance)
+			  )
+	    ) {
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Minor changes\n");
+		res = MINOR_CHANGES;
+	} else {								// check lower level changes
 		switch (buttonconfig_a->type) {
-			case LINE:
+		case LINE:
 			{
-				if ( (strcmp(buttonconfig_a->button.line.name,		  	buttonconfig_b->button.line.name)) ||
-				     (strcmp(buttonconfig_a->button.line.subscriptionId.number, buttonconfig_b->button.line.subscriptionId.number)) ||
-				     (strcmp(buttonconfig_a->button.line.subscriptionId.name,   buttonconfig_b->button.line.subscriptionId.name)) ||
-				     (strcmp(buttonconfig_a->button.line.subscriptionId.aux,   buttonconfig_b->button.line.subscriptionId.aux)) ||
-				     (strcmp(buttonconfig_a->button.line.options, buttonconfig_a->button.line.options))) {
-					res=CHANGES_NEED_RESET;
-			  		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "line: changes need reset\n");
+				if ((strcmp(buttonconfig_a->button.line.name, buttonconfig_b->button.line.name)) ||
+				    (strcmp(buttonconfig_a->button.line.subscriptionId.number, buttonconfig_b->button.line.subscriptionId.number)) || (strcmp(buttonconfig_a->button.line.subscriptionId.name, buttonconfig_b->button.line.subscriptionId.name)) || (strcmp(buttonconfig_a->button.line.subscriptionId.aux, buttonconfig_b->button.line.subscriptionId.aux)) || (strcmp(buttonconfig_a->button.line.options, buttonconfig_a->button.line.options))) {
+					res = CHANGES_NEED_RESET;
+					sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "line: changes need reset\n");
 					break;
 				}
 			}
-			case SPEEDDIAL:
+		case SPEEDDIAL:
 			{
-				if ( (strcmp(buttonconfig_a->button.speeddial.label, 		buttonconfig_b->button.speeddial.label)) ||
-				     (strcmp(buttonconfig_a->button.speeddial.ext, 		buttonconfig_b->button.speeddial.ext)) ||
-				     (strcmp(buttonconfig_a->button.speeddial.hint, buttonconfig_b->button.speeddial.hint))) {
-					res=CHANGES_NEED_RESET;
-			  		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "speeddial: changes need reset\n");
+				if ((strcmp(buttonconfig_a->button.speeddial.label, buttonconfig_b->button.speeddial.label)) || (strcmp(buttonconfig_a->button.speeddial.ext, buttonconfig_b->button.speeddial.ext)) || (strcmp(buttonconfig_a->button.speeddial.hint, buttonconfig_b->button.speeddial.hint))) {
+					res = CHANGES_NEED_RESET;
+					sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "speeddial: changes need reset\n");
 					break;
 				}
 			}
-			case SERVICE:
+		case SERVICE:
 			{
-				if ( (strcmp(buttonconfig_a->button.service.label, 		buttonconfig_b->button.service.label)) ||
-				     (strcmp(buttonconfig_a->button.service.url, 		buttonconfig_b->button.service.url))) {
-				       res=CHANGES_NEED_RESET;
-					sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "service: changes need reset\n");
+				if ((strcmp(buttonconfig_a->button.service.label, buttonconfig_b->button.service.label)) || (strcmp(buttonconfig_a->button.service.url, buttonconfig_b->button.service.url))) {
+					res = CHANGES_NEED_RESET;
+					sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "service: changes need reset\n");
 					break;
 				}
 			}
-			case FEATURE:
+		case FEATURE:
 			{
-				if ( (strcmp(buttonconfig_a->button.feature.label, 		buttonconfig_b->button.feature.label)) ||
-				     (buttonconfig_a->button.feature.id 	!=		buttonconfig_b->button.feature.id) ||
-				     (strcmp(buttonconfig_a->button.feature.options, buttonconfig_b->button.feature.options))) {
-					res=CHANGES_NEED_RESET;
-					sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_3 "feature: changes need reset\n");
+				if ((strcmp(buttonconfig_a->button.feature.label, buttonconfig_b->button.feature.label)) || (buttonconfig_a->button.feature.id != buttonconfig_b->button.feature.id) || (strcmp(buttonconfig_a->button.feature.options, buttonconfig_b->button.feature.options))) {
+					res = CHANGES_NEED_RESET;
+					sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "feature: changes need reset\n");
 					break;
 				}
 			}
-			case EMPTY:
+		case EMPTY:
 			{
 				// nothing to check
 			}
 		}
 	}
 
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1 "(sccp_buttonconfig_changed) Returning : %d\n", res);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "(sccp_buttonconfig_changed) Returning : %d\n", res);
 	return res;
 }
 #endif

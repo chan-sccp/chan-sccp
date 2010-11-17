@@ -14,19 +14,16 @@
  */
 #include "config.h"
 #if ASTERISK_VERSION_NUM >= 10400
-#include <asterisk.h>
+#    include <asterisk.h>
 #endif
 #include "chan_sccp.h"
 #include "sccp_object2.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 1245 $")
-
 #include "sccp_lock.h"
 #include "sccp_config.h"
 #include <assert.h>
-
 #define REF_FILE "/tmp/refs"
-
 /*!
  * sccpobj2 objects are always preceded by this data structure,
  * which contains a lock, a reference counter,
@@ -60,7 +57,7 @@ struct sccpobj2 {
 };
 
 #ifdef AST_DEVMODE
-#define SO2_DEBUG 1
+#    define SO2_DEBUG 1
 #endif
 
 #ifdef SO2_DEBUG
@@ -75,22 +72,24 @@ struct so2_stats {
 static struct so2_stats so2;
 #endif
 
-#ifndef HAVE_BKTR	/* backtrace support */
-void so2_bt(void) {}
+#ifndef HAVE_BKTR								/* backtrace support */
+void so2_bt(void)
+{
+}
 #else
-#include <execinfo.h>    /* for backtrace */
+#    include <execinfo.h>							/* for backtrace */
 
 void so2_bt(void)
 {
 	int c, i;
-#define N1	20
+#    define N1	20
 	void *addresses[N1];
 	char **strings;
 
 	c = backtrace(addresses, N1);
-	strings = backtrace_symbols(addresses,c);
+	strings = backtrace_symbols(addresses, c);
 	ast_verbose("backtrace returned: %d\n", c);
-	for(i = 0; i < c; i++) {
+	for (i = 0; i < c; i++) {
 		ast_verbose("%d: %p %s\n", i, addresses[i], strings[i]);
 	}
 	free(strings);
@@ -111,8 +110,8 @@ static inline struct sccpobj2 *INTERNAL_OBJ(void *user_data)
 		return NULL;
 	}
 
-	p = (struct sccpobj2 *) ((char *) user_data - sizeof(*p));
-	if (SO2_MAGIC != (p->priv_data.magic) ) {
+	p = (struct sccpobj2 *)((char *)user_data - sizeof(*p));
+	if (SO2_MAGIC != (p->priv_data.magic)) {
 		ast_log(LOG_ERROR, "bad magic number 0x%x for %p\n", p->priv_data.magic, p);
 		p = NULL;
 	}
@@ -130,13 +129,10 @@ static inline struct sccpobj2 *INTERNAL_OBJ(void *user_data)
 /* the underlying functions common to debug and non-debug versions */
 
 static int __so2_ref(void *user_data, const int delta);
-static struct so2_container *__so2_container_alloc(struct so2_container *c, const uint n_buckets, so2_hash_fn *hash_fn,
-											so2_callback_fn *cmp_fn);
+static struct so2_container *__so2_container_alloc(struct so2_container *c, const uint n_buckets, so2_hash_fn * hash_fn, so2_callback_fn * cmp_fn);
 static struct bucket_list *__so2_link(struct so2_container *c, void *user_data);
-static void *__so2_callback(struct so2_container *c,
-	const enum search_flags flags, so2_callback_fn *cb_fn, void *arg,
-					 char *tag, char *file, int line, const char *funcname);
-static void * __so2_iterator_next(struct so2_iterator *a, struct bucket_list **q);
+static void *__so2_callback(struct so2_container *c, const enum search_flags flags, so2_callback_fn * cb_fn, void *arg, char *tag, char *file, int line, const char *funcname);
+static void *__so2_iterator_next(struct so2_iterator *a, struct bucket_list **q);
 
 #ifndef DEBUG_THREADS
 int so2_lock(void *user_data)
@@ -220,7 +216,6 @@ void *so2_object_get_lockaddr(void *obj)
  * The argument is a pointer to the user portion.
  */
 
-
 int _so2_ref_debug(void *user_data, const int delta, char *tag, char *file, int line, const char *funcname)
 {
 	struct sccpobj2 *obj = INTERNAL_OBJ(user_data);
@@ -229,14 +224,14 @@ int _so2_ref_debug(void *user_data, const int delta, char *tag, char *file, int 
 		return -1;
 
 	if (delta != 0) {
-		FILE *refo = fopen(REF_FILE,"a");
-		fprintf(refo, "%p %s%d   %s:%d:%s (%s) [@%d]\n", user_data, (delta<0? "":"+"), delta, file, line, funcname, tag, obj->priv_data.ref_counter);
+		FILE *refo = fopen(REF_FILE, "a");
+		fprintf(refo, "%p %s%d   %s:%d:%s (%s) [@%d]\n", user_data, (delta < 0 ? "" : "+"), delta, file, line, funcname, tag, obj->priv_data.ref_counter);
 		fclose(refo);
 	}
-	if (obj->priv_data.ref_counter + delta == 0 && obj->priv_data.destructor_fn != NULL) { /* this isn't protected with lock; just for o/p */
-			FILE *refo = fopen(REF_FILE,"a");
-			fprintf(refo, "%p **call destructor** %s:%d:%s (%s)\n", user_data, file, line, funcname, tag);
-			fclose(refo);
+	if (obj->priv_data.ref_counter + delta == 0 && obj->priv_data.destructor_fn != NULL) {	/* this isn't protected with lock; just for o/p */
+		FILE *refo = fopen(REF_FILE, "a");
+		fprintf(refo, "%p **call destructor** %s:%d:%s (%s)\n", user_data, file, line, funcname, tag);
+		fclose(refo);
 	}
 	return __so2_ref(user_data, delta);
 }
@@ -273,20 +268,20 @@ static int __so2_ref(void *user_data, const int delta)
 	if (current_value < 0)
 		ast_log(LOG_ERROR, "refcount %d on object %p\n", current_value, user_data);
 
-	if (current_value <= 0) { /* last reference, destroy the object */
+	if (current_value <= 0) {						/* last reference, destroy the object */
 		if (obj->priv_data.destructor_fn != NULL) {
 			obj->priv_data.destructor_fn(user_data);
 		}
 
 		ast_mutex_destroy(&obj->priv_data.lock);
 #ifdef SO2_DEBUG
-		ast_atomic_fetchadd_int(&so2.total_mem, - obj->priv_data.data_size);
+		ast_atomic_fetchadd_int(&so2.total_mem, -obj->priv_data.data_size);
 		ast_atomic_fetchadd_int(&so2.total_objects, -1);
 #endif
 		/* for safety, zero-out the sccpobj2 header and also the
 		 * first word of the user-data, which we make sure is always
 		 * allocated. */
-		memset(obj, '\0', sizeof(struct sccpobj2 *) + sizeof(void *) );
+		memset(obj, '\0', sizeof(struct sccpobj2 *) + sizeof(void *));
 		free(obj);
 	}
 
@@ -318,7 +313,7 @@ static void *__so2_alloc(size_t data_size, so2_destructor_fn destructor_fn, cons
 	obj->priv_data.magic = SO2_MAGIC;
 	obj->priv_data.data_size = data_size;
 	obj->priv_data.ref_counter = 1;
-	obj->priv_data.destructor_fn = destructor_fn;	/* can be NULL */
+	obj->priv_data.destructor_fn = destructor_fn;				/* can be NULL */
 
 #ifdef SO2_DEBUG
 	ast_atomic_fetchadd_int(&so2.total_objects, 1);
@@ -330,12 +325,11 @@ static void *__so2_alloc(size_t data_size, so2_destructor_fn destructor_fn, cons
 	return EXTERNAL_OBJ(obj);
 }
 
-void *_so2_alloc_debug(size_t data_size, so2_destructor_fn destructor_fn, char *tag,
-			const char *file, int line, const char *funcname, int ref_debug)
+void *_so2_alloc_debug(size_t data_size, so2_destructor_fn destructor_fn, char *tag, const char *file, int line, const char *funcname, int ref_debug)
 {
 	/* allocation */
 	void *obj;
-	FILE *refo = ref_debug ? fopen(REF_FILE,"a") : NULL;
+	FILE *refo = ref_debug ? fopen(REF_FILE, "a") : NULL;
 
 	obj = __so2_alloc(data_size, destructor_fn, file, line, funcname);
 
@@ -355,7 +349,6 @@ void *_so2_alloc(size_t data_size, so2_destructor_fn destructor_fn)
 {
 	return __so2_alloc(data_size, destructor_fn, __FILE__, __LINE__, __FUNCTION__);
 }
-
 
 /* internal callback to destroy a container. */
 static void container_destruct(void *c);
@@ -417,8 +410,7 @@ static int hash_zero(const void *user_obj, const int flags)
 /*
  * A container is just an object, after all!
  */
-static struct so2_container *__so2_container_alloc(struct so2_container *c, const unsigned int n_buckets, so2_hash_fn *hash_fn,
-											so2_callback_fn *cmp_fn)
+static struct so2_container *__so2_container_alloc(struct so2_container *c, const unsigned int n_buckets, so2_hash_fn * hash_fn, so2_callback_fn * cmp_fn)
 {
 	/* XXX maybe consistency check on arguments ? */
 	/* compute the container size */
@@ -426,7 +418,7 @@ static struct so2_container *__so2_container_alloc(struct so2_container *c, cons
 	if (!c)
 		return NULL;
 
-	c->version = 1;	/* 0 is a reserved value here */
+	c->version = 1;								/* 0 is a reserved value here */
 	c->n_buckets = n_buckets;
 	c->hash_fn = hash_fn ? hash_fn : hash_zero;
 	c->cmp_fn = cmp_fn;
@@ -438,9 +430,7 @@ static struct so2_container *__so2_container_alloc(struct so2_container *c, cons
 	return c;
 }
 
-struct so2_container *_so2_container_alloc_debug(const unsigned int n_buckets, so2_hash_fn *hash_fn,
-						  so2_callback_fn *cmp_fn, char *tag, char *file, int line,
-						  const char *funcname, int ref_debug)
+struct so2_container *_so2_container_alloc_debug(const unsigned int n_buckets, so2_hash_fn * hash_fn, so2_callback_fn * cmp_fn, char *tag, char *file, int line, const char *funcname, int ref_debug)
 {
 	/* XXX maybe consistency check on arguments ? */
 	/* compute the container size */
@@ -450,9 +440,7 @@ struct so2_container *_so2_container_alloc_debug(const unsigned int n_buckets, s
 	return __so2_container_alloc(c, n_buckets, hash_fn, cmp_fn);
 }
 
-struct so2_container *
-_so2_container_alloc(const unsigned int n_buckets, so2_hash_fn *hash_fn,
-		so2_callback_fn *cmp_fn)
+struct so2_container *_so2_container_alloc(const unsigned int n_buckets, so2_hash_fn * hash_fn, so2_callback_fn * cmp_fn)
 {
 	/* XXX maybe consistency check on arguments ? */
 	/* compute the container size */
@@ -479,7 +467,7 @@ int so2_container_count(struct so2_container *c)
 struct bucket_list {
 	AST_LIST_ENTRY(bucket_list) entry;
 	int version;
-	struct sccpobj2 *astobj;		/* pointer to internal data */
+	struct sccpobj2 *astobj;						/* pointer to internal data */
 };
 
 /*
@@ -550,10 +538,9 @@ int so2_match_by_addr(void *user_data, void *arg, int flags)
  * Unlink an object from the container
  * and destroy the associated * so2_bucket_list structure.
  */
-void *_so2_unlink_debug(struct so2_container *c, void *user_data, char *tag,
-					   char *file, int line, const char *funcname)
+void *_so2_unlink_debug(struct so2_container *c, void *user_data, char *tag, char *file, int line, const char *funcname)
 {
-	if (INTERNAL_OBJ(user_data) == NULL)	/* safety check on the argument */
+	if (INTERNAL_OBJ(user_data) == NULL)					/* safety check on the argument */
 		return NULL;
 
 	_so2_callback_debug(c, OBJ_UNLINK | OBJ_POINTER | OBJ_NODATA, so2_match_by_addr, user_data, tag, file, line, funcname);
@@ -563,7 +550,7 @@ void *_so2_unlink_debug(struct so2_container *c, void *user_data, char *tag,
 
 void *_so2_unlink(struct so2_container *c, void *user_data)
 {
-	if (INTERNAL_OBJ(user_data) == NULL)	/* safety check on the argument */
+	if (INTERNAL_OBJ(user_data) == NULL)					/* safety check on the argument */
 		return NULL;
 
 	_so2_callback(c, OBJ_UNLINK | OBJ_POINTER | OBJ_NODATA, so2_match_by_addr, user_data);
@@ -587,14 +574,12 @@ static int cb_true(void *user_data, void *arg, int flags)
  * aren't an excessive load to the system, as the callback should not be
  * called as often as, say, the so2_ref func is called.
  */
-static void *__so2_callback(struct so2_container *c,
-	const enum search_flags flags, so2_callback_fn *cb_fn, void *arg,
-	char *tag, char *file, int line, const char *funcname)
+static void *__so2_callback(struct so2_container *c, const enum search_flags flags, so2_callback_fn * cb_fn, void *arg, char *tag, char *file, int line, const char *funcname)
 {
-	int i, start, last;	/* search boundaries */
+	int i, start, last;							/* search boundaries */
 	void *ret = NULL;
 
-	if (INTERNAL_OBJ(c) == NULL)	/* safety check on the argument */
+	if (INTERNAL_OBJ(c) == NULL)						/* safety check on the argument */
 		return NULL;
 
 	if ((flags & (OBJ_MULTIPLE | OBJ_NODATA)) == OBJ_MULTIPLE) {
@@ -603,7 +588,7 @@ static void *__so2_callback(struct so2_container *c,
 	}
 
 	/* override the match function if necessary */
-	if (cb_fn == NULL)	/* if NULL, match everything */
+	if (cb_fn == NULL)							/* if NULL, match everything */
 		cb_fn = cb_true;
 	/*
 	 * XXX this can be optimized.
@@ -611,10 +596,10 @@ static void *__so2_callback(struct so2_container *c,
 	 * run the hash function. Otherwise, scan the whole container
 	 * (this only for the time being. We need to optimize this.)
 	 */
-	if ((flags & OBJ_POINTER))	/* we know hash can handle this case */
+	if ((flags & OBJ_POINTER))						/* we know hash can handle this case */
 		start = i = c->hash_fn(arg, flags & OBJ_POINTER) % c->n_buckets;
-	else			/* don't know, let's scan all buckets */
-		start = i = -1;		/* XXX this must be fixed later. */
+	else									/* don't know, let's scan all buckets */
+		start = i = -1;							/* XXX this must be fixed later. */
 
 	/* determine the search boundaries: i..last-1 */
 	if (i < 0) {
@@ -626,9 +611,9 @@ static void *__so2_callback(struct so2_container *c,
 		last = i + 1;
 	}
 
-	so2_lock(c);	/* avoid modifications to the content */
+	so2_lock(c);								/* avoid modifications to the content */
 
-	for (; i < last ; i++) {
+	for (; i < last; i++) {
 		/* scan the list with prev-cur pointers */
 		struct bucket_list *cur;
 
@@ -636,14 +621,14 @@ static void *__so2_callback(struct so2_container *c,
 			int match = cb_fn(EXTERNAL_OBJ(cur->astobj), arg, flags) & (CMP_MATCH | CMP_STOP);
 
 			/* we found the object, performing operations according flags */
-			if (match == 0) {	/* no match, no stop, continue */
+			if (match == 0) {					/* no match, no stop, continue */
 				continue;
-			} else if (match == CMP_STOP) {	/* no match but stop, we are done */
+			} else if (match == CMP_STOP) {				/* no match but stop, we are done */
 				i = last;
 				break;
 			}
 			/* we have a match (CMP_MATCH) here */
-			if (!(flags & OBJ_NODATA)) {	/* if must return the object, record the value */
+			if (!(flags & OBJ_NODATA)) {				/* if must return the object, record the value */
 				/* it is important to handle this case before the unlink */
 				ret = EXTERNAL_OBJ(cur->astobj);
 				if (tag)
@@ -652,7 +637,7 @@ static void *__so2_callback(struct so2_container *c,
 					_so2_ref(ret, 1);
 			}
 
-			if (flags & OBJ_UNLINK) {	/* must unlink */
+			if (flags & OBJ_UNLINK) {				/* must unlink */
 				struct bucket_list *x = cur;
 
 				/* we are going to modify the container, so update version */
@@ -664,16 +649,16 @@ static void *__so2_callback(struct so2_container *c,
 					_so2_ref_debug(EXTERNAL_OBJ(x->astobj), -1, tag, file, line, funcname);
 				else
 					_so2_ref(EXTERNAL_OBJ(x->astobj), -1);
-				free(x);	/* free the link record */
+				free(x);					/* free the link record */
 			}
 
 			if ((match & CMP_STOP) || (flags & OBJ_MULTIPLE) == 0) {
 				/* We found the only match we need */
-				i = last;	/* force exit from outer loop */
+				i = last;					/* force exit from outer loop */
 				break;
 			}
 			if (!(flags & OBJ_NODATA)) {
-#if 0	/* XXX to be completed */
+#if 0										/* XXX to be completed */
 				/*
 				 * This is the multiple-return case. We need to link
 				 * the object in a list. The refcount is already increased.
@@ -698,18 +683,14 @@ static void *__so2_callback(struct so2_container *c,
 	return ret;
 }
 
-void *_so2_callback_debug(struct so2_container *c,
-						 const enum search_flags flags,
-						 so2_callback_fn *cb_fn, void *arg,
-						 char *tag, char *file, int line, const char *funcname)
+void *_so2_callback_debug(struct so2_container *c, const enum search_flags flags, so2_callback_fn * cb_fn, void *arg, char *tag, char *file, int line, const char *funcname)
 {
-	return __so2_callback(c,flags, cb_fn, arg, tag, file, line, funcname);
+	return __so2_callback(c, flags, cb_fn, arg, tag, file, line, funcname);
 }
 
-void *_so2_callback(struct so2_container *c,const enum search_flags flags,
-                    so2_callback_fn *cb_fn, void *arg)
+void *_so2_callback(struct so2_container *c, const enum search_flags flags, so2_callback_fn * cb_fn, void *arg)
 {
-	return __so2_callback(c,flags, cb_fn, arg, NULL, NULL, 0, NULL);
+	return __so2_callback(c, flags, cb_fn, arg, NULL, NULL, 0, NULL);
 }
 
 /*!
@@ -752,7 +733,7 @@ void so2_iterator_destroy(struct so2_iterator *i)
 /*
  * move to the next element in the container.
  */
-static void * __so2_iterator_next(struct so2_iterator *a, struct bucket_list **q)
+static void *__so2_iterator_next(struct so2_iterator *a, struct bucket_list **q)
 {
 	int lim;
 	struct bucket_list *p = NULL;
@@ -769,8 +750,8 @@ static void * __so2_iterator_next(struct so2_iterator *a, struct bucket_list **q
 	/* optimization. If the container is unchanged and
 	 * we have a pointer, try follow it
 	 */
-	if (a->c->version == a->c_version && (p = a->obj) ) {
-		if ( (p = AST_LIST_NEXT(p, entry)) )
+	if (a->c->version == a->c_version && (p = a->obj)) {
+		if ((p = AST_LIST_NEXT(p, entry)))
 			goto found;
 		/* nope, start from the next bucket */
 		a->bucket++;
@@ -794,7 +775,7 @@ static void * __so2_iterator_next(struct so2_iterator *a, struct bucket_list **q
 		}
 	}
 
-found:
+ found:
 	if (p) {
 		a->version = p->version;
 		a->obj = p;
@@ -807,7 +788,7 @@ found:
 	return ret;
 }
 
-void * _so2_iterator_next_debug(struct so2_iterator *a, char *tag, char *file, int line, const char *funcname)
+void *_so2_iterator_next_debug(struct so2_iterator *a, char *tag, char *file, int line, const char *funcname)
 {
 	struct bucket_list *p;
 	void *ret = NULL;
@@ -825,7 +806,7 @@ void * _so2_iterator_next_debug(struct so2_iterator *a, char *tag, char *file, i
 	return ret;
 }
 
-void * _so2_iterator_next(struct so2_iterator *a)
+void *_so2_iterator_next(struct so2_iterator *a)
 {
 	struct bucket_list *p = NULL;
 	void *ret = NULL;
@@ -854,7 +835,7 @@ static int cd_cb(void *obj, void *arg, int flag)
 
 static int cd_cb_debug(void *obj, void *arg, int flag)
 {
-	_so2_ref_debug(obj, -1, "deref object via container destroy",  __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	_so2_ref_debug(obj, -1, "deref object via container destroy", __FILE__, __LINE__, __PRETTY_FUNCTION__);
 	return 0;
 }
 
@@ -916,8 +897,7 @@ static char *handle_sccpobj2_stats(struct ast_cli_entry *e, int cmd, struct ast_
 	switch (cmd) {
 	case CLI_INIT:
 		e->command = "sccpobj2 stats";
-		e->usage = "Usage: sccpobj2 stats\n"
-			   "       Show sccpobj2 stats\n";
+		e->usage = "Usage: sccpobj2 stats\n" "       Show sccpobj2 stats\n";
 		return NULL;
 	case CLI_GENERATE:
 		return NULL;
@@ -944,9 +924,7 @@ static char *handle_sccpobj2_test(struct ast_cli_entry *e, int cmd, struct ast_c
 	switch (cmd) {
 	case CLI_INIT:
 		e->command = "sccpobj2 test";
-		e->usage = "Usage: sccpobj2 test <num>\n"
-			   "       Runs sccpobj2 test. Creates 'num' objects,\n"
-			   "       and test iterators, callbacks and may be other stuff\n";
+		e->usage = "Usage: sccpobj2 test <num>\n" "       Runs sccpobj2 test. Creates 'num' objects,\n" "       and test iterators, callbacks and may be other stuff\n";
 		return NULL;
 	case CLI_GENERATE:
 		return NULL;
@@ -968,7 +946,7 @@ static char *handle_sccpobj2_test(struct ast_cli_entry *e, int cmd, struct ast_c
 	 * allocate a container with no default callback, and no hash function.
 	 * No hash means everything goes in the same bucket.
 	 */
-	c1 = so2_t_container_alloc(100, NULL /* no callback */, NULL /* no hash */,"test");
+	c1 = so2_t_container_alloc(100, NULL /* no callback */ , NULL /* no hash */ , "test");
 	ast_cli(a->fd, "container allocated as %p\n", c1);
 
 	/*
@@ -977,9 +955,9 @@ static char *handle_sccpobj2_test(struct ast_cli_entry *e, int cmd, struct ast_c
 	 * container when we do the insert.
 	 */
 	for (i = 0; i < lim; i++) {
-		ast_mark(prof_id, 1 /* start */);
-		obj = so2_t_alloc(80, NULL,"test");
-		ast_mark(prof_id, 0 /* stop */);
+		ast_mark(prof_id, 1 /* start */ );
+		obj = so2_t_alloc(80, NULL, "test");
+		ast_mark(prof_id, 0 /* stop */ );
 		ast_cli(a->fd, "object %d allocated as %p\n", i, obj);
 		sprintf(obj, "-- this is obj %d --", i);
 		so2_link(c1, obj);
@@ -991,34 +969,34 @@ static char *handle_sccpobj2_test(struct ast_cli_entry *e, int cmd, struct ast_c
 		so2_t_ref(obj, -1, "test");
 	}
 	ast_cli(a->fd, "testing callbacks\n");
-	so2_t_callback(c1, 0, print_cb, &a->fd,"test callback");
+	so2_t_callback(c1, 0, print_cb, &a->fd, "test callback");
 	ast_cli(a->fd, "testing iterators, remove every second object\n");
 	{
 		struct so2_iterator ai;
 		int x = 0;
 
 		ai = so2_iterator_init(c1, 0);
-		while ( (obj = so2_t_iterator_next(&ai,"test")) ) {
+		while ((obj = so2_t_iterator_next(&ai, "test"))) {
 			ast_cli(a->fd, "iterator on <%s>\n", obj);
 			if (x++ & 1)
-				so2_t_unlink(c1, obj,"test");
-			so2_t_ref(obj, -1,"test");
+				so2_t_unlink(c1, obj, "test");
+			so2_t_ref(obj, -1, "test");
 		}
 		ast_cli(a->fd, "testing iterators again\n");
 		ai = so2_iterator_init(c1, 0);
-		while ( (obj = so2_t_iterator_next(&ai,"test")) ) {
+		while ((obj = so2_t_iterator_next(&ai, "test"))) {
 			ast_cli(a->fd, "iterator on <%s>\n", obj);
-			so2_t_ref(obj, -1,"test");
+			so2_t_ref(obj, -1, "test");
 		}
 	}
 	ast_cli(a->fd, "testing callbacks again\n");
-	so2_t_callback(c1, 0, print_cb, &a->fd,"test callback");
+	so2_t_callback(c1, 0, print_cb, &a->fd, "test callback");
 
 	ast_verbose("now you should see an error message:\n");
-	so2_t_ref(&i, -1, "");	/* i is not a valid object so we print an error here */
+	so2_t_ref(&i, -1, "");							/* i is not a valid object so we print an error here */
 
 	ast_cli(a->fd, "destroy container\n");
-	so2_t_ref(c1, -1, "");	/* destroy container */
+	so2_t_ref(c1, -1, "");							/* destroy container */
 	handle_sccpobj2_stats(e, CLI_HANDLER, &fake_args);
 	return CLI_SUCCESS;
 }
@@ -1027,7 +1005,7 @@ static struct ast_cli_entry cli_sccpobj2[] = {
 	AST_CLI_DEFINE(handle_sccpobj2_stats, "Print sccpobj2 statistics"),
 	AST_CLI_DEFINE(handle_sccpobj2_test, "Test sccpobj2"),
 };
-#endif /* SO2_DEBUG */
+#endif										/* SO2_DEBUG */
 
 int sccpobj2_init(void)
 {

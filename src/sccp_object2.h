@@ -10,10 +10,9 @@
  */
 
 #ifndef _SCCP_SCCPOBJ2_H
-#define _SCCP_SCCPOBJ2_H
+#    define _SCCP_SCCPOBJ2_H
 
-#include "asterisk/compat.h"
-
+#    include "asterisk/compat.h"
 
 /*! \file
  * \ref SccpObj2
@@ -69,7 +68,6 @@ On return from so2_alloc():
 
 - so2_lock(obj), so2_unlock(obj), so2_trylock(obj) can be used
   to manipulate the lock associated with the object.
-
 
 \section SccpObj2_UsageContainers USAGE - CONTAINERS
 
@@ -273,13 +271,11 @@ to pair operations:
 
    0x83787a0 +1   chan_sip.c:19130:sip_poke_peer (copy sip alloc from p to peer->call) [@2]
 
-
    0x83787a0 +1   chan_sip.c:2996:__sip_reliable_xmit (__sip_reliable_xmit: setting pkt->owner) [@3]
    0x83787a0 -1   chan_sip.c:2425:dialog_unlink_all (remove all current packets in this dialog, and the pointer to the dialog too as part of __sip_destroy) [@4]
 
    0x83787a0 +1   chan_sip.c:22356:unload_module (iterate thru dialogs) [@4]
    0x83787a0 -1   chan_sip.c:22359:unload_module (toss dialog ptr from iterator_next) [@5]
-
 
    0x83787a0 +1   chan_sip.c:22373:unload_module (iterate thru dialogs) [@3]
    0x83787a0 -1   chan_sip.c:22375:unload_module (throw away iterator result) [@2]
@@ -325,59 +321,56 @@ Example:
 
 	so2_t_unlink(dialogs, dialog, "unlinking dialog via so2_unlink");
 
-	*//* Unlink us from the owner (channel) if we have one *//*
-	if (dialog->owner) {
-		if (lockowner)
-			ast_channel_lock(dialog->owner);
-		ast_debug(1, "Detaching from channel %s\n", dialog->owner->name);
-		dialog->owner->tech_pvt = dialog_unref(dialog->owner->tech_pvt, "resetting channel dialog ptr in unlink_all");
-		if (lockowner)
-			ast_channel_unlock(dialog->owner);
-	}
-	if (dialog->registry) {
-		if (dialog->registry->call == dialog)
-			dialog->registry->call = dialog_unref(dialog->registry->call, "nulling out the registry's call dialog field in unlink_all");
-		dialog->registry = registry_unref(dialog->registry, "delete dialog->registry");
-	}
-    ...
- 	dialog_unref(dialog, "Let's unbump the count in the unlink so the poor pvt can disappear if it is time");
+								 	*//* Unlink us from the owner (channel) if we have one *//*
+								    if (dialog->owner) {
+								    if (lockowner)
+								    ast_channel_lock(dialog->owner);
+								    ast_debug(1, "Detaching from channel %s\n", dialog->owner->name);
+								    dialog->owner->tech_pvt = dialog_unref(dialog->owner->tech_pvt, "resetting channel dialog ptr in unlink_all");
+								    if (lockowner)
+								    ast_channel_unlock(dialog->owner);
+								    }
+								    if (dialog->registry) {
+								    if (dialog->registry->call == dialog)
+								    dialog->registry->call = dialog_unref(dialog->registry->call, "nulling out the registry's call dialog field in unlink_all");
+								    dialog->registry = registry_unref(dialog->registry, "delete dialog->registry");
+								    }
+								    ...
+								    dialog_unref(dialog, "Let's unbump the count in the unlink so the poor pvt can disappear if it is time");
 
-In the above code, the so2_t_unlink could end up destroying the dialog
-object; if this happens, then the subsequent usages of the dialog
-pointer could result in a core dump. So, we 'bump' the
-count upwards before beginning, and then decrementing the count when
-we are finished. This is analogous to 'locking' or 'protecting' operations
-for a short while.
+								    In the above code, the so2_t_unlink could end up destroying the dialog
+								    object; if this happens, then the subsequent usages of the dialog
+								    pointer could result in a core dump. So, we 'bump' the
+								    count upwards before beginning, and then decrementing the count when
+								    we are finished. This is analogous to 'locking' or 'protecting' operations
+								    for a short while.
 
-4. One of the most insidious problems I've run into when converting
-code to do ref counted automatic destruction, is in the destruction
-routines. Where a "destroy" routine had previously been called to
-get rid of an object in non-refcounted code, the new regime demands
-that you tear that "destroy" routine into two pieces, one that will
-tear down the links and 'unref' them, and the other to actually free
-and reset fields. A destroy routine that does any reference deletion
-for its own object, will never be called. Another insidious problem
-occurs in mutually referenced structures. As an example, a dialog contains
-a pointer to a peer, and a peer contains a pointer to a dialog. Watch
-out that the destruction of one doesn't depend on the destruction of the
-other, as in this case a dependency loop will result in neither being
-destroyed!
+								    4. One of the most insidious problems I've run into when converting
+								    code to do ref counted automatic destruction, is in the destruction
+								    routines. Where a "destroy" routine had previously been called to
+								    get rid of an object in non-refcounted code, the new regime demands
+								    that you tear that "destroy" routine into two pieces, one that will
+								    tear down the links and 'unref' them, and the other to actually free
+								    and reset fields. A destroy routine that does any reference deletion
+								    for its own object, will never be called. Another insidious problem
+								    occurs in mutually referenced structures. As an example, a dialog contains
+								    a pointer to a peer, and a peer contains a pointer to a dialog. Watch
+								    out that the destruction of one doesn't depend on the destruction of the
+								    other, as in this case a dependency loop will result in neither being
+								    destroyed!
 
-Given the above, you should be ready to do a good job!
+								    Given the above, you should be ready to do a good job!
 
-murf
+								    murf
 
-*/
-
-
+								  */
 
 /*! \brief
  * Typedef for an object destructor. This is called just before freeing
  * the memory for the object. It is passed a pointer to the user-defined
  * data of the object.
  */
-typedef void (*so2_destructor_fn)(void *);
-
+typedef void (*so2_destructor_fn) (void *);
 
 /*! \brief
  * Allocate and initialize an object.
@@ -396,29 +389,27 @@ typedef void (*so2_destructor_fn)(void *);
  *   rather, we just call so2_ref(o, -1);
  */
 
-#if defined(REF_DEBUG)
+#    if defined(REF_DEBUG)
 
-#define so2_t_alloc(data_size, destructor_fn, debug_msg) _so2_alloc_debug((data_size), (destructor_fn), (debug_msg),  __FILE__, __LINE__, __PRETTY_FUNCTION__, 1)
-#define so2_alloc(data_size, destructor_fn)              _so2_alloc_debug((data_size), (destructor_fn), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__, 1)
+#        define so2_t_alloc(data_size, destructor_fn, debug_msg) _so2_alloc_debug((data_size), (destructor_fn), (debug_msg),  __FILE__, __LINE__, __PRETTY_FUNCTION__, 1)
+#        define so2_alloc(data_size, destructor_fn)              _so2_alloc_debug((data_size), (destructor_fn), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__, 1)
 
-#elif defined(__AST_DEBUG_MALLOC)
+#    elif defined(__AST_DEBUG_MALLOC)
 
-#define so2_t_alloc(data_size, destructor_fn, debug_msg) _so2_alloc_debug((data_size), (destructor_fn), (debug_msg),  __FILE__, __LINE__, __PRETTY_FUNCTION__, 0)
-#define so2_alloc(data_size, destructor_fn)              _so2_alloc_debug((data_size), (destructor_fn), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__, 0)
+#        define so2_t_alloc(data_size, destructor_fn, debug_msg) _so2_alloc_debug((data_size), (destructor_fn), (debug_msg),  __FILE__, __LINE__, __PRETTY_FUNCTION__, 0)
+#        define so2_alloc(data_size, destructor_fn)              _so2_alloc_debug((data_size), (destructor_fn), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__, 0)
 
-#else
+#    else
 
-#define so2_t_alloc(arg1,arg2,arg3) _so2_alloc((arg1), (arg2))
-#define so2_alloc(arg1,arg2)        _so2_alloc((arg1), (arg2))
+#        define so2_t_alloc(arg1,arg2,arg3) _so2_alloc((arg1), (arg2))
+#        define so2_alloc(arg1,arg2)        _so2_alloc((arg1), (arg2))
 
-#endif
+#    endif
 
-void *_so2_alloc_debug(const size_t data_size, so2_destructor_fn destructor_fn, char *tag,
-			const char *file, int line, const char *funcname, int ref_debug);
+void *_so2_alloc_debug(const size_t data_size, so2_destructor_fn destructor_fn, char *tag, const char *file, int line, const char *funcname, int ref_debug);
 void *_so2_alloc(const size_t data_size, so2_destructor_fn destructor_fn);
 
 /*! @} */
-
 
 /*! \brief
  * Reference/unreference an object and return the old refcount.
@@ -441,17 +432,17 @@ void *_so2_alloc(const size_t data_size, so2_destructor_fn destructor_fn);
  * the last one in existence.
  */
 
-#ifdef REF_DEBUG
+#    ifdef REF_DEBUG
 
-#define so2_t_ref(arg1,arg2,arg3) _so2_ref_debug((arg1), (arg2), (arg3),  __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define so2_ref(arg1,arg2)        _so2_ref_debug((arg1), (arg2), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#        define so2_t_ref(arg1,arg2,arg3) _so2_ref_debug((arg1), (arg2), (arg3),  __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#        define so2_ref(arg1,arg2)        _so2_ref_debug((arg1), (arg2), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
-#else
+#    else
 
-#define so2_t_ref(arg1,arg2,arg3) _so2_ref((arg1), (arg2))
-#define so2_ref(arg1,arg2)        _so2_ref((arg1), (arg2))
+#        define so2_t_ref(arg1,arg2,arg3) _so2_ref((arg1), (arg2))
+#        define so2_ref(arg1,arg2)        _so2_ref((arg1), (arg2))
 
-#endif
+#    endif
 
 int _so2_ref_debug(void *o, int delta, char *tag, char *file, int line, const char *funcname);
 int _so2_ref(void *o, int delta);
@@ -464,12 +455,12 @@ int _so2_ref(void *o, int delta);
  * \param a A pointer to the object we want to lock.
  * \return 0 on success, other values on error.
  */
-#ifndef DEBUG_THREADS
+#    ifndef DEBUG_THREADS
 int so2_lock(void *a);
-#else
-#define so2_lock(a) _so2_lock(a, __FILE__, __PRETTY_FUNCTION__, __LINE__, #a)
+#    else
+#        define so2_lock(a) _so2_lock(a, __FILE__, __PRETTY_FUNCTION__, __LINE__, #a)
 int _so2_lock(void *a, const char *file, const char *func, int line, const char *var);
-#endif
+#    endif
 
 /*! \brief
  * Unlock an object.
@@ -477,12 +468,12 @@ int _so2_lock(void *a, const char *file, const char *func, int line, const char 
  * \param a A pointer to the object we want unlock.
  * \return 0 on success, other values on error.
  */
-#ifndef DEBUG_THREADS
+#    ifndef DEBUG_THREADS
 int so2_unlock(void *a);
-#else
-#define so2_unlock(a) _so2_unlock(a, __FILE__, __PRETTY_FUNCTION__, __LINE__, #a)
+#    else
+#        define so2_unlock(a) _so2_unlock(a, __FILE__, __PRETTY_FUNCTION__, __LINE__, #a)
 int _so2_unlock(void *a, const char *file, const char *func, int line, const char *var);
-#endif
+#    endif
 
 /*! \brief
  * Try locking-- (don't block if fail)
@@ -490,12 +481,12 @@ int _so2_unlock(void *a, const char *file, const char *func, int line, const cha
  * \param a A pointer to the object we want to lock.
  * \return 0 on success, other values on error.
  */
-#ifndef DEBUG_THREADS
+#    ifndef DEBUG_THREADS
 int so2_trylock(void *a);
-#else
-#define so2_trylock(a) _so2_trylock(a, __FILE__, __PRETTY_FUNCTION__, __LINE__, #a)
+#    else
+#        define so2_trylock(a) _so2_trylock(a, __FILE__, __PRETTY_FUNCTION__, __LINE__, #a)
 int _so2_trylock(void *a, const char *file, const char *func, int line, const char *var);
-#endif
+#    endif
 
 /*!
  * \brief Return the lock address of an object
@@ -620,7 +611,7 @@ to define callback and hash functions and their arguments.
  * The return values are a combination of enum _cb_results.
  * Callback functions are used to search or manipulate objects in a container,
  */
-typedef int (so2_callback_fn)(void *obj, void *arg, int flags);
+typedef int (so2_callback_fn) (void *obj, void *arg, int flags);
 
 /*! \brief a very common callback is one that matches by address. */
 so2_callback_fn so2_match_by_addr;
@@ -630,8 +621,8 @@ so2_callback_fn so2_match_by_addr;
  * The latter will terminate the search in a container.
  */
 enum _cb_results {
-	CMP_MATCH	= 0x1,	/*!< the object matches the request */
-	CMP_STOP	= 0x2,	/*!< stop the search now */
+	CMP_MATCH = 0x1,							/*!< the object matches the request */
+	CMP_STOP = 0x2,								/*!< stop the search now */
 };
 
 /*! \brief
@@ -641,10 +632,10 @@ enum search_flags {
 	/*! Unlink the object for which the callback function
 	 *  returned CMP_MATCH . This is the only way to extract
 	 *  objects from a container. */
-	OBJ_UNLINK	 = (1 << 0),
+	OBJ_UNLINK = (1 << 0),
 	/*! On match, don't return the object hence do not increase
 	 *  its refcount. */
-	OBJ_NODATA	 = (1 << 1),
+	OBJ_NODATA = (1 << 1),
 	/*! Don't stop at the first match in so2_callback()
 	 *  \note This is not fully implemented.   Using OBJ_MULTIME with OBJ_NODATA
 	 *  is perfectly fine.  The part that is not implemented is the case where
@@ -655,7 +646,7 @@ enum search_flags {
 	 *  so use the object's hash function for optimized searching.
 	 *  The search function is unaffected (i.e. use the one passed as
 	 *  argument, or match_by_addr if none specified). */
-	OBJ_POINTER	 = (1 << 3),
+	OBJ_POINTER = (1 << 3),
 	/*!
 	 * \brief Continue if a match is not found in the hashed out bucket
 	 *
@@ -664,7 +655,7 @@ enum search_flags {
 	 * buckets if a match is not found in the starting bucket defined by
 	 * the hash value on the argument.
 	 */
-	OBJ_CONTINUE     = (1 << 4),
+	OBJ_CONTINUE = (1 << 4),
 };
 
 /*!
@@ -672,7 +663,7 @@ enum search_flags {
  * flags is ignored at the moment. Eventually, it will include the
  * value of OBJ_POINTER passed to so2_callback().
  */
-typedef int (so2_hash_fn)(const void *obj, const int flags);
+typedef int (so2_hash_fn) (const void *obj, const int flags);
 
 /*! \name Object Containers
  * Here start declarations of containers.
@@ -696,29 +687,25 @@ struct so2_container;
  * destructor is set implicitly.
  */
 
-#if defined(REF_DEBUG)
+#    if defined(REF_DEBUG)
 
-#define so2_t_container_alloc(arg1,arg2,arg3,arg4) _so2_container_alloc_debug((arg1), (arg2), (arg3), (arg4),  __FILE__, __LINE__, __PRETTY_FUNCTION__, 1)
-#define so2_container_alloc(arg1,arg2,arg3)        _so2_container_alloc_debug((arg1), (arg2), (arg3), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__, 1)
+#        define so2_t_container_alloc(arg1,arg2,arg3,arg4) _so2_container_alloc_debug((arg1), (arg2), (arg3), (arg4),  __FILE__, __LINE__, __PRETTY_FUNCTION__, 1)
+#        define so2_container_alloc(arg1,arg2,arg3)        _so2_container_alloc_debug((arg1), (arg2), (arg3), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__, 1)
 
-#elif defined(__AST_DEBUG_MALLOC)
+#    elif defined(__AST_DEBUG_MALLOC)
 
-#define so2_t_container_alloc(arg1,arg2,arg3,arg4) _so2_container_alloc_debug((arg1), (arg2), (arg3), (arg4),  __FILE__, __LINE__, __PRETTY_FUNCTION__, 0)
-#define so2_container_alloc(arg1,arg2,arg3)        _so2_container_alloc_debug((arg1), (arg2), (arg3), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__, 0)
+#        define so2_t_container_alloc(arg1,arg2,arg3,arg4) _so2_container_alloc_debug((arg1), (arg2), (arg3), (arg4),  __FILE__, __LINE__, __PRETTY_FUNCTION__, 0)
+#        define so2_container_alloc(arg1,arg2,arg3)        _so2_container_alloc_debug((arg1), (arg2), (arg3), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__, 0)
 
-#else
+#    else
 
-#define so2_t_container_alloc(arg1,arg2,arg3,arg4) _so2_container_alloc((arg1), (arg2), (arg3))
-#define so2_container_alloc(arg1,arg2,arg3)        _so2_container_alloc((arg1), (arg2), (arg3))
+#        define so2_t_container_alloc(arg1,arg2,arg3,arg4) _so2_container_alloc((arg1), (arg2), (arg3))
+#        define so2_container_alloc(arg1,arg2,arg3)        _so2_container_alloc((arg1), (arg2), (arg3))
 
-#endif
+#    endif
 
-struct so2_container *_so2_container_alloc(const unsigned int n_buckets,
-					   so2_hash_fn *hash_fn, so2_callback_fn *cmp_fn);
-struct so2_container *_so2_container_alloc_debug(const unsigned int n_buckets,
-						 so2_hash_fn *hash_fn, so2_callback_fn *cmp_fn,
-						 char *tag, char *file, int line, const char *funcname,
-						 int ref_debug);
+struct so2_container *_so2_container_alloc(const unsigned int n_buckets, so2_hash_fn * hash_fn, so2_callback_fn * cmp_fn);
+struct so2_container *_so2_container_alloc_debug(const unsigned int n_buckets, so2_hash_fn * hash_fn, so2_callback_fn * cmp_fn, char *tag, char *file, int line, const char *funcname, int ref_debug);
 
 /*! \brief
  * Returns the number of elements in a container.
@@ -751,17 +738,17 @@ int so2_container_count(struct so2_container *c);
  * \note This function automatically increases the reference count to account
  *       for the reference that the container now holds to the object.
  */
-#ifdef REF_DEBUG
+#    ifdef REF_DEBUG
 
-#define so2_t_link(arg1, arg2, arg3) _so2_link_debug((arg1), (arg2), (arg3),  __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define so2_link(arg1, arg2)         _so2_link_debug((arg1), (arg2), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#        define so2_t_link(arg1, arg2, arg3) _so2_link_debug((arg1), (arg2), (arg3),  __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#        define so2_link(arg1, arg2)         _so2_link_debug((arg1), (arg2), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
-#else
+#    else
 
-#define so2_t_link(arg1, arg2, arg3) _so2_link((arg1), (arg2))
-#define so2_link(arg1, arg2)         _so2_link((arg1), (arg2))
+#        define so2_t_link(arg1, arg2, arg3) _so2_link((arg1), (arg2))
+#        define so2_link(arg1, arg2)         _so2_link((arg1), (arg2))
 
-#endif
+#    endif
 
 void *_so2_link_debug(struct so2_container *c, void *new_obj, char *tag, char *file, int line, const char *funcname);
 void *_so2_link(struct so2_container *c, void *newobj);
@@ -782,26 +769,25 @@ void *_so2_link(struct so2_container *c, void *newobj);
  *       reference to the object will be automatically released. (The
  *       refcount will be decremented).
  */
-#ifdef REF_DEBUG
+#    ifdef REF_DEBUG
 
-#define so2_t_unlink(arg1, arg2, arg3) _so2_unlink_debug((arg1), (arg2), (arg3),  __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define so2_unlink(arg1, arg2)         _so2_unlink_debug((arg1), (arg2), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#        define so2_t_unlink(arg1, arg2, arg3) _so2_unlink_debug((arg1), (arg2), (arg3),  __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#        define so2_unlink(arg1, arg2)         _so2_unlink_debug((arg1), (arg2), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
-#else
+#    else
 
-#define so2_t_unlink(arg1, arg2, arg3) _so2_unlink((arg1), (arg2))
-#define so2_unlink(arg1, arg2)         _so2_unlink((arg1), (arg2))
+#        define so2_t_unlink(arg1, arg2, arg3) _so2_unlink((arg1), (arg2))
+#        define so2_unlink(arg1, arg2)         _so2_unlink((arg1), (arg2))
 
-#endif
+#    endif
 
 void *_so2_unlink_debug(struct so2_container *c, void *obj, char *tag, char *file, int line, const char *funcname);
 void *_so2_unlink(struct so2_container *c, void *obj);
 
-
 /*! \brief Used as return value if the flag OBJ_MULTIPLE is set */
 struct so2_list {
 	struct so2_list *next;
-	void *obj;	/* pointer to the user portion of the object */
+	void *obj;								/* pointer to the user portion of the object */
 };
 
 /*@} */
@@ -883,39 +869,35 @@ struct so2_list {
  * \note When the returned object is no longer in use, so2_ref() should
  * be used to free the additional reference possibly created by this function.
  */
-#ifdef REF_DEBUG
+#    ifdef REF_DEBUG
 
-#define so2_t_callback(arg1,arg2,arg3,arg4,arg5) _so2_callback_debug((arg1), (arg2), (arg3), (arg4), (arg5),  __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define so2_callback(arg1,arg2,arg3,arg4)        _so2_callback_debug((arg1), (arg2), (arg3), (arg4), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#        define so2_t_callback(arg1,arg2,arg3,arg4,arg5) _so2_callback_debug((arg1), (arg2), (arg3), (arg4), (arg5),  __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#        define so2_callback(arg1,arg2,arg3,arg4)        _so2_callback_debug((arg1), (arg2), (arg3), (arg4), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
-#else
+#    else
 
-#define so2_t_callback(arg1,arg2,arg3,arg4,arg5) _so2_callback((arg1), (arg2), (arg3), (arg4))
-#define so2_callback(arg1,arg2,arg3,arg4)        _so2_callback((arg1), (arg2), (arg3), (arg4))
+#        define so2_t_callback(arg1,arg2,arg3,arg4,arg5) _so2_callback((arg1), (arg2), (arg3), (arg4))
+#        define so2_callback(arg1,arg2,arg3,arg4)        _so2_callback((arg1), (arg2), (arg3), (arg4))
 
-#endif
+#    endif
 
-void *_so2_callback_debug(struct so2_container *c, enum search_flags flags,
-						  so2_callback_fn *cb_fn, void *arg, char *tag,
-						  char *file, int line, const char *funcname);
-void *_so2_callback(struct so2_container *c,
-				   enum search_flags flags,
-				   so2_callback_fn *cb_fn, void *arg);
+void *_so2_callback_debug(struct so2_container *c, enum search_flags flags, so2_callback_fn * cb_fn, void *arg, char *tag, char *file, int line, const char *funcname);
+void *_so2_callback(struct so2_container *c, enum search_flags flags, so2_callback_fn * cb_fn, void *arg);
 
 /*! so2_find() is a short hand for so2_callback(c, flags, c->cmp_fn, arg)
  * XXX possibly change order of arguments ?
  */
-#ifdef REF_DEBUG
+#    ifdef REF_DEBUG
 
-#define so2_t_find(arg1,arg2,arg3,arg4) _so2_find_debug((arg1), (arg2), (arg3), (arg4),  __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define so2_find(arg1,arg2,arg3)        _so2_find_debug((arg1), (arg2), (arg3), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#        define so2_t_find(arg1,arg2,arg3,arg4) _so2_find_debug((arg1), (arg2), (arg3), (arg4),  __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#        define so2_find(arg1,arg2,arg3)        _so2_find_debug((arg1), (arg2), (arg3), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
-#else
+#    else
 
-#define so2_t_find(arg1,arg2,arg3,arg4) _so2_find((arg1), (arg2), (arg3))
-#define so2_find(arg1,arg2,arg3)        _so2_find((arg1), (arg2), (arg3))
+#        define so2_t_find(arg1,arg2,arg3,arg4) _so2_find((arg1), (arg2), (arg3))
+#        define so2_find(arg1,arg2,arg3)        _so2_find((arg1), (arg2), (arg3))
 
-#endif
+#    endif
 
 void *_so2_find_debug(struct so2_container *c, void *arg, enum search_flags flags, char *tag, char *file, int line, const char *funcname);
 void *_so2_find(struct so2_container *c, void *arg, enum search_flags flags);
@@ -1057,23 +1039,23 @@ struct so2_iterator so2_iterator_init(struct so2_container *c, int flags);
  */
 void so2_iterator_destroy(struct so2_iterator *i);
 
-#ifdef REF_DEBUG
+#    ifdef REF_DEBUG
 
-#define so2_t_iterator_next(arg1, arg2) _so2_iterator_next_debug((arg1), (arg2),  __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define so2_iterator_next(arg1)         _so2_iterator_next_debug((arg1), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#        define so2_t_iterator_next(arg1, arg2) _so2_iterator_next_debug((arg1), (arg2),  __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#        define so2_iterator_next(arg1)         _so2_iterator_next_debug((arg1), "",  __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
-#else
+#    else
 
-#define so2_t_iterator_next(arg1, arg2) _so2_iterator_next((arg1))
-#define so2_iterator_next(arg1)         _so2_iterator_next((arg1))
+#        define so2_t_iterator_next(arg1, arg2) _so2_iterator_next((arg1))
+#        define so2_iterator_next(arg1)         _so2_iterator_next((arg1))
 
-#endif
+#    endif
 
 void *_so2_iterator_next_debug(struct so2_iterator *a, char *tag, char *file, int line, const char *funcname);
 void *_so2_iterator_next(struct so2_iterator *a);
 
 /* extra functions */
-void so2_bt(void);	/* backtrace */
+void so2_bt(void);								/* backtrace */
 int sccpobj2_init(void);
 
 /* QuickFix for missing linkedlist.h entry in versions lower than asterisk 1.6 */
@@ -1090,4 +1072,4 @@ int sccpobj2_init(void);
         } while (0)
 #endif
 */
-#endif /* _ASTERISK_SCCPOBJ2_H */
+#endif										/* _ASTERISK_SCCPOBJ2_H */
