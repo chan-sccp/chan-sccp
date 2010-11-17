@@ -46,8 +46,8 @@ void sccp_line_pre_reload(void)
 {
 	sccp_line_t *l;
 
-	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		/* Don't want to include the hotline line */
 		if (GLOB(hotline)->line != l
 #    ifdef CS_SCCP_REALTIME
@@ -59,7 +59,7 @@ void sccp_line_pre_reload(void)
 		}
 		l->pendingUpdate = 0;
 	}
-	SCCP_LIST_UNLOCK(&GLOB(lines));
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 }
 
 /*!
@@ -82,8 +82,8 @@ void sccp_line_post_reload(void)
 	sccp_line_t *l;
 	sccp_linedevices_t *ld;
 
-	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), l, list) {
+	SCCP_RWLIST_WRLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), l, list) {
 		if (!l->pendingDelete && !l->pendingUpdate)
 			continue;
 
@@ -106,10 +106,10 @@ void sccp_line_post_reload(void)
 			/* the mutex is destroyed by sccp_line_clean(), it has to be
 			 * released before calling it. */
 			sccp_line_clean(l, FALSE);
-			SCCP_LIST_REMOVE_CURRENT(list);
+			SCCP_RWLIST_REMOVE_CURRENT(list);
 		}
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END SCCP_LIST_UNLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE_SAFE_END SCCP_RWLIST_UNLOCK(&GLOB(lines));
 }
 #endif										/* CS_DYNAMIC_CONFIG */
 
@@ -195,9 +195,9 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
 		return NULL;
 	}
 
-	SCCP_LIST_LOCK(&GLOB(lines));
+	SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	/* does the line created by an other thread? */
-	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		if (!strcasecmp(l->name, line->name)) {
 			break;
 		}
@@ -206,13 +206,13 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
 	if (l) {
 		ast_log(LOG_NOTICE, "SCCP: line '%s' was created by an other thread\n", line->name);
 		ast_free(line);
-		SCCP_LIST_UNLOCK(&GLOB(lines));
+		SCCP_RWLIST_UNLOCK(&GLOB(lines));
 		return l;
 	}
 
 	/* line was not created */
-	SCCP_LIST_INSERT_HEAD(&GLOB(lines), line, list);
-	SCCP_LIST_UNLOCK(&GLOB(lines));
+	SCCP_RWLIST_INSERT_HEAD(&GLOB(lines), line, list);
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	sccp_log(1) (VERBOSE_PREFIX_3 "Added line '%s'\n", line->name);
 
 	sccp_event_t *event = ast_malloc(sizeof(sccp_event_t));
@@ -279,14 +279,17 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
 
 	/* remove from the global lines list */
 	if (remove_from_global) {
+		/* get readlock on the lines first, upgrade to wrlock to remove */
+		SCCP_RWLIST_RDLOCK(&GLOB(lines));
 		if (l->list.prev == NULL && l->list.next == NULL && GLOB(lines).first != l) {
 			if (GLOB(lines).size > 1)
 				ast_log(LOG_ERROR, "%s: removing line from global lines list. prev and next pointer ist not set while lines list size is %d\n", l->name, GLOB(lines).size);
 		} else {
-			SCCP_LIST_LOCK(&GLOB(lines));
-			SCCP_LIST_REMOVE(&GLOB(lines), l, list);
-			SCCP_LIST_UNLOCK(&GLOB(lines));
+			SCCP_RWLIST_WRLOCK(&GLOB(lines));
+			SCCP_RWLIST_REMOVE(&GLOB(lines), l, list);
+			SCCP_RWLIST_UNLOCK(&GLOB(lines));
 		}
+		SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	}
 
 	SCCP_LIST_LOCK(&l->devices);

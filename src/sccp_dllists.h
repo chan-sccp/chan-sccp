@@ -31,7 +31,7 @@ struct name {												\
 struct name {												\
 	type *first;											\
 	type *last;											\
-	ast_rwlock_t rwlock;										\
+	ast_rwlock_t lock;										\
 	uint16_t size;											\
 }
 
@@ -50,7 +50,7 @@ struct name {												\
 	(head)->last = (entry);										\
 	if(entry)											\
 		(head)->size = 1;									\
-	ast_rwlock_init(&(head)->rwlock);									\
+	ast_rwlock_init(&(head)->lock);									\
 } while (0)
 
 /* List Item */
@@ -231,7 +231,7 @@ struct {												\
 #    define SCCP_RWLIST_HEAD_INIT(head) {								\
 	(head)->first = NULL;										\
 	(head)->last = NULL;										\
-	ast_rwlock_init(&(head)->rwlock);									\
+	ast_rwlock_init(&(head)->lock);									\
 	(head)->size=0;											\
 }
 
@@ -245,7 +245,7 @@ struct {												\
 #    define SCCP_RWLIST_HEAD_DESTROY(head) {								\
 	(head)->first = NULL;										\
 	(head)->last = NULL;										\
-	ast_rwlock_destroy(&(head)->rwlock);								\
+	ast_rwlock_destroy(&(head)->lock);								\
 	(head)->size=0;											\
 }
 

@@ -198,9 +198,9 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 #endif
 			sccp_log(1) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.RegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
 			d->defaultLineInstance = 1;
-			SCCP_LIST_LOCK(&GLOB(devices));
-			SCCP_LIST_INSERT_HEAD(&GLOB(devices), d, list);
-			SCCP_LIST_UNLOCK(&GLOB(devices));
+			SCCP_RWLIST_WRLOCK(&GLOB(devices));
+			SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), d, list);
+			SCCP_RWLIST_UNLOCK(&GLOB(devices));
 		} else {
 			ast_log(LOG_NOTICE, "%s: Rejecting device: not found\n", r->msg.RegisterMessage.sId.deviceName);
 			sccp_session_reject(s, "Unknown Device");

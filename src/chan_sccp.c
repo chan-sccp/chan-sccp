@@ -747,9 +747,9 @@ void *sccp_create_hotline(void)
 
 	//sccp_copy_string(hotline->mailbox, "hotline", sizeof(hotline->mailbox));
 
-	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_INSERT_HEAD(&GLOB(lines), hotline, list);
-	SCCP_LIST_UNLOCK(&GLOB(lines));
+	SCCP_RWLIST_WRLOCK(&GLOB(lines));
+	SCCP_RWLIST_INSERT_HEAD(&GLOB(lines), hotline, list);
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 	GLOB(hotline)->line = hotline;
 	sccp_copy_string(GLOB(hotline)->exten, "111", sizeof(GLOB(hotline)->exten));
@@ -1640,8 +1640,8 @@ static int load_module(void)
 	ast_mutex_init(&GLOB(usecnt_lock));
 	ast_mutex_init(&GLOB(monitor_lock));
 	SCCP_LIST_HEAD_INIT(&GLOB(sessions));
-	SCCP_LIST_HEAD_INIT(&GLOB(devices));
-	SCCP_LIST_HEAD_INIT(&GLOB(lines));
+	SCCP_RWLIST_HEAD_INIT(&GLOB(devices));
+	SCCP_RWLIST_HEAD_INIT(&GLOB(lines));
 
 	SCCP_LIST_HEAD_INIT(&sccp_event_listeners->subscriber);
 
@@ -1824,14 +1824,14 @@ static int unload_module(void)
 
 	/* removing devices */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Devices\n");
-	SCCP_LIST_LOCK(&GLOB(devices));
+	SCCP_RWLIST_WRLOCK(&GLOB(devices));
 	while ((d = SCCP_LIST_REMOVE_HEAD(&GLOB(devices), list))) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: Removing device %s\n", d->id);
 		sccp_dev_clean(d, TRUE, 0);
 	}
-	SCCP_LIST_UNLOCK(&GLOB(devices));
-	if (SCCP_LIST_EMPTY(&GLOB(devices)))
-		SCCP_LIST_HEAD_DESTROY(&GLOB(devices));
+	if (SCCP_RWLIST_EMPTY(&GLOB(devices)))
+		SCCP_RWLIST_HEAD_DESTROY(&GLOB(devices));
+	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
 	/* hotline will be removed by line removing function */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Hotline\n");
@@ -1840,14 +1840,14 @@ static int unload_module(void)
 
 	/* removing lines */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Lines\n");
-	SCCP_LIST_LOCK(&GLOB(lines));
-	while ((l = SCCP_LIST_REMOVE_HEAD(&GLOB(lines), list))) {
+	SCCP_RWLIST_WRLOCK(&GLOB(lines));
+	while ((l = SCCP_RWLIST_REMOVE_HEAD(&GLOB(lines), list))) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Removing line %s\n", l->name);
 		sccp_line_clean(l, FALSE);
 	}
-	SCCP_LIST_UNLOCK(&GLOB(lines));
-	if (SCCP_LIST_EMPTY(&GLOB(lines)))
-		SCCP_LIST_HEAD_DESTROY(&GLOB(lines));
+	if (SCCP_RWLIST_EMPTY(&GLOB(lines)))
+		SCCP_RWLIST_HEAD_DESTROY(&GLOB(lines));
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 	/* removing sessions */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Sessions\n");

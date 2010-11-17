@@ -717,7 +717,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 #    endif
 		 SCCP_LIST_HEAD(, sccp_channel_t) channels;			/*!< Linked list of current channels for this line */
 		uint8_t channelCount;						/*!< Number of currently active channels */
-		 SCCP_LIST_ENTRY(sccp_line_t) list;				/*!< global list entry */
+		 SCCP_RWLIST_ENTRY(sccp_line_t) list;				/*!< global list entry */
 #    if 0
 		sccp_device_t *device;						/* The device this line is currently registered to. */
 #    endif
@@ -850,14 +850,12 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		sccp_channel_t *conference_channel;				/*!< SCCP Channel which is going to be Conferenced */
 		sccp_line_t *currentLine;					/*!< Current Line */
 		sccp_session_t *session;					/*!< Current Session */
-		/*      SCCP_LIST_ENTRY(sccp_linedevices_t)     linedevicelist; *//* Line-Device Linked List */
-		 SCCP_LIST_ENTRY(sccp_device_t) list;				/*!< Global Device Lined List */
-		//SCCP_LIST_HEAD(,sccp_hint_t)          hints;                                  /*!< list of hint pointers. Internal lines to notify the state */
-		 SCCP_LIST_HEAD(, sccp_buttonconfig_t) buttonconfig;		/*!< SCCP Button Config Attached to this Device */
+		SCCP_RWLIST_ENTRY(sccp_device_t) list;				/*!< Global Device Linked List */
+		SCCP_LIST_HEAD(, sccp_buttonconfig_t) buttonconfig;		/*!< SCCP Button Config Attached to this Device */
 		uint8_t linesCount;						/*!< Number of Lines */
-		 SCCP_LIST_HEAD(, sccp_selectedchannel_t) selectedChannels;	/*!< Selected Channel List */
-		 SCCP_LIST_HEAD(, sccp_addon_t) addons;				/*!< Add-Ons connect to this Device */
-		 SCCP_LIST_HEAD(, sccp_hostname_t) permithosts;			/*!< Permit Registration to the Hostname/IP Address */
+		SCCP_LIST_HEAD(, sccp_selectedchannel_t) selectedChannels;	/*!< Selected Channel List */
+		SCCP_LIST_HEAD(, sccp_addon_t) addons;				/*!< Add-Ons connect to this Device */
+		SCCP_LIST_HEAD(, sccp_hostname_t) permithosts;			/*!< Permit Registration to the Hostname/IP Address */
 
 		pthread_t postregistration_thread;				/*!< Post Registration Thread */
 
@@ -882,7 +880,6 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		unsigned int pendingDelete:1;					/*!< this bit will tell the scheduler to delete this line when unused */
 		unsigned int pendingUpdate:1;					/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 
-		//SCCP_LIST_ENTRY(sccp_device_t)                list;
 #    endif
 
 		boolean_t isAnonymous;						/*!< Device is connected Anonymously (Guest) */
@@ -1043,8 +1040,8 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		ast_mutex_t monitor_lock;					/*!< Monitor Asterisk Lock */// ADDED IN 414 -FS
 
 		 SCCP_LIST_HEAD(, sccp_session_t) sessions;			/*!< SCCP Sessions */
-		 SCCP_LIST_HEAD(, sccp_device_t) devices;			/*!< SCCP Devices */
-		 SCCP_LIST_HEAD(, sccp_line_t) lines;				/*!< SCCP Lines */
+		 SCCP_RWLIST_HEAD(, sccp_device_t) devices;			/*!< SCCP Devices */
+		 SCCP_RWLIST_HEAD(, sccp_line_t) lines;				/*!< SCCP Lines */
 		ast_mutex_t socket_lock;					/*!< Socket Lock */
 		pthread_t socket_thread;					/*!< Socket Thread */// Moved her in v2 SVN 426 -FS
 		int descriptor;							/*!< Descriptor */

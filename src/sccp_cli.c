@@ -68,14 +68,14 @@ static char *sccp_complete_device(const char *line, const char *word, int pos, i
 	if (pos > 3)
 		return NULL;
 
-	SCCP_LIST_LOCK(&GLOB(devices));
-	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		if (!strncasecmp(word, d->id, strlen(word))) {
 			if (++which > state)
 				break;
 		}
 	}
-	SCCP_LIST_UNLOCK(&GLOB(devices));
+	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
 	ret = d ? strdup(d->id) : NULL;
 
@@ -106,14 +106,14 @@ static char *sccp_complete_line(const char *line, const char *word, int pos, int
 	if (pos > 3)
 		return NULL;
 
-	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		if (!strncasecmp(word, l->name, strlen(word))) {
 			if (++which > state)
 				break;
 		}
 	}
-	SCCP_LIST_UNLOCK(&GLOB(lines));
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 	ret = l ? strdup(l->name) : NULL;
 
@@ -345,8 +345,8 @@ static int sccp_show_devices(int fd, int argc, char *argv[])
 	ast_cli(fd, "\n%-40s %-20s %-16s %-10s\n", "NAME", "ADDRESS", "MAC", "Reg. State");
 	ast_cli(fd, "======================================== ==================== ================ ==========\n");
 
-	SCCP_LIST_LOCK(&GLOB(devices));
-	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 #if ASTERISK_VERSION_NUM < 10400
 		ast_cli(fd, "%-40s %-20s %-16s %-10s\n",			// %-10s %-16s %c%c %-10s\n",
 			d->description, (d->session) ? ast_inet_ntoa(iabuf, sizeof(iabuf), d->session->sin.sin_addr) : "--", d->id, deviceregistrationstatus2str(d->registrationState)
@@ -357,7 +357,7 @@ static int sccp_show_devices(int fd, int argc, char *argv[])
 		    );
 #endif
 	}
-	SCCP_LIST_UNLOCK(&GLOB(devices));
+	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 	return RESULT_SUCCESS;
 }
 
@@ -567,8 +567,8 @@ static int sccp_show_lines(int fd, int argc, char *argv[])
 	ast_cli(fd, "\n%-16s %-16s %-6s %-4s %-4s %-16s\n", "NAME", "DEVICE", "SUFFIX", "MWI", "Chs", "Active Channel");
 	ast_cli(fd, "================ ================ ====== ==== ==== =============================================\n");
 
-	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 
 		c = NULL;
 		// \todo handle shared line
@@ -610,7 +610,7 @@ static int sccp_show_lines(int fd, int argc, char *argv[])
 			ast_cli(fd, "%-16s Subscription Id  %-16s %-20s\n", "", l->defaultSubscriptionId.number, l->defaultSubscriptionId.name);
 
 	}
-	SCCP_LIST_UNLOCK(&GLOB(lines));
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 	return RESULT_SUCCESS;
 }
@@ -754,8 +754,8 @@ static int sccp_show_channels(int fd, int argc, char *argv[])
 	ast_cli(fd, "\n%-5s %-10s %-16s %-16s %-16s %-10s %-10s\n", "ID", "LINE", "DEVICE", "AST STATE", "SCCP STATE", "CALLED", "CODEC");
 	ast_cli(fd, "===== ========== ================ ================ ================ ========== ================\n");
 
-	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		sccp_line_lock(l);
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
@@ -764,7 +764,7 @@ static int sccp_show_channels(int fd, int argc, char *argv[])
 		SCCP_LIST_UNLOCK(&l->channels);
 		sccp_line_unlock(l);
 	}
-	SCCP_LIST_UNLOCK(&GLOB(lines));
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	return RESULT_SUCCESS;
 }
 
@@ -858,15 +858,15 @@ static int sccp_message_devices(int fd, int argc, char *argv[])
 		}
 	}
 
-	SCCP_LIST_LOCK(&GLOB(devices));
-	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		sccp_dev_displaynotify(d, argv[3], msgtimeout);
 
 		if (beep) {
 			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
 		}
 	}
-	SCCP_LIST_UNLOCK(&GLOB(devices));
+	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 	return RESULT_SUCCESS;
 }
 

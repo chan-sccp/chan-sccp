@@ -305,13 +305,13 @@ sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime)
 {
 	sccp_device_t *d;
 
-	SCCP_LIST_LOCK(&GLOB(devices));
-	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		if (!strcasecmp(d->id, name)) {
 			break;
 		}
 	}
-	SCCP_LIST_UNLOCK(&GLOB(devices));
+	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
 #ifdef CS_SCCP_REALTIME
 	if (!d && useRealtime)
@@ -380,13 +380,13 @@ sccp_line_t *sccp_line_find_byname_wo(const char *name, uint8_t realtime)
 
 	sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "SCCP: Looking for line '%s'\n", name);
 
-	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		if (!strcasecmp(l->name, name)) {
 			break;
 		}
 	}
-	SCCP_LIST_UNLOCK(&GLOB(lines));
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 #ifdef CS_SCCP_REALTIME
 	if (!l && realtime)
@@ -510,8 +510,8 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t id)
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %u\n", id);
 
-	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Channel %u state: %d\n", c->callid, c->state);
@@ -525,7 +525,7 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t id)
 			break;
 		}
 	}
-	SCCP_LIST_UNLOCK(&GLOB(lines));
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 	return c;
 }
@@ -550,8 +550,8 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t id)
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u\n", id);
 
-	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%u: Found channel partyID: %u state: %d\n", c->callid, c->passthrupartyid, c->state);
@@ -565,7 +565,7 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t id)
 			break;
 		}
 	}
-	SCCP_LIST_UNLOCK(&GLOB(lines));
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 	return c;
 }
@@ -589,8 +589,8 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
 
-	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 			if (c && c->state == state) {
@@ -602,7 +602,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state
 		if (c)
 			break;
 	}
-	SCCP_LIST_UNLOCK(&GLOB(lines));
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 	return c;
 }
@@ -686,8 +686,8 @@ sccp_channel_t *sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t s
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
 
-	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 			if (c->state == state) {
@@ -699,7 +699,7 @@ sccp_channel_t *sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t s
 		if (c)
 			break;
 	}
-	SCCP_LIST_UNLOCK(&GLOB(lines));
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 	return c;
 }
@@ -858,13 +858,13 @@ void sccp_dev_dbclean()
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Looking for '%s' in the devices list\n", key);
 		if ((strlen(key) == 15) && (!strncmp(key, "SEP", 3) || !strncmp(key, "ATA", 3) || !strncmp(key, "VGC", 3) || !strncmp(key, "SKIGW", 5))) {
 
-			SCCP_LIST_LOCK(&GLOB(devices));
-			SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
+			SCCP_RWLIST_RDLOCK(&GLOB(devices));
+			SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 				if (!strcasecmp(d->id, key)) {
 					break;
 				}
 			}
-			SCCP_LIST_UNLOCK(&GLOB(devices));
+			SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
 			if (!d) {
 				ast_db_del("SCCP", key);
@@ -1204,13 +1204,13 @@ sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr)
 {
 	sccp_device_t *d;
 
-	SCCP_LIST_LOCK(&GLOB(devices));
-	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		if (d->session && d->session->sin.sin_addr.s_addr == s_addr) {
 			break;
 		}
 	}
-	SCCP_LIST_UNLOCK(&GLOB(devices));
+	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 	return d;
 }
 

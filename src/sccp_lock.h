@@ -128,11 +128,11 @@ int __sccp_mutex_trylock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, 
 
 	/* Macro for read/write Lists */
 	/* \todo add __sccp_rwlock implementation for debugging in sccp_lock.c */
-#        define SCCP_RWLIST_RDLOCK(x)		ast_rwlock_rdlock(&(x)->rwlock)
-#        define SCCP_RWLIST_WRLOCK(x)		ast_rwlock_wrlock(&(x)->rwlock)
-#        define SCCP_RWLIST_UNLOCK(x)		ast_rwlock_unlock(&(x)->rwlock)
-#        define SCCP_RWLIST_TRYLOCK(x)		ast_rwlock_trylock(&(x)->rwlock)
-#        define SCCP_RWLIST_TRYRDLOCK(x)	ast_rwlock_tryrdlock(&(x)->rwlock)
-#        define SCCP_RWLIST_TRYWRLOCK(x)	ast_rwlock_trywrlock(&(x)->rwlock)
+#        define SCCP_RWLIST_RDLOCK(x)		ast_rwlock_rdlock(&(x)->lock)
+#        define SCCP_RWLIST_WRLOCK(x)		ast_rwlock_wrlock(&(x)->lock)
+#        define SCCP_RWLIST_UNLOCK(x)		ast_rwlock_unlock(&(x)->lock)
+#        define SCCP_RWLIST_TRYLOCK(x)		ast_rwlock_trylock(&(x)->lock)
+#        define SCCP_RWLIST_TRYRDLOCK(x)	ast_rwlock_tryrdlock(&(x)->lock)
+#        define SCCP_RWLIST_TRYWRLOCK(x)	ast_rwlock_trywrlock(&(x)->lock)
 #    endif									// CS_AST_DEBUG_CHANNEL_LOCKS
 #endif										// __SCCP_LOCK_H

@@ -69,8 +69,8 @@ void sccp_device_pre_reload(void)
 	sccp_device_t *d;
 	sccp_buttonconfig_t *config;
 
-	SCCP_LIST_LOCK(&GLOB(devices));
-	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_2 "%s: Setting Device to Pending Delete=1\n", d->id);
 		ast_free_ha(d->ha);
 		d->ha = NULL;
@@ -84,7 +84,7 @@ void sccp_device_pre_reload(void)
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 	}
-	SCCP_LIST_UNLOCK(&GLOB(devices));
+	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 }
 
 /*!
@@ -163,8 +163,8 @@ void sccp_device_post_reload(void)
 {
 	sccp_device_t *d;
 
-	SCCP_LIST_LOCK(&GLOB(devices));
-	SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		if (!d->pendingDelete && !d->pendingUpdate)
 			continue;
 
@@ -174,8 +174,7 @@ void sccp_device_post_reload(void)
 		if (!sccp_device_check_update(d))
 			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", d->id);
 	}
-
-	SCCP_LIST_UNLOCK(&GLOB(devices));
+	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 }
 #endif										/* CS_DYNAMIC_CONFIG */
 
@@ -283,9 +282,9 @@ sccp_device_t *sccp_device_addToGlobals(sccp_device_t * device)
 	if (!device)
 		return NULL;
 
-	SCCP_LIST_LOCK(&GLOB(devices));
-	SCCP_LIST_INSERT_HEAD(&GLOB(devices), device, list);
-	SCCP_LIST_UNLOCK(&GLOB(devices));
+	SCCP_RWLIST_WRLOCK(&GLOB(devices));
+	SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), device, list);
+	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Added device '%s' (%s)\n", device->id, device->config_type);
 	return device;
@@ -1391,8 +1390,8 @@ boolean_t sccp_dev_display_cfwd(sccp_device_t * device, boolean_t force)
 	sccp_linedevices_t *ld = NULL;
 
 	/* List every forwarded lines on the device prompt. */
-	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_TRAVERSE(&GLOB(lines), line, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), line, list) {
 		SCCP_LIST_LOCK(&line->devices);
 		SCCP_LIST_TRAVERSE(&line->devices, ld, list) {
 			if (ld->device == device) {
@@ -1404,10 +1403,10 @@ boolean_t sccp_dev_display_cfwd(sccp_device_t * device, boolean_t force)
 					ast_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, ld->cfwdBusy.number);
 				}
 			}
-			SCCP_LIST_UNLOCK(&line->devices);
 		}
+		SCCP_LIST_UNLOCK(&line->devices);
 	}
-	SCCP_LIST_UNLOCK(&GLOB(lines));
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	/* There isn't any forward on device's lines. */
 	if (s == tmp) {
 		ret = FALSE;
@@ -1619,9 +1618,9 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	sccp_event_fire((const sccp_event_t **)&event);
 
 	if (remove_from_global) {
-		SCCP_LIST_LOCK(&GLOB(devices));
-		SCCP_LIST_REMOVE(&GLOB(devices), d, list);
-		SCCP_LIST_UNLOCK(&GLOB(devices));
+		SCCP_RWLIST_WRLOCK(&GLOB(devices));
+		SCCP_RWLIST_REMOVE(&GLOB(devices), d, list);
+		SCCP_RWLIST_UNLOCK(&GLOB(devices));
 	}
 
 	/* hang up open channels and remove device from line */
