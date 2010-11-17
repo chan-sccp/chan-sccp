@@ -176,15 +176,15 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Asterisk request to call %s\n", l->id, ast->name);
 
 	/* if incoming call limit is reached send BUSY */
-	sccp_mutex_lock(&l->lock);
+	sccp_line_lock(l);
 	if (l->channelCount > l->incominglimit) {				/* >= just to be sure :-) */
 		sccp_log(1) (VERBOSE_PREFIX_3 "Incoming calls limit (%d) reached on SCCP/%s... sending busy\n", l->incominglimit, l->name);
-		sccp_mutex_unlock(&l->lock);
+		sccp_line_unlock(l);
 		ast_setstate(ast, AST_STATE_BUSY);
 		ast_queue_control(ast, AST_CONTROL_BUSY);
 		return 0;
 	}
-	sccp_mutex_unlock(&l->lock);
+	sccp_line_unlock(l);
 
 	/* Set the channel callingParty Name and Number */
 	sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) asterisk cid_num = '%s'\n", (ast->cid.cid_num) ? ast->cid.cid_num : "");
