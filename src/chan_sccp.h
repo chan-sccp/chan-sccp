@@ -712,11 +712,15 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		unsigned int video_tos;						/*!< video stream type_of_service (TOS) (VRTP) */
 		unsigned int audio_cos;						/*!< audio stream class_of_service (COS) (VRTP) */
 		unsigned int video_cos;						/*!< video stream class_of_service (COS) (VRTP) */
-		/* 	sccp_channel_t 				* activeChannel; *//* The currently active channel. */
+#    if 0
+		sccp_channel_t activeChannel;					/* The currently active channel. */
+#    endif
 		 SCCP_LIST_HEAD(, sccp_channel_t) channels;			/*!< Linked list of current channels for this line */
 		uint8_t channelCount;						/*!< Number of currently active channels */
 		 SCCP_LIST_ENTRY(sccp_line_t) list;				/*!< global list entry */
-		/* 	sccp_device_t * 			device;*//* The device this line is currently registered to. */
+#    if 0
+		sccp_device_t *device;						/* The device this line is currently registered to. */
+#    endif
 		 SCCP_LIST_HEAD(, sccp_linedevices_t) devices;			/*!< The device this line is currently registered to. */
 		//uint8_t                               cfwd_type;                              /*!< Call Forward Type (SCCP_CFWD_ALL or SCCP_CFWD_BUSY0 */
 		//char                                  * cfwd_num;                             /*!< call forward Number*/
@@ -846,7 +850,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		sccp_channel_t *conference_channel;				/*!< SCCP Channel which is going to be Conferenced */
 		sccp_line_t *currentLine;					/*!< Current Line */
 		sccp_session_t *session;					/*!< Current Session */
-		/*	SCCP_LIST_ENTRY(sccp_linedevices_t) 	linedevicelist;*//* Line-Device Linked List */
+		/*      SCCP_LIST_ENTRY(sccp_linedevices_t)     linedevicelist; *//* Line-Device Linked List */
 		 SCCP_LIST_ENTRY(sccp_device_t) list;				/*!< Global Device Lined List */
 		//SCCP_LIST_HEAD(,sccp_hint_t)          hints;                                  /*!< list of hint pointers. Internal lines to notify the state */
 		 SCCP_LIST_HEAD(, sccp_buttonconfig_t) buttonconfig;		/*!< SCCP Button Config Attached to this Device */

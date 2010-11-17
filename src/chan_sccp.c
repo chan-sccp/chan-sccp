@@ -211,7 +211,6 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 		c = NULL;
 		goto OUT;
 	}
-
 #if 0
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "Line %s has %d device%s\n", l->name, l->devices.size, (l->devices.size > 1) ? "s" : "");
 	if (l->devices.size < 2) {

@@ -2168,7 +2168,6 @@ boolean_t sccp_channel_start_rtp(sccp_channel_t * c)
 	if (!c->rtp.audio.rtp) {
 		return FALSE;
 	}
-
 #if ASTERISK_VERSION_NUM < 10400
 	if (c->rtp.audio.rtp && c->owner)
 		c->owner->fds[0] = ast_rtp_fd(c->rtp.audio.rtp);

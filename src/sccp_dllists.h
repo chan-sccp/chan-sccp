@@ -69,7 +69,6 @@ struct {												\
 #    define SCCP_LIST_LAST(head)	((head)->last)
 #    define SCCP_RWLIST_LAST SCCP_RWLIST_LAST
 
-
 /* List Next Item */
 #    define SCCP_LIST_NEXT(elm, field)	((elm)->field.next)
 #    define SCCP_RWLIST_NEXT SCCP_RWLIST_NEXT
@@ -100,7 +99,7 @@ struct {												\
 	     __new_prev = (var),									\
 	     __list_next = (var) ? (var)->field.next : NULL						\
 	    )
-#    define SCCP_RWLIST_TRAVERSE_SAFE_BEGIN SCCP_LIST_TRAVERSE_SAFE_BEGIN	    
+#    define SCCP_RWLIST_TRAVERSE_SAFE_BEGIN SCCP_LIST_TRAVERSE_SAFE_BEGIN
 
 /* Current List Item Removal */
 #    define SCCP_LIST_REMOVE_CURRENT(field) do { 							\
@@ -158,7 +157,6 @@ struct {												\
 	(head)->size++;											\
 } while (0)
 #    define SCCP_RWLIST_INSERT_BEFORE SCCP_LIST_INSERT_BEFORE
-
 
 /* List Item Insertion before Current */
 #    define SCCP_LIST_INSERT_BEFORE_CURRENT(elm, field) do {						\

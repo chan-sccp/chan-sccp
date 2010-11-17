@@ -2757,7 +2757,7 @@ typedef union {
 
 	struct {
 		char displayMessage[StationMaxDisplayTextSize];			/*!< Display Message */
-		/*		uint32_t 	lel_displayTimeout;*//*!< Display Timeout */
+		/*              uint32_t        lel_displayTimeout; *//*!< Display Timeout */
 	} DisplayTextMessage;							/*!< Display Text Message */
 
 	struct {
