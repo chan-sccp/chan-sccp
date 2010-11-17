@@ -118,13 +118,13 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 	astman_send_listack(s, m, "Device status list will follow", "start");
 #    endif
 	/* List the peers in separate manager events */
-	SCCP_LIST_LOCK(&GLOB(devices));
-	SCCP_LIST_TRAVERSE(&GLOB(devices), device, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_RWLIST_TRAVERSE(&GLOB(devices), device, list) {
 		astman_append(s, "Devicename: %s\r\n", device->id);
 		total++;
 	}
 
-	SCCP_LIST_UNLOCK(&GLOB(devices));
+	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
 	/* Send final confirmation */
 	astman_append(s, "Event: SCCPListDevicesComplete\r\n" "EventList: Complete\r\n" "ListItems: %d\r\n" "\r\n", total);
@@ -155,15 +155,15 @@ int sccp_manager_show_lines(struct mansession *s, const struct message *m)
 	astman_send_listack(s, m, "Device status list will follow", "start");
 #    endif
 	/* List the peers in separate manager events */
-	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_TRAVERSE(&GLOB(lines), line, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), line, list) {
 		astman_append(s, "Line id: %s\r\n", line->id);
 		astman_append(s, "Line name: %s\r\n", line->name);
 		astman_append(s, "Line description: %s\r\n", line->description);
 		total++;
 	}
 
-	SCCP_LIST_UNLOCK(&GLOB(lines));
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 	/* Send final confirmation */
 	astman_append(s, "Event: SCCPListLinesComplete\r\n" "EventList: Complete\r\n" "ListItems: %d\r\n" "\r\n", total);

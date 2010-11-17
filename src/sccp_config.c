@@ -1265,8 +1265,8 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	sccp_line_t *l;
 	sccp_configurationchange_t res;
 
-	SCCP_LIST_LOCK(&GLOB(lines));
-	SCCP_LIST_TRAVERSE(&GLOB(lines), l, list) {
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		if (l->realtime == TRUE && l != GLOB(hotline)->line) {
 			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%s: reload realtime line\n", l->name);
 			v = ast_load_realtime(GLOB(realtimelinetable), "name", l->name, NULL);
@@ -1285,7 +1285,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			ast_variables_destroy(v);
 		}
 	}
-	SCCP_LIST_UNLOCK(&GLOB(lines));
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	/* finished realtime line reload */
 #endif
 
