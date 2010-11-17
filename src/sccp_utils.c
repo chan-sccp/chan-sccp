@@ -179,6 +179,8 @@ void sccp_addon_addnew(sccp_device_t * d, const char *addon_config_type)
  * \brief Return Number of Buttons on AddOn Device
  * \param d SCCP Device
  * \return taps (Number of Buttons on AddOn Device)
+ * 
+ * \lock	device->addons
  */
 int sccp_addons_taps(sccp_device_t * d)
 {
@@ -288,6 +290,8 @@ sccp_channel_t *get_sccp_channel_from_ast_channel(struct ast_channel * ast_chan)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	devices
  */
 sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime)
 {
@@ -358,6 +362,8 @@ sccp_device_t *sccp_device_find_realtime(const char *name)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	lines
  */
 sccp_line_t *sccp_line_find_byname_wo(const char *name, uint8_t realtime)
 {
@@ -440,6 +446,8 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	device->buttonconfig
  */
 sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 {
@@ -479,6 +487,8 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	lines, line->channels
  */
 sccp_channel_t *sccp_channel_find_byid(uint32_t id)
 {
@@ -515,6 +525,8 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t id)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	lines, line->channels
  */
 sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t id)
 {
@@ -551,6 +563,8 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t id)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	lines, line->channels
  */
 sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state)
 {
@@ -584,6 +598,8 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	device->selectedChannels
  */
 sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * c)
 {
@@ -610,6 +626,8 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp
  * \brief Count Selected Channel on Device
  * \param d SCCP Device
  * \return count Number of Selected Channels
+ * 
+ * \lock	device->selectedChannels
  */
 uint8_t sccp_device_selectedchannels_count(sccp_device_t * d)
 {
@@ -638,6 +656,8 @@ uint8_t sccp_device_selectedchannels_count(sccp_device_t * d)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	lines, line->channels
  */
 sccp_channel_t *sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t state)
 {
@@ -671,6 +691,8 @@ sccp_channel_t *sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t s
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	device, line->channels
  */
 sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t state)
 {
@@ -793,6 +815,8 @@ void sccp_dev_dbget(sccp_device_t * d)
 
 /*!
  * \brief Clean Asterisk Database Entries in the "SCCP" Family
+ * 
+ * \lock	devices
  */
 void sccp_dev_dbclean()
 {
@@ -1144,6 +1168,8 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
  * \brief This is used on device reconnect attempt
  * \param s_addr IP Address as unsigned long
  * \return SCCP Device
+ * 
+ * \lock	devices
  */
 sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr)
 {
@@ -1303,6 +1329,8 @@ sccp_feature_type_t sccp_featureStr2featureID(const char *str)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	device
  */
 void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 {

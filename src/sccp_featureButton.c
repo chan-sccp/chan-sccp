@@ -50,6 +50,8 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  *
  * \param device SCCP Device
  * \param featureType SCCP Feature Type
+ *
+ * \lock	device->buttonconfig
  */
 void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 {

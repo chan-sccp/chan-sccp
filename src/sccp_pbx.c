@@ -121,6 +121,8 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	line->devices
  */
 static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 {
@@ -340,6 +342,8 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	usecnt_lock, channel, line, line->channels, line->devices
  */
 static int sccp_pbx_hangup(struct ast_channel *ast)
 {
@@ -445,6 +449,8 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
  * The Auto Answer thread is started by ref sccp_pbx_needcheckringback if necessary
  *
  * \param d SCCP Device
+ * 
+ * \lock	device->session
  */
 void sccp_pbx_needcheckringback(sccp_device_t * d)
 {
@@ -810,6 +816,8 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	channel
  */
 static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data, size_t datalen)
 {
@@ -1125,6 +1133,8 @@ static int sccp_pbx_sendtext(struct ast_channel *ast, char *text)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	line->devices, channel, line, usecnt_lock
  */
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c)
 {
@@ -1402,6 +1412,8 @@ int sccp_pbx_helper(sccp_channel_t * c)
  * \brief Handle Soft Switch
  * \param c SCCP Channel as sccp_channel_t
  * \todo clarify Soft Switch Function
+ *
+ * \lock	channel
  */
 void *sccp_pbx_softswitch(sccp_channel_t * c)
 {

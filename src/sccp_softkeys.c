@@ -54,6 +54,8 @@ struct softKeySetConfigList softKeySetConfig;					/*!< List of SoftKeySets */
 #ifdef CS_DYNAMIC_CONFIG
 /*!
  * \brief Softkey Pre Reload
+ *
+ * \lock	softKeySetConfig
  */
 void sccp_softkey_pre_reload(void)
 {
@@ -83,6 +85,8 @@ void sccp_softkey_post_reload(void)
  * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
+ *
+ * \lock	channel
  */
 void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
@@ -227,6 +231,8 @@ void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  * \param c SCCP Channel
  *
  * \todo discus Marcello's transfer experiment
+ *
+ * \lock	device->selectedChannels, device->buttonconfig, line->selectedChannels
  */
 void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
@@ -405,6 +411,8 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance
  * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
+ *
+ * \lock	channel
  */
 void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
@@ -473,6 +481,8 @@ void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
+ *
+ * \lock	line->channels, device->selectedChannels, device
  */
 void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
@@ -546,6 +556,8 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
+ *
+ * \lock	device->selectedChannels
  */
 void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
@@ -702,6 +714,8 @@ void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
+ *
+ * \lock	channel
  */
 void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {

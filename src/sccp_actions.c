@@ -135,6 +135,8 @@ void sccp_handle_unknown_message(sccp_session_t * s, sccp_moo_t * r)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock	device, device->permithosts
  */
 void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -302,6 +304,8 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
  * \brief Make Button Template for Device
  * \param d SCCP Device as sccp_device_t
  * \return Linked List of ButtonDefinitions
+ *
+ * \lock	device->buttonconfig
  */
 static btnlist *sccp_make_button_template(sccp_device_t * d)
 {
@@ -513,6 +517,8 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
  *
  * \callgraph
  * \callergraph
+ *
+ * \lock	device, device->buttonconfig
  */
 void sccp_handle_AvailableLines(sccp_device_t * d)
 {
@@ -654,6 +660,8 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_moo_t * r)
  * \brief Handle Button Template Request for Session
  * \param s SCCP Session as sccp_session_t
  * \param r SCCP Message as sccp_moo_t
+ *
+ * \lock	device
  */
 void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -768,6 +776,8 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
  * \brief Handle Line Number for Session
  * \param s SCCP Session as sccp_session_t
  * \param r SCCP Message as sccp_moo_t
+ *
+ * \lock	device, device->buttonconfig
  */
 void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -878,6 +888,8 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_moo_t * r)
  *
  * \callgraph
  * \callergraph
+ *
+ * \lock	channel, device
  */
 void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -1203,6 +1215,8 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
  * \brief Handle SpeedDial for Device
  * \param d SCCP Device as sccp_device_t
  * \param k SCCP SpeedDial as sccp_speed_t
+ *
+ * \lock	channel
  */
 void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
 {
@@ -1436,6 +1450,8 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_moo_t * r)
  * \brief Handle Soft Key Template Request Message for Session
  * \param s SCCP Session as sccp_session_t
  * \param r SCCP Message as sccp_moo_t
+ *
+ * \lock	device
  */
 void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -1737,6 +1753,8 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * r)
  * \brief Handle KeyPad Button for Session
  * \param s SCCP Session as sccp_session_t
  * \param r SCCP Message as sccp_moo_t
+ *
+ * \lock	channel
  */
 void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -2066,6 +2084,8 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
  * \brief Handle Start Media Transmission Acknowledgement for Session
  * \param s SCCP Session as sccp_session_t
  * \param r SCCP Message as sccp_moo_t
+ *
+ * \lock	channel
  */
 void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -2141,6 +2161,8 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
  * \brief Handle Open Multi Media Receive Acknowledgement
  * \param s SCCP Session as sccp_session_t
  * \param r SCCP Message as sccp_moo_t
+ *
+ * \lock	channel
  */
 void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -2288,6 +2310,8 @@ void sccp_handle_ServerResMessage(sccp_session_t * s, sccp_moo_t * r)
  * \brief Handle Config Status Message for Session
  * \param s SCCP Session as sccp_session_t
  * \param r SCCP Message as sccp_moo_t
+ *
+ * \lock	device, device->buttonconfig
  */
 void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -2328,6 +2352,8 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r)
  * \brief Handle Enbloc Call Messsage (Dial in one block, instead of number by number)
  * \param s SCCP Session as sccp_session_t
  * \param r SCCP Message as sccp_moo_t
+ *
+ * \lock	channel
  */
 void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -2406,6 +2432,8 @@ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_moo_t * r)
  * \brief Handle Feature Status Reques for Session
  * \param s SCCP Session as sccp_session_t
  * \param r SCCP Message as sccp_moo_t
+ *
+ * \lock	device
  */
 void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 {
