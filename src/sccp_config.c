@@ -121,7 +121,10 @@ struct ast_config *sccp_config_getConfig(void);
  * \callgraph
  * \callergraph
  * 
- * \lock	device->buttonconfig, globals
+ * \lock
+ * 	- device->buttonconfig
+ * 	  - globals
+ * 	- device->devstateSpecifiers
  */
 void sccp_config_addButton(sccp_device_t * device, int index, button_type_t type, const char *name, const char *options, const char *args)
 {
@@ -255,7 +258,8 @@ void sccp_config_addButton(sccp_device_t * device, int index, button_type_t type
  * \param options  Line Options
  * \param instance Line Instance as uint16
  * 
- * \lock	device->buttonconfig
+ * \lock
+ * 	- device->buttonconfig
  */
 void sccp_config_addLine(sccp_device_t * device, char *lineName, char *options, uint16_t instance)
 {
@@ -299,7 +303,8 @@ void sccp_config_addLine(sccp_device_t * device, char *lineName, char *options, 
  * \param device SCCP Device
  * \param instance Index Preferred Button Position as int
  * 
- * \lock	device->buttonconfig
+ * \lock
+ * 	- device->buttonconfig
  */
 void sccp_config_addEmpty(sccp_device_t * device, uint16_t instance)
 {
@@ -324,7 +329,8 @@ void sccp_config_addEmpty(sccp_device_t * device, uint16_t instance)
  * \param hint Hint as char
  * \param instance Index Preferred Button Position as int
  * 
- * \lock	device->buttonconfig
+ * \lock
+ * 	- device->buttonconfig
  */
 void sccp_config_addSpeeddial(sccp_device_t * device, char *label, char *extension, char *hint, uint16_t instance)
 {
@@ -356,7 +362,9 @@ void sccp_config_addSpeeddial(sccp_device_t * device, char *label, char *extensi
  * \param args Arguments as char
  * \param instance Index Preferred Button Position as int
  * 
- * \lock	device->buttonconfig
+ * \lock
+ * 	- device->devstateSpecifiers
+ * 	- device->buttonconfig
  */
 void sccp_config_addFeature(sccp_device_t * device, char *label, char *featureID, char *args, uint16_t instance)
 {
@@ -414,7 +422,8 @@ void sccp_config_addFeature(sccp_device_t * device, char *label, char *featureID
  * \param url URL as char
  * \param instance Index Preferred Button Position as int
  * 
- * \lock	device->buttonconfig
+ * \lock
+ * 	- device->buttonconfig
  */
 void sccp_config_addService(sccp_device_t * device, char *label, char *url, uint16_t instance)
 {
@@ -453,7 +462,9 @@ void sccp_config_addService(sccp_device_t * device, char *label, char *url, uint
  * \callgraph
  * \callergraph
  * 
- * \lock	device
+ * \lock
+ * 	- devices in sccp_device_find_byid()
+ * 	- device
  */
 sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char *deviceName, boolean_t isRealtime)
 {
@@ -565,7 +576,9 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
  * \callgraph
  * \callergraph
  * 
- * \lock	line
+ * \lock
+ * 	- lines in sccp_line_find_byname_wo()
+ * 	- line
  */
 sccp_line_t *sccp_config_buildLine(struct ast_variable * variable, const char *lineName, boolean_t isRealtime)
 {
@@ -1173,7 +1186,8 @@ void cleanup_stale_contexts(char *new, char *old)
  * \callgraph
  * \callergraph
  * 
- * \lock	lines
+ * \lock
+ * 	- lines
  */
 void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 {
@@ -1300,7 +1314,8 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
  * \callgraph
  * \callergraph
  * 
- * \lock	line->mailboxes
+ * \lock
+ * 	- line->mailboxes
  */
 sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, struct ast_variable *v)
 {
@@ -1574,7 +1589,9 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, s
  * \callgraph
  * \callergraph
  * 
- * \lock	device->addons, device->permithosts
+ * \lock
+ * 	- device->addons
+ * 	- device->permithosts
  */
 sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct ast_variable * v)
 {
@@ -1851,6 +1868,9 @@ struct ast_config *sccp_config_getConfig()
  * \brief Read a SoftKey configuration context
  * \param variable list of configuration variables
  * \param name name of this configuration (context)
+ * 
+ * \warning
+ * 	- softKeySetConfig is not always locked
  *
  * \callgraph
  * \callergraph
@@ -1984,7 +2004,8 @@ int sccp_config_getSoftkeyLbl(char *key)
  * \callgraph
  * \callergraph
  * 
- * \lock	device->devstateSpecifiers
+ * \lock
+ * 	- device->devstateSpecifiers
  */
 void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 {

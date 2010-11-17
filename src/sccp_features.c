@@ -64,7 +64,8 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \callgraph
  * \callergraph
  *
- * \lock	channel
+ * \lock
+ * 	- channel
  */
 sccp_channel_t *sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8_t type)
 {
@@ -211,7 +212,8 @@ sccp_channel_t *sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * de
  * \param d SCCP Device
  * \return SCCP Channel
  *
- * \lock	channel
+ * \lock
+ * 	- channel
  */
 sccp_channel_t *sccp_feat_handle_directpickup(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
 {
@@ -286,7 +288,10 @@ sccp_channel_t *sccp_feat_handle_directpickup(sccp_line_t * l, uint8_t lineInsta
  * \param exten Extension as char
  * \return Success as int
  *
- * \lock	asterisk->channel, device, channel
+ * \lock
+ * 	- asterisk channel
+ * 	  - device
+ * 	  - channel
  */
 int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 {
@@ -443,7 +448,10 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
  * \param d SCCP Device
  * \return Success as int
  *
- * \lock	asterisk->channel, channel, device
+ * \lock
+ * 	- asterisk channel
+ * 	  - channel
+ * 	    - device
  */
 int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 {
@@ -672,7 +680,8 @@ void sccp_feat_updatecid(sccp_channel_t * c)
  * \param d SCCP Device
  * \param lineInstance LineInstance as uint8_t
  *
- * \lock	channel
+ * \lock
+ * 	- channel
  */
 void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 {
@@ -771,7 +780,11 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  *
- * \lock	device, device->selectChannels, device->buttonconfig, line->channels
+ * \lock
+ * 	- device
+ * 	- device->selectedChannels
+ * 	- device->buttonconfig
+ * 	  - line->channels
  */
 void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
 {
@@ -856,7 +869,8 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  *
- * \lock	channel
+ * \lock
+ * 	- channel
  */
 sccp_channel_t *sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
 {
@@ -947,7 +961,8 @@ struct meetmeAppConfig meetmeApps[] = {
  * \param data Data
  * \author Federico Santulli
  *
- * \lock	channel
+ * \lock
+ * 	- channel
  */
 static void *sccp_feat_meetme_thread(void *data)
 {
@@ -1075,7 +1090,8 @@ void sccp_feat_meetme_start(sccp_channel_t * c)
  * \param d SCCP Device
  * \return SCCP Channel
  *
- * \lock	channel
+ * \lock
+ * 	- channel
  */
 sccp_channel_t *sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
 {
@@ -1165,7 +1181,8 @@ int sccp_feat_barge(sccp_channel_t * c, char *exten)
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  *
- * \lock	channel
+ * \lock
+ * 	- channel
  */
 sccp_channel_t *sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
 {
@@ -1255,7 +1272,8 @@ int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum)
  * \param d SCCP Device
  * \param line SCCP Line
  *
- * \lock	channel
+ * \lock
+ * 	- channel
  */
 void sccp_feat_hotline(sccp_device_t * d, sccp_line_t * line)
 {

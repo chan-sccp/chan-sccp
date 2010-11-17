@@ -42,6 +42,9 @@ struct sccp_event_subscriptions *sccp_event_listeners = 0;
  * \brief Subscribe to an Event
  * \param eventType SCCP Event Type
  * \param cb SCCP Event Call Back
+ * 
+ * \warning
+ * 	- sccp_event_listeners->subscriber is not always locked
  */
 void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb)
 {
@@ -66,6 +69,9 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb)
  * \brief Fire an Event
  * \param event SCCP Event
  * \note event will be freed after event is fired
+ * 
+ * \warning
+ * 	- sccp_event_listeners->subscriber is not always locked
  */
 void sccp_event_fire(const sccp_event_t * *event)
 {

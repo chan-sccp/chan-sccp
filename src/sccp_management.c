@@ -100,7 +100,8 @@ int sccp_unregister_management(void)
  * \param m Message 
  * \return Success as int
  * 
- * \lock	devices
+ * \lock
+ * 	- devices
  */
 int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 {
@@ -136,7 +137,8 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
  * \param m Message 
  * \return Success as int
  * 
- * \lock	lines
+ * \lock
+ * 	- lines
  */
 int sccp_manager_show_lines(struct mansession *s, const struct message *m)
 {
@@ -174,7 +176,8 @@ int sccp_manager_show_lines(struct mansession *s, const struct message *m)
  * \param m Message 
  * \return Success as int
  * 
- * \lock	device
+ * \lock
+ * 	- device
  */
 int sccp_manager_restart_device(struct mansession *s, const struct message *m)
 {

@@ -122,6 +122,9 @@ struct ast_channel *sccp_request(const char *type, int format, void *data, int *
  * \param	format	format of data as int
  * \param	data	actual data
  * \return	Asterisk Channel
+ * 
+ * \warning
+ * 	- line->devices is not always locked
  */
 struct ast_channel *sccp_request(char *type, int format, void *data)
 {
@@ -362,6 +365,9 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
  * \brief returns the state of device
  * \param data name of device
  * \return devicestate of AST_DEVICE_*
+ *
+ * \warning
+ * 	- line->devices is not always locked
  */
 int sccp_devicestate(void *data)
 {
@@ -724,7 +730,8 @@ static int load_config(void)
 /*!
  * \brief 	create a hotline
  * 
- * \lock	lines
+ * \lock
+ * 	- lines
  */
 void *sccp_create_hotline(void)
 {
@@ -757,7 +764,8 @@ void *sccp_create_hotline(void)
  * \brief 	start monitoring thread of chan_sccp
  * \param 	data
  * 
- * \lock	monitor_lock
+ * \lock
+ * 	- monitor_lock
  */
 void *sccp_do_monitor(void *data)
 {
@@ -789,7 +797,8 @@ void *sccp_do_monitor(void *data)
  * \brief 	restart the monitoring thread of chan_sccp
  * \return	Success as int
  * 
- * \lock	monitor_lock
+ * \lock
+ * 	- monitor_lock
  */
 int sccp_restart_monitor(void)
 {
@@ -830,7 +839,9 @@ int sccp_restart_monitor(void)
  * \author Diederik de Groot <ddegroot@users.sourceforce.net>
  * \ref nf_sccp_dialplan_sccpdevice
  * 
- * \lock	device, device->buttonconfig
+ * \lock
+ * 	- device
+ * 	  - device->buttonconfig
  */
 #if ASTERISK_VERSION_NUM >= 10600
 static int sccp_func_sccpdevice(struct ast_channel *chan, const char *cmd, char *data, char *buf, size_t len)
@@ -1033,7 +1044,9 @@ static struct ast_custom_function sccpdevice_function = {
  * \author Diederik de Groot <ddegroot@users.sourceforce.net>
  * \ref nf_sccp_dialplan_sccpline
  * 
- * \lock	line, line->devices
+ * \lock
+ * 	- line
+ * 	  - line->devices
  */
 #if ASTERISK_VERSION_NUM >= 10600
 static int sccp_func_sccpline(struct ast_channel *chan, const char *cmd, char *data, char *buf, size_t len)
@@ -1238,7 +1251,8 @@ static struct ast_custom_function sccpline_function = {
  * \author Diederik de Groot <ddegroot@users.sourceforce.net>
  * \ref nf_sccp_dialplan_sccpchannel
  * 
- * \lock	channel
+ * \lock
+ * 	- channel
  */
 #if ASTERISK_VERSION_NUM >= 10600
 static int sccp_func_sccpchannel(struct ast_channel *chan, const char *cmd, char *data, char *buf, size_t len)
@@ -1409,7 +1423,8 @@ static char *calledparty_descr = "Usage: SetCalledParty(\"Name\" <ext>)" "Sets t
  * \param	data message to sent - if empty clear display
  * \version	20071112_1944
  * 
- * \lock	device
+ * \lock
+ * 	- device
  */
 static int sccp_app_setmessage(struct ast_channel *chan, void *data)
 {
@@ -1491,7 +1506,9 @@ static int sccp_unregister_dialplan_functions(void)
  * \param	timeoutms Time Out in Millisecs as int
  * \return 	Asterisk Bridge Result as enum
  * 
- * \lock	asterisk channel0, asterisk channel1
+ * \lock
+ * 	- asterisk channel0
+ * 	- asterisk channel1
  */
 enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo, struct ast_channel **rc, int timeoutms)
 {
@@ -1731,7 +1748,17 @@ int sccp_sched_free(void *ptr)
  * \brief 	Unload the chan_sccp module
  * \return	Success as int
  * 
- * \lock	lines, monitor_lock, devices, lines, socket_lock
+ * \warning
+ * 	- lines is not always locked
+ * 	- line->channels is not always locked
+ *
+ * \lock
+ * 	- lines
+ * 	- monitor_lock
+ * 	- devices
+ * 	- lines
+ * 	- sessions
+ * 	- socket_lock
  */
 int unload_module()
 {
