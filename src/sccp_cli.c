@@ -1335,7 +1335,6 @@ CLI_ENTRY_COMPLETE(cli_restart, sccp_reset_restart, "Restart an SCCP device", re
  * \return Result as int
  * 
  * \lock
- * 	- devices in sccp_device_find_byid()
  * 	- device
  */
 static int sccp_unregister(int fd, int argc, char *argv[])
