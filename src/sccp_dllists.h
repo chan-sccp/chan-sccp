@@ -63,15 +63,15 @@ struct {												\
 
 /* List First Item */
 #    define SCCP_LIST_FIRST(head)	((head)->first)
-#    define SCCP_RWLIST_FIRST SCCP_RWLIST_FIRST
+#    define SCCP_RWLIST_FIRST SCCP_LIST_FIRST
 
 /* List Last Item */
 #    define SCCP_LIST_LAST(head)	((head)->last)
-#    define SCCP_RWLIST_LAST SCCP_RWLIST_LAST
+#    define SCCP_RWLIST_LAST SCCP_LIST_LAST
 
 /* List Next Item */
 #    define SCCP_LIST_NEXT(elm, field)	((elm)->field.next)
-#    define SCCP_RWLIST_NEXT SCCP_RWLIST_NEXT
+#    define SCCP_RWLIST_NEXT SCCP_LIST_NEXT
 
 /* List Prev Item */
 #    define SCCP_LIST_PREV(elm, field)	((elm)->field.prev)
