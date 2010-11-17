@@ -232,7 +232,7 @@ void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  *
  * \todo discus Marcello's transfer experiment
  *
- * \lock	device->selectedChannels, device->buttonconfig, line->selectedChannels
+ * \lock	device->selectedChannels, device->buttonconfig, line->channels
  */
 void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {

@@ -1574,7 +1574,7 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, s
  * \callgraph
  * \callergraph
  * 
- * \lock	device->adons, device->permithosts
+ * \lock	device->addons, device->permithosts
  */
 sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct ast_variable * v)
 {
