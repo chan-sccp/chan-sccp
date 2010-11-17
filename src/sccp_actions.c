@@ -2392,7 +2392,8 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r)
  * \param s SCCP Session as sccp_session_t
  * \param r SCCP Message as sccp_moo_t
  *
- * \lock	channel
+ * \lock
+ * 	- channel
  */
 void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_moo_t * r)
 {
