@@ -438,7 +438,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	s->lastKeepAlive = time(0);						/* always update keepalive */
 
 	/* Check if all necessary information is available */
-	if ((!s->device) && (mid != RegisterMessage && mid != UnregisterMessage && mid != RegisterTokenReq && mid != AlarmMessage && mid != KeepAliveMessage && mid != IpPortMessage)) {
+	if ((!s->device) && (mid != RegisterMessage && mid != RegisterTokenReq && mid != AlarmMessage && mid != KeepAliveMessage && mid != XMLAlarmMessage && mid != IpPortMessage)) {
 		ast_log(LOG_WARNING, "SCCP: Client sent %s without first registering. Attempting reconnect.\n", message2str(mid));
 	} else if (s->device) {
 		if (s->device != sccp_device_find_byipaddress(s->sin.sin_addr.s_addr)) {
@@ -602,6 +602,11 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 		sccp_handle_speed_dial_stat_req(s, r);
 		break;
 	case ExtensionDeviceCaps:
+		if ((GLOB(debug) & DEBUGCAT_MESSAGE) == DEBUGCAT_MESSAGE) {
+			sccp_handle_unknown_message(s, r);
+		}
+		break;
+	case XMLAlarmMessage:
 		if ((GLOB(debug) & DEBUGCAT_MESSAGE) == DEBUGCAT_MESSAGE) {
 			sccp_handle_unknown_message(s, r);
 		}
