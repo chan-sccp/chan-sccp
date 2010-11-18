@@ -1328,7 +1328,8 @@ typedef enum {
 	DialedPhoneBookAckMessage = 0x0152,
 	Unknown_0x0153_Message = 0x0153,
 	StartMediaTransmissionAck = 0x0154,
-	ExtensionDeviceCaps = 0x0159
+	ExtensionDeviceCaps = 0x0159,
+	XMLAlarmMessage = 0x015A
 } sccp_message_t;								/*!< SCCP Message Types Enum */
 
 /*!
@@ -1485,7 +1486,9 @@ static const struct sccp_messagetype {
 	DialedPhoneBookAckMessage, "Dialed PhoneBook Ack Message"}, {
 	Unknown_0x0153_Message, "Undefined 0x0153 Message"}, {
 	StartMediaTransmissionAck, "Start Media Transmission Acknowledge"}, {
-ExtensionDeviceCaps, "Extension Device Capabilities Message"},};
+	ExtensionDeviceCaps, "Extension Device Capabilities Message"}, {
+	XMLAlarmMessage, "XML-AlarmMessage"},
+};
 
 #    define SCCP_ACCESSORY_NONE			0x00				/*!< Added for compatibility with old phones -FS */
 #    define SCCP_ACCESSORY_HEADSET			0x01
@@ -3170,6 +3173,11 @@ typedef union {
 		uint32_t lel_conferenceID;					/*!< Conference ID */
 	} DeleteConferenceReqMessage;						/*!< Delete Conference Request Message Structure */
 
+	/* SCCP Firmware version > 9.1 */
+	struct{
+		char le_data[2004];						/*!< XML Alarm Message Data */
+	} XMLAlarmMessage;							/*!< XML Alarm Message Structure*/
+	
 } sccp_data_t;									/*!< SCCP Data Structure */
 
 /*!

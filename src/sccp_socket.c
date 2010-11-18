@@ -387,8 +387,8 @@ void *sccp_socket_thread(void *ignore)
 		SCCP_LIST_LOCK(&GLOB(sessions));
 		SCCP_LIST_TRAVERSE(&GLOB(sessions), s, list) {
 			keepaliveAdditionalTime = 10;
-			/* we increase additionalTime for wireless devices */
-			if (s->device && (s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925)) {
+			/* we increase additionalTime for wireless/slower devices */
+			if (s->device && (s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 )) {
 				keepaliveAdditionalTime += 20;
 			}
 #ifdef CS_DYNAMIC_CONFIG
