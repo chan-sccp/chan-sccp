@@ -2056,8 +2056,10 @@ sccp_device_t *sccp_clone_device(sccp_device_t * orig_device)
 //      memcpy(new_device->btnTemplate,orig_device->btnTemplate,sizeof(btnlist));
 
 	// char                 *pickupcontext
+#ifdef CS_SCCP_PICKUP
 	if (orig_device->pickupcontext)
 		new_device->pickupcontext = ast_strdup(orig_device->pickupcontext);
+#endif
 
 	// char                 *phonemessage
 	if (orig_device->phonemessage)
