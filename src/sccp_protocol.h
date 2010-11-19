@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_protocol.h
  * \brief 	SCCP Protocol Header
@@ -172,6 +173,7 @@ typedef enum {
 #    define SCCP_CFWD_ALL				1
 #    define SCCP_CFWD_BUSY				2
 #    define SCCP_CFWD_NOANSWER			3
+
 /*!
  * \brief SCCP CallForwardState Structure
  */
@@ -1487,8 +1489,7 @@ static const struct sccp_messagetype {
 	Unknown_0x0153_Message, "Undefined 0x0153 Message"}, {
 	StartMediaTransmissionAck, "Start Media Transmission Acknowledge"}, {
 	ExtensionDeviceCaps, "Extension Device Capabilities Message"}, {
-	XMLAlarmMessage, "XML-AlarmMessage"},
-};
+XMLAlarmMessage, "XML-AlarmMessage"},};
 
 #    define SCCP_ACCESSORY_NONE			0x00				/*!< Added for compatibility with old phones -FS */
 #    define SCCP_ACCESSORY_HEADSET			0x01
@@ -3174,10 +3175,10 @@ typedef union {
 	} DeleteConferenceReqMessage;						/*!< Delete Conference Request Message Structure */
 
 	/* SCCP Firmware version > 9.1 */
-	struct{
+	struct {
 		char le_data[2004];						/*!< XML Alarm Message Data */
-	} XMLAlarmMessage;							/*!< XML Alarm Message Structure*/
-	
+	} XMLAlarmMessage;							/*!< XML Alarm Message Structure */
+
 } sccp_data_t;									/*!< SCCP Data Structure */
 
 /*!
