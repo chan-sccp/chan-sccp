@@ -184,7 +184,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 
 	// Allocate a new SCCP channel.
 	/* on multiline phone we set the line when answering or switching lines */
-	c = sccp_channel_allocate(l, NULL);
+	c = sccp_channel_allocate_locked(l, NULL);
 	if (!c) {
 		SET_CAUSE(AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 		goto OUT;
@@ -205,9 +205,9 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 		//ast_log(LOG_NOTICE, "%s: calling all subscribers\n", l->id);
 	}
 
-	if (!sccp_pbx_channel_allocate(c)) {
+	if (!sccp_pbx_channel_allocate_locked(c)) {
 		SET_CAUSE(AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
-		sccp_channel_delete(c);
+		sccp_channel_destroy_locked(c);
 		c = NULL;
 		goto OUT;
 	}
@@ -285,7 +285,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 
 	c->format = oldformat;
 	c->isCodecFix = TRUE;
-	sccp_channel_updateChannelCapability(c);
+	sccp_channel_updateChannelCapability_locked(c);
 
 	/* we don't need to parse any options when we have a call forward status */
 //      if (c->owner && !ast_strlen_zero(c->owner->call_forward))
@@ -353,9 +353,11 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
  OUT:
 	if (lineName)
 		sccp_free(lineName);
+	if (c)
+		sccp_channel_unlock(c);
 
 	sccp_restart_monitor();
-	return (c && c->owner ? c->owner : NULL);
+	return (c ? c->owner : NULL);
 }
 
 /*!
@@ -394,16 +396,16 @@ int sccp_devicestate(void *data)
 	else if (!l->channelCount)
 		res = AST_DEVICE_NOT_INUSE;
 #ifdef CS_AST_DEVICE_RINGING
-	else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING))
+	else if (sccp_channel_find_bystate_on_line_nolock(l, SCCP_CHANNELSTATE_RINGING))
 #    ifdef CS_AST_DEVICE_RINGINUSE
-		if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))
+		if (sccp_channel_find_bystate_on_line_nolock(l, SCCP_CHANNELSTATE_CONNECTED))
 			res = AST_DEVICE_RINGINUSE;
 		else
 #    endif
 			res = AST_DEVICE_RINGING;
 #endif
 #ifdef CS_AST_DEVICE_ONHOLD
-	else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))
+	else if (sccp_channel_find_bystate_on_line_nolock(l, SCCP_CHANNELSTATE_HOLD))
 		res = AST_DEVICE_ONHOLD;
 #endif
 	else
@@ -1276,23 +1278,17 @@ static int sccp_func_sccpchannel(struct ast_channel *chan, char *cmd, char *data
 		colname = "callid";
 
 	if (!strncasecmp(data, "current", 7)) {
-		if (!(c = get_sccp_channel_from_ast_channel(chan))) {
-/*			ast_log(LOG_WARNING, "SCCPCHANNEL(): Not an SCCP channel\n");*/
-			return -1;
-		}
+		if (!(c = get_sccp_channel_from_ast_channel(chan)))
+			return -1; /* Not a SCCP channel. */
 
-		if (!c) {
-			ast_log(LOG_WARNING, "SCCPCHANNEL(): SCCP Channel not available\n");
-			return -1;
-		}
+		sccp_channel_lock(c);
 	} else {
 		uint32_t callid = atoi(data);
-		if (!(c = sccp_channel_find_byid(callid))) {
+		if (!(c = sccp_channel_find_byid_locked(callid))) {
 			ast_log(LOG_WARNING, "SCCPCHANNEL(): SCCP Channel not available\n");
 			return -1;
 		}
 	}
-	sccp_channel_lock(c);
 
 	if (!strcasecmp(colname, "callid") || !strcasecmp(colname, "id")) {
 		snprintf(buf, len, "%d", c->callid);
@@ -1785,7 +1781,9 @@ static int unload_module(void)
 			if ((c = get_sccp_channel_from_ast_channel(astChannel))) {
 				astChannel->hangupcause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 				astChannel->_softhangup = AST_SOFTHANGUP_APPUNLOAD;
-				sccp_channel_endcall(c);
+				sccp_channel_lock(c);
+				sccp_channel_endcall_locked(c);
+				sccp_channel_unlock(c);
 				ast_safe_sleep(astChannel, 100);
 				openchannels++;
 			}

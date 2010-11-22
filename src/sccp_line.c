@@ -245,7 +245,9 @@ void sccp_line_kill(sccp_line_t * l)
 
 	SCCP_LIST_LOCK(&l->channels);
 	SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-		sccp_channel_endcall(c);
+		sccp_channel_lock(c);
+		sccp_channel_endcall_locked(c);
+		sccp_channel_unlock(c);
 	}
 	SCCP_LIST_UNLOCK(&l->channels);
 }
@@ -609,9 +611,12 @@ void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t * channel)
 
 	sccp_line_lock(l);
 	l->channelCount--;
-	sccp_line_unlock(l);
 
+	SCCP_LIST_LOCK(&l->channels);
 	SCCP_LIST_REMOVE(&l->channels, channel, list);
+	SCCP_LIST_UNLOCK(&l->channels);
+
+	sccp_line_unlock(l);
 }
 
 /*!

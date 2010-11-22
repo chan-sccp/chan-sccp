@@ -311,7 +311,7 @@ int sccp_device_get_codec(struct ast_channel *ast)
 	}
 
 	/* update channel capabilities */
-	sccp_channel_updateChannelCapability(c);
+	sccp_channel_updateChannelCapability_locked(c);
 	ast_set_read_format(ast, c->format);
 	ast_set_write_format(ast, c->format);
 
@@ -1277,11 +1277,12 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: All lines seem to be inactive, SEIZEing selected line %s\n", d->id, wanted->name);
 		sccp_dev_set_activeline(d, wanted);
 
-		chan = sccp_channel_allocate(wanted, d);
+		chan = sccp_channel_allocate_locked(wanted, d);
 		if (!chan) {
 			ast_log(LOG_ERROR, "%s: Failed to allocate SCCP channel.\n", d->id);
 			return;
 		}
+		sccp_channel_unlock(chan);
 	} else if (d->state == SCCP_DEVICESTATE_OFFHOOK) {
 		// If the device is currently onhook, then we need to ...
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Selecing line %s while using line %s\n", d->id, wanted->name, current->name);
@@ -1497,14 +1498,15 @@ int sccp_device_check_ringback(sccp_device_t * d)
 		return 0;
 	}
 	sccp_device_unlock(d);
-	c = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_CALLTRANSFER);
+	c = sccp_channel_find_bystate_on_device_locked(d, SCCP_CHANNELSTATE_CALLTRANSFER);
 	if (!c)
-		c = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_RINGING);
+		c = sccp_channel_find_bystate_on_device_locked(d, SCCP_CHANNELSTATE_RINGING);
 	if (!c)
-		c = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_CALLWAITING);
+		c = sccp_channel_find_bystate_on_device_locked(d, SCCP_CHANNELSTATE_CALLWAITING);
 
 	if (c) {
-		sccp_indicate_lock(d, c, SCCP_CHANNELSTATE_RINGING);
+		sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_RINGING);
+		sccp_channel_unlock(c);
 		return 1;
 	}
 	return 0;
@@ -1631,12 +1633,16 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 			if (!line)
 				continue;
 
+			SCCP_LIST_LOCK(&line->channels);
 			SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
 				if (channel->device == d) {
 					sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channel on line %s device %s\n", line->name, d->id);
-					sccp_channel_endcall(channel);
+					sccp_channel_lock(channel);
+					sccp_channel_endcall_locked(channel);
+					sccp_channel_unlock(channel);
 				}
 			}
+			SCCP_LIST_UNLOCK(&line->channels);
 
 			/* remove devices from line */
 			sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Remove Line %s from device %s\n", line->name, d->id);

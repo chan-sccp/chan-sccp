@@ -33,7 +33,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 /*!
  * \brief Indicate Without Lock
  * \param device SCCP Device
- * \param c SCCP Channel
+ * \param c *locked* SCCP Channel
  * \param state State as uint8_t
  * \param debug Debug as uint8_t
  * \param file File as char
@@ -51,7 +51,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
  * 	- device
  * 	  - see sccp_device_find_index_for_line()
  */
-void __sccp_indicate_nolock(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
+void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
 {
 	sccp_device_t *d;
 	sccp_line_t *l;
@@ -182,7 +182,7 @@ void __sccp_indicate_nolock(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_channel_send_callinfo(d, c);
 		if (!c->rtp.audio.rtp) {
 			if (d->earlyrtp) {
-				sccp_channel_openreceivechannel(c);
+				sccp_channel_openreceivechannel_locked(c);
 			} else {
 				sccp_dev_starttone(c->device, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
 			}
@@ -244,7 +244,7 @@ void __sccp_indicate_nolock(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CONNECTED, 0);
 		// if no rtp or was in old openreceivechannel (note that rtp doens't reinitialize as channel was in hold state or offhook state due to a transfer abort)
 		if (!c->rtp.audio.rtp || c->previousChannelState == SCCP_CHANNELSTATE_HOLD || c->previousChannelState == SCCP_CHANNELSTATE_CALLTRANSFER || c->previousChannelState == SCCP_CHANNELSTATE_CALLCONFERENCE || c->previousChannelState == SCCP_CHANNELSTATE_OFFHOOK) {
-			sccp_channel_openreceivechannel(c);
+			sccp_channel_openreceivechannel_locked(c);
 		} else if (c->rtp.audio.rtp) {
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
 		}
@@ -254,7 +254,7 @@ void __sccp_indicate_nolock(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		if (d->earlyrtp) {
 			sccp_ast_setstate(c, AST_STATE_UP);
 		}
-		sccp_channel_updatemediatype(c);
+		sccp_channel_updatemediatype_locked(c);
 		break;
 	case SCCP_CHANNELSTATE_BUSY:
 		/* it will be emulated if the rtp audio stream is open */
@@ -271,7 +271,7 @@ void __sccp_indicate_nolock(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		} else {
 			sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) from (%s)\n", sccp_indicate2str(c->previousChannelState));
 			if (!c->rtp.audio.rtp && d->earlyrtp) {
-				sccp_channel_openreceivechannel(c);
+				sccp_channel_openreceivechannel_locked(c);
 			}
 			sccp_dev_displayprompt(d, instance, c->callid, "Call Progress", 0);
 		}
@@ -286,11 +286,11 @@ void __sccp_indicate_nolock(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_channel_send_callinfo(d, c);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 		if (!c->rtp.audio.rtp && d->earlyrtp) {
-			sccp_channel_openreceivechannel(c);
+			sccp_channel_openreceivechannel_locked(c);
 		}
 		break;
 	case SCCP_CHANNELSTATE_HOLD:
-		sccp_channel_closereceivechannel(c);
+		sccp_channel_closereceivechannel_locked(c);
 		sccp_handle_time_date_req(d->session, NULL);
 //              sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_WINK);
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
@@ -345,7 +345,7 @@ void __sccp_indicate_nolock(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CONNECTED, 0);
 		// if no rtp or was in old openreceivechannel (note that rtp doens't reinitialize as channel was in hold state or offhook state due to a transfer abort)
 		if (!c->rtp.audio.rtp || c->previousChannelState == SCCP_CHANNELSTATE_HOLD || c->previousChannelState == SCCP_CHANNELSTATE_CALLTRANSFER || c->previousChannelState == SCCP_CHANNELSTATE_CALLCONFERENCE || c->previousChannelState == SCCP_CHANNELSTATE_OFFHOOK) {
-			sccp_channel_openreceivechannel(c);
+			sccp_channel_openreceivechannel_locked(c);
 		} else if (c->rtp.audio.rtp) {
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
 		}
@@ -354,7 +354,7 @@ void __sccp_indicate_nolock(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		 */
 		if (d->earlyrtp)
 			sccp_ast_setstate(c, AST_STATE_UP);
-		sccp_channel_updatemediatype(c);				/*!< Copied from v2 - FS */
+		sccp_channel_updatemediatype_locked(c);				/*!< Copied from v2 - FS */
 
 		break;
 	case SCCP_CHANNELSTATE_CALLPARK:
@@ -372,7 +372,7 @@ void __sccp_indicate_nolock(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	case SCCP_CHANNELSTATE_INVALIDNUMBER:
 		/* this is for the earlyrtp. The 7910 does not play tones if a rtp stream is open */
 		if (c->rtp.audio.rtp)
-			sccp_channel_closereceivechannel(c);
+			sccp_channel_closereceivechannel_locked(c);
 
 		sccp_safe_sleep(100);
 		sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
@@ -392,7 +392,7 @@ void __sccp_indicate_nolock(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_DIGITSFOLL);
 		// sccp_dev_clearprompt(d,l->instance, c->callid);
 		if (d->earlyrtp == SCCP_CHANNELSTATE_DIALING && !c->rtp.audio.rtp) {
-			sccp_channel_openreceivechannel(c);
+			sccp_channel_openreceivechannel_locked(c);
 		}
 		sccp_ast_setstate(c, AST_STATE_DIALING);
 		break;

@@ -954,20 +954,18 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 	case SKINNY_BUTTONTYPE_LASTNUMBERREDIAL:				// We got a Redial Request
 		if (!sccp_is_nonempty_string(d->lastNumber))
 			return;
-		c = sccp_channel_get_active(d);
+		c = sccp_channel_get_active_locked(d);
 		if (c) {
-			sccp_channel_lock(c);
 			if (c->state == SCCP_CHANNELSTATE_OFFHOOK) {
 				sccp_copy_string(c->dialedNumber, d->lastNumber, sizeof(d->lastNumber));
-				sccp_channel_unlock(c);
 				SCCP_SCHED_DEL(sched, c->digittimeout);
-				sccp_pbx_softswitch(c);
+				sccp_pbx_softswitch_locked(c);
 
 				sccp_log(1) (VERBOSE_PREFIX_3 "%s: Redial the number %s\n", d->id, d->lastNumber);
 			} else {
-				sccp_channel_unlock(c);
 				sccp_log(1) (VERBOSE_PREFIX_3 "%s: Redial ignored as call in progress\n", d->id);
 			}
+			sccp_channel_unlock(c);
 		} else {
 			l = d->currentLine;
 			if (l) {
@@ -994,20 +992,22 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		}
 
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Line Key press on line %s\n", d->id, (l) ? l->name : "(nil)");
-		if ((c = sccp_channel_get_active(d))) {
+		if ((c = sccp_channel_get_active_locked(d))) {
 			sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: gotten active channel %d on line %s\n", d->id, c->callid, (l) ? l->name : "(nil)");
 			if (c->state != SCCP_CHANNELSTATE_CONNECTED) {
 				sccp_log(1) (VERBOSE_PREFIX_3 "%s: Call not in progress. Closing line %s\n", d->id, (l) ? l->name : "(nil)");
-				sccp_channel_endcall(c);
+				sccp_channel_endcall_locked(c);
+				sccp_channel_unlock(c);
 				sccp_dev_deactivate_cplane(d);
 				return;
 			} else {
-				if (sccp_channel_hold(c)) {
+				if (sccp_channel_hold_locked(c)) {
 					sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: call (%d) put on hold on line %s\n", d->id, c->callid, l->name);
 				} else {
 					sccp_log(1) (VERBOSE_PREFIX_3 "%s: Hold failed for call (%d), line %s\n", d->id, c->callid, l->name);
 				}
 			}
+			sccp_channel_unlock(c);
 		} else {
 			sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: no activate channel on line %d\n", d->id, instance);
 		}
@@ -1017,14 +1017,17 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			sccp_dev_set_cplane(l, instance, d, 1);
 			sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
 		} else {
-			holdChannel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD);
+			holdChannel = sccp_channel_find_bystate_on_line_locked(l, SCCP_CHANNELSTATE_HOLD);
 			sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Channel count on line %d = %d", d->id, instance, l->channelCount);
-			if (NULL != holdChannel) {
+			if (holdChannel != NULL) {
 				if (l->channelCount == 1) {
+					/* XXX we should  lock the list here. */
 					c = SCCP_LIST_FIRST(&l->channels);
+					sccp_channel_lock(c);
 					sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d", d->id, c->callid, instance);
 					sccp_dev_set_activeline(d, l);
-					sccp_channel_resume(d, c);
+					sccp_channel_resume_locked(d, c);
+					sccp_channel_unlock(c);
 					sccp_dev_set_cplane(l, instance, d, 1);
 				} else {
 					sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Switch to line %d", d->id, instance);
@@ -1032,6 +1035,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 					sccp_dev_set_cplane(l, instance, d, 1);
 				}
 			}
+			sccp_channel_unlock(holdChannel);
 		}
 		break;
 
@@ -1060,13 +1064,18 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			sccp_device_unlock(d);
 		}
 
-		if ((c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))) {
-			sccp_channel_hold(c);
-		} else if ((c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))) {
-			c1 = sccp_channel_get_active(d);
-			if (c1 && c1->state == SCCP_CHANNELSTATE_OFFHOOK)
-				sccp_channel_endcall(c1);
-			sccp_channel_resume(d, c);
+		if ((c = sccp_channel_find_bystate_on_line_locked(l, SCCP_CHANNELSTATE_CONNECTED))) {
+			sccp_channel_hold_locked(c);
+			sccp_channel_unlock(c);
+		} else if ((c = sccp_channel_find_bystate_on_line_locked(l, SCCP_CHANNELSTATE_HOLD))) {
+			c1 = sccp_channel_get_active_locked(d);
+			if (c1) {
+				if(c1->state == SCCP_CHANNELSTATE_OFFHOOK)
+					sccp_channel_endcall_locked(c1);
+				sccp_channel_unlock(c1);
+			}
+			sccp_channel_resume_locked(d, c);
+			sccp_channel_unlock(c);
 		} else {
 			sccp_log(1) (VERBOSE_PREFIX_3 "%s: No call to resume/hold found on line %d\n", d->id, instance);
 		}
@@ -1077,9 +1086,11 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			sccp_log(1) (VERBOSE_PREFIX_3 "%s: Transfer disabled on device\n", d->id);
 			break;
 		}
-		c = sccp_channel_get_active(d);
-		if (c)
-			sccp_channel_transfer(c);
+		c = sccp_channel_get_active_locked(d);
+		if (c) {
+			sccp_channel_transfer_locked(c);
+			sccp_channel_unlock(c);
+		}
 		break;
 
 	case SKINNY_BUTTONTYPE_VOICEMAIL:					// Get a new Line and Dial the Voicemail.
@@ -1174,12 +1185,13 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		break;
 	case SKINNY_BUTTONTYPE_CALLPARK:					// Call parking
 #ifdef CS_SCCP_PARK
-		c = sccp_channel_get_active(d);
+		c = sccp_channel_get_active_locked(d);
 		if (!c) {
 			sccp_log(1) (VERBOSE_PREFIX_3 "%s: Cannot park while no calls in progress\n", d->id);
 			return;
 		}
 		sccp_channel_park(c);
+		sccp_channel_unlock(c);
 #else
 		sccp_log((DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "### Native park was not compiled in\n");
 #endif
@@ -1248,24 +1260,24 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
 		return;
 
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Speeddial Button (%d) pressed, configured number is (%s)\n", d->id, k->instance, k->ext);
-	c = sccp_channel_get_active(d);
+	c = sccp_channel_get_active_locked(d);
 	if (c) {
-		sccp_channel_lock(c);
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: channel state %d\n", DEV_ID_LOG(d), c->state);
 
 		// Channel already in use
 		if ((c->state == SCCP_CHANNELSTATE_DIALING) || (c->state == SCCP_CHANNELSTATE_OFFHOOK)) {
 			len = strlen(c->dialedNumber);
 			sccp_copy_string(c->dialedNumber + len, k->ext, sizeof(c->dialedNumber) - len);
-			sccp_channel_unlock(c);
 			SCCP_SCHED_DEL(sched, c->digittimeout);
-			sccp_pbx_softswitch(c);
+			sccp_pbx_softswitch_locked(c);
+			sccp_channel_unlock(c);
 			return;
 		} else if (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED) {
 			// automatically put on hold
 			sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: automatically put call %d on hold %d\n", DEV_ID_LOG(d), c->callid, c->state);
+			sccp_channel_hold_locked(c);
 			sccp_channel_unlock(c);
-			sccp_channel_hold(c);
+
 			l = d->currentLine;
 			sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND);
 			return;
@@ -1307,8 +1319,9 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r)
 		return;
 	}
 
-	if ((c = sccp_channel_get_active(d))) {
+	if ((c = sccp_channel_get_active_locked(d))) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Taken Offhook with a call (%d) in progess. Skip it!\n", d->id, c->callid);
+		sccp_channel_unlock(c);
 		return;
 	}
 
@@ -1326,12 +1339,13 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r)
 	}
 	/* end line check */
 
-	c = sccp_channel_find_bystate_on_device(d, SKINNY_CALLSTATE_RINGIN);
+	c = sccp_channel_find_bystate_on_device_locked(d, SKINNY_CALLSTATE_RINGIN);
 
 	if (c) {
 		/* Answer the ringing channel. */
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Answer channel\n", d->id);
-		sccp_channel_answer(d, c);
+		sccp_channel_answer_locked(d, c);
+		sccp_channel_unlock(c);
 	} else {
 		/* use default line if it is set */
 		if (d && d->defaultLineInstance > 0) {
@@ -1411,13 +1425,14 @@ void sccp_handle_onhook(sccp_session_t * s, sccp_moo_t * r)
 	/* end line check */
 
 	/* get the active channel */
-	c = sccp_channel_get_active(d);
+	c = sccp_channel_get_active_locked(d);
 
 	if (!c) {
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 		sccp_dev_stoptone(d, 0, 0);
 	} else {
-		sccp_channel_endcall(c);
+		sccp_channel_endcall_locked(c);
+		sccp_channel_unlock(c);
 	}
 
 	return;
@@ -1790,7 +1805,7 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * r)
  * 	- channel
  * 	  - see sccp_device_find_index_for_line()
  * 	  - see sccp_dev_displayprompt()
- * 	  - see sccp_handle_dialtone_nolock()
+ * 	  - see sccp_handle_dialtone_locked()
  */
 void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -1814,22 +1829,20 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 		l = sccp_line_find_byid(s->device, lineInstance);
 
 	if (l && callid)
-		c = sccp_channel_find_byid(callid);
+		c = sccp_channel_find_byid_locked(callid);
 
 	/* Old phones like 7912 never uses callid
 	 * so here we don't have a channel, this way we
 	 * should get the active channel on device
 	 */
 	if (!c) {
-		c = sccp_channel_get_active(d);
+		c = sccp_channel_get_active_locked(d);
 	}
 
 	if (!c) {
 		ast_log(LOG_NOTICE, "Device %s sent a Keypress, but there is no active channel!\n", DEV_ID_LOG(d));
 		return;
 	}
-
-	sccp_channel_lock(c);
 
 	l = c->line;
 	d = c->device;
@@ -1890,25 +1903,35 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 				c->dialedNumber[len] = '\0';
 
 				SCCP_SCHED_DEL(sched, c->digittimeout);
+				/* XXX to prevent keeping the channel locked during waiting, we
+				 * unlock it here. But it's crappy to unlock it to relock it after
+				 * because it can be removed meantime. */
 				sccp_channel_unlock(c);
 				// we would hear last keypad stroke before starting all
 				sccp_safe_sleep(100);
 				// we dial on digit timeout char !
-				sccp_pbx_softswitch(c);
+				sccp_channel_lock(c);
+				sccp_pbx_softswitch_locked(c);
+				sccp_channel_unlock(c);
 				return;
 			}
 			// we dial when helper says it's time to dial !
 			if (sccp_pbx_helper(c)) {
+				/* XXX to prevent keeping the channel locked during waiting, we
+				 * unlock it here. But it's crappy to unlock it to relock it after
+				 * because it can be removed meantime. */
 				sccp_channel_unlock(c);
 				// we would hear last keypad stroke before starting all
 				sccp_safe_sleep(100);
 				// we dialout if helper says it's time to dial
-				sccp_pbx_softswitch(c);
+				sccp_channel_lock(c);
+				sccp_pbx_softswitch_locked(c);
+				sccp_channel_unlock(c);
 				return;
 			}
 		}
 	}
-	sccp_handle_dialtone_nolock(c);
+	sccp_handle_dialtone_locked(c);
 	sccp_channel_unlock(c);
 }
 
@@ -1916,7 +1939,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
  * \brief Handle DialTone Without Lock
  * \param c SCCP Channel as sccp_channel_t
  */
-void sccp_handle_dialtone_nolock(sccp_channel_t * c)
+void sccp_handle_dialtone_locked(sccp_channel_t * c)
 {
 	sccp_line_t *l = NULL;
 	sccp_device_t *d = NULL;
@@ -1952,7 +1975,7 @@ void sccp_handle_dialtone_nolock(sccp_channel_t * c)
 	} else if (len == 1) {
 		if (c->state != SCCP_CHANNELSTATE_DIALING) {
 			sccp_dev_stoptone(d, instance, c->callid);
-			sccp_indicate_nolock(d, c, SCCP_CHANNELSTATE_DIALING);
+			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_DIALING);
 		} else {
 			sccp_dev_stoptone(d, instance, c->callid);
 		}
@@ -2014,7 +2037,12 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 		l = sccp_line_find_byid(s->device, lineInstance);
 
 	if (lineInstance && callid)
-		c = sccp_channel_find_byid(callid);
+		c = sccp_channel_find_byid_locked(callid);
+
+	/* XXX to prevent keeping lock during too long time, unlock it here to let
+	 * sccp_sk_* functions relock it. */
+	if (c)
+		sccp_channel_unlock(c);
 
 	switch (event) {
 	case SKINNY_LBL_REDIAL:
@@ -2164,14 +2192,15 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 		return;
 	}
 
-	c = sccp_channel_find_bypassthrupartyid(partyID);
+	c = sccp_channel_find_bypassthrupartyid_locked(partyID);
 	/* prevent a segmentation fault on fast hangup after answer, failed voicemail for example */
 	if (c) {								// && c->state != SCCP_CHANNELSTATE_DOWN) {
-		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER)
+		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
+			sccp_channel_unlock(c);
 			return;
+		}
 
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
-		sccp_channel_lock(c);
 		memcpy(&c->rtp.audio.addr, &sin, sizeof(sin));
 
 		if (c->rtp.audio.rtp) {
@@ -2187,7 +2216,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 
 		} else {
 			ast_log(LOG_ERROR, "%s: Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, sccp_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
-			sccp_channel_endcall(c);				// FS - 350
+			sccp_channel_endcall_locked(c);				// FS - 350
 		}
 
 		sccp_channel_unlock(c);
@@ -2240,14 +2269,15 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r)
 		return;
 	}
 
-	c = sccp_channel_find_bypassthrupartyid(partyID);
+	c = sccp_channel_find_bypassthrupartyid_locked(partyID);
 	/* prevent a segmentation fault on fast hangup after answer, failed voicemail for example */
 	if (c) {								// && c->state != SCCP_CHANNELSTATE_DOWN) {
-		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER)
+		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
+			sccp_channel_unlock(c);
 			return;
+		}
 
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
-		sccp_channel_lock(c);
 		memcpy(&c->rtp.video.addr, &sin, sizeof(sin));
 		if (c->rtp.video.rtp || sccp_channel_start_vrtp(c)) {
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, sccp_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
@@ -2411,9 +2441,8 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	if (r && sccp_is_nonempty_string(r->msg.EnblocCallMessage.calledParty)) {
-		c = sccp_channel_get_active(d);
+		c = sccp_channel_get_active_locked(d);
 		if (c) {
-			sccp_channel_lock(c);
 			if ((c->state == SCCP_CHANNELSTATE_DIALING) || (c->state == SCCP_CHANNELSTATE_OFFHOOK)) {
 
 				/* for anonymous devices we just want to call the extension defined in hotine->exten -> ignore dialed number -MC */
@@ -2424,9 +2453,9 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_moo_t * r)
 
 				len = strlen(c->dialedNumber);
 				sccp_copy_string(c->dialedNumber + len, r->msg.EnblocCallMessage.calledParty, sizeof(c->dialedNumber) - len);
-				sccp_channel_unlock(c);
 				SCCP_SCHED_DEL(sched, c->digittimeout);
-				sccp_pbx_softswitch(c);
+				sccp_pbx_softswitch_locked(c);
+				sccp_channel_unlock(c);
 				return;
 			}
 			sccp_channel_unlock(c);
@@ -2682,8 +2711,9 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 #ifdef CS_SCCP_FEATURE_MONITOR
 	case SCCP_FEATURE_MONITOR:
 		d->monitorFeature.status = (d->monitorFeature.status) ? 0 : 1;
-		sccp_channel_t *channel = sccp_channel_get_active(d);
+		sccp_channel_t *channel = sccp_channel_get_active_locked(d);
 		sccp_feat_monitor(d, channel);
+		sccp_channel_unlock(channel);
 		break;
 #endif
 
@@ -2810,14 +2840,15 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 	memcpy(&sin.sin_addr, &r->msg.StartMediaTransmissionAck.bel_ipAddr, sizeof(sin.sin_addr));
 	sin.sin_port = ipPort;
 
-	c = sccp_channel_find_bypassthrupartyid(partyID);
+	c = sccp_channel_find_bypassthrupartyid_locked(partyID);
 	if (!c) {
 		ast_log(LOG_WARNING, "%s: Channel with passthrupartyid %u not found, please report this to developer\n", DEV_ID_LOG(d), partyID);
 		return;
 	}
 	if (status) {
 		ast_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call\n", DEV_ID_LOG(d));
-		sccp_channel_endcall(c);
+		sccp_channel_endcall_locked(c);
+		sccp_channel_unlock(c);
 		return;
 	}
 
@@ -2829,4 +2860,6 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, sccp_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), callID, callID1, partyID);
+
+	sccp_channel_unlock(c);
 }

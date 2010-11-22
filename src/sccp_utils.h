@@ -48,11 +48,12 @@ sccp_device_t *sccp_device_find_realtime(const char *name);
 sccp_line_t *sccp_line_find_realtime_byname(const char *name);
 #    endif
 
-sccp_channel_t *sccp_channel_find_byid(uint32_t id);
-sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t id);
-sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state);
-sccp_channel_t *sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t state);
-sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t state);
+sccp_channel_t *sccp_channel_find_byid_locked(uint32_t id);
+sccp_channel_t *sccp_channel_find_bypassthrupartyid_locked(uint32_t id);
+sccp_channel_t *sccp_channel_find_bystate_on_line_nolock(sccp_line_t * l, uint8_t state);
+sccp_channel_t *sccp_channel_find_bystate_on_line_locked(sccp_line_t * l, uint8_t state);
+sccp_channel_t *sccp_channel_find_bycallstate_on_line_locked(sccp_line_t * l, uint8_t state);
+sccp_channel_t *sccp_channel_find_bystate_on_device_locked(sccp_device_t * d, uint8_t state);
 
 void sccp_ast_setstate(sccp_channel_t * c, int state);
 

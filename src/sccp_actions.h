@@ -27,7 +27,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_AvailableLines(sccp_device_t * d);
 void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k);
 void sccp_handle_backspace(sccp_device_t * d, uint8_t line, uint32_t callid);
-void sccp_handle_dialtone_nolock(sccp_channel_t * c);
+void sccp_handle_dialtone_locked(sccp_channel_t * c);
 void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_onhook(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_headset(sccp_session_t * s, sccp_moo_t * r);

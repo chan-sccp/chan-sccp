@@ -18,7 +18,7 @@ sccp_channel_t *sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * de
 
 #    ifdef CS_SCCP_PICKUP
 int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d);
-int sccp_feat_directpickup(sccp_channel_t * c, char *exten);
+int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten);
 sccp_channel_t *sccp_feat_handle_directpickup(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d);
 #    endif
 
