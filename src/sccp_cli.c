@@ -1349,12 +1349,12 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 		return RESULT_SUCCESS;
 	}
 
-	if (d->channelCount > 0) {
-		/* sccp_device_clean will check active channels */
-		/* \todo implement a check for active channels before sending reset */
+	/* sccp_device_clean will check active channels */
+	/* \todo implement a check for active channels before sending reset */
+//	if (d->channelCount > 0) {
 		//ast_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
 		//return RESULT_SUCCESS;
-	}
+//	}
 	sccp_device_unlock(d);
 
 	if (!restart)

@@ -811,7 +811,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		char lastNumber[AST_MAX_EXTENSION];				/*!< Last Dialed Number */
 		int capability;							/*!< Asterisk Codec Capability */
 		uint8_t earlyrtp;						/*!< RTP Channel State where to open the RTP Media Stream */
-		uint8_t channelCount;						/*!< Number of Currently Active Channels */
+//		uint8_t channelCount;						/*!< Number of Currently Active Channels */
 		uint8_t protocolversion;					/*!< Skinny Supported Protocol Version */
 		uint8_t inuseprotocolversion;					/*!< Skinny Used Protocol Version */
 		int keepalive;							/*!< Station Specific Keepalive Timeout */
