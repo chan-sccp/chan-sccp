@@ -1501,40 +1501,17 @@ void sccp_channel_updatemediatype_locked(sccp_channel_t * c)
 	}
 }
 
-/*!
- * \brief Hangup this channel.
- * \param c *locked* SCCP Channel
- *
- * \callgraph
- * \callergraph
- *
- * \lock
- * 	- line->channels
- * 	  - see sccp_channel_endcall()
- */
-void sccp_channel_endcall_locked(sccp_channel_t * c)
+static int _sccp_channel_endcall_callback(const void* data)
 {
+	sccp_channel_t* c = NULL;
+	uint32_t* id = (uint32_t*)data;
 	uint8_t res = 0;
 
-	if (!c || !c->line) {
-		ast_log(LOG_WARNING, "No channel or line or device to hangup\n");
-		return;
-	}
+	c = sccp_channel_find_byid_locked(*id);
+	ast_free(id);
 
-	/* this is a station active endcall or onhook */
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %d on line %s (%s)\n", DEV_ID_LOG(c->device), c->callid, c->line->name, sccp_indicate2str(c->state));
-
-	/* end all call forward channels (our childs) */
-	sccp_channel_t *channel;
-	SCCP_LIST_LOCK(&c->line->channels);
-	SCCP_LIST_TRAVERSE(&c->line->channels, channel, list) {
-		if (channel->parentChannel == c) {
-			sccp_channel_lock(channel);
-			sccp_channel_endcall_locked(channel);
-			sccp_channel_unlock(channel);
-		}
-	}
-	SCCP_LIST_UNLOCK(&c->line->channels);
+	if (!c)
+		return 0;
 
 	/**
 	workaround to fix issue with 7960 and protocol version != 6
@@ -1567,19 +1544,72 @@ void sccp_channel_endcall_locked(sccp_channel_t * c)
 		/* force hangup for invalid dials */
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER || c->state == SCCP_CHANNELSTATE_OFFHOOK) {
 			sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending force hangup request to %s\n", DEV_ID_LOG(c->device), c->owner->name);
+			sccp_channel_unlock(c);
 			ast_hangup(c->owner);
+			return 0;
 		} else {
 			if (res) {
 				c->owner->_softhangup |= AST_SOFTHANGUP_DEV;
 				ast_queue_hangup(c->owner);
 			} else {
+				sccp_channel_unlock(c);
 				ast_hangup(c->owner);
+				return 0;
 			}
 		}
 	} else {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(c->device), c->callid, c->line->name);
 	}
+
+	/* We goes on this point only if the channel hasn't been destroyed, so
+	 * we can safety unlock it. */
+	sccp_channel_unlock(c);
+	return 0;
 }
+
+/*!
+ * \brief Hangup this channel.
+ * \param c *locked* SCCP Channel
+ *
+ * \callgraph
+ * \callergraph
+ *
+ * \lock
+ * 	- line->channels
+ * 	  - see sccp_channel_endcall()
+ */
+void sccp_channel_endcall_locked(sccp_channel_t * c)
+{
+	uint32_t* id;
+
+	if (!c || !c->line) {
+		ast_log(LOG_WARNING, "No channel or line or device to hangup\n");
+		return;
+	}
+
+	/* this is a station active endcall or onhook */
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %d on line %s (%s)\n", DEV_ID_LOG(c->device), c->callid, c->line->name, sccp_indicate2str(c->state));
+
+	/* end all call forward channels (our childs) */
+	sccp_channel_t *channel;
+	SCCP_LIST_LOCK(&c->line->channels);
+	SCCP_LIST_TRAVERSE(&c->line->channels, channel, list) {
+		if (channel->parentChannel == c) {
+			sccp_channel_lock(channel);
+			sccp_channel_endcall_locked(channel);
+			sccp_channel_unlock(channel);
+		}
+	}
+	SCCP_LIST_UNLOCK(&c->line->channels);
+
+	id = ast_malloc(sizeof(uint32_t));
+	*id = c->callid;
+
+	if (sccp_sched_add(sched, 0, _sccp_channel_endcall_callback, id) < 0) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unable to schedule dialing in '%d' ms\n", GLOB(firstdigittimeout));
+	}
+}
+
 
 /*!
  * \brief Allocate a new Outgoing Channel.
@@ -2065,6 +2095,7 @@ void sccp_channel_clean_locked(sccp_channel_t * c)				// we assume channel is lo
 
 	d = c->device;
 	l = c->line;
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "Cleaning channel %08x\n", c->callid);
 
 	/* mark the channel DOWN so any pending thread will terminate */
 	if (c->owner) {
@@ -2120,6 +2151,7 @@ void sccp_channel_destroy_locked(sccp_channel_t * c)
 	if (!c)
 		return;
 
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "Destroying channel %08x\n", c->callid);
 	sccp_line_removeChannel(c->line, c);
 
 	sccp_channel_unlock(c);

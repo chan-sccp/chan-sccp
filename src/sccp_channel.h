@@ -71,4 +71,5 @@ void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevi
 void sccp_channel_park(sccp_channel_t * c);
 #    endif
 
+
 #endif
