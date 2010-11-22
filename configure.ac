@@ -269,6 +269,28 @@ AC_TYPE_INT32_T
 AC_TYPE_INT64_T
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
+
+AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(long long)
+AC_COMPUTE_INT([ac_cv_sizeof_fd_set_fds_bits], [sizeof(foo.fds_bits[[0]])], [$ac_includes_default
+fd_set foo;])
+# This doesn't actually work; what it does is to use the variable set in the
+# previous test as a cached value to set the right output variables.
+AC_CHECK_SIZEOF(fd_set.fds_bits)
+
+# Set a type compatible with the previous.  We cannot just use a generic type
+# for these bits, because on big-endian systems, the bits won't match up
+# correctly if the size is wrong.
+if test $ac_cv_sizeof_int = $ac_cv_sizeof_fd_set_fds_bits; then
+  AC_DEFINE([TYPEOF_FD_SET_FDS_BITS], [int], [Define to a type of the same size as fd_set.fds_bits[[0]]])
+else if test $ac_cv_sizeof_long = $ac_cv_sizeof_fd_set_fds_bits; then
+  AC_DEFINE([TYPEOF_FD_SET_FDS_BITS], [long], [Define to a type of the same size as fd_set.fds_bits[[0]]])
+else if test $ac_cv_sizeof_long_long = $ac_cv_sizeof_fd_set_fds_bits; then
+  AC_DEFINE([TYPEOF_FD_SET_FDS_BITS], [long long], [Define to a type of the same size as fd_set.fds_bits[[0]]])
+fi ; fi ; fi
+
+
 dnl AC_TYPE_UINT16_T 
 dnl AC_TYPE_UINT32_T 
 dnl AC_TYPE_UINT8_T

@@ -79,10 +79,6 @@
 /* building user */
 #undef BUILD_USER
 
-/* Some configure tests will unexpectedly fail if configure is run by a
-   non-root user. These may be able to be tested at runtime. */
-#undef CONFIGURE_RAN_AS_ROOT
-
 /* advanced functions enabled */
 #undef CS_ADV_FEATURES
 
@@ -570,10 +566,6 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define to 1 if your system can support larger than default select bitmasks.
-   */
-#undef HAVE_VARIABLE_FDSET
-
 /* This value is set to 1 to indicate that the system argz facility works */
 #undef HAVE_WORKING_ARGZ
 
@@ -663,9 +655,6 @@
 
 /* Define the SCCP Version */
 #undef SCCP_VERSION
-
-/* The size of `char *', as computed by sizeof. */
-#undef SIZEOF_CHAR_P
 
 /* The size of `fd_set.fds_bits', as computed by sizeof. */
 #undef SIZEOF_FD_SET_FDS_BITS
