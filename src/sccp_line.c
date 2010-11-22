@@ -534,6 +534,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
  * 	- line->devices
  * 	  - see unregister_exten()
  * 	  - line
+ * 	- see sccp_hint_eventListener() via sccp_event_fire()
  */
 void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 {
