@@ -494,7 +494,7 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 /*!
  * \brief Find Line by ID
  * \param id ID as int
- * \return SCCP Channel (can be null)
+ * \return *locked* SCCP Channel (can be null)
  *
  * \callgraph
  * \callergraph
@@ -502,8 +502,9 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
  * \lock
  * 	- lines
  * 	  - line->channels
+ * 	- channel
  */
-sccp_channel_t *sccp_channel_find_byid(uint32_t id)
+sccp_channel_t *sccp_channel_find_byid_locked(uint32_t id)
 {
 	sccp_channel_t *c = NULL;
 	sccp_line_t *l;
@@ -521,11 +522,14 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t id)
 			}
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
-		if (c) {
+
+		if (c)
 			break;
-		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+
+	if (c)
+		sccp_channel_lock(c);
 
 	return c;
 }
@@ -534,7 +538,7 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t id)
  * We need this to start the correct rtp stream.
  * \brief Find Channel by Pass Through Party ID
  * \param id Party ID
- * \return SCCP Channel - cann bee NULL if no channel with this id was found
+ * \return *locked* SCCP Channel - cann bee NULL if no channel with this id was found
  *
  * \callgraph
  * \callergraph
@@ -542,8 +546,9 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t id)
  * \lock
  * 	- lines
  * 	  - line->channels
+ * 	- channel
  */
-sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t id)
+sccp_channel_t *sccp_channel_find_bypassthrupartyid_locked(uint32_t id)
 {
 	sccp_channel_t *c = NULL;
 	sccp_line_t *l;
@@ -567,6 +572,9 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t id)
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
+	if (c)
+		sccp_channel_lock(c);
+
 	return c;
 }
 
@@ -574,7 +582,7 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t id)
  * \brief Find Channel by State on Line
  * \param l SCCP Line
  * \param state State
- * \return SCCP Channel
+ * \return *no locked* SCCP Channel
  *
  * \callgraph
  * \callergraph
@@ -583,7 +591,7 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t id)
  * 	- lines
  * 	  - line->channels
  */
-sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state)
+sccp_channel_t *sccp_channel_find_bystate_on_line_nolock(sccp_line_t * l, uint8_t state)
 {
 	sccp_channel_t *c = NULL;
 
@@ -603,6 +611,47 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state
 			break;
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+
+	return c;
+}
+
+/*!
+ * \brief Find Channel by State on Line
+ * \param l SCCP Line
+ * \param state State
+ * \return *locked* SCCP Channel
+ *
+ * \callgraph
+ * \callergraph
+ * 
+ * \lock
+ * 	- lines
+ * 	  - line->channels
+ * 	- channel
+ */
+sccp_channel_t *sccp_channel_find_bystate_on_line_locked(sccp_line_t * l, uint8_t state)
+{
+	sccp_channel_t *c = NULL;
+
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
+
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
+		SCCP_LIST_LOCK(&l->channels);
+		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
+			if (c && c->state == state) {
+				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(c->device), c->callid);
+				break;
+			}
+		}
+		SCCP_LIST_UNLOCK(&l->channels);
+		if (c)
+			break;
+	}
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+
+	if (c)
+		sccp_channel_lock(c);
 
 	return c;
 }
@@ -671,7 +720,7 @@ uint8_t sccp_device_selectedchannels_count(sccp_device_t * d)
  * \brief Find Channel by CallState on Line
  * \param l SCCP Line
  * \param state State
- * \return SCCP Channel
+ * \return *locked* SCCP Channel
  *
  * \callgraph
  * \callergraph
@@ -679,8 +728,9 @@ uint8_t sccp_device_selectedchannels_count(sccp_device_t * d)
  * \lock
  * 	- lines
  * 	  - line->channels
+ * 	- channel
  */
-sccp_channel_t *sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t state)
+sccp_channel_t *sccp_channel_find_bycallstate_on_line_locked(sccp_line_t * l, uint8_t state)
 {
 	sccp_channel_t *c = NULL;
 
@@ -701,6 +751,9 @@ sccp_channel_t *sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t s
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
+	if (c)
+		sccp_channel_lock(c);
+
 	return c;
 }
 
@@ -708,7 +761,7 @@ sccp_channel_t *sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t s
  * \brief Find Channel by State on Device
  * \param d SCCP Device
  * \param state State as int
- * \return SCCP Channel
+ * \return *locked* SCCP Channel
  *
  * \callgraph
  * \callergraph
@@ -720,8 +773,9 @@ sccp_channel_t *sccp_channel_find_bycallstate_on_line(sccp_line_t * l, uint8_t s
  * 	- device
  * 	  - see sccp_line_find_byname_wo()
  * 	  - line->channels
+ * 	- channel
  */
-sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t state)
+sccp_channel_t *sccp_channel_find_bystate_on_device_locked(sccp_device_t * d, uint8_t state)
 {
 	sccp_channel_t *c = NULL;
 	sccp_line_t *l;
@@ -763,6 +817,9 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t s
 		}
 	}
 	sccp_device_unlock(d);
+
+	if (c)
+		sccp_channel_lock(c);
 
 	return c;
 }

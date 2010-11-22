@@ -136,11 +136,11 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 			/* we have a offhook channel */
 			sccp_channel_lock(c);
 			sccp_copy_string(c->dialedNumber, d->lastNumber, sizeof(c->dialedNumber));
-			sccp_channel_unlock(c);
 			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Get ready to redial number %s\n", d->id, d->lastNumber);
 			// c->digittimeout = time(0)+1;
 			SCCP_SCHED_DEL(sched, c->digittimeout);
-			sccp_pbx_softswitch(c);
+			sccp_pbx_softswitch_locked(c);
+			sccp_channel_unlock(c);
 		}
 		/* here's a KEYMODE error. nothing to do */
 		return;
@@ -203,7 +203,9 @@ void sccp_sk_hold(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstanc
 		sccp_dev_displayprompt(d, 0, 0, "No call to put on hold.", 5);
 		return;
 	}
-	sccp_channel_hold(c);
+	sccp_channel_lock(c);
+	sccp_channel_hold_locked(c);
+	sccp_channel_unlock(c);
 }
 
 /*!
@@ -221,7 +223,9 @@ void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: No call to resume. Ignoring\n", d->id);
 		return;
 	}
-	sccp_channel_resume(d, c);
+	sccp_channel_lock(c);
+	sccp_channel_resume_locked(d, c);
+	sccp_channel_unlock(c);
 }
 
 /*!
@@ -334,7 +338,9 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 	}
 #endif
-	sccp_channel_transfer(c);
+	sccp_channel_lock(c);
+	sccp_channel_transfer_locked(c);
+	sccp_channel_unlock(c);
 }
 
 /*!
@@ -352,7 +358,9 @@ void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Endcall with no call in progress\n", d->id);
 		return;
 	}
-	sccp_channel_endcall(c);
+	sccp_channel_lock(c);
+	sccp_channel_endcall_locked(c);
+	sccp_channel_unlock(c);
 }
 
 /*!
@@ -462,7 +470,7 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIn
 		}
 	}
 	// sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: backspacing dial number %s\n", c->device->id, c->dialedNumber);
-	sccp_handle_dialtone_nolock(c);
+	sccp_handle_dialtone_locked(c);
 	sccp_channel_unlock(c);
 
 	sccp_handle_backspace(d, lineInstance, c->callid);
@@ -479,7 +487,9 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIn
 void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Answer Pressed, instance: %d\n", DEV_ID_LOG(d), lineInstance);
-	sccp_channel_answer(d, c);
+	sccp_channel_lock(c);
+	sccp_channel_answer_locked(d, c);
+	sccp_channel_unlock(c);
 }
 
 /*!
@@ -549,7 +559,9 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		} else if (chan1->state == SCCP_CHANNELSTATE_HOLD && chan2->state == SCCP_CHANNELSTATE_HOLD) {
 			//resume chan2 if both channels are on hold
 			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: (sccp_sk_dirtrfr) Resuming Second Channel (%d)\n", DEV_ID_LOG(d), chan2->state);
-			sccp_channel_resume(d, chan2);
+			sccp_channel_lock(chan2);
+			sccp_channel_resume_locked(d, chan2);
+			sccp_channel_unlock(chan2);
 			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: (sccp_sk_dirtrfr) Resumed Second Channel (%d)\n", DEV_ID_LOG(d), chan2->state);
 		}
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: (sccp_sk_dirtrfr) First Channel Status (%d), Second Channel Status (%d)\n", DEV_ID_LOG(d), chan1->state, chan2->state);

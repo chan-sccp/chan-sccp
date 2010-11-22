@@ -26,10 +26,10 @@
 extern struct ast_rtp_protocol sccp_rtp;					/*!< rtp definition, see sccp_pbx.c */
 #    endif									// ASTERISK_VERSION_NUM >= 10400
 
-uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c);
+uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c);
 int sccp_pbx_sched_dial(const void *data);
 int sccp_pbx_helper(sccp_channel_t * c);
-void *sccp_pbx_softswitch(sccp_channel_t * c);
+void *sccp_pbx_softswitch_locked(sccp_channel_t * c);
 void start_rtp(sccp_channel_t * sub);
 
 #    ifdef CS_AST_HAS_TECH_PVT

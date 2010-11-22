@@ -18,9 +18,10 @@
 
 #    include "config.h"
 
-sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device);
-sccp_channel_t *sccp_channel_get_active(sccp_device_t * d);
-void sccp_channel_updateChannelCapability(sccp_channel_t * channel);
+sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * device);
+sccp_channel_t *sccp_channel_get_active_locked(sccp_device_t * d);
+sccp_channel_t *sccp_channel_get_active_nolock(sccp_device_t * d);
+void sccp_channel_updateChannelCapability_locked(sccp_channel_t * channel);
 void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * c);
 void sccp_channel_send_callinfo(sccp_device_t * device, sccp_channel_t * c);
 void sccp_channel_send_dialednumber(sccp_channel_t * c);
@@ -43,34 +44,31 @@ enum ast_rtp_get_result sccp_channel_get_vrtp_peer(struct ast_channel *ast, stru
 #    else
 enum ast_rtp_glue_result sccp_channel_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp_instance **rtp);
 #    endif
-void sccp_channel_openreceivechannel(sccp_channel_t * c);
+void sccp_channel_openreceivechannel_locked(sccp_channel_t * c);
 void sccp_channel_startmediatransmission(sccp_channel_t * c);
-void sccp_channel_closereceivechannel(sccp_channel_t * c);
-void sccp_channel_stopmediatransmission(sccp_channel_t * c);
+void sccp_channel_closereceivechannel_locked(sccp_channel_t * c);
+void sccp_channel_stopmediatransmission_locked(sccp_channel_t * c);
 void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel);
 void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel);
-void sccp_channel_updatemediatype(sccp_channel_t * c);
-void sccp_channel_endcall(sccp_channel_t * c);
+void sccp_channel_updatemediatype_locked(sccp_channel_t * c);
+void sccp_channel_endcall_locked(sccp_channel_t * c);
 void sccp_channel_StatisticsRequest(sccp_channel_t * c);
-sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, char *dial, uint8_t calltype);
-void sccp_channel_answer(sccp_device_t * d, sccp_channel_t * c);
-void sccp_channel_delete_wo(sccp_channel_t * c, uint8_t list_lock, uint8_t channel_lock);
-#    define sccp_channel_delete(x) sccp_channel_delete_wo(x, 1, 1)
-#    define sccp_channel_delete_no_lock(x) sccp_channel_delete_wo(x, 0, 1)
-void sccp_channel_cleanbeforedelete(sccp_channel_t * c);
-int sccp_channel_hold(sccp_channel_t * c);
-int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * c);
-boolean_t sccp_channel_start_rtp(sccp_channel_t * c);
+sccp_channel_t *sccp_channel_newcall_locked(sccp_line_t * l, sccp_device_t * device, char *dial, uint8_t calltype);
+boolean_t sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, char *dial, uint8_t calltype);
+void sccp_channel_answer_locked(sccp_device_t * d, sccp_channel_t * c);
+void sccp_channel_destroy_locked(sccp_channel_t * c);
+void sccp_channel_clean_locked(sccp_channel_t * c);
+int sccp_channel_hold_locked(sccp_channel_t * c);
+int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c);
+boolean_t sccp_channel_start_rtp_locked(sccp_channel_t * c);
 boolean_t sccp_channel_start_vrtp(sccp_channel_t * c);
 void sccp_channel_stop_rtp(sccp_channel_t * c);
 void sccp_channel_destroy_rtp(sccp_channel_t * c);
-void sccp_channel_transfer(sccp_channel_t * c);
+void sccp_channel_transfer_locked(sccp_channel_t * c);
 void sccp_channel_transfer_complete(sccp_channel_t * c);
 void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevice, char *fwdNumber);
 #    ifdef CS_SCCP_PARK
 void sccp_channel_park(sccp_channel_t * c);
 #    endif
-
-void sccp_channel_transfer2(sccp_channel_t * cSourceLocal, sccp_channel_t * cDestinationLocal);
 
 #endif
