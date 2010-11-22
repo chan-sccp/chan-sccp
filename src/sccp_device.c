@@ -294,6 +294,8 @@ sccp_device_t *sccp_device_addToGlobals(sccp_device_t * device)
  * \brief Get Codec for Device
  * \param ast Asterisk Channel
  * \return CodecCapability as int
+ * 
+ * \called_from_asterisk
  */
 int sccp_device_get_codec(struct ast_channel *ast)
 {
@@ -1714,6 +1716,8 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
  *
  * \callgraph
  * \callergraph
+ * 
+ * \called_from_asterisk
  * 
  * \lock
  * 	- device

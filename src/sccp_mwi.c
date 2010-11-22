@@ -158,6 +158,8 @@ void sccp_mwi_event(const struct ast_event *event, void *data)
  * \warning
  * 	- line->devices is not always locked
  * 
+ * \called_from_asterisk
+ * 
  * \lock
  * 	- subscription->sccp_mailboxLine
  * 	  - line
