@@ -544,8 +544,8 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
  * \param device SCCP Device
  * \return SCCP Session
  * 
- * \warning
- * 	- sessions is not always locked
+ * \lock
+ * 	- sessions
  */
 sccp_session_t *sccp_session_find(const sccp_device_t * device)
 {
@@ -553,10 +553,12 @@ sccp_session_t *sccp_session_find(const sccp_device_t * device)
 	if (!device)
 		return NULL;
 
+	SCCP_LIST_LOCK(&GLOB(sessions));
 	SCCP_LIST_TRAVERSE(&GLOB(sessions), session, list) {
 		if (session->device && session->device == device)
 			break;
 	}
+	SCCP_LIST_UNLOCK(&GLOB(sessions));
 	return session;
 }
 
