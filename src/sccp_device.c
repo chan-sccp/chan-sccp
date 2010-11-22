@@ -1518,6 +1518,9 @@ int sccp_device_check_ringback(sccp_device_t * d)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \lock
+ * 	-see sccp_hint_eventListener() via sccp_event_fire()
  */
 void *sccp_dev_postregistration(void *data)
 {
