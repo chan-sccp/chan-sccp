@@ -124,6 +124,8 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
  * \callgraph
  * \callergraph
  * 
+ * \called_from_asterisk
+ * 
  * \lock
  * 	- line->devices
  * 	- line
@@ -361,6 +363,8 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
  * \callgraph
  * \callergraph
  * 
+ * \called_from_asterisk
+ * 
  * \lock
  * 	- usecnt_lock
  * 	- channel
@@ -511,6 +515,8 @@ void sccp_pbx_needcheckringback(sccp_device_t * d)
  *
  * \callgraph
  * \callergraph
+ *
+ * \called_from_asterisk
  */
 static int sccp_pbx_answer(struct ast_channel *ast)
 {
@@ -630,6 +636,8 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 /*!
  * \brief Read from an Asterisk Channel
  * \param ast Asterisk Channel as ast_channel
+ * 
+ * \called_from_asterisk
  */
 static struct ast_frame *sccp_pbx_read(struct ast_channel *ast)
 {
@@ -715,6 +723,8 @@ static struct ast_frame *sccp_pbx_read(struct ast_channel *ast)
  * \brief Write to an Asterisk Channel
  * \param ast Channel as ast_channel
  * \param frame Frame as ast_frame
+ * 
+ * \called_from_asterisk
  */
 static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame)
 {
@@ -856,6 +866,8 @@ static char *sccp_control2str(int state)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \called_from_asterisk
  */
 static int sccp_pbx_indicate(struct ast_channel *ast, int ind)
 #else
@@ -869,6 +881,8 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind)
  *
  * \callgraph
  * \callergraph
+ * 
+ * \called_from_asterisk
  * 
  * \lock
  * 	- channel
@@ -1040,6 +1054,8 @@ static void sccp_pbx_update_connectedline(sccp_channel_t * channel, const void *
  * \param oldchan Asterisk Channel as ast_channel
  * \param newchan Asterisk Channel as ast_channel
  * \return Success as int
+ * 
+ * \called_from_asterisk
  */
 static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newchan)
 {
@@ -1063,6 +1079,8 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
  * \param ast Asterisk Channel as ast_channel
  * \param digit First Digit as char
  * \return Always Return -1 as int
+ * 
+ * \called_from_asterisk
  */
 static int sccp_pbx_recvdigit_begin(struct ast_channel *ast, char digit)
 {
@@ -1077,6 +1095,8 @@ static int sccp_pbx_recvdigit_begin(struct ast_channel *ast, char digit)
  * \param digit Last Digit as char
  * \return Always Return -1 as int
  * \todo FIXME Always returns -1
+ * 
+ * \called_from_asterisk
  */
 static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit)
 #else
@@ -1087,6 +1107,8 @@ static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit)
  * \param duration Duration as int
  * \return Always Return -1 as int
  * \todo FIXME Always returns -1
+ * 
+ * \called_from_asterisk
  */
 static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit, unsigned int duration)
 #endif										// ASTERISK_VERSION_NUM < 10400
@@ -1138,6 +1160,8 @@ static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit, unsigned 
  * \param ast Asterisk Channel as ast_channel
  * \param text Text to be send as char
  * \return Succes as int
+ * 
+ * \called_from_asterisk
  */
 static int sccp_pbx_sendtext(struct ast_channel *ast, const char *text)
 #else
@@ -1146,6 +1170,8 @@ static int sccp_pbx_sendtext(struct ast_channel *ast, const char *text)
  * \param ast Asterisk Channel as ast_channel
  * \param text Text to be send as char
  * \return Succes as int
+ * 
+ * \called_from_asterisk
  */
 static int sccp_pbx_sendtext(struct ast_channel *ast, char *text)
 #endif										// CS_AST_HAS_TECH_PVT
@@ -1405,6 +1431,8 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
  * \brief Schedule Asterisk Dial
  * \param data Data as constant
  * \return Success as int
+ * 
+ * \called_from_asterisk
  */
 int sccp_pbx_sched_dial(const void *data)
 {
@@ -1913,6 +1941,8 @@ const struct ast_channel_tech sccp_tech = {
  *
  * \test Dialplan Transfer Needs to be tested
  * \todo pbx_transfer needs to be implemented correctly
+ * 
+ * \called_from_asterisk
  */
 int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
 {
@@ -1954,6 +1984,8 @@ int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
  * \param buflen 	bufferlenght as size_t
  * \return result as int
  *
+ * \called_from_asterisk
+ * 
  * \test ACF Channel Read Needs to be tested
  */
 #if ASTERISK_VERSION_NUM >= 10600

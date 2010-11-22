@@ -100,6 +100,8 @@ int sccp_unregister_management(void)
  * \param m Message 
  * \return Success as int
  * 
+ * \called_from_asterisk
+ * 
  * \lock
  * 	- devices
  */
@@ -136,6 +138,8 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
  * \param s Management Session
  * \param m Message 
  * \return Success as int
+ * 
+ * \called_from_asterisk
  * 
  * \lock
  * 	- lines
@@ -175,6 +179,8 @@ int sccp_manager_show_lines(struct mansession *s, const struct message *m)
  * \param s Management Session
  * \param m Message 
  * \return Success as int
+ * 
+ * \called_from_asterisk
  */
 int sccp_manager_restart_device(struct mansession *s, const struct message *m)
 {
@@ -224,6 +230,8 @@ int sccp_manager_restart_device(struct mansession *s, const struct message *m)
  * \param s Management Session
  * \param m Message 
  * \return Success as int
+ * 
+ * \called_from_asterisk
  */
 static int sccp_manager_device_add_line(struct mansession *s, const struct message *m)
 {
@@ -276,6 +284,8 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
  * \param m Message 
  * \return Success as int
  * // \todo TODO This function does not do anything. Has the implementation of this function moved somewhere else ?
+ * 
+ * \called_from_asterisk
  */
 int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 {
@@ -356,6 +366,8 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
  * \param s Management Session
  * \param m Message 
  * \return Success as int
+ * 
+ * \called_from_asterisk
  */
 static int sccp_manager_device_update(struct mansession *s, const struct message *m)
 {

@@ -112,6 +112,8 @@ struct io_context *io = 0;
  * \param	data	actual data
  * \param 	cause	Cause of the request
  * \return	Asterisk Channel
+ * 
+ * \called_from_asterisk
  */
 struct ast_channel *sccp_request(const char *type, int format, void *data, int *cause)
 #else
@@ -121,6 +123,8 @@ struct ast_channel *sccp_request(const char *type, int format, void *data, int *
  * \param	format	format of data as int
  * \param	data	actual data
  * \return	Asterisk Channel
+ * 
+ * \called_from_asterisk
  * 
  * \warning
  * 	- line->devices is not always locked
@@ -366,6 +370,8 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
  * \param data name of device
  * \return devicestate of AST_DEVICE_*
  *
+ * \called_from_asterisk
+ * 
  * \warning
  * 	- line->devices is not always locked
  */
@@ -844,6 +850,8 @@ int sccp_restart_monitor(void)
  * \author Diederik de Groot <ddegroot@users.sourceforce.net>
  * \ref nf_sccp_dialplan_sccpdevice
  * 
+ * \called_from_asterisk
+ * 
  * \lock
  * 	- device
  * 	  - device->buttonconfig
@@ -1048,6 +1056,8 @@ static struct ast_custom_function sccpdevice_function = {
  *
  * \author Diederik de Groot <ddegroot@users.sourceforce.net>
  * \ref nf_sccp_dialplan_sccpline
+ * 
+ * \called_from_asterisk
  * 
  * \lock
  * 	- line
@@ -1256,6 +1266,8 @@ static struct ast_custom_function sccpline_function = {
  * \author Diederik de Groot <ddegroot@users.sourceforce.net>
  * \ref nf_sccp_dialplan_sccpchannel
  * 
+ * \called_from_asterisk
+ * 
  * \lock
  * 	- channel
  */
@@ -1389,6 +1401,8 @@ static struct ast_custom_function sccpchannel_function = {
  * \param 	chan Asterisk Channel
  * \param 	data CallerId in format "Name" \<number\>
  * \return	Success as int
+ * 
+ * \called_from_asterisk
  */
 static int sccp_app_calledparty(struct ast_channel *chan, void *data)
 {
@@ -1421,6 +1435,8 @@ static char *calledparty_descr = "Usage: SetCalledParty(\"Name\" <ext>)" "Sets t
  * \param	chan asterisk channel
  * \param	data message to sent - if empty clear display
  * \version	20071112_1944
+ * 
+ * \called_from_asterisk
  * 
  * \lock
  * 	- device

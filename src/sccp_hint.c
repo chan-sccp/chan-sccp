@@ -270,6 +270,8 @@ void sccp_hint_deviceUnRegistered(const sccp_device_t * device)
  * \param exten Extension as char
  * \param state Asterisk Extension State
  * \param data Asterisk Data
+ * 
+ * \called_from_asterisk
  */
 int sccp_hint_state(char *context, char *exten, enum ast_extension_states state, void *data)
 {

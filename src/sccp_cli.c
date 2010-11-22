@@ -51,6 +51,8 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \param pos Pos as int
  * \param state State as int
  * \return Result as char
+ * 
+ * \called_from_asterisk
  *
  * \lock
  * 	- devices
@@ -90,6 +92,8 @@ static char *sccp_complete_device(const char *line, const char *word, int pos, i
  * \param state State as int
  * \return Result as char
  * 
+ * \called_from_asterisk
+ * 
  * \lock
  * 	- lines
  */
@@ -128,6 +132,8 @@ static char *sccp_complete_line(const char *line, const char *word, int pos, int
  * \param pos Pos as int
  * \param state State as int
  * \return Result as char
+ * 
+ * \called_from_asterisk
  */
 static char *sccp_complete_debug(char *line, char *word, int pos, int state)
 #else
@@ -222,6 +228,8 @@ static char *sccp_print_group(char *buf, int buflen, ast_group_t group)
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \called_from_asterisk
  * 
  * \lock
  * 	- globals
@@ -332,6 +340,8 @@ CLI_ENTRY(cli_show_globals, sccp_show_globals, "List defined SCCP global setting
  * \param argv[] Argv[] as char
  * \return Result as int
  * 
+ * \called_from_asterisk
+ * 
  * \lock
  * 	- devices
  */
@@ -373,6 +383,8 @@ CLI_ENTRY(cli_show_devices, sccp_show_devices, "List defined SCCP devices", show
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \called_from_asterisk
  * 
  * \warning
  * 	- device->buttonconfig is not always locked
@@ -551,6 +563,8 @@ CLI_ENTRY_COMPLETE(cli_show_device, sccp_show_device, "Lists device settings", s
  * \param argv[] Argv[] as char
  * \return Result as int
  * 
+ * \called_from_asterisk
+ * 
  * \lock
  * 	- lines
  * 	  - devices
@@ -627,6 +641,8 @@ CLI_ENTRY(cli_show_lines, sccp_show_lines, "List defined SCCP Lines", show_lines
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \called_from_asterisk
  * 
  * \lock
  * 	- line
@@ -741,6 +757,8 @@ CLI_ENTRY_COMPLETE(cli_show_line, sccp_show_line, "List defined SCCP line settin
  * \param argv[] Argv[] as char
  * \return Result as int
  * 
+ * \called_from_asterisk
+ * 
  * \lock
  * 	- lines
  * 	  - line
@@ -780,6 +798,8 @@ CLI_ENTRY(cli_show_channels, sccp_show_channels, "Lists active SCCP channels", s
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \called_from_asterisk
  * 
  * \lock
  * 	- sessions
@@ -828,6 +848,8 @@ CLI_ENTRY(cli_show_sessions, sccp_show_sessions, "Show all SCCP sessions", show_
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \called_from_asterisk
  * 
  * \lock
  * 	- devices
@@ -882,6 +904,8 @@ CLI_ENTRY(cli_message_devices, sccp_message_devices, "Send a message to all SCCP
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \called_from_asterisk
  *
  * \todo TO BE IMPLEMENTED: sccp message device
  */
@@ -903,6 +927,8 @@ CLI_ENTRY_COMPLETE(cli_message_device, sccp_message_device, "Send a message to S
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \called_from_asterisk
  */
 static int sccp_system_message(int fd, int argc, char *argv[])
 {
@@ -958,6 +984,8 @@ CLI_ENTRY(cli_system_message, sccp_system_message, "Send a system wide message t
  * \param argv[] Argv[] as char
  * \return Result as int
  * 
+ * \called_from_asterisk
+ * 
  * \lock
  * 	- device
  * 	  - see sccp_sk_dnd()
@@ -995,6 +1023,8 @@ CLI_ENTRY_COMPLETE(cli_dnd_device, sccp_dnd_device, "Send a dnd to SCCP Device",
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \called_from_asterisk
  *
  * \todo TO BE IMPLEMENTED: sccp message device
  */
@@ -1016,6 +1046,8 @@ CLI_ENTRY(cli_remove_line_from_device, sccp_remove_line_from_device, "Remove a l
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \called_from_asterisk
  */
 static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 {
@@ -1061,6 +1093,8 @@ CLI_ENTRY_COMPLETE(cli_add_line_to_device, sccp_add_line_to_device, "Add a line 
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \called_from_asterisk
  *
  * \todo TO BE IMPLEMENTED: sccp show mwi subscriptions
  */
@@ -1082,6 +1116,8 @@ CLI_ENTRY(cli_show_mwi_subscriptions, sccp_show_mwi_subscriptions, "Show all SCC
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \called_from_asterisk
  * 
  * \lock
  * 	- softKeySetConfig
@@ -1133,6 +1169,8 @@ CLI_ENTRY(cli_show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeyS
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \called_from_asterisk
  */
 static int sccp_do_debug(int fd, int argc, char *argv[])
 {
@@ -1165,6 +1203,8 @@ CLI_ENTRY_COMPLETE(cli_do_debug, sccp_do_debug, "Set SCCP Debugging Types", do_d
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \called_from_asterisk
  */
 static int sccp_no_debug(int fd, int argc, char *argv[])
 {
@@ -1188,6 +1228,8 @@ CLI_ENTRY(cli_no_debug, sccp_no_debug, "Set SCCP Debugging Types", no_debug_usag
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \called_from_asterisk
  * 
  * \lock
  * 	- globals
@@ -1242,6 +1284,8 @@ CLI_ENTRY(cli_reload, sccp_reload, "Reload the SCCP configuration", reload_usage
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \called_from_asterisk
  */
 static int sccp_show_version(int fd, int argc, char *argv[])
 {
@@ -1261,6 +1305,8 @@ CLI_ENTRY(cli_show_version, sccp_show_version, "Show SCCP version details", show
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \called_from_asterisk
  * 
  * \lock
  * 	- devices in sccp_device_find_byid()
@@ -1336,6 +1382,8 @@ CLI_ENTRY_COMPLETE(cli_restart, sccp_reset_restart, "Restart an SCCP device", re
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
+ * 
+ * \called_from_asterisk
  * 
  * \lock
  * 	- device

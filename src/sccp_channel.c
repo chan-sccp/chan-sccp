@@ -659,6 +659,8 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * c)
  * \param ast Asterisk Channel
  * \param rtp Asterisk RTP
  * \return ENUM of RTP Result
+ * 
+ * \called_from_asterisk
  */
 enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struct ast_rtp **rtp)
 {
@@ -710,6 +712,8 @@ enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struc
  * \param ast Asterisk Channel
  * \param rtp Asterisk RTP
  * \return ENUM of RTP Result
+ * 
+ * \called_from_asterisk
  */
 #ifndef CS_AST_HAS_RTP_ENGINE
 enum ast_rtp_get_result sccp_channel_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp **rtp)
@@ -741,6 +745,8 @@ enum ast_rtp_glue_result sccp_channel_get_vrtp_peer(struct ast_channel *ast, str
  * \param codecs Codecs as int
  * \param nat_active Is NAT Active as int
  * \return Result as int
+ * 
+ * \called_from_asterisk
  */
 int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, int codecs, int nat_active)
 #else
@@ -753,6 +759,8 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
  * \param codecs Codecs as int
  * \param nat_active Is NAT Active as int
  * \return Result as int
+ * 
+ * \called_from_asterisk
  */
 int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, struct ast_rtp *trtp, int codecs, int nat_active)
 #endif
