@@ -439,6 +439,9 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char 
  * 	- line->devices
  * 	  - see register_exten()
  * 	- line
+ * 	- see sccp_feat_changed()
+ * 	- see sccp_dev_forward_status() via sccp_event_fire()
+ * 	- see sccp_mwi_deviceAttachedEvent() via sccp_event_fire
  */
 void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineInstance, struct subscriptionId *subscriptionId)
 {
