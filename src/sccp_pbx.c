@@ -456,10 +456,12 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 			sccp_log(1) (VERBOSE_PREFIX_3 "%s: Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
 			sccp_channel_lock(channel);
 			sccp_channel_endcall_locked(channel);
-			sccp_channel_lock(channel);
+			sccp_channel_unlock(channel);
 		}
 	}
 	SCCP_LIST_UNLOCK(&c->line->channels);
+
+	sccp_line_removeChannel(c->line, c);
 
 	if (!d) {
 		/* channel is not answerd, just ringin over all devices */
@@ -478,10 +480,9 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 		sccp_dev_check_displayprompt(d);
 	}
 
-	uint32_t *id = ast_malloc(sizeof(uint32_t));
-	*id = c->callid;
+	sccp_channel_clean_locked(c);
 
-	if (sccp_sched_add(sched, 0, sccp_channel_destroy_callback, id) < 0) {
+	if (sccp_sched_add(sched, 0, sccp_channel_destroy_callback, c) < 0) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unable to schedule destroy of channel %08X\n", c->callid);
 	}
 

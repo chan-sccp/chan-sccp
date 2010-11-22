@@ -1511,35 +1511,12 @@ void sccp_channel_updatemediatype_locked(sccp_channel_t * c)
 
 int sccp_channel_destroy_callback(const void* data)
 {
-	sccp_channel_t* c = NULL;
-	uint32_t* id = (uint32_t*)data;
-	sccp_line_t *l;
-
-	SCCP_RWLIST_RDLOCK(&GLOB(lines));
-	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
-		SCCP_LIST_LOCK(&l->channels);
-		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->channels, c, list) {
-			if (c->callid == *id) {
-				SCCP_LIST_REMOVE_CURRENT(list);
-				l->channelCount--;
-				sccp_channel_lock(c);
-				break;
-			}
-		}
-		SCCP_LIST_TRAVERSE_SAFE_END;
-		SCCP_LIST_UNLOCK(&l->channels);
-
-		if (c)
-			break;
-	}
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
-
-	ast_free(id);
+	sccp_channel_t* c = (sccp_channel_t*)data;
 
 	if (!c)
 		return 0;
 
-	sccp_channel_clean_locked(c);
+	sccp_channel_lock(c);
 	sccp_channel_destroy_locked(c);
 
 	return 0;
