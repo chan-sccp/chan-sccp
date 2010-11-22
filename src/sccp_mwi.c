@@ -259,6 +259,9 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t ** event)
 /*!
  * \brief Line Status Changed Event 
  * \param event SCCP Event
+ * 
+ * \lock
+ * 	- see sccp_mwi_check()
  */
 void sccp_mwi_lineStatusChangedEvent(const sccp_event_t ** event)
 {
