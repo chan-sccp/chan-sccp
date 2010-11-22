@@ -9,6 +9,79 @@
  * $Date$
  * $Revision$  
  */
+ 
+/*!
+ * \file
+ * \page sccp_lock Locking in SCCP
+ * 
+ * \section lock_types Lock Types and their Objects
+ *
+ * In chan-sccp-b we use different types of locks for different occasions. It depents mainly on the object which needs to
+ * be locked, how long this lock will last and if the object should be shared most of the time between multiple threads.
+ *
+ * We make a distinction between locks for global lists, global objects and list/objects used/owned by a global object. 
+ * 
+ * Not all owned lists / objects have their own lock. Only owned lists / objects that change frequently during their livetime.
+ *
+ * for example:
+ * - list of devices (rwlock, shared) -> multiple readers or 1 writer can have this lock on the list
+ *   once the device you where looking for it need to be locked exclusively, for read or write, to prevent changes:
+ *   - device (currently mutex) -> multiple readers or 1 writer can have this lock on the list
+ *     (note at the moment it is still a mutex but we might gradually change then to a rwlock.)
+ *     - list of selectedChannels(mutex)
+ *       - selectedChannel (mutex)
+ *
+ * global lists (in this order):
+ * - sessions (mutex)
+ * - devices (rwlock)
+ * - lines (rwlock)
+ *   - channels (mutex -> rwlock)
+ *   .
+ * .
+ * <small>(mutex -> rwlock = currently using mutex, should change to rwlock soon)</small>
+ *
+ * global objects (in this order):
+ * - sccp_session (mutex)
+ * - sccp_device (mutex -> rwlock)
+ * - sccp_line (mutex -> rwlock)
+ *   - sccp_channel (mutex ->rwlock)
+ *   .
+ * .
+ *
+ * object owned lists (e.g for device):
+ * - buttonconfig (no lock -> lock parent)			// should be renamed to buttonconfigs to indicate it's list status
+ * - selectedChannels (mutex)					// channels added / removed frequently
+ * - addons (no lock -> lock parent)
+ * - permithosts (no lock -> lock parent)
+ * - devstateSpecifiers (no lock -> lock parent)		// added once
+ * .
+ * 
+ * object owned objects (e.g. for device):
+ * - buttonconfig (no lock -> lock parent)
+ * - selectedChannel (no lock -> lock parent)			// state does not change
+ * - addon (no lock -> lock parent)
+ * - permithost (no lock -> lock parent)
+ * - devstateSpecifier (mutex)					// state changes frequently
+ * .
+ *
+ * \section lock_order Locking order
+ * 
+ * - Rule1: 	Locks should be taking in order to prevent deadlocks. 
+ * 		So always lock the highest order first:
+ * 	- Global list (in order device, line, channel)
+ * 	- Global object (in order device, line, channel)
+ * 	- Owned list (in order specified in Rule2/Rule3) having rwlock / mutex, otherwise lock parent
+ * 	- Owned object (in order specified in Rule2/Rule3) havind rwlock / mutex, otherwise lock parent
+ *	.
+ *
+ * - Rule2: For locks on owned lists / objects, you must release as soon as possible and prevent nesting. 
+ * - Rule3: If nesting can not be avoided, lock in order of the struct in chan_sccp.h providing the owned list. 
+ * .
+ *
+ * \section lock_deadlock Prevent Deadlocks
+ * \section lock_starvation Prevent Starvation
+ * \section lock_assumptions Locking Assumptions
+ */
 #include "config.h"
 #if ASTERISK_VERSION_NUM >= 10400
 #    include <asterisk.h>
