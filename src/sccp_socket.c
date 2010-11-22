@@ -150,6 +150,7 @@ void sccp_session_close(sccp_session_t * s)
  * \callergraph
  *
  * \lock
+ * 	- sessions
  * 	- device
  * 
  * \warning
@@ -166,6 +167,10 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 	if (!s)
 		return;
 
+	SCCP_LIST_LOCK(&GLOB(sessions));
+	SCCP_LIST_REMOVE(&GLOB(sessions), s, list);
+	SCCP_LIST_UNLOCK(&GLOB(sessions));
+
 	d = s->device;
 
 	if (d && (d->session == s)) {
@@ -181,12 +186,6 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 		sccp_device_unlock(d);
 		sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
 	}
-
-	/* 
-	 * remove the session from global list
-	 * (already locked in socket_thread)
-	 */
-	SCCP_LIST_REMOVE(&GLOB(sessions), s, list);
 
 	/* closing fd's */
 	if (s->fd > 0) {
