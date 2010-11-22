@@ -113,6 +113,7 @@ static void sccp_read_data(sccp_session_t * s)
  * \callergraph
  *
  * \lock
+ * 	- see sccp_hint_eventListener() via sccp_event_fire()
  * 	- session
  */
 void sccp_session_close(sccp_session_t * s)
