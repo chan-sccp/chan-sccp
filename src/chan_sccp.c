@@ -207,6 +207,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 
 	if (!sccp_pbx_channel_allocate_locked(c)) {
 		SET_CAUSE(AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
+		sccp_line_removeChannel(c->line, c);
 		sccp_channel_destroy_locked(c);
 		c = NULL;
 		goto OUT;

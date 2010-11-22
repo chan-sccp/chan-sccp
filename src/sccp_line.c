@@ -109,7 +109,8 @@ void sccp_line_post_reload(void)
 			SCCP_RWLIST_REMOVE_CURRENT(list);
 		}
 	}
-	SCCP_RWLIST_TRAVERSE_SAFE_END SCCP_RWLIST_UNLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE_SAFE_END;
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 }
 #endif										/* CS_DYNAMIC_CONFIG */
 

@@ -470,8 +470,15 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 		sccp_pbx_needcheckringback(d);
 		sccp_dev_check_displayprompt(d);
 	}
-	sccp_channel_clean_locked(c);
-	sccp_channel_destroy_locked(c);
+
+	uint32_t *id = ast_malloc(sizeof(uint32_t));
+	*id = c->callid;
+
+	if (sccp_sched_add(sched, 0, sccp_channel_destroy_callback, id) < 0) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unable to schedule destroy of channel %08X\n", c->callid);
+	}
+
+	sccp_channel_unlock(c);
 
 	return 0;
 }

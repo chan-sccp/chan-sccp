@@ -57,6 +57,7 @@ sccp_channel_t *sccp_channel_newcall_locked(sccp_line_t * l, sccp_device_t * dev
 boolean_t sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, char *dial, uint8_t calltype);
 void sccp_channel_answer_locked(sccp_device_t * d, sccp_channel_t * c);
 void sccp_channel_destroy_locked(sccp_channel_t * c);
+int sccp_channel_destroy_callback(const void* data);
 void sccp_channel_clean_locked(sccp_channel_t * c);
 int sccp_channel_hold_locked(sccp_channel_t * c);
 int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c);
