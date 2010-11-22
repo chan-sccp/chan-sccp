@@ -1568,7 +1568,7 @@ void *sccp_dev_postregistration(void *data)
  * \lock
  * 	- device
  * 	  - see sccp_dev_set_registered()
- * 	  - see sccp_event_fire()
+ * 	  - see sccp_hint_eventListener() via sccp_event_fire()
  * 	  - devices
  * 	  - device->buttonconfig
  * 	    - see sccp_line_find_byname_wo()
