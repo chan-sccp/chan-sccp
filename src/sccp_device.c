@@ -1378,10 +1378,6 @@ void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t inst
 
 /*!
  * \brief Display Call Forward
- * 
- * \warning
- * 	- lines is not always locked
- * 	- line->devices is not always locked
  */
 boolean_t sccp_dev_display_cfwd(sccp_device_t * device, boolean_t force)
 {
