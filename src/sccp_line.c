@@ -270,7 +270,9 @@ void sccp_line_kill(sccp_line_t * l)
  * 
  * \lock
  * 	- lines
+ * 	- see sccp_line_kill()
  * 	- line->devices
+ * 	- see sccp_line_destroy()
  */
 void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
 {
@@ -279,22 +281,13 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
 	if (!l)
 		return;
 
-	sccp_line_kill(l);
-
-	/* remove from the global lines list */
 	if (remove_from_global) {
-		/* get readlock on the lines first, upgrade to wrlock to remove */
-		SCCP_RWLIST_RDLOCK(&GLOB(lines));
-		if (l->list.prev == NULL && l->list.next == NULL && GLOB(lines).first != l) {
-			if (GLOB(lines).size > 1)
-				ast_log(LOG_ERROR, "%s: removing line from global lines list. prev and next pointer ist not set while lines list size is %d\n", l->name, GLOB(lines).size);
-		} else {
-			SCCP_RWLIST_WRLOCK(&GLOB(lines));
-			SCCP_RWLIST_REMOVE(&GLOB(lines), l, list);
-			SCCP_RWLIST_UNLOCK(&GLOB(lines));
-		}
+		SCCP_RWLIST_WRLOCK(&GLOB(lines));
+		SCCP_RWLIST_REMOVE(&GLOB(lines), l, list);
 		SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	}
+
+	sccp_line_kill(l);
 
 	SCCP_LIST_LOCK(&l->devices);
 	while ((linedevice = SCCP_LIST_REMOVE_HEAD(&l->devices, list))) {
@@ -303,6 +296,7 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
 		}
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
+
 	sccp_line_destroy(l);
 }
 
