@@ -943,8 +943,6 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 		snprintf(buf, len, "%d", d->capability);
 	} else if (!strcasecmp(colname, "early_rtp")) {
 		snprintf(buf, len, "%d", d->earlyrtp);
-	} else if (!strcasecmp(colname, "channel_count")) {
-		snprintf(buf, len, "%d", d->channelCount);
 	} else if (!strcasecmp(colname, "supported_protocol_version")) {
 		snprintf(buf, len, "%d", d->protocolversion);
 	} else if (!strcasecmp(colname, "used_protocol_version")) {

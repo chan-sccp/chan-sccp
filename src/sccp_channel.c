@@ -2127,7 +2127,6 @@ void sccp_channel_clean_locked(sccp_channel_t * c)				// we assume channel is lo
 	if (d) {
 		/* deactive the active call if needed */
 		sccp_device_lock(d);
-		d->channelCount--;
 
 		if (d->active_channel == c)
 			d->active_channel = NULL;
