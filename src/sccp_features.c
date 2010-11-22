@@ -1339,6 +1339,10 @@ void sccp_feat_hotline(sccp_device_t * d, sccp_line_t * line)
  * \brief Handler to Notify Features have Changed
  * \param device SCCP Device
  * \param featureType SCCP Feature Type
+ * 
+ * \lock
+ * 	- see sccp_hint_handleFeatureChangeEvent() via sccp_event_fire()
+ * 	- see sccp_util_handleFeatureChangeEvent() via sccp_event_fire()
  */
 void sccp_feat_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 {

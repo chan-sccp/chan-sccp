@@ -368,6 +368,7 @@ void sccp_line_delete_nolock(sccp_line_t * l)
  * 
  * \lock
  * 	- line->devices
+ * 	- see sccp_feat_changed()
  */
 void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char *number)
 {
