@@ -1484,12 +1484,10 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) PBX structure already exists. Dialing instead of starting.\n");
 		/* If there are any digits, send them instead of starting the PBX */
 		if (sccp_is_nonempty_string(c->dialedNumber)) {
-			// XXX remove if ok sccp_channel_lock(c);
 			sccp_pbx_senddigits(c, c->dialedNumber);
 			sccp_channel_set_calledparty(c, c->dialedNumber, c->dialedNumber);
 			if (c->device)
 				sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_DIALING);
-			// XXX remove if ok sccp_channel_unlock(c);
 		}
 		return NULL;
 	}
