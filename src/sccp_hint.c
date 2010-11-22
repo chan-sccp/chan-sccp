@@ -75,6 +75,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <signal.h>
 void sccp_hint_notifyAsterisk(sccp_line_t * line, sccp_channelState_t state);
 static void *sccp_hint_remoteNotification_thread(void *data);
+static void sccp_hint_checkForDND(sccp_hint_list_t *hint, sccp_line_t *line);
 
 sccp_hint_list_t *sccp_hint_create(char *hint_context, char *hint_exten);
 void sccp_hint_subscribeHint(const sccp_device_t * device, const char *hintStr, const uint8_t instance, const uint8_t positionOnDevice);
@@ -875,9 +876,52 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 			break;
 		}
 	} else {
+		sccp_line_lock(line);
+		sccp_hint_checkForDND(hint, line);
+		sccp_line_unlock(line);
+	} // if(channel)
+DONE:
+	sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "set singleLineState to %d\n", hint->currentState);
+	sccp_mutex_unlock(&hint->lock);
+}
+
+/**
+ * \brief check if we can set DND status
+ * On shared line we will send dnd status if all devices in dnd only.
+ * single line signaling dnd if device is in dnd
+ * 
+ * \param hint	SCCP Hint Linked List Pointer (locked)
+ * \param line	SCCP Line (locked)
+ */
+static void sccp_hint_checkForDND(sccp_hint_list_t *hint, sccp_line_t *line){
+	sccp_linedevices_t *lineDevice;
+  
+	if(line->devices.size > 1){
+		/* we have to check if all devices on this line are dnd=SCCP_DNDMODE_REJECT, otherwise do not propagate DND status */
+		boolean_t allDevicesInDND = TRUE;
+		
+		SCCP_LIST_LOCK(&line->devices);
+		SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {	
+			if(lineDevice->device->dndFeature.status != SCCP_DNDMODE_REJECT){
+				allDevicesInDND = FALSE;
+				break;
+			}
+		}
+		SCCP_LIST_UNLOCK(&line->devices);
+		
+		if(allDevicesInDND){
+			hint->currentState = SCCP_CHANNELSTATE_DND;
+			sccp_copy_string(hint->callInfo.callingPartyName,  SKINNY_DISP_DND, sizeof(hint->callInfo.callingPartyName));
+			sccp_copy_string(hint->callInfo.calledPartyName,  SKINNY_DISP_DND, sizeof(hint->callInfo.calledPartyName));
+		}else{
+			hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
+			sccp_copy_string(hint->callInfo.callingPartyName,  "", sizeof(hint->callInfo.callingPartyName));
+			sccp_copy_string(hint->callInfo.calledPartyName,  "", sizeof(hint->callInfo.calledPartyName));
+		}
+		
+	}else{
 		sccp_linedevices_t *lineDevice = SCCP_LIST_FIRST(&line->devices);
 		if (lineDevice) {
-
 			if (lineDevice->device->dndFeature.enabled && lineDevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
 				hint->currentState = SCCP_CHANNELSTATE_DND;
 				sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_DND, sizeof(hint->callInfo.callingPartyName));
@@ -886,14 +930,14 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 				hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
 			}
 		} else {
-			/* no channel -> on hook */
+			/* no dnd -> on hook */
 			hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
+			sccp_copy_string(hint->callInfo.callingPartyName,  "", sizeof(hint->callInfo.callingPartyName));
+			sccp_copy_string(hint->callInfo.calledPartyName,  "", sizeof(hint->callInfo.calledPartyName));
 		}
-	}									// if(channel)
- DONE:
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "set singleLineState to %d\n", hint->currentState);
-	sccp_mutex_unlock(&hint->lock);
+	}// if(line->devices.size > 1)
 }
+
 
 /*!
  * \brief Subscribe to a Hint
