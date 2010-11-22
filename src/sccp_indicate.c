@@ -50,6 +50,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
  * \lock
  * 	- device
  * 	  - see sccp_device_find_index_for_line()
+ * 	- see sccp_mwi_lineStatusChangedEvent() via sccp_event_fire()
  */
 void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
 {
