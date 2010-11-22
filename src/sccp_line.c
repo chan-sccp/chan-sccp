@@ -525,9 +525,9 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
  * \param device SCCP Device
  * 
  * \lock
- * 	- line->devices
- * 	  - see unregister_exten()
- * 	  - line
+ * 	- line
+ * 	  - line->devices
+ * 	    - see unregister_exten()
  * 	- see sccp_hint_eventListener() via sccp_event_fire()
  */
 void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
@@ -539,6 +539,8 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 
 	sccp_log((DEBUGCAT_HIGH + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: remove device from line %s\n", DEV_ID_LOG(device), l->name);
 
+	sccp_line_lock(l);
+
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
 		if (linedevice->device == device) {
@@ -546,14 +548,14 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 #ifdef CS_DYNAMIC_CONFIG
 			unregister_exten(l, &(linedevice->subscriptionId));
 #endif
-			sccp_line_lock(l);
 			l->statistic.numberOfActiveDevices--;
-			sccp_line_unlock(l);
 			ast_free(linedevice);
 		}
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
 	SCCP_LIST_UNLOCK(&l->devices);
+
+	sccp_line_unlock(l);
 
 	/* the hint system uses the line->devices to check the state */
 	sccp_event_t *event = ast_malloc(sizeof(sccp_event_t));

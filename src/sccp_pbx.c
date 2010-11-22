@@ -127,7 +127,8 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
  * \called_from_asterisk
  * 
  * \lock
- * 	- line->devices
+ * 	- line
+ * 	  - line->devices
  * 	- line
  * 	- line->devices
  * 	  - see sccp_device_sendcallstate()
@@ -174,6 +175,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 	l = c->line;
 	if (l) {
 		sccp_linedevices_t *linedevice;
+		sccp_line_lock(l);
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 			assert(linedevice->device);
@@ -182,6 +184,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 				hasSession = TRUE;
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
+		sccp_line_unlock(l);
 	}
 
 	if (!l || !hasSession) {
