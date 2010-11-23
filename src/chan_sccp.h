@@ -707,7 +707,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 #    endif
 		char cid_name[AST_MAX_EXTENSION];				/*!< Caller(Name) to use on outgoing calls */
 		char cid_num[AST_MAX_EXTENSION];				/*!< Caller(ID) to use on outgoing calls  */
-		uint8_t incominglimit;						/*!< max incoming calls limit */
+		uint16_t incominglimit;						/*!< max incoming calls limit */
 		unsigned int audio_tos;						/*!< audio stream type_of_service (TOS) (RTP) */
 		unsigned int video_tos;						/*!< video stream type_of_service (TOS) (VRTP) */
 		unsigned int audio_cos;						/*!< audio stream class_of_service (COS) (VRTP) */
@@ -716,7 +716,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		sccp_channel_t activeChannel;					/* The currently active channel. */
 #    endif
 		 SCCP_LIST_HEAD(, sccp_channel_t) channels;			/*!< Linked list of current channels for this line */
-		uint8_t channelCount;						/*!< Number of currently active channels */
+//		uint8_t channelCount;						/*!< Number of currently active channels */
 		 SCCP_RWLIST_ENTRY(sccp_line_t) list;				/*!< global list entry */
 #    if 0
 		sccp_device_t *device;						/* The device this line is currently registered to. */
@@ -811,7 +811,6 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		char lastNumber[AST_MAX_EXTENSION];				/*!< Last Dialed Number */
 		int capability;							/*!< Asterisk Codec Capability */
 		uint8_t earlyrtp;						/*!< RTP Channel State where to open the RTP Media Stream */
-//		uint8_t channelCount;						/*!< Number of Currently Active Channels */
 		uint8_t protocolversion;					/*!< Skinny Supported Protocol Version */
 		uint8_t inuseprotocolversion;					/*!< Skinny Used Protocol Version */
 		int keepalive;							/*!< Station Specific Keepalive Timeout */

@@ -1011,16 +1011,16 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		} else {
 			sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: no activate channel on line %d\n", d->id, instance);
 		}
-		if (!l->channelCount) {
+		if (!SCCP_RWLIST_GETSIZE(l->channels)) {
 			sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
 			sccp_dev_set_activeline(d, l);
 			sccp_dev_set_cplane(l, instance, d, 1);
 			sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
 		} else {
 			holdChannel = sccp_channel_find_bystate_on_line_locked(l, SCCP_CHANNELSTATE_HOLD);
-			sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Channel count on line %d = %d", d->id, instance, l->channelCount);
+			sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Channel count on line %d = %d", d->id, instance, SCCP_RWLIST_GETSIZE(l->channels));
 			if (holdChannel != NULL) {
-				if (l->channelCount == 1) {
+				if (SCCP_RWLIST_GETSIZE(l->channels) == 1) {
 					/* XXX we should  lock the list here. */
 					c = SCCP_LIST_FIRST(&l->channels);
 					sccp_channel_lock(c);

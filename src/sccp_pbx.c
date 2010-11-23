@@ -196,7 +196,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 
 	/* if incoming call limit is reached send BUSY */
 	sccp_line_lock(l);
-	if (l->channelCount > l->incominglimit) {				/* >= just to be sure :-) */
+	if (SCCP_RWLIST_GETSIZE(l->channels) > l->incominglimit) {				/* >= just to be sure :-) */
 		sccp_log(1) (VERBOSE_PREFIX_3 "Incoming calls limit (%d) reached on SCCP/%s... sending busy\n", l->incominglimit, l->name);
 		sccp_line_unlock(l);
 		ast_setstate(ast, AST_STATE_BUSY);

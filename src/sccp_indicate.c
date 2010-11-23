@@ -478,7 +478,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 		//TODO do not publish status we already know, because we are part of it
 
 		sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Notify remote device.\n", DEV_ID_LOG(remoteDevice));
-		sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: channelcount: %d\n", DEV_ID_LOG(remoteDevice), c->line->channelCount);
+		sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: channelcount: %d\n", DEV_ID_LOG(remoteDevice), SCCP_RWLIST_GETSIZE(c->line->channels));
 
 		instance = sccp_device_find_index_for_line(remoteDevice, c->line->name);
 

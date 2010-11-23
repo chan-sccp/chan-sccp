@@ -372,4 +372,6 @@ struct {												\
 })
 #    define SCCP_RWLIST_REMOVE SCCP_LIST_REMOVE
 
+#    define SCCP_LIST_GETSIZE(head) head.size
+#    define SCCP_RWLIST_GETSIZE SCCP_LIST_GETSIZE
 #endif										/* _SCCP_DLLISTS_H */
