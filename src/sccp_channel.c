@@ -1758,7 +1758,6 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * c)
 	/* channel was on hold, restore active -> inc. channelcount */
 	if (c->state == SCCP_CHANNELSTATE_HOLD) {
 		sccp_line_lock(c->line);
-		//c->line->channelCount++;
 		c->line->statistic.numberOfActiveChannels--;
 		sccp_line_unlock(c->line);
 	}
@@ -1920,7 +1919,6 @@ int sccp_channel_hold_locked(sccp_channel_t * c)
 #endif
 
 	if (l) {
-		//l->channelCount--; /* channel is not active, so dec. count */
 		l->statistic.numberOfActiveChannels--;
 	}
 
@@ -2054,7 +2052,6 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c)
 	/* state of channel is set down from the remoteDevices, so correct channel state */
 	c->state = SCCP_CHANNELSTATE_CONNECTED;
 	if (l) {
-		//l->channelCount++; /* channel becomes active */
 		l->statistic.numberOfHoldChannels--;
 	}
 

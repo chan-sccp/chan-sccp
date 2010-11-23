@@ -235,7 +235,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 #    else
 			sccp_copy_string(c->owner->call_forward, l->cfwd_num, sizeof(c->owner->call_forward));
 #    endif
-		} else if (l->cfwd_type == SCCP_CFWD_BUSY && l->channelCount > 1) {
+		} else if (l->cfwd_type == SCCP_CFWD_BUSY && SCCP_RWLIST_GETSIZE(l->channels) > 1) {
 			sccp_log(1) (VERBOSE_PREFIX_3 "%s: Call forward (busy) to %s\n", l->name, l->cfwd_num);
 #    ifdef CS_AST_HAS_AST_STRING_FIELD
 			ast_string_field_set(c->owner, call_forward, l->cfwd_num);
@@ -319,7 +319,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 					}
 				}
 
-				/* since the pbx ignores autoanswer_cause unless channelCount > 1, it is safe to set it if provided */
+				/* since the pbx ignores autoanswer_cause unless SCCP_RWLIST_GETSIZE(l->channels) > 1, it is safe to set it if provided */
 				if (!ast_strlen_zero(optv[opti]) && (c->autoanswer_type)) {
 					if (!strcasecmp(optv[opti], "b"))
 						c->autoanswer_cause = AST_CAUSE_BUSY;
@@ -398,9 +398,9 @@ int sccp_devicestate(void *data)
 //                      || (l->dnd && (l->dndmode == SCCP_DNDMODE_REJECT
 //                                      || (l->dndmode == SCCP_DNDMODE_USERDEFINED && l->dnd == SCCP_DNDMODE_REJECT) )) )
 //              res = AST_DEVICE_BUSY;
-	else if (l->incominglimit && l->channelCount == l->incominglimit)
+	else if (l->incominglimit && SCCP_RWLIST_GETSIZE(l->channels) == l->incominglimit)
 		res = AST_DEVICE_BUSY;
-	else if (!l->channelCount)
+	else if (!SCCP_RWLIST_GETSIZE(l->channels))
 		res = AST_DEVICE_NOT_INUSE;
 #ifdef CS_AST_DEVICE_RINGING
 	else if (sccp_channel_find_bystate_on_line_nolock(l, SCCP_CHANNELSTATE_RINGING))
@@ -1157,7 +1157,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, c
 	} else if (!strcasecmp(colname, "incoming_limit")) {
 		snprintf(buf, len, "%d", l->incominglimit);
 	} else if (!strcasecmp(colname, "channel_count")) {
-		snprintf(buf, len, "%d", l->channelCount);
+		snprintf(buf, len, "%d", SCCP_RWLIST_GETSIZE(l->channels));
 	} else if (!strcasecmp(colname, "dynamic") || !strcasecmp(colname, "realtime")) {
 #ifdef CS_SCCP_REALTIME
 		ast_copy_string(buf, l->realtime ? "Yes" : "No", len);

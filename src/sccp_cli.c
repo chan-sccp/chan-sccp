@@ -608,14 +608,14 @@ static int sccp_show_lines(int fd, int argc, char *argv[])
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 			if ((d = linedevice->device)) {
-				ast_cli(fd, "%-16s %-16s %-6s %-4s %-4d %-10s %-10s %-16s %-10s\n", l->name, (d) ? d->id : "--", linedevice->subscriptionId.number, (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", l->channelCount, (c) ? sccp_indicate2str(c->state) : "--", (c) ? calltype2str(c->calltype) : "", (c) ? ((c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->callInfo.calledPartyName : c->callInfo.callingPartyName) : "", cap_buf);
+				ast_cli(fd, "%-16s %-16s %-6s %-4s %-4d %-10s %-10s %-16s %-10s\n", l->name, (d) ? d->id : "--", linedevice->subscriptionId.number, (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(l->channels), (c) ? sccp_indicate2str(c->state) : "--", (c) ? calltype2str(c->calltype) : "", (c) ? ((c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->callInfo.calledPartyName : c->callInfo.callingPartyName) : "", cap_buf);
 				found_linedevice = 1;
 			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
 
 		if (found_linedevice == 0) {
-			ast_cli(fd, "%-16s %-16s %-6s %-4s %-4d %-10s %-10s %-16s %-10s\n", l->name, "--", "", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", l->channelCount, (c) ? sccp_indicate2str(c->state) : "--", (c) ? calltype2str(c->calltype) : "", (c) ? ((c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->callInfo.calledPartyName : c->callInfo.callingPartyName) : "", cap_buf);
+			ast_cli(fd, "%-16s %-16s %-6s %-4s %-4d %-10s %-10s %-16s %-10s\n", l->name, "--", "", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(l->channels), (c) ? sccp_indicate2str(c->state) : "--", (c) ? calltype2str(c->calltype) : "", (c) ? ((c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->callInfo.calledPartyName : c->callInfo.callingPartyName) : "", cap_buf);
 		}
 		for (v = l->variables; v; v = v->next)
 			ast_cli(fd, "%-16s Variable	 %-16s %-20s\n", "", v->name, v->value);
@@ -693,7 +693,7 @@ static int sccp_show_line(int fd, int argc, char *argv[])
 	ast_cli(fd, "Audio COS             : %d\n", l->audio_cos);
 	ast_cli(fd, "Video TOS             : %d\n", l->video_tos);
 	ast_cli(fd, "Video COS             : %d\n", l->video_cos);
-	ast_cli(fd, "Active Channel Count  : %d\n", l->channelCount);
+	ast_cli(fd, "Active Channel Count  : %d\n", SCCP_RWLIST_GETSIZE(l->channels));
 	ast_cli(fd, "Sec. Dialtone Digits  : %s\n", l->secondary_dialtone_digits ? l->secondary_dialtone_digits : "<not set>");
 	ast_cli(fd, "Sec. Dialtone         : 0x%02x\n", l->secondary_dialtone_tone);
 	ast_cli(fd, "Echo Cancellation     : %s\n", l->echocancel ? "Yes" : "No");

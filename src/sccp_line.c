@@ -585,7 +585,6 @@ void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel)
 		return;
 
 	sccp_line_lock(l);
-	l->channelCount++;
 	l->statistic.numberOfActiveChannels++;
 	sccp_line_unlock(l);
 
@@ -613,8 +612,6 @@ void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t * channel)
 		return;
 
 	sccp_line_lock(l);
-	l->channelCount--;
-
 	SCCP_LIST_LOCK(&l->channels);
 	SCCP_LIST_REMOVE(&l->channels, channel, list);
 	SCCP_LIST_UNLOCK(&l->channels);
@@ -856,7 +853,7 @@ sccp_diff_t sccp_line_changed(sccp_line_t * line_a, sccp_line_t * line_b)
 			  (line_a->video_tos != line_b->video_tos) ||
 			  (line_a->audio_cos != line_b->audio_cos) ||
 			  (line_a->video_cos != line_b->video_cos) ||
-			  (line_a->channelCount != line_b->channelCount) ||
+			  (SCCP_RWLIST_GETSIZE(line_a->channels) != SCCP_RWLIST_GETSIZE(line_b->channels)) ||
 			  (strcmp(line_a->secondary_dialtone_digits, line_b->secondary_dialtone_digits)) ||
 			  (line_a->secondary_dialtone_tone != line_b->secondary_dialtone_tone) ||
 			  (line_a->echocancel != line_b->echocancel) ||
