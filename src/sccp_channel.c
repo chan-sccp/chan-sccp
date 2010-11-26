@@ -1550,9 +1550,8 @@ void sccp_channel_endcall_locked(sccp_channel_t * c)
 	SCCP_LIST_LOCK(&c->line->channels);
 	SCCP_LIST_TRAVERSE(&c->line->channels, channel, list) {
 		if (channel->parentChannel == c) {
-			sccp_channel_lock(channel);
+			/* No need to lock because c->line->channels is already locked. */
 			sccp_channel_endcall_locked(channel);
-			sccp_channel_unlock(channel);
 		}
 	}
 	SCCP_LIST_UNLOCK(&c->line->channels);
@@ -1806,9 +1805,8 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * c)
 	SCCP_LIST_TRAVERSE(&c->line->channels, channel, list) {
 		if (channel->parentChannel == c) {
 			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
-			sccp_channel_lock(channel);
+			/* No need to lock because c->line->channels is already locked. */
 			sccp_channel_endcall_locked(channel);
-			sccp_channel_unlock(channel);
 			c->answered_elsewhere = TRUE;
 		}
 	}

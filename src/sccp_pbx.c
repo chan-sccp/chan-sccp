@@ -454,9 +454,8 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 	SCCP_LIST_TRAVERSE(&c->line->channels, channel, list) {
 		if (channel->parentChannel == c) {
 			sccp_log(1) (VERBOSE_PREFIX_3 "%s: Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
-			sccp_channel_lock(channel);
+			/* No need to lock because c->line->channels is already locked. */
 			sccp_channel_endcall_locked(channel);
-			sccp_channel_unlock(channel);
 		}
 	}
 	SCCP_LIST_UNLOCK(&c->line->channels);
