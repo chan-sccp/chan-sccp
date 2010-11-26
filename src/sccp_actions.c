@@ -1344,7 +1344,13 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r)
 	if (c) {
 		/* Answer the ringing channel. */
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Answer channel\n", d->id);
+		if (c->owner)
+			sccp_ast_channel_lock(c->owner);
+
 		sccp_channel_answer_locked(d, c);
+
+		if (c->owner)
+			sccp_ast_channel_unlock(c->owner);
 		sccp_channel_unlock(c);
 	} else {
 		/* use default line if it is set */
