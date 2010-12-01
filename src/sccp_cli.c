@@ -818,7 +818,7 @@ static int sccp_show_sessions(int fd, int argc, char *argv[])
 	ast_cli(fd, "%-10s %-15s %-4s %-15s %-15s %-15s\n", "Socket", "IP", "KA", "DEVICE", "STATE", "TYPE");
 	ast_cli(fd, "========== =============== ==== =============== =============== ===============\n");
 
-	SCCP_LIST_LOCK(&GLOB(sessions));
+	SCCP_RWLIST_RDLOCK(&GLOB(sessions));
 	SCCP_LIST_TRAVERSE(&GLOB(sessions), s, list) {
 		sccp_session_lock(s);
 		d = s->device;
@@ -827,15 +827,15 @@ static int sccp_show_sessions(int fd, int argc, char *argv[])
 			sccp_device_lock(d);
 			sccp_session_lock(s);
 #if ASTERISK_VERSION_NUM < 10400
-			ast_cli(fd, "%-10d %-15s %-4d %-15s %-15s %-15s\n", s->fd, ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr), (uint32_t) (time(0) - s->lastKeepAlive), (d) ? d->id : "--", (d) ? devicestatus2str(d->state) : "--", (d) ? devicetype2str(d->skinny_type) : "--");
+			ast_cli(fd, "%-10d %-15s %-4d %-15s %-15s %-15s\n", s->fds[0].fd, ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr), (uint32_t) (time(0) - s->lastKeepAlive), (d) ? d->id : "--", (d) ? devicestatus2str(d->state) : "--", (d) ? devicetype2str(d->skinny_type) : "--");
 #else
-			ast_cli(fd, "%-10d %-15s %-4d %-15s %-15s %-15s\n", s->fd, ast_inet_ntoa(s->sin.sin_addr), (uint32_t) (time(0) - s->lastKeepAlive), (d) ? d->id : "--", (d) ? devicestatus2str(d->state) : "--", (d) ? devicetype2str(d->skinny_type) : "--");
+			ast_cli(fd, "%-10d %-15s %-4d %-15s %-15s %-15s\n", s->fds[0].fd, ast_inet_ntoa(s->sin.sin_addr), (uint32_t) (time(0) - s->lastKeepAlive), (d) ? d->id : "--", (d) ? devicestatus2str(d->state) : "--", (d) ? devicetype2str(d->skinny_type) : "--");
 #endif
 			sccp_session_unlock(s);
 			sccp_device_unlock(d);
 		}
 	}
-	SCCP_LIST_UNLOCK(&GLOB(sessions));
+	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
 	return RESULT_SUCCESS;
 }
 
