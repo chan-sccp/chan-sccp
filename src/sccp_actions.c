@@ -75,7 +75,7 @@ struct ast_ha {
 static sccp_device_t *check_session_message_device(sccp_session_t * s, sccp_moo_t * r, const char *msg)
 {
 	sccp_device_t *d = NULL;
-	if (!s || (s->fd < 0)) {
+	if (!s || (s->fds[0].fd < 0)) {
 		ast_log(LOG_ERROR, "(%s) Session no longer valid\n", msg);
 		return NULL;
 	}
@@ -153,7 +153,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	boolean_t isRealtime = 0;
 	uint8_t destroy_timeout = 2;
 
-	if (!s || (s->fd < 0)) {
+	if (!s || (s->fds[0].fd < 0)) {
 		ast_log(LOG_ERROR, "%s: No Valid Session\n", DEV_ID_LOG(s->device));
 		return;
 	}
@@ -240,7 +240,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 		d->nat = 1;
 	}
 
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fd, sccp_inet_ntoa(s->sin.sin_addr));
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fds[0].fd, sccp_inet_ntoa(s->sin.sin_addr));
 	s->device = d;
 	d->skinny_type = letohl(r->msg.RegisterMessage.lel_deviceType);
 
@@ -1758,7 +1758,7 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * r)
 	struct tm *cmtime = NULL;
 	sccp_device_t *d = NULL;
 
-	if (!s || (s->fd < 0)) {
+	if (!s || (s->fds[0].fd < 0)) {
 		ast_log(LOG_ERROR, "(Time Date Request) Session no longer valid\n");
 		return;
 	}

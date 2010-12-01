@@ -691,7 +691,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		char description[StationMaxNameSize];				/*!< A description for the line, displayed on in header (on7960/40) or on main  screen on 7910 */
 		char label[StationMaxNameSize];					/*!< A name for the line, displayed next to the button (7960/40). */
 
-		 SCCP_LIST_HEAD(, sccp_mailbox_t) mailboxes;			/*!< Mailbox Linked List Entry. To check for messages */
+		SCCP_LIST_HEAD(, sccp_mailbox_t) mailboxes;			/*!< Mailbox Linked List Entry. To check for messages */
 		char vmnum[AST_MAX_EXTENSION];					/*!< Voicemail number to Dial */
 		unsigned int meetme:1;						/*!< Meetme on/off */
 		char meetmenum[AST_MAX_EXTENSION];				/*!< Meetme Extension to be Dialed (\todo TO BE REMOVED) */
@@ -715,13 +715,13 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 #    if 0
 		sccp_channel_t activeChannel;					/* The currently active channel. */
 #    endif
-		 SCCP_LIST_HEAD(, sccp_channel_t) channels;			/*!< Linked list of current channels for this line */
+		SCCP_LIST_HEAD(, sccp_channel_t) channels;			/*!< Linked list of current channels for this line */
 //		uint8_t channelCount;						/*!< Number of currently active channels */
-		 SCCP_RWLIST_ENTRY(sccp_line_t) list;				/*!< global list entry */
+		SCCP_RWLIST_ENTRY(sccp_line_t) list;				/*!< global list entry */
 #    if 0
 		sccp_device_t *device;						/* The device this line is currently registered to. */
 #    endif
-		 SCCP_LIST_HEAD(, sccp_linedevices_t) devices;			/*!< The device this line is currently registered to. */
+		SCCP_LIST_HEAD(, sccp_linedevices_t) devices;			/*!< The device this line is currently registered to. */
 		//uint8_t                               cfwd_type;                              /*!< Call Forward Type (SCCP_CFWD_ALL or SCCP_CFWD_BUSY0 */
 		//char                                  * cfwd_num;                             /*!< call forward Number*/
 		char *trnsfvm;							/*!< transfer to voicemail softkey. Basically a call forward */
@@ -784,7 +784,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		char ext[AST_MAX_EXTENSION];					/*!< The number to dial when it's hit */
 		char hint[AST_MAX_EXTENSION];					/*!< The HINT on this SpeedDial */
 
-		 SCCP_LIST_ENTRY(sccp_speed_t) list;				/*!< SpeedDial Linked List Entry */
+		SCCP_LIST_ENTRY(sccp_speed_t) list;				/*!< SpeedDial Linked List Entry */
 
 	};
 
@@ -949,11 +949,14 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 
 		struct in_addr ourip;						/*!< Our IP is for rtp use */
 		time_t lastKeepAlive;						/*!< Last KeepAlive Time */
-		int fd;								/*!< File Descriptor */
+		struct pollfd fds[1];						/*!< File Descriptor */
 		int rtpPort;							/*!< RTP Port */
 		sccp_device_t *device;						/*!< Associated Device */
-		 SCCP_LIST_ENTRY(sccp_session_t) list;				/*!< Linked List Entry for this Session */
+		SCCP_RWLIST_ENTRY(sccp_session_t) list;				/*!< Linked List Entry for this Session */
 
+		uint8_t		device_destroy_delay;				/*!< Delay to wait before deleting device after destroy of session */
+		pthread_t 	session_thread;					/*!< pthread object of the session */
+		int8_t		session_stop:1;					/*!< Stop the session thread. */
 		unsigned int needcheckringback:1;				/*!< Need Check Ring Back. (0/1) default 1 */
 	};									/*!< SCCP Sesson Structure *//*!< SCCP Session Structure */
 
@@ -1038,9 +1041,9 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		pthread_t monitor_thread;					/*!< Monitor Thread */// ADDED IN 414 -FS
 		ast_mutex_t monitor_lock;					/*!< Monitor Asterisk Lock */// ADDED IN 414 -FS
 
-		 SCCP_LIST_HEAD(, sccp_session_t) sessions;			/*!< SCCP Sessions */
-		 SCCP_RWLIST_HEAD(, sccp_device_t) devices;			/*!< SCCP Devices */
-		 SCCP_RWLIST_HEAD(, sccp_line_t) lines;				/*!< SCCP Lines */
+		SCCP_RWLIST_HEAD(, sccp_session_t) sessions;			/*!< SCCP Sessions */
+		SCCP_RWLIST_HEAD(, sccp_device_t) devices;			/*!< SCCP Devices */
+		SCCP_RWLIST_HEAD(, sccp_line_t) lines;				/*!< SCCP Lines */
 		ast_mutex_t socket_lock;					/*!< Socket Lock */
 		pthread_t socket_thread;					/*!< Socket Thread */// Moved her in v2 SVN 426 -FS
 		int descriptor;							/*!< Descriptor */

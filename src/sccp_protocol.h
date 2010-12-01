@@ -24,7 +24,7 @@
 #    define __SCCP_PROTOCOL_H
 
 #    define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW	3				/*!< At least we require protocol V.3 */
-#    define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH	17				/*!< We support up to protocol V.11 */
+#    define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH	20				/*!< We support up to protocol V.17 */
 
 #    define DEFAULT_SCCP_PORT			2000				/*!< SCCP uses port 2000. */
 #    define DEFAULT_SCCP_BACKLOG			2			/*!< the listen baklog. */

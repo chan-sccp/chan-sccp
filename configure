@@ -2493,11 +2493,11 @@ else
        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 $ac_includes_default
-	     enum { N = $2 / 2 - 1 };
 int
 main ()
 {
-static int test_array [1 - 2 * !(0 < ($ac_type) ((((($ac_type) 1 << N) << N) - 1) * 2 + 1))];
+static int test_array [1 - 2 * !(enum { N = $2 / 2 - 1 };
+	     0 < ($ac_type) ((((($ac_type) 1 << N) << N) - 1) * 2 + 1))];
 test_array [0] = 0
 
   ;
@@ -2508,11 +2508,11 @@ if ac_fn_c_try_compile "$LINENO"; then :
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 $ac_includes_default
-	        enum { N = $2 / 2 - 1 };
 int
 main ()
 {
-static int test_array [1 - 2 * !(($ac_type) ((((($ac_type) 1 << N) << N) - 1) * 2 + 1)
+static int test_array [1 - 2 * !(enum { N = $2 / 2 - 1 };
+		($ac_type) ((((($ac_type) 1 << N) << N) - 1) * 2 + 1)
 		 < ($ac_type) ((((($ac_type) 1 << N) << N) - 1) * 2 + 2))];
 test_array [0] = 0
 

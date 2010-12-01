@@ -1655,7 +1655,7 @@ static int load_module(void)
 	ast_mutex_init(&GLOB(lock));
 	ast_mutex_init(&GLOB(usecnt_lock));
 	ast_mutex_init(&GLOB(monitor_lock));
-	SCCP_LIST_HEAD_INIT(&GLOB(sessions));
+	SCCP_RWLIST_HEAD_INIT(&GLOB(sessions));
 	SCCP_RWLIST_HEAD_INIT(&GLOB(devices));
 	SCCP_RWLIST_HEAD_INIT(&GLOB(lines));
 
@@ -1869,22 +1869,22 @@ static int unload_module(void)
 
 	/* removing sessions */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Sessions\n");
-	SCCP_LIST_LOCK(&GLOB(sessions));
+	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
 	while ((s = SCCP_LIST_REMOVE_HEAD(&GLOB(sessions), list))) {
 #if ASTERISK_VERSION_NUM < 10400
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
 #else
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", ast_inet_ntoa(s->sin.sin_addr));
 #endif
-		if (s->fd > -1)
-			close(s->fd);
+		if (s->fds[0].fd > -1)
+			close(s->fds[0].fd);
 		ast_mutex_destroy(&s->lock);
 		ast_free(s);
 	}
-	SCCP_LIST_UNLOCK(&GLOB(sessions));
+	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
 
 	if (SCCP_LIST_EMPTY(&GLOB(sessions)))
-		SCCP_LIST_HEAD_DESTROY(&GLOB(sessions));
+		SCCP_RWLIST_HEAD_DESTROY(&GLOB(sessions));
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Descriptor\n");
 	close(GLOB(descriptor));
