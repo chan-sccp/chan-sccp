@@ -3,3 +3,6 @@
 /.deps
 /config.h
 /Makefile
+/*.la
+/*.lo
+/*~
