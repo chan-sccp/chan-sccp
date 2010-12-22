@@ -433,6 +433,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 	case SKINNY_DEVICETYPE_CISCO7920:
 	case SKINNY_DEVICETYPE_CISCO7921:
 	case SKINNY_DEVICETYPE_CISCO7925:
+	case SKINNY_DEVICETYPE_CISCO7985:
 		for (i = 0; i < 6; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 		break;
@@ -1902,6 +1903,7 @@ int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type)
 	REQ(r, Reset);
 	r->msg.Reset.lel_resetType = htolel(reset_type);
 	sccp_session_send(d, r);
+	sccp_session_close(d->session);
 	return 1;
 }
 
