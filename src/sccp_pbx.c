@@ -898,13 +898,21 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	int oldChannelFormat;
 	sccp_channel_t *c = CS_AST_CHANNEL_PVT(ast);
 	int res = 0;
+	int deadlockAvoidanceCounter =0;
 	if (!c)
 		return -1;
 
 	if (!c->device)
 		return -1;
 
-	sccp_channel_trylock(c);
+	while(sccp_channel_trylock(c)){
+		if(deadlockAvoidanceCounter++ > 100){
+			ast_log(LOG_ERROR, "SCCP: We have a deadlock in %s:%d\n", __FILE__, __LINE__);
+			return -1;
+		}
+
+		usleep(100);
+	}
 
 	if (c->state == SCCP_CHANNELSTATE_DOWN) {
 		sccp_channel_unlock(c);
