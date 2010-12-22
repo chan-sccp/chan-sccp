@@ -9,8 +9,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
+ * $Date: 2010-11-26 16:09:40 +0100 (Fr, 26. Nov 2010) $
+ * $Revision: 2186 $
  */
 
 /*!
@@ -28,7 +28,7 @@
 #endif
 #include "chan_sccp.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision: 2186 $")
 #include "sccp_hint.h"
 #include "sccp_config.h"
 #include "sccp_lock.h"

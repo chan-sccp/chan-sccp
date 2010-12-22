@@ -13,8 +13,8 @@
  *		See the LICENSE file at the top of the source tree.
  * \warning 	File has been Lined up using 8 Space TABS
  *
- * $Date$
- * $Revision$
+ * $Date: 2010-11-23 15:16:48 +0100 (Di, 23. Nov 2010) $
+ * $Revision: 2185 $
  */
 
 #ifndef __CHAN_SCCP_H
@@ -814,6 +814,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		uint8_t protocolversion;					/*!< Skinny Supported Protocol Version */
 		uint8_t inuseprotocolversion;					/*!< Skinny Used Protocol Version */
 		int keepalive;							/*!< Station Specific Keepalive Timeout */
+		time_t registrationTime;
 
 		struct ast_ha *ha;						/*!< Permit or Deny Connections to the Main Socket */
 		uint32_t conferenceid;						/*!< Conference ID */
@@ -954,10 +955,9 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		sccp_device_t *device;						/*!< Associated Device */
 		SCCP_RWLIST_ENTRY(sccp_session_t) list;				/*!< Linked List Entry for this Session */
 
-		uint8_t		device_destroy_delay;				/*!< Delay to wait before deleting device after destroy of session */
-		pthread_t 	session_thread;					/*!< pthread object of the session */
-		int8_t		session_stop:1;					/*!< Stop the session thread. */
 		unsigned int needcheckringback:1;				/*!< Need Check Ring Back. (0/1) default 1 */
+		pthread_t 	session_thread;
+		int8_t		session_stop;
 	};									/*!< SCCP Sesson Structure *//*!< SCCP Session Structure */
 
 	struct sccp_rtp {
