@@ -8,8 +8,8 @@
  * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
+ * $Date: 2010-11-22 14:10:50 +0100 (Mo, 22. Nov 2010) $
+ * $Revision: 2180 $
  */
 
 #include "config.h"
@@ -19,7 +19,7 @@
 #endif
 #include "chan_sccp.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision: 2180 $")
 #include "sccp_event.h"
 #include "sccp_lock.h"
 #include "sccp_line.h"
@@ -160,29 +160,79 @@ void sccp_session_close(sccp_session_t * s)
  */
 void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 {
+	// Called with &GLOB(sessions) locked
+	sccp_device_t *d;
+#if ASTERISK_VERSION_NUM < 10400
+	char iabuf[INET_ADDRSTRLEN];
+#endif
+
 	if (!s)
 		return;
-
+	
+	
+	pthread_t thread = s->session_thread;
 	s->session_stop = 1;
-	s->device_destroy_delay = cleanupTime;
+	pthread_kill(thread, SIGURG);
+	pthread_join(thread, NULL);
+
+
+	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
+	SCCP_LIST_REMOVE(&GLOB(sessions), s, list);
+	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
+
+	d = s->device;
+
+	if (d && (d->session == s)) {
+#if ASTERISK_VERSION_NUM < 10400
+		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
+#else
+		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(s->sin.sin_addr));
+#endif
+		sccp_device_lock(d);
+		d->session = NULL;
+		d->registrationState = SKINNY_DEVICE_RS_NONE;
+		d->needcheckringback = 0;
+		sccp_device_unlock(d);
+		sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
+	}
+
+	/* closing fd's */
+	if (s->fds[0].fd > 0) {
+		close(s->fds[0].fd);
+	}
+	/* freeing buffers */
+	if (s->buffer)
+		ast_free(s->buffer);
+
+	/* destroying mutex and cleaning the session */
+	sccp_mutex_destroy(&s->lock);
+	ast_free(s);
+	s = NULL;
 }
 
 
 void *sccp_socket_device_thread(void *session){
 	sccp_session_t *s = (sccp_session_t *)session;
+	
+	
+  
 	uint8_t keepaliveAdditionalTime = 10;
 	int res;
+	
+	
 	time_t now;
 	sccp_moo_t *m;
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
+	
+	
 	/* we increase additionalTime for wireless/slower devices */
 	if (s->device && (s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 )) {
 		keepaliveAdditionalTime += 20;
 	}
-
+	
+	
 	while(!s->session_stop){
 #ifdef CS_DYNAMIC_CONFIG
 		if (s->device) {
@@ -215,7 +265,6 @@ void *sccp_socket_device_thread(void *session){
 					if (!sccp_handle_message(m, s)) {
 						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
 						sccp_session_close(s);
-						break;
 					}
 				}
 			}
@@ -227,47 +276,6 @@ void *sccp_socket_device_thread(void *session){
 		}
 	}
 	s->session_thread = AST_PTHREADT_NULL;
-
-	// Called with &GLOB(sessions) locked
-	sccp_device_t *d;
-#if ASTERISK_VERSION_NUM < 10400
-	char iabuf[INET_ADDRSTRLEN];
-#endif
-
-	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
-	SCCP_LIST_REMOVE(&GLOB(sessions), s, list);
-	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
-
-	d = s->device;
-
-	if (d && (d->session == s)) {
-#if ASTERISK_VERSION_NUM < 10400
-		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
-#else
-		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), ast_inet_ntoa(s->sin.sin_addr));
-#endif
-		sccp_device_lock(d);
-		d->session = NULL;
-		d->registrationState = SKINNY_DEVICE_RS_NONE;
-		d->needcheckringback = 0;
-		sccp_device_unlock(d);
-		sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, s->device_destroy_delay);
-	}
-
-	/* closing fd's */
-	if (s->fds[0].fd > 0) {
-		close(s->fds[0].fd);
-	}
-	/* freeing buffers */
-	if (s->buffer)
-		ast_free(s->buffer);
-
-	/* destroying mutex and cleaning the session */
-	sccp_mutex_destroy(&s->lock);
-	ast_free(s);
-	s = NULL;
-
-	return NULL;
 }
 
 /*!
@@ -425,6 +433,9 @@ void *sccp_socket_thread(void *ignore)
 	fds[0].revents = 0;
 
 	int res;
+	time_t now;
+	sccp_session_t *s = NULL;
+	sccp_moo_t *m;
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -440,6 +451,8 @@ void *sccp_socket_thread(void *ignore)
 	sigaddset(&sigs, SIGWINCH);
 	sigaddset(&sigs, SIGURG);
 */
+	uint8_t keepaliveAdditionalTime = 0;
+
 	while (GLOB(descriptor) > -1) {
 		fds[0].fd = GLOB(descriptor);
 		res = sccp_socket_poll(fds, 1, 20);
@@ -573,6 +586,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
  */
 sccp_session_t *sccp_session_find(const sccp_device_t * device)
 {
+	sccp_session_t *session = NULL;
 	if (!device)
 		return NULL;
 

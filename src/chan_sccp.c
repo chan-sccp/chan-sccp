@@ -12,8 +12,8 @@
  * 		When to use:	Methods communicating to asterisk about module initialization, status, destruction
  *   		Relationships: 	Main hub for all other sourcefiles.
  *
- * $Date$
- * $Revision$
+ * $Date: 2010-11-23 15:16:48 +0100 (Di, 23. Nov 2010) $
+ * $Revision: 2185 $
  */
 
 #define AST_MODULE "chan_sccp"
@@ -24,7 +24,7 @@
 #endif
 #include "chan_sccp.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision: 2185 $")
 #include "sccp_hint.h"
 #include "sccp_lock.h"
 #include "sccp_actions.h"
