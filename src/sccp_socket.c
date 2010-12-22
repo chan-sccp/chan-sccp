@@ -276,6 +276,8 @@ void *sccp_socket_device_thread(void *session){
 		}
 	}
 	s->session_thread = AST_PTHREADT_NULL;
+	
+	return NULL;
 }
 
 /*!
@@ -433,9 +435,6 @@ void *sccp_socket_thread(void *ignore)
 	fds[0].revents = 0;
 
 	int res;
-	time_t now;
-	sccp_session_t *s = NULL;
-	sccp_moo_t *m;
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -451,7 +450,6 @@ void *sccp_socket_thread(void *ignore)
 	sigaddset(&sigs, SIGWINCH);
 	sigaddset(&sigs, SIGURG);
 */
-	uint8_t keepaliveAdditionalTime = 0;
 
 	while (GLOB(descriptor) > -1) {
 		fds[0].fd = GLOB(descriptor);
@@ -584,18 +582,9 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
  * \lock
  * 	- sessions
  */
-sccp_session_t *sccp_session_find(const sccp_device_t * device)
-{
-	sccp_session_t *session = NULL;
+sccp_session_t *sccp_session_find(const sccp_device_t * device){
 	if (!device)
 		return NULL;
-
-// 	SCCP_RWLIST_RDLOCK(&GLOB(sessions));
-// 	SCCP_LIST_TRAVERSE(&GLOB(sessions), session, list) {
-// 		if (session->device && session->device == device)
-// 			break;
-// 	}
-// 	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
 		
 	return device->session;
 }
