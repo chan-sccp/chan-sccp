@@ -83,7 +83,7 @@ void sccp_hint_unSubscribeHint(const sccp_device_t * device, const char *hintStr
 
 void sccp_hint_eventListener(const sccp_event_t ** event);
 void sccp_hint_deviceRegistered(const sccp_device_t * device);
-void sccp_hint_deviceUnRegistered(const sccp_device_t * device);
+void sccp_hint_deviceUnRegistered(const char *deviceName);
 
 void sccp_hint_notifySubscribers(sccp_hint_list_t * hint);
 void sccp_hint_hintStatusUpdate(sccp_hint_list_t * hint);
@@ -190,9 +190,17 @@ void sccp_hint_eventListener(const sccp_event_t ** event)
 			return;
 		}
 
+		
 		sccp_device_lock(device);
-		sccp_hint_deviceUnRegistered(device);
+		char *deviceName = strdup(device->id);
 		sccp_device_unlock(device);
+		
+		/* remove device from list */
+		sccp_hint_deviceUnRegistered(deviceName);
+		
+		
+		ast_free((void *)deviceName);
+		
 
 		break;
 	case SCCP_EVENT_DEVICEDETACHED:
@@ -240,17 +248,10 @@ void sccp_hint_deviceRegistered(const sccp_device_t * device)
  * 	- device->buttonconfig
  * 	  - see sccp_hint_unSubscribeHint()
  */
-void sccp_hint_deviceUnRegistered(const sccp_device_t * device)
+void sccp_hint_deviceUnRegistered(const char *deviceName)
 {
 	sccp_hint_list_t *hint = NULL;
 	sccp_hint_SubscribingDevice_t *subscriber;
-	sccp_device_t *d;
-
-	if (!device)
-		return;
-
-	d = (sccp_device_t *) device;
-	char *deviceName = strdup(device->id);
 
 // 	SCCP_LIST_LOCK(&d->buttonconfig);
 // 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
@@ -279,9 +280,6 @@ void sccp_hint_deviceUnRegistered(const sccp_device_t * device)
 		SCCP_LIST_UNLOCK(&hint->subscribers);
 	}
 	SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
-	
-	free(deviceName);
-	
 }
 
 /*!
