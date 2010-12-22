@@ -11,3 +11,5 @@
 /changes.patch
 /ChangeLog
 /doxygen.warn
+/libtool
+src/.libs/
