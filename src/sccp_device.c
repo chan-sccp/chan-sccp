@@ -12,8 +12,8 @@
  *   		Relationships: 	SCCP Device -> SCCP DeviceLine -> SCCP Line
  *   			 	SCCP Line -> SCCP ButtonConfig -> SCCP Device
  *
- * \date        $Date$
- * \version     $Revision$
+ * \date        $Date: 2010-11-22 14:09:55 +0100 (Mo, 22. Nov 2010) $
+ * \version     $Revision: 2176 $
  */
 
 #include "config.h"
@@ -23,7 +23,7 @@
 #endif
 #include "chan_sccp.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision: 2176 $")
 #include "sccp_lock.h"
 #include "sccp_utils.h"
 #include "sccp_device.h"
@@ -564,6 +564,7 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 			d->linesRegistered = TRUE;
 		}
 
+		d->registrationTime = time(0);
 		snprintf(servername, sizeof(servername), "%s %s", GLOB(servername), SKINNY_DISP_CONNECTED);
 		sccp_dev_displaynotify(d, servername, 5);
 		sccp_dev_postregistration(d);
