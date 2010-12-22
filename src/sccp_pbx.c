@@ -904,7 +904,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	if (!c->device)
 		return -1;
 
-	sccp_channel_lock(c);
+	sccp_channel_trylock(c);
 
 	if (c->state == SCCP_CHANNELSTATE_DOWN) {
 		sccp_channel_unlock(c);
