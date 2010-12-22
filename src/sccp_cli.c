@@ -8,8 +8,8 @@
  * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
+ * $Date: 2010-11-23 15:16:48 +0100 (Di, 23. Nov 2010) $
+ * $Revision: 2185 $
  */
 
 /*!
@@ -25,7 +25,7 @@
 #endif
 #include "chan_sccp.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision: 2185 $")
 #include "sccp_lock.h"
 #include "sccp_cli.h"
 #include "sccp_mwi.h"
@@ -347,23 +347,30 @@ CLI_ENTRY(cli_show_globals, sccp_show_globals, "List defined SCCP global setting
  */
 static int sccp_show_devices(int fd, int argc, char *argv[])
 {
-	sccp_device_t *d;
+	sccp_device_t 	*d;
+	struct tm 	*timeinfo;
+	char 		buffer[25];
+
+
 #if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
-
-	ast_cli(fd, "\n%-40s %-20s %-16s %-10s\n", "NAME", "ADDRESS", "MAC", "Reg. State");
-	ast_cli(fd, "======================================== ==================== ================ ==========\n");
+      
+	ast_cli(fd, "\n%-40s %-20s %-16s %-10s %-20s\n", "NAME", "ADDRESS", "MAC", "Reg. State", "Reg. Time");
+	ast_cli(fd, "======================================== ==================== ================ ========== =========================\n");
 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+		timeinfo = localtime ( &d->registrationTime );
+		strftime (buffer,sizeof(buffer),"%c",timeinfo);
+		
 #if ASTERISK_VERSION_NUM < 10400
-		ast_cli(fd, "%-40s %-20s %-16s %-10s\n",			// %-10s %-16s %c%c %-10s\n",
-			d->description, (d->session) ? ast_inet_ntoa(iabuf, sizeof(iabuf), d->session->sin.sin_addr) : "--", d->id, deviceregistrationstatus2str(d->registrationState)
+		ast_cli(fd, "%-40s %-20s %-16s %-10s %-25s\n",			// %-10s %-16s %c%c %-10s\n",
+			d->description, (d->session) ? ast_inet_ntoa(iabuf, sizeof(iabuf), d->session->sin.sin_addr) : "--", d->id, deviceregistrationstatus2str(d->registrationState), buffer
 		    );
 #else
-		ast_cli(fd, "%-40s %-20s %-16s %-10s\n",			// %-10s %-16s %c%c %-10s\n",
-			d->description, (d->session) ? ast_inet_ntoa(d->session->sin.sin_addr) : "--", d->id, deviceregistrationstatus2str(d->registrationState)
+		ast_cli(fd, "%-40s %-20s %-16s %-10s %-25s\n",			// %-10s %-16s %c%c %-10s\n",
+			d->description, (d->session) ? ast_inet_ntoa(d->session->sin.sin_addr) : "--", d->id, deviceregistrationstatus2str(d->registrationState), buffer
 		    );
 #endif
 	}
