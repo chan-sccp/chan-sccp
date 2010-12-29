@@ -993,6 +993,11 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 
 	channel->rtp.video.status |= SCCP_RTP_STATUS_RECEIVE;
 	skinnyFormat = sccp_codec_ast2skinny(channel->rtp.video.writeFormat);
+	
+	if(skinnyFormat == 0){
+		ast_log(LOG_NOTICE, "SCCP: Unable to find skinny format for %d\n", channel->rtp.video.writeFormat);
+		return;
+	}
 
 	//sampleRate = ast_rtp_lookup_sample_rate(1, channel->rtp.video.writeFormat);
 	payloadType = ast_rtp_lookup_code(channel->rtp.video.rtp, 1, channel->rtp.video.writeFormat);
@@ -1009,17 +1014,17 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 	if (channel->device->inuseprotocolversion < 15) {
 		r = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(r->msg.OpenMultiMediaChannelMessage));
 
-		r->msg.OpenMultiMediaChannelMessage.lel_conferenceID = htolel(channel->callid);
-		r->msg.OpenMultiMediaChannelMessage.lel_passThruPartyId = htolel(channel->passthrupartyid);
-		r->msg.OpenMultiMediaChannelMessage.lel_payloadCapability = htolel(skinnyFormat);
-		r->msg.OpenMultiMediaChannelMessage.lel_lineInstance = htolel(lineInstance);
-		r->msg.OpenMultiMediaChannelMessage.lel_callReference = htolel(channel->callid);
+		r->msg.OpenMultiMediaChannelMessage.lel_conferenceID 								= htolel(channel->callid);
+		r->msg.OpenMultiMediaChannelMessage.lel_passThruPartyId 							= htolel(channel->passthrupartyid);
+		r->msg.OpenMultiMediaChannelMessage.lel_payloadCapability 							= htolel(skinnyFormat);
+		r->msg.OpenMultiMediaChannelMessage.lel_lineInstance 								= htolel(lineInstance);
+		r->msg.OpenMultiMediaChannelMessage.lel_callReference 								= htolel(channel->callid);
 		//r->msg.OpenMultiMediaChannelMessage.lel_payload_rfc_number                                                    = 0;
-		r->msg.OpenMultiMediaChannelMessage.lel_payloadType = htolel(payloadType);
+		r->msg.OpenMultiMediaChannelMessage.lel_payloadType 								= htolel(payloadType);
 		//r->msg.OpenMultiMediaChannelMessage.lel_isConferenceCreator                                                   = 0;
 
 		//r->msg.OpenMultiMediaChannelMessage.audioParameter.millisecondPacketSize                                      = htolel(3840);
-		r->msg.OpenMultiMediaChannelMessage.audioParameter.millisecondPacketSize = htolel(sampleRate);
+		r->msg.OpenMultiMediaChannelMessage.audioParameter.millisecondPacketSize 					= htolel(sampleRate);
 		//r->msg.OpenMultiMediaChannelMessage.audioParameter.lel_echoCancelType                                         = 0;
 		//r->msg.OpenMultiMediaChannelMessage.audioParameter.lel_g723BitRate                                            = 0;
 
@@ -1027,21 +1032,21 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		//r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormatCount                                         = 0;
 		//r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormat[5];/*!< Picture Format Array */
 		//r->msg.OpenMultiMediaChannelMessage.videoParameter.confServiceNum                                             = 0;
-		r->msg.OpenMultiMediaChannelMessage.videoParameter.h261VideoCapability.temporalSpatialTradeOffCapability = htolel(0x00000040);
-		r->msg.OpenMultiMediaChannelMessage.videoParameter.h261VideoCapability.stillImageTransmission = htolel(0x00000032);	//= htolel(0x00000024);
+		r->msg.OpenMultiMediaChannelMessage.videoParameter.h261VideoCapability.temporalSpatialTradeOffCapability 	= htolel(0x00000040);
+		r->msg.OpenMultiMediaChannelMessage.videoParameter.h261VideoCapability.stillImageTransmission 			= htolel(0x00000032);	//= htolel(0x00000024);
 
-		//      r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.h263CapabilityBitfield                   = htolel(0x3a525b20);
+		//      r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.h263CapabilityBitfield           = htolel(0x3a525b20);
 		//      r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.annexNandwFutureUse                      = htolel(0x2d20504c);
 		//      r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.modelNumber                              = htolel(0x3a504820);
 		//      r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.bandwidth                                = htolel(0x202c3020);
 
-		r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.h263CapabilityBitfield = htolel(0x4c3a525b);
-		r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.annexNandwFutureUse = htolel(0x202d2050);
-		r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.modelNumber = htolel(0x203a5048);
-		r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.bandwidth = htolel(0x4e202c30);
+		r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.h263CapabilityBitfield 			= htolel(0x4c3a525b);
+		r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.annexNandwFutureUse 			= htolel(0x202d2050);
+		r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.modelNumber 				= htolel(0x203a5048);
+		r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.bandwidth 				= htolel(0x4e202c30);
 
-		r->msg.OpenMultiMediaChannelMessage.dataParameter.protocolDependentData = 0;
-		r->msg.OpenMultiMediaChannelMessage.dataParameter.maxBitRate = 0;
+		r->msg.OpenMultiMediaChannelMessage.dataParameter.protocolDependentData 					= 0;
+		r->msg.OpenMultiMediaChannelMessage.dataParameter.maxBitRate 							= 0;
 
 		sccp_dump_packet((unsigned char *)&r->msg, sizeof(r->msg.OpenMultiMediaChannelMessage));
 	} else {
@@ -1120,7 +1125,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		payloadType = 97;
 	}
 	ast_rtp_set_m_type(channel->rtp.video.rtp, payloadType);
-	//ast_rtp_set_rtpmap_type(channel->rtp.video.rtp, payloadType, "video", ast_rtp_lookup_mime_subtype(1, channel->rtp.video.readFormat, 0), 0);
+	ast_rtp_set_rtpmap_type_rate(channel->rtp.video.rtp, channel->rtp.video.readFormat, "video", "H264", 0, 0);
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: using payload %d\n", channel->device->id, payloadType);
 
@@ -1148,96 +1153,96 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 
 		memcpy(&r->msg.StartMultiMediaTransmission.bel_remoteIpAddr, &sin.sin_addr, 4);
 
-		r->msg.StartMultiMediaTransmission.lel_remotePortNumber = htolel(ntohs(sin.sin_port));
-		r->msg.StartMultiMediaTransmission.lel_callReference = htolel(channel->callid);
+		r->msg.StartMultiMediaTransmission.lel_remotePortNumber 							= htolel(ntohs(sin.sin_port));
+		r->msg.StartMultiMediaTransmission.lel_callReference 								= htolel(channel->callid);
 		//r->msg.StartMultiMediaTransmission.lel_payload_rfc_number                                                     = htolel(0);
-		r->msg.StartMultiMediaTransmission.lel_payloadType = payloadType;
-		r->msg.StartMultiMediaTransmission.lel_DSCPValue = htolel(136);
+		r->msg.StartMultiMediaTransmission.lel_payloadType 								= payloadType;
+		r->msg.StartMultiMediaTransmission.lel_DSCPValue 								= htolel(136);
 
-		r->msg.StartMultiMediaTransmission.audioParameter.millisecondPacketSize = htolel(packetSize);
-		r->msg.StartMultiMediaTransmission.audioParameter.lel_echoCancelType = 0;
+		r->msg.StartMultiMediaTransmission.audioParameter.millisecondPacketSize 					= htolel(packetSize);
+		r->msg.StartMultiMediaTransmission.audioParameter.lel_echoCancelType 						= 0;
 		//r->msg.StartMultiMediaTransmission.audioParameter.lel_g723BitRate                                             = htolel(0x00000132);
 
-		r->msg.StartMultiMediaTransmission.videoParameter.bitRate = 0;
-		r->msg.StartMultiMediaTransmission.videoParameter.pictureFormatCount = 0;
+		r->msg.StartMultiMediaTransmission.videoParameter.bitRate 							= 0;
+		r->msg.StartMultiMediaTransmission.videoParameter.pictureFormatCount 						= 0;
 
 		//r->msg.StartMultiMediaTransmission.videoParameter.pictureFormat[5];                                           /*!< Picture Format Array */
-		r->msg.StartMultiMediaTransmission.videoParameter.confServiceNum = 0;
-		r->msg.StartMultiMediaTransmission.videoParameter.dummy = 0;
-		r->msg.StartMultiMediaTransmission.videoParameter.h261VideoCapability.temporalSpatialTradeOffCapability = htolel(0x00000040);	/* profile */
-		r->msg.StartMultiMediaTransmission.videoParameter.h261VideoCapability.stillImageTransmission = htolel(0x00000032);	/* level */
+		r->msg.StartMultiMediaTransmission.videoParameter.confServiceNum 						= 0;
+		r->msg.StartMultiMediaTransmission.videoParameter.dummy								= 0;
+		r->msg.StartMultiMediaTransmission.videoParameter.h261VideoCapability.temporalSpatialTradeOffCapability 	= htolel(0x00000040);	/* profile */
+		r->msg.StartMultiMediaTransmission.videoParameter.h261VideoCapability.stillImageTransmission 			= htolel(0x00000032);	/* level */
 
-		r->msg.StartMultiMediaTransmission.videoParameter.h263VideoCapability.h263CapabilityBitfield = htolel(0x4c3a525b);
-		r->msg.StartMultiMediaTransmission.videoParameter.h263VideoCapability.annexNandwFutureUse = htolel(0x202d2050);
+// 		r->msg.StartMultiMediaTransmission.videoParameter.h263VideoCapability.h263CapabilityBitfield 			= htolel(0x4c3a525b);
+// 		r->msg.StartMultiMediaTransmission.videoParameter.h263VideoCapability.annexNandwFutureUse 			= htolel(0x202d2050);
 
-		r->msg.StartMultiMediaTransmission.videoParameter.vieoVideoCapability.modelNumber = htolel(0x203a5048);
-		r->msg.StartMultiMediaTransmission.videoParameter.vieoVideoCapability.bandwidth = htolel(0x4e202c30);
+// 		r->msg.StartMultiMediaTransmission.videoParameter.vieoVideoCapability.modelNumber 				= htolel(0x203a5048);
+// 		r->msg.StartMultiMediaTransmission.videoParameter.vieoVideoCapability.bandwidth 				= htolel(0x4e202c30);
 
-		r->msg.StartMultiMediaTransmission.dataParameter.protocolDependentData = htolel(0x002415f8);
-		r->msg.StartMultiMediaTransmission.dataParameter.maxBitRate = htolel(0x098902c4);
+// 		r->msg.StartMultiMediaTransmission.dataParameter.protocolDependentData 						= htolel(0x002415f8);
+// 		r->msg.StartMultiMediaTransmission.dataParameter.maxBitRate 							= htolel(0x098902c4);
 
-		r->msg.StartMultiMediaTransmission.unknown[0] = htolel(0x0a5aee9c);
-		r->msg.StartMultiMediaTransmission.unknown[1] = htolel(0x00180688);
-		r->msg.StartMultiMediaTransmission.unknown[2] = htolel(0x0a5aef54);
-		r->msg.StartMultiMediaTransmission.unknown[3] = htolel(0x77fb7e64);
-		r->msg.StartMultiMediaTransmission.unknown[4] = htolel(0x77f83158);
-		r->msg.StartMultiMediaTransmission.unknown[5] = htolel(0xffffffff);
-		r->msg.StartMultiMediaTransmission.unknown[6] = r->msg.StartMultiMediaTransmission.unknown[2];
-		r->msg.StartMultiMediaTransmission.unknown[7] = htolel(0x77fcb7c2);	/* same */
-		r->msg.StartMultiMediaTransmission.unknown[8] = htolel(0x00180778);	/* same */
-		r->msg.StartMultiMediaTransmission.unknown[9] = htolel(0x076d0a58);
-		r->msg.StartMultiMediaTransmission.unknown[10] = htolel(0x076d0a78);
-		r->msg.StartMultiMediaTransmission.unknown[11] = r->msg.StartMultiMediaTransmission.unknown[9];
+// 		r->msg.StartMultiMediaTransmission.unknown[0] 									= htolel(0x0a5aee9c);
+// 		r->msg.StartMultiMediaTransmission.unknown[1] 									= htolel(0x00180688);
+// 		r->msg.StartMultiMediaTransmission.unknown[2] 									= htolel(0x0a5aef54);
+// 		r->msg.StartMultiMediaTransmission.unknown[3] 									= htolel(0x77fb7e64);
+// 		r->msg.StartMultiMediaTransmission.unknown[4] 									= htolel(0x77f83158);
+// 		r->msg.StartMultiMediaTransmission.unknown[5] 									= htolel(0xffffffff);
+// 		r->msg.StartMultiMediaTransmission.unknown[6] 									= r->msg.StartMultiMediaTransmission.unknown[2];
+// 		r->msg.StartMultiMediaTransmission.unknown[7] 									= htolel(0x77fcb7c2);	/* same */
+// 		r->msg.StartMultiMediaTransmission.unknown[8] 									= htolel(0x00180778);	/* same */
+// 		r->msg.StartMultiMediaTransmission.unknown[9] 									= htolel(0x076d0a58);
+// 		r->msg.StartMultiMediaTransmission.unknown[10] 									= htolel(0x076d0a78);
+// 		r->msg.StartMultiMediaTransmission.unknown[11] 									= r->msg.StartMultiMediaTransmission.unknown[9];
 
 	} else {
 
 		r = sccp_build_packet(StartMultiMediaTransmission, sizeof(r->msg.StartMultiMediaTransmission_v17));
-		r->msg.StartMultiMediaTransmission_v17.lel_conferenceID = htolel(channel->callid);
-		r->msg.StartMultiMediaTransmission_v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
-		r->msg.StartMultiMediaTransmission_v17.lel_payloadCapability = htolel(skinnyFormat);
+		r->msg.StartMultiMediaTransmission_v17.lel_conferenceID 							= htolel(channel->callid);
+		r->msg.StartMultiMediaTransmission_v17.lel_passThruPartyId 							= htolel(channel->passthrupartyid);
+		r->msg.StartMultiMediaTransmission_v17.lel_payloadCapability 							= htolel(skinnyFormat);
 
 		memcpy(&r->msg.StartMultiMediaTransmission_v17.bel_remoteIpAddr, &sin.sin_addr, 4);
 
-		r->msg.StartMultiMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(sin.sin_port));
-		r->msg.StartMultiMediaTransmission_v17.lel_callReference = htolel(channel->callid);
+		r->msg.StartMultiMediaTransmission_v17.lel_remotePortNumber 							= htolel(ntohs(sin.sin_port));
+		r->msg.StartMultiMediaTransmission_v17.lel_callReference 							= htolel(channel->callid);
 		//r->msg.StartMultiMediaTransmission_v17.lel_payload_rfc_number                                                 = htolel(0);
-		r->msg.StartMultiMediaTransmission_v17.lel_payloadType = payloadType;
-		r->msg.StartMultiMediaTransmission_v17.lel_DSCPValue = htolel(136);
+		r->msg.StartMultiMediaTransmission_v17.lel_payloadType								= payloadType;
+		r->msg.StartMultiMediaTransmission_v17.lel_DSCPValue 								= htolel(136);
 
-		r->msg.StartMultiMediaTransmission_v17.audioParameter.millisecondPacketSize = htolel(packetSize);
-		r->msg.StartMultiMediaTransmission_v17.audioParameter.lel_echoCancelType = 0;
+		r->msg.StartMultiMediaTransmission_v17.audioParameter.millisecondPacketSize 					= htolel(packetSize);
+		r->msg.StartMultiMediaTransmission_v17.audioParameter.lel_echoCancelType 					= 0;
 		//r->msg.StartMultiMediaTransmission_v17.audioParameter.lel_g723BitRate                                         = htolel(0x00000132);
 
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.bitRate = 0;
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormatCount = 0;
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.bitRate 							= 0;
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormatCount 					= 0;
 
 		//r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormat[5];                                       /*!< Picture Format Array */
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.confServiceNum = 0;
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.dummy = 0;
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.h261VideoCapability.temporalSpatialTradeOffCapability = htolel(0x00000040);	/* profile */
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.h261VideoCapability.stillImageTransmission = htolel(0x00000032);	/* level */
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.confServiceNum 						= 0;
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.dummy 							= 0;
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.h261VideoCapability.temporalSpatialTradeOffCapability 	= htolel(0x00000040);	/* profile */
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.h261VideoCapability.stillImageTransmission 		= htolel(0x00000032);	/* level */
 
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.h263VideoCapability.h263CapabilityBitfield = htolel(0x4c3a525b);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.h263VideoCapability.annexNandwFutureUse = htolel(0x202d2050);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.h263VideoCapability.h263CapabilityBitfield 		= htolel(0x4c3a525b);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.h263VideoCapability.annexNandwFutureUse 			= htolel(0x202d2050);
 
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.vieoVideoCapability.modelNumber = htolel(0x203a5048);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.vieoVideoCapability.bandwidth = htolel(0x4e202c30);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.vieoVideoCapability.modelNumber 				= htolel(0x203a5048);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.vieoVideoCapability.bandwidth 				= htolel(0x4e202c30);
 
-		r->msg.StartMultiMediaTransmission_v17.dataParameter.protocolDependentData = htolel(0x002415f8);
-		r->msg.StartMultiMediaTransmission_v17.dataParameter.maxBitRate = htolel(0x098902c4);
+		r->msg.StartMultiMediaTransmission_v17.dataParameter.protocolDependentData 					= htolel(0x002415f8);
+		r->msg.StartMultiMediaTransmission_v17.dataParameter.maxBitRate 						= htolel(0x098902c4);
 
-		r->msg.StartMultiMediaTransmission_v17.unknown[0] = htolel(0x0a5aee9c);
-		r->msg.StartMultiMediaTransmission_v17.unknown[1] = htolel(0x00180688);
-		r->msg.StartMultiMediaTransmission_v17.unknown[2] = htolel(0x0a5aef54);
-		r->msg.StartMultiMediaTransmission_v17.unknown[3] = htolel(0x77fb7e64);
-		r->msg.StartMultiMediaTransmission_v17.unknown[4] = htolel(0x77f83158);
-		r->msg.StartMultiMediaTransmission_v17.unknown[5] = htolel(0xffffffff);
-		r->msg.StartMultiMediaTransmission_v17.unknown[6] = r->msg.StartMultiMediaTransmission_v17.unknown[2];
-		r->msg.StartMultiMediaTransmission_v17.unknown[7] = htolel(0x77fcb7c2);	/* same */
-		r->msg.StartMultiMediaTransmission_v17.unknown[8] = htolel(0x00180778);	/* same */
-		r->msg.StartMultiMediaTransmission_v17.unknown[9] = htolel(0x076d0a58);
-		r->msg.StartMultiMediaTransmission_v17.unknown[10] = htolel(0x076d0a78);
-		r->msg.StartMultiMediaTransmission_v17.unknown[11] = r->msg.StartMultiMediaTransmission_v17.unknown[9];
+		r->msg.StartMultiMediaTransmission_v17.unknown[0] 								= htolel(0x0a5aee9c);
+		r->msg.StartMultiMediaTransmission_v17.unknown[1] 								= htolel(0x00180688);
+		r->msg.StartMultiMediaTransmission_v17.unknown[2] 								= htolel(0x0a5aef54);
+		r->msg.StartMultiMediaTransmission_v17.unknown[3] 								= htolel(0x77fb7e64);
+		r->msg.StartMultiMediaTransmission_v17.unknown[4] 								= htolel(0x77f83158);
+		r->msg.StartMultiMediaTransmission_v17.unknown[5] 								= htolel(0xffffffff);
+		r->msg.StartMultiMediaTransmission_v17.unknown[6] 								= r->msg.StartMultiMediaTransmission_v17.unknown[2];
+		r->msg.StartMultiMediaTransmission_v17.unknown[7] 								= htolel(0x77fcb7c2);	/* same */
+		r->msg.StartMultiMediaTransmission_v17.unknown[8] 								= htolel(0x00180778);	/* same */
+		r->msg.StartMultiMediaTransmission_v17.unknown[9] 								= htolel(0x076d0a58);
+		r->msg.StartMultiMediaTransmission_v17.unknown[10] 								= htolel(0x076d0a78);
+		r->msg.StartMultiMediaTransmission_v17.unknown[11] 								= r->msg.StartMultiMediaTransmission_v17.unknown[9];
 
 	}
 
