@@ -670,7 +670,6 @@ static struct ast_frame *sccp_pbx_read(struct ast_channel *ast)
 //                      sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: Got Video frame from device; frametype: %d, subclass:%d\n", DEV_ID_LOG(c->device), frame->frametype, frame->subclass);
 		if (frame) {
 			frame->frametype = AST_FRAME_VIDEO;
-			frame->subclass = c->rtp.video.readFormat;
 		}
 #    endif									// CS_SCCP_VIDEO
 		break;
@@ -768,7 +767,7 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame)
 			    //      && (c->device->capability & frame->subclass) 
 			    ) {
 				ast_log(LOG_NOTICE, "%s: got video frame\n", DEV_ID_LOG(c->device));
-				c->rtp.video.writeFormat = frame->subclass;
+				c->rtp.video.writeFormat = (frame->subclass & AST_FORMAT_VIDEO_MASK);
 				sccp_channel_openMultiMediaChannel(c);
 			}
 #endif
