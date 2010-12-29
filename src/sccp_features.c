@@ -335,11 +335,24 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 
 	while ((target = ast_channel_walk_locked(target))) {
 		sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
-		sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (directpickup)\n" "--------------------------------------------\n" "(pickup target)\n" "exten         = %s\n" "context       = %s\n" "pbx           = off\n" "state		    = %d or %d\n" "(current chan)\n" "macro exten   = %s\n" "exten         = %s\n" "macro context = %s\n" "context	    = %s\n"
-#    if ASTERISK_VERSION_NUM >= 10400
+		sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (directpickup)\n" 
+									       "--------------------------------------------\n" 
+									       "(pickup target)\n" 
+									       "exten         = %s\n" 
+									       "context       = %s\n" 
+									       "pbx           = off\n" 
+									       "state	      = %d or %d\n" 
+									       "(current chan)\n" 
+									       "macro exten   = %s\n" 
+									       "exten         = %s\n" 
+									       "macro context = %s\n" 
+									       "context	    = %s\n"
+#if ASTERISK_VERSION_NUM >= 10400
 							      "dialcontext   = %s\n"
-#    endif
-							      "pbx		    = %s\n" "state		    = %d\n" "--------------------------------------------\n", pickupexten, !ast_strlen_zero(d->pickupcontext) ? d->pickupcontext : "(NULL)", AST_STATE_RINGING, AST_STATE_RING, target->macroexten ? target->macroexten : "(NULL)", target->exten ? target->exten : "(NULL)", target->macrocontext ? target->macrocontext : "(NULL)", target->context ? target->context : "(NULL)",
+#endif
+							      "pbx		    = %s\n" 
+							      "state		    = %d\n" 
+							      "--------------------------------------------\n", pickupexten, !ast_strlen_zero(d->pickupcontext) ? d->pickupcontext : "(NULL)", AST_STATE_RINGING, AST_STATE_RING, target->macroexten ? target->macroexten : "(NULL)", target->exten ? target->exten : "(NULL)", target->macrocontext ? target->macrocontext : "(NULL)", target->context ? target->context : "(NULL)",
 #    if ASTERISK_VERSION_NUM >= 10400
 							      target->dialcontext ? target->dialcontext : "(NULL)",
 #    endif
@@ -424,7 +437,7 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 					ast_setstate(original, AST_STATE_DOWN);
 				}
 				sccp_ast_channel_unlock(target);
-				ast_hangup(original);
+				ast_queue_hangup(original);
 			} else {
 				sccp_ast_channel_unlock(target);
 			}
@@ -522,19 +535,19 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 
 			original = c->owner;
 
-#    ifdef CS_AST_CHANNEL_HAS_CID
+#ifdef CS_AST_CHANNEL_HAS_CID
 			if (target->cid.cid_name)
 				name = strdup(target->cid.cid_name);
 			if (target->cid.cid_num)
 				number = strdup(target->cid.cid_num);
-#    else
+#else
 			if (target->callerid) {
 				cidtmp = strdup(target->callerid);
 				ast_callerid_parse(cidtmp, &name, &number);
 			}
-#    endif
+#endif
 
-#    ifdef CS_AST_CHANNEL_HAS_CID
+#ifdef CS_AST_CHANNEL_HAS_CID
 			if (original && original->cid.cid_name)
 				sccp_copy_string(c->callInfo.originalCalledPartyName, original->cid.cid_name, sizeof(c->callInfo.originalCalledPartyName));
 			if (original && original->cid.cid_num)
@@ -558,7 +571,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_num = '%s'\n", (target->cid.cid_num) ? target->cid.cid_num : "");
 			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_rdnis = '%s'\n", (target->cid.cid_rdnis) ? target->cid.cid_rdnis : "");
 
-#    endif
+#endif
 			sccp_channel_t *remote = NULL;
 			if ((remote = get_sccp_channel_from_ast_channel(target))) {
 				sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) remote channel is SCCP %s -> correct cid\n", remote->owner->name);
@@ -620,7 +633,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 				}
 				sccp_channel_unlock(c);
 				sccp_ast_channel_unlock(target);
-				ast_hangup(original);
+				ast_queue_hangup(original);
 			} else {
 				sccp_channel_unlock(c);
 				sccp_ast_channel_unlock(target);
