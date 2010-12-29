@@ -138,6 +138,7 @@ void sccp_session_close(sccp_session_t * s)
 		close(s->fds[0].fd);
 		s->fds[0].fd = -1;
 	}
+	s->session_stop = 1;
 	sccp_session_unlock(s);
 
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Old session marked down\n", DEV_ID_LOG(s->device));
@@ -170,10 +171,13 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 		return;
 	
 	
-	pthread_t thread = s->session_thread;
-	s->session_stop = 1;
-	pthread_kill(thread, SIGURG);
-	pthread_join(thread, NULL);
+	if(s->session_thread != AST_PTHREADT_NULL){
+		pthread_t thread = s->session_thread;
+		s->session_stop = 1;
+		pthread_kill(thread, SIGURG);
+		pthread_join(thread, NULL);
+		s->session_thread = AST_PTHREADT_NULL;
+	}
 
 
 	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
@@ -247,7 +251,7 @@ void *sccp_socket_device_thread(void *session){
 			if (res < 0) {
 				ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
 				sccp_session_close(s);
-				destroy_session(s, 5);
+				destroy_session(s, 0);
 			} else if (res == 0) {
 				// poll timeout
 				now = time(0);
@@ -272,7 +276,7 @@ void *sccp_socket_device_thread(void *session){
 			/* session is gone */
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session is Gone\n", (s->device) ? s->device->id : "SCCP");
 			sccp_session_close(s);
-			destroy_session(s, 5);
+			destroy_session(s, 0);
 		}
 	}
 	s->session_thread = AST_PTHREADT_NULL;
