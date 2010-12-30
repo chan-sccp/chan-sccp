@@ -1777,15 +1777,6 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * c)
 
 	sccp_channel_updateChannelCapability_locked(c);
 
-	const char *bridgePeer = pbx_builtin_getvar_helper(c->owner, "BRIDGEPEER");
-	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: ANSWER BRIDGEPEER: %s\n", bridgePeer ? bridgePeer : "(null)");
-
-#if 0 /* please explain why it has been disabled */
-	c->owner->nativeformats = device->capability;
-	c->format = ast_codec_choose(&device->codecs, device->capability, 1);
-	c->owner->rawreadformat = device->capability;
-	c->owner->rawwriteformat = device->capability;
-#endif
 
 	/* answering an incoming call */
 	/* look if we have a call to put on hold */
