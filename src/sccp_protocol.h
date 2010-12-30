@@ -1683,7 +1683,7 @@ typedef struct {
 	skinny_media_payload lel_payloadCapability;				/*!< PayLoad Capability */
 	uint32_t lel_maxFramesPerPacket;					/*!< Maximum Number of Frames per IP Packet */
 	uint32_t lel_unknown[2];						/*!< this are related to G.723 */
-} audioCaps_t;									/*!< Audio Capabilities Structure */
+} audioCap_t;									/*!< Audio Capabilities Structure */
 
 /*!
  * \brief Video Capabilities Structure
@@ -1723,7 +1723,7 @@ typedef struct {
 	uint32_t transmitOrReceive;						/*!< Transmit or Receive */
 	uint32_t protocolDependentData;						/*!< Protocol Dependent Data */
 	uint32_t maxBitRate;							/*!< Maximum BitRate */
-} dataCaps_t;									/*!< Data Capabilities Structure */
+} dataCap_t;									/*!< Data Capabilities Structure */
 
 /*!
  * \brief Audio Parameters Structure
@@ -2433,9 +2433,9 @@ typedef union {
 		uint32_t serviceResourceCount;					/*!< Service Resource Count */
 		serviceResource_t serviceResource[MAX_SERVICE_TYPE];		/*!< Service Resource */
 
-		audioCaps_t audioCaps[DeviceMaxCapabilities];			/*!< Audio Capabilities */
+		audioCap_t audioCaps[DeviceMaxCapabilities];			/*!< Audio Capabilities */
 		videoCap_t videoCaps[DeviceMaxVideoCapabilities];		/*!< Video Capabilities */
-		dataCaps_t dataCaps[DeviceMaxDataCapabilities];			/*!< Data Capabilities */
+		dataCap_t dataCaps[DeviceMaxDataCapabilities];			/*!< Data Capabilities */
 
 		uint32_t unknown;						/*!< Unknown */
 	} UpdateCapabilitiesMessage;						/*!< Update Capabilities Message Structure */
