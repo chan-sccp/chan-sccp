@@ -2800,12 +2800,17 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_moo_t * r)
 	/* parsing audio caps */
 	n = letohl(r->msg.UpdateCapabilitiesMessage.lel_audioCapCount);
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Audio Capabilities\n", DEV_ID_LOG(d), n);
+	
 	for (i = 0; i < n; i++) {
 		codec = letohl(r->msg.UpdateCapabilitiesMessage.audioCaps[i].lel_payloadCapability);
 		astcodec = sccp_codec_skinny2ast(codec);
 		d->capability |= astcodec;
 		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(d), codec, codec2str(codec), astcodec, ast_codec2str(astcodec));
 	}
+	/* store our audio capabilities */
+// 	memset(&d->capabilities.audio, 0, sizeof(audioCap_t) * DeviceMaxCapabilities);
+// 	memcpy(&d->capabilities.audio, &r->msg.UpdateCapabilitiesMessage.audioCaps, sizeof(audioCap_t) * n);
+	
 
 	/* parsing video caps */
 	n = letohl(r->msg.UpdateCapabilitiesMessage.lel_videoCapCount);
@@ -2816,6 +2821,9 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_moo_t * r)
 		d->capability |= astcodec;
 		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(d), codec, codec2str(codec), astcodec, ast_codec2str(astcodec));
 	}
+	/* store our video capabilities */
+// 	memset(&d->capabilities.video, 0, sizeof(videoCap_t) * DeviceMaxCapabilities);
+// 	memcpy(&d->capabilities.video, &r->msg.UpdateCapabilitiesMessage.videoCaps, sizeof(videoCap_t) * n);
 }
 
 /*!
