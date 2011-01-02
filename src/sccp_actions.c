@@ -303,6 +303,138 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 
 }
 
+
+void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
+{
+	sccp_device_t *d;
+	sccp_moo_t *r1;
+	uint8_t i = 0;
+	struct ast_hostent ahp;
+	struct hostent *hp;
+	struct sockaddr_in sin;
+	sccp_hostname_t *permithost;
+	boolean_t isRealtime = 0;
+
+	if (!s || (s->fds[0].fd < 0)) {
+		ast_log(LOG_ERROR, "%s: No Valid Session\n", DEV_ID_LOG(s->device));
+		return;
+	}
+
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d\n", r->msg.SPARegisterMessage.sId.deviceName, letohl(r->msg.SPARegisterMessage.sId.lel_instance), devicetype2str(letohl(r->msg.SPARegisterMessage.lel_deviceType)), letohl(r->msg.SPARegisterMessage.lel_deviceType), 0);
+
+	/* ip address range check */
+	if (GLOB(ha) && !ast_apply_ha(GLOB(ha), &s->sin)) {
+		ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.SPARegisterMessage.sId.deviceName);
+		sccp_session_reject(s, "Device ip not authorized");
+		return;
+	}
+	// Search for already known devices
+	d = sccp_device_find_byid(r->msg.SPARegisterMessage.sId.deviceName, FALSE);
+	if (d) {
+		if (d->session) {
+#ifdef CS_SCCP_REALTIME
+			isRealtime = d->realtime;
+#endif
+			sccp_log(1) (VERBOSE_PREFIX_2 "%s: SPA-Device is doing a re-registration!\n", d->id);
+			sccp_session_sendmsg(s->device, KeepAliveAckMessage);
+			return;
+		}
+	}
+	// search for all devices including realtime
+	d = sccp_device_find_byid(r->msg.SPARegisterMessage.sId.deviceName, TRUE);
+	if (!d) {
+		if (GLOB(allowAnonymus)) {
+			d = sccp_device_create();
+			sccp_copy_string(d->id, r->msg.SPARegisterMessage.sId.deviceName, sizeof(d->id));
+			d->realtime = TRUE;
+			d->isAnonymous = TRUE;
+#ifdef CS_DYNAMIC_CONFIG
+			sccp_config_addButton(d, -1, LINE, GLOB(hotline)->line->name, NULL, NULL);
+#else
+			sccp_config_addLine(d, GLOB(hotline)->line->name, NULL, 0);
+#endif
+			sccp_log(1) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.SPARegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
+			d->defaultLineInstance = 1;
+			SCCP_RWLIST_WRLOCK(&GLOB(devices));
+			SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), d, list);
+			SCCP_RWLIST_UNLOCK(&GLOB(devices));
+		} else {
+			ast_log(LOG_NOTICE, "%s: Rejecting device: not found\n", r->msg.SPARegisterMessage.sId.deviceName);
+			sccp_session_reject(s, "Unknown Device");
+			return;
+		}
+	} else if (d->ha && !ast_apply_ha(d->ha, &s->sin)) {
+
+		// \todo TODO check anonymous devices for permit hosts
+		SCCP_LIST_LOCK(&d->permithosts);
+		SCCP_LIST_TRAVERSE(&d->permithosts, permithost, list) {
+			if ((hp = ast_gethostbyname(permithost->name, &ahp))) {
+				memcpy(&sin.sin_addr, hp->h_addr, sizeof(sin.sin_addr));
+				if (s->sin.sin_addr.s_addr == sin.sin_addr.s_addr) {
+					break;
+				} else {
+					ast_log(LOG_NOTICE, "%s: device ip address does not match the permithost = %s (%s)\n", r->msg.SPARegisterMessage.sId.deviceName, permithost->name, sccp_inet_ntoa(sin.sin_addr));
+				}
+			} else {
+				ast_log(LOG_NOTICE, "%s: Invalid address resolution for permithost = %s\n", r->msg.SPARegisterMessage.sId.deviceName, permithost->name);
+			}
+		}
+		SCCP_LIST_UNLOCK(&d->permithosts);
+
+		if (i) {
+			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.SPARegisterMessage.sId.deviceName);
+			sccp_session_reject(s, "Device ip not authorized");
+			return;
+		}
+	}
+
+	sccp_device_lock(d);
+	d->linesRegistered = FALSE;
+	/* test the localnet to understand if the device is behind NAT */
+	if (GLOB(localaddr) && ast_apply_ha(GLOB(localaddr), &s->sin)) {
+		/* ok the device is natted */
+		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream \n", r->msg.SPARegisterMessage.sId.deviceName);
+		d->nat = 1;
+	}
+
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fds[0].fd, sccp_inet_ntoa(s->sin.sin_addr));
+	s->device = d;
+	d->skinny_type = letohl(r->msg.SPARegisterMessage.lel_deviceType);
+
+	d->session = s;
+	s->lastKeepAlive = time(0);
+	d->mwilight = 0;
+	//d->protocolversion = r->msg.SPARegisterMessage.protocolVer;
+	d->protocolversion = 0;
+
+	sccp_device_unlock(d);
+
+	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
+	int keepAliveInterval = d->keepalive ? d->keepalive : GLOB(keepalive);
+	keepAliveInterval = (keepAliveInterval / 2) + (rand() % (keepAliveInterval / 2)) + 1;
+
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval);
+	REQ(r1, RegisterAckMessage);
+
+	d->inuseprotocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), d->inuseprotocolversion);
+
+
+
+	r1->msg.RegisterAckMessage.protocolVer = d->inuseprotocolversion;
+	r1->msg.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
+	r1->msg.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel((d->keepalive ? d->keepalive : GLOB(keepalive)));
+
+	memcpy(r1->msg.RegisterAckMessage.dateTemplate, GLOB(date_format), sizeof(r1->msg.RegisterAckMessage.dateTemplate));
+	sccp_session_send(d, r1);
+	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_PROGRESS);
+
+	// Ask for the capabilities of the device
+	// to proceed with registration according to sccp protocol specification 3.0
+	sccp_dev_sendmsg(d, CapabilitiesReqMessage);
+
+}
+
 /*!
  * \brief Make Button Template for Device
  * \param d SCCP Device as sccp_device_t

@@ -447,7 +447,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	s->lastKeepAlive = time(0);						/* always update keepalive */
 
 	/* Check if all necessary information is available */
-	if ((!s->device) && (mid != RegisterMessage && mid != RegisterTokenReq && mid != AlarmMessage && mid != KeepAliveMessage && mid != XMLAlarmMessage && mid != IpPortMessage)) {
+	if ((!s->device) && (mid != RegisterMessage && mid != RegisterTokenReq && mid != AlarmMessage && mid != KeepAliveMessage && mid != XMLAlarmMessage && mid != IpPortMessage && mid != SPARegisterMessage)) {
 		ast_log(LOG_WARNING, "SCCP: Client sent %s without first registering. Attempting reconnect.\n", message2str(mid));
 	} else if (s->device) {
 		if (s->device != sccp_device_find_byipaddress(s->sin.sin_addr.s_addr)) {
@@ -497,6 +497,9 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	case RegisterMessage:
 	case RegisterTokenReq:
 		sccp_handle_register(s, r);
+		break;
+	case SPARegisterMessage:
+		sccp_handle_SPAregister(s, r);
 		break;
 	case UnregisterMessage:
 		sccp_handle_unregister(s, r);

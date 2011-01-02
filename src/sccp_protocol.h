@@ -611,12 +611,13 @@ static const struct skinny_alarm {
 #    define SKINNY_DEVICETYPE_GATEWAY_AN 			30027		/*!< Analog gateway */
 #    define SKINNY_DEVICETYPE_GATEWAY_BRI 			30028		/*!< BRI gateway */
 #    define SKINNY_DEVICETYPE_NOKIA_ICC 			376		/*!< nokia icc client V2 */
+#    define SKINNY_DEVICETYPE_SPA_521S			80000		/*!< nokia icc client V2 */
 
 /*!
  * \brief Skinny DeviceType Structure
  */
 static const struct skinny_devicetype {
-	uint16_t devicetype;
+	uint32_t devicetype;
 	const char *const text;
 } skinny_devicetypes[] = {
 	/* *INDENT-OFF* */
@@ -700,6 +701,8 @@ static const struct skinny_devicetype {
 	{SKINNY_DEVICETYPE_CISCO7975, "Cisco 7975"},
 	{SKINNY_DEVICETYPE_CISCO7985, "Cisco 7985"}, 
 	{SKINNY_DEVICETYPE_NOKIA_ICC, "Nokia ICC client"},
+	{SKINNY_DEVICETYPE_SPA_521S, "Cisco SPA 521SG"},
+	
 	/* *INDENT-ON* */
 };
 
@@ -1354,7 +1357,11 @@ typedef enum {
 	Unknown_0x0153_Message = 0x0153,
 	StartMediaTransmissionAck = 0x0154,
 	ExtensionDeviceCaps = 0x0159,
-	XMLAlarmMessage = 0x015A
+	XMLAlarmMessage = 0x015A,
+	
+	
+	/* SPA client -> server */
+	SPARegisterMessage = 0x8000,
 } sccp_message_t;								/*!< SCCP Message Types Enum */
 
 /*!
@@ -3206,6 +3213,24 @@ typedef union {
 	struct {
 		char le_data[2004];						/*!< XML Alarm Message Data */
 	} XMLAlarmMessage;							/*!< XML Alarm Message Structure */
+
+
+
+
+
+
+
+
+	/* SPA */
+	struct {
+		StationIdentifier sId;						/*!< Station Identifier */
+		uint32_t lel_stationIpAddr;					/*!< Station IP Address */
+		uint32_t lel_deviceType;					/*!< Device Type as part of SKINNY_DEVICETYPE_* */
+		uint32_t lel_maxStreams;					/*!< Max Streams */	
+	} SPARegisterMessage;
+	
+
+
 
 } sccp_data_t;									/*!< SCCP Data Structure */
 
