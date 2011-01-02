@@ -1007,7 +1007,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		payloadType = 97;
 		sampleRate = 3840;
 	}
-	sampleRate = 3840;
+	sampleRate = 3840*2;
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive multimedia channel with format %s[%d] skinnyFormat %s[%d], payload %d\n", DEV_ID_LOG(channel->device), ast_codec2str(channel->rtp.video.writeFormat), channel->rtp.video.writeFormat, codec2str(skinnyFormat), skinnyFormat, payloadType);
 
@@ -1178,8 +1178,8 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 // 		r->msg.StartMultiMediaTransmission.videoParameter.vieoVideoCapability.modelNumber 				= htolel(0x203a5048);
 // 		r->msg.StartMultiMediaTransmission.videoParameter.vieoVideoCapability.bandwidth 				= htolel(0x4e202c30);
 
-// 		r->msg.StartMultiMediaTransmission.dataParameter.protocolDependentData 						= htolel(0x002415f8);
-// 		r->msg.StartMultiMediaTransmission.dataParameter.maxBitRate 							= htolel(0x098902c4);
+ 		r->msg.StartMultiMediaTransmission.dataParameter.protocolDependentData 						= htolel(0x002415f8);
+ 		r->msg.StartMultiMediaTransmission.dataParameter.maxBitRate 							= htolel(0x098902c4);
 
 // 		r->msg.StartMultiMediaTransmission.unknown[0] 									= htolel(0x0a5aee9c);
 // 		r->msg.StartMultiMediaTransmission.unknown[1] 									= htolel(0x00180688);
@@ -1257,7 +1257,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 	r->msg.FlowControlCommandMessage.lel_conferenceID = htolel(channel->callid);
 	r->msg.FlowControlCommandMessage.lel_passThruPartyId = htolel(channel->passthrupartyid);
 	r->msg.FlowControlCommandMessage.lel_callReference = htolel(channel->callid);
-	r->msg.FlowControlCommandMessage.maxBitRate = htolel(0x00000c80);
+	r->msg.FlowControlCommandMessage.maxBitRate = htolel(500000);
 	sccp_dev_send(channel->device, r);
 }
 
