@@ -40,6 +40,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2180 $")
 #    define sccp_socket_poll poll
 #endif
 sccp_session_t *sccp_session_find(const sccp_device_t * device);
+void sccp_socket_device_thread_exit(void *session);
 
 int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r);
 void *sccp_socket_device_thread(void *session);
@@ -222,6 +223,13 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 	s = NULL;
 }
 
+void sccp_socket_device_thread_exit(void *session){
+	sccp_session_t *s = (sccp_session_t *)session;
+	
+	s->session_thread = AST_PTHREADT_NULL;
+	sccp_session_close(s);
+}
+
 
 void *sccp_socket_device_thread(void *session){
 	sccp_session_t *s = (sccp_session_t *)session;
@@ -235,9 +243,8 @@ void *sccp_socket_device_thread(void *session){
 	
 	time_t now;
 	sccp_moo_t *m;
-	pthread_attr_t attr;
-	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	pthread_cleanup_push(sccp_socket_device_thread_exit, session);
+
 	
 	
 	/* we increase additionalTime for wireless/slower devices */
@@ -246,7 +253,9 @@ void *sccp_socket_device_thread(void *session){
 	}
 	
 	
-	while(!s->session_stop){
+	while(!s->session_stop){	  
+		pthread_testcancel();
+
 #ifdef CS_DYNAMIC_CONFIG
 		if (s->device) {
 			ast_mutex_lock(&GLOB(lock));
@@ -290,7 +299,7 @@ void *sccp_socket_device_thread(void *session){
 			destroy_session(s, 0);
 		}
 	}
-	s->session_thread = AST_PTHREADT_NULL;
+	pthread_cleanup_pop(0);
 	
 	return NULL;
 }
@@ -370,6 +379,11 @@ static void sccp_accept_connection(void)
 	
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+	
 	ast_pthread_create(&s->session_thread, &attr, sccp_socket_device_thread, s);
 }
 

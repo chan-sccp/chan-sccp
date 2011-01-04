@@ -1808,7 +1808,7 @@ static int unload_module(void)
 		}
 		ast_channel_unlock(astChannel);
 	}
-	sccp_safe_sleep(openchannels * 1000);					// wait for everything to settle
+	sccp_safe_sleep(openchannels * 1000);				// wait for everything to settle
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Unregister SCCP RTP protocol\n");
 #if ASTERISK_VERSION_NUM >= 10400
@@ -1825,19 +1825,6 @@ static int unload_module(void)
 
 	sccp_mwi_module_stop();
 	sccp_hint_module_stop();
-
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing monitor thread\n");
-	sccp_globals_lock(monitor_lock);
-	if ((GLOB(monitor_thread) != AST_PTHREADT_NULL) && (GLOB(monitor_thread) != AST_PTHREADT_STOP)) {
-		pthread_cancel(GLOB(monitor_thread));
-		pthread_kill(GLOB(monitor_thread), SIGURG);
-#ifndef HAVE_LIBGC
-		pthread_join(GLOB(monitor_thread), NULL);
-#endif
-	}
-	GLOB(monitor_thread) = AST_PTHREADT_STOP;
-	sccp_globals_unlock(monitor_lock);
-	sccp_mutex_destroy(&GLOB(monitor_lock));
 
 #ifdef CS_SCCP_MANAGER
 	sccp_unregister_management();
@@ -1881,6 +1868,11 @@ static int unload_module(void)
 #endif
 		if (s->fds[0].fd > -1)
 			close(s->fds[0].fd);
+		
+		
+		pthread_t thread = s->session_thread;
+		pthread_cancel(thread);
+		
 		ast_mutex_destroy(&s->lock);
 		ast_free(s);
 	}
@@ -1924,6 +1916,20 @@ static int unload_module(void)
 	ast_mutex_destroy(&GLOB(lock));
 	ast_free(sccp_globals);
 
+	
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing monitor thread\n");
+	sccp_globals_lock(monitor_lock);
+	if ((GLOB(monitor_thread) != AST_PTHREADT_NULL) && (GLOB(monitor_thread) != AST_PTHREADT_STOP)) {
+		pthread_cancel(GLOB(monitor_thread));
+		pthread_kill(GLOB(monitor_thread), SIGURG);
+#ifndef HAVE_LIBGC
+		pthread_join(GLOB(monitor_thread), NULL);
+#endif
+	}
+	GLOB(monitor_thread) = AST_PTHREADT_STOP;
+	sccp_globals_unlock(monitor_lock);
+	sccp_mutex_destroy(&GLOB(monitor_lock));
+	
 	ast_log(LOG_NOTICE, "Running Cleanup\n");
 #ifdef HAVE_LIBGC
 	CHECK_LEAKS();
