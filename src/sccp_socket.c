@@ -40,6 +40,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2180 $")
 #    define sccp_socket_poll poll
 #endif
 sccp_session_t *sccp_session_find(const sccp_device_t * device);
+void destroy_session(sccp_session_t * s, uint8_t cleanupTime);
 void sccp_socket_device_thread_exit(void *session);
 
 int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r);
@@ -64,8 +65,8 @@ static void sccp_read_data(sccp_session_t * s)
 
 	if (ioctl(s->fds[0].fd, FIONREAD, &bytesAvailable) == -1) {
 		ast_log(LOG_WARNING, "SCCP: FIONREAD ioctl failed: %s\n", strerror(errno));
-		sccp_session_unlock(s);
-		sccp_session_close(s);
+		
+		pthread_cancel(s->session_thread);
 		return;
 	}
 
@@ -73,8 +74,7 @@ static void sccp_read_data(sccp_session_t * s)
 
 	if (!length) {
 		/* probably a CLOSE_WAIT */
-		sccp_session_unlock(s);
-		sccp_session_close(s);
+		pthread_cancel(s->session_thread);
 		return;
 	}
 
@@ -83,8 +83,7 @@ static void sccp_read_data(sccp_session_t * s)
 	if ((readlen = read(s->fds[0].fd, input, length)) < 0) {
 		ast_log(LOG_WARNING, "SCCP: read() returned %s\n", strerror(errno));
 		ast_free(input);
-		sccp_session_unlock(s);
-		sccp_session_close(s);
+		pthread_cancel(s->session_thread);
 		return;
 	}
 
@@ -139,17 +138,8 @@ void sccp_session_close(sccp_session_t * s)
 		close(s->fds[0].fd);
 		s->fds[0].fd = -1;
 	}
-	if(s->session_thread != AST_PTHREADT_NULL){
-		pthread_t thread = s->session_thread;
-		s->session_stop = 1;
-		pthread_kill(thread, SIGURG);
-		pthread_join(thread, NULL);
-		s->session_thread = AST_PTHREADT_NULL;
-	}
 	sccp_session_unlock(s);
-
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Old session marked down\n", DEV_ID_LOG(s->device));
-
 }
 
 /*!
@@ -176,22 +166,6 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 
 	if (!s)
 		return;
-	
-	
-	sccp_session_lock(s);
-	if(s->session_thread != AST_PTHREADT_NULL){
-		pthread_t thread = s->session_thread;
-		s->session_stop = 1;
-		pthread_kill(thread, SIGURG);
-		pthread_join(thread, NULL);
-		s->session_thread = AST_PTHREADT_NULL;
-	}
-	sccp_session_unlock(s);
-
-
-	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
-	SCCP_LIST_REMOVE(&GLOB(sessions), s, list);
-	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
 
 	d = s->device;
 
@@ -220,14 +194,16 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 	/* destroying mutex and cleaning the session */
 	sccp_mutex_destroy(&s->lock);
 	ast_free(s);
-	s = NULL;
 }
 
 void sccp_socket_device_thread_exit(void *session){
 	sccp_session_t *s = (sccp_session_t *)session;
 	
+	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: cleanup session\n", DEV_ID_LOG(s->device));
+	
 	s->session_thread = AST_PTHREADT_NULL;
 	sccp_session_close(s);
+	destroy_session(s, 10);
 }
 
 
