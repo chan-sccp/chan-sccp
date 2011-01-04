@@ -150,7 +150,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	struct hostent *hp;
 	struct sockaddr_in sin;
 	sccp_hostname_t *permithost;
-	boolean_t isRealtime = 0;
 	uint8_t destroy_timeout = 2;
 
 	if (!s || (s->fds[0].fd < 0)) {
@@ -169,18 +168,11 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	// Search for already known devices
 	d = sccp_device_find_byid(r->msg.RegisterMessage.sId.deviceName, FALSE);
 	if (d) {
-		if (d->session) {
-#ifdef CS_SCCP_REALTIME
-			isRealtime = d->realtime;
-#endif
+		if (d->session && d->session != s) {
 			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", d->id);
-			sccp_session_close(d->session);
+			d->session->session_stop = 1; /* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
+			sccp_dev_clean(d, FALSE, 0); /* we need to clean device configuration to set lines */
 			sccp_log(1) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
-			destroy_session(d->session, destroy_timeout);
-			if (isRealtime) {
-				// wait for destroy_session to finish
-				usleep(destroy_timeout * 1100);			// destroy_timeout + 10%
-			}
 		}
 	}
 	// search for all devices including realtime
@@ -320,7 +312,7 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
 		return;
 	}
 
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d\n", r->msg.SPARegisterMessage.sId.deviceName, letohl(r->msg.SPARegisterMessage.sId.lel_instance), devicetype2str(letohl(r->msg.SPARegisterMessage.lel_deviceType)), letohl(r->msg.SPARegisterMessage.lel_deviceType), 0);
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d)\n", r->msg.SPARegisterMessage.sId.deviceName, r->msg.SPARegisterMessage.sId.lel_instance, devicetype2str(letohl(r->msg.SPARegisterMessage.lel_deviceType)), letohl(r->msg.SPARegisterMessage.lel_deviceType) );
 
 	/* ip address range check */
 	if (GLOB(ha) && !ast_apply_ha(GLOB(ha), &s->sin)) {
@@ -332,12 +324,14 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
 	d = sccp_device_find_byid(r->msg.SPARegisterMessage.sId.deviceName, FALSE);
 	if (d) {
 		if (d->session) {
-#ifdef CS_SCCP_REALTIME
-			isRealtime = d->realtime;
-#endif
+
 			sccp_log(1) (VERBOSE_PREFIX_2 "%s: SPA-Device is doing a re-registration!\n", d->id);
-			sccp_session_sendmsg(s->device, KeepAliveAckMessage);
-			return;
+			if(d->session != s){
+				destroy_session(d->session, 1);
+			}else{
+				return;
+			}
+			
 		}
 	}
 	// search for all devices including realtime
