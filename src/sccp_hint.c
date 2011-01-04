@@ -491,7 +491,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 			/* do not add name for TEMP_FAIL and ONHOOK */
 			if (hint->currentState > 2) {
 				if (sccp_hint_isCIDavailabe(subscriber->device, subscriber->positionOnDevice) == TRUE) {
-					sprintf(displayMessage, "%s %s %s", (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? hint->callInfo.calledPartyName : hint->callInfo.callingPartyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? " -> " : " <- ", (k) ? k->name : "unknown speeddial");
+					sprintf(displayMessage, "%s %s %s", (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? hint->callInfo.calledPartyName : hint->callInfo.callingPartyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ?  " <- " : " -> ", (k) ? k->name : "unknown speeddial");
 				} else {
 					sprintf(displayMessage, "%s", (k) ? k->name : "unknown speeddial");
 				}
@@ -1033,6 +1033,7 @@ void sccp_hint_subscribeHint(const sccp_device_t * device, const char *hintStr, 
 
 	SCCP_LIST_INSERT_HEAD(&hint->subscribers, subscriber, list);
 
+	sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_ONHOOK);
 	sccp_hint_notifySubscribers(hint);
 }
 
