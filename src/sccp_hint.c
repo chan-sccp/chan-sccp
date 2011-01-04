@@ -252,19 +252,6 @@ void sccp_hint_deviceUnRegistered(const char *deviceName)
 {
 	sccp_hint_list_t *hint = NULL;
 	sccp_hint_SubscribingDevice_t *subscriber;
-
-// 	SCCP_LIST_LOCK(&d->buttonconfig);
-// 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-// 
-// 		if (config->type == SPEEDDIAL) {
-// 			if (ast_strlen_zero(config->button.speeddial.hint)) {
-// 				continue;
-// 			}
-// 			sccp_hint_unSubscribeHint(device, config->button.speeddial.hint, config->instance);
-// 
-// 		}
-// 	}
-// 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 	
 	
 	SCCP_LIST_LOCK(&sccp_hint_subscriptions);

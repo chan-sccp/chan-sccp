@@ -475,8 +475,12 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 			}
 		} else if (s->device && (!s->device->session || s->device->session != s)) {
 			sccp_log(1) (VERBOSE_PREFIX_3 "%s: cross device session (Removing Old Session)\n", DEV_ID_LOG(s->device));
-			sccp_session_close(s->device->session);
-			destroy_session(s->device->session, 2);
+			
+			SCCP_RWLIST_WRLOCK(&GLOB(sessions));
+			SCCP_LIST_REMOVE(&GLOB(sessions), s, list);
+			SCCP_RWLIST_UNLOCK(&GLOB(sessions));
+			
+			pthread_cancel(s->session_thread);
 			ast_free(r);
 			return 0;
 		}
@@ -1869,12 +1873,7 @@ static int unload_module(void)
 		if (s->fds[0].fd > -1)
 			close(s->fds[0].fd);
 		
-		
-		pthread_t thread = s->session_thread;
-		pthread_cancel(thread);
-		
-		ast_mutex_destroy(&s->lock);
-		ast_free(s);
+		pthread_cancel(s->session_thread);
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
 
