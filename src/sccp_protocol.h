@@ -611,6 +611,12 @@ static const struct skinny_alarm {
 #    define SKINNY_DEVICETYPE_GATEWAY_AN 			30027		/*!< Analog gateway */
 #    define SKINNY_DEVICETYPE_GATEWAY_BRI 			30028		/*!< BRI gateway */
 #    define SKINNY_DEVICETYPE_NOKIA_ICC 			376		/*!< nokia icc client V2 */
+#    define SKINNY_DEVICETYPE_CISCO6901			547
+#    define SKINNY_DEVICETYPE_CISCO6911			548
+#    define SKINNY_DEVICETYPE_CISCO6921			495
+#    define SKINNY_DEVICETYPE_CISCO6941			496
+#    define SKINNY_DEVICETYPE_CISCO6945			564
+#    define SKINNY_DEVICETYPE_CISCO6961			497
 #    define SKINNY_DEVICETYPE_SPA_521S			80000		/*!< nokia icc client V2 */
 
 /*!
@@ -701,6 +707,14 @@ static const struct skinny_devicetype {
 	{SKINNY_DEVICETYPE_CISCO7975, "Cisco 7975"},
 	{SKINNY_DEVICETYPE_CISCO7985, "Cisco 7985"}, 
 	{SKINNY_DEVICETYPE_NOKIA_ICC, "Nokia ICC client"},
+	
+	{SKINNY_DEVICETYPE_CISCO6901, "Cisco 6901"},
+	{SKINNY_DEVICETYPE_CISCO6911, "Cisco 6911"},
+	{SKINNY_DEVICETYPE_CISCO6921, "Cisco 6921"},
+	{SKINNY_DEVICETYPE_CISCO6941, "Cisco 6941"},
+	{SKINNY_DEVICETYPE_CISCO6945, "Cisco 6945"},
+	{SKINNY_DEVICETYPE_CISCO6961, "Cisco 6961"},
+	
 	{SKINNY_DEVICETYPE_SPA_521S, "Cisco SPA 521SG"},
 	
 	/* *INDENT-ON* */
@@ -3226,7 +3240,7 @@ typedef union {
 		StationIdentifier sId;						/*!< Station Identifier */
 		uint32_t lel_stationIpAddr;					/*!< Station IP Address */
 		uint32_t lel_deviceType;					/*!< Device Type as part of SKINNY_DEVICETYPE_* */
-		uint32_t lel_maxStreams;					/*!< Max Streams */	
+		uint32_t maxStreams;					/*!< Max Streams */	
 	} SPARegisterMessage;
 	
 
