@@ -138,7 +138,13 @@ void sccp_session_close(sccp_session_t * s)
 		close(s->fds[0].fd);
 		s->fds[0].fd = -1;
 	}
-	s->session_stop = 1;
+	if(s->session_thread != AST_PTHREADT_NULL){
+		pthread_t thread = s->session_thread;
+		s->session_stop = 1;
+		pthread_kill(thread, SIGURG);
+		pthread_join(thread, NULL);
+		s->session_thread = AST_PTHREADT_NULL;
+	}
 	sccp_session_unlock(s);
 
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Old session marked down\n", DEV_ID_LOG(s->device));
@@ -171,6 +177,7 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 		return;
 	
 	
+	sccp_session_lock(s);
 	if(s->session_thread != AST_PTHREADT_NULL){
 		pthread_t thread = s->session_thread;
 		s->session_stop = 1;
@@ -178,6 +185,7 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 		pthread_join(thread, NULL);
 		s->session_thread = AST_PTHREADT_NULL;
 	}
+	sccp_session_unlock(s);
 
 
 	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
@@ -222,6 +230,7 @@ void *sccp_socket_device_thread(void *session){
   
 	uint8_t keepaliveAdditionalTime = 10;
 	int res;
+	uint8_t sessionTimeout;
 	
 	
 	time_t now;
@@ -246,6 +255,8 @@ void *sccp_socket_device_thread(void *session){
 			ast_mutex_unlock(&GLOB(lock));
 		}
 #endif
+		
+
 		if (s->fds[0].fd > 0) {
 			res = sccp_socket_poll(s->fds, 1, 20);
 			if (res < 0) {
