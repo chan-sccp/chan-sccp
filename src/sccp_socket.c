@@ -41,6 +41,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #endif
 sccp_session_t *sccp_session_find(const sccp_device_t * device);
 void destroy_session(sccp_session_t * s, uint8_t cleanupTime);
+void sccp_session_close(sccp_session_t * s);
 void sccp_socket_device_thread_exit(void *session);
 
 int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r);
@@ -147,13 +148,9 @@ void sccp_session_close(sccp_session_t * s)
  * \lock
  * 	- sessions
  * 	- device
- * 
- * \warning
- * 	- sessions is not always locked
  */
 void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
-{
-	// Called with &GLOB(sessions) locked
+{	
 	sccp_device_t *d;
 #if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
