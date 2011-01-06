@@ -117,7 +117,7 @@ boolean_t sccp_device_check_update(sccp_device_t * d)
 
 	sccp_log(1) (VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf\n", d->id);
 	sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
-	sccp_session_close(d->session);
+	pthread_cancel(d->session->session_thread);
 	d->pendingUpdate = 0;
 
 	if (d->pendingDelete) {
@@ -1903,7 +1903,7 @@ int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type)
 	REQ(r, Reset);
 	r->msg.Reset.lel_resetType = htolel(reset_type);
 	sccp_session_send(d, r);
-	sccp_session_close(d->session);
+	pthread_cancel(d->session->session_thread);
 	return 1;
 }
 
