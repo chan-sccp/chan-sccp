@@ -9,8 +9,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date: 2010-11-26 16:09:40 +0100 (Fr, 26. Nov 2010) $
- * $Revision: 2186 $
+ * $Date$
+ * $Revision$
  */
 
 /*!
@@ -28,7 +28,7 @@
 #endif
 #include "chan_sccp.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2186 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_hint.h"
 #include "sccp_config.h"
 #include "sccp_lock.h"
@@ -150,7 +150,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	struct hostent *hp;
 	struct sockaddr_in sin;
 	sccp_hostname_t *permithost;
-	uint8_t destroy_timeout = 2;
 
 	if (!s || (s->fds[0].fd < 0)) {
 		ast_log(LOG_ERROR, "%s: No Valid Session\n", DEV_ID_LOG(s->device));
@@ -305,7 +304,6 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
 	struct hostent *hp;
 	struct sockaddr_in sin;
 	sccp_hostname_t *permithost;
-	boolean_t isRealtime = 0;
 
 	if (!s || (s->fds[0].fd < 0)) {
 		ast_log(LOG_ERROR, "%s: No Valid Session\n", DEV_ID_LOG(s->device));
