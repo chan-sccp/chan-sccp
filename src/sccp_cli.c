@@ -1,4 +1,4 @@
-/*!
+  /*!
  * \file 	sccp_cli.c
  * \brief 	SCCP CLI Class
  * \author 	Sergio Chersovani <mlists [at] c-net.it>
@@ -1368,7 +1368,7 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 		sccp_device_sendReset(d, SKINNY_DEVICE_RESET);
 	else
 		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
-	sccp_session_close(d->session);
+	pthread_cancel(d->session->session_thread);
 
 	return RESULT_SUCCESS;
 }
