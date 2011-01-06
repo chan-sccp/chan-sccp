@@ -41,6 +41,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2180 $")
 #endif
 sccp_session_t *sccp_session_find(const sccp_device_t * device);
 void destroy_session(sccp_session_t * s, uint8_t cleanupTime);
+void sccp_session_close(sccp_session_t * s);
 void sccp_socket_device_thread_exit(void *session);
 
 int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r);
@@ -59,9 +60,6 @@ static void sccp_read_data(sccp_session_t * s)
 	int bytesAvailable;
 	int16_t length, readlen;
 	char *input, *newptr;
-
-	/* called while we have GLOB(sessions) list lock */
-	sccp_session_lock(s);
 
 	if (ioctl(s->fds[0].fd, FIONREAD, &bytesAvailable) == -1) {
 		ast_log(LOG_WARNING, "SCCP: FIONREAD ioctl failed: %s\n", strerror(errno));
@@ -103,8 +101,6 @@ static void sccp_read_data(sccp_session_t * s)
 	}
 
 	ast_free(input);
-
-	sccp_session_unlock(s);
 }
 
 /*!
@@ -254,25 +250,24 @@ void *sccp_socket_device_thread(void *session){
 				if (s->device && s->device->keepalive && (now > ((s->lastKeepAlive + s->device->keepalive) + keepaliveAdditionalTime))) {
 					sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session Keepalive %s Expired, now %s\n", (s->device) ? s->device->id : "SCCP", ctime(&s->lastKeepAlive), ctime(&now));
 					ast_log(LOG_WARNING, "%s: Dead device does not send a keepalive message in %d+%d seconds. Will be removed\n", (s->device) ? s->device->id : "SCCP", GLOB(keepalive), keepaliveAdditionalTime);
-					sccp_session_close(s);
-					destroy_session(s, 5);
+					s->session_stop = 1;
 				}
 			} else {
+				pthread_testcancel();
 				/* we have new data -> continue */
 				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session New Data Arriving\n", (s->device) ? s->device->id : "SCCP");
 				sccp_read_data(s);
 				while ((m = sccp_process_data(s))) {
 					if (!sccp_handle_message(m, s)) {
 						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
-						sccp_session_close(s);
+						s->session_stop = 1;
 					}
 				}
 			}
 		} else {
 			/* session is gone */
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session is Gone\n", (s->device) ? s->device->id : "SCCP");
-			sccp_session_close(s);
-			destroy_session(s, 0);
+			s->session_stop = 1;
 		}
 	}
 	pthread_cleanup_pop(0);
