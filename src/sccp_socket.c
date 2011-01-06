@@ -8,8 +8,8 @@
  * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date: 2010-11-22 14:10:50 +0100 (Mo, 22. Nov 2010) $
- * $Revision: 2180 $
+ * $Date$
+ * $Revision$
  */
 
 #include "config.h"
@@ -19,7 +19,7 @@
 #endif
 #include "chan_sccp.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2180 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_event.h"
 #include "sccp_lock.h"
 #include "sccp_line.h"
@@ -41,7 +41,6 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2180 $")
 #endif
 sccp_session_t *sccp_session_find(const sccp_device_t * device);
 void destroy_session(sccp_session_t * s, uint8_t cleanupTime);
-void sccp_session_close(sccp_session_t * s);
 void sccp_socket_device_thread_exit(void *session);
 
 int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r);
@@ -206,12 +205,8 @@ void sccp_socket_device_thread_exit(void *session){
 void *sccp_socket_device_thread(void *session){
 	sccp_session_t *s = (sccp_session_t *)session;
 	
-	
-  
 	uint8_t keepaliveAdditionalTime = 10;
 	int res;
-	uint8_t sessionTimeout;
-	
 	
 	time_t now;
 	sccp_moo_t *m;
