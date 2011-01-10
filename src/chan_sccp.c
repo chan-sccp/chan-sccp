@@ -1792,6 +1792,22 @@ static int unload_module(void)
 #endif
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
+	
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Descriptor\n");
+	close(GLOB(descriptor));
+	GLOB(descriptor) = -1;
+
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killing the socket thread\n");
+	sccp_globals_lock(socket_lock);
+	if ((GLOB(socket_thread) != AST_PTHREADT_NULL) && (GLOB(socket_thread) != AST_PTHREADT_STOP)) {
+		pthread_cancel(GLOB(socket_thread));
+		pthread_kill(GLOB(socket_thread), SIGURG);
+#ifndef HAVE_LIBGC
+		pthread_join(GLOB(socket_thread), NULL);
+#endif
+	}
+	GLOB(socket_thread) = AST_PTHREADT_STOP;
+	sccp_globals_unlock(socket_lock);
 
 	/* temporary fix to close open channels */
 	/* \todo Temporary fix to unload Module. Needs to be looked at */
@@ -1870,9 +1886,6 @@ static int unload_module(void)
 #else
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", ast_inet_ntoa(s->sin.sin_addr));
 #endif
-		if (s->fds[0].fd > -1)
-			close(s->fds[0].fd);
-		
 		pthread_cancel(s->session_thread);
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
@@ -1880,21 +1893,6 @@ static int unload_module(void)
 	if (SCCP_LIST_EMPTY(&GLOB(sessions)))
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(sessions));
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Descriptor\n");
-	close(GLOB(descriptor));
-	GLOB(descriptor) = -1;
-
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killing the socket thread\n");
-	sccp_globals_lock(socket_lock);
-	if ((GLOB(socket_thread) != AST_PTHREADT_NULL) && (GLOB(socket_thread) != AST_PTHREADT_STOP)) {
-		pthread_cancel(GLOB(socket_thread));
-		pthread_kill(GLOB(socket_thread), SIGURG);
-#ifndef HAVE_LIBGC
-		pthread_join(GLOB(socket_thread), NULL);
-#endif
-	}
-	GLOB(socket_thread) = AST_PTHREADT_STOP;
-	sccp_globals_unlock(socket_lock);
 	sccp_mutex_destroy(&GLOB(socket_lock));
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killed the socket thread\n");
 
