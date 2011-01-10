@@ -324,11 +324,7 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
 		if (d->session) {
 
 			sccp_log(1) (VERBOSE_PREFIX_2 "%s: SPA-Device is doing a re-registration!\n", d->id);
-			if(d->session != s){
-				SCCP_RWLIST_WRLOCK(&GLOB(sessions));
-				SCCP_LIST_REMOVE(&GLOB(sessions), s, list);
-				SCCP_RWLIST_UNLOCK(&GLOB(sessions));
-				
+			if(d->session != s){			
 				pthread_cancel(s->session_thread);
 			}else{
 				return;
