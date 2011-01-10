@@ -1903,7 +1903,6 @@ int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type)
 	REQ(r, Reset);
 	r->msg.Reset.lel_resetType = htolel(reset_type);
 	sccp_session_send(d, r);
-	pthread_cancel(d->session->session_thread);
 	return 1;
 }
 
