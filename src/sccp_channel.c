@@ -1125,7 +1125,9 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		payloadType = 97;
 	}
 	ast_rtp_set_m_type(channel->rtp.video.rtp, payloadType);
+#if ASTERISK_VERSION_NUM >= 10600
 	ast_rtp_set_rtpmap_type_rate(channel->rtp.video.rtp, channel->rtp.video.readFormat, "video", "H264", 0, 0);
+#endif
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: using payload %d\n", channel->device->id, payloadType);
 
