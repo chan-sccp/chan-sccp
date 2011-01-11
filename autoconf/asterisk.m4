@@ -660,3 +660,17 @@ AC_DEFUN([CHECK_ASTERISK_HEADER_CONTENT],[
 	fi
   fi
 ])
+
+AC_DEFUN([CHECK_HAVE_EPOLL],[
+        AC_MSG_CHECKING(for working epoll support)
+        AC_LINK_IFELSE(
+        AC_LANG_PROGRAM([#include <sys/epoll.h>], [int res = epoll_create(10);
+                                                 if (res < 0)
+                                                    return 1;
+                                                 close (res);
+                                                 return 0;]),
+        AC_MSG_RESULT(yes)
+        AC_DEFINE([HAVE_EPOLL], 1, [Define to 1 if your system has working epoll support.]),
+        AC_MSG_RESULT(no)
+        )  
+])
