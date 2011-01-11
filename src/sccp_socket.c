@@ -284,7 +284,6 @@ void *sccp_socket_device_thread(void *session){
 			} else if (res < 0) {
 				/* poll error */
 				ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
-				usleep(10000);
 				break;
 			} else if (res == 0) {
 				/* poll timeout */
