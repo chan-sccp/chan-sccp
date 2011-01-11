@@ -23,7 +23,7 @@ AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET 
 
-AC_CONFIG_HEADER(src/config.h src/common.h)
+AC_CONFIG_HEADER(src/config.h)
 
 AH_TOP([
 /*!
@@ -253,9 +253,15 @@ AC_CHECK_LIB([c], [main])
 AC_CHECK_LIB([pthread], [main])
 AC_CHECK_LIB([socket], [main])
 AC_CHECK_HEADERS([sys/ioctl.h]) 
-AC_CHECK_HEADERS([sys/socket.h])
 AC_CHECK_HEADERS([netinet/in.h])
 AC_CHECK_HEADERS([pthread.h])
+
+# Check Socket/Polling
+AC_CHECK_HEADERS([sys/socket.h])
+AC_CHECK_HEADER([sys/poll.h],[HAS_POLL=1]
+	AC_DEFINE([HAVE_SYS_POLL_H], 1, [Define to 1 if your system has working sys/poll.h]),
+        )
+CHECK_HAVE_EPOLL
 
 dnl AC_FUNC_MALLOC
 dnl AC_FUNC_REALLOC
@@ -713,11 +719,6 @@ PACKAGE_TARNAME="`echo Chan_SCCP_${VERSION}`"
 AC_SUBST([VERSION])
 AC_SUBST([PACKAGE_STRING])
 AC_SUBST([PACKAGE_TARNAME])
-
-dnl AC_AUTO_INCLUDE_HEADERS([common.h], [
-dnl 	asterisk/pbx.h asterisk/acl.h asterisk/app.h asterisk/astdb.h asterisk/callerid.h asterisk/causes.h asterisk/channel.h asterisk/channel_pvt.h asterisk/cli.h asterisk/config.h asterisk/devicestate.h asterisk/endian.h asterisk/event.h asterisk/features.h asterisk/frame.h asterisk/lock.h asterisk/logger.h asterisk/manager.h asterisk/module.h asterisk/musiconhold.h asterisk/options.h asterisk/asterisk.h asterisk/rtp.h asterisk/sched.h asterisk/stringfields.h asterisk/strings.h asterisk/translate.h asterisk/utils.h
-dnl	ctype.h argz.h dirent.h dld.h dlfcn.h dl.h fcntl.h inttypes.h memory.h netinet/in.h pthread.h stdbool.h stdint.h stdlib.h strings.h string.h sys/dl.h sys/ioctl.h sys/socket.h sys/stat.h sys/types.h unistd.h signal.h 
-dnl])
 
 AC_OUTPUT
 
