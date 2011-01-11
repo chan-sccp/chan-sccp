@@ -23,8 +23,7 @@ AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET 
 
-AC_CONFIG_HEADER(src/config.h)
-
+AC_CONFIG_HEADER(src/config.h src/common.h)
 
 AH_TOP([
 /*!
@@ -37,6 +36,7 @@ AH_TOP([
 
 #ifndef CHAN_SCCP_CONFIG_H
 #define CHAN_SCCP_CONFIG_H
+
 ])
 
 CONFIGURE_PART([Checking AutoMake:])
@@ -188,6 +188,14 @@ case $CC in
  ;;
 esac
 
+if test "${cross_compiling}" = "yes"; 
+then
+	AC_CHECK_TOOL(CC, gcc, :)
+	AC_CHECK_TOOL(CXX, g++, :)
+	AC_CHECK_TOOL(LD, ld, :)
+	AC_CHECK_TOOL(RANLIB, ranlib, :)
+fi
+            
 # Checks for programs.
 CONFIGURE_PART([Checking for standard programs:])
 AC_PATH_PROGS(GREP, ggrep grep,[echo Missing grep so skipping but I doubt we will get anywhere])
@@ -269,28 +277,6 @@ AC_TYPE_INT32_T
 AC_TYPE_INT64_T
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
-
-AC_CHECK_SIZEOF(int)
-AC_CHECK_SIZEOF(long)
-AC_CHECK_SIZEOF(long long)
-AC_COMPUTE_INT([ac_cv_sizeof_fd_set_fds_bits], [sizeof(foo.fds_bits[[0]])], [$ac_includes_default
-fd_set foo;])
-# This doesn't actually work; what it does is to use the variable set in the
-# previous test as a cached value to set the right output variables.
-AC_CHECK_SIZEOF(fd_set.fds_bits)
-
-# Set a type compatible with the previous.  We cannot just use a generic type
-# for these bits, because on big-endian systems, the bits won't match up
-# correctly if the size is wrong.
-if test $ac_cv_sizeof_int = $ac_cv_sizeof_fd_set_fds_bits; then
-  AC_DEFINE([TYPEOF_FD_SET_FDS_BITS], [int], [Define to a type of the same size as fd_set.fds_bits[[0]]])
-else if test $ac_cv_sizeof_long = $ac_cv_sizeof_fd_set_fds_bits; then
-  AC_DEFINE([TYPEOF_FD_SET_FDS_BITS], [long], [Define to a type of the same size as fd_set.fds_bits[[0]]])
-else if test $ac_cv_sizeof_long_long = $ac_cv_sizeof_fd_set_fds_bits; then
-  AC_DEFINE([TYPEOF_FD_SET_FDS_BITS], [long long], [Define to a type of the same size as fd_set.fds_bits[[0]]])
-fi ; fi ; fi
-
-
 dnl AC_TYPE_UINT16_T 
 dnl AC_TYPE_UINT32_T 
 dnl AC_TYPE_UINT8_T
@@ -330,6 +316,30 @@ else
         fi
 fi
 
+AC_CHECK_SIZEOF([int])
+AC_CHECK_SIZEOF([long])
+AC_CHECK_SIZEOF([long long])
+AC_CHECK_SIZEOF([char *])
+AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(long long)
+AC_COMPUTE_INT([ac_cv_sizeof_fd_set_fds_bits], [sizeof(foo.fds_bits[[0]])], [$ac_includes_default
+fd_set foo;])
+# This doesn't actually work; what it does is to use the variable set in the
+# previous test as a cached value to set the right output variables.
+AC_CHECK_SIZEOF(fd_set.fds_bits)
+
+# Set a type compatible with the previous.  We cannot just use a generic type
+# for these bits, because on big-endian systems, the bits won't match up
+# correctly if the size is wrong.  
+if test $ac_cv_sizeof_int = $ac_cv_sizeof_fd_set_fds_bits; then
+  AC_DEFINE([TYPEOF_FD_SET_FDS_BITS], [int], [Define to a type of the same size as fd_set.fds_bits[[0]]])
+  else if test $ac_cv_sizeof_long = $ac_cv_sizeof_fd_set_fds_bits; then
+    AC_DEFINE([TYPEOF_FD_SET_FDS_BITS], [long], [Define to a type of the same size as fd_set.fds_bits[[0]]])
+    else if test $ac_cv_sizeof_long_long = $ac_cv_sizeof_fd_set_fds_bits; then
+      AC_DEFINE([TYPEOF_FD_SET_FDS_BITS], [long long], [Define to a type of the same size as fd_set.fds_bits[[0]]])
+    fi
+  fi
+fi
 
 dnl
 dnl Check for svn2cl for generating ChangeLog
@@ -394,7 +404,8 @@ PBX_MANDATORY="yes"
 CS_CHECK_PBX
 
 if test "${PBX_TYPE}" = "Asterisk"; then
-   AC_DEFINE([PBX_TYPE],"ASTERISK",[PBX Type])
+   AC_DEFINE_UNQUOTED([PBX_TYPE],ASTERISK,[PBX Type])
+   AC_DEFINE([HAVE_ASTERISK], 1, [Uses Asterisk as PBX])
    dnl Figure out the Asterisk Version
    GET_ASTERISK_VERSION
    dnl Run Standard Asterisk Header Tests
@@ -402,7 +413,8 @@ if test "${PBX_TYPE}" = "Asterisk"; then
    dnl Check the found Asterisk for their content
    CHECK_ASTERISK_HEADER_CONTENT
 elif test "${PBX_TYPE}" = "Callweaver"; then
-   AC_DEFINE([PBX_TYPE],"|CALLWEAVER",[PBX Type])
+   AC_DEFINE_UNQUOTED([PBX_TYPE],CALLWEAVER,[PBX Type])
+   AC_DEFINE([HAVE_CALLWEAVER], 1, [Uses Callweaver as PBX])
    dnl Figure out the Asterisk Version
    echo "We are working on a Callweaver version"
 else
@@ -414,6 +426,7 @@ else
    echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
    exit
 fi
+GET_PBX_AMCONDITIONALS
 AC_SUBST([PBX_TYPE])
 
 dnl echo "CFLAGS: $CFLAGS"
@@ -701,7 +714,13 @@ AC_SUBST([VERSION])
 AC_SUBST([PACKAGE_STRING])
 AC_SUBST([PACKAGE_TARNAME])
 
+dnl AC_AUTO_INCLUDE_HEADERS([common.h], [
+dnl 	asterisk/pbx.h asterisk/acl.h asterisk/app.h asterisk/astdb.h asterisk/callerid.h asterisk/causes.h asterisk/channel.h asterisk/channel_pvt.h asterisk/cli.h asterisk/config.h asterisk/devicestate.h asterisk/endian.h asterisk/event.h asterisk/features.h asterisk/frame.h asterisk/lock.h asterisk/logger.h asterisk/manager.h asterisk/module.h asterisk/musiconhold.h asterisk/options.h asterisk/asterisk.h asterisk/rtp.h asterisk/sched.h asterisk/stringfields.h asterisk/strings.h asterisk/translate.h asterisk/utils.h
+dnl	ctype.h argz.h dirent.h dld.h dlfcn.h dl.h fcntl.h inttypes.h memory.h netinet/in.h pthread.h stdbool.h stdint.h stdlib.h strings.h string.h sys/dl.h sys/ioctl.h sys/socket.h sys/stat.h sys/types.h unistd.h signal.h 
+dnl])
+
 AC_OUTPUT
+
 #
 # Fixing the PACKAGE_* redefines    
 #
@@ -716,6 +735,10 @@ AC_OUTPUT
 #
 sed -e "s/^\(\#define PACKAGE_[A-Z]*\)$/\/\* \1 \*\//g" src/config.h >src/config.h.tmp && mv src/config.h.tmp src/config.h
 sed -e "s/^\(\#undef PACKAGE_[A-Z]*\)$/\/\* \1 \*\//g" src/config.h.in >src/config.h.in.tmp && mv src/config.h.in.tmp src/config.h.in
+touch src/stamp-h1
+
+dnl Call the AC_CONFIG_COMMANDS from create_common.m4
+# CREATE_COMMON
 
 echo
 echo "Operating System : $BUILD_OS"
