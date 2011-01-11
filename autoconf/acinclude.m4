@@ -198,6 +198,20 @@ if test "${USE_$1}" != "no"; then
 fi
 ])
 
+## ------------------------##
+## AC_AUTO_INCLUDE_HEADERS ##
+## ------------------------##
+dnl AC_AUTO_INCLUDE_HEADERS([config-inc.h], [sys/foobar.h arpa/inet.h dlfcn.h errno.h])
+AC_DEFUN([AC_AUTO_INCLUDE_HEADERS],
+[touch $1
+for ac_auto_include_file in $2; do
+  ac_auto_include_have=`echo $ac_auto_include_file | sed 'y%./*abcdefghijklmnopqrstuvwxyz%__PABCDEFGHIJKLMNOPQRSTUVWXYZ%;s%[^_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789]%_%g'`
+  echo "#ifdef HAVE_$ac_auto_include_have" &gt;&gt; $1
+  echo "# include &lt;$ac_auto_include_file&gt;" &gt;&gt; $1
+  echo "#endif" &gt;&gt; $1
+  echo "" &gt;&gt; $1
+done])
+
 ## ------------------##
 ## CONFIGURE_PART    ##
 ## ------------------##
@@ -249,6 +263,11 @@ AC_SUBST([GNU_MAKE], [$ac_cv_GNU_MAKE])
 ## Get Version (DdG) ##
 ## ------------------##
 AC_DEFUN([CS_GET_VERSION], [
+#  AC_UNDEFINE("PACKAGE_BUGREPORT")
+#  AC_UNDEFINE("PACKAGE_NAME")
+#  AC_UNDEFINE("PACKAGE_STRING")
+#  AC_UNDEFINE("PACKAGE_TARNAME")
+#  AC_UNDEFINE("PACKAGE_VERSION")
   if test -d .hg; then
     SCCP_VERSION="`cat .hg/hgrc |grep http|awk '{print $3}'|tr "/" "\n"|tail -n2|head -n1`"
     if grep -q "default" .hg/branch; then
