@@ -8,8 +8,8 @@
  * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date: 2010-11-23 15:16:48 +0100 (Di, 23. Nov 2010) $
- * $Revision: 2185 $
+ * $Date$
+ * $Revision$
  */
 
 /*!
@@ -19,30 +19,10 @@
  */
 
 #include "config.h"
+#include "common.h"
 
-#if ASTERISK_VERSION_NUM >= 10400
-#    include <asterisk.h>
-#endif
-#include "chan_sccp.h"
-
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2185 $")
-#include "sccp_lock.h"
-#include "sccp_cli.h"
-#include "sccp_mwi.h"
-#include "sccp_line.h"
-#include "sccp_indicate.h"
-#include "sccp_utils.h"
-#include "sccp_hint.h"
-#include "sccp_device.h"
-#include "sccp_socket.h"
-#include "sccp_config.h"
-#include <asterisk/utils.h>
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/cli.h>
-#include <asterisk/astdb.h>
-#include <asterisk/pbx.h>
-#ifdef CS_AST_HAS_EVENT
-#    include "asterisk/event.h"
-#endif
 /* --- CLI Tab Completion ---------------------------------------------------------------------------------------------- */
 /*!
  * \brief Complete Device

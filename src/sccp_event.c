@@ -17,22 +17,10 @@
  */
 
 #include "config.h"
-#if ASTERISK_VERSION_NUM >= 10400
-#    include <asterisk.h>
-#endif
-#include "chan_sccp.h"
+#include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#include "sccp_lock.h"
-#include "sccp_event.h"
-#include <asterisk/pbx.h>
-#include <asterisk/utils.h>
-#ifdef CS_AST_HAS_NEW_DEVICESTATE
-#    include <asterisk/devicestate.h>
-#endif
-#ifdef CS_SCCP_PICKUP
-#    include <asterisk/features.h>
-#endif
+
 /*!
  * \brief SCCP Event Listeners Structure
  */

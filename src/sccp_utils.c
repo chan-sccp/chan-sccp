@@ -13,26 +13,10 @@
  */
 
 #include "config.h"
-#if ASTERISK_VERSION_NUM >= 10400
-#    include <asterisk.h>
-#endif
-#include "chan_sccp.h"
+#include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#include "sccp_lock.h"
-#include "sccp_utils.h"
-#include "sccp_indicate.h"
-#include "sccp_device.h"
-#include "sccp_line.h"
-#include "sccp_config.h"
-#include <assert.h>
-#include <asterisk/astdb.h>
-#include <asterisk/pbx.h>
-#include <asterisk/utils.h>
-#ifndef CS_AST_HAS_TECH_PVT
-#    include <asterisk/channel_pvt.h>
-#endif
-#include <asterisk/devicestate.h>
+
 /*!
  * \brief is Printable Character
  * \param c Character

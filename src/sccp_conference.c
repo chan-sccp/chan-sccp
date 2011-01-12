@@ -15,12 +15,12 @@
  *   		Relationships: 	
  */
 #include "config.h"
+#include "common.h"
 
 #ifdef CS_SCCP_CONFERENCE
-#    include "sccp_conference.h"
-#    include "sccp_indicate.h"
 #    include "asterisk/bridging.h"
 #    include "asterisk/bridging_features.h"
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #    if ASTERISK_VERSION_NUM >= 10602
 static int lastConferenceID = 0;

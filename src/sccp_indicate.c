@@ -12,22 +12,10 @@
  */
 
 #include "config.h"
-
-#if ASTERISK_VERSION_NUM >= 10400
-#    include <asterisk.h>
-#endif
-#include "chan_sccp.h"
+#include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#include "sccp_lock.h"
-#include "sccp_indicate.h"
-#include "sccp_device.h"
-#include "sccp_channel.h"
-#include "sccp_actions.h"
-#include "sccp_utils.h"
-#include "sccp_features.h"
-#include "sccp_hint.h"
-#include "sccp_event.h"
+
 static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function);
 
 /*!

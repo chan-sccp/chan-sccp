@@ -12,58 +12,21 @@
  * 		When to use:	Methods communicating to asterisk about module initialization, status, destruction
  *   		Relationships: 	Main hub for all other sourcefiles.
  *
- * $Date: 2010-11-23 15:16:48 +0100 (Di, 23. Nov 2010) $
- * $Revision: 2185 $
+ * $Date$
+ * $Revision$
  */
 
 #define AST_MODULE "chan_sccp"
 
 #include "config.h"
-#if ASTERISK_VERSION_NUM >= 10400
-#    include <asterisk.h>
-#endif
-#include "chan_sccp.h"
+#include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2185 $")
-#include "sccp_hint.h"
-#include "sccp_lock.h"
-#include "sccp_actions.h"
-#include "sccp_utils.h"
-#include "sccp_device.h"
-#include "sccp_channel.h"
-#include "sccp_cli.h"
-#include "sccp_line.h"
-#include "sccp_socket.h"
-#include "sccp_pbx.h"
-#include "sccp_indicate.h"
-#include "sccp_config.h"
-#include "sccp_management.h"
-#include "sccp_mwi.h"
-#include "sccp_conference.h"
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <ctype.h>
 #include <unistd.h>
-#include <signal.h>
-#include <asterisk/pbx.h>
-#ifdef CS_AST_HAS_APP_SEPARATE_ARGS
-#    include <asterisk/app.h>
-#endif
-#ifndef CS_AST_HAS_TECH_PVT
-#    include <asterisk/channel_pvt.h>
-#endif
-#include <asterisk/callerid.h>
-#include <asterisk/utils.h>
-#include <asterisk/causes.h>
-#ifdef CS_AST_HAS_NEW_DEVICESTATE
-#    include <asterisk/devicestate.h>
-#endif
 #include <asterisk/translate.h>
-#ifdef CS_AST_HAS_AST_STRING_FIELD
-#    include <asterisk/stringfields.h>
-#endif
-#include <asterisk/astdb.h>
 #include <asterisk/rtp.h>
-#include <asterisk/frame.h>
-#include <asterisk/channel.h>
+
 #if ASTERISK_VERSION_NUM >= 10400
 #    ifdef CS_AST_HAS_TECH_PVT
 #        define SET_CAUSE(x)	*cause = x;

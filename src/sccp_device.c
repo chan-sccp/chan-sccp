@@ -12,45 +12,15 @@
  *   		Relationships: 	SCCP Device -> SCCP DeviceLine -> SCCP Line
  *   			 	SCCP Line -> SCCP ButtonConfig -> SCCP Device
  *
- * \date        $Date: 2010-11-22 14:09:55 +0100 (Mo, 22. Nov 2010) $
- * \version     $Revision: 2176 $
+ * \date        $Date$
+ * \version     $Revision$
  */
 
 #include "config.h"
+#include "common.h"
 
-#if ASTERISK_VERSION_NUM >= 10400
-#    include <asterisk.h>
-#endif
-#include "chan_sccp.h"
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2176 $")
-#include "sccp_lock.h"
-#include "sccp_utils.h"
-#include "sccp_device.h"
-#include "sccp_socket.h"
-#include "sccp_channel.h"
-#include "sccp_indicate.h"
-#include "sccp_hint.h"
-#include "sccp_line.h"
-#include "sccp_mwi.h"
-#include "sccp_config.h"
-#include "sccp_conference.h"
-#include "sccp_actions.h"
-#include <asterisk/app.h>
-#include <asterisk/pbx.h>
-#include <asterisk/astdb.h>
-#include <asterisk/utils.h>
-#ifdef CS_AST_HAS_NEW_DEVICESTATE
-#    include <asterisk/devicestate.h>
-#endif
-#ifdef CS_DYNAMIC_CONFIG
-#    include <asterisk/acl.h>
-#    include <asterisk/frame.h>
-#    include <asterisk/config.h>
-#endif
-#ifdef CS_DEVSTATE_FEATURE
-#    include <asterisk/event.h>
-#endif
 #define  REF_DEBUG 1
 #ifdef CS_DYNAMIC_CONFIG
 /*!
