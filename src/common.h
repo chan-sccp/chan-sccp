@@ -20,18 +20,29 @@
 #    include <stdio.h>
 #    include <stdlib.h>
 #    include <errno.h>
+#    include <ctype.h>
+#    include <unistd.h> 
 #    include <assert.h>
 
 #    if ASTERISK_VERSION_NUM >= 10400
 #        include <asterisk.h>
 #        include <asterisk/abstract_jb.h>
 #    endif
+
 #    include <asterisk/pbx.h>
+#    include <asterisk/acl.h>
+#    include <asterisk/utils.h>
+#    include <asterisk/module.h>
+#    include <asterisk/options.h>
+#    include <asterisk/logger.h>
+#    include <asterisk/config.h>
+#    include <asterisk/sched.h>
+#    include <asterisk/version.h>
+#    include <asterisk/causes.h>
+#    include <asterisk/frame.h>
 #    include <asterisk/lock.h>
 #    include <asterisk/channel.h>
-#    include <asterisk/utils.h>
 #    include <asterisk/app.h>
-#    include <asterisk/causes.h>
 #    include <asterisk/callerid.h>
 #    include <asterisk/musiconhold.h>
 #    include <asterisk/astdb.h>
@@ -54,16 +65,14 @@
 #        include <asterisk/event.h>
 #        include <asterisk/event_defs.h>
 #    endif
-#    ifdef CS_DYNAMIC_CONFIG
-#        include <asterisk/acl.h>
-#        include <asterisk/frame.h>
-#        include <asterisk/config.h>
-#    endif
 #    ifdef CS_AST_HAS_AST_STRING_FIELD
 #        include <asterisk/stringfields.h>
 #    endif
 #    ifdef CS_MANAGER_EVENTS
 #        include <asterisk/manager.h>
+#    endif
+#    ifdef CS_AST_HAS_ENDIAN 
+#        include <asterisk/endian.h>
 #    endif
 
 #    include "sccp_lock.h"

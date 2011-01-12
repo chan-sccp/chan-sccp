@@ -22,8 +22,6 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#include <ctype.h>
-#include <unistd.h>
 #include <asterisk/translate.h>
 #include <asterisk/rtp.h>
 

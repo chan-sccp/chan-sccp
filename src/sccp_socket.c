@@ -13,9 +13,14 @@
  */
 
 #include "config.h"
+
+#if ASTERISK_VERSION_NUM >= 10400
+#    include <asterisk.h>
+#endif
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
+#include <sys/ioctl.h>
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
 #    include <sys/poll.h>
 #else
