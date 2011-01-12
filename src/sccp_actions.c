@@ -376,15 +376,13 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
 
 	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
 	int keepAliveInterval = d->keepalive ? d->keepalive : GLOB(keepalive);
-	keepAliveInterval = (keepAliveInterval / 2) + (rand() % (keepAliveInterval / 2)) + 1;
+	keepAliveInterval = (keepAliveInterval / 2) + (rand() % (keepAliveInterval / 2)) - 1;
 
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval);
 	REQ(r1, RegisterAckMessage);
 
 	d->inuseprotocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), d->inuseprotocolversion);
-
-
 
 	r1->msg.RegisterAckMessage.protocolVer = d->inuseprotocolversion;
 	r1->msg.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
@@ -397,7 +395,6 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
 	// Ask for the capabilities of the device
 	// to proceed with registration according to sccp protocol specification 3.0
 	sccp_dev_sendmsg(d, CapabilitiesReqMessage);
-
 }
 
 /*!
