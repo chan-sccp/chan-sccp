@@ -532,6 +532,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
    		char cdpnVoiceMailbox[StationMaxDirnumSize];    		/*!< Called Party Voicemail Box */
                 unsigned int cdpnVoiceMailbox_valid:1;                          /*!< TRUE if the name information is valid/present */
    		unsigned int calledParty_valid:1;                               /*!< TRUE if the name information is valid/present */
+
    	        char callingPartyName[StationMaxNameSize];                      /*!< Calling Party Name */
 	        char callingPartyNumber[StationMaxDirnumSize];			/*!< Calling Party Number */
                 char cgpnVoiceMailbox[StationMaxDirnumSize];                    /*!< Calling Party Voicemail Box */
@@ -543,9 +544,11 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		char originalCdpnVoiceMailbox[StationMaxDirnumSize];            /*!< Original Called Party VoiceMail Box */
 		unsigned int originalCdpnVoiceMailbox_valid:1;                  /*!< TRUE if the name information is valid/present */
 		unsigned int originalCalled_valid:1;                            /*!< TRUE if the name information is valid/present */
+
 		char originalCallingPartyName[StationMaxNameSize];              /*!< Original Calling Party Name */
 		char originalCallingPartyNumber[StationMaxDirnumSize];          /*!< Original Calling Party ID */  
         	unsigned int originalCalling_valid:1;                           /*!< TRUE if the name information is valid/present */
+
                 char lastRedirectingPartyName[StationMaxNameSize];              /*!< Original Called Party Name */
                 char lastRedirectingPartyNumber[StationMaxDirnumSize];          /*!< Original Called Party ID */  
 		char lastRedirectingVoiceMailbox[StationMaxDirnumSize];         /*!< Last Redirecting VoiceMail Box */
