@@ -18,8 +18,6 @@
  * \brief get callerid_name from pbx
  * \param ast_chan Asterisk Channel
  * \return char * with the callername
- *
- * \todo free afterwards
  */
 char * get_pbx_callerid_name(struct ast_channel *ast_chan)
 {
@@ -47,11 +45,9 @@ char * get_pbx_callerid_name(struct ast_channel *ast_chan)
 }
 
 /*
- * \brief get callerid_number from pbx
+ * \brief get callerid_name from pbx
  * \param ast_chan Asterisk Channel
  * \return char * with the callername
- *
- * \todo free afterwards
  */
 char * get_pbx_callerid_number(struct ast_channel *ast_chan)
 {
@@ -80,16 +76,18 @@ char * get_pbx_callerid_number(struct ast_channel *ast_chan)
 }
 
 /*
- * \brief get callerid from pbx channel
+ * \brief get callerid from pbx
  * \param ast_chan Asterisk Channel
  * \return SCCP CallInfo Structure 
  *
  * \todo need to be inspected and tested
  */
-void get_callinfo_from_pbx_channel_callerid(sccp_callinfo_t *callInfo, struct ast_channel * ast_chan)
+sccp_callinfo_t *get_pbx_callerid(struct ast_channel * ast_chan)
 {
+	sccp_callinfo_t *callInfo = NULL;
+
 	if (!ast_chan) {
-		return;
+		return callInfo;
 	}
 #if ASTERISK_VERSION_NUM < 10400
 	// Implement ast 1.2 version
@@ -119,6 +117,7 @@ void get_callinfo_from_pbx_channel_callerid(sccp_callinfo_t *callInfo, struct as
 #endif
 
 #undef strcp_callerid
+	return callInfo;
 }
 
 /*
@@ -129,14 +128,16 @@ void get_callinfo_from_pbx_channel_callerid(sccp_callinfo_t *callInfo, struct as
  *
  * \todo need to be inspected and tested
  */
-void set_pbx_channel_callerid_from_callinfo(struct ast_channel *ast_chan, sccp_callinfo_t * callInfo)
+int set_pbx_callerid(struct ast_channel *ast_chan, sccp_callinfo_t * callInfo)
 {
+	int RESULT = 0;
+
 	if (!ast_chan) {
-		return;
+		return -1;
 	}
 	
 	if (!callInfo) {
-		return;
+		return -1;
 	}
 
 #if ASTERISK_VERSION_NUM < 10400
@@ -177,6 +178,7 @@ void set_pbx_channel_callerid_from_callinfo(struct ast_channel *ast_chan, sccp_c
 #endif
 
 #undef strcp_callerid
+	return RESULT;
 }
 
 /*
