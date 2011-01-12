@@ -1253,18 +1253,22 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 		if (l->realtime == TRUE && l != GLOB(hotline)->line) {
 			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%s: reload realtime line\n", l->name);
 			v = ast_load_realtime(GLOB(realtimelinetable), "name", l->name, NULL);
+#ifdef CS_DYNAMIC_CONFIG
 			/* we did not find this line, mark it for deletion */
 			if (!v) {
 				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%s: realtime line not found - set pendingDelet=1\n", l->name);
 				l->pendingDelete = 1;
 				continue;
 			}
+#endif
 
 			res = sccp_config_applyLineConfiguration(l, v);
 			/* check if we did some changes that needs a device update */
+#ifdef CS_DYNAMIC_CONFIG
 			if (res == SCCP_CONFIG_NEEDDEVICERESET) {
 				l->pendingUpdate = 1;
 			}
+#endif
 			ast_variables_destroy(v);
 		}
 	}
