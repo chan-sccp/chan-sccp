@@ -34,14 +34,12 @@
 #    include <asterisk/causes.h>
 #    include <asterisk/callerid.h>
 #    include <asterisk/musiconhold.h>
+#    include <asterisk/astdb.h>
 #    ifdef CS_AST_HAS_NEW_DEVICESTATE
 #        include <asterisk/devicestate.h>
 #    endif
 #    ifdef CS_SCCP_PICKUP
 #        include <asterisk/features.h>
-#    endif
-#    ifdef CS_DEVSTATE_FEATURE
-#        include <asterisk/astdb.h>
 #    endif
 #    ifdef CS_AST_HAS_EVENT
 #        include <asterisk/event.h>
