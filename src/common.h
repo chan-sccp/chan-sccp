@@ -1,3 +1,4 @@
+
 /*!
  * \file 	common.h
  * \brief 	SCCP Common Include File
@@ -22,51 +23,51 @@
 #    include <errno.h>
 #    include <assert.h>
 
-#if ASTERISK_VERSION_NUM >= 10400
-#    include <asterisk.h>
-#    include <asterisk/abstract_jb.h>
-#endif
-#include <asterisk/pbx.h>
-#include <asterisk/lock.h>
-#include <asterisk/channel.h>
-#include <asterisk/utils.h>
-#include <asterisk/app.h>
-#include <asterisk/causes.h>
-#include <asterisk/callerid.h>
-#include <asterisk/musiconhold.h>
-#ifdef CS_AST_HAS_NEW_DEVICESTATE
-#    include <asterisk/devicestate.h>
-#endif
-#ifdef CS_SCCP_PICKUP
-#    include <asterisk/features.h>
-#endif
-#ifdef CS_DEVSTATE_FEATURE
-#    include <asterisk/astdb.h>
-#endif
-#ifdef CS_AST_HAS_EVENT
-#    include <asterisk/event.h>
-#endif
-#ifndef CS_AST_HAS_TECH_PVT
-#    include <asterisk/channel_pvt.h>
-#endif
-#ifdef CS_AST_HAS_NEW_DEVICESTATE
-#    include <asterisk/devicestate.h>
-#endif
-#ifdef AST_EVENT_IE_CIDNAME
-#    include <asterisk/event.h>
-#    include <asterisk/event_defs.h>
-#endif
-#ifdef CS_DYNAMIC_CONFIG
-#    include <asterisk/acl.h>
-#    include <asterisk/frame.h>
-#    include <asterisk/config.h>
-#endif
-#ifdef CS_AST_HAS_AST_STRING_FIELD
-#    include <asterisk/stringfields.h>
-#endif
-#ifdef CS_MANAGER_EVENTS
-#    include <asterisk/manager.h>
-#endif
+#    if ASTERISK_VERSION_NUM >= 10400
+#        include <asterisk.h>
+#        include <asterisk/abstract_jb.h>
+#    endif
+#    include <asterisk/pbx.h>
+#    include <asterisk/lock.h>
+#    include <asterisk/channel.h>
+#    include <asterisk/utils.h>
+#    include <asterisk/app.h>
+#    include <asterisk/causes.h>
+#    include <asterisk/callerid.h>
+#    include <asterisk/musiconhold.h>
+#    ifdef CS_AST_HAS_NEW_DEVICESTATE
+#        include <asterisk/devicestate.h>
+#    endif
+#    ifdef CS_SCCP_PICKUP
+#        include <asterisk/features.h>
+#    endif
+#    ifdef CS_DEVSTATE_FEATURE
+#        include <asterisk/astdb.h>
+#    endif
+#    ifdef CS_AST_HAS_EVENT
+#        include <asterisk/event.h>
+#    endif
+#    ifndef CS_AST_HAS_TECH_PVT
+#        include <asterisk/channel_pvt.h>
+#    endif
+#    ifdef CS_AST_HAS_NEW_DEVICESTATE
+#        include <asterisk/devicestate.h>
+#    endif
+#    ifdef AST_EVENT_IE_CIDNAME
+#        include <asterisk/event.h>
+#        include <asterisk/event_defs.h>
+#    endif
+#    ifdef CS_DYNAMIC_CONFIG
+#        include <asterisk/acl.h>
+#        include <asterisk/frame.h>
+#        include <asterisk/config.h>
+#    endif
+#    ifdef CS_AST_HAS_AST_STRING_FIELD
+#        include <asterisk/stringfields.h>
+#    endif
+#    ifdef CS_MANAGER_EVENTS
+#        include <asterisk/manager.h>
+#    endif
 
 #    include "sccp_lock.h"
 #    include "sccp_dllists.h"
