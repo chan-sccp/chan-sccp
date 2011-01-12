@@ -204,7 +204,6 @@ void sccp_socket_device_thread_exit(void *session){
  * \callgraph
  * \callergraph
  */
-#if 1		// old implementation
 void *sccp_socket_device_thread(void *session){
 	sccp_session_t *s = (sccp_session_t *)session;
 	
@@ -223,100 +222,8 @@ void *sccp_socket_device_thread(void *session){
 	}
 	
 	while(!s->session_stop){	  
+		/* create cancellation point*/
 		pthread_testcancel();
-
-#ifdef CS_DYNAMIC_CONFIG
-		if (s->device) {
-			ast_mutex_lock(&GLOB(lock));
-			if (GLOB(reload_in_progress) == FALSE)
-				sccp_device_check_update(s->device);
-			ast_mutex_unlock(&GLOB(lock));
-		}
-#endif
-		
-		if (s->fds[0].fd > 0) {
-			/* calculate poll timout using keepalive interval */
-			now = time(0);
-			if(s->device){
-				maxWaitTime = (uint32_t) (time(0) - s->lastKeepAlive);
-			}else{
-				maxWaitTime = GLOB(keepalive);
-			}
-			maxWaitTime += keepaliveAdditionalTime;
-			
-			if(maxWaitTime < 0){
-				s->session_stop = 1;
-				continue;
-			}
-			
-			pollTimeout = (int)(maxWaitTime * 1000);
-			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: set poll timeout %d\n", DEV_ID_LOG(s->device), pollTimeout);
-			
-			res = sccp_socket_poll(s->fds, 1, pollTimeout);
-			if (res < 0) {
-				ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
-				s->session_stop = 1;
-			} else if (res == 0) {
-				pthread_testcancel();
-				// poll timeout
-				now = time(0);
-				if (s->device && s->device->keepalive && (now > ((s->lastKeepAlive + s->device->keepalive) + keepaliveAdditionalTime))) {
-					sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session Keepalive %s Expired, now %s\n", DEV_ID_LOG(s->device), ctime(&s->lastKeepAlive), ctime(&now));
-					ast_log(LOG_WARNING, "%s: Dead device does not send a keepalive message in %d+%d seconds. Will be removed\n", DEV_ID_LOG(s->device), GLOB(keepalive), keepaliveAdditionalTime);
-					s->session_stop = 1;
-				}
-			} else {
-				pthread_testcancel();
-				/* we have new data -> continue */
-				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
-				sccp_read_data(s);
-				while ((m = sccp_process_data(s))) {
-					if (!sccp_handle_message(m, s)) {
-						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
-						s->session_stop = 1;
-					}
-				}
-			}
-		} else {
-			/* session is gone */
-			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session is Gone\n", DEV_ID_LOG(s->device));
-			s->session_stop = 1;
-		}
-	}
-	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: exiting thread\n", DEV_ID_LOG(s->device));
-	
-	pthread_cleanup_pop(1);
-	
-	return NULL;
-}
-#else // new implementation to be fixed, tested and finalized
-void *sccp_socket_device_thread(void *session)
-{
-	sccp_session_t *s = (sccp_session_t *) session;
-
-	uint8_t keepaliveAdditionalTime = 10;
-
-	int res;
-
-	int maxWaitTime;
-
-	time_t now;
-
-	int pollTimeout;
-
-	sccp_moo_t *m;
-
-	pthread_cleanup_push(sccp_socket_device_thread_exit, session);
-
-	/* we increase additionalTime for wireless/slower devices */
-	if (s->device && (s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7970)) {
-		keepaliveAdditionalTime += 10;
-	}
-
-	while (!s->session_stop) {
-		pthread_testcancel();
-		/* only unset session_stop when poll data processing went fine */
-		s->session_stop = 1;
 
 #ifdef CS_DYNAMIC_CONFIG
 		if (s->device) {
@@ -336,62 +243,50 @@ void *sccp_socket_device_thread(void *session)
 			pollTimeout = (int)(maxWaitTime - ((int)now - (int)s->lastKeepAlive)) * 1000;
 
 			if (pollTimeout < 0) {
+				s->session_stop = 1;
 				break;
 			}
 
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: set poll timeout %d\n", DEV_ID_LOG(s->device), pollTimeout);
-
+			
 			res = sccp_socket_poll(s->fds, 1, pollTimeout);
-			if (res > 0) {
-				/* poll data processing */
-				pthread_testcancel();
-
+			if (res > 0) {								/* poll data processing */
 				/* we have new data -> continue */
 				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
 				sccp_read_data(s);
 				while ((m = sccp_process_data(s))) {
-					if (sccp_handle_message(m, s)) {
-						/* data processing and handling done without errors, we can continue */
-						s->session_stop = 0;
-					} else {
-						/* an unknown error occured, MS solution -> reset */
-						ast_log(LOG_ERROR, "SCCP sccp_handle_message returned an error, sending reset to device\n");
+					if (!sccp_handle_message(m, s)) {
 						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
+						s->session_stop = 1;
 						break;
 					}
 				}
-			} else if (res < 0) {
-				/* poll error */
+			} else if (res == 0) {							/* poll timeout */
+				now = time(0);
+				if (s->device && s->device->keepalive && (now > ((s->lastKeepAlive + s->device->keepalive) + keepaliveAdditionalTime))) {
+					sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session Keepalive %s Expired, now %s\n", DEV_ID_LOG(s->device), ctime(&s->lastKeepAlive), ctime(&now));
+					ast_log(LOG_WARNING, "%s: Dead device does not send a keepalive message in %d+%d seconds. Will be removed\n", DEV_ID_LOG(s->device), GLOB(keepalive), keepaliveAdditionalTime);
+					s->session_stop = 1;
+					break;
+				}
+			} else {								/* poll error */
 				ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
+				s->session_stop = 1;
 				break;
-			} else if (res == 0) {
-				/* poll timeout */
-				if (s->device) {
-					if (now > ((s->lastKeepAlive + s->device->keepalive) + keepaliveAdditionalTime)) {
-						sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session Keepalive %s Expired, now %s\n", DEV_ID_LOG(s->device), ctime(&s->lastKeepAlive), ctime(&now));
-						ast_log(LOG_WARNING, "%s: Dead device does not send a keepalive message in %d+%d seconds. Will be removed\n", DEV_ID_LOG(s->device), GLOB(keepalive), keepaliveAdditionalTime);
-						break;
-					} else {
-						s->session_stop = 0;
-					}
-				} else {
-					/* new session without a device (yet!) -> registering */
-					s->session_stop = 0;
-				}
 			}
-		} else {
-			/* session is gone */
+		} else {									/* session is gone */
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session is Gone\n", DEV_ID_LOG(s->device));
+			s->session_stop = 1;
 			break;
 		}
 	}
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: exiting thread\n", DEV_ID_LOG(s->device));
-
+	
 	pthread_cleanup_pop(1);
-
+	
 	return NULL;
 }
-#endif
+
 /*!
  * \brief Socket Accept Connection
  *
