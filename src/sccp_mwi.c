@@ -10,22 +10,13 @@
  */
 
 #include "config.h"
-#include "sccp_mwi.h"
-#include "chan_sccp.h"
+//#include "sccp_mwi.h"
+#include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#include "sccp_utils.h"
-#include "sccp_lock.h"
-#include "sccp_device.h"
-#include "sccp_config.h"
-#include "sccp_actions.h"
-#include "sccp_event.h"
-#ifdef CS_AST_HAS_EVENT
-#    include "asterisk/event.h"
-#else
+#ifndef CS_AST_HAS_EVENT
 #    define SCCP_MWI_CHECK_INTERVAL 30
 #endif
-#include <asterisk/app.h>
 void sccp_mwi_checkLine(sccp_line_t * line);
 void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l);
 void sccp_mwi_linecreatedEvent(const sccp_event_t ** event);

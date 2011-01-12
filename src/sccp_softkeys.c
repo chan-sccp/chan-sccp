@@ -13,35 +13,13 @@
  */
 
 #include "config.h"
-
-#if ASTERISK_VERSION_NUM >= 10400
-#    include <asterisk.h>
-#endif
-#include "chan_sccp.h"
+#include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#include "sccp_lock.h"
-#include "sccp_utils.h"
-#include "sccp_channel.h"
-#include "sccp_device.h"
-#include "sccp_line.h"
-#include "sccp_indicate.h"
-#include "sccp_protocol.h"
-#include "sccp_features.h"
-#include "sccp_pbx.h"
-#include "sccp_actions.h"
-#include "sccp_hint.h"
-#ifndef CS_AST_HAS_TECH_PVT
-#    include <asterisk/channel_pvt.h>
-#endif
-#include <asterisk/utils.h>
 #ifdef CS_SCCP_PICKUP
 #    include <asterisk/features.h>
 #    include <asterisk/callerid.h>
 #    include <asterisk/causes.h>
-#endif
-#ifdef CS_AST_HAS_NEW_DEVICESTATE
-#    include <asterisk/devicestate.h>
 #endif
 #ifdef CS_AST_HAS_AST_STRING_FIELD
 #    include <asterisk/stringfields.h>

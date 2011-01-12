@@ -85,27 +85,10 @@
  */
 
 #include "config.h"
-
-#include "asterisk.h"
-#include "asterisk/channel.h"
-
-#include "chan_sccp.h"
+#include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2154 $")
-#include "sccp_config.h"
-#include "sccp_utils.h"
-#include "sccp_event.h"
-#include "sccp_device.h"
-#include "sccp_line.h"
-#include <asterisk/astdb.h>
-#ifdef CS_AST_HAS_EVENT
-#    include "sccp_mwi.h"
-#    include "asterisk/event.h"
-#endif
-#ifdef CS_DEVSTATE_FEATURE
-#    include "sccp_featureButton.h"
-#    include <asterisk/devicestate.h>
-#endif
+
 struct ast_config *sccp_config_getConfig(void);
 
 #ifdef CS_DYNAMIC_CONFIG

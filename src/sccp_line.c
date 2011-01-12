@@ -13,24 +13,10 @@
  */
 
 #include "config.h"
-
-#if ASTERISK_VERSION_NUM >= 10400
-#    include <asterisk.h>
-#endif
-#include "chan_sccp.h"
+#include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#include "sccp_lock.h"
-#include "sccp_line.h"
-#include "sccp_utils.h"
-#include "sccp_device.h"
-#include "sccp_actions.h"
-#include "sccp_channel.h"
-#include "sccp_features.h"
-#include "sccp_mwi.h"
-#include "sccp_socket.h"
-#include <asterisk/utils.h>
-#include <asterisk/astdb.h>
+
 #ifdef CS_DYNAMIC_CONFIG
 /*!
  * \brief run before reload is start on lines

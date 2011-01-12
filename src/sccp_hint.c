@@ -56,23 +56,10 @@
  */
 
 #include "config.h"
-#include "sccp_hint.h"
-#include "sccp_event.h"
-#include "chan_sccp.h"
+#include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2215 $")
-#include "sccp_utils.h"
-#include "sccp_device.h"
-#include "sccp_channel.h"
-#include "sccp_indicate.h"
-#ifdef CS_AST_HAS_NEW_DEVICESTATE
-#    include <asterisk/devicestate.h>
-#endif
-#ifdef AST_EVENT_IE_CIDNAME
-#    include <asterisk/event.h>
-#    include <asterisk/event_defs.h>
-#endif
-#include <signal.h>
+
 void sccp_hint_notifyAsterisk(sccp_line_t * line, sccp_channelState_t state);
 static void *sccp_hint_remoteNotification_thread(void *data);
 static void sccp_hint_checkForDND(sccp_hint_list_t *hint, sccp_line_t *line);

@@ -13,43 +13,11 @@
  */
 
 #include "config.h"
-
-#if ASTERISK_VERSION_NUM >= 10400
-#    include <asterisk.h>
-#endif
-#include <asterisk/musiconhold.h>
-#include "chan_sccp.h"
-#include "sccp_pbx.h"
+#include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#include "sccp_lock.h"
-#include "sccp_line.h"
-#include "sccp_utils.h"
-#include "sccp_device.h"
-#include "sccp_channel.h"
-#include "sccp_indicate.h"
-#include "sccp_features.h"
-#include "sccp_conference.h"
-#include <assert.h>
-#include <asterisk/pbx.h>
-#ifndef CS_AST_HAS_TECH_PVT
-#    include <asterisk/channel_pvt.h>
-#endif
-#include <asterisk/callerid.h>
-#include <asterisk/utils.h>
-#include <asterisk/causes.h>
-#include <asterisk/frame.h>
-#ifdef CS_AST_HAS_AST_STRING_FIELD
-#    include <asterisk/stringfields.h>
-#endif
-#ifdef CS_MANAGER_EVENTS
-#    include <asterisk/manager.h>
-#endif
-#ifdef CS_SCCP_PICKUP
-#    include <asterisk/features.h>
-#endif
 #ifdef CS_AST_HAS_TECH_PVT
-const struct ast_channel_tech sccp_tech;
+	const struct ast_channel_tech sccp_tech;
 #endif										// CS_AST_HAS_TECH_PVT
 
 #ifdef CS_AST_RTP_NEW_SOURCE
@@ -424,7 +392,7 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
 		sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_ONHOOK);
 	}
-	get_sccp_channel_from_ast_channel(ast) = NULL;
+	CS_AST_CHANNEL_PVT(ast) = NULL;
 	c->owner = NULL;
 	l = c->line;
 #ifdef CS_SCCP_CONFERENCE

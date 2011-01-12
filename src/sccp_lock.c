@@ -83,19 +83,10 @@
  * \section lock_assumptions Locking Assumptions
  */
 #include "config.h"
-#if ASTERISK_VERSION_NUM >= 10400
-#    include <asterisk.h>
-#endif
-#include "chan_sccp.h"
+#include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#include "sccp_lock.h"
-#include "sccp_device.h"
-#include <asterisk/lock.h>
-#include <asterisk/utils.h>
-#ifndef CS_AST_HAS_TECH_PVT
-#    include <asterisk/_pvt.h>
-#endif
+
 #ifdef CS_AST_DEBUG_CHANNEL_LOCKS
 #    define CS_LOCKS_DEBUG_ALL
 /*!

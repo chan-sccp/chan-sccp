@@ -14,22 +14,11 @@
  */
 
 #include "config.h"
-
-#if ASTERISK_VERSION_NUM >= 10400
-#    include <asterisk.h>
-#endif
-#include "chan_sccp.h"
+#include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#include "sccp_event.h"
-#include "sccp_lock.h"
-#include "sccp_line.h"
-#include "sccp_socket.h"
-#include "sccp_device.h"
-#include "sccp_utils.h"
-#include <signal.h>
 #include <sys/ioctl.h>
-#include <asterisk/utils.h>
+
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
 #    include <sys/poll.h>
 #else
