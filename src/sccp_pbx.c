@@ -165,7 +165,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 	}
 #endif										// ASTERISK_VERSION_NUM < 10400
 
-	c = CS_AST_CHANNEL_PVT(ast);
+	c = get_sccp_channel_from_ast_channel(ast);
 	if (!c) {
 		ast_log(LOG_WARNING, "SCCP: Asterisk request to call %s channel: %s, but we don't have this channel!\n", dest, ast->name);
 		return -1;
@@ -402,7 +402,7 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 
 	ast_update_use_count();
 
-	c = CS_AST_CHANNEL_PVT(ast);
+	c = get_sccp_channel_from_ast_channel(ast);
 
 	if (!c) {
 		sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Asked to hangup channel %s. SCCP channel already deleted\n", ast->name);
@@ -424,7 +424,7 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
 		sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_ONHOOK);
 	}
-	CS_AST_CHANNEL_PVT(ast) = NULL;
+	get_sccp_channel_from_ast_channel(ast) = NULL;
 	c->owner = NULL;
 	l = c->line;
 #ifdef CS_SCCP_CONFERENCE
@@ -523,7 +523,7 @@ void sccp_pbx_needcheckringback(sccp_device_t * d)
  */
 static int sccp_pbx_answer(struct ast_channel *ast)
 {
-	sccp_channel_t *c = CS_AST_CHANNEL_PVT(ast);
+	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
 
 #if ASTERISK_VERSION_NUM < 10400
 	// if channel type is undefined, set to SCCP
@@ -644,7 +644,7 @@ static int sccp_pbx_answer(struct ast_channel *ast)
  */
 static struct ast_frame *sccp_pbx_read(struct ast_channel *ast)
 {
-	sccp_channel_t *c = CS_AST_CHANNEL_PVT(ast);
+	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
 	struct ast_frame *frame;
 
 #if ASTERISK_VERSION_NUM >= 10400
@@ -731,7 +731,7 @@ static struct ast_frame *sccp_pbx_read(struct ast_channel *ast)
 static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame)
 {
 	int res = 0;
-	sccp_channel_t *c = CS_AST_CHANNEL_PVT(ast);
+	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
 
 	if (c) {
 		switch (frame->frametype) {
@@ -895,7 +895,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 #endif										// ASTERISK_VERSION_NUM < 10400
 {
 	int oldChannelFormat;
-	sccp_channel_t *c = CS_AST_CHANNEL_PVT(ast);
+	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
 	int res = 0;
 	int deadlockAvoidanceCounter =0;
 	if (!c)
@@ -1071,7 +1071,7 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 {
 	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: we got a fixup request for %s\n", newchan->name);
 
-	sccp_channel_t *c = CS_AST_CHANNEL_PVT(newchan);
+	sccp_channel_t *c = get_sccp_channel_from_ast_channel(newchan);
 
 	if (!c) {
 		ast_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", oldchan->name, (void *)oldchan, newchan->name, (void *)newchan);
@@ -1123,7 +1123,7 @@ static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit)
 static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit, unsigned int duration)
 #endif										// ASTERISK_VERSION_NUM < 10400
 {
-	sccp_channel_t *c = CS_AST_CHANNEL_PVT(ast);
+	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
 	sccp_device_t *d = NULL;
 	uint8_t instance;
 
@@ -1186,7 +1186,7 @@ static int sccp_pbx_sendtext(struct ast_channel *ast, const char *text)
 static int sccp_pbx_sendtext(struct ast_channel *ast, char *text)
 #endif										// CS_AST_HAS_TECH_PVT
 {
-	sccp_channel_t *c = CS_AST_CHANNEL_PVT(ast);
+	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
 	sccp_device_t *d;
 	uint8_t instance;
 
@@ -2012,7 +2012,7 @@ int acf_channel_read(struct ast_channel *ast, char *funcname, char *args, char *
 		return -1;
 	}
 #endif										// CS_AST_HAS_TECH_PVT
-	c = CS_AST_CHANNEL_PVT(ast);
+	c = get_sccp_channel_from_ast_channel(ast);
 	if (c == NULL)
 		return -1;
 
