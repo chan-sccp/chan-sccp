@@ -13,8 +13,8 @@
  *		See the LICENSE file at the top of the source tree.
  * \warning 	File has been Lined up using 8 Space TABS
  *
- * $Date: 2010-11-23 15:16:48 +0100 (Di, 23. Nov 2010) $
- * $Revision: 2185 $
+ * $Date$
+ * $Revision$
  */
 
 #ifndef __CHAN_SCCP_H
@@ -329,6 +329,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 	typedef struct sccp_ast_channel_name sccp_ast_channel_name_t;		/*!< SCCP Asterisk Channel Name Structure */
 	typedef struct sccp_buttonconfig sccp_buttonconfig_t;			/*!< SCCP Button Config Structure */
 	typedef struct sccp_hotline sccp_hotline_t;				/*!< SCCP Hotline Structure */
+	typedef struct sccp_callinfo sccp_callinfo_t;                           /*!< SCCP Call Information Structure */
 	typedef enum { FALSE = 0, TRUE = 1 } boolean_t;				/*!< Asterisk Reverses True and False; nice !! */
 	typedef enum { ON, OFF } light_t;					/*!< Enum Light Status */
 	typedef enum { NO_CHANGES = 0, MINOR_CHANGES = 1, CHANGES_NEED_RESET = 2 } sccp_diff_t;	/*!< SCCP Diff Structure */
@@ -525,26 +526,36 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 /*!
  * \brief SCCP CallInfo Structure
  */
-	struct sccp_callinfo {
-		char calledPartyName[StationMaxNameSize];			/*!< Called Party Name */
-		char calledPartyNumber[StationMaxDirnumSize];			/*!< Called Party Number */
-		char callingPartyName[StationMaxNameSize];			/*!< Calling Party Name */
-		char callingPartyNumber[StationMaxDirnumSize];			/*!< Calling Party Number */
+        struct sccp_callinfo {
+                char calledPartyName[StationMaxNameSize];                       /*!< Called Party Name */
+		char calledPartyNumber[StationMaxDirnumSize];                   /*!< Called Party Number */
+   		char cdpnVoiceMailbox[StationMaxDirnumSize];    		/*!< Called Party Voicemail Box */
+                unsigned int cdpnVoiceMailbox_valid:1;                          /*!< TRUE if the name information is valid/present */
+   		unsigned int calledParty_valid:1;                               /*!< TRUE if the name information is valid/present */
+   	        char callingPartyName[StationMaxNameSize];                      /*!< Calling Party Name */
+	        char callingPartyNumber[StationMaxDirnumSize];			/*!< Calling Party Number */
+                char cgpnVoiceMailbox[StationMaxDirnumSize];                    /*!< Calling Party Voicemail Box */
+		unsigned int cgpnVoiceMailbox_valid:1;                          /*!< TRUE if the name information is valid/present */
+   		unsigned int callingParty_valid:1;                              /*!< TRUE if the name information is valid/present */
 
-		char originalCallingPartyName[StationMaxNameSize];		/*!< Original Calling Party Name */
-		char originalCallingPartyNumber[StationMaxDirnumSize];		/*!< Original Calling Party ID */
 		char originalCalledPartyName[StationMaxNameSize];		/*!< Original Calling Party Name */
-		char originalCalledPartyNumber[StationMaxDirnumSize];		/*!< Original Calling Party ID */
-		char lastRedirectingPartyName[StationMaxNameSize];		/*!< Original Called Party Name */
-		char lastRedirectingPartyNumber[StationMaxDirnumSize];		/*!< Original Called Party ID */
-		char cgpnVoiceMailbox[StationMaxDirnumSize];			/*!< Calling Party Voicemail Box */
-		char cdpnVoiceMailbox[StationMaxDirnumSize];			/*!< Called Party Voicemail Box */
-		char originalCdpnVoiceMailbox[StationMaxDirnumSize];		/*!< Original Called Party VoiceMail Box */
-		char lastRedirectingVoiceMailbox[StationMaxDirnumSize];		/*!< Last Redirecting VoiceMail Box */
+		char originalCalledPartyNumber[StationMaxDirnumSize];           /*!< Original Calling Party ID */  
+		char originalCdpnVoiceMailbox[StationMaxDirnumSize];            /*!< Original Called Party VoiceMail Box */
+		unsigned int originalCdpnVoiceMailbox_valid:1;                  /*!< TRUE if the name information is valid/present */
+		unsigned int originalCalled_valid:1;                            /*!< TRUE if the name information is valid/present */
+		char originalCallingPartyName[StationMaxNameSize];              /*!< Original Calling Party Name */
+		char originalCallingPartyNumber[StationMaxDirnumSize];          /*!< Original Calling Party ID */  
+        	unsigned int originalCalling_valid:1;                           /*!< TRUE if the name information is valid/present */
+                char lastRedirectingPartyName[StationMaxNameSize];              /*!< Original Called Party Name */
+                char lastRedirectingPartyNumber[StationMaxDirnumSize];          /*!< Original Called Party ID */  
+		char lastRedirectingVoiceMailbox[StationMaxDirnumSize];         /*!< Last Redirecting VoiceMail Box */
+   		unsigned int lastRedirectingVoiceMailbox_valid:1;               /*!< TRUE if the name information is valid/present */
+                unsigned int lastRedirecting_valid:1;                           /*!< TRUE if the name information is valid/present */
 
-		uint32_t originalCdpnRedirectReason;				/*!< Original Called Party Redirect Reason */
-		uint32_t lastRedirectingReason;					/*!< Last Redirecting Reason */
-	};									/*!< SCCP CallInfo Structure */
+		uint32_t originalCdpnRedirectReason;                            /*!< Original Called Party Redirect Reason */
+		uint32_t lastRedirectingReason;                                 /*!< Last Redirecting Reason */
+		int presentation:1;                                             /*!< Should this callerinfo be shown (privacy) */
+	};                                                                      /*!< SCCP CallInfo Structure */
 
 /*!
  * \brief SCCP cfwd information

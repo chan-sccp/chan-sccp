@@ -417,7 +417,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 			// IP Address has changed mid session
 			if (s->device->nat == 1) {
 				// We are natted, what should we do, Not doing anything for now, just sending warning -- DdG
-				ast_log(LOG_WARNING, "%s: Device (%s) attempted to send messages via a different ip-address (%s).\n", DEV_ID_LOG(s->device), sccp_inet_ntoa(s->sin.sin_addr), sccp_inet_ntoa(s->device->session->sin.sin_addr));
+				ast_log(LOG_WARNING, "%s: Device (%s) attempted to send messages via a different ip-address (%s).\n", DEV_ID_LOG(s->device), pbx_inet_ntoa(s->sin.sin_addr), pbx_inet_ntoa(s->device->session->sin.sin_addr));
 				// \todo write auto recover ip-address change during session with natted device should be be implemented
 				/*
 				   s->device->session->sin.sin_addr.s_addr = s->sin.sin_addr.s_addr;
