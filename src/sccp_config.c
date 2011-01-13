@@ -1366,7 +1366,7 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, s
 			} else if (!strcasecmp(v->name, "mailbox")) {
 				sccp_mailbox_t *mailbox = NULL;
 				char *context, *mbox = NULL;
-				mbox = context = ast_strdupa(v->value);
+				mbox = context = sccp_strdupa(v->value);
 				boolean_t mailbox_exists = FALSE;
 
 				strsep(&context, "@");
@@ -1385,8 +1385,8 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, s
 					mailbox = ast_calloc(1, sizeof(*mailbox));
 
 					if (NULL != mailbox) {
-						mailbox->mailbox = ast_strdup(mbox);
-						mailbox->context = ast_strdup(context);
+						mailbox->mailbox = sccp_strdup(mbox);
+						mailbox->context = sccp_strdup(context);
 
 						SCCP_LIST_INSERT_TAIL(&l->mailboxes, mailbox, list);
 						sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "%s: Added mailbox '%s@%s'\n", l->name, mailbox->mailbox, (mailbox->context) ? mailbox->context : "default");

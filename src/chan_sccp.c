@@ -1429,7 +1429,7 @@ static int sccp_app_setmessage(struct ast_channel *chan, void *data)
 	if (text[0] != '\0') {
 		sccp_dev_displayprinotify(d, text, 5, 0);
 		sccp_dev_displayprompt(d, 0, 0, text, 0);
-		d->phonemessage = ast_strdup(text);
+		d->phonemessage = sccp_strdup(text);
 		ast_db_put("SCCPM", d->id, text);
 	} else {
 		sccp_dev_displayprinotify(d, "Message off", 5, 1);
@@ -1775,7 +1775,7 @@ static int unload_module(void)
 	struct ast_channel *astChannel = NULL;
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channels\n");
-	while ((astChannel = ast_channel_walk_locked(astChannel)) != NULL) {
+	while ((astChannel = pbx_channel_walk_locked(astChannel)) != NULL) {
 		if (!pbx_check_hangup(astChannel)) {
 			if ((c = get_sccp_channel_from_ast_channel(astChannel))) {
 				astChannel->hangupcause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
