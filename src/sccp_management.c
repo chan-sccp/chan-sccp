@@ -10,17 +10,19 @@
  */
 #include "config.h"
 #ifdef CS_SCCP_MANAGER
-#    include "sccp_management.h"
-#    include "chan_sccp.h"
+#include "common.h"
+//#    include "sccp_management.h"
+//#    include "chan_sccp.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2174 $")
-#    include "sccp_utils.h"
-#    include "sccp_lock.h"
-#    include "sccp_device.h"
-#    include "sccp_config.h"
-#    include "sccp_actions.h"
-#    include "sccp_hint.h"
-#    include "sccp_line.h"
+//#    include "sccp_utils.h"
+//#    include "sccp_lock.h"
+//#    include "sccp_device.h"
+//#    include "sccp_config.h"
+//#    include "sccp_actions.h"
+//#    include "sccp_hint.h"
+//#    include "sccp_line.h"
+
 /*!
  * \brief Show Device Description
  */
@@ -190,13 +192,13 @@ int sccp_manager_restart_device(struct mansession *s, const struct message *m)
 	const char *type = astman_get_header(m, "Type");
 
 	ast_log(LOG_WARNING, "Attempt to get device %s\n", fn);
-	if (ast_strlen_zero(fn)) {
+	if (sccp_strlen_zero(fn)) {
 		astman_send_error(s, m, "Please specify the name of device to be reset");
 		return 0;
 	}
 
 	ast_log(LOG_WARNING, "Type of Restart ([quick|reset] or [full|restart]) %s\n", fn);
-	if (ast_strlen_zero(fn)) {
+	if (sccp_strlen_zero(fn)) {
 		ast_log(LOG_WARNING, "Type not specified, using quick");
 		type = "reset";
 	}
@@ -242,12 +244,12 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
 
 	ast_log(LOG_WARNING, "Attempt to get device %s\n", deviceName);
 
-	if (ast_strlen_zero(deviceName)) {
+	if (sccp_strlen_zero(deviceName)) {
 		astman_send_error(s, m, "Please specify the name of device");
 		return 0;
 	}
 
-	if (ast_strlen_zero(lineName)) {
+	if (sccp_strlen_zero(lineName)) {
 		astman_send_error(s, m, "Please specify the name of line to be added");
 		return 0;
 	}
@@ -376,7 +378,7 @@ static int sccp_manager_device_update(struct mansession *s, const struct message
 
 	ast_log(LOG_WARNING, "Attempt to get device %s\n", deviceName);
 
-	if (ast_strlen_zero(deviceName)) {
+	if (sccp_strlen_zero(deviceName)) {
 		astman_send_error(s, m, "Please specify the name of device");
 		return 0;
 	}

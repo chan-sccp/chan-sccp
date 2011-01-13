@@ -143,7 +143,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				/* we check which devicestate this button is assigned to, and fetch the respective status from the astdb.
 				   Note that this relies on the functionality of the asterisk custom devicestate module. */
 
-				res = ast_db_get(devstate_astdb_family, config->button.feature.options, buf, sizeof(buf));
+				res = pbx_db_get(devstate_astdb_family, config->button.feature.options, buf, sizeof(buf));
 				sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: devstate feature state: %s state: %s res: %d\n", DEV_ID_LOG(device), config->button.feature.options, buf, res);
 				if (!res) {
 					if (!strncmp("INUSE", buf, 254))

@@ -500,7 +500,7 @@ void sccp_channel_send_dialednumber(sccp_channel_t * c)
 	sccp_device_t *device;
 	uint8_t instance;
 
-	if (ast_strlen_zero(c->callInfo.calledPartyNumber))
+	if (sccp_strlen_zero(c->callInfo.calledPartyNumber))
 		return;
 
 	if (!c->device)
@@ -993,7 +993,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 	}
 	sampleRate = 3840*2;
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive multimedia channel with format %s[%d] skinnyFormat %s[%d], payload %d\n", DEV_ID_LOG(channel->device), ast_codec2str(channel->rtp.video.writeFormat), channel->rtp.video.writeFormat, codec2str(skinnyFormat), skinnyFormat, payloadType);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive multimedia channel with format %s[%d] skinnyFormat %s[%d], payload %d\n", DEV_ID_LOG(channel->device), pbx_codec2str(channel->rtp.video.writeFormat), channel->rtp.video.writeFormat, codec2str(skinnyFormat), skinnyFormat, payloadType);
 
 	if (channel->device->inuseprotocolversion < 15) {
 		r = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(r->msg.OpenMultiMediaChannelMessage));
@@ -1122,7 +1122,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 			if (GLOB(externexpire) && (time(NULL) >= GLOB(externexpire))) {
 				time(&GLOB(externexpire));
 				GLOB(externexpire) += GLOB(externrefresh);
-				if ((hp = ast_gethostbyname(GLOB(externhost), &ahp))) {
+				if ((hp = pbx_gethostbyname(GLOB(externhost), &ahp))) {
 					memcpy(&GLOB(externip.sin_addr), hp->h_addr, sizeof(GLOB(externip.sin_addr)));
 				} else
 					ast_log(LOG_NOTICE, "Warning: Re-lookup of '%s' failed!\n", GLOB(externhost));
@@ -1233,9 +1233,9 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 	}
 
 #if ASTERISK_VERSION_NUM < 10400
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s (%d ms), payloadType %d, tos %d, silencesuppression: %s\n", DEV_ID_LOG(channel->device), pbx_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port), ast_codec2str(channel->rtp.video.readFormat), packetSize, payloadType, channel->line->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s (%d ms), payloadType %d, tos %d, silencesuppression: %s\n", DEV_ID_LOG(channel->device), pbx_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port), pbx_codec2str(channel->rtp.video.readFormat), packetSize, payloadType, channel->line->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
 #else
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s(%d) (%d ms), payloadType %d, tos %d, silencesuppression: %s\n", channel->device->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), ast_codec2str(channel->rtp.video.readFormat), channel->rtp.video.readFormat, packetSize, payloadType, channel->line->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s(%d) (%d ms), payloadType %d, tos %d, silencesuppression: %s\n", channel->device->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), pbx_codec2str(channel->rtp.video.readFormat), channel->rtp.video.readFormat, packetSize, payloadType, channel->line->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
 #endif
 	sccp_dev_send(channel->device, r);
 
@@ -1298,7 +1298,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 			if (GLOB(externexpire) && (time(NULL) >= GLOB(externexpire))) {
 				time(&GLOB(externexpire));
 				GLOB(externexpire) += GLOB(externrefresh);
-				if ((hp = ast_gethostbyname(GLOB(externhost), &ahp))) {
+				if ((hp = pbx_gethostbyname(GLOB(externhost), &ahp))) {
 					memcpy(&GLOB(externip.sin_addr), hp->h_addr, sizeof(GLOB(externip.sin_addr)));
 				} else
 					ast_log(LOG_NOTICE, "Warning: Re-lookup of '%s' failed!\n", GLOB(externhost));
@@ -1648,7 +1648,7 @@ sccp_channel_t *sccp_channel_newcall_locked(sccp_line_t * l, sccp_device_t * dev
 		return NULL;
 	}
 
-	if (!device || ast_strlen_zero(device->id)) {
+	if (!device || sccp_strlen_zero(device->id)) {
 		ast_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if a device is not defined!\n");
 		return NULL;
 	}
@@ -2717,7 +2717,7 @@ void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevi
 	/* dial forwarder */
 	sccp_copy_string(forwarder->owner->exten, dialedNumber, sizeof(forwarder->owner->exten));
 	sccp_ast_setstate(forwarder, AST_STATE_OFFHOOK);
-	if (!ast_strlen_zero(dialedNumber) && !pbx_check_hangup(forwarder->owner)
+	if (!sccp_strlen_zero(dialedNumber) && !pbx_check_hangup(forwarder->owner)
 	    && ast_exists_extension(forwarder->owner, forwarder->line->context, dialedNumber, 1, forwarder->line->cid_num)) {
 		/* found an extension, let's dial it */
 		ast_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s-%08x is dialing number %s\n", "SCCP", forwarder->line->name, forwarder->callid, strdup(dialedNumber));

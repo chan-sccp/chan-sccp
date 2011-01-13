@@ -14,10 +14,13 @@
 // sccp redefinitions
 #define sccp_strdup ast_strdup
 #define sccp_strdupa ast_strdupa
+//#define sccp_copy_string ast_copy_string
+#define sccp_strlen_zero ast_strlen_zero
 
 // codec / format redefinitions
 #define pbx_codec_pref_index ast_codec_pref_index
 #define pbx_codec_pref_getsize ast_codec_pref_getsize
+#define pbx_codec2str ast_codec2str
 
 // application / module / cli redefinitions
 #define pbx_register_application ast_register_application
@@ -38,6 +41,13 @@
 #define pbx_channel_unlock ast_channel_unlock
 #define pbx_sched_wait ast_sched_wait
 #define pbx_io_wait ast_io_wait
+#define pbx_gethostbyname ast_gethostbyname
+#define pbx_apply_ha ast_apply_ha
+#define pbx_pickup_ext ast_pickup_ext
+#define pbx_db_gettree ast_db_gettree
+#define pbx_db_put ast_db_put
+#define pbx_db_get ast_db_get
+
 
 // utilities
 char *get_pbx_callerid_name(struct ast_channel *ast_chan);

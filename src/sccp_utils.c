@@ -124,7 +124,7 @@ void sccp_addon_addnew(sccp_device_t * d, const char *addon_config_type)
 		return;
 
 	// checking if devicetype is specified
-	if (ast_strlen_zero(d->config_type)) {
+	if (sccp_strlen_zero(d->config_type)) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Addon type (%s) must be specified after device type\n", addon_config_type);
 		return;
 	}
@@ -319,7 +319,7 @@ sccp_device_t *sccp_device_find_realtime(const char *name)
 	sccp_device_t *d = NULL;
 	struct ast_variable *v, *variable;
 
-	if (ast_strlen_zero(GLOB(realtimedevicetable)))
+	if (sccp_strlen_zero(GLOB(realtimedevicetable)))
 		return NULL;
 
 	if ((variable = ast_load_realtime(GLOB(realtimedevicetable), "name", name, NULL))) {
@@ -401,7 +401,7 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 	sccp_line_t *l = NULL;
 	struct ast_variable *v, *variable;
 
-	if (ast_strlen_zero(GLOB(realtimelinetable)))
+	if (sccp_strlen_zero(GLOB(realtimelinetable)))
 		return NULL;
 
 	if ((variable = ast_load_realtime(GLOB(realtimelinetable), "name", name, NULL))) {
@@ -832,14 +832,14 @@ void sccp_dev_dbput(sccp_device_t * d)
 	if (!d)
 		return;
 
-	if (!ast_strlen_zero(cfwdall))
+	if (!sccp_strlen_zero(cfwdall))
 		cfwdall[strlen(cfwdall) - 1] = '\0';
-	if (!ast_strlen_zero(cfwdbusy))
+	if (!sccp_strlen_zero(cfwdbusy))
 		cfwdbusy[strlen(cfwdbusy) - 1] = '\0';
 
 	snprintf(tmp, sizeof(tmp), "dnd=%d,cfwdall=%s,cfwdbusy=%s,cfwdnoanswer=%s", d->dndFeature.status, cfwdall, cfwdbusy, cfwdnoanswer);
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "%s: Storing device status (dnd, cfwd*) in the asterisk db\n", d->id);
-	if (ast_db_put("SCCP", d->id, tmp))
+	if (pbx_db_put("SCCP", d->id, tmp))
 		ast_log(LOG_NOTICE, "%s: Unable to store device status (dnd, cfwd*) in the asterisk db\n", d->id);
 }
 
@@ -857,7 +857,7 @@ void sccp_dev_dbget(sccp_device_t * d)
 //      if (!d)
 //              return;
 //      sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME))(VERBOSE_PREFIX_3 "%s: Restoring device status (dnd, cfwd*) from the asterisk db\n", d->id);
-//      if (ast_db_get("SCCP", d->id, result, sizeof(result))) {
+//      if (pbx_db_get("SCCP", d->id, result, sizeof(result))) {
 //              return;
 //      }
 //      r = result;
@@ -893,7 +893,7 @@ void sccp_dev_dbclean()
 	sccp_device_t *d;
 	char key[256];
 
-	entry = ast_db_gettree("SCCP", NULL);
+	entry = pbx_db_gettree("SCCP", NULL);
 	while (entry) {
 		sscanf(entry->key, "/SCCP/%s", key);
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Looking for '%s' in the devices list\n", key);
@@ -1439,7 +1439,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 						sccp_dev_forward_status(line, instance, device);
 						sprintf(cfwdLineStore, "%s/%s", family, config->button.line.name);
 						if (lineDevice->cfwdAll.enabled) {
-							ast_db_put(cfwdLineStore, "cfwdAll", lineDevice->cfwdAll.number);
+							pbx_db_put(cfwdLineStore, "cfwdAll", lineDevice->cfwdAll.number);
 							sccp_log(1) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);
 						} else {
 							ast_db_del(cfwdLineStore, "cfwdAll");
@@ -1458,9 +1458,9 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 			//sccp_log(1)(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "dnd");
 		} else {
 			if (device->dndFeature.status == SCCP_DNDMODE_SILENT)
-				ast_db_put(family, "dnd", "silent");
+				pbx_db_put(family, "dnd", "silent");
 			else
-				ast_db_put(family, "dnd", "reject");
+				pbx_db_put(family, "dnd", "reject");
 		}
 		break;
 	case SCCP_FEATURE_PRIVACY:
@@ -1470,7 +1470,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 		} else {
 			char data[256];
 			sprintf(data, "%d", device->privacyFeature.status);
-			ast_db_put(family, "privacy", data);
+			pbx_db_put(family, "privacy", data);
 		}
 		break;
 	case SCCP_FEATURE_MONITOR:
@@ -1478,7 +1478,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 			ast_db_del(family, "monitor");
 			//sccp_log(1)(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "monitor");
 		} else {
-			ast_db_put(family, "monitor", "on");
+			pbx_db_put(family, "monitor", "on");
 		}
 		break;
 	default:
