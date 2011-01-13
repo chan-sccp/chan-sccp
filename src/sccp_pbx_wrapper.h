@@ -25,6 +25,7 @@
 #define pbx_custom_function_register ast_custom_function_register
 #define pbx_custom_function_unregister ast_custom_function_unregister
 #define pbx_channel_register ast_channel_register
+#define pbx_channel_register_ex ast_channel_register_ex
 #define pbx_channel_unregister ast_channel_unregister
 #define pbx_rtp_proto_register ast_rtp_proto_register
 #define pbx_rtp_proto_unregister ast_rtp_proto_unregister
