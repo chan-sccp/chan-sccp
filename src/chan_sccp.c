@@ -1451,13 +1451,13 @@ static int sccp_register_dialplan_functions(void)
 	int result;
 
 	/* Register application functions */
-	result = ast_register_application(calledparty_name, sccp_app_calledparty, calledparty_synopsis, calledparty_descr);
-	result |= ast_register_application(setmessage_name, sccp_app_setmessage, setmessage_synopsis, setmessage_descr);
+	result = pbx_register_application(calledparty_name, sccp_app_calledparty, calledparty_synopsis, calledparty_descr);
+	result |= pbx_register_application(setmessage_name, sccp_app_setmessage, setmessage_synopsis, setmessage_descr);
 
 	/* Register dialplan functions */
-	result |= ast_custom_function_register(&sccpdevice_function);
-	result |= ast_custom_function_register(&sccpline_function);
-	result |= ast_custom_function_register(&sccpchannel_function);
+	result |= pbx_custom_function_register(&sccpdevice_function);
+	result |= pbx_custom_function_register(&sccpline_function);
+	result |= pbx_custom_function_register(&sccpchannel_function);
 
 	return result;
 }
@@ -1467,13 +1467,13 @@ static int sccp_unregister_dialplan_functions(void)
 	int result;
 
 	/* Unregister applications functions */
-	result = ast_unregister_application(calledparty_name);
-	result |= ast_unregister_application(setmessage_name);
+	result = pbx_unregister_application(calledparty_name);
+	result |= pbx_unregister_application(setmessage_name);
 
 	/* Unregister dial plan functions */
-	result |= ast_custom_function_unregister(&sccpdevice_function);
-	result |= ast_custom_function_unregister(&sccpline_function);
-	result |= ast_custom_function_unregister(&sccpchannel_function);
+	result |= pbx_custom_function_unregister(&sccpdevice_function);
+	result |= pbx_custom_function_unregister(&sccpline_function);
+	result |= pbx_custom_function_unregister(&sccpchannel_function);
 
 	return result;
 }
@@ -1678,9 +1678,9 @@ static int load_module(void)
 
 	if (!load_config()) {
 #ifdef CS_AST_HAS_TECH_PVT
-		if (ast_channel_register(&sccp_tech)) {
+		if (pbx_channel_register(&sccp_tech)) {
 #else
-		if (ast_channel_register_ex("SCCP", "SCCP", GLOB(global_capability), sccp_request, sccp_devicestate)) {
+		if (pbx_channel_register_ex("SCCP", "SCCP", GLOB(global_capability), sccp_request, sccp_devicestate)) {
 #endif
 			ast_log(LOG_ERROR, "Unable to register channel class SCCP\n");
 			return -1;
@@ -1688,9 +1688,9 @@ static int load_module(void)
 	}
 #if ASTERISK_VERSION_NUM >= 10400
 #    ifndef CS_AST_HAS_RTP_ENGINE
-	ast_rtp_proto_register(&sccp_rtp);
+	pbx_rtp_proto_register(&sccp_rtp);
 #    else
-	ast_rtp_glue_register(&sccp_rtp);
+	pbx_rtp_glue_register(&sccp_rtp);
 #    endif
 #endif
 
@@ -1793,13 +1793,13 @@ static int unload_module(void)
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Unregister SCCP RTP protocol\n");
 #if ASTERISK_VERSION_NUM >= 10400
-	ast_rtp_proto_unregister(&sccp_rtp);
+	pbx_rtp_proto_unregister(&sccp_rtp);
 #endif
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Unregister SCCP Channel Tech\n");
 #ifdef CS_AST_HAS_TECH_PVT
-	ast_channel_unregister(&sccp_tech);
+	pbx_channel_unregister(&sccp_tech);
 #else
-	ast_channel_unregister("SCCP");
+	pbx_channel_unregister("SCCP");
 #endif
 	sccp_unregister_dialplan_functions();
 	sccp_unregister_cli();
