@@ -790,14 +790,14 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 		r->msg.StopMediaTransmission.lel_conferenceId1 = htolel(c->callid);
 		sccp_dev_send(d, r);
 
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Asterisk request to set peer ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Asterisk request to set peer ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
 
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Asterisk request codec '%d'\n", DEV_ID_LOG(d), codecs);
 
-		//fmt = ast_codec_pref_getsize(&d->codecs, ast_best_codec(d->capability));
+		//fmt = pbx_codec_pref_getsize(&d->codecs, ast_best_codec(d->capability));
 		int codec = ast_codec_choose(&c->codecs, codecs, 1);
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Asterisk request codec '%d'\n", DEV_ID_LOG(d), codec);
-		fmt = ast_codec_pref_getsize(&d->codecs, codec);
+		fmt = pbx_codec_pref_getsize(&d->codecs, codec);
 
 		c->format = fmt.bits;						/* updating channel format */
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Setting payloadType to '%d' (%d ms)\n", DEV_ID_LOG(d), fmt.bits, fmt.cur_ms);
@@ -819,11 +819,11 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 		if (d->inuseprotocolversion < 17) {
 			if (!d->directrtp || d->nat) {
 				ast_rtp_get_us(rtp, &us);
-				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17 / No DirectRTP & NAT) ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17 / No DirectRTP & NAT) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
 				memcpy(&r->msg.StartMediaTransmission.bel_remoteIpAddr, &us.sin_addr, 4);
 				r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(us.sin_port));
 			} else {
-				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17) ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
 				memcpy(&r->msg.StartMediaTransmission.bel_remoteIpAddr, &them.sin_addr, 4);
 				r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(them.sin_port));
 			}
@@ -836,11 +836,11 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 		} else {
 			if (!d->directrtp || d->nat) {
 				ast_rtp_get_us(rtp, &us);
-				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol>17 / No DirectRTP & NAT) ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol>17 / No DirectRTP & NAT) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
 				memcpy(&r->msg.StartMediaTransmission_v17.bel_remoteIpAddr, &us.sin_addr, 4);
 				r->msg.StartMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(us.sin_port));
 			} else {
-				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol>17) ip to '%s:%d'\n", DEV_ID_LOG(d), ast_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol>17) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
 				memcpy(&r->msg.StartMediaTransmission_v17.bel_remoteIpAddr, &them.sin_addr, 4);
 				r->msg.StartMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(them.sin_port));
 			}
@@ -900,7 +900,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 	sccp_channel_updateChannelCapability_locked(c);
 	c->isCodecFix = TRUE;
 #if ASTERISK_VERSION_NUM >= 10400
-	struct ast_format_list fmt = ast_codec_pref_getsize(&c->codecs, c->format);
+	struct ast_format_list fmt = pbx_codec_pref_getsize(&c->codecs, c->format);
 	payloadType = sccp_codec_ast2skinny(fmt.bits);
 	packetSize = fmt.cur_ms;
 #else
@@ -1233,9 +1233,9 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 	}
 
 #if ASTERISK_VERSION_NUM < 10400
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s (%d ms), payloadType %d, tos %d, silencesuppression: %s\n", DEV_ID_LOG(channel->device), ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port), ast_codec2str(channel->rtp.video.readFormat), packetSize, payloadType, channel->line->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s (%d ms), payloadType %d, tos %d, silencesuppression: %s\n", DEV_ID_LOG(channel->device), pbx_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port), ast_codec2str(channel->rtp.video.readFormat), packetSize, payloadType, channel->line->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
 #else
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s(%d) (%d ms), payloadType %d, tos %d, silencesuppression: %s\n", channel->device->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), ast_codec2str(channel->rtp.video.readFormat), channel->rtp.video.readFormat, packetSize, payloadType, channel->line->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s(%d) (%d ms), payloadType %d, tos %d, silencesuppression: %s\n", channel->device->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), ast_codec2str(channel->rtp.video.readFormat), channel->rtp.video.readFormat, packetSize, payloadType, channel->line->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
 #endif
 	sccp_dev_send(channel->device, r);
 
@@ -1307,7 +1307,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 		}
 	}
 #if ASTERISK_VERSION_NUM >= 10400
-	fmt = ast_codec_pref_getsize(&c->device->codecs, c->format);
+	fmt = pbx_codec_pref_getsize(&c->device->codecs, c->format);
 	payloadType = sccp_codec_ast2skinny(fmt.bits);
 	packetSize = fmt.cur_ms;
 #else
@@ -1336,9 +1336,9 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 	}
 	sccp_dev_send(c->device, r);
 #if ASTERISK_VERSION_NUM < 10400
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s (%d ms), tos %d, silencesuppression: %s\n", c->device->id, ast_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port), codec2str(payloadType), packetSize, c->line->audio_tos, c->line->silencesuppression ? "ON" : "OFF");
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s (%d ms), tos %d, silencesuppression: %s\n", c->device->id, pbx_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port), codec2str(payloadType), packetSize, c->line->audio_tos, c->line->silencesuppression ? "ON" : "OFF");
 #else
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s(%d) (%d ms), tos %d, silencesuppression: %s\n", c->device->id, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), codec2str(payloadType), payloadType, packetSize, c->line->audio_tos, c->line->silencesuppression ? "ON" : "OFF");
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s(%d) (%d ms), tos %d, silencesuppression: %s\n", c->device->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), codec2str(payloadType), payloadType, packetSize, c->line->audio_tos, c->line->silencesuppression ? "ON" : "OFF");
 #endif
 
 #ifdef CS_SCCP_VIDEO
@@ -2161,9 +2161,9 @@ boolean_t sccp_channel_start_rtp_locked(sccp_channel_t * c)
 /* No need to lock, because already locked in the sccp_indicate.c */
 /*	sccp_channel_lock(c); */
 #if ASTERISK_VERSION_NUM < 10400
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), s->ourip));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", d->id, pbx_inet_ntoa(iabuf, sizeof(iabuf), s->ourip));
 #else
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", d->id, ast_inet_ntoa(s->ourip));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", d->id, pbx_inet_ntoa(s->ourip));
 #endif
 
 	/* finally we deal with this -FS SVN 423 */
@@ -2245,9 +2245,9 @@ boolean_t sccp_channel_start_vrtp(sccp_channel_t * c)
 /* No need to lock, because already locked in the sccp_indicate.c */
 /*	sccp_channel_lock(c); */
 #if ASTERISK_VERSION_NUM < 10400
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating vrtp server connection at %s\n", d->id, ast_inet_ntoa(iabuf, sizeof(iabuf), s->ourip));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating vrtp server connection at %s\n", d->id, pbx_inet_ntoa(iabuf, sizeof(iabuf), s->ourip));
 #else
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating vrtp server connection at %s\n", d->id, ast_inet_ntoa(s->ourip));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating vrtp server connection at %s\n", d->id, pbx_inet_ntoa(s->ourip));
 #endif
 
 	c->rtp.video.rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
@@ -2446,7 +2446,7 @@ static void *sccp_channel_transfer_ringing_thread(void *data)
 		ast_moh_start(ast, NULL, NULL);
 #endif
 	}
-	sccp_ast_channel_unlock(ast);
+	pbx_channel_unlock(ast);
 	return NULL;
 }
 
@@ -2717,7 +2717,7 @@ void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevi
 	/* dial forwarder */
 	sccp_copy_string(forwarder->owner->exten, dialedNumber, sizeof(forwarder->owner->exten));
 	sccp_ast_setstate(forwarder, AST_STATE_OFFHOOK);
-	if (!ast_strlen_zero(dialedNumber) && !ast_check_hangup(forwarder->owner)
+	if (!ast_strlen_zero(dialedNumber) && !pbx_check_hangup(forwarder->owner)
 	    && ast_exists_extension(forwarder->owner, forwarder->line->context, dialedNumber, 1, forwarder->line->cid_num)) {
 		/* found an extension, let's dial it */
 		ast_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s-%08x is dialing number %s\n", "SCCP", forwarder->line->name, forwarder->callid, strdup(dialedNumber));

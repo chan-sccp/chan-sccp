@@ -410,10 +410,10 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 					original->hangupcause = AST_CAUSE_NORMAL_CLEARING;
 					ast_setstate(original, AST_STATE_DOWN);
 				}
-				sccp_ast_channel_unlock(target);
+				pbx_channel_unlock(target);
 				ast_queue_hangup(original);
 			} else {
-				sccp_ast_channel_unlock(target);
+				pbx_channel_unlock(target);
 			}
 			if (name)
 				sccp_free(name);
@@ -425,7 +425,7 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 		} else {
 			res = -1;
 		}
-		sccp_ast_channel_unlock(target);
+		pbx_channel_unlock(target);
 	}
 	sccp_free(pickupexten);
 	pickupexten = NULL;
@@ -480,7 +480,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 				c = sccp_channel_allocate_locked(l, d);
 				if (!c) {
 					ast_log(LOG_ERROR, "%s: (grouppickup) Can't allocate SCCP channel for line %s\n", d->id, l->name);
-					sccp_ast_channel_unlock(target);
+					pbx_channel_unlock(target);
 					return -1;
 				}
 
@@ -488,7 +488,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 					ast_log(LOG_WARNING, "%s: (grouppickup) Unable to allocate a new channel for line %s\n", d->id, l->name);
 					sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_CONGESTION);
 					sccp_channel_unlock(c);
-					sccp_ast_channel_unlock(target);
+					pbx_channel_unlock(target);
 					return res;
 				}
 
@@ -502,7 +502,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 
 			if (!c->owner) {
 				sccp_channel_unlock(c);
-				sccp_ast_channel_unlock(target);
+				pbx_channel_unlock(target);
 				res = -1;
 				break;
 			}
@@ -606,11 +606,11 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 					ast_setstate(original, AST_STATE_DOWN);
 				}
 				sccp_channel_unlock(c);
-				sccp_ast_channel_unlock(target);
+				pbx_channel_unlock(target);
 				ast_queue_hangup(original);
 			} else {
 				sccp_channel_unlock(c);
-				sccp_ast_channel_unlock(target);
+				pbx_channel_unlock(target);
 			}
 
 			if (name)
@@ -626,7 +626,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		} else {
 			res = -1;
 		}
-		sccp_ast_channel_unlock(target);
+		pbx_channel_unlock(target);
 	}
 	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) quit\n");
 	return res;

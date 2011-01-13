@@ -466,12 +466,12 @@ void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Answer Pressed, instance: %d\n", DEV_ID_LOG(d), lineInstance);
 	if (c->owner)
-		sccp_ast_channel_lock(c->owner);
+		pbx_channel_lock(c->owner);
 	sccp_channel_lock(c);
 	sccp_channel_answer_locked(d, c);
 	sccp_channel_unlock(c);
 	if (c->owner)
-		sccp_ast_channel_unlock(c->owner);
+		pbx_channel_unlock(c->owner);
 }
 
 /*!

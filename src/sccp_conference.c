@@ -117,7 +117,7 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 	if (NULL == currentParticipantPeer)
 		return -1;
 
-	ast_channel_lock(currentParticipantPeer);
+	pbx_channel_lock(currentParticipantPeer);
 	/* Allocate an asterisk channel structure as conference bridge peer for the participant */
 	participant->conferenceBridgePeer = currentParticipantPeer;
 	/*
@@ -125,7 +125,7 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 	   currentParticipantPeer->exten, currentParticipantPeer->context, currentParticipantPeer->amaflags, "ConferenceBridge/%s", currentParticipantPeer->name);
 	   if(!participant->conferenceBridgePeer) {
 	   ast_log(LOG_NOTICE, "Couldn't allocate participant peer.\n");
-	   ast_channel_unlock(currentParticipantPeer);
+	   pbx_channel_unlock(currentParticipantPeer);
 	   return -1;
 	   }
 
@@ -134,11 +134,11 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 	   participant->conferenceBridgePeer->nativeformats = currentParticipantPeer->nativeformats;
 
 	   if(ast_channel_masquerade(participant->conferenceBridgePeer, currentParticipantPeer)){
-	   ast_channel_unlock(currentParticipantPeer);
+	   pbx_channel_unlock(currentParticipantPeer);
 	   return -1;
 	   } */
 
-	ast_channel_unlock(currentParticipantPeer);
+	pbx_channel_unlock(currentParticipantPeer);
 
 	return 0;
 }
