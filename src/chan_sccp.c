@@ -666,34 +666,34 @@ static int load_config(void)
 		} else {
 			if (bind(GLOB(descriptor), (struct sockaddr *)&GLOB(bindaddr), sizeof(GLOB(bindaddr))) < 0) {
 #if ASTERISK_VERSION_NUM < 10400
-				ast_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
+				ast_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n", pbx_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
 #else
-				ast_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n", ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
+				ast_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
 #endif
 				close(GLOB(descriptor));
 				GLOB(descriptor) = -1;
 				return 0;
 			}
 #if ASTERISK_VERSION_NUM < 10400
-			ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+			ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", pbx_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
 #else
-			ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+			ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
 #endif
 
 			if (listen(GLOB(descriptor), DEFAULT_SCCP_BACKLOG)) {
 #if ASTERISK_VERSION_NUM < 10400
-				ast_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
+				ast_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", pbx_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
 #else
-				ast_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
+				ast_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
 #endif
 				close(GLOB(descriptor));
 				GLOB(descriptor) = -1;
 				return 0;
 			}
 #if ASTERISK_VERSION_NUM < 10400
-			sccp_log(0) (VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", ast_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+			sccp_log(0) (VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", pbx_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
 #else
-			sccp_log(0) (VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", ast_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+			sccp_log(0) (VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
 #endif
 			GLOB(reload_in_progress) = FALSE;
 			ast_pthread_create(&GLOB(socket_thread), NULL, sccp_socket_thread, NULL);
@@ -756,11 +756,11 @@ void *sccp_do_monitor(void *data)
 	for (;;) {
 		pthread_testcancel();
 		/* Wait for sched or io */
-		res = ast_sched_wait(sched);
+		res = pbx_sched_wait(sched);
 		if ((res < 0) || (res > 1000)) {
 			res = 1000;
 		}
-		res = ast_io_wait(io, res);
+		res = pbx_io_wait(io, res);
 		ast_mutex_lock(&GLOB(monitor_lock));
 		if (res >= 0) {
 			ast_sched_runq(sched);
@@ -872,9 +872,9 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 		sccp_session_t *s = d->session;
 		if (s) {
 #if ASTERISK_VERSION_NUM < 10400
-			ast_copy_string(buf, s->sin.sin_addr.s_addr ? ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr) : "", len);
+			ast_copy_string(buf, s->sin.sin_addr.s_addr ? pbx_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr) : "", len);
 #else
-			ast_copy_string(buf, s->sin.sin_addr.s_addr ? ast_inet_ntoa(s->sin.sin_addr) : "", len);
+			ast_copy_string(buf, s->sin.sin_addr.s_addr ? pbx_inet_ntoa(s->sin.sin_addr) : "", len);
 #endif
 		}
 	} else if (!strcasecmp(colname, "id")) {
@@ -990,7 +990,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 
 		codecnum = colname + 6;						// move past the '[' 
 		codecnum = strsep(&codecnum, "]");				// trim trailing ']' if any 
-		if ((codec = ast_codec_pref_index(&d->codecs, atoi(codecnum)))) {
+		if ((codec = pbx_codec_pref_index(&d->codecs, atoi(codecnum)))) {
 			ast_copy_string(buf, ast_getformatname(codec), len);
 		} else {
 			buf[0] = '\0';
@@ -1341,7 +1341,7 @@ static int sccp_func_sccpchannel(struct ast_channel *chan, char *cmd, char *data
 
 		codecnum = colname + 6;						// move past the '[' 
 		codecnum = strsep(&codecnum, "]");				// trim trailing ']' if any 
-		if ((codec = ast_codec_pref_index(&c->codecs, atoi(codecnum)))) {
+		if ((codec = pbx_codec_pref_index(&c->codecs, atoi(codecnum)))) {
 			ast_copy_string(buf, ast_getformatname(codec), len);
 		} else {
 			buf[0] = '\0';
@@ -1503,18 +1503,18 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 	sccp_channel_t *pvt0 = NULL, *pvt1 = NULL;
 
 	/* Lock channels */
-	sccp_ast_channel_lock(c0);
+	pbx_channel_lock(c0);
 	while (ast_channel_trylock(c1)) {
-		sccp_ast_channel_unlock(c0);
+		pbx_channel_unlock(c0);
 		usleep(1);
-		sccp_ast_channel_lock(c0);
+		pbx_channel_lock(c0);
 	}
 
 	/* Ensure neither channel got hungup during lock avoidance */
-	if (ast_check_hangup(c0) || ast_check_hangup(c1)) {
+	if (pbx_check_hangup(c0) || pbx_check_hangup(c1)) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (sccp_rtp_bridge) Got hangup while attempting to bridge '%s' and '%s'\n", c0->name, c1->name);
-		ast_channel_unlock(c1);
-		ast_channel_unlock(c0);
+		pbx_channel_unlock(c1);
+		pbx_channel_unlock(c0);
 		return AST_BRIDGE_FAILED;
 	}
 
@@ -1529,8 +1529,8 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 	/* Check if a bridge is possible (partial/native) */
 	if (audio_p0_res == AST_RTP_GET_FAILED || audio_p1_res == AST_RTP_GET_FAILED) {
 		/* Somebody doesn't want to play... */
-		sccp_ast_channel_unlock(c1);
-		sccp_ast_channel_unlock(c0);
+		pbx_channel_unlock(c1);
+		pbx_channel_unlock(c0);
 		return AST_BRIDGE_FAILED_NOWARN;
 	}
 
@@ -1541,18 +1541,18 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 		/* In order to do Packet2Packet bridging both sides must be in the same rawread/rawwrite */
 		if (c0->rawreadformat != c1->rawwriteformat || c1->rawreadformat != c0->rawwriteformat) {
 			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (sccp_rtp_bridge) Cannot packet2packet bridge - raw formats are incompatible\n");
-			sccp_ast_channel_unlock(c1);
-			sccp_ast_channel_unlock(c0);
+			pbx_channel_unlock(c1);
+			pbx_channel_unlock(c0);
 			return AST_BRIDGE_FAILED_NOWARN;
 		}
 
 		/* They must also be using the same packetization */
-		fmt0 = ast_codec_pref_getsize(&pvt0->device->codecs, c0->rawreadformat);
-		fmt1 = ast_codec_pref_getsize(&pvt1->device->codecs, c1->rawreadformat);
+		fmt0 = pbx_codec_pref_getsize(&pvt0->device->codecs, c0->rawreadformat);
+		fmt1 = pbx_codec_pref_getsize(&pvt1->device->codecs, c1->rawreadformat);
 		if (fmt0.cur_ms != fmt1.cur_ms) {
 			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (sccp_rtp_bridge) Cannot packet2packet bridge - packetization settings prevent it\n");
-			sccp_ast_channel_unlock(c1);
-			sccp_ast_channel_unlock(c0);
+			pbx_channel_unlock(c1);
+			pbx_channel_unlock(c0);
 			return AST_BRIDGE_FAILED_NOWARN;
 		}
 
@@ -1568,8 +1568,8 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 		res = AST_BRIDGE_FAILED;					//_NOWARN;
 	}
 
-	sccp_ast_channel_unlock(c1);
-	sccp_ast_channel_unlock(c0);
+	pbx_channel_unlock(c1);
+	pbx_channel_unlock(c0);
 
 	return res;
 }
@@ -1776,7 +1776,7 @@ static int unload_module(void)
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channels\n");
 	while ((astChannel = ast_channel_walk_locked(astChannel)) != NULL) {
-		if (!ast_check_hangup(astChannel)) {
+		if (!pbx_check_hangup(astChannel)) {
 			if ((c = get_sccp_channel_from_ast_channel(astChannel))) {
 				astChannel->hangupcause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 				astChannel->_softhangup = AST_SOFTHANGUP_APPUNLOAD;
@@ -1787,7 +1787,7 @@ static int unload_module(void)
 				openchannels++;
 			}
 		}
-		ast_channel_unlock(astChannel);
+		pbx_channel_unlock(astChannel);
 	}
 	sccp_safe_sleep(openchannels * 1000);				// wait for everything to settle
 
@@ -1843,9 +1843,9 @@ static int unload_module(void)
 	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
 	while ((s = SCCP_LIST_REMOVE_HEAD(&GLOB(sessions), list))) {
 #if ASTERISK_VERSION_NUM < 10400
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", ast_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", pbx_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
 #else
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", ast_inet_ntoa(s->sin.sin_addr));
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", pbx_inet_ntoa(s->sin.sin_addr));
 #endif
 		pthread_cancel(s->session_thread);
 	}

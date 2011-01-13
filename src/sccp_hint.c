@@ -1192,7 +1192,7 @@ static void *sccp_hint_remoteNotification_thread(void *data)
 			foundChannel = astChannel;
 			break;
 		}
-		ast_channel_unlock(astChannel);
+		pbx_channel_unlock(astChannel);
 	}
 
 	if (foundChannel) {
@@ -1219,7 +1219,7 @@ static void *sccp_hint_remoteNotification_thread(void *data)
 
 		} else
 			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "(sccp_hint_state) no bridgedChannel channels for %s\n", foundChannel->name);
-		ast_channel_unlock(foundChannel);
+		pbx_channel_unlock(foundChannel);
 	}
 
  CLEANUP:

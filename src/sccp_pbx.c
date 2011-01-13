@@ -523,11 +523,11 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 			while ((astChannel = ast_channel_walk_locked(astChannel)) != NULL) {
 				sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) searching for channel where %s == %s\n", bridgePeer, astChannel->name);
 				if (strlen(astChannel->name) == strlen(bridgePeer) && !strncmp(astChannel->name, bridgePeer, strlen(astChannel->name))) {
-					ast_channel_unlock(astChannel);
+					pbx_channel_unlock(astChannel);
 					br = astChannel;
 					break;
 				}
-				ast_channel_unlock(astChannel);
+				pbx_channel_unlock(astChannel);
 			}
 		}
 
@@ -1397,7 +1397,7 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 	// export sccp informations in asterisk dialplan
 	if (c->device) {
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_MAC", c->device->id);
-		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_IP", ast_inet_ntoa(c->device->session->sin.sin_addr));
+		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_IP", pbx_inet_ntoa(c->device->session->sin.sin_addr));
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_TYPE", devicetype2str(c->device->skinny_type));
 	}
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%d\n", (l) ? l->id : "(null)", (l) ? l->name : "(null)", c->callid);
@@ -1606,7 +1606,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme request\n", d->id);
 		if (!ast_strlen_zero(shortenedNumber) && !ast_strlen_zero(c->line->meetmenum)) {
 			sccp_log(1) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme request for room '%s' on extension '%s'\n", d->id, shortenedNumber, c->line->meetmenum);
-			if (c->owner && !ast_check_hangup(c->owner))
+			if (c->owner && !pbx_check_hangup(c->owner))
 				pbx_builtin_setvar_helper(c->owner, "SCCP_MEETME_ROOM", shortenedNumber);
 			sccp_copy_string(shortenedNumber, c->line->meetmenum, sizeof(shortenedNumber));
 
@@ -1665,7 +1665,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	}
 
 	/* set private variable */
-	if (chan && !ast_check_hangup(chan)) {
+	if (chan && !pbx_check_hangup(chan)) {
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: set variable SKINNY_PRIVATE to: %s\n", c->privacy ? "1" : "0");
 		if (c->privacy) {
 			chan->cid.cid_pres = AST_PRES_PROHIB_USER_NUMBER_NOT_SCREENED;
@@ -1684,14 +1684,14 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 
 	/* set devicevariables */
 	v = ((d) ? d->variables : NULL);
-	while (chan && !ast_check_hangup(chan) && d && v) {
+	while (chan && !pbx_check_hangup(chan) && d && v) {
 		pbx_builtin_setvar_helper(chan, v->name, v->value);
 		v = v->next;
 	}
 
 	/* set linevariables */
 	v = ((l) ? l->variables : NULL);
-	while (chan && !ast_check_hangup(chan) && l && v) {
+	while (chan && !pbx_check_hangup(chan) && l && v) {
 		pbx_builtin_setvar_helper(chan, v->name, v->value);
 		v = v->next;
 	}
@@ -1711,7 +1711,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	sccp_dev_clearprompt(d, instance, c->callid);
 	sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 
-	if (!ast_strlen_zero(shortenedNumber) && !ast_check_hangup(chan)
+	if (!ast_strlen_zero(shortenedNumber) && !pbx_check_hangup(chan)
 	    && ast_exists_extension(chan, chan->context, shortenedNumber, 1, l->cid_num)) {
 		/* found an extension, let's dial it */
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x is dialing number %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
@@ -1803,7 +1803,7 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame *f)
 		if (c && c->owner && c->owner->_state == AST_STATE_UP) {
 			if (!sccp_ast_channel_trylock(c->owner)) {
 				ast_queue_frame(c->owner, f);
-				sccp_ast_channel_unlock(c->owner);
+				pbx_channel_unlock(c->owner);
 				break;
 			} else {
 				// strange deadlocks happens here :D -FS
@@ -1985,9 +1985,9 @@ int acf_channel_read(struct ast_channel *ast, char *funcname, char *args, char *
 		return -1;
 
 	if (!strcasecmp(args, "peerip")) {
-		ast_copy_string(buf, c->rtp.audio.peer.sin_addr.s_addr ? ast_inet_ntoa(c->rtp.audio.peer.sin_addr) : "", buflen);
+		ast_copy_string(buf, c->rtp.audio.peer.sin_addr.s_addr ? pbx_inet_ntoa(c->rtp.audio.peer.sin_addr) : "", buflen);
 	} else if (!strcasecmp(args, "recvip")) {
-		ast_copy_string(buf, c->rtp.audio.addr.sin_addr.s_addr ? ast_inet_ntoa(c->rtp.audio.addr.sin_addr) : "", buflen);
+		ast_copy_string(buf, c->rtp.audio.addr.sin_addr.s_addr ? pbx_inet_ntoa(c->rtp.audio.addr.sin_addr) : "", buflen);
 	} else if (!strcasecmp(args, "from") && c->device) {
 		ast_copy_string(buf, (char *)c->device->id, buflen);
 	} else {
