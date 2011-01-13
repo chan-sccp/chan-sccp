@@ -216,7 +216,7 @@ void sccp_hint_deviceRegistered(const sccp_device_t * device)
 		positionOnDevice++;
 
 		if (config->type == SPEEDDIAL) {
-			if (ast_strlen_zero(config->button.speeddial.hint)) {
+			if (sccp_strlen_zero(config->button.speeddial.hint)) {
 				continue;
 			}
 			sccp_hint_subscribeHint(device, config->button.speeddial.hint, config->instance, positionOnDevice);
@@ -1082,10 +1082,10 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 	char hint_dialplan[256] = "";
 	char *splitter;
 
-	if (ast_strlen_zero(hint_exten))
+	if (sccp_strlen_zero(hint_exten))
 		return NULL;
 
-	if (ast_strlen_zero(hint_context))
+	if (sccp_strlen_zero(hint_context))
 		hint_context = GLOB(context);
 
 	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "Create hint for exten: %s context: %s\n", hint_exten, hint_context);
@@ -1096,7 +1096,7 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 	ast_get_hint(hint_dialplan, sizeof(hint_dialplan) - 1, NULL, hint_context, hint_exten);
 #endif										// CS_AST_HAS_NEW_HINT
 
-	if (ast_strlen_zero(hint_dialplan)) {
+	if (sccp_strlen_zero(hint_dialplan)) {
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "No hint configuration in the dialplan exten: %s and context: %s\n", hint_exten, hint_context);
 		return NULL;
 	}

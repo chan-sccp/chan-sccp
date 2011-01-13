@@ -395,7 +395,7 @@ void sccp_mwi_checkLine(sccp_line_t * line)
 	SCCP_LIST_TRAVERSE(&line->mailboxes, mailbox, list) {
 		sprintf(buffer, "%s@%s", mailbox->mailbox, (mailbox->context) ? mailbox->context : "default");
 		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "Line: %s, Mailbox: %s\n", line->name, buffer);
-		if (!ast_strlen_zero(buffer)) {
+		if (!sccp_strlen_zero(buffer)) {
 
 #ifdef CS_AST_HAS_NEW_VOICEMAIL
 			ast_app_inboxcount(buffer, &line->voicemailStatistic.newmsgs, &line->voicemailStatistic.oldmsgs);

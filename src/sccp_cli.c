@@ -856,7 +856,7 @@ static int sccp_message_devices(int fd, int argc, char *argv[])
 	if (argc < 4)
 		return RESULT_SHOWUSAGE;
 
-	if (ast_strlen_zero(argv[3]))
+	if (sccp_strlen_zero(argv[3]))
 		return RESULT_SHOWUSAGE;
 
 	if (argc > 5) {
@@ -938,10 +938,10 @@ static int sccp_system_message(int fd, int argc, char *argv[])
 		return RESULT_SUCCESS;
 	}
 
-	if (ast_strlen_zero(argv[3]))
+	if (sccp_strlen_zero(argv[3]))
 		return RESULT_SHOWUSAGE;
 
-	res = ast_db_put("SCCP/message", "text", argv[3]);
+	res = pbx_db_put("SCCP/message", "text", argv[3]);
 	if (res) {
 		ast_cli(fd, "Failed to store the SCCP system message text\n");
 	} else {
@@ -950,7 +950,7 @@ static int sccp_system_message(int fd, int argc, char *argv[])
 	if (argc == 5) {
 		if (sscanf(argv[4], "%d", &timeout) != 1)
 			return RESULT_SHOWUSAGE;
-		res = ast_db_put("SCCP/message", "timeout", argv[4]);
+		res = pbx_db_put("SCCP/message", "timeout", argv[4]);
 		if (res) {
 			ast_cli(fd, "Failed to store the SCCP system message timeout\n");
 		} else {
@@ -1048,7 +1048,7 @@ static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 	if (argc < 5)
 		return RESULT_SHOWUSAGE;
 
-	if (ast_strlen_zero(argv[4]))
+	if (sccp_strlen_zero(argv[4]))
 		return RESULT_SHOWUSAGE;
 
 	d = sccp_device_find_byid(argv[3], FALSE);

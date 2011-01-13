@@ -159,7 +159,7 @@ void sccp_config_addButton(sccp_device_t * device, int index, button_type_t type
 		config->pendingDelete = 0;
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 
-	if (ast_strlen_zero(name)) {
+	if (sccp_strlen_zero(name)) {
 		sccp_log(0) (VERBOSE_PREFIX_1 "%s: Faulty Button Configutation found at index: %d", device->id, config->index);
 		type = EMPTY;
 	}
@@ -257,7 +257,7 @@ void sccp_config_addLine(sccp_device_t * device, char *lineName, char *options, 
 
 	ast_strip(lineName);
 
-	if (ast_strlen_zero(lineName)) {
+	if (sccp_strlen_zero(lineName)) {
 		config->type = EMPTY;
 	} else {
 		composedLineRegistrationId = sccp_parseComposedId(lineName, 80);
@@ -363,7 +363,7 @@ void sccp_config_addFeature(sccp_device_t * device, char *label, char *featureID
 	if (!config)
 		return;
 
-	if (ast_strlen_zero(label)) {
+	if (sccp_strlen_zero(label)) {
 		config->type = EMPTY;
 	} else {
 		config->type = FEATURE;
@@ -417,7 +417,7 @@ void sccp_config_addService(sccp_device_t * device, char *label, char *url, uint
 	if (!config)
 		return;
 
-	if (ast_strlen_zero(label) || ast_strlen_zero(url)) {
+	if (sccp_strlen_zero(label) || sccp_strlen_zero(url)) {
 		config->type = EMPTY;
 	} else {
 		config->type = SERVICE;
@@ -530,7 +530,7 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 
 	d->realtime = isRealtime;
 
-	res = ast_db_get("SCCPM", d->id, message, sizeof(message));		//load save message from ast_db
+	res = pbx_db_get("SCCPM", d->id, message, sizeof(message));		//load save message from ast_db
 	if (!res) {
 		d->phonemessage = strdup(message);				//set message on device if we have a result
 	}
@@ -743,7 +743,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 			sccp_copy_string(GLOB(servername), v->value, sizeof(GLOB(servername)));
 		} else if (!strcasecmp(v->name, "bindaddr")) {
 			if (readingtype == SCCP_CONFIG_READINITIAL) {
-				if (!(hp = ast_gethostbyname(v->value, &ahp))) {
+				if (!(hp = pbx_gethostbyname(v->value, &ahp))) {
 					ast_log(LOG_WARNING, "Invalid address: %s. SCCP disabled\n", v->value);
 					return 0;
 				} else {
@@ -769,14 +769,14 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 			else
 				GLOB(localaddr) = na;
 		} else if (!strcasecmp(v->name, "externip")) {
-			if (!(hp = ast_gethostbyname(v->value, &ahp)))
+			if (!(hp = pbx_gethostbyname(v->value, &ahp)))
 				ast_log(LOG_WARNING, "Invalid address for externip keyword: %s\n", v->value);
 			else
 				memcpy(&GLOB(externip.sin_addr), hp->h_addr, sizeof(GLOB(externip.sin_addr)));
 			GLOB(externexpire) = 0;
 		} else if (!strcasecmp(v->name, "externhost")) {
 			sccp_copy_string(GLOB(externhost), v->value, sizeof(GLOB(externhost)));
-			if (!(hp = ast_gethostbyname(GLOB(externhost), &ahp)))
+			if (!(hp = pbx_gethostbyname(GLOB(externhost), &ahp)))
 				ast_log(LOG_WARNING, "Invalid address resolution for externhost keyword: %s\n", GLOB(externhost));
 			else
 				memcpy(&GLOB(externip.sin_addr), hp->h_addr, sizeof(GLOB(externip.sin_addr)));
@@ -840,7 +840,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 				ast_log(LOG_WARNING, "Invalid firstdigittimeout number '%s' at line %d of SCCP.CONF\n", v->value, v->lineno);
 			}
 		} else if (!strcasecmp(v->name, "digittimeoutchar")) {
-			if (!ast_strlen_zero(v->value))
+			if (!sccp_strlen_zero(v->value))
 				GLOB(digittimeoutchar) = v->value[0];
 			else
 				GLOB(digittimeoutchar) = digittimeoutchar;
@@ -1096,23 +1096,23 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 
 			/* begin regexten feature */
 		} else if (!strcasecmp(v->name, "regcontext")) {
-			ast_copy_string(newcontexts, v->value, sizeof(newcontexts));
+			sccp_copy_string(newcontexts, v->value, sizeof(newcontexts));
 			stringp = newcontexts;
 			/* Initialize copy of current global_regcontext for later use in removing stale contexts */
-			ast_copy_string(oldcontexts, GLOB(regcontext), sizeof(oldcontexts));
+			sccp_copy_string(oldcontexts, GLOB(regcontext), sizeof(oldcontexts));
 			oldregcontext = oldcontexts;
 			/* Let's remove any contexts that are no longer defined in regcontext */
 			cleanup_stale_contexts(stringp, oldregcontext);
 			/* Create contexts if they don't exist already */
 			while ((context = strsep(&stringp, "&"))) {
-				ast_copy_string(GLOB(used_context), context, sizeof(GLOB(used_context)));
+				sccp_copy_string(GLOB(used_context), context, sizeof(GLOB(used_context)));
 #if ASTERISK_VERSION_NUM < 10600
 				ast_context_find_or_create(NULL, context, "SCCP");
 #else
 				ast_context_find_or_create(NULL, NULL, context, "SCCP");
 #endif
 			}
-			ast_copy_string(GLOB(regcontext), v->value, sizeof(GLOB(regcontext)));
+			sccp_copy_string(GLOB(regcontext), v->value, sizeof(GLOB(regcontext)));
 			continue;
 			/* end regexten feature */
 		} else {
@@ -1142,7 +1142,7 @@ void cleanup_stale_contexts(char *new, char *old)
 
 	while ((oldcontext = strsep(&old, "&"))) {
 		stalecontext = '\0';
-		ast_copy_string(newlist, new, sizeof(newlist));
+		sccp_copy_string(newlist, new, sizeof(newlist));
 		stringp = newlist;
 		while ((newcontext = strsep(&stringp, "&"))) {
 			if (strcmp(newcontext, oldcontext) == 0) {
@@ -1215,7 +1215,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			continue;
 		} else if (!strcasecmp(utype, "device")) {
 			// check minimum requirements for a device
-			if (ast_strlen_zero(ast_variable_retrieve(cfg, cat, "devicetype"))) {
+			if (sccp_strlen_zero(ast_variable_retrieve(cfg, cat, "devicetype"))) {
 				ast_log(LOG_WARNING, "Unknown type '%s' for '%s' in %s\n", utype, cat, "sccp.conf");
 				continue;
 			} else {
@@ -1226,7 +1226,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			}
 		} else if (!strcasecmp(utype, "line")) {
 			/* check minimum requirements for a line */
-			if ((!(!ast_strlen_zero(ast_variable_retrieve(cfg, cat, "label"))) && (!ast_strlen_zero(ast_variable_retrieve(cfg, cat, "cid_name"))) && (!ast_strlen_zero(ast_variable_retrieve(cfg, cat, "cid_num"))))) {
+			if ((!(!sccp_strlen_zero(ast_variable_retrieve(cfg, cat, "label"))) && (!sccp_strlen_zero(ast_variable_retrieve(cfg, cat, "cid_name"))) && (!sccp_strlen_zero(ast_variable_retrieve(cfg, cat, "cid_num"))))) {
 				ast_log(LOG_WARNING, "Unknown type '%s' for '%s' in %s\n", utype, cat, "sccp.conf");
 				continue;
 			}
@@ -1374,13 +1374,13 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, s
 				// Check mailboxes list
 				SCCP_LIST_LOCK(&l->mailboxes);
 				SCCP_LIST_TRAVERSE(&l->mailboxes, mailbox, list) {
-					if ((!ast_strlen_zero(mbox))) {
+					if ((!sccp_strlen_zero(mbox))) {
 						if (!strcmp(mailbox->mailbox, mbox) || !strcmp(mailbox->mailbox, mbox)) {
 							mailbox_exists = TRUE;
 						}
 					}
 				}
-				if ((!mailbox_exists) && (!ast_strlen_zero(mbox))) {
+				if ((!mailbox_exists) && (!sccp_strlen_zero(mbox))) {
 					// Add mailbox entry
 					mailbox = ast_calloc(1, sizeof(*mailbox));
 
@@ -1510,7 +1510,7 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, s
 				l->pickupgroup = ast_get_group(v->value);
 #endif
 			} else if (!strcasecmp(v->name, "trnsfvm")) {
-				if (!ast_strlen_zero(v->value)) {
+				if (!sccp_strlen_zero(v->value)) {
 					l->trnsfvm = strdup(v->value);
 				}
 			} else if (!strcasecmp(v->name, "secondary_dialtone_digits")) {
@@ -1551,7 +1551,7 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, s
 				}
 
 			} else if (!strcasecmp(v->name, "regexten")) {
-				ast_copy_string(l->regexten, v->value, sizeof(l->regexten));
+				sccp_copy_string(l->regexten, v->value, sizeof(l->regexten));
 
 			} else {
 				if (v->name && v->value) {
@@ -1688,7 +1688,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct as
 				sccp_config_addSpeeddial(d, (buttonName) ? ast_strip(buttonName) : "speeddial", (buttonOption) ? ast_strip(buttonOption) : NULL, (buttonArgs) ? ast_strip(buttonArgs) : NULL, ++instance);
 			} else if (!strcasecmp(buttonType, "feature") && buttonName) {
 				sccp_config_addFeature(d, (buttonName) ? ast_strip(buttonName) : "feature", (buttonOption) ? ast_strip(buttonOption) : NULL, buttonArgs, ++instance);
-			} else if (!strcasecmp(buttonType, "service") && buttonName && !ast_strlen_zero(buttonName)) {
+			} else if (!strcasecmp(buttonType, "service") && buttonName && !sccp_strlen_zero(buttonName)) {
 				sccp_config_addService(d, (buttonName) ? ast_strip(buttonName) : "service", (buttonOption) ? ast_strip(buttonOption) : NULL, ++instance);
 			}
 #endif										/* CS_DYNAMIC_CONFIG */
@@ -1723,7 +1723,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct as
 		} else if (!strcasecmp(v->name, "pickupexten")) {
 			d->pickupexten = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "pickupcontext")) {
-			if (!ast_strlen_zero(v->value)) {
+			if (!sccp_strlen_zero(v->value)) {
 				ast_free(d->pickupcontext);
 				d->pickupcontext = strdup(v->value);
 			}
@@ -2022,7 +2022,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	sprintf(family, "SCCP/%s", device->id);
 
 	/* dndFeature */
-	res = ast_db_get(family, "dnd", buffer, sizeof(buffer));
+	res = pbx_db_get(family, "dnd", buffer, sizeof(buffer));
 	if (!res) {
 		if (!strcasecmp(buffer, "silent"))
 			device->dndFeature.status = SCCP_DNDMODE_SILENT;
@@ -2033,7 +2033,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	}
 
 	/* monitorFeature */
-	res = ast_db_get(family, "monitor", buffer, sizeof(buffer));
+	res = pbx_db_get(family, "monitor", buffer, sizeof(buffer));
 	if (!res) {
 		device->monitorFeature.status = 1;
 	} else {
@@ -2041,7 +2041,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	}
 
 	/* privacyFeature */
-	res = ast_db_get(family, "privacy", buffer, sizeof(buffer));
+	res = pbx_db_get(family, "privacy", buffer, sizeof(buffer));
 	if (!res) {
 		sscanf(buffer, "%u", (unsigned int *)&device->privacyFeature.status);
 	} else {
@@ -2049,13 +2049,13 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	}
 
 	/* Message */
-	res = ast_db_get("SCCPM", device->id, buffer, sizeof(buffer));		//load save message from ast_db
+	res = pbx_db_get("SCCPM", device->id, buffer, sizeof(buffer));		//load save message from ast_db
 	if (!res)
 		device->phonemessage = strdup(buffer);				//set message on device if we have a result
 
 	/* lastDialedNumber */
 	char lastNumber[AST_MAX_EXTENSION] = "";
-	res = ast_db_get(family, "lastDialedNumber", lastNumber, sizeof(lastNumber));
+	res = pbx_db_get(family, "lastDialedNumber", lastNumber, sizeof(lastNumber));
 	if (!res) {
 		sccp_copy_string(device->lastNumber, lastNumber, sizeof(device->lastNumber));
 	}
@@ -2069,12 +2069,12 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	SCCP_LIST_LOCK(&device->devstateSpecifiers);
 	SCCP_LIST_TRAVERSE(&device->devstateSpecifiers, specifier, list) {
 		/* Check if there is already a devicestate entry */
-		res = ast_db_get(devstate_astdb_family, specifier->specifier, buf, sizeof(buf));
+		res = pbx_db_get(devstate_astdb_family, specifier->specifier, buf, sizeof(buf));
 		if (!res) {
 			sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_1 "%s: Found Existing Custom Devicestate Entry: %s, state: %s\n", device->id, specifier->specifier, buf);
 			/* If not present, add a new devicestate entry. Default: NOT_INUSE */
 		} else {
-			ast_db_put(devstate_astdb_family, specifier->specifier, "NOT_INUSE");
+			pbx_db_put(devstate_astdb_family, specifier->specifier, "NOT_INUSE");
 			sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_1 "%s: Initialized Devicestate Entry: %s\n", device->id, specifier->specifier);
 		}
 		/* Register as generic hint watcher */

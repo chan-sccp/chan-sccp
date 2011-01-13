@@ -104,7 +104,7 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 	}
 #endif
 
-	if (ast_strlen_zero(d->lastNumber)) {
+	if (sccp_strlen_zero(d->lastNumber)) {
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: No number to redial\n", d->id);
 		return;
 	}

@@ -571,7 +571,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 	r->msg.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF;		/* htolel(65535); */
 
 	if ((opt == KEYMODE_ONHOOK || opt == KEYMODE_OFFHOOK || opt == KEYMODE_OFFHOOKFEAT)
-	    && (ast_strlen_zero(d->lastNumber)
+	    && (sccp_strlen_zero(d->lastNumber)
 #ifdef CS_ADV_FEATURES
 		&& !d->useRedialMenu
 #endif
@@ -776,7 +776,7 @@ void sccp_dev_displayprompt(sccp_device_t * d, uint8_t line, uint32_t callid, ch
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
 		return;								/* only for telecaster and new phones */
 
-	if (!msg || ast_strlen_zero(msg))
+	if (!msg || sccp_strlen_zero(msg))
 		return;
 
 	if (d->inuseprotocolversion < 7) {
@@ -837,7 +837,7 @@ void sccp_dev_display(sccp_device_t * d, char *msg)
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
 		return;								/* only for telecaster and new phones */
 
-	if (!msg || ast_strlen_zero(msg))
+	if (!msg || sccp_strlen_zero(msg))
 		return;
 
 	REQ(r, DisplayTextMessage);
@@ -884,7 +884,7 @@ void sccp_dev_displaynotify(sccp_device_t * d, char *msg, uint32_t timeout)
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
 		return;								/* only for telecaster and new phones */
 
-	if (!msg || ast_strlen_zero(msg))
+	if (!msg || sccp_strlen_zero(msg))
 		return;
 
 	REQ(r, DisplayNotifyMessage);
@@ -933,7 +933,7 @@ void sccp_dev_displayprinotify(sccp_device_t * d, char *msg, uint32_t priority, 
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
 		return;								/* only for telecaster and new phones */
 
-	if (!msg || ast_strlen_zero(msg))
+	if (!msg || sccp_strlen_zero(msg))
 		return;
 
 	REQ(r, DisplayPriNotifyMessage);
@@ -977,7 +977,7 @@ sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, 
 			k->type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			sccp_copy_string(k->name, config->button.speeddial.label, sizeof(k->name));
 			sccp_copy_string(k->ext, config->button.speeddial.ext, sizeof(k->ext));
-			if (!ast_strlen_zero(config->button.speeddial.hint)) {
+			if (!sccp_strlen_zero(config->button.speeddial.hint)) {
 				sccp_copy_string(k->hint, config->button.speeddial.hint, sizeof(k->hint));
 			}
 		}
@@ -1203,11 +1203,11 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 		goto OUT;
 	}
 
-	if (!ast_db_get("SCCP/message", "timeout", tmp, sizeof(tmp))) {
+	if (!pbx_db_get("SCCP/message", "timeout", tmp, sizeof(tmp))) {
 		sscanf(tmp, "%i", &timeout);
 	}
-	if (!ast_db_get("SCCP/message", "text", tmp, sizeof(tmp))) {
-		if (!ast_strlen_zero(tmp)) {
+	if (!pbx_db_get("SCCP/message", "text", tmp, sizeof(tmp))) {
+		if (!sccp_strlen_zero(tmp)) {
 			sccp_dev_displayprinotify(d, tmp, 5, timeout);
 			goto OUT;
 		}
@@ -1580,8 +1580,8 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	d->linesRegistered = FALSE;
 	sprintf(family, "SCCP/%s", d->id);
 	ast_db_del(family, "lastDialedNumber");
-	if (!ast_strlen_zero(d->lastNumber))
-		ast_db_put(family, "lastDialedNumber", d->lastNumber);
+	if (!sccp_strlen_zero(d->lastNumber))
+		pbx_db_put(family, "lastDialedNumber", d->lastNumber);
 
 	/* unsubscribe hints *//* prevent loop:sccp_dev_clean =>
 	   sccp_line_removeDevice =>

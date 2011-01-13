@@ -374,7 +374,7 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char 
 		linedevice->cfwdBusy.enabled = 0;
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Call Forward disabled on line %s\n", DEV_ID_LOG(device), l->name);
 	} else {
-		if (!number || ast_strlen_zero(number)) {
+		if (!number || sccp_strlen_zero(number)) {
 			linedevice->cfwdAll.enabled = 0;
 			linedevice->cfwdBusy.enabled = 0;
 			sccp_log(1) (VERBOSE_PREFIX_3 "%s: Call Forward to an empty number. Invalid\n", DEV_ID_LOG(device));
@@ -475,7 +475,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 
 	memset(family, 0, ASTDB_FAMILY_KEY_LEN);
 	sprintf(family, "SCCP/%s/%s", device->id, l->name);
-	res = ast_db_get(family, "cfwdAll", buffer, sizeof(buffer));
+	res = pbx_db_get(family, "cfwdAll", buffer, sizeof(buffer));
 	if (!res) {
 		linedevice->cfwdAll.enabled = TRUE;
 		sccp_copy_string(linedevice->cfwdAll.number, buffer, sizeof(linedevice->cfwdAll.number));
@@ -483,7 +483,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 		sccp_feat_changed(device, SCCP_FEATURE_CFWDALL);
 	}
 
-	res = ast_db_get(family, "cfwdBusy", buffer, sizeof(buffer));
+	res = pbx_db_get(family, "cfwdBusy", buffer, sizeof(buffer));
 	if (!res) {
 		linedevice->cfwdBusy.enabled = TRUE;
 		sccp_copy_string(linedevice->cfwdBusy.number, buffer, sizeof(linedevice->cfwdAll.number));
@@ -617,10 +617,10 @@ void register_exten(sccp_line_t * l, struct subscriptionId *subscriptionId)
 	char name[256];
 	char *stringp, *ext, *context;
 
-	if (ast_strlen_zero(GLOB(regcontext)))
+	if (sccp_strlen_zero(GLOB(regcontext)))
 		return;
 
-	ast_copy_string(multi, S_OR(l->regexten, l->name), sizeof(multi));
+	sccp_copy_string(multi, S_OR(l->regexten, l->name), sizeof(multi));
 	stringp = multi;
 	while ((ext = strsep(&stringp, "&"))) {
 		if ((context = strchr(ext, '@'))) {
@@ -640,7 +640,7 @@ void register_exten(sccp_line_t * l, struct subscriptionId *subscriptionId)
 		if (subscriptionId->number && (strcmp(subscriptionId->number, ""))) {
 			strcat(ext, "@");
 			strcat(ext, subscriptionId->number);
-			ast_copy_string(name, l->name, sizeof(name));
+			sccp_copy_string(name, l->name, sizeof(name));
 			strcat(name, subscriptionId->name);
 			if (!ast_canmatch_extension(NULL, context, ext, 2, NULL)) {
 				sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE)) (VERBOSE_PREFIX_1 "Registering RegContext: %s, Extension, %s Line %s Subscription number [%s]\n", context, ext, l->name, subscriptionId->number);
@@ -661,10 +661,10 @@ void unregister_exten(sccp_line_t * l, struct subscriptionId *subscriptionId)
 	char multi[256];
 	char *stringp, *ext, *context;
 
-	if (ast_strlen_zero(GLOB(regcontext)))
+	if (sccp_strlen_zero(GLOB(regcontext)))
 		return;
 
-	ast_copy_string(multi, S_OR(l->regexten, l->name), sizeof(multi));
+	sccp_copy_string(multi, S_OR(l->regexten, l->name), sizeof(multi));
 	stringp = multi;
 	while ((ext = strsep(&stringp, "&"))) {
 		if ((context = strchr(ext, '@'))) {

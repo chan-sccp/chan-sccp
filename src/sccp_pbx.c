@@ -116,7 +116,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 	char suffixedNumber[255] = { '\0' };					/*!< For saving the digittimeoutchar to the logs */
 	boolean_t hasSession = FALSE;
 
-	if (!ast_strlen_zero(ast->call_forward)) {
+	if (!sccp_strlen_zero(ast->call_forward)) {
 		ast_queue_control(ast, -1);					/* Prod Channel if in the middle of a call_forward instead of proceed */
 		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Forwarding Call to '%s'\n", ast->call_forward);
 		return 0;
@@ -203,7 +203,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 	}
 
 	/* check if we have an forwared call */
-	if (!ast_strlen_zero(ast->cid.cid_ani) && strncmp(ast->cid.cid_ani, c->callInfo.callingPartyNumber, strlen(ast->cid.cid_ani))) {
+	if (!sccp_strlen_zero(ast->cid.cid_ani) && strncmp(ast->cid.cid_ani, c->callInfo.callingPartyNumber, strlen(ast->cid.cid_ani))) {
 		sccp_copy_string(c->callInfo.originalCalledPartyNumber, ast->cid.cid_ani, sizeof(c->callInfo.originalCalledPartyNumber));
 	}
 #else										// CS_AST_CHANNEL_HAS_CID
@@ -236,7 +236,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 	 */
 	ringermode = pbx_builtin_getvar_helper(ast, "ALERT_INFO");
 
-	if (ringermode && !ast_strlen_zero(ringermode)) {
+	if (ringermode && !sccp_strlen_zero(ringermode)) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "line %s: Found ALERT_INFO=%s\n", l->name, ringermode);
 		if (strcasecmp(ringermode, "inside") == 0)
 			c->ringermode = SKINNY_STATION_INSIDERING;
@@ -1020,7 +1020,7 @@ static void sccp_pbx_update_connectedline(sccp_channel_t * channel, const void *
 	if (!ast_channel)
 		return;
 
-	if (ast_strlen_zero(ast_channel->connected.id.name) || ast_strlen_zero(ast_channel->connected.id.number))
+	if (sccp_strlen_zero(ast_channel->connected.id.name) || sccp_strlen_zero(ast_channel->connected.id.number))
 		return;
 
 	sccp_channel_set_calledparty(c, ast_channel->connected.id.name, ast_channel->connected.id.number);
@@ -1162,7 +1162,7 @@ static int sccp_pbx_sendtext(struct ast_channel *ast, char *text)
 		return -1;
 
 	d = c->device;
-	if (!text || ast_strlen_zero(text))
+	if (!text || sccp_strlen_zero(text))
 		return 0;
 
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Sending text %s on %s\n", d->id, text, ast->name);
@@ -1221,13 +1221,13 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 		switch (c->calltype) {
 		case SKINNY_CALLTYPE_INBOUND:
 			/* append subscriptionId to cid */
-			if (linedevice && !ast_strlen_zero(linedevice->subscriptionId.number)) {
+			if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
 				sprintf(c->callInfo.calledPartyNumber, "%s%s", l->cid_num, linedevice->subscriptionId.number);
 			} else {
 				sprintf(c->callInfo.calledPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
 			}
 
-			if (linedevice && !ast_strlen_zero(linedevice->subscriptionId.name)) {
+			if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
 				sprintf(c->callInfo.calledPartyName, "%s%s", l->cid_name, linedevice->subscriptionId.name);
 			} else {
 				sprintf(c->callInfo.calledPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
@@ -1236,13 +1236,13 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 		case SKINNY_CALLTYPE_FORWARD:
 		case SKINNY_CALLTYPE_OUTBOUND:
 			/* append subscriptionId to cid */
-			if (linedevice && !ast_strlen_zero(linedevice->subscriptionId.number)) {
+			if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
 				sprintf(c->callInfo.callingPartyNumber, "%s%s", l->cid_num, linedevice->subscriptionId.number);
 			} else {
 				sprintf(c->callInfo.callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
 			}
 
-			if (linedevice && !ast_strlen_zero(linedevice->subscriptionId.name)) {
+			if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
 				sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, linedevice->subscriptionId.name);
 			} else {
 				sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
@@ -1369,19 +1369,19 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 #endif										// CS_AST_CHANNEL_HAS_CID
 
 	sccp_copy_string(tmp->context, l->context, sizeof(tmp->context));
-	if (!ast_strlen_zero(l->language))
+	if (!sccp_strlen_zero(l->language))
 #ifdef CS_AST_HAS_AST_STRING_FIELD
 		ast_string_field_set(tmp, language, l->language);
 #else
 		sccp_copy_string(tmp->language, l->language, sizeof(tmp->language));
 #endif										// CS_AST_HAS_AST_STRING_FIELD
-	if (!ast_strlen_zero(l->accountcode))
+	if (!sccp_strlen_zero(l->accountcode))
 #ifdef CS_AST_HAS_AST_STRING_FIELD
 		ast_string_field_set(tmp, accountcode, l->accountcode);
 #else
 		sccp_copy_string(tmp->accountcode, l->accountcode, sizeof(tmp->accountcode));
 #endif										// CS_AST_HAS_AST_STRING_FIELD
-	if (!ast_strlen_zero(l->musicclass))
+	if (!sccp_strlen_zero(l->musicclass))
 #ifdef CS_AST_HAS_AST_STRING_FIELD
 		ast_string_field_set(tmp, musicclass, c->musicclass);
 #else
@@ -1441,7 +1441,7 @@ int sccp_pbx_helper(sccp_channel_t * c)
 	if (!l || !d || !chan)
 		return 0;
 
-	if (!ast_strlen_zero(c->dialedNumber)) {
+	if (!sccp_strlen_zero(c->dialedNumber)) {
 		if (GLOB(recorddigittimeoutchar) && GLOB(digittimeoutchar) == c->dialedNumber[strlen(c->dialedNumber) - 1]) {
 			return 1;
 		}
@@ -1533,7 +1533,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	}
 
 	/* we don't need to check for a device type but just if the device has an id, otherwise back home  -FS */
-	if (!d->id || ast_strlen_zero(d->id)) {
+	if (!d->id || sccp_strlen_zero(d->id)) {
 		ast_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) No <device> identifier available. Returning from dial thread.\n");
 		return NULL;
 	}
@@ -1576,7 +1576,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	switch (c->ss_action) {
 	case SCCP_SS_GETFORWARDEXTEN:
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Forward Extension\n", d->id);
-		if (!ast_strlen_zero(shortenedNumber)) {
+		if (!sccp_strlen_zero(shortenedNumber)) {
 			sccp_line_cfwd(l, d, c->ss_data, shortenedNumber);
 		}
 		sccp_channel_endcall_locked(c);
@@ -1591,7 +1591,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 		sccp_dev_clearprompt(d, instance, c->callid);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 
-		if (!ast_strlen_zero(shortenedNumber)) {
+		if (!sccp_strlen_zero(shortenedNumber)) {
 			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Asterisk request to pickup exten '%s'\n", shortenedNumber);
 			if (sccp_feat_directpickup_locked(c, shortenedNumber)) {
 				sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
@@ -1604,7 +1604,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 #endif										// CS_SCCP_PICKUP
 	case SCCP_SS_GETMEETMEROOM:
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme request\n", d->id);
-		if (!ast_strlen_zero(shortenedNumber) && !ast_strlen_zero(c->line->meetmenum)) {
+		if (!sccp_strlen_zero(shortenedNumber) && !sccp_strlen_zero(c->line->meetmenum)) {
 			sccp_log(1) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme request for room '%s' on extension '%s'\n", d->id, shortenedNumber, c->line->meetmenum);
 			if (c->owner && !pbx_check_hangup(c->owner))
 				pbx_builtin_setvar_helper(c->owner, "SCCP_MEETME_ROOM", shortenedNumber);
@@ -1630,7 +1630,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 
 		sccp_dev_clearprompt(d, instance, c->callid);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
-		if (!ast_strlen_zero(shortenedNumber)) {
+		if (!sccp_strlen_zero(shortenedNumber)) {
 			sccp_log(1) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Device request to barge exten '%s'\n", d->id, shortenedNumber);
 			if (sccp_feat_barge(c, shortenedNumber)) {
 				sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
@@ -1648,7 +1648,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 		sccp_channel_send_callinfo(d, c);
 		sccp_dev_clearprompt(d, instance, c->callid);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
-		if (!ast_strlen_zero(shortenedNumber)) {
+		if (!sccp_strlen_zero(shortenedNumber)) {
 			sccp_log(1) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Device request to barge conference '%s'\n", d->id, shortenedNumber);
 			if (sccp_feat_cbarge(c, shortenedNumber)) {
 				sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
@@ -1711,7 +1711,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	sccp_dev_clearprompt(d, instance, c->callid);
 	sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 
-	if (!ast_strlen_zero(shortenedNumber) && !pbx_check_hangup(chan)
+	if (!sccp_strlen_zero(shortenedNumber) && !pbx_check_hangup(chan)
 	    && ast_exists_extension(chan, chan->context, shortenedNumber, 1, l->cid_num)) {
 		/* found an extension, let's dial it */
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x is dialing number %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
@@ -1985,11 +1985,11 @@ int acf_channel_read(struct ast_channel *ast, char *funcname, char *args, char *
 		return -1;
 
 	if (!strcasecmp(args, "peerip")) {
-		ast_copy_string(buf, c->rtp.audio.peer.sin_addr.s_addr ? pbx_inet_ntoa(c->rtp.audio.peer.sin_addr) : "", buflen);
+		sccp_copy_string(buf, c->rtp.audio.peer.sin_addr.s_addr ? pbx_inet_ntoa(c->rtp.audio.peer.sin_addr) : "", buflen);
 	} else if (!strcasecmp(args, "recvip")) {
-		ast_copy_string(buf, c->rtp.audio.addr.sin_addr.s_addr ? pbx_inet_ntoa(c->rtp.audio.addr.sin_addr) : "", buflen);
+		sccp_copy_string(buf, c->rtp.audio.addr.sin_addr.s_addr ? pbx_inet_ntoa(c->rtp.audio.addr.sin_addr) : "", buflen);
 	} else if (!strcasecmp(args, "from") && c->device) {
-		ast_copy_string(buf, (char *)c->device->id, buflen);
+		sccp_copy_string(buf, (char *)c->device->id, buflen);
 	} else {
 		return -1;
 	}

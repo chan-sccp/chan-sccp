@@ -132,7 +132,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d\n", r->msg.RegisterMessage.sId.deviceName, letohl(r->msg.RegisterMessage.sId.lel_instance), devicetype2str(letohl(r->msg.RegisterMessage.lel_deviceType)), letohl(r->msg.RegisterMessage.lel_deviceType), r->msg.RegisterMessage.protocolVer);
 
 	/* ip address range check */
-	if (GLOB(ha) && !ast_apply_ha(GLOB(ha), &s->sin)) {
+	if (GLOB(ha) && !pbx_apply_ha(GLOB(ha), &s->sin)) {
 		ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.RegisterMessage.sId.deviceName);
 		sccp_session_reject(s, "Device ip not authorized");
 		return;
@@ -170,12 +170,12 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 			sccp_session_reject(s, "Unknown Device");
 			return;
 		}
-	} else if (d->ha && !ast_apply_ha(d->ha, &s->sin)) {
+	} else if (d->ha && !pbx_apply_ha(d->ha, &s->sin)) {
 
 		// \todo TODO check anonymous devices for permit hosts
 		SCCP_LIST_LOCK(&d->permithosts);
 		SCCP_LIST_TRAVERSE(&d->permithosts, permithost, list) {
-			if ((hp = ast_gethostbyname(permithost->name, &ahp))) {
+			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
 				memcpy(&sin.sin_addr, hp->h_addr, sizeof(sin.sin_addr));
 				if (s->sin.sin_addr.s_addr == sin.sin_addr.s_addr) {
 					break;
@@ -198,7 +198,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	sccp_device_lock(d);
 	d->linesRegistered = FALSE;
 	/* test the localnet to understand if the device is behind NAT */
-	if (GLOB(localaddr) && ast_apply_ha(GLOB(localaddr), &s->sin)) {
+	if (GLOB(localaddr) && pbx_apply_ha(GLOB(localaddr), &s->sin)) {
 		/* ok the device is natted */
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream \n", r->msg.RegisterMessage.sId.deviceName);
 		d->nat = 1;
@@ -286,7 +286,7 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d)\n", r->msg.SPARegisterMessage.sId.deviceName, r->msg.SPARegisterMessage.sId.lel_instance, devicetype2str(letohl(r->msg.SPARegisterMessage.lel_deviceType)), letohl(r->msg.SPARegisterMessage.lel_deviceType) );
 
 	/* ip address range check */
-	if (GLOB(ha) && !ast_apply_ha(GLOB(ha), &s->sin)) {
+	if (GLOB(ha) && !pbx_apply_ha(GLOB(ha), &s->sin)) {
 		ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.SPARegisterMessage.sId.deviceName);
 		sccp_session_reject(s, "Device ip not authorized");
 		return;
@@ -328,12 +328,12 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
 			sccp_session_reject(s, "Unknown Device");
 			return;
 		}
-	} else if (d->ha && !ast_apply_ha(d->ha, &s->sin)) {
+	} else if (d->ha && !pbx_apply_ha(d->ha, &s->sin)) {
 
 		// \todo TODO check anonymous devices for permit hosts
 		SCCP_LIST_LOCK(&d->permithosts);
 		SCCP_LIST_TRAVERSE(&d->permithosts, permithost, list) {
-			if ((hp = ast_gethostbyname(permithost->name, &ahp))) {
+			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
 				memcpy(&sin.sin_addr, hp->h_addr, sizeof(sin.sin_addr));
 				if (s->sin.sin_addr.s_addr == sin.sin_addr.s_addr) {
 					break;
@@ -356,7 +356,7 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
 	sccp_device_lock(d);
 	d->linesRegistered = FALSE;
 	/* test the localnet to understand if the device is behind NAT */
-	if (GLOB(localaddr) && ast_apply_ha(GLOB(localaddr), &s->sin)) {
+	if (GLOB(localaddr) && pbx_apply_ha(GLOB(localaddr), &s->sin)) {
 		/* ok the device is natted */
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream \n", r->msg.SPARegisterMessage.sId.deviceName);
 		d->nat = 1;
@@ -1456,7 +1456,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r)
 		}
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Using line %s\n", d->id, l->name);
 
-		if (l && !ast_strlen_zero(l->adhocNumber)) {
+		if (l && !sccp_strlen_zero(l->adhocNumber)) {
 			sccp_channel_newcall(l, d, l->adhocNumber, SKINNY_CALLTYPE_OUTBOUND);
 		} else {
 			/* make a new call with no number */
@@ -1580,7 +1580,7 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_moo_t * r)
 		codec = letohl(r->msg.CapabilitiesResMessage.caps[i].lel_payloadCapability);
 		astcodec = sccp_codec_skinny2ast(codec);
 		d->capability |= astcodec;
-		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%6d %s\n", d->id, codec, codec2str(codec), astcodec, ast_codec2str(astcodec));
+		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%6d %s\n", d->id, codec, codec2str(codec), astcodec, pbx_codec2str(astcodec));
 	}
 }
 
@@ -1656,7 +1656,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 	/* set softkey definition */
 	sccp_softKeySetConfiguration_t *softkeyset;
 
-	if (!ast_strlen_zero(d->softkeyDefinition)) {
+	if (!sccp_strlen_zero(d->softkeyDefinition)) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: searching for softkeyset: %s!\n", d->id, d->softkeyDefinition);
 		SCCP_LIST_LOCK(&softKeySetConfig);
 		SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
@@ -2782,7 +2782,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 	case SCCP_FEATURE_CFWDALL:
 		status = SCCP_CFWD_ALL;
 
-		if (!config->button.feature.options || ast_strlen_zero(config->button.feature.options) || !config->button.feature.status)
+		if (!config->button.feature.options || sccp_strlen_zero(config->button.feature.options) || !config->button.feature.status)
 			status = SCCP_CFWD_NONE;
 
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
@@ -2827,7 +2827,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 		//config->button.feature.status = (config->button.feature.status)?0:1;
 		config->button.feature.status = !(config->button.feature.status) ? 0 : 1;
 		strncpy(buf, (config->button.feature.status) ? ("INUSE") : ("NOT_INUSE"), sizeof(buf));
-		res = ast_db_put(devstate_astdb_family, config->button.feature.options, buf);
+		res = pbx_db_put(devstate_astdb_family, config->button.feature.options, buf);
 
 		ast_devstate_changed(ast_devstate_val(buf), "Custom:%s", config->button.feature.options);
 		sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: devstate feature change: %s state: %d res: %d\n", DEV_ID_LOG(d), config->button.feature.options, config->button.feature.status, res);
@@ -2899,7 +2899,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_moo_t * r)
 		codec = letohl(r->msg.UpdateCapabilitiesMessage.audioCaps[i].lel_payloadCapability);
 		astcodec = sccp_codec_skinny2ast(codec);
 		d->capability |= astcodec;
-		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(d), codec, codec2str(codec), astcodec, ast_codec2str(astcodec));
+		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(d), codec, codec2str(codec), astcodec, pbx_codec2str(astcodec));
 	}
 	/* store our audio capabilities */
 // 	memset(&d->capabilities.audio, 0, sizeof(audioCap_t) * DeviceMaxCapabilities);
@@ -2913,7 +2913,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_moo_t * r)
 		codec = letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[i].lel_payloadCapability);
 		astcodec = sccp_codec_skinny2ast(codec);
 		d->capability |= astcodec;
-		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(d), codec, codec2str(codec), astcodec, ast_codec2str(astcodec));
+		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(d), codec, codec2str(codec), astcodec, pbx_codec2str(astcodec));
 	}
 	/* store our video capabilities */
 // 	memset(&d->capabilities.video, 0, sizeof(videoCap_t) * DeviceMaxCapabilities);
