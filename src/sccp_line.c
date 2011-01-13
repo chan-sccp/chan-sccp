@@ -634,7 +634,7 @@ void register_exten(sccp_line_t * l, struct subscriptionId *subscriptionId)
 		}
 		if (!ast_canmatch_extension(NULL, context, ext, 1, NULL)) {
 			sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE)) (VERBOSE_PREFIX_1 "Registering RegContext: %s, Extension, %s Line %s\n", context, ext, l->name);
-			ast_add_extension(context, 1, ext, 1, NULL, NULL, "Noop", ast_strdup(l->name), sccp_free_ptr, "SCCP");
+			ast_add_extension(context, 1, ext, 1, NULL, NULL, "Noop", sccp_strdup(l->name), sccp_free_ptr, "SCCP");
 		}
 		// parse subscriptionId
 		if (subscriptionId->number && (strcmp(subscriptionId->number, ""))) {
@@ -644,7 +644,7 @@ void register_exten(sccp_line_t * l, struct subscriptionId *subscriptionId)
 			strcat(name, subscriptionId->name);
 			if (!ast_canmatch_extension(NULL, context, ext, 2, NULL)) {
 				sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE)) (VERBOSE_PREFIX_1 "Registering RegContext: %s, Extension, %s Line %s Subscription number [%s]\n", context, ext, l->name, subscriptionId->number);
-				ast_add_extension(context, 1, ext, 2, NULL, NULL, "Noop", ast_strdup(name), sccp_free_ptr, "SCCP");
+				ast_add_extension(context, 1, ext, 2, NULL, NULL, "Noop", sccp_strdup(name), sccp_free_ptr, "SCCP");
 			}
 		}
 	}
@@ -717,7 +717,7 @@ sccp_line_t *sccp_clone_line(sccp_line_t * orig_line)
 	ast_mutex_init(&new_line->lock);
 
 	/* remaining values to be copied */
-	new_line->trnsfvm = ast_strdup(orig_line->trnsfvm);
+	new_line->trnsfvm = sccp_strdup(orig_line->trnsfvm);
 
 	struct ast_variable *v;
 	new_line->variables = NULL;
@@ -760,9 +760,9 @@ void sccp_duplicate_line_mailbox_list(sccp_line_t * new_line, sccp_line_t * orig
 	SCCP_LIST_TRAVERSE(&orig_line->mailboxes, orig_mailbox, list) {
 		new_mailbox = ast_calloc(1, sizeof(sccp_mailbox_t));
 		if (orig_mailbox->mailbox)
-			new_mailbox->mailbox = ast_strdup(orig_mailbox->mailbox);
+			new_mailbox->mailbox = sccp_strdup(orig_mailbox->mailbox);
 		if (orig_mailbox->context)
-			new_mailbox->context = ast_strdup(orig_mailbox->context);
+			new_mailbox->context = sccp_strdup(orig_mailbox->context);
 		SCCP_LIST_INSERT_TAIL(&new_line->mailboxes, new_mailbox, list);
 	}
 	SCCP_LIST_UNLOCK(&orig_line->mailboxes);

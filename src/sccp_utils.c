@@ -240,7 +240,7 @@ void sccp_safe_sleep(int ms)
 struct ast_variable *sccp_create_variable(const char *buf)
 {
 	struct ast_variable *tmpvar = NULL;
-	char *varname = ast_strdupa(buf), *varval = NULL;
+	char *varname = sccp_strdupa(buf), *varval = NULL;
 
 	if ((varval = strchr(varname, '='))) {
 		*varval++ = '\0';

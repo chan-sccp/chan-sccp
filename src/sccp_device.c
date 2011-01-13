@@ -2039,12 +2039,12 @@ sccp_device_t *sccp_clone_device(sccp_device_t * orig_device)
 	// char                 *pickupcontext
 #ifdef CS_SCCP_PICKUP
 	if (orig_device->pickupcontext)
-		new_device->pickupcontext = ast_strdup(orig_device->pickupcontext);
+		new_device->pickupcontext = sccp_strdup(orig_device->pickupcontext);
 #endif
 
 	// char                 *phonemessage
 	if (orig_device->phonemessage)
-		new_device->phonemessage = ast_strdup(orig_device->phonemessage);
+		new_device->phonemessage = sccp_strdup(orig_device->phonemessage);
 
 	// copy list-items over
 	sccp_duplicate_device_buttonconfig_list(new_device, orig_device);

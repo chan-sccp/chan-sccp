@@ -1185,7 +1185,7 @@ static void *sccp_hint_remoteNotification_thread(void *data)
 		goto CLEANUP;
 
 	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "searching for callInfos for asterisk channel %s\n", hint->hint_dialplan ? hint->hint_dialplan : "null");
-	while ((astChannel = ast_channel_walk_locked(astChannel)) != NULL) {
+	while ((astChannel = pbx_channel_walk_locked(astChannel)) != NULL) {
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "(sccp_hint_state) searching for channel on %s\n", hint->hint_dialplan);
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "(sccp_hint_state) asterisk channels %s, cid_num: %s, cid_name: %s\n", astChannel->name, astChannel->cid.cid_num, astChannel->cid.cid_name);
 		if (strlen(astChannel->name) > strlen(hint->hint_dialplan) && !strncmp(astChannel->name, hint->hint_dialplan, strlen(hint->hint_dialplan))) {
