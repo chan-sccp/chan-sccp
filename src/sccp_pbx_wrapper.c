@@ -24,7 +24,6 @@ char * get_pbx_callerid_name(struct ast_channel *ast_chan)
 {
 	static char result[StationMaxNameSize];
 #ifndef CS_AST_CHANNEL_HAS_CID
-	// Implement ast 1.2 version
 	char *name, *number, *cidtmp;
 	ast_callerid_parse(cidtmp, &name, &number);
 	sccp_copy_string(result, name, sizeof(result) - 1);
@@ -55,7 +54,6 @@ char * get_pbx_callerid_number(struct ast_channel *ast_chan)
 	static char result[StationMaxDirnumSize];
 
 #ifndef CS_AST_CHANNEL_HAS_CID
-	// Implement ast 1.2 version
 	char *name, *number, *cidtmp;
 	ast_callerid_parse(cidtmp, &name, &number);
 	sccp_copy_string(result, number, sizeof(result) - 1);
@@ -195,6 +193,8 @@ struct ast_channel *pbx_channel_walk_locked(struct ast_channel *target)
 	return ast_channel_walk_locked(target);
 }
 
+
+
 /************************************************************************************************************** CONFIG **/
 /*
  * \brief Add a new rule to a list of HAs
@@ -287,6 +287,21 @@ char * pbx_getformatname_multiple(char *buf, size_t size, format_t format) {
 #endif
 }
 
+/*!
+ * \brief Get/Create new config variable
+ * \note replacement for ast_variable_new
+ * \param name Variable Name as char
+ * \param value Variable Value as char
+ * \param filename Filename
+ * \return The return value is struct ast_variable.
+ */
+struct ast_variable *pbx_variable_new(const char *name, const char *value, const char *filename) {
+#    if ASTERISK_VERSION_NUM >= 10600
+		return ast_variable_new(name, value, filename);
+#    else
+		return ast_variable_new(name, value);
+#    endif
+}
 /******************************************************************************************************** NET / SOCKET **/
 /*
  * \brief thread-safe replacement for inet_ntoa()
@@ -377,6 +392,36 @@ int pbx_str2tos(const char *value, unsigned int *tos) {
 	return ast_str2tos(value, tos);
 }
 #endif
+/************************************************************************************************************* GENERAL **/
+/*! 
+ * \brief Simply remove extension from context
+ * 
+ * \param context context to remove extension from
+ * \param extension which extension to remove
+ * \param priority priority of extension to remove (0 to remove all)
+ * \param callerid NULL to remove all; non-NULL to match a single record per priority
+ * \param matchcid non-zero to match callerid element (if non-NULL); 0 to match default case
+ * \param registrar registrar of the extension
+ *
+ * This function removes an extension from a given context.
+ *
+ * \retval 0 on success 
+ * \retval -1 on failure
+ * 
+ * @{
+ */
+int pbx_context_remove_extension(const char *context, const char *extension, int priority, const char *registrar) {
+#if ASTERISK_VERSION_NUM >= 10600
+	struct pbx_find_info q = {.stacklen = 0 };
+	if (pbx_find_extension(NULL, NULL, &q, context, extension, 1, NULL, "", E_MATCH)) {
+		return ast_context_remove_extension(context, extension, priority, registrar);
+	} else {
+		return -1;
+	}
+#else
+	return ast_context_remove_extension(context, extension, priority, registrar);
+#endif
+}
 /***************************************************************************************************************** RTP **/
 /*!
  * \brief pbx rtp get peer
