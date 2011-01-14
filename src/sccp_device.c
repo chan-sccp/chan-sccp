@@ -289,11 +289,7 @@ int sccp_device_get_codec(struct ast_channel *ast)
 
 	char s1[512];
 	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) capabilities are %s (%d)\n",
-#if ASTERISK_VERSION_NUM >= 10400
-				    ast_getformatname_multiple(s1, sizeof(s1) - 1, c->capability & AST_FORMAT_AUDIO_MASK),
-#else
-				    ast_getformatname_multiple(s1, sizeof(s1) - 1, c->capability),
-#endif
+				    pbx_getformatname_multiple(s1, sizeof(s1) - 1, c->capability),
 				    c->capability);
 
 	return c->capability;

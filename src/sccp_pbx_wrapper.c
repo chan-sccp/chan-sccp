@@ -10,6 +10,7 @@
  */
 #include "config.h"
 #include "common.h"
+#include <asterisk/frame.h>
 
 //SCCP_FILE_VERSION(__FILE__, "$Revision: 2235 $")
 /************************************************************************************************************ CALLERID **/
@@ -255,6 +256,34 @@ struct ast_config *pbx_config_load(const char *filename, const char *who_asked, 
 	return ast_config_load(filename);
 #else
 	return ast_config_load2(filename, who_asked, flags);
+#endif
+}
+
+/*************************************************************************************************************** CODEC **/
+/*! \brief Get the name of a format
+ * \note replacement for ast_getformatname
+ * \param format id of format
+ * \return A static string containing the name of the format or "unknown" if unknown.
+ */
+char* pbx_getformatname(format_t format) {
+	return ast_getformatname(format);
+}
+   
+/*!
+ * \brief Get the names of a set of formats
+ * \note replacement for ast_getformatname_multiple
+ * \param buf a buffer for the output string
+ * \param size size of buf (bytes)
+ * \param format the format (combined IDs of codecs)
+ * Prints a list of readable codec names corresponding to "format".
+ * ex: for format=AST_FORMAT_GSM|AST_FORMAT_SPEEX|AST_FORMAT_ILBC it will return "0x602 (GSM|SPEEX|ILBC)"
+ * \return The return value is buf.
+ */
+char * pbx_getformatname_multiple(char *buf, size_t size, format_t format) {
+#if ASTERISK_VERSION_NUM >= 10400
+	return ast_getformatname_multiple(buf, size, format & AST_FORMAT_AUDIO_MASK);
+#else
+	return ast_getformatname_multiple(buf, size, format);
 #endif
 }
 

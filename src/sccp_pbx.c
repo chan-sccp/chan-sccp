@@ -666,12 +666,12 @@ static struct ast_frame *sccp_pbx_read(struct ast_channel *ast)
 		ast_log(LOG_WARNING, "%s: error reading frame == NULL\n", DEV_ID_LOG(c->device));
 		return frame;
 	}
-	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast->fdno, frame->frametype, ast_getformatname(frame->subclass), frame->subclass);
+	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast->fdno, frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
 
 	if (frame->frametype == AST_FRAME_VOICE) {
 		//sccp_log(1)(VERBOSE_PREFIX_3 "%s: read format: %s(%d)\n",
 		//                              DEV_ID_LOG(c->device),
-		//                              ast_getformatname(frame->subclass),
+		//                              pbx_getformatname(frame->subclass),
 		//                              frame->subclass);
 #if ASTERISK_VERSION_NUM >= 10400
 		if (!(frame->subclass & (ast->nativeformats & AST_FORMAT_AUDIO_MASK)))
@@ -679,7 +679,7 @@ static struct ast_frame *sccp_pbx_read(struct ast_channel *ast)
 		if (!(frame->subclass & (ast->nativeformats)))
 #endif										// ASTERISK_VERSION_NUM >= 10400
 		{
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n", DEV_ID_LOG(c->device), ast->name, ast_getformatname(ast->nativeformats), ast->nativeformats, ast_getformatname(frame->subclass), frame->subclass);
+			sccp_log(1) (VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n", DEV_ID_LOG(c->device), ast->name, pbx_getformatname(ast->nativeformats), ast->nativeformats, pbx_getformatname(frame->subclass), frame->subclass);
 
 			ast->nativeformats = frame->subclass;
 			ast_set_read_format(ast, ast->readformat);
@@ -716,12 +716,9 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame)
 			} else if (!(frame->subclass & ast->nativeformats)) {
 				char s1[512], s2[512], s3[512];
 				ast_log(LOG_WARNING, "%s: Asked to transmit frame type %d, while native formats are %s(%d) read/write = %s(%d)/%s(%d)\n", DEV_ID_LOG(c->device), frame->subclass,
-#if ASTERISK_VERSION_NUM >= 10400
-					ast_getformatname_multiple(s1, sizeof(s1) - 1, ast->nativeformats & AST_FORMAT_AUDIO_MASK), ast->nativeformats & AST_FORMAT_AUDIO_MASK,
-#else
-					ast_getformatname_multiple(s1, sizeof(s1) - 1, ast->nativeformats), ast->nativeformats,
-#endif										// ASTERISK_VERSION_NUM >= 10400
-					ast_getformatname_multiple(s2, sizeof(s2) - 1, ast->readformat), ast->readformat, ast_getformatname_multiple(s3, sizeof(s3) - 1, ast->writeformat), ast->writeformat);
+					pbx_getformatname_multiple(s1, sizeof(s1) - 1, ast->nativeformats), ast->nativeformats,
+					pbx_getformatname_multiple(s2, sizeof(s2) - 1, ast->readformat), ast->readformat, 
+					pbx_getformatname_multiple(s3, sizeof(s3) - 1, ast->writeformat), ast->writeformat);
 				//return -1;
 			}
 			if (c->rtp.audio.rtp) {
@@ -938,17 +935,9 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			/* notify of changing format */
 			char s1[512], s2[512];
 			ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%d) to: %s(%d) \n", c->line->name, c->callid,
-#    if ASTERISK_VERSION_NUM >= 10400
-				ast_getformatname_multiple(s1, sizeof(s1) - 1, c->format & AST_FORMAT_AUDIO_MASK),
-#    else
-				ast_getformatname_multiple(s1, sizeof(s1) - 1, c->format),
-#    endif									// ASTERISK_VERSION_NUM >= 10400
+				pbx_getformatname_multiple(s1, sizeof(s1) - 1, c->format),
 				ast->nativeformats,
-#    if ASTERISK_VERSION_NUM >= 10400
-				ast_getformatname_multiple(s2, sizeof(s2) - 1, ast->rawreadformat & AST_FORMAT_AUDIO_MASK),
-#    else
-				ast_getformatname_multiple(s2, sizeof(s2) - 1, ast->rawreadformat),
-#    endif									// ASTERISK_VERSION_NUM >= 10400
+				pbx_getformatname_multiple(s2, sizeof(s2) - 1, ast->rawreadformat),
 				ast->rawreadformat);
 			ast_set_read_format(ast, c->format);
 			ast_set_write_format(ast, c->format);
@@ -1318,18 +1307,10 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 
 	char s1[512], s2[512];
 	sccp_log(2) (VERBOSE_PREFIX_3 "%s: Channel %s, capabilities: CHANNEL %s(%d) PREFERRED %s(%d) USED %s(%d)\n", l->id, tmp->name,
-#if ASTERISK_VERSION_NUM >= 10400
-		     ast_getformatname_multiple(s1, sizeof(s1) - 1, c->capability & AST_FORMAT_AUDIO_MASK),
-#else
-		     ast_getformatname_multiple(s1, sizeof(s1) - 1, c->capability),
-#endif										// ASTERISK_VERSION_NUM >= 10400
+		     pbx_getformatname_multiple(s1, sizeof(s1) - 1, c->capability),
 		     c->capability,
-#if ASTERISK_VERSION_NUM >= 10400
-		     ast_getformatname_multiple(s2, sizeof(s2) - 1, tmp->nativeformats & AST_FORMAT_AUDIO_MASK),
-#else
-		     ast_getformatname_multiple(s2, sizeof(s2) - 1, tmp->nativeformats),
-#endif										// ASTERISK_VERSION_NUM >= 10400
-		     tmp->nativeformats, ast_getformatname(fmt), fmt);
+		     pbx_getformatname_multiple(s2, sizeof(s2) - 1, tmp->nativeformats),
+		     tmp->nativeformats, pbx_getformatname(fmt), fmt);
 
 #ifdef CS_AST_HAS_TECH_PVT
 	tmp->tech = &sccp_tech;

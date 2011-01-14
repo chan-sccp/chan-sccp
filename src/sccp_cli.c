@@ -226,7 +226,7 @@ static int sccp_show_globals(int fd, int argc, char *argv[])
 
 	sccp_globals_lock(lock);
 	ast_codec_pref_string(&GLOB(global_codecs), pref_buf, sizeof(pref_buf) - 1);
-	ast_getformatname_multiple(cap_buf, sizeof(cap_buf), GLOB(global_capability)), debugcategories = sccp_get_debugcategories(GLOB(debug));
+	pbx_getformatname_multiple(cap_buf, sizeof(cap_buf), GLOB(global_capability)), debugcategories = sccp_get_debugcategories(GLOB(debug));
 
 	ast_cli(fd, "SCCP channel driver global settings\n");
 	ast_cli(fd, "------------------------------------\n\n");
@@ -237,11 +237,7 @@ static int sccp_show_globals(int fd, int argc, char *argv[])
 #endif
 	ast_cli(fd, "Protocol Version      : %d\n", GLOB(protocolversion));
 	ast_cli(fd, "Server Name           : %s\n", GLOB(servername));
-#if ASTERISK_VERSION_NUM < 10400
-	ast_cli(fd, "Bind Address          : %s:%d\n", pbx_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
-#else
 	ast_cli(fd, "Bind Address          : %s:%d\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
-#endif
 	ast_cli(fd, "Nat                   : %s\n", (GLOB(nat)) ? "Yes" : "No");
 	ast_cli(fd, "Direct RTP            : %s\n", (GLOB(directrtp)) ? "Yes" : "No");
 	ast_cli(fd, "Keepalive             : %d\n", GLOB(keepalive));
@@ -344,15 +340,9 @@ static int sccp_show_devices(int fd, int argc, char *argv[])
 		timeinfo = localtime ( &d->registrationTime );
 		strftime (buffer,sizeof(buffer),"%c",timeinfo);
 		
-#if ASTERISK_VERSION_NUM < 10400
-		ast_cli(fd, "%-40s %-20s %-16s %-10s %-25s\n",			// %-10s %-16s %c%c %-10s\n",
-			d->description, (d->session) ? pbx_inet_ntoa(iabuf, sizeof(iabuf), d->session->sin.sin_addr) : "--", d->id, deviceregistrationstatus2str(d->registrationState), buffer
-		    );
-#else
 		ast_cli(fd, "%-40s %-20s %-16s %-10s %-25s\n",			// %-10s %-16s %c%c %-10s\n",
 			d->description, (d->session) ? pbx_inet_ntoa(d->session->sin.sin_addr) : "--", d->id, deviceregistrationstatus2str(d->registrationState), buffer
 		    );
-#endif
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 	return RESULT_SUCCESS;
@@ -401,7 +391,7 @@ static int sccp_show_device(int fd, int argc, char *argv[])
 	sccp_device_lock(d);
 
 	ast_codec_pref_string(&d->codecs, pref_buf, sizeof(pref_buf) - 1);
-	ast_getformatname_multiple(cap_buf, sizeof(cap_buf), d->capability), ast_cli(fd, "Current settings for selected Device\n");
+	pbx_getformatname_multiple(cap_buf, sizeof(cap_buf), d->capability), ast_cli(fd, "Current settings for selected Device\n");
 	ast_cli(fd, "------------------------------------\n\n");
 	ast_cli(fd, "MAC-Address        : %s\n", d->id);
 	ast_cli(fd, "Protocol Version   : Supported '%d', In Use '%d'\n", d->protocolversion, d->inuseprotocolversion);
@@ -587,7 +577,7 @@ static int sccp_show_lines(int fd, int argc, char *argv[])
 		memset(&cap_buf, 0, sizeof(cap_buf));
 
 		if (c && c->owner) {
-			ast_getformatname_multiple(cap_buf, sizeof(cap_buf), c->owner->nativeformats);
+			pbx_getformatname_multiple(cap_buf, sizeof(cap_buf), c->owner->nativeformats);
 		}
 
 		sccp_linedevices_t *linedevice;
@@ -812,13 +802,7 @@ static int sccp_show_sessions(int fd, int argc, char *argv[])
 		
 		if (d) {
 			sccp_device_lock(d);
-
-#if ASTERISK_VERSION_NUM < 10400
-			ast_cli(fd, "%-10d %-15s %-4d %-15s %-15s %-15s\n", s->fds[0].fd, pbx_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr), (uint32_t) (time(0) - s->lastKeepAlive), (d) ? d->id : "--", (d) ? devicestatus2str(d->state) : "--", (d) ? devicetype2str(d->skinny_type) : "--");
-#else
 			ast_cli(fd, "%-10d %-15s %-4d %-15s %-15s %-15s\n", s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr), (uint32_t) (time(0) - s->lastKeepAlive), (d) ? d->id : "--", (d) ? devicestatus2str(d->state) : "--", (d) ? devicetype2str(d->skinny_type) : "--");
-#endif
-
 			sccp_device_unlock(d);
 		}
 		sccp_session_unlock(s);

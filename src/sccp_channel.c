@@ -23,21 +23,21 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#include <asterisk/pbx.h>
-#include <asterisk/utils.h>
-#include <asterisk/causes.h>
-#include <asterisk/callerid.h>
-#include <asterisk/musiconhold.h>
+//#include <asterisk/pbx.h>
+//#include <asterisk/utils.h>
+//#include <asterisk/causes.h>
+//#include <asterisk/callerid.h>
+//#include <asterisk/musiconhold.h>
 #include <asterisk/rtp.h>
-#ifndef CS_AST_HAS_TECH_PVT
-#    include <asterisk/channel_pvt.h>
-#endif
-#ifdef CS_SCCP_PARK
-#    include <asterisk/features.h>
-#endif
-#ifdef CS_MANAGER_EVENTS
-#    include <asterisk/manager.h>
-#endif
+//#ifndef CS_AST_HAS_TECH_PVT
+//#    include <asterisk/channel_pvt.h>
+//#endif
+//#ifdef CS_SCCP_PARK
+//#    include <asterisk/features.h>
+//#endif
+//#ifdef CS_MANAGER_EVENTS
+//#    include <asterisk/manager.h>
+//#endif
 static uint32_t callCount = 1;
 AST_MUTEX_DEFINE_STATIC(callCountLock);
 
@@ -163,18 +163,10 @@ void sccp_channel_updateChannelCapability_locked(sccp_channel_t * channel)
 	}
 
 	sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d) USED: %s(%d) \n", channel->line->name, channel->callid,
-#if ASTERISK_VERSION_NUM >= 10400
-		     ast_getformatname_multiple(s1, sizeof(s1) - 1, channel->capability & AST_FORMAT_AUDIO_MASK),
-#else
-		     ast_getformatname_multiple(s1, sizeof(s1) - 1, channel->capability),
-#endif
-		     channel->capability,
-#if ASTERISK_VERSION_NUM >= 10400
-		     ast_getformatname_multiple(s2, sizeof(s2) - 1, channel->format & AST_FORMAT_AUDIO_MASK),
-#else
-		     ast_getformatname_multiple(s2, sizeof(s2) - 1, channel->format),
-#endif
-		     channel->format);
+                pbx_getformatname_multiple(s1, sizeof(s1) - 1, channel->capability),
+                channel->capability,
+                pbx_getformatname_multiple(s2, sizeof(s2) - 1, channel->format),
+		channel->format);
 }
 
 /*!
@@ -899,6 +891,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 
 	sccp_channel_updateChannelCapability_locked(c);
 	c->isCodecFix = TRUE;
+
 #if ASTERISK_VERSION_NUM >= 10400
 	struct ast_format_list fmt = pbx_codec_pref_getsize(&c->codecs, c->format);
 	payloadType = sccp_codec_ast2skinny(fmt.bits);
@@ -907,7 +900,6 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 	payloadType = sccp_codec_ast2skinny(c->format);				// was c->format
 	packetSize = 20;
 #endif
-
 	if (!payloadType) {
 		c->isCodecFix = FALSE;
 		sccp_channel_updateChannelCapability_locked(c);
@@ -1232,11 +1224,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 
 	}
 
-#if ASTERISK_VERSION_NUM < 10400
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s (%d ms), payloadType %d, tos %d, silencesuppression: %s\n", DEV_ID_LOG(channel->device), pbx_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port), pbx_codec2str(channel->rtp.video.readFormat), packetSize, payloadType, channel->line->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
-#else
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s(%d) (%d ms), payloadType %d, tos %d, silencesuppression: %s\n", channel->device->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), pbx_codec2str(channel->rtp.video.readFormat), channel->rtp.video.readFormat, packetSize, payloadType, channel->line->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
-#endif
 	sccp_dev_send(channel->device, r);
 
 	r = sccp_build_packet(FlowControlCommandMessage, sizeof(r->msg.FlowControlCommandMessage));
@@ -1263,14 +1251,13 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 	struct ast_hostent ahp;
 	struct hostent *hp;
 	int payloadType;
+	int packetSize;
 #if ASTERISK_VERSION_NUM < 10400
 	char iabuf[INET_ADDRSTRLEN];
 #endif
-	int packetSize;
 #if ASTERISK_VERSION_NUM >= 10400
 	struct ast_format_list fmt;
 #endif
-
 	if (!c->rtp.audio.rtp) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: can't start rtp media transmission, maybe channel is down %s-%08X\n", c->device->id, c->line->name, c->callid);
 		return;
@@ -1314,7 +1301,6 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 	payloadType = sccp_codec_ast2skinny(c->format);				// was c->format
 	packetSize = 20;
 #endif
-
 	if (d->inuseprotocolversion < 17) {
 		memcpy(&r->msg.StartMediaTransmission.bel_remoteIpAddr, &sin.sin_addr, 4);
 		r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(sin.sin_port));
@@ -1335,11 +1321,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 		r->msg.StartMediaTransmission_v17.lel_rtptimeout = htolel(10);
 	}
 	sccp_dev_send(c->device, r);
-#if ASTERISK_VERSION_NUM < 10400
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s (%d ms), tos %d, silencesuppression: %s\n", c->device->id, pbx_inet_ntoa(iabuf, sizeof(iabuf), sin.sin_addr), ntohs(sin.sin_port), codec2str(payloadType), packetSize, c->line->audio_tos, c->line->silencesuppression ? "ON" : "OFF");
-#else
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s(%d) (%d ms), tos %d, silencesuppression: %s\n", c->device->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), codec2str(payloadType), payloadType, packetSize, c->line->audio_tos, c->line->silencesuppression ? "ON" : "OFF");
-#endif
 
 #ifdef CS_SCCP_VIDEO
 	if (sccp_device_isVideoSupported(c->device)) {
@@ -2160,11 +2142,7 @@ boolean_t sccp_channel_start_rtp_locked(sccp_channel_t * c)
 
 /* No need to lock, because already locked in the sccp_indicate.c */
 /*	sccp_channel_lock(c); */
-#if ASTERISK_VERSION_NUM < 10400
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", d->id, pbx_inet_ntoa(iabuf, sizeof(iabuf), s->ourip));
-#else
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", d->id, pbx_inet_ntoa(s->ourip));
-#endif
 
 	/* finally we deal with this -FS SVN 423 */
 	c->rtp.audio.rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
@@ -2244,12 +2222,7 @@ boolean_t sccp_channel_start_vrtp(sccp_channel_t * c)
 
 /* No need to lock, because already locked in the sccp_indicate.c */
 /*	sccp_channel_lock(c); */
-#if ASTERISK_VERSION_NUM < 10400
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating vrtp server connection at %s\n", d->id, pbx_inet_ntoa(iabuf, sizeof(iabuf), s->ourip));
-#else
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating vrtp server connection at %s\n", d->id, pbx_inet_ntoa(s->ourip));
-#endif
-
 	c->rtp.video.rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
 	if (!c->rtp.video.rtp)
 		return FALSE;
