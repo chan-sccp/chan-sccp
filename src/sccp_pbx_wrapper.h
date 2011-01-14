@@ -48,6 +48,27 @@
 #define pbx_db_put ast_db_put
 #define pbx_db_get ast_db_get
 
+// Differences in functions between 1.4 and 1.6
+// struct ast_ha *ast_append_ha(char *sense, const char *stuff, struct ast_ha *path);
+// struct ast_ha *ast_append_ha(const char *sense, const char *stuff, struct ast_ha *path, int *error);
+
+// Differences in functions between 1.6 and 1.8
+// enum ast_extension_states {
+// typedef int (*ast_state_cb_type)(char *context, char* id, enum ast_extension_states state, void *data);
+// enum ast_pbx_result ast_pbx_start(struct ast_channel *c);
+// enum ast_extension_states ast_devstate_to_extenstate(enum ast_device_state devstate);
+// int ast_extension_state(struct ast_channel *c, const char *context, const char *exten);
+// const char *ast_extension_state2str(int extension_state);
+// int ast_extension_state_add(const char *context, const char *exten,
+// int ast_extension_state_del(int id, ast_state_cb_type callback);
+// int ast_exists_extension(struct ast_channel *c, const char *context, const char *exten,
+// int ast_canmatch_extension(struct ast_channel *c, const char *context,
+// int ast_matchmore_extension(struct ast_channel *c, const char *context,
+// int ast_ignore_pattern(const char *context, const char *pattern);
+// struct ast_ha *ast_append_ha(const char *sense, const char *stuff, struct ast_ha *path, int *error);
+// struct ast_ha *ast_duplicate_ha_list(struct ast_ha *original);
+// char *ast_read_textfile(const char *file);
+// int ast_db_deltree(const char *family, const char *keytree);
 
 // utilities
 char *get_pbx_callerid_name(struct ast_channel *ast_chan);

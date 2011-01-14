@@ -11,17 +11,8 @@
 #include "config.h"
 #ifdef CS_SCCP_MANAGER
 #include "common.h"
-//#    include "sccp_management.h"
-//#    include "chan_sccp.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2174 $")
-//#    include "sccp_utils.h"
-//#    include "sccp_lock.h"
-//#    include "sccp_device.h"
-//#    include "sccp_config.h"
-//#    include "sccp_actions.h"
-//#    include "sccp_hint.h"
-//#    include "sccp_line.h"
 
 /*!
  * \brief Show Device Description
