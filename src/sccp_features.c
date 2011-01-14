@@ -94,23 +94,8 @@ sccp_channel_t *sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * de
 				}
 			} else if (c->owner && (bridge = ast_bridged_channel(c->owner))) {	// check if we have an ast channel to get callerid from
 				// if we have an incoming or forwarded call, let's get number from callerid :) -FS
-#ifdef CS_AST_CHANNEL_HAS_CID
 				char *number = NULL;
-				if (bridge->cid.cid_num)
-					number = strdup(bridge->cid.cid_num);
-#else
-				char *number = NULL, *name = NULL, *cidtmp = NULL;
-				if (bridge->callerid) {
-					cidtmp = strdup(bridge->callerid);
-					ast_callerid_parse(cidtmp, &name, &number);
-				}
-				// cleaning unused vars
-				if (cidtmp)
-					sccp_free(cidtmp);
-
-				if (name)
-					sccp_free(name);
-#endif
+				number = get_pbx_callerid_number(bridge);
 				if (number) {
 					sccp_line_cfwd(l, device, type, number);
 					// we are on call, so no tone has been played until now :)
@@ -283,7 +268,7 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 
 	sccp_device_t *d;
 	char *pickupexten;
-	char *cidtmp = NULL, *name = NULL, *number = NULL;
+	char *name = NULL, *number = NULL;
 
 	if (sccp_strlen_zero(exten)) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) zero exten\n");
@@ -310,27 +295,35 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 	while ((target = pbx_channel_walk_locked(target))) {
 		sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
 		sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (directpickup)\n" 
-									       "--------------------------------------------\n" 
-									       "(pickup target)\n" 
-									       "exten         = %s\n" 
-									       "context       = %s\n" 
-									       "pbx           = off\n" 
-									       "state	      = %d or %d\n" 
-									       "(current chan)\n" 
-									       "macro exten   = %s\n" 
-									       "exten         = %s\n" 
-									       "macro context = %s\n" 
-									       "context	    = %s\n"
+								"--------------------------------------------\n" 
+								"(pickup target)\n" 
+								"exten         = %s\n" 
+								"context       = %s\n" 
+								"pbx           = off\n" 
+								"state         = %d or %d\n" 
+								"(current chan)\n" 
+								"macro exten   = %s\n" 
+								"exten         = %s\n" 
+								"macro context = %s\n" 
+								"context       = %s\n"
 #if ASTERISK_VERSION_NUM >= 10400
-							      "dialcontext   = %s\n"
+								"dialcontext   = %s\n"
 #endif
-							      "pbx		    = %s\n" 
-							      "state		    = %d\n" 
-							      "--------------------------------------------\n", pickupexten, !sccp_strlen_zero(d->pickupcontext) ? d->pickupcontext : "(NULL)", AST_STATE_RINGING, AST_STATE_RING, target->macroexten ? target->macroexten : "(NULL)", target->exten ? target->exten : "(NULL)", target->macrocontext ? target->macrocontext : "(NULL)", target->context ? target->context : "(NULL)",
+								"pbx           = %s\n" 
+								"state         = %d\n" 
+								"--------------------------------------------\n", 
+								pickupexten, 
+								!sccp_strlen_zero(d->pickupcontext) ? d->pickupcontext : "(NULL)", 
+								AST_STATE_RINGING, 
+								AST_STATE_RING, 
+								target->macroexten ? target->macroexten : "(NULL)", 
+								target->exten ? target->exten : "(NULL)", 
+								target->macrocontext ? target->macrocontext : "(NULL)", 
+								target->context ? target->context : "(NULL)",
 #    if ASTERISK_VERSION_NUM >= 10400
-							      target->dialcontext ? target->dialcontext : "(NULL)",
+							      	target->dialcontext ? target->dialcontext : "(NULL)",
 #    endif
-							      target->pbx ? "on" : "off", target->_state);
+							      	target->pbx ? "on" : "off", target->_state);
 
 		if ((!strcasecmp(target->macroexten, pickupexten) || !strcasecmp(target->exten, pickupexten)) &&
 #    if ASTERISK_VERSION_NUM < 10400
@@ -341,22 +334,9 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 		    (!target->pbx && (target->_state == AST_STATE_RINGING || target->_state == AST_STATE_RING))) {
 
 			tmp = (CS_AST_BRIDGED_CHANNEL(target) ? CS_AST_BRIDGED_CHANNEL(target) : target);
-
-#    ifdef CS_AST_CHANNEL_HAS_CID
-			if (tmp->cid.cid_name)
-				name = strdup(tmp->cid.cid_name);
-			if (tmp->cid.cid_num)
-				number = strdup(tmp->cid.cid_num);
-
-			ast_log(LOG_NOTICE, "SCCP: %s callerid is ('%s'-'%s') vs copy ('%s'-'%s')\n", tmp->name, tmp->cid.cid_name, tmp->cid.cid_num, name, number);
-#    else
-			if (tmp->callerid) {
-				ast_log(LOG_NOTICE, "SCCP: Callerid found in channel %s is %s\n", tmp->name, tmp->callerid);
-				cidtmp = strdup(tmp->callerid);
-				ast_callerid_parse(cidtmp, &name, &number);
-				ast_log(LOG_NOTICE, "SCCP: Callerid copy of channel %s is %s ('%s'-'%s')\n", tmp->name, cidtmp, name, number);
-			}
-#    endif
+			name=get_pbx_callerid_name(tmp);
+			number=get_pbx_callerid_number(tmp);
+			ast_log(LOG_NOTICE, "SCCP: %s callerid is ('%s'-'%s')\n", tmp->name, name, number);
 			tmp = NULL;
 			original->hangupcause = AST_CAUSE_CALL_REJECTED;
 
@@ -419,8 +399,6 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 				sccp_free(name);
 			if (number)
 				sccp_free(number);
-			if (cidtmp)
-				sccp_free(cidtmp);
 			break;
 		} else {
 			res = -1;
@@ -458,7 +436,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 
 	sccp_channel_t *c;
 
-	char *cidtmp = NULL, *name = NULL, *number = NULL;
+	char *name = NULL, *number = NULL;
 
 	if (!l || !d || !d->id || sccp_strlen_zero(d->id)) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) no line or device\n");
@@ -508,18 +486,9 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 			}
 
 			original = c->owner;
-
-#ifdef CS_AST_CHANNEL_HAS_CID
-			if (target->cid.cid_name)
-				name = strdup(target->cid.cid_name);
-			if (target->cid.cid_num)
-				number = strdup(target->cid.cid_num);
-#else
-			if (target->callerid) {
-				cidtmp = strdup(target->callerid);
-				ast_callerid_parse(cidtmp, &name, &number);
-			}
-#endif
+			
+			name = get_pbx_callerid_name(target);
+			number = get_pbx_callerid_number(target);
 
 #ifdef CS_AST_CHANNEL_HAS_CID
 			if (original && original->cid.cid_name)
@@ -617,8 +586,6 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 				sccp_free(name);
 			if (number)
 				sccp_free(number);
-			if (cidtmp)
-				sccp_free(cidtmp);
 
 			res = 0;
 
@@ -644,7 +611,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 void sccp_feat_updatecid(sccp_channel_t * c)
 {
 	struct ast_channel *target = NULL;
-	char *cidtmp = NULL, *name = NULL, *number = NULL;
+	char *name = NULL, *number = NULL;
 
 	if (!c || !c->owner)
 		return;
@@ -654,23 +621,14 @@ void sccp_feat_updatecid(sccp_channel_t * c)
 	else if (!(target = ast_bridged_channel(c->owner))) {
 		return;
 	}
-#ifdef CS_AST_CHANNEL_HAS_CID
-	if (target->cid.cid_name)
-		name = strdup(target->cid.cid_name);
-	if (target->cid.cid_num)
-		number = strdup(target->cid.cid_num);
-#else
-	if (target->callerid) {
-		cidtmp = strdup(target->callerid);
-		ast_callerid_parse(target, &name, &number);
-	}
-#endif
-
+	name=get_pbx_callerid_name(target);
+	number=get_pbx_callerid_number(target);
 	sccp_channel_set_callingparty(c, name, number);
 
-	sccp_free(name);
-	sccp_free(number);
-	sccp_free(cidtmp);
+	if (name)
+		sccp_free(name);
+	if (number)
+		sccp_free(number);
 }
 
 /*!
@@ -987,7 +945,6 @@ static void *sccp_feat_meetme_thread(void *data)
 
 	char meetmeopts[AST_MAX_CONTEXT];
 #if ASTERISK_VERSION_NUM >= 10600
-	struct pbx_find_info q = {.stacklen = 0 };
 #    define SCCP_CONF_SPACER ','
 #endif
 
@@ -1066,13 +1023,7 @@ static void *sccp_feat_meetme_thread(void *data)
 			sccp_channel_unlock(c);
 			ast_log(LOG_WARNING, "SCCP: SCCP_CHANNELSTATE_INVALIDCONFERENCE\n");
 		}
-#if ASTERISK_VERSION_NUM >= 10600
-		if (pbx_find_extension(NULL, NULL, &q, context, ext, 1, NULL, "", E_MATCH)) {
-			ast_context_remove_extension(context, ext, 1, NULL);
-		}
-#else
 		ast_context_remove_extension(context, ext, 1, NULL);
-#endif
 	}
 
 	return NULL;
@@ -1395,7 +1346,6 @@ void sccp_feat_monitor(sccp_device_t * device, sccp_channel_t * channel)
 #if ASTERISK_VERSION_NUM >= 10600
 #    ifdef CS_SCCP_FEATURE_MONITOR
 	struct ast_call_feature *feat;
-//      struct ast_frame f = { AST_FRAME_DTMF, };
 	struct ast_frame f;
 #        if ASTERISK_VERSION_NUM >= 10400
 	f = ast_null_frame;

@@ -722,11 +722,7 @@ sccp_line_t *sccp_clone_line(sccp_line_t * orig_line)
 	struct ast_variable *v;
 	new_line->variables = NULL;
 	for (v = orig_line->variables; v; v = v->next) {
-#    if ASTERISK_VERSION_NUM >= 10600
 		struct ast_variable *new_v = ast_variable_new(v->name, v->value, v->file);
-#    else
-		struct ast_variable *new_v = ast_variable_new(v->name, v->value);
-#    endif
 		new_v->next = new_line->variables;
 		new_line->variables = new_v;
 	}
