@@ -304,6 +304,79 @@ const char *pbx_inet_ntoa(struct in_addr ia)
 #endif
 }
 
+
+#if ASTERISK_VERSION_NUM < 10400
+/* BackPort of ast_str2cos & ast_str2cos for asterisk 1.2*/
+struct dscp_codepoint {
+        char *name;
+        unsigned int space;
+};
+  
+static const struct dscp_codepoint dscp_pool1[] = {
+        { "CS0", 0x00 },
+        { "CS1", 0x08 },
+        { "CS2", 0x10 },
+        { "CS3", 0x18 },
+        { "CS4", 0x20 },
+        { "CS5", 0x28 },
+        { "CS6", 0x30 },
+        { "CS7", 0x38 },
+        { "AF11", 0x0A },
+        { "AF12", 0x0C },
+        { "AF13", 0x0E },
+        { "AF21", 0x12 },
+        { "AF22", 0x14 },
+        { "AF23", 0x16 },
+        { "AF31", 0x1A },
+        { "AF32", 0x1C },
+        { "AF33", 0x1E },
+        { "AF41", 0x22 }, 
+        { "AF42", 0x24 },
+        { "AF43", 0x26 },
+        { "EF", 0x2E },  
+};
+
+int pbx_str2cos(const char *value, unsigned int *cos)
+{
+        int fval;
+
+        if (sscanf(value, "%30d", &fval) == 1) {
+                if (fval < 8) {
+                    *cos = fval;
+                    return 0;   
+                }
+        }
+
+        return -1;
+}
+ 
+int pbx_str2tos(const char *value, unsigned int *tos)
+{
+        int fval;
+        unsigned int x;
+
+        if (sscanf(value, "%30i", &fval) == 1) {
+                *tos = fval & 0xFF;
+                return 0;
+        }
+
+        for (x = 0; x < ARRAY_LEN(dscp_pool1); x++) {
+                if (!strcasecmp(value, dscp_pool1[x].name)) {
+                        *tos = dscp_pool1[x].space << 2;
+                        return 0;
+                }
+        }
+
+        return -1;
+}
+#else
+int pbx_str2cos(const char *value, unsigned int *cos) {
+	return ast_str2cos(value, cos);
+}
+int pbx_str2tos(const char *value, unsigned int *tos) {
+	return ast_str2tos(value, tos);
+}
+#endif
 /***************************************************************************************************************** RTP **/
 /*!
  * \brief pbx rtp get peer

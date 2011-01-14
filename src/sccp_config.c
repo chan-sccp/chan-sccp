@@ -888,15 +888,10 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 			else
 				ast_log(LOG_WARNING, "Invalid earlyrtp state value at line %d, should be 'none', 'offhook', 'dial', 'ringout'\n", v->lineno);
 		} else if (!strcasecmp(v->name, "sccp_tos")) {
-#if ASTERISK_VERSION_NUM < 10400
-			if (sscanf(v->value, "%d", &sccp_tos) == 1)
-				GLOB(sccp_tos) = sccp_tos & 0xff;
-#else
-			if (!ast_str2tos(v->value, &sccp_tos))
+			if (!pbx_str2tos(v->value, &sccp_tos))
 				GLOB(sccp_tos) = sccp_tos;
 			else if (sscanf(v->value, "%i", &sccp_tos) == 1)
 				GLOB(sccp_tos) = sccp_tos & 0xff;
-#endif
 			else if (!strcasecmp(v->value, "lowdelay"))
 				GLOB(sccp_tos) = IPTOS_LOWDELAY;
 			else if (!strcasecmp(v->value, "throughput"))
@@ -918,15 +913,10 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 				GLOB(sccp_tos) = 0x68 & 0xff;
 			}
 		} else if (!strcasecmp(v->name, "audio_tos")) {
-#if ASTERISK_VERSION_NUM < 10400
-			if (sscanf(v->value, "%d", &audio_tos) == 1)
-				GLOB(audio_tos) = audio_tos & 0xff;
-#else
-			if (!ast_str2tos(v->value, &audio_tos))
+			if (!pbx_str2tos(v->value, &audio_tos))
 				GLOB(audio_tos) = audio_tos;
 			else if (sscanf(v->value, "%i", &audio_tos) == 1)
 				GLOB(audio_tos) = audio_tos & 0xff;
-#endif
 			else if (!strcasecmp(v->value, "lowdelay"))
 				GLOB(audio_tos) = IPTOS_LOWDELAY;
 			else if (!strcasecmp(v->value, "throughput"))
@@ -948,15 +938,10 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 				GLOB(audio_tos) = 0xB8 & 0xff;
 			}
 		} else if (!strcasecmp(v->name, "video_tos")) {
-#if ASTERISK_VERSION_NUM < 10400
-			if (sscanf(v->value, "%d", &video_tos) == 1)
-				GLOB(video_tos) = video_tos & 0xff;
-#else
-			if (!ast_str2tos(v->value, &video_tos))
+			if (!pbx_str2tos(v->value, &video_tos))
 				GLOB(video_tos) = video_tos;
 			else if (sscanf(v->value, "%i", &video_tos) == 1)
 				GLOB(video_tos) = video_tos & 0xff;
-#endif
 			else if (!strcasecmp(v->value, "lowdelay"))
 				GLOB(video_tos) = IPTOS_LOWDELAY;
 			else if (!strcasecmp(v->value, "throughput"))
@@ -1399,15 +1384,10 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, s
 			} else if (!strcasecmp(v->name, "silencesuppression")) {
 				l->silencesuppression = sccp_true(v->value);
 			} else if (!strcasecmp(v->name, "audio_tos")) {
-#if ASTERISK_VERSION_NUM < 10400
-				if (sscanf(v->value, "%d", &audio_tos) == 1)
-					l->audio_tos = audio_tos & 0xff;
-#else
-				if (!ast_str2tos(v->value, &audio_tos))
+				if (!pbx_str2tos(v->value, &audio_tos))
 					l->audio_tos = audio_tos;
 				else if (sscanf(v->value, "%i", &audio_tos) == 1)
 					l->audio_tos = audio_tos & 0xff;
-#endif
 				else if (!strcasecmp(v->value, "lowdelay"))
 					l->audio_tos = IPTOS_LOWDELAY;
 				else if (!strcasecmp(v->value, "throughput"))
@@ -1429,15 +1409,10 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, s
 					l->audio_tos = GLOB(audio_tos);
 				}
 			} else if (!strcasecmp(v->name, "video_tos")) {
-#if ASTERISK_VERSION_NUM < 10400
-				if (sscanf(v->value, "%d", &video_tos) == 1)
-					l->video_tos = video_tos & 0xff;
-#else
-				if (!ast_str2tos(v->value, &video_tos))
+				if (!pbx_str2tos(v->value, &video_tos))
 					l->video_tos = video_tos;
 				else if (sscanf(v->value, "%i", &video_tos) == 1)
 					l->video_tos = video_tos & 0xff;
-#endif
 				else if (!strcasecmp(v->value, "lowdelay"))
 					l->video_tos = IPTOS_LOWDELAY;
 				else if (!strcasecmp(v->value, "throughput"))
