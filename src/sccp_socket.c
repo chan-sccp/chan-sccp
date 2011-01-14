@@ -159,11 +159,7 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 	d = s->device;
 
 	if (d) {
-#if ASTERISK_VERSION_NUM < 10400
-		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), pbx_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
-#else
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), pbx_inet_ntoa(s->sin.sin_addr));
-#endif
 		sccp_device_lock(d);
 		d->session = NULL;
 		d->registrationState = SKINNY_DEVICE_RS_NONE;
@@ -343,11 +339,7 @@ static void sccp_accept_connection(void)
 	s->fds[0].fd = new_socket;
 	
 	s->lastKeepAlive = time(0);
-#if ASTERISK_VERSION_NUM < 10400
-	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", pbx_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
-#else
 	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", pbx_inet_ntoa(s->sin.sin_addr));
-#endif
 
 	if (GLOB(bindaddr.sin_addr.s_addr) == INADDR_ANY) {
 		ast_ouraddrfor(&incoming.sin_addr, &s->ourip);
@@ -355,11 +347,7 @@ static void sccp_accept_connection(void)
 		memcpy(&s->ourip, &GLOB(bindaddr.sin_addr.s_addr), sizeof(s->ourip));
 	}
 
-#if ASTERISK_VERSION_NUM < 10400
-	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Using ip %s\n", pbx_inet_ntoa(iabuf, sizeof(iabuf), s->ourip));
-#else
 	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Using ip %s\n", pbx_inet_ntoa(s->ourip));
-#endif
 
 	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
 	SCCP_LIST_INSERT_HEAD(&GLOB(sessions), s, list);

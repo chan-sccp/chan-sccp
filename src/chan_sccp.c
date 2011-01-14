@@ -665,36 +665,20 @@ static int load_config(void)
 			ast_log(LOG_WARNING, "Unable to create SCCP socket: %s\n", strerror(errno));
 		} else {
 			if (bind(GLOB(descriptor), (struct sockaddr *)&GLOB(bindaddr), sizeof(GLOB(bindaddr))) < 0) {
-#if ASTERISK_VERSION_NUM < 10400
-				ast_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n", pbx_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
-#else
 				ast_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
-#endif
 				close(GLOB(descriptor));
 				GLOB(descriptor) = -1;
 				return 0;
 			}
-#if ASTERISK_VERSION_NUM < 10400
-			ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", pbx_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
-#else
 			ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
-#endif
 
 			if (listen(GLOB(descriptor), DEFAULT_SCCP_BACKLOG)) {
-#if ASTERISK_VERSION_NUM < 10400
-				ast_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", pbx_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
-#else
 				ast_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
-#endif
 				close(GLOB(descriptor));
 				GLOB(descriptor) = -1;
 				return 0;
 			}
-#if ASTERISK_VERSION_NUM < 10400
-			sccp_log(0) (VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", pbx_inet_ntoa(iabuf, sizeof(iabuf), GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
-#else
 			sccp_log(0) (VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
-#endif
 			GLOB(reload_in_progress) = FALSE;
 			ast_pthread_create(&GLOB(socket_thread), NULL, sccp_socket_thread, NULL);
 
@@ -871,11 +855,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 	if (!strcasecmp(colname, "ip")) {
 		sccp_session_t *s = d->session;
 		if (s) {
-#if ASTERISK_VERSION_NUM < 10400
-			sccp_copy_string(buf, s->sin.sin_addr.s_addr ? pbx_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr) : "", len);
-#else
 			sccp_copy_string(buf, s->sin.sin_addr.s_addr ? pbx_inet_ntoa(s->sin.sin_addr) : "", len);
-#endif
 		}
 	} else if (!strcasecmp(colname, "id")) {
 		sccp_copy_string(buf, d->id, len);
@@ -898,7 +878,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 	} else if (!strcasecmp(colname, "codecs")) {
 		ast_codec_pref_string(&d->codecs, buf, sizeof(buf) - 1);
 	} else if (!strcasecmp(colname, "capability")) {
-		ast_getformatname_multiple(buf, len - 1, d->capability);
+		pbx_getformatname_multiple(buf, len - 1, d->capability);
 	} else if (!strcasecmp(colname, "state")) {
 		sccp_copy_string(buf, accessorystatus2str(d->accessorystatus), len);
 	} else if (!strcasecmp(colname, "lines_registered")) {
@@ -991,7 +971,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data,
 		codecnum = colname + 6;						// move past the '[' 
 		codecnum = strsep(&codecnum, "]");				// trim trailing ']' if any 
 		if ((codec = pbx_codec_pref_index(&d->codecs, atoi(codecnum)))) {
-			sccp_copy_string(buf, ast_getformatname(codec), len);
+			sccp_copy_string(buf, pbx_getformatname(codec), len);
 		} else {
 			buf[0] = '\0';
 		}
@@ -1278,7 +1258,7 @@ static int sccp_func_sccpchannel(struct ast_channel *chan, char *cmd, char *data
 	} else if (!strcasecmp(colname, "codecs")) {
 		ast_codec_pref_string(&c->codecs, buf, sizeof(buf) - 1);
 	} else if (!strcasecmp(colname, "capability")) {
-		ast_getformatname_multiple(buf, len - 1, c->capability);
+		pbx_getformatname_multiple(buf, len - 1, c->capability);
 	} else if (!strcasecmp(colname, "calledPartyName")) {
 		sccp_copy_string(buf, c->callInfo.calledPartyName, len);
 	} else if (!strcasecmp(colname, "calledPartyNumber")) {
@@ -1342,7 +1322,7 @@ static int sccp_func_sccpchannel(struct ast_channel *chan, char *cmd, char *data
 		codecnum = colname + 6;						// move past the '[' 
 		codecnum = strsep(&codecnum, "]");				// trim trailing ']' if any 
 		if ((codec = pbx_codec_pref_index(&c->codecs, atoi(codecnum)))) {
-			sccp_copy_string(buf, ast_getformatname(codec), len);
+			sccp_copy_string(buf, pbx_getformatname(codec), len);
 		} else {
 			buf[0] = '\0';
 		}
@@ -1842,11 +1822,7 @@ static int unload_module(void)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Sessions\n");
 	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
 	while ((s = SCCP_LIST_REMOVE_HEAD(&GLOB(sessions), list))) {
-#if ASTERISK_VERSION_NUM < 10400
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", pbx_inet_ntoa(iabuf, sizeof(iabuf), s->sin.sin_addr));
-#else
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", pbx_inet_ntoa(s->sin.sin_addr));
-#endif
 		pthread_cancel(s->session_thread);
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
