@@ -1078,9 +1078,6 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 	struct hostent *hp;
 
 	int packetSize = 20;							/* \todo unused? */
-#if ASTERISK_VERSION_NUM < 10400
-	char iabuf[INET_ADDRSTRLEN];
-#endif
 
 	channel->rtp.video.readFormat = AST_FORMAT_H264;
 	skinnyFormat = sccp_codec_ast2skinny(channel->rtp.video.readFormat);
@@ -1252,9 +1249,6 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 	struct hostent *hp;
 	int payloadType;
 	int packetSize;
-#if ASTERISK_VERSION_NUM < 10400
-	char iabuf[INET_ADDRSTRLEN];
-#endif
 #if ASTERISK_VERSION_NUM >= 10400
 	struct ast_format_list fmt;
 #endif
@@ -2114,9 +2108,6 @@ boolean_t sccp_channel_start_rtp_locked(sccp_channel_t * c)
 	sccp_session_t *s;
 	sccp_line_t *l = NULL;
 	sccp_device_t *d = NULL;
-#if ASTERISK_VERSION_NUM < 10400
-	char iabuf[INET_ADDRSTRLEN];
-#endif
 	boolean_t isVideoSupported = TRUE;
 	char pref_buf[128];
 
@@ -2198,9 +2189,6 @@ boolean_t sccp_channel_start_vrtp(sccp_channel_t * c)
 	sccp_session_t *s;
 	sccp_line_t *l = NULL;
 	sccp_device_t *d = NULL;
-#if ASTERISK_VERSION_NUM < 10400
-	char iabuf[INET_ADDRSTRLEN];
-#endif
 
 	if (!c)
 		return FALSE;

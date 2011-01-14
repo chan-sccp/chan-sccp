@@ -144,9 +144,6 @@ void sccp_session_close(sccp_session_t * s)
 void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 {	
 	sccp_device_t *d;
-#if ASTERISK_VERSION_NUM < 10400
-	char iabuf[INET_ADDRSTRLEN];
-#endif
 
 	if (!s)
 		return;
@@ -302,10 +299,6 @@ static void sccp_accept_connection(void)
 	int dummy = 1, new_socket;
 	socklen_t length = (socklen_t) (sizeof(struct sockaddr_in));
 	int on = 1;
-
-#if ASTERISK_VERSION_NUM < 10400
-	char iabuf[INET_ADDRSTRLEN];
-#endif
 
 	if ((new_socket = accept(GLOB(descriptor), (struct sockaddr *)&incoming, &length)) < 0) {
 		ast_log(LOG_ERROR, "Error accepting new socket %s\n", strerror(errno));
