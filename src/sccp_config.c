@@ -753,7 +753,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 		} else if (!strcasecmp(v->name, "permit") || !strcasecmp(v->name, "deny")) {
 			GLOB(ha) = pbx_append_ha(v->name, v->value, GLOB(ha), NULL);
 		} else if (!strcasecmp(v->name, "localnet")) {
-			if (!(na = ast_append_ha("d", v->value, GLOB(localaddr), NULL)))
+			if (!(na = pbx_append_ha("d", v->value, GLOB(localaddr), NULL)))
 				ast_log(LOG_WARNING, "Invalid localnet value: %s\n", v->value);
 			else
 				GLOB(localaddr) = na;
