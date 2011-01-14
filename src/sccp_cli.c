@@ -24,11 +24,6 @@
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/cli.h>
 
-#if ASTERISK_VERSION_NUM >= 10600
-#define ASTCONST 
-#else
-#define ASTCONST const
-#endif
 
 /* --- CLI Tab Completion ---------------------------------------------------------------------------------------------- */
 /*!
@@ -44,7 +39,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \lock
  * 	- devices
  */
-static char *sccp_complete_device(ASTCONST char *line, ASTCONST char *word, int pos, int state)
+static char *sccp_complete_device(NEWCONST char *line, NEWCONST char *word, int pos, int state)
 {
 	sccp_device_t *d;
 	int which = 0;
@@ -80,7 +75,7 @@ static char *sccp_complete_device(ASTCONST char *line, ASTCONST char *word, int 
  * \lock
  * 	- lines
  */
-static char *sccp_complete_line(ASTCONST char *line, ASTCONST char *word, int pos, int state)
+static char *sccp_complete_line(NEWCONST char *line, NEWCONST char *word, int pos, int state)
 {
 	sccp_line_t *l;
 	int which = 0;
@@ -113,7 +108,7 @@ static char *sccp_complete_line(ASTCONST char *line, ASTCONST char *word, int po
  * 
  * \called_from_asterisk
  */
-static char *sccp_complete_debug(ASTCONST char *line, ASTCONST char *word, int pos, int state)
+static char *sccp_complete_debug(NEWCONST char *line, NEWCONST char *word, int pos, int state)
 {
 	uint8_t i;
 	int which = 0;
@@ -158,7 +153,6 @@ static char *sccp_complete_debug(ASTCONST char *line, ASTCONST char *word, int p
 	}
 	return ret;
 }
-#undef ASTCONST
 
 /* --- Support Functions ---------------------------------------------------------------------------------------------- */
 

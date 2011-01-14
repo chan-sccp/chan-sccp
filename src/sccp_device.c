@@ -1981,7 +1981,7 @@ sccp_device_t *sccp_clone_device(sccp_device_t * orig_device)
 	struct ast_variable *v;
 	new_device->variables = NULL;
 	for (v = orig_device->variables; v; v = v->next) {
-		struct ast_variable *new_v = ast_variable_new(v->name, v->value, v->file);
+		struct ast_variable *new_v = pbx_variable_new(v);
 		new_v->next = new_device->variables;
 		new_device->variables = new_v;
 	}

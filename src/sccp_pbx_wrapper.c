@@ -205,7 +205,7 @@ struct ast_channel *pbx_channel_walk_locked(struct ast_channel *target)
  * \param error Error as int
  * \return The head of the HA list
  */
-struct ast_ha *pbx_append_ha(const char *sense, const char *stuff, struct ast_ha *path, int *error) {
+struct ast_ha *pbx_append_ha(OLDCONST char *sense, const char *stuff, struct ast_ha *path, int *error) {
 #if ASTERISK_VERSION_NUM < 10600
 	return ast_append_ha(sense, stuff, path);
 #else
@@ -295,11 +295,11 @@ char * pbx_getformatname_multiple(char *buf, size_t size, format_t format) {
  * \param filename Filename
  * \return The return value is struct ast_variable.
  */
-struct ast_variable *pbx_variable_new(const char *name, const char *value, const char *filename) {
+struct ast_variable *pbx_variable_new(struct ast_variable *v) {
 #    if ASTERISK_VERSION_NUM >= 10600
-		return ast_variable_new(name, value, filename);
+		return ast_variable_new(v->name, v->value, v->file);
 #    else
-		return ast_variable_new(name, value);
+		return ast_variable_new(v->name, v->value);
 #    endif
 }
 /******************************************************************************************************** NET / SOCKET **/
@@ -351,20 +351,6 @@ static const struct dscp_codepoint dscp_pool1[] = {
         { "EF", 0x2E },  
 };
 
-int pbx_str2cos(const char *value, unsigned int *cos)
-{
-        int fval;
-
-        if (sscanf(value, "%30d", &fval) == 1) {
-                if (fval < 8) {
-                    *cos = fval;
-                    return 0;   
-                }
-        }
-
-        return -1;
-}
- 
 int pbx_str2tos(const char *value, unsigned int *tos)
 {
         int fval;
@@ -385,16 +371,34 @@ int pbx_str2tos(const char *value, unsigned int *tos)
         return -1;
 }
 #else
-int pbx_str2cos(const char *value, unsigned int *cos) {
-	return ast_str2cos(value, cos);
-}
 int pbx_str2tos(const char *value, unsigned int *tos) {
 	return ast_str2tos(value, tos);
+}
+#endif
+
+#if ASTERISK_VERSION_NUM < 10600
+int pbx_str2cos(const char *value, unsigned int *cos)
+{
+        int fval;
+
+        if (sscanf(value, "%30d", &fval) == 1) {
+                if (fval < 8) {
+                    *cos = fval;
+                    return 0;   
+                }
+        }
+
+        return -1;
+}
+#else 
+int pbx_str2cos(const char *value, unsigned int *cos) {
+	return ast_str2cos(value, cos);
 }
 #endif
 /************************************************************************************************************* GENERAL **/
 /*! 
  * \brief Simply remove extension from context
+ * \note replacement for ast_context_remove_extension
  * 
  * \param context context to remove extension from
  * \param extension which extension to remove
@@ -421,6 +425,21 @@ int pbx_context_remove_extension(const char *context, const char *extension, int
 #else
 	return ast_context_remove_extension(context, extension, priority, registrar);
 #endif
+}
+
+/*!   
+ * \brief Send ack in manager list transaction
+ * \note replacement for astman_send_listack
+ * \param context which context to add the ignorpattern to
+ * \param ignorepat ignorepattern to set up for the extension
+ * \param registrar registrar of the ignore pattern
+ */
+void pbxman_send_listack(struct mansession *s, const struct message *m, char *msg, char *listflag) {
+#    if ASTERISK_VERSION_NUM < 10600
+	astman_send_ack(s, m, msg);
+#    else
+	astman_send_listack(s, m, msg, listflag);
+#    endif
 }
 /***************************************************************************************************************** RTP **/
 /*!

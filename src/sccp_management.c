@@ -107,11 +107,7 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 
 	snprintf(idtext, sizeof(idtext), "ActionID: %s\r\n", id);
 
-#    if ASTERISK_VERSION_NUM < 10600
-	astman_send_ack(s, m, "Device status list will follow");
-#    else
-	astman_send_listack(s, m, "Device status list will follow", "start");
-#    endif
+	pbxman_send_listack(s, m, "Device status list will follow", "start");
 	/* List the peers in separate manager events */
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), device, list) {
@@ -146,11 +142,7 @@ int sccp_manager_show_lines(struct mansession *s, const struct message *m)
 
 	snprintf(idtext, sizeof(idtext), "ActionID: %s\r\n", id);
 
-#    if ASTERISK_VERSION_NUM < 10600
-	astman_send_ack(s, m, "Device status list will follow");
-#    else
-	astman_send_listack(s, m, "Device status list will follow", "start");
-#    endif
+	pbxman_send_listack(s, m, "Device status list will follow", "start");
 	/* List the peers in separate manager events */
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), line, list) {
