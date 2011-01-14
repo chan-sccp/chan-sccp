@@ -90,6 +90,8 @@ struct ast_config *pbx_config_load(const char *filename, const char *who_asked, 
 char * pbx_getformatname(format_t format);
 char * pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 const char *pbx_inet_ntoa(struct in_addr ia);
+int pbx_str2cos(const char *value, unsigned int *cos);
+int pbx_str2tos(const char *value, unsigned int *tos);
 int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *them);
 void pbx_rtp_set_peer(struct ast_rtp *rtp, struct sockaddr_in *them);
 
