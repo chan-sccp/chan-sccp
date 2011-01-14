@@ -1249,9 +1249,6 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 		}
 	}
 
-#if ASTERISK_VERSION_NUM < 10400
-	tmp = ast_channel_alloc(1);
-#else
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:     cid_num: \"%s\"\n", c->callInfo.callingPartyNumber);
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:    cid_name: \"%s\"\n", c->callInfo.callingPartyName);
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: accountcode: \"%s\"\n", l->accountcode);
@@ -1261,8 +1258,7 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:   chan/call: \"%s-%08x\"\n", l->name, c->callid);
 
 	/* This should definetly fix CDR */
-	tmp = ast_channel_alloc(1, AST_STATE_DOWN, c->callInfo.callingPartyNumber, c->callInfo.callingPartyName, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
-#endif										// ASTERISK_VERSION_NUM < 10400
+	tmp = pbx_channel_alloc(1, AST_STATE_DOWN, c->callInfo.callingPartyNumber, c->callInfo.callingPartyName, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
 	if (!tmp) {
 		ast_log(LOG_ERROR, "%s: Unable to allocate asterisk channel on line %s\n", l->id, l->name);
 		return 0;
@@ -1297,9 +1293,9 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 
 	sccp_line_unlock(l);
 
-#if ASTERISK_VERSION_NUM >= 10400
+//#if ASTERISK_VERSION_NUM >= 10400
 	ast_jb_configure(tmp, &GLOB(global_jbconf));
-#endif										// ASTERISK_VERSION_NUM >= 10400
+//#endif										// ASTERISK_VERSION_NUM >= 10400
 
 	char s1[512], s2[512];
 	sccp_log(2) (VERBOSE_PREFIX_3 "%s: Channel %s, capabilities: CHANNEL %s(%d) PREFERRED %s(%d) USED %s(%d)\n", l->id, tmp->name,
