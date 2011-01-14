@@ -78,6 +78,9 @@ int set_pbx_callerid(struct ast_channel *ast_chan, sccp_callinfo_t * callInfo);
 
 // replacement implementations
 struct ast_channel *pbx_channel_walk_locked(struct ast_channel *target);
+struct ast_ha *pbx_append_ha(const char *sense, const char *stuff, struct ast_ha *path, int *error);
+struct ast_context *pbx_context_find_or_create(struct ast_context **extcontexts, struct ast_hashtab *exttable, const char *name, const char *registrar);
+struct ast_config *pbx_config_load(const char *filename, const char *who_asked, struct ast_flags flags);
 const char *pbx_inet_ntoa(struct in_addr ia);
 int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *them);
 void pbx_rtp_set_peer(struct ast_rtp *rtp, struct sockaddr_in *them);
