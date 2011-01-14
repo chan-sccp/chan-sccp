@@ -751,20 +751,9 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 				}
 			}
 		} else if (!strcasecmp(v->name, "permit") || !strcasecmp(v->name, "deny")) {
-
-#if ASTERISK_VERSION_NUM < 10600
-			GLOB(ha) = ast_append_ha(v->name, v->value, GLOB(ha));
-#else
-			GLOB(ha) = ast_append_ha(v->name, v->value, GLOB(ha), NULL);
-#endif
-
+			GLOB(ha) = pbx_append_ha(v->name, v->value, GLOB(ha), NULL);
 		} else if (!strcasecmp(v->name, "localnet")) {
-
-#if ASTERISK_VERSION_NUM < 10600
-			if (!(na = ast_append_ha("d", v->value, GLOB(localaddr))))
-#else
 			if (!(na = ast_append_ha("d", v->value, GLOB(localaddr), NULL)))
-#endif
 				ast_log(LOG_WARNING, "Invalid localnet value: %s\n", v->value);
 			else
 				GLOB(localaddr) = na;
@@ -1106,11 +1095,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 			/* Create contexts if they don't exist already */
 			while ((context = strsep(&stringp, "&"))) {
 				sccp_copy_string(GLOB(used_context), context, sizeof(GLOB(used_context)));
-#if ASTERISK_VERSION_NUM < 10600
-				ast_context_find_or_create(NULL, context, "SCCP");
-#else
-				ast_context_find_or_create(NULL, NULL, context, "SCCP");
-#endif
+				pbx_context_find_or_create(NULL, NULL, context, "SCCP");
 			}
 			sccp_copy_string(GLOB(regcontext), v->value, sizeof(GLOB(regcontext)));
 			continue;
@@ -1641,11 +1626,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct as
 		} else if (!strcasecmp(v->name, "keepalive")) {
 			d->keepalive = atoi(v->value);
 		} else if (!strcasecmp(v->name, "permit") || !strcasecmp(v->name, "deny")) {
-#if ASTERISK_VERSION_NUM < 10600
-			d->ha = ast_append_ha(v->name, v->value, d->ha);
-#else
-			d->ha = ast_append_ha(v->name, v->value, d->ha, NULL);
-#endif
+			d->ha = pbx_append_ha(v->name, v->value, d->ha, NULL);
 		} else if (!strcasecmp(v->name, "button")) {
 #ifdef CS_DYNAMIC_CONFIG
 			button_type_t type;
@@ -1830,18 +1811,11 @@ struct ast_config *sccp_config_getConfig()
 {
 	struct ast_config *cfg = NULL;
 
-#if ASTERISK_VERSION_NUM < 10600
-	cfg = ast_config_load("sccp.conf");
-
-	if (!cfg)
-		cfg = ast_config_load("sccp_v3.conf");
-
-#else
 	struct ast_flags config_flags = { CONFIG_FLAG_WITHCOMMENTS };
-	cfg = ast_config_load2("sccp.conf", "chan_sccp", config_flags);
+	cfg = pbx_config_load("sccp.conf", "chan_sccp", config_flags);
 	if (!cfg)
-		cfg = ast_config_load2("sccp_v3.conf", "chan_sccp", config_flags);
-#endif
+		cfg = pbx_config_load("sccp_v3.conf", "chan_sccp", config_flags);
+		
 	/* Warn user when old entries exist in sccp.conf */
 	if (cfg && ast_variable_browse(cfg, "devices")) {
 		ast_log(LOG_WARNING, "\n\n --> You are using an old configuration format, pleas update your sccp.conf!!\n --> Loading of module chan_sccp with current sccp.conf has terminated\n --> Check http://chan-sccp-b.sourceforge.net/doc_setup.shtml for more information.\n\n");
