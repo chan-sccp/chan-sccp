@@ -616,7 +616,7 @@ static struct ast_frame *sccp_pbx_read(struct ast_channel *ast)
 	struct ast_frame *frame;
 
 #if ASTERISK_VERSION_NUM >= 10400
-	frame = &ast_null_frame;
+	frame = &pbx_null_frame;
 #else
 	frame = NULL;
 #endif										// ASTERISK_VERSION_NUM >= 10400
@@ -1293,9 +1293,7 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 
 	sccp_line_unlock(l);
 
-//#if ASTERISK_VERSION_NUM >= 10400
-	ast_jb_configure(tmp, &GLOB(global_jbconf));
-//#endif										// ASTERISK_VERSION_NUM >= 10400
+	pbx_jb_configure(tmp, &GLOB(global_jbconf));
 
 	char s1[512], s2[512];
 	sccp_log(2) (VERBOSE_PREFIX_3 "%s: Channel %s, capabilities: CHANNEL %s(%d) PREFERRED %s(%d) USED %s(%d)\n", l->id, tmp->name,
@@ -1717,7 +1715,7 @@ void sccp_pbx_senddigit(sccp_channel_t * c, char digit)
 {
 	struct ast_frame f;
 #if ASTERISK_VERSION_NUM >= 10400
-	f = ast_null_frame;
+	f = pbx_null_frame;
 #else
 	f = NULL;
 #endif										// ASTERISK_VERSION_NUM >= 10400
@@ -1736,11 +1734,7 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION])
 {
 	int i;
 	struct ast_frame f;
-#if ASTERISK_VERSION_NUM >= 10400
-	f = ast_null_frame;
-#else
-	f = NULL;
-#endif										// ASTERISK_VERSION_NUM >= 10400
+	f = pbx_null_frame;
 	f.frametype = AST_FRAME_DTMF;
 
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Sending digits %s\n", DEV_ID_LOG(c->device), digits);
@@ -1764,6 +1758,8 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION])
  * \brief Queue an outgoing Asterisk frame
  * \param c SCCP Channel
  * \param f Asterisk Frame
+ *
+ * \note should be moved to sccp_pbx_wrapper
  */
 void sccp_queue_frame(sccp_channel_t * c, struct ast_frame *f)
 {
@@ -1803,16 +1799,10 @@ int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
 #endif										// ASTERISK_VERSION_NUM >= 10400
 {
 	struct ast_frame f;
-#if ASTERISK_VERSION_NUM >= 10400
-	f = ast_null_frame;
-#else
-	f = NULL;
-#endif										// ASTERISK_VERSION_NUM >= 10400
+	f = pbx_null_frame;
 	f.frametype = AST_FRAME_DTMF;
-
 	f.subclass = control;
 	sccp_queue_frame(c, &f);
-
 	return 0;
 }
 
@@ -1939,11 +1929,7 @@ int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
  * 
  * \test ACF Channel Read Needs to be tested
  */
-#if ASTERISK_VERSION_NUM >= 10600
-int acf_channel_read(struct ast_channel *ast, const char *funcname, char *args, char *buf, size_t buflen)
-#else
-int acf_channel_read(struct ast_channel *ast, char *funcname, char *args, char *buf, size_t buflen)
-#endif										// ASTERISK_VERSION_NUM >= 10600
+int acf_channel_read(struct ast_channel *ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen)
 {
 	sccp_channel_t *c;
 
