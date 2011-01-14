@@ -604,9 +604,6 @@ static int load_config(void)
 {
 	int oldport = ntohs(GLOB(bindaddr.sin_port));
 	int on = 1;
-#if ASTERISK_VERSION_NUM < 10400
-	char iabuf[INET_ADDRSTRLEN];
-#endif
 
 #if ASTERISK_VERSION_NUM >= 10400
 	/* Copy the default jb config over global_jbconf */
@@ -808,11 +805,7 @@ int sccp_restart_monitor(void)
  * 	- device
  * 	  - device->buttonconfig
  */
-#if ASTERISK_VERSION_NUM >= 10600
-static int sccp_func_sccpdevice(struct ast_channel *chan, const char *cmd, char *data, char *buf, size_t len)
-#else
-static int sccp_func_sccpdevice(struct ast_channel *chan, char *cmd, char *data, char *buf, size_t len)
-#endif
+static int sccp_func_sccpdevice(struct ast_channel *chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
 	sccp_device_t *d;
 	char *colname;
@@ -1009,11 +1002,7 @@ static struct ast_custom_function sccpdevice_function = {
  * 	- line
  * 	  - line->devices
  */
-#if ASTERISK_VERSION_NUM >= 10600
-static int sccp_func_sccpline(struct ast_channel *chan, const char *cmd, char *data, char *buf, size_t len)
-#else
-static int sccp_func_sccpline(struct ast_channel *chan, char *cmd, char *data, char *buf, size_t len)
-#endif
+static int sccp_func_sccpline(struct ast_channel *chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
 	sccp_line_t *l;
 	sccp_channel_t *c;
@@ -1217,11 +1206,7 @@ static struct ast_custom_function sccpline_function = {
  * \lock
  * 	- channel
  */
-#if ASTERISK_VERSION_NUM >= 10600
-static int sccp_func_sccpchannel(struct ast_channel *chan, const char *cmd, char *data, char *buf, size_t len)
-#else
-static int sccp_func_sccpchannel(struct ast_channel *chan, char *cmd, char *data, char *buf, size_t len)
-#endif
+static int sccp_func_sccpchannel(struct ast_channel *chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
 	sccp_channel_t *c;
 	char *colname;
@@ -1666,13 +1651,11 @@ static int load_module(void)
 			return -1;
 		}
 	}
-#if ASTERISK_VERSION_NUM >= 10400
 #    ifndef CS_AST_HAS_RTP_ENGINE
 	pbx_rtp_proto_register(&sccp_rtp);
 #    else
 	pbx_rtp_glue_register(&sccp_rtp);
 #    endif
-#endif
 
 #ifdef CS_SCCP_MANAGER
 	sccp_register_management();
@@ -1728,9 +1711,6 @@ static int unload_module(void)
 	sccp_channel_t *c;
 	sccp_session_t *s;
 	int openchannels = 0;
-#if ASTERISK_VERSION_NUM < 10400
-	char iabuf[INET_ADDRSTRLEN];
-#endif
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
 	
@@ -1772,9 +1752,8 @@ static int unload_module(void)
 	sccp_safe_sleep(openchannels * 1000);				// wait for everything to settle
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Unregister SCCP RTP protocol\n");
-#if ASTERISK_VERSION_NUM >= 10400
 	pbx_rtp_proto_unregister(&sccp_rtp);
-#endif
+
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Unregister SCCP Channel Tech\n");
 #ifdef CS_AST_HAS_TECH_PVT
 	pbx_channel_unregister(&sccp_tech);
@@ -1790,7 +1769,6 @@ static int unload_module(void)
 #ifdef CS_SCCP_MANAGER
 	sccp_unregister_management();
 #endif
-
 	/* removing devices */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Devices\n");
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));

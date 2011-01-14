@@ -37,9 +37,9 @@ enum {
 
 #    if ASTERISK_VERSION_NUM >= 10600
 #        define NEWCONST const							// old functions used without const
-#        define OLDCONST 							// new function used with const
+#        define OLDCONST							// new function used with const
 #    else
-#        define NEWCONST 							// old functions used without const
+#        define NEWCONST							// old functions used without const
 #        define OLDCONST const							// new function used with const
 #    endif
 
@@ -61,10 +61,6 @@ enum {
 #    define pbx_channel_register ast_channel_register
 #    define pbx_channel_register_ex ast_channel_register_ex
 #    define pbx_channel_unregister ast_channel_unregister
-#    define pbx_rtp_proto_register ast_rtp_proto_register
-#    define pbx_rtp_proto_unregister ast_rtp_proto_unregister
-#    define pbx_rtp_glue_register ast_rtp_glue_register
-#    define pbx_rtp_glue_unregister ast_rtp_glue_unregister
 
 // general redefinitions
 #    define pbx_check_hangup ast_check_hangup
@@ -81,13 +77,21 @@ enum {
 #    define pbx_moh_stop ast_moh_stop
 
 #    if ASTERISK_VERSION_NUM < 10400
-#       define pbx_channel_alloc(_x, ...) ast_channel_alloc(_x);
-#	define pbx_jb_configure(...) 
-#	define pbx_null_frame NULL
+#        define pbx_channel_alloc(_x, ...) ast_channel_alloc(_x)
+#        define pbx_null_frame NULL
+#        define pbx_jb_configure(...)
+#        define pbx_rtp_proto_register(...)
+#        define pbx_rtp_proto_unregister(...)
+#        define pbx_rtp_glue_register(...)
+#        define pbx_rtp_glue_unregister(...)
 #    else
-#	define pbx_channel_alloc ast_channel_alloc
-#	define pbx_jb_configure ast_jb_configure
-#	define pbx_null_frame ast_null_frame
+#        define pbx_channel_alloc ast_channel_alloc
+#        define pbx_null_frame ast_null_frame
+#        define pbx_jb_configure ast_jb_configure
+#        define pbx_rtp_proto_register ast_rtp_proto_register
+#        define pbx_rtp_proto_unregister ast_rtp_proto_unregister
+#        define pbx_rtp_glue_register ast_rtp_glue_register
+#        define pbx_rtp_glue_unregister ast_rtp_glue_unregister
 #    endif
 
 // Differences in functions between 1.6 and 1.8
