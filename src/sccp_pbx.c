@@ -1689,6 +1689,8 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 		/* Answer dialplan command works only when in RINGING OR RING ast_state */
 		sccp_ast_setstate(c, AST_STATE_RING);
 		if (ast_pbx_start(chan)) {
+			/* \todo actually the next line is not correct. ast_pbx_start returns false when it was not able to start a new thread correcly */
+			ast_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 		}
 #ifdef CS_MANAGER_EVENTS
@@ -1714,11 +1716,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 void sccp_pbx_senddigit(sccp_channel_t * c, char digit)
 {
 	struct ast_frame f;
-#if ASTERISK_VERSION_NUM >= 10400
 	f = pbx_null_frame;
-#else
-	f = NULL;
-#endif										// ASTERISK_VERSION_NUM >= 10400
 	f.frametype = AST_FRAME_DTMF;
 	f.src = "SCCP";
 	f.subclass = digit;
