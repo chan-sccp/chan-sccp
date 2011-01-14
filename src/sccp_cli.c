@@ -23,6 +23,13 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/cli.h>
+
+#if ASTERISK_VERSION_NUM >= 10600
+#define ASTCONST 
+#else
+#define ASTCONST const
+#endif
+
 /* --- CLI Tab Completion ---------------------------------------------------------------------------------------------- */
 /*!
  * \brief Complete Device
@@ -37,11 +44,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \lock
  * 	- devices
  */
-#if ASTERISK_VERSION_NUM >= 10600
-static char *sccp_complete_device(char *line, char *word, int pos, int state)
-#else
-static char *sccp_complete_device(const char *line, const char *word, int pos, int state)
-#endif
+static char *sccp_complete_device(ASTCONST char *line, ASTCONST char *word, int pos, int state)
 {
 	sccp_device_t *d;
 	int which = 0;
@@ -77,11 +80,7 @@ static char *sccp_complete_device(const char *line, const char *word, int pos, i
  * \lock
  * 	- lines
  */
-#if ASTERISK_VERSION_NUM >= 10600
-static char *sccp_complete_line(char *line, char *word, int pos, int state)
-#else
-static char *sccp_complete_line(const char *line, const char *word, int pos, int state)
-#endif
+static char *sccp_complete_line(ASTCONST char *line, ASTCONST char *word, int pos, int state)
 {
 	sccp_line_t *l;
 	int which = 0;
@@ -104,7 +103,6 @@ static char *sccp_complete_line(const char *line, const char *word, int pos, int
 	return ret;
 }
 
-#if ASTERISK_VERSION_NUM >= 10600
 /*!
  * \brief Complete Debug
  * \param line Line as char
@@ -115,10 +113,7 @@ static char *sccp_complete_line(const char *line, const char *word, int pos, int
  * 
  * \called_from_asterisk
  */
-static char *sccp_complete_debug(char *line, char *word, int pos, int state)
-#else
-static char *sccp_complete_debug(const char *line, const char *word, int pos, int state)
-#endif
+static char *sccp_complete_debug(ASTCONST char *line, ASTCONST char *word, int pos, int state)
 {
 	uint8_t i;
 	int which = 0;
@@ -163,6 +158,7 @@ static char *sccp_complete_debug(const char *line, const char *word, int pos, in
 	}
 	return ret;
 }
+#undef ASTCONST
 
 /* --- Support Functions ---------------------------------------------------------------------------------------------- */
 
@@ -220,9 +216,6 @@ static int sccp_show_globals(int fd, int argc, char *argv[])
 	char cap_buf[512];
 	char buf[256];
 	char *debugcategories;
-#if ASTERISK_VERSION_NUM < 10400
-	char iabuf[INET_ADDRSTRLEN];
-#endif
 
 	sccp_globals_lock(lock);
 	ast_codec_pref_string(&GLOB(global_codecs), pref_buf, sizeof(pref_buf) - 1);
@@ -327,10 +320,6 @@ static int sccp_show_devices(int fd, int argc, char *argv[])
 	struct tm 	*timeinfo;
 	char 		buffer[25];
 
-
-#if ASTERISK_VERSION_NUM < 10400
-	char iabuf[INET_ADDRSTRLEN];
-#endif
       
 	ast_cli(fd, "\n%-40s %-20s %-16s %-10s %-20s\n", "NAME", "ADDRESS", "MAC", "Reg. State", "Reg. Time");
 	ast_cli(fd, "======================================== ==================== ================ ========== =========================\n");
@@ -788,9 +777,6 @@ static int sccp_show_sessions(int fd, int argc, char *argv[])
 {
 	sccp_session_t *s = NULL;
 	sccp_device_t *d = NULL;
-#if ASTERISK_VERSION_NUM < 10400
-	char iabuf[INET_ADDRSTRLEN];
-#endif
 
 	ast_cli(fd, "%-10s %-15s %-4s %-15s %-15s %-15s\n", "Socket", "IP", "KA", "DEVICE", "STATE", "TYPE");
 	ast_cli(fd, "========== =============== ==== =============== =============== ===============\n");
