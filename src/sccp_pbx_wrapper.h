@@ -36,11 +36,11 @@ enum {
 #    endif
 
 #    if ASTERISK_VERSION_NUM >= 10600
-#        define NEWCONST							// old functions used without const
-#        define OLDCONST const							// new function used with const
-#    else
 #        define NEWCONST const							// old functions used without const
-#        define OLDCONST							// new function used with const
+#        define OLDCONST 							// new function used with const
+#    else
+#        define NEWCONST 							// old functions used without const
+#        define OLDCONST const							// new function used with const
 #    endif
 
 // sccp redefinitions
@@ -83,9 +83,11 @@ enum {
 #    if ASTERISK_VERSION_NUM < 10400
 #       define pbx_channel_alloc(_x, ...) ast_channel_alloc(_x);
 #	define pbx_jb_configure(...) 
+#	define pbx_null_frame NULL
 #    else
 #	define pbx_channel_alloc ast_channel_alloc
 #	define pbx_jb_configure ast_jb_configure
+#	define pbx_null_frame ast_null_frame
 #    endif
 
 // Differences in functions between 1.6 and 1.8
@@ -117,7 +119,7 @@ int set_pbx_callerid(struct ast_channel *ast_chan, sccp_callinfo_t * callInfo);
 // replacement implementations
 struct ast_channel *pbx_channel_walk_locked(struct ast_channel *target);
 
-struct ast_ha *pbx_append_ha(OLDCONST char *sense, const char *stuff, struct ast_ha *path, int *error);
+struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast_ha *path, int *error);
 
 struct ast_context *pbx_context_find_or_create(struct ast_context **extcontexts, struct ast_hashtab *exttable, const char *name, const char *registrar);
 
