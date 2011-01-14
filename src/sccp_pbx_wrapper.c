@@ -441,6 +441,27 @@ void pbxman_send_listack(struct mansession *s, const struct message *m, char *ms
 	astman_send_listack(s, m, msg, listflag);
 #    endif
 }
+
+/*!
+ * \brief Turn on music on hold on a given channel 
+ * \note replacement for ast_moh_start
+ *
+ * \param chan The channel structure that will get music on hold
+ * \param mclass The class to use if the musicclass is not currently set on
+ *               the channel structure.
+ * \param interpclass The class to use if the musicclass is not currently set on
+ *                    the channel structure or in the mclass argument.
+ *
+ * \retval Zero on success
+ * \retval non-zero on failure
+ */
+int pbx_moh_start(struct ast_channel *chan, const char *mclass, const char *interpclass) {
+#    if ASTERISK_VERSION_NUM < 10400
+		return ast_moh_start(chan, interpclass);
+#    else
+		return ast_moh_start(chan, mclass, interpclass);
+#    endif
+}
 /***************************************************************************************************************** RTP **/
 /*!
  * \brief pbx rtp get peer

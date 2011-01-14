@@ -78,10 +78,7 @@ enum {
 #define pbx_db_gettree ast_db_gettree
 #define pbx_db_put ast_db_put
 #define pbx_db_get ast_db_get
-
-// Differences in functions between 1.4 and 1.6
-// struct ast_ha *ast_append_ha(char *sense, const char *stuff, struct ast_ha *path);
-// struct ast_ha *ast_append_ha(const char *sense, const char *stuff, struct ast_ha *path, int *error);
+#define pbx_moh_stop ast_moh_stop
 
 // Differences in functions between 1.6 and 1.8
 // enum ast_extension_states {
@@ -96,7 +93,6 @@ enum {
 // int ast_canmatch_extension(struct ast_channel *c, const char *context,
 // int ast_matchmore_extension(struct ast_channel *c, const char *context,
 // int ast_ignore_pattern(const char *context, const char *pattern);
-// struct ast_ha *ast_append_ha(const char *sense, const char *stuff, struct ast_ha *path, int *error);
 // struct ast_ha *ast_duplicate_ha_list(struct ast_ha *original);
 // char *ast_read_textfile(const char *file);
 // int ast_db_deltree(const char *family, const char *keytree);
@@ -120,6 +116,7 @@ int pbx_str2cos(const char *value, unsigned int *cos);
 int pbx_str2tos(const char *value, unsigned int *tos);
 int pbx_context_remove_extension(const char *context, const char *extension, int priority, const char *registrar);
 void pbxman_send_listack(struct mansession *s, const struct message *m, char *msg, char *listflag);
+int pbx_moh_start(struct ast_channel *chan, const char *mclass, const char *interpclass);
 int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *them);
 void pbx_rtp_set_peer(struct ast_rtp *rtp, struct sockaddr_in *them);
 

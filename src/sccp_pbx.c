@@ -959,15 +959,11 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 #ifdef CS_AST_CONTROL_HOLD
 		/* when the bridged channel hold/unhold the call we are notified here */
 	case AST_CONTROL_HOLD:
-#    if ASTERISK_VERSION_NUM < 10400
-		ast_moh_start(ast, c->musicclass);
-#    else
-		ast_moh_start(ast, data, c->musicclass);
-#    endif									// ASTERISK_VERSION_NUM < 10400
+		pbx_moh_start(ast, data, c->musicclass);
 		res = 0;
 		break;
 	case AST_CONTROL_UNHOLD:
-		ast_moh_stop(ast);
+		pbx_moh_stop(ast);
 		RTP_NEW_SOURCE(c, "Source Update");
 		res = 0;
 		break;

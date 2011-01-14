@@ -1785,7 +1785,7 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * c)
 #ifdef CS_AST_HAS_FLAG_MOH
 	bridged = CS_AST_BRIDGED_CHANNEL(c->owner);
 	if (bridged && ast_test_flag(bridged, AST_FLAG_MOH)) {
-		ast_moh_stop(bridged);
+		pbx_moh_stop(bridged);
 		ast_clear_flag(bridged, AST_FLAG_MOH);
 	}
 #endif
@@ -1849,14 +1849,10 @@ int sccp_channel_hold_locked(sccp_channel_t * c)
 	peer = CS_AST_BRIDGED_CHANNEL(c->owner);
 
 	if (peer) {
-#if ASTERISK_VERSION_NUM < 10400
-		ast_moh_start(peer, NULL);
-#else
 #    ifdef CS_AST_RTP_NEW_SOURCE
 		ast_rtp_new_source(c->rtp.audio.rtp);
 #    endif
-		ast_moh_start(peer, NULL, l->musicclass);
-#endif
+		pbx_moh_start(peer, NULL, l->musicclass);
 
 #ifdef CS_AST_HAS_FLAG_MOH
 		ast_set_flag(peer, AST_FLAG_MOH);
@@ -1969,7 +1965,7 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c)
 	struct ast_channel *peer;
 	peer = CS_AST_BRIDGED_CHANNEL(c->owner);
 	if (peer) {
-		ast_moh_stop(peer);
+		pbx_moh_stop(peer);
 #ifdef CS_AST_RTP_NEW_SOURCE
 		if (c->rtp.audio.rtp)
 			ast_rtp_new_source(c->rtp.audio.rtp);
@@ -2413,11 +2409,7 @@ static void *sccp_channel_transfer_ringing_thread(void *data)
 		ast_indicate(ast, AST_CONTROL_RINGING);
 	} else if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_MOH) {
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Started music on hold for channel %s(%p)\n", ast->name, (void *)ast);
-#if ASTERISK_VERSION_NUM < 10400
-		ast_moh_start(ast, NULL);
-#else
-		ast_moh_start(ast, NULL, NULL);
-#endif
+		pbx_moh_start(ast, NULL, NULL);
 	}
 	pbx_channel_unlock(ast);
 	return NULL;
