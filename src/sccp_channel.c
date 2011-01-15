@@ -771,6 +771,7 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 	}
 
 	if (rtp) {
+	        ast_rtp_get_us(rtp, &us);
 		ast_rtp_get_peer(rtp, &them);
 
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Stop media transmission on channel %d\n", DEV_ID_LOG(d), c->callid);
@@ -794,31 +795,11 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 		c->format = fmt.bits;						/* updating channel format */
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Setting payloadType to '%d' (%d ms)\n", DEV_ID_LOG(d), fmt.bits, fmt.cur_ms);
 
-		r->msg.StartMediaTransmission.lel_conferenceId = htolel(c->callid);
-		r->msg.StartMediaTransmission.lel_passThruPartyId = htolel(c->callid);
-
 		if (d->inuseprotocolversion < 17) {
 			REQ(r, StartMediaTransmission);
 			r->msg.StartMediaTransmission.lel_conferenceId = htolel(c->callid);
 			r->msg.StartMediaTransmission.lel_passThruPartyId = htolel(c->callid);
 			r->msg.StartMediaTransmission.lel_conferenceId1 = htolel(c->callid);
-		} else {
-			r = sccp_build_packet(StartMediaTransmission, sizeof(r->msg.StartMediaTransmission_v17));
-			r->msg.StartMediaTransmission_v17.lel_conferenceId = htolel(c->callid);
-			r->msg.StartMediaTransmission_v17.lel_passThruPartyId = htolel(c->callid);
-			r->msg.StartMediaTransmission_v17.lel_conferenceId1 = htolel(c->callid);
-		}
-		if (d->inuseprotocolversion < 17) {
-			if (!d->directrtp || d->nat) {
-				ast_rtp_get_us(rtp, &us);
-				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17 / No DirectRTP & NAT) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
-				memcpy(&r->msg.StartMediaTransmission.bel_remoteIpAddr, &us.sin_addr, 4);
-				r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(us.sin_port));
-			} else {
-				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
-				memcpy(&r->msg.StartMediaTransmission.bel_remoteIpAddr, &them.sin_addr, 4);
-				r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(them.sin_port));
-			}
 			r->msg.StartMediaTransmission.lel_millisecondPacketSize = htolel(fmt.cur_ms);
 			r->msg.StartMediaTransmission.lel_payloadType = htolel(sccp_codec_ast2skinny(fmt.bits));
 			r->msg.StartMediaTransmission.lel_precedenceValue = htolel(l->audio_tos);
@@ -826,16 +807,10 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 			r->msg.StartMediaTransmission.lel_maxFramesPerPacket = htolel(0);
 			r->msg.StartMediaTransmission.lel_rtptimeout = htolel(10);
 		} else {
-			if (!d->directrtp || d->nat) {
-				ast_rtp_get_us(rtp, &us);
-				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol>17 / No DirectRTP & NAT) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
-				memcpy(&r->msg.StartMediaTransmission_v17.bel_remoteIpAddr, &us.sin_addr, 4);
-				r->msg.StartMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(us.sin_port));
-			} else {
-				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol>17) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
-				memcpy(&r->msg.StartMediaTransmission_v17.bel_remoteIpAddr, &them.sin_addr, 4);
-				r->msg.StartMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(them.sin_port));
-			}
+			r = sccp_build_packet(StartMediaTransmission, sizeof(r->msg.StartMediaTransmission_v17));
+			r->msg.StartMediaTransmission_v17.lel_conferenceId = htolel(c->callid);
+			r->msg.StartMediaTransmission_v17.lel_passThruPartyId = htolel(c->callid);
+			r->msg.StartMediaTransmission_v17.lel_conferenceId1 = htolel(c->callid);
 			r->msg.StartMediaTransmission_v17.lel_millisecondPacketSize = htolel(fmt.cur_ms);
 			r->msg.StartMediaTransmission_v17.lel_payloadType = htolel(sccp_codec_ast2skinny(fmt.bits));
 			r->msg.StartMediaTransmission_v17.lel_precedenceValue = htolel(l->audio_tos);
@@ -843,6 +818,16 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 			r->msg.StartMediaTransmission_v17.lel_maxFramesPerPacket = htolel(0);
 			r->msg.StartMediaTransmission_v17.lel_rtptimeout = htolel(10);
 		}
+                if (!d->directrtp || d->nat) {
+                        sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17 / No DirectRTP & NAT) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
+//                        r->msg.StartMediaTransmission.bel_remoteIpAddr = htolel(d->session->ourip.s_addr);
+                        r->msg.StartMediaTransmission.bel_remoteIpAddr = htolel(us.sin_addr.s_addr);
+                        r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(us.sin_port));
+                } else {
+                        sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
+                        r->msg.StartMediaTransmission.bel_remoteIpAddr = htolel(them.sin_addr.s_addr);
+                        r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(them.sin_port));
+                }
 		sccp_dev_send(d, r);
 		c->mediaStatus.transmit = TRUE;
 
