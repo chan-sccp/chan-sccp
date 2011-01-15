@@ -489,14 +489,40 @@ int pbx_moh_start(struct ast_channel *chan, const char *mclass, const char *inte
 
 /*!
  * \brief pbx rtp get peer
+ * Copies from rtp to them and returns 1 if there was a change or 0 if it was already the same
  * \note replacement for ast_rtp_get_peer
  * \param rtp Asterisk RTP Struct
  * \param them Socket Addr_in of the Peer
  * \return int
  */
-int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *them)
+int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *addr)
 {
-	return ast_rtp_get_peer(rtp, them);
+#if ASTERISK_VERSION_NUM >= 10800
+	struct ast_sockaddr addr_tmp;
+	ast_rtp_instance_get_remote_address(rtp, &addr_tmp);
+	ast_sockaddr_to_sin(&addr_tmp, &addr);
+	return addr.sin_addr.s_addr;
+#else
+	return ast_rtp_get_peer(rtp, addr);
+#endif
+}
+
+/*!
+ * \brief pbx rtp get us
+ * \note replacement for ast_rtp_get_peer
+ * \param rtp Asterisk RTP Struct
+ * \param them Socket Addr_in of the Peer
+ * \return int
+ */
+void pbx_rtp_get_us(struct ast_rtp *rtp, struct sockaddr_in *addr)
+{
+#if ASTERISK_VERSION_NUM >= 10800
+	struct ast_sockaddr addr_tmp;
+	ast_rtp_instance_get_local_address(rtp, &addr_tmp);
+	ast_sockaddr_to_sin(&addr_tmp, &addr);
+#else
+	ast_rtp_get_us(rtp, addr);
+#endif
 }
 
 /*!
@@ -505,7 +531,15 @@ int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *them)
  * \param rtp Asterisk RTP Struct
  * \param them Socket Addr_in of the Peer
  */
-void pbx_rtp_set_peer(struct ast_rtp *rtp, struct sockaddr_in *them)
+void pbx_rtp_set_peer(struct ast_rtp *rtp, struct sockaddr_in *addr)
 {
-	ast_rtp_set_peer(rtp, them);
+#if ASTERISK_VERSION_NUM >= 10800
+	struct ast_sockaddr addr_tmp;
+	ast_sockaddr_from_sin(&addr_tmp, &addr);
+	ast_rtp_instance_set_remote_address(rtp, &addr_tmp);
+#else
+	ast_rtp_set_peer(rtp, addr);
+#endif
 }
+
+

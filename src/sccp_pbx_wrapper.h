@@ -147,8 +147,8 @@ void pbxman_send_listack(struct mansession *s, const struct message *m, char *ms
 
 int pbx_moh_start(struct ast_channel *chan, const char *mclass, const char *interpclass);
 
-int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *them);
-
-void pbx_rtp_set_peer(struct ast_rtp *rtp, struct sockaddr_in *them);
+int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *addr);
+void pbx_rtp_get_us(struct ast_rtp *rtp, struct sockaddr_in *addr);
+void pbx_rtp_set_peer(struct ast_rtp *rtp, struct sockaddr_in *addr);
 
 #endif

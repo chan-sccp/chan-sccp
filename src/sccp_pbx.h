@@ -53,10 +53,6 @@ static void sccp_pbx_update_connectedline(sccp_channel_t * channel, const void *
 #    endif									// CS_AST_CONTROL_CONNECTED_LINE
 
 int sccp_pbx_transfer(struct ast_channel *ast, const char *dest);
-#    if ASTERISK_VERSION_NUM >= 10600
-int acf_channel_read(struct ast_channel *ast, const char *funcname, char *args, char *buf, size_t buflen);
-#    else
-int acf_channel_read(struct ast_channel *ast, char *funcname, char *args, char *buf, size_t buflen);
-#    endif									// ASTERISK_VERSION_NUM >= 10600
 
+int acf_channel_read(struct ast_channel *ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen);
 #endif										// __SCCP_PBX_H

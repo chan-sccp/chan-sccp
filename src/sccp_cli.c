@@ -405,6 +405,8 @@ static int sccp_show_device(int fd, int argc, char *argv[])
 	ast_cli(fd, "Videosupport?      : %s\n", sccp_device_isVideoSupported(d) ? "Yes" : "No");
 	ast_cli(fd, "Direct RTP         : %s\n", (d->directrtp) ? "Yes" : "No");
 	ast_cli(fd, "Trust phone ip     : %s\n", (d->trustphoneip) ? "Yes" : "No");
+	ast_cli(fd, "Bind Address       : %s:%d\n", 	(d->session) ? pbx_inet_ntoa(d->session->sin.sin_addr) : "???.???.???.???",
+							(d->session) ? ntohs(d->session->sin.sin_port) : 0);
 	ast_cli(fd, "Early RTP          : %s\n", (d->earlyrtp) ? "Yes" : "No");
 	ast_cli(fd, "Device State (Acc.): %s\n", accessorystatus2str(d->accessorystatus));
 	ast_cli(fd, "Last Used Accessory: %s\n", accessory2str(d->accessoryused));
