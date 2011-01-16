@@ -1044,6 +1044,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		sccp_channel_t *parentChannel;					/*!< if we are a cfwd channel, our parent is this */
 
 		struct subscriptionId subscriptionId;
+		unsigned int peerIsSCCP:1;					/*!< Indicates that channel-peer is also SCCP */
 	};									/*!< SCCP Channel Structure */
 
 /*!

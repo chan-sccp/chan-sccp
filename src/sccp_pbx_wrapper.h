@@ -94,6 +94,13 @@ enum {
 #        define pbx_rtp_glue_unregister ast_rtp_glue_unregister
 #    endif
 
+#    if ASTERISK_VERSION_NUM < 10600
+#        define pbx_rtp_change_source ast_rtp_new_source
+#        define pbx_rtp_new_source ast_rtp_new_source
+#    else
+#        define pbx_rtp_change_source ast_rtp_change_source
+#        define pbx_rtp_new_source ast_rtp_new_source
+#    endif
 // Differences in functions between 1.6 and 1.8
 // enum ast_extension_states {
 // typedef int (*ast_state_cb_type)(char *context, char* id, enum ast_extension_states state, void *data);

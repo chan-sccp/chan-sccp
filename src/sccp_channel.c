@@ -101,6 +101,7 @@ sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * de
 	sccp_mutex_unlock(&callCountLock);
 
 	c->line = l;
+	c->peerIsSCCP = 0;
 	c->isCodecFix = FALSE;
 	c->device = device;
 	sccp_channel_updateChannelCapability_locked(c);
@@ -657,19 +658,38 @@ enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struc
 	}
 
 	*rtp = c->rtp.audio.rtp;
+	
 	if (!(d = c->device)) {
 		sccp_log((DEBUGCAT_RTP | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO DEVICE\n");
 		return AST_RTP_GET_FAILED;
 	}
 
+	struct sockaddr_in us;
+	struct sockaddr_in them;
+        ast_rtp_get_us(*rtp, &us);
+	ast_rtp_get_peer(*rtp, &them);
+
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Get the RTP us media address to %s:%d\n", d->id, pbx_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
+	/* Set peer information if not set already (for directrtp)*/
+	if (ntohs(them.sin_port) == 0) {
+                them.sin_family = AF_INET;
+                
+                /* \todo if trustphoneip, the phone should be asked via open_receive_channel */
+                memcpy(&them.sin_addr, &d->session->sin.sin_addr, sizeof(them.sin_addr));
+                them.sin_port = d->session->sin.sin_port;
+                ast_rtp_set_peer(c->rtp.audio.rtp, &them);
+                memcpy(&c->rtp.audio.peer, &them, sizeof(c->rtp.audio.peer));
+                sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Set the RTP them media address to %s:%d\n", d->id, pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
+	}
+	
 	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
 		return AST_RTP_GET_FAILED;
 	}
 
 	if (!d->directrtp) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Direct RTP disabled\n");
-		return AST_RTP_GET_FAILED;
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", ast->name);
+		return AST_RTP_TRY_PARTIAL;
 	}
 
 	if (d->nat) {
@@ -692,24 +712,58 @@ enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struc
  * \called_from_asterisk
  */
 #ifndef CS_AST_HAS_RTP_ENGINE
+#define _RTP_GET_FAILED AST_RTP_GET_FAILED
 enum ast_rtp_get_result sccp_channel_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp **rtp)
 #else
+#define _RTP_GET_FAILED AST_RTP_GLUE_RESULT_FORBID
 enum ast_rtp_glue_result sccp_channel_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp_instance **rtp)
 #endif
 {
 	sccp_channel_t *c = NULL;
+	sccp_device_t *d = NULL;
+	enum ast_rtp_get_result res = AST_RTP_TRY_NATIVE;
+
 	if (!(c = CS_AST_CHANNEL_PVT(ast)) || !(c->rtp.video.rtp)) {
-#ifndef CS_AST_HAS_RTP_ENGINE
-		return AST_RTP_GET_FAILED;
-#else
-		return AST_RTP_GLUE_RESULT_FORBID;
-#endif
+	        return _RTP_GET_FAILED;
 	}
 #ifdef CS_AST_HAS_RTP_ENGINE
 	ao2_ref(c->rtp.video, +1);
 #endif
 	*rtp = c->rtp.video.rtp;
-	return AST_RTP_TRY_PARTIAL;
+
+	struct sockaddr_in them;
+	ast_rtp_get_peer(*rtp, &them);
+
+	/* Set channel peer information if not set already (for directrtp & NATIVE BRIDGE)*/
+	if (ntohs(them.sin_port) == 0) {
+                them.sin_family = AF_INET;
+                
+                /* \todo if trustphoneip, the phone should be asked via open_receive_channel */
+                memcpy(&them.sin_addr, &d->session->sin.sin_addr, sizeof(them.sin_addr));
+                them.sin_port = d->session->sin.sin_port;
+                ast_rtp_set_peer(c->rtp.video.rtp, &them);
+                memcpy(&c->rtp.video.peer, &them, sizeof(c->rtp.video.peer));
+                sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Set the RTP video them media address to %s:%d\n", d->id, pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
+	}
+
+	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_vrtp_peer) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
+	        return _RTP_GET_FAILED;
+	}
+
+	if (!d->directrtp) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", ast->name);
+		return AST_RTP_TRY_PARTIAL;
+	}
+
+	if (d->nat) {
+		res = AST_RTP_TRY_PARTIAL;
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_vrtp_peer) Using AST_RTP_TRY_PARTIAL for channel %s\n", ast->name);
+	} else {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_vrtp_peer) Using AST_RTP_TRY_NATIVE for channel %s\n", ast->name);
+	}
+	
+	return res;
 }
 
 #if ASTERISK_VERSION_NUM >= 10400 && ASTERISK_VERSION_NUM < 10600
@@ -806,6 +860,15 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 			r->msg.StartMediaTransmission.lel_ssValue = htolel(l->silencesuppression);	// Silence supression
 			r->msg.StartMediaTransmission.lel_maxFramesPerPacket = htolel(0);
 			r->msg.StartMediaTransmission.lel_rtptimeout = htolel(10);
+                        if (!d->directrtp || d->nat) {
+                                sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17 / No DirectRTP & NAT) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
+                                r->msg.StartMediaTransmission.bel_remoteIpAddr = htolel(d->session->ourip.s_addr);
+                                r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(us.sin_port));
+                        } else {
+                                sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
+                                r->msg.StartMediaTransmission.bel_remoteIpAddr = htolel(them.sin_addr.s_addr);
+                                r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(them.sin_port));
+                        }
 		} else {
 			r = sccp_build_packet(StartMediaTransmission, sizeof(r->msg.StartMediaTransmission_v17));
 			r->msg.StartMediaTransmission_v17.lel_conferenceId = htolel(c->callid);
@@ -817,17 +880,16 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 			r->msg.StartMediaTransmission_v17.lel_ssValue = htolel(l->silencesuppression);	// Silence supression
 			r->msg.StartMediaTransmission_v17.lel_maxFramesPerPacket = htolel(0);
 			r->msg.StartMediaTransmission_v17.lel_rtptimeout = htolel(10);
+                        if (!d->directrtp || d->nat) {
+                                sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17 / No DirectRTP & NAT) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
+                                memcpy(&r->msg.StartMediaTransmission_v17.bel_remoteIpAddr, &d->session->ourip.s_addr, 4);
+                                r->msg.StartMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(us.sin_port));
+                        } else {
+                                sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
+                		memcpy(&r->msg.StartMediaTransmission_v17.bel_remoteIpAddr, &them.sin_addr, 4);
+                                r->msg.StartMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(them.sin_port));
+                        }
 		}
-                if (!d->directrtp || d->nat) {
-                        sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17 / No DirectRTP & NAT) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
-//                        r->msg.StartMediaTransmission.bel_remoteIpAddr = htolel(d->session->ourip.s_addr);
-                        r->msg.StartMediaTransmission.bel_remoteIpAddr = htolel(us.sin_addr.s_addr);
-                        r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(us.sin_port));
-                } else {
-                        sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
-                        r->msg.StartMediaTransmission.bel_remoteIpAddr = htolel(them.sin_addr.s_addr);
-                        r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(them.sin_port));
-                }
 		sccp_dev_send(d, r);
 		c->mediaStatus.transmit = TRUE;
 
@@ -1245,7 +1307,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 	if (!(d = c->device))
 		return;
 
-	ast_rtp_get_us(c->rtp.audio.rtp, &sin);
+        ast_rtp_get_us(c->rtp.audio.rtp, &sin);
 
 	if (d->inuseprotocolversion < 17) {
 		REQ(r, StartMediaTransmission);
@@ -2093,7 +2155,7 @@ boolean_t sccp_channel_start_rtp_locked(sccp_channel_t * c)
 	sccp_session_t *s;
 	sccp_line_t *l = NULL;
 	sccp_device_t *d = NULL;
-	boolean_t isVideoSupported = TRUE;
+	boolean_t isVideoSupported = True;
 	char pref_buf[128];
 
 	if (!c)
@@ -2110,7 +2172,8 @@ boolean_t sccp_channel_start_rtp_locked(sccp_channel_t * c)
 	else
 		return FALSE;
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: do we have video support? %s\n", d->id, isVideoSupported ? "yes" : "no");
+        // We don't need to alarm anybody unnecessary
+//	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: do we have video support? %s\n", d->id, isVideoSupported ? "yes" : "no");
 
 /* No need to lock, because already locked in the sccp_indicate.c */
 /*	sccp_channel_lock(c); */
@@ -2149,6 +2212,9 @@ boolean_t sccp_channel_start_rtp_locked(sccp_channel_t * c)
 		sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, set pef: %s\n", c->line->name, c->callid, pref_buf);
 	}
 #endif
+
+//        ast_set_flag(c->rtp.audio.rtp, FLAG_HAS_DTMF);
+//        ast_set_flag(c->rtp.audio.rtp, FLAG_P2P_NEED_DTMF);
 
 	if (c->rtp.audio.rtp) {
 #if ASTERISK_VERSION_NUM >= 10600

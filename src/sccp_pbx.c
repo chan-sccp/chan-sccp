@@ -23,11 +23,17 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #ifdef CS_AST_RTP_NEW_SOURCE
 #    define RTP_NEW_SOURCE(_c,_log) 								\
 if(c->rtp.audio.rtp) { 										\
-	ast_rtp_new_source(c->rtp.audio.rtp); 							\
+	pbx_rtp_new_source(c->rtp.audio.rtp); 							\
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: " #_log "\n"); 	\
+}
+#    define RTP_CHANGE_SOURCE(_c,_log) 								\
+if(c->rtp.audio.rtp) {										\
+	pbx_rtp_change_source(c->rtp.audio.rtp);						\
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: " #_log "\n"); 	\
 }
 #else
 #    define RTP_NEW_SOURCE(_c,_log)
+#    define RTP_CHANGE_SOURCE(_c,_log)
 #endif
 
 /* Structure to pass data to the thread */
@@ -952,7 +958,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 				}
 			}
 		}
-		RTP_NEW_SOURCE(c, "Source Update: RTP NEW SOURCE");
+		RTP_CHANGE_SOURCE(c, "Source Update: RTP NEW SOURCE");
 		res = 0;
 		break;
 #endif										//defined(CS_AST_CONTROL_SRCCHANGE) || defined(CS_AST_CONTROL_SRCUPDATE)
@@ -1078,7 +1084,6 @@ static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit, unsigned 
 {
 	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
 	sccp_device_t *d = NULL;
-	uint8_t instance;
 
 	return -1;
 
@@ -1094,26 +1099,12 @@ static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit, unsigned 
 		return -1;
 	}
 
+/* 
 	if (d->dtmfmode == SCCP_DTMFMODE_INBAND)
 		return -1;
+*/
+	sccp_dev_keypadbutton(c->device, digit, sccp_device_find_index_for_line(c->device, c->line->name), c->callid);
 
-	if (digit == '*') {
-		digit = 0xe;							/* See the definition of tone_list in chan_protocol.h for more info */
-	} else if (digit == '#') {
-		digit = 0xf;
-	} else if (digit == '0') {
-		digit = 0xa;							/* 0 is not 0 for cisco :-) */
-	} else {
-		digit -= '0';
-	}
-
-	if (digit > 16) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Cisco phones can't play this type of dtmf. Sending it inband\n", d->id);
-		return -1;
-	}
-
-	instance = sccp_device_find_index_for_line(c->device, c->line->name);
-	sccp_dev_starttone(c->device, (uint8_t) digit, instance, c->callid, 0);
 	return 0;
 }
 
@@ -1855,7 +1846,7 @@ const struct ast_channel_tech sccp_tech = {
 #    else
 	.send_digit_begin = sccp_pbx_recvdigit_begin,
 	.send_digit_end = sccp_pbx_recvdigit_end,
-	.bridge = ast_rtp_bridge,
+	.bridge = wrap_rtp_bridge,
 
 	.transfer = sccp_pbx_transfer,						// new >1.4.0
 	.func_channel_read = acf_channel_read,					// new
@@ -1868,6 +1859,47 @@ const struct ast_channel_tech sccp_tech = {
 #    endif									// ASTERISK_VERSION_NUM >= 10600
 };
 #endif										// CS_AST_HAS_TECH_PVT
+
+#if ASTERISK_VERSION_NUM > 10400
+enum ast_bridge_result wrap_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo,  struct ast_channel **rc, int timeoutms) {
+	enum ast_bridge_result res;
+	sccp_channel_t *sc0, *sc1;
+
+	int new_flags=flags;
+	if ((sc0=get_sccp_channel_from_ast_channel(c0)) && (sc1=get_sccp_channel_from_ast_channel(c1))) {
+		// Switch off DTMF between SCCP phones
+		new_flags &= !AST_BRIDGE_DTMF_CHANNEL_0;
+		new_flags &= !AST_BRIDGE_DTMF_CHANNEL_1;
+		if ((sc0->device->directrtp && sc1->device->directrtp) || GLOB(directrtp)) {
+			ast_channel_defer_dtmf(c0);
+			ast_channel_defer_dtmf(c1);
+		}
+		sc0->peerIsSCCP=1;
+		sc1->peerIsSCCP=1;
+	} else {
+		// Switch on DTMF between differing channels
+		ast_channel_undefer_dtmf(c0);
+		ast_channel_undefer_dtmf(c1);
+	}
+	res = ast_rtp_bridge(c0, c1, new_flags, fo, rc, timeoutms);
+	switch (res) {
+		case AST_BRIDGE_COMPLETE:
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "SCCP: Bridge chan %s and chan %s: Complete\n", c0->name, c1->name);
+			break;
+		case AST_BRIDGE_FAILED:
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "SCCP: Bridge chan %s and chan %s: Failed\n", c0->name, c1->name);
+			break;
+		case AST_BRIDGE_FAILED_NOWARN:
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "SCCP: Bridge chan %s and chan %s: Failed NoWarn\n", c0->name, c1->name);
+			break;
+		case AST_BRIDGE_RETRY:
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "SCCP: Bridge chan %s and chan %s: Failed Retry\n", c0->name, c1->name);
+			break;
+	}
+	/* \todo Implement callback function queue upon completion */
+	return res;
+}
+#endif // ASTERISK_VERSION_NUM > 10400
 
 /*!
  * \brief Handle Dialplan Transfer
@@ -1955,7 +1987,7 @@ int acf_channel_read(struct ast_channel *ast, NEWCONST char *funcname, char *arg
 
 #ifndef ASTERISK_CONF_1_2
 /*!
- * \brief	Buffer for Jitterbuffer use
+ * \brief Setting parameters for RTP callbacks (no RTP Glue Engine)
  */
 #    ifndef CS_AST_HAS_RTP_ENGINE
 struct ast_rtp_protocol sccp_rtp = {
@@ -1967,7 +1999,7 @@ struct ast_rtp_protocol sccp_rtp = {
 };
 #    else
 /*!
- * \brief using rtp enginge
+ * \brief using RTP Glue Engine
  */
 struct ast_rtp_glue sccp_rtp = {
 	.type = SCCP_TECHTYPE_STR,

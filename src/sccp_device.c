@@ -1942,6 +1942,37 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t * device)
 	return numberOfChannels;
 }
 
+void sccp_dev_keypadbutton(sccp_device_t * d, char digit, uint8_t line, uint32_t callid) {
+	sccp_moo_t * r;
+
+	if (!d || !d->session)
+		return;
+
+	if (digit == '*') {
+		digit = 0xe; /* See the definition of tone_list in chan_protocol.h for more info */
+	} else if (digit == '#') {
+		digit = 0xf;
+	} else if (digit == '0') {
+		digit = 0xa; /* 0 is not 0 for cisco :-) */
+	} else {
+		digit -= '0';
+	}
+
+	if (digit > 16) {
+		sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: SCCP phones can't play this type of dtmf. Sending it inband\n", d->id);
+		return;
+	}
+
+	REQ(r, KeypadButtonMessage);
+	r->msg.KeypadButtonMessage.lel_kpButton = htolel(digit);
+	r->msg.KeypadButtonMessage.lel_lineInstance = htolel(line);
+	r->msg.KeypadButtonMessage.lel_callReference = htolel(callid);
+
+	sccp_dev_send(d, r);
+
+	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: (sccp_dev_keypadbutton) Sending keypad '%02X'\n", DEV_ID_LOG(d), digit);
+}
+
 #ifdef CS_DYNAMIC_CONFIG
 /*!
  * \brief Copy the structure content of one device to a new one
