@@ -52,6 +52,10 @@ int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control);
 static void sccp_pbx_update_connectedline(sccp_channel_t * channel, const void *data, size_t datalen);
 #    endif									// CS_AST_CONTROL_CONNECTED_LINE
 
+#if ASTERISK_VERSION_NUM > 10400
+enum ast_bridge_result wrap_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo,  struct ast_channel **rc, int timeoutms);
+#endif // ASTERISK_VERSION_NUM > 10400
+
 int sccp_pbx_transfer(struct ast_channel *ast, const char *dest);
 
 int acf_channel_read(struct ast_channel *ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen);

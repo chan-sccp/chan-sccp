@@ -1527,8 +1527,14 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (sccp_rtp_bridge) Native bridging '%s' and '%s'\n", c0->name, c1->name);
 
 		// \todo TODO The purpose of this code is obscure and must be clarified (-DD)
-		//sccp_pbx_set_rtp_peer(c0, pvt1->rtp, NULL, NULL, pvt1->device->codecs, 0);
-		//sccp_pbx_set_rtp_peer(c1, pvt0->rtp, NULL, NULL, pvt0->device->codecs, 0);
+		// perform a directrtp exchange between the two phones
+#if ASTERISK_VERSION_NUM >= 10400 && ASTERISK_VERSION_NUM < 10600
+		sccp_channel_set_rtp_peer(c0, pvt1->rtp.audio.rtp, pvt1->rtp.video.rtp, pvt1->device->capability, 0);
+		sccp_channel_set_rtp_peer(c1, pvt0->rtp.audio.rtp, pvt1->rtp.video.rtp, pvt0->device->capability, 0);
+#else
+		sccp_channel_set_rtp_peer(c0, pvt1->rtp.audio.rtp, pvt1->rtp.video.rtp, NULL, pvt1->device->capability, 0);
+		sccp_channel_set_rtp_peer(c1, pvt0->rtp.audio.rtp, pvt1->rtp.video.rtp, NULL, pvt0->device->capability, 0);
+#endif
 
 		res = AST_BRIDGE_FAILED;					//_NOWARN;
 	}

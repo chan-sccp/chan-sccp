@@ -2276,13 +2276,16 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 		status = letohl(r->msg.OpenReceiveChannelAck_v17.lel_orcStatus);
 		memcpy(&ipAddr, &r->msg.OpenReceiveChannelAck_v17.bel_ipAddr, 16);
 	}
+	if (status) {
+        	ast_log(LOG_ERROR, "Open Receive Channel Failure\n");
+	        return;
+	}
 
 	sin.sin_family = AF_INET;
 	if (d->trustphoneip)
 		memcpy(&sin.sin_addr, &ipAddr, sizeof(sin.sin_addr));
 	else
 		memcpy(&sin.sin_addr, &s->sin.sin_addr, sizeof(sin.sin_addr));
-
 	sin.sin_port = ipPort;
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID);
@@ -2293,20 +2296,31 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	c = sccp_channel_find_bypassthrupartyid_locked(partyID);
+
 	/* prevent a segmentation fault on fast hangup after answer, failed voicemail for example */
 	if (c) {								// && c->state != SCCP_CHANNELSTATE_DOWN) {
-		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
+ 		if (status) {
+			c->rtp.audio.status = 0;
 			sccp_channel_unlock(c);
+			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available\n", DEV_ID_LOG(d), status);
+			return;
+		}
+		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
+			c->rtp.audio.status = 0;
+			sccp_channel_unlock(c);
+			ast_log(LOG_WARNING, "%s: (OpenReceiveChannelAck) Invalid Number (%d)\n", DEV_ID_LOG(d), c->state);
 			return;
 		}
 
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
-		memcpy(&c->rtp.audio.addr, &sin, sizeof(sin));
 
 		if (c->rtp.audio.rtp) {
+//			memcpy(&c->rtp.audio.addr, &sin, sizeof(sin));
+
+			ast_rtp_set_peer(c->rtp.audio.rtp, &sin);
+			memcpy(&c->rtp.audio.peer, &sin, sizeof(sin));
 			sccp_channel_startmediatransmission(c);			/*!< Starting Media Transmission Earlier to fix 2 second delay - Copied from v2 - FS */
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
-			ast_rtp_set_peer(c->rtp.audio.rtp, &sin);
 			/* update status */
 			c->rtp.audio.status |= SCCP_RTP_STATUS_RECEIVE;
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
@@ -2315,13 +2329,16 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 			}
 
 		} else {
-			ast_log(LOG_ERROR, "%s: Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
+			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 			sccp_channel_endcall_locked(c);				// FS - 350
 		}
-
 		sccp_channel_unlock(c);
 	} else {
-		ast_log(LOG_ERROR, "%s: No channel with this PassThruId!\n", d->id);
+		if (status) {
+			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available\n", d->id, status);
+		} else {
+			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruId!\n", d->id);
+		}
 	}
 }
 
