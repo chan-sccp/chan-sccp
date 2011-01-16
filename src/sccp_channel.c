@@ -2004,8 +2004,10 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c)
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume the channel %s-%08X\n", d->id, l->name, c->callid);
 
 	struct ast_channel *peer;
+	sccp_channel_t *sccp_peer;
 	peer = CS_AST_BRIDGED_CHANNEL(c->owner);
 	if (peer) {
+	        sccp_peer = get_sccp_channel_from_ast_channel(peer);
 		pbx_moh_stop(peer);
 #ifdef CS_AST_RTP_NEW_SOURCE
 		if (c->rtp.audio.rtp)
@@ -2016,6 +2018,11 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c)
 #ifdef CS_AST_HAS_FLAG_MOH
 		ast_clear_flag(peer, AST_FLAG_MOH);
 #endif
+                /* ugly patch to get directrtp working over native bridge */
+                if (c->device->directrtp && sccp_peer->device->directrtp) {
+                        sccp_channel_startmediatransmission(c);
+                        sccp_channel_startmediatransmission(sccp_peer);
+                }
 	}
 #ifdef CS_AST_CONTROL_HOLD
 #    ifdef CS_AST_RTP_NEW_SOURCE
@@ -2037,6 +2044,7 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c)
 
 	c->state = SCCP_CHANNELSTATE_HOLD;
 	sccp_channel_start_rtp_locked(c);
+	
 	sccp_channel_set_active(d, c);
 #ifdef CS_AST_CONTROL_SRCUPDATE
 	sccp_ast_queue_control(c, AST_CONTROL_SRCUPDATE);			// notify changes e.g codec
@@ -2155,7 +2163,7 @@ boolean_t sccp_channel_start_rtp_locked(sccp_channel_t * c)
 	sccp_session_t *s;
 	sccp_line_t *l = NULL;
 	sccp_device_t *d = NULL;
-	boolean_t isVideoSupported = True;
+//	boolean_t isVideoSupported = TRUE;
 	char pref_buf[128];
 
 	if (!c)
