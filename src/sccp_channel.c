@@ -452,7 +452,7 @@ static void sccp_channel_send_dynamicCallinfo(sccp_device_t * device, sccp_chann
 		}
 		memcpy(&r->msg.CallInfoDynamicMessage.dummy, &buffer[0], bufferSize);
 	}
-	sccp_dump_packet((unsigned char *)&r->msg, hdr_len + dummy_len + padding);
+//	sccp_dump_packet((unsigned char *)&r->msg, hdr_len + dummy_len + padding);
 	sccp_dev_send(device, r);
 }
 
@@ -768,7 +768,7 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 	sccp_channel_t *c = NULL;
 	sccp_line_t *l = NULL;
 	sccp_device_t *d = NULL;
-	sccp_moo_t *r;
+//	sccp_moo_t *r;
 
 	struct ast_format_list fmt;
 	struct sockaddr_in them;
@@ -800,20 +800,16 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
                 
 		if (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) {
                         /* Shutdown any early-media or previous media on re-invite */
-	                sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_set_rtp_peer) Stop media transmission on channel %d\n", DEV_ID_LOG(d), c->callid);
-	                REQ(r, StopMediaTransmission);
-                        r->msg.StopMediaTransmission.lel_conferenceId = htolel(c->callid);
-                        r->msg.StopMediaTransmission.lel_passThruPartyId = htolel(c->passthrupartyid);
-                        r->msg.StopMediaTransmission.lel_conferenceId1 = htolel(c->callid);
-                        sccp_dev_send(d, r);
-                        c->mediaStatus.transmit = FALSE;
 			/* \todo we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait) */
+	                sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_set_rtp_peer) Stop media transmission on channel %d\n", DEV_ID_LOG(d), c->callid);
+			sccp_channel_stopmediatransmission_locked(c);
 		}
 
                 //fmt = pbx_codec_pref_getsize(&d->codecs, ast_best_codec(d->capability));
                 int codec = ast_codec_choose(&c->codecs, codecs, 1);
                 fmt = pbx_codec_pref_getsize(&d->codecs, codec);
                 c->format = fmt.bits;						/* updating channel format */
+                // replace by new function (something like: sccp_channel_setcodec / sccp_channel_choosecodec)
 
                 sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_set_rtp_peer) Start media transmission on channel %d, codec='%d', payloadType='%d' (%d ms), peer_ip='%s:%d'\n", DEV_ID_LOG(d), c->callid, codec, fmt.bits, fmt.cur_ms, pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
                 sccp_channel_startmediatransmission(c);
@@ -968,36 +964,16 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		r->msg.OpenMultiMediaChannelMessage.lel_payloadCapability 							= htolel(skinnyFormat);
 		r->msg.OpenMultiMediaChannelMessage.lel_lineInstance 								= htolel(lineInstance);
 		r->msg.OpenMultiMediaChannelMessage.lel_callReference 								= htolel(channel->callid);
-		//r->msg.OpenMultiMediaChannelMessage.lel_payload_rfc_number                                                    = 0;
 		r->msg.OpenMultiMediaChannelMessage.lel_payloadType 								= htolel(payloadType);
-		//r->msg.OpenMultiMediaChannelMessage.lel_isConferenceCreator                                                   = 0;
-
-		//r->msg.OpenMultiMediaChannelMessage.audioParameter.millisecondPacketSize                                      = htolel(3840);
 		r->msg.OpenMultiMediaChannelMessage.audioParameter.millisecondPacketSize 					= htolel(sampleRate);
-		//r->msg.OpenMultiMediaChannelMessage.audioParameter.lel_echoCancelType                                         = 0;
-		//r->msg.OpenMultiMediaChannelMessage.audioParameter.lel_g723BitRate                                            = 0;
-
-		//r->msg.OpenMultiMediaChannelMessage.videoParameter.bitRate                                                    = 0;
-		//r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormatCount                                         = 0;
-		//r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormat[5];/*!< Picture Format Array */
-		//r->msg.OpenMultiMediaChannelMessage.videoParameter.confServiceNum                                             = 0;
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.h261VideoCapability.temporalSpatialTradeOffCapability 	= htolel(0x00000040);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.h261VideoCapability.stillImageTransmission 			= htolel(0x00000032);	//= htolel(0x00000024);
-
-		//      r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.h263CapabilityBitfield           = htolel(0x3a525b20);
-		//      r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.annexNandwFutureUse                      = htolel(0x2d20504c);
-		//      r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.modelNumber                              = htolel(0x3a504820);
-		//      r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.bandwidth                                = htolel(0x202c3020);
-
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.h263CapabilityBitfield 			= htolel(0x4c3a525b);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.annexNandwFutureUse 			= htolel(0x202d2050);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.modelNumber 				= htolel(0x203a5048);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.bandwidth 				= htolel(0x4e202c30);
-
 		r->msg.OpenMultiMediaChannelMessage.dataParameter.protocolDependentData 					= 0;
 		r->msg.OpenMultiMediaChannelMessage.dataParameter.maxBitRate 							= 0;
-
-		sccp_dump_packet((unsigned char *)&r->msg, sizeof(r->msg.OpenMultiMediaChannelMessage));
 	} else {
 		r = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(r->msg.OpenMultiMediaChannelMessage_v17));
 
@@ -1006,36 +982,16 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		r->msg.OpenMultiMediaChannelMessage_v17.lel_payloadCapability = htolel(skinnyFormat);
 		r->msg.OpenMultiMediaChannelMessage_v17.lel_lineInstance = htolel(lineInstance);
 		r->msg.OpenMultiMediaChannelMessage_v17.lel_callReference = htolel(channel->callid);
-		//r->msg.OpenMultiMediaChannelMessage.lel_payload_rfc_number                                                    = 0;
 		r->msg.OpenMultiMediaChannelMessage_v17.lel_payloadType = htolel(payloadType);
-		//r->msg.OpenMultiMediaChannelMessage.lel_isConferenceCreator                                                   = 0;
-
-		//r->msg.OpenMultiMediaChannelMessage.audioParameter.millisecondPacketSize                                      = htolel(3840);
 		r->msg.OpenMultiMediaChannelMessage_v17.audioParameter.millisecondPacketSize = htolel(sampleRate);
-		//r->msg.OpenMultiMediaChannelMessage.audioParameter.lel_echoCancelType                                         = 0;
-		//r->msg.OpenMultiMediaChannelMessage.audioParameter.lel_g723BitRate                                            = 0;
-
-		//r->msg.OpenMultiMediaChannelMessage.videoParameter.bitRate                                                    = 0;
-		//r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormatCount                                         = 0;
-		//r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormat[5];/*!< Picture Format Array */
-		//r->msg.OpenMultiMediaChannelMessage.videoParameter.confServiceNum                                             = 0;
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.h261VideoCapability.temporalSpatialTradeOffCapability = htolel(0x00000040);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.h261VideoCapability.stillImageTransmission = htolel(0x00000032);	//= htolel(0x00000024);
-
-		//      r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.h263CapabilityBitfield                   = htolel(0x3a525b20);
-		//      r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.annexNandwFutureUse                      = htolel(0x2d20504c);
-		//      r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.modelNumber                              = htolel(0x3a504820);
-		//      r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.bandwidth                                = htolel(0x202c3020);
-
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.h263VideoCapability.h263CapabilityBitfield = htolel(0x4c3a525b);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.h263VideoCapability.annexNandwFutureUse = htolel(0x202d2050);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.vieoVideoCapability.modelNumber = htolel(0x203a5048);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.vieoVideoCapability.bandwidth = htolel(0x4e202c30);
-
 		r->msg.OpenMultiMediaChannelMessage_v17.dataParameter.protocolDependentData = 0;
 		r->msg.OpenMultiMediaChannelMessage_v17.dataParameter.maxBitRate = 0;
-
-		sccp_dump_packet((unsigned char *)&r->msg, sizeof(r->msg.OpenMultiMediaChannelMessage_v17));
 	}
 
 	sccp_dev_send(channel->device, r);
@@ -1098,100 +1054,46 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		r->msg.StartMultiMediaTransmission.lel_conferenceID = htolel(channel->callid);
 		r->msg.StartMultiMediaTransmission.lel_passThruPartyId = htolel(channel->passthrupartyid);
 		r->msg.StartMultiMediaTransmission.lel_payloadCapability = htolel(skinnyFormat);
-
 		memcpy(&r->msg.StartMultiMediaTransmission.bel_remoteIpAddr, &sin.sin_addr, 4);
-
 		r->msg.StartMultiMediaTransmission.lel_remotePortNumber 							= htolel(ntohs(sin.sin_port));
 		r->msg.StartMultiMediaTransmission.lel_callReference 								= htolel(channel->callid);
-		//r->msg.StartMultiMediaTransmission.lel_payload_rfc_number                                                     = htolel(0);
 		r->msg.StartMultiMediaTransmission.lel_payloadType 								= payloadType;
 		r->msg.StartMultiMediaTransmission.lel_DSCPValue 								= htolel(136);
-
 		r->msg.StartMultiMediaTransmission.audioParameter.millisecondPacketSize 					= htolel(packetSize);
 		r->msg.StartMultiMediaTransmission.audioParameter.lel_echoCancelType 						= 0;
-		//r->msg.StartMultiMediaTransmission.audioParameter.lel_g723BitRate                                             = htolel(0x00000132);
-
 		r->msg.StartMultiMediaTransmission.videoParameter.bitRate 							= 0;
 		r->msg.StartMultiMediaTransmission.videoParameter.pictureFormatCount 						= 0;
-
-		//r->msg.StartMultiMediaTransmission.videoParameter.pictureFormat[5];                                           /*!< Picture Format Array */
 		r->msg.StartMultiMediaTransmission.videoParameter.confServiceNum 						= 0;
 		r->msg.StartMultiMediaTransmission.videoParameter.dummy								= 0;
 		r->msg.StartMultiMediaTransmission.videoParameter.h261VideoCapability.temporalSpatialTradeOffCapability 	= htolel(0x00000040);	/* profile */
 		r->msg.StartMultiMediaTransmission.videoParameter.h261VideoCapability.stillImageTransmission 			= htolel(0x00000032);	/* level */
-
-// 		r->msg.StartMultiMediaTransmission.videoParameter.h263VideoCapability.h263CapabilityBitfield 			= htolel(0x4c3a525b);
-// 		r->msg.StartMultiMediaTransmission.videoParameter.h263VideoCapability.annexNandwFutureUse 			= htolel(0x202d2050);
-
-// 		r->msg.StartMultiMediaTransmission.videoParameter.vieoVideoCapability.modelNumber 				= htolel(0x203a5048);
-// 		r->msg.StartMultiMediaTransmission.videoParameter.vieoVideoCapability.bandwidth 				= htolel(0x4e202c30);
-
  		r->msg.StartMultiMediaTransmission.dataParameter.protocolDependentData 						= htolel(0x002415f8);
  		r->msg.StartMultiMediaTransmission.dataParameter.maxBitRate 							= htolel(0x098902c4);
-
-// 		r->msg.StartMultiMediaTransmission.unknown[0] 									= htolel(0x0a5aee9c);
-// 		r->msg.StartMultiMediaTransmission.unknown[1] 									= htolel(0x00180688);
-// 		r->msg.StartMultiMediaTransmission.unknown[2] 									= htolel(0x0a5aef54);
-// 		r->msg.StartMultiMediaTransmission.unknown[3] 									= htolel(0x77fb7e64);
-// 		r->msg.StartMultiMediaTransmission.unknown[4] 									= htolel(0x77f83158);
-// 		r->msg.StartMultiMediaTransmission.unknown[5] 									= htolel(0xffffffff);
-// 		r->msg.StartMultiMediaTransmission.unknown[6] 									= r->msg.StartMultiMediaTransmission.unknown[2];
-// 		r->msg.StartMultiMediaTransmission.unknown[7] 									= htolel(0x77fcb7c2);	/* same */
-// 		r->msg.StartMultiMediaTransmission.unknown[8] 									= htolel(0x00180778);	/* same */
-// 		r->msg.StartMultiMediaTransmission.unknown[9] 									= htolel(0x076d0a58);
-// 		r->msg.StartMultiMediaTransmission.unknown[10] 									= htolel(0x076d0a78);
-// 		r->msg.StartMultiMediaTransmission.unknown[11] 									= r->msg.StartMultiMediaTransmission.unknown[9];
-
 	} else {
 
 		r = sccp_build_packet(StartMultiMediaTransmission, sizeof(r->msg.StartMultiMediaTransmission_v17));
 		r->msg.StartMultiMediaTransmission_v17.lel_conferenceID 							= htolel(channel->callid);
 		r->msg.StartMultiMediaTransmission_v17.lel_passThruPartyId 							= htolel(channel->passthrupartyid);
 		r->msg.StartMultiMediaTransmission_v17.lel_payloadCapability 							= htolel(skinnyFormat);
-
 		memcpy(&r->msg.StartMultiMediaTransmission_v17.bel_remoteIpAddr, &sin.sin_addr, 4);
-
 		r->msg.StartMultiMediaTransmission_v17.lel_remotePortNumber 							= htolel(ntohs(sin.sin_port));
 		r->msg.StartMultiMediaTransmission_v17.lel_callReference 							= htolel(channel->callid);
-		//r->msg.StartMultiMediaTransmission_v17.lel_payload_rfc_number                                                 = htolel(0);
 		r->msg.StartMultiMediaTransmission_v17.lel_payloadType								= payloadType;
 		r->msg.StartMultiMediaTransmission_v17.lel_DSCPValue 								= htolel(136);
-
 		r->msg.StartMultiMediaTransmission_v17.audioParameter.millisecondPacketSize 					= htolel(packetSize);
 		r->msg.StartMultiMediaTransmission_v17.audioParameter.lel_echoCancelType 					= 0;
-		//r->msg.StartMultiMediaTransmission_v17.audioParameter.lel_g723BitRate                                         = htolel(0x00000132);
-
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.bitRate 							= 0;
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormatCount 					= 0;
-
-		//r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormat[5];                                       /*!< Picture Format Array */
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.confServiceNum 						= 0;
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.dummy 							= 0;
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.h261VideoCapability.temporalSpatialTradeOffCapability 	= htolel(0x00000040);	/* profile */
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.h261VideoCapability.stillImageTransmission 		= htolel(0x00000032);	/* level */
-
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.h263VideoCapability.h263CapabilityBitfield 		= htolel(0x4c3a525b);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.h263VideoCapability.annexNandwFutureUse 			= htolel(0x202d2050);
-
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.vieoVideoCapability.modelNumber 				= htolel(0x203a5048);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.vieoVideoCapability.bandwidth 				= htolel(0x4e202c30);
-
 		r->msg.StartMultiMediaTransmission_v17.dataParameter.protocolDependentData 					= htolel(0x002415f8);
 		r->msg.StartMultiMediaTransmission_v17.dataParameter.maxBitRate 						= htolel(0x098902c4);
-
-		r->msg.StartMultiMediaTransmission_v17.unknown[0] 								= htolel(0x0a5aee9c);
-		r->msg.StartMultiMediaTransmission_v17.unknown[1] 								= htolel(0x00180688);
-		r->msg.StartMultiMediaTransmission_v17.unknown[2] 								= htolel(0x0a5aef54);
-		r->msg.StartMultiMediaTransmission_v17.unknown[3] 								= htolel(0x77fb7e64);
-		r->msg.StartMultiMediaTransmission_v17.unknown[4] 								= htolel(0x77f83158);
-		r->msg.StartMultiMediaTransmission_v17.unknown[5] 								= htolel(0xffffffff);
-		r->msg.StartMultiMediaTransmission_v17.unknown[6] 								= r->msg.StartMultiMediaTransmission_v17.unknown[2];
-		r->msg.StartMultiMediaTransmission_v17.unknown[7] 								= htolel(0x77fcb7c2);	/* same */
-		r->msg.StartMultiMediaTransmission_v17.unknown[8] 								= htolel(0x00180778);	/* same */
-		r->msg.StartMultiMediaTransmission_v17.unknown[9] 								= htolel(0x076d0a58);
-		r->msg.StartMultiMediaTransmission_v17.unknown[10] 								= htolel(0x076d0a78);
-		r->msg.StartMultiMediaTransmission_v17.unknown[11] 								= r->msg.StartMultiMediaTransmission_v17.unknown[9];
-
 	}
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s(%d) (%d ms), payloadType %d, tos %d, silencesuppression: %s\n", channel->device->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), pbx_codec2str(channel->rtp.video.readFormat), channel->rtp.video.readFormat, packetSize, payloadType, channel->line->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
