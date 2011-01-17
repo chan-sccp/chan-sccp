@@ -1232,8 +1232,11 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 	if (!(d = c->device))
 		return;
 
+	if (c->rtp.audio.phone_remote.sin_port==0) {
+                ast_rtp_get_us(c->rtp.audio.rtp, &c->rtp.audio.phone_remote);
+	}
+
 	if (d->nat) {
-		ast_rtp_get_us(c->rtp.audio.rtp, &c->rtp.audio.phone_remote);
 	        // replace us.sin_addr if we are natted
 		if (GLOB(externip.sin_addr.s_addr)) {
 			if (GLOB(externexpire) && (time(NULL) >= GLOB(externexpire))) {

@@ -2326,21 +2326,9 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
 
-// 		 struct sccp_rtp {
-// 
-// 			uint8_t status;
-//ast 			struct ast_rtp *rtp;						/*!< Asterisk RTP */
-//ast				contains: us
-//ast					  them
-// 			boolean_t isStarted;						/*!< is rtp server started */
-// 			struct sockaddr_in phone; // them					/*!< rtp phone address */
-// 			struct sockaddr_in phone_remote;	// them nach bridge			/*!< rtp destination address - was ist aber wenn kein direct rtp sondern peer = asterisk */
-// 			uint32_t readFormat;						/*!< current read format */
-// 			uint32_t writeFormat;						/*!< current write format */
-// 		} 
 		if (c->rtp.audio.rtp) {
 			ast_rtp_set_peer(c->rtp.audio.rtp, &sin);
-			
+
 			ast_rtp_get_us(c->rtp.audio.rtp, &us);
 			memcpy(&c->rtp.audio.phone, &us, sizeof(c->rtp.audio.phone));
 
