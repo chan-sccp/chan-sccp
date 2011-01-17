@@ -776,6 +776,8 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 {
 	btnlist *btn;
 	int i;
+	uint8_t totalButtonCount;
+	
 	sccp_moo_t *r1;
 	sccp_device_t *d = NULL;
 	if (!(d = check_session_message_device(s, r, "button template"))) {
@@ -855,12 +857,21 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 			break;
 		}
 		sccp_log((DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %d (%d)\n", d->id, i + 1, r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition, r1->msg.ButtonTemplateMessage.definition[i].instanceNumber);
+		
+		
+		/* store max button entry */
+		if(r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition != SKINNY_BUTTONTYPE_UNDEFINED 
+		    && r1->msg.ButtonTemplateMessage.definition[i].instanceNumber != 0 ){
+		      
+			totalButtonCount = i+1;
+		}
+		  
 	}
 
-	r1->msg.ButtonTemplateMessage.lel_buttonOffset = htolel(0);
+	r1->msg.ButtonTemplateMessage.lel_buttonOffset = 0;
 	r1->msg.ButtonTemplateMessage.lel_buttonCount = htolel(r1->msg.ButtonTemplateMessage.lel_buttonCount);
 	/* buttonCount is already in a little endian format so don't need to convert it now */
-	r1->msg.ButtonTemplateMessage.lel_totalButtonCount = r1->msg.ButtonTemplateMessage.lel_buttonCount;
+	r1->msg.ButtonTemplateMessage.lel_totalButtonCount = htolel(totalButtonCount);
 
 	/* set speeddial for older devices like 7912 */
 	uint32_t speeddialInstance = 0;
