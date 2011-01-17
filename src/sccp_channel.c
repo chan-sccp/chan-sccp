@@ -664,24 +664,6 @@ enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struc
 		return AST_RTP_GET_FAILED;
 	}
 
-	struct sockaddr_in us;
-	struct sockaddr_in them;
-        ast_rtp_get_us(*rtp, &us);
-	ast_rtp_get_peer(*rtp, &them);
-
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Get the RTP us media address to %s:%d\n", d->id, pbx_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
-	/* Set peer information if not set already (for directrtp)*/
-	if (ntohs(them.sin_port) == 0) {
-                them.sin_family = AF_INET;
-                
-                /* \todo if trustphoneip, the phone should be asked via open_receive_channel */
-                memcpy(&them.sin_addr, &d->session->sin.sin_addr, sizeof(them.sin_addr));
-                them.sin_port = d->session->sin.sin_port;
-                ast_rtp_set_peer(c->rtp.audio.rtp, &them);
-                memcpy(&c->rtp.audio.peer, &them, sizeof(c->rtp.audio.peer));
-                sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Set the RTP them media address to %s:%d\n", d->id, pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
-	}
-	
 	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
 		return AST_RTP_GET_FAILED;
@@ -2018,11 +2000,6 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c)
 #ifdef CS_AST_HAS_FLAG_MOH
 		ast_clear_flag(peer, AST_FLAG_MOH);
 #endif
-                /* ugly patch to get directrtp working over native bridge */
-                if (c->device->directrtp && sccp_peer->device->directrtp) {
-                        sccp_channel_startmediatransmission(c);
-                        sccp_channel_startmediatransmission(sccp_peer);
-                }
 	}
 #ifdef CS_AST_CONTROL_HOLD
 #    ifdef CS_AST_RTP_NEW_SOURCE

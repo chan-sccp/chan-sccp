@@ -194,7 +194,6 @@ int set_pbx_callerid(struct ast_channel *ast_chan, sccp_callinfo_t * callInfo)
  */
 struct ast_channel *pbx_channel_walk_locked(struct ast_channel *target)
 {
-	ast_channel_lock(target);
 	return ast_channel_walk_locked(target);
 }
 

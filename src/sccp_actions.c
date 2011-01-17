@@ -776,7 +776,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 {
 	btnlist *btn;
 	int i;
-	uint8_t totalButtonCount;
+	uint8_t totalButtonCount = 0;
 	
 	sccp_moo_t *r1;
 	sccp_device_t *d = NULL;

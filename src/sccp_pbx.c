@@ -1863,9 +1863,10 @@ const struct ast_channel_tech sccp_tech = {
 #if ASTERISK_VERSION_NUM > 10400
 enum ast_bridge_result wrap_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo,  struct ast_channel **rc, int timeoutms) {
 	enum ast_bridge_result res;
-	sccp_channel_t *sc0, *sc1;
 
 	int new_flags=flags;
+	/* \note temporarily marked out until we figure out how to get directrtp back on track - DdG */
+/*	sccp_channel_t *sc0, *sc1;
 	if ((sc0=get_sccp_channel_from_ast_channel(c0)) && (sc1=get_sccp_channel_from_ast_channel(c1))) {
 		// Switch off DTMF between SCCP phones
 		new_flags &= !AST_BRIDGE_DTMF_CHANNEL_0;
@@ -1880,7 +1881,7 @@ enum ast_bridge_result wrap_rtp_bridge(struct ast_channel *c0, struct ast_channe
 		// Switch on DTMF between differing channels
 		ast_channel_undefer_dtmf(c0);
 		ast_channel_undefer_dtmf(c1);
-	}
+	}*/
 	res = ast_rtp_bridge(c0, c1, new_flags, fo, rc, timeoutms);
 	switch (res) {
 		case AST_BRIDGE_COMPLETE:
