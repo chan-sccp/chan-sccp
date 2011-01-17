@@ -979,8 +979,8 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		uint8_t status;
 		struct ast_rtp *rtp;						/*!< Asterisk RTP */
 		boolean_t isStarted;						/*!< is rtp server started */
-		struct sockaddr_in addr;					/*!< RTP Socket Address */
-		struct sockaddr_in peer;					/*!< RTP Socket Address */
+		struct sockaddr_in phone;					/*!< RTP Socket Address */
+		struct sockaddr_in phone_remote;					/*!< RTP Socket Address */
 		uint32_t readFormat;						/*!< current read format */
 		uint32_t writeFormat;						/*!< current write format */
 
@@ -1217,7 +1217,6 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 	extern struct io_context *io;
 	void *sccp_do_monitor(void *data);					// ADDED IN SVN 414 -FS
 	int sccp_restart_monitor(void);						// ADDED IN SVN 414 -FS
-	enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo, struct ast_channel **rc, int timeoutms);
 #    endif
 
 #    if ASTERISK_VERSION_NUM >= 10400

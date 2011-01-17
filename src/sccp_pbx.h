@@ -53,7 +53,7 @@ static void sccp_pbx_update_connectedline(sccp_channel_t * channel, const void *
 #    endif									// CS_AST_CONTROL_CONNECTED_LINE
 
 #if ASTERISK_VERSION_NUM > 10400
-enum ast_bridge_result wrap_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo,  struct ast_channel **rc, int timeoutms);
+enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo,  struct ast_channel **rc, int timeoutms);
 #endif // ASTERISK_VERSION_NUM > 10400
 
 int sccp_pbx_transfer(struct ast_channel *ast, const char *dest);

@@ -2268,6 +2268,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 {
 	struct sockaddr_in sin;
+	struct sockaddr_in us;
 	sccp_channel_t *c;
 	sccp_device_t *d;
 	char ipAddr[16];
@@ -2293,7 +2294,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	sin.sin_family = AF_INET;
-	if (d->trustphoneip)
+	if (d->trustphoneip || d->directrtp)
 		memcpy(&sin.sin_addr, &ipAddr, sizeof(sin.sin_addr));
 	else
 		memcpy(&sin.sin_addr, &s->sin.sin_addr, sizeof(sin.sin_addr));
@@ -2325,11 +2326,24 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
 
+// 		 struct sccp_rtp {
+// 
+// 			uint8_t status;
+//ast 			struct ast_rtp *rtp;						/*!< Asterisk RTP */
+//ast				contains: us
+//ast					  them
+// 			boolean_t isStarted;						/*!< is rtp server started */
+// 			struct sockaddr_in phone; // them					/*!< rtp phone address */
+// 			struct sockaddr_in phone_remote;	// them nach bridge			/*!< rtp destination address - was ist aber wenn kein direct rtp sondern peer = asterisk */
+// 			uint32_t readFormat;						/*!< current read format */
+// 			uint32_t writeFormat;						/*!< current write format */
+// 		} 
 		if (c->rtp.audio.rtp) {
-//			memcpy(&c->rtp.audio.addr, &sin, sizeof(sin));
-
 			ast_rtp_set_peer(c->rtp.audio.rtp, &sin);
-			memcpy(&c->rtp.audio.peer, &sin, sizeof(sin));
+			
+			ast_rtp_get_us(c->rtp.audio.rtp, &us);
+			memcpy(&c->rtp.audio.phone, &us, sizeof(c->rtp.audio.phone));
+
 			sccp_channel_startmediatransmission(c);			/*!< Starting Media Transmission Earlier to fix 2 second delay - Copied from v2 - FS */
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 			/* update status */
@@ -2406,7 +2420,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r)
 		}
 
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
-		memcpy(&c->rtp.video.addr, &sin, sizeof(sin));
+		memcpy(&c->rtp.video.phone, &sin, sizeof(sin));
 		if (c->rtp.video.rtp || sccp_channel_start_vrtp(c)) {
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 			ast_rtp_set_peer(c->rtp.video.rtp, &sin);

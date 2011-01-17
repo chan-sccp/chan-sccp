@@ -1846,7 +1846,7 @@ const struct ast_channel_tech sccp_tech = {
 #    else
 	.send_digit_begin = sccp_pbx_recvdigit_begin,
 	.send_digit_end = sccp_pbx_recvdigit_end,
-	.bridge = wrap_rtp_bridge,
+	.bridge = sccp_rtp_bridge,
 
 	.transfer = sccp_pbx_transfer,						// new >1.4.0
 	.func_channel_read = acf_channel_read,					// new
@@ -1861,12 +1861,12 @@ const struct ast_channel_tech sccp_tech = {
 #endif										// CS_AST_HAS_TECH_PVT
 
 #if ASTERISK_VERSION_NUM > 10400
-enum ast_bridge_result wrap_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo,  struct ast_channel **rc, int timeoutms) {
+enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo,  struct ast_channel **rc, int timeoutms) {
 	enum ast_bridge_result res;
 
 	int new_flags=flags;
 	/* \note temporarily marked out until we figure out how to get directrtp back on track - DdG */
-/*	sccp_channel_t *sc0, *sc1;
+	sccp_channel_t *sc0, *sc1;
 	if ((sc0=get_sccp_channel_from_ast_channel(c0)) && (sc1=get_sccp_channel_from_ast_channel(c1))) {
 		// Switch off DTMF between SCCP phones
 		new_flags &= !AST_BRIDGE_DTMF_CHANNEL_0;
@@ -1877,11 +1877,13 @@ enum ast_bridge_result wrap_rtp_bridge(struct ast_channel *c0, struct ast_channe
 		}
 		sc0->peerIsSCCP=1;
 		sc1->peerIsSCCP=1;
+		// SCCP Key handle direction to asterisk is still to be implemented here
+		// sccp_pbx_senddigit
 	} else {
 		// Switch on DTMF between differing channels
 		ast_channel_undefer_dtmf(c0);
 		ast_channel_undefer_dtmf(c1);
-	}*/
+	}
 	res = ast_rtp_bridge(c0, c1, new_flags, fo, rc, timeoutms);
 	switch (res) {
 		case AST_BRIDGE_COMPLETE:
@@ -1975,9 +1977,9 @@ int acf_channel_read(struct ast_channel *ast, NEWCONST char *funcname, char *arg
 		return -1;
 
 	if (!strcasecmp(args, "peerip")) {
-		sccp_copy_string(buf, c->rtp.audio.peer.sin_addr.s_addr ? pbx_inet_ntoa(c->rtp.audio.peer.sin_addr) : "", buflen);
+		sccp_copy_string(buf, c->rtp.audio.phone_remote.sin_addr.s_addr ? pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr) : "", buflen);
 	} else if (!strcasecmp(args, "recvip")) {
-		sccp_copy_string(buf, c->rtp.audio.addr.sin_addr.s_addr ? pbx_inet_ntoa(c->rtp.audio.addr.sin_addr) : "", buflen);
+		sccp_copy_string(buf, c->rtp.audio.phone.sin_addr.s_addr ? pbx_inet_ntoa(c->rtp.audio.phone.sin_addr) : "", buflen);
 	} else if (!strcasecmp(args, "from") && c->device) {
 		sccp_copy_string(buf, (char *)c->device->id, buflen);
 	} else {
