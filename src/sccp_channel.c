@@ -716,18 +716,6 @@ enum ast_rtp_glue_result sccp_channel_get_vrtp_peer(struct ast_channel *ast, str
 	struct sockaddr_in them;
 	ast_rtp_get_peer(*rtp, &them);
 
-	/* Set channel peer information if not set already (for directrtp & NATIVE BRIDGE)*/
-	if (ntohs(them.sin_port) == 0) {
-                them.sin_family = AF_INET;
-                
-                /* \todo if trustphoneip, the phone should be asked via open_receive_channel */
-                memcpy(&them.sin_addr, &d->session->sin.sin_addr, sizeof(them.sin_addr));
-                them.sin_port = d->session->sin.sin_port;
-                ast_rtp_set_peer(c->rtp.video.rtp, &them);
-                memcpy(&c->rtp.video.peer, &them, sizeof(c->rtp.video.peer));
-                sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Set the RTP video them media address to %s:%d\n", d->id, pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
-	}
-
 	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_vrtp_peer) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
 	        return _RTP_GET_FAILED;
@@ -783,9 +771,7 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 	sccp_moo_t *r;
 
 	struct ast_format_list fmt;
-	struct sockaddr_in us;
 	struct sockaddr_in them;
-
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer)\n");
 
 	if (!(c = CS_AST_CHANNEL_PVT(ast))) {
@@ -807,80 +793,38 @@ int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, stru
 	}
 
 	if (rtp) {
-	        ast_rtp_get_us(rtp, &us);
-		ast_rtp_get_peer(rtp, &them);
+        	ast_rtp_get_peer(rtp, &them);
+            	c->rtp.audio.phone_remote=them;   // should be called bridge_peer
 
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Stop media transmission on channel %d\n", DEV_ID_LOG(d), c->callid);
-
-		/* Shutdown any early-media or previous media on re-invite */
-		REQ(r, StopMediaTransmission);
-		r->msg.StopMediaTransmission.lel_conferenceId = htolel(c->callid);
-		r->msg.StopMediaTransmission.lel_passThruPartyId = htolel(c->passthrupartyid);
-		r->msg.StopMediaTransmission.lel_conferenceId1 = htolel(c->callid);
-		sccp_dev_send(d, r);
-
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Asterisk request to set peer ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
-
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Asterisk request codec '%d'\n", DEV_ID_LOG(d), codecs);
-
-		//fmt = pbx_codec_pref_getsize(&d->codecs, ast_best_codec(d->capability));
-		int codec = ast_codec_choose(&c->codecs, codecs, 1);
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Asterisk request codec '%d'\n", DEV_ID_LOG(d), codec);
-		fmt = pbx_codec_pref_getsize(&d->codecs, codec);
-
-		c->format = fmt.bits;						/* updating channel format */
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Setting payloadType to '%d' (%d ms)\n", DEV_ID_LOG(d), fmt.bits, fmt.cur_ms);
-
-		if (d->inuseprotocolversion < 17) {
-			REQ(r, StartMediaTransmission);
-			r->msg.StartMediaTransmission.lel_conferenceId = htolel(c->callid);
-			r->msg.StartMediaTransmission.lel_passThruPartyId = htolel(c->callid);
-			r->msg.StartMediaTransmission.lel_conferenceId1 = htolel(c->callid);
-			r->msg.StartMediaTransmission.lel_millisecondPacketSize = htolel(fmt.cur_ms);
-			r->msg.StartMediaTransmission.lel_payloadType = htolel(sccp_codec_ast2skinny(fmt.bits));
-			r->msg.StartMediaTransmission.lel_precedenceValue = htolel(l->audio_tos);
-			r->msg.StartMediaTransmission.lel_ssValue = htolel(l->silencesuppression);	// Silence supression
-			r->msg.StartMediaTransmission.lel_maxFramesPerPacket = htolel(0);
-			r->msg.StartMediaTransmission.lel_rtptimeout = htolel(10);
-                        if (!d->directrtp || d->nat) {
-                                sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17 / No DirectRTP & NAT) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
-                                r->msg.StartMediaTransmission.bel_remoteIpAddr = htolel(d->session->ourip.s_addr);
-                                r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(us.sin_port));
-                        } else {
-                                sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
-                                r->msg.StartMediaTransmission.bel_remoteIpAddr = htolel(them.sin_addr.s_addr);
-                                r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(them.sin_port));
-                        }
-		} else {
-			r = sccp_build_packet(StartMediaTransmission, sizeof(r->msg.StartMediaTransmission_v17));
-			r->msg.StartMediaTransmission_v17.lel_conferenceId = htolel(c->callid);
-			r->msg.StartMediaTransmission_v17.lel_passThruPartyId = htolel(c->callid);
-			r->msg.StartMediaTransmission_v17.lel_conferenceId1 = htolel(c->callid);
-			r->msg.StartMediaTransmission_v17.lel_millisecondPacketSize = htolel(fmt.cur_ms);
-			r->msg.StartMediaTransmission_v17.lel_payloadType = htolel(sccp_codec_ast2skinny(fmt.bits));
-			r->msg.StartMediaTransmission_v17.lel_precedenceValue = htolel(l->audio_tos);
-			r->msg.StartMediaTransmission_v17.lel_ssValue = htolel(l->silencesuppression);	// Silence supression
-			r->msg.StartMediaTransmission_v17.lel_maxFramesPerPacket = htolel(0);
-			r->msg.StartMediaTransmission_v17.lel_rtptimeout = htolel(10);
-                        if (!d->directrtp || d->nat) {
-                                sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17 / No DirectRTP & NAT) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(us.sin_addr), ntohs(us.sin_port));
-                                memcpy(&r->msg.StartMediaTransmission_v17.bel_remoteIpAddr, &d->session->ourip.s_addr, 4);
-                                r->msg.StartMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(us.sin_port));
-                        } else {
-                                sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Set RTP peer (Protocol<17) ip to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
-                		memcpy(&r->msg.StartMediaTransmission_v17.bel_remoteIpAddr, &them.sin_addr, 4);
-                                r->msg.StartMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(them.sin_port));
-                        }
+                sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_set_rtp_peer) call %d RTP peer_ip='%s:%d'\n", DEV_ID_LOG(d), c->callid, pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
+                
+		if (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) {
+                        /* Shutdown any early-media or previous media on re-invite */
+	                sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_set_rtp_peer) Stop media transmission on channel %d\n", DEV_ID_LOG(d), c->callid);
+	                REQ(r, StopMediaTransmission);
+                        r->msg.StopMediaTransmission.lel_conferenceId = htolel(c->callid);
+                        r->msg.StopMediaTransmission.lel_passThruPartyId = htolel(c->passthrupartyid);
+                        r->msg.StopMediaTransmission.lel_conferenceId1 = htolel(c->callid);
+                        sccp_dev_send(d, r);
+                        c->mediaStatus.transmit = FALSE;
+			/* \todo we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait) */
 		}
-		sccp_dev_send(d, r);
-		c->mediaStatus.transmit = TRUE;
 
-		return 0;
+                //fmt = pbx_codec_pref_getsize(&d->codecs, ast_best_codec(d->capability));
+                int codec = ast_codec_choose(&c->codecs, codecs, 1);
+                fmt = pbx_codec_pref_getsize(&d->codecs, codec);
+                c->format = fmt.bits;						/* updating channel format */
+
+                sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_set_rtp_peer) Start media transmission on channel %d, codec='%d', payloadType='%d' (%d ms), peer_ip='%s:%d'\n", DEV_ID_LOG(d), c->callid, codec, fmt.bits, fmt.cur_ms, pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
+                sccp_channel_startmediatransmission(c);
+
+                c->mediaStatus.transmit = TRUE;
+                return 0;
 	} else {
 		if (ast->_state != AST_STATE_UP) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) Early RTP stage, codecs=%d, nat=%d\n", codecs, d->nat);
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "SCCP: (sccp_channel_set_rtp_peer) Early RTP stage, codecs=%d, nat=%d\n", codecs, d->nat);
 		} else {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) Native Bridge Break, codecs=%d, nat=%d\n", codecs, d->nat);
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "SCCP: (sccp_channel_set_rtp_peer) Native Bridge Break, codecs=%d, nat=%d\n", codecs, d->nat);
 		}
 		return 0;
 	}
@@ -1273,7 +1217,6 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 {
 	sccp_moo_t *r;
 	sccp_device_t *d = NULL;
-	struct sockaddr_in sin;
 	struct ast_hostent ahp;
 	struct hostent *hp;
 	int payloadType;
@@ -1289,21 +1232,9 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 	if (!(d = c->device))
 		return;
 
-        ast_rtp_get_us(c->rtp.audio.rtp, &sin);
-
-	if (d->inuseprotocolversion < 17) {
-		REQ(r, StartMediaTransmission);
-		r->msg.StartMediaTransmission.lel_conferenceId = htolel(c->callid);
-		r->msg.StartMediaTransmission.lel_passThruPartyId = htolel(c->passthrupartyid);
-		r->msg.StartMediaTransmission.lel_conferenceId1 = htolel(c->callid);
-	} else {
-		r = sccp_build_packet(StartMediaTransmission, sizeof(r->msg.StartMediaTransmission_v17));
-		r->msg.StartMediaTransmission_v17.lel_conferenceId = htolel(c->callid);
-		r->msg.StartMediaTransmission_v17.lel_passThruPartyId = htolel(c->passthrupartyid);
-		r->msg.StartMediaTransmission_v17.lel_conferenceId1 = htolel(c->callid);
-	}
-
-	if (c->device->nat) {
+	if (d->nat) {
+		ast_rtp_get_us(c->rtp.audio.rtp, &c->rtp.audio.phone_remote);
+	        // replace us.sin_addr if we are natted
 		if (GLOB(externip.sin_addr.s_addr)) {
 			if (GLOB(externexpire) && (time(NULL) >= GLOB(externexpire))) {
 				time(&GLOB(externexpire));
@@ -1313,7 +1244,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 				} else
 					ast_log(LOG_NOTICE, "Warning: Re-lookup of '%s' failed!\n", GLOB(externhost));
 			}
-			memcpy(&sin.sin_addr, &GLOB(externip.sin_addr), 4);
+			memcpy(&c->rtp.audio.phone_remote.sin_addr, &GLOB(externip.sin_addr), 4);
 		}
 	}
 #if ASTERISK_VERSION_NUM >= 10400
@@ -1321,30 +1252,38 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 	payloadType = sccp_codec_ast2skinny(fmt.bits);
 	packetSize = fmt.cur_ms;
 #else
-	payloadType = sccp_codec_ast2skinny(c->format);				// was c->format
+	payloadType = sccp_codec_ast2skinny(c->format);			// was c->format
 	packetSize = 20;
 #endif
 	if (d->inuseprotocolversion < 17) {
-		memcpy(&r->msg.StartMediaTransmission.bel_remoteIpAddr, &sin.sin_addr, 4);
-		r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(sin.sin_port));
+		REQ(r, StartMediaTransmission);
+		r->msg.StartMediaTransmission.lel_conferenceId = htolel(c->callid);
+		r->msg.StartMediaTransmission.lel_passThruPartyId = htolel(c->passthrupartyid);
+		r->msg.StartMediaTransmission.lel_conferenceId1 = htolel(c->callid);
 		r->msg.StartMediaTransmission.lel_millisecondPacketSize = htolel(packetSize);
 		r->msg.StartMediaTransmission.lel_payloadType = htolel((payloadType) ? payloadType : 4);
 		r->msg.StartMediaTransmission.lel_precedenceValue = htolel(c->line->audio_tos);
 		r->msg.StartMediaTransmission.lel_ssValue = htolel(c->line->silencesuppression);	// Silence supression
 		r->msg.StartMediaTransmission.lel_maxFramesPerPacket = htolel(0);
 		r->msg.StartMediaTransmission.lel_rtptimeout = htolel(10);
+                r->msg.StartMediaTransmission.bel_remoteIpAddr = htolel(c->rtp.audio.phone_remote.sin_addr.s_addr);
+                r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(c->rtp.audio.phone_remote.sin_port));
 	} else {
-		memcpy(&r->msg.StartMediaTransmission_v17.bel_remoteIpAddr, &sin.sin_addr, 4);
-		r->msg.StartMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(sin.sin_port));
+		r = sccp_build_packet(StartMediaTransmission, sizeof(r->msg.StartMediaTransmission_v17));
+		r->msg.StartMediaTransmission_v17.lel_conferenceId = htolel(c->callid);
+		r->msg.StartMediaTransmission_v17.lel_passThruPartyId = htolel(c->passthrupartyid);
+		r->msg.StartMediaTransmission_v17.lel_conferenceId1 = htolel(c->callid);
 		r->msg.StartMediaTransmission_v17.lel_millisecondPacketSize = htolel(packetSize);
 		r->msg.StartMediaTransmission_v17.lel_payloadType = htolel((payloadType) ? payloadType : 4);
 		r->msg.StartMediaTransmission_v17.lel_precedenceValue = htolel(c->line->audio_tos);
 		r->msg.StartMediaTransmission_v17.lel_ssValue = htolel(c->line->silencesuppression);	// Silence supression
 		r->msg.StartMediaTransmission_v17.lel_maxFramesPerPacket = htolel(0);
 		r->msg.StartMediaTransmission_v17.lel_rtptimeout = htolel(10);
+                memcpy(&r->msg.StartMediaTransmission_v17.bel_remoteIpAddr, &c->rtp.audio.phone_remote.sin_addr, 4);
+                r->msg.StartMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(c->rtp.audio.phone_remote.sin_port));
 	}
-	sccp_dev_send(c->device, r);
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to %s:%d with codec: %s(%d) (%d ms), tos %d, silencesuppression: %s\n", c->device->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), codec2str(payloadType), payloadType, packetSize, c->line->audio_tos, c->line->silencesuppression ? "ON" : "OFF");
+        sccp_dev_send(c->device, r);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to: '%s:%d' with codec: %s(%d) (%d ms), tos %d, silencesuppression: %s\n", c->device->id, pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr), ntohs(c->rtp.audio.phone_remote.sin_port), codec2str(payloadType), payloadType, packetSize, c->line->audio_tos, c->line->silencesuppression ? "ON" : "OFF");
 
 #ifdef CS_SCCP_VIDEO
 	if (sccp_device_isVideoSupported(c->device)) {
