@@ -366,9 +366,13 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			btn[i].type = SCCP_BUTTONTYPE_MULTI;
 		}
 		btn[20].type = SKINNY_BUTTONTYPE_MESSAGES;
+		btn[20].instance=21;
 		btn[21].type = SKINNY_BUTTONTYPE_DIRECTORY;
+		btn[21].instance=22;
 		btn[22].type = SKINNY_BUTTONTYPE_HEADSET;
+		btn[22].instance=23;
 		btn[23].type = SKINNY_BUTTONTYPE_APPLICATION;
+		btn[23].instance=24;
 		break;
 	case SKINNY_DEVICETYPE_CISCO7935:
 	case SKINNY_DEVICETYPE_CISCO7936:
