@@ -496,14 +496,14 @@ int pbx_moh_start(struct ast_channel *chan, const char *mclass, const char *inte
  */
 int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *addr)
 {
-#if ASTERISK_VERSION_NUM >= 10800
-	struct ast_sockaddr addr_tmp;
-	ast_rtp_instance_get_remote_address(rtp, &addr_tmp);
-	ast_sockaddr_to_sin(&addr_tmp, &addr);
-	return addr.sin_addr.s_addr;
-#else
+//#if ASTERISK_VERSION_NUM >= 10800
+//	struct ast_sockaddr addr_tmp;
+//	ast_rtp_instance_get_remote_address(rtp, &addr_tmp);
+//	ast_sockaddr_to_sin(&addr_tmp, &addr);
+//	return addr.sin_addr.s_addr;
+//#else
 	return ast_rtp_get_peer(rtp, addr);
-#endif
+//#endif
 }
 
 /*!
@@ -515,13 +515,13 @@ int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *addr)
  */
 void pbx_rtp_get_us(struct ast_rtp *rtp, struct sockaddr_in *addr)
 {
-#if ASTERISK_VERSION_NUM >= 10800
-	struct ast_sockaddr addr_tmp;
-	ast_rtp_instance_get_local_address(rtp, &addr_tmp);
-	ast_sockaddr_to_sin(&addr_tmp, &addr);
-#else
+//#if ASTERISK_VERSION_NUM >= 10800
+//	struct ast_sockaddr addr_tmp;
+//	ast_rtp_instance_get_local_address(rtp, &addr_tmp);
+//	ast_sockaddr_to_sin(&addr_tmp, &addr);
+//#else
 	ast_rtp_get_us(rtp, addr);
-#endif
+//#endif
 }
 
 /*!
@@ -532,13 +532,13 @@ void pbx_rtp_get_us(struct ast_rtp *rtp, struct sockaddr_in *addr)
  */
 void pbx_rtp_set_peer(struct ast_rtp *rtp, struct sockaddr_in *addr)
 {
-#if ASTERISK_VERSION_NUM >= 10800
-	struct ast_sockaddr addr_tmp;
-	ast_sockaddr_from_sin(&addr_tmp, &addr);
-	ast_rtp_instance_set_remote_address(rtp, &addr_tmp);
-#else
+//#if ASTERISK_VERSION_NUM >= 10800
+//	struct ast_sockaddr addr_tmp;
+//	ast_sockaddr_from_sin(&addr_tmp, &addr);
+//	ast_rtp_instance_set_remote_address(rtp, &addr_tmp);
+//#else
 	ast_rtp_set_peer(rtp, addr);
-#endif
+//#endif
 }
 
 
