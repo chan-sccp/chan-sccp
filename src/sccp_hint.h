@@ -96,7 +96,8 @@ struct sccp_hint_list {
  * \return Status as int
  */
 int sccp_hint_state(char *context, char *exten, enum ast_extension_states state, void *data);
-void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device, sccp_channel_t * channel, sccp_channelState_t previousState, sccp_channelState_t newState);
+#define sccp_hint_lineStatusChanged(a,b,c,d,e) sccp_hint_lineStatusChangedDebug(a,b,c,d,e, __FILE__, __LINE__)
+void sccp_hint_lineStatusChangedDebug(sccp_line_t * line, sccp_device_t * device, sccp_channel_t * channel, sccp_channelState_t previousState, sccp_channelState_t state, char *callerFile, int callerLine);
 void sccp_hint_module_start(void);
 void sccp_hint_module_stop(void);
 
