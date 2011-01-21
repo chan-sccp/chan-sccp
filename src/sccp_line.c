@@ -542,6 +542,8 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 	SCCP_LIST_UNLOCK(&l->devices);
 
 	sccp_line_unlock(l);
+	
+	sccp_hint_lineStatusChanged(l, device, NULL, SCCP_CHANNELSTATE_CONGESTION, SCCP_CHANNELSTATE_CONGESTION);
 
 	/* the hint system uses the line->devices to check the state */
 	sccp_event_t *event = ast_malloc(sizeof(sccp_event_t));
