@@ -74,14 +74,16 @@ void sccp_rtp_set_peer(sccp_channel_t *c, struct sockaddr_in *new_peer){
 
 	/* validate socket */  
 	if(new_peer->sin_port == 0){
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (" __PRETTY_FUNCTION__ ") remote information are invalid, dont change anything\n", DEV_ID_LOG(c->device));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (__PRETTY_FUNCTION__) remote information are invalid, dont change anything\n", DEV_ID_LOG(c->device));
 		return;
 	}
 	
 	/* check if we have new infos */ 
 	//TODO check address also
-	if(new_peer->sin_port == c->rtp.audio.phone_remote.sin_port){
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (" __PRETTY_FUNCTION__ ") remote information are equals with our curent one, ignore change\n", DEV_ID_LOG(c->device));
+//	if(new_peer->sin_port == c->rtp.audio.phone_remote.sin_port){
+
+	if (socket_equals(new_peer, c->rtp.audio.phone_remote)
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (__PRETTY_FUNCTION__) remote information are equals with our curent one, ignore change\n", DEV_ID_LOG(c->device));
 		return;
 	}
 	
@@ -89,7 +91,7 @@ void sccp_rtp_set_peer(sccp_channel_t *c, struct sockaddr_in *new_peer){
 	if (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) {
 		/* Shutdown any early-media or previous media on re-invite */
 		/* \todo we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait) */
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (" __PRETTY_FUNCTION__ ") Stop media transmission on channel %d\n", DEV_ID_LOG(c->device), c->callid);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (__PRETTY_FUNCTION__) Stop media transmission on channel %d\n", DEV_ID_LOG(c->device), c->callid);
 		sccp_channel_stopmediatransmission_locked(c);
 	}
 	sccp_channel_startmediatransmission(c);

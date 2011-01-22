@@ -80,7 +80,9 @@ void sccp_rtp_set_peer(sccp_channel_t *c, struct sockaddr_in *new_peer){
 	
 	/* check if we have new infos */ 
 	//TODO check address also
-	if(new_peer->sin_port == c->rtp.audio.phone_remote.sin_port){
+//	if(new_peer->sin_port == c->rtp.audio.phone_remote.sin_port){
+
+	if (socket_equals(new_peer, c->rtp.audio.phone_remote) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (__PRETTY_FUNCTION__) remote information are equals with our curent one, ignore change\n", DEV_ID_LOG(c->device));
 		return;
 	}

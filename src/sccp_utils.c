@@ -1922,10 +1922,10 @@ void gc_warn_handler(char *msg, GC_word p)
  * \ret 0 on diff
  * \ret 1 on equal
  */
-int socket_equals(struct sockaddr_in s0, struct sockaddr_in s1) {
-	if(	s0.sin_addr.s_addr != s1.sin_addr.s_addr || 
-		s0.sin_port != s1.sin_port || 
-		s0.sin_family != s1.sin_family) {
+int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1) {
+	if(	s0->sin_addr.s_addr != s1->sin_addr.s_addr || 
+		s0->sin_port != s1->sin_port || 
+		s0->sin_family != s1->sin_family) {
 		return 0;
 	}
 	return 1;
