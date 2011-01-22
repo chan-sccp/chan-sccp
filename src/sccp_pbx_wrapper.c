@@ -91,6 +91,7 @@ char *get_pbx_callerid_number(struct ast_channel *ast_chan)
  * \brief Create a new RTP Source.
  * \param c SCCP Channel
  */
+//boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c)
 boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c)
 {
 	sccp_session_t *s;
@@ -140,8 +141,8 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c)
 	}
 
 	if (c->rtp.audio.rtp) {
-		ast_rtp_codec_setpref((struct ast_rtp *)c->rtp.audio.rtp, &c->codecs);
-		ast_codec_pref_string(&c->codecs, pref_buf, sizeof(pref_buf) - 1);
+		ast_rtp_codec_setpref((struct ast_rtp *)c->rtp.audio.rtp, (OLDCONST struct ast_codec_pref *)&c->codecs);
+		ast_codec_pref_string((OLDCONST struct ast_codec_pref *)&c->codecs, pref_buf, sizeof(pref_buf) - 1);
 		sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, set pef: %s\n", c->line->name, c->callid, pref_buf);
 	}
 #endif
@@ -157,7 +158,7 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c)
 #endif
 		ast_rtp_setnat(c->rtp.audio.rtp, d->nat);
 #if ASTERISK_VERSION_NUM >= 10600
-		ast_rtp_codec_setpref(c->rtp.audio.rtp, &c->codecs);
+		ast_rtp_codec_setpref(c->rtp.audio.rtp, (OLDCONST struct ast_codec_pref *)&c->codecs);
 #endif
 	}
 
