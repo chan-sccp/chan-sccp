@@ -215,6 +215,7 @@ SKINNY_LBL_VIDEO_MODE, "Video Mode"},};
 #    define SKINNY_DISP_CFWDALL                               		"\200\5"
 #    define SKINNY_DISP_CFWDBUSY                              		"\200\6"
 #    define SKINNY_DISP_CFWDNOANSWER                          		"\200\7"
+
 #    define SKINNY_DISP_BACKSPACE                             		"\200\10"
 #    define SKINNY_DISP_ENDCALL                               		"\200\11"
 #    define SKINNY_DISP_RESUME                                		"\200\12"
@@ -223,6 +224,7 @@ SKINNY_LBL_VIDEO_MODE, "Video Mode"},};
 #    define SKINNY_DISP_CONFRN                                		"\200\15"
 #    define SKINNY_DISP_PARK                                  		"\200\16"
 #    define SKINNY_DISP_JOIN                                  		"\200\17"
+
 #    define SKINNY_DISP_MEETME                                		"\200\20"
 #    define SKINNY_DISP_PICKUP                                		"\200\21"
 #    define SKINNY_DISP_GPICKUP                               		"\200\22"
@@ -231,6 +233,7 @@ SKINNY_LBL_VIDEO_MODE, "Video Mode"},};
 #    define SKINNY_DISP_ON_HOOK                               		"\200\25"
 #    define SKINNY_DISP_RING_OUT                              		"\200\26"
 #    define SKINNY_DISP_FROM                                  		"\200\27"
+
 #    define SKINNY_DISP_CONNECTED                             		"\200\30"
 #    define SKINNY_DISP_BUSY                                  		"\200\31"
 #    define SKINNY_DISP_LINE_IN_USE                           		"\200\32"
@@ -239,6 +242,7 @@ SKINNY_LBL_VIDEO_MODE, "Video Mode"},};
 #    define SKINNY_DISP_CALL_PARK                             		"\200\35"
 #    define SKINNY_DISP_CALL_PROCEED                          		"\200\36"
 #    define SKINNY_DISP_IN_USE_REMOTE                         		"\200\37"
+
 #    define SKINNY_DISP_ENTER_NUMBER                          		"\200\40"
 #    define SKINNY_DISP_CALL_PARK_AT                          		"\200\41"
 #    define SKINNY_DISP_PRIMARY_ONLY                          		"\200\42"
@@ -247,6 +251,7 @@ SKINNY_LBL_VIDEO_MODE, "Video Mode"},};
 #    define SKINNY_DISP_FORWARDED_TO                          		"\200\45"
 #    define SKINNY_DISP_CAN_NOT_COMPLETE_CONFERENCE           		"\200\46"
 #    define SKINNY_DISP_NO_CONFERENCE_BRIDGE                  		"\200\47"
+
 #    define SKINNY_DISP_CAN_NOT_HOLD_PRIMARY_CONTROL          		"\200\50"
 #    define SKINNY_DISP_INVALID_CONFERENCE_PARTICIPANT        		"\200\51"
 #    define SKINNY_DISP_IN_CONFERENCE_ALREADY                 		"\200\52"
@@ -255,6 +260,7 @@ SKINNY_LBL_VIDEO_MODE, "Video Mode"},};
 #    define SKINNY_DISP_KEY_IS_NOT_ACTIVE                     		"\200\55"
 #    define SKINNY_DISP_ERROR_NO_LICENSE                      		"\200\56"
 #    define SKINNY_DISP_ERROR_DBCONFIG                        		"\200\57"
+
 #    define SKINNY_DISP_ERROR_DATABASE                        		"\200\60"
 #    define SKINNY_DISP_ERROR_PASS_LIMIT                      		"\200\61"
 #    define SKINNY_DISP_ERROR_UNKNOWN                         		"\200\62"
@@ -263,6 +269,7 @@ SKINNY_LBL_VIDEO_MODE, "Video Mode"},};
 #    define SKINNY_DISP_PARK_NUMBER                           		"\200\65"
 #    define SKINNY_DISP_PRIVATE                               		"\200\66"
 #    define SKINNY_DISP_NOT_ENOUGH_BANDWIDTH                  		"\200\67"
+
 #    define SKINNY_DISP_UNKNOWN_NUMBER                        		"\200\70"
 #    define SKINNY_DISP_RMLSTC                                		"\200\71"
 #    define SKINNY_DISP_VOICEMAIL                             		"\200\72"
@@ -271,6 +278,7 @@ SKINNY_LBL_VIDEO_MODE, "Video Mode"},};
 #    define SKINNY_DISP_SETWTCH                               		"\200\75"
 #    define SKINNY_DISP_TRNSFVM                               		"\200\76"
 #    define SKINNY_DISP_DND                                   		"\200\77"
+
 #    define SKINNY_DISP_DIVALL                                		"\200\100"
 #    define SKINNY_DISP_CALLBACK                              		"\200\101"
 #    define SKINNY_DISP_NETWORK_CONGESTION_REROUTING          		"\200\102"
@@ -279,6 +287,7 @@ SKINNY_LBL_VIDEO_MODE, "Video Mode"},};
 #    define SKINNY_DISP_ANOTHER_BARGE_EXISTS                  		"\200\105"
 #    define SKINNY_DISP_INCOMPATIBLE_DEVICE_TYPE              		"\200\106"
 #    define SKINNY_DISP_NO_PARK_NUMBER_AVAILABLE              		"\200\107"
+
 #    define SKINNY_DISP_CALLPARK_REVERSION                    		"\200\110"
 #    define SKINNY_DISP_SERVICE_IS_NOT_ACTIVE                 		"\200\111"
 #    define SKINNY_DISP_HIGH_TRAFFIC_TRY_AGAIN_LATER          		"\200\112"
@@ -287,6 +296,7 @@ SKINNY_LBL_VIDEO_MODE, "Video Mode"},};
 #    define SKINNY_DISP_DIRTRFR                               		"\200\115"
 #    define SKINNY_DISP_SELECT                                		"\200\116"
 #    define SKINNY_DISP_CONFLIST                              		"\200\117"
+
 #    define SKINNY_DISP_IDIVERT                               		"\200\120"
 #    define SKINNY_DISP_CBARGE                                		"\200\121"
 #    define SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER             		"\200\122"
@@ -295,30 +305,42 @@ SKINNY_LBL_VIDEO_MODE, "Video Mode"},};
 #    define SKINNY_DISP_NUMBER_NOT_CONFIGURED                 		"\200\125"
 #    define SKINNY_DISP_SECURITY_ERROR                        		"\200\126"
 #    define SKINNY_DISP_VIDEO_BANDWIDTH_UNAVAILABLE           		"\200\127"
+
 #    define SKINNY_DISP_VIDMODE						"\200\130"
-#    define SKINNY_DISP_MAX_CALL_DURATION_TIMEOUT				"\200\131"
-#    define SKINNY_DISP_MAX_HOLD_DURATION_TIMEOUT				"\200\132"
+#    define SKINNY_DISP_MAX_CALL_DURATION_TIMEOUT			"\200\131"
+#    define SKINNY_DISP_MAX_HOLD_DURATION_TIMEOUT			"\200\132"
 #    define SKINNY_DISP_OPICKUP						"\200\133"
+#    define SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP                	"\200\137"      /*<! - FS */
+#    define SKINNY_DISP_PARK_SLOT_UNAVAILABLE                       	"\200\136"      /*<! - FS */
+#    define SKINNY_DISP_LOGGED_OUT_OF_HUNT_GROUP                    	"\200\135"      /*<! - FS */
+#    define SKINNY_DISP_HLOG                                        	"\200\134"      /*<! - FS */
+
 #    define SKINNY_DISP_EXTERNAL_TRANSFER_RESTRICTED			"\200\141"
-#    define SKINNY_DISP_MAC_ADDRESS						"\200\145"
-#    define SKINNY_DISP_HOST_NAME						"\200\146"
-#    define SKINNY_DISP_DOMAIN_NAME						"\200\147"
-#    define SKINNY_DISP_IP_ADDRESS						"\200\150"
-#    define SKINNY_DISP_SUBNET_MASK						"\200\151"
+#    define SKINNY_DISP_NO_LINE_AVAILABLE_FOR_PICKUP			"\200\142"	/*<! - FS */
+#    define SKINNY_DISP_UNKNOWN_1					"\200\143"
+#    define SKINNY_DISP_UNKNOWN_2					"\200\144"
+#    define SKINNY_DISP_MAC_ADDRESS					"\200\145"
+#    define SKINNY_DISP_HOST_NAME					"\200\146"
+#    define SKINNY_DISP_DOMAIN_NAME					"\200\147"
+
+#    define SKINNY_DISP_IP_ADDRESS					"\200\150"
+#    define SKINNY_DISP_SUBNET_MASK					"\200\151"
 #    define SKINNY_DISP_TFTP_SERVER_1					"\200\152"
-#    define SKINNY_DISP_DEFAULT_ROUTER_1					"\200\153"
-#    define SKINNY_DISP_DEFAULT_ROUTER_2					"\200\154"
-#    define SKINNY_DISP_DEFAULT_ROUTER_3					"\200\155"
-#    define SKINNY_DISP_DEFAULT_ROUTER_4					"\200\156"
-#    define SKINNY_DISP_DEFAULT_ROUTER_5					"\200\157"
+#    define SKINNY_DISP_DEFAULT_ROUTER_1				"\200\153"
+#    define SKINNY_DISP_DEFAULT_ROUTER_2				"\200\154"
+#    define SKINNY_DISP_DEFAULT_ROUTER_3				"\200\155"
+#    define SKINNY_DISP_DEFAULT_ROUTER_4				"\200\156"
+#    define SKINNY_DISP_DEFAULT_ROUTER_5				"\200\157"
+
 #    define SKINNY_DISP_DNS_SERVER_1					"\200\160"
 #    define SKINNY_DISP_DNS_SERVER_2					"\200\161"
 #    define SKINNY_DISP_DNS_SERVER_3					"\200\162"
 #    define SKINNY_DISP_DNS_SERVER_4					"\200\163"
 #    define SKINNY_DISP_DNS_SERVER_5					"\200\164"
-#    define SKINNY_DISP_OPERATIONAL_VLAN_ID					"\200\165"
+#    define SKINNY_DISP_OPERATIONAL_VLAN_ID				"\200\165"
 #    define SKINNY_DISP_ADMIN_VLAN_ID					"\200\166"
 #    define SKINNY_DISP_CALL_MANAGER_1					"\200\167"
+
 #    define SKINNY_DISP_CALL_MANAGER_2					"\200\170"
 #    define SKINNY_DISP_CALL_MANAGER_3					"\200\171"
 #    define SKINNY_DISP_CALL_MANAGER_4					"\200\172"
