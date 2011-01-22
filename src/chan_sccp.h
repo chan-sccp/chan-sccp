@@ -337,7 +337,12 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 	typedef void sk_func(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 	typedef enum { LINE, SPEEDDIAL, SERVICE, FEATURE, EMPTY } button_type_t;	/*!< Enum Button Type */
 	typedef enum { ANSWER_LAST_FIRST = 1, ANSWER_OLDEST_FIRST = 2 } call_answer_order_t;	/*!< Enum Call Answer Order */
-	typedef enum { SCCP_RTP_STATUS_RECEIVE = 1, SCCP_RTP_STATUS_TRANSMIT = 1 << 1 } sccp_rtp_status_t;	/*!< RTP status information */
+	typedef enum {
+			SCCP_RTP_STATUS_PROGESS_RECEIVE		= 1 << 0,
+			SCCP_RTP_STATUS_RECEIVE			= 1 << 1,
+			SCCP_RTP_STATUS_PROGESS_TRANSMIT	= 1 << 2,
+			SCCP_RTP_STATUS_TRANSMIT		= 1 << 3,
+	} sccp_rtp_status_t;	/*!< RTP status information */
 
 /*!
  * \brief SCCP ButtonType Structure
