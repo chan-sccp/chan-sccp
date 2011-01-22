@@ -138,5 +138,5 @@ boolean_t implode(char *str[], char *sep, char **res);
 #    ifdef HAVE_LIBGC
 void gc_warn_handler(char *msg, GC_word p);
 #    endif
-int socket_equals(struct sockaddr_in s0, struct sockaddr_in s1);
+int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1);
 #endif
