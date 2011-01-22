@@ -1913,3 +1913,20 @@ void gc_warn_handler(char *msg, GC_word p)
 }
 #endif
 
+/*!
+ * \brief Compare the information of two socket with one another
+ * \param s0 Socket Information
+ * \param s1 Socket Information
+ * \return success as int
+ *
+ * \ret 0 on diff
+ * \ret 1 on equal
+ */
+int socket_equals(struct sockaddr_in s0, struct sockaddr_in s1) {
+	if(	s0.sin_addr.s_addr != s1.sin_addr.s_addr || 
+		s0.sin_port != s1.sin_port || 
+		s0.sin_family != s1.sin_family) {
+		return 0;
+	}
+	return 1;
+}
