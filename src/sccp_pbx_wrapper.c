@@ -13,7 +13,14 @@
 #include "common.h"
 #include <asterisk/frame.h>
 
-//SCCP_FILE_VERSION(__FILE__, "$Revision: 2235 $")
+int sccp_wrapper_asterisk_rtp_stop(sccp_channel_t *channel);
+
+struct sccp_pbx_cb sccp_pbx = {
+	.rtp_stop 		= sccp_wrapper_asterisk_rtp_stop,
+	.rtp_audio_create 	= sccp_wrapper_asterisk_create_audio_rtp,
+};
+
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 /************************************************************************************************************ CALLERID **/
 
@@ -77,6 +84,292 @@ char *get_pbx_callerid_number(struct ast_channel *ast_chan)
 	sccp_copy_string(result, ast_chan->cid.cid_num, sizeof(result) - 1);
 #endif
 	return result;
+}
+
+
+/*!
+ * \brief Create a new RTP Source.
+ * \param c SCCP Channel
+ */
+boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c)
+{
+	sccp_session_t *s;
+	sccp_device_t *d = NULL;
+	char pref_buf[128];
+
+	if (!c)
+		return FALSE;
+	
+	d = c->device;
+	if (d)
+		s = d->session;
+	else
+		return FALSE;
+
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", d->id, pbx_inet_ntoa(s->ourip));
+	
+	if(c->rtp.audio.rtp){
+		ast_log(LOG_ERROR, "we already have a rtp server, why dont we use this?\n");
+		return TRUE;
+	}
+
+	((sccp_channel_t *)c)->rtp.audio.rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
+	if (!c->rtp.audio.rtp) {
+		return FALSE;
+	}
+#if ASTERISK_VERSION_NUM < 10400
+	if (c->rtp.audio.rtp && c->owner)
+		c->owner->fds[0] = ast_rtp_fd(c->rtp.audio.rtp);
+#endif
+
+#if ASTERISK_VERSION_NUM >= 10400
+#    if ASTERISK_VERSION_NUM < 10600
+	if (c->rtp.audio.rtp && c->owner) {
+		c->owner->fds[0] = ast_rtp_fd(c->rtp.audio.rtp);
+		c->owner->fds[1] = ast_rtcp_fd(c->rtp.audio.rtp);
+	}
+#    else
+	if (c->rtp.audio.rtp && c->owner) {
+		ast_channel_set_fd(c->owner, 0, ast_rtp_fd(c->rtp.audio.rtp));
+		ast_channel_set_fd(c->owner, 1, ast_rtcp_fd(c->rtp.audio.rtp));
+	}
+#    endif
+	/* tell changes to asterisk */
+	if ((c->rtp.audio.rtp) && c->owner) {
+		ast_queue_frame(c->owner, &sccp_null_frame);
+	}
+
+	if (c->rtp.audio.rtp) {
+		ast_rtp_codec_setpref((struct ast_rtp *)c->rtp.audio.rtp, &c->codecs);
+		ast_codec_pref_string(&c->codecs, pref_buf, sizeof(pref_buf) - 1);
+		sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, set pef: %s\n", c->line->name, c->callid, pref_buf);
+	}
+#endif
+
+//        ast_set_flag(c->rtp.audio.rtp, FLAG_HAS_DTMF);
+//        ast_set_flag(c->rtp.audio.rtp, FLAG_P2P_NEED_DTMF);
+
+	if (c->rtp.audio.rtp) {
+#if ASTERISK_VERSION_NUM >= 10600
+		ast_rtp_setqos(c->rtp.audio.rtp, c->line->audio_tos, c->line->audio_cos, "SCCP RTP");
+#else
+		ast_rtp_settos(c->rtp.audio.rtp, c->line->audio_tos);
+#endif
+		ast_rtp_setnat(c->rtp.audio.rtp, d->nat);
+#if ASTERISK_VERSION_NUM >= 10600
+		ast_rtp_codec_setpref(c->rtp.audio.rtp, &c->codecs);
+#endif
+	}
+
+	return TRUE;
+}
+
+
+#if ASTERISK_VERSION_NUM >= 10400
+/*!
+ * \brief Get RTP Peer from Channel
+ * \param ast Asterisk Channel
+ * \param rtp Asterisk RTP
+ * \return ENUM of RTP Result
+ * 
+ * \called_from_asterisk
+ */
+enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(struct ast_channel *ast, struct ast_rtp **rtp)
+{
+	sccp_channel_t *c = NULL;
+	sccp_device_t *d = NULL;
+	enum ast_rtp_get_result res = AST_RTP_TRY_NATIVE;
+
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Asterisk requested RTP peer for channel %s\n", ast->name);
+
+	if (!(c = CS_AST_CHANNEL_PVT(ast))) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO PVT\n");
+		return AST_RTP_GET_FAILED;
+	}
+
+	if (!c->rtp.audio.rtp) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO RTP\n");
+		return AST_RTP_GET_FAILED;
+	}
+
+	*rtp = c->rtp.audio.rtp;
+	
+	if (!(d = c->device)) {
+		sccp_log((DEBUGCAT_RTP | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO DEVICE\n");
+		return AST_RTP_GET_FAILED;
+	}
+
+	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
+		return AST_RTP_GET_FAILED;
+	}
+
+	if (!d->directrtp) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", ast->name);
+		return AST_RTP_TRY_PARTIAL;
+	}
+
+	if (d->nat) {
+		res = AST_RTP_TRY_PARTIAL;
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Using AST_RTP_TRY_PARTIAL for channel %s\n", ast->name);
+	} else {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Using AST_RTP_TRY_NATIVE for channel %s\n", ast->name);
+	}
+
+	return res;
+}
+#endif
+
+/*!
+ * \brief Get VRTP Peer from Channel
+ * \param ast Asterisk Channel
+ * \param rtp Asterisk RTP
+ * \return ENUM of RTP Result
+ * 
+ * \called_from_asterisk
+ */
+#ifndef CS_AST_HAS_RTP_ENGINE
+#define _RTP_GET_FAILED AST_RTP_GET_FAILED
+enum ast_rtp_get_result sccp_wrapper_asterisk_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp **rtp)
+#else
+#define _RTP_GET_FAILED AST_RTP_GLUE_RESULT_FORBID
+enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp_instance **rtp)
+#endif
+{
+	sccp_channel_t *c = NULL;
+	sccp_device_t *d = NULL;
+	enum ast_rtp_get_result res = AST_RTP_TRY_NATIVE;
+
+	if (!(c = CS_AST_CHANNEL_PVT(ast)) || !(c->rtp.video.rtp)) {
+	        return _RTP_GET_FAILED;
+	}
+#ifdef CS_AST_HAS_RTP_ENGINE
+	ao2_ref(c->rtp.video, +1);
+#endif
+	*rtp = c->rtp.video.rtp;
+
+	struct sockaddr_in them;
+	ast_rtp_get_peer(*rtp, &them);
+
+	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_vrtp_peer) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
+	        return _RTP_GET_FAILED;
+	}
+
+	if (!d->directrtp) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", ast->name);
+		return AST_RTP_TRY_PARTIAL;
+	}
+
+	if (d->nat) {
+		res = AST_RTP_TRY_PARTIAL;
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_vrtp_peer) Using AST_RTP_TRY_PARTIAL for channel %s\n", ast->name);
+	} else {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_vrtp_peer) Using AST_RTP_TRY_NATIVE for channel %s\n", ast->name);
+	}
+	
+	return res;
+}
+
+#if ASTERISK_VERSION_NUM >= 10400 && ASTERISK_VERSION_NUM < 10600
+/*!
+ * \brief Set RTP Peer from Channel
+ * \param ast Asterisk Channel
+ * \param rtp Asterisk RTP
+ * \param vrtp Asterisk RTP
+ * \param codecs Codecs as int
+ * \param nat_active Is NAT Active as int
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ */
+int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, int codecs, int nat_active)
+#else
+/*!
+ * \brief Set RTP Peer from Channel
+ * \param ast Asterisk Channel
+ * \param rtp Asterisk RTP
+ * \param vrtp Asterisk RTP
+ * \param trtp Asterisk RTP
+ * \param codecs Codecs as int
+ * \param nat_active Is NAT Active as int
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ */
+int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, struct ast_rtp *trtp, int codecs, int nat_active)
+#endif
+{
+	sccp_channel_t *c = NULL;
+	sccp_line_t *l = NULL;
+	sccp_device_t *d = NULL;
+//	sccp_moo_t *r;
+
+	struct ast_format_list fmt;
+	struct sockaddr_in them;
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: __FILE__\n");
+
+	if (!(c = CS_AST_CHANNEL_PVT(ast))) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) NO PVT\n");
+		return -1;
+	}
+	if (!(l = c->line)) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) NO LINE\n");
+		return -1;
+	}
+	if (!(d = c->device)) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) NO DEVICE\n");
+		return -1;
+	}
+
+	if (!d->directrtp) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) Direct RTP disabled\n");
+		return -1;
+	}
+
+	if (rtp) {
+        	ast_rtp_get_peer(rtp, &them);
+            	
+// 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_set_rtp_peer) asterisk told us to set peer to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
+//             	
+// 		if(them.sin_port == 0){
+// 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_set_rtp_peer) remote information are invalid, us our own rtp\n", DEV_ID_LOG(d));
+// 			ast_rtp_get_us(rtp, &c->rtp.audio.phone_remote);
+// 		}else{
+// 			c->rtp.audio.phone_remote=them;   // should be called bridge_peer
+// 		}
+                
+                
+                sccp_rtp_set_peer(c, &them);
+// 		if (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) {
+//                         /* Shutdown any early-media or previous media on re-invite */
+// 			/* \todo we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait) */
+// 	                sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_set_rtp_peer) Stop media transmission on channel %d\n", DEV_ID_LOG(d), c->callid);
+// 			sccp_channel_stopmediatransmission_locked(c);
+// 		}
+// 
+//                 //fmt = pbx_codec_pref_getsize(&d->codecs, ast_best_codec(d->capability));
+//                 int codec = ast_codec_choose(&c->codecs, codecs, 1);
+//                 fmt = pbx_codec_pref_getsize(&d->codecs, codec);
+//                 c->format = fmt.bits;						/* updating channel format */
+//                 // replace by new function (something like: sccp_channel_setcodec / sccp_channel_choosecodec)
+// 
+//                 sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_set_rtp_peer) Start media transmission on channel %d, codec='%d', payloadType='%d' (%d ms), peer_ip='%s:%d'\n", DEV_ID_LOG(d), c->callid, codec, fmt.bits, fmt.cur_ms, pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
+//                 sccp_channel_startmediatransmission(c);
+
+                c->mediaStatus.transmit = TRUE;
+                return 0;
+	} else {
+		if (ast->_state != AST_STATE_UP) {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "SCCP: (sccp_channel_set_rtp_peer) Early RTP stage, codecs=%d, nat=%d\n", codecs, d->nat);
+		} else {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "SCCP: (sccp_channel_set_rtp_peer) Native Bridge Break, codecs=%d, nat=%d\n", codecs, d->nat);
+		}
+		return 0;
+	}
+
+	/* Need a return here to break the bridge */
+	return 0;
 }
 
 /*
@@ -484,6 +777,19 @@ int pbx_moh_start(struct ast_channel *chan, const char *mclass, const char *inte
 #endif
 }
 
+int sccp_wrapper_asterisk_rtp_stop(sccp_channel_t *channel){
+	if (channel->rtp.audio.rtp) {
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "Stopping phone media transmission on channel %08X\n",channel->callid);
+		ast_rtp_stop(channel->rtp.audio.rtp);
+	}
+
+	if (channel->rtp.video.rtp) {
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "Stopping video media transmission on channel %08X\n", channel->callid);
+		ast_rtp_stop(channel->rtp.video.rtp);
+	}
+	return 0;
+}
+
 /***************************************************************************************************************** RTP **/
 
 /*!
@@ -496,14 +802,14 @@ int pbx_moh_start(struct ast_channel *chan, const char *mclass, const char *inte
  */
 int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *addr)
 {
-//#if ASTERISK_VERSION_NUM >= 10800
-//	struct ast_sockaddr addr_tmp;
-//	ast_rtp_instance_get_remote_address(rtp, &addr_tmp);
-//	ast_sockaddr_to_sin(&addr_tmp, &addr);
-//	return addr.sin_addr.s_addr;
-//#else
+// #if ASTERISK_VERSION_NUM >= 10800
+// 	struct ast_sockaddr addr_tmp;
+// 	ast_rtp_instance_get_remote_address(rtp, &addr_tmp);
+// 	ast_sockaddr_to_sin(&addr_tmp, &addr);
+// 	return addr.sin_addr.s_addr;
+// #else
 	return ast_rtp_get_peer(rtp, addr);
-//#endif
+// #endif
 }
 
 /*!
@@ -515,13 +821,13 @@ int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *addr)
  */
 void pbx_rtp_get_us(struct ast_rtp *rtp, struct sockaddr_in *addr)
 {
-//#if ASTERISK_VERSION_NUM >= 10800
-//	struct ast_sockaddr addr_tmp;
-//	ast_rtp_instance_get_local_address(rtp, &addr_tmp);
-//	ast_sockaddr_to_sin(&addr_tmp, &addr);
-//#else
+// #if ASTERISK_VERSION_NUM >= 10800
+// 	struct ast_sockaddr addr_tmp;
+// 	ast_rtp_instance_get_local_address(rtp, &addr_tmp);
+// 	ast_sockaddr_to_sin(&addr_tmp, &addr);
+// #else
 	ast_rtp_get_us(rtp, addr);
-//#endif
+// #endif
 }
 
 /*!
@@ -532,13 +838,13 @@ void pbx_rtp_get_us(struct ast_rtp *rtp, struct sockaddr_in *addr)
  */
 void pbx_rtp_set_peer(struct ast_rtp *rtp, struct sockaddr_in *addr)
 {
-//#if ASTERISK_VERSION_NUM >= 10800
-//	struct ast_sockaddr addr_tmp;
-//	ast_sockaddr_from_sin(&addr_tmp, &addr);
-//	ast_rtp_instance_set_remote_address(rtp, &addr_tmp);
-//#else
+// #if ASTERISK_VERSION_NUM >= 10800
+// 	struct ast_sockaddr addr_tmp;
+// 	ast_sockaddr_from_sin(&addr_tmp, &addr);
+// 	ast_rtp_instance_set_remote_address(rtp, &addr_tmp);
+// #else
 	ast_rtp_set_peer(rtp, addr);
-//#endif
+// #endif
 }
 
 

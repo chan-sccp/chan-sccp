@@ -474,7 +474,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 		break;
 	case IpPortMessage:
 		/* obsolete message */
-		s->rtpPort = letohs(r->msg.IpPortMessage.les_rtpMediaPort);
+		//s->rtpPort = letohs(r->msg.IpPortMessage.les_rtpMediaPort);
 		break;
 	case VersionReqMessage:
 		sccp_handle_version(s, r);

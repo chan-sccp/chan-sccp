@@ -12,6 +12,19 @@
 #ifndef __SCCP_PBX_WRAPPER_H
 #    define __SCCP_PBX_WRAPPER_H
 
+
+struct sccp_pbx_cb {
+	int (* const rtp_set_peer)(sccp_channel_t *channel, int codecs, int nat_active);
+	int (* const rtp_destroy)(sccp_channel_t *channel);
+	int (* const rtp_stop)(sccp_channel_t *channel);
+	int (* const rtp_codec)(sccp_channel_t *channel);
+	boolean_t (* const rtp_audio_create)(const sccp_channel_t *channel);
+};
+
+extern struct sccp_pbx_cb sccp_pbx;
+#define PBX(x) sccp_pbx.x
+
+
 #    if ASTERISK_VERSION_NUM >= 10800
 typedef int64_t format_t;
 #    else
@@ -154,8 +167,29 @@ void pbxman_send_listack(struct mansession *s, const struct message *m, char *ms
 
 int pbx_moh_start(struct ast_channel *chan, const char *mclass, const char *interpclass);
 
+
+boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c);
 int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *addr);
 void pbx_rtp_get_us(struct ast_rtp *rtp, struct sockaddr_in *addr);
 void pbx_rtp_set_peer(struct ast_rtp *rtp, struct sockaddr_in *addr);
+
+#if ASTERISK_VERSION_NUM >= 10400
+enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(struct ast_channel *ast, struct ast_rtp **rtp);
+#endif
+
+#ifndef CS_AST_HAS_RTP_ENGINE
+enum ast_rtp_get_result sccp_wrapper_asterisk_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp **rtp);
+#else
+enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp_instance **rtp);
+#endif
+
+#if ASTERISK_VERSION_NUM >= 10400
+#        if ASTERISK_VERSION_NUM >= 10400 && ASTERISK_VERSION_NUM < 10600
+int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, int codecs, int nat_active);
+#        else
+int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, struct ast_rtp *trtp, int codecs, int nat_active);
+#        endif
+#endif
+
 
 #endif

@@ -20,7 +20,7 @@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2011-01-12 02:42:50 +0100 (Wed, 12 Jan 2011) $
+# DATE:     $Date: 2011-01-12 02:42:50 +0100 (Mi, 12. Jan 2011) $
 # REVISION: $Revision: 2235 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 
@@ -101,7 +101,7 @@ am_chan_sccp_la_OBJECTS = chan_sccp_la-chan_sccp.lo \
 	chan_sccp_la-sccp_event.lo chan_sccp_la-sccp_adv_features.lo \
 	chan_sccp_la-sccp_management.lo chan_sccp_la-sccp_mwi.lo \
 	chan_sccp_la-sccp_conference.lo \
-	chan_sccp_la-sccp_pbx_wrapper.lo
+	chan_sccp_la-sccp_pbx_wrapper.lo chan_sccp_la-sccp_rtp.lo
 chan_sccp_la_OBJECTS = $(am_chan_sccp_la_OBJECTS)
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
@@ -144,6 +144,7 @@ ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AR = @AR@
+ARGZ_H = @ARGZ_H@
 ASTERISK_VER = @ASTERISK_VER@
 ASTERISK_VERSION_NUM = @ASTERISK_VERSION_NUM@
 AUTOCONF = @AUTOCONF@
@@ -215,6 +216,7 @@ HAVE_ASTERISK = @HAVE_ASTERISK@
 HAVE_CALLWEAVER = @HAVE_CALLWEAVER@
 HEAD = @HEAD@
 HOST_CC = @HOST_CC@
+INCLTDL = @INCLTDL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -222,13 +224,24 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
+LIBADD_DL = @LIBADD_DL@
+LIBADD_DLD_LINK = @LIBADD_DLD_LINK@
+LIBADD_DLOPEN = @LIBADD_DLOPEN@
+LIBADD_SHL_LOAD = @LIBADD_SHL_LOAD@
+LIBLTDL = @LIBLTDL@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LIPO = @LIPO@
 LN_S = @LN_S@
+LTDLDEPS = @LTDLDEPS@
+LTDLINCL = @LTDLINCL@
+LTDLOPEN = @LTDLOPEN@
 LTLIBOBJS = @LTLIBOBJS@
+LT_CONFIG_H = @LT_CONFIG_H@
+LT_DLLOADERS = @LT_DLLOADERS@
+LT_DLPREOPEN = @LT_DLPREOPEN@
 M4 = @M4@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
@@ -317,6 +330,8 @@ libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
 lt_ECHO = @lt_ECHO@
+ltdl_LIBOBJS = @ltdl_LIBOBJS@
+ltdl_LTLIBOBJS = @ltdl_LTLIBOBJS@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
@@ -329,6 +344,8 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 strip_binaries = @strip_binaries@
+subdirs = @subdirs@
+sys_symbol_underscore = @sys_symbol_underscore@
 sysconfdir = @sysconfdir@
 target = @target@
 target_alias = @target_alias@
@@ -349,13 +366,13 @@ chan_sccp_la_SOURCES = chan_sccp.h sccp_pbx_wrapper.h sccp_cli.h \
 	sccp_features.h sccp_pbx.h sccp_device.h sccp_hint.h \
 	sccp_lock.h sccp_protocol.h sccp_dllists.h sccp_indicate.h \
 	sccp_management.h sccp_socket.h sccp_mwi.h common.h \
-	sccp_pbx_wrapper.h chan_sccp.c sccp_channel.c sccp_device.c \
-	sccp_indicate.c sccp_pbx.c sccp_softkeys.c \
+	sccp_pbx_wrapper.h sccp_rtp.h chan_sccp.c sccp_channel.c \
+	sccp_device.c sccp_indicate.c sccp_pbx.c sccp_softkeys.c \
 	sccp_featureButton.c sccp_line.c sccp_utils.c sccp_actions.c \
 	sccp_cli.c sccp_features.c sccp_socket.c sccp_config.c \
 	sccp_hint.c sccp_lock.c sccp_event.c sccp_adv_features.c \
 	sccp_management.c sccp_mwi.c sccp_conference.c \
-	sccp_pbx_wrapper.c
+	sccp_pbx_wrapper.c sccp_rtp.c
 chan_sccp_la_CPPFLAGS = $(PBX_CPPFLAGS)
 chan_sccp_la_LIBADD = $(PTHREAD_CFLAGS) $(GCLIBS)
 chan_sccp_la_CFLAGS = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) \
@@ -462,6 +479,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_mwi.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_pbx.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_pbx_wrapper.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_rtp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_socket.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_softkeys.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_utils.Plo@am__quote@
@@ -665,6 +683,14 @@ chan_sccp_la-sccp_pbx_wrapper.lo: sccp_pbx_wrapper.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='sccp_pbx_wrapper.c' object='chan_sccp_la-sccp_pbx_wrapper.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(chan_sccp_la_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_la_CFLAGS) $(CFLAGS) -c -o chan_sccp_la-sccp_pbx_wrapper.lo `test -f 'sccp_pbx_wrapper.c' || echo '$(srcdir)/'`sccp_pbx_wrapper.c
+
+chan_sccp_la-sccp_rtp.lo: sccp_rtp.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(chan_sccp_la_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_la_CFLAGS) $(CFLAGS) -MT chan_sccp_la-sccp_rtp.lo -MD -MP -MF $(DEPDIR)/chan_sccp_la-sccp_rtp.Tpo -c -o chan_sccp_la-sccp_rtp.lo `test -f 'sccp_rtp.c' || echo '$(srcdir)/'`sccp_rtp.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/chan_sccp_la-sccp_rtp.Tpo $(DEPDIR)/chan_sccp_la-sccp_rtp.Plo
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='sccp_rtp.c' object='chan_sccp_la-sccp_rtp.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(chan_sccp_la_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_la_CFLAGS) $(CFLAGS) -c -o chan_sccp_la-sccp_rtp.lo `test -f 'sccp_rtp.c' || echo '$(srcdir)/'`sccp_rtp.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

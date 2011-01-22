@@ -2330,7 +2330,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 			ast_rtp_set_peer(c->rtp.audio.rtp, &sin);
 
 			ast_rtp_get_us(c->rtp.audio.rtp, &us);
-			memcpy(&c->rtp.audio.phone, &us, sizeof(c->rtp.audio.phone));
+			memcpy(&c->rtp.audio.phone_remote, &us, sizeof(c->rtp.audio.phone_remote));
 
 			sccp_channel_startmediatransmission(c);			/*!< Starting Media Transmission Earlier to fix 2 second delay - Copied from v2 - FS */
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));

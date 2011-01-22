@@ -102,5 +102,6 @@
 #    include "sccp_adv_features.h"
 #    include "sccp_cli.h"
 #    include "sccp_management.h"
+#    include "sccp_rtp.h"
 
 #endif										// CHAN_SCCP_COMMON_H
