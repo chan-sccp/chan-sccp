@@ -616,8 +616,8 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c)
 	}
 
 	if (c->rtp.audio.rtp) {
-		ast_rtp_codec_setpref((struct ast_rtp *)c->rtp.audio.rtp, (OLDCONST struct ast_codec_pref *)&c->codecs);
-		ast_codec_pref_string((OLDCONST struct ast_codec_pref *)&c->codecs, pref_buf, sizeof(pref_buf) - 1);
+		ast_rtp_codec_setpref((struct ast_rtp *)c->rtp.audio.rtp, (struct ast_codec_pref *)&c->codecs);
+		ast_codec_pref_string((struct ast_codec_pref *)&c->codecs, pref_buf, sizeof(pref_buf) - 1);
 		sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, set pef: %s\n", c->line->name, c->callid, pref_buf);
 	}
 #endif
@@ -632,9 +632,11 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c)
 		ast_rtp_settos(c->rtp.audio.rtp, c->line->audio_tos);
 #endif
 		ast_rtp_setnat(c->rtp.audio.rtp, d->nat);
+/* //zwei mal gesetzt
 #if ASTERISK_VERSION_NUM >= 10600
-		ast_rtp_codec_setpref(c->rtp.audio.rtp, (OLDCONST struct ast_codec_pref *)&c->codecs);
+		ast_rtp_codec_setpref(c->rtp.audio.rtp, (struct ast_codec_pref *)&c->codecs);
 #endif
+*/
 	}
 
 	return TRUE;
@@ -781,7 +783,7 @@ int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *
 	sccp_device_t *d = NULL;
 //	sccp_moo_t *r;
 
-	struct ast_format_list fmt;
+//	struct ast_format_list fmt;	// not used
 	struct sockaddr_in them;
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: __FILE__\n");
 
