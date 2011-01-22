@@ -168,6 +168,7 @@ void pbxman_send_listack(struct mansession *s, const struct message *m, char *ms
 int pbx_moh_start(struct ast_channel *chan, const char *mclass, const char *interpclass);
 
 
+//boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c);
 boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c);
 int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *addr);
 void pbx_rtp_get_us(struct ast_rtp *rtp, struct sockaddr_in *addr);
