@@ -410,7 +410,7 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 	if (c->rtp.audio.rtp) {
 		sccp_channel_closereceivechannel_locked(c);
 		usleep(200);
-		sccp_channel_destroy_rtp(c);
+		sccp_rtp_destroy(c);
 		usleep(200);
 	}
 	// removing scheduled dialing
@@ -1995,9 +1995,9 @@ int acf_channel_read(struct ast_channel *ast, NEWCONST char *funcname, char *arg
 #    ifndef CS_AST_HAS_RTP_ENGINE
 struct ast_rtp_protocol sccp_rtp = {
 	.type = SCCP_TECHTYPE_STR,
-	.get_rtp_info = sccp_channel_get_rtp_peer,
-	.set_rtp_peer = sccp_channel_set_rtp_peer,
-	.get_vrtp_info = sccp_channel_get_vrtp_peer,
+	.get_rtp_info = sccp_wrapper_asterisk_get_rtp_peer,
+	.set_rtp_peer = sccp_wrapper_asterisk_set_rtp_peer,
+	.get_vrtp_info = sccp_wrapper_asterisk_get_vrtp_peer,
 	.get_codec = sccp_device_get_codec,
 };
 #    else
@@ -2006,9 +2006,9 @@ struct ast_rtp_protocol sccp_rtp = {
  */
 struct ast_rtp_glue sccp_rtp = {
 	.type = SCCP_TECHTYPE_STR,
-	.get_rtp_info = sccp_channel_get_rtp_peer,
-	.get_vrtp_info = sccp_channel_get_vrtp_peer,
-	.update_peer = sccp_channel_set_rtp_peer,
+	.get_rtp_info = sccp_wrapper_asterisk_get_rtp_peer,
+	.get_vrtp_info = sccp_wrapper_asterisk_get_vrtp_peer,
+	.update_peer = sccp_wrapper_asterisk_set_rtp_peer,
 	.get_codec = sccp_device_get_codec,
 };
 #    endif									// CS_AST_HAS_RTP_ENGINE

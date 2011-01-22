@@ -965,7 +965,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		struct in_addr ourip;						/*!< Our IP is for rtp use */
 		time_t lastKeepAlive;						/*!< Last KeepAlive Time */
 		struct pollfd fds[1];						/*!< File Descriptor */
-		int rtpPort;							/*!< RTP Port */
+		//int rtpPort;							/*!< RTP Port */
 		sccp_device_t *device;						/*!< Associated Device */
 		SCCP_RWLIST_ENTRY(sccp_session_t) list;				/*!< Linked List Entry for this Session */
 
@@ -977,10 +977,10 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 	struct sccp_rtp {
 
 		uint8_t status;
-		struct ast_rtp *rtp;						/*!< Asterisk RTP */
+		void *rtp;							/*!< pbx rtp pointer */
 		boolean_t isStarted;						/*!< is rtp server started */
-		struct sockaddr_in phone;					/*!< RTP Socket Address */
-		struct sockaddr_in phone_remote;					/*!< RTP Socket Address */
+		struct sockaddr_in phone;					/*!< our phone information (openreceive) */
+		struct sockaddr_in phone_remote;				/*!< phone destination address (starttransmission) */
 		uint32_t readFormat;						/*!< current read format */
 		uint32_t writeFormat;						/*!< current write format */
 

@@ -31,19 +31,6 @@ void sccp_channel_set_calledparty(sccp_channel_t * c, char *name, char *number);
 void sccp_channel_set_originalCalledparty(sccp_channel_t * c, char *name, char *number);
 void sccp_channel_connect(sccp_channel_t * c);
 void sccp_channel_disconnect(sccp_channel_t * c);
-#    if ASTERISK_VERSION_NUM >= 10400
-enum ast_rtp_get_result sccp_channel_get_rtp_peer(struct ast_channel *ast, struct ast_rtp **rtp);
-#        if ASTERISK_VERSION_NUM >= 10400 && ASTERISK_VERSION_NUM < 10600
-int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, int codecs, int nat_active);
-#        else
-int sccp_channel_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, struct ast_rtp *trtp, int codecs, int nat_active);
-#        endif
-#    endif
-#    ifndef CS_AST_HAS_RTP_ENGINE
-enum ast_rtp_get_result sccp_channel_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp **rtp);
-#    else
-enum ast_rtp_glue_result sccp_channel_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp_instance **rtp);
-#    endif
 void sccp_channel_openreceivechannel_locked(sccp_channel_t * c);
 void sccp_channel_startmediatransmission(sccp_channel_t * c);
 void sccp_channel_closereceivechannel_locked(sccp_channel_t * c);
@@ -61,10 +48,8 @@ int sccp_channel_destroy_callback(const void* data);
 void sccp_channel_clean_locked(sccp_channel_t * c);
 int sccp_channel_hold_locked(sccp_channel_t * c);
 int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c);
-boolean_t sccp_channel_start_rtp_locked(sccp_channel_t * c);
 boolean_t sccp_channel_start_vrtp(sccp_channel_t * c);
-void sccp_channel_stop_rtp(sccp_channel_t * c);
-void sccp_channel_destroy_rtp(sccp_channel_t * c);
+
 void sccp_channel_transfer_locked(sccp_channel_t * c);
 void sccp_channel_transfer_complete(sccp_channel_t * c);
 void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevice, char *fwdNumber);
