@@ -23,7 +23,7 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/translate.h>
-#include <asterisk/rtp.h>
+
 
 #if ASTERISK_VERSION_NUM >= 10400
 #    ifdef CS_AST_HAS_TECH_PVT
