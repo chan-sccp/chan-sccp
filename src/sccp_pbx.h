@@ -18,13 +18,14 @@
 
 #    ifndef CS_AST_HAS_RTP_ENGINE
 #        define sccp_rtp_write	ast_rtp_write
+#    	 if ASTERISK_VERSION_NUM >= 10400
+		extern struct ast_rtp_protocol sccp_rtp;					/*!< rtp definition, see sccp_pbx.c */
+#    	  endif									// ASTERISK_VERSION_NUM >= 10400
 #    else
 #        define sccp_rtp_write	ast_rtp_instance_write
+	 extern struct ast_rtp_glue sccp_rtp;
 #    endif									// CS_AST_HAS_RTP_ENGINE
 
-#    if ASTERISK_VERSION_NUM >= 10400
-extern struct ast_rtp_protocol sccp_rtp;					/*!< rtp definition, see sccp_pbx.c */
-#    endif									// ASTERISK_VERSION_NUM >= 10400
 
 uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c);
 int sccp_pbx_sched_dial(const void *data);

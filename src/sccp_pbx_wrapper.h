@@ -173,14 +173,12 @@ int pbx_moh_start(struct ast_channel *chan, const char *mclass, const char *inte
 
 boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c);
 
-//#if ASTERISK_VERSION_NUM < 10800
-int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *addr);
-void pbx_rtp_get_us(struct ast_rtp *rtp, struct sockaddr_in *addr);
-void pbx_rtp_set_peer(struct ast_rtp *rtp, struct sockaddr_in *addr);
-//#endif
+#if ASTERISK_VERSION_NUM < 10800
+
+#endif
 
 #if ASTERISK_VERSION_NUM >= 10400
-enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(struct ast_channel *ast, struct ast_rtp **rtp);
+
 #endif
 
 #ifndef CS_AST_HAS_RTP_ENGINE
@@ -193,14 +191,19 @@ enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(struct ast_channel 
 #        if ASTERISK_VERSION_NUM >= 10400 && ASTERISK_VERSION_NUM < 10600
 int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, int codecs, int nat_active);
 #        else
-int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, struct ast_rtp *trtp, int codecs, int nat_active);
+
 #        endif
 #endif
 
 #if ASTERISK_VERSION_NUM >= 10800
 uint8_t sccp_wrapper_asterisk18_get_payloadType(const struct sccp_rtp *rtp, skinny_media_payload codec);
 #else
+int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, struct ast_rtp *trtp, int codecs, int nat_active);
+enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(struct ast_channel *ast, struct ast_rtp **rtp);
 uint8_t sccp_wrapper_asterisk_get_payloadType(const struct sccp_rtp *rtp, skinny_media_payload codec);
+int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *addr);
+void pbx_rtp_get_us(struct ast_rtp *rtp, struct sockaddr_in *addr);
+void pbx_rtp_set_peer(struct ast_rtp *rtp, struct sockaddr_in *addr);
 #endif
 
 #endif
