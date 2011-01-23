@@ -958,24 +958,24 @@ int sccp_wrapper_asterisk_setCallState(const sccp_channel_t *channel, int state)
 	return 0;
 }
 
-boolean_t sccp_wrapper_asterisk_allocPBXChannel(const sccp_channel_t *line, void **pbx_channel){
+boolean_t sccp_wrapper_asterisk_allocPBXChannel(const sccp_channel_t *channel, void **pbx_channel){
 #    if ASTERISK_VERSION_NUM < 10400
 	*pbx_channel = ast_channel_alloc(0);
 #    else
-	*pbx_channel = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
+	*pbx_channel = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
 #    endif
 	
 	if(*pbx_channel != NULL)
 		return TRUE;
 	 
-	 return FLASE;
+	 return FALSE;
 }
 
-boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t *line, void **pbx_channel){
-	 *pbx_channel = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, chan1->linkedid, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
+boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t *channel, void **pbx_channel){
+	 *pbx_channel = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, 0, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
 	 
 	 if(*pbx_channel != NULL)
 		return TRUE;
 	 
-	 return FLASE;
+	 return FALSE;
 }

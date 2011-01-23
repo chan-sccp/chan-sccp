@@ -654,7 +654,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 	sccp_device_t *d = NULL;
 	int payloadType;
 	int packetSize;
-	struct sockaddr_in them;
+	struct sockaddr_in *them;
 	uint16_t instance;
 
 	if (!c || !c->device)
@@ -699,8 +699,8 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 
 	if (d->inuseprotocolversion >= 17) {
 		r = sccp_build_packet(OpenReceiveChannel, sizeof(r->msg.OpenReceiveChannel_v17));
-		sccp_rtp_getAudioPeer(c, &&them);
-		memcpy(&r->msg.OpenReceiveChannel_v17.bel_remoteIpAddr, &them.sin_addr, 4);
+		sccp_rtp_getAudioPeer(c, &them);
+		memcpy(&r->msg.OpenReceiveChannel_v17.bel_remoteIpAddr, &them->sin_addr, 4);
 		r->msg.OpenReceiveChannel_v17.lel_conferenceId = htolel(c->callid);
 		r->msg.OpenReceiveChannel_v17.lel_passThruPartyId = htolel(c->passthrupartyid);
 		r->msg.OpenReceiveChannel_v17.lel_millisecondPacketSize = htolel(packetSize);
@@ -2179,7 +2179,7 @@ void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevi
 	/* dial forwarder */
 	sccp_copy_string(forwarder->owner->exten, dialedNumber, sizeof(forwarder->owner->exten));
 	//sccp_ast_setstate(forwarder, AST_STATE_OFFHOOK);
-	PBX(set_callstate)(c, AST_STATE_OFFHOOK);
+	PBX(set_callstate)(forwarder, AST_STATE_OFFHOOK);
 	if (!sccp_strlen_zero(dialedNumber) && !pbx_check_hangup(forwarder->owner)
 	    && ast_exists_extension(forwarder->owner, forwarder->line->context, dialedNumber, 1, forwarder->line->cid_num)) {
 		/* found an extension, let's dial it */
@@ -2290,7 +2290,7 @@ void sccp_channel_park(sccp_channel_t * c)
 // #    else
 // 	chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
 // #    endif
-	PBX(alloc_pbxChannel)(l, &chan1m);
+	PBX(alloc_pbxChannel)(c, (void **)&chan1m);
 	if (!channelResult) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Park Failed: can't create asterisk channel\n", d->id);
 
@@ -2303,7 +2303,7 @@ void sccp_channel_park(sccp_channel_t * c)
 // #    else
 // 	chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
 // #    endif
-	PBX(alloc_pbxChannel)(l, &chan2m);
+	PBX(alloc_pbxChannel)(c, (void **)&chan2m);
 	if (!channelResult) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Park Failed: can't create asterisk channel\n", d->id);
 
