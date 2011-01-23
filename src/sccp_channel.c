@@ -825,15 +825,15 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		return;
 
 	/* lookup payloadType */
-	payloadType = ast_rtp_lookup_code(channel->rtp.video.rtp, 1, channel->rtp.video.readFormat);
+	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, 1, SKINNY_CODEC_H264);
 	if (payloadType == -1) {
 		//TODO handle payload error
 		payloadType = 97;
 	}
-	ast_rtp_set_m_type(channel->rtp.video.rtp, payloadType);
-#if ASTERISK_VERSION_NUM >= 10600
-	ast_rtp_set_rtpmap_type_rate(channel->rtp.video.rtp, channel->rtp.video.readFormat, "video", "H264", 0, 0);
-#endif
+// 	ast_rtp_set_m_type(channel->rtp.video.rtp, payloadType);
+// #if ASTERISK_VERSION_NUM >= 10600
+// 	ast_rtp_set_rtpmap_type_rate(channel->rtp.video.rtp, channel->rtp.video.readFormat, "video", "H264", 0, 0);
+// #endif
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: using payload %d\n", channel->device->id, payloadType);
 
