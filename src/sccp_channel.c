@@ -1011,7 +1011,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 #ifdef CS_SCCP_VIDEO
 	if (sccp_device_isVideoSupported(c->device)) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", DEV_ID_LOG(c->device));
-		if (!c->rtp.video.rtp && !sccp_channel_start_vrtp(c)) {
+		if (!c->rtp.video.rtp && !sccp_rtp_createVideoServer(c)) {
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(c->device));
 		} else {
 			sccp_channel_startMultiMediaTransmission(c);

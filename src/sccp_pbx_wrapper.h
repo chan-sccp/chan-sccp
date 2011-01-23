@@ -11,15 +11,16 @@
  */
 #ifndef __SCCP_PBX_WRAPPER_H
 #    define __SCCP_PBX_WRAPPER_H
-
+#include "common.h"
 
 struct sccp_pbx_cb {
 	int (* const rtp_set_peer)(sccp_channel_t *channel, int codecs, int nat_active);
 	int (* const rtp_destroy)(sccp_channel_t *channel);
 	int (* const rtp_stop)(sccp_channel_t *channel);
 	int (* const rtp_codec)(sccp_channel_t *channel);
-	boolean_t (* const rtp_audio_create)(const sccp_channel_t *channel);
-	uint8_t (* const get_payloadType)(const struct sccp_rtp *rtp, skinny_media_payload codec);
+	boolean_t (* const rtp_audio_create)(const sccp_channel_t *channel, void **new_rtp);
+	boolean_t (* const rtp_video_create)(const sccp_channel_t *channel, void **new_rtp);
+	uint8_t (* const rtp_get_payloadType)(const struct sccp_rtp *rtp, skinny_media_payload codec);
 	
 	char *(* const pbx_get_callerid_name)(const sccp_channel_t *channel);
 	char *(* const pbx_get_callerid_number)(const sccp_channel_t *channel);
@@ -171,7 +172,6 @@ void pbxman_send_listack(struct mansession *s, const struct message *m, char *ms
 int pbx_moh_start(struct ast_channel *chan, const char *mclass, const char *interpclass);
 
 
-boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c);
 
 #if ASTERISK_VERSION_NUM < 10800
 
@@ -194,6 +194,10 @@ int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *
 
 #        endif
 #endif
+
+
+boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t *c, void **new_rtp);
+boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t *c, void **new_rtp);
 
 #if ASTERISK_VERSION_NUM >= 10800
 uint8_t sccp_wrapper_asterisk18_get_payloadType(const struct sccp_rtp *rtp, skinny_media_payload codec);
