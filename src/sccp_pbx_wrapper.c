@@ -20,11 +20,13 @@ struct sccp_pbx_cb sccp_pbx = {
 #if ASTERISK_VERSION_NUM >= 10800
 	.rtp_stop 		= sccp_wrapper_asterisk_rtp_stop,
 	.rtp_audio_create 	= sccp_wrapper_asterisk_create_audio_rtp,
-	.get_payloadType	= sccp_wrapper_asterisk18_get_payloadType,
+	.rtp_video_create 	= sccp_wrapper_asterisk_create_video_rtp,
+	.rtp_get_payloadType	= sccp_wrapper_asterisk18_get_payloadType,
 #else
 	.rtp_stop 		= sccp_wrapper_asterisk_rtp_stop,
 	.rtp_audio_create 	= sccp_wrapper_asterisk_create_audio_rtp,
-	.get_payloadType	= sccp_wrapper_asterisk_get_payloadType,
+	.rtp_video_create 	= sccp_wrapper_asterisk_create_video_rtp,
+	.rtp_get_payloadType	= sccp_wrapper_asterisk_get_payloadType,
 	
 	.pbx_get_callerid_name	= sccp_wrapper_asterisk_callerid_name,
 	.pbx_get_callerid_number= sccp_wrapper_asterisk_callerid_number,
@@ -579,8 +581,7 @@ void pbx_rtp_set_peer(struct ast_rtp *rtp, struct sockaddr_in *addr)
  * \brief Create a new RTP Source.
  * \param c SCCP Channel
  */
-//boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c)
-boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c)
+boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c, void **new_rtp)
 {
 	sccp_session_t *s;
 	sccp_device_t *d = NULL;
@@ -602,34 +603,34 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c)
 		return TRUE;
 	}
 
-	((sccp_channel_t *)c)->rtp.audio.rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
-	if (!c->rtp.audio.rtp) {
+	*new_rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
+	if (!*new_rtp) {
 		return FALSE;
 	}
 #if ASTERISK_VERSION_NUM < 10400
-	if (c->rtp.audio.rtp && c->owner)
-		c->owner->fds[0] = ast_rtp_fd(c->rtp.audio.rtp);
+	if (*new_rtp && c->owner)
+		c->owner->fds[0] = ast_rtp_fd(*new_rtp);
 #endif
 
 #if ASTERISK_VERSION_NUM >= 10400
 #    if ASTERISK_VERSION_NUM < 10600
-	if (c->rtp.audio.rtp && c->owner) {
-		c->owner->fds[0] = ast_rtp_fd(c->rtp.audio.rtp);
-		c->owner->fds[1] = ast_rtcp_fd(c->rtp.audio.rtp);
+	if (c->owner) {
+		c->owner->fds[0] = ast_rtp_fd(*new_rtp);
+		c->owner->fds[1] = ast_rtcp_fd(*new_rtp);
 	}
 #    else
-	if (c->rtp.audio.rtp && c->owner) {
-		ast_channel_set_fd(c->owner, 0, ast_rtp_fd(c->rtp.audio.rtp));
-		ast_channel_set_fd(c->owner, 1, ast_rtcp_fd(c->rtp.audio.rtp));
+	if (c->owner) {
+		ast_channel_set_fd(c->owner, 0, ast_rtp_fd(*new_rtp));
+		ast_channel_set_fd(c->owner, 1, ast_rtcp_fd(*new_rtp));
 	}
 #    endif
 	/* tell changes to asterisk */
-	if ((c->rtp.audio.rtp) && c->owner) {
+	if (c->owner) {
 		ast_queue_frame(c->owner, &sccp_null_frame);
 	}
 
 	if (c->rtp.audio.rtp) {
-		ast_rtp_codec_setpref((struct ast_rtp *)c->rtp.audio.rtp, (struct ast_codec_pref *)&c->codecs);
+		ast_rtp_codec_setpref(*new_rtp, (struct ast_codec_pref *)&c->codecs);
 		ast_codec_pref_string((struct ast_codec_pref *)&c->codecs, pref_buf, sizeof(pref_buf) - 1);
 		sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, set pef: %s\n", c->line->name, c->callid, pref_buf);
 	}
@@ -638,13 +639,92 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c)
 //        ast_set_flag(c->rtp.audio.rtp, FLAG_HAS_DTMF);
 //        ast_set_flag(c->rtp.audio.rtp, FLAG_P2P_NEED_DTMF);
 
-	if (c->rtp.audio.rtp) {
+	if (*new_rtp) {
 #if ASTERISK_VERSION_NUM >= 10600
-		ast_rtp_setqos(c->rtp.audio.rtp, c->line->audio_tos, c->line->audio_cos, "SCCP RTP");
+		ast_rtp_setqos(*new_rtp, c->line->audio_tos, c->line->audio_cos, "SCCP RTP");
 #else
-		ast_rtp_settos(c->rtp.audio.rtp, c->line->audio_tos);
+		ast_rtp_settos(*new_rtp, c->line->audio_tos);
 #endif
-		ast_rtp_setnat(c->rtp.audio.rtp, d->nat);
+		ast_rtp_setnat(*new_rtp, d->nat);
+/* //zwei mal gesetzt
+#if ASTERISK_VERSION_NUM >= 10600
+		ast_rtp_codec_setpref(c->rtp.audio.rtp, (struct ast_codec_pref *)&c->codecs);
+#endif
+*/
+	}
+
+	return TRUE;
+}
+
+/*!
+ * \brief Create a new RTP Source.
+ * \param c SCCP Channel
+ */
+boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, void **new_rtp)
+{
+	sccp_session_t *s;
+	sccp_device_t *d = NULL;
+	char pref_buf[128];
+
+	if (!c)
+		return FALSE;
+	
+	d = c->device;
+	if (d)
+		s = d->session;
+	else
+		return FALSE;
+
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", d->id, pbx_inet_ntoa(s->ourip));
+	
+	if(c->rtp.audio.rtp){
+		ast_log(LOG_ERROR, "we already have a rtp server, why dont we use this?\n");
+		return TRUE;
+	}
+
+	*new_rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
+	if (!*new_rtp) {
+		return FALSE;
+	}
+#if ASTERISK_VERSION_NUM < 10400
+	if (*new_rtp && c->owner)
+		c->owner->fds[0] = ast_rtp_fd(*new_rtp);
+#endif
+
+#if ASTERISK_VERSION_NUM >= 10400
+#    if ASTERISK_VERSION_NUM < 10600
+	if (c->rtp.audio.rtp && c->owner) {
+		c->owner->fds[0] = ast_rtp_fd(*new_rtp);
+		c->owner->fds[1] = ast_rtcp_fd(*new_rtp);
+	}
+#    else
+	if (c->rtp.audio.rtp && c->owner) {
+		ast_channel_set_fd(c->owner, 0, ast_rtp_fd(*new_rtp));
+		ast_channel_set_fd(c->owner, 1, ast_rtcp_fd(*new_rtp));
+	}
+#    endif
+	/* tell changes to asterisk */
+	if ((*new_rtp) && c->owner) {
+		ast_queue_frame(c->owner, &sccp_null_frame);
+	}
+
+	if (*new_rtp) {
+		ast_rtp_codec_setpref(*new_rtp, (struct ast_codec_pref *)&c->codecs);
+		ast_codec_pref_string((struct ast_codec_pref *)&c->codecs, pref_buf, sizeof(pref_buf) - 1);
+		sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, set pef: %s\n", c->line->name, c->callid, pref_buf);
+	}
+#endif
+
+//        ast_set_flag(c->rtp.audio.rtp, FLAG_HAS_DTMF);
+//        ast_set_flag(c->rtp.audio.rtp, FLAG_P2P_NEED_DTMF);
+
+	if (*new_rtp) {
+#if ASTERISK_VERSION_NUM >= 10600
+		ast_rtp_setqos(*new_rtp, c->line->audio_tos, c->line->audio_cos, "SCCP RTP");
+#else
+		ast_rtp_settos(*new_rtp, c->line->audio_tos);
+#endif
+		ast_rtp_setnat(*new_rtp, d->nat);
 /* //zwei mal gesetzt
 #if ASTERISK_VERSION_NUM >= 10600
 		ast_rtp_codec_setpref(c->rtp.audio.rtp, (struct ast_codec_pref *)&c->codecs);

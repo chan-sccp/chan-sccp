@@ -30,7 +30,7 @@ int sccp_rtp_createAudioServer(const sccp_channel_t *c){
 		return -1;
 	
 	if(PBX(rtp_audio_create)){
-		rtpResult = PBX(rtp_audio_create)(c);
+		rtpResult = PBX(rtp_audio_create)(c, &((sccp_channel_t *)c)->rtp.audio.rtp);
 	}else{
 		ast_log(LOG_ERROR, "we should start our own rtp server, but we dont have one\n");
 	}
@@ -46,6 +46,11 @@ int sccp_rtp_createVideoServer(const sccp_channel_t *c){
 	if(!c)
 		return FALSE;
 	
+	if(PBX(rtp_video_create)){
+		rtpResult = PBX(rtp_video_create)(c, &((sccp_channel_t *)c)->rtp.video.rtp);
+	}else{
+		ast_log(LOG_ERROR, "we should start our own rtp server, but we dont have one\n");
+	}
 	return rtpResult;
 }
 
@@ -127,8 +132,8 @@ sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t *c, struct sccp_r
 
 
 uint8_t sccp_rtp_get_payloadType(const struct sccp_rtp *rtp, skinny_media_payload codec){  
-	if(PBX(get_payloadType)){
-		return PBX(get_payloadType)(rtp, codec);
+	if(PBX(rtp_get_payloadType)){
+		return PBX(rtp_get_payloadType)(rtp, codec);
 	}else{
 		return 97;
 	}
