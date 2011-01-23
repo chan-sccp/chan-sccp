@@ -95,6 +95,36 @@ void sccp_rtp_set_peer(sccp_channel_t *c, struct sockaddr_in *new_peer){
 	sccp_channel_startmediatransmission(c);
 }
 
+
+sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t *c, struct sccp_rtp **rtp){
+	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
+  
+	if(!c->device){
+		return SCCP_RTP_INFO_NORTP;
+	}
+	
+	*rtp = &( ((sccp_channel_t *)c)->rtp.audio);
+	
+	result = SCCP_RTP_INFO_AVAILABLE;
+	if(c->device->directrtp && !c->device->nat ){
+		result |= SCCP_RTP_INFO_ALLOW_DIRECTRTP;
+	}
+	return result;
+}
+
+sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t *c, struct sccp_rtp **rtp){
+	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
+  
+	if(!c->device){
+		return SCCP_RTP_INFO_NORTP;
+	}
+	
+	*rtp = &( ((sccp_channel_t *)c)->rtp.video);
+	
+	result = SCCP_RTP_INFO_AVAILABLE;
+	return result;
+}
+
 /*!
  * \brief Destroy RTP Source.
  * \param c SCCP Channel

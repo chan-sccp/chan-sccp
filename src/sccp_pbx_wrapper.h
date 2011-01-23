@@ -19,6 +19,9 @@ struct sccp_pbx_cb {
 	int (* const rtp_stop)(sccp_channel_t *channel);
 	int (* const rtp_codec)(sccp_channel_t *channel);
 	boolean_t (* const rtp_audio_create)(const sccp_channel_t *channel);
+	
+	char *(* const pbx_get_callerid_name)(const sccp_channel_t *channel);
+	char *(* const pbx_get_callerid_number)(const sccp_channel_t *channel);
 };
 
 extern struct sccp_pbx_cb sccp_pbx;
@@ -132,9 +135,8 @@ enum {
 // int ast_db_deltree(const char *family, const char *keytree);
 
 // utilities
-char *get_pbx_callerid_name(struct ast_channel *ast_chan);
-
-char *get_pbx_callerid_number(struct ast_channel *ast_chan);
+char *sccp_wrapper_asterisk_callerid_name(const sccp_channel_t *channel);
+char *sccp_wrapper_asterisk_callerid_number(const sccp_channel_t *channel);
 
 sccp_callinfo_t *get_pbx_callerid(struct ast_channel *ast_chan);
 
