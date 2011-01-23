@@ -14,6 +14,9 @@
 #include "common.h"
 
 struct sccp_pbx_cb {
+	boolean_t (* const alloc_pbxChannel)(const sccp_channel_t *line, void **pbx_channel);
+	int (* const set_callstate)(const sccp_channel_t *channel, int state);
+  
 	int (* const rtp_set_peer)(sccp_channel_t *channel, int codecs, int nat_active);
 	int (* const rtp_destroy)(sccp_channel_t *channel);
 	int (* const rtp_stop)(sccp_channel_t *channel);
@@ -24,6 +27,12 @@ struct sccp_pbx_cb {
 	
 	char *(* const pbx_get_callerid_name)(const sccp_channel_t *channel);
 	char *(* const pbx_get_callerid_number)(const sccp_channel_t *channel);
+	
+	void (* const pbx_set_callerid_name)(const sccp_channel_t *channel, const char *name);
+	void (* const pbx_set_callerid_number)(const sccp_channel_t *channel, const char *name);
+	void (* const pbx_set_callerid_ani)(const sccp_channel_t *channel, const char *ani);
+	void (* const pbx_set_callerid_dnid)(const sccp_channel_t *channel, const char *dnid);
+	void (* const pbx_set_callerid_rdnis)(const sccp_channel_t *channel, const char *rdnis);
 };
 
 extern struct sccp_pbx_cb sccp_pbx;
@@ -195,7 +204,8 @@ int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *
 #        endif
 #endif
 
-
+boolean_t sccp_wrapper_asterisk_allocPBXChannel(const sccp_channel_t *line, void **pbx_channel);
+int sccp_wrapper_asterisk_setCallState(const sccp_channel_t *channel, int state);
 boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t *c, void **new_rtp);
 boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t *c, void **new_rtp);
 

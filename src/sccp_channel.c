@@ -699,7 +699,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 
 	if (d->inuseprotocolversion >= 17) {
 		r = sccp_build_packet(OpenReceiveChannel, sizeof(r->msg.OpenReceiveChannel_v17));
-		ast_rtp_get_peer(c->rtp.audio.rtp, &them);
+		sccp_rtp_getAudioPeer(c, &&them);
 		memcpy(&r->msg.OpenReceiveChannel_v17.bel_remoteIpAddr, &them.sin_addr, 4);
 		r->msg.OpenReceiveChannel_v17.lel_conferenceId = htolel(c->callid);
 		r->msg.OpenReceiveChannel_v17.lel_passThruPartyId = htolel(c->passthrupartyid);
@@ -748,8 +748,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		return;
 	}
 
-	//sampleRate = ast_rtp_lookup_sample_rate(1, channel->rtp.video.writeFormat);
-	payloadType = ast_rtp_lookup_code(channel->rtp.video.rtp, 1, channel->rtp.video.writeFormat);
+	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, channel->rtp.video.writeFormat);
 	lineInstance = sccp_device_find_index_for_line(channel->device, channel->line->name);
 
 	if (payloadType == -1) {
@@ -2151,18 +2150,36 @@ void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevi
 	char fwd_from_name[254];
 	sprintf(fwd_from_name, "%s -> %s", lineDevice->line->cid_num, parent->callInfo.callingPartyName);
 
-	forwarder->owner->cid.cid_num = strdup(parent->callInfo.callingPartyNumber);
-	forwarder->owner->cid.cid_name = strdup(fwd_from_name);
+	
+	//forwarder->owner->cid.cid_num = strdup(parent->callInfo.callingPartyNumber);
+	if(PBX(pbx_set_callerid_number))
+		PBX(pbx_set_callerid_number)(forwarder, &parent->callInfo.callingPartyNumber);
+	
+	//forwarder->owner->cid.cid_name = strdup(fwd_from_name);
+	if(PBX(pbx_set_callerid_name))
+		PBX(pbx_set_callerid_name)(forwarder, &fwd_from_name);
+	
+	
+	//forwarder->owner->cid.cid_ani = strdup(dialedNumber);
+	if(PBX(pbx_set_callerid_ani))
+		PBX(pbx_set_callerid_ani)(forwarder, &dialedNumber);
+	
+	//forwarder->owner->cid.cid_dnid = strdup(dialedNumber);
+	if(PBX(pbx_set_callerid_dnid))
+		PBX(pbx_set_callerid_dnid)(forwarder, &dialedNumber);
+	
+	//forwarder->owner->cid.cid_rdnis = strdup(forwarder->line->cid_num);
+	if(PBX(pbx_set_callerid_rdnis))
+		PBX(pbx_set_callerid_rdnis)(forwarder, &forwarder->line->cid_num);
+
 #ifdef CS_AST_CHANNEL_HAS_CID
-	forwarder->owner->cid.cid_ani = strdup(dialedNumber);
-	forwarder->owner->cid.cid_ani2 = -1;
-	forwarder->owner->cid.cid_dnid = strdup(dialedNumber);
-	forwarder->owner->cid.cid_rdnis = strdup(forwarder->line->cid_num);
+	forwarder->owner->cid.cid_ani2 = -1;	
 #endif
 
 	/* dial forwarder */
 	sccp_copy_string(forwarder->owner->exten, dialedNumber, sizeof(forwarder->owner->exten));
-	sccp_ast_setstate(forwarder, AST_STATE_OFFHOOK);
+	//sccp_ast_setstate(forwarder, AST_STATE_OFFHOOK);
+	PBX(set_callstate)(c, AST_STATE_OFFHOOK);
 	if (!sccp_strlen_zero(dialedNumber) && !pbx_check_hangup(forwarder->owner)
 	    && ast_exists_extension(forwarder->owner, forwarder->line->context, dialedNumber, 1, forwarder->line->cid_num)) {
 		/* found an extension, let's dial it */
@@ -2264,24 +2281,30 @@ void sccp_channel_park(sccp_channel_t * c)
 	sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_CALLPARK);
 	sccp_channel_unlock(c);
 
-#    if ASTERISK_VERSION_NUM < 10400
-	chan1m = ast_channel_alloc(0);
-#    else
-	chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
-#    endif
-	if (!chan1m) {
+	
+	boolean_t channelResult;
+	
+	
+// #    if ASTERISK_VERSION_NUM < 10400
+// 	chan1m = ast_channel_alloc(0);
+// #    else
+// 	chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
+// #    endif
+	PBX(alloc_pbxChannel)(l, &chan1m);
+	if (!channelResult) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Park Failed: can't create asterisk channel\n", d->id);
 
 		instance = sccp_device_find_index_for_line(c->device, c->line->name);
 		sccp_dev_displayprompt(c->device, instance, c->callid, SKINNY_DISP_NO_PARK_NUMBER_AVAILABLE, 0);
 		return;
 	}
-#    if ASTERISK_VERSION_NUM < 10400
-	chan2m = ast_channel_alloc(0);
-#    else
-	chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
-#    endif
-	if (!chan2m) {
+// #    if ASTERISK_VERSION_NUM < 10400
+// 	chan2m = ast_channel_alloc(0);
+// #    else
+// 	chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
+// #    endif
+	PBX(alloc_pbxChannel)(l, &chan2m);
+	if (!channelResult) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Park Failed: can't create asterisk channel\n", d->id);
 
 		instance = sccp_device_find_index_for_line(c->device, c->line->name);
