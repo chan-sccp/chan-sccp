@@ -95,7 +95,8 @@ sccp_channel_t *sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * de
 			} else if (c->owner && (bridge = ast_bridged_channel(c->owner))) {	// check if we have an ast channel to get callerid from
 				// if we have an incoming or forwarded call, let's get number from callerid :) -FS
 				char *number = NULL;
-				number = get_pbx_callerid_number(bridge);
+				if(PBX(pbx_get_callerid_name))
+					number = PBX(pbx_get_callerid_name)(c);
 				if (number) {
 					sccp_line_cfwd(l, device, type, number);
 					// we are on call, so no tone has been played until now :)
@@ -269,6 +270,7 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 	sccp_device_t *d;
 	char *pickupexten;
 	char *name = NULL, *number = NULL;
+	sccp_channel_t *tmpChannel;
 
 	if (sccp_strlen_zero(exten)) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) zero exten\n");
@@ -334,9 +336,19 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 		    (!target->pbx && (target->_state == AST_STATE_RINGING || target->_state == AST_STATE_RING))) {
 
 			tmp = (CS_AST_BRIDGED_CHANNEL(target) ? CS_AST_BRIDGED_CHANNEL(target) : target);
-			name=get_pbx_callerid_name(tmp);
-			number=get_pbx_callerid_number(tmp);
-			ast_log(LOG_NOTICE, "SCCP: %s callerid is ('%s'-'%s')\n", tmp->name, name, number);
+			
+			/* update callinfos */
+			tmpChannel = CS_AST_CHANNEL_PVT(target);
+			if(tmpChannel){
+				if(PBX(pbx_get_callerid_name))
+					name = PBX(pbx_get_callerid_name)(tmpChannel);
+				
+				if(PBX(pbx_get_callerid_number))
+					number = PBX(pbx_get_callerid_number)(tmpChannel);
+			}
+			
+			
+			ast_log(LOG_NOTICE, "SCCP: %s callerid is ('%s'-'%s')\n", tmp->name, name?name:"", number?number:"");
 			tmp = NULL;
 			original->hangupcause = AST_CAUSE_CALL_REJECTED;
 
@@ -487,8 +499,13 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 
 			original = c->owner;
 			
-			name = get_pbx_callerid_name(target);
-			number = get_pbx_callerid_number(target);
+			//TODO use callback function
+// 			name = get_pbx_callerid_name(target);
+// 			
+// 			if(PBX(pbx_get_callerid_number))
+// 				number = PBX(pbx_get_callerid_number)(target);
+// 			
+// 			number = get_pbx_callerid_number(target);
 
 #ifdef CS_AST_CHANNEL_HAS_CID
 			if (original && original->cid.cid_name)
@@ -621,8 +638,13 @@ void sccp_feat_updatecid(sccp_channel_t * c)
 	else if (!(target = ast_bridged_channel(c->owner))) {
 		return;
 	}
-	name=get_pbx_callerid_name(target);
-	number=get_pbx_callerid_number(target);
+	
+	if(PBX(pbx_get_callerid_name))
+		name = PBX(pbx_get_callerid_name)(c);
+	
+	if(PBX(pbx_get_callerid_number))
+		number = PBX(pbx_get_callerid_number)(c);
+	
 	sccp_channel_set_callingparty(c, name, number);
 
 	if (name)

@@ -15,9 +15,18 @@
 
 int sccp_wrapper_asterisk_rtp_stop(sccp_channel_t *channel);
 
+
 struct sccp_pbx_cb sccp_pbx = {
+#ifdef ASTERISK_VERSION_NUM >= 10800
 	.rtp_stop 		= sccp_wrapper_asterisk_rtp_stop,
 	.rtp_audio_create 	= sccp_wrapper_asterisk_create_audio_rtp,
+#else
+	.rtp_stop 		= sccp_wrapper_asterisk_rtp_stop,
+	.rtp_audio_create 	= sccp_wrapper_asterisk_create_audio_rtp,
+	
+	.pbx_get_callerid_name	= sccp_wrapper_asterisk_callerid_name,
+	.pbx_get_callerid_number= sccp_wrapper_asterisk_callerid_number,
+#endif
 };
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
@@ -29,9 +38,10 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \param ast_chan Asterisk Channel
  * \return char * with the callername
  */
-char *get_pbx_callerid_name(struct ast_channel *ast_chan)
+char *sccp_wrapper_asterisk_callerid_name(const sccp_channel_t *channel)
 {
 	static char result[StationMaxNameSize];
+	struct ast_channel *ast_chan = channel->owner;
 
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char *name, *number, *cidtmp;
@@ -60,9 +70,10 @@ char *get_pbx_callerid_name(struct ast_channel *ast_chan)
  * \param ast_chan Asterisk Channel
  * \return char * with the callername
  */
-char *get_pbx_callerid_number(struct ast_channel *ast_chan)
+char *sccp_wrapper_asterisk_callerid_number(const sccp_channel_t *channel)
 {
 	static char result[StationMaxDirnumSize];
+	struct ast_channel *ast_chan = channel->owner;
 
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char *name, *number, *cidtmp;
@@ -652,10 +663,10 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c)
  * 
  * \called_from_asterisk
  */
-enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(struct ast_channel *ast, struct ast_rtp **rtp)
-{
+enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(struct ast_channel *ast, struct ast_rtp **rtp){
 	sccp_channel_t *c = NULL;
-	sccp_device_t *d = NULL;
+	sccp_rtp_info_t rtpInfo;
+	struct sccp_rtp *audioRTP = NULL;
 	enum ast_rtp_get_result res = AST_RTP_TRY_NATIVE;
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Asterisk requested RTP peer for channel %s\n", ast->name);
@@ -665,33 +676,21 @@ enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(struct ast_channel *a
 		return AST_RTP_GET_FAILED;
 	}
 
-	if (!c->rtp.audio.rtp) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO RTP\n");
+	rtpInfo = sccp_rtp_getAudioPeerInfo(c, &audioRTP);
+	if(rtpInfo == SCCP_RTP_INFO_NORTP){
 		return AST_RTP_GET_FAILED;
 	}
-
-	*rtp = c->rtp.audio.rtp;
 	
-	if (!(d = c->device)) {
-		sccp_log((DEBUGCAT_RTP | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO DEVICE\n");
-		return AST_RTP_GET_FAILED;
-	}
-
+	*rtp = audioRTP->rtp;
+	
 	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
 		return AST_RTP_GET_FAILED;
 	}
 
-	if (!d->directrtp) {
+	if( !(rtpInfo & SCCP_RTP_INFO_ALLOW_DIRECTRTP) ) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", ast->name);
 		return AST_RTP_TRY_PARTIAL;
-	}
-
-	if (d->nat) {
-		res = AST_RTP_TRY_PARTIAL;
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Using AST_RTP_TRY_PARTIAL for channel %s\n", ast->name);
-	} else {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Using AST_RTP_TRY_NATIVE for channel %s\n", ast->name);
 	}
 
 	return res;
@@ -715,35 +714,35 @@ enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(struct ast_channel 
 #endif
 {
 	sccp_channel_t *c = NULL;
-	sccp_device_t *d = NULL;
+	sccp_rtp_info_t rtpInfo;
+	struct sccp_rtp *videoRTP = NULL;
 	enum ast_rtp_get_result res = AST_RTP_TRY_NATIVE;
 
-	if (!(c = CS_AST_CHANNEL_PVT(ast)) || !(c->rtp.video.rtp)) {
+	if(!(c = CS_AST_CHANNEL_PVT(ast)) ) {
 	        return _RTP_GET_FAILED;
 	}
+	
+	
+	rtpInfo = sccp_rtp_getVideoPeerInfo(c, &videoRTP);
+	if(rtpInfo == SCCP_RTP_INFO_NORTP){
+		return _RTP_GET_FAILED;
+	}
+	
+	
+	*rtp = videoRTP->rtp;
+	
 #ifdef CS_AST_HAS_RTP_ENGINE
-	ao2_ref(c->rtp.video, +1);
+	ao2_ref(*rtp, +1);
 #endif
-	*rtp = c->rtp.video.rtp;
-
-	struct sockaddr_in them;
-	ast_rtp_get_peer(*rtp, &them);
 
 	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_vrtp_peer) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
-	        return _RTP_GET_FAILED;
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
+		return AST_RTP_GET_FAILED;
 	}
 
-	if (!d->directrtp) {
+	if( !(rtpInfo & SCCP_RTP_INFO_ALLOW_DIRECTRTP) ) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", ast->name);
 		return AST_RTP_TRY_PARTIAL;
-	}
-
-	if (d->nat) {
-		res = AST_RTP_TRY_PARTIAL;
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_vrtp_peer) Using AST_RTP_TRY_PARTIAL for channel %s\n", ast->name);
-	} else {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_vrtp_peer) Using AST_RTP_TRY_NATIVE for channel %s\n", ast->name);
 	}
 	
 	return res;
