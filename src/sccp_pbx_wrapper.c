@@ -20,9 +20,11 @@ struct sccp_pbx_cb sccp_pbx = {
 #ifdef ASTERISK_VERSION_NUM >= 10800
 	.rtp_stop 		= sccp_wrapper_asterisk_rtp_stop,
 	.rtp_audio_create 	= sccp_wrapper_asterisk_create_audio_rtp,
+	.get_payloadType	= sccp_wrapper_asterisk18_get_payloadType,
 #else
 	.rtp_stop 		= sccp_wrapper_asterisk_rtp_stop,
 	.rtp_audio_create 	= sccp_wrapper_asterisk_create_audio_rtp,
+	.get_payloadType	= sccp_wrapper_asterisk_get_payloadType,
 	
 	.pbx_get_callerid_name	= sccp_wrapper_asterisk_callerid_name,
 	.pbx_get_callerid_number= sccp_wrapper_asterisk_callerid_number,
@@ -848,4 +850,17 @@ int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *
 	/* Need a return here to break the bridge */
 	return 0;
 }
+
+#ifdef ASTERISK_VERSION_NUM >= 10800
+uint8_t sccp_wrapper_asterisk18_get_payloadType(struct sccp_rtp *rtp, skinny_media_payload codec){
+	//TODO implement this for 1.8
+	return 97;
+}
+
+#else
+uint8_t sccp_wrapper_asterisk_get_payloadType(struct sccp_rtp *rtp, skinny_media_payload codec){
+	uint32_t asteriskCodec = sccp_codec_skinny2ast(codec);
+	return ast_rtp_lookup_code(rtp->rtp, 1, asteriskCodec);
+}
+#endif
 
