@@ -22,7 +22,7 @@ int sccp_rtp_createVideoServer(const sccp_channel_t *c);
 void sccp_rtp_stop(sccp_channel_t * c);
 void sccp_rtp_destroy(sccp_channel_t * c);
 void sccp_rtp_set_peer(sccp_channel_t *c, struct sockaddr_in *new_peer);
-uint8_t sccp_rtp_get_payloadType(sccp_channel_t *channel, skinny_media_payload codec);
+uint8_t sccp_rtp_get_payloadType(const struct sccp_rtp *rtp, skinny_media_payload codec);
 
 sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t *c, struct sccp_rtp **rtp);
 sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t *c, struct sccp_rtp **rtp);

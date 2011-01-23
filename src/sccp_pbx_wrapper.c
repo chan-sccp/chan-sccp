@@ -17,7 +17,7 @@ int sccp_wrapper_asterisk_rtp_stop(sccp_channel_t *channel);
 
 
 struct sccp_pbx_cb sccp_pbx = {
-#ifdef ASTERISK_VERSION_NUM >= 10800
+#if ASTERISK_VERSION_NUM >= 10800
 	.rtp_stop 		= sccp_wrapper_asterisk_rtp_stop,
 	.rtp_audio_create 	= sccp_wrapper_asterisk_create_audio_rtp,
 	.get_payloadType	= sccp_wrapper_asterisk18_get_payloadType,
@@ -851,14 +851,14 @@ int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *
 	return 0;
 }
 
-#ifdef ASTERISK_VERSION_NUM >= 10800
-uint8_t sccp_wrapper_asterisk18_get_payloadType(struct sccp_rtp *rtp, skinny_media_payload codec){
+#if ASTERISK_VERSION_NUM >= 10800
+uint8_t sccp_wrapper_asterisk18_get_payloadType(const struct sccp_rtp *rtp, skinny_media_payload codec){
 	//TODO implement this for 1.8
 	return 97;
 }
 
 #else
-uint8_t sccp_wrapper_asterisk_get_payloadType(struct sccp_rtp *rtp, skinny_media_payload codec){
+uint8_t sccp_wrapper_asterisk_get_payloadType(const struct sccp_rtp *rtp, skinny_media_payload codec){
 	uint32_t asteriskCodec = sccp_codec_skinny2ast(codec);
 	return ast_rtp_lookup_code(rtp->rtp, 1, asteriskCodec);
 }

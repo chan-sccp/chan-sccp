@@ -126,9 +126,9 @@ sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t *c, struct sccp_r
 }
 
 
-uint8_t sccp_rtp_get_payloadType(sccp_channel_t *channel, skinny_media_payload codec){  
+uint8_t sccp_rtp_get_payloadType(const struct sccp_rtp *rtp, skinny_media_payload codec){  
 	if(PBX(get_payloadType)){
-		return PBX(get_payloadType)(channel, codec);
+		return PBX(get_payloadType)(rtp, codec);
 	}else{
 		return 97;
 	}

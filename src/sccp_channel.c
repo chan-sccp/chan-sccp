@@ -825,7 +825,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		return;
 
 	/* lookup payloadType */
-	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, 1, SKINNY_CODEC_H264);
+	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, SKINNY_CODEC_H264);
 	if (payloadType == -1) {
 		//TODO handle payload error
 		payloadType = 97;
