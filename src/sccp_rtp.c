@@ -125,6 +125,16 @@ sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t *c, struct sccp_r
 	return result;
 }
 
+
+uint8_t sccp_rtp_get_payloadType(sccp_channel_t *channel, skinny_media_payload codec){  
+	if(PBX(get_payloadType)){
+		return PBX(get_payloadType)(channel, codec);
+	}else{
+		return 97;
+	}
+}
+
+
 /*!
  * \brief Destroy RTP Source.
  * \param c SCCP Channel
