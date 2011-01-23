@@ -18,11 +18,15 @@ int sccp_wrapper_asterisk_rtp_stop(sccp_channel_t *channel);
 
 struct sccp_pbx_cb sccp_pbx = {
 #if ASTERISK_VERSION_NUM >= 10800
+	.alloc_pbxChannel	= sccp_wrapper_asterisk18_allocPBXChannel,
 	.rtp_stop 		= sccp_wrapper_asterisk_rtp_stop,
 	.rtp_audio_create 	= sccp_wrapper_asterisk_create_audio_rtp,
 	.rtp_video_create 	= sccp_wrapper_asterisk_create_video_rtp,
 	.rtp_get_payloadType	= sccp_wrapper_asterisk18_get_payloadType,
 #else
+	.alloc_pbxChannel	= sccp_wrapper_asterisk_allocPBXChannel,
+	.set_callstate		= sccp_wrapper_asterisk_setCallState,
+	
 	.rtp_stop 		= sccp_wrapper_asterisk_rtp_stop,
 	.rtp_audio_create 	= sccp_wrapper_asterisk_create_audio_rtp,
 	.rtp_video_create 	= sccp_wrapper_asterisk_create_video_rtp,
@@ -30,6 +34,11 @@ struct sccp_pbx_cb sccp_pbx = {
 	
 	.pbx_get_callerid_name	= sccp_wrapper_asterisk_callerid_name,
 	.pbx_get_callerid_number= sccp_wrapper_asterisk_callerid_number,
+	
+	.pbx_set_callerid_name 	= NULL, //TODO implement callback
+	.pbx_set_callerid_number= NULL, //TODO implement callback
+	.pbx_set_callerid_dnid	= NULL, //TODO implement callback
+	.pbx_set_callerid_rdnis	= NULL, //TODO implement callback
 #endif
 };
 
@@ -944,3 +953,29 @@ uint8_t sccp_wrapper_asterisk_get_payloadType(const struct sccp_rtp *rtp, skinny
 }
 #endif
 
+int sccp_wrapper_asterisk_setCallState(const sccp_channel_t *channel, int state){
+	sccp_ast_setstate(channel->owner, state);
+	return 0;
+}
+
+boolean_t sccp_wrapper_asterisk_allocPBXChannel(const sccp_channel_t *line, void **pbx_channel){
+#    if ASTERISK_VERSION_NUM < 10400
+	*pbx_channel = ast_channel_alloc(0);
+#    else
+	*pbx_channel = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
+#    endif
+	
+	if(*pbx_channel != NULL)
+		return TRUE;
+	 
+	 return FLASE;
+}
+
+boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t *line, void **pbx_channel){
+	 *pbx_channel = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, chan1->linkedid, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
+	 
+	 if(*pbx_channel != NULL)
+		return TRUE;
+	 
+	 return FLASE;
+}
