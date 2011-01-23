@@ -171,11 +171,11 @@ void sccp_rtp_destroy(sccp_channel_t * c)
 
 
 boolean_t sccp_rtp_getAudioPeer(sccp_channel_t *c, struct sockaddr_in **new_peer){
-	*new_peer = c->rtp.audio.phone_remote;
+	*new_peer = &c->rtp.audio.phone_remote;
 	return TRUE;
 }
 
 boolean_t sccp_rtp_getVideoPeer(sccp_channel_t *c, struct sockaddr_in **new_peer){
-	*new_peer = c->rtp.audio.phone_remote;
+	*new_peer = &c->rtp.audio.phone_remote;
 	return TRUE;
 }
