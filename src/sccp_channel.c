@@ -28,7 +28,6 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 //#include <asterisk/causes.h>
 //#include <asterisk/callerid.h>
 //#include <asterisk/musiconhold.h>
-#include <asterisk/rtp.h>
 //#ifndef CS_AST_HAS_TECH_PVT
 //#    include <asterisk/channel_pvt.h>
 //#endif
@@ -1793,80 +1792,6 @@ void sccp_channel_destroy_locked(sccp_channel_t * c)
 	return;
 }
 
-
-
-/*!
- * \brief Create a new RTP Source.
- * \param c SCCP Channel
- */
-boolean_t sccp_channel_start_vrtp(sccp_channel_t * c)
-{
-	sccp_session_t *s;
-	sccp_line_t *l = NULL;
-	sccp_device_t *d = NULL;
-
-	if (!c)
-		return FALSE;
-
-	if (c->line)
-		l = c->line;
-
-	if (l)
-		d = c->device;
-
-	if (d)
-		s = d->session;
-	else
-		return FALSE;
-
-/* No need to lock, because already locked in the sccp_indicate.c */
-/*	sccp_channel_lock(c); */
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating vrtp server connection at %s\n", d->id, pbx_inet_ntoa(s->ourip));
-	c->rtp.video.rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
-	if (!c->rtp.video.rtp)
-		return FALSE;
-
-#if ASTERISK_VERSION_NUM < 10400
-	c->owner->fds[0] = ast_rtp_fd(c->rtp.video);				//TODO check this
-#endif
-
-#if ASTERISK_VERSION_NUM >= 10400
-#    if ASTERISK_VERSION_NUM < 10600
-	if (c->rtp.video.rtp && c->owner) {
-		c->owner->fds[2] = ast_rtp_fd(c->rtp.video.rtp);
-		c->owner->fds[3] = ast_rtcp_fd(c->rtp.video.rtp);
-	}
-#    else
-	if (c->rtp.video.rtp && c->owner) {
-		ast_channel_set_fd(c->owner, 2, ast_rtp_fd(c->rtp.video.rtp));
-		ast_channel_set_fd(c->owner, 3, ast_rtcp_fd(c->rtp.video.rtp));
-	}
-#    endif
-	/* tell changes to asterisk */
-	if ((c->rtp.video.rtp) && c->owner) {
-		ast_queue_frame(c->owner, &sccp_null_frame);
-	}
-#endif
-
-	if (c->rtp.video.rtp) {
-#if ASTERISK_VERSION_NUM >= 10600
-		ast_rtp_setqos(c->rtp.video.rtp, c->line->audio_tos, c->line->video_cos, "SCCP VRTP");
-#else
-		ast_rtp_settos(c->rtp.video.rtp, c->line->video_tos);
-#endif
-		ast_rtp_setnat(c->rtp.video.rtp, d->nat);
-
-		ast_rtp_setdtmf(c->rtp.video.rtp, 0);
-		ast_rtp_setdtmfcompensate(c->rtp.video.rtp, 0);
-		ast_rtp_set_rtptimeout(c->rtp.video.rtp, 10);
-		ast_rtp_set_rtpholdtimeout(c->rtp.video.rtp, 0);
-		ast_rtp_set_rtpkeepalive(c->rtp.video.rtp, 0);
-		//ast_rtp_set_constantssrc(c->rtp.video);
-		//ast_rtp_set_constantssrc(c->rtp.video);
-		//ast_rtp_set_m_type(c->rtp.video.rtp, AST_FORMAT_H264);
-	}
-	return TRUE;
-}
 
 
 
