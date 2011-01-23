@@ -41,7 +41,6 @@ extern "C" {
 #    include <asterisk/pbx.h>
 #    include <asterisk/acl.h>
 #    include <asterisk/module.h>
-#    include <asterisk/rtp.h>
 #    include <asterisk/options.h>
 #    include <asterisk/logger.h>
 #    include <asterisk/config.h>
