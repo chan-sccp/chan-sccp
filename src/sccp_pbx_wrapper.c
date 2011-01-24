@@ -54,7 +54,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 char *sccp_wrapper_asterisk_callerid_name(const sccp_channel_t *channel)
 {
 	static char result[StationMaxNameSize];
-	struct ast_channel *ast_chan = channel->owner;
+	PBX_CHANNEL_TYPE *ast_chan = channel->owner;
 
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char *name, *number, *cidtmp;
@@ -86,7 +86,7 @@ char *sccp_wrapper_asterisk_callerid_name(const sccp_channel_t *channel)
 char *sccp_wrapper_asterisk_callerid_number(const sccp_channel_t *channel)
 {
 	static char result[StationMaxDirnumSize];
-	struct ast_channel *ast_chan = channel->owner;
+	PBX_CHANNEL_TYPE *ast_chan = channel->owner;
 
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char *name, *number, *cidtmp;
@@ -118,7 +118,7 @@ char *sccp_wrapper_asterisk_callerid_number(const sccp_channel_t *channel)
  *
  * \todo need to be inspected and tested
  */
-sccp_callinfo_t *get_pbx_callerid(struct ast_channel * ast_chan)
+sccp_callinfo_t *get_pbx_callerid(PBX_CHANNEL_TYPE *ast_chan)
 {
 	sccp_callinfo_t *callInfo = NULL;
 
@@ -164,7 +164,7 @@ sccp_callinfo_t *get_pbx_callerid(struct ast_channel * ast_chan)
  *
  * \todo need to be inspected and tested
  */
-int set_pbx_callerid(struct ast_channel *ast_chan, sccp_callinfo_t * callInfo)
+int set_pbx_callerid(PBX_CHANNEL_TYPE *ast_chan, sccp_callinfo_t * callInfo)
 {
 	int RESULT = 0;
 
@@ -224,7 +224,7 @@ int set_pbx_callerid(struct ast_channel *ast_chan, sccp_callinfo_t * callInfo)
  * \param ast_chan Asterisk Channel
  * \return ast_chan Locked Asterisk Channel
  */
-struct ast_channel *pbx_channel_walk_locked(struct ast_channel *target)
+PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE *target)
 {
 	return ast_channel_walk_locked(target);
 }
@@ -507,7 +507,7 @@ void pbxman_send_listack(struct mansession *s, const struct message *m, char *ms
  * \retval Zero on success
  * \retval non-zero on failure
  */
-int pbx_moh_start(struct ast_channel *chan, const char *mclass, const char *interpclass)
+int pbx_moh_start(PBX_CHANNEL_TYPE *chan, const char *mclass, const char *interpclass)
 {
 #if ASTERISK_VERSION_NUM < 10400
 	return ast_moh_start(chan, interpclass);
@@ -539,7 +539,7 @@ int sccp_wrapper_asterisk_rtp_stop(sccp_channel_t *channel){
  * \param them Socket Addr_in of the Peer
  * \return int
  */
-int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *addr)
+int pbx_rtp_get_peer(PBX_RTP_TYPE *rtp, struct sockaddr_in *addr)
 {
 // #if ASTERISK_VERSION_NUM >= 10800
 // 	struct ast_sockaddr addr_tmp;
@@ -558,7 +558,7 @@ int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *addr)
  * \param them Socket Addr_in of the Peer
  * \return int
  */
-void pbx_rtp_get_us(struct ast_rtp *rtp, struct sockaddr_in *addr)
+void pbx_rtp_get_us(PBX_RTP_TYPE *rtp, struct sockaddr_in *addr)
 {
 // #if ASTERISK_VERSION_NUM >= 10800
 // 	struct ast_sockaddr addr_tmp;
@@ -575,7 +575,7 @@ void pbx_rtp_get_us(struct ast_rtp *rtp, struct sockaddr_in *addr)
  * \param rtp Asterisk RTP Struct
  * \param them Socket Addr_in of the Peer
  */
-void pbx_rtp_set_peer(struct ast_rtp *rtp, struct sockaddr_in *addr)
+void pbx_rtp_set_peer(PBX_RTP_TYPE *rtp, struct sockaddr_in *addr)
 {
 // #if ASTERISK_VERSION_NUM >= 10800
 // 	struct ast_sockaddr addr_tmp;
@@ -590,7 +590,7 @@ void pbx_rtp_set_peer(struct ast_rtp *rtp, struct sockaddr_in *addr)
  * \brief Create a new RTP Source.
  * \param c SCCP Channel
  */
-boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c, void **new_rtp)
+boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t *c, void **new_rtp)
 {
 	sccp_session_t *s;
 	sccp_device_t *d = NULL;
@@ -605,7 +605,7 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c, void 
 	else
 		return FALSE;
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", d->id, pbx_inet_ntoa(s->ourip));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", DEV_ID_LOG(d), pbx_inet_ntoa(s->ourip));
 	
 	if(c->rtp.audio.rtp){
 		ast_log(LOG_ERROR, "we already have a rtp server, why dont we use this?\n");
@@ -754,7 +754,7 @@ boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, void 
  * 
  * \called_from_asterisk
  */
-enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(struct ast_channel *ast, struct ast_rtp **rtp){
+enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE **rtp){
 	sccp_channel_t *c = NULL;
 	sccp_rtp_info_t rtpInfo;
 	struct sccp_rtp *audioRTP = NULL;
@@ -798,10 +798,10 @@ enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(struct ast_channel *a
  */
 #ifndef CS_AST_HAS_RTP_ENGINE
 #define _RTP_GET_FAILED AST_RTP_GET_FAILED
-enum ast_rtp_get_result sccp_wrapper_asterisk_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp **rtp)
+enum ast_rtp_get_result sccp_wrapper_asterisk_get_vrtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE **rtp)
 #else
 #define _RTP_GET_FAILED AST_RTP_GLUE_RESULT_FORBID
-enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp_instance **rtp)
+enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE **rtp)
 #endif
 {
 	sccp_channel_t *c = NULL;
@@ -851,7 +851,7 @@ enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(struct ast_channel 
  * 
  * \called_from_asterisk
  */
-int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, int codecs, int nat_active)
+int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE *rtp, PBX_RTP_TYPE *vrtp, int codecs, int nat_active)
 #else
 /*!
  * \brief Set RTP Peer from Channel
@@ -865,7 +865,7 @@ int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *
  * 
  * \called_from_asterisk
  */
-int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, struct ast_rtp *trtp, int codecs, int nat_active)
+int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE *rtp, PBX_RTP_TYPE *vrtp, PBX_RTP_TYPE *trtp, int codecs, int nat_active)
 #endif
 {
 	sccp_channel_t *c = NULL;

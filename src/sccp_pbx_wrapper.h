@@ -38,7 +38,6 @@ struct sccp_pbx_cb {
 extern struct sccp_pbx_cb sccp_pbx;
 #define PBX(x) sccp_pbx.x
 
-
 #    if ASTERISK_VERSION_NUM >= 10800
 typedef int64_t format_t;
 #    else
@@ -131,15 +130,15 @@ enum {
 // Differences in functions between 1.6 and 1.8
 // enum ast_extension_states {
 // typedef int (*ast_state_cb_type)(char *context, char* id, enum ast_extension_states state, void *data);
-// enum ast_pbx_result ast_pbx_start(struct ast_channel *c);
+// enum ast_pbx_result ast_pbx_start(PBX_CHANNEL_TYPE *c);
 // enum ast_extension_states ast_devstate_to_extenstate(enum ast_device_state devstate);
-// int ast_extension_state(struct ast_channel *c, const char *context, const char *exten);
+// int ast_extension_state(PBX_CHANNEL_TYPE *c, const char *context, const char *exten);
 // const char *ast_extension_state2str(int extension_state);
 // int ast_extension_state_add(const char *context, const char *exten,
 // int ast_extension_state_del(int id, ast_state_cb_type callback);
-// int ast_exists_extension(struct ast_channel *c, const char *context, const char *exten,
-// int ast_canmatch_extension(struct ast_channel *c, const char *context,
-// int ast_matchmore_extension(struct ast_channel *c, const char *context,
+// int ast_exists_extension(PBX_CHANNEL_TYPE *c, const char *context, const char *exten,
+// int ast_canmatch_extension(PBX_CHANNEL_TYPE *c, const char *context,
+// int ast_matchmore_extension(PBX_CHANNEL_TYPE *c, const char *context,
 // int ast_ignore_pattern(const char *context, const char *pattern);
 // struct ast_ha *ast_duplicate_ha_list(struct ast_ha *original);
 // char *ast_read_textfile(const char *file);
@@ -147,11 +146,11 @@ enum {
 
 // utilities
 
-sccp_callinfo_t *get_pbx_callerid(struct ast_channel *ast_chan);
-int set_pbx_callerid(struct ast_channel *ast_chan, sccp_callinfo_t * callInfo);
+sccp_callinfo_t *get_pbx_callerid(PBX_CHANNEL_TYPE *ast_chan);
+int set_pbx_callerid(PBX_CHANNEL_TYPE *ast_chan, sccp_callinfo_t * callInfo);
 
 // replacement implementations
-struct ast_channel *pbx_channel_walk_locked(struct ast_channel *target);
+PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE *target);
 struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast_ha *path, int *error);
 struct ast_context *pbx_context_find_or_create(struct ast_context **extcontexts, struct ast_hashtab *exttable, const char *name, const char *registrar);
 struct ast_config *pbx_config_load(const char *filename, const char *who_asked, struct ast_flags flags);
@@ -163,7 +162,7 @@ int pbx_str2cos(const char *value, unsigned int *cos);
 int pbx_str2tos(const char *value, unsigned int *tos);
 int pbx_context_remove_extension(const char *context, const char *extension, int priority, const char *registrar);
 void pbxman_send_listack(struct mansession *s, const struct message *m, char *msg, char *listflag);
-int pbx_moh_start(struct ast_channel *chan, const char *mclass, const char *interpclass);
+int pbx_moh_start(PBX_CHANNEL_TYPE *chan, const char *mclass, const char *interpclass);
 
 
 
@@ -180,20 +179,20 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t *c, void *
 
 
 #ifdef CS_AST_HAS_RTP_ENGINE
-enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(struct ast_channel *ast, struct ast_rtp **rtp);//TODO wrong definition
-int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, struct ast_rtp *trtp, int codecs, int nat_active);//TODO wrong definition
-enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp_instance **rtp);
+enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE **rtp);//TODO wrong definition
+int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE *rtp, PBX_RTP_TYPE *vrtp, PBX_RTP_TYPE *trtp, int codecs, int nat_active);//TODO wrong definition
+enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE **rtp);
 #else
 
 
 #   if ASTERISK_VERSION_NUM >= 10400 && ASTERISK_VERSION_NUM < 10600
-int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, int codecs, int nat_active);
+int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE *rtp, PBX_RTP_TYPE *vrtp, int codecs, int nat_active);
 #   else
-int sccp_wrapper_asterisk_set_rtp_peer(struct ast_channel *ast, struct ast_rtp *rtp, struct ast_rtp *vrtp, struct ast_rtp *trtp, int codecs, int nat_active);
+int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE *rtp, PBX_RTP_TYPE *vrtp, PBX_RTP_TYPE *trtp, int codecs, int nat_active);
 #   endif
 
-enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(struct ast_channel *ast, struct ast_rtp **rtp);
-enum ast_rtp_get_result sccp_wrapper_asterisk_get_vrtp_peer(struct ast_channel *ast, struct ast_rtp **rtp);
+enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE **rtp);
+enum ast_rtp_get_result sccp_wrapper_asterisk_get_vrtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE **rtp);
 #endif //#ifdef CS_AST_HAS_RTP_ENGINE
 
 
@@ -203,9 +202,9 @@ boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t *channel,
 #else
 boolean_t sccp_wrapper_asterisk_allocPBXChannel(const sccp_channel_t *channel, void **pbx_channel);
 uint8_t sccp_wrapper_asterisk_get_payloadType(const struct sccp_rtp *rtp, skinny_media_payload codec);
-int pbx_rtp_get_peer(struct ast_rtp *rtp, struct sockaddr_in *addr);
-void pbx_rtp_get_us(struct ast_rtp *rtp, struct sockaddr_in *addr);
-void pbx_rtp_set_peer(struct ast_rtp *rtp, struct sockaddr_in *addr);
+int pbx_rtp_get_peer(PBX_RTP_TYPE *rtp, struct sockaddr_in *addr);
+void pbx_rtp_get_us(PBX_RTP_TYPE *rtp, struct sockaddr_in *addr);
+void pbx_rtp_set_peer(PBX_RTP_TYPE *rtp, struct sockaddr_in *addr);
 #endif //ASTERISK_VERSION_NUM >= 10800
 
 #endif //ifdef HAVE_ASTERISK
