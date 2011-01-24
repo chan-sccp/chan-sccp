@@ -309,6 +309,21 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 #    ifndef CS_AST_HAS_AST_GROUP_T
 	typedef unsigned int ast_group_t;
 #    endif
+	
+
+//TODO fix this -> definition should be done by configure
+#ifdef CS_AST_HAS_RTP_ENGINE
+#	define PBX_RTP_TYPE struct ast_rtp_instance
+#else
+#	define PBX_RTP_TYPE struct ast_rtp
+#endif
+
+//TODO fix this -> definition should be done by configure
+#ifdef HAVE_ASTERISK
+#	define PBX_CHANNEL_TYPE struct ast_channel
+#else
+#	define PBX_CHANNEL_TYPE void
+#endif	
 
 	extern struct ast_frame sccp_null_frame;				/*!< Asterisk Frame Structure */
 
@@ -981,12 +996,12 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 	struct sccp_rtp {
 
 		uint8_t status;
-		void *rtp;							/*!< pbx rtp pointer */
+		PBX_RTP_TYPE *rtp;						/*!< pbx rtp pointer */
 		boolean_t isStarted;						/*!< is rtp server started */
 		struct sockaddr_in phone;					/*!< our phone information (openreceive) */
 		struct sockaddr_in phone_remote;				/*!< phone destination address (starttransmission) */
-		uint32_t readFormat;						/*!< current read format */
-		uint32_t writeFormat;						/*!< current write format */
+		uint32_t readFormat;						/*!< current read format */ //TODO this should be pbx independent -> change to sccp codec
+		uint32_t writeFormat;						/*!< current write format */ //TODO this should be pbx independent -> change to sccp codec
 
 	};
 
@@ -1016,7 +1031,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		char dialedNumber[AST_MAX_EXTENSION];				/*!< Last Dialed Number */
 		sccp_device_t *device;						/*!< SCCP Device */
 
-		struct ast_channel *owner;					/*!< Asterisk Channel Owner */
+		PBX_CHANNEL_TYPE *owner;					/*!< Asterisk Channel Owner */
 		sccp_line_t *line;						/*!< SCCP Line */
 
 		struct {
@@ -1208,10 +1223,11 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 
 	uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s);
 
+//TODO move this to wrapper
 #    ifdef CS_AST_HAS_TECH_PVT
-	struct ast_channel *sccp_request(const char *type, int format, void *data, int *cause);
+	PBX_CHANNEL_TYPE *sccp_request(const char *type, int format, void *data, int *cause);
 #    else
-	struct ast_channel *sccp_request(char *type, int format, void *data);
+	PBX_CHANNEL_TYPE *sccp_request(char *type, int format, void *data);
 #    endif
 
 	int sccp_devicestate(void *data);
