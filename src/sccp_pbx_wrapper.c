@@ -773,6 +773,12 @@ enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(PBX_CHANNEL_TYPE *ast
 	}
 	
 	*rtp = audioRTP->rtp;
+	if(!*rtp)
+		return AST_RTP_GET_FAILED;
+	
+#ifdef CS_AST_HAS_RTP_ENGINE
+	ao2_ref(*rtp, +1);
+#endif
 	
 	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
@@ -821,6 +827,8 @@ enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(PBX_CHANNEL_TYPE *a
 	
 	
 	*rtp = videoRTP->rtp;
+	if(!*rtp)
+		return AST_RTP_GET_FAILED;
 	
 #ifdef CS_AST_HAS_RTP_ENGINE
 	ao2_ref(*rtp, +1);
@@ -871,9 +879,7 @@ int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE *rtp,
 	sccp_channel_t *c = NULL;
 	sccp_line_t *l = NULL;
 	sccp_device_t *d = NULL;
-//	sccp_moo_t *r;
 
-//	struct ast_format_list fmt;	// not used
 	struct sockaddr_in them;
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: __FILE__\n");
 
@@ -897,35 +903,7 @@ int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE *rtp,
 
 	if (rtp) {
         	ast_rtp_get_peer(rtp, &them);
-            	
-// 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_set_rtp_peer) asterisk told us to set peer to '%s:%d'\n", DEV_ID_LOG(d), pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
-//             	
-// 		if(them.sin_port == 0){
-// 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_set_rtp_peer) remote information are invalid, us our own rtp\n", DEV_ID_LOG(d));
-// 			ast_rtp_get_us(rtp, &c->rtp.audio.phone_remote);
-// 		}else{
-// 			c->rtp.audio.phone_remote=them;   // should be called bridge_peer
-// 		}
-                
-                
                 sccp_rtp_set_peer(c, &them);
-// 		if (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) {
-//                         /* Shutdown any early-media or previous media on re-invite */
-// 			/* \todo we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait) */
-// 	                sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_set_rtp_peer) Stop media transmission on channel %d\n", DEV_ID_LOG(d), c->callid);
-// 			sccp_channel_stopmediatransmission_locked(c);
-// 		}
-// 
-//                 //fmt = pbx_codec_pref_getsize(&d->codecs, ast_best_codec(d->capability));
-//                 int codec = ast_codec_choose(&c->codecs, codecs, 1);
-//                 fmt = pbx_codec_pref_getsize(&d->codecs, codec);
-//                 c->format = fmt.bits;						/* updating channel format */
-//                 // replace by new function (something like: sccp_channel_setcodec / sccp_channel_choosecodec)
-// 
-//                 sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_set_rtp_peer) Start media transmission on channel %d, codec='%d', payloadType='%d' (%d ms), peer_ip='%s:%d'\n", DEV_ID_LOG(d), c->callid, codec, fmt.bits, fmt.cur_ms, pbx_inet_ntoa(them.sin_addr), ntohs(them.sin_port));
-//                 sccp_channel_startmediatransmission(c);
-
-                c->mediaStatus.transmit = TRUE;
                 return 0;
 	} else {
 		if (ast->_state != AST_STATE_UP) {
