@@ -1829,6 +1829,8 @@ void sccp_channel_transfer_locked(sccp_channel_t * c)
 
 	sccp_device_lock(d);
 	/* are we in the middle of a transfer? */
+	/* TODO: It might be a bad idea to allow that a new transfer be initiated
+	         by pressing transfer on the channel to be transferred twice. (-DD) */
 	if (d->transfer_channel && (d->transfer_channel != c)) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion\n", (d && d->id) ? d->id : "SCCP");
 		sccp_device_unlock(d);
@@ -1846,10 +1848,12 @@ void sccp_channel_transfer_locked(sccp_channel_t * c)
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
 	}
+	/*  TODO: If this is the only place where the call is put on hold, the code should reflect the importance better. 
+		TODO: Add meaningful error reporting here. Check for missing cleanup. (-DD) */
 	if ((c->state != SCCP_CHANNELSTATE_HOLD && c->state != SCCP_CHANNELSTATE_CALLTRANSFER) && !sccp_channel_hold_locked(c))
 		return;
 	if (c->state != SCCP_CHANNELSTATE_CALLTRANSFER)
-		sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_CALLTRANSFER);
+		//sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_CALLTRANSFER);
 	newcall = sccp_channel_newcall_locked(c->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
 	/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER */
 	if (blindTransfer || (newcall && newcall->owner && c->owner && CS_AST_BRIDGED_CHANNEL(c->owner))) {
