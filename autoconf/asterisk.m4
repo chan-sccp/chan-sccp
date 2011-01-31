@@ -16,14 +16,12 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
       REALTIME_USEABLE=0
       ASTERISK_VER_GROUP=1.2
       ASTERISK_VER=1.2
-      AC_SUBST([ASTERISK_VER])
     elif grep -q "\"1\.4" $PBX_INCLUDE/version.h; then
       AC_DEFINE(ASTERISK_CONF_1_4, 1, [Define ASTERISK_CONF_1_4])
       AC_MSG_RESULT([Found 'Asterisk Version 1.4.x'])
       REALTIME_USEABLE=1
       ASTERISK_VER_GROUP=1.4
       ASTERISK_VER=1.4
-      AC_SUBST([ASTERISK_VER])
     elif grep -q "\"1\.6" $PBX_INCLUDE/version.h; then
       AC_DEFINE(ASTERISK_CONF_1_6, 1, [Define ASTERISK_CONF_1_6])
       AC_MSG_RESULT([Found 'Asterisk Version 1.6.x'])
@@ -33,110 +31,106 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
         AC_MSG_RESULT([Specifically 1.6.0])
         REALTIME_USEABLE=1
         ASTERISK_VER=1.6.0
-        AC_SUBST([ASTERISK_VER])
       elif grep -q "\"1\.6\.1" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_6_1, 1, [Define ASTERISK_CONF_1_6_1])
         AC_MSG_RESULT([Specifically 1.6.1])
         REALTIME_USEABLE=1
         ASTERISK_VER=1.6.1
-        AC_SUBST([ASTERISK_VER])
       elif grep -q "\"1\.6\.2" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_6_2, 1, [Define ASTERISK_CONF_1_6_2])
         AC_MSG_RESULT([Specifically 1.6.2])
         REALTIME_USEABLE=1
         ASTERISK_VER=1.6.2
-        AC_SUBST([ASTERISK_VER])
       fi
     elif grep -q "\"1\.8" $PBX_INCLUDE/version.h; then
       AC_DEFINE(ASTERISK_CONF_1_8, 1, [Define ASTERISK_CONF_1_8])
       AC_MSG_RESULT([Found 'Asterisk Version 1.8.x'])
       ASTERISK_VER_GROUP=1.8
+      REALTIME_USEABLE=1
+      ASTERISK_VER=1.8.2
       if grep -q "\"1\.8\.0" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_8_0, 1, [Define ASTERISK_CONF_1_8_0])
         AC_MSG_RESULT([Specifically 1.8.0])
         REALTIME_USEABLE=1
         ASTERISK_VER=1.8.0
-        AC_SUBST([ASTERISK_VER])
       elif grep -q "\"1\.8\.1" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_8_1, 1, [Define ASTERISK_CONF_1_8_1])
         AC_MSG_RESULT([Specifically 1.8.1])
         REALTIME_USEABLE=1
         ASTERISK_VER=1.8.1
-        AC_SUBST([ASTERISK_VER])
       elif grep -q "\"1\.8\.2" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_8_2, 1, [Define ASTERISK_CONF_1_8_2])
         AC_MSG_RESULT([Specifically 1.8.2])
         REALTIME_USEABLE=1
         ASTERISK_VER=1.8.2
-        AC_SUBST([ASTERISK_VER])
       fi
     elif grep -q "\"SVN-trunk" $PBX_INCLUDE/version.h; then
       AC_DEFINE(ASTERISK_CONF_1_8, 1, [Define ASTERISK_CONF_1_8])
       AC_MSG_RESULT([Found 'Asterisk Version SVN Trunk --> Using 1.8.x as version number'])
-      REALTIME_USEABLE=1
       ASTERISK_VER_GROUP=1.8
-      ASTERISK_VER=1.8
-      AC_SUBST([ASTERISK_VER])
+      REALTIME_USEABLE=1
+      ASTERISK_VER=1.8.2
     elif grep -q "\"SVN-branch" $PBX_INCLUDE/version.h; then
       if grep -q "\"SVN-branch-1\.2" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_2, 1, [Define ASTERISK_CONF_1_2])
         AC_MSG_RESULT([Found 'Asterisk Version 1.2.x'])
         REALTIME_USEABLE=0
-	ASTERISK_VER_GROUP=1.2
+        ASTERISK_VER_GROUP=1.2
         ASTERISK_VER=1.2
-        AC_SUBST([ASTERISK_VER])
       elif grep -q "\"SVN-branch-1\.4" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_4, 1, [Define ASTERISK_CONF_1_4])
         AC_MSG_RESULT([Found 'Asterisk Version 1.4.x'])
         REALTIME_USEABLE=1
-	ASTERISK_VER_GROUP=1.4
+        ASTERISK_VER_GROUP=1.4
         ASTERISK_VER=1.4
-        AC_SUBST([ASTERISK_VER])
       elif grep -q "\"SVN-branch-1\.6" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_6, 1, [Define ASTERISK_CONF_1_6])
         AC_MSG_RESULT([Found 'Asterisk Version 1.6.x'])
-	ASTERISK_VER_GROUP=1.8
+        ASTERISK_VER_GROUP=1.8
+        REALTIME_USEABLE=1
+        ASTERISK_VER=1.6.2
         if grep -q "\"SVN-branch-1\.6\.0" $PBX_INCLUDE/version.h; then
           AC_DEFINE(ASTERISK_CONF_1_6_0, 1, [Define ASTERISK_CONF_1_6_0])
           AC_MSG_RESULT([Specifically 1.6.0])
           REALTIME_USEABLE=1
           ASTERISK_VER=1.6.0
-          AC_SUBST([ASTERISK_VER])
         elif grep -q "\"SVN-branch-1\.6\.1" $PBX_INCLUDE/version.h; then
           AC_DEFINE(ASTERISK_CONF_1_6_1, 1, [Define ASTERISK_CONF_1_6_1])
           AC_MSG_RESULT([Specifically 1.6.1])
           REALTIME_USEABLE=1
           ASTERISK_VER=1.6.1
-          AC_SUBST([ASTERISK_VER])
         elif grep -q "\"SVN-branch-1\.6\.2" $PBX_INCLUDE/version.h; then
           AC_DEFINE(ASTERISK_CONF_1_6_2, 1, [Define ASTERISK_CONF_1_6_2])
           AC_MSG_RESULT([Specifically 1.6.2])
           REALTIME_USEABLE=1
           ASTERISK_VER=1.6.2
-          AC_SUBST([ASTERISK_VER])
         fi
       elif grep -q "\"SVN-branch-1\.8" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_8, 1, [Define ASTERISK_CONF_1_8])
         AC_MSG_RESULT([Found 'Asterisk Version 1.8.x'])
-	ASTERISK_VER_GROUP=1.8
+        ASTERISK_VER_GROUP=1.8
+        REALTIME_USEABLE=1
+        ASTERISK_VER=1.8.2
         if grep -q "\"SVN-branch-1\.8\.0" $PBX_INCLUDE/version.h; then
           AC_DEFINE(ASTERISK_CONF_1_8_0, 1, [Define ASTERISK_CONF_1_8_0])
           AC_MSG_RESULT([Specifically 1.8.0])
           REALTIME_USEABLE=1
           ASTERISK_VER=1.8.0
-          AC_SUBST([ASTERISK_VER])
         elif grep -q "\"SVN-branch-1\.8\.1" $PBX_INCLUDE/version.h; then
           AC_DEFINE(ASTERISK_CONF_1_8_1, 1, [Define ASTERISK_CONF_1_8_1])
           AC_MSG_RESULT([Specifically 1.8.1])
           REALTIME_USEABLE=1
           ASTERISK_VER=1.8.1
-          AC_SUBST([ASTERISK_VER])
         elif grep -q "\"SVN-branch-1\.8\.2" $PBX_INCLUDE/version.h; then
           AC_DEFINE(ASTERISK_CONF_1_8_2, 1, [Define ASTERISK_CONF_1_8_2])
           AC_MSG_RESULT([Specifically 1.8.2])
           REALTIME_USEABLE=1
           ASTERISK_VER=1.8.2
-          AC_SUBST([ASTERISK_VER])
+        else 
+          AC_DEFINE(ASTERISK_CONF_1_8_2, 1, [Define ASTERISK_CONF_1_8_2])
+          AC_MSG_RESULT([Defaulted to 1.8.2])
+          REALTIME_USEABLE=1
+          ASTERISK_VER=1.8.2
         fi
       else
         echo ""
@@ -156,12 +150,19 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
       echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
       exit
     fi
+    AC_SUBST([ASTERISK_VER])
 
     PBX_VER_NUM=0
     if grep -q "SVN-branch" $PBX_INCLUDE/version.h; then
+      if grep -q 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h |grep -q 'M'; then
         PBX_VERSION_NUM="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-branch-\(.*\)-r\(.*\)M"/\1/g' |sed 's/\./0/g'`"
         PBX_BRANCH="BRANCH"
         PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-branch-\(.*\)-r\(.*\)M"/\2/g'`"
+      else
+        PBX_VERSION_NUM="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-branch-\(.*\)-r\(.*\)"/\1/g' |sed 's/\./0/g'`"
+        PBX_BRANCH="BRANCH"
+        PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "SVN-branch-\(.*\)-r\(.*\)"/\2/g'`"
+      fi
     elif grep -q "trunk" $PBX_INCLUDE/version.h; then
         PBX_VERSION_NUM=10800
         PBX_BRANCH="TRUNK"
@@ -169,9 +170,7 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
     else
         PBX_VERSION_NUM="`grep 'ASTERISK_VERSION_NUM ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION_NUM \(.*\)/\1/g'`"
         PBX_BRANCH="TGZ"
-dnl        PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "\(.*\)"/\1/g' | sed 's/\./0/g'`"
-dnl        PBX_REVISION=${PBX_REVISION:${#PBX_REVISION}-2:2}
-	PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "\(.*\)"/\1/g' | awk '{print substr($0,length -1,2);}'`"
+        PBX_REVISION="`grep 'ASTERISK_VERSION ' $PBX_INCLUDE/version.h|sed 's/#define ASTERISK_VERSION "\(.*\)"/\1/g' | awk '{print substr($0,length -1,2);}'`"
     fi
     AC_DEFINE_UNQUOTED([PBX_VERSION_NUM],`echo ${PBX_VERSION_NUM}`,[PBX Version Number])
     AC_SUBST([PBX_VERSION_NUM])
