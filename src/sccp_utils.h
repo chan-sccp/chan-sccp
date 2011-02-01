@@ -99,6 +99,7 @@ const char *keymode2str(uint32_t value);
 const char *deviceregistrationstatus2str(uint32_t value);
 const char *devicestatus2str(uint32_t value);
 const char *codec2str(uint32_t value);
+char *sccp_codecs2str(char *buf, size_t size, uint32_t *formats);
 const char *skinny_ringermode2str(uint8_t type);
 
 const char *array2str(uint8_t type, uint32_t value);
