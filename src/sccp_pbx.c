@@ -905,18 +905,20 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		break;
 	case AST_CONTROL_BUSY:
 		sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_BUSY);
+		//res = -1;
 		break;
 	case AST_CONTROL_CONGESTION:
 		sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_CONGESTION);
+		//res = -1;
 		break;
 	case AST_CONTROL_PROGRESS:
 		sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_PROGRESS);
 		//sccp_pbx_answer(ast);//TODO FIXIT dirty hack
-		res = -1;
+		//res = -1;
 		break;
 	case AST_CONTROL_PROCEEDING:
 		sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_PROCEED);
-		res = -1;
+		//res = -1;
 		break;
 
 #ifdef CS_AST_CONTROL_SRCCHANGE
