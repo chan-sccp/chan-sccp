@@ -1035,6 +1035,36 @@ const char *codec2str(uint32_t value)
 }
 
 /*!
+ * \brief Retrieve the string of format numbers and names from an array of formats
+ * Buffer needs to be declared and freed afterwards
+ * \param buf Buffer as char array
+ * \param size Size of the Buffer String (size_t)
+ * \param formats Array of sccp/skinny formats (uint32_t)
+ */
+char *sccp_codecs2str(char *buf, size_t size, uint32_t *formats)
+{
+	uint32_t x;
+	unsigned len;
+	char *start, *end = buf;
+
+ 	if (!size)
+		return buf;
+	len = strlen(end);
+	end += len; 
+	size -= len;
+	start = end;
+	for (x = 0; x<ARRAY_LEN(formats); x++) {
+		snprintf(end, size,"%d (%s)", formats[x], codec2str(formats[x]));
+ 	         len = strlen(end);
+       	         end += len; 
+  	         size -= len;
+	}
+         if (start == end)
+                  ast_copy_string(start, "nothing)", size);
+	return buf;
+}
+
+/*!
  * \brief Convert SCCP/Skinny Types 2 String
  * \param type 	SCCP/Skinny Type
  * \param value SCCP/Skinny Value
