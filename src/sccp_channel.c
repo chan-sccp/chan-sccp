@@ -2157,24 +2157,23 @@ void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevi
 	
 	//forwarder->owner->cid.cid_num = strdup(parent->callInfo.callingPartyNumber);
 	if(PBX(pbx_set_callerid_number))
-		PBX(pbx_set_callerid_number)(forwarder, &parent->callInfo.callingPartyNumber);
+		PBX(pbx_set_callerid_number)(forwarder->owner, (const char *)&parent->callInfo.callingPartyNumber);
 	
 	//forwarder->owner->cid.cid_name = strdup(fwd_from_name);
 	if(PBX(pbx_set_callerid_name))
-		PBX(pbx_set_callerid_name)(forwarder, &fwd_from_name);
-	
+		PBX(pbx_set_callerid_name)(forwarder->owner, (const char *)&fwd_from_name);
 	
 	//forwarder->owner->cid.cid_ani = strdup(dialedNumber);
 	if(PBX(pbx_set_callerid_ani))
-		PBX(pbx_set_callerid_ani)(forwarder, &dialedNumber);
+		PBX(pbx_set_callerid_ani)(forwarder->owner, (const char *)&dialedNumber);
 	
 	//forwarder->owner->cid.cid_dnid = strdup(dialedNumber);
 	if(PBX(pbx_set_callerid_dnid))
-		PBX(pbx_set_callerid_dnid)(forwarder, &dialedNumber);
+		PBX(pbx_set_callerid_dnid)(forwarder->owner, (const char *)&dialedNumber);
 	
 	//forwarder->owner->cid.cid_rdnis = strdup(forwarder->line->cid_num);
 	if(PBX(pbx_set_callerid_rdnis))
-		PBX(pbx_set_callerid_rdnis)(forwarder, &forwarder->line->cid_num);
+		PBX(pbx_set_callerid_rdnis)(forwarder->owner, (const char *)&forwarder->line->cid_num);
 
 #ifdef CS_AST_CHANNEL_HAS_CID
 	forwarder->owner->cid.cid_ani2 = -1;	
@@ -2285,16 +2284,13 @@ void sccp_channel_park(sccp_channel_t * c)
 	sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_CALLPARK);
 	sccp_channel_unlock(c);
 
-	
 	boolean_t channelResult;
-	
-	
 // #    if ASTERISK_VERSION_NUM < 10400
 // 	chan1m = ast_channel_alloc(0);
 // #    else
 // 	chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
 // #    endif
-	PBX(alloc_pbxChannel)(c, (void **)&chan1m);
+	channelResult = PBX(alloc_pbxChannel)(c, (void **)&chan1m);
 	if (!channelResult) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Park Failed: can't create asterisk channel\n", d->id);
 
@@ -2307,7 +2303,7 @@ void sccp_channel_park(sccp_channel_t * c)
 // #    else
 // 	chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
 // #    endif
-	PBX(alloc_pbxChannel)(c, (void **)&chan2m);
+	channelResult = PBX(alloc_pbxChannel)(c, (void **)&chan2m);
 	if (!channelResult) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Park Failed: can't create asterisk channel\n", d->id);
 
