@@ -813,7 +813,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_device_locked(sccp_device_t * d, ui
  * \param c Channel
  * \param state New State - type of AST_STATE_*
  */
-void sccp_ast_setstate(sccp_channel_t * c, int state)
+void sccp_ast_setstate(const sccp_channel_t * c, int state)
 {
 	if (c && c->owner) {
 		ast_setstate(c->owner, state);

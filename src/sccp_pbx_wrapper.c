@@ -32,13 +32,17 @@ struct sccp_pbx_cb sccp_pbx = {
 	.rtp_video_create 	= sccp_wrapper_asterisk_create_video_rtp,
 	.rtp_get_payloadType	= sccp_wrapper_asterisk_get_payloadType,
 	
-	.pbx_get_callerid_name	= sccp_wrapper_asterisk_callerid_name,
-	.pbx_get_callerid_number= sccp_wrapper_asterisk_callerid_number,
+	.pbx_get_callerid_name	= sccp_wrapper_asterisk_get_callerid_name,
+	.pbx_get_callerid_number= sccp_wrapper_asterisk_get_callerid_number,
+	.pbx_get_callerid_ani	= NULL, //TODO implement callback
+	.pbx_get_callerid_dnid	= NULL, //TODO implement callback
+	.pbx_get_callerid_rdnis	= NULL, //TODO implement callback
 	
-	.pbx_set_callerid_name 	= NULL, //TODO implement callback
-	.pbx_set_callerid_number= NULL, //TODO implement callback
-	.pbx_set_callerid_dnid	= NULL, //TODO implement callback
-	.pbx_set_callerid_rdnis	= NULL, //TODO implement callback
+	.pbx_set_callerid_name 	= sccp_wrapper_asterisk_set_callerid_name,
+	.pbx_set_callerid_number= sccp_wrapper_asterisk_set_callerid_number,
+	.pbx_set_callerid_ani	= sccp_wrapper_asterisk_set_callerid_ani,
+	.pbx_set_callerid_dnid	= sccp_wrapper_asterisk_set_callerid_dnid,
+	.pbx_set_callerid_rdnis	= sccp_wrapper_asterisk_set_callerid_rdnis,
 #endif
 };
 
@@ -51,7 +55,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \param ast_chan Asterisk Channel
  * \return char * with the callername
  */
-char *sccp_wrapper_asterisk_callerid_name(const sccp_channel_t *channel)
+char *sccp_wrapper_asterisk_get_callerid_name(const sccp_channel_t *channel)
 {
 	static char result[StationMaxNameSize];
 	PBX_CHANNEL_TYPE *ast_chan = channel->owner;
@@ -83,7 +87,7 @@ char *sccp_wrapper_asterisk_callerid_name(const sccp_channel_t *channel)
  * \param ast_chan Asterisk Channel
  * \return char * with the callername
  */
-char *sccp_wrapper_asterisk_callerid_number(const sccp_channel_t *channel)
+char *sccp_wrapper_asterisk_get_callerid_number(const sccp_channel_t *channel)
 {
 	static char result[StationMaxDirnumSize];
 	PBX_CHANNEL_TYPE *ast_chan = channel->owner;
@@ -118,7 +122,7 @@ char *sccp_wrapper_asterisk_callerid_number(const sccp_channel_t *channel)
  *
  * \todo need to be inspected and tested
  */
-sccp_callinfo_t *get_pbx_callerid(PBX_CHANNEL_TYPE *ast_chan)
+sccp_callinfo_t *sccp_wrapper_asterisk_get_callerid(PBX_CHANNEL_TYPE *ast_chan)
 {
 	sccp_callinfo_t *callInfo = NULL;
 
@@ -164,7 +168,7 @@ sccp_callinfo_t *get_pbx_callerid(PBX_CHANNEL_TYPE *ast_chan)
  *
  * \todo need to be inspected and tested
  */
-int set_pbx_callerid(PBX_CHANNEL_TYPE *ast_chan, sccp_callinfo_t * callInfo)
+int sccp_wrapper_asterisk_set_callerid(PBX_CHANNEL_TYPE *ast_chan, sccp_callinfo_t * callInfo)
 {
 	int RESULT = 0;
 
@@ -214,6 +218,106 @@ int set_pbx_callerid(PBX_CHANNEL_TYPE *ast_chan, sccp_callinfo_t * callInfo)
 
 #undef strcp_callerid
 	return RESULT;
+}
+
+/*
+ * \brief set callerid name on pbx channel
+ * \param pbx_chan PBX Channel
+ * \param name Name as char
+ */
+void sccp_wrapper_asterisk_set_callerid_name(const PBX_CHANNEL_TYPE *pbx_chan, const char * name)
+{
+	if (!pbx_chan || !name) {
+		return;
+	}
+
+#if ASTERISK_VERSION_NUM < 10400
+	// Implement ast 1.2 version
+#else
+	if (!strcmp(pbx_chan->cid.cid_name, name)) {
+		sccp_copy_string(pbx_chan->cid.cid_name, name, sizeof(pbx_chan->cid.cid_name)-1);
+	}
+#endif
+}
+
+/*
+ * \brief set callerid number on pbx channel
+ * \param pbx_chan PBX Channel
+ * \param number Number as char
+ */
+void sccp_wrapper_asterisk_set_callerid_number(const PBX_CHANNEL_TYPE *pbx_chan, const char * number)
+{
+	if (!pbx_chan || !number) {
+		return;
+	}
+
+#if ASTERISK_VERSION_NUM < 10400
+	// Implement ast 1.2 version
+#else
+	if (!strcmp(pbx_chan->cid.cid_num, number)) {
+		sccp_copy_string(pbx_chan->cid.cid_num, number, sizeof(pbx_chan->cid.cid_num)-1);
+	}
+#endif
+}
+
+/*
+ * \brief set callerid ani on pbx channel
+ * \param pbx_chan PBX Channel
+ * \param ani Number as char
+ */
+void sccp_wrapper_asterisk_set_callerid_ani(const PBX_CHANNEL_TYPE *pbx_chan, const char * ani)
+{
+	if (!pbx_chan || !ani) {
+		return;
+	}
+
+#if ASTERISK_VERSION_NUM < 10400
+	// Implement ast 1.2 version
+#else
+	if (!strcmp(pbx_chan->cid.cid_ani, ani)) {
+		sccp_copy_string(pbx_chan->cid.cid_ani, ani, sizeof(pbx_chan->cid.cid_ani)-1);
+	}
+#endif
+}
+
+/*
+ * \brief set callerid dnid on pbx channel
+ * \param pbx_chan PBX Channel
+ * \param dnid Number as char
+ */
+void sccp_wrapper_asterisk_set_callerid_dnid(const PBX_CHANNEL_TYPE *pbx_chan, const char * dnid)
+{
+	if (!pbx_chan || !dnid) {
+		return;
+	}
+
+#if ASTERISK_VERSION_NUM < 10400
+	// Implement ast 1.2 version
+#else
+	if (!strcmp(pbx_chan->cid.cid_dnid, dnid)) {
+		sccp_copy_string(pbx_chan->cid.cid_dnid, dnid, sizeof(pbx_chan->cid.cid_dnid)-1);
+	}
+#endif
+}
+
+/*
+ * \brief set callerid rdnis on pbx channel
+ * \param pbx_chan PBX Channel
+ * \param rdnis Number as char
+ */
+void sccp_wrapper_asterisk_set_callerid_rdnis(const PBX_CHANNEL_TYPE *pbx_chan, const char * rdnis)
+{
+	if (!pbx_chan || !rdnis) {
+		return;
+	}
+
+#if ASTERISK_VERSION_NUM < 10400
+	// Implement ast 1.2 version
+#else
+	if (!strcmp(pbx_chan->cid.cid_rdnis, rdnis)) {
+		sccp_copy_string(pbx_chan->cid.cid_rdnis, rdnis, sizeof(pbx_chan->cid.cid_rdnis)-1);
+	}
+#endif
 }
 
 /************************************************************************************************************* CHANNEL **/
@@ -590,7 +694,7 @@ void pbx_rtp_set_peer(PBX_RTP_TYPE *rtp, struct sockaddr_in *addr)
  * \brief Create a new RTP Source.
  * \param c SCCP Channel
  */
-boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t *c, void **new_rtp)
+boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t *c, struct ast_rtp **new_rtp)
 {
 	sccp_session_t *s;
 	sccp_device_t *d = NULL;
@@ -669,7 +773,7 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t *c, void *
  * \brief Create a new RTP Source.
  * \param c SCCP Channel
  */
-boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, void **new_rtp)
+boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, struct ast_rtp **new_rtp)
 {
 	sccp_session_t *s;
 	sccp_device_t *d = NULL;
@@ -924,16 +1028,18 @@ uint8_t sccp_wrapper_asterisk18_get_payloadType(const struct sccp_rtp *rtp, skin
 	return 97;
 }
 
+boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t *channel, void **pbx_channel){
+	 *pbx_channel = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, 0, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
+	 
+	 if(*pbx_channel != NULL)
+		return TRUE;
+	 
+	 return FALSE;
+}
 #else
 uint8_t sccp_wrapper_asterisk_get_payloadType(const struct sccp_rtp *rtp, skinny_media_payload codec){
 	uint32_t asteriskCodec = sccp_codec_skinny2ast(codec);
 	return ast_rtp_lookup_code(rtp->rtp, 1, asteriskCodec);
-}
-#endif
-
-int sccp_wrapper_asterisk_setCallState(const sccp_channel_t *channel, int state){
-	sccp_ast_setstate(channel->owner, state);
-	return 0;
 }
 
 boolean_t sccp_wrapper_asterisk_allocPBXChannel(const sccp_channel_t *channel, void **pbx_channel){
@@ -949,11 +1055,10 @@ boolean_t sccp_wrapper_asterisk_allocPBXChannel(const sccp_channel_t *channel, v
 	 return FALSE;
 }
 
-boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t *channel, void **pbx_channel){
-	 *pbx_channel = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, 0, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
-	 
-	 if(*pbx_channel != NULL)
-		return TRUE;
-	 
-	 return FALSE;
+#endif
+
+int sccp_wrapper_asterisk_setCallState(const sccp_channel_t *channel, int state){
+	sccp_ast_setstate(channel, state);
+	return 0;
 }
+

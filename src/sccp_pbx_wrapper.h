@@ -21,18 +21,21 @@ struct sccp_pbx_cb {
 	int (* const rtp_destroy)(sccp_channel_t *channel);
 	int (* const rtp_stop)(sccp_channel_t *channel);
 	int (* const rtp_codec)(sccp_channel_t *channel);
-	boolean_t (* const rtp_audio_create)(const sccp_channel_t *channel, void **new_rtp);
-	boolean_t (* const rtp_video_create)(const sccp_channel_t *channel, void **new_rtp);
+	boolean_t (* const rtp_audio_create)(const sccp_channel_t *channel, struct ast_rtp **new_rtp);
+	boolean_t (* const rtp_video_create)(const sccp_channel_t *channel, struct ast_rtp **new_rtp);
 	uint8_t (* const rtp_get_payloadType)(const struct sccp_rtp *rtp, skinny_media_payload codec);
 	
 	char *(* const pbx_get_callerid_name)(const sccp_channel_t *channel);
 	char *(* const pbx_get_callerid_number)(const sccp_channel_t *channel);
+	char *(* const pbx_get_callerid_ani)(const sccp_channel_t *channel);
+	char *(* const pbx_get_callerid_dnid)(const sccp_channel_t *channel);
+	char *(* const pbx_get_callerid_rdnis)(const sccp_channel_t *channel);
 	
-	void (* const pbx_set_callerid_name)(const sccp_channel_t *channel, const char *name);
-	void (* const pbx_set_callerid_number)(const sccp_channel_t *channel, const char *name);
-	void (* const pbx_set_callerid_ani)(const sccp_channel_t *channel, const char *ani);
-	void (* const pbx_set_callerid_dnid)(const sccp_channel_t *channel, const char *dnid);
-	void (* const pbx_set_callerid_rdnis)(const sccp_channel_t *channel, const char *rdnis);
+	void (* const pbx_set_callerid_name)(const PBX_CHANNEL_TYPE *pbx_chan, const char *name);
+	void (* const pbx_set_callerid_number)(const PBX_CHANNEL_TYPE *pbx_chan, const char *number);
+	void (* const pbx_set_callerid_ani)(const PBX_CHANNEL_TYPE *pbx_chan, const char *ani);
+	void (* const pbx_set_callerid_dnid)(const PBX_CHANNEL_TYPE *pbx_chan, const char *dnid);
+	void (* const pbx_set_callerid_rdnis)(const PBX_CHANNEL_TYPE *pbx_chan, const char *rdnis);
 };
 
 extern struct sccp_pbx_cb sccp_pbx;
@@ -144,11 +147,6 @@ enum {
 // char *ast_read_textfile(const char *file);
 // int ast_db_deltree(const char *family, const char *keytree);
 
-// utilities
-
-sccp_callinfo_t *get_pbx_callerid(PBX_CHANNEL_TYPE *ast_chan);
-int set_pbx_callerid(PBX_CHANNEL_TYPE *ast_chan, sccp_callinfo_t * callInfo);
-
 // replacement implementations
 PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE *target);
 struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast_ha *path, int *error);
@@ -164,18 +162,21 @@ int pbx_context_remove_extension(const char *context, const char *extension, int
 void pbxman_send_listack(struct mansession *s, const struct message *m, char *msg, char *listflag);
 int pbx_moh_start(PBX_CHANNEL_TYPE *chan, const char *mclass, const char *interpclass);
 
-
-
-
-
 #ifdef HAVE_ASTERISK
-char *sccp_wrapper_asterisk_callerid_name(const sccp_channel_t *channel);
-char *sccp_wrapper_asterisk_callerid_number(const sccp_channel_t *channel);
+sccp_callinfo_t *sccp_wrapper_asterisk_get_callerid(PBX_CHANNEL_TYPE *ast_chan);
+char *sccp_wrapper_asterisk_get_callerid_name(const sccp_channel_t *channel);
+char *sccp_wrapper_asterisk_get_callerid_number(const sccp_channel_t *channel);
 
+int sccp_wrapper_asterisk_set_callerid(PBX_CHANNEL_TYPE *ast_chan, sccp_callinfo_t * callInfo);
+void sccp_wrapper_asterisk_set_callerid_name(const PBX_CHANNEL_TYPE *pbx_chan, const char * name);
+void sccp_wrapper_asterisk_set_callerid_number(const PBX_CHANNEL_TYPE *pbx_chan, const char * number);
+void sccp_wrapper_asterisk_set_callerid_ani(const PBX_CHANNEL_TYPE *pbx_chan, const char * ani);
+void sccp_wrapper_asterisk_set_callerid_dnid(const PBX_CHANNEL_TYPE *pbx_chan, const char * dnid);
+void sccp_wrapper_asterisk_set_callerid_rdnis(const PBX_CHANNEL_TYPE *pbx_chan, const char * rdnis);
 
 int sccp_wrapper_asterisk_setCallState(const sccp_channel_t *channel, int state);
-boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t *c, void **new_rtp);
-boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t *c, void **new_rtp);
+boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t *c, struct ast_rtp **new_rtp);
+boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t *c, struct ast_rtp **new_rtp);
 
 
 #ifdef CS_AST_HAS_RTP_ENGINE
