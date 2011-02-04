@@ -1540,6 +1540,7 @@ static int load_module(void)
 	GLOB(callAnswerOrder) = ANSWER_OLDEST_FIRST;
 	GLOB(socket_thread) = AST_PTHREADT_NULL;
 	GLOB(hotline) = ast_malloc(sizeof(sccp_hotline_t));
+	GLOB(earlyrtp) = SCCP_CHANNELSTATE_PROGRESS;
 	memset(GLOB(hotline), 0, sizeof(sccp_hotline_t));
 
 	sccp_create_hotline();
