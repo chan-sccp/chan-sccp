@@ -142,6 +142,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		//      sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_OFF);
 
 		sccp_dev_clearprompt(d, instance, c->callid);
+		sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->owner->hangupcause), 10);
 
 		/* if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
 		if (c->answered_elsewhere)
@@ -299,7 +300,8 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		   signalling replacement for the display promptif this is neccessary for some reason.(-DD) */
 		sccp_channel_send_callinfo(d, c);
 		/* \todo map AST_CAUSE to SKINNY_DISP_CAUSE's and display the correct one */
-		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL, 0);
+		//sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL, 0);
+		sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->owner->hangupcause), 0);
 		break;
 	case SCCP_CHANNELSTATE_CALLWAITING:
 		if (GLOB(callwaiting_tone))
