@@ -367,7 +367,16 @@ static sccp_moo_t *sccp_process_data(sccp_session_t * s)
 	void *newptr = NULL;
 	sccp_moo_t *m;
 
+	/*
 	if (s->buffer_size == 0)
+		return NULL; 
+	*/
+	
+	/* Notice: If the buffer length read so far
+	           is smaller than the length field + some data of at least on byte,
+	           we need and must not parse the packet length yet . (-DD) */
+	
+	if (s->buffer_size <= 4)
 		return NULL;
 
 	memcpy(&packSize, s->buffer, 4);
