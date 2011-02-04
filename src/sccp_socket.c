@@ -76,18 +76,12 @@ static void sccp_read_data(sccp_session_t * s)
 	input = ast_malloc(length + 1);
 
 	readlen = read(s->fds[0].fd, input, length);
-	if (readlen == 0) {
-		/* probably a CLOSE_WAIT */
-		ast_log(LOG_WARNING, "SCCP: read() returned zero length. Assuming closed connection.\n", strerror(errno));
-		pthread_cancel(s->session_thread);
-		return;
-	} else if (readlen < 0) {
-		if (errno == EINTR || errno == EAGAIN) {
+	if (readlen <= 0 ) {
+		if (readlen < 0 && errno == EINTR || errno == EAGAIN) {
 			ast_log(LOG_WARNING, "SCCP: FIONREAD Come back later (EAGAIN): %s\n", strerror(errno));
-		} else if (errno == ECONNRESET || errno == ETIMEDOUT) {
-			/* treat as disconnection */
-			ast_log(LOG_WARNING, "SCCP: read() returned %s\n", strerror(errno));
-			ast_free(input);
+		} else {
+			/* probably a CLOSE_WAIT (readlen==0 || errno == ECONNRESET || errno == ETIMEDOUT)*/
+			ast_log(LOG_WARNING, "SCCP: read() returned zero length. Assuming closed connection.\n", strerror(errno));
 			pthread_cancel(s->session_thread);
 		}
 		return;
