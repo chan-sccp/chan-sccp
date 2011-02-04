@@ -1723,6 +1723,8 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct as
 				d->earlyrtp = SCCP_CHANNELSTATE_DIALING;
 			else if (!strcasecmp(v->value, "ringout"))
 				d->earlyrtp = SCCP_CHANNELSTATE_RINGOUT;
+			else if (!strcasecmp(v->value, "progress"))
+				d->earlyrtp = SCCP_CHANNELSTATE_PROGRESS;
 			else
 				ast_log(LOG_WARNING, "Invalid earlyrtp state value at line %d, should be 'none', 'offhook', 'dial', 'ringout'\n", v->lineno);
 		} else if (!strcasecmp(v->name, "dtmfmode")) {
