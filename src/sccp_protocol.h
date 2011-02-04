@@ -170,9 +170,9 @@ typedef enum {
 	SCCP_BLF_STATUS_ALERTING = 4						/*!< alerting */
 } sccp_BFLState_t;								/*!< blf states for dynamic speeddials */
 
-#    define SCCP_CFWD_NONE				0
-#    define SCCP_CFWD_ALL				1
-#    define SCCP_CFWD_BUSY				2
+#    define SCCP_CFWD_NONE			0
+#    define SCCP_CFWD_ALL			1
+#    define SCCP_CFWD_BUSY			2
 #    define SCCP_CFWD_NOANSWER			3
 
 /*!
@@ -194,24 +194,24 @@ static const struct sccp_callforwardstate {
 /*
  * SCCP/Skinny Lookup Types
  */
-#    define SCCP_MESSAGE 		0
-#    define SCCP_ACCESSORY 		1
-#    define SCCP_ACCESSORY_STATE	2
-#    define SCCP_EXTENSION_STATE	3
-#    define SCCP_DNDMODE		4
-#    define SKINNY_TONE 		5
-#    define SKINNY_ALARM		6
-#    define SKINNY_DEVICETYPE	7
-#    define SKINNY_DEVICE_RS	8
-#    define SKINNY_STIMULUS		9
-#    define SKINNY_BUTTONTYPE	10
-#    define SKINNY_LAMPMODE		11
-#    define SKINNY_STATION		12
-#    define SKINNY_LBL		13
-#    define SKINNY_CALLTYPE		14
-#    define SKINNY_KEYMODE		15
-#    define SKINNY_DEVICE_STATE	16
-#    define SKINNY_CODEC		17
+#    define SCCP_MESSAGE 			0
+#    define SCCP_ACCESSORY 			1
+#    define SCCP_ACCESSORY_STATE		2
+#    define SCCP_EXTENSION_STATE		3
+#    define SCCP_DNDMODE			4
+#    define SKINNY_TONE 			5
+#    define SKINNY_ALARM			6
+#    define SKINNY_DEVICETYPE			7
+#    define SKINNY_DEVICE_RS			8
+#    define SKINNY_STIMULUS			9
+#    define SKINNY_BUTTONTYPE			10
+#    define SKINNY_LAMPMODE			11
+#    define SKINNY_STATION			12
+#    define SKINNY_LBL				13
+#    define SKINNY_CALLTYPE			14
+#    define SKINNY_KEYMODE			15
+#    define SKINNY_DEVICE_STATE			16
+#    define SKINNY_CODEC			17
 
 /* skinny protocol call states */
 typedef enum {
@@ -292,109 +292,109 @@ typedef enum {
 	SKINNY_CALLSECURITYSTATE_AUTHENTICATED = 2
 } skinny_callstate_security_t;							/*!< Skinny CallSecurityInfo */
 
-#    define StationMaxDeviceNameSize		16
+#    define StationMaxDeviceNameSize			16
 #    define StationMaxButtonTemplateSize		42
-#    define StationMaxButtonTemplateNameSize	44
-#    define StationDateTemplateSize 		6
-//#define StationMaxDisplayTextSize             33
-#    define StationMaxDisplayTextSize		32
+#    define StationMaxButtonTemplateNameSize		44
+#    define StationDateTemplateSize 			6
+//#define StationMaxDisplayTextSize            	33
+#    define StationMaxDisplayTextSize			32
 #    define StationMaxDisplayNotifySize 		32
 #    define StationMaxDirnumSize			24
-#    define StationMaxNameSize			40
+#    define StationMaxNameSize				40
 #    define StationMaxSoftKeyDefinition 		32
 #    define StationMaxSoftKeySetDefinition		16
 #    define StationMaxSoftKeyIndex			16
-#    define StationMaxSoftKeyLabelSize		16
+#    define StationMaxSoftKeyLabelSize			16
 #    define StationMaxVersionSize			16
-#    define StationMaxServers			5
-#    define ServerMaxNameSize			48
-#    define StationMaxServiceURLSize		256
+#    define StationMaxServers				5
+#    define ServerMaxNameSize				48
+#    define StationMaxServiceURLSize			256
 #    define StationMaxPorts				16
 
 /* skinny tones skinny_tone2str */
 #    define SKINNY_TONE_SILENCE 			0
-#    define SKINNY_TONE_DTMF1			1
-#    define SKINNY_TONE_DTMF2			2
-#    define SKINNY_TONE_DTMF3			3
-#    define SKINNY_TONE_DTMF4			4
-#    define SKINNY_TONE_DTMF5			5
-#    define SKINNY_TONE_DTMF6			6
-#    define SKINNY_TONE_DTMF7			7
-#    define SKINNY_TONE_DTMF8			8
-#    define SKINNY_TONE_DTMF9			9
-#    define SKINNY_TONE_DTMF0			0xa
+#    define SKINNY_TONE_DTMF1				1
+#    define SKINNY_TONE_DTMF2				2
+#    define SKINNY_TONE_DTMF3				3
+#    define SKINNY_TONE_DTMF4				4
+#    define SKINNY_TONE_DTMF5				5
+#    define SKINNY_TONE_DTMF6				6
+#    define SKINNY_TONE_DTMF7				7
+#    define SKINNY_TONE_DTMF8				8
+#    define SKINNY_TONE_DTMF9				9
+#    define SKINNY_TONE_DTMF0				0xa
 #    define SKINNY_TONE_DTMFSTAR			0xe
 #    define SKINNY_TONE_DTMFPOUND			0xf
-#    define SKINNY_TONE_DTMFA			0x10
-#    define SKINNY_TONE_DTMFB			0x11
-#    define SKINNY_TONE_DTMFC			0x12
-#    define SKINNY_TONE_DTMFD			0x13
-#    define SKINNY_TONE_INSIDEDIALTONE		0x21
+#    define SKINNY_TONE_DTMFA				0x10
+#    define SKINNY_TONE_DTMFB				0x11
+#    define SKINNY_TONE_DTMFC				0x12
+#    define SKINNY_TONE_DTMFD				0x13
+#    define SKINNY_TONE_INSIDEDIALTONE			0x21
 #    define SKINNY_TONE_OUTSIDEDIALTONE 		0x22
-#    define SKINNY_TONE_LINEBUSYTONE		0x23
-#    define SKINNY_TONE_ALERTINGTONE		0x24
-#    define SKINNY_TONE_REORDERTONE 		0x25
-#    define SKINNY_TONE_RECORDERWARNINGTONE 	0x26
-#    define SKINNY_TONE_RECORDERDETECTEDTONE	0x27
-#    define SKINNY_TONE_REVERTINGTONE		0x28
-#    define SKINNY_TONE_RECEIVEROFFHOOKTONE 	0x29
+#    define SKINNY_TONE_LINEBUSYTONE			0x23
+#    define SKINNY_TONE_ALERTINGTONE			0x24
+#    define SKINNY_TONE_REORDERTONE 			0x25
+#    define SKINNY_TONE_RECORDERWARNINGTONE 		0x26
+#    define SKINNY_TONE_RECORDERDETECTEDTONE		0x27
+#    define SKINNY_TONE_REVERTINGTONE			0x28
+#    define SKINNY_TONE_RECEIVEROFFHOOKTONE 		0x29
 #    define SKINNY_TONE_PARTIALDIALTONE 		0x2a
 #    define SKINNY_TONE_NOSUCHNUMBERTONE		0x2b
-#    define SKINNY_TONE_BUSYVERIFICATIONTONE	0x2c
+#    define SKINNY_TONE_BUSYVERIFICATIONTONE		0x2c
 #    define SKINNY_TONE_CALLWAITINGTONE 		0x2d
 #    define SKINNY_TONE_CONFIRMATIONTONE		0x2e
-#    define SKINNY_TONE_CAMPONINDICATIONTONE	0x2f
-#    define SKINNY_TONE_RECALLDIALTONE		0x30
-#    define SKINNY_TONE_ZIPZIP			0x31
-#    define SKINNY_TONE_ZIP 			0x32
+#    define SKINNY_TONE_CAMPONINDICATIONTONE		0x2f
+#    define SKINNY_TONE_RECALLDIALTONE			0x30
+#    define SKINNY_TONE_ZIPZIP				0x31
+#    define SKINNY_TONE_ZIP 				0x32
 #    define SKINNY_TONE_BEEPBONK			0x33
 #    define SKINNY_TONE_MUSICTONE			0x34
 #    define SKINNY_TONE_HOLDTONE			0x35
 #    define SKINNY_TONE_TESTTONE			0x36
-#    define SKINNY_TONE_DTMONITORWARNINGTONE	0x37
-#    define SKINNY_TONE_ADDCALLWAITING		0x40
+#    define SKINNY_TONE_DTMONITORWARNINGTONE		0x37
+#    define SKINNY_TONE_ADDCALLWAITING			0x40
 #    define SKINNY_TONE_PRIORITYCALLWAIT		0x41
 #    define SKINNY_TONE_RECALLDIAL			0x42
-#    define SKINNY_TONE_BARGIN			0x43
-#    define SKINNY_TONE_DISTINCTALERT		0x44
-#    define SKINNY_TONE_PRIORITYALERT		0x45
-#    define SKINNY_TONE_REMINDERRING		0x46
+#    define SKINNY_TONE_BARGIN				0x43
+#    define SKINNY_TONE_DISTINCTALERT			0x44
+#    define SKINNY_TONE_PRIORITYALERT			0x45
+#    define SKINNY_TONE_REMINDERRING			0x46
 #    define SKINNY_TONE_PRECEDENCE_RINGBACK		0x47
-#    define SKINNY_TONE_PREEMPTIONTONE		0x48
-#    define SKINNY_TONE_MF1 			0x50
-#    define SKINNY_TONE_MF2 			0x51
-#    define SKINNY_TONE_MF3 			0x52
-#    define SKINNY_TONE_MF4 			0x53
-#    define SKINNY_TONE_MF5 			0x54
-#    define SKINNY_TONE_MF6 			0x55
-#    define SKINNY_TONE_MF7 			0x56
-#    define SKINNY_TONE_MF8 			0x57
-#    define SKINNY_TONE_MF9 			0x58
-#    define SKINNY_TONE_MF0 			0x59
-#    define SKINNY_TONE_MFKP1			0x5a
-#    define SKINNY_TONE_MFST			0x5b
-#    define SKINNY_TONE_MFKP2			0x5c
-#    define SKINNY_TONE_MFSTP			0x5d
-#    define SKINNY_TONE_MFST3P			0x5e
+#    define SKINNY_TONE_PREEMPTIONTONE			0x48
+#    define SKINNY_TONE_MF1 				0x50
+#    define SKINNY_TONE_MF2 				0x51
+#    define SKINNY_TONE_MF3 				0x52
+#    define SKINNY_TONE_MF4 				0x53
+#    define SKINNY_TONE_MF5 				0x54
+#    define SKINNY_TONE_MF6 				0x55
+#    define SKINNY_TONE_MF7 				0x56
+#    define SKINNY_TONE_MF8 				0x57
+#    define SKINNY_TONE_MF9 				0x58
+#    define SKINNY_TONE_MF0 				0x59
+#    define SKINNY_TONE_MFKP1				0x5a
+#    define SKINNY_TONE_MFST				0x5b
+#    define SKINNY_TONE_MFKP2				0x5c
+#    define SKINNY_TONE_MFSTP				0x5d
+#    define SKINNY_TONE_MFST3P				0x5e
 #    define SKINNY_TONE_MILLIWATT			0x5f
-#    define SKINNY_TONE_MILLIWATTTEST		0x60
+#    define SKINNY_TONE_MILLIWATTTEST			0x60
 #    define SKINNY_TONE_HIGHTONE			0x61
-#    define SKINNY_TONE_FLASHOVERRIDE		0x62
-#    define SKINNY_TONE_FLASH			0x63
+#    define SKINNY_TONE_FLASHOVERRIDE			0x62
+#    define SKINNY_TONE_FLASH				0x63
 #    define SKINNY_TONE_PRIORITY			0x64
 #    define SKINNY_TONE_IMMEDIATE			0x65
 #    define SKINNY_TONE_PREAMPWARN			0x66
-#    define SKINNY_TONE_2105HZ			0x67
-#    define SKINNY_TONE_2600HZ			0x68
-#    define SKINNY_TONE_440HZ			0x69
-#    define SKINNY_TONE_300HZ			0x6a
+#    define SKINNY_TONE_2105HZ				0x67
+#    define SKINNY_TONE_2600HZ				0x68
+#    define SKINNY_TONE_440HZ				0x69
+#    define SKINNY_TONE_300HZ				0x6a
 #    define SKINNY_TONE_MLPP_PALA			0x77
 #    define SKINNY_TONE_MLPP_ICA			0x78
 #    define SKINNY_TONE_MLPP_VCA			0x79
 #    define SKINNY_TONE_MLPP_BPA			0x7A
 #    define SKINNY_TONE_MLPP_BNEA			0x7B
 #    define SKINNY_TONE_MLPP_UPA			0x7C
-#    define SKINNY_TONE_NOTONE			0x7f
+#    define SKINNY_TONE_NOTONE				0x7f
 
 /*!
  * \brief Skinny Tone Structure
@@ -493,10 +493,10 @@ static const struct skinny_tone {
 /* alarm skinny_alarm2str*/
 #    define SKINNY_ALARM_CRITICAL			0
 #    define SKINNY_ALARM_WARNING			1
-#    define SKINNY_ALARM_INFORMATIONAL		2
+#    define SKINNY_ALARM_INFORMATIONAL			2
 #    define SKINNY_ALARM_UNKNOWN			4
-#    define SKINNY_ALARM_MAJOR			7
-#    define SKINNY_ALARM_MINOR			8
+#    define SKINNY_ALARM_MAJOR				7
+#    define SKINNY_ALARM_MINOR				8
 #    define SKINNY_ALARM_MARGINAL			10
 #    define SKINNY_ALARM_TRACEINFO			20
 
@@ -523,101 +523,101 @@ static const struct skinny_alarm {
 #    define SKINNY_DEVICETYPE_UNDEFINED			0
 #    define SKINNY_DEVICETYPE_30SPPLUS			1
 #    define SKINNY_DEVICETYPE_12SPPLUS			2
-#    define SKINNY_DEVICETYPE_12SP				3
-#    define SKINNY_DEVICETYPE_12				4
+#    define SKINNY_DEVICETYPE_12SP			3
+#    define SKINNY_DEVICETYPE_12			4
 #    define SKINNY_DEVICETYPE_30VIP 			5
 //#define SKINNY_DEVICETYPE_TELECASTER                  6
 //#define SKINNY_DEVICETYPE_TELECASTER_MGR              7
 //#define SKINNY_DEVICETYPE_TELECASTER_BUS              8
 //#define SKINNY_DEVICETYPE_POLYCOM                     9
-#    define SKINNY_DEVICETYPE_VGC				10
+#    define SKINNY_DEVICETYPE_VGC			10
 #    define SKINNY_DEVICETYPE_ATA186			12
-#    define SKINNY_DEVICETYPE_ATA188			12			/*!< ATA188 -FS */
+#    define SKINNY_DEVICETYPE_ATA188			12				/*!< ATA188 -FS */
 #    define SKINNY_DEVICETYPE_VIRTUAL30SPPLUS		20
 #    define SKINNY_DEVICETYPE_PHONEAPPLICATION		21
-#    define SKINNY_DEVICETYPE_ANALOGACCESS			30
+#    define SKINNY_DEVICETYPE_ANALOGACCESS		30
 #    define SKINNY_DEVICETYPE_DIGITALACCESSPRI		40
 #    define SKINNY_DEVICETYPE_DIGITALACCESST1		41
-#    define SKINNY_DEVICETYPE_DIGITALACCESSTITAN2		42
-#    define SKINNY_DEVICETYPE_DIGITALACCESSLENNON		43
-#    define SKINNY_DEVICETYPE_ANALOGACCESSELVIS 		47
+#    define SKINNY_DEVICETYPE_DIGITALACCESSTITAN2	42
+#    define SKINNY_DEVICETYPE_DIGITALACCESSLENNON	43
+#    define SKINNY_DEVICETYPE_ANALOGACCESSELVIS 	47
 #    define SKINNY_DEVICETYPE_CONFERENCEBRIDGE		50
-#    define SKINNY_DEVICETYPE_CONFERENCEBRIDGEYOKO		51
+#    define SKINNY_DEVICETYPE_CONFERENCEBRIDGEYOKO	51
 #    define SKINNY_DEVICETYPE_CONFERENCEBRIDGEDIXIELAND	52
 #    define SKINNY_DEVICETYPE_CONFERENCEBRIDGESUMMIT	53
-#    define SKINNY_DEVICETYPE_H225				60
-#    define SKINNY_DEVICETYPE_H323PHONE 			61
-#    define SKINNY_DEVICETYPE_H323TRUNK 			62
-#    define SKINNY_DEVICETYPE_MUSICONHOLD			70
+#    define SKINNY_DEVICETYPE_H225			60
+#    define SKINNY_DEVICETYPE_H323PHONE 		61
+#    define SKINNY_DEVICETYPE_H323TRUNK 		62
+#    define SKINNY_DEVICETYPE_MUSICONHOLD		70
 #    define SKINNY_DEVICETYPE_PILOT 			71
 #    define SKINNY_DEVICETYPE_TAPIPORT			72
 #    define SKINNY_DEVICETYPE_TAPIROUTEPOINT		73
-#    define SKINNY_DEVICETYPE_VOICEINBOX			80
+#    define SKINNY_DEVICETYPE_VOICEINBOX		80
 #    define SKINNY_DEVICETYPE_VOICEINBOXADMIN		81
 #    define SKINNY_DEVICETYPE_LINEANNUNCIATOR		82
-#    define SKINNY_DEVICETYPE_SOFTWAREMTPDIXIELAND		83
+#    define SKINNY_DEVICETYPE_SOFTWAREMTPDIXIELAND	83
 #    define SKINNY_DEVICETYPE_CISCOMEDIASERVER		84
 #    define SKINNY_DEVICETYPE_CONFERENCEBRIDGEFLINT 	85
-#    define SKINNY_DEVICETYPE_ROUTELIST 			90
+#    define SKINNY_DEVICETYPE_ROUTELIST 		90
 #    define SKINNY_DEVICETYPE_LOADSIMULATOR 		100
 #    define SKINNY_DEVICETYPE_MEDIA_TERM_POINT 		110
-#    define SKINNY_DEVICETYPE_MEDIA_TERM_POINTYOKO		111
-#    define SKINNY_DEVICETYPE_MEDIA_TERM_POINTDIXIELAND 	112
+#    define SKINNY_DEVICETYPE_MEDIA_TERM_POINTYOKO	111
+#    define SKINNY_DEVICETYPE_MEDIA_TERM_POINTDIXIELAND	112
 #    define SKINNY_DEVICETYPE_MEDIA_TERM_POINTSUMMIT	113
-#    define SKINNY_DEVICETYPE_MGCPSTATION			120
-#    define SKINNY_DEVICETYPE_MGCPTRUNK 			121
+#    define SKINNY_DEVICETYPE_MGCPSTATION		120
+#    define SKINNY_DEVICETYPE_MGCPTRUNK 		121
 #    define SKINNY_DEVICETYPE_RASPROXY			122
-#    define SKINNY_DEVICETYPE_TRUNK				125
-#    define SKINNY_DEVICETYPE_ANNUNCIATOR			126
-#    define SKINNY_DEVICETYPE_MONITORBRIDGE			127
+#    define SKINNY_DEVICETYPE_TRUNK			125
+#    define SKINNY_DEVICETYPE_ANNUNCIATOR		126
+#    define SKINNY_DEVICETYPE_MONITORBRIDGE		127
 #    define SKINNY_DEVICETYPE_RECORDER			128
 #    define SKINNY_DEVICETYPE_MONITORBRIDGEYOKO		129
 #    define SKINNY_DEVICETYPE_SIPTRUNK			131
-#    define SKINNY_DEVICETYPE_NOTDEFINED			255
-#    define SKINNY_DEVICETYPE_CISCO7902 			30008
-#    define SKINNY_DEVICETYPE_CISCO7905 			20000
-#    define SKINNY_DEVICETYPE_CISCO7906			369			/*!< 7906 -FS */
-#    define SKINNY_DEVICETYPE_CISCO7910			6			/*!< 7910 */
-#    define SKINNY_DEVICETYPE_CISCO7911 			307
+#    define SKINNY_DEVICETYPE_NOTDEFINED		255
+#    define SKINNY_DEVICETYPE_CISCO7902 		30008
+#    define SKINNY_DEVICETYPE_CISCO7905 		20000
+#    define SKINNY_DEVICETYPE_CISCO7906			369				/*!< 7906 -FS */
+#    define SKINNY_DEVICETYPE_CISCO7910			6				/*!< 7910 */
+#    define SKINNY_DEVICETYPE_CISCO7911 		307
 #    define SKINNY_DEVICETYPE_CISCO7912			30007
-#    define SKINNY_DEVICETYPE_CISCO7914 			124		/*!< Expansion module */
-#    define SKINNY_DEVICETYPE_CISCO7915_12BUTTONS		227		/*!< 7915 12-Button Line Expansion Module */
-#    define SKINNY_DEVICETYPE_CISCO7915			228			/*!< 7915 24-Button Line Expansion Module */
-#    define SKINNY_DEVICETYPE_CISCO7916_12BUTTONS		229		/*!< 7916 12-Button Line Expansion Module */
-#    define SKINNY_DEVICETYPE_CISCO7916			230			/*!< 7916 24-Button Line Expansion Module */
-#    define SKINNY_DEVICETYPE_CISCO7920 			30002
-#    define SKINNY_DEVICETYPE_CISCO7921 			365
-#    define SKINNY_DEVICETYPE_CISCO7925 			484		/*!< 7925 -FS */
+#    define SKINNY_DEVICETYPE_CISCO7914 		124				/*!< Expansion module */
+#    define SKINNY_DEVICETYPE_CISCO7915_12BUTTONS	227				/*!< 7915 12-Button Line Expansion Module */
+#    define SKINNY_DEVICETYPE_CISCO7915			228				/*!< 7915 24-Button Line Expansion Module */
+#    define SKINNY_DEVICETYPE_CISCO7916_12BUTTONS	229				/*!< 7916 12-Button Line Expansion Module */
+#    define SKINNY_DEVICETYPE_CISCO7916			230				/*!< 7916 24-Button Line Expansion Module */
+#    define SKINNY_DEVICETYPE_CISCO7920 		30002
+#    define SKINNY_DEVICETYPE_CISCO7921 		365
+#    define SKINNY_DEVICETYPE_CISCO7925 		484				/*!< 7925 -FS */
 #    define SKINNY_DEVICETYPE_CISCO7931			348
-#    define SKINNY_DEVICETYPE_CISCO7935 			9
-#    define SKINNY_DEVICETYPE_CISCO7936 			30019
+#    define SKINNY_DEVICETYPE_CISCO7935 		9
+#    define SKINNY_DEVICETYPE_CISCO7936 		30019
 #    define SKINNY_DEVICETYPE_CISCO7937			431
-#    define SKINNY_DEVICETYPE_CISCO7940			8			/*!< 7940 */
-#    define SKINNY_DEVICETYPE_CISCO7941 			115
-#    define SKINNY_DEVICETYPE_CISCO7941GE 			309
+#    define SKINNY_DEVICETYPE_CISCO7940			8				/*!< 7940 */
+#    define SKINNY_DEVICETYPE_CISCO7941 		115
+#    define SKINNY_DEVICETYPE_CISCO7941GE 		309
 #    define SKINNY_DEVICETYPE_CISCO7942			434
 #    define SKINNY_DEVICETYPE_CISCO7945			435
-#    define SKINNY_DEVICETYPE_CISCO7960			7			/*< 7960 */
-#    define SKINNY_DEVICETYPE_CISCO7961 			30018
-#    define SKINNY_DEVICETYPE_CISCO7961GE 			308
-#    define SKINNY_DEVICETYPE_CISCO7962			404			// -FS
-#    define SKINNY_DEVICETYPE_CISCO7965 			436
-#    define SKINNY_DEVICETYPE_CISCO7970 			30006
-#    define SKINNY_DEVICETYPE_CISCO7971 			119
+#    define SKINNY_DEVICETYPE_CISCO7960			7				/*< 7960 */
+#    define SKINNY_DEVICETYPE_CISCO7961 		30018
+#    define SKINNY_DEVICETYPE_CISCO7961GE 		308
+#    define SKINNY_DEVICETYPE_CISCO7962			404				// -FS
+#    define SKINNY_DEVICETYPE_CISCO7965 		436
+#    define SKINNY_DEVICETYPE_CISCO7970 		30006
+#    define SKINNY_DEVICETYPE_CISCO7971 		119
 #    define SKINNY_DEVICETYPE_CISCO7975			437
 #    define SKINNY_DEVICETYPE_CISCO7985			302
-#    define SKINNY_DEVICETYPE_NOKIA_E_SERIES		275			/*!< Nokia S60 */
-#    define SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR	 	30016
-#    define SKINNY_DEVICETYPE_GATEWAY_AN 			30027		/*!< Analog gateway */
-#    define SKINNY_DEVICETYPE_GATEWAY_BRI 			30028		/*!< BRI gateway */
-#    define SKINNY_DEVICETYPE_NOKIA_ICC 			376		/*!< nokia icc client V2 */
+#    define SKINNY_DEVICETYPE_NOKIA_E_SERIES		275				/*!< Nokia S60 */
+#    define SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR 	30016
+#    define SKINNY_DEVICETYPE_GATEWAY_AN 		30027				/*!< Analog gateway */
+#    define SKINNY_DEVICETYPE_GATEWAY_BRI 		30028				/*!< BRI gateway */
+#    define SKINNY_DEVICETYPE_NOKIA_ICC 		376				/*!< nokia icc client V2 */
 #    define SKINNY_DEVICETYPE_CISCO6901			547
 #    define SKINNY_DEVICETYPE_CISCO6911			548
 #    define SKINNY_DEVICETYPE_CISCO6921			495
 #    define SKINNY_DEVICETYPE_CISCO6941			496
 #    define SKINNY_DEVICETYPE_CISCO6945			564
 #    define SKINNY_DEVICETYPE_CISCO6961			497
-#    define SKINNY_DEVICETYPE_SPA_521S			80000		/*!< nokia icc client V2 */
+#    define SKINNY_DEVICETYPE_SPA_521S			80000				/*!< nokia icc client V2 */
 
 /*!
  * \brief Skinny DeviceType Structure
@@ -721,10 +721,10 @@ static const struct skinny_devicetype {
 };
 
 #    define SKINNY_DEVICE_RS_NONE			0
-#    define SKINNY_DEVICE_RS_PROGRESS		1
-#    define SKINNY_DEVICE_RS_FAILED 		2
+#    define SKINNY_DEVICE_RS_PROGRESS			1
+#    define SKINNY_DEVICE_RS_FAILED 			2
 #    define SKINNY_DEVICE_RS_OK 			3
-#    define SKINNY_DEVICE_RS_TIMEOUT		4
+#    define SKINNY_DEVICE_RS_TIMEOUT			4
 
 /*!
  * \brief Skinny Device RS Structure
@@ -767,38 +767,38 @@ static const struct skinny_device_state {
 };
 
 /* stimulus */
-#    define SKINNY_STIMULUS_LASTNUMBERREDIAL	1
-#    define SKINNY_STIMULUS_SPEEDDIAL		2
+#    define SKINNY_STIMULUS_LASTNUMBERREDIAL		1
+#    define SKINNY_STIMULUS_SPEEDDIAL			2
 #    define SKINNY_STIMULUS_HOLD			3
-#    define SKINNY_STIMULUS_TRANSFER		4
-#    define SKINNY_STIMULUS_FORWARDALL		5
+#    define SKINNY_STIMULUS_TRANSFER			4
+#    define SKINNY_STIMULUS_FORWARDALL			5
 #    define SKINNY_STIMULUS_FORWARDBUSY 		6
-#    define SKINNY_STIMULUS_FORWARDNOANSWER 	7
-#    define SKINNY_STIMULUS_DISPLAY 		8
+#    define SKINNY_STIMULUS_FORWARDNOANSWER 		7
+#    define SKINNY_STIMULUS_DISPLAY 			8
 #    define SKINNY_STIMULUS_LINE			9
-#    define SKINNY_STIMULUS_T120CHAT		0xA
+#    define SKINNY_STIMULUS_T120CHAT			0xA
 #    define SKINNY_STIMULUS_T120WHITEBOARD		0xB
 #    define SKINNY_STIMULUS_T120APPLICATIONSHARING	0xC
-#    define SKINNY_STIMULUS_T120FILETRANSFER	0xD
+#    define SKINNY_STIMULUS_T120FILETRANSFER		0xD
 #    define SKINNY_STIMULUS_VIDEO			0xE
-#    define SKINNY_STIMULUS_VOICEMAIL		0xF
-#    define SKINNY_STIMULUS_AUTOANSWERRELEASE	0x10
-#    define SKINNY_STIMULUS_AUTOANSWER		0x11
+#    define SKINNY_STIMULUS_VOICEMAIL			0xF
+#    define SKINNY_STIMULUS_AUTOANSWERRELEASE		0x10
+#    define SKINNY_STIMULUS_AUTOANSWER			0x11
 #    define SKINNY_STIMULUS_SELECT			0x12
 #    define SKINNY_STIMULUS_PRIVACY			0x13
-#    define SKINNY_STIMULUS_SERVICEURL		0x14
-#    define SKINNY_STIMULUS_BLF                     0x15
+#    define SKINNY_STIMULUS_SERVICEURL			0x14
+#    define SKINNY_STIMULUS_BLF				0x15
 #    define SKINNY_STIMULUS_MALICIOUSCALL		0x1B
 #    define SKINNY_STIMULUS_GENERICAPPB1		0x21
 #    define SKINNY_STIMULUS_GENERICAPPB2		0x22
 #    define SKINNY_STIMULUS_GENERICAPPB3		0x23
 #    define SKINNY_STIMULUS_GENERICAPPB4		0x24
 #    define SKINNY_STIMULUS_GENERICAPPB5		0x25
-#    define SKINNY_STIMULUS_MEETMECONFERENCE	0x7b
-#    define SKINNY_STIMULUS_CONFERENCE		0x7d
-#    define SKINNY_STIMULUS_CALLPARK		0x7e
-#    define SKINNY_STIMULUS_CALLPICKUP		0x7f
-#    define SKINNY_STIMULUS_GROUPCALLPICKUP 	0x80
+#    define SKINNY_STIMULUS_MEETMECONFERENCE		0x7b
+#    define SKINNY_STIMULUS_CONFERENCE			0x7d
+#    define SKINNY_STIMULUS_CALLPARK			0x7e
+#    define SKINNY_STIMULUS_CALLPICKUP			0x7f
+#    define SKINNY_STIMULUS_GROUPCALLPICKUP 		0x80
 
 /*!
  * \brief Skinny Stimulus Structure
@@ -843,25 +843,25 @@ static const struct skinny_stimulus {
 	/* *INDENT-ON* */
 };
 
-#    define SKINNY_BUTTONTYPE_UNUSED		0x00
-#    define SKINNY_BUTTONTYPE_LASTNUMBERREDIAL	0x01
+#    define SKINNY_BUTTONTYPE_UNUSED			0x00
+#    define SKINNY_BUTTONTYPE_LASTNUMBERREDIAL		0x01
 #    define SKINNY_BUTTONTYPE_SPEEDDIAL 		0x02
 #    define SKINNY_BUTTONTYPE_HOLD			0x03
-#    define SKINNY_BUTTONTYPE_TRANSFER		0x04
+#    define SKINNY_BUTTONTYPE_TRANSFER			0x04
 #    define SKINNY_BUTTONTYPE_FORWARDALL		0x05
 #    define SKINNY_BUTTONTYPE_FORWARDBUSY		0x06
-#    define SKINNY_BUTTONTYPE_FORWARDNOANSWER	0x07
-#    define SKINNY_BUTTONTYPE_DISPLAY		0x08
+#    define SKINNY_BUTTONTYPE_FORWARDNOANSWER		0x07
+#    define SKINNY_BUTTONTYPE_DISPLAY			0x08
 #    define SKINNY_BUTTONTYPE_LINE			0x09
-#    define SKINNY_BUTTONTYPE_T120CHAT		0x0a
-#    define SKINNY_BUTTONTYPE_T120WHITEBOARD	0x0b
-#    define SKINNY_BUTTONTYPE_T120APPLICATIONSHARING 0x0c
-#    define SKINNY_BUTTONTYPE_T120FILETRANSFER	0x0d
-#    define SKINNY_BUTTONTYPE_VIDEO 		0x0e
+#    define SKINNY_BUTTONTYPE_T120CHAT			0x0a
+#    define SKINNY_BUTTONTYPE_T120WHITEBOARD		0x0b
+#    define SKINNY_BUTTONTYPE_T120APPLICATIONSHARING 	0x0c
+#    define SKINNY_BUTTONTYPE_T120FILETRANSFER		0x0d
+#    define SKINNY_BUTTONTYPE_VIDEO 			0x0e
 #    define SKINNY_BUTTONTYPE_VOICEMAIL 		0x0f
-#    define SKINNY_BUTTONTYPE_ANSWERRELEASE 	0x10
+#    define SKINNY_BUTTONTYPE_ANSWERRELEASE 		0x10
 #    define SKINNY_BUTTONTYPE_AUTOANSWER		0x11
-#    define SKINNY_BUTTONTYPE_FEATURE        	0x13
+#    define SKINNY_BUTTONTYPE_FEATURE        		0x13
 #    define SKINNY_BUTTONTYPE_SERVICEURL		0x14
 #    define SKINNY_BUTTONTYPE_BLFSPEEDDIAL		0x15
 #    define SKINNY_BUTTONTYPE_GENERICAPPB1		0x21
@@ -869,15 +869,15 @@ static const struct skinny_stimulus {
 #    define SKINNY_BUTTONTYPE_GENERICAPPB3		0x23
 #    define SKINNY_BUTTONTYPE_GENERICAPPB4		0x24
 #    define SKINNY_BUTTONTYPE_GENERICAPPB5		0x25
-#    define SKINNY_BUTTONTYPE_MULTIBLINKFEATURE	0x26
+#    define SKINNY_BUTTONTYPE_MULTIBLINKFEATURE		0x26
 
-#    define SKINNY_BUTTONTYPE_MEETMECONFERENCE	0x7B
+#    define SKINNY_BUTTONTYPE_MEETMECONFERENCE		0x7B
 #    define SKINNY_BUTTONTYPE_CONFERENCE		0x7D
-#    define SKINNY_BUTTONTYPE_CALLPARK		0x7E
+#    define SKINNY_BUTTONTYPE_CALLPARK			0x7E
 #    define SKINNY_BUTTONTYPE_CALLPICKUP		0x7F
-#    define SKINNY_BUTTONTYPE_GROUPCALLPICKUP	0x80
+#    define SKINNY_BUTTONTYPE_GROUPCALLPICKUP		0x80
 
-#    define SKINNY_BUTTONTYPE_MOBILITY		0x81
+#    define SKINNY_BUTTONTYPE_MOBILITY			0x81
 #    define SKINNY_BUTTONTYPE_TEST6			0x82
 #    define SKINNY_BUTTONTYPE_TEST8			0x85
 #    define SKINNY_BUTTONTYPE_TEST9			0x86
@@ -889,20 +889,20 @@ static const struct skinny_stimulus {
 
 #    define SKINNY_BUTTONTYPE_TESTE			0xC0
 #    define SKINNY_BUTTONTYPE_TESTF			0xC1
-#    define SKINNY_BUTTONTYPE_MESSAGES		0xC2
-#    define SKINNY_BUTTONTYPE_DIRECTORY		0xC3
+#    define SKINNY_BUTTONTYPE_MESSAGES			0xC2
+#    define SKINNY_BUTTONTYPE_DIRECTORY			0xC3
 #    define SKINNY_BUTTONTYPE_TESTI			0xC4
 #    define SKINNY_BUTTONTYPE_APPLICATION		0xC5
-#    define SKINNY_BUTTONTYPE_HEADSET		0xC6
+#    define SKINNY_BUTTONTYPE_HEADSET			0xC6
 
-#    define SKINNY_BUTTONTYPE_KEYPAD		0xF0
+#    define SKINNY_BUTTONTYPE_KEYPAD			0xF0
 #    define SKINNY_BUTTONTYPE_AEC			0xFd
 #    define SKINNY_BUTTONTYPE_UNDEFINED 		0xFF
 
 /* this is not a skinny button type. Used for speeddial/line buttons */
 #    define SCCP_BUTTONTYPE_MULTI			0xF1
 #    define SCCP_BUTTONTYPE_LINE			0xF2
-#    define SCCP_BUTTONTYPE_SPEEDDIAL		0xF3
+#    define SCCP_BUTTONTYPE_SPEEDDIAL			0xF3
 #    define SCCP_BUTTONTYPE_HINT			0xF4
 
 /*!
@@ -948,7 +948,7 @@ static const struct skinny_buttontype {
 };
 
 /* unregister */
-#    define SKINNY_UNREGISTERSTATUS_OK		0
+#    define SKINNY_UNREGISTERSTATUS_OK			0
 #    define SKINNY_UNREGISTERSTATUS_ERROR		1
 #    define SKINNY_UNREGISTERSTATUS_NAK 		2			/*!< we have an active channel */
 
@@ -979,16 +979,16 @@ static const struct skinny_lampmode {
 
 /* media silence suppression */
 #    define SKINNY_MEDIA_SILENCESUPPRESSION_OFF 	0
-#    define SKINNY_MEDIA_SILENCESUPPRESSION_ON	1
+#    define SKINNY_MEDIA_SILENCESUPPRESSION_ON		1
 
 /* media echo cancel */
-#    define SKINNY_MEDIA_ECHOCANCELLATION_OFF	0
-#    define SKINNY_MEDIA_ECHOCANCELLATION_ON	1
+#    define SKINNY_MEDIA_ECHOCANCELLATION_OFF		0
+#    define SKINNY_MEDIA_ECHOCANCELLATION_ON		1
 
 /* G723 bitrate */
 #    define SKINNY_MEDIA_G723BRATE_NONE 		0
-#    define SKINNY_MEDIA_G723BRATE_5_3		1
-#    define SKINNY_MEDIA_G723BRATE_6_4		2
+#    define SKINNY_MEDIA_G723BRATE_5_3			1
+#    define SKINNY_MEDIA_G723BRATE_6_4			2
 
 /* device reset and restart */
 #    define SKINNY_DEVICE_RESET 			1
@@ -996,15 +996,15 @@ static const struct skinny_lampmode {
 
 /* statistic processing */
 #    define SKINNY_STATSPROCESSING_CLEAR		0
-#    define SKINNY_STATSPROCESSING_DONOTCLEAR	1
+#    define SKINNY_STATSPROCESSING_DONOTCLEAR		1
 
 /* ringer types */
 #    define SKINNY_STATION_RINGOFF			1
-#    define SKINNY_STATION_INSIDERING		2
-#    define SKINNY_STATION_OUTSIDERING		3
-#    define SKINNY_STATION_FEATURERING		4
-#    define SKINNY_STATION_SILENTRING		5
-#    define SKINNY_STATION_URGENTRING		6
+#    define SKINNY_STATION_INSIDERING			2
+#    define SKINNY_STATION_OUTSIDERING			3
+#    define SKINNY_STATION_FEATURERING			4
+#    define SKINNY_STATION_SILENTRING			5
+#    define SKINNY_STATION_URGENTRING			6
 
 /*!
  * \brief Skinny Station Structure
@@ -1024,16 +1024,16 @@ static const struct skinny_station {
 };
 
 /* speaker status */
-#    define SKINNY_STATIONSPEAKER_ON		1
-#    define SKINNY_STATIONSPEAKER_OFF		2
+#    define SKINNY_STATIONSPEAKER_ON			1
+#    define SKINNY_STATIONSPEAKER_OFF			2
 
 /* mic status */
 #    define SKINNY_STATIONMIC_ON			1
 #    define SKINNY_STATIONMIC_OFF			2
 
 /* headset status */
-#    define SKINNY_STATIONHEADSET_ON		1
-#    define SKINNY_STATIONHEADSET_OFF		2
+#    define SKINNY_STATIONHEADSET_ON			1
+#    define SKINNY_STATIONHEADSET_OFF			2
 
 /* skinny codecs */
 typedef enum {
@@ -1149,16 +1149,16 @@ static const struct skinny_codec {
 
 /* device dtmfmode */
 #    define SCCP_DTMFMODE_INBAND			0
-#    define SCCP_DTMFMODE_OUTOFBAND 		1
+#    define SCCP_DTMFMODE_OUTOFBAND 			1
 
 #    define SCCP_AUTOANSWER_NONE			0			/*!< 1 way audio - MIC OFF */
-#    define SCCP_AUTOANSWER_1W			1				/*!< 1 way audio - MIC OFF */
-#    define SCCP_AUTOANSWER_2W			2				/*!< 2 way audio - MIC ON */
+#    define SCCP_AUTOANSWER_1W				1			/*!< 1 way audio - MIC OFF */
+#    define SCCP_AUTOANSWER_2W				2			/*!< 2 way audio - MIC ON */
 
-#    define SCCP_DNDMODE_OFF			0				/*!< dnd not permitted on the device */
-#    define SCCP_DNDMODE_REJECT			1				/*!< busy signal */
-#    define SCCP_DNDMODE_SILENT			2				/*!< ringing state with no ringer tone */
-#    define SCCP_DNDMODE_USERDEFINED		3				/*!< the user defines the mode by pressing the softkey */
+#    define SCCP_DNDMODE_OFF				0			/*!< dnd not permitted on the device */
+#    define SCCP_DNDMODE_REJECT				1			/*!< busy signal */
+#    define SCCP_DNDMODE_SILENT				2			/*!< ringing state with no ringer tone */
+#    define SCCP_DNDMODE_USERDEFINED			3			/*!< the user defines the mode by pressing the softkey */
 
 /*!
  * \brief SCCP DNDMode Structure
@@ -1178,11 +1178,11 @@ static const struct sccp_dndmode {
 #    define SCCP_BLINDTRANSFER_RING			0			/*!< default */
 #    define SCCP_BLINDTRANSFER_MOH			1			/*!< music on hold */
 
-#    define MAX_CUSTOM_PICTURES			6
+#    define MAX_CUSTOM_PICTURES				6
 #    define MAX_LAYOUT_WITH_SAME_SERVICE		5
-#    define MAX_SERVICE_TYPE			4
+#    define MAX_SERVICE_TYPE				4
 #    define DeviceMaxCapabilities       		18			/*!< max capabilities allowed in Cap response message */
-#    define DeviceMaxVideoCapabilities		10
+#    define DeviceMaxVideoCapabilities			10
 #    define DeviceMaxDataCapabilities   		5
 #    define MAX_LEVEL_PREFERENCE		 	4
 
@@ -1372,8 +1372,7 @@ typedef enum {
 	StartMediaTransmissionAck = 0x0154,
 	ExtensionDeviceCaps = 0x0159,
 	XMLAlarmMessage = 0x015A,
-	
-	
+
 	/* SPA client -> server */
 	SPARegisterMessage = 0x8000,
 } sccp_message_t;								/*!< SCCP Message Types Enum */
@@ -1537,7 +1536,7 @@ static const struct sccp_messagetype {
 	/* *INDENT-ON* */
 };
 
-#    define SCCP_ACCESSORY_NONE			0x00				/*!< Added for compatibility with old phones -FS */
+#    define SCCP_ACCESSORY_NONE				0x00			/*!< Added for compatibility with old phones -FS */
 #    define SCCP_ACCESSORY_HEADSET			0x01
 #    define SCCP_ACCESSORY_HANDSET			0x02
 #    define SCCP_ACCESSORY_SPEAKER			0x03
@@ -1557,9 +1556,9 @@ static const struct sccp_accessory {
 	/* *INDENT-ON* */
 };
 
-#    define SCCP_ACCESSORYSTATE_NONE		0x00				/*!< Added for compatibility with old phones -FS */
-#    define SCCP_ACCESSORYSTATE_OFFHOOK		0x01
-#    define SCCP_ACCESSORYSTATE_ONHOOK		0x02
+#    define SCCP_ACCESSORYSTATE_NONE			0x00			/*!< Added for compatibility with old phones -FS */
+#    define SCCP_ACCESSORYSTATE_OFFHOOK			0x01
+#    define SCCP_ACCESSORYSTATE_ONHOOK			0x02
 
 /*!
  * \brief Skinny Accessory State Structure
@@ -3228,23 +3227,13 @@ typedef union {
 		char le_data[2004];						/*!< XML Alarm Message Data */
 	} XMLAlarmMessage;							/*!< XML Alarm Message Structure */
 
-
-
-
-
-
-
-
 	/* SPA */
 	struct {
 		StationIdentifier sId;						/*!< Station Identifier */
 		uint32_t lel_stationIpAddr;					/*!< Station IP Address */
 		uint32_t lel_deviceType;					/*!< Device Type as part of SKINNY_DEVICETYPE_* */
-		uint32_t maxStreams;					/*!< Max Streams */	
+		uint32_t maxStreams;						/*!< Max Streams */
 	} SPARegisterMessage;
-	
-
-
 
 } sccp_data_t;									/*!< SCCP Data Structure */
 

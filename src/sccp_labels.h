@@ -116,96 +116,98 @@ static const struct skinny_label {
 	uint16_t label;
 	const char *const text;
 } skinny_labels[] = {
-	{
-	SKINNY_LBL_EMPTY, "Empty"}, {
-	SKINNY_LBL_REDIAL, "Redial"}, {
-	SKINNY_LBL_NEWCALL, "NewCall"}, {
-	SKINNY_LBL_HOLD, "Hold"}, {
-	SKINNY_LBL_TRANSFER, "Transfer"}, {
-	SKINNY_LBL_CFWDALL, "CFwdALL"}, {
-	SKINNY_LBL_CFWDBUSY, "CFwdBusy"}, {
-	SKINNY_LBL_CFWDNOANSWER, "CFwdNoAnswer"}, {
-	SKINNY_LBL_BACKSPACE, "&lt;&lt;"}, {
-	SKINNY_LBL_ENDCALL, "EndCall"}, {
-	SKINNY_LBL_RESUME, "Resume"}, {
-	SKINNY_LBL_ANSWER, "Answer"}, {
-	SKINNY_LBL_INFO, "Info"}, {
-	SKINNY_LBL_CONFRN, "Confrn"}, {
-	SKINNY_LBL_PARK, "Park"}, {
-	SKINNY_LBL_JOIN, "Join"}, {
-	SKINNY_LBL_MEETME, "MeetMe"}, {
-	SKINNY_LBL_PICKUP, "PickUp"}, {
-	SKINNY_LBL_GPICKUP, "GPickUp"}, {
-	SKINNY_LBL_YOUR_CURRENT_OPTIONS, "Your current options"}, {
-	SKINNY_LBL_OFF_HOOK, "Off Hook"}, {
-	SKINNY_LBL_ON_HOOK, "On Hook"}, {
-	SKINNY_LBL_RING_OUT, "Ring out"}, {
-	SKINNY_LBL_FROM, "From "}, {
-	SKINNY_LBL_CONNECTED, "Connected"}, {
-	SKINNY_LBL_BUSY, "Busy"}, {
-	SKINNY_LBL_LINE_IN_USE, "Line In Use"}, {
-	SKINNY_LBL_CALL_WAITING, "Call Waiting"}, {
-	SKINNY_LBL_CALL_TRANSFER, "Call Transfer"}, {
-	SKINNY_LBL_CALL_PARK, "Call Park"}, {
-	SKINNY_LBL_CALL_PROCEED, "Call Proceed"}, {
-	SKINNY_LBL_IN_USE_REMOTE, "In Use Remote"}, {
-	SKINNY_LBL_ENTER_NUMBER, "Enter number"}, {
-	SKINNY_LBL_CALL_PARK_AT, "Call park At"}, {
-	SKINNY_LBL_PRIMARY_ONLY, "Primary Only"}, {
-	SKINNY_LBL_TEMP_FAIL, "Temp Fail"}, {
-	SKINNY_LBL_YOU_HAVE_VOICEMAIL, "You Have VoiceMail"}, {
-	SKINNY_LBL_FORWARDED_TO, "Forwarded to"}, {
-	SKINNY_LBL_CAN_NOT_COMPLETE_CONFERENCE, "Can Not Complete Conference"}, {
-	SKINNY_LBL_NO_CONFERENCE_BRIDGE, "No Conference Bridge"}, {
-	SKINNY_LBL_CAN_NOT_HOLD_PRIMARY_CONTROL, "Can Not Hold Primary Control"}, {
-	SKINNY_LBL_INVALID_CONFERENCE_PARTICIPANT, "Invalid Conference Participant"}, {
-	SKINNY_LBL_IN_CONFERENCE_ALREADY, "In Conference Already"}, {
-	SKINNY_LBL_NO_PARTICIPANT_INFO, "No Participant Info"}, {
-	SKINNY_LBL_EXCEED_MAXIMUM_PARTIES, "Exceed Maximum Parties"}, {
-	SKINNY_LBL_KEY_IS_NOT_ACTIVE, "Key Is Not Active"}, {
-	SKINNY_LBL_ERROR_NO_LICENSE, "Error No License"}, {
-	SKINNY_LBL_ERROR_DBCONFIG, "Error DBConfig"}, {
-	SKINNY_LBL_ERROR_DATABASE, "Error Database"}, {
-	SKINNY_LBL_ERROR_PASS_LIMIT, "Error Pass Limit"}, {
-	SKINNY_LBL_ERROR_UNKNOWN, "Error Unknown"}, {
-	SKINNY_LBL_ERROR_MISMATCH, "Error Mismatch"}, {
-	SKINNY_LBL_CONFERENCE, "Conference"}, {
-	SKINNY_LBL_PARK_NUMBER, "Park Number"}, {
-	SKINNY_LBL_PRIVATE, "Private"}, {
-	SKINNY_LBL_NOT_ENOUGH_BANDWIDTH, "Not Enough Bandwidth"}, {
-	SKINNY_LBL_UNKNOWN_NUMBER, "Unknown Number"}, {
-	SKINNY_LBL_RMLSTC, "RmLstC"}, {
-	SKINNY_LBL_VOICEMAIL, "Voicemail"}, {
-	SKINNY_LBL_IMMDIV, "ImmDiv"}, {
-	SKINNY_LBL_INTRCPT, "Intrcpt"}, {
-	SKINNY_LBL_SETWTCH, "SetWtch"}, {
-	SKINNY_LBL_TRNSFVM, "TrnsfVM"}, {
-	SKINNY_LBL_DND, "DND"}, {
-	SKINNY_LBL_DIVALL, "DivAll"}, {
-	SKINNY_LBL_CALLBACK, "CallBack"}, {
-	SKINNY_LBL_NETWORK_CONGESTION_REROUTING, "Network congestion,rerouting"}, {
-	SKINNY_LBL_BARGE, "Barge"}, {
-	SKINNY_LBL_FAILED_TO_SETUP_BARGE, "Failed to setup Barge"}, {
-	SKINNY_LBL_ANOTHER_BARGE_EXISTS, "Another Barge exists"}, {
-	SKINNY_LBL_INCOMPATIBLE_DEVICE_TYPE, "Incompatible device type"}, {
-	SKINNY_LBL_NO_PARK_NUMBER_AVAILABLE, "No Park Number Available"}, {
-	SKINNY_LBL_CALLPARK_REVERSION, "CallPark Reversion"}, {
-	SKINNY_LBL_SERVICE_IS_NOT_ACTIVE, "Service is not Active"}, {
-	SKINNY_LBL_HIGH_TRAFFIC_TRY_AGAIN_LATER, "High Traffic Try Again Later"}, {
-	SKINNY_LBL_QRT, "QRT"}, {
-	SKINNY_LBL_MCID, "MCID"}, {
-	SKINNY_LBL_DIRTRFR, "DirTrfr"}, {
-	SKINNY_LBL_SELECT, "Select"}, {
-	SKINNY_LBL_CONFLIST, "ConfList"}, {
-	SKINNY_LBL_IDIVERT, "iDivert"}, {
-	SKINNY_LBL_CBARGE, "cBarge"}, {
-	SKINNY_LBL_CAN_NOT_COMPLETE_TRANSFER, "Can Not Complete Transfer"}, {
-	SKINNY_LBL_CAN_NOT_JOIN_CALLS, "Can Not Join Calls"}, {
-	SKINNY_LBL_MCID_SUCCESSFUL, "Mcid Successful"}, {
-	SKINNY_LBL_NUMBER_NOT_CONFIGURED, "Number Not Configured"}, {
-	SKINNY_LBL_SECURITY_ERROR, "Security Error"}, {
-	SKINNY_LBL_VIDEO_BANDWIDTH_UNAVAILABLE, "Video Bandwidth Unavailable"}, {
-SKINNY_LBL_VIDEO_MODE, "Video Mode"},};
+	/* *INDENT-OFF* */
+	{SKINNY_LBL_EMPTY, "Empty"},
+	{SKINNY_LBL_REDIAL, "Redial"},
+	{SKINNY_LBL_NEWCALL, "NewCall"},
+	{SKINNY_LBL_HOLD, "Hold"},
+	{SKINNY_LBL_TRANSFER, "Transfer"},
+	{SKINNY_LBL_CFWDALL, "CFwdALL"},
+	{SKINNY_LBL_CFWDBUSY, "CFwdBusy"},
+	{SKINNY_LBL_CFWDNOANSWER, "CFwdNoAnswer"},
+	{SKINNY_LBL_BACKSPACE, "&lt;&lt;"},
+	{SKINNY_LBL_ENDCALL, "EndCall"},
+	{SKINNY_LBL_RESUME, "Resume"},
+	{SKINNY_LBL_ANSWER, "Answer"},
+	{SKINNY_LBL_INFO, "Info"},
+	{SKINNY_LBL_CONFRN, "Confrn"},
+	{SKINNY_LBL_PARK, "Park"},
+	{SKINNY_LBL_JOIN, "Join"},
+	{SKINNY_LBL_MEETME, "MeetMe"},
+	{SKINNY_LBL_PICKUP, "PickUp"},
+	{SKINNY_LBL_GPICKUP, "GPickUp"},
+	{SKINNY_LBL_YOUR_CURRENT_OPTIONS, "Your current options"},
+	{SKINNY_LBL_OFF_HOOK, "Off Hook"},
+	{SKINNY_LBL_ON_HOOK, "On Hook"},
+	{SKINNY_LBL_RING_OUT, "Ring out"},
+	{SKINNY_LBL_FROM, "From "},
+	{SKINNY_LBL_CONNECTED, "Connected"},
+	{SKINNY_LBL_BUSY, "Busy"},
+	{SKINNY_LBL_LINE_IN_USE, "Line In Use"},
+	{SKINNY_LBL_CALL_WAITING, "Call Waiting"},
+	{SKINNY_LBL_CALL_TRANSFER, "Call Transfer"},
+	{SKINNY_LBL_CALL_PARK, "Call Park"},
+	{SKINNY_LBL_CALL_PROCEED, "Call Proceed"},
+	{SKINNY_LBL_IN_USE_REMOTE, "In Use Remote"},
+	{SKINNY_LBL_ENTER_NUMBER, "Enter number"},
+	{SKINNY_LBL_CALL_PARK_AT, "Call park At"},
+	{SKINNY_LBL_PRIMARY_ONLY, "Primary Only"},
+	{SKINNY_LBL_TEMP_FAIL, "Temp Fail"},
+	{SKINNY_LBL_YOU_HAVE_VOICEMAIL, "You Have VoiceMail"},
+	{SKINNY_LBL_FORWARDED_TO, "Forwarded to"},
+	{SKINNY_LBL_CAN_NOT_COMPLETE_CONFERENCE, "Can Not Complete Conference"},
+	{SKINNY_LBL_NO_CONFERENCE_BRIDGE, "No Conference Bridge"},
+	{SKINNY_LBL_CAN_NOT_HOLD_PRIMARY_CONTROL, "Can Not Hold Primary Control"},
+	{SKINNY_LBL_INVALID_CONFERENCE_PARTICIPANT, "Invalid Conference Participant"},
+	{SKINNY_LBL_IN_CONFERENCE_ALREADY, "In Conference Already"},
+	{SKINNY_LBL_NO_PARTICIPANT_INFO, "No Participant Info"},
+	{SKINNY_LBL_EXCEED_MAXIMUM_PARTIES, "Exceed Maximum Parties"},
+	{SKINNY_LBL_KEY_IS_NOT_ACTIVE, "Key Is Not Active"},
+	{SKINNY_LBL_ERROR_NO_LICENSE, "Error No License"},
+	{SKINNY_LBL_ERROR_DBCONFIG, "Error DBConfig"},
+	{SKINNY_LBL_ERROR_DATABASE, "Error Database"},
+	{SKINNY_LBL_ERROR_PASS_LIMIT, "Error Pass Limit"},
+	{SKINNY_LBL_ERROR_UNKNOWN, "Error Unknown"},
+	{SKINNY_LBL_ERROR_MISMATCH, "Error Mismatch"},
+	{SKINNY_LBL_CONFERENCE, "Conference"},
+	{SKINNY_LBL_PARK_NUMBER, "Park Number"},
+	{SKINNY_LBL_PRIVATE, "Private"},
+	{SKINNY_LBL_NOT_ENOUGH_BANDWIDTH, "Not Enough Bandwidth"},
+	{SKINNY_LBL_UNKNOWN_NUMBER, "Unknown Number"},
+	{SKINNY_LBL_RMLSTC, "RmLstC"},
+	{SKINNY_LBL_VOICEMAIL, "Voicemail"},
+	{SKINNY_LBL_IMMDIV, "ImmDiv"},
+	{SKINNY_LBL_INTRCPT, "Intrcpt"},
+	{SKINNY_LBL_SETWTCH, "SetWtch"},
+	{SKINNY_LBL_TRNSFVM, "TrnsfVM"},
+	{SKINNY_LBL_DND, "DND"},
+	{SKINNY_LBL_DIVALL, "DivAll"},
+	{SKINNY_LBL_CALLBACK, "CallBack"},
+	{SKINNY_LBL_NETWORK_CONGESTION_REROUTING, "Network congestion,rerouting"},
+	{SKINNY_LBL_BARGE, "Barge"},
+	{SKINNY_LBL_FAILED_TO_SETUP_BARGE, "Failed to setup Barge"},
+	{SKINNY_LBL_ANOTHER_BARGE_EXISTS, "Another Barge exists"},
+	{SKINNY_LBL_INCOMPATIBLE_DEVICE_TYPE, "Incompatible device type"},
+	{SKINNY_LBL_NO_PARK_NUMBER_AVAILABLE, "No Park Number Available"},
+	{SKINNY_LBL_CALLPARK_REVERSION, "CallPark Reversion"},
+	{SKINNY_LBL_SERVICE_IS_NOT_ACTIVE, "Service is not Active"},
+	{SKINNY_LBL_HIGH_TRAFFIC_TRY_AGAIN_LATER, "High Traffic Try Again Later"},
+	{SKINNY_LBL_QRT, "QRT"},
+	{SKINNY_LBL_MCID, "MCID"},
+	{SKINNY_LBL_DIRTRFR, "DirTrfr"},
+	{SKINNY_LBL_SELECT, "Select"},
+	{SKINNY_LBL_CONFLIST, "ConfList"},
+	{SKINNY_LBL_IDIVERT, "iDivert"},
+	{SKINNY_LBL_CBARGE, "cBarge"},
+	{SKINNY_LBL_CAN_NOT_COMPLETE_TRANSFER, "Can Not Complete Transfer"},
+	{SKINNY_LBL_CAN_NOT_JOIN_CALLS, "Can Not Join Calls"},
+	{SKINNY_LBL_MCID_SUCCESSFUL, "Mcid Successful"},
+	{SKINNY_LBL_NUMBER_NOT_CONFIGURED, "Number Not Configured"},
+	{SKINNY_LBL_SECURITY_ERROR, "Security Error"},
+	{SKINNY_LBL_VIDEO_BANDWIDTH_UNAVAILABLE, "Video Bandwidth Unavailable"},
+	{SKINNY_LBL_VIDEO_MODE, "Video Mode"}
+	/* *INDENT-ON* */
+};
 
 #    define SKINNY_DISP_EMPTY                                		""
 #    define SKINNY_DISP_REDIAL                                		"\200\1"
@@ -349,4 +351,60 @@ SKINNY_LBL_VIDEO_MODE, "Video Mode"},};
 #    define SKINNY_DISP_DIRECTORIES_URL					"\200\175"
 #    define SKINNY_DISP_MESSAGES_URL					"\200\176"
 #    define SKINNY_DISP_SERVICES_URL					"\200\177"
+
+/*!
+ * \brief Ast Cause - Skinny DISP Mapping
+ */
+static const struct ast_skinny_cause {
+	int ast_cause;
+	const char * skinny_disp;
+	const char * message;
+} ast_skinny_causes[] = {
+	/* *INDENT-OFF* */
+        { AST_CAUSE_UNALLOCATED,		SKINNY_DISP_EMPTY				, "Unallocated (unassigned) number" },
+        { AST_CAUSE_NO_ROUTE_TRANSIT_NET,	SKINNY_DISP_EMPTY				, "No route to specified transmit network" },
+        { AST_CAUSE_NO_ROUTE_DESTINATION,	SKINNY_DISP_EMPTY				, "No route to destination" },
+        { AST_CAUSE_CHANNEL_UNACCEPTABLE,	SKINNY_DISP_EMPTY				, "Channel unacceptable" },   
+        { AST_CAUSE_CALL_AWARDED_DELIVERED,	SKINNY_DISP_EMPTY				, "Call awarded and being delivered in an established channel" },
+  	{ AST_CAUSE_NORMAL_CLEARING,		SKINNY_DISP_EMPTY				, "Normal Clearing" },
+        { AST_CAUSE_USER_BUSY, 			SKINNY_DISP_BUSY				, "User busy" },
+	{ AST_CAUSE_NO_USER_RESPONSE,		SKINNY_DISP_EMPTY				, "No user responding" },
+        { AST_CAUSE_NO_ANSWER,			SKINNY_DISP_EMPTY				, "User alerting, no answer" },
+        { AST_CAUSE_CALL_REJECTED,		SKINNY_DISP_EMPTY				, "Call Rejected" },   
+	{ AST_CAUSE_NUMBER_CHANGED,		SKINNY_DISP_EMPTY				, "Number changed" },
+        { AST_CAUSE_DESTINATION_OUT_OF_ORDER,	SKINNY_DISP_EMPTY				, "Destination out of order" },
+        { AST_CAUSE_INVALID_NUMBER_FORMAT, 	SKINNY_DISP_UNKNOWN_NUMBER 			, "Invalid number format" },
+        { AST_CAUSE_FACILITY_REJECTED,		SKINNY_DISP_EMPTY				, "Facility rejected" },
+	{ AST_CAUSE_RESPONSE_TO_STATUS_ENQUIRY,	SKINNY_DISP_EMPTY				, "Response to STATus ENQuiry" },
+        { AST_CAUSE_NORMAL_UNSPECIFIED,		SKINNY_DISP_EMPTY				, "Normal, unspecified" },
+  	{ AST_CAUSE_NORMAL_CIRCUIT_CONGESTION,	SKINNY_DISP_HIGH_TRAFFIC_TRY_AGAIN_LATER	, "Circuit/channel congestion" },
+        { AST_CAUSE_NETWORK_OUT_OF_ORDER, 	SKINNY_DISP_NETWORK_CONGESTION_REROUTING	, "Network out of order" },
+  	{ AST_CAUSE_NORMAL_TEMPORARY_FAILURE, 	SKINNY_DISP_TEMP_FAIL				, "Temporary failure" },
+        { AST_CAUSE_SWITCH_CONGESTION,		SKINNY_DISP_HIGH_TRAFFIC_TRY_AGAIN_LATER	, "Switching equipment congestion" }, 
+	{ AST_CAUSE_ACCESS_INFO_DISCARDED,	SKINNY_DISP_EMPTY				, "Access information discarded" },
+        { AST_CAUSE_REQUESTED_CHAN_UNAVAIL,	SKINNY_DISP_EMPTY				, "Requested channel not available" },
+	{ AST_CAUSE_PRE_EMPTED,			SKINNY_DISP_EMPTY				, "Pre-empted" },
+        { AST_CAUSE_FACILITY_NOT_SUBSCRIBED,	SKINNY_DISP_EMPTY				, "Facility not subscribed" },
+	{ AST_CAUSE_OUTGOING_CALL_BARRED,	SKINNY_DISP_EMPTY				, "Outgoing call barred" },
+        { AST_CAUSE_INCOMING_CALL_BARRED,	SKINNY_DISP_EMPTY				, "Incoming call barred" },
+	{ AST_CAUSE_BEARERCAPABILITY_NOTAUTH,	SKINNY_DISP_EMPTY				, "Bearer capability not authorized" },
+        { AST_CAUSE_BEARERCAPABILITY_NOTAVAIL,	SKINNY_DISP_EMPTY				, "Bearer capability not available" },
+        { AST_CAUSE_BEARERCAPABILITY_NOTIMPL,	SKINNY_DISP_EMPTY				, "Bearer capability not implemented" },
+        { AST_CAUSE_CHAN_NOT_IMPLEMENTED,	SKINNY_DISP_EMPTY				, "Channel not implemented" },
+	{ AST_CAUSE_FACILITY_NOT_IMPLEMENTED,	SKINNY_DISP_EMPTY				, "Facility not implemented" },
+        { AST_CAUSE_INVALID_CALL_REFERENCE,	SKINNY_DISP_EMPTY				, "Invalid call reference value" },
+	{ AST_CAUSE_INCOMPATIBLE_DESTINATION,	SKINNY_DISP_INCOMPATIBLE_DEVICE_TYPE		, "Incompatible destination" },
+        { AST_CAUSE_INVALID_MSG_UNSPECIFIED,	SKINNY_DISP_EMPTY				, "Invalid message unspecified" },
+        { AST_CAUSE_MANDATORY_IE_MISSING,	SKINNY_DISP_EMPTY				, "Mandatory information element is missing" },
+        { AST_CAUSE_MESSAGE_TYPE_NONEXIST,	SKINNY_DISP_EMPTY				, "Message type nonexist." },
+  	{ AST_CAUSE_WRONG_MESSAGE,		SKINNY_DISP_EMPTY				, "Wrong message" },
+        { AST_CAUSE_IE_NONEXIST,		SKINNY_DISP_EMPTY				, "Info. element nonexist or not implemented" },
+	{ AST_CAUSE_INVALID_IE_CONTENTS,	SKINNY_DISP_EMPTY				, "Invalid information element contents" },
+        { AST_CAUSE_WRONG_CALL_STATE,		SKINNY_DISP_EMPTY				, "Message not compatible with call state" },
+	{ AST_CAUSE_RECOVERY_ON_TIMER_EXPIRE,	SKINNY_DISP_EMPTY				, "Recover on timer expiry" },
+        { AST_CAUSE_MANDATORY_IE_LENGTH_ERROR,	SKINNY_DISP_EMPTY				, "Mandatory IE length error" },
+	{ AST_CAUSE_PROTOCOL_ERROR,		SKINNY_DISP_EMPTY				, "Protocol error, unspecified" },
+        { AST_CAUSE_INTERWORKING,		SKINNY_DISP_EMPTY				, "Interworking, unspecified" },
+	/* *INDENT-ON* */
+};
 #endif

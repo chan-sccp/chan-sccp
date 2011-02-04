@@ -893,7 +893,16 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
 	res = ((c->device->earlyrtp || c->rtp.audio.rtp) ? -1 : 0);
-
+	
+	/*
+	if (datalen == sizeof(struct ast_control_t38_parameters)) {
+		const struct ast_control_t38_parameters *parameters = data;
+	}
+	uint32_t *ast_cause = data;
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Asterisk indicated cause %d(%s)\n", DEV_ID_LOG(c->device), cause, ast_cause2str(ast_cause));
+	*/
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Asterisk indicated cause %d(%s)\n", DEV_ID_LOG(c->device), ast->hangupcause, ast_cause2str(ast->hangupcause));
+	
 	switch (ind) {
 		case AST_CONTROL_RINGING:
 			if (SKINNY_CALLTYPE_OUTBOUND == c->calltype) {
