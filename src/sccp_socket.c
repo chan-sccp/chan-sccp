@@ -77,11 +77,11 @@ static void sccp_read_data(sccp_session_t * s)
 
 	readlen = read(s->fds[0].fd, input, length);
 	if (readlen <= 0 ) {
-		if (readlen < 0 && errno == EINTR || errno == EAGAIN) {
+		if (readlen < 0 && ( errno == EINTR || errno == EAGAIN )) {
 			ast_log(LOG_WARNING, "SCCP: FIONREAD Come back later (EAGAIN): %s\n", strerror(errno));
 		} else {
 			/* probably a CLOSE_WAIT (readlen==0 || errno == ECONNRESET || errno == ETIMEDOUT)*/
-			ast_log(LOG_WARNING, "SCCP: read() returned zero length. Assuming closed connection.\n", strerror(errno));
+			ast_log(LOG_WARNING, "SCCP: read() returned zero length. Assuming closed connection.\n");
 			pthread_cancel(s->session_thread);
 		}
 		return;
