@@ -53,6 +53,7 @@ static void sccp_read_data(sccp_session_t * s)
 	int16_t length, readlen;
 	char *input, *newptr;
 
+	/* TODO: Handle EAGAIN */
 	if (ioctl(s->fds[0].fd, FIONREAD, &bytesAvailable) == -1) {
 		ast_log(LOG_WARNING, "SCCP: FIONREAD ioctl failed: %s\n", strerror(errno));
 		
@@ -62,20 +63,20 @@ static void sccp_read_data(sccp_session_t * s)
 
 	length = (int16_t) bytesAvailable;
 
-	if (!length) {
-		/* probably a CLOSE_WAIT */
-		pthread_cancel(s->session_thread);
-		return;
-	}
-
 	input = ast_malloc(length + 1);
 
+	/* TODO: Handle EAGAIN, EINTR, ECONRESET, ETIMEOUT */
 	if ((readlen = read(s->fds[0].fd, input, length)) < 0) {
 		ast_log(LOG_WARNING, "SCCP: read() returned %s\n", strerror(errno));
 		ast_free(input);
 		pthread_cancel(s->session_thread);
 		return;
-	}
+	} else if (0 == readlen) {
+		/* probably a CLOSE_WAIT */
+		ast_log(LOG_WARNING, "SCCP: read() returned zero length. Assuming closed connection.\n", strerror(errno));
+		pthread_cancel(s->session_thread);
+		return;
+	}	
 
 	/* \todo Suggestion: We should create some mechanism to assemble
 	   sccp packets from several incomplete reads,
