@@ -75,8 +75,8 @@ static void sccp_read_data(sccp_session_t * s)
 
 	input = ast_malloc(length + 1);
 
-	readlen = read(s->fds[0].fd, input, length)))
-	    if (readlen == 0) {
+	readlen = read(s->fds[0].fd, input, length);
+	if (readlen == 0) {
 		/* probably a CLOSE_WAIT */
 		ast_log(LOG_WARNING, "SCCP: read() returned zero length. Assuming closed connection.\n", strerror(errno));
 		pthread_cancel(s->session_thread);
@@ -345,7 +345,7 @@ static void sccp_accept_connection(void) {
 	memcpy(&s->sin, &incoming, sizeof(s->sin));
 	sccp_mutex_init(&s->lock);
 
-	s->fds[0].events = POLLIN;
+	s->fds[0].events = POLLIN | POLLPRI;
 	s->fds[0].revents = 0;
 	s->fds[0].fd = new_socket;
 
@@ -387,15 +387,9 @@ static sccp_moo_t *sccp_process_data(sccp_session_t * s) {
 
 	sccp_moo_t *m;
 
-	/*
-	   if (s->buffer_size == 0)
-	   return NULL; 
-	 */
-
 	/* Notice: If the buffer length read so far
 	   is smaller than the length field + some data of at least on byte,
 	   we need and must not parse the packet length yet . (-DD) */
-
 	if (s->buffer_size <= 4)
 		return NULL;
 
@@ -458,7 +452,7 @@ static sccp_moo_t *sccp_process_data(sccp_session_t * s) {
 void *sccp_socket_thread(void *ignore) {
 	struct pollfd fds[1];
 
-	fds[0].events = POLLIN;
+	fds[0].events = POLLIN | POLLPRI;
 	fds[0].revents = 0;
 
 	int res;
@@ -467,19 +461,6 @@ void *sccp_socket_thread(void *ignore) {
 
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
-	//I think asterisk should set these, it's a bit strange for a plugin to catch signals
-
-/*
-	sigset_t sigs;
-	sigemptyset(&sigs);
-	sigaddset(&sigs, SIGHUP);
-	sigaddset(&sigs, SIGTERM);
-	sigaddset(&sigs, SIGINT);
-	sigaddset(&sigs, SIGPIPE);
-	sigaddset(&sigs, SIGWINCH);
-	sigaddset(&sigs, SIGURG);
-*/
 
 	while (GLOB(descriptor) > -1) {
 		fds[0].fd = GLOB(descriptor);
@@ -553,7 +534,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r) {
 
 	unsigned int try, maxTries;;
 
-	if (!s || s->fds[0].fd <= 0) {
+	if (!s || s->fds[0].fd <= 0  || s->fds[0].revents & POLLHUP) {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Tried to send packet over DOWN device.\n");
 		ast_free(r);
 		r = NULL;
