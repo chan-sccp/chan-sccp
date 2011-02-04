@@ -892,7 +892,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Asterisk indicate '%d' (%s) condition on channel %s\n", DEV_ID_LOG(c->device), ind, sccp_control2str(ind), ast->name);
 
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
-	res = (c->rtp.audio.rtp ? -1 : 0);
+	res = ((c->device->earlyrtp || c->rtp.audio.rtp) ? -1 : 0);
 
 	switch (ind) {
 	case AST_CONTROL_RINGING:
@@ -902,6 +902,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
 			sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_RINGOUT);
 		}
+		//res = -1;
 		break;
 	case AST_CONTROL_BUSY:
 		sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_BUSY);
