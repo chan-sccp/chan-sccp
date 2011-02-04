@@ -298,6 +298,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		   crashes. Federico observed that also congestion is affected. We have to find a
 		   signalling replacement for the display promptif this is neccessary for some reason.(-DD) */
 		sccp_channel_send_callinfo(d, c);
+		/* \todo map AST_CAUSE to SKINNY_DISP_CAUSE's and display the correct one */
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL, 0);
 		break;
 	case SCCP_CHANNELSTATE_CALLWAITING:
