@@ -890,6 +890,12 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	}
 
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Asterisk indicate '%d' (%s) condition on channel %s\n", DEV_ID_LOG(c->device), ind, sccp_control2str(ind), ast->name);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: with cause '%d' (%s)\n", DEV_ID_LOG(c->device), ast->hangupcause, ast_cause2str(ast->hangupcause));
+	
+	struct ast_channel *bridge =  ast_bridged_channel(ast);
+	if(NULL != bridge) {
+		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: with cause at bridge '%d' (%s)\n", DEV_ID_LOG(c->device), bridge->hangupcause, ast_cause2str(bridge->hangupcause));
+	}
 
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
 	res = ((c->device->earlyrtp || c->rtp.audio.rtp) ? -1 : 0);
