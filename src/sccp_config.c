@@ -885,6 +885,8 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 				GLOB(earlyrtp) = SCCP_CHANNELSTATE_DIALING;
 			else if (!strcasecmp(v->value, "ringout"))
 				GLOB(earlyrtp) = SCCP_CHANNELSTATE_RINGOUT;
+			else if (!strcasecmp(v->value, "progress"))
+				GLOB(earlyrtp) = SCCP_CHANNELSTATE_PROGRESS;
 			else
 				ast_log(LOG_WARNING, "Invalid earlyrtp state value at line %d, should be 'none', 'offhook', 'dial', 'ringout'\n", v->lineno);
 		} else if (!strcasecmp(v->name, "sccp_tos")) {
