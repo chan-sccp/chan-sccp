@@ -361,19 +361,11 @@ static const struct ast_skinny_cause {
 	const char * message;
 } ast_skinny_causes[] = {
 	/* *INDENT-OFF* */
-<<<<<<< .mine
         { AST_CAUSE_UNALLOCATED,		SKINNY_DISP_NUMBER_NOT_CONFIGURED		, "Unallocated (unassigned) number" },
         { AST_CAUSE_NO_ROUTE_TRANSIT_NET,	SKINNY_DISP_UNKNOWN_NUMBER			, "No route to specified transmit network" },
         { AST_CAUSE_NO_ROUTE_DESTINATION,	SKINNY_DISP_UNKNOWN_NUMBER			, "No route to destination" },
         { AST_CAUSE_CHANNEL_UNACCEPTABLE,	SKINNY_DISP_INCOMPATIBLE_DEVICE_TYPE		, "Channel unacceptable" },   
         { AST_CAUSE_CALL_AWARDED_DELIVERED,	SKINNY_DISP_CONNECTED				, "Call awarded and being delivered in an established channel" },
-=======
-        { AST_CAUSE_UNALLOCATED,		SKINNY_DISP_NUMBER_NOT_CONFIGURED				, "Unallocated (unassigned) number" },
-        { AST_CAUSE_NO_ROUTE_TRANSIT_NET,	SKINNY_DISP_UNKNOWN_NUMBER					, "No route to specified transmit network" },
-        { AST_CAUSE_NO_ROUTE_DESTINATION,	SKINNY_DISP_UNKNOWN_NUMBER					, "No route to destination" },
-        { AST_CAUSE_CHANNEL_UNACCEPTABLE,	SKINNY_DISP_INCOMPATIBLE_DEVICE_TYPE				, "Channel unacceptable" },   
-        { AST_CAUSE_CALL_AWARDED_DELIVERED,	SKINNY_DISP_CALL_PROCEED				, "Call awarded and being delivered in an established channel" },
->>>>>>> .r2318
   	{ AST_CAUSE_NORMAL_CLEARING,		SKINNY_DISP_ON_HOOK 				, "Normal Clearing" },
         { AST_CAUSE_USER_BUSY, 			SKINNY_DISP_BUSY				, "User busy" },
 	{ AST_CAUSE_NO_USER_RESPONSE,		SKINNY_DISP_EMPTY				, "No user responding" },
