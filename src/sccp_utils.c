@@ -1029,6 +1029,11 @@ const char *devicestatus2str(uint32_t value)
 	_ARR2STR(skinny_device_states, device_state, value, text);
 }
 
+const char *astcause2skinnycause(int value)
+{
+	_ARR2STR(ast_skinny_causes, ast_cause, value, skinny_disp);
+}
+
 const char *codec2str(uint32_t value)
 {
 	_ARR2STR(skinny_codecs, codec, value, text);
