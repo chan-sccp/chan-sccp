@@ -301,6 +301,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_channel_send_callinfo(d, c);
 		/* \todo map AST_CAUSE to SKINNY_DISP_CAUSE's and display the correct one */
 		//sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL, 0);
+		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: c->owner->hangupcause @ SCCP_CHANNELSTATE_CONGESTION =  %d, '%s'", d->id, c->owner->hangupcause, (char *) astcause2skinnycause_message(c->owner->hangupcause));
 		sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->owner->hangupcause), 0);
 		break;
 	case SCCP_CHANNELSTATE_CALLWAITING:
