@@ -832,7 +832,7 @@ static char *sccp_control2str(int state)
 
 #if ASTERISK_VERSION_NUM < 10400
 /*!
- * \brief Indicate to Asterisk Channel
+ * \brief Indicate from Asterisk Channel
  * \param ast Asterisk Channel as ast_channel
  * \param ind AST_CONTROL_* State as int (Indication)
  * \return Result as int
@@ -845,7 +845,7 @@ static char *sccp_control2str(int state)
 static int sccp_pbx_indicate(struct ast_channel *ast, int ind)
 #else
 /*!
- * \brief Indicate to Asterisk Channel
+ * \brief Indicate from Asterisk Channel
  * \param ast Asterisk Channel as ast_channel
  * \param ind AST_CONTROL_* State as int (Indication)
  * \param data Data
@@ -895,102 +895,94 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	res = ((c->device->earlyrtp || c->rtp.audio.rtp) ? -1 : 0);
 
 	switch (ind) {
-	case AST_CONTROL_RINGING:
-		if (SKINNY_CALLTYPE_OUTBOUND == c->calltype) {
-			// Allow signalling of RINGOUT only on outbound calls.
-			// Otherwise, there are some issues with late arrival of ringing
-			// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
-			sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_RINGOUT);
-		}
-		//res = -1;
-		break;
-	case AST_CONTROL_BUSY:
-		sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_BUSY);
-		//res = -1;
-		break;
-	case AST_CONTROL_CONGESTION:
-		sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_CONGESTION);
-		//res = -1;
-		break;
-	case AST_CONTROL_PROGRESS:
-		sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_PROGRESS);
-		//sccp_pbx_answer(ast);//TODO FIXIT dirty hack
-		//res = -1;
-		break;
-	case AST_CONTROL_PROCEEDING:
-		sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_PROCEED);
-		//res = -1;
-		break;
+		case AST_CONTROL_RINGING:
+			if (SKINNY_CALLTYPE_OUTBOUND == c->calltype) {
+				// Allow signalling of RINGOUT only on outbound calls.
+				// Otherwise, there are some issues with late arrival of ringing
+				// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
+				sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_RINGOUT);
+			}
+			break;
+		case AST_CONTROL_BUSY:
+			sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_BUSY);
+			break;
+		case AST_CONTROL_CONGESTION:
+			sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_CONGESTION);
+			break;
+		case AST_CONTROL_PROGRESS:
+			sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_PROGRESS);
+			break;
+		case AST_CONTROL_PROCEEDING:
+			sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_PROCEED);
+			break;
 
 #ifdef CS_AST_CONTROL_SRCCHANGE
-	case AST_CONTROL_SRCCHANGE:
-		RTP_NEW_SOURCE(c, "Source Change");
-//		res = 0;
-		break;
-#endif										//CS_AST_CONTROL_SRCCHANGE
+		case AST_CONTROL_SRCCHANGE:
+			RTP_NEW_SOURCE(c, "Source Change");
+			break;
+#endif												//CS_AST_CONTROL_SRCCHANGE
 #ifdef CS_AST_CONTROL_SRCUPDATE
-	case AST_CONTROL_SRCUPDATE:
-#endif										//CS_AST_CONTROL_SRCUPDATE
+		case AST_CONTROL_SRCUPDATE:
+#endif												//CS_AST_CONTROL_SRCUPDATE
 
 #if defined(CS_AST_CONTROL_SRCCHANGE) || defined(CS_AST_CONTROL_SRCUPDATE)
-		/* Source media has changed. */
-		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
+			/* Source media has changed. */
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
 
-		/* update channel format */
-		oldChannelFormat = c->format;
-		c->format = ast->rawreadformat;
+			/* update channel format */
+			oldChannelFormat = c->format;
+			c->format = ast->rawreadformat;
 
-		if (oldChannelFormat != c->format) {
-			/* notify of changing format */
-			char s1[512], s2[512];
-			ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%d) to: %s(%d) \n", c->line->name, c->callid,
-				pbx_getformatname_multiple(s1, sizeof(s1) - 1, c->format),
-				ast->nativeformats,
-				pbx_getformatname_multiple(s2, sizeof(s2) - 1, ast->rawreadformat),
-				ast->rawreadformat);
-			ast_set_read_format(ast, c->format);
-			ast_set_write_format(ast, c->format);
-		}
-
-		ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n", c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
-		if (c->rtp.audio.rtp) {
 			if (oldChannelFormat != c->format) {
-				if (c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE) {
-					sccp_channel_closereceivechannel_locked(c);	/* close the already openend receivechannel */
-					sccp_channel_openreceivechannel_locked(c);	/* reopen it */
+				/* notify of changing format */
+				char s1[512], s2[512];
+				ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%d) to: %s(%d) \n", c->line->name, c->callid,
+					pbx_getformatname_multiple(s1, sizeof(s1) - 1, c->format),
+					ast->nativeformats,
+					pbx_getformatname_multiple(s2, sizeof(s2) - 1, ast->rawreadformat),
+					ast->rawreadformat);
+				ast_set_read_format(ast, c->format);
+				ast_set_write_format(ast, c->format);
+			}
+
+			ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n", c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
+			if (c->rtp.audio.rtp) {
+				if (oldChannelFormat != c->format) {
+					if (c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE) {
+						sccp_channel_closereceivechannel_locked(c);	/* close the already openend receivechannel */
+						sccp_channel_openreceivechannel_locked(c);	/* reopen it */
+					}
 				}
 			}
-		}
-		RTP_CHANGE_SOURCE(c, "Source Update: RTP NEW SOURCE");
-//		res = 0;
-		break;
-#endif										//defined(CS_AST_CONTROL_SRCCHANGE) || defined(CS_AST_CONTROL_SRCUPDATE)
+			RTP_CHANGE_SOURCE(c, "Source Update: RTP NEW SOURCE");
+			res=0;
+			break;
+#endif												//defined(CS_AST_CONTROL_SRCCHANGE) || defined(CS_AST_CONTROL_SRCUPDATE)
 #ifdef CS_AST_CONTROL_HOLD
 		/* when the bridged channel hold/unhold the call we are notified here */
-	case AST_CONTROL_HOLD:
-		pbx_moh_start(ast, data, c->musicclass);
-//		res = 0;
-		break;
-	case AST_CONTROL_UNHOLD:
-		pbx_moh_stop(ast);
-		RTP_NEW_SOURCE(c, "Source Update");
-//		res = 0;
-		break;
-#endif										// CS_AST_CONTROL_HOLD
+		case AST_CONTROL_HOLD:
+			pbx_moh_start(ast, data, c->musicclass);
+			res=0;
+			break;
+		case AST_CONTROL_UNHOLD:
+			pbx_moh_stop(ast);
+			RTP_NEW_SOURCE(c, "Source Update");
+			res=0;
+			break;
+#endif												// CS_AST_CONTROL_HOLD
 #ifdef CS_AST_CONTROL_CONNECTED_LINE
-	case AST_CONTROL_CONNECTED_LINE:
-		sccp_pbx_update_connectedline(ast, data, datalen);
-		sccp_indicate_locked(c->device, c, c->state);
-		break;
-#endif										// CS_AST_CONTROL_CONNECTED_LINE
-	case AST_CONTROL_VIDUPDATE:						/* Request a video frame update */
-		break;
-	case -1:								// Asterisk prod the channel
-//		res = -1;
-		break;
-	default:
-		ast_log(LOG_WARNING, "SCCP: Don't know how to indicate condition %d\n", ind);
-//		res = -1;
+		case AST_CONTROL_CONNECTED_LINE:
+			sccp_pbx_update_connectedline(ast, data, datalen);
+			sccp_indicate_locked(c->device, c, c->state);
+			break;
+#endif												// CS_AST_CONTROL_CONNECTED_LINE
+		case AST_CONTROL_VIDUPDATE:							/* Request a video frame update */
+			res=0;
+			break;
+		case -1:									// Asterisk prod the channel
+			break;
+		default:
+			ast_log(LOG_WARNING, "SCCP: Don't know how to indicate condition %d\n", ind);
 	}
 
 	sccp_channel_unlock(c);
