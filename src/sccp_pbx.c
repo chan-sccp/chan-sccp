@@ -924,7 +924,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 #ifdef CS_AST_CONTROL_SRCCHANGE
 	case AST_CONTROL_SRCCHANGE:
 		RTP_NEW_SOURCE(c, "Source Change");
-		res = 0;
+//		res = 0;
 		break;
 #endif										//CS_AST_CONTROL_SRCCHANGE
 #ifdef CS_AST_CONTROL_SRCUPDATE
@@ -961,19 +961,19 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			}
 		}
 		RTP_CHANGE_SOURCE(c, "Source Update: RTP NEW SOURCE");
-		res = 0;
+//		res = 0;
 		break;
 #endif										//defined(CS_AST_CONTROL_SRCCHANGE) || defined(CS_AST_CONTROL_SRCUPDATE)
 #ifdef CS_AST_CONTROL_HOLD
 		/* when the bridged channel hold/unhold the call we are notified here */
 	case AST_CONTROL_HOLD:
 		pbx_moh_start(ast, data, c->musicclass);
-		res = 0;
+//		res = 0;
 		break;
 	case AST_CONTROL_UNHOLD:
 		pbx_moh_stop(ast);
 		RTP_NEW_SOURCE(c, "Source Update");
-		res = 0;
+//		res = 0;
 		break;
 #endif										// CS_AST_CONTROL_HOLD
 #ifdef CS_AST_CONTROL_CONNECTED_LINE
@@ -983,17 +983,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		break;
 #endif										// CS_AST_CONTROL_CONNECTED_LINE
 	case AST_CONTROL_VIDUPDATE:						/* Request a video frame update */
-		if (c->rtp.video.rtp) {
-			res = 0;
-		} else
-			res = -1;
 		break;
 	case -1:								// Asterisk prod the channel
-		res = -1;
+//		res = -1;
 		break;
 	default:
 		ast_log(LOG_WARNING, "SCCP: Don't know how to indicate condition %d\n", ind);
-		res = -1;
+//		res = -1;
 	}
 
 	sccp_channel_unlock(c);

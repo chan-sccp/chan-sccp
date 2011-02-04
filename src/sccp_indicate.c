@@ -170,7 +170,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_RINGOUT, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_channel_send_callinfo(d, c);
 		if (!c->rtp.audio.rtp) {
-			if (d->earlyrtp) {
+			if (d->earlyrtp == SCCP_CHANNELSTATE_RINGOUT) {
 				sccp_channel_openreceivechannel_locked(c);
 			} else {
 				sccp_dev_starttone(c->device, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
@@ -360,18 +360,25 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		break;
 	case SCCP_CHANNELSTATE_INVALIDNUMBER:
 		/* this is for the earlyrtp. The 7910 does not play tones if a rtp stream is open */
-		if (c->rtp.audio.rtp)
-			sccp_channel_closereceivechannel_locked(c);
-
-		sccp_safe_sleep(100);
-		sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
+		if (d->earlyrtp) {
+			if (!c->rtp.audio.rtp)
+				sccp_channel_openreceivechannel_locked(c);
+		} else {
+			if (c->rtp.audio.rtp) {
+				sccp_channel_closereceivechannel_locked(c);
+				sccp_safe_sleep(100);
+			}
+			sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
+		}
+		
 		/* 7936 does not like the skinny ivalid message callstate */
 		/* In fact, newer firmware versions (the 8 releases for the 7960 etc.) and
 		   the newer Cisco phone models don't seem to like this at all, resulting in
 		   crashes. Interestingly, the message imho does cause obvious effects anyway. (-DD) */
 		/*if (d->skinny_type != SKINNY_DEVICETYPE_CISCO7936)
-		   sccp_channel_send_callinfo(d, c);
-		   sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_UNKNOWN_NUMBER, 0); */
+		   sccp_channel_send_callinfo(d, c); 
+		*/
+		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_UNKNOWN_NUMBER, 0);
 
 		/* don't set AST_STATE_DOWN. we hangup only on onhook and endcall softkey */
 		break;
