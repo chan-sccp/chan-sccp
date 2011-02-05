@@ -258,6 +258,22 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		break;
 	case SCCP_CHANNELSTATE_PROGRESS:					/* \todo SCCP_CHANNELSTATE_PROGRESS To be checked */
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_2 "%s: SCCP_CHANNELSTATE_PROGRESS\n", d->id);
+
+		if (NULL != c->owner) {
+			ds = pbx_builtin_getvar_helper(c->owner, "PRI_CAUSE");
+			if (ds && atoi(ds)) {
+				c->pri_cause = atoi(ds);
+			} else if (c->owner->hangupcause) {
+				c->pri_cause = c->owner->hangupcause;
+			} else if (c->owner->_softhangup) {
+				c->pri_cause = c->owner->_softhangup;
+			} else {
+				c->pri_cause = AST_CAUSE_NORMAL_CLEARING;
+			}
+		}
+		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: c->owner->hangupcause @ SCCP_CHANNELSTATE_CONGESTION =  %d, '%s'", d->id, c->pri_cause, (char *) astcause2skinnycause_message(c->pri_cause));
+		sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_cause), 0);
+
 		if (c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) {	// this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app)
 			sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
 //                      c->state = SCCP_CHANNELSTATE_CONNECTED;
@@ -274,6 +290,22 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 			sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
 			return;
 		}
+
+		if (NULL != c->owner) {
+			ds = pbx_builtin_getvar_helper(c->owner, "PRI_CAUSE");
+			if (ds && atoi(ds)) {
+				c->pri_cause = atoi(ds);
+			} else if (c->owner->hangupcause) {
+				c->pri_cause = c->owner->hangupcause;
+			} else if (c->owner->_softhangup) {
+				c->pri_cause = c->owner->_softhangup;
+			} else {
+				c->pri_cause = AST_CAUSE_NORMAL_CLEARING;
+			}
+		}
+		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: c->owner->hangupcause @ SCCP_CHANNELSTATE_CONGESTION =  %d, '%s'", d->id, c->pri_cause, (char *) astcause2skinnycause_message(c->pri_cause));
+		sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_cause), 0);
+
 		sccp_dev_stoptone(d, instance, c->callid);
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 		sccp_channel_send_callinfo(d, c);
@@ -295,17 +327,17 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		break;
 	case SCCP_CHANNELSTATE_CONGESTION:
 		/* try to find out the congestion cause early */
-		ds = pbx_builtin_getvar_helper(c->owner, "PRI_CAUSE");
-		if (ds && atoi(ds)) {
-			c->pri_cause = atoi(ds);
-		} else if (c->owner != NULL) {
-			if (c->owner->hangupcause) {
+		if (NULL != c->owner) {
+			ds = pbx_builtin_getvar_helper(c->owner, "PRI_CAUSE");
+			if (ds && atoi(ds)) {
+				c->pri_cause = atoi(ds);
+			} else if (c->owner->hangupcause) {
 				c->pri_cause = c->owner->hangupcause;
 			} else if (c->owner->_softhangup) {
 				c->pri_cause = c->owner->_softhangup;
+			} else {
+				c->pri_cause = AST_CAUSE_NORMAL_CLEARING;
 			}
-		} else {
-                        c->pri_cause = AST_CAUSE_NORMAL_CLEARING;
 		}
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: c->owner->hangupcause @ SCCP_CHANNELSTATE_CONGESTION =  %d, '%s'", d->id, c->pri_cause, (char *) astcause2skinnycause_message(c->pri_cause));
 		sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_cause), 0);
