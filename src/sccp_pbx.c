@@ -413,7 +413,7 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 		sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_ONHOOK);
 	}
 	CS_AST_CHANNEL_PVT(ast) = NULL;
-	c->owner = NULL;
+	c->owner = NULL;  /* TODO: (DD) Isn't this the same as above? Couldn't we move these both lines to the end of this function? */
 	l = c->line;
 #ifdef CS_SCCP_CONFERENCE
 	if (c->conference) {
