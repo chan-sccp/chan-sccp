@@ -75,6 +75,8 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 
 	sccp_channel_setSkinnyCallstate(c, state);
 
+	sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Current Hangupcause %d (%s)\n", d->id, c->owner->hangupcause, astcause2skinnycause_message(c->owner->hangupcause));
+
 	switch (state) {
 	case SCCP_CHANNELSTATE_DOWN:
 //              sccp_ast_setstate(c, AST_STATE_DOWN);
@@ -142,6 +144,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		//      sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_OFF);
 
 		sccp_dev_clearprompt(d, instance, c->callid);
+		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: On Hook, Hangupcause %d (%s)\n", d->id, c->owner->hangupcause, astcause2skinnycause_message(c->owner->hangupcause));
 		sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->owner->hangupcause), 10);
 
 		/* if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
