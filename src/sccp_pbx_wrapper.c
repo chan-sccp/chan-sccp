@@ -17,13 +17,6 @@ int sccp_wrapper_asterisk_rtp_stop(sccp_channel_t *channel);
 
 
 struct sccp_pbx_cb sccp_pbx = {
-#if ASTERISK_VERSION_NUM >= 10800
-	.alloc_pbxChannel	= sccp_wrapper_asterisk18_allocPBXChannel,
-	.rtp_stop 		= sccp_wrapper_asterisk_rtp_stop,
-	.rtp_audio_create 	= sccp_wrapper_asterisk_create_audio_rtp,
-	.rtp_video_create 	= sccp_wrapper_asterisk_create_video_rtp,
-	.rtp_get_payloadType	= sccp_wrapper_asterisk18_get_payloadType,
-#else
 	.alloc_pbxChannel	= sccp_wrapper_asterisk_allocPBXChannel,
 	.set_callstate		= sccp_wrapper_asterisk_setCallState,
 	
@@ -43,7 +36,6 @@ struct sccp_pbx_cb sccp_pbx = {
 	.pbx_set_callerid_ani	= sccp_wrapper_asterisk_set_callerid_ani,
 	.pbx_set_callerid_dnid	= sccp_wrapper_asterisk_set_callerid_dnid,
 	.pbx_set_callerid_rdnis	= sccp_wrapper_asterisk_set_callerid_rdnis,
-#endif
 };
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
@@ -1022,21 +1014,6 @@ int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE *rtp,
 	return 0;
 }
 
-#if ASTERISK_VERSION_NUM >= 10800
-uint8_t sccp_wrapper_asterisk18_get_payloadType(const struct sccp_rtp *rtp, skinny_media_payload codec){
-	//TODO implement this for 1.8
-	return 97;
-}
-
-boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t *channel, void **pbx_channel){
-	 *pbx_channel = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, 0, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
-	 
-	 if(*pbx_channel != NULL)
-		return TRUE;
-	 
-	 return FALSE;
-}
-#else
 uint8_t sccp_wrapper_asterisk_get_payloadType(const struct sccp_rtp *rtp, skinny_media_payload codec){
 	uint32_t asteriskCodec = sccp_codec_skinny2ast(codec);
 	return ast_rtp_lookup_code(rtp->rtp, 1, asteriskCodec);
@@ -1055,7 +1032,6 @@ boolean_t sccp_wrapper_asterisk_allocPBXChannel(const sccp_channel_t *channel, v
 	 return FALSE;
 }
 
-#endif
 
 int sccp_wrapper_asterisk_setCallState(const sccp_channel_t *channel, int state){
 	sccp_ast_setstate(channel, state);
