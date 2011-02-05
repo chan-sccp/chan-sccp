@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_labels.h
  * \brief 	SCCP Labels Header

@@ -784,7 +784,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 	uint8_t num = sccp_device_numberOfChannels(d);
 	sccp_device_unlock(d);
 	if (num < 2) {
-		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CONFERENCE_IS_UNAVAILABLE, 5);
 		return;
 	}
 
@@ -823,7 +823,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 	}
 #else
 	/* sorry but this is private code -FS */
-	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CONFERENCE_IS_UNAVAILABLE, 5);
 	ast_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
 #endif
 }
@@ -839,7 +839,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
  */
 void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
 {
-	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CONFERENCE_IS_UNAVAILABLE, 5);
 }
 
 /*!
@@ -1153,7 +1153,8 @@ int sccp_feat_barge(sccp_channel_t * c, char *exten)
 {
 	/* sorry but this is private code -FS */
 	uint8_t instance = sccp_device_find_index_for_line(c->device, c->line->name);
-	sccp_dev_displayprompt(c->device, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+//	sccp_dev_displayprompt(c->device, instance, c->callid, SKINNY_DISP_BARGE, 5);
+	sccp_dev_displayprompt(c->device, instance, c->callid, SKINNY_DISP_FAILED_TO_SETUP_BARGE, 5);
 	return 1;
 }
 
@@ -1249,7 +1250,8 @@ int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum)
 {
 	/* sorry but this is private code -FS */
 	uint8_t instance = sccp_device_find_index_for_line(c->device, c->line->name);
-	sccp_dev_displayprompt(c->device, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+//	sccp_dev_displayprompt(c->device, 0, c->callid, SKINNY_DISP_BARGE, 5);
+	sccp_dev_displayprompt(c->device, instance, c->callid, SKINNY_DISP_FAILED_TO_SETUP_BARGE, 5);
 	return 1;
 }
 
