@@ -42,6 +42,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
  */
 void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
 {
+	const char *ds;
 	sccp_device_t *d;
 	sccp_line_t *l;
 	int instance;
@@ -74,8 +75,6 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: 2-Indicate SCCP state %d (%s),previous channelState %d (%s) on call %s-%08x\n", d->id, state, sccp_indicate2str(state), c->previousChannelState, sccp_indicate2str(c->previousChannelState), l->name, c->callid);
 
 	sccp_channel_setSkinnyCallstate(c, state);
-
-	sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Current Hangupcause %d (%s)\n", d->id, c->owner->hangupcause, astcause2skinnycause_message(c->owner->hangupcause));
 
 	switch (state) {
 	case SCCP_CHANNELSTATE_DOWN:
@@ -294,18 +293,24 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 		break;
 	case SCCP_CHANNELSTATE_CONGESTION:
+		/* try to find out the congestion cause early */
+		ds = pbx_builtin_getvar_helper(c->owner, "PRI_CAUSE");
+		if (ds && atoi(ds)) {
+			c->pri_cause = atoi(ds);
+		} else if (c->owner->hangupcause) {
+			c->pri_cause = c->owner->hangupcause;
+		} else if (c->owner->_softhangup) {
+			c->pri_cause = c->owner->_softhangup;
+	        } else {
+                        c->pri_cause = AST_CAUSE_NORMAL_CLEARING;
+		}
+		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: c->owner->hangupcause @ SCCP_CHANNELSTATE_CONGESTION =  %d, '%s'", d->id, c->pri_cause, (char *) astcause2skinnycause_message(c->pri_cause));
+		sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_cause), 0);
+
 		/* it will be emulated if the rtp audio stream is open */
 		if (!c->rtp.audio.rtp)
 			sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
-		/* In fact, newer firmware versions (the 8 releases for the 7960 etc.) and
-		   the newer Cisco phone models don't seem to like this at all, resulting in
-		   crashes. Federico observed that also congestion is affected. We have to find a
-		   signalling replacement for the display promptif this is neccessary for some reason.(-DD) */
 		sccp_channel_send_callinfo(d, c);
-		/* \todo map AST_CAUSE to SKINNY_DISP_CAUSE's and display the correct one */
-		//sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL, 0);
-		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: c->owner->hangupcause @ SCCP_CHANNELSTATE_CONGESTION =  %d, '%s'", d->id, c->owner->hangupcause, (char *) astcause2skinnycause_message(c->owner->hangupcause));
-		sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->owner->hangupcause), 0);
 		break;
 	case SCCP_CHANNELSTATE_CALLWAITING:
 		if (GLOB(callwaiting_tone))
