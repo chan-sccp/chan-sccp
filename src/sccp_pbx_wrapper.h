@@ -197,16 +197,11 @@ enum ast_rtp_get_result sccp_wrapper_asterisk_get_vrtp_peer(PBX_CHANNEL_TYPE *as
 #endif //#ifdef CS_AST_HAS_RTP_ENGINE
 
 
-#if ASTERISK_VERSION_NUM >= 10800
-uint8_t sccp_wrapper_asterisk18_get_payloadType(const struct sccp_rtp *rtp, skinny_media_payload codec);
-boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t *channel, void **pbx_channel);
-#else
 boolean_t sccp_wrapper_asterisk_allocPBXChannel(const sccp_channel_t *channel, void **pbx_channel);
 uint8_t sccp_wrapper_asterisk_get_payloadType(const struct sccp_rtp *rtp, skinny_media_payload codec);
 int pbx_rtp_get_peer(PBX_RTP_TYPE *rtp, struct sockaddr_in *addr);
 void pbx_rtp_get_us(PBX_RTP_TYPE *rtp, struct sockaddr_in *addr);
 void pbx_rtp_set_peer(PBX_RTP_TYPE *rtp, struct sockaddr_in *addr);
-#endif //ASTERISK_VERSION_NUM >= 10800
 
 #endif //ifdef HAVE_ASTERISK
 
