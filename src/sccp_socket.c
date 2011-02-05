@@ -84,6 +84,7 @@ static void sccp_read_data(sccp_session_t * s)
 			ast_log(LOG_WARNING, "SCCP: read() returned zero length. Assuming closed connection.\n");
 			pthread_cancel(s->session_thread);
 		}
+		ast_free(input);
 		return;
 	}
 
