@@ -144,8 +144,8 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 
 		sccp_dev_clearprompt(d, instance, c->callid);
 
-		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: On Hook, Hangupcause %d (%s)\n", d->id, c->pri_hangup, astcause2skinnycause_message(c->pri_hangup));
-		sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_hangup), 10);
+		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: On Hook, Hangupcause %d (%s)\n", d->id, c->pri_cause, astcause2skinnycause_message(c->pri_cause));
+		sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_cause), 10);
 
 		/* if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
 		if (c->answered_elsewhere)
