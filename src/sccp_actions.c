@@ -3003,7 +3003,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	/* update status */
-	c->rtp.audio.status &= ~SCCP_RTP_STATUS_PROGESS_TRANSMIT;
+	c->rtp.audio.status &= ~SCCP_RTP_STATUS_PROGRESS_TRANSMIT;
 	c->rtp.audio.status |= SCCP_RTP_STATUS_TRANSMIT;
 	/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
 	if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
