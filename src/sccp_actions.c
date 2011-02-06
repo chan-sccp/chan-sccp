@@ -1612,27 +1612,39 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r)
 	if (!(d = check_session_message_device(s, r, "softkey template"))) {
 		return;
 	}
-	const uint8_t c = sizeof(softkeysmap);
+	
 
 	/* ok the device support the softkey map */
 	sccp_device_lock(d);
 
 	d->softkeysupport = 1;
 
-	REQ(r1, SoftKeyTemplateResMessage);
-	r1->msg.SoftKeyTemplateResMessage.lel_softKeyOffset = htolel(0);
+	//REQ(r1, SoftKeyTemplateResMessage);
+ 	int arrayLen = ARRAY_LEN(softkeysmap);
+// 	if(d->inuseprotocolversion < 15){
+// 		arrayLen = 31; /* fall back to old behaivour */
+// 	}
+	
+	int dummy_len = arrayLen * (sizeof(StationSoftKeyDefinition));
+	int hdr_len = sizeof(r->msg.SoftKeyTemplateResMessage);
+	int padding = ((dummy_len + hdr_len) % 4);
+	padding = (padding > 0) ? 4 - padding : 4;
+	
+	/* create message */
+	r1 = sccp_build_packet(SoftKeyTemplateResMessage, hdr_len + dummy_len + padding);
+	r1->msg.SoftKeyTemplateResMessage.lel_softKeyOffset = 0;
 
-	for (i = 0; i < c; i++) {
-		sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i + 1, label2str(softkeysmap[i]));
+	for (i = 0; i < arrayLen; i++) {
 		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = 128;
 		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = softkeysmap[i];
 		r1->msg.SoftKeyTemplateResMessage.definition[i].lel_softKeyEvent = htolel(i + 1);
+		sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i + 1, label2str(r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1]));
 	}
 
 	sccp_device_unlock(d);
 
-	r1->msg.SoftKeyTemplateResMessage.lel_softKeyCount = htolel(c);
-	r1->msg.SoftKeyTemplateResMessage.lel_totalSoftKeyCount = htolel(c);
+	r1->msg.SoftKeyTemplateResMessage.lel_softKeyCount = htolel(arrayLen);
+	r1->msg.SoftKeyTemplateResMessage.lel_totalSoftKeyCount = htolel(arrayLen);
 	sccp_dev_send(s->device, r1);
 }
 
@@ -2991,6 +3003,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	/* update status */
+	c->rtp.audio.status &= ~SCCP_RTP_STATUS_PROGESS_TRANSMIT;
 	c->rtp.audio.status |= SCCP_RTP_STATUS_TRANSMIT;
 	/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
 	if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
@@ -2998,6 +3011,6 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), callID, callID1, partyID);
-
+	//ast_cond_signal(&c->rtp.audio.convar);
 	sccp_channel_unlock(c);
 }

@@ -2997,7 +2997,7 @@ typedef union {
 		uint32_t lel_softKeyOffset;					/*!< Soft Key Off Set */
 		uint32_t lel_softKeyCount;					/*!< Soft Key Count */
 		uint32_t lel_totalSoftKeyCount;					/*!< Total Number of Soft Keys */
-		StationSoftKeyDefinition definition[StationMaxSoftKeyDefinition];	/*!< Station Soft Key Definition */
+		StationSoftKeyDefinition definition[1];				/*!< Station Soft Key Definition (dummy) */
 	} SoftKeyTemplateResMessage;						/*!< Soft Key Template Result Message Structure */
 
 	struct {
