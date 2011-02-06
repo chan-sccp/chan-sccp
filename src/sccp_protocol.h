@@ -3278,10 +3278,6 @@ static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_CALLBACK,
 	SKINNY_LBL_BARGE,
 	SKINNY_LBL_DND,
-        SKINNY_LBL_NO_PARK_NUMBER_AVAILABLE, 					/* Should be: Acct */
-        SKINNY_LBL_CALLPARK_REVERSION,       					/* Should be: Flash */
-        SKINNY_LBL_SERVICE_IS_NOT_ACTIVE,    					/* Should be: Login */
-        SKINNY_LBL_EMPTY,                    					/* Should be: HLog */ 
 	SKINNY_LBL_CONFLIST,
 	SKINNY_LBL_SELECT,
 	SKINNY_LBL_PRIVATE,
@@ -3291,8 +3287,7 @@ static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_VIDEO_MODE,
 	SKINNY_LBL_INTRCPT,
 	SKINNY_LBL_EMPTY,
-	SKINNY_LBL_CBARGE,
-	SKINNY_LBL_CALL_PROCEED,						/* Should be: Conf.List */
+//      SKINNY_LBL_CBARGE,
 };										/*!< Soft Keys Map as INT */
 
 /*!
