@@ -234,7 +234,6 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Transfer Pressed\n", DEV_ID_LOG(d));
 	if (!c) {
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Transfer when there is no active call\n", d->id);
-		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
 	}
 
@@ -298,7 +297,7 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 			break;
 
 		default:
-			sccp_dev_displayprompt(d, lineInstance, c->callid, "Use" SKINNY_DISP_SELECT "to complete transfer", 5);
+			sccp_dev_displayprompt(d, lineInstance, c->callid, "Use SELECT to complete transfer", 5);
 			return;
 			break;
 		}
@@ -733,12 +732,12 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 
 	if (!d->privacyFeature.enabled) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: private function is not active on this device\n", d->id);
-		sccp_dev_displayprompt(d, lineInstance, 0, SKINNY_DISP_PRIVATE " function is not active", 5);
+		sccp_dev_displayprompt(d, lineInstance, 0, "PRIVATE function is not active", 5);
 		return;
 	}
 
 	if (!c) {
-		sccp_dev_displayprompt(d, lineInstance, 0, SKINNY_DISP_PRIVATE " with no channel active", 5);
+		sccp_dev_displayprompt(d, lineInstance, 0, "PRIVATE with no channel active", 5);
 		return;
 	}
 
