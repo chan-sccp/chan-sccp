@@ -911,6 +911,10 @@ enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(PBX_CHANNEL_TYPE *a
 	struct sccp_rtp *videoRTP = NULL;
 	enum ast_rtp_get_result res = AST_RTP_TRY_NATIVE;
 
+	if(NULL == ast) {
+		return _RTP_GET_FAILED;
+	}
+
 	if(!(c = CS_AST_CHANNEL_PVT(ast)) ) {
 	        return _RTP_GET_FAILED;
 	}
