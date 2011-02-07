@@ -2554,7 +2554,8 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r)
 	REQ(r1, ConfigStatMessage);
 	sccp_copy_string(r1->msg.ConfigStatMessage.station_identifier.deviceName, s->device->id, sizeof(r1->msg.ConfigStatMessage.station_identifier.deviceName));
 	r1->msg.ConfigStatMessage.station_identifier.lel_stationUserId = htolel(0);
-	r1->msg.ConfigStatMessage.station_identifier.lel_stationInstance = htolel(1);
+	//r1->msg.ConfigStatMessage.station_identifier.lel_stationInstance = htolel(1);
+	r1->msg.ConfigStatMessage.station_identifier.lel_stationInstance = htolel(0);
 	r1->msg.ConfigStatMessage.lel_numberLines = htolel(lines);
 	r1->msg.ConfigStatMessage.lel_numberSpeedDials = htolel(speeddials);
 

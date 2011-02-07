@@ -73,6 +73,9 @@ static void sccp_read_data(sccp_session_t * s)
 
 	length = (int16_t) bytesAvailable;
 
+	if(0 == length)
+		length = 1;
+
 	input = ast_malloc(length + 1);
 
 	readlen = read(s->fds[0].fd, input, length);
