@@ -808,6 +808,11 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 	REQ(r1, ButtonTemplateMessage);
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 		r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
+		
+		if(SKINNY_BUTTONTYPE_UNUSED != btn[i].type) {
+			r1->msg.ButtonTemplateMessage.lel_buttonCount++;
+			totalButtonCount++;
+		}
 
 		switch (btn[i].type) {
 		case SCCP_BUTTONTYPE_HINT:
@@ -818,32 +823,23 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_UNDEFINED;
 			} else {
 				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_LINE;
-				r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 			}
 			break;
 
 		case SCCP_BUTTONTYPE_SPEEDDIAL:
 			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_SPEEDDIAL;
-			//r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
-			r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 			break;
 
 		case SKINNY_BUTTONTYPE_SERVICEURL:
 			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_SERVICEURL;
-			//r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
-			r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 			break;
 
 		case SKINNY_BUTTONTYPE_FEATURE:
 			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_FEATURE;
-			//r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
-			r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 			break;
 
 		case SCCP_BUTTONTYPE_MULTI:
 			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_DISPLAY;
-			//r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
-			r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 			break;
 
 		case SKINNY_BUTTONTYPE_UNUSED:
@@ -853,18 +849,9 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 
 		default:
 			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = btn[i].type;
-			r1->msg.ButtonTemplateMessage.lel_buttonCount++;
 			break;
 		}
 		sccp_log((DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %d (%d)\n", d->id, i + 1, r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition, r1->msg.ButtonTemplateMessage.definition[i].instanceNumber);
-		
-		
-		/* store max button entry */
-		if(r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition != SKINNY_BUTTONTYPE_UNDEFINED 
-		    && r1->msg.ButtonTemplateMessage.definition[i].instanceNumber != 0 ){
-		      
-			totalButtonCount = i+1;
-		}
 		  
 	}
 
