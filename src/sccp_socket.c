@@ -467,19 +467,20 @@ void *sccp_socket_thread(void *ignore) {
 
 	while (GLOB(descriptor) > -1) {
 		fds[0].fd = GLOB(descriptor);
-		res = sccp_socket_poll(fds, 1, 20);
+		res = sccp_socket_poll(fds, 1, 2000);
 
 		if (res < 0) {
-						if( errno == EINTR || errno == EAGAIN ) {
-					ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s) -- ignoring.\n", res, errno, strerror(errno));
-				} else {
-					ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s)\n", res, errno, strerror(errno));
+			if( errno == EINTR || errno == EAGAIN ) {
+				ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s) -- ignoring.\n", res, errno, strerror(errno));
+			} else {
+				ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s)\n", res, errno, strerror(errno));
 			usleep(10000);
 			return NULL;
-				};
+		};
 			
 		} else if (res == 0) {
 			// poll timeout
+			ast_log(LOG_WARNING, "SCCP: Poll TimeOut\n");
 		} else {
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
 			sccp_accept_connection();

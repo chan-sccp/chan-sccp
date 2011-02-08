@@ -409,12 +409,6 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	case SCCP_CHANNELSTATE_INVALIDNUMBER:
 		/* this is for the earlyrtp. The 7910 does not play tones if a rtp stream is open */
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_UNKNOWN_NUMBER, 0);
-		if (d->earlyrtp) {
-			if (!c->rtp.audio.rtp)
-				sccp_channel_openreceivechannel_locked(c);
-			/* Give early RTP users a chance to hear the message from the other side */
-			sccp_safe_sleep(10000);
-		}
 		if (c->rtp.audio.rtp) {
 			sccp_channel_closereceivechannel_locked(c);
 		}
@@ -429,7 +423,6 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		   sccp_channel_send_callinfo(d, c); 
 		*/
  		/* this is for the earlyrtp. The 7910 does not play tones if a rtp stream is open */
-		sccp_channel_send_callinfo(d, c);
 
 		/* don't set AST_STATE_DOWN. we hangup only on onhook and endcall softkey */
 		break;
