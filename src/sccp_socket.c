@@ -261,6 +261,7 @@ void *sccp_socket_device_thread(void *session) {
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: set poll timeout %d\n", DEV_ID_LOG(s->device), pollTimeout);
 
 			res = sccp_socket_poll(s->fds, 1, pollTimeout);
+			
 			if (res > 0) {						/* poll data processing */
 				/* we have new data -> continue */
 				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
@@ -281,9 +282,13 @@ void *sccp_socket_device_thread(void *session) {
 					break;
 				}
 			} else {						/* poll error */
-				ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
-				s->session_stop = 1;
-				break;
+				if( errno == EINTR || errno == EAGAIN ) {
+					ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s) -- ignoring.\n", res, errno, strerror(errno));
+				} else {
+					ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s)\n", res, errno, strerror(errno));
+					s->session_stop = 1;
+					break;
+				};
 			}
 		} else {							/* session is gone */
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session is Gone\n", DEV_ID_LOG(s->device));
@@ -465,9 +470,14 @@ void *sccp_socket_thread(void *ignore) {
 		res = sccp_socket_poll(fds, 1, 20);
 
 		if (res < 0) {
-			ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
+						if( errno == EINTR || errno == EAGAIN ) {
+					ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s) -- ignoring.\n", res, errno, strerror(errno));
+				} else {
+					ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s)\n", res, errno, strerror(errno));
 			usleep(10000);
 			return NULL;
+				};
+			
 		} else if (res == 0) {
 			// poll timeout
 		} else {
