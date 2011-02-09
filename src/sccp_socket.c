@@ -283,7 +283,7 @@ void *sccp_socket_device_thread(void *session) {
 				}
 			} else {						/* poll error */
 				if( errno == EINTR || errno == EAGAIN ) {
-					ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s) -- ignoring.\n", res, errno, strerror(errno));
+					ast_log(LOG_NOTICE, "SCCP poll() returned %d. errno: %d (%s) -- ignoring.\n", res, errno, strerror(errno));
 				} else {
 					ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s)\n", res, errno, strerror(errno));
 					s->session_stop = 1;
@@ -467,11 +467,11 @@ void *sccp_socket_thread(void *ignore) {
 
 	while (GLOB(descriptor) > -1) {
 		fds[0].fd = GLOB(descriptor);
-		res = sccp_socket_poll(fds, 1, 2000);
+		res = sccp_socket_poll(fds, 1, 20000);
 
 		if (res < 0) {
 			if( errno == EINTR || errno == EAGAIN ) {
-				ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s) -- ignoring.\n", res, errno, strerror(errno));
+				ast_log(LOG_NOTICE, "SCCP poll() returned %d. errno: %d (%s) -- ignoring.\n", res, errno, strerror(errno));
 			} else {
 				ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s)\n", res, errno, strerror(errno));
 			usleep(10000);
