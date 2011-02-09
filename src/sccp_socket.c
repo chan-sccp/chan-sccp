@@ -263,11 +263,12 @@ void *sccp_socket_device_thread(void *session) {
 			res = sccp_socket_poll(s->fds, 1, pollTimeout);
 			if (res < 0) {						/* poll error */
 				/* Sparc64 + OpenBSD socket implementation can be interupted via system irq, ignore and try again */
-				if( errno != EINTR || errno != EAGAIN ) {
+				if( (errno != EAGAIN) && (errno != EINTR) ) {
 					ast_log(LOG_ERROR, "%s: socket_poll() returned %d. errno: %d (%s)\n", DEV_ID_LOG(s->device), res, errno, strerror(errno));
 					s->session_stop = 1;
 					break;
-				};
+				}
+				continue;
 			} else if (res == 0) {					/* poll timeout */
 				ast_log(LOG_WARNING, "%s: Device vanished without Unregistering, Removing\n", DEV_ID_LOG(s->device));
 				s->session_stop = 1;
@@ -466,10 +467,11 @@ void *sccp_socket_thread(void *ignore) {
 
 		if (res < 0) {
 			/* Sparc64 + OpenBSD socket implementation can be interupted via system irq, ignore and try again */
-			if( errno != EINTR || errno != EAGAIN ) {
+			if( (errno != EAGAIN) && (errno != EINTR) ) {
 				ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s)\n", res, errno, strerror(errno));
 				return NULL;
 			}
+			continue;
 		} else if (res == 0) {
 			/* we should not get here, polling timeout is -1, meaning don't timeout for as long as the socket exists */
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP (gloabl sccp_socket_thread): Poll Timeout\n");
