@@ -261,9 +261,19 @@ void *sccp_socket_device_thread(void *session) {
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: set poll timeout %d\n", DEV_ID_LOG(s->device), pollTimeout);
 
 			res = sccp_socket_poll(s->fds, 1, pollTimeout);
+			if (res < 0) {						/* poll error */
+				if( errno != EINTR || errno != EAGAIN ) {
+					ast_log(LOG_ERROR, "%s: socket_poll() returned %d. errno: %d (%s)\n", DEV_ID_LOG(s->device), res, errno, strerror(errno));
+					s->session_stop = 1;
+					break;
+				};
+			} else if (res == 0) {					/* poll timeout */
+				ast_log(LOG_WARNING, "%s: Device vanished without Unregistering, Removing\n", DEV_ID_LOG(s->device));
+				s->session_stop = 1;
+				break;
+			}
 			
-			if (res > 0) {						/* poll data processing */
-				/* we have new data -> continue */
+			if (s->fds[0].revents) {				/* handle poll events a.k.a. data processing */
 				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
 				sccp_read_data(s);
 				while ((m = sccp_process_data(s))) {
@@ -273,22 +283,6 @@ void *sccp_socket_device_thread(void *session) {
 						break;
 					}
 				}
-			} else if (res == 0) {					/* poll timeout */
-				now = time(0);
-				if (s->device && s->device->keepalive && (now > ((s->lastKeepAlive + s->device->keepalive) + keepaliveAdditionalTime))) {
-					sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session Keepalive %s Expired, now %s\n", DEV_ID_LOG(s->device), ctime(&s->lastKeepAlive), ctime(&now));
-					ast_log(LOG_WARNING, "%s: Dead device does not send a keepalive message in %d+%d seconds. Will be removed\n", DEV_ID_LOG(s->device), GLOB(keepalive), keepaliveAdditionalTime);
-					s->session_stop = 1;
-					break;
-				}
-			} else {						/* poll error */
-				if( errno == EINTR || errno == EAGAIN ) {
-					ast_log(LOG_NOTICE, "SCCP poll() returned %d. errno: %d (%s) -- ignoring.\n", res, errno, strerror(errno));
-				} else {
-					ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s)\n", res, errno, strerror(errno));
-					s->session_stop = 1;
-					break;
-				};
 			}
 		} else {							/* session is gone */
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session is Gone\n", DEV_ID_LOG(s->device));
@@ -467,22 +461,20 @@ void *sccp_socket_thread(void *ignore) {
 
 	while (GLOB(descriptor) > -1) {
 		fds[0].fd = GLOB(descriptor);
-		res = sccp_socket_poll(fds, 1, 20000);
+		res = sccp_socket_poll(fds, 1, -1);
 
 		if (res < 0) {
-			if( errno == EINTR || errno == EAGAIN ) {
-				ast_log(LOG_NOTICE, "SCCP poll() returned %d. errno: %d (%s) -- ignoring.\n", res, errno, strerror(errno));
-			} else {
+			if( errno != EINTR || errno != EAGAIN ) {
 				ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s)\n", res, errno, strerror(errno));
-			usleep(10000);
-			return NULL;
-		};
-			
+				return NULL;
+			}
 		} else if (res == 0) {
-			// poll timeout
-			ast_log(LOG_WARNING, "SCCP: Poll TimeOut\n");
-		} else {
-			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
+			/* we should not get here, polling timeout is -1, meaning don't timeout for as long as the socket exists */
+			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP (gloabl sccp_socket_thread): Poll Timeout\n");
+		}
+
+		if (fds[0].revents) {
+			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accept New Device Connection\n");
 			sccp_accept_connection();
 		}
 	}
