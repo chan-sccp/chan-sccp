@@ -262,6 +262,7 @@ void *sccp_socket_device_thread(void *session) {
 
 			res = sccp_socket_poll(s->fds, 1, pollTimeout);
 			if (res < 0) {						/* poll error */
+				/* Sparc64 + OpenBSD socket implementation can be interupted via system irq, ignore and try again */
 				if( errno != EINTR || errno != EAGAIN ) {
 					ast_log(LOG_ERROR, "%s: socket_poll() returned %d. errno: %d (%s)\n", DEV_ID_LOG(s->device), res, errno, strerror(errno));
 					s->session_stop = 1;
@@ -464,6 +465,7 @@ void *sccp_socket_thread(void *ignore) {
 		res = sccp_socket_poll(fds, 1, -1);
 
 		if (res < 0) {
+			/* Sparc64 + OpenBSD socket implementation can be interupted via system irq, ignore and try again */
 			if( errno != EINTR || errno != EAGAIN ) {
 				ast_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s)\n", res, errno, strerror(errno));
 				return NULL;
