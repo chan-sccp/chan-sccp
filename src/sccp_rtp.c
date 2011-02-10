@@ -112,8 +112,7 @@ sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t *c, struct sccp_r
 	
 	result = SCCP_RTP_INFO_AVAILABLE;
 	if(c->device->directrtp && !c->device->nat ){
-	/* \todo Enable the this line to get Direct RTP. Temporarily Disabled - MC/DdG disabled for releasing RC3.1*/
-//		result |= SCCP_RTP_INFO_ALLOW_DIRECTRTP;
+		result |= SCCP_RTP_INFO_ALLOW_DIRECTRTP;
 	}
 	return result;
 }
