@@ -1,1 +1,2 @@
-usr/lib/lib*.so.*
+usr/lib/asterisk/modules/*.so
+usr/lib64/asterisk/modules/*.so
