@@ -1,5 +1,12 @@
 2011-02-10  ddegroot
 
+	* [r2350] .version, ChangeLog, NEWS, autoconf/config.guess,
+	  autoconf/config.sub, debian/changelog: Issue Release Candidate
+	  RC3.1 (V3.0_RC3.1)
+
+	* [r2349] src/chan_sccp.h, src/sccp_pbx.c: Moved use of PRI_CAUSE
+	  Helper to ADV_FEATURES
+
 	* [r2348] src/sccp_indicate.c: Moved using PRI_CAUSE in
 	  sccp_indicate.c only when with ADV_FEATURES
 
