@@ -1,4 +1,1195 @@
+2011-02-10  ddegroot
+
+	* [r2348] src/sccp_indicate.c: Moved using PRI_CAUSE in
+	  sccp_indicate.c only when with ADV_FEATURES
+
+2011-02-10  davidded
+
+	* [r2347] src/chan_sccp.c, src/sccp_protocol.h: new protocol
+	  details
+
+2011-02-09  ddegroot
+
+	* [r2346] src/sccp_socket.c: Reversed the logic on testing EINTR
+	  and EAGAIN
+
+	* [r2345] src/sccp_socket.c: Added comments about ignoring EINTR /
+	  EAGAIN socket errno (Sparc64 + OpenBSD) using poll
+
+	* [r2344] src/sccp_socket.c: Handle Poll revents
+	  Changed polling timeout in sccp_socket_thread (Global SCCP
+	  Socket) to -1=no timeout, Poll will now wait for an event
+	  indefinitly, without timeing out.
+
+2011-02-09  davidded
+
+	* [r2343] src/sccp_socket.c: poll timeout, warnings -> notice
+
+2011-02-08  ddegroot
+
+	* [r2342] src/sccp_indicate.c, src/sccp_socket.c: Increased Socket
+	  Timeouts
+	  Removed failing code for Unknown Number in sccp_indicate
+
+2011-02-08  davidded
+
+	* [r2341] src/sccp_socket.c: poll einval egain handling
+
+2011-02-07  davidded
+
+	* [r2340] src/sccp_actions.c: fixed button count problem crashing
+	  7970
+
+	* [r2339] src/sccp_actions.c, src/sccp_socket.c: tentative fixes
+
+	* [r2338] src/sccp_pbx_wrapper.c: fixed missing null pointer check
+
+2011-02-06  marcelloceschia
+
+	* [r2337] src/sccp_actions.c: fix compile issue
+
+2011-02-06  ddegroot
+
+	* [r2336] src/chan_sccp.h, src/sccp_indicate.c: Updated UNKNOWN
+	  NUMBER Indication
+	  Renamed SCCP_RTP_STATUS_PROGESS_TRANSMIT to
+	  SCCP_RTP_STATUS_PROGRESS_TRANSMIT
+
+2011-02-06  marcelloceschia
+
+	* [r2335] src/sccp_actions.c, src/sccp_protocol.h:
+	  SoftKeyTemplateResMessage in dynamic way
+
+	* [r2334] src/sccp_features.c, src/sccp_indicate.c,
+	  src/sccp_labels.h, src/sccp_softkeys.c: revert to 2330
+
+	* [r2333] src/sccp_protocol.h: revert softkeymap
+
+2011-02-05  ddegroot
+
+	* [r2332] src/sccp_features.c, src/sccp_indicate.c,
+	  src/sccp_labels.h, src/sccp_protocol.h, src/sccp_softkeys.c: Used
+	  some of the new Display Messages from sccp_labels.h
+
+	* [r2331] src/sccp_labels.h: Copied some SKINNY_LBL and SKINNY_DISP
+	  defines from Federico Santulli's chan-sccp.org sccp_labels.h file
+
+	* [r2330] src/sccp_indicate.c: renamed pri_hangup -> pri_cause
+
+	* [r2329] src/sccp_indicate.c: Added PRI_CAUSE to progress and
+	  Proceed (for testing purposes
+
+2011-02-05  davidded
+
+	* [r2328] src/sccp_socket.c: missing free of unused buffer
+
+2011-02-05  ddegroot
+
+	* [r2327] src/sccp_indicate.c: Updated to c->pri_hangup
+
+2011-02-05  marcelloceschia
+
+	* [r2326] src/sccp_pbx_wrapper.c, src/sccp_pbx_wrapper.h: remove
+	  ifdef for 10800, because of configure issue
+
+2011-02-05  davidded
+
+	* [r2325] src/sccp_indicate.c, src/sccp_pbx.c: merged fixes
+
+2011-02-05  ddegroot
+
+	* [r2324] src/chan_sccp.h, src/sccp_indicate.c, src/sccp_pbx.c:
+	  Added PRI_CAUSE handling to sccp_pbx and sccp_indicate to grab
+	  PRI_CAUSE setting from mISDN and DAHDI
+	  Added sccp_channel->pri_cause to save the cause/hangupcause
+
+	* [r2323] src/sccp_indicate.c: Update debugging ast_cause
+
+2011-02-04  davidded
+
+	* [r2322] src/sccp_indicate.c: label assignments
+
+2011-02-04  ddegroot
+
+	* [r2321] src/sccp_utils.c, src/sccp_utils.h: Added
+	  astcause2skinnycause_message
+
+2011-02-04  davidded
+
+	* [r2320] src/sccp_labels.h: label assignments
+
+2011-02-04  ddegroot
+
+	* [r2319] src/sccp_indicate.c, src/sccp_labels.h, src/sccp_utils.c,
+	  src/sccp_utils.h: Added astcause2skinnycause to sccp_util.c
+	  used astcause2skinnycause in sccp_indicate for
+	  SCCP_CHANNELSTATE_CONGESTION and SCCP_CHANNELSTATE_ONHOOK
+
+2011-02-04  davidded
+
+	* [r2318] src/sccp_labels.h: label assignments
+
+	* [r2317] src/chan_sccp.c, src/sccp_labels.h, src/sccp_pbx.c: label
+	  assignments
+
+2011-02-04  ddegroot
+
+	* [r2316] src/sccp_pbx.c: Removed debug messages sccp_pbx.c
+
+	* [r2315] src/sccp_indicate.c, src/sccp_labels.h, src/sccp_pbx.c,
+	  src/sccp_protocol.h: Started added asterisk->skinny hangup causes
+
+	* [r2314] Makefile.in, aclocal.m4, conf/sccp.conf,
+	  conf/sccp_short.conf, conf/sccp_simple.conf, configure,
+	  doc/Makefile.in, src/sccp_config.c: Added progress as new
+	  earlyrtp option. This is also the new default setting.
+	  
+	  The RTP stream will be open by default during progress and
+	  proceed indications, so one will hear inband messages send by
+	  remote pstn's
+
+	* [r2313] src/sccp_pbx.c: sccp_indicate cleanup
+	  left to be fixed: forced early rtp during progress and proceeding
+
+2011-02-04  davidded
+
+	* [r2312] src/sccp_config.c, src/sccp_pbx.c: earlyrtp extension
+
+2011-02-04  ddegroot
+
+	* [r2311] src/sccp_indicate.c, src/sccp_pbx.c: Update earlyrtp
+	  handling
+
+2011-02-04  davidded
+
+	* [r2310] src/sccp_socket.c: compile fixes
+
+2011-02-04  ddegroot
+
+	* [r2309] src/sccp_socket.c: rewrite if/then/else in sccp_read_data
+
+	* [r2308] src/sccp_socket.c: Fixed sccp_read_data
+
+2011-02-04  davidded
+
+	* [r2307] src/sccp_socket.c: refactoring of sccp_socket
+
+	* [r2306] src/sccp_socket.c: length check after read
+
+	* [r2305] src/sccp_socket.c: length handling problems
+
+2011-02-02  ddegroot
+
+	* [r2304] src/Makefile.in, src/sccp_channel.c,
+	  src/sccp_pbx_wrapper.c, src/sccp_pbx_wrapper.h, src/sccp_utils.c,
+	  src/sccp_utils.h: Fixed compile warnings
+
+2011-02-01  ddegroot
+
+	* [r2303] src/sccp_utils.c, src/sccp_utils.h: Added sccp_codecs2str
+
+2011-02-01  davidded
+
+	* [r2302] src/sccp_pbx.c: fix
+
+2011-01-31  marcelloceschia
+
+	* [r2301] autoconf/asterisk.m4: asterisk version check by diederik
+
+2011-01-28  davidded
+
+	* [r2300] src/sccp_channel.c: forgotten checking for fix of
+	  transfer focus revertion
+
+2011-01-26  marcelloceschia
+
+	* [r2299] src/sccp_pbx_wrapper.c: fixes rtp null pointer in
+	  asterisk
+
+2011-01-24  marcelloceschia
+
+	* [r2298] src/chan_sccp.h, src/sccp_pbx_wrapper.c,
+	  src/sccp_pbx_wrapper.h: use PBX_RTP_TYPE, use PBX_CHANNEL_TYPE
+
+	* [r2297] src/chan_sccp.h: add TODOs, use PBX_RTP_TYPE, use
+	  PBX_CHANNEL_TYPE
+
+2011-01-23  marcelloceschia
+
+	* [r2296] src/sccp_channel.c, src/sccp_pbx_wrapper.c,
+	  src/sccp_pbx_wrapper.h, src/sccp_rtp.c: work in progress...
+
+	* [r2295] src/sccp_channel.c, src/sccp_pbx_wrapper.c,
+	  src/sccp_pbx_wrapper.h, src/sccp_rtp.c, src/sccp_rtp.h: use
+	  PBX(alloc_pbxChannel)
+
+	* [r2294] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_channel.h, src/sccp_pbx_wrapper.c,
+	  src/sccp_pbx_wrapper.h, src/sccp_rtp.c: work in progress...
+
+	* [r2293] src/sccp_pbx.h, src/sccp_pbx_wrapper.h:
+
+	* [r2292] src/common.h, src/sccp_channel.c, src/sccp_pbx_wrapper.c,
+	  src/sccp_pbx_wrapper.h, src/sccp_rtp.c, src/sccp_rtp.h: rtp
+
+	* [r2291] src/chan_sccp.c, src/chan_sccp.h: remove implicite
+	  inclution of rtp
+
+	* [r2290] src/sccp_pbx_wrapper.c, src/sccp_pbx_wrapper.h: pbx
+	  wrapper for payload type
+
+	* [r2289] src/sccp_channel.c: rtp payload lookup
+
+	* [r2288] src/sccp_rtp.c, src/sccp_rtp.h: rtp payload lookup
+
+	* [r2287] src/sccp_channel.c: remove asterisk rtp types from
+	  channel
+
+	* [r2286] conf/sccp.conf, src/sccp_config.h: add empty softkey
+
+	* [r2285] src/sccp_features.c, src/sccp_pbx_wrapper.c,
+	  src/sccp_pbx_wrapper.h, src/sccp_rtp.c, src/sccp_rtp.h: go on
+	  with wrapper functions
+
+2011-01-22  marcelloceschia
+
+	* [r2284] src/chan_sccp.h, src/sccp_rtp.c, src/sccp_rtp.c~[DEL]:
+	  add progress values sccp_rtp_status_t
+
+2011-01-22  ddegroot
+
+	* [r2283] src/sccp_pbx_wrapper.c: Removed OLDCONST
+
+	* [r2282] src/sccp_pbx_wrapper.c: Reordered sccp_pbx_wrapper.c to
+	  move function to the right section
+
+	* [r2281] src/sccp_pbx_wrapper.c, src/sccp_pbx_wrapper.h,
+	  src/sccp_rtp.c: Updated sccp_rtp.c to make it compile again
+	  added OLDCONST to some of the function in sccp_pbx_wrapper to
+	  make it compatible with asterisk 1.6.2.14
+
+	* [r2280] src/Makefile.in, src/sccp_rtp.c, src/sccp_rtp.c~,
+	  src/sccp_utils.c, src/sccp_utils.h: updated sccp_rtp to use
+	  socket_equals
+
+	* [r2279] src/sccp_utils.c, src/sccp_utils.h: New function
+	  socket_equals in sccp_utils
+
+2011-01-22  marcelloceschia
+
+	* [r2278] Makefile.in, aclocal.m4, autoconf/config.guess,
+	  autoconf/config.sub, configure, doc/Makefile.in, src/Makefile.am,
+	  src/Makefile.in, src/chan_sccp.c, src/chan_sccp.h, src/common.h,
+	  src/config.h.in, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_channel.h, src/sccp_pbx.c, src/sccp_pbx_wrapper.c,
+	  src/sccp_pbx_wrapper.h, src/sccp_rtp.c[ADD],
+	  src/sccp_rtp.c~[ADD], src/sccp_rtp.h[ADD]: development commit
+
+2011-01-22  ddegroot
+
+	* [r2277] src/sccp_labels.h: Cleaned up sccp_labels
+
+2011-01-21  marcelloceschia
+
+	* [r2276] src/sccp_line.c: fixes issue in hint, when device is
+	  unavailable
+
+	* [r2275] src/sccp_hint.c, src/sccp_hint.h: fixes issue in hint,
+	  when device is unavailable
+
+2011-01-18  ddegroot
+
+	* [r2274] src/sccp_pbx_wrapper.c: remarked-out ast10800 rtp code
+	  from pbx_wrapper
+
+2011-01-17  ddegroot
+
+	* [r2273] src/sccp_channel.c: Fixed DirectRTP
+
+	* [r2272] src/sccp_actions.c, src/sccp_channel.c: Fix
+	  startmediatransmission
+
+	* [r2271] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_channel.c, src/sccp_pbx.c, src/sccp_pbx.h: cleanup rtp
+	  handling
+
+	* [r2270] src/sccp_actions.c, src/sccp_channel.c, src/sccp_pbx.c,
+	  src/sccp_pbx_wrapper.c: reverted directrtp changes until Marcello
+	  can have a look at them.
+	  Fixed pbx_channel_walk_locked error
+
+2011-01-17  marcelloceschia
+
+	* [r2269] src/sccp_actions.c, src/sccp_device.c: 7931 button
+	  template?
+
+2011-01-16  ddegroot
+
+	* [r2268] src/sccp_channel.c: Patch to get sharedlines working over
+	  native bridge (directrtp)
+
+	* [r2267] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_channel.c, src/sccp_device.c, src/sccp_device.h,
+	  src/sccp_pbx.c, src/sccp_pbx.h, src/sccp_pbx_wrapper.h: Fixed
+	  directrtp traffic through ast_rtp_bridge by setting rtp->them to
+	  correct ip-address in sccp_rtp_get_peer
+	  Added wrappers for pbx_rtp_change_source and ast_rtp_new_source
+	  Added sccp wrapper arround ast_rtp_bridge to add logging, and
+	  change flags before commencing bridge. We could add callback
+	  function on bridge success later.
+	  Cleaned up OpenReceiveChannelAck handling
+	  Added peerIsSCCP bitfield to sccp_channel
+	  Fixed IpAddress Setting in sccp_startmediatransmission
+	  Fixed sccp_ast_bridge (Local bridge implementation)
+
+2011-01-15  ddegroot
+
+	* [r2266] src/sccp_channel.c, src/sccp_cli.c, src/sccp_pbx.h,
+	  src/sccp_pbx_wrapper.c, src/sccp_pbx_wrapper.h: Added
+	  pbx_rtp_get_peer, pbx_rtp_get_us and pbx_rtp_set_peer function to
+	  wrapper
+	  Rearranged rtp code in sccp_channel
+	  Added Bindaddress info to sccp_cli "show device"
+
+2011-01-14  ddegroot
+
+	* [r2265] src/sccp_pbx.c: Found a programming error, ast_pbx_start
+	  returns problem information about starting a new thread not if
+	  dial succeeded. Need to be fixed.
+
+	* [r2264] src/chan_sccp.c, src/sccp_channel.c,
+	  src/sccp_pbx_wrapper.h, src/sccp_socket.c: Updated chan_sccp.c to
+	  use sccp_pbx_wrapper\nremoved unnecessary iabuf declarations\n
+
+	* [r2263] src/sccp_cli.c, src/sccp_pbx.c, src/sccp_pbx_wrapper.c,
+	  src/sccp_pbx_wrapper.h: added pbx_channel_alloc, pbx_jb_configure
+	  and pbx_null_frame\n switched NEWCONST and OLDCONST definitions
+
+	* [r2262] src/sccp_pbx.c, src/sccp_pbx_wrapper.c,
+	  src/sccp_pbx_wrapper.h: added replacement functions
+	  pbx_channel_alloc and pbx_jb_configure
+
+	* [r2261] src/sccp_channel.c, src/sccp_pbx.c,
+	  src/sccp_pbx_wrapper.c, src/sccp_pbx_wrapper.h: replaced
+	  ast_moh_start and ast_moh_stop with wrapper functions
+
+	* [r2260] configure, src/sccp_cli.c, src/sccp_config.c,
+	  src/sccp_device.c, src/sccp_line.c, src/sccp_management.c,
+	  src/sccp_pbx_wrapper.c, src/sccp_pbx_wrapper.h, src/sccp_utils.c:
+	  corrections to sccp_pbx_wrapper.c to compile correctly against
+	  asterisk 1.4
+
+	* [r2259] src/sccp_device.c, src/sccp_features.c, src/sccp_line.c,
+	  src/sccp_pbx_wrapper.c, src/sccp_pbx_wrapper.h, src/sccp_utils.c:
+	  Added replacement function calls for ast_variable_new and
+	  ast_context_remove_extension
+
+	* [r2258] src/sccp_config.c, src/sccp_pbx_wrapper.c,
+	  src/sccp_pbx_wrapper.h: Backport of ast_str2cos and ast_str2cos
+	  for asterisk 1.2 and subsequent renaming of ast_str2?os to
+	  pbx_str2?os in sccp_config.c
+
+	* [r2257] src/sccp_cli.c: Cleanup AST_VERSION checks in sccp_cli.c
+
+	* [r2256] src/chan_sccp.c, src/sccp_channel.c, src/sccp_cli.c,
+	  src/sccp_device.c, src/sccp_pbx.c, src/sccp_pbx_wrapper.c,
+	  src/sccp_pbx_wrapper.h, src/sccp_socket.c: replaced pre asterisk
+	  1.4 versions of pbx_inet_ntoa
+
+	* [r2255] src/sccp_config.c, src/sccp_pbx_wrapper.c,
+	  src/sccp_pbx_wrapper.h: replacement funtion calls for sccp_config
+
+	* [r2254] src/sccp_management.c, src/sccp_pbx_wrapper.h: Added list
+	  of function which need to be implemented in sccp_pbx_wrapper
+	  Replaced header inclusion lines in sccp_management by common.h
+
+2011-01-13  ddegroot
+
+	* [r2253] src/chan_sccp.c, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_cli.c, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_featureButton.c, src/sccp_features.c, src/sccp_hint.c,
+	  src/sccp_line.c, src/sccp_management.c, src/sccp_mwi.c,
+	  src/sccp_pbx.c, src/sccp_pbx_wrapper.h, src/sccp_softkeys.c,
+	  src/sccp_utils.c: Fourth set of replacement function calls
+	  - ast_copy_string -> sccp_copy_string
+	  - pbx_copy_string -> sccp_copy_string
+	  - ast_strlen_zero -> sccp_strlen_zero
+	  - ast_gethostbyname -> pbx_gethostbyname
+	  - ast_apply_ha -> pbx_apply_ha
+	  - ast_codec2str -> pbx_codec2str
+	  - ast_pickup_ext -> ast_pickup_ext
+	  - ast_db_put -> pbx_db_put
+	  - ast_db_get -> pbx_db_get
+
+	* [r2252] src/chan_sccp.c, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_features.c, src/sccp_hint.c, src/sccp_line.c,
+	  src/sccp_pbx.c, src/sccp_utils.c: Third set of replacement
+	  function calls
+	  - ast_channel_walk_locked -> pbx_channel_walk_locked
+	  - ast_strdupa -> sccp_strdupa
+	  - ast_strdup -> sccp_strdup
+
+	* [r2251] src/chan_sccp.c, src/sccp_pbx_wrapper.h: Second set of
+	  replacements function calls
+	  - ast_register_application -> pbx_register_application
+	  - ast_unregister_application -> pbx_unregister_application
+	  - ast_custom_function_register -> pbx_custom_function_register
+	  - ast_custom_function_unregister ->
+	  pbx_custom_function_unregister
+	  - ast_channel_register -> pbx_channel_register
+	  - ast_channel_register_ex -> pbx_channel_register_ex
+	  - ast_channel_unregister -> pbx_channel_unregister
+	  - ast_rtp_proto_register -> pbx_rtp_proto_register
+	  - ast_rtp_proto_unregister -> pbx_rtp_proto_unregister
+	  - ast_rtp_glue_register -> pbx_rtp_glue_register
+	  - ast_rtp_glue_unregister -> pbx_rtp_glue_unregister
+
+	* [r2250] src/chan_sccp.c, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_cli.c, src/sccp_conference.c, src/sccp_features.c,
+	  src/sccp_hint.c, src/sccp_pbx.c, src/sccp_pbx_wrapper.h,
+	  src/sccp_socket.c, src/sccp_softkeys.c: replaced the first set of
+	  ast-functions with generic pbx function calls:
+	  - ast_codec_pref_index -> pbx_codec_pref_index
+	  - ast_codec_pref_getsize -> pbx_codec_pref_getsize
+	  - ast_check_hangup -> pbx_check_hangup
+	  - ast_channel_lock -> pbx_channel_lock
+	  - ast_channel_unlock -> pbx_channel_unlock
+	  - ast_sched_wait -> pbx_sched_wait
+	  - ast_io_wait -> pbx_io_wait
+	  - ast_inet_ntoa -> pbx_inet_ntoa
+	  - sccp_pbx_channel_lock -> pbx_channel_lock
+	  - sccp_pbx_channel_unlock -> pbx_channel_unlock
+
+	* [r2249] autoconf/asterisk.m4, configure, configure.ac,
+	  src/config.h.in: Removed Epoll Check from configure.ac (Caused
+	  problems with asterisk includes)
+
+2011-01-12  ddegroot
+
+	* [r2248] src/sccp_pbx_wrapper.c, src/sccp_pbx_wrapper.h: Small
+	  reversion
+
+	* [r2247] src/sccp_pbx_wrapper.c, src/sccp_pbx_wrapper.h: Update
+	  callinfo parse functions in sccp_pbx_wrapper
+
+	* [r2246] src/sccp_actions.c: Replace +1 keepAliveInterval with -1
+	  to make the maximum possible device timeout smaller than the
+	  maximum socket timeout
+
+	* [r2245] src/sccp_config.c: Fix compilation with
+	  --disable-dynamic-config
+
+	* [r2244] src/chan_sccp.c, src/common.h, src/sccp_socket.c: Fixing
+	  compile error sccp_socket on asterisk 1.4
+
+	* [r2243] src/sccp_socket.c: reintegration of sccp_socket code.
+	  re-registration working correctly again.
+
+	* [r2242] src/chan_sccp.h, src/sccp_pbx_wrapper.c,
+	  src/sccp_pbx_wrapper.h: Updated initial functions in
+	  sccp_pbx_wrapper.?
+
+	* [r2241] src/sccp_socket.c: reverted temporarily to an earlier
+	  version of sccp_socket.c to get time to fix
+	  sccp_socket_device_thread: re-registration issues
+
+	* [r2240] src/common.h, src/sccp_pbx_wrapper.c,
+	  src/sccp_pbx_wrapper.h, src/sccp_utils.h: Small fixes to get
+	  operational system again
+
+	* [r2239] src/sccp_utils.c: moved sccp_inet_ntoa to
+	  sccp_pbx_wrapper and named : pbx_inet_ntoa
+
+	* [r2238] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_pbx_wrapper.c, src/sccp_pbx_wrapper.h: First wrapper
+	  implementations
+
+	* [r2237] src/common.h, src/sccp_pbx_wrapper.c,
+	  src/sccp_pbx_wrapper.h: Added some headers to sccp_pbx_wrapper
+
+	* [r2236] src/Makefile.in, src/common.h: Ran indent on common.h
+
+	* [r2235] src/Makefile.am, src/Makefile.in, src/chan_sccp.c,
+	  src/common.h[ADD], src/sccp_actions.c, src/sccp_adv_features.c,
+	  src/sccp_channel.c, src/sccp_cli.c, src/sccp_conference.c,
+	  src/sccp_config.c, src/sccp_device.c, src/sccp_event.c,
+	  src/sccp_featureButton.c, src/sccp_features.c, src/sccp_hint.c,
+	  src/sccp_indicate.c, src/sccp_line.c, src/sccp_lock.c,
+	  src/sccp_mwi.c, src/sccp_pbx.c, src/sccp_pbx_wrapper.c[ADD],
+	  src/sccp_pbx_wrapper.h[ADD], src/sccp_socket.c,
+	  src/sccp_softkeys.c, src/sccp_utils.c: Initial creation and use
+	  of common.h to used for including common header files used in
+	  most .c files within chan_sccp-b
+	  Initial creation of sccp_pbx_wrapper.[c|h] to be used for phasing
+	  out version specific asterisk function calls
+
+	* [r2234] src/sccp_config.c[ADD], src/sccp_config.h[ADD],
+	  src/sccp_hint.c[ADD], src/sccp_hint.h[ADD],
+	  src/sccp_management.c[ADD], src/sccp_management.h[ADD]: readded
+	  sccp_config.c sccp_config.h sccp_hint.c sccp_hint.h
+	  sccp_management.c sccp_management.h
+
+	* [r2233] src/sccp_config.c[DEL], src/sccp_config.h[DEL],
+	  src/sccp_hint.c[DEL], src/sccp_hint.h[DEL],
+	  src/sccp_management.c[DEL], src/sccp_management.h[DEL],
+	  src/sccp_pbx.c: temporarily removed sccp_config.c sccp_config.h
+	  sccp_hint.c sccp_hint.h sccp_management.c sccp_management.h
+	  updated sccp_pbx to use get_sccp_channel_from_ast_channel
+
+2011-01-11  ddegroot
+
+	* [r2230] src/sccp_socket.c: update codingstyle for sccp_socket.c
+
+	* [r2229] autoconf/asterisk.m4, configure: Added AC_LANG definition
+	  to configure.ac
+
+	* [r2228] Makefile.in, autoconf/asterisk.m4, configure,
+	  configure.ac, doc/Makefile.in, src/Makefile.in, src/config.h.in:
+	  removed all references to common.h
+
+	* [r2227] src/sccp_socket.c: Removed usleep(10000) from
+	  sccp_socket.c socket error handling
+
+	* [r2226] Makefile.in, aclocal.m4, autoconf/acinclude.m4,
+	  autoconf/asterisk.m4, autoconf/config.guess, autoconf/config.sub,
+	  configure, configure.ac, doc/Makefile.in, src/Makefile.am,
+	  src/Makefile.in, src/config.h.in: Change to configure.ac to
+	  better detect asterisk 1.8
+
+	* [r2225] src/sccp_socket.c: Fixes to sccp_socket.c (following
+	  romain's e-mail 5/1/2011) (by Marcello and Diederik)
+
+2011-01-10  marcelloceschia
+
+	* [r2224] src/sccp_channel.c: fixes ast 1.4 compatibility issue
+
+	* [r2223] src/sccp_device.c: cancel session thread on
+	  sccp_device_sendReset
+
+	* [r2222] src/chan_sccp.c, src/sccp_socket.c: cleanup session
+
+	* [r2221] src/sccp_cli.c: lock issue
+
+	* [r2220] src/sccp_actions.c: session will be removed from list by
+	  thread it self
+
+2011-01-06  marcelloceschia
+
+	* [r2219] src/sccp_actions.c, src/sccp_device.c, src/sccp_socket.c,
+	  src/sccp_socket.h: make sccp_socket_close provate
+
+2011-01-06  ddegroot
+
+	* [r2218] src/sccp_actions.c, src/sccp_socket.c, src/sccp_socket.h:
+	  Removed unused variables
+	  Moved sccp_session_close function declaration to the header file
+
+2011-01-06  marcelloceschia
+
+	* [r2217] src/sccp_cli.c: use pthread_cancel after reset/restart
+
+	* [r2216] src/sccp_socket.c, src/sccp_socket.h: fixes deadlock in
+	  sccp_read_data
+	  make sccp_session_close private
+
+2011-01-04  marcelloceschia
+
+	* [r2215] src/chan_sccp.c, src/sccp_actions.c, src/sccp_hint.c,
+	  src/sccp_socket.c, src/sccp_socket.h: fixes unload issue, private
+	  destroy_session fkt
+
+	* [r2214] src/chan_sccp.c, src/sccp_socket.c: fixes unload issue
+
+	* [r2213] src/sccp_protocol.h: maxStreams
+
+	* [r2212] src/sccp_hint.c: change -> direction for cid, set
+	  softkeyset after hint subscription
+
+	* [r2211] src/sccp_actions.c: clean old session with session_stop =
+	  1
+
+	* [r2210] src/sccp_socket.c: lock session on destroy and close
+
+2011-01-02  marcelloceschia
+
+	* [r2209] src/chan_sccp.c, src/sccp_actions.c, src/sccp_actions.h,
+	  src/sccp_protocol.h: starting with spa protocol
+
+	* [r2208] src/sccp_channel.c: max bitrate
+
+2010-12-30  marcelloceschia
+
+	* [r2207] src/sccp_actions.c: einheitlicher name für device
+	  capabilities
+
+	* [r2206] src/sccp_protocol.h: einheitlicher name für device
+	  capabilities
+
+	* [r2205] src/sccp_indicate.c: fixes restart issue if 7985 is in
+	  shared line
+
+	* [r2204] src/sccp_channel.c: remove commented code sections
+
+2010-12-29  marcelloceschia
+
+	* [r2203] src/sccp_hint.c: fixes compile issue
+
+	* [r2202] src/sccp_channel.c: changing video handling
+
+	* [r2201] src/sccp_pbx.c: using VIDEO_MASK to get the correct video
+	  codec
+
+	* [r2200] src/sccp_socket.c: checking session thread id
+
+	* [r2199] src/sccp_features.c: using ast_queue_hangup in gpickup
+	  and directpickup
+
+	* [r2198] src/sccp_hint.c: unsubscribe device hints
+
+2010-12-22  marcelloceschia
+
+	* [r2197] src/sccp_device.c: 7985
+
+	* [r2196] src/sccp_hint.c: fixes deadlock in sccp_hint.c on device
+	  unregister
+
+	* [r2195] src/sccp_pbx.c: fixes deadlock on channel resume
+
+	* [r2194] src/sccp_pbx.c: fixes deadlock on channel resume
+
+	* [r2193] .gitignore, src/.gitignore: .gitignore
+
+	* [r2192] src/sccp_socket.c: remove unused variables and fixes
+	  compile warning
+
+	* [r2191] src/sccp_cli.c, src/sccp_device.c: save last registration
+	  time and display it with sccp show devices
+
+	* [r2190] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_socket.c: use session thread for each session
+
+	* [r2189] src/sccp_hint.c: change list lock during hint unsubscribe
+
+	* [r2188] .gitignore, autoconf/.gitignore[ADD],
+	  doc/.gitignore[ADD], src/.gitignore[ADD]: change list lock during
+	  hint unsubscribe
+
+2010-12-01  progs
+
+	* [r2187] configure, src/chan_sccp.c, src/chan_sccp.h,
+	  src/config.h.in, src/sccp_actions.c, src/sccp_cli.c,
+	  src/sccp_protocol.h, src/sccp_socket.c: fix sessions:
+	  
+	  - use a thread for each session (marcello's patch)
+	  - destroy sessions in its own thread to prevent deadlock and
+	  crash
+
+2010-11-26  progs
+
+	* [r2186] src/sccp_actions.c, src/sccp_channel.c, src/sccp_pbx.c,
+	  src/sccp_softkeys.c: several fixes of locks
+
+2010-11-23  ddegroot
+
+	* [r2185] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_channel.c, src/sccp_cli.c, src/sccp_dllists.h,
+	  src/sccp_indicate.c, src/sccp_line.c, src/sccp_pbx.c,
+	  src/sccp_softkeys.c: replace l->channelCount with
+	  l->channels.size (not inherently threadsafe, but l->channelCount
+	  wasn't either)
+	  when LIST(l->channels) is locked for read or write during use of
+	  the value of l->channels.size it is threadsafe.
+
+2010-11-22  ddegroot
+
+	* [r2184] src/sccp_lock.c: Added Preliminary locking documentation
+
+2010-11-22  progs
+
+	* [r2183] src/sccp_channel.c, src/sccp_pbx.c: remove channel from
+	  line during hangup
+
+2010-11-22  ddegroot
+
+	* [r2182] src/chan_sccp.c, src/chan_sccp.h, src/config.h.in,
+	  src/sccp_channel.c, src/sccp_cli.c: Removed device->channelCount,
+	  channels are connected to lines now, not devices anymore.
+
+2010-11-22  progs
+
+	* [r2181] src/sccp_line.c, src/sccp_pbx.c: force locking order to
+	  line -> line->devices
+
+	* [r2180] src/sccp_socket.c: sccp_socket: sccp_session_find: lock
+	  global sessions list
+	  
+	  sccp_session_find is called from sccp_session_send which might be
+	  called
+	  from outside sccp_socket.c where the global sessions list is not
+	  be locked
+
+	* [r2179] src/sccp_cli.c: sccp_cli: sccp_show_sessions: change
+	  locking order
+
+	* [r2178] src/sccp_line.c: sccp_line: sccp_line_clean: change
+	  locking
+	  
+	  remove line from the global 'lines' list early, remove useless
+	  code
+
+	* [r2177] src/sccp_socket.c: sccp_socket: destroy_session: change
+	  locking
+	  
+	  lock the global 'sessions' list when removing a session, and do
+	  it early
+
+	* [r2176] src/sccp_device.c: sccp_device: sccp_dev_clean: change
+	  locking order
+	  
+	  remove device from the global devices list early
+
+	* [r2175] src/sccp_device.c: remove obsolete doc warnings
+
+	* [r2174] doc/doxygen.cfg, src/chan_sccp.c, src/sccp_channel.c,
+	  src/sccp_cli.c, src/sccp_device.c, src/sccp_hint.c,
+	  src/sccp_management.c, src/sccp_mwi.c, src/sccp_pbx.c: add
+	  doxygen doc alias for functions called from Asterisk
+
+	* [r2173] src/sccp_line.c: update locking documentation
+	  
+	  add xref for sccp_hint_eventListener triggered by
+	  SCCP_EVENT_DEVICEDETACHED events
+
+	* [r2172] src/sccp_device.c: update locking documentation
+	  
+	  add xref for sccp_hint_eventListener triggered by
+	  SCCP_EVENT_DEVICEREGISTERED events
+
+	* [r2171] src/sccp_features.c, src/sccp_line.c: update locking
+	  documentation
+	  
+	  add xref for sccp_hint_handleFeatureChangeEvent &
+	  sccp_util_handleFeatureChangeEvent triggered by
+	  SCCP_EVENT_FEATURECHANGED events
+
+	* [r2170] src/sccp_indicate.c, src/sccp_mwi.c: update locking
+	  documentation
+	  
+	  add xref for sccp_mwi_lineStatusChangedEvent triggered by
+	  SCCP_EVENT_LINESTATUSCHANGED events
+	  add xref for sccp_mwi_check to sccp_mwi_lineStatusChangedEvent
+
+	* [r2169] src/sccp_line.c: sccp_line: sccp_line_cfwd: update
+	  locking documentation
+	  
+	  add xref for missing function calls
+	  add xref for sccp_mwi_deviceAttachedEvent triggered by
+	  SCCP_EVENT_DEVICEATTACHED events
+
+	* [r2168] src/sccp_line.c: update locking documentation
+	  
+	  add xref for sccp_mwi_linecreatedEvent triggered by
+	  SCCP_EVENT_LINECREATED events
+
+	* [r2167] src/sccp_device.c, src/sccp_socket.c: update locking
+	  documentation
+	  
+	  add xref on sccp_hint_eventListener triggered by
+	  SCCP_EVENT_DEVICEUNREGISTERED events
+
+	* [r2166] src/chan_sccp.c, src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_line.c, src/sccp_pbx.c: use schedeler in
+	  sccp_pbx_hangup() to remove sccp_channel_t safety
+
+	* [r2165] src/sccp_pbx.c: remove useless XXX
+
+	* [r2164] src/sccp_channel.c, src/sccp_channel.h: use the scheduler
+	  to destroy channels
+
+	* [r2163] src/chan_sccp.c, src/sccp_actions.c, src/sccp_actions.h,
+	  src/sccp_channel.c, src/sccp_channel.h, src/sccp_device.c,
+	  src/sccp_features.c, src/sccp_features.h, src/sccp_indicate.c,
+	  src/sccp_indicate.h, src/sccp_line.c, src/sccp_pbx.c,
+	  src/sccp_pbx.h, src/sccp_softkeys.c, src/sccp_utils.c,
+	  src/sccp_utils.h: clean-up channels locks
+
+2010-11-22  marcelloceschia
+
+	* [r2162] .hgignore[ADD], Makefile.in, aclocal.m4,
+	  autoconf/config.guess, autoconf/config.sub, configure,
+	  configure.ac, doc/Makefile.in, src/Makefile.in, src/config.h.in:
+	  fixes configure issue with current asterisk branch
+
+	* [r2161] src/sccp_hint.c: fixes #3104577 - display dnd on shared
+	  lines if all devices are in dnd (reject) only
+
+2010-11-19  ddegroot
+
+	* [r2160] src/sccp_device.c: Pickup Patch by Sergio Chersovani, to
+	  make compile work with --disable-pickup
+
+	* [r2159] src/sccp_protocol.h: Added INDENT-OFF and INDENT-ON to
+	  some sections to preserve correct formatting, which indent would
+	  process incorrectly
+
+	* [r2158] src/.indent.pro, src/sccp_protocol.h: updated
+	  .indent.pro, and included comments to clarify the parameters set
+	  reindented sccp_protocol.h
+
+2010-11-18  ddegroot
+
+	* [r2157] src/sccp_lock.c: log_show_lock() present starting
+	  asterisk v1.6.1
+
+	* [r2156] src/chan_sccp.c, src/sccp_protocol.h, src/sccp_socket.c:
+	  Added Support for the new SCCP Firmware 9.1 XML Alarm Message
+	  (Thanks to Federico / Sergio / Marcello )
+	  - added protocol entry for XMLAlarm Message
+	  - extened keep alive leeway for 7975 and 7970 phones
+	  - handle of XMLAlarmMessage in sccp_handle_message
+
+2010-11-17  ddegroot
+
+	* [r2155] src/sccp_dllists.h: Small fix to dllists for rwlock
+
+	* [r2154] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_cli.c, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_dllists.h, src/sccp_line.c, src/sccp_lock.h,
+	  src/sccp_management.c, src/sccp_utils.c: Replaced SCCP_LIST with
+	  SCCP_RWLIST for Global Devices and Lines
+
+2010-11-17  progs
+
+	* [r2153] src/chan_sccp.c, src/chan_sccp.h, src/sccp_channel.c,
+	  src/sccp_cli.c, src/sccp_device.c, src/sccp_dllists.h,
+	  src/sccp_lock.c, src/sccp_lock.h, src/sccp_protocol.h:
+	  log_show_lock() function exists only for asterisk >=1.6
+
+2010-11-17  ddegroot
+
+	* [r2152] src/sccp_dllists.h, src/sccp_lock.h: Added rwlock
+	  implementation to sccp_dllist
+
+	* [r2151] src/sccp_lock.h: Reorder the lock.h file for readability
+
+	* [r2150] src/sccp_pbx.c: Fix typo
+
+2010-11-17  progs
+
+	* [r2149] src/chan_sccp.c, src/sccp_device.c: chan_sccp:
+	  unload_module: fix locking
+	  
+	  add locking for lines and line->channels lists
+	  
+	  Conflicts:
+	  
+	  src/sccp_device.c
+
+	* [r2148] src/sccp_actions.c, src/sccp_cli.c, src/sccp_config.c:
+	  add missing locking/unlocking on global softKeySetConfig list
+	  
+	  Conflicts:
+	  
+	  src/sccp_actions.c
+	  src/sccp_cli.c
+	  src/sccp_config.c
+
+	* [r2147] src/sccp_cli.c: sccp_cli: sccp_unregister: fix typo from
+	  earlier commit
+	  
+	  add missing curly brace after
+	  963b9e6d4fe57f674b75188061aed1ec8499e9af
+
+	* [r2146] src/sccp_cli.c: sccp_cli: sccp_unregister: remove
+	  redundant code
+	  
+	  sccp_device_find_byid already checks for realtime devive if its
+	  second arg is TRUE
+
+	* [r2145] src/sccp_cli.c: fix another locking documentation
+	  leftover
+
+	* [r2144] src/sccp_actions.c: fix locking documentation
+
+	* [r2143] src/sccp_channel.c, src/sccp_cli.c: update locking
+	  documentation
+
+	* [r2142] src/chan_sccp.c, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_cli.c, src/sccp_conference.c, src/sccp_config.c,
+	  src/sccp_device.c, src/sccp_featureButton.c, src/sccp_features.c,
+	  src/sccp_hint.c, src/sccp_indicate.c, src/sccp_line.c,
+	  src/sccp_management.c, src/sccp_mwi.c, src/sccp_pbx.c,
+	  src/sccp_socket.c, src/sccp_softkeys.c, src/sccp_utils.c: update
+	  locking documentation
+
+	* [r2141] src/chan_sccp.c: fix conditional iabuf definition
+
+	* [r2140] src/chan_sccp.c, src/sccp_channel.c, src/sccp_pbx.c:
+	  [cosmetic] move curly brace out of conditional function
+	  prototypes
+
+	* [r2139] src/sccp_actions.c, src/sccp_utils.c: fix doxygen locking
+	  doc typos
+
+	* [r2138] src/sccp_management.c: sccp_management: add doxygen
+	  locking documentation
+
+	* [r2137] src/chan_sccp.c, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_cli.c, src/sccp_conference.c, src/sccp_config.c,
+	  src/sccp_device.c, src/sccp_event.c, src/sccp_featureButton.c,
+	  src/sccp_features.c, src/sccp_hint.c, src/sccp_indicate.c,
+	  src/sccp_line.c, src/sccp_management.c, src/sccp_mwi.c,
+	  src/sccp_pbx.c, src/sccp_socket.c, src/sccp_softkeys.c,
+	  src/sccp_utils.c: update doxygen locking doc to reflect levels,
+	  add warnings for list used without being locked/unlocked
+
+	* [r2136] src/sccp_config.c, src/sccp_softkeys.c: fix typos in
+	  doxygen locking documentation
+
+	* [r2135] src/chan_sccp.c, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_cli.c, src/sccp_conference.c, src/sccp_config.c,
+	  src/sccp_device.c, src/sccp_featureButton.c, src/sccp_features.c,
+	  src/sccp_hint.c, src/sccp_indicate.c, src/sccp_line.c,
+	  src/sccp_management.c, src/sccp_mwi.c, src/sccp_pbx.c,
+	  src/sccp_socket.c, src/sccp_softkeys.c, src/sccp_utils.c: add
+	  doxygen locking documentation
+
+	* [r2134] src/sccp_softkeys.c: sccp_softkeys: use
+	  sccp_channel_lock/unlock instead of sccp_mutex_lock/unlock
+
+	* [r2133] src/sccp_pbx.c: sccp_pbx.c: use sccp_line_lock/unlock
+	  instead of sccp_mutex_lock/unlock
+
+	* [r2132] src/sccp_cli.c: sccp_cli: move #ifdef so that we have
+	  doxygen doc in all cases
+
+	* [r2131] doc/doxygen.cfg: add doxygen aliases for locking
+	  documentation
+
+	* [r2130] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_actions.h, src/sccp_adv_features.c, src/sccp_channel.c,
+	  src/sccp_channel.h, src/sccp_cli.c, src/sccp_cli.h,
+	  src/sccp_conference.c, src/sccp_conference.h, src/sccp_config.c,
+	  src/sccp_config.h, src/sccp_device.c, src/sccp_device.h,
+	  src/sccp_dllists.h, src/sccp_event.c, src/sccp_event.h,
+	  src/sccp_featureButton.c, src/sccp_featureButton.h,
+	  src/sccp_features.c, src/sccp_features.h, src/sccp_hint.c,
+	  src/sccp_hint.h, src/sccp_indicate.c, src/sccp_indicate.h,
+	  src/sccp_labels.h, src/sccp_line.c, src/sccp_line.h,
+	  src/sccp_lock.c, src/sccp_lock.h, src/sccp_management.c,
+	  src/sccp_management.h, src/sccp_mwi.c, src/sccp_mwi.h,
+	  src/sccp_object2.c, src/sccp_object2.h, src/sccp_pbx.c,
+	  src/sccp_pbx.h, src/sccp_protocol.h, src/sccp_socket.c,
+	  src/sccp_socket.h, src/sccp_softkeys.c, src/sccp_softkeys.h,
+	  src/sccp_utils.c, src/sccp_utils.h: re-indentation
+
+2010-11-16  progs
+
+	* [r2129] src/sccp_actions.c: sccp_actions:
+	  sccp_handle_button_template_req: unlock device before returning
+
+2010-11-15  ddegroot
+
+	* [r2128] doc/doxygen.cfg: added \lock and \remainlocked to
+	  doxygen.cfg
+
+2010-11-15  progs
+
+	* [r2127] src/sccp_management.c: sccp_management: remove partial
+	  locking in sccp_manager_restart_device
+
+	* [r2126] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_softkeys.c: remove unneeded lock/unlock
+
+	* [r2125] src/chan_sccp.c, src/sccp_device.c, src/sccp_line.c:
+	  unlock in reverse locking order
+
+2010-11-15  ddegroot
+
+	* [r2124] src/sccp_channel.c, src/sccp_pbx.c: Removed
+	  ast_do_masquerade from call_forward, ast_hangup will perform the
+	  ast_do_masquerade for us.
+
+2010-11-14  ddegroot
+
+	* [r2123] src/chan_sccp.c, src/chan_sccp.h: Fix for gc using
+	  pthreads
+
+2010-11-12  ddegroot
+
+	* [r2122] src/chan_sccp.c: Modified Hangup OpenChannels in "module
+	  unload chan_sccp"
+
+	* [r2121] src/sccp_pbx.c: Fix for Fast Pickup / Auto-Answer during
+	  Call-Forwarded Call. Added a ast_setstate to AST_STATE_UP for
+	  bridge and incoming channel
+
+2010-11-12  progs
+
+	* [r2120] src/sccp_softkeys.c: sccp_sk_transfer: add missing
+	  SCCP_LIST_LOCK(&d->selectedChannels)
+
+	* [r2119] src/sccp_hint.c: sccp_hint_remoteNotification_thread:
+	  unlock non matching channels when walking asterisk channel list
+
+	* [r2118] src/sccp_features.c: sccp_feat_grouppickup: fix a corner
+	  case when asterisk channel is not unlocked
+
+	* [r2117] src/sccp_features.c: sccp_feat_directpickup: fix a corner
+	  case when asterisk channel is not unlocked
+
+	* [r2116] src/sccp_features.c: sccp_feat_directpickup: lock device
+	  d instead of channel c when setting d->active_channel
+
+2010-11-10  progs
+
+	* [r2115] src/chan_sccp.c: chan_sccp: sccp_func_sccpdevice: add
+	  missing break statements (closes: #1555)
+
+	* [r2114] src/chan_sccp.c: chan_sccp: sccp_devicestate: fix
+	  unreachable test condition (closes: #1554)
+
+	* [r2113] src/chan_sccp.c: chan_sccp: remove orphan
+	  sccp_session_unlock calls
+
+	* [r2112] src/sccp_hint.c: [cleanup] hint: rework
+	  sccp_hint_remoteNotification_thread
+
+2010-11-09  progs
+
+	* [r2111] src/chan_sccp.c, src/sccp_device.c, src/sccp_event.c,
+	  src/sccp_hint.c, src/sccp_mwi.c, src/sccp_socket.c: [cleanup]
+	  SCCP_LIST_TRAVERSE_SAFE_BEGIN use
+	  
+	  use SCCP_LIST_TRAVERSE instead of SCCP_LIST_TRAVERSE_SAFE_BEGIN
+	  when
+	  no SCCP_LIST_*_CURRENT functions are used during traversal
+
+2010-11-08  progs
+
+	* [r2105] .gitignore: add more autotools remains to .gitignore
+
+	* [r2104] .gitignore[ADD]: add a .gitignore file
+
+	* [r2103] src/chan_sccp.c: [cleanup]
+	  sccp_unregister_dialplan_functions: use vars instead of string
+	  constants when unregistering application functions
+
+	* [r2102] src/chan_sccp.c: [cleanup] sccp_app_calledparty: remove
+	  unneeded string copy
+
+	* [r2101] src/chan_sccp.c: [cosmetic] fix lock typo
+
+2010-11-05  progs
+
+	* [r2099] src/sccp_pbx.c: fix double unlock in acf_channel_real()
+
+	* [r2097] src/sccp_channel.c: oops
+
+	* [r2096] src/sccp_channel.c, src/sccp_pbx.c: quickfix deadlock
+
+2010-11-03  ddegroot
+
+	* [r2094] src/sccp_actions.c: Fixed the "Dialed Phonebook" error
+	  message
+
+2010-11-03  progs
+
+	* [r2092] src/sccp_config.c: fix register of not configured devices
+	  
+	  when a device is registering on chan_sccp-b and is not configured
+	  in
+	  sccp.conf, the hotline is associated to the device, but
+	  pendingUpdate was
+	  set to 1, so the device was infinitely restarted.
+
+2010-11-02  progs
+
+	* [r2090] src/sccp_line.c: fix compilation without realtime
+
+	* [r2088] src/sccp_config.c, src/sccp_device.c: fix reload of
+	  buttonconfigs
+
+2010-10-29  progs
+
+	* [r2084] src/sccp_channel.c: remove a useless lock of device
+
+	* [r2083] src/sccp_device.c: fix buffer overflow
+
+	* [r2082] src/sccp_channel.c: fix holding on no-bridged channels
+	  (for example on meetme conference)
+
+2010-10-28  progs
+
+	* [r2079] src/sccp_config.c: remove variables when reloading
+
+	* [r2078] src/sccp_config.c, src/sccp_line.c: do not remove hotline
+	  when reloading
+
+	* [r2074] src/sccp_device.c, src/sccp_device.h: fix display of
+	  status messages
+
+	* [r2073] src/chan_sccp.c: fix memory leak, avoid useless copy, and
+	  useless strlen
+
+2010-10-27  ddegroot
+
+	* [r2072] src/sccp_channel.c: Added c->answered_elsewhere = TRUE;
+	  to sccp_channel.c: channel_answer
+	  This seems to fix the problem for forwarded calls. Not sure of
+	  the full 100% impact of this addition
+
+	* [r2071] src/sccp_channel.c: Extended logging to trace down
+	  set_rtp_peer bug (#3096294)
+
+2010-10-27  progs
+
+	* [r2069] src/sccp_channel.c: use usleep() instead of sleep()
+
+	* [r2068] src/sccp_pbx.c: do not lock anymore in fixup
+
+2010-10-27  ddegroot
+
+	* [r2067] src/sccp_actions.c, src/sccp_channel.c, src/sccp_line.c:
+	  Extended Logging on sccp_channel_set_rtp_peer
+	  Extended logging in sccp_actions.c helper function
+	  fixed cfwdall setting in sccp_line, so sccp_feat_changed get's
+	  the correct change
+
+	* [r2066] src/sccp_indicate.c, src/sccp_pbx.c: Removed ERROR_LOG
+	  line from sccp_pbx
+	  Changed Fixup
+	  Change Progress Indication, do set connected during progress.
+
+	* [r2065] src/sccp_channel.c, src/sccp_lock.h, src/sccp_pbx.c: Fix
+	  Compile problem
+
+2010-10-27  progs
+
+	* [r2062] src/sccp_device.c: do not erase useful status messages
+
+	* [r2061] src/sccp_lock.h, src/sccp_pbx.c: fix lock with asterisk
+	  >= 1.6
+
+2010-10-26  progs
+
+	* [r2060] src/sccp_channel.c, src/sccp_lock.h, src/sccp_pbx.c: fix
+	  deadlock when using masquerade (and add macro
+	  SCCP_CHANNEL_DEADLOCK_AVOIDANCE)
+
+2010-10-25  ddegroot
+
+	* [r2058] ChangeLog, Makefile.am, Makefile.in,
+	  autoconf/svn2html.css: Update to SVN2CL ChangeLog generator. It
+	  now put links to the bug-report system into the ChangeLog when
+	  bug has been specified during svn commit using #bugnumber.
+
 2010-10-23  ddegroot
+
+	* [r2043] autoconf/asterisk.m4, src/chan_sccp.c, src/chan_sccp.h,
+	  src/sccp_channel.c, src/sccp_pbx.c, src/sccp_pbx.h,
+	  src/sccp_utils.c, src/sccp_utils.h: Revert to 2041. I checked in
+	  my asterisk 1.8 fixes into trunk by accident. Sorry
 
 	* [r2042] autoconf/asterisk.m4, src/chan_sccp.c, src/chan_sccp.h,
 	  src/config.h.in, src/sccp_channel.c, src/sccp_pbx.c,
@@ -4588,1175 +5779,4 @@
 	  src/sccp_softkeys.c[ADD], src/sccp_softkeys.h[ADD],
 	  src/sccp_utils.c[ADD], src/sccp_utils.h[ADD]: using shared lines
 	  as working copy for further development
-
-2009-01-14  davidded
-
-	* [r493] sccp_socket.c: fixed packet dump issue
-
-2009-01-10  marcelloceschia
-
-	* [r466] chan_sccp.h, sccp_actions.c:
-
-2008-12-15  marcelloceschia
-
-	* [r432] sccp_actions.c:
-
-2008-12-07  marcelloceschia
-
-	* [r415] conf/sccp_v3.conf: added missig context for line
-
-2008-11-25  fsantulli
-
-	* [r414] conf/sccp_v3.conf[ADD], sccp_management.c, sccp_pbx.c: *
-	  Possible Fix to 7920/21 high cpu usage issue while call is up;
-	  * Moved config sample from SCCP v3 tree
-
-2008-11-23  marcelloceschia
-
-	* [r413] sccp_management.c:
-
-	* [r412] chan_sccp.c:
-
-	* [r411] Makefile, chan_sccp.c, sccp_management.c[ADD],
-	  sccp_management.h[ADD]: test of management
-
-	* [r410] chan_sccp.c:
-
-	* [r409] chan_sccp.h, sccp_utils.c, sccp_utils.h: list impl
-
-2008-11-23  davidded
-
-	* [r408] sccp_actions.c, sccp_protocol.h: minor fixes
-
-2008-11-22  marcelloceschia
-
-	* [r407] sccp_actions.c:
-
-	* [r406] chan_sccp.h, sccp_cli.c, sccp_utils.c, sccp_utils.h:
-
-2008-11-22  davidded
-
-	* [r405] sccp_actions.c: fixed length issue
-
-	* [r404] sccp_utils.c: fixed length issue
-
-	* [r403] sccp_actions.c, sccp_utils.c: fixed length issue
-
-	* [r402] sccp_cli.c, sccp_utils.c: fixed length issue
-
-2008-11-22  marcelloceschia
-
-	* [r401] sccp_utils.c: cleanup
-
-	* [r400] chan_sccp.c:
-
-2008-11-22  davidded
-
-	* [r399] chan_sccp.c: fixed missing list termination of
-	  button_config
-
-2008-11-22  marcelloceschia
-
-	* [r398] conf/tables.sql: realtime-tables for mysql
-
-	* [r397] chan_sccp.c, sccp_utils.c: added realtime support
-
-	* [r396] chan_sccp.c:
-
-2008-11-21  marcelloceschia
-
-	* [r395] chan_sccp.c:
-
-	* [r394] chan_sccp.c:
-
-	* [r393] chan_sccp.c:
-
-	* [r392] chan_sccp.c:
-
-	* [r391] chan_sccp.c:
-
-	* [r390] chan_sccp.h, sccp_cli.c: removed old config param handle
-
-	* [r389] chan_sccp.c: removed old config param handle
-
-	* [r388] chan_sccp.c: fix ast 1.4 conf load
-
-	* [r387] sccp_actions.c:
-
-2008-11-19  marcelloceschia
-
-	* [r386] chan_sccp.c, sccp_actions.c, sccp_device.c: speeddial with
-	  hints
-
-	* [r385] chan_sccp.h: speeddial with hints - not working at moment
-
-	* [r384] chan_sccp.c, sccp_actions.c, sccp_cli.c, sccp_device.c:
-	  speeddial with hints - not working at moment
-
-	* [r383] chan_sccp.c: speeddial without hint
-
-	* [r382] sccp_actions.c: speeddial without hint
-
-2008-11-17  marcelloceschia
-
-	* [r381] chan_sccp.c: reading softkeyTemplateSet
-
-	* [r380] chan_sccp.c: reading softkeyTemplateSet
-
-	* [r379] chan_sccp.c:
-
-	* [r378] chan_sccp.c, chan_sccp.h, sccp_utils.c, sccp_utils.h:
-	  reading softkeyTemplateSet
-
-	* [r377] doc/featureButton[ADD]: exampe of feature button
-
-	* [r376] doc/problems[DEL]:
-
-	* [r375] chan_sccp.c, chan_sccp.h: reading softkeyTemplateSet
-
-	* [r374] chan_sccp.c, chan_sccp.h: reading softkeyTemplateSet
-
-	* [r373] chan_sccp.c: attentionasterisk -rvvvv! implementation of
-	  sccpv3.conf not all features are working a the moment
-
-	* [r372] chan_sccp.c, sccp_actions.c, sccp_cli.c, sccp_utils.c:
-	  attentionasterisk -rvvvv! implementation of sccpv3.conf not all
-	  features are working a the moment
-
-	* [r370] chan_sccp.c:
-
-2008-11-16  marcelloceschia
-
-	* [r369] sccp_actions.c: attentionasterisk -rvvvv! implementation
-	  of sccpv3.conf not all features are working a the moment
-
-	* [r368] sccp_actions.c: attentionasterisk -rvvvv! implementation
-	  of sccpv3.conf not all features are working a the moment
-
-	* [r367] chan_sccp.c, chan_sccp.h, sccp_actions.c:
-	  attentionasterisk -rvvvv! implementation of sccpv3.conf not all
-	  features are working a the moment
-
-	* [r366] sccp_actions.c: attentionasterisk -rvvvv! implementation
-	  of sccpv3.conf not all features are working a the moment
-
-	* [r365] sccp_actions.c, sccp_utils.c: attentionasterisk -rvvvv!
-	  implementation of sccpv3.conf not all features are working a the
-	  moment
-
-	* [r364] chan_sccp.c: attentionasterisk -rvvvv! implementation of
-	  sccpv3.conf not all features are working a the moment
-
-2008-11-15  marcelloceschia
-
-	* [r361] chan_sccp.c, chan_sccp.h, sccp_actions.c, sccp_actions.h,
-	  sccp_cli.c, sccp_device.c, sccp_utils.c: attentionasterisk
-	  -rvvvv! implementation of sccpv3.conf not all features are
-	  working a the moment
-
-2008-11-10  fsantulli
-
-	* [r354] sccp_pbx.c:
-
-	* [r353] Makefile, chan_sccp.c, chan_sccp.h, sccp_actions.c,
-	  sccp_channel.c, sccp_channel.h, sccp_indicate.c, sccp_pbx.c,
-	  sccp_pbx.h, sccp_softkeys.c, sccp_utils.c, sccp_utils.h:
-
-2008-10-25  marcelloceschia
-
-	* [r352] doc/problems:
-
-	* [r351] doc/problems:
-
-2008-10-20  fsantulli
-
-	* [r350] sccp_actions.c, sccp_channel.c, sccp_cli.c,
-	  sccp_indicate.c: * Fixed a bug when Paging a device (it was also
-	  an rtp bug).
-	  * Fixed Channel Events compilation problem.
-
-2008-10-17  fsantulli
-
-	* [r349] chan_sccp.c, sccp_device.c: * Fixed a segfault when
-	  post_registration done before hint loading (on many devices);
-
-	* [r348] create_config.sh, sccp_indicate.c, sccp_indicate.h: *
-	  Added backtrace on sccp_indicate functions. Sometimes it appears
-	  to be called a locked indication for non NULL channels. This is
-	  probably due to non lock problems.
-
-2008-10-16  fsantulli
-
-	* [r347] chan_sccp.c, chan_sccp.h, sccp_features.c, sccp_utils.c: *
-	  Fixed SCCP Channel hints on Asterisk 1.6;
-	  * Other small fixes around here;
-
-	* [r346] chan_sccp.c, chan_sccp.h, conf/sccp.conf,
-	  create_config.sh, sccp_channel.c, sccp_cli.c, sccp_features.c,
-	  sccp_indicate.c, sccp_pbx.c, sccp_utils.c: Added SCCP manager
-	  events :) Please update your config. Fixed or rewrote some
-	  routines. Fixed bugs on hint. Fixed a strange deadlock on
-	  indications.
-
-2008-10-10  fsantulli
-
-	* [r345] chan_sccp.c, chan_sccp.h, sccp_actions.c, sccp_actions.h,
-	  sccp_channel.c, sccp_cli.c, sccp_device.c, sccp_features.c,
-	  sccp_indicate.c, sccp_protocol.h: Many fixes :)
-
-2008-10-02  fsantulli
-
-	* [r344] create_config.sh, sccp_actions.c, sccp_channel.c,
-	  sccp_device.c, sccp_indicate.c, sccp_pbx.c: * Fixed a bug that
-	  causes a sigfault when a device disappears during a call (Steven
-	  Lam);
-	  * Changed Enbloc Management to support new firmware release
-	  (David Gibbons);
-
-2008-09-28  fsantulli
-
-	* [r342] chan_sccp.c, chan_sccp.h, sccp_actions.c, sccp_features.c,
-	  sccp_protocol.h, sccp_utils.c: * Small fixes on Pickup functions;
-	  * Small fixes on Hint notifications of non SCCP devices;
-	  * Initial support for In Use Hint options;
-
-2008-09-27  fsantulli
-
-	* [r341] sccp_actions.c, sccp_channel.c, sccp_features.c,
-	  sccp_utils.c, sccp_utils.h: * Fixed waring message about a cast
-	  in sccp_actions.c;
-	  * Fixed a bug in blind transfer that causes segmentation fault;
-	  * Fixed a bug in direct_pickup and group_pickup functions that
-	  leave speaker mode enabled if pickup mode is set to CCME and call
-	  is not answered;
-
-2008-09-26  fsantulli
-
-	* [r340] chan_sccp.c, sccp_device.c, sccp_features.c: * Fixed
-	  CallForward Hint Notification (double message was showed);
-	  * Debug info for Direct Pickup (to help fixing Asterisk 1.2
-	  issues);
-
-2008-09-25  fsantulli
-
-	* [r339] sccp_channel.c, sccp_pbx.c: * Fixed some strange
-	  simpleswitch problems;
-
-	* [r338] create_config.sh, sccp_actions.c, sccp_channel.c,
-	  sccp_cli.c, sccp_features.c, sccp_features.h, sccp_indicate.c,
-	  sccp_pbx.c, sccp_protocol.h, sccp_utils.c, sccp_utils.h: Lots of
-	  modifications and fixes.
-
-2008-09-18  fsantulli
-
-	* [r337] sccp_pbx.c: * Better VOICE_FRAME management. Now
-	  disappeared the bug "SEP00xxxxxxxxxx: Asked to trasmit frame type
-	  0, while native format is ...."
-
-2008-09-17  fsantulli
-
-	* [r336] sccp_channel.c, sccp_indicate.c: * Fixed a possible issue
-	  during HOLD/RESUME (rtp will not be destroyed but just stopped).
-	  This should fix many issues on KIRK and WIRELESS phones, and also
-	  slow pbx systems (as epia based ones);
-
-	* [r335] Makefile, chan_sccp.c, sccp_cli.c, sccp_pbx.c: * Fixed a
-	  Prodding bug in Asterisk 1.4/1.6 (it removes the old message
-	  relative to frame type 0);
-	  * Added compilation date and user to the SCCP version;
-
-2008-09-16  fsantulli
-
-	* [r334] sccp_channel.c, sccp_cli.c, sccp_indicate.c: * Fixed
-	  unloading of module in Asterisk 1.2/1.4;
-	  * Fixed CP7936 device restart after each call;
-
-	* [r333] sccp_cli.c: * Fixed cli fdebug command on Asterisk 1.2/1.4
-
-2008-09-15  fsantulli
-
-	* [r332] chan_sccp.c, chan_sccp.h, sccp_actions.c, sccp_channel.c,
-	  sccp_features.c, sccp_indicate.c, sccp_pbx.c: * Added CCM mode to
-	  pickup function;
-	  * Changes in RTP codec initialization and allocation;
-	  * Workaround to a protocol defect (phone requests for protocol
-	  version 0)
-
-2008-09-11  fsantulli
-
-	* [r331] chan_sccp.c, chan_sccp.h, conf/sccp.conf, sccp_actions.c,
-	  sccp_channel.c, sccp_cli.c, sccp_device.c, sccp_lock.h,
-	  sccp_pbx.c, sccp_protocol.h, sccp_utils.c, sccp_utils.h: * Added
-	  support for filtered debug (you can debug just a single debug
-	  level). See CLI "sccp fdebug";
-	  *Added support for new devices and Addons:
-	  7906, 7937, 7962 plus addons 7915/7916 are now available for
-	  testing.
-	  * Changed behaviour for device addons configuration.
-	  Please refer to SCCP.CONF.
-
-2008-09-08  fsantulli
-
-	* [r327] sccp_pbx.c, sccp_protocol.h: * Changed Audio allocation to
-	  allow G729 passthrough without the transcoder;
-	  * Fixed 7970/7971/CIPC registration problem (it doesn't support
-	  CBARGE key);
-
-2008-09-06  fsantulli
-
-	* [r313] sccp_utils.c: Fixed not supported G726_AAL2 codec on
-	  Asterisk 1.2
-
-	* [r312] sccp_adv_features.c[ADD], sccp_adv_features.h[ADD],
-	  sccp_features.c[ADD], sccp_features.h[ADD]: new files added
-
-	* [r311] Makefile, chan_sccp.c, chan_sccp.h, conf/sccp.conf,
-	  create_config.sh, sccp_actions.c, sccp_channel.c, sccp_channel.h,
-	  sccp_cli.c, sccp_device.c, sccp_indicate.c, sccp_lock.h,
-	  sccp_pbx.c, sccp_protocol.h, sccp_softkeys.c, sccp_softkeys.h: *
-	  Fixed 7921 support;
-	  * Fixed Asterisk 1.2/1.4/1.6 compilation problems;
-	  * Added MeetMe feature;
-	  * Fixed possible deadlocks in RTP routines;
-
-2008-08-17  marcelloceschia
-
-	* [r310] sccp_pbx.c: bugfix for asterisk 1.4 and 1.6
-
-2008-08-12  fsantulli
-
-	* [r309] create_config.sh, sccp_indicate.c, sccp_pbx.c: * Fixed a
-	  compilation problem on asterisk 1.6 branch;
-	  * Fixed the AST_STATE on proceeding that cuts off some audio;
-
-	* [r308] chan_sccp.c, create_config.sh, sccp_actions.c,
-	  sccp_channel.c: * Fixed compilation warnings on asterisk 1.6;
-	  * Added hint support for RINGINUSE and ONHOLD device states;
-	  * Changed (Asterisk 1.6 only) HINT signaling with
-	  ast_devstate_changed instead of ast_device_state_changed;
-	  * Small other fixes;
-
-2008-08-11  fsantulli
-
-	* [r307] create_config.sh, sccp_pbx.c: * Fixed identification
-	  problems on branch versions of Asterisk 1.2/1.4/1.6;
-	  * Fixed a compilation problem with Asterisk 1.6 trunk due to
-	  changes in frame structure;
-
-2008-08-10  fsantulli
-
-	* [r306] sccp_channel.c: Fixed a segmentation fault due to
-	  CFWDNOANSWER key press.
-
-	* [r305] chan_sccp.c, chan_sccp.h, create_config.sh,
-	  sccp_actions.c, sccp_channel.c, sccp_channel.h, sccp_pbx.c,
-	  sccp_protocol.h: * Fixed compilation problem when native
-	  functions are not enabled (Dan Karg 08/08/2008);
-	  * Correcly added HOLD HINT support (Stefan Gofferje 08/09/2008);
-
-2008-08-08  fsantulli
-
-	* [r304] create_config.sh: Now supports asterisk 1.6 as trunk
-	  version.
-
-2008-08-07  fsantulli
-
-	* [r303] chan_sccp.c, conf/sccp.conf, sccp_channel.c,
-	  sccp_channel.h, sccp_indicate.c, sccp_line.c, sccp_pbx.c,
-	  sccp_protocol.h, sccp_softkeys.c, sccp_utils.c, sccp_utils.h:
-	  Restored old RTP behaviour, changed MOH behaviour, fixed DIRECT
-	  PICKUP and rewrote GROUP PICKUP function natively.
-
-2008-08-02  fsantulli
-
-	* [r302] conf/sccp.conf, sccp_channel.c, sccp_pbx.c: Fixed a
-	  problem with redial key;
-	  Fixed Extension Pickup problem that stucks masqueraded channels.
-
-2008-08-01  fsantulli
-
-	* [r301] chan_sccp.c, chan_sccp.h, conf/sccp.conf, sccp_actions.c,
-	  sccp_channel.c, sccp_channel.h, sccp_indicate.c, sccp_line.c,
-	  sccp_pbx.c, sccp_pbx.h, sccp_protocol.h, sccp_softkeys.c,
-	  sccp_softkeys.h, sccp_utils.c: implementing SCCP at CCME way,
-	  fixed some stuff, changed CallForward behaviour and added Direct
-	  Extension Pickup support. Partially implemented CallForward
-	  Noanswer and Conference support
-
-2008-06-11  fsantulli
-
-	* [r300] chan_sccp.c, sccp_actions.c, sccp_indicate.c, sccp_lock.h:
-	  ** Fixed privacy bug ** Fixed Asterisk 1.2 compilation problem
-	  (submitted by Steve J. Walker <SteveW@bucks.net>)
-
-2008-06-10  fsantulli
-
-	* [r299] create_config.sh: fixed comment
-
-	* [r298] chan_sccp.h, create_config.sh, sccp_channel.c, sccp_pbx.c:
-	  Fixed integer truncation (Andreas Anderson)
-	  Fixed Asterisk 1.4.20 prior releases compilation problem (Kenneth
-	  Walker)
-
-	* [r297] sccp_pbx.c, sccp_pbx.h: Asterisk 1.2 fixes
-
-	* [r296] sccp_channel.c, sccp_indicate.c: Fixed no audio after
-	  transfer
-
-	* [r295] chan_sccp.h, sccp_channel.c, sccp_indicate.c: Fixes no
-	  audio after hold
-
-	* [r294] sccp_channel.c, sccp_indicate.c, sccp_pbx.c: Latest
-	  cleanup and privacy fixes
-
-2008-06-09  fsantulli
-
-	* [r293] conf/sccp.conf, create_config.sh, sccp_actions.c,
-	  sccp_channel.c, sccp_indicate.c, sccp_pbx.c, sccp_pbx.h,
-	  sccp_protocol.h, sccp_softkeys.c, sccp_softkeys.h: Added hint
-	  privacy functions, now fixed pickup, hold and transfer bugs.
-	  Added initial native conference support.
-
-2008-06-06  fsantulli
-
-	* [r292] Makefile, chan_sccp.c, chan_sccp.h, sccp_actions.c,
-	  sccp_channel.c, sccp_channel.h, sccp_pbx.c, sccp_softkeys.c,
-	  sccp_utils.c: latest pickup tests
-
-2008-06-01  fsantulli
-
-	* [r291] sccp_channel.c: other gpickup fixes
-
-	* [r290] sccp_pbx.h: Other gpickup fixes
-
-	* [r289] sccp_channel.c, sccp_pbx.c: Other gpickup fixes
-
-	* [r288] sccp_actions.c, sccp_channel.c, sccp_pbx.c: Other gpickup
-	  fixes
-
-	* [r287] sccp_channel.c, sccp_pbx.c: ast_alloc_channel fix
-
-	* [r286] sccp_channel.c, sccp_pbx.c: Now gpickup works !
-
-	* [r285] sccp_channel.c: test
-
-	* [r284] sccp_channel.c: test thread
-
-	* [r283] sccp_channel.c: retest
-
-	* [r282] sccp_channel.c, sccp_pbx.c, sccp_pbx.h: thread testing
-
-	* [r281] sccp_pbx.h: test
-
-	* [r280] sccp_channel.c, sccp_pbx.c, sccp_pbx.h: testing static
-	  proc
-
-	* [r279] chan_sccp.c, sccp_actions.c, sccp_channel.c,
-	  sccp_device.c, sccp_indicate.c, sccp_pbx.c, sccp_protocol.h,
-	  sccp_softkeys.c, sccp_utils.c: test
-
-	* [r278] sccp_actions.c, sccp_channel.c, sccp_pbx.c,
-	  sccp_softkeys.c: test
-
-	* [r277] sccp_pbx.c: pickup stuff test
-
-	* [r276] sccp_channel.c, sccp_indicate.c, sccp_pbx.c: 4 testing
-
-	* [r275] sccp_pbx.c: test
-
-	* [r274] sccp_pbx.c: test
-
-	* [r273] sccp_pbx.c: upd
-
-	* [r272] sccp_channel.c, sccp_pbx.c: test
-
-2008-05-30  fsantulli
-
-	* [r271] sccp_softkeys.c:
-
-	* [r270] sccp_softkeys.c: test
-
-	* [r269] sccp_softkeys.c: gpickup seems more stable but needs a lot
-	  of tests on asterisk 1.4 in production environment.
-	  
-	  Post comments.
-
-	* [r268] sccp_channel.c, sccp_pbx.c, sccp_softkeys.c: test
-
-	* [r267] sccp_pbx.c: Another test for Gpickup
-
-	* [r266] sccp_pbx.c: Another gpickup bug for testing. Afraid to say
-
-	* [r265] sccp_pbx.c: Reduced sccp_queue_frame usleep time from 10
-	  to 1. Testing
-
-	* [r264] sccp_pbx.c: Reduces sccp_queue_frame usleep time from 100
-	  to 10. Testing
-
-	* [r263] sccp_channel.c: Performed cleanup
-
-	* [r262] sccp_actions.c, sccp_channel.c, sccp_pbx.c: gpickup now
-	  works without segfault !
-
-	* [r261] sccp_pbx.c: test
-
-	* [r260] sccp_pbx.c: test
-
-	* [r259] sccp_actions.c, sccp_softkeys.c, sccp_softkeys.h: testing
-
-	* [r258] sccp_actions.c: testing gpickup mod
-
-	* [r257] sccp_softkeys.c: testing gpickup mod
-
-	* [r256] sccp_actions.c:
-
-	* [r255] sccp_actions.c, sccp_softkeys.c, sccp_softkeys.h: testing
-	  pickup
-
-	* [r254] sccp_channel.c, sccp_protocol.h:
-
-	* [r253] sccp_pbx.c: dnd doesn't work correcty when ALERT_INFO has
-	  a value.
-
-2008-05-30  marcelloceschia
-
-	* [r252] sccp_lock.h, sccp_pbx.c:
-
-2008-05-28  fsantulli
-
-	* [r251] sccp_pbx.c: last ????
-
-	* [r250] sccp_pbx.c:
-
-	* [r249] sccp_pbx.c: last last test
-
-	* [r248] sccp_pbx.c: last test for today
-
-	* [r247] sccp_pbx.c: test
-
-	* [r246] sccp_pbx.c: test
-
-	* [r245] sccp_pbx.c: test
-
-	* [r244] sccp_pbx.c, sccp_softkeys.c: test
-
-	* [r243] sccp_pbx.c: test pickup
-
-	* [r242] sccp_pbx.c: test
-
-	* [r241] sccp_pbx.c: updated
-
-	* [r240] sccp_softkeys.c: test
-
-	* [r239] sccp_softkeys.c: test
-
-	* [r238] sccp_channel.c, sccp_softkeys.c: test
-
-	* [r237] sccp_pbx.c: test
-
-	* [r236] sccp_lock.h, sccp_pbx.c: test
-
-	* [r235] sccp_pbx.c: test
-
-	* [r234] sccp_pbx.c: test
-
-	* [r233] sccp_pbx.c: test
-
-	* [r232] sccp_pbx.c: test
-
-	* [r231] sccp_pbx.c: test
-
-	* [r230] sccp_pbx.c: test
-
-	* [r229] sccp_pbx.c:
-
-	* [r228] sccp_lock.h, sccp_pbx.c, sccp_softkeys.c: 4 testint
-
-	* [r227] sccp_pbx.c: test
-
-	* [r226] sccp_channel.c, sccp_pbx.c: Testing
-
-	* [r225] sccp_channel.c, sccp_pbx.c: Merge fix
-
-	* [r224] sccp_channel.c, sccp_lock.h, sccp_pbx.c, sccp_softkeys.c:
-	  Macros for ast_channel allocation
-
-2008-05-27  marcelloceschia
-
-	* [r223] sccp_pbx.c: documentation
-
-	* [r222] sccp_pbx.c: aster 1.6
-
-2008-05-27  fsantulli
-
-	* [r221] sccp_channel.c, sccp_pbx.c, sccp_pbx.h: Group Pickup
-	  Bugfix, SendDigit/SendDigits Bugfix
-
-2008-05-27  marcelloceschia
-
-	* [r220] sccp_channel.c: define ast_free ifndef
-
-	* [r219] chan_sccp.c: exclude default_jbconf from asterisk 1.2
-
-	* [r218] chan_sccp.c: exclude default_jbconf from asterisk 1.2
-
-2008-05-27  fsantulli
-
-	* [r217] sccp_pbx.c: AST_CONTROL_SRCUPDATE indication message
-
-	* [r216] create_config.sh, sccp_pbx.c: AST_CONTROL_SRCUPDATE bugfix
-
-	* [r215] sccp_utils.c:
-
-	* [r214] sccp_actions.c: Fixed a bracket bug
-
-	* [r213] sccp_actions.c, sccp_utils.c: Fixed no line bug
-
-	* [r212] sccp_actions.c: Speeddial back to work (test)
-
-	* [r211] sccp_utils.c: Optimized sccp_line_find_byname routine and
-	  output
-
-	* [r210] sccp_pbx.c: Fixes wrong source media handling
-
-	* [r209] sccp_pbx.c: AST_CONTROL_SRCUPDATE handling (test)
-
-	* [r208] sccp_channel.c, sccp_pbx.c: CDR fix
-
-	* [r207] sccp_channel.c, sccp_pbx.c:
-
-	* [r206] sccp_channel.c, sccp_pbx.c:
-
-	* [r205] sccp_channel.c:
-
-	* [r204] chan_sccp.c, chan_sccp.h, sccp_channel.c:
-
-2008-05-26  marcelloceschia
-
-	* [r203] sccp_channel.c: initialize sched_context and io_context to
-	  get work with asterisk 1.6
-
-	* [r202] chan_sccp.c:
-
-	* [r201] chan_sccp.c, create_config.sh, sccp_actions.c,
-	  sccp_channel.c, sccp_cli.c, sccp_utils.c: including asterisk 1.6
-
-2008-05-25  fsantulli
-
-	* [r192] sccp_channel.c, sccp_lock.c, sccp_pbx.c, sccp_softkeys.c:
-
-2008-05-24  marcelloceschia
-
-	* [r191] Makefile, chan_sccp.c, create_config.sh, sccp_actions.c,
-	  sccp_actions.h, sccp_channel.c, sccp_cli.c, sccp_device.c,
-	  sccp_indicate.c, sccp_line.c, sccp_lock.c[ADD], sccp_lock.h[ADD],
-	  sccp_pbx.c, sccp_socket.c, sccp_softkeys.c, sccp_utils.c:
-	  including changes from Federico Santulli
-
-	* [r190] sccp_pbx.c: including changes from Federico Santulli
-
-	* [r189] sccp_actions.c: including changes from Federico Santulli
-
-2008-05-21  marcelloceschia
-
-	* [r188] sccp_device.c: documentation
-
-	* [r187] sccp_device.c: just code style
-
-	* [r186] sccp_device.c: fix
-
-	* [r185] sccp_device.c: fix
-
-	* [r184] sccp_actions.c, sccp_device.c, sccp_protocol.h: add device
-	  7931; add skinny_devicetype2str for new devices
-
-	* [r183] sccp_device.c, sccp_protocol.h, sccp_utils.c: add device
-	  7931; add skinny_devicetype2str for new devices
-
-	* [r182] sccp_utils.c: add todo
-
-	* [r181] sccp_device.c: add divice support for:
-	  7942
-	  7945
-	  7937
-	  7975
-
-	* [r180] sccp_protocol.h: add divice support for:
-	  7942
-	  7945
-	  7937
-
-	* [r179] sccp_actions.c:
-
-2008-05-04  marcelloceschia
-
-	* [r176] sccp_actions.c, sccp_channel.c: add special handling for
-	  nokia icc client
-
-	* [r175] sccp_device.c: add special handling for nokia icc client
-
-	* [r174] conf/sccp.conf, sccp_device.c: add special handling for
-	  nokia icc client
-
-2008-05-02  davidded
-
-	* [r167] sccp_pbx.c: fixed recorddigittimeoutchar
-
-2008-05-01  marcelloceschia
-
-	* [r162] sccp_pbx.c: formating
-
-	* [r161] chan_sccp.h:
-
-	* [r160] sccp_pbx.c: fixing recorddigittimeoutchar issue for
-	  pattern matching
-
-2008-04-06  marcelloceschia
-
-	* [r159] sccp_pbx.c: solves cdr_csv problem
-
-2008-02-05  marcelloceschia
-
-	* [r146] sccp_utils.c: support for 7921
-
-	* [r145] sccp_protocol.h: support for 7921
-
-	* [r144] sccp_device.c: support for 7921
-
-2008-01-26  marcelloceschia
-
-	* [r143] sccp_device.c: add support of 7965
-
-	* [r142] sccp_device.c:
-
-	* [r141] sccp_protocol.h: add support of 7965
-
-2008-01-20  davidded
-
-	* [r140] sccp_actions.c: eingewurstet
-
-2008-01-07  marcelloceschia
-
-	* [r139] sccp_protocol.h:
-
-	* [r135] sccp_protocol.h: disable DirTrFr
-	  bug: DirTrFr causes lock on chan_sccp (no actions)
-
-2008-01-06  marcelloceschia
-
-	* [r134] make_release.sh: including conf
-
-	* [r133] sccp_actions.c: fixes missing argument
-
-2008-01-03  davidded
-
-	* [r132] sccp_protocol.h: minor
-
-	* [r131] sccp_actions.c: Experimental feature test.
-
-	* [r130] sccp_actions.c, sccp_protocol.h: should work normal again
-
-	* [r129] sccp_actions.c, sccp_device.c, sccp_protocol.h: reg test
-
-	* [r128] sccp_device.c: reg test
-
-	* [r127] sccp_device.c: reg test
-
-	* [r126] sccp_device.c: reg test
-
-	* [r125] sccp_device.c: reg test
-
-	* [r124] sccp_device.c: reg test
-
-	* [r123] sccp_actions.c, sccp_device.c: reg test
-
-	* [r122] sccp_actions.c: reg test
-
-2008-01-01  davidded
-
-	* [r121] sccp_channel.c: removed obsolete patch comments
-
-2007-12-26  davidded
-
-	* [r120] chan_sccp.c, sccp_indicate.c, sccp_softkeys.c: dirfrfr fix
-	  1
-
-2007-12-20  marcelloceschia
-
-	* [r119] sccp_channel.c: including patch 1852936 from Frank Segtrop
-	  - fsiggi
-
-2007-12-16  davidded
-
-	* [r118] sccp_pbx.c: meetme fix for 1.2 (stefan)
-
-2007-12-13  davidded
-
-	* [r117] make_release.sh[ADD]: make release
-
-	* [r116] sccp_indicate.c: congestion signalling crash
-
-2007-12-05  davidded
-
-	* [r115] sccp_indicate.c: test
-
-2007-12-03  davidded
-
-	* [r113] sccp_socket.c: realtime unregister problem
-
-	* [r112] sccp_device.c: realtime unregister problem
-
-	* [r111] sccp_socket.c: realtime unregister problem
-
-	* [r110] sccp_socket.c: realtime unregister problem
-
-	* [r109] sccp_socket.c: realtime unregister problem
-
-	* [r108] sccp_actions.c, sccp_socket.c: realtime unregister problem
-
-2007-12-02  davidded
-
-	* [r107] sccp_actions.c: realtime unregister problem
-
-	* [r106] sccp_actions.c: realtime: unregister: fixed linked list
-	  issue
-
-	* [r105] sccp_device.c, sccp_indicate.c: Fixed never-stopping
-	  ringer problem with multiple simultaneous rings
-
-2007-11-30  davidded
-
-	* [r102] sccp_actions.c: realtime fix
-
-	* [r101] sccp_actions.c: realtime fix
-
-2007-11-25  davidded
-
-	* [r100] sccp_channel.c: sanitized rename in the transfer_complete
-	  function
-
-2007-11-25  marcelloceschia
-
-	* [r99] chan_sccp.c, sccp_softkeys.c: documentation
-
-	* [r98] sccp_utils.c, sccp_utils.h: function for finding
-	  softkeyIndex
-
-	* [r97] sccp_softkeys.h, sccp_utils.h: function to disable/enable
-	  SokftKey
-
-	* [r96] sccp_device.c: add todo
-
-	* [r95] sccp_softkeys.c, sccp_softkeys.h: function to
-	  disable/enable SokftKey
-
-	* [r94] sccp_utils.c: function for finding softkeyIndex
-
-2007-11-24  davidded
-
-	* [r93] sccp_channel.c: test repaired
-
-	* [r92] sccp_channel.c: test
-
-	* [r91] sccp_channel.c: test
-
-	* [r90] sccp_channel.c: test
-
-	* [r89] sccp_channel.c, sccp_softkeys.c: test
-
-2007-11-21  davidded
-
-	* [r88] sccp_protocol.h: Fixed ??? empty softkey in ringout state
-
-2007-11-21  marcelloceschia
-
-	* [r87] sccp_device.c: documentation
-
-	* [r86] sccp_softkeys.c: bridge the first two selected channels
-	  using the dirTrfr softkey
-
-2007-11-20  marcelloceschia
-
-	* [r85] sccp_channel.c, sccp_softkeys.c: bridge the first two
-	  selected channels using the dirTrfr softkey
-
-2007-11-19  marcelloceschia
-
-	* [r84] sccp_channel.c: bridge the first two selected channels
-	  using the dirTrfr softkey
-	  note: the state of an channel is not checked
-
-	* [r83] sccp_channel.c, sccp_softkeys.c: bridge the first two
-	  selected channels using the dirTrfr softkey
-	  note: the state of an channel is not checked
-
-2007-11-18  davidded
-
-	* [r82] sccp_protocol.h: labels
-
-	* [r81] sccp_protocol.h: labels
-
-	* [r80] sccp_protocol.h: labels
-
-	* [r79] sccp_protocol.h: minor
-
-	* [r78] sccp_actions.c, sccp_labels.h, sccp_protocol.h: softkey
-	  template matched to CCME
-
-2007-11-18  marcelloceschia
-
-	* [r77] sccp_channel.c: clear selected_channels
-
-	* [r76] sccp_channel.c: clear selected_channels
-
-2007-11-18  davidded
-
-	* [r75] sccp_actions.c: dirty hack
-
-	* [r74] sccp_actions.c: dirty hack
-
-	* [r73] sccp_actions.c: dirty hack
-
-	* [r72] sccp_labels.h: dings
-
-	* [r71] sccp_labels.h: LBL reorder
-
-2007-11-18  marcelloceschia
-
-	* [r70] sccp_channel.c:
-
-	* [r69] sccp_channel.c: clear selected_channels
-
-	* [r68] sccp_channel.c: clear selected_channels
-
-2007-11-18  davidded
-
-	* [r67] sccp_softkeys.c: fix chained list selected calls
-
-2007-11-17  davidded
-
-	* [r66] sccp_actions.c, sccp_protocol.h: minor
-
-	* [r65] sccp_protocol.h: minor
-
-	* [r64] sccp_protocol.h: minor
-
-	* [r63] create_config.sh: realtime detection switch
-
-	* [r62] chan_sccp.c, chan_sccp.h, sccp_protocol.h, sccp_softkeys.c,
-	  sccp_softkeys.h: select toggle
-
-	* [r61] chan_sccp.c, chan_sccp.h: warning fixes
-
-	* [r60] chan_sccp.c: warning fixes
-
-	* [r59] chan_sccp.h: warning fixes
-
-	* [r58] chan_sccp.c, chan_sccp.h: warning fixes
-
-	* [r57] chan_sccp.c, chan_sccp.h: warning fixes
-
-	* [r56] chan_sccp.c, chan_sccp.h, sccp_actions.c: warning fixes
-
-2007-11-17  marcello
-
-	* [r55] chan_sccp.c:
-
-	* [r54] sccp_pbx.c:
-
-	* [r53] sccp_channel.c: see
-	  http://www.ip-phone-forum.de/showthread.php?t=152928&page=3
-
-2007-11-14  marcello
-
-	* [r52] sccp_pbx.c: patches meetme issue
-
-	* [r51] create_config.sh:
-
-	* [r50] patches/segfault_on_btrans.patch[ADD]: segfault on btans
-	  patch
-
-	* [r49] sccp_channel.c: segfault on btans patch
-
-2007-11-13  davidded
-
-	* [r48] config.h[DEL], create_config.sh, sccp_cli.c: fixed realtime
-	  detection
-
-2007-11-12  davidded
-
-	* [r47] create_config.sh: fixes from the mailinglist
-
-2007-11-12  marcello
-
-	* [r46] chan_sccp.c:
-
-	* [r45] chan_sccp.c, chan_sccp.h, sccp_device.c: include
-	  http://sourceforge.net/tracker/download.php?group_id=186378&atid=917047&file_id=253975&aid=1830600
-
-	* [r44] patches/setmessage2.patch[ADD]:
-
-	* [r43] chan_sccp.c, chan_sccp.h, sccp_device.c: changes for
-	  SetMessage
-	  see:
-	  http://www.ip-phone-forum.de/showpost.php?p=975732&postcount=6
-
-2007-11-11  marcello
-
-	* [r42] chan_sccp.c, sccp_actions.c: some documentation
-
-	* [r41] chan_sccp.c: comment
-
-	* [r40] sccp_device.c:
-
-	* [r39] create_config.sh:
-
-	* [r38] chan_sccp.c, chan_sccp.h: SetMessage from fs@matflow.net
-
-2007-11-10  marcello
-
-	* [r37] chan_sccp.c, sccp_protocol.h:
-
-	* [r36] doc/release notes[ADD]:
-
-	* [r35] doc/problems:
-
-	* [r34] conf/sccp.conf:
-
-	* [r33] conf/sccp.conf:
-
-	* [r32] doc/serviceURL[ADD]: serviceURL
-
-	* [r31] chan_sccp.c, chan_sccp.h, sccp_device.c, sccp_pbx.c,
-	  sccp_protocol.h, sccp_softkeys.c: dnd toggleing
-
-	* [r30] create_config.sh: check for realtime
-
-2007-11-09  marcello
-
-	* [r29] sccp_protocol.h: remove DirTrans
-
-2007-11-09  davidded
-
-	* [r28] chan_sccp.c, config.h: fixes for compilation on 1.4
-
-	* [r27] chan_sccp.c, config.h, sccp_softkeys.c: fixes for
-	  compilation on 1.4
-
-2007-11-09  marcello
-
-	* [r26] chan_sccp.c: fixes compilation bug on 1.4
-
-	* [r25] create_config.sh: ask for realtime on 1.4 only
-
-	* [r24] chan_sccp.c: should solve
-	  
-	  chan_sccp.c: In function 'unload_module':
-	  chan_sccp.c:1632: error: 'iabuf' undeclared (first use in this
-	  function)
-	  chan_sccp.c:1632: error: (Each undeclared identifier is reported
-	  only once
-	  chan_sccp.c:1632: error: for each function it appears in.)
-	  chan_sccp.c:1632: error: too many arguments to function
-	  'ast_inet_ntoa'
-	  make: *** [.tmp/chan_sccp.o] Error 1
-	  
-	  untested
-
-2007-11-09  davidded
-
-	* [r23] create_config.sh: auto config for ast versions
-
-	* [r22] create_config.sh: auto config for ast versions
-
-2007-11-09  marcello
-
-	* [r21] doc/problems:
-
-	* [r20] doc/problems:
-
-	* [r19] doc/problems:
-
-	* [r18] doc[ADD], doc/problems[ADD]:
-
-2007-11-08  marcello
-
-	* [r17] chan_sccp.c, config.h[ADD], create_config.sh,
-	  sccp_actions.c, sccp_channel.c, sccp_cli.c, sccp_device.c,
-	  sccp_indicate.c, sccp_line.c, sccp_pbx.c, sccp_socket.c,
-	  sccp_softkeys.c, sccp_utils.c:
-
-	* [r16] test[DEL]:
-
-	* [r15] test[ADD]:
-
-	* [r14] .cproject[DEL], .project[DEL]:
-
-	* [r12] patches/gpickup_20071108.patch[ADD],
-	  patches/hold_20071108.patch[ADD], patches/setMessage.patch[ADD]:
-
-	* [r11] sccp_pbx.c: gpickup patch of Frank Segtrop
-
-	* [r10] sccp_channel.c: hold patch from Frank Segtrop
-
-2007-11-04  davidded
-
-	* [r8] sccp_pbx.c: removed obsolete 1.2 fix i just inserted
-	  accidentally
-
-	* [r7] sccp_pbx.c: fixed typo
-
-	* [r6] chan_sccp.c, chan_sccp.h, sccp_actions.c, sccp_channel.c,
-	  sccp_device.c, sccp_indicate.c, sccp_pbx.c: merged my changes
-	  from my 1.2 sccp tree
-
-2007-11-01  marcello
-
-	* [r5] Makefile[ADD], chan_sccp.c[ADD], chan_sccp.h[ADD],
-	  conf[ADD], conf/7960-tones.xml[ADD],
-	  conf/XMLDefault.cnf.xml[ADD], conf/sccp.conf[ADD],
-	  conf/tables.sql[ADD], contrib[ADD], contrib/set_sep_cnf[ADD],
-	  contrib/skinny-proxy-v1.2.pl[ADD],
-	  contrib/skinny-proxy-v1.4.pl[ADD], create_config.sh[ADD],
-	  patches[ADD], patches/blindtransfer_GPickUp.patch[ADD],
-	  sccp_actions.c[ADD], sccp_actions.h[ADD], sccp_channel.c[ADD],
-	  sccp_channel.h[ADD], sccp_cli.c[ADD], sccp_cli.h[ADD],
-	  sccp_device.c[ADD], sccp_device.h[ADD], sccp_indicate.c[ADD],
-	  sccp_indicate.h[ADD], sccp_labels.h[ADD], sccp_line.c[ADD],
-	  sccp_line.h[ADD], sccp_pbx.c[ADD], sccp_pbx.h[ADD],
-	  sccp_protocol.h[ADD], sccp_socket.c[ADD], sccp_socket.h[ADD],
-	  sccp_softkeys.c[ADD], sccp_softkeys.h[ADD], sccp_utils.c[ADD],
-	  sccp_utils.h[ADD]:
-
-	* [r4] Makefile[DEL], chan_sccp.c[DEL], chan_sccp.h[DEL],
-	  conf[DEL], contrib[DEL], create_config.sh[DEL], patches[DEL],
-	  sccp_actions.c[DEL], sccp_actions.h[DEL], sccp_channel.c[DEL],
-	  sccp_channel.h[DEL], sccp_cli.c[DEL], sccp_cli.h[DEL],
-	  sccp_device.c[DEL], sccp_device.h[DEL], sccp_indicate.c[DEL],
-	  sccp_indicate.h[DEL], sccp_labels.h[DEL], sccp_line.c[DEL],
-	  sccp_line.h[DEL], sccp_pbx.c[DEL], sccp_pbx.h[DEL],
-	  sccp_protocol.h[DEL], sccp_socket.c[DEL], sccp_socket.h[DEL],
-	  sccp_softkeys.c[DEL], sccp_softkeys.h[DEL], sccp_utils.c[DEL],
-	  sccp_utils.h[DEL]:
-
-	* [r2] .cproject[ADD], .project[ADD], Makefile[ADD],
-	  chan_sccp.c[ADD], chan_sccp.h[ADD], conf[ADD],
-	  conf/7960-tones.xml[ADD], conf/XMLDefault.cnf.xml[ADD],
-	  conf/sccp.conf[ADD], contrib[ADD], contrib/set_sep_cnf[ADD],
-	  contrib/skinny-proxy-v1.2.pl[ADD],
-	  contrib/skinny-proxy-v1.4.pl[ADD], create_config.sh[ADD],
-	  patches[ADD],
-	  patches/chan_sccp-20060408-7961_DirectoriesDD.patch[ADD],
-	  patches/meetme.patch[ADD], patches/serviceURL.patch[ADD],
-	  sccp_actions.c[ADD], sccp_actions.h[ADD], sccp_channel.c[ADD],
-	  sccp_channel.h[ADD], sccp_cli.c[ADD], sccp_cli.h[ADD],
-	  sccp_device.c[ADD], sccp_device.h[ADD], sccp_indicate.c[ADD],
-	  sccp_indicate.h[ADD], sccp_labels.h[ADD], sccp_line.c[ADD],
-	  sccp_line.h[ADD], sccp_pbx.c[ADD], sccp_pbx.h[ADD],
-	  sccp_protocol.h[ADD], sccp_socket.c[ADD], sccp_socket.h[ADD],
-	  sccp_softkeys.c[ADD], sccp_softkeys.h[ADD], sccp_utils.c[ADD],
-	  sccp_utils.h[ADD]:
-
-	* [r1] .[ADD]: Share project 'chan-sccp-1.2' into
-	  'https://svn.smilekom.de/svn/chan_sccp'
 
