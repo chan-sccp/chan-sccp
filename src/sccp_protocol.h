@@ -2472,6 +2472,10 @@ typedef union {
 										   little-endian format. */
 		uint32_t lel_portNumber;					/*!< Port Number */
 		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+		uint32_t lel_unknown_1;
+		uint32_t lel_unknown_2;
+		uint32_t lel_unknown_3;
+		uint32_t lel_unknown_4;
 		uint32_t lel_callReference;					/*!< Call Reference */
 	} OpenReceiveChannelAck;						/*!< Open Receive Channel Acknowledgement */
 
@@ -2490,6 +2494,10 @@ typedef union {
 										   little-endian format. */
 		uint32_t lel_portNumber;					/*!< Port Number */
 		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+		uint32_t lel_unknown_1;
+		uint32_t lel_unknown_2;
+		uint32_t lel_unknown_3;
+		uint32_t lel_unknown_4;
 		uint32_t lel_callReference;					/*!< Call Reference */
 	} OpenReceiveChannelAck_v17;						/*!< Open Receive Channel Acknowledgement v17 */
 
@@ -2638,8 +2646,8 @@ typedef union {
 		uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
 		uint32_t lel_rtptimeout;					/*!< RTP TimeOut */
 		/* protocol v11 fields */
-		uint32_t unknown15;
-		uint32_t unknown16;
+		uint32_t lel_mixingMode;
+		uint32_t lel_mixingParty;
 	} StartMediaTransmission;
 
 	/* StartMediaTransmission v17
@@ -2685,8 +2693,8 @@ typedef union {
 		uint32_t lel_unknown15;						/*!< Unknown */
 		uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
 		uint32_t lel_rtptimeout;					/*!< RTP Timeout (this is set to 0x0A) */
-		uint32_t lel_unknown18;						/*!< Unknown */
-		uint32_t lel_unknown19;						/*!< Unknown */
+		uint32_t lel_mixingMode;						/*!< Unknown */
+		uint32_t lel_mixingParty;						/*!< Unknown */
 	} StartMediaTransmission_v17;						/*!< Start Media Transmission v17 Structure */
 
 	struct {
@@ -2922,8 +2930,8 @@ typedef union {
 		uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
 		uint32_t lel_rtptimeout;					/*!< RTP Timeout (this is always 0x0A) */
 		/* protocol version 15 fields */
-		uint32_t unknown15;
-		uint32_t unknown16;
+		uint32_t lel_mixingMode;
+		uint32_t lel_mixingParty;
 		char bel_remoteIpAddr[16];
 		uint32_t lel_unknown17;						/*!< this is always 0xFA0 */
 	} OpenReceiveChannel;							/*!< Open Receive Channel Message Structure */
@@ -2965,8 +2973,8 @@ typedef union {
 		uint32_t unknown14;						/*!< Unknown */
 		uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
 		uint32_t lel_rtptimeout;					/*!< RTP Timeout (this is always 0x0A) */
-		uint32_t unknown17;						/*!< Unknown */
-		uint32_t unknown18;						/*!< Unknown */
+		uint32_t lel_mixingMode;						/*!< Unknown */
+		uint32_t lel_mixingParty;						/*!< Unknown */
 		uint32_t unknown19;						/*!< Unknown */
 		char bel_remoteIpAddr[16];					/*!< Remote IP Address */
 		uint32_t lel_unknown20;						/*!< Unknown (this is always 0xFA0) */
