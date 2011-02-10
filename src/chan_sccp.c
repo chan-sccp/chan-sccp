@@ -449,9 +449,9 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 
 	if (mid != KeepAliveMessage) {
 		if (s && s->device) {
-			sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s\n", s->device->id, message2str(mid));
+			sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message (%x) %s\n", s->device->id, mid, message2str(mid));
 		} else {
-			sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "SCCP: >> Got message %s\n", message2str(mid));
+			sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "SCCP: >> Got message (%x) %s\n", mid, message2str(mid));
 		}
 	}
 
