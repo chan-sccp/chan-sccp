@@ -1,3 +1,20 @@
+chan-sccp-b (3.0.0-3.1) unstable; urgency=low
+
+  * Release Candidate 3.1
+  * Added Functionality:
+  *  - Major overhaul of the locking system
+  *  - Moved from using socket_select to socket_poll
+  *  - Added sccp_pbx_wrapper, to ease the migration towards support for Asterisk 1.8
+  *  
+  * Fixed/Improved:
+  *  - bug fixes for locking
+  *  - bug fixes for socket handling
+  *  - bug fixes for configure script
+  *  - lots of small bugs reported by users
+  *  - documentation updates
+
+ -- Diederik de Groot <dkgroot@sourceforge.net>  Thu, 10 Feb 2011 12:44:12 +0100
+
 chan-sccp-b (3.0.0-3) unstable; urgency=low
 
   * Release Candidate 3
