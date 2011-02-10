@@ -416,7 +416,7 @@ static void sccp_channel_send_dynamicCallinfo(sccp_device_t * device, sccp_chann
 			data_len[i] = strlen(data[i]);
 			dummy_len += data_len[i];
 		} else {
-			data_len[i] = 0;					//TODO this should be 1?
+			data_len[i] = 1;
 		}
 	}
 
