@@ -23,14 +23,14 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \brief create a new rtp server for audio data
  * \param c SCCP Channel
  */
-int sccp_rtp_createAudioServer(const sccp_channel_t *c){
+int sccp_rtp_createAudioServer(sccp_channel_t *c){
 	boolean_t rtpResult = FALSE;
   
 	if(!c)
 		return -1;
 	
 	if(PBX(rtp_audio_create)){
-		rtpResult = PBX(rtp_audio_create)(c, &((sccp_channel_t *)c)->rtp.audio.rtp);
+		rtpResult = PBX(rtp_audio_create)(c, &c->rtp.audio.rtp);
 	}else{
 		ast_log(LOG_ERROR, "we should start our own rtp server, but we dont have one\n");
 	}
@@ -41,13 +41,13 @@ int sccp_rtp_createAudioServer(const sccp_channel_t *c){
  * \brief create a new rtp server for video data
  * \param c SCCP Channel
  */
-int sccp_rtp_createVideoServer(const sccp_channel_t *c){
+int sccp_rtp_createVideoServer(sccp_channel_t *c){
 	boolean_t rtpResult = FALSE;
 	if(!c)
 		return FALSE;
 	
 	if(PBX(rtp_video_create)){
-		rtpResult = PBX(rtp_video_create)(c, &((sccp_channel_t *)c)->rtp.video.rtp);
+		rtpResult = PBX(rtp_video_create)(c, &c->rtp.video.rtp);
 	}else{
 		ast_log(LOG_ERROR, "we should start our own rtp server, but we dont have one\n");
 	}
