@@ -42,7 +42,6 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
  */
 void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
 {
-	const char *ds;
 	sccp_device_t *d;
 	sccp_line_t *l;
 	int instance;
@@ -75,6 +74,23 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: 2-Indicate SCCP state %d (%s),previous channelState %d (%s) on call %s-%08x\n", d->id, state, sccp_indicate2str(state), c->previousChannelState, sccp_indicate2str(c->previousChannelState), l->name, c->callid);
 
 	sccp_channel_setSkinnyCallstate(c, state);
+
+#if CS_ADV_FEATURES					// \todo needs to be tested and moved to seperate function
+	const char *ds;
+	if (NULL != c->owner) {
+		/* try to get a possible cause for this indication from helper function PRI_CAUSE, set by DAHDI / LCR */
+		ds = pbx_builtin_getvar_helper(c->owner, "PRI_CAUSE");
+		if (ds && atoi(ds)) {
+			c->pri_cause = atoi(ds);
+		} else if (c->owner->hangupcause) {
+			c->pri_cause = c->owner->hangupcause;
+		} else if (c->owner->_softhangup) {
+			c->pri_cause = c->owner->_softhangup;
+		} else {
+			c->pri_cause = AST_CAUSE_NORMAL_CLEARING;
+		}
+	}
+#endif
 
 	switch (state) {
 	case SCCP_CHANNELSTATE_DOWN:
@@ -143,10 +159,12 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		//      sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_OFF);
 
 		sccp_dev_clearprompt(d, instance, c->callid);
-
-		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: On Hook, Hangupcause %d (%s)\n", d->id, c->pri_cause, astcause2skinnycause_message(c->pri_cause));
-		sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_cause), 10);
-
+#if CS_ADV_FEATURES
+		if (AST_CAUSE_NORMAL_CLEARING != c->pri_cause) {
+			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: On Hook, Hangupcause %d (%s)\n", d->id, c->pri_cause, astcause2skinnycause_message(c->pri_cause));
+			sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_cause), 10);
+		}
+#endif
 		/* if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
 		if (c->answered_elsewhere)
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
@@ -259,21 +277,6 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	case SCCP_CHANNELSTATE_PROGRESS:					/* \todo SCCP_CHANNELSTATE_PROGRESS To be checked */
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_2 "%s: SCCP_CHANNELSTATE_PROGRESS\n", d->id);
 
-		if (NULL != c->owner) {
-			ds = pbx_builtin_getvar_helper(c->owner, "PRI_CAUSE");
-			if (ds && atoi(ds)) {
-				c->pri_cause = atoi(ds);
-			} else if (c->owner->hangupcause) {
-				c->pri_cause = c->owner->hangupcause;
-			} else if (c->owner->_softhangup) {
-				c->pri_cause = c->owner->_softhangup;
-			} else {
-				c->pri_cause = AST_CAUSE_NORMAL_CLEARING;
-			}
-		}
-		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: c->owner->hangupcause @ SCCP_CHANNELSTATE_CONGESTION =  %d, '%s'", d->id, c->pri_cause, (char *) astcause2skinnycause_message(c->pri_cause));
-		sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_cause), 0);
-
 		if (c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) {	// this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app)
 			sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
 //                      c->state = SCCP_CHANNELSTATE_CONNECTED;
@@ -282,7 +285,17 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 			if (!c->rtp.audio.rtp && d->earlyrtp) {
 				sccp_channel_openreceivechannel_locked(c);
 			}
+#if CS_ADV_FEATURES
+			/* try to find out the congestion cause early */
+			if (AST_CAUSE_NORMAL_CLEARING != c->pri_cause) {
+				sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Progress, Hangupcause %d (%s)\n", d->id, c->pri_cause, astcause2skinnycause_message(c->pri_cause));
+				sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_cause), 10);
+			} else {
+				sccp_dev_displayprompt(d, instance, c->callid, "Call Progress", 0);
+			}
+#else
 			sccp_dev_displayprompt(d, instance, c->callid, "Call Progress", 0);
+#endif
 		}
 		break;
 	case SCCP_CHANNELSTATE_PROCEED:
@@ -291,25 +304,20 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 			return;
 		}
 
-		if (NULL != c->owner) {
-			ds = pbx_builtin_getvar_helper(c->owner, "PRI_CAUSE");
-			if (ds && atoi(ds)) {
-				c->pri_cause = atoi(ds);
-			} else if (c->owner->hangupcause) {
-				c->pri_cause = c->owner->hangupcause;
-			} else if (c->owner->_softhangup) {
-				c->pri_cause = c->owner->_softhangup;
-			} else {
-				c->pri_cause = AST_CAUSE_NORMAL_CLEARING;
-			}
-		}
-		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: c->owner->hangupcause @ SCCP_CHANNELSTATE_CONGESTION =  %d, '%s'", d->id, c->pri_cause, (char *) astcause2skinnycause_message(c->pri_cause));
-		sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_cause), 0);
-
 		sccp_dev_stoptone(d, instance, c->callid);
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 		sccp_channel_send_callinfo(d, c);
+#if CS_ADV_FEATURES
+		/* try to find out the congestion cause early */
+		if (AST_CAUSE_NORMAL_CLEARING != c->pri_cause) {
+			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Proceed, Hangupcause %d (%s)\n", d->id, c->pri_cause, astcause2skinnycause_message(c->pri_cause));
+			sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_cause), 10);
+		} else {
+			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
+		}
+#else
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
+#endif
 		if (!c->rtp.audio.rtp && d->earlyrtp) {
 			sccp_channel_openreceivechannel_locked(c);
 		}
@@ -326,27 +334,22 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 		break;
 	case SCCP_CHANNELSTATE_CONGESTION:
-		/* try to find out the congestion cause early */
-		if (NULL != c->owner) {
-			ds = pbx_builtin_getvar_helper(c->owner, "PRI_CAUSE");
-			if (ds && atoi(ds)) {
-				c->pri_cause = atoi(ds);
-			} else if (c->owner->hangupcause) {
-				c->pri_cause = c->owner->hangupcause;
-			} else if (c->owner->_softhangup) {
-				c->pri_cause = c->owner->_softhangup;
-			} else {
-				c->pri_cause = AST_CAUSE_NORMAL_CLEARING;
-			}
-		}
-		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: c->owner->hangupcause @ SCCP_CHANNELSTATE_CONGESTION =  %d, '%s'", d->id, c->pri_cause, (char *) astcause2skinnycause_message(c->pri_cause));
-		sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_cause), 0);
-
 		/* it will be emulated if the rtp audio stream is open */
 		if (!c->rtp.audio.rtp)
 			sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
 		sccp_channel_send_callinfo(d, c);
 
+#if CS_ADV_FEATURES
+		/* try to find out the congestion cause early */
+		if (AST_CAUSE_NORMAL_CLEARING != c->pri_cause) {
+			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Congestion, Hangupcause %d (%s)\n", d->id, c->pri_cause, astcause2skinnycause_message(c->pri_cause));
+			sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_cause), 10);
+		} else {
+			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL, 0);
+		}
+#else
+		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL, 0);
+#endif
 		break;
 	case SCCP_CHANNELSTATE_CALLWAITING:
 		if (GLOB(callwaiting_tone))
@@ -407,22 +410,15 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOOKSTEALABLE);
 		break;
 	case SCCP_CHANNELSTATE_INVALIDNUMBER:
-		/* this is for the earlyrtp. The 7910 does not play tones if a rtp stream is open */
-		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_UNKNOWN_NUMBER, 0);
 		if (c->rtp.audio.rtp) {
 			sccp_channel_closereceivechannel_locked(c);
 		}
+		sccp_safe_sleep(100);
 //		sccp_dev_starttone(d, SKINNY_TONE_NOSUCHNUMBERTONE, instance, c->callid, 10);
 		sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
-		
-		/* 7936 does not like the skinny ivalid message callstate */
-		/* In fact, newer firmware versions (the 8 releases for the 7960 etc.) and
-		   the newer Cisco phone models don't seem to like this at all, resulting in
-		   crashes. Interestingly, the message imho does cause obvious effects anyway. (-DD) */
-		/*if (d->skinny_type != SKINNY_DEVICETYPE_CISCO7936)
-		   sccp_channel_send_callinfo(d, c); 
-		*/
- 		/* this is for the earlyrtp. The 7910 does not play tones if a rtp stream is open */
+
+		sccp_channel_send_callinfo(d, c); 
+		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_UNKNOWN_NUMBER, 0);
 
 		/* don't set AST_STATE_DOWN. we hangup only on onhook and endcall softkey */
 		break;
