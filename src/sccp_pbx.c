@@ -387,6 +387,7 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 
 	sccp_channel_lock(c);
 
+#if CS_ADV_FEATURES
 	/* Try to get the hangup cause from PRI_CAUSE Helper (mIsdn / dahdi) and store the hangupcause in c->pri_cause */
 	const char *ds = pbx_builtin_getvar_helper(ast, "PRI_CAUSE");
 	if (ds && atoi(ds)) {
@@ -399,6 +400,7 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 		c->pri_cause = AST_CAUSE_NORMAL_CLEARING;
 	}
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "TECH HANGUP [%s] Cause=%i HangCause=%i ds=%s\n", ast->name, c->pri_cause, ast->hangupcause,  ds ? ds : "N/A");
+#endif
 
 #ifdef AST_FLAG_ANSWERED_ELSEWHERE
 	if (ast_test_flag(ast, AST_FLAG_ANSWERED_ELSEWHERE) || ast->hangupcause == AST_CAUSE_ANSWERED_ELSEWHERE) {
