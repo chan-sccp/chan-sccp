@@ -1,4 +1,20 @@
+2011-02-10  marcelloceschia
+
+	* [r2356] src/sccp_actions.c, src/sccp_features.c,
+	  src/sccp_features.h: fixes adhoc dial issue
+
+	* [r2355] src/sccp_rtp.c, src/sccp_rtp.h: no const channel for rtp
+
+	* [r2354] src/sccp_channel.c: fixes callinfo message
+
 2011-02-10  ddegroot
+
+	* [r2353] debian/chan-sccp-b-dev.dirs[DEL],
+	  debian/chan-sccp-b-dev.install[DEL], debian/chan-sccp-b1.dirs,
+	  debian/chan-sccp-b1.install, debian/control, debian/dirs,
+	  debian/rules: Fix Debian Package
+
+	* [r2352] .version, ChangeLog: Reset version to V3.0_PreRC4
 
 	* [r2350] .version, ChangeLog, NEWS, autoconf/config.guess,
 	  autoconf/config.sub, debian/changelog: Issue Release Candidate
