@@ -1265,7 +1265,7 @@ int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum)
  * \lock
  * 	- channel
  */
-void sccp_feat_hotline(sccp_device_t * d, sccp_line_t * line)
+void sccp_feat_adhocDial(sccp_device_t * d, sccp_line_t * line)
 {
 	sccp_channel_t *c = NULL;
 

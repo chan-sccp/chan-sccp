@@ -42,7 +42,7 @@ int sccp_feat_barge(sccp_channel_t * c, char *exten);
 // Conference Barge
 sccp_channel_t *sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d);
 int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum);
-void sccp_feat_hotline(sccp_device_t * d, sccp_line_t * line);
+void sccp_feat_adhocDial(sccp_device_t * d, sccp_line_t * line);
 void sccp_feat_changed(sccp_device_t * device, sccp_feature_type_t featureType);
 void sccp_feat_monitor(sccp_device_t * device, sccp_channel_t * channel);
 void sccp_feat_channelStateChanged(sccp_device_t * device, sccp_channel_t * channel);

@@ -1020,7 +1020,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 	instance = letohl(r->msg.StimulusMessage.lel_stimulusInstance);
 
 	if (d->isAnonymous) {
-		sccp_feat_hotline(d, GLOB(hotline)->line);
+		sccp_feat_adhocDial(d, GLOB(hotline)->line);/* use adhoc dial feture with hotline */
 		return;
 	}
 
@@ -1034,7 +1034,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			return;
 		}
 		if (strlen(l->adhocNumber) > 0) {
-			sccp_feat_hotline(d, l);
+			sccp_feat_adhocDial(d, l);
 			return;
 		}
 		// \todo TODO set index
@@ -1079,7 +1079,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		}
 
 		if (strlen(l->adhocNumber) > 0) {
-			sccp_feat_hotline(d, l);
+			sccp_feat_adhocDial(d, l);
 			return;
 		}
 
@@ -1407,7 +1407,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	if (d->isAnonymous) {
-		sccp_feat_hotline(d, GLOB(hotline)->line);
+		sccp_feat_adhocDial(d, GLOB(hotline)->line);
 		return;
 	}
 
@@ -2153,6 +2153,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 	 * sccp_sk_* functions relock it. */
 	if (c)
 		sccp_channel_unlock(c);
+	
 
 	switch (event) {
 	case SKINNY_LBL_REDIAL:
@@ -2160,12 +2161,12 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 		break;
 	case SKINNY_LBL_NEWCALL:
 		if (d->isAnonymous) {
-			sccp_feat_hotline(d, GLOB(hotline)->line);
+			sccp_feat_adhocDial(d, GLOB(hotline)->line); /* with hotline as feature */
 		} else if (l) {
 			if (strlen(l->adhocNumber) == 0)
 				sccp_sk_newcall(d, l, lineInstance, c);
 			else {
-				sccp_feat_hotline(d, GLOB(hotline)->line);
+				sccp_feat_adhocDial(d, l);
 			}
 		} else {
 			k = sccp_dev_speed_find_byindex(d, lineInstance, SCCP_BUTTONTYPE_HINT);
@@ -2316,8 +2317,11 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available\n", DEV_ID_LOG(d), status);
 			return;
 		}
+		
+		/* update status */
+		c->rtp.audio.status |= SCCP_RTP_STATUS_RECEIVE;
+		
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
-			c->rtp.audio.status = 0;
 			sccp_channel_unlock(c);
 			ast_log(LOG_WARNING, "%s: (OpenReceiveChannelAck) Invalid Number (%d)\n", DEV_ID_LOG(d), c->state);
 			return;
@@ -2333,8 +2337,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 
 			sccp_channel_startmediatransmission(c);			/*!< Starting Media Transmission Earlier to fix 2 second delay - Copied from v2 - FS */
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
-			/* update status */
-			c->rtp.audio.status |= SCCP_RTP_STATUS_RECEIVE;
+			
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
 			if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
 				sccp_ast_setstate(c, AST_STATE_UP);
