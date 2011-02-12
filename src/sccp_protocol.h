@@ -1533,6 +1533,7 @@ static const struct sccp_messagetype {
 	{StartMediaTransmissionAck, "Start Media Transmission Acknowledge"},
 	{ExtensionDeviceCaps, "Extension Device Capabilities Message"},
 	{XMLAlarmMessage, "XML-AlarmMessage"},
+	{SPARegisterMessage, "SPA RegisterMessage (SPCP Protocol)"},
 	/* *INDENT-ON* */
 };
 
