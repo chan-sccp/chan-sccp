@@ -400,18 +400,21 @@ static sccp_moo_t *sccp_process_data(sccp_session_t * s) {
 	if (s->buffer_size < 0 || (packSize) > (uint32_t) s->buffer_size)
 		return NULL;							/* Not enough data, yet. */
 
-	m = ast_malloc(SCCP_MAX_PACKET);
+	if (packSize > SCCP_MAX_PACKET) {
+		ast_log(LOG_WARNING, "SCCP: Oversize packet mid: %d, our packet size: %zd, phone packet size: %d\n", letohl(m->lel_messageId), SCCP_MAX_PACKET, packSize);
+		return NULL;
+	}
+	
+	m = ast_malloc(packSize);
 	if (!m) {
 		ast_log(LOG_WARNING, "SCCP: unable to allocate %zd bytes for skinny packet\n", SCCP_MAX_PACKET);
 		return NULL;
 	}
 
-	memset(m, 0, SCCP_MAX_PACKET);
+	memset(m, 0, packSize);
 
-	if (packSize > SCCP_MAX_PACKET)
-		ast_log(LOG_WARNING, "SCCP: Oversize packet mid: %d, our packet size: %zd, phone packet size: %d\n", letohl(m->lel_messageId), SCCP_MAX_PACKET, packSize);
 
-	memcpy(m, s->buffer, (packSize < SCCP_MAX_PACKET ? packSize : SCCP_MAX_PACKET));
+	memcpy(m, s->buffer, packSize);
 	m->length = letohl(m->length);
 
 	s->buffer_size -= packSize;
