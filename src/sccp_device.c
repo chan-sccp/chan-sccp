@@ -271,7 +271,9 @@ int sccp_device_get_codec(struct ast_channel *ast)
 {
 	sccp_channel_t *c = NULL;
 
+#if 0 // (DD)
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Asterisk requested available codecs for channel %s\n", ast->name);
+#endif
 
 	if (!(c = CS_AST_CHANNEL_PVT(ast))) {
 		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) Couldn't find a channel pvt struct. Returning global capabilities\n");
