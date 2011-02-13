@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_softkeys.c
  * \brief 	SCCP SoftKeys Class
@@ -24,12 +25,14 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #ifdef CS_AST_HAS_AST_STRING_FIELD
 #    include <asterisk/stringfields.h>
 #endif
+
 /*!
  * \brief Global list of softkeys
  */
 struct softKeySetConfigList softKeySetConfig;					/*!< List of SoftKeySets */
 
 #ifdef CS_DYNAMIC_CONFIG
+
 /*!
  * \brief Softkey Pre Reload
  *
@@ -75,6 +78,7 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 #ifdef CS_ADV_FEATURES
 	if (d->useRedialMenu) {
 		sccp_moo_t *r1 = NULL;
+
 		char *data = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"Key:Directories\"/><ExecuteItem Priority=\"0\"URL=\"Key:KeyPad3\"/></CiscoIPPhoneExecute>";
 
 		int dummy_len, msgSize, hdr_len, padding;
@@ -94,6 +98,7 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 
 		if (dummy_len) {
 			char buffer[dummy_len + 2];
+
 			memset(&buffer[0], 0, sizeof(buffer));
 			memcpy(&buffer[0], data, dummy_len);
 
@@ -140,6 +145,7 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	int length = 0;
+
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey NewCall Pressed\n", DEV_ID_LOG(d));
 	if (!l) {
 		/* use default line if it is set */
@@ -227,8 +233,11 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 	/* Marcello's transfer experiment Remarked out becasue David/Steven advised against it - MC */
 #if 0
 	sccp_buttonconfig_t *config = NULL;
+
 	sccp_channel_t *channel = NULL;
+
 	sccp_line_t *line = NULL;
+
 	sccp_channel_t *transfereeChannel = NULL, *transferingChannel = NULL;
 #endif
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Transfer Pressed\n", DEV_ID_LOG(d));
@@ -262,6 +271,7 @@ void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 	} else {
 		/* lets search the channel */
 		uint8_t num = sccp_device_numberOfChannels(d);
+
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: number of channels %d\n", DEV_ID_LOG(d), num);
 		switch (num) {
 		case 1:
@@ -493,6 +503,7 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Direct Transfer Pressed\n", DEV_ID_LOG(d));
 
 	sccp_selectedchannel_t *x;
+
 	sccp_channel_t *chan1 = NULL, *chan2 = NULL, *tmp = NULL;
 
 	if (!d)
@@ -570,7 +581,9 @@ void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Select Pressed\n", DEV_ID_LOG(d));
 	sccp_selectedchannel_t *x = NULL;
+
 	sccp_moo_t *r1;
+
 	uint8_t numSelectedChannels = 0, status = 0;
 
 	if (!d) {
@@ -911,7 +924,9 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c, unsigned int keymode, unsigned int softkeyindex, unsigned int status)
 {
 	sccp_moo_t *r;
+
 	uint32_t mask, validKeyMask;
+
 	unsigned i;
 
 	if (!l || !c || !d || !d->session)

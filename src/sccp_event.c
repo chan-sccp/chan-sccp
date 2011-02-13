@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_event.c
  * \brief 	SCCP Event Class
@@ -67,6 +68,7 @@ void sccp_event_fire(const sccp_event_t * *event)
 		return;
 
 	sccp_event_type_t type = (*event)->type;
+
 	sccp_event_subscriber_t *subscriber;
 
 	sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_1 "[SCCP] Fire event %d\n", type);

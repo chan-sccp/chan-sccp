@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_conference.c
  * \brief 	SCCP Conference Class
@@ -21,9 +22,9 @@
 #    include "asterisk/bridging.h"
 #    include "asterisk/bridging_features.h"
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-
 #    if ASTERISK_VERSION_NUM >= 10602
 static int lastConferenceID = 0;
+
 static void *sccp_conference_join_thread(void *data);
 
 /*!
@@ -34,17 +35,19 @@ static void *sccp_conference_join_thread(void *data);
  */
 sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 {
-sccp_log(1)(VERBOSE_PREFIX_3 "Conference: sccp_conference_create called.\n");
+	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: sccp_conference_create called.\n");
 
-	sccp_conference_t *conference 				= NULL;
-	sccp_conference_participant_t *moderator 	= NULL;
+	sccp_conference_t *conference = NULL;
+
+	sccp_conference_participant_t *moderator = NULL;
+
 	//int   confCapabilities = AST_BRIDGE_CAPABILITY_MULTIMIX | AST_BRIDGE_CAPABILITY_THREAD | AST_BRIDGE_CAPABILITY_VIDEO;
 
 	if (NULL == owner) {
 		ast_log(LOG_ERROR, "SCCP: Conference: NULL owner (sccp channel) while creating new conference.\n");
 		return NULL;
 	}
-	
+
 	if (NULL == owner->owner) {
 		ast_log(LOG_ERROR, "SCCP: Conference: NULL owner (ast channel) while creating new conference.\n");
 		return NULL;
@@ -62,7 +65,7 @@ sccp_log(1)(VERBOSE_PREFIX_3 "Conference: sccp_conference_create called.\n");
 	conference->id = ++lastConferenceID;
 	SCCP_LIST_HEAD_INIT(&conference->participants);
 	conference->bridge = ast_bridge_new(AST_BRIDGE_CAPABILITY_1TO1MIX, AST_BRIDGE_FLAG_SMART);
-	
+
 	if (NULL == conference->bridge) {
 		ast_log(LOG_ERROR, "SCCP: Conference: Conference: conference bridge could not be created.\n");
 		return NULL;
@@ -75,19 +78,17 @@ sccp_log(1)(VERBOSE_PREFIX_3 "Conference: sccp_conference_create called.\n");
 		ast_free(conference);
 		return NULL;
 	}
-	
 
 	/* Initialize data structures */
-	
+
 	memset(moderator, 0, sizeof(sccp_conference_participant_t));
-	
+
 	ast_bridge_features_init(&moderator->features);
 
-	moderator->channel 		= owner;
-	moderator->conference 	= conference;
-	owner->conference 		= conference;
-	conference->moderator 	= moderator;
-
+	moderator->channel = owner;
+	moderator->conference = conference;
+	owner->conference = conference;
+	conference->moderator = moderator;
 
 	/* add moderator to participants list */
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Conference: adding moderator to participant list.\n", owner->device->id);
@@ -109,7 +110,7 @@ sccp_log(1)(VERBOSE_PREFIX_3 "Conference: sccp_conference_create called.\n");
 
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Conference: Conference with id %d created; Owner: %s \n", owner->device->id, conference->id, owner->device->id);
 
-sccp_log(1)(VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_create.\n");
+	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_create.\n");
 	if (ast_pthread_create_background(&moderator->joinThread, NULL, sccp_conference_join_thread, moderator) < 0) {
 		ast_log(LOG_ERROR, "SCCP: Conference: failed to initiate join thread for moderator.\n");
 		return conference;
@@ -117,7 +118,6 @@ sccp_log(1)(VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conf
 
 	return conference;
 }
-
 
 /*!
  * Add channel to conference bridge
@@ -127,7 +127,7 @@ sccp_log(1)(VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conf
  */
 int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_t * participant, struct ast_channel *currentParticipantPeer)
 {
-sccp_log(1)(VERBOSE_PREFIX_3 "Conference: sccp_conference_addAstChannelToConferenceBridge called.\n");
+	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: sccp_conference_addAstChannelToConferenceBridge called.\n");
 
 	if (NULL == participant)
 		return -1;
@@ -136,12 +136,12 @@ sccp_log(1)(VERBOSE_PREFIX_3 "Conference: sccp_conference_addAstChannelToConfere
 
 	if (NULL == conference)
 		return -1;
-		
+
 	if (NULL == currentParticipantPeer)
 		return -1;
 
 	pbx_channel_lock(currentParticipantPeer);
-	
+
 	/* Allocate an asterisk channel structure as conference bridge peer for the participant */
 	participant->conferenceBridgePeer = currentParticipantPeer;
 	/*
@@ -181,9 +181,10 @@ sccp_log(1)(VERBOSE_PREFIX_3 "Conference: sccp_conference_addAstChannelToConfere
  */
 void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * channel)
 {
-sccp_log(1)(VERBOSE_PREFIX_3 "Conference: sccp_conference_addParticipant called.\n");
+	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: sccp_conference_addParticipant called.\n");
 
 	sccp_conference_participant_t *part = NULL;
+
 	struct ast_channel *currentParticipantPeer;
 
 	if (!channel || !conference)
@@ -198,19 +199,18 @@ sccp_log(1)(VERBOSE_PREFIX_3 "Conference: sccp_conference_addParticipant called.
 		ast_log(LOG_NOTICE, "%s: Conference: Only connected or channel on hold eligible for conference: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
 		return;
 	}
-
-#if 0
+#        if 0
 	if (!(channel->owner && (currentParticipantPeer = CS_AST_BRIDGED_CHANNEL(channel->owner)))) {
 		ast_log(LOG_NOTICE, "%s: Conference: Weird error: Participant has no channel on our side: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
 		return;
 	}
-#else
+#        else
 	currentParticipantPeer = channel->owner;
 	if (NULL == channel->owner) {
 		ast_log(LOG_NOTICE, "%s: Conference: NULL channel to be added for join thread: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
 		return;
 	}
-#endif
+#        endif
 
 	part = (sccp_conference_participant_t *) ast_malloc(sizeof(sccp_conference_participant_t));
 	if (!part) {
@@ -218,9 +218,9 @@ sccp_log(1)(VERBOSE_PREFIX_3 "Conference: sccp_conference_addParticipant called.
 	}
 	memset(part, 0, sizeof(sccp_conference_participant_t));
 
-	part->channel 		= channel;
-	part->conference 	= conference;
-	channel->conference	= conference;
+	part->channel = channel;
+	part->conference = conference;
+	channel->conference = conference;
 
 	/* Always initialize the features structure, we are in most cases always going to need it. */
 	ast_bridge_features_init(&part->features);
@@ -233,13 +233,13 @@ sccp_log(1)(VERBOSE_PREFIX_3 "Conference: sccp_conference_addParticipant called.
 		// \todo Todo: error handling
 	}
 
-sccp_log(1)(VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_addParticipant.\n");
+	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_addParticipant.\n");
 	if (ast_pthread_create_background(&part->joinThread, NULL, sccp_conference_join_thread, part) < 0) {
 		return;
 	}
 
 	SCCP_LIST_TRAVERSE(&conference->participants, part, list) {
-		sccp_log(1)(VERBOSE_PREFIX_3 "Conference %d: members %s-%08x\n", conference->id, part->channel->line->name, part->channel->callid);
+		sccp_log(1) (VERBOSE_PREFIX_3 "Conference %d: members %s-%08x\n", conference->id, part->channel->line->name, part->channel->callid);
 	}
 
 }
@@ -315,9 +315,10 @@ void sccp_conference_module_start()
 
 static void *sccp_conference_join_thread(void *data)
 {
-sccp_log(1)(VERBOSE_PREFIX_3 "Conference: entering join thread.\n");
+	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: entering join thread.\n");
 
 	sccp_conference_participant_t *participant = (sccp_conference_participant_t *) data;
+
 	struct ast_channel *astChannel;
 
 	if (NULL == participant) {

@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_management.c
  * \brief 	SCCP Management Class
@@ -10,7 +11,7 @@
  */
 #include "config.h"
 #ifdef CS_SCCP_MANAGER
-#include "common.h"
+#    include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2174 $")
 
@@ -45,10 +46,15 @@ static char management_device_update_desc[] = "Description: restart a given devi
 static char management_line_fwd_update_desc[] = "Description: update forward status for line\n" "\n" "Variables:\n" "  Linename: Name of line\n" "  Forwardtype: type of cfwd (all | busy | noAnswer)\n" "  Number: number to forward calls (optional)";
 
 static int sccp_manager_show_devices(struct mansession *s, const struct message *m);
+
 static int sccp_manager_show_lines(struct mansession *s, const struct message *m);
+
 static int sccp_manager_restart_device(struct mansession *s, const struct message *m);
+
 static int sccp_manager_device_add_line(struct mansession *s, const struct message *m);
+
 static int sccp_manager_device_update(struct mansession *s, const struct message *m);
+
 static int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m);
 
 /*!
@@ -57,6 +63,7 @@ static int sccp_manager_line_fwd_update(struct mansession *s, const struct messa
 int sccp_register_management(void)
 {
 	int result;
+
 	/* Register manager commands */
 #    if ASTERISK_VERSION_NUM < 10600
 #        define _MAN_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG
@@ -79,6 +86,7 @@ int sccp_register_management(void)
 int sccp_unregister_management(void)
 {
 	int result;
+
 	result = ast_manager_unregister("SCCPListDevices");
 	result |= ast_manager_unregister("SCCPDeviceRestart");
 	result |= ast_manager_unregister("SCCPDeviceAddLine");
@@ -101,8 +109,11 @@ int sccp_unregister_management(void)
 int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 {
 	const char *id = astman_get_header(m, "ActionID");
+
 	sccp_device_t *device;
+
 	char idtext[256] = "";
+
 	int total = 0;
 
 	snprintf(idtext, sizeof(idtext), "ActionID: %s\r\n", id);
@@ -136,8 +147,11 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 int sccp_manager_show_lines(struct mansession *s, const struct message *m)
 {
 	const char *id = astman_get_header(m, "ActionID");
+
 	sccp_line_t *line;
+
 	char idtext[256] = "";
+
 	int total = 0;
 
 	snprintf(idtext, sizeof(idtext), "ActionID: %s\r\n", id);
@@ -171,7 +185,9 @@ int sccp_manager_restart_device(struct mansession *s, const struct message *m)
 {
 //      sccp_list_t     *hintList = NULL;
 	sccp_device_t *d;
+
 	const char *fn = astman_get_header(m, "Devicename");
+
 	const char *type = astman_get_header(m, "Type");
 
 	ast_log(LOG_WARNING, "Attempt to get device %s\n", fn);
@@ -221,8 +237,11 @@ int sccp_manager_restart_device(struct mansession *s, const struct message *m)
 static int sccp_manager_device_add_line(struct mansession *s, const struct message *m)
 {
 	sccp_device_t *d;
+
 	sccp_line_t *line;
+
 	const char *deviceName = astman_get_header(m, "Devicename");
+
 	const char *lineName = astman_get_header(m, "Linename");
 
 	ast_log(LOG_WARNING, "Attempt to get device %s\n", deviceName);
@@ -275,13 +294,19 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
 int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 {
 	sccp_line_t *line;
+
 	sccp_device_t *device;
+
 	sccp_linedevices_t *linedevice;
 
 	const char *deviceId = astman_get_header(m, "DeviceId");
+
 	const char *lineName = astman_get_header(m, "Linename");
+
 	const char *forwardType = astman_get_header(m, "Forwardtype");
+
 	const char *Disable = astman_get_header(m, "Disable");
+
 	const char *number = astman_get_header(m, "Number");
 
 	//char *fwdNumber = (char *)number;
@@ -330,7 +355,9 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 					linedevice->cfwdBusy.enabled = 1;
 				}
 				sccp_copy_string(linedevice->cfwdBusy.number, number, strlen(number));
+
 /*! \todo cfwdNoAnswer is not implemented yet in sccp_linedevices_t */
+
 /*			} else if (!strcasecmp(forwardType, "noAnswer")) {
 				if (!strcasecmp(Disable,"no")) {
 					linedevice->cfwdNoAnswer.enabled=0;
@@ -357,6 +384,7 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 static int sccp_manager_device_update(struct mansession *s, const struct message *m)
 {
 	sccp_device_t *d;
+
 	const char *deviceName = astman_get_header(m, "Devicename");
 
 	ast_log(LOG_WARNING, "Attempt to get device %s\n", deviceName);

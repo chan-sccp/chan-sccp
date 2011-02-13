@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_indicate.c
  * \brief 	SCCP Indicate Class
@@ -43,7 +44,9 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
 {
 	sccp_device_t *d;
+
 	sccp_line_t *l;
+
 	int instance;
 
 	if (debug)
@@ -75,8 +78,9 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 
 	sccp_channel_setSkinnyCallstate(c, state);
 
-#if CS_ADV_FEATURES					// \todo needs to be tested and moved to seperate function
+#if CS_ADV_FEATURES								// \todo needs to be tested and moved to seperate function
 	const char *ds;
+
 	if (NULL != c->owner) {
 		/* try to get a possible cause for this indication from helper function PRI_CAUSE, set by DAHDI / LCR */
 		ds = pbx_builtin_getvar_helper(c->owner, "PRI_CAUSE");
@@ -162,7 +166,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 #if CS_ADV_FEATURES
 		if (AST_CAUSE_NORMAL_CLEARING != c->pri_cause) {
 			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: On Hook, Hangupcause %d (%s)\n", d->id, c->pri_cause, astcause2skinnycause_message(c->pri_cause));
-			sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_cause), 10);
+			sccp_dev_displayprompt(d, instance, c->callid, (char *)astcause2skinnycause(c->pri_cause), 10);
 		}
 #endif
 		/* if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
@@ -219,12 +223,15 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		} else {
 
 			sccp_linedevices_t *ownlinedevice;
+
 			sccp_device_t *remoteDevice;
+
 			SCCP_LIST_TRAVERSE(&c->line->devices, ownlinedevice, list) {
 				remoteDevice = ownlinedevice->device;
 
 				if (d && remoteDevice && remoteDevice == d) {
 					sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found matching linedevice. Aux parameter = %s\n", d->id, ownlinedevice->subscriptionId.aux);
+
 					/** Check the auxiliary parameter of the linedevice to enable silent ringing
 					 for certain devices on a certain line.**/
 					if (0 == strncmp(ownlinedevice->subscriptionId.aux, "silent", 6)) {
@@ -289,7 +296,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 			/* try to find out the congestion cause early */
 			if (AST_CAUSE_NORMAL_CLEARING != c->pri_cause) {
 				sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Progress, Hangupcause %d (%s)\n", d->id, c->pri_cause, astcause2skinnycause_message(c->pri_cause));
-				sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_cause), 10);
+				sccp_dev_displayprompt(d, instance, c->callid, (char *)astcause2skinnycause(c->pri_cause), 10);
 			} else {
 				sccp_dev_displayprompt(d, instance, c->callid, "Call Progress", 0);
 			}
@@ -311,7 +318,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		/* try to find out the congestion cause early */
 		if (AST_CAUSE_NORMAL_CLEARING != c->pri_cause) {
 			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Proceed, Hangupcause %d (%s)\n", d->id, c->pri_cause, astcause2skinnycause_message(c->pri_cause));
-			sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_cause), 10);
+			sccp_dev_displayprompt(d, instance, c->callid, (char *)astcause2skinnycause(c->pri_cause), 10);
 		} else {
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 		}
@@ -343,7 +350,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		/* try to find out the congestion cause early */
 		if (AST_CAUSE_NORMAL_CLEARING != c->pri_cause) {
 			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Congestion, Hangupcause %d (%s)\n", d->id, c->pri_cause, astcause2skinnycause_message(c->pri_cause));
-			sccp_dev_displayprompt(d, instance, c->callid, (char *) astcause2skinnycause(c->pri_cause), 10);
+			sccp_dev_displayprompt(d, instance, c->callid, (char *)astcause2skinnycause(c->pri_cause), 10);
 		} else {
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL, 0);
 		}
@@ -414,10 +421,10 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 			sccp_channel_closereceivechannel_locked(c);
 		}
 		sccp_safe_sleep(100);
-//		sccp_dev_starttone(d, SKINNY_TONE_NOSUCHNUMBERTONE, instance, c->callid, 10);
+//              sccp_dev_starttone(d, SKINNY_TONE_NOSUCHNUMBERTONE, instance, c->callid, 10);
 		sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
 
-		sccp_channel_send_callinfo(d, c); 
+		sccp_channel_send_callinfo(d, c);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_UNKNOWN_NUMBER, 0);
 
 		/* don't set AST_STATE_DOWN. we hangup only on onhook and endcall softkey */
@@ -453,6 +460,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	sccp_feat_channelStateChanged(device, c);
 
 	sccp_event_t *event = ast_malloc(sizeof(sccp_event_t));
+
 	memset(event, 0, sizeof(sccp_event_t));
 	event->type = SCCP_EVENT_LINESTATUSCHANGED;
 	event->event.lineStatusChanged.line = c->line;
@@ -484,7 +492,9 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
 {
 	sccp_device_t *remoteDevice;
+
 	int instance;
+
 	uint32_t privacyStatus;
 
 	if (!c || !c->line)
@@ -504,6 +514,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 //      SCCP_LIST_LOCK(&c->line->devices);
 	// \todo TODO find working lock
 	sccp_linedevices_t *linedevice;
+
 	SCCP_LIST_TRAVERSE(&c->line->devices, linedevice, list) {
 		remoteDevice = linedevice->device;
 
@@ -557,14 +568,13 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 			   So I removed the if clause below. Hopefully, this will not cause other calls to stop
 			   ringing if multiple calls are ringing concurrently on a shared line. */
 
-
- 			sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
- 			//sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN); /* 7985 dont like this command when in shared line */
+			sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
+			//sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN); /* 7985 dont like this command when in shared line */
 			sccp_dev_clearprompt(remoteDevice, instance, c->callid);
 			sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, (!c->privacy) ? SKINNY_CALLINFO_VISIBILITY_DEFAULT : SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 			sccp_channel_send_callinfo(remoteDevice, c);
 
- 			sccp_dev_set_keyset(remoteDevice, instance, c->callid, KEYMODE_ONHOOKSTEALABLE);
+			sccp_dev_set_keyset(remoteDevice, instance, c->callid, KEYMODE_ONHOOKSTEALABLE);
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
 

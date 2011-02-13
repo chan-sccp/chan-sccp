@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_config.c
  * \brief 	SCCP Config Class
@@ -92,6 +93,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2154 $")
 struct ast_config *sccp_config_getConfig(void);
 
 #ifdef CS_DYNAMIC_CONFIG
+
 /*!
  * \brief add a Button to a device
  * \param device the SCCP Device where to add the button
@@ -112,11 +114,14 @@ struct ast_config *sccp_config_getConfig(void);
 void sccp_config_addButton(sccp_device_t * device, int index, button_type_t type, const char *name, const char *options, const char *args)
 {
 	sccp_buttonconfig_t *config = NULL;
+
 	boolean_t new = FALSE;
+
 	uint16_t highest_index = 0;
 
 #    ifdef CS_DEVSTATE_FEATURE
 	sccp_devstate_specifier_t *dspec;
+
 	dspec = ast_calloc(1, sizeof(sccp_devstate_specifier_t));
 #    endif
 
@@ -168,6 +173,7 @@ void sccp_config_addButton(sccp_device_t * device, int index, button_type_t type
 	case LINE:
 		{
 			struct composedId composedLineRegistrationId;
+
 			memset(&composedLineRegistrationId, 0, sizeof(struct composedId));
 			composedLineRegistrationId = sccp_parseComposedId(name, 80);
 
@@ -247,6 +253,7 @@ void sccp_config_addButton(sccp_device_t * device, int index, button_type_t type
 void sccp_config_addLine(sccp_device_t * device, char *lineName, char *options, uint16_t instance)
 {
 	struct composedId composedLineRegistrationId;
+
 	sccp_buttonconfig_t *config;
 
 	config = ast_calloc(1, sizeof(sccp_buttonconfig_t));
@@ -318,6 +325,7 @@ void sccp_config_addEmpty(sccp_device_t * device, uint16_t instance)
 void sccp_config_addSpeeddial(sccp_device_t * device, char *label, char *extension, char *hint, uint16_t instance)
 {
 	sccp_buttonconfig_t *config;
+
 	config = ast_calloc(1, sizeof(sccp_buttonconfig_t));
 	if (!config)
 		return;
@@ -355,6 +363,7 @@ void sccp_config_addFeature(sccp_device_t * device, char *label, char *featureID
 
 #    ifdef CS_DEVSTATE_FEATURE
 	sccp_devstate_specifier_t *dspec;
+
 	dspec = ast_calloc(1, sizeof(sccp_devstate_specifier_t));
 #    endif
 
@@ -452,7 +461,9 @@ void sccp_config_addService(sccp_device_t * device, char *label, char *url, uint
 sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char *deviceName, boolean_t isRealtime)
 {
 	sccp_device_t *d = NULL;
+
 	int res;
+
 #ifdef CS_DYNAMIC_CONFIG
 	boolean_t is_new = FALSE;
 #endif
@@ -483,6 +494,7 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 #ifdef CS_DYNAMIC_CONFIG
 	/* clone d to temp_d */
 	sccp_device_t *temp_d = NULL;
+
 	if (d->pendingDelete) {
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: cloning device\n", d->id);
 		temp_d = sccp_clone_device(d);
@@ -566,6 +578,7 @@ sccp_device_t *sccp_config_buildDevice(struct ast_variable *variable, const char
 sccp_line_t *sccp_config_buildLine(struct ast_variable * variable, const char *lineName, boolean_t isRealtime)
 {
 	sccp_line_t *l = NULL;
+
 	char *name = (char *)lineName;
 
 	name = ast_strip(name);
@@ -669,31 +682,57 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable * variable, const char *l
 boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 {
 	struct ast_config *cfg;
+
 	struct ast_variable *v;
+
 	int firstdigittimeout = 0;
+
 	int digittimeout = 0;
+
 	int autoanswer_ring_time = 0;
+
 	int autoanswer_tone = 0;
+
 	int remotehangup_tone = 0;
+
 	int transfer_tone = 0;
+
 	int callwaiting_tone = 0;
+
 	int amaflags = 0;
+
 	int protocolversion = 0;
+
 	char digittimeoutchar = '#';
+
 	char *debug_arr[1];
+
 	unsigned int sccp_tos = 0;
+
 	unsigned int audio_tos = 0;
+
 	unsigned int video_tos = 0;
+
 	unsigned int sccp_cos = 0;
+
 	unsigned int audio_cos = 0;
+
 	unsigned int video_cos = 0;
+
 	char pref_buf[128];
+
 	struct ast_hostent ahp;
+
 	struct hostent *hp;
+
 	struct ast_ha *na;
+
 	char config_value[256];
+
 	char newcontexts[AST_MAX_CONTEXT];
+
 	char oldcontexts[AST_MAX_CONTEXT];
+
 	char *stringp, *context, *oldregcontext;
 
 	/* Cleanup for reload */
@@ -1150,8 +1189,11 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	struct ast_config *cfg = NULL;
 
 	char *cat = NULL;
+
 	struct ast_variable *v = NULL;
+
 	uint8_t device_count = 0;
+
 	uint8_t line_count = 0;
 
 	ast_log(LOG_NOTICE, "Loading Devices and Lines from config\n");
@@ -1177,6 +1219,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	while ((cat = ast_category_browse(cfg, cat))) {
 
 		const char *utype;
+
 		if (!strcasecmp(cat, "general"))
 			continue;
 
@@ -1218,6 +1261,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 #ifdef CS_SCCP_REALTIME
 	/* reload realtime lines */
 	sccp_line_t *l;
+
 	sccp_configurationchange_t res;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
@@ -1225,22 +1269,22 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 		if (l->realtime == TRUE && l != GLOB(hotline)->line) {
 			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%s: reload realtime line\n", l->name);
 			v = ast_load_realtime(GLOB(realtimelinetable), "name", l->name, NULL);
-#ifdef CS_DYNAMIC_CONFIG
+#    ifdef CS_DYNAMIC_CONFIG
 			/* we did not find this line, mark it for deletion */
 			if (!v) {
 				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%s: realtime line not found - set pendingDelet=1\n", l->name);
 				l->pendingDelete = 1;
 				continue;
 			}
-#endif
+#    endif
 
 			res = sccp_config_applyLineConfiguration(l, v);
 			/* check if we did some changes that needs a device update */
-#ifdef CS_DYNAMIC_CONFIG
+#    ifdef CS_DYNAMIC_CONFIG
 			if (res == SCCP_CONFIG_NEEDDEVICERESET) {
 				l->pendingUpdate = 1;
 			}
-#endif
+#    endif
 			ast_variables_destroy(v);
 		}
 	}
@@ -1280,11 +1324,17 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, struct ast_variable *v)
 {
 	int amaflags = 0;
+
 	sccp_configurationchange_t res = SCCP_CONFIG_NOUPDATENEEDED;
+
 	unsigned int audio_tos = 0;
+
 	unsigned int video_tos = 0;
+
 	unsigned int audio_cos = 0;
+
 	unsigned int video_cos = 0;
+
 	int secondary_dialtone_tone = 0;
 
 #ifdef CS_DYNAMIC_CONFIG
@@ -1337,7 +1387,9 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, s
 				ast_log(LOG_WARNING, "obsolete callerid param. Use cid_num and cid_name\n");
 			} else if (!strcasecmp(v->name, "mailbox")) {
 				sccp_mailbox_t *mailbox = NULL;
+
 				char *context, *mbox = NULL;
+
 				mbox = context = sccp_strdupa(v->value);
 				boolean_t mailbox_exists = FALSE;
 
@@ -1548,15 +1600,20 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct as
 
 	/* for button config */
 	char *buttonType = NULL, *buttonName = NULL, *buttonOption = NULL, *buttonArgs = NULL;
+
 	char k_button[256];
+
 	uint16_t instance = 0;
+
 	char *splitter;
+
 	char config_value[256];
 
 #ifdef CS_DYNAMIC_CONFIG
 	if (d->pendingDelete) {
 		// remove all addons before adding them again (to find differences later on in sccp_device_change)
 		sccp_addon_t *addon;
+
 		SCCP_LIST_LOCK(&d->addons);
 		while ((addon = SCCP_LIST_REMOVE_HEAD(&d->addons, list))) {
 			ast_free(addon);
@@ -1574,6 +1631,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct as
 
 		/* removing permithosts */
 		sccp_hostname_t *permithost;
+
 		SCCP_LIST_LOCK(&d->permithosts);
 		while ((permithost = SCCP_LIST_REMOVE_HEAD(&d->permithosts, list))) {
 			ast_free(permithost);
@@ -1607,6 +1665,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct as
 		} else if (!strcasecmp(v->name, "button")) {
 #ifdef CS_DYNAMIC_CONFIG
 			button_type_t type;
+
 			unsigned i;
 #endif										/* CS_DYNAMIC_CONFIG */
 
@@ -1753,6 +1812,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct as
 		} else if (!strcasecmp(v->name, "setvar")) {
 
 			struct ast_variable *newvar = NULL;
+
 			newvar = sccp_create_variable(v->value);
 
 			if (newvar) {
@@ -1794,7 +1854,7 @@ struct ast_config *sccp_config_getConfig()
 	cfg = pbx_config_load("sccp.conf", "chan_sccp", config_flags);
 	if (!cfg)
 		cfg = pbx_config_load("sccp_v3.conf", "chan_sccp", config_flags);
-		
+
 	/* Warn user when old entries exist in sccp.conf */
 	if (cfg && ast_variable_browse(cfg, "devices")) {
 		ast_log(LOG_WARNING, "\n\n --> You are using an old configuration format, pleas update your sccp.conf!!\n --> Loading of module chan_sccp with current sccp.conf has terminated\n --> Check http://chan-sccp-b.sourceforge.net/doc_setup.shtml for more information.\n\n");
@@ -1819,9 +1879,13 @@ struct ast_config *sccp_config_getConfig()
 void sccp_config_softKeySet(struct ast_variable *variable, const char *name)
 {
 	int keySetSize;
+
 	sccp_softKeySetConfiguration_t *softKeySetConfiguration = NULL;
+
 	int keyMode = -1;
+
 	unsigned int i = 0;
+
 	sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "start reading softkeyset: %s\n", name);
 
 	softKeySetConfiguration = ast_calloc(1, sizeof(sccp_softKeySetConfiguration_t));
@@ -1872,6 +1936,7 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name)
 		for (i = 0; i < (sizeof(SoftKeyModes) / sizeof(softkey_modes)); i++) {
 			if (SoftKeyModes[i].id == keyMode) {
 				uint8_t *softkeyset = ast_calloc(StationMaxSoftKeySetDefinition, sizeof(uint8_t));
+
 				keySetSize = sccp_config_readSoftSet(softkeyset, variable->value);
 
 				if (keySetSize > 0) {
@@ -1903,7 +1968,9 @@ uint8_t sccp_config_readSoftSet(uint8_t * softkeyset, const char *data)
 	int i = 0, j;
 
 	char labels[256];
+
 	char *splitter;
+
 	char *label;
 
 	if (!data)
@@ -1929,6 +1996,7 @@ uint8_t sccp_config_readSoftSet(uint8_t * softkeyset, const char *data)
 int sccp_config_getSoftkeyLbl(char *key)
 {
 	int i = 0;
+
 	int size = sizeof(softKeyTemplate) / sizeof(softkeyConfigurationTemplate);
 
 	for (i = 0; i < size; i++) {
@@ -1957,6 +2025,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 
 #ifdef CS_DEVSTATE_FEATURE
 	char buf[256] = "";
+
 	sccp_devstate_specifier_t *specifier;
 #endif
 
@@ -1969,7 +2038,9 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 #endif
 
 	char buffer[ASTDB_RESULT_LEN];
+
 	char family[ASTDB_FAMILY_KEY_LEN];
+
 	int res;
 
 	sprintf(family, "SCCP/%s", device->id);
@@ -2008,6 +2079,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 
 	/* lastDialedNumber */
 	char lastNumber[AST_MAX_EXTENSION] = "";
+
 	res = pbx_db_get(family, "lastDialedNumber", lastNumber, sizeof(lastNumber));
 	if (!res) {
 		sccp_copy_string(device->lastNumber, lastNumber, sizeof(device->lastNumber));

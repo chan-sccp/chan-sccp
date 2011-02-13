@@ -1,3 +1,4 @@
+
 /*!
  * \file 	chan_sccp.c
  * \brief 	An implementation of Skinny Client Control Protocol (SCCP)
@@ -23,8 +24,6 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/translate.h>
-
-
 #if ASTERISK_VERSION_NUM >= 10400
 #    ifdef CS_AST_HAS_TECH_PVT
 #        define SET_CAUSE(x)	*cause = x;
@@ -63,9 +62,11 @@ struct sccp_global_vars *sccp_globals = 0;
  * \brief	Global scheduler and IO context
  */
 struct sched_context *sched = 0;
+
 struct io_context *io = 0;
 
 #ifdef CS_AST_HAS_TECH_PVT
+
 /*!
  * \brief	handle request coming from asterisk
  * \param	type	type of data as char
@@ -78,6 +79,7 @@ struct io_context *io = 0;
  */
 struct ast_channel *sccp_request(const char *type, int format, void *data, int *cause)
 #else
+
 /*!
  * \brief	handle request coming from asterisk
  * \param	type	type of data as char
@@ -94,12 +96,19 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 #endif
 {
 	struct composedId lineSubscriptionId;
+
 	sccp_line_t *l = NULL;
+
 	sccp_channel_t *c = NULL;
+
 	char *options = NULL, *lineName = NULL;
+
 	int optc = 0;
+
 	char *optv[2];
+
 	int opti = 0;
+
 	int oldformat = format;
 
 	memset(&lineSubscriptionId, 0, sizeof(struct composedId));
@@ -339,7 +348,9 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 int sccp_devicestate(void *data)
 {
 	sccp_line_t *l = NULL;
+
 	int res = AST_DEVICE_UNKNOWN;
+
 	char *lineName = (char *)data, *options = NULL;
 
 	/* exclude options */
@@ -403,6 +414,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 		return 0;
 	}
 	uint32_t mid = letohl(r->lel_messageId);
+
 	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: last keepAlive within %d (%d)\n", (s->device)?s->device->id:"null", (uint32_t)(time(0) - s->lastKeepAlive), (s->device)?s->device->keepalive:0 );
 
 	s->lastKeepAlive = time(0);						/* always update keepalive */
@@ -436,11 +448,11 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 			}
 		} else if (s->device && (!s->device->session || s->device->session != s)) {
 			sccp_log(1) (VERBOSE_PREFIX_3 "%s: cross device session (Removing Old Session)\n", DEV_ID_LOG(s->device));
-			
+
 			SCCP_RWLIST_WRLOCK(&GLOB(sessions));
 			SCCP_LIST_REMOVE(&GLOB(sessions), s, list);
 			SCCP_RWLIST_UNLOCK(&GLOB(sessions));
-			
+
 			pthread_cancel(s->session_thread);
 			ast_free(r);
 			return 0;
@@ -603,6 +615,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 static int load_config(void)
 {
 	int oldport = ntohs(GLOB(bindaddr.sin_port));
+
 	int on = 1;
 
 #if ASTERISK_VERSION_NUM >= 10400
@@ -808,13 +821,18 @@ int sccp_restart_monitor(void)
 static int sccp_func_sccpdevice(struct ast_channel *chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
 	sccp_device_t *d;
+
 	char *colname;
+
 	char tmp[1024] = "";
+
 	char lbuf[1024] = "";
+
 	int first = 0;
 
 	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
+
 		*colname++ = '\0';
 		if (deprecation_warning++ % 10 == 0)
 			ast_log(LOG_WARNING, "SCCPDEVICE(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
@@ -825,7 +843,9 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, NEWCONST char *cmd, ch
 
 	if (!strncasecmp(data, "current", 7)) {
 		sccp_channel_t *c;
+
 		if (!(c = get_sccp_channel_from_ast_channel(chan))) {
+
 /*			ast_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");*/
 			return -1;
 		}
@@ -847,6 +867,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, NEWCONST char *cmd, ch
 	sccp_device_lock(d);
 	if (!strcasecmp(colname, "ip")) {
 		sccp_session_t *s = d->session;
+
 		if (s) {
 			sccp_copy_string(buf, s->sin.sin_addr.s_addr ? pbx_inet_ntoa(s->sin.sin_addr) : "", len);
 		}
@@ -906,6 +927,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, NEWCONST char *cmd, ch
 		sccp_copy_string(buf, d->currentLine->id, len);
 	} else if (!strcasecmp(colname, "button_config")) {
 		sccp_buttonconfig_t *config;
+
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			switch (config->type) {
@@ -949,6 +971,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, NEWCONST char *cmd, ch
 #endif
 	} else if (!strncasecmp(colname, "chanvar[", 8)) {
 		char *chanvar = colname + 8;
+
 		struct ast_variable *v;
 
 		chanvar = strsep(&chanvar, "]");
@@ -959,6 +982,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, NEWCONST char *cmd, ch
 		}
 	} else if (!strncasecmp(colname, "codec[", 6)) {
 		char *codecnum;
+
 		int codec = 0;
 
 		codecnum = colname + 6;						// move past the '[' 
@@ -1005,14 +1029,20 @@ static struct ast_custom_function sccpdevice_function = {
 static int sccp_func_sccpline(struct ast_channel *chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
 	sccp_line_t *l;
+
 	sccp_channel_t *c;
+
 	char *colname;
+
 	char tmp[1024] = "";
+
 	char lbuf[1024] = "";
+
 	int first = 0;
 
 	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
+
 		*colname++ = '\0';
 		if (deprecation_warning++ % 10 == 0)
 			ast_log(LOG_WARNING, "SCCPLINE(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
@@ -1023,6 +1053,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, NEWCONST char *cmd, char
 
 	if (!strncasecmp(data, "current", 7)) {
 		if (!(c = get_sccp_channel_from_ast_channel(chan))) {
+
 /*			ast_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n");*/
 			return -1;
 		}
@@ -1034,6 +1065,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, NEWCONST char *cmd, char
 		l = c->line;
 	} else if (!strncasecmp(data, "parent", 7)) {
 		if (!(c = get_sccp_channel_from_ast_channel(chan))) {
+
 /*			ast_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n");*/
 			return -1;
 		}
@@ -1133,6 +1165,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, NEWCONST char *cmd, char
 		snprintf(buf, len, "%d", l->devices.size);
 	} else if (!strcasecmp(colname, "cfwd")) {
 		sccp_linedevices_t *linedevice;
+
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 			if (linedevice)
@@ -1149,6 +1182,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, NEWCONST char *cmd, char
 		snprintf(buf, len, "%s", lbuf);
 	} else if (!strcasecmp(colname, "devices")) {
 		sccp_linedevices_t *linedevice;
+
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 			if (linedevice)
@@ -1165,6 +1199,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, NEWCONST char *cmd, char
 		snprintf(buf, len, "%s", lbuf);
 	} else if (!strncasecmp(colname, "chanvar[", 8)) {
 		char *chanvar = colname + 8;
+
 		struct ast_variable *v;
 
 		chanvar = strsep(&chanvar, "]");
@@ -1209,10 +1244,12 @@ static struct ast_custom_function sccpline_function = {
 static int sccp_func_sccpchannel(struct ast_channel *chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
 	sccp_channel_t *c;
+
 	char *colname;
 
 	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
+
 		*colname++ = '\0';
 		if (deprecation_warning++ % 10 == 0)
 			ast_log(LOG_WARNING, "SCCPCHANNEL(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
@@ -1223,11 +1260,12 @@ static int sccp_func_sccpchannel(struct ast_channel *chan, NEWCONST char *cmd, c
 
 	if (!strncasecmp(data, "current", 7)) {
 		if (!(c = get_sccp_channel_from_ast_channel(chan)))
-			return -1; /* Not a SCCP channel. */
+			return -1;						/* Not a SCCP channel. */
 
 		sccp_channel_lock(c);
 	} else {
 		uint32_t callid = atoi(data);
+
 		if (!(c = sccp_channel_find_byid_locked(callid))) {
 			ast_log(LOG_WARNING, "SCCPCHANNEL(): SCCP Channel not available\n");
 			return -1;
@@ -1302,6 +1340,7 @@ static int sccp_func_sccpchannel(struct ast_channel *chan, NEWCONST char *cmd, c
 		/*! \todo needs to be implemented */
 	} else if (!strncasecmp(colname, "codec[", 6)) {
 		char *codecnum;
+
 		int codec = 0;
 
 		codecnum = colname + 6;						// move past the '[' 
@@ -1338,7 +1377,9 @@ static struct ast_custom_function sccpchannel_function = {
 static int sccp_app_calledparty(struct ast_channel *chan, void *data)
 {
 	char *text = data;
+
 	char *num, *name;
+
 	sccp_channel_t *c = NULL;
 
 	if (!(c = get_sccp_channel_from_ast_channel(chan))) {
@@ -1357,7 +1398,9 @@ static int sccp_app_calledparty(struct ast_channel *chan, void *data)
 
 /*! \brief Stucture to declare a dialplan function: SETCALLEDPARTY */
 static char *calledparty_name = "SetCalledParty";
+
 static char *calledparty_synopsis = "Sets the callerid of the called party";
+
 static char *calledparty_descr = "Usage: SetCalledParty(\"Name\" <ext>)" "Sets the name and number of the called party for use with chan_sccp\n";
 
 /*!
@@ -1377,7 +1420,9 @@ static char *calledparty_descr = "Usage: SetCalledParty(\"Name\" <ext>)" "Sets t
 static int sccp_app_setmessage(struct ast_channel *chan, void *data)
 {
 	char *text = data;
+
 	sccp_channel_t *c = NULL;
+
 	sccp_device_t *d;
 
 	if (!(c = get_sccp_channel_from_ast_channel(chan))) {
@@ -1408,7 +1453,9 @@ static int sccp_app_setmessage(struct ast_channel *chan, void *data)
 }
 
 static char *setmessage_name = "SetMessage";
+
 static char *setmessage_synopsis = "Send a Message to the current Phone";
+
 static char *setmessage_descr = "Usage: SetMessage(\"Message\")\n" "       Send a Message to the Calling Device\n";
 
 static int sccp_register_dialplan_functions(void)
@@ -1444,6 +1491,7 @@ static int sccp_unregister_dialplan_functions(void)
 }
 
 #if ASTERISK_VERSION_NUM < 10400
+
 /*!
  * \brief 	Load the actual chan_sccp module
  * \return	Success as int
@@ -1555,11 +1603,11 @@ static int load_module(void)
 			return -1;
 		}
 	}
-#    ifndef CS_AST_HAS_RTP_ENGINE
+#ifndef CS_AST_HAS_RTP_ENGINE
 	pbx_rtp_proto_register(&sccp_rtp);
-#    else
+#else
 	pbx_rtp_glue_register(&sccp_rtp);
-#    endif
+#endif
 
 #ifdef CS_SCCP_MANAGER
 	sccp_register_management();
@@ -1575,6 +1623,7 @@ static int load_module(void)
 }
 
 #if ASTERISK_VERSION_NUM >= 10400
+
 /*!
  * \brief Schedule free memory
  * \param ptr pointer
@@ -1592,6 +1641,7 @@ int sccp_sched_free(void *ptr)
 #endif
 
 #if ASTERISK_VERSION_NUM < 10400
+
 /*!
  * \brief 	Unload the chan_sccp module
  * \return	Success as int
@@ -1611,13 +1661,17 @@ static int unload_module(void)
 #endif
 {
 	sccp_device_t *d;
+
 	sccp_line_t *l;
+
 	sccp_channel_t *c;
+
 	sccp_session_t *s;
+
 	int openchannels = 0;
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
-	
+
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Descriptor\n");
 	close(GLOB(descriptor));
 	GLOB(descriptor) = -1;
@@ -1653,7 +1707,7 @@ static int unload_module(void)
 		}
 		pbx_channel_unlock(astChannel);
 	}
-	sccp_safe_sleep(openchannels * 1000);				// wait for everything to settle
+	sccp_safe_sleep(openchannels * 1000);					// wait for everything to settle
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Unregister SCCP RTP protocol\n");
 	pbx_rtp_proto_unregister(&sccp_rtp);
@@ -1732,7 +1786,6 @@ static int unload_module(void)
 	ast_mutex_destroy(&GLOB(lock));
 	ast_free(sccp_globals);
 
-	
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing monitor thread\n");
 	sccp_globals_lock(monitor_lock);
 	if ((GLOB(monitor_thread) != AST_PTHREADT_NULL) && (GLOB(monitor_thread) != AST_PTHREADT_STOP)) {
@@ -1745,7 +1798,7 @@ static int unload_module(void)
 	GLOB(monitor_thread) = AST_PTHREADT_STOP;
 	sccp_globals_unlock(monitor_lock);
 	sccp_mutex_destroy(&GLOB(monitor_lock));
-	
+
 	ast_log(LOG_NOTICE, "Running Cleanup\n");
 #ifdef HAVE_LIBGC
 	CHECK_LEAKS();
@@ -1758,6 +1811,7 @@ static int unload_module(void)
 #if ASTERISK_VERSION_NUM >= 10400
 AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY, "Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION " " SCCP_BRANCH " (built by '" BUILD_USER "' on '" BUILD_DATE "')");
 #else
+
 /*!
  * \brief 	number of instances of chan_sccp
  * \return	res number of instances
@@ -1765,6 +1819,7 @@ AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY, "Skinny Client Control Protocol (SCCP
 int usecount()
 {
 	int res;
+
 	sccp_globals_lock(usecnt_lock);
 	res = GLOB(usecnt);
 	sccp_globals_unlock(usecnt_lock);
