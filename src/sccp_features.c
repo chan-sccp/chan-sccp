@@ -795,9 +795,18 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 	/* if we have selected channels, add this to conference */
 	SCCP_LIST_LOCK(&d->selectedChannels);
 	SCCP_LIST_TRAVERSE(&d->selectedChannels, selectedChannel, list) {
-
-		sccp_conference_addParticipant(d->conference, selectedChannel->channel);
 		selectedFound = TRUE;
+		
+		if(NULL != selectedChannel->channel) {
+		if(c != channel) {
+							sccp_conference_addParticipant(d->conference, channel);
+						} else {
+							ast_log(LOG_NOTICE, "%s: not adding our own active channel to device.\n", DEV_ID_LOG(d));
+						}
+			
+		} else {
+			ast_log(LOG_NOTICE, "%s: not adding NULL channel to conference.\n", DEV_ID_LOG(d));
+		}
 	}
 	SCCP_LIST_UNLOCK(&d->selectedChannels);
 
@@ -813,7 +822,12 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 				SCCP_LIST_LOCK(&line->channels);
 				SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
 					if (channel->device == d) {
-						sccp_conference_addParticipant(d->conference, channel);
+						/* Make sure not to add the moderator channel (ourselves) twice. */
+						if(c != channel) {
+							sccp_conference_addParticipant(d->conference, channel);
+						} else {
+							ast_log(LOG_NOTICE, "%s: not adding our own active channel to device.\n", DEV_ID_LOG(d));
+						}
 					}
 				}
 				SCCP_LIST_UNLOCK(&line->channels);
