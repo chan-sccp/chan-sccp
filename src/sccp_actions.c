@@ -1118,7 +1118,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 					sccp_channel_lock(c);
 					sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d", d->id, c->callid, instance);
 					sccp_dev_set_activeline(d, l);
-					sccp_channel_resume_locked(d, c);
+					sccp_channel_resume_locked(d, c, TRUE);
 					sccp_channel_unlock(c);
 					sccp_dev_set_cplane(l, instance, d, 1);
 				} else {
@@ -1166,7 +1166,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 					sccp_channel_endcall_locked(c1);
 				sccp_channel_unlock(c1);
 			}
-			sccp_channel_resume_locked(d, c);
+			sccp_channel_resume_locked(d, c, TRUE);
 			sccp_channel_unlock(c);
 		} else {
 			sccp_log(1) (VERBOSE_PREFIX_3 "%s: No call to resume/hold found on line %d\n", d->id, instance);
