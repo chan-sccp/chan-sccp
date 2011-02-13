@@ -96,11 +96,13 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 	SCCP_LIST_INSERT_TAIL(&conference->participants, moderator, list);
 	SCCP_LIST_UNLOCK(&conference->participants);
 
+#if 0
 	/* Add moderator to conference. */
 	if (0 != sccp_conference_addAstChannelToConferenceBridge(moderator, moderator->channel->owner)) {
 		ast_log(LOG_ERROR, "SCCP: Conference: failed to add moderator channel (preparation phase).\n");
 		/* TODO: Error handling. */
 	}
+#endif
 
 	/* Store conference in global list. */
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Conference: adding conference to global conference list.\n", owner->device->id);
@@ -110,11 +112,14 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Conference: Conference with id %d created; Owner: %s \n", owner->device->id, conference->id, owner->device->id);
 
+#if 0
 	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_create.\n");
 	if (ast_pthread_create_background(&moderator->joinThread, NULL, sccp_conference_join_thread, moderator) < 0) {
 		ast_log(LOG_ERROR, "SCCP: Conference: failed to initiate join thread for moderator.\n");
 		return conference;
 	}
+#endif
+	
 
 	return conference;
 }
@@ -143,14 +148,13 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 	pbx_channel_lock(currentParticipantPeer);
 
 	/* Allocate an asterisk channel structure as conference bridge peer for the participant */
-	participant->conferenceBridgePeer = currentParticipantPeer;
-	/*
-	   ast_channel_alloc(0, currentParticipantPeer->_state, 0, 0, currentParticipantPeer->accountcode, 
+	participant->conferenceBridgePeer = ast_channel_alloc(0, currentParticipantPeer->_state, 0, 0, currentParticipantPeer->accountcode, 
 	   currentParticipantPeer->exten, currentParticipantPeer->context, currentParticipantPeer->amaflags, "ConferenceBridge/%s", currentParticipantPeer->name);
+	   
 	   if(!participant->conferenceBridgePeer) {
 	   ast_log(LOG_NOTICE, "Couldn't allocate participant peer.\n");
-	   pbx_channel_unlock(currentParticipantPeer);
-	   return -1;
+	  	 pbx_channel_unlock(currentParticipantPeer);
+	 	  return -1;
 	   }
 
 	   participant->conferenceBridgePeer->readformat = currentParticipantPeer->readformat;
@@ -158,9 +162,17 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 	   participant->conferenceBridgePeer->nativeformats = currentParticipantPeer->nativeformats;
 
 	   if(ast_channel_masquerade(participant->conferenceBridgePeer, currentParticipantPeer)){
+	   ast_log(LOG_ERROR, "SCCP: Conference: failed to masquerade channel.\n");
 	   pbx_channel_unlock(currentParticipantPeer);
+	   ast_hangup(participant->conferenceBridgePeer);
+	   participant->conferenceBridgePeer = NULL;
 	   return -1;
-	   } */
+	   } else {
+	   			ast_channel_lock(participant->conferenceBridgePeer);
+				ast_do_masquerade(participant->conferenceBridgePeer);
+				ast_channel_unlock(participant->conferenceBridgePeer);
+	   }
+	   
 
 	pbx_channel_unlock(currentParticipantPeer);
 
@@ -199,7 +211,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		ast_log(LOG_NOTICE, "%s: Conference: Only connected or channel on hold eligible for conference: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
 		return;
 	}
-#        if 0
+#        if 1
 	if (!(channel->owner && (currentParticipantPeer = CS_AST_BRIDGED_CHANNEL(channel->owner)))) {
 		ast_log(LOG_NOTICE, "%s: Conference: Weird error: Participant has no channel on our side: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
 		return;
@@ -218,8 +230,8 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 	}
 	memset(part, 0, sizeof(sccp_conference_participant_t));
 
-	part->channel = channel;
-	part->conference = conference;
+	part->channel 		= channel;
+	part->conference 	= conference;
 	channel->conference = conference;
 
 	/* Always initialize the features structure, we are in most cases always going to need it. */
