@@ -47,7 +47,7 @@ void sccp_channel_destroy_locked(sccp_channel_t * c);
 int sccp_channel_destroy_callback(const void* data);
 void sccp_channel_clean_locked(sccp_channel_t * c);
 int sccp_channel_hold_locked(sccp_channel_t * c);
-int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c);
+int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c, boolean_t swap_channels);
 
 void sccp_channel_transfer_locked(sccp_channel_t * c);
 void sccp_channel_transfer_complete(sccp_channel_t * c);

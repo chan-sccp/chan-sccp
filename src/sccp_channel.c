@@ -1586,7 +1586,7 @@ int sccp_channel_hold_locked(sccp_channel_t * c)
  * 	  - see sccp_channel_updateChannelCapability_locked()
  * 	- channel
  */
-int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c)
+int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c, boolean_t swap_channels)
 {
 	sccp_line_t *l;
 	sccp_device_t *d;
@@ -1609,7 +1609,7 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c)
 		d = device;
 
 	/* look if we have a call to put on hold */
-	if ((hold = sccp_channel_get_active_locked(d))) {
+	if (swap_channels && (hold = sccp_channel_get_active_locked(d))) {
 		/* there is an active call, let's put it on hold first */
 		int ret = sccp_channel_hold_locked(hold);
 		sccp_channel_unlock(hold);
