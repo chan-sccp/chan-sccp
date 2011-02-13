@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_lock.c
  * \brief 	SCCP Lock Class
@@ -9,7 +10,7 @@
  * $Date$
  * $Revision$  
  */
- 
+
 /*!
  * \file
  * \page sccp_lock Locking in SCCP
@@ -86,9 +87,9 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-
 #ifdef CS_AST_DEBUG_CHANNEL_LOCKS
 #    define CS_LOCKS_DEBUG_ALL
+
 /*!
  * \brief Mutex Unlock AST MUTEX (and print debugging output)
  * \param mutex Mutex as ast_mutex_t
@@ -123,6 +124,7 @@ int __sccp_mutex_unlock(ast_mutex_t * p_mutex, const char *itemnametolock, const
 #    ifdef CS_LOCKS_DEBUG_ALL
 #        ifdef CS_AST_DEBUG_THREADS
 	int count = 0;
+
 #            ifndef CS_AST_HAS_TRACK
 	if ((count = p_mutex->reentrancy)) {
 #            else

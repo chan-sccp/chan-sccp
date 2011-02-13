@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_utils.c
  * \brief 	SCCP Utils Class
@@ -48,11 +49,17 @@ static int isPrintableChar(char c)
 void sccp_dump_packet(unsigned char *messagebuffer, int len)
 {
 	int cur, t, i;
+
 	int rows, cols;
+
 	int res = 16;
+
 	char row[256];
+
 	char temp[16];
+
 	char temp2[32];
+
 	cur = 0;
 
 	cols = res;
@@ -151,6 +158,7 @@ void sccp_addon_addnew(sccp_device_t * d, const char *addon_config_type)
 	}
 
 	sccp_addon_t *a = ast_malloc(sizeof(sccp_addon_t));
+
 	if (!a) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a device addon\n");
 		return;
@@ -176,6 +184,7 @@ void sccp_addon_addnew(sccp_device_t * d, const char *addon_config_type)
 int sccp_addons_taps(sccp_device_t * d)
 {
 	sccp_addon_t *cur = NULL;
+
 	int taps = 0;
 
 	if (!strcasecmp(d->config_type, "7914"))
@@ -240,15 +249,16 @@ void sccp_safe_sleep(int ms)
 struct ast_variable *sccp_create_variable(const char *buf)
 {
 	struct ast_variable *tmpvar = NULL;
+
 	char *varname = sccp_strdupa(buf), *varval = NULL;
 
 	if ((varval = strchr(varname, '='))) {
 		*varval++ = '\0';
-#    if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUM >= 10600
 		if ((tmpvar = ast_variable_new(varname, varval, ""))) {
-#    else
+#else
 		if ((tmpvar = ast_variable_new(varname, varval))) {
-#    endif
+#endif
 			return tmpvar;
 		}
 	}
@@ -306,6 +316,7 @@ sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime)
 }
 
 #ifdef CS_SCCP_REALTIME
+
 /*!
  * \brief Find Device via RealTime
  * \param name Device ID (hostname)
@@ -317,6 +328,7 @@ sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime)
 sccp_device_t *sccp_device_find_realtime(const char *name)
 {
 	sccp_device_t *d = NULL;
+
 	struct ast_variable *v, *variable;
 
 	if (sccp_strlen_zero(GLOB(realtimedevicetable)))
@@ -388,6 +400,7 @@ sccp_line_t *sccp_line_find_byname_wo(const char *name, uint8_t realtime)
 }
 
 #ifdef CS_SCCP_REALTIME
+
 /*!
  * \brief Find Line via Realtime
  * \param name Line Name
@@ -399,6 +412,7 @@ sccp_line_t *sccp_line_find_byname_wo(const char *name, uint8_t realtime)
 sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 {
 	sccp_line_t *l = NULL;
+
 	struct ast_variable *v, *variable;
 
 	if (sccp_strlen_zero(GLOB(realtimelinetable)))
@@ -447,6 +461,7 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 {
 	sccp_line_t *l = NULL;
+
 	sccp_buttonconfig_t *config;
 
 	sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Looking for line with instance %d.\n", DEV_ID_LOG(d), instance);
@@ -491,6 +506,7 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 sccp_channel_t *sccp_channel_find_byid_locked(uint32_t id)
 {
 	sccp_channel_t *c = NULL;
+
 	sccp_line_t *l;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %u\n", id);
@@ -535,6 +551,7 @@ sccp_channel_t *sccp_channel_find_byid_locked(uint32_t id)
 sccp_channel_t *sccp_channel_find_bypassthrupartyid_locked(uint32_t id)
 {
 	sccp_channel_t *c = NULL;
+
 	sccp_line_t *l;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u\n", id);
@@ -684,6 +701,7 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp
 uint8_t sccp_device_selectedchannels_count(sccp_device_t * d)
 {
 	sccp_selectedchannel_t *x = NULL;
+
 	uint8_t count = 0;
 
 	if (!d)
@@ -762,8 +780,11 @@ sccp_channel_t *sccp_channel_find_bycallstate_on_line_locked(sccp_line_t * l, ui
 sccp_channel_t *sccp_channel_find_bystate_on_device_locked(sccp_device_t * d, uint8_t state)
 {
 	sccp_channel_t *c = NULL;
+
 	sccp_line_t *l;
+
 	sccp_buttonconfig_t *buttonconfig = NULL;
+
 	boolean_t channelFound = FALSE;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
@@ -890,7 +911,9 @@ void sccp_dev_dbget(sccp_device_t * d)
 void sccp_dev_dbclean()
 {
 	struct ast_db_entry *entry;
+
 	sccp_device_t *d;
+
 	char key[256];
 
 	entry = pbx_db_gettree("SCCP", NULL);
@@ -1051,26 +1074,28 @@ const char *codec2str(uint32_t value)
  * \param size Size of the Buffer String (size_t)
  * \param formats Array of sccp/skinny formats (uint32_t)
  */
-char *sccp_codecs2str(char *buf, size_t size, uint32_t *formats)
+char *sccp_codecs2str(char *buf, size_t size, uint32_t * formats)
 {
 	uint32_t x;
+
 	unsigned len;
+
 	char *start, *end = buf;
 
- 	if (!size)
+	if (!size)
 		return buf;
 	len = strlen(end);
-	end += len; 
+	end += len;
 	size -= len;
 	start = end;
-	for (x = 0; x<ARRAY_LEN(formats); x++) {
-		snprintf(end, size,"%d (%s)", formats[x], codec2str(formats[x]));
- 	         len = strlen(end);
-       	         end += len; 
-  	         size -= len;
+	for (x = 0; x < ARRAY_LEN(formats); x++) {
+		snprintf(end, size, "%d (%s)", formats[x], codec2str(formats[x]));
+		len = strlen(end);
+		end += len;
+		size -= len;
 	}
-         if (start == end)
-                  ast_copy_string(start, "nothing)", size);
+	if (start == end)
+		ast_copy_string(start, "nothing)", size);
 	return buf;
 }
 
@@ -1132,6 +1157,7 @@ const char *array2str(uint8_t type, uint32_t value)
 uint32_t sccp_codec_ast2skinny(int fmt)
 {
 	uint32_t i;
+
 	for (i = 1; i < ARRAY_LEN(skinny_codecs); i++) {
 		if (skinny_codecs[i].astcodec == fmt) {
 			return skinny_codecs[i].codec;
@@ -1148,6 +1174,7 @@ uint32_t sccp_codec_ast2skinny(int fmt)
 int sccp_codec_skinny2ast(uint32_t fmt)
 {
 	uint32_t i;
+
 	for (i = 1; i < ARRAY_LEN(skinny_codecs); i++) {
 		if (skinny_codecs[i].codec == fmt) {
 			return skinny_codecs[i].astcodec;
@@ -1157,6 +1184,7 @@ int sccp_codec_skinny2ast(uint32_t fmt)
 }
 
 #ifndef CS_AST_HAS_STRINGS
+
 /*!
  * \brief Asterisk Skip Blanks
  * \param str as Character
@@ -1179,6 +1207,7 @@ char *ast_skip_blanks(char *str)
 char *ast_trim_blanks(char *str)
 {
 	char *work = str;
+
 	if (work) {
 		work += strlen(work) - 1;
 		while ((work >= str) && *work < 33)
@@ -1215,6 +1244,7 @@ char *ast_strip(char *s)
 #endif
 
 #ifndef CS_AST_HAS_APP_SEPARATE_ARGS
+
 /*!
  * \brief Seperate App Args
  * \param buf Buffer as Char
@@ -1226,7 +1256,9 @@ char *ast_strip(char *s)
 unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arraylen)
 {
 	int argc;
+
 	char *scan;
+
 	int paren = 0;
 
 	if (!buf || !array || !arraylen)
@@ -1297,6 +1329,7 @@ sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr)
 
 #if ASTERISK_VERSION_NUM >= 10600
 #    ifdef HAVE_PBX_DEVICESTATE_H
+
 /*!
  * \brief map states from sccp to ast_device_state
  * \param state SCCP Channel State
@@ -1450,10 +1483,15 @@ sccp_feature_type_t sccp_featureStr2featureID(const char *str)
 void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 {
 	char family[25];
+
 	char cfwdLineStore[60];
+
 	sccp_buttonconfig_t *config;
+
 	sccp_line_t *line;
+
 	sccp_linedevices_t *lineDevice;
+
 	sccp_device_t *device = (*event)->event.featureChanged.device;
 
 	if (!(*event) || !device)
@@ -1476,6 +1514,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 							continue;
 
 						uint8_t instance = sccp_device_find_index_for_line(device, line->name);
+
 						sccp_dev_forward_status(line, instance, device);
 						sprintf(cfwdLineStore, "%s/%s", family, config->button.line.name);
 						if (lineDevice->cfwdAll.enabled) {
@@ -1509,6 +1548,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 			//sccp_log(1)(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "privacy");
 		} else {
 			char data[256];
+
 			sprintf(data, "%d", device->privacyFeature.status);
 			pbx_db_put(family, "privacy", data);
 		}
@@ -1538,9 +1578,13 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 struct composedId sccp_parseComposedId(const char *labelString, unsigned int maxLength)
 {
 	const char *stringIterator = 0;
+
 	uint32_t i = 0;
+
 	boolean_t endDetected = FALSE;
+
 	int state = 0;
+
 	struct composedId id;
 
 	assert(0 != labelString);
@@ -1649,7 +1693,9 @@ struct composedId sccp_parseComposedId(const char *labelString, unsigned int max
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *subscriptionIdNum)
 {
 	boolean_t result = TRUE;
+
 	boolean_t filterPhones = FALSE;
+
 	/*
 	   int compareId = 0;
 	   int compareDefId = 0;
@@ -1757,10 +1803,15 @@ sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t * device, scc
 uint32_t sccp_parse_debugline(char *arguments[], int startat, int argc, uint32_t new_debug_value)
 {
 	int argi;
+
 	uint32_t i;
+
 	char *argument = "";
+
 	char *token = "";
+
 	const char delimiters[] = " ,\t";
+
 	boolean_t subtract = 0;
 
 	if (sscanf((char *)arguments[startat], "%d", &new_debug_value) != 1) {
@@ -1812,13 +1863,17 @@ uint32_t sccp_parse_debugline(char *arguments[], int startat, int argc, uint32_t
 char *sccp_get_debugcategories(uint32_t debugvalue)
 {
 	uint32_t i;
+
 	char *res = NULL;
+
 	const char *sep = ", ";
+
 	size_t size = 0;
 
 	for (i = 0; i < ARRAY_LEN(sccp_debug_categories); ++i) {
 		if ((debugvalue & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
 			size_t new_size = size;
+
 			new_size += strlen(sccp_debug_categories[i].short_name) + sizeof(sep) + 1;
 			res = ast_realloc(res, new_size);
 			if (!res)
@@ -1852,13 +1907,19 @@ char *sccp_get_debugcategories(uint32_t debugvalue)
 sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const char *dirNum, const char *fqdn, const char *lineDisplayName)
 {
 	sccp_moo_t *r1 = NULL;
+
 	int dirNum_len = (dirNum != NULL) ? strlen(dirNum) : 0;
+
 	int FQDN_len = (fqdn != NULL) ? strlen(fqdn) : 0;
+
 	int lineDisplayName_len = (lineDisplayName != NULL) ? strlen(lineDisplayName) : 0;
+
 	int dummy_len = dirNum_len + FQDN_len + lineDisplayName_len;
 
 	int hdr_len = 8 - 1;
+
 	int padding = 4;							/* after each string + 1 */
+
 	int size = hdr_len + dummy_len + padding;
 
 	/* message size must be muliple of 4 */
@@ -1872,6 +1933,7 @@ sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 
 	if (dummy_len) {
 		char buffer[dummy_len + padding];
+
 		memset(&buffer[0], 0, sizeof(buffer));
 
 		if (dirNum_len)
@@ -1896,9 +1958,13 @@ sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 char **explode(char *str, char *sep)
 {
 	int nn = 0;
+
 	char *tmp = "";
+
 	char *ds = strdup(str);
+
 	char **res = (char **)ast_malloc((strlen(str) / 2) * sizeof(char *));
+
 	if (res != NULL) {
 		tmp = strtok(ds, sep);
 		for (nn = 0; tmp != NULL; ++nn) {
@@ -1962,10 +2028,9 @@ void gc_warn_handler(char *msg, GC_word p)
  * \ret 0 on diff
  * \ret 1 on equal
  */
-int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1) {
-	if(	s0->sin_addr.s_addr != s1->sin_addr.s_addr || 
-		s0->sin_port != s1->sin_port || 
-		s0->sin_family != s1->sin_family) {
+int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1)
+{
+	if (s0->sin_addr.s_addr != s1->sin_addr.s_addr || s0->sin_port != s1->sin_port || s0->sin_family != s1->sin_family) {
 		return 0;
 	}
 	return 1;

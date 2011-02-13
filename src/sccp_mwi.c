@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_mwi.c
  * \brief 	SCCP Message Waiting Indicator Class
@@ -18,10 +19,15 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #    define SCCP_MWI_CHECK_INTERVAL 30
 #endif
 void sccp_mwi_checkLine(sccp_line_t * line);
+
 void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l);
+
 void sccp_mwi_linecreatedEvent(const sccp_event_t ** event);
+
 void sccp_mwi_deviceAttachedEvent(const sccp_event_t ** event);
+
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t * line);
+
 void sccp_mwi_lineStatusChangedEvent(const sccp_event_t ** event);
 
 SCCP_LIST_HEAD(, sccp_mailbox_subscriber_list_t) sccp_mailbox_subscriptions;
@@ -48,6 +54,7 @@ void sccp_mwi_module_start(void)
 void sccp_mwi_module_stop()
 {
 	sccp_mailbox_subscriber_list_t *subscription = NULL;
+
 	sccp_mailboxLine_t *sccp_mailboxLine = NULL;
 
 	SCCP_LIST_LOCK(&sccp_mailbox_subscriptions);
@@ -77,6 +84,7 @@ void sccp_mwi_module_stop()
 }
 
 #ifdef CS_AST_HAS_EVENT
+
 /*!
  * \brief Receive MWI Event from Asterisk
  * \param event Asterisk Event
@@ -93,7 +101,9 @@ void sccp_mwi_module_stop()
 void sccp_mwi_event(const struct ast_event *event, void *data)
 {
 	sccp_mailbox_subscriber_list_t *subscription = data;
+
 	sccp_mailboxLine_t *mailboxLine = NULL;
+
 	sccp_line_t *line = NULL;
 
 	ast_log(LOG_NOTICE, "Got mwi-event\n");
@@ -159,8 +169,11 @@ void sccp_mwi_event(const struct ast_event *event, void *data)
 int sccp_mwi_checksubscription(const void *ptr)
 {
 	sccp_mailbox_subscriber_list_t *subscription = (sccp_mailbox_subscriber_list_t *) ptr;
+
 	sccp_line_t *line = NULL;
+
 	sccp_mailboxLine_t *mailboxLine = NULL;
+
 	if (!subscription)
 		return -1;
 
@@ -168,6 +181,7 @@ int sccp_mwi_checksubscription(const void *ptr)
 	subscription->previousVoicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
 
 	char buffer[512];
+
 	sprintf(buffer, "%s@%s", subscription->mailbox, (subscription->context) ? subscription->context : "default");
 	sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_4 "SCCP: ckecking mailbox: %s\n", buffer);
 	ast_app_inboxcount(buffer, &subscription->currentVoicemailStatistic.newmsgs, &subscription->currentVoicemailStatistic.oldmsgs);
@@ -235,6 +249,7 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t ** event)
 
 	sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_1 "Get deviceAttachedEvent\n");
 	sccp_line_t *line = (*event)->event.deviceAttached.line;
+
 	sccp_device_t *device = (*event)->event.deviceAttached.device;
 
 	if (!line || !device) {
@@ -283,6 +298,7 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t ** event)
 		return;
 
 	sccp_mailbox_t *mailbox;
+
 	sccp_line_t *line = (*event)->event.lineCreated.line;
 
 	sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_1 "Get linecreatedEvent\n");
@@ -316,6 +332,7 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t ** event)
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t * line)
 {
 	sccp_mailbox_subscriber_list_t *subscription = NULL;
+
 	sccp_mailboxLine_t *mailboxLine = NULL;
 
 	SCCP_LIST_LOCK(&sccp_mailbox_subscriptions);
@@ -345,6 +362,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 
 		/* get initial value */
 		char buffer[512];
+
 		sprintf(buffer, "%s@%s", subscription->mailbox, (subscription->context) ? subscription->context : "default");
 		ast_app_inboxcount(buffer, &subscription->currentVoicemailStatistic.newmsgs, &subscription->currentVoicemailStatistic.oldmsgs);
 
@@ -389,6 +407,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 void sccp_mwi_checkLine(sccp_line_t * line)
 {
 	sccp_mailbox_t *mailbox = NULL;
+
 	char buffer[512];
 
 	SCCP_LIST_LOCK(&line->mailboxes);
@@ -425,15 +444,20 @@ void sccp_mwi_checkLine(sccp_line_t * line)
 void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 {
 	sccp_moo_t *r;
+
 	int instance = 0;
+
 	uint8_t status = 0;
+
 	uint32_t mask;
+
 	uint32_t newState = 0;
 
 	if (!d)
 		return;
 
 	int retry = 0;
+
 	while (sccp_device_trylock(d)) {
 		retry++;
 		sccp_log((DEBUGCAT_MWI + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s), retry: %d\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, retry);
@@ -501,10 +525,13 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 void sccp_mwi_check(sccp_device_t * device)
 {
 	sccp_buttonconfig_t *buttonconfig = NULL;
+
 	sccp_line_t *line = NULL;
+
 	sccp_moo_t *r;
 
 	uint8_t status;
+
 	uint32_t mask;
 
 	if (!device)
@@ -512,7 +539,9 @@ void sccp_mwi_check(sccp_device_t * device)
 
 	/* check if we have an active channel */
 	boolean_t hasActiveChannel = FALSE, hasRinginChannel = FALSE;
+
 	sccp_buttonconfig_t *config;
+
 	sccp_channel_t *c;
 
 	/* for each line, check if there is an active call */

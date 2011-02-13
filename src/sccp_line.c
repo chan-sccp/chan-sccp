@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_line.c
  * \brief 	SCCP Line
@@ -16,8 +17,8 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-
 #ifdef CS_DYNAMIC_CONFIG
+
 /*!
  * \brief run before reload is start on lines
  * \note See \ref sccp_config_reload
@@ -66,6 +67,7 @@ void sccp_line_pre_reload(void)
 void sccp_line_post_reload(void)
 {
 	sccp_line_t *l;
+
 	sccp_linedevices_t *ld;
 
 	SCCP_RWLIST_WRLOCK(&GLOB(lines));
@@ -113,6 +115,7 @@ void sccp_line_post_reload(void)
 sccp_line_t *sccp_line_create(void)
 {
 	sccp_line_t *l = ast_malloc(sizeof(sccp_line_t));
+
 	if (!l) {
 		sccp_log(0) (VERBOSE_PREFIX_3 "Unable to allocate memory for a line\n");
 		return NULL;
@@ -204,6 +207,7 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
 	sccp_log(1) (VERBOSE_PREFIX_3 "Added line '%s'\n", line->name);
 
 	sccp_event_t *event = ast_malloc(sizeof(sccp_event_t));
+
 	memset(event, 0, sizeof(sccp_event_t));
 	event->type = SCCP_EVENT_LINECREATED;
 	event->event.lineCreated.line = line;
@@ -301,6 +305,7 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
 int sccp_line_destroy(const void *ptr)
 {
 	sccp_line_t *l = (sccp_line_t *) ptr;
+
 	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Line FREE\n", l->name);
 
 	sccp_line_lock(l);
@@ -308,6 +313,7 @@ int sccp_line_destroy(const void *ptr)
 		ast_free(l->trnsfvm);
 
 	sccp_mailbox_t *mailbox = NULL;
+
 	while ((mailbox = SCCP_LIST_REMOVE_HEAD(&l->mailboxes, list))) {
 		if (!mailbox)
 			break;
@@ -470,7 +476,9 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 #    define ASTDB_RESULT_LEN 80
 #endif
 	int res;
+
 	char family[ASTDB_FAMILY_KEY_LEN];
+
 	char buffer[ASTDB_RESULT_LEN];
 
 	memset(family, 0, ASTDB_FAMILY_KEY_LEN);
@@ -495,6 +503,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 	}
 	// fire event for new device
 	sccp_event_t *event = ast_malloc(sizeof(sccp_event_t));
+
 	memset(event, 0, sizeof(sccp_event_t));
 	event->type = SCCP_EVENT_DEVICEATTACHED;
 	event->event.deviceAttached.line = l;
@@ -542,11 +551,12 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 	SCCP_LIST_UNLOCK(&l->devices);
 
 	sccp_line_unlock(l);
-	
+
 	sccp_hint_lineStatusChanged(l, device, NULL, SCCP_CHANNELSTATE_CONGESTION, SCCP_CHANNELSTATE_CONGESTION);
 
 	/* the hint system uses the line->devices to check the state */
 	sccp_event_t *event = ast_malloc(sizeof(sccp_event_t));
+
 	memset(event, 0, sizeof(sccp_event_t));
 
 	event->type = SCCP_EVENT_DEVICEDETACHED;
@@ -616,7 +626,9 @@ void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t * channel)
 void register_exten(sccp_line_t * l, struct subscriptionId *subscriptionId)
 {
 	char multi[256];
+
 	char name[256];
+
 	char *stringp, *ext, *context;
 
 	if (sccp_strlen_zero(GLOB(regcontext)))
@@ -661,6 +673,7 @@ void register_exten(sccp_line_t * l, struct subscriptionId *subscriptionId)
 void unregister_exten(sccp_line_t * l, struct subscriptionId *subscriptionId)
 {
 	char multi[256];
+
 	char *stringp, *ext, *context;
 
 	if (sccp_strlen_zero(GLOB(regcontext)))
@@ -695,6 +708,7 @@ void unregister_exten(sccp_line_t * l, struct subscriptionId *subscriptionId)
 }
 
 #ifdef CS_DYNAMIC_CONFIG
+
 /*!
  * copy the structure content of one line to a new one
  * \param orig_line sccp line
@@ -722,9 +736,11 @@ sccp_line_t *sccp_clone_line(sccp_line_t * orig_line)
 	new_line->trnsfvm = sccp_strdup(orig_line->trnsfvm);
 
 	struct ast_variable *v;
+
 	new_line->variables = NULL;
 	for (v = orig_line->variables; v; v = v->next) {
 		struct ast_variable *new_v = pbx_variable_new(v);
+
 		new_v->next = new_line->variables;
 		new_line->variables = new_v;
 	}
@@ -751,6 +767,7 @@ sccp_line_t *sccp_clone_line(sccp_line_t * orig_line)
 void sccp_duplicate_line_mailbox_list(sccp_line_t * new_line, sccp_line_t * orig_line)
 {
 	sccp_mailbox_t *orig_mailbox = NULL;
+
 	sccp_mailbox_t *new_mailbox = NULL;
 
 	SCCP_LIST_HEAD_INIT(&new_line->mailboxes);
@@ -780,6 +797,7 @@ void sccp_duplicate_line_mailbox_list(sccp_line_t * new_line, sccp_line_t * orig
 void sccp_duplicate_line_linedevices_list(sccp_line_t * new_line, sccp_line_t * orig_line)
 {
 	sccp_linedevices_t *orig_linedevices = NULL;
+
 	sccp_linedevices_t *new_linedevices = NULL;
 
 	SCCP_LIST_HEAD_INIT(&new_line->devices);
@@ -869,7 +887,9 @@ sccp_diff_t sccp_line_changed(sccp_line_t * line_a, sccp_line_t * line_b)
 		res = MINOR_CHANGES;
 	} else {
 		sccp_mailbox_t *mb_a = SCCP_LIST_FIRST(&line_a->mailboxes);
+
 		sccp_mailbox_t *mb_b = SCCP_LIST_FIRST(&line_b->mailboxes);
+
 		while (mb_a && mb_b) {
 			/* First comparison is to know if the values are not both NULL */
 			if ((mb_a->mailbox != mb_b->mailbox && (!mb_a->mailbox || !mb_b->mailbox || strcmp(mb_a->mailbox, mb_b->mailbox))) || (mb_a->context != mb_b->context && (!mb_a->context || !mb_b->context || strcmp(mb_a->context, mb_b->context)))) {

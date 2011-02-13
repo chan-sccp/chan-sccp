@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_featureButton.c
  * \brief 	SCCP FeatureButton Class
@@ -44,15 +45,22 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 {
 	sccp_moo_t *featureMessage = NULL;
+
 	sccp_buttonconfig_t *config = NULL, *buttonconfig = NULL;
+
 	sccp_linedevices_t *linedevice = NULL;
+
 	sccp_line_t *line;
+
 	uint8_t instance = 0;
+
 	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;				// Default feature type.
+
 	boolean_t cfwdButtonEnabeld = TRUE;
 
 #ifdef CS_DEVSTATE_FEATURE
 	char buf[254] = "";
+
 	int res = 0;
 #endif
 
@@ -76,11 +84,13 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", DEV_ID_LOG(device), device->privacyFeature.status);
 				if (!strcasecmp(config->button.feature.options, "callpresent")) {
 					uint32_t result = device->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
+
 					sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: result is %d\n", device->id, result);
 					config->button.feature.status = (result) ? 1 : 0;
 				}
 				if (!strcasecmp(config->button.feature.options, "hint")) {
 					uint32_t result = device->privacyFeature.status & SCCP_PRIVACYFEATURE_HINT;
+
 					sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: result is %d\n", device->id, result);
 					config->button.feature.status = (result) ? 1 : 0;
 				}
@@ -136,6 +146,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				break;
 
 #ifdef CS_DEVSTATE_FEATURE
+
 				/**
 				  Handling of custom devicestate toggle button feature
 				  */
@@ -270,8 +281,11 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	/* parse the devstate string */
 	/* If it is the custom family, isolate the specifier. */
 	sccp_device_t *device;
+
 	size_t len = strlen("Custom:");
+
 	char *sspecifier = 0;
+
 	const char *dev;
 
 	if (!data || !ast_event)

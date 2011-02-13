@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_object2.c
  * \brief 	SCCP Replacement containers for sccp data structures.
@@ -24,6 +25,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 1245 $")
 #include "sccp_config.h"
 #include <assert.h>
 #define REF_FILE "/tmp/refs"
+
 /*!
  * sccpobj2 objects are always preceded by this data structure,
  * which contains a lock, a reference counter,
@@ -82,8 +84,10 @@ void so2_bt(void)
 void so2_bt(void)
 {
 	int c, i;
+
 #    define N1	20
 	void *addresses[N1];
+
 	char **strings;
 
 	c = backtrace(addresses, N1);
@@ -129,9 +133,13 @@ static inline struct sccpobj2 *INTERNAL_OBJ(void *user_data)
 /* the underlying functions common to debug and non-debug versions */
 
 static int __so2_ref(void *user_data, const int delta);
+
 static struct so2_container *__so2_container_alloc(struct so2_container *c, const uint n_buckets, so2_hash_fn * hash_fn, so2_callback_fn * cmp_fn);
+
 static struct bucket_list *__so2_link(struct so2_container *c, void *user_data);
+
 static void *__so2_callback(struct so2_container *c, const enum search_flags flags, so2_callback_fn * cb_fn, void *arg, char *tag, char *file, int line, const char *funcname);
+
 static void *__so2_iterator_next(struct so2_iterator *a, struct bucket_list **q);
 
 #ifndef DEBUG_THREADS
@@ -185,6 +193,7 @@ int _so2_trylock(void *user_data, const char *file, const char *func, int line, 
 #endif
 {
 	struct sccpobj2 *p = INTERNAL_OBJ(user_data);
+
 	int ret;
 
 	if (p == NULL)
@@ -225,11 +234,13 @@ int _so2_ref_debug(void *user_data, const int delta, char *tag, char *file, int 
 
 	if (delta != 0) {
 		FILE *refo = fopen(REF_FILE, "a");
+
 		fprintf(refo, "%p %s%d   %s:%d:%s (%s) [@%d]\n", user_data, (delta < 0 ? "" : "+"), delta, file, line, funcname, tag, obj->priv_data.ref_counter);
 		fclose(refo);
 	}
 	if (obj->priv_data.ref_counter + delta == 0 && obj->priv_data.destructor_fn != NULL) {	/* this isn't protected with lock; just for o/p */
 		FILE *refo = fopen(REF_FILE, "a");
+
 		fprintf(refo, "%p **call destructor** %s:%d:%s (%s)\n", user_data, file, line, funcname, tag);
 		fclose(refo);
 	}
@@ -249,7 +260,9 @@ int _so2_ref(void *user_data, const int delta)
 static int __so2_ref(void *user_data, const int delta)
 {
 	struct sccpobj2 *obj = INTERNAL_OBJ(user_data);
+
 	int current_value;
+
 	int ret;
 
 	/* if delta is 0, just return the refcount */
@@ -329,6 +342,7 @@ void *_so2_alloc_debug(size_t data_size, so2_destructor_fn destructor_fn, char *
 {
 	/* allocation */
 	void *obj;
+
 	FILE *refo = ref_debug ? fopen(REF_FILE, "a") : NULL;
 
 	obj = __so2_alloc(data_size, destructor_fn, file, line, funcname);
@@ -435,6 +449,7 @@ struct so2_container *_so2_container_alloc_debug(const unsigned int n_buckets, s
 	/* XXX maybe consistency check on arguments ? */
 	/* compute the container size */
 	size_t container_size = sizeof(struct so2_container) + n_buckets * sizeof(struct bucket);
+
 	struct so2_container *c = _so2_alloc_debug(container_size, container_destruct_debug, tag, file, line, funcname, ref_debug);
 
 	return __so2_container_alloc(c, n_buckets, hash_fn, cmp_fn);
@@ -446,6 +461,7 @@ struct so2_container *_so2_container_alloc(const unsigned int n_buckets, so2_has
 	/* compute the container size */
 
 	size_t container_size = sizeof(struct so2_container) + n_buckets * sizeof(struct bucket);
+
 	struct so2_container *c = _so2_alloc(container_size, container_destruct);
 
 	return __so2_container_alloc(c, n_buckets, hash_fn, cmp_fn);
@@ -477,8 +493,10 @@ struct bucket_list {
 static struct bucket_list *__so2_link(struct so2_container *c, void *user_data)
 {
 	int i;
+
 	/* create a new list entry */
 	struct bucket_list *p;
+
 	struct sccpobj2 *obj = INTERNAL_OBJ(user_data);
 
 	if (!obj)
@@ -577,6 +595,7 @@ static int cb_true(void *user_data, void *arg, int flags)
 static void *__so2_callback(struct so2_container *c, const enum search_flags flags, so2_callback_fn * cb_fn, void *arg, char *tag, char *file, int line, const char *funcname)
 {
 	int i, start, last;							/* search boundaries */
+
 	void *ret = NULL;
 
 	if (INTERNAL_OBJ(c) == NULL)						/* safety check on the argument */
@@ -736,7 +755,9 @@ void so2_iterator_destroy(struct so2_iterator *i)
 static void *__so2_iterator_next(struct so2_iterator *a, struct bucket_list **q)
 {
 	int lim;
+
 	struct bucket_list *p = NULL;
+
 	void *ret = NULL;
 
 	*q = NULL;
@@ -791,6 +812,7 @@ static void *__so2_iterator_next(struct so2_iterator *a, struct bucket_list **q)
 void *_so2_iterator_next_debug(struct so2_iterator *a, char *tag, char *file, int line, const char *funcname)
 {
 	struct bucket_list *p;
+
 	void *ret = NULL;
 
 	ret = __so2_iterator_next(a, &p);
@@ -809,6 +831,7 @@ void *_so2_iterator_next_debug(struct so2_iterator *a, char *tag, char *file, in
 void *_so2_iterator_next(struct so2_iterator *a)
 {
 	struct bucket_list *p = NULL;
+
 	void *ret = NULL;
 
 	ret = __so2_iterator_next(a, &p);
@@ -842,6 +865,7 @@ static int cd_cb_debug(void *obj, void *arg, int flag)
 static void container_destruct(void *_c)
 {
 	struct so2_container *c = _c;
+
 	int i;
 
 	_so2_callback(c, OBJ_UNLINK, cd_cb, NULL);
@@ -862,6 +886,7 @@ static void container_destruct(void *_c)
 static void container_destruct_debug(void *_c)
 {
 	struct so2_container *c = _c;
+
 	int i;
 
 	_so2_callback_debug(c, OBJ_UNLINK, cd_cb_debug, NULL, "container_destruct_debug called", __FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -883,6 +908,7 @@ static void container_destruct_debug(void *_c)
 static int print_cb(void *obj, void *arg, int flag)
 {
 	int *fd = arg;
+
 	char *s = (char *)obj;
 
 	ast_cli(*fd, "string <%s>\n", s);
@@ -916,8 +942,11 @@ static char *handle_sccpobj2_stats(struct ast_cli_entry *e, int cmd, struct ast_
 static char *handle_sccpobj2_test(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a)
 {
 	struct so2_container *c1;
+
 	int i, lim;
+
 	char *obj;
+
 	static int prof_id = -1;
 	struct ast_cli_args fake_args = { a->fd, 0, NULL };
 
@@ -973,6 +1002,7 @@ static char *handle_sccpobj2_test(struct ast_cli_entry *e, int cmd, struct ast_c
 	ast_cli(a->fd, "testing iterators, remove every second object\n");
 	{
 		struct so2_iterator ai;
+
 		int x = 0;
 
 		ai = so2_iterator_init(c1, 0);

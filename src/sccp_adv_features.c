@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_adv_features.c
  * \brief 	SCCP Advanced Features Class
@@ -17,6 +18,7 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 //#include "sccp_adv_features.h"
+
 /*!
  * \brief Dummy Procedure 1
  */
