@@ -34,6 +34,7 @@ static void *sccp_conference_join_thread(void *data);
  */
 sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 {
+sccp_log(1)(VERBOSE_PREFIX_3 "Conference: sccp_conference_create called.\n");
 
 	sccp_conference_t *conference 				= NULL;
 	sccp_conference_participant_t *moderator 	= NULL;
@@ -108,6 +109,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Conference: Conference with id %d created; Owner: %s \n", owner->device->id, conference->id, owner->device->id);
 
+sccp_log(1)(VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_create.\n");
 	if (ast_pthread_create_background(&moderator->joinThread, NULL, sccp_conference_join_thread, moderator) < 0) {
 		ast_log(LOG_ERROR, "SCCP: Conference: failed to initiate join thread for moderator.\n");
 		return conference;
@@ -125,6 +127,8 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
  */
 int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_t * participant, struct ast_channel *currentParticipantPeer)
 {
+sccp_log(1)(VERBOSE_PREFIX_3 "Conference: sccp_conference_addAstChannelToConferenceBridge called.\n");
+
 	if (NULL == participant)
 		return -1;
 
@@ -177,6 +181,7 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
  */
 void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * channel)
 {
+sccp_log(1)(VERBOSE_PREFIX_3 "Conference: sccp_conference_addParticipant called.\n");
 
 	sccp_conference_participant_t *part = NULL;
 	struct ast_channel *currentParticipantPeer;
@@ -184,11 +189,11 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 	if (!channel || !conference)
 		return;
 
-	/* Why do we allow the moderator to be added twice ?  (-DD) */
-	if (channel != conference->moderator->channel && channel->conference) {
+	if (channel->conference) {
 		ast_log(LOG_NOTICE, "%s: Conference: Already in conference\n", DEV_ID_LOG(channel->device));
 		return;
 	}
+
 	if (channel->state != SCCP_CHANNELSTATE_HOLD && channel->state != SCCP_CHANNELSTATE_CONNECTED) {
 		ast_log(LOG_NOTICE, "%s: Conference: Only connected or channel on hold eligible for conference: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
 		return;
@@ -228,6 +233,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		// \todo Todo: error handling
 	}
 
+sccp_log(1)(VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_addParticipant.\n");
 	if (ast_pthread_create_background(&part->joinThread, NULL, sccp_conference_join_thread, part) < 0) {
 		return;
 	}
@@ -309,6 +315,8 @@ void sccp_conference_module_start()
 
 static void *sccp_conference_join_thread(void *data)
 {
+sccp_log(1)(VERBOSE_PREFIX_3 "Conference: entering join thread.\n");
+
 	sccp_conference_participant_t *participant = (sccp_conference_participant_t *) data;
 	struct ast_channel *astChannel;
 
