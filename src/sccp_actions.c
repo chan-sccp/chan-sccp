@@ -2294,13 +2294,13 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	sin.sin_family = AF_INET;
-	if (d->trustphoneip || d->directrtp)
+	if ((d->trustphoneip || d->directrtp) && (!d->nat))
 		memcpy(&sin.sin_addr, &ipAddr, sizeof(sin.sin_addr));
 	else
 		memcpy(&sin.sin_addr, &s->sin.sin_addr, sizeof(sin.sin_addr));
 	sin.sin_port = ipPort;
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, Trustphoneip: %s, Directrtp: %s, Natted: %s\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, d->trustphoneip ? "yes" : "no", d->directrtp ? "yes" : "no", d->nat ? "yes" : "no");
 	if (status) {
 		/* rtp error from the phone */
 		ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available\n", d->id, status);
