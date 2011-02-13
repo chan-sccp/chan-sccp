@@ -202,7 +202,7 @@ void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 		return;
 	}
 	sccp_channel_lock(c);
-	sccp_channel_resume_locked(d, c);
+	sccp_channel_resume_locked(d, c, TRUE);
 	sccp_channel_unlock(c);
 }
 
@@ -542,7 +542,7 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 			//resume chan2 if both channels are on hold
 			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: (sccp_sk_dirtrfr) Resuming Second Channel (%d)\n", DEV_ID_LOG(d), chan2->state);
 			sccp_channel_lock(chan2);
-			sccp_channel_resume_locked(d, chan2);
+			sccp_channel_resume_locked(d, chan2, TRUE);
 			sccp_channel_unlock(chan2);
 			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: (sccp_sk_dirtrfr) Resumed Second Channel (%d)\n", DEV_ID_LOG(d), chan2->state);
 		}
