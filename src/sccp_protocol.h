@@ -3258,12 +3258,7 @@ typedef struct {
 } sccp_moo_t;									/*!< MOO Message Structure */
 
 /* So in theory, a message should never be bigger than this. If it is, we abort the connection */
-/* 
- * This theory used to be true, but the thruth seems to have overtaken us with new devices sending combined packet packages 
- * New max packet size has been set to 9000 (jumbo packet)
- */
-//#    define SCCP_MAX_PACKET sizeof(sccp_moo_t)
-#    define SCCP_MAX_PACKET (size_t)9000
+#    define SCCP_MAX_PACKET sizeof(sccp_moo_t)
 
 #    include "sccp_softkeys.h"
 #    include "sccp_labels.h"
