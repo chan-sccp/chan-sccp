@@ -71,6 +71,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 		return NULL;
 	}
 
+#if 0
 	/* create moderator */
 	moderator = (sccp_conference_participant_t *) ast_malloc(sizeof(sccp_conference_participant_t));
 	if (!moderator) {
@@ -96,7 +97,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 	SCCP_LIST_INSERT_TAIL(&conference->participants, moderator, list);
 	SCCP_LIST_UNLOCK(&conference->participants);
 
-#if 0
+
 	/* Add moderator to conference. */
 	if (0 != sccp_conference_addAstChannelToConferenceBridge(moderator, moderator->channel->owner)) {
 		ast_log(LOG_ERROR, "SCCP: Conference: failed to add moderator channel (preparation phase).\n");
@@ -130,7 +131,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
  * \lock
  * 	- asterisk channel
  */
-int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_t * participant, struct ast_channel *currentParticipantPeer)
+int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_t * participant, struct ast_channel *chan)
 {
 	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: sccp_conference_addAstChannelToConferenceBridge called.\n");
 
@@ -142,28 +143,43 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 	if (NULL == conference)
 		return -1;
 
-	if (NULL == currentParticipantPeer)
+	if (NULL == chan)
 		return -1;
 
-	pbx_channel_lock(currentParticipantPeer);
+	pbx_channel_lock(chan);
+	
+		//if (chan->pbx) {
+		ast_channel_lock(chan);
+		ast_set_flag(chan, AST_FLAG_BRIDGE_HANGUP_DONT); /* don't let the after-bridge code run the h-exten */
+		ast_channel_unlock(chan);
+//	}
+
+struct ast_channel *bridge = CS_AST_BRIDGED_CHANNEL(chan);
+
+/* Prevent also the bridge from hanging up. */
+if (NULL != bridge) {
+		ast_channel_lock(bridge);
+		ast_set_flag(bridge, AST_FLAG_BRIDGE_HANGUP_DONT); /* don't let the after-bridge code run the h-exten */
+		ast_channel_unlock(bridge);
+		}
 
 	/* Allocate an asterisk channel structure as conference bridge peer for the participant */
-	participant->conferenceBridgePeer = ast_channel_alloc(0, currentParticipantPeer->_state, 0, 0, currentParticipantPeer->accountcode, 
-	   currentParticipantPeer->exten, currentParticipantPeer->context, currentParticipantPeer->amaflags, "ConferenceBridge/%s", currentParticipantPeer->name);
+	participant->conferenceBridgePeer = ast_channel_alloc(0, chan->_state, 0, 0, chan->accountcode, 
+	   chan->exten, chan->context, chan->amaflags, "ConferenceBridge/%s", chan->name);
 	   
 	   if(!participant->conferenceBridgePeer) {
 	   ast_log(LOG_NOTICE, "Couldn't allocate participant peer.\n");
-	  	 pbx_channel_unlock(currentParticipantPeer);
+	  	 pbx_channel_unlock(chan);
 	 	  return -1;
 	   }
 
-	   participant->conferenceBridgePeer->readformat = currentParticipantPeer->readformat;
-	   participant->conferenceBridgePeer->writeformat = currentParticipantPeer->writeformat;
-	   participant->conferenceBridgePeer->nativeformats = currentParticipantPeer->nativeformats;
+	   participant->conferenceBridgePeer->readformat = chan->readformat;
+	   participant->conferenceBridgePeer->writeformat = chan->writeformat;
+	   participant->conferenceBridgePeer->nativeformats = chan->nativeformats;
 
-	   if(ast_channel_masquerade(participant->conferenceBridgePeer, currentParticipantPeer)){
+	   if(ast_channel_masquerade(participant->conferenceBridgePeer, chan)){
 	   ast_log(LOG_ERROR, "SCCP: Conference: failed to masquerade channel.\n");
-	   pbx_channel_unlock(currentParticipantPeer);
+	   pbx_channel_unlock(chan);
 	   ast_hangup(participant->conferenceBridgePeer);
 	   participant->conferenceBridgePeer = NULL;
 	   return -1;
@@ -174,7 +190,7 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 	   }
 	   
 
-	pbx_channel_unlock(currentParticipantPeer);
+	pbx_channel_unlock(chan);
 
 	return 0;
 }
@@ -203,7 +219,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		return;
 
 	if (channel->conference) {
-		ast_log(LOG_NOTICE, "%s: Conference: Already in conference\n", DEV_ID_LOG(channel->device));
+		ast_log(LOG_NOTICE, "%s: Conference: Already in conference: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
 		return;
 	}
 
