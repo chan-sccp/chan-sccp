@@ -1463,8 +1463,15 @@ int sccp_pbx_helper(sccp_channel_t * c)
 	sccp_log(1) (VERBOSE_PREFIX_1 "SCCP: extension helper says that:\n" "ignore pattern  : %d\n" "exten_exists    : %d\n" "exten_canmatch  : %d\n" "exten_matchmore : %d\n", ignore_pat, ext_exist, ext_canmatch, ext_matchmore);
 	if ((c->ss_action != SCCP_SS_GETCBARGEROOM) && (c->ss_action != SCCP_SS_GETMEETMEROOM) && (!ignore_pat) && (ext_exist)) 
 	{
-//		\todo I think the logic here is flawed / we have to take 9XX in to account it always results in matchmore and canmatch but also ext_exists - DdG
 //		if ((d->overlapFeature.enabled && !ext_canmatch) || (!d->overlapFeature.enabled && !ext_matchmore))
+//						  ^
+//						  |
+//		\todo I think the logic here is flawed: if ext_exists is true it means ext_canmatch will also be true.
+
+//		\todo if we have ext_exists + ext_canmatch but also ext_matchmore, 
+//		      could we than device the digittimeout by 2 to reduce the waittime on firstmatch ?
+
+// 		is there a situation in which d->overlapFeature.enabled = false, and what should we do then ?
 		if (d->overlapFeature.enabled) {
 			if ( ext_canmatch && !ext_matchmore )
 			{
