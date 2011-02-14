@@ -1461,27 +1461,11 @@ int sccp_pbx_helper(sccp_channel_t * c)
 	int ext_matchmore = ast_matchmore_extension(chan, chan->context, c->dialedNumber, 1, l->cid_num);
 
 	sccp_log(1) (VERBOSE_PREFIX_1 "SCCP: extension helper says that:\n" "ignore pattern  : %d\n" "exten_exists    : %d\n" "exten_canmatch  : %d\n" "exten_matchmore : %d\n", ignore_pat, ext_exist, ext_canmatch, ext_matchmore);
-	if ((c->ss_action != SCCP_SS_GETCBARGEROOM) && (c->ss_action != SCCP_SS_GETMEETMEROOM) && (!ignore_pat) && (ext_exist)) 
-	{
-//		if ((d->overlapFeature.enabled && !ext_canmatch) || (!d->overlapFeature.enabled && !ext_matchmore))
-//						  ^
-//						  |
-//		\todo I think the logic here is flawed: if ext_exists is true it means ext_canmatch will also be true.
-
-//		\todo if we have ext_exists + ext_canmatch but also ext_matchmore, 
-//		      could we than device the digittimeout by 2 to reduce the waittime on firstmatch ?
-
-// 		is there a situation in which d->overlapFeature.enabled = false, and what should we do then ?
-		if (d->overlapFeature.enabled) {
-			if ( ext_canmatch && !ext_matchmore )
-			{
-				sccp_log(1) (VERBOSE_PREFIX_1 "SCCP: (sccp_pbx_helper) Dial immediatly.\n");
-				return 1;
-			}
-		} else { 
-			sccp_log(1) (VERBOSE_PREFIX_1 "SCCP: (sccp_pbx_helper) Dial immediatly.\n");
-			return 1;
-		}
+	if ((c->ss_action != SCCP_SS_GETCBARGEROOM) && (c->ss_action != SCCP_SS_GETMEETMEROOM) && (!ignore_pat) && (ext_exist)
+	    && ((d->overlapFeature.enabled && !ext_canmatch) || (!d->overlapFeature.enabled && !ext_matchmore))
+	    && ((d->overlapFeature.enabled && !ext_canmatch) || (!d->overlapFeature.enabled && !ext_matchmore))
+	    ) {
+		return 1;
 	}
 
 	return 0;
@@ -1519,7 +1503,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 
 	/* prevent softswitch from being executed twice (Pavel Troller / 15-Oct-2010) */
 	if (c->owner->pbx) {
-		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) PBX structure already exists. Dialing instead of starting.\n");
+		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) PBX structure already exists. Dialing instead of starting.\n");
 		/* If there are any digits, send them instead of starting the PBX */
 		if (sccp_is_nonempty_string(c->dialedNumber)) {
 			sccp_pbx_senddigits(c, c->dialedNumber);
@@ -1576,7 +1560,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	}
 
 	instance = sccp_device_find_index_for_line(d, c->line->name);
-	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) New call on line %s\n", DEV_ID_LOG(d), l->name);
+	sccp_log(1) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) New call on line %s\n", DEV_ID_LOG(d), l->name);
 
 	/* assign callerid name and number */
 	sccp_channel_set_callingparty(c, l->cid_name, l->cid_num);
