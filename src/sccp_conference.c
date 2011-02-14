@@ -152,18 +152,22 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 	// pbx_channel_lock(chan);
 	
 		//if (chan->pbx) {
-		ast_channel_lock(chan);
+		#if 1
+		//ast_channel_lock(chan);
 		ast_set_flag(chan, AST_FLAG_BRIDGE_HANGUP_DONT); /* don't let the after-bridge code run the h-exten */
-		ast_channel_unlock(chan);
+		//ast_channel_unlock(chan);
+		#endif
 //	}
 
 struct ast_channel *bridge = CS_AST_BRIDGED_CHANNEL(chan);
 
 /* Prevent also the bridge from hanging up. */
 if (NULL != bridge) {
-		ast_channel_lock(bridge);
+#if 0
+		//ast_channel_lock(bridge);
 		ast_set_flag(bridge, AST_FLAG_BRIDGE_HANGUP_DONT); /* don't let the after-bridge code run the h-exten */
-		ast_channel_unlock(bridge);
+		//ast_channel_unlock(bridge);
+	#endif
 		}
 
 	/* Allocate an asterisk channel structure as conference bridge peer for the participant */
@@ -172,7 +176,7 @@ if (NULL != bridge) {
 	   
 	   if(!participant->conferenceBridgePeer) {
 	   ast_log(LOG_NOTICE, "Couldn't allocate participant peer.\n");
-	  	 pbx_channel_unlock(chan);
+	  	 //pbx_channel_unlock(chan);
 	 	  return -1;
 	   }
 
@@ -182,7 +186,7 @@ if (NULL != bridge) {
 
 	   if(ast_channel_masquerade(participant->conferenceBridgePeer, chan)){
 	   ast_log(LOG_ERROR, "SCCP: Conference: failed to masquerade channel.\n");
-	   pbx_channel_unlock(chan);
+	   //pbx_channel_unlock(chan);
 	   ast_hangup(participant->conferenceBridgePeer);
 	   participant->conferenceBridgePeer = NULL;
 	   return -1;
@@ -190,6 +194,10 @@ if (NULL != bridge) {
 	   			ast_channel_lock(participant->conferenceBridgePeer);
 				ast_do_masquerade(participant->conferenceBridgePeer);
 				ast_channel_unlock(participant->conferenceBridgePeer);
+				
+				
+
+				
 	   }
 	   
 
@@ -302,7 +310,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 	
 	
 	if(adding_moderator) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "Conference: Adding remote party of moderator.\n");
+		sccp_log(1) (VERBOSE_PREFIX_3 "Conference: Adding local party of moderator.\n");
 	
 	localParticipant->channel 		= channel;
 	localParticipant->conference 	= conference;
@@ -435,7 +443,14 @@ static void *sccp_conference_join_thread(void *data)
 
 	ast_log(LOG_NOTICE, "SCCP: Conference: Join thread: entering ast_bridge_join: %s-%08x\n", participant->channel->line->name, participant->channel->callid);
 	ast_bridge_join(participant->conference->bridge, astChannel, NULL, &participant->features);
-	ast_log(LOG_NOTICE, "SCCP: Conference: Join thread: leaving ast_bridge_join: %s-%08x\n", participant->channel->line->name, participant->channel->callid);
+	/* \todo TODO: We must fix the resolving of the channel lookup the other way round since the channel is not related to the actual participant and its present device. (-DD) */
+	//ast_log(LOG_NOTICE, "SCCP: Conference: Join thread: leaving ast_bridge_join: %s-%08x\n", participant->channel->line->name, participant->channel->callid);
+
+					if (ast_pbx_start(astChannel)) {
+					ast_log(LOG_WARNING, "SCCP: Unable to start PBX on %s\n", participant->conferenceBridgePeer->name);
+					ast_hangup(astChannel);
+					return -1;
+				}
 
 	//sccp_conference_removeParticipant(participant->conference, participant->channel);
 

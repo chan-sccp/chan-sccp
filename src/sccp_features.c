@@ -793,9 +793,10 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 		return;
 	}
 
-	if (!d->conference) {
+	/* Always create a new conference until we learn to clean up (-DD) */
+	//if (!d->conference) {
 		d->conference = sccp_conference_create(c);
-	}
+	//}
 
 	/* if we have selected channels, add this to conference */
 	SCCP_LIST_LOCK(&d->selectedChannels);
