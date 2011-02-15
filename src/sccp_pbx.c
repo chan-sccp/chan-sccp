@@ -1460,12 +1460,27 @@ int sccp_pbx_helper(sccp_channel_t * c)
 
 	int ext_matchmore = ast_matchmore_extension(chan, chan->context, c->dialedNumber, 1, l->cid_num);
 
-	sccp_log(1) (VERBOSE_PREFIX_1 "SCCP: extension helper says that:\n" "ignore pattern  : %d\n" "exten_exists    : %d\n" "exten_canmatch  : %d\n" "exten_matchmore : %d\n", ignore_pat, ext_exist, ext_canmatch, ext_matchmore);
-	if ((c->ss_action != SCCP_SS_GETCBARGEROOM) && (c->ss_action != SCCP_SS_GETMEETMEROOM) && (!ignore_pat) && (ext_exist)
-	    && ((d->overlapFeature.enabled && !ext_canmatch) || (!d->overlapFeature.enabled && !ext_matchmore))
-	    && ((d->overlapFeature.enabled && !ext_canmatch) || (!d->overlapFeature.enabled && !ext_matchmore))
-	    ) {
-		return 1;
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_2 "%s: extension helper says: ignore pattern: %d, exten_exists: %d, exten_canmatch: %d, exten_matchmore: %d\n", d->id, ignore_pat, ext_exist, ext_canmatch, ext_matchmore);
+
+#if CS_ADV_FEATURES
+	/* using the regcontext to match numbers early. Only registered SCCP phones will turn up here with their dialplan extension */
+	int regcontext_exist = ast_exists_extension(chan, GLOB(regcontext), c->dialedNumber, 1, l->cid_num);
+	int regcontext_matchmore = ast_matchmore_extension(chan, GLOB(regcontext), c->dialedNumber, 1, l->cid_num);
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_2 "%s: extension helper says: regcontext_exist: %d, regcontext_matchmore: %d\n", d->id, regcontext_exist, regcontext_matchmore);
+#endif
+
+	if ((c->ss_action != SCCP_SS_GETCBARGEROOM) && (c->ss_action != SCCP_SS_GETMEETMEROOM) && (!ignore_pat) && (ext_exist)) {
+#if CS_ADV_FEATURES
+		/* dial fast if number exists in regcontext and only matches exactly number */
+		if (regcontext_exist && !regcontext_matchmore) {
+			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "%s: Entered Number: %s is a Registered SCCP Number\n", d->id, c->dialedNumber);
+			return 1;
+		}
+#endif
+		if ((d->overlapFeature.enabled && !ext_canmatch) || (!d->overlapFeature.enabled && !ext_matchmore)) {
+			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "%s: Entered Number: %s is a Full Match\n", d->id, c->dialedNumber);
+			return 1;
+		}
 	}
 
 	return 0;
