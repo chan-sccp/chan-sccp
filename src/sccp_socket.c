@@ -407,7 +407,7 @@ static sccp_moo_t *sccp_process_data(sccp_session_t * s)
 		return NULL;							/* Not enough data, yet. */
 
 	if (packSize > SCCP_MAX_PACKET) {
-		ast_log(LOG_WARNING, "SCCP: Oversize packet mid: %d, our packet size: %zd, phone packet size: %d\n", letohl(m->lel_messageId), SCCP_MAX_PACKET, packSize);
+		ast_log(LOG_WARNING, "SCCP: Oversize packet: our size: %zd, phone size: %d\n", SCCP_MAX_PACKET, packSize);
 		return NULL;
 	}
 
