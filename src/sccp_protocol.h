@@ -3204,7 +3204,9 @@ typedef union {
 
 	struct {
 	} RegisterTokenAck;							/*!< Register Token Ackknowledge Message Structure */
+	
 	struct {
+		char text[StationMaxDisplayTextSize];				/*!< Rejection Text */
 	} RegisterTokenReject;							/*!< Register Token Reject Message Structure */
 
 	/*!
