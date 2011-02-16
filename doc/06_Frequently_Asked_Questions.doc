@@ -73,22 +73,22 @@
  * 
  * A. Normally this comes down to the need for in-direct rtp traffic, because there is a firewall between your phones which
  * is performing Network Address Translations (NAT). You can check this via: http://www.amibehindnat.com.
- * Simple solution: Turn directrtp=off in you sccp.conf or realtime tables and try again.
+ * Simple solution: Turn directrtp=off and nat=on in you sccp.conf or realtime tables and try again.
  *
  * Also check your settings for sccp.conf: externip and localnet
- * In rtp.conf you can make the block of used rtp port smaller and forward this whole block of UDP ports to your asterisk box.
+ * In rtp.conf you can make the block of used rtp ports smaller and forward this whole block of UDP ports to your asterisk box.
  *
  * Read more here: \ref NAT Troubles using VOIP and SCCP through a Firewall (NAT)
  *
  * Q. No DMTF at all
  *
- * A. Set directrtp=off in your sccp.conf or realtime tables and give it another try. You can also specify the type of
+ * A. Set directrtp=none in your sccp.conf or realtime tables and give it another try. You can also specify the type of
  *    DTMF used per device with dtmfmode=inband/outofband (inband can be heard, out-of-band is rfc2833 and can not be heard). 
- *    to use inband you will also need earlyrtp=on to be able to use DTMF in IVR's for example.
+ *    to use inband you will also need earlyrtp=progress (choose from none, offhook, dial, ringout and progress). to be able to use DTMF in IVR's for example.
  *
  * Q. No DMTF during calls
  *
- * A. Set earlyrtp=on or ringout in your sccp.conf or realtime tables and try again, this will make it possible for inband
+ * A. Set earlyrtp=progress or ringout in your sccp.conf or realtime tables and try again, this will make it possible for inband
  *    DTMF tones to be received and heard starting at call progress
  *
  * Q. How do i report an Issue or Problem i have

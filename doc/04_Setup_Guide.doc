@@ -31,6 +31,7 @@
  *   - \ref sccp_config_sep What does a Sample SEP[MacAddr].cnf.xml Look Like
  *   - \ref dialplan_sample Dialplan Sample
  *   - \ref DUNDi Dundi Lookup
+ *   - \ref shared_lines Shared Lines
  *   .
  *
  * \section setup_howto     How to setup Chan_SCCP
@@ -564,7 +565,9 @@
  * 
  * If regcontext is specified in sccp.conf chan-sccp-b will dynamically create and destroy a NoOp priority 1
  * extension for a given peer/line which registers with the server. If the context is not specified in
- * extension.conf, then it will be dynamically created when an chan-sccp-b agent registers.
+ * extension.conf, then it will be dynamically created when an chan-sccp-b agent registers. Do not include the regcontext 
+ * you set in sccp.conf manually in your dialplan. You can however use the same regcontext for iax, sip, sccp any
+ * other channel driver witch support regcontext, to get once big resource pool of registered devices.
  * 
  * Example sccp.conf:
  * \code
@@ -664,6 +667,44 @@
  * - [http://sipath.sf.net/: Use a SIP- and RTP-Proxy combination on your NAT/Firewall/Router - as done by the SIPatH Project]
  *
  * 
+ * \section shared_lines Shared Lines
+ * 
+ * Shared lines are lines used by several devices at the same time providing easy handling of phone calls between them. You can
+ * for example hold a line on one device and use resume on another to pick the line up there. Or even steal a line from another 
+ * device using the Intercept button.
+ * 
+ * To set up a shared line, you just define the same extension/line number on multiple devices. You can add a suffix to the extension
+ * number to be able to call a specific device using "@" and if you like an extra callerid_name behind ":", like this:
+ *
+ * \code
+ * [SEP00000001]
+ * ...
+ * button = line, 900@1: Kitchen
+ * ...
+ *
+ * [SEP00000002]
+ * ...
+ * button = line, 900@2: LivingRoom
+ * ...
+ * \endcode 
+ *
+ * If you now create the relevant entries in your dialplan you can either call 900, 9001, 9002 using this example:
+ * 
+ * \code
+ * _9XX =>{
+ *	  Dial(SCCP/${EXTEN});
+ * };
+ *
+ * _90XX =>{
+ *	Set(extension=${CUT(EXTEN::-3)});
+ *      Set(suffix=${CUT(EXTEN::4-)});
+ *	Dial(SCCP/${extension}@${suffix});
+ * };
+ * \endcode
+ *
+ * To add a default suffix to a line (so all device using that line, will also be accessible via the default suffix) you
+ * can add "defaultSubscriptionId_number = " to the line definition in sccp.conf.
+ *
  **/
 
 
