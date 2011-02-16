@@ -423,7 +423,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	if ((!s->device) && (mid != RegisterMessage && mid != RegisterTokenReq && mid != AlarmMessage && mid != KeepAliveMessage && mid != XMLAlarmMessage && mid != IpPortMessage && mid != SPARegisterMessage)) {
 		ast_log(LOG_WARNING, "SCCP: Client sent %s without first registering. Attempting reconnect.\n", message2str(mid));
 	} else if (s->device) {
-		if (s->device != sccp_device_find_byipaddress(s->sin.sin_addr.s_addr)) {
+		if (s->device != sccp_device_find_byipaddress(s->sin)) {
 			// IP Address has changed mid session
 			if (s->device->nat == 1) {
 				// We are natted, what should we do, Not doing anything for now, just sending warning -- DdG
