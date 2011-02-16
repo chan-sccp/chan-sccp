@@ -449,7 +449,8 @@ static void *sccp_conference_join_thread(void *data)
 					if (ast_pbx_start(astChannel)) {
 					ast_log(LOG_WARNING, "SCCP: Unable to start PBX on %s\n", participant->conferenceBridgePeer->name);
 					ast_hangup(astChannel);
-					return -1;
+					// return -1;
+					return NULL;
 				}
 
 	//sccp_conference_removeParticipant(participant->conference, participant->channel);
