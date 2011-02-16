@@ -257,10 +257,6 @@ void *sccp_socket_device_thread(void *session)
 			/* our calculation was in seconds, we need msecs */
 			pollTimeout = (int)(maxWaitTime - ((int)now - (int)s->lastKeepAlive)) * 1000;
 
-//			if (pollTimeout < 0) {
-//				s->session_stop = 1;
-//				break;
-//			}
 			if (pollTimeout < 5000) {
 				pollTimeout = 5000;
 			}
@@ -277,7 +273,7 @@ void *sccp_socket_device_thread(void *session)
 				}
 				continue;
 			} else if (res == 0) {					/* poll timeout */
-				ast_log(LOG_WARNING, "%s: Device keepalive timedout, Removing (timeout: %d, maxwaittime: %G)\n", DEV_ID_LOG(s->device), pollTimeout, maxWaitTime);
+				ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d).\n", DEV_ID_LOG(s->device), (int)maxWaitTime, pollTimeout);
 				s->session_stop = 1;
 				break;
 			}
