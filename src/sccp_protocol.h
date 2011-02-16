@@ -2559,6 +2559,9 @@ typedef union {
 	} SoftKeyTemplateReqMessage;						/*!< Soft Key Template Request Message Structure */
 
 	struct {
+		StationIdentifier sId;                                		/*!< Station Identifier */
+		uint32_t lel_stationIpAddr;              			/*!< Station IP Address */
+		uint32_t lel_deviceType;                                        /*!< Device Type as part of SKINNY_DEVICETYPE_* */
 	} RegisterTokenReq;							/*!< Register Token Request */
 
 	struct {
