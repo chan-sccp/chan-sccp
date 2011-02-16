@@ -421,6 +421,7 @@ static void *sccp_conference_join_thread(void *data)
 	sccp_conference_participant_t *participant = (sccp_conference_participant_t *) data;
 
 	struct ast_channel *astChannel;
+	sccp_channel_t * channel;
 
 	if (NULL == participant) {
 		ast_log(LOG_ERROR, "SCCP: Conference: Join thread: NULL participant.\n");
@@ -442,16 +443,32 @@ static void *sccp_conference_join_thread(void *data)
 	}
 
 	ast_log(LOG_NOTICE, "SCCP: Conference: Join thread: entering ast_bridge_join: %s-%08x\n", participant->channel->line->name, participant->channel->callid);
+
+        /* set keyset and displayprompt for conference */
+	channel=get_sccp_channel_from_ast_channel(astChannel);
+	if (channel && channel->device && channel->line->name) {		// if talking to an SCCP device
+   	        int instance;
+	        instance = sccp_device_find_index_for_line(channel->device, channel->line->name);
+                if ((channel = participant->conference->moderator->channel)) {
+		        ast_log(LOG_NOTICE, "%s: Conference: Set KeySet/Displayprompt for Moderator %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
+                        sccp_dev_set_keyset(channel->device, instance, channel->callid, KEYMODE_CONNCONF);
+	 	        sccp_dev_displayprompt(channel->device, instance, channel->callid, "Started Conference", 10);
+   	 	} else {
+	 	 	ast_log(LOG_NOTICE, "%s: Conference: Set DisplayPrompt for Participant %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
+	 	 	sccp_dev_displayprompt(channel->device, instance, channel->callid, "Entered Conference",10);
+	 	}
+	}
+	
 	ast_bridge_join(participant->conference->bridge, astChannel, NULL, &participant->features);
 	/* \todo TODO: We must fix the resolving of the channel lookup the other way round since the channel is not related to the actual participant and its present device. (-DD) */
 	//ast_log(LOG_NOTICE, "SCCP: Conference: Join thread: leaving ast_bridge_join: %s-%08x\n", participant->channel->line->name, participant->channel->callid);
 
-					if (ast_pbx_start(astChannel)) {
-					ast_log(LOG_WARNING, "SCCP: Unable to start PBX on %s\n", participant->conferenceBridgePeer->name);
-					ast_hangup(astChannel);
-					// return -1;
-					return NULL;
-				}
+	if (ast_pbx_start(astChannel)) {
+		ast_log(LOG_WARNING, "SCCP: Unable to start PBX on %s\n", participant->conferenceBridgePeer->name);
+		ast_hangup(astChannel);
+		// return -1;
+		return NULL;
+	}
 
 	//sccp_conference_removeParticipant(participant->conference, participant->channel);
 

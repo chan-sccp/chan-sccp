@@ -1042,6 +1042,11 @@ const char *keymode2str(uint32_t value)
 	_ARR2STR(skinny_keymodes, keymode, value, text);
 }
 
+const char *keymode2shortname(uint32_t value)
+{
+	_ARR2STR(skinny_keymodes, keymode, value, shortname);
+}
+
 const char *deviceregistrationstatus2str(uint32_t value)
 {
 	_ARR2STR(skinny_device_registrationstates, device_registrationstate, value, text);
