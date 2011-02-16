@@ -60,6 +60,7 @@ static const softkeyConfigurationTemplate softKeyTemplate[] = {
 	{"barge",	SKINNY_LBL_BARGE},
 	{"cbarge",	SKINNY_LBL_CBARGE},
 	{"conf",	SKINNY_LBL_CONFRN},
+	{"confrn",	SKINNY_LBL_CONFRN},
 	{"back",	SKINNY_LBL_BACKSPACE},
 	{"join",	SKINNY_LBL_JOIN},
 	{"empty",	SKINNY_LBL_EMPTY},
