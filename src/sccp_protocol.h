@@ -3326,21 +3326,22 @@ typedef struct {
  */
 static const struct skinny_keymode {
 	uint8_t keymode;
+	const char *const shortname;
 	const char *const text;
 } skinny_keymodes[] = {
 	/* *INDENT-OFF* */
-	{KEYMODE_ONHOOK, "On Hook"},
-	{KEYMODE_CONNECTED, "Connected"},
-	{KEYMODE_ONHOLD, "On Hold"},
-	{KEYMODE_RINGIN, "Ringin"},
-	{KEYMODE_OFFHOOK, "Off Hook"},
-	{KEYMODE_CONNTRANS, "Connected with Transfer"},
-	{KEYMODE_DIGITSFOLL, "Digits after dialing first digit "},
-	{KEYMODE_CONNCONF, "Connected with Conference"},
-	{KEYMODE_RINGOUT, "Ring Out"},
-	{KEYMODE_OFFHOOKFEAT, "Off Hook with Features"},
-	{KEYMODE_INUSEHINT, "In Use Hint"}, 
-	{KEYMODE_ONHOOKSTEALABLE, "On Hook with Stealable Remote Call"},
+	{KEYMODE_ONHOOK, "OnHook", "On Hook"},
+	{KEYMODE_CONNECTED, "Connected", "Connected"},
+	{KEYMODE_ONHOLD, "OnHold", "On Hold"},
+	{KEYMODE_RINGIN, "Ringing", "Ringin"},
+	{KEYMODE_OFFHOOK, "OffHook", "Off Hook"},
+	{KEYMODE_CONNTRANS, "ConnTrans", "Connected with Transfer"},
+	{KEYMODE_DIGITSFOLL, "DigitsFoll", "Digits after dialing first digit "},
+	{KEYMODE_CONNCONF, "ConnConf", "Connected with Conference"},
+	{KEYMODE_RINGOUT, "RingOut", "Ring Out"},
+	{KEYMODE_OFFHOOKFEAT, "OffHookFeat", "Off Hook with Features"},
+	{KEYMODE_INUSEHINT, "InUseHint", "In Use Hint"}, 
+	{KEYMODE_ONHOOKSTEALABLE, "OnHookStealable", "On Hook with Stealable Remote Call"},
 	/* *INDENT-ON* */
 };
 

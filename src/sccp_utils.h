@@ -69,7 +69,7 @@ void sccp_dev_dbclean(void);
                         return arrayname[i].return_var; \
                 } \
         } \
-        ast_log(LOG_ERROR, "_ARR2STR Lookup Failed for " #arrayname "." #lookup_var "=%i\n", lookup_val); \
+        sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "_ARR2STR Lookup Failed for " #arrayname "." #lookup_var "=%i\n", lookup_val); \
         return ""; \
         })
 
@@ -96,6 +96,7 @@ const char *station2str(uint32_t value);
 const char *label2str(uint32_t value);
 const char *calltype2str(uint32_t value);
 const char *keymode2str(uint32_t value);
+const char *keymode2shortname(uint32_t value);
 const char *deviceregistrationstatus2str(uint32_t value);
 const char *devicestatus2str(uint32_t value);
 const char *astcause2skinnycause(int value);
