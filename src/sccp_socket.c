@@ -257,9 +257,12 @@ void *sccp_socket_device_thread(void *session)
 			/* our calculation was in seconds, we need msecs */
 			pollTimeout = (int)(maxWaitTime - ((int)now - (int)s->lastKeepAlive)) * 1000;
 
-			if (pollTimeout < 0) {
-				s->session_stop = 1;
-				break;
+//			if (pollTimeout < 0) {
+//				s->session_stop = 1;
+//				break;
+//			}
+			if (pollTimeout < 5000) {
+				pollTimeout = 5000;
 			}
 
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: set poll timeout %d\n", DEV_ID_LOG(s->device), pollTimeout);
@@ -274,7 +277,7 @@ void *sccp_socket_device_thread(void *session)
 				}
 				continue;
 			} else if (res == 0) {					/* poll timeout */
-				ast_log(LOG_WARNING, "%s: Device vanished without Unregistering, Removing\n", DEV_ID_LOG(s->device));
+				ast_log(LOG_WARNING, "%s: Device keepalive timedout, Removing (timeout: %d, maxwaittime: %G)\n", DEV_ID_LOG(s->device), pollTimeout, maxWaitTime);
 				s->session_stop = 1;
 				break;
 			}

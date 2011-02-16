@@ -1313,13 +1313,13 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
  * \lock
  * 	- devices
  */
-sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr)
+sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_in sin)
 {
 	sccp_device_t *d;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		if (d->session && d->session->sin.sin_addr.s_addr == s_addr) {
+		if (d->session && d->session->sin.sin_addr.s_addr == sin.sin_addr.s_addr && d->session->sin.sin_port == sin.sin_port) {
 			break;
 		}
 	}
