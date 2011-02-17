@@ -454,7 +454,6 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) pickupgroup not configured in sccp.conf\n", d->id);
 		return -1;
 	}
-
 	while ((target = pbx_channel_walk_locked(target))) {
 		sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
 		if ((l->pickupgroup & target->callgroup) && (!target->pbx && (target->_state == AST_STATE_RINGING || target->_state == AST_STATE_RING))) {
@@ -509,23 +508,21 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 				sccp_copy_string(c->callInfo.originalCalledPartyNumber, original->cid.cid_num, sizeof(c->callInfo.originalCalledPartyNumber));
 
 			if (target->cid.cid_name) {
-				sccp_copy_string(c->callInfo.callingPartyName, name, sizeof(c->callInfo.callingPartyName));
+				sccp_copy_string(c->callInfo.callingPartyName, target->cid.cid_name, sizeof(c->callInfo.callingPartyName));
 			}
 			if (target->cid.cid_num) {
-				sccp_copy_string(c->callInfo.callingPartyNumber, number, sizeof(c->callInfo.callingPartyNumber));
+				sccp_copy_string(c->callInfo.callingPartyNumber, target->cid.cid_num, sizeof(c->callInfo.callingPartyNumber));
 			}
-
 			/* we use the  original->cid.cid_name to do the magic */
 			if (target->cid.cid_ani) {
-				sccp_copy_string(c->callInfo.callingPartyNumber, number, sizeof(c->callInfo.callingPartyNumber));
-				sccp_copy_string(c->callInfo.callingPartyName, number, sizeof(c->callInfo.callingPartyName));
+				sccp_copy_string(c->callInfo.callingPartyNumber, target->cid.cid_name, sizeof(c->callInfo.callingPartyNumber));
+				sccp_copy_string(c->callInfo.callingPartyName, target->cid.cid_num, sizeof(c->callInfo.callingPartyName));
 			}
 			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_ani = '%s'\n", (target->cid.cid_ani) ? target->cid.cid_ani : "");	/* remote cid_num */
 			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_dnid = '%s'\n", (target->cid.cid_dnid) ? target->cid.cid_dnid : "");
 			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_name = '%s'\n", (target->cid.cid_name) ? target->cid.cid_name : "");
 			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_num = '%s'\n", (target->cid.cid_num) ? target->cid.cid_num : "");
 			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_rdnis = '%s'\n", (target->cid.cid_rdnis) ? target->cid.cid_rdnis : "");
-
 #    endif
 			sccp_channel_t *remote = NULL;
 
