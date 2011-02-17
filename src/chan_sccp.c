@@ -472,9 +472,18 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 		sccp_handle_alarm(s, r);
 		break;
 	case RegisterMessage:
-	case RegisterTokenReq:
+#ifdef CS_ADV_FEATURES
 		sccp_handle_register(s, r);
 		break;
+#endif
+	case RegisterTokenReq:
+#ifdef CS_ADV_FEATURES
+		sccp_handle_tokenreq(s, r);
+		break;
+#else
+		sccp_handle_register(s, r);
+		break;
+#endif
 	case SPARegisterMessage:
 		sccp_handle_SPAregister(s, r);
 		break;

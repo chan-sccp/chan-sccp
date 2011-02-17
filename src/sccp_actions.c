@@ -105,6 +105,58 @@ void sccp_handle_unknown_message(sccp_session_t * s, sccp_moo_t * r)
 	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
 }
 
+#ifdef CS_ADV_FEATURES
+/*!
+ * \brief Handle Token Request
+ *
+ * If a fall-back server has been entered in the phones cnf.xml file and the phone has fallen back to a secundairy server
+ * it will send a tokenreq to the primairy every so often (secundaity keep alive timeout ?). Once the primairy server sends 
+ * a token acknowledgement the switches back.
+ *
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP MOO T as sccp_moo_t
+ *
+ * \callgraph
+ * \callergraph
+ */
+void sccp_handle_tokenreq(sccp_session_t * s, sccp_moo_t * r)
+{
+	sccp_device_t *d;
+
+	sccp_moo_t *r1;
+
+	if (!s || (s->fds[0].fd < 0)) {
+		ast_log(LOG_ERROR, "%s: No Valid Session\n", r->msg.RegisterMessage.sId.deviceName);
+		return;
+	}
+
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: is requesting a Token, Instance: %d, Type: %s (%d), Version: %d\n", r->msg.RegisterMessage.sId.deviceName, letohl(r->msg.RegisterMessage.sId.lel_instance), devicetype2str(letohl(r->msg.RegisterMessage.lel_deviceType)), letohl(r->msg.RegisterMessage.lel_deviceType), r->msg.RegisterMessage.protocolVer);
+
+	// Search for already known devices -> Cleanup
+	d = sccp_device_find_byid(r->msg.RegisterMessage.sId.deviceName, FALSE);
+	if (d) {
+		if (d->session && d->session != s) {
+			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Device is registered on another server (TokenReq)!\n", d->id);
+			d->session->session_stop = 1;				/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
+			sccp_dev_clean(d, FALSE, 0);				/* we need to clean device configuration to set lines */
+			sccp_log(1) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
+		}
+	}
+
+	/* ip address range check */
+	if (GLOB(ha) && !pbx_apply_ha(GLOB(ha), &s->sin)) {
+		ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.RegisterMessage.sId.deviceName);
+		REQ(r1, RegisterTokenReject);
+		memcpy(r1->msg.RegisterTokenReject.text, "Device ip not authorized", sizeof(r1->msg.RegisterTokenReject.text));
+		sccp_session_send2(s, r1);
+		return;
+	}
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", r->msg.RegisterMessage.sId.deviceName);
+	REQ(r1, RegisterTokenAck);
+	sccp_session_send2(s, r1);
+}
+#endif
+
 /*!
  * \brief Handle Device Registration
  * \param s SCCP Session as sccp_session_t
