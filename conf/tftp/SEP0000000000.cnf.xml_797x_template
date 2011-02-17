@@ -75,10 +75,11 @@
 	</devicePool>
 	<commonProfile>
 		<phonePassword></phonePassword>
+		<defaultBackground></defaultBackground>
 		<backgroundImageAccess>true</backgroundImageAccess>
 		<callLogBlfEnabled>2</callLogBlfEnabled>
 	</commonProfile>
-	
+
 	<loadInformation>SCCP70.8-5-4S</loadInformation>		<!-- Set the correct firmware version -->
 	
 	<addOnModules>
