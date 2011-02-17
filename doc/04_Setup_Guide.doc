@@ -466,13 +466,13 @@
  * \section sccp_config_sep What does a Sample SEP[MacAddr].cnf.xml Look Like
  *
  * We have added a couple of example files in the directory conf/tftp  
- * conf/tftp/XMLDefault.cnf.xml_797x
- * conf/tftp/XMLDefault.cnf.xml_796x
- * conf/tftp/XMLDefault.cnf.xml_791x
+ * conf/tftp/SEP0000000000.cnf.xml_791x_template
+ * conf/tftp/SEP0000000000.cnf.xml_796x_template
+ * conf/tftp/SEP0000000000.cnf.xml_797x_template
  * 
- * You can choose one of these files and adapt it to your network/devices. You can then copy the file to your tftp-server and rename the file to XMLDefault.cnf.xml. 
+ * You can choose one of these files and adapt it to your network/devices. You can then copy the file to your tftp-server and rename the file to SEPTemplate.cnf.xml.
  * If you like you can make soft links/shortcuts to this file for every device you have in the form of SEP[macaddr].cnf.xml files. For devices with specific settings
- * you can copy your XMLDefault.cnf.xml file to a new SEP[macaddr].cnf.xml file and set the specific settings for this device.
+ * you can copy your SEP0000000000.cnf.xml_79xx_template file to a new SEP[macaddr].cnf.xml file and set the specific settings for this device.
  * 
  * \section dialplan_sample Dialplan Sample
  * 
@@ -696,8 +696,8 @@
  * };
  *
  * _90XX =>{
- *	Set(extension=${CUT(EXTEN::-3)});
- *      Set(suffix=${CUT(EXTEN::4-)});
+ *	Set(extension=${EXTEN:0:3});
+ *      Set(suffix=${EXTEN:3:1});
  *	Dial(SCCP/${extension}@${suffix});
  * };
  * \endcode
