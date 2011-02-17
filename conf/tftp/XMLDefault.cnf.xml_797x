@@ -19,7 +19,7 @@
 				<member  priority="0">
 					<callManager>
 						<name>asterisk</name>
-						<description>asterisk03</description>
+						<description>asterisk01</description>
 						<ports>
 							<ethernetPhonePort>2000</ethernetPhonePort>
 							<sipPort>5060</sipPort>
@@ -29,21 +29,36 @@
 								<keepAlive>2428</keepAlive>
 							</mgcpPorts>
 						</ports>
-						<processNodeName>asterisk</processNodeName>
+						<processNodeName>x.x.x.x</processNodeName>
 					</callManager>
 				</member>
-				
+				<member  priority="1">			<!-- Fall Back -->
+					<callManager>
+						<name>asterisk</name>
+						<description>asterisk02</description>
+						<ports>
+							<ethernetPhonePort>2000</ethernetPhonePort>
+							<sipPort>5060</sipPort>
+							<securedSipPort>5061</securedSipPort>
+							<mgcpPorts>
+								<listen>2427</listen>
+								<keepAlive>2428</keepAlive>
+							</mgcpPorts>
+						</ports>
+						<processNodeName>x.x.x.x</processNodeName>
+					</callManager>
+				</member>
 			</members>
 		</callManagerGroup>
 		<srstInfo  uuid="{cd241e11-4a58-4d3d-9661-f06c912a18a3}">
 			<name>Disable</name>
 			<srstOption>Disable</srstOption>
 			<userModifiable>true</userModifiable>
-			<ipAddr1></ipAddr1>
+			<ipAddr1>x.x.x.x</ipAddr1>
 			<port1>2000</port1>
-			<ipAddr2></ipAddr2>
+			<ipAddr2>x.x.x.x</ipAddr2>
 			<port2>2000</port2>
-			<ipAddr3></ipAddr3>
+			<ipAddr3>x.x.x.x</ipAddr3>
 			<port3>2000</port3>
 			<sipIpAddr1></sipIpAddr1>
 			<sipPort1>5060</sipPort1>
@@ -64,7 +79,7 @@
 		<callLogBlfEnabled>2</callLogBlfEnabled>
 	</commonProfile>
 	
-	<loadInformation>SCCP70.8-5-4S</loadInformation>
+	<loadInformation>SCCP70.8-5-4S</loadInformation>		<!-- Set the correct firmware version -->
 	
 	<addOnModules>
 <!--
@@ -159,19 +174,6 @@
 	<autoCallPickupEnable>false</autoCallPickupEnable>
 	<blfAudibleAlertSettingOfIdleStation>1</blfAudibleAlertSettingOfIdleStation>
 	<blfAudibleAlertSettingOfBusyStation>1</blfAudibleAlertSettingOfBusyStation>
-	<capfAuthMode>1</capfAuthMode>
-	<capfList>
-		<capf>
-			<phonePort>3804</phonePort>
-			<processNodeName></processNodeName>
-		</capf>
-		<capf6>
-			<phonePort>3804</phonePort>
-			<processNodeName></processNodeName>
-		</capf6>
-	</capfList>
-	<certHash></certHash>
-	<encrConfig>false</encrConfig>
 	<advertiseG722Codec>1</advertiseG722Codec>
 	<mobility>
 		<handoffdn></handoffdn>
@@ -184,6 +186,14 @@
 		<dtmfCnfCode>*85</dtmfCnfCode>
 	</mobility>
 	<userId></userId>
+	<idleTimeout>3600</idleTimeout>
+	<authenticationURL>http://x.x.x.x/cisco_menu/authentication.php</authenticationURL>
+	<idleURL>http://x.x.x.x/cisco_menu/idle.php</idleURL> 
+	<informationURL>http://x.x.x.x/cisco_menu/help/help.php</informationURL> 
+	<messagesURL></messagesURL> 
+	<proxyServerURL></proxyServerURL> 
+	<servicesURL>http://x.x.x.x/cisco_menu/menu.php</servicesURL> 
+	<directoryURL>http://x.x.x.x/cisco_menu/directory/menu.php</directoryURL>
 	<!--
 	<phoneServices>
 	
@@ -227,4 +237,17 @@
 		
 	</phoneServices>
 -->
+	<capfAuthMode>1</capfAuthMode>
+	<capfList>
+		<capf>
+			<phonePort>3804</phonePort>
+			<processNodeName></processNodeName>
+		</capf>
+		<capf6>
+			<phonePort>3804</phonePort>
+			<processNodeName></processNodeName>
+		</capf6>
+	</capfList>
+	<certHash></certHash>
+	<encrConfig>false</encrConfig>
 </device>
