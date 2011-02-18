@@ -71,7 +71,6 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 		return NULL;
 	}
 
-
 	/* create moderator */
 	moderator = (sccp_conference_participant_t *) ast_malloc(sizeof(sccp_conference_participant_t));
 	if (!moderator) {
@@ -91,21 +90,19 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 	owner->conference = conference;
 	conference->moderator = moderator;
 
-
-#if 0
+#        if 0
 	/* add moderator to participants list */
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Conference: adding moderator to participant list.\n", owner->device->id);
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_INSERT_TAIL(&conference->participants, moderator, list);
 	SCCP_LIST_UNLOCK(&conference->participants);
 
-
 	/* Add moderator to conference. */
 	if (0 != sccp_conference_addAstChannelToConferenceBridge(moderator, moderator->channel->owner)) {
 		ast_log(LOG_ERROR, "SCCP: Conference: failed to add moderator channel (preparation phase).\n");
 		/* TODO: Error handling. */
 	}
-#endif
+#        endif
 
 	/* Store conference in global list. */
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Conference: adding conference to global conference list.\n", owner->device->id);
@@ -115,14 +112,13 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Conference: Conference with id %d created; Owner: %s \n", owner->device->id, conference->id, owner->device->id);
 
-#if 0
+#        if 0
 	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_create.\n");
 	if (ast_pthread_create_background(&moderator->joinThread, NULL, sccp_conference_join_thread, moderator) < 0) {
 		ast_log(LOG_ERROR, "SCCP: Conference: failed to initiate join thread for moderator.\n");
 		return conference;
 	}
-#endif
-	
+#        endif
 
 	return conference;
 }
@@ -150,56 +146,51 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 
 	// Now done in add_participant
 	// pbx_channel_lock(chan);
-	
-		//if (chan->pbx) {
-		#if 1
-		//ast_channel_lock(chan);
-		ast_set_flag(chan, AST_FLAG_BRIDGE_HANGUP_DONT); /* don't let the after-bridge code run the h-exten */
-		//ast_channel_unlock(chan);
-		#endif
-//	}
 
-struct ast_channel *bridge = CS_AST_BRIDGED_CHANNEL(chan);
+	//if (chan->pbx) {
+#        if 1
+	//ast_channel_lock(chan);
+	ast_set_flag(chan, AST_FLAG_BRIDGE_HANGUP_DONT);			/* don't let the after-bridge code run the h-exten */
+	//ast_channel_unlock(chan);
+#        endif
+//      }
+
+	struct ast_channel *bridge = CS_AST_BRIDGED_CHANNEL(chan);
 
 /* Prevent also the bridge from hanging up. */
-if (NULL != bridge) {
-#if 0
+	if (NULL != bridge) {
+#        if 0
 		//ast_channel_lock(bridge);
-		ast_set_flag(bridge, AST_FLAG_BRIDGE_HANGUP_DONT); /* don't let the after-bridge code run the h-exten */
+		ast_set_flag(bridge, AST_FLAG_BRIDGE_HANGUP_DONT);		/* don't let the after-bridge code run the h-exten */
 		//ast_channel_unlock(bridge);
-	#endif
-		}
+#        endif
+	}
 
 	/* Allocate an asterisk channel structure as conference bridge peer for the participant */
-	participant->conferenceBridgePeer = ast_channel_alloc(0, chan->_state, 0, 0, chan->accountcode, 
-	   chan->exten, chan->context, chan->amaflags, "ConferenceBridge/%s", chan->name);
-	   
-	   if(!participant->conferenceBridgePeer) {
-	   ast_log(LOG_NOTICE, "Couldn't allocate participant peer.\n");
-	  	 //pbx_channel_unlock(chan);
-	 	  return -1;
-	   }
+	participant->conferenceBridgePeer = ast_channel_alloc(0, chan->_state, 0, 0, chan->accountcode, chan->exten, chan->context, chan->amaflags, "ConferenceBridge/%s", chan->name);
 
-	   participant->conferenceBridgePeer->readformat = chan->readformat;
-	   participant->conferenceBridgePeer->writeformat = chan->writeformat;
-	   participant->conferenceBridgePeer->nativeformats = chan->nativeformats;
+	if (!participant->conferenceBridgePeer) {
+		ast_log(LOG_NOTICE, "Couldn't allocate participant peer.\n");
+		//pbx_channel_unlock(chan);
+		return -1;
+	}
 
-	   if(ast_channel_masquerade(participant->conferenceBridgePeer, chan)){
-	   ast_log(LOG_ERROR, "SCCP: Conference: failed to masquerade channel.\n");
-	   //pbx_channel_unlock(chan);
-	   ast_hangup(participant->conferenceBridgePeer);
-	   participant->conferenceBridgePeer = NULL;
-	   return -1;
-	   } else {
-	   			ast_channel_lock(participant->conferenceBridgePeer);
-				ast_do_masquerade(participant->conferenceBridgePeer);
-				ast_channel_unlock(participant->conferenceBridgePeer);
-				
-				
+	participant->conferenceBridgePeer->readformat = chan->readformat;
+	participant->conferenceBridgePeer->writeformat = chan->writeformat;
+	participant->conferenceBridgePeer->nativeformats = chan->nativeformats;
 
-				
-	   }
-	   
+	if (ast_channel_masquerade(participant->conferenceBridgePeer, chan)) {
+		ast_log(LOG_ERROR, "SCCP: Conference: failed to masquerade channel.\n");
+		//pbx_channel_unlock(chan);
+		ast_hangup(participant->conferenceBridgePeer);
+		participant->conferenceBridgePeer = NULL;
+		return -1;
+	} else {
+		ast_channel_lock(participant->conferenceBridgePeer);
+		ast_do_masquerade(participant->conferenceBridgePeer);
+		ast_channel_unlock(participant->conferenceBridgePeer);
+
+	}
 
 	// Now done in add_participant
 	// pbx_channel_unlock(chan);
@@ -222,21 +213,20 @@ if (NULL != bridge) {
 void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * channel)
 {
 	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: sccp_conference_addParticipant called.\n");
-	
+
 	if (!channel || !conference) {
 		// TODO: Log
 		return;
 	}
-	
 
 	sccp_conference_participant_t *localParticipant = NULL, *remoteParticipant = NULL;
 
 	//struct ast_channel *currentParticipantPeer;
-	
+
 	struct ast_channel *localCallLeg = NULL, *remoteCallLeg = NULL;
-	
+
 	/* We need to handle adding the moderator in a special way: Both legs of the call
-	need to be added to the conference at the same time. (-DD) */
+	   need to be added to the conference at the same time. (-DD) */
 	boolean_t adding_moderator = (channel == conference->moderator->channel);
 
 	if (NULL != channel->conference && !adding_moderator) {
@@ -248,50 +238,49 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		ast_log(LOG_NOTICE, "%s: Conference: Only connected or channel on hold eligible for conference: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
 		return;
 	}
-	
+
 	localCallLeg = channel->owner;
 	if (NULL == localCallLeg) {
-			ast_log(LOG_NOTICE, "%s: Conference: NULL local ast call leg: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
-			return;
-	}
-	
-	remoteCallLeg = CS_AST_BRIDGED_CHANNEL(localCallLeg);
-	if (NULL == localCallLeg) {
-			ast_log(LOG_NOTICE, "%s: Conference: NULL remote ast call leg: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
-			return;
+		ast_log(LOG_NOTICE, "%s: Conference: NULL local ast call leg: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
+		return;
 	}
 
-	if(adding_moderator) {
+	remoteCallLeg = CS_AST_BRIDGED_CHANNEL(localCallLeg);
+	if (NULL == localCallLeg) {
+		ast_log(LOG_NOTICE, "%s: Conference: NULL remote ast call leg: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
+		return;
+	}
+
+	if (adding_moderator) {
 		localParticipant = (sccp_conference_participant_t *) ast_malloc(sizeof(sccp_conference_participant_t));
 		if (!localParticipant) {
 			return;
 		}
 		memset(localParticipant, 0, sizeof(sccp_conference_participant_t));
-		
+
 		pbx_channel_lock(localCallLeg);
 	}
-	
+
 	remoteParticipant = (sccp_conference_participant_t *) ast_malloc(sizeof(sccp_conference_participant_t));
 	if (!remoteParticipant) {
-		if(adding_moderator) {
+		if (adding_moderator) {
 			pbx_channel_unlock(localCallLeg);
 			free(localParticipant);
 		}
 		return;
 	}
 	memset(remoteParticipant, 0, sizeof(sccp_conference_participant_t));
-	
-	pbx_channel_lock(remoteCallLeg);
-	
 
-	if(adding_moderator) {
+	pbx_channel_lock(remoteCallLeg);
+
+	if (adding_moderator) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "Conference: Adding remote party of moderator.\n");
 	} else {
 		sccp_log(1) (VERBOSE_PREFIX_3 "Conference: Adding remote party of ordinary participant call.\n");
 	}
-		
-	remoteParticipant->channel 		= channel;
-	remoteParticipant->conference 	= conference;
+
+	remoteParticipant->channel = channel;
+	remoteParticipant->conference = conference;
 	ast_bridge_features_init(&remoteParticipant->features);
 
 	SCCP_LIST_LOCK(&conference->participants);
@@ -306,34 +295,46 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 	if (ast_pthread_create_background(&remoteParticipant->joinThread, NULL, sccp_conference_join_thread, remoteParticipant) < 0) {
 		// \todo TODO: error handling
 	}
-	
-	
-	
-	if(adding_moderator) {
+
+	if (adding_moderator) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "Conference: Adding local party of moderator.\n");
-	
-	localParticipant->channel 		= channel;
-	localParticipant->conference 	= conference;
-	ast_bridge_features_init(&remoteParticipant->features);
 
-	SCCP_LIST_LOCK(&conference->participants);
-	SCCP_LIST_INSERT_TAIL(&conference->participants, localParticipant, list);
-	SCCP_LIST_UNLOCK(&conference->participants);
+		localParticipant->channel = channel;
+		localParticipant->conference = conference;
+		ast_bridge_features_init(&remoteParticipant->features);
 
-	if (0 != sccp_conference_addAstChannelToConferenceBridge(localParticipant, localCallLeg)) {
-		// \todo TODO: error handling
+		SCCP_LIST_LOCK(&conference->participants);
+		SCCP_LIST_INSERT_TAIL(&conference->participants, localParticipant, list);
+		SCCP_LIST_UNLOCK(&conference->participants);
+
+		if (0 != sccp_conference_addAstChannelToConferenceBridge(localParticipant, localCallLeg)) {
+			// \todo TODO: error handling
+		}
+
+
+		sccp_log(1) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_addParticipant.\n");
+		if (ast_pthread_create_background(&localParticipant->joinThread, NULL, sccp_conference_join_thread, localParticipant) < 0) {
+			// \todo TODO: error handling
+		}
 	}
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_addParticipant.\n");
-	if (ast_pthread_create_background(&localParticipant->joinThread, NULL, sccp_conference_join_thread, localParticipant) < 0) {
-		// \todo TODO: error handling
-	}
-	
+	/* set keyset and displayprompt for conference */
+	if (channel->device && channel->line->name) {		// if talking to an SCCP device
+		int instance;
+		instance = sccp_device_find_index_for_line(channel->device, channel->line->name);
+		if (adding_moderator) {
+			ast_log(LOG_NOTICE, "%s: Conference: Set KeySet/Displayprompt for Moderator %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
+			sccp_dev_set_keyset(channel->device, instance, channel->callid, KEYMODE_CONNCONF);
+			sccp_dev_displayprompt(channel->device, instance, channel->callid, "Started Conference", 10);
+		} else {
+			ast_log(LOG_NOTICE, "%s: Conference: Set DisplayPrompt for Participant %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
+			sccp_dev_displayprompt(channel->device, instance, channel->callid, "Entered Conference",10);
+		}
 	}
 
 	pbx_channel_unlock(remoteCallLeg);
-	
-	if(adding_moderator) {
+
+	if (adding_moderator) {
 		pbx_channel_unlock(localCallLeg);
 	}
 
@@ -469,7 +470,6 @@ static void *sccp_conference_join_thread(void *data)
 		// return -1;
 		return NULL;
 	}
-
 	//sccp_conference_removeParticipant(participant->conference, participant->channel);
 
 	participant->joinThread = AST_PTHREADT_NULL;

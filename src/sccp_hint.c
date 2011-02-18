@@ -239,7 +239,7 @@ void sccp_hint_deviceRegistered(const sccp_device_t * device)
 
 /*!
  * \brief Handle Hints for Device UnRegister
- * \param device SCCP Device
+ * \param deviceName Device Name as Const Char *
  *
  * \note	device locked by parent
  *
@@ -560,6 +560,8 @@ SCCP_LIST_TRAVERSE_SAFE_END}
  * \param channel	SCCP Channel
  * \param previousState Previous Channel State
  * \param state		New Channel State
+ * \param file 		Pretty Function File Name as char *
+ * \param callerLine	Line Number as int
  * 
  * \lock
  * 	- sccp_hint_subscriptions
