@@ -87,7 +87,7 @@ boolean_t sccp_device_check_update(sccp_device_t * d)
 		return FALSE;
 	}
 
-	sccp_log(1) (VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf\n", d->id);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf\n", d->id);
 	sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 	pthread_cancel(d->session->session_thread);
 	d->pendingUpdate = 0;

@@ -354,7 +354,7 @@ static void sccp_accept_connection(void)
 	s->fds[0].fd = new_socket;
 
 	s->lastKeepAlive = time(0);
-	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", pbx_inet_ntoa(s->sin.sin_addr));
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", pbx_inet_ntoa(s->sin.sin_addr));
 
 	if (GLOB(bindaddr.sin_addr.s_addr) == INADDR_ANY) {
 		ast_ouraddrfor(&incoming.sin_addr, &s->ourip);
@@ -362,7 +362,7 @@ static void sccp_accept_connection(void)
 		memcpy(&s->ourip, &GLOB(bindaddr.sin_addr.s_addr), sizeof(s->ourip));
 	}
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Using ip %s\n", pbx_inet_ntoa(s->ourip));
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Using ip %s\n", pbx_inet_ntoa(s->ourip));
 
 	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
 	SCCP_LIST_INSERT_HEAD(&GLOB(sessions), s, list);

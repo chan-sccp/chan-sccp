@@ -286,19 +286,19 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 	sccp_channel_t *tmpChannel;
 
 	if (sccp_strlen_zero(exten)) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) zero exten\n");
+		sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) zero exten\n");
 		return -1;
 	}
 
 	if (!c || !c->owner) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) no channel\n");
+		sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) no channel\n");
 		return -1;
 	}
 
 	original = c->owner;
 
 	if (!c->line || !c->device || !c->device->id || sccp_strlen_zero(c->device->id)) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) no device\n");
+		sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) no device\n");
 		return -1;
 	}
 
@@ -347,20 +347,20 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 			if (d->pickupmodeanswer) {
 				if ((res = ast_answer(c->owner))) {		// \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
 
-					sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to answer '%s'\n", c->owner->name);
+					sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to answer '%s'\n", c->owner->name);
 					res = -1;
 				} else if ((res = ast_queue_control(c->owner, AST_CONTROL_ANSWER))) {
-					sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to queue answer on '%s'\n", c->owner->name);
+					sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to queue answer on '%s'\n", c->owner->name);
 					res = -1;
 				}
 			}
 
 			if (res == 0) {
 				if ((res = ast_channel_masquerade(target, c->owner))) {
-					sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);
+					sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);
 					res = -1;
 				} else {
-					sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
+					sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
 					c->calltype = SKINNY_CALLTYPE_INBOUND;
 					sccp_channel_set_callingparty(c, name, number);
 					if (d->pickupmodeanswer) {
@@ -379,7 +379,7 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 						c->ringermode = SKINNY_STATION_OUTSIDERING;	// default ring
 						ringermode = pbx_builtin_getvar_helper(c->owner, "ALERT_INFO");
 						if (ringermode && !sccp_strlen_zero(ringermode)) {
-							sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", ringermode);
+							sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", ringermode);
 							if (strcasecmp(ringermode, "inside") == 0)
 								c->ringermode = SKINNY_STATION_INSIDERING;
 							else if (strcasecmp(ringermode, "feature") == 0)
@@ -411,7 +411,7 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 	}
 	sccp_free(pickupexten);
 	pickupexten = NULL;
-	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) quit\n");
+	sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) quit\n");
 	return res;
 }
 
@@ -446,7 +446,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	char *name = NULL, *number = NULL;
 ;
 	if (!l || !d || !d->id || sccp_strlen_zero(d->id)) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) no line or device\n");
+		sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) no line or device\n");
 		return -1;
 	}
 
@@ -529,16 +529,16 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 				sccp_copy_string(c->callInfo.callingPartyNumber, number, sizeof(c->callInfo.callingPartyNumber));
 				sccp_copy_string(c->callInfo.callingPartyName, number, sizeof(c->callInfo.callingPartyName));
 			}
-			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_ani = '%s'\n", (target->cid.cid_ani) ? target->cid.cid_ani : "");	/* remote cid_num */
-			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_dnid = '%s'\n", (target->cid.cid_dnid) ? target->cid.cid_dnid : "");
-			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_name = '%s'\n", (target->cid.cid_name) ? target->cid.cid_name : "");
-			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_num = '%s'\n", (target->cid.cid_num) ? target->cid.cid_num : "");
-			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_rdnis = '%s'\n", (target->cid.cid_rdnis) ? target->cid.cid_rdnis : "");
+			sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_ani = '%s'\n", (target->cid.cid_ani) ? target->cid.cid_ani : "");	/* remote cid_num */
+			sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_dnid = '%s'\n", (target->cid.cid_dnid) ? target->cid.cid_dnid : "");
+			sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_name = '%s'\n", (target->cid.cid_name) ? target->cid.cid_name : "");
+			sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_num = '%s'\n", (target->cid.cid_num) ? target->cid.cid_num : "");
+			sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_rdnis = '%s'\n", (target->cid.cid_rdnis) ? target->cid.cid_rdnis : "");
 
 			sccp_channel_t *remote = NULL;
 
 			if ((remote = get_sccp_channel_from_ast_channel(target))) {
-				sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) remote channel is SCCP %s -> correct cid\n", remote->owner->name);
+				sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) remote channel is SCCP %s -> correct cid\n", remote->owner->name);
 				name = strdup(remote->callInfo.callingPartyName);
 				number = strdup(remote->callInfo.callingPartyNumber);
 				remote = NULL;
@@ -548,20 +548,20 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 			res = 0;
 			if (d->pickupmodeanswer) {
 				if ((res = ast_answer(c->owner))) {		// \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
-					sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) Unable to answer '%s'\n", c->owner->name);
+					sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) Unable to answer '%s'\n", c->owner->name);
 					res = -1;
 				} else if ((res = ast_queue_control(c->owner, AST_CONTROL_ANSWER))) {
-					sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) Unable to queue answer on '%s'\n", c->owner->name);
+					sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) Unable to queue answer on '%s'\n", c->owner->name);
 					res = -1;
 				}
 			}
 
 			if (res == 0) {
 				if ((res = ast_channel_masquerade(target, c->owner))) {	// \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
-					sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);
+					sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);
 					res = -1;				// \todo remove line : res value is being set to 0 in line 694 any way
 				} else {
-					sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
+					sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
 
 					/* searching callerid */
 					c->calltype = SKINNY_CALLTYPE_INBOUND;
@@ -581,7 +581,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 						c->ringermode = SKINNY_STATION_OUTSIDERING;	// default ring
 						ringermode = pbx_builtin_getvar_helper(c->owner, "ALERT_INFO");
 						if (ringermode && !sccp_strlen_zero(ringermode)) {
-							sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", ringermode);
+							sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", ringermode);
 							if (strcasecmp(ringermode, "inside") == 0)
 								c->ringermode = SKINNY_STATION_INSIDERING;
 							else if (strcasecmp(ringermode, "feature") == 0)
@@ -600,7 +600,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 				pbx_channel_unlock(target);
 //				ast_queue_hangup(original);		// doesn't work, used to be ast_hangup (Joe,Gpickup trouble)
 				ast_hangup(original);
-				sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) masquerade succeeded\n");
+				sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) masquerade succeeded\n");
 			} else {
 				sccp_channel_unlock(c);
 				pbx_channel_unlock(target);
@@ -623,7 +623,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		}
 		pbx_channel_unlock(target);
 	}
-	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) finished\n");
+	sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) finished\n");
 	return res;
 }
 #endif
@@ -680,12 +680,12 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 
 	sccp_line_t *l;
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Voicemail Button pressed on line (%d)\n", d->id, lineInstance);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Voicemail Button pressed on line (%d)\n", d->id, lineInstance);
 
 	c = sccp_channel_get_active_locked(d);
 	if (c) {
 		if (!c->line || sccp_strlen_zero(c->line->vmnum)) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, lineInstance);
+			sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, lineInstance);
 			sccp_channel_unlock(c);
 			return;
 		}
@@ -708,14 +708,14 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 		l = sccp_line_find_byid(d, lineInstance);
 
 	if (!l) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, lineInstance);
+		sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, lineInstance);
 		return;
 	}
 	if (!sccp_strlen_zero(l->vmnum)) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Dialing voicemail %s\n", d->id, l->vmnum);
+		sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Dialing voicemail %s\n", d->id, l->vmnum);
 		sccp_channel_newcall(l, d, l->vmnum, SKINNY_CALLTYPE_OUTBOUND);
 	} else {
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, lineInstance);
+		sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, lineInstance);
 	}
 }
 
@@ -749,7 +749,7 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 		return;
 	}
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: TRANSVM to %s\n", d->id, l->trnsfvm);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: TRANSVM to %s\n", d->id, l->trnsfvm);
 #ifdef CS_AST_HAS_AST_STRING_FIELD
 	ast_string_field_set(c->owner, call_forward, l->trnsfvm);
 #else
@@ -966,7 +966,7 @@ sccp_channel_t *sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, s
 	SCCP_SCHED_DEL(sched, c->digittimeout);
 
 	if (!(c->digittimeout = sccp_sched_add(sched, GLOB(firstdigittimeout) * 1000, sccp_pbx_sched_dial, c))) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Unable to schedule dialing in '%d' ms\n", GLOB(firstdigittimeout));
+		sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: Unable to schedule dialing in '%d' ms\n", GLOB(firstdigittimeout));
 	}
 
 	sccp_channel_unlock(c);
@@ -1036,7 +1036,7 @@ static void *sccp_feat_meetme_thread(void *data)
 	for (i = 0; i < sizeof(meetmeApps) / sizeof(struct meetmeAppConfig); i++) {
 		if (pbx_findapp(meetmeApps[i].appName)) {
 			app = &(meetmeApps[i]);
-			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: using '%s' for meetme\n", meetmeApps[i].appName);
+			sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: using '%s' for meetme\n", meetmeApps[i].appName);
 			break;
 		}
 	}
@@ -1438,7 +1438,7 @@ void sccp_feat_monitor(sccp_device_t * device, sccp_channel_t * channel)
 	ast_rdlock_call_features();
 	feat = ast_find_call_feature("automon");
 	if (!feat || sccp_strlen_zero(feat->exten)) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "Recording requested, but no One Touch Monitor registered. (See features.conf)\n");
+		sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "Recording requested, but no One Touch Monitor registered. (See features.conf)\n");
 		ast_unlock_call_features();
 		return;
 	}

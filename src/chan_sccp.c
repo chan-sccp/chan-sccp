@@ -136,12 +136,12 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 
 	lineSubscriptionId = sccp_parseComposedId(lineName, 80);
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked to create a channel type=%s, format=%d, line=%s, subscriptionId.number=%s, options=%s\n", type, format, lineSubscriptionId.mainId, lineSubscriptionId.subscriptionId.number, (options) ? options : "");
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_PBX | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked to create a channel type=%s, format=%d, line=%s, subscriptionId.number=%s, options=%s\n", type, format, lineSubscriptionId.mainId, lineSubscriptionId.subscriptionId.number, (options) ? options : "");
 
 	l = sccp_line_find_byname(lineSubscriptionId.mainId);
 
 	if (!l) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP/%s does not exist!\n", lineSubscriptionId.mainId);
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_PBX | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "SCCP/%s does not exist!\n", lineSubscriptionId.mainId);
 		SET_CAUSE(AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 		goto OUT;
 	}
@@ -197,16 +197,16 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 			goto OUT;
 		}
 
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Call forward type: %d\n", l->name, l->cfwd_type);
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_PBX | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "%s: Call forward type: %d\n", l->name, l->cfwd_type);
 		if (l->cfwd_type == SCCP_CFWD_ALL) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: Call forward (all) to %s\n", l->name, l->cfwd_num);
+			sccp_log((DEBUGCAT_CORE | DEBUGCAT_PBX | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "%s: Call forward (all) to %s\n", l->name, l->cfwd_num);
 #    ifdef CS_AST_HAS_AST_STRING_FIELD
 			ast_string_field_set(c->owner, call_forward, l->cfwd_num);
 #    else
 			sccp_copy_string(c->owner->call_forward, l->cfwd_num, sizeof(c->owner->call_forward));
 #    endif
 		} else if (l->cfwd_type == SCCP_CFWD_BUSY && SCCP_RWLIST_GETSIZE(l->channels) > 1) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: Call forward (busy) to %s\n", l->name, l->cfwd_num);
+			sccp_log((DEBUGCAT_CORE | DEBUGCAT_PBX | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "%s: Call forward (busy) to %s\n", l->name, l->cfwd_num);
 #    ifdef CS_AST_HAS_AST_STRING_FIELD
 			ast_string_field_set(c->owner, call_forward, l->cfwd_num);
 #    else
@@ -216,7 +216,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 	}
 #endif
 
-	sccp_log(1) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_PBX | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
 	/* we have a single device given */
 
 	/*
@@ -243,7 +243,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 	   } */
 
 	if (l->devices.size == 0) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP/%s we have no registered devices for this line.\n", l->name);
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_PBX | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "SCCP/%s we have no registered devices for this line.\n", l->name);
 		SET_CAUSE(AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 		goto OUT;
 	}
@@ -415,7 +415,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	}
 	uint32_t mid = letohl(r->lel_messageId);
 
-	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: last keepAlive within %d (%d)\n", (s->device)?s->device->id:"null", (uint32_t)(time(0) - s->lastKeepAlive), (s->device)?s->device->keepalive:0 );
+	//sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: last keepAlive within %d (%d)\n", (s->device)?s->device->id:"null", (uint32_t)(time(0) - s->lastKeepAlive), (s->device)?s->device->keepalive:0 );
 
 	s->lastKeepAlive = time(0);						/* always update keepalive */
 
@@ -447,7 +447,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 				return 0;
 			}
 		} else if (s->device && (!s->device->session || s->device->session != s)) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: cross device session (Removing Old Session)\n", DEV_ID_LOG(s->device));
+			sccp_log((DEBUGCAT_CORE | DEBUGCAT_MESSAGE | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "%s: cross device session (Removing Old Session)\n", DEV_ID_LOG(s->device));
 
 			SCCP_RWLIST_WRLOCK(&GLOB(sessions));
 			SCCP_LIST_REMOVE(&GLOB(sessions), s, list);
@@ -791,7 +791,7 @@ int sccp_restart_monitor(void)
 	ast_mutex_lock(&GLOB(monitor_lock));
 	if (GLOB(monitor_thread) == pthread_self()) {
 		ast_mutex_unlock(&GLOB(monitor_lock));
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (sccp_restart_monitor) Cannot kill myself\n");
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "SCCP: (sccp_restart_monitor) Cannot kill myself\n");
 		return -1;
 	}
 	if (GLOB(monitor_thread) != AST_PTHREADT_NULL) {
@@ -801,7 +801,7 @@ int sccp_restart_monitor(void)
 		/* Start a new monitor */
 		if (ast_pthread_create_background(&GLOB(monitor_thread), NULL, sccp_do_monitor, NULL) < 0) {
 			ast_mutex_unlock(&GLOB(monitor_lock));
-			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (sccp_restart_monitor) Unable to start monitor thread.\n");
+			sccp_log((DEBUGCAT_CORE | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "SCCP: (sccp_restart_monitor) Unable to start monitor thread.\n");
 			return -1;
 		}
 	}
