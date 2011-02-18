@@ -377,7 +377,7 @@ static const struct ast_skinny_cause {
 	{ AST_CAUSE_NUMBER_PORTED_NOT_HERE,	SKINNY_DISP_NUMBER_NOT_CONFIGURED		, "Number not configured" },
 #endif
 	{ AST_CAUSE_SUBSCRIBER_ABSENT,		SKINNY_DISP_TEMP_FAIL				, "Subscriber Absent, Try Again" },
-	{ AST_CAUSE_ANSWERED_ELSEWHERE,		SKINNY_DISP_EMPTY				, "Answered Elsewhere" },
+	{ AST_CAUSE_ANSWERED_ELSEWHERE,		SKINNY_DISP_GPICKUP				, "Answered Elsewhere" },
 	{ AST_CAUSE_NO_USER_RESPONSE,		SKINNY_DISP_EMPTY				, "No user responding" },
         { AST_CAUSE_NO_ANSWER,			SKINNY_DISP_EMPTY				, "User alerting, no answer" },
         { AST_CAUSE_CALL_REJECTED,		SKINNY_DISP_BUSY				, "Call Rejected" },   

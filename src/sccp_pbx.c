@@ -410,7 +410,7 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 	} else {
 		c->pri_cause = AST_CAUSE_NORMAL_CLEARING;
 	}
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "TECH HANGUP [%s] Cause=%i HangCause=%i ds=%s\n", ast->name, c->pri_cause, ast->hangupcause, ds ? ds : "N/A");
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "TECH HANGUP [%s] HangCause=%s(%i) ds=%s\n", ast->name, astcause2skinnycause_message(ast->hangupcause), ast->hangupcause,  ds ? ds : "PriCause N/A");
 #endif
 
 #ifdef AST_FLAG_ANSWERED_ELSEWHERE
