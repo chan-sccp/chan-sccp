@@ -482,7 +482,7 @@ static void sccp_channel_send_dynamicCallinfo(sccp_device_t * device, sccp_chann
 void sccp_channel_send_callinfo(sccp_device_t * device, sccp_channel_t * channel)
 {
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: send callInfo of callid %d\n", DEV_ID_LOG(device), (channel) ? channel->callid : 0);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send callInfo of callid %d\n", DEV_ID_LOG(device), (channel) ? channel->callid : 0);
 
 	if (device->inuseprotocolversion < 7) {
 		/* fallback to CallInfoMessage */
