@@ -1613,6 +1613,7 @@ int sccp_channel_hold_locked(sccp_channel_t * c)
  * \brief Resume a channel that is on hold.
  * \param device device who resumes the channel
  * \param c channel
+ * \param swap_channels Swap Channels as Boolean
  * \return 0 if something was wrong, otherwise 1
  *
  * \callgraph

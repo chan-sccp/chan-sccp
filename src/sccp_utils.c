@@ -1312,7 +1312,7 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
 
 /*!
  * \brief This is used on device reconnect attempt
- * \param s_addr IP Address as unsigned long
+ * \param sin IP Address + Port as struct sockaddr_in
  * \return SCCP Device
  * 
  * \lock
@@ -2029,9 +2029,6 @@ void gc_warn_handler(char *msg, GC_word p)
  * \param s0 Socket Information
  * \param s1 Socket Information
  * \return success as int
- *
- * \ret 0 on diff
- * \ret 1 on equal
  */
 int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1)
 {

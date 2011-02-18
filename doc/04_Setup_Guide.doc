@@ -425,21 +425,14 @@
  *
  * \subsection sccp_config_rt_use Using Realtime Database 
  *
- * Devices / Lines and Buttonconfigs are now loaded from the database. If you add a device to the sccpdevice table it will
- * automatically be read during the device registration fase. No need to unload/load the chan_sccp module.
+ * Devices / Lines and Buttonconfigs can now be loaded from the database. If you add a device to the sccpdevice table it will
+ * automatically be read during the device registration fase. No need to reload the chan_sccp module.
  * 
- * When you change any information in the database for a specific device which you want to reset to update it's status. 
- * You can use the standard asterisk realtime function to reload information
- *
+ * Some mysql database servers might need
  * \code
- * realtime load sccpdevice name SEP010102030404 
- * or
- * realtime load sccpline name 123
- *
- * sccp reset SEP010102030404
- * or
- * sccp restart SEP010102030404
+ * group_concat_max_len = 2048
  * \endcode
+ * in the my.cnf to load our data correctly.
  * 
  * \section sccp_config_dhcp Setting up a DHCP Server
  *

@@ -1996,7 +1996,7 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_moo_t * r)
 /*!
  * \brief Handle Time/Date Request Message for Session
  * \param s SCCP Session as sccp_session_t
- * \param req SCCP Message as sccp_moo_t
+ * \param r SCCP Message as sccp_moo_t
  */
 void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * r)
 {

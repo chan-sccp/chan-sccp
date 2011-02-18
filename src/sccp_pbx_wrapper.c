@@ -421,10 +421,10 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format)
 
 /*!
  * \brief Get/Create new config variable
+ *
  * \note replacement for ast_variable_new
- * \param name Variable Name as char
- * \param value Variable Value as char
- * \param filename Filename
+ *
+ * \param v V as Array ofStruct Ast Variable 
  * \return The return value is struct ast_variable.
  */
 struct ast_variable *pbx_variable_new(struct ast_variable *v)
@@ -544,8 +544,6 @@ int pbx_str2cos(const char *value, unsigned int *cos)
  * \param context context to remove extension from
  * \param extension which extension to remove
  * \param priority priority of extension to remove (0 to remove all)
- * \param callerid NULL to remove all; non-NULL to match a single record per priority
- * \param matchcid non-zero to match callerid element (if non-NULL); 0 to match default case
  * \param registrar registrar of the extension
  *
  * This function removes an extension from a given context.
@@ -553,7 +551,6 @@ int pbx_str2cos(const char *value, unsigned int *cos)
  * \retval 0 on success 
  * \retval -1 on failure
  * 
- * @{
  */
 int pbx_context_remove_extension(const char *context, const char *extension, int priority, const char *registrar)
 {
@@ -572,9 +569,10 @@ int pbx_context_remove_extension(const char *context, const char *extension, int
 /*!   
  * \brief Send ack in manager list transaction
  * \note replacement for astman_send_listack
- * \param context which context to add the ignorpattern to
- * \param ignorepat ignorepattern to set up for the extension
- * \param registrar registrar of the ignore pattern
+ * \param s s as struct mansession
+ * \param m m as const struct message
+ * \param msg Message as char *
+ * \param listflag listflag as char *
  */
 void pbxman_send_listack(struct mansession *s, const struct message *m, char *msg, char *listflag)
 {
@@ -626,9 +624,11 @@ int sccp_wrapper_asterisk_rtp_stop(sccp_channel_t * channel)
 /*!
  * \brief pbx rtp get peer
  * Copies from rtp to them and returns 1 if there was a change or 0 if it was already the same
+ *
  * \note replacement for ast_rtp_get_peer
+ *
  * \param rtp Asterisk RTP Struct
- * \param them Socket Addr_in of the Peer
+ * \param addr Socket Addr_in of the Peer
  * \return int
  */
 int pbx_rtp_get_peer(PBX_RTP_TYPE * rtp, struct sockaddr_in *addr)
@@ -645,9 +645,11 @@ int pbx_rtp_get_peer(PBX_RTP_TYPE * rtp, struct sockaddr_in *addr)
 
 /*!
  * \brief pbx rtp get us
+ *
  * \note replacement for ast_rtp_get_peer
+ *
  * \param rtp Asterisk RTP Struct
- * \param them Socket Addr_in of the Peer
+ * \param addr Socket Addr_in of the Peer
  * \return int
  */
 void pbx_rtp_get_us(PBX_RTP_TYPE * rtp, struct sockaddr_in *addr)
@@ -681,6 +683,7 @@ void pbx_rtp_set_peer(PBX_RTP_TYPE * rtp, struct sockaddr_in *addr)
 /*!
  * \brief Create a new RTP Source.
  * \param c SCCP Channel
+ * \param new_rtp new rtp source as struct ast_rtp **
  */
 boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c, struct ast_rtp **new_rtp)
 {
@@ -763,6 +766,7 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c, struc
 /*!
  * \brief Create a new RTP Source.
  * \param c SCCP Channel
+ * \param new_rtp new rtp source as struct ast_rtp **
  */
 boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, struct ast_rtp ** new_rtp)
 {
