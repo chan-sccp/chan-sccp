@@ -70,7 +70,7 @@ static sccp_device_t *check_session_message_device(sccp_session_t * s, sccp_moo_
 		ast_log(LOG_WARNING, "(%s) Provided Session and Device Session are not the same!!\n", msg);
 	}
 
-	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {
+	if ((GLOB(debug) & (DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) != 0) {
 		uint32_t mid = letohl(r->lel_messageId);
 
 		ast_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(d), message2str(mid), mid, r->length);
@@ -87,7 +87,7 @@ static sccp_device_t *check_session_message_device(sccp_session_t * s, sccp_moo_
  */
 void sccp_handle_alarm(sccp_session_t * s, sccp_moo_t * r)
 {
-	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Alarm Message: Severity: %s (%d), %s [%d/%d]\n", alarm2str(letohl(r->msg.AlarmMessage.lel_alarmSeverity)), letohl(r->msg.AlarmMessage.lel_alarmSeverity), r->msg.AlarmMessage.text, letohl(r->msg.AlarmMessage.lel_parm1), letohl(r->msg.AlarmMessage.lel_parm2));
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "SCCP: Alarm Message: Severity: %s (%d), %s [%d/%d]\n", alarm2str(letohl(r->msg.AlarmMessage.lel_alarmSeverity)), letohl(r->msg.AlarmMessage.lel_alarmSeverity), r->msg.AlarmMessage.text, letohl(r->msg.AlarmMessage.lel_parm1), letohl(r->msg.AlarmMessage.lel_parm2));
 }
 
 /*!
@@ -99,7 +99,7 @@ void sccp_handle_unknown_message(sccp_session_t * s, sccp_moo_t * r)
 {
 	uint32_t mid = letohl(r->lel_messageId);
 
-	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0)				// only show when debugging messages
+	if ((GLOB(debug) & (DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) != 0)				// only show when debugging messages
 		ast_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", message2str(mid), mid, r->length);
 
 	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
@@ -130,16 +130,16 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_moo_t * r)
 		return;
 	}
 
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: is requesting a Token, Instance: %d, Type: %s (%d), Version: %d\n", r->msg.RegisterMessage.sId.deviceName, letohl(r->msg.RegisterMessage.sId.lel_instance), devicetype2str(letohl(r->msg.RegisterMessage.lel_deviceType)), letohl(r->msg.RegisterMessage.lel_deviceType), r->msg.RegisterMessage.protocolVer);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is requesting a Token, Instance: %d, Type: %s (%d), Version: %d\n", r->msg.RegisterMessage.sId.deviceName, letohl(r->msg.RegisterMessage.sId.lel_instance), devicetype2str(letohl(r->msg.RegisterMessage.lel_deviceType)), letohl(r->msg.RegisterMessage.lel_deviceType), r->msg.RegisterMessage.protocolVer);
 
 	// Search for already known devices -> Cleanup
 	d = sccp_device_find_byid(r->msg.RegisterMessage.sId.deviceName, FALSE);
 	if (d) {
 		if (d->session && d->session != s) {
-			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Device is registered on another server (TokenReq)!\n", d->id);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_2 "%s: Device is registered on another server (TokenReq)!\n", d->id);
 			d->session->session_stop = 1;				/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
 			sccp_dev_clean(d, FALSE, 0);				/* we need to clean device configuration to set lines */
-			sccp_log(1) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
 		}
 	}
 
@@ -151,7 +151,7 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_moo_t * r)
 		sccp_session_send2(s, r1);
 		return;
 	}
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", r->msg.RegisterMessage.sId.deviceName);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", r->msg.RegisterMessage.sId.deviceName);
 	REQ(r1, RegisterTokenAck);
 	sccp_session_send2(s, r1);
 }
@@ -191,7 +191,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 		return;
 	}
 
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d\n", r->msg.RegisterMessage.sId.deviceName, letohl(r->msg.RegisterMessage.sId.lel_instance), devicetype2str(letohl(r->msg.RegisterMessage.lel_deviceType)), letohl(r->msg.RegisterMessage.lel_deviceType), r->msg.RegisterMessage.protocolVer);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d\n", r->msg.RegisterMessage.sId.deviceName, letohl(r->msg.RegisterMessage.sId.lel_instance), devicetype2str(letohl(r->msg.RegisterMessage.lel_deviceType)), letohl(r->msg.RegisterMessage.lel_deviceType), r->msg.RegisterMessage.protocolVer);
 
 	/* ip address range check */
 	if (GLOB(ha) && !pbx_apply_ha(GLOB(ha), &s->sin)) {
@@ -203,10 +203,10 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	d = sccp_device_find_byid(r->msg.RegisterMessage.sId.deviceName, FALSE);
 	if (d) {
 		if (d->session && d->session != s) {
-			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", d->id);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", d->id);
 			d->session->session_stop = 1;				/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
 			sccp_dev_clean(d, FALSE, 0);				/* we need to clean device configuration to set lines */
-			sccp_log(1) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
 		}
 	}
 	// search for all devices including realtime
@@ -222,7 +222,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 #else
 			sccp_config_addLine(d, GLOB(hotline)->line->name, NULL, 0);
 #endif
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.RegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.RegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
 			d->defaultLineInstance = 1;
 			SCCP_RWLIST_WRLOCK(&GLOB(devices));
 			SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), d, list);
@@ -262,11 +262,11 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	/* test the localnet to understand if the device is behind NAT */
 	if (GLOB(localaddr) && pbx_apply_ha(GLOB(localaddr), &s->sin)) {
 		/* ok the device is natted */
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream \n", r->msg.RegisterMessage.sId.deviceName);
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream \n", r->msg.RegisterMessage.sId.deviceName);
 		d->nat = 1;
 	}
 
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr));
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr));
 	s->device = d;
 	d->skinny_type = letohl(r->msg.RegisterMessage.lel_deviceType);
 
@@ -282,7 +282,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 
 	keepAliveInterval = (keepAliveInterval / 2) + (rand() % (keepAliveInterval / 2)) + 1;
 
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval);
 	REQ(r1, RegisterAckMessage);
 
 //      sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->length);
@@ -290,13 +290,13 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	if (r->length < 56 && d->protocolversion == 0) {
 		// registration request with protocol 0 version structure.
 		d->inuseprotocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), d->inuseprotocolversion);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), d->inuseprotocolversion);
 	} else if (r->msg.RegisterMessage.protocolVer > GLOB(protocolversion)) {
 		d->inuseprotocolversion = GLOB(protocolversion);
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: asked for protocol version (%d). We answered (%d) as our capability.\n", DEV_ID_LOG(d), r->msg.RegisterMessage.protocolVer, GLOB(protocolversion));
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: asked for protocol version (%d). We answered (%d) as our capability.\n", DEV_ID_LOG(d), r->msg.RegisterMessage.protocolVer, GLOB(protocolversion));
 	} else if (r->msg.RegisterMessage.protocolVer <= GLOB(protocolversion)) {
 		d->inuseprotocolversion = r->msg.RegisterMessage.protocolVer;
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), r->msg.RegisterMessage.protocolVer);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), r->msg.RegisterMessage.protocolVer);
 	}
 
 	if (d->inuseprotocolversion <= 3) {
@@ -351,7 +351,7 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
 		return;
 	}
 
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d)\n", r->msg.SPARegisterMessage.sId.deviceName, r->msg.SPARegisterMessage.sId.lel_instance, devicetype2str(letohl(r->msg.SPARegisterMessage.lel_deviceType)), letohl(r->msg.SPARegisterMessage.lel_deviceType));
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d)\n", r->msg.SPARegisterMessage.sId.deviceName, r->msg.SPARegisterMessage.sId.lel_instance, devicetype2str(letohl(r->msg.SPARegisterMessage.lel_deviceType)), letohl(r->msg.SPARegisterMessage.lel_deviceType));
 
 	/* ip address range check */
 	if (GLOB(ha) && !pbx_apply_ha(GLOB(ha), &s->sin)) {
@@ -364,7 +364,7 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
 	if (d) {
 		if (d->session) {
 
-			sccp_log(1) (VERBOSE_PREFIX_2 "%s: SPA-Device is doing a re-registration!\n", d->id);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_2 "%s: SPA-Device is doing a re-registration!\n", d->id);
 			if (d->session != s) {
 				pthread_cancel(s->session_thread);
 			} else {
@@ -386,7 +386,7 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
 #else
 			sccp_config_addLine(d, GLOB(hotline)->line->name, NULL, 0);
 #endif
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.SPARegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.SPARegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
 			d->defaultLineInstance = 1;
 			SCCP_RWLIST_WRLOCK(&GLOB(devices));
 			SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), d, list);
@@ -426,11 +426,11 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
 	/* test the localnet to understand if the device is behind NAT */
 	if (GLOB(localaddr) && pbx_apply_ha(GLOB(localaddr), &s->sin)) {
 		/* ok the device is natted */
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream \n", r->msg.SPARegisterMessage.sId.deviceName);
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream \n", r->msg.SPARegisterMessage.sId.deviceName);
 		d->nat = 1;
 	}
 
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr));
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr));
 	s->device = d;
 	d->skinny_type = letohl(r->msg.SPARegisterMessage.lel_deviceType);
 
@@ -447,11 +447,11 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
 
 	keepAliveInterval = (keepAliveInterval / 2) + (rand() % (keepAliveInterval / 2)) - 1;
 
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval);
 	REQ(r1, RegisterAckMessage);
 
 	d->inuseprotocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), d->inuseprotocolversion);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), d->inuseprotocolversion);
 
 	r1->msg.RegisterAckMessage.protocolVer = d->inuseprotocolversion;
 	r1->msg.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
@@ -499,16 +499,16 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 	if (!d->isAnonymous) {
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-			sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: searching for position for button type %d\n", DEV_ID_LOG(d), buttonconfig->type);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: searching for position for button type %d\n", DEV_ID_LOG(d), buttonconfig->type);
 			if (buttonconfig->instance > 0)
 				continue;
 
 			if (buttonconfig->type == LINE) {
-				sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: searching for line position for line '%s'\n", DEV_ID_LOG(d), buttonconfig->button.line.name);
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: searching for line position for line '%s'\n", DEV_ID_LOG(d), buttonconfig->button.line.name);
 			}
 
 			for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-				sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: btn[%.2d].type = %d\n", DEV_ID_LOG(d), i, btn[i].type);
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: btn[%.2d].type = %d\n", DEV_ID_LOG(d), i, btn[i].type);
 
 				if (buttonconfig->type == LINE && sccp_is_nonempty_string(buttonconfig->button.line.name)
 				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE)) {
@@ -662,7 +662,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				} else {
 					continue;
 				}
-				sccp_log((DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s)\n", d->id, buttonconfig->instance, "FEATURE", buttonconfig->button.feature.label);
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s)\n", d->id, buttonconfig->instance, "FEATURE", buttonconfig->button.feature.label);
 			}
 
 		}
@@ -720,7 +720,7 @@ void sccp_handle_AvailableLines(sccp_device_t * d)
 	sccp_device_unlock(d);
 
 	if (!btn) {
-		sccp_log(DEBUGCAT_BUTTONTEMPLATE) (VERBOSE_PREFIX_3 "%s: no buttontemplate, reset device\n", DEV_ID_LOG(d));
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: no buttontemplate, reset device\n", DEV_ID_LOG(d));
 		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 		return;
 	}
@@ -733,7 +733,7 @@ void sccp_handle_AvailableLines(sccp_device_t * d)
 			break;
 	}
 
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: Phone available lines %d\n", d->id, line_count);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: Phone available lines %d\n", d->id, line_count);
 	if (d->isAnonymous == TRUE) {
 
 		sccp_device_lock(d);
@@ -748,7 +748,7 @@ void sccp_handle_AvailableLines(sccp_device_t * d)
 			if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].ptr) {
 				l = btn[i].ptr;
 
-				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Attaching line %s with instance %d to this device\n", d->id, l->name, btn[i].instance);
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Attaching line %s with instance %d to this device\n", d->id, l->name, btn[i].instance);
 
 				sccp_device_lock(d);
 				if (defaultLineSet == FALSE) {
@@ -814,7 +814,7 @@ void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_moo_t * r)
 		break;
 	}
 
-	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(d), accessory2str(d->accessoryused), accessorystatus2str(d->accessorystatus), unknown);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(d), accessory2str(d->accessoryused), accessorystatus2str(d->accessorystatus), unknown);
 }
 
 /*!
@@ -836,7 +836,7 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_moo_t * r)
 	REQ(r1, UnregisterAckMessage);
 	r1->msg.UnregisterAckMessage.lel_status = SKINNY_UNREGISTERSTATUS_OK;
 	sccp_session_send(d, r1);
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: unregister request sent\n", DEV_ID_LOG(d));
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: unregister request sent\n", DEV_ID_LOG(d));
 
 	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);
 	pthread_cancel(s->session_thread);
@@ -939,7 +939,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 			r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = btn[i].type;
 			break;
 		}
-		sccp_log((DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %d (%d)\n", d->id, i + 1, r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition, r1->msg.ButtonTemplateMessage.definition[i].instanceNumber);
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %d (%d)\n", d->id, i + 1, r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition, r1->msg.ButtonTemplateMessage.definition[i].instanceNumber);
 
 	}
 
@@ -953,7 +953,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_moo_t * r)
 
 	sccp_buttonconfig_t *config;
 
-	sccp_log((DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_SPEEDDIAL)) (VERBOSE_PREFIX_3 "%s: configure unconfigured speeddialbuttons \n", d->id);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_SPEEDDIAL)) (VERBOSE_PREFIX_3 "%s: configure unconfigured speeddialbuttons \n", d->id);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		/* we found an unconfigured speeddial */
 		if (config->type == SPEEDDIAL && config->instance == 0) {
@@ -993,7 +993,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 	}
 	uint8_t lineNumber = letohl(r->msg.LineStatReqMessage.lel_lineNumber);
 
-	sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: Configuring line number %d\n", d->id, lineNumber);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Configuring line number %d\n", d->id, lineNumber);
 	l = sccp_line_find_byid(d, lineNumber);
 
 	/* if we find no regular line - it can be a speeddial with hint */
@@ -1033,7 +1033,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 				if (config->type == LINE) {
 					if (config->button.line.options && !strcasecmp(config->button.line.options, "default")) {
 						d->defaultLineInstance = lineNumber;
-						sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", lineNumber);
+						sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", lineNumber);
 					}
 				}
 				break;
@@ -1044,7 +1044,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_moo_t * r)
 	}
 	/* remove speeddial if present */
 	if (k) {
-		sccp_log(3) (VERBOSE_PREFIX_3 "%s: line is hint for %s\n", s->device->id, k->hint);
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_LINE | DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: line is hint for %s\n", s->device->id, k->hint);
 		ast_free(k);
 	}
 }
@@ -1068,7 +1068,7 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_moo_t * r)
 
 	int wanted = letohl(r->msg.SpeedDialStatReqMessage.lel_speedDialNumber);
 
-	sccp_log(3) (VERBOSE_PREFIX_3 "%s: Speed Dial Request for Button %d\n", s->device->id, wanted);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_SPEEDDIAL)) (VERBOSE_PREFIX_3 "%s: Speed Dial Request for Button %d\n", s->device->id, wanted);
 
 	REQ(r1, SpeedDialStatMessage);
 	r1->msg.SpeedDialStatMessage.lel_speedDialNumber = htolel(wanted);
@@ -1079,7 +1079,7 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_moo_t * r)
 		sccp_copy_string(r1->msg.SpeedDialStatMessage.speedDialDisplayName, k->name, sizeof(r1->msg.SpeedDialStatMessage.speedDialDisplayName));
 		ast_free(k);
 	} else {
-		sccp_log(3) (VERBOSE_PREFIX_3 "%s: speeddial %d not assigned\n", DEV_ID_LOG(s->device), wanted);
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_SPEEDDIAL)) (VERBOSE_PREFIX_3 "%s: speeddial %d not assigned\n", DEV_ID_LOG(s->device), wanted);
 	}
 
 	sccp_dev_send(d, r1);
@@ -1127,13 +1127,13 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		return;
 	}
 
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d) for instance=%d\n", d->id, stimulus2str(stimulus), stimulus, instance);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d) for instance=%d\n", d->id, stimulus2str(stimulus), stimulus, instance);
 
 	if (!instance) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Instance 0 is not a valid instance. Trying the active line %d\n", d->id, instance);
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Instance 0 is not a valid instance. Trying the active line %d\n", d->id, instance);
 		l = sccp_dev_get_activeline(d);
 		if (!l) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: No line found\n", d->id);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: No line found\n", d->id);
 			return;
 		}
 		if (strlen(l->adhocNumber) > 0) {
@@ -1156,9 +1156,9 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 				SCCP_SCHED_DEL(sched, c->digittimeout);
 				sccp_pbx_softswitch_locked(c);
 
-				sccp_log(1) (VERBOSE_PREFIX_3 "%s: Redial the number %s\n", d->id, d->lastNumber);
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Redial the number %s\n", d->id, d->lastNumber);
 			} else {
-				sccp_log(1) (VERBOSE_PREFIX_3 "%s: Redial ignored as call in progress\n", d->id);
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Redial ignored as call in progress\n", d->id);
 			}
 			sccp_channel_unlock(c);
 		} else {
@@ -1172,12 +1172,12 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 	case SKINNY_BUTTONTYPE_LINE:						// We got a Line Request
 		l = sccp_line_find_byid(d, instance);
 		if (!l) {
-			sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No line for instance %d. Looking for a speeddial with hint\n", d->id, instance);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No line for instance %d. Looking for a speeddial with hint\n", d->id, instance);
 			k = sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT);
 			if (k)
 				sccp_handle_speeddial(d, k);
 			else
-				sccp_log(1) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
 			return;
 		}
 
@@ -1186,37 +1186,37 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			return;
 		}
 
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Line Key press on line %s\n", d->id, (l) ? l->name : "(nil)");
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Line Key press on line %s\n", d->id, (l) ? l->name : "(nil)");
 		if ((c = sccp_channel_get_active_locked(d))) {
-			sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: gotten active channel %d on line %s\n", d->id, c->callid, (l) ? l->name : "(nil)");
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: gotten active channel %d on line %s\n", d->id, c->callid, (l) ? l->name : "(nil)");
 			if (c->state != SCCP_CHANNELSTATE_CONNECTED) {
-				sccp_log(1) (VERBOSE_PREFIX_3 "%s: Call not in progress. Closing line %s\n", d->id, (l) ? l->name : "(nil)");
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Call not in progress. Closing line %s\n", d->id, (l) ? l->name : "(nil)");
 				sccp_channel_endcall_locked(c);
 				sccp_channel_unlock(c);
 				sccp_dev_deactivate_cplane(d);
 				return;
 			} else {
 				if (sccp_channel_hold_locked(c)) {
-					sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: call (%d) put on hold on line %s\n", d->id, c->callid, l->name);
+					sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: call (%d) put on hold on line %s\n", d->id, c->callid, l->name);
 				} else {
-					sccp_log(1) (VERBOSE_PREFIX_3 "%s: Hold failed for call (%d), line %s\n", d->id, c->callid, l->name);
+					sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Hold failed for call (%d), line %s\n", d->id, c->callid, l->name);
 				}
 			}
 			sccp_channel_unlock(c);
 		} else {
-			sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: no activate channel on line %d\n", d->id, instance);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %d\n", d->id, instance);
 		}
 		int num_channels_on_line=SCCP_RWLIST_GETSIZE(l->channels);
 		if (0==num_channels_on_line) {
-			sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: start new call on line %s\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: start new call on line %s\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
 			sccp_dev_set_activeline(d, l);
 			sccp_dev_set_cplane(l, instance, d, 1);
 			sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
 		} else {
 			ringChannel = sccp_channel_find_bystate_on_line_locked(l, SCCP_CHANNELSTATE_RINGING);
-			sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Channel count on line %d = %d", d->id, instance, num_channels_on_line);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Channel count on line %d = %d", d->id, instance, num_channels_on_line);
 			if (ringChannel != NULL) {
-				sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Answering ringing Channel %d on line %d\n", d->id, ringChannel->callid, instance);
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Answering ringing Channel %d on line %d\n", d->id, ringChannel->callid, instance);
 //				sccp_dev_set_activeline(d, l);
 //				sccp_dev_set_cplane(l, instance, d, 1);
 				sccp_channel_answer_locked(d, ringChannel);
@@ -1225,12 +1225,12 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 				holdChannel = sccp_channel_find_bystate_on_line_locked(l, SCCP_CHANNELSTATE_HOLD);
 				if (holdChannel != NULL) {
 					if (num_channels_on_line==1) {
-						sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d\n", d->id, holdChannel->callid, instance);
+						sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d\n", d->id, holdChannel->callid, instance);
 						sccp_dev_set_activeline(d, l);
 						sccp_channel_resume_locked(d, holdChannel, TRUE);
 						sccp_dev_set_cplane(l, instance, d, 1);
 					} else {
-						sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Show call plane so user can select held (channel  %d on line %d)\n", d->id, holdChannel->callid, instance);
+						sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Show call plane so user can select held (channel  %d on line %d)\n", d->id, holdChannel->callid, instance);
 						sccp_dev_set_activeline(d, l);
 						sccp_dev_set_cplane(l, instance, d, 1);
 					}
@@ -1245,19 +1245,19 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		if (k)
 			sccp_handle_speeddial(d, k);
 		else
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
 		break;
 
 	case SKINNY_BUTTONTYPE_HOLD:
 		/* this is the hard hold button. When we are here we are putting on hold the active_channel */
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Hold/Resume Button pressed on line (%d)\n", d->id, instance);
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Hold/Resume Button pressed on line (%d)\n", d->id, instance);
 		l = sccp_line_find_byid(d, instance);
 		if (!l) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
 			l = sccp_dev_get_activeline(d);
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: Trying the current line\n", d->id);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Trying the current line\n", d->id);
 			if (!l) {
-				sccp_log(1) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
 				return;
 			}
 			sccp_device_lock(d);
@@ -1278,13 +1278,13 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			sccp_channel_resume_locked(d, c, TRUE);
 			sccp_channel_unlock(c);
 		} else {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: No call to resume/hold found on line %d\n", d->id, instance);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No call to resume/hold found on line %d\n", d->id, instance);
 		}
 		break;
 
 	case SKINNY_BUTTONTYPE_TRANSFER:
 		if (!d->transfer) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: Transfer disabled on device\n", d->id);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer disabled on device\n", d->id);
 			break;
 		}
 		c = sccp_channel_get_active_locked(d);
@@ -1323,7 +1323,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 
 	case SKINNY_BUTTONTYPE_FORWARDALL:					// Call forward all
 		if (!d->cfwdall) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: CFWDALL disabled on device\n", d->id);
+			sccp_log((DEBUGCAT_CORE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: CFWDALL disabled on device\n", d->id);
 			sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
 			return;
 		}
@@ -1334,7 +1334,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 
 			l = sccp_line_find_byid(d, instance);
 			if (!l) {
-				sccp_log(1) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
 				return;
 			}
 		}
@@ -1344,7 +1344,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		break;
 	case SKINNY_BUTTONTYPE_FORWARDBUSY:
 		if (!d->cfwdbusy) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: CFWDBUSY disabled on device\n", d->id);
+			sccp_log((DEBUGCAT_CORE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: CFWDBUSY disabled on device\n", d->id);
 			sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
 			return;
 		}
@@ -1355,7 +1355,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 
 			l = sccp_line_find_byid(d, instance);
 			if (!l) {
-				sccp_log(1) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
 				return;
 			}
 		}
@@ -1365,7 +1365,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		break;
 	case SKINNY_BUTTONTYPE_FORWARDNOANSWER:
 		if (!d->cfwdnoanswer) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: CFWDNOANSWER disabled on device\n", d->id);
+			sccp_log((DEBUGCAT_CORE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: CFWDNOANSWER disabled on device\n", d->id);
 			sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
 			return;
 		}
@@ -1376,7 +1376,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 
 			l = sccp_line_find_byid(d, instance);
 			if (!l) {
-				sccp_log(1) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
 				return;
 			}
 		}
@@ -1388,7 +1388,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 #ifdef CS_SCCP_PARK
 		c = sccp_channel_get_active_locked(d);
 		if (!c) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: Cannot park while no calls in progress\n", d->id);
+			sccp_log((DEBUGCAT_CORE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Cannot park while no calls in progress\n", d->id);
 			return;
 		}
 		sccp_channel_park(c);
@@ -1403,21 +1403,17 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 		if (k)
 			sccp_handle_speeddial(d, k);
 		else
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
+			sccp_log((DEBUGCAT_CORE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
 		break;
 
 	case SKINNY_STIMULUS_GROUPCALLPICKUP:					/*!< pickup feature button */
 
 		if (d->defaultLineInstance > 0) {
-			sccp_log((DEBUGCAT_FEATURE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_FEATURE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
 			l = sccp_line_find_byid(d, d->defaultLineInstance);
-			/*! \todo use feature map or sccp_feat_handle_directpickup */
-#ifdef CS_EXPERIMENTAL
+
 			//sccp_feat_handle_directpickup(l, d->defaultLineInstance, d);
-			sccp_channel_newcall(l, d, (char *)ast_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND);
-#else
-			sccp_channel_newcall(l, d, "*8", SKINNY_CALLTYPE_OUTBOUND);
-#endif
+			sccp_channel_newcall(l, d, (char *)ast_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND);	//handle *8
 			return;
 		}
 
@@ -1426,13 +1422,8 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			l = sccp_line_find_byid(d, 1);
 		}
 		if (l) {
-			/*! \todo use feature map or sccp_feat_handle_directpickup */
-#ifdef CS_EXPERIMENTAL
 			//sccp_feat_handle_directpickup(l, 1, d);
-			sccp_channel_newcall(d->currentLine, d, (char *)ast_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND);
-#else
-			sccp_channel_newcall(d->currentLine, d, "*8", SKINNY_CALLTYPE_OUTBOUND);
-#endif
+			sccp_channel_newcall(d->currentLine, d, (char *)ast_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND); //handle *8
 		}
 
 		break;
@@ -1462,10 +1453,10 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
 	if (!k || !d || !d->session)
 		return;
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Speeddial Button (%d) pressed, configured number is (%s)\n", d->id, k->instance, k->ext);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Speeddial Button (%d) pressed, configured number is (%s)\n", d->id, k->instance, k->ext);
 	c = sccp_channel_get_active_locked(d);
 	if (c) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: channel state %d\n", DEV_ID_LOG(d), c->state);
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: channel state %d\n", DEV_ID_LOG(d), c->state);
 
 		// Channel already in use
 		if ((c->state == SCCP_CHANNELSTATE_DIALING) || (c->state == SCCP_CHANNELSTATE_OFFHOOK)) {
@@ -1477,7 +1468,7 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
 			return;
 		} else if (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED) {
 			// automatically put on hold
-			sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: automatically put call %d on hold %d\n", DEV_ID_LOG(d), c->callid, c->state);
+			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: automatically put call %d on hold %d\n", DEV_ID_LOG(d), c->callid, c->state);
 			sccp_channel_hold_locked(c);
 			sccp_channel_unlock(c);
 
@@ -1491,7 +1482,7 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
 	} else {
 		// Pull up a channel
 		if (d->defaultLineInstance > 0) {
-			sccp_log((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
+			sccp_log(((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION) + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
 			l = sccp_line_find_byid(d, d->defaultLineInstance);
 		} else {
 			l = d->currentLine;
@@ -1526,7 +1517,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	if ((c = sccp_channel_get_active_locked(d))) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Taken Offhook with a call (%d) in progess. Skip it!\n", d->id, c->callid);
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Taken Offhook with a call (%d) in progess. Skip it!\n", d->id, c->callid);
 		sccp_channel_unlock(c);
 		return;
 	}
@@ -1534,7 +1525,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r)
 	/* we need this for callwaiting, hold, answer and stuff */
 	d->state = SCCP_DEVICESTATE_OFFHOOK;
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Taken Offhook\n", d->id);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Taken Offhook\n", d->id);
 
 	/* checking for registerd lines */
 	if (!d->configurationStatistic.numberOfLines) {
@@ -1549,7 +1540,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r)
 
 	if (c) {
 		/* Answer the ringing channel. */
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Answer channel\n", d->id);
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Answer channel\n", d->id);
 		if (c->owner)
 			pbx_channel_lock(c->owner);
 
@@ -1566,7 +1557,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_moo_t * r)
 		} else {
 			l = sccp_dev_get_activeline(d);
 		}
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Using line %s\n", d->id, l->name);
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Using line %s\n", d->id, l->name);
 
 		if (l && !sccp_strlen_zero(l->adhocNumber)) {
 			sccp_channel_newcall(l, d, l->adhocNumber, SKINNY_CALLTYPE_OUTBOUND);
@@ -1594,7 +1585,7 @@ void sccp_handle_backspace(sccp_device_t * d, uint8_t line, uint32_t callid)
 	r->msg.BackSpaceReqMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, r);
 
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Backspace request on line instance %u, call %u.\n", d->id, line, callid);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Backspace request on line instance %u, call %u.\n", d->id, line, callid);
 }
 
 /*!
@@ -1622,7 +1613,7 @@ void sccp_handle_onhook(sccp_session_t * s, sccp_moo_t * r)
 
 	/* we need this for callwaiting, hold, answer and stuff */
 	d->state = SCCP_DEVICESTATE_ONHOOK;
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s is Onhook\n", s->device->id);
+	sccp_log((DEBUGCAT_CORE|DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s is Onhook\n", s->device->id);
 
 	/* checking for registerd lines */
 	uint8_t numberOfLines = 0;
@@ -1671,7 +1662,7 @@ void sccp_handle_headset(sccp_session_t * s, sccp_moo_t * r)
 
 	uint32_t headsetmode = letohl(r->msg.HeadsetStatusMessage.lel_hsMode);
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(s->device), accessory2str(SCCP_ACCESSORY_HEADSET), accessorystatus2str(headsetmode), 0);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(s->device), accessory2str(SCCP_ACCESSORY_HEADSET), accessorystatus2str(headsetmode), 0);
 }
 
 /*!
@@ -1695,12 +1686,12 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_moo_t * r)
 	uint8_t n = letohl(r->msg.CapabilitiesResMessage.lel_count);
 
 	d->capability = 0;
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Capabilities\n", d->id, n);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Capabilities\n", d->id, n);
 	for (i = 0; i < n; i++) {
 		codec = letohl(r->msg.CapabilitiesResMessage.caps[i].lel_payloadCapability);
 		astcodec = sccp_codec_skinny2ast(codec);
 		d->capability |= astcodec;
-		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%6d %s\n", d->id, codec, codec2str(codec), astcodec, pbx_codec2str(astcodec));
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%6d %s\n", d->id, codec, codec2str(codec), astcodec, pbx_codec2str(astcodec));
 	}
 }
 
@@ -1752,7 +1743,7 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r)
 		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = 128;
 		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = softkeysmap[i];
 		r1->msg.SoftKeyTemplateResMessage.definition[i].lel_softKeyEvent = htolel(i + 1);
-		sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i + 1, label2str(r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1]));
+		sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i + 1, label2str(r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1]));
 	}
 
 	sccp_device_unlock(d);
@@ -1801,18 +1792,18 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 	sccp_softKeySetConfiguration_t *softkeyset;
 
 	if (!sccp_strlen_zero(d->softkeyDefinition)) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: searching for softkeyset: %s!\n", d->id, d->softkeyDefinition);
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: searching for softkeyset: %s!\n", d->id, d->softkeyDefinition);
 		SCCP_LIST_LOCK(&softKeySetConfig);
 		SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
 			if (!strcasecmp(d->softkeyDefinition, softkeyset->name)) {
-				sccp_log(1) (VERBOSE_PREFIX_3 "%s: using softkeyset: %s!\n", d->id, softkeyset->name);
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: using softkeyset: %s!\n", d->id, softkeyset->name);
 				d->softKeyConfiguration.modes = softkeyset->modes;
 				d->softKeyConfiguration.size = softkeyset->numberOfSoftKeySets;
 			}
 		}
 		SCCP_LIST_UNLOCK(&softKeySetConfig);
 	}
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: d->softkeyDefinition=%s!\n", d->id, d->softkeyDefinition);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: d->softkeyDefinition=%s!\n", d->id, d->softkeyDefinition);
 	/* end softkey definition */
 
 	const softkey_modes *v = d->softKeyConfiguration.modes;
@@ -1846,29 +1837,29 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 		}
 	}
 
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: softkey count: %d\n", d->id, v_count);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: softkey count: %d\n", d->id, v_count);
 
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: TRANSFER        is %s\n", d->id, (d->transfer) ? "enabled" : "disabled");
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: DND             is %s\n", d->id, d->dndFeature.status ? dndmode2str(d->dndFeature.status) : "disabled");
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PRIVATE         is %s\n", d->id, d->privacyFeature.enabled ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: TRANSFER        is %s\n", d->id, (d->transfer) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: DND             is %s\n", d->id, d->dndFeature.status ? dndmode2str(d->dndFeature.status) : "disabled");
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PRIVATE         is %s\n", d->id, d->privacyFeature.enabled ? "enabled" : "disabled");
 #ifdef CS_SCCP_PARK
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PARK            is  %s\n", d->id, (d->park) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PARK            is  %s\n", d->id, (d->park) ? "enabled" : "disabled");
 #endif
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: CFWDALL         is  %s\n", d->id, (d->cfwdall) ? "enabled" : "disabled");
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: CFWDBUSY        is  %s\n", d->id, (d->cfwdbusy) ? "enabled" : "disabled");
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: CFWDNOANSWER    is  %s\n", d->id, (d->cfwdnoanswer) ? "enabled" : "disabled");
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: TRNSFVM/IDIVERT is  %s\n", d->id, (trnsfvm) ? "enabled" : "disabled");
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: MEETME          is  %s\n", d->id, (meetme) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: CFWDALL         is  %s\n", d->id, (d->cfwdall) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: CFWDBUSY        is  %s\n", d->id, (d->cfwdbusy) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: CFWDNOANSWER    is  %s\n", d->id, (d->cfwdnoanswer) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: TRNSFVM/IDIVERT is  %s\n", d->id, (trnsfvm) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: MEETME          is  %s\n", d->id, (meetme) ? "enabled" : "disabled");
 #ifdef CS_SCCP_PICKUP
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PICKUPGROUP     is  %s\n", d->id, (pickupgroup) ? "enabled" : "disabled");
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PICKUPEXTEN     is  %s\n", d->id, (d->pickupexten) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PICKUPGROUP     is  %s\n", d->id, (pickupgroup) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PICKUPEXTEN     is  %s\n", d->id, (d->pickupexten) ? "enabled" : "disabled");
 #endif
 	for (i = 0; i < v_count; i++) {
 		const uint8_t *b = v->ptr;
 
 		uint8_t c, j, cp = 0;
 
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Set[%-2d]= ", d->id, v->id);
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Set[%-2d]= ", d->id, v->id);
 
 		for (c = 0, cp = 0; c < v->count; c++) {
 			r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[cp] = 0;
@@ -1929,7 +1920,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 			}
 			for (j = 0; j < sizeof(softkeysmap); j++) {
 				if (b[c] == softkeysmap[j]) {
-					sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) ("%-2d:%-10s ", c, label2str(softkeysmap[j]));
+					sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) ("%-2d:%-10s ", c, label2str(softkeysmap[j]));
 					r1->msg.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[cp] = (j + 1);
 					break;
 				}
@@ -1937,12 +1928,12 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_moo_t * r)
 			cp++;
 		}
 
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) ("\n");
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) ("\n");
 		v++;
 		iKeySetCount++;
 	};
 
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "There are %d SoftKeySets.\n", iKeySetCount);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "There are %d SoftKeySets.\n", iKeySetCount);
 
 	r1->msg.SoftKeySetResMessage.lel_softKeySetCount = htolel(iKeySetCount);
 	r1->msg.SoftKeySetResMessage.lel_totalSoftKeySetCount = htolel(iKeySetCount);	// <<-- for now, but should be: iTotalKeySetCount;
@@ -1990,7 +1981,7 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_moo_t * r)
 	r1->msg.DialedPhoneBookAckMessage.lel_unknown2 = 0;
 	sccp_dev_send(s->device, r1);
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Device sent Dialed PhoneBook Rec.'%u' (%u) dn '%s' (0x%08X) line instance '%d'.\n", DEV_ID_LOG(d), index, unknown1, r->msg.DialedPhoneBookMessage.phonenumber, unknown2, instance);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Device sent Dialed PhoneBook Rec.'%u' (%u) dn '%s' (0x%08X) line instance '%d'.\n", DEV_ID_LOG(d), index, unknown1, r->msg.DialedPhoneBookMessage.phonenumber, unknown2, instance);
 }
 
 /*!
@@ -2038,7 +2029,7 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_moo_t * r)
 	r1->msg.DefineTimeDate.lel_milliseconds = htolel(0);
 	r1->msg.DefineTimeDate.lel_systemTime = htolel(timer);
 	sccp_dev_send(s->device, r1);
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Send date/time\n", s->device->id);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send date/time\n", s->device->id);
 
 /*
 	According to SCCP protocol since version 3,
@@ -2110,7 +2101,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 	l = c->line;
 	d = c->device;
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Cisco Digit: %08x (%d) on line %s\n", d->id, event, event, l->name);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Cisco Digit: %08x (%d) on line %s\n", d->id, event, event, l->name);
 
 	if (event < 10)
 		resp = '0' + event;
@@ -2151,7 +2142,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 
 			/* as we're not in overlapped mode we should add timeout again */
 			if ((c->digittimeout = sccp_sched_add(sched, GLOB(digittimeout) * 1000, sccp_pbx_sched_dial, c)) < 0) {
-				sccp_log(1) (VERBOSE_PREFIX_1 "SCCP: Unable to reschedule dialing in '%d' ms\n", GLOB(digittimeout));
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: Unable to reschedule dialing in '%d' ms\n", GLOB(digittimeout));
 			}
 #ifdef CS_SCCP_PICKUP
 			if (!strcmp(c->dialedNumber, ast_pickup_ext()) && (c->state != SCCP_CHANNELSTATE_GETDIGITS)) {
@@ -2296,7 +2287,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 		}
 	}
 
-	sccp_log(DEBUGCAT_SOFTKEY) (VERBOSE_PREFIX_3 "%s: Got Softkey: %s (%d) line=%d callid=%d\n", d->id, label2str(event), event, lineInstance, callid);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Got Softkey: %s (%d) line=%d callid=%d\n", d->id, label2str(event), event, lineInstance, callid);
 
 	/* we have no line and call information -> use default line */
 	if (!lineInstance && !callid && event == SKINNY_LBL_NEWCALL) {
@@ -2468,7 +2459,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 		memcpy(&sin.sin_addr, &s->sin.sin_addr, sizeof(sin.sin_addr));
 	sin.sin_port = ipPort;
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, Trustphoneip: %s, Directrtp: %s, Natted: %s\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, d->trustphoneip ? "yes" : "no", d->directrtp ? "yes" : "no", d->nat ? "yes" : "no");
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, Trustphoneip: %s, Directrtp: %s, Natted: %s\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, d->trustphoneip ? "yes" : "no", d->directrtp ? "yes" : "no", d->nat ? "yes" : "no");
 	if (status) {
 		/* rtp error from the phone */
 		ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available\n", d->id, status);
@@ -2495,7 +2486,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 			return;
 		}
 
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
 
 		if (c->rtp.audio.rtp) {
 			ast_rtp_set_peer(c->rtp.audio.rtp, &sin);
@@ -2504,7 +2495,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_moo_t * r)
 			memcpy(&c->rtp.audio.phone_remote, &us, sizeof(c->rtp.audio.phone_remote));
 
 			sccp_channel_startmediatransmission(c);			/*!< Starting Media Transmission Earlier to fix 2 second delay - Copied from v2 - FS */
-			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
 			if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
@@ -2567,7 +2558,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r)
 	sin.sin_family = AF_INET;
 	sin.sin_port = ipPort;
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID);
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID);
 	if (status) {
 		/* rtp error from the phone */
 		ast_log(LOG_ERROR, "%s: (OpenMultiMediaReceiveChannelAck) Device error (%d) ! No RTP media available\n", d->id, status);
@@ -2582,10 +2573,10 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r)
 			return;
 		}
 
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
 		memcpy(&c->rtp.video.phone, &sin, sizeof(sin));
 		if (c->rtp.video.rtp || sccp_rtp_createVideoServer(c)) {
-			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 			ast_rtp_set_peer(c->rtp.video.rtp, &sin);
 			if (c->state == SCCP_CHANNELSTATE_CONNECTED)
 				sccp_ast_setstate(c, AST_STATE_UP);
@@ -2632,7 +2623,7 @@ void sccp_handle_version(sccp_session_t * s, sccp_moo_t * r)
 	REQ(r1, VersionMessage);
 	sccp_copy_string(r1->msg.VersionMessage.requiredVersion, d->imageversion, sizeof(r1->msg.VersionMessage.requiredVersion));
 	sccp_dev_send(d, r1);
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Sending version number: %s\n", d->id, d->imageversion);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Sending version number: %s\n", d->id, d->imageversion);
 }
 
 /*!
@@ -2647,7 +2638,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_moo_t * r)
 	if (!(d = check_session_message_device(s, r, "keypad"))) {
 		return;
 	}
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Statistics from %s callid: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", d->id, r->msg.ConnectionStatisticsRes.DirectoryNumber,
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Statistics from %s callid: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", d->id, r->msg.ConnectionStatisticsRes.DirectoryNumber,
 		     letohl(r->msg.ConnectionStatisticsRes.lel_CallIdentifier), letohl(r->msg.ConnectionStatisticsRes.lel_SentPackets), letohl(r->msg.ConnectionStatisticsRes.lel_RecvdPackets), letohl(r->msg.ConnectionStatisticsRes.lel_LostPkts), letohl(r->msg.ConnectionStatisticsRes.lel_Jitter), letohl(r->msg.ConnectionStatisticsRes.lel_latency)
 	    );
 }
@@ -2678,7 +2669,7 @@ void sccp_handle_ServerResMessage(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	/* old protocol function replaced by the SEP file server addesses list */
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Sending servers message\n", DEV_ID_LOG(d));
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Sending servers message\n", DEV_ID_LOG(d));
 
 	REQ(r1, ServerResMessage);
 	sccp_copy_string(r1->msg.ServerResMessage.server[0].serverName, pbx_inet_ntoa(s->ourip), sizeof(r1->msg.ServerResMessage.server[0].serverName));
@@ -2733,7 +2724,7 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_moo_t * r)
 
 	sccp_device_unlock(d);
 	sccp_dev_send(s->device, r1);
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Sending ConfigStatMessage, lines %d, speeddials %d\n", d->id, lines, speeddials);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Sending ConfigStatMessage, lines %d, speeddials %d\n", d->id, lines, speeddials);
 }
 
 /*!
@@ -2808,13 +2799,13 @@ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_moo_t * r)
 
 	uint32_t instance = letohl(r->msg.ForwardStatReqMessage.lel_lineNumber);
 
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Got Forward Status Request.  Line: %d\n", d->id, instance);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got Forward Status Request.  Line: %d\n", d->id, instance);
 	l = sccp_line_find_byid(d, instance);
 	if (l)
 		sccp_dev_forward_status(l, instance, d);
 	else {
 		/* speeddial with hint. Sending empty forward message */
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Send Forward Status.  Instance: %d\n", d->id, instance);
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Send Forward Status.  Instance: %d\n", d->id, instance);
 		REQ(r1, ForwardStatMessage);
 		r1->msg.ForwardStatMessage.lel_status = 0;
 		r1->msg.ForwardStatMessage.lel_lineNumber = r->msg.ForwardStatReqMessage.lel_lineNumber;
@@ -2844,7 +2835,7 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_moo_t * r)
 
 	int unknown = letohl(r->msg.FeatureStatReqMessage.lel_unknown);
 
-	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Unknown = %d \n", d->id, instance, unknown);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Unknown = %d \n", d->id, instance, unknown);
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 	/*
@@ -2898,7 +2889,7 @@ void sccp_handle_services_stat_req(sccp_session_t * s, sccp_moo_t * r)
 
 	int urlIndex = letohl(r->msg.ServiceURLStatReqMessage.lel_serviceURLIndex);
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Got ServiceURL Status Request.  Index = %d\n", d->id, urlIndex);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Got ServiceURL Status Request.  Index = %d\n", d->id, urlIndex);
 
 	if ((service = sccp_dev_serviceURL_find_byindex(s->device, urlIndex))) {
 		if (s->device->inuseprotocolversion < 7) {
@@ -2936,7 +2927,7 @@ void sccp_handle_services_stat_req(sccp_session_t * s, sccp_moo_t * r)
 		ast_free(service);
 		sccp_dev_send(s->device, r1);
 	} else {
-		sccp_log(3) (VERBOSE_PREFIX_3 "%s: serviceURL %d not assigned\n", DEV_ID_LOG(s->device), urlIndex);
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: serviceURL %d not assigned\n", DEV_ID_LOG(s->device), urlIndex);
 	}
 }
 
@@ -2973,7 +2964,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 		return;
 	}
 
-	sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: instance: %d, toggle: %s\n", d->id, instance, (toggleState) ? "yes" : "no");
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: instance: %d, toggle: %s\n", d->id, instance, (toggleState) ? "yes" : "no");
 
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		if (config->instance == instance && config->type == FEATURE) {
@@ -2986,7 +2977,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 	}
 
 	if (!config || !config->type || config->type != FEATURE) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Couldn find feature with ID = %d \n", d->id, instance);
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Couldn find feature with ID = %d \n", d->id, instance);
 		return;
 	}
 
@@ -3046,7 +3037,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 			d->dndFeature.status = (config->button.feature.status) ? SCCP_DNDMODE_REJECT : SCCP_DNDMODE_OFF;
 		}
 
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: dndmode %d is %s\n", d->id, d->dndFeature.status, (d->dndFeature.status) ? "on" : "off");
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: dndmode %d is %s\n", d->id, d->dndFeature.status, (d->dndFeature.status) ? "on" : "off");
 		sccp_dev_check_displayprompt(d);
 		sccp_feat_changed(d, SCCP_FEATURE_DND);
 		break;
@@ -3092,11 +3083,11 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 		featureStat1 = (featureStat1 + 1) % 7;
 
 		d->priFeature.status = ((featureStat3 + 1) << 16) | ((featureStat2 + 1) << 8) | (featureStat1 + 1);
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: priority feature status: %d, %d, %d, total: %d\n", d->id, featureStat3, featureStat2, featureStat1, d->priFeature.status);
+		sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: priority feature status: %d, %d, %d, total: %d\n", d->id, featureStat3, featureStat2, featureStat1, d->priFeature.status);
 		break;
 
 	default:
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: unknown feature\n", d->id);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: unknown feature\n", d->id);
 		break;
 
 	}
@@ -3141,13 +3132,13 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_moo_t * r)
 
 	/* parsing audio caps */
 	n = letohl(r->msg.UpdateCapabilitiesMessage.lel_audioCapCount);
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Audio Capabilities\n", DEV_ID_LOG(d), n);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Audio Capabilities\n", DEV_ID_LOG(d), n);
 
 	for (i = 0; i < n; i++) {
 		codec = letohl(r->msg.UpdateCapabilitiesMessage.audioCaps[i].lel_payloadCapability);
 		astcodec = sccp_codec_skinny2ast(codec);
 		d->capability |= astcodec;
-		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(d), codec, codec2str(codec), astcodec, pbx_codec2str(astcodec));
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(d), codec, codec2str(codec), astcodec, pbx_codec2str(astcodec));
 	}
 	/* store our audio capabilities */
 //      memset(&d->capabilities.audio, 0, sizeof(audioCap_t) * DeviceMaxCapabilities);
@@ -3155,12 +3146,12 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_moo_t * r)
 
 	/* parsing video caps */
 	n = letohl(r->msg.UpdateCapabilitiesMessage.lel_videoCapCount);
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Video Capabilities\n", DEV_ID_LOG(d), n);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Video Capabilities\n", DEV_ID_LOG(d), n);
 	for (i = 0; i < n; i++) {
 		codec = letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[i].lel_payloadCapability);
 		astcodec = sccp_codec_skinny2ast(codec);
 		d->capability |= astcodec;
-		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(d), codec, codec2str(codec), astcodec, pbx_codec2str(astcodec));
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(d), codec, codec2str(codec), astcodec, pbx_codec2str(astcodec));
 	}
 	/* store our video capabilities */
 //      memset(&d->capabilities.video, 0, sizeof(videoCap_t) * DeviceMaxCapabilities);
@@ -3218,7 +3209,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 		sccp_ast_setstate(c, AST_STATE_UP);
 	}
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), callID, callID1, partyID);
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), callID, callID1, partyID);
 	//ast_cond_signal(&c->rtp.audio.convar);
 	sccp_channel_unlock(c);
 }
