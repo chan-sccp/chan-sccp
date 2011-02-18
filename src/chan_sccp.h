@@ -1119,10 +1119,8 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		uint32_t debug;							/*!< Debug */
 		char date_format[7];						/*!< Date Format */
 
-		uint8_t firstdigittimeout;					/*< First Digit Timeout. Wait up to x seconds for first digit */
+		uint8_t firstdigittimeout;					/*< First Digit Timeout. Wait up to 16 seconds for first digit */
 		uint8_t digittimeout;						/*< Digit Timeout. How long to wait for following digits */
-		uint8_t firstmatch;						/*< First Match Digit Timeout. Wait up to x seconds after the extention could be a match */
-		boolean_t firstmatchdigittimeout;					/*< First Match Digit Timeout. Wait up to x seconds after the extention could be a match */
 		char digittimeoutchar;						/*< Digit End Character. What char will force the dial (Normally '#') */
 
 		unsigned int recorddigittimeoutchar:1;				/*< Record Digit Time Out Char. Whether to include the digittimeoutchar in the call logs */
