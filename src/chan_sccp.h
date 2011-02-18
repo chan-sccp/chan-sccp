@@ -406,8 +406,9 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		DEBUGCAT_LOCK		= 1 << 23,
 		DEBUGCAT_THREADLOCK	= 1 << 24,
 		DEBUGCAT_MESSAGE	= 1 << 25,
-		DEBUGCAT_NEWCODE	= 1 << 26,
-		DEBUGCAT_HIGH		= 1 << 27
+		DEBUGCAT_UTILS		= 1 << 26,
+		DEBUGCAT_NEWCODE	= 1 << 27,
+		DEBUGCAT_HIGH		= 1 << 28
 	} sccp_debug_category_t;						/*!< SCCP Debug Category Enum */
 
 /*!
@@ -446,6 +447,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		"lock",		DEBUGCAT_LOCK,		"lock debug level"}, {
 		"threadlock",	DEBUGCAT_THREADLOCK,	"thread-lock debug level"}, {
 		"message",	DEBUGCAT_MESSAGE,	"message debug level"}, {
+		"utils",	DEBUGCAT_UTILS,		"utils debug level"}, {
 		"newcode",	DEBUGCAT_NEWCODE,	"newcode debug level"}, {
 		"high",		DEBUGCAT_HIGH,		"high debug level"},};
 

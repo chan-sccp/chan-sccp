@@ -132,7 +132,7 @@ void sccp_addon_addnew(sccp_device_t * d, const char *addon_config_type)
 
 	// checking if devicetype is specified
 	if (sccp_strlen_zero(d->config_type)) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Addon type (%s) must be specified after device type\n", addon_config_type);
+		sccp_log((DEBUGCAT_UTILS)) (VERBOSE_PREFIX_3 "SCCP: Addon type (%s) must be specified after device type\n", addon_config_type);
 		return;
 	}
 
@@ -143,7 +143,7 @@ void sccp_addon_addnew(sccp_device_t * d, const char *addon_config_type)
 	else if (!strcasecmp(addon_config_type, "7916"))
 		addon_type = SKINNY_DEVICETYPE_CISCO7916;
 	else {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Unknown addon type (%s) for device (%s)\n", addon_config_type, d->config_type);
+		sccp_log((DEBUGCAT_UTILS)) (VERBOSE_PREFIX_3 "SCCP: Unknown addon type (%s) for device (%s)\n", addon_config_type, d->config_type);
 		return;
 	}
 
@@ -153,14 +153,14 @@ void sccp_addon_addnew(sccp_device_t * d, const char *addon_config_type)
 	       (!strcasecmp(d->config_type, "7962")) ||
 	       (!strcasecmp(d->config_type, "7965")) ||
 	       (!strcasecmp(d->config_type, "7970")) || (!strcasecmp(d->config_type, "7971")) || (!strcasecmp(d->config_type, "7975")))) && !((addon_type == SKINNY_DEVICETYPE_CISCO7915) && ((!strcasecmp(d->config_type, "7962")) || (!strcasecmp(d->config_type, "7965")) || (!strcasecmp(d->config_type, "7975")))) && !((addon_type == SKINNY_DEVICETYPE_CISCO7916) && ((!strcasecmp(d->config_type, "7962")) || (!strcasecmp(d->config_type, "7965")) || (!strcasecmp(d->config_type, "7975"))))) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Configured device (%s) does not support the specified addon type (%s)\n", d->config_type, addon_config_type);
+		sccp_log((DEBUGCAT_UTILS)) (VERBOSE_PREFIX_3 "SCCP: Configured device (%s) does not support the specified addon type (%s)\n", d->config_type, addon_config_type);
 		return;
 	}
 
 	sccp_addon_t *a = ast_malloc(sizeof(sccp_addon_t));
 
 	if (!a) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a device addon\n");
+		sccp_log((DEBUGCAT_UTILS)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a device addon\n");
 		return;
 	}
 	memset(a, 0, sizeof(sccp_addon_t));
@@ -170,7 +170,7 @@ void sccp_addon_addnew(sccp_device_t * d, const char *addon_config_type)
 
 	SCCP_LIST_INSERT_HEAD(&d->addons, a, list);
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Added addon (%d) taps on device type (%s)\n", (d->id ? d->id : "SCCP"), a->type, d->config_type);
+	sccp_log((DEBUGCAT_UTILS)) (VERBOSE_PREFIX_3 "%s: Added addon (%d) taps on device type (%s)\n", (d->id ? d->id : "SCCP"), a->type, d->config_type);
 }
 
 /*!
@@ -1502,7 +1502,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 	if (!(*event) || !device)
 		return;
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: got FeatureChangeEvent %d\n", DEV_ID_LOG(device), (*event)->event.featureChanged.featureType);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_UTILS)) (VERBOSE_PREFIX_3 "%s: got FeatureChangeEvent %d\n", DEV_ID_LOG(device), (*event)->event.featureChanged.featureType);
 	sccp_device_lock(device);
 	sprintf(family, "SCCP/%s", device->id);
 	sccp_device_unlock(device);
@@ -1524,7 +1524,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 						sprintf(cfwdLineStore, "%s/%s", family, config->button.line.name);
 						if (lineDevice->cfwdAll.enabled) {
 							pbx_db_put(cfwdLineStore, "cfwdAll", lineDevice->cfwdAll.number);
-							sccp_log(1) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);
+							sccp_log((DEBUGCAT_UTILS)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);
 						} else {
 							ast_db_del(cfwdLineStore, "cfwdAll");
 						}
@@ -1539,7 +1539,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 	case SCCP_FEATURE_DND:
 		if (!device->dndFeature.status) {
 			ast_db_del(family, "dnd");
-			//sccp_log(1)(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "dnd");
+			//sccp_log((DEBUGCAT_UTILS))(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "dnd");
 		} else {
 			if (device->dndFeature.status == SCCP_DNDMODE_SILENT)
 				pbx_db_put(family, "dnd", "silent");
@@ -1550,7 +1550,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 	case SCCP_FEATURE_PRIVACY:
 		if (!device->privacyFeature.status) {
 			ast_db_del(family, "privacy");
-			//sccp_log(1)(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "privacy");
+			//sccp_log((DEBUGCAT_UTILS))(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "privacy");
 		} else {
 			char data[256];
 
@@ -1561,7 +1561,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 	case SCCP_FEATURE_MONITOR:
 		if (!device->monitorFeature.status) {
 			ast_db_del(family, "monitor");
-			//sccp_log(1)(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "monitor");
+			//sccp_log((DEBUGCAT_UTILS))(VERBOSE_PREFIX_3 "%s: delete %s/%s\n", device->id, family, "monitor");
 		} else {
 			pbx_db_put(family, "monitor", "on");
 		}
