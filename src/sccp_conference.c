@@ -35,7 +35,7 @@ static void *sccp_conference_join_thread(void *data);
  */
 sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 {
-	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: sccp_conference_create called.\n");
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: sccp_conference_create called.\n");
 
 	sccp_conference_t *conference = NULL;
 
@@ -94,7 +94,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 
 #if 0
 	/* add moderator to participants list */
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Conference: adding moderator to participant list.\n", owner->device->id);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference: adding moderator to participant list.\n", owner->device->id);
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_INSERT_TAIL(&conference->participants, moderator, list);
 	SCCP_LIST_UNLOCK(&conference->participants);
@@ -108,15 +108,15 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 #endif
 
 	/* Store conference in global list. */
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Conference: adding conference to global conference list.\n", owner->device->id);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference: adding conference to global conference list.\n", owner->device->id);
 	SCCP_LIST_LOCK(&sccp_conferences);
 	SCCP_LIST_INSERT_HEAD(&sccp_conferences, conference, list);
 	SCCP_LIST_UNLOCK(&sccp_conferences);
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Conference: Conference with id %d created; Owner: %s \n", owner->device->id, conference->id, owner->device->id);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference: Conference with id %d created; Owner: %s \n", owner->device->id, conference->id, owner->device->id);
 
 #if 0
-	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_create.\n");
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_create.\n");
 	if (ast_pthread_create_background(&moderator->joinThread, NULL, sccp_conference_join_thread, moderator) < 0) {
 		ast_log(LOG_ERROR, "SCCP: Conference: failed to initiate join thread for moderator.\n");
 		return conference;
@@ -135,7 +135,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
  */
 int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_t * participant, struct ast_channel *chan)
 {
-	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: sccp_conference_addAstChannelToConferenceBridge called.\n");
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: sccp_conference_addAstChannelToConferenceBridge called.\n");
 
 	if (NULL == participant)
 		return -1;
@@ -221,7 +221,7 @@ if (NULL != bridge) {
  */
 void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * channel)
 {
-	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: sccp_conference_addParticipant called.\n");
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: sccp_conference_addParticipant called.\n");
 	
 	if (!channel || !conference) {
 		// TODO: Log
@@ -285,9 +285,9 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 	
 
 	if(adding_moderator) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "Conference: Adding remote party of moderator.\n");
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Adding remote party of moderator.\n");
 	} else {
-		sccp_log(1) (VERBOSE_PREFIX_3 "Conference: Adding remote party of ordinary participant call.\n");
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Adding remote party of ordinary participant call.\n");
 	}
 		
 	remoteParticipant->channel 		= channel;
@@ -302,7 +302,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		// \todo TODO: error handling
 	}
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_addParticipant.\n");
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_addParticipant.\n");
 	if (ast_pthread_create_background(&remoteParticipant->joinThread, NULL, sccp_conference_join_thread, remoteParticipant) < 0) {
 		// \todo TODO: error handling
 	}
@@ -310,7 +310,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 	
 	
 	if(adding_moderator) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "Conference: Adding local party of moderator.\n");
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Adding local party of moderator.\n");
 	
 	localParticipant->channel 		= channel;
 	localParticipant->conference 	= conference;
@@ -324,7 +324,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		// \todo TODO: error handling
 	}
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_addParticipant.\n");
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_addParticipant.\n");
 	if (ast_pthread_create_background(&localParticipant->joinThread, NULL, sccp_conference_join_thread, localParticipant) < 0) {
 		// \todo TODO: error handling
 	}
@@ -340,7 +340,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 	sccp_conference_participant_t *part = NULL;
 
 	SCCP_LIST_TRAVERSE(&conference->participants, part, list) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "Conference %d: members %s-%08x\n", conference->id, part->channel->line->name, part->channel->callid);
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: members %s-%08x\n", conference->id, part->channel->line->name, part->channel->callid);
 	}
 
 }
@@ -376,7 +376,7 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_chan
 	SCCP_LIST_UNLOCK(&conference->participants);
 
 	SCCP_LIST_TRAVERSE(&conference->participants, part, list) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "Conference %d: members\n", conference->id);
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: members\n", conference->id);
 	}
 
 	if (conference->participants.size < 1)
@@ -416,7 +416,7 @@ void sccp_conference_module_start()
 
 static void *sccp_conference_join_thread(void *data)
 {
-	sccp_log(1) (VERBOSE_PREFIX_3 "Conference: entering join thread.\n");
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: entering join thread.\n");
 
 	sccp_conference_participant_t *participant = (sccp_conference_participant_t *) data;
 
