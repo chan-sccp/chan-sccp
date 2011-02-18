@@ -444,7 +444,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	sccp_channel_t *c;
 
 	char *name = NULL, *number = NULL;
-
+;
 	if (!l || !d || !d->id || sccp_strlen_zero(d->id)) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) no line or device\n");
 		return -1;
@@ -500,30 +500,41 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 //                              number = PBX(pbx_get_callerid_number)(target);
 //                      
 //                      number = get_pbx_callerid_number(target);
-
 #    ifdef CS_AST_CHANNEL_HAS_CID
+			if (target->cid.cid_name)
+				name = strdup(target->cid.cid_name);
+			if (target->cid.cid_num)
+				number = strdup(target->cid.cid_num);
+#    else
+			char *cidtmp = NULL;
+			if (target->callerid) {
+				cidtmp = strdup(target->callerid);
+				ast_callerid_parse(cidtmp, &name, &number);
+			}
+#    endif
+
 			if (original && original->cid.cid_name)
 				sccp_copy_string(c->callInfo.originalCalledPartyName, original->cid.cid_name, sizeof(c->callInfo.originalCalledPartyName));
 			if (original && original->cid.cid_num)
 				sccp_copy_string(c->callInfo.originalCalledPartyNumber, original->cid.cid_num, sizeof(c->callInfo.originalCalledPartyNumber));
 
 			if (target->cid.cid_name) {
-				sccp_copy_string(c->callInfo.callingPartyName, target->cid.cid_name, sizeof(c->callInfo.callingPartyName));
+				sccp_copy_string(c->callInfo.callingPartyName, name, sizeof(c->callInfo.callingPartyName));
 			}
 			if (target->cid.cid_num) {
-				sccp_copy_string(c->callInfo.callingPartyNumber, target->cid.cid_num, sizeof(c->callInfo.callingPartyNumber));
+				sccp_copy_string(c->callInfo.callingPartyNumber, number, sizeof(c->callInfo.callingPartyNumber));
 			}
 			/* we use the  original->cid.cid_name to do the magic */
 			if (target->cid.cid_ani) {
-				sccp_copy_string(c->callInfo.callingPartyNumber, target->cid.cid_name, sizeof(c->callInfo.callingPartyNumber));
-				sccp_copy_string(c->callInfo.callingPartyName, target->cid.cid_num, sizeof(c->callInfo.callingPartyName));
+				sccp_copy_string(c->callInfo.callingPartyNumber, number, sizeof(c->callInfo.callingPartyNumber));
+				sccp_copy_string(c->callInfo.callingPartyName, number, sizeof(c->callInfo.callingPartyName));
 			}
 			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_ani = '%s'\n", (target->cid.cid_ani) ? target->cid.cid_ani : "");	/* remote cid_num */
 			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_dnid = '%s'\n", (target->cid.cid_dnid) ? target->cid.cid_dnid : "");
 			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_name = '%s'\n", (target->cid.cid_name) ? target->cid.cid_name : "");
 			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_num = '%s'\n", (target->cid.cid_num) ? target->cid.cid_num : "");
 			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) asterisk remote channel cid_rdnis = '%s'\n", (target->cid.cid_rdnis) ? target->cid.cid_rdnis : "");
-#    endif
+
 			sccp_channel_t *remote = NULL;
 
 			if ((remote = get_sccp_channel_from_ast_channel(target))) {
@@ -582,12 +593,14 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 						}
 						sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_RINGING);
 					}
-					original->hangupcause = AST_CAUSE_NORMAL_CLEARING;
+					original->hangupcause = AST_CAUSE_ANSWERED_ELSEWHERE; //AST_CAUSE_NORMAL_CLEARING
 					ast_setstate(original, AST_STATE_DOWN);
 				}
 				sccp_channel_unlock(c);
 				pbx_channel_unlock(target);
-				ast_queue_hangup(original);
+//				ast_queue_hangup(original);		// doesn't work, used to be ast_hangup (Joe,Gpickup trouble)
+				ast_hangup(original);
+				sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) masquerade succeeded\n");
 			} else {
 				sccp_channel_unlock(c);
 				pbx_channel_unlock(target);
@@ -597,6 +610,10 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 				sccp_free(name);
 			if (number)
 				sccp_free(number);
+#    ifndef CS_AST_CHANNEL_HAS_CID
+			if (cidtmp)
+				sccp_free(cidtmp);
+#    endif
 
 			res = 0;
 
@@ -606,10 +623,9 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		}
 		pbx_channel_unlock(target);
 	}
-	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) quit\n");
+	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) finished\n");
 	return res;
 }
-
 #endif
 
 /*!
