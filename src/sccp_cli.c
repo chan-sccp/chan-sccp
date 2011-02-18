@@ -912,16 +912,47 @@ CLI_ENTRY(cli_message_devices, sccp_message_devices, "Send a message to all SCCP
  * \return Result as int
  * 
  * \called_from_asterisk
- *
- * \todo TO BE IMPLEMENTED: sccp message device
  */
 static int sccp_message_device(int fd, int argc, char *argv[])
 {
-	ast_cli(fd, "Command has not been fully implemented yet!\n");
-	return RESULT_FAILURE;
+	sccp_device_t *d;
+
+	int msgtimeout = 10;
+
+	int beep = 0;
+
+	if (argc < 4)
+		return RESULT_SHOWUSAGE;
+
+	if (sccp_strlen_zero(argv[3]))
+		return RESULT_SHOWUSAGE;
+
+	if (argc > 5) {
+		if (!strcmp(argv[5], "beep")) {
+			beep = 1;
+			if (sscanf(argv[6], "%d", &msgtimeout) != 1) {
+				msgtimeout = 10;
+			}
+		}
+		if (sscanf(argv[5], "%d", &msgtimeout) != 1) {
+			msgtimeout = 10;
+		}
+	}
+
+	if ((d=sccp_device_find_byid(argv[3],FALSE))) {
+		sccp_dev_displaynotify(d, argv[4], msgtimeout);
+
+		if (beep) {
+			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
+		}
+		return RESULT_SUCCESS;
+	} else {
+		ast_cli(fd, "Device not found!\n");
+		return RESULT_FAILURE;
+	}
 }
 
-static char message_device_usage[] = "Usage: sccp message <deviceId> <message text> [beep] [timeout]\n" "       Send a message to an SCCP Device + phone beep + timeout.\n";
+static char message_device_usage[] = "Usage: sccp message device <deviceId> <message text> [beep] [timeout]\n" "       Send a message to an SCCP Device + phone beep + timeout.\n";
 
 #define CLI_COMMAND "sccp", "message", "device", NULL
 CLI_ENTRY_COMPLETE(cli_message_device, sccp_message_device, "Send a message to SCCP Device", message_device_usage, sccp_complete_device)
