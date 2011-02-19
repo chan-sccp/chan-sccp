@@ -2220,17 +2220,21 @@ void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevi
 	if (PBX(pbx_set_callerid_name))
 		PBX(pbx_set_callerid_name) (forwarder->owner, (const char *)&fwd_from_name);
 
-	//forwarder->owner->cid.cid_ani = strdup(dialedNumber);
-	if (PBX(pbx_set_callerid_ani))
-		PBX(pbx_set_callerid_ani) (forwarder->owner, (const char *)&dialedNumber);
 
-	//forwarder->owner->cid.cid_dnid = strdup(dialedNumber);
-	if (PBX(pbx_set_callerid_dnid))
-		PBX(pbx_set_callerid_dnid) (forwarder->owner, (const char *)&dialedNumber);
+        // reverted to old behaviour, pbx_set_callerid_ani produces crash
+	forwarder->owner->cid.cid_ani = strdup(dialedNumber);
+//	if (PBX(pbx_set_callerid_ani))
+//		PBX(pbx_set_callerid_ani) (forwarder->owner, (const char *)&dialedNumber);
 
-	//forwarder->owner->cid.cid_rdnis = strdup(forwarder->line->cid_num);
-	if (PBX(pbx_set_callerid_rdnis))
-		PBX(pbx_set_callerid_rdnis) (forwarder->owner, (const char *)&forwarder->line->cid_num);
+        // reverted to old behaviour, pbx_set_callerid_dnid produces crash
+	forwarder->owner->cid.cid_dnid = strdup(dialedNumber);
+//	if (PBX(pbx_set_callerid_dnid))
+//		PBX(pbx_set_callerid_dnid) (forwarder->owner, (const char *)&dialedNumber);
+
+        // reverted to old behaviour, pbx_set_callerid_rdnis produces crash
+	forwarder->owner->cid.cid_rdnis = strdup(forwarder->line->cid_num);
+//	if (PBX(pbx_set_callerid_rdnis))
+//		PBX(pbx_set_callerid_rdnis) (forwarder->owner, (const char *)&forwarder->line->cid_num);
 
 #ifdef CS_AST_CHANNEL_HAS_CID
 	forwarder->owner->cid.cid_ani2 = -1;

@@ -2141,9 +2141,20 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 			}
 
 			/* as we're not in overlapped mode we should add timeout again */
+#ifdef CS_ADV_FEATURES
+			int found_match=sccp_pbx_helper(c);
+			int digittimeout=GLOB(digittimeout);
+			if (2==found_match) {
+				digittimeout=GLOB(digittimeout)/2;
+			}
+			if ((c->digittimeout = sccp_sched_add(sched, digittimeout * 1000, sccp_pbx_sched_dial, c)) < 0) {
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: Unable to reschedule dialing in '%d' ms\n", digittimeout);
+			}
+#else
 			if ((c->digittimeout = sccp_sched_add(sched, GLOB(digittimeout) * 1000, sccp_pbx_sched_dial, c)) < 0) {
 				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: Unable to reschedule dialing in '%d' ms\n", GLOB(digittimeout));
 			}
+#endif
 #ifdef CS_SCCP_PICKUP
 			if (!strcmp(c->dialedNumber, ast_pickup_ext()) && (c->state != SCCP_CHANNELSTATE_GETDIGITS)) {
 				/* set it to offhook state because the sccp_sk_gpickup function look for an offhook channel */
@@ -2171,7 +2182,11 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_moo_t * r)
 				return;
 			}
 			// we dial when helper says it's time to dial !
+#ifdef CS_ADV_FEATURES
+			if (1==found_match) {
+#else
 			if (sccp_pbx_helper(c)) {
+#endif
 				/* XXX to prevent keeping the channel locked during waiting, we
 				 * unlock it here. But it's crappy to unlock it to relock it after
 				 * because it can be removed meantime. */
