@@ -179,7 +179,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 	/* if incoming call limit is reached send BUSY */
 	sccp_line_lock(l);
 	if (SCCP_RWLIST_GETSIZE(l->channels) > l->incominglimit) {		/* >= just to be sure :-) */
-		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "Incoming calls limit (%d) reached on SCCP/%s... sending busy\n", l->incominglimit, l->name);
+		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "Incoming calls limit (%d>%d) reached on SCCP/%s... sending busy\n", SCCP_RWLIST_GETSIZE(l->channels), l->incominglimit, l->name);
 		sccp_line_unlock(l);
 		ast_setstate(ast, AST_STATE_BUSY);
 		ast_queue_control(ast, AST_CONTROL_BUSY);
@@ -278,7 +278,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 
 		/* do we have cfwd enabled? */
 		if (linedevice->cfwdAll.enabled) {
-			ast_log(LOG_NOTICE, "%s: initialize cfwd for line %s\n", linedevice->device->id, l->name);
+			ast_log(LOG_NOTICE, "%s: initialize cfwd for line %s to %s\n", linedevice->device->id, l->name, linedevice->cfwdAll.number);
 			sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			sccp_channel_send_callinfo(linedevice->device, c);
 			sccp_channel_forward(c, linedevice, linedevice->cfwdAll.number);
@@ -601,23 +601,23 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "SCCP: Receiver Hungup\n");
 			astForwardedChannel->hangupcause = AST_CAUSE_CALL_REJECTED;
 			astForwardedChannel->_softhangup |= AST_SOFTHANGUP_DEV;
-			ast_queue_hangup(astForwardedChannel);
-#if 0
+			/* sorry MC functioniert, einfach nicht,reverted */
+//			ast_queue_hangup(astForwardedChannel);
 			sccp_channel_lock(c->parentChannel);
 			sccp_channel_endcall_locked(c->parentChannel);
 			sccp_channel_unlock(c->parentChannel);
-#endif
+			
 			return 0;
 		}
 		ast_log(LOG_ERROR, "SCCP: We did not find bridge channel for call forwarding call. Hangup\n");
 		astForwardedChannel->hangupcause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 		astForwardedChannel->_softhangup |= AST_SOFTHANGUP_DEV;
-		ast_queue_hangup(astForwardedChannel);
-#if 0
+		/* sorry MC functioniert, einfach nicht, reverted */
+//		ast_queue_hangup(astForwardedChannel);
 		sccp_channel_lock(c->parentChannel);
 		sccp_channel_endcall_locked(c->parentChannel);
 		sccp_channel_unlock(c->parentChannel);
-#endif
+		
 		sccp_channel_lock(c);
 		sccp_channel_endcall_locked(c);
 		sccp_channel_unlock(c);
@@ -1474,7 +1474,7 @@ int sccp_pbx_helper(sccp_channel_t * c)
 		/* dial fast if number exists in regcontext and only matches exactly number */
 		if (regcontext_exist && !regcontext_matchmore) {
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "%s: Entered Number: %s is a Registered SCCP Number\n", d->id, c->dialedNumber);
-			return 1;
+			return 2;
 		}
 #endif
 		if ((d->overlapFeature.enabled && !ext_canmatch) || (!d->overlapFeature.enabled && !ext_matchmore)) {
