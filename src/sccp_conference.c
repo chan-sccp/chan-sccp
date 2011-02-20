@@ -274,7 +274,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 	}
 	
 	remoteCallLeg = CS_AST_BRIDGED_CHANNEL(localCallLeg);
-	if (NULL == localCallLeg) {
+	if (NULL == remoteCallLeg) {
 			ast_log(LOG_NOTICE, "%s: Conference: NULL remote ast call leg: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
 			return;
 	}
