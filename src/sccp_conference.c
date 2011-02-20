@@ -371,7 +371,6 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
  */
 void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
-
 	sccp_conference_participant_t *part = NULL;
 	char leaveMessage[256] = { '\0' };
 
@@ -383,15 +382,12 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 	/* Notify the moderator of the leaving party. */
 	if(NULL != conference->moderator)
 	{
-			int instance;
-	        instance = sccp_device_find_index_for_line(conference->moderator->sccpChannel->device, conference->moderator->sccpChannel->line->name);
-	 	 	ast_log(LOG_NOTICE, "Conference: Leave Notification for Participant #%d -- %s\n", participant->id, sccp_channel_toString(participant->sccpChannel));
-	 	 	snprintf(leaveMessage, 255, "Member #%d left conference.", participant->id);
-	 	 	sccp_dev_displayprompt(conference->moderator->sccpChannel->device, instance, conference->moderator->sccpChannel->callid, leaveMessage, 10);
-	 }
-
-
-
+		int instance;
+                instance = sccp_device_find_index_for_line(conference->moderator->sccpChannel->device, conference->moderator->sccpChannel->line->name);
+	 	ast_log(LOG_NOTICE, "Conference: Leave Notification for Participant #%d -- %s\n", participant->id, sccp_channel_toString(participant->sccpChannel));
+	 	snprintf(leaveMessage, 255, "Member #%d left conference.", participant->id);
+	 	sccp_dev_displayprompt(conference->moderator->sccpChannel->device, instance, conference->moderator->sccpChannel->callid, leaveMessage, 10);
+	}
 
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_TRAVERSE(&conference->participants, part, list) {
@@ -407,16 +403,40 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 	}
 	SCCP_LIST_UNLOCK(&conference->participants);
 	
-
-
 	SCCP_LIST_TRAVERSE(&conference->participants, part, list) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: member #%d -- %s\n", conference->id, participant->id, sccp_channel_toString(part->sccpChannel));
 	}
 
-	
-
 	if (conference->participants.size < 1)
 		sccp_conference_end(conference);
+}
+
+/*!
+ * Remove participating channel from conference
+ *
+ * @param conference conference
+ * @param channel SCCP Channel
+ *
+ * \todo implement this
+ * \todo check if the are enough participants in conference
+ * 
+ * \warning
+ * 	- conference->participants is not always locked
+ *
+ * \lock
+ * 	- conference->participants
+ */
+void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * channel)
+{
+	sccp_conference_participant_t *part = NULL;
+	SCCP_LIST_LOCK(&channel->conference->participants);
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&channel->conference->participants, part, list) {
+		if (part->sccpChannel == channel) {
+		        sccp_conference_removeParticipant(conference, part);
+		}
+	}
+        SCCP_LIST_TRAVERSE_SAFE_END
+	SCCP_LIST_UNLOCK(&channel->conference->participants);
 }
 
 /*!
