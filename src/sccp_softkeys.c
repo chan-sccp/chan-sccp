@@ -773,14 +773,31 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
- * \todo Conferencing option needs to be build and implemented
- *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
+ * \todo Conferencing option is under development.
  */
 void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Conference Pressed\n", DEV_ID_LOG(d));
 	sccp_feat_conference(d, l, lineInstance, c);
 }
+
+
+/*!
+ * \brief Show Participant List of Current Conference
+ * \n Usage: \ref sk_conflist
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
+ * \param c SCCP Channel
+ * \todo Conferencing option is under development.
+ */
+void sccp_sk_conflist(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
+{
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Conflist Pressed\n", DEV_ID_LOG(d));
+	sccp_feat_conflist(d, l, lineInstance, c);
+}
+
+
 
 /*!
  * \brief Join Current Line to Conference
