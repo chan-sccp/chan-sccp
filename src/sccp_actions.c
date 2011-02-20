@@ -2425,6 +2425,9 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 		sccp_sk_resume(d, l, lineInstance, c);
 		break;
 #endif
+	case SKINNY_LBL_CONFLIST:
+		sccp_sk_conflist(d, l, lineInstance, c);
+		break;
 	default:
 		ast_log(LOG_WARNING, "Don't know how to handle keypress %d\n", event);
 	}
