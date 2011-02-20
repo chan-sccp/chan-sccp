@@ -430,7 +430,8 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 	l = c->line;
 #ifdef CS_SCCP_CONFERENCE
 	if (c->conference) {
-		sccp_conference_removeParticipant(c->conference, c);
+//		sccp_conference_removeParticipant(c->conference, c);
+		sccp_conference_retractParticipatingChannel(c->conference, c);
 	}
 #endif										// CS_SCCP_CONFERENCE
 

@@ -57,6 +57,7 @@ extern "C" {
 	sccp_conference_t *sccp_conference_create(sccp_channel_t * owner);
 	void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participant);
 	void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant);
+	void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_module_start(void);
 	void sccp_conference_end(sccp_conference_t * conference);
 	int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_t * participant, struct ast_channel *currentParticipantPeer);
