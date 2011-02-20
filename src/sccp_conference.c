@@ -30,7 +30,7 @@ static void *sccp_conference_join_thread(void *data);
 /*!
  * Create conference
  *
- * @param channel conference owner
+ * @param owner conference owner
  * @return conference
  */
 sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
@@ -63,6 +63,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 	memset(conference, 0, sizeof(sccp_conference_t));
 
 	conference->id = ++lastConferenceID;
+	conference->partIdMax = 0;
 	SCCP_LIST_HEAD_INIT(&conference->participants);
 	conference->bridge = ast_bridge_new(AST_BRIDGE_CAPABILITY_1TO1MIX, AST_BRIDGE_FLAG_SMART);
 
@@ -86,8 +87,9 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 
 	ast_bridge_features_init(&moderator->features);
 
-	moderator->channel = owner;
+	moderator->sccpChannel = owner;
 	moderator->conference = conference;
+	moderator->id = ++conference->partIdMax;
 	owner->conference = conference;
 	conference->moderator = moderator;
 
@@ -101,7 +103,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 
 
 	/* Add moderator to conference. */
-	if (0 != sccp_conference_addAstChannelToConferenceBridge(moderator, moderator->channel->owner)) {
+	if (0 != sccp_conference_addAstChannelToConferenceBridge(moderator, moderator->sccpChannel->owner)) {
 		ast_log(LOG_ERROR, "SCCP: Conference: failed to add moderator channel (preparation phase).\n");
 		/* TODO: Error handling. */
 	}
@@ -194,11 +196,27 @@ if (NULL != bridge) {
 	   			ast_channel_lock(participant->conferenceBridgePeer);
 				ast_do_masquerade(participant->conferenceBridgePeer);
 				ast_channel_unlock(participant->conferenceBridgePeer);
-				
-				
-
-				
 	   }
+
+	   if(NULL == participant->sccpChannel) {
+			participant->sccpChannel = get_sccp_channel_from_ast_channel(participant->conferenceBridgePeer);
+
+			if (participant->sccpChannel && participant->sccpChannel->device && participant->sccpChannel->line) { // Talking to an SCCP device
+				ast_log(LOG_NOTICE, "SCCP: Conference: Member #%d (SCCP channel) being added to conference. Identifying sccp channel: %s\n", participant->id, sccp_channel_toString(participant->sccpChannel));				
+			} else {
+				ast_log(LOG_NOTICE, "SCCP: Conference: Member #%d (Non SCCP channel) being added to conference.\n", participant->id);
+				participant->sccpChannel = NULL;
+			}
+	   } else {
+			ast_log(LOG_NOTICE, "SCCP: Conference: We already have a sccp channel for this participant; assuming moderator.\n");
+			/* In the future we may need to consider that / if the moderator changes the sccp channel due to creating new channel for the moderator */
+	   }
+	
+	   sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_addAstChannelToConferenceBridge.\n");
+	if (ast_pthread_create_background(&participant->joinThread, NULL, sccp_conference_join_thread, participant) < 0) {
+		// \todo TODO: error handling
+	}
+
 	   
 
 	// Now done in add_participant
@@ -237,7 +255,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 	
 	/* We need to handle adding the moderator in a special way: Both legs of the call
 	need to be added to the conference at the same time. (-DD) */
-	boolean_t adding_moderator = (channel == conference->moderator->channel);
+	boolean_t adding_moderator = (channel == conference->moderator->sccpChannel);
 
 	if (NULL != channel->conference && !adding_moderator) {
 		ast_log(LOG_NOTICE, "%s: Conference: Already in conference: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
@@ -290,8 +308,8 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Adding remote party of ordinary participant call.\n");
 	}
 		
-	remoteParticipant->channel 		= channel;
 	remoteParticipant->conference 	= conference;
+	remoteParticipant->id = ++conference->partIdMax;
 	ast_bridge_features_init(&remoteParticipant->features);
 
 	SCCP_LIST_LOCK(&conference->participants);
@@ -302,17 +320,12 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		// \todo TODO: error handling
 	}
 
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_addParticipant.\n");
-	if (ast_pthread_create_background(&remoteParticipant->joinThread, NULL, sccp_conference_join_thread, remoteParticipant) < 0) {
-		// \todo TODO: error handling
-	}
 	
 	
 	
 	if(adding_moderator) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Adding local party of moderator.\n");
 	
-	localParticipant->channel 		= channel;
 	localParticipant->conference 	= conference;
 	ast_bridge_features_init(&remoteParticipant->features);
 
@@ -324,10 +337,6 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		// \todo TODO: error handling
 	}
 
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_addParticipant.\n");
-	if (ast_pthread_create_background(&localParticipant->joinThread, NULL, sccp_conference_join_thread, localParticipant) < 0) {
-		// \todo TODO: error handling
-	}
 	
 	}
 
@@ -340,7 +349,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 	sccp_conference_participant_t *part = NULL;
 
 	SCCP_LIST_TRAVERSE(&conference->participants, part, list) {
-		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: members %s-%08x\n", conference->id, part->channel->line->name, part->channel->callid);
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: member #%d -- %s\n", conference->id, part->id, sccp_channel_toString(part->sccpChannel));
 	}
 
 }
@@ -360,24 +369,51 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
  * \lock
  * 	- conference->participants
  */
-void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_channel_t * participant)
+void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
+
 	sccp_conference_participant_t *part = NULL;
+	char leaveMessage[256] = { '\0' };
+
+	/* Update the presence of the moderator */
+	if(participant == conference->moderator) {
+		conference->moderator = NULL;
+	}
+	
+	/* Notify the moderator of the leaving party. */
+	if(NULL != conference->moderator)
+	{
+			int instance;
+	        instance = sccp_device_find_index_for_line(conference->moderator->sccpChannel->device, conference->moderator->sccpChannel->line->name);
+	 	 	ast_log(LOG_NOTICE, "Conference: Leave Notification for Participant #%d -- %s\n", participant->id, sccp_channel_toString(participant->sccpChannel));
+	 	 	snprintf(leaveMessage, 255, "Member #%d left conference.", participant->id);
+	 	 	sccp_dev_displayprompt(conference->moderator->sccpChannel->device, instance, conference->moderator->sccpChannel->callid, leaveMessage, 10);
+	 }
+
+
+
 
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_TRAVERSE(&conference->participants, part, list) {
-		if (part->channel == participant) {
-			part->channel->conference = NULL;
+		if (part == participant) {
+			if(part->sccpChannel) { // sccp device
+				part->sccpChannel->conference = NULL;
+				// TODO: Indicate SCCP device it is in conference no longer.
+			}
 			SCCP_LIST_REMOVE(&conference->participants, part, list);
 			ast_free(part);
 		}
 
 	}
 	SCCP_LIST_UNLOCK(&conference->participants);
+	
+
 
 	SCCP_LIST_TRAVERSE(&conference->participants, part, list) {
-		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: members\n", conference->id);
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: member #%d -- %s\n", conference->id, participant->id, sccp_channel_toString(part->sccpChannel));
 	}
+
+	
 
 	if (conference->participants.size < 1)
 		sccp_conference_end(conference);
@@ -397,7 +433,7 @@ void sccp_conference_end(sccp_conference_t * conference)
 
 	SCCP_LIST_LOCK(&conference->participants);
 	while ((part = SCCP_LIST_REMOVE_HEAD(&conference->participants, list))) {
-		part->channel->conference = NULL;
+		part->sccpChannel->conference = NULL;
 		ast_free(part);
 	}
 	SCCP_LIST_UNLOCK(&conference->participants);
@@ -421,14 +457,9 @@ static void *sccp_conference_join_thread(void *data)
 	sccp_conference_participant_t *participant = (sccp_conference_participant_t *) data;
 
 	struct ast_channel *astChannel;
-	sccp_channel_t * channel;
 
 	if (NULL == participant) {
 		ast_log(LOG_ERROR, "SCCP: Conference: Join thread: NULL participant.\n");
-		return NULL;
-	}
-	if (NULL == participant->channel) {
-		ast_log(LOG_ERROR, "SCCP: Conference: Join thread: NULL participant sccp channel.\n");
 		return NULL;
 	}
 
@@ -439,29 +470,29 @@ static void *sccp_conference_join_thread(void *data)
 		participant->joinThread = AST_PTHREADT_NULL;
 		return NULL;
 	} else {
-		ast_log(LOG_NOTICE, "SCCP: Conference: Join thread: adding channel to bridge: %s-%08x\n", participant->channel->line->name, participant->channel->callid);
+		ast_log(LOG_NOTICE, "SCCP: Conference: Join thread: adding channel to bridge: %s\n", sccp_channel_toString(participant->sccpChannel));
 	}
 
-	ast_log(LOG_NOTICE, "SCCP: Conference: Join thread: entering ast_bridge_join: %s-%08x\n", participant->channel->line->name, participant->channel->callid);
+	ast_log(LOG_NOTICE, "SCCP: Conference: Join thread: entering ast_bridge_join: %s\n", sccp_channel_toString(participant->sccpChannel));
 
         /* set keyset and displayprompt for conference */
-	channel=get_sccp_channel_from_ast_channel(astChannel);
-	if (channel && channel->device && channel->line->name) {		// if talking to an SCCP device
+        /* Note (DD): This should be done by indicating conference call state to device. */
+	if (participant->sccpChannel) {		// if talking to an SCCP device
    	        int instance;
-	        instance = sccp_device_find_index_for_line(channel->device, channel->line->name);
-                if ((channel = participant->conference->moderator->channel)) {
-		        ast_log(LOG_NOTICE, "%s: Conference: Set KeySet/Displayprompt for Moderator %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
-                        sccp_dev_set_keyset(channel->device, instance, channel->callid, KEYMODE_CONNCONF);
-	 	        sccp_dev_displayprompt(channel->device, instance, channel->callid, "Started Conference", 10);
+	        instance = sccp_device_find_index_for_line(participant->sccpChannel->device, participant->sccpChannel->line->name);
+                /* if ((channel = participant->conference->moderator->sccpChannel)) { */
+                if ((participant->sccpChannel == participant->conference->moderator->sccpChannel)) {  // Beware of accidental assignment!
+		        ast_log(LOG_NOTICE, "Conference: Set KeySet/Displayprompt for Moderator %s\n", sccp_channel_toString(participant->sccpChannel));
+                        sccp_dev_set_keyset(participant->sccpChannel->device, instance, participant->sccpChannel->callid, KEYMODE_CONNCONF);
+	 	        sccp_dev_displayprompt(participant->sccpChannel->device, instance, participant->sccpChannel->callid, "Started Conference", 10);
    	 	} else {
-	 	 	ast_log(LOG_NOTICE, "%s: Conference: Set DisplayPrompt for Participant %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
-	 	 	sccp_dev_displayprompt(channel->device, instance, channel->callid, "Entered Conference",10);
+	 	 	ast_log(LOG_NOTICE, "Conference: Set DisplayPrompt for Participant %s\n", sccp_channel_toString(participant->sccpChannel));
+	 	 	sccp_dev_displayprompt(participant->sccpChannel->device, instance, participant->sccpChannel->callid, "Entered Conference", 10);
 	 	}
 	}
 	
 	ast_bridge_join(participant->conference->bridge, astChannel, NULL, &participant->features);
-	/* \todo TODO: We must fix the resolving of the channel lookup the other way round since the channel is not related to the actual participant and its present device. (-DD) */
-	//ast_log(LOG_NOTICE, "SCCP: Conference: Join thread: leaving ast_bridge_join: %s-%08x\n", participant->channel->line->name, participant->channel->callid);
+	ast_log(LOG_NOTICE, "SCCP: Conference: Join thread: leaving ast_bridge_join: %s\n", sccp_channel_toString(participant->sccpChannel));
 
 	if (ast_pbx_start(astChannel)) {
 		ast_log(LOG_WARNING, "SCCP: Unable to start PBX on %s\n", participant->conferenceBridgePeer->name);
@@ -470,7 +501,7 @@ static void *sccp_conference_join_thread(void *data)
 		return NULL;
 	}
 
-	//sccp_conference_removeParticipant(participant->conference, participant->channel);
+	sccp_conference_removeParticipant(participant->conference, participant);
 
 	participant->joinThread = AST_PTHREADT_NULL;
 

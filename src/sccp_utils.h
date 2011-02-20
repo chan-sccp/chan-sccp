@@ -34,6 +34,8 @@ sccp_channel_t *get_sccp_channel_from_ast_channel(struct ast_channel *ast_chan);
 sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * c);
 uint8_t sccp_device_selectedchannels_count(sccp_device_t * d);
 
+const char *sccp_channel_toString(sccp_channel_t *c);
+
 sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime);
 #    define sccp_device_find_byname(x) sccp_device_find_byid(x)
 

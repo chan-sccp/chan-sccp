@@ -760,6 +760,21 @@ sccp_channel_t *sccp_channel_find_bycallstate_on_line_locked(sccp_line_t * l, ui
 }
 
 /*!
+ * \brief Yields string representation from channel (for debug).
+ * \param c SCCP channel
+ * \return string constant (on the heap!)
+ */
+const char *sccp_channel_toString(sccp_channel_t *c)
+{
+	static char buf[256] = { '\0' };
+
+	if(c && c->line && c->line->name)
+		snprintf(buf, 255, "%s-%08x", c->line->name, c->callid);
+
+	return (const char*) buf;
+}
+
+/*!
  * \brief Find Channel by State on Device
  * \param d SCCP Device
  * \param state State as int
