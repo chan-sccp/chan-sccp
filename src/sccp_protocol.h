@@ -3366,18 +3366,6 @@ static uint8_t skSet_Onhook[] = {
 	SKINNY_LBL_DND,
 };										/*!< SKINNY SoftKeys Set "Onhook" as INT */
 
-static uint8_t skSet_OnhookStealable[] = {
-	SKINNY_LBL_REDIAL,
-	SKINNY_LBL_NEWCALL,
-	SKINNY_LBL_CFWDALL,
-#    ifdef CS_SCCP_PICKUP
-	SKINNY_LBL_PICKUP,
-	SKINNY_LBL_GPICKUP,
-#    endif
-	SKINNY_LBL_DND,
-	SKINNY_LBL_INTRCPT,
-};										/*!< SKINNY SoftKeys Set "Onhook" as INT */
-
 static uint8_t skSet_Connected[] = {
 	SKINNY_LBL_HOLD,
 	SKINNY_LBL_ENDCALL,
@@ -3407,6 +3395,7 @@ static uint8_t skSet_Onhold[] = {
 	SKINNY_LBL_DIRTRFR,
 #    endif
 	SKINNY_LBL_IDIVERT,
+	SKINNY_LBL_MEETME,
 };										/*!< SKINNY SoftKeys Set "On Hold" as INT */
 
 static uint8_t skSet_Ringin[] = {
@@ -3448,6 +3437,7 @@ static uint8_t skSet_Conntrans[] = {
 	SKINNY_LBL_SELECT,
 	SKINNY_LBL_DIRTRFR,
 #    endif
+	SKINNY_LBL_MEETME,
 	SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_CFWDBUSY,
 //      SKINNY_LBL_CFWDNOANSWER,
@@ -3459,9 +3449,10 @@ static uint8_t skSet_DigitsFoll[] = {
 };										/*!< SKINNY SoftKeys Set "Digits after dialing first digit" as INT */
 
 static uint8_t skSet_Connconf[] = {
-	SKINNY_LBL_HOLD,
+	SKINNY_LBL_CONFLIST,
 	SKINNY_LBL_ENDCALL,
 	SKINNY_LBL_JOIN,
+	SKINNY_LBL_HOLD,
 };										/*!< SKINNY SoftKeys Set "Connected with Conference" as INT */
 
 static uint8_t skSet_RingOut[] = {
@@ -3485,6 +3476,18 @@ static uint8_t skSet_InUseHint[] = {
 	SKINNY_LBL_PICKUP,
 	SKINNY_LBL_BARGE,
 };										/*!< SKINNY SoftKeys Set "Hint In Use" as INT */
+
+static uint8_t skSet_OnhookStealable[] = {
+	SKINNY_LBL_REDIAL,
+	SKINNY_LBL_NEWCALL,
+	SKINNY_LBL_CFWDALL,
+#    ifdef CS_SCCP_PICKUP
+	SKINNY_LBL_PICKUP,
+	SKINNY_LBL_GPICKUP,
+#    endif
+	SKINNY_LBL_DND,
+	SKINNY_LBL_INTRCPT,
+};										/*!< SKINNY SoftKeys Set "Onhook" as INT */
 
 /*@unused@*/
 static const softkey_modes SoftKeyModes[] = {

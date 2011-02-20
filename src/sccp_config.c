@@ -1920,6 +1920,8 @@ void sccp_config_softKeySet(struct ast_variable *variable, const char *name)
 			keyMode = KEYMODE_OFFHOOKFEAT;
 		} else if (!strcasecmp(variable->name, "onhint")) {
 			keyMode = KEYMODE_INUSEHINT;
+		} else if (!strcasecmp(variable->name, "onstealable")) {
+			keyMode = KEYMODE_ONHOOKSTEALABLE;
 		} else {
 			// do nothing
 		}
