@@ -1217,8 +1217,6 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_moo_t * r)
 			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Channel count on line %d = %d", d->id, instance, num_channels_on_line);
 			if (ringChannel != NULL) {
 				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Answering ringing Channel %d on line %d\n", d->id, ringChannel->callid, instance);
-//				sccp_dev_set_activeline(d, l);
-//				sccp_dev_set_cplane(l, instance, d, 1);
 				sccp_channel_answer_locked(d, ringChannel);
 				sccp_channel_unlock(ringChannel);
 			} else {
