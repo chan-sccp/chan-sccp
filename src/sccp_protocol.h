@@ -3301,8 +3301,9 @@ static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_IDIVERT,
 	SKINNY_LBL_VIDEO_MODE,
 	SKINNY_LBL_INTRCPT,
+    SKINNY_LBL_CBARGE,
+	SKINNY_LBL_MONITOR,
 	SKINNY_LBL_EMPTY,
-//      SKINNY_LBL_CBARGE,
 };										/*!< Soft Keys Map as INT */
 
 /*!
@@ -3379,6 +3380,7 @@ static uint8_t skSet_Connected[] = {
 	SKINNY_LBL_CFWDBUSY,
 //      SKINNY_LBL_CFWDNOANSWER,
 	SKINNY_LBL_IDIVERT,
+	SKINNY_LBL_MONITOR,
 };										/*!< SKINNY SoftKeys Set "Connected" as INT */
 
 static uint8_t skSet_Onhold[] = {
@@ -3441,6 +3443,7 @@ static uint8_t skSet_Conntrans[] = {
 	SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_CFWDBUSY,
 //      SKINNY_LBL_CFWDNOANSWER,
+	SKINNY_LBL_MONITOR,
 };										/*!< SKINNY SoftKeys Set "Connected With Transfer" as INT */
 
 static uint8_t skSet_DigitsFoll[] = {

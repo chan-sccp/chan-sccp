@@ -761,6 +761,21 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 	ast_queue_control(c->owner, AST_CONTROL_BUSY);
 }
 
+
+/*!
+ * \brief Handle Conference List
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
+ * \param c SCCP Channel
+ * \return Success as int
+ */
+void sccp_feat_conflist(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
+{
+#ifdef CS_SCCP_CONFERENCE
+#endif
+}
+
 /*!
  * \brief Handle Conference
  * \param d SCCP Device

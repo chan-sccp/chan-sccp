@@ -1738,10 +1738,19 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_moo_t * r)
 	r1->msg.SoftKeyTemplateResMessage.lel_softKeyOffset = 0;
 
 	for (i = 0; i < arrayLen; i++) {
-		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = 128;
-		r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = softkeysmap[i];
-		r1->msg.SoftKeyTemplateResMessage.definition[i].lel_softKeyEvent = htolel(i + 1);
-		sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i + 1, label2str(r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1]));
+		switch(softkeysmap[i]) {
+			case SKINNY_LBL_MONITOR: // Exception for non-localized string label.
+				strncpy(r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel, label2str(softkeysmap[i]), StationMaxSoftKeyLabelSize);
+				r1->msg.SoftKeyTemplateResMessage.definition[i].lel_softKeyEvent = htolel(i + 1);
+				sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i + 1, r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel);
+				break;
+
+			default:
+				r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = 128;
+				r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = softkeysmap[i];
+				r1->msg.SoftKeyTemplateResMessage.definition[i].lel_softKeyEvent = htolel(i + 1);
+				sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i + 1, label2str(r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1]));
+		}
 	}
 
 	sccp_device_unlock(d);
