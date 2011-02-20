@@ -1305,9 +1305,9 @@ int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum)
 }
 
 /*!
- * \brief Hotline Feature
+ * \brief Hotline/Adhoc Feature
  *
- * Setting the hotline Feature on a device, will make it connect to a predefined extension as soon as the Receiver
+ * Setting the hotline/adhoc/PLAR Feature on a device, will make it connect to a predefined extension as soon as the Receiver
  * is picked up or the "New Call" Button is pressed. No number has to be given.
  *
  * \param d SCCP Device
