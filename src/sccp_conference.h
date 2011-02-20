@@ -36,17 +36,19 @@ extern "C" {
 		 SCCP_LIST_HEAD(, sccp_conference_participant_t) participants;	/*!< participants in conference */
 
 		struct ast_bridge *bridge;
+		unsigned int partIdMax; /*!< The highest id of a participant incrementing. */
 
 		 SCCP_LIST_ENTRY(sccp_conference_t) list;			/*!< Linked List Entry */
 	};
 
 	struct sccp_conference_participant {
-		sccp_channel_t *channel;					/*!< channel */
-		struct ast_channel *conferenceBridgePeer;
+		sccp_channel_t *sccpChannel;					/*!< sccp channel, non-null if the participant resides on an SCCP device */
+		struct ast_channel *conferenceBridgePeer;       /*!< the asterisk channel which joins the conference bridge */
 
 		struct ast_bridge_features features;				/*!< Enabled features information */
 		pthread_t joinThread;
 		sccp_conference_t *conference;
+		unsigned int id; /*!< Numeric participant id. */
 		 SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
 	};
 
@@ -54,7 +56,7 @@ extern "C" {
 
 	sccp_conference_t *sccp_conference_create(sccp_channel_t * owner);
 	void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participant);
-	void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_channel_t * participant);
+	void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant);
 	void sccp_conference_module_start(void);
 	void sccp_conference_end(sccp_conference_t * conference);
 	int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_t * participant, struct ast_channel *currentParticipantPeer);
