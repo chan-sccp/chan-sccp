@@ -677,28 +677,28 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 
 	sccp_moo_t *r1 = NULL;
 
-	int dummy_len, msgSize, hdr_len, padding;
+	int xml_data_len, msgSize, hdr_len, padding;
 
-	dummy_len = strlen(xmlStr);
+	xml_data_len = strlen(xmlStr);
 	hdr_len = 40 - 1;
-	padding = ((dummy_len + hdr_len) % 4);
+	padding = ((xml_data_len + hdr_len) % 4);
 	padding = (padding > 0) ? 4 - padding : 0;
-	msgSize = hdr_len + dummy_len + padding;
+	msgSize = hdr_len + xml_data_len + padding;
 
 	r1 = sccp_build_packet(UserToDeviceDataVersion1Message, msgSize);
 	r1->msg.UserToDeviceDataVersion1Message.lel_callReference = htolel(channel->callid);
 	r1->msg.UserToDeviceDataVersion1Message.lel_transactionId = htolel(conference->id);
 	r1->msg.UserToDeviceDataVersion1Message.lel_sequenceFlag = 0x0002;
 	r1->msg.UserToDeviceDataVersion1Message.lel_displayPriority = 0x0002;
-	r1->msg.UserToDeviceDataVersion1Message.lel_dataLength = htolel(dummy_len);
+	r1->msg.UserToDeviceDataVersion1Message.lel_dataLength = htolel(xml_data_len);
 
-	if (dummy_len) {
-		char buffer[dummy_len + 2];
+	if (xml_data_len) {
+		char buffer[xml_data_len + 2];
 
 		memset(&buffer[0], 0, sizeof(buffer));
-		memcpy(&buffer[0], xmlStr, dummy_len);
+		memcpy(&buffer[0], xmlStr, xml_data_len);
 
-		memcpy(&r1->msg.UserToDeviceDataVersion1Message.dummy, &buffer[0], sizeof(buffer));
+		memcpy(&r1->msg.UserToDeviceDataVersion1Message.xml_data, &buffer[0], sizeof(buffer));
 		sccp_dev_send(channel->device, r1);
 	} else {
 		// error sending message
