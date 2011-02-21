@@ -73,6 +73,7 @@ extern "C" {
 	void sccp_conference_unmute_participant(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_promote_participant(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_demode_participant(sccp_conference_t * conference, sccp_channel_t * channel);
+	void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_channel_t * channel);
 
 /* internal structure */
 
