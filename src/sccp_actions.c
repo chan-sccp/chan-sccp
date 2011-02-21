@@ -2425,6 +2425,9 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 		sccp_sk_resume(d, l, lineInstance, c);
 		break;
 #endif
+	case SKINNY_LBL_MONITOR:
+		sccp_feat_monitor(d, c);
+		break;
 	case SKINNY_LBL_CONFLIST:
 		sccp_sk_conflist(d, l, lineInstance, c);
 		break;
@@ -3068,7 +3071,9 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 		break;
 #ifdef CS_SCCP_FEATURE_MONITOR
 	case SCCP_FEATURE_MONITOR:
-		d->monitorFeature.status = (d->monitorFeature.status) ? 0 : 1;
+		// We must not toggle here, since that would reflect wrong status.
+		//d->monitorFeature.status = (d->monitorFeature.status) ? 0 : 1;
+		;
 		sccp_channel_t *channel = sccp_channel_get_active_locked(d);
 
 		sccp_feat_monitor(d, channel);

@@ -1376,6 +1376,7 @@ void sccp_feat_adhocDial(sccp_device_t * d, sccp_line_t * line)
 void sccp_feat_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 {
 	if (device) {
+
 		sccp_featButton_changed(device, featureType);
 
 		sccp_event_t *event = ast_malloc(sizeof(sccp_event_t));
@@ -1386,6 +1387,17 @@ void sccp_feat_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 		event->event.featureChanged.device = device;
 		event->event.featureChanged.featureType = featureType;
 		sccp_event_fire((const sccp_event_t **)&event);
+
+
+		if(SCCP_FEATURE_MONITOR == featureType) {
+		/* Special case for monitor */
+		sccp_moo_t *r;
+        REQ(r, SetLampMessage);
+		r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
+		r->msg.SetLampMessage.lel_stimulusInstance = 0;
+		r->msg.SetLampMessage.lel_lampMode = htolel((device->monitorFeature.status)? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
+		sccp_dev_send(device, r);
+		}
 
 	}
 }
@@ -1405,9 +1417,12 @@ void sccp_feat_channelStateChanged(sccp_device_t * device, sccp_channel_t * chan
 	state = channel->state;
 	switch (state) {
 	case SCCP_CHANNELSTATE_CONNECTED:
+		/* We must update the status here. Not change it. (DD) */
+		/*
 		if (device->monitorFeature.enabled && device->monitorFeature.status != channel->monitorEnabled) {
 			sccp_feat_monitor(device, channel);
 		}
+		*/
 		break;
 	case SCCP_CHANNELSTATE_DOWN:
 	case SCCP_CHANNELSTATE_ONHOOK:
@@ -1428,6 +1443,15 @@ void sccp_feat_channelStateChanged(sccp_device_t * device, sccp_channel_t * chan
 
 }
 
+int checkMonCond(void *v) {
+	struct ast_channel *c = (struct ast_channel *) v;
+	
+	if(NULL == c)
+		return 1;
+
+	return (c->monitor) ? 1 : 0;
+}
+
 /*!
  * \brief Feature Monitor
  * \param device SCCP Device
@@ -1438,6 +1462,8 @@ void sccp_feat_monitor(sccp_device_t * device, sccp_channel_t * channel)
 #if ASTERISK_VERSION_NUM >= 10600
 #    ifdef CS_SCCP_FEATURE_MONITOR
 	struct ast_call_feature *feat;
+
+	struct ast_channel *bridge;
 
 	struct ast_frame f;
 
@@ -1450,8 +1476,15 @@ void sccp_feat_monitor(sccp_device_t * device, sccp_channel_t * channel)
 
 	unsigned int j;
 
-	if (!channel)
+	if (!channel || !channel->owner)
 		return;
+
+	bridge = ast_bridged_channel(channel->owner);
+
+	if (!bridge) {
+		sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "Recording requested, but we have no bridged peer.\n");
+		return;
+	}
 
 	ast_rdlock_call_features();
 	feat = ast_find_call_feature("automon");
@@ -1460,14 +1493,27 @@ void sccp_feat_monitor(sccp_device_t * device, sccp_channel_t * channel)
 		ast_unlock_call_features();
 		return;
 	}
+
+	/* Suggestion: We could do monitoring directly.
+	   So we would be able to do it without ugly dtmf packets. 
+	   At the moment we have to pause a bit to wait for activity on the channel.
+	   */
+
 	f.len = 100;
 	for (j = 0; j < strlen(feat->exten); j++) {
 		f.subclass = feat->exten[j];
 		ast_queue_frame(channel->owner, &f);
 	}
 	ast_unlock_call_features();
-	channel->monitorEnabled = (channel->monitorEnabled) ? FALSE : TRUE;
 
+	//int res = ast_safe_sleep_conditional(bridge, 1000, &checkMonCond, bridge);
+	//usleep(20000);
+
+	// Look at asterisk/main/features.c and asterisk/res/res_monitor.c to understand (-DD).
+	//channel->monitorEnabled = (bridge->monitor) ? 1 : 0;
+	device->monitorFeature.status = (device->monitorFeature.status) ? 0 : 1;
+
+	sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "Recording requested. Do we? %s!\n", device->monitorFeature.status ? "YES" : "NO");
 	sccp_feat_changed(device, SCCP_FEATURE_MONITOR);
 #    endif
 #endif

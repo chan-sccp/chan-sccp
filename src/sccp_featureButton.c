@@ -56,7 +56,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 
 	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;				// Default feature type.
 
-	boolean_t cfwdButtonEnabeld = TRUE;
+	boolean_t cfwdButtonEnabled = TRUE;
 
 #ifdef CS_DEVSTATE_FEATURE
 	char buf[254] = "";
@@ -116,14 +116,14 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 
 							/* set this button active, only if all lines are fwd -requesting issue #3081549 */
 							if (linedevice->cfwdAll.enabled == 0) {
-								cfwdButtonEnabeld = FALSE;
+								cfwdButtonEnabled = FALSE;
 							}
 						}
 					}
 				}
 				buttonconfig = NULL;
 
-				if (cfwdButtonEnabeld)
+				if (cfwdButtonEnabled)
 					config->button.feature.status = 1;
 				else
 					config->button.feature.status = 0;
@@ -143,6 +143,8 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				break;
 			case SCCP_FEATURE_MONITOR:
 				config->button.feature.status = (device->monitorFeature.status) ? 1 : 0;
+
+
 				break;
 
 #ifdef CS_DEVSTATE_FEATURE
