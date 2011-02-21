@@ -207,7 +207,7 @@ static const struct skinny_label {
 	{SKINNY_LBL_SECURITY_ERROR, "Security Error"},
 	{SKINNY_LBL_VIDEO_BANDWIDTH_UNAVAILABLE, "Video Bandwidth Unavailable"},
 	{SKINNY_LBL_VIDEO_MODE, "Video Mode"},
-	{SKINNY_LBL_MONITOR, "Monitor"}
+	{SKINNY_LBL_MONITOR, "Record"}
 	/* *INDENT-ON* */
 };
 
