@@ -610,6 +610,9 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 			sccp_handle_unknown_message(s, r);
 		}
 		break;
+	case DeviceToUserDataVersion1Message:
+		sccp_handle_device_to_user(s,r);
+		break;
 	default:
 		sccp_handle_unknown_message(s, r);
 	}

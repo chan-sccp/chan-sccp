@@ -212,7 +212,6 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 	if (ast_pthread_create_background(&participant->joinThread, NULL, sccp_conference_join_thread, participant) < 0) {
 		// \todo TODO: error handling
 	}
-
 	// Now done in add_participant
 	// pbx_channel_unlock(chan);
 
@@ -532,9 +531,9 @@ static void *sccp_conference_join_thread(void *data)
  */
 boolean_t isModerator(sccp_conference_participant_t * participant, sccp_channel_t * channel)
 {
-	if(participant && channel && participant->sccpChannel && participant->sccpChannel == channel)
+	if (participant && channel && participant->sccpChannel && participant->sccpChannel == channel)
 		return TRUE;
-	else 
+	else
 		return FALSE;
 }
 
@@ -547,27 +546,33 @@ boolean_t isModerator(sccp_conference_participant_t * participant, sccp_channel_
 void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * channel)
 {
 	// isModerator()
-	int use_icon=0;
+	int use_icon = 0;
+
 	// 
-	char xmlStr[512]="";
+	char xmlStr[2048] = "";
 	char xmlTemp[512];
 	sccp_conference_participant_t *participant;
+	sccp_conference_participant_t *me;
 
-	strcat(xmlStr, "<CiscoIPPhoneIconMenu>\n");			// Will be CiscoIPPhoneIconMenu with icons for participant, moderator, muted, unmuted
+	strcat(xmlStr, "<CiscoIPPhoneIconMenu>\n");				// Will be CiscoIPPhoneIconMenu with icons for participant, moderator, muted, unmuted
 	strcat(xmlStr, "<Title>Conference List</Title>\n");
-	strcat(xmlStr, "<Prompt>Make Your Selection</Prompt>\n");  
+	strcat(xmlStr, "<Prompt>Make Your Selection</Prompt>\n");
 
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
+		if (participant->sccpChannel == channel) {
+			me = participant;
+		}
+
 		strcat(xmlStr, "<MenuItem>\n");
-		 
+
 		/* IconIndex */
 		/* example: <IconIndex>1</IconIndex> */
 		if (isModerator(participant, channel))
-			use_icon=0;
+			use_icon = 0;
 		else
-			use_icon=2;
-		
+			use_icon = 2;
+
 		if (participant->muted) {
 			++use_icon;
 		}
@@ -577,20 +582,21 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		strcat(xmlStr, "</IconIndex>\n");
 
 		/* NAME */
-		/* example: <Name>22 7920</Name>*/
+		/* example: <Name>22 7920</Name> */
 		strcat(xmlStr, "  <Name>");
-		if(participant->sccpChannel){
+		if (participant->sccpChannel) {
 			//TODO check in-/outbaound direction
 			strcat(xmlStr, participant->sccpChannel->callInfo.callingPartyName);
-		}else{
+		} else {
 			// \todo get callerid info from asterisk channel
 		}
 		strcat(xmlStr, "</Name>\n");
 
 		/* URL */
-		/* example: <URL>UserCallData:0:0:16777237:16777224:16777238</URL>*/
-		strcat(xmlStr, "  <URL>QueryStringParam:participant_id=");
-		sprintf(xmlTemp, "%d", participant->id);
+		/* example: <URL>UserCallData:0:0:16777237:16777224:16777238</URL> */
+		
+		strcat(xmlStr, "  <URL>UserCallData:0:0:%d:%d:%d");
+		sprintf(xmlTemp, "UserCallData:%d:%d:%d", channel->callid, conference->id, participant->id);
 		strcat(xmlStr, xmlTemp);
 		strcat(xmlStr, "</URL>\n");
 		strcat(xmlStr, "</MenuItem>\n");
@@ -603,33 +609,17 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	strcat(xmlStr, "  <URL>QueryStringParam:action=update</URL>\n");
 	strcat(xmlStr, "</SoftKeyItem>\n");
 
-        if ((channel == conference->moderator->sccpChannel)) {
+	if ((channel == conference->moderator->sccpChannel)) {
 		strcat(xmlStr, "<SoftKeyItem>\n");
 		strcat(xmlStr, "  <Name>ToggleMute</Name>\n");
 		strcat(xmlStr, "  <Position>2</Position>\n");
-		strcat(xmlStr, "  <URL>UserCallData:0:0:");
-		sprintf(xmlTemp, "%d", channel->callid);
-		strcat(xmlStr, xmlTemp);
-		strcat(xmlStr, ":");
-		sprintf(xmlTemp, "%d", conference->id);
-		strcat(xmlStr, xmlTemp);
-		strcat(xmlStr, ":");
-		strcat(xmlStr, "MUTE");
-		strcat(xmlStr, "</URL>\n");
+		strcat(xmlStr, "  <URL>QueryStringParam:action=mute</URL>\n");
 		strcat(xmlStr, "</SoftKeyItem>\n");
-				  
+
 		strcat(xmlStr, "<SoftKeyItem>\n");
 		strcat(xmlStr, "  <Name>Kick</Name>\n");
 		strcat(xmlStr, "  <Position>3</Position>\n");
-		strcat(xmlStr, "  <URL>UserCallData:0:0:");
-		sprintf(xmlTemp, "%d", channel->callid);
-		strcat(xmlStr, xmlTemp);
-		sprintf(xmlTemp, "%d", conference->id);
-		strcat(xmlStr, xmlTemp);
-		strcat(xmlStr, ":");
-		strcat(xmlStr, "KICK");
-		strcat(xmlStr, ":");
-		strcat(xmlStr, "</URL>\n");
+		strcat(xmlStr, "  <URL>QueryStringParam:action=kick</URL>\n");
 		strcat(xmlStr, "</SoftKeyItem>\n");
 	}
 
@@ -640,40 +630,40 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	strcat(xmlStr, "</SoftKeyItem>\n");
 
 	// CiscoIPPhoneIconMenu Icons
-        strcat(xmlStr, "<IconItem>\n");	// moderator
-        strcat(xmlStr, "  <Index>0</Index>\n");
-        strcat(xmlStr, "  <Height>10</Height>\n");
-        strcat(xmlStr, "  <Width>16</Width>\n");
-        strcat(xmlStr, "  <Depth>2</Depth>\n");
-        strcat(xmlStr, "  <Data>000F0000C03F3000C03FF000C03FF003000FF00FFCFFF30FFCFFF303CC3FF300CC3F330000000000</Data>\n");
-        strcat(xmlStr, "</IconItem>\n");
+	strcat(xmlStr, "<IconItem>\n");						// moderator
+	strcat(xmlStr, "  <Index>0</Index>\n");
+	strcat(xmlStr, "  <Height>10</Height>\n");
+	strcat(xmlStr, "  <Width>16</Width>\n");
+	strcat(xmlStr, "  <Depth>2</Depth>\n");
+	strcat(xmlStr, "  <Data>000F0000C03F3000C03FF000C03FF003000FF00FFCFFF30FFCFFF303CC3FF300CC3F330000000000</Data>\n");
+	strcat(xmlStr, "</IconItem>\n");
 
-        strcat(xmlStr, "<IconItem>\n");	// muted moderator
-        strcat(xmlStr, "  <Index>1</Index>\n");
-        strcat(xmlStr, "  <Height>10</Height>\n");
-        strcat(xmlStr, "  <Width>16</Width>\n");
-        strcat(xmlStr, "  <Depth>2</Depth>\n");
-        strcat(xmlStr, "  <Data>000F0000C03FF03CC03FF03CC03FF03C000FF03CFCFFF33CFCFFF33CCC3FF33CCC3FF33C00000000</Data>\n");
-        strcat(xmlStr, "</IconItem>\n");
+	strcat(xmlStr, "<IconItem>\n");						// muted moderator
+	strcat(xmlStr, "  <Index>1</Index>\n");
+	strcat(xmlStr, "  <Height>10</Height>\n");
+	strcat(xmlStr, "  <Width>16</Width>\n");
+	strcat(xmlStr, "  <Depth>2</Depth>\n");
+	strcat(xmlStr, "  <Data>000F0000C03FF03CC03FF03CC03FF03C000FF03CFCFFF33CFCFFF33CCC3FF33CCC3FF33C00000000</Data>\n");
+	strcat(xmlStr, "</IconItem>\n");
 
-        strcat(xmlStr, "<IconItem>\n");	// participant
-        strcat(xmlStr, "  <Index>2</Index>\n");
-        strcat(xmlStr, "  <Height>10</Height>\n");
-        strcat(xmlStr, "  <Width>16</Width>\n");
-        strcat(xmlStr, "  <Depth>2</Depth>\n");
-        strcat(xmlStr, "  <Data>000F0000C0303000C030F000C030F003000FF00FFCF0F30F0C00F303CC30F300CC30330000000000</Data>\n");
-        strcat(xmlStr, "</IconItem>\n");
+	strcat(xmlStr, "<IconItem>\n");						// participant
+	strcat(xmlStr, "  <Index>2</Index>\n");
+	strcat(xmlStr, "  <Height>10</Height>\n");
+	strcat(xmlStr, "  <Width>16</Width>\n");
+	strcat(xmlStr, "  <Depth>2</Depth>\n");
+	strcat(xmlStr, "  <Data>000F0000C0303000C030F000C030F003000FF00FFCF0F30F0C00F303CC30F300CC30330000000000</Data>\n");
+	strcat(xmlStr, "</IconItem>\n");
 
-        strcat(xmlStr, "<IconItem>\n");	// muted participant
-        strcat(xmlStr, "  <Index>3</Index>\n");
-        strcat(xmlStr, "  <Height>10</Height>\n");
-        strcat(xmlStr, "  <Width>16</Width>\n");
-        strcat(xmlStr, "  <Depth>2</Depth>\n");
-        strcat(xmlStr, "  <Data>000F0000C030F03CC030F03CC030F03C000FF03CFCF0F33C0C00F33CCC30F33CCC30F33C00000000</Data>\n");
-        strcat(xmlStr, "</IconItem>\n");
+	strcat(xmlStr, "<IconItem>\n");						// muted participant
+	strcat(xmlStr, "  <Index>3</Index>\n");
+	strcat(xmlStr, "  <Height>10</Height>\n");
+	strcat(xmlStr, "  <Width>16</Width>\n");
+	strcat(xmlStr, "  <Depth>2</Depth>\n");
+	strcat(xmlStr, "  <Data>000F0000C030F03CC030F03CC030F03C000FF03CFCF0F33C0C00F33CCC30F33CCC30F33C00000000</Data>\n");
+	strcat(xmlStr, "</IconItem>\n");
 
 	strcat(xmlStr, "</CiscoIPPhoneIconMenu>\n");
-	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "xml-message:\n%s\n",xmlStr);
+	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "xml-message:\n%s\n", xmlStr);
 
 	sccp_moo_t *r1 = NULL;
 
@@ -686,8 +676,10 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	msgSize = hdr_len + xml_data_len + padding;
 
 	r1 = sccp_build_packet(UserToDeviceDataVersion1Message, msgSize);
+	r1->msg.UserToDeviceDataVersion1Message.lel_appID = 1;
 	r1->msg.UserToDeviceDataVersion1Message.lel_callReference = htolel(channel->callid);
 	r1->msg.UserToDeviceDataVersion1Message.lel_transactionId = htolel(conference->id);
+//	r1->msg.UserToDeviceDataVersion1Message.lel_conferenceId = htolel(conference->id);
 	r1->msg.UserToDeviceDataVersion1Message.lel_sequenceFlag = 0x0002;
 	r1->msg.UserToDeviceDataVersion1Message.lel_displayPriority = 0x0002;
 	r1->msg.UserToDeviceDataVersion1Message.lel_dataLength = htolel(xml_data_len);
@@ -704,6 +696,13 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		// error sending message
 	}
 }
+
+/*
+void sccp_conference_handle_device_to_user(uint32_t callReference, uint32_t transactionId, uint32_t conferenceID, uint32_t sequenceFlag, uint32_t displayPriority, uint32_t dataLength, char *xml_data) 
+{
+
+}
+*/
 
 /*!
  * \brief Kick Participant from Conference
