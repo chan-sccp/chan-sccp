@@ -1050,8 +1050,8 @@ typedef enum {
 	SKINNY_CODEC_G728 = 10,
 	SKINNY_CODEC_G729 = 11,
 	SKINNY_CODEC_G729_A = 12,
-	SKINNY_CODEC_IS11172 = 13,
-	SKINNY_CODEC_IS13818 = 14,
+	SKINNY_CODEC_IS11172 = 13,						
+	SKINNY_CODEC_IS13818 = 14,						
 	SKINNY_CODEC_G729_B = 15,
 	SKINNY_CODEC_G729_AB = 16,
 	SKINNY_CODEC_GSM_FULLRATE = 18,
@@ -1073,7 +1073,7 @@ typedef enum {
 	SKINNY_CODEC_ISAC = 89,
 	SKINNY_CODEC_H261 = 100,
 	SKINNY_CODEC_H263 = 101,
-	SKINNY_CODEC_H263P = 102,
+	SKINNY_CODEC_H263P = 102,						// aka. Vieo
 	SKINNY_CODEC_H264 = 103,
 	SKINNY_CODEC_T120 = 105,
 	SKINNY_CODEC_H224 = 106,
@@ -1297,7 +1297,6 @@ typedef enum {
 	RegisterRejectMessage = 0x009D,
 	ServerResMessage = 0x009E,
 	Reset = 0x009F,
-
 	KeepAliveAckMessage = 0x0100,
 	StartMulticastMediaReception = 0x0101,
 	StartMulticastMediaTransmission = 0x0102,
@@ -1308,7 +1307,6 @@ typedef enum {
 	ConnectionStatisticsReq = 0x0107,
 	SoftKeyTemplateResMessage = 0x0108,
 	SoftKeySetResMessage = 0x0109,
-
 	SelectSoftKeysMessage = 0x0110,
 	CallStateMessage = 0x0111,
 	DisplayPromptStatusMessage = 0x0112,
@@ -1861,13 +1859,70 @@ typedef union {
 		uint32_t lel_callReference;
 		uint32_t lel_transactionId;
 		uint32_t lel_dataLength;
+		uint32_t xml_data;
+	} UserToDeviceDataMessage;						/*!< User to Device Message Structure */
+
+	struct {
+		uint32_t lel_appID;
+		uint32_t lel_lineInstance;
+		uint32_t lel_callReference;
+		uint32_t lel_transactionId;
+		uint32_t lel_dataLength;
 		uint32_t lel_sequenceFlag;
 		uint32_t lel_displayPriority;
 		uint32_t lel_conferenceID;
 		uint32_t lel_appInstanceId;
 		uint32_t lel_routing;
-		uint32_t dummy;
-	} UserToDeviceDataVersion1Message;
+		uint32_t xml_data;
+	} UserToDeviceDataVersion1Message;					/*!< User to Device Version1 Message Structure */
+
+	struct {
+		uint32_t lel_appID;
+		uint32_t lel_lineInstance;
+		uint32_t lel_callReference;
+		uint32_t lel_transactionId;
+		uint32_t lel_dataLength;
+		uint32_t xml_data;
+	} DeviceToUserDataMessage;						/*!< Device to User Message Structure */
+
+	struct {
+		uint32_t lel_appID;
+		uint32_t lel_lineInstance;
+		uint32_t lel_callReference;
+		uint32_t lel_transactionId;
+		uint32_t lel_dataLength;
+		uint32_t xml_data;
+	} DeviceToUserDataResponseMessage;					/*!< Device to User Response Message Structure */
+
+
+	struct {
+		uint32_t lel_appID;
+		uint32_t lel_lineInstance;
+		uint32_t lel_callReference;
+		uint32_t lel_transactionId;
+		uint32_t lel_dataLength;
+		uint32_t lel_sequenceFlag;
+		uint32_t lel_displayPriority;
+		uint32_t lel_conferenceID;
+		uint32_t lel_appInstanceId;
+		uint32_t lel_routing;
+		uint32_t xml_data;
+	} DeviceToUserDataVersion1Message;					/*!< Device to User Version1 Message Structure */
+
+	struct {
+		uint32_t lel_appID;
+		uint32_t lel_lineInstance;
+		uint32_t lel_callReference;
+		uint32_t lel_transactionId;
+		uint32_t lel_dataLength;
+		uint32_t lel_sequenceFlag;
+		uint32_t lel_displayPriority;
+		uint32_t lel_conferenceID;
+		uint32_t lel_appInstanceId;
+		uint32_t lel_routing;
+		uint32_t xml_data;
+	} DeviceToUserDataResponseVersion1Message;					/*!< Device to User Response Version1 Message Structure */
+                
 
 	/* AccessoryStatusMessage (0x0073):
 	 * This indicates the phone headset, handset or speaker status.
@@ -2444,8 +2499,8 @@ typedef union {
 		uint32_t lel_videoCapCount;					/*!< Video Capability Count */
 		uint32_t lel_dataCapCount;					/*!< Data Capability Count */
 		uint32_t RTPPayloadFormat;					/*!< RTP Payload Format */
-		uint32_t customPictureFormatCount;				/*!< Custom Picture Format Count */
 
+		uint32_t customPictureFormatCount;				/*!< Custom Picture Format Count */
 		customPictureFormat_t customPictureFormat[MAX_CUSTOM_PICTURES];	/*!< Custom Picture Format */
 
 		uint32_t activeStreamsOnRegistration;				/*!< Active Streams on Registration */
