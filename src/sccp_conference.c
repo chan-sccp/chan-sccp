@@ -527,8 +527,8 @@ static void *sccp_conference_join_thread(void *data)
  *
  * \param conference SCCP Conference
  * \param channel SCCP Channel
- *
- * \todo this doesn't work correctly yet (apparently)
+ * 
+ * \return Boolean
  */
 boolean_t isModerator(sccp_conference_participant_t * participant, sccp_channel_t * channel)
 {
@@ -539,21 +539,17 @@ boolean_t isModerator(sccp_conference_participant_t * participant, sccp_channel_
 }
 
 /*!
- * Show Conference List
+ * \brief Show Conference List
  *
  * \param conference SCCP Conference
  * \param channel SCCP Channel
- * IconItem(0,10,16,2,"000F0000C03F3000C03FF000C03FF003000FF00FFCFFF30FFCFFF303CC3FF300CC3F330000000000");  # active moderator 
- * IconItem(1,10,16,2,"000F0000C03FF03CC03FF03CC03FF03C000FF03CFCFFF33CFCFFF33CCC3FF33CCC3FF33C00000000");  # muted moderator  
- * IconItem(2,10,16,2,"000F0000C0303000C030F000C030F003000FF00FFCF0F30F0C00F303CC30F300CC30330000000000");  # active member
- * IconItem(3,10,16,2,"000F0000C030F03CC030F03CC030F03C000FF03CFCF0F33C0C00F33CCC30F33CCC30F33C00000000");  # muted member
  */
 void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * channel)
 {
 	// isModerator()
 	int use_icon=0;
 	// 
-	char xmlStr[2048]="";
+	char xmlStr[512]="";
 	char xmlTemp[512];
 	sccp_conference_participant_t *participant;
 
@@ -593,13 +589,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 
 		/* URL */
 		/* example: <URL>UserCallData:0:0:16777237:16777224:16777238</URL>*/
-		strcat(xmlStr, "  <URL>UserCallData:0:0:");
-		sprintf(xmlTemp, "%d", channel->callid);
-		strcat(xmlStr, xmlTemp);
-		strcat(xmlStr, ":");
-		sprintf(xmlTemp, "%d", conference->id);
-		strcat(xmlStr, xmlTemp);
-		strcat(xmlStr, ":");
+		strcat(xmlStr, "  <URL>QueryStringParam:participant_id=");
 		sprintf(xmlTemp, "%d", participant->id);
 		strcat(xmlStr, xmlTemp);
 		strcat(xmlStr, "</URL>\n");
@@ -617,13 +607,29 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		strcat(xmlStr, "<SoftKeyItem>\n");
 		strcat(xmlStr, "  <Name>ToggleMute</Name>\n");
 		strcat(xmlStr, "  <Position>2</Position>\n");
-		strcat(xmlStr, "  <URL>QueryStringParam:action=mute</URL>\n");
+		strcat(xmlStr, "  <URL>UserCallData:0:0:");
+		sprintf(xmlTemp, "%d", channel->callid);
+		strcat(xmlStr, xmlTemp);
+		strcat(xmlStr, ":");
+		sprintf(xmlTemp, "%d", conference->id);
+		strcat(xmlStr, xmlTemp);
+		strcat(xmlStr, ":");
+		strcat(xmlStr, "MUTE");
+		strcat(xmlStr, "</URL>\n");
 		strcat(xmlStr, "</SoftKeyItem>\n");
 				  
 		strcat(xmlStr, "<SoftKeyItem>\n");
 		strcat(xmlStr, "  <Name>Kick</Name>\n");
 		strcat(xmlStr, "  <Position>3</Position>\n");
-		strcat(xmlStr, "  <URL>QueryStringParam:action=kick</URL>\n");
+		strcat(xmlStr, "  <URL>UserCallData:0:0:");
+		sprintf(xmlTemp, "%d", channel->callid);
+		strcat(xmlStr, xmlTemp);
+		sprintf(xmlTemp, "%d", conference->id);
+		strcat(xmlStr, xmlTemp);
+		strcat(xmlStr, ":");
+		strcat(xmlStr, "KICK");
+		strcat(xmlStr, ":");
+		strcat(xmlStr, "</URL>\n");
 		strcat(xmlStr, "</SoftKeyItem>\n");
 	}
 
@@ -700,7 +706,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 }
 
 /*!
- * Kick Participant from Conference
+ * \brief Kick Participant from Conference
  *
  * \param conference SCCP Conference
  * \param channel SCCP Channel
@@ -710,7 +716,7 @@ void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_chann
 }
 
 /*!
- * Mute Conference Participant
+ * \brief Mute Conference Participant
  *
  * \param conference SCCP Conference
  * \param channel SCCP Channel
@@ -720,7 +726,7 @@ void sccp_conference_mute_participant(sccp_conference_t * conference, sccp_chann
 }
 
 /*!
- * Unmute Conference Participant
+ * \brief Unmute Conference Participant
  *
  * \param conference SCCP Conference
  * \param channel SCCP Channel
@@ -730,7 +736,7 @@ void sccp_conference_unmute_participant(sccp_conference_t * conference, sccp_cha
 }
 
 /*!
- * Promote Participant to Moderator
+ * \brief Promote Participant to Moderator
  *
  * \param conference SCCP Conference
  * \param channel SCCP Channel
@@ -742,7 +748,7 @@ void sccp_conference_promote_participant(sccp_conference_t * conference, sccp_ch
 }
 
 /*!
- * Demode Moderator to Participant
+ * \brief Demode Moderator to Participant
  *
  * \param conference SCCP Conference
  * \param channel SCCP Channel
@@ -750,6 +756,22 @@ void sccp_conference_promote_participant(sccp_conference_t * conference, sccp_ch
  * \todo how to handle multiple moderators
  */
 void sccp_conference_demode_participant(sccp_conference_t * conference, sccp_channel_t * channel)
+{
+}
+
+/*!
+ * \brief Invite Remote Participant
+ *
+ * Allows us to enter a phone number and return to the conference immediatly. 
+ * Participant is called in a seperate thread, played a message that he/she has been invited to join this conference
+ *  and will be added to the conference upon accept.
+ *
+ * \param conference SCCP Conference
+ * \param channel SCCP Channel
+ *
+ * \todo how to handle multiple moderators
+ */
+void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_channel_t * channel)
 {
 }
 #    endif									// ASTERISK_VERSION_NUM
