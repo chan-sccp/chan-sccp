@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_conference.h
  * \brief 	SCCP Conference Header
@@ -36,20 +37,21 @@ extern "C" {
 		 SCCP_LIST_HEAD(, sccp_conference_participant_t) participants;	/*!< participants in conference */
 
 		struct ast_bridge *bridge;
-		unsigned int partIdMax; /*!< The highest id of a participant incrementing. */
+		unsigned int partIdMax;						/*!< The highest id of a participant incrementing. */
 
 		 SCCP_LIST_ENTRY(sccp_conference_t) list;			/*!< Linked List Entry */
 	};
 
 	struct sccp_conference_participant {
 		sccp_channel_t *sccpChannel;					/*!< sccp channel, non-null if the participant resides on an SCCP device */
-		struct ast_channel *conferenceBridgePeer;       /*!< the asterisk channel which joins the conference bridge */
+		struct ast_channel *conferenceBridgePeer;			/*!< the asterisk channel which joins the conference bridge */
 
 		struct ast_bridge_features features;				/*!< Enabled features information */
 		pthread_t joinThread;
 		sccp_conference_t *conference;
-		unsigned int id; /*!< Numeric participant id. */
-		 SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
+		unsigned int id;						/*!< Numeric participant id. */
+		unsigned int muted;						/*!< Participant is Muted */
+		SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
 	};
 
 /* prototype definition */
@@ -64,6 +66,13 @@ extern "C" {
 
 	void sccp_conference_readFrame(struct ast_frame *frame, sccp_channel_t * channel);
 	void sccp_conference_writeFrame(struct ast_frame *frame, sccp_channel_t * channel);
+
+	void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * channel);
+	void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_channel_t * channel);
+	void sccp_conference_mute_participant(sccp_conference_t * conference, sccp_channel_t * channel);
+	void sccp_conference_unmute_participant(sccp_conference_t * conference, sccp_channel_t * channel);
+	void sccp_conference_promote_participant(sccp_conference_t * conference, sccp_channel_t * channel);
+	void sccp_conference_demode_participant(sccp_conference_t * conference, sccp_channel_t * channel);
 
 /* internal structure */
 

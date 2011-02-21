@@ -26,6 +26,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 static int lastConferenceID = 0;
 
 static void *sccp_conference_join_thread(void *data);
+boolean_t isModerator(sccp_conference_t * conference, sccp_channel_t * channel);
 
 /*!
  * Create conference
@@ -72,7 +73,6 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 		return NULL;
 	}
 
-
 	/* create moderator */
 	moderator = (sccp_conference_participant_t *) ast_malloc(sizeof(sccp_conference_participant_t));
 	if (!moderator) {
@@ -93,21 +93,19 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 	owner->conference = conference;
 	conference->moderator = moderator;
 
-
-#if 0
+#        if 0
 	/* add moderator to participants list */
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference: adding moderator to participant list.\n", owner->device->id);
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_INSERT_TAIL(&conference->participants, moderator, list);
 	SCCP_LIST_UNLOCK(&conference->participants);
 
-
 	/* Add moderator to conference. */
 	if (0 != sccp_conference_addAstChannelToConferenceBridge(moderator, moderator->sccpChannel->owner)) {
 		ast_log(LOG_ERROR, "SCCP: Conference: failed to add moderator channel (preparation phase).\n");
 		/* TODO: Error handling. */
 	}
-#endif
+#        endif
 
 	/* Store conference in global list. */
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference: adding conference to global conference list.\n", owner->device->id);
@@ -117,14 +115,13 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference: Conference with id %d created; Owner: %s \n", owner->device->id, conference->id, owner->device->id);
 
-#if 0
+#        if 0
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_create.\n");
 	if (ast_pthread_create_background(&moderator->joinThread, NULL, sccp_conference_join_thread, moderator) < 0) {
 		ast_log(LOG_ERROR, "SCCP: Conference: failed to initiate join thread for moderator.\n");
 		return conference;
 	}
-#endif
-	
+#        endif
 
 	return conference;
 }
@@ -152,72 +149,69 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 
 	// Now done in add_participant
 	// pbx_channel_lock(chan);
-	
-		//if (chan->pbx) {
-		#if 1
-		//ast_channel_lock(chan);
-		ast_set_flag(chan, AST_FLAG_BRIDGE_HANGUP_DONT); /* don't let the after-bridge code run the h-exten */
-		//ast_channel_unlock(chan);
-		#endif
-//	}
 
-struct ast_channel *bridge = CS_AST_BRIDGED_CHANNEL(chan);
+	//if (chan->pbx) {
+#        if 1
+	//ast_channel_lock(chan);
+	ast_set_flag(chan, AST_FLAG_BRIDGE_HANGUP_DONT);			/* don't let the after-bridge code run the h-exten */
+	//ast_channel_unlock(chan);
+#        endif
+//      }
+
+	struct ast_channel *bridge = CS_AST_BRIDGED_CHANNEL(chan);
 
 /* Prevent also the bridge from hanging up. */
-if (NULL != bridge) {
-#if 0
+	if (NULL != bridge) {
+#        if 0
 		//ast_channel_lock(bridge);
-		ast_set_flag(bridge, AST_FLAG_BRIDGE_HANGUP_DONT); /* don't let the after-bridge code run the h-exten */
+		ast_set_flag(bridge, AST_FLAG_BRIDGE_HANGUP_DONT);		/* don't let the after-bridge code run the h-exten */
 		//ast_channel_unlock(bridge);
-	#endif
-		}
+#        endif
+	}
 
 	/* Allocate an asterisk channel structure as conference bridge peer for the participant */
-	participant->conferenceBridgePeer = ast_channel_alloc(0, chan->_state, 0, 0, chan->accountcode, 
-	   chan->exten, chan->context, chan->amaflags, "ConferenceBridge/%s", chan->name);
-	   
-	   if(!participant->conferenceBridgePeer) {
-	   ast_log(LOG_NOTICE, "Couldn't allocate participant peer.\n");
-	  	 //pbx_channel_unlock(chan);
-	 	  return -1;
-	   }
+	participant->conferenceBridgePeer = ast_channel_alloc(0, chan->_state, 0, 0, chan->accountcode, chan->exten, chan->context, chan->amaflags, "ConferenceBridge/%s", chan->name);
 
-	   participant->conferenceBridgePeer->readformat = chan->readformat;
-	   participant->conferenceBridgePeer->writeformat = chan->writeformat;
-	   participant->conferenceBridgePeer->nativeformats = chan->nativeformats;
+	if (!participant->conferenceBridgePeer) {
+		ast_log(LOG_NOTICE, "Couldn't allocate participant peer.\n");
+		//pbx_channel_unlock(chan);
+		return -1;
+	}
 
-	   if(ast_channel_masquerade(participant->conferenceBridgePeer, chan)){
-	   ast_log(LOG_ERROR, "SCCP: Conference: failed to masquerade channel.\n");
-	   //pbx_channel_unlock(chan);
-	   ast_hangup(participant->conferenceBridgePeer);
-	   participant->conferenceBridgePeer = NULL;
-	   return -1;
-	   } else {
-	   			ast_channel_lock(participant->conferenceBridgePeer);
-				ast_do_masquerade(participant->conferenceBridgePeer);
-				ast_channel_unlock(participant->conferenceBridgePeer);
-	   }
+	participant->conferenceBridgePeer->readformat = chan->readformat;
+	participant->conferenceBridgePeer->writeformat = chan->writeformat;
+	participant->conferenceBridgePeer->nativeformats = chan->nativeformats;
 
-	   if(NULL == participant->sccpChannel) {
-			participant->sccpChannel = get_sccp_channel_from_ast_channel(participant->conferenceBridgePeer);
+	if (ast_channel_masquerade(participant->conferenceBridgePeer, chan)) {
+		ast_log(LOG_ERROR, "SCCP: Conference: failed to masquerade channel.\n");
+		//pbx_channel_unlock(chan);
+		ast_hangup(participant->conferenceBridgePeer);
+		participant->conferenceBridgePeer = NULL;
+		return -1;
+	} else {
+		ast_channel_lock(participant->conferenceBridgePeer);
+		ast_do_masquerade(participant->conferenceBridgePeer);
+		ast_channel_unlock(participant->conferenceBridgePeer);
+	}
 
-			if (participant->sccpChannel && participant->sccpChannel->device && participant->sccpChannel->line) { // Talking to an SCCP device
-				ast_log(LOG_NOTICE, "SCCP: Conference: Member #%d (SCCP channel) being added to conference. Identifying sccp channel: %s\n", participant->id, sccp_channel_toString(participant->sccpChannel));				
-			} else {
-				ast_log(LOG_NOTICE, "SCCP: Conference: Member #%d (Non SCCP channel) being added to conference.\n", participant->id);
-				participant->sccpChannel = NULL;
-			}
-	   } else {
-			ast_log(LOG_NOTICE, "SCCP: Conference: We already have a sccp channel for this participant; assuming moderator.\n");
-			/* In the future we may need to consider that / if the moderator changes the sccp channel due to creating new channel for the moderator */
-	   }
-	
-	   sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_addAstChannelToConferenceBridge.\n");
+	if (NULL == participant->sccpChannel) {
+		participant->sccpChannel = get_sccp_channel_from_ast_channel(participant->conferenceBridgePeer);
+
+		if (participant->sccpChannel && participant->sccpChannel->device && participant->sccpChannel->line) {	// Talking to an SCCP device
+			ast_log(LOG_NOTICE, "SCCP: Conference: Member #%d (SCCP channel) being added to conference. Identifying sccp channel: %s\n", participant->id, sccp_channel_toString(participant->sccpChannel));
+		} else {
+			ast_log(LOG_NOTICE, "SCCP: Conference: Member #%d (Non SCCP channel) being added to conference.\n", participant->id);
+			participant->sccpChannel = NULL;
+		}
+	} else {
+		ast_log(LOG_NOTICE, "SCCP: Conference: We already have a sccp channel for this participant; assuming moderator.\n");
+		/* In the future we may need to consider that / if the moderator changes the sccp channel due to creating new channel for the moderator */
+	}
+
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_addAstChannelToConferenceBridge.\n");
 	if (ast_pthread_create_background(&participant->joinThread, NULL, sccp_conference_join_thread, participant) < 0) {
 		// \todo TODO: error handling
 	}
-
-	   
 
 	// Now done in add_participant
 	// pbx_channel_unlock(chan);
@@ -240,22 +234,22 @@ if (NULL != bridge) {
 void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * channel)
 {
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: sccp_conference_addParticipant called.\n");
-	
+
 	if (!channel || !conference) {
 		// TODO: Log
 		return;
 	}
-	
 
 	sccp_conference_participant_t *localParticipant = NULL, *remoteParticipant = NULL;
 
 	//struct ast_channel *currentParticipantPeer;
-	
+
 	struct ast_channel *localCallLeg = NULL, *remoteCallLeg = NULL;
-	
+
 	/* We need to handle adding the moderator in a special way: Both legs of the call
-	need to be added to the conference at the same time. (-DD) */
-	boolean_t adding_moderator = (channel == conference->moderator->sccpChannel);
+	   need to be added to the conference at the same time. (-DD) */
+//      boolean_t adding_moderator = (channel == conference->moderator->sccpChannel);
+	boolean_t adding_moderator = isModerator(conference, channel);
 
 	if (NULL != channel->conference && !adding_moderator) {
 		ast_log(LOG_NOTICE, "%s: Conference: Already in conference: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
@@ -266,49 +260,48 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		ast_log(LOG_NOTICE, "%s: Conference: Only connected or channel on hold eligible for conference: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
 		return;
 	}
-	
+
 	localCallLeg = channel->owner;
 	if (NULL == localCallLeg) {
-			ast_log(LOG_NOTICE, "%s: Conference: NULL local ast call leg: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
-			return;
-	}
-	
-	remoteCallLeg = CS_AST_BRIDGED_CHANNEL(localCallLeg);
-	if (NULL == remoteCallLeg) {
-			ast_log(LOG_NOTICE, "%s: Conference: NULL remote ast call leg: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
-			return;
+		ast_log(LOG_NOTICE, "%s: Conference: NULL local ast call leg: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
+		return;
 	}
 
-	if(adding_moderator) {
+	remoteCallLeg = CS_AST_BRIDGED_CHANNEL(localCallLeg);
+	if (NULL == remoteCallLeg) {
+		ast_log(LOG_NOTICE, "%s: Conference: NULL remote ast call leg: %s-%08x\n", DEV_ID_LOG(channel->device), channel->line->name, channel->callid);
+		return;
+	}
+
+	if (adding_moderator) {
 		localParticipant = (sccp_conference_participant_t *) ast_malloc(sizeof(sccp_conference_participant_t));
 		if (!localParticipant) {
 			return;
 		}
 		memset(localParticipant, 0, sizeof(sccp_conference_participant_t));
-		
+
 		pbx_channel_lock(localCallLeg);
 	}
-	
+
 	remoteParticipant = (sccp_conference_participant_t *) ast_malloc(sizeof(sccp_conference_participant_t));
 	if (!remoteParticipant) {
-		if(adding_moderator) {
+		if (adding_moderator) {
 			pbx_channel_unlock(localCallLeg);
 			free(localParticipant);
 		}
 		return;
 	}
 	memset(remoteParticipant, 0, sizeof(sccp_conference_participant_t));
-	
-	pbx_channel_lock(remoteCallLeg);
-	
 
-	if(adding_moderator) {
+	pbx_channel_lock(remoteCallLeg);
+
+	if (adding_moderator) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Adding remote party of moderator.\n");
 	} else {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Adding remote party of ordinary participant call.\n");
 	}
-		
-	remoteParticipant->conference 	= conference;
+
+	remoteParticipant->conference = conference;
 	remoteParticipant->id = ++conference->partIdMax;
 	ast_bridge_features_init(&remoteParticipant->features);
 
@@ -320,29 +313,25 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		// \todo TODO: error handling
 	}
 
-	
-	
-	
-	if(adding_moderator) {
+	if (adding_moderator) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Adding local party of moderator.\n");
-	
-	localParticipant->conference 	= conference;
-	ast_bridge_features_init(&remoteParticipant->features);
 
-	SCCP_LIST_LOCK(&conference->participants);
-	SCCP_LIST_INSERT_TAIL(&conference->participants, localParticipant, list);
-	SCCP_LIST_UNLOCK(&conference->participants);
+		localParticipant->conference = conference;
+		ast_bridge_features_init(&remoteParticipant->features);
 
-	if (0 != sccp_conference_addAstChannelToConferenceBridge(localParticipant, localCallLeg)) {
-		// \todo TODO: error handling
-	}
+		SCCP_LIST_LOCK(&conference->participants);
+		SCCP_LIST_INSERT_TAIL(&conference->participants, localParticipant, list);
+		SCCP_LIST_UNLOCK(&conference->participants);
 
-	
+		if (0 != sccp_conference_addAstChannelToConferenceBridge(localParticipant, localCallLeg)) {
+			// \todo TODO: error handling
+		}
+
 	}
 
 	pbx_channel_unlock(remoteCallLeg);
-	
-	if(adding_moderator) {
+
+	if (adding_moderator) {
 		pbx_channel_unlock(localCallLeg);
 	}
 
@@ -375,24 +364,24 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 	char leaveMessage[256] = { '\0' };
 
 	/* Update the presence of the moderator */
-	if(participant == conference->moderator) {
+	if (participant == conference->moderator) {
 		conference->moderator = NULL;
 	}
-	
+
 	/* Notify the moderator of the leaving party. */
-	if(NULL != conference->moderator)
-	{
+	if (NULL != conference->moderator) {
 		int instance;
-                instance = sccp_device_find_index_for_line(conference->moderator->sccpChannel->device, conference->moderator->sccpChannel->line->name);
-	 	ast_log(LOG_NOTICE, "Conference: Leave Notification for Participant #%d -- %s\n", participant->id, sccp_channel_toString(participant->sccpChannel));
-	 	snprintf(leaveMessage, 255, "Member #%d left conference.", participant->id);
-	 	sccp_dev_displayprompt(conference->moderator->sccpChannel->device, instance, conference->moderator->sccpChannel->callid, leaveMessage, 10);
+
+		instance = sccp_device_find_index_for_line(conference->moderator->sccpChannel->device, conference->moderator->sccpChannel->line->name);
+		ast_log(LOG_NOTICE, "Conference: Leave Notification for Participant #%d -- %s\n", participant->id, sccp_channel_toString(participant->sccpChannel));
+		snprintf(leaveMessage, 255, "Member #%d left conference.", participant->id);
+		sccp_dev_displayprompt(conference->moderator->sccpChannel->device, instance, conference->moderator->sccpChannel->callid, leaveMessage, 10);
 	}
 
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_TRAVERSE(&conference->participants, part, list) {
 		if (part == participant) {
-			if(part->sccpChannel) { // sccp device
+			if (part->sccpChannel) {				// sccp device
 				part->sccpChannel->conference = NULL;
 				// TODO: Indicate SCCP device it is in conference no longer.
 			}
@@ -402,7 +391,7 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 
 	}
 	SCCP_LIST_UNLOCK(&conference->participants);
-	
+
 	SCCP_LIST_TRAVERSE(&conference->participants, part, list) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: member #%d -- %s\n", conference->id, participant->id, sccp_channel_toString(part->sccpChannel));
 	}
@@ -429,14 +418,14 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * channel)
 {
 	sccp_conference_participant_t *part = NULL;
+
 	SCCP_LIST_LOCK(&channel->conference->participants);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&channel->conference->participants, part, list) {
 		if (part->sccpChannel == channel) {
-		        sccp_conference_removeParticipant(conference, part);
+			sccp_conference_removeParticipant(conference, part);
 		}
 	}
-        SCCP_LIST_TRAVERSE_SAFE_END
-	SCCP_LIST_UNLOCK(&channel->conference->participants);
+	SCCP_LIST_TRAVERSE_SAFE_END SCCP_LIST_UNLOCK(&channel->conference->participants);
 }
 
 /*!
@@ -470,6 +459,11 @@ void sccp_conference_module_start()
 	SCCP_LIST_HEAD_INIT(&sccp_conferences);
 }
 
+/*!
+ * Join Conference Thread
+ *
+ * @param data Data
+ */
 static void *sccp_conference_join_thread(void *data)
 {
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: entering join thread.\n");
@@ -495,22 +489,23 @@ static void *sccp_conference_join_thread(void *data)
 
 	ast_log(LOG_NOTICE, "SCCP: Conference: Join thread: entering ast_bridge_join: %s\n", sccp_channel_toString(participant->sccpChannel));
 
-        /* set keyset and displayprompt for conference */
-        /* Note (DD): This should be done by indicating conference call state to device. */
-	if (participant->sccpChannel) {		// if talking to an SCCP device
-   	        int instance;
-	        instance = sccp_device_find_index_for_line(participant->sccpChannel->device, participant->sccpChannel->line->name);
-                /* if ((channel = participant->conference->moderator->sccpChannel)) { */
-                if ((participant->sccpChannel == participant->conference->moderator->sccpChannel)) {  // Beware of accidental assignment!
-		        ast_log(LOG_NOTICE, "Conference: Set KeySet/Displayprompt for Moderator %s\n", sccp_channel_toString(participant->sccpChannel));
-                        sccp_dev_set_keyset(participant->sccpChannel->device, instance, participant->sccpChannel->callid, KEYMODE_CONNCONF);
-	 	        sccp_dev_displayprompt(participant->sccpChannel->device, instance, participant->sccpChannel->callid, "Started Conference", 10);
-   	 	} else {
-	 	 	ast_log(LOG_NOTICE, "Conference: Set DisplayPrompt for Participant %s\n", sccp_channel_toString(participant->sccpChannel));
-	 	 	sccp_dev_displayprompt(participant->sccpChannel->device, instance, participant->sccpChannel->callid, "Entered Conference", 10);
-	 	}
+	/* set keyset and displayprompt for conference */
+	/* Note (DD): This should be done by indicating conference call state to device. */
+	if (participant->sccpChannel) {						// if talking to an SCCP device
+		int instance;
+
+		instance = sccp_device_find_index_for_line(participant->sccpChannel->device, participant->sccpChannel->line->name);
+		/* if ((channel = participant->conference->moderator->sccpChannel)) { */
+		if ((participant->sccpChannel == participant->conference->moderator->sccpChannel)) {	// Beware of accidental assignment!
+			ast_log(LOG_NOTICE, "Conference: Set KeySet/Displayprompt for Moderator %s\n", sccp_channel_toString(participant->sccpChannel));
+			sccp_dev_set_keyset(participant->sccpChannel->device, instance, participant->sccpChannel->callid, KEYMODE_CONNCONF);
+			sccp_dev_displayprompt(participant->sccpChannel->device, instance, participant->sccpChannel->callid, "Started Conference", 10);
+		} else {
+			ast_log(LOG_NOTICE, "Conference: Set DisplayPrompt for Participant %s\n", sccp_channel_toString(participant->sccpChannel));
+			sccp_dev_displayprompt(participant->sccpChannel->device, instance, participant->sccpChannel->callid, "Entered Conference", 10);
+		}
 	}
-	
+
 	ast_bridge_join(participant->conference->bridge, astChannel, NULL, &participant->features);
 	ast_log(LOG_NOTICE, "SCCP: Conference: Join thread: leaving ast_bridge_join: %s\n", sccp_channel_toString(participant->sccpChannel));
 
@@ -526,6 +521,246 @@ static void *sccp_conference_join_thread(void *data)
 	participant->joinThread = AST_PTHREADT_NULL;
 
 	return NULL;
+}
+
+/*!
+ * Is this participant a moderator on this conference
+ *
+ * \param conference SCCP Conference
+ * \param channel SCCP Channel
+ */
+boolean_t isModerator(sccp_conference_t * conference, sccp_channel_t * channel)
+{
+	if (!conference || !channel)
+		return FALSE;
+
+	return (channel == conference->moderator->sccpChannel);
+}
+
+/*!
+ * Show Conference List
+ *
+ * \param conference SCCP Conference
+ * \param channel SCCP Channel
+ * IconItem(0,10,16,2,"000F0000C03F3000C03FF000C03FF003000FF00FFCFFF30FFCFFF303CC3FF300CC3F330000000000");  # active moderator 
+ * IconItem(1,10,16,2,"000F0000C03FF03CC03FF03CC03FF03C000FF03CFCFFF33CFCFFF33CCC3FF33CCC3FF33C00000000");  # muted moderator  
+ * IconItem(2,10,16,2,"000F0000C0303000C030F000C030F003000FF00FFCF0F30F0C00F303CC30F300CC30330000000000");  # active member
+ * IconItem(3,10,16,2,"000F0000C030F03CC030F03CC030F03C000FF03CFCF0F33C0C00F33CCC30F33CCC30F33C00000000");  # muted member
+ */
+void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * channel)
+{
+	// isModerator()
+	boolean_t moderator = isModerator(conference, channel);
+	int use_icon=0;
+	// 
+	char xmlStr[512];
+	char xmlTemp[512];
+	sccp_conference_participant_t *participant;
+
+	strcpy(xmlStr, "<CiscoIPPhoneMenu>");			// Will be CiscoIPPhoneIconMenu with icons for participant, moderator, muted, unmuted
+	strcpy(xmlStr, "<Title>Conference List</Title>");
+	strcpy(xmlStr, "<Prompt>Make Your Selection</Prompt>");  
+
+	SCCP_LIST_LOCK(&conference->participants);
+	SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
+		strcpy(xmlStr, "<MenuItem>");
+		 
+		/* IconIndex */
+		/* example: <IconIndex>1</IconIndex> */
+		if (moderator)
+			use_icon=0;
+		else
+			use_icon=1;
+		
+		if (participant->muted) {
+			use_icon++;
+		}
+/*		sprintf(xmlTemp, "%d", use_icon);
+		strcpy(xmlStr, "<IconIndex>");
+		strcpy(xmlStr, xmlTemp);
+		strcpy(xmlStr, "</IconIndex>");*/
+
+		/* NAME */
+		/* example: <Name>22 7920</Name>*/
+		strcpy(xmlStr, "<Name>");
+		if(participant->sccpChannel){
+			//TODO check in-/outbaound direction
+			strcpy(xmlStr, participant->sccpChannel->callInfo.callingPartyName);
+
+			/* mark our own channel (Will use icons later on)*/
+			if(participant->sccpChannel == channel){
+				strcpy(xmlStr, "*");
+			}
+			if(participant->muted == 1){
+				strcpy(xmlStr, "M");
+			}
+		}else{
+			// get callerid info from asterisk channel
+		}
+		strcpy(xmlStr, "</Name>");
+
+		/* URL */
+		/* example: <URL>UserCallData:0:0:16777237:16777224:16777238</URL>*/
+		strcpy(xmlStr, "<URL>UserCallData:0:0:");
+		sprintf(xmlTemp, "%d", channel->callid);
+		strcpy(xmlStr, xmlTemp);
+		strcpy(xmlStr, ":");
+		sprintf(xmlTemp, "%d", conference->id);
+		strcpy(xmlStr, xmlTemp);
+		strcpy(xmlStr, ":");
+		sprintf(xmlTemp, "%d", participant->id);
+		strcpy(xmlStr, xmlTemp);
+		strcpy(xmlStr, "</URL>");
+		strcpy(xmlStr, "</MenuItem>");
+	}
+	SCCP_LIST_UNLOCK(&conference->participants);
+
+	strcpy(xmlStr, "<SoftKeyItem>");
+	strcpy(xmlStr, "<Name>Update</Name>");
+	strcpy(xmlStr, "<Position>1</Position>");
+	strcpy(xmlStr, "<URL>QueryStringParam:action=update</URL>");
+	strcpy(xmlStr, "</SoftKeyItem>");
+
+	if (moderator) {
+		strcpy(xmlStr, "<SoftKeyItem>");
+		strcpy(xmlStr, "<Name>Mute</Name>");
+		strcpy(xmlStr, "<Position>2</Position>");
+		if (participant->muted==1) {
+			strcpy(xmlStr, "<URL>QueryStringParam:action=mute</URL>");
+		} else {
+			strcpy(xmlStr, "<URL>QueryStringParam:action=unmute</URL>");
+		}
+		strcpy(xmlStr, "</SoftKeyItem>");
+				  
+		strcpy(xmlStr, "<SoftKeyItem>");
+		strcpy(xmlStr, "<Name>Kick</Name>");
+		strcpy(xmlStr, "<Position>3</Position>");
+		strcpy(xmlStr, "<URL>QueryStringParam:action=kick</URL>");
+		strcpy(xmlStr, "</SoftKeyItem>");
+	}
+
+	strcpy(xmlStr, "<SoftKeyItem>");
+	strcpy(xmlStr, "<Name>Exit</Name>");
+	strcpy(xmlStr, "<Position>4</Position>");
+	strcpy(xmlStr, "<URL>SoftKey:Exit</URL>");
+	strcpy(xmlStr, "</SoftKeyItem>");
+
+/*	// CiscoIPPhoneIconMenu Icons
+        strcpy(xmlStr, "<IconItem>");	// moderator
+        strcpy(xmlStr, "<Index>0</Index>");
+        strcpy(xmlStr, "<Height>10</Height>");
+        strcpy(xmlStr, "<Width>16</Width>");
+        strcpy(xmlStr, "<Depth>2</Depth>");
+        strcpy(xmlStr, "<Data>000F0000C03F3000C03FF000C03FF003000FF00FFCFFF30FFCFFF303CC3FF300CC3F330000000000</Data>");
+        strcpy(xmlStr, "</IconItem");
+
+        strcpy(xmlStr, "<IconItem>");	// muted moderator
+        strcpy(xmlStr, "<Index>1</Index>");
+        strcpy(xmlStr, "<Height>10</Height>");
+        strcpy(xmlStr, "<Width>16</Width>");
+        strcpy(xmlStr, "<Depth>2</Depth>");
+        strcpy(xmlStr, "<Data>000F0000C03FF03CC03FF03CC03FF03C000FF03CFCFFF33CFCFFF33CCC3FF33CCC3FF33C00000000</Data>");
+        strcpy(xmlStr, "</IconItem");
+
+        strcpy(xmlStr, "<IconItem>");	// participant
+        strcpy(xmlStr, "<Index>2</Index>");
+        strcpy(xmlStr, "<Height>10</Height>");
+        strcpy(xmlStr, "<Width>16</Width>");
+        strcpy(xmlStr, "<Depth>2</Depth>");
+        strcpy(xmlStr, "<Data>000F0000C0303000C030F000C030F003000FF00FFCF0F30F0C00F303CC30F300CC30330000000000</Data>");
+        strcpy(xmlStr, "</IconItem");
+
+        strcpy(xmlStr, "<IconItem>");	// muted participant
+        strcpy(xmlStr, "<Index>3</Index>");
+        strcpy(xmlStr, "<Height>10</Height>");
+        strcpy(xmlStr, "<Width>16</Width>");
+        strcpy(xmlStr, "<Depth>2</Depth>");
+        strcpy(xmlStr, "<Data>000F0000C030F03CC030F03CC030F03C000FF03CFCF0F33C0C00F33CCC30F33CCC30F33C00000000</Data>");
+        strcpy(xmlStr, "</IconItem");
+*/
+	strcpy(xmlStr, "</CiscoIPPhoneMenu>");
+	sccp_moo_t *r1 = NULL;
+
+	int dummy_len, msgSize, hdr_len, padding;
+
+	dummy_len = strlen(xmlStr);
+	hdr_len = 40 - 1;
+	padding = ((dummy_len + hdr_len) % 4);
+	padding = (padding > 0) ? 4 - padding : 0;
+	msgSize = hdr_len + dummy_len + padding;
+
+	r1 = sccp_build_packet(UserToDeviceDataVersion1Message, msgSize);
+	r1->msg.UserToDeviceDataVersion1Message.lel_callReference = htolel(channel->callid);
+	r1->msg.UserToDeviceDataVersion1Message.lel_transactionId = htolel(conference->id);
+	r1->msg.UserToDeviceDataVersion1Message.lel_sequenceFlag = 0x0002;
+	r1->msg.UserToDeviceDataVersion1Message.lel_displayPriority = 0x0002;
+	r1->msg.UserToDeviceDataVersion1Message.lel_dataLength = htolel(dummy_len);
+
+	if (dummy_len) {
+		char buffer[dummy_len + 2];
+
+		memset(&buffer[0], 0, sizeof(buffer));
+		memcpy(&buffer[0], xmlStr, dummy_len);
+
+		memcpy(&r1->msg.UserToDeviceDataVersion1Message.dummy, &buffer[0], sizeof(buffer));
+		sccp_dev_send(channel->device, r1);
+	} else {
+		// error sending
+	}
+}
+
+/*!
+ * Kick Participant from Conference
+ *
+ * \param conference SCCP Conference
+ * \param channel SCCP Channel
+ */
+void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_channel_t * channel)
+{
+}
+
+/*!
+ * Mute Conference Participant
+ *
+ * \param conference SCCP Conference
+ * \param channel SCCP Channel
+ */
+void sccp_conference_mute_participant(sccp_conference_t * conference, sccp_channel_t * channel)
+{
+}
+
+/*!
+ * Unmute Conference Participant
+ *
+ * \param conference SCCP Conference
+ * \param channel SCCP Channel
+ */
+void sccp_conference_unmute_participant(sccp_conference_t * conference, sccp_channel_t * channel)
+{
+}
+
+/*!
+ * Promote Participant to Moderator
+ *
+ * \param conference SCCP Conference
+ * \param channel SCCP Channel
+ *
+ * \todo how to handle multiple moderators
+ */
+void sccp_conference_promote_participant(sccp_conference_t * conference, sccp_channel_t * channel)
+{
+}
+
+/*!
+ * Demode Moderator to Participant
+ *
+ * \param conference SCCP Conference
+ * \param channel SCCP Channel
+ *
+ * \todo how to handle multiple moderators
+ */
+void sccp_conference_demode_participant(sccp_conference_t * conference, sccp_channel_t * channel)
+{
 }
 #    endif									// ASTERISK_VERSION_NUM
 #endif										// CS_SCCP_CONFERENCE
