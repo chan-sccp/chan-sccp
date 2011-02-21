@@ -773,7 +773,7 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 void sccp_feat_conflist(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
 {
 #ifdef CS_SCCP_CONFERENCE
-
+	sccp_conference_show_list(c->conference, c);
 #else
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 #endif
@@ -1442,6 +1442,8 @@ void sccp_feat_channelStateChanged(sccp_device_t * device, sccp_channel_t * chan
 	}
 
 }
+
+int checkMonCond(void *v);
 
 int checkMonCond(void *v) {
 	struct ast_channel *c = (struct ast_channel *) v;
