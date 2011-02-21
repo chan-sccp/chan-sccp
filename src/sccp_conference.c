@@ -622,15 +622,19 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	strcpy(xmlStr, "</SoftKeyItem>");
 
 	if (moderator) {
-		strcpy(xmlStr, "<SoftKeyItem>");
-		strcpy(xmlStr, "<Name>Mute</Name>");
-		strcpy(xmlStr, "<Position>2</Position>");
-		if (participant->muted==1) {
-			strcpy(xmlStr, "<URL>QueryStringParam:action=mute</URL>");
-		} else {
-			strcpy(xmlStr, "<URL>QueryStringParam:action=unmute</URL>");
+		SCCP_LIST_LOCK(&conference->participants);
+		SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
+			strcpy(xmlStr, "<SoftKeyItem>");
+			strcpy(xmlStr, "<Name>Mute</Name>");
+			strcpy(xmlStr, "<Position>2</Position>");
+			if (participant->muted==1) {
+				strcpy(xmlStr, "<URL>QueryStringParam:action=mute</URL>");
+			} else {
+				strcpy(xmlStr, "<URL>QueryStringParam:action=unmute</URL>");
+			}
+			strcpy(xmlStr, "</SoftKeyItem>");
 		}
-		strcpy(xmlStr, "</SoftKeyItem>");
+		SCCP_LIST_UNLOCK(&conference->participants);
 				  
 		strcpy(xmlStr, "<SoftKeyItem>");
 		strcpy(xmlStr, "<Name>Kick</Name>");
