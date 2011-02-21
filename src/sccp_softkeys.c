@@ -509,7 +509,10 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	if (!d)
 		return;
 
+		/* \todo: TODO: If we have only one selected channel but another active channel, this should suffice.
+		   Fix! Pressing select twice if it can be avoided is very annoying! */
 	if ((sccp_device_selectedchannels_count(d)) != 2) {
+		/* \todo TODO: On shared lines it is only relevant how many _local_ channels (not in use remote) there are. Fix! */
 		if (SCCP_RWLIST_GETSIZE(l->channels) == 2) {
 			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Automatically select the two current channels\n", d->id);
 			SCCP_LIST_LOCK(&l->channels);
