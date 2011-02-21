@@ -125,7 +125,7 @@
  * addon = 7914
  * devicetype = 7940
  * park = off
- * button = speeddial,Helpdesk, 98112, 98112@hint  	; Add SpeedDial to Helpdesk
+ * button = speeddial,Helpdesk, 98112, 98112@hint  	; Add SpeedDial to Helpdesk (verify that you have the hint context correctly set)
  * button = line, 98011					; Assign Line 98011 to Device
  * button = empty					; Assign an Empty Button
  * button = line, 98012					; Assign Line 98012 to Device
@@ -466,6 +466,15 @@
  * You can choose one of these files and adapt it to your network/devices. You can then copy the file to your tftp-server and rename the file to SEPTemplate.cnf.xml.
  * If you like you can make soft links/shortcuts to this file for every device you have in the form of SEP[macaddr].cnf.xml files. For devices with specific settings
  * you can copy your SEP0000000000.cnf.xml_79xx_template file to a new SEP[macaddr].cnf.xml file and set the specific settings for this device.
+ * 
+ * \subsection cluster How to set up multiple servers (Clustering)
+ * When you add multiple servers to the cnf.xml file you can either give them the same priority meaning, these servers are equals. Once
+ * a phone connects it will stick with that server for as long as it exists. If you however add servers with different priorities, phones
+ * will try to connect to the server with the lowest priority as soon as it becomes available (fail-back). In this senario, you could imagine
+ * a weaker server standing by in case of emergency. As soon as the primairy becomes available all phones will start switching back to the 
+ * primairy server.
+ *
+ * Also checkout the \ref DUNDi section to find out where a phone is registered if you are going down the clustering route.
  * 
  * \section dialplan_sample Dialplan Sample
  * 

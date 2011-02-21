@@ -18,8 +18,22 @@
 			<members>
 				<member  priority="0">
 					<callManager>
-						<name>asterisk</name>
-						<description>asterisk01</description>
+						<name>asterisk1</name>
+						<description>primairy asterisk server</description>
+						<ports>
+							<ethernetPhonePort>2000</ethernetPhonePort>
+							<sipPort>5060</sipPort>
+							<securedSipPort>5061</securedSipPort>
+							<mgcpPorts>
+								<listen>2427</listen>
+								<keepAlive>2428</keepAlive>
+							</mgcpPorts>
+						</ports>
+						<processNodeName>x.x.x.x</processNodeName>
+					</callManager>
+					<callManager>
+						<name>asterisk2</name>
+						<description>primairy asterisk server</description>
 						<ports>
 							<ethernetPhonePort>2000</ethernetPhonePort>
 							<sipPort>5060</sipPort>
@@ -34,8 +48,8 @@
 				</member>
 				<member  priority="1">			<!-- Fall Back -->
 					<callManager>
-						<name>asterisk</name>
-						<description>asterisk02</description>
+						<name>asterisk-backup</name>
+						<description>asterisk-backup</description>
 						<ports>
 							<ethernetPhonePort>2000</ethernetPhonePort>
 							<sipPort>5060</sipPort>
