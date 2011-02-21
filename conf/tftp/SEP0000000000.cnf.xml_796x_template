@@ -16,15 +16,27 @@
     <callManagerGroup> 
      <members> 
       <member  priority="0"> 
-       <callManager> 
+       <callManager> 		<!-- Primairy Servers -->
+	<name>asterisk1</name>
+	<description>primairy asterisk server</description>
+        <ports> 
+         <ethernetPhonePort>2000</ethernetPhonePort> 
+        </ports> 
+        <processNodeName>x.x.x.x</processNodeName> 
+       </callManager> 
+       <callManager> 		<!-- Primairy Servers --> 
+	<name>asterisk2</name>
+	<description>primairy asterisk server</description>
         <ports> 
          <ethernetPhonePort>2000</ethernetPhonePort> 
         </ports> 
         <processNodeName>x.x.x.x</processNodeName> 
        </callManager> 
       </member> 
-      <member  priority="1"> 	<!-- Fallback Server -->
+      <member  priority="1"> 	<!-- Fallback/Failback Servers -->
        <callManager> 
+	<name>asterisk-backup</name>
+	<description>asterisk-backup</description>
         <ports> 
          <ethernetPhonePort>2000</ethernetPhonePort> 
         </ports> 
