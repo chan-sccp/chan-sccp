@@ -448,12 +448,13 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 			}
 		} else if (s->device && (!s->device->session || s->device->session != s)) {
 			sccp_log((DEBUGCAT_CORE | DEBUGCAT_MESSAGE | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "%s: cross device session (Removing Old Session)\n", DEV_ID_LOG(s->device));
+			// removed, returning 0 will take care of destroying the session for us.
+//
+//			SCCP_RWLIST_WRLOCK(&GLOB(sessions));
+//			SCCP_LIST_REMOVE(&GLOB(sessions), s, list);
+//			SCCP_RWLIST_UNLOCK(&GLOB(sessions));
 
-			SCCP_RWLIST_WRLOCK(&GLOB(sessions));
-			SCCP_LIST_REMOVE(&GLOB(sessions), s, list);
-			SCCP_RWLIST_UNLOCK(&GLOB(sessions));
-
-			pthread_cancel(s->session_thread);
+//			pthread_cancel(s->session_thread);
 			ast_free(r);
 			return 0;
 		}
