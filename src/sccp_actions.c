@@ -3243,3 +3243,49 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 	//ast_cond_signal(&c->rtp.audio.convar);
 	sccp_channel_unlock(c);
 }
+
+/*!
+ * \brief Handle Device to User Message
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
+ */
+void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r)
+{
+//	sccp_channel_t *c;
+
+	uint32_t appID;
+	uint32_t callReference;
+	uint32_t transactionId;
+	uint32_t dataLength;
+	uint32_t sequenceFlag;
+	uint32_t displayPriority;
+	uint32_t conferenceID;
+//	uint32_t routing;
+	void * xml_data;
+	
+	sccp_device_t *d = NULL;
+
+	if (!(d = check_session_message_device(s, r, "Device to User Message"))) {
+		return;
+	}
+
+	appID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_appID);
+	callReference = letohl(r->msg.DeviceToUserDataVersion1Message.lel_callReference);
+	transactionId = letohl(r->msg.DeviceToUserDataVersion1Message.lel_transactionId);
+	conferenceID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_conferenceID);
+	sequenceFlag = letohl(r->msg.DeviceToUserDataVersion1Message.lel_sequenceFlag);
+	displayPriority = letohl(r->msg.DeviceToUserDataVersion1Message.lel_displayPriority);
+	dataLength = letohl(r->msg.DeviceToUserDataVersion1Message.lel_dataLength);
+	xml_data = (void *)r->msg.DeviceToUserDataVersion1Message.xml_data;
+
+	if (dataLength) {
+		char buffer[dataLength + 2];
+
+		memset(&buffer[0], 0, sizeof(buffer));
+		memcpy(&buffer[0], xml_data, dataLength);
+	}
+		
+	if (1 == appID && 0 != conferenceID) {
+//		sccp_conference_handle_device_to_user(uint32_t callReference, uint32_t transactionId, uint32_t conferenceID, uint32_t sequenceFlag, uint32_t displayPriority, uint32_t dataLength, buffer) {
+	}
+}
