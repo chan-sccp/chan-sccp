@@ -3252,7 +3252,24 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r)
 void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r)
 {
 //	sccp_channel_t *c;
-
+/*
+[Feb 22 12:10:41] NOTICE[20114]: sccp_actions.c:76 check_session_message_device: SEP001B54CA499B: SCCP Handle Message: Device To User Data Version1 Message(0x0041) 57 bytes length
+ 00000000 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+ 00000010 - 0D 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+ 00000020 - 00 00 00 00 00 00 00 00 31 3A 34 3A 38 31 37 35 ........1:4:8175
+ 00000030 - 31 35 35 32 38 00 00 00 00                      15528....
+    -- SEP001B54CA499B: Handle ConferenceList Button for Conference
+    -- SEP001B54CA499B: Handle ConferenceList Button for AppID 0 , Call 0, Transaction 0, Conference 0, appInstanceID 0, routing 0
+    -- SEP001B54CA499B: >> Got message (41) Device To User Data Version1 Message
+[Feb 22 12:10:41] NOTICE[20114]: sccp_actions.c:76 check_session_message_device: SEP001B54CA499B: SCCP Handle Message: Device To User Data Version1 Message(0x0041) 45 bytes length
+ 00000000 - 01 00 00 00 04 00 00 00 01 00 00 00 08 4C BA 30 .............L.0
+ 00000010 - 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................ 
+ 00000020 - 00 00 00 00 00 00 00 00 32 00 00 00 81 ........2....
+    -- SEP001B54CA499B: Handle ConferenceList Button for Conference
+    -- SEP001B54CA499B: Handle ConferenceList Button for AppID 1 , Call 1, Transaction 817515528, Conference 0, appInstanceID 0, routing 0
+    -- SEP001B54CA499B: Handle ConferenceList Button for Conference 0, Call 1
+    -- SEP001B54CA499B: Handle ConferenceList XML Message 
+*/
 	uint32_t appID;
 	uint32_t callReference;
 	uint32_t transactionID;
@@ -3260,7 +3277,6 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r)
 	uint32_t sequenceFlag;
 	uint32_t displayPriority;
 	uint32_t conferenceID;
-//	uint32_t routing;
 	char xml_data[StationMaxXMLMessage];
 	
 	sccp_device_t *d = NULL;
@@ -3269,30 +3285,34 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r)
 		return;
 	}
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Handle ConferenceList Button for Conference\n", d->id);
 	appID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_appID);
 	callReference = letohl(r->msg.DeviceToUserDataVersion1Message.lel_callReference);
 	transactionID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_transactionID);
-	conferenceID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_conferenceID);
 	sequenceFlag = letohl(r->msg.DeviceToUserDataVersion1Message.lel_sequenceFlag);
 	displayPriority = letohl(r->msg.DeviceToUserDataVersion1Message.lel_displayPriority);
+	conferenceID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_conferenceID);
 	dataLength = letohl(r->msg.DeviceToUserDataVersion1Message.lel_dataLength);
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Handle ConferenceList Button for Conference %d, Call %d\n", d->id, conferenceID, callReference);
 
 	if (dataLength) {
 		//memset(&xml_data[0], 0, sizeof(xml_data));
 		memset(&xml_data[0], 0, dataLength);
-		memcpy(&xml_data[0], r->msg.DeviceToUserDataVersion1Message.xml_data, dataLength);
+		memcpy(&xml_data[0], r->msg.DeviceToUserDataVersion1Message.xml_data, dataLength-1);
 	}
 
 	switch (appID) {
 		case APPID_CONFERENCE:				// Conference
-			if (0 != conferenceID) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Handle ConferenceList Button for Conference %d, Call %d\n", d->id, conferenceID, callReference);
-				if (dataLength)
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Handle ConferenceList XML Message %s\n", d->id, xml_data);
-//				sccp_conference_handle_device_to_user(uint32_t callReference, uint32_t transactionID, uint32_t conferenceID, uint32_t sequenceFlag, uint32_t displayPriority, uint32_t dataLength, xml_data) {
-			}
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Handle ConferenceList Info for AppID %d , CallID %d, Transaction %d, Conference %d\n", d->id, appID, callReference, transactionID, conferenceID);
+//			if (dataLength)
+//				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Handle ConferenceList XML Message:%s\n", d->id, xml_data);
+//			sccp_conference_handle_device_to_user(uint32_t callReference, uint32_t transactionID, uint32_t conferenceID, uint32_t sequenceFlag, uint32_t displayPriority, uint32_t dataLength, xml_data) {
+		default:
+			// No AppID -> must be a softkey
+			// Split the xml_data string in it's parts: Action, AppID, Payload, TransactionId
+			// Conference Payload=Conference->ID 
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Handle ConferenceList Sofkey Button", d->id);
+			if (dataLength)
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Handle ConferenceList XML Message:%s\n", d->id, xml_data);
 		break;
 	}
 }
+
