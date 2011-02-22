@@ -27,6 +27,8 @@ static int lastConferenceID = 0;
 
 static void *sccp_conference_join_thread(void *data);
 boolean_t isModerator(sccp_conference_participant_t * participant, sccp_channel_t * channel);
+sccp_conference_t *sccp_conference_find_byid(uint32_t id);
+sccp_conference_participant_t *sccp_conference_participant_find_byid(sccp_conference_t *conference, uint32_t id);
 
 /*!
  * Create conference
@@ -399,7 +401,7 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 }
 
 /*!
- * Remove participating channel from conference
+ * Retract participating channel from conference
  *
  * @param conference conference
  * @param channel SCCP Channel
@@ -711,14 +713,41 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 void sccp_conference_handle_device_to_user(sccp_device_t *d, uint32_t callReference, uint32_t transactionID, uint32_t conferenceID, uint32_t participantID) 
 {
 	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle DTU SoftKey Button Press for CallID %d, Transaction %d, Conference %d, participant: %d\n", d->id, callReference, transactionID, conferenceID, participantID);
-	if (d->dtu_softkey.transactionID==transactionID) {
-		if (!strcmp(d->dtu_softkey.action,"MUTE")) {
-			sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle Mute for for ConferenceParticipant %d\n", d->id, participantID);
+
+	if (!d)
+		return;
+
+	sccp_conference_t *conference = NULL;
+	sccp_conference_participant_t *participant = NULL;
+
+	sccp_device_lock(d);
+	if (d && d->dtu_softkey.transactionID==transactionID) {
+		/* lookup participant by id */
+		if (!(conference=sccp_conference_find_byid(conferenceID))) {
+			goto EXIT;
 		}
-		if (!strcmp(d->dtu_softkey.action,"KICK")) {
-			sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle Kick for for ConferenceParticipant %d\n", d->id, participantID);
+
+		/* lookup participant by id */
+		if (!(participant=sccp_conference_participant_find_byid(conference, participantID))) {
+			goto EXIT;
+		}
+
+		/* Handle SoftKey Events for selected conference / participant */
+		if (!strcmp(d->dtu_softkey.action,"MUTE")) {
+			sccp_conference_toggle_mute_participant(conference, participant);
+		} else if (!strcmp(d->dtu_softkey.action,"KICK")) {
+			sccp_conference_removeParticipant(conference, participant);
 		}
 	}
+
+EXIT:
+	/* reset softkey state for next button press */
+	d->dtu_softkey.action = "";
+	d->dtu_softkey.appID = 0;
+	d->dtu_softkey.payload = 0;
+	d->dtu_softkey.transactionID = 0;
+
+	sccp_device_unlock(d);
 }
 
 /*!
@@ -727,28 +756,30 @@ void sccp_conference_handle_device_to_user(sccp_device_t *d, uint32_t callRefere
  * \param conference SCCP Conference
  * \param channel SCCP Channel
  */
-void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_channel_t * channel)
+void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_conference_participant_t *participant)
 {
+	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle Kick for for ConferenceParticipant %d\n", participant->sccpChannel->device->id, participant->id);
+	sccp_conference_removeParticipant(conference, participant);
+	sccp_conference_show_list(conference,participant->sccpChannel);
 }
 
 /*!
- * \brief Mute Conference Participant
+ * \brief Toggle Mute Conference Participant
  *
  * \param conference SCCP Conference
  * \param channel SCCP Channel
  */
-void sccp_conference_mute_participant(sccp_conference_t * conference, sccp_channel_t * channel)
+void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, sccp_conference_participant_t *participant)
 {
-}
-
-/*!
- * \brief Unmute Conference Participant
- *
- * \param conference SCCP Conference
- * \param channel SCCP Channel
- */
-void sccp_conference_unmute_participant(sccp_conference_t * conference, sccp_channel_t * channel)
-{
+	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle Mute for for ConferenceParticipant %d\n", participant->sccpChannel->device->id, participant->id);
+	if (participant->muted) {
+		// enable audio for recipient
+		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: enable audio for %d\n", participant->sccpChannel->device->id, participant->id);
+	} else {
+		// disable audio for recipient
+		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: disable audio for %d\n", participant->sccpChannel->device->id, participant->id);
+	}
+	sccp_conference_show_list(conference,participant->sccpChannel);
 }
 
 /*!
@@ -790,5 +821,57 @@ void sccp_conference_demode_participant(sccp_conference_t * conference, sccp_cha
 void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_channel_t * channel)
 {
 }
+
+
+/*!
+ * Find conference by id
+ *
+ * \param id ID as uint32_t
+ * \returns sccp_conference_participant_t
+ *
+ * \warning
+ * 	- conference->participants is not always locked
+ */
+sccp_conference_t *sccp_conference_find_byid(uint32_t id) {
+	sccp_conference_t *conference = NULL;
+
+	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCP: Looking for conference by id %u\n", id);
+	SCCP_LIST_LOCK(&sccp_conferences);
+	SCCP_LIST_TRAVERSE(&sccp_conferences, conference, list) {
+		if (conference->id == (int)id) {	//  \todo change conference id to uint32_t
+			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Found conference (%d)\n", conference->id);
+			break;
+		}
+	}
+	SCCP_LIST_UNLOCK(&sccp_conferences);
+	return conference;
+}
+
+/*!
+ * Find participant in conference by id
+ *
+ * \param channel SCCP Channel
+ * \param id ID as uint32_t
+ * \returns sccp_conference_participant_t
+ *
+ * \warning
+ * 	- conference->participants is not always locked
+ */
+sccp_conference_participant_t *sccp_conference_participant_find_byid(sccp_conference_t *conference, uint32_t id) {
+	sccp_conference_participant_t *participant = NULL;
+
+	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCP: Looking for participant by id %u\n", id);
+	
+	SCCP_LIST_LOCK(&conference->participants);
+	SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
+		if (participant->id == id) {
+			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found participant (%d)\n", DEV_ID_LOG(participant->sccpChannel->device), participant->id);
+			break;
+		}
+	}
+	SCCP_LIST_UNLOCK(&conference->participants);
+	return participant;
+}
+
 #    endif									// ASTERISK_VERSION_NUM
 #endif										// CS_SCCP_CONFERENCE
