@@ -69,9 +69,8 @@ extern "C" {
 
 	void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_handle_device_to_user(sccp_device_t *d, uint32_t callReference, uint32_t transactionID, uint32_t conferenceID, uint32_t participantID);
-	void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_channel_t * channel);
-	void sccp_conference_mute_participant(sccp_conference_t * conference, sccp_channel_t * channel);
-	void sccp_conference_unmute_participant(sccp_conference_t * conference, sccp_channel_t * channel);
+	void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_conference_participant_t *participant);
+	void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, sccp_conference_participant_t *participant);
 	void sccp_conference_promote_participant(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_demode_participant(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_channel_t * channel);
