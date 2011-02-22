@@ -542,15 +542,23 @@ boolean_t isModerator(sccp_conference_participant_t * participant, sccp_channel_
  *
  * \param conference SCCP Conference
  * \param channel SCCP Channel
+//		UserData:INTEGER:STRING
+//		UserDataSoftKey:STRING:INTEGER:STRING
+//		UserCallDataSoftKey:STRING:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
+//		UserCallData:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
  */
 void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * channel)
 {
-	// isModerator()
 	int use_icon = 0;
+	uint32_t appID = APPID_CONFERENCE;
 
-	// 
+	int transactionID = 123;
+        int callId = 555;
+        int lineInstance = 1;
+        int applicationId = 999;
+                
 	char xmlStr[2048] = "";
-	char xmlTemp[512];
+	char xmlTemp[512] = "";
 	sccp_conference_participant_t *participant;
 	sccp_conference_participant_t *me;
 
@@ -594,9 +602,10 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 
 		/* URL */
 		/* example: <URL>UserCallData:0:0:16777237:16777224:16777238</URL> */
-		
-		strcat(xmlStr, "  <URL>UserCallData:0:0:%d:%d:%d");
-		sprintf(xmlTemp, "UserCallData:%d:%d:%d", channel->callid, conference->id, participant->id);
+		strcat(xmlStr, "  <URL>");
+//		sprintf(xmlTemp, "UserData:%d:%s", participant->id, "");
+//		sprintf(xmlTemp, "UserCallData:%d:%d:%d:%d:%s", 0,0, 16777237, participant->id, "participant_id");
+		sprintf(xmlTemp, "UserCallData:%d:%d:%d:%d:%s", applicationId, lineInstance, callId, transactionID, "payload, data");
 		strcat(xmlStr, xmlTemp);
 		strcat(xmlStr, "</URL>\n");
 		strcat(xmlStr, "</MenuItem>\n");
@@ -613,13 +622,19 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		strcat(xmlStr, "<SoftKeyItem>\n");
 		strcat(xmlStr, "  <Name>ToggleMute</Name>\n");
 		strcat(xmlStr, "  <Position>2</Position>\n");
-		strcat(xmlStr, "  <URL>QueryStringParam:action=mute</URL>\n");
+		strcat(xmlStr, "  <URL>");
+		sprintf(xmlTemp, "UserDataSoftKey:%s:%d:%s", "mute", appID, "mute");
+		strcat(xmlStr, xmlTemp);
+		strcat(xmlStr, "</URL>\n");
 		strcat(xmlStr, "</SoftKeyItem>\n");
 
 		strcat(xmlStr, "<SoftKeyItem>\n");
 		strcat(xmlStr, "  <Name>Kick</Name>\n");
 		strcat(xmlStr, "  <Position>3</Position>\n");
-		strcat(xmlStr, "  <URL>QueryStringParam:action=kick</URL>\n");
+		strcat(xmlStr, "  <URL>");
+		sprintf(xmlTemp, "UserDataSoftKey:%s:%d:%s", "kick", appID, "kick");
+		strcat(xmlStr, xmlTemp);
+		strcat(xmlStr, "</URL>\n");
 		strcat(xmlStr, "</SoftKeyItem>\n");
 	}
 
@@ -676,10 +691,10 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	msgSize = hdr_len + xml_data_len + padding;
 
 	r1 = sccp_build_packet(UserToDeviceDataVersion1Message, msgSize);
-	r1->msg.UserToDeviceDataVersion1Message.lel_appID = 1;
+	r1->msg.UserToDeviceDataVersion1Message.lel_appID = appID;
 	r1->msg.UserToDeviceDataVersion1Message.lel_callReference = htolel(channel->callid);
-	r1->msg.UserToDeviceDataVersion1Message.lel_transactionId = htolel(conference->id);
-//	r1->msg.UserToDeviceDataVersion1Message.lel_conferenceId = htolel(conference->id);
+	r1->msg.UserToDeviceDataVersion1Message.lel_transactionID = htolel(conference->id);
+	r1->msg.UserToDeviceDataVersion1Message.lel_conferenceID = htolel(conference->id);
 	r1->msg.UserToDeviceDataVersion1Message.lel_sequenceFlag = 0x0002;
 	r1->msg.UserToDeviceDataVersion1Message.lel_displayPriority = 0x0002;
 	r1->msg.UserToDeviceDataVersion1Message.lel_dataLength = htolel(xml_data_len);

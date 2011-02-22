@@ -27,9 +27,9 @@
 #    define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH	17				/*!< We support up to protocol V.17 */
 
 #    define DEFAULT_SCCP_PORT			2000				/*!< SCCP uses port 2000. */
-#    define DEFAULT_SCCP_BACKLOG			2			/*!< the listen baklog. */
+#    define DEFAULT_SCCP_BACKLOG		2				/*!< the listen baklog. */
 #    define SCCP_MAX_AUTOLOGIN			100				/*!< Maximum allowed of autologins per device */
-#    define SCCP_KEEPALIVE				5			/*!< Default keepalive time if not specified in sccp.conf. */
+#    define SCCP_KEEPALIVE			5				/*!< Default keepalive time if not specified in sccp.conf. */
 
 /* internal chan_sccp call state c->callstate */
 typedef enum {
@@ -310,6 +310,11 @@ typedef enum {
 #    define ServerMaxNameSize				48
 #    define StationMaxServiceURLSize			256
 #    define StationMaxPorts				16
+#    define StationMaxXMLMessage			512
+
+#    define APPID_CONFERENCE				1
+#    define APPID_PROVISION				2
+
 
 /* skinny tones skinny_tone2str */
 #    define SKINNY_TONE_SILENCE 			0
@@ -1857,41 +1862,41 @@ typedef union {
 		uint32_t lel_appID;
 		uint32_t lel_lineInstance;
 		uint32_t lel_callReference;
-		uint32_t lel_transactionId;
+		uint32_t lel_transactionID;
 		uint32_t lel_dataLength;
-		uint32_t xml_data;
+		char xml_data[StationMaxXMLMessage];
 	} UserToDeviceDataMessage;						/*!< User to Device Message Structure */
 
 	struct {
 		uint32_t lel_appID;
 		uint32_t lel_lineInstance;
 		uint32_t lel_callReference;
-		uint32_t lel_transactionId;
+		uint32_t lel_transactionID;
 		uint32_t lel_dataLength;
 		uint32_t lel_sequenceFlag;
 		uint32_t lel_displayPriority;
 		uint32_t lel_conferenceID;
-		uint32_t lel_appInstanceId;
+		uint32_t lel_appInstanceID;
 		uint32_t lel_routing;
-		uint32_t xml_data;
+		char xml_data[StationMaxXMLMessage];
 	} UserToDeviceDataVersion1Message;					/*!< User to Device Version1 Message Structure */
 
 	struct {
 		uint32_t lel_appID;
 		uint32_t lel_lineInstance;
 		uint32_t lel_callReference;
-		uint32_t lel_transactionId;
+		uint32_t lel_transactionID;
 		uint32_t lel_dataLength;
-		uint32_t xml_data;
+		char xml_data[StationMaxXMLMessage];
 	} DeviceToUserDataMessage;						/*!< Device to User Message Structure */
 
 	struct {
 		uint32_t lel_appID;
 		uint32_t lel_lineInstance;
 		uint32_t lel_callReference;
-		uint32_t lel_transactionId;
+		uint32_t lel_transactionID;
 		uint32_t lel_dataLength;
-		uint32_t xml_data;
+		char xml_data[StationMaxXMLMessage];
 	} DeviceToUserDataResponseMessage;					/*!< Device to User Response Message Structure */
 
 
@@ -1899,28 +1904,28 @@ typedef union {
 		uint32_t lel_appID;
 		uint32_t lel_lineInstance;
 		uint32_t lel_callReference;
-		uint32_t lel_transactionId;
+		uint32_t lel_transactionID;
 		uint32_t lel_dataLength;
 		uint32_t lel_sequenceFlag;
 		uint32_t lel_displayPriority;
 		uint32_t lel_conferenceID;
-		uint32_t lel_appInstanceId;
+		uint32_t lel_appInstanceID;
 		uint32_t lel_routing;
-		uint32_t xml_data;
+		char xml_data[StationMaxXMLMessage];
 	} DeviceToUserDataVersion1Message;					/*!< Device to User Version1 Message Structure */
 
 	struct {
 		uint32_t lel_appID;
 		uint32_t lel_lineInstance;
 		uint32_t lel_callReference;
-		uint32_t lel_transactionId;
+		uint32_t lel_transactionID;
 		uint32_t lel_dataLength;
 		uint32_t lel_sequenceFlag;
 		uint32_t lel_displayPriority;
 		uint32_t lel_conferenceID;
-		uint32_t lel_appInstanceId;
+		uint32_t lel_appInstanceID;
 		uint32_t lel_routing;
-		uint32_t xml_data;
+		char xml_data[StationMaxXMLMessage];
 	} DeviceToUserDataResponseVersion1Message;					/*!< Device to User Response Version1 Message Structure */
                 
 
