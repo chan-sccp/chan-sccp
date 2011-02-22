@@ -823,6 +823,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 
 	};
 
+
 /*!
  * \brief SCCP Device Structure
  */
@@ -954,8 +955,16 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 
 #    ifdef CS_ADV_FEATURES
 		boolean_t useRedialMenu;
+
+                struct {
+                        char * action;
+                        uint32_t appID;
+                        uint32_t payload;
+                        uint32_t transactionID;
+                } dtu_softkey;
 #    endif
 	};
+
 
 // Number of additional keys per addon -FS
 #    define SCCP_ADDON_7914_TAPS			14

@@ -708,12 +708,18 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	}
 }
 
-/*
-void sccp_conference_handle_device_to_user(uint32_t callReference, uint32_t transactionId, uint32_t conferenceID, uint32_t sequenceFlag, uint32_t displayPriority, uint32_t dataLength, char *xml_data) 
+void sccp_conference_handle_device_to_user(sccp_device_t *d, uint32_t callReference, uint32_t transactionID, uint32_t conferenceID, uint32_t participantID) 
 {
-
+	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle DTU SoftKey Button Press for CallID %d, Transaction %d, Conference %d, participant: %d\n", d->id, callReference, transactionID, conferenceID, participantID);
+	if (d->dtu_softkey.transactionID==transactionID) {
+		if (!strcmp(d->dtu_softkey.action,"MUTE")) {
+			sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle Mute for for ConferenceParticipant %d\n", d->id, participantID);
+		}
+		if (!strcmp(d->dtu_softkey.action,"KICK")) {
+			sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle Kick for for ConferenceParticipant %d\n", d->id, participantID);
+		}
+	}
 }
-*/
 
 /*!
  * \brief Kick Participant from Conference
