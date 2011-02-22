@@ -91,7 +91,7 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 
 		r1 = sccp_build_packet(UserToDeviceDataVersion1Message, msgSize);
 		r1->msg.UserToDeviceDataVersion1Message.lel_callReference = htolel(1);
-		r1->msg.UserToDeviceDataVersion1Message.lel_transactionId = htolel(1);
+		r1->msg.UserToDeviceDataVersion1Message.lel_transactionID = htolel(1);
 		r1->msg.UserToDeviceDataVersion1Message.lel_sequenceFlag = 0x0002;
 		r1->msg.UserToDeviceDataVersion1Message.lel_displayPriority = 0x0002;
 		r1->msg.UserToDeviceDataVersion1Message.lel_dataLength = htolel(xml_data_len);
