@@ -552,11 +552,12 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	int use_icon = 0;
 	uint32_t appID = APPID_CONFERENCE;
 
-	int transactionID = 123;
-        int callId = 555;
-        int lineInstance = 1;
-        int applicationId = 999;
-                
+#if ASTERISK_VERSION_NUM >= 10400        
+        unsigned int transactionID = ast_random();
+#else
+	unsigned int transactionID = random();
+#endif               
+
 	char xmlStr[2048] = "";
 	char xmlTemp[512] = "";
 	sccp_conference_participant_t *participant;
@@ -574,8 +575,6 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 
 		strcat(xmlStr, "<MenuItem>\n");
 
-		/* IconIndex */
-		/* example: <IconIndex>1</IconIndex> */
 		if (isModerator(participant, channel))
 			use_icon = 0;
 		else
@@ -589,23 +588,19 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		strcat(xmlStr, xmlTemp);
 		strcat(xmlStr, "</IconIndex>\n");
 
-		/* NAME */
-		/* example: <Name>22 7920</Name> */
 		strcat(xmlStr, "  <Name>");
 		if (participant->sccpChannel) {
 			//TODO check in-/outbaound direction
 			strcat(xmlStr, participant->sccpChannel->callInfo.callingPartyName);
+			sprintf(xmlTemp, " (%d)", participant->id);
+			strcat(xmlStr, xmlTemp);
 		} else {
 			// \todo get callerid info from asterisk channel
 		}
 		strcat(xmlStr, "</Name>\n");
 
-		/* URL */
-		/* example: <URL>UserCallData:0:0:16777237:16777224:16777238</URL> */
 		strcat(xmlStr, "  <URL>");
-//		sprintf(xmlTemp, "UserData:%d:%s", participant->id, "");
-//		sprintf(xmlTemp, "UserCallData:%d:%d:%d:%d:%s", 0,0, 16777237, participant->id, "participant_id");
-		sprintf(xmlTemp, "UserCallData:%d:%d:%d:%d:%s", applicationId, lineInstance, callId, transactionID, "payload, data");
+		sprintf(xmlTemp, "UserCallData:%d:%d:%d:%d:%d", appID, channel->callid, conference->id, transactionID, participant->id);
 		strcat(xmlStr, xmlTemp);
 		strcat(xmlStr, "</URL>\n");
 		strcat(xmlStr, "</MenuItem>\n");
@@ -623,7 +618,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		strcat(xmlStr, "  <Name>ToggleMute</Name>\n");
 		strcat(xmlStr, "  <Position>2</Position>\n");
 		strcat(xmlStr, "  <URL>");
-		sprintf(xmlTemp, "UserDataSoftKey:%s:%d:%s", "mute", appID, "mute");
+		sprintf(xmlTemp, "UserDataSoftKey:Select:1:MUTE:%d:%d:%d:%d", appID, conference->id, channel->callid, transactionID);
 		strcat(xmlStr, xmlTemp);
 		strcat(xmlStr, "</URL>\n");
 		strcat(xmlStr, "</SoftKeyItem>\n");
@@ -632,7 +627,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		strcat(xmlStr, "  <Name>Kick</Name>\n");
 		strcat(xmlStr, "  <Position>3</Position>\n");
 		strcat(xmlStr, "  <URL>");
-		sprintf(xmlTemp, "UserDataSoftKey:%s:%d:%s", "kick", appID, "kick");
+		sprintf(xmlTemp, "UserDataSoftKey:Select:2:KICK:%d:%d:%d", conference->id, channel->callid, transactionID);
 		strcat(xmlStr, xmlTemp);
 		strcat(xmlStr, "</URL>\n");
 		strcat(xmlStr, "</SoftKeyItem>\n");
@@ -695,6 +690,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	r1->msg.UserToDeviceDataVersion1Message.lel_callReference = htolel(channel->callid);
 	r1->msg.UserToDeviceDataVersion1Message.lel_transactionID = htolel(conference->id);
 	r1->msg.UserToDeviceDataVersion1Message.lel_conferenceID = htolel(conference->id);
+	r1->msg.UserToDeviceDataVersion1Message.lel_transactionID = htolel(transactionID);
 	r1->msg.UserToDeviceDataVersion1Message.lel_sequenceFlag = 0x0002;
 	r1->msg.UserToDeviceDataVersion1Message.lel_displayPriority = 0x0002;
 	r1->msg.UserToDeviceDataVersion1Message.lel_dataLength = htolel(xml_data_len);
