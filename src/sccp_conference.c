@@ -791,7 +791,7 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
 	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle Kick for for ConferenceParticipant %d\n", participant->channel->device->id, participant->id);
-
+ 
 	sccp_dev_displayprinotify(participant->channel->device, "You have been kicked out of the Conference", 5, 5);
 	sccp_dev_displayprompt(participant->channel->device, 0, participant->channel->callid, "You have been kicked out of the Conference", 5);
 
