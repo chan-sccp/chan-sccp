@@ -376,13 +376,13 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 		sccp_dev_displayprompt(conference->moderator->channel->device, instance, conference->moderator->channel->callid, leaveMessage, 10);
 	}
 	/* \todo hangup channel / sccp_channel for removed participant when called via KICK action - DdG */
-//	sccp_channel_lock(participant->channel);
-//	sccp_channel_endcall_locked(participant->channel);
-//	sccp_channel_unlock(participant->channel);
-	/* \todo jump back to the EXITCONTEXT to resume their dialplan handling */
+//	ast_hangup(participant->conferenceBridgePeer);
+//	participant->conferenceBridgePeer = NULL;
+
+	/* \todo implement jump back to the EXITCONTEXT to resume their dialplan handling */
 
 	SCCP_LIST_LOCK(&conference->participants);
-	SCCP_LIST_TRAVERSE(&conference->participants, part, list) {
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&conference->participants, part, list) {
 		if (part == participant) {
 			if (part->channel) {					// sccp device
 				part->channel->conference = NULL;
@@ -393,11 +393,8 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 		}
 
 	}
+	SCCP_LIST_TRAVERSE_SAFE_END;
 	SCCP_LIST_UNLOCK(&conference->participants);
-
-	SCCP_LIST_TRAVERSE(&conference->participants, part, list) {
-		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: member #%d -- %s\n", conference->id, participant->id, sccp_channel_toString(part->channel));
-	}
 
 	if (conference->participants.size < 1)
 		sccp_conference_end(conference);
