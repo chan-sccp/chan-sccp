@@ -761,7 +761,9 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 		if (!strcmp(d->dtu_softkey.action, "MUTE")) {
 			sccp_conference_toggle_mute_participant(conference, participant);
 		} else if (!strcmp(d->dtu_softkey.action, "KICK")) {
-			sccp_conference_kick_participant(conference,participant);
+			if (conference->moderator->channel != participant->channel) {
+				sccp_conference_kick_participant(conference,participant);
+			} // handle moderator kicking himself
 		}
 	} else {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: DTU TransactionID does not match or device not found (%d <> %d)", d->id, d->dtu_softkey.transactionID, transactionID);
@@ -796,6 +798,12 @@ void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_confe
 	ao2_lock(participant->conference->bridge);
 	ast_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer);
 	ao2_unlock(participant->conference->bridge);
+	
+	/* wait for thead to end */
+	/* \todo find a better methode to wait for the thread to signal removed participant (pthread_cond_timedwait ?); */
+	while (participant->joinThread != AST_PTHREADT_NULL) {
+		usleep(100);
+	}
 
 	sccp_dev_displayprinotify(conference->moderator->channel->device, "Participant has been kicked out", 5, 2);
 	sccp_dev_displayprompt(conference->moderator->channel->device, 0, conference->moderator->channel->callid, "Participant has been kicked out", 2);
