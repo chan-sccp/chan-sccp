@@ -29,29 +29,24 @@ extern "C" {
 	typedef struct sccp_conference_participant sccp_conference_participant_t;	/*!< SCCP Conference Participant Structure */
 
 /* structures */
-
 	struct sccp_conference {
 		ast_mutex_t lock;						/*!< mutex */
-		int id;								/*!< conference id */
+		uint32_t id;							/*!< conference id */
 		sccp_conference_participant_t *moderator;			/*!< how initializes the conference */
-		 SCCP_LIST_HEAD(, sccp_conference_participant_t) participants;	/*!< participants in conference */
-
-		struct ast_bridge *bridge;
-		unsigned int partIdMax;						/*!< The highest id of a participant incrementing. */
-
-		 SCCP_LIST_ENTRY(sccp_conference_t) list;			/*!< Linked List Entry */
+		struct ast_bridge *bridge;					/*!< Shared Ast_Bridge used by this conference */
+		SCCP_LIST_HEAD(, sccp_conference_participant_t) participants;	/*!< participants in conference */
+		SCCP_LIST_ENTRY(sccp_conference_t) list;			/*!< Linked List Entry */
 	};
 
 	struct sccp_conference_participant {
-		sccp_channel_t *sccpChannel;					/*!< sccp channel, non-null if the participant resides on an SCCP device */
+		uint32_t id;							/*!< Numeric participant id. */
+		sccp_channel_t *channel;					/*!< sccp channel, non-null if the participant resides on an SCCP device */
 		struct ast_channel *conferenceBridgePeer;			/*!< the asterisk channel which joins the conference bridge */
-
 		struct ast_bridge_features features;				/*!< Enabled features information */
-		pthread_t joinThread;
-		sccp_conference_t *conference;
-		unsigned int id;						/*!< Numeric participant id. */
+		pthread_t joinThread;						/*!< Running in this Thread */
+		sccp_conference_t *conference;					/*!< Conference this participant belongs to */
 		unsigned int muted;						/*!< Participant is Muted */
-		SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
+		 SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
 	};
 
 /* prototype definition */
@@ -67,17 +62,18 @@ extern "C" {
 	void sccp_conference_readFrame(struct ast_frame *frame, sccp_channel_t * channel);
 	void sccp_conference_writeFrame(struct ast_frame *frame, sccp_channel_t * channel);
 
+	/* conf list related */
 	void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * channel);
-	void sccp_conference_handle_device_to_user(sccp_device_t *d, uint32_t callReference, uint32_t transactionID, uint32_t conferenceID, uint32_t participantID);
-	void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_conference_participant_t *participant);
-	void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, sccp_conference_participant_t *participant);
+	void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callReference, uint32_t transactionID, uint32_t conferenceID, uint32_t participantID);
+	void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant);
+	void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant);
 	void sccp_conference_promote_participant(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_demode_participant(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_channel_t * channel);
 
 /* internal structure */
 
-	 SCCP_LIST_HEAD(, sccp_conference_t) sccp_conferences;			/*!< our list of conferences */
+	 SCCP_LIST_HEAD(, sccp_conference_t) conferences;			/*!< our list of conferences */
 
 #        if defined(__cplusplus) || defined(c_plusplus)
 }
