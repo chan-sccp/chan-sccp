@@ -2222,9 +2222,9 @@ void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevi
 
 
         // reverted to old behaviour, pbx_set_callerid_ani produces crash
-	forwarder->owner->cid.cid_ani = strdup(dialedNumber);
-//	if (PBX(pbx_set_callerid_ani))
-//		PBX(pbx_set_callerid_ani) (forwarder->owner, (const char *)&dialedNumber);
+//	forwarder->owner->cid.cid_ani = strdup(dialedNumber);
+	if (PBX(pbx_set_callerid_ani))
+		PBX(pbx_set_callerid_ani) (forwarder->owner, (const char *)&dialedNumber);
 
         // reverted to old behaviour, pbx_set_callerid_dnid produces crash
 	forwarder->owner->cid.cid_dnid = strdup(dialedNumber);

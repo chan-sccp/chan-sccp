@@ -955,6 +955,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 
 #    ifdef CS_ADV_FEATURES
 		boolean_t useRedialMenu;
+#    endif
 
                 struct {
                         char * action;
@@ -962,7 +963,6 @@ static inline unsigned long long bswap_64(unsigned long long x) {
                         uint32_t payload;
                         uint32_t transactionID;
                 } dtu_softkey;
-#    endif
 	};
 
 
