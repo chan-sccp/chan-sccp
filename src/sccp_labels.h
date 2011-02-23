@@ -370,14 +370,14 @@ static const struct ast_skinny_cause {
         { AST_CAUSE_NO_ROUTE_TRANSIT_NET,	SKINNY_DISP_UNKNOWN_NUMBER			, "No route to specified transmit network" },
         { AST_CAUSE_NO_ROUTE_DESTINATION,	SKINNY_DISP_UNKNOWN_NUMBER			, "No route to destination" },
         { AST_CAUSE_CHANNEL_UNACCEPTABLE,	SKINNY_DISP_INCOMPATIBLE_DEVICE_TYPE		, "Channel unacceptable" },
-#if ASTERISK_VERSION_NUM >= 10602
+#if ASTERISK_VERSION_NUM >= 10800 // Introduced sometime in 10602.x
 	{ AST_CAUSE_MISDIALLED_TRUNK_PREFIX,   	SKINNY_DISP_UNKNOWN_NUMBER			, "Misdialled Trunk Prefix" },
 #endif
         { AST_CAUSE_CALL_AWARDED_DELIVERED,	SKINNY_DISP_CONNECTED				, "Call awarded and being delivered in an established channel" },
   	{ AST_CAUSE_NORMAL_CLEARING,		SKINNY_DISP_ON_HOOK 				, "Normal Clearing" },
 	{ AST_CAUSE_PRE_EMPTED,			SKINNY_DISP_HIGH_TRAFFIC_TRY_AGAIN_LATER	, "Pre Empted" },
         { AST_CAUSE_USER_BUSY, 			SKINNY_DISP_BUSY				, "User busy" },
-#if ASTERISK_VERSION_NUM >= 10602
+#if ASTERISK_VERSION_NUM >= 10800 // Introduced sometime in 10602.x
 	{ AST_CAUSE_NUMBER_PORTED_NOT_HERE,	SKINNY_DISP_NUMBER_NOT_CONFIGURED		, "Number not configured" },
 #endif
 	{ AST_CAUSE_SUBSCRIBER_ABSENT,		SKINNY_DISP_TEMP_FAIL				, "Subscriber Absent, Try Again" },
