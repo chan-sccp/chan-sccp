@@ -46,7 +46,7 @@ extern "C" {
 		pthread_t joinThread;						/*!< Running in this Thread */
 		sccp_conference_t *conference;					/*!< Conference this participant belongs to */
 		unsigned int muted;						/*!< Participant is Muted */
-		 SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
+		SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
 	};
 
 /* prototype definition */

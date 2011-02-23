@@ -3253,12 +3253,15 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r)
 {
 //	sccp_channel_t *c;
 	uint32_t appID;
+	uint32_t lineInstance;
 	uint32_t callReference;
 	uint32_t transactionID;
 	uint32_t dataLength;
-	uint32_t sequenceFlag;
-	uint32_t displayPriority;
 	uint32_t conferenceID;
+//	uint32_t sequenceFlag;
+//	uint32_t displayPriority;
+//	uint32_t appInstanceID;
+//	uint32_t routing;
 	uint32_t participantID;
 	char xml_data[StationMaxXMLMessage];
 	
@@ -3269,22 +3272,26 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	appID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_appID);
+	lineInstance = letohl(r->msg.DeviceToUserDataVersion1Message.lel_lineInstance);
 	callReference = letohl(r->msg.DeviceToUserDataVersion1Message.lel_callReference);
-	transactionID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_transactionID);
-	sequenceFlag = letohl(r->msg.DeviceToUserDataVersion1Message.lel_sequenceFlag);
-	displayPriority = letohl(r->msg.DeviceToUserDataVersion1Message.lel_displayPriority);
-	conferenceID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_conferenceID);
+        transactionID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_transactionID);
+//	sequenceFlag = letohl(r->msg.DeviceToUserDataVersion1Message.lel_sequenceFlag);
+//	displayPriority = letohl(r->msg.DeviceToUserDataVersion1Message.lel_displayPriority);
+//	conferenceID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_conferenceID);  
+//	appInstanceID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_appInstanceID);
+//	routing = letohl(r->msg.DeviceToUserDataVersion1Message.lel_routing);
 	dataLength = letohl(r->msg.DeviceToUserDataVersion1Message.lel_dataLength);
 
 	if (dataLength) {
 		memset(&xml_data[0], 0, dataLength);
-		memcpy(&xml_data[0], r->msg.DeviceToUserDataVersion1Message.xml_data, dataLength-1);
+		memcpy(&xml_data[0], r->msg.DeviceToUserDataVersion1Message.xml_data, dataLength);
 	}
 	
 	if (0 != appID && 0 != callReference && 0 != transactionID) {
 		switch (appID) {
 			case APPID_CONFERENCE:				// Conference
-				participantID=atoi(xml_data);
+				conferenceID=lineInstance;		// conferenceId is passed on via lineInstance
+				participantID=atoi(xml_data);		// participantId is passed on in the data segment
 				sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle ConferenceList Info for AppID %d , CallID %d, Transaction %d, Conference %d, Participant: %d\n", d->id, appID, callReference, transactionID, conferenceID, participantID);
 				sccp_conference_handle_device_to_user(d, callReference, transactionID, conferenceID, participantID);
 				break;
@@ -3293,7 +3300,6 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r)
 		// It has xml_data -> must be a softkey
 		// Split the xml_data string in it's parts: Action, AppID, Payload, TransactionId
 		// For Conference Payload=Conference->ID 
-		sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle DTU Sofkey Button", d->id);
 		if (dataLength) {
 			/* split xml_data by ":" */
 			char **xmlArray;
