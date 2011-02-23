@@ -23,6 +23,7 @@
 #    include "asterisk/bridging_features.h"
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #    if ASTERISK_VERSION_NUM >= 10602
+#include "asterisk/astobj2.h"
 static int lastConferenceID = 99;
 
 static void *sccp_conference_join_thread(void *data);
@@ -792,7 +793,9 @@ void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_confe
 	sccp_dev_displayprinotify(participant->channel->device, "You have been kicked out of the Conference", 5, 5);
 	sccp_dev_displayprompt(participant->channel->device, 0, participant->channel->callid, "You have been kicked out of the Conference", 5);
 
-	sccp_conference_removeParticipant(conference, participant);
+	ao2_lock(participant->conference->bridge);
+	ast_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer);
+	ao2_unlock(participant->conference->bridge);
 
 	sccp_dev_displayprinotify(conference->moderator->channel->device, "Participant has been kicked out", 5, 2);
 	sccp_dev_displayprompt(conference->moderator->channel->device, 0, conference->moderator->channel->callid, "Participant has been kicked out", 2);
