@@ -304,6 +304,17 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 	remoteParticipant->id = SCCP_LIST_GETSIZE(conference->participants) + 1;
 	ast_bridge_features_init(&remoteParticipant->features);
 
+	/* get the exitcontext, to jump to after hangup */
+	ast_channel_lock(remoteCallLeg);
+	if (!ast_strlen_zero(remoteCallLeg->macrocontext)) {
+		ast_copy_string(remoteParticipant->exitcontext, remoteCallLeg->macrocontext, sizeof(remoteParticipant->exitcontext));
+	} else {
+		ast_copy_string(remoteParticipant->exitcontext, remoteCallLeg->context, sizeof(remoteParticipant->exitcontext));
+	}
+	ast_copy_string(remoteParticipant->exitexten, remoteCallLeg->exten, sizeof(remoteParticipant->exitexten));
+	remoteParticipant->exitpriority=remoteCallLeg->priority;
+	ast_channel_unlock(remoteCallLeg);
+
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_INSERT_TAIL(&conference->participants, remoteParticipant, list);
 	SCCP_LIST_UNLOCK(&conference->participants);
@@ -380,7 +391,10 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 //	participant->conferenceBridgePeer = NULL;
 
 	/* \todo implement jump back to the EXITCONTEXT to resume their dialplan handling */
-
+/*	if (ast_async_goto(participant->conferenceBridgePeer, participant->exitcontext, participant->exitexten, participant->exitpriority)) {
+		ast_log(LOG_WARNING, "%d: Async goto '%s@%s' failed\n",participant->channel->device->id,participant->exitexten,participant->exitcontext);
+	}
+*/
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&conference->participants, part, list) {
 		if (part == participant) {

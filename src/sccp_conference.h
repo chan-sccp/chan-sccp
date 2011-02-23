@@ -46,6 +46,11 @@ extern "C" {
 		pthread_t joinThread;						/*!< Running in this Thread */
 		sccp_conference_t *conference;					/*!< Conference this participant belongs to */
 		unsigned int muted;						/*!< Participant is Muted */
+
+		char exitcontext[AST_MAX_CONTEXT];				/*!< Context to jump to after hangup */
+		char exitexten[AST_MAX_CONTEXT];				/*!< Extension to jump to after hangup */
+		int exitpriority;						/*!< Priority to jump to after hangup */
+
 		SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
 	};
 
