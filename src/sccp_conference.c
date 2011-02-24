@@ -739,7 +739,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	xml_data_len = strlen(xmlStr);
 	hdr_len = 40 - 1;
 	padding = ((xml_data_len + hdr_len) % 4);
-	padding = (padding > 0) ? 4 - padding : 0;
+	padding = (padding > 0) ? 4 - padding : 4;
 	msgSize = hdr_len + xml_data_len + padding;
 
 	r1 = sccp_build_packet(UserToDeviceDataVersion1Message, msgSize);
@@ -752,12 +752,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	r1->msg.UserToDeviceDataVersion1Message.lel_dataLength = htolel(xml_data_len);
 
 	if (xml_data_len) {
-		char buffer[xml_data_len + 2];
-
-		memset(&buffer[0], 0, sizeof(buffer));
-		memcpy(&buffer[0], xmlStr, xml_data_len);
-
-		memcpy(&r1->msg.UserToDeviceDataVersion1Message.xml_data, &buffer[0], sizeof(buffer));
+		memcpy(&r1->msg.UserToDeviceDataVersion1Message.xml_data, xmlStr, sizeof(xmlStr));
 		sccp_dev_send(channel->device, r1);
 	}
 }
