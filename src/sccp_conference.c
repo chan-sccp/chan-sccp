@@ -643,7 +643,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		strcat(xmlStr, "  <Name>ToggleMute</Name>\n");
 		strcat(xmlStr, "  <Position>2</Position>\n");
 		strcat(xmlStr, "  <URL>");
-		sprintf(xmlTemp, "UserDataSoftKey:Select:1:MUTE:%d:%d:%d:%d", appID, conference->id, channel->callid, transactionID);
+		sprintf(xmlTemp, "UserDataSoftKey:Select:1:MUTE$%d$%d$%d$%d", appID, conference->id, channel->callid, transactionID);
 		strcat(xmlStr, xmlTemp);
 		strcat(xmlStr, "</URL>\n");
 		strcat(xmlStr, "</SoftKeyItem>\n");
@@ -652,7 +652,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		strcat(xmlStr, "  <Name>Kick</Name>\n");
 		strcat(xmlStr, "  <Position>3</Position>\n");
 		strcat(xmlStr, "  <URL>");
-		sprintf(xmlTemp, "UserDataSoftKey:Select:2:KICK:%d:%d:%d", conference->id, channel->callid, transactionID);
+		sprintf(xmlTemp, "UserDataSoftKey:Select:2:KICK$%d$%d$%d", conference->id, channel->callid, transactionID);
 		strcat(xmlStr, xmlTemp);
 		strcat(xmlStr, "</URL>\n");
 		strcat(xmlStr, "</SoftKeyItem>\n");

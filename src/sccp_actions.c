@@ -3294,7 +3294,7 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r)
 		if (dataLength) {
 			/* split xml_data by ":" */
 			char **xmlArray;
-			xmlArray=explode(xml_data,":");
+			xmlArray=explode(xml_data,"$");
 			sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle DTU Sofkey Button:%s,%s,%s,%s\n", d->id, xmlArray[0], xmlArray[1], xmlArray[2], xmlArray[3]);
 			
 			/* save softkey info to device */
