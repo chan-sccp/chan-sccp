@@ -54,4 +54,5 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_moo_t * r);
 void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r);
+void sccp_handle_device_to_user_response(sccp_session_t * s, sccp_moo_t * r);
 #endif
