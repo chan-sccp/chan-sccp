@@ -3258,7 +3258,11 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r)
 	uint32_t transactionID;
 	uint32_t dataLength;
 	char xml_data[StationMaxXMLMessage];
-	
+#ifdef CS_SCCP_CONFERENCE
+	uint32_t conferenceID;
+	uint32_t participantID;
+#endif	
+
 	sccp_device_t *d = NULL;
 
 	if (!(d = check_session_message_device(s, r, "Device to User Message"))) {
@@ -3276,13 +3280,12 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r)
 		memcpy(&xml_data[0], r->msg.DeviceToUserDataVersion1Message.xml_data, dataLength);
 	}
 	
-				uint32_t conferenceID=lineInstance;		// conferenceId is passed on via lineInstance
-				uint32_t participantID=atoi(xml_data);		// participantId is passed on in the data segment
 	if (0 != appID && 0 != callReference && 0 != transactionID) {
-				sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle DTU Info for AppID %d , CallID %d, Transaction %d, Conference %d, Participant: %d\n", d->id, appID, callReference, transactionID, conferenceID, participantID);
 		switch (appID) {
 			case APPID_CONFERENCE:				// Conference
 #ifdef CS_SCCP_CONFERENCE
+				conferenceID = lineInstance;		// conferenceId is passed on via lineInstance
+				participantID = atoi(xml_data);		// participantId is passed on in the data segment
 				sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle ConferenceList Info for AppID %d , CallID %d, Transaction %d, Conference %d, Participant: %d\n", d->id, appID, callReference, transactionID, conferenceID, participantID);
 				sccp_conference_handle_device_to_user(d, callReference, transactionID, conferenceID, participantID);
 #endif
@@ -3312,3 +3315,37 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r)
 
 }
 
+/*!
+ * \brief Handle Device to User Message
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP Message as sccp_moo_t
+ */
+void sccp_handle_device_to_user_response(sccp_session_t * s, sccp_moo_t * r)
+{
+	uint32_t appID;
+	uint32_t lineInstance;
+	uint32_t callReference;
+	uint32_t transactionID;
+	uint32_t dataLength;
+	char xml_data[StationMaxXMLMessage];
+
+	sccp_device_t *d = NULL;
+
+	if (!(d = check_session_message_device(s, r, "Device to User Response"))) {
+		return;
+	}
+
+	appID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_appID);
+	lineInstance = letohl(r->msg.DeviceToUserDataVersion1Message.lel_lineInstance);
+	callReference = letohl(r->msg.DeviceToUserDataVersion1Message.lel_callReference);
+        transactionID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_transactionID);
+	dataLength = letohl(r->msg.DeviceToUserDataVersion1Message.lel_dataLength);
+
+	if (dataLength) {
+		memset(&xml_data[0], 0, dataLength);
+		memcpy(&xml_data[0], r->msg.DeviceToUserDataVersion1Message.xml_data, dataLength);
+	}
+	
+	sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: DTU Response: AppID %d , LineInstance %d, CallID %d, Transaction %d\n", d->id, appID, lineInstance, callReference, transactionID);
+	sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: DTU Response: Data %s\n", d->id, xml_data);
+}

@@ -39,7 +39,13 @@ extern "C" {
 	};
 
 	struct sccp_conference_participant {
-		boolean_t pendingRemoval;				/*!< Numeric participant id. */
+		boolean_t pendingRemoval;					/*!< Pending Removal */
+
+		/* removal handling via cond_wait */
+		ast_mutex_t cond_lock;						/*!< Pthread Condition Mutex */
+		boolean_t removed;						/*!< Condition */
+		ast_cond_t removed_cond_signal;					/*!< Pthread Condition Signal */
+
 		uint32_t id;							/*!< Numeric participant id. */
 		sccp_channel_t *channel;					/*!< sccp channel, non-null if the participant resides on an SCCP device */
 		struct ast_channel *conferenceBridgePeer;			/*!< the asterisk channel which joins the conference bridge */
