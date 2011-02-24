@@ -3276,12 +3276,13 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r)
 		memcpy(&xml_data[0], r->msg.DeviceToUserDataVersion1Message.xml_data, dataLength);
 	}
 	
-	if (0 != appID && 0 != callReference && 0 != transactionID) {
-		switch (appID) {
-			case APPID_CONFERENCE:				// Conference
-#ifdef CS_CONFERENCE
 				uint32_t conferenceID=lineInstance;		// conferenceId is passed on via lineInstance
 				uint32_t participantID=atoi(xml_data);		// participantId is passed on in the data segment
+	if (0 != appID && 0 != callReference && 0 != transactionID) {
+				sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle DTU Info for AppID %d , CallID %d, Transaction %d, Conference %d, Participant: %d\n", d->id, appID, callReference, transactionID, conferenceID, participantID);
+		switch (appID) {
+			case APPID_CONFERENCE:				// Conference
+#ifdef CS_SCCP_CONFERENCE
 				sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle ConferenceList Info for AppID %d , CallID %d, Transaction %d, Conference %d, Participant: %d\n", d->id, appID, callReference, transactionID, conferenceID, participantID);
 				sccp_conference_handle_device_to_user(d, callReference, transactionID, conferenceID, participantID);
 #endif
@@ -3295,12 +3296,12 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r)
 			/* split xml_data by ":" */
 			char **xmlArray;
 			xmlArray=explode(xml_data,"$");
-			sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle DTU Sofkey Button:%s,%s,%s,%s\n", d->id, xmlArray[0], xmlArray[1], xmlArray[2], xmlArray[3]);
+			sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle DTU Softkey Button:%s,%s,%s,%s\n", d->id, xmlArray[0], xmlArray[1], xmlArray[2], xmlArray[3]);
 			
 			/* save softkey info to device */
 			sccp_device_lock(d);
 			d->dtu_softkey.action = xmlArray[0];
-			d->dtu_softkey.appID = atoi(xmlArray[1]);
+			d->dtu_softkey.appID = appID;
 			d->dtu_softkey.payload = atoi(xmlArray[2]);
 			d->dtu_softkey.transactionID = atoi(xmlArray[3]);
 			sccp_device_unlock(d);
