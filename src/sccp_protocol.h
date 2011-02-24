@@ -310,7 +310,8 @@ typedef enum {
 #    define ServerMaxNameSize				48
 #    define StationMaxServiceURLSize			256
 #    define StationMaxPorts				16
-#    define StationMaxXMLMessage			513
+//#    define StationMaxXMLMessage			512
+#    define StationMaxXMLMessage			1024
 
 #    define APPID_CONFERENCE				1
 #    define APPID_PROVISION				2
