@@ -597,6 +597,8 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	// MenuItems
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
+		if(participant->pendingRemoval)
+			continue;
 		strcat(xmlStr, "<MenuItem>\n");
 
 		if (isModerator(participant, channel))
@@ -790,7 +792,13 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
  */
 void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
+	if(NULL == participant || NULL == conference)
+	{
+		return;
+	}
+
 	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle Kick for for ConferenceParticipant %d\n", participant->channel->device->id, participant->id);
+	participant->pendingRemoval = 1;
  
 	sccp_dev_displayprinotify(participant->channel->device, "You have been kicked out of the Conference", 5, 5);
 	sccp_dev_displayprompt(participant->channel->device, 0, participant->channel->callid, "You have been kicked out of the Conference", 5);
@@ -926,7 +934,11 @@ sccp_conference_participant_t *sccp_conference_participant_find_byid(sccp_confer
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
 		if (participant->id == id) {
-			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found participant (%d)\n", DEV_ID_LOG(participant->channel->device), participant->id);
+			if(NULL == participant->channel) {
+				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found participant (%d)\n", "non sccp", participant->id);
+			} else {
+				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found participant (%d)\n", DEV_ID_LOG(participant->channel->device), participant->id);
+			}
 			break;
 		}
 	}
