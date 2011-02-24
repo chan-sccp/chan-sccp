@@ -311,7 +311,7 @@ typedef enum {
 #    define StationMaxServiceURLSize			256
 #    define StationMaxPorts				16
 //#    define StationMaxXMLMessage			512
-#    define StationMaxXMLMessage			1024
+#    define StationMaxXMLMessage			2048
 
 #    define APPID_CONFERENCE				1
 #    define APPID_PROVISION				2
@@ -1879,7 +1879,7 @@ typedef union {
 		uint32_t lel_conferenceID;
 		uint32_t lel_appInstanceID;
 		uint32_t lel_routing;
-		char xml_data[StationMaxXMLMessage];
+		char xml_data; // dummy char for variable length message
 	} UserToDeviceDataVersion1Message;					/*!< User to Device Version1 Message Structure */
 
 	struct {
