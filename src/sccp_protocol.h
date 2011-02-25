@@ -1351,7 +1351,7 @@ typedef enum {
 	StartMultiMediaTransmission = 0x0132,
 	StopMultiMediaTransmission = 0x0133,
 	MiscellaneousCommandMessage = 0x0134,
-	FlowControlCommandMessage = 0x0135,
+	FlowControlCommandMessageResp = 0x0135,
 	CloseMultiMediaReceiveChannel = 0x0136,
 	CreateConferenceReqMessage = 0x0137,
 	DeleteConferenceReqMessage = 0x0138,
@@ -1363,7 +1363,7 @@ typedef enum {
 	UserToDeviceDataVersion1Message = 0x013F,
 
 	/* sent by us */
-	FlowControlCommandMessageResp = 0x0141,
+	FlowControlCommandMessage = 0x0141,
 	Unknown_0x0142_Message = 0x0142,
 	Unknown_0x0143_Message = 0x0143,
 	Unknown_0x0144_Message = 0x0144,
@@ -1962,7 +1962,7 @@ typedef union {
 		uint32_t lel_passThruPartyId;
 		uint32_t lel_callReference;					/*!< Call Reference */
 		uint32_t lel_maxBitRate;					/*!< maxBitRate */
-	} FlowControlCommandMessage;						/*!< FlowControlCommandMessage */
+	} FlowControlCommandMessageResp;					/*!< FlowControlCommandMessage */
 
 	struct {								// INCOMPLETE
 		char deviceName[StationMaxDeviceNameSize];
@@ -1976,6 +1976,7 @@ typedef union {
 
 	struct {								// INCOMPLETE
 		uint32_t nn;
+		char str;
 	} Unknown_0x0143_Message;						/*!< \todo Unknown 0x0143 Message Structure */
 
 	/* Message 0x144 len 0x10
@@ -3292,7 +3293,7 @@ typedef union {
 		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
 		uint32_t lel_callReference;					/*!< Call Reference */
 		uint32_t maxBitRate;						/*!< Maximum BitRate */
-	} FlowControlCommandMessageResp;
+	} FlowControlCommandMessage;
 
 	struct {
 		uint32_t lel_conferenceID;					/*!< Conference ID */
