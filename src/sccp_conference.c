@@ -806,9 +806,6 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 	d->dtu_softkey.transactionID = 0;
 
 	sccp_device_unlock(d);
-/*	if (conference) {
-		sccp_conference_show_list(conference, conference->moderator->channel); 
-	}*/
 }
 
 /*!
@@ -924,7 +921,7 @@ void sccp_conference_demode_participant(sccp_conference_t * conference, sccp_cha
  *
  * Allows us to enter a phone number and return to the conference immediatly. 
  * Participant is called in a seperate thread, played a message that he/she has been invited to join this conference
- *  and will be added to the conference upon accept.
+ * and will be added to the conference upon accept.
  *
  * \param conference SCCP Conference
  * \param channel SCCP Channel

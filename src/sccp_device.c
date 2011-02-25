@@ -453,8 +453,10 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 		for (i = 0; i < 4; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
 		break;
-//	case SKINNY_DEVICETYPE_SPA_525G:
-//		break;
+	case SKINNY_DEVICETYPE_SPA_521S:
+		break;
+	case SKINNY_DEVICETYPE_SPA_525G:
+		break;
 	default:
 		/* at least one line */
 		(btn++)->type = SCCP_BUTTONTYPE_LINE;
