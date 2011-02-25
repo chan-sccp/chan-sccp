@@ -1363,7 +1363,7 @@ typedef enum {
 	UserToDeviceDataVersion1Message = 0x013F,
 
 	/* sent by us */
-	Unknown_0x0141_Message = 0x0141,
+	FlowControlCommandMessageResp = 0x0141,
 	Unknown_0x0143_Message = 0x0143,
 	Unknown_0x0144_Message = 0x0144,
 	DisplayDynamicPromptStatusMessage = 0x0145,
@@ -1961,7 +1961,7 @@ typedef union {
 		uint32_t lel_passThruPartyId;
 		uint32_t lel_callReference;					/*!< Call Reference */
 		uint32_t lel_maxBitRate;					/*!< maxBitRate */
-	} Unknown_0x0141_Message;						/*!< \todo Unknown 0x0141 Message Structure */
+	} FlowControlCommandMessage;						/*!< FlowControlCommandMessage */
 
 	struct {								// INCOMPLETE
 		uint32_t nn;
