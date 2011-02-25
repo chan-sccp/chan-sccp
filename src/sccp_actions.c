@@ -3274,15 +3274,15 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r)
 	callReference = letohl(r->msg.DeviceToUserDataVersion1Message.lel_callReference);
         transactionID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_transactionID);
 	dataLength = letohl(r->msg.DeviceToUserDataVersion1Message.lel_dataLength);
-
+	
 	if (dataLength) {
-		memset(&data[0], 0, dataLength);
-		memcpy(&data[0], r->msg.DeviceToUserDataVersion1Message.data, dataLength);
+		memset(data, 0, dataLength);
+		memcpy(data, r->msg.DeviceToUserDataVersion1Message.data, dataLength);
 	}
 	
 	if (0 != appID && 0 != callReference && 0 != transactionID) {
 		switch (appID) {
-			case APPID_CONFERENCE:				// Conference
+			case APPID_CONFERENCE:				// Handle Conference App
 #ifdef CS_SCCP_CONFERENCE
 				conferenceID = lineInstance;		// conferenceId is passed on via lineInstance
 				participantID = atoi(data);		// participantId is passed on in the data segment
@@ -3290,11 +3290,11 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r)
 				sccp_conference_handle_device_to_user(d, callReference, transactionID, conferenceID, participantID);
 #endif
 				break;
+//                        case APPID_PROVISION:
+//                                break;
 		}
 	} else {
 		// It has data -> must be a softkey
-		// Split the data string in it's parts: Action, AppID, Payload, TransactionId
-		// For Conference Payload=Conference->ID 
 		if (dataLength) {
 			/* split data by "$" */
 			char **xmlArray;
@@ -3303,12 +3303,11 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r)
 			
 			/* save softkey info to device */
 			sccp_device_lock(d);
-			d->dtu_softkey.action = xmlArray[0];
+			d->dtu_softkey.action = strdup(xmlArray[0]);
 			d->dtu_softkey.appID = appID;
-			d->dtu_softkey.payload = atoi(xmlArray[2]);
+			d->dtu_softkey.payload = atoi(xmlArray[2]);		// For Conference Payload=Conference->ID
 			d->dtu_softkey.transactionID = atoi(xmlArray[3]);
 			sccp_device_unlock(d);
-			
 			free(xmlArray);
 		}
 	}
@@ -3342,10 +3341,10 @@ void sccp_handle_device_to_user_response(sccp_session_t * s, sccp_moo_t * r)
 	dataLength = letohl(r->msg.DeviceToUserDataVersion1Message.lel_dataLength);
 
 	if (dataLength) {
-		memset(&data[0], 0, dataLength);
-		memcpy(&data[0], r->msg.DeviceToUserDataVersion1Message.data, dataLength);
+		memset(data, 0, dataLength);
+		memcpy(data, r->msg.DeviceToUserDataVersion1Message.data, dataLength);
 	}
 	
 	sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: DTU Response: AppID %d , LineInstance %d, CallID %d, Transaction %d\n", d->id, appID, lineInstance, callReference, transactionID);
-	sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: DTU Response: Data %s\n", d->id, data);
+	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: DTU Response: Data %s\n", d->id, data);
 }
