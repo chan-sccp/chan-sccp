@@ -58,7 +58,6 @@ extern "C" {
 		char exitexten[AST_MAX_CONTEXT];				/*!< Extension to jump to after hangup */
 		int exitpriority;						/*!< Priority to jump to after hangup */
 
-		boolean_t conferencelist_active;				/*!< Conferencelist is currently displayed and updated */
 		SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
 	};
 

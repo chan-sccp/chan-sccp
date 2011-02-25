@@ -359,7 +359,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: member #%d -- %s\n", conference->id, part->id, sccp_channel_toString(part->channel));
 	}
 
-	if (conference && conference->moderator->conferencelist_active) {
+	if (conference && conference->moderator->channel->device->conferencelist_active) {
 		sccp_conference_show_list(conference, conference->moderator->channel); 
 	}
 }
@@ -381,7 +381,11 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
  */
 void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
-	sccp_conference_participant_t *part = NULL;
+	if (!conference || !participant->conferenceBridgePeer)
+		return;
+
+	struct ast_channel * ast_channel = participant->conferenceBridgePeer;
+	
 	char leaveMessage[256] = { '\0' };
 
 	/* Update the presence of the moderator */
@@ -390,6 +394,13 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 	}
 
 	/* Notify the moderator of the leaving party. */
+
+	/* \todo we need an sccp.conf conference option to specify the action that needs to be taken when the 
+	 * moderator leaves the conference, i.e.:
+	 *  - take down the conference
+	 *  - moderator needs to promote a participant before being able to leave the conference
+	 *  - continue conference and auto choose new moderator (using the first sccp phone with a local ip-address it finds )
+	 */
 	if (NULL != conference->moderator) {
 		int instance;
 
@@ -398,28 +409,22 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 		snprintf(leaveMessage, 255, "Member #%d left conference.", participant->id);
 		sccp_dev_displayprompt(conference->moderator->channel->device, instance, conference->moderator->channel->callid, leaveMessage, 10);
 	}
+
 	/* \todo hangup channel / sccp_channel for removed participant when called via KICK action - DdG */
-//	ast_hangup(participant->conferenceBridgePeer);
-//	participant->conferenceBridgePeer = NULL;
-
-	/* \todo implement jump back to the EXITCONTEXT to resume their dialplan handling */
-/*	if (ast_async_goto(participant->conferenceBridgePeer, participant->exitcontext, participant->exitexten, participant->exitpriority)) {
-		ast_log(LOG_WARNING, "%d: Async goto '%s@%s' failed\n",participant->channel->device->id,participant->exitexten,participant->exitcontext);
+	if (ast_channel && !ast_check_hangup(ast_channel)) {
+		ast_channel_lock(ast_channel);
+		ast_channel->_softhangup |= AST_SOFTHANGUP_DEV;
+		ast_channel->hangupcause=AST_CAUSE_FACILITY_REJECTED;
+		ast_channel->_state = AST_STATE_DOWN;
+		ast_channel_unlock(ast_channel);
+		ast_channel = NULL;
 	}
-*/
+
+	if (participant->channel) {					// sccp device
+		participant->channel->conference = NULL;
+	}
 	SCCP_LIST_LOCK(&conference->participants);
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&conference->participants, part, list) {
-		if (part == participant) {
-			if (part->channel) {					// sccp device
-				part->channel->conference = NULL;
-				// TODO: Indicate SCCP device it is in conference no longer.
-			}
-			SCCP_LIST_REMOVE(&conference->participants, part, list);
-			ast_free(part);
-		}
-
-	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
+	SCCP_LIST_REMOVE(&conference->participants, participant, list);
 	SCCP_LIST_UNLOCK(&conference->participants);
 
 /*
@@ -428,13 +433,14 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 	ast_cond_broadcast(&participant->removed_cond_signal);
 	ast_mutex_unlock(&participant->cond_lock);
 */
-
-	if (conference && conference->moderator->conferencelist_active) {
-		sccp_conference_show_list(conference, conference->moderator->channel); 
-	}
-
-	if (conference->participants.size < 1)
+	if (conference->participants.size < 1) {	// \todo should this not be 2 ?
 		sccp_conference_end(conference);
+	} else {
+		if (NULL != conference->moderator && conference->moderator->channel->device->conferencelist_active) {
+			sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "UPDATING CONFLIST\n");
+			sccp_conference_show_list(conference, conference->moderator->channel); 
+		}
+	}
 }
 
 /*!
@@ -598,7 +604,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	if (!channel)			// only send this list to sccp phones
 		return;
 
-	if (conference->participants.size < 1)
+	if (NULL != conference->moderator && conference->participants.size < 1)
 		return;
 		
 	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Sending ConferenceList to Channel %d\n", channel->device->id, channel->callid);
@@ -620,12 +626,16 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	// MenuItems
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
-		if (participant->channel==channel) {		// me 
-			participant->conferencelist_active=TRUE;
-		}
-
 		if(participant->pendingRemoval)
 			continue;
+
+		if (participant->channel==channel && !participant->channel->device->conferencelist_active) {
+			sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: CONFLIST ACTIVED %d %d\n", channel->device->id, channel->callid, participant->id);
+			sccp_device_lock(participant->channel->device);
+			participant->channel->device->conferencelist_active=TRUE;
+			sccp_device_unlock(participant->channel->device);
+		}
+
 		strcat(xmlStr, "<MenuItem>\n");
 
 		if (isModerator(participant, channel))
@@ -674,7 +684,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	strcat(xmlStr, "  <Name>Update</Name>\n");
 	strcat(xmlStr, "  <Position>1</Position>\n");
 	strcat(xmlStr, "  <URL>");
-	sprintf(xmlTemp, "UserDataSoftKey:Select:%d:Update$%d$%d$%d", 1, appID, conference->id, transactionID);
+	sprintf(xmlTemp, "UserDataSoftKey:Select:%d:UPDATE$%d$%d$%d$", 1, appID, conference->id, transactionID);
 	strcat(xmlStr, xmlTemp);
 	strcat(xmlStr, "</URL>\n");
 	strcat(xmlStr, "</SoftKeyItem>\n");
@@ -702,7 +712,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	strcat(xmlStr, "  <Name>Exit</Name>\n");
 	strcat(xmlStr, "  <Position>4</Position>\n");
 	strcat(xmlStr, "  <URL>");
-	sprintf(xmlTemp, "UserDataSoftKey:Select:%d:EXIT$%d$%d$%d", 4, appID, conference->id, transactionID);
+	sprintf(xmlTemp, "UserDataSoftKey:Select:%d:EXIT$%d$%d$%d$", 4, appID, conference->id, transactionID);
 	strcat(xmlStr, xmlTemp);
 	strcat(xmlStr, "</URL>\n");
 	strcat(xmlStr, "</SoftKeyItem>\n");
@@ -748,33 +758,34 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 
 void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callReference, uint32_t transactionID, uint32_t conferenceID, uint32_t participantID)
 {
-	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle DTU SoftKey Button Press for CallID %d, Transaction %d, Conference %d, participant: %d\n", d->id, callReference, transactionID, conferenceID, participantID);
 
 	if (!d)
 		return;
 
-	sccp_conference_t *conference = NULL;
-	sccp_conference_participant_t *participant = NULL;
-
-	/* lookup participant by id */
-	if (!(conference = sccp_conference_find_byid(conferenceID))) {
-		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference not found\n", d->id);
-		goto EXIT;
-	}
-
-
 	sccp_device_lock(d);
 	if (d && d->dtu_softkey.transactionID == transactionID) {
-		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: DTU Softkey Action %s", d->id, d->dtu_softkey.action);
+		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle DTU SoftKey Button Press for CallID %d, Transaction %d, Conference %d, Participant:%d, Action %s\n", d->id, callReference, transactionID, conferenceID, participantID, d->dtu_softkey.action);
+		sccp_conference_t *conference = NULL;
+		sccp_conference_participant_t *participant = NULL;
+
+		/* lookup conference by id */
+		if (!(conference = sccp_conference_find_byid(conferenceID))) {
+			sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference not found\n", d->id);
+			goto EXIT;
+		}
+
+		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: DTU Softkey Action %s\n", d->id, d->dtu_softkey.action);
 		if (!strcmp(d->dtu_softkey.action, "UPDATE")) {
 			sccp_conference_show_list(conference, conference->moderator->channel); 
 		} else if (!strcmp(d->dtu_softkey.action, "EXIT")) {
-			conference->moderator->conferencelist_active=FALSE;
-//			char data[] = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"Init:Services\"/></CiscoIPPhoneExecute>";
+			sccp_device_lock(conference->moderator->channel->device);
+			conference->moderator->channel->device->conferencelist_active=FALSE;
+			sccp_device_lock(conference->moderator->channel->device);
+			//Use "SoftKey:Exit" or "Init:Services"
 			char data[] = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"SoftKey:Exit\"/></CiscoIPPhoneExecute>";
 			sendUserToDeviceVersion1Message(d, APPID_CONFERENCE, conferenceID, callReference, transactionID, data);
 		} else {
-			/* lookup participant by id */
+			/* lookup participant by id (only necessary for MUTE and KICK actions */
 			if (!(participant = sccp_conference_participant_find_byid(conference, participantID))) {
 				sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference Participant not found\n", d->id);
 				goto EXIT;
@@ -782,11 +793,6 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 			if (!strcmp(d->dtu_softkey.action, "MUTE")) {
 				sccp_conference_toggle_mute_participant(conference, participant);
 			} else if (!strcmp(d->dtu_softkey.action, "KICK")) {
-				/* lookup participant by id */
-				if (!(participant = sccp_conference_participant_find_byid(conference, participantID))) {
-					sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference Participant not found\n", d->id);
-					goto EXIT;
-				}
 				if (participant->channel && (conference->moderator->channel == participant->channel)) {
 					sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Since wenn du we kick ourselves ? You've got issues!\n", d->id);
 				} else {
@@ -797,8 +803,7 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 	} else {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: DTU TransactionID does not match or device not found (%d <> %d)\n", d->id, d->dtu_softkey.transactionID, transactionID);
 	}
-
- EXIT:
+EXIT:
 	/* reset softkey state for next button press */
 	d->dtu_softkey.action = "";
 	d->dtu_softkey.appID = 0;
@@ -834,7 +839,6 @@ void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_confe
 	ast_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer);
 	ao2_unlock(participant->conference->bridge);
 	
-	/* wait for thead to end */
 	/* \todo find a better methode to wait for the thread to signal removed participant (pthread_cond_timedwait ?); */
 /*
 	ast_mutex_lock(&participant->cond_lock);
@@ -887,7 +891,7 @@ void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, scc
 		sccp_dev_displayprompt(conference->moderator->channel->device, 0, conference->moderator->channel->callid, mesg, 5);
 	}
 	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: ConferenceParticipant %d %s\n", DEV_ID_LOG(participant->channel->device), participant->id, textMessage[participant->muted]);
-	if (conference) {
+	if (conference && conference->moderator->channel->device->conferencelist_active) {
 		sccp_conference_show_list(conference, conference->moderator->channel); 
 	}
 }
