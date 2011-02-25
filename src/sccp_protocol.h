@@ -623,7 +623,8 @@ static const struct skinny_alarm {
 #    define SKINNY_DEVICETYPE_CISCO6941			496
 #    define SKINNY_DEVICETYPE_CISCO6945			564
 #    define SKINNY_DEVICETYPE_CISCO6961			497
-#    define SKINNY_DEVICETYPE_SPA_521S			80000				/*!< nokia icc client V2 */
+#    define SKINNY_DEVICETYPE_SPA_521S			80000
+#    define SKINNY_DEVICETYPE_SPA_525G			80005
 
 /*!
  * \brief Skinny DeviceType Structure
@@ -722,6 +723,7 @@ static const struct skinny_devicetype {
 	{SKINNY_DEVICETYPE_CISCO6961, "Cisco 6961"},
 	
 	{SKINNY_DEVICETYPE_SPA_521S, "Cisco SPA 521SG"},
+	{SKINNY_DEVICETYPE_SPA_525G, "Cisco SPA 525G"},
 	
 	/* *INDENT-ON* */
 };
@@ -1865,7 +1867,7 @@ typedef union {
 		uint32_t lel_callReference;
 		uint32_t lel_transactionID;
 		uint32_t lel_dataLength;
-		char xml_data[StationMaxXMLMessage];
+		char data[StationMaxXMLMessage];
 	} UserToDeviceDataMessage;						/*!< User to Device Message Structure */
 
 	struct {
@@ -1879,7 +1881,7 @@ typedef union {
 		uint32_t lel_conferenceID;
 		uint32_t lel_appInstanceID;
 		uint32_t lel_routing;
-		char xml_data; // dummy char for variable length message
+		char data; // dummy char for variable length message
 	} UserToDeviceDataVersion1Message;					/*!< User to Device Version1 Message Structure */
 
 	struct {
@@ -1888,7 +1890,7 @@ typedef union {
 		uint32_t lel_callReference;
 		uint32_t lel_transactionID;
 		uint32_t lel_dataLength;
-		char xml_data[StationMaxXMLMessage];
+		char data[StationMaxXMLMessage];
 	} DeviceToUserDataMessage;						/*!< Device to User Message Structure */
 
 	struct {
@@ -1897,7 +1899,7 @@ typedef union {
 		uint32_t lel_callReference;
 		uint32_t lel_transactionID;
 		uint32_t lel_dataLength;
-		char xml_data[StationMaxXMLMessage];
+		char data[StationMaxXMLMessage];
 	} DeviceToUserDataResponseMessage;					/*!< Device to User Response Message Structure */
 
 
@@ -1912,7 +1914,7 @@ typedef union {
 		uint32_t lel_conferenceID;
 		uint32_t lel_appInstanceID;
 		uint32_t lel_routing;
-		char xml_data[StationMaxXMLMessage];
+		char data[StationMaxXMLMessage];
 	} DeviceToUserDataVersion1Message;					/*!< Device to User Version1 Message Structure */
 
 	struct {
@@ -1926,7 +1928,7 @@ typedef union {
 		uint32_t lel_conferenceID;
 		uint32_t lel_appInstanceID;
 		uint32_t lel_routing;
-		char xml_data[StationMaxXMLMessage];
+		char data[StationMaxXMLMessage];
 	} DeviceToUserDataResponseVersion1Message;					/*!< Device to User Response Version1 Message Structure */
                 
 

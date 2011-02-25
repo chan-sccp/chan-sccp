@@ -3296,7 +3296,7 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_moo_t * r)
 		// Split the data string in it's parts: Action, AppID, Payload, TransactionId
 		// For Conference Payload=Conference->ID 
 		if (dataLength) {
-			/* split data by ":" */
+			/* split data by "$" */
 			char **xmlArray;
 			xmlArray=explode(data,"$");
 			sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle DTU Softkey Button:%s,%s,%s,%s\n", d->id, xmlArray[0], xmlArray[1], xmlArray[2], xmlArray[3]);
