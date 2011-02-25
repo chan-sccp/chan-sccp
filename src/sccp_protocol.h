@@ -3275,16 +3275,13 @@ typedef union {
 		char text[StationMaxDisplayTextSize];				/*!< Rejection Text */
 	} RegisterTokenReject;							/*!< Register Token Reject Message Structure */
 
-	/*!
-	 * 
-	 * \since 20100103 -MC
-	 */
+
 	struct {
 		uint32_t lel_conferenceID;					/*!< Conference ID */
 		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
 		uint32_t lel_callReference;					/*!< Call Reference */
 		uint32_t maxBitRate;						/*!< Maximum BitRate */
-	} FlowControlCommandMessage;
+	} FlowControlCommandMessageResp;
 
 	struct {
 		uint32_t lel_conferenceID;					/*!< Conference ID */
