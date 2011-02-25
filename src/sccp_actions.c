@@ -2622,7 +2622,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r)
 		r1->msg.MiscellaneousCommandMessage.lel_miscCommandType = htolel(1);	/* videoFastUpdatePicture */
 		sccp_dev_send(c->device, r1);
 
-		r1 = sccp_build_packet(FlowControlCommandMessageResp, sizeof(r->msg.Unknown_0x0141_Message));
+		r1 = sccp_build_packet(FlowControlCommandMessageResp, sizeof(r->msg.FlowControlCommandMessageResp));
 		r1->msg.FlowControlCommandMessageResp.lel_conferenceID = htolel(c->callid);
 		r1->msg.FlowControlCommandMessageResp.lel_passThruPartyId = htolel(c->passthrupartyid);
 		r1->msg.FlowControlCommandMessageResp.lel_callReference = htolel(c->callid);
