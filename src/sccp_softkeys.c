@@ -77,34 +77,8 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 
 #ifdef CS_ADV_FEATURES
 	if (d->useRedialMenu) {
-		sccp_moo_t *r1 = NULL;
-
-		char *data = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"Key:Directories\"/><ExecuteItem Priority=\"0\"URL=\"Key:KeyPad3\"/></CiscoIPPhoneExecute>";
-
-		int xml_data_len, msgSize, hdr_len, padding;
-
-		xml_data_len = strlen(data);
-		hdr_len = 40 - 1;
-		padding = ((xml_data_len + hdr_len) % 4);
-		padding = (padding > 0) ? 4 - padding : 0;
-		msgSize = hdr_len + xml_data_len + padding;
-
-		r1 = sccp_build_packet(UserToDeviceDataVersion1Message, msgSize);
-		r1->msg.UserToDeviceDataVersion1Message.lel_callReference = htolel(1);
-		r1->msg.UserToDeviceDataVersion1Message.lel_transactionID = htolel(1);
-		r1->msg.UserToDeviceDataVersion1Message.lel_sequenceFlag = 0x0002;
-		r1->msg.UserToDeviceDataVersion1Message.lel_displayPriority = 0x0002;
-		r1->msg.UserToDeviceDataVersion1Message.lel_dataLength = htolel(xml_data_len);
-
-		if (xml_data_len) {
-			char buffer[xml_data_len + 2];
-
-			memset(&buffer[0], 0, sizeof(buffer));
-			memcpy(&buffer[0], data, xml_data_len);
-
-			memcpy(&r1->msg.UserToDeviceDataVersion1Message.xml_data, &buffer[0], sizeof(buffer));
-			sccp_dev_send(d, r1);
-		}
+		char data[] = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"Key:Directories\"/><ExecuteItem Priority=\"0\"URL=\"Key:KeyPad3\"/></CiscoIPPhoneExecute>";
+		sendUserToDeviceVersion1Message(d, 0, 0, 1, 1, data);
 		return;
 	}
 #endif
