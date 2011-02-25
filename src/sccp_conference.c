@@ -316,11 +316,12 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 	if (!ast_strlen_zero(remoteCallLeg->macrocontext)) {
 		ast_copy_string(remoteParticipant->exitcontext, remoteCallLeg->macrocontext, sizeof(remoteParticipant->exitcontext));
 		ast_copy_string(remoteParticipant->exitexten, remoteCallLeg->macroexten, sizeof(remoteParticipant->exitexten));
+		remoteParticipant->exitpriority=remoteCallLeg->macropriority;
 	} else {
 		ast_copy_string(remoteParticipant->exitcontext, remoteCallLeg->context, sizeof(remoteParticipant->exitcontext));
 		ast_copy_string(remoteParticipant->exitexten, remoteCallLeg->exten, sizeof(remoteParticipant->exitexten));
+		remoteParticipant->exitpriority=remoteCallLeg->priority;
 	}
-	remoteParticipant->exitpriority=remoteCallLeg->priority;
 	ast_channel_unlock(remoteCallLeg);
 
 	SCCP_LIST_LOCK(&conference->participants);
@@ -358,7 +359,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: member #%d -- %s\n", conference->id, part->id, sccp_channel_toString(part->channel));
 	}
 
-	if (conference) {
+	if (conference && conference->moderator->conferencelist_active) {
 		sccp_conference_show_list(conference, conference->moderator->channel); 
 	}
 }
@@ -428,7 +429,7 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 	ast_mutex_unlock(&participant->cond_lock);
 */
 
-	if (conference) {
+	if (conference && conference->moderator->conferencelist_active) {
 		sccp_conference_show_list(conference, conference->moderator->channel); 
 	}
 
@@ -589,6 +590,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 {
 	int use_icon = 0;
 	uint32_t appID = APPID_CONFERENCE;
+	uint32_t callReference = 1; 	// callreference should be asterisk_channel->unique identifier
 
 	if (!conference)
 		return;
@@ -618,6 +620,10 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	// MenuItems
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
+		if (participant->channel==channel) {		// me 
+			participant->conferencelist_active=TRUE;
+		}
+
 		if(participant->pendingRemoval)
 			continue;
 		strcat(xmlStr, "<MenuItem>\n");
@@ -656,7 +662,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		strcat(xmlStr, "</Name>\n");
 
 		strcat(xmlStr, "  <URL>");
-		sprintf(xmlTemp, "UserCallData:%d:%d:%d:%d:%d", appID, conference->id, /*callid*/1, transactionID, participant->id);
+		sprintf(xmlTemp, "UserCallData:%d:%d:%d:%d:%d", appID, conference->id, callReference, transactionID, participant->id);
 		strcat(xmlStr, xmlTemp);
 		strcat(xmlStr, "</URL>\n");
 		strcat(xmlStr, "</MenuItem>\n");
@@ -667,7 +673,10 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	strcat(xmlStr, "<SoftKeyItem>\n");
 	strcat(xmlStr, "  <Name>Update</Name>\n");
 	strcat(xmlStr, "  <Position>1</Position>\n");
-	strcat(xmlStr, "  <URL>QueryStringParam:action=update</URL>\n");
+	strcat(xmlStr, "  <URL>");
+	sprintf(xmlTemp, "UserDataSoftKey:Select:%d:Update$%d$%d$%d", 1, appID, conference->id, transactionID);
+	strcat(xmlStr, xmlTemp);
+	strcat(xmlStr, "</URL>\n");
 	strcat(xmlStr, "</SoftKeyItem>\n");
 
 	if (channel && (channel == conference->moderator->channel)) {
@@ -675,7 +684,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		strcat(xmlStr, "  <Name>ToggleMute</Name>\n");
 		strcat(xmlStr, "  <Position>2</Position>\n");
 		strcat(xmlStr, "  <URL>");
-		sprintf(xmlTemp, "UserDataSoftKey:Select:%d:MUTE$%d$%d$%d", 1, appID, conference->id, transactionID);
+		sprintf(xmlTemp, "UserDataSoftKey:Select:%d:MUTE$%d$%d$%d", 2, appID, conference->id, transactionID);
 		strcat(xmlStr, xmlTemp);
 		strcat(xmlStr, "</URL>\n");
 		strcat(xmlStr, "</SoftKeyItem>\n");
@@ -684,16 +693,18 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		strcat(xmlStr, "  <Name>Kick</Name>\n");
 		strcat(xmlStr, "  <Position>3</Position>\n");
 		strcat(xmlStr, "  <URL>");
-		sprintf(xmlTemp, "UserDataSoftKey:Select:%d:KICK$%d$%d$%d", 2, appID, conference->id, transactionID);
+		sprintf(xmlTemp, "UserDataSoftKey:Select:%d:KICK$%d$%d$%d", 3, appID, conference->id, transactionID);
 		strcat(xmlStr, xmlTemp);
 		strcat(xmlStr, "</URL>\n");
 		strcat(xmlStr, "</SoftKeyItem>\n");
 	}
-
 	strcat(xmlStr, "<SoftKeyItem>\n");
 	strcat(xmlStr, "  <Name>Exit</Name>\n");
 	strcat(xmlStr, "  <Position>4</Position>\n");
-	strcat(xmlStr, "  <URL>SoftKey:Exit</URL>\n");
+	strcat(xmlStr, "  <URL>");
+	sprintf(xmlTemp, "UserDataSoftKey:Select:%d:EXIT$%d$%d$%d", 4, appID, conference->id, transactionID);
+	strcat(xmlStr, xmlTemp);
+	strcat(xmlStr, "</URL>\n");
 	strcat(xmlStr, "</SoftKeyItem>\n");
 
 	// CiscoIPPhoneIconMenu Icons
@@ -732,29 +743,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	strcat(xmlStr, "</CiscoIPPhoneIconMenu>\n");
 	sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "xml-message:\n%s\n", xmlStr);
 
-	sccp_moo_t *r1 = NULL;
-
-	int xml_data_len, msgSize, hdr_len, padding;
-
-	xml_data_len = strlen(xmlStr);
-	hdr_len = 40 - 1;
-	padding = ((xml_data_len + hdr_len) % 4);
-	padding = (padding > 0) ? 4 - padding : 4;
-	msgSize = hdr_len + xml_data_len + padding;
-
-	r1 = sccp_build_packet(UserToDeviceDataVersion1Message, msgSize);
-	r1->msg.UserToDeviceDataVersion1Message.lel_appID = appID;
-	r1->msg.UserToDeviceDataVersion1Message.lel_lineInstance = htolel(conference->id);
-	r1->msg.UserToDeviceDataVersion1Message.lel_callReference = /*callid*/ 1;
-	r1->msg.UserToDeviceDataVersion1Message.lel_transactionID = htolel(transactionID);
-	r1->msg.UserToDeviceDataVersion1Message.lel_sequenceFlag = 0x0002;
-	r1->msg.UserToDeviceDataVersion1Message.lel_displayPriority = 0x0002;
-	r1->msg.UserToDeviceDataVersion1Message.lel_dataLength = htolel(xml_data_len);
-
-	if (xml_data_len) {
-		memcpy(&r1->msg.UserToDeviceDataVersion1Message.xml_data, xmlStr, sizeof(xmlStr));
-		sccp_dev_send(channel->device, r1);
-	}
+	sendUserToDeviceVersion1Message(channel->device, appID, conference->id, callReference, transactionID, xmlStr);	
 }
 
 void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callReference, uint32_t transactionID, uint32_t conferenceID, uint32_t participantID)
@@ -769,30 +758,44 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 
 	/* lookup participant by id */
 	if (!(conference = sccp_conference_find_byid(conferenceID))) {
-		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference not found", d->id);
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference not found\n", d->id);
 		goto EXIT;
 	}
 
-	/* lookup participant by id */
-	if (!(participant = sccp_conference_participant_find_byid(conference, participantID))) {
-		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference Participant not found", d->id);
-		goto EXIT;
-	}
 
 	sccp_device_lock(d);
 	if (d && d->dtu_softkey.transactionID == transactionID) {
 		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: DTU Softkey Action %s", d->id, d->dtu_softkey.action);
-		if (!strcmp(d->dtu_softkey.action, "MUTE")) {
-			sccp_conference_toggle_mute_participant(conference, participant);
-		} else if (!strcmp(d->dtu_softkey.action, "KICK")) {
-			if (participant->channel && (conference->moderator->channel == participant->channel)) {
-				sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Since wenn du we kick ourselves ? You've got issues!", d->id);
- 			} else {
-				sccp_conference_kick_participant(conference,participant);
+		if (!strcmp(d->dtu_softkey.action, "UPDATE")) {
+			sccp_conference_show_list(conference, conference->moderator->channel); 
+		} else if (!strcmp(d->dtu_softkey.action, "EXIT")) {
+			conference->moderator->conferencelist_active=FALSE;
+//			char data[] = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"Init:Services\"/></CiscoIPPhoneExecute>";
+			char data[] = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"SoftKey:Exit\"/></CiscoIPPhoneExecute>";
+			sendUserToDeviceVersion1Message(d, APPID_CONFERENCE, conferenceID, callReference, transactionID, data);
+		} else {
+			/* lookup participant by id */
+			if (!(participant = sccp_conference_participant_find_byid(conference, participantID))) {
+				sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference Participant not found\n", d->id);
+				goto EXIT;
+			}
+			if (!strcmp(d->dtu_softkey.action, "MUTE")) {
+				sccp_conference_toggle_mute_participant(conference, participant);
+			} else if (!strcmp(d->dtu_softkey.action, "KICK")) {
+				/* lookup participant by id */
+				if (!(participant = sccp_conference_participant_find_byid(conference, participantID))) {
+					sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference Participant not found\n", d->id);
+					goto EXIT;
+				}
+				if (participant->channel && (conference->moderator->channel == participant->channel)) {
+					sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Since wenn du we kick ourselves ? You've got issues!\n", d->id);
+				} else {
+					sccp_conference_kick_participant(conference,participant);
+				}
 			}
 		}
 	} else {
-		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: DTU TransactionID does not match or device not found (%d <> %d)", d->id, d->dtu_softkey.transactionID, transactionID);
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: DTU TransactionID does not match or device not found (%d <> %d)\n", d->id, d->dtu_softkey.transactionID, transactionID);
 	}
 
  EXIT:

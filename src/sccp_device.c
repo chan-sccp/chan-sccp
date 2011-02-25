@@ -444,7 +444,6 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 		break;
 	case SKINNY_DEVICETYPE_NOKIA_E_SERIES:
 		(btn++)->type = SCCP_BUTTONTYPE_LINE;
-		(btn++)->type = SCCP_BUTTONTYPE_LINE;
 		for (i = 0; i < 5; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
 		break;
@@ -454,6 +453,8 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 		for (i = 0; i < 4; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
 		break;
+//	case SKINNY_DEVICETYPE_SPA_525G:
+//		break;
 	default:
 		/* at least one line */
 		(btn++)->type = SCCP_BUTTONTYPE_LINE;
