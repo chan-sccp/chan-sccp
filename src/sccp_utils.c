@@ -2052,3 +2052,40 @@ int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1)
 	}
 	return 1;
 }
+
+/*!
+ * \brief Send a xml message to the phone to invoke Cisco XML Response (for example show service menu)
+ */
+void sendUserToDeviceVersion1Message(sccp_device_t *d, uint32_t appID, uint32_t lineInstance,uint32_t callReference,uint32_t transactionID,char data[]) 
+{
+	sccp_moo_t *r1 = NULL;
+
+	int data_len, msgSize, hdr_len, padding;
+
+	data_len = strlen(data);
+	hdr_len = 40 - 1;
+	padding = ((data_len + hdr_len) % 4);
+	padding = (padding > 0) ? 4 - padding : 0;
+	msgSize = hdr_len + data_len + padding;
+
+	r1 = sccp_build_packet(UserToDeviceDataVersion1Message, msgSize);
+	r1->msg.UserToDeviceDataVersion1Message.lel_appID = htolel(appID);
+	r1->msg.UserToDeviceDataVersion1Message.lel_lineInstance = htolel(lineInstance);
+	r1->msg.UserToDeviceDataVersion1Message.lel_callReference = htolel(callReference);
+	r1->msg.UserToDeviceDataVersion1Message.lel_transactionID = htolel(transactionID);
+	r1->msg.UserToDeviceDataVersion1Message.lel_sequenceFlag = 0x0002;
+	r1->msg.UserToDeviceDataVersion1Message.lel_displayPriority = 0x0002;
+	r1->msg.UserToDeviceDataVersion1Message.lel_dataLength = htolel(data_len);
+
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Message Data:\n%s\n", data);
+	if (data_len) {
+		char buffer[data_len + 2];
+
+		memset(&buffer[0], 0, sizeof(buffer));
+		memcpy(&buffer[0], data, data_len);
+
+		memcpy(&r1->msg.UserToDeviceDataVersion1Message.data, &buffer[0], sizeof(buffer));
+		sccp_dev_send(d, r1);
+	}
+}
+
