@@ -1089,6 +1089,11 @@ typedef enum {
 	SKINNY_CODEC_RFC2833_DYNPAYLOAD = 257
 } skinny_media_payload;
 
+typedef enum {
+	SKINNY_BANDWIDTH_NARROWBAND = 200,
+	SKINNY_BANDWIDTH_WIDEBAND = 201
+} skinny_media_bandwidth;
+
 /*!
  * \brief Skinny Codec Structure
  */
