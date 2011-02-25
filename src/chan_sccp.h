@@ -957,6 +957,9 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		boolean_t useRedialMenu;
 #    endif
 
+#    ifdef CS_SCCP_CONFERENCE
+                boolean_t conferencelist_active;
+#    endif
                 struct {
                         char * action;
                         uint32_t appID;
