@@ -1364,6 +1364,7 @@ typedef enum {
 
 	/* sent by us */
 	FlowControlCommandMessageResp = 0x0141,
+	Unknown_0x0142_Message = 0x0142,
 	Unknown_0x0143_Message = 0x0143,
 	Unknown_0x0144_Message = 0x0144,
 	DisplayDynamicPromptStatusMessage = 0x0145,
@@ -1962,6 +1963,16 @@ typedef union {
 		uint32_t lel_callReference;					/*!< Call Reference */
 		uint32_t lel_maxBitRate;					/*!< maxBitRate */
 	} FlowControlCommandMessage;						/*!< FlowControlCommandMessage */
+
+	struct {								// INCOMPLETE
+		char deviceName[StationMaxDeviceNameSize];
+		uint32_t lel_unknown1; /* unused */
+		uint32_t lel_unknown2;
+		uint32_t lel_unknown3;
+		uint32_t lel_unknown4;
+		char	 str1;
+		char	 str2;
+	} Unknown_0x0142_Message;
 
 	struct {								// INCOMPLETE
 		uint32_t nn;
