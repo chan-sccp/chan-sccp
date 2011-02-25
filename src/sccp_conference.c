@@ -655,13 +655,13 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		if (participant->channel!=NULL) {
 			switch(participant->channel->calltype){
 				case SKINNY_CALLTYPE_INBOUND:
-					sprintf(xmlTemp, "%d:called:%s (%s)", participant->id, participant->channel->callInfo.calledPartyName, participant->channel->callInfo.calledPartyNumber);
+					sprintf(xmlTemp, "%d:%s (%s)", participant->id, participant->channel->callInfo.calledPartyName, participant->channel->callInfo.calledPartyNumber);
 					break;
 				case SKINNY_CALLTYPE_OUTBOUND:
-					sprintf(xmlTemp, "%d:calling:%s (%s)", participant->id, participant->channel->callInfo.callingPartyName, participant->channel->callInfo.callingPartyNumber);
+					sprintf(xmlTemp, "%d:%s (%s)", participant->id, participant->channel->callInfo.callingPartyName, participant->channel->callInfo.callingPartyNumber);
 					break;
 				case SKINNY_CALLTYPE_FORWARD:
-					sprintf(xmlTemp, "%d:forwarded:%s (%s)", participant->id, participant->channel->callInfo.originalCallingPartyName, participant->channel->callInfo.originalCallingPartyName);
+					sprintf(xmlTemp, "%d:%s (%s)", participant->id, participant->channel->callInfo.originalCallingPartyName, participant->channel->callInfo.originalCallingPartyName);
 					break;
 			}
 			strcat(xmlStr, xmlTemp);
@@ -691,7 +691,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 
 	if (channel && (channel == conference->moderator->channel)) {
 		strcat(xmlStr, "<SoftKeyItem>\n");
-		strcat(xmlStr, "  <Name>ToggleMute</Name>\n");
+		strcat(xmlStr, "  <Name>Mute</Name>");
 		strcat(xmlStr, "  <Position>2</Position>\n");
 		strcat(xmlStr, "  <URL>");
 		sprintf(xmlTemp, "UserDataSoftKey:Select:%d:MUTE$%d$%d$%d$", 2, appID, conference->id, transactionID);
