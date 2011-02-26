@@ -24,10 +24,10 @@
  * Here, you can find the answers to a few frequently asked questions.
  * For up to date Help, Faq, Bug Reporting have a look here: http://sourceforge.net/projects/chan-sccp-b/support.
  * 
- * \section a A. Compilation
+ * \section a Compilation
  * Compilation related issues.
  *
- * \subsection a1 A1. How to Compile
+ * \subsection a1 How to Compile
  * Q: How to Compile chan_sccp-b
  *
  * A: We are using the standard autoconf/automake principle. This means the only thing
@@ -45,13 +45,17 @@
  * To Read more about using ./configure, read the INSTALL document in the root of this project 
  * directory.
  *
- * \subsection a2 A2. Compilation Errors
+ * \subsection a2 Compilation Errors
  * Q: How to solve compilations errors
  *
  * A: First try to work out what ./configure is complaining about, when it is. I normally tries to
  * be as explicit as possible. If you get errors trying to start configure, first try to resolve it
- * using "\code./reconf\endcode", it will try and build a new configure application for your machine 
- * (autoconf, automake and m4 are required).
+ * using:
+ * \code
+ * ./tools/bootstrap.sh
+ * \endcode
+ * This till try and build a new configure application for your machine 
+ * (autoconf, automake, libtool and m4 are required).
  * 
  * If nothing helps, send a message to our bug page via http://sourceforge.net/tracker/?group_id=186378&atid=917045.
  * Please include config.log when sending a bug about configure/make
@@ -61,7 +65,7 @@
  * A: First try to work out what ./configure is complaining about, when it is. I normally tries to
  * be as explicit as possible. If you get errors trying to start configure, first try to resolve it
  *
- * \section b B. Troubleshooting
+ * \section b Troubleshooting
  *
  * Q. Can't dial-in or dial-out of an SCCP Phone
  *
@@ -97,7 +101,7 @@
  *    according to the issue you have. Otherwise we have to wade through piles of uninformative messages to get to the correct
  *    location. And try to describe you issue as exact as possible.
  *
- * \section c C. Dialplan
+ * \section c Dialplan
  * 
  * Q: How do you dial an SCCP from your dialplan
  * 
