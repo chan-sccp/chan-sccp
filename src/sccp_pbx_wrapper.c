@@ -41,7 +41,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 /************************************************************************************************************ CALLERID **/
 
-/*
+/*!
  * \brief get callerid_name from pbx
  * \param ast_chan Asterisk Channel
  * \return char * with the callername
@@ -74,7 +74,7 @@ char *sccp_wrapper_asterisk_get_callerid_name(const sccp_channel_t * channel)
 	return result;
 }
 
-/*
+/*!
  * \brief get callerid_name from pbx
  * \param ast_chan Asterisk Channel
  * \return char * with the callername
@@ -107,7 +107,7 @@ char *sccp_wrapper_asterisk_get_callerid_number(const sccp_channel_t * channel)
 	return result;
 }
 
-/*
+/*!
  * \brief get callerid from pbx
  * \param ast_chan Asterisk Channel
  * \return SCCP CallInfo Structure 
@@ -152,7 +152,7 @@ sccp_callinfo_t *sccp_wrapper_asterisk_get_callerid(PBX_CHANNEL_TYPE * ast_chan)
 	return callInfo;
 }
 
-/*
+/*!
  * \brief set callerid on pbx channel
  * \param ast_chan Asterisk Channel
  * \param callInfo SCCP CallInfo Structure
@@ -212,7 +212,7 @@ int sccp_wrapper_asterisk_set_callerid(PBX_CHANNEL_TYPE * ast_chan, sccp_callinf
 	return RESULT;
 }
 
-/*
+/*!
  * \brief set callerid name on pbx channel
  * \param pbx_chan PBX Channel
  * \param name Name as char
@@ -231,7 +231,7 @@ void sccp_wrapper_asterisk_set_callerid_name(const PBX_CHANNEL_TYPE * pbx_chan, 
 #endif
 }
 
-/*
+/*!
  * \brief set callerid number on pbx channel
  * \param pbx_chan PBX Channel
  * \param number Number as char
@@ -250,7 +250,7 @@ void sccp_wrapper_asterisk_set_callerid_number(const PBX_CHANNEL_TYPE * pbx_chan
 #endif
 }
 
-/*
+/*!
  * \brief set callerid ani on pbx channel
  * \param pbx_chan PBX Channel
  * \param ani Number as char
@@ -270,7 +270,7 @@ void sccp_wrapper_asterisk_set_callerid_ani(const PBX_CHANNEL_TYPE * pbx_chan, c
 #endif
 }
 
-/*
+/*!
  * \brief set callerid dnid on pbx channel
  * \param pbx_chan PBX Channel
  * \param dnid Number as char
@@ -289,7 +289,7 @@ void sccp_wrapper_asterisk_set_callerid_dnid(const PBX_CHANNEL_TYPE * pbx_chan, 
 #endif
 }
 
-/*
+/*!
  * \brief set callerid rdnis on pbx channel
  * \param pbx_chan PBX Channel
  * \param rdnis Number as char
@@ -310,7 +310,7 @@ void sccp_wrapper_asterisk_set_callerid_rdnis(const PBX_CHANNEL_TYPE * pbx_chan,
 
 /************************************************************************************************************* CHANNEL **/
 
-/*
+/*!
  * \brief itterate through locked pbx channels
  * \note replacement for ast_channel_walk_locked
  * \param ast_chan Asterisk Channel
@@ -323,7 +323,7 @@ PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 
 /************************************************************************************************************** CONFIG **/
 
-/*
+/*!
  * \brief Add a new rule to a list of HAs
  * \note replacement for ast_append_ha
  * \param sense Sense / Key
@@ -341,7 +341,7 @@ struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast
 #endif
 }
 
-/*
+/*!
  * \brief Register a new context
  * \note replacement for ast_context_find_or_create
  *
@@ -391,7 +391,8 @@ struct ast_config *pbx_config_load(const char *filename, const char *who_asked, 
 
 /*************************************************************************************************************** CODEC **/
 
-/*! \brief Get the name of a format
+/*! 
+ * \brief Get the name of a format
  * \note replacement for ast_getformatname
  * \param format id of format
  * \return A static string containing the name of the format or "unknown" if unknown.
@@ -439,7 +440,7 @@ struct ast_variable *pbx_variable_new(struct ast_variable *v)
 
 /******************************************************************************************************** NET / SOCKET **/
 
-/*
+/*!
  * \brief thread-safe replacement for inet_ntoa()
  * \note replacement for ast_pbx_inet_ntoa
  * \param ia In Address / Source Address
@@ -457,8 +458,9 @@ const char *pbx_inet_ntoa(struct in_addr ia)
 }
 
 #if ASTERISK_VERSION_NUM < 10400
-
-/* BackPort of ast_str2cos & ast_str2cos for asterisk 1.2*/
+/*!
+ * \brief BackPort of ast_str2cos & ast_str2cos for asterisk 1.2
+ */
 struct dscp_codepoint {
 	char *name;
 	unsigned int space;

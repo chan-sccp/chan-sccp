@@ -1,7 +1,7 @@
 /*!
  * \file 	sccp_management.h
  * \brief 	SCCP Management Header
- * \author 	Marcello Ceschia <marcello [at] ceschia.de>
+ * \author 	Marcello Ceschia <marcello [at] ceschia.de> on 22.11.2008
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
@@ -10,13 +10,6 @@
  */
 
 #ifdef CS_SCCP_MANAGER
-/*
- * sccp_management.h
- *
- *  Created on: 22.11.2008
- *      Author: marcello
- */
-
 #    ifndef __SCCP_MANAGEMENT_H
 #        define __SCCP_MANAGEMENT_H
 

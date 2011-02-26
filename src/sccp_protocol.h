@@ -191,7 +191,7 @@ static const struct sccp_callforwardstate {
 	/* *INDENT-ON* */
 };
 
-/*
+/*!
  * SCCP/Skinny Lookup Types
  */
 #    define SCCP_MESSAGE 			0
@@ -2042,7 +2042,7 @@ typedef union {
 										   7 RestrictLastRedirectPartyNumber */
 		uint32_t dummy;							/*!< Dummy */
 		/*
-		 *      Here there are the following informations:
+		 *      Dummy contains the following information:
 		 *
 		 char callingParty[StationMaxDirnumSize];
 		 char calledParty[StationMaxDirnumSize];

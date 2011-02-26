@@ -702,7 +702,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 	};									/*!< SCCP Hostname Structure */
 
 #    ifdef CS_DEVSTATE_FEATURE
-	/*
+	/*!
 	 * \brief SCCP devstate registrations per device
 	 */
 	struct sccp_devstate_specifier {
