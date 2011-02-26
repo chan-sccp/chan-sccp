@@ -32,10 +32,10 @@ sccp_conference_t *sccp_conference_find_byid(uint32_t id);
 sccp_conference_participant_t *sccp_conference_participant_find_byid(sccp_conference_t * conference, uint32_t id);
 
 /*!
- * Create conference
+ * \brief Create conference
  *
- * @param owner conference owner
- * @return conference
+ * \param owner conference owner
+ * \return conference
  */
 sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 {
@@ -132,7 +132,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 }
 
 /*!
- * Add channel to conference bridge
+ * \brief Add channel to conference bridge
  * 
  * \lock
  * 	- asterisk channel
@@ -224,10 +224,10 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 }
 
 /*!
- * Add participant to conference
+ * \brief Add participant to conference
  *
- * @param conference conference
- * @param participant participant to remove
+ * \param conference conference
+ * \param participant participant to remove
  * 
  * \warning
  * 	- conference->participants is not always locked
@@ -365,10 +365,10 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 }
 
 /*!
- * Remove participant from conference
+ * \brief Remove participant from conference
  *
- * @param conference conference
- * @param participant participant to remove
+ * \param conference conference
+ * \param participant participant to remove
  *
  * \todo implement this
  * \todo check if the are enough participants in conference
@@ -444,10 +444,10 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 }
 
 /*!
- * Retract participating channel from conference
+ * \brief Retract participating channel from conference
  *
- * @param conference conference
- * @param channel SCCP Channel
+ * \param conference conference
+ * \param channel SCCP Channel
  *
  * \todo implement this
  * \todo check if the are enough participants in conference
@@ -472,9 +472,9 @@ void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference,
 }
 
 /*!
- * End conference
+ * \brief End conference
  *
- * @param conference conference
+ * \param conference conference
  *
  * \lock
  * 	- conference->participants
@@ -495,7 +495,7 @@ void sccp_conference_end(sccp_conference_t * conference)
 }
 
 /*!
- * doing initial actions
+ * \brief doing initial actions
  */
 void sccp_conference_module_start()
 {
@@ -503,9 +503,9 @@ void sccp_conference_module_start()
 }
 
 /*!
- * Join Conference Thread
+ * \brief Join Conference Thread
  *
- * @param data Data
+ * \param data Data
  */
 static void *sccp_conference_join_thread(void *data)
 {
@@ -567,7 +567,7 @@ static void *sccp_conference_join_thread(void *data)
 }
 
 /*!
- * Is this participant a moderator on this conference
+ * \brief Is this participant a moderator on this conference
  *
  * \param conference SCCP Conference
  * \param channel SCCP Channel
@@ -587,10 +587,7 @@ boolean_t isModerator(sccp_conference_participant_t * participant, sccp_channel_
  *
  * \param conference SCCP Conference
  * \param channel SCCP Channel
-//		UserData:INTEGER:STRING
-//		UserDataSoftKey:STRING:INTEGER:STRING
-//		UserCallDataSoftKey:STRING:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
-//		UserCallData:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
+ *
  */
 void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * channel)
 {
@@ -670,6 +667,11 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, xmlTemp);
 		}
 		strcat(xmlStr, "</Name>\n");
+
+//		UserData:INTEGER:STRING
+//		UserDataSoftKey:STRING:INTEGER:STRING
+//		UserCallDataSoftKey:STRING:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
+//		UserCallData:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
 
 		strcat(xmlStr, "  <URL>");
 		sprintf(xmlTemp, "UserCallData:%d:%d:%d:%d:%d", appID, conference->id, callReference, transactionID, participant->id);
@@ -756,6 +758,15 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	sendUserToDeviceVersion1Message(channel->device, appID, conference->id, callReference, transactionID, xmlStr);	
 }
 
+/*!
+ * \brief Handling ConferenceList Button Event
+ *
+ * \param d SCCP device
+ * \param callReference as uint32_t
+ * \param transactionID uint32_t
+ * \param conferenceID as uint32_t
+ * \param participantID as uint32_t
+ */
 void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callReference, uint32_t transactionID, uint32_t conferenceID, uint32_t participantID)
 {
 

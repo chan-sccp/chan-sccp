@@ -40,7 +40,7 @@ struct ast_ha {
 };
 #endif
 
-/*
+/*!
  * \brief Local Function to check for Valid Session, Message and Device
  * \param s SCCP Session as sccp_session_t
  * \param r SCCP MOO T as sccp_moo_t
