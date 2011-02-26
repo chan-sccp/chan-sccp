@@ -266,7 +266,7 @@ void sccp_wrapper_asterisk_set_callerid_ani(const PBX_CHANNEL_TYPE * pbx_chan, c
 	if (!strcmp(pbx_chan->cid.cid_ani, ani)) {
 		sccp_copy_string(pbx_chan->cid.cid_ani, ani, sizeof(pbx_chan->cid.cid_ani) - 1);
 	}
-//	pbx_chan->cid.cid_ani = strdup(ani);
+//      pbx_chan->cid.cid_ani = strdup(ani);
 #endif
 }
 
