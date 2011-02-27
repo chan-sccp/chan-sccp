@@ -191,7 +191,7 @@ static const struct sccp_callforwardstate {
 	/* *INDENT-ON* */
 };
 
-/*!
+/*
  * SCCP/Skinny Lookup Types
  */
 #    define SCCP_MESSAGE 			0
@@ -2049,7 +2049,7 @@ typedef union {
 										   7 RestrictLastRedirectPartyNumber */
 		uint32_t dummy;							/*!< Dummy */
 		/*
-		 *      Dummy contains the following information:
+		 *      Here there are the following informations:
 		 *
 		 char callingParty[StationMaxDirnumSize];
 		 char calledParty[StationMaxDirnumSize];
@@ -2859,6 +2859,7 @@ typedef union {
 		char cfwdbusynumber[StationMaxDirnumSize];			/*!< Call Forward on Busy Number */
 		uint32_t lel_cfwdnoanswerstatus;				/*!< Call Forward on No-Answer Status */
 		char cfwdnoanswernumber[StationMaxDirnumSize];			/*!< Call Forward on No-Answer Number */
+		char unknown1[StationMaxDirnumSize];				/*!< new in version 20 */
 	} ForwardStatMessage;							/*!< Forward Status Message Structure */
 
 	struct {
@@ -3092,7 +3093,8 @@ typedef union {
 	struct {								// Request Statistics from Phone
 		char DirectoryNumber[StationMaxDirnumSize];			/*!< Directory Number */
 		uint32_t lel_callReference;					/*!< Call Reference */
-		uint32_t lel_StatsProcessing;					/*!< Statistics Processing */
+		uint8_t lel_StatsProcessing;					/*!< Statistics Processing */
+		uint32_t lel_unknown1;						/*!< new in version 20 */
 	} ConnectionStatisticsReq;						/*!< Connection Statistics Request Message Structure */
 
 	struct {
