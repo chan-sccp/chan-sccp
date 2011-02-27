@@ -613,7 +613,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 #        endif
 
 	char xmlStr[2048] = "";
-	char xmlTemp[512] = "";
+	char xmlTmp[512] = "";
 	sccp_conference_participant_t *participant;
 
 	strcat(xmlStr, "<CiscoIPPhoneIconMenu>\n");				// Will be CiscoIPPhoneIconMenu with icons for participant, moderator, muted, unmuted
@@ -644,27 +644,27 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			++use_icon;
 		}
 		strcat(xmlStr, "  <IconIndex>");
-		sprintf(xmlTemp, "%d", use_icon);
-		strcat(xmlStr, xmlTemp);
+		sprintf(xmlTmp, "%d", use_icon);
+		strcat(xmlStr, xmlTmp);
 		strcat(xmlStr, "</IconIndex>\n");
 
 		strcat(xmlStr, "  <Name>");
 		if (participant->channel!=NULL) {
 			switch(participant->channel->calltype){
 				case SKINNY_CALLTYPE_INBOUND:
-					sprintf(xmlTemp, "%d:%s (%s)", participant->id, participant->channel->callInfo.calledPartyName, participant->channel->callInfo.calledPartyNumber);
+					sprintf(xmlTmp, "%d:%s (%s)", participant->id, participant->channel->callInfo.calledPartyName, participant->channel->callInfo.calledPartyNumber);
 					break;
 				case SKINNY_CALLTYPE_OUTBOUND:
-					sprintf(xmlTemp, "%d:%s (%s)", participant->id, participant->channel->callInfo.callingPartyName, participant->channel->callInfo.callingPartyNumber);
+					sprintf(xmlTmp, "%d:%s (%s)", participant->id, participant->channel->callInfo.callingPartyName, participant->channel->callInfo.callingPartyNumber);
 					break;
 				case SKINNY_CALLTYPE_FORWARD:
-					sprintf(xmlTemp, "%d:%s (%s)", participant->id, participant->channel->callInfo.originalCallingPartyName, participant->channel->callInfo.originalCallingPartyName);
+					sprintf(xmlTmp, "%d:%s (%s)", participant->id, participant->channel->callInfo.originalCallingPartyName, participant->channel->callInfo.originalCallingPartyName);
 					break;
 			}
-			strcat(xmlStr, xmlTemp);
+			strcat(xmlStr, xmlTmp);
 		} else {								// Asterisk Channel
-			sprintf(xmlTemp, "%d:%s (%s)", participant->id, participant->conferenceBridgePeer->cid.cid_name, participant->conferenceBridgePeer->cid.cid_num);
-			strcat(xmlStr, xmlTemp);
+			sprintf(xmlTmp, "%d:%s (%s)", participant->id, participant->conferenceBridgePeer->cid.cid_name, participant->conferenceBridgePeer->cid.cid_num);
+			strcat(xmlStr, xmlTmp);
 		}
 		strcat(xmlStr, "</Name>\n");
 
@@ -673,50 +673,40 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 //		UserCallDataSoftKey:STRING:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
 //		UserCallData:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
 
-		strcat(xmlStr, "  <URL>");
-		sprintf(xmlTemp, "UserCallData:%d:%d:%d:%d:%d", appID, conference->id, callReference, transactionID, participant->id);
-		strcat(xmlStr, xmlTemp);
-		strcat(xmlStr, "</URL>\n");
+		sprintf(xmlTmp,"  <URL>UserCallData:%d:%d:%d:%d:%d</URL>", appID, conference->id, callReference, transactionID, participant->id);
+		strcat(xmlStr, xmlTmp);
 		strcat(xmlStr, "</MenuItem>\n");
 	}
 	SCCP_LIST_UNLOCK(&conference->participants);
 
 	// SoftKeys
-	strcat(xmlStr, "<SoftKeyItem>\n");
-	strcat(xmlStr, "  <Name>Update</Name>\n");
-	strcat(xmlStr, "  <Position>1</Position>\n");
-	strcat(xmlStr, "  <URL>");
-	sprintf(xmlTemp, "UserDataSoftKey:Select:%d:UPDATE$%d$%d$%d$", 1, appID, conference->id, transactionID);
-	strcat(xmlStr, xmlTemp);
-	strcat(xmlStr, "</URL>\n");
-	strcat(xmlStr, "</SoftKeyItem>\n");
-
 	if (channel && (channel == conference->moderator->channel)) {
+		strcat(xmlStr, "<SoftKeyItem>\n");
+		strcat(xmlStr, "  <Name>Invite</Name>\n");
+		strcat(xmlStr, "  <Position>1</Position>\n");
+		sprintf(xmlTmp,"  <URL>UserDataSoftKey:Select:%d:INVITE$%d$%d$%d$</URL>\n", 1, appID, conference->id, transactionID);
+		strcat(xmlStr, xmlTmp);
+		strcat(xmlStr, "</SoftKeyItem>\n");
+
 		strcat(xmlStr, "<SoftKeyItem>\n");
 		strcat(xmlStr, "  <Name>Mute</Name>");
 		strcat(xmlStr, "  <Position>2</Position>\n");
-		strcat(xmlStr, "  <URL>");
-		sprintf(xmlTemp, "UserDataSoftKey:Select:%d:MUTE$%d$%d$%d$", 2, appID, conference->id, transactionID);
-		strcat(xmlStr, xmlTemp);
-		strcat(xmlStr, "</URL>\n");
+		sprintf(xmlTmp,"  <URL>UserDataSoftKey:Select:%d:MUTE$%d$%d$%d$</URL>\n", 2, appID, conference->id, transactionID);
+		strcat(xmlStr, xmlTmp);
 		strcat(xmlStr, "</SoftKeyItem>\n");
 
 		strcat(xmlStr, "<SoftKeyItem>\n");
 		strcat(xmlStr, "  <Name>Kick</Name>\n");
 		strcat(xmlStr, "  <Position>3</Position>\n");
-		strcat(xmlStr, "  <URL>");
-		sprintf(xmlTemp, "UserDataSoftKey:Select:%d:KICK$%d$%d$%d$", 3, appID, conference->id, transactionID);
-		strcat(xmlStr, xmlTemp);
-		strcat(xmlStr, "</URL>\n");
+		sprintf(xmlTmp,"  <URL>UserDataSoftKey:Select:%d:KICK$%d$%d$%d$</URL>", 3, appID, conference->id, transactionID);
+		strcat(xmlStr, xmlTmp);
 		strcat(xmlStr, "</SoftKeyItem>\n");
 	}
 	strcat(xmlStr, "<SoftKeyItem>\n");
 	strcat(xmlStr, "  <Name>Exit</Name>\n");
 	strcat(xmlStr, "  <Position>4</Position>\n");
-	strcat(xmlStr, "  <URL>");
-	sprintf(xmlTemp, "UserDataSoftKey:Select:%d:EXIT$%d$%d$%d$", 4, appID, conference->id, transactionID);
-	strcat(xmlStr, xmlTemp);
-	strcat(xmlStr, "</URL>\n");
+	sprintf(xmlTmp,"  <URL>UserDataSoftKey:Select:%d:EXIT$%d$%d$%d$</URL>\n", 4, appID, conference->id, transactionID);
+	strcat(xmlStr, xmlTmp);
 	strcat(xmlStr, "</SoftKeyItem>\n");
 
 	// CiscoIPPhoneIconMenu Icons
@@ -786,8 +776,9 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 		}
 
 		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: DTU Softkey Action %s\n", d->id, d->dtu_softkey.action);
-		if (!strcmp(d->dtu_softkey.action, "UPDATE")) {
+		if (!strcmp(d->dtu_softkey.action, "INVITE")) {
 			sccp_conference_show_list(conference, conference->moderator->channel); 
+			sccp_conference_invite_participant(conference, conference->moderator->channel);
 		} else if (!strcmp(d->dtu_softkey.action, "EXIT")) {
 			sccp_device_lock(conference->moderator->channel->device);
 			conference->moderator->channel->device->conferencelist_active=FALSE;
@@ -945,6 +936,72 @@ void sccp_conference_demode_participant(sccp_conference_t * conference, sccp_cha
  */
 void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_channel_t * channel)
 {
+	uint32_t appID = APPID_CONFERENCE;
+	uint32_t callReference = 1; 	// callreference should be asterisk_channel->unique identifier
+
+	if (!conference)
+		return;
+		
+	if (!channel)			// only send this list to sccp phones
+		return;
+
+	if (NULL != conference->moderator && conference->participants.size < 1 && conference->moderator->channel!=channel)
+		return;
+		
+	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Sending InviteForm to Channel %d\n", channel->device->id, channel->callid);
+
+#        if ASTERISK_VERSION_NUM >= 10400
+	unsigned int transactionID = ast_random();
+#        else
+	unsigned int transactionID = random();
+#        endif
+
+	char xmlStr[2048] = "";
+	char xmlTmp[512] = "";
+
+//		UserData:INTEGER:STRING
+//		UserDataSoftKey:STRING:INTEGER:STRING
+//		UserCallDataSoftKey:STRING:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
+//		UserCallData:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
+
+	strcat(xmlStr, "<CiscoIPPhoneInput>\n");
+	strcat(xmlStr, "    <Title>Invite to Conference</Title>\n");
+	strcat(xmlStr, "    <Prompt>Enter the name/number to Dial</Prompt>\n");
+//	sprintf(xmlTmp,"    <URL>UserCallData:%d:%d:%d:%d</URL>\n", appID, conference->id, callReference, transactionID);
+//	strcat(xmlStr, xmlTmp);
+	strcat(xmlStr, "    <InputItem>\n");
+	strcat(xmlStr, "          <DisplayName>Name</DisplayName>\n");
+	strcat(xmlStr, "          <QueryStringParam>Name</QueryStringParam>\n");
+	strcat(xmlStr, "          <InputFlags>A</InputFlags>\n");
+//	strcat(xmlStr, "          <DefaultValue></DefaultValue>\n");
+	strcat(xmlStr, "    </InputItem>\n");
+	strcat(xmlStr, "    <InputItem>\n");
+	strcat(xmlStr, "          <DisplayName>Number</DisplayName>\n");
+	strcat(xmlStr, "          <QueryStringParam>Number</QueryStringParam>\n");
+	strcat(xmlStr, "          <InputFlags>N</InputFlags>\n");
+//	strcat(xmlStr, "          <DefaultValue></DefaultValue>\n");
+	strcat(xmlStr, "    </InputItem>\n");
+	strcat(xmlStr, "<SoftKeyItem>\n");
+	strcat(xmlStr, "  <Name>Submit</Name>\n");
+	strcat(xmlStr, "  <Position>1</Position>\n");
+//	sprintf(xmlTmp,"  <URL>UserDataSoftKey:Select:%d:INVITE1$%d$%d$%d$</URL>\n", 1, appID, conference->id, transactionID);
+	sprintf(xmlTmp,"  <URL>UserDataSoftKey:Submit:%d:INVITE1$%d$%d$%d$</URL>\n", 1, appID, conference->id, transactionID);
+	strcat(xmlStr, xmlTmp);
+	strcat(xmlStr, "</SoftKeyItem>\n");
+//	strcat(xmlStr, "<SoftKeyItem>\n");
+//	strcat(xmlStr, "  <Name>Submit</Name>\n");
+//	strcat(xmlStr, "  <Position>2</Position>\n");
+//	strcat(xmlStr, "  <URL>SoftKey:<<</URL>\n");
+//	strcat(xmlStr, "</SoftKeyItem>\n");
+	strcat(xmlStr, "<SoftKeyItem>\n");
+	strcat(xmlStr, "  <Name>Cancel</Name>\n");
+	strcat(xmlStr, "  <Position>3</Position>\n");
+	strcat(xmlStr, "  <URL>SoftKey:Cancel</URL>\n");
+	strcat(xmlStr, "</SoftKeyItem>\n");
+	strcat(xmlStr, "</CiscoIPPhoneInput>\n");
+	sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "xml-message:\n%s\n", xmlStr);
+
+	sendUserToDeviceVersion1Message(channel->device, appID, conference->id, callReference, transactionID, xmlStr);	
 }
 
 /*!
