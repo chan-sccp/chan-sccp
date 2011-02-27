@@ -33,7 +33,7 @@ int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r);
 void sccp_dev_sendmsg(const sccp_device_t * d, sccp_message_t t);
 
 void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid, uint8_t opt);
-void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInstance, uint32_t callid);
+void sccp_dev_set_ringer(const sccp_device_t * d, sccp_ringermode_t opt, uint8_t lineInstance, uint32_t callid);
 void sccp_dev_cleardisplay(sccp_device_t * d);
 void sccp_dev_display(sccp_device_t * d, char *msg);
 void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt);

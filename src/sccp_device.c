@@ -607,7 +607,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
  * \param lineInstance LineInstance as uint32_t
  * \param callid Call ID as uint32_t
  */
-void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInstance, uint32_t callid)
+void sccp_dev_set_ringer(const sccp_device_t * d, sccp_ringermode_t opt, uint8_t lineInstance, uint32_t callid)
 {
 	sccp_moo_t *r;
 
@@ -616,7 +616,7 @@ void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInsta
 	/* Note that for distinctive ringing to work with the higher protocol versions
 	   the following actually needs to be set to 1 as the original comment says.
 	   Curiously, the variable is not set to 1 ... */
-	r->msg.SetRingerMessage.lel_unknown1 = htolel(1);			/* always 1 */
+	r->msg.SetRingerMessage.lel_ringerType = htolel(SKINNY_RINGERTYPE_RING_CONTINUOUS);/* always 1 */
 	r->msg.SetRingerMessage.lel_lineInstance = htolel(lineInstance);
 	r->msg.SetRingerMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, r);
