@@ -1007,13 +1007,20 @@ static const struct skinny_lampmode {
 #    define SKINNY_STATSPROCESSING_CLEAR		0
 #    define SKINNY_STATSPROCESSING_DONOTCLEAR		1
 
-/* ringer types */
-#    define SKINNY_STATION_RINGOFF			1
-#    define SKINNY_STATION_INSIDERING			2
-#    define SKINNY_STATION_OUTSIDERING			3
-#    define SKINNY_STATION_FEATURERING			4
-#    define SKINNY_STATION_SILENTRING			5
-#    define SKINNY_STATION_URGENTRING			6
+/* ringer modes */
+typedef enum {
+	SKINNY_STATION_RINGOFF		= 1,
+	SKINNY_STATION_INSIDERING	= 2,
+	SKINNY_STATION_OUTSIDERING	= 3,
+	SKINNY_STATION_FEATURERING	= 4,
+	SKINNY_STATION_SILENTRING	= 5,
+	SKINNY_STATION_URGENTRING	= 6
+} sccp_ringermode_t;
+
+typedef enum {
+	SKINNY_RINGERTYPE_RING_CONTINUOUS = 1,
+	SKINNY_RINGERTYPE_RING_ONCE = 2
+} sccp_ringertype_t;
 
 /*!
  * \brief Skinny Station Structure
@@ -2679,7 +2686,7 @@ typedef union {
 
 	struct {
 		uint32_t lel_ringMode;						/*!< Ring Mode */
-		uint32_t lel_unknown1;						/*!< Unknown (always 1) */
+		uint32_t lel_ringerType;						/*!< Unknown (always 1) */
 		uint32_t lel_lineInstance;					/*!< Line Instance */
 		uint32_t lel_callReference;					/*!< Call Reference */
 	} SetRingerMessage;							/*!< Set Ringer Message Structure */
