@@ -1820,10 +1820,9 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct as
 				newvar->next = d->variables;
 				d->variables = newvar;
 			}
-#ifdef CS_ADV_FEATURES
 		} else if (!strcasecmp(v->name, "useRedialMenu")) {
+#ifdef CS_ADV_FEATURES
 			d->useRedialMenu = sccp_true(v->value);
-
 #endif
 		} else if (!strcasecmp(v->name, "meetme")) {
 			d->meetme = sccp_true(v->value);
