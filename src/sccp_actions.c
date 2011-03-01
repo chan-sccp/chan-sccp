@@ -168,7 +168,8 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_moo_t * r)
  * \lock
  * 	- devices
  * 	- device->permithosts
- * 	- device
+ * 	- socket
+ * 	  - device
  */
 void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 {
@@ -333,6 +334,20 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 
 }
 
+/*!
+ * \brief Handle Device Registration for SPA phones
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP MOO T as sccp_moo_t
+ *
+ * \callgraph
+ * \callergraph
+ * 
+ * \lock
+ * 	- devices
+ * 	- device->permithosts
+ * 	- socket
+ * 	  - device
+ */
 void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
 {
 	sccp_device_t *d;
