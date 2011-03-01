@@ -34,7 +34,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #endif
 sccp_session_t *sccp_session_find(const sccp_device_t * device);
 
-void destroy_session(sccp_session_t * s, uint8_t cleanupTime);
+void destroy_session_locked(sccp_session_t * s, uint8_t cleanupTime);
 
 void sccp_session_close(sccp_session_t * s);
 
@@ -123,6 +123,7 @@ void sccp_session_close(sccp_session_t * s)
 
 	// fire event to set device unregistered
 
+	sccp_session_lock(s);
 	if (s->device) {
 		sccp_event_t *event = ast_malloc(sizeof(sccp_event_t));
 
@@ -132,7 +133,6 @@ void sccp_session_close(sccp_session_t * s)
 		sccp_event_fire((const sccp_event_t **)&event);
 	}
 
-	sccp_session_lock(s);
 	if (s->fds[0].fd > 0) {
 		close(s->fds[0].fd);
 		s->fds[0].fd = -1;
@@ -153,7 +153,7 @@ void sccp_session_close(sccp_session_t * s)
  * 	- sessions
  * 	- device
  */
-void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
+void destroy_session_locked(sccp_session_t * s, uint8_t cleanupTime)
 {
 	sccp_device_t *d;
 
@@ -164,11 +164,9 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 	SCCP_LIST_REMOVE(&GLOB(sessions), s, list);
 	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
 
-	d = s->device;
-
-	if (d) {
+	sccp_device_lock(d);		// take session+device lock in order (session already locked)
+	if ((d = s->device)) {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), pbx_inet_ntoa(s->sin.sin_addr));
-		sccp_device_lock(d);
 		d->session = NULL;
 		d->registrationState = SKINNY_DEVICE_RS_NONE;
 		d->needcheckringback = 0;
@@ -186,7 +184,6 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 
 	/* destroying mutex and cleaning the session */
 	sccp_mutex_destroy(&s->lock);
-	ast_free(s);
 }
 
 /*!
@@ -200,11 +197,14 @@ void sccp_socket_device_thread_exit(void *session)
 {
 	sccp_session_t *s = (sccp_session_t *) session;
 
+	sccp_session_lock(s);
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: cleanup session\n", DEV_ID_LOG(s->device));
 
 	s->session_thread = AST_PTHREADT_NULL;
 	sccp_session_close(s);
-	destroy_session(s, 10);
+	destroy_session_locked(s, 10);
+	sccp_session_unlock(s);
+	ast_free(s);
 }
 
 /*!
@@ -221,7 +221,7 @@ void *sccp_socket_device_thread(void *session)
 	uint8_t keepaliveAdditionalTime = 10;
 
 	int res;
-
+	
 	double maxWaitTime;
 
 	int pollTimeout;
@@ -272,14 +272,11 @@ void *sccp_socket_device_thread(void *session)
 					s->session_stop = 1;
 					break;
 				}
-				continue;
 			} else if (res == 0) {					/* poll timeout */
 				ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d).\n", DEV_ID_LOG(s->device), (int)maxWaitTime, pollTimeout);
 				s->session_stop = 1;
 				break;
-			}
-
-			if (s->fds[0].revents) {				/* handle poll events a.k.a. data processing */
+			} else if (res > 0 && s->fds[0].revents) {		/* handle poll events a.k.a. data processing */
 				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
 				sccp_read_data(s);
 				while ((m = sccp_process_data(s))) {
