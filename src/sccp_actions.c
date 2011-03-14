@@ -258,7 +258,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 		}
 	}
 
-	sccp_session_lock(s);		// take session+device lock in order
 	sccp_device_lock(d);
 	d->linesRegistered = FALSE;
 	/* test the localnet to understand if the device is behind NAT */
@@ -269,17 +268,15 @@ void sccp_handle_register(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr));
+	s->device = d;
 	d->skinny_type = letohl(r->msg.RegisterMessage.lel_deviceType);
 
 	d->session = s;
+	s->lastKeepAlive = time(0);
 	d->mwilight = 0;
 	d->protocolversion = r->msg.RegisterMessage.protocolVer;
 
-	s->device = d;
-	s->lastKeepAlive = time(0);
-
 	sccp_device_unlock(d);
-	sccp_session_unlock(s);
 
 	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
 	int keepAliveInterval = d->keepalive ? d->keepalive : GLOB(keepalive);
@@ -439,7 +436,6 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
 		}
 	}
 
-	sccp_session_lock(s);		// following lock order
 	sccp_device_lock(d);
 	d->linesRegistered = FALSE;
 	/* test the localnet to understand if the device is behind NAT */
@@ -450,18 +446,16 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr));
+	s->device = d;
 	d->skinny_type = letohl(r->msg.SPARegisterMessage.lel_deviceType);
 
 	d->session = s;
+	s->lastKeepAlive = time(0);
 	d->mwilight = 0;
 	//d->protocolversion = r->msg.SPARegisterMessage.protocolVer;
 	d->protocolversion = 0;
 
-	s->device = d;
-	s->lastKeepAlive = time(0);
-
 	sccp_device_unlock(d);
-	sccp_session_unlock(s);
 
 	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
 	int keepAliveInterval = d->keepalive ? d->keepalive : GLOB(keepalive);
