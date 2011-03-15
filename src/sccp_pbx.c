@@ -1903,7 +1903,7 @@ static const char *sccp_pbx_get_callid(struct ast_channel *ast)
 const struct ast_channel_tech sccp_tech = {
 	.type = SCCP_TECHTYPE_STR,
 	.description = "Skinny Client Control Protocol (SCCP)",
-	.capabilities = AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_G722 | AST_FORMAT_G729A | AST_FORMAT_H263 | AST_FORMAT_H264 | AST_FORMAT_H263_PLUS,
+	.capabilities = AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_G722 | AST_FORMAT_G729A | AST_FORMAT_H263 | AST_FORMAT_H264 | AST_FORMAT_H263_PLUS | AST_FORMAT_SLINEAR16 | AST_FORMAT_GSM,
 	.properties = AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
 	.requester = sccp_request,
 	.devicestate = sccp_devicestate,

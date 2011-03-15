@@ -1128,7 +1128,7 @@ static const struct skinny_codec {
 	{SKINNY_CODEC_GSM_FULLRATE, 0, "GSM Full Rate"},
 	{SKINNY_CODEC_GSM_HALFRATE, 0, "GSM Half Rate"},
 	{SKINNY_CODEC_GSM_ENH_FULLRATE, 0, "GSM Enhanced Full Rate"},
-	{SKINNY_CODEC_WIDEBAND_256K, 0, "Wideband 256k"},
+	{SKINNY_CODEC_WIDEBAND_256K, AST_FORMAT_SLINEAR16, "Wideband 256k"},
 	{SKINNY_CODEC_DATA_64K, 0, "Data 64k"},
 	{SKINNY_CODEC_DATA_56K, 0, "Data 56k"},
 	{SKINNY_CODEC_G722_1_32K, 0, "G722.1 32k"},
@@ -1375,9 +1375,9 @@ typedef enum {
 	UserToDeviceDataVersion1Message = 0x013F,
 
 	/* sent by us */
-	FlowControlCommandMessage = 0x0141,
+	FlowControlCommandMessage = 0x0141, // FlowControlCommandMessage
 	Unknown_0x0142_Message = 0x0142,
-	Unknown_0x0143_Message = 0x0143,
+	Unknown_0x0143_Message = 0x0143, // Probably Dynamic DisplayNotifyMessage
 	Unknown_0x0144_Message = 0x0144,
 	DisplayDynamicPromptStatusMessage = 0x0145,
 	FeatureStatAdvancedMessage = 0x0146,
