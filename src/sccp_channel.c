@@ -713,6 +713,15 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 		return;
 	}
 
+#if ASTERISK_VERSION_NUM >= 10600
+	if(c->format & AST_FORMAT_SLINEAR16){
+		payloadType = 25;
+		c->rtp.audio.rtp->current_RTP_PT[payloadType].code = AST_FORMAT_SLINEAR16;
+		ast_rtp_set_m_type(c->rtp.audio.rtp, payloadType);
+		ast_rtp_set_rtpmap_type_rate(c->rtp.audio.rtp, payloadType, "audio", "L16", 0, 16000);
+	}
+#endif
+
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d] (%d ms), payload %d, echocancel: %d\n", c->device->id, codec2str(payloadType), c->format, packetSize, payloadType, c->line->echocancel);
 
 	if (d->inuseprotocolversion >= 17) {
@@ -1007,6 +1016,8 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 	payloadType = sccp_codec_ast2skinny(c->format);				// was c->format
 	packetSize = 20;
 #endif
+	
+	
 	if (d->inuseprotocolversion < 17) {
 		REQ(r, StartMediaTransmission);
 		r->msg.StartMediaTransmission.lel_conferenceId = htolel(c->callid);

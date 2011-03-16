@@ -24,7 +24,7 @@
 #    define __SCCP_PROTOCOL_H
 
 #    define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW	3				/*!< At least we require protocol V.3 */
-#    define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH	17				/*!< We support up to protocol V.17 */
+#    define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH	20				/*!< We support up to protocol V.17 */
 
 #    define DEFAULT_SCCP_PORT			2000				/*!< SCCP uses port 2000. */
 #    define DEFAULT_SCCP_BACKLOG		2				/*!< the listen baklog. */
@@ -1128,7 +1128,9 @@ static const struct skinny_codec {
 	{SKINNY_CODEC_GSM_FULLRATE, 0, "GSM Full Rate"},
 	{SKINNY_CODEC_GSM_HALFRATE, 0, "GSM Half Rate"},
 	{SKINNY_CODEC_GSM_ENH_FULLRATE, 0, "GSM Enhanced Full Rate"},
+#if ASTERISK_VERSION_NUM >= 10600
 	{SKINNY_CODEC_WIDEBAND_256K, AST_FORMAT_SLINEAR16, "Wideband 256k"},
+#endif
 	{SKINNY_CODEC_DATA_64K, 0, "Data 64k"},
 	{SKINNY_CODEC_DATA_56K, 0, "Data 56k"},
 	{SKINNY_CODEC_G722_1_32K, 0, "G722.1 32k"},
