@@ -1382,6 +1382,61 @@ static struct ast_custom_function sccpchannel_function = {
 	.read = sccp_func_sccpchannel,
 };
 
+
+/*!
+ * \brief 	Set the Preferred Codec for a SCCP channel via the dialplan
+ * \param 	chan Asterisk Channel
+ * \param 	data single codec name
+ * \return	Success as int
+ * 
+ * \called_from_asterisk
+ */
+static int sccp_app_prefcodec(struct ast_channel *chan, void *data)
+{
+	char text[64] = { '\0' };
+
+	struct ast_codec_pref codecs;
+	int capability = 0;
+
+	sccp_channel_t *c = NULL;
+	sccp_device_t  *d = NULL;
+
+	if (!(c = get_sccp_channel_from_ast_channel(chan))) {
+		ast_log(LOG_WARNING, "sccp_app_prefcodec(): Not an SCCP channel\n");
+		return 0;
+	}
+	if (!(d = c->device)) {
+		ast_log(LOG_WARNING, "sccp_app_prefcodec(): SCCP channel has no device\n");
+		return 0;
+	}
+
+	if (!data || !c || !(c->line) || !(c->line->name))
+		return 0;
+
+	strncpy(text, (char *) data, sizeof(text)-1);
+	memset(&codecs, 0, sizeof(codecs));
+
+	ast_parse_allow_disallow(&codecs, &capability, ast_strip(text), 1);
+	c->format = ast_codec_choose(&codecs, c->device->capability, 1);
+	c->isCodecFix = TRUE;
+	char s1[512], s2[512];
+	sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d) USED: %s(%d) \n", c->line->name, c->callid, pbx_getformatname_multiple(s1, sizeof(s1) - 1, c->capability), c->capability, pbx_getformatname_multiple(s2, sizeof(s2) - 1, c->format), c->format);
+	sccp_channel_updateChannelCapability_locked(c);
+	sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d) USED: %s(%d) \n", c->line->name, c->callid, pbx_getformatname_multiple(s1, sizeof(s1) - 1, c->capability), c->capability, pbx_getformatname_multiple(s2, sizeof(s2) - 1, c->format), c->format);
+
+	return 0;
+}
+
+/*! \brief Stucture to declare a dialplan function: SETSCCPCODEC */
+static char *prefcodec_name     = "SetSCCPCodec";
+
+static char *prefcodec_synopsis = "Sets the preferred codec for the current sccp channel";
+
+static char *prefcodec_descr    = "Usage: SetSCCPCodec(codec)" "Sets the preferred codec for dialing out with the current chan_sccp channel\n";
+
+
+
+
 /*!
  * \brief 	Set the Name and Number of the Called Party to the Calling Phone
  * \param 	chan Asterisk Channel
@@ -1481,6 +1536,7 @@ static int sccp_register_dialplan_functions(void)
 	/* Register application functions */
 	result = pbx_register_application(calledparty_name, sccp_app_calledparty, calledparty_synopsis, calledparty_descr);
 	result |= pbx_register_application(setmessage_name, sccp_app_setmessage, setmessage_synopsis, setmessage_descr);
+	result |= pbx_register_application(prefcodec_name, sccp_app_prefcodec, prefcodec_synopsis, prefcodec_descr);
 
 	/* Register dialplan functions */
 	result |= pbx_custom_function_register(&sccpdevice_function);
@@ -1497,6 +1553,7 @@ static int sccp_unregister_dialplan_functions(void)
 	/* Unregister applications functions */
 	result = pbx_unregister_application(calledparty_name);
 	result |= pbx_unregister_application(setmessage_name);
+	result |= pbx_unregister_application(prefcodec_name);
 
 	/* Unregister dial plan functions */
 	result |= pbx_custom_function_unregister(&sccpdevice_function);
