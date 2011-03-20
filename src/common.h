@@ -9,7 +9,6 @@
 #ifndef CHAN_SCCP_COMMON_H
 #    define CHAN_SCCP_COMMON_H
 
-#define AST_MODULE "chan_sccp"
 #    include <sys/signal.h>
 #    include <sys/types.h>
 #    include <sys/socket.h>
@@ -106,7 +105,6 @@
 #    include "sccp_conference.h"
 #    include "sccp_features.h"
 #    include "sccp_adv_features.h"
-#    include "sccp_appfunctions.h"
 #    include "sccp_cli.h"
 #    include "sccp_management.h"
 #    include "sccp_rtp.h"
