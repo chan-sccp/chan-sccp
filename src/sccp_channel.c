@@ -778,7 +778,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		return;
 	}
 
-	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, channel->rtp.video.writeFormat);
+	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, skinnyFormat);
 	lineInstance = sccp_device_find_index_for_line(channel->device, channel->line->name);
 
 	if (payloadType == -1) {
