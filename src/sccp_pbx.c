@@ -765,7 +765,7 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame)
 		case AST_FRAME_IMAGE:
 		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
-			if ((c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) == 0 && c->rtp.video.rtp && c->device
+			if ((c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) == 0 && c->rtp.video.rtp && c->device && (frame->subclass & AST_FORMAT_VIDEO_MASK)
 			    //      && (c->device->capability & frame->subclass) 
 			    ) {
 				ast_log(LOG_NOTICE, "%s: got video frame\n", DEV_ID_LOG(c->device));

@@ -1047,7 +1047,6 @@ int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rt
 uint8_t sccp_wrapper_asterisk_get_payloadType(const struct sccp_rtp * rtp, skinny_media_payload codec)
 {
 	uint32_t asteriskCodec = sccp_codec_skinny2ast(codec);
-
 	return ast_rtp_lookup_code(rtp->rtp, 1, asteriskCodec);
 }
 
