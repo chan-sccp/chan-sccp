@@ -703,7 +703,6 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", c->device->id, c->callid, codec2str(payloadType), c->line->echocancel ? "ON" : "OFF");
 	if (!c->rtp.audio.rtp) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Starting RTP on channel %s-%08X\n", DEV_ID_LOG(c->device), c->line->name, c->callid);
-		sccp_rtp_createAudioServer(c);
 	}
 	if (!c->rtp.audio.rtp && !sccp_rtp_createAudioServer(c)) {
 		ast_log(LOG_WARNING, "%s: Error opening RTP for channel %s-%08X\n", DEV_ID_LOG(c->device), c->line->name, c->callid);
@@ -714,12 +713,12 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 	}
 
 #if ASTERISK_VERSION_NUM >= 10600
-// 	if(c->format & AST_FORMAT_SLINEAR16){
-// 		payloadType = 25;
-// 		c->rtp.audio.rtp->current_RTP_PT[payloadType].code = AST_FORMAT_SLINEAR16;
-// 		ast_rtp_set_m_type(c->rtp.audio.rtp, payloadType);
-// 		ast_rtp_set_rtpmap_type_rate(c->rtp.audio.rtp, payloadType, "audio", "L16", 0, 16000);
-// 	}
+ 	if(c->format & AST_FORMAT_SLINEAR16){
+ 		//payloadType = 25;
+ 		//c->rtp.audio.rtp.current_RTP_PT[payloadType].code = AST_FORMAT_SLINEAR16;
+ 		//ast_rtp_set_m_type(c->rtp.audio.rtp, payloadType);
+ 		//ast_rtp_set_rtpmap_type_rate(c->rtp.audio.rtp, payloadType, "audio", "L16", 0, 16000);
+ 	}
 #endif
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d] (%d ms), payload %d, echocancel: %d\n", c->device->id, codec2str(payloadType), c->format, packetSize, payloadType, c->line->echocancel);
@@ -786,7 +785,6 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		payloadType = 97;
 		sampleRate = 3840;
 	}
-	sampleRate = 3840 * 2;
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive multimedia channel with format %s[%d] skinnyFormat %s[%d], payload %d\n", DEV_ID_LOG(channel->device), pbx_codec2str(channel->rtp.video.writeFormat), channel->rtp.video.writeFormat, codec2str(skinnyFormat), skinnyFormat, payloadType);
 
@@ -865,10 +863,11 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		//TODO handle payload error
 		payloadType = 97;
 	}
-//      ast_rtp_set_m_type(channel->rtp.video.rtp, payloadType);
-// #if ASTERISK_VERSION_NUM >= 10600
-//      ast_rtp_set_rtpmap_type_rate(channel->rtp.video.rtp, channel->rtp.video.readFormat, "video", "H264", 0, 0);
-// #endif
+	
+#if ASTERISK_VERSION_NUM >= 10600
+	ast_rtp_set_m_type(channel->rtp.video.rtp, payloadType);
+	ast_rtp_set_rtpmap_type_rate(channel->rtp.video.rtp, channel->rtp.video.readFormat, "video", "H264", 0, 0);
+#endif
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: using payload %d\n", channel->device->id, payloadType);
 
@@ -1056,7 +1055,11 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 		} else {
 			sccp_channel_startMultiMediaTransmission(c);
 		}
+	}else{
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: We have no video support\n", DEV_ID_LOG(c->device));
 	}
+#else
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Video support not enabled\n", DEV_ID_LOG(c->device));
 #endif
 }
 
