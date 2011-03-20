@@ -25,8 +25,6 @@ extern "C" {
 #    endif
 
 #    include "config.h"
-#    include "common.h"
-/*
 #    include <sys/signal.h>
 #    include <sys/types.h>
 #    include <sys/socket.h>
@@ -62,7 +60,6 @@ extern "C" {
 #    ifdef CS_AST_HAS_ENDIAN
 #        include <asterisk/endian.h>
 #    endif
-*/
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
 #    ifndef AST_CAUSE_ANSWERED_ELSEWHERE
