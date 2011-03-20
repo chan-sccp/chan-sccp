@@ -807,13 +807,13 @@ boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, struc
 #if ASTERISK_VERSION_NUM >= 10400
 #    if ASTERISK_VERSION_NUM < 10600
 	if (c->rtp.audio.rtp && c->owner) {
-		c->owner->fds[0] = ast_rtp_fd(*new_rtp);
-		c->owner->fds[1] = ast_rtcp_fd(*new_rtp);
+		c->owner->fds[2] = ast_rtp_fd(*new_rtp);
+		c->owner->fds[3] = ast_rtcp_fd(*new_rtp);
 	}
 #    else
 	if (c->rtp.audio.rtp && c->owner) {
-		ast_channel_set_fd(c->owner, 0, ast_rtp_fd(*new_rtp));
-		ast_channel_set_fd(c->owner, 1, ast_rtcp_fd(*new_rtp));
+		ast_channel_set_fd(c->owner, 2, ast_rtp_fd(*new_rtp));
+		ast_channel_set_fd(c->owner, 3, ast_rtcp_fd(*new_rtp));
 	}
 #    endif
 	/* tell changes to asterisk */
@@ -833,7 +833,7 @@ boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, struc
 
 	if (*new_rtp) {
 #if ASTERISK_VERSION_NUM >= 10600
-		ast_rtp_setqos(*new_rtp, c->line->video_tos, c->line->video_cos, "SCCP RTP");
+		ast_rtp_setqos(*new_rtp, c->line->video_tos, c->line->video_cos, "SCCP VRTP");
 #else
 		ast_rtp_settos(*new_rtp, c->line->video_tos);
 #endif
