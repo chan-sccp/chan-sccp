@@ -1687,9 +1687,7 @@ void sccp_handle_headset(sccp_session_t * s, sccp_moo_t * r)
 void sccp_handle_capabilities_res(sccp_session_t * s, sccp_moo_t * r)
 {
 	int i;
-
 	uint8_t codec;
-
 	int astcodec;
 
 	sccp_device_t *d = NULL;
@@ -1706,6 +1704,15 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_moo_t * r)
 		astcodec = sccp_codec_skinny2ast(codec);
 		d->capability |= astcodec;
 		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%6d %s\n", d->id, codec, codec2str(codec), astcodec, pbx_codec2str(astcodec));
+	}
+	
+	//TODO check capabilities for 7985
+	if(d->skinny_type == SKINNY_DEVICETYPE_CISCO7985){
+		d->capability |= AST_FORMAT_H263;
+		d->capability |= AST_FORMAT_H264;
+#ifdef AST_FORMAT_H263_PLUS
+		d->capability |= AST_FORMAT_H263_PLUS;
+#endif
 	}
 }
 
@@ -2605,7 +2612,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r)
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID);
 	if (status) {
 		/* rtp error from the phone */
-		ast_log(LOG_ERROR, "%s: (OpenMultiMediaReceiveChannelAck) Device error (%d) ! No RTP media available\n", d->id, status);
+		ast_log(LOG_ERROR, "%s: (OpenMultiMediaReceiveChannelAck) Device error (%d) ! No VRTP media available\n", d->id, status);
 		return;
 	}
 
@@ -2617,10 +2624,10 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r)
 			return;
 		}
 
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: STARTING DEVICE VRTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
 		memcpy(&c->rtp.video.phone, &sin, sizeof(sin));
 		if (c->rtp.video.rtp || sccp_rtp_createVideoServer(c)) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the VRTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 			ast_rtp_set_peer(c->rtp.video.rtp, &sin);
 			if (c->state == SCCP_CHANNELSTATE_CONNECTED)
 				sccp_ast_setstate(c, AST_STATE_UP);
