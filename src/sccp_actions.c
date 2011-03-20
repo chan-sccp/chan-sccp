@@ -2626,7 +2626,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_moo_t * r)
 
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: STARTING DEVICE VRTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
 		memcpy(&c->rtp.video.phone, &sin, sizeof(sin));
-		if (c->rtp.video.rtp || sccp_rtp_createVideoServer(c)) {
+		if (c->rtp.video.rtp) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the VRTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 			ast_rtp_set_peer(c->rtp.video.rtp, &sin);
 			if (c->state == SCCP_CHANNELSTATE_CONNECTED)
