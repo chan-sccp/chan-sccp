@@ -834,15 +834,10 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 	sccp_moo_t *r;
 
 	int skinnyFormat, payloadType;
-
-	sccp_device_t *d = NULL;
-
-	struct sockaddr_in sin;
-
-	struct ast_hostent ahp;
-
-	struct hostent *hp;
-
+	sccp_device_t 		*d = NULL;
+	struct sockaddr_in 	sin;
+	struct ast_hostent 	ahp;
+	struct hostent 		*hp;
 	int packetSize = 20;							/* \todo unused? */
 
 	channel->rtp.video.readFormat = AST_FORMAT_H264;
@@ -858,15 +853,23 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		return;
 
 	/* lookup payloadType */
-	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, SKINNY_CODEC_H264);
+	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, skinnyFormat);
 	if (payloadType == -1) {
 		//TODO handle payload error
 		payloadType = 97;
 	}
 	
 #if ASTERISK_VERSION_NUM >= 10600
-	ast_rtp_set_m_type(channel->rtp.video.rtp, payloadType);
-	ast_rtp_set_rtpmap_type_rate(channel->rtp.video.rtp, channel->rtp.video.readFormat, "video", "H264", 0, 0);
+	switch(channel->rtp.video.readFormat){
+	  case AST_FORMAT_H263:
+	    ast_rtp_set_m_type(channel->rtp.video.rtp, payloadType);
+	    ast_rtp_set_rtpmap_type_rate(channel->rtp.video.rtp, channel->rtp.video.readFormat, "video", "H263", 0, 0);
+	    break;
+	  case AST_FORMAT_H264:
+	    ast_rtp_set_m_type(channel->rtp.video.rtp, payloadType);
+	    ast_rtp_set_rtpmap_type_rate(channel->rtp.video.rtp, channel->rtp.video.readFormat, "video", "H264", 0, 0);
+	  break;
+	}
 #endif
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: using payload %d\n", channel->device->id, payloadType);
