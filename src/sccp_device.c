@@ -20,7 +20,39 @@
 #include "config.h"
 #include "common.h"
 
+#if ASTERISK_VERSION_NUM >= 10400
+#    include <asterisk.h>
+#endif
+#include "chan_sccp.h"
+
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
+#include "sccp_lock.h"
+#include "sccp_utils.h"
+#include "sccp_device.h"
+#include "sccp_socket.h"
+#include "sccp_channel.h"
+#include "sccp_indicate.h"
+#include "sccp_hint.h"
+#include "sccp_line.h"
+#include "sccp_mwi.h"
+#include "sccp_config.h"
+#include "sccp_conference.h"
+#include "sccp_actions.h"
+#include <asterisk/app.h>
+#include <asterisk/pbx.h>
+#include <asterisk/astdb.h>
+#include <asterisk/utils.h>
+#ifdef CS_AST_HAS_NEW_DEVICESTATE
+#    include <asterisk/devicestate.h>
+#endif
+#ifdef CS_DYNAMIC_CONFIG
+#    include <asterisk/acl.h>
+#    include <asterisk/frame.h>
+#    include <asterisk/config.h>
+#endif
+#ifdef CS_DEVSTATE_FEATURE
+#    include <asterisk/event.h>
+#endif
 #define  REF_DEBUG 1
 #ifdef CS_DYNAMIC_CONFIG
 
@@ -1797,9 +1829,12 @@ int sccp_device_destroy(const void *ptr)
 boolean_t sccp_device_isVideoSupported(const sccp_device_t * device)
 {
 #ifdef CS_SCCP_VIDEO
-	if (device->capability & AST_FORMAT_VIDEO_MASK)
+	if(device->capability & AST_FORMAT_VIDEO_MASK){
+		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: We have video support\n", DEV_ID_LOG(device));
 		return TRUE;
+	}
 #endif
+	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: We have no video support\n", DEV_ID_LOG(device));
 	return FALSE;
 }
 
