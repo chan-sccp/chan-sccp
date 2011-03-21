@@ -84,9 +84,9 @@ enum {
 #    define pbx_codec2str ast_codec2str
 
 // application / module / cli redefinitions
-#    define pbx_register_application ast_register_application
+#    define pbx_register_application ast_register_application2
 #    define pbx_unregister_application ast_unregister_application
-#    define pbx_custom_function_register ast_custom_function_register
+#    define pbx_custom_function_register __ast_custom_function_register
 #    define pbx_custom_function_unregister ast_custom_function_unregister
 #    define pbx_channel_register ast_channel_register
 #    define pbx_channel_register_ex ast_channel_register_ex
