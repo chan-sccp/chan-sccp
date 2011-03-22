@@ -540,12 +540,17 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 		if (linedevice->device == device) {
 			SCCP_LIST_REMOVE_CURRENT(list);
 #ifdef CS_DYNAMIC_CONFIG
-			unregister_exten(l, &(linedevice->subscriptionId));
+			if(l->devices.size == 0){
+				unregister_exten(l, &(linedevice->subscriptionId));
+			}
 #endif
 			l->statistic.numberOfActiveDevices--;
 			ast_free(linedevice);
 		}
 	}
+	
+
+	
 	SCCP_LIST_TRAVERSE_SAFE_END;
 	SCCP_LIST_UNLOCK(&l->devices);
 
