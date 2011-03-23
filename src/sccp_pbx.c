@@ -995,7 +995,10 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 				}
 			}
 		}
+#if ASTERISK_VERSION_NUM >= 10620
+		//FIXME check for asterisk 1.6 and 1.4
 		RTP_CHANGE_SOURCE(c, "Source Update: RTP NEW SOURCE");
+#endif
 		res = 0;
 		break;
 #endif										//defined(CS_AST_CONTROL_SRCCHANGE) || defined(CS_AST_CONTROL_SRCUPDATE)

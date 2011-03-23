@@ -84,7 +84,11 @@ enum {
 #    define pbx_codec2str ast_codec2str
 
 // application / module / cli redefinitions
+#if ASTERISK_VERSION_NUM < 10600
+#    define pbx_register_application(a, b, c, d, e) ast_register_application(a, b, c, d)
+#else
 #    define pbx_register_application ast_register_application2
+#endif
 #    define pbx_unregister_application ast_unregister_application
 #    define pbx_custom_function_register __ast_custom_function_register
 #    define pbx_custom_function_unregister ast_custom_function_unregister

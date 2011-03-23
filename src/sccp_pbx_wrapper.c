@@ -335,7 +335,7 @@ PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast_ha *path, int *error)
 {
 #if ASTERISK_VERSION_NUM < 10600
-	return ast_append_ha(sense, stuff, path);
+	return ast_append_ha(sense, (char *)stuff, path);
 #else
 	return ast_append_ha(sense, stuff, path, error);
 #endif

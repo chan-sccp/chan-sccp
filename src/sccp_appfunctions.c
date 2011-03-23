@@ -739,11 +739,13 @@ int sccp_register_dialplan_functions(void)
 	result |= pbx_register_application(setmessage_name, sccp_app_setmessage, setmessage_synopsis, setmessage_descr, NULL);
 	result |= pbx_register_application(prefcodec_name, sccp_app_prefcodec, prefcodec_synopsis, prefcodec_descr, NULL); 
 
+#if ASTERISK_VERSION_NUM >= 10600
 	/* Register dialplan functions */
 	result |= pbx_custom_function_register(&sccpdevice_function, NULL);
 	result |= pbx_custom_function_register(&sccpline_function, NULL);
 	result |= pbx_custom_function_register(&sccpchannel_function, NULL);
-
+#endif
+	
 	return result;
 }
 
