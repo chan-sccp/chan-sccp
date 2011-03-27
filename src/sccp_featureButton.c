@@ -289,13 +289,15 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	char *sspecifier = 0;
 
 	const char *dev;
+	enum ast_device_state state;
 
 	if (!data || !ast_event)
 		return;
 
 	dev = ast_event_get_ie_str(ast_event, AST_EVENT_IE_DEVICE);
+	state = ast_event_get_ie_uint(ast_event, AST_EVENT_IE_STATE);
 
-	sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "got device state change event from asterisk channel: %s\n", (dev) ? dev : "NULL");
+	sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "got device state change event from asterisk hint system: %s, state: %d\n", (dev) ? dev : "NULL", state);
 
 	device = (sccp_device_t *) data;
 
@@ -314,6 +316,7 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	   which should be global to chan-sccp-b, not for each device. For now, this suffices. */
 	if (!strncasecmp(dev, "Custom:", len)) {
 		sspecifier = (char *)(dev + len);
+		ast_db_put(devstate_astdb_family, sspecifier, ast_devstate_str(state));
 		sccp_featButton_changed(device, SCCP_FEATURE_DEVSTATE);
 	}
 }
