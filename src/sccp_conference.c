@@ -26,6 +26,10 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "asterisk/astobj2.h"
 static int lastConferenceID = 99;
 
+/* internal structure */
+
+	 SCCP_LIST_HEAD(, sccp_conference_t) conferences;			/*!< our list of conferences */
+
 static void *sccp_conference_join_thread(void *data);
 boolean_t isModerator(sccp_conference_participant_t * participant, sccp_channel_t * channel);
 sccp_conference_t *sccp_conference_find_byid(uint32_t id);
