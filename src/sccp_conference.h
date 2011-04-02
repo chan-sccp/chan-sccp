@@ -83,9 +83,6 @@ extern "C" {
 	void sccp_conference_demode_participant(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_channel_t * channel);
 
-/* internal structure */
-
-	 SCCP_LIST_HEAD(, sccp_conference_t) conferences;			/*!< our list of conferences */
 
 #        if defined(__cplusplus) || defined(c_plusplus)
 }
