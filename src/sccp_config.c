@@ -1685,6 +1685,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct as
 
 			if (i >= ARRAY_LEN(sccp_buttontypes)) {
 				ast_log(LOG_WARNING, "Unknown button type '%s' at line %d.\n", buttonType, v->lineno);
+				v = v->next;
 				continue;
 			}
 
