@@ -113,7 +113,10 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 0);
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_OFFHOOK);
 
-		sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, c->callid, 0);
+		// Only present a dialtone in the outbound case. Otherwise we get brief sound disturbances when answering auto answer calls.
+		if(SKINNY_CALLTYPE_OUTBOUND == c->calltype) {
+			sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, c->callid, 0);
+		}
 
 		/* for earlyrtp take a look at sccp_channel_newcall because we have no c->owner here */
 		break;

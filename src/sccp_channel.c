@@ -1531,8 +1531,11 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * c)
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answering channel with state '%s' (%d)\n", DEV_ID_LOG(c->device), ast_state2str(c->owner->_state), c->owner->_state);
 	ast_queue_control(c->owner, AST_CONTROL_ANSWER);
 
-	if (c->state != SCCP_CHANNELSTATE_OFFHOOK)
+	/* \todo Check if the following breaks protocol! */
+	/* It seems to break 7910. Test and fix in this case further. */
+	 if (c->state != SCCP_CHANNELSTATE_OFFHOOK)
 		sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_OFFHOOK);
+		
 
 	sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_CONNECTED);
 }
