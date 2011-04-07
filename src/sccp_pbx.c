@@ -308,7 +308,9 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 
 			/* XXX perhaps lock the channel on global section */
 			sccp_channel_lock(c);
-			sccp_indicate_locked(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
+			if (!c->autoanswer_type) {
+				sccp_indicate_locked(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
+			};
 			sccp_channel_unlock(c);
 			isRinging = TRUE;
 			if (c->autoanswer_type) {

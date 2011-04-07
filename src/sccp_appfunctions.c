@@ -730,6 +730,43 @@ static char *setmessage_synopsis = "Send a Message to the current Phone";
 
 static char *setmessage_descr = "Usage: SetMessage(\"Message\")\n" "       Send a Message to the Calling Device\n";
 
+/*!
+ * \brief   Mutes the Microphone on the calling phone.
+ * \param 	chan Asterisk Channel
+ * \return	Success as int
+ * 
+ * \called_from_asterisk
+ */
+static int sccp_app_setmutemic(struct ast_channel *chan, void *data)
+{
+	sccp_channel_t *c = NULL;
+	sccp_device_t *d = NULL;
+
+	if (!(c = get_sccp_channel_from_ast_channel(chan))) {
+		ast_log(LOG_WARNING, "sccp_app_setmutemic(): Not an SCCP channel\n");
+		return 0;
+	}
+
+	if(!(d = c->device)) {
+		ast_log(LOG_WARNING, "sccp_app_setmutemic(): No sccp device associated with sccp channel.\n");
+		return 0;
+	}
+
+	sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
+
+	return 0;
+}
+
+/*! \brief Stucture to declare a dialplan function: SCCPSetMuteMic */
+static char *mutemic_name = "SCCPSetMuteMic";
+
+static char *mutemic_synopsis = "Sets microphone of the calling device to muted.";
+
+static char *mutemic_descr = "Usage: SetMuteMic()" "Mutes the microphone of the calling device for a sccp device.\n";
+
+
+
+
 int sccp_register_dialplan_functions(void)
 {
 	int result=0;
@@ -738,6 +775,7 @@ int sccp_register_dialplan_functions(void)
 	result = pbx_register_application(calledparty_name, sccp_app_calledparty, calledparty_synopsis, calledparty_descr, NULL);
 	result |= pbx_register_application(setmessage_name, sccp_app_setmessage, setmessage_synopsis, setmessage_descr, NULL);
 	result |= pbx_register_application(prefcodec_name, sccp_app_prefcodec, prefcodec_synopsis, prefcodec_descr, NULL); 
+	result |= pbx_register_application(mutemic_name, sccp_app_setmutemic, mutemic_synopsis, mutemic_descr, NULL); 
 
 #if ASTERISK_VERSION_NUM >= 10600
 	/* Register dialplan functions */
