@@ -534,6 +534,45 @@ sccp_channel_t *sccp_channel_find_byid_locked(uint32_t id)
 	return c;
 }
 
+
+/*!
+ * \brief Find Channel by ID, using a specific line
+ * \param id channel ID as int
+ * \return *locked* SCCP Channel (can be null)
+ *
+ * \callgraph
+ * \callergraph
+ * 
+ * \lock
+ * 	- lines
+ * 	  - line->channels
+ * 	- channel
+ */
+sccp_channel_t *sccp_find_channel_on_line_byid_locked(sccp_line_t *l, uint32_t id){
+	sccp_channel_t *c = NULL;
+
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %u\n", id);
+
+
+	SCCP_LIST_LOCK(&l->channels);
+	SCCP_LIST_TRAVERSE(&l->channels, c, list) {
+		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Channel %u state: %d\n", c->callid, c->state);
+		if (c->callid == id && c->state != SCCP_CHANNELSTATE_DOWN) {
+			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel (%u)\n", DEV_ID_LOG(c->device), c->callid);
+			break;
+		}
+	}
+	SCCP_LIST_UNLOCK(&l->channels);
+
+
+
+
+	if (c)
+		sccp_channel_lock(c);
+
+	return c;
+}
+
 /*!
  * We need this to start the correct rtp stream.
  * \brief Find Channel by Pass Through Party ID
