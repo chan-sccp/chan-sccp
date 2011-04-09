@@ -424,11 +424,10 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
  * \see static int find_channel_by_group(struct ast_channel *c, void *data) from features.c
  */
 static int pbx_find_channel_by_group(struct ast_channel *c, void *data) {
-	sccp_channel_t *chan = data;
-
+	sccp_line_t *line = data;
+	
 	return !c->pbx &&
-	(c != chan->owner) &&
-	(chan->line->pickupgroup & c->callgroup) &&
+	(line->pickupgroup & c->callgroup) &&
 	((c->_state == AST_STATE_RINGING) || (c->_state == AST_STATE_RING)) &&
 	!c->masq;
 }
@@ -473,35 +472,41 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	}
 	
 	
-	/* create channel for pickup */
-	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Device state is '%s'\n", DEV_ID_LOG(d), devicestatus2str(d->state));
-	if (!(c = sccp_channel_find_bystate_on_line_locked(l, SCCP_CHANNELSTATE_OFFHOOK))) {
-		c = sccp_channel_allocate_locked(l, d);
-		if (!c) {
-			ast_log(LOG_ERROR, "%s: (grouppickup) Can't allocate SCCP channel for line %s\n", d->id, l->name);
-			pbx_channel_unlock(target);
-			return -1;
-		}
-
-		if (!sccp_pbx_channel_allocate_locked(c)) {
-			ast_log(LOG_WARNING, "%s: (grouppickup) Unable to allocate a new channel for line %s\n", d->id, l->name);
-			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_CONGESTION);
-			sccp_channel_unlock(c);
-			pbx_channel_unlock(target);
-			return res;
-		}
-		channelCreated = TRUE;
-		sccp_channel_set_active(d, c);
-		sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_OFFHOOK);
-
-		if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp.audio.rtp) {
-			sccp_channel_openreceivechannel_locked(c);
-		}
-	}
-	/* done */
 	
-	target = ast_channel_search_locked(pbx_find_channel_by_group, c);
+	
+	
+	target = ast_channel_search_locked(pbx_find_channel_by_group, l);	
 	if(target) {
+	
+		/* create channel for pickup */
+		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Device state is '%s'\n", DEV_ID_LOG(d), devicestatus2str(d->state));
+		if (!(c = sccp_channel_find_bystate_on_line_locked(l, SCCP_CHANNELSTATE_OFFHOOK))) {
+			c = sccp_channel_allocate_locked(l, d);
+			if (!c) {
+				ast_log(LOG_ERROR, "%s: (grouppickup) Can't allocate SCCP channel for line %s\n", d->id, l->name);
+				pbx_channel_unlock(target);
+				return -1;
+			}
+
+			if (!sccp_pbx_channel_allocate_locked(c)) {
+				ast_log(LOG_WARNING, "%s: (grouppickup) Unable to allocate a new channel for line %s\n", d->id, l->name);
+				sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_CONGESTION);
+				sccp_channel_unlock(c);
+				pbx_channel_unlock(target);
+				return res;
+			}
+			channelCreated = TRUE;
+			sccp_channel_set_active(d, c);
+			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_OFFHOOK);
+
+			if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp.audio.rtp) {
+				sccp_channel_openreceivechannel_locked(c);
+			}
+		}
+		/* done */
+	  
+	  
+	  
 		original = c->owner;
 
 #    ifdef CS_AST_CHANNEL_HAS_CID
@@ -619,18 +624,13 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 
 		res = 0;
 		pbx_channel_unlock(target);
-	}else{
+		sccp_channel_unlock(c);
+	} else {
 		sccp_log( DEBUGCAT_FEATURE) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) no channel to pickup\n");
+		sccp_dev_displayprompt(d, 1, 0, "No channel for group pickup", 5);
+		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 1, 0, 3);
 		
-		sccp_dev_displayprompt(d, 1, c->callid, "No channel to pickup", 7);
-		sccp_dev_starttone(d, SKINNY_TONE_ZIP, 1, c->callid, 3);
-		
-		if(channelCreated){
-			sccp_channel_endcall_locked(c);
-			
-		}
 	}
-	sccp_channel_unlock(c);
 	sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) finished\n");
 	return res;
 }
