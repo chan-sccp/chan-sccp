@@ -2293,6 +2293,65 @@ void sccp_handle_dialtone_locked(sccp_channel_t * c)
 	}
 }
 
+
+struct sccp_softkeyMap_cb {
+	uint32_t event;
+	void (*const softkeyEvent_cn)(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
+	boolean_t channelIsNecessary;
+};
+
+static const struct sccp_softkeyMap_cb softkeyCbMap[] = {
+	{SKINNY_LBL_NEWCALL, sccp_sk_newcall, FALSE},
+	{SKINNY_LBL_REDIAL, sccp_sk_redial, FALSE},
+	{SKINNY_LBL_CONFRN, sccp_sk_conference, TRUE},
+	{SKINNY_LBL_MEETME, sccp_sk_meetme, TRUE},
+	{SKINNY_LBL_JOIN, sccp_sk_join, TRUE},
+	{SKINNY_LBL_BARGE, sccp_sk_barge, TRUE},
+	{SKINNY_LBL_CBARGE, sccp_sk_cbarge, TRUE},
+	{SKINNY_LBL_HOLD, sccp_sk_hold, TRUE},
+	{SKINNY_LBL_TRANSFER, sccp_sk_transfer, TRUE},
+	{SKINNY_LBL_CFWDALL, sccp_sk_cfwdall, TRUE},
+	{SKINNY_LBL_CFWDBUSY, sccp_sk_cfwdbusy, TRUE},
+	{SKINNY_LBL_CFWDNOANSWER, sccp_sk_cfwdnoanswer, TRUE},
+	{SKINNY_LBL_BACKSPACE, sccp_sk_backspace, TRUE},
+
+	{SKINNY_LBL_ENDCALL, sccp_sk_endcall, TRUE},
+	{SKINNY_LBL_RESUME, sccp_sk_resume, TRUE},
+	{SKINNY_LBL_ANSWER, sccp_sk_answer, TRUE},
+#ifdef CS_SCCP_PARK
+	{SKINNY_LBL_PARK, sccp_sk_park, TRUE},
+#endif
+
+	{SKINNY_LBL_TRNSFVM, sccp_sk_trnsfvm, TRUE},
+	{SKINNY_LBL_IDIVERT, sccp_sk_trnsfvm, TRUE},
+	{SKINNY_LBL_DND, sccp_sk_dnd, FALSE},
+	{SKINNY_LBL_DIRTRFR, sccp_sk_dirtrfr, TRUE},
+	{SKINNY_LBL_SELECT, sccp_sk_select, TRUE},
+	{SKINNY_LBL_PRIVATE, sccp_sk_private, TRUE},
+#ifdef CS_SCCP_PICKUP	
+	{SKINNY_LBL_PICKUP, sccp_sk_pickup, FALSE},
+	{SKINNY_LBL_GPICKUP, sccp_sk_gpickup, FALSE},
+#endif
+	{SKINNY_LBL_MONITOR, sccp_feat_monitor, TRUE},
+	{SKINNY_LBL_INTRCPT, sccp_sk_resume, TRUE},
+	{SKINNY_LBL_CONFLIST, sccp_sk_conflist, TRUE},
+	
+};
+typedef struct sccp_softkeyMap_cb sccp_softkeyMap_cb_t;
+
+
+static const sccp_softkeyMap_cb_t *sccp_getSoftkeyMap_by_SoftkeyEvent(uint32_t event){
+	uint8_t i;
+	
+	for(i = 0; i< ARRAY_LEN(softkeyCbMap); i++ ){
+		if(softkeyCbMap[i].event == event){
+			return &softkeyCbMap[i];
+		}
+	}
+  
+	return NULL;
+}
+
 /*!
  * \brief Handle Soft Key Event for Session
  * \param s SCCP Session as sccp_session_t
@@ -2300,23 +2359,18 @@ void sccp_handle_dialtone_locked(sccp_channel_t * c)
  */
 void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 {
-	sccp_channel_t *c = NULL;
-
-	sccp_line_t *l = NULL;
-
-	sccp_speed_t *k = NULL;
-
-	sccp_device_t *d = NULL;
+	sccp_channel_t 	*c				= NULL;
+	sccp_line_t 	*l				= NULL;
+	sccp_device_t 	*d				= NULL;
+	const sccp_softkeyMap_cb_t *softkeyMap_cb	= NULL;
 
 	if (!(d = check_session_message_device(s, r, "softkey event"))) {
 		return;
 	}
 
-	uint32_t event = letohl(r->msg.SoftKeyEventMessage.lel_softKeyEvent);
-
-	uint32_t lineInstance = letohl(r->msg.SoftKeyEventMessage.lel_lineInstance);
-
-	uint32_t callid = letohl(r->msg.SoftKeyEventMessage.lel_callReference);
+	uint32_t event 		= letohl(r->msg.SoftKeyEventMessage.lel_softKeyEvent);
+	uint32_t lineInstance 	= letohl(r->msg.SoftKeyEventMessage.lel_lineInstance);
+	uint32_t callid 	= letohl(r->msg.SoftKeyEventMessage.lel_callReference);
 
 	if (!d)
 		return;
@@ -2343,120 +2397,35 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	if (lineInstance)
-		l = sccp_line_find_byid(s->device, lineInstance);
+		l = sccp_line_find_byid(d, lineInstance);
 
-	if (lineInstance && callid)
-		c = sccp_channel_find_byid_locked(callid);
-
+	if (l && callid)
+		c = sccp_find_channel_on_line_byid_locked(l, callid);
+	
+	
 	/* XXX to prevent keeping lock during too long time, unlock it here to let
 	 * sccp_sk_* functions relock it. */
 	if (c)
 		sccp_channel_unlock(c);
-
-	switch (event) {
-	case SKINNY_LBL_REDIAL:
-		sccp_sk_redial(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_NEWCALL:
-		if (d->isAnonymous) {
-			sccp_feat_adhocDial(d, GLOB(hotline)->line);		/* with hotline as feature */
-		} else if (l) {
-			if (strlen(l->adhocNumber) == 0)
-				sccp_sk_newcall(d, l, lineInstance, c);
-			else {
-				sccp_feat_adhocDial(d, l);
-			}
-		} else {
-			k = sccp_dev_speed_find_byindex(d, lineInstance, SCCP_BUTTONTYPE_HINT);
-			if (k) {
-				sccp_handle_speeddial(d, k);
-			} else
-				sccp_sk_newcall(d, NULL, 0, NULL);
-		}
-		break;
-	case SKINNY_LBL_CONFRN:
-		sccp_sk_conference(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_MEETME:
-		sccp_sk_meetme(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_JOIN:
-		sccp_sk_join(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_BARGE:
-		sccp_sk_barge(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_CBARGE:
-		sccp_sk_cbarge(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_HOLD:
-		sccp_sk_hold(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_TRANSFER:
-		sccp_sk_transfer(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_CFWDALL:
-		sccp_sk_cfwdall(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_CFWDBUSY:
-		sccp_sk_cfwdbusy(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_CFWDNOANSWER:
-		sccp_sk_cfwdnoanswer(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_BACKSPACE:
-		sccp_sk_backspace(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_ENDCALL:
-		sccp_sk_endcall(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_RESUME:
-		sccp_sk_resume(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_ANSWER:
-		sccp_sk_answer(d, l, lineInstance, c);
-		break;
-#ifdef CS_SCCP_PARK
-	case SKINNY_LBL_PARK:
-		sccp_sk_park(d, l, lineInstance, c);
-		break;
-#endif
-	case SKINNY_LBL_TRNSFVM:
-	case SKINNY_LBL_IDIVERT:
-		sccp_sk_trnsfvm(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_DND:
-		sccp_sk_dnd(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_DIRTRFR:
-		sccp_sk_dirtrfr(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_SELECT:
-		sccp_sk_select(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_PRIVATE:
-		sccp_sk_private(d, l, lineInstance, c);
-		break;
-#ifdef CS_SCCP_PICKUP
-	case SKINNY_LBL_PICKUP:
-		sccp_sk_pickup(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_GPICKUP:
-		sccp_sk_gpickup(d, l, lineInstance, c);
-		break;
-	case SKINNY_LBL_INTRCPT:
-		sccp_sk_resume(d, l, lineInstance, c);
-		break;
-#endif
-	case SKINNY_LBL_MONITOR:
-		sccp_feat_monitor(d, c);
-		break;
-	case SKINNY_LBL_CONFLIST:
-		sccp_sk_conflist(d, l, lineInstance, c);
-		break;
-	default:
+	
+	
+	softkeyMap_cb = sccp_getSoftkeyMap_by_SoftkeyEvent(event);
+	
+	/* we dont know how to handle event */
+	if(!softkeyMap_cb){
 		ast_log(LOG_WARNING, "Don't know how to handle keypress %d\n", event);
+		return;
 	}
+	
+	if(softkeyMap_cb->channelIsNecessary == TRUE && !c){
+		char buf[100];
+		snprintf(buf, 100, "No channel for %s!", label2str(event));
+		sccp_dev_displayprompt(d, lineInstance, 0, buf, 7);
+		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, 0, 0);
+		return;
+	}
+	
+	softkeyMap_cb->softkeyEvent_cn(d, l, lineInstance, c);
 }
 
 /*!
@@ -3098,9 +3067,10 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 		//d->monitorFeature.status = (d->monitorFeature.status) ? 0 : 1;
 		;
 		sccp_channel_t *channel = sccp_channel_get_active_locked(d);
-
-		sccp_feat_monitor(d, channel);
-		sccp_channel_unlock(channel);
+		if(channel){	
+			sccp_feat_monitor(d, channel->line, 1, channel);
+			sccp_channel_unlock(channel);
+		}
 		break;
 #endif
 

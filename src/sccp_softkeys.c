@@ -118,30 +118,29 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  */
 void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
-	int length = 0;
-
+	sccp_speed_t *k = NULL;
+	
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey NewCall Pressed\n", DEV_ID_LOG(d));
-	if (!l) {
-		/* use default line if it is set */
-		if (d && d->defaultLineInstance > 0) {
-			sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
-			l = sccp_line_find_byid(d, d->defaultLineInstance);
-		}
-	}
-
-	if (!l && d && d->currentLine)
-		l = d->currentLine;
-
-	if (!l) {
-		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 1);
-		sccp_dev_displayprompt(d, 0, 0, "No line available", 5);
+	
+	if (d->isAnonymous) {
+	  
+		sccp_feat_adhocDial(d, GLOB(hotline)->line);		/* with hotline as feature */
 		return;
-	} else {
-		length = strlen(l->adhocNumber);
-		if (length > 0)
-			sccp_channel_newcall(l, d, l->adhocNumber, SKINNY_CALLTYPE_OUTBOUND);
-		else
+		
+	} else if (l) {
+	  
+		if (strlen(l->adhocNumber) == 0)
 			sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
+		else {
+			sccp_feat_adhocDial(d, l);
+		}
+		
+	} else {
+		k = sccp_dev_speed_find_byindex(d, lineInstance, SCCP_BUTTONTYPE_HINT);
+		if (k) {
+			sccp_handle_speeddial(d, k);
+		} else
+			sccp_sk_newcall(d, NULL, 0, NULL);
 	}
 }
 
@@ -449,6 +448,7 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIn
 void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Answer Pressed, instance: %d\n", DEV_ID_LOG(d), lineInstance);
+	
 	if (c->owner)
 		pbx_channel_lock(c->owner);
 	sccp_channel_lock(c);
@@ -723,11 +723,6 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	if (!d->privacyFeature.enabled) {
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: private function is not active on this device\n", d->id);
 		sccp_dev_displayprompt(d, lineInstance, 0, "PRIVATE function is not active", 5);
-		return;
-	}
-
-	if (!c) {
-		sccp_dev_displayprompt(d, lineInstance, 0, "PRIVATE with no channel active", 5);
 		return;
 	}
 
