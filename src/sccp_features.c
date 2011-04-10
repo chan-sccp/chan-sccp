@@ -458,7 +458,6 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	const char *ringermode = NULL;
 
 	sccp_channel_t *c;
-	boolean_t channelCreated = FALSE;
 	char *name = NULL, *number = NULL;
 
 	if (!l || !d || !d->id || sccp_strlen_zero(d->id)) {
@@ -477,7 +476,6 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	
 	target = ast_channel_search_locked(pbx_find_channel_by_group, l);	
 	if(target) {
-	
 		/* create channel for pickup */
 		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Device state is '%s'\n", DEV_ID_LOG(d), devicestatus2str(d->state));
 		if (!(c = sccp_channel_find_bystate_on_line_locked(l, SCCP_CHANNELSTATE_OFFHOOK))) {
@@ -490,12 +488,12 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 
 			if (!sccp_pbx_channel_allocate_locked(c)) {
 				ast_log(LOG_WARNING, "%s: (grouppickup) Unable to allocate a new channel for line %s\n", d->id, l->name);
+				pbx_channel_unlock(target);
 				sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_CONGESTION);
 				sccp_channel_unlock(c);
-				pbx_channel_unlock(target);
+				res = -1;
 				return res;
 			}
-			channelCreated = TRUE;
 			sccp_channel_set_active(d, c);
 			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_OFFHOOK);
 
@@ -504,9 +502,6 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 			}
 		}
 		/* done */
-	  
-	  
-	  
 		original = c->owner;
 
 #    ifdef CS_AST_CHANNEL_HAS_CID
@@ -564,13 +559,17 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 				res = -1;
 			}
 		}
-
+		
+		char tmp[50]; /* save channel name before unlock */
+		snprintf(tmp, sizeof(tmp), "%s", target->name);
+		pbx_channel_unlock(target);
+		
 		if (res == 0) {
-			if ((res = ast_channel_masquerade(target, c->owner))) {	// \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
-				sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);
+			if( ast_channel_masquerade(target, c->owner) ) {
+				sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, tmp);
 				res = -1;				// \todo remove line : res value is being set to 0 in line 694 any way
 			} else {
-				sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
+				sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) Pickup on '%s' by '%s'\n", tmp, c->owner->name);
 
 				/* searching callerid */
 				c->calltype = SKINNY_CALLTYPE_INBOUND;
@@ -605,12 +604,8 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 				original->hangupcause = AST_CAUSE_ANSWERED_ELSEWHERE; //AST_CAUSE_NORMAL_CLEARING
 				ast_setstate(original, AST_STATE_DOWN);
 			}
-			//pbx_channel_unlock(target);
-//				ast_queue_hangup(original);		// doesn't work, used to be ast_hangup (Joe,Gpickup trouble)
 			ast_hangup(original);
 			sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) masquerade succeeded\n");
-		} else {
-			//pbx_channel_unlock(target);
 		}
 
 		if (name)
@@ -623,7 +618,6 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 #    endif
 
 		res = 0;
-		pbx_channel_unlock(target);
 		sccp_channel_unlock(c);
 	} else {
 		sccp_log( DEBUGCAT_FEATURE) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) no channel to pickup\n");
