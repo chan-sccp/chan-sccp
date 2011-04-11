@@ -562,8 +562,10 @@ void sccp_mwi_check(sccp_device_t * device)
 			}
 			SCCP_LIST_UNLOCK(&line->channels);
 
-			if (hasActiveChannel)
+/* If we break here, we might never learn if there was a ringing channel. */ 
+			/* if (hasActiveChannel)
 				break;
+				*/
 		}
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
@@ -580,10 +582,15 @@ void sccp_mwi_check(sccp_device_t * device)
 			r->msg.SetLampMessage.lel_lampMode = htolel(SKINNY_LAMP_OFF);
 			sccp_dev_send(device, r);
 			sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s) %d\n", DEV_ID_LOG(device), "OFF", "unknown", 0);
-			return;
+		} else {
+			sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: MWI already %s on line (%s) %d\n", DEV_ID_LOG(device), "OFF", "unknown", 0);
 		}
+		return; // <---- This return must be outside the inner if
 	}
-
+	
+	/* Note: We must return the function before this point unless we want to turn the MWI on during a call! */
+	/*       This is taken care of by the previous block of code. */
+	
 	sccp_device_lock(device);
 	device->voicemailStatistic.newmsgs = 0;
 	device->voicemailStatistic.oldmsgs = 0;
