@@ -725,6 +725,11 @@ void sccp_handle_AvailableLines(sccp_device_t * d)
 	boolean_t defaultLineSet = FALSE;
 
 	line_count = 0;
+	
+	if(!d) {
+		ast_log(LOG_ERROR, "sccp_handle_AvailableLines called with NULL device\n", d->id);
+		return;
+	}
 
 	/** \todo why do we get the message twice  */
 	if (d->linesRegistered)
