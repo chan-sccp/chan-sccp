@@ -727,7 +727,7 @@ void sccp_handle_AvailableLines(sccp_device_t * d)
 	line_count = 0;
 	
 	if(!d) {
-		ast_log(LOG_ERROR, "sccp_handle_AvailableLines called with NULL device\n", d->id);
+		ast_log(LOG_ERROR, "%s: sccp_handle_AvailableLines called with NULL device\n", DEV_ID_LOG(d));
 		return;
 	}
 
