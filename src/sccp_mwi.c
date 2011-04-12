@@ -486,9 +486,8 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 		newState &= ~mask;
 	}
 
-	/* do we need to update line status */
-	/* I believe this is wrong: We would need XOR here, but this is OR (-DD)! */
-	if (d->mwilight | newState) {
+	/* check if we need to update line status */
+	if ((d->mwilight & ~(1 << 0)) != (newState & ~(1 << 0))) {
 
 		d->mwilight = newState;
 
