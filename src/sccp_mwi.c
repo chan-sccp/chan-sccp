@@ -524,8 +524,6 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
  */
 void sccp_mwi_check(sccp_device_t * device)
 {
-	sccp_buttonconfig_t *buttonconfig = NULL;
-  
   sccp_buttonconfig_t *config = NULL;
 
 	sccp_line_t *line = NULL;
