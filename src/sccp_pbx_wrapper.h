@@ -158,6 +158,8 @@ enum {
 
 // replacement implementations
 PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target);
+
+struct ast_channel* sccp_asterisk_channel_search_locked(int (*is_match)(struct ast_channel *, void *), void *data);
 struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast_ha *path, int *error);
 struct ast_context *pbx_context_find_or_create(struct ast_context **extcontexts, struct ast_hashtab *exttable, const char *name, const char *registrar);
 struct ast_config *pbx_config_load(const char *filename, const char *who_asked, struct ast_flags flags);

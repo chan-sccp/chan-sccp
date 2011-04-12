@@ -474,7 +474,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	
 	
 	
-	target = ast_channel_search_locked(pbx_find_channel_by_group, l);	
+	target = sccp_asterisk_channel_search_locked(pbx_find_channel_by_group, l);	
 	if(target) {
 		/* create channel for pickup */
 		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Device state is '%s'\n", DEV_ID_LOG(d), devicestatus2str(d->state));
