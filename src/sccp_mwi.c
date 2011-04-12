@@ -476,17 +476,18 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 
 	mask = 1 << instance;
 
+	newState = d->mwilight;
 	/* update status */
 	if (status) {
 		/* activate */
 		newState |= mask;
 	} else {
 		/* deactivate */
-		newState = d->mwilight;
 		newState &= ~mask;
 	}
 
 	/* do we need to update line status */
+	/* I believe this is wrong: We would need XOR here, but this is OR (-DD)! */
 	if (d->mwilight | newState) {
 
 		d->mwilight = newState;
