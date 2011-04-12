@@ -187,7 +187,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOOK);
 
-		sccp_handle_time_date_req(d->session, NULL);			/* we need datetime on hangup for 7936 */
+		sccp_handle_time_date_req(d->session, d, NULL);			/* we need datetime on hangup for 7936 */
 		if (c == d->active_channel)
 			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 
@@ -334,7 +334,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		break;
 	case SCCP_CHANNELSTATE_HOLD:
 		sccp_channel_closereceivechannel_locked(c);
-		sccp_handle_time_date_req(d->session, NULL);
+		sccp_handle_time_date_req(d->session, d, NULL);
 //              sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_WINK);
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOLD);

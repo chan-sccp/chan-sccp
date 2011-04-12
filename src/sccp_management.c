@@ -406,9 +406,9 @@ static int sccp_manager_device_update(struct mansession *s, const struct message
 		return 0;
 	}
 
-	sccp_handle_soft_key_template_req(d->session, NULL);
+	sccp_handle_soft_key_template_req(d->session, d, NULL);
 
-	sccp_handle_button_template_req(d->session, NULL);
+	sccp_handle_button_template_req(d->session, d, NULL);
 
 	astman_append(s, "Done\r\n");
 	astman_append(s, "\r\n");

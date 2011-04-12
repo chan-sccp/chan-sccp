@@ -578,7 +578,7 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 
 		if (!d->linesRegistered) {
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(d));
-			sccp_handle_AvailableLines(d);
+			sccp_handle_AvailableLines(d->session, d, NULL);
 			d->linesRegistered = TRUE;
 		}
 

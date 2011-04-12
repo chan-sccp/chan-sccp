@@ -393,54 +393,161 @@ int sccp_devicestate(void *data)
 	return res;
 }
 
+
+/*!
+ * \brief Local Function to check for Valid Session, Message and Device
+ * \param s SCCP Session as sccp_session_t
+ * \param r SCCP MOO T as sccp_moo_t
+ * \param s SCCP Device as sccp_device_t
+ * \return -1 or Device;
+ */
+static sccp_device_t *check_session_message_device(sccp_session_t * s, sccp_moo_t * r, const char *msg)
+{
+	sccp_device_t *d = NULL;
+
+	if (!s || (s->fds[0].fd < 0)) {
+		ast_log(LOG_ERROR, "(%s) Session no longer valid\n", msg);
+		return NULL;
+	}
+
+	if (!r) {
+		ast_log(LOG_ERROR, "(%s) No Message Provided\n", msg);
+		return NULL;
+	}
+
+	if (!(d = s->device)) {
+		ast_log(LOG_ERROR, "No valid Device available to handle %s for", msg);
+		return NULL;
+	}
+
+	if (s != s->device->session) {
+		ast_log(LOG_WARNING, "(%s) Provided Session and Device Session are not the same!!\n", msg);
+	}
+
+	if ((GLOB(debug) & (DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) != 0) {
+		uint32_t mid = letohl(r->lel_messageId);
+
+		ast_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(d), message2str(mid), mid, r->length);
+		sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
+	}
+
+	return d;
+}
+
+
+struct sccp_messageMap_cb {
+	uint32_t messageId;
+	void (*const messageHandler_cb)(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r);
+	boolean_t deviceIsNecessary;
+};
+
+static const struct sccp_messageMap_cb messagesCbMap[] = {
+	{KeepAliveMessage,sccp_handle_KeekaliveMessage,TRUE},
+	{OffHookMessage,sccp_handle_offhook,TRUE},
+	{OnHookMessage,sccp_handle_onhook,TRUE},
+	{SoftKeyEventMessage,sccp_handle_soft_key_event,TRUE},
+	{OpenReceiveChannelAck,sccp_handle_open_receive_channel_ack,TRUE},
+	{OpenMultiMediaReceiveChannelAckMessage,sccp_handle_OpenMultiMediaReceiveAck,TRUE},
+	{StartMediaTransmissionAck,sccp_handle_startmediatransmission_ack,TRUE},
+
+	{IpPortMessage, NULL,TRUE},
+	{VersionReqMessage,sccp_handle_version,TRUE},
+	{CapabilitiesResMessage,sccp_handle_capabilities_res,TRUE},
+	{ButtonTemplateReqMessage,sccp_handle_button_template_req,TRUE},
+	{SoftKeyTemplateReqMessage,sccp_handle_soft_key_template_req,TRUE},
+	{SoftKeySetReqMessage,sccp_handle_soft_key_set_req,TRUE},
+	{LineStatReqMessage,sccp_handle_line_number,TRUE},
+	{SpeedDialStatReqMessage,sccp_handle_speed_dial_stat_req,TRUE},
+	{StimulusMessage,sccp_handle_stimulus,TRUE},
+	
+	
+	{HeadsetStatusMessage,sccp_handle_headset,TRUE},
+	{TimeDateReqMessage,sccp_handle_time_date_req,TRUE},
+	{KeypadButtonMessage,sccp_handle_keypad_button,TRUE},
+	
+	
+	{ConnectionStatisticsRes,sccp_handle_ConnectionStatistics,TRUE},
+	{ServerReqMessage,sccp_handle_ServerResMessage,TRUE},
+	{ConfigStatReqMessage,sccp_handle_ConfigStatMessage,TRUE},
+	{EnblocCallMessage,sccp_handle_EnblocCallMessage,TRUE},
+	{RegisterAvailableLinesMessage,sccp_handle_AvailableLines,TRUE},
+	{ForwardStatReqMessage,sccp_handle_forward_stat_req,TRUE},
+	{FeatureStatReqMessage,sccp_handle_feature_stat_req,TRUE},
+	{ServiceURLStatReqMessage,sccp_handle_services_stat_req,TRUE},
+	{AccessoryStatusMessage,sccp_handle_accessorystatus_message,TRUE},
+	{DialedPhoneBookMessage,sccp_handle_dialedphonebook_message,TRUE},
+	{UpdateCapabilitiesMessage,sccp_handle_updatecapabilities_message,TRUE},
+	
+	{Unknown_0x004A_Message,sccp_handle_unknown_message,TRUE},
+	{Unknown_0x0143_Message,sccp_handle_unknown_message,TRUE},
+	{Unknown_0x0144_Message,sccp_handle_unknown_message,TRUE},
+	{SpeedDialStatDynamicMessage,sccp_handle_speed_dial_stat_req,TRUE},
+	{ExtensionDeviceCaps,sccp_handle_unknown_message,TRUE},
+	
+	{DeviceToUserDataVersion1Message, sccp_handle_device_to_user,TRUE},
+	{DeviceToUserDataResponseVersion1Message,sccp_handle_device_to_user_response,TRUE},
+	
+#ifdef CS_ADV_FEATURES
+	{RegisterTokenReq,sccp_handle_tokenreq,FALSE},
+#else
+	{RegisterTokenReq,sccp_handle_register,FALSE},
+#endif
+	{SPARegisterMessage,sccp_handle_SPAregister,TRUE},
+	{UnregisterMessage,sccp_handle_unregister,TRUE},
+	{RegisterMessage,sccp_handle_register,FALSE},
+	{AlarmMessage, sccp_handle_alarm,FALSE},
+	{XMLAlarmMessage,sccp_handle_unknown_message, FALSE},
+	
+};
+typedef struct sccp_messageMap_cb sccp_messageMap_cb_t;
+
+
+static const sccp_messageMap_cb_t *sccp_getMessageMap_by_MessageId(uint32_t messageId){
+	uint32_t i;
+	
+	for(i = 0; i< ARRAY_LEN(messagesCbMap); i++ ){
+		if(messagesCbMap[i].messageId == messageId){
+			return &messagesCbMap[i];
+		}
+	}
+  
+	return NULL;
+}
+
+
 /*!
  * \brief 	Controller function to handle Received Messages
  * \param 	r Message as sccp_moo_t
  * \param 	s Session as sccp_session_t
+ * \return 	1 on success handling message, 0 if some errors occured -> if 0 returned sccp_socket.c will close connection
  */
-uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
+uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t *s)
 {
+	const sccp_messageMap_cb_t *messageMap_cb	= NULL;
+	uint32_t mid;
+	
 	if (!s) {
-		ast_log(LOG_ERROR, "%s: (sccp_handle_message) Client does not have a sessions, Required !\n", s->device->id ? s->device->id : "SCCP");
+		ast_log(LOG_ERROR, "%s: (sccp_handle_message) Client does not have a sessions, Required !\n", DEV_ID_LOG(s->device));
 		ast_free(r);
 		return -1;
 	}
 
 	if (!r) {
-		ast_log(LOG_ERROR, "%s: (sccp_handle_message) No Message Specified.\n, Required !", s->device->id ? s->device->id : "SCCP");
-		ast_free(r);
+		ast_log(LOG_ERROR, "%s: (sccp_handle_message) No Message Specified.\n, Required !", DEV_ID_LOG(s->device));
 		return 0;
 	}
-	uint32_t mid = letohl(r->lel_messageId);
+	
+	
+	mid = letohl(r->lel_messageId);
+	s->lastKeepAlive = time(0);	/** always update keepalive */
 
-	//sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: last keepAlive within %d (%d)\n", (s->device)?s->device->id:"null", (uint32_t)(time(0) - s->lastKeepAlive), (s->device)?s->device->keepalive:0 );
-
-	s->lastKeepAlive = time(0);						/* always update keepalive */
-
-	/* Check if all necessary information is available */
-	if ((!s->device) && (mid != RegisterMessage && mid != RegisterTokenReq && mid != AlarmMessage && mid != KeepAliveMessage && mid != XMLAlarmMessage && mid != IpPortMessage && mid != SPARegisterMessage)) {
-		ast_log(LOG_WARNING, "SCCP: Client sent %s without first registering. Attempting reconnect.\n", message2str(mid));
-		ast_free(r);
-		return 0;
-		
-	} else if (s->device) {
+	/** Check if all necessary information is available */
+	if (s->device) {
 		if (s->device != sccp_device_find_byipaddress(s->sin)) {
-			// IP Address has changed mid session
+			/** IP Address has changed mid session */
 			if (s->device->nat == 1) {
 				// We are natted, what should we do, Not doing anything for now, just sending warning -- DdG
 				ast_log(LOG_WARNING, "%s: Device (%s) attempted to send messages via a different ip-address (%s).\n", DEV_ID_LOG(s->device), pbx_inet_ntoa(s->sin.sin_addr), pbx_inet_ntoa(s->device->session->sin.sin_addr));
-				// \todo write auto recover ip-address change during session with natted device should be be implemented
-				/*
-				   s->device->session->sin.sin_addr.s_addr = s->sin.sin_addr.s_addr;
-				   s->device->nat = 1;
-				   sccp_device_reset(s->device, r);
-				   sccp_session_unlock(s);
-				   sccp_session_close(s,5);
-				   sccp_session_close(s->device->session,5);
-				   destroy_session(s,5);
-				   destroy_session(s->device->session,5);
-				   sccp_session_lock(s);
-				 */
 			} else {
 				// We are not natted, but the ip-address has changed
 				ast_log(LOG_ERROR, "(sccp_handle_message): SCCP: Device is attempting to send message via a different ip-address.\nIf this is behind a firewall please set it up in sccp.conf with nat=1.\n");
@@ -449,26 +556,35 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 			}
 		} else if (s->device && (!s->device->session || s->device->session != s)) {
 			sccp_log((DEBUGCAT_CORE | DEBUGCAT_MESSAGE | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "%s: cross device session (Removing Old Session)\n", DEV_ID_LOG(s->device));
-			// removed, returning 0 will take care of destroying the session for us.
-//
-//			SCCP_RWLIST_WRLOCK(&GLOB(sessions));
-//			SCCP_LIST_REMOVE(&GLOB(sessions), s, list);
-//			SCCP_RWLIST_UNLOCK(&GLOB(sessions));
-
-//			pthread_cancel(s->session_thread);
 			ast_free(r);
 			return 0;
 		}
 	}
 
-	if (mid != KeepAliveMessage) {
-		if (s && s->device) {
-			sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message (%x) %s\n", s->device->id, mid, message2str(mid));
-		} else {
-			sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "SCCP: >> Got message (%x) %s\n", mid, message2str(mid));
-		}
+	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message (%x) %s\n", DEV_ID_LOG(s->device), mid, message2str(mid));
+	
+	/* search for message handler */
+	messageMap_cb = sccp_getMessageMap_by_MessageId(mid);
+	
+	/* we dont know how to handle event */
+	if(!messageMap_cb){
+		ast_log(LOG_WARNING, "Don't know how to handle messag %d\n", mid);
+		sccp_handle_unknown_message(s, s->device, r);
+		
+		free(r);
+		return 1;
 	}
-
+	
+	if(messageMap_cb->messageHandler_cb && messageMap_cb->deviceIsNecessary == TRUE && !check_session_message_device(s, r, "handle messages") ){
+		free(r);
+		return 0;
+	}
+	if(messageMap_cb->messageHandler_cb){
+		messageMap_cb->messageHandler_cb(s, s->device, r);
+	}
+	
+	
+#if 0
 	switch (mid) {
 	case AlarmMessage:
 		sccp_handle_alarm(s, r);
@@ -620,7 +736,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	default:
 		sccp_handle_unknown_message(s, r);
 	}
-
+#endif
 	ast_free(r);
 	return 1;
 }
