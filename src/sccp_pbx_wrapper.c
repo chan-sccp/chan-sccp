@@ -41,6 +41,24 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 /************************************************************************************************************ CALLERID **/
 
+
+
+struct ast_channel* sccp_asterisk_channel_search_locked(int (*is_match)(struct ast_channel *, void *),void *data){
+#ifdef ast_channel_search_locked
+	return ast_channel_search_locked(is_match, data);
+#else
+	struct ast_channel *ast = NULL;
+
+	while( (ast = ast_channel_walk_locked(ast)) ){
+		if (is_match(ast, data)) {
+			break;
+		}
+		ast_channel_unlock(ast);
+	}
+	return ast;
+#endif
+}
+
 /*!
  * \brief get callerid_name from pbx
  * \param ast_chan Asterisk Channel
