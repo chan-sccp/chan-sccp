@@ -863,15 +863,12 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 	switch(channel->rtp.video.readFormat){
 	  case AST_FORMAT_H263:
 	    ast_rtp_set_m_type(channel->rtp.video.rtp, payloadType);
-#if ASTERISK_VERSION_NUM >= 10602
-	    ast_rtp_set_rtpmap_type_rate(channel->rtp.video.rtp, channel->rtp.video.readFormat, "video", "H263", 0, 0);
-#endif
+	    //ast_rtp_set_rtpmap_type_rate(channel->rtp.video.rtp, channel->rtp.video.readFormat, "video", "H263", 0, 0);
+
 	    break;
 	  case AST_FORMAT_H264:
 	    ast_rtp_set_m_type(channel->rtp.video.rtp, payloadType);
-#if ASTERISK_VERSION_NUM >= 10602
-	    ast_rtp_set_rtpmap_type_rate(channel->rtp.video.rtp, channel->rtp.video.readFormat, "video", "H264", 0, 0);
-#endif
+	    //ast_rtp_set_rtpmap_type_rate(channel->rtp.video.rtp, channel->rtp.video.readFormat, "video", "H264", 0, 0);
 	  break;
 	}
 #endif
