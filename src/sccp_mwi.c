@@ -525,55 +525,65 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 void sccp_mwi_check(sccp_device_t * device)
 {
 	sccp_buttonconfig_t *buttonconfig = NULL;
+  
+  sccp_buttonconfig_t *config = NULL;
 
 	sccp_line_t *line = NULL;
+  
+	sccp_channel_t *c = NULL;
 
-	sccp_moo_t *r;
-
+	sccp_moo_t *r = NULL;
+  
 	uint8_t status;
 
 	uint32_t mask;
-
-	if (!device)
-		return;
+  
+  uint32_t oldmsgs = 0, newmsgs = 0;
 
 	/* check if we have an active channel */
 	boolean_t hasActiveChannel = FALSE, hasRinginChannel = FALSE;
 
-	sccp_buttonconfig_t *config;
-
-	sccp_channel_t *c;
-
+  if (!device) {
+    sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "sccp_mwi_check called with NULL device!\n");
+    return;
+  }
+  
 	/* for each line, check if there is an active call */
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 		if (config->type == LINE) {
 			line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
-			if (!line)
-				continue;
+			if (!line) {
+        sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: NULL line retrieved from buttonconfig!\n", DEV_ID_LOG(device));
+        continue;
+      }
+				
 
 			SCCP_LIST_LOCK(&line->channels);
 			SCCP_LIST_TRAVERSE(&line->channels, c, list) {
-				if (c->device == device && c->state != SCCP_CHANNELSTATE_ONHOOK && c->state != SCCP_CHANNELSTATE_DOWN && c->state != SCCP_CHANNELSTATE_RINGING) {
-					hasActiveChannel = TRUE;
-				}
-				if (c->device == device && c->state == SCCP_CHANNELSTATE_RINGING)
-					hasRinginChannel = TRUE;
+        if (c->device == device) { // We have a channel belonging to our device (no remote shared line channel)
+          if (c->state != SCCP_CHANNELSTATE_ONHOOK && c->state != SCCP_CHANNELSTATE_DOWN) {
+            hasActiveChannel = TRUE;
+          }
+          if (c->state == SCCP_CHANNELSTATE_RINGING) {
+	          hasRinginChannel = TRUE;
+          }
+          
+          /* pre-collect number of voicemails on device to be set later */
+          oldmsgs += line->voicemailStatistic.oldmsgs;
+          newmsgs += line->voicemailStatistic.newmsgs;
+        }
 			}
 			SCCP_LIST_UNLOCK(&line->channels);
-
-/* If we break here, we might never learn if there was a ringing channel. */ 
-			/* if (hasActiveChannel)
-				break;
-				*/
 		}
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 
 	/* disable mwi light if we have an active channel, but no ringin */
-	if ((hasActiveChannel == TRUE && hasRinginChannel != TRUE) && !device->mwioncall) {
+	if (hasActiveChannel && !hasRinginChannel && !device->mwioncall) {
 		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: we have an active channel, disable mwi light\n", DEV_ID_LOG(device));
-		if (device->mwilight && (device->mwilight & 1) > 0) {
+  
+    if (device->mwilight & (1 << 0)) { // Set the MWI light to off only if it is already on.
 			device->mwilight &= ~(1 << 0);				/* set mwi light for device to off */
 
 			REQ(r, SetLampMessage);
@@ -591,37 +601,19 @@ void sccp_mwi_check(sccp_device_t * device)
 	/* Note: We must return the function before this point unless we want to turn the MWI on during a call! */
 	/*       This is taken care of by the previous block of code. */
 	
-	sccp_device_lock(device);
-	device->voicemailStatistic.newmsgs = 0;
-	device->voicemailStatistic.oldmsgs = 0;
-
-	/* update number of voicemails on device */
-	SCCP_LIST_LOCK(&device->buttonconfig);
-	SCCP_LIST_TRAVERSE(&device->buttonconfig, buttonconfig, list) {
-		if (buttonconfig->type == LINE) {
-			line = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE);
-			if (line) {
-
-				//sccp_mwi_setMWILineStatus(device, line); /* set mwi-line-status */
-				device->voicemailStatistic.oldmsgs += line->voicemailStatistic.oldmsgs;
-				device->voicemailStatistic.newmsgs += line->voicemailStatistic.newmsgs;
-			}
-		}
-	}
-	SCCP_LIST_UNLOCK(&device->buttonconfig);
+  sccp_device_lock(device);
+	device->voicemailStatistic.newmsgs = oldmsgs;
+	device->voicemailStatistic.oldmsgs = newmsgs;
 
 	/* set mwi light */
 	mask = device->mwilight & ~(1 << 0);					/* status without mwi light for device (1<<0) */
 	status = (mask > 0) ? 1 : 0;
 
-	if ((device->mwilight & (1 << 0)) != status) {
-		/* update status */
-		if (status) {
-			/* activate */
-			device->mwilight |= (1 << 0);
-		} else {
-			/* deactivate */
-			device->mwilight &= ~(1 << 0);
+	if ((device->mwilight & (1 << 0)) != status) { /* status needs update */
+		if (status) { 
+			device->mwilight |=  (1 << 0); /* activate */
+		} else { 
+			device->mwilight &= ~(1 << 0); /* deactivate */
 		}
 
 		REQ(r, SetLampMessage);
