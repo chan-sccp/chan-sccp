@@ -1397,7 +1397,7 @@ void sccp_feat_changed(sccp_device_t * device, sccp_feature_type_t featureType)
         REQ(r, SetLampMessage);
 		r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
 		r->msg.SetLampMessage.lel_stimulusInstance = 0;
-		r->msg.SetLampMessage.lel_lampMode = htolel((device->monitorFeature.status)? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
+		r->msg.SetLampMessage.lel_lampMode = htolel((device->monitorFeature.status || (device->mwilight & (1 << 0)))? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
 		sccp_dev_send(device, r);
 		}
 
