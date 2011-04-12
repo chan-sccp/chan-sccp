@@ -108,7 +108,7 @@
  * callanswerorder=oldestfirst
  * meetme = on
  * meetme = qxd
- * protocol = 11
+ * protocolversion = 11
  * regcontext							; context used for dundi dialplan registration
  * 
  * hotline_enabled=yes						; can devices without configuration register
