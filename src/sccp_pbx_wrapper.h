@@ -21,9 +21,9 @@ struct sccp_pbx_cb {
 	int (*const rtp_destroy) (sccp_channel_t * channel);
 	int (*const rtp_stop) (sccp_channel_t * channel);
 	int (*const rtp_codec) (sccp_channel_t * channel);
-	 boolean_t(*const rtp_audio_create) (const sccp_channel_t * channel, struct ast_rtp ** new_rtp);
-	 boolean_t(*const rtp_video_create) (const sccp_channel_t * channel, struct ast_rtp ** new_rtp);
-	 uint8_t(*const rtp_get_payloadType) (const struct sccp_rtp * rtp, skinny_media_payload codec);
+	boolean_t(*const rtp_audio_create) (const sccp_channel_t * channel, struct ast_rtp ** new_rtp);
+	boolean_t(*const rtp_video_create) (const sccp_channel_t * channel, struct ast_rtp ** new_rtp);
+	uint8_t(*const rtp_get_payloadType) (const struct sccp_rtp * rtp, skinny_media_payload codec);
 
 	char *(*const pbx_get_callerid_name)(const sccp_channel_t * channel);
 	char *(*const pbx_get_callerid_number)(const sccp_channel_t * channel);

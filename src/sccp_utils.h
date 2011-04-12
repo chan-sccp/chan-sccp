@@ -42,6 +42,7 @@ sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime);
 sccp_line_t *sccp_line_find_byname_wo(const char *name, uint8_t realtime);
 #    define sccp_line_find_byname(x) sccp_line_find_byname_wo(x, 1)
 sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance);
+sccp_channel_t *sccp_find_channel_on_line_byid_locked(sccp_line_t *l, uint32_t id);
 
 #    ifdef CS_SCCP_REALTIME
 sccp_device_t *sccp_device_find_realtime(const char *name);
