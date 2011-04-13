@@ -484,16 +484,20 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 			}
 			char displayMessage[100];
 
+#ifdef CS_DYNAMIC_SPEEDDIAL_CID
 			/* do not add name for TEMP_FAIL and ONHOOK */
 			if (hint->currentState > 2) {
 				if (sccp_hint_isCIDavailabe(subscriber->device, subscriber->positionOnDevice) == TRUE) {
-					sprintf(displayMessage, "%s %s %s", (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? hint->callInfo.calledPartyName : hint->callInfo.callingPartyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? " <- " : " -> ", (k) ? k->name : "unknown speeddial");
+					snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? hint->callInfo.calledPartyName : hint->callInfo.callingPartyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? " <- " : " -> ", (k) ? k->name : "unknown speeddial");
 				} else {
-					sprintf(displayMessage, "%s", (k) ? k->name : "unknown speeddial");
+					sccp_copy_string(displayMessage, (k) ? k->name : "unknown speeddial", sizeof(displayMessage));
 				}
 			} else {
 				sccp_copy_string(displayMessage, (k) ? k->name : "unknown speeddial", sizeof(displayMessage));
 			}
+#else
+			sccp_copy_string(displayMessage, (k) ? k->name : "unknown speeddial", sizeof(displayMessage));
+#endif
 
 			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "set display name to: \"%s\"\n", displayMessage);
 			sccp_copy_string(r->msg.FeatureStatAdvancedMessage.DisplayName, displayMessage, sizeof(r->msg.FeatureStatAdvancedMessage.DisplayName));
@@ -682,6 +686,10 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t * hint)
 
 	if (line->channels.size > 0) {
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: number of active channels %d\n", line->name, line->statistic.numberOfActiveChannels);
+		
+		/*  TODO: This could be redundant code (?)
+			IMHO the following case is not true in the sense we use it.
+		    We should rather refer to the single-line case and refactor the code accordingly. (-DD) */
 		if (line->channels.size == 1) {
 			channel = SCCP_LIST_FIRST(&line->channels);
 			if (!channel) {
@@ -702,11 +710,10 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t * hint)
 				sccp_copy_string(hint->callInfo.callingPartyName, "", sizeof(hint->callInfo.callingPartyName));
 				sccp_copy_string(hint->callInfo.calledPartyName, "", sizeof(hint->callInfo.calledPartyName));
 			}
-		} else if (line->channels.size > 1) {
+		} else if (line->channels.size > 1) { /* SUGGESTION: We should also check if at least one of the channels is actually active. (-DD) */
 			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_IN_USE_REMOTE, sizeof(hint->callInfo.callingPartyName));
 			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_IN_USE_REMOTE, sizeof(hint->callInfo.calledPartyName));
 			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-
 		}
 	} else {
 		if (line->devices.size == 0) {
@@ -787,9 +794,11 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 			hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
 			break;
 		case SCCP_CHANNELSTATE_OFFHOOK:
+#ifdef CS_DYNAMIC_SPEEDDIAL_CID		
 			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_OFF_HOOK, sizeof(hint->callInfo.callingPartyName));
 			sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_OFF_HOOK, sizeof(hint->callInfo.calledPartyName));
 			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+#endif			
 			break;
 		case SCCP_CHANNELSTATE_DND:
 			sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_DND, sizeof(hint->callInfo.callingPartyName));
@@ -801,12 +810,14 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 #endif
 			break;
 		case SCCP_CHANNELSTATE_GETDIGITS:
+#ifdef CS_DYNAMIC_SPEEDDIAL_CID			
 			sccp_copy_string(hint->callInfo.callingPartyName, channel->dialedNumber, sizeof(hint->callInfo.callingPartyName));
 			sccp_copy_string(hint->callInfo.calledPartyName, channel->dialedNumber, sizeof(hint->callInfo.calledPartyName));
 
 			sccp_copy_string(hint->callInfo.callingParty, channel->dialedNumber, sizeof(hint->callInfo.callingParty));
 			sccp_copy_string(hint->callInfo.calledParty, channel->dialedNumber, sizeof(hint->callInfo.calledParty));
 			hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+#endif			
 			break;
 		case SCCP_CHANNELSTATE_SPEEDDIAL:
 			break;
