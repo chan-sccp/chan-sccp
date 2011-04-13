@@ -1394,11 +1394,14 @@ void sccp_feat_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 		if(SCCP_FEATURE_MONITOR == featureType) {
 		/* Special case for monitor */
 		sccp_moo_t *r;
-        REQ(r, SetLampMessage);
+		
+		int status = (device->monitorFeature.status) || (device->mwilight & (1 << 0));
+		REQ(r, SetLampMessage);
 		r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
-		r->msg.SetLampMessage.lel_stimulusInstance = 0;
-		r->msg.SetLampMessage.lel_lampMode = htolel((device->monitorFeature.status || (device->mwilight & (1 << 0)))? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
+		//r->msg.SetLampMessage.lel_stimulusInstance = 0;
+		r->msg.SetLampMessage.lel_lampMode = htolel(status ? device->mwilamp : SKINNY_LAMP_OFF);
 		sccp_dev_send(device, r);
+		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: Turn %s the MWI light (monitor feature change)\n", DEV_ID_LOG(device), (device->mwilight & (1 << 0)) ? "ON" : "OFF");
 		}
 
 	}
