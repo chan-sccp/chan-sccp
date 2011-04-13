@@ -22,11 +22,7 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <sys/ioctl.h>
-#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
-#    include <sys/poll.h>
-#else
 #    include <asterisk/poll-compat.h>
-#endif
 #ifdef ast_poll
 #    define sccp_socket_poll ast_poll
 #else

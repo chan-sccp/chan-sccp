@@ -100,7 +100,6 @@
 #    include "sccp_featureButton.h"
 #    include "sccp_mwi.h"
 #    include "sccp_config.h"
-#    include "sccp_conference.h"
 #    include "sccp_labels.h"
 #    include "sccp_softkeys.h"
 #    include "sccp_conference.h"
