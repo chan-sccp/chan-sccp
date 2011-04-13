@@ -416,7 +416,7 @@ static sccp_device_t *check_session_message_device(sccp_session_t * s, sccp_moo_
 	}
 
 	if (!(d = s->device)) {
-		ast_log(LOG_ERROR, "No valid Device available to handle %s for", msg);
+		ast_log(LOG_ERROR, "No valid Device available to handle %s for\n", msg);
 		return NULL;
 	}
 
