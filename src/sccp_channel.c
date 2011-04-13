@@ -125,7 +125,7 @@ void sccp_channel_updateChannelCapability_locked(sccp_channel_t * channel)
 
 
 	if (!channel->device) {
-		channel->capability = AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_G729A;
+		channel->capability = AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_G729A | AST_FORMAT_SLINEAR16;
 		memcpy(&channel->codecs, &GLOB(global_codecs), sizeof(channel->codecs));
 	} else {
 		channel->capability = channel->device->capability;
@@ -134,14 +134,19 @@ void sccp_channel_updateChannelCapability_locked(sccp_channel_t * channel)
 //              }
 		memcpy(&channel->codecs, &channel->device->codecs, sizeof(channel->codecs));
 
+		/* NOTE: This should handle making channels compatible if there is absolutely no match! */
 		/* asterisk requested format, we can not handle with this device */
 		if (!(channel->format & channel->capability)) {
 			channel->format = ast_codec_choose(&channel->codecs, channel->capability, 1);
 		}
 	}
 
-	if (channel->isCodecFix == FALSE) {
-		/* we does not have set a preferred format before */
+	if (FALSE == channel->isCodecFix) {
+		/* NOTE: This should select the best codec only if have not set a preferred one before! */
+		/* SUGGESTION: If we allowed a multi-entry list for preferred codecs to be used for a specific call
+		               we could select the best codec here. This would allow upgrading to a better codec if you change a call
+		               from a legacy phone to a new phone (-DD) */
+		/* we do not have set a preferred format before */
 		channel->format = ast_codec_choose(&channel->codecs, channel->capability, 1);
 	}
 
@@ -1743,9 +1748,9 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c, boole
 	c->device = d;
 
 	/* force codec update */
-	c->isCodecFix = FALSE;
+	// c->isCodecFix = FALSE;
 	sccp_channel_updateChannelCapability_locked(c);
-	c->isCodecFix = TRUE;
+	// c->isCodecFix = TRUE;
 	/* */
 
 	c->state = SCCP_CHANNELSTATE_HOLD;
