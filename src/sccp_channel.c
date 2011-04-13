@@ -133,20 +133,16 @@ void sccp_channel_updateChannelCapability_locked(sccp_channel_t * channel)
 //                      channel->capability |= channel->device->capability;
 //              }
 		memcpy(&channel->codecs, &channel->device->codecs, sizeof(channel->codecs));
-
-		/* NOTE: This should handle making channels compatible if there is absolutely no match! */
-		/* asterisk requested format, we can not handle with this device */
-		if (!(channel->format & channel->capability)) {
-			channel->format = ast_codec_choose(&channel->codecs, channel->capability, 1);
-		}
 	}
 
-	if (FALSE == channel->isCodecFix) {
-		/* NOTE: This should select the best codec only if have not set a preferred one before! */
-		/* SUGGESTION: If we allowed a multi-entry list for preferred codecs to be used for a specific call
+	int codecsCompatible = (0 != (channel->format & channel->capability));
+	
+	/* NOTE: This should handle making channels compatible if there is absolutely no match, or 
+             we select the best codec only if have not set a preferred one. */
+	/* SUGGESTION: If we allowed a multi-entry list for preferred codecs to be used for a specific call
 		               we could select the best codec here. This would allow upgrading to a better codec if you change a call
 		               from a legacy phone to a new phone (-DD) */
-		/* we do not have set a preferred format before */
+	if ((FALSE == channel->isCodecFix) || (FALSE == codecsCompatible)) {
 		channel->format = ast_codec_choose(&channel->codecs, channel->capability, 1);
 	}
 
@@ -685,7 +681,6 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 	d = c->device;
 
 	sccp_channel_updateChannelCapability_locked(c);
-	c->isCodecFix = TRUE;
 
 #if ASTERISK_VERSION_NUM >= 10400
 	struct ast_format_list fmt = pbx_codec_pref_getsize(&c->codecs, c->format & AST_FORMAT_AUDIO_MASK);
@@ -697,9 +692,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 	packetSize = 20;
 #endif
 	if (!payloadType) {
-		c->isCodecFix = FALSE;
 		sccp_channel_updateChannelCapability_locked(c);
-		c->isCodecFix = TRUE;
 	}
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: channel %s payloadType %d\n", c->device->id, (c->owner) ? c->owner->name : "NULL", payloadType);
@@ -1095,7 +1088,6 @@ void sccp_channel_closereceivechannel_locked(sccp_channel_t * c)
 		sccp_dev_send(d, r);
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Close openreceivechannel on channel %d\n", DEV_ID_LOG(d), c->callid);
 	}
-	c->isCodecFix = FALSE;
 	c->mediaStatus.receive = FALSE;
 	c->rtp.audio.status &= ~SCCP_RTP_STATUS_RECEIVE;
 
@@ -1748,9 +1740,7 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c, boole
 	c->device = d;
 
 	/* force codec update */
-	// c->isCodecFix = FALSE;
 	sccp_channel_updateChannelCapability_locked(c);
-	// c->isCodecFix = TRUE;
 	/* */
 
 	c->state = SCCP_CHANNELSTATE_HOLD;
