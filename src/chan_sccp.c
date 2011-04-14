@@ -1010,7 +1010,11 @@ static int load_module(void)
 	/* How long to wait for following digits */
 	GLOB(digittimeout) = 8;
 	/* Yes, these are all that the phone supports (now including its own 'Wideband 256k') */
+#ifdef AST_FORMAT_SLINEAR16
 	GLOB(global_capability) = AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_G729A | AST_FORMAT_SLINEAR16 | AST_FORMAT_H263;
+#else
+	GLOB(global_capability) = AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_G729A | AST_FORMAT_H263;
+#endif
 
 	GLOB(debug) = 1;
 	GLOB(sccp_tos) = (0x68 & 0xff);						// AF31
