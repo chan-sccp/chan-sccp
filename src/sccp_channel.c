@@ -125,13 +125,13 @@ void sccp_channel_updateChannelCapability_locked(sccp_channel_t * channel)
 
 
 	if (!channel->device) {
-		channel->capability = AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_G729A | AST_FORMAT_SLINEAR16;
+		channel->capability = AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_G729A;
+#ifdef AST_FORMAT_SLINEAR16
+		channel->capability |= AST_FORMAT_SLINEAR16;
+#endif
 		memcpy(&channel->codecs, &GLOB(global_codecs), sizeof(channel->codecs));
 	} else {
 		channel->capability = channel->device->capability;
-//              if(sccp_device_isVideoSupported(channel->device)){
-//                      channel->capability |= channel->device->capability;
-//              }
 		memcpy(&channel->codecs, &channel->device->codecs, sizeof(channel->codecs));
 	}
 
