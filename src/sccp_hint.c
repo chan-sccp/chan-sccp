@@ -140,10 +140,13 @@ void sccp_hint_module_stop()
 static boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice)
 {
 
+#ifdef CS_DYNAMIC_SPEEDDIAL_CID
 	if ((device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7971 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7985)
 	    && positionOnDevice <= 8)
 
 		return TRUE;
+#endif
+		
 
 	return FALSE;
 }
@@ -484,7 +487,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 			}
 			char displayMessage[100];
 
-#ifdef CS_DYNAMIC_SPEEDDIAL_CID
+
 			/* do not add name for TEMP_FAIL and ONHOOK */
 			if (hint->currentState > 2) {
 				if (sccp_hint_isCIDavailabe(subscriber->device, subscriber->positionOnDevice) == TRUE) {
@@ -495,9 +498,6 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 			} else {
 				sccp_copy_string(displayMessage, (k) ? k->name : "unknown speeddial", sizeof(displayMessage));
 			}
-#else
-			sccp_copy_string(displayMessage, (k) ? k->name : "unknown speeddial", sizeof(displayMessage));
-#endif
 
 			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "set display name to: \"%s\"\n", displayMessage);
 			sccp_copy_string(r->msg.FeatureStatAdvancedMessage.DisplayName, displayMessage, sizeof(r->msg.FeatureStatAdvancedMessage.DisplayName));
