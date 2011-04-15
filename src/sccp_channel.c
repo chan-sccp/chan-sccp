@@ -184,7 +184,7 @@ void sccp_channel_updateChannelCapability_locked(sccp_channel_t * channel)
 	}
 #if 1										// (DD)
 	char s1[512], s2[512];
-	sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d) USED: %s(%d) \n", channel->line->name, channel->callid, pbx_getformatname_multiple(s1, sizeof(s1) - 1, channel->capability), channel->capability, pbx_getformatname_multiple(s2, sizeof(s2) - 1, channel->format), channel->format);
+	sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d) USED *: %s(%d) \n", channel->line->name, channel->callid, pbx_getformatname_multiple(s1, sizeof(s1) - 1, channel->capability), channel->capability, pbx_getformatname_multiple(s2, sizeof(s2) - 1, channel->format), channel->format);
 #endif
 }
 
