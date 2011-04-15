@@ -795,6 +795,7 @@ int sccp_unregister_dialplan_functions(void)
 	result = pbx_unregister_application(calledparty_name);
 	result |= pbx_unregister_application(setmessage_name);
 	result |= pbx_unregister_application(prefcodec_name);
+	result |= pbx_unregister_application(mutemic_name);
 
 	/* Unregister dial plan functions */
 	result |= pbx_custom_function_unregister(&sccpdevice_function);
