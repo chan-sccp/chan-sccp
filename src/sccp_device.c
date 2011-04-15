@@ -324,9 +324,11 @@ int sccp_device_get_codec(struct ast_channel *ast)
 	}
 
 	/* update channel capabilities */
+	/* 
 	sccp_channel_updateChannelCapability_locked(c);
 	ast_set_read_format(ast, c->format);
 	ast_set_write_format(ast, c->format);
+	*/
 
 	char s1[512];
 
