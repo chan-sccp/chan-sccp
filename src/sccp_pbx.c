@@ -900,7 +900,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind)
 static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data, size_t datalen)
 #endif										// ASTERISK_VERSION_NUM < 10400
 {
-	int oldChannelFormat;
+	int oldChannelFormat, oldChannelReqFormat;
 
 	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
 
@@ -976,16 +976,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
 
 		/* update channel format */
+		oldChannelReqFormat = c->requestedFormat;
 		oldChannelFormat = c->format;
-		c->format = ast->rawreadformat;
+		c->requestedFormat = ast->rawreadformat;
 
-		if (oldChannelFormat != c->format) {
+		if (oldChannelReqFormat != c->requestedFormat) {
 			/* notify of changing format */
-			char s1[512], s2[512];
-
-			ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%d) to: %s(%d) \n", c->line->name, c->callid, pbx_getformatname_multiple(s1, sizeof(s1) - 1, c->format), ast->nativeformats, pbx_getformatname_multiple(s2, sizeof(s2) - 1, ast->rawreadformat), ast->rawreadformat);
-			ast_set_read_format(ast, c->format);
-			ast_set_write_format(ast, c->format);
+			sccp_channel_updateChannelCapability_locked(c);
 		}
 
 		ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n", c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
