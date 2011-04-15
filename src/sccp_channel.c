@@ -105,7 +105,9 @@ sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * de
 	c->peerIsSCCP = 0;
 	c->isCodecFix = FALSE;
 	c->device = device;
-	sccp_channel_updateChannelCapability_locked(c);
+	if(NULL != c->device) {
+		sccp_channel_updateChannelCapability_locked(c);
+	};
 
 	sccp_line_addChannel(l, c);
 
@@ -135,6 +137,8 @@ void sccp_channel_updateChannelCapability_locked(sccp_channel_t * channel)
 		memcpy(&channel->codecs, &channel->device->codecs, sizeof(channel->codecs));
 	}
 
+	int requestedFormatNativelySupported = (0 != (channel->requestedFormat & channel->capability));
+
 	int codecsCompatible = (0 != (channel->format & channel->capability));
 	
 	/* NOTE: This should handle making channels compatible if there is absolutely no match, or 
@@ -142,9 +146,23 @@ void sccp_channel_updateChannelCapability_locked(sccp_channel_t * channel)
 	/* SUGGESTION: If we allowed a multi-entry list for preferred codecs to be used for a specific call
 		               we could select the best codec here. This would allow upgrading to a better codec if you change a call
 		               from a legacy phone to a new phone (-DD) */
-	if ((FALSE == channel->isCodecFix) || (FALSE == codecsCompatible)) {
-		channel->format = ast_codec_choose(&channel->codecs, channel->capability, 1);
+	if(FALSE == channel->isCodecFix) {
+		if(requestedFormatNativelySupported) {
+			channel->format = channel->requestedFormat;
+		} else {
+			channel->format = ast_codec_choose(&channel->codecs, channel->capability, 1);
+		}
+	} else if(FALSE == codecsCompatible) {
+		if(requestedFormatNativelySupported) {
+			channel->format = channel->requestedFormat;
+		} else {
+			channel->format = ast_codec_choose(&channel->codecs, channel->capability, 1);
+		}
 	}
+	
+	/* After updating capabilities with one device, we keep the codec. But not before, since capabilities might vary. */
+	if(channel->device)
+		channel->isCodecFix = TRUE;
 
 	/* We assume that the owner has been already locked. */
 	if (channel->owner) {
