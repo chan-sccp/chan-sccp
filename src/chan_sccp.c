@@ -257,7 +257,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 	   } */
 
 	c->format = oldformat;
-	c->isCodecFix = TRUE;
+	//c->isCodecFix = TRUE;
 	sccp_channel_updateChannelCapability_locked(c);
 
 	/* we don't need to parse any options when we have a call forward status */

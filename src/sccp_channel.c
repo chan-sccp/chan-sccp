@@ -2169,7 +2169,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal)
 	}
 	if (GLOB(transfer_tone) && cDestinationLocal->state == SCCP_CHANNELSTATE_CONNECTED) {
 		/* while connected not all the tones can be played */
-		sccp_dev_starttone(cDestinationLocal->device, GLOB(autoanswer_tone), instance, cDestinationLocal->callid, 0);
+		sccp_dev_starttone(cDestinationLocal->device, GLOB(transfer_tone), instance, cDestinationLocal->callid, 0);
 	}
 }
 
