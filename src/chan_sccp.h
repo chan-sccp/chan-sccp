@@ -1028,7 +1028,8 @@ static inline unsigned long long bswap_64(unsigned long long x) {
  */
 	struct sccp_channel {
 		ast_mutex_t lock;						/*!< Asterisk: Lock Me Up and Tie me Down */
-		int format;							/*!< Codec requested by Asterisk */
+		int format;							/*!< Codec currently active */
+    int requestedFormat;    /*!< Codec requested by Asterisk */
 		boolean_t isCodecFix;						/*!< can we change codec */
 
 		struct ast_codec_pref codecs;					/*!< Asterisk Codec Channel Preference */

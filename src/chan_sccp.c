@@ -256,6 +256,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 	   }
 	   } */
 
+	c->requestedFormat = oldformat;
 	c->format = oldformat;
 	//c->isCodecFix = TRUE;
 	//sccp_channel_updateChannelCapability_locked(c);
