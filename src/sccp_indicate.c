@@ -265,6 +265,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CONNECTED, 0);
 		// if no rtp or was in old openreceivechannel (note that rtp doens't reinitialize as channel was in hold state or offhook state due to a transfer abort)
 		if (!c->rtp.audio.rtp || c->previousChannelState == SCCP_CHANNELSTATE_HOLD || c->previousChannelState == SCCP_CHANNELSTATE_CALLTRANSFER || c->previousChannelState == SCCP_CHANNELSTATE_CALLCONFERENCE || c->previousChannelState == SCCP_CHANNELSTATE_OFFHOOK) {
+			sccp_channel_updateChannelCapability_locked(c);
 			sccp_channel_openreceivechannel_locked(c);
 		} else if (c->rtp.audio.rtp) {
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
