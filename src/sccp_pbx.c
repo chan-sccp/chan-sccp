@@ -980,10 +980,10 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		oldChannelFormat = c->format;
 		c->requestedFormat = ast->rawreadformat;
 
-		if (oldChannelReqFormat != c->requestedFormat) {
+		//if (oldChannelReqFormat != c->requestedFormat) {
 			/* notify of changing format */
 			sccp_channel_updateChannelCapability_locked(c);
-		}
+		//}
 
 		ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n", c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
 		if (c->rtp.audio.rtp) {
