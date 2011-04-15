@@ -997,6 +997,8 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 
 	if (!(d = c->device))
 		return;
+		
+	sccp_channel_updateChannelCapability_locked(c);
 
 	if (d->nat) {
 		// replace us.sin_addr if we are natted

@@ -619,6 +619,7 @@ static int sccp_app_prefcodec(struct ast_channel *chan, void *data)
 
 	ast_parse_allow_disallow(&codecs, &capability, ast_strip(text), 1);
 	c->format = ast_codec_choose(&codecs, c->device->capability, 1);
+	c->requestedFormat = c->format;
 	c->isCodecFix = TRUE;
 	char s1[512], s2[512];
 	sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d) USED: %s(%d) \n", c->line->name, c->callid, pbx_getformatname_multiple(s1, sizeof(s1) - 1, c->capability), c->capability, pbx_getformatname_multiple(s2, sizeof(s2) - 1, c->format), c->format);
