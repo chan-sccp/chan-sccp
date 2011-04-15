@@ -258,6 +258,21 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 
 	c->requestedFormat = oldformat;
 	c->format = oldformat;
+	
+	
+	if(c->owner) {
+		c->owner->nativeformats = c->format;
+
+		c->owner->rawreadformat = c->format;
+		c->owner->rawwriteformat = c->format;
+
+		c->owner->writeformat = c->format;		
+		c->owner->readformat = c->format;			
+
+		ast_set_read_format(c->owner, c->format);
+		ast_set_write_format(c->owner, c->format);
+	}
+	
 	//c->isCodecFix = TRUE;
 	//sccp_channel_updateChannelCapability_locked(c);
 
