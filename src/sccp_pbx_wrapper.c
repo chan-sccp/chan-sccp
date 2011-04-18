@@ -281,10 +281,11 @@ void sccp_wrapper_asterisk_set_callerid_ani(const PBX_CHANNEL_TYPE * pbx_chan, c
 #if ASTERISK_VERSION_NUM < 10400
 	// Implement ast 1.2 version
 #else
-	if (!strcmp(pbx_chan->cid.cid_ani, ani)) {
-		sccp_copy_string(pbx_chan->cid.cid_ani, ani, sizeof(pbx_chan->cid.cid_ani) - 1);
+	if(ani) {
+		if(pbx_chan->cid.cid_ani)
+			ast_free(pbx_chan->cid.cid_ani);
+		pbx_chan->cid.cid_ani = strdup(ani);
 	}
-//      pbx_chan->cid.cid_ani = strdup(ani);
 #endif
 }
 
