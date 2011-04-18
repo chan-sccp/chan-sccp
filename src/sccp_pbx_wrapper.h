@@ -33,7 +33,7 @@ struct sccp_pbx_cb {
 
 	void (*const pbx_set_callerid_name) (const PBX_CHANNEL_TYPE * pbx_chan, const char *name);
 	void (*const pbx_set_callerid_number) (const PBX_CHANNEL_TYPE * pbx_chan, const char *number);
-	void (*const pbx_set_callerid_ani) (const PBX_CHANNEL_TYPE * pbx_chan, const char *ani);
+	void (*const pbx_set_callerid_ani) (PBX_CHANNEL_TYPE * pbx_chan, const char *ani);
 	void (*const pbx_set_callerid_dnid) (const PBX_CHANNEL_TYPE * pbx_chan, const char *dnid);
 	void (*const pbx_set_callerid_rdnis) (const PBX_CHANNEL_TYPE * pbx_chan, const char *rdnis);
 };

@@ -273,7 +273,7 @@ void sccp_wrapper_asterisk_set_callerid_number(const PBX_CHANNEL_TYPE * pbx_chan
  * \param pbx_chan PBX Channel
  * \param ani Number as char
  */
-void sccp_wrapper_asterisk_set_callerid_ani(const PBX_CHANNEL_TYPE * pbx_chan, const char *ani)
+void sccp_wrapper_asterisk_set_callerid_ani(PBX_CHANNEL_TYPE * pbx_chan, const char *ani)
 {
 	if (!pbx_chan || !ani) {
 		return;
