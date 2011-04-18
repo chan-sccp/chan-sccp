@@ -458,61 +458,59 @@ struct sccp_messageMap_cb {
 };
 
 static const struct sccp_messageMap_cb messagesCbMap[] = {
-	{KeepAliveMessage,sccp_handle_KeekaliveMessage,TRUE},
-	{OffHookMessage,sccp_handle_offhook,TRUE},
-	{OnHookMessage,sccp_handle_onhook,TRUE},
-	{SoftKeyEventMessage,sccp_handle_soft_key_event,TRUE},
-	{OpenReceiveChannelAck,sccp_handle_open_receive_channel_ack,TRUE},
-	{OpenMultiMediaReceiveChannelAckMessage,sccp_handle_OpenMultiMediaReceiveAck,TRUE},
-	{StartMediaTransmissionAck,sccp_handle_startmediatransmission_ack,TRUE},
+	{KeepAliveMessage, sccp_handle_KeekaliveMessage, FALSE},		/* 7985 sends a KeepAliveMessage before register */
+	{OffHookMessage, sccp_handle_offhook, TRUE},
+	{OnHookMessage, sccp_handle_onhook, TRUE},
+	{SoftKeyEventMessage, sccp_handle_soft_key_event, TRUE},
+	{OpenReceiveChannelAck, sccp_handle_open_receive_channel_ack, TRUE},
+	{OpenMultiMediaReceiveChannelAckMessage, sccp_handle_OpenMultiMediaReceiveAck, TRUE},
+	{StartMediaTransmissionAck, sccp_handle_startmediatransmission_ack, TRUE},
 
-	{IpPortMessage, NULL,TRUE},
-	{VersionReqMessage,sccp_handle_version,TRUE},
-	{CapabilitiesResMessage,sccp_handle_capabilities_res,TRUE},
-	{ButtonTemplateReqMessage,sccp_handle_button_template_req,TRUE},
-	{SoftKeyTemplateReqMessage,sccp_handle_soft_key_template_req,TRUE},
-	{SoftKeySetReqMessage,sccp_handle_soft_key_set_req,TRUE},
-	{LineStatReqMessage,sccp_handle_line_number,TRUE},
-	{SpeedDialStatReqMessage,sccp_handle_speed_dial_stat_req,TRUE},
-	{StimulusMessage,sccp_handle_stimulus,TRUE},
-	
-	
-	{HeadsetStatusMessage,sccp_handle_headset,TRUE},
-	{TimeDateReqMessage,sccp_handle_time_date_req,TRUE},
-	{KeypadButtonMessage,sccp_handle_keypad_button,TRUE},
-	
-	
-	{ConnectionStatisticsRes,sccp_handle_ConnectionStatistics,TRUE},
-	{ServerReqMessage,sccp_handle_ServerResMessage,TRUE},
-	{ConfigStatReqMessage,sccp_handle_ConfigStatMessage,TRUE},
-	{EnblocCallMessage,sccp_handle_EnblocCallMessage,TRUE},
-	{RegisterAvailableLinesMessage,sccp_handle_AvailableLines,TRUE},
-	{ForwardStatReqMessage,sccp_handle_forward_stat_req,TRUE},
-	{FeatureStatReqMessage,sccp_handle_feature_stat_req,TRUE},
-	{ServiceURLStatReqMessage,sccp_handle_services_stat_req,TRUE},
-	{AccessoryStatusMessage,sccp_handle_accessorystatus_message,TRUE},
-	{DialedPhoneBookMessage,sccp_handle_dialedphonebook_message,TRUE},
-	{UpdateCapabilitiesMessage,sccp_handle_updatecapabilities_message,TRUE},
-	
-	{Unknown_0x004A_Message,sccp_handle_unknown_message,TRUE},
-	{Unknown_0x0143_Message,sccp_handle_unknown_message,TRUE},
-	{Unknown_0x0144_Message,sccp_handle_unknown_message,TRUE},
-	{SpeedDialStatDynamicMessage,sccp_handle_speed_dial_stat_req,TRUE},
-	{ExtensionDeviceCaps,sccp_handle_unknown_message,TRUE},
-	
-	{DeviceToUserDataVersion1Message, sccp_handle_device_to_user,TRUE},
-	{DeviceToUserDataResponseVersion1Message,sccp_handle_device_to_user_response,TRUE},
-	
+	{IpPortMessage, NULL, TRUE},
+	{VersionReqMessage, sccp_handle_version, TRUE},
+	{CapabilitiesResMessage, sccp_handle_capabilities_res, TRUE},
+	{ButtonTemplateReqMessage, sccp_handle_button_template_req, TRUE},
+	{SoftKeyTemplateReqMessage, sccp_handle_soft_key_template_req, TRUE},
+	{SoftKeySetReqMessage, sccp_handle_soft_key_set_req, TRUE},
+	{LineStatReqMessage, sccp_handle_line_number, TRUE},
+	{SpeedDialStatReqMessage, sccp_handle_speed_dial_stat_req, TRUE},
+	{StimulusMessage, sccp_handle_stimulus, TRUE},
+
+	{HeadsetStatusMessage, sccp_handle_headset, TRUE},
+	{TimeDateReqMessage, sccp_handle_time_date_req, TRUE},
+	{KeypadButtonMessage, sccp_handle_keypad_button, TRUE},
+
+	{ConnectionStatisticsRes, sccp_handle_ConnectionStatistics, TRUE},
+	{ServerReqMessage, sccp_handle_ServerResMessage, TRUE},
+	{ConfigStatReqMessage, sccp_handle_ConfigStatMessage, TRUE},
+	{EnblocCallMessage, sccp_handle_EnblocCallMessage, TRUE},
+	{RegisterAvailableLinesMessage, sccp_handle_AvailableLines, TRUE},
+	{ForwardStatReqMessage, sccp_handle_forward_stat_req, TRUE},
+	{FeatureStatReqMessage, sccp_handle_feature_stat_req, TRUE},
+	{ServiceURLStatReqMessage, sccp_handle_services_stat_req, TRUE},
+	{AccessoryStatusMessage, sccp_handle_accessorystatus_message, TRUE},
+	{DialedPhoneBookMessage, sccp_handle_dialedphonebook_message, TRUE},
+	{UpdateCapabilitiesMessage, sccp_handle_updatecapabilities_message, TRUE},
+
+	{Unknown_0x004A_Message, sccp_handle_unknown_message, TRUE},
+	{Unknown_0x0143_Message, sccp_handle_unknown_message, TRUE},
+	{Unknown_0x0144_Message, sccp_handle_unknown_message, TRUE},
+	{SpeedDialStatDynamicMessage, sccp_handle_speed_dial_stat_req, TRUE},
+	{ExtensionDeviceCaps, sccp_handle_unknown_message, TRUE},
+
+	{DeviceToUserDataVersion1Message, sccp_handle_device_to_user, TRUE},
+	{DeviceToUserDataResponseVersion1Message, sccp_handle_device_to_user_response, TRUE},
+
 #ifdef CS_ADV_FEATURES
-	{RegisterTokenReq,sccp_handle_tokenreq,FALSE},
+	{RegisterTokenReq, sccp_handle_tokenreq, FALSE},
 #else
-	{RegisterTokenReq,sccp_handle_register,FALSE},
+	{RegisterTokenReq, sccp_handle_register, FALSE},
 #endif
-	{SPARegisterMessage,sccp_handle_SPAregister,TRUE},
-	{UnregisterMessage,sccp_handle_unregister,TRUE},
-	{RegisterMessage,sccp_handle_register,FALSE},
-	{AlarmMessage, sccp_handle_alarm,FALSE},
-	{XMLAlarmMessage,sccp_handle_unknown_message, FALSE},
+	{SPARegisterMessage, sccp_handle_SPAregister, 	FALSE},
+	{UnregisterMessage, sccp_handle_unregister, 	TRUE},
+	{RegisterMessage, sccp_handle_register, 	FALSE},
+	{AlarmMessage, sccp_handle_alarm,		FALSE},
+	{XMLAlarmMessage, sccp_handle_unknown_message, 	FALSE},
 	
 };
 typedef struct sccp_messageMap_cb sccp_messageMap_cb_t;
@@ -591,7 +589,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t *s)
 		return 1;
 	}
 	
-	if(messageMap_cb->messageHandler_cb && messageMap_cb->deviceIsNecessary == TRUE && !check_session_message_device(s, r, "handle messages") ){
+	if(messageMap_cb->messageHandler_cb && messageMap_cb->deviceIsNecessary == TRUE && !check_session_message_device(s, r, message2str(mid)) ){
 		free(r);
 		return 0;
 	}
