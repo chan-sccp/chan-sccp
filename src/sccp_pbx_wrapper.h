@@ -181,7 +181,7 @@ char *sccp_wrapper_asterisk_get_callerid_number(const sccp_channel_t * channel);
 int sccp_wrapper_asterisk_set_callerid(PBX_CHANNEL_TYPE * ast_chan, sccp_callinfo_t * callInfo);
 void sccp_wrapper_asterisk_set_callerid_name(const PBX_CHANNEL_TYPE * pbx_chan, const char *name);
 void sccp_wrapper_asterisk_set_callerid_number(const PBX_CHANNEL_TYPE * pbx_chan, const char *number);
-void sccp_wrapper_asterisk_set_callerid_ani(const PBX_CHANNEL_TYPE * pbx_chan, const char *ani);
+void sccp_wrapper_asterisk_set_callerid_ani(PBX_CHANNEL_TYPE * pbx_chan, const char *ani);
 void sccp_wrapper_asterisk_set_callerid_dnid(const PBX_CHANNEL_TYPE * pbx_chan, const char *dnid);
 void sccp_wrapper_asterisk_set_callerid_rdnis(const PBX_CHANNEL_TYPE * pbx_chan, const char *rdnis);
 
