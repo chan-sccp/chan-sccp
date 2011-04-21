@@ -1004,17 +1004,21 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		
 			/* TODO: Handle COLP here */
 		
+		pbx_channel_lock(c->owner);
 		astcSourceRemote = CS_AST_BRIDGED_CHANNEL(c->owner);
+		pbx_channel_lock(astcSourceRemote);
 
 	
 	if (!astcSourceRemote) {
 		ast_log(LOG_WARNING, "SCCP: Failed to make COLP decision on answer - no bridged channel. Weird.\n");
-	} else if (CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote)) {
+	} else if (CS_AST_CHANNEL_PVT(astcSourceRemote)) {
 		canDoCOLP = TRUE;
 		cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
 	}
 
 	if (canDoCOLP) {
+		sccp_channel_lock(c);
+		sccp_channel_lock(cSourceRemote);
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "Performing COLP signalling between two SCCP devices.\n");
 		
 		
@@ -1037,9 +1041,15 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 					sccp_copy_string(c->callInfo.callingPartyName, cSourceRemote->callInfo.callingPartyName, sizeof(c->callInfo.callingPartyName));
 					sccp_copy_string(c->callInfo.callingPartyNumber, cSourceRemote->callInfo.callingPartyNumber, sizeof(c->callInfo.callingPartyNumber));
 				}
+		sccp_channel_unlock(c);
+		sccp_channel_unlock(cSourceRemote);
 
-				sccp_channel_send_callinfo(cSourceRemote->device, cSourceRemote);
+				if(c->device) {
+					sccp_channel_send_callinfo(c->device, c);
+				};
 	}
+	pbx_channel_unlock(astcSourceRemote);
+	pbx_channel_unlock(c->owner);
 		
 		/* TODO COLP END */
 		
