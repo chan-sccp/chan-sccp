@@ -316,6 +316,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 	ast_bridge_features_init(&remoteParticipant->features);
 
 	/* get the exitcontext, to jump to after hangup */
+  /*
 	ast_channel_lock(remoteCallLeg);
 	if (!ast_strlen_zero(remoteCallLeg->macrocontext)) {
 		ast_copy_string(remoteParticipant->exitcontext, remoteCallLeg->macrocontext, sizeof(remoteParticipant->exitcontext));
@@ -327,6 +328,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		remoteParticipant->exitpriority=remoteCallLeg->priority;
 	}
 	ast_channel_unlock(remoteCallLeg);
+   */
 
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_INSERT_TAIL(&conference->participants, remoteParticipant, list);
