@@ -48,6 +48,13 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	sccp_line_t *l;
 
 	int instance;
+	
+	struct ast_channel *astcSourceRemote = NULL;
+
+	sccp_channel_t *cSourceRemote = NULL;
+	
+	boolean_t canDoCOLP = false;
+
 
 	if (debug)
 		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_1 "SCCP: [INDICATE] mode '%s' in file '%s', on line %d (%s)\n", "UNLOCK", file, line, pretty_function);
@@ -258,6 +265,45 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 		sccp_dev_stoptone(d, instance, c->callid);
 		//      sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
+		
+		/* TODO: Handle COLP here */
+		
+		astcSourceRemote = CS_AST_BRIDGED_CHANNEL(c->owner);
+
+	
+	if (!astcSourceRemote) {
+		ast_log(LOG_WARNING, "SCCP: Failed to make COLP decision on answer - no bridged channel. Weird.\n");
+	} else if (CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote)) {
+		canDoCOLP = true;
+		cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
+	}
+
+	if (canDoCOLP) {
+		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: Performing COLP signalling between two SCCP devices.\n", d->id);
+		
+		
+					/* First part of COLP: Signal our CID to the remote caller. */
+					/* copy old callerid */
+					sccp_copy_string(cSourceRemote->callInfo.originalCalledPartyName, cSourceRemote->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.originalCalledPartyName));
+					sccp_copy_string(cSourceRemote->callInfo.originalCalledPartyNumber, cSourceRemote->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.originalCalledPartyNumber));
+
+					sccp_copy_string(cSourceRemote->callInfo.calledPartyName, c->callInfo.calledPartyName, sizeof(cSourceRemote->callInfo.calledPartyName));
+					sccp_copy_string(cSourceRemote->callInfo.calledPartyNumber, c->callInfo.calledPartyNumber, sizeof(cSourceRemote->callInfo.calledPartyNumber));
+
+				sccp_channel_send_callinfo(cSourceRemote->device, cSourceRemote);
+				
+					/* Second part of COLP: Signal remote CID to us. */
+					/* copy old callerid */
+					sccp_copy_string(c->callInfo.originalCallingPartyName, c->callInfo.callingPartyName, sizeof(c->callInfo.originalCallingPartyName));
+					sccp_copy_string(c->callInfo.originalCallingPartyNumber, c->callInfo.callingPartyNumber, sizeof(c->callInfo.originalCallingPartyNumber));
+
+					sccp_copy_string(c->callInfo.callingPartyName, cSourceRemote->callInfo.callingPartyName, sizeof(c->callInfo.callingPartyName));
+					sccp_copy_string(c->callInfo.callingPartyNumber, cSourceRemote->callInfo.callingPartyNumber, sizeof(c->callInfo.callingPartyNumber));
+
+	}
+		
+		/* TODO COLP END */
+		
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_channel_send_callinfo(d, c);
 		sccp_dev_set_cplane(l, instance, d, 1);
