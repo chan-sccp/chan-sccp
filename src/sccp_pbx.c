@@ -1019,7 +1019,9 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			canDoNativeCOLP = TRUE;
 		}
 	} else {
-	  canDoGenericCOLP = TRUE;
+	  if(!(astcSourceRemote->flags & AST_FLAG_OUTGOING)) { /* On outgoing channels the callerid makes no sense. */
+	  	canDoGenericCOLP = TRUE;
+	  }
 	}
 
 	if (canDoNativeCOLP) {
