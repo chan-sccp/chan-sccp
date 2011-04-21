@@ -906,7 +906,8 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 
 	sccp_channel_t *cSourceRemote = NULL;
 	
-	boolean_t canDoCOLP = FALSE;
+	boolean_t canDoNativeCOLP = FALSE;
+	boolean_t canDoGenericCOLP = FALSE;
 
 
 	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
@@ -980,6 +981,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 
 #if defined(CS_AST_CONTROL_SRCCHANGE) || defined(CS_AST_CONTROL_SRCUPDATE)
 		/* Source media has changed. */
+		/* Note: This is signalled when a call is bridged. (useful!) (-DD) */
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
 
 		/* update channel format */
@@ -1014,11 +1016,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	} else if (CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote)) {
 		cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
 		if(c && cSourceRemote && cSourceRemote->line && cSourceRemote->device) {
-			canDoCOLP = TRUE;
+			canDoNativeCOLP = TRUE;
 		}
+	} else {
+	  canDoGenericCOLP = TRUE;
 	}
 
-	if (canDoCOLP) {
+	if (canDoNativeCOLP) {
 		sccp_channel_lock(c);
 		sccp_channel_lock(cSourceRemote);
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "Performing COLP signalling between two SCCP devices.\n");
@@ -1035,7 +1039,6 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 					
 		
 				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
-					/* First case of COLP: Signal our CID to the remote caller. */
 					/* copy old callerid */
 					sccp_copy_string(c->callInfo.originalCalledPartyName, c->callInfo.calledPartyName, sizeof(c->callInfo.originalCalledPartyName));
 					sccp_copy_string(c->callInfo.originalCalledPartyNumber, c->callInfo.calledPartyNumber, sizeof(c->callInfo.originalCalledPartyNumber));
@@ -1056,8 +1059,6 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 					}
 					
 				} else if (c->calltype == SKINNY_CALLTYPE_INBOUND) {
-				
-					/* Second part of COLP: Signal remote CID to us. */
 					/* copy old callerid */
 					sccp_copy_string(c->callInfo.originalCallingPartyName, c->callInfo.callingPartyName, sizeof(c->callInfo.originalCallingPartyName));
 					sccp_copy_string(c->callInfo.originalCallingPartyNumber, c->callInfo.callingPartyNumber, sizeof(c->callInfo.originalCallingPartyNumber));
@@ -1083,6 +1084,51 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 				if(c->device) {
 					sccp_channel_send_callinfo(c->device, c);
 				};
+	} else if (canDoGenericCOLP) {
+			struct ast_callerid cid = astcSourceRemote->cid;
+		sccp_channel_lock(c);
+		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "Performing COLP signalling from non-SCCP device.\n");
+		
+				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
+					/* copy old callerid */
+					sccp_copy_string(c->callInfo.originalCalledPartyName, c->callInfo.calledPartyName, sizeof(c->callInfo.originalCalledPartyName));
+					sccp_copy_string(c->callInfo.originalCalledPartyNumber, c->callInfo.calledPartyNumber, sizeof(c->callInfo.originalCalledPartyNumber));
+
+					if (cid.cid_num) {
+						sprintf(c->callInfo.calledPartyNumber, "%s", cid.cid_num);
+					} else {
+						sprintf(c->callInfo.calledPartyNumber, "");
+					}
+		
+					if (cid.cid_name) {
+						sprintf(c->callInfo.calledPartyName, "%s", cid.cid_name);
+					} else {
+						sprintf(c->callInfo.calledPartyName, "");
+					}
+					
+				} else if (c->calltype == SKINNY_CALLTYPE_INBOUND) {
+					/* copy old callerid */
+					sccp_copy_string(c->callInfo.originalCallingPartyName, c->callInfo.callingPartyName, sizeof(c->callInfo.originalCallingPartyName));
+					sccp_copy_string(c->callInfo.originalCallingPartyNumber, c->callInfo.callingPartyNumber, sizeof(c->callInfo.originalCallingPartyNumber));
+
+					if (cid.cid_num) {
+						sprintf(c->callInfo.callingPartyNumber, "%s", cid.cid_num);
+					} else {
+						sprintf(c->callInfo.callingPartyNumber, "");
+					}
+		
+					if (cid.cid_name) {
+						sprintf(c->callInfo.callingPartyName, "%s", cid.cid_name);
+					} else {
+						sprintf(c->callInfo.callingPartyName, "");
+					}
+				}
+		sccp_channel_unlock(c);
+
+				if(c->device) {
+					sccp_channel_send_callinfo(c->device, c);
+				};			
+			
 	}
 	pbx_channel_unlock(astcSourceRemote);
 	pbx_channel_unlock(c->owner);
