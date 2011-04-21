@@ -902,6 +902,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 {
 	int oldChannelFormat, oldChannelReqFormat;
 
+	struct ast_channel *astcSourceRemote = NULL;
+
+	sccp_channel_t *cSourceRemote = NULL;
+	
+	boolean_t canDoCOLP = FALSE;
+
+
 	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
 
 	int res = 0;
@@ -994,6 +1001,48 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 				}
 			}
 		}
+		
+			/* TODO: Handle COLP here */
+		
+		astcSourceRemote = CS_AST_BRIDGED_CHANNEL(c->owner);
+
+	
+	if (!astcSourceRemote) {
+		ast_log(LOG_WARNING, "SCCP: Failed to make COLP decision on answer - no bridged channel. Weird.\n");
+	} else if (CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote)) {
+		canDoCOLP = TRUE;
+		cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
+	}
+
+	if (canDoCOLP) {
+		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "Performing COLP signalling between two SCCP devices.\n");
+		
+		
+				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
+					/* First case of COLP: Signal our CID to the remote caller. */
+					/* copy old callerid */
+					sccp_copy_string(c->callInfo.originalCalledPartyName, c->callInfo.calledPartyName, sizeof(c->callInfo.originalCalledPartyName));
+					sccp_copy_string(c->callInfo.originalCalledPartyNumber, c->callInfo.calledPartyNumber, sizeof(c->callInfo.originalCalledPartyNumber));
+
+					sccp_copy_string(c->callInfo.calledPartyName, cSourceRemote->callInfo.calledPartyName, sizeof(c->callInfo.calledPartyName));
+					sccp_copy_string(c->callInfo.calledPartyNumber, cSourceRemote->callInfo.calledPartyNumber, sizeof(c->callInfo.calledPartyNumber));
+					
+				} else if (c->calltype == SKINNY_CALLTYPE_INBOUND) {
+				
+					/* Second part of COLP: Signal remote CID to us. */
+					/* copy old callerid */
+					sccp_copy_string(c->callInfo.originalCallingPartyName, c->callInfo.callingPartyName, sizeof(c->callInfo.originalCallingPartyName));
+					sccp_copy_string(c->callInfo.originalCallingPartyNumber, c->callInfo.callingPartyNumber, sizeof(c->callInfo.originalCallingPartyNumber));
+
+					sccp_copy_string(c->callInfo.callingPartyName, cSourceRemote->callInfo.callingPartyName, sizeof(c->callInfo.callingPartyName));
+					sccp_copy_string(c->callInfo.callingPartyNumber, cSourceRemote->callInfo.callingPartyNumber, sizeof(c->callInfo.callingPartyNumber));
+				}
+
+				sccp_channel_send_callinfo(cSourceRemote->device, cSourceRemote);
+	}
+		
+		/* TODO COLP END */
+		
 #if ASTERISK_VERSION_NUM >= 10620
 		//FIXME check for asterisk 1.6 and 1.4
 		RTP_CHANGE_SOURCE(c, "Source Update: RTP NEW SOURCE");
