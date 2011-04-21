@@ -1012,8 +1012,10 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	if (!astcSourceRemote) {
 		ast_log(LOG_WARNING, "SCCP: Failed to make COLP decision on answer - no bridged channel. Weird.\n");
 	} else if (CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote)) {
-		canDoCOLP = TRUE;
 		cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
+		if(cSourceRemote->line) {
+			canDoCOLP = TRUE;
+		}
 	}
 
 	if (canDoCOLP) {
@@ -1021,6 +1023,16 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		sccp_channel_lock(cSourceRemote);
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "Performing COLP signalling between two SCCP devices.\n");
 		
+				sccp_linedevices_t *linedevice;
+				sccp_line_t *l = cSourceRemote->line;
+
+				SCCP_LIST_LOCK(&l->devices);
+				SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+					if (linedevice->device == cSourceRemote->device)
+						break;
+				}
+				SCCP_LIST_UNLOCK(&l->devices);
+					
 		
 				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 					/* First case of COLP: Signal our CID to the remote caller. */
@@ -1028,8 +1040,20 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 					sccp_copy_string(c->callInfo.originalCalledPartyName, c->callInfo.calledPartyName, sizeof(c->callInfo.originalCalledPartyName));
 					sccp_copy_string(c->callInfo.originalCalledPartyNumber, c->callInfo.calledPartyNumber, sizeof(c->callInfo.originalCalledPartyNumber));
 
-					sccp_copy_string(c->callInfo.calledPartyName, cSourceRemote->callInfo.calledPartyName, sizeof(c->callInfo.calledPartyName));
-					sccp_copy_string(c->callInfo.calledPartyNumber, cSourceRemote->callInfo.calledPartyNumber, sizeof(c->callInfo.calledPartyNumber));
+					//sccp_copy_string(c->callInfo.calledPartyName, cSourceRemote->callInfo.calledPartyName, sizeof(c->callInfo.calledPartyName));
+					//sccp_copy_string(c->callInfo.calledPartyNumber, cSourceRemote->callInfo.calledPartyNumber, sizeof(c->callInfo.calledPartyNumber));
+					
+					if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
+						sprintf(c->callInfo.calledPartyNumber, "%s%s", l->cid_num, linedevice->subscriptionId.number);
+					} else {
+						sprintf(c->callInfo.calledPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
+					}
+		
+					if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
+						sprintf(c->callInfo.calledPartyName, "%s%s", l->cid_name, linedevice->subscriptionId.name);
+					} else {
+						sprintf(c->callInfo.calledPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
+					}
 					
 				} else if (c->calltype == SKINNY_CALLTYPE_INBOUND) {
 				
@@ -1038,8 +1062,20 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 					sccp_copy_string(c->callInfo.originalCallingPartyName, c->callInfo.callingPartyName, sizeof(c->callInfo.originalCallingPartyName));
 					sccp_copy_string(c->callInfo.originalCallingPartyNumber, c->callInfo.callingPartyNumber, sizeof(c->callInfo.originalCallingPartyNumber));
 
-					sccp_copy_string(c->callInfo.callingPartyName, cSourceRemote->callInfo.callingPartyName, sizeof(c->callInfo.callingPartyName));
-					sccp_copy_string(c->callInfo.callingPartyNumber, cSourceRemote->callInfo.callingPartyNumber, sizeof(c->callInfo.callingPartyNumber));
+					//sccp_copy_string(c->callInfo.callingPartyName, cSourceRemote->callInfo.callingPartyName, sizeof(c->callInfo.callingPartyName));
+					//sccp_copy_string(c->callInfo.callingPartyNumber, cSourceRemote->callInfo.callingPartyNumber, sizeof(c->callInfo.callingPartyNumber));
+					
+					if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
+						sprintf(c->callInfo.callingPartyNumber, "%s%s", l->cid_num, linedevice->subscriptionId.number);
+					} else {
+						sprintf(c->callInfo.callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
+					}
+		
+					if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
+						sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, linedevice->subscriptionId.name);
+					} else {
+						sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
+					}
 				}
 		sccp_channel_unlock(c);
 		sccp_channel_unlock(cSourceRemote);
