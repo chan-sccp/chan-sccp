@@ -1013,7 +1013,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		ast_log(LOG_WARNING, "SCCP: Failed to make COLP decision on answer - no bridged channel. Weird.\n");
 	} else if (CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote)) {
 		cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
-		if(cSourceRemote->line) {
+		if(cSourceRemote && cSourceRemote->line) {
 			canDoCOLP = TRUE;
 		}
 	}
