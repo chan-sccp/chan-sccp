@@ -440,7 +440,10 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 	if (conference->participants.size < 1) {	// \todo should this not be 2 ?
 		sccp_conference_end(conference);
 	} else {
-		if (NULL != conference->moderator && conference->moderator->channel->device->conferencelist_active) {
+		if (   (NULL != conference->moderator)
+        && (NULL != conference->moderator->channel)
+        && (NULL != conference->moderator->channel->device)
+        && conference->moderator->channel->device->conferencelist_active) {
 			sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "UPDATING CONFLIST\n");
 			sccp_conference_show_list(conference, conference->moderator->channel); 
 		}
