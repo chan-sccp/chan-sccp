@@ -1640,7 +1640,10 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) New call on line %s\n", DEV_ID_LOG(d), l->name);
 
 	/* assign callerid name and number */
-	sccp_channel_set_callingparty(c, l->cid_name, l->cid_num);
+	
+	/* CAVE: This should not be done here. It overwrites the complicated detailed callerid (including shared line subscription IDs)
+	        which has already been set in sccp_pbx_allocate_channel. (-DD). */
+	//sccp_channel_set_callingparty(c, l->cid_name, l->cid_num);
 
 	// we use shortenedNumber but why ???
 	// If the timeout digit has been used to terminate the number
