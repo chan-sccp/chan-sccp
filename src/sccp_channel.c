@@ -1376,6 +1376,10 @@ sccp_channel_t *sccp_channel_newcall_locked(sccp_line_t * l, sccp_device_t * dev
 {
 	/* handle outgoing calls */
 	sccp_channel_t *c;
+	
+			sccp_linedevices_t *linedevice;
+
+
 
 	if (!l) {
 		ast_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if a line is not defined!\n");
@@ -1465,6 +1469,8 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * c)
 	sccp_device_t *d;
 
 	sccp_channel_t *c1;
+	
+	sccp_linedevices_t *linedevice;
 
 #ifdef CS_AST_HAS_FLAG_MOH
 	struct ast_channel *bridged;
@@ -1498,6 +1504,27 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * c)
 		d = device;
 	}
 	c->device = d;
+	
+			SCCP_LIST_LOCK(&l->devices);
+		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+			if (linedevice->device == c->device)
+				break;
+		}
+		SCCP_LIST_UNLOCK(&l->devices);
+	
+				/* append subscriptionId to cid */
+			if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
+				sprintf(c->callInfo.calledPartyNumber, "%s%s", l->cid_num, linedevice->subscriptionId.number);
+			} else {
+				sprintf(c->callInfo.calledPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
+			}
+
+			if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
+				sprintf(c->callInfo.calledPartyName, "%s%s", l->cid_name, linedevice->subscriptionId.name);
+			} else {
+				sprintf(c->callInfo.calledPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
+			}
+	
 
 	sccp_channel_updateChannelCapability_locked(c);
 
