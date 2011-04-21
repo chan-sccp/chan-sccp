@@ -53,7 +53,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 
 	sccp_channel_t *cSourceRemote = NULL;
 	
-	boolean_t canDoCOLP = false;
+	boolean_t canDoCOLP = FALSE;
 
 
 	if (debug)
@@ -274,7 +274,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	if (!astcSourceRemote) {
 		ast_log(LOG_WARNING, "SCCP: Failed to make COLP decision on answer - no bridged channel. Weird.\n");
 	} else if (CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote)) {
-		canDoCOLP = true;
+		canDoCOLP = TRUE;
 		cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
 	}
 
