@@ -1008,20 +1008,20 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		
 		pbx_channel_lock(c->owner);
 		astcSourceRemote = CS_AST_BRIDGED_CHANNEL(c->owner);
-    
-    if(NULL != astcSourceRemote) { // We have a remote bridge and can check if we can do COLP.
-       
-      
 		pbx_channel_lock(astcSourceRemote);
 
 	
-	if (CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote)) {
+	if (!astcSourceRemote) {
+		ast_log(LOG_WARNING, "SCCP: Failed to make COLP decision on answer - no bridged channel. Weird.\n");
+	} else if (CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote)) {
 		cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
 		if(c && cSourceRemote && cSourceRemote->line && cSourceRemote->device) {
 			canDoNativeCOLP = TRUE;
 		}
-	} else if(!(astcSourceRemote->flags & AST_FLAG_OUTGOING)) { /* On outgoing channels the callerid makes no sense. */
+	} else {
+	  if(!(astcSourceRemote->flags & AST_FLAG_OUTGOING)) { /* On outgoing channels the callerid makes no sense. */
 	  	canDoGenericCOLP = TRUE;
+	  }
 	}
 
 	if (canDoNativeCOLP) {
@@ -1099,13 +1099,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 					if (cid.cid_num) {
 						sprintf(c->callInfo.calledPartyNumber, "%s", cid.cid_num);
 					} else {
-						c->callInfo.calledPartyNumber[0] = "\0";
+						c->callInfo.calledPartyNumber[0] = '\0';
 					}
 		
 					if (cid.cid_name) {
 						sprintf(c->callInfo.calledPartyName, "%s", cid.cid_name);
 					} else {
-						c->callInfo.calledPartyName[0] = "\0";
+						c->callInfo.calledPartyName[0] = '\0';
 					}
 					
 				} else if (c->calltype == SKINNY_CALLTYPE_INBOUND) {
@@ -1116,13 +1116,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 					if (cid.cid_num) {
 						sprintf(c->callInfo.callingPartyNumber, "%s", cid.cid_num);
 					} else {
-						c->callInfo.callingPartyNumber[0] = "\0";
+						c->callInfo.callingPartyNumber[0] = '\0';
 					}
 		
 					if (cid.cid_name) {
 						sprintf(c->callInfo.callingPartyName, "%s", cid.cid_name);
 					} else {
-						c->callInfo.callingPartyName[0] = "\0";
+						c->callInfo.callingPartyName[0] = '\0';
 					}
 				}
 		sccp_channel_unlock(c);
@@ -1133,10 +1133,6 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			
 	}
 	pbx_channel_unlock(astcSourceRemote);
-      
-    } else {
-      ast_log(LOG_WARNING, "SCCP: Failed to make COLP decision on answer - no bridged channel. Weird.\n");
-    }
 	pbx_channel_unlock(c->owner);
 		
 		/* TODO COLP END */
