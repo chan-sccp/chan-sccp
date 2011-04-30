@@ -1377,7 +1377,6 @@ sccp_channel_t *sccp_channel_newcall_locked(sccp_line_t * l, sccp_device_t * dev
 	/* handle outgoing calls */
 	sccp_channel_t *c;
 	
-			sccp_linedevices_t *linedevice;
 
 
 

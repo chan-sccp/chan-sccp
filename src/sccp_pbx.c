@@ -1099,13 +1099,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 					if (cid.cid_num) {
 						sprintf(c->callInfo.calledPartyNumber, "%s", cid.cid_num);
 					} else {
-						sprintf(c->callInfo.calledPartyNumber, "\0");
+						c->callInfo.calledPartyNumber[0] = "\0";
 					}
 		
 					if (cid.cid_name) {
 						sprintf(c->callInfo.calledPartyName, "%s", cid.cid_name);
 					} else {
-						sprintf(c->callInfo.calledPartyName, "\0");
+						c->callInfo.calledPartyName[0] = "\0";
 					}
 					
 				} else if (c->calltype == SKINNY_CALLTYPE_INBOUND) {
@@ -1116,13 +1116,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 					if (cid.cid_num) {
 						sprintf(c->callInfo.callingPartyNumber, "%s", cid.cid_num);
 					} else {
-						sprintf(c->callInfo.callingPartyNumber, "\0");
+						c->callInfo.callingPartyNumber[0] = "\0";
 					}
 		
 					if (cid.cid_name) {
 						sprintf(c->callInfo.callingPartyName, "%s", cid.cid_name);
 					} else {
-						sprintf(c->callInfo.callingPartyName, "\0");
+						c->callInfo.callingPartyName[0] = "\0";
 					}
 				}
 		sccp_channel_unlock(c);
