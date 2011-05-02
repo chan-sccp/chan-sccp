@@ -906,8 +906,8 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 
 	sccp_channel_t *cSourceRemote = NULL;
 	
-	boolean_t canDoNativeCOLP = FALSE;
-	boolean_t canDoGenericCOLP = FALSE;
+	//boolean_t canDoNativeCOLP = FALSE;
+	//boolean_t canDoGenericCOLP = FALSE;
 
 
 	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
@@ -1016,16 +1016,11 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	} else if (CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote)) {
 		cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
 		if(c && cSourceRemote && cSourceRemote->line && cSourceRemote->device) {
-			canDoNativeCOLP = TRUE;
-		}
-	} else {
-	  if(!(astcSourceRemote->flags & AST_FLAG_OUTGOING)) { /* On outgoing channels the callerid makes no sense. */
-	  	canDoGenericCOLP = TRUE;
-	  }
-	}
-
-	if (canDoNativeCOLP) {
+			//canDoNativeCOLP = TRUE;
+				/* Perform SCCP Native COLP */
+	//if (canDoNativeCOLP) {
 		sccp_channel_lock(c);
+		pbx_channel_lock(astcSourceRemote);
 		sccp_channel_lock(cSourceRemote);
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "Performing COLP signalling between two SCCP devices.\n");
 		
@@ -1086,9 +1081,17 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 				if(c->device) {
 					sccp_channel_send_callinfo(c->device, c);
 				};
-	} else if (canDoGenericCOLP) {
+	pbx_channel_unlock(astcSourceRemote);			
+	//} // native colp
+		}
+	} else {
+	  if(!(astcSourceRemote->flags & AST_FLAG_OUTGOING)) { /* On outgoing channels the callerid makes no sense. */
+	  	/* Perform Generic COLP */
+	  	//canDoGenericCOLP = TRUE;
+	  	//else if (canDoGenericCOLP) {
 			struct ast_callerid cid = astcSourceRemote->cid;
 		sccp_channel_lock(c);
+		pbx_channel_lock(astcSourceRemote);
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "Performing COLP signalling from non-SCCP device.\n");
 		
 				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
@@ -1129,10 +1132,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 
 				if(c->device) {
 					sccp_channel_send_callinfo(c->device, c);
-				};			
+				};	
+				pbx_channel_unlock(astcSourceRemote);
 			
+	//} // generic colp
+	  }
 	}
-	pbx_channel_unlock(astcSourceRemote);
+	
 	pbx_channel_unlock(c->owner);
 		
 		/* TODO COLP END */
