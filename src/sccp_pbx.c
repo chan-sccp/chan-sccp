@@ -1007,7 +1007,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 
 		pbx_channel_lock(c->owner);
 		astcSourceRemote = CS_AST_BRIDGED_CHANNEL(c->owner);
-		pbx_channel_lock(astcSourceRemote);
+		//pbx_channel_lock(astcSourceRemote);
 
 		if (!astcSourceRemote) {
 			ast_log(LOG_WARNING, "SCCP: Failed to make COLP decision on answer - no bridged channel. Weird.\n");
@@ -1015,7 +1015,9 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
 			if (c && cSourceRemote && cSourceRemote->line && cSourceRemote->device) {
 				//canDoNativeCOLP = TRUE;
+				
 				/* Perform SCCP Native COLP */
+				
 				//if (canDoNativeCOLP) {
 				sccp_channel_lock(c);
 				pbx_channel_lock(astcSourceRemote);
@@ -1084,6 +1086,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			}
 		} else {
 			if (!(astcSourceRemote->flags & AST_FLAG_OUTGOING)) {	/* On outgoing channels the callerid makes no sense. */
+				
 				/* Perform Generic COLP */
 				//canDoGenericCOLP = TRUE;
 				//else if (canDoGenericCOLP) {
