@@ -412,7 +412,7 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 	} else {
 		c->pri_cause = AST_CAUSE_NORMAL_CLEARING;
 	}
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "TECH HANGUP [%s] HangCause=%s(%i) ds=%s\n", ast->name, astcause2skinnycause_message(ast->hangupcause), ast->hangupcause,  ds ? ds : "PriCause N/A");
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "TECH HANGUP [%s] HangCause=%s(%i) ds=%s\n", ast->name, astcause2skinnycause_message(ast->hangupcause), ast->hangupcause, ds ? ds : "PriCause N/A");
 #endif
 
 #ifdef AST_FLAG_ANSWERED_ELSEWHERE
@@ -432,7 +432,7 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 	l = c->line;
 #ifdef CS_SCCP_CONFERENCE
 	if (c->conference) {
-//		sccp_conference_removeParticipant(c->conference, c);
+//              sccp_conference_removeParticipant(c->conference, c);
 		sccp_conference_retractParticipatingChannel(c->conference, c);
 	}
 #endif										// CS_SCCP_CONFERENCE
@@ -605,22 +605,22 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 			astForwardedChannel->hangupcause = AST_CAUSE_CALL_REJECTED;
 			astForwardedChannel->_softhangup |= AST_SOFTHANGUP_DEV;
 			/* sorry MC functioniert, einfach nicht,reverted */
-//			ast_queue_hangup(astForwardedChannel);
+//                      ast_queue_hangup(astForwardedChannel);
 			sccp_channel_lock(c->parentChannel);
 			sccp_channel_endcall_locked(c->parentChannel);
 			sccp_channel_unlock(c->parentChannel);
-			
+
 			return 0;
 		}
 		ast_log(LOG_ERROR, "SCCP: We did not find bridge channel for call forwarding call. Hangup\n");
 		astForwardedChannel->hangupcause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 		astForwardedChannel->_softhangup |= AST_SOFTHANGUP_DEV;
 		/* sorry MC functioniert, einfach nicht, reverted */
-//		ast_queue_hangup(astForwardedChannel);
+//              ast_queue_hangup(astForwardedChannel);
 		sccp_channel_lock(c->parentChannel);
 		sccp_channel_endcall_locked(c->parentChannel);
 		sccp_channel_unlock(c->parentChannel);
-		
+
 		sccp_channel_lock(c);
 		sccp_channel_endcall_locked(c);
 		sccp_channel_unlock(c);
@@ -905,10 +905,9 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 	struct ast_channel *astcSourceRemote = NULL;
 
 	sccp_channel_t *cSourceRemote = NULL;
-	
+
 	//boolean_t canDoNativeCOLP = FALSE;
 	//boolean_t canDoGenericCOLP = FALSE;
-
 
 	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
 
@@ -1003,28 +1002,28 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 				}
 			}
 		}
-		
-			/* TODO: Handle COLP here */
-		
+
+		/* TODO: Handle COLP here */
+
 		pbx_channel_lock(c->owner);
 		astcSourceRemote = CS_AST_BRIDGED_CHANNEL(c->owner);
 		pbx_channel_lock(astcSourceRemote);
 
-	
-	if (!astcSourceRemote) {
-		ast_log(LOG_WARNING, "SCCP: Failed to make COLP decision on answer - no bridged channel. Weird.\n");
-	} else if (CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote)) {
-		cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
-		if(c && cSourceRemote && cSourceRemote->line && cSourceRemote->device) {
-			//canDoNativeCOLP = TRUE;
+		if (!astcSourceRemote) {
+			ast_log(LOG_WARNING, "SCCP: Failed to make COLP decision on answer - no bridged channel. Weird.\n");
+		} else if (CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote)) {
+			cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
+			if (c && cSourceRemote && cSourceRemote->line && cSourceRemote->device) {
+				//canDoNativeCOLP = TRUE;
 				/* Perform SCCP Native COLP */
-	//if (canDoNativeCOLP) {
-		sccp_channel_lock(c);
-		pbx_channel_lock(astcSourceRemote);
-		sccp_channel_lock(cSourceRemote);
-		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "Performing COLP signalling between two SCCP devices.\n");
-		
+				//if (canDoNativeCOLP) {
+				sccp_channel_lock(c);
+				pbx_channel_lock(astcSourceRemote);
+				sccp_channel_lock(cSourceRemote);
+				sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "Performing COLP signalling between two SCCP devices.\n");
+
 				sccp_linedevices_t *linedevice;
+
 				sccp_line_t *l = cSourceRemote->line;
 
 				SCCP_LIST_LOCK(&l->devices);
@@ -1033,8 +1032,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 						break;
 				}
 				SCCP_LIST_UNLOCK(&l->devices);
-					
-		
+
 				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 					/* copy old callerid */
 					sccp_copy_string(c->callInfo.originalCalledPartyName, c->callInfo.calledPartyName, sizeof(c->callInfo.originalCalledPartyName));
@@ -1042,19 +1040,19 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 
 					//sccp_copy_string(c->callInfo.calledPartyName, cSourceRemote->callInfo.calledPartyName, sizeof(c->callInfo.calledPartyName));
 					//sccp_copy_string(c->callInfo.calledPartyNumber, cSourceRemote->callInfo.calledPartyNumber, sizeof(c->callInfo.calledPartyNumber));
-					
+
 					if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
 						sprintf(c->callInfo.calledPartyNumber, "%s%s", l->cid_num, linedevice->subscriptionId.number);
 					} else {
 						sprintf(c->callInfo.calledPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
 					}
-		
+
 					if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
 						sprintf(c->callInfo.calledPartyName, "%s%s", l->cid_name, linedevice->subscriptionId.name);
 					} else {
 						sprintf(c->callInfo.calledPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
 					}
-					
+
 				} else if (c->calltype == SKINNY_CALLTYPE_INBOUND) {
 					/* copy old callerid */
 					sccp_copy_string(c->callInfo.originalCallingPartyName, c->callInfo.callingPartyName, sizeof(c->callInfo.originalCallingPartyName));
@@ -1062,38 +1060,39 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 
 					//sccp_copy_string(c->callInfo.callingPartyName, cSourceRemote->callInfo.callingPartyName, sizeof(c->callInfo.callingPartyName));
 					//sccp_copy_string(c->callInfo.callingPartyNumber, cSourceRemote->callInfo.callingPartyNumber, sizeof(c->callInfo.callingPartyNumber));
-					
+
 					if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
 						sprintf(c->callInfo.callingPartyNumber, "%s%s", l->cid_num, linedevice->subscriptionId.number);
 					} else {
 						sprintf(c->callInfo.callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
 					}
-		
+
 					if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
 						sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, linedevice->subscriptionId.name);
 					} else {
 						sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
 					}
 				}
-		sccp_channel_unlock(c);
-		sccp_channel_unlock(cSourceRemote);
+				sccp_channel_unlock(c);
+				sccp_channel_unlock(cSourceRemote);
 
-				if(c->device) {
+				if (c->device) {
 					sccp_channel_send_callinfo(c->device, c);
 				};
-	pbx_channel_unlock(astcSourceRemote);			
-	//} // native colp
-		}
-	} else {
-	  if(!(astcSourceRemote->flags & AST_FLAG_OUTGOING)) { /* On outgoing channels the callerid makes no sense. */
-	  	/* Perform Generic COLP */
-	  	//canDoGenericCOLP = TRUE;
-	  	//else if (canDoGenericCOLP) {
-			struct ast_callerid cid = astcSourceRemote->cid;
-		sccp_channel_lock(c);
-		pbx_channel_lock(astcSourceRemote);
-		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "Performing COLP signalling from non-SCCP device.\n");
-		
+				pbx_channel_unlock(astcSourceRemote);
+				//} // native colp
+			}
+		} else {
+			if (!(astcSourceRemote->flags & AST_FLAG_OUTGOING)) {	/* On outgoing channels the callerid makes no sense. */
+				/* Perform Generic COLP */
+				//canDoGenericCOLP = TRUE;
+				//else if (canDoGenericCOLP) {
+				struct ast_callerid cid = astcSourceRemote->cid;
+
+				sccp_channel_lock(c);
+				pbx_channel_lock(astcSourceRemote);
+				sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "Performing COLP signalling from non-SCCP device.\n");
+
 				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 					/* copy old callerid */
 					sccp_copy_string(c->callInfo.originalCalledPartyName, c->callInfo.calledPartyName, sizeof(c->callInfo.originalCalledPartyName));
@@ -1104,13 +1103,13 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 					} else {
 						c->callInfo.calledPartyNumber[0] = '\0';
 					}
-		
+
 					if (cid.cid_name) {
 						sprintf(c->callInfo.calledPartyName, "%s", cid.cid_name);
 					} else {
 						c->callInfo.calledPartyName[0] = '\0';
 					}
-					
+
 				} else if (c->calltype == SKINNY_CALLTYPE_INBOUND) {
 					/* copy old callerid */
 					sccp_copy_string(c->callInfo.originalCallingPartyName, c->callInfo.callingPartyName, sizeof(c->callInfo.originalCallingPartyName));
@@ -1121,32 +1120,32 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 					} else {
 						c->callInfo.callingPartyNumber[0] = '\0';
 					}
-		
+
 					if (cid.cid_name) {
 						sprintf(c->callInfo.callingPartyName, "%s", cid.cid_name);
 					} else {
 						c->callInfo.callingPartyName[0] = '\0';
 					}
 				}
-		sccp_channel_unlock(c);
+				sccp_channel_unlock(c);
 
-				if(c->device) {
+				if (c->device) {
 					sccp_channel_send_callinfo(c->device, c);
-				};	
+				};
 				pbx_channel_unlock(astcSourceRemote);
-			
-	//} // generic colp
-	  }
-	}
-	
-	pbx_channel_unlock(c->owner);
-		
+
+				//} // generic colp
+			}
+		}
+
+		pbx_channel_unlock(c->owner);
+
 		/* TODO COLP END */
-		
-#if ASTERISK_VERSION_NUM >= 10620
+
+#    if ASTERISK_VERSION_NUM >= 10620
 		//FIXME check for asterisk 1.6 and 1.4
 		RTP_CHANGE_SOURCE(c, "Source Update: RTP NEW SOURCE");
-#endif
+#    endif
 		res = 0;
 		break;
 #endif										//defined(CS_AST_CONTROL_SRCCHANGE) || defined(CS_AST_CONTROL_SRCUPDATE)
@@ -1617,7 +1616,9 @@ int sccp_pbx_helper(sccp_channel_t * c)
 #if CS_ADV_FEATURES
 	/* using the regcontext to match numbers early. Only registered SCCP phones will turn up here with their dialplan extension */
 	int regcontext_exist = ast_exists_extension(chan, GLOB(regcontext), c->dialedNumber, 1, l->cid_num);
+
 	int regcontext_matchmore = ast_matchmore_extension(chan, GLOB(regcontext), c->dialedNumber, 1, l->cid_num);
+
 	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_2 "%s: extension helper says: regcontext_exist: %d, regcontext_matchmore: %d\n", d->id, regcontext_exist, regcontext_matchmore);
 #endif
 
@@ -1730,9 +1731,9 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) New call on line %s\n", DEV_ID_LOG(d), l->name);
 
 	/* assign callerid name and number */
-	
+
 	/* CAVE: This should not be done here. It overwrites the complicated detailed callerid (including shared line subscription IDs)
-	        which has already been set in sccp_pbx_allocate_channel. (-DD). */
+	   which has already been set in sccp_pbx_allocate_channel. (-DD). */
 	//sccp_channel_set_callingparty(c, l->cid_name, l->cid_num);
 
 	// we use shortenedNumber but why ???
@@ -2057,11 +2058,11 @@ static const char *sccp_pbx_get_callid(struct ast_channel *ast)
 const struct ast_channel_tech sccp_tech = {
 	.type = SCCP_TECHTYPE_STR,
 	.description = "Skinny Client Control Protocol (SCCP)",
-#if ASTERISK_VERSION_NUM >= 10600
+#    if ASTERISK_VERSION_NUM >= 10600
 	.capabilities = AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_G722 | AST_FORMAT_G729A | AST_FORMAT_ILBC | AST_FORMAT_H263 | AST_FORMAT_H264 | AST_FORMAT_H263_PLUS | AST_FORMAT_SLINEAR16 | AST_FORMAT_GSM,
 #    else
 	.capabilities = AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_G722 | AST_FORMAT_G729A | AST_FORMAT_H263 | AST_FORMAT_H264 | AST_FORMAT_H263_PLUS | AST_FORMAT_GSM,
-#endif
+#    endif
 	.properties = AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
 	.requester = sccp_request,
 	.devicestate = sccp_devicestate,
