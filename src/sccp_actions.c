@@ -2052,7 +2052,7 @@ void sccp_handle_keypad_button(sccp_session_t *s, sccp_device_t *d, sccp_moo_t *
 			/* as we're not in overlapped mode we should add timeout again */
 #ifdef CS_ADV_FEATURES
 			int found_match=sccp_pbx_helper(c);
-			int digittimeout=GLOB(digittimeout);
+			int digittimeout= c->device->digittimeout;
 			if (2==found_match) {
 				digittimeout=GLOB(digittimeout)/2;
 			}
@@ -2060,8 +2060,8 @@ void sccp_handle_keypad_button(sccp_session_t *s, sccp_device_t *d, sccp_moo_t *
 				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: Unable to reschedule dialing in '%d' ms\n", digittimeout);
 			}
 #else
-			if ((c->digittimeout = sccp_sched_add(sched, GLOB(digittimeout) * 1000, sccp_pbx_sched_dial, c)) < 0) {
-				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: Unable to reschedule dialing in '%d' ms\n", GLOB(digittimeout));
+			if ((c->digittimeout = sccp_sched_add(sched, c->device->digittimeout * 1000, sccp_pbx_sched_dial, c)) < 0) {
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: Unable to reschedule dialing in '%d' ms\n", c->device->digittimeout);
 			}
 #endif
 #ifdef CS_SCCP_PICKUP

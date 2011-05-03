@@ -1609,6 +1609,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct as
 	uint16_t instance = 0;
 
 	char *splitter;
+	uint8_t digittimeout;
 
 	char config_value[256];
 
@@ -1720,6 +1721,11 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct as
 			if (strcasecmp(v->value, "device")) {
 				sccp_copy_string(d->config_type, v->value, sizeof(d->config_type));
 			}
+		} else if (!strcasecmp(v->name, "digittimeout")) {
+			if (sscanf(v->value, "%i", &digittimeout) == 1) {
+				if (digittimeout > 0 && digittimeout < 255)
+					d->digittimeout = digittimeout;
+			} 
 		} else if (!strcasecmp(v->name, "addon")) {
 			sccp_addon_addnew(d, v->value);
 		} else if (!strcasecmp(v->name, "tzoffset")) {

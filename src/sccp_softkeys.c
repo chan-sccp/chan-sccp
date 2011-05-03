@@ -418,8 +418,8 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIn
 		/* removing scheduled dial */
 		SCCP_SCHED_DEL(sched, c->digittimeout);
 		/* rescheduling dial timeout (one digit) */
-		if ((c->digittimeout = sccp_sched_add(sched, GLOB(digittimeout) * 1000, sccp_pbx_sched_dial, c)) < 0) {
-			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_1 "SCCP: (sccp_sk_backspace) Unable to reschedule dialing in '%d' s\n", GLOB(digittimeout));
+		if ((c->digittimeout = sccp_sched_add(sched, c->device->digittimeout * 1000, sccp_pbx_sched_dial, c)) < 0) {
+			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_1 "SCCP: (sccp_sk_backspace) Unable to reschedule dialing in '%d' s\n", c->device->digittimeout);
 		}
 	} else if (len == 1) {
 		c->dialedNumber[len - 1] = '\0';

@@ -846,6 +846,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		struct ast_codec_pref codecs;					/*!< Asterisk Codec Device Preference */
 		sccp_devicestate_t state;					/*!< Device State (SCCP_DEVICE_ONHOOK or SCCP_DEVICE_OFFHOOK) */
 		boolean_t linesRegistered;					/*!< do we answered  RegisterAvailableLinesMessage */
+		uint8_t digittimeout;						/*< Digit Timeout. How long to wait for following digits */
 
 		char lastNumber[AST_MAX_EXTENSION];				/*!< Last Dialed Number */
 		int capability;							/*!< Asterisk Codec Capability */

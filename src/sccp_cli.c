@@ -405,6 +405,7 @@ static int sccp_show_device(int fd, int argc, char *argv[])
 	ast_cli(fd, "Keepalive          : %d\n", d->keepalive);
 	ast_cli(fd, "Registration state : %s(%d)\n", deviceregistrationstatus2str(d->registrationState), d->registrationState);
 	ast_cli(fd, "State              : %s(%d)\n", devicestatus2str(d->state), d->state);
+	ast_cli(fd, "Digittimeout       : %d\n", d->digittimeout);
 	ast_cli(fd, "MWI handset light  : %s\n", (d->mwilight) ? "ON" : "OFF");
 	ast_cli(fd, "Description        : %s\n", d->description);
 	ast_cli(fd, "Config Phone Type  : %s\n", d->config_type);
