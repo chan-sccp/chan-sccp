@@ -108,7 +108,7 @@
 #    define SKINNY_LBL_SECURITY_ERROR                                    	86
 #    define SKINNY_LBL_VIDEO_BANDWIDTH_UNAVAILABLE                       	87
 #    define SKINNY_LBL_VIDEO_MODE					        88
-#    define SKINNY_LBL_MONITOR					        100
+#    define SKINNY_LBL_MONITOR					        	100
 
 /*!
  * \brief Skinny LABEL Structure
