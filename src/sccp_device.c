@@ -250,6 +250,7 @@ sccp_device_t *sccp_device_applyDefaults(sccp_device_t * d)
 	d->postregistration_thread = AST_PTHREADT_STOP;
 	d->nat = GLOB(nat);
 	d->directrtp = GLOB(directrtp);
+	d->digittimeout = GLOB(digittimeout);
 #ifdef CS_SCCP_PICKUP
 	d->pickupexten = 0;
 	d->pickupcontext = NULL;
