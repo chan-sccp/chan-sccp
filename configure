@@ -21161,6 +21161,13 @@ $as_echo "Found 'Asterisk Version 1.8.x'" >&6; }
       ASTERISK_VER_GROUP=1.8
       REALTIME_USEABLE=1
       ASTERISK_VER=1.8.2
+
+	  echo ""
+      echo ""
+      echo "Asterisk 1.8 Version not supported"
+      echo "==================================="
+      exit
+
       if grep -q "\"1\.8\.0" $PBX_INCLUDE/version.h; then
 
 $as_echo "#define ASTERISK_CONF_1_8_0 1" >>confdefs.h
@@ -21195,6 +21202,13 @@ $as_echo "Found 'Asterisk Version SVN Trunk --> Using 1.8.x as version number'" 
       ASTERISK_VER_GROUP=1.8
       REALTIME_USEABLE=1
       ASTERISK_VER=1.8.2
+
+	  echo ""
+      echo ""
+      echo "Asterisk 1.8 Version not supported"
+      echo "==================================="
+      exit
+
     elif grep -q "\"SVN-branch" $PBX_INCLUDE/version.h; then
       if grep -q "\"SVN-branch-1\.2" $PBX_INCLUDE/version.h; then
 
@@ -21220,7 +21234,7 @@ $as_echo "#define ASTERISK_CONF_1_6 1" >>confdefs.h
 
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version 1.6.x'" >&5
 $as_echo "Found 'Asterisk Version 1.6.x'" >&6; }
-        ASTERISK_VER_GROUP=1.8
+        ASTERISK_VER_GROUP=1.6
         REALTIME_USEABLE=1
         ASTERISK_VER=1.6.2
         if grep -q "\"SVN-branch-1\.6\.0" $PBX_INCLUDE/version.h; then
@@ -21257,6 +21271,13 @@ $as_echo "Found 'Asterisk Version 1.8.x'" >&6; }
         ASTERISK_VER_GROUP=1.8
         REALTIME_USEABLE=1
         ASTERISK_VER=1.8.2
+
+		echo ""
+        echo ""
+        echo "Asterisk 1.8 Version not supported"
+        echo "==================================="
+        exit
+
         if grep -q "\"SVN-branch-1\.8\.0" $PBX_INCLUDE/version.h; then
 
 $as_echo "#define ASTERISK_CONF_1_8_0 1" >>confdefs.h
