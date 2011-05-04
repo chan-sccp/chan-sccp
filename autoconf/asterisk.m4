@@ -48,6 +48,13 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
       ASTERISK_VER_GROUP=1.8
       REALTIME_USEABLE=1
       ASTERISK_VER=1.8.2
+
+	  echo ""
+      echo ""
+      echo "Asterisk 1.8 Version not supported"
+      echo "==================================="
+      exit
+
       if grep -q "\"1\.8\.0" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_8_0, 1, [Define ASTERISK_CONF_1_8_0])
         AC_MSG_RESULT([Specifically 1.8.0])
@@ -70,6 +77,13 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
       ASTERISK_VER_GROUP=1.8
       REALTIME_USEABLE=1
       ASTERISK_VER=1.8.2
+
+	  echo ""
+      echo ""
+      echo "Asterisk 1.8 Version not supported"
+      echo "==================================="
+      exit
+
     elif grep -q "\"SVN-branch" $PBX_INCLUDE/version.h; then
       if grep -q "\"SVN-branch-1\.2" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_2, 1, [Define ASTERISK_CONF_1_2])
@@ -86,7 +100,7 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
       elif grep -q "\"SVN-branch-1\.6" $PBX_INCLUDE/version.h; then
         AC_DEFINE(ASTERISK_CONF_1_6, 1, [Define ASTERISK_CONF_1_6])
         AC_MSG_RESULT([Found 'Asterisk Version 1.6.x'])
-        ASTERISK_VER_GROUP=1.8
+        ASTERISK_VER_GROUP=1.6
         REALTIME_USEABLE=1
         ASTERISK_VER=1.6.2
         if grep -q "\"SVN-branch-1\.6\.0" $PBX_INCLUDE/version.h; then
@@ -111,6 +125,13 @@ AC_DEFUN([GET_ASTERISK_VERSION], [
         ASTERISK_VER_GROUP=1.8
         REALTIME_USEABLE=1
         ASTERISK_VER=1.8.2
+
+		echo ""
+        echo ""
+        echo "Asterisk 1.8 Version not supported"
+        echo "==================================="
+        exit
+
         if grep -q "\"SVN-branch-1\.8\.0" $PBX_INCLUDE/version.h; then
           AC_DEFINE(ASTERISK_CONF_1_8_0, 1, [Define ASTERISK_CONF_1_8_0])
           AC_MSG_RESULT([Specifically 1.8.0])
