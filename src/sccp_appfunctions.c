@@ -692,8 +692,6 @@ static char *calledparty_descr = "Usage: SetCalledParty(\"Name\" <ext>)" "Sets t
  */
 static int sccp_app_setmessage(struct ast_channel *chan, void *data)
 {
-	char *text = data;
-
 	sccp_channel_t *c = NULL;
 
 	sccp_device_t *d;
@@ -703,6 +701,25 @@ static int sccp_app_setmessage(struct ast_channel *chan, void *data)
 		return 0;
 	}
 
+	char *text;
+	int timeout;
+
+	if ((text = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
+		static int deprecation_warning = 0;
+
+		*text++ = '\0';
+		if (deprecation_warning++ % 10 == 0)
+			ast_log(LOG_WARNING, "SCCPCHANNEL(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
+		timeout = atoi(data);
+	} else if ((text = strchr(data, ','))) {
+		*text++ = '\0';
+		timeout = atoi(data);
+	} else {
+		text = data;
+		timeout = 0;
+	}
+
+
 	if (!text || !c || !c->device)
 		return 0;
 
@@ -710,8 +727,8 @@ static int sccp_app_setmessage(struct ast_channel *chan, void *data)
 	sccp_device_lock(d);
 	ast_free(d->phonemessage);
 	if (text[0] != '\0') {
-		sccp_dev_displayprinotify(d, text, 5, 0);
-		sccp_dev_displayprompt(d, 0, 0, text, 0);
+		sccp_dev_displayprinotify(d, text, 5, timeout);
+		sccp_dev_displayprompt(d, 0, 0, text, timeout);
 		d->phonemessage = sccp_strdup(text);
 		pbx_db_put("SCCPM", d->id, text);
 	} else {
@@ -729,7 +746,7 @@ static char *setmessage_name = "SetMessage";
 
 static char *setmessage_synopsis = "Send a Message to the current Phone";
 
-static char *setmessage_descr = "Usage: SetMessage(\"Message\")\n" "       Send a Message to the Calling Device\n";
+static char *setmessage_descr = "Usage: SetMessage(\"Message\"[,timeout])\n" "       Send a Message to the Calling Device (and remove after timeout, if timeout is ommited will stay until next/empty message)\n";
 
 /*!
  * \brief   Mutes the Microphone on the calling phone.
