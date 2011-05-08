@@ -2128,3 +2128,22 @@ void sendUserToDeviceVersion1Message(sccp_device_t *d, uint32_t appID, uint32_t 
 	}
 }
 
+/*!
+ * \brief SCCP version of strcasecmp
+ * \note Takes into account zero length strings, if both strings are zero length returns TRUE
+ * \param data1 String to be checked
+ * \param data2 String to be checked
+ * \return strcasecmp as int
+ *
+ * \retval int on strcasecmp
+ * \retval TRUE on both zero length
+ * \retval FALSE on one of the the parameters being zero length
+ */
+boolean_t sccp_strcasecmp(const char *data1,const char *data2){
+	if (sccp_strlen_zero(data1) && sccp_strlen_zero(data2)) {
+		return TRUE;
+	} else if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2)) {
+		return strcasecmp(data1,data2);
+	}
+	return FALSE;
+}
