@@ -1385,7 +1385,7 @@ sccp_channel_t *sccp_channel_newcall_locked(sccp_line_t * l, sccp_device_t * dev
 		return NULL;
 	}
 
-	if (!device || sccp_strlen_zero(device->id)) {
+	if (!device) {
 		ast_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if a device is not defined!\n");
 		return NULL;
 	}
