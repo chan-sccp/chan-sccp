@@ -789,9 +789,7 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 			sccp_conference_show_list(conference, conference->moderator->channel); 
 			sccp_conference_invite_participant(conference, conference->moderator->channel);
 		} else if (!strcmp(d->dtu_softkey.action, "EXIT")) {
-			sccp_device_lock(conference->moderator->channel->device);
 			conference->moderator->channel->device->conferencelist_active=FALSE;
-			sccp_device_lock(conference->moderator->channel->device);
 			//Use "SoftKey:Exit" or "Init:Services"
 			char data[] = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"SoftKey:Exit\"/></CiscoIPPhoneExecute>";
 			sendUserToDeviceVersion1Message(d, APPID_CONFERENCE, conferenceID, callReference, transactionID, data);
