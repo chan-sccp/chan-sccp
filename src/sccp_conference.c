@@ -714,8 +714,9 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	strcat(xmlStr, "<SoftKeyItem>\n");
 	strcat(xmlStr, "  <Name>Exit</Name>\n");
 	strcat(xmlStr, "  <Position>4</Position>\n");
-	sprintf(xmlTmp,"  <URL>UserDataSoftKey:Select:%d:EXIT$%d$%d$%d$</URL>\n", 4, appID, conference->id, transactionID);
-	strcat(xmlStr, xmlTmp);
+	//sprintf(xmlTmp,"  <URL>UserDataSoftKey:Select:%d:EXIT$%d$%d$%d$</URL>\n", 4, appID, conference->id, transactionID);
+	//strcat(xmlStr, xmlTmp);
+	strcat(xmlStr, "  <URL>SoftKey:Exit</URL>\n");
 	strcat(xmlStr, "</SoftKeyItem>\n");
 
 	// CiscoIPPhoneIconMenu Icons
