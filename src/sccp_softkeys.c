@@ -41,11 +41,17 @@ struct softKeySetConfigList softKeySetConfig;					/*!< List of SoftKeySets */
  */
 void sccp_softkey_pre_reload(void)
 {
+	uint8_t i;
+
 	sccp_softKeySetConfiguration_t *k;
 
 	SCCP_LIST_LOCK(&softKeySetConfig);
 	while ((k = SCCP_LIST_REMOVE_HEAD(&softKeySetConfig, list))) {
 		sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "Setting SoftkeySetConfig to Pending Delete=1\n");
+        for (i = 0; i < (sizeof(SoftKeyModes) / sizeof(softkey_modes)); i++) {
+			if(k->modes[i].ptr)
+				sccp_free(k->modes[i].ptr);
+		}
 		ast_free(k);
 	}
 	SCCP_LIST_UNLOCK(&softKeySetConfig);
