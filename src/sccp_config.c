@@ -1609,7 +1609,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct as
 	uint16_t instance = 0;
 
 	char *splitter;
-	uint8_t digittimeout;
+	int digittimeout;
 
 	char config_value[256];
 
