@@ -52,9 +52,9 @@
 #    endif
 #    ifndef CS_AST_HAS_RTP_ENGINE
 #	  include <asterisk/rtp.h>
-#else
+#    else
 #	  include <asterisk/rtp_engine.h>
-#endif
+#    endif
 #    ifdef CS_SCCP_PICKUP
 #        include <asterisk/features.h>
 #    endif

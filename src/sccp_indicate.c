@@ -504,7 +504,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 
 	int instance;
 
-	uint32_t privacyStatus;
+	uint32_t privacyStatus=0;
 
 	if (!c || !c->line)
 		return;
