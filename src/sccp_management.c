@@ -443,7 +443,11 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 	}
 	
 	if(!lineName){
-		line = d->currentLine;
+		if (d && d->defaultLineInstance > 0){
+			line = sccp_line_find_byid(d, d->defaultLineInstance);
+		} else {
+			line = sccp_dev_get_activeline(d);
+		}
 	}else{
 		line = sccp_line_find_byname_wo(lineName, FALSE);
 	}
