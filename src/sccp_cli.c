@@ -1426,9 +1426,8 @@ CLI_ENTRY_COMPLETE(cli_unregister, sccp_unregister, "Unregister an SCCP device",
 /* --------------------------------------------------------------------------------------------------------------START CALL- */
 static int sccp_start_call(int fd, int argc, char *argv[])
 {
-	sccp_device_t *d;
-
-	sccp_line_t *line = NULL;
+	sccp_device_t 	*d;
+	sccp_line_t 	*line = NULL;
 
 	if (argc < 3) {
 		ast_cli(fd, "argc is less then 2: %d\n", argc);
@@ -1443,13 +1442,16 @@ static int sccp_start_call(int fd, int argc, char *argv[])
 		ast_cli(fd, "Can't find settings for device %s\n", argv[2]);
 		return RESULT_FAILURE;
 	}
-	line = sccp_line_find_byid(d, 1);					/* default to line 1 */
+	if (d && d->defaultLineInstance > 0){
+ 		line = sccp_line_find_byid(d,d->defaultLineInstance);
+ 	} else {
+ 		line = sccp_dev_get_activeline(d);
+ 	}
 	if (!line) {
 		ast_cli(fd, "Can't find line for device %s\n", argv[2]);
 		return RESULT_FAILURE;
 	}
 	ast_cli(fd, "Starting Call for Device: %s\n", argv[2]);
-	//sccp_channel_t * c =  NULL;
 	sccp_channel_newcall(line, d, argv[3], SKINNY_CALLTYPE_OUTBOUND);
 	return RESULT_SUCCESS;
 }

@@ -1413,10 +1413,11 @@ sccp_channel_t *sccp_channel_newcall_locked(sccp_line_t * l, sccp_device_t * dev
 	c->calltype = calltype;
 
 	sccp_channel_set_active(device, c);
+	sccp_dev_set_activeline(device, l);
 
 	/* copy the number to dial in the ast->exten */
 	if (dial) {
-		sccp_copy_string(c->dialedNumber, dial, sizeof(c->dialedNumber));
+		sccp_copy_string(c->dialedNumber, dial, sizeof(c->dialedNumber)-1);
 		sccp_indicate_locked(device, c, SCCP_CHANNELSTATE_SPEEDDIAL);
 	} else {
 		sccp_indicate_locked(device, c, SCCP_CHANNELSTATE_OFFHOOK);
