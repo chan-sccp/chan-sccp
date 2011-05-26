@@ -1095,10 +1095,8 @@ void sccp_dev_set_activeline(sccp_device_t * device, sccp_line_t * l)
 	if (!l || !device || !device->session)
 		return;
 
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Send the active line %s\n", device->id, l->name);
-	sccp_device_lock(device);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Send the active line %s\n", DEV_ID_LOG(device), l->name);
 	device->currentLine = l;
-	sccp_device_unlock(device);
 	return;
 }
 
