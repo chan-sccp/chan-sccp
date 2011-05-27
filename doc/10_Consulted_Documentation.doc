@@ -21,6 +21,7 @@
 /*!
  * \page cons Consulted Documentation
  * The following documents have been useful to us:
+ *  - http://www.aosabook.org/en/asterisk.html
  *  - http://hisown.com/Talks/VoIP%20-%20Excerpt%20(SCCP).pdf
  *  - http://www.javvin.com/protocolSCCP.html
  *  - http://www.cisco.com/en/US/products/hw/phones/ps379/products_tech_note09186a0080094584.shtml
