@@ -476,4 +476,5 @@
  * 
  * The new phones models with lighted buttons will nicely light up their buttons upon "INUSE".
  * 
+ * You can read more about customer device states <a href="http://www.asterisk.org/node/48325">here</a>.
  */
