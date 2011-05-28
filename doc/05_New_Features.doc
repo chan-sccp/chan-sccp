@@ -167,7 +167,10 @@
  * \subsection sk_config		Softkey Configuration
  * 
  * You can create several softkeyset in you config for use on different devices. You can assign these softkeyset to a device 
- * using: softkeyset = name_of_softkeyset in the device section of the config. for example:
+ * using: softkeyset = name_of_softkeyset in the device section of the config. 
+ * (<a href="http://tools.cisco.com/search/display?url=http%3A%2F%2Fwww.cisco.com%2Fen%2FUS%2Fdocs%2Fvoice_ip_comm%2Fcuipph%2F7975G_7971g-ge_7970g_7965g_7945g%2F8_5%2Fenglish%2Fquick_reference%2F7975qrcrd85.pdf&pos=1&strqueryid=1&websessionid=Baq5yYY1J3zwB6fskFWXc2e">softkey definitions/logo's</a>)
+ *
+ * for example:
  * \code
  * [SEP001122334455]
  * devicetype=7960
@@ -342,8 +345,6 @@
  * This is equivalent to using the keys defined in features.conf under pickupexten
  * <HR>
  *
- *
- * 
  *
  *
  *
