@@ -450,9 +450,9 @@
  *
  * When chan-sccp-b is used with asterisk 1.6.1 and up, you have the option to use configure directive --enable-devstate-feature.
  * This will make chan-sccp-b report back the device_state back to asterisk, to be used by for example the 
- * Dialplan DEVSTATE function as such:
+ * Dialplan DEVICE_STATE function as such:
  *
- * exten => s,1,NoOp(My phone state is currently ${DEVSTATE(SCCP/98011)})
+ * exten => s,1,NoOp(My phone state is currently ${DEVICE_STATE(SCCP/98011)})
  * 
  * \subsubsection nf_customdevicestate	Custom Device State
  *
@@ -465,7 +465,7 @@
  *
  * You can then switch the feature devstate button on and of from the dialplan with
  * \code
- * exten => s,1,Set(DEVSTATE(Custom:coffee)=INUSE)
+ * exten => s,1,Set(DEVICE_STATE(Custom:coffee)=INUSE)
  * \endcode
  * To signal everyone that the coffee is ready.
  *
