@@ -20,7 +20,7 @@
 #include "config.h"
 #include "common.h"
 
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 #    include <asterisk.h>
 #endif
 #include "chan_sccp.h"

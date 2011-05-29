@@ -761,7 +761,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 	for (; v; v = v->next) {
 		sccp_copy_string(config_value, v->value, sizeof(config_value));
 
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 		/* handle jb in configuration just let asterisk do that */
 		if (!ast_jb_read_conf(&GLOB(global_jbconf), v->name, v->value)) {
 			// Found a jb parameter

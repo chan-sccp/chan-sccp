@@ -138,13 +138,13 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 	char *name, *number, *cidtmp;						// For the callerid parse below
 #endif										// CS_AST_CHANNEL_HAS_CID
 
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 	// if channel type is undefined, set to SCCP
 	if (!ast->type) {
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: Channel type undefined, setting to type 'SCCP'\n");
 		ast->type = "SCCP";
 	}
-#endif										// ASTERISK_VERSION_NUM < 10400
+#endif										// ASTERISK_VERSION_NUMBER < 10400
 
 	c = get_sccp_channel_from_ast_channel(ast);
 	if (!c) {
@@ -531,13 +531,13 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 {
 	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
 
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 	// if channel type is undefined, set to SCCP
 	if (!ast->type) {
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: Channel type undefined, setting to type 'SCCP'\n");
 		ast->type = "SCCP";
 	}
-#endif										// ASTERISK_VERSION_NUM < 10400
+#endif										// ASTERISK_VERSION_NUMBER < 10400
 
 	if (!c || !c->line || (!c->device && !c->parentChannel)) {
 		ast_log(LOG_ERROR, "SCCP: Answered %s but no SCCP channel\n", ast->name);
@@ -655,11 +655,11 @@ static struct ast_frame *sccp_pbx_read(struct ast_channel *ast)
 
 	struct ast_frame *frame;
 
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 	frame = &pbx_null_frame;
 #else
 	frame = NULL;
-#endif										// ASTERISK_VERSION_NUM >= 10400
+#endif										// ASTERISK_VERSION_NUMBER >= 10400
 
 	if (!c || !c->rtp.audio.rtp)
 		return frame;
@@ -713,11 +713,11 @@ static struct ast_frame *sccp_pbx_read(struct ast_channel *ast)
 		//                              DEV_ID_LOG(c->device),
 		//                              pbx_getformatname(frame->subclass),
 		//                              frame->subclass);
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 		if (!(frame->subclass & (ast->nativeformats & AST_FORMAT_AUDIO_MASK)))
 #else
 		if (!(frame->subclass & (ast->nativeformats)))
-#endif										// ASTERISK_VERSION_NUM >= 10400
+#endif										// ASTERISK_VERSION_NUMBER >= 10400
 		{
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n", DEV_ID_LOG(c->device), ast->name, pbx_getformatname(ast->nativeformats), ast->nativeformats, pbx_getformatname(frame->subclass), frame->subclass);
 
@@ -781,9 +781,9 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame)
 			break;
 
 		case AST_FRAME_TEXT:
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 		case AST_FRAME_MODEM:
-#endif										// ASTERISK_VERSION_NUM >= 10400
+#endif										// ASTERISK_VERSION_NUMBER >= 10400
 		default:
 			ast_log(LOG_WARNING, "%s: Can't send %d type frames with SCCP write on channel %s\n", DEV_ID_LOG(c->device), frame->frametype, ast->name);
 			break;
@@ -863,7 +863,7 @@ static char *sccp_control2str(int state)
 	}
 }
 
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 
 /*!
  * \brief Indicate from Asterisk Channel
@@ -898,7 +898,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind)
  * 	  - see sccp_channel_openreceivechannel()
  */
 static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data, size_t datalen)
-#endif										// ASTERISK_VERSION_NUM < 10400
+#endif										// ASTERISK_VERSION_NUMBER < 10400
 {
 	int oldChannelFormat, oldChannelReqFormat;
 
@@ -1145,7 +1145,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 
 		/* TODO COLP END */
 
-#    if ASTERISK_VERSION_NUM >= 10620
+#    if ASTERISK_VERSION_NUMBER >= 10620
 		//FIXME check for asterisk 1.6 and 1.4
 		RTP_CHANGE_SOURCE(c, "Source Update: RTP NEW SOURCE");
 #    endif
@@ -1229,7 +1229,7 @@ static int sccp_pbx_fixup(struct ast_channel *oldchan, struct ast_channel *newch
 	return 0;
 }
 
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 
 /*!
  * \brief Receive First Digit from Asterisk Channel
@@ -1243,9 +1243,9 @@ static int sccp_pbx_recvdigit_begin(struct ast_channel *ast, char digit)
 {
 	return -1;
 }
-#endif										// ASTERISK_VERSION_NUM >= 10400
+#endif										// ASTERISK_VERSION_NUMBER >= 10400
 
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 
 /*!
  * \brief Receive Last Digit from Asterisk Channel
@@ -1270,7 +1270,7 @@ static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit)
  * \called_from_asterisk
  */
 static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit, unsigned int duration)
-#endif										// ASTERISK_VERSION_NUM < 10400
+#endif										// ASTERISK_VERSION_NUMBER < 10400
 {
 	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
 
@@ -2011,11 +2011,11 @@ void sccp_queue_frame(sccp_channel_t * c, struct ast_frame *f)
  * \param c SCCP Channel
  * \param control as Asterisk Control Frame Type
  */
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 int sccp_ast_queue_control(sccp_channel_t * c, enum ast_control_frame_type control)
 #else
 int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
-#endif										// ASTERISK_VERSION_NUM >= 10400
+#endif										// ASTERISK_VERSION_NUMBER >= 10400
 {
 	struct ast_frame f;
 
@@ -2026,7 +2026,7 @@ int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
 	return 0;
 }
 
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUMBER >= 10600
 
 /*!
  * \brief Deliver SCCP call ID for the call
@@ -2051,7 +2051,7 @@ static const char *sccp_pbx_get_callid(struct ast_channel *ast)
 	}
 }
 
-#endif										// ASTERISK_VERSION_NUM >= 10600
+#endif										// ASTERISK_VERSION_NUMBER >= 10600
 
 #ifdef CS_AST_HAS_TECH_PVT
 
@@ -2061,7 +2061,7 @@ static const char *sccp_pbx_get_callid(struct ast_channel *ast)
 const struct ast_channel_tech sccp_tech = {
 	.type = SCCP_TECHTYPE_STR,
 	.description = "Skinny Client Control Protocol (SCCP)",
-#    if ASTERISK_VERSION_NUM >= 10600
+#    if ASTERISK_VERSION_NUMBER >= 10600
 	.capabilities = AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_G722 | AST_FORMAT_G729A | AST_FORMAT_ILBC | AST_FORMAT_H263 | AST_FORMAT_H264 | AST_FORMAT_H263_PLUS | AST_FORMAT_SLINEAR16 | AST_FORMAT_GSM,
 #    else
 	.capabilities = AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_G722 | AST_FORMAT_G729A | AST_FORMAT_H263 | AST_FORMAT_H264 | AST_FORMAT_H263_PLUS | AST_FORMAT_GSM,
@@ -2079,7 +2079,7 @@ const struct ast_channel_tech sccp_tech = {
 	.fixup = sccp_pbx_fixup,
 	.send_text = sccp_pbx_sendtext,
 
-#    if ASTERISK_VERSION_NUM < 10400
+#    if ASTERISK_VERSION_NUMBER < 10400
 	.send_digit = sccp_pbx_recvdigit_end,
 #    else
 	.send_digit_begin = sccp_pbx_recvdigit_begin,
@@ -2089,16 +2089,16 @@ const struct ast_channel_tech sccp_tech = {
 	.transfer = sccp_pbx_transfer,						// new >1.4.0
 	.func_channel_read = acf_channel_read,					// new
 
-#    endif									// ASTERISK_VERSION_NUM < 10400
+#    endif									// ASTERISK_VERSION_NUMBER < 10400
 
-#    if ASTERISK_VERSION_NUM >= 10600
+#    if ASTERISK_VERSION_NUMBER >= 10600
 	.early_bridge = ast_rtp_early_bridge,
 	.get_pvt_uniqueid = sccp_pbx_get_callid,				// new >1.6.0
-#    endif									// ASTERISK_VERSION_NUM >= 10600
+#    endif									// ASTERISK_VERSION_NUMBER >= 10600
 };
 #endif										// CS_AST_HAS_TECH_PVT
 
-#if ASTERISK_VERSION_NUM > 10400
+#if ASTERISK_VERSION_NUMBER > 10400
 enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo, struct ast_channel **rc, int timeoutms)
 {
 	enum ast_bridge_result res;
@@ -2143,7 +2143,7 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 	/* \todo Implement callback function queue upon completion */
 	return res;
 }
-#endif										// ASTERISK_VERSION_NUM > 10400
+#endif										// ASTERISK_VERSION_NUMBER > 10400
 
 /*!
  * \brief Handle Dialplan Transfer

@@ -254,7 +254,7 @@ struct ast_variable *sccp_create_variable(const char *buf)
 
 	if ((varval = strchr(varname, '='))) {
 		*varval++ = '\0';
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUMBER >= 10600
 		if ((tmpvar = ast_variable_new(varname, varval, ""))) {
 #else
 		if ((tmpvar = ast_variable_new(varname, varval))) {
@@ -1386,7 +1386,7 @@ sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_in sin)
 	return d;
 }
 
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUMBER >= 10600
 #    ifdef HAVE_PBX_DEVICESTATE_H
 
 /*!

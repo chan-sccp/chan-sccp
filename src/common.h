@@ -25,7 +25,7 @@
 #    include <unistd.h> 
 #    include <assert.h>
 
-#    if ASTERISK_VERSION_NUM >= 10400
+#    if ASTERISK_VERSION_NUMBER >= 10400
 #        include <asterisk.h>
 #        include <asterisk/abstract_jb.h>
 #    endif

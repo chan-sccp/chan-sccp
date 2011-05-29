@@ -139,7 +139,7 @@ sccp_callinfo_t *sccp_wrapper_asterisk_get_callerid(PBX_CHANNEL_TYPE * ast_chan)
 	if (!ast_chan) {
 		return callInfo;
 	}
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 	// Implement ast 1.2 version
 #else
 
@@ -189,7 +189,7 @@ int sccp_wrapper_asterisk_set_callerid(PBX_CHANNEL_TYPE * ast_chan, sccp_callinf
 	if (!callInfo) {
 		return -1;
 	}
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 	// Implement ast 1.2 version
 #else
 #    define strcp_callerid(_ast,_sccp)                              \
@@ -240,7 +240,7 @@ void sccp_wrapper_asterisk_set_callerid_name(const PBX_CHANNEL_TYPE * pbx_chan, 
 	if (!pbx_chan || !name) {
 		return;
 	}
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 	// Implement ast 1.2 version
 #else
 	if (!strcmp(pbx_chan->cid.cid_name, name)) {
@@ -259,7 +259,7 @@ void sccp_wrapper_asterisk_set_callerid_number(const PBX_CHANNEL_TYPE * pbx_chan
 	if (!pbx_chan || !number) {
 		return;
 	}
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 	// Implement ast 1.2 version
 #else
 	if (!strcmp(pbx_chan->cid.cid_num, number)) {
@@ -278,7 +278,7 @@ void sccp_wrapper_asterisk_set_callerid_ani(PBX_CHANNEL_TYPE * pbx_chan, const c
 	if (!pbx_chan || !ani) {
 		return;
 	}
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 	// Implement ast 1.2 version
 #else
 	if(pbx_chan->cid.cid_ani)
@@ -299,7 +299,7 @@ void sccp_wrapper_asterisk_set_callerid_dnid(const PBX_CHANNEL_TYPE * pbx_chan, 
 	if (!pbx_chan || !dnid) {
 		return;
 	}
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 	// Implement ast 1.2 version
 #else
 	if (!strcmp(pbx_chan->cid.cid_dnid, dnid)) {
@@ -318,7 +318,7 @@ void sccp_wrapper_asterisk_set_callerid_rdnis(const PBX_CHANNEL_TYPE * pbx_chan,
 	if (!pbx_chan || !rdnis) {
 		return;
 	}
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 	// Implement ast 1.2 version
 #else
 	if (!strcmp(pbx_chan->cid.cid_rdnis, rdnis)) {
@@ -353,7 +353,7 @@ PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
  */
 struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast_ha *path, int *error)
 {
-#if ASTERISK_VERSION_NUM < 10600
+#if ASTERISK_VERSION_NUMBER < 10600
 	return ast_append_ha(sense, (char *)stuff, path);
 #else
 	return ast_append_ha(sense, stuff, path, error);
@@ -375,7 +375,7 @@ struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast
  */
 struct ast_context *pbx_context_find_or_create(struct ast_context **extcontexts, struct ast_hashtab *exttable, const char *name, const char *registrar)
 {
-#if ASTERISK_VERSION_NUM < 10600
+#if ASTERISK_VERSION_NUMBER < 10600
 	return ast_context_find_or_create(extcontexts, name, registrar);
 #else
 	return ast_context_find_or_create(extcontexts, exttable, name, registrar);
@@ -401,7 +401,7 @@ struct ast_context *pbx_context_find_or_create(struct ast_context **extcontexts,
  */
 struct ast_config *pbx_config_load(const char *filename, const char *who_asked, struct ast_flags flags)
 {
-#if ASTERISK_VERSION_NUM < 10600
+#if ASTERISK_VERSION_NUMBER < 10600
 	return ast_config_load(filename);
 #else
 	return ast_config_load2(filename, who_asked, flags);
@@ -433,7 +433,7 @@ char *pbx_getformatname(format_t format)
  */
 char *pbx_getformatname_multiple(char *buf, size_t size, format_t format)
 {
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 	return ast_getformatname_multiple(buf, size, format & AST_FORMAT_AUDIO_MASK);
 #else
 	return ast_getformatname_multiple(buf, size, format);
@@ -450,7 +450,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format)
  */
 struct ast_variable *pbx_variable_new(struct ast_variable *v)
 {
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUMBER >= 10600
 	return ast_variable_new(v->name, v->value, v->file);
 #else
 	return ast_variable_new(v->name, v->value);
@@ -467,7 +467,7 @@ struct ast_variable *pbx_variable_new(struct ast_variable *v)
  */
 const char *pbx_inet_ntoa(struct in_addr ia)
 {
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 	char iabuf[INET_ADDRSTRLEN];
 
 	return ast_inet_ntoa(iabuf, sizeof(iabuf), ia);
@@ -476,7 +476,7 @@ const char *pbx_inet_ntoa(struct in_addr ia)
 #endif
 }
 
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 /*!
  * \brief BackPort of ast_str2cos & ast_str2cos for asterisk 1.2
  */
@@ -536,7 +536,7 @@ int pbx_str2tos(const char *value, unsigned int *tos)
 }
 #endif
 
-#if ASTERISK_VERSION_NUM < 10600
+#if ASTERISK_VERSION_NUMBER < 10600
 int pbx_str2cos(const char *value, unsigned int *cos)
 {
 	int fval;
@@ -576,7 +576,7 @@ int pbx_str2cos(const char *value, unsigned int *cos)
  */
 int pbx_context_remove_extension(const char *context, const char *extension, int priority, const char *registrar)
 {
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUMBER >= 10600
 	struct pbx_find_info q = {.stacklen = 0 };
 	if (pbx_find_extension(NULL, NULL, &q, context, extension, 1, NULL, "", E_MATCH)) {
 		return ast_context_remove_extension(context, extension, priority, registrar);
@@ -598,7 +598,7 @@ int pbx_context_remove_extension(const char *context, const char *extension, int
  */
 void pbxman_send_listack(struct mansession *s, const struct message *m, char *msg, char *listflag)
 {
-#if ASTERISK_VERSION_NUM < 10600
+#if ASTERISK_VERSION_NUMBER < 10600
 	astman_send_ack(s, m, msg);
 #else
 	astman_send_listack(s, m, msg, listflag);
@@ -620,7 +620,7 @@ void pbxman_send_listack(struct mansession *s, const struct message *m, char *ms
  */
 int pbx_moh_start(PBX_CHANNEL_TYPE * chan, const char *mclass, const char *interpclass)
 {
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 	return ast_moh_start(chan, interpclass);
 #else
 	return ast_moh_start(chan, mclass, interpclass);
@@ -655,7 +655,7 @@ int sccp_wrapper_asterisk_rtp_stop(sccp_channel_t * channel)
  */
 int pbx_rtp_get_peer(PBX_RTP_TYPE * rtp, struct sockaddr_in *addr)
 {
-// #if ASTERISK_VERSION_NUM >= 10800
+// #if ASTERISK_VERSION_NUMBER >= 10800
 //      struct ast_sockaddr addr_tmp;
 //      ast_rtp_instance_get_remote_address(rtp, &addr_tmp);
 //      ast_sockaddr_to_sin(&addr_tmp, &addr);
@@ -676,7 +676,7 @@ int pbx_rtp_get_peer(PBX_RTP_TYPE * rtp, struct sockaddr_in *addr)
  */
 void pbx_rtp_get_us(PBX_RTP_TYPE * rtp, struct sockaddr_in *addr)
 {
-// #if ASTERISK_VERSION_NUM >= 10800
+// #if ASTERISK_VERSION_NUMBER >= 10800
 //      struct ast_sockaddr addr_tmp;
 //      ast_rtp_instance_get_local_address(rtp, &addr_tmp);
 //      ast_sockaddr_to_sin(&addr_tmp, &addr);
@@ -693,7 +693,7 @@ void pbx_rtp_get_us(PBX_RTP_TYPE * rtp, struct sockaddr_in *addr)
  */
 void pbx_rtp_set_peer(PBX_RTP_TYPE * rtp, struct sockaddr_in *addr)
 {
-// #if ASTERISK_VERSION_NUM >= 10800
+// #if ASTERISK_VERSION_NUMBER >= 10800
 //      struct ast_sockaddr addr_tmp;
 //      ast_sockaddr_from_sin(&addr_tmp, &addr);
 //      ast_rtp_instance_set_remote_address(rtp, &addr_tmp);
@@ -735,13 +735,13 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c, struc
 	if (!*new_rtp) {
 		return FALSE;
 	}
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 	if (*new_rtp && c->owner)
 		c->owner->fds[0] = ast_rtp_fd(*new_rtp);
 #endif
 
-#if ASTERISK_VERSION_NUM >= 10400
-#    if ASTERISK_VERSION_NUM < 10600
+#if ASTERISK_VERSION_NUMBER >= 10400
+#    if ASTERISK_VERSION_NUMBER < 10600
 	if (c->owner) {
 		c->owner->fds[0] = ast_rtp_fd(*new_rtp);
 		c->owner->fds[1] = ast_rtcp_fd(*new_rtp);
@@ -768,7 +768,7 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c, struc
 //        ast_set_flag(c->rtp.audio.rtp, FLAG_P2P_NEED_DTMF);
 
 	if (*new_rtp) {
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUMBER >= 10600
 		ast_rtp_setqos(*new_rtp, c->line->audio_tos, c->line->audio_cos, "SCCP RTP");
 #else
 		ast_rtp_settos(*new_rtp, c->line->audio_tos);
@@ -776,7 +776,7 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c, struc
 		ast_rtp_setnat(*new_rtp, d->nat);
 
 /* //zwei mal gesetzt
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUMBER >= 10600
 		ast_rtp_codec_setpref(c->rtp.audio.rtp, (struct ast_codec_pref *)&c->codecs);
 #endif
 */
@@ -818,13 +818,13 @@ boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, struc
 	if (!*new_rtp) {
 		return FALSE;
 	}
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 	if (*new_rtp && c->owner)
 		c->owner->fds[0] = ast_rtp_fd(*new_rtp);
 #endif
 
-#if ASTERISK_VERSION_NUM >= 10400
-#    if ASTERISK_VERSION_NUM < 10600
+#if ASTERISK_VERSION_NUMBER >= 10400
+#    if ASTERISK_VERSION_NUMBER < 10600
 	if (c->rtp.audio.rtp && c->owner) {
 		c->owner->fds[2] = ast_rtp_fd(*new_rtp);
 		c->owner->fds[3] = ast_rtcp_fd(*new_rtp);
@@ -851,7 +851,7 @@ boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, struc
 //        ast_set_flag(c->rtp.audio.rtp, FLAG_P2P_NEED_DTMF);
 
 	if (*new_rtp) {
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUMBER >= 10600
 		ast_rtp_setqos(*new_rtp, c->line->video_tos, c->line->video_cos, "SCCP VRTP");
 #else
 		ast_rtp_settos(*new_rtp, c->line->video_tos);
@@ -859,7 +859,7 @@ boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, struc
 		ast_rtp_setnat(*new_rtp, d->nat);
 
 
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUMBER >= 10600
 		ast_rtp_codec_setpref(c->rtp.video.rtp, (struct ast_codec_pref *)&c->codecs);
 #endif
 
@@ -868,7 +868,7 @@ boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, struc
 	return TRUE;
 }
 
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 
 /*!
  * \brief Get RTP Peer from Channel
@@ -987,7 +987,7 @@ finished:
 	return res;
 }
 
-#if ASTERISK_VERSION_NUM >= 10400 && ASTERISK_VERSION_NUM < 10600
+#if ASTERISK_VERSION_NUMBER >= 10400 && ASTERISK_VERSION_NUMBER < 10600
 
 /*!
  * \brief Set RTP Peer from Channel
@@ -1071,7 +1071,7 @@ uint8_t sccp_wrapper_asterisk_get_payloadType(const struct sccp_rtp * rtp, skinn
 
 boolean_t sccp_wrapper_asterisk_allocPBXChannel(const sccp_channel_t * channel, void **pbx_channel)
 {
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 	*pbx_channel = ast_channel_alloc(0);
 #else
 	*pbx_channel = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);

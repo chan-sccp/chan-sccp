@@ -1059,7 +1059,7 @@ void so2_bt(void);								/* backtrace */
 int sccpobj2_init(void);
 
 /* QuickFix for missing linkedlist.h entry in versions lower than asterisk 1.6 */
-/*#if ASTERISK_VERSION_NUM < 10600
+/*#if ASTERISK_VERSION_NUMBER < 10600
 #define AST_LIST_REMOVE_CURRENT(field) do { \
         __new_prev->field.next = NULL;                         
         __new_prev = __list_prev;

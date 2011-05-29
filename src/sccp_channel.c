@@ -700,7 +700,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 
 	sccp_channel_updateChannelCapability_locked(c);
 
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 	struct ast_format_list fmt = pbx_codec_pref_getsize(&c->codecs, c->format & AST_FORMAT_AUDIO_MASK);
 
 	payloadType = sccp_codec_ast2skinny(fmt.bits);
@@ -728,7 +728,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 		return;
 	}
 
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUMBER >= 10600
  	if(c->format & AST_FORMAT_SLINEAR16){
  		//payloadType = 25;
  		//c->rtp.audio.rtp.current_RTP_PT[payloadType].code = AST_FORMAT_SLINEAR16;
@@ -875,7 +875,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		payloadType = 97;
 	}
 	
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUMBER >= 10600
 	switch(channel->rtp.video.readFormat){
 	  case AST_FORMAT_H263:
 	    ast_rtp_set_m_type(channel->rtp.video.rtp, payloadType);
@@ -987,7 +987,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 
 	int packetSize;
 
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 	struct ast_format_list fmt;
 #endif
 	if (!c->rtp.audio.rtp) {
@@ -1029,7 +1029,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 //              }
 	}
 
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 	fmt = pbx_codec_pref_getsize(&c->device->codecs, c->format);
 	payloadType = sccp_codec_ast2skinny(fmt.bits);
 	packetSize = fmt.cur_ms;
@@ -2417,7 +2417,7 @@ void sccp_channel_park(sccp_channel_t * c)
 
 	boolean_t channelResult;
 
-// #    if ASTERISK_VERSION_NUM < 10400
+// #    if ASTERISK_VERSION_NUMBER < 10400
 //      chan1m = ast_channel_alloc(0);
 // #    else
 //      chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
@@ -2430,7 +2430,7 @@ void sccp_channel_park(sccp_channel_t * c)
 		sccp_dev_displayprompt(c->device, instance, c->callid, SKINNY_DISP_NO_PARK_NUMBER_AVAILABLE, 0);
 		return;
 	}
-// #    if ASTERISK_VERSION_NUM < 10400
+// #    if ASTERISK_VERSION_NUMBER < 10400
 //      chan2m = ast_channel_alloc(0);
 // #    else
 //      chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);

@@ -17,12 +17,12 @@
 #    define sccp_mutex_init(x)          		ast_mutex_init(x)
 #    define sccp_mutex_destroy(x)       		ast_mutex_destroy(x)
 
-#    if ASTERISK_VERSION_NUM >= 10400
+#    if ASTERISK_VERSION_NUMBER >= 10400
 	/* Channel Mutex Macros for Asterisk 1.4 and above */
 #        define sccp_ast_channel_lock(x)    	ast_channel_lock(x)
 #        define sccp_ast_channel_unlock(x)  	ast_channel_unlock(x)
 #        define sccp_ast_channel_trylock(x) 	ast_channel_trylock(x)
-#        if ASTERISK_VERSION_NUM >= 10600
+#        if ASTERISK_VERSION_NUMBER >= 10600
 #            define AST_CHANNEL_DEADLOCK_AVOIDANCE(x)	CHANNEL_DEADLOCK_AVOIDANCE(x)
 #        else
 #            define AST_CHANNEL_DEADLOCK_AVOIDANCE(x)	DEADLOCK_AVOIDANCE(&x->lock)
@@ -38,7 +38,7 @@
 		                                       sccp_ast_channel_lock(x); \
 		                                while(0)
 #        define AST_DEADLOCK_AVOIDANCE(x)	DEADLOCK_AVOIDANCE(&x->lock)
-#    endif									// ASTERISK_VERSION_NUM >= 10400
+#    endif									// ASTERISK_VERSION_NUMBER >= 10400
 
 #    ifndef CS_AST_DEBUG_CHANNEL_LOCKS
 	/* Macro for Generic Mutex */

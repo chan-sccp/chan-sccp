@@ -22,7 +22,7 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/translate.h>
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 #    ifdef CS_AST_HAS_TECH_PVT
 #        define SET_CAUSE(x)	*cause = x;
 #    else
@@ -765,7 +765,7 @@ static int load_config(void)
 
 	int on = 1;
 
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 	/* Copy the default jb config over global_jbconf */
 	memcpy(&GLOB(global_jbconf), &default_jbconf, sizeof(struct ast_jb_conf));
 
@@ -948,7 +948,7 @@ int sccp_restart_monitor(void)
 }
 
 
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 
 /*!
  * \brief 	Load the actual chan_sccp module
@@ -971,7 +971,7 @@ static int load_module(void)
 	sccp_event_listeners = ast_malloc(sizeof(struct sccp_event_subscriptions));
 	if (!sccp_globals || !sccp_event_listeners) {
 		ast_log(LOG_ERROR, "No free memory for SCCP global vars. SCCP channel type disabled\n");
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 		return -1;
 #else
 		return AST_MODULE_LOAD_FAILURE;
@@ -1084,7 +1084,7 @@ static int load_module(void)
 	return 0;
 }
 
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 
 /*!
  * \brief Schedule free memory
@@ -1102,7 +1102,7 @@ int sccp_sched_free(void *ptr)
 }
 #endif
 
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 
 /*!
  * \brief 	Unload the chan_sccp module
@@ -1270,7 +1270,7 @@ static int unload_module(void)
 	return 0;
 }
 
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY, "Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION " " SCCP_BRANCH " (built by '" BUILD_USER "' on '" BUILD_DATE "')");
 #else
 /*!
