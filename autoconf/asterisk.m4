@@ -260,6 +260,7 @@ AC_DEFUN([FIND_ASTERISK_HEADERS],[
 ])
 
 AC_DEFUN([CHECK_ASTERISK_HEADER_CONTENT],[
+AC_LANG_PUSH([C])
 	CONFIGURE_PART([Checking Asterisk Header Content:])
 	dnl AC_CHECK_HEADER (header-file, action-if-found, [action-if-not-found])
 	dnl AC_EGREP_HEADER (pattern, header-file, action-if-found, [action-if-not-found])
@@ -679,4 +680,6 @@ AC_DEFUN([CHECK_ASTERISK_HEADER_CONTENT],[
 	  fi
 	fi
   fi
+AC_LANG_POP([C])
+
 ])
