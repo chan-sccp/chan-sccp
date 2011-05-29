@@ -198,6 +198,8 @@ fi
             
 # Checks for programs.
 CONFIGURE_PART([Checking for standard programs:])
+AC_LANG_SAVE
+AC_LANG_C
 AC_PATH_PROGS(GREP, ggrep grep,[echo Missing grep so skipping but I doubt we will get anywhere])
 AC_PATH_PROGS(SVN, svn, [echo Missing subversion so some stuff will be borked],${PATH}:/opt/csw/bin)
 AC_PATH_PROGS(SHELL,bash sh,[echo No compatible shell found])
@@ -220,7 +222,6 @@ AC_PROG_AWK
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_FUNC_STRERROR_R
-AC_LANG_C
 AC_C_CONST
 AC_C_INLINE 		dnl wanted by: src/chan_sccp.h:138
 ACX_PTHREAD 
@@ -694,7 +695,6 @@ AC_SUBST(CPU_OPTIONS)
 AC_SUBST(prefix)
 AC_SUBST(RPMBUILD)
 
-
 CONFIGURE_PART([Generating Configuration and Makefiles])
 AC_CONFIG_FILES([
    Makefile
@@ -718,6 +718,7 @@ dnl AC_AUTO_INCLUDE_HEADERS([common.h], [
 dnl 	asterisk/pbx.h asterisk/acl.h asterisk/app.h asterisk/astdb.h asterisk/callerid.h asterisk/causes.h asterisk/channel.h asterisk/channel_pvt.h asterisk/cli.h asterisk/config.h asterisk/devicestate.h asterisk/endian.h asterisk/event.h asterisk/features.h asterisk/frame.h asterisk/lock.h asterisk/logger.h asterisk/manager.h asterisk/module.h asterisk/musiconhold.h asterisk/options.h asterisk/asterisk.h asterisk/rtp.h asterisk/sched.h asterisk/stringfields.h asterisk/strings.h asterisk/translate.h asterisk/utils.h
 dnl	ctype.h argz.h dirent.h dld.h dlfcn.h dl.h fcntl.h inttypes.h memory.h netinet/in.h pthread.h stdbool.h stdint.h stdlib.h strings.h string.h sys/dl.h sys/ioctl.h sys/socket.h sys/stat.h sys/types.h unistd.h signal.h 
 dnl])
+AC_LANG_RESTORE
 
 AC_OUTPUT
 
