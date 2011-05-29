@@ -69,7 +69,7 @@ int sccp_register_management(void)
 	int result;
 
 	/* Register manager commands */
-#    if ASTERISK_VERSION_NUM < 10600
+#    if ASTERISK_VERSION_NUMBER < 10600
 #        define _MAN_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG
 #    else
 #        define _MAN_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING
@@ -353,15 +353,15 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 	if (line) {
 		linedevice = sccp_util_getDeviceConfiguration(device, line);
 		if (linedevice) {
-			if (!strcasecmp(forwardType, "all")) {
-				if (!strcasecmp(Disable, "no")) {
+			if (!sccp_strcasecmp("all", forwardType)) {
+				if (!sccp_strcasecmp("no", Disable)) {
 					linedevice->cfwdAll.enabled = 0;
 				} else {
 					linedevice->cfwdAll.enabled = 1;
 				}
 				sccp_copy_string(linedevice->cfwdAll.number, number, strlen(number));
-			} else if (!strcasecmp(forwardType, "busy")) {
-				if (!strcasecmp(Disable, "no")) {
+			} else if (!sccp_strcasecmp("busy", forwardType)) {
+				if (!sccp_strcasecmp("no", Disable)) {
 					linedevice->cfwdBusy.enabled = 0;
 				} else {
 					linedevice->cfwdBusy.enabled = 1;
@@ -370,7 +370,7 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 
 /*! \todo cfwdNoAnswer is not implemented yet in sccp_linedevices_t */
 
-/*			} else if (!strcasecmp(forwardType, "noAnswer")) {
+/*			} else if (!sccp_strcasecmp("noAnswer", forwardType)) {
 				if (!strcasecmp(Disable,"no")) {
 					linedevice->cfwdNoAnswer.enabled=0;
 				} else {

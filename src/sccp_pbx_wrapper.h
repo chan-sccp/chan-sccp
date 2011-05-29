@@ -42,13 +42,13 @@ extern struct sccp_pbx_cb sccp_pbx;
 
 #    define PBX(x) sccp_pbx.x
 
-#    if ASTERISK_VERSION_NUM >= 10800
+#    if ASTERISK_VERSION_NUMBER >= 10800
 typedef int64_t format_t;
 #    else
 typedef int format_t;
 #    endif
 
-#    if ASTERISK_VERSION_NUM < 10600
+#    if ASTERISK_VERSION_NUMBER < 10600
 // Fake implementation
 struct ast_hashtab {
 };
@@ -65,7 +65,7 @@ enum {
 };
 #    endif
 
-#    if ASTERISK_VERSION_NUM >= 10600
+#    if ASTERISK_VERSION_NUMBER >= 10600
 #        define NEWCONST const							// old functions used without const
 #        define OLDCONST							// new function used with const
 #    else
@@ -84,7 +84,7 @@ enum {
 #    define pbx_codec2str ast_codec2str
 
 // application / module / cli redefinitions
-#if ASTERISK_VERSION_NUM < 10600
+#if ASTERISK_VERSION_NUMBER < 10600
 #    define pbx_register_application(a, b, c, d, e) ast_register_application(a, b, c, d)
 #else
 #    define pbx_register_application ast_register_application2
@@ -110,7 +110,7 @@ enum {
 #    define pbx_db_get ast_db_get
 #    define pbx_moh_stop ast_moh_stop
 
-#    if ASTERISK_VERSION_NUM < 10400
+#    if ASTERISK_VERSION_NUMBER < 10400
 #        define pbx_channel_alloc(_x, ...) ast_channel_alloc(_x)
 #        define pbx_null_frame NULL
 #        define pbx_jb_configure(...)
@@ -195,7 +195,7 @@ int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rt
 enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE ** rtp);
 #        else
 
-#            if ASTERISK_VERSION_NUM >= 10400 && ASTERISK_VERSION_NUM < 10600
+#            if ASTERISK_VERSION_NUMBER >= 10400 && ASTERISK_VERSION_NUMBER < 10600
 int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rtp, PBX_RTP_TYPE * vrtp, int codecs, int nat_active);
 #            else
 int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rtp, PBX_RTP_TYPE * vrtp, PBX_RTP_TYPE * trtp, int codecs, int nat_active);

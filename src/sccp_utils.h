@@ -131,7 +131,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** e);
 int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsigned int softkey);
 //sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr);
 sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_in sin);
-#    if ASTERISK_VERSION_NUM >= 10600
+#    if ASTERISK_VERSION_NUMBER >= 10600
 #        ifdef HAVE_PBX_DEVICESTATE_H
 enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state);
 #        endif

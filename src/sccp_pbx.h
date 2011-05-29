@@ -18,9 +18,9 @@
 
 #    ifndef CS_AST_HAS_RTP_ENGINE
 #        define sccp_rtp_write	ast_rtp_write
-#    	 if ASTERISK_VERSION_NUM >= 10400
+#    	 if ASTERISK_VERSION_NUMBER >= 10400
 		extern struct ast_rtp_protocol sccp_rtp;					/*!< rtp definition, see sccp_pbx.c */
-#    	  endif									// ASTERISK_VERSION_NUM >= 10400
+#    	  endif									// ASTERISK_VERSION_NUMBER >= 10400
 #    else
 #        define sccp_rtp_write	ast_rtp_instance_write
 	 extern struct ast_rtp_glue sccp_rtp;
@@ -43,19 +43,19 @@ void sccp_pbx_senddigit(sccp_channel_t * c, char digit);
 void sccp_pbx_senddigits(sccp_channel_t * c, char digits[AST_MAX_EXTENSION]);
 void sccp_queue_frame(sccp_channel_t * c, struct ast_frame *f);
 
-#    if ASTERISK_VERSION_NUM >= 10400
+#    if ASTERISK_VERSION_NUMBER >= 10400
 int sccp_ast_queue_control(sccp_channel_t * c, enum ast_control_frame_type control);
 #    else
 int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control);
-#    endif									// ASTERISK_VERSION_NUM >= 10400
+#    endif									// ASTERISK_VERSION_NUMBER >= 10400
 
 #    ifdef CS_AST_CONTROL_CONNECTED_LINE
 static void sccp_pbx_update_connectedline(sccp_channel_t * channel, const void *data, size_t datalen);
 #    endif									// CS_AST_CONTROL_CONNECTED_LINE
 
-#if ASTERISK_VERSION_NUM > 10400
+#if ASTERISK_VERSION_NUMBER > 10400
 enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channel *c1, int flags, struct ast_frame **fo,  struct ast_channel **rc, int timeoutms);
-#endif // ASTERISK_VERSION_NUM > 10400
+#endif // ASTERISK_VERSION_NUMBER > 10400
 
 int sccp_pbx_transfer(struct ast_channel *ast, const char *dest);
 

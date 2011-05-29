@@ -23,7 +23,7 @@ void sccp_unregister_cli(void);
 //   param3=cli string to be types as array of strings
 //   param4=registration description
 //   param5=usage string
-#    if ASTERISK_VERSION_NUM >= 10600
+#    if ASTERISK_VERSION_NUMBER >= 10600
 #        define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER)		\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {	\
 		static char *cli_command[] = { CLI_COMMAND };					\
@@ -87,6 +87,6 @@ void sccp_unregister_cli(void);
 	  .summary = _DESCR,									\
 	  .usage = _USAGE									\
 	};
-#    endif									// ASTERISK_VERSION_NUM >= 10600
+#    endif									// ASTERISK_VERSION_NUMBER >= 10600
 
 #endif										// __SCCP_CLI_H

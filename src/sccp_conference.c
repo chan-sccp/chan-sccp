@@ -22,7 +22,7 @@
 #    include "asterisk/bridging.h"
 #    include "asterisk/bridging_features.h"
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#    if ASTERISK_VERSION_NUM >= 10602
+#    if ASTERISK_VERSION_NUMBER >= 10602
 #include "asterisk/astobj2.h"
 static int lastConferenceID = 99;
 
@@ -615,7 +615,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		
 	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Sending ConferenceList to Channel %d\n", channel->device->id, channel->callid);
 
-#        if ASTERISK_VERSION_NUM >= 10400
+#        if ASTERISK_VERSION_NUMBER >= 10400
 	unsigned int transactionID = ast_random();
 #        else
 	unsigned int transactionID = random();
@@ -958,7 +958,7 @@ void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_cha
 		
 	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Sending InviteForm to Channel %d\n", channel->device->id, channel->callid);
 
-#        if ASTERISK_VERSION_NUM >= 10400
+#        if ASTERISK_VERSION_NUMBER >= 10400
 	unsigned int transactionID = ast_random();
 #        else
 	unsigned int transactionID = random();
@@ -1068,5 +1068,5 @@ sccp_conference_participant_t *sccp_conference_participant_find_byid(sccp_confer
 	return participant;
 }
 
-#    endif									// ASTERISK_VERSION_NUM
+#    endif									// ASTERISK_VERSION_NUMBER
 #endif										// CS_SCCP_CONFERENCE

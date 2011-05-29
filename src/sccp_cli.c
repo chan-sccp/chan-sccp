@@ -1558,7 +1558,7 @@ CLI_ENTRY(cli_end_call, sccp_end_call, "Hangup a channel", end_call_usage)
 #undef CLI_COMMAND
 
 /* --- Register Cli Entries-------------------------------------------------------------------------------------------- */
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUMBER >= 10600
 
 /*!
  * \brief Asterisk Cli Entry
@@ -1603,7 +1603,7 @@ static struct ast_cli_entry cli_entries[] = {
  */
 void sccp_register_cli(void)
 {
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUMBER >= 10600
 	/* register all CLI functions */
 	ast_cli_register_multiple(cli_entries, sizeof(cli_entries) / sizeof(struct ast_cli_entry));
 #else
@@ -1641,7 +1641,7 @@ void sccp_register_cli(void)
  */
 void sccp_unregister_cli(void)
 {
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUMBER >= 10600
 	/* unregister CLI functions */
 	ast_cli_unregister_multiple(cli_entries, sizeof(cli_entries) / sizeof(struct ast_cli_entry));
 #else

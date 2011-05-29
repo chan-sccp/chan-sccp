@@ -310,17 +310,17 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 	while ((target = pbx_channel_walk_locked(target))) {
 		sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
 		sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (directpickup)\n" "--------------------------------------------\n" "(pickup target)\n" "exten         = %s\n" "context       = %s\n" "pbx           = off\n" "state         = %d or %d\n" "(current chan)\n" "macro exten   = %s\n" "exten         = %s\n" "macro context = %s\n" "context       = %s\n"
-#    if ASTERISK_VERSION_NUM >= 10400
+#    if ASTERISK_VERSION_NUMBER >= 10400
 							      "dialcontext   = %s\n"
 #    endif
 							      "pbx           = %s\n" "state         = %d\n" "--------------------------------------------\n", pickupexten, !sccp_strlen_zero(d->pickupcontext) ? d->pickupcontext : "(NULL)", AST_STATE_RINGING, AST_STATE_RING, target->macroexten ? target->macroexten : "(NULL)", target->exten ? target->exten : "(NULL)", target->macrocontext ? target->macrocontext : "(NULL)", target->context ? target->context : "(NULL)",
-#    if ASTERISK_VERSION_NUM >= 10400
+#    if ASTERISK_VERSION_NUMBER >= 10400
 							      target->dialcontext ? target->dialcontext : "(NULL)",
 #    endif
 							      target->pbx ? "on" : "off", target->_state);
 
 		if ((!strcasecmp(target->macroexten, pickupexten) || !strcasecmp(target->exten, pickupexten)) &&
-#    if ASTERISK_VERSION_NUM < 10400
+#    if ASTERISK_VERSION_NUMBER < 10400
 		    ((!sccp_strlen_zero(d->pickupcontext) ? (!strcasecmp(target->context, d->pickupcontext)) : 1) || (!sccp_strlen_zero(d->pickupcontext) ? (!strcasecmp(target->macrocontext, d->pickupcontext)) : 1)) &&
 #    else
 		    ((!sccp_strlen_zero(d->pickupcontext) ? (!strcasecmp(target->dialcontext, d->pickupcontext)) : 1) || (!sccp_strlen_zero(d->pickupcontext) ? (!strcasecmp(target->macrocontext, d->pickupcontext)) : 1)) &&
@@ -1032,15 +1032,15 @@ static void *sccp_feat_meetme_thread(void *data)
 
 	char meetmeopts[AST_MAX_CONTEXT];
 
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUMBER >= 10600
 #    define SCCP_CONF_SPACER ','
 #endif
 
-#if ASTERISK_VERSION_NUM >= 10400 && ASTERISK_VERSION_NUM < 10600
+#if ASTERISK_VERSION_NUMBER >= 10400 && ASTERISK_VERSION_NUMBER < 10600
 #    define SCCP_CONF_SPACER '|'
 #endif
 
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 	unsigned int eid = ast_random();
 #else
 	unsigned int eid = random();
@@ -1467,7 +1467,7 @@ int checkMonCond(void *v) {
 //void sccp_feat_monitor(sccp_device_t * device, sccp_channel_t * channel)
 void sccp_feat_monitor(sccp_device_t * device, sccp_line_t * line, const uint32_t lineInstance, sccp_channel_t * channel)
 {
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUMBER >= 10600
 #    ifdef CS_SCCP_FEATURE_MONITOR
 	struct ast_call_feature *feat;
 
@@ -1475,7 +1475,7 @@ void sccp_feat_monitor(sccp_device_t * device, sccp_line_t * line, const uint32_
 
 	struct ast_frame f;
 
-#        if ASTERISK_VERSION_NUM >= 10400
+#        if ASTERISK_VERSION_NUMBER >= 10400
 	f = ast_null_frame;
 #        else
 	f = NULL;

@@ -733,8 +733,8 @@ AC_OUTPUT
 #
 # we are not using the PACKAGE_ define in any of the sources
 #
-sed -e "s/^\(\#define PACKAGE_[A-Z]*\)$/\/\* \1 \*\//g" src/config.h >src/config.h.tmp && mv src/config.h.tmp src/config.h
-sed -e "s/^\(\#undef PACKAGE_[A-Z]*\)$/\/\* \1 \*\//g" src/config.h.in >src/config.h.in.tmp && mv src/config.h.in.tmp src/config.h.in
+sed -e "s/^\(\#define PACKAGE_.*\)$/\/\* \1 \*\//g" src/config.h >src/config.h.tmp && mv src/config.h.tmp src/config.h
+sed -e "s/^\(\#undef PACKAGE_.*\)$/\/\* \1 \*\//g" src/config.h.in >src/config.h.in.tmp && mv src/config.h.in.tmp src/config.h.in
 touch src/stamp-h1
 
 dnl Call the AC_CONFIG_COMMANDS from create_common.m4

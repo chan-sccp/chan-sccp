@@ -14,7 +14,7 @@
  * Function implementing sccpobj2 objects.
  */
 #include "config.h"
-#if ASTERISK_VERSION_NUM >= 10400
+#if ASTERISK_VERSION_NUMBER >= 10400
 #    include <asterisk.h>
 #endif
 #include "chan_sccp.h"

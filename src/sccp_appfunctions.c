@@ -795,7 +795,7 @@ int sccp_register_dialplan_functions(void)
 	result |= pbx_register_application(prefcodec_name, sccp_app_prefcodec, prefcodec_synopsis, prefcodec_descr, NULL); 
 	result |= pbx_register_application(mutemic_name, sccp_app_setmutemic, mutemic_synopsis, mutemic_descr, NULL); 
 
-#if ASTERISK_VERSION_NUM >= 10600
+#if ASTERISK_VERSION_NUMBER >= 10600
 	/* Register dialplan functions */
 	result |= pbx_custom_function_register(&sccpdevice_function, NULL);
 	result |= pbx_custom_function_register(&sccpline_function, NULL);

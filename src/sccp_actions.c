@@ -26,7 +26,7 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#if ASTERISK_VERSION_NUM < 10400
+#if ASTERISK_VERSION_NUMBER < 10400
 
 /*!
  * \brief Host Access Rule Structure
