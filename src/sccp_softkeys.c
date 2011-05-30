@@ -920,8 +920,8 @@ void sccp_sk_dial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstanc
  if (c) { // Handle termination of dialling if in appropriate state.
     
     	
-      /* Only handle this in OFFHOOK state. AFAIK GETDIGITS is used only for call forward and related input functions. (-DD) */
-      if ( (c->state == SCCP_CHANNELSTATE_OFFHOOK) ) {
+      /* Only handle this in DIALING state. AFAIK GETDIGITS is used only for call forward and related input functions. (-DD) */
+      if ( (c->state == SCCP_CHANNELSTATE_DIALING) ) {
           
             /* removing scheduled dial */
 		        sccp_channel_lock(c);
