@@ -198,6 +198,30 @@ if test "${USE_$1}" != "no"; then
 fi
 ])
 
+## -----------------------------##
+## PATCH_LIBTOOL_TO_ADD_HOST_CC ##
+## -----------------------------##
+AC_DEFUN([PATCH_LIBTOOL_TO_ADD_HOST_CC],
+[# patch libtool to add HOST_CC sometimes needed in crosscompiling a win32 dll
+if grep "HOST_CC" libtool >/dev/null; then
+  if test "$build" != "$host" ; then
+    if test "_$HOST_CC" = "_" ; then
+      HOST_CC="false"
+      for i in `echo $PATH | sed 's,:, ,g'` ; do
+      test -x $i/cc && HOST_CC=$i/cc
+      done
+    fi
+AC_MSG_RESULT(patching libtool to add HOST_CC=$HOST_CC)
+    test -f libtool.old || (mv libtool libtool.old && cp libtool.old libtool)
+    sed -e "/BEGIN.*LIBTOOL.*CONFIG/a\\
+HOST_CC=$HOST_CC" libtool >libtool.new 
+    (test -s libtool.new || rm libtool.new) 2>/dev/null
+    test -f libtool.new && mv libtool.new libtool # not 2>/dev/null !!
+    test -f libtool     || mv libtool.old libtool
+  fi
+fi  
+])  
+
 ## ------------------------##
 ## AC_AUTO_INCLUDE_HEADERS ##
 ## ------------------------##
