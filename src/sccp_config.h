@@ -65,6 +65,7 @@ static const softkeyConfigurationTemplate softKeyTemplate[] = {
 	{"join",	SKINNY_LBL_JOIN},
 	{"intrcpt",	SKINNY_LBL_INTRCPT},
 	{"monitor",	SKINNY_LBL_MONITOR},
+  {"dial",	SKINNY_LBL_DIAL},
 	{"empty",	SKINNY_LBL_EMPTY},
 };
 

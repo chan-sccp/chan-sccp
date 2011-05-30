@@ -3392,6 +3392,7 @@ static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_INTRCPT,
     SKINNY_LBL_CBARGE,
 	SKINNY_LBL_MONITOR,
+  SKINNY_LBL_DIAL,
 	SKINNY_LBL_EMPTY,
 };										/*!< Soft Keys Map as INT */
 
@@ -3538,6 +3539,7 @@ static uint8_t skSet_Conntrans[] = {
 static uint8_t skSet_DigitsFoll[] = {
 	SKINNY_LBL_BACKSPACE,
 	SKINNY_LBL_ENDCALL,
+  SKINNY_LBL_DIAL,
 };										/*!< SKINNY SoftKeys Set "Digits after dialing first digit" as INT */
 
 static uint8_t skSet_Connconf[] = {
