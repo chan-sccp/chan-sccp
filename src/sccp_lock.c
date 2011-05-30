@@ -125,7 +125,7 @@ int __sccp_mutex_unlock(ast_mutex_t * p_mutex, const char *itemnametolock, const
 #        ifdef CS_AST_DEBUG_THREADS
 	int count = 0;
 
-#            ifndef CS_AST_HAS_TRACK
+#            ifndef CS_AST_LOCK_TRACK
 	if ((count = p_mutex->reentrancy)) {
 #            else
 
@@ -193,7 +193,7 @@ int __sccp_mutex_lock(ast_mutex_t * p_mutex, const char *itemnametolock, const c
 #        ifdef CS_AST_DEBUG_THREADS
 	int count = 0;
 
-#            ifndef CS_AST_HAS_TRACK
+#            ifndef CS_AST_LOCK_TRACK
 	if ((count = p_mutex->reentrancy)) {
 #            else
 
@@ -259,7 +259,7 @@ int __sccp_mutex_trylock(ast_mutex_t * p_mutex, const char *itemnametolock, cons
 #        ifdef CS_AST_DEBUG_THREADS
 	int count = 0;
 
-#            ifndef CS_AST_HAS_TRACK
+#            ifndef CS_AST_LOCK_TRACK
 	if ((count = p_mutex->reentrancy)) {
 #            else
 
