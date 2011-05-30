@@ -1663,7 +1663,7 @@ void sccp_handle_soft_key_template_req(sccp_session_t *s, sccp_device_t *d, sccp
 	for (i = 0; i < arrayLen; i++) {
 		switch(softkeysmap[i]) {
 			case SKINNY_LBL_MONITOR: // Exception for non-localized string label.
-      case SKINNY_LBL_DIAL: // Exception for non-localized string label.
+                        case SKINNY_LBL_DIAL: // Exception for non-localized string label.
 				strncpy(r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel, label2str(softkeysmap[i]), StationMaxSoftKeyLabelSize);
 				r1->msg.SoftKeyTemplateResMessage.definition[i].lel_softKeyEvent = htolel(i + 1);
 				sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i + 1, r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel);
@@ -2213,7 +2213,7 @@ static const struct sccp_softkeyMap_cb softkeyCbMap[] = {
 	{SKINNY_LBL_GPICKUP, sccp_sk_gpickup, FALSE},
 #endif
 	{SKINNY_LBL_MONITOR, sccp_feat_monitor, TRUE},
-  {SKINNY_LBL_DIAL, sccp_sk_dial, TRUE},
+        {SKINNY_LBL_DIAL, sccp_sk_dial, TRUE},
 	{SKINNY_LBL_INTRCPT, sccp_sk_resume, TRUE},
 	{SKINNY_LBL_CONFLIST, sccp_sk_conflist, TRUE},
 	
