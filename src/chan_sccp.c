@@ -541,8 +541,10 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t *s)
 	uint32_t mid;
 	
 	if (!s) {
-		ast_log(LOG_ERROR, "%s: (sccp_handle_message) Client does not have a sessions, Required !\n", DEV_ID_LOG(s->device));
-		ast_free(r);
+		ast_log(LOG_ERROR, "SCCP: (sccp_handle_message) Client does not have a sessions, Required !\n");
+		if (r) {
+			sccp_free(r);
+		}
 		return -1;
 	}
 
@@ -751,7 +753,9 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t *s)
 		sccp_handle_unknown_message(s, r);
 	}
 #endif
-	ast_free(r);
+	if (r) {
+		sccp_free(r);
+	}
 	return 1;
 }
 
