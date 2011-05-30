@@ -903,6 +903,39 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 #endif
 }
 
+
+/*!
+ * \brief Forces Dialling before timeout
+ * \n Usage: \ref sccp_sk_dial
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
+ * \param c SCCP Channel
+ */
+void sccp_sk_dial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
+{
+
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Dial Pressed\n", DEV_ID_LOG(d));
+	
+ if (c) { // Handle termination of dialling if in appropriate state.
+    
+    	
+      /* Only handle this in OFFHOOK state. AFAIK GETDIGITS is used only for call forward and related input functions. (-DD) */
+      if ( (c->state == SCCP_CHANNELSTATE_OFFHOOK) ) {
+          
+            /* removing scheduled dial */
+		        sccp_channel_lock(c);
+            SCCP_SCHED_DEL(sched, c->digittimeout);
+            sccp_pbx_softswitch_locked(c);
+            sccp_channel_unlock(c);
+            return;
+          
+      }
+	  
+	}
+}
+
+
 /*!
  * \brief sets a SoftKey to a specified status (on/off)
  *
@@ -948,3 +981,4 @@ void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, const uint32_t lin
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, keymode2str(5), 5, lineInstance, c->callid);
 	sccp_dev_send(d, r);
 }
+

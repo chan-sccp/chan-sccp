@@ -109,6 +109,7 @@
 #    define SKINNY_LBL_VIDEO_BANDWIDTH_UNAVAILABLE                       	87
 #    define SKINNY_LBL_VIDEO_MODE					        88
 #    define SKINNY_LBL_MONITOR					        	100
+#    define SKINNY_LBL_DIAL							        	101
 
 /*!
  * \brief Skinny LABEL Structure
@@ -207,7 +208,8 @@ static const struct skinny_label {
 	{SKINNY_LBL_SECURITY_ERROR, "Security Error"},
 	{SKINNY_LBL_VIDEO_BANDWIDTH_UNAVAILABLE, "Video Bandwidth Unavailable"},
 	{SKINNY_LBL_VIDEO_MODE, "Video Mode"},
-	{SKINNY_LBL_MONITOR, "Record"}
+	{SKINNY_LBL_MONITOR, "Record"},
+ 	{SKINNY_LBL_DIAL, "Dial"}
 	/* *INDENT-ON* */
 };
 
@@ -355,6 +357,7 @@ static const struct skinny_label {
 #    define SKINNY_DISP_SERVICES_URL					"\200\177"
 
 #    define SKINNY_DISP_MONITOR					"Record"
+#    define SKINNY_DISP_DIAL					"Dial"
 
 /*!
  * \brief Ast Cause - Skinny DISP Mapping
