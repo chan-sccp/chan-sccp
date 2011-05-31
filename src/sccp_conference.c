@@ -18,12 +18,14 @@
 #include "config.h"
 #include "common.h"
 
-#ifdef CS_SCCP_CONFERENCE
-#    include "asterisk/bridging.h"
-#    include "asterisk/bridging_features.h"
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
+
+#ifdef CS_SCCP_CONFERENCE
+#    include <asterisk/bridging.h>
+#    include <asterisk/bridging_features.h>
 #    if ASTERISK_VERSION_NUMBER >= 10602
-#include "asterisk/astobj2.h"
+#      include <asterisk/astobj2.h>
+
 static int lastConferenceID = 99;
 
 /* internal structure */

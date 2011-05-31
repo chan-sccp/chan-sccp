@@ -14,8 +14,6 @@
 #ifndef __SCCP_PBX_H
 #    define __SCCP_PBX_H
 
-#    include <asterisk/pbx.h>
-
 #    ifndef CS_AST_HAS_RTP_ENGINE
 #        define sccp_rtp_write	ast_rtp_write
 #    	 if ASTERISK_VERSION_NUMBER >= 10400

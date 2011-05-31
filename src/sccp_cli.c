@@ -20,14 +20,10 @@
  */
 #include "config.h"
 #include "common.h"
+
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
+
 #include <asterisk/cli.h>
-#ifdef CS_MANAGER_EVENTS
-#    include <asterisk/manager.h>
-#endif
-#ifdef CS_AST_HAS_EVENT
-#    include "asterisk/event.h"
-#endif
 
 /* --- CLI Tab Completion ---------------------------------------------------------------------------------------------- */
 

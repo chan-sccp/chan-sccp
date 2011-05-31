@@ -13,7 +13,6 @@
 #ifndef SCCP_EVENT_H_
 #    define SCCP_EVENT_H_
 
-#    include "config.h"
 #    include "chan_sccp.h"
 
 /* structures */

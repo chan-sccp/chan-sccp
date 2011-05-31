@@ -14,9 +14,6 @@
 #ifndef __SCCP_UTILS_H
 #    define __SCCP_UTILS_H
 
-#    include "sccp_event.h"
-#    include "asterisk/version.h"
-
 void sccp_dump_packet(unsigned char *messagebuffer, int len);
 
 void sccp_permithost_addnew(sccp_device_t * d, const char *config_string);

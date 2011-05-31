@@ -12,13 +12,6 @@
 #ifndef SCCP_MWI_H_
 #    define SCCP_MWI_H_
 
-#    include "asterisk.h"
-#    include "sccp_event.h"
-
-#    ifdef CS_AST_HAS_EVENT
-#        include "asterisk/event.h"
-#    endif
-
 /*!
  * \brief SCCP Mailbox Line Type Definition
  *

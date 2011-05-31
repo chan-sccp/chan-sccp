@@ -14,16 +14,11 @@
  * Function implementing sccpobj2 objects.
  */
 #include "config.h"
-#if ASTERISK_VERSION_NUMBER >= 10400
-#    include <asterisk.h>
-#endif
-#include "chan_sccp.h"
-#include "sccp_object2.h"
+#include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 1245 $")
-#include "sccp_lock.h"
-#include "sccp_config.h"
-#include <assert.h>
+#include "sccp_object2.h"
+
 #define REF_FILE "/tmp/refs"
 
 /*!

@@ -11,7 +11,6 @@
  */
 
 #include "config.h"
-//#include "sccp_mwi.h"
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")

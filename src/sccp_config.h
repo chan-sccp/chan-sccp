@@ -14,18 +14,6 @@
 #ifndef __SCCP_CONFIG_H
 #    define __SCCP_CONFIG_H
 
-#    include "config.h"
-#    include <stdint.h>
-
-#    if ASTERISK_VERSION_NUMBER >= 10400
-#        include <asterisk.h>
-#    endif
-#    include "asterisk/channel.h"
-
-#    include "chan_sccp.h"
-#    include "sccp_dllists.h"
-#    include "sccp_protocol.h"
-
 /*!
  * \brief Soft Key Configuration Template Structure
  */
