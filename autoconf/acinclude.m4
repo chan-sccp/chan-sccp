@@ -1,7 +1,10 @@
-# This file is part of Autoconf.                       -*- Autoconf -*-
-
-# Copyright (C) 2004 Oren Ben-Kiki
-# This file is distributed under the same terms as the Autoconf macro files.
+dnl FILE: acinclude.m4
+dnl COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
+dnl CREATED BY: Created by Diederik de Groot
+dnl LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
+dnl          See the LICENSE file at the top of the source tree.
+dnl DATE: $Date: $
+dnl REVISION: $Revision: $
 
 ## ------------------##
 ## CS_Check_PBX	(DdG)##
@@ -110,6 +113,75 @@ AC_DEFUN([CS_CHECK_PBX], [
     AC_SUBST([PBX_CFLAGS])
     AC_SUBST([PBX_LDFLAGS])
 ])
+
+## -------------------------##
+## CS_CV_TRY_COMPILE_IFELSE ##
+## -------------------------##
+dnl CS_CV_TRY_COMPILE_IFELSE(MSG, CACHE_VAL, INCLUDE, C_SOURCE[, IF COMPILE_OK[, IF_NOT_COMPILE]])
+AC_DEFUN([CS_CV_TRY_COMPILE_IFELSE],
+	[m4_require([_LT_CMD_GLOBAL_SYMBOLS])dnl
+	AC_LANG_PUSH([C])
+        AC_CACHE_CHECK(
+        	[$1],
+        	[$2],
+        	[
+                        AC_TRY_COMPILE(
+                        	[$3], 
+                        	[$4], 
+                        	[
+                                        $2="yes"
+                                        AC_CACHE_VAL([$2], "yes")
+                                ], 
+                                [
+                                        $2="no"
+                                        AC_CACHE_VAL([$2], "no")
+                                ]
+                        )
+        	]
+        )	
+        eval val=\$$2
+        if test "x$val" = "xyes"; then
+             ifelse([$5], , :, $5) :
+             ifelse([$6], , :, else $6) :
+        fi
+	AC_LANG_POP
+])
+
+## -------------------------##
+## CS_CV_TRY_COMPILE_DEFINE ##
+## -------------------------##
+dnl CS_CV_TRY_COMPILE_DEFINE(MSG, CACHE_VAL, INCLUDE, C_SOURCE, DEFINE, DEFINE_COMMENT)
+AC_DEFUN([CS_CV_TRY_COMPILE_DEFINE],
+[
+	CS_CV_TRY_COMPILE_IFELSE([$1],[$2],[$3],[$4],[AC_DEFINE([$5],1,[$6])],[])
+])
+
+## ---------------------##
+## CS_CHECK_AST_TYPEDEF ##
+## ---------------------##
+dnl CS_CHECK_AST_TYPEDEF(TYPEDEF, HEADER [, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND ]])
+AC_DEFUN([CS_CHECK_AST_TYPEDEF],
+[
+	ac_lib_var=`echo $1['_']$2 | sed 'y%./+-\ %__p__%'`
+	AC_CACHE_VAL(ac_cv_lib_$ac_lib_var,
+	[ eval "ac_cv_type_$ac_lib_var='not-found'"
+	  ac_cv_check_typedef_header=`echo ifelse([$2], , stddef.h, $2)`
+	  AC_TRY_COMPILE(
+	  	[
+		        #if ASTERISK_VERSION_NUMBER >= 10400
+		        #include <asterisk.h>
+		        #endif
+			#include <$ac_cv_check_typedef_header>
+		], [int x = sizeof($1); x = x;],
+	        eval "ac_cv_type_$ac_lib_var=yes" ,
+	        eval "ac_cv_type_$ac_lib_var=no" )
+	  if test `eval echo '$ac_cv_type_'$ac_lib_var` = "no" ; then
+	    m4_ifvaln([$4],[$4],[:])dnl
+	    m4_ifvaln([$3],[else $3])dnl
+	  fi
+	])
+])
+
 
 ## ---------------------##
 ## CS_EXT_LIB_SETUP     ##
