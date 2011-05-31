@@ -1162,7 +1162,7 @@ static const struct skinny_codec {
 	{SKINNY_CODEC_G722_48K, 0, "G.722 48k"},
 	{SKINNY_CODEC_H264, 0, "H.264"},
 #    endif
-#    ifdef CS_CODEC_G722_1_24K
+#    ifdef AST_FORMAT_SIREN7
 	{SKINNY_CODEC_G722_1_24K, AST_FORMAT_SIREN7, "G722.1 24k (Siren7)"},
 #    else
 	{SKINNY_CODEC_G722_1_24K, 0, "G722.1 24k"},
