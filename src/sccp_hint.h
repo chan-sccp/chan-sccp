@@ -13,9 +13,6 @@
 #ifndef SCCP_HINT_H_
 #    define SCCP_HINT_H_
 
-#    include "asterisk.h"
-#    include "chan_sccp.h"
-
 typedef enum { ASTERISK = 0, INTERNAL = 1 } sccp_hinttype_t;
 
 typedef struct sccp_hint_SubscribingDevice sccp_hint_SubscribingDevice_t;

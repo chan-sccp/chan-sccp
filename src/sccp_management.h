@@ -13,11 +13,6 @@
 #    ifndef __SCCP_MANAGEMENT_H
 #        define __SCCP_MANAGEMENT_H
 
-#        include "asterisk.h"
-
-#        include "asterisk/pbx.h"
-#        include "asterisk/manager.h"
-
 int sccp_register_management(void);
 int sccp_unregister_management(void);
 

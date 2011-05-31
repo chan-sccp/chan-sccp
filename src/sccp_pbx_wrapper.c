@@ -11,7 +11,6 @@
  */
 #include "config.h"
 #include "common.h"
-#include <asterisk/frame.h>
 
 int sccp_wrapper_asterisk_rtp_stop(sccp_channel_t * channel);
 

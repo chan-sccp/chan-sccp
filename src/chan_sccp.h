@@ -26,43 +26,6 @@ extern "C" {
 
 #    include "config.h"
 #    include "common.h"
-/*
-#    include <sys/signal.h>
-#    include <sys/types.h>
-#    include <sys/socket.h>
-#    include <netinet/in.h>
-#    include <netinet/in_systm.h>
-#    include <netinet/ip.h>
-#    include <netinet/tcp.h>
-
-#    include <string.h>
-#    include <stdio.h>
-#    include <stdlib.h>
-#    include <errno.h>
-
-#    include <asterisk/pbx.h>
-#    include <asterisk/acl.h>
-#    include <asterisk/module.h>
-#    include <asterisk/options.h>
-#    include <asterisk/logger.h>
-#    include <asterisk/config.h>
-#    include <asterisk/sched.h>
-#    include <asterisk/version.h>
-#    include <asterisk/causes.h>
-
-#    include "sccp_dllists.h"
-
-#    if ASTERISK_VERSION_NUMBER >= 10400
-#        include "asterisk/abstract_jb.h"
-#    endif
-#    ifdef CS_DEVSTATE_FEATURE
-#        include <asterisk/event.h>
-#    endif
-
-#    ifdef CS_AST_HAS_ENDIAN
-#        include <asterisk/endian.h>
-#    endif
-*/
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
 #    ifndef AST_CAUSE_ANSWERED_ELSEWHERE

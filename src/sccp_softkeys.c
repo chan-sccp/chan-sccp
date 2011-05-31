@@ -17,14 +17,6 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#ifdef CS_SCCP_PICKUP
-#    include <asterisk/features.h>
-#    include <asterisk/callerid.h>
-#    include <asterisk/causes.h>
-#endif
-#ifdef CS_AST_HAS_AST_STRING_FIELD
-#    include <asterisk/stringfields.h>
-#endif
 
 /*!
  * \brief Global list of softkeys

@@ -24,20 +24,7 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-//#include <asterisk/pbx.h>
-//#include <asterisk/utils.h>
-//#include <asterisk/causes.h>
-//#include <asterisk/callerid.h>
-//#include <asterisk/musiconhold.h>
-//#ifndef CS_AST_HAS_TECH_PVT
-//#    include <asterisk/channel_pvt.h>
-//#endif
-//#ifdef CS_SCCP_PARK
-//#    include <asterisk/features.h>
-//#endif
-//#ifdef CS_MANAGER_EVENTS
-//#    include <asterisk/manager.h>
-//#endif
+
 static uint32_t callCount = 1;
 
 AST_MUTEX_DEFINE_STATIC(callCountLock);

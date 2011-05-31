@@ -26,8 +26,6 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-//#include "sccp_featureButton.h"
-//#include "sccp_conference.h"
 
 /*!
  * \brief Handle Call Forwarding

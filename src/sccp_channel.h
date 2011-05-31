@@ -16,8 +16,6 @@
 #ifndef __SCCP_CHANNEL_H
 #    define __SCCP_CHANNEL_H
 
-#    include "config.h"
-
 sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * device);
 sccp_channel_t *sccp_channel_get_active_locked(sccp_device_t * d);
 sccp_channel_t *sccp_channel_get_active_nolock(sccp_device_t * d);

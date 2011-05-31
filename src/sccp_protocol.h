@@ -13,15 +13,11 @@
  * $Revision$  
  */
 
-#include "sccp_labels.h"
-#include "asterisk/frame.h"
-
-#ifdef CS_AST_HAS_NEW_DEVICESTATE
-#    include "asterisk/devicestate.h"
-#endif
-
 #ifndef __SCCP_PROTOCOL_H
 #    define __SCCP_PROTOCOL_H
+
+#    include "sccp_softkeys.h"
+#    include "sccp_labels.h"
 
 #    define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW	3				/*!< At least we require protocol V.3 */
 #    define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH	17				/*!< We support up to protocol V.17 */
@@ -3356,8 +3352,6 @@ typedef struct {
 /* So in theory, a message should never be bigger than this. If it is, we abort the connection */
 #    define SCCP_MAX_PACKET sizeof(sccp_moo_t)
 
-#    include "sccp_softkeys.h"
-#    include "sccp_labels.h"
 
 static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_REDIAL,

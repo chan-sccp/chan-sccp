@@ -21,7 +21,7 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#include <asterisk/translate.h>
+
 #if ASTERISK_VERSION_NUMBER >= 10400
 #    ifdef CS_AST_HAS_TECH_PVT
 #        define SET_CAUSE(x)	*cause = x;

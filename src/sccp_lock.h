@@ -12,8 +12,7 @@
 
 #ifndef __SCCP_LOCK_H
 #    define __SCCP_LOCK_H
-#    include "config.h"
-#    include <asterisk/lock.h>
+
 #    define sccp_mutex_init(x)          		ast_mutex_init(x)
 #    define sccp_mutex_destroy(x)       		ast_mutex_destroy(x)
 

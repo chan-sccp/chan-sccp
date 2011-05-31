@@ -19,9 +19,6 @@
 extern "C" {
 #        endif
 
-#        include "asterisk.h"
-#        include "chan_sccp.h"
-
 #        include "asterisk/bridging.h"
 #        include "asterisk/bridging_features.h"
 
