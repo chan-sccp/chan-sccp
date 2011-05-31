@@ -60,6 +60,6 @@ autoconf${MY_AC_VER}
 
 echo "Running configure script..."
 echo
-./configure
+./configure -C
 
 exit 0
