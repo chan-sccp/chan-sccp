@@ -127,16 +127,16 @@
  *   . 
  * \endcode
  * 
- * Q: Dial a line and have the phone Auto Answer
+ * Q: Dial a line and have the phone Auto Answer (Used for Paging for example)
  * 
- * A: add the following to your dial statement
+ * A: add the following to your dial statement to page lines 9291 and 9292 with one way audio
  * \code
- * Dial(SCCP/9291/aa=1w, 120)
+ * Dial(SCCP/9291/aa=1w&SCCP/9292/aa=1w, 120)
  * \endcode
  * 
  * aa= values:
- *   - 1w: 1way. MIC is oFF
- *   - 2w: 2ways. MIC is ON
+ *   - 1w: 1way audio (MIC on other side is OFF).
+ *   - 2w: 2way audio (MIC on other side is ON).
  *   - 1wb: 1way and reject cause: busy
  *   - 1wu: 1way and reject cause: unavailable
  *   - 1wc: 1way and reject cause: congestion
