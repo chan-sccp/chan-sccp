@@ -1,3 +1,19 @@
+AC_DEFUN([CS_USE_AUTCONF_CACHE], [
+        cache_file="config.cache"
+        rev=`echo '$Revision: 2590 $'|sed y%\$\ :%___%`
+        if test -f $cache_file; then 
+          if test -n "`grep -q $rev $cache_file`"; then
+            rm $cache_file
+            touch $cache_file
+          else
+            AC_CACHE_LOAD
+          fi
+        else 
+          touch $cache_file
+        fi
+        AC_CACHE_CHECK([check config.cache],[cs_cv_configure_revision],[cs_cv_configure_revision=${rev}])
+])
+
 AC_DEFUN([CS_SETUP_DEFAULTS], [
 	ac_default_prefix=/usr
 	if test ${sysconfdir} = '${prefix}/etc'; then
@@ -141,11 +157,11 @@ AC_DEFUN([CS_SETUP_ENVIRONMENT], [
 ])
 
 AC_DEFUN([CS_FIND_PROGRAMS], [
-	AC_PATH_PROGS(GREP, ggrep grep,[echo Missing grep so skipping but I doubt we will get anywhere])
 	AC_PATH_PROGS(SVN, svn, [echo Missing subversion so some stuff will be borked],${PATH}:/opt/csw/bin)
 	AC_PATH_PROGS(SHELL,bash sh,[echo No compatible shell found])
 	AC_PATH_PROGS(SH,bash sh,[echo No compatible shell found])
 	AC_PATH_PROGS(M4,gm4 m4,[echo No m4 found, who will process my macros now ?])
+	AC_PATH_PROGS(GREP, ggrep grep,[echo Missing grep so skipping but I doubt we will get anywhere])
 	AC_PATH_PROGS(SED,gsed sed,[echo sed not found, doh!])
 	AC_PATH_PROGS(CAT,cat,[echo cat not found, Doh!])
 	AC_PATH_PROGS(TR,tr,[echo tr not found, need this for upper/lowercase conversions])
@@ -167,7 +183,7 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_SUBST(SVN)
 	AC_SUBST(GREP)
 	AC_SUBST(RPMBUILD)
-
+	AC_CACHE_SAVE
 ])
 
 AC_DEFUN([CS_FIND_LIBRARIES], [
@@ -186,6 +202,7 @@ AC_DEFUN([CS_FIND_LIBRARIES], [
 	AC_CHECK_HEADERS([netinet/in.h fcntl.h])
 	AC_STRUCT_TM
 	AC_STRUCT_TIMEZONE
+	AC_CACHE_SAVE
 ])
 
 AC_DEFUN([CS_CHECK_CROSSCOMPILE],[
@@ -249,6 +266,7 @@ AC_DEFUN([CS_SETUP_LIBTOOL], [
 	  CFLAGS="$save_CFLAGS"
 	fi
 	AC_SUBST([LIBTOOL_DEPS])
+	AC_CACHE_SAVE
 ])
 
 AC_DEFUN([CS_CHECK_TYPES], [ 
@@ -315,6 +333,7 @@ AC_DEFUN([CS_CHECK_TYPES], [
 	AC_C_BIGENDIAN(AC_DEFINE([__BYTE_ORDER],__BIG_ENDIAN,[Big Endian]),AC_DEFINE([__BYTE_ORDER],__LITTLE_ENDIAN,[Little Endian]))
 	AC_DEFINE([__LITTLE_ENDIAN],1234,[for the places where it is not defined])
 	AC_DEFINE([__BIG_ENDIAN],4321,[for the places where it is not defined])
+	AC_CACHE_SAVE
 ])
 
 AC_DEFUN([CS_CHECK_SVN2CL], [
@@ -353,7 +372,6 @@ AC_DEFUN([AST_SET_PBX_AMCONDITIONALS],[
 	AC_SUBST([PBX_GENERAL])
 	AC_SUBST([PBX_MAJOR])
 	AC_SUBST([PBX_MINOR])
-	
 ])
 
 AC_DEFUN([CS_WITH_PBX], [
@@ -399,6 +417,7 @@ AC_DEFUN([CS_WITH_PBX], [
 	fi
 	AST_SET_PBX_AMCONDITIONALS
 	AC_SUBST([PBX_TYPE])
+	AC_CACHE_SAVE
 ])
 
 AC_DEFUN([CS_SETUP_DOXYGEN], [
@@ -421,7 +440,6 @@ AC_DEFUN([CS_SETUP_DOXYGEN], [
 	DX_PDF_FEATURE(OFF)
 	DX_PS_FEATURE(OFF)
 	DX_INIT_DOXYGEN($PACKAGE, doc/doxygen.cfg)
-	AC_CACHE_SAVE
 ])
 
 
