@@ -12,6 +12,10 @@ if [ -f src/Makefile ]; then
   rm -rf config aclocal.m4 autom4te.cache/ src/Makefile.in src/config.h src/Makefile
 fi
 
+if [ -f config.cache ]; then
+  rm config.cache
+fi
+  
 check_for_app() {
 	$1 --version 2>&1 >/dev/null
 	if [ $? != 0 ]
