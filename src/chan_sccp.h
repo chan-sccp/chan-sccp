@@ -1046,9 +1046,6 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 
 		struct subscriptionId subscriptionId;
 		unsigned int peerIsSCCP:1;					/*!< Indicates that channel-peer is also SCCP */
-#if CS_ADV_FEATURES
-		uint32_t pri_cause;						/*!< Hangup Cause */
-#endif
 	};									/*!< SCCP Channel Structure */
 
 /*!
