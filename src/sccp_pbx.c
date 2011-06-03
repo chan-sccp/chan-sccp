@@ -39,8 +39,6 @@ if(c->rtp.audio.rtp) {										\
 
 /* Structure to pass data to the thread */
 struct sccp_answer_conveyor_struct {
-	const char *ast_exten;
-	const char *ast_context;
 	uint32_t callid;
 	sccp_linedevices_t *linedevice;
 };
@@ -55,7 +53,6 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 {
 	struct sccp_answer_conveyor_struct *conveyor = data;
 
-	struct ast_channel *ast_channel;
 	sccp_channel_t *c;
 
 	int instance = 0;
@@ -69,12 +66,12 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 	if (!conveyor->linedevice)
 		return NULL;
 
-//	c = sccp_channel_find_byid_locked(conveyor->callid);
-	ast_channel = ast_get_channel_by_exten_locked(conveyor->ast_exten, conveyor->ast_context);
-	c = get_sccp_channel_from_ast_channel(ast_channel);
+	if (!conveyor->callid)
+		return NULL;
+
+	c = sccp_channel_find_byid_locked(conveyor->callid);
 	if (!c)
 		return NULL;
-	sccp_channel_lock(c);
 
 	if (c->state != SCCP_CHANNELSTATE_RINGING)
 		return NULL;
@@ -91,7 +88,6 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 		sccp_dev_set_microphone(conveyor->linedevice->device, SKINNY_STATIONMIC_OFF);
 
 	sccp_channel_unlock(c);
-	ast_channel_unlock(ast_channel);
 
 	return NULL;
 }
@@ -328,8 +324,6 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Running the autoanswer thread on %s\n", DEV_ID_LOG(linedevice->device), ast->name);
 					conveyor->callid = c->callid;
 					conveyor->linedevice = linedevice;
-					conveyor->ast_context = ast->context;
-					conveyor->ast_exten = ast->exten;
 
 					pthread_attr_init(&attr);
 					pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -408,7 +402,8 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 
 	sccp_channel_lock(c);
 
-#if CS_ADV_FEATURES
+	// remarked out for now, leading to deadlocks
+#if 0
 	/* Try to get the hangup cause from PRI_CAUSE Helper (mIsdn / dahdi) and store the hangupcause in c->pri_cause */
 	const char *ds = pbx_builtin_getvar_helper(ast, "PRI_CAUSE");
 
