@@ -63,8 +63,8 @@
  *      - privacy,callpresent		= Make a private call, number is suppressed
  *      - privacy,hint			= Make a private call, hint is suppressed
  *      - cfwdall,number		= Forward all calls
- *      - cfwbusy,number		= Forward on busy
- *      - cfwnoaswer,number		= Forward on no-answer (not implemented yet)
+ *      - cfwdbusy,number		= Forward on busy
+ *      - cfwdnoaswer,number		= Forward on no-answer (not implemented yet)
  *      - DND,busy			= Do-not-disturb, return Busy signal to Caller
  *      - DND,silent			= Do-not-disturb, return nothing to caller
  *      - monitor			= Record Calls using AutoMon (asterisk 1.6.x only)
@@ -86,7 +86,7 @@
  * button = service, "Asterisk", "www.asterisk.org"
  * button = feature, "privacy callpresent", privacy, callpresent
  * button = feature, "callforward busy", cfwdbusy, 529
- * button = feature, "DND busy", "DND", "busy"
+ * button = feature, "DND busy", DND, busy
  * button = feature, "Record Calls", monitor
  * \endcode
  *
