@@ -2118,7 +2118,8 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 		/* TODO: Add some filtering in order to reduce number of unneccessarily triggered events.
 		   Have to work out whether filtering with AST_EVENT_IE_DEVICE matches extension or hint device name. */
 		snprintf(buf, 254, "Custom:%s", specifier->specifier);
-		specifier->sub = ast_event_subscribe(AST_EVENT_DEVICE_STATE, sccp_devstateFeatureState_cb, device, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, strdup(buf), AST_EVENT_IE_END);
+		ast_enable_distributed_devstate();
+		specifier->sub = ast_event_subscribe(AST_EVENT_DEVICE_STATE_CHANGE, sccp_devstateFeatureState_cb, device, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, strdup(buf), AST_EVENT_IE_END);
 	}
 	SCCP_LIST_UNLOCK(&device->devstateSpecifiers);
 #endif
