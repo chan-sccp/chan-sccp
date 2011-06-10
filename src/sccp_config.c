@@ -2118,6 +2118,11 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 		/* TODO: Add some filtering in order to reduce number of unneccessarily triggered events.
 		   Have to work out whether filtering with AST_EVENT_IE_DEVICE matches extension or hint device name. */
 		snprintf(buf, 254, "Custom:%s", specifier->specifier);
+
+		/* When registering for devstate events we wish to know if a single asterisk box has contributed
+		   a change even in a rig of multiple asterisk with distributed devstate. This is to enable toggling
+		   even then when otherwise the aggregate devicestate would obscure the change.
+		   However, we need to force distributed devstate even on single asterisk boxes so to get the desired events. (-DD) */
 		ast_enable_distributed_devstate();
 		specifier->sub = ast_event_subscribe(AST_EVENT_DEVICE_STATE_CHANGE, sccp_devstateFeatureState_cb, device, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, strdup(buf), AST_EVENT_IE_END);
 	}
