@@ -460,6 +460,7 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 
 
 	sccp_channel_newcall(line, d, (char *)number, SKINNY_CALLTYPE_OUTBOUND);
+	astman_send_ack(s, m, "Call Started");
 	return 0;
 }
 
@@ -493,7 +494,7 @@ static int sccp_manager_answerCall(struct mansession *s, const struct message *m
 
 	sccp_channel_answer_locked(device, c);
 	sccp_channel_unlock(c);
-
+	astman_send_ack(s, m, "Call was Answered");
 
 	return 0;
 }
@@ -513,7 +514,7 @@ static int sccp_manager_hangupCall(struct mansession *s, const struct message *m
 	astman_append(s, "Hangup call '%s'\r\n", channelId);
 	sccp_channel_endcall_locked(c);
 	sccp_channel_unlock(c);
-
+	astman_send_ack(s, m, "Call was hungup");
 	return 0;
 }
 
@@ -523,7 +524,7 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 	sccp_channel_t *c;
 	const char *channelId = astman_get_header(m, "channelId");
 	const char *hold = astman_get_header(m, "hold");
-
+	char *retValStr;
 	c = sccp_channel_find_byid_locked(atoi(channelId));
 	if(!c){
 		astman_send_error(s, m, "Call not found\r\n" );
@@ -533,13 +534,17 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 		astman_append(s, "Put channel '%s' on hold\n", channelId);
 		sccp_channel_hold_locked(c);
 		sccp_channel_unlock(c);
+		retValStr = "Channel was put on hold";
 	} else if (!sccp_strcasecmp("off", hold)) {					/* check to see if disable hold */
-		astman_append(s, "remove channel '%s' from hold\n", channelId);
+		astman_append(s, "Resume channel '%s'\n", channelId);
 		sccp_channel_resume_locked(c->device, c, FALSE);
 		sccp_channel_unlock(c);
+		retValStr = "Channel was resumed";
 	} else{
-		astman_send_error(s, m, "Invalid value for park, us on or off only\r\n" );
+		astman_send_error(s, m, "Invalid value for hold, use 'on' or 'off' only\r\n");
+		return 0;
 	}
+	astman_send_ack(s, m, retValStr);
 	return 0;
 }
 
