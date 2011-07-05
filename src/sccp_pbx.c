@@ -1024,7 +1024,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 				
 				//if (canDoNativeCOLP) {
 				sccp_channel_lock(c);
-				pbx_channel_lock(astcSourceRemote);
+				//pbx_channel_lock(astcSourceRemote);
 				sccp_channel_lock(cSourceRemote);
 				sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "Performing COLP signalling between two SCCP devices.\n");
 
@@ -1085,7 +1085,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 				if (c->device) {
 					sccp_channel_send_callinfo(c->device, c);
 				};
-				pbx_channel_unlock(astcSourceRemote);
+				//pbx_channel_unlock(astcSourceRemote);
 				//} // native colp
 			}
 		} else {
@@ -1097,7 +1097,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 				struct ast_callerid cid = astcSourceRemote->cid;
 
 				sccp_channel_lock(c);
-				pbx_channel_lock(astcSourceRemote);
+				//pbx_channel_lock(astcSourceRemote);
 				sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "Performing COLP signalling from non-SCCP device.\n");
 
 				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
@@ -1139,7 +1139,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 				if (c->device) {
 					sccp_channel_send_callinfo(c->device, c);
 				};
-				pbx_channel_unlock(astcSourceRemote);
+				//pbx_channel_unlock(astcSourceRemote);
 
 				//} // generic colp
 			}

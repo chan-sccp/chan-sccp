@@ -73,7 +73,6 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 		if (config->type == FEATURE && config->button.feature.id == featureType) {
 			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s \n", DEV_ID_LOG(device), config->button.feature.id, (config->button.feature.options) ? config->button.feature.options : "(none)");
 			instance = config->instance;
-			config->button.feature.status = 0;
 
 			switch (config->button.feature.id) {
 			case SCCP_FEATURE_PRIVACY:
