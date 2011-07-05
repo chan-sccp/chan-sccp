@@ -1612,7 +1612,7 @@ void sccp_handle_capabilities_res(sccp_session_t *s, sccp_device_t *d, sccp_moo_
 	}
 	
 	//TODO check capabilities for 7985
-	if(d->skinny_type == SKINNY_DEVICETYPE_CISCO7985){
+	if(d->skinny_type == SKINNY_DEVICETYPE_CISCO7985 || d->skinny_type == SKINNY_DEVICETYPE_CISCO8941 ){
 		d->capability |= AST_FORMAT_H263;
 		d->capability |= AST_FORMAT_H264;
 #ifdef AST_FORMAT_H263_PLUS

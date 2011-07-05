@@ -420,6 +420,10 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 		for (i = 0; i < 6; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 		break;
+	case SKINNY_DEVICETYPE_CISCO8941:
+		for (i = 0; i < 4; i++)
+			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+		break;
 	case SKINNY_DEVICETYPE_CISCO7960:
 	case SKINNY_DEVICETYPE_CISCO7961:
 	case SKINNY_DEVICETYPE_CISCO7961GE:
