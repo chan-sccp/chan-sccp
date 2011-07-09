@@ -786,7 +786,8 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 
 	if (payloadType == -1) {
 		payloadType = 97;
-		sampleRate = 3840;
+		sampleRate = 1920;
+		//sampleRate = 3840;
 	}
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive multimedia channel with format %s[%d] skinnyFormat %s[%d], payload %d\n", DEV_ID_LOG(channel->device), pbx_codec2str(channel->rtp.video.writeFormat), channel->rtp.video.writeFormat, codec2str(skinnyFormat), skinnyFormat, payloadType);
@@ -803,6 +804,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		r->msg.OpenMultiMediaChannelMessage.audioParameter.millisecondPacketSize = htolel(sampleRate);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.h261VideoCapability.temporalSpatialTradeOffCapability = htolel(0x00000040);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.h261VideoCapability.stillImageTransmission = htolel(0x00000032);	//= htolel(0x00000024);
+		r->msg.OpenMultiMediaChannelMessage.videoParameter.bitRate = htolel(64);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.h263CapabilityBitfield = htolel(0x4c3a525b);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.h263VideoCapability.annexNandwFutureUse = htolel(0x202d2050);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.vieoVideoCapability.modelNumber = htolel(0x203a5048);
@@ -825,6 +827,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.h263VideoCapability.annexNandwFutureUse = htolel(0x202d2050);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.vieoVideoCapability.modelNumber = htolel(0x203a5048);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.vieoVideoCapability.bandwidth = htolel(0x4e202c30);
+		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.bitRate = htolel(64);
 		r->msg.OpenMultiMediaChannelMessage_v17.dataParameter.protocolDependentData = 0;
 		r->msg.OpenMultiMediaChannelMessage_v17.dataParameter.maxBitRate = 0;
 	}
@@ -845,7 +848,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 
 	channel->rtp.video.readFormat = AST_FORMAT_H264;
 	skinnyFormat = sccp_codec_ast2skinny(channel->rtp.video.readFormat);
-	packetSize = 3840;
+	packetSize = 1920;
 
 	if (!channel->rtp.video.rtp) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: can't start vrtp media transmission, maybe channel is down %s-%08X\n", channel->device->id, channel->line->name, channel->callid);
@@ -906,7 +909,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		r->msg.StartMultiMediaTransmission.lel_DSCPValue = htolel(136);
 		r->msg.StartMultiMediaTransmission.audioParameter.millisecondPacketSize = htolel(packetSize);
 		r->msg.StartMultiMediaTransmission.audioParameter.lel_echoCancelType = 0;
-		r->msg.StartMultiMediaTransmission.videoParameter.bitRate = 0;
+		r->msg.StartMultiMediaTransmission.videoParameter.bitRate = htolel(64);
 		r->msg.StartMultiMediaTransmission.videoParameter.pictureFormatCount = 0;
 		r->msg.StartMultiMediaTransmission.videoParameter.confServiceNum = 0;
 		r->msg.StartMultiMediaTransmission.videoParameter.dummy = 0;
@@ -927,7 +930,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		r->msg.StartMultiMediaTransmission_v17.lel_DSCPValue = htolel(136);
 		r->msg.StartMultiMediaTransmission_v17.audioParameter.millisecondPacketSize = htolel(packetSize);
 		r->msg.StartMultiMediaTransmission_v17.audioParameter.lel_echoCancelType = 0;
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.bitRate = 0;
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.bitRate = htolel(64);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormatCount = 0;
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.confServiceNum = 0;
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.dummy = 0;
