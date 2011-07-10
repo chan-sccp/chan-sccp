@@ -52,6 +52,7 @@ static const softkeyConfigurationTemplate softKeyTemplate[] = {
 	{"back",	SKINNY_LBL_BACKSPACE},
 	{"join",	SKINNY_LBL_JOIN},
 	{"intrcpt",	SKINNY_LBL_INTRCPT},
+	{"newcallcustom", 	SKINNY_LBL_NEWCALLCUSTOM},
 	{"monitor",	SKINNY_LBL_MONITOR},
   {"dial",	SKINNY_LBL_DIAL},
 	{"empty",	SKINNY_LBL_EMPTY},
