@@ -108,7 +108,8 @@
 #    define SKINNY_LBL_SECURITY_ERROR                                    	86
 #    define SKINNY_LBL_VIDEO_BANDWIDTH_UNAVAILABLE                       	87
 #    define SKINNY_LBL_VIDEO_MODE					        88
-#    define SKINNY_LBL_MONITOR					        	100
+#    define SKINNY_LBL_NEWCALLCUSTOM					        	100
+#    define SKINNY_LBL_MONITOR					        	102
 #    define SKINNY_LBL_DIAL							101
 
 /*!
@@ -208,6 +209,7 @@ static const struct skinny_label {
 	{SKINNY_LBL_SECURITY_ERROR, "Security Error"},
 	{SKINNY_LBL_VIDEO_BANDWIDTH_UNAVAILABLE, "Video Bandwidth Unavailable"},
 	{SKINNY_LBL_VIDEO_MODE, "Video Mode"},
+	{SKINNY_LBL_NEWCALLCUSTOM, "NewCall"},
 	{SKINNY_LBL_MONITOR, "Record"},
  	{SKINNY_LBL_DIAL, "Dial"}
 	/* *INDENT-ON* */
@@ -356,6 +358,7 @@ static const struct skinny_label {
 #    define SKINNY_DISP_MESSAGES_URL					"\200\176"
 #    define SKINNY_DISP_SERVICES_URL					"\200\177"
 
+#    define SKINNY_DISP_NEWCALLCUSTOM				"New Call"
 #    define SKINNY_DISP_MONITOR						"Record"
 #    define SKINNY_DISP_DIAL						"Dial"
 
