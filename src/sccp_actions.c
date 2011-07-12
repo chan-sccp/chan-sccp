@@ -522,7 +522,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 					    && btn[i].type == SCCP_BUTTONTYPE_MULTI	/* we can set our feature */
 					    ) {
 #ifdef CS_DYNAMIC_SPEEDDIAL
-						if (d->inuseprotocolversion >= 11) {
+						if (d->inuseprotocolversion >= 15) {
 							btn[i].type = 0x15;
 							buttonconfig->instance = btn[i].instance = speeddialInstance++;
 						} else {
@@ -2700,7 +2700,7 @@ void sccp_handle_feature_stat_req(sccp_session_t *s, sccp_device_t *d, sccp_moo_
 	 * the new speeddial style uses feature to display state
 	 * unfortunately we dont know how to handle this on other way
 	 */
-	if ((d->inuseprotocolversion >= 11)) {
+	if ((unknown == 1 && d->inuseprotocolversion >= 15)) {
 		sccp_speed_t *k = sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT);
 
 		if (k) {
@@ -2717,6 +2717,7 @@ void sccp_handle_feature_stat_req(sccp_session_t *s, sccp_device_t *d, sccp_moo_
 			ast_free(k);
 			return;
 		}
+		return;
 	}
 #endif
 
