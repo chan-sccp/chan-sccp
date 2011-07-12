@@ -314,7 +314,7 @@ int sccp_hint_state(char *context, char *exten, enum ast_extension_states state,
 		hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 #else
 		hint->currentState = SCCP_CHANNELSTATE_PROCEED;
-#endif	// CS_DYNAMIC_SPEEDDIAL
+#endif										// CS_DYNAMIC_SPEEDDIAL
 		sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_LINE_IN_USE, sizeof(hint->callInfo.callingPartyName));
 		sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_LINE_IN_USE, sizeof(hint->callInfo.calledPartyName));
 
@@ -453,7 +453,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		state = hint->currentState;
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
-		if (subscriber->device->inuseprotocolversion >= 11) {
+		if (subscriber->device->inuseprotocolversion >= 15) {
 			sccp_speed_t *k = sccp_dev_speed_find_byindex((sccp_device_t *) subscriber->device, subscriber->instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
 
 			REQ(r, FeatureStatAdvancedMessage);
