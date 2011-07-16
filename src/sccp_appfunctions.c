@@ -583,7 +583,6 @@ static struct ast_custom_function sccpchannel_function = {
 	.read = sccp_func_sccpchannel,
 };
 
-
 /*!
  * \brief 	Set the Preferred Codec for a SCCP channel via the dialplan
  * \param 	chan Asterisk Channel
@@ -635,6 +634,57 @@ static char *prefcodec_name     = "SetSCCPCodec";
 static char *prefcodec_synopsis = "Sets the preferred codec for the current sccp channel";
 
 static char *prefcodec_descr    = "Usage: SetSCCPCodec(codec)" "Sets the preferred codec for dialing out with the current chan_sccp channel\n";
+
+
+
+/*!
+ * \brief 	Set the Preferred video bitrate for a SCCP channel via the dialplan
+ * \param 	chan Asterisk Channel
+ * \param 	video bitrate (presumably in kbps * 10)d
+ * \return	Success as int
+ * 
+ * \called_from_asterisk
+ */
+static int sccp_app_prefvidbitrate(struct ast_channel *chan, void *data)
+{
+	char text[64] = { '\0' };
+	uint32_t bitrate = 0;
+	int res = 0;
+
+	sccp_channel_t *c = NULL;
+	sccp_device_t  *d = NULL;
+
+	if (!(c = get_sccp_channel_from_ast_channel(chan))) {
+		ast_log(LOG_WARNING, "sccp_app_prefvidbitrate(): Not an SCCP channel\n");
+		return 0;
+	}
+	if (!(d = c->device)) {
+		ast_log(LOG_WARNING, "sccp_app_prefvidbitrate(): SCCP channel has no device\n");
+		return 0;
+	}
+
+	if (!data || !c || !(c->line) || !(c->line->name))
+		return 0;
+
+	strncpy(text, (char *) data, sizeof(text)-1);
+
+	res = sscanf(text, "%ud", &bitrate);
+
+	if(1 == res)
+	{
+		c->desiredVideoBitrate = bitrate;
+		ast_log(LOG_WARNING, "sccp_app_prefvidbitrate(): SCCP channel has no device\n");
+	}
+
+	return 0;
+}
+
+/*! \brief Stucture to declare a dialplan function: SETSCCPCODEC */
+static char *prefvidbitrate_name     = "SetSCCPVideoBitrate";
+
+static char *prefvidbitrate_synopsis = "Sets the preferred video bitrate for the current sccp channel";
+
+static char *prefvidbitrate_descr    = "Usage: SetSCCPVideoBitrate(bitrate)" "Sets the preferred video bitrate for dialing out with the current chan_sccp channel\n";
 
 
 
@@ -794,6 +844,7 @@ int sccp_register_dialplan_functions(void)
 	result |= pbx_register_application(setmessage_name, sccp_app_setmessage, setmessage_synopsis, setmessage_descr, NULL);
 	result |= pbx_register_application(prefcodec_name, sccp_app_prefcodec, prefcodec_synopsis, prefcodec_descr, NULL); 
 	result |= pbx_register_application(mutemic_name, sccp_app_setmutemic, mutemic_synopsis, mutemic_descr, NULL); 
+	result |= pbx_register_application(prefvidbitrate_name, sccp_app_prefvidbitrate, prefvidbitrate_synopsis, prefvidbitrate_descr, NULL); 
 
 #if ASTERISK_VERSION_NUMBER >= 10600
 	/* Register dialplan functions */
@@ -814,6 +865,7 @@ int sccp_unregister_dialplan_functions(void)
 	result |= pbx_unregister_application(setmessage_name);
 	result |= pbx_unregister_application(prefcodec_name);
 	result |= pbx_unregister_application(mutemic_name);
+	result |= pbx_unregister_application(prefvidbitrate_name);
 
 	/* Unregister dial plan functions */
 	result |= pbx_custom_function_unregister(&sccpdevice_function);

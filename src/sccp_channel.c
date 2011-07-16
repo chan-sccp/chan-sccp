@@ -91,6 +91,7 @@ sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * de
 	c->line = l;
 	c->peerIsSCCP = 0;
 	c->isCodecFix = FALSE;
+	c->desiredVideoBitrate = 3840; /* default value. \todo: should be made configurable in the global / per device config. */
 	c->device = device;
 	if(NULL != c->device) {
 		sccp_channel_updateChannelCapability_locked(c);
@@ -765,8 +766,6 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 
 	int payloadType;
 
-	uint32_t sampleRate;
-
 	uint8_t lineInstance;
 
 	if (channel->device && (channel->rtp.video.status & SCCP_RTP_STATUS_RECEIVE)) {
@@ -786,8 +785,6 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 
 	if (payloadType == -1) {
 		payloadType = 97;
-		sampleRate = 1920;
-		//sampleRate = 3840;
 	}
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive multimedia channel with format %s[%d] skinnyFormat %s[%d], payload %d\n", DEV_ID_LOG(channel->device), pbx_codec2str(channel->rtp.video.writeFormat), channel->rtp.video.writeFormat, codec2str(skinnyFormat), skinnyFormat, payloadType);
@@ -801,7 +798,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		r->msg.OpenMultiMediaChannelMessage.lel_lineInstance = htolel(lineInstance);
 		r->msg.OpenMultiMediaChannelMessage.lel_callReference = htolel(channel->callid);
 		r->msg.OpenMultiMediaChannelMessage.lel_payloadType = htolel(payloadType);
-		r->msg.OpenMultiMediaChannelMessage.audioParameter.millisecondPacketSize = htolel(sampleRate);
+		r->msg.OpenMultiMediaChannelMessage.audioParameter.millisecondPacketSize = htolel(channel->desiredVideoBitrate);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.h261VideoCapability.temporalSpatialTradeOffCapability = htolel(0x00000040);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.h261VideoCapability.stillImageTransmission = htolel(0x00000032);	//= htolel(0x00000024);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.bitRate = htolel(64);
@@ -820,7 +817,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		r->msg.OpenMultiMediaChannelMessage_v17.lel_lineInstance = htolel(lineInstance);
 		r->msg.OpenMultiMediaChannelMessage_v17.lel_callReference = htolel(channel->callid);
 		r->msg.OpenMultiMediaChannelMessage_v17.lel_payloadType = htolel(payloadType);
-		r->msg.OpenMultiMediaChannelMessage_v17.audioParameter.millisecondPacketSize = htolel(sampleRate);
+		r->msg.OpenMultiMediaChannelMessage_v17.audioParameter.millisecondPacketSize = htolel(channel->desiredVideoBitrate);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.h261VideoCapability.temporalSpatialTradeOffCapability = htolel(0x00000040);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.h261VideoCapability.stillImageTransmission = htolel(0x00000032);	//= htolel(0x00000024);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.h263VideoCapability.h263CapabilityBitfield = htolel(0x4c3a525b);
@@ -844,11 +841,9 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 	struct sockaddr_in 	sin;
 	struct ast_hostent 	ahp;
 	struct hostent 		*hp;
-	int packetSize = 20;							/* \todo unused? */
 
 	channel->rtp.video.readFormat = AST_FORMAT_H264;
 	skinnyFormat = sccp_codec_ast2skinny(channel->rtp.video.readFormat);
-	packetSize = 1920;
 
 	if (!channel->rtp.video.rtp) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: can't start vrtp media transmission, maybe channel is down %s-%08X\n", channel->device->id, channel->line->name, channel->callid);
@@ -907,7 +902,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		r->msg.StartMultiMediaTransmission.lel_callReference = htolel(channel->callid);
 		r->msg.StartMultiMediaTransmission.lel_payloadType = payloadType;
 		r->msg.StartMultiMediaTransmission.lel_DSCPValue = htolel(136);
-		r->msg.StartMultiMediaTransmission.audioParameter.millisecondPacketSize = htolel(packetSize);
+		r->msg.StartMultiMediaTransmission.audioParameter.millisecondPacketSize = htolel(channel->desiredVideoBitrate);
 		r->msg.StartMultiMediaTransmission.audioParameter.lel_echoCancelType = 0;
 		r->msg.StartMultiMediaTransmission.videoParameter.bitRate = htolel(64);
 		r->msg.StartMultiMediaTransmission.videoParameter.pictureFormatCount = 0;
@@ -928,7 +923,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		r->msg.StartMultiMediaTransmission_v17.lel_callReference = htolel(channel->callid);
 		r->msg.StartMultiMediaTransmission_v17.lel_payloadType = payloadType;
 		r->msg.StartMultiMediaTransmission_v17.lel_DSCPValue = htolel(136);
-		r->msg.StartMultiMediaTransmission_v17.audioParameter.millisecondPacketSize = htolel(packetSize);
+		r->msg.StartMultiMediaTransmission_v17.audioParameter.millisecondPacketSize = htolel(channel->desiredVideoBitrate);
 		r->msg.StartMultiMediaTransmission_v17.audioParameter.lel_echoCancelType = 0;
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.bitRate = htolel(64);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormatCount = 0;
@@ -944,7 +939,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		r->msg.StartMultiMediaTransmission_v17.dataParameter.maxBitRate = htolel(0x098902c4);
 	}
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s(%d) (%d ms), payloadType %d, tos %d, silencesuppression: %s\n", channel->device->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), pbx_codec2str(channel->rtp.video.readFormat), channel->rtp.video.readFormat, packetSize, payloadType, channel->line->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s(%d) (%d ms), payloadType %d, tos %d, silencesuppression: %s\n", channel->device->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), pbx_codec2str(channel->rtp.video.readFormat), channel->rtp.video.readFormat, channel->desiredVideoBitrate, payloadType, channel->line->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
 	sccp_dev_send(channel->device, r);
 
 	r = sccp_build_packet(FlowControlCommandMessage, sizeof(r->msg.FlowControlCommandMessage));
