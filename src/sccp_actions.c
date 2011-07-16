@@ -1611,6 +1611,10 @@ void sccp_handle_capabilities_res(sccp_session_t *s, sccp_device_t *d, sccp_moo_
 		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%6d %s\n", d->id, codec, codec2str(codec), astcodec, pbx_codec2str(astcodec));
 	}
 	
+#if 1										// (DD)
+	char s1[512];
+	sccp_log(2) (VERBOSE_PREFIX_3 "SCCP device capabilities: %s(%d)\n", pbx_getformatname_multiple(s1, sizeof(s1) - 1, d->capability), d->capability);
+#endif
 	//TODO check capabilities for 7985
 	if(d->skinny_type == SKINNY_DEVICETYPE_CISCO7985 || d->skinny_type == SKINNY_DEVICETYPE_CISCO8941 ){
 		d->capability |= AST_FORMAT_H263;
@@ -1619,6 +1623,9 @@ void sccp_handle_capabilities_res(sccp_session_t *s, sccp_device_t *d, sccp_moo_
 		d->capability |= AST_FORMAT_H263_PLUS;
 #endif
 	}
+#if 1										// (DD)
+	sccp_log(2) (VERBOSE_PREFIX_3 "SCCP device capabilities: %s(%d)\n", pbx_getformatname_multiple(s1, sizeof(s1) - 1, d->capability), d->capability);
+#endif
 }
 
 /*!
