@@ -99,10 +99,27 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 		}
 		/* here's a KEYMODE error. nothing to do */
 		return;
+	} else {
+		c = sccp_channel_get_active_locked(d);
+		if (c) {
+			if (c->state == SCCP_CHANNELSTATE_OFFHOOK) {
+				sccp_copy_string(c->dialedNumber, d->lastNumber, sizeof(d->lastNumber));
+				SCCP_SCHED_DEL(sched, c->digittimeout);
+				sccp_pbx_softswitch_locked(c);
+
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Redial the number %s\n", d->id, d->lastNumber);
+			} else {
+				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Redial ignored as call in progress\n", d->id);
+			}
+			sccp_channel_unlock(c);
+		} else {
+			l = d->currentLine;
+			if (l) {
+				sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND);
+			}
+		}
 	}
-	if (!l)
-		l = d->currentLine;
-	sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND);
+
 
 }
 
