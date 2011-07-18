@@ -80,60 +80,71 @@ sccp_channel_t *sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * de
 	c = sccp_channel_get_active_locked(device);
 
 	if (c) {
-		// we have a channel, checking if
-		if (c->state == SCCP_CHANNELSTATE_RINGOUT || c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED || c->state == SCCP_CHANNELSTATE_BUSY || c->state == SCCP_CHANNELSTATE_CONGESTION) {
-			if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
-				// if we have an outbound call, we can set callforward to dialed number -FS
-				if (c->dialedNumber && !sccp_strlen_zero(c->dialedNumber)) {	// checking if we have a number !
-					sccp_line_cfwd(l, device, type, c->dialedNumber);
-					// we are on call, so no tone has been played until now :)
-					//sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, instance, 0, 0);
+		// we have a channel, checking if we created it during previous cfwd loop
+                if (c->ss_action==SCCP_SS_GETFORWARDEXTEN) {
+                        // we have a channel, checking if
+                        if (c->state == SCCP_CHANNELSTATE_RINGOUT || c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED || c->state == SCCP_CHANNELSTATE_BUSY || c->state == SCCP_CHANNELSTATE_CONGESTION) {
+                                if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
+                                        // if we have an outbound call, we can set callforward to dialed number -FS
+                                        if (c->dialedNumber && !sccp_strlen_zero(c->dialedNumber)) {	// checking if we have a number !
+                                                sccp_line_cfwd(l, device, type, c->dialedNumber);
+                                                // we are on call, so no tone has been played until now :)
+                                                //sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, instance, 0, 0);
 
-					sccp_channel_endcall_locked(c);
-					sccp_channel_unlock(c);
-					return NULL;
-				}
-			} else if (c->owner && (bridge = ast_bridged_channel(c->owner))) {	// check if we have an ast channel to get callerid from
-				// if we have an incoming or forwarded call, let's get number from callerid :) -FS
-				char *number = NULL;
+                                                sccp_channel_endcall_locked(c);
+                                                sccp_channel_unlock(c);
+                                                return NULL;
+                                        }
+                                } else if (c->owner && (bridge = ast_bridged_channel(c->owner))) {	// check if we have an ast channel to get callerid from
+                                        // if we have an incoming or forwarded call, let's get number from callerid :) -FS
+                                        char *number = NULL;
 
-				if (PBX(pbx_get_callerid_name))
-					number = PBX(pbx_get_callerid_name) (c);
-				if (number) {
-					sccp_line_cfwd(l, device, type, number);
-					// we are on call, so no tone has been played until now :)
-					sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, 0, 0);
+                                        if (PBX(pbx_get_callerid_name))
+                                                number = PBX(pbx_get_callerid_name) (c);
+                                        if (number) {
+                                                sccp_line_cfwd(l, device, type, number);
+                                                // we are on call, so no tone has been played until now :)
+                                                sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, 0, 0);
 
-					sccp_channel_endcall_locked(c);
-					sccp_channel_unlock(c);
-					sccp_free(number);
-					return NULL;
-				}
-				// if we where here it's cause there is no number in callerid,, so put call on hold and ask for a call forward number :) -FS
-				if (!sccp_channel_hold_locked(c)) {
-					// if can't hold  it means there is no active call, so return as we're already waiting a number to dial
-					sccp_channel_unlock(c);
-					sccp_dev_displayprompt(device, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
-					return NULL;
-				}
-			}
-		} else if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {
-			// we are dialing but without entering a number :D -FS
-			sccp_dev_stoptone(device, linedevice->lineInstance, (c && c->callid) ? c->callid : 0);
-			// changing SS_DIALING mode to SS_GETFORWARDEXTEN
-			c->ss_action = SCCP_SS_GETFORWARDEXTEN;			/* Simpleswitch will catch a number to be dialed */
-			c->ss_data = type;					/* this should be found in thread */
-			// changing channelstate to GETDIGITS
-			sccp_indicate_locked(device, c, SCCP_CHANNELSTATE_GETDIGITS);
-			sccp_channel_unlock(c);
-			return c;
-		} else {
-			// we cannot allocate a channel, or ask an extension to pickup.
-			sccp_channel_unlock(c);
-			sccp_dev_displayprompt(device, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
-			return NULL;
-		}
-	}
+                                                sccp_channel_endcall_locked(c);
+                                                sccp_channel_unlock(c);
+                                                sccp_free(number);
+                                                return NULL;
+                                        }
+                                        // if we where here it's cause there is no number in callerid,, so put call on hold and ask for a call forward number :) -FS
+                                        if (!sccp_channel_hold_locked(c)) {
+                                                // if can't hold  it means there is no active call, so return as we're already waiting a number to dial
+                                                sccp_channel_unlock(c);
+                                                sccp_dev_displayprompt(device, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+                                                return NULL;
+                                        }
+                                }
+                        } else if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {
+                                // we are dialing but without entering a number :D -FS
+                                sccp_dev_stoptone(device, linedevice->lineInstance, (c && c->callid) ? c->callid : 0);
+                                // changing SS_DIALING mode to SS_GETFORWARDEXTEN
+                                c->ss_action = SCCP_SS_GETFORWARDEXTEN;			/* Simpleswitch will catch a number to be dialed */
+                                c->ss_data = type;					/* this should be found in thread */
+                                // changing channelstate to GETDIGITS
+                                sccp_indicate_locked(device, c, SCCP_CHANNELSTATE_GETDIGITS);
+                                sccp_channel_unlock(c);
+                                return c;
+                        } else {
+                                // we cannot allocate a channel, or ask an extension to pickup.
+                                sccp_channel_unlock(c);
+                                sccp_dev_displayprompt(device, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+                                return NULL;
+                        }
+                } else {
+              	        // other call in progress, put on hold before starting cfwd
+	        	int ret = sccp_channel_hold_locked(c);
+		        sccp_channel_unlock(c);
+	 		if (!ret) {
+                                pbx_log(LOG_ERROR, "%s: Active call '%d' could not be put on hold\n", DEV_ID_LOG(device), c->callid);
+                                return NULL;
+                        }
+                }
+        }
 	// if we where here there is no call in progress, so we should allocate a channel.
 	c = sccp_channel_allocate_locked(l, device);
 
