@@ -140,7 +140,7 @@ sccp_channel_t *sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * de
 	        	int ret = sccp_channel_hold_locked(c);
 		        sccp_channel_unlock(c);
 	 		if (!ret) {
-                                pbx_log(LOG_ERROR, "%s: Active call '%d' could not be put on hold\n", DEV_ID_LOG(device), c->callid);
+                                ast_log(LOG_ERROR, "%s: Active call '%d' could not be put on hold\n", DEV_ID_LOG(device), c->callid);
                                 return NULL;
                         }
                 }
