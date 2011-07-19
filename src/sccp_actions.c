@@ -2499,7 +2499,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t *s, sccp_device_t *d, s
 		r1->msg.FlowControlCommandMessageResp.lel_conferenceID = htolel(c->callid);
 		r1->msg.FlowControlCommandMessageResp.lel_passThruPartyId = htolel(c->passthrupartyid);
 		r1->msg.FlowControlCommandMessageResp.lel_callReference = htolel(c->callid);
-		r1->msg.FlowControlCommandMessageResp.lel_maxBitRate = htolel(0x00000c80);
+		r1->msg.FlowControlCommandMessageResp.lel_maxBitRate = htolel(8000000);
 		sccp_dev_send(c->device, r1);
 
 		sccp_channel_unlock(c);
@@ -3007,6 +3007,13 @@ void sccp_handle_updatecapabilities_message(sccp_session_t *s, sccp_device_t *d,
 		astcodec = sccp_codec_skinny2ast(codec);
 		d->capability |= astcodec;
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(d), codec, codec2str(codec), astcodec, pbx_codec2str(astcodec));
+	}
+
+	n = letohl(r->msg.UpdateCapabilitiesMessage.customPictureFormatCount);
+	for (i = 0; i < n; i++) {
+		int width = letohl(r->msg.UpdateCapabilitiesMessage.customPictureFormat[i].customPictureFormatWidth);
+		int height = letohl(r->msg.UpdateCapabilitiesMessage.customPictureFormat[i].customPictureFormatHeight);
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: PictureFormat %d: width=%d, height=%d\n", DEV_ID_LOG(d), i, width, height);
 	}
 	/* store our video capabilities */
 //      memset(&d->capabilities.video, 0, sizeof(videoCap_t) * DeviceMaxCapabilities);
