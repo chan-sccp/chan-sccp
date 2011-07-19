@@ -1821,12 +1821,22 @@ typedef struct {
 typedef struct {
 	uint32_t bitRate;							/*!< BitRate (default 384) */
 	uint32_t pictureFormatCount;						/*!< Picture Format Count (default 0) */
-	pictureFormat_t pictureFormat[3];					/*!< Picture Format Array */
+	pictureFormat_t pictureFormat[5];					/*!< Picture Format Array */
 	uint32_t confServiceNum;						/*!< Conf Service Number */
-	uint32_t dummy;								/*!< dummy */
-	h261VideoCapability_t h261VideoCapability;				/*!< H261 Video Capability */
-	h263VideoCapability_t h263VideoCapability;				/*!< H263 Video Capability */
-	vieoVideoCapability_t vieoVideoCapability;				/*!< vieo Video Capability */
+	uint32_t profile;
+	uint32_t level;
+	uint32_t macroblockspersec;
+	uint32_t macroblocksperframe;
+	uint32_t decpicbuf;
+	uint32_t brandcpb;
+	uint16_t dummy1;
+	uint16_t dummy2;
+	uint32_t dummy3;
+	uint32_t dummy4;
+	uint32_t dummy5;
+	uint32_t dummy6;
+	uint32_t dummy7;
+	uint32_t dummy8;
 } videoParameter_t;								/*!< Video Parameter Structure */
 
 /*!
@@ -3181,11 +3191,7 @@ typedef union {
 		uint32_t lel_payloadType;					/*!< payload type */
 		uint32_t lel_isConferenceCreator;				/*!< we can set it to 0 */
 
-		audioParameter_t audioParameter;				/*!< Audio Parameter */
 		videoParameter_t videoParameter;				/*!< Video Parameter */
-		dataParameter_t dataParameter;					/*!< Data Parameter */
-
-		uint32_t unknown[12];						/*!< Unknown */
 	} OpenMultiMediaChannelMessage;						/*!< Open Multi Media Channel Message Structure */
 
 	struct {
@@ -3198,11 +3204,7 @@ typedef union {
 		uint32_t lel_payloadType;					/*!< payload type */
 		uint32_t lel_isConferenceCreator;				/*!< we can set it to 0 */
 
-		audioParameter_t audioParameter;				/*!< Audio Parameter */
 		videoParameter_t videoParameter;				/*!< Video Parameter */
-		dataParameter_t dataParameter;					/*!< Data Parameter */
-
-		uint32_t unknown[19];						/*!< Unknown */
 	} OpenMultiMediaChannelMessage_v17;					/*!< Open Multi Media Channel Message Structure */
 
 	/*!
@@ -3237,11 +3239,7 @@ typedef union {
 		uint32_t lel_payloadType;					/*!< payload type */
 		uint32_t lel_DSCPValue;						/*!< DSCP Value */
 
-		audioParameter_t audioParameter;				/*!< Audio Parameter */
 		videoParameter_t videoParameter;				/*!< Video Parameter */
-		dataParameter_t dataParameter;					/*!< Data Parameter */
-
-		uint32_t unknown[12];						/*!< Unknown */
 
 	} StartMultiMediaTransmission;						/*!< Start MultiMedia Transmission Message Structure */
 
@@ -3260,11 +3258,7 @@ typedef union {
 		uint32_t lel_payloadType;					/*!< payload type */
 		uint32_t lel_DSCPValue;						/*!< DSCP Value */
 
-		audioParameter_t audioParameter;				/*!< Audio Parameter */
-		videoParameter_t videoParameter;				/*!< Video Parameter */
-		dataParameter_t dataParameter;					/*!< Data Parameter */
-
-		uint32_t unknown[12];						/*!< Unknown */
+		videoParameter_t videoParameter;					/*!< Data Parameter */
 
 	} StartMultiMediaTransmission_v17;					/*!< Start MultiMedia Transmission Message Structure */
 
