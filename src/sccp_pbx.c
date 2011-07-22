@@ -672,6 +672,9 @@ static struct ast_frame *sccp_pbx_read(struct ast_channel *ast)
 #ifndef CS_AST_HAS_RTP_ENGINE
 	case 0:
 		frame = ast_rtp_read(c->rtp.audio.rtp);				/* RTP Audio */
+		if (frame) {
+			frame->frametype = AST_FRAME_VOICE;
+		}
 		break;
 	case 1:
 		frame = ast_rtcp_read(c->rtp.audio.rtp);			/* RTCP Control Channel */
