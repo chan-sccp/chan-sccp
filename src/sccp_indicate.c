@@ -354,9 +354,10 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		/* asterisk wants rtp open before AST_STATE_UP
 		 * so we set it in OPEN_CHANNEL_ACK in sccp_actions.c.
 		 */
+		/*
 		if (d->earlyrtp)
 			sccp_ast_setstate(c, AST_STATE_UP);
-		sccp_channel_updatemediatype_locked(c);				/*!< Copied from v2 - FS */
+		sccp_channel_updatemediatype_locked(c);		*/		/*!< Copied from v2 - FS */
 
 		break;
 	case SCCP_CHANNELSTATE_CALLPARK:

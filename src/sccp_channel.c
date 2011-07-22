@@ -1163,7 +1163,7 @@ void sccp_channel_stopmediatransmission_locked(sccp_channel_t * c)
 	c->mediaStatus.transmit = FALSE;
 	// stopping rtp
 	if (c->rtp.audio.rtp || c->rtp.video.rtp) {
-		sccp_rtp_stop(c);
+		//sccp_rtp_stop(c);
 	}
 	c->rtp.audio.status &= ~SCCP_RTP_STATUS_TRANSMIT;
 
@@ -1641,7 +1641,7 @@ int sccp_channel_hold_locked(sccp_channel_t * c)
 	peer = CS_AST_BRIDGED_CHANNEL(c->owner);
 
 
-	sccp_rtp_destroy(c);
+	//sccp_rtp_destroy(c);
 
 	if (peer) {
 #ifdef CS_AST_RTP_NEW_SOURCE
@@ -1781,7 +1781,7 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c, boole
 #endif
 	}
 
-//	sccp_rtp_stop(c);
+	//sccp_rtp_stop(c);
 
 #ifdef CS_AST_CONTROL_HOLD
 #    ifdef CS_AST_RTP_NEW_SOURCE
