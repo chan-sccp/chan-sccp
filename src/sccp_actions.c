@@ -2385,6 +2385,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t *s, sccp_device_t *d, s
 		}
 
 		/* update status */
+		c->rtp.audio.status &= ~SCCP_RTP_STATUS_PROGRESS_RECEIVE;
 		c->rtp.audio.status |= SCCP_RTP_STATUS_RECEIVE;
 
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
@@ -2403,10 +2404,12 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t *s, sccp_device_t *d, s
 
 			sccp_channel_startmediatransmission(c);			/*!< Starting Media Transmission Earlier to fix 2 second delay - Copied from v2 - FS */
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
+			ast_rtp_set_peer(c->rtp.audio.rtp, &sin);
 
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
 			if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
 				sccp_ast_setstate(c, AST_STATE_UP);
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
 			}
 
 		} else {
@@ -2468,6 +2471,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t *s, sccp_device_t *d, s
 	}
 
 	c = sccp_channel_find_bypassthrupartyid_locked(partyID);
+	sccp_channel_unlock(c);
 	/* prevent a segmentation fault on fast hangup after answer, failed voicemail for example */
 	if (c) {								// && c->state != SCCP_CHANNELSTATE_DOWN) {
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
@@ -2480,6 +2484,8 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t *s, sccp_device_t *d, s
 		if (c->rtp.video.rtp) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the VRTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 			ast_rtp_set_peer(c->rtp.video.rtp, &sin);
+			c->rtp.video.status &= ~SCCP_RTP_STATUS_PROGRESS_RECEIVE;
+			c->rtp.video.status |= SCCP_RTP_STATUS_RECEIVE;
 			if (c->state == SCCP_CHANNELSTATE_CONNECTED)
 				sccp_ast_setstate(c, AST_STATE_UP);
 		} else {
@@ -3018,6 +3024,9 @@ void sccp_handle_updatecapabilities_message(sccp_session_t *s, sccp_device_t *d,
 	/* store our video capabilities */
 //      memset(&d->capabilities.video, 0, sizeof(videoCap_t) * DeviceMaxCapabilities);
 //      memcpy(&d->capabilities.video, &r->msg.UpdateCapabilitiesMessage.videoCaps, sizeof(videoCap_t) * n);
+
+
+	//sccp_dev_sendmsg(d, UpdateCapabilitiesV3Message);
 }
 
 /*!
@@ -3064,6 +3073,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t *s, sccp_device_t *d,
 	/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
 	if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
 		sccp_ast_setstate(c, AST_STATE_UP);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
 	}
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), callID, callID1, partyID);
