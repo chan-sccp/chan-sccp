@@ -1278,6 +1278,8 @@ typedef enum {
 	DeviceToUserDataVersion1Message = 0x0041,
 	DeviceToUserDataResponseVersion1Message = 0x0042,
 
+	UpdateCapabilitiesV3Message = 0x0044,
+
 	/* This are from protocol V 11 CCM7 */
 	DialedPhoneBookMessage = 0x0048,
 	AccessoryStatusMessage = 0x0049,
@@ -2930,6 +2932,8 @@ typedef union {
 
 	struct {
 	} CapabilitiesReqMessage;						/*!< Capabilities Reqest Message Structure */
+	struct {
+	} UpdateCapabilitiesV3Message;						/*!< Capabilities Reqest Message Structure */
 	struct {
 	} EnunciatorCommandMessage;						/*!< Enunciator Command Message Structure */
 

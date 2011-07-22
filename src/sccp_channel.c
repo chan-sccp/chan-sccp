@@ -26,6 +26,7 @@
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 static uint32_t callCount = 1;
+//static uint32_t gMylevel = 1;
 
 AST_MUTEX_DEFINE_STATIC(callCountLock);
 
@@ -755,7 +756,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 	c->mediaStatus.receive = TRUE;
 
 	//ast_rtp_set_vars(c->owner, c->rtp.audio.rtp);
-	sccp_channel_openMultiMediaChannel(c);
+	//sccp_channel_openMultiMediaChannel(c);
 }
 
 void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
@@ -769,21 +770,20 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 	uint8_t lineInstance;
 
 
-	   if (channel->device && (channel->rtp.video.status & SCCP_RTP_STATUS_RECEIVE)) {
+	if (channel->device && (channel->rtp.video.status & SCCP_RTP_STATUS_RECEIVE)) {
 		return;
 	}
 
-	channel->rtp.video.status |= SCCP_RTP_STATUS_RECEIVE;
-	//skinnyFormat = sccp_codec_ast2skinny(channel->rtp.video.writeFormat);
+	skinnyFormat = sccp_codec_ast2skinny(channel->rtp.video.writeFormat);
 
-	/*
+	
 	if (skinnyFormat == 0) {
 		ast_log(LOG_NOTICE, "SCCP: Unable to find skinny format for %d\n", channel->rtp.video.writeFormat);
 		return;
 	}
 
 	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, skinnyFormat);
-	*/
+	
 	lineInstance = sccp_device_find_index_for_line(channel->device, channel->line->name);
 
 	if (payloadType == -1) {
@@ -804,8 +804,8 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormatCount = htolel(0);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormat[0].format = htolel(4);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormat[0].mpi = htolel(30);
-		r->msg.OpenMultiMediaChannelMessage.videoParameter.profile = htolel(0);
-		r->msg.OpenMultiMediaChannelMessage.videoParameter.level = htolel(8);
+		r->msg.OpenMultiMediaChannelMessage.videoParameter.profile = htolel(64);
+		r->msg.OpenMultiMediaChannelMessage.videoParameter.level = htolel(50);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.macroblockspersec = htolel(40500);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.macroblocksperframe = htolel(1620);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.decpicbuf = htolel(8100);
@@ -823,15 +823,15 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		r->msg.OpenMultiMediaChannelMessage_v17.lel_payloadType = htolel(payloadType);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.confServiceNum = htolel(channel->callid);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.bitRate = htolel(channel->desiredVideoBitrate);
-		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.pictureFormatCount = htolel(1);
-		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.pictureFormat[0].format = htolel(4);
+		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.pictureFormatCount = htolel(0);
+		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.pictureFormat[0].format = htolel(1);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.pictureFormat[0].mpi = htolel(1);
-		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.profile = htolel(0);
-		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.level = htolel(8);
-		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.macroblockspersec = htolel(40500);
-		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.macroblocksperframe = htolel(1620);
-		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.decpicbuf = htolel(8100);
-		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.brandcpb = htolel(10000);
+		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.profile = htolel(64);
+		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.level = htolel(50);
+		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.macroblockspersec = htolel(0);
+		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.macroblocksperframe = htolel(0);
+		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.decpicbuf = htolel(0);
+		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.brandcpb = htolel(0);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.dummy1 = htolel(0);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.dummy2 = htolel(0);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.dummy3 = htolel(0);
@@ -904,6 +904,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 			memcpy(&sin.sin_addr, &GLOB(externip.sin_addr), 4);
 		}
 	}
+	channel->rtp.video.status |= SCCP_RTP_STATUS_TRANSMIT;
 
 	if (d->inuseprotocolversion < 15) {
 		r = sccp_build_packet(StartMultiMediaTransmission, sizeof(r->msg.StartMultiMediaTransmission));
@@ -916,11 +917,11 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		r->msg.StartMultiMediaTransmission.lel_payloadType = payloadType;
 		r->msg.StartMultiMediaTransmission.lel_DSCPValue = htolel(136);
 		r->msg.StartMultiMediaTransmission.videoParameter.bitRate = htolel(channel->desiredVideoBitrate);
-		r->msg.StartMultiMediaTransmission.videoParameter.pictureFormatCount = htolel(1);
+		r->msg.StartMultiMediaTransmission.videoParameter.pictureFormatCount = htolel(0);
 		r->msg.StartMultiMediaTransmission.videoParameter.pictureFormat[0].format = htolel(4);
 		r->msg.StartMultiMediaTransmission.videoParameter.pictureFormat[0].mpi = htolel(30);
-		r->msg.StartMultiMediaTransmission.videoParameter.profile = htolel(0);
-		r->msg.StartMultiMediaTransmission.videoParameter.level = htolel(8);
+		r->msg.StartMultiMediaTransmission.videoParameter.profile = htolel(50);
+		r->msg.StartMultiMediaTransmission.videoParameter.level = htolel(64);
 		r->msg.StartMultiMediaTransmission.videoParameter.macroblockspersec = htolel(40500);
 		r->msg.StartMultiMediaTransmission.videoParameter.macroblocksperframe = htolel(1620);
 		r->msg.StartMultiMediaTransmission.videoParameter.decpicbuf = htolel(8100);
@@ -938,15 +939,15 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		r->msg.StartMultiMediaTransmission_v17.lel_payloadType = payloadType;
 		r->msg.StartMultiMediaTransmission_v17.lel_DSCPValue = htolel(136);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.bitRate = htolel(channel->desiredVideoBitrate);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormatCount = htolel(1);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormat[0].format = htolel(4);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormatCount = htolel(0);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormat[0].format = htolel(1);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormat[0].mpi = htolel(1);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.profile = htolel(0);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.level = htolel(8);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.macroblockspersec = htolel(40500);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.macroblocksperframe = htolel(1620);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.decpicbuf = htolel(8100);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.brandcpb = htolel(10000);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.profile = htolel(64);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.level = htolel(50);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.macroblockspersec = htolel(0);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.macroblocksperframe = htolel(0);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.decpicbuf = htolel(0);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.brandcpb = htolel(0);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.dummy1 = htolel(0);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.dummy2 = htolel(0);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.dummy3 = htolel(0);
@@ -1116,6 +1117,7 @@ void sccp_channel_closereceivechannel_locked(sccp_channel_t * c)
 	c->rtp.audio.status &= ~SCCP_RTP_STATUS_RECEIVE;
 
 	if (c->rtp.video.rtp) {
+		c->rtp.video.status &= ~SCCP_RTP_STATUS_RECEIVE;
 		REQ(r, CloseMultiMediaReceiveChannel);
 		r->msg.CloseMultiMediaReceiveChannel.lel_conferenceId = htolel(c->callid);
 		r->msg.CloseMultiMediaReceiveChannel.lel_passThruPartyId = htolel(c->passthrupartyid);
@@ -1124,6 +1126,8 @@ void sccp_channel_closereceivechannel_locked(sccp_channel_t * c)
 	}
 
 	sccp_channel_stopmediatransmission_locked(c);
+
+	//gMylevel++;
 }
 
 /*!
@@ -1158,7 +1162,7 @@ void sccp_channel_stopmediatransmission_locked(sccp_channel_t * c)
 	}
 	c->mediaStatus.transmit = FALSE;
 	// stopping rtp
-	if (c->rtp.audio.rtp) {
+	if (c->rtp.audio.rtp || c->rtp.video.rtp) {
 		sccp_rtp_stop(c);
 	}
 	c->rtp.audio.status &= ~SCCP_RTP_STATUS_TRANSMIT;
@@ -1166,6 +1170,7 @@ void sccp_channel_stopmediatransmission_locked(sccp_channel_t * c)
 	// stopping vrtp
 	if (c->rtp.video.rtp) {
 		REQ(r, StopMultiMediaTransmission);
+		c->rtp.video.status &= ~SCCP_RTP_STATUS_TRANSMIT;
 		r->msg.StopMultiMediaTransmission.lel_conferenceId = htolel(c->callid);
 		r->msg.StopMultiMediaTransmission.lel_passThruPartyId = htolel(c->passthrupartyid);
 		r->msg.StopMultiMediaTransmission.lel_conferenceId1 = htolel(c->callid);
@@ -1635,6 +1640,9 @@ int sccp_channel_hold_locked(sccp_channel_t * c)
 
 	peer = CS_AST_BRIDGED_CHANNEL(c->owner);
 
+
+	sccp_rtp_destroy(c);
+
 	if (peer) {
 #ifdef CS_AST_RTP_NEW_SOURCE
 		ast_rtp_new_source(c->rtp.audio.rtp);
@@ -1772,6 +1780,9 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c, boole
 		ast_clear_flag(peer, AST_FLAG_MOH);
 #endif
 	}
+
+//	sccp_rtp_stop(c);
+
 #ifdef CS_AST_CONTROL_HOLD
 #    ifdef CS_AST_RTP_NEW_SOURCE
 	if (c->rtp.audio.rtp)
@@ -1780,7 +1791,6 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c, boole
 	sccp_ast_queue_control(c, AST_CONTROL_UNHOLD);
 #endif
 
-	sccp_rtp_stop(c);
 
 	c->device = d;
 
@@ -1789,7 +1799,7 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c, boole
 	/* */
 
 	c->state = SCCP_CHANNELSTATE_HOLD;
-	sccp_rtp_createAudioServer(c);
+	//sccp_rtp_createAudioServer(c);
 
 	sccp_channel_set_active(d, c);
 #ifdef CS_AST_CONTROL_SRCUPDATE

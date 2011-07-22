@@ -441,7 +441,7 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 	}
 #endif										// CS_SCCP_CONFERENCE
 
-	if (c->rtp.audio.rtp) {
+	if (c->rtp.audio.rtp || c->rtp.video.rtp) {
 		sccp_channel_closereceivechannel_locked(c);
 		usleep(200);
 		sccp_rtp_destroy(c);
@@ -771,12 +771,13 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame)
 		case AST_FRAME_IMAGE:
 		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
-			if ((c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) == 0 && c->rtp.video.rtp && c->device && (frame->subclass & AST_FORMAT_VIDEO_MASK)
+			if ((c->rtp.video.status & SCCP_RTP_STATUS_PROGRESS_RECEIVE) == 0 && (c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) == 0 && c->rtp.video.rtp && c->device && (frame->subclass & AST_FORMAT_VIDEO_MASK)
 			    //      && (c->device->capability & frame->subclass) 
 			    ) {
 				ast_log(LOG_NOTICE, "%s: got video frame\n", DEV_ID_LOG(c->device));
 				c->rtp.video.writeFormat = (frame->subclass & AST_FORMAT_VIDEO_MASK);
 				sccp_channel_openMultiMediaChannel(c);
+				c->rtp.video.status |= SCCP_RTP_STATUS_PROGRESS_RECEIVE;
 			}
 #endif
 			if (c->rtp.video.rtp && (c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) != 0) {
@@ -1009,7 +1010,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 
 		/* TODO: Handle COLP here */
 
-		pbx_channel_lock(c->owner);
+		//pbx_channel_lock(c->owner);
 		astcSourceRemote = CS_AST_BRIDGED_CHANNEL(c->owner);
 		//pbx_channel_lock(astcSourceRemote);
 
@@ -1145,7 +1146,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			}
 		}
 
-		pbx_channel_unlock(c->owner);
+		//pbx_channel_unlock(c->owner);
 
 		/* TODO COLP END */
 
