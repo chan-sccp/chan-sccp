@@ -458,7 +458,7 @@ struct sccp_messageMap_cb {
 };
 
 static const struct sccp_messageMap_cb messagesCbMap[] = {
-	{KeepAliveMessage, sccp_handle_KeekaliveMessage, FALSE},		/* 7985 sends a KeepAliveMessage before register */
+	{KeepAliveMessage, sccp_handle_keepAliveMessage, FALSE},		/* 7985 sends a KeepAliveMessage before register */
 	{OffHookMessage, sccp_handle_offhook, TRUE},
 	{OnHookMessage, sccp_handle_onhook, TRUE},
 	{SoftKeyEventMessage, sccp_handle_soft_key_event, TRUE},
