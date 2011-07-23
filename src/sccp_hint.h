@@ -84,14 +84,6 @@ struct sccp_hint_list {
 	 SCCP_LIST_ENTRY(sccp_hint_list_t) list;				/*!< Hint Type Linked List Entry */
 };										/*!< SCCP Hint List Structure */
 
-/*!
- * \brief Hint State for Device
- * \param context Context as char
- * \param exten Extension as char
- * \param state State as Asterisk Extension State
- * \param data Asterisk Data
- * \return Status as int
- */
 int sccp_hint_state(char *context, char *exten, enum ast_extension_states state, void *data);
 #define sccp_hint_lineStatusChanged(a,b,c,d,e) sccp_hint_lineStatusChangedDebug(a,b,c,d,e, __FILE__, __LINE__)
 void sccp_hint_lineStatusChangedDebug(sccp_line_t * line, sccp_device_t * device, sccp_channel_t * channel, sccp_channelState_t previousState, sccp_channelState_t state, char *callerFile, int callerLine);

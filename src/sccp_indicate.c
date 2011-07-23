@@ -48,8 +48,6 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	sccp_line_t *l;
 
 	int instance;
-	
-
 
 	if (debug)
 		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_1 "SCCP: [INDICATE] mode '%s' in file '%s', on line %d (%s)\n", "UNLOCK", file, line, pretty_function);
@@ -70,6 +68,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	}
 	l = c->line;
 
+	/*! \todo: should be replace by a trylock with deadlock detection, because device lock is taken out of order */
 	sccp_device_lock(d);
 	instance = sccp_device_find_index_for_line(d, l->name);
 	sccp_device_unlock(d);
@@ -134,7 +133,6 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_ast_setstate(c, AST_STATE_DOWN);
 		if (c == d->active_channel)
 			sccp_dev_stoptone(d, instance, c->callid);
-		//if (c->previousChannelState != SCCP_CHANNELSTATE_CALLWAITING)
 
 		sccp_dev_clearprompt(d, instance, c->callid);
 		/* if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
@@ -195,8 +193,8 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 				if (d && remoteDevice && remoteDevice == d) {
 					sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found matching linedevice. Aux parameter = %s\n", d->id, ownlinedevice->subscriptionId.aux);
 
-					/** Check the auxiliary parameter of the linedevice to enable silent ringing
-					 for certain devices on a certain line.**/
+					/* Check the auxiliary parameter of the linedevice to enable silent ringing for specific devices on a specific line. */
+					/*! \todo @DD: clarify usage of the silent parameter in the documentation */
 					if (0 == strncmp(ownlinedevice->subscriptionId.aux, "silent", 6)) {
 						sccp_dev_set_ringer(d, SKINNY_STATION_SILENTRING, instance, c->callid);
 						sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Forcing silent ring for specific device.\n", d->id);
@@ -217,9 +215,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 		sccp_dev_stoptone(d, instance, c->callid);
-		
-	
-		
+
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_channel_send_callinfo(d, c);
 		sccp_dev_set_cplane(l, instance, d, 1);
@@ -227,7 +223,6 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CONNECTED, 0);
 		// if no rtp or was in old openreceivechannel (note that rtp doens't reinitialize as channel was in hold state or offhook state due to a transfer abort)
 		if (!c->rtp.audio.rtp || c->previousChannelState == SCCP_CHANNELSTATE_HOLD || c->previousChannelState == SCCP_CHANNELSTATE_CALLTRANSFER || c->previousChannelState == SCCP_CHANNELSTATE_CALLCONFERENCE || c->previousChannelState == SCCP_CHANNELSTATE_OFFHOOK) {
-			//sccp_channel_updateChannelCapability_locked(c);
 			sccp_channel_openreceivechannel_locked(c);
 		} else if (c->rtp.audio.rtp) {
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
@@ -247,12 +242,11 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_BUSY, 0);
 		sccp_ast_setstate(c, AST_STATE_BUSY);
 		break;
-	case SCCP_CHANNELSTATE_PROGRESS:					/* \todo SCCP_CHANNELSTATE_PROGRESS To be checked */
+	case SCCP_CHANNELSTATE_PROGRESS:
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_2 "%s: SCCP_CHANNELSTATE_PROGRESS\n", d->id);
 
 		if (c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) {	// this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app)
 			sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
-//                      c->state = SCCP_CHANNELSTATE_CONNECTED;
 		} else {
 			sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) from (%s)\n", sccp_indicate2str(c->previousChannelState));
 			if (!c->rtp.audio.rtp && d->earlyrtp) {
@@ -330,14 +324,6 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		} else if (c->rtp.audio.rtp) {
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
 		}
-		/* asterisk wants rtp open before AST_STATE_UP
-		 * so we set it in OPEN_CHANNEL_ACK in sccp_actions.c.
-		 */
-		/*
-		if (d->earlyrtp)
-			sccp_ast_setstate(c, AST_STATE_UP);
-		sccp_channel_updatemediatype_locked(c);		*/		/*!< Copied from v2 - FS */
-
 		break;
 	case SCCP_CHANNELSTATE_CALLPARK:
 		sccp_device_sendcallstate(d, instance, c->callid, SCCP_CHANNELSTATE_CALLPARK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -360,7 +346,6 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 
 		sccp_channel_send_callinfo(d, c);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_UNKNOWN_NUMBER, 0);
-
 		/* don't set AST_STATE_DOWN. we hangup only on onhook and endcall softkey */
 		break;
 	case SCCP_CHANNELSTATE_DIALING:
@@ -393,8 +378,8 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	/* notify features */
 	sccp_feat_channelStateChanged(device, c);
 
+	/*! \todo: fix device check locking order. device is possibly locked during sccp_event_fire */
 	sccp_event_t *event = ast_malloc(sizeof(sccp_event_t));
-
 	memset(event, 0, sizeof(sccp_event_t));
 	event->type = SCCP_EVENT_LINESTATUSCHANGED;
 	event->event.lineStatusChanged.line = c->line;
@@ -445,8 +430,8 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 	if (c->line == GLOB(hotline)->line)
 		return;
 
+	/*! \todo TODO find working lock (Using trylock with deadlock prevention should be ok) */
 //      SCCP_LIST_LOCK(&c->line->devices);
-	// \todo TODO find working lock
 	sccp_linedevices_t *linedevice;
 
 	SCCP_LIST_TRAVERSE(&c->line->devices, linedevice, list) {
@@ -456,7 +441,6 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 			continue;
 
 		//TODO do not publish status we already know, because we are part of it
-
 		sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Notify remote device.\n", DEV_ID_LOG(remoteDevice));
 		sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: channelcount: %d\n", DEV_ID_LOG(remoteDevice), SCCP_RWLIST_GETSIZE(c->line->channels));
 
@@ -496,7 +480,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 
 			break;
 		case SCCP_CHANNELSTATE_CONNECTED:
-			/* DD: We sometimes set the channel to offhook first before setting it to connected state.
+			/*! \todo DD: We sometimes set the channel to offhook first before setting it to connected state.
 			   This seems to be necessary to have incoming calles logged properly.
 			   If this is done, the ringer would not get turned off on remote devices.
 			   So I removed the if clause below. Hopefully, this will not cause other calls to stop
