@@ -36,15 +36,15 @@ if [ $? = 0 ] ; then	# BSD case
 			MY_AM_VER=19
 			;;
 		*)
-			MY_AC_VER=-2.60
-			MY_AM_VER=-1.10
+			MY_AC_VER=-2.67
+			MY_AM_VER=-1.11
 			;;
 	esac
 else	# linux case
 	MY_AC_VER=
 	MY_AM_VER=
-	AUTOCONF_VERSION=2.60
-	AUTOMAKE_VERSION=1.10
+	AUTOCONF_VERSION=2.67
+	AUTOMAKE_VERSION=1.11
 	export AUTOCONF_VERSION
 	export AUTOMAKE_VERSION
 fi
