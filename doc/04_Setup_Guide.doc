@@ -231,6 +231,7 @@
  * park = off
  * button = speeddial,Helpdesk, 98112, 98112@hint  		; Add SpeedDial to Helpdesk (without hint)
  * button = line, 98021
+ * button = line, 98022, Name, 01				; SharedLine with SubscriptionName and SubscriptionId (Specific device extension SCCP/9802201)
  * button= feature,Private Call,privacy,callpresent		;set channel variable SKINNY_PRIVATE to 1 if feature is enabled
  * button= feature,DND Busy,DND,busy				;set dnd status to busy
  * button= feature,DND Silent,DND,silent				;set dnd status to silent
@@ -675,18 +676,18 @@
  * for example hold a line on one device and use resume on another to pick the line up there. Or even steal a line from another 
  * device using the Intercept button.
  * 
- * To set up a shared line, you just define the same extension/line number on multiple devices. You can add a suffix to the extension
+ * To set up a shared line, you just define the same extension/line number on multiple devices. You can add a suffix or subscriptionId to the extension
  * number to be able to call a specific device using "@" and if you like an extra callerid_name behind ":", like this:
  *
  * \code
  * [SEP00000001]
  * ...
- * button = line, 900@1: Kitchen
+ * button = line, 900@1:Kitchen
  * ...
  *
  * [SEP00000002]
  * ...
- * button = line, 900@2: LivingRoom
+ * button = line, 900@2:LivingRoom!silent
  * ...
  * \endcode 
  *
@@ -706,6 +707,9 @@
  *
  * To add a default suffix to a line (so all device using that line, will also be accessible via the default suffix) you
  * can add "defaultSubscriptionId_number = " to the line definition in sccp.conf.
+ *
+ * When "silent" is added to the subscriptionId this line will not ring if the shared line is called, this can be used when a secretary is supposed to 
+ * handle all incoming calls on a shared line. Only when the extension including the suffix/subsriptionId is called will this line ring.
  *
  **/
 

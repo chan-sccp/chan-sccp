@@ -271,11 +271,12 @@ void sccp_hint_deviceUnRegistered(const char *deviceName)
 }
 
 /*!
- * \brief Asterisk Hint Wrapper
+ * \brief Asterisk Hint State Wrapper
  * \param context Context as char
  * \param exten Extension as char
  * \param state Asterisk Extension State
  * \param data Asterisk Data
+ * \return Status as int
  * 
  * \called_from_asterisk
  */
