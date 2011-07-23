@@ -45,6 +45,7 @@ struct ast_ha {
 /*!
  * \brief Handle Alarm
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP MOO T as sccp_moo_t
  */
 void sccp_handle_alarm(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
@@ -55,7 +56,8 @@ void sccp_handle_alarm(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
 /*!
  * \brief Handle Unknown Message
  * \param s SCCP Session as sccp_session_t
- * \param r SCCP MOO T as sccp_moo_t
+ * \param d SCCP Device as sccp_device_t
+ * \param r SCCP Message as sccp_moo_t
  */
 void sccp_handle_unknown_message(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
 {
@@ -76,7 +78,8 @@ void sccp_handle_unknown_message(sccp_session_t *s, sccp_device_t *d, sccp_moo_t
  * a token acknowledgement the switches back.
  *
  * \param s SCCP Session as sccp_session_t
- * \param r SCCP MOO T as sccp_moo_t
+ * \param d SCCP Device as sccp_device_t
+ * \param r SCCP Message as sccp_moo_t
  *
  * \callgraph
  * \callergraph
@@ -121,7 +124,8 @@ void sccp_handle_tokenreq(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
 /*!
  * \brief Handle Device Registration
  * \param s SCCP Session as sccp_session_t
- * \param r SCCP MOO T as sccp_moo_t
+ * \param d SCCP Device as sccp_device_t
+ * \param r SCCP Message as sccp_moo_t
  *
  * \callgraph
  * \callergraph
@@ -294,7 +298,8 @@ void sccp_handle_register(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
 /*!
  * \brief Handle Device Registration for SPA phones
  * \param s SCCP Session as sccp_session_t
- * \param r SCCP MOO T as sccp_moo_t
+ * \param d SCCP Device as sccp_device_t
+ * \param r SCCP Message as sccp_moo_t
  *
  * \callgraph
  * \callergraph
@@ -660,7 +665,9 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 
 /*!
  * \brief Handle Available Lines
- * \param d SCCP device
+ * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
+ * \param r SCCP Message as sccp_moo_t
  *
  * \callgraph
  * \callergraph
@@ -748,7 +755,8 @@ void sccp_handle_AvailableLines(sccp_session_t *s, sccp_device_t *d, sccp_moo_t 
 /*!
  * \brief Handle Accessory Status Message
  * \param s SCCP Session as sccp_session_t
- * \param r SCCP MOO T as sccp_moo_t
+ * \param d SCCP Device as sccp_device_t
+ * \param r SCCP Message as sccp_moo_t
  */
 void sccp_handle_accessorystatus_message(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
 {
@@ -784,7 +792,8 @@ void sccp_handle_accessorystatus_message(sccp_session_t *s, sccp_device_t *d, sc
 /*!
  * \brief Handle Device Unregister
  * \param s SCCP Session as sccp_session_t
- * \param r SCCP MOO T as sccp_moo_t
+ * \param d SCCP Device as sccp_device_t
+ * \param r SCCP Message as sccp_moo_t
  */
 void sccp_handle_unregister(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
 {
@@ -805,6 +814,7 @@ void sccp_handle_unregister(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
 /*!
  * \brief Handle Button Template Request for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  *
  * \warning
@@ -925,6 +935,7 @@ void sccp_handle_button_template_req(sccp_session_t *s, sccp_device_t *d, sccp_m
 /*!
  * \brief Handle Line Number for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  *
  * \lock
@@ -1003,6 +1014,7 @@ void sccp_handle_line_number(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r
 /*!
  * \brief Handle SpeedDial Status Request for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  */
 void sccp_handle_speed_dial_stat_req(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
@@ -1035,6 +1047,7 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t *s, sccp_device_t *d, sccp_m
 /*!
  * \brief Handle Stimulus for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  *
  * \callgraph
@@ -1437,6 +1450,7 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
 /*!
  * \brief Handle Off Hook Event for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  */
 void sccp_handle_offhook(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
@@ -1526,6 +1540,7 @@ void sccp_handle_backspace(sccp_device_t * d, uint8_t line, uint32_t callid)
 /*!
  * \brief Handle On Hook Event for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  * 
  * \warning
@@ -1574,6 +1589,7 @@ void sccp_handle_onhook(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
 /*!
  * \brief Handle On Hook Event for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  * \note this is used just in protocol v3 stuff, it has been included in 0x004A AccessoryStatusMessage
  */
@@ -1592,6 +1608,7 @@ void sccp_handle_headset(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
 /*!
  * \brief Handle Capabilities for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  */
 void sccp_handle_capabilities_res(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
@@ -1631,6 +1648,7 @@ void sccp_handle_capabilities_res(sccp_session_t *s, sccp_device_t *d, sccp_moo_
 /*!
  * \brief Handle Soft Key Template Request Message for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  *
  * \lock
@@ -1695,6 +1713,7 @@ void sccp_handle_soft_key_template_req(sccp_session_t *s, sccp_device_t *d, sccp
 /*!
  * \brief Handle Set Soft Key Request Message for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  * 
  * \warning
@@ -1878,6 +1897,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t *s, sccp_device_t *d, sccp_moo_
 /*!
  * \brief Handle Dialed PhoneBook Message for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  */
 void sccp_handle_dialedphonebook_message(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
@@ -1915,6 +1935,7 @@ void sccp_handle_dialedphonebook_message(sccp_session_t *s, sccp_device_t *d, sc
 /*!
  * \brief Handle Time/Date Request Message for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  */
 void sccp_handle_time_date_req(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
@@ -1968,6 +1989,7 @@ void sccp_handle_time_date_req(sccp_session_t *s, sccp_device_t *d, sccp_moo_t *
 /*!
  * \brief Handle KeyPad Button for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  *
  * \lock
@@ -2245,6 +2267,7 @@ static const sccp_softkeyMap_cb_t *sccp_getSoftkeyMap_by_SoftkeyEvent(uint32_t e
 /*!
  * \brief Handle Soft Key Event for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  */
 void sccp_handle_soft_key_event(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
@@ -2323,6 +2346,7 @@ void sccp_handle_keepAliveMessage(sccp_session_t *s, sccp_device_t *d, sccp_moo_
 /*!
  * \brief Handle Start Media Transmission Acknowledgement for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  *
  * \lock
@@ -2428,6 +2452,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t *s, sccp_device_t *d, s
 /*!
  * \brief Handle Open Multi Media Receive Acknowledgement
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  *
  * \lock
@@ -2514,6 +2539,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t *s, sccp_device_t *d, s
 /*!
  * \brief Handle Version for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  */
 void sccp_handle_version(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
@@ -2530,6 +2556,7 @@ void sccp_handle_version(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
 /*!
  * \brief Handle Connection Statistics for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  */
 void sccp_handle_ConnectionStatistics(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
@@ -2542,6 +2569,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t *s, sccp_device_t *d, sccp_
 /*!
  * \brief Handle Server Resource Message for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  */
 void sccp_handle_ServerResMessage(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
@@ -2571,6 +2599,7 @@ void sccp_handle_ServerResMessage(sccp_session_t *s, sccp_device_t *d, sccp_moo_
 /*!
  * \brief Handle Config Status Message for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  *
  * \lock
@@ -2614,6 +2643,7 @@ void sccp_handle_ConfigStatMessage(sccp_session_t *s, sccp_device_t *d, sccp_moo
 /*!
  * \brief Handle Enbloc Call Messsage (Dial in one block, instead of number by number)
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  *
  * \lock
@@ -2662,6 +2692,7 @@ void sccp_handle_EnblocCallMessage(sccp_session_t *s, sccp_device_t *d, sccp_moo
 /*!
  * \brief Handle Forward Status Reques for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  */
 void sccp_handle_forward_stat_req(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
@@ -2690,6 +2721,7 @@ void sccp_handle_forward_stat_req(sccp_session_t *s, sccp_device_t *d, sccp_moo_
 /*!
  * \brief Handle Feature Status Reques for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  * 
  * \warning
@@ -2741,6 +2773,7 @@ void sccp_handle_feature_stat_req(sccp_session_t *s, sccp_device_t *d, sccp_moo_
 /*!
  * \brief Handle Feature Status Request for Session
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  */
 void sccp_handle_services_stat_req(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
@@ -2971,6 +3004,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
  * In future we will parse also data caps to support T.38 and NSE with ATA186/188 devices.
  *
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  *
  * \since 20090708
@@ -3029,6 +3063,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t *s, sccp_device_t *d,
 /*!
  * \brief Handle Start Media Transmission Acknowledgement
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  * \since 20090708
  * \author Federico
@@ -3081,6 +3116,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t *s, sccp_device_t *d,
 /*!
  * \brief Handle Device to User Message
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  */
 void sccp_handle_device_to_user(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
@@ -3144,6 +3180,7 @@ void sccp_handle_device_to_user(sccp_session_t *s, sccp_device_t *d, sccp_moo_t 
 /*!
  * \brief Handle Device to User Message
  * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
  * \param r SCCP Message as sccp_moo_t
  */
 void sccp_handle_device_to_user_response(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)

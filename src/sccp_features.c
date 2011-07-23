@@ -426,8 +426,8 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 
 /*!
  * \brief Handle Group Pickup Feature
- * \param l SCCP Line
- * \param d SCCP Device
+ * \param c Asterisk Channel
+ * \param data contains the pointer to the SCCP Line
  * \return Success as int
  *
  * \see static int find_channel_by_group(struct ast_channel *c, void *data) from features.c
@@ -1471,6 +1471,8 @@ int checkMonCond(void *v) {
 /*!
  * \brief Feature Monitor
  * \param device SCCP Device
+ * \param line SCCP Line
+ * \param lineInstance Line Instance as Uint32_t
  * \param channel SCCP Channel
  */
 //void sccp_feat_monitor(sccp_device_t * device, sccp_channel_t * channel)
