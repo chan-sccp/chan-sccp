@@ -26,7 +26,6 @@
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 static uint32_t callCount = 1;
-//static uint32_t gMylevel = 1;
 
 AST_MUTEX_DEFINE_STATIC(callCountLock);
 
@@ -72,7 +71,6 @@ sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * de
 
 	/* this is for dialing scheduler */
 	c->digittimeout = -1;
-	/* maybe usefull -FS */
 	c->owner = NULL;
 	/* default ringermode SKINNY_STATION_OUTSIDERING. Change it with SCCPRingerMode app */
 	c->ringermode = SKINNY_STATION_OUTSIDERING;
@@ -160,21 +158,15 @@ void sccp_channel_updateChannelCapability_locked(sccp_channel_t * channel)
 		channel->owner->rawreadformat = channel->format;
 		channel->owner->rawwriteformat = channel->format;
 
-		channel->owner->writeformat = channel->format;			/*|AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS; */
-		channel->owner->readformat = channel->format;			/*|AST_FORMAT_H263|AST_FORMAT_H264|AST_FORMAT_H263_PLUS; */
-
-//              if( (channel->capability & AST_FORMAT_VIDEO_MASK) ){
-//                      channel->owner->writeformat |= (channel->capability & AST_FORMAT_VIDEO_MASK);
-//                      channel->owner->readformat |= (channel->capability & AST_FORMAT_VIDEO_MASK);
-//              }
+		channel->owner->writeformat = channel->format;		
+		channel->owner->readformat = channel->format;		
 
 		ast_set_read_format(channel->owner, channel->format);
 		ast_set_write_format(channel->owner, channel->format);
 	}
-#if 1										// (DD)
+
 	char s1[512], s2[512];
-	sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d) USED *: %s(%d) \n", channel->line->name, channel->callid, pbx_getformatname_multiple(s1, sizeof(s1) - 1, channel->capability), channel->capability, pbx_getformatname_multiple(s2, sizeof(s2) - 1, channel->format), channel->format);
-#endif
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d) USED *: %s(%d) \n", channel->line->name, channel->callid, pbx_getformatname_multiple(s1, sizeof(s1) - 1, channel->capability), channel->capability, pbx_getformatname_multiple(s2, sizeof(s2) - 1, channel->format), channel->format);
 }
 
 /*!
@@ -719,6 +711,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 
 #if ASTERISK_VERSION_NUMBER >= 10600
  	if(c->format & AST_FORMAT_SLINEAR16){
+ 		//!\todo Check if the following makes DD's custom asterisk 1.6 patch obsolete. If yes, make it so and issue another release.
  		//payloadType = 25;
  		//c->rtp.audio.rtp.current_RTP_PT[payloadType].code = AST_FORMAT_SLINEAR16;
  		//ast_rtp_set_m_type(c->rtp.audio.rtp, payloadType);
@@ -1033,21 +1026,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 			}
 			memcpy(&c->rtp.audio.phone_remote.sin_addr, &GLOB(externip.sin_addr), 4);
 		}
-	} else {
-//              sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: get remote peer", c->device->id);
-//              if(!ast_rtp_get_peer(c->rtp.audio.rtp, &c->rtp.audio.phone_remote)){
-//                        sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 " failed\n");
-//              }else{
-//                        sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 " '%s:%d'\n",pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr), ntohs(c->rtp.audio.phone_remote.sin_port));
-//              }
-//        
-//              /* */
-//              if(c->rtp.audio.phone_remote.sin_port==0){
-//                      sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: get our rtp server address", c->device->id);
-//                      ast_rtp_get_us(c->rtp.audio.rtp, &c->rtp.audio.phone_remote);
-//                      sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 " '%s:%d'\n",pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr), ntohs(c->rtp.audio.phone_remote.sin_port));
-//              }
-	}
+	} 
 
 #if ASTERISK_VERSION_NUMBER >= 10400
 	fmt = pbx_codec_pref_getsize(&c->device->codecs, c->format);
@@ -1142,7 +1121,6 @@ void sccp_channel_closereceivechannel_locked(sccp_channel_t * c)
 
 	sccp_channel_stopmediatransmission_locked(c);
 
-	//gMylevel++;
 }
 
 /*!
@@ -1582,7 +1560,6 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * c)
 	sccp_dev_set_activeline(d, c->line);
 
 	/* the old channel state could be CALLTRANSFER, so the bridged channel is on hold */
-	/* do we need this ? -FS */
 #ifdef CS_AST_HAS_FLAG_MOH
 	bridged = CS_AST_BRIDGED_CHANNEL(c->owner);
 	if (bridged && ast_test_flag(bridged, AST_FLAG_MOH)) {
@@ -1655,8 +1632,6 @@ int sccp_channel_hold_locked(sccp_channel_t * c)
 
 	peer = CS_AST_BRIDGED_CHANNEL(c->owner);
 
-
-	//sccp_rtp_destroy(c);
 
 	if (peer) {
 #ifdef CS_AST_RTP_NEW_SOURCE
@@ -1790,7 +1765,6 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c, boole
 			ast_rtp_new_source(c->rtp.audio.rtp);
 #endif
 
-		// this is for STABLE version
 #ifdef CS_AST_HAS_FLAG_MOH
 		ast_clear_flag(peer, AST_FLAG_MOH);
 #endif
@@ -1963,8 +1937,7 @@ void sccp_channel_transfer_locked(sccp_channel_t * c)
 
 	sccp_device_lock(d);
 	/* are we in the middle of a transfer? */
-	/* TODO: It might be a bad idea to allow that a new transfer be initiated
-	   by pressing transfer on the channel to be transferred twice. (-DD) */
+	/*! \todo It is a bad idea to commence transfer twice on a channel already being transferred. (-DD) */
 	if (d->transfer_channel && (d->transfer_channel != c)) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion\n", (d && d->id) ? d->id : "SCCP");
 		sccp_device_unlock(d);
@@ -1982,13 +1955,16 @@ void sccp_channel_transfer_locked(sccp_channel_t * c)
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
 	}
-	/*  TODO: If this is the only place where the call is put on hold, the code should reflect the importance better. 
-	   TODO: Add meaningful error reporting here. Check for missing cleanup. (-DD) */
-	if ((c->state != SCCP_CHANNELSTATE_HOLD && c->state != SCCP_CHANNELSTATE_CALLTRANSFER) && !sccp_channel_hold_locked(c))
+	
+	/* In case the channel is not yet on hold, we try to put it on hold here. */
+	if ((c->state != SCCP_CHANNELSTATE_HOLD && c->state != SCCP_CHANNELSTATE_CALLTRANSFER) && !sccp_channel_hold_locked(c)) {
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Failed to put channel %s-%08X on hold - cancelling transfer.\n", (d && d->id) ? d->id : "SCCP", (c->line && c->line->name) ? c->line->name : "(null)", c->callid);
 		return;
-	if (c->state != SCCP_CHANNELSTATE_CALLTRANSFER)
+	}
+	if (c->state != SCCP_CHANNELSTATE_CALLTRANSFER) {
 		//sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_CALLTRANSFER);
 		newcall = sccp_channel_newcall_locked(c->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
+	}
 	/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER */
 	if (blindTransfer || (newcall && newcall->owner && c->owner && CS_AST_BRIDGED_CHANNEL(c->owner))) {
 		pbx_builtin_setvar_helper(newcall->owner, "BLINDTRANSFER", CS_AST_BRIDGED_CHANNEL(c->owner)->name);
@@ -2166,9 +2142,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal)
 
 	if (!astcDestinationRemote) {
 		/* the channel was ringing not answered yet. BLIND TRANSFER */
-// TEST
-//              if(cDestinationLocal->rtp)
-//                      sccp_channel_destroy_rtp(cDestinationLocal);
+		/*! \todo Add appropriate log message. */
 		return;
 	}
 
@@ -2298,17 +2272,12 @@ void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevi
 
 	sprintf(fwd_from_name, "%s -> %s", lineDevice->line->cid_num, parent->callInfo.callingPartyName);
 
-	//forwarder->owner->cid.cid_num = strdup(parent->callInfo.callingPartyNumber);
 	if (PBX(pbx_set_callerid_number))
 		PBX(pbx_set_callerid_number) (forwarder->owner, (const char *)&parent->callInfo.callingPartyNumber);
 
-	//forwarder->owner->cid.cid_name = strdup(fwd_from_name);
 	if (PBX(pbx_set_callerid_name))
 		PBX(pbx_set_callerid_name) (forwarder->owner, (const char *)&fwd_from_name);
 
-
-        // reverted to old behaviour, pbx_set_callerid_ani produces crash
-//	forwarder->owner->cid.cid_ani = strdup(dialedNumber);
 	if (PBX(pbx_set_callerid_ani))
 		PBX(pbx_set_callerid_ani) (forwarder->owner, (const char *)&dialedNumber);
 
@@ -2328,7 +2297,6 @@ void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevi
 
 	/* dial forwarder */
 	sccp_copy_string(forwarder->owner->exten, dialedNumber, sizeof(forwarder->owner->exten));
-	//sccp_ast_setstate(forwarder, AST_STATE_OFFHOOK);
 	PBX(set_callstate) (forwarder, AST_STATE_OFFHOOK);
 	if (!sccp_strlen_zero(dialedNumber) && !pbx_check_hangup(forwarder->owner)
 	    && ast_exists_extension(forwarder->owner, forwarder->line->context, dialedNumber, 1, forwarder->line->cid_num)) {
@@ -2391,12 +2359,15 @@ static void *sccp_channel_park_thread(void *stuff)
 		extstr[0] = 128;
 		extstr[1] = SKINNY_LBL_CALL_PARK_AT;
 		sprintf(&extstr[2], " %d", ext);
-		/* XXX this chan is perhaps destroyed when we are here. */
-		c = CS_AST_CHANNEL_PVT(chan2);
-		sccp_dev_displaynotify(c->device, extstr, 10);
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(c->device), chan1->name, ext);
+		if(chan2) {
+			c = CS_AST_CHANNEL_PVT(chan2);
+			sccp_dev_displaynotify(c->device, extstr, 10);
+			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(c->device), chan1->name, ext);
+		}
 	}
-	ast_hangup(chan2);
+	if(chan2) {
+		ast_hangup(chan2);
+	}
 	return NULL;
 }
 
@@ -2446,11 +2417,6 @@ void sccp_channel_park(sccp_channel_t * c)
 
 	boolean_t channelResult;
 
-// #    if ASTERISK_VERSION_NUMBER < 10400
-//      chan1m = ast_channel_alloc(0);
-// #    else
-//      chan1m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
-// #    endif
 	channelResult = PBX(alloc_pbxChannel) (c, (void **)&chan1m);
 	if (!channelResult) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Park Failed: can't create asterisk channel\n", d->id);
@@ -2459,11 +2425,7 @@ void sccp_channel_park(sccp_channel_t * c)
 		sccp_dev_displayprompt(c->device, instance, c->callid, SKINNY_DISP_NO_PARK_NUMBER_AVAILABLE, 0);
 		return;
 	}
-// #    if ASTERISK_VERSION_NUMBER < 10400
-//      chan2m = ast_channel_alloc(0);
-// #    else
-//      chan2m = ast_channel_alloc(0, AST_STATE_DOWN, l->cid_num, l->cid_name, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08X", l->name, c->callid);
-// #    endif
+
 	channelResult = PBX(alloc_pbxChannel) (c, (void **)&chan2m);
 	if (!channelResult) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Park Failed: can't create asterisk channel\n", d->id);
@@ -2511,10 +2473,10 @@ void sccp_channel_park(sccp_channel_t * c)
 
 	dual = ast_malloc(sizeof(struct sccp_dual));
 	if (dual) {
-		/* XXX at this point, perhaps it's not a good idea to store channel objects
-		 * in this struct because they can be destroyed between this thread creation
-		 * and the call of sccp_channel_park_thread() function (if we are really
-		 * not lucky. */
+		/*! \todo at this point, perhaps it's not a good idea to store channel objects
+		 *  in this struct because they can be destroyed between this thread creation
+		 *  and the call of sccp_channel_park_thread() function (if we are really
+		 *  not lucky. */
 		memset(dual, 0, sizeof(struct sccp_dual));
 		dual->chan1 = chan1m;
 		dual->chan2 = chan2m;
