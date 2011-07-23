@@ -2834,8 +2834,8 @@ void sccp_handle_services_stat_req(sccp_session_t *s, sccp_device_t *d, sccp_moo
 void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggleState)
 {
 	sccp_buttonconfig_t *config = NULL;
-
-	sccp_line_t *line = NULL;
+	sccp_channel_t *channel=NULL;
+        sccp_line_t *line = NULL;
 
 	uint8_t status = 0;							/* state of cfwd */
 
@@ -2930,25 +2930,20 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 		sccp_dev_check_displayprompt(d);
 		sccp_feat_changed(d, SCCP_FEATURE_DND);
 		break;
+
 #ifdef CS_SCCP_FEATURE_MONITOR
 	case SCCP_FEATURE_MONITOR:
-		sccp_channel_t *channel = sccp_channel_get_active_locked(d);
-		if(channel){	
+	        channel = sccp_channel_get_active_locked(d);
+		if (channel) {
 			sccp_feat_monitor(d, channel->line, 1, channel);
 			sccp_channel_unlock(channel);
 		}
 		break;
 #endif
+		
 
 #ifdef CS_DEVSTATE_FEATURE
-
-		/**
-		  * Handling of custom devicestate toggle buttons.
-		  */
 	case SCCP_FEATURE_DEVSTATE:
-		/* Set the appropriate devicestate, toggle it and write to the devstate astdb.. */
-
-		//config->button.feature.status = (config->button.feature.status)?0:1;
 		config->button.feature.status = !(config->button.feature.status) ? 0 : 1;
 		strncpy(buf, (config->button.feature.status) ? ("INUSE") : ("NOT_INUSE"), sizeof(buf));
 		res = pbx_db_put(devstate_astdb_family, config->button.feature.options, buf);
@@ -2958,6 +2953,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 		break;
 
 #endif
+
 	case SCCP_FEATURE_MULTIBLINK:
 		featureStat1 = (d->priFeature.status & 0xf) - 1;
 		featureStat2 = ((d->priFeature.status & 0xf00) >> 8) - 1;
