@@ -2315,7 +2315,7 @@ void sccp_handle_soft_key_event(sccp_session_t *s, sccp_device_t *d, sccp_moo_t 
 	softkeyMap_cb->softkeyEvent_cn(d, l, lineInstance, c);
 }
 
-void sccp_handle_keepaliveMessage(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r){
+void sccp_handle_keepAliveMessage(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r){
 	sccp_session_sendmsg(d, KeepAliveAckMessage);
 }
 
