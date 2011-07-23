@@ -756,7 +756,22 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 	c->mediaStatus.receive = TRUE;
 
 	//ast_rtp_set_vars(c->owner, c->rtp.audio.rtp);
-	//sccp_channel_openMultiMediaChannel(c);
+
+#ifdef CS_SCCP_VIDEO
+	if (sccp_device_isVideoSupported(c->device)) {
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", DEV_ID_LOG(c->device));
+		if (!c->rtp.video.rtp && !sccp_rtp_createVideoServer(c)) {
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(c->device));
+		} else {
+			sccp_channel_openMultiMediaChannel(c);
+		}
+	}else{
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: We have no video support\n", DEV_ID_LOG(c->device));
+	}
+#else
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Video support not enabled\n", DEV_ID_LOG(c->device));
+#endif
+
 }
 
 void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
@@ -774,7 +789,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		return;
 	}
 
-	skinnyFormat = sccp_codec_ast2skinny(channel->rtp.video.writeFormat);
+	//skinnyFormat = sccp_codec_ast2skinny(channel->rtp.video.writeFormat);
 
 	
 	if (skinnyFormat == 0) {
@@ -782,7 +797,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		return;
 	}
 
-	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, skinnyFormat);
+	//payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, skinnyFormat);
 	
 	lineInstance = sccp_device_find_index_for_line(channel->device, channel->line->name);
 

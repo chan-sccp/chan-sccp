@@ -2315,7 +2315,7 @@ void sccp_handle_soft_key_event(sccp_session_t *s, sccp_device_t *d, sccp_moo_t 
 	softkeyMap_cb->softkeyEvent_cn(d, l, lineInstance, c);
 }
 
-void sccp_handle_KeekaliveMessage(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r){
+void sccp_handle_keepaliveMessage(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r){
 	sccp_session_sendmsg(d, KeepAliveAckMessage);
 }
 
@@ -2404,7 +2404,6 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t *s, sccp_device_t *d, s
 
 			sccp_channel_startmediatransmission(c);			/*!< Starting Media Transmission Earlier to fix 2 second delay - Copied from v2 - FS */
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
-			ast_rtp_set_peer(c->rtp.audio.rtp, &sin);
 
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
 			if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
@@ -2471,7 +2470,6 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t *s, sccp_device_t *d, s
 	}
 
 	c = sccp_channel_find_bypassthrupartyid_locked(partyID);
-	sccp_channel_unlock(c);
 	/* prevent a segmentation fault on fast hangup after answer, failed voicemail for example */
 	if (c) {								// && c->state != SCCP_CHANNELSTATE_DOWN) {
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
@@ -2480,14 +2478,14 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t *s, sccp_device_t *d, s
 		}
 
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: STARTING DEVICE VRTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(c->state), c->state);
-		memcpy(&c->rtp.video.phone, &sin, sizeof(sin));
+		//memcpy(&c->rtp.video.phone, &sin, sizeof(sin));
 		if (c->rtp.video.rtp) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the VRTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 			ast_rtp_set_peer(c->rtp.video.rtp, &sin);
 			c->rtp.video.status &= ~SCCP_RTP_STATUS_PROGRESS_RECEIVE;
 			c->rtp.video.status |= SCCP_RTP_STATUS_RECEIVE;
-			if (c->state == SCCP_CHANNELSTATE_CONNECTED)
-				sccp_ast_setstate(c, AST_STATE_UP);
+			//if (c->state == SCCP_CHANNELSTATE_CONNECTED)
+				//sccp_ast_setstate(c, AST_STATE_UP);
 		} else {
 			ast_log(LOG_ERROR, "%s: Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 		}
@@ -2507,7 +2505,6 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t *s, sccp_device_t *d, s
 		r1->msg.FlowControlCommandMessageResp.lel_callReference = htolel(c->callid);
 		r1->msg.FlowControlCommandMessageResp.lel_maxBitRate = htolel(8000000);
 		sccp_dev_send(c->device, r1);
-
 		sccp_channel_unlock(c);
 	} else {
 		ast_log(LOG_ERROR, "%s: No channel with this PassThruId!\n", d->id);
