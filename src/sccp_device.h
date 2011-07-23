@@ -40,7 +40,6 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt);
 
 void sccp_dev_set_speaker(sccp_device_t * d, uint8_t opt);
 void sccp_dev_set_microphone(sccp_device_t * d, uint8_t opt);
-void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail);
 void sccp_dev_set_cplane(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * device, int status);
 void sccp_dev_deactivate_cplane(sccp_device_t * d);
 void sccp_dev_starttone(sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t callid, uint32_t timeout);
@@ -57,7 +56,6 @@ sccp_line_t *sccp_dev_get_activeline(sccp_device_t * d);
 void sccp_dev_set_activeline(sccp_device_t * device, sccp_line_t * l);
 
 void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * l);
-void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t instance, uint8_t lampMode);
 void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * device);
 boolean_t sccp_dev_display_cfwd(sccp_device_t * device, boolean_t force);
 int sccp_device_check_ringback(sccp_device_t * d);
@@ -66,7 +64,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime);
 sccp_service_t *sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t instance);
 uint8_t sccp_device_find_index_for_line(const sccp_device_t * d, const char *lineName);
 
-void sccp_device_removeLine(sccp_device_t * device, sccp_line_t * l);
 int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type);
 void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, uint8_t state, skinny_callPriority_t priority, skinny_callinfo_visibility_t visibility);
 int sccp_device_destroy(const void *ptr);
