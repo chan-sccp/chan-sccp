@@ -1412,13 +1412,12 @@ CLI_ENTRY_COMPLETE(cli_unregister, sccp_unregister, "Unregister an SCCP device",
 #undef CLI_COMMAND
 
 /* --------------------------------------------------------------------------------------------------------------JEM- */
-/*JEM:
+/* Jacob E. Miles (JEM):
  * JDL 03/17/2010 - Added xx_set_hold functions to place channel on hold from CLI
  * JDL 03/18/2010 - Added xx_remote_answer functions to answer channel from CLI
  * JDL 03/18/2010 - Added xx_start_call functions to call or go offHook from CLI
  * JDL 04/01/2010 - Added xx_end_call functions to end call or go onHook from CLI
 */
-
 /* --------------------------------------------------------------------------------------------------------------START CALL- */
 static int sccp_start_call(int fd, int argc, char *argv[])
 {

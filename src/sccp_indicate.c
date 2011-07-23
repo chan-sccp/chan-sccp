@@ -85,12 +85,8 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 //              sccp_ast_setstate(c, AST_STATE_DOWN);
 		break;
 	case SCCP_CHANNELSTATE_OFFHOOK:
-		//sccp_dev_set_mwi(d, l, 0);
-		//if (!d->mwioncall)
-		//      sccp_dev_set_mwi(d, NULL, 0);
 
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
-		sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
 		sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_dev_set_cplane(l, instance, d, 1);
@@ -106,12 +102,8 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		break;
 	case SCCP_CHANNELSTATE_GETDIGITS:
 		c->state = SCCP_CHANNELSTATE_OFFHOOK;
-		//sccp_dev_set_mwi(d, l, 0);
-		//if (!d->mwioncall)
-		//      sccp_dev_set_mwi(d, NULL, 0);
 
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
-		sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
 		sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 0);
@@ -126,14 +118,10 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		/* clear all the display buffers */
 		sccp_dev_cleardisplaynotify(d);
 		sccp_dev_clearprompt(d, 0, 0);
-		//sccp_dev_set_mwi(d, l, 0);
-		//if (!d->mwioncall)
-		//              sccp_dev_set_mwi(d, NULL, 0);
 
 		// sccp_dev_set_offhook(d);
 		sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
-		sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 0);
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_OFFHOOK);
@@ -147,7 +135,6 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		if (c == d->active_channel)
 			sccp_dev_stoptone(d, instance, c->callid);
 		//if (c->previousChannelState != SCCP_CHANNELSTATE_CALLWAITING)
-		//      sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_OFF);
 
 		sccp_dev_clearprompt(d, instance, c->callid);
 		/* if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
@@ -158,7 +145,6 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		if (!c->device && c->state == SCCP_CHANNELSTATE_RINGING) {
 			sccp_device_sendcallstate(device, instance, c->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			sccp_dev_set_ringer(device, SKINNY_STATION_RINGOFF, instance, c->callid);
-			//      sccp_dev_set_lamp(device, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_OFF);
 		}
 
 		sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
@@ -191,12 +177,8 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		/* clear all the display buffers */
 		sccp_dev_cleardisplaynotify(d);
 		sccp_dev_clearprompt(d, instance, 0);
-		//sccp_dev_set_mwi(d, l, 0);
-		//if (!d->mwioncall)
-		//              sccp_dev_set_mwi(d, NULL, 0);
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_channel_send_callinfo(d, c);
-		//      sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_BLINK);
 
 		if ((d->dndFeature.enabled && d->dndFeature.status == SCCP_DNDMODE_SILENT)) {
 			sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: DND is activated on device\n", d->id);
@@ -235,7 +217,6 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 		sccp_dev_stoptone(d, instance, c->callid);
-		//      sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
 		
 	
 		
@@ -297,7 +278,6 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	case SCCP_CHANNELSTATE_HOLD:
 		sccp_channel_closereceivechannel_locked(c);
 		sccp_handle_time_date_req(d->session, d, NULL);
-//              sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_WINK);
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOLD);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_HOLD, 0);
@@ -339,7 +319,6 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 		sccp_dev_stoptone(d, instance, c->callid);
-		//      sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_channel_send_callinfo(d, c);
 		sccp_dev_set_cplane(l, instance, d, 1);
@@ -368,7 +347,6 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_dev_clearprompt(d, instance, c->callid);
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-		//      sccp_dev_set_lamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
 		//sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOOK);
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOOKSTEALABLE);
 		break;
@@ -539,7 +517,6 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 
 			break;
 		case SCCP_CHANNELSTATE_HOLD:
-			//sccp_dev_set_lamp(remoteDevice, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_WINK);
 			sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_HOLDRED, SKINNY_CALLPRIORITY_NORMAL, (!c->privacy) ? SKINNY_CALLINFO_VISIBILITY_DEFAULT : SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 			sccp_dev_set_keyset(remoteDevice, instance, c->callid, KEYMODE_ONHOLD);
 			sccp_dev_displayprompt(remoteDevice, instance, c->callid, SKINNY_DISP_HOLD, 0);
