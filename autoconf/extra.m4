@@ -212,10 +212,10 @@ AC_DEFUN([CS_CHECK_CROSSCOMPILE],[
 	else
 		HOST_CC="${HOST_CC-gcc}"
 	fi
-	AC_CHECK_PROG(have_host_cc, ${HOST_CC}, yes, no)
-	if test "$have_host_cc" = "no"; then
-		AC_MSG_ERROR(No valid host compiler set with HOST_CC)
-	fi
+dnl	AC_CHECK_PROG(have_host_cc, ${HOST_CC}, yes, no)
+dnl	if test "$have_host_cc" = "no"; then
+dnl		AC_MSG_ERROR(No valid host compiler set with HOST_CC)
+dnl	fi
 	AC_SUBST(HOST_CC)
 ])
 
@@ -362,8 +362,16 @@ AC_DEFUN([AST_SET_PBX_AMCONDITIONALS],[
 	dnl Now using Conditional-Libtool-Sources
 	if test "$PBX_TYPE" == "Asterisk"; then
 		PBX_GENERAL="chan_sccp_la-ast.lo"
-		PBX_MAJOR="chan_sccp_la-ast${ASTERISK_VER_GROUP}.lo"
-		PBX_MINOR="chan_sccp_la-ast${ASTERISK_VERSION_NUMBER}.lo"
+		if [ test "${ASTERISK_REPOS_LOCATION}" == "TRUNK" ];then
+                  PBX_MAJOR="chan_sccp_la-astTrunk.lo"
+                else  
+	  	  PBX_MAJOR="chan_sccp_la-ast${ASTERISK_VER_GROUP}.lo"
+	  	fi
+                if test -f src/pbx_impl/ast/ast${ASTERISK_VERSION_NUMBER}.c; then
+                  PBX_MINOR="chan_sccp_la-ast${ASTERISK_VERSION_NUMBER}.lo"
+                else
+                  PBX_MINOR="chan_sccp_la-ast${ASTERISK_VER_GROUP}0x.lo"
+                fi
 	else
 		PBX_GENERAL=""
 		PBX_MAJOR=""
