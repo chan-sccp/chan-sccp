@@ -479,10 +479,6 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		return -1;
 	}
 	
-	
-	
-	
-	
 	target = sccp_asterisk_channel_search_locked(pbx_find_channel_by_group, l);	
 	if(target) {
 		/* create channel for pickup */
@@ -580,8 +576,8 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 			} else {
 				sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) Pickup on '%s' by '%s'\n", tmp, c->owner->name);
 
-				/* searching callerid */
 				c->calltype = SKINNY_CALLTYPE_INBOUND;
+				/* \todo: search remote callerid */
 				//sccp_channel_set_callingparty(c, name, number);
 				if (d->pickupmodeanswer) {
 					sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_CONNECTED);
@@ -894,7 +890,6 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 	}
 #else
-	/* sorry but this is private code -FS */
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 	ast_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
 #endif
@@ -1086,8 +1081,6 @@ static void *sccp_feat_meetme_thread(void *data)
 	if (c && c->owner) {
 		if (!c->owner->context || sccp_strlen_zero(c->owner->context))
 			return NULL;
-		/* replaced by meetmeopts in global, device, line */
-//              snprintf(meetmeopts, sizeof(meetmeopts), "%s%c%s", c->dialedNumber, SCCP_CONF_SPACER, (c->line->meetmeopts&& !sccp_strlen_zero(c->line->meetmeopts)) ? c->line->meetmeopts : "qd");
 		if (!sccp_strlen_zero(c->line->meetmeopts)) {
 			snprintf(meetmeopts, sizeof(meetmeopts), "%s%c%s", c->dialedNumber, SCCP_CONF_SPACER, c->line->meetmeopts);
 		} else if (!sccp_strlen_zero(d->meetmeopts)) {
@@ -1226,10 +1219,11 @@ sccp_channel_t *sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sc
  * \param c SCCP Channel
  * \param exten Extention as char
  * \return Success as int
+ *
+ * \todo implement barge feature
  */
 int sccp_feat_barge(sccp_channel_t * c, char *exten)
 {
-	/* sorry but this is private code -FS */
 	uint8_t instance = sccp_device_find_index_for_line(c->device, c->line->name);
 
 	sccp_dev_displayprompt(c->device, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
@@ -1261,7 +1255,7 @@ sccp_channel_t *sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, s
 		return NULL;
 	}
 
-/* look if we have a call */
+	/* look if we have a call */
 	if ((c = sccp_channel_get_active_locked(d))) {
 		// we have a channel, checking if
 		if (c->state == SCCP_CHANNELSTATE_OFFHOOK && (!c->dialedNumber || (c->dialedNumber && sccp_strlen_zero(c->dialedNumber)))) {
@@ -1323,10 +1317,11 @@ sccp_channel_t *sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, s
  * \param c SCCP Channel
  * \param conferencenum Conference Number as char
  * \return Success as int
+ *
+ * \todo implement conference barge
  */
 int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum)
 {
-	/* sorry but this is private code -FS */
 	uint8_t instance = sccp_device_find_index_for_line(c->device, c->line->name);
 
 	sccp_dev_displayprompt(c->device, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
@@ -1475,7 +1470,6 @@ int checkMonCond(void *v) {
  * \param lineInstance Line Instance as Uint32_t
  * \param channel SCCP Channel
  */
-//void sccp_feat_monitor(sccp_device_t * device, sccp_channel_t * channel)
 void sccp_feat_monitor(sccp_device_t * device, sccp_line_t * line, const uint32_t lineInstance, sccp_channel_t * channel)
 {
 #if ASTERISK_VERSION_NUMBER >= 10600
@@ -1510,7 +1504,7 @@ void sccp_feat_monitor(sccp_device_t * device, sccp_line_t * line, const uint32_
 		return;
 	}
 
-	/* Suggestion: We could do monitoring directly.
+	/*! \todo We could do monitoring directly.
 	   So we would be able to do it without ugly dtmf packets. 
 	   At the moment we have to pause a bit to wait for activity on the channel.
 	   */
