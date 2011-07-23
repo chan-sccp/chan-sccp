@@ -559,16 +559,16 @@ AC_DEFUN([CS_ENABLE_INDICATIONS], [
 
 AC_DEFUN([CS_DISABLE_REALTIME], [
 	AC_ARG_ENABLE(realtime, 
-	  AC_HELP_STRING([--disable-realtime], [disabled realtime support]), 
+	  AC_HELP_STRING([--disable-realtime], [disable realtime support]), 
 	  ac_cv_realtime=$enableval, ac_cv_realtime=yes)
 	AS_IF([test "${ac_cv_realtime}" == "yes"], [AC_DEFINE(CS_SCCP_REALTIME, 1, [realtime enabled])])
 	AC_MSG_NOTICE([--enable-realtime: ${ac_cv_realtime}])
 ])
 
-AC_DEFUN([CS_ENABLE_FEATURE_MONITOR], [
+AC_DEFUN([CS_DISABLE_FEATURE_MONITOR], [
 	AC_ARG_ENABLE(feature_monitor, 
-	  AC_HELP_STRING([--enable-feature-monitor], [enable feature monitor]), 
-	  ac_cv_feature_monitor=$enableval, ac_cv_feature_monitor=no)
+	  AC_HELP_STRING([--disable-feature-monitor], [disable feature monitor]), 
+	  ac_cv_feature_monitor=$enableval, ac_cv_feature_monitor=yes)
 	AS_IF([test "${ac_cv_feature_monitor}" == "yes"], [AC_DEFINE(CS_SCCP_FEATURE_MONITOR, 1, [feature monitor enabled])])
 	AC_MSG_NOTICE([--enable-feature-monitor: ${ac_cv_feature_monitor}])
 ])
@@ -589,10 +589,10 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_MODE], [
 	AC_MSG_NOTICE([--enable-experimental-mode: ${ac_cv_experimental_mode} (only for developers)])
 ])
 
-AC_DEFUN([CS_ENABLE_DEVSTATE_FEATURE], [
+AC_DEFUN([CS_DISABLE_DEVSTATE_FEATURE], [
 	AC_ARG_ENABLE(devstate_feature, 
-	  AC_HELP_STRING([--enable-devstate-feature], [enable device state feature button (experimental)]), 
-	    ac_cv_devstate_feature=$enableval, ac_cv_devstate_feature=no)
+	  AC_HELP_STRING([--disable-devstate-feature], [disable device state feature button]), 
+	    ac_cv_devstate_feature=$enableval, ac_cv_devstate_feature=yes)
 	AS_IF([test "${ac_cv_devstate_feature}" == "yes"], [AC_DEFINE(CS_DEVSTATE_FEATURE, 1, [devstate feature enabled])])
 	AC_MSG_NOTICE([--enable-devstate-feature: ${ac_cv_devstate_feature}])
 ])
@@ -644,10 +644,10 @@ AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_DISABLE_FUNCTIONS
 	CS_ENABLE_INDICATIONS
 	CS_DISABLE_REALTIME
-	CS_ENABLE_FEATURE_MONITOR
+	CS_DISABLE_FEATURE_MONITOR
 	CS_ENABLE_ADVANCED_FUNCTIONS
 	CS_ENABLE_EXPERIMENTAL_MODE
-	CS_ENABLE_DEVSTATE_FEATURE
+	CS_DISABLE_DEVSTATE_FEATURE
 	CS_DISABLE_DYNAMIC_SPEEDDIAL
 	CS_DISABLE_DYNAMIC_SPEEDDIAL_CID
 	CS_ENABLE_VIDEO
