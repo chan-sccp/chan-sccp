@@ -12,6 +12,8 @@ AC_INIT([Chan_SCCP],
         [https://sourceforge.net/projects/chan-sccp-b/],
         [Chan_SCCP])
 
+MAX_ASTERISK_VERSION=106
+
 AC_CONFIG_AUX_DIR([autoconf])
 AC_CONFIG_MACRO_DIR([autoconf])
 
@@ -73,6 +75,7 @@ CS_WITH_CHANGELOG_OLDEST
 
 CONFIGURE_PART([Checking Configure Options:])
 CS_WITH_PBX
+
 CS_SETUP_DOXYGEN
 CS_PARSE_WITH_AND_ENABLE
 CS_PARSE_WITH_LIBGC

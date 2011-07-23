@@ -34,6 +34,7 @@ AC_DEFUN([AST_GET_VERSION], [
     	    pbx_ver=`cat pbx.ver`
     	    rm -f pbx.ver
 
+            ASTERISK_REPOS_LOCATION=TGZ
             if echo $pbx_ver|grep -q "1\.2"; then
               AC_DEFINE(ASTERISK_CONF_1_2, 1, [Define ASTERISK_CONF_1_2])
               AC_MSG_RESULT([Found 'Asterisk Version 1.2.x'])
@@ -88,19 +89,39 @@ AC_DEFUN([AST_GET_VERSION], [
                 AC_DEFINE(ASTERISK_CONF_1_8_3, 1, [Define ASTERISK_CONF_1_8_3])
                 AC_MSG_RESULT([Specifically 1.8.3])
                 ASTERISK_VER=1.8.3
+              elif echo $pbx_ver|grep -q "1\.8\.4"; then
+                AC_DEFINE(ASTERISK_CONF_1_8_4, 1, [Define ASTERISK_CONF_1_8_4])
+                AC_MSG_RESULT([Specifically 1.8.4])
+                ASTERISK_VER=1.8.4
+              elif echo $pbx_ver|grep -q "1\.8\.5"; then
+                AC_DEFINE(ASTERISK_CONF_1_8_5, 1, [Define ASTERISK_CONF_1_8_5])
+                AC_MSG_RESULT([Specifically 1.8.5])
+                ASTERISK_VER=1.8.5
               else
-                AC_DEFINE(ASTERISK_CONF_1_8_3, 1, [Define ASTERISK_CONF_1_8_3])
-                AC_MSG_RESULT([Using 1.8.3])
+                AC_DEFINE(ASTERISK_CONF_1_8_5, 1, [Define ASTERISK_CONF_1_8_5])
+                AC_MSG_RESULT([Using 1.8.5])
                 REALTIME_USEABLE=1
-                ASTERISK_VER=1.8.3
+                ASTERISK_VER=1.8.5
+              fi
+            elif echo $pbx_ver|grep -q "1\.10"; then
+              AC_DEFINE(ASTERISK_CONF_1_10, 1, [Define ASTERISK_CONF_1_10])
+              AC_MSG_RESULT([Found 'Asterisk Version 1.10.x'])
+              ASTERISK_VER_GROUP=110
+              ASTERISK_VER=1.10.0
+              if echo $pbx_ver|grep -q "1\.10\.0"; then
+                AC_DEFINE(ASTERISK_CONF_1_10_0, 1, [Define ASTERISK_CONF_1_10_0])
+                AC_MSG_RESULT([Specifically 1.10.0])
+                ASTERISK_VER=1.10.0
               fi
             elif echo $pbx_ver|grep -q "SVN-trunk"; then
               AC_DEFINE(ASTERISK_CONF_1_10, 1, [Define ASTERISK_CONF_1_10])
               AC_MSG_RESULT([Found 'Asterisk Version SVN Trunk --> Using 1.10.x as version number'])
               ASTERISK_VER_GROUP=110
               ASTERISK_VER=1.10
+              ASTERISK_REPOS_LOCATION=TRUNK
             elif echo $pbx_ver|grep -q "SVN-branch"; then
               echo "SVN-BRANCH"
+              ASTERISK_REPOS_LOCATION=BRANCH
               if echo $pbx_ver|grep -q "SVN-branch-1\.2"; then
                 AC_DEFINE(ASTERISK_CONF_1_2, 1, [Define ASTERISK_CONF_1_2])
                 AC_MSG_RESULT([Found 'Asterisk Version 1.2.x'])
@@ -154,10 +175,27 @@ AC_DEFUN([AST_GET_VERSION], [
                   AC_DEFINE(ASTERISK_CONF_1_8_3, 1, [Define ASTERISK_CONF_1_8_3])
                   AC_MSG_RESULT([Specifically 1.8.3])
                   ASTERISK_VER=1.8.3
+                elif echo $pbx_ver|grep -q "SVN-branch-1\.8\.4"; then
+                  AC_DEFINE(ASTERISK_CONF_1_8_4, 1, [Define ASTERISK_CONF_1_8_4])
+                  AC_MSG_RESULT([Specifically 1.8.4])
+                  ASTERISK_VER=1.8.4
+                elif echo $pbx_ver|grep -q "SVN-branch-1\.8\.5"; then
+                  AC_DEFINE(ASTERISK_CONF_1_8_5, 1, [Define ASTERISK_CONF_1_8_5])
+                  AC_MSG_RESULT([Specifically 1.8.5])
+                  ASTERISK_VER=1.8.5
                 else
-                  AC_DEFINE(ASTERISK_CONF_1_8_3, 1, [Define ASTERISK_CONF_1_8_3])
-                  AC_MSG_RESULT([Using 1.8.3])
-                  ASTERISK_VER=1.8.3
+                  AC_DEFINE(ASTERISK_CONF_1_8_5, 1, [Define ASTERISK_CONF_1_8_5])
+                  AC_MSG_RESULT([Using 1.8.5])
+                  ASTERISK_VER=1.8.5
+                fi
+              elif echo $pbx_ver|grep -q "SVN-branch-1\.10"; then
+                AC_DEFINE(ASTERISK_CONF_1_10, 1, [Define ASTERISK_CONF_1_10])
+                AC_MSG_RESULT([Found 'Asterisk Version 1.10.x'])
+                ASTERISK_VER_GROUP=110
+                if echo $pbx_ver|grep -q "SVN-branch-1\.10\.0"; then
+                  AC_DEFINE(ASTERISK_CONF_1_10_0, 1, [Define ASTERISK_CONF_1_10_0])
+                  AC_MSG_RESULT([Specifically 1.10.0])
+                  ASTERISK_VER=1.10.0
                 fi
               else
                 echo ""
@@ -177,13 +215,29 @@ AC_DEFUN([AST_GET_VERSION], [
               echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
               exit
             fi
-            if test ${#ASTERISK_VERSION_NUM} -lt 5; then
-                    ASTERISK_VERSION_NUMBER="${ASTERISK_VERSION_NUM}.0"
-            fi
-            ASTERISK_VERSION_NUMBER="`echo ${ASTERISK_VER}|sed 's/\./0/g'`"
+dnl            if test ${#ASTERISK_VERSION_NUM} -lt 5; then
+dnl                    ASTERISK_VERSION_NUMBER="${ASTERISK_VERSION_NUM}.0"
+dnl            fi
+dnl         ASTERISK_VERSION_NUMBER="`echo ${ASTERISK_VER}|sed 's/\./0/g'`"
+	    ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_VER##*.}"
             AC_DEFINE_UNQUOTED([ASTERISK_VERSION_NUMBER],`echo ${ASTERISK_VERSION_NUMBER}`,[ASTERISK Version Number])
             AC_SUBST([ASTERISK_VERSION_NUMBER])
             AC_SUBST([ASTERISK_VER])
+            AC_DEFINE_UNQUOTED([ASTERISK_REPOS_LOCATION],`echo ${ASTERISK_REPOS_LOCATION}`,[ASTERISK Source Location])
+            AC_SUBST([ASTERISK_REPOS_LOCATION])
+            
+            if [ test ${ASTERISK_VER_GROUP} -gt ${MAX_ASTERISK_VERSION} ]; then
+                        echo ""
+                        CONFIGURE_PART([Asterisk Version ${ASTERISK_VER} Not Supported])
+                        echo ""
+                        echo "This version of chan-sccp-b only has support for Asterisk 1.6.x and below."
+                        echo "We are working on support newer asterisk versions and early test version will be available shortly"
+                        echo ""
+                        echo "Please install a lower version of asterisk"
+                        echo ""
+                        echo ""
+                        exit 255
+            fi
     else 
         echo ""
         echo ""
