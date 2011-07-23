@@ -1666,12 +1666,8 @@ void sccp_handle_soft_key_template_req(sccp_session_t *s, sccp_device_t *d, sccp
 
 	d->softkeysupport = 1;
 
-	//REQ(r1, SoftKeyTemplateResMessage);
 	int arrayLen = ARRAY_LEN(softkeysmap);
 
-//      if(d->inuseprotocolversion < 15){
-//              arrayLen = 31; /* fall back to old behaivour */
-//      }
 
 	int dummy_len = arrayLen * (sizeof(StationSoftKeyDefinition));
 
@@ -2936,9 +2932,6 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 		break;
 #ifdef CS_SCCP_FEATURE_MONITOR
 	case SCCP_FEATURE_MONITOR:
-		// We must not toggle here, since that would reflect wrong status.
-		//d->monitorFeature.status = (d->monitorFeature.status) ? 0 : 1;
-		;
 		sccp_channel_t *channel = sccp_channel_get_active_locked(d);
 		if(channel){	
 			sccp_feat_monitor(d, channel->line, 1, channel);
@@ -3032,9 +3025,6 @@ void sccp_handle_updatecapabilities_message(sccp_session_t *s, sccp_device_t *d,
 		d->capability |= astcodec;
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s AST:%8d %s\n", DEV_ID_LOG(d), codec, codec2str(codec), astcodec, pbx_codec2str(astcodec));
 	}
-	/* store our audio capabilities */
-//      memset(&d->capabilities.audio, 0, sizeof(audioCap_t) * DeviceMaxCapabilities);
-//      memcpy(&d->capabilities.audio, &r->msg.UpdateCapabilitiesMessage.audioCaps, sizeof(audioCap_t) * n);
 
 	/* parsing video caps */
 	n = letohl(r->msg.UpdateCapabilitiesMessage.lel_videoCapCount);
@@ -3052,12 +3042,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t *s, sccp_device_t *d,
 		int height = letohl(r->msg.UpdateCapabilitiesMessage.customPictureFormat[i].customPictureFormatHeight);
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: PictureFormat %d: width=%d, height=%d\n", DEV_ID_LOG(d), i, width, height);
 	}
-	/* store our video capabilities */
-//      memset(&d->capabilities.video, 0, sizeof(videoCap_t) * DeviceMaxCapabilities);
-//      memcpy(&d->capabilities.video, &r->msg.UpdateCapabilitiesMessage.videoCaps, sizeof(videoCap_t) * n);
 
-
-	//sccp_dev_sendmsg(d, UpdateCapabilitiesV3Message);
 }
 
 /*!

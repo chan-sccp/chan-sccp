@@ -215,46 +215,13 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 #endif
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_PBX | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	/* we have a single device given */
-
-	/*
-	   if(c->device){
-	   if(c->device->session){
-	   hasSession = TRUE;
-	   format &= c->device->capability;
-	   }
-	   }else{
-	   sccp_linedevices_t *linedevice;
-
-	   SCCP_LIST_LOCK(&l->devices);
-	   SCCP_LIST_TRAVERSE(&l->devices, linedevice, list){
-	   if(!linedevice->device)
-	   continue;
-
-	   device = linedevice->device;
-	   // \todo TODO check capability on shared lines
-	   format &= device->capability;
-	   if(device->session)
-	   hasSession = TRUE;
-	   }
-	   SCCP_LIST_UNLOCK(&l->devices);
-	   } */
-
+	
 	if (l->devices.size == 0) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_PBX | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "SCCP/%s we have no registered devices for this line.\n", l->name);
 		SET_CAUSE(AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 		goto OUT;
 	}
-	/*
-	   if (!format) {
-	   format = oldformat;
-	   res = ast_translator_best_choice(&format, &GLOB(global_capability));
-	   if (res < 0) {
-	   ast_log(LOG_NOTICE, "Asked to get a channel of unsupported format '%d'\n", oldformat);
-	   SET_CAUSE(AST_CAUSE_CHANNEL_UNACCEPTABLE);
-	   goto OUT;
-	   }
-	   } */
+
 
 	c->requestedFormat = oldformat;
 	c->format = oldformat;
@@ -273,12 +240,8 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 		ast_set_write_format(c->owner, c->format);
 	}
 	
-	//c->isCodecFix = TRUE;
-	//sccp_channel_updateChannelCapability_locked(c);
 
 	/* we don't need to parse any options when we have a call forward status */
-//      if (c->owner && !sccp_strlen_zero(c->owner->call_forward))
-//              goto OUT;
 
 	/* check for the channel params */
 	if (options && (optc = sccp_app_separate_args(options, '/', optv, sizeof(optv) / sizeof(optv[0])))) {
@@ -302,6 +265,7 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 						optv[opti] += 2;
 					}
 				}
+				/*! \todo Video: video enable flag and bitrate settings options need to be added here */
 
 				/* since the pbx ignores autoanswer_cause unless SCCP_RWLIST_GETSIZE(l->channels) > 1, it is safe to set it if provided */
 				if (!sccp_strlen_zero(optv[opti]) && (c->autoanswer_type)) {
@@ -379,11 +343,6 @@ int sccp_devicestate(void *data)
 	else if (SCCP_LIST_FIRST(&l->devices) == NULL)
 		res = AST_DEVICE_UNAVAILABLE;
 
-	// \todo TODO handle dnd on device
-//      else if ((l->device->dnd && l->device->dndmode == SCCP_DNDMODE_REJECT)
-//                      || (l->dnd && (l->dndmode == SCCP_DNDMODE_REJECT
-//                                      || (l->dndmode == SCCP_DNDMODE_USERDEFINED && l->dnd == SCCP_DNDMODE_REJECT) )) )
-//              res = AST_DEVICE_BUSY;
 	else if (l->incominglimit && SCCP_RWLIST_GETSIZE(l->channels) == l->incominglimit)
 		res = AST_DEVICE_BUSY;
 	else if (!SCCP_RWLIST_GETSIZE(l->channels))
@@ -629,7 +588,6 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t *s)
 		break;
 	case IpPortMessage:
 		/* obsolete message */
-		//s->rtpPort = letohs(r->msg.IpPortMessage.les_rtpMediaPort);
 		break;
 	case VersionReqMessage:
 		sccp_handle_version(s, r);
@@ -871,8 +829,6 @@ void *sccp_create_hotline(void)
 	sccp_copy_string(hotline->context, "default", sizeof(hotline->context));
 	sccp_copy_string(hotline->label, "hotline", sizeof(hotline->label));
 	sccp_copy_string(hotline->adhocNumber, "111", sizeof(hotline->adhocNumber));
-
-	//sccp_copy_string(hotline->mailbox, "hotline", sizeof(hotline->mailbox));
 
 	SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	SCCP_RWLIST_INSERT_HEAD(&GLOB(lines), hotline, list);

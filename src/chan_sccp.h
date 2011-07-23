@@ -1256,13 +1256,6 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 #    endif
 	};									/*!< SoftKeySet Configuration Structure */
 
-/*
-   struct softKeySetConfigList{
-	ast_mutex_t lock;
-	sccp_softKeySetConfiguration_t *first;
-	sccp_softKeySetConfiguration_t *last;
-	uint16_t size;
-} */
 
 	SCCP_LIST_HEAD(softKeySetConfigList, sccp_softKeySetConfiguration_t);
 	extern struct softKeySetConfigList softKeySetConfig;			/*!< List of SoftKeySets */
