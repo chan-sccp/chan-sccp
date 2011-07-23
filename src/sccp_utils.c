@@ -537,6 +537,7 @@ sccp_channel_t *sccp_channel_find_byid_locked(uint32_t id)
 
 /*!
  * \brief Find Channel by ID, using a specific line
+ * \param l SCCP Line
  * \param id channel ID as int
  * \return *locked* SCCP Channel (can be null)
  *

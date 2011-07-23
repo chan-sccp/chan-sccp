@@ -414,7 +414,7 @@ int sccp_devicestate(void *data)
  * \brief Local Function to check for Valid Session, Message and Device
  * \param s SCCP Session as sccp_session_t
  * \param r SCCP MOO T as sccp_moo_t
- * \param s SCCP Device as sccp_device_t
+ * \param msg Message as Const Char *
  * \return -1 or Device;
  */
 static sccp_device_t *check_session_message_device(sccp_session_t * s, sccp_moo_t * r, const char *msg)

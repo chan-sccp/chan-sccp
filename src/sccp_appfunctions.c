@@ -640,7 +640,7 @@ static char *prefcodec_descr    = "Usage: SetSCCPCodec(codec)" "Sets the preferr
 /*!
  * \brief 	Set the Preferred video bitrate for a SCCP channel via the dialplan
  * \param 	chan Asterisk Channel
- * \param 	video bitrate (presumably in kbps * 10)d
+ * \param 	data Video bitrate (presumably in kbps * 10)d
  * \return	Success as int
  * 
  * \called_from_asterisk
@@ -801,9 +801,11 @@ static char *setmessage_descr = "Usage: SetMessage(\"Message\"[,timeout])\n" "  
 /*!
  * \brief   Mutes the Microphone on the calling phone.
  * \param 	chan Asterisk Channel
+ * \param 	data not used
  * \return	Success as int
  * 
  * \called_from_asterisk
+ * \note data param not used
  */
 static int sccp_app_setmutemic(struct ast_channel *chan, void *data)
 {

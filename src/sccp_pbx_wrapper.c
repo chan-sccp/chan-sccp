@@ -60,7 +60,7 @@ struct ast_channel* sccp_asterisk_channel_search_locked(int (*is_match)(struct a
 
 /*!
  * \brief get callerid_name from pbx
- * \param ast_chan Asterisk Channel
+ * \param channel SCCP Channel
  * \return char * with the callername
  */
 char *sccp_wrapper_asterisk_get_callerid_name(const sccp_channel_t * channel)
@@ -93,7 +93,7 @@ char *sccp_wrapper_asterisk_get_callerid_name(const sccp_channel_t * channel)
 
 /*!
  * \brief get callerid_name from pbx
- * \param ast_chan Asterisk Channel
+ * \param channel SCCP Channel
  * \return char * with the callername
  */
 char *sccp_wrapper_asterisk_get_callerid_number(const sccp_channel_t * channel)
@@ -331,7 +331,7 @@ void sccp_wrapper_asterisk_set_callerid_rdnis(const PBX_CHANNEL_TYPE * pbx_chan,
 /*!
  * \brief itterate through locked pbx channels
  * \note replacement for ast_channel_walk_locked
- * \param ast_chan Asterisk Channel
+ * \param target Target Asterisk Channel
  * \return ast_chan Locked Asterisk Channel
  */
 PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
@@ -368,7 +368,8 @@ struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast
  * and registrar.
  *
  * \param extcontexts pointer to the ast_context structure pointer
- * \param name name of the new context
+ * \param exttable Asterisk Extension Hashtable
+ * \param name Context Name
  * \param registrar registrar of the context
  * \return NULL on failure, and an ast_context structure on success
  */
@@ -688,7 +689,7 @@ void pbx_rtp_get_us(PBX_RTP_TYPE * rtp, struct sockaddr_in *addr)
  * \brief pbx rtp set peer
  * \note replacement for ast_rtp_set_peer
  * \param rtp Asterisk RTP Struct
- * \param them Socket Addr_in of the Peer
+ * \param addr Socket Addr_in of the Peer
  */
 void pbx_rtp_set_peer(PBX_RTP_TYPE * rtp, struct sockaddr_in *addr)
 {

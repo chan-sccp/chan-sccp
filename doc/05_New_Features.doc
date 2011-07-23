@@ -307,6 +307,12 @@
  *           once this line is connected, you press the Conference Button Again and the Conference Starts.
  *
  *
+ * \subsubsection sk_conflist 	How to use the ConfList Button
+ *
+ * Once you have established a confernce, you can press the ConfList button. You will see a list of all conference participants. From here you can
+ * mute and kick participants during the conference. 
+ *
+ *
  * \subsubsection sk_join	 	How to use the Join Button
  *
  * Using the Join Button makes it possible to Add another member/line to an already running Conference
