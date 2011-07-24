@@ -920,44 +920,6 @@ void sccp_dev_dbput(sccp_device_t * d)
 }
 
 /*!
- * \brief read device state from astDB
- * \param d SCCP Device
- *
- * \todo Reimplement/Remove code below
- */
-void sccp_dev_dbget(sccp_device_t * d)
-{
-//      char result[256]="", *tmp, *tmp1, *r;
-//      int i=0;
-//
-//      if (!d)
-//              return;
-//      sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME))(VERBOSE_PREFIX_3 "%s: Restoring device status (dnd, cfwd*) from the asterisk db\n", d->id);
-//      if (pbx_db_get("SCCP", d->id, result, sizeof(result))) {
-//              return;
-//      }
-//      r = result;
-//      while ( (tmp = strsep(&r,",")) ) {
-//              tmp1 = strsep(&tmp,"=");
-//              if (tmp1) {
-//                      if (!strcasecmp(tmp1, "dnd")) {
-//                              if ( (tmp1 = strsep(&tmp,"")) ) {
-//                                      sscanf(tmp1, "%i", &i);
-//                                      d->dnd = (i) ? 1 : 0;
-//                                      sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME))(VERBOSE_PREFIX_3 "%s: dnd status is: %s\n", d->id, (d->dnd) ? "ON" : "OFF");
-//                              }
-//                      } else if (!strcasecmp(tmp1, "cfwdall")) {
-//                              tmp1 = strsep(&tmp,"");
-//                              sccp_cfwd_parse(d, tmp1, SCCP_CFWD_ALL);
-//                      } else if (!strcasecmp(tmp1, "cfwdbusy")) {
-//                              tmp1 = strsep(&tmp,"");
-//                              sccp_cfwd_parse(d, tmp1, SCCP_CFWD_BUSY);
-//                      }
-//              }
-//      }
-}
-
-/*!
  * \brief Clean Asterisk Database Entries in the "SCCP" Family
  * 
  * \lock
@@ -1756,16 +1718,10 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
 
 	boolean_t filterPhones = FALSE;
 
-	/*
-	   int compareId = 0;
-	   int compareDefId = 0;
-	 */
-
 	/* Determine if the phones registered on the shared line shall be filtered at all:
 	   only if a non-trivial subscription id is specified with the calling channel,
 	   which is not the default subscription id of the shared line denoting all devices,
 	   the phones are addressed individually. (-DD) */
-
 	filterPhones = FALSE;							/* set the default to call all phones */
 
 	/* First condition: Non-trivial subscriptionId specified for matching in call. */
@@ -1783,45 +1739,6 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
 		   &&0 != strncasecmp(channel->subscriptionId.number, subscriptionIdNum, strlen(channel->subscriptionId.number))) {	/* Do the match! */
 		result = FALSE;
 	}
-#if 0
-	/* we are calling a line with no or default subscriptionIdNum -> let all devices get the call -> return true */
-	if (strlen(channel->subscriptionId.number) == 0) {
-		result = TRUE;
-		goto DONE;
-	}
-#    if 0
-	/* channel->line has a defaultSubscriptionId -> if we wish to ring all devices -> remove the #if */
-	if (strlen(channel->line->defaultSubscriptionId.number) && 0 == strncasecmp(channel->subscriptionId.number, channel->line->defaultSubscriptionId.number, strlen(channel->subscriptionId.number))) {
-		result = TRUE;
-		goto DONE;
-	}
-#    endif
-
-	/* we are calling a line with suffix, but device does not have a subscriptionIdNum -> skip it -> return false */
-	else if (strlen(subscriptionIdNum) == 0 && strlen(channel->subscriptionId.number) != 0) {
-		result = FALSE;
-		goto DONE;
-	}
-
-	else if (NULL != subscriptionIdNum && 0 != strlen(subscriptionIdNum)
-		 && NULL != channel->line && 0 != (compareDefId = strncasecmp(channel->subscriptionId.number, channel->line->defaultSubscriptionId.number, strlen(channel->subscriptionId.number)))) {
-
-		if (0 != strncasecmp(channel->subscriptionId.number, subscriptionIdNum, strlen(channel->subscriptionId.number))
-		    && 0 != (compareId = strlen(channel->subscriptionId.number))) {
-
-			result = FALSE;
-		}
-	}
- DONE:
-#endif
-
-#if 0
-	ast_log(LOG_NOTICE, "channel->subscriptionId.number=%s, length=%d\n", channel->subscriptionId.number, strlen(channel->subscriptionId.number));
-	ast_log(LOG_NOTICE, "subscriptionIdNum=%s, length=%d\n", subscriptionIdNum ? subscriptionIdNum : "NULL", subscriptionIdNum ? strlen(subscriptionIdNum) : -1);
-
-	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: channel->subscriptionId.number=%s, SubscriptionId=%s\n", (channel->subscriptionId.number) ? channel->subscriptionId.number : "NULL", (subscriptionIdNum) ? subscriptionIdNum : "NULL");
-	ast_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: result: %d\n", result);
-#endif
 	return result;
 }
 
