@@ -381,7 +381,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	/*! \todo: fix device check locking order. device is possibly locked during sccp_event_fire */
 	sccp_event_t *event = ast_malloc(sizeof(sccp_event_t));
 	memset(event, 0, sizeof(sccp_event_t));
-	event->type = SCCP_EVENT_LINESTATUSCHANGED;
+	event->type = SCCP_EVENT_LINESTATUS_CHANGED;
 	event->event.lineStatusChanged.line = c->line;
 	event->event.lineStatusChanged.device = device;
 	event->event.lineStatusChanged.state = state;

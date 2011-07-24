@@ -126,7 +126,7 @@ void sccp_session_close(sccp_session_t * s)
 		sccp_event_t *event = ast_malloc(sizeof(sccp_event_t));
 
 		memset(event, 0, sizeof(sccp_event_t));
-		event->type = SCCP_EVENT_DEVICEUNREGISTERED;
+		event->type = SCCP_EVENT_DEVICE_UNREGISTERED;
 		event->event.deviceRegistered.device = s->device;
 		sccp_event_fire((const sccp_event_t **)&event);
 	}
