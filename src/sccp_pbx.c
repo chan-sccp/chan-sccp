@@ -266,12 +266,13 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 	}
 
 	if (l->devices.size == 1 && SCCP_LIST_FIRST(&l->devices) && SCCP_LIST_FIRST(&l->devices)->device && SCCP_LIST_FIRST(&l->devices)->device->session) {
-#warning This piece of code needs to be checked/tested before stable		
 		/*! 
 		 *\todo check if we have to do this. 
 		 * 	why would we have to do this if the is a line with only one device, but not for devices on a shared line
 		 * 	we are going to traverse the l->devices table a couple of lines below, so why not set c->device then.
 		 *      We are taking the device without locking the list, so it could even cause a race condition
+		 *
+		 *      If this code is ok, i might have to be move inside the SCCP_LIST_LOCK to make sure it is locked
 		 */
 		c->device = SCCP_LIST_FIRST(&l->devices)->device;
 		sccp_channel_updateChannelCapability_locked(c);
@@ -1257,12 +1258,12 @@ static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit)
 static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit, unsigned int duration)
 #endif										// ASTERISK_VERSION_NUMBER < 10400
 {
-	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
+//	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
 
-	sccp_device_t *d = NULL;
-#warning This next line needs to be checked before stable
-	return -1;								//! \todo HOW CAN THIS WORK ??
+//	sccp_device_t *d = NULL;
+	return -1;								
 
+/*
 	if (!c || !c->device)
 		return -1;
 
@@ -1275,13 +1276,13 @@ static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit, unsigned 
 		return -1;
 	}
 
-/* 
-	if (d->dtmfmode == SCCP_DTMFMODE_INBAND)
-		return -1;
-*/
+//	if (d->dtmfmode == SCCP_DTMFMODE_INBAND)
+//		return -1;
+
 	sccp_dev_keypadbutton(c->device, digit, sccp_device_find_index_for_line(c->device, c->line->name), c->callid);
 
 	return 0;
+*/
 }
 
 #ifdef CS_AST_HAS_TECH_PVT
@@ -1889,12 +1890,12 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 		/* \todo replace AST_PBX enum using pbx_impl wrapper enum */
 		switch(pbxStartResult){
 		  case AST_PBX_FAILED:
-			pbx_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
+			ast_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 			/* \todo change indicate to something more suitable */
 			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 			break;
 		  case AST_PBX_CALL_LIMIT:
-			pbx_log(LOG_WARNING, "%s: (sccp_pbx_softswitch) call limit reached for channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
+			ast_log(LOG_WARNING, "%s: (sccp_pbx_softswitch) call limit reached for channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_CONGESTION);
 			break;
 		  default:
