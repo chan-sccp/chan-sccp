@@ -80,10 +80,10 @@ int sccp_register_management(void)
 	result |= ast_manager_register2("SCCPDeviceAddLine", _MAN_FLAGS, sccp_manager_device_add_line, "add a line to device", management_show_device_add_line_desc);
 	result |= ast_manager_register2("SCCPDeviceUpdate", _MAN_FLAGS, sccp_manager_device_update, "add a line to device", management_device_update_desc);
 	result |= ast_manager_register2("SCCPLineForwardUpdate", _MAN_FLAGS, sccp_manager_line_fwd_update, "add a line to device", management_line_fwd_update_desc);
-	result |= ast_manager_register2("SCCPStartCall", _MAN_FLAGS, sccp_manager_startCall, "start a new call on device", ""); /*!< \todo add description for ami */
-	result |= ast_manager_register2("SCCPAnswerCall", _MAN_FLAGS, sccp_manager_answerCall, "answer a ringin channel", ""); /*!< \todo add description for ami */
-	result |= ast_manager_register2("SCCPHangupCall", _MAN_FLAGS, sccp_manager_hangupCall, "hangup a channel", ""); /*!< \todo add description for ami */
-	result |= ast_manager_register2("SCCPHoldCall", _MAN_FLAGS, sccp_manager_holdCall, "hold/unhold a call", ""); /*!< \todo add description for ami */
+	result |= ast_manager_register2("SCCPStartCall", _MAN_FLAGS, sccp_manager_startCall, "start a new call on device", "");	/*!< \todo add description for ami */
+	result |= ast_manager_register2("SCCPAnswerCall", _MAN_FLAGS, sccp_manager_answerCall, "answer a ringin channel", "");	/*!< \todo add description for ami */
+	result |= ast_manager_register2("SCCPHangupCall", _MAN_FLAGS, sccp_manager_hangupCall, "hangup a channel", "");	/*!< \todo add description for ami */
+	result |= ast_manager_register2("SCCPHoldCall", _MAN_FLAGS, sccp_manager_holdCall, "hold/unhold a call", "");	/*!< \todo add description for ami */
 #    undef _MAN_FLAGS
 	return result;
 }
@@ -425,12 +425,11 @@ static int sccp_manager_device_update(struct mansession *s, const struct message
 	return 0;
 }
 
-
 static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 {
 	sccp_device_t *d;
 	sccp_line_t *line = NULL;
-	
+
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *lineName = astman_get_header(m, "Linename");
 	const char *number = astman_get_header(m, "number");
@@ -440,23 +439,21 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 		astman_send_error(s, m, "Device not found");
 		return 0;
 	}
-	
-	if(!lineName){
-		if (d && d->defaultLineInstance > 0){
+
+	if (!lineName) {
+		if (d && d->defaultLineInstance > 0) {
 			line = sccp_line_find_byid(d, d->defaultLineInstance);
 		} else {
 			line = sccp_dev_get_activeline(d);
 		}
-	}else{
+	} else {
 		line = sccp_line_find_byname_wo(lineName, FALSE);
 	}
-	
+
 	if (!line) {
 		astman_send_error(s, m, "Line not found");
 		return 0;
 	}
-	
-
 
 	sccp_channel_newcall(line, d, (char *)number, SKINNY_CALLTYPE_OUTBOUND);
 	astman_send_ack(s, m, "Call Started");
@@ -467,7 +464,7 @@ static int sccp_manager_answerCall(struct mansession *s, const struct message *m
 {
 	sccp_device_t *device;
 	sccp_channel_t *c;
-	
+
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *channelId = astman_get_header(m, "channelId");
 
@@ -476,19 +473,19 @@ static int sccp_manager_answerCall(struct mansession *s, const struct message *m
 		astman_send_error(s, m, "Device not found");
 		return 0;
 	}
-	
+
 	c = sccp_channel_find_byid_locked(atoi(channelId));
-	
-	if(!c){
+
+	if (!c) {
 		astman_send_error(s, m, "Call not found\r\n");
 		return 0;
 	}
-	
-	if(c->state != SCCP_CHANNELSTATE_RINGING){
+
+	if (c->state != SCCP_CHANNELSTATE_RINGING) {
 		astman_send_error(s, m, "Call is not ringin\r\n");
 		return 0;
 	}
-	
+
 	astman_append(s, "Answering channel '%s'\r\n", channelId);
 
 	sccp_channel_answer_locked(device, c);
@@ -501,15 +498,15 @@ static int sccp_manager_answerCall(struct mansession *s, const struct message *m
 static int sccp_manager_hangupCall(struct mansession *s, const struct message *m)
 {
 	sccp_channel_t *c;
-  
+
 	const char *channelId = astman_get_header(m, "channelId");
 
 	c = sccp_channel_find_byid_locked(atoi(channelId));
-	if(!c){
+	if (!c) {
 		astman_send_error(s, m, "Call not found\r\n");
 		return 0;
 	}
-	
+
 	astman_append(s, "Hangup call '%s'\r\n", channelId);
 	sccp_channel_endcall_locked(c);
 	sccp_channel_unlock(c);
@@ -517,29 +514,29 @@ static int sccp_manager_hangupCall(struct mansession *s, const struct message *m
 	return 0;
 }
 
-
 static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 {
 	sccp_channel_t *c;
 	const char *channelId = astman_get_header(m, "channelId");
 	const char *hold = astman_get_header(m, "hold");
 	char *retValStr;
+
 	c = sccp_channel_find_byid_locked(atoi(channelId));
-	if(!c){
-		astman_send_error(s, m, "Call not found\r\n" );
+	if (!c) {
+		astman_send_error(s, m, "Call not found\r\n");
 		return 0;
 	}
-	if (!sccp_strcasecmp("on", hold)) {						/* check to see if enable hold */
+	if (!sccp_strcasecmp("on", hold)) {					/* check to see if enable hold */
 		astman_append(s, "Put channel '%s' on hold\n", channelId);
 		sccp_channel_hold_locked(c);
 		sccp_channel_unlock(c);
 		retValStr = "Channel was put on hold";
-	} else if (!sccp_strcasecmp("off", hold)) {					/* check to see if disable hold */
+	} else if (!sccp_strcasecmp("off", hold)) {				/* check to see if disable hold */
 		astman_append(s, "Resume channel '%s'\n", channelId);
 		sccp_channel_resume_locked(c->device, c, FALSE);
 		sccp_channel_unlock(c);
 		retValStr = "Channel was resumed";
-	} else{
+	} else {
 		astman_send_error(s, m, "Invalid value for hold, use 'on' or 'off' only\r\n");
 		return 0;
 	}

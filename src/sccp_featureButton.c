@@ -143,7 +143,6 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 			case SCCP_FEATURE_MONITOR:
 				config->button.feature.status = (device->monitorFeature.status) ? 1 : 0;
 
-
 				break;
 
 #ifdef CS_DEVSTATE_FEATURE

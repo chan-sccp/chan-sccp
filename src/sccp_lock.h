@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_lock.h
  * \brief 	SCCP Lock Header
@@ -89,6 +90,7 @@
 int __sccp_mutex_lock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func);
 int __sccp_mutex_unlock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func);
 int __sccp_mutex_trylock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func);
+
 #        define sccp_mutex_lock(a)          	__sccp_mutex_lock(a, "(sccp unspecified [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #        define sccp_mutex_lock_desc(a, b) 	__sccp_mutex_lock(a, b, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #        define sccp_mutex_unlock(a)        	__sccp_mutex_unlock(a, "(sccp unspecified [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)

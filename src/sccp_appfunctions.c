@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_appfunctions.c
  * \brief 	SCCP Application / Dialplan Function Class
@@ -599,7 +600,7 @@ static int sccp_app_prefcodec(struct ast_channel *chan, void *data)
 	int capability = 0;
 
 	sccp_channel_t *c = NULL;
-	sccp_device_t  *d = NULL;
+	sccp_device_t *d = NULL;
 
 	if (!(c = get_sccp_channel_from_ast_channel(chan))) {
 		ast_log(LOG_WARNING, "sccp_app_prefcodec(): Not an SCCP channel\n");
@@ -613,7 +614,7 @@ static int sccp_app_prefcodec(struct ast_channel *chan, void *data)
 	if (!data || !c || !(c->line) || !(c->line->name))
 		return 0;
 
-	strncpy(text, (char *) data, sizeof(text)-1);
+	strncpy(text, (char *)data, sizeof(text) - 1);
 	memset(&codecs, 0, sizeof(codecs));
 
 	ast_parse_allow_disallow(&codecs, &capability, ast_strip(text), 1);
@@ -621,6 +622,7 @@ static int sccp_app_prefcodec(struct ast_channel *chan, void *data)
 	c->requestedFormat = c->format;
 	c->isCodecFix = TRUE;
 	char s1[512], s2[512];
+
 	sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d) USED: %s(%d) \n", c->line->name, c->callid, pbx_getformatname_multiple(s1, sizeof(s1) - 1, c->capability), c->capability, pbx_getformatname_multiple(s2, sizeof(s2) - 1, c->format), c->format);
 	sccp_channel_updateChannelCapability_locked(c);
 	sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d) USED: %s(%d) \n", c->line->name, c->callid, pbx_getformatname_multiple(s1, sizeof(s1) - 1, c->capability), c->capability, pbx_getformatname_multiple(s2, sizeof(s2) - 1, c->format), c->format);
@@ -629,13 +631,11 @@ static int sccp_app_prefcodec(struct ast_channel *chan, void *data)
 }
 
 /*! \brief Stucture to declare a dialplan function: SETSCCPCODEC */
-static char *prefcodec_name     = "SetSCCPCodec";
+static char *prefcodec_name = "SetSCCPCodec";
 
 static char *prefcodec_synopsis = "Sets the preferred codec for the current sccp channel";
 
-static char *prefcodec_descr    = "Usage: SetSCCPCodec(codec)" "Sets the preferred codec for dialing out with the current chan_sccp channel\n";
-
-
+static char *prefcodec_descr = "Usage: SetSCCPCodec(codec)" "Sets the preferred codec for dialing out with the current chan_sccp channel\n";
 
 /*!
  * \brief 	Set the Preferred video bitrate for a SCCP channel via the dialplan
@@ -652,7 +652,7 @@ static int sccp_app_prefvidbitrate(struct ast_channel *chan, void *data)
 	int res = 0;
 
 	sccp_channel_t *c = NULL;
-	sccp_device_t  *d = NULL;
+	sccp_device_t *d = NULL;
 
 	if (!(c = get_sccp_channel_from_ast_channel(chan))) {
 		ast_log(LOG_WARNING, "sccp_app_prefvidbitrate(): Not an SCCP channel\n");
@@ -666,12 +666,11 @@ static int sccp_app_prefvidbitrate(struct ast_channel *chan, void *data)
 	if (!data || !c || !(c->line) || !(c->line->name))
 		return 0;
 
-	strncpy(text, (char *) data, sizeof(text)-1);
+	strncpy(text, (char *)data, sizeof(text) - 1);
 
 	res = sscanf(text, "%ud", &bitrate);
 
-	if(1 == res)
-	{
+	if (1 == res) {
 		c->desiredVideoBitrate = bitrate;
 		ast_log(LOG_WARNING, "sccp_app_prefvidbitrate(): SCCP channel has no device\n");
 	}
@@ -680,14 +679,11 @@ static int sccp_app_prefvidbitrate(struct ast_channel *chan, void *data)
 }
 
 /*! \brief Stucture to declare a dialplan function: SETSCCPCODEC */
-static char *prefvidbitrate_name     = "SetSCCPVideoBitrate";
+static char *prefvidbitrate_name = "SetSCCPVideoBitrate";
 
 static char *prefvidbitrate_synopsis = "Sets the preferred video bitrate for the current sccp channel";
 
-static char *prefvidbitrate_descr    = "Usage: SetSCCPVideoBitrate(bitrate)" "Sets the preferred video bitrate for dialing out with the current chan_sccp channel\n";
-
-
-
+static char *prefvidbitrate_descr = "Usage: SetSCCPVideoBitrate(bitrate)" "Sets the preferred video bitrate for dialing out with the current chan_sccp channel\n";
 
 /*!
  * \brief 	Set the Name and Number of the Called Party to the Calling Phone
@@ -769,7 +765,6 @@ static int sccp_app_setmessage(struct ast_channel *chan, void *data)
 		timeout = 0;
 	}
 
-
 	if (!text || !c || !c->device)
 		return 0;
 
@@ -817,7 +812,7 @@ static int sccp_app_setmutemic(struct ast_channel *chan, void *data)
 		return 0;
 	}
 
-	if(!(d = c->device)) {
+	if (!(d = c->device)) {
 		ast_log(LOG_WARNING, "sccp_app_setmutemic(): No sccp device associated with sccp channel.\n");
 		return 0;
 	}
@@ -834,19 +829,16 @@ static char *mutemic_synopsis = "Sets microphone of the calling device to muted.
 
 static char *mutemic_descr = "Usage: SetMuteMic()" "Mutes the microphone of the calling device for a sccp device.\n";
 
-
-
-
 int sccp_register_dialplan_functions(void)
 {
-	int result=0;
+	int result = 0;
 
 	/* Register application functions */
 	result = pbx_register_application(calledparty_name, sccp_app_calledparty, calledparty_synopsis, calledparty_descr, NULL);
 	result |= pbx_register_application(setmessage_name, sccp_app_setmessage, setmessage_synopsis, setmessage_descr, NULL);
-	result |= pbx_register_application(prefcodec_name, sccp_app_prefcodec, prefcodec_synopsis, prefcodec_descr, NULL); 
-	result |= pbx_register_application(mutemic_name, sccp_app_setmutemic, mutemic_synopsis, mutemic_descr, NULL); 
-	result |= pbx_register_application(prefvidbitrate_name, sccp_app_prefvidbitrate, prefvidbitrate_synopsis, prefvidbitrate_descr, NULL); 
+	result |= pbx_register_application(prefcodec_name, sccp_app_prefcodec, prefcodec_synopsis, prefcodec_descr, NULL);
+	result |= pbx_register_application(mutemic_name, sccp_app_setmutemic, mutemic_synopsis, mutemic_descr, NULL);
+	result |= pbx_register_application(prefvidbitrate_name, sccp_app_prefvidbitrate, prefvidbitrate_synopsis, prefvidbitrate_descr, NULL);
 
 #if ASTERISK_VERSION_NUMBER >= 10600
 	/* Register dialplan functions */
@@ -854,13 +846,13 @@ int sccp_register_dialplan_functions(void)
 	result |= pbx_custom_function_register(&sccpline_function, NULL);
 	result |= pbx_custom_function_register(&sccpchannel_function, NULL);
 #endif
-	
+
 	return result;
 }
 
 int sccp_unregister_dialplan_functions(void)
 {
-	int result=0;
+	int result = 0;
 
 	/* Unregister applications functions */
 	result = pbx_unregister_application(calledparty_name);
@@ -876,4 +868,3 @@ int sccp_unregister_dialplan_functions(void)
 
 	return result;
 }
-

@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_device.h
  * \brief 	SCCP Device Header

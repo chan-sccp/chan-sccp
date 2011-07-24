@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_channel.h
  * \brief 	SCCP Channel Header
@@ -42,7 +43,7 @@ sccp_channel_t *sccp_channel_newcall_locked(sccp_line_t * l, sccp_device_t * dev
 boolean_t sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, char *dial, uint8_t calltype);
 void sccp_channel_answer_locked(sccp_device_t * d, sccp_channel_t * c);
 void sccp_channel_destroy_locked(sccp_channel_t * c);
-int sccp_channel_destroy_callback(const void* data);
+int sccp_channel_destroy_callback(const void *data);
 void sccp_channel_clean_locked(sccp_channel_t * c);
 int sccp_channel_hold_locked(sccp_channel_t * c);
 int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c, boolean_t swap_channels);
@@ -50,9 +51,9 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c, boole
 void sccp_channel_transfer_locked(sccp_channel_t * c);
 void sccp_channel_transfer_complete(sccp_channel_t * c);
 void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevice, char *fwdNumber);
+
 #    ifdef CS_SCCP_PARK
 void sccp_channel_park(sccp_channel_t * c);
 #    endif
-
 
 #endif

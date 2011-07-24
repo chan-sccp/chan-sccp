@@ -159,12 +159,12 @@ void sccp_config_addButton(sccp_device_t * device, int index, button_type_t type
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 	//taken outside the loop, reasons: locking order and retaking device lock and releasing to add buttons to the same device.
 #    ifdef CS_DYNAMIC_CONFIG
-        if (TRUE==new) {
+	if (TRUE == new) {
 		ast_mutex_lock(&GLOB(lock));
 		if (GLOB(reload_in_progress) == TRUE)
 			device->pendingUpdate = 1;
 		ast_mutex_unlock(&GLOB(lock));
-        }
+	}
 #    endif
 
 	if (sccp_strlen_zero(name)) {
@@ -1725,7 +1725,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct as
 			if (sscanf(v->value, "%i", &digittimeout) == 1) {
 				if (digittimeout > 0 && digittimeout < 255)
 					d->digittimeout = digittimeout;
-			} 
+			}
 		} else if (!strcasecmp(v->name, "addon")) {
 			sccp_addon_addnew(d, v->value);
 		} else if (!strcasecmp(v->name, "tzoffset")) {

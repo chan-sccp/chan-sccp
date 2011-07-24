@@ -540,7 +540,7 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 		if (linedevice->device == device) {
 			SCCP_LIST_REMOVE_CURRENT(list);
 #ifdef CS_DYNAMIC_CONFIG
-			if(l->devices.size == 0){
+			if (l->devices.size == 0) {
 				unregister_exten(l, &(linedevice->subscriptionId));
 			}
 #endif
@@ -548,9 +548,7 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 			ast_free(linedevice);
 		}
 	}
-	
 
-	
 	SCCP_LIST_TRAVERSE_SAFE_END;
 	SCCP_LIST_UNLOCK(&l->devices);
 
@@ -879,8 +877,7 @@ sccp_diff_t sccp_line_changed(sccp_line_t * line_a, sccp_line_t * line_b)
 #    ifdef CS_SCCP_PICKUP
 			  (line_a->pickupgroup != line_b->pickupgroup) ||
 #    endif
-			  (strcmp(line_a->adhocNumber, line_b->adhocNumber)) ||
-			  (strcmp(line_a->defaultSubscriptionId.number, line_b->defaultSubscriptionId.number)) || (strcmp(line_a->defaultSubscriptionId.name, line_b->defaultSubscriptionId.name))
+			  (strcmp(line_a->adhocNumber, line_b->adhocNumber)) || (strcmp(line_a->defaultSubscriptionId.number, line_b->defaultSubscriptionId.number)) || (strcmp(line_a->defaultSubscriptionId.name, line_b->defaultSubscriptionId.name))
 	    ) {
 		sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Minor changes\n");
 		res = MINOR_CHANGES;

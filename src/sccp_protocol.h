@@ -292,7 +292,7 @@ typedef enum {
 #    define StationMaxButtonTemplateSize		42
 #    define StationMaxButtonTemplateNameSize		44
 #    define StationDateTemplateSize 			6
-//#define StationMaxDisplayTextSize            	33
+//#define StationMaxDisplayTextSize             33
 #    define StationMaxDisplayTextSize			32
 #    define StationMaxDisplayNotifySize 		32
 #    define StationMaxDirnumSize			24
@@ -306,12 +306,11 @@ typedef enum {
 #    define ServerMaxNameSize				48
 #    define StationMaxServiceURLSize			256
 #    define StationMaxPorts				16
-//#    define StationMaxXMLMessage			512
+//#    define StationMaxXMLMessage                      512
 #    define StationMaxXMLMessage			2048
 
 #    define APPID_CONFERENCE				1
 #    define APPID_PROVISION				2
-
 
 /* skinny tones skinny_tone2str */
 #    define SKINNY_TONE_SILENCE 			0
@@ -535,7 +534,7 @@ static const struct skinny_alarm {
 //#define SKINNY_DEVICETYPE_POLYCOM                     9
 #    define SKINNY_DEVICETYPE_VGC			10
 #    define SKINNY_DEVICETYPE_ATA186			12
-#    define SKINNY_DEVICETYPE_ATA188			12				/*!< ATA188 -FS */
+#    define SKINNY_DEVICETYPE_ATA188			12			/*!< ATA188 -FS */
 #    define SKINNY_DEVICETYPE_VIRTUAL30SPPLUS		20
 #    define SKINNY_DEVICETYPE_PHONEAPPLICATION		21
 #    define SKINNY_DEVICETYPE_ANALOGACCESS		30
@@ -579,41 +578,41 @@ static const struct skinny_alarm {
 #    define SKINNY_DEVICETYPE_NOTDEFINED		255
 #    define SKINNY_DEVICETYPE_CISCO7902 		30008
 #    define SKINNY_DEVICETYPE_CISCO7905 		20000
-#    define SKINNY_DEVICETYPE_CISCO7906			369				/*!< 7906 -FS */
-#    define SKINNY_DEVICETYPE_CISCO7910			6				/*!< 7910 */
+#    define SKINNY_DEVICETYPE_CISCO7906			369			/*!< 7906 -FS */
+#    define SKINNY_DEVICETYPE_CISCO7910			6			/*!< 7910 */
 #    define SKINNY_DEVICETYPE_CISCO7911 		307
 #    define SKINNY_DEVICETYPE_CISCO7912			30007
-#    define SKINNY_DEVICETYPE_CISCO7914 		124				/*!< Expansion module */
-#    define SKINNY_DEVICETYPE_CISCO7915_12BUTTONS	227				/*!< 7915 12-Button Line Expansion Module */
-#    define SKINNY_DEVICETYPE_CISCO7915			228				/*!< 7915 24-Button Line Expansion Module */
-#    define SKINNY_DEVICETYPE_CISCO7916_12BUTTONS	229				/*!< 7916 12-Button Line Expansion Module */
-#    define SKINNY_DEVICETYPE_CISCO7916			230				/*!< 7916 24-Button Line Expansion Module */
+#    define SKINNY_DEVICETYPE_CISCO7914 		124			/*!< Expansion module */
+#    define SKINNY_DEVICETYPE_CISCO7915_12BUTTONS	227			/*!< 7915 12-Button Line Expansion Module */
+#    define SKINNY_DEVICETYPE_CISCO7915			228			/*!< 7915 24-Button Line Expansion Module */
+#    define SKINNY_DEVICETYPE_CISCO7916_12BUTTONS	229			/*!< 7916 12-Button Line Expansion Module */
+#    define SKINNY_DEVICETYPE_CISCO7916			230			/*!< 7916 24-Button Line Expansion Module */
 #    define SKINNY_DEVICETYPE_CISCO7920 		30002
 #    define SKINNY_DEVICETYPE_CISCO7921 		365
-#    define SKINNY_DEVICETYPE_CISCO7925 		484				/*!< 7925 -FS */
+#    define SKINNY_DEVICETYPE_CISCO7925 		484			/*!< 7925 -FS */
 #    define SKINNY_DEVICETYPE_CISCO7931			348
 #    define SKINNY_DEVICETYPE_CISCO7935 		9
 #    define SKINNY_DEVICETYPE_CISCO7936 		30019
 #    define SKINNY_DEVICETYPE_CISCO7937			431
-#    define SKINNY_DEVICETYPE_CISCO7940			8				/*!< 7940 */
+#    define SKINNY_DEVICETYPE_CISCO7940			8			/*!< 7940 */
 #    define SKINNY_DEVICETYPE_CISCO7941 		115
 #    define SKINNY_DEVICETYPE_CISCO7941GE 		309
 #    define SKINNY_DEVICETYPE_CISCO7942			434
 #    define SKINNY_DEVICETYPE_CISCO7945			435
-#    define SKINNY_DEVICETYPE_CISCO7960			7				/*< 7960 */
+#    define SKINNY_DEVICETYPE_CISCO7960			7			/*< 7960 */
 #    define SKINNY_DEVICETYPE_CISCO7961 		30018
 #    define SKINNY_DEVICETYPE_CISCO7961GE 		308
-#    define SKINNY_DEVICETYPE_CISCO7962			404				// -FS
+#    define SKINNY_DEVICETYPE_CISCO7962			404			// -FS
 #    define SKINNY_DEVICETYPE_CISCO7965 		436
 #    define SKINNY_DEVICETYPE_CISCO7970 		30006
 #    define SKINNY_DEVICETYPE_CISCO7971 		119
 #    define SKINNY_DEVICETYPE_CISCO7975			437
 #    define SKINNY_DEVICETYPE_CISCO7985			302
-#    define SKINNY_DEVICETYPE_NOKIA_E_SERIES		275				/*!< Nokia S60 */
+#    define SKINNY_DEVICETYPE_NOKIA_E_SERIES		275			/*!< Nokia S60 */
 #    define SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR 	30016
-#    define SKINNY_DEVICETYPE_GATEWAY_AN 		30027				/*!< Analog gateway */
-#    define SKINNY_DEVICETYPE_GATEWAY_BRI 		30028				/*!< BRI gateway */
-#    define SKINNY_DEVICETYPE_NOKIA_ICC 		376				/*!< nokia icc client V2 */
+#    define SKINNY_DEVICETYPE_GATEWAY_AN 		30027			/*!< Analog gateway */
+#    define SKINNY_DEVICETYPE_GATEWAY_BRI 		30028			/*!< BRI gateway */
+#    define SKINNY_DEVICETYPE_NOKIA_ICC 		376			/*!< nokia icc client V2 */
 #    define SKINNY_DEVICETYPE_CISCO6901			547
 #    define SKINNY_DEVICETYPE_CISCO6911			548
 #    define SKINNY_DEVICETYPE_CISCO6921			495
@@ -1006,12 +1005,12 @@ static const struct skinny_lampmode {
 
 /* ringer modes */
 typedef enum {
-	SKINNY_STATION_RINGOFF		= 1,
-	SKINNY_STATION_INSIDERING	= 2,
-	SKINNY_STATION_OUTSIDERING	= 3,
-	SKINNY_STATION_FEATURERING	= 4,
-	SKINNY_STATION_SILENTRING	= 5,
-	SKINNY_STATION_URGENTRING	= 6
+	SKINNY_STATION_RINGOFF = 1,
+	SKINNY_STATION_INSIDERING = 2,
+	SKINNY_STATION_OUTSIDERING = 3,
+	SKINNY_STATION_FEATURERING = 4,
+	SKINNY_STATION_SILENTRING = 5,
+	SKINNY_STATION_URGENTRING = 6
 } sccp_ringermode_t;
 
 typedef enum {
@@ -1063,8 +1062,8 @@ typedef enum {
 	SKINNY_CODEC_G728 = 10,
 	SKINNY_CODEC_G729 = 11,
 	SKINNY_CODEC_G729_A = 12,
-	SKINNY_CODEC_IS11172 = 13,						
-	SKINNY_CODEC_IS13818 = 14,						
+	SKINNY_CODEC_IS11172 = 13,
+	SKINNY_CODEC_IS13818 = 14,
 	SKINNY_CODEC_G729_B = 15,
 	SKINNY_CODEC_G729_AB = 16,
 	SKINNY_CODEC_GSM_FULLRATE = 18,
@@ -1376,9 +1375,9 @@ typedef enum {
 	UserToDeviceDataVersion1Message = 0x013F,
 
 	/* sent by us */
-	FlowControlCommandMessage = 0x0141, // FlowControlCommandMessage
+	FlowControlCommandMessage = 0x0141,					// FlowControlCommandMessage
 	Unknown_0x0142_Message = 0x0142,
-	Unknown_0x0143_Message = 0x0143, // Probably Dynamic DisplayNotifyMessage
+	Unknown_0x0143_Message = 0x0143,					// Probably Dynamic DisplayNotifyMessage
 	Unknown_0x0144_Message = 0x0144,
 	DisplayDynamicPromptStatusMessage = 0x0145,
 	FeatureStatAdvancedMessage = 0x0146,
@@ -1906,7 +1905,7 @@ typedef union {
 		uint32_t lel_conferenceID;
 		uint32_t lel_appInstanceID;
 		uint32_t lel_routing;
-		char data; // dummy char for variable length message
+		char data;							// dummy char for variable length message
 	} UserToDeviceDataVersion1Message;					/*!< User to Device Version1 Message Structure */
 
 	struct {
@@ -1926,7 +1925,6 @@ typedef union {
 		uint32_t lel_dataLength;
 		char data[StationMaxXMLMessage];
 	} DeviceToUserDataResponseMessage;					/*!< Device to User Response Message Structure */
-
 
 	struct {
 		uint32_t lel_appID;
@@ -1954,8 +1952,7 @@ typedef union {
 		uint32_t lel_appInstanceID;
 		uint32_t lel_routing;
 		char data[StationMaxXMLMessage];
-	} DeviceToUserDataResponseVersion1Message;					/*!< Device to User Response Version1 Message Structure */
-                
+	} DeviceToUserDataResponseVersion1Message;				/*!< Device to User Response Version1 Message Structure */
 
 	/* AccessoryStatusMessage (0x0073):
 	 * This indicates the phone headset, handset or speaker status.
@@ -1989,12 +1986,12 @@ typedef union {
 
 	struct {								// INCOMPLETE
 		char deviceName[StationMaxDeviceNameSize];
-		uint32_t lel_unknown1; /* unused */
+		uint32_t lel_unknown1;						/* unused */
 		uint32_t lel_unknown2;
 		uint32_t lel_unknown3;
 		uint32_t lel_unknown4;
-		char	 str1;
-		char	 str2;
+		char str1;
+		char str2;
 	} Unknown_0x0142_Message;
 
 	struct {								// INCOMPLETE
@@ -2014,8 +2011,8 @@ typedef union {
 		uint32_t lel_instance;						/*!< Instance */
 		uint32_t lel_type;						/*!< always 0x15 */
 		uint32_t lel_status;						/*!< status */
-		char DisplayName[StationMaxNameSize];				/*!< SpeedDial Display Name */ 
-										/*! \todo shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 */
+		char DisplayName[StationMaxNameSize];				/*!< SpeedDial Display Name */
+		/*! \todo shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 */
 	} FeatureStatAdvancedMessage;						/*!< Speed Dial Stat Dynamic Message Structure */
 
 	struct {
@@ -2659,11 +2656,11 @@ typedef union {
 	} SoftKeyTemplateReqMessage;						/*!< Soft Key Template Request Message Structure */
 
 	struct {
-#ifdef CS_ADV_FEATURES
-		StationIdentifier sId;                                		/*!< Station Identifier */
-		uint32_t lel_stationIpAddr;              			/*!< Station IP Address */
-		uint32_t lel_deviceType;                                        /*!< Device Type as part of SKINNY_DEVICETYPE_* */
-#endif
+#    ifdef CS_ADV_FEATURES
+		StationIdentifier sId;						/*!< Station Identifier */
+		uint32_t lel_stationIpAddr;					/*!< Station IP Address */
+		uint32_t lel_deviceType;					/*!< Device Type as part of SKINNY_DEVICETYPE_* */
+#    endif
 	} RegisterTokenReq;							/*!< Register Token Request */
 
 	struct {
@@ -2698,7 +2695,7 @@ typedef union {
 
 	struct {
 		uint32_t lel_ringMode;						/*!< Ring Mode */
-		uint32_t lel_ringerType;						/*!< Unknown (always 1) */
+		uint32_t lel_ringerType;					/*!< Unknown (always 1) */
 		uint32_t lel_lineInstance;					/*!< Line Instance */
 		uint32_t lel_callReference;					/*!< Call Reference */
 	} SetRingerMessage;							/*!< Set Ringer Message Structure */
@@ -2799,8 +2796,8 @@ typedef union {
 		uint32_t lel_unknown15;						/*!< Unknown */
 		uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
 		uint32_t lel_rtptimeout;					/*!< RTP Timeout (this is set to 0x0A) */
-		uint32_t lel_mixingMode;						/*!< Unknown */
-		uint32_t lel_mixingParty;						/*!< Unknown */
+		uint32_t lel_mixingMode;					/*!< Unknown */
+		uint32_t lel_mixingParty;					/*!< Unknown */
 	} StartMediaTransmission_v17;						/*!< Start Media Transmission v17 Structure */
 
 	struct {
@@ -3082,8 +3079,8 @@ typedef union {
 		uint32_t unknown14;						/*!< Unknown */
 		uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
 		uint32_t lel_rtptimeout;					/*!< RTP Timeout (this is always 0x0A) */
-		uint32_t lel_mixingMode;						/*!< Unknown */
-		uint32_t lel_mixingParty;						/*!< Unknown */
+		uint32_t lel_mixingMode;					/*!< Unknown */
+		uint32_t lel_mixingParty;					/*!< Unknown */
 		uint32_t unknown19;						/*!< Unknown */
 		char bel_remoteIpAddr[16];					/*!< Remote IP Address */
 		uint32_t lel_unknown20;						/*!< Unknown (this is always 0xFA0) */
@@ -3263,7 +3260,7 @@ typedef union {
 		uint32_t lel_payloadType;					/*!< payload type */
 		uint32_t lel_DSCPValue;						/*!< DSCP Value */
 
-		videoParameter_t videoParameter;					/*!< Data Parameter */
+		videoParameter_t videoParameter;				/*!< Data Parameter */
 
 	} StartMultiMediaTransmission_v17;					/*!< Start MultiMedia Transmission Message Structure */
 
@@ -3294,11 +3291,10 @@ typedef union {
 
 	struct {
 	} RegisterTokenAck;							/*!< Register Token Ackknowledge Message Structure */
-	
+
 	struct {
 		char text[StationMaxDisplayTextSize];				/*!< Rejection Text */
 	} RegisterTokenReject;							/*!< Register Token Reject Message Structure */
-
 
 	struct {
 		uint32_t lel_conferenceID;					/*!< Conference ID */
@@ -3352,7 +3348,6 @@ typedef struct {
 /* So in theory, a message should never be bigger than this. If it is, we abort the connection */
 #    define SCCP_MAX_PACKET sizeof(sccp_moo_t)
 
-
 static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_REDIAL,
 	SKINNY_LBL_NEWCALL,
@@ -3384,10 +3379,10 @@ static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_IDIVERT,
 	SKINNY_LBL_VIDEO_MODE,
 	SKINNY_LBL_INTRCPT,
-    SKINNY_LBL_CBARGE,
+	SKINNY_LBL_CBARGE,
 	SKINNY_LBL_NEWCALLCUSTOM,
 	SKINNY_LBL_MONITOR,
-  SKINNY_LBL_DIAL,
+	SKINNY_LBL_DIAL,
 	SKINNY_LBL_EMPTY,
 };										/*!< Soft Keys Map as INT */
 
@@ -3534,7 +3529,7 @@ static uint8_t skSet_Conntrans[] = {
 static uint8_t skSet_DigitsFoll[] = {
 	SKINNY_LBL_BACKSPACE,
 	SKINNY_LBL_ENDCALL,
-  SKINNY_LBL_DIAL,
+	SKINNY_LBL_DIAL,
 };										/*!< SKINNY SoftKeys Set "Digits after dialing first digit" as INT */
 
 static uint8_t skSet_Connconf[] = {

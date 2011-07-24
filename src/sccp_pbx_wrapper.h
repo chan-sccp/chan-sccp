@@ -21,9 +21,9 @@ struct sccp_pbx_cb {
 	int (*const rtp_destroy) (sccp_channel_t * channel);
 	int (*const rtp_stop) (sccp_channel_t * channel);
 	int (*const rtp_codec) (sccp_channel_t * channel);
-	boolean_t(*const rtp_audio_create) (const sccp_channel_t * channel, struct ast_rtp ** new_rtp);
-	boolean_t(*const rtp_video_create) (const sccp_channel_t * channel, struct ast_rtp ** new_rtp);
-	uint8_t(*const rtp_get_payloadType) (const struct sccp_rtp * rtp, skinny_media_payload codec);
+	 boolean_t(*const rtp_audio_create) (const sccp_channel_t * channel, struct ast_rtp ** new_rtp);
+	 boolean_t(*const rtp_video_create) (const sccp_channel_t * channel, struct ast_rtp ** new_rtp);
+	 uint8_t(*const rtp_get_payloadType) (const struct sccp_rtp * rtp, skinny_media_payload codec);
 
 	char *(*const pbx_get_callerid_name)(const sccp_channel_t * channel);
 	char *(*const pbx_get_callerid_number)(const sccp_channel_t * channel);
@@ -84,11 +84,11 @@ enum {
 #    define pbx_codec2str ast_codec2str
 
 // application / module / cli redefinitions
-#if ASTERISK_VERSION_NUMBER < 10600
-#    define pbx_register_application(a, b, c, d, e) ast_register_application(a, b, c, d)
-#else
-#    define pbx_register_application ast_register_application2
-#endif
+#    if ASTERISK_VERSION_NUMBER < 10600
+#        define pbx_register_application(a, b, c, d, e) ast_register_application(a, b, c, d)
+#    else
+#        define pbx_register_application ast_register_application2
+#    endif
 #    define pbx_unregister_application ast_unregister_application
 #    define pbx_custom_function_register __ast_custom_function_register
 #    define pbx_custom_function_unregister ast_custom_function_unregister
@@ -143,7 +143,7 @@ enum {
 // replacement implementations
 PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target);
 
-struct ast_channel* sccp_asterisk_channel_search_locked(int (*is_match)(struct ast_channel *, void *), void *data);
+struct ast_channel *sccp_asterisk_channel_search_locked(int (*is_match) (struct ast_channel *, void *), void *data);
 struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast_ha *path, int *error);
 struct ast_context *pbx_context_find_or_create(struct ast_context **extcontexts, struct ast_hashtab *exttable, const char *name, const char *registrar);
 struct ast_config *pbx_config_load(const char *filename, const char *who_asked, struct ast_flags flags);

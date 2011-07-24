@@ -1,3 +1,4 @@
+
 /*!
  * \file 	common.h
  * \brief 	SCCP Common Include File
@@ -9,7 +10,7 @@
 #ifndef CHAN_SCCP_COMMON_H
 #    define CHAN_SCCP_COMMON_H
 
-#define AST_MODULE "chan_sccp"
+#    define AST_MODULE "chan_sccp"
 #    include <sys/signal.h>
 #    include <sys/types.h>
 #    include <sys/socket.h>
@@ -22,7 +23,7 @@
 #    include <stdlib.h>
 #    include <errno.h>
 #    include <ctype.h>
-#    include <unistd.h> 
+#    include <unistd.h>
 #    include <assert.h>
 
 #    if ASTERISK_VERSION_NUMBER >= 10400
@@ -51,9 +52,9 @@
 #        include <asterisk/devicestate.h>
 #    endif
 #    ifndef CS_AST_HAS_RTP_ENGINE
-#	  include <asterisk/rtp.h>
+#        	  include <asterisk/rtp.h>
 #    else
-#	  include <asterisk/rtp_engine.h>
+#        	  include <asterisk/rtp_engine.h>
 #    endif
 #    ifdef CS_SCCP_PICKUP
 #        include <asterisk/features.h>
@@ -77,7 +78,7 @@
 #    ifdef CS_MANAGER_EVENTS
 #        include <asterisk/manager.h>
 #    endif
-#    ifdef CS_AST_HAS_ENDIAN 
+#    ifdef CS_AST_HAS_ENDIAN
 #        include <asterisk/endian.h>
 #    endif
 
