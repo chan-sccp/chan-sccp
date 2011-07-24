@@ -699,15 +699,21 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 	/* create the rtp stuff. It must be create before setting the channel AST_STATE_UP. otherwise no audio will be played */
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", c->device->id, c->callid, codec2str(payloadType), c->line->echocancel ? "ON" : "OFF");
 	if (!c->rtp.audio.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Starting RTP on channel %s-%08X\n", DEV_ID_LOG(c->device), c->line->name, c->callid);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Starting RTP Server on channel %s-%08X\n", DEV_ID_LOG(c->device), c->line->name, c->callid);
 	}
 	if (!c->rtp.audio.rtp && !sccp_rtp_createAudioServer(c)) {
-		ast_log(LOG_WARNING, "%s: Error opening RTP for channel %s-%08X\n", DEV_ID_LOG(c->device), c->line->name, c->callid);
+		ast_log(LOG_WARNING, "%s: Error starting RTP Server for channel %s-%08X\n", DEV_ID_LOG(c->device), c->line->name, c->callid);
 
 		instance = sccp_device_find_index_for_line(c->device, c->line->name);
 		sccp_dev_starttone(c->device, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
 		return;
 	}
+#ifdef CS_SCCP_VIDEO
+	if (sccp_device_isVideoSupported(c->device) && !c->rtp.video.rtp && !sccp_rtp_createVideoServer(c)) {
+		ast_log(LOG_WARNING, "%s: can not start VRTP Server\n", DEV_ID_LOG(c->device));
+	}
+#endif
+
 #if ASTERISK_VERSION_NUMBER >= 10600
 	if (c->format & AST_FORMAT_SLINEAR16) {
 		/*! \todo Check if the following would make the custom asterisk 1.6 patch obsolete. If yes issue another release (V3.0.1). */
@@ -750,6 +756,15 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 	//ast_rtp_set_vars(c->owner, c->rtp.audio.rtp);
 
 #ifdef CS_SCCP_VIDEO
+	if (sccp_device_isVideoSupported(c->device) && c->rtp.video.rtp) {
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: We can/could/might have video, try to open multimediachannel\n", DEV_ID_LOG(c->device));
+		sccp_channel_openMultiMediaChannel(c);
+        }
+#endif
+
+/* previous lazy video start */
+/*
+#ifdef CS_SCCP_VIDEO
 	if (sccp_device_isVideoSupported(c->device)) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", DEV_ID_LOG(c->device));
 		if (!c->rtp.video.rtp && !sccp_rtp_createVideoServer(c)) {
@@ -763,7 +778,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 #else
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Video support not enabled\n", DEV_ID_LOG(c->device));
 #endif
-
+*/
 }
 
 void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
