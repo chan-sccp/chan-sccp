@@ -40,8 +40,8 @@ void sccp_softkey_pre_reload(void)
 	SCCP_LIST_LOCK(&softKeySetConfig);
 	while ((k = SCCP_LIST_REMOVE_HEAD(&softKeySetConfig, list))) {
 		sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "Setting SoftkeySetConfig to Pending Delete=1\n");
-        for (i = 0; i < (sizeof(SoftKeyModes) / sizeof(softkey_modes)); i++) {
-			if(k->modes[i].ptr)
+		for (i = 0; i < (sizeof(SoftKeyModes) / sizeof(softkey_modes)); i++) {
+			if (k->modes[i].ptr)
 				sccp_free(k->modes[i].ptr);
 		}
 		ast_free(k);
@@ -76,6 +76,7 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 #ifdef CS_ADV_FEATURES
 	if (d->useRedialMenu) {
 		char data[] = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"Key:Directories\"/><ExecuteItem Priority=\"0\"URL=\"Key:KeyPad3\"/></CiscoIPPhoneExecute>";
+
 		sendUserToDeviceVersion1Message(d, 0, 0, 1, 1, data);
 		return;
 	}
@@ -119,7 +120,6 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 		}
 	}
 
-
 }
 
 /*!
@@ -133,22 +133,22 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_speed_t *k = NULL;
-	
+
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey NewCall Pressed\n", DEV_ID_LOG(d));
-	
+
 	if (d->isAnonymous) {
-	  
-		sccp_feat_adhocDial(d, GLOB(hotline)->line);		/* with hotline as feature */
+
+		sccp_feat_adhocDial(d, GLOB(hotline)->line);			/* with hotline as feature */
 		return;
-		
+
 	} else if (l) {
-	  
+
 		if (strlen(l->adhocNumber) == 0)
 			sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
 		else {
 			sccp_feat_adhocDial(d, l);
 		}
-		
+
 	} else {
 		k = sccp_dev_speed_find_byindex(d, lineInstance, SCCP_BUTTONTYPE_HINT);
 		if (k) {
@@ -372,7 +372,7 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIn
 void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Answer Pressed, instance: %d\n", DEV_ID_LOG(d), lineInstance);
-	
+
 	if (c->owner)
 		pbx_channel_lock(c->owner);
 	sccp_channel_lock(c);
@@ -408,7 +408,7 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		return;
 
 	/* \todo: If we have only one selected channel but another active channel, this should suffice.
-		  Fix! Pressing select twice if it can be avoided is very annoying! */
+	   Fix! Pressing select twice if it can be avoided is very annoying! */
 	if ((sccp_device_selectedchannels_count(d)) != 2) {
 		/* \todo On shared lines it is only relevant how many _local_ channels (not in use remote) there are. Fix! */
 		if (SCCP_RWLIST_GETSIZE(l->channels) == 2) {
@@ -671,7 +671,6 @@ void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, const uint32_t lineI
 	sccp_feat_conference(d, l, lineInstance, c);
 }
 
-
 /*!
  * \brief Show Participant List of Current Conference
  * \n Usage: \ref sk_conflist
@@ -687,8 +686,6 @@ void sccp_sk_conflist(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Conflist Pressed\n", DEV_ID_LOG(d));
 	sccp_feat_conflist(d, l, lineInstance, c);
 }
-
-
 
 /*!
  * \brief Join Current Line to Conference
@@ -816,7 +813,6 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 #endif
 }
 
-
 /*!
  * \brief Forces Dialling before timeout
  * \n Usage: \ref sccp_sk_dial
@@ -828,10 +824,10 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 void sccp_sk_dial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Dial Pressed\n", DEV_ID_LOG(d));
-	
-	if (c) { // Handle termination of dialling if in appropriate state.
+
+	if (c) {								// Handle termination of dialling if in appropriate state.
 		/* Only handle this in DIALING state. AFAIK GETDIGITS is used only for call forward and related input functions. (-DD) */
-		if ( (c->state == SCCP_CHANNELSTATE_DIALING) ) {
+		if ((c->state == SCCP_CHANNELSTATE_DIALING)) {
 			/* removing scheduled dial */
 			sccp_channel_lock(c);
 			SCCP_SCHED_DEL(sched, c->digittimeout);
@@ -841,7 +837,6 @@ void sccp_sk_dial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstanc
 		}
 	}
 }
-
 
 /*!
  * \brief sets a SoftKey to a specified status (on/off)
@@ -888,4 +883,3 @@ void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, const uint32_t lin
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, keymode2str(5), 5, lineInstance, c->callid);
 	sccp_dev_send(d, r);
 }
-

@@ -21,7 +21,6 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-
 #if ASTERISK_VERSION_NUMBER >= 10400
 #    ifdef CS_AST_HAS_TECH_PVT
 #        define SET_CAUSE(x)	*cause = x;
@@ -215,31 +214,28 @@ struct ast_channel *sccp_request(char *type, int format, void *data)
 #endif
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_PBX | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	
+
 	if (l->devices.size == 0) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_PBX | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "SCCP/%s we have no registered devices for this line.\n", l->name);
 		SET_CAUSE(AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 		goto OUT;
 	}
 
-
 	c->requestedFormat = oldformat;
 	c->format = oldformat;
-	
-	
-	if(c->owner) {
+
+	if (c->owner) {
 		c->owner->nativeformats = c->format;
 
 		c->owner->rawreadformat = c->format;
 		c->owner->rawwriteformat = c->format;
 
-		c->owner->writeformat = c->format;		
-		c->owner->readformat = c->format;			
+		c->owner->writeformat = c->format;
+		c->owner->readformat = c->format;
 
 		ast_set_read_format(c->owner, c->format);
 		ast_set_write_format(c->owner, c->format);
 	}
-	
 
 	/* we don't need to parse any options when we have a call forward status */
 
@@ -368,7 +364,6 @@ int sccp_devicestate(void *data)
 	return res;
 }
 
-
 /*!
  * \brief Local Function to check for Valid Session, Message and Device
  * \param s SCCP Session as sccp_session_t
@@ -409,10 +404,9 @@ static sccp_device_t *check_session_message_device(sccp_session_t * s, sccp_moo_
 	return d;
 }
 
-
 struct sccp_messageMap_cb {
 	uint32_t messageId;
-	void (*const messageHandler_cb)(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r);
+	void (*const messageHandler_cb) (sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 	boolean_t deviceIsNecessary;
 };
 
@@ -465,28 +459,28 @@ static const struct sccp_messageMap_cb messagesCbMap[] = {
 #else
 	{RegisterTokenReq, sccp_handle_register, FALSE},
 #endif
-	{SPARegisterMessage, sccp_handle_SPAregister, 	FALSE},
-	{UnregisterMessage, sccp_handle_unregister, 	TRUE},
-	{RegisterMessage, sccp_handle_register, 	FALSE},
-	{AlarmMessage, sccp_handle_alarm,		FALSE},
-	{XMLAlarmMessage, sccp_handle_unknown_message, 	FALSE},
-	
+	{SPARegisterMessage, sccp_handle_SPAregister, FALSE},
+	{UnregisterMessage, sccp_handle_unregister, TRUE},
+	{RegisterMessage, sccp_handle_register, FALSE},
+	{AlarmMessage, sccp_handle_alarm, FALSE},
+	{XMLAlarmMessage, sccp_handle_unknown_message, FALSE},
+
 };
+
 typedef struct sccp_messageMap_cb sccp_messageMap_cb_t;
 
-
-static const sccp_messageMap_cb_t *sccp_getMessageMap_by_MessageId(uint32_t messageId){
+static const sccp_messageMap_cb_t *sccp_getMessageMap_by_MessageId(uint32_t messageId)
+{
 	uint32_t i;
-	
-	for(i = 0; i< ARRAY_LEN(messagesCbMap); i++ ){
-		if(messagesCbMap[i].messageId == messageId){
+
+	for (i = 0; i < ARRAY_LEN(messagesCbMap); i++) {
+		if (messagesCbMap[i].messageId == messageId) {
 			return &messagesCbMap[i];
 		}
 	}
-  
+
 	return NULL;
 }
-
 
 /*!
  * \brief 	Controller function to handle Received Messages
@@ -494,11 +488,11 @@ static const sccp_messageMap_cb_t *sccp_getMessageMap_by_MessageId(uint32_t mess
  * \param 	s Session as sccp_session_t
  * \return 	1 on success handling message, 0 if some errors occured -> if 0 returned sccp_socket.c will close connection
  */
-uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t *s)
+uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 {
-	const sccp_messageMap_cb_t *messageMap_cb	= NULL;
+	const sccp_messageMap_cb_t *messageMap_cb = NULL;
 	uint32_t mid;
-	
+
 	if (!s) {
 		ast_log(LOG_ERROR, "SCCP: (sccp_handle_message) Client does not have a sessions, Required !\n");
 		if (r) {
@@ -511,14 +505,15 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t *s)
 		ast_log(LOG_ERROR, "%s: (sccp_handle_message) No Message Specified.\n, Required !", DEV_ID_LOG(s->device));
 		return 0;
 	}
-	
-	
+
 	mid = letohl(r->lel_messageId);
+
 	s->lastKeepAlive = time(0);	/** always update keepalive */
 
 	/** Check if all necessary information is available */
 	if (s->device) {
 		if (s->device != sccp_device_find_byipaddress(s->sin)) {
+
 			/** IP Address has changed mid session */
 			if (s->device->nat == 1) {
 				// We are natted, what should we do, Not doing anything for now, just sending warning -- DdG
@@ -537,46 +532,45 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t *s)
 	}
 
 	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message (%x) %s\n", DEV_ID_LOG(s->device), mid, message2str(mid));
-	
+
 	/* search for message handler */
 	messageMap_cb = sccp_getMessageMap_by_MessageId(mid);
-	
+
 	/* we dont know how to handle event */
-	if(!messageMap_cb){
+	if (!messageMap_cb) {
 		ast_log(LOG_WARNING, "Don't know how to handle messag %d\n", mid);
 		sccp_handle_unknown_message(s, s->device, r);
-		
+
 		free(r);
 		return 1;
 	}
-	
-	if(messageMap_cb->messageHandler_cb && messageMap_cb->deviceIsNecessary == TRUE && !check_session_message_device(s, r, message2str(mid)) ){
+
+	if (messageMap_cb->messageHandler_cb && messageMap_cb->deviceIsNecessary == TRUE && !check_session_message_device(s, r, message2str(mid))) {
 		free(r);
 		return 0;
 	}
-	if(messageMap_cb->messageHandler_cb){
+	if (messageMap_cb->messageHandler_cb) {
 		messageMap_cb->messageHandler_cb(s, s->device, r);
 	}
-	
-	
+
 #if 0
 	switch (mid) {
 	case AlarmMessage:
 		sccp_handle_alarm(s, r);
 		break;
 	case RegisterMessage:
-#ifdef CS_ADV_FEATURES
+#    ifdef CS_ADV_FEATURES
 		sccp_handle_register(s, r);
 		break;
-#endif
+#    endif
 	case RegisterTokenReq:
-#ifdef CS_ADV_FEATURES
+#    ifdef CS_ADV_FEATURES
 		sccp_handle_tokenreq(s, r);
 		break;
-#else
+#    else
 		sccp_handle_register(s, r);
 		break;
-#endif
+#    endif
 	case SPARegisterMessage:
 		sccp_handle_SPAregister(s, r);
 		break;
@@ -702,10 +696,10 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t *s)
 		}
 		break;
 	case DeviceToUserDataVersion1Message:
-		sccp_handle_device_to_user(s,r);
+		sccp_handle_device_to_user(s, r);
 		break;
 	case DeviceToUserDataResponseVersion1Message:
-		sccp_handle_device_to_user_response(s,r);
+		sccp_handle_device_to_user_response(s, r);
 		break;
 	default:
 		sccp_handle_unknown_message(s, r);
@@ -906,7 +900,6 @@ int sccp_restart_monitor(void)
 	ast_mutex_unlock(&GLOB(monitor_lock));
 	return 0;
 }
-
 
 #if ASTERISK_VERSION_NUMBER < 10400
 
@@ -1233,6 +1226,7 @@ static int unload_module(void)
 #if ASTERISK_VERSION_NUMBER >= 10400
 AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY, "Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION " " SCCP_BRANCH " (built by '" BUILD_USER "' on '" BUILD_DATE "')");
 #else
+
 /*!
  * \brief 	number of instances of chan_sccp
  * \return	res number of instances

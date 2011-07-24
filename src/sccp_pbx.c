@@ -999,9 +999,9 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
 			if (c && cSourceRemote && cSourceRemote->line && cSourceRemote->device) {
 				//canDoNativeCOLP = TRUE;
-				
+
 				/* Perform SCCP Native COLP */
-				
+
 				//if (canDoNativeCOLP) {
 				sccp_channel_lock(c);
 				//pbx_channel_lock(astcSourceRemote);
@@ -1064,7 +1064,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			}
 		} else {
 			if (!(astcSourceRemote->flags & AST_FLAG_OUTGOING)) {	/* On outgoing channels the callerid makes no sense. */
-				
+
 				/* Perform Generic COLP */
 				//canDoGenericCOLP = TRUE;
 				//else if (canDoGenericCOLP) {
@@ -1255,7 +1255,7 @@ static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit, unsigned 
 
 	sccp_device_t *d = NULL;
 
-	return -1;			//! \fixme: HOW CAN THIS WORK ??
+	return -1;								//! \fixme: HOW CAN THIS WORK ??
 
 	if (!c || !c->device)
 		return -1;
@@ -1359,7 +1359,6 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 		ast_log(LOG_ERROR, "SCCP: Unable to allocate asterisk channel\n");
 		return 0;
 	}
-
 //      /* Don't hold a sccp pvt lock while we allocate a channel */
 	if (c->device) {
 		sccp_linedevices_t *linedevice;

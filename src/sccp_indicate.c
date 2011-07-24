@@ -93,7 +93,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_OFFHOOK);
 
 		// Only present a dialtone in the outbound case. Otherwise we get brief sound disturbances when answering auto answer calls.
-		if(SKINNY_CALLTYPE_OUTBOUND == c->calltype) {
+		if (SKINNY_CALLTYPE_OUTBOUND == c->calltype) {
 			sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, c->callid, 0);
 		}
 
@@ -380,6 +380,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 
 	/*! \todo: fix device check locking order. device is possibly locked during sccp_event_fire */
 	sccp_event_t *event = ast_malloc(sizeof(sccp_event_t));
+
 	memset(event, 0, sizeof(sccp_event_t));
 	event->type = SCCP_EVENT_LINESTATUS_CHANGED;
 	event->event.lineStatusChanged.line = c->line;
@@ -414,7 +415,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 
 	int instance;
 
-	uint32_t privacyStatus=0;
+	uint32_t privacyStatus = 0;
 
 	if (!c || !c->line)
 		return;

@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_labels.h
  * \brief 	SCCP Labels Header
@@ -76,7 +77,8 @@
 #    define SKINNY_LBL_PRIVATE                                           	54
 #    define SKINNY_LBL_NOT_ENOUGH_BANDWIDTH                              	55
 #    define SKINNY_LBL_UNKNOWN_NUMBER                                    	56
-#    define SKINNY_LBL_RMLSTC                                            	57	// remove last conference party 
+#    define SKINNY_LBL_RMLSTC                                            	57
+										// remove last conference party
 #    define SKINNY_LBL_VOICEMAIL                                         	58
 #    define SKINNY_LBL_IMMDIV                                            	59
 #    define SKINNY_LBL_INTRCPT                                           	60
@@ -279,7 +281,7 @@ static const struct skinny_label {
 #    define SKINNY_DISP_NOT_ENOUGH_BANDWIDTH                  			"\200\67"
 
 #    define SKINNY_DISP_UNKNOWN_NUMBER                        			"\200\70"
-#    define SKINNY_DISP_RMLSTC                                			"\200\71"	// remove last conference party 
+#    define SKINNY_DISP_RMLSTC                                			"\200\71"	// remove last conference party
 #    define SKINNY_DISP_VOICEMAIL                             			"\200\72"
 #    define SKINNY_DISP_IMMDIV                                			"\200\73"
 #    define SKINNY_DISP_INTRCPT                               			"\200\74"
@@ -318,13 +320,13 @@ static const struct skinny_label {
 #    define SKINNY_DISP_MAX_CALL_DURATION_TIMEOUT				"\200\131"
 #    define SKINNY_DISP_MAX_HOLD_DURATION_TIMEOUT				"\200\132"
 #    define SKINNY_DISP_OPICKUP							"\200\133"
-#    define SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP                		"\200\137"      // - FS 
-#    define SKINNY_DISP_PARK_SLOT_UNAVAILABLE                       		"\200\136"      // - FS 
-#    define SKINNY_DISP_LOGGED_OUT_OF_HUNT_GROUP                    		"\200\135"      // - FS 
-#    define SKINNY_DISP_HLOG                                        		"\200\134"      // - FS 
+#    define SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP                		"\200\137"	// - FS
+#    define SKINNY_DISP_PARK_SLOT_UNAVAILABLE                       		"\200\136"	// - FS
+#    define SKINNY_DISP_LOGGED_OUT_OF_HUNT_GROUP                    		"\200\135"	// - FS
+#    define SKINNY_DISP_HLOG                                        		"\200\134"	// - FS
 
 #    define SKINNY_DISP_EXTERNAL_TRANSFER_RESTRICTED				"\200\141"
-#    define SKINNY_DISP_NO_LINE_AVAILABLE_FOR_PICKUP				"\200\142"	// - FS 
+#    define SKINNY_DISP_NO_LINE_AVAILABLE_FOR_PICKUP				"\200\142"	// - FS
 #    define SKINNY_DISP_UNKNOWN_1						"\200\143"
 #    define SKINNY_DISP_UNKNOWN_2						"\200\144"
 #    define SKINNY_DISP_MAC_ADDRESS						"\200\145"
@@ -367,8 +369,8 @@ static const struct skinny_label {
  */
 static const struct ast_skinny_cause {
 	int ast_cause;
-	const char * skinny_disp;
-	const char * message;
+	const char *skinny_disp;
+	const char *message;
 } ast_skinny_causes[] = {
 	/* *INDENT-OFF* */
 

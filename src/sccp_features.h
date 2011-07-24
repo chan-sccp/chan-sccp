@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_features.h
  * \brief 	SCCP Features Header
@@ -12,7 +13,6 @@
 
 #ifndef __SCCP_FEATURES_H
 #    define __SCCP_FEATURES_H
-
 
 #    ifdef CS_SCCP_PICKUP
 int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d);

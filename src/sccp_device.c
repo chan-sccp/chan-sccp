@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_device.c
  * \brief 	SCCP Device Class
@@ -20,7 +21,6 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-
 #define  REF_DEBUG 1
 #ifdef CS_DYNAMIC_CONFIG
 
@@ -288,6 +288,7 @@ int sccp_device_get_codec(struct ast_channel *ast)
 	}
 
 	char s1[512];
+
 	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "SCCP: (sccp_device_get_codec) capabilities are %s (%d)\n", pbx_getformatname_multiple(s1, sizeof(s1) - 1, c->capability), c->capability);
 
 	return c->capability;
@@ -571,7 +572,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 
 	/*let's activate the transfer */
 	if (opt == KEYMODE_CONNECTED)
-		opt = (( d->conference_channel) ? KEYMODE_CONNCONF : (d->transfer) ? KEYMODE_CONNTRANS : KEYMODE_CONNECTED);
+		opt = ((d->conference_channel) ? KEYMODE_CONNCONF : (d->transfer) ? KEYMODE_CONNTRANS : KEYMODE_CONNECTED);
 
 	REQ(r, SelectSoftKeysMessage);
 	r->msg.SelectSoftKeysMessage.lel_lineInstance = htolel(line);
@@ -610,7 +611,7 @@ void sccp_dev_set_ringer(const sccp_device_t * d, sccp_ringermode_t opt, uint8_t
 	/* Note that for distinctive ringing to work with the higher protocol versions
 	   the following actually needs to be set to 1 as the original comment says.
 	   Curiously, the variable is not set to 1 ... */
-	r->msg.SetRingerMessage.lel_ringerType = htolel(SKINNY_RINGERTYPE_RING_CONTINUOUS);/* always 1 */
+	r->msg.SetRingerMessage.lel_ringerType = htolel(SKINNY_RINGERTYPE_RING_CONTINUOUS);	/* always 1 */
 	r->msg.SetRingerMessage.lel_lineInstance = htolel(lineInstance);
 	r->msg.SetRingerMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, r);
@@ -1587,12 +1588,12 @@ int sccp_device_destroy(const void *ptr)
 boolean_t sccp_device_isVideoSupported(const sccp_device_t * device)
 {
 #ifdef CS_SCCP_VIDEO
-	if(device->capability & AST_FORMAT_VIDEO_MASK){
-		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: We have video support\n", DEV_ID_LOG(device));
+	if (device->capability & AST_FORMAT_VIDEO_MASK) {
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: We have video support\n", DEV_ID_LOG(device));
 		return TRUE;
 	}
 #endif
-	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: We have no video support\n", DEV_ID_LOG(device));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: We have no video support\n", DEV_ID_LOG(device));
 	return FALSE;
 }
 
@@ -1869,6 +1870,7 @@ sccp_device_t *sccp_clone_device(sccp_device_t * orig_device)
 	new_device->scheduleTasks = orig_device->scheduleTasks;
 
 /*!	\todo produces a memcpy fault when compiled --with-conference. Copy Function of this structure has to be build. */
+
 /*
 #ifdef CS_SCCP_CONFERENCE
 	// sccp_conference	*conference

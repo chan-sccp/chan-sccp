@@ -534,7 +534,6 @@ sccp_channel_t *sccp_channel_find_byid_locked(uint32_t id)
 	return c;
 }
 
-
 /*!
  * \brief Find Channel by ID, using a specific line
  * \param l SCCP Line
@@ -549,11 +548,11 @@ sccp_channel_t *sccp_channel_find_byid_locked(uint32_t id)
  * 	  - line->channels
  * 	- channel
  */
-sccp_channel_t *sccp_find_channel_on_line_byid_locked(sccp_line_t *l, uint32_t id){
+sccp_channel_t *sccp_find_channel_on_line_byid_locked(sccp_line_t * l, uint32_t id)
+{
 	sccp_channel_t *c = NULL;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %u\n", id);
-
 
 	SCCP_LIST_LOCK(&l->channels);
 	SCCP_LIST_TRAVERSE(&l->channels, c, list) {
@@ -564,9 +563,6 @@ sccp_channel_t *sccp_find_channel_on_line_byid_locked(sccp_line_t *l, uint32_t i
 		}
 	}
 	SCCP_LIST_UNLOCK(&l->channels);
-
-
-
 
 	if (c)
 		sccp_channel_lock(c);
@@ -804,14 +800,14 @@ sccp_channel_t *sccp_channel_find_bycallstate_on_line_locked(sccp_line_t * l, ui
  * \param c SCCP channel
  * \return string constant (on the heap!)
  */
-const char *sccp_channel_toString(sccp_channel_t *c)
+const char *sccp_channel_toString(sccp_channel_t * c)
 {
 	static char buf[256] = { '\0' };
 
-	if(c && c->line && c->line->name)
+	if (c && c->line && c->line->name)
 		snprintf(buf, 255, "%s-%08x", c->line->name, c->callid);
 
-	return (const char*) buf;
+	return (const char *)buf;
 }
 
 /*!
@@ -2013,7 +2009,7 @@ int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1)
 /*!
  * \brief Send a xml message to the phone to invoke Cisco XML Response (for example show service menu)
  */
-void sendUserToDeviceVersion1Message(sccp_device_t *d, uint32_t appID, uint32_t lineInstance,uint32_t callReference,uint32_t transactionID,char data[]) 
+void sendUserToDeviceVersion1Message(sccp_device_t * d, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, char data[])
 {
 	sccp_moo_t *r1 = NULL;
 
@@ -2057,11 +2053,12 @@ void sendUserToDeviceVersion1Message(sccp_device_t *d, uint32_t appID, uint32_t 
  * \retval TRUE on both zero length
  * \retval FALSE on one of the the parameters being zero length
  */
-boolean_t sccp_strcasecmp(const char *data1,const char *data2){
+boolean_t sccp_strcasecmp(const char *data1, const char *data2)
+{
 	if (sccp_strlen_zero(data1) && sccp_strlen_zero(data2)) {
 		return TRUE;
 	} else if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2)) {
-		return strcasecmp(data1,data2);
+		return strcasecmp(data1, data2);
 	}
 	return FALSE;
 }

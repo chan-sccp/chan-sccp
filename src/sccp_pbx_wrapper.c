@@ -39,16 +39,14 @@ struct sccp_pbx_cb sccp_pbx = {
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 /************************************************************************************************************ CALLERID **/
-
-
-
-struct ast_channel* sccp_asterisk_channel_search_locked(int (*is_match)(struct ast_channel *, void *),void *data){
+struct ast_channel *sccp_asterisk_channel_search_locked(int (*is_match) (struct ast_channel *, void *), void *data)
+{
 #ifdef ast_channel_search_locked
 	return ast_channel_search_locked(is_match, data);
 #else
 	struct ast_channel *ast = NULL;
 
-	while( (ast = ast_channel_walk_locked(ast)) ){
+	while ((ast = ast_channel_walk_locked(ast))) {
 		if (is_match(ast, data)) {
 			break;
 		}
@@ -280,9 +278,9 @@ void sccp_wrapper_asterisk_set_callerid_ani(PBX_CHANNEL_TYPE * pbx_chan, const c
 #if ASTERISK_VERSION_NUMBER < 10400
 	// Implement ast 1.2 version
 #else
-	if(pbx_chan->cid.cid_ani)
+	if (pbx_chan->cid.cid_ani)
 		ast_free(pbx_chan->cid.cid_ani);
-	
+
 	pbx_chan->cid.cid_ani = strdup(ani);
 
 #endif
@@ -477,6 +475,7 @@ const char *pbx_inet_ntoa(struct in_addr ia)
 }
 
 #if ASTERISK_VERSION_NUMBER < 10400
+
 /*!
  * \brief BackPort of ast_str2cos & ast_str2cos for asterisk 1.2
  */
@@ -843,7 +842,7 @@ boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, struc
  * 
  * \called_from_asterisk
  */
-enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE **rtp)
+enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE ** rtp)
 {
 	sccp_channel_t *c = NULL;
 
@@ -897,13 +896,13 @@ enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(PBX_CHANNEL_TYPE *ast
  */
 #ifndef CS_AST_HAS_RTP_ENGINE
 #    define _RTP_GET_FAILED AST_RTP_GET_FAILED
-enum ast_rtp_get_result sccp_wrapper_asterisk_get_vrtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE **rtp)
+enum ast_rtp_get_result sccp_wrapper_asterisk_get_vrtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE ** rtp)
 #else
 #    define _RTP_GET_FAILED AST_RTP_GLUE_RESULT_FORBID
-enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_TYPE **rtp)
+enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE ** rtp)
 #endif
 {
-	sccp_channel_t 	*c = NULL;
+	sccp_channel_t *c = NULL;
 	sccp_rtp_info_t rtpInfo;
 	struct sccp_rtp *videoRTP = NULL;
 
@@ -926,11 +925,10 @@ enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(PBX_CHANNEL_TYPE *a
 	}
 
 	*rtp = videoRTP->rtp;
-	if (!*rtp){
-		res =  AST_RTP_GET_FAILED;
+	if (!*rtp) {
+		res = AST_RTP_GET_FAILED;
 		goto finished;
 	}
-
 #ifdef CS_AST_HAS_RTP_ENGINE
 	ao2_ref(*rtp, +1);
 #endif
@@ -946,7 +944,7 @@ enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(PBX_CHANNEL_TYPE *a
 		res = AST_RTP_TRY_PARTIAL;
 		goto finished;
 	}
-finished:
+ finished:
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (asterisk_get_vrtp_peer) %s result : %d\n", ast->name, res);
 	return res;
@@ -1031,6 +1029,7 @@ int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rt
 uint8_t sccp_wrapper_asterisk_get_payloadType(const struct sccp_rtp * rtp, skinny_media_payload codec)
 {
 	uint32_t asteriskCodec = sccp_codec_skinny2ast(codec);
+
 	return ast_rtp_lookup_code(rtp->rtp, 1, asteriskCodec);
 }
 

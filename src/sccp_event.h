@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_event.h
  * \brief 	SCCP Event Header
@@ -16,6 +17,7 @@
 #    include "chan_sccp.h"
 
 /* structures */
+
 /* event types to notify modular systems */
 
 /*!
@@ -28,7 +30,7 @@ typedef enum {
 	SCCP_EVENT_DEVICE_ATTACHED = 1 << 3,					/*!< device attached to line */
 	SCCP_EVENT_DEVICE_DETACHED = 1 << 4,					/*!< device removed from line */
 	SCCP_EVENT_DEVICE_REGISTERED = 1 << 5,					/*!< device registers successfully */
-	SCCP_EVENT_DEVICE_UNREGISTERED = 1 << 6,					/*!< device isnt registered any more */
+	SCCP_EVENT_DEVICE_UNREGISTERED = 1 << 6,				/*!< device isnt registered any more */
 	SCCP_EVENT_FEATURE_CHANGED = 1 << 7,					/*!< some feature (e.g. cfwd, dnd) is changed */
 	SCCP_EVENT_LINESTATUS_CHANGED = 1 << 8					/*!< the status of a line is changed is changed */
 } sccp_event_type_t;								/*!< SCCP Event Type ENUM */
@@ -77,6 +79,7 @@ struct sccp_event {
 };										/*!< SCCP Event Structure */
 
 typedef struct sccp_event_subscriber sccp_event_subscriber_t;
+
 /*!
  * \brief SCCP Event Subscriber Structure
  */

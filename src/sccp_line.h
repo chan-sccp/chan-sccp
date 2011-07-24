@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_line.h
  * \brief 	SCCP Line Header
@@ -34,6 +35,7 @@ void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel);
 void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t * channel);
 void register_exten(sccp_line_t * l, struct subscriptionId *subscriptionId);
 void unregister_exten(sccp_line_t * l, struct subscriptionId *subscriptionId);
+
 #    ifdef CS_DYNAMIC_CONFIG
 sccp_line_t *sccp_clone_line(sccp_line_t * orig_line);
 void sccp_duplicate_line_mailbox_list(sccp_line_t * new_line, sccp_line_t * orig_line);

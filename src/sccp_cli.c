@@ -22,7 +22,6 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-
 #include <asterisk/cli.h>
 
 /* --- CLI Tab Completion ---------------------------------------------------------------------------------------------- */
@@ -1412,17 +1411,19 @@ CLI_ENTRY_COMPLETE(cli_unregister, sccp_unregister, "Unregister an SCCP device",
 #undef CLI_COMMAND
 
 /* --------------------------------------------------------------------------------------------------------------JEM- */
+
 /* Jacob E. Miles (JEM):
  * JDL 03/17/2010 - Added xx_set_hold functions to place channel on hold from CLI
  * JDL 03/18/2010 - Added xx_remote_answer functions to answer channel from CLI
  * JDL 03/18/2010 - Added xx_start_call functions to call or go offHook from CLI
  * JDL 04/01/2010 - Added xx_end_call functions to end call or go onHook from CLI
 */
+
 /* --------------------------------------------------------------------------------------------------------------START CALL- */
 static int sccp_start_call(int fd, int argc, char *argv[])
 {
-	sccp_device_t 	*d;
-	sccp_line_t 	*line = NULL;
+	sccp_device_t *d;
+	sccp_line_t *line = NULL;
 
 	if (argc < 3) {
 		ast_cli(fd, "argc is less then 2: %d\n", argc);
@@ -1437,11 +1438,11 @@ static int sccp_start_call(int fd, int argc, char *argv[])
 		ast_cli(fd, "Can't find settings for device %s\n", argv[2]);
 		return RESULT_FAILURE;
 	}
-	if (d && d->defaultLineInstance > 0){
- 		line = sccp_line_find_byid(d,d->defaultLineInstance);
- 	} else {
- 		line = sccp_dev_get_activeline(d);
- 	}
+	if (d && d->defaultLineInstance > 0) {
+		line = sccp_line_find_byid(d, d->defaultLineInstance);
+	} else {
+		line = sccp_dev_get_activeline(d);
+	}
 	if (!line) {
 		ast_cli(fd, "Can't find line for device %s\n", argv[2]);
 		return RESULT_FAILURE;
@@ -1487,13 +1488,13 @@ static int sccp_set_hold(int fd, int argc, char *argv[])
 	return RESULT_SUCCESS;
 }
 
-
 static char set_hold_usage[] = "Usage: sccp set hold <channelId> <on/off>\n" "Set a channel to hold/unhold";
 
 #define CLI_COMMAND "sccp", "set", "hold", NULL
 //CLI_ENTRY_COMPLETE(cli_set_hold, sccp_set_hold, "Set channel to hold/unhold", set_hold_usage, sccp_complete_channel)
 CLI_ENTRY(cli_set_hold, sccp_set_hold, "Set channel to hold/unhold", set_hold_usage)
 #undef CLI_COMMAND
+
 /* --------------------------------------------------------------------------------------------------------------REMOTE ANSWER- */
 static int sccp_remote_answer(int fd, int argc, char *argv[])
 {

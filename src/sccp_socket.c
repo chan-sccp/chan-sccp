@@ -17,20 +17,17 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-
 #include <sys/ioctl.h>
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS) && !defined(__Darwin__)
 #    include <sys/poll.h>
 #else
 #    include <asterisk/poll-compat.h>
 #endif
-
 #ifdef ast_poll
 #    define sccp_socket_poll ast_poll
 #else
 #    define sccp_socket_poll poll
 #endif
-
 sccp_session_t *sccp_session_find(const sccp_device_t * device);
 
 void destroy_session(sccp_session_t * s, uint8_t cleanupTime);

@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_utils.h
  * \brief 	SCCP Utils Header
@@ -31,25 +32,28 @@ sccp_channel_t *get_sccp_channel_from_ast_channel(struct ast_channel *ast_chan);
 sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * c);
 uint8_t sccp_device_selectedchannels_count(sccp_device_t * d);
 
-const char *sccp_channel_toString(sccp_channel_t *c);
+const char *sccp_channel_toString(sccp_channel_t * c);
 
 sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime);
+
 #    define sccp_device_find_byname(x) sccp_device_find_byid(x)
 
 sccp_line_t *sccp_line_find_byname_wo(const char *name, uint8_t realtime);
+
 #    define sccp_line_find_byname(x) sccp_line_find_byname_wo(x, 1)
 sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance);
-sccp_channel_t *sccp_find_channel_on_line_byid_locked(sccp_line_t *l, uint32_t id);
+sccp_channel_t *sccp_find_channel_on_line_byid_locked(sccp_line_t * l, uint32_t id);
 
 #    ifdef CS_SCCP_REALTIME
 sccp_device_t *sccp_device_find_realtime(const char *name);
+
 #        define sccp_device_find_realtime_byid(x) sccp_device_find_realtime(x)
 #        define sccp_device_find_realtime_byname(x) sccp_device_find_realtime(x)
 sccp_line_t *sccp_line_find_realtime_byname(const char *name);
 #    endif
 
 sccp_channel_t *sccp_channel_find_byid_locked(uint32_t id);
-sccp_channel_t *sccp_find_channel_on_line_byid_locked(sccp_line_t *l, uint32_t id);
+sccp_channel_t *sccp_find_channel_on_line_byid_locked(sccp_line_t * l, uint32_t id);
 sccp_channel_t *sccp_channel_find_bypassthrupartyid_locked(uint32_t id);
 sccp_channel_t *sccp_channel_find_bystate_on_line_nolock(sccp_line_t * l, uint8_t state);
 sccp_channel_t *sccp_channel_find_bystate_on_line_locked(sccp_line_t * l, uint8_t state);
@@ -102,7 +106,7 @@ const char *devicestatus2str(uint32_t value);
 const char *astcause2skinnycause(int value);
 const char *astcause2skinnycause_message(int value);
 const char *codec2str(uint32_t value);
-char *sccp_codecs2str(char *buf, size_t size, uint32_t *formats);
+char *sccp_codecs2str(char *buf, size_t size, uint32_t * formats);
 const char *skinny_ringermode2str(uint8_t type);
 
 const char *array2str(uint8_t type, uint32_t value);
@@ -125,8 +129,10 @@ unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arr
 
 void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** e);
 int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsigned int softkey);
+
 //sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr);
 sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_in sin);
+
 #    if ASTERISK_VERSION_NUMBER >= 10600
 #        ifdef HAVE_PBX_DEVICESTATE_H
 enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state);
@@ -140,11 +146,11 @@ char *sccp_get_debugcategories(uint32_t debugvalue);
 sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const char *dirNum, const char *fqdn, const char *lineDisplayName);
 char **explode(char *str, char *sep);
 boolean_t implode(char *str[], char *sep, char **res);
+
 #    ifdef HAVE_LIBGC
 void gc_warn_handler(char *msg, GC_word p);
 #    endif
 int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1);
-void sendUserToDeviceVersion1Message(sccp_device_t *d, uint32_t appID, uint32_t lineInstance,uint32_t callReference,uint32_t transactionID,char data[]);
+void sendUserToDeviceVersion1Message(sccp_device_t * d, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, char data[]);
 #endif
-boolean_t sccp_strcasecmp(const char *data1,const char *data2);
-
+boolean_t sccp_strcasecmp(const char *data1, const char *data2);

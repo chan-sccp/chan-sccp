@@ -522,7 +522,7 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
  */
 void sccp_mwi_check(sccp_device_t * device)
 {
-        sccp_buttonconfig_t *config = NULL;
+	sccp_buttonconfig_t *config = NULL;
 	sccp_line_t *line = NULL;
 	sccp_channel_t *c = NULL;
 	sccp_moo_t *r = NULL;
@@ -533,34 +533,34 @@ void sccp_mwi_check(sccp_device_t * device)
 	/* check if we have an active channel */
 	boolean_t hasActiveChannel = FALSE, hasRinginChannel = FALSE;
 
-        if (!device) {
-                sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "sccp_mwi_check called with NULL device!\n");
-                return;
-        }
-  
+	if (!device) {
+		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "sccp_mwi_check called with NULL device!\n");
+		return;
+	}
+
 	/* for each line, check if there is an active call */
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
-	        if (config->type == LINE) {
+		if (config->type == LINE) {
 			line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
 			if (!line) {
-                                sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: NULL line retrieved from buttonconfig!\n", DEV_ID_LOG(device));
-                                continue;
-                        }
+				sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: NULL line retrieved from buttonconfig!\n", DEV_ID_LOG(device));
+				continue;
+			}
 			SCCP_LIST_LOCK(&line->channels);
 			SCCP_LIST_TRAVERSE(&line->channels, c, list) {
-                                if (c->device == device) { // We have a channel belonging to our device (no remote shared line channel)
-                                        if (c->state != SCCP_CHANNELSTATE_ONHOOK && c->state != SCCP_CHANNELSTATE_DOWN) {
-                                                hasActiveChannel = TRUE;
-                                        }
-                                        if (c->state == SCCP_CHANNELSTATE_RINGING) {
-                                                hasRinginChannel = TRUE;
-                                        }
-          
-                                        /* pre-collect number of voicemails on device to be set later */
-                                        oldmsgs += line->voicemailStatistic.oldmsgs;
-                                        newmsgs += line->voicemailStatistic.newmsgs;
-                                }
+				if (c->device == device) {			// We have a channel belonging to our device (no remote shared line channel)
+					if (c->state != SCCP_CHANNELSTATE_ONHOOK && c->state != SCCP_CHANNELSTATE_DOWN) {
+						hasActiveChannel = TRUE;
+					}
+					if (c->state == SCCP_CHANNELSTATE_RINGING) {
+						hasRinginChannel = TRUE;
+					}
+
+					/* pre-collect number of voicemails on device to be set later */
+					oldmsgs += line->voicemailStatistic.oldmsgs;
+					newmsgs += line->voicemailStatistic.newmsgs;
+				}
 			}
 			SCCP_LIST_UNLOCK(&line->channels);
 		}
@@ -570,7 +570,7 @@ void sccp_mwi_check(sccp_device_t * device)
 	/* disable mwi light if we have an active channel, but no ringin */
 	if (hasActiveChannel && !hasRinginChannel && !device->mwioncall) {
 		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: we have an active channel, disable mwi light\n", DEV_ID_LOG(device));
-                if (device->mwilight & (1 << 0)) { 				// Set the MWI light to off only if it is already on.
+		if (device->mwilight & (1 << 0)) {				// Set the MWI light to off only if it is already on.
 			device->mwilight &= ~(1 << 0);				/* set mwi light for device to off */
 
 			REQ(r, SetLampMessage);
@@ -582,12 +582,12 @@ void sccp_mwi_check(sccp_device_t * device)
 		} else {
 			sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: MWI already %s on line (%s) %d\n", DEV_ID_LOG(device), "OFF", "unknown", 0);
 		}
-		return; 							// <---- This return must be outside the inner if
+		return;								// <---- This return must be outside the inner if
 	}
-	
+
 	/* Note: We must return the function before this point unless we want to turn the MWI on during a call! */
 	/*       This is taken care of by the previous block of code. */
-        sccp_device_lock(device);
+	sccp_device_lock(device);
 	device->voicemailStatistic.newmsgs = oldmsgs;
 	device->voicemailStatistic.oldmsgs = newmsgs;
 
@@ -595,11 +595,11 @@ void sccp_mwi_check(sccp_device_t * device)
 	mask = device->mwilight & ~(1 << 0);					/* status without mwi light for device (1<<0) */
 	status = (mask > 0) ? 1 : 0;
 
-	if ((device->mwilight & (1 << 0)) != status) { /* status needs update */
-		if (status) { 
-			device->mwilight |=  (1 << 0); /* activate */
-		} else { 
-			device->mwilight &= ~(1 << 0); /* deactivate */
+	if ((device->mwilight & (1 << 0)) != status) {				/* status needs update */
+		if (status) {
+			device->mwilight |= (1 << 0);				/* activate */
+		} else {
+			device->mwilight &= ~(1 << 0);				/* deactivate */
 		}
 
 		REQ(r, SetLampMessage);
