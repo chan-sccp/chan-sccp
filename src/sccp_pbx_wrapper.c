@@ -25,9 +25,9 @@ struct sccp_pbx_cb sccp_pbx = {
 
 	.pbx_get_callerid_name = sccp_wrapper_asterisk_get_callerid_name,
 	.pbx_get_callerid_number = sccp_wrapper_asterisk_get_callerid_number,
-	.pbx_get_callerid_ani = NULL,						//TODO implement callback
-	.pbx_get_callerid_dnid = NULL,						//TODO implement callback
-	.pbx_get_callerid_rdnis = NULL,						//TODO implement callback
+	.pbx_get_callerid_ani = NULL,						/*! \todo implement callback */
+	.pbx_get_callerid_dnid = NULL,						/*! \todo implement callback */
+	.pbx_get_callerid_rdnis = NULL,						/*! \todo implement callback */
 
 	.pbx_set_callerid_name = sccp_wrapper_asterisk_set_callerid_name,
 	.pbx_set_callerid_number = sccp_wrapper_asterisk_set_callerid_number,

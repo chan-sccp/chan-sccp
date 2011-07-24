@@ -551,7 +551,7 @@ static int sccp_show_lines(int fd, int argc, char *argv[])
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		c = NULL;
-		// \todo handle shared line
+		//! \todo handle shared line
 		d = NULL;
 		if (d) {
 			sccp_device_lock(d);
@@ -1335,7 +1335,7 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 		return RESULT_FAILURE;
 	}
 	/* sccp_device_clean will check active channels */
-	/* \todo implement a check for active channels before sending reset */
+	/*! \todo implement a check for active channels before sending reset */
 //      if (d->channelCount > 0) {
 	//ast_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
 	//return RESULT_SUCCESS;

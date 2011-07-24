@@ -688,7 +688,7 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t * hint)
 	if (line->channels.size > 0) {
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: number of active channels %d\n", line->name, line->statistic.numberOfActiveChannels);
 		
-		/*  TODO: This could be redundant code (?)
+		/*! \todo This could be redundant code (?)
 			IMHO the following case is not true in the sense we use it.
 		    We should rather refer to the single-line case and refactor the code accordingly. (-DD) */
 		if (line->channels.size == 1) {

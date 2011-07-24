@@ -305,10 +305,10 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	case SCCP_CHANNELSTATE_CALLCONFERENCE:
 		sccp_device_sendcallstate(d, instance, c->callid, SCCP_CHANNELSTATE_CALLCONFERENCE, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		break;
-	case SCCP_CHANNELSTATE_INVALIDCONFERENCE:				/* \todo SCCP_CHANNELSTATE_INVALIDCONFERENCE To be implemented */
+	case SCCP_CHANNELSTATE_INVALIDCONFERENCE:				/*! \todo SCCP_CHANNELSTATE_INVALIDCONFERENCE To be implemented */
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_INVALIDCONFERENCE (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
 		break;
-	case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:				/* \todo SCCP_CHANNELSTATE_CONNECTEDCONFERENCE To be implemented */
+	case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:				/*! \todo SCCP_CHANNELSTATE_CONNECTEDCONFERENCE To be implemented */
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_CONNECTEDCONFERENCE (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
 
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
@@ -364,10 +364,10 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_DIGITSFOLL);
 		sccp_ast_setstate(c, AST_STATE_DIALING);
 		break;
-	case SCCP_CHANNELSTATE_BLINDTRANSFER:					/* \todo SCCP_CHANNELSTATE_BLINDTRANSFER To be implemented */
+	case SCCP_CHANNELSTATE_BLINDTRANSFER:					/*! \todo SCCP_CHANNELSTATE_BLINDTRANSFER To be implemented */
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_BLINDTRANSFER (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
 		break;
-	default:								/* \todo SCCP_CHANNELSTATE:default To be implemented */
+	default:								/*! \todo SCCP_CHANNELSTATE:default To be implemented */
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE:default  (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
 		break;
 	}
@@ -430,7 +430,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 	if (c->line == GLOB(hotline)->line)
 		return;
 
-	/*! \todo TODO find working lock (Using trylock with deadlock prevention should be ok) */
+	/*! \todo find working lock (Using trylock with deadlock prevention should be ok) */
 //      SCCP_LIST_LOCK(&c->line->devices);
 	sccp_linedevices_t *linedevice;
 
@@ -440,7 +440,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 		if (device && remoteDevice == device)
 			continue;
 
-		//TODO do not publish status we already know, because we are part of it
+		/*! \todo do not publish status we already know, because we are part of it */
 		sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Notify remote device.\n", DEV_ID_LOG(remoteDevice));
 		sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: channelcount: %d\n", DEV_ID_LOG(remoteDevice), SCCP_RWLIST_GETSIZE(c->line->channels));
 

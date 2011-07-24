@@ -174,8 +174,8 @@ boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, struc
 boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c, struct ast_rtp **new_rtp);
 
 #        ifdef CS_AST_HAS_RTP_ENGINE
-enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE ** rtp);	//TODO wrong definition
-int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rtp, PBX_RTP_TYPE * vrtp, PBX_RTP_TYPE * trtp, int codecs, int nat_active);	//TODO wrong definition
+enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE ** rtp);	/*! \todo wrong definition */
+int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rtp, PBX_RTP_TYPE * vrtp, PBX_RTP_TYPE * trtp, int codecs, int nat_active);	/*! \todo wrong definition */
 enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE ** rtp);
 #        else
 

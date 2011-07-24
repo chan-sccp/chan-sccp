@@ -659,7 +659,7 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable * variable, const char *l
 	l->realtime = isRealtime;
 #endif
 
-	//  \todo TODO: Load status of feature (DND, CFwd, etc.) from astdb.
+	//! \todo Load status of feature (DND, CFwd, etc.) from astdb.
 #ifdef CS_DYNAMIC_CONFIG
 	if (!l->pendingDelete) {
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "%s: Adding line to Globals to 0\n", l->name);
@@ -2115,7 +2115,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 			sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_1 "%s: Initialized Devicestate Entry: %s\n", device->id, specifier->specifier);
 		}
 		/* Register as generic hint watcher */
-		/* TODO: Add some filtering in order to reduce number of unneccessarily triggered events.
+		/*! \todo Add some filtering in order to reduce number of unneccessarily triggered events.
 		   Have to work out whether filtering with AST_EVENT_IE_DEVICE matches extension or hint device name. */
 		snprintf(buf, 254, "Custom:%s", specifier->specifier);
 

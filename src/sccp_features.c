@@ -572,7 +572,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		if (res == 0) {
 			if( ast_channel_masquerade(target, c->owner) ) {
 				sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, tmp);
-				res = -1;				// \todo remove line : res value is being set to 0 in line 694 any way
+				res = -1;				//! \todo remove line : res value is being set to 0 in line 694 any way
 			} else {
 				sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) Pickup on '%s' by '%s'\n", tmp, c->owner->name);
 

@@ -114,7 +114,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 	/* Add moderator to conference. */
 	if (0 != sccp_conference_addAstChannelToConferenceBridge(moderator, moderator->channel->owner)) {
 		ast_log(LOG_ERROR, "SCCP: Conference: failed to add moderator channel (preparation phase).\n");
-		/* TODO: Error handling. */
+		/*! \todo Error handling. */
 	}
 #        endif
 
@@ -221,7 +221,7 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_addAstChannelToConferenceBridge.\n");
 	if (ast_pthread_create_background(&participant->joinThread, NULL, sccp_conference_join_thread, participant) < 0) {
-		// \todo TODO: error handling
+		//! \todo error handling
 	}
 	// Now done in add_participant
 	// pbx_channel_unlock(chan);
@@ -246,7 +246,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: sccp_conference_addParticipant called.\n");
 
 	if (!channel || !conference) {
-		// TODO: Log
+		/*! \todo Log */
 		return;
 	}
 
@@ -337,7 +337,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 	SCCP_LIST_UNLOCK(&conference->participants);
 
 	if (0 != sccp_conference_addAstChannelToConferenceBridge(remoteParticipant, remoteCallLeg)) {
-		// \todo TODO: error handling
+		//! \todo error handling
 	}
 
 	if (adding_moderator) {
@@ -351,7 +351,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		SCCP_LIST_UNLOCK(&conference->participants);
 
 		if (0 != sccp_conference_addAstChannelToConferenceBridge(localParticipant, localCallLeg)) {
-			// \todo TODO: error handling
+			//! \todo error handling
 		}
 	}
 
@@ -441,7 +441,7 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 	ast_cond_broadcast(&participant->removed_cond_signal);
 	ast_mutex_unlock(&participant->cond_lock);
 */
-	if (conference->participants.size < 1) {	// \todo should this not be 2 ?
+	if (conference->participants.size < 1) {	//! \todo should this not be 2 ?
 		sccp_conference_end(conference);
 	} else {
 		if (   (NULL != conference->moderator)
@@ -851,7 +851,7 @@ void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_confe
 	ast_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer);
 	ao2_unlock(participant->conference->bridge);
 	
-	/* \todo find a better methode to wait for the thread to signal removed participant (pthread_cond_timedwait ?); */
+	/*! \todo find a better methode to wait for the thread to signal removed participant (pthread_cond_timedwait ?); */
 /*
 	ast_mutex_lock(&participant->cond_lock);
 	while (participant->removed==FALSE) {
