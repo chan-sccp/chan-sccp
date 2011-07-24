@@ -25,9 +25,9 @@ struct sccp_pbx_cb sccp_pbx = {
 
 	.pbx_get_callerid_name = sccp_wrapper_asterisk_get_callerid_name,
 	.pbx_get_callerid_number = sccp_wrapper_asterisk_get_callerid_number,
-	.pbx_get_callerid_ani = NULL,						/*! \todo implement callback */
-	.pbx_get_callerid_dnid = NULL,						/*! \todo implement callback */
-	.pbx_get_callerid_rdnis = NULL,						/*! \todo implement callback */
+	.pbx_get_callerid_ani = NULL,						/*! \todo implement callbacks */
+	.pbx_get_callerid_dnid = NULL,						/*! implement callbacks */
+	.pbx_get_callerid_rdnis = NULL,						/*! implement callbacks */
 
 	.pbx_set_callerid_name = sccp_wrapper_asterisk_set_callerid_name,
 	.pbx_set_callerid_number = sccp_wrapper_asterisk_set_callerid_number,
@@ -126,8 +126,6 @@ char *sccp_wrapper_asterisk_get_callerid_number(const sccp_channel_t * channel)
  * \brief get callerid from pbx
  * \param ast_chan Asterisk Channel
  * \return SCCP CallInfo Structure 
- *
- * \todo need to be inspected and tested
  */
 sccp_callinfo_t *sccp_wrapper_asterisk_get_callerid(PBX_CHANNEL_TYPE * ast_chan)
 {
@@ -172,8 +170,6 @@ sccp_callinfo_t *sccp_wrapper_asterisk_get_callerid(PBX_CHANNEL_TYPE * ast_chan)
  * \param ast_chan Asterisk Channel
  * \param callInfo SCCP CallInfo Structure
  * \return Fail/Success as int
- *
- * \todo need to be inspected and tested
  */
 int sccp_wrapper_asterisk_set_callerid(PBX_CHANNEL_TYPE * ast_chan, sccp_callinfo_t * callInfo)
 {

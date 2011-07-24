@@ -375,7 +375,6 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
  * \param conference conference
  * \param participant participant to remove
  *
- * \todo implement this
  * \todo check if the are enough participants in conference
  * 
  * \warning
@@ -457,7 +456,6 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
  * \param conference conference
  * \param channel SCCP Channel
  *
- * \todo implement this
  * \todo check if the are enough participants in conference
  * 
  * \warning

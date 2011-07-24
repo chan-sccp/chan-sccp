@@ -1104,7 +1104,6 @@ static int unload_module(void)
 	sccp_globals_unlock(socket_lock);
 
 	/* temporary fix to close open channels */
-	/* \todo Temporary fix to unload Module. Needs to be looked at */
 	struct ast_channel *astChannel = NULL;
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channels\n");

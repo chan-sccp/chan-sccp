@@ -266,7 +266,13 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 	}
 
 	if (l->devices.size == 1 && SCCP_LIST_FIRST(&l->devices) && SCCP_LIST_FIRST(&l->devices)->device && SCCP_LIST_FIRST(&l->devices)->device->session) {
-		//!\todo check if we have to do this
+#warning This piece of code needs to be checked/tested before stable		
+		/*! 
+		 *\todo check if we have to do this. 
+		 * 	why would we have to do this if the is a line with only one device, but not for devices on a shared line
+		 * 	we are going to traverse the l->devices table a couple of lines below, so why not set c->device then.
+		 *      We are taking the device without locking the list, so it could even cause a race condition
+		 */
 		c->device = SCCP_LIST_FIRST(&l->devices)->device;
 		sccp_channel_updateChannelCapability_locked(c);
 	}
@@ -1254,8 +1260,8 @@ static int sccp_pbx_recvdigit_end(struct ast_channel *ast, char digit, unsigned 
 	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
 
 	sccp_device_t *d = NULL;
-
-	return -1;								//! \fixme: HOW CAN THIS WORK ??
+#warning This next line needs to be checked before stable
+	return -1;								//! \todo HOW CAN THIS WORK ??
 
 	if (!c || !c->device)
 		return -1;
@@ -1439,11 +1445,13 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Global Capabilities: %d\n", l->id, GLOB(global_capability));
 
-	/*! \todo check locking */
 	while (sccp_line_trylock(l)) {
-		sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
+		sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP TRYLOCK LOOP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
+		sccp_channel_unlock(c);
 		usleep(1);
+		sccp_channel_lock(c);
 	}
+	
 	sccp_channel_updateChannelCapability_locked(c);
 	if (!tmp->nativeformats) {
 		ast_log(LOG_ERROR, "%s: No audio format to offer. Cancelling call on line %s\n", l->id, l->name);
@@ -1483,8 +1491,6 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 #endif										// CS_AST_HAS_TECH_PVT
 	tmp->adsicpe = AST_ADSI_UNAVAILABLE;
 
-	/*! \todo Bridge? */
-	/*! \todo Transfer? */
 	sccp_mutex_lock(&GLOB(usecnt_lock));
 	GLOB(usecnt)++;
 	sccp_mutex_unlock(&GLOB(usecnt_lock));
@@ -1622,7 +1628,6 @@ int sccp_pbx_helper(sccp_channel_t * c)
 /*!
  * \brief Handle Soft Switch
  * \param c SCCP Channel as sccp_channel_t
- * \todo clarify Soft Switch Function
  *
  * \lock
  * 	- channel
@@ -1877,6 +1882,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 		/* Answer dialplan command works only when in RINGING OR RING ast_state */
 		sccp_ast_setstate(c, AST_STATE_RING);
 		if (ast_pbx_start(chan)) {
+#warning this code block need to be checked before stable
 			/*! \todo actually the next line is not correct. ast_pbx_start returns false when it was not able to start a new thread correcly */
 			ast_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
@@ -2123,14 +2129,14 @@ int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
 	}
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "Transferring '%s' to '%s'\n", ast->name, dest);
 	if (ast->_state == AST_STATE_RING) {
-		/*! \todo Blindtransfer needs to be implemented correctly */
+		/*! Blindtransfer needs to be implemented correctly */
 
 /*
 		res = sccp_blindxfer(p, dest);
 */
 		res = -1;
 	} else {
-		/*! \todo Transfer needs to be implemented correctly */
+		/*! Transfer needs to be implemented correctly */
 
 /*
 		res=sccp_channel_transfer(p,dest);

@@ -442,7 +442,7 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 
 	if (!lineName) {
 		if (d && d->defaultLineInstance > 0) {
-			line = sccp_line_find_byid(d, d->defaultLineInstance);
+			line = sccp_line_find_byinstance(d, d->defaultLineInstance);
 		} else {
 			line = sccp_dev_get_activeline(d);
 		}

@@ -52,7 +52,6 @@ void sccp_line_pre_reload(void)
 /*!
  * \brief run after the new line config is loaded during the reload process
  * \note See \ref sccp_config_reload
- * \todo to be implemented correctly (***)
  *
  * \callgraph
  * \callergraph
@@ -252,8 +251,6 @@ void sccp_line_kill(sccp_line_t * l)
  *
  * \param l SCCP Line
  * \param remove_from_global as boolean_t
- *
- * \todo integrate sccp_line_clean and sccp_line_delete_nolock into sccp_line_delete
  *
  * \callgraph
  * \callergraph

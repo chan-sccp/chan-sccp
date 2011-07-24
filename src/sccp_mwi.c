@@ -225,12 +225,10 @@ int sccp_mwi_checksubscription(const void *ptr)
 /*!
  * \brief Remove Mailbox Subscription
  * \param mailbox SCCP Mailbox
- * \todo Implement sccp_mwi_unsubscribeMailbox ( \fixme Marcello)
+ * \todo Implement sccp_mwi_unsubscribeMailbox ( \todo Marcello)
  */
 void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t ** mailbox)
 {
-
-	//! \todo implement sccp_mwi_unsubscribeMailbox
 	return;
 }
 

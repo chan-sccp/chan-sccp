@@ -207,8 +207,6 @@ void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  *
- * \todo discus Marcello's transfer experiment
- *
  * \lock
  * 	- device->selectedChannels
  * 	- device->buttonconfig
@@ -533,13 +531,13 @@ void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	if (!l && d) {
 
 		if (d->defaultLineInstance > 0) {
-			l = sccp_line_find_byid(d, d->defaultLineInstance);
+			l = sccp_line_find_byinstance(d, d->defaultLineInstance);
 		}
 		if (!l) {
 			l = d->currentLine;
 		}
 		if (!l) {
-			l = sccp_line_find_byid(d, 1);
+			l = sccp_line_find_byinstance(d, 1);
 		}
 	}
 
@@ -561,7 +559,7 @@ void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward Busy Pressed\n", DEV_ID_LOG(d));
 	if (!l && d) {
-		l = sccp_line_find_byid(d, 1);
+		l = sccp_line_find_byinstance(d, 1);
 	}
 
 	if (l)
@@ -582,7 +580,7 @@ void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, const uint32_t lin
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward NoAnswer Pressed\n", DEV_ID_LOG(d));
 	if (!l && d) {
-		l = sccp_line_find_byid(d, 1);
+		l = sccp_line_find_byinstance(d, 1);
 	}
 	if (l)
 		sccp_feat_handle_callforward(l, d, SCCP_CFWD_NOANSWER);
@@ -663,7 +661,6 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
- * \todo Conferencing option is under development.
  */
 void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
@@ -678,8 +675,6 @@ void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, const uint32_t lineI
  * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
-
- * \todo Conferencing option is under development.
  */
 void sccp_sk_conflist(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
@@ -694,7 +689,6 @@ void sccp_sk_conflist(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
  * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
- * \todo Conferencing option needs to be build and implemented
  */
 void sccp_sk_join(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
@@ -714,7 +708,7 @@ void sccp_sk_barge(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstan
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Barge Pressed\n", DEV_ID_LOG(d));
 	if (!l && d) {
-		l = sccp_line_find_byid(d, 1);
+		l = sccp_line_find_byinstance(d, 1);
 	}
 	if (l)
 		sccp_feat_handle_barge(l, lineInstance, d);
@@ -734,7 +728,7 @@ void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey cBarge Pressed\n", DEV_ID_LOG(d));
 	if (!l && d) {
-		l = sccp_line_find_byid(d, 1);
+		l = sccp_line_find_byinstance(d, 1);
 	}
 	if (l)
 		sccp_feat_handle_cbarge(l, lineInstance, d);
@@ -749,14 +743,12 @@ void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
- * \todo Conferencing option needs to be build and implemented
- *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  */
 void sccp_sk_meetme(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Meetme Pressed\n", DEV_ID_LOG(d));
 	if (!l && d) {
-		l = sccp_line_find_byid(d, 1);
+		l = sccp_line_find_byinstance(d, 1);
 	}
 	if (l)
 		sccp_feat_handle_meetme(l, lineInstance, d);
@@ -779,7 +771,7 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Native EXTENSION PICKUP was not compiled in\n");
 #else
 	if (!l && d) {
-		l = sccp_line_find_byid(d, 1);
+		l = sccp_line_find_byinstance(d, 1);
 	}
 	if (l)
 		sccp_feat_handle_directpickup(l, lineInstance, d);
@@ -803,7 +795,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Native GROUP PICKUP was not compiled in\n");
 #else
 	if (!l && d) {
-		l = sccp_line_find_byid(d, 1);
+		l = sccp_line_find_byinstance(d, 1);
 	}
 	if (l)
 		sccp_feat_grouppickup(l, d);
