@@ -1881,19 +1881,31 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x is dialing number %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 		/* Answer dialplan command works only when in RINGING OR RING ast_state */
 		sccp_ast_setstate(c, AST_STATE_RING);
-		if (AST_PBX_FAILED==ast_pbx_start(chan)) {
-			ast_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
+
+		int8_t pbxStartResult;
+		
+		pbxStartResult = ast_pbx_start(chan);
+		
+		/* \todo replace AST_PBX enum using pbx_impl wrapper enum */
+		switch(pbxStartResult){
+		  case AST_PBX_FAILED:
+			pbx_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 			/* \todo change indicate to something more suitable */
 			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
-		} else if (AST_PBX_CALL_LIMIT==ast_pbx_start(chan)) {
-			ast_log(LOG_WARNING, "%s: (sccp_pbx_softswitch) call limit reached for channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
+			break;
+		  case AST_PBX_CALL_LIMIT:
+			pbx_log(LOG_WARNING, "%s: (sccp_pbx_softswitch) call limit reached for channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_CONGESTION);
-		}
+			break;
+		  default:
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx started\n", DEV_ID_LOG(d));
 #ifdef CS_MANAGER_EVENTS
-		if (GLOB(callevents)) {
-			manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate", "Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %s\r\n", chan->name, chan->uniqueid, "SCCP", (d) ? DEV_ID_LOG(d) : "(null)", (l) ? l->name : "(null)", (c) ? (char *)&c->callid : "(null)");
+			if (GLOB(callevents)) {
+				manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate", "Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %s\r\n", chan->name, chan->uniqueid, "SCCP", (d) ? DEV_ID_LOG(d) : "(null)", (l) ? l->name : "(null)", (c) ? (char *)&c->callid : "(null)");
+			}
+#endif
+			break;
 		}
-#endif										// CS_MANAGER_EVENTS
 	} else {
 		/* timeout and no extension match */
 		sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
