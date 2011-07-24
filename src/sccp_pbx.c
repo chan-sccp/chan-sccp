@@ -668,9 +668,10 @@ static struct ast_frame *sccp_pbx_read(struct ast_channel *ast)
 #    ifdef CS_SCCP_VIDEO
 		frame = ast_rtp_read(c->rtp.video.rtp);				/* RTP Video */
 //                      sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: Got Video frame from device; frametype: %d, subclass:%d\n", DEV_ID_LOG(c->device), frame->frametype, frame->subclass);
-		if (frame) {
+		// If we get the nullframe here due to a short read, then we will irrevocably modify the null frame to be a video frame. Whack!
+		/*if (frame) {
 			frame->frametype = AST_FRAME_VIDEO;
-		}
+		} */
 #    endif									// CS_SCCP_VIDEO
 		break;
 	case 3:
@@ -759,6 +760,10 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame)
 		case AST_FRAME_IMAGE:
 		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
+			if (!frame->src) {
+					ast_log(LOG_ERROR, "%s: Asked to transmit evil empty video frame. Whoah!\n", DEV_ID_LOG(c->device));
+					return 0;
+			}
 			if ((c->rtp.video.status & SCCP_RTP_STATUS_PROGRESS_RECEIVE) == 0 && (c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) == 0 && c->rtp.video.rtp && c->device && (frame->subclass & AST_FORMAT_VIDEO_MASK)
 			    //      && (c->device->capability & frame->subclass) 
 			    ) {
@@ -1679,8 +1684,6 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	uint8_t instance;
 
 	unsigned int len = 0;
-
-	int res = 0;
 
 	sccp_line_t *l;
 
