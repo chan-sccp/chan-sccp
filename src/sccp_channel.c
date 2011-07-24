@@ -99,6 +99,17 @@ sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * de
 	sccp_line_addChannel(l, c);
 
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: New channel number: %d on line %s\n", l->id, c->callid, l->name);
+	
+	/* Start RTP servers as early as possible. Attempt to fix problems with video (DD) */
+	
+	if (!c->rtp.audio.rtp && !sccp_rtp_createAudioServer(c)) {
+		ast_log(LOG_WARNING, "%s: Error starting RTP Server for channel %s-%08X\n", DEV_ID_LOG(device), c->line->name, c->callid);
+	}
+#ifdef CS_SCCP_VIDEO
+	if (sccp_device_isVideoSupported(c->device) && !c->rtp.video.rtp && !sccp_rtp_createVideoServer(c)) {
+		ast_log(LOG_WARNING, "%s: can not start VRTP Server\n", DEV_ID_LOG(c->device));
+	}
+#endif
 
 	return c;
 }
@@ -674,10 +685,13 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 
 	uint16_t instance;
 
-	if (!c || !c->device)
+	if (!c || !c->device || !c->owner)
 		return;
 
 	d = c->device;
+
+	// Lock the channel to avoid bridging it before we are done with all RTP stuff! (-DD)
+	//ast_channel_lock(c->owner);
 
 	sccp_channel_updateChannelCapability_locked(c);
 
@@ -794,6 +808,9 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 	if (channel->device && (channel->rtp.video.status & SCCP_RTP_STATUS_RECEIVE)) {
 		return;
 	}
+
+	channel->rtp.video.writeFormat = AST_FORMAT_H264;
+
 	//skinnyFormat = sccp_codec_ast2skinny(channel->rtp.video.writeFormat);
 
 	if (skinnyFormat == 0) {
@@ -807,6 +824,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 	if (payloadType == -1) {
 		payloadType = 97;
 	}
+	
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive multimedia channel with format %s[%d] skinnyFormat %s[%d], payload %d\n", DEV_ID_LOG(channel->device), pbx_codec2str(channel->rtp.video.writeFormat), channel->rtp.video.writeFormat, codec2str(skinnyFormat), skinnyFormat, payloadType);
 
@@ -1775,6 +1793,8 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c, boole
 #    ifdef CS_AST_RTP_NEW_SOURCE
 	if (c->rtp.audio.rtp)
 		ast_rtp_new_source(c->rtp.audio.rtp);
+	if (c->rtp.video.rtp)
+		ast_rtp_new_source(c->rtp.video.rtp);
 #    endif
 	sccp_ast_queue_control(c, AST_CONTROL_UNHOLD);
 #endif
@@ -1785,7 +1805,7 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c, boole
 	sccp_channel_updateChannelCapability_locked(c);
 	/* */
 
-	c->state = SCCP_CHANNELSTATE_HOLD;
+	//c->state = SCCP_CHANNELSTATE_HOLD;
 	//sccp_rtp_createAudioServer(c);
 
 	sccp_channel_set_active(d, c);
@@ -1800,7 +1820,7 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c, boole
 #endif
 
 	/* state of channel is set down from the remoteDevices, so correct channel state */
-	c->state = SCCP_CHANNELSTATE_CONNECTED;
+	//c->state = SCCP_CHANNELSTATE_CONNECTED;
 	if (l) {
 		l->statistic.numberOfHoldChannels--;
 	}
