@@ -711,7 +711,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 
 #if ASTERISK_VERSION_NUMBER >= 10600
  	if(c->format & AST_FORMAT_SLINEAR16){
- 		//!\todo Check if the following makes DD's custom asterisk 1.6 patch obsolete. If yes, make it so and issue another release.
+ 		//! \todo Check if the following makes DD's custom asterisk 1.6 patch obsolete. If yes, make it so and issue another release.
  		//payloadType = 25;
  		//c->rtp.audio.rtp.current_RTP_PT[payloadType].code = AST_FORMAT_SLINEAR16;
  		//ast_rtp_set_m_type(c->rtp.audio.rtp, payloadType);
@@ -877,7 +877,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 	/* lookup payloadType */
 	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, skinnyFormat);
 	if (payloadType == -1) {
-		//TODO handle payload error
+		/*! \todo handle payload error */
 		payloadType = 97;
 	}
 	

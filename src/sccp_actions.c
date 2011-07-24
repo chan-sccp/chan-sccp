@@ -199,7 +199,7 @@ void sccp_handle_register(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
 		}
 	} else if (d->ha && !pbx_apply_ha(d->ha, &s->sin)) {
 
-		// \todo TODO check anonymous devices for permit hosts
+		//! \todo check anonymous devices for permit hosts
 		SCCP_LIST_LOCK(&d->permithosts);
 		SCCP_LIST_TRAVERSE(&d->permithosts, permithost, list) {
 			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
@@ -377,7 +377,7 @@ void sccp_handle_SPAregister(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r
 		}
 	} else if (d->ha && !pbx_apply_ha(d->ha, &s->sin)) {
 
-		// \todo TODO check anonymous devices for permit hosts
+		//! \todo check anonymous devices for permit hosts
 		SCCP_LIST_LOCK(&d->permithosts);
 		SCCP_LIST_TRAVERSE(&d->permithosts, permithost, list) {
 			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
@@ -687,7 +687,7 @@ void sccp_handle_AvailableLines(sccp_session_t *s, sccp_device_t *d, sccp_moo_t 
 
 	line_count = 0;
 	
-	/** \todo why do we get the message twice  */
+	/*! \todo why do we get the message twice  */
 	if (d->linesRegistered)
 		return;
 
@@ -1095,7 +1095,7 @@ void sccp_handle_stimulus(sccp_session_t *s, sccp_device_t *d, sccp_moo_t * r)
 			sccp_feat_adhocDial(d, l);
 			return;
 		}
-		// \todo TODO set index
+		//! \todo set index
 		instance = 1;
 	}
 
@@ -1632,7 +1632,7 @@ void sccp_handle_capabilities_res(sccp_session_t *s, sccp_device_t *d, sccp_moo_
 	char s1[512];
 	sccp_log(2) (VERBOSE_PREFIX_3 "SCCP device capabilities: %s(%d)\n", pbx_getformatname_multiple(s1, sizeof(s1) - 1, d->capability), d->capability);
 #endif
-	//TODO check capabilities for 7985
+	/*! \todo check capabilities for 7985 */
 	if(d->skinny_type == SKINNY_DEVICETYPE_CISCO7985 || d->skinny_type == SKINNY_DEVICETYPE_CISCO8941 ){
 		d->capability |= AST_FORMAT_H263;
 		d->capability |= AST_FORMAT_H264;
@@ -1940,13 +1940,13 @@ void sccp_handle_time_date_req(sccp_session_t *s, sccp_device_t *d, sccp_moo_t *
 
 	struct tm *cmtime = NULL;
 
-	//TODO check this in handle messages
+	/*! \todo check this in handle messages */
 	if (!s || (s->fds[0].fd < 0)) {
 		ast_log(LOG_ERROR, "(Time Date Request) Session no longer valid\n");
 		return;
 	}
 
-	//TODO check this in handle messages
+	/*! \todo check this in handle messages */
 	if (s != s->device->session) {
 		ast_log(LOG_WARNING, "(Time Date Request) Provided Session and Device Session are not the same!!\n");
 		return;
@@ -2105,7 +2105,7 @@ void sccp_handle_keypad_button(sccp_session_t *s, sccp_device_t *d, sccp_moo_t *
 				c->dialedNumber[len] = '\0';
 
 				SCCP_SCHED_DEL(sched, c->digittimeout);
-				/* XXX to prevent keeping the channel locked during waiting, we
+				/*! \todo to prevent keeping the channel locked during waiting, we
 				 * unlock it here. But it's crappy to unlock it to relock it after
 				 * because it can be removed meantime. */
 				sccp_channel_unlock(c);
@@ -2123,7 +2123,7 @@ void sccp_handle_keypad_button(sccp_session_t *s, sccp_device_t *d, sccp_moo_t *
 #else
 			if (sccp_pbx_helper(c)) {
 #endif
-				/* XXX to prevent keeping the channel locked during waiting, we
+				/*! \todo to prevent keeping the channel locked during waiting, we
 				 * unlock it here. But it's crappy to unlock it to relock it after
 				 * because it can be removed meantime. */
 				sccp_channel_unlock(c);
@@ -2309,7 +2309,7 @@ void sccp_handle_soft_key_event(sccp_session_t *s, sccp_device_t *d, sccp_moo_t 
 		c = sccp_find_channel_on_line_byid_locked(l, callid);
 	
 	
-	/* XXX to prevent keeping lock during too long time, unlock it here to let
+	/*! \todo to prevent keeping lock during too long time, unlock it here to let
 	 * sccp_sk_* functions relock it. */
 	if (c)
 		sccp_channel_unlock(c);

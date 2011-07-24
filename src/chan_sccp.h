@@ -277,14 +277,14 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 #    endif
 	
 
-//TODO fix this -> definition should be done by configure
+/*! \todo fix this -> definition should be done by configure */
 #ifdef CS_AST_HAS_RTP_ENGINE
 #	define PBX_RTP_TYPE struct ast_rtp_instance
 #else
 #	define PBX_RTP_TYPE struct ast_rtp
 #endif
 
-//TODO fix this -> definition should be done by configure
+/*! \todo fix this -> definition should be done by configure */
 #ifdef HAVE_ASTERISK
 #	define PBX_CHANNEL_TYPE struct ast_channel
 #else
@@ -981,8 +981,8 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		boolean_t isStarted;						/*!< is rtp server started */
 		struct sockaddr_in phone;					/*!< our phone information (openreceive) */
 		struct sockaddr_in phone_remote;				/*!< phone destination address (starttransmission) */
-		uint32_t readFormat;						/*!< current read format */ //TODO this should be pbx independent -> change to sccp codec
-		uint32_t writeFormat;						/*!< current write format */ //TODO this should be pbx independent -> change to sccp codec
+		uint32_t readFormat;						/*!< current read format */ /*! \todo this should be pbx independent -> change to sccp codec */
+		uint32_t writeFormat;						/*!< current write format */ /*! \todo this should be pbx independent -> change to sccp codec */
 
 	};
 
@@ -1207,7 +1207,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 
 	uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s);
 
-//TODO move this to wrapper
+/*! \todo move this to wrapper */
 #    ifdef CS_AST_HAS_TECH_PVT
 	PBX_CHANNEL_TYPE *sccp_request(const char *type, int format, void *data, int *cause);
 #    else

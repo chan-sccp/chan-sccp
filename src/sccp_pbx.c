@@ -155,7 +155,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 		return -1;
 	}
 
-	/* XXX perhaps we should lock the sccp_channel here. */
+	/*! \todo perhaps we should lock the sccp_channel here. */
 	l = c->line;
 	if (l) {
 		sccp_linedevices_t *linedevice;
@@ -266,7 +266,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 	}
 
 	if (l->devices.size == 1 && SCCP_LIST_FIRST(&l->devices) && SCCP_LIST_FIRST(&l->devices)->device && SCCP_LIST_FIRST(&l->devices)->device->session) {
-		// \todo TODO check if we have to do this
+		//!\todo check if we have to do this
 		c->device = SCCP_LIST_FIRST(&l->devices)->device;
 		sccp_channel_updateChannelCapability_locked(c);
 	}
@@ -300,7 +300,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 		}
 
 		if (sccp_channel_get_active_nolock(linedevice->device)) {
-			/* XXX perhaps lock the channel on global section */
+			/*! \todo perhaps lock the channel on global section */
 			sccp_channel_lock(c);
 			sccp_indicate_locked(linedevice->device, c, SCCP_CHANNELSTATE_CALLWAITING);
 			sccp_channel_unlock(c);
@@ -309,7 +309,7 @@ static int sccp_pbx_call(struct ast_channel *ast, char *dest, int timeout)
 			if (linedevice->device->dndFeature.enabled && linedevice->device->dndFeature.status == SCCP_DNDMODE_REJECT)
 				continue;
 
-			/* XXX perhaps lock the channel on global section */
+			/*! \todo perhaps lock the channel on global section */
 			sccp_channel_lock(c);
 			if (!c->autoanswer_type) {
 				sccp_indicate_locked(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
@@ -415,7 +415,7 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 		sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_ONHOOK);
 	}
 	CS_AST_CHANNEL_PVT(ast) = NULL;
-	c->owner = NULL;							/* TODO: (DD) Isn't this the same as above? Couldn't we move these both lines to the end of this function? */
+	c->owner = NULL;							/*! \todo (DD) Isn't this the same as above? Couldn't we move these both lines to the end of this function? */
 	l = c->line;
 #ifdef CS_SCCP_CONFERENCE
 	if (c->conference) {
@@ -529,7 +529,7 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 		return -1;
 	}
 
-	/* XXX perhaps we should lock channel here. */
+	/*! \todo perhaps we should lock channel here. */
 	if (c->parentChannel) {
 		/* we are a forwarded call, bridge me with my parent */
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "SCCP: bridge me with my parent, device %s\n", DEV_ID_LOG(c->device));
@@ -1440,7 +1440,7 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Global Capabilities: %d\n", l->id, GLOB(global_capability));
 
-	//! \todo TODO check locking
+	/*! \todo check locking */
 	while (sccp_line_trylock(l)) {
 		sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
 		usleep(1);
@@ -1484,8 +1484,8 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 #endif										// CS_AST_HAS_TECH_PVT
 	tmp->adsicpe = AST_ADSI_UNAVAILABLE;
 
-	// XXX: Bridge?
-	// XXX: Transfer?
+	/*! \todo Bridge? */
+	/*! \todo Transfer? */
 	sccp_mutex_lock(&GLOB(usecnt_lock));
 	GLOB(usecnt)++;
 	sccp_mutex_unlock(&GLOB(usecnt_lock));
@@ -2089,7 +2089,7 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "SCCP: Bridge chan %s and chan %s: Failed Retry\n", c0->name, c1->name);
 		break;
 	}
-	/* \todo Implement callback function queue upon completion */
+	/*! \todo Implement callback function queue upon completion */
 	return res;
 }
 #endif										// ASTERISK_VERSION_NUMBER > 10400
@@ -2124,14 +2124,14 @@ int sccp_pbx_transfer(struct ast_channel *ast, const char *dest)
 	}
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "Transferring '%s' to '%s'\n", ast->name, dest);
 	if (ast->_state == AST_STATE_RING) {
-		// \todo Blindtransfer needs to be implemented correctly
+		/*! \todo Blindtransfer needs to be implemented correctly */
 
 /*
 		res = sccp_blindxfer(p, dest);
 */
 		res = -1;
 	} else {
-		// \todo Transfer needs to be implemented correctly
+		/*! \todo Transfer needs to be implemented correctly */
 
 /*
 		res=sccp_channel_transfer(p,dest);

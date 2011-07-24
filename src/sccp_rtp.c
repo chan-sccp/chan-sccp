@@ -160,14 +160,14 @@ void sccp_rtp_destroy(sccp_channel_t * c)
 
 	if (c->rtp.audio.rtp) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying phone media transmission on channel %s-%08X\n", (d && d->id) ? d->id : "SCCP", l ? l->name : "(null)", c->callid);
-		//TODO use pbx callback
+		/*! \todo use pbx callback */
 		ast_rtp_destroy(c->rtp.audio.rtp);
 		c->rtp.audio.rtp = NULL;
 	}
 
 	if (c->rtp.video.rtp) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying video media transmission on channel %s-%08X\n", (d && d->id) ? d->id : "SCCP", l ? l->name : "(null)", c->callid);
-		//TODO use pbx callback
+		/*! \todo use pbx callback */
 		ast_rtp_destroy(c->rtp.video.rtp);
 		c->rtp.video.rtp = NULL;
 	}

@@ -298,7 +298,7 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
  * \param s Management Session
  * \param m Message 
  * \return Success as int
- * // \todo TODO This function does not do anything. Has the implementation of this function moved somewhere else ?
+ * \todo This function does not do anything. Has the implementation of this function moved somewhere else ?
  * 
  * \called_from_asterisk
  */

@@ -2014,7 +2014,8 @@ typedef union {
 		uint32_t lel_instance;						/*!< Instance */
 		uint32_t lel_type;						/*!< always 0x15 */
 		uint32_t lel_status;						/*!< status */
-		char DisplayName[StationMaxNameSize];				/*!< SpeedDial Display Name *///TODO shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146
+		char DisplayName[StationMaxNameSize];				/*!< SpeedDial Display Name */ 
+										/*! \todo shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 */
 	} FeatureStatAdvancedMessage;						/*!< Speed Dial Stat Dynamic Message Structure */
 
 	struct {

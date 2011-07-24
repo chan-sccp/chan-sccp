@@ -1162,7 +1162,7 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
 	} else if (d->state == SCCP_DEVICESTATE_OFFHOOK) {
 		// If the device is currently onhook, then we need to ...
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Selecing line %s while using line %s\n", d->id, wanted->name, current->name);
-		// XXX (1) Put current call on hold
+		/*! \todo (1) Put current call on hold */
 		// (2) Stop transmitting/receiving
 	} else {
 		// Otherwise, just select the callplane
@@ -1243,7 +1243,7 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 
 	linedevice = sccp_util_getDeviceConfiguration(device, l);
 
-	//TODO check for forward status during registration -MC
+	/*! \todo check for forward status during registration -MC */
 	if (!linedevice) {
 		if (device->registrationState == SKINNY_DEVICE_RS_OK) {
 			ast_log(LOG_NOTICE, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
@@ -1264,7 +1264,7 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Sent Forward Status.  Line: %s\n", device->id, l->name);
 
-	// \todo What to do with this lineStatusChanges in sccp_dev_forward_status
+	//! \todo What to do with this lineStatusChanges in sccp_dev_forward_status
 	/*
 	   if (l->cfwd_type == SCCP_CFWD_ALL){
 	   //sccp_hint_notify_linestate(l,device, SCCP_DEVICESTATE_ONHOOK, SCCP_DEVICESTATE_FWDALL);
@@ -1868,7 +1868,8 @@ sccp_device_t *sccp_clone_device(sccp_device_t * orig_device)
 	// scheduleTasks
 	new_device->scheduleTasks = orig_device->scheduleTasks;
 
-/*	\todo produces a memcpy fault when compiled --with-conference. Copy Function of this structure has to be build.
+/*!	\todo produces a memcpy fault when compiled --with-conference. Copy Function of this structure has to be build. */
+/*
 #ifdef CS_SCCP_CONFERENCE
 	// sccp_conference	*conference
 	new_device->conference = ast_calloc(1,sizeof(sccp_conference_t));
@@ -2152,7 +2153,7 @@ sccp_diff_t sccp_device_changed(sccp_device_t * device_a, sccp_device_t * device
 	SCCP_LIST_UNLOCK(&device_b->selectedChannels);
 	SCCP_LIST_UNLOCK(&device_a->selectedChannels);
 
-	/* \todo still to implement a check for device->setvar (ast_variables *variables) in sccp_device_changed */
+	/*! \todo still to implement a check for device->setvar (ast_variables *variables) in sccp_device_changed */
 	//device_a->setvar
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "(sccp_device_changed) Returning : %d\n", res);
 	return res;

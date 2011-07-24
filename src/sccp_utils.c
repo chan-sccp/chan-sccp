@@ -449,7 +449,7 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
  * \param instance line instance as int
  * \return SCCP Line (can be null)
  *
- * \todo TODO No ID Specified only instance, should this function be renamed ?
+ * \todo No ID Specified only instance, should this function be renamed ?
  *
  * \callgraph
  * \callergraph
