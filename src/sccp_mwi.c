@@ -39,9 +39,9 @@ void sccp_mwi_module_start(void)
 	/* */
 	SCCP_LIST_HEAD_INIT(&sccp_mailbox_subscriptions);
 
-	sccp_event_subscribe(SCCP_EVENT_LINECREATED, sccp_mwi_linecreatedEvent);
-	sccp_event_subscribe(SCCP_EVENT_DEVICEATTACHED, sccp_mwi_deviceAttachedEvent);
-	sccp_event_subscribe(SCCP_EVENT_LINESTATUSCHANGED, sccp_mwi_lineStatusChangedEvent);
+	sccp_event_subscribe(SCCP_EVENT_LINE_CREATED, sccp_mwi_linecreatedEvent);
+	sccp_event_subscribe(SCCP_EVENT_DEVICE_ATTACHED, sccp_mwi_deviceAttachedEvent);
+	sccp_event_subscribe(SCCP_EVENT_LINESTATUS_CHANGED, sccp_mwi_lineStatusChangedEvent);
 }
 
 /*!

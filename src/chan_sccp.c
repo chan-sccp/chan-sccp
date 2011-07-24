@@ -968,7 +968,7 @@ static int load_module(void)
 #ifdef CS_SCCP_CONFERENCE
 	sccp_conference_module_start();
 #endif
-	sccp_event_subscribe(SCCP_EVENT_FEATURECHANGED, sccp_util_handleFeatureChangeEvent);
+	sccp_event_subscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_util_handleFeatureChangeEvent);
 
 	/* GLOB() is a macro for sccp_globals-> */
 	GLOB(descriptor) = -1;

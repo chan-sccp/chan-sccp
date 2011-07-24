@@ -103,8 +103,8 @@ void sccp_hint_module_start()
 	/* */
 	SCCP_LIST_HEAD_INIT(&sccp_hint_subscriptions);
 
-	sccp_event_subscribe(SCCP_EVENT_DEVICEREGISTERED | SCCP_EVENT_DEVICEUNREGISTERED | SCCP_EVENT_DEVICEDETACHED, sccp_hint_eventListener);
-	sccp_event_subscribe(SCCP_EVENT_FEATURECHANGED, sccp_hint_handleFeatureChangeEvent);
+	sccp_event_subscribe(SCCP_EVENT_DEVICE_REGISTERED | SCCP_EVENT_DEVICE_UNREGISTERED | SCCP_EVENT_DEVICE_DETACHED, sccp_hint_eventListener);
+	sccp_event_subscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_hint_handleFeatureChangeEvent);
 }
 
 /*!
@@ -171,7 +171,7 @@ void sccp_hint_eventListener(const sccp_event_t ** event)
 		return;
 
 	switch (e->type) {
-	case SCCP_EVENT_DEVICEREGISTERED:
+	case SCCP_EVENT_DEVICE_REGISTERED:
 		device = e->event.deviceRegistered.device;
 
 		if (!device) {
@@ -185,7 +185,7 @@ void sccp_hint_eventListener(const sccp_event_t ** event)
 
 		break;
 
-	case SCCP_EVENT_DEVICEUNREGISTERED:
+	case SCCP_EVENT_DEVICE_UNREGISTERED:
 		device = e->event.deviceRegistered.device;
 
 		if (!device) {
@@ -204,7 +204,7 @@ void sccp_hint_eventListener(const sccp_event_t ** event)
 		ast_free((void *)deviceName);
 
 		break;
-	case SCCP_EVENT_DEVICEDETACHED:
+	case SCCP_EVENT_DEVICE_DETACHED:
 		sccp_hint_lineStatusChanged(e->event.deviceAttached.line, e->event.deviceAttached.device, NULL, 0, 0);
 		break;
 	default:

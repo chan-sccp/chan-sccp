@@ -209,7 +209,7 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
 	sccp_event_t *event = ast_malloc(sizeof(sccp_event_t));
 
 	memset(event, 0, sizeof(sccp_event_t));
-	event->type = SCCP_EVENT_LINECREATED;
+	event->type = SCCP_EVENT_LINE_CREATED;
 	event->event.lineCreated.line = line;
 	sccp_event_fire((const sccp_event_t **)&event);
 
@@ -504,7 +504,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 	sccp_event_t *event = ast_malloc(sizeof(sccp_event_t));
 
 	memset(event, 0, sizeof(sccp_event_t));
-	event->type = SCCP_EVENT_DEVICEATTACHED;
+	event->type = SCCP_EVENT_DEVICE_ATTACHED;
 	event->event.deviceAttached.line = l;
 	event->event.deviceAttached.device = device;
 	sccp_event_fire((const sccp_event_t **)&event);
@@ -513,7 +513,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 /*!
  * \brief Remove a Device from a Line
  *
- * Fire SCCP_EVENT_DEVICEDETACHED event after removing device.
+ * Fire SCCP_EVENT_DEVICE_DETACHED event after removing device.
  *
  * \param l SCCP Line
  * \param device SCCP Device
@@ -563,7 +563,7 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 
 	memset(event, 0, sizeof(sccp_event_t));
 
-	event->type = SCCP_EVENT_DEVICEDETACHED;
+	event->type = SCCP_EVENT_DEVICE_DETACHED;
 	event->event.deviceAttached.line = l;
 	event->event.deviceAttached.device = device;
 	sccp_event_fire((const sccp_event_t **)&event);

@@ -1389,7 +1389,7 @@ void sccp_feat_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 
 		memset(event, 0, sizeof(sccp_event_t));
 
-		event->type = SCCP_EVENT_FEATURECHANGED;
+		event->type = SCCP_EVENT_FEATURE_CHANGED;
 		event->event.featureChanged.device = device;
 		event->event.featureChanged.featureType = featureType;
 		sccp_event_fire((const sccp_event_t **)&event);
