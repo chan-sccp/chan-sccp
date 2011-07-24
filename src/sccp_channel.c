@@ -101,7 +101,8 @@ sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * de
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: New channel number: %d on line %s\n", l->id, c->callid, l->name);
 	
 	/* Start RTP servers as early as possible. Attempt to fix problems with video (DD) */
-	
+
+	/*
 	if (!c->rtp.audio.rtp && !sccp_rtp_createAudioServer(c)) {
 		ast_log(LOG_WARNING, "%s: Error starting RTP Server for channel %s-%08X\n", DEV_ID_LOG(device), c->line->name, c->callid);
 	}
@@ -110,6 +111,7 @@ sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * de
 		ast_log(LOG_WARNING, "%s: can not start VRTP Server\n", DEV_ID_LOG(c->device));
 	}
 #endif
+	*/
 
 	return c;
 }
