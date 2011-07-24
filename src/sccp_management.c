@@ -195,7 +195,6 @@ int sccp_manager_show_lines(struct mansession *s, const struct message *m)
  */
 int sccp_manager_restart_device(struct mansession *s, const struct message *m)
 {
-//      sccp_list_t     *hintList = NULL;
 	sccp_device_t *d;
 
 	const char *fn = astman_get_header(m, "Devicename");
