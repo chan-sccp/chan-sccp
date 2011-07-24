@@ -429,7 +429,8 @@ static void sccp_hint_devicestate_cb(const struct ast_event *ast_event, void *da
  * \brief send hint status to subscriber
  * \param hint SCCP Hint Linked List Pointer
  *
- * \todo Check if the actual device still exists while going throughthe hint->subscribers and not pointing at rubish
+ * \todo Check if the actual device still exists while going through the hint->subscribers and not pointing at rubish
+ * \todo Don't we need to lock hint->subscribers before removing devices from it ?
  */
 void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 {
@@ -554,7 +555,8 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 			sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_INUSEHINT);
 		}
 	}
-SCCP_LIST_TRAVERSE_SAFE_END}
+	SCCP_LIST_TRAVERSE_SAFE_END
+}
 
 /*!
  * \brief Handle line status change

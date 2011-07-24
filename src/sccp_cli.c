@@ -550,7 +550,6 @@ static int sccp_show_lines(int fd, int argc, char *argv[])
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		c = NULL;
-		//! \todo handle shared line
 		d = NULL;
 		if (d) {
 			sccp_device_lock(d);
@@ -1439,7 +1438,7 @@ static int sccp_start_call(int fd, int argc, char *argv[])
 		return RESULT_FAILURE;
 	}
 	if (d && d->defaultLineInstance > 0) {
-		line = sccp_line_find_byid(d, d->defaultLineInstance);
+		line = sccp_line_find_byinstance(d, d->defaultLineInstance);
 	} else {
 		line = sccp_dev_get_activeline(d);
 	}
@@ -1562,7 +1561,6 @@ CLI_ENTRY(cli_end_call, sccp_end_call, "Hangup a channel", end_call_usage)
  * structure for cli functions including short description.
  *
  * \return Result as struct
- * \todo add short description
  */
 static struct ast_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_show_globals, "Show SCCP global settings."),

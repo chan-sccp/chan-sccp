@@ -1216,7 +1216,6 @@ typedef struct {
 
 /*!
  * \brief Button Modes Structure
- * \todo do we need this? - MC
 */
 typedef struct {
 	const char *type;							/*!< Button Type */
@@ -1678,19 +1677,18 @@ typedef struct {
  * \since 20080111
  */
 typedef struct {
-	uint32_t layout;							/*!< Layout \todo what is layout? */
+	uint32_t layout;							/*!< Layout */
 } layoutConfig_t;								/*!< Layout Config Structure */
 
 /*!
  * \brief Level Preference Structure
- * \todo what does this mean?
  */
 typedef struct {
 	uint32_t transmitPreference;						/*!< Transmit Preference */
 	uint32_t format;							/*!< Format / Codec */
 	uint32_t maxBitRate;							/*!< Maximum BitRate */
 	uint32_t minBitRate;							/*!< Minimum BitRate */
-	uint32_t MPI;								/*!< \todo MPI ?? */
+	uint32_t MPI;								/*!< MPI ?? */
 	uint32_t serviceNumber;							/*!< Service Number */
 } levelPreference_t;								/*!< Level Preference Structure */
 
@@ -1874,15 +1872,15 @@ typedef union {
 	struct {
 		uint32_t lel_NumberIndex;					/*!< Number Index (this must be shifted 4 bits right) */
 		uint32_t lel_lineinstance;					/*!< Line Instance */
-		uint32_t lel_unknown;						/*!< \todo Unknown */
+		uint32_t lel_unknown;						/*!< Unknown */
 		char phonenumber[260];						/*!< \todo I don't know if this is exact */
 	} DialedPhoneBookMessage;						/*!< Dialed Phone Book Message Structure */
 
 	struct {
 		uint32_t lel_NumberIndex;					/*!< Number Index (this must be shifted 4 bits right) */
 		uint32_t lel_lineinstance;					/*!< Line Instance */
-		uint32_t lel_unknown;						/*!< \todo Unknown */
-		uint32_t lel_unknown2;						/*!< \todo Unknown2 */
+		uint32_t lel_unknown;						/*!< Unknown */
+		uint32_t lel_unknown2;						/*!< Unknown2 */
 	} DialedPhoneBookAckMessage;						/*!< Dialed Phone Book Acknowledgement Structure */
 
 	struct {
@@ -1975,7 +1973,7 @@ typedef union {
 		uint32_t lel_unknown1;						/*!< Unknown */
 		uint32_t lel_unknown2;						/*!< Unknown */
 		uint32_t lel_unknown3;						/*!< Unknown */
-	} Unknown_0x004A_Message;						/*!< \todo Unknown 0x004A Message Structure */
+	} Unknown_0x004A_Message;						/*!< Unknown 0x004A Message Structure */
 
 	struct {								// INCOMPLETE
 		uint32_t lel_conferenceID;					/*!< Conference ID */
@@ -1997,7 +1995,7 @@ typedef union {
 	struct {								// INCOMPLETE
 		uint32_t nn;
 		char str;
-	} Unknown_0x0143_Message;						/*!< \todo Unknown 0x0143 Message Structure */
+	} Unknown_0x0143_Message;						/*!< Unknown 0x0143 Message Structure */
 
 	/* Message 0x144 len 0x10
 	   0000   14 00 00 00 00 00 00 00 44 01 00 00 0a 00 00 00  ........D.......
@@ -2005,7 +2003,7 @@ typedef union {
 
 	struct {								// INCOMPLETE
 		uint32_t nn;							/*!< Unknown */
-	} Unknown_0x0144_Message;						/*!< \todo Unknown 0x0144 Message Structure (This set caller and called id ) */
+	} Unknown_0x0144_Message;						/*!< Unknown 0x0144 Message Structure (This set caller and called id ) */
 
 	struct {
 		uint32_t lel_instance;						/*!< Instance */

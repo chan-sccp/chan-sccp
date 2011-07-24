@@ -661,7 +661,6 @@ void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode)
  * \param lineInstance lineInstance as unint8_t
  * \param device SCCP Device
  * \param status Status as int
- * \todo What does this function do exactly (ActivateCallPlaneMessage) ?
  *
  * \callgraph
  * \callergraph
@@ -687,7 +686,6 @@ void sccp_dev_set_cplane(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * 
 /*!
  * \brief Set Call Plane to In-Active on  Line on Device
  * \param d device
- * \todo What does this function do exactly (DeactivateCallPlaneMessage) ?
  *
  * \callgraph
  * \callergraph
@@ -1161,10 +1159,14 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
 		}
 		sccp_channel_unlock(chan);
 	} else if (d->state == SCCP_DEVICESTATE_OFFHOOK) {
-		// If the device is currently onhook, then we need to ...
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Selecing line %s while using line %s\n", d->id, wanted->name, current->name);
-		/*! \todo (1) Put current call on hold */
-		// (2) Stop transmitting/receiving
+		// If the device is currently offhook, then we need to ...
+
+		/*! \todo
+	 	 * (1) Put current call on hold 
+	 	 * (2) Stop transmitting/receiving 
+		 */
+
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Selecting line %s, while Line %s in-use\n", d->id, wanted->name, current->name);
 	} else {
 		// Otherwise, just select the callplane
 		ast_log(LOG_WARNING, "%s: Unknown status while trying to select line %s.  Current line is %s\n", d->id, wanted->name, current->name);
@@ -1354,8 +1356,6 @@ void *sccp_dev_postregistration(void *data)
  * \param d SCCP Device
  * \param remove_from_global as boolean_t
  * \param cleanupTime Clean-up Time as uint8
- *
- * \todo integrate sccp_dev_clean and sccp_dev_free into sccp_device_delete -DdG
  *
  * \callgraph
  * \callergraph
@@ -1801,7 +1801,7 @@ void sccp_dev_keypadbutton(sccp_device_t * d, char digit, uint8_t line, uint32_t
  * 
  * \lock
  * 	- device
- * 	  - see sccp_line_find_byid()
+ * 	  - see sccp_line_find_byinstance()
  * 	  - see sccp_duplicate_device_buttonconfig_list()
  *	  - see sccp_duplicate_device_hostname_list()
  *	  - see sccp_duplicate_device_selectedchannel_list()
@@ -1842,7 +1842,7 @@ sccp_device_t *sccp_clone_device(sccp_device_t * orig_device)
 
 	SCCP_LIST_TRAVERSE(&orig_device->buttonconfig, orig_buttonconfig, list) {
 		if (orig_buttonconfig->type == LINE) {
-			new_device->currentLine = sccp_line_find_byid(new_device, orig_buttonconfig->instance);
+			new_device->currentLine = sccp_line_find_byinstance(new_device, orig_buttonconfig->instance);
 			if (new_device->currentLine) {
 				break;
 			}

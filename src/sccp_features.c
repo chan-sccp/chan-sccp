@@ -710,9 +710,9 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 	}
 
 	if (!lineInstance)
-		l = sccp_line_find_byid(d, 1);
+		l = sccp_line_find_byinstance(d, 1);
 	else
-		l = sccp_line_find_byid(d, lineInstance);
+		l = sccp_line_find_byinstance(d, lineInstance);
 
 	if (!l) {
 		sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, lineInstance);
@@ -792,8 +792,6 @@ void sccp_feat_conflist(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  * \return Success as int
- * \todo Conferencing option needs to be build and implemented
- *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  *
  * \lock
  * 	- device
@@ -900,8 +898,6 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
  * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
- * \todo Conferencing option needs to be build and implemented
- *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  */
 void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
 {
@@ -914,8 +910,6 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
  * \param lineInstance lineInstance as uint8_t
  * \param d SCCP Device
  * \return SCCP Channel
- * \todo Conferencing option needs to be build and implemented
- *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  *
  * \lock
  * 	- channel
@@ -1235,8 +1229,6 @@ int sccp_feat_barge(sccp_channel_t * c, char *exten)
  * \param lineInstance lineInstance as uint8_t
  * \param d SCCP Device
  * \return SCCP Channel
- * \todo Conferencing option needs to be build and implemented
- *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  *
  * \lock
  * 	- channel
@@ -1504,9 +1496,10 @@ void sccp_feat_monitor(sccp_device_t * device, sccp_line_t * line, const uint32_
 		return;
 	}
 
-	/*! \todo We could do monitoring directly.
-	   So we would be able to do it without ugly dtmf packets. 
-	   At the moment we have to pause a bit to wait for activity on the channel.
+	/*! 
+	 * \todo We could do monitoring directly.
+	 * So we would be able to do it without ugly dtmf packets. 
+	 * At the moment we have to pause a bit to wait for activity on the channel.
 	 */
 
 	f.len = 100;

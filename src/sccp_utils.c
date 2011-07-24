@@ -449,8 +449,6 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
  * \param instance line instance as int
  * \return SCCP Line (can be null)
  *
- * \todo No ID Specified only instance, should this function be renamed ?
- *
  * \callgraph
  * \callergraph
  * 
@@ -458,7 +456,7 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
  * 	- device->buttonconfig
  * 	  - see sccp_line_find_byname_wo()
  */
-sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
+sccp_line_t *sccp_line_find_byinstance(sccp_device_t * d, uint16_t instance)
 {
 	sccp_line_t *l = NULL;
 

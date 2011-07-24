@@ -308,7 +308,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	case SCCP_CHANNELSTATE_INVALIDCONFERENCE:				/*! \todo SCCP_CHANNELSTATE_INVALIDCONFERENCE To be implemented */
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_INVALIDCONFERENCE (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
 		break;
-	case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:				/*! \todo SCCP_CHANNELSTATE_CONNECTEDCONFERENCE To be implemented */
+	case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_CONNECTEDCONFERENCE (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
 
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
@@ -404,7 +404,6 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
  * \param file File as char
  * \param line Line as int
  * \param pretty_function Pretty Function as char
- * \todo Explain Pretty Function
  * 
  * \warning
  * 	- line->devices is not always locked

@@ -8,7 +8,6 @@
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
- * \todo 	using generic function to configure structures, this can also be used to reconfigure structure on-line
  * \note 	To find out more about the reload function see \ref sccp_config_reload
  * \remarks     Only methods directly related to chan-sccp configuration should be stored in this source file.
  *
@@ -659,7 +658,6 @@ sccp_line_t *sccp_config_buildLine(struct ast_variable * variable, const char *l
 	l->realtime = isRealtime;
 #endif
 
-	//! \todo Load status of feature (DND, CFwd, etc.) from astdb.
 #ifdef CS_DYNAMIC_CONFIG
 	if (!l->pendingDelete) {
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "%s: Adding line to Globals to 0\n", l->name);
@@ -1589,7 +1587,6 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, s
  * \param v Asterisk Variable
  * \return Configured SCCP Device
  * \note also used by realtime functionality to line device from Asterisk Variable
- * \todo this function should be called sccp_config_applyDeviceConfiguration
  *
  * \callgraph
  * \callergraph

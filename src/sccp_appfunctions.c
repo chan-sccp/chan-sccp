@@ -48,7 +48,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, NEWCONST char *cmd, ch
 
 	int first = 0;
 
-	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
+	if ((colname = strchr(data, ':'))) {					/*! Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
 
 		*colname++ = '\0';
@@ -258,7 +258,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, NEWCONST char *cmd, char
 
 	int first = 0;
 
-	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
+	if ((colname = strchr(data, ':'))) {					/*! Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
 
 		*colname++ = '\0';
@@ -465,7 +465,7 @@ static int sccp_func_sccpchannel(struct ast_channel *chan, NEWCONST char *cmd, c
 
 	char *colname;
 
-	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
+	if ((colname = strchr(data, ':'))) {					/*! Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
 
 		*colname++ = '\0';
@@ -750,7 +750,7 @@ static int sccp_app_setmessage(struct ast_channel *chan, void *data)
 	char *text;
 	int timeout;
 
-	if ((text = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
+	if ((text = strchr(data, ':'))) {					/*! Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
 
 		*text++ = '\0';

@@ -687,7 +687,6 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 
 	line_count = 0;
 
-	/*! \todo why do we get the message twice  */
 	if (d->linesRegistered)
 		return;
 
@@ -951,7 +950,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_moo_t *
 	uint8_t lineNumber = letohl(r->msg.LineStatReqMessage.lel_lineNumber);
 
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Configuring line number %d\n", d->id, lineNumber);
-	l = sccp_line_find_byid(d, lineNumber);
+	l = sccp_line_find_byinstance(d, lineNumber);
 
 	/* if we find no regular line - it can be a speeddial with hint */
 	if (!l)
@@ -1118,7 +1117,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		break;
 
 	case SKINNY_BUTTONTYPE_LINE:						// We got a Line Request
-		l = sccp_line_find_byid(d, instance);
+		l = sccp_line_find_byinstance(d, instance);
 		if (!l) {
 			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No line for instance %d. Looking for a speeddial with hint\n", d->id, instance);
 			k = sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT);
@@ -1198,7 +1197,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	case SKINNY_BUTTONTYPE_HOLD:
 		/* this is the hard hold button. When we are here we are putting on hold the active_channel */
 		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Hold/Resume Button pressed on line (%d)\n", d->id, instance);
-		l = sccp_line_find_byid(d, instance);
+		l = sccp_line_find_byinstance(d, instance);
 		if (!l) {
 			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
 			l = sccp_dev_get_activeline(d);
@@ -1279,7 +1278,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			if (!instance)
 				instance = 1;
 
-			l = sccp_line_find_byid(d, instance);
+			l = sccp_line_find_byinstance(d, instance);
 			if (!l) {
 				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
 				return;
@@ -1300,7 +1299,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			if (!instance)
 				instance = 1;
 
-			l = sccp_line_find_byid(d, instance);
+			l = sccp_line_find_byinstance(d, instance);
 			if (!l) {
 				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
 				return;
@@ -1321,7 +1320,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			if (!instance)
 				instance = 1;
 
-			l = sccp_line_find_byid(d, instance);
+			l = sccp_line_find_byinstance(d, instance);
 			if (!l) {
 				sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
 				return;
@@ -1357,7 +1356,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 		if (d->defaultLineInstance > 0) {
 			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_FEATURE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
-			l = sccp_line_find_byid(d, d->defaultLineInstance);
+			l = sccp_line_find_byinstance(d, d->defaultLineInstance);
 
 			//sccp_feat_handle_directpickup(l, d->defaultLineInstance, d);
 			sccp_channel_newcall(l, d, (char *)ast_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND);	//handle *8
@@ -1366,7 +1365,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 		/* no default line set, use first line */
 		if (!l) {
-			l = sccp_line_find_byid(d, 1);
+			l = sccp_line_find_byinstance(d, 1);
 		}
 		if (l) {
 			//sccp_feat_handle_directpickup(l, 1, d);
@@ -1430,7 +1429,7 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
 		// Pull up a channel
 		if (d->defaultLineInstance > 0) {
 			sccp_log(((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION) + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
-			l = sccp_line_find_byid(d, d->defaultLineInstance);
+			l = sccp_line_find_byinstance(d, d->defaultLineInstance);
 		} else {
 			l = d->currentLine;
 		}
@@ -1495,7 +1494,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		/* use default line if it is set */
 		if (d && d->defaultLineInstance > 0) {
 			sccp_log((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
-			l = sccp_line_find_byid(d, d->defaultLineInstance);
+			l = sccp_line_find_byinstance(d, d->defaultLineInstance);
 		} else {
 			l = sccp_dev_get_activeline(d);
 		}
@@ -2005,7 +2004,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	callid = letohl(r->msg.KeypadButtonMessage.lel_callReference);
 
 	if (lineInstance)
-		l = sccp_line_find_byid(s->device, lineInstance);
+		l = sccp_line_find_byinstance(s->device, lineInstance);
 
 	if (l && callid)
 		c = sccp_channel_find_byid_locked(callid);
@@ -2291,13 +2290,12 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 	}
 
 	if (lineInstance)
-		l = sccp_line_find_byid(d, lineInstance);
+		l = sccp_line_find_byinstance(d, lineInstance);
 
 	if (l && callid)
 		c = sccp_find_channel_on_line_byid_locked(l, callid);
 
-	/*! \todo to prevent keeping lock during too long time, unlock it here to let
-	 * sccp_sk_* functions relock it. */
+	/*! to prevent keeping lock during too long time, unlock it here to let sccp_sk_* functions relock it. */
 	if (c)
 		sccp_channel_unlock(c);
 
@@ -2685,7 +2683,7 @@ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_mo
 	uint32_t instance = letohl(r->msg.ForwardStatReqMessage.lel_lineNumber);
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got Forward Status Request.  Line: %d\n", d->id, instance);
-	l = sccp_line_find_byid(d, instance);
+	l = sccp_line_find_byinstance(d, instance);
 	if (l)
 		sccp_dev_forward_status(l, instance, d);
 	else {

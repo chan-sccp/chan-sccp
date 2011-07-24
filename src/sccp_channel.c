@@ -633,7 +633,7 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * c)
 
 	REQ(r, ConnectionStatisticsReq);
 
-	/* \todo We need to test what we have to copy in the DirectoryNumber */
+	/* \todo We need to test what we have to copy into the DirectoryNumber */
 	if (c->calltype == SKINNY_CALLTYPE_OUTBOUND)
 		sccp_copy_string(r->msg.ConnectionStatisticsReq.DirectoryNumber, c->callInfo.calledPartyNumber, sizeof(r->msg.ConnectionStatisticsReq.DirectoryNumber));
 	else
@@ -710,7 +710,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 	}
 #if ASTERISK_VERSION_NUMBER >= 10600
 	if (c->format & AST_FORMAT_SLINEAR16) {
-		//! \todo Check if the following makes DD's custom asterisk 1.6 patch obsolete. If yes, make it so and issue another release.
+		/*! \todo Check if the following would make the custom asterisk 1.6 patch obsolete. If yes issue another release (V3.0.1). */
 		//payloadType = 25;
 		//c->rtp.audio.rtp.current_RTP_PT[payloadType].code = AST_FORMAT_SLINEAR16;
 		//ast_rtp_set_m_type(c->rtp.audio.rtp, payloadType);
@@ -1919,8 +1919,9 @@ void sccp_channel_transfer_locked(sccp_channel_t * c)
 	}
 
 	sccp_device_lock(d);
+	
 	/* are we in the middle of a transfer? */
-	/*! \todo It is a bad idea to commence transfer twice on a channel already being transferred. (-DD) */
+	/*! \todo It is a bad idea to instigate transfer twice on a channel already being transferred. (-DD) */
 	if (d->transfer_channel && (d->transfer_channel != c)) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion\n", (d && d->id) ? d->id : "SCCP");
 		sccp_device_unlock(d);
@@ -2124,8 +2125,8 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal)
 	sccp_device_unlock(d);
 
 	if (!astcDestinationRemote) {
-		/* the channel was ringing not answered yet. BLIND TRANSFER */
-		/*! \todo Add appropriate log message. */
+		/* the channel was ringing and has not been answered yet. BLIND TRANSFER */
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Still Ringing -> BLIND Transfer\n", d->id);
 		return;
 	}
 
@@ -2309,10 +2310,9 @@ struct sccp_dual {
 /*!
  * \brief Channel Park Thread
  * \param stuff Stuff
- * \todo Some work to do i guess
- * \todo replace parameter stuff with something sensable
+ * \todo More work to do
  */
-static void *sccp_channel_park_thread(void *stuff)
+static void *sccp_channel_park_thread(void *dual_channels)
 {
 	struct ast_channel *chan1, *chan2;
 
@@ -2330,7 +2330,7 @@ static void *sccp_channel_park_thread(void *stuff)
 
 	memset(&extstr, 0, sizeof(extstr));
 
-	dual = stuff;
+	dual = dual_channels;
 	chan1 = dual->chan1;
 	chan2 = dual->chan2;
 	ast_free(dual);
@@ -2342,10 +2342,12 @@ static void *sccp_channel_park_thread(void *stuff)
 		extstr[0] = 128;
 		extstr[1] = SKINNY_LBL_CALL_PARK_AT;
 		sprintf(&extstr[2], " %d", ext);
-		if (chan2) {
+		if (chan2 && chan1) {
 			c = CS_AST_CHANNEL_PVT(chan2);
-			sccp_dev_displaynotify(c->device, extstr, 10);
-			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(c->device), chan1->name, ext);
+			if (c) {
+        			sccp_dev_displaynotify(c->device, extstr, 10);
+	        		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(c->device), chan1->name, ext);
+			}
 		}
 	}
 	if (chan2) {
