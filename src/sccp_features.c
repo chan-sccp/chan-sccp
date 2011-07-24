@@ -173,7 +173,7 @@ sccp_channel_t *sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * de
 
 	sccp_ast_setstate(c, AST_STATE_OFFHOOK);
 
-	if (device->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !(c->mediaStatus.receive)) {
+	if (device->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp.audio.rtp) {
 		sccp_channel_openreceivechannel_locked(c);
 	}
 

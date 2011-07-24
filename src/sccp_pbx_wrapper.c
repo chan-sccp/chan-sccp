@@ -729,10 +729,9 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c, struc
 	}
 #    endif
 	/* tell changes to asterisk */
-	// (DD) This might be very bad since it presumably triggers bridging.
-	//if (c->owner) {
-	//	ast_queue_frame(c->owner, &sccp_null_frame);
-	//}
+	if (c->owner) {
+		ast_queue_frame(c->owner, &sccp_null_frame);
+	}
 
 	if (c->rtp.audio.rtp) {
 		ast_rtp_codec_setpref(*new_rtp, (struct ast_codec_pref *)&c->codecs);
@@ -803,9 +802,9 @@ boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, struc
 	}
 #    endif
 	/* tell changes to asterisk */
-	//if ((*new_rtp) && c->owner) {
-	//	ast_queue_frame(c->owner, &sccp_null_frame);
-	//}
+	if ((*new_rtp) && c->owner) {
+		ast_queue_frame(c->owner, &sccp_null_frame);
+	}
 
 	if (*new_rtp) {
 		ast_rtp_codec_setpref(*new_rtp, (struct ast_codec_pref *)&c->codecs);
@@ -820,6 +819,10 @@ boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, struc
 		ast_rtp_settos(*new_rtp, c->line->video_tos);
 #endif
 		ast_rtp_setnat(*new_rtp, d->nat);
+#if ASTERISK_VERSION_NUMBER >= 10600
+		ast_rtp_codec_setpref(c->rtp.video.rtp, (struct ast_codec_pref *)&c->codecs);
+#endif
+
 	}
 
 	return TRUE;
@@ -843,8 +846,7 @@ enum ast_rtp_get_result sccp_wrapper_asterisk_get_rtp_peer(PBX_CHANNEL_TYPE * as
 
 	struct sccp_rtp *audioRTP = NULL;
 
-	//enum ast_rtp_get_result res = AST_RTP_TRY_NATIVE;
-	enum ast_rtp_get_result res = AST_RTP_TRY_PARTIAL;
+	enum ast_rtp_get_result res = AST_RTP_TRY_NATIVE;
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Asterisk requested RTP peer for channel %s\n", ast->name);
 
@@ -900,8 +902,7 @@ enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(PBX_CHANNEL_TYPE * 
 	sccp_rtp_info_t rtpInfo;
 	struct sccp_rtp *videoRTP = NULL;
 
-	enum ast_rtp_get_result res = AST_RTP_TRY_PARTIAL;
-	//enum ast_rtp_get_result res = AST_RTP_TRY_NATIVE;
+	enum ast_rtp_get_result res = AST_RTP_TRY_NATIVE;
 
 	if (NULL == ast) {
 		res = _RTP_GET_FAILED;
@@ -928,13 +929,11 @@ enum ast_rtp_glue_result sccp_wrapper_asterisk_get_vrtp_peer(PBX_CHANNEL_TYPE * 
 	ao2_ref(*rtp, +1);
 #endif
 
-	/* There is no jb for video (DD c/o DK)
 	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (asterisk_get_vrtp_peer) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
 		res = AST_RTP_GET_FAILED;
 		goto finished;
 	}
-	*/
 
 	if (!(rtpInfo & SCCP_RTP_INFO_ALLOW_DIRECTRTP)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (asterisk_get_vrtp_peer) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", ast->name);
