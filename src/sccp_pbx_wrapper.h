@@ -139,22 +139,6 @@ enum {
 #        define pbx_rtp_change_source ast_rtp_instance_change_source
 #        define pbx_rtp_new_source ast_rtp_instance_update_source
 #    endif
-// Differences in functions between 1.6 and 1.8
-// enum ast_extension_states {
-// typedef int (*ast_state_cb_type)(char *context, char* id, enum ast_extension_states state, void *data);
-// enum ast_pbx_result ast_pbx_start(PBX_CHANNEL_TYPE *c);
-// enum ast_extension_states ast_devstate_to_extenstate(enum ast_device_state devstate);
-// int ast_extension_state(PBX_CHANNEL_TYPE *c, const char *context, const char *exten);
-// const char *ast_extension_state2str(int extension_state);
-// int ast_extension_state_add(const char *context, const char *exten,
-// int ast_extension_state_del(int id, ast_state_cb_type callback);
-// int ast_exists_extension(PBX_CHANNEL_TYPE *c, const char *context, const char *exten,
-// int ast_canmatch_extension(PBX_CHANNEL_TYPE *c, const char *context,
-// int ast_matchmore_extension(PBX_CHANNEL_TYPE *c, const char *context,
-// int ast_ignore_pattern(const char *context, const char *pattern);
-// struct ast_ha *ast_duplicate_ha_list(struct ast_ha *original);
-// char *ast_read_textfile(const char *file);
-// int ast_db_deltree(const char *family, const char *keytree);
 
 // replacement implementations
 PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target);

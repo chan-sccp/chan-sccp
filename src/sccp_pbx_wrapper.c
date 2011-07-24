@@ -655,14 +655,7 @@ int sccp_wrapper_asterisk_rtp_stop(sccp_channel_t * channel)
  */
 int pbx_rtp_get_peer(PBX_RTP_TYPE * rtp, struct sockaddr_in *addr)
 {
-// #if ASTERISK_VERSION_NUMBER >= 10800
-//      struct ast_sockaddr addr_tmp;
-//      ast_rtp_instance_get_remote_address(rtp, &addr_tmp);
-//      ast_sockaddr_to_sin(&addr_tmp, &addr);
-//      return addr.sin_addr.s_addr;
-// #else
 	return ast_rtp_get_peer(rtp, addr);
-// #endif
 }
 
 /*!
@@ -676,13 +669,7 @@ int pbx_rtp_get_peer(PBX_RTP_TYPE * rtp, struct sockaddr_in *addr)
  */
 void pbx_rtp_get_us(PBX_RTP_TYPE * rtp, struct sockaddr_in *addr)
 {
-// #if ASTERISK_VERSION_NUMBER >= 10800
-//      struct ast_sockaddr addr_tmp;
-//      ast_rtp_instance_get_local_address(rtp, &addr_tmp);
-//      ast_sockaddr_to_sin(&addr_tmp, &addr);
-// #else
 	ast_rtp_get_us(rtp, addr);
-// #endif
 }
 
 /*!
@@ -693,13 +680,7 @@ void pbx_rtp_get_us(PBX_RTP_TYPE * rtp, struct sockaddr_in *addr)
  */
 void pbx_rtp_set_peer(PBX_RTP_TYPE * rtp, struct sockaddr_in *addr)
 {
-// #if ASTERISK_VERSION_NUMBER >= 10800
-//      struct ast_sockaddr addr_tmp;
-//      ast_sockaddr_from_sin(&addr_tmp, &addr);
-//      ast_rtp_instance_set_remote_address(rtp, &addr_tmp);
-// #else
 	ast_rtp_set_peer(rtp, addr);
-// #endif
 }
 
 /*!
@@ -763,10 +744,6 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c, struc
 		sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, set pef: %s\n", c->line->name, c->callid, pref_buf);
 	}
 #endif
-
-//        ast_set_flag(c->rtp.audio.rtp, FLAG_HAS_DTMF);
-//        ast_set_flag(c->rtp.audio.rtp, FLAG_P2P_NEED_DTMF);
-
 	if (*new_rtp) {
 #if ASTERISK_VERSION_NUMBER >= 10600
 		ast_rtp_setqos(*new_rtp, c->line->audio_tos, c->line->audio_cos, "SCCP RTP");
@@ -774,12 +751,6 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c, struc
 		ast_rtp_settos(*new_rtp, c->line->audio_tos);
 #endif
 		ast_rtp_setnat(*new_rtp, d->nat);
-
-/* //zwei mal gesetzt
-#if ASTERISK_VERSION_NUMBER >= 10600
-		ast_rtp_codec_setpref(c->rtp.audio.rtp, (struct ast_codec_pref *)&c->codecs);
-#endif
-*/
 	}
 
 	return TRUE;
@@ -846,10 +817,6 @@ boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, struc
 		sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, set pef: %s\n", c->line->name, c->callid, pref_buf);
 	}
 #endif
-
-//        ast_set_flag(c->rtp.audio.rtp, FLAG_HAS_DTMF);
-//        ast_set_flag(c->rtp.audio.rtp, FLAG_P2P_NEED_DTMF);
-
 	if (*new_rtp) {
 #if ASTERISK_VERSION_NUMBER >= 10600
 		ast_rtp_setqos(*new_rtp, c->line->video_tos, c->line->video_cos, "SCCP VRTP");
@@ -857,8 +824,6 @@ boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, struc
 		ast_rtp_settos(*new_rtp, c->line->video_tos);
 #endif
 		ast_rtp_setnat(*new_rtp, d->nat);
-
-
 #if ASTERISK_VERSION_NUMBER >= 10600
 		ast_rtp_codec_setpref(c->rtp.video.rtp, (struct ast_codec_pref *)&c->codecs);
 #endif

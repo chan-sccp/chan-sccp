@@ -92,7 +92,6 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 			sccp_channel_lock(c);
 			sccp_copy_string(c->dialedNumber, d->lastNumber, sizeof(c->dialedNumber));
 			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Get ready to redial number %s\n", d->id, d->lastNumber);
-			// c->digittimeout = time(0)+1;
 			SCCP_SCHED_DEL(sched, c->digittimeout);
 			sccp_pbx_softswitch_locked(c);
 			sccp_channel_unlock(c);
@@ -218,102 +217,12 @@ void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  */
 void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
-	/* Marcello's transfer experiment Remarked out becasue David/Steven advised against it - MC */
-#if 0
-	sccp_buttonconfig_t *config = NULL;
-
-	sccp_channel_t *channel = NULL;
-
-	sccp_line_t *line = NULL;
-
-	sccp_channel_t *transfereeChannel = NULL, *transferingChannel = NULL;
-#endif
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Transfer Pressed\n", DEV_ID_LOG(d));
 	if (!c) {
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Transfer when there is no active call\n", d->id);
 		return;
 	}
 
-	/* Marcello's transfer experiment Remarked out becasue David/Steven advised against it - MC */
-#if 0
-	if (d->transfer_channel && d->transfer_channel != c) {
-		sccp_channel_transfer_complete(c);
-		return;
-	}
-
-	/* if we have selected channels, check the number of channels */
-	if (d->selectedChannels.size == 2) {
-		sccp_selectedchannel_t *selectedChannel = NULL;
-
-		SCCP_LIST_LOCK(&d->selectedChannels);
-		SCCP_LIST_TRAVERSE(&d->selectedChannels, selectedChannel, list) {
-
-			if (selectedChannel->channel->state == SCCP_CHANNELSTATE_HOLD) {
-				transferingChannel = selectedChannel->channel;
-			} else {
-				transfereeChannel = selectedChannel->channel;
-			}
-
-		}
-		SCCP_LIST_UNLOCK(&d->selectedChannels);
-	} else {
-		/* lets search the channel */
-		uint8_t num = sccp_device_numberOfChannels(d);
-
-		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: number of channels %d\n", DEV_ID_LOG(d), num);
-		switch (num) {
-		case 1:
-			sccp_channel_transfer(c);
-			return;
-			break;
-
-		case 2:
-			/* lets select the channels */
-			SCCP_LIST_LOCK(&d->buttonconfig);
-			SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-				if (config->type == LINE) {
-					line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
-					if (!line)
-						continue;
-
-					SCCP_LIST_LOCK(&line->channels);
-					SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
-						if (channel->device == d) {
-							sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: state: %d\n", channel->owner->name, channel->state);
-
-							if (channel == d->transfer_channel || channel->state == SCCP_CHANNELSTATE_HOLD || channel->state == SCCP_CHANNELSTATE_CALLTRANSFER) {
-								transferingChannel = channel;
-							} else if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
-								transfereeChannel = channel;
-							}
-						}
-					}
-					SCCP_LIST_UNLOCK(&line->channels);
-				}
-			}
-			SCCP_LIST_UNLOCK(&d->buttonconfig);
-			break;
-
-		default:
-			sccp_dev_displayprompt(d, lineInstance, c->callid, "Use SELECT to complete transfer", 5);
-			return;
-			break;
-		}
-	}
-
-	if (transfereeChannel && transferingChannel) {
-		d->transfer_channel = transferingChannel;
-		sccp_channel_transfer_complete(transfereeChannel);
-	} else {
-		if (!transfereeChannel)
-			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: missing transferee channel\n", DEV_ID_LOG(d));
-
-		if (!transferingChannel)
-			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: missing transfering channel\n", DEV_ID_LOG(d));
-
-		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
-	}
-#endif
 	sccp_channel_lock(c);
 	sccp_channel_transfer_locked(c);
 	sccp_channel_unlock(c);
@@ -498,10 +407,10 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	if (!d)
 		return;
 
-		/* \todo: TODO: If we have only one selected channel but another active channel, this should suffice.
-		   Fix! Pressing select twice if it can be avoided is very annoying! */
+	/* \todo: If we have only one selected channel but another active channel, this should suffice.
+		  Fix! Pressing select twice if it can be avoided is very annoying! */
 	if ((sccp_device_selectedchannels_count(d)) != 2) {
-		/* \todo TODO: On shared lines it is only relevant how many _local_ channels (not in use remote) there are. Fix! */
+		/* \todo On shared lines it is only relevant how many _local_ channels (not in use remote) there are. Fix! */
 		if (SCCP_RWLIST_GETSIZE(l->channels) == 2) {
 			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Automatically select the two current channels\n", d->id);
 			SCCP_LIST_LOCK(&l->channels);
@@ -516,12 +425,10 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		} else if (SCCP_RWLIST_GETSIZE(l->channels) < 2) {
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Not enough channels to transfer\n", d->id);
 			sccp_dev_displayprompt(d, lineInstance, c->callid, "Not enough calls to trnsf", 5);
-//                      sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 			return;
 		} else {
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: More than 2 channels to transfer, please use softkey select\n", d->id);
 			sccp_dev_displayprompt(d, lineInstance, c->callid, "More than 2 calls, use " SKINNY_DISP_SELECT, 5);
-//                      sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 			return;
 		}
 	}
@@ -681,10 +588,6 @@ void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, const uint32_t lin
 		sccp_feat_handle_callforward(l, d, SCCP_CFWD_NOANSWER);
 	else
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, 1);
-
-	/*
-	   sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "### CFwdNoAnswer Softkey pressed - NOT SUPPORTED\n");
-	 */
 }
 
 /*!
@@ -924,24 +827,18 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  */
 void sccp_sk_dial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
-
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Dial Pressed\n", DEV_ID_LOG(d));
 	
- if (c) { // Handle termination of dialling if in appropriate state.
-    
-    	
-      /* Only handle this in DIALING state. AFAIK GETDIGITS is used only for call forward and related input functions. (-DD) */
-      if ( (c->state == SCCP_CHANNELSTATE_DIALING) ) {
-          
-            /* removing scheduled dial */
-		        sccp_channel_lock(c);
-            SCCP_SCHED_DEL(sched, c->digittimeout);
-            sccp_pbx_softswitch_locked(c);
-            sccp_channel_unlock(c);
-            return;
-          
-      }
-	  
+	if (c) { // Handle termination of dialling if in appropriate state.
+		/* Only handle this in DIALING state. AFAIK GETDIGITS is used only for call forward and related input functions. (-DD) */
+		if ( (c->state == SCCP_CHANNELSTATE_DIALING) ) {
+			/* removing scheduled dial */
+			sccp_channel_lock(c);
+			SCCP_SCHED_DEL(sched, c->digittimeout);
+			sccp_pbx_softswitch_locked(c);
+			sccp_channel_unlock(c);
+			return;
+		}
 	}
 }
 

@@ -59,7 +59,6 @@ sccp_channel_t *sccp_channel_find_bystate_on_device_locked(sccp_device_t * d, ui
 void sccp_ast_setstate(const sccp_channel_t * c, int state);
 
 void sccp_dev_dbput(sccp_device_t * d);
-void sccp_dev_dbget(sccp_device_t * d);
 void sccp_dev_dbclean(void);
 
 #    define _ARR2STR(arrayname, lookup_var, lookup_val, return_var) \
