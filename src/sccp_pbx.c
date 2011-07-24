@@ -566,8 +566,10 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 			ast_log(LOG_NOTICE, "SCCP: bridge: %s\n", (br) ? br->name : " -- no bridged found -- ");
 
 			/* set the channel and the bridge to state UP to fix problem with fast pickup / autoanswer */
-			ast_setstate(ast, AST_STATE_UP);
-			ast_setstate(br, AST_STATE_UP);
+			/* (DD) Maybe this is very wrong!
+			//ast_setstate(ast, AST_STATE_UP);
+			//ast_setstate(br, AST_STATE_UP);
+			*/
 
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) Going to Masquerade %s into %s\n", br->name, astForwardedChannel->name);
 			if (ast_channel_masquerade(astForwardedChannel, br)) {
@@ -760,11 +762,11 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame)
 			if ((c->rtp.video.status & SCCP_RTP_STATUS_PROGRESS_RECEIVE) == 0 && (c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) == 0 && c->rtp.video.rtp && c->device && (frame->subclass & AST_FORMAT_VIDEO_MASK)
 			    //      && (c->device->capability & frame->subclass) 
 			    ) {
-				ast_log(LOG_NOTICE, "%s: got video frame\n", DEV_ID_LOG(c->device));
-				c->rtp.video.writeFormat = (frame->subclass & AST_FORMAT_VIDEO_MASK);
-				sccp_channel_openMultiMediaChannel(c);
-				c->rtp.video.status |= SCCP_RTP_STATUS_PROGRESS_RECEIVE;
-			}
+				ast_log(LOG_NOTICE, "%s: got video frame but we are not ready to receive video.\n", DEV_ID_LOG(c->device));
+				//c->rtp.video.writeFormat = (frame->subclass & AST_FORMAT_VIDEO_MASK);
+				//sccp_channel_openMultiMediaChannel(c);
+				//c->rtp.video.status |= SCCP_RTP_STATUS_PROGRESS_RECEIVE;
+			} 
 #endif
 			if (c->rtp.video.rtp && (c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) != 0) {
 				res = sccp_rtp_write(c->rtp.video.rtp, frame);
@@ -981,6 +983,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 
 		if (oldChannelReqFormat != c->requestedFormat) {
 			/* notify of changing format */
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Source UPDATE request has lead to capability update.\n");
 			sccp_channel_updateChannelCapability_locked(c);
 		}
 
@@ -988,6 +991,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		if (c->rtp.audio.rtp) {
 			if (oldChannelFormat != c->format) {
 				if (c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE) {
+					sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Source UPDATE request has lead to reopening streams.\n");
 					sccp_channel_closereceivechannel_locked(c);	/* close the already openend receivechannel */
 					sccp_channel_openreceivechannel_locked(c);	/* reopen it */
 				}
@@ -1676,6 +1680,8 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 
 	unsigned int len = 0;
 
+	int res = 0;
+
 	sccp_line_t *l;
 
 	sccp_device_t *d;
@@ -1892,7 +1898,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 		  case AST_PBX_FAILED:
 			ast_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 			/* \todo change indicate to something more suitable */
-			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
+			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_CONGESTION);
 			break;
 		  case AST_PBX_CALL_LIMIT:
 			ast_log(LOG_WARNING, "%s: (sccp_pbx_softswitch) call limit reached for channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
@@ -2061,7 +2067,8 @@ const struct ast_channel_tech sccp_tech = {
 #    endif									// ASTERISK_VERSION_NUMBER < 10400
 
 #    if ASTERISK_VERSION_NUMBER >= 10600
-	.early_bridge = ast_rtp_early_bridge,
+	//.early_bridge = ast_rtp_early_bridge,
+	.early_bridge = NULL,
 	.get_pvt_uniqueid = sccp_pbx_get_callid,
 #    endif									// ASTERISK_VERSION_NUMBER >= 10600
 };
@@ -2076,6 +2083,8 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 
 	/* \note temporarily marked out until we figure out how to get directrtp back on track - DdG */
 	sccp_channel_t *sc0, *sc1;
+
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "SCCP: Bridge called for chan %s and chan %s.\n", c0->name, c1->name);
 
 	if ((sc0 = get_sccp_channel_from_ast_channel(c0)) && (sc1 = get_sccp_channel_from_ast_channel(c1))) {
 		// Switch off DTMF between SCCP phones

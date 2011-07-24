@@ -729,9 +729,10 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c, struc
 	}
 #    endif
 	/* tell changes to asterisk */
-	if (c->owner) {
-		ast_queue_frame(c->owner, &sccp_null_frame);
-	}
+	// (DD) This might be very bad since it presumably triggers bridging.
+	//if (c->owner) {
+	//	ast_queue_frame(c->owner, &sccp_null_frame);
+	//}
 
 	if (c->rtp.audio.rtp) {
 		ast_rtp_codec_setpref(*new_rtp, (struct ast_codec_pref *)&c->codecs);
@@ -802,9 +803,9 @@ boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, struc
 	}
 #    endif
 	/* tell changes to asterisk */
-	if ((*new_rtp) && c->owner) {
-		ast_queue_frame(c->owner, &sccp_null_frame);
-	}
+	//if ((*new_rtp) && c->owner) {
+	//	ast_queue_frame(c->owner, &sccp_null_frame);
+	//}
 
 	if (*new_rtp) {
 		ast_rtp_codec_setpref(*new_rtp, (struct ast_codec_pref *)&c->codecs);
@@ -819,10 +820,6 @@ boolean_t sccp_wrapper_asterisk_create_video_rtp(const sccp_channel_t * c, struc
 		ast_rtp_settos(*new_rtp, c->line->video_tos);
 #endif
 		ast_rtp_setnat(*new_rtp, d->nat);
-#if ASTERISK_VERSION_NUMBER >= 10600
-		ast_rtp_codec_setpref(c->rtp.video.rtp, (struct ast_codec_pref *)&c->codecs);
-#endif
-
 	}
 
 	return TRUE;
