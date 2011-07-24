@@ -1881,10 +1881,11 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x is dialing number %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 		/* Answer dialplan command works only when in RINGING OR RING ast_state */
 		sccp_ast_setstate(c, AST_STATE_RING);
-		if (ast_pbx_start(chan)) {
-#warning this code block need to be checked before stable
-			/*! \todo actually the next line is not correct. ast_pbx_start returns false when it was not able to start a new thread correcly */
+		if (AST_PBX_FAILED==ast_pbx_start(chan)) {
 			ast_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
+			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
+		} else if (AST_PBX_CALL_LIMIT==ast_pbx_start(chan)) {
+			ast_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) call limit reached for channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 		}
 #ifdef CS_MANAGER_EVENTS
