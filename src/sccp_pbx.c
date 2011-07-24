@@ -1883,10 +1883,11 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 		sccp_ast_setstate(c, AST_STATE_RING);
 		if (AST_PBX_FAILED==ast_pbx_start(chan)) {
 			ast_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
+			/* \todo change indicate to something more suitable */
 			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 		} else if (AST_PBX_CALL_LIMIT==ast_pbx_start(chan)) {
-			ast_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) call limit reached for channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
-			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
+			ast_log(LOG_WARNING, "%s: (sccp_pbx_softswitch) call limit reached for channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
+			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_CONGESTION);
 		}
 #ifdef CS_MANAGER_EVENTS
 		if (GLOB(callevents)) {
