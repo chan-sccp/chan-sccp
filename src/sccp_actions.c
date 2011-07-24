@@ -2411,9 +2411,8 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
-			if (!(c->rtp.video.rtp) && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
+			if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
 				sccp_ast_setstate(c, AST_STATE_UP);
-				ast_queue_frame(c->owner, &sccp_null_frame);
 				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
 			}
 
@@ -2491,15 +2490,8 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 			ast_rtp_set_peer(c->rtp.video.rtp, &sin);
 			c->rtp.video.status &= ~SCCP_RTP_STATUS_PROGRESS_RECEIVE;
 			c->rtp.video.status |= SCCP_RTP_STATUS_RECEIVE;
-			c->rtp.video.status |= SCCP_RTP_STATUS_TRANSMIT; //! \todo dirty! Actually the ack for the start multimedia transmission is missing.
 			//if (c->state == SCCP_CHANNELSTATE_CONNECTED)
 			//sccp_ast_setstate(c, AST_STATE_UP);
-			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
-			if ((c->rtp.video.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE)) {
-				sccp_ast_setstate(c, AST_STATE_UP);
-				ast_queue_frame(c->owner, &sccp_null_frame);
-				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
-			}
 		} else {
 			ast_log(LOG_ERROR, "%s: Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 		}
@@ -3072,9 +3064,8 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 	c->rtp.audio.status &= ~SCCP_RTP_STATUS_PROGRESS_TRANSMIT;
 	c->rtp.audio.status |= SCCP_RTP_STATUS_TRANSMIT;
 	/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
-	if (!(c->rtp.video.rtp) && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
+	if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
 		sccp_ast_setstate(c, AST_STATE_UP);
-		ast_queue_frame(c->owner, &sccp_null_frame);
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
 	}
 
