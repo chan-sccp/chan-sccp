@@ -13,6 +13,7 @@ AC_INIT([Chan_SCCP],
         [Chan_SCCP])
 
 MAX_ASTERISK_VERSION=106
+AC_USE_SYSTEM_EXTENSIONS
 
 AC_CONFIG_AUX_DIR([autoconf])
 AC_CONFIG_MACRO_DIR([autoconf])
@@ -41,7 +42,6 @@ AH_TOP([
 #define CHAN_SCCP_CONFIG_H
 ])
 
-AC_USE_SYSTEM_EXTENSIONS
 CONFIGURE_PART([Checking AutoMake:])
 AM_INIT_AUTOMAKE([1.9 -Wno-portability check-news dist-bzip2 dist-tarZ no-define nostdinc])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
