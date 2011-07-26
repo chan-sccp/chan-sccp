@@ -709,7 +709,7 @@
  * can add "defaultSubscriptionId_number = " to the line definition in sccp.conf.
  *
  * When "silent" is added to the subscriptionId this line will not ring if the shared line is called, this can be used when a secretary is supposed to 
- * handle all incoming calls on a shared line. Only when the extension including the suffix/subsriptionId is called will this line ring.
+ * handle all incoming calls on a shared line. Only when the extension including the suffix/subscriptionId is called will this line ring.
  *
  **/
 
