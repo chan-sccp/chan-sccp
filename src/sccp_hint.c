@@ -633,13 +633,13 @@ void sccp_hint_notifyAsterisk(sccp_line_t * line, sccp_channelState_t state)
 	if (!line)
 		return;
 
-#ifdef CS_NEW_DEVICESTATE
-#    ifdef CS_DEVSTATE_FEATURE
+#  ifdef CS_DEVSTATE_FEATURE
+#    ifdef CS_NEW_DEVICESTATE
 
-#    ifndef AST_EVENT_IE_CIDNAME
+#      ifndef AST_EVENT_IE_CIDNAME
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", channelstate2str(state), state, astdevicestate2str(sccp_channelState2AstDeviceState(state)), sccp_channelState2AstDeviceState(state), line->name);
 	ast_devstate_changed(sccp_channelState2AstDeviceState(state), "SCCP/%s", line->name);
-#    else
+#      else
 	struct ast_event *event;
 
 	char channelName[100];
@@ -652,12 +652,12 @@ void sccp_hint_notifyAsterisk(sccp_line_t * line, sccp_channelState_t state)
 		ast_devstate_changed(sccp_channelState2AstDeviceState(state), "%s", channelName);
 		return;
 	}
-#    endif									// AST_EVENT_IE_CIDNAME
+#      endif									// AST_EVENT_IE_CIDNAME
 
-#else
+#    else
 	ast_device_state_changed("SCCP/%s", line->name);
-#endif										// CS_NEW_DEVICESTATE
-#endif
+#    endif										// CS_NEW_DEVICESTATE
+#  endif
 }
 
 /* private functions */
