@@ -1,5 +1,62 @@
 2011-07-24  ddegroot
 
+	* [r2644] autoconf/asterisk.m4, autoconf/extra.m4,
+	  autoconf/libtool.m4, configure: Fix version recognition, autoconf
+	  warnings
+
+2011-07-24  davidded
+
+	* [r2643] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_features.c, src/sccp_indicate.c, src/sccp_pbx.c,
+	  src/sccp_pbx_wrapper.c: FIX: Must not change incoming rtp frames,
+	  otherwise the global null frame can be alteres, leading to highly
+	  obscure problems
+
+	* [r2642] src/sccp_pbx.c: fixed broken video rtp - must not modify
+	  incoming frame.
+
+	* [r2641] src/sccp_channel.c, src/sccp_features.c,
+	  src/sccp_pbx_wrapper.c: broken audio situation by refactoring rtp
+
+2011-07-24  ddegroot
+
+	* [r2640] autoconf/asterisk.m4, autoconf/extra.m4, configure,
+	  configure.ac: Asterisk Version Detection Fix
+
+2011-07-24  davidded
+
+	* [r2639] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_features.c, src/sccp_indicate.c, src/sccp_pbx.c,
+	  src/sccp_pbx_wrapper.c: broken audio situation by refactoring rtp
+
+2011-07-24  ddegroot
+
+	* [r2638] ChangeLog, src/sccp_pbx.c: Warnings clarified by Marcello
+
+2011-07-24  marcelloceschia
+
+	* [r2637] src/sccp_pbx.c: fixes issue with start pbx reported by
+	  robert tausend
+
+2011-07-24  ddegroot
+
+	* [r2636] src/sccp_channel.c: change start vrtp server to eager
+	  implementation
+
+	* [r2635] src/sccp_pbx.c: When ast_pbx_start call limit reached,
+	  issue CHANNELSTATE_CONGESTION
+
+	* [r2634] src/sccp_pbx.c: Clarified ast_pbx_start
+
+	* [r2633] src/chan_sccp.c, src/sccp_actions.c,
+	  src/sccp_appfunctions.c, src/sccp_channel.c, src/sccp_cli.c,
+	  src/sccp_conference.c, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_features.c, src/sccp_hint.c, src/sccp_indicate.c,
+	  src/sccp_line.c, src/sccp_management.c, src/sccp_mwi.c,
+	  src/sccp_pbx.c, src/sccp_pbx_wrapper.c, src/sccp_protocol.h,
+	  src/sccp_softkeys.c, src/sccp_utils.c, src/sccp_utils.h: Removed
+	  / Fixed some todo's
+
 	* [r2632] src/chan_sccp.c, src/chan_sccp.h, src/common.h,
 	  src/sccp_actions.c, src/sccp_actions.h, src/sccp_adv_features.h,
 	  src/sccp_appfunctions.c, src/sccp_appfunctions.h,

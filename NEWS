@@ -1,5 +1,17 @@
+Version: 3.0.0_STABLE
+============================
+Added Functionality:
+ - improved Video Support
+
+Fixed/Improved:
+ - bug fixes for locking
+ - bug fixes in codec handling
+ - bug fixes in rtp handling
+ - configure updates 
+
+
 Version: 3.0_RC3.1
-===================
+============================
 Added Functionality:
  - Major overhaul of the locking system
  - Moved from using socket_select to socket_poll
@@ -13,7 +25,7 @@ Fixed/Improved:
  - documentation updates
 
 Version: 3.0_RC3
-===================
+============================
 Added Functionality:
  - Dialplan Function SCCPDEVICE, SCCPLINE and SCCPCHANNEL
  - DevState Feature Button (--enable-devstate)
@@ -32,7 +44,7 @@ Fixed/Improved:
  - documentation updates
 
 Version: 3.0_RC2
-================
+============================
 Added Functionality:
  - sccp reload
  - dynamic speeddial with and without callerid
@@ -42,7 +54,7 @@ Fixed/Improved:
  - improved callerid passing during call forward
 
 Version: 3.0_RC1
-================
+============================
 Added Functionality: 
  - HotLine
  - Shared Lines
@@ -56,6 +68,3 @@ Fixed/Improved:
  - Group pickup
  - Call parking
 
-Version: 3.0_PreRC3
-
-Version: 3.0_PreRC4
