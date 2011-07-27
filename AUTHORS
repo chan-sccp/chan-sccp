@@ -1,0 +1,73 @@
+/**
+ * 
+ * \file
+ * Contains the list of Chan-SCCP-b Authors
+ *
+ * To report Bugs, Issues and Featuren Request, please do not contact the
+ * developers directly, but always use the Tracker System on Sourceforge:
+ * http://sourceforge.net/tracker/?words=tracker_browse&group_id=186378&atid=917045
+ *
+ * \note        Reworked, but based on chan_sccp code.
+ *              The original chan_sccp driver that was made by Zozo which
+ * 		itself was derived from the chan_skinny driver.
+ *              Modified by Jan Czmok and Julien Goodwin
+ *
+ * \page authors Chan-SCCP-b Authors
+ * \section sec_authors Chan-SCCP-b Authors
+ *  
+ * \subsection auth_anthonyshaw Anthony Shaw
+ * UserName:	anthonyshaw				\n
+ * Role:	Project Admin/Developer			\n
+ * E-Mail:	anthonyshaw@users.sourceforge.net 	\n
+ * 
+ * \subsection auth_marcelloceschia Marcello Ceschia
+ * UserName: 	marcelloceschia				\n
+ * Role:	Project Admin/Developer (Trunk)		\n
+ * E-Mail:	marcelloceschia@users.sourceforge.net\n
+ * 
+ * \subsection auth_scotchy Scotchy
+ * UserName:	scotchy					\n
+ * Role:	Project Admin/Developer 		\n
+ * E-Mail:	scotchy@users.sourceforge.net 		\n
+ * 
+ * \subsection auth_davidded David Dederscheck
+ * UserName:	davidded				\n
+ * Role:	Project Manager/Developer (Trunk)	\n
+ * E-Mail:	davidded@users.sourceforge.net 		\n
+ * 
+ * \subsection auth_andrewylee Andrew Lee
+ * UserName: 	andrewylee  				\n
+ * Role:	Developer  				\n
+ * E-Mail:	andrewylee@users.sourceforge.net	\n
+ * 
+ * \subsection auth_ddegroot Diederik de Groot
+ * UserName:	ddegroot 				\n
+ * Role:	Content Management (Trunk)		\n
+ * E-Mail:	ddegroot@users.sourceforge.net 	\n
+ * 
+ * \subsection auth_fsantulli Federico Santulli
+ * UserName:	fsantulli 				\n
+ * Role:	Developer (Stable Maintainer)		\n
+ * E-Mail:	fsantulli@users.sourceforge.net 	\n
+ * 
+ * \subsection auth_gthornton Geoff Thornton
+ * UserName:	gthornton 				\n
+ * Role:	Developer 				\n
+ * E-Mail:	gthornton@users.sourceforge.net 	\n
+ * 
+ * \subsection auth_macdiver macdiver
+ * UserName:	macdiver 				\n
+ * Role:	Developer 				\n
+ * E-Mail:	macdiver@users.sourceforge.net 	\n
+ * 
+ * \subsection auth_sebbbl Sebastian Vetter
+ * UserName:	sebbbl 					\n
+ * Role:	Doc Writer 				\n
+ * E-Mail:	sebbbl@users.sourceforge.net		\n
+ *
+ * \subsection auth_progs Romain Bignon
+ * UserName:	progs 					\n
+ * Role:	Developer 				\n
+ * E-Mail:	progs@users.sourceforge.net		\n
+ *
+ */

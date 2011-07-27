@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<device>
+	<fullConfig>true</fullConfig>
+	<deviceProtocol>SCCP</deviceProtocol>
+	<sshUserId></sshUserId>
+	<sshPassword></sshPassword>
+	<devicePool  uuid="{1b1b9eb6-7803-11d3-bdf0-00108302ead1}">
+		<revertPriority>0</revertPriority>
+		<name>Default</name>
+		<dateTimeSetting  uuid="{9ec4850a-7748-11d3-bdf0-00108302ead1}">
+			<name>CMLocal</name>
+			<dateTemplate>D.M.Y</dateTemplate>
+			<timeZone>W. Europe Standard/Daylight Time</timeZone>
+		</dateTimeSetting>
+		<callManagerGroup>
+			<name>Default</name>
+			<tftpDefault>true</tftpDefault>
+			<members>
+				<member  priority="0">
+					<callManager>
+						<name>asterisk1</name>
+						<description>primairy asterisk server</description>
+						<ports>
+							<ethernetPhonePort>2000</ethernetPhonePort>
+							<sipPort>5060</sipPort>
+							<securedSipPort>5061</securedSipPort>
+							<mgcpPorts>
+								<listen>2427</listen>
+								<keepAlive>2428</keepAlive>
+							</mgcpPorts>
+						</ports>
+						<processNodeName>x.x.x.x</processNodeName>
+					</callManager>
+					<callManager>
+						<name>asterisk2</name>
+						<description>primairy asterisk server</description>
+						<ports>
+							<ethernetPhonePort>2000</ethernetPhonePort>
+							<sipPort>5060</sipPort>
+							<securedSipPort>5061</securedSipPort>
+							<mgcpPorts>
+								<listen>2427</listen>
+								<keepAlive>2428</keepAlive>
+							</mgcpPorts>
+						</ports>
+						<processNodeName>x.x.x.x</processNodeName>
+					</callManager>
+				</member>
+				<member  priority="1">			<!-- Fall Back -->
+					<callManager>
+						<name>asterisk-backup</name>
+						<description>asterisk-backup</description>
+						<ports>
+							<ethernetPhonePort>2000</ethernetPhonePort>
+							<sipPort>5060</sipPort>
+							<securedSipPort>5061</securedSipPort>
+							<mgcpPorts>
+								<listen>2427</listen>
+								<keepAlive>2428</keepAlive>
+							</mgcpPorts>
+						</ports>
+						<processNodeName>x.x.x.x</processNodeName>
+					</callManager>
+				</member>
+			</members>
+		</callManagerGroup>
+		<srstInfo  uuid="{cd241e11-4a58-4d3d-9661-f06c912a18a3}">
+			<name>Disable</name>
+			<srstOption>Disable</srstOption>
+			<userModifiable>true</userModifiable>
+			<ipAddr1>x.x.x.x</ipAddr1>
+			<port1>2000</port1>
+			<ipAddr2>x.x.x.x</ipAddr2>
+			<port2>2000</port2>
+			<ipAddr3>x.x.x.x</ipAddr3>
+			<port3>2000</port3>
+			<sipIpAddr1></sipIpAddr1>
+			<sipPort1>5060</sipPort1>
+			<sipIpAddr2></sipIpAddr2>
+			<sipPort2>5060</sipPort2>
+			<sipIpAddr3></sipIpAddr3>
+			<sipPort3>5060</sipPort3>
+			<isSecure>false</isSecure>
+		</srstInfo>
+		<mlppDomainId>-1</mlppDomainId>
+		<mlppIndicationStatus>Default</mlppIndicationStatus>
+		<preemption>Default</preemption>
+		<connectionMonitorDuration>120</connectionMonitorDuration>
+	</devicePool>
+	<commonProfile>
+		<phonePassword></phonePassword>
+		<defaultBackground></defaultBackground>
+		<backgroundImageAccess>true</backgroundImageAccess>
+		<callLogBlfEnabled>2</callLogBlfEnabled>
+	</commonProfile>
+
+	<loadInformation>SCCP70.8-5-4S</loadInformation>		<!-- Set the correct firmware version -->
+	
+	<addOnModules>
+<!--
+		<addOnModule idx="1">
+			<loadInformation>S00105000400</loadInformation>
+		</addOnModule>
+-->
+	</addOnModules>
+	
+	<vendorConfig>
+		<disableSpeaker>false</disableSpeaker>
+		<disableSpeakerAndHeadset>false</disableSpeakerAndHeadset>
+		<forwardingDelay>1</forwardingDelay>
+		<pcPort>0</pcPort>
+		<settingsAccess>1</settingsAccess>
+		<garp>1</garp>
+		<voiceVlanAccess>0</voiceVlanAccess>
+		<videoCapability>1</videoCapability>
+		<autoSelectLineEnable>0</autoSelectLineEnable>
+		<webAccess>0</webAccess>
+		
+		<!-- Power Save Configuration -->
+		<daysDisplayNotActive>1,2,3,4,5,6,7</daysDisplayNotActive>
+		<displayOnTime>07:30</displayOnTime>
+		<displayOnDuration>10:30</displayOnDuration>
+		<displayIdleTimeout>00:10</displayIdleTimeout>
+		<displayOnWhenIncomingCall>1</displayOnWhenIncomingCall>
+		
+		
+		<spanToPCPort>0</spanToPCPort>
+		<loggingDisplay>1</loggingDisplay>
+		
+		<loadServer></loadServer>
+		<recordingTone>0</recordingTone>
+		<recordingToneLocalVolume>100</recordingToneLocalVolume>
+		<recordingToneRemoteVolume>50</recordingToneRemoteVolume>
+		<recordingToneDuration></recordingToneDuration>
+		
+		<rtcp>0</rtcp>
+		<moreKeyReversionTimer>5</moreKeyReversionTimer>
+		<autoCallSelect>1</autoCallSelect>
+		<logServer></logServer>
+		<g722CodecSupport>0</g722CodecSupport>
+		<headsetWidebandUIControl>0</headsetWidebandUIControl>
+		<handsetWidebandUIControl>0</handsetWidebandUIControl>
+		
+		<headsetWidebandEnable>0</headsetWidebandEnable>
+		<handsetWidebandEnable>0</handsetWidebandEnable>
+		
+		<peerFirmwareSharing>1</peerFirmwareSharing>
+		<enableCdpSwPort>1</enableCdpSwPort>
+		<enableCdpPcPort>1</enableCdpPcPort>
+		<enableLldpSwPort>1</enableLldpSwPort>
+		<enableLldpPcPort>1</enableLldpPcPort>
+		<lldpAssetId></lldpAssetId>
+		<powerPriority>1</powerPriority>
+	</vendorConfig>
+	<versionStamp>1231176639-afb83e8d-60c2-4c00-b44a-74941a6451e8</versionStamp>
+	<userLocale>
+		<name>English_United_States</name>
+		<uid>1</uid>
+		<langCode>en_US</langCode>
+		<version>7.1.0.1(1)</version>
+		<winCharSet>iso-8859-1</winCharSet>
+	</userLocale>
+	<networkLocale>United_States</networkLocale>
+	<networkLocaleInfo>
+		<name>United_States</name>
+		<uid>64</uid>
+		<version>7.1.0.1(1)</version>
+	</networkLocaleInfo>
+	<deviceSecurityMode>1</deviceSecurityMode>
+	
+	<authenticationURL></authenticationURL>
+	<directoryURL></directoryURL>
+	<idleURL></idleURL>
+	<idleTimeout>0</idleTimeout>
+	<informationURL></informationURL>
+	<messagesURL></messagesURL>
+	<proxyServerURL></proxyServerURL>
+	<servicesURL></servicesURL>
+	
+	<dscpForSCCPPhoneConfig>104</dscpForSCCPPhoneConfig>
+	<dscpForSCCPPhoneServices>0</dscpForSCCPPhoneServices>
+	<dscpForCm2Dvce>184</dscpForCm2Dvce>
+	<transportLayerProtocol>4</transportLayerProtocol>
+	<dndCallAlert>5</dndCallAlert>
+	<phonePersonalization>1</phonePersonalization>
+	<rollover>0</rollover>
+	<singleButtonBarge>1</singleButtonBarge>
+	<joinAcrossLines>1</joinAcrossLines>
+	<autoCallPickupEnable>false</autoCallPickupEnable>
+	<blfAudibleAlertSettingOfIdleStation>1</blfAudibleAlertSettingOfIdleStation>
+	<blfAudibleAlertSettingOfBusyStation>1</blfAudibleAlertSettingOfBusyStation>
+	<advertiseG722Codec>1</advertiseG722Codec>
+	<mobility>
+		<handoffdn></handoffdn>
+		<dtmfdn></dtmfdn>
+		<ivrdn></ivrdn>
+		<dtmfHoldCode>*81</dtmfHoldCode>
+		<dtmfExclusiveHoldCode>*82</dtmfExclusiveHoldCode>
+		<dtmfResumeCode>*83</dtmfResumeCode>
+		<dtmfTxfCode>*84</dtmfTxfCode>
+		<dtmfCnfCode>*85</dtmfCnfCode>
+	</mobility>
+	<userId></userId>
+	<idleTimeout>3600</idleTimeout>
+	<authenticationURL>http://x.x.x.x/cisco_menu/authentication.php</authenticationURL>
+	<idleURL>http://x.x.x.x/cisco_menu/idle.php</idleURL> 
+	<informationURL>http://x.x.x.x/cisco_menu/help/help.php</informationURL> 
+	<messagesURL></messagesURL> 
+	<proxyServerURL></proxyServerURL> 
+	<servicesURL>http://x.x.x.x/cisco_menu/menu.php</servicesURL> 
+	<directoryURL>http://x.x.x.x/cisco_menu/directory/menu.php</directoryURL>
+	<!--
+	<phoneServices>
+	
+		<provisioning>0</provisioning>
+		<phoneService  type="1" category="0">
+			<name>Missed Calls</name>
+			<url>Application:Cisco/MissedCalls</url>
+			<vendor></vendor>
+			<version></version>
+		</phoneService>
+		<phoneService  type="1" category="0">
+			<name>Voicemail</name>
+			<url>Application:Cisco/Voicemail</url>
+			<vendor></vendor>
+			<version></version>
+		</phoneService>
+		<phoneService  type="1" category="0">
+			<name>Received Calls</name>
+			<url>Application:Cisco/ReceivedCalls</url>
+			<vendor></vendor>
+			<version></version>
+		</phoneService>
+		<phoneService  type="1" category="0">
+			<name>Placed Calls</name>
+			<url>Application:Cisco/PlacedCalls</url>
+			<vendor></vendor>
+			<version></version>
+		</phoneService>
+		<phoneService  type="1" category="0">
+			<name>Personal Directory</name>
+			<url>Application:Cisco/PersonalDirectory</url>
+			<vendor></vendor>
+			<version></version>
+		</phoneService>
+		<phoneService  type="0" category="0">
+			<name>Corporate Directory</name>
+			<url>Application:Cisco/CorporateDirectory</url>
+			<vendor></vendor>
+			<version></version>
+		</phoneService>
+		
+	</phoneServices>
+-->
+	<capfAuthMode>1</capfAuthMode>
+	<capfList>
+		<capf>
+			<phonePort>3804</phonePort>
+			<processNodeName></processNodeName>
+		</capf>
+		<capf6>
+			<phonePort>3804</phonePort>
+			<processNodeName></processNodeName>
+		</capf6>
+	</capfList>
+	<certHash></certHash>
+	<encrConfig>false</encrConfig>
+</device>

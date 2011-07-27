@@ -1,0 +1,15 @@
+/.tmp
+/.hgignore
+/.hgtags
+/.project
+/.cproject
+/config.h
+/Makefile*
+/config.log
+/config.status
+/autom4te.cache
+/changes.patch
+/ChangeLog
+/doxygen.warn
+/libtool
+src/.libs/

@@ -1,0 +1,63 @@
+/*!
+ * \file 	02_What_Is_Chan_SCCP.doc
+ * \brief 	An implementation of Skinny Client Control Protocol (SCCP)
+ * \author 	Diederik de Groot <dkgroot [at] talon.nl>
+ * \since	2009-11-12
+ * \brief 	Main Documentation
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \version	$Revision: 1369 $
+ * \date	$date$
+ **/
+
+/*!
+ * \file 
+ * Contains extra comments for Doxygen.
+ *
+ * You could read the documentation from this file; but it would probably
+ * be easier to go to http://chan-sccp-b.sourceforge.net 
+ *
+ **/
+
+/*!
+ * \page 	what_sccp 		What is Chan_SCCP
+ *
+ * \section 	what_is_chan_sccp 	What is Chan_SCCP
+ * 
+ * Chan_SCCP is a replacement Channel Driver for chan_skinny in the Asterisk Channel Driver Library. It delivers
+ * better performance, scalability, interoperability and functionality than either chan_skinny or chan_sip on a 
+ * SCCP capable phone. It is still under heavy development but a stable release is also available for you to use.
+ *
+ * To learn more about asterisk check out this page: <a href="http://www.aosabook.org/en/asterisk.html">The architecture of OS Applications: Asterisk </a>.
+ * 
+ * \subsection 	what_sccp_ss1		SCCP in relation to SIP/IAX/MGCP
+ *
+ * There are several methods to communicate with a VOIP Server. Next to the well known SIP Protocol there are 
+ * Several others like: MGCP, IAX, IAX2, SS7 and SCCP. The SCCP protocol is sometimes refered to as SKINNY. 
+ * 
+ * Several VOIP Phone Resellers have create phones that use the SCCP Protocol. The most well known at this moment
+ * is CISCO, but there are others like Kirk, Ixia, Symbol Techologies, SocketIP, Digium and Nokia.
+ *
+ * IPBlue markets a software phone (soft phone) which uses SCCP for signaling and emulates a Cisco 7960 hardware phone.
+ *
+ * \subsection 	what_sccp_ss2 		SCCP as a Protocol
+ * 
+ * The Skinny Call Control Protocol a.k.a Signalling Connection Control Part (SCCP, Q.713, or short Skinny) is a 
+ * proprietary network terminal control protocol originally developed by Selsius Corporation. The term "Skinny" 
+ * reflects that SCCP is a simple and uncomplicated ("lightweight") protocol requiring relatively little computer 
+ * processing. 
+ * 
+ * The SCCP technology is now owned and defined by Cisco Systems, Inc. as a messaging system between a Skinny 
+ * client and the Cisco CallManager. Examples of skinny clients include the Cisco 7900 series of IP phones, 
+ * Cisco IP Communicator softphone and the 802.11b wireless Cisco 7920.
+ * 
+ * Skinny is a lightweight protocol which allows for efficient communication with Asterisk. The SCCP Protocol 
+ * is a lower level protocol when compared to for example SIP. It works on Layer 3/4 of the OSI Layer Model.
+ *
+ * The SCCP protocol layer supports connectionless and connection-oriented protocol services, 
+ * and network management procedures are carried out on a per protocol service basis, that is, network management
+ * procedures at SCCP are independently treated for connectionless and for connection-oriented protocol services. 
+ *
+ * It uses the Real-time Transport Protocol (RTP) over UDP-transport for the bearer traffic (real-time audio stream) 
+ * with other Skinny clients or an H.323 terminal. SCCP is a stimulus-based protocol and is designed as a 
+ * communications protocol for hardware endpoints and other embedded systems, with significant CPU and memory constraints.
+ **/

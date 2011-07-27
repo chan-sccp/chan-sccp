@@ -1,0 +1,57 @@
+/*!
+ * \file 	08_Developers_Guide.doc
+ * \brief 	An implementation of Skinny Client Control Protocol (SCCP)
+ * \author 	Diederik de Groot <dkgroot [at] talon.nl>
+ * \since	2009-11-12
+ * \brief 	Main Documentation
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \version	$Revision: -1 $
+ * \date	$date$
+ **/
+
+/*!
+ * \file 
+ * Contains extra comments for Doxygen.
+ *
+ * You could read the documentation from this file; but it would probably
+ * be easier to go to http://chan-sccp-b.sourceforge.net 
+ *
+ **/
+
+/*!
+ * \page dev_guide Developer's Guide
+ * \section dv_guide Information for Developers
+ *
+ * On this page, people who want to contribute can find information.
+ *
+ * \subsection dv_bugs You found a Bug
+ * 
+ * You found a bug, please report it via : http://sourceforge.net/tracker/?group_id=186378&atid=917045. Please
+ * try to describe the bug you found as clearly as possible. Please give us a step by step procedure to reproduce
+ * the error. Give us some thing to work with, like "sccp debug all" logging, asterisk logging, protocol analyzer pcap files etc.
+ * 
+ * \subsection dv_suggest Sending Feature Requests
+ * 
+ * You have a new Feature which you think would be a wonderfull addition to chan_sccp. Or you need
+ * something implemented and are willing to pay. Just send a Message via: 
+ * http://sourceforge.net/tracker/?group_id=186378&atid=917048. We'll look into it and let you know
+ * what we think. 
+ * You can't wait until it is implemented, why not give the sources a look over. Read the documentation
+ * and start coding yourself. You could even become a member of the development team if you like. Have a look
+ * here \ref dv_sendpatch and here \ref dv_developer.
+ *
+ * \subsection dv_sendpatch Send us a Patch
+ *
+ * You found an error and fixed it or you wrote some new functionality ? Please submit a patch to:
+ * http://sourceforge.net/tracker/?group_id=186378&atid=917047. Please include a description of your
+ * patch and if necessary how to apply it. 
+ * 
+ * \subsection dv_developer Becoming a Developer in out Team
+ * 
+ * Our project can always use more testers, documentors, developers, project managers. Why not apply 
+ * by contacting one of our Project Admin members (\ref authors). 
+ * 
+ * \subsection dv_tracing   How to trace an Protocol Error
+ * \subsection dv_protocol  Using a Network Protocol Analyzer
+ *
+ **/

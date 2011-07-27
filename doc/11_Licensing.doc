@@ -1,0 +1,27 @@
+/*!
+ * \file 	11_Licensing.doc
+ * \brief 	An implementation of Skinny Client Control Protocol (SCCP)
+ * \author 	Diederik de Groot <dkgroot [at] talon.nl>
+ * \since	2009-11-12
+ * \brief 	Main Documentation
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \version	$Revision: -1 $
+ * \date	$date$
+ **/
+
+/*!
+ * \file 
+ * Contains extra comments for Doxygen.
+ *
+ * You could read the documentation from this file; but it would probably
+ * be easier to go to http://chan-sccp-b.sourceforge.net 
+ *
+ **/
+
+/*!
+ * \page Licensing Licensing Information
+ *
+ * \section license Chan_SCCP License
+ * \include COPYING
+ **/
+

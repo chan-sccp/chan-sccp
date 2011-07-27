@@ -1,0 +1,487 @@
+/*!
+ * \file 	05_New_Features.doc
+ * \brief 	SCCP New Feature Documentation
+ *
+ * Contains extra documentation about new Features.
+ *
+ * \author 	Diederik de Groot <dkgroot [at] talon.nl>
+ * \since	2009-11-12
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note 	You could read the documentation from this file; but it would probably
+ * 		be easier to go to http://chan-sccp-b.sourceforge.net 
+ * \version	$Revision$
+ * \date	$date$
+ */
+
+/*!
+ * \page new_features What is new in this version (V3/Trunk)
+ * \section se_new_features New features in this version (V3/Trunk)
+ * 
+ * \ref nf_shared_lines 	"How to use Shared Lines on a device"\n
+ * \ref nf_phone_buttons 	"How to set Phone Buttons on a device (softkeys)"\n
+ * \ref nf_hotline		"How to use the Hotline option on a device"\n
+ * \ref nf_adhoc_plar		"How to use the adhoc option on a line (PLAR)"\n
+ * \ref nf_dynamic_speeddial   	"How to use Dynamic SpeedDials"\n
+ * \ref nf_sccp_softkeys   	"How to use the Soft Keys on the Phone"\n
+ * \ref nf_sccp_reload   	"How to use Reload"\n
+ * \ref nf_sccp_function   	"How to use Dialplan Function"\n
+ * \ref nf_devicestate		"How to use device state"\n
+ * <HR>
+ *
+ *
+ * \subsection nf_shared_lines Shared Lines
+ * 
+ * Shared lines is simple, and is activated readily by registering multiple phones on the same line.
+ * That's all, no extra options required. What happens is that all phones on a shared line "see" the calls of  
+ * the other phones and vice versa. If you have a call on a shared line, just press "hold" on one phone
+ * and resume that call with "resume" on another phone.
+ * 
+ * Earlier, without shared lines, registering multiple phones on the same line lead to an error
+ * that the line was already in use. Now, you simply get a shared line.
+ * <HR> 
+ * 
+ *
+ * 
+ *
+ *
+ *
+ *
+ * \subsection nf_phone_buttons Phone Buttons
+ * 
+ * We do not use the different autologin, speeddial options any longer, instead trunk uses a unified scheme for adding buttons:
+ * Each button is added to the phone in the order as specified in the config file by specifying a "button" assignment. The syntax is
+ * button = <empty|line|speeddial|feature|service>[, name[, option1[, option2]]]
+ * 
+ * buttons come in the following flavours:
+ *   - empty: Empty button (no options)
+ *   - line: Registers the line with identifier specified as [name]
+ *   - speeddial: Adds a speeddial with label [name] and [option1] as number
+       Optionally, [option2] can be used to specify a hint by extension\@context as usual.
+ *   - service: Adds a service url 
+ *   - Feature buttons have an on/off status represented on the device with a tick-box and can be used to set the device in a particular state. 
+ *     Currently Possible [option1],[option2] combinations:
+ *      - privacy,callpresent		= Make a private call, number is suppressed
+ *      - privacy,hint			= Make a private call, hint is suppressed
+ *      - cfwdall,number		= Forward all calls
+ *      - cfwdbusy,number		= Forward on busy
+ *      - cfwdnoaswer,number		= Forward on no-answer (not implemented yet)
+ *      - DND,busy			= Do-not-disturb, return Busy signal to Caller
+ *      - DND,silent			= Do-not-disturb, return nothing to caller
+ *      - monitor			= Record Calls using AutoMon (asterisk 1.6.x only)
+ *      - devstate,custom_devstate	= Device State Feature Button (asterisk 1.6.1 and up). 
+					  custom_devstate is the name of the custom devicestate to be toggled (\ref nf_devicestate)
+ *      - hold				= To be implemented
+ *      - transfer			= To be implemented
+ *      - multiblink			= To be implemented
+ *      - mobility			= To be implemented
+ *      - conference			= To be implemented
+ *      .
+ *   .
+ * 
+ * In a configuration file this could look like:
+ * \code
+ * button = line, "My Line", 519
+ * button = empty
+ * button = speeddial, "Cantine", 332, 332@hints
+ * button = service, "Asterisk", "www.asterisk.org"
+ * button = feature, "privacy callpresent", privacy, callpresent
+ * button = feature, "callforward busy", cfwdbusy, 529
+ * button = feature, "DND busy", DND, busy
+ * button = feature, "Record Calls", monitor
+ * \endcode
+ *
+ * <HR>
+ *
+ *
+ *
+ *
+ *
+ *
+ * \subsection nf_dynamic_speeddial How to use Dynamic SpeedDials (now on by default)
+ * 
+ * Dynamic SpeedDials give additional information about the status of the lines assigned the speeddial. The
+ * Icon displayed changes to indicate "IDLE", "DND", "IN USE" and "RINGING". In the latest version this feature is 
+ * 
+ * To use Normal SpeedDials(olod behaviour) instead of Dynamic SpeedDials you need to use a configure parameters during compilation
+ * \code
+ * ./configure --disable-speeddial
+ * \endcode
+ *
+ * --disable-dynamic-speeddial = Do not use any dynamic speeddial
+ * --disable-dynamic-speeddial-cid = Do not display the calledid information on the dynamic speeddial
+ *
+ * Dynamic SpeedDial is now switched on by default !!.
+ * <HR> 
+ *
+ *
+ *
+ *
+ *
+ * \subsection nf_hotline How to use the hotline option
+ *
+ * Setting the hotline Feature on a device, will make it connect to a predefined extension as soon as the Receiver
+ * is picked up or the "New Call" Button is pressed. No number has to be given. This works even on devices which 
+ * have no entry in the config file or realtime database. 
+ *
+ * The hotline function can be used in different circumstances, for example at a door, where you want people to be 
+ * able to only call one number, or for unprovisioned phones to only be able to call the helpdesk to get their phone
+ * set up. If hotline_enabled = yes, any device which is not included in the configuration explicitly will be allowed 
+ * to registered as a guest device. All such devices will register on a single shared line called "hotline".
+ * 
+ * For example:
+ * \code
+ *   - hotline_enabled=yes
+ *   - hotline_context=default
+ *   - hotline_extension=111
+ * \endcode
+ * This will add a Hotline on all phones, dialing 111 via context default.
+ * <HR>
+ *
+ *
+ *
+ * 
+ *
+ *
+ * \subsection nf_adhoc_plar How to use the adhoc option (PLAR)
+ *
+ * Adhoc Number or Private-line automatic ringdown (PLAR): 
+ * Adhoc/PLAR circuits have statically configured endpoints and do not require the user dialing to connect calls. 
+ * 
+ * - The adhocNumber is dialed as soon as the Phone is taken off-hook or when the new-call button is pressed 
+ * - The adhocNumber will <b>not</b> be dialed when choosing a line; so when you choose a line you can enter a number manually.
+ *
+ * For example adding this to the line configuration:
+ * \code
+ *   adhocNumber = 818
+ * \endcode
+ * Will automatically dial 818 as soon as the Receiver is picked up or the new call button is pressed.
+ * <HR>
+ *
+ *
+ *
+ * 
+ *
+ *
+ * \subsection nf_sccp_softkeys 	Soft Keys Howto
+ * 
+ * \subsection sk_config		Softkey Configuration
+ * 
+ * You can create several softkeyset in you config for use on different devices. You can assign these softkeyset to a device 
+ * using: softkeyset = name_of_softkeyset in the device section of the config. 
+ * (<a href="http://tools.cisco.com/search/display?url=http%3A%2F%2Fwww.cisco.com%2Fen%2FUS%2Fdocs%2Fvoice_ip_comm%2Fcuipph%2F7975G_7971g-ge_7970g_7965g_7945g%2F8_5%2Fenglish%2Fquick_reference%2F7975qrcrd85.pdf&pos=1&strqueryid=1&websessionid=Baq5yYY1J3zwB6fskFWXc2e">softkey definitions/logo's</a>)
+ *
+ * for example:
+ * \code
+ * [SEP001122334455]
+ * devicetype=7960
+ * ...
+ * softkeyset = mysoftkeyset
+ * 
+ * [mysoftkeyset]
+ * type=softkeyset
+ * onhook      = redial,newcall,cfwdall,dnd
+ * connected   = hold,endcall,park,select,cfwdall,cfwdbusy,idivert
+ * onhold      = resume,newcall,endcall,transfer,confrn,select,dirtrfr,idivert
+ * ringin      = answer,endcall,idivert
+ * offhook     = redial,endcall,private,cfwdall,cfwdbusy,pickup,gpickup,meetme,barge
+ * conntrans   = hold,endcall,transfer,confrn,park,select,dirtrfr,cfwdall,cfwdbusy
+ * digitsfoll  = back,endcall
+ * connconf    = hold,endcall,join
+ * ringout     = endcall,transfer,cfwdall,idivert
+ * offhookfeat = redial,endcall
+ * onhint      = pickup,barge
+ * \endcode
+ *
+ * The [mysoftkeyset] section about contains the state of the phone as the first part (before the equal sign) and the 
+ * softbuttons shown during this state in the second part.
+ * 
+ * Multiple softkey set can be created and attached to different devices. 
+ *
+ * \subsection sk_softkeys_avail	These are the softkeys available
+ * \subsubsection sk_redial 		How to use the Redial Softkey
+ *
+ * Using the Redial Button you can Redial the last Called Number on this Line or Device
+ *
+ *
+ * \subsubsection sk_newcall 		How to use the NewCall Softkey
+ *
+ * Using the New Call Button you can initiate a new Call just like picking up the receiver. 
+ * You can either type in the number to be called before or afterwards.
+ *
+ *
+ * \subsubsection sk_hold 		How to use the Hold Softkey
+ *
+ * Using the Hold Button you can hold the current line and undertake some other action
+ * You can later resume the held line use \ref sk_resume
+ *
+ *
+ * \subsubsection sk_resume 		How to use the Resume Softkey
+ *
+ * Using the Resume Button you can resume a previously help line which has been put on hold using \ref sk_hold
+ *
+ *
+ * \subsubsection sk_transfer	 	How to use the Transfer Softkey
+ *
+ * Using the Transfer 			Button you can Transfer the Currentline to another Number
+ * 					You can also use a speeddial during transfer
+ *
+ * \subsubsection sk_endcall 		How to use the End Call Softkey
+ *
+ * Using the End Call Button you can End the Call on the Current Line
+ *
+ *
+ * \subsubsection sk_dnd 		How to use the Do Not Disturb (DND) Softkey
+ *
+ * Using the Do Not Disturb (DND) Button you set your device/line to the Do Not Disturb Status. 
+ * When receiving a call your phone will not ring and the People Call You Will get a Busy Signal
+ *
+ *
+ * \subsubsection sk_backspace 	How to use the BackSpace (<<) Softkey
+ *
+ * Using the backspace (<<) Button you can erase the last entered digit/character
+ *
+ *
+ * \subsubsection sk_answer	 	How to use the Answer Softkey
+ *
+ * Using the Answer Button you can Answer an Incoming Call
+ *
+ *
+ * \subsubsection sk_select	 	How to use the select softkey
+ *
+ * The "Select" softkey is used for bridging two channels (redirect).
+ * Select your first channel and press the select softkey. On the display this channel is marked
+ * with a checkmark.
+ * By selecting the second channel, it is also marked with a checkmark and DirTrFr (\ref sk_dirtrfr) 
+ * is enabled. Press this key to bridge both channels.
+ *
+ *
+ * \subsubsection sk_dirtrfr	 	How to use the DirTrfr
+ *
+ * When two channels have been selected using the Select SoftKey (\ref sk_select) then
+ * using the DirTrfr SoftKey can be used to Connect Both Lines to one another (bridging both channels).
+ *
+ *
+ * \subsubsection sk_cfwdall	 	How to use the Call Forward All Button
+ *
+ * Using this Button you can set the current line / device to forward all incoming call to another number
+ * This number can be another SCCP/SIP/IAX Device or even an external number (if permitted to call externally)
+ *
+ *
+ * \subsubsection sk_cfwdbusy	 	How to use the Call Forward if Busy Button
+ *
+ * Using this Button you can set the current line / device to forward incoming calls when busy to another number
+ * This number can be another SCCP/SIP/IAX Device or even an external number (if permitted to call externally)
+ *
+ *
+ * \subsubsection sk_cfwdnoanswer 	How to use the Call Forward if No-Answer Button
+ *
+ * Using this Button you can set the current line / device to forward incoming calls when you don't/can't answer to another number
+ * This number can be another SCCP/SIP/IAX Device or even an external number (if permitted to call externally)
+ *
+ *
+ * \subsubsection sk_park	 	How to use the Park Button
+ *
+ * Using the Park Button make it possible to Send a Call to the Asterisk Parking Lot
+ * Channels parked in the Parking Lot can be Picked-Up by Another Phone Using the Pickup Button or the Pickup Number 
+ * Configured in features.conf under pickupexten
+ *
+ *
+ * \subsubsection sk_transfer	 	How to use the Transfer Button
+ *
+ * Using the Transfer Button gives you the possibily to Transfer the Current Line to a New Number
+ * After pressing the Transfer button you are asked to Enter a New Number to which the Line will have to be transfered
+ *
+ *
+ * \subsubsection sk_private	 	How to use the Private Button
+ *
+ * Using the Private Button before dialing a New Outside Line will Prevent the Number dialed to be monitored by
+ * Devices that use a HINT. It does not prevent the number turning up in Asterisk Logging or the Console Window.
+ *
+ *
+ * \subsubsection sk_conference 	How to use the Conference Button
+ *
+ * Using the Conference Button makes it possible to set up a Simple Three Way Conference. There are two ways this can be done:
+ * Option 1: You Already have to Lines Occupied (One is active and the other Held), which you would like to put in a Conference; Simple Press the Conference Button
+ * Option 2: You have one line Occupied and would like to call Someone else and Join them all into a Conference;
+ *           Press the Conference Button and you will be asked for the 3 party number which need to be added to the conference, 
+ *           once this line is connected, you press the Conference Button Again and the Conference Starts.
+ *
+ *
+ * \subsubsection sk_conflist 	How to use the ConfList Button
+ *
+ * Once you have established a confernce, you can press the ConfList button. You will see a list of all conference participants. From here you can
+ * mute and kick participants during the conference. 
+ *
+ *
+ * \subsubsection sk_join	 	How to use the Join Button
+ *
+ * Using the Join Button makes it possible to Add another member/line to an already running Conference
+ * When you are in a conference and you receive an Incoming Call you can join this channel/line to the running Conference
+ *
+ *
+ * \subsubsection sk_barge	 	How to use the Barge Button
+ *
+ * Using the Barge Button makes it possible to listen in on an On-Going Call on another Line / Device
+ *
+ *
+ * \subsubsection sk_cbarge	 	How to use the Conference Barge Button
+ *
+ * Using the Barge Button makes it possible to listen in on an On-Going Conference on another Channel
+ *
+ *
+ * \subsubsection sk_meetme	 	How to use the Meetme Button
+ *
+ * Using the Conference Button makes it possible to set up a Simple Three Way Conference. There are two ways this can be done:
+ * Option 1: You Already have to Lines Occupied (One is active and the other Held), which you would like to put in a Conference; Simple Press the Conference Button
+ * Option 2: You have one line Occupied and would like to call Someone else and Join them all into a Conference;
+ *           Press the Conference Button and you will be asked for the 3 party number which need to be added to the conference, 
+ *           once this line is connected, you press the Conference Button Again and the Conference Starts.
+ * \sa sk_conference
+ *
+ *
+ * \subsubsection sk_pickup	 	How to use the Pickup Button
+ *
+ * Using the Pickup Button Makes it possible to Pickup a Parked Call from the Parking Lot
+ * This is equivalent to using the keys defined in features.conf under pickupexten
+ *
+ *
+ * \subsubsection sk_gpickup	 	How to use the Group Pickup Button
+ *
+ * Using the GroupPickup Button Makes it possible to Pickup a Ringing Line in defined in your PickupGroup
+ * This is equivalent to using the keys defined in features.conf under pickupexten
+ * <HR>
+ *
+ *
+ *
+ *
+ *
+ * \subsection nf_sccp_reload	 	Reload Howto
+ * 
+ * When chan-sccp-b has been configured with the --with-dynamic-config during the build fase. The new "sccp reload" function 
+ * will be availble in from the CLI inside asterisk. When run, chan_sccp-b will reload the sccp.conf file and update all it's 
+ * structures. When necessary phones will be sent a reset to make them reload their configuration. When a phone is currently
+ * in used, but would need to be reset, it will reset as soon as the current call is hungup.
+ *
+ * 
+ *
+ *
+ *
+ *
+ * \subsection nf_sccp_function	 	How to use dialplan functions
+ * 
+ * We have added new dialplan function \ref nf_sccp_dialplan_sccpdevice SCCPDEVICE, 
+ * \ref nf_sccp_dialplan_sccpline SCCPLINE and nf_sccp_dialplan_sccpchannel SCCPCHANNEL
+ * to provide the ability to ask information about sccp device, sccp lines and sccp channels. 
+ *
+ * \subsubsection nf_sccp_dialplan_sccpdevice SCCPDEVICE
+ *
+ * Usage: SCCPDEVICE([deviceId|current],[option]);
+ * 
+ * the first param can be either "current" or a device ID like "SEP????????????" 
+ * 
+ * the second param defines the information to be retrieved and can be on of these:
+ * ip, id, status, description, config_type, skinny_type, tz_offset, image_version, accessory_status, registration_state
+ * codecs, state, lines_registered, lines_count, last_number, capability, early_rtp, channel_count, supported_protocol_version
+ * used_protocol_version, mwi_light, dynamic|realtime, active_channel, transfer_channel, conference_channel, current_line
+ * button_config, pending_update, pending_delete, chanvar[varname], codec[codecname]
+ * 
+ * Within the dialplan you can use the function SCCPDEVICE to retrieve information about an SCCP Device like this:
+ * \code
+ * Set(my_ip=${SCCPDEVICE(current,ip)});
+ * Set(my_id=${SCCPDEVICE(current,id)});
+ * Set(my_codecs=${SCCPDEVICE(current,codecs)});
+ * Set(my_codec_g792=${SCCPDEVICE(current,codec[g792])});
+ * Set(my_button_config=${SCCPDEVICE(current,button_config)});
+ * Set(other_button_config=${SCCPDEVICE(SEP001122334455,button_config)});
+ * \endcode
+ * to put the information of a/the device in a dialplan variable.
+ *
+ * \subsubsection nf_sccp_dialplan_sccpline SCCPLINE
+ *
+ * Usage: SCCPLINE([current|parent|linename],[option]);
+ * 
+ * the first param can be either "current", "parent" or a line name assigned to the line. 
+ * "parent" refers to the line who forwarded the call to you and is only filled if this channel has been forwarded.
+ * 
+ * the second param defines the information to be retrieved and can be on of these:
+ * id, name, description, label, vmnum, trnsfvm, meetme, meetmenum, meetmeopts, context, language, accountcode,
+ * musicclass, amaflags, callgroup, pickupgroup, cid_name, cid_num, incoming_limit, channel_count, dynamic|realtime,
+ * pending_delete, pending_update, regexten, regcontext, adhoc_number, newmsgs, oldmsgs, num_lines, lines, chanvar[varname] 
+ * 
+ * Within the dialplan you can use the function SCCPLINE to retrieve information about an SCCP Line like this:
+ * \code
+ * Set(my_line_name=${SCCPDEVICE(current,name)});
+ * Set(my_line_descr=${SCCPLINE(current,description)});
+ * Set(my_line_devices=${SCCPLINE(current,devices)});
+ * Set(parent_line_id=${SCCPLINE(parent,id)});
+ * Set(other_line_id=${SCCPLINE(98011,id)});
+ * Set(other_line_devices=${SCCPLINE(98011,devices)});
+ * \endcode
+ * to put the information of a/the line in a dialplan variable.
+ *
+ * \subsubsection nf_sccp_dialplan_sccpchannel SCCPCHANNEL
+ *
+ * Usage: SCCPCHANNEL([current|callid],[option]);
+ * 
+ * the first param can be either "current" or a callid assigned to the channel. 
+ * 
+ * the second param defines the information to be retrieved and can be on of these:
+ * callid, format, isCodecFix, codecs, capability, calledPartyName, calledPartyNumber, callingPartyName, callingPartyNumber
+ * originalCallingPartyName, originalCallingPartyNumber, originalCalledPartyName, originalCalledPartyNumber, lastRedirectingPartyName
+ * lastRedirectingPartyNumber, cgpnVoiceMailbox, cdpnVoiceMailbox, originalCdpnVoiceMailbox, lastRedirectingVoiceMailbox, 
+ * passthrupartyid, state, previous_state, calltype, dialed_number, device, line, answered_elsewhere, privacy, monitorEnabled, parent
+ *
+ * De carefull with SCCPCHANNEL, When calling this you must provide a valid SCCP Channel. So check if the channel is of 
+ * type SCCP before calling this function !
+ * 
+ * Within the dialplan you can use the function SCCPCHANNEL to retrieve information about an SCCP channel like this:
+ * \code
+ * Set(my_channel_callid=${SCCPCHANNEL(current,callid)});
+ * Set(my_channel_device=${SCCPCHANNEL(current,device)});
+ * Set(my_channel_line=${SCCPCHANNEL(current,line)});
+ * Set(my_channel_capability=${SCCPCHANNEL(current,capability)});
+ * Set(my_channel_called=${SCCPCHANNEL(current,calledPartyName)});
+ * Set(my_channel_calling=${SCCPCHANNEL(current,callingPartyName)});
+ * Set(my_channel_state=${SCCPCHANNEL(current,state)});
+ * Set(my_channel_calltype=${SCCPCHANNEL(current,calltype)});
+ * Set(my_channel_dialed_number=${SCCPCHANNEL(current,dialed_number)});
+ * Set(other_channel_dialed_number=${SCCPCHANNEL(4,dialed_number)});
+ * \endcode
+ * to put the information of the/a channel in a dialplan variable.
+ *
+ *
+ *
+ *
+ *
+ * \subsection nf_devicestate         How to use devicestate
+ *
+ * When chan-sccp-b is used with asterisk 1.6.1 and up, you have the option to use configure directive --enable-devstate-feature.
+ * This will make chan-sccp-b report back the device_state back to asterisk, to be used by for example the 
+ * Dialplan DEVICE_STATE function as such:
+ *
+ * exten => s,1,NoOp(My phone state is currently ${DEVICE_STATE(SCCP/98011)})
+ * 
+ * \subsubsection nf_customdevicestate	Custom Device State
+ *
+ * If you add a new devstate button to you sccp.conf like so, you will have a new custom device state which can be set and monitored
+ * \code
+ * button = feature, Coffee is Ready, devstate, coffee
+ * \endcode
+ *
+ * When you press this button the device state will go from NOT_INUSE to INUSE and back again
+ *
+ * You can then switch the feature devstate button on and of from the dialplan with
+ * \code
+ * exten => s,1,Set(DEVICE_STATE(Custom:coffee)=INUSE)
+ * \endcode
+ * To signal everyone that the coffee is ready.
+ *
+ * From the console(CLI) this can be handled via:
+ * \code
+ * devstate change Custom:coffee INUSE
+ * \endcode
+ * 
+ * The new phones models with lighted buttons will nicely light up their buttons upon "INUSE".
+ * 
+ * You can read more about customer device states <a href="http://www.asterisk.org/node/48325">here</a>.
+ */

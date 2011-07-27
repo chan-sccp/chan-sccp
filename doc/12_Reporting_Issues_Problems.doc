@@ -1,0 +1,80 @@
+/*!
+ * \file 	12_Reporting_Issues_Problems.doc
+ * \brief 	An implementation of Skinny Client Control Protocol (SCCP)
+ * \author 	Diederik de Groot <dkgroot [at] talon.nl>
+ * \since	2009-11-12
+ * \brief 	Main Documentation
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \version	$Revision: -1 $
+ * \date	$date$
+ **/
+
+/*!
+ * \file 
+ * Contains extra comments for Doxygen.
+ *
+ * You could read the documentation from this file; but it would probably
+ * be easier to go to http://chan-sccp-b.sourceforge.net 
+ *
+ **/
+/*!
+ * \page Problems Reporting Issues/Problems
+ *
+ * \section problems  Reporting Issues/Problems
+ * 
+ * When reporting problems / issues via the sourceforge mailinglist or bug/issue report pages please include as much information as possible. 
+ * And try to describe you problem/issue as acquarate as possible.
+ * 
+ * At least include the following information:
+ *  - Operating System
+ *  - Installed version of Asterisk
+ *  - Installed version of chan_scpp. When using the trunk version, please include the revision number ($Revision: -1 $).
+ *  - Asterisk Debug Report (see \ref generating_a_debug_report section)
+ *  - In case of registration errors, also include the TFTP Files which are used by the device
+ *  - In case of dialplan issues, include the part of the dialplan in question.
+ *  .
+ * When reporting issues/problems be patient. We will try and get back to you as soon as possible, but time is sometimes scarce. Other users of chan_sccp are very welcome to answer any questions if they know the answer of course. 
+ *
+ * \subsection generating_a_debug_report Generating a Debug Report
+ *  
+ * To generate a debug report please take the following steps:
+ *   - switch on the "all" section in logger.conf. 
+ *   - Restart Asterisk
+ *   - In cli (asterisk -rvvvvvvvvvvv) enter: sccp debug device,channel,line,event (or more or event all).
+ *     You can get a list of all debug categories when you type "sccp debug". Try to match your problem area with one or more of the debug categories.
+ *   - Reproduce the error you encountered. 
+ *   - When done, stop asterisk
+ *   - Attach the /var/log/asterisk/all (might be stored in a different location on your os) file to your error/issue report. 
+ *   .
+ * A less exact method is to cut and paste the information from CLI.
+
+ * \subsection generating_a_debug_dbg_report Generating a Trace Back using gdb to analyse a coredump / segfault
+ *
+ * Check that you have the following installed:
+ *   - gdb
+ *   - symbol files for asterisk (package name: asterisk-gdb or asterisk-symbols, depending on your os)
+ *   .
+ *
+ * We first will need a core dump. Can you check if you can find a coredump either in the root directory or /tmp or /var/log/asterisk, depending on your installation. If not, you have to turn on core dumping in /etc/asterisk/asterisk.conf (set dumpcore=yes), and wait for the event to happen.
+ * 
+ * To be able to use the coredump, you need to compile chan-sccp-b with the following configure options:
+ * \code
+ * ./configure --disable-optimization --enable-debug 
+ * \endcode
+ *
+ * Start Asterisk as normal. If you can reproduce the incident than do so now, or wait untill the event happens and you have a core dump. You need to run
+ * \code
+ * gdb /usr/sbin/asterisk /tmp/core  
+ * \endcode
+ * (if your asterisk binary is in /usr/sbin and the coredump is in tmp (change paths appropriatly))
+ * 
+ * gdb will start and read the binary + the symbol files and come to a stop telling you the problem that caused the segmentation fault or coredump. 
+ * at the prompt type:
+ * \code
+ * bt full
+ * \endcode
+ * to start the backtrace.
+ * 
+ * Mail us the resulting lines of the bt full command.
+ **/
+

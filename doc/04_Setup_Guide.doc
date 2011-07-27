@@ -1,0 +1,716 @@
+/*!
+ * \file 	04_Setup_Guide.doc
+ * \brief 	An implementation of Skinny Client Control Protocol (SCCP)
+ * \author 	Diederik de Groot <dkgroot [at] talon.nl>
+ * \since	2009-11-12
+ * \brief 	Main Documentation
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \version	$Revision: 1369 $
+ * \date	$date$
+ **/
+
+/*!
+ * \file 
+ * Contains extra comments for Doxygen.
+ *
+ * You could read the documentation from this file; but it would probably
+ * be easier to go to http://chan-sccp-b.sourceforge.net 
+ *
+ **/
+/*!
+ * \page setup_sccp	How to Setup
+ *
+ * This contains detailed instructions about setting up chan_sccp.
+ *
+ *   - \ref setup_howto How to setup Chan_SCCP
+ *   - \ref sccp_config_howto1 Setting Protocol
+ *   - \ref sccp_config_howto2 Sample config file
+ *   - \ref sccp_config_rt How to use RealTime Database
+ *   - \ref sccp_config_dhcp Setting up a DHCP Server
+ *   - \ref change_phone_to_sccp Hot to change the firmware to SCCP
+ *   - \ref sccp_config_sep What does a Sample SEP[MacAddr].cnf.xml Look Like
+ *   - \ref dialplan_sample Dialplan Sample
+ *   - \ref DUNDi Dundi Lookup
+ *   - \ref shared_lines Shared Lines
+ *   .
+ *
+ * \section setup_howto     How to setup Chan_SCCP
+ * 
+ * \section sccp_config_howto How to use the config file
+ *
+ * Please check out ./conf/sccp.conf for all possible sccp configuration parameters. This new config file uses standard 
+ * asterisk templating to keep your config file shorter and easier to manager. For an untemplated version check-out 
+ * ./conf/sccp_simple.conf
+ *
+ * \subsection sccp_config_howto1 Setting Protocol
+ *
+ * An important part in the config file is setting up the protocol version to match you phone firmware. During phone registration
+ * you can see the version of the protocol the phone supports and the version setup in the sccp.conf file. Please try to 
+ * match them as closely as possible
+ *
+ * Currently chan_sccp-b supports the following protocol versions:
+ *   - 3-10
+ *   - 10
+ *   - 11  : for example matched by cisco 7960
+ *   - 15  : matched by 7911 
+ *   - 16
+ *   - 17  : matched by the 7970 and 7975 's 
+ *   .
+ *
+ * \subsection sccp_config_howto2 Sample config files
+ * 
+ * Make sure you pay attention to the context used in the config file. And check if this context exists in your dialplan.
+ * Also check the deny/permit entries to make sure they cover your network/devices and check if the bindaddr is actually 
+ * reachable from the addresses you have permitted to connect.
+ *
+ * \code
+ * ;=========================================================================================
+ * ;
+ * ; general definitions
+ * ; 
+ * ; (Don't use this version, take one from the conf samples directory !!!!)
+ * ;
+ * ;=========================================================================================
+ * [general]
+ * servername = Asterisk
+ * keepalive = 60
+ * debug = core,event,device,channel
+ * context = sccp
+ * dateFormat = D.M.Y
+ * bindaddr = 0.0.0.0
+ * port = 2000
+ * disallow=all
+ * allow=alaw
+ * allow=ulaw
+ * allow=g729
+ * firstdigittimeout = 16
+ * digittimeout = 8
+ * autoanswer_ring_time = 1
+ * autoanswer_tone = 0x32
+ * remotehangup_tone = 0x32
+ * transfer_tone = 0
+ * callwaiting_tone = 0x2d
+ * musicclass=default
+ * language=en
+ * deny=0.0.0.0/0.0.0.0
+ * permit=192.168.1.0/255.255.255.0
+ * dnd = on
+ * sccp_tos = 0x68
+ * sccp_cos = 4
+ * audio_tos = 0xB8
+ * audio_cos = 6
+ * video_tos = 0x88
+ * video_cos = 5
+ * echocancel = on
+ * silencesuppression = off
+ * trustphoneip = no
+ * private = on
+ * callanswerorder=oldestfirst
+ * meetme = on
+ * meetme = qxd
+ * protocolversion = 11
+ * regcontext							; context used for dundi dialplan registration
+ * 
+ * hotline_enabled=yes						; can devices without configuration register
+ * hotline_context=default					; context for hotline
+ * hotline_extension=111					; extension will be dialed on offHook
+ * 
+ * ;=========================================================================================
+ * ;
+ * ; actual definitions
+ * ;
+ * ;=========================================================================================
+ * [SEP001122334455]
+ * description = Phone Number One
+ * addon = 7914
+ * devicetype = 7940
+ * park = off
+ * button = speeddial,Helpdesk, 98112, 98112@hint  	; Add SpeedDial to Helpdesk (verify that you have the hint context correctly set)
+ * button = line, 98011					; Assign Line 98011 to Device
+ * button = empty					; Assign an Empty Button
+ * button = line, 98012					; Assign Line 98012 to Device
+ * button = speeddial,Phone 2 Line 1, 98021, 98021@hint	; Add SpeedDial to Phone Number Two Line 1
+ * cfwdall = off
+ * type = device
+ * keepalive = 60
+ * tzoffset = +2
+ * transfer = on
+ * park = on
+ * cfwdall = off
+ * cfwdbusy = off
+ * cfwdnoanswer = off
+ * pickupexten = off
+ * pickupcontext = sccp
+ * pickupmodeanswer = on
+ * dtmfmode = inband
+ * imageversion = P00405000700
+ * deny=0.0.0.0/0.0.0.0
+ * permit=192.168.1.5/255.255.255.255
+ * dnd = on
+ * trustphoneip = no
+ * nat=on
+ * directrtp=on
+ * earlyrtp = none
+ * private = on
+ * mwilamp = on
+ * mwioncall = off
+ * meetme = on
+ * meetmeopts = qd
+ * setvar=testvar=value
+ * cfwdall = on
+ * 
+ * [98011]
+ * id = 1000
+ * type = line
+ * pin = 1234
+ * label = Phone 1 Line 1
+ * description = Line 98011
+ * mailbox = 10011
+ * cid_name = MY CID
+ * cid_num = 98011
+ * accountcode=79011
+ * callgroup=1,3-4
+ * pickupgroup=1,3-5
+ * ;amaflags = 
+ * context = sccp
+ * incominglimit = 2
+ * transfer = on
+ * vmnum = 600
+ * meetmenum = 700
+ * trnsfvm = 1000
+ * secondary_dialtone_digits = 9
+ * secondary_dialtone_tone = 0x22
+ * musicclass=default
+ * language=en
+ * audio_tos = 0xB8
+ * audio_cos = 6
+ * video_tos = 0x88
+ * video_cos = 5
+ * echocancel = on
+ * meetme = on
+ * meetme = qxd
+ * regexten = 98011
+ * silencesuppression = off
+ * setvar=testvar2=my value
+ * 
+ * [98012]
+ * id = 1001
+ * type = line
+ * pin = 4356
+ * label = Phone 1 Line 2
+ * description = Line 98012
+ * mailbox = 10012
+ * cid_name = MY LINE 2
+ * cid_num = 98012
+ * accountcode=79002
+ * callgroup=1,4-9
+ * pickupgroup=1,3-9
+ * echocancel = off
+ * context = sccp
+ * incominglimit = 2
+ * transfer = on
+ * vmnum = 600
+ * meetmenum = 700
+ * trnsfvm = 1000
+ * secondary_dialtone_digits = 9
+ * secondary_dialtone_tone = 0x22
+ * musicclass=default
+ * language=en
+ * audio_tos = 0xB8
+ * audio_cos = 6
+ * video_tos = 0x88
+ * video_cos = 5
+ * echocancel = on
+ * silencesuppression = off
+ * silencesuppression = on
+ * 
+ * 
+ * [SEP002244668800]
+ * description = Phone Number Two
+ * devicetype = 7960
+ * park = off
+ * button = speeddial,Helpdesk, 98112, 98112@hint  		; Add SpeedDial to Helpdesk (without hint)
+ * button = line, 98021
+ * button = line, 98022, Name, 01				; SharedLine with SubscriptionName and SubscriptionId (Specific device extension SCCP/9802201)
+ * button= feature,Private Call,privacy,callpresent		;set channel variable SKINNY_PRIVATE to 1 if feature is enabled
+ * button= feature,DND Busy,DND,busy				;set dnd status to busy
+ * button= feature,DND Silent,DND,silent				;set dnd status to silent
+ * button= feature,Record calls,monitor				;record calls using automon (asterisk >= 1.6 only)
+ * button= feature,call forward to *54,cfwdAll,*54			;forward all calls to *54
+ * button = speeddial,Phone 1 Line 1, 98011, 98011@hint
+ * button = speeddial,Phone 1 Line 2, 98012, 98012@hint
+ * 
+ * type = device
+ * keepalive = 60
+ * tzoffset = +2
+ * transfer = on
+ * park = on
+ * cfwdall = off
+ * cfwdbusy = off
+ * cfwdnoanswer = off
+ * pickupexten = off
+ * pickupcontext = sccp
+ * pickupmodeanswer = on
+ * dtmfmode = inband
+ * imageversion = P00405000700
+ * deny=0.0.0.0/0.0.0.0
+ * permit=192.168.1.5/255.255.255.255
+ * dnd = on
+ * trustphoneip = no
+ * nat=on
+ * directrtp=on
+ * earlyrtp = none
+ * private = on
+ * mwilamp = on
+ * mwioncall = off
+ * setvar=testvar=value
+ * cfwdall = on
+ * 
+ * [98021]
+ * id = 1000
+ * type = line
+ * pin = 1234
+ * label = Phone 2 Line 1
+ * description = Line 98021
+ * mailbox = 10021
+ * cid_name = MY CID
+ * cid_num = 98021
+ * accountcode=79021
+ * callgroup=1,3-4
+ * pickupgroup=1,3-5
+ * context = sccp
+ * incominglimit = 2
+ * transfer = on
+ * vmnum = 600
+ * meetmenum = 700
+ * trnsfvm = 1000
+ * secondary_dialtone_digits = 9
+ * secondary_dialtone_tone = 0x22
+ * musicclass=default
+ * language=en
+ * echocancel = on
+ * silencesuppression = off
+ * setvar=testvar2=my value
+ * 
+ * [softkeyset]
+ * type=softkeyset
+ * onhook	= redial,newcall,cfwdall,dnd
+ * connected	= hold,endcall,park,select,cfwdall,cfwdbusy,idivert
+ * onhold	= resume,newcall,endcall,transfer,confrn,select,dirtrfr,idivert
+ * ringin	= answer,endcall,idivert
+ * offhook	= redial,endcall,private,cfwdall,cfwdbusy,pickup,gpickup,meetme,barge
+ * conntrans	= hold,endcall,transfer,confrn,park,select,dirtrfr,cfwdall,cfwdbusy
+ * digitsfoll	= back,endcall
+ * connconf	= hold,endcall,join
+ * ringout	= endcall,transfer,cfwdall,idivert
+ * offhookfeat	= redial,endcall
+ * onhint	= pickup,barge
+ * \endcode
+ *
+ * For more config samples look in the conf directory in the root of the project. Here you will find sccp.conf, sccp_simple.conf and
+ * sccp_short.conf
+ *
+ * \section sccp_config_load_module_howto How to load the Chan_SCCP
+ *
+ * The chan_sccp module can be loaded using the following lines in asterisk module.conf:
+ * \code
+ * noload => chan_skinny.so
+ * load => chan_sccp.conf
+ * \endcode
+ *
+ * the skinny module is not allowed to be loaded, is it conflicts with chan_sccp.
+ * 
+ * A valid sccp.conf configfile has to be available in the asterisk configuration directory.
+ *
+ * \section sccp_config_rt How to use RealTime Database
+ *
+ * \subsection sccp_config_rt_mysql4 MySQL 4.0
+ *
+ * Read trunk/conf/mysql-v4.sql into your mysql 4.0 database
+ * \code
+ * mysql -p asterisk < conf/mysql-v4.sql
+ * \endcode
+ *
+ * (To upgrade from a previous database version checkout trunk/conf/database_updates)
+ *  
+ * /etc/asterisk/res_mysql.conf:
+ * \code
+ * [general]
+ * ;dbhost = 127.0.0.1
+ * ;dbport = 3306
+ * dbname = asterisk
+ * dbuser = asterisk
+ * dbpass = asterisk_password
+ * dbsock = /var/lib/mysql/mysql.sock
+ * \endcode
+ * 
+ * \subsection sccp_config_rt_mysql5 MySQL 5.0
+ *
+ * Starting with mysql version 5.0 you can also use trunk/conf/mysql-v5.sql, here you have a seperate buttonconfig table
+ * \code
+ * mysql -p asterisk < conf/mysql-v5.sql
+ * \endcode
+ *
+ * /etc/asterisk/res_mysql.conf:
+ * \code
+ * [general]
+ * ;dbhost = 127.0.0.1
+ * ;dbport = 3306
+ * dbname = asterisk
+ * dbuser = asterisk
+ * dbpass = asterisk_password
+ * dbsock = /var/lib/mysql/mysql.sock
+ * \endcode
+ * 
+ * (To upgrade from a previous database version checkout trunk/conf/database_updates)
+ *  
+ * \subsection sccp_config_rt_pg PostgreSQL
+ *
+ * Buttons are configured in a seperate table called buttonconfig:
+ * \code
+ * postgresql asterisk < conf/postgresql.sql
+ * \endcode
+ *
+ * /etc/asterisk/res_pgsql.conf:
+ * \code
+ * [general]
+ * dbhost = 127.0.0.1
+ * dbport = 5432
+ * dbname = asterisk
+ * dbuser = asterisk
+ * dbpass = asterisk_password
+ * \endcode
+ * 
+ * \subsection sccp_config_rt_sccp Chan_SCCP Configuration for Realtime
+ *
+ * Add the following lines to the sccp.conf file
+ * \code
+ * devicetable=sccpdevice	                          ; datebasetable for devices
+ * linetable=sccpline                                     ; datebasetable for lines
+ * \endcode
+ *
+ * /etc/asterisk/extconfig.conf:
+ * for mysql v4:
+ * \code
+ * [settings]
+ * sccpdevice => mysql,asterisk,sccpdevices
+ * sccpline => mysql,asterisk,sccplines
+ * \endcode
+ *
+ * for mysql v5:
+ * \code
+ * [settings]
+ * sccpdevice => mysql,asterisk,sccpdeviceconfig	  ; make use of the sccpdeviceconfig view instead of sccpdevice
+ * sccpline => mysql,asterisk,sccpline
+ * \endcode
+ *
+ * or for postgresql:
+ * \code
+ * [settings]
+ * sccpdevice => pgsql,asterisk,sccpdevices
+ * sccpline => pgsql,asterisk,sccplines
+ * \endcode
+ *
+ * \subsection sccp_config_rt_db Loading information into the tables
+ *
+ * Connect to the dabase
+ * 
+ * \code
+ * insert into sccpdevices (type,description,tzoffset,dtmfmode,mwilamp,mwioncall,pickupexten,pickupmodeanswer,privacy,name) values ("7975","My 1st Phone",0,"on","on","on","on","on","full","SEP010102030404");
+ * insert into sccplines (id,pin,label,description,context,incominglimit,transfer,mailbox,vmnum,cid_name,cid_num,trnsfvm,secondairy_dialtone_digits,secondairy_dialtone_tone,musicclass,language,accountcode,audio_tos,audio_cos,video_tos,video_cos,echocancel,silencesuppression,callgroup,pickupgroup,amaflags,setvar,name) VALUES(121,212,"Line 121","Line 121",internal,2,on,121,88121,"My Name",121,89121,10,"0x22","default","en",121,"0xB8",6,"0x88",5,"on","off","1,3-5","3-5","","",121);
+ * insert into buttonconfig (device,instance,type,name,options) VALUES("SEP010102030404",1,"line",121,);
+ * insert into buttonconfig (device,instance,type,name,options) VALUES("SEP010102030404",2,"speeddial","friend","122,122@hints");
+ * insert into buttonconfig (device,instance,type,name,options) VALUES("SEP010102030404",3,"feature","dnd","busy");
+ * insert into buttonconfig (device,instance,type,name,options) VALUES("SEP010102030404",4,"feature","cfwdbusy","122");
+ * \endcode
+ *
+ * \subsection sccp_config_rt_use Using Realtime Database 
+ *
+ * Devices / Lines and Buttonconfigs can now be loaded from the database. If you add a device to the sccpdevice table it will
+ * automatically be read during the device registration fase. No need to reload the chan_sccp module.
+ * 
+ * Some mysql database servers might need
+ * \code
+ * group_concat_max_len = 2048
+ * \endcode
+ * in the my.cnf to load our data correctly.
+ * 
+ * \section sccp_config_dhcp Setting up a DHCP Server
+ *
+ * dhcpd.conf:
+ *
+ * \code
+ * option cisco-tftp code 150 = array of ip-address;
+ * 
+ * subnet 192.168.100.0 netmask 255.255.255.0 {
+ *         range 192.168.100.128 192.168.100.200;
+ *         default-lease-time 86400;
+ *         max-lease-time 172800;
+ *         option domain-name-servers 192.168.100.2;
+ *         option routers 192.168.100.1;
+ * }
+ * 
+ * host phone1 {
+ *         hardware ethernet 00:0c:ce:3a:88:ca;
+ *         fixed-address 192.168.100.100;
+ *         option cisco-tftp 192.168.100.2;
+ * }
+ * \endcode
+ * 
+ * \section sccp_config_sep What does a Sample SEP[MacAddr].cnf.xml Look Like
+ *
+ * We have added a couple of example files in the directory conf/tftp  
+ * conf/tftp/SEP0000000000.cnf.xml_791x_template
+ * conf/tftp/SEP0000000000.cnf.xml_796x_template
+ * conf/tftp/SEP0000000000.cnf.xml_797x_template
+ * 
+ * You can choose one of these files and adapt it to your network/devices. You can then copy the file to your tftp-server and rename the file to SEPTemplate.cnf.xml.
+ * If you like you can make soft links/shortcuts to this file for every device you have in the form of SEP[macaddr].cnf.xml files. For devices with specific settings
+ * you can copy your SEP0000000000.cnf.xml_79xx_template file to a new SEP[macaddr].cnf.xml file and set the specific settings for this device.
+ * 
+ * \subsection cluster How to set up multiple servers (Clustering)
+ * When you add multiple servers to the cnf.xml file you can either give them the same priority meaning, these servers are equals. Once
+ * a phone connects it will stick with that server for as long as it exists. If you however add servers with different priorities, phones
+ * will try to connect to the server with the lowest priority as soon as it becomes available (fail-back). In this senario, you could imagine
+ * a weaker server standing by in case of emergency. As soon as the primairy becomes available all phones will start switching back to the 
+ * primairy server.
+ *
+ * Also checkout the \ref DUNDi section to find out where a phone is registered if you are going down the clustering route.
+ * 
+ * \section dialplan_sample Dialplan Sample
+ * 
+ * \subsection dialplan_dp1 How to Dial an SCCP Phone from your dialplan
+ * 
+ * \code
+ * Dial(SCCP/998,120)
+ * \endcode
+ * 
+ * \subsection dialplan_dp2 How to Dial an SCCP Phone with a different ring
+ * 
+ * \code
+ * Dial(SCCP/198/ringer=inside,120)
+ * \endcode
+ *
+ * ringer= values:
+ *   - outside
+ *   - inside
+ *   - feature
+ *   - silent
+ *   - urgent
+ *   .
+ * 
+ * \subsection dialplan_dp3 Dial a line and have the phone Auto Answer
+ * 
+ * The Dial Command consist of the Channel type, Extension(Number), Options and Timeout. They can either be seperated by 
+ * slash or comma.
+ * Dial(ChannelType/Extension/Options/Timeout)
+ * 
+ * \code
+ * Dial(SCCP/9291/aa=1w, 120)
+ * \endcode
+ * 
+ * aa= values:
+ *   - 1w: 1way. MIC is oFF
+ *   - 2w: 2ways. MIC is ON
+ *   - 1wb: 1way and reject cause: busy
+ *   - 1wu: 1way and reject cause: unavailable
+ *   - 1wc: 1way and reject cause: congestion
+ *   - 2wb: 2way and reject cause: busy
+ *   - 2wu: 2way and reject cause: unavailable
+ *   - 2wc: 2way and reject cause: congestion
+ *   .
+ * 
+ * \section change_phone_to_sccp Hot to change the firmware to SCCP
+ *
+ *   - Copy the SCCP Firmware to your tftp directory
+ *   - Set the Firmware version in OS79XX.TXT. It should containt only on line, like this:
+ *     \code
+ * 	 P00308010100
+ *     \endcode
+ *   - Set the XMLDefault.cnf.xml to should contain every used device and it firmware. It should look like this:
+ *     \code
+ *     <Default>
+ *     <callManagerGroup>
+ *       <members>
+ *         <member  priority="0">
+ *           <callManager>
+ *             <ports>
+ *               <ethernetPhonePort>2000</ethernetPhonePort>
+ *             </ports>
+ *             <processNodeName>10.31.150.1</processNodeName>
+ *           </callManager>
+ *         </member>
+ *       </members>
+ *     </callManagerGroup>
+ *     <loadInformation6  model="IP Phone 7910">SCCP11.8-5-2S</loadInformation6>
+ *     <loadInformation6  model="IP Phone 7911">SCCP11.8-5-2S</loadInformation6>
+ *     <loadInformation124  model="Addon 7914">S00105000300</loadInformation124>
+ *     <loadInformation9  model="IP Phone 7935"></loadInformation9>
+ *     <loadInformation8  model="IP Phone 7940">P00308010100</loadInformation8>
+ *     <loadInformation7  model="IP Phone 7960">P00308010100</loadInformation7>
+ *     <loadInformation20000  model="IP Phone 7905"></loadInformation20000>
+ *     <loadInformation30008  model="IP Phone 7902"></loadInformation30008>
+ *     <loadInformation30007  model="IP Phone 7912"></loadInformation30007>
+ *     </Default>
+ *     \endcode
+ * 
+ * For more information check out : \n
+ * http://www.cisco.com/en/US/products/hw/phones/ps379/products_tech_note09186a0080094584.shtml
+ * http://www.cisco.com/en/US/docs/voice_ip_comm/cucme/command/reference/cmeallht.pdf
+ * http://www.cisco.com/en/US/docs/voice_ip_comm/cucme/admin/configuration/guide/cmelabel.html
+ *
+ * \section DUNDi Asterisk Clustering and DUNDi Lookup
+ * DUNDi is a peer-to-peer system for locating Internet Gateways to telephony services. 
+ * Unlike traditional centralized services (such as the remarkably simple and concise ENUM standard), 
+ * DUNDi is fully distributed with no centralized authority whatsoever.
+ * 
+ * \subsection dundi_dyn DUNDI Dynamic Awareness 	(original author: J.R.Richardson)
+ * 
+ * If regcontext is specified in sccp.conf chan-sccp-b will dynamically create and destroy a NoOp priority 1
+ * extension for a given peer/line which registers with the server. If the context is not specified in
+ * extension.conf, then it will be dynamically created when an chan-sccp-b agent registers. Do not include the regcontext 
+ * you set in sccp.conf manually in your dialplan. You can however use the same regcontext for iax, sip, sccp any
+ * other channel driver witch support regcontext, to get once big resource pool of registered devices.
+ * 
+ * Example sccp.conf:
+ * \code
+ * [general]
+ * regcontext=sccpregistration
+ * \endcode
+ * 
+ * Once the phones, in this example 98011 and 98012 register with your asterisk server1, a context
+ * of [sccpregistration] appears and the "show dialplan" command at the asterisk CLI> will produce:
+ * 
+ * \code
+ * server1*CLI> dialplan show sccpregistration
+ * [ Context 'sccpregistration' created by 'SCCP' ]
+ *   '98011' =>        1. Noop(98011)                                [SCCP]
+ *   '98011@1' =>      1. Noop(98099)                                [SCCP]
+ * -= 2 extensions (2 priorities) in 1 context. =-
+ * \endcode
+ * 
+ * This gives this PBX a dedicated context that we can map DUNDi lookup requests to. When
+ * a DUNDi lookup requests location information for extension 98011, this PBX will reply
+ * "yes, the extension is active here and this is the contact address". 
+ * 
+ * We do not have to insert a [sccpregistration] in the extensions.conf because it will
+ * be created automatically as soon as the first line/extension registration occurs.
+ * 
+ *  * \subsection dundi_dyn DUNDI Configuration
+ * 
+ * In this example we will use IAX2 to make DUNDi Switch connections. There are a lot of 
+ * ways to set this up, so please check the DUNDi documentation. We use a simple context in iax.conf
+ * which is common for all PBX servers, like this:
+ * 
+ * iax.conf:
+ * \code
+ * [priv]
+ * type=friend
+ * dbsecret=dundi/secret
+ * context=incomingdundi
+ * \endcode
+ * 
+ * In the DUNDi [mappings] section, we specify what [context] in extensions.conf we want
+ * to allow DUNDi request access to. This is how the cluster sees any available SCCP 
+ * Agents in the [sccpregistration] context on this PBX.
+ * 
+ * \code
+ * dundi.conf
+ * [mappings]
+ * priv => sccpregistration,0,IAX2,priv:${SECRET}@10.10.10.10.1/${NUMBER},nopartial]
+ * \endcode
+ * 
+ * For the rest of the DUNDi implementation in a clustered environment please check out:
+ *  - http://atlaug.com/stuff/Presentations/Astricon06/JR_Richardson_Whitepaper.pdf
+ *  - http://www.voip-info.org/wiki/view/Asterisk+DUNDi+Call+Routing
+ *  - http://leifmadsen.com/papers/dundi-intro.pdf
+ * 
+ * 
+ *  
+ * \section NAT Troubles using VOIP and SCCP through a Firewall (NAT)
+ * 
+ * What is this NAT and why does this cause problems with VOIP, RTP and sound ?
+ *
+ * In addition, the way in which conventional VoIP protocols are designed is also posing a problem to VoIP traffic passing 
+ * through NAT. Conventional VoIP protocols only deal with the signalling of a telephone connection. The audio traffic is 
+ * handled by another protocol and to make matters worse, the port on which the audio traffic is sent is random. 
+ * The NAT router may be able to handle the signalling traffic, but it has no way of knowing that the audio traffic is 
+ * related to the signalling and should hence be passed to the same device the signalling traffic is passed to. 
+ * As a result, the audio traffic is not translated properly between the address spaces. 
+ * 
+ * At first, for both the calling and the called party everything will appear just fine. The called party will see the 
+ * calling party's Caller ID and the telephone will ring while the calling party will hear a ringing feedback tone at the 
+ * other end. When the called party picks up the telephone, both the ringing and the associated ringing feedback tone at 
+ * the other end will stop as one would expect. However, the calling party will not hear the called party (one way audio) 
+ * and the called party may not hear the calling party either (no audio). 
+ * 
+ * The issue of NAT Traversal is a major problem for the widespread deployment of VOIP. Yet, the issue is non-trivial and 
+ * there are no simple solutions. In general terms there are two ways to deal with this problem: 
+ * - Don't use NAT, i.e. public ip-addresses for a your phone (not a solution)
+ * - Build a tunnel between the networks that need to communicate with each other, No NAT Required over the tunnel.
+ * - Put Asterisk on the Firewall and make it the go-between / proxy. See next point. (For SCCP: set directrtp=off in your config).
+ * - Use a Firewall Connection Tracking Plugin which records outgoing VOIP Connections and Maps there return RTP connections. 
+ *   For example for iptables this plugin is called: nf_nat_sip.ko or nf_nat_h323.ko. At this moment in time we do not have a 
+ *   version for sccp, yet. (But for SIP and H323 it works very well).
+ * .
+ * Other works arounds:
+ * - Use static ip-address on your phones and creates forwards in your firewall for the SCCP port and a block of RTP ports for this phone.
+ * - Put a SIP-Proxy on the Firewall and reroute the packets. You could use for example : SER (Sip Express Router), SIPProxd or RTPProxy.
+ * - Use a STUN Server: http://www.voip-info.org/wiki/view/STUN, http://tools.ietf.org/html/draft-ietf-sipping-nat-scenarios-13 
+ * - Find and IAX2 provider instead of SIP. IAX can encapsulate RTP with its packets and therefor traverse NAT without any
+ *   problems. 
+ * .
+ * 
+ * You can find more infomation about VOIP and NAT here
+ * - [http://www.snom.com/whitepapers/FAQ-03-10-20-cs.pdf: Operating phones behind NAT]
+ * - [http://www.cisco.com/warp/public/788/voip/voip-nat.html: VOIP traversal of NAT and firewall]
+ * - [http://www.intertex.se/upfiles/IntertexSIPWhitePaper.pdf: White Paper: The SIP Protocol and Firewall Traversal]
+ * - [http://www.newport-networks.com/whitepapers/nat-traversal1.html: Newport Networks White Paper NAT Traversal for Multimedia over IP]
+ * - [http://www.eyeball.com/technology/whitepapers/EyeballAnyfirewallWhitePaper.pdf: White Paper: NAT Traversal for VoIP and Internet Communications using STUN, TURN and ICE]
+ * - [http://sipath.sf.net/: Use a SIP- and RTP-Proxy combination on your NAT/Firewall/Router - as done by the SIPatH Project]
+ *
+ * 
+ * \section shared_lines Shared Lines
+ * 
+ * Shared lines are lines used by several devices at the same time providing easy handling of phone calls between them. You can
+ * for example hold a line on one device and use resume on another to pick the line up there. Or even steal a line from another 
+ * device using the Intercept button.
+ * 
+ * To set up a shared line, you just define the same extension/line number on multiple devices. You can add a suffix or subscriptionId to the extension
+ * number to be able to call a specific device using "@" and if you like an extra callerid_name behind ":", like this:
+ *
+ * \code
+ * [SEP00000001]
+ * ...
+ * button = line, 900@1:Kitchen
+ * ...
+ *
+ * [SEP00000002]
+ * ...
+ * button = line, 900@2:LivingRoom!silent
+ * ...
+ * \endcode 
+ *
+ * If you now create the relevant entries in your dialplan you can either call 900, 9001, 9002 using this example:
+ * 
+ * \code
+ * _9XX =>{
+ *	  Dial(SCCP/${EXTEN});
+ * };
+ *
+ * _90XX =>{
+ *	Set(extension=${EXTEN:0:3});
+ *      Set(suffix=${EXTEN:3:1});
+ *	Dial(SCCP/${extension}@${suffix});
+ * };
+ * \endcode
+ *
+ * To add a default suffix to a line (so all device using that line, will also be accessible via the default suffix) you
+ * can add "defaultSubscriptionId_number = " to the line definition in sccp.conf.
+ *
+ * When "silent" is added to the subscriptionId this line will not ring if the shared line is called, this can be used when a secretary is supposed to 
+ * handle all incoming calls on a shared line. Only when the extension including the suffix/subscriptionId is called will this line ring.
+ *
+ **/
+
+

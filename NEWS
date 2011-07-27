@@ -1,0 +1,70 @@
+Version: 3.0.0_STABLE
+============================
+Added Functionality:
+ - improved Video Support
+
+Fixed/Improved:
+ - bug fixes for locking
+ - bug fixes in codec handling
+ - bug fixes in rtp handling
+ - configure updates 
+
+
+Version: 3.0_RC3.1
+============================
+Added Functionality:
+ - Major overhaul of the locking system
+ - Moved from using socket_select to socket_poll
+ - Added sccp_pbx_wrapper, to ease the migration towards support for Asterisk 1.8
+
+Fixed/Improved:
+ - bug fixes for locking
+ - bug fixes for socket handling
+ - bug fixes for configure script
+ - lots of small bugs reported by users
+ - documentation updates
+
+Version: 3.0_RC3
+============================
+Added Functionality:
+ - Dialplan Function SCCPDEVICE, SCCPLINE and SCCPCHANNEL
+ - DevState Feature Button (--enable-devstate)
+ - some parameters in configure have change from --with to --enable/disable.
+   A couple of parameters which used to be disabled are now enabled by
+   default. Please Check them !!
+ - Dynamic Speeddials (and dynamic speeddials with call info) for newer SCCP Phones
+ - Early Beginnings of Video Support
+
+Fixed/Improved:
+ - bug fixes for device re-registering
+ - bug fixes for hints
+ - bug fixes for channel indications (DTMF / Inband Messages during Progress)
+ - configure script, os detection
+ - lots of small bugs reported by users
+ - documentation updates
+
+Version: 3.0_RC2
+============================
+Added Functionality:
+ - sccp reload
+ - dynamic speeddial with and without callerid
+
+Fixed/Improved:
+ - transfer + callerid
+ - improved callerid passing during call forward
+
+Version: 3.0_RC1
+============================
+Added Functionality: 
+ - HotLine
+ - Shared Lines
+ - Dynamic speed dials
+ - New configuration file handling using templating 
+
+Fixed/Improved: 
+ - Realtime database support
+ - Debug indications
+ - Direct transfer
+ - Group pickup
+ - Call parking
+

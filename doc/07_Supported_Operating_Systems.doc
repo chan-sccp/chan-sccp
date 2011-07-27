@@ -1,0 +1,147 @@
+/*!
+ * \file 	07_Supported_Operating_Systems.doc
+ * \brief 	An implementation of Skinny Client Control Protocol (SCCP)
+ * \author 	Diederik de Groot <dkgroot [at] talon.nl>
+ * \since	2009-11-12
+ * \brief 	Main Documentation
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \version	$Revision: -1 $
+ * \date	$date$
+ **/
+
+/*!
+ * \file 
+ * Contains extra comments for Doxygen.
+ *
+ * You could read the documentation from this file; but it would probably
+ * be easier to go to http://chan-sccp-b.sourceforge.net 
+ *
+ **/
+
+/*!
+ * \page supp_os 	Supported Operating Systems to date
+ *
+ * Status for various supported OSes ( Asterisk - Chan_SCCP )
+ *
+ * Please tell us if you have succesfully installed / ported chan_sccp to you platform if it's not in the list yet
+ *
+ * \section supp_os_hp 		HP-UX/Tru64
+ *
+ * \section supp_os_ibm 	IBM AIX
+ *
+ * \section supp_os_sun 	SUN Solaris
+ * Being checked
+ *
+ * \section supp_os_sun 	OS X
+ *   - 10.6 Snow Leopard
+ *
+ * \section supp_os_free 	Free OS'es
+ *
+ * \subsection supp_freeos_bsd	BSD
+ *   - OpenBSD 4.6
+ *      - Asterisk 1.4.25.1
+ *      - Asterisk 1.6.1.12
+ *      .
+ *   - FreeBSD\n
+ *     Should work because openBSD works. Has to be confirmed
+ *   - NetBSD\n
+ *     Should work because openBSD works. Has to be confirmed
+ *   .
+ *
+ * \subsection supp_freeos_linux Linux
+ *   - Embedded OS:  
+ *      - Horstbox 2.09
+ *       - Compile script created, testing underway (MC)
+ *         checkout: 
+ *         - http://gforge.willwebhosting.de/gf/project/horstbox/tracker/?action=TrackerItemEdit&tracker_item_id=219&tracker_id=219
+ *         - http://gforge.willwebhosting.de/gf/download/trackeritem/219/158/sccp.mk
+ *         .
+ *       .
+ *   - RedHat:  
+ *      - RedHat 5.0
+ *       - Asterisk 1.4
+ *       - Asterisk 1.6
+ *       - Asterisk 1.6.1
+ *       - Asterisk 1.6.2
+ *       .
+ *      - RedHat 5.5
+ *       - Asterisk 1.4
+ *       - Asterisk 1.6
+ *       - Asterisk 1.6.1
+ *       - Asterisk 1.6.2
+ *       .
+ *      .
+ *   - Fedora:  
+ *      - Fedora 12
+ *       - Asterisk 1.4
+ *       - Asterisk 1.6
+ *       - Asterisk 1.6.1
+ *       - Asterisk 1.6.2
+ *       .
+ *      - Fedora 13
+ *       - Asterisk 1.4
+ *       - Asterisk 1.6
+ *       - Asterisk 1.6.1
+ *       - Asterisk 1.6.2
+ *       .
+ *      .
+ *   - Centos:  
+ *      - Asterisk 1.4
+ *      - Asterisk 1.6
+ *      - Asterisk 1.6.1
+ *      .
+ *   - Debian:  
+ *      - Asterisk 1.4
+ *      - Asterisk 1.6
+ *      - Asterisk 1.6.1
+ *      - Asterisk 1.6.2
+ *      .
+ *   - Ubuntu / MintLinux
+ *     - Karmic
+ *       - Asterisk 1.4
+ *       - Asterisk 1.6
+ *       - Asterisk 1.6.1
+ *       - Asterisk 1.6.2
+ *       .
+ *     - Lucid
+ *       - Asterisk 1.4
+ *       - Asterisk 1.6
+ *       - Asterisk 1.6.1
+ *       - Asterisk 1.6.2
+ *       .
+ *     .
+ *   - OpenSuSE:
+ *      - 10.0:
+ *         - Asterisk 1.4
+ *         - Asterisk 1.6
+ *         - Asterisk 1.6.1
+ *         .
+ *      - 11.0:
+ *         - Asterisk 1.4
+ *         - Asterisk 1.6
+ *         - Asterisk 1.6.1
+ *         - Asterisk 1.6.2
+ *         .
+ *      - 11.1:
+ *         - Asterisk 1.4
+ *         - Asterisk 1.6
+ *         - Asterisk 1.6.1
+ *         - Asterisk 1.6.2
+ *         .
+ *      - 11.2:
+ *         - Asterisk 1.4
+ *         - Asterisk 1.6
+ *         - Asterisk 1.6.1
+ *         - Asterisk 1.6.2
+ *         .
+ *      - 11.3:
+ *         - Asterisk 1.4
+ *         - Asterisk 1.6
+ *         - Asterisk 1.6.1
+ *         - Asterisk 1.6.2
+ *         .
+ *      .
+ *   .
+ *
+ **/
+

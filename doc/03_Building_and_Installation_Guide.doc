@@ -1,0 +1,76 @@
+/*!
+ * \file 	03_Building_and_Installation_Guide.doc
+ * \brief 	An implementation of Skinny Client Control Protocol (SCCP)
+ * \author 	Diederik de Groot <dkgroot [at] talon.nl>
+ * \since	2009-11-12
+ * \brief 	Main Documentation
+ * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \version	$Revision: 1369 $
+ * \date	$date$
+ **/
+
+/*!
+ * \file 
+ * Contains extra comments for Doxygen.
+ *
+ * You could read the documentation from this file; but it would probably
+ * be easier to go to http://chan-sccp-b.sourceforge.net 
+ *
+ **/
+/*!
+ * \page build_guide Building and Installation Guide
+ *
+ *   - \ref unix_pre Precompiled for your Platform
+ *   - \ref unix_pr Prerequisites
+ *   - \ref unix_bi Building and Installation
+ *   - \ref setup_howto How to setup Chan_SCCP
+ *   - \ref sccp_config_howto1 Setting Protocol
+ *   - \ref sccp_config_howto2 Sample config file
+ *   - \ref sccp_config_rt How to use RealTime Database
+ *   - \ref sccp_config_dhcp Setting up a DHCP Server
+ *   - \ref change_phone_to_sccp Hot to change the firmware to SCCP
+ *   - \ref sccp_config_sep What does a Sample SEP[MacAddr].cnf.xml Look Like
+ *   - \ref dialplan_sample Dialplan Sample
+ *   .
+ *
+ * \section unix UNIX, BSD and Linux
+ * These instructions are valid for most UNIX-like operating systems, including BSD and
+ * Linux variants.
+ *
+ * \subsection unix_pre Precompiled for your Platform
+ * On http://chan-sccp-b.sourceforge.net/download.shtml you can find links to lot of precompiled versions of chan-sccp-b. 
+ * You can just at the specific repository file specific to your platform to your system and install chan-sccp-b from there.
+ *
+ * \subsection unix_pr Prerequisites
+ * The following prerequisites are required:
+ *   - A bourne shell (/bin/sh) that is capable of running the supplied configure script.
+ *   - Installed version of Asterisk starting at version 1.2
+ *   - Make sure you have the following installed on your system:
+ *     - The GNU C compiler or another supported C compiler.
+ *     - The make program
+ *     - autoconf (2.6.0)
+ *     - automake (1.10)
+ *     - libtool (2.2.2)
+ *     - m4 (1.4.5)
+ *     .
+ *   .
+ *
+ * \subsection unix_bi Building and Installation
+ *
+ * Build instructions:
+ *   - Download the Chan_SCCP sources. 
+ *   - Extract the source tree to a clean directory.
+ *   - To get started with configure please run (run "./configure --help" to get a list of all the possible configure flags)\n
+ *   - Some of the configure switches have changed during the latest development, please check before running configure
+ *   .
+ * \code
+ *       $ ./configure
+ *       $ make
+ *       $ make install
+ * \endcode
+ * 
+ * For source code maintainers it is important to know that when you change something in one of the Makefile.am files or configure.ac 
+ * you should run ./tools/bootstrap.sh before commiting to the repository.
+ *
+ **/
+
