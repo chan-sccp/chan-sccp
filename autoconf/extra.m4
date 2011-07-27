@@ -143,7 +143,7 @@ AC_DEFUN([CS_SETUP_ENVIRONMENT], [
 	AC_DISABLE_STATIC
 	AC_FUNC_ALLOCA
 	AC_HEADER_RESOLV
-	AC_GNU_SOURCE
+dnl	AC_GNU_SOURCE
 
 	CFLAGS="$CFLAGS -std=gnu89"
 	CFLAGS="$CFLAGS -Wno-long-long"
@@ -595,7 +595,7 @@ AC_DEFUN([CS_DISABLE_DEVSTATE_FEATURE], [
 	AC_ARG_ENABLE(devstate_feature, 
 	  AC_HELP_STRING([--disable-devstate-feature], [disable device state feature button]), 
 	    ac_cv_devstate_feature=$enableval, ac_cv_devstate_feature=yes)
-	AS_IF([test ${ASTERISK_VER_GROUP} -lt 106], [ac_cv_devstate_feature=no])])
+	AS_IF([test ${ASTERISK_VER_GROUP} -lt 106], [ac_cv_devstate_feature=no])
 	AS_IF([test "${ac_cv_devstate_feature}" == "yes"], [AC_DEFINE(CS_DEVSTATE_FEATURE, 1, [devstate feature enabled])])
 	AC_MSG_NOTICE([--enable-devstate-feature: ${ac_cv_devstate_feature}])
 ])
