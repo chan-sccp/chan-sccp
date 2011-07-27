@@ -1,3 +1,17 @@
+2011-07-27  ddegroot
+
+	* [r2648] .version, ChangeLog, NEWS: committed V3.0.0_STABLE
+
+2011-07-26  ddegroot
+
+	* [r2646] conf/sccp.conf, doc/04_Setup_Guide.doc: Fixed spelling
+	  mistake
+
+2011-07-26  davidded
+
+	* [r2645] src/sccp_actions.c, src/sccp_device.c,
+	  src/sccp_protocol.h: cisco 8945 support
+
 2011-07-24  ddegroot
 
 	* [r2644] autoconf/asterisk.m4, autoconf/extra.m4,
