@@ -1,8 +1,5 @@
 2011-07-27  ddegroot
 
-	* [r2655] ChangeLog, autoconf/extra.m4, configure, src/sccp_hint.c:
-	  Fix compilation against asterisk 1.4
-
 	* [r2648] .version, ChangeLog, NEWS: committed V3.0.0_STABLE
 
 2011-07-26  ddegroot

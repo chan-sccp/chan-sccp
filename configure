@@ -378,11 +378,43 @@ as_fn_error ()
   as_fn_exit $as_status
 } # as_fn_error
 
+if expr a : '\(a\)' >/dev/null 2>&1 &&
+   test "X`expr 00001 : '.*\(...\)'`" = X001; then
+  as_expr=expr
+else
+  as_expr=false
+fi
+
+if (basename -- /) >/dev/null 2>&1 && test "X`basename -- / 2>&1`" = "X/"; then
+  as_basename=basename
+else
+  as_basename=false
+fi
+
 if (as_dir=`dirname -- /` && test "X$as_dir" = X/) >/dev/null 2>&1; then
   as_dirname=dirname
 else
   as_dirname=false
 fi
+
+as_me=`$as_basename -- "$0" ||
+$as_expr X/"$0" : '.*/\([^/][^/]*\)/*$' \| \
+	 X"$0" : 'X\(//\)$' \| \
+	 X"$0" : 'X\(/\)' \| . 2>/dev/null ||
+$as_echo X/"$0" |
+    sed '/^.*\/\([^/][^/]*\)\/*$/{
+	    s//\1/
+	    q
+	  }
+	  /^X\/\(\/\/\)$/{
+	    s//\1/
+	    q
+	  }
+	  /^X\/\(\/\).*/{
+	    s//\1/
+	    q
+	  }
+	  s/.*/./; q'`
 
 # Avoid depending upon Character Ranges.
 as_cr_letters='abcdefghijklmnopqrstuvwxyz'
@@ -6274,7 +6306,6 @@ done
 
 
 
-
 	CFLAGS="$CFLAGS -std=gnu89"
 	CFLAGS="$CFLAGS -Wno-long-long"
 
@@ -7059,13 +7090,13 @@ if test "${lt_cv_nm_interface+set}" = set; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:7062: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:7093: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:7065: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:7096: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:7068: output\"" >&5)
+  (eval echo "\"\$as_me:7099: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -8259,7 +8290,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 8262 "configure"' > conftest.$ac_ext
+  echo '#line 8293 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -11135,11 +11166,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11138: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11169: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:11142: \$? = $ac_status" >&5
+   echo "$as_me:11173: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -11474,11 +11505,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11477: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11508: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:11481: \$? = $ac_status" >&5
+   echo "$as_me:11512: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -11579,11 +11610,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11582: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11613: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:11586: \$? = $ac_status" >&5
+   echo "$as_me:11617: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -11634,11 +11665,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11637: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11668: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:11641: \$? = $ac_status" >&5
+   echo "$as_me:11672: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14018,7 +14049,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 14021 "configure"
+#line 14052 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -14114,7 +14145,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 14117 "configure"
+#line 14148 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -15321,7 +15352,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 15324 "configure"
+#line 15355 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -24926,6 +24957,14 @@ fi
 	if test ${ASTERISK_VER_GROUP} -lt 106; then :
   ac_cv_devstate_feature=no
 fi
+	if test "${ac_cv_devstate_feature}" == "yes"; then :
+
+$as_echo "#define CS_DEVSTATE_FEATURE 1" >>confdefs.h
+
+fi
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-devstate-feature: ${ac_cv_devstate_feature}" >&5
+$as_echo "$as_me: --enable-devstate-feature: ${ac_cv_devstate_feature}" >&6;}
+
 
 	# Check whether --enable-dynamic_speeddial was given.
 if test "${enable_dynamic_speeddial+set}" = set; then :
