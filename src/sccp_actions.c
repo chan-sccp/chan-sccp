@@ -1352,6 +1352,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			sccp_log((DEBUGCAT_CORE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
 		break;
 
+#ifdef CS_SCCP_PICKUP
 	case SKINNY_STIMULUS_GROUPCALLPICKUP:					/*!< pickup feature button */
 
 		if (d->defaultLineInstance > 0) {
@@ -1373,7 +1374,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		}
 
 		break;
-
+#endif
 	default:
 		ast_log(LOG_NOTICE, "%s: Don't know how to deal with stimulus %d with Phonetype %s(%d) \n", d->id, stimulus, devicetype2str(d->skinny_type), d->skinny_type);
 		break;
@@ -2816,7 +2817,9 @@ void sccp_handle_services_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_m
 void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggleState)
 {
 	sccp_buttonconfig_t *config = NULL;
+#ifdef CS_SCCP_FEATURE_MONITOR
 	sccp_channel_t *channel = NULL;
+#endif
 	sccp_line_t *line = NULL;
 
 	uint8_t status = 0;							/* state of cfwd */
