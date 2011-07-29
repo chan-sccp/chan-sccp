@@ -1,4 +1,17 @@
+2011-07-29  ddegroot
+
+	* [r2667] src/common.h: Fix devicestate.h include
+
 2011-07-27  ddegroot
+
+	* [r2658] ChangeLog, autoconf/extra.m4, configure, src/config.h.in:
+	  Fixed configure warning during bootstrap.sh
+
+	* [r2656] ChangeLog, src/sccp_hint.c: Fixed sccp_hint devstate for
+	  asterisk 1.4
+
+	* [r2655] ChangeLog, autoconf/extra.m4, configure, src/sccp_hint.c:
+	  Fix compilation against asterisk 1.4
 
 	* [r2648] .version, ChangeLog, NEWS: committed V3.0.0_STABLE
 
