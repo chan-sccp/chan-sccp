@@ -591,6 +591,7 @@ int pbx_context_remove_extension(const char *context, const char *extension, int
  * \param msg Message as char *
  * \param listflag listflag as char *
  */
+#ifdef CS_MANAGER_EVENTS
 void pbxman_send_listack(struct mansession *s, const struct message *m, char *msg, char *listflag)
 {
 #if ASTERISK_VERSION_NUMBER < 10600
@@ -599,6 +600,7 @@ void pbxman_send_listack(struct mansession *s, const struct message *m, char *ms
 	astman_send_listack(s, m, msg, listflag);
 #endif
 }
+#endif
 
 /*!
  * \brief Turn on music on hold on a given channel 
