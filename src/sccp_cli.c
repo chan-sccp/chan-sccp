@@ -327,9 +327,10 @@ static int sccp_show_devices(int fd, int argc, char *argv[])
 		strftime(buffer, sizeof(buffer), "%c", timeinfo);
 		ast_cli(fd, "%-40s %-20s:%-6d %-16s %-10s %-25s\n",		// %-10s %-16s %c%c %-10s\n",
 			d->description, (d->session) ? pbx_inet_ntoa(d->session->sin.sin_addr) : "--", (d->session) ? d->session->sin.sin_port : 0, d->id, deviceregistrationstatus2str(d->registrationState), buffer);
+#ifdef CS_MANAGER_EVENTS
 		if (GLOB(callevents))
-			manager_event(EVENT_FLAG_CALL, "SCCPDevice", "Name: %-40s\r\n" "ipAddr: %-20s\r\n" "MAC: %-16s\r\n" "RegState: %-10s\r\n", d->description, (d->session) ? ast_inet_ntoa(d->session->sin.sin_addr) : "--", d->id, deviceregistrationstatus2str(d->registrationState)
-			    );
+			manager_event(EVENT_FLAG_CALL, "SCCPDevice", "Name: %-40s\r\n" "ipAddr: %-20s\r\n" "MAC: %-16s\r\n" "RegState: %-10s\r\n", d->description, (d->session) ? ast_inet_ntoa(d->session->sin.sin_addr) : "--", d->id, deviceregistrationstatus2str(d->registrationState) );
+#endif	
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 	return RESULT_SUCCESS;
@@ -570,8 +571,10 @@ static int sccp_show_lines(int fd, int argc, char *argv[])
 			if ((d = linedevice->device)) {
 				ast_cli(fd, "%-16s %-16s %-6s %-4s %-4d %-10s %-10s %-16s %-10s\n", l->name, (d) ? d->id : "--", linedevice->subscriptionId.number, (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(l->channels), (c) ? sccp_indicate2str(c->state) : "--", (c) ? calltype2str(c->calltype) : "", (c) ? ((c->calltype == SKINNY_CALLTYPE_OUTBOUND) ? c->callInfo.calledPartyName : c->callInfo.callingPartyName) : "", cap_buf);
 				found_linedevice = 1;
+#ifdef CS_MANAGER_EVENTS
 				if (GLOB(callevents))
 					manager_event(EVENT_FLAG_CALL, "SCCPLine", "Name: %-16s\r\n" "Device: %-16s\r\n" "Suffix: %-6s\r\n" "MWI: %-4s\r\n" "Chs: %-4d\r\n" "ActiveChannel: %-16s\r\n", l->name, (d) ? d->id : "--", linedevice->subscriptionId.number, (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(l->channels), (c) ? sccp_indicate2str(c->state) : "--");
+#endif					
 			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
@@ -734,6 +737,7 @@ static int sccp_show_channels(int fd, int argc, char *argv[])
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 			ast_cli(fd, "%.5d %-10s %-16s %-16s %-16s %-10s %-10s\n", c->callid, c->line->name, (c->device) ? c->device->description : "(unknown)", (c->owner) ? ast_state2str(c->owner->_state) : "(none)", sccp_indicate2str(c->state), c->callInfo.calledPartyNumber, (c->format) ? codec2str(sccp_codec_ast2skinny(c->format)) : "(none)");
+#ifdef CS_MANAGER_EVENTS
 			if (GLOB(callevents)) {
 				manager_event(EVENT_FLAG_CALL, "SCCPShowChannels",
 					      "CallID: %.5d\r\n"
@@ -741,6 +745,7 @@ static int sccp_show_channels(int fd, int argc, char *argv[])
 					      "SCCPDevice: %-16s\r\n" "DeviceDesc: %-16s\r\n" "ASTState: %-16s\r\n" "SCCPState: %-16s\r\n" "Called: %-10s\r\n" "Codec: %-10s\r\n", c->callid, c->line->name, (c->device) ? c->device->id : "--", (c->device) ? c->device->description : "(unknown)", (c->owner) ? ast_state2str(c->owner->_state) : "(none)", sccp_indicate2str(c->state), c->callInfo.calledPartyNumber, (c->format) ? codec2str(sccp_codec_ast2skinny(c->format)) : "(none)");
 				manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate", "Channel: %s\r\n" "Uniqueid: %s\r\n" "Channeltype: %s\r\n" "SCCPdevice: %s\r\n" "SCCPline: %s\r\n" "SCCPcallid: %s\r\n" "SCCPState: %s\r\n", c->owner->name, c->owner->uniqueid, "SCCP", (c->device) ? DEV_ID_LOG(c->device) : "(null)", (l) ? l->name : "(null)", (c) ? (char *)&c->callid : "(null)", sccp_indicate2str(c->state));
 			}
+#endif			
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
 		sccp_line_unlock(l);

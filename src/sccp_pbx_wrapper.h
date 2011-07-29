@@ -154,7 +154,9 @@ const char *pbx_inet_ntoa(struct in_addr ia);
 int pbx_str2cos(const char *value, unsigned int *cos);
 int pbx_str2tos(const char *value, unsigned int *tos);
 int pbx_context_remove_extension(const char *context, const char *extension, int priority, const char *registrar);
+#ifdef CS_MANAGER_EVENTS
 void pbxman_send_listack(struct mansession *s, const struct message *m, char *msg, char *listflag);
+#endif
 int pbx_moh_start(PBX_CHANNEL_TYPE * chan, const char *mclass, const char *interpclass);
 
 #    ifdef HAVE_ASTERISK
