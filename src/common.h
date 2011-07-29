@@ -48,7 +48,7 @@
 #    include <asterisk/callerid.h>
 #    include <asterisk/musiconhold.h>
 #    include <asterisk/astdb.h>
-#    ifdef CS_AST_HAS_NEW_DEVICESTATE
+#    ifdef HAVE_PBX_DEVICESTATE_H
 #        include <asterisk/devicestate.h>
 #    endif
 #    ifndef CS_AST_HAS_RTP_ENGINE
