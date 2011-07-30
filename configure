@@ -19877,6 +19877,7 @@ if test "x$ac_cv_header_asterisk_devicestate_h" = x""yes; then :
 
 $as_echo "#define HAVE_PBX_DEVICESTATE_H 1" >>confdefs.h
 
+			DEVICESTATE_H=yes
 
 
 		ac_ext=c
@@ -24955,6 +24956,9 @@ else
 fi
 
 	if test ${ASTERISK_VER_GROUP} -lt 106; then :
+  ac_cv_devstate_feature=no
+fi
+	if test "${DEVICESTATE_H}" != "yes"; then :
   ac_cv_devstate_feature=no
 fi
 	if test "${ac_cv_devstate_feature}" == "yes"; then :
