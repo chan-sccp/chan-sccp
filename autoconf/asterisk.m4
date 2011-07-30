@@ -541,6 +541,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
     AC_CHECK_HEADER([asterisk/devicestate.h],
 		[
 			AC_DEFINE(HAVE_PBX_DEVICESTATE_H,1,[Found 'asterisk/devicestate.h'])			
+			DEVICESTATE_H=yes
 			
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_devstate_changed'...], [ac_cv_ast_devstate_changed], [
 					#if ASTERISK_VERSION_NUMBER >= 10400
