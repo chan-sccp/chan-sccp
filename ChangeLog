@@ -1,5 +1,9 @@
 2011-07-29  ddegroot
 
+	* [r2668] ChangeLog, src/config.h.in, src/sccp_actions.c,
+	  src/sccp_cli.c, src/sccp_pbx_wrapper.c, src/sccp_pbx_wrapper.h:
+	  Fixed disabled configure flags
+
 	* [r2667] src/common.h: Fix devicestate.h include
 
 2011-07-27  ddegroot
