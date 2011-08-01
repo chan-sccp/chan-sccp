@@ -16,7 +16,7 @@ AC_DEFUN([AST_GET_VERSION], [
 	  ],[
 	    const char *test_src = ASTERISK_VERSION;
 	  ], [
-	    AC_MSG_RESULT('asterisk/version.h' processed)
+	    AC_MSG_RESULT(processed)
             pbx_ver=$(eval "$ac_cpp conftest.$ac_ext" 2>/dev/null | $EGREP test_src |$EGREP -o '\".*\"')
             ASTERISK_REPOS_LOCATION=TGZ
             if echo $pbx_ver|grep -q "\"1\.2"; then
