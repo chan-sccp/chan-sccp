@@ -18195,41 +18195,30 @@ $as_echo "${T_MD}Checking Asterisk Version:${T_ME}" >&6; }
   ac_fn_c_check_header_mongrel "$LINENO" "asterisk/version.h" "ac_cv_header_asterisk_version_h" "$ac_includes_default"
 if test "x$ac_cv_header_asterisk_version_h" = x""yes; then :
 
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for version in asterisk/version.h" >&5
-$as_echo_n "checking for version in asterisk/version.h... " >&6; }
-    if test "$cross_compiling" = yes; then :
-  as_fn_error $? "Could not compile and run even a trivial ANSI C program - check CC." "$LINENO" 5
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking version in asterisk/version.h" >&5
+$as_echo_n "checking version in asterisk/version.h... " >&6; }
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-                        #include <stdio.h>
-                        #include <stdlib.h>
-                        #include "asterisk/version.h"
+    	    #include <asterisk/version.h>
 
-                        int main()
-                        {
-                                FILE *f = fopen("pbx.ver","a+");
-                                fprintf(f, "VER:%s\n", ASTERISK_VERSION);
-                                fclose(f);
-                                return 0;
-                        }
+int
+main ()
+{
 
+	    const char *test_src = ASTERISK_VERSION;
 
+  ;
+  return 0;
+}
 _ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
+if ac_fn_c_try_compile "$LINENO"; then :
 
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-    if test -f pbx.ver; then
-    	    pbx_ver=`cat pbx.ver`
-    	    rm -f pbx.ver
-
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: result: processed" >&5
+$as_echo "processed" >&6; }
+            pbx_ver=$(eval "$ac_cpp conftest.$ac_ext" 2>/dev/null | $EGREP test_src |$EGREP -o '\".*\"')
             ASTERISK_REPOS_LOCATION=TGZ
-            if echo $pbx_ver|grep -q "VER:1\.2"; then
+            if echo $pbx_ver|grep -q "\"1\.2"; then
 
 $as_echo "#define ASTERISK_CONF_1_2 1" >>confdefs.h
 
@@ -18238,7 +18227,7 @@ $as_echo "Found 'Asterisk Version 1.2.x'" >&6; }
               REALTIME_USEABLE=0
               ASTERISK_VER_GROUP=102
               ASTERISK_VER=1.2
-            elif echo $pbx_ver|grep -q "VER:1\.4"; then
+            elif echo $pbx_ver|grep -q "\"1\.4"; then
 
 $as_echo "#define ASTERISK_CONF_1_4 1" >>confdefs.h
 
@@ -18246,7 +18235,7 @@ $as_echo "#define ASTERISK_CONF_1_4 1" >>confdefs.h
 $as_echo "Found 'Asterisk Version 1.4.x'" >&6; }
               ASTERISK_VER_GROUP=104
               ASTERISK_VER=1.4
-            elif echo $pbx_ver|grep -q "VER:1\.6"; then
+            elif echo $pbx_ver|grep -q "\"1\.6"; then
 
 $as_echo "#define ASTERISK_CONF_1_6 1" >>confdefs.h
 
@@ -18254,21 +18243,21 @@ $as_echo "#define ASTERISK_CONF_1_6 1" >>confdefs.h
 $as_echo "Found 'Asterisk Version 1.6.x'" >&6; }
               ASTERISK_VER_GROUP=106
               ASTERISK_VER=1.6.2
-              if echo $pbx_ver|grep -q "VER:1\.6\.0"; then
+              if echo $pbx_ver|grep -q "\"1\.6\.0"; then
 
 $as_echo "#define ASTERISK_CONF_1_6_0 1" >>confdefs.h
 
                 { $as_echo "$as_me:${as_lineno-$LINENO}: result: Specifically 1.6.0" >&5
 $as_echo "Specifically 1.6.0" >&6; }
                 ASTERISK_VER=1.6.0
-              elif echo $pbx_ver|grep -q "VER:1\.6\.1"; then
+              elif echo $pbx_ver|grep -q "\"1\.6\.1"; then
 
 $as_echo "#define ASTERISK_CONF_1_6_1 1" >>confdefs.h
 
                 { $as_echo "$as_me:${as_lineno-$LINENO}: result: Specifically 1.6.1" >&5
 $as_echo "Specifically 1.6.1" >&6; }
                 ASTERISK_VER=1.6.1
-              elif echo $pbx_ver|grep -q "VER:1\.6\.2"; then
+              elif echo $pbx_ver|grep -q "\"1\.6\.2"; then
 
 $as_echo "#define ASTERISK_CONF_1_6_2 1" >>confdefs.h
 
@@ -18283,7 +18272,7 @@ $as_echo "#define ASTERISK_CONF_1_6_2 1" >>confdefs.h
 $as_echo "Using 1.6.2" >&6; }
                 ASTERISK_VER=1.6.2
               fi
-            elif echo $pbx_ver|grep -q "VER:1\.8"; then
+            elif echo $pbx_ver|grep -q "\"1\.8"; then
 
 $as_echo "#define ASTERISK_CONF_1_8 1" >>confdefs.h
 
@@ -18291,42 +18280,42 @@ $as_echo "#define ASTERISK_CONF_1_8 1" >>confdefs.h
 $as_echo "Found 'Asterisk Version 1.8.x'" >&6; }
               ASTERISK_VER_GROUP=108
               ASTERISK_VER=1.8.3
-              if echo $pbx_ver|grep -q "VER:1\.8\.0"; then
+              if echo $pbx_ver|grep -q "\"1\.8\.0"; then
 
 $as_echo "#define ASTERISK_CONF_1_8_0 1" >>confdefs.h
 
                 { $as_echo "$as_me:${as_lineno-$LINENO}: result: Specifically 1.8.0" >&5
 $as_echo "Specifically 1.8.0" >&6; }
                 ASTERISK_VER=1.8.0
-              elif echo $pbx_ver|grep -q "VER:1\.8\.1"; then
+              elif echo $pbx_ver|grep -q "\"1\.8\.1"; then
 
 $as_echo "#define ASTERISK_CONF_1_8_1 1" >>confdefs.h
 
                 { $as_echo "$as_me:${as_lineno-$LINENO}: result: Specifically 1.8.1" >&5
 $as_echo "Specifically 1.8.1" >&6; }
                 ASTERISK_VER=1.8.1
-              elif echo $pbx_ver|grep -q "VER:1\.8\.2"; then
+              elif echo $pbx_ver|grep -q "\"1\.8\.2"; then
 
 $as_echo "#define ASTERISK_CONF_1_8_2 1" >>confdefs.h
 
                 { $as_echo "$as_me:${as_lineno-$LINENO}: result: Specifically 1.8.2" >&5
 $as_echo "Specifically 1.8.2" >&6; }
                 ASTERISK_VER=1.8.2
-              elif echo $pbx_ver|grep -q "VER:1\.8\.3"; then
+              elif echo $pbx_ver|grep -q "\"1\.8\.3"; then
 
 $as_echo "#define ASTERISK_CONF_1_8_3 1" >>confdefs.h
 
                 { $as_echo "$as_me:${as_lineno-$LINENO}: result: Specifically 1.8.3" >&5
 $as_echo "Specifically 1.8.3" >&6; }
                 ASTERISK_VER=1.8.3
-              elif echo $pbx_ver|grep -q "VER:1\.8\.4"; then
+              elif echo $pbx_ver|grep -q "\"1\.8\.4"; then
 
 $as_echo "#define ASTERISK_CONF_1_8_4 1" >>confdefs.h
 
                 { $as_echo "$as_me:${as_lineno-$LINENO}: result: Specifically 1.8.4" >&5
 $as_echo "Specifically 1.8.4" >&6; }
                 ASTERISK_VER=1.8.4
-              elif echo $pbx_ver|grep -q "VER:1\.8\.5"; then
+              elif echo $pbx_ver|grep -q "\"1\.8\.5"; then
 
 $as_echo "#define ASTERISK_CONF_1_8_5 1" >>confdefs.h
 
@@ -18342,7 +18331,7 @@ $as_echo "Using 1.8.5" >&6; }
                 REALTIME_USEABLE=1
                 ASTERISK_VER=1.8.5
               fi
-            elif echo $pbx_ver|grep -q "VER:1\.10"; then
+            elif echo $pbx_ver|grep -q "\"1\.10"; then
 
 $as_echo "#define ASTERISK_CONF_1_10 1" >>confdefs.h
 
@@ -18350,7 +18339,7 @@ $as_echo "#define ASTERISK_CONF_1_10 1" >>confdefs.h
 $as_echo "Found 'Asterisk Version 1.10.x'" >&6; }
               ASTERISK_VER_GROUP=110
               ASTERISK_VER=1.10.0
-              if echo $pbx_ver|grep -q "VER:1\.10\.0"; then
+              if echo $pbx_ver|grep -q "\"1\.10\.0"; then
 
 $as_echo "#define ASTERISK_CONF_1_10_0 1" >>confdefs.h
 
@@ -18358,7 +18347,7 @@ $as_echo "#define ASTERISK_CONF_1_10_0 1" >>confdefs.h
 $as_echo "Specifically 1.10.0" >&6; }
                 ASTERISK_VER=1.10.0
               fi
-            elif echo $pbx_ver|grep -q "VER:SVN-trunk"; then
+            elif echo $pbx_ver|grep -q "\"SVN-trunk"; then
 
 $as_echo "#define ASTERISK_CONF_1_10 1" >>confdefs.h
 
@@ -18367,10 +18356,10 @@ $as_echo "Found 'Asterisk Version SVN Trunk --> Using 1.10.x as version number'"
               ASTERISK_VER_GROUP=110
               ASTERISK_VER=1.10
               ASTERISK_REPOS_LOCATION=TRUNK
-            elif echo $pbx_ver|grep -q "VER:SVN-branch"; then
+            elif echo $pbx_ver|grep -q "\"SVN-branch"; then
               echo "SVN-BRANCH"
               ASTERISK_REPOS_LOCATION=BRANCH
-              if echo $pbx_ver|grep -q "VER:SVN-branch-1\.2"; then
+              if echo $pbx_ver|grep -q "\"SVN-branch-1\.2"; then
 
 $as_echo "#define ASTERISK_CONF_1_2 1" >>confdefs.h
 
@@ -18379,7 +18368,7 @@ $as_echo "Found 'Asterisk Version 1.2.x'" >&6; }
                 REALTIME_USEABLE=0
                 ASTERISK_VER_GROUP=102
                 ASTERISK_VER=1.2
-              elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.4"; then
+              elif echo $pbx_ver|grep -q "\"SVN-branch-1\.4"; then
 
 $as_echo "#define ASTERISK_CONF_1_4 1" >>confdefs.h
 
@@ -18387,7 +18376,7 @@ $as_echo "#define ASTERISK_CONF_1_4 1" >>confdefs.h
 $as_echo "Found 'Asterisk Version 1.4.x'" >&6; }
                 ASTERISK_VER_GROUP=104
                 ASTERISK_VER=1.4
-              elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.6"; then
+              elif echo $pbx_ver|grep -q "\"SVN-branch-1\.6"; then
 
 $as_echo "#define ASTERISK_CONF_1_6 1" >>confdefs.h
 
@@ -18395,28 +18384,28 @@ $as_echo "#define ASTERISK_CONF_1_6 1" >>confdefs.h
 $as_echo "Found 'Asterisk Version 1.6.x'" >&6; }
                 ASTERISK_VER_GROUP=106
                 ASTERISK_VER=1.6.2
-                if echo $pbx_ver|grep -q "VER:SVN-branch-1\.6\.0"; then
+                if echo $pbx_ver|grep -q "\"SVN-branch-1\.6\.0"; then
 
 $as_echo "#define ASTERISK_CONF_1_6_0 1" >>confdefs.h
 
                   { $as_echo "$as_me:${as_lineno-$LINENO}: result: Specifically 1.6.0" >&5
 $as_echo "Specifically 1.6.0" >&6; }
                   ASTERISK_VER=1.6.0
-                elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.6\.1"; then
+                elif echo $pbx_ver|grep -q "\"SVN-branch-1\.6\.1"; then
 
 $as_echo "#define ASTERISK_CONF_1_6_1 1" >>confdefs.h
 
                   { $as_echo "$as_me:${as_lineno-$LINENO}: result: Specifically 1.6.1" >&5
 $as_echo "Specifically 1.6.1" >&6; }
                   ASTERISK_VER=1.6.1
-                elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.6\.2"; then
+                elif echo $pbx_ver|grep -q "\"SVN-branch-1\.6\.2"; then
 
 $as_echo "#define ASTERISK_CONF_1_6_2 1" >>confdefs.h
 
                   { $as_echo "$as_me:${as_lineno-$LINENO}: result: Specifically 1.6.2" >&5
 $as_echo "Specifically 1.6.2" >&6; }
                   ASTERISK_VER=1.6.2
-                elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.6\.2"; then
+                elif echo $pbx_ver|grep -q "\"SVN-branch-1\.6\.2"; then
 
 $as_echo "#define ASTERISK_CONF_1_6_2 1" >>confdefs.h
 
@@ -18424,49 +18413,49 @@ $as_echo "#define ASTERISK_CONF_1_6_2 1" >>confdefs.h
 $as_echo "Using 1.6.2" >&6; }
                   ASTERISK_VER=1.6.2
                 fi
-              elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.8"; then
+              elif echo $pbx_ver|grep -q "\"SVN-branch-1\.8"; then
 
 $as_echo "#define ASTERISK_CONF_1_8 1" >>confdefs.h
 
                 { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version 1.8.x'" >&5
 $as_echo "Found 'Asterisk Version 1.8.x'" >&6; }
                 ASTERISK_VER_GROUP=108
-                if echo $pbx_ver|grep -q "VER:SVN-branch-1\.8\.0"; then
+                if echo $pbx_ver|grep -q "\"SVN-branch-1\.8\.0"; then
 
 $as_echo "#define ASTERISK_CONF_1_8_0 1" >>confdefs.h
 
                   { $as_echo "$as_me:${as_lineno-$LINENO}: result: Specifically 1.8.0" >&5
 $as_echo "Specifically 1.8.0" >&6; }
                   ASTERISK_VER=1.8.0
-                elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.8\.1"; then
+                elif echo $pbx_ver|grep -q "\"SVN-branch-1\.8\.1"; then
 
 $as_echo "#define ASTERISK_CONF_1_8_1 1" >>confdefs.h
 
                   { $as_echo "$as_me:${as_lineno-$LINENO}: result: Specifically 1.8.1" >&5
 $as_echo "Specifically 1.8.1" >&6; }
                   ASTERISK_VER=1.8.1
-                elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.8\.2"; then
+                elif echo $pbx_ver|grep -q "\"SVN-branch-1\.8\.2"; then
 
 $as_echo "#define ASTERISK_CONF_1_8_2 1" >>confdefs.h
 
                   { $as_echo "$as_me:${as_lineno-$LINENO}: result: Specifically 1.8.2" >&5
 $as_echo "Specifically 1.8.2" >&6; }
                   ASTERISK_VER=1.8.2
-                elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.8\.3"; then
+                elif echo $pbx_ver|grep -q "\"SVN-branch-1\.8\.3"; then
 
 $as_echo "#define ASTERISK_CONF_1_8_3 1" >>confdefs.h
 
                   { $as_echo "$as_me:${as_lineno-$LINENO}: result: Specifically 1.8.3" >&5
 $as_echo "Specifically 1.8.3" >&6; }
                   ASTERISK_VER=1.8.3
-                elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.8\.4"; then
+                elif echo $pbx_ver|grep -q "\"SVN-branch-1\.8\.4"; then
 
 $as_echo "#define ASTERISK_CONF_1_8_4 1" >>confdefs.h
 
                   { $as_echo "$as_me:${as_lineno-$LINENO}: result: Specifically 1.8.4" >&5
 $as_echo "Specifically 1.8.4" >&6; }
                   ASTERISK_VER=1.8.4
-                elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.8\.5"; then
+                elif echo $pbx_ver|grep -q "\"SVN-branch-1\.8\.5"; then
 
 $as_echo "#define ASTERISK_CONF_1_8_5 1" >>confdefs.h
 
@@ -18481,7 +18470,7 @@ $as_echo "#define ASTERISK_CONF_1_8_5 1" >>confdefs.h
 $as_echo "Using 1.8.5" >&6; }
                   ASTERISK_VER=1.8.5
                 fi
-              elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.10"; then
+              elif echo $pbx_ver|grep -q "\"SVN-branch-1\.10"; then
 
 $as_echo "#define ASTERISK_CONF_1_10 1" >>confdefs.h
 
@@ -18489,7 +18478,7 @@ $as_echo "#define ASTERISK_CONF_1_10 1" >>confdefs.h
 $as_echo "Found 'Asterisk Version 1.10.x'" >&6; }
                 ASTERISK_VER_GROUP=110
                 ASTERISK_VER=1.10.0
-                if echo $pbx_ver|grep -q "VER:SVN-branch-1\.10\.0"; then
+                if echo $pbx_ver|grep -q "\"SVN-branch-1\.10\.0"; then
 
 $as_echo "#define ASTERISK_CONF_1_10_0 1" >>confdefs.h
 
@@ -18497,7 +18486,7 @@ $as_echo "#define ASTERISK_CONF_1_10_0 1" >>confdefs.h
 $as_echo "Specifically 1.10.0" >&6; }
                   ASTERISK_VER=1.10.0
                 fi
-              elif echo $pbx_ver|grep -q "VER:SVN-branch-10"; then
+              elif echo $pbx_ver|grep -q "\"SVN-branch-10"; then
 
 $as_echo "#define ASTERISK_CONF_1_10 1" >>confdefs.h
 
@@ -18570,16 +18559,14 @@ $as_echo "${T_MD}Asterisk Version ${ASTERISK_VER} Not Supported${T_ME}" >&6; }
                         echo ""
                         exit 255
             fi
-    else
-        echo ""
-        echo ""
-        echo "PBX version could not be determined (pbx.ver failed)"
-        echo "===================================================="
-        echo "pbx.ver: ${pbx.ver}"
-        echo "Either install asterisk and asterisk-devel packages"
-        echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=path"
-        exit
-    fi
+
+else
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: 'ASTERISK_VERSION could not be established" >&5
+$as_echo "'ASTERISK_VERSION could not be established" >&6; }
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: 'asterisk/version.h' Could not be found" >&5
@@ -22624,7 +22611,7 @@ fi
                 if test -f src/pbx_impl/ast/ast${ASTERISK_VERSION_NUMBER}.c; then
                   PBX_MINOR="chan_sccp_la-ast${ASTERISK_VERSION_NUMBER}.lo"
                 else
-                  PBX_MINOR="chan_sccp_la-ast${ASTERISK_VER_GROUP}0x.lo"
+                  PBX_MINOR=""
                 fi
 	else
 		PBX_GENERAL=""
@@ -24723,7 +24710,7 @@ $as_echo "#define DEBUG 1" >>confdefs.h
 		enable_do_crash="yes"
 		enable_debug_mutex="yes"
 		strip_binaries="no"
-		CFLAGS_saved="$CFLAGS_saved -O0 -Os -Wall -Wextra -Wno-unused-parameter"
+		CFLAGS_saved="$CFLAGS_saved -O0 -Os -Wall -Wextra -Wno-unused-parameter -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wlong-long"
 		CFLAGS="$CFLAGS_saved"
 		GDB_FLAGS="-g"
 	else
@@ -24955,7 +24942,7 @@ else
   ac_cv_devstate_feature=yes
 fi
 
-	if test ${ASTERISK_VER_GROUP} -lt 106; then :
+	if test ${ASTERISK_VER_GROUP} -lt 10601; then :
   ac_cv_devstate_feature=no
 fi
 	if test "${DEVICESTATE_H}" != "yes"; then :
