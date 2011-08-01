@@ -1,3 +1,9 @@
+Version: 3.0.1_STABLE
+============================
+Fixed/Improved:
+ - bug fixes for configure when using crosscompiling
+ - minor bug fixes when compiling against older asterisk versions
+
 Version: 3.0.0_STABLE
 ============================
 Added Functionality:
@@ -67,4 +73,5 @@ Fixed/Improved:
  - Direct transfer
  - Group pickup
  - Call parking
+
 
