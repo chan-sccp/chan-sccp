@@ -372,7 +372,7 @@ AC_DEFUN([AST_SET_PBX_AMCONDITIONALS],[
                 if test -f src/pbx_impl/ast/ast${ASTERISK_VERSION_NUMBER}.c; then
                   PBX_MINOR="chan_sccp_la-ast${ASTERISK_VERSION_NUMBER}.lo"
                 else
-                  PBX_MINOR="chan_sccp_la-ast${ASTERISK_VER_GROUP}0x.lo"
+                  PBX_MINOR=""
                 fi
 	else
 		PBX_GENERAL=""
@@ -473,7 +473,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		enable_do_crash="yes"
 		enable_debug_mutex="yes"
 		strip_binaries="no"
-		CFLAGS_saved="$CFLAGS_saved -O0 -Os -Wall -Wextra -Wno-unused-parameter"
+		CFLAGS_saved="$CFLAGS_saved -O0 -Os -Wall -Wextra -Wno-unused-parameter -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wlong-long"
 		CFLAGS="$CFLAGS_saved"
 		GDB_FLAGS="-g"
 	else
@@ -595,7 +595,7 @@ AC_DEFUN([CS_DISABLE_DEVSTATE_FEATURE], [
 	AC_ARG_ENABLE(devstate_feature, 
 	  AC_HELP_STRING([--disable-devstate-feature], [disable device state feature button]), 
 	    ac_cv_devstate_feature=$enableval, ac_cv_devstate_feature=yes)
-	AS_IF([test ${ASTERISK_VER_GROUP} -lt 106], [ac_cv_devstate_feature=no])
+	AS_IF([test ${ASTERISK_VER_GROUP} -lt 10601], [ac_cv_devstate_feature=no])
 	AS_IF([test "${DEVICESTATE_H}" != "yes"], [ac_cv_devstate_feature=no])
 	AS_IF([test "${ac_cv_devstate_feature}" == "yes"], [AC_DEFINE(CS_DEVSTATE_FEATURE, 1, [devstate feature enabled])])
 	AC_MSG_NOTICE([--enable-devstate-feature: ${ac_cv_devstate_feature}])
