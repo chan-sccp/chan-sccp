@@ -10,56 +10,40 @@ AC_DEFUN([AST_GET_VERSION], [
   CONFIGURE_PART([Checking Asterisk Version:])
   REALTIME_USEABLE=1
   AC_CHECK_HEADER([asterisk/version.h],[
-    AC_MSG_CHECKING([for version in asterisk/version.h])
-    AC_TRY_RUN([
-                        #include <stdio.h>
-                        #include <stdlib.h>
-                        #include "asterisk/version.h"
-                        
-                        int main()
-                        {
-                                FILE *f = fopen("pbx.ver","a+");
-                                fprintf(f, "VER:%s\n", ASTERISK_VERSION);
-                                fclose(f);
-                                return 0;
-                        }
-                ]		
-                ,
-             [],
-             [],
-             AC_MSG_ERROR(Could not compile and run even a trivial ANSI C program - check CC.),
-             AC_MSG_ERROR(Could not compile and run even a trivial ANSI C program - check CC.)
-    )
-    if test -f pbx.ver; then
-    	    pbx_ver=`cat pbx.ver`
-    	    rm -f pbx.ver
-
+    AC_MSG_CHECKING([version in asterisk/version.h])
+    AC_TRY_COMPILE([
+    	    #include <asterisk/version.h>
+	  ],[
+	    const char *test_src = ASTERISK_VERSION;
+	  ], [
+	    AC_MSG_RESULT(processed)
+            pbx_ver=$(eval "$ac_cpp conftest.$ac_ext" 2>/dev/null | $EGREP test_src |$EGREP -o '\".*\"')
             ASTERISK_REPOS_LOCATION=TGZ
-            if echo $pbx_ver|grep -q "VER:1\.2"; then
+            if echo $pbx_ver|grep -q "\"1\.2"; then
               AC_DEFINE(ASTERISK_CONF_1_2, 1, [Define ASTERISK_CONF_1_2])
               AC_MSG_RESULT([Found 'Asterisk Version 1.2.x'])
               REALTIME_USEABLE=0
               ASTERISK_VER_GROUP=102
               ASTERISK_VER=1.2
-            elif echo $pbx_ver|grep -q "VER:1\.4"; then
+            elif echo $pbx_ver|grep -q "\"1\.4"; then
               AC_DEFINE(ASTERISK_CONF_1_4, 1, [Define ASTERISK_CONF_1_4])
               AC_MSG_RESULT([Found 'Asterisk Version 1.4.x'])
               ASTERISK_VER_GROUP=104
               ASTERISK_VER=1.4
-            elif echo $pbx_ver|grep -q "VER:1\.6"; then
+            elif echo $pbx_ver|grep -q "\"1\.6"; then
               AC_DEFINE(ASTERISK_CONF_1_6, 1, [Define ASTERISK_CONF_1_6])
               AC_MSG_RESULT([Found 'Asterisk Version 1.6.x'])
               ASTERISK_VER_GROUP=106
               ASTERISK_VER=1.6.2
-              if echo $pbx_ver|grep -q "VER:1\.6\.0"; then
+              if echo $pbx_ver|grep -q "\"1\.6\.0"; then
                 AC_DEFINE(ASTERISK_CONF_1_6_0, 1, [Define ASTERISK_CONF_1_6_0])
                 AC_MSG_RESULT([Specifically 1.6.0])
                 ASTERISK_VER=1.6.0
-              elif echo $pbx_ver|grep -q "VER:1\.6\.1"; then
+              elif echo $pbx_ver|grep -q "\"1\.6\.1"; then
                 AC_DEFINE(ASTERISK_CONF_1_6_1, 1, [Define ASTERISK_CONF_1_6_1])
                 AC_MSG_RESULT([Specifically 1.6.1])
                 ASTERISK_VER=1.6.1
-              elif echo $pbx_ver|grep -q "VER:1\.6\.2"; then
+              elif echo $pbx_ver|grep -q "\"1\.6\.2"; then
                 AC_DEFINE(ASTERISK_CONF_1_6_2, 1, [Define ASTERISK_CONF_1_6_2])
                 AC_MSG_RESULT([Specifically 1.6.2])
                 ASTERISK_VER=1.6.2
@@ -68,32 +52,32 @@ AC_DEFUN([AST_GET_VERSION], [
                 AC_MSG_RESULT([Using 1.6.2])
                 ASTERISK_VER=1.6.2
               fi
-            elif echo $pbx_ver|grep -q "VER:1\.8"; then
+            elif echo $pbx_ver|grep -q "\"1\.8"; then
               AC_DEFINE(ASTERISK_CONF_1_8, 1, [Define ASTERISK_CONF_1_8])
               AC_MSG_RESULT([Found 'Asterisk Version 1.8.x'])
               ASTERISK_VER_GROUP=108
               ASTERISK_VER=1.8.3
-              if echo $pbx_ver|grep -q "VER:1\.8\.0"; then
+              if echo $pbx_ver|grep -q "\"1\.8\.0"; then
                 AC_DEFINE(ASTERISK_CONF_1_8_0, 1, [Define ASTERISK_CONF_1_8_0])
                 AC_MSG_RESULT([Specifically 1.8.0])
                 ASTERISK_VER=1.8.0
-              elif echo $pbx_ver|grep -q "VER:1\.8\.1"; then
+              elif echo $pbx_ver|grep -q "\"1\.8\.1"; then
                 AC_DEFINE(ASTERISK_CONF_1_8_1, 1, [Define ASTERISK_CONF_1_8_1])
                 AC_MSG_RESULT([Specifically 1.8.1])
                 ASTERISK_VER=1.8.1
-              elif echo $pbx_ver|grep -q "VER:1\.8\.2"; then
+              elif echo $pbx_ver|grep -q "\"1\.8\.2"; then
                 AC_DEFINE(ASTERISK_CONF_1_8_2, 1, [Define ASTERISK_CONF_1_8_2])
                 AC_MSG_RESULT([Specifically 1.8.2])
                 ASTERISK_VER=1.8.2
-              elif echo $pbx_ver|grep -q "VER:1\.8\.3"; then
+              elif echo $pbx_ver|grep -q "\"1\.8\.3"; then
                 AC_DEFINE(ASTERISK_CONF_1_8_3, 1, [Define ASTERISK_CONF_1_8_3])
                 AC_MSG_RESULT([Specifically 1.8.3])
                 ASTERISK_VER=1.8.3
-              elif echo $pbx_ver|grep -q "VER:1\.8\.4"; then
+              elif echo $pbx_ver|grep -q "\"1\.8\.4"; then
                 AC_DEFINE(ASTERISK_CONF_1_8_4, 1, [Define ASTERISK_CONF_1_8_4])
                 AC_MSG_RESULT([Specifically 1.8.4])
                 ASTERISK_VER=1.8.4
-              elif echo $pbx_ver|grep -q "VER:1\.8\.5"; then
+              elif echo $pbx_ver|grep -q "\"1\.8\.5"; then
                 AC_DEFINE(ASTERISK_CONF_1_8_5, 1, [Define ASTERISK_CONF_1_8_5])
                 AC_MSG_RESULT([Specifically 1.8.5])
                 ASTERISK_VER=1.8.5
@@ -103,83 +87,83 @@ AC_DEFUN([AST_GET_VERSION], [
                 REALTIME_USEABLE=1
                 ASTERISK_VER=1.8.5
               fi
-            elif echo $pbx_ver|grep -q "VER:1\.10"; then
+            elif echo $pbx_ver|grep -q "\"1\.10"; then
               AC_DEFINE(ASTERISK_CONF_1_10, 1, [Define ASTERISK_CONF_1_10])
               AC_MSG_RESULT([Found 'Asterisk Version 1.10.x'])
               ASTERISK_VER_GROUP=110
               ASTERISK_VER=1.10.0
-              if echo $pbx_ver|grep -q "VER:1\.10\.0"; then
+              if echo $pbx_ver|grep -q "\"1\.10\.0"; then
                 AC_DEFINE(ASTERISK_CONF_1_10_0, 1, [Define ASTERISK_CONF_1_10_0])
                 AC_MSG_RESULT([Specifically 1.10.0])
                 ASTERISK_VER=1.10.0
               fi
-            elif echo $pbx_ver|grep -q "VER:SVN-trunk"; then
+            elif echo $pbx_ver|grep -q "\"SVN-trunk"; then
               AC_DEFINE(ASTERISK_CONF_1_10, 1, [Define ASTERISK_CONF_1_10])
               AC_MSG_RESULT([Found 'Asterisk Version SVN Trunk --> Using 1.10.x as version number'])
               ASTERISK_VER_GROUP=110
               ASTERISK_VER=1.10
               ASTERISK_REPOS_LOCATION=TRUNK
-            elif echo $pbx_ver|grep -q "VER:SVN-branch"; then
+            elif echo $pbx_ver|grep -q "\"SVN-branch"; then
               echo "SVN-BRANCH"
               ASTERISK_REPOS_LOCATION=BRANCH
-              if echo $pbx_ver|grep -q "VER:SVN-branch-1\.2"; then
+              if echo $pbx_ver|grep -q "\"SVN-branch-1\.2"; then
                 AC_DEFINE(ASTERISK_CONF_1_2, 1, [Define ASTERISK_CONF_1_2])
                 AC_MSG_RESULT([Found 'Asterisk Version 1.2.x'])
                 REALTIME_USEABLE=0
                 ASTERISK_VER_GROUP=102
                 ASTERISK_VER=1.2
-              elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.4"; then
+              elif echo $pbx_ver|grep -q "\"SVN-branch-1\.4"; then
                 AC_DEFINE(ASTERISK_CONF_1_4, 1, [Define ASTERISK_CONF_1_4])
                 AC_MSG_RESULT([Found 'Asterisk Version 1.4.x'])
                 ASTERISK_VER_GROUP=104
                 ASTERISK_VER=1.4
-              elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.6"; then
+              elif echo $pbx_ver|grep -q "\"SVN-branch-1\.6"; then
                 AC_DEFINE(ASTERISK_CONF_1_6, 1, [Define ASTERISK_CONF_1_6])
                 AC_MSG_RESULT([Found 'Asterisk Version 1.6.x'])
                 ASTERISK_VER_GROUP=106
                 ASTERISK_VER=1.6.2
-                if echo $pbx_ver|grep -q "VER:SVN-branch-1\.6\.0"; then
+                if echo $pbx_ver|grep -q "\"SVN-branch-1\.6\.0"; then
                   AC_DEFINE(ASTERISK_CONF_1_6_0, 1, [Define ASTERISK_CONF_1_6_0])
                   AC_MSG_RESULT([Specifically 1.6.0])
                   ASTERISK_VER=1.6.0
-                elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.6\.1"; then
+                elif echo $pbx_ver|grep -q "\"SVN-branch-1\.6\.1"; then
                   AC_DEFINE(ASTERISK_CONF_1_6_1, 1, [Define ASTERISK_CONF_1_6_1])
                   AC_MSG_RESULT([Specifically 1.6.1])
                   ASTERISK_VER=1.6.1
-                elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.6\.2"; then
+                elif echo $pbx_ver|grep -q "\"SVN-branch-1\.6\.2"; then
                   AC_DEFINE(ASTERISK_CONF_1_6_2, 1, [Define ASTERISK_CONF_1_6_2])
                   AC_MSG_RESULT([Specifically 1.6.2])
                   ASTERISK_VER=1.6.2
-                elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.6\.2"; then
+                elif echo $pbx_ver|grep -q "\"SVN-branch-1\.6\.2"; then
                   AC_DEFINE(ASTERISK_CONF_1_6_2, 1, [Define ASTERISK_CONF_1_6_2])
                   AC_MSG_RESULT([Using 1.6.2])
                   ASTERISK_VER=1.6.2
                 fi
-              elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.8"; then
+              elif echo $pbx_ver|grep -q "\"SVN-branch-1\.8"; then
                 AC_DEFINE(ASTERISK_CONF_1_8, 1, [Define ASTERISK_CONF_1_8])
                 AC_MSG_RESULT([Found 'Asterisk Version 1.8.x'])
                 ASTERISK_VER_GROUP=108
-                if echo $pbx_ver|grep -q "VER:SVN-branch-1\.8\.0"; then
+                if echo $pbx_ver|grep -q "\"SVN-branch-1\.8\.0"; then
                   AC_DEFINE(ASTERISK_CONF_1_8_0, 1, [Define ASTERISK_CONF_1_8_0])
                   AC_MSG_RESULT([Specifically 1.8.0])
                   ASTERISK_VER=1.8.0
-                elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.8\.1"; then
+                elif echo $pbx_ver|grep -q "\"SVN-branch-1\.8\.1"; then
                   AC_DEFINE(ASTERISK_CONF_1_8_1, 1, [Define ASTERISK_CONF_1_8_1])
                   AC_MSG_RESULT([Specifically 1.8.1])
                   ASTERISK_VER=1.8.1
-                elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.8\.2"; then
+                elif echo $pbx_ver|grep -q "\"SVN-branch-1\.8\.2"; then
                   AC_DEFINE(ASTERISK_CONF_1_8_2, 1, [Define ASTERISK_CONF_1_8_2])
                   AC_MSG_RESULT([Specifically 1.8.2])
                   ASTERISK_VER=1.8.2
-                elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.8\.3"; then
+                elif echo $pbx_ver|grep -q "\"SVN-branch-1\.8\.3"; then
                   AC_DEFINE(ASTERISK_CONF_1_8_3, 1, [Define ASTERISK_CONF_1_8_3])
                   AC_MSG_RESULT([Specifically 1.8.3])
                   ASTERISK_VER=1.8.3
-                elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.8\.4"; then
+                elif echo $pbx_ver|grep -q "\"SVN-branch-1\.8\.4"; then
                   AC_DEFINE(ASTERISK_CONF_1_8_4, 1, [Define ASTERISK_CONF_1_8_4])
                   AC_MSG_RESULT([Specifically 1.8.4])
                   ASTERISK_VER=1.8.4
-                elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.8\.5"; then
+                elif echo $pbx_ver|grep -q "\"SVN-branch-1\.8\.5"; then
                   AC_DEFINE(ASTERISK_CONF_1_8_5, 1, [Define ASTERISK_CONF_1_8_5])
                   AC_MSG_RESULT([Specifically 1.8.5])
                   ASTERISK_VER=1.8.5
@@ -188,17 +172,17 @@ AC_DEFUN([AST_GET_VERSION], [
                   AC_MSG_RESULT([Using 1.8.5])
                   ASTERISK_VER=1.8.5
                 fi
-              elif echo $pbx_ver|grep -q "VER:SVN-branch-1\.10"; then
+              elif echo $pbx_ver|grep -q "\"SVN-branch-1\.10"; then
                 AC_DEFINE(ASTERISK_CONF_1_10, 1, [Define ASTERISK_CONF_1_10])
                 AC_MSG_RESULT([Found 'Asterisk Version 1.10.x'])
                 ASTERISK_VER_GROUP=110
                 ASTERISK_VER=1.10.0
-                if echo $pbx_ver|grep -q "VER:SVN-branch-1\.10\.0"; then
+                if echo $pbx_ver|grep -q "\"SVN-branch-1\.10\.0"; then
                   AC_DEFINE(ASTERISK_CONF_1_10_0, 1, [Define ASTERISK_CONF_1_10_0])
                   AC_MSG_RESULT([Specifically 1.10.0])
                   ASTERISK_VER=1.10.0
                 fi
-              elif echo $pbx_ver|grep -q "VER:SVN-branch-10"; then
+              elif echo $pbx_ver|grep -q "\"SVN-branch-10"; then
                 AC_DEFINE(ASTERISK_CONF_1_10, 1, [Define ASTERISK_CONF_1_10])
                 AC_MSG_RESULT([Found 'Asterisk Version 1.10.x'])
                 ASTERISK_VER_GROUP=110
@@ -221,10 +205,6 @@ AC_DEFUN([AST_GET_VERSION], [
               echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
               exit
             fi
-dnl            if test ${#ASTERISK_VERSION_NUM} -lt 5; then
-dnl                    ASTERISK_VERSION_NUMBER="${ASTERISK_VERSION_NUM}.0"
-dnl            fi
-dnl         ASTERISK_VERSION_NUMBER="`echo ${ASTERISK_VER}|sed 's/\./0/g'`"
 	    ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_VER##*.}"
             AC_DEFINE_UNQUOTED([ASTERISK_VERSION_NUMBER],`echo ${ASTERISK_VERSION_NUMBER}`,[ASTERISK Version Number])
             AC_SUBST([ASTERISK_VERSION_NUMBER])
@@ -244,16 +224,9 @@ dnl         ASTERISK_VERSION_NUMBER="`echo ${ASTERISK_VER}|sed 's/\./0/g'`"
                         echo ""
                         exit 255
             fi
-    else 
-        echo ""
-        echo ""
-        echo "PBX version could not be determined (pbx.ver failed)"
-        echo "===================================================="
-        echo "pbx.ver: ${pbx.ver}"
-        echo "Either install asterisk and asterisk-devel packages"
-        echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
-        exit
-    fi
+    ],[
+      AC_MSG_RESULT('ASTERISK_VERSION could not be established)
+    ])
   ],
   [AC_MSG_RESULT('asterisk/version.h' Could not be found)]
   )
