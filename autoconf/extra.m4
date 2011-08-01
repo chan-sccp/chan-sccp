@@ -372,7 +372,7 @@ AC_DEFUN([AST_SET_PBX_AMCONDITIONALS],[
                 if test -f src/pbx_impl/ast/ast${ASTERISK_VERSION_NUMBER}.c; then
                   PBX_MINOR="chan_sccp_la-ast${ASTERISK_VERSION_NUMBER}.lo"
                 else
-                  PBX_MINOR="chan_sccp_la-ast${ASTERISK_VER_GROUP}0x.lo"
+                  PBX_MINOR=""
                 fi
 	else
 		PBX_GENERAL=""
@@ -473,7 +473,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		enable_do_crash="yes"
 		enable_debug_mutex="yes"
 		strip_binaries="no"
-		CFLAGS_saved="$CFLAGS_saved -O0 -Os -Wall -Wextra -Wno-unused-parameter"
+		CFLAGS_saved="$CFLAGS_saved -O0 -Os -Wall -Wextra -Wno-unused-parameter -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wlong-long"
 		CFLAGS="$CFLAGS_saved"
 		GDB_FLAGS="-g"
 	else
