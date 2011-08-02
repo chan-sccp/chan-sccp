@@ -1,4 +1,12 @@
+2011-08-02  ddegroot
+
+	* [r2683] .version, autoconf/extra.m4, configure, src/config.h.in:
+	  Fixed devstate detection
+
 2011-08-01  ddegroot
+
+	* [r2682] ChangeLog, NEWS, debian/changelog, src/config.h.in:
+	  Update ChangeLogs
 
 	* [r2681] Makefile.in, configure, doc/Makefile.in, src/Makefile.in,
 	  src/config.h.in: Update configure to reflect .version numbers

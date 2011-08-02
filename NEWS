@@ -1,6 +1,9 @@
+Version: 3.0.2_STABLE
+Fixed/Improved:
+ - Fixed devstate detection
+
 Version: 3.0.1_STABLE
 ============================
-Fixed/Improved:
  - bug fixes for configure when using crosscompiling
  - minor bug fixes when compiling against older asterisk versions
 
@@ -73,5 +76,6 @@ Fixed/Improved:
  - Direct transfer
  - Group pickup
  - Call parking
+
 
 
