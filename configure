@@ -24942,7 +24942,7 @@ else
   ac_cv_devstate_feature=yes
 fi
 
-	if test ${ASTERISK_VER_GROUP} -lt 10601; then :
+	if test ${ASTERISK_VERSION_NUMBER} -lt 10601; then :
   ac_cv_devstate_feature=no
 fi
 	if test "${DEVICESTATE_H}" != "yes"; then :
