@@ -1,3 +1,9 @@
+2011-07-30  ddegroot
+
+	* [r2669] ChangeLog, autoconf/asterisk.m4, autoconf/extra.m4,
+	  configure, src/sccp_config.c: Fix devicestate.h handling for
+	  older versions of asterisk 1.6.0
+
 2011-07-29  ddegroot
 
 	* [r2668] ChangeLog, src/config.h.in, src/sccp_actions.c,
