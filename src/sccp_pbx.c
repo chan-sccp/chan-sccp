@@ -1870,6 +1870,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	sccp_copy_string(chan->exten, shortenedNumber, sizeof(chan->exten));
 	sccp_copy_string(d->lastNumber, c->dialedNumber, sizeof(d->lastNumber));
 	sccp_channel_set_calledparty(c, c->dialedNumber, shortenedNumber);
+	chan->cid.cid_dnid = ast_strdup(shortenedNumber);
 
 	/* The 7961 seems to need the dialing callstate to record its directories information. */
 	sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_DIALING);
