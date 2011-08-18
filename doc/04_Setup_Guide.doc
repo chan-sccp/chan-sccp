@@ -315,7 +315,7 @@
  * The chan_sccp module can be loaded using the following lines in asterisk module.conf:
  * \code
  * noload => chan_skinny.so
- * load => chan_sccp.conf
+ * load => chan_sccp.so
  * \endcode
  *
  * the skinny module is not allowed to be loaded, is it conflicts with chan_sccp.
