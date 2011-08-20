@@ -166,33 +166,33 @@ void sccp_config_addButton(sccp_device_t * device, int index, button_type_t type
 	}
 #    endif
 
-	if (sccp_strlen_zero(name)) {
+	if (sccp_strlen_zero(name) || (type != LINE && !options) ) {
 		sccp_log(0) (VERBOSE_PREFIX_1 "%s: Faulty Button Configutation found at index: %d", device->id, config->index);
 		type = EMPTY;
 	}
 
 	switch (type) {
 	case LINE:
-		{
-			struct composedId composedLineRegistrationId;
+	{
+		struct composedId composedLineRegistrationId;
 
-			memset(&composedLineRegistrationId, 0, sizeof(struct composedId));
-			composedLineRegistrationId = sccp_parseComposedId(name, 80);
+		memset(&composedLineRegistrationId, 0, sizeof(struct composedId));
+		composedLineRegistrationId = sccp_parseComposedId(name, 80);
 
-			config->type = LINE;
-			if (new)
-				device->configurationStatistic.numberOfLines++;
+		config->type = LINE;
+		if (new)
+			device->configurationStatistic.numberOfLines++;
 
-			sccp_copy_string(config->button.line.name, composedLineRegistrationId.mainId, sizeof(config->button.line.name));
-			sccp_copy_string(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number, sizeof(config->button.line.subscriptionId.number));
-			sccp_copy_string(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name, sizeof(config->button.line.subscriptionId.name));
-			sccp_copy_string(config->button.line.subscriptionId.aux, composedLineRegistrationId.subscriptionId.aux, sizeof(config->button.line.subscriptionId.aux));
+		sccp_copy_string(config->button.line.name, composedLineRegistrationId.mainId, sizeof(config->button.line.name));
+		sccp_copy_string(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number, sizeof(config->button.line.subscriptionId.number));
+		sccp_copy_string(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name, sizeof(config->button.line.subscriptionId.name));
+		sccp_copy_string(config->button.line.subscriptionId.aux, composedLineRegistrationId.subscriptionId.aux, sizeof(config->button.line.subscriptionId.aux));
 
-			if (options) {
-				sccp_copy_string(config->button.line.options, options, sizeof(config->button.line.options));
-			}
-			break;
+		if (options) {
+			sccp_copy_string(config->button.line.options, options, sizeof(config->button.line.options));
 		}
+		break;
+	}
 	case SPEEDDIAL:
 		config->type = SPEEDDIAL;
 
