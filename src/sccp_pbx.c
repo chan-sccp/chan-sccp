@@ -2016,18 +2016,7 @@ int sccp_ast_queue_control(sccp_channel_t * c, uint8_t control)
  */
 static const char *sccp_pbx_get_callid(struct ast_channel *ast)
 {
-	static char callid[8];
-
-	sccp_channel_t *c;
-
-	c = get_sccp_channel_from_ast_channel(ast);
-	if (c) {
-		snprintf(callid, sizeof callid, "%i", c->callid);
-		sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_1 "Get CallID is Returning %s ('%i')\n", callid, c->callid);
-		return callid;
-	} else {
-		return "";
-	}
+	return ast->name;
 }
 
 #endif										// ASTERISK_VERSION_NUMBER >= 10600
