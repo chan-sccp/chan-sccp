@@ -1,0 +1,16 @@
+Chan-sccp-b V3.0 has moved to branches/V3.0 to make place for the upcoming
+V4.0 in this trunk directory. 
+
+If you want to keep using the V3.0 stable branch, please use the switch
+command like:
+svn switch https://chan-sccp-b.svn.sourceforge.net/svnroot/chan-sccp-b/branches/V3.0
+
+or checkout a clean copy using:
+svn co https://chan-sccp-b.svn.sourceforge.net/svnroot/chan-sccp-b/branches/V3.0 chan-sccp-b_V3.0
+
+V4.0 with asterisk 1.8 / 1.10 support will be copied here shortly.
+
+Regards,
+
+the Chan-SCCP-b Team
+
