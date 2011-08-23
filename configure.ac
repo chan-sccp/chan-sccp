@@ -3,8 +3,8 @@ dnl COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
 dnl CREATED BY: Created by Diederik de Groot
 dnl LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
 dnl          See the LICENSE file at the top of the source tree.
-dnl DATE: $Date$
-dnl REVISION: $Revision$
+dnl DATE: $Date: 2011-05-31 04:47:49 +0200 (Tue, 31 May 2011) $
+dnl REVISION: $Revision: 2591 $
 dnl NOTE: Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.53)
 AC_INIT([Chan_SCCP],
@@ -12,8 +12,7 @@ AC_INIT([Chan_SCCP],
         [https://sourceforge.net/projects/chan-sccp-b/],
         [Chan_SCCP])
 
-MAX_ASTERISK_VERSION=106
-AC_USE_SYSTEM_EXTENSIONS
+MAX_ASTERISK_VERSION=111
 
 AC_CONFIG_AUX_DIR([autoconf])
 AC_CONFIG_MACRO_DIR([autoconf])
@@ -42,6 +41,7 @@ AH_TOP([
 #define CHAN_SCCP_CONFIG_H
 ])
 
+AC_USE_SYSTEM_EXTENSIONS
 CONFIGURE_PART([Checking AutoMake:])
 AM_INIT_AUTOMAKE([1.9 -Wno-portability check-news dist-bzip2 dist-tarZ no-define nostdinc])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
@@ -49,7 +49,7 @@ AM_DISABLE_STATIC([])
 
 AC_CONFIG_SRCDIR([src/chan_sccp.c]) 
 AC_COPYRIGHT("Chan_SCCP")
-AC_REVISION($Revision$) 
+AC_REVISION($Revision: 2591 $) 
 
 CONFIGURE_PART([Checking build environment:])
 CS_SETUP_BUILD
@@ -75,7 +75,6 @@ CS_WITH_CHANGELOG_OLDEST
 
 CONFIGURE_PART([Checking Configure Options:])
 CS_WITH_PBX
-
 CS_SETUP_DOXYGEN
 CS_PARSE_WITH_AND_ENABLE
 CS_PARSE_WITH_LIBGC
@@ -144,6 +143,7 @@ echo "Operating System : $BUILD_OS"
 echo "          Kernel : $BUILD_KERNEL"
 echo "    Architecture : $BUILD_MACHINE"
 echo "Asterisk Version : $ASTERISK_VER"
+echo "  Asterisk Repos : $ASTERISK_REPOS_LOCATION"
 echo "      Build user : $BUILD_USER"
 echo "         Version : ${SCCP_VERSION}_${SCCP_BRANCH}_r${SCCP_REVISION}"
 echo "              CC : $CC"

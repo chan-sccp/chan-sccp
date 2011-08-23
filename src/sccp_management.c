@@ -45,16 +45,13 @@ static char management_device_update_desc[] = "Description: restart a given devi
  */
 static char management_line_fwd_update_desc[] = "Description: update forward status for line\n" "\n" "Variables:\n" "  Linename: Name of line\n" "  Forwardtype: type of cfwd (all | busy | noAnswer)\n" "  Number: number to forward calls (optional)";
 
+void sccp_manager_eventListener(const sccp_event_t ** event);
+
 static int sccp_manager_show_devices(struct mansession *s, const struct message *m);
-
 static int sccp_manager_show_lines(struct mansession *s, const struct message *m);
-
 static int sccp_manager_restart_device(struct mansession *s, const struct message *m);
-
 static int sccp_manager_device_add_line(struct mansession *s, const struct message *m);
-
 static int sccp_manager_device_update(struct mansession *s, const struct message *m);
-
 static int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m);
 static int sccp_manager_startCall(struct mansession *s, const struct message *m);
 static int sccp_manager_answerCall(struct mansession *s, const struct message *m);
@@ -74,16 +71,16 @@ int sccp_register_management(void)
 #    else
 #        define _MAN_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING
 #    endif
-	result = ast_manager_register2("SCCPListDevices", _MAN_FLAGS, sccp_manager_show_devices, "List SCCP devices (text format)", management_show_devices_desc);
-	result |= ast_manager_register2("SCCPListLines", _MAN_FLAGS, sccp_manager_show_lines, "List SCCP lines (text format)", management_show_lines_desc);
-	result |= ast_manager_register2("SCCPDeviceRestart", _MAN_FLAGS, sccp_manager_restart_device, "Restart a given device", management_restart_devices_desc);
-	result |= ast_manager_register2("SCCPDeviceAddLine", _MAN_FLAGS, sccp_manager_device_add_line, "add a line to device", management_show_device_add_line_desc);
-	result |= ast_manager_register2("SCCPDeviceUpdate", _MAN_FLAGS, sccp_manager_device_update, "add a line to device", management_device_update_desc);
-	result |= ast_manager_register2("SCCPLineForwardUpdate", _MAN_FLAGS, sccp_manager_line_fwd_update, "add a line to device", management_line_fwd_update_desc);
-	result |= ast_manager_register2("SCCPStartCall", _MAN_FLAGS, sccp_manager_startCall, "start a new call on device", "");	/*!< \todo add description for ami */
-	result |= ast_manager_register2("SCCPAnswerCall", _MAN_FLAGS, sccp_manager_answerCall, "answer a ringin channel", "");	/*!< \todo add description for ami */
-	result |= ast_manager_register2("SCCPHangupCall", _MAN_FLAGS, sccp_manager_hangupCall, "hangup a channel", "");	/*!< \todo add description for ami */
-	result |= ast_manager_register2("SCCPHoldCall", _MAN_FLAGS, sccp_manager_holdCall, "hold/unhold a call", "");	/*!< \todo add description for ami */
+	result = pbx_manager_register2("SCCPListDevices", _MAN_FLAGS, sccp_manager_show_devices, "List SCCP devices (text format)", management_show_devices_desc);
+	result |= pbx_manager_register2("SCCPListLines", _MAN_FLAGS, sccp_manager_show_lines, "List SCCP lines (text format)", management_show_lines_desc);
+	result |= pbx_manager_register2("SCCPDeviceRestart", _MAN_FLAGS, sccp_manager_restart_device, "Restart a given device", management_restart_devices_desc);
+	result |= pbx_manager_register2("SCCPDeviceAddLine", _MAN_FLAGS, sccp_manager_device_add_line, "add a line to device", management_show_device_add_line_desc);
+	result |= pbx_manager_register2("SCCPDeviceUpdate", _MAN_FLAGS, sccp_manager_device_update, "add a line to device", management_device_update_desc);
+	result |= pbx_manager_register2("SCCPLineForwardUpdate", _MAN_FLAGS, sccp_manager_line_fwd_update, "add a line to device", management_line_fwd_update_desc);
+	result |= pbx_manager_register2("SCCPStartCall", _MAN_FLAGS, sccp_manager_startCall, "start a new call on device", ""); /*!< \todo add description for ami */
+	result |= pbx_manager_register2("SCCPAnswerCall", _MAN_FLAGS, sccp_manager_answerCall, "answer a ringin channel", ""); /*!< \todo add description for ami */
+	result |= pbx_manager_register2("SCCPHangupCall", _MAN_FLAGS, sccp_manager_hangupCall, "hangup a channel", ""); /*!< \todo add description for ami */
+	result |= pbx_manager_register2("SCCPHoldCall", _MAN_FLAGS, sccp_manager_holdCall, "hold/unhold a call", ""); /*!< \todo add description for ami */
 #    undef _MAN_FLAGS
 	return result;
 }
@@ -95,17 +92,105 @@ int sccp_unregister_management(void)
 {
 	int result;
 
-	result = ast_manager_unregister("SCCPListDevices");
-	result |= ast_manager_unregister("SCCPDeviceRestart");
-	result |= ast_manager_unregister("SCCPDeviceAddLine");
-	result |= ast_manager_unregister("SCCPDeviceUpdate");
-	result |= ast_manager_unregister("SCCPLineForwardUpdate");
-	result |= ast_manager_unregister("SCCPStartCall");
-	result |= ast_manager_unregister("SCCPAnswerCall");
-	result |= ast_manager_unregister("SCCPHangupCall");
-	result |= ast_manager_unregister("SCCPHoldCall");
+	result = pbx_manager_unregister("SCCPListDevices");
+	result |= pbx_manager_unregister("SCCPDeviceRestart");
+	result |= pbx_manager_unregister("SCCPDeviceAddLine");
+	result |= pbx_manager_unregister("SCCPDeviceUpdate");
+	result |= pbx_manager_unregister("SCCPLineForwardUpdate");
+	result |= pbx_manager_unregister("SCCPStartCall");
+	result |= pbx_manager_unregister("SCCPAnswerCall");
+	result |= pbx_manager_unregister("SCCPHangupCall");
+	result |= pbx_manager_unregister("SCCPHoldCall");
 	return result;
 }
+
+
+
+/*!
+ * \brief starting manager-module
+ */
+void sccp_manager_module_start()
+{
+	sccp_event_subscribe(	SCCP_EVENT_DEVICE_ATTACHED | 
+				SCCP_EVENT_DEVICE_DETACHED | 
+				SCCP_EVENT_DEVICE_PREREGISTERED |
+				SCCP_EVENT_DEVICE_REGISTERED |
+				SCCP_EVENT_DEVICE_UNREGISTERED 
+				, sccp_manager_eventListener);
+}
+
+/*!
+ * \brief stop manager-module
+ *
+ * \lock
+ * 	- sccp_hint_subscriptions
+ */
+void sccp_manager_module_stop()
+{
+	
+}
+
+
+void sccp_manager_eventListener(const sccp_event_t **event){
+	const sccp_event_t 	*e = *event;
+	sccp_device_t 		*device;
+	sccp_linedevices_t 	*linedevice;
+
+	if (!e)
+		return;
+
+	
+	switch (e->type) {
+	case SCCP_EVENT_DEVICE_REGISTERED:
+		device		= e->event.deviceRegistered.device;
+		manager_event(EVENT_FLAG_CALL, "DeviceStatus",   "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n",
+			"REGISTERED",
+			device->id);
+		break;
+
+	case SCCP_EVENT_DEVICE_UNREGISTERED:
+		device		= e->event.deviceRegistered.device;
+		manager_event(EVENT_FLAG_CALL, "DeviceStatus",   "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n",
+			"UNREGISTERED",
+			device->id);
+		break;
+
+	case SCCP_EVENT_DEVICE_PREREGISTERED:
+		device		= e->event.deviceRegistered.device;
+		manager_event(EVENT_FLAG_CALL, "DeviceStatus",   "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n",
+			"PREREGISTERED",
+			device->id);
+		break;
+
+	case SCCP_EVENT_DEVICE_ATTACHED:
+		device		= e->event.deviceAttached.linedevice->device;
+		linedevice  	= e->event.deviceAttached.linedevice;
+		manager_event(EVENT_FLAG_CALL, "PeerStatus",   "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
+			"ATTACHED",
+			device->id, 
+			linedevice->line->name, 
+			linedevice->line->label, 
+			linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", 
+			linedevice->subscriptionId.name ? linedevice->subscriptionId.name: "(null)");
+		break;
+
+	case SCCP_EVENT_DEVICE_DETACHED:
+		device		= e->event.deviceAttached.linedevice->device;
+		linedevice  	= e->event.deviceAttached.linedevice;
+		manager_event(EVENT_FLAG_CALL, "PeerStatus",   "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
+			"DETACHED",
+			device->id, 
+			linedevice->line->name, 
+			linedevice->line->label, 
+			linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", 
+			linedevice->subscriptionId.name ? linedevice->subscriptionId.name: "(null)");
+		break;
+
+	default:
+		break;
+	}
+}
+
 
 /*!
  * \brief Show Devices Command
@@ -121,12 +206,11 @@ int sccp_unregister_management(void)
 int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 {
 	const char *id = astman_get_header(m, "ActionID");
-
 	sccp_device_t *device;
-
 	char idtext[256] = "";
-
 	int total = 0;
+	struct tm *timeinfo;
+	char regtime[25];
 
 	snprintf(idtext, sizeof(idtext), "ActionID: %s\r\n", id);
 
@@ -134,7 +218,18 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 	/* List the peers in separate manager events */
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), device, list) {
-		astman_append(s, "Devicename: %s\r\n", device->id);
+		timeinfo = localtime(&device->registrationTime);
+		strftime(regtime, sizeof(regtime), "%c", timeinfo);
+		astman_append(s, "Event: DeviceEntry\r\n%s", idtext);
+		astman_append(s, "ChannelType: SCCP\r\n");
+		astman_append(s, "ObjectId: %s\r\n", device->id);
+		astman_append(s, "ObjectType: device\r\n");
+		astman_append(s, "Description: %s\r\n", device->description);
+		astman_append(s, "IPaddress: %s\r\n", (device->session) ? pbx_inet_ntoa(device->session->sin.sin_addr) : "--");
+		astman_append(s, "Reg_Status: %s\r\n", deviceregistrationstatus2str(device->registrationState));
+		astman_append(s, "Reg_Time: %s\r\n", regtime);
+		astman_append(s, "Active: %s\r\n", (device->active_channel) ? "Yes" : "No");
+		astman_append(s, "NumLines: %d\r\n", device->configurationStatistic.numberOfLines);
 		total++;
 	}
 
@@ -159,11 +254,8 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 int sccp_manager_show_lines(struct mansession *s, const struct message *m)
 {
 	const char *id = astman_get_header(m, "ActionID");
-
 	sccp_line_t *line;
-
 	char idtext[256] = "";
-
 	int total = 0;
 
 	snprintf(idtext, sizeof(idtext), "ActionID: %s\r\n", id);
@@ -172,9 +264,13 @@ int sccp_manager_show_lines(struct mansession *s, const struct message *m)
 	/* List the peers in separate manager events */
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), line, list) {
-		astman_append(s, "Line id: %s\r\n", line->id);
-		astman_append(s, "Line name: %s\r\n", line->name);
-		astman_append(s, "Line description: %s\r\n", line->description);
+		astman_append(s, "Event: LineEntry\r\n%s", idtext);
+		astman_append(s, "ChannelType: SCCP\r\n");
+		astman_append(s, "ObjectId: %s\r\n", line->id);
+		astman_append(s, "ObjectType: line\r\n");
+		astman_append(s, "Name: %s\r\n", line->name);
+		astman_append(s, "Description: %s\r\n", line->description);
+		astman_append(s, "Num_Channels: %d\r\n", SCCP_RWLIST_GETSIZE(line->channels));
 		total++;
 	}
 
@@ -195,21 +291,20 @@ int sccp_manager_show_lines(struct mansession *s, const struct message *m)
  */
 int sccp_manager_restart_device(struct mansession *s, const struct message *m)
 {
+//      sccp_list_t     *hintList = NULL;
 	sccp_device_t *d;
-
 	const char *fn = astman_get_header(m, "Devicename");
-
 	const char *type = astman_get_header(m, "Type");
 
-	ast_log(LOG_WARNING, "Attempt to get device %s\n", fn);
+	pbx_log(LOG_WARNING, "Attempt to get device %s\n", fn);
 	if (sccp_strlen_zero(fn)) {
 		astman_send_error(s, m, "Please specify the name of device to be reset");
 		return 0;
 	}
 
-	ast_log(LOG_WARNING, "Type of Restart ([quick|reset] or [full|restart]) %s\n", fn);
+	pbx_log(LOG_WARNING, "Type of Restart ([quick|reset] or [full|restart]) %s\n", fn);
 	if (sccp_strlen_zero(fn)) {
-		ast_log(LOG_WARNING, "Type not specified, using quick");
+		pbx_log(LOG_WARNING, "Type not specified, using quick");
 		type = "reset";
 	}
 
@@ -248,14 +343,11 @@ int sccp_manager_restart_device(struct mansession *s, const struct message *m)
 static int sccp_manager_device_add_line(struct mansession *s, const struct message *m)
 {
 	sccp_device_t *d;
-
 	sccp_line_t *line;
-
 	const char *deviceName = astman_get_header(m, "Devicename");
-
 	const char *lineName = astman_get_header(m, "Linename");
 
-	ast_log(LOG_WARNING, "Attempt to get device %s\n", deviceName);
+	pbx_log(LOG_WARNING, "Attempt to get device %s\n", deviceName);
 
 	if (sccp_strlen_zero(deviceName)) {
 		astman_send_error(s, m, "Please specify the name of device");
@@ -298,26 +390,19 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
  * \param s Management Session
  * \param m Message 
  * \return Success as int
- * \todo This function does not do anything. Has the implementation of this function moved somewhere else ?
  * 
  * \called_from_asterisk
  */
 int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 {
 	sccp_line_t *line;
-
 	sccp_device_t *device;
-
 	sccp_linedevices_t *linedevice;
 
 	const char *deviceId = astman_get_header(m, "DeviceId");
-
 	const char *lineName = astman_get_header(m, "Linename");
-
 	const char *forwardType = astman_get_header(m, "Forwardtype");
-
 	const char *Disable = astman_get_header(m, "Disable");
-
 	const char *number = astman_get_header(m, "Number");
 
 	//char *fwdNumber = (char *)number;
@@ -367,16 +452,6 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 				}
 				sccp_copy_string(linedevice->cfwdBusy.number, number, strlen(number));
 
-/*! \todo cfwdNoAnswer is not implemented yet in sccp_linedevices_t */
-
-/*			} else if (!sccp_strcasecmp("noAnswer", forwardType)) {
-				if (!strcasecmp(Disable,"no")) {
-					linedevice->cfwdNoAnswer.enabled=0;
-				} else {
-					linedevice->cfwdNoAnswer.enabled=1;
-				}
-				sccp_copy_string(linedevice->cfwdNoAnswer.number,number,strlen(number));
-				astman_send_error(s,m, "noAnswer is not handled for the moment");*/
 			}
 		}
 	}
@@ -395,7 +470,6 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 static int sccp_manager_device_update(struct mansession *s, const struct message *m)
 {
 	sccp_device_t *d;
-
 	const char *deviceName = astman_get_header(m, "Devicename");
 
 	if (sccp_strlen_zero(deviceName)) {
@@ -425,11 +499,12 @@ static int sccp_manager_device_update(struct mansession *s, const struct message
 	return 0;
 }
 
+
 static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 {
 	sccp_device_t *d;
 	sccp_line_t *line = NULL;
-
+	
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *lineName = astman_get_header(m, "Linename");
 	const char *number = astman_get_header(m, "number");
@@ -439,22 +514,22 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 		astman_send_error(s, m, "Device not found");
 		return 0;
 	}
-
-	if (!lineName) {
-		if (d && d->defaultLineInstance > 0) {
-			line = sccp_line_find_byinstance(d, d->defaultLineInstance);
+	
+	if(!lineName){
+		if (d && d->defaultLineInstance > 0){
+			line = sccp_line_find_byid(d, d->defaultLineInstance);
 		} else {
 			line = sccp_dev_get_activeline(d);
 		}
-	} else {
+	}else{
 		line = sccp_line_find_byname_wo(lineName, FALSE);
 	}
-
+	
 	if (!line) {
 		astman_send_error(s, m, "Line not found");
 		return 0;
 	}
-
+	
 	sccp_channel_newcall(line, d, (char *)number, SKINNY_CALLTYPE_OUTBOUND);
 	astman_send_ack(s, m, "Call Started");
 	return 0;
@@ -464,7 +539,7 @@ static int sccp_manager_answerCall(struct mansession *s, const struct message *m
 {
 	sccp_device_t *device;
 	sccp_channel_t *c;
-
+	
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *channelId = astman_get_header(m, "channelId");
 
@@ -473,46 +548,47 @@ static int sccp_manager_answerCall(struct mansession *s, const struct message *m
 		astman_send_error(s, m, "Device not found");
 		return 0;
 	}
-
+	
 	c = sccp_channel_find_byid_locked(atoi(channelId));
-
-	if (!c) {
+	
+	if(!c){
 		astman_send_error(s, m, "Call not found\r\n");
 		return 0;
 	}
-
-	if (c->state != SCCP_CHANNELSTATE_RINGING) {
+	
+	if(c->state != SCCP_CHANNELSTATE_RINGING){
 		astman_send_error(s, m, "Call is not ringin\r\n");
 		return 0;
 	}
-
+	
 	astman_append(s, "Answering channel '%s'\r\n", channelId);
 
 	sccp_channel_answer_locked(device, c);
 	sccp_channel_unlock(c);
-	astman_send_ack(s, m, "Call was Answered");
 
+	astman_send_ack(s, m, "Call was Answered");
 	return 0;
 }
 
 static int sccp_manager_hangupCall(struct mansession *s, const struct message *m)
 {
 	sccp_channel_t *c;
-
+  
 	const char *channelId = astman_get_header(m, "channelId");
 
 	c = sccp_channel_find_byid_locked(atoi(channelId));
-	if (!c) {
+	if(!c){
 		astman_send_error(s, m, "Call not found\r\n");
 		return 0;
 	}
-
+	
 	astman_append(s, "Hangup call '%s'\r\n", channelId);
 	sccp_channel_endcall_locked(c);
 	sccp_channel_unlock(c);
 	astman_send_ack(s, m, "Call was hungup");
 	return 0;
 }
+
 
 static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 {
@@ -522,25 +598,25 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 	char *retValStr;
 
 	c = sccp_channel_find_byid_locked(atoi(channelId));
-	if (!c) {
-		astman_send_error(s, m, "Call not found\r\n");
+	if(!c){
+		astman_send_error(s, m, "Call not found\r\n" );
 		return 0;
 	}
-	if (!sccp_strcasecmp("on", hold)) {					/* check to see if enable hold */
+	if (!sccp_strcasecmp("on", hold)) {						/* check to see if enable hold */
 		astman_append(s, "Put channel '%s' on hold\n", channelId);
 		sccp_channel_hold_locked(c);
 		sccp_channel_unlock(c);
 		retValStr = "Channel was put on hold";
-	} else if (!sccp_strcasecmp("off", hold)) {				/* check to see if disable hold */
-		astman_append(s, "Resume channel '%s'\n", channelId);
-		sccp_channel_resume_locked(c->device, c, FALSE);
+	} else if (!sccp_strcasecmp("off", hold)) {					/* check to see if disable hold */
+		astman_append(s, "remove channel '%s' from hold\n", channelId);
+		sccp_channel_resume_locked(sccp_channel_getDevice(c), c, FALSE);
 		sccp_channel_unlock(c);
 		retValStr = "Channel was resumed";
-	} else {
-		astman_send_error(s, m, "Invalid value for hold, use 'on' or 'off' only\r\n");
+	} else{
+                astman_send_error(s, m, "Invalid value for hold, use 'on' or 'off' only\r\n");
 		return 0;
 	}
-	astman_send_ack(s, m, retValStr);
+        astman_send_ack(s, m, retValStr);
 	return 0;
 }
 

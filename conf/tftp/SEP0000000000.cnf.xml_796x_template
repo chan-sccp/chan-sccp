@@ -16,27 +16,7 @@
     <callManagerGroup> 
      <members> 
       <member  priority="0"> 
-       <callManager> 		<!-- Primairy Servers -->
-	<name>asterisk1</name>
-	<description>primairy asterisk server</description>
-        <ports> 
-         <ethernetPhonePort>2000</ethernetPhonePort> 
-        </ports> 
-        <processNodeName>x.x.x.x</processNodeName> 
-       </callManager> 
-       <callManager> 		<!-- Primairy Servers --> 
-	<name>asterisk2</name>
-	<description>primairy asterisk server</description>
-        <ports> 
-         <ethernetPhonePort>2000</ethernetPhonePort> 
-        </ports> 
-        <processNodeName>x.x.x.x</processNodeName> 
-       </callManager> 
-      </member> 
-      <member  priority="1"> 	<!-- Fallback/Failback Servers -->
        <callManager> 
-	<name>asterisk-backup</name>
-	<description>asterisk-backup</description>
         <ports> 
          <ethernetPhonePort>2000</ethernetPhonePort> 
         </ports> 
@@ -51,9 +31,9 @@
      <userModifiable>true</userModifiable>
      <ipAddr1>x.x.x.x</ipAddr1>
      <port1>2000</port1>
-     <ipAddr2>x.x.x.x</ipAddr2>
+     <ipAddr2></ipAddr2>
      <port2>2000</port2>
-     <ipAddr3>x.x.x.x</ipAddr3>
+     <ipAddr3></ipAddr3>
      <port3>2000</port3>
     </srstInfo>
   </devicePool> 

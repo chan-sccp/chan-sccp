@@ -1,0 +1,9 @@
+#!/bin/bash
+make clean
+rm -rf config.cache scanbuild-output
+export "CC=clang"
+export CFLAGS=" -g --coverage" 
+scan-build -o scanbuild-output ./configure --without-ccache --enable-debug --disable-optimization
+scan-build -o scanbuild-output make
+
+

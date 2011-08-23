@@ -9,8 +9,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$  
+ * $Date: 2010-11-17 12:03:44 +0100 (Mi, 17 Nov 2010) $
+ * $Revision: 2130 $  
  */
 #ifndef __SCCP_SOFTKEYS_H
 #    define __SCCP_SOFTKEYS_H
@@ -20,6 +20,22 @@ void sccp_softkey_pre_reload(void);
 void sccp_softkey_post_reload(void);
 #    endif
 
+/*!
+ * \brief SCCP SoftKeyMap Callback
+ *
+ * Used to Map Softkeys to there Handling Implementation
+ */
+struct sccp_softkeyMap_cb {
+	uint32_t event;
+	void (*const softkeyEvent_cn) (sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
+	boolean_t channelIsNecessary;
+};
+typedef struct sccp_softkeyMap_cb sccp_softkeyMap_cb_t;
+
+const sccp_softkeyMap_cb_t *sccp_getSoftkeyMap_by_SoftkeyEvent(uint32_t event);
+void sccp_softkey_setSoftkeyState(sccp_device_t *device, uint8_t softKeySet, uint8_t softKey, boolean_t enable);
+
+void sccp_sk_dial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
 void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
 void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
 void sccp_sk_hold(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
@@ -51,7 +67,6 @@ void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
 void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
 void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
-void sccp_sk_dial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
 void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c, unsigned int keymode, unsigned int softkeyindex, unsigned int status);
 
 #endif

@@ -24,10 +24,10 @@
  * Here, you can find the answers to a few frequently asked questions.
  * For up to date Help, Faq, Bug Reporting have a look here: http://sourceforge.net/projects/chan-sccp-b/support.
  * 
- * \section a Compilation
+ * \section a A. Compilation
  * Compilation related issues.
  *
- * \subsection a1 How to Compile
+ * \subsection a1 A1. How to Compile
  * Q: How to Compile chan_sccp-b
  *
  * A: We are using the standard autoconf/automake principle. This means the only thing
@@ -45,17 +45,13 @@
  * To Read more about using ./configure, read the INSTALL document in the root of this project 
  * directory.
  *
- * \subsection a2 Compilation Errors
+ * \subsection a2 A2. Compilation Errors
  * Q: How to solve compilations errors
  *
  * A: First try to work out what ./configure is complaining about, when it is. I normally tries to
  * be as explicit as possible. If you get errors trying to start configure, first try to resolve it
- * using:
- * \code
- * ./tools/bootstrap.sh
- * \endcode
- * This till try and build a new configure application for your machine 
- * (autoconf, automake, libtool and m4 are required).
+ * using "\code./reconf\endcode", it will try and build a new configure application for your machine 
+ * (autoconf, automake and m4 are required).
  * 
  * If nothing helps, send a message to our bug page via http://sourceforge.net/tracker/?group_id=186378&atid=917045.
  * Please include config.log when sending a bug about configure/make
@@ -65,7 +61,7 @@
  * A: First try to work out what ./configure is complaining about, when it is. I normally tries to
  * be as explicit as possible. If you get errors trying to start configure, first try to resolve it
  *
- * \section b Troubleshooting
+ * \section b B. Troubleshooting
  *
  * Q. Can't dial-in or dial-out of an SCCP Phone
  *
@@ -77,22 +73,22 @@
  * 
  * A. Normally this comes down to the need for in-direct rtp traffic, because there is a firewall between your phones which
  * is performing Network Address Translations (NAT). You can check this via: http://www.amibehindnat.com.
- * Simple solution: Turn directrtp=off and nat=on in you sccp.conf or realtime tables and try again.
+ * Simple solution: Turn directrtp=off in you sccp.conf or realtime tables and try again.
  *
  * Also check your settings for sccp.conf: externip and localnet
- * In rtp.conf you can make the block of used rtp ports smaller and forward this whole block of UDP ports to your asterisk box.
+ * In rtp.conf you can make the block of used rtp port smaller and forward this whole block of UDP ports to your asterisk box.
  *
  * Read more here: \ref NAT Troubles using VOIP and SCCP through a Firewall (NAT)
  *
  * Q. No DMTF at all
  *
- * A. Set directrtp=none in your sccp.conf or realtime tables and give it another try. You can also specify the type of
+ * A. Set directrtp=off in your sccp.conf or realtime tables and give it another try. You can also specify the type of
  *    DTMF used per device with dtmfmode=inband/outofband (inband can be heard, out-of-band is rfc2833 and can not be heard). 
- *    to use inband you will also need earlyrtp=progress (choose from none, offhook, dial, ringout and progress). to be able to use DTMF in IVR's for example.
+ *    to use inband you will also need earlyrtp=on to be able to use DTMF in IVR's for example.
  *
  * Q. No DMTF during calls
  *
- * A. Set earlyrtp=progress or ringout in your sccp.conf or realtime tables and try again, this will make it possible for inband
+ * A. Set earlyrtp=on or ringout in your sccp.conf or realtime tables and try again, this will make it possible for inband
  *    DTMF tones to be received and heard starting at call progress
  *
  * Q. How do i report an Issue or Problem i have
@@ -101,7 +97,7 @@
  *    according to the issue you have. Otherwise we have to wade through piles of uninformative messages to get to the correct
  *    location. And try to describe you issue as exact as possible.
  *
- * \section c Dialplan
+ * \section c C. Dialplan
  * 
  * Q: How do you dial an SCCP from your dialplan
  * 
@@ -130,10 +126,11 @@
  * Q: Dial a line and have the phone Auto Answer (Used for Paging for example)
  * 
  * A: add the following to your dial statement to page lines 9291 and 9292 with one way audio
- * \code
+ *
+ * \code   
  * Dial(SCCP/9291/aa=1w&SCCP/9292/aa=1w, 120)
  * \endcode
- * 
+ *
  * aa= values:
  *   - 1w: 1way audio (MIC on other side is OFF).
  *   - 2w: 2way audio (MIC on other side is ON).

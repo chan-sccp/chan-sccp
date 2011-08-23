@@ -9,25 +9,33 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$  
+ * $Date: 2011-01-04 14:04:04 +0100 (Di, 04 Jan 2011) $
+ * $Revision: 2213 $  
  */
 
 #ifndef __SCCP_PROTOCOL_H
 #    define __SCCP_PROTOCOL_H
 
-#    include "sccp_softkeys.h"
 #    include "sccp_labels.h"
 
 #    define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW	3				/*!< At least we require protocol V.3 */
-#    define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH	17				/*!< We support up to protocol V.17 */
+#    define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH	20				/*!< We support up to protocol V.17 */
+
+#    define SCCP_PROTOCOL	0
+#    define SPCP_PROTOCOL	1
 
 #    define DEFAULT_SCCP_PORT			2000				/*!< SCCP uses port 2000. */
-#    define DEFAULT_SCCP_BACKLOG		2				/*!< the listen baklog. */
+#    define DEFAULT_SCCP_BACKLOG			2			/*!< the listen baklog. */
 #    define SCCP_MAX_AUTOLOGIN			100				/*!< Maximum allowed of autologins per device */
-#    define SCCP_KEEPALIVE			5				/*!< Default keepalive time if not specified in sccp.conf. */
+#    define SCCP_KEEPALIVE				5			/*!< Default keepalive time if not specified in sccp.conf. */
 
-/* internal chan_sccp call state c->callstate */
+#    define SKINNY_PHONE_FEATUES_PROTOCOLVERSION 0xFF
+#    define SKINNY_PHONE_FEATUES_ABBRDIAL 1<<31
+#    define SKINNY_PHONE_FEATUES_DYNAMIC_MESSAGES 1<<24
+
+/*! 
+ * \brief internal chan_sccp call state (c->callstate) (Enum)
+ */
 typedef enum {
 	SCCP_CHANNELSTATE_DOWN = 0,
 	SCCP_CHANNELSTATE_OFFHOOK = 1,
@@ -94,6 +102,9 @@ static const struct sccp_channelstate {
 	/* *INDENT-ON* */
 };
 
+/*!
+ * \brief Skinny Miscellaneous Command Type (Enum)
+ */
 typedef enum {
 	SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE = 0,
 	SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE,
@@ -134,14 +145,14 @@ static const value_string skinny_miscCommandType[] = {
 /*!
  * \brief AST Device State Structure
  */
-static const struct ast_devicestate {
+static const struct pbx_devicestate {
 #    ifdef ENUM_AST_DEVICE
 	enum ast_device_state devicestate;
 #    else
 	uint8_t devicestate;
 #    endif
 	const char *const text;
-} ast_devicestates[] = {
+} pbx_devicestates[] = {
 	/* *INDENT-OFF* */
 	{AST_DEVICE_UNKNOWN, "Device is valid but channel doesn't know state"},
 	{AST_DEVICE_NOT_INUSE, "Device is not in use"},
@@ -158,6 +169,9 @@ static const struct ast_devicestate {
 	/* *INDENT-ON* */
 };
 
+/*!
+ * \brief SCCP BLF States for Dynamic Speeddials (ENUM)
+ */
 typedef enum {
 	SCCP_BLF_STATUS_UNKNOWN = 0,						/*!< unknown status - default */
 	SCCP_BLF_STATUS_IDLE = 1,						/*!< not in use */
@@ -166,9 +180,9 @@ typedef enum {
 	SCCP_BLF_STATUS_ALERTING = 4						/*!< alerting */
 } sccp_BFLState_t;								/*!< blf states for dynamic speeddials */
 
-#    define SCCP_CFWD_NONE			0
-#    define SCCP_CFWD_ALL			1
-#    define SCCP_CFWD_BUSY			2
+#    define SCCP_CFWD_NONE				0
+#    define SCCP_CFWD_ALL				1
+#    define SCCP_CFWD_BUSY				2
 #    define SCCP_CFWD_NOANSWER			3
 
 /*!
@@ -190,26 +204,28 @@ static const struct sccp_callforwardstate {
 /*
  * SCCP/Skinny Lookup Types
  */
-#    define SCCP_MESSAGE 			0
-#    define SCCP_ACCESSORY 			1
-#    define SCCP_ACCESSORY_STATE		2
-#    define SCCP_EXTENSION_STATE		3
-#    define SCCP_DNDMODE			4
-#    define SKINNY_TONE 			5
-#    define SKINNY_ALARM			6
-#    define SKINNY_DEVICETYPE			7
-#    define SKINNY_DEVICE_RS			8
-#    define SKINNY_STIMULUS			9
-#    define SKINNY_BUTTONTYPE			10
-#    define SKINNY_LAMPMODE			11
-#    define SKINNY_STATION			12
-#    define SKINNY_LBL				13
-#    define SKINNY_CALLTYPE			14
-#    define SKINNY_KEYMODE			15
-#    define SKINNY_DEVICE_STATE			16
-#    define SKINNY_CODEC			17
+#    define SCCP_MESSAGE 		0
+#    define SCCP_ACCESSORY 		1
+#    define SCCP_ACCESSORY_STATE	2
+#    define SCCP_EXTENSION_STATE	3
+#    define SCCP_DNDMODE		4
+#    define SKINNY_TONE 		5
+#    define SKINNY_ALARM		6
+#    define SKINNY_DEVICETYPE	7
+#    define SKINNY_DEVICE_RS	8
+#    define SKINNY_STIMULUS		9
+#    define SKINNY_BUTTONTYPE	10
+#    define SKINNY_LAMPMODE		11
+#    define SKINNY_STATION		12
+#    define SKINNY_LBL		13
+#    define SKINNY_CALLTYPE		14
+#    define SKINNY_KEYMODE		15
+#    define SKINNY_DEVICE_STATE	16
+#    define SKINNY_CODEC		17
 
-/* skinny protocol call states */
+/*!
+ * \brief Skinny Protocol Call States (ENUM)
+ */
 typedef enum {
 	SKINNY_CALLSTATE_OFFHOOK = 1,
 	SKINNY_CALLSTATE_ONHOOK = 2,
@@ -230,6 +246,9 @@ typedef enum {
 	SKINNY_CALLSTATE_HOLDRED = 17
 } skinny_callstate_t;
 
+/*!
+ * \brief Skinny Protocol Call Type (ENUM)
+ */
 typedef enum {
 	SKINNY_CALLTYPE_INBOUND = 1,
 	SKINNY_CALLTYPE_OUTBOUND = 2,
@@ -250,6 +269,9 @@ static const struct skinny_calltype {
 	/* *INDENT-ON* */
 };
 
+/*!
+ * \brief Skinny Device Feature (ENUM)
+ */
 typedef enum {
 	SKINNY_DEVFEATURE_DYNAMIC_MESSAGE = 1 << 24,
 	SKINNY_DEVFEATURE_ABBREVIATED_DIAL = 1 << 31,
@@ -268,6 +290,9 @@ static const struct skinny_devfeature {
 	/* *INDENT-ON* */
 };
 
+/*!
+ * \brief Skinny Call Priority (ENUM)
+ */
 typedef enum {
 	SKINNY_CALLPRIORITY_HIGHEST = 0,
 	SKINNY_CALLPRIORITY_HIGH = 1,
@@ -276,37 +301,42 @@ typedef enum {
 	SKINNY_CALLPRIORITY_NORMAL = 4
 } skinny_callPriority_t;							/*!< Skinny Call Priority */
 
+/*!
+ * \brief Skinny Call Visibility (ENUM)
+ */
 typedef enum {
 	SKINNY_CALLINFO_VISIBILITY_DEFAULT = 0,
 	SKINNY_CALLINFO_VISIBILITY_COLLAPSED = 1,
 	SKINNY_CALLINFO_VISIBILITY_HIDDEN = 2
 } skinny_callinfo_visibility_t;							/*!< Skinny Call Info Visibility */
 
+/*!
+ * \brief Skinny Call Security (ENUM)
+ */
 typedef enum {
 	SKINNY_CALLSECURITYSTATE_UNKNOWN = 0,
 	SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED = 1,
 	SKINNY_CALLSECURITYSTATE_AUTHENTICATED = 2
 } skinny_callstate_security_t;							/*!< Skinny CallSecurityInfo */
 
-#    define StationMaxDeviceNameSize			16
+#    define StationMaxDeviceNameSize		16
 #    define StationMaxButtonTemplateSize		42
-#    define StationMaxButtonTemplateNameSize		44
-#    define StationDateTemplateSize 			6
+#    define StationMaxButtonTemplateNameSize	44
+#    define StationDateTemplateSize 		6
 //#define StationMaxDisplayTextSize             33
-#    define StationMaxDisplayTextSize			32
+#    define StationMaxDisplayTextSize		32
 #    define StationMaxDisplayNotifySize 		32
 #    define StationMaxDirnumSize			24
-#    define StationMaxNameSize				40
+#    define StationMaxNameSize			40
 #    define StationMaxSoftKeyDefinition 		32
 #    define StationMaxSoftKeySetDefinition		16
 #    define StationMaxSoftKeyIndex			16
-#    define StationMaxSoftKeyLabelSize			16
+#    define StationMaxSoftKeyLabelSize		16
 #    define StationMaxVersionSize			16
-#    define StationMaxServers				5
-#    define ServerMaxNameSize				48
-#    define StationMaxServiceURLSize			256
+#    define StationMaxServers			5
+#    define ServerMaxNameSize			48
+#    define StationMaxServiceURLSize		256
 #    define StationMaxPorts				16
-//#    define StationMaxXMLMessage                      512
 #    define StationMaxXMLMessage			2048
 
 #    define APPID_CONFERENCE				1
@@ -314,89 +344,88 @@ typedef enum {
 
 /* skinny tones skinny_tone2str */
 #    define SKINNY_TONE_SILENCE 			0
-#    define SKINNY_TONE_DTMF1				1
-#    define SKINNY_TONE_DTMF2				2
-#    define SKINNY_TONE_DTMF3				3
-#    define SKINNY_TONE_DTMF4				4
-#    define SKINNY_TONE_DTMF5				5
-#    define SKINNY_TONE_DTMF6				6
-#    define SKINNY_TONE_DTMF7				7
-#    define SKINNY_TONE_DTMF8				8
-#    define SKINNY_TONE_DTMF9				9
-#    define SKINNY_TONE_DTMF0				0xa
+#    define SKINNY_TONE_DTMF1			1
+#    define SKINNY_TONE_DTMF2			2
+#    define SKINNY_TONE_DTMF3			3
+#    define SKINNY_TONE_DTMF4			4
+#    define SKINNY_TONE_DTMF5			5
+#    define SKINNY_TONE_DTMF6			6
+#    define SKINNY_TONE_DTMF7			7
+#    define SKINNY_TONE_DTMF8			8
+#    define SKINNY_TONE_DTMF9			9
+#    define SKINNY_TONE_DTMF0			0xa
 #    define SKINNY_TONE_DTMFSTAR			0xe
 #    define SKINNY_TONE_DTMFPOUND			0xf
-#    define SKINNY_TONE_DTMFA				0x10
-#    define SKINNY_TONE_DTMFB				0x11
-#    define SKINNY_TONE_DTMFC				0x12
-#    define SKINNY_TONE_DTMFD				0x13
-#    define SKINNY_TONE_INSIDEDIALTONE			0x21
+#    define SKINNY_TONE_DTMFA			0x10
+#    define SKINNY_TONE_DTMFB			0x11
+#    define SKINNY_TONE_DTMFC			0x12
+#    define SKINNY_TONE_DTMFD			0x13
+#    define SKINNY_TONE_INSIDEDIALTONE		0x21
 #    define SKINNY_TONE_OUTSIDEDIALTONE 		0x22
-#    define SKINNY_TONE_LINEBUSYTONE			0x23
-#    define SKINNY_TONE_ALERTINGTONE			0x24
-#    define SKINNY_TONE_REORDERTONE 			0x25
-#    define SKINNY_TONE_RECORDERWARNINGTONE 		0x26
-#    define SKINNY_TONE_RECORDERDETECTEDTONE		0x27
-#    define SKINNY_TONE_REVERTINGTONE			0x28
-#    define SKINNY_TONE_RECEIVEROFFHOOKTONE 		0x29
+#    define SKINNY_TONE_LINEBUSYTONE		0x23
+#    define SKINNY_TONE_ALERTINGTONE		0x24
+#    define SKINNY_TONE_REORDERTONE 		0x25
+#    define SKINNY_TONE_RECORDERWARNINGTONE 	0x26
+#    define SKINNY_TONE_RECORDERDETECTEDTONE	0x27
+#    define SKINNY_TONE_REVERTINGTONE		0x28
+#    define SKINNY_TONE_RECEIVEROFFHOOKTONE 	0x29
 #    define SKINNY_TONE_PARTIALDIALTONE 		0x2a
 #    define SKINNY_TONE_NOSUCHNUMBERTONE		0x2b
-#    define SKINNY_TONE_BUSYVERIFICATIONTONE		0x2c
+#    define SKINNY_TONE_BUSYVERIFICATIONTONE	0x2c
 #    define SKINNY_TONE_CALLWAITINGTONE 		0x2d
 #    define SKINNY_TONE_CONFIRMATIONTONE		0x2e
-#    define SKINNY_TONE_CAMPONINDICATIONTONE		0x2f
-#    define SKINNY_TONE_RECALLDIALTONE			0x30
-#    define SKINNY_TONE_ZIPZIP				0x31
-#    define SKINNY_TONE_ZIP 				0x32
+#    define SKINNY_TONE_CAMPONINDICATIONTONE	0x2f
+#    define SKINNY_TONE_RECALLDIALTONE		0x30
+#    define SKINNY_TONE_ZIPZIP			0x31
+#    define SKINNY_TONE_ZIP 			0x32
 #    define SKINNY_TONE_BEEPBONK			0x33
 #    define SKINNY_TONE_MUSICTONE			0x34
 #    define SKINNY_TONE_HOLDTONE			0x35
 #    define SKINNY_TONE_TESTTONE			0x36
-#    define SKINNY_TONE_DTMONITORWARNINGTONE		0x37
-#    define SKINNY_TONE_MONITORING			0x38
-#    define SKINNY_TONE_ADDCALLWAITING			0x40
+#    define SKINNY_TONE_DTMONITORWARNINGTONE	0x37
+#    define SKINNY_TONE_ADDCALLWAITING		0x40
 #    define SKINNY_TONE_PRIORITYCALLWAIT		0x41
 #    define SKINNY_TONE_RECALLDIAL			0x42
-#    define SKINNY_TONE_BARGIN				0x43
-#    define SKINNY_TONE_DISTINCTALERT			0x44
-#    define SKINNY_TONE_PRIORITYALERT			0x45
-#    define SKINNY_TONE_REMINDERRING			0x46
+#    define SKINNY_TONE_BARGIN			0x43
+#    define SKINNY_TONE_DISTINCTALERT		0x44
+#    define SKINNY_TONE_PRIORITYALERT		0x45
+#    define SKINNY_TONE_REMINDERRING		0x46
 #    define SKINNY_TONE_PRECEDENCE_RINGBACK		0x47
-#    define SKINNY_TONE_PREEMPTIONTONE			0x48
-#    define SKINNY_TONE_MF1 				0x50
-#    define SKINNY_TONE_MF2 				0x51
-#    define SKINNY_TONE_MF3 				0x52
-#    define SKINNY_TONE_MF4 				0x53
-#    define SKINNY_TONE_MF5 				0x54
-#    define SKINNY_TONE_MF6 				0x55
-#    define SKINNY_TONE_MF7 				0x56
-#    define SKINNY_TONE_MF8 				0x57
-#    define SKINNY_TONE_MF9 				0x58
-#    define SKINNY_TONE_MF0 				0x59
-#    define SKINNY_TONE_MFKP1				0x5a
-#    define SKINNY_TONE_MFST				0x5b
-#    define SKINNY_TONE_MFKP2				0x5c
-#    define SKINNY_TONE_MFSTP				0x5d
-#    define SKINNY_TONE_MFST3P				0x5e
+#    define SKINNY_TONE_PREEMPTIONTONE		0x48
+#    define SKINNY_TONE_MF1 			0x50
+#    define SKINNY_TONE_MF2 			0x51
+#    define SKINNY_TONE_MF3 			0x52
+#    define SKINNY_TONE_MF4 			0x53
+#    define SKINNY_TONE_MF5 			0x54
+#    define SKINNY_TONE_MF6 			0x55
+#    define SKINNY_TONE_MF7 			0x56
+#    define SKINNY_TONE_MF8 			0x57
+#    define SKINNY_TONE_MF9 			0x58
+#    define SKINNY_TONE_MF0 			0x59
+#    define SKINNY_TONE_MFKP1			0x5a
+#    define SKINNY_TONE_MFST			0x5b
+#    define SKINNY_TONE_MFKP2			0x5c
+#    define SKINNY_TONE_MFSTP			0x5d
+#    define SKINNY_TONE_MFST3P			0x5e
 #    define SKINNY_TONE_MILLIWATT			0x5f
-#    define SKINNY_TONE_MILLIWATTTEST			0x60
+#    define SKINNY_TONE_MILLIWATTTEST		0x60
 #    define SKINNY_TONE_HIGHTONE			0x61
-#    define SKINNY_TONE_FLASHOVERRIDE			0x62
-#    define SKINNY_TONE_FLASH				0x63
+#    define SKINNY_TONE_FLASHOVERRIDE		0x62
+#    define SKINNY_TONE_FLASH			0x63
 #    define SKINNY_TONE_PRIORITY			0x64
 #    define SKINNY_TONE_IMMEDIATE			0x65
 #    define SKINNY_TONE_PREAMPWARN			0x66
-#    define SKINNY_TONE_2105HZ				0x67
-#    define SKINNY_TONE_2600HZ				0x68
-#    define SKINNY_TONE_440HZ				0x69
-#    define SKINNY_TONE_300HZ				0x6a
+#    define SKINNY_TONE_2105HZ			0x67
+#    define SKINNY_TONE_2600HZ			0x68
+#    define SKINNY_TONE_440HZ			0x69
+#    define SKINNY_TONE_300HZ			0x6a
 #    define SKINNY_TONE_MLPP_PALA			0x77
 #    define SKINNY_TONE_MLPP_ICA			0x78
 #    define SKINNY_TONE_MLPP_VCA			0x79
 #    define SKINNY_TONE_MLPP_BPA			0x7A
 #    define SKINNY_TONE_MLPP_BNEA			0x7B
 #    define SKINNY_TONE_MLPP_UPA			0x7C
-#    define SKINNY_TONE_NOTONE				0x7f
+#    define SKINNY_TONE_NOTONE			0x7f
 
 /*!
  * \brief Skinny Tone Structure
@@ -495,10 +524,10 @@ static const struct skinny_tone {
 /* alarm skinny_alarm2str*/
 #    define SKINNY_ALARM_CRITICAL			0
 #    define SKINNY_ALARM_WARNING			1
-#    define SKINNY_ALARM_INFORMATIONAL			2
+#    define SKINNY_ALARM_INFORMATIONAL		2
 #    define SKINNY_ALARM_UNKNOWN			4
-#    define SKINNY_ALARM_MAJOR				7
-#    define SKINNY_ALARM_MINOR				8
+#    define SKINNY_ALARM_MAJOR			7
+#    define SKINNY_ALARM_MINOR			8
 #    define SKINNY_ALARM_MARGINAL			10
 #    define SKINNY_ALARM_TRACEINFO			20
 
@@ -510,14 +539,14 @@ static const struct skinny_alarm {
 	const char *const text;
 } skinny_alarms[] = {
 	/* *INDENT-OFF* */
-	{SKINNY_ALARM_CRITICAL, "Critical"},
-	{SKINNY_ALARM_WARNING, "Warning"},
-	{SKINNY_ALARM_INFORMATIONAL, "Informational"},
-	{SKINNY_ALARM_UNKNOWN, "Unknown"},
-	{SKINNY_ALARM_MAJOR, "Major"},
-	{SKINNY_ALARM_MINOR, "Minor"},
-	{SKINNY_ALARM_MARGINAL, "Marginal"}, 
-	{SKINNY_ALARM_TRACEINFO, "TraceInfo"},
+	{SKINNY_ALARM_CRITICAL,		"Critical"},
+	{SKINNY_ALARM_WARNING,		"Warning"},
+	{SKINNY_ALARM_INFORMATIONAL,	"Informational"},
+	{SKINNY_ALARM_UNKNOWN,		"Unknown"},
+	{SKINNY_ALARM_MAJOR,		"Major"},
+	{SKINNY_ALARM_MINOR,		"Minor"},
+	{SKINNY_ALARM_MARGINAL,		"Marginal"}, 
+	{SKINNY_ALARM_TRACEINFO,	"TraceInfo"},
 	/* *INDENT-ON* */
 };
 
@@ -564,7 +593,7 @@ static const struct skinny_alarm {
 #    define SKINNY_DEVICETYPE_LOADSIMULATOR 		100
 #    define SKINNY_DEVICETYPE_MEDIA_TERM_POINT 		110
 #    define SKINNY_DEVICETYPE_MEDIA_TERM_POINTYOKO	111
-#    define SKINNY_DEVICETYPE_MEDIA_TERM_POINTDIXIELAND	112
+#    define SKINNY_DEVICETYPE_MEDIA_TERM_POINTDIXIELAND 112
 #    define SKINNY_DEVICETYPE_MEDIA_TERM_POINTSUMMIT	113
 #    define SKINNY_DEVICETYPE_MGCPSTATION		120
 #    define SKINNY_DEVICETYPE_MGCPTRUNK 		121
@@ -582,11 +611,6 @@ static const struct skinny_alarm {
 #    define SKINNY_DEVICETYPE_CISCO7910			6			/*!< 7910 */
 #    define SKINNY_DEVICETYPE_CISCO7911 		307
 #    define SKINNY_DEVICETYPE_CISCO7912			30007
-#    define SKINNY_DEVICETYPE_CISCO7914 		124			/*!< Expansion module */
-#    define SKINNY_DEVICETYPE_CISCO7915_12BUTTONS	227			/*!< 7915 12-Button Line Expansion Module */
-#    define SKINNY_DEVICETYPE_CISCO7915			228			/*!< 7915 24-Button Line Expansion Module */
-#    define SKINNY_DEVICETYPE_CISCO7916_12BUTTONS	229			/*!< 7916 12-Button Line Expansion Module */
-#    define SKINNY_DEVICETYPE_CISCO7916			230			/*!< 7916 24-Button Line Expansion Module */
 #    define SKINNY_DEVICETYPE_CISCO7920 		30002
 #    define SKINNY_DEVICETYPE_CISCO7921 		365
 #    define SKINNY_DEVICETYPE_CISCO7925 		484			/*!< 7925 -FS */
@@ -599,17 +623,17 @@ static const struct skinny_alarm {
 #    define SKINNY_DEVICETYPE_CISCO7941GE 		309
 #    define SKINNY_DEVICETYPE_CISCO7942			434
 #    define SKINNY_DEVICETYPE_CISCO7945			435
-#    define SKINNY_DEVICETYPE_CISCO7960			7			/*< 7960 */
+#    define SKINNY_DEVICETYPE_CISCO7960			7			/*!< 7960 */
 #    define SKINNY_DEVICETYPE_CISCO7961 		30018
 #    define SKINNY_DEVICETYPE_CISCO7961GE 		308
-#    define SKINNY_DEVICETYPE_CISCO7962			404			// -FS
+#    define SKINNY_DEVICETYPE_CISCO7962			404
 #    define SKINNY_DEVICETYPE_CISCO7965 		436
 #    define SKINNY_DEVICETYPE_CISCO7970 		30006
 #    define SKINNY_DEVICETYPE_CISCO7971 		119
 #    define SKINNY_DEVICETYPE_CISCO7975			437
 #    define SKINNY_DEVICETYPE_CISCO7985			302
 #    define SKINNY_DEVICETYPE_NOKIA_E_SERIES		275			/*!< Nokia S60 */
-#    define SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR 	30016
+#    define SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR	30016
 #    define SKINNY_DEVICETYPE_GATEWAY_AN 		30027			/*!< Analog gateway */
 #    define SKINNY_DEVICETYPE_GATEWAY_BRI 		30028			/*!< BRI gateway */
 #    define SKINNY_DEVICETYPE_NOKIA_ICC 		376			/*!< nokia icc client V2 */
@@ -619,10 +643,21 @@ static const struct skinny_alarm {
 #    define SKINNY_DEVICETYPE_CISCO6941			496
 #    define SKINNY_DEVICETYPE_CISCO6945			564
 #    define SKINNY_DEVICETYPE_CISCO6961			497
-#    define SKINNY_DEVICETYPE_CISCO8941			586
+#    define SKINNY_DEVICETYPE_CISCO8941                 586
 #    define SKINNY_DEVICETYPE_CISCO8945			585
-#    define SKINNY_DEVICETYPE_SPA_521S			80000
-#    define SKINNY_DEVICETYPE_SPA_525G			80005
+#    define SKINNY_DEVICETYPE_CISCO8961                 540
+
+/* SPA Devices */
+#    define SKINNY_DEVICETYPE_SPA_521S			80000			/*!< SPA 521G */
+#    define SKINNY_DEVICETYPE_SPA_525G                  80005			/*!< SPA 525G */
+
+/* Extension Modules */
+#    define SKINNY_DEVICETYPE_CISCO7914 		124			/*!< Expansion module */
+#    define SKINNY_DEVICETYPE_CISCO7915_12BUTTONS	227			/*!< 7915 12-Button Line Expansion Module */
+#    define SKINNY_DEVICETYPE_CISCO7915			228			/*!< 7915 24-Button Line Expansion Module */
+#    define SKINNY_DEVICETYPE_CISCO7916_12BUTTONS	229			/*!< 7916 12-Button Line Expansion Module */
+#    define SKINNY_DEVICETYPE_CISCO7916			230			/*!< 7916 24-Button Line Expansion Module */
+
 
 /*!
  * \brief Skinny DeviceType Structure
@@ -721,16 +756,15 @@ static const struct skinny_devicetype {
 	{SKINNY_DEVICETYPE_CISCO6961, "Cisco 6961"},
 	
 	{SKINNY_DEVICETYPE_SPA_521S, "Cisco SPA 521SG"},
-	{SKINNY_DEVICETYPE_SPA_525G, "Cisco SPA 525G"},
 	
 	/* *INDENT-ON* */
 };
 
 #    define SKINNY_DEVICE_RS_NONE			0
-#    define SKINNY_DEVICE_RS_PROGRESS			1
-#    define SKINNY_DEVICE_RS_FAILED 			2
+#    define SKINNY_DEVICE_RS_PROGRESS		1
+#    define SKINNY_DEVICE_RS_FAILED 		2
 #    define SKINNY_DEVICE_RS_OK 			3
-#    define SKINNY_DEVICE_RS_TIMEOUT			4
+#    define SKINNY_DEVICE_RS_TIMEOUT		4
 
 /*!
  * \brief Skinny Device RS Structure
@@ -748,6 +782,9 @@ static const struct skinny_device_registrationstate {
 	/* *INDENT-ON* */
 };
 
+/*!
+ * \brief SCCP Device State (ENUM)
+ */
 typedef enum {
 	SCCP_DEVICESTATE_ONHOOK = 0,
 	SCCP_DEVICESTATE_OFFHOOK = 1,
@@ -773,38 +810,38 @@ static const struct skinny_device_state {
 };
 
 /* stimulus */
-#    define SKINNY_STIMULUS_LASTNUMBERREDIAL		1
-#    define SKINNY_STIMULUS_SPEEDDIAL			2
+#    define SKINNY_STIMULUS_LASTNUMBERREDIAL	1
+#    define SKINNY_STIMULUS_SPEEDDIAL		2
 #    define SKINNY_STIMULUS_HOLD			3
-#    define SKINNY_STIMULUS_TRANSFER			4
-#    define SKINNY_STIMULUS_FORWARDALL			5
+#    define SKINNY_STIMULUS_TRANSFER		4
+#    define SKINNY_STIMULUS_FORWARDALL		5
 #    define SKINNY_STIMULUS_FORWARDBUSY 		6
-#    define SKINNY_STIMULUS_FORWARDNOANSWER 		7
-#    define SKINNY_STIMULUS_DISPLAY 			8
+#    define SKINNY_STIMULUS_FORWARDNOANSWER 	7
+#    define SKINNY_STIMULUS_DISPLAY 		8
 #    define SKINNY_STIMULUS_LINE			9
-#    define SKINNY_STIMULUS_T120CHAT			0xA
+#    define SKINNY_STIMULUS_T120CHAT		0xA
 #    define SKINNY_STIMULUS_T120WHITEBOARD		0xB
 #    define SKINNY_STIMULUS_T120APPLICATIONSHARING	0xC
-#    define SKINNY_STIMULUS_T120FILETRANSFER		0xD
+#    define SKINNY_STIMULUS_T120FILETRANSFER	0xD
 #    define SKINNY_STIMULUS_VIDEO			0xE
-#    define SKINNY_STIMULUS_VOICEMAIL			0xF
-#    define SKINNY_STIMULUS_AUTOANSWERRELEASE		0x10
-#    define SKINNY_STIMULUS_AUTOANSWER			0x11
+#    define SKINNY_STIMULUS_VOICEMAIL		0xF
+#    define SKINNY_STIMULUS_AUTOANSWERRELEASE	0x10
+#    define SKINNY_STIMULUS_AUTOANSWER		0x11
 #    define SKINNY_STIMULUS_SELECT			0x12
-#    define SKINNY_STIMULUS_PRIVACY			0x13
-#    define SKINNY_STIMULUS_SERVICEURL			0x14
-#    define SKINNY_STIMULUS_BLF				0x15
+#    define SKINNY_STIMULUS_DEV_FEATURE			0x13
+#    define SKINNY_STIMULUS_SERVICEURL		0x14
+#    define SKINNY_STIMULUS_BLF                     0x15
 #    define SKINNY_STIMULUS_MALICIOUSCALL		0x1B
 #    define SKINNY_STIMULUS_GENERICAPPB1		0x21
 #    define SKINNY_STIMULUS_GENERICAPPB2		0x22
 #    define SKINNY_STIMULUS_GENERICAPPB3		0x23
 #    define SKINNY_STIMULUS_GENERICAPPB4		0x24
 #    define SKINNY_STIMULUS_GENERICAPPB5		0x25
-#    define SKINNY_STIMULUS_MEETMECONFERENCE		0x7b
-#    define SKINNY_STIMULUS_CONFERENCE			0x7d
-#    define SKINNY_STIMULUS_CALLPARK			0x7e
-#    define SKINNY_STIMULUS_CALLPICKUP			0x7f
-#    define SKINNY_STIMULUS_GROUPCALLPICKUP 		0x80
+#    define SKINNY_STIMULUS_MEETMECONFERENCE	0x7b
+#    define SKINNY_STIMULUS_CONFERENCE		0x7d
+#    define SKINNY_STIMULUS_CALLPARK		0x7e
+#    define SKINNY_STIMULUS_CALLPICKUP		0x7f
+#    define SKINNY_STIMULUS_GROUPCALLPICKUP 	0x80
 
 /*!
  * \brief Skinny Stimulus Structure
@@ -812,7 +849,7 @@ static const struct skinny_device_state {
 static const struct skinny_stimulus {
 	uint8_t stimulus;
 	const char *const text;
-} skinny_stimuluses[] = {
+} skinny_stimuly[] = {
 	/* *INDENT-OFF* */
 	{SKINNY_STIMULUS_LASTNUMBERREDIAL, "Last Number Redial"},
 	{SKINNY_STIMULUS_SPEEDDIAL, "SpeedDial"},
@@ -832,7 +869,7 @@ static const struct skinny_stimulus {
 	{SKINNY_STIMULUS_AUTOANSWERRELEASE, "Auto Answer Release"},
 	{SKINNY_STIMULUS_AUTOANSWER, "Auto Answer"},
 	{SKINNY_STIMULUS_SELECT, "Select"},
-	{SKINNY_STIMULUS_PRIVACY, "Privacy"},
+	{SKINNY_STIMULUS_DEV_FEATURE, "DevFeature"},
 	{SKINNY_STIMULUS_SERVICEURL, "ServiceURL"},
 	{SKINNY_STIMULUS_BLF, "Busy Lamp Field"},
 	{SKINNY_STIMULUS_MALICIOUSCALL, "Malicious Call"},
@@ -861,7 +898,7 @@ static const struct skinny_stimulus {
 #    define SKINNY_BUTTONTYPE_LINE			0x09
 #    define SKINNY_BUTTONTYPE_T120CHAT			0x0a
 #    define SKINNY_BUTTONTYPE_T120WHITEBOARD		0x0b
-#    define SKINNY_BUTTONTYPE_T120APPLICATIONSHARING 	0x0c
+#    define SKINNY_BUTTONTYPE_T120APPLICATIONSHARING	0x0c
 #    define SKINNY_BUTTONTYPE_T120FILETRANSFER		0x0d
 #    define SKINNY_BUTTONTYPE_VIDEO 			0x0e
 #    define SKINNY_BUTTONTYPE_VOICEMAIL 		0x0f
@@ -954,11 +991,13 @@ static const struct skinny_buttontype {
 };
 
 /* unregister */
-#    define SKINNY_UNREGISTERSTATUS_OK			0
+#    define SKINNY_UNREGISTERSTATUS_OK		0
 #    define SKINNY_UNREGISTERSTATUS_ERROR		1
 #    define SKINNY_UNREGISTERSTATUS_NAK 		2			/*!< we have an active channel */
 
-/* lamp */
+/*!
+ * \brief Skinny Lamp Mode (ENUM) 
+ */
 typedef enum {
 	SKINNY_LAMP_OFF = 1,							/*!< Lamp Off, 0% Duty */
 	SKINNY_LAMP_ON = 2,							/*!< Lamp On, 100% Duty */
@@ -985,16 +1024,16 @@ static const struct skinny_lampmode {
 
 /* media silence suppression */
 #    define SKINNY_MEDIA_SILENCESUPPRESSION_OFF 	0
-#    define SKINNY_MEDIA_SILENCESUPPRESSION_ON		1
+#    define SKINNY_MEDIA_SILENCESUPPRESSION_ON	1
 
 /* media echo cancel */
-#    define SKINNY_MEDIA_ECHOCANCELLATION_OFF		0
-#    define SKINNY_MEDIA_ECHOCANCELLATION_ON		1
+#    define SKINNY_MEDIA_ECHOCANCELLATION_OFF	0
+#    define SKINNY_MEDIA_ECHOCANCELLATION_ON	1
 
 /* G723 bitrate */
 #    define SKINNY_MEDIA_G723BRATE_NONE 		0
-#    define SKINNY_MEDIA_G723BRATE_5_3			1
-#    define SKINNY_MEDIA_G723BRATE_6_4			2
+#    define SKINNY_MEDIA_G723BRATE_5_3		1
+#    define SKINNY_MEDIA_G723BRATE_6_4		2
 
 /* device reset and restart */
 #    define SKINNY_DEVICE_RESET 			1
@@ -1002,22 +1041,15 @@ static const struct skinny_lampmode {
 
 /* statistic processing */
 #    define SKINNY_STATSPROCESSING_CLEAR		0
-#    define SKINNY_STATSPROCESSING_DONOTCLEAR		1
+#    define SKINNY_STATSPROCESSING_DONOTCLEAR	1
 
-/* ringer modes */
-typedef enum {
-	SKINNY_STATION_RINGOFF = 1,
-	SKINNY_STATION_INSIDERING = 2,
-	SKINNY_STATION_OUTSIDERING = 3,
-	SKINNY_STATION_FEATURERING = 4,
-	SKINNY_STATION_SILENTRING = 5,
-	SKINNY_STATION_URGENTRING = 6
-} sccp_ringermode_t;
-
-typedef enum {
-	SKINNY_RINGERTYPE_RING_CONTINUOUS = 1,
-	SKINNY_RINGERTYPE_RING_ONCE = 2
-} sccp_ringertype_t;
+/* ringer types */
+#    define SKINNY_STATION_RINGOFF			1
+#    define SKINNY_STATION_INSIDERING		2
+#    define SKINNY_STATION_OUTSIDERING		3
+#    define SKINNY_STATION_FEATURERING		4
+#    define SKINNY_STATION_SILENTRING		5
+#    define SKINNY_STATION_URGENTRING		6
 
 /*!
  * \brief Skinny Station Structure
@@ -1037,18 +1069,20 @@ static const struct skinny_station {
 };
 
 /* speaker status */
-#    define SKINNY_STATIONSPEAKER_ON			1
-#    define SKINNY_STATIONSPEAKER_OFF			2
+#    define SKINNY_STATIONSPEAKER_ON		1
+#    define SKINNY_STATIONSPEAKER_OFF		2
 
 /* mic status */
 #    define SKINNY_STATIONMIC_ON			1
 #    define SKINNY_STATIONMIC_OFF			2
 
 /* headset status */
-#    define SKINNY_STATIONHEADSET_ON			1
-#    define SKINNY_STATIONHEADSET_OFF			2
+#    define SKINNY_STATIONHEADSET_ON		1
+#    define SKINNY_STATIONHEADSET_OFF		2
 
-/* skinny codecs */
+/*!
+ * \brief Skinny Codecs (ENUM) 
+ */
 typedef enum {
 	SKINNY_CODEC_NONE = 0,
 	SKINNY_CODEC_NONSTANDARD = 1,
@@ -1086,99 +1120,124 @@ typedef enum {
 	SKINNY_CODEC_ISAC = 89,
 	SKINNY_CODEC_H261 = 100,
 	SKINNY_CODEC_H263 = 101,
-	SKINNY_CODEC_H263P = 102,						// aka. Vieo
+	SKINNY_CODEC_H263P = 102,
 	SKINNY_CODEC_H264 = 103,
 	SKINNY_CODEC_T120 = 105,
 	SKINNY_CODEC_H224 = 106,
 	SKINNY_CODEC_RFC2833_DYNPAYLOAD = 257
-} skinny_media_payload;
+} skinny_codec_t;
 
+/*! 
+ * \brief Skinny codec types (ENUM)
+ */
 typedef enum {
-	SKINNY_BANDWIDTH_NARROWBAND = 200,
-	SKINNY_BANDWIDTH_WIDEBAND = 201
-} skinny_media_bandwidth;
+	SKINNY_CODEC_TYPE_UNKNOWN = 0,
+	SKINNY_CODEC_TYPE_AUDIO = 1,
+	SKINNY_CODEC_TYPE_VIDEO = 2,
+	SKINNY_CODEC_TYPE_TEXT = 3,
+	SKINNY_CODEC_TYPE_DATA = 4,
+	SKINNY_CODEC_TYPE_MIXED = 5,
+} skinny_payload_type_t;
 
 /*!
  * \brief Skinny Codec Structure
  */
 static const struct skinny_codec {
-//        uint32_t codec;
-	skinny_media_payload codec;
-	int astcodec;
-	const char *const text;
+	skinny_codec_t codec;
+	const char *const shortname;						// used in sccp.conf
+	const char *const name;							// used in sccp.conf
+	const char *const text;							// used to display the codec name
+	skinny_payload_type_t codec_type;
+	const char *mimesubtype;						// rfc mime sub-type e.g. L16
+	unsigned int sample_rate;
 } skinny_codecs[] = {
 	/* *INDENT-OFF* */
-	{SKINNY_CODEC_NONE, 0, "No codec"},
-	{SKINNY_CODEC_NONSTANDARD, 0, "Non-standard codec"},
-	{SKINNY_CODEC_G711_ALAW_64K, AST_FORMAT_ALAW, "G.711 A-law 64k"},
-	{SKINNY_CODEC_G711_ALAW_56K, AST_FORMAT_ALAW, "G.711 A-law 56k"},
-	{SKINNY_CODEC_G711_ULAW_64K, AST_FORMAT_ULAW, "G.711 u-law 64k"},
-	{SKINNY_CODEC_G711_ULAW_56K, AST_FORMAT_ULAW, "G.711 u-law 56k"},
-	{SKINNY_CODEC_G723_1, AST_FORMAT_G723_1, "G.723.1"},
-	{SKINNY_CODEC_G728, 0, "G.728"},
-	{SKINNY_CODEC_G729, 0, "G.729"},
-	{SKINNY_CODEC_G729_A, AST_FORMAT_G729A, "G.729 Annex A"},
-	{SKINNY_CODEC_IS11172, 0, "IS11172 AudioCap"},
-	{SKINNY_CODEC_IS13818, 0, "IS13818 AudioCap"},
-	{SKINNY_CODEC_G729_B, 0, "G.729 Annex B"},
-	{SKINNY_CODEC_G729_AB, 0, "G.729 Annex A + B"},
-	{SKINNY_CODEC_GSM_FULLRATE, 0, "GSM Full Rate"},
-	{SKINNY_CODEC_GSM_HALFRATE, 0, "GSM Half Rate"},
-	{SKINNY_CODEC_GSM_ENH_FULLRATE, 0, "GSM Enhanced Full Rate"},
-#if ASTERISK_VERSION_NUMBER >= 10600
-	{SKINNY_CODEC_WIDEBAND_256K, AST_FORMAT_SLINEAR16, "Wideband 256k"},
-#endif
-	{SKINNY_CODEC_DATA_64K, 0, "Data 64k"},
-	{SKINNY_CODEC_DATA_56K, 0, "Data 56k"},
-	{SKINNY_CODEC_G722_1_32K, 0, "G722.1 32k"},
-	{SKINNY_CODEC_AAC, 0, "Data 56k"},
-	{SKINNY_CODEC_GSM, AST_FORMAT_GSM, "GSM"},
-	{SKINNY_CODEC_ACTIVEVOICE, 0, "ActiveVoice"},
-	{SKINNY_CODEC_G726_24K, 0, "G.726 24K"},
-	{SKINNY_CODEC_G726_16K, 0, "G.726 16K"},
-	{SKINNY_CODEC_G729_ANNEX_B, 0, "G.729 Annex B"},
-	{SKINNY_CODEC_ISAC, 0, "iSAC"},
-	{SKINNY_CODEC_H261, AST_FORMAT_H261, "H.261"},
-	{SKINNY_CODEC_H263, AST_FORMAT_H263, "H.263"},
-	{SKINNY_CODEC_H263P, 0, "Vieo H.263+"},
-	{SKINNY_CODEC_T120, 0, "T.120"},
-	{SKINNY_CODEC_H224, 0, "H.224"},
-	{SKINNY_CODEC_RFC2833_DYNPAYLOAD, 0, "RFC 2833 Dyn Pay Load"},
-#    if ASTERISK_VERSION_NUMBER >= 10400
-	{SKINNY_CODEC_G726_32K, AST_FORMAT_G726_AAL2, "G.726 32K"},
-	{SKINNY_CODEC_G729_B_LOW, AST_FORMAT_ILBC, "G.729B Low Complexity"},
-	{SKINNY_CODEC_G722_64K, AST_FORMAT_G722, "G.722 64k"},
-	{SKINNY_CODEC_G722_56K, AST_FORMAT_G722, "G.722 56k"},
-	{SKINNY_CODEC_G722_48K, AST_FORMAT_G722, "G.722 48k"},
-	{SKINNY_CODEC_H264, AST_FORMAT_H264, "H.264"},
-#    else
-	{SKINNY_CODEC_G726_32K, 0, "G.726 32K"},
-	{SKINNY_CODEC_G729_B_LOW, 0, "G.729B Low Complexity"},
-	{SKINNY_CODEC_G722_64K, 0, "G.722 64k"},
-	{SKINNY_CODEC_G722_56K, 0, "G.722 56k"},
-	{SKINNY_CODEC_G722_48K, 0, "G.722 48k"},
-	{SKINNY_CODEC_H264, 0, "H.264"},
-#    endif
-#    ifdef AST_FORMAT_SIREN7
-	{SKINNY_CODEC_G722_1_24K, AST_FORMAT_SIREN7, "G722.1 24k (Siren7)"},
-#    else
-	{SKINNY_CODEC_G722_1_24K, 0, "G722.1 24k"},
-#    endif
+	{SKINNY_CODEC_NONE, 		"",		"",		"No codec", 			SKINNY_CODEC_TYPE_UNKNOWN,	NULL,		0},
+	{SKINNY_CODEC_NONSTANDARD,	"",		"",		"Non-standard codec", 		SKINNY_CODEC_TYPE_UNKNOWN,	NULL,		0},
+	{SKINNY_CODEC_IS11172, 		"is11172",	"is11172",	"IS11172 AudioCap", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_IS13818, 		"is13872",      "is13872",	"IS13818 AudioCap", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_GSM_FULLRATE, 	"gsm",		"gsm/full",	"GSM Full Rate", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_GSM_HALFRATE, 	"gsm",		"gsm/half",	"GSM Half Rate", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_GSM_ENH_FULLRATE,	"gsm",		"gsm/enh",	"GSM Enhanced Full Rate",	SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_WIDEBAND_256K, 	"slin16",	"slin16",	"Wideband 256k", 		SKINNY_CODEC_TYPE_AUDIO,	"L16",		16000},
+	{SKINNY_CODEC_GSM, 		"gsm",		"gsm",		"GSM", 				SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_ACTIVEVOICE, 	"activevoice",	"activevoice",	"ActiveVoice", 			SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G711_ALAW_64K, 	"alaw",		"alaw/64k",	"G.711 A-law 64k", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G711_ALAW_56K, 	"alaw",		"alaw/56k",	"G.711 A-law 56k", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G711_ULAW_64K, 	"ulaw",		"ulaw/64k",	"G.711 u-law 64k", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G711_ULAW_56K, 	"ulaw",		"ulaw/56k",	"G.711 u-law 56k", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G722_64K, 	"g722",		"g722/64k",	"G.722 64k", 			SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G722_56K, 	"g722",		"g722/56k",	"G.722 56k", 			SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G722_48K, 	"g722",		"g722/48k",	"G.722 48k", 			SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G722_1_24K, 	"g722.1",	"g722/24k",	"G722.1 24k (Siren7)", 		SKINNY_CODEC_TYPE_AUDIO,	"G7221",	16000},
+	{SKINNY_CODEC_G722_1_32K, 	"g722.1",	"g722/32k",	"G722.1 32k (Siren14)", 	SKINNY_CODEC_TYPE_AUDIO,	"G7221", 	32000},
+	{SKINNY_CODEC_G723_1, 		"g723",		"g723",		"G.723.1", 			SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G726_16K, 	"g726",		"g726/16k",	"G.726 16K", 			SKINNY_CODEC_TYPE_AUDIO, 	NULL,		0},
+	{SKINNY_CODEC_G726_24K,		"g726",		"g726/24k",	"G.726 24K", 			SKINNY_CODEC_TYPE_AUDIO, 	NULL,		0},
+	{SKINNY_CODEC_G726_32K, 	"g726",		"g726/32k",	"G.726 32K", 			SKINNY_CODEC_TYPE_AUDIO, 	NULL,		0},
+	{SKINNY_CODEC_G728, 		"g728",		"g728",		"G.728", 			SKINNY_CODEC_TYPE_AUDIO, 	NULL,		0},
+	{SKINNY_CODEC_G729, 		"g729",		"g729",		"G.729", 			SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G729_A, 		"g729",		"g729/a",	"G.729 Annex A", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G729_B_LOW, 	"g729",		"g729/b/low",	"G.729B Low Complexity",	SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G729_B, 		"g729",		"g729/b",	"G.729 Annex B", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G729_AB, 		"g729",		"g729/a/b",	"G.729 Annex A + B", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G729_ANNEX_B, 	"g729",		"g729/annex/b",	"G.729 Annex B", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_ISAC, 		"isac",		"isac",		"iSAC", 			SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_H224, 		"h224",		"h224",		"H.224", 			SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_H261, 		"h261",		"h261",		"H.261", 			SKINNY_CODEC_TYPE_VIDEO,	NULL,		0},
+	{SKINNY_CODEC_H263, 		"h263",		"h263",		"H.263", 			SKINNY_CODEC_TYPE_VIDEO,	"H263",		0},
+	{SKINNY_CODEC_H263P, 		"h263",		"h263/p",	"Vieo H.263+", 			SKINNY_CODEC_TYPE_VIDEO,	NULL,		0},
+	{SKINNY_CODEC_H264, 		"h264",		"h264",		"H.264", 			SKINNY_CODEC_TYPE_VIDEO,	"H264",		0},
+	{SKINNY_CODEC_T120, 		"t120",		"t120",		"T.140", 			SKINNY_CODEC_TYPE_TEXT,		NULL,		0},
+	{SKINNY_CODEC_RFC2833_DYNPAYLOAD,"rfc2833",	"rfc2833",	"RFC 2833 Dyn Pay Load",	SKINNY_CODEC_TYPE_MIXED,	NULL,		0},
+	{SKINNY_CODEC_DATA_64K, 	"data",		"data/64k",	"Data 64k", 			SKINNY_CODEC_TYPE_DATA,		NULL,		0},
+	{SKINNY_CODEC_DATA_56K, 	"data",		"data/56k",	"Data 56k", 			SKINNY_CODEC_TYPE_DATA,		NULL,		0},
+	{SKINNY_CODEC_AAC, 		"aac",		"aac",		"AAC", 				SKINNY_CODEC_TYPE_DATA,		NULL,		0},
 	/* *INDENT-ON* */
 };
 
 /* device dtmfmode */
 #    define SCCP_DTMFMODE_INBAND			0
-#    define SCCP_DTMFMODE_OUTOFBAND 			1
+#    define SCCP_DTMFMODE_OUTOFBAND 		1
 
-#    define SCCP_AUTOANSWER_NONE			0			/*!< 1 way audio - MIC OFF */
-#    define SCCP_AUTOANSWER_1W				1			/*!< 1 way audio - MIC OFF */
-#    define SCCP_AUTOANSWER_2W				2			/*!< 2 way audio - MIC ON */
+/*!
+ * \brief SCCP AutoAnswer Mode (ENUM)
+ */
+typedef enum {
+	SCCP_AUTOANSWER_NONE = 0,						/*!< 1 way audio - MIC OFF */
+	SCCP_AUTOANSWER_1W = 1,							/*!< 1 way audio - MIC OFF */
+	SCCP_AUTOANSWER_2W = 2,							/*!< 2 way audio - MIC ON */
+} sccp_autoanswer_type_t;
 
-#    define SCCP_DNDMODE_OFF				0			/*!< dnd not permitted on the device */
-#    define SCCP_DNDMODE_REJECT				1			/*!< busy signal */
-#    define SCCP_DNDMODE_SILENT				2			/*!< ringing state with no ringer tone */
-#    define SCCP_DNDMODE_USERDEFINED			3			/*!< the user defines the mode by pressing the softkey */
+#    define SCCP_DNDMODE_OFF			0				/*!< dnd not permitted on the device */
+#    define SCCP_DNDMODE_REJECT			1				/*!< busy signal */
+#    define SCCP_DNDMODE_SILENT			2				/*!< ringing state with no ringer tone */
+#    define SCCP_DNDMODE_USERDEFINED		3				/*!< the user defines the mode by pressing the softkey */
+
+
+
+/*!
+ * \brief Skinny Transmit or Receive flag
+ */
+typedef enum {
+	SKINNY_STATION_RECEIVE		= (1<<0),
+	SKINNY_STATION_TRANSMIT		= (1<<1),
+} skinny_transmitOrReceive_t;
+
+/*!
+ * \brief SCCP DNDMode Structure
+ */
+static const struct skinny_transmitOrReceiveModes {
+	skinny_transmitOrReceive_t 	mode;
+	const char *const 		text;
+} skinny_transmitOrReceiveModes[] = {
+	/* *INDENT-OFF* */
+	{SKINNY_STATION_RECEIVE, 				"Receive only"},
+	{SKINNY_STATION_TRANSMIT, 				"Transmit only"},
+	{SKINNY_STATION_TRANSMIT | SKINNY_STATION_RECEIVE, 	"Transmit and Receive"}, 
+	/* *INDENT-ON* */
+};
+
 
 /*!
  * \brief SCCP DNDMode Structure
@@ -1201,9 +1260,9 @@ static const struct sccp_dndmode {
 #    define MAX_CUSTOM_PICTURES				6
 #    define MAX_LAYOUT_WITH_SAME_SERVICE		5
 #    define MAX_SERVICE_TYPE				4
-#    define DeviceMaxCapabilities       		18			/*!< max capabilities allowed in Cap response message */
-#    define DeviceMaxVideoCapabilities			10
-#    define DeviceMaxDataCapabilities   		5
+#    define SKINNY_MAX_CAPABILITIES       		18			/*!< max capabilities allowed in Cap response message */
+#    define SKINNY_MAX_VIDEO_CAPABILITIES		10
+#    define SKINNY_MAX_DATA_CAPABILITIES   		5
 #    define MAX_LEVEL_PREFERENCE		 	4
 
 /*!
@@ -1217,7 +1276,7 @@ typedef struct {
 
 /*!
  * \brief Button Modes Structure
-*/
+ */
 typedef struct {
 	const char *type;							/*!< Button Type */
 	int buttonCount;							/*!< Button Count */
@@ -1277,8 +1336,6 @@ typedef enum {
 	DeviceToUserDataVersion1Message = 0x0041,
 	DeviceToUserDataResponseVersion1Message = 0x0042,
 
-	UpdateCapabilitiesV3Message = 0x0044,
-
 	/* This are from protocol V 11 CCM7 */
 	DialedPhoneBookMessage = 0x0048,
 	AccessoryStatusMessage = 0x0049,
@@ -1302,6 +1359,7 @@ typedef enum {
 	CallInfoMessage = 0x008F,
 
 	ForwardStatMessage = 0x0090,
+	ForwardStatMessageV19 = 0x0090,
 	SpeedDialStatMessage = 0x0091,
 	LineStatMessage = 0x0092,
 	ConfigStatMessage = 0x0093,
@@ -1318,6 +1376,7 @@ typedef enum {
 	RegisterRejectMessage = 0x009D,
 	ServerResMessage = 0x009E,
 	Reset = 0x009F,
+
 	KeepAliveAckMessage = 0x0100,
 	StartMulticastMediaReception = 0x0101,
 	StartMulticastMediaTransmission = 0x0102,
@@ -1326,8 +1385,10 @@ typedef enum {
 	OpenReceiveChannel = 0x0105,
 	CloseReceiveChannel = 0x0106,
 	ConnectionStatisticsReq = 0x0107,
+	ConnectionStatisticsReq_V19 = 0x0107,
 	SoftKeyTemplateResMessage = 0x0108,
 	SoftKeySetResMessage = 0x0109,
+
 	SelectSoftKeysMessage = 0x0110,
 	CallStateMessage = 0x0111,
 	DisplayPromptStatusMessage = 0x0112,
@@ -1342,6 +1403,7 @@ typedef enum {
 	RegisterTokenReject = 0x011B,
 	StartMediaFailureDetection = 0x011C,
 	DialedNumberMessage = 0x011D,
+	DialedNumberMessageV19 = 0x011D,
 	UserToDeviceDataMessage = 0x011E,
 	FeatureStatMessage = 0x011F,
 	DisplayPriNotifyMessage = 0x0120,
@@ -1363,7 +1425,7 @@ typedef enum {
 	StartMultiMediaTransmission = 0x0132,
 	StopMultiMediaTransmission = 0x0133,
 	MiscellaneousCommandMessage = 0x0134,
-	FlowControlCommandMessageResp = 0x0135,
+	FlowControlCommandMessage = 0x0135,
 	CloseMultiMediaReceiveChannel = 0x0136,
 	CreateConferenceReqMessage = 0x0137,
 	DeleteConferenceReqMessage = 0x0138,
@@ -1375,12 +1437,11 @@ typedef enum {
 	UserToDeviceDataVersion1Message = 0x013F,
 
 	/* sent by us */
-	FlowControlCommandMessage = 0x0141,					// FlowControlCommandMessage
-	Unknown_0x0142_Message = 0x0142,
-	Unknown_0x0143_Message = 0x0143,					// Probably Dynamic DisplayNotifyMessage
-	Unknown_0x0144_Message = 0x0144,
+	Unknown_0x0141_Message = 0x0141,
+        DisplayDynamicNotifyMessage = 0x0143,
+        DisplayDynamicPriNotifyMessage = 0x0144,
 	DisplayDynamicPromptStatusMessage = 0x0145,
-	FeatureStatAdvancedMessage = 0x0146,
+	FeatureStatDynamicMessage = 0x0146,
 	LineStatDynamicMessage = 0x0147,
 	ServiceURLStatDynamicMessage = 0x0148,
 	SpeedDialStatDynamicMessage = 0x0149,
@@ -1421,7 +1482,7 @@ static const struct sccp_messagetype {
 	{TimeDateReqMessage, "Time Date Request"},
 	{ButtonTemplateReqMessage, "Button Template Request"},
 	{VersionReqMessage, "Version Request"},
-	{CapabilitiesResMessage, "Capabilities Resquest Message"},
+	{CapabilitiesResMessage, "Capabilities Response Message"},
 	{MediaPortListMessage, "Media Port List Message"},
 	{ServerReqMessage, "Server Request"},
 	{AlarmMessage, "Alarm Message"},
@@ -1540,10 +1601,10 @@ static const struct sccp_messagetype {
 	{AuditConferenceReqMessage, "Audit Conference Request"},
 	{AuditParticipantReqMessage, "Audit Participant Request"},
 	{UserToDeviceDataVersion1Message, "User To Device Data Version1 Message"},
-	{Unknown_0x0143_Message, "Undefined 0x0143 Message"},
-	{Unknown_0x0144_Message, "Undefined 0x0144 Message"},
+	{DisplayDynamicNotifyMessage, "Display Dynamic Notify Message"},
+	{DisplayDynamicPriNotifyMessage, "Display Dynamic Priority Notify Message"},
 	{DisplayDynamicPromptStatusMessage, "Display Dynamic Prompt Status Message"},
-	{FeatureStatAdvancedMessage, "SpeedDial State Dynamic Message"},
+	{FeatureStatDynamicMessage, "SpeedDial State Dynamic Message"},
 	{LineStatDynamicMessage, "Line State Dynamic Message"},
 	{ServiceURLStatDynamicMessage, "Service URL Stat Dynamic Messages"},
 	{SpeedDialStatDynamicMessage, "SpeedDial Stat Dynamic Message"},
@@ -1557,13 +1618,13 @@ static const struct sccp_messagetype {
 	/* *INDENT-ON* */
 };
 
-#    define SCCP_ACCESSORY_NONE				0x00			/*!< Added for compatibility with old phones -FS */
+#    define SCCP_ACCESSORY_NONE			0x00				/*!< Added for compatibility with old phones -FS */
 #    define SCCP_ACCESSORY_HEADSET			0x01
 #    define SCCP_ACCESSORY_HANDSET			0x02
 #    define SCCP_ACCESSORY_SPEAKER			0x03
 
 /*!
- * \brief Skinny Accessory Structure
+ * \brief SCCP Accessory Structure
  */
 static const struct sccp_accessory {
 	uint8_t accessory;
@@ -1577,12 +1638,12 @@ static const struct sccp_accessory {
 	/* *INDENT-ON* */
 };
 
-#    define SCCP_ACCESSORYSTATE_NONE			0x00			/*!< Added for compatibility with old phones -FS */
-#    define SCCP_ACCESSORYSTATE_OFFHOOK			0x01
-#    define SCCP_ACCESSORYSTATE_ONHOOK			0x02
+#    define SCCP_ACCESSORYSTATE_NONE		0x00				/*!< Added for compatibility with old phones -FS */
+#    define SCCP_ACCESSORYSTATE_OFFHOOK		0x01
+#    define SCCP_ACCESSORYSTATE_ONHOOK		0x02
 
 /*!
- * \brief Skinny Accessory State Structure
+ * \brief SCCP Accessory State Structure
  */
 static const struct sccp_accessory_state {
 	uint8_t accessory_state;
@@ -1642,7 +1703,7 @@ typedef struct {
  * \brief Media Payload Capability Structure
  */
 typedef struct {
-	skinny_media_payload lel_payloadCapability;				/*!< Payload Capability (Codec Used) */
+	skinny_codec_t lel_payloadCapability;					/*!< Payload Capability (Codec Used) */
 	uint32_t lel_maxFramesPerPacket;					/*!< Maximum Number of Frames per IP Packet / Number of milliseconds of audio per RTP Packet */
 	union {
 		uint8_t futureUse[8];
@@ -1678,18 +1739,18 @@ typedef struct {
  * \since 20080111
  */
 typedef struct {
-	uint32_t layout;							/*!< Layout */
+	uint32_t layout;							/*!< Layout \todo what is layout? */
 } layoutConfig_t;								/*!< Layout Config Structure */
 
 /*!
- * \brief Level Preference Structure
+ * \brief Video Level Preference Structure
  */
 typedef struct {
 	uint32_t transmitPreference;						/*!< Transmit Preference */
 	uint32_t format;							/*!< Format / Codec */
 	uint32_t maxBitRate;							/*!< Maximum BitRate */
 	uint32_t minBitRate;							/*!< Minimum BitRate */
-	uint32_t MPI;								/*!< MPI ?? */
+	uint32_t MPI;								/*!<  */
 	uint32_t serviceNumber;							/*!< Service Number */
 } levelPreference_t;								/*!< Level Preference Structure */
 
@@ -1720,7 +1781,7 @@ typedef struct {
  * \brief Audio Capabilities Structure
  */
 typedef struct {
-	skinny_media_payload lel_payloadCapability;				/*!< PayLoad Capability */
+	skinny_codec_t lel_payloadCapability;					/*!< PayLoad Capability */
 	uint32_t lel_maxFramesPerPacket;					/*!< Maximum Number of Frames per IP Packet */
 	uint32_t lel_unknown[2];						/*!< this are related to G.723 */
 } audioCap_t;									/*!< Audio Capabilities Structure */
@@ -1729,13 +1790,25 @@ typedef struct {
  * \brief Video Capabilities Structure
  */
 typedef struct {
-	skinny_media_payload lel_payloadCapability;				/*!< PayLoad Capability */
-	uint32_t lel_transmitOrReceive;						/*!< Transmit of Receive */
+	skinny_codec_t lel_payloadCapability;					/*!< PayLoad Capability */
+	uint32_t lel_transmitOreceive;						/*!< Transmit of Receive */
 	uint32_t lel_levelPreferenceCount;					/*!< Level of Preference Count */
 
 	levelPreference_t levelPreference[MAX_LEVEL_PREFERENCE];		/*!< Level Preference */
 
-	uint32_t lel_codec_options[2];						/*!< Codec Options */
+// 	uint32_t lel_codec_options[2];						/*!< Codec Options */
+	
+	union {
+		struct {
+			uint32_t unknown1;
+			uint32_t unknown2;
+		} h263;
+		struct {
+			uint32_t profile;					/*!< H264 profile */
+			uint32_t level;						/*!< H264 level */
+		} h264;
+	} codec_options;
+	
 
 	/**
          * Codec options contains data specific for every codec
@@ -1818,26 +1891,43 @@ typedef struct {
  * \brief Video Parameter Structure 
  * \since 20100103
  */
-typedef struct {
-	uint32_t bitRate;							/*!< BitRate (default 384) */
-	uint32_t pictureFormatCount;						/*!< Picture Format Count (default 0) */
-	pictureFormat_t pictureFormat[5];					/*!< Picture Format Array */
-	uint32_t confServiceNum;						/*!< Conf Service Number */
-	uint32_t profile;
-	uint32_t level;
-	uint32_t macroblockspersec;
-	uint32_t macroblocksperframe;
-	uint32_t decpicbuf;
-	uint32_t brandcpb;
-	uint16_t dummy1;
-	uint16_t dummy2;
-	uint32_t dummy3;
-	uint32_t dummy4;
-	uint32_t dummy5;
-	uint32_t dummy6;
-	uint32_t dummy7;
-	uint32_t dummy8;
-} videoParameter_t;								/*!< Video Parameter Structure */
+// typedef struct {
+// 	uint32_t bitRate;							/*!< BitRate (default 384) */
+// 	uint32_t pictureFormatCount;						/*!< Picture Format Count (default 0) */
+// 	pictureFormat_t pictureFormat[3];					/*!< Picture Format Array */
+// 	uint32_t confServiceNum;						/*!< Conf Service Number */
+// 	uint32_t dummy;								/*!< dummy */
+// 	h261VideoCapability_t h261VideoCapability;				/*!< H261 Video Capability */
+// 	h263VideoCapability_t h263VideoCapability;				/*!< H263 Video Capability */
+// 	vieoVideoCapability_t vieoVideoCapability;				/*!< vieo Video Capability */
+// } videoParameter_t;								/*!< Video Parameter Structure */
+/*! 
+	 * \brief Video Parameter Structure 
+	 * \since 20110718
+	 */
+	typedef struct {
+	        uint32_t bitRate;                                                       /*!< BitRate (default 384) */
+	        uint32_t pictureFormatCount;                                            /*!< Picture Format Count (default 0) */
+	        pictureFormat_t pictureFormat[5];                                       /*!< Picture Format Array */
+	        uint32_t confServiceNum;                                                /*!< Conf Service Number */
+	        uint32_t profile;
+	        uint32_t level;
+	        uint32_t macroblockspersec;
+	        uint32_t macroblocksperframe;
+	        uint32_t decpicbuf;
+	        uint32_t brandcpb;
+	        uint16_t dummy1;
+	        uint16_t dummy2;
+	        uint32_t dummy3;
+	        uint32_t dummy4;
+	        uint32_t dummy5;
+	        uint32_t dummy6;
+	        uint32_t dummy7;
+	        uint32_t dummy8;
+	} videoParameter_t;                                                             /*!< Video Parameter Structure */
+
+
+
 
 /*!
  * \brief SCCP Data Union
@@ -1873,15 +1963,15 @@ typedef union {
 	struct {
 		uint32_t lel_NumberIndex;					/*!< Number Index (this must be shifted 4 bits right) */
 		uint32_t lel_lineinstance;					/*!< Line Instance */
-		uint32_t lel_unknown;						/*!< Unknown */
+		uint32_t lel_unknown;						/*!< \todo Unknown */
 		char phonenumber[260];						/*!< \todo I don't know if this is exact */
 	} DialedPhoneBookMessage;						/*!< Dialed Phone Book Message Structure */
 
 	struct {
 		uint32_t lel_NumberIndex;					/*!< Number Index (this must be shifted 4 bits right) */
 		uint32_t lel_lineinstance;					/*!< Line Instance */
-		uint32_t lel_unknown;						/*!< Unknown */
-		uint32_t lel_unknown2;						/*!< Unknown2 */
+		uint32_t lel_unknown;						/*!< \todo Unknown */
+		uint32_t lel_unknown2;						/*!< \todo Unknown2 */
 	} DialedPhoneBookAckMessage;						/*!< Dialed Phone Book Acknowledgement Structure */
 
 	struct {
@@ -1951,7 +2041,7 @@ typedef union {
 		uint32_t lel_appInstanceID;
 		uint32_t lel_routing;
 		char data[StationMaxXMLMessage];
-	} DeviceToUserDataResponseVersion1Message;				/*!< Device to User Response Version1 Message Structure */
+	} DeviceToUserDataResponseVersion1Message;
 
 	/* AccessoryStatusMessage (0x0073):
 	 * This indicates the phone headset, handset or speaker status.
@@ -1974,45 +2064,32 @@ typedef union {
 		uint32_t lel_unknown1;						/*!< Unknown */
 		uint32_t lel_unknown2;						/*!< Unknown */
 		uint32_t lel_unknown3;						/*!< Unknown */
-	} Unknown_0x004A_Message;						/*!< Unknown 0x004A Message Structure */
+	} Unknown_0x004A_Message;						/*!< \todo Unknown 0x004A Message Structure */
 
 	struct {								// INCOMPLETE
 		uint32_t lel_conferenceID;					/*!< Conference ID */
 		uint32_t lel_passThruPartyId;
 		uint32_t lel_callReference;					/*!< Call Reference */
 		uint32_t lel_maxBitRate;					/*!< maxBitRate */
-	} FlowControlCommandMessageResp;					/*!< FlowControlCommandMessage */
-
-	struct {								// INCOMPLETE
-		char deviceName[StationMaxDeviceNameSize];
-		uint32_t lel_unknown1;						/* unused */
-		uint32_t lel_unknown2;
-		uint32_t lel_unknown3;
-		uint32_t lel_unknown4;
-		char str1;
-		char str2;
-	} Unknown_0x0142_Message;
-
-	struct {								// INCOMPLETE
-		uint32_t nn;
-		char str;
-	} Unknown_0x0143_Message;						/*!< Unknown 0x0143 Message Structure */
-
-	/* Message 0x144 len 0x10
-	   0000   14 00 00 00 00 00 00 00 44 01 00 00 0a 00 00 00  ........D.......
-	   0010   05 00 00 00 80 17 31 30 34 00 00 00              ......104... */
-
-	struct {								// INCOMPLETE
-		uint32_t nn;							/*!< Unknown */
-	} Unknown_0x0144_Message;						/*!< Unknown 0x0144 Message Structure (This set caller and called id ) */
+	} Unknown_0x0141_Message;						/*!< \todo Unknown 0x0141 Message Structure */
 
 	struct {
 		uint32_t lel_instance;						/*!< Instance */
 		uint32_t lel_type;						/*!< always 0x15 */
 		uint32_t lel_status;						/*!< status */
-		char DisplayName[StationMaxNameSize];				/*!< SpeedDial Display Name */
-		/*! \todo shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 */
-	} FeatureStatAdvancedMessage;						/*!< Speed Dial Stat Dynamic Message Structure */
+		char DisplayName[StationMaxNameSize];				/*!< SpeedDial Display Name \todo shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 */
+	} FeatureStatDynamicMessage;						/*!< Speed Dial Stat Dynamic Message Structure */
+
+	struct { // OK
+                uint32_t lel_displayTimeout;
+                uint32_t dummy;
+        } DisplayDynamicNotifyMessage; // 0x0143
+
+        struct { // OK
+                uint32_t lel_displayTimeout;
+                uint32_t lel_priority;
+                uint32_t dummy;
+        } DisplayDynamicPriNotifyMessage; // 0x0144;
 
 	struct {
 		uint32_t lel_messageTimeout;					/*!< Message Timeout */
@@ -2027,6 +2104,12 @@ typedef union {
 		uint32_t dummy;							/*!< Dummy, this is just for addressing, it doesn't matter */
 	} DisplayDynamicPromptStatusMessage;					/*!< Display Dynamic Prompt Status Message Structure */
 
+
+	struct {
+		uint32_t lel_conferenceID;
+		uint32_t lel_serviceNum;
+	} ClearConferenceMessage;
+	
 	struct {
 		uint32_t lel_lineNumber;					/*!< Line Number */
 		uint32_t lel_lineType;						/*!< Line Type */
@@ -2133,54 +2216,71 @@ typedef union {
 	struct {
 	} StationKeepAliveMessage;						/*!< Station Keep Alive Message */
 
-	/* this is register message from 7940 with load 8.1.1
+	/* this is register message from 7940 with load 8.1.1 (protocol 0)
 	 * 00000010 - 00 00 00 00 01 00 00 00 0A 0A 0A D2 07 00 00 00 ................
 	 * 00000020 - 00 00 00 00 00 00 00 00 0B 00 60 85 00 00 00 00 ................
 	 * 00000030 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
 	 * 00000040 - 00 00 00 00                                     ....
 	 */
 
-	/* Register message from Cisco 7941 with load v8.5.3
+	/* Register message from Cisco 7941 with load v8.5.3 (protocol 17)
 	 *
-	 * 0000   53 45 50 30 30 31 46 39 45 32 36 36 33 36 39 00
-	 * 0010   00 00 00 00 00 00 00 00 c0 a8 09 24 73 00 00 00
-	 * 0020   05 00 00 00 00 00 00 00 11 00 72 85 01 00 00 00
-	 * 0030   00 00 00 00 00 1f 9e 26 63 69 00 00 00 00 00 00
-	 * 0040   03 00 00 00 02 00 00 00 00 00 00 00 00 00 00 00
-	 * 0050   00 00 00 00 00 00 00 00 00 00 00 00 53 43 43 50
-	 * 0060   34 31 2e 38 2d 35 2d 33 53 00 00 00 00 00 00 00
-	 * 0070   00 00 00 00 00 00 00 00 00 00 00 00
+	 * 00000000   53 45 50 30 30 31 46 39 45 32 36 36 33 36 39 00 SEP001F9E266369.
+	 * 00000010   00 00 00 00 00 00 00 00 c0 a8 09 24 73 00 00 00 ...........$s...
+	 * 00000020   05 00 00 00 00 00 00 00 11 00 72 85 01 00 00 00 ..........r.....
+	 * 00000030   00 00 00 00 00 1f 9e 26 63 69 00 00 00 00 00 00 .......&ci......
+	 * 00000040   03 00 00 00 02 00 00 00 00 00 00 00 00 00 00 00 ................
+	 * 00000050   00 00 00 00 00 00 00 00 00 00 00 00 53 43 43 50 ............SCCP
+	 * 00000060   34 31 2e 38 2d 35 2d 33 53 00 00 00 00 00 00 00 41.8-5-3S.......
+	 * 00000070   00 00 00 00 00 00 00 00 00 00 00 00             ............
 	 */
 
-	/* Register message from Cisco 6961 with load v8.5.3
-	 *  00000000 - 53 45 50 30 30 31 31 32 31 46 46 38 41 33 45 00 SEP001121FF8A3
-	 *  00000010 - 00 00 00 00 01 00 00 00 53 DA 5E 14 F1 01 00 00 ........S.^...
-	 *  00000020 - 28 00 00 00 00 00 00 00 0F 20 70 85 00 00 00 00 (........ p...
-	 *  00000030 - 00 00 00 00 30 30 31 31 32 31 46 46 38 41 33 45 ....001121FF8A
-	 *  00000040 - 00 00 00 00
+	/* Register message from Cisco 6961 with load v8.5.3 (protocol 15)
+	 * 00000000 - 53 45 50 30 30 31 31 32 31 46 46 38 41 33 45 00 SEP001121FF8A3
+	 * 00000010 - 00 00 00 00 01 00 00 00 53 DA 5E 14 F1 01 00 00 ........S.^...
+	 * 00000020 - 28 00 00 00 00 00 00 00 0F 20 70 85 00 00 00 00 (........ p...
+	 * 00000030 - 00 00 00 00 30 30 31 31 32 31 46 46 38 41 33 45 ....001121FF8A
+	 * 00000040 - 00 00 00 00
 	 */
 
+	/* Register message from Cisco 7960 with v8.1.2 (protocol 11)
+	 * 00000000 - 53 45 50 30 30 31 42 35 33 35 43 44 33 44 36 00 SEP001B535CD3D6.
+	 * 00000010 - 00 00 00 00 01 00 00 00 0A 0F 0F B2 07 00 00 00 ................
+	 * 00000020 - 00 00 00 00 00 00 00 00 0B 00 60 85 00 00 00 00 ................
+	 * 00000030 - 00 00 00 00 00 00 00 00 00 00 00 00 52 49 4E 47 ............RING
+	 * 00000040 - 00 00 00 00                                     ....
+	 */     
 	struct {
 		StationIdentifier sId;						/*!< Station Identifier */
-		uint32_t lel_stationIpAddr;					/*!< Station IP Address */
-		uint32_t lel_deviceType;					/*!< Device Type as part of SKINNY_DEVICETYPE_* */
-		uint32_t lel_maxStreams;					/*!< Max Streams */
-		uint32_t lel_activeStreams;					/*!< number of active streams */
-		uint8_t protocolVer;						/*!< Maximum Protocol Version */
-		uint8_t lel__unknown2;						/*!< Unknown */
-		uint8_t lel__unknown3;						/*!< Unknown */
-		uint8_t lel__unknown4;						/*!< Unknown */
-		uint32_t lel__unknown5;						/*!< Unknown */
-		uint32_t lel__unknown6;						/*!< Unknown */
-		uint32_t lel__unknown7;						/*!< Unknown */
+		uint32_t lel_stationIpAddr;	/*c0:a8:09:24=192.168.9.36*/	/*!< Station IP Address */
+		uint32_t lel_deviceType;	/*73:00:00:00=115*/		/*!< Device Type as part of SKINNY_DEVICETYPE_* */
+		uint32_t lel_maxStreams;	/*05:00:00:00=5*/		/*!< Max Streams */
+		uint32_t lel_activeStreams;	/*00:00:00:00=0*/		/*!< number of active streams */
+		uint32_t phone_features;	/*11:00:72:85	=17.*/ 		/*!< PhoneFeatures (ProtocolVersion + Features)*/
+		uint32_t lel_sockettype;	/*01:00:00:00*/			/*!< MacAddress if 0x00=ASCII, 0x01=HEX */
+		uint32_t lel_unknown1;		/*00:00:00:00*/			/*!< Unknown */
+		uint8_t  lel_bytes1[12];	/* */				/*!< byte array */
+		uint32_t lel_unknown2;
+		uint32_t lel_maxButtons;
+		char	 ipv6Address[16];	
+		uint32_t lel_unknown3;
+		char	 loadInfo[32];
 
-		// 7910:
-		// 02 00 00 00 // protocolVer (1st bit)
-		// 08 00 00 00 == 8
-		// 00 00 00 00
-		// 02 00 00 00 == 2
-		// ce f1 00 00 // == (61092 / 206 / 241) 1668 dn-size 420
+		/* 7910:
+		02 00 00 00 // protocolVer (1st bit)
+		08 00 00 00 == 8
+		00 00 00 00
+		02 00 00 00 == 2
+		ce f1 00 00 // == (61092 / 206 / 241) 1668 dn-size 420
+		*/
 	} RegisterMessage;							/*!< Register Message Structure */
+	
+	struct {
+		StationIdentifier sId;						/*!< Station Identifier */
+		uint8_t 	protocolVer;					/*!< Maximum Protocol Version */
+		uint32_t 	lel_deviceType;					/*!< Device Type as part of SKINNY_DEVICETYPE_* */
+		uint8_t 	lel_unknown3;
+	} RegisterMessage36;							/*!< Register Message Structure */
 
 	struct {
 		// All char arrays are in multiples of 32bit
@@ -2264,7 +2364,7 @@ typedef union {
 
 	struct {
 		uint32_t lel_count;						/*!< Count */
-		MediaCapabilityStructure caps[DeviceMaxCapabilities];		/*!< MediaCapabilities */
+		MediaCapabilityStructure caps[SKINNY_MAX_CAPABILITIES];		/*!< MediaCapabilities */
 	} CapabilitiesResMessage;						/*!< Capabilities Resource Message - Client -> Server */
 
 	struct {
@@ -2540,8 +2640,8 @@ typedef union {
 		uint32_t lel_videoCapCount;					/*!< Video Capability Count */
 		uint32_t lel_dataCapCount;					/*!< Data Capability Count */
 		uint32_t RTPPayloadFormat;					/*!< RTP Payload Format */
-
 		uint32_t customPictureFormatCount;				/*!< Custom Picture Format Count */
+
 		customPictureFormat_t customPictureFormat[MAX_CUSTOM_PICTURES];	/*!< Custom Picture Format */
 
 		uint32_t activeStreamsOnRegistration;				/*!< Active Streams on Registration */
@@ -2550,9 +2650,9 @@ typedef union {
 		uint32_t serviceResourceCount;					/*!< Service Resource Count */
 		serviceResource_t serviceResource[MAX_SERVICE_TYPE];		/*!< Service Resource */
 
-		audioCap_t audioCaps[DeviceMaxCapabilities];			/*!< Audio Capabilities */
-		videoCap_t videoCaps[DeviceMaxVideoCapabilities];		/*!< Video Capabilities */
-		dataCap_t dataCaps[DeviceMaxDataCapabilities];			/*!< Data Capabilities */
+		audioCap_t audioCaps[SKINNY_MAX_CAPABILITIES];			/*!< Audio Capabilities */
+		videoCap_t videoCaps[SKINNY_MAX_VIDEO_CAPABILITIES];		/*!< Video Capabilities */
+		dataCap_t dataCaps[SKINNY_MAX_DATA_CAPABILITIES];		/*!< Data Capabilities */
 
 		uint32_t unknown;						/*!< Unknown */
 	} UpdateCapabilitiesMessage;						/*!< Update Capabilities Message Structure */
@@ -2569,10 +2669,6 @@ typedef union {
 										   little-endian format. */
 		uint32_t lel_portNumber;					/*!< Port Number */
 		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		uint32_t lel_unknown_1;
-		uint32_t lel_unknown_2;
-		uint32_t lel_unknown_3;
-		uint32_t lel_unknown_4;
 		uint32_t lel_callReference;					/*!< Call Reference */
 	} OpenReceiveChannelAck;						/*!< Open Receive Channel Acknowledgement */
 
@@ -2591,10 +2687,6 @@ typedef union {
 										   little-endian format. */
 		uint32_t lel_portNumber;					/*!< Port Number */
 		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		uint32_t lel_unknown_1;
-		uint32_t lel_unknown_2;
-		uint32_t lel_unknown_3;
-		uint32_t lel_unknown_4;
 		uint32_t lel_callReference;					/*!< Call Reference */
 	} OpenReceiveChannelAck_v17;						/*!< Open Receive Channel Acknowledgement v17 */
 
@@ -2634,6 +2726,20 @@ typedef union {
 		uint32_t lel_Jitter;						/*!< Jitter */
 		uint32_t lel_latency;						/*!< Latency */
 	} ConnectionStatisticsRes;						/*!< Connection Statistics Response Message - Server -> Client */
+	
+	struct {
+		char DirectoryNumber[25];					/*!< Directory Number */
+		uint32_t lel_CallIdentifier;					/*!< Call Identifier */
+// 		uint32_t lel_StatsProcessingType;				/*!< Stats Processing Type */
+		uint32_t lel_SentPackets;					/*!< Sent Packets */
+		uint32_t lel_SentOctets;					/*!< Sent Octets */
+		uint32_t lel_RecvdPackets;					/*!< Received Packets */
+		uint32_t lel_RecvdOctets;					/*!< Received Octets */
+		uint32_t lel_LostPkts;						/*!< Lost Packets */
+		uint32_t lel_Jitter;						/*!< Jitter */
+		uint32_t lel_latency;						/*!< Latency */
+		uint8_t  bytes[2];						/*!< Latency */
+	} ConnectionStatisticsRes_V19;						/*!< Connection Statistics Response Message - Client -> Server (used when protocol version >= 19) */
 
 	struct {
 		char calledParty[StationMaxDirnumSize];				/*!< Called Party Array */
@@ -2655,11 +2761,11 @@ typedef union {
 	} SoftKeyTemplateReqMessage;						/*!< Soft Key Template Request Message Structure */
 
 	struct {
-#    ifdef CS_ADV_FEATURES
 		StationIdentifier sId;						/*!< Station Identifier */
 		uint32_t lel_stationIpAddr;					/*!< Station IP Address */
 		uint32_t lel_deviceType;					/*!< Device Type as part of SKINNY_DEVICETYPE_* */
-#    endif
+		char	 ipv6Address[16];
+		uint32_t unknown;
 	} RegisterTokenReq;							/*!< Register Token Request */
 
 	struct {
@@ -2694,7 +2800,7 @@ typedef union {
 
 	struct {
 		uint32_t lel_ringMode;						/*!< Ring Mode */
-		uint32_t lel_ringerType;					/*!< Unknown (always 1) */
+		uint32_t lel_unknown1;						/*!< Unknown (always 1) */
 		uint32_t lel_lineInstance;					/*!< Line Instance */
 		uint32_t lel_callReference;					/*!< Call Reference */
 	} SetRingerMessage;							/*!< Set Ringer Message Structure */
@@ -2748,8 +2854,8 @@ typedef union {
 		uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
 		uint32_t lel_rtptimeout;					/*!< RTP TimeOut */
 		/* protocol v11 fields */
-		uint32_t lel_mixingMode;
-		uint32_t lel_mixingParty;
+		uint32_t unknown15;
+		uint32_t unknown16;
 	} StartMediaTransmission;
 
 	/* StartMediaTransmission v17
@@ -2795,8 +2901,8 @@ typedef union {
 		uint32_t lel_unknown15;						/*!< Unknown */
 		uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
 		uint32_t lel_rtptimeout;					/*!< RTP Timeout (this is set to 0x0A) */
-		uint32_t lel_mixingMode;					/*!< Unknown */
-		uint32_t lel_mixingParty;					/*!< Unknown */
+		uint32_t lel_unknown18;						/*!< Unknown */
+		uint32_t lel_unknown19;						/*!< Unknown */
 	} StartMediaTransmission_v17;						/*!< Start Media Transmission v17 Structure */
 
 	struct {
@@ -2857,6 +2963,13 @@ typedef union {
 		uint32_t lel_lineId;						/*!< Line ID */
 		uint32_t lel_callRef;						/*!< Call Reference */
 	} DialedNumberMessage;							/*!< Dialed Number Message Structure */
+	
+	struct {
+		char calledParty[25];						/*!< Called Party */
+		uint32_t lel_lineId;						/*!< Line ID */
+		uint32_t lel_callRef;						/*!< Call Reference */
+		uint8_t	 padding1[3];
+	} DialedNumberMessageV19;						/*!< Dialed Number Message Structure -TEST*/
 
 	struct {
 		uint32_t lel_status;						/*!< Status (0=inactive, 1=active) */
@@ -2867,8 +2980,19 @@ typedef union {
 		char cfwdbusynumber[StationMaxDirnumSize];			/*!< Call Forward on Busy Number */
 		uint32_t lel_cfwdnoanswerstatus;				/*!< Call Forward on No-Answer Status */
 		char cfwdnoanswernumber[StationMaxDirnumSize];			/*!< Call Forward on No-Answer Number */
-		char unknown1[StationMaxDirnumSize];				/*!< new in version 20 */
 	} ForwardStatMessage;							/*!< Forward Status Message Structure */
+	
+	struct {
+		uint32_t lel_status;						/*!< Status (0=inactive, 1=active) */
+		uint32_t lel_lineNumber;					/*!< Line Number */
+		uint32_t lel_cfwdallstatus;					/*!< Call Forward All Status */
+		char cfwdallnumber[StationMaxDirnumSize];			/*!< Call Forward All Number */
+		uint32_t lel_cfwdbusystatus;					/*!< Call Forward on Busy Status */
+		char cfwdbusynumber[StationMaxDirnumSize];			/*!< Call Forward on Busy Number */
+		uint32_t lel_cfwdnoanswerstatus;				/*!< Call Forward on No-Answer Status */
+		char cfwdnoanswernumber[StationMaxDirnumSize];			/*!< Call Forward on No-Answer Number */
+		uint32_t lel_unknown;						/*!< 00 00 00 ff */
+	} ForwardStatMessageV19;						/*!< Forward Status Message Structure */
 
 	struct {
 		uint32_t lel_speedDialNumber;					/*!< SpeedDial Number */
@@ -2930,8 +3054,6 @@ typedef union {
 	struct {
 	} CapabilitiesReqMessage;						/*!< Capabilities Reqest Message Structure */
 	struct {
-	} UpdateCapabilitiesV3Message;						/*!< Capabilities Reqest Message Structure */
-	struct {
 	} EnunciatorCommandMessage;						/*!< Enunciator Command Message Structure */
 
 	struct {
@@ -2957,7 +3079,7 @@ typedef union {
 		uint32_t lel_multicastIpAddress;				/*!< Multicast IP Address */
 		uint32_t lel_multicastPort;					/*!< Multicast Port */
 		uint32_t lel_millisecondPacketSize;				/*!< Millisecond Packet Size */
-		skinny_media_payload lel_payloadCapability;			/*!< PayLoad Capability */
+		skinny_codec_t lel_payloadCapability;				/*!< PayLoad Capability */
 		uint32_t lel_echoCancelType;					/*!< Echo Cancelation Type */
 		uint32_t lel_g723BitRate;					/*!< G.723 Bit Rate (only applies to G.723 */
 	} StartMulticastMediaReception;						/*!< Start Multicast Media Reception Message Structure */
@@ -2968,7 +3090,7 @@ typedef union {
 		uint32_t lel_multicastIpAddress;				/*!< Multicast IP Address */
 		uint32_t lel_multicastPort;					/*!< Multicast Port */
 		uint32_t lel_millisecondPacketSize;				/*!< Millisecond Packet Size */
-		skinny_media_payload lel_payloadCapability;			/*!< PayLoad Capability */
+		skinny_codec_t lel_payloadCapability;				/*!< PayLoad Capability */
 		uint32_t lel_precedenceValue;					/*!< Precedence Value */
 		uint32_t lel_silenceSuppression;				/*!< Silence Suppression */
 		uint32_t lel_maxFramesPerPacket;				/*!< Max Frames Per Packet */
@@ -3035,8 +3157,8 @@ typedef union {
 		uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
 		uint32_t lel_rtptimeout;					/*!< RTP Timeout (this is always 0x0A) */
 		/* protocol version 15 fields */
-		uint32_t lel_mixingMode;
-		uint32_t lel_mixingParty;
+		uint32_t unknown15;
+		uint32_t unknown16;
 		char bel_remoteIpAddr[16];
 		uint32_t lel_unknown17;						/*!< this is always 0xFA0 */
 	} OpenReceiveChannel;							/*!< Open Receive Channel Message Structure */
@@ -3078,8 +3200,8 @@ typedef union {
 		uint32_t unknown14;						/*!< Unknown */
 		uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
 		uint32_t lel_rtptimeout;					/*!< RTP Timeout (this is always 0x0A) */
-		uint32_t lel_mixingMode;					/*!< Unknown */
-		uint32_t lel_mixingParty;					/*!< Unknown */
+		uint32_t unknown17;						/*!< Unknown */
+		uint32_t unknown18;						/*!< Unknown */
 		uint32_t unknown19;						/*!< Unknown */
 		char bel_remoteIpAddr[16];					/*!< Remote IP Address */
 		uint32_t lel_unknown20;						/*!< Unknown (this is always 0xFA0) */
@@ -3103,9 +3225,15 @@ typedef union {
 	struct {								// Request Statistics from Phone
 		char DirectoryNumber[StationMaxDirnumSize];			/*!< Directory Number */
 		uint32_t lel_callReference;					/*!< Call Reference */
-		uint8_t lel_StatsProcessing;					/*!< Statistics Processing */
-		uint32_t lel_unknown1;						/*!< new in version 20 */
+		uint32_t lel_StatsProcessing;					/*!< Statistics Processing */
 	} ConnectionStatisticsReq;						/*!< Connection Statistics Request Message Structure */
+	
+	struct {								// Request Statistics from Phone
+		char DirectoryNumber[StationMaxDirnumSize];			/*!< Directory Number */
+		uint8_t  byte;
+		uint32_t lel_callReference;					/*!< Call Reference */
+		uint32_t lel_StatsProcessing;					/*!< Statistics Processing */
+	} ConnectionStatisticsReq_V19;						/*!< Connection Statistics Request Message Structure */
 
 	struct {
 		uint32_t lel_softKeyOffset;					/*!< Soft Key Off Set */
@@ -3182,31 +3310,67 @@ typedef union {
 		uint32_t lel_lineInstance;					/*!< Line Instance */
 	} CallSelectStatMessage;						/*!< Call Select Status Message Structure */
 
+// 	struct {
+// 		uint32_t lel_conferenceID;					/*!< Conference ID */
+// 		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+// 		skinny_codec_t lel_payloadCapability;				/*!< payload capability */
+// 		uint32_t lel_lineInstance;					/*!< Line Instance */
+// 		uint32_t lel_callReference;					/*!< Call Reference */
+// 		uint32_t lel_payload_rfc_number;				/*!<  */
+// 		uint32_t lel_payloadType;					/*!< payload type */
+// 		uint32_t lel_isConferenceCreator;				/*!< we can set it to 0 */
+// 
+// 		audioParameter_t audioParameter;				/*!< Audio Parameter */
+// 		videoParameter_t videoParameter;				/*!< Video Parameter */
+// 		dataParameter_t dataParameter;					/*!< Data Parameter */
+// 
+// 		uint32_t unknown[12];						/*!< Unknown */
+// 	} OpenMultiMediaChannelMessage;						/*!< Open Multi Media Channel Message Structure */
+// 
+// 	struct {
+// 		uint32_t lel_conferenceID;					/*!< Conference ID */
+// 		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+// 		skinny_codec_t lel_payloadCapability;				/*!< payload capability */
+// 		uint32_t lel_lineInstance;					/*!< Line Instance */
+// 		uint32_t lel_callReference;					/*!< Call Reference */
+// 		uint32_t lel_payload_rfc_number;				/*!<  */
+// 		uint32_t lel_payloadType;					/*!< payload type */
+// 		uint32_t lel_isConferenceCreator;				/*!< we can set it to 0 */
+// 
+// 		audioParameter_t audioParameter;				/*!< Audio Parameter */
+// 		videoParameter_t videoParameter;				/*!< Video Parameter */
+// 		dataParameter_t dataParameter;					/*!< Data Parameter */
+// 
+// 		uint32_t unknown[19];						/*!< Unknown */
+// 	} OpenMultiMediaChannelMessage_v17;					/*!< Open Multi Media Channel Message Structure */
+
+
 	struct {
-		uint32_t lel_conferenceID;					/*!< Conference ID */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		skinny_media_payload lel_payloadCapability;			/*!< payload capability */
-		uint32_t lel_lineInstance;					/*!< Line Instance */
-		uint32_t lel_callReference;					/*!< Call Reference */
-		uint32_t lel_payload_rfc_number;				/*!<  */
-		uint32_t lel_payloadType;					/*!< payload type */
-		uint32_t lel_isConferenceCreator;				/*!< we can set it to 0 */
+		uint32_t lel_conferenceID;                                      /*!< Conference ID */
+		uint32_t lel_passThruPartyId;                                   /*!< Pass Through Party ID */
+		skinny_codec_t lel_payloadCapability;                     /*!< payload capability */
+		uint32_t lel_lineInstance;                                      /*!< Line Instance */
+		uint32_t lel_callReference;                                     /*!< Call Reference */
+		uint32_t lel_payload_rfc_number;                                /*!<  */
+		uint32_t lel_payloadType;                                       /*!< payload type */
+		uint32_t lel_isConferenceCreator;                               /*!< we can set it to 0 */
 
-		videoParameter_t videoParameter;				/*!< Video Parameter */
-	} OpenMultiMediaChannelMessage;						/*!< Open Multi Media Channel Message Structure */
+		videoParameter_t videoParameter;                                /*!< Video Parameter */
+	} OpenMultiMediaChannelMessage;                                         /*!< Open Multi Media Channel Message Structure */
 
 	struct {
-		uint32_t lel_conferenceID;					/*!< Conference ID */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		skinny_media_payload lel_payloadCapability;			/*!< payload capability */
-		uint32_t lel_lineInstance;					/*!< Line Instance */
-		uint32_t lel_callReference;					/*!< Call Reference */
-		uint32_t lel_payload_rfc_number;				/*!<  */
-		uint32_t lel_payloadType;					/*!< payload type */
-		uint32_t lel_isConferenceCreator;				/*!< we can set it to 0 */
+		uint32_t lel_conferenceID;                                      /*!< Conference ID */
+		uint32_t lel_passThruPartyId;                                   /*!< Pass Through Party ID */
+		skinny_codec_t lel_payloadCapability;                     /*!< payload capability */
+		uint32_t lel_lineInstance;                                      /*!< Line Instance */
+		uint32_t lel_callReference;                                     /*!< Call Reference */
+		uint32_t lel_payload_rfc_number;                                /*!<  */
+		uint32_t lel_payloadType;                                       /*!< payload type */
+		uint32_t lel_isConferenceCreator;                               /*!< we can set it to 0 */
 
-		videoParameter_t videoParameter;				/*!< Video Parameter */
-	} OpenMultiMediaChannelMessage_v17;					/*!< Open Multi Media Channel Message Structure */
+		videoParameter_t videoParameter;                                /*!< Video Parameter */
+	} OpenMultiMediaChannelMessage_v17;                                     /*!< Open Multi Media Channel Message Structure */
+
 
 	/*!
 	 * \since 20100104 -MC
@@ -3226,10 +3390,11 @@ typedef union {
 	 * 
 	 * 
 	 */
+#if 0
 	struct {
 		uint32_t lel_conferenceID;					/*!< Conference ID */
 		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		skinny_media_payload lel_payloadCapability;			/*!< payload capability */
+		skinny_codec_t lel_payloadCapability;				/*!< payload capability */
 
 		uint32_t bel_remoteIpAddr;					/*!< This field is apparently in big-endian
 										   format, even though most other fields are
@@ -3240,14 +3405,18 @@ typedef union {
 		uint32_t lel_payloadType;					/*!< payload type */
 		uint32_t lel_DSCPValue;						/*!< DSCP Value */
 
+		audioParameter_t audioParameter;				/*!< Audio Parameter */
 		videoParameter_t videoParameter;				/*!< Video Parameter */
+		dataParameter_t dataParameter;					/*!< Data Parameter */
+
+		uint32_t unknown[12];						/*!< Unknown */
 
 	} StartMultiMediaTransmission;						/*!< Start MultiMedia Transmission Message Structure */
 
 	struct {
 		uint32_t lel_conferenceID;					/*!< Conference ID */
 		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		skinny_media_payload lel_payloadCapability;			/*!< payload capability */
+		skinny_codec_t lel_payloadCapability;				/*!< payload capability */
 		uint32_t unknown1;						/*!<  */
 
 		char bel_remoteIpAddr[16];					/*!< This field is apparently in big-endian
@@ -3259,9 +3428,51 @@ typedef union {
 		uint32_t lel_payloadType;					/*!< payload type */
 		uint32_t lel_DSCPValue;						/*!< DSCP Value */
 
-		videoParameter_t videoParameter;				/*!< Data Parameter */
+		audioParameter_t audioParameter;				/*!< Audio Parameter */
+		videoParameter_t videoParameter;				/*!< Video Parameter */
+		dataParameter_t dataParameter;					/*!< Data Parameter */
+
+		uint32_t unknown[12];						/*!< Unknown */
 
 	} StartMultiMediaTransmission_v17;					/*!< Start MultiMedia Transmission Message Structure */
+#endif
+
+	struct {
+		uint32_t lel_conferenceID;                                      /*!< Conference ID */
+		uint32_t lel_passThruPartyId;                                   /*!< Pass Through Party ID */
+		skinny_codec_t lel_payloadCapability;                     /*!< payload capability */
+
+		uint32_t bel_remoteIpAddr;                                      /*!< This field is apparently in big-endian
+										    format, even though most other fields are
+										    little-endian. */
+		uint32_t lel_remotePortNumber;                                  /*!< Remote Port Number */
+		uint32_t lel_callReference;                                     /*!< Call Reference */
+		uint32_t lel_payload_rfc_number;                                /*!< Payload RFC Number */
+		uint32_t lel_payloadType;                                       /*!< payload type */
+		uint32_t lel_DSCPValue;                                         /*!< DSCP Value */
+
+		videoParameter_t videoParameter;                                /*!< Video Parameter */
+
+	} StartMultiMediaTransmission;                                          /*!< Start MultiMedia Transmission Message Structure */
+
+	struct {
+		uint32_t lel_conferenceID;                                      /*!< Conference ID */
+		uint32_t lel_passThruPartyId;                                   /*!< Pass Through Party ID */
+		skinny_codec_t lel_payloadCapability;                     /*!< payload capability */
+		uint32_t unknown1;                                              /*!<  */
+
+		char bel_remoteIpAddr[16];                                      /*!< This field is apparently in big-endian
+										    format, even though most other fields are
+										    little-endian. */
+		uint32_t lel_remotePortNumber;                                  /*!< Remote Port Number */
+		uint32_t lel_callReference;                                     /*!< Call Reference */
+		uint32_t lel_payload_rfc_number;                                /*!< Payload RFC Number */
+		uint32_t lel_payloadType;                                       /*!< payload type */
+		uint32_t lel_DSCPValue;                                         /*!< DSCP Value */
+
+		videoParameter_t videoParameter;                                        /*!< Data Parameter */
+
+	} StartMultiMediaTransmission_v17;                                      /*!< Start MultiMedia Transmission Message Structure */
 
 	struct {
 		uint32_t lel_displayTimeout;					/*!< Display Timeout */
@@ -3292,9 +3503,13 @@ typedef union {
 	} RegisterTokenAck;							/*!< Register Token Ackknowledge Message Structure */
 
 	struct {
-		char text[StationMaxDisplayTextSize];				/*!< Rejection Text */
+		uint32_t lel_tokenRejWaitTime;					/*!< Back Off Time */
 	} RegisterTokenReject;							/*!< Register Token Reject Message Structure */
 
+	/*!
+	 * 
+	 * \since 20100103 -MC
+	 */
 	struct {
 		uint32_t lel_conferenceID;					/*!< Conference ID */
 		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
@@ -3344,8 +3559,12 @@ typedef struct {
 	sccp_data_t msg;							/*!< Message [SCCP Data] */
 } sccp_moo_t;									/*!< MOO Message Structure */
 
-/* So in theory, a message should never be bigger than this. If it is, we abort the connection */
+/* So in theory, a message should never be bigger than this.
+ * If it is, we abort the connection */
 #    define SCCP_MAX_PACKET sizeof(sccp_moo_t)
+
+#    include "sccp_softkeys.h"
+#    include "sccp_labels.h"
 
 static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_REDIAL,
@@ -3378,11 +3597,9 @@ static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_IDIVERT,
 	SKINNY_LBL_VIDEO_MODE,
 	SKINNY_LBL_INTRCPT,
-	SKINNY_LBL_CBARGE,
-	SKINNY_LBL_NEWCALLCUSTOM,
-	SKINNY_LBL_MONITOR,
-	SKINNY_LBL_DIAL,
 	SKINNY_LBL_EMPTY,
+	SKINNY_LBL_DIAL,
+//      SKINNY_LBL_CBARGE,
 };										/*!< Soft Keys Map as INT */
 
 /*!
@@ -3413,22 +3630,21 @@ typedef struct {
  */
 static const struct skinny_keymode {
 	uint8_t keymode;
-	const char *const shortname;
 	const char *const text;
 } skinny_keymodes[] = {
 	/* *INDENT-OFF* */
-	{KEYMODE_ONHOOK, "OnHook", "On Hook"},
-	{KEYMODE_CONNECTED, "Connected", "Connected"},
-	{KEYMODE_ONHOLD, "OnHold", "On Hold"},
-	{KEYMODE_RINGIN, "Ringing", "Ringin"},
-	{KEYMODE_OFFHOOK, "OffHook", "Off Hook"},
-	{KEYMODE_CONNTRANS, "ConnTrans", "Connected with Transfer"},
-	{KEYMODE_DIGITSFOLL, "DigitsFoll", "Digits after dialing first digit "},
-	{KEYMODE_CONNCONF, "ConnConf", "Connected with Conference"},
-	{KEYMODE_RINGOUT, "RingOut", "Ring Out"},
-	{KEYMODE_OFFHOOKFEAT, "OffHookFeat", "Off Hook with Features"},
-	{KEYMODE_INUSEHINT, "InUseHint", "In Use Hint"}, 
-	{KEYMODE_ONHOOKSTEALABLE, "OnHookStealable", "On Hook with Stealable Remote Call"},
+	{KEYMODE_ONHOOK, "On Hook"},
+	{KEYMODE_CONNECTED, "Connected"},
+	{KEYMODE_ONHOLD, "On Hold"},
+	{KEYMODE_RINGIN, "Ringin"},
+	{KEYMODE_OFFHOOK, "Off Hook"},
+	{KEYMODE_CONNTRANS, "Connected with Transfer"},
+	{KEYMODE_DIGITSFOLL, "Digits after dialing first digit "},
+	{KEYMODE_CONNCONF, "Connected with Conference"},
+	{KEYMODE_RINGOUT, "Ring Out"},
+	{KEYMODE_OFFHOOKFEAT, "Off Hook with Features"},
+	{KEYMODE_INUSEHINT, "In Use Hint"}, 
+	{KEYMODE_ONHOOKSTEALABLE, "On Hook with Stealable Remote Call"},
 	/* *INDENT-ON* */
 };
 
@@ -3436,6 +3652,7 @@ static uint8_t skSet_Onhook[] = {
 	SKINNY_LBL_REDIAL,
 	SKINNY_LBL_NEWCALL,
 	SKINNY_LBL_CFWDALL,
+	SKINNY_LBL_MEETME,
 //      SKINNY_LBL_CFWDBUSY,
 //      SKINNY_LBL_CFWDNOANSWER,
 #    ifdef CS_SCCP_PICKUP
@@ -3444,6 +3661,18 @@ static uint8_t skSet_Onhook[] = {
 #    endif
 //      SKINNY_LBL_CONFLIST,
 	SKINNY_LBL_DND,
+};										/*!< SKINNY SoftKeys Set "Onhook" as INT */
+
+static uint8_t skSet_OnhookStealable[] = {
+	SKINNY_LBL_REDIAL,
+	SKINNY_LBL_NEWCALL,
+	SKINNY_LBL_CFWDALL,
+#    ifdef CS_SCCP_PICKUP
+	SKINNY_LBL_PICKUP,
+	SKINNY_LBL_GPICKUP,
+#    endif
+	SKINNY_LBL_DND,
+	SKINNY_LBL_INTRCPT,
 };										/*!< SKINNY SoftKeys Set "Onhook" as INT */
 
 static uint8_t skSet_Connected[] = {
@@ -3459,13 +3688,12 @@ static uint8_t skSet_Connected[] = {
 	SKINNY_LBL_CFWDBUSY,
 //      SKINNY_LBL_CFWDNOANSWER,
 	SKINNY_LBL_IDIVERT,
-	SKINNY_LBL_MONITOR,
 };										/*!< SKINNY SoftKeys Set "Connected" as INT */
 
 static uint8_t skSet_Onhold[] = {
 	SKINNY_LBL_RESUME,
-	SKINNY_LBL_NEWCALL,
 	SKINNY_LBL_ENDCALL,
+	SKINNY_LBL_NEWCALL,
 	SKINNY_LBL_TRANSFER,
 #    ifdef CS_SCCP_CONFERENCE
 	SKINNY_LBL_CONFLIST,
@@ -3476,7 +3704,6 @@ static uint8_t skSet_Onhold[] = {
 	SKINNY_LBL_DIRTRFR,
 #    endif
 	SKINNY_LBL_IDIVERT,
-	SKINNY_LBL_MEETME,
 };										/*!< SKINNY SoftKeys Set "On Hold" as INT */
 
 static uint8_t skSet_Ringin[] = {
@@ -3518,11 +3745,10 @@ static uint8_t skSet_Conntrans[] = {
 	SKINNY_LBL_SELECT,
 	SKINNY_LBL_DIRTRFR,
 #    endif
-	SKINNY_LBL_MEETME,
 	SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_CFWDBUSY,
+	SKINNY_LBL_VIDEO_MODE,
 //      SKINNY_LBL_CFWDNOANSWER,
-	SKINNY_LBL_MONITOR,
 };										/*!< SKINNY SoftKeys Set "Connected With Transfer" as INT */
 
 static uint8_t skSet_DigitsFoll[] = {
@@ -3532,13 +3758,13 @@ static uint8_t skSet_DigitsFoll[] = {
 };										/*!< SKINNY SoftKeys Set "Digits after dialing first digit" as INT */
 
 static uint8_t skSet_Connconf[] = {
-	SKINNY_LBL_CONFLIST,
+	SKINNY_LBL_HOLD,
 	SKINNY_LBL_ENDCALL,
 	SKINNY_LBL_JOIN,
-	SKINNY_LBL_HOLD,
 };										/*!< SKINNY SoftKeys Set "Connected with Conference" as INT */
 
 static uint8_t skSet_RingOut[] = {
+	SKINNY_LBL_EMPTY,
 	SKINNY_LBL_ENDCALL,
 	SKINNY_LBL_TRANSFER,
 	SKINNY_LBL_CFWDALL,
@@ -3560,19 +3786,8 @@ static uint8_t skSet_InUseHint[] = {
 	SKINNY_LBL_BARGE,
 };										/*!< SKINNY SoftKeys Set "Hint In Use" as INT */
 
-static uint8_t skSet_OnhookStealable[] = {
-	SKINNY_LBL_REDIAL,
-	SKINNY_LBL_NEWCALL,
-	SKINNY_LBL_CFWDALL,
-#    ifdef CS_SCCP_PICKUP
-	SKINNY_LBL_PICKUP,
-	SKINNY_LBL_GPICKUP,
-#    endif
-	SKINNY_LBL_DND,
-	SKINNY_LBL_INTRCPT,
-};										/*!< SKINNY SoftKeys Set "Onhook" as INT */
-
-/*@unused@*/
+/*! 
+ */
 static const softkey_modes SoftKeyModes[] = {
 	/* According to CCM dump:
 	 *  OnHook(0), Connected(1), OnHold(2), RingIn(3)
@@ -3595,5 +3810,28 @@ static const softkey_modes SoftKeyModes[] = {
 	{KEYMODE_ONHOOKSTEALABLE, skSet_OnhookStealable, sizeof(skSet_OnhookStealable) / sizeof(uint8_t)},
 	/* *INDENT-ON* */
 };										/*!< SoftKey Modes Constants */
+
+
+/*!
+ * \brief SCCP Device Protocol Structure
+ *
+ * Connect Specific CallBack-Functions to Particular SCCP Protocol Versions
+ */
+typedef struct {
+	const char 	*name;
+	const uint8_t 	version;
+	
+	/* protocol callbacks */
+	void (*const sendCallInfo) (const sccp_device_t *device, const sccp_channel_t *channel);
+	void (*const sendDialedNumber) (const sccp_device_t *device, const sccp_channel_t *channel);
+	void (*const sendRegisterAck) (const sccp_device_t *device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat);
+	void (*const displayPrompt) (const sccp_device_t *device, uint8_t lineInstance, uint8_t callid, uint8_t timeout, const char *message);
+	void (*const displayNotify) (const sccp_device_t *device, uint8_t timeout, const char *message);
+	void (*const displayPriNotify) (const sccp_device_t *device, uint8_t priority, uint8_t timeout, const char *message);
+	void (*const sendCallforwardMessage) (const sccp_device_t *device, const void *linedevice);
+} sccp_deviceProtocol_t;
+
+uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type);
+const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(const sccp_device_t *device, int type);
 
 #endif										/* __SCCP_PROTOCOL_H */

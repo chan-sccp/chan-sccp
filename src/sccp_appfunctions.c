@@ -1,22 +1,22 @@
 
 /*!
  * \file 	sccp_appfunctions.c
- * \brief 	SCCP Application / Dialplan Function Class
- * \author 	Sergio Chersovani <mlists [at] c-net.it>
- * \author	Federico Santulli <fsantulli [at] users.sourceforge.net>
+ * \brief 	SCCP application / dialplan functions Class
+ * \author 	Diederik de Groot (ddegroot [at] sourceforge.net)
+ * \date        18-03-2011
  * \note	Reworked, but based on chan_sccp code.
  *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License. 
  *		See the LICENSE file at the top of the source tree.
  * 
- * $Date: 2011-02-18 06:34:31 +0100 (Fr, 18. Feb 2011) $
- * $Revision: 2403 $
+ * $Date: 2011-01-12 02:42:50 +0100 (Mi, 12 Jan 2011) $
+ * $Revision: 2235 $
  */
 #include "config.h"
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2403 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision: 2235 $")
 
 /*!
  * \brief  ${SCCPDEVICE()} Dialplan function - reads device data 
@@ -36,7 +36,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2403 $")
  * 	- device
  * 	  - device->buttonconfig
  */
-static int sccp_func_sccpdevice(struct ast_channel *chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
+static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE *chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
 	sccp_device_t *d;
 
@@ -48,12 +48,12 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, NEWCONST char *cmd, ch
 
 	int first = 0;
 
-	if ((colname = strchr(data, ':'))) {					/*! Will be deprecated after 1.4 */
+	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
 
 		*colname++ = '\0';
 		if (deprecation_warning++ % 10 == 0)
-			ast_log(LOG_WARNING, "SCCPDEVICE(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
+			pbx_log(LOG_WARNING, "SCCPDEVICE(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
 	} else if ((colname = strchr(data, ',')))
 		*colname++ = '\0';
 	else
@@ -62,22 +62,22 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, NEWCONST char *cmd, ch
 	if (!strncasecmp(data, "current", 7)) {
 		sccp_channel_t *c;
 
-		if (!(c = get_sccp_channel_from_ast_channel(chan))) {
+		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 
-/*			ast_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");*/
+/*			pbx_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");*/
 			return -1;
 		}
 
-		if (!c || !c->device) {
-			ast_log(LOG_WARNING, "SCCPDEVICE(): SCCP Device not available\n");
+		if (!c || !sccp_channel_getDevice(c)) {
+			pbx_log(LOG_WARNING, "SCCPDEVICE(): SCCP Device not available\n");
 			return -1;
 		}
 
-		d = c->device;
+		d = sccp_channel_getDevice(c);
 
 	} else {
 		if (!(d = sccp_device_find_byid(data, TRUE))) {
-			ast_log(LOG_WARNING, "SCCPDEVICE(): SCCP Device not available\n");
+			pbx_log(LOG_WARNING, "SCCPDEVICE(): SCCP Device not available\n");
 			return -1;
 		}
 	}
@@ -108,9 +108,11 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, NEWCONST char *cmd, ch
 	} else if (!strcasecmp(colname, "registration_state")) {
 		sccp_copy_string(buf, deviceregistrationstatus2str(d->registrationState), len);
 	} else if (!strcasecmp(colname, "codecs")) {
-		ast_codec_pref_string(&d->codecs, buf, sizeof(buf) - 1);
+//              pbx_codec_pref_string(&d->codecs, buf, sizeof(buf) - 1);
+		sccp_multiple_codecs2str(buf, sizeof(buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
 	} else if (!strcasecmp(colname, "capability")) {
-		pbx_getformatname_multiple(buf, len - 1, d->capability);
+//              pbx_getformatname_multiple(buf, len - 1, d->capability);
+		sccp_multiple_codecs2str(buf, len - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
 	} else if (!strcasecmp(colname, "state")) {
 		sccp_copy_string(buf, accessorystatus2str(d->accessorystatus), len);
 	} else if (!strcasecmp(colname, "lines_registered")) {
@@ -119,8 +121,6 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, NEWCONST char *cmd, ch
 		snprintf(buf, len, "%d", d->linesCount);
 	} else if (!strcasecmp(colname, "last_number")) {
 		sccp_copy_string(buf, d->lastNumber, len);
-	} else if (!strcasecmp(colname, "capability")) {
-		snprintf(buf, len, "%d", d->capability);
 	} else if (!strcasecmp(colname, "early_rtp")) {
 		snprintf(buf, len, "%d", d->earlyrtp);
 	} else if (!strcasecmp(colname, "supported_protocol_version")) {
@@ -153,13 +153,13 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, NEWCONST char *cmd, ch
 				snprintf(tmp, sizeof(tmp), "[%d,%s,%s]", config->instance, sccp_buttontype2str(config->type), config->button.line.name);
 				break;
 			case SPEEDDIAL:
-				snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_buttontype2str(config->type), config->button.speeddial.label, config->button.speeddial.ext);
+				snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_buttontype2str(config->type), config->label, config->button.speeddial.ext);
 				break;
 			case SERVICE:
-				snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_buttontype2str(config->type), config->button.service.label, config->button.service.url);
+				snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_buttontype2str(config->type), config->label, config->button.service.url);
 				break;
 			case FEATURE:
-				snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_buttontype2str(config->type), config->button.feature.label, config->button.feature.options);
+				snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_buttontype2str(config->type), config->label, config->button.feature.options);
 				break;
 			case EMPTY:
 				snprintf(tmp, sizeof(tmp), "[%d,%s]", config->instance, sccp_buttontype2str(config->type));
@@ -190,7 +190,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, NEWCONST char *cmd, ch
 	} else if (!strncasecmp(colname, "chanvar[", 8)) {
 		char *chanvar = colname + 8;
 
-		struct ast_variable *v;
+		PBX_VARIABLE_TYPE *v;
 
 		chanvar = strsep(&chanvar, "]");
 		for (v = d->variables; v; v = v->next) {
@@ -201,17 +201,19 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, NEWCONST char *cmd, ch
 	} else if (!strncasecmp(colname, "codec[", 6)) {
 		char *codecnum;
 
-		int codec = 0;
+//              int codec = 0;
 
 		codecnum = colname + 6;						// move past the '[' 
 		codecnum = strsep(&codecnum, "]");				// trim trailing ']' if any 
-		if ((codec = pbx_codec_pref_index(&d->codecs, atoi(codecnum)))) {
-			sccp_copy_string(buf, pbx_getformatname(codec), len);
+		if (skinny_codecs[atoi(codecnum)].shortname) {
+//              if ((codec = pbx_codec_pref_index(&d->codecs, atoi(codecnum)))) {
+//                      sccp_copy_string(buf, pbx_getformatname(codec), len);
+			sccp_copy_string(buf, codec2name(atoi(codecnum)), len);
 		} else {
 			buf[0] = '\0';
 		}
 	} else {
-		ast_log(LOG_WARNING, "SCCPDEVICE(): unknown function option: %s", data);
+		pbx_log(LOG_WARNING, "SCCPDEVICE(): unknown function option: %s", data);
 		buf[0] = '\0';
 	}
 	sccp_device_unlock(d);
@@ -219,7 +221,7 @@ static int sccp_func_sccpdevice(struct ast_channel *chan, NEWCONST char *cmd, ch
 }
 
 /*! \brief Stucture to declare a dialplan function: SCCPDEVICE */
-static struct ast_custom_function sccpdevice_function = {
+static struct pbx_custom_function sccpdevice_function = {
 	.name = "SCCPDEVICE",
 	.synopsis = "Retrieves information about an SCCP Device",
 	.syntax = "Usage: SCCPDEVICE(deviceId,<option>)",
@@ -244,58 +246,57 @@ static struct ast_custom_function sccpdevice_function = {
  * 	- line
  * 	  - line->devices
  */
-static int sccp_func_sccpline(struct ast_channel *chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
+static int sccp_func_sccpline(PBX_CHANNEL_TYPE *chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
 	sccp_line_t *l;
 
 	sccp_channel_t *c;
 
 	char *colname;
-
 	char tmp[1024] = "";
 
 	char lbuf[1024] = "";
 
 	int first = 0;
 
-	if ((colname = strchr(data, ':'))) {					/*! Will be deprecated after 1.4 */
+	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
 
 		*colname++ = '\0';
 		if (deprecation_warning++ % 10 == 0)
-			ast_log(LOG_WARNING, "SCCPLINE(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
+			pbx_log(LOG_WARNING, "SCCPLINE(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
 	} else if ((colname = strchr(data, ',')))
 		*colname++ = '\0';
 	else
 		colname = "id";
 
 	if (!strncasecmp(data, "current", 7)) {
-		if (!(c = get_sccp_channel_from_ast_channel(chan))) {
+		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 
-/*			ast_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n");*/
+/*			pbx_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n");*/
 			return -1;
 		}
 
 		if (!c || !c->line) {
-			ast_log(LOG_WARNING, "SCCPLINE(): SCCP Line not available\n");
+			pbx_log(LOG_WARNING, "SCCPLINE(): SCCP Line not available\n");
 			return -1;
 		}
 		l = c->line;
 	} else if (!strncasecmp(data, "parent", 7)) {
-		if (!(c = get_sccp_channel_from_ast_channel(chan))) {
+		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 
-/*			ast_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n");*/
+/*			pbx_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n");*/
 			return -1;
 		}
 
 		if (!c || !c->parentChannel || !c->parentChannel->line) {
-			ast_log(LOG_WARNING, "SCCPLINE(): SCCP Line not available\n");
+			pbx_log(LOG_WARNING, "SCCPLINE(): SCCP Line not available\n");
 			return -1;
 		}
 		l = c->parentChannel->line;
 	} else {
 		if (!(l = sccp_line_find_byname_wo(data, TRUE))) {
-			ast_log(LOG_WARNING, "sccp_func_sccpdevice: SCCP Line not available\n");
+			pbx_log(LOG_WARNING, "sccp_func_sccpdevice: SCCP Line not available\n");
 			return -1;
 		}
 	}
@@ -330,10 +331,10 @@ static int sccp_func_sccpline(struct ast_channel *chan, NEWCONST char *cmd, char
 	} else if (!strcasecmp(colname, "amaflags")) {
 		sccp_copy_string(buf, l->amaflags ? "yes" : "no", len);
 	} else if (!strcasecmp(colname, "callgroup")) {
-		ast_print_group(buf, len, l->callgroup);
+		pbx_print_group(buf, len, l->callgroup);
 	} else if (!strcasecmp(colname, "pickupgroup")) {
 #ifdef CS_SCCP_PICKUP
-		ast_print_group(buf, len, l->pickupgroup);
+		pbx_print_group(buf, len, l->pickupgroup);
 #else
 		sccp_copy_string(buf, "not supported", len);
 #endif
@@ -418,7 +419,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, NEWCONST char *cmd, char
 	} else if (!strncasecmp(colname, "chanvar[", 8)) {
 		char *chanvar = colname + 8;
 
-		struct ast_variable *v;
+		PBX_VARIABLE_TYPE *v;
 
 		chanvar = strsep(&chanvar, "]");
 		for (v = l->variables; v; v = v->next) {
@@ -427,7 +428,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, NEWCONST char *cmd, char
 			}
 		}
 	} else {
-		ast_log(LOG_WARNING, "SCCPLINE(): unknown function option: %s", data);
+		pbx_log(LOG_WARNING, "SCCPLINE(): unknown function option: %s", data);
 		buf[0] = '\0';
 	}
 	sccp_line_unlock(l);
@@ -435,7 +436,7 @@ static int sccp_func_sccpline(struct ast_channel *chan, NEWCONST char *cmd, char
 }
 
 /*! \brief Stucture to declare a dialplan function: SCCPLINE */
-static struct ast_custom_function sccpline_function = {
+static struct pbx_custom_function sccpline_function = {
 	.name = "SCCPLINE",
 	.synopsis = "Retrieves information about an SCCP Line",
 	.syntax = "Usage: SCCPLINE(lineName,<option>)",
@@ -459,25 +460,25 @@ static struct ast_custom_function sccpline_function = {
  * \lock
  * 	- channel
  */
-static int sccp_func_sccpchannel(struct ast_channel *chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
+static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE *chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
 	sccp_channel_t *c;
 
 	char *colname;
 
-	if ((colname = strchr(data, ':'))) {					/*! Will be deprecated after 1.4 */
+	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
 
 		*colname++ = '\0';
 		if (deprecation_warning++ % 10 == 0)
-			ast_log(LOG_WARNING, "SCCPCHANNEL(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
+			pbx_log(LOG_WARNING, "SCCPCHANNEL(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
 	} else if ((colname = strchr(data, ',')))
 		*colname++ = '\0';
 	else
 		colname = "callid";
 
 	if (!strncasecmp(data, "current", 7)) {
-		if (!(c = get_sccp_channel_from_ast_channel(chan)))
+		if (!(c = get_sccp_channel_from_pbx_channel(chan)))
 			return -1;						/* Not a SCCP channel. */
 
 		sccp_channel_lock(c);
@@ -485,7 +486,7 @@ static int sccp_func_sccpchannel(struct ast_channel *chan, NEWCONST char *cmd, c
 		uint32_t callid = atoi(data);
 
 		if (!(c = sccp_channel_find_byid_locked(callid))) {
-			ast_log(LOG_WARNING, "SCCPCHANNEL(): SCCP Channel not available\n");
+			pbx_log(LOG_WARNING, "SCCPCHANNEL(): SCCP Channel not available\n");
 			return -1;
 		}
 	}
@@ -493,13 +494,13 @@ static int sccp_func_sccpchannel(struct ast_channel *chan, NEWCONST char *cmd, c
 	if (!strcasecmp(colname, "callid") || !strcasecmp(colname, "id")) {
 		snprintf(buf, len, "%d", c->callid);
 	} else if (!strcasecmp(colname, "format")) {
-		snprintf(buf, len, "%d", c->format);
-	} else if (!strcasecmp(colname, "isCodecFix")) {
-		sccp_copy_string(buf, c->isCodecFix ? "yes" : "no", len);
+		snprintf(buf, len, "%d", c->rtp.audio.readFormat);
 	} else if (!strcasecmp(colname, "codecs")) {
-		ast_codec_pref_string(&c->codecs, buf, sizeof(buf) - 1);
+//              pbx_codec_pref_string(&c->codecs, buf, sizeof(buf) - 1);
+		sccp_copy_string(buf, codec2name(c->rtp.audio.readFormat), len);
 	} else if (!strcasecmp(colname, "capability")) {
-		pbx_getformatname_multiple(buf, len - 1, c->capability);
+//              pbx_getformatname_multiple(buf, len - 1, c->capability);
+		sccp_multiple_codecs2str(buf, sizeof(buf) - 1, c->capabilities.audio, ARRAY_LEN(c->capabilities.audio));
 	} else if (!strcasecmp(colname, "calledPartyName")) {
 		sccp_copy_string(buf, c->callInfo.calledPartyName, len);
 	} else if (!strcasecmp(colname, "calledPartyNumber")) {
@@ -539,7 +540,7 @@ static int sccp_func_sccpchannel(struct ast_channel *chan, NEWCONST char *cmd, c
 	} else if (!strcasecmp(colname, "dialed_number")) {
 		sccp_copy_string(buf, c->dialedNumber, len);
 	} else if (!strcasecmp(colname, "device")) {
-		sccp_copy_string(buf, c->device->id, len);
+		sccp_copy_string(buf, sccp_channel_getDevice(c)->id, len);
 	} else if (!strcasecmp(colname, "line")) {
 		sccp_copy_string(buf, c->line->name, len);
 	} else if (!strcasecmp(colname, "answered_elsewhere")) {
@@ -559,17 +560,19 @@ static int sccp_func_sccpchannel(struct ast_channel *chan, NEWCONST char *cmd, c
 	} else if (!strncasecmp(colname, "codec[", 6)) {
 		char *codecnum;
 
-		int codec = 0;
+//              int codec = 0;
 
 		codecnum = colname + 6;						// move past the '[' 
 		codecnum = strsep(&codecnum, "]");				// trim trailing ']' if any 
-		if ((codec = pbx_codec_pref_index(&c->codecs, atoi(codecnum)))) {
-			sccp_copy_string(buf, pbx_getformatname(codec), len);
+//              if ((codec = pbx_codec_pref_index(&c->codecs, atoi(codecnum)))) {
+//                      sccp_copy_string(buf, pbx_getformatname(codec), len);
+		if (skinny_codecs[atoi(codecnum)].shortname) {
+			sccp_copy_string(buf, codec2name(atoi(codecnum)), len);
 		} else {
 			buf[0] = '\0';
 		}
 	} else {
-		ast_log(LOG_WARNING, "SCCPCHANNEL(): unknown function option: %s", data);
+		pbx_log(LOG_WARNING, "SCCPCHANNEL(): unknown function option: %s", data);
 		buf[0] = '\0';
 	}
 	sccp_channel_unlock(c);
@@ -577,7 +580,7 @@ static int sccp_func_sccpchannel(struct ast_channel *chan, NEWCONST char *cmd, c
 }
 
 /*! \brief Stucture to declare a dialplan function: SCCPCHANNEL */
-static struct ast_custom_function sccpchannel_function = {
+static struct pbx_custom_function sccpchannel_function = {
 	.name = "SCCPCHANNEL",
 	.synopsis = "Retrieves information about an SCCP Line",
 	.syntax = "Usage: SCCPCHANNEL(deviceId,<option>)",
@@ -592,98 +595,30 @@ static struct ast_custom_function sccpchannel_function = {
  * 
  * \called_from_asterisk
  */
-static int sccp_app_prefcodec(struct ast_channel *chan, void *data)
+#if ASTERISK_VERSION_NUMBER >= 10800
+static int sccp_app_prefcodec(PBX_CHANNEL_TYPE *chan, const char *data)
+#else
+static int sccp_app_prefcodec(PBX_CHANNEL_TYPE *chan, void *data)
+#endif
 {
-	char text[64] = { '\0' };
+	
+	sccp_channel_t 	*c = NULL;
+	int 		res;
 
-	struct ast_codec_pref codecs;
-	int capability = 0;
-
-	sccp_channel_t *c = NULL;
-	sccp_device_t *d = NULL;
-
-	if (!(c = get_sccp_channel_from_ast_channel(chan))) {
-		ast_log(LOG_WARNING, "sccp_app_prefcodec(): Not an SCCP channel\n");
-		return 0;
+	if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
+		pbx_log(LOG_WARNING, "sccp_app_prefcodec(): Not an SCCP channel\n");
+		return -1;
 	}
-	if (!(d = c->device)) {
-		ast_log(LOG_WARNING, "sccp_app_prefcodec(): SCCP channel has no device\n");
-		return 0;
-	}
+	
 
-	if (!data || !c || !(c->line) || !(c->line->name))
-		return 0;
-
-	strncpy(text, (char *)data, sizeof(text) - 1);
-	memset(&codecs, 0, sizeof(codecs));
-
-	ast_parse_allow_disallow(&codecs, &capability, ast_strip(text), 1);
-	c->format = ast_codec_choose(&codecs, c->device->capability, 1);
-	c->requestedFormat = c->format;
-	c->isCodecFix = TRUE;
-	char s1[512], s2[512];
-
-	sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d) USED: %s(%d) \n", c->line->name, c->callid, pbx_getformatname_multiple(s1, sizeof(s1) - 1, c->capability), c->capability, pbx_getformatname_multiple(s2, sizeof(s2) - 1, c->format), c->format);
-	sccp_channel_updateChannelCapability_locked(c);
-	sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d) USED: %s(%d) \n", c->line->name, c->callid, pbx_getformatname_multiple(s1, sizeof(s1) - 1, c->capability), c->capability, pbx_getformatname_multiple(s2, sizeof(s2) - 1, c->format), c->format);
-
-	return 0;
+	res = sccp_channel_setPreferredCodec(c, data);
+	return res ? 0 : -1;
 }
 
 /*! \brief Stucture to declare a dialplan function: SETSCCPCODEC */
 static char *prefcodec_name = "SetSCCPCodec";
-
 static char *prefcodec_synopsis = "Sets the preferred codec for the current sccp channel";
-
 static char *prefcodec_descr = "Usage: SetSCCPCodec(codec)" "Sets the preferred codec for dialing out with the current chan_sccp channel\n";
-
-/*!
- * \brief 	Set the Preferred video bitrate for a SCCP channel via the dialplan
- * \param 	chan Asterisk Channel
- * \param 	data Video bitrate (presumably in kbps * 10)d
- * \return	Success as int
- * 
- * \called_from_asterisk
- */
-static int sccp_app_prefvidbitrate(struct ast_channel *chan, void *data)
-{
-	char text[64] = { '\0' };
-	uint32_t bitrate = 0;
-	int res = 0;
-
-	sccp_channel_t *c = NULL;
-	sccp_device_t *d = NULL;
-
-	if (!(c = get_sccp_channel_from_ast_channel(chan))) {
-		ast_log(LOG_WARNING, "sccp_app_prefvidbitrate(): Not an SCCP channel\n");
-		return 0;
-	}
-	if (!(d = c->device)) {
-		ast_log(LOG_WARNING, "sccp_app_prefvidbitrate(): SCCP channel has no device\n");
-		return 0;
-	}
-
-	if (!data || !c || !(c->line) || !(c->line->name))
-		return 0;
-
-	strncpy(text, (char *)data, sizeof(text) - 1);
-
-	res = sscanf(text, "%ud", &bitrate);
-
-	if (1 == res) {
-		c->desiredVideoBitrate = bitrate;
-		ast_log(LOG_WARNING, "sccp_app_prefvidbitrate(): SCCP channel has no device\n");
-	}
-
-	return 0;
-}
-
-/*! \brief Stucture to declare a dialplan function: SETSCCPCODEC */
-static char *prefvidbitrate_name = "SetSCCPVideoBitrate";
-
-static char *prefvidbitrate_synopsis = "Sets the preferred video bitrate for the current sccp channel";
-
-static char *prefvidbitrate_descr = "Usage: SetSCCPVideoBitrate(bitrate)" "Sets the preferred video bitrate for dialing out with the current chan_sccp channel\n";
 
 /*!
  * \brief 	Set the Name and Number of the Called Party to the Calling Phone
@@ -693,23 +628,27 @@ static char *prefvidbitrate_descr = "Usage: SetSCCPVideoBitrate(bitrate)" "Sets 
  * 
  * \called_from_asterisk
  */
-static int sccp_app_calledparty(struct ast_channel *chan, void *data)
+#if ASTERISK_VERSION_NUMBER >= 10800
+static int sccp_app_calledparty(PBX_CHANNEL_TYPE *chan, const char *data)
+#else
+static int sccp_app_calledparty(PBX_CHANNEL_TYPE *chan, void *data)
+#endif
 {
-	char *text = data;
+	char *text = (char *)data;
 
 	char *num, *name;
 
 	sccp_channel_t *c = NULL;
 
-	if (!(c = get_sccp_channel_from_ast_channel(chan))) {
-		ast_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");
+	if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
+		pbx_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");
 		return 0;
 	}
 
 	if (!text || !c)
 		return 0;
 
-	ast_callerid_parse(text, &name, &num);
+	pbx_callerid_parse(text, &name, &num);
 	sccp_channel_set_calledparty(c, name, num);
 
 	return 0;
@@ -717,9 +656,7 @@ static int sccp_app_calledparty(struct ast_channel *chan, void *data)
 
 /*! \brief Stucture to declare a dialplan function: SETCALLEDPARTY */
 static char *calledparty_name = "SetCalledParty";
-
 static char *calledparty_synopsis = "Sets the callerid of the called party";
-
 static char *calledparty_descr = "Usage: SetCalledParty(\"Name\" <ext>)" "Sets the name and number of the called party for use with chan_sccp\n";
 
 /*!
@@ -728,59 +665,62 @@ static char *calledparty_descr = "Usage: SetCalledParty(\"Name\" <ext>)" "Sets t
  * \param	chan asterisk channel
  * \param	data message to sent - if empty clear display
  * \version	20071112_1944
- * 
+ *
  * \called_from_asterisk
- * 
+ *
  * \lock
  * 	- device
  * 	  - see sccp_dev_displayprinotify()
  * 	  - see sccp_dev_displayprompt()
  */
-static int sccp_app_setmessage(struct ast_channel *chan, void *data)
+#if ASTERISK_VERSION_NUMBER >= 10800
+static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, const char *data)
+#else
+static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
+#endif
 {
 	sccp_channel_t *c = NULL;
-
 	sccp_device_t *d;
 
-	if (!(c = get_sccp_channel_from_ast_channel(chan))) {
-		ast_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");
+	if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
+		pbx_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");
 		return 0;
 	}
 
-	char *text;
+        char *text;
 	int timeout;
 
-	if ((text = strchr(data, ':'))) {					/*! Will be deprecated after 1.4 */
+        if ((text = strchr(data, ':'))) {                                       /*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
 
 		*text++ = '\0';
 		if (deprecation_warning++ % 10 == 0)
-			ast_log(LOG_WARNING, "SCCPCHANNEL(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
+			pbx_log(LOG_WARNING, "SCCPCHANNEL(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
 		timeout = atoi(data);
 	} else if ((text = strchr(data, ','))) {
 		*text++ = '\0';
 		timeout = atoi(data);
 	} else {
-		text = data;
+                text = (char *)data;
 		timeout = 0;
 	}
 
-	if (!text || !c || !c->device)
+	if (!text || !c || !sccp_channel_getDevice(c))
 		return 0;
 
-	d = c->device;
+	d = sccp_channel_getDevice(c);
 	sccp_device_lock(d);
-	ast_free(d->phonemessage);
+	sccp_free(d->phonemessage);
 	if (text[0] != '\0') {
 		sccp_dev_displayprinotify(d, text, 5, timeout);
 		sccp_dev_displayprompt(d, 0, 0, text, timeout);
 		d->phonemessage = sccp_strdup(text);
-		pbx_db_put("SCCPM", d->id, text);
+		PBX(feature_addToDatabase)("SCCPM", d->id, text);
 	} else {
 		sccp_dev_displayprinotify(d, "Message off", 5, 1);
 		sccp_dev_displayprompt(d, 0, 0, "Message off", 1);
 		d->phonemessage = NULL;
-		ast_db_del("SCCPM", d->id);
+		PBX(feature_removeFromDatabase)("SCCPM", d->id);
 	}
 	sccp_device_unlock(d);
 
@@ -788,46 +728,8 @@ static int sccp_app_setmessage(struct ast_channel *chan, void *data)
 }
 
 static char *setmessage_name = "SetMessage";
-
 static char *setmessage_synopsis = "Send a Message to the current Phone";
-
 static char *setmessage_descr = "Usage: SetMessage(\"Message\"[,timeout])\n" "       Send a Message to the Calling Device (and remove after timeout, if timeout is ommited will stay until next/empty message)\n";
-
-/*!
- * \brief   Mutes the Microphone on the calling phone.
- * \param 	chan Asterisk Channel
- * \param 	data not used
- * \return	Success as int
- * 
- * \called_from_asterisk
- * \note data param not used
- */
-static int sccp_app_setmutemic(struct ast_channel *chan, void *data)
-{
-	sccp_channel_t *c = NULL;
-	sccp_device_t *d = NULL;
-
-	if (!(c = get_sccp_channel_from_ast_channel(chan))) {
-		ast_log(LOG_WARNING, "sccp_app_setmutemic(): Not an SCCP channel\n");
-		return 0;
-	}
-
-	if (!(d = c->device)) {
-		ast_log(LOG_WARNING, "sccp_app_setmutemic(): No sccp device associated with sccp channel.\n");
-		return 0;
-	}
-
-	sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
-
-	return 0;
-}
-
-/*! \brief Stucture to declare a dialplan function: SCCPSetMuteMic */
-static char *mutemic_name = "SCCPSetMuteMic";
-
-static char *mutemic_synopsis = "Sets microphone of the calling device to muted.";
-
-static char *mutemic_descr = "Usage: SetMuteMic()" "Mutes the microphone of the calling device for a sccp device.\n";
 
 int sccp_register_dialplan_functions(void)
 {
@@ -837,15 +739,11 @@ int sccp_register_dialplan_functions(void)
 	result = pbx_register_application(calledparty_name, sccp_app_calledparty, calledparty_synopsis, calledparty_descr, NULL);
 	result |= pbx_register_application(setmessage_name, sccp_app_setmessage, setmessage_synopsis, setmessage_descr, NULL);
 	result |= pbx_register_application(prefcodec_name, sccp_app_prefcodec, prefcodec_synopsis, prefcodec_descr, NULL);
-	result |= pbx_register_application(mutemic_name, sccp_app_setmutemic, mutemic_synopsis, mutemic_descr, NULL);
-	result |= pbx_register_application(prefvidbitrate_name, sccp_app_prefvidbitrate, prefvidbitrate_synopsis, prefvidbitrate_descr, NULL);
 
-#if ASTERISK_VERSION_NUMBER >= 10600
 	/* Register dialplan functions */
 	result |= pbx_custom_function_register(&sccpdevice_function, NULL);
 	result |= pbx_custom_function_register(&sccpline_function, NULL);
 	result |= pbx_custom_function_register(&sccpchannel_function, NULL);
-#endif
 
 	return result;
 }
@@ -858,8 +756,6 @@ int sccp_unregister_dialplan_functions(void)
 	result = pbx_unregister_application(calledparty_name);
 	result |= pbx_unregister_application(setmessage_name);
 	result |= pbx_unregister_application(prefcodec_name);
-	result |= pbx_unregister_application(mutemic_name);
-	result |= pbx_unregister_application(prefvidbitrate_name);
 
 	/* Unregister dial plan functions */
 	result |= pbx_custom_function_unregister(&sccpdevice_function);

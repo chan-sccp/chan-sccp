@@ -6,12 +6,16 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * 
- * $Date$
- * $Revision$  
+ * $Date: 2010-11-17 12:03:44 +0100 (Mi, 17 Nov 2010) $
+ * $Revision: 2130 $  
  */
 
 #ifndef SCCP_MWI_H_
 #    define SCCP_MWI_H_
+
+#    ifdef CS_AST_HAS_EVENT
+#        include "asterisk/event.h"
+#    endif
 
 /*!
  * \brief SCCP Mailbox Line Type Definition
@@ -70,7 +74,7 @@ struct sccp_mailbox_subscriber_list {
 	/*!
 	 * \brief Asterisk Event Subscribers Structure
 	 */
-	struct ast_event_sub *event_sub;
+	struct pbx_event_sub *event_sub;
 #    else
 	int schedUpdate;
 #    endif

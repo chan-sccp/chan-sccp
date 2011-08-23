@@ -7,21 +7,21 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
+ * $Date: 2010-11-17 18:10:34 +0100 (Mi, 17 Nov 2010) $
+ * $Revision: 2154 $
  */
 
 #ifndef __SCCP_LOCK_H
 #    define __SCCP_LOCK_H
 
-#    define sccp_mutex_init(x)          		ast_mutex_init(x)
-#    define sccp_mutex_destroy(x)       		ast_mutex_destroy(x)
+#    define sccp_mutex_init(x)          		pbx_mutex_init(x)
+#    define sccp_mutex_destroy(x)       		pbx_mutex_destroy(x)
 
 #    if ASTERISK_VERSION_NUMBER >= 10400
 	/* Channel Mutex Macros for Asterisk 1.4 and above */
-#        define sccp_ast_channel_lock(x)    	ast_channel_lock(x)
-#        define sccp_ast_channel_unlock(x)  	ast_channel_unlock(x)
-#        define sccp_ast_channel_trylock(x) 	ast_channel_trylock(x)
+#        define sccp_pbx_channel_lock(x)    	pbx_channel_lock(x)
+#        define sccp_pbx_channel_unlock(x)  	ast_channel_unlock(x)
+#        define sccp_pbx_channel_trylock(x) 	pbx_channel_trylock(x)
 #        if ASTERISK_VERSION_NUMBER >= 10600
 #            define AST_CHANNEL_DEADLOCK_AVOIDANCE(x)	CHANNEL_DEADLOCK_AVOIDANCE(x)
 #        else
@@ -29,62 +29,62 @@
 #        endif
 #    else
 	/* Channel Mutex Macros for Asterisk 1.2 */
-#        define sccp_ast_channel_lock(x)    	sccp_mutex_lock(&x->lock)
-#        define sccp_ast_channel_unlock(x) 	sccp_mutex_unlock(&x->lock)
-#        define sccp_ast_channel_trylock(x) 	sccp_mutex_trylock(&x->lock)
+#        define sccp_pbx_channel_lock(x)    	sccp_mutex_lock(&x->lock)
+#        define sccp_pbx_channel_unlock(x) 	sccp_mutex_unlock(&x->lock)
+#        define sccp_pbx_channel_trylock(x) 	sccp_mutex_trylock(&x->lock)
 #        define AST_CHANNEL_DEADLOCK_AVOIDANCE(x)	do { \
-	                                               sccp_ast_channel_unlock(x); \
+	                                               sccp_pbx_channel_unlock(x); \
 		                                       usleep(1); \
-		                                       sccp_ast_channel_lock(x); \
+		                                       sccp_pbx_channel_lock(x); \
 		                                while(0)
 #        define AST_DEADLOCK_AVOIDANCE(x)	DEADLOCK_AVOIDANCE(&x->lock)
 #    endif									// ASTERISK_VERSION_NUMBER >= 10400
 
 #    ifndef CS_AST_DEBUG_CHANNEL_LOCKS
 	/* Macro for Generic Mutex */
-#        define sccp_mutex_lock(x)		ast_mutex_lock(x)
-#        define sccp_mutex_lock_desc(x,y) 	ast_mutex_lock(x)
-#        define sccp_mutex_unlock(x)		ast_mutex_unlock(x)
-#        define sccp_mutex_trylock(x)		ast_mutex_trylock(x)
+#        define sccp_mutex_lock(x)		pbx_mutex_lock(x)
+#        define sccp_mutex_lock_desc(x,y) 	pbx_mutex_lock(x)
+#        define sccp_mutex_unlock(x)		pbx_mutex_unlock(x)
+#        define sccp_mutex_trylock(x)		pbx_mutex_trylock(x)
 
 	/* Macro for Lines */
-#        define sccp_line_lock(x)		ast_mutex_lock(&x->lock)
-#        define sccp_line_unlock(x)         	ast_mutex_unlock(&x->lock)
-#        define sccp_line_trylock(x)		ast_mutex_trylock(&x->lock)
+#        define sccp_line_lock(x)		pbx_mutex_lock(&x->lock)
+#        define sccp_line_unlock(x)         	pbx_mutex_unlock(&x->lock)
+#        define sccp_line_trylock(x)		pbx_mutex_trylock(&x->lock)
 
 	/* Macro for Devices */
-#        define sccp_device_lock(x)		ast_mutex_lock(&x->lock)
-#        define sccp_device_unlock(x)		ast_mutex_unlock(&x->lock)
-#        define sccp_device_trylock(x)		ast_mutex_trylock(&x->lock)
+#        define sccp_device_lock(x)		pbx_mutex_lock(&x->lock)
+#        define sccp_device_unlock(x)		pbx_mutex_unlock(&x->lock)
+#        define sccp_device_trylock(x)		pbx_mutex_trylock(&x->lock)
 
 	/* Macro for Channels */
-#        define sccp_channel_lock_dbg(x,w,y,z)	ast_mutex_lock(&x->lock)
-#        define sccp_channel_lock(x)		ast_mutex_lock(&x->lock)
-#        define sccp_channel_unlock(x)		ast_mutex_unlock(&x->lock)
-#        define sccp_channel_trylock(x)		ast_mutex_trylock(&x->lock)
+#        define sccp_channel_lock_dbg(x,w,y,z)	pbx_mutex_lock(&x->lock)
+#        define sccp_channel_lock(x)		pbx_mutex_lock(&x->lock)
+#        define sccp_channel_unlock(x)		pbx_mutex_unlock(&x->lock)
+#        define sccp_channel_trylock(x)		pbx_mutex_trylock(&x->lock)
 
 	/* Macro for Sessions */
-#        define sccp_session_lock(x)		ast_mutex_lock(&x->lock)
-#        define sccp_session_unlock(x)		ast_mutex_unlock(&x->lock)
-#        define sccp_session_trylock(x)		ast_mutex_trylock(&x->lock)
+#        define sccp_session_lock(x)		pbx_mutex_lock(&x->lock)
+#        define sccp_session_unlock(x)		pbx_mutex_unlock(&x->lock)
+#        define sccp_session_trylock(x)		pbx_mutex_trylock(&x->lock)
 
 	/* Macro for Globals */
-#        define sccp_globals_lock(x)		ast_mutex_lock(&sccp_globals->x)
-#        define sccp_globals_unlock(x)		ast_mutex_unlock(&sccp_globals->x)
-#        define sccp_globals_trylock(x)		ast_mutex_trylock(&sccp_globals->x)
+#        define sccp_globals_lock(x)		pbx_mutex_lock(&sccp_globals->x)
+#        define sccp_globals_unlock(x)		pbx_mutex_unlock(&sccp_globals->x)
+#        define sccp_globals_trylock(x)		pbx_mutex_trylock(&sccp_globals->x)
 
 	/* Macro for Lists */
-#        define SCCP_LIST_LOCK(x)		ast_mutex_lock(&(x)->lock)
-#        define SCCP_LIST_UNLOCK(x)		ast_mutex_unlock(&(x)->lock)
-#        define SCCP_LIST_TRYLOCK(x)		ast_mutex_trylock(&(x)->lock)
+#        define SCCP_LIST_LOCK(x)		pbx_mutex_lock(&(x)->lock)
+#        define SCCP_LIST_UNLOCK(x)		pbx_mutex_unlock(&(x)->lock)
+#        define SCCP_LIST_TRYLOCK(x)		pbx_mutex_trylock(&(x)->lock)
 
 	/* Macro for read/write Lists */
-#        define SCCP_RWLIST_RDLOCK(x)		ast_rwlock_rdlock(&(x)->lock)
-#        define SCCP_RWLIST_WRLOCK(x)		ast_rwlock_wrlock(&(x)->lock)
-#        define SCCP_RWLIST_UNLOCK(x)		ast_rwlock_unlock(&(x)->lock)
-#        define SCCP_RWLIST_TRYLOCK(x)		ast_rwlock_trylock(&(x)->lock)
-#        define SCCP_RWLIST_TRYRDLOCK(x)	ast_rwlock_tryrdlock(&(x)->lock)
-#        define SCCP_RWLIST_TRYWRLOCK(x)	ast_rwlock_trywrlock(&(x)->lock)
+#        define SCCP_RWLIST_RDLOCK(x)		pbx_rwlock_rdlock(&(x)->lock)
+#        define SCCP_RWLIST_WRLOCK(x)		pbx_rwlock_wrlock(&(x)->lock)
+#        define SCCP_RWLIST_UNLOCK(x)		pbx_rwlock_unlock(&(x)->lock)
+#        define SCCP_RWLIST_TRYLOCK(x)		pbx_rwlock_trylock(&(x)->lock)
+#        define SCCP_RWLIST_TRYRDLOCK(x)	pbx_rwlock_tryrdlock(&(x)->lock)
+#        define SCCP_RWLIST_TRYWRLOCK(x)	pbx_rwlock_trywrlock(&(x)->lock)
 #    else									// CS_AST_DEBUG_CHANNEL_LOCKS
 	/* Macro for Generic Mutex */
 int __sccp_mutex_lock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func);
@@ -129,11 +129,11 @@ int __sccp_mutex_trylock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, 
 
 	/* Macro for read/write Lists */
 	/* \todo add __sccp_rwlock implementation for debugging in sccp_lock.c */
-#        define SCCP_RWLIST_RDLOCK(x)		ast_rwlock_rdlock(&(x)->lock)
-#        define SCCP_RWLIST_WRLOCK(x)		ast_rwlock_wrlock(&(x)->lock)
-#        define SCCP_RWLIST_UNLOCK(x)		ast_rwlock_unlock(&(x)->lock)
-#        define SCCP_RWLIST_TRYLOCK(x)		ast_rwlock_trylock(&(x)->lock)
-#        define SCCP_RWLIST_TRYRDLOCK(x)	ast_rwlock_tryrdlock(&(x)->lock)
-#        define SCCP_RWLIST_TRYWRLOCK(x)	ast_rwlock_trywrlock(&(x)->lock)
+#        define SCCP_RWLIST_RDLOCK(x)		pbx_rwlock_rdlock(&(x)->lock)
+#        define SCCP_RWLIST_WRLOCK(x)		pbx_rwlock_wrlock(&(x)->lock)
+#        define SCCP_RWLIST_UNLOCK(x)		pbx_rwlock_unlock(&(x)->lock)
+#        define SCCP_RWLIST_TRYLOCK(x)		pbx_rwlock_trylock(&(x)->lock)
+#        define SCCP_RWLIST_TRYRDLOCK(x)	pbx_rwlock_tryrdlock(&(x)->lock)
+#        define SCCP_RWLIST_TRYWRLOCK(x)	pbx_rwlock_trywrlock(&(x)->lock)
 #    endif									// CS_AST_DEBUG_CHANNEL_LOCKS
 #endif										// __SCCP_LOCK_H

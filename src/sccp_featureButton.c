@@ -7,8 +7,8 @@
  *		See the LICENSE file at the top of the source tree.
  * \since 	2009-06-15
  *
- * $Date$
- * $Revision$
+ * $Date: 2011-01-13 23:40:34 +0100 (Do, 13 Jan 2011) $
+ * $Revision: 2253 $
  */
 
 /*!
@@ -23,7 +23,7 @@
 #include "config.h"
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision: 2253 $")
 
 /*!
  * \brief Feature Button Changed
@@ -45,23 +45,15 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 {
 	sccp_moo_t *featureMessage = NULL;
-
 	sccp_buttonconfig_t *config = NULL, *buttonconfig = NULL;
-
 	sccp_linedevices_t *linedevice = NULL;
-
 	sccp_line_t *line;
-
 	uint8_t instance = 0;
-
 	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;				// Default feature type.
-
-	boolean_t cfwdButtonEnabled = TRUE;
+	boolean_t cfwdButtonEnabeld = TRUE;
 
 #ifdef CS_DEVSTATE_FEATURE
 	char buf[254] = "";
-
-	int res = 0;
 #endif
 
 	if (!device) {
@@ -106,7 +98,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 
 							if (!linedevice) {
 								if (device->registrationState == SKINNY_DEVICE_RS_OK) {
-									ast_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
+									pbx_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
 								}
 								continue;
 							}
@@ -115,14 +107,14 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 
 							/* set this button active, only if all lines are fwd -requesting issue #3081549 */
 							if (linedevice->cfwdAll.enabled == 0) {
-								cfwdButtonEnabled = FALSE;
+								cfwdButtonEnabeld = FALSE;
 							}
 						}
 					}
 				}
 				buttonconfig = NULL;
 
-				if (cfwdButtonEnabled)
+				if (cfwdButtonEnabeld)
 					config->button.feature.status = 1;
 				else
 					config->button.feature.status = 0;
@@ -142,7 +134,6 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				break;
 			case SCCP_FEATURE_MONITOR:
 				config->button.feature.status = (device->monitorFeature.status) ? 1 : 0;
-
 				break;
 
 #ifdef CS_DEVSTATE_FEATURE
@@ -154,13 +145,13 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				/* we check which devicestate this button is assigned to, and fetch the respective status from the astdb.
 				   Note that this relies on the functionality of the asterisk custom devicestate module. */
 
-				res = pbx_db_get(devstate_astdb_family, config->button.feature.options, buf, sizeof(buf));
-				sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: devstate feature state: %s state: %s res: %d\n", DEV_ID_LOG(device), config->button.feature.options, buf, res);
-				if (!res) {
-					if (!strncmp("INUSE", buf, 254))
+				if (PBX(feature_getFromDatabase)(devstate_db_family, config->button.feature.options, buf, sizeof(buf))) {
+					sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: devstate feature state: %s state: %s\n", DEV_ID_LOG(device), config->button.feature.options, buf);
+					if (!strncmp("INUSE", buf, 254)) {
 						config->button.feature.status = 1;
-					else
+					} else {
 						config->button.feature.status = 0;
+					}
 				}
 				break;
 
@@ -255,20 +246,20 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 
 			/* send status using new message */
 			if (device->inuseprotocolversion >= 15) {
-				REQ(featureMessage, FeatureStatAdvancedMessage);
-				featureMessage->msg.FeatureStatAdvancedMessage.lel_instance = htolel(instance);
-				featureMessage->msg.FeatureStatAdvancedMessage.lel_type = htolel(buttonID);
-				featureMessage->msg.FeatureStatAdvancedMessage.lel_status = htolel(config->button.feature.status);
-				sccp_copy_string(featureMessage->msg.FeatureStatAdvancedMessage.DisplayName, config->button.feature.label, strlen(config->button.feature.label) + 1);
+				REQ(featureMessage, FeatureStatDynamicMessage);
+				featureMessage->msg.FeatureStatDynamicMessage.lel_instance = htolel(instance);
+				featureMessage->msg.FeatureStatDynamicMessage.lel_type = htolel(buttonID);
+				featureMessage->msg.FeatureStatDynamicMessage.lel_status = htolel(config->button.feature.status);
+				sccp_copy_string(featureMessage->msg.FeatureStatDynamicMessage.DisplayName, config->label, strlen(config->label) + 1);
 			} else {
 				REQ(featureMessage, FeatureStatMessage);
 				featureMessage->msg.FeatureStatMessage.lel_featureInstance = htolel(instance);
 				featureMessage->msg.FeatureStatMessage.lel_featureID = htolel(buttonID);
 				featureMessage->msg.FeatureStatMessage.lel_featureStatus = htolel(config->button.feature.status);
-				sccp_copy_string(featureMessage->msg.FeatureStatMessage.featureTextLabel, config->button.feature.label, strlen(config->button.feature.label) + 1);
+				sccp_copy_string(featureMessage->msg.FeatureStatMessage.featureTextLabel, config->label, strlen(config->label) + 1);
 			}
 			sccp_dev_send(device, featureMessage);
-			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Got Feature Status Request. Instance = %d Label: %s Status: %d\n", DEV_ID_LOG(device), instance, config->button.feature.label, config->button.feature.status);
+			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Got Feature Status Request. Instance = %d Label: %s Status: %d\n Nota bene: Config pointer: %p", DEV_ID_LOG(device), instance, config->label, config->button.feature.status, config);
 		}
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
@@ -281,21 +272,16 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	/* parse the devstate string */
 	/* If it is the custom family, isolate the specifier. */
 	sccp_device_t *device;
-
 	size_t len = strlen("Custom:");
-
 	char *sspecifier = 0;
-
 	const char *dev;
-	enum ast_device_state state;
 
 	if (!data || !ast_event)
 		return;
 
-	dev = ast_event_get_ie_str(ast_event, AST_EVENT_IE_DEVICE);
-	state = ast_event_get_ie_uint(ast_event, AST_EVENT_IE_STATE);
+	dev = pbx_event_get_ie_str(ast_event, AST_EVENT_IE_DEVICE);
 
-	sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "got device state change event from asterisk hint system: %s, state: %d\n", (dev) ? dev : "NULL", state);
+	sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "got device state change event from asterisk channel: %s\n", (dev) ? dev : "NULL");
 
 	device = (sccp_device_t *) data;
 
@@ -314,7 +300,6 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	   which should be global to chan-sccp-b, not for each device. For now, this suffices. */
 	if (!strncasecmp(dev, "Custom:", len)) {
 		sspecifier = (char *)(dev + len);
-		ast_db_put(devstate_astdb_family, sspecifier, ast_devstate_str(state));
 		sccp_featButton_changed(device, SCCP_FEATURE_DEVSTATE);
 	}
 }
