@@ -10,8 +10,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$  
+ * $Date: 2011-01-23 14:04:34 +0100 (So, 23 Jan 2011) $
+ * $Revision: 2294 $  
  */
 
 #ifndef __SCCP_CHANNEL_H
@@ -27,7 +27,10 @@ void sccp_channel_send_dialednumber(sccp_channel_t * c);
 void sccp_channel_setSkinnyCallstate(sccp_channel_t * c, skinny_callstate_t state);
 void sccp_channel_set_callingparty(sccp_channel_t * c, char *name, char *number);
 void sccp_channel_set_calledparty(sccp_channel_t * c, char *name, char *number);
-void sccp_channel_set_originalCalledparty(sccp_channel_t * c, char *name, char *number);
+boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *name, char *number);
+boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * c, char *name, char *number);
+void sccp_channel_reset_calleridPresenceParameter(sccp_channel_t * c);
+void sccp_channel_set_calleridPresenceParameter(sccp_channel_t * c, sccp_calleridpresence_t presenceParameter);
 void sccp_channel_connect(sccp_channel_t * c);
 void sccp_channel_disconnect(sccp_channel_t * c);
 void sccp_channel_openreceivechannel_locked(sccp_channel_t * c);
@@ -52,8 +55,13 @@ void sccp_channel_transfer_locked(sccp_channel_t * c);
 void sccp_channel_transfer_complete(sccp_channel_t * c);
 void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevice, char *fwdNumber);
 
+sccp_device_t *sccp_channel_getDevice(const sccp_channel_t *channel);
+void sccp_channel_setDevice(sccp_channel_t *channel, const sccp_device_t *device);
+
 #    ifdef CS_SCCP_PARK
 void sccp_channel_park(sccp_channel_t * c);
 #    endif
+
+boolean_t sccp_channel_setPreferredCodec(sccp_channel_t *c, const void *data);
 
 #endif

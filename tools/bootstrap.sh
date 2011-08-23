@@ -5,8 +5,8 @@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date$
-# REVISION: $Revision$
+# DATE:     $Date: 2010-04-25 15:03:12 +0200 (So, 25 Apr 2010) $
+# REVISION: $Revision: 1478 $
 
 if [ -f src/Makefile ]; then
   rm -rf config aclocal.m4 autom4te.cache/ src/Makefile.in src/config.h src/Makefile
@@ -15,7 +15,6 @@ fi
 if [ -f config.cache ]; then
   rm config.cache
 fi
-  
 check_for_app() {
 	$1 --version 2>&1 >/dev/null
 	if [ $? != 0 ]
@@ -36,15 +35,15 @@ if [ $? = 0 ] ; then	# BSD case
 			MY_AM_VER=19
 			;;
 		*)
-			MY_AC_VER=-2.67
-			MY_AM_VER=-1.11
+			MY_AC_VER=-2.60
+			MY_AM_VER=-1.10
 			;;
 	esac
 else	# linux case
 	MY_AC_VER=
 	MY_AM_VER=
-	AUTOCONF_VERSION=2.67
-	AUTOMAKE_VERSION=1.11
+	AUTOCONF_VERSION=2.60
+	AUTOMAKE_VERSION=1.10
 	export AUTOCONF_VERSION
 	export AUTOMAKE_VERSION
 fi
@@ -64,6 +63,6 @@ autoconf${MY_AC_VER}
 
 echo "Running configure script..."
 echo
-./configure -C
+./configure
 
 exit 0

@@ -7,8 +7,8 @@
  *		See the LICENSE file at the top of the source tree.
  * \since	2009-09-02
  *
- * $Date$
- * $Revision$  
+ * $Date: 2010-11-17 12:03:44 +0100 (Mi, 17 Nov 2010) $
+ * $Revision: 2130 $  
  */
 
 #ifndef SCCP_EVENT_H_
@@ -29,10 +29,11 @@ typedef enum {
 	SCCP_EVENT_LINE_DELETED = 1 << 2,
 	SCCP_EVENT_DEVICE_ATTACHED = 1 << 3,					/*!< device attached to line */
 	SCCP_EVENT_DEVICE_DETACHED = 1 << 4,					/*!< device removed from line */
-	SCCP_EVENT_DEVICE_REGISTERED = 1 << 5,					/*!< device registers successfully */
-	SCCP_EVENT_DEVICE_UNREGISTERED = 1 << 6,				/*!< device isnt registered any more */
-	SCCP_EVENT_FEATURE_CHANGED = 1 << 7,					/*!< some feature (e.g. cfwd, dnd) is changed */
-	SCCP_EVENT_LINESTATUS_CHANGED = 1 << 8					/*!< the status of a line is changed is changed */
+	SCCP_EVENT_DEVICE_PREREGISTERED = 1 << 5,				/*!< device preregistered (tokenReq) */
+	SCCP_EVENT_DEVICE_REGISTERED = 1 << 6,					/*!< device registers successfully */
+	SCCP_EVENT_DEVICE_UNREGISTERED = 1 << 7,				/*!< device isnt registered any more */
+	SCCP_EVENT_FEATURE_CHANGED = 1 << 8,					/*!< some feature (e.g. cfwd, dnd) is changed */
+	SCCP_EVENT_LINESTATUS_CHANGED = 1 << 9					/*!< the status of a line is changed is changed */
 } sccp_event_type_t;								/*!< SCCP Event Type ENUM */
 
 /*!
@@ -60,8 +61,7 @@ struct sccp_event {
 			sccp_device_t *device;					/*!< SCCP Device */
 		} deviceRegistered;						/*!< Event Device Registered Structure */
 		struct {
-			sccp_line_t *line;					/*!< SCCP Line */
-			sccp_device_t *device;					/*!< SCCP Device */
+			sccp_linedevices_t *linedevice;				/*!< SCCP device line */
 		} deviceAttached;						/*!< Event Device Attached Structure */
 
 		struct {

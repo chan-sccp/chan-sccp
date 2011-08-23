@@ -9,7 +9,7 @@
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  * \note 	You could read the documentation from this file; but it would probably
  * 		be easier to go to http://chan-sccp-b.sourceforge.net 
- * \version	$Revision$
+ * \version	$Revision: 2021 $
  * \date	$date$
  */
 
@@ -26,6 +26,7 @@
  * \ref nf_sccp_reload   	"How to use Reload"\n
  * \ref nf_sccp_function   	"How to use Dialplan Function"\n
  * \ref nf_devicestate		"How to use device state"\n
+ * \ref nf_digittimeout		"digit timeout and dialing"\n
  * <HR>
  *
  *
@@ -63,8 +64,8 @@
  *      - privacy,callpresent		= Make a private call, number is suppressed
  *      - privacy,hint			= Make a private call, hint is suppressed
  *      - cfwdall,number		= Forward all calls
- *      - cfwdbusy,number		= Forward on busy
- *      - cfwdnoaswer,number		= Forward on no-answer (not implemented yet)
+ *      - cfwbusy,number		= Forward on busy
+ *      - cfwnoaswer,number		= Forward on no-answer (not implemented yet)
  *      - DND,busy			= Do-not-disturb, return Busy signal to Caller
  *      - DND,silent			= Do-not-disturb, return nothing to caller
  *      - monitor			= Record Calls using AutoMon (asterisk 1.6.x only)
@@ -86,7 +87,7 @@
  * button = service, "Asterisk", "www.asterisk.org"
  * button = feature, "privacy callpresent", privacy, callpresent
  * button = feature, "callforward busy", cfwdbusy, 529
- * button = feature, "DND busy", DND, busy
+ * button = feature, "DND busy", "DND", "busy"
  * button = feature, "Record Calls", monitor
  * \endcode
  *
@@ -168,8 +169,8 @@
  * 
  * You can create several softkeyset in you config for use on different devices. You can assign these softkeyset to a device 
  * using: softkeyset = name_of_softkeyset in the device section of the config. 
- * (<a href="http://tools.cisco.com/search/display?url=http%3A%2F%2Fwww.cisco.com%2Fen%2FUS%2Fdocs%2Fvoice_ip_comm%2Fcuipph%2F7975G_7971g-ge_7970g_7965g_7945g%2F8_5%2Fenglish%2Fquick_reference%2F7975qrcrd85.pdf&pos=1&strqueryid=1&websessionid=Baq5yYY1J3zwB6fskFWXc2e">softkey definitions/logo's</a>)
- *
+ * (<a href="http://tools.cisco.com/search/display?url=http%3A%2F%2Fwww.cisco.com%2Fen%2FUS%2Fdocs%2Fvoice_ip_comm%2Fcuipph%2F7975G_7971g-ge_7970g_7965g_7945g%2F8_5%2Fenglish%2Fquick_reference%2F7975qrcrd85.pdf&pos=1&strqueryid=1&websessionid=Baq5yYY1J3zwB6fskFWXc2e">Softkey explanations / logo's</a>)
+ * 
  * for example:
  * \code
  * [SEP001122334455]
@@ -305,13 +306,11 @@
  * Option 2: You have one line Occupied and would like to call Someone else and Join them all into a Conference;
  *           Press the Conference Button and you will be asked for the 3 party number which need to be added to the conference, 
  *           once this line is connected, you press the Conference Button Again and the Conference Starts.
+
+ * \subsubsection sk_conflist	 	How to use the Conference List Button
  *
- *
- * \subsubsection sk_conflist 	How to use the ConfList Button
- *
- * Once you have established a confernce, you can press the ConfList button. You will see a list of all conference participants. From here you can
- * mute and kick participants during the conference. 
- *
+ * Using the Conference List Button shows you a list of members of the current conference you are in with the mute status. If you are the moderator
+ * of this conference you have the ability to mute/unmute and kick members out of the conference.
  *
  * \subsubsection sk_join	 	How to use the Join Button
  *
@@ -351,6 +350,8 @@
  * This is equivalent to using the keys defined in features.conf under pickupexten
  * <HR>
  *
+ *
+ * 
  *
  *
  *
@@ -484,4 +485,18 @@
  * The new phones models with lighted buttons will nicely light up their buttons upon "INUSE".
  * 
  * You can read more about customer device states <a href="http://www.asterisk.org/node/48325">here</a>.
+ *
+ *
+ *
+ *
+ * \subsection nf_digittimeout	      Digit timeout and dialing
+ * 
+ * Dialing changes:
+ *
+ * - When entering the number with the receiver down, and then pressing dial or picking up, we calculate the standard 
+ *   deviatoin between the timing of the entered numbers. If the all fall withing the same pattern (about 100 milliseconds 
+ *   per digit) with a std-dev les then 3.5 we can assume the numbers are not entered by hand and emulate enbloc dialing
+ *   and reduce the total digittimeout to 2000 milliseconds (2 secs after the last digit). The following two rules still apply.
+ * - Matching of number uses regcontext group specified in sccp.conf first, if a full match is found, the digittimout is halved.
+ * - If a full match is found in the dialplan, and no other dialplan entries would match, dialing starts immediatly.
  */

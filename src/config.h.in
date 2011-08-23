@@ -20,53 +20,29 @@
 /* Define if AIX */
 #undef AIX
 
-/* Define ASTERISK_CONF_1_10 */
+/* NOT Defined ASTERISK_CONF !! */
+#undef ASTERISK_CONF
+
+/* Defined ASTERISK_CONF_1_10 */
 #undef ASTERISK_CONF_1_10
 
-/* Define ASTERISK_CONF_1_10_0 */
-#undef ASTERISK_CONF_1_10_0
-
-/* Define ASTERISK_CONF_1_2 */
+/* Defined ASTERISK_CONF_1_2 */
 #undef ASTERISK_CONF_1_2
 
-/* Define ASTERISK_CONF_1_4 */
+/* Defined ASTERISK_CONF_1_4 */
 #undef ASTERISK_CONF_1_4
 
-/* Define ASTERISK_CONF_1_6 */
+/* Defined ASTERISK_CONF_1_6 */
 #undef ASTERISK_CONF_1_6
 
-/* Define ASTERISK_CONF_1_6_0 */
-#undef ASTERISK_CONF_1_6_0
-
-/* Define ASTERISK_CONF_1_6_1 */
-#undef ASTERISK_CONF_1_6_1
-
-/* Define ASTERISK_CONF_1_6_2 */
-#undef ASTERISK_CONF_1_6_2
-
-/* Define ASTERISK_CONF_1_8 */
+/* Defined ASTERISK_CONF_1_8 */
 #undef ASTERISK_CONF_1_8
-
-/* Define ASTERISK_CONF_1_8_0 */
-#undef ASTERISK_CONF_1_8_0
-
-/* Define ASTERISK_CONF_1_8_1 */
-#undef ASTERISK_CONF_1_8_1
-
-/* Define ASTERISK_CONF_1_8_2 */
-#undef ASTERISK_CONF_1_8_2
-
-/* Define ASTERISK_CONF_1_8_3 */
-#undef ASTERISK_CONF_1_8_3
-
-/* Define ASTERISK_CONF_1_8_4 */
-#undef ASTERISK_CONF_1_8_4
-
-/* Define ASTERISK_CONF_1_8_5 */
-#undef ASTERISK_CONF_1_8_5
 
 /* ASTERISK Source Location */
 #undef ASTERISK_REPOS_LOCATION
+
+/* ASTERISK Version Group */
+#undef ASTERISK_VERSION_GROUP
 
 /* ASTERISK Version Number */
 #undef ASTERISK_VERSION_NUMBER
@@ -700,22 +676,16 @@
 #undef OSF1
 
 /* Define to the address where bug reports for this package should be sent. */
-#undef PACKAGE_BUGREPORT
 
 /* Define to the full name of this package. */
-#undef PACKAGE_NAME
 
 /* Define to the full name and version of this package. */
-#undef PACKAGE_STRING
 
 /* Define to the one symbol short name of this package. */
-#undef PACKAGE_TARNAME
 
 /* Define to the home page for this package. */
-#undef PACKAGE_URL
 
 /* Define to the version of this package. */
-#undef PACKAGE_VERSION
 
 /* Define PBX_CHANNEL_TYPE as 'struct ast_channel' */
 #undef PBX_CHANNEL_TYPE

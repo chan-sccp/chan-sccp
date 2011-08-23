@@ -45,8 +45,8 @@ typedef struct sccp_hint_list sccp_hint_list_t;
 struct sccp_hint_list {
 	ast_mutex_t lock;							/*!< Asterisk Lock */
 
-	char exten[AST_MAX_EXTENSION];						/*!< Extension for Hint */
-	char context[AST_MAX_CONTEXT];						/*!< Context for Hint */
+	char exten[SCCP_MAX_EXTENSION];						/*!< Extension for Hint */
+	char context[SCCP_MAX_CONTEXT];						/*!< Context for Hint */
 	char hint_dialplan[256];						/*!< e.g. IAX2/station123 */
 
 	sccp_channelState_t currentState;					/*!< current State */
@@ -68,7 +68,7 @@ struct sccp_hint_list {
 	 */
 	union sccp_hint_type {
 		struct {
-			char lineName[AST_MAX_EXTENSION];			/*!< Line Name */
+			char lineName[SCCP_MAX_EXTENSION];			/*!< Line Name */
 		} internal;							/*!< Hint Type Internal Structure */
 
 		struct {
@@ -76,7 +76,7 @@ struct sccp_hint_list {
 #    ifndef AST_EVENT_IE_CIDNAME
 			pthread_t notificationThread;				/*!< Notification Thread */
 #    else
-			struct ast_event_sub *device_state_sub;
+			struct pbx_event_sub *device_state_sub;
 #    endif
 		} asterisk;							/*!< Hint Type Asterisk Structure */
 	} type;									/*!< Hint Type Structure */
@@ -85,7 +85,19 @@ struct sccp_hint_list {
 	 SCCP_LIST_ENTRY(sccp_hint_list_t) list;				/*!< Hint Type Linked List Entry */
 };										/*!< SCCP Hint List Structure */
 
+/*!
+ * \brief Hint State for Device
+ * \param context Context as char
+ * \param exten Extension as char
+ * \param state State as Asterisk Extension State
+ * \param data Asterisk Data
+ * \return Status as int
+ */
+#if ASTERISK_VERSION_NUMBER >= 11001
+int sccp_hint_state(const char *context, const char *exten, enum ast_extension_states state, void *data);
+#else
 int sccp_hint_state(char *context, char *exten, enum ast_extension_states state, void *data);
+#endif
 
 #    define sccp_hint_lineStatusChanged(a,b,c,d,e) sccp_hint_lineStatusChangedDebug(a,b,c,d,e, __FILE__, __LINE__)
 void sccp_hint_lineStatusChangedDebug(sccp_line_t * line, sccp_device_t * device, sccp_channel_t * channel, sccp_channelState_t previousState, sccp_channelState_t state, char *callerFile, int callerLine);

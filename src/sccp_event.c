@@ -7,8 +7,8 @@
  *		See the LICENSE file at the top of the source tree.
  * \since	2009-09-02
  * 
- * $Date$
- * $Revision$  
+ * $Date: 2011-01-12 02:42:50 +0100 (Mi, 12 Jan 2011) $
+ * $Revision: 2235 $  
  */
 
 /*!
@@ -20,7 +20,7 @@
 #include "config.h"
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision: 2235 $")
 
 /*!
  * \brief SCCP Event Listeners Structure
@@ -42,9 +42,9 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb)
 
 	sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_1 "[SCCP] register event listener for %d\n", eventType);
 
-	subscription = ast_malloc(sizeof(sccp_event_subscriber_t));
+	subscription = sccp_malloc(sizeof(sccp_event_subscriber_t));
 	if (!subscription) {
-		ast_log(LOG_ERROR, "Failed to allocate memory for subscription\n");
+		pbx_log(LOG_ERROR, "Failed to allocate memory for subscription\n");
 		return;
 	}
 
@@ -68,7 +68,6 @@ void sccp_event_fire(const sccp_event_t * *event)
 		return;
 
 	sccp_event_type_t type = (*event)->type;
-
 	sccp_event_subscriber_t *subscriber;
 
 	sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_1 "[SCCP] Fire event %d\n", type);
@@ -82,6 +81,6 @@ void sccp_event_fire(const sccp_event_t * *event)
 #ifdef HAVE_LIBGC
 	*event = NULL;
 #else
-	ast_free((void *)*event);
+	sccp_free((void *)*event);
 #endif
 }

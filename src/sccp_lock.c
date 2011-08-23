@@ -7,8 +7,8 @@
  * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * 
- * $Date$
- * $Revision$  
+ * $Date: 2011-01-12 02:42:50 +0100 (Mi, 12 Jan 2011) $
+ * $Revision: 2235 $  
  */
 
 /*!
@@ -86,7 +86,8 @@
 #include "config.h"
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision: 2235 $")
+
 #ifdef CS_AST_DEBUG_CHANNEL_LOCKS
 #    define CS_LOCKS_DEBUG_ALL
 
@@ -115,17 +116,17 @@ int __sccp_mutex_unlock(ast_mutex_t * p_mutex, const char *itemnametolock, const
 		return 0;
 	}
 #    ifdef CS_AST_DEBUG_THREADS
-	res = __ast_pthread_mutex_unlock(filename, lineno, func, itemnametolock, p_mutex);
+	res = __pbx_pthread_mutex_unlock(filename, lineno, func, itemnametolock, p_mutex);
 
 #    else
-	res = ast_mutex_unlock(p_mutex);
+	res = pbx_mutex_unlock(p_mutex);
 #    endif
 
 #    ifdef CS_LOCKS_DEBUG_ALL
 #        ifdef CS_AST_DEBUG_THREADS
 	int count = 0;
 
-#            ifndef CS_AST_LOCK_TRACK
+#            ifndef CS_AST_HAS_TRACK
 	if ((count = p_mutex->reentrancy)) {
 #            else
 
@@ -184,16 +185,16 @@ int __sccp_mutex_lock(ast_mutex_t * p_mutex, const char *itemnametolock, const c
 #        endif
 #    endif
 #    ifdef CS_AST_DEBUG_THREADS
-	res = __ast_pthread_mutex_lock(filename, lineno, func, itemnametolock, p_mutex);
+	res = __pbx_pthread_mutex_lock(filename, lineno, func, itemnametolock, p_mutex);
 #    else
-	res = ast_mutex_lock(p_mutex);
+	res = pbx_mutex_lock(p_mutex);
 #    endif
 
 #    ifdef CS_LOCKS_DEBUG_ALL
 #        ifdef CS_AST_DEBUG_THREADS
 	int count = 0;
 
-#            ifndef CS_AST_LOCK_TRACK
+#            ifndef CS_AST_HAS_TRACK
 	if ((count = p_mutex->reentrancy)) {
 #            else
 
@@ -250,16 +251,16 @@ int __sccp_mutex_trylock(ast_mutex_t * p_mutex, const char *itemnametolock, cons
 #        endif
 #    endif
 #    ifdef CS_AST_DEBUG_THREADS
-	res = __ast_pthread_mutex_trylock(filename, lineno, func, itemnametolock, p_mutex);
+	res = __pbx_pthread_mutex_trylock(filename, lineno, func, itemnametolock, p_mutex);
 #    else
-	res = ast_mutex_trylock(p_mutex);
+	res = pbx_mutex_trylock(p_mutex);
 #    endif
 
 #    ifdef CS_LOCKS_DEBUG_ALL
 #        ifdef CS_AST_DEBUG_THREADS
 	int count = 0;
 
-#            ifndef CS_AST_LOCK_TRACK
+#            ifndef CS_AST_HAS_TRACK
 	if ((count = p_mutex->reentrancy)) {
 #            else
 

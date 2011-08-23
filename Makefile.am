@@ -3,14 +3,14 @@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date$
-# REVISION: $Revision$
+# DATE:     $Date: 2010-10-25 14:13:17 +0200 (Mo, 25 Okt 2010) $
+# REVISION: $Revision: 2058 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 
 include $(top_srcdir)/amdoxygen.am
 AUTOMAKE_OPTS			= gnu silent-rules
 EXTRA_DIST 			= .version tools conf
-SUBDIRS 				= src doc
+SUBDIRS 			= src doc
 ACLOCAL_AMFLAGS			= -I autoconf
 AM_CPPFLAGS			= $(LTDLINCL)
 distdir = $(PACKAGE)-$(SCCP_VERSION)_$(SCCP_BRANCH)

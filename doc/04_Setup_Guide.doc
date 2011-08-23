@@ -108,7 +108,7 @@
  * callanswerorder=oldestfirst
  * meetme = on
  * meetme = qxd
- * protocolversion = 11
+ * protocol = 11
  * regcontext							; context used for dundi dialplan registration
  * 
  * hotline_enabled=yes						; can devices without configuration register
@@ -125,7 +125,7 @@
  * addon = 7914
  * devicetype = 7940
  * park = off
- * button = speeddial,Helpdesk, 98112, 98112@hint  	; Add SpeedDial to Helpdesk (verify that you have the hint context correctly set)
+ * button = speeddial,Helpdesk, 98112, 98112@hint  	; Add SpeedDial to Helpdesk
  * button = line, 98011					; Assign Line 98011 to Device
  * button = empty					; Assign an Empty Button
  * button = line, 98012					; Assign Line 98012 to Device
@@ -231,7 +231,6 @@
  * park = off
  * button = speeddial,Helpdesk, 98112, 98112@hint  		; Add SpeedDial to Helpdesk (without hint)
  * button = line, 98021
- * button = line, 98022, Name, 01				; SharedLine with SubscriptionName and SubscriptionId (Specific device extension SCCP/9802201)
  * button= feature,Private Call,privacy,callpresent		;set channel variable SKINNY_PRIVATE to 1 if feature is enabled
  * button= feature,DND Busy,DND,busy				;set dnd status to busy
  * button= feature,DND Silent,DND,silent				;set dnd status to silent
@@ -426,14 +425,21 @@
  *
  * \subsection sccp_config_rt_use Using Realtime Database 
  *
- * Devices / Lines and Buttonconfigs can now be loaded from the database. If you add a device to the sccpdevice table it will
- * automatically be read during the device registration fase. No need to reload the chan_sccp module.
+ * Devices / Lines and Buttonconfigs are now loaded from the database. If you add a device to the sccpdevice table it will
+ * automatically be read during the device registration fase. No need to unload/load the chan_sccp module.
  * 
- * Some mysql database servers might need
+ * When you change any information in the database for a specific device which you want to reset to update it's status. 
+ * You can use the standard asterisk realtime function to reload information
+ *
  * \code
- * group_concat_max_len = 2048
+ * realtime load sccpdevice name SEP010102030404 
+ * or
+ * realtime load sccpline name 123
+ *
+ * sccp reset SEP010102030404
+ * or
+ * sccp restart SEP010102030404
  * \endcode
- * in the my.cnf to load our data correctly.
  * 
  * \section sccp_config_dhcp Setting up a DHCP Server
  *
@@ -460,22 +466,13 @@
  * \section sccp_config_sep What does a Sample SEP[MacAddr].cnf.xml Look Like
  *
  * We have added a couple of example files in the directory conf/tftp  
- * conf/tftp/SEP0000000000.cnf.xml_791x_template
- * conf/tftp/SEP0000000000.cnf.xml_796x_template
- * conf/tftp/SEP0000000000.cnf.xml_797x_template
+ * conf/tftp/XMLDefault.cnf.xml_797x
+ * conf/tftp/XMLDefault.cnf.xml_796x
+ * conf/tftp/XMLDefault.cnf.xml_791x
  * 
- * You can choose one of these files and adapt it to your network/devices. You can then copy the file to your tftp-server and rename the file to SEPTemplate.cnf.xml.
+ * You can choose one of these files and adapt it to your network/devices. You can then copy the file to your tftp-server and rename the file to XMLDefault.cnf.xml. 
  * If you like you can make soft links/shortcuts to this file for every device you have in the form of SEP[macaddr].cnf.xml files. For devices with specific settings
- * you can copy your SEP0000000000.cnf.xml_79xx_template file to a new SEP[macaddr].cnf.xml file and set the specific settings for this device.
- * 
- * \subsection cluster How to set up multiple servers (Clustering)
- * When you add multiple servers to the cnf.xml file you can either give them the same priority meaning, these servers are equals. Once
- * a phone connects it will stick with that server for as long as it exists. If you however add servers with different priorities, phones
- * will try to connect to the server with the lowest priority as soon as it becomes available (fail-back). In this senario, you could imagine
- * a weaker server standing by in case of emergency. As soon as the primairy becomes available all phones will start switching back to the 
- * primairy server.
- *
- * Also checkout the \ref DUNDi section to find out where a phone is registered if you are going down the clustering route.
+ * you can copy your XMLDefault.cnf.xml file to a new SEP[macaddr].cnf.xml file and set the specific settings for this device.
  * 
  * \section dialplan_sample Dialplan Sample
  * 
@@ -568,9 +565,7 @@
  * 
  * If regcontext is specified in sccp.conf chan-sccp-b will dynamically create and destroy a NoOp priority 1
  * extension for a given peer/line which registers with the server. If the context is not specified in
- * extension.conf, then it will be dynamically created when an chan-sccp-b agent registers. Do not include the regcontext 
- * you set in sccp.conf manually in your dialplan. You can however use the same regcontext for iax, sip, sccp any
- * other channel driver witch support regcontext, to get once big resource pool of registered devices.
+ * extension.conf, then it will be dynamically created when an chan-sccp-b agent registers.
  * 
  * Example sccp.conf:
  * \code
@@ -671,11 +666,11 @@
  *
  * 
  * \section shared_lines Shared Lines
- * 
+ *  
  * Shared lines are lines used by several devices at the same time providing easy handling of phone calls between them. You can
- * for example hold a line on one device and use resume on another to pick the line up there. Or even steal a line from another 
+ * for example hold a line on one device and use resume on another to pick the line up there. Or even steal a line from another
  * device using the Intercept button.
- * 
+ *
  * To set up a shared line, you just define the same extension/line number on multiple devices. You can add a suffix or subscriptionId to the extension
  * number to be able to call a specific device using "@" and if you like an extra callerid_name behind ":", like this:
  *
@@ -692,23 +687,23 @@
  * \endcode 
  *
  * If you now create the relevant entries in your dialplan you can either call 900, 9001, 9002 using this example:
- * 
+ *
  * \code
  * _9XX =>{
- *	  Dial(SCCP/${EXTEN});
+ *        Dial(SCCP/${EXTEN});
  * };
  *
  * _90XX =>{
- *	Set(extension=${EXTEN:0:3});
+ *      Set(extension=${EXTEN:0:3});
  *      Set(suffix=${EXTEN:3:1});
- *	Dial(SCCP/${extension}@${suffix});
+ *      Dial(SCCP/${extension}@${suffix});
  * };
  * \endcode
  *
  * To add a default suffix to a line (so all device using that line, will also be accessible via the default suffix) you
  * can add "defaultSubscriptionId_number = " to the line definition in sccp.conf.
  *
- * When "silent" is added to the subscriptionId this line will not ring if the shared line is called, this can be used when a secretary is supposed to 
+ * When "silent" is added to the subscriptionId this line will not ring if the shared line is called, this can be used when a secretary is supposed to
  * handle all incoming calls on a shared line. Only when the extension including the suffix/subscriptionId is called will this line ring.
  *
  **/

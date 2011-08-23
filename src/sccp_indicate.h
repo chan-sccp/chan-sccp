@@ -9,8 +9,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * 
- * $Date$
- * $Revision$  
+ * $Date: 2010-11-22 12:47:44 +0100 (Mo, 22 Nov 2010) $
+ * $Revision: 2163 $  
  */
 #ifndef __SCCP_INDICATE_H
 #    define __SCCP_INDICATE_H

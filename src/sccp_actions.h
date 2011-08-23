@@ -9,8 +9,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * 
- * $Date$
- * $Revision$
+ * $Date: 2011-01-02 13:36:00 +0100 (So, 02 Jan 2011) $
+ * $Revision: 2209 $
  */
 
 #ifndef __SCCP_ACTIONS_H
@@ -31,7 +31,7 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k);
 void sccp_handle_backspace(sccp_device_t * d, uint8_t line, uint32_t callid);
 void sccp_handle_dialtone_locked(sccp_channel_t * c);
-void sccp_handle_keepAliveMessage(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
+void sccp_handle_KeepAliveMessage(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_onhook(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_headset(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
@@ -57,4 +57,5 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_device_to_user(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_device_to_user_response(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
+void sccp_handle_XMLAlarmMessage(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 #endif

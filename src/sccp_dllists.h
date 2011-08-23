@@ -3,15 +3,14 @@
  * \file 	sccp_dllists.h
  * \brief 	SCCP Double Linked Lists Header
  * \note	Double Linked List Code derived from Asterisk 1.6.1 "dlinkedlists.h"
- * \author	Sergio Chersovani <mlists [at] c-net.it>
- *		Mark Spencer <markster@digium.com>
+ * \author	Mark Spencer <markster@digium.com>
  *              Kevin P. Fleming <kpfleming@digium.com>
  * \note  	File is not directly included to get benefit of lists also in previous Asterisk releases (like 1.2)
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
+ * $Date: 2010-11-23 15:16:48 +0100 (Di, 23 Nov 2010) $
+ * $Revision: 2185 $
  */
 
 #ifndef _SCCP_DLLISTS_H
@@ -40,7 +39,7 @@ struct name {												\
 	(head)->last = (entry);										\
 	if(entry)											\
 		(head)->size = 1;									\
-	ast_mutex_init(&(head)->lock);									\
+	pbx_mutex_init(&(head)->lock);									\
 } while (0)
 
 /* Initialize rwlist head */
@@ -49,7 +48,7 @@ struct name {												\
 	(head)->last = (entry);										\
 	if(entry)											\
 		(head)->size = 1;									\
-	ast_rwlock_init(&(head)->lock);									\
+	pbx_rwlock_init(&(head)->lock);									\
 } while (0)
 
 /* List Item */
@@ -224,13 +223,13 @@ struct {												\
 #    define SCCP_LIST_HEAD_INIT(head) {									\
 	(head)->first = NULL;										\
 	(head)->last = NULL;										\
-	ast_mutex_init(&(head)->lock);									\
+	pbx_mutex_init(&(head)->lock);									\
 	(head)->size=0;											\
 }
 #    define SCCP_RWLIST_HEAD_INIT(head) {								\
 	(head)->first = NULL;										\
 	(head)->last = NULL;										\
-	ast_rwlock_init(&(head)->lock);									\
+	pbx_rwlock_init(&(head)->lock);									\
 	(head)->size=0;											\
 }
 
@@ -238,13 +237,13 @@ struct {												\
 #    define SCCP_LIST_HEAD_DESTROY(head) {								\
 	(head)->first = NULL;										\
 	(head)->last = NULL;										\
-	ast_mutex_destroy(&(head)->lock);								\
+	pbx_mutex_destroy(&(head)->lock);								\
 	(head)->size=0;											\
 }
 #    define SCCP_RWLIST_HEAD_DESTROY(head) {								\
 	(head)->first = NULL;										\
 	(head)->last = NULL;										\
-	ast_rwlock_destroy(&(head)->lock);								\
+	pbx_rwlock_destroy(&(head)->lock);								\
 	(head)->size=0;											\
 }
 
