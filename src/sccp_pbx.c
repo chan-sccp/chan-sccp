@@ -990,7 +990,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 			sccp_channel_updateChannelCapability_locked(c);
 		}
 
-		ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n", c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
+		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, state: %s(%d) \n", c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
 		if (c->rtp.audio.rtp) {
 			if (oldChannelFormat != c->format) {
 				if (c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE) {
@@ -1007,7 +1007,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 		//pbx_channel_lock(astcSourceRemote);
 
 		if (!astcSourceRemote) {
-			ast_log(LOG_WARNING, "SCCP: Failed to make COLP decision on answer - no bridged channel. Weird.\n");
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Failed to make COLP decision on answer - no bridged channel. Weird.\n");
 		} else if (CS_AST_CHANNEL_PVT_IS_SCCP(astcSourceRemote)) {
 			cSourceRemote = CS_AST_CHANNEL_PVT(astcSourceRemote);
 			if (c && cSourceRemote && cSourceRemote->line && cSourceRemote->device) {
