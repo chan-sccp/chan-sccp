@@ -9,8 +9,8 @@
  * $Date: 2010-10-23 20:04:30 +0200 (Sat, 23 Oct 2010) $
  * $Revision: 2044 $  
  */
-#ifndef SCCP_AST104_H_
-#    define SCCP_AST104_H_
+#ifndef SCCP_AST_MAJOR_H_
+#    define SCCP_AST_MAJOR_H_
 
 #    include "../../config.h"
 #    include "../../common.h"
