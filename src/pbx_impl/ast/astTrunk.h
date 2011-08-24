@@ -1,6 +1,6 @@
 
 /*!
- * \file 	sccp_ast110.h
+ * \file 	sccp_astTrunk.h
  * \brief 	SCCP PBX Asterisk Header
  * \author 	Marcello Ceshia
  * \author 	Diederik de Groot <ddegroot [at] users.sourceforge.net>
@@ -11,8 +11,8 @@
  * $Revision: 2044 $  
  */
 
-#ifndef SCCP_AST111_H_
-#    define SCCP_AST111_H_
+#ifndef SCCP_AST_MAJOR_H_
+#    define SCCP_AST_MAJOR_H_
 
 #    include "../../config.h"
 #    include "../../common.h"

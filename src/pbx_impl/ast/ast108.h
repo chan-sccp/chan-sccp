@@ -11,8 +11,8 @@
  * $Revision: 2044 $  
  */
 
-#ifndef SCCP_AST108_H_
-#    define SCCP_AST108_H_
+#ifndef SCCP_AST_MAJOR_H_
+#    define SCCP_AST_MAJOR_H_
 
 #    include "../../config.h"
 #    include "../../common.h"

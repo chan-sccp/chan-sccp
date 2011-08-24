@@ -1,5 +1,5 @@
 /*!
- * \file 	sccp_ast110.c
+ * \file 	sccp_astTrunk.c
  * \brief 	SCCP PBX Asterisk Wrapper Class
  * \author 	Marcello Ceshia
  * \author 	Diederik de Groot <ddegroot [at] users.sourceforge.net>
@@ -425,7 +425,7 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 
 	case AST_CONTROL_CONNECTED_LINE:
 		sccp_wrapper_asterisk111_connectedline(c, data, datalen);
-		sccp_indicate_lockedsccp_channel_getDevice(c), c, c->state);
+		sccp_indicate_locked(sccp_channel_getDevice(c), c, c->state);
 		break;
 
 	case AST_CONTROL_VIDUPDATE:						/* Request a video frame update */
@@ -688,8 +688,8 @@ static void *sccp_wrapper_asterisk111_park_thread(void *data)
 		extstr[1] = SKINNY_LBL_CALL_PARK_AT;
 		sprintf(&extstr[2], " %d", ext);
 
-		sccp_dev_displaynotify((sccp_device_t *) sccp_channel_getDevice(arg), extstr, 10);
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(sccp_channel_getDevice(arg)), arg->bridgedChannel->name, ext);
+		sccp_dev_displaynotify((sccp_device_t *) arg->device, extstr, 10);
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(arg->device), arg->bridgedChannel->name, ext);
 	}
 
 	ast_hangup(arg->hostChannel);
@@ -773,7 +773,7 @@ static sccp_parkresult_t sccp_wrapper_asterisk111_park(const sccp_channel_t * ho
 
 	arg->bridgedChannel = pbx_bridgedChannelClone;
 	arg->hostChannel = pbx_hostChannelClone;
-	sccp_channel_getDevice(arg) = sccp_channel_getDevice(hostChannel);
+	arg->device = sccp_channel_getDevice(hostChannel);
 
 	if (!ast_pthread_create_detached_background(&th, NULL, sccp_wrapper_asterisk111_park_thread, arg)) {
 		return PARK_RESULT_SUCCESS;
@@ -947,7 +947,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 		}
 	}else{
 //                get_skinnyFormats(requestor->nativeformats & AST_FORMAT_AUDIO_MASK, audioCapabilities, ARRAY_LEN(audioCapabilities));
-                get_skinnyFormats(requestor->nativeformats, audioCapabilities, ARRAY_LEN(audioCapabilities)); // replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
+                get_skinnyFormats(requestor->nativeformats, audioCapabilities, ARRAY_LEN(audioCapabilities)); 	// replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
 		// if no format match possible -> AST_CAUSE_BEARERCAPABILITY_NOTAVAIL
 	}
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, audioCapabilities, ARRAY_LEN(audioCapabilities));
@@ -955,7 +955,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 	
 	/* video capabilities */
 //	get_skinnyFormats(requestor->nativeformats & AST_FORMAT_VIDEO_MASK, videoCapabilities, ARRAY_LEN(videoCapabilities));
-	get_skinnyFormats(requestor->nativeformats & AST_FORMAT_VIDEO_MASK, videoCapabilities, ARRAY_LEN(videoCapabilities));//replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
+	get_skinnyFormats(requestor->nativeformats, videoCapabilities, ARRAY_LEN(videoCapabilities));		//replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, videoCapabilities, ARRAY_LEN(videoCapabilities));
 	ast_log(LOG_WARNING, "remote video caps: %s\n", cap_buf);
 	/** done */

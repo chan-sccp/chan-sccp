@@ -492,6 +492,9 @@
 /* Found 'asterisk/manager.h' */
 #undef HAVE_PBX_MANAGER_H
 
+/* Found 'asterisk/message.h' */
+#undef HAVE_PBX_MESSAGE_H
+
 /* Found 'asterisk/module.h' */
 #undef HAVE_PBX_MODULE_H
 
