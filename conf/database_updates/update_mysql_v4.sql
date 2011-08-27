@@ -1,6 +1,7 @@
 ALTER TABLE `sccpdevice` ADD `softkeyset` VARCHAR( 50 ) NULL DEFAULT NULL AFTER `addon`;
 ALTER TABLE `sccpdevice` ADD `pickupcontext` VARCHAR( 100 ) NULL DEFAULT "" AFTER `pickupexten`;
 ALTER TABLE `sccpdevice` ADD `nat` VARCHAR( 5 ) NULL DEFAULT "no" BEFORE `name`;
+ALTER TABLE `sccpdevice` CHANGE COLUMN `earlyrtp` VARCHAR(8);
 ALTER TABLE `sccpline` CHANGE COLUMN `dnd` `dndFeature`;
 
 ALTER TABLE `sccpline` CHANGE COLUMN `rtptos` `audio_tos` VARCHAR( 11 ) NULL DEFAULT "0xB8";
