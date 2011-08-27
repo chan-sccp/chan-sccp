@@ -25,7 +25,7 @@ CREATE TABLE sccpdevice (
   "dndFeature" 			varchar(5) 	DEFAULT 'on',
   "trustphoneip" 		varchar(5) 	DEFAULT NULL,
   "directrtp" 			varchar(3) 	DEFAULT 'off',
-  "earlyrtp" 			varchar(5) 	DEFAULT 'off',
+  "earlyrtp" 			varchar(8) 	DEFAULT 'off',
   "mwilamp" 			varchar(5) 	DEFAULT 'on',
   "mwioncall" 			varchar(5) 	DEFAULT 'off',
   "pickupexten"			varchar(5) 	DEFAULT 'on',
