@@ -13,8 +13,8 @@
  * 		When to use:	Methods communicating to asterisk about module initialization, status, destruction
  *   		Relationships: 	Main hub for all other sourcefiles.
  *
- * $Date: 2011-01-23 12:01:22 +0100 (So, 23 Jan 2011) $
- * $Revision: 2291 $
+ * $Date$
+ * $Revision$
  */
 
 //#define AST_MODULE "chan_sccp"
@@ -22,7 +22,7 @@
 #include "config.h"
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2291 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 void *sccp_create_hotline(void);
 

@@ -8,8 +8,8 @@
  * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date: 2011-01-15 15:53:18 +0100 (Sa, 15 Jan 2011) $
- * $Revision: 2266 $
+ * $Date$
+ * $Revision$
  */
 
 /*!
@@ -21,7 +21,7 @@
 #include "config.h"
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2266 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #include <asterisk/cli.h>
 #define CLI_AMI_LIST_WIDTH 21
@@ -206,7 +206,7 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 #else
 	CLI_AMI_OUTPUT_PARAM("Platform byte order", 	CLI_AMI_LIST_WIDTH,	"%s",		"BIG ENDIAN");
 #endif
-	CLI_AMI_OUTPUT_PARAM("Protocol Version", 	CLI_AMI_LIST_WIDTH,	"%d",		GLOB(protocolversion));
+//	CLI_AMI_OUTPUT_PARAM("Protocol Version", 	CLI_AMI_LIST_WIDTH,	"%d",		GLOB(protocolversion));
 	CLI_AMI_OUTPUT_PARAM("Server Name", 		CLI_AMI_LIST_WIDTH,	"%s",		GLOB(servername));
 	CLI_AMI_OUTPUT_PARAM("Bind Address", 		CLI_AMI_LIST_WIDTH,	"%s:%d",	pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
 	CLI_AMI_OUTPUT_BOOL ("Nat", 			CLI_AMI_LIST_WIDTH,			GLOB(nat));
