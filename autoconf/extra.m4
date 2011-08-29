@@ -333,8 +333,32 @@ AC_DEFUN([CS_CHECK_TYPES], [
 	AC_CHECK_SIZEOF(long long)
 	# Big Endian / Little Endian	
 	AC_C_BIGENDIAN(AC_DEFINE([__BYTE_ORDER],__BIG_ENDIAN,[Big Endian]),AC_DEFINE([__BYTE_ORDER],__LITTLE_ENDIAN,[Little Endian]))
+	AC_C_BIGENDIAN(AC_DEFINE(SCCP_BIG_ENDIAN,1,[SCCP_BIG_ENDIAN]),AC_DEFINE(SCCP_LITTLE_ENDIAN,1,[SCCP_LITTLE_ENDIAN]))
+	AC_C_BIGENDIAN(AC_DEFINE(SCCP_PLATFORM_BYTE_ORDER,SCCP_BIG_ENDIAN,[SCCP_PLATFORM_BYTE_ORDER]),AC_DEFINE(SCCP_PLATFORM_BYTE_ORDER,SCCP_LITTLE_ENDIAN,[SCCP_PLATFORM_BYTE_ORDER]))
 	AC_DEFINE([__LITTLE_ENDIAN],1234,[for the places where it is not defined])
 	AC_DEFINE([__BIG_ENDIAN],4321,[for the places where it is not defined])
+
+        AC_CHECK_HEADERS([byteswap.h sys/endian.h sys/byteorder.h], [break])
+        # Even if we have byteswap.h, we may lack the specific macros/functions.
+        if test x$ac_cv_header_byteswap_h = xyes ; then
+                m4_foreach([FUNC], [bswap_16,bswap_32,bswap_64], [
+                        AC_MSG_CHECKING([if FUNC is available])
+                        AC_LINK_IFELSE([AC_LANG_SOURCE([
+                            #include <byteswap.h>
+                            int
+                            main(void)
+                            {
+                                    FUNC[](42);
+                                    return 0;
+                            }
+                        ])], [
+                                AC_DEFINE(HAVE_[]m4_toupper(FUNC), [1],
+                                                [Define to 1 if] FUNC [is available.])
+                                AC_MSG_RESULT([yes])
+                        ], [AC_MSG_RESULT([no])])
+                ])dnl
+        fi
+
 	AC_CACHE_SAVE
 ])
 
