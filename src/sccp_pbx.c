@@ -2224,3 +2224,42 @@ struct ast_rtp_glue sccp_rtp = {
 };
 #    endif									// CS_AST_HAS_RTP_ENGINE
 #endif										// ASTERISK_CONF_1_2
+
+
+/*!
+ * \brief Copy asterisk channel variables from sourceChannel to destinationChannel.
+ * \param sourceChannel source channel
+ * \param destinationChannel destination channel
+ * \param flags decide what variable type should be cloned @see{sccp_copyVariablesFlags_t}
+ * \note we do not modify the variable names like ast_channel_inherit_variables do this
+ * \see ast_channel_inherit_variables
+ * 
+ */
+void sccp_pbx_copyChannelVariables(struct ast_channel *sourceChannel, struct ast_channel *destinationChannel, uint8_t flags){
+	struct ast_var_t *currentVar = NULL, *newVar = NULL;
+	uint8_t varType = SCCP_COPYVARIABLE_NORMAL;
+	const char *varName;
+	
+
+	AST_LIST_TRAVERSE(&sourceChannel->varshead, currentVar, entries) {
+
+		varName = ast_var_full_name(currentVar);
+		if (!varName)
+			continue;
+
+		if (varName[0] == '_') {
+			varType = SCCP_COPYVARIABLE_SOFTTRANSFERABLE;
+			if (varName[1] == '_')
+				varType = SCCP_COPYVARIABLE_HARDTRANSFERABLE;
+		}
+	  
+		
+		if(varType & flags){
+			newVar = ast_var_assign(varName, ast_var_value(currentVar));
+			if(newVar){
+				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "SCCP: Copy variable %s on channel %s as new variable %s on channel %s\n", varName, sourceChannel->name, ast_var_name(newVar), destinationChannel->name);
+				AST_LIST_INSERT_TAIL(&destinationChannel->varshead, newVar, entries);
+			}
+		}
+	}
+}

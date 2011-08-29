@@ -58,4 +58,15 @@ enum ast_bridge_result sccp_rtp_bridge(struct ast_channel *c0, struct ast_channe
 int sccp_pbx_transfer(struct ast_channel *ast, const char *dest);
 
 int acf_channel_read(struct ast_channel *ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen);
+
+typedef enum {
+		SCCP_COPYVARIABLE_NORMAL		= 1 << 0,
+		SCCP_COPYVARIABLE_SOFTTRANSFERABLE	= 1 << 1,
+		SCCP_COPYVARIABLE_HARDTRANSFERABLE	= 1 << 2,
+} sccp_copyVariablesFlags_t;
+/**
+ * copy channel variables from sourceChannel to destinationChannel.
+ * \param flags use flags to desicde what kind of variables to copy
+ */
+void sccp_pbx_copyChannelVariables(struct ast_channel *sourceChannel, struct ast_channel *destinationChannel, uint8_t flags);
 #endif										// __SCCP_PBX_H
