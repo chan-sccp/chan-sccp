@@ -173,7 +173,7 @@ sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, cons
 sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_blindtransferindication(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_protocolversion(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
+//sccp_value_changed_t sccp_config_parse_protocolversion(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_regcontext(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
@@ -256,7 +256,8 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
   {"pickupmodeanswer", 			G_OBJ_REF(pickupmodeanswer), 		SCCP_CONFIG_DATATYPE_BOOLEAN,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"",		NULL,			"We can do call pick-p for call group 1,3,4,5. Valid for all lines"},
 #endif
   {"amaflags", 				G_OBJ_REF(amaflags), 			SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"",		sccp_config_parse_amaflags,"Sets the default AMA flag code stored in the CDR record"},
-  {"protocolversion", 			G_OBJ_REF(protocolversion), 		SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_OBSOLETE,		SCCP_CONFIG_NOUPDATENEEDED,		"17",		sccp_config_parse_protocolversion,"skinny version protocol. Just for testing. 1 to 17 (excluding 12-14)"},
+//  {"protocolversion", 			G_OBJ_REF(protocolversion), 		SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_OBSOLETE,		SCCP_CONFIG_NOUPDATENEEDED,		"17",		sccp_config_parse_protocolversion,"skinny version protocol. Just for testing. 1 to 17 (excluding 12-14)"},
+  {"protocolversion", 			G_OBJ_REF(protocolversion), 		SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_OBSOLETE,		SCCP_CONFIG_NOUPDATENEEDED,		"20",		NULL,"skinny version protocol. Just for testing. 1 to 17 (excluding 12-14)"},
   {"callanswerorder", 			G_OBJ_REF(callanswerorder), 		SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"oldestfirst",	sccp_config_parse_callanswerorder,"oldestfirst or lastestfirst"},
   {"regcontext", 			G_OBJ_REF(regcontext), 			SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"sccpregistration",sccp_config_parse_regcontext,	"SCCP Lines will we added to this context in asterisk for Dundi lookup purposes. "
 																													"Don not set to a manually created context. The context will be autocreated. You can share the sip/iax context if you like."},
@@ -877,6 +878,7 @@ sccp_value_changed_t sccp_config_parse_blindtransferindication(void *dest, const
  *
  * \todo Can we completely loose the option to set the protocol version and just embed the max_protocol version in the source
  */
+/*
 sccp_value_changed_t sccp_config_parse_protocolversion(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
@@ -899,6 +901,7 @@ sccp_value_changed_t sccp_config_parse_protocolversion(void *dest, const size_t 
 	}
 	return changed;
 }
+*/
 
 /*!
  * \brief Config Converter/Parser for Call Answer Order
