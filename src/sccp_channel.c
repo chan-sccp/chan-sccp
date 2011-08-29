@@ -2293,6 +2293,9 @@ void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevi
 #ifdef CS_AST_CHANNEL_HAS_CID
 	forwarder->owner->cid.cid_ani2 = -1;
 #endif
+	
+	/* copy channel variables */
+	sccp_pbx_copyChannelVariables(parent->owner, forwarder->owner, SCCP_COPYVARIABLE_NORMAL | SCCP_COPYVARIABLE_HARDTRANSFERABLE | SCCP_COPYVARIABLE_SOFTTRANSFERABLE);
 
 	/* dial forwarder */
 	sccp_copy_string(forwarder->owner->exten, dialedNumber, sizeof(forwarder->owner->exten));
