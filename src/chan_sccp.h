@@ -14,8 +14,8 @@
  *		See the LICENSE file at the top of the source tree.
  * \warning 	File has been Lined up using 8 Space TABS
  *
- * $Date: 2011-01-24 11:02:10 +0100 (Mo, 24 Jan 2011) $
- * $Revision: 2298 $
+ * $Date$
+ * $Revision$
  */
 
 #ifndef __CHAN_SCCP_H
@@ -30,76 +30,19 @@ extern "C" {
 
 #    include <asterisk/pbx.h>
 #    include <asterisk/causes.h>
+#    ifdef HAVE_BYTESWAP_H 
+#      include <byteswap.h>
+#    endif
+#    ifdef HAVE_SYS_ENDIAN_H
+#      include <sys/endian.h>
+#    endif
+#    ifdef HAVE_SYS_BYTEORDER_H
+#      include <sys/byteorder.h>
+#    endif
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
 #    ifndef AST_CAUSE_ANSWERED_ELSEWHERE
 #        define AST_CAUSE_ANSWERED_ELSEWHERE 200
-#    endif
-
-#    define SCCP_LITTLE_ENDIAN   1234						/* byte 0 is least significant (i386) */
-#    define SCCP_BIG_ENDIAN      4321						/* byte 0 is most significant (mc68k) */
-
-#    if defined( __alpha__ ) || defined( __alpha ) || defined( i386 )       ||   \
-    defined( __i386__ )  || defined( _M_I86 )  || defined( _M_IX86 )    ||   \
-    defined( __OS2__ )   || defined( sun386 )  || defined( __TURBOC__ ) ||   \
-    defined( vax )       || defined( vms )     || defined( VMS )        ||   \
-    defined( __VMS )
-
-#        define SCCP_PLATFORM_BYTE_ORDER SCCP_LITTLE_ENDIAN
-
-#    endif
-
-#    if defined( AMIGA )    || defined( applec )  || defined( __AS400__ )  ||   \
-    defined( _CRAY )    || defined( __hppa )  || defined( __hp9000 )   ||   \
-    defined( ibm370 )   || defined( mc68000 ) || defined( m68k )       ||   \
-    defined( __MRC__ )  || defined( __MVS__ ) || defined( __MWERKS__ ) ||   \
-    defined( sparc )    || defined( __sparc)  || defined( SYMANTEC_C ) ||   \
-    defined( __TANDEM ) || defined( THINK_C ) || defined( __VMCMS__ )
-
-#        define SCCP_PLATFORM_BYTE_ORDER SCCP_BIG_ENDIAN
-
-#    endif
-
-/*  if the platform is still not known, try to find its byte order  */
-
-/*  from commonly used definitions in the headers included earlier  */
-
-#    if !defined(SCCP_PLATFORM_BYTE_ORDER)
-
-#        if defined(LITTLE_ENDIAN) || defined(BIG_ENDIAN)
-#            if    defined(LITTLE_ENDIAN) && !defined(BIG_ENDIAN)
-#                define SCCP_PLATFORM_BYTE_ORDER SCCP_LITTLE_ENDIAN
-#            elif !defined(LITTLE_ENDIAN) &&  defined(BIG_ENDIAN)
-#                define SCCP_PLATFORM_BYTE_ORDER SCCP_BIG_ENDIAN
-#            elif defined(BYTE_ORDER) && (BYTE_ORDER == LITTLE_ENDIAN)
-#                define SCCP_PLATFORM_BYTE_ORDER SCCP_LITTLE_ENDIAN
-#            elif defined(BYTE_ORDER) && (BYTE_ORDER == BIG_ENDIAN)
-#                define SCCP_PLATFORM_BYTE_ORDER SCCP_BIG_ENDIAN
-#            endif
-
-#        elif defined(_LITTLE_ENDIAN) || defined(_BIG_ENDIAN)
-#            if    defined(_LITTLE_ENDIAN) && !defined(_BIG_ENDIAN)
-#                define SCCP_PLATFORM_BYTE_ORDER SCCP_LITTLE_ENDIAN
-#            elif !defined(_LITTLE_ENDIAN) &&  defined(_BIG_ENDIAN)
-#                define SCCP_PLATFORM_BYTE_ORDER SCCP_BIG_ENDIAN
-#            elif defined(_BYTE_ORDER) && (_BYTE_ORDER == _LITTLE_ENDIAN)
-#                define SCCP_PLATFORM_BYTE_ORDER SCCP_LITTLE_ENDIAN
-#            elif defined(_BYTE_ORDER) && (_BYTE_ORDER == _BIG_ENDIAN)
-#                define SCCP_PLATFORM_BYTE_ORDER SCCP_BIG_ENDIAN
-#            endif
-
-#        elif defined(__LITTLE_ENDIAN__) || defined(__BIG_ENDIAN__)
-#            if    defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
-#                define SCCP_PLATFORM_BYTE_ORDER SCCP_LITTLE_ENDIAN
-#            elif !defined(__LITTLE_ENDIAN__) &&  defined(__BIG_ENDIAN__)
-#                define SCCP_PLATFORM_BYTE_ORDER SCCP_BIG_ENDIAN
-#            elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __LITTLE_ENDIAN__)
-#                define SCCP_PLATFORM_BYTE_ORDER SCCP_LITTLE_ENDIAN
-#            elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __BIG_ENDIAN__)
-#                define SCCP_PLATFORM_BYTE_ORDER SCCP_BIG_ENDIAN
-#            endif
-#        endif
-
 #    endif
 
 /* fix cast for (uint64_t) during printf */
@@ -109,35 +52,34 @@ extern "C" {
 #define ULONG long long unsigned int
 #endif
 
-/* #define SCCP_PLATFORM_BYTE_ORDER SCCP_LITTLE_ENDIAN */
-
-/* #define SCCP_PLATFORM_BYTE_ORDER SCCP_BIG_ENDIAN */
-
-#    if !defined(SCCP_PLATFORM_BYTE_ORDER)
-#        error Please edit chan_sccp.h (line 100 or 101) to set the platform byte order
+/* Add bswap function if necessary */
+#    ifndef HAVE_BSWAP_16
+	static inline unsigned short bswap_16(unsigned short x) {
+		return (x >> 8) | (x << 8);
+	}	
+#    endif
+#    ifndef HAVE_BSWAP_32
+	static inline unsigned int bswap_32(unsigned int x) {
+		return (bswap_16(x & 0xffff) << 16) | (bswap_16(x >> 16));
+	}
+#    endif
+#    ifndef HAVE_BSWAP_64
+        static inline unsigned long long bswap_64(unsigned long long x) {
+                return (((unsigned long long)bswap_32(x&0xffffffffull))<<32) | (bswap_32(x>>32));
+        }
 #    endif
 
+/* Byte swap based on platform endianes */
 #    if SCCP_PLATFORM_BYTE_ORDER == SCCP_LITTLE_ENDIAN
 #        define letohl(x) (x)
 #        define letohs(x) (x)
 #        define htolel(x) (x)
 #        define htoles(x) (x)
 #    else
-	static inline unsigned short bswap_16(unsigned short x) {
-		return (x >> 8) | (x << 8);
-	} static inline unsigned int bswap_32(unsigned int x) {
-		return (bswap_16(x & 0xffff) << 16) | (bswap_16(x >> 16));
-	}
-
-/*
-static inline unsigned long long bswap_64(unsigned long long x) {
-  return (((unsigned long long)bswap_32(x&0xffffffffull))<<32) | (bswap_32(x>>32));
-}
-*/
-#        define letohl(x) bswap_32(x)
-#        define letohs(x) bswap_16(x)
-#        define htolel(x) bswap_32(x)
-#        define htoles(x) bswap_16(x)
+#       define letohs(x) bswap_16(x)
+#       define htoles(x) bswap_16(x)
+#       define letohl(x) bswap_32(x)
+#       define htolel(x) bswap_32(x)
 #    endif
 
 #    define SCCP_TECHTYPE_STR "SCCP"
