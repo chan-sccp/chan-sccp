@@ -90,7 +90,7 @@ sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * de
 	c->line = l;
 	c->peerIsSCCP = 0;
 	c->isCodecFix = FALSE;
-	c->desiredVideoBitrate = 3840;						/* default value. \todo: should be made configurable in the global / per device config. */
+	c->desiredVideoBitrate = 1920;						/* default value. \todo: should be made configurable in the global / per device config. */
 	c->device = device;
 	if (NULL != c->device) {
 		sccp_channel_updateChannelCapability_locked(c);
@@ -833,6 +833,11 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 	} else {
 		r = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(r->msg.OpenMultiMediaChannelMessage_v17));
 
+		uint32_t mylevel = 50;
+		if(channel->desiredVideoBitrate < 2560) {
+			mylevel = 29;
+		}
+
 		r->msg.OpenMultiMediaChannelMessage_v17.lel_conferenceID = htolel(channel->callid);
 		r->msg.OpenMultiMediaChannelMessage_v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
 		r->msg.OpenMultiMediaChannelMessage_v17.lel_payloadCapability = htolel(skinnyFormat);
@@ -845,7 +850,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.pictureFormat[0].format = htolel(1);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.pictureFormat[0].mpi = htolel(1);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.profile = htolel(64);
-		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.level = htolel(50);
+		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.level = htolel(mylevel);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.macroblockspersec = htolel(0);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.macroblocksperframe = htolel(0);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.decpicbuf = htolel(0);
@@ -945,6 +950,10 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		r->msg.StartMultiMediaTransmission.videoParameter.brandcpb = htolel(10000);
 		r->msg.StartMultiMediaTransmission.videoParameter.confServiceNum = htolel(channel->callid);
 	} else {
+		uint32_t mylevel = 50;
+		if(channel->desiredVideoBitrate < 2560) {
+			mylevel = 29;
+		}
 
 		r = sccp_build_packet(StartMultiMediaTransmission, sizeof(r->msg.StartMultiMediaTransmission_v17));
 		r->msg.StartMultiMediaTransmission_v17.lel_conferenceID = htolel(channel->callid);
@@ -960,7 +969,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormat[0].format = htolel(1);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormat[0].mpi = htolel(1);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.profile = htolel(64);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.level = htolel(50);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.level = htolel(mylevel);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.macroblockspersec = htolel(0);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.macroblocksperframe = htolel(0);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.decpicbuf = htolel(0);
@@ -2293,7 +2302,7 @@ void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevi
 #ifdef CS_AST_CHANNEL_HAS_CID
 	forwarder->owner->cid.cid_ani2 = -1;
 #endif
-	
+
 	/* copy channel variables */
 	sccp_pbx_copyChannelVariables(parent->owner, forwarder->owner, SCCP_COPYVARIABLE_NORMAL | SCCP_COPYVARIABLE_HARDTRANSFERABLE | SCCP_COPYVARIABLE_SOFTTRANSFERABLE);
 
