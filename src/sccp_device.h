@@ -9,8 +9,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date: 2011-01-16 21:04:28 +0100 (So, 16 Jan 2011) $
- * $Revision: 2267 $
+ * $Date$
+ * $Revision$
  */
 
 #ifndef __SCCP_DEVICE_H

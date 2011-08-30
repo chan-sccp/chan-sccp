@@ -6,8 +6,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * 
- * $Date: 2011-04-03 01:00:21 +0200 (So, 03. Apr 2011) $
- * $Revision: 2494 $  
+ * $Date$
+ * $Revision$  
  */
 
 #ifndef SCCP_CONFERENCE_H_
