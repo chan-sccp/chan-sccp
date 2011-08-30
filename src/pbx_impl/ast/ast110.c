@@ -1857,7 +1857,7 @@ struct ast_channel_tech sccp_tech = {
 	.type 			= SCCP_TECHTYPE_STR,
 	.description 		= "Skinny Client Control Protocol (SCCP)",
 
-	//.capabilities = NULL, /** this is don in load_module *
+	//.capabilities = NULL, /** this is done in load_module *
 	.properties 		= AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
 	.requester 		= sccp_wrapper_asterisk110_request,
 	.devicestate 		= sccp_devicestate,
