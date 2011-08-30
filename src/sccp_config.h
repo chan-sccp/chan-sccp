@@ -77,6 +77,7 @@ static const softkeyConfigurationTemplate softKeyTemplate[] = {
 	{"back", 	SKINNY_LBL_BACKSPACE},
 	{"join", 	SKINNY_LBL_JOIN},
 	{"dial", 	SKINNY_LBL_DIAL},
+	{"vidmode", 	SKINNY_LBL_VIDEO_MODE},
 	{"empty", 	SKINNY_LBL_EMPTY},
 /* *INDENT-ON* */
 };
