@@ -558,7 +558,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t *channel)
 	}
 	
 	if (channel->owner) {
-// 		PBX(set_nativeAudioFormats)(channel, &channel->rtp.audio.writeFormat, 1);
+		PBX(set_nativeAudioFormats)(channel, &channel->rtp.audio.writeFormat, 1);
 		PBX(rtp_setWriteFormat) (channel, channel->rtp.audio.writeFormat);
 	}
 
@@ -978,7 +978,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t *channel)
 	packetSize = 20;
 	
 	if (channel->owner) {
-// 		PBX(set_nativeAudioFormats)(channel, &channel->rtp.audio.readFormat, 1);
+		PBX(set_nativeAudioFormats)(channel, &channel->rtp.audio.readFormat, 1);
 		PBX(rtp_setReadFormat) (channel, channel->rtp.audio.readFormat);
 	}
 

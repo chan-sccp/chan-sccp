@@ -136,7 +136,7 @@ void *sccp_do_monitor(void *data)
 }
 
 /*!
- * \brief Read from an Asterisk Channel
+ * \brief read frame from device
  * \param ast Asterisk Channel as ast_channel
  *
  * \called_from_asterisk
@@ -160,17 +160,14 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk18_rtp_read(PBX_CHANNEL_TYPE * ast)
 	case 1:
 		frame = ast_rtp_instance_read(c->rtp.audio.rtp, 1);		/* RTCP Control Channel */
 		break;
-	case 2:
 #ifdef CS_SCCP_VIDEO
+	case 2:
 		frame = ast_rtp_instance_read(c->rtp.video.rtp, 0);		/* RTP Video */
-#endif
 		break;
 	case 3:
-#ifdef CS_SCCP_VIDEO
 		frame = ast_rtp_instance_read(c->rtp.video.rtp, 1);		/* RTCP Control Channel for video */
-#endif
 		break;
-
+#endif
 	default:
 		return frame;
 	}
