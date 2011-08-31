@@ -210,8 +210,10 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	CLI_AMI_OUTPUT_PARAM("Server Name", 		CLI_AMI_LIST_WIDTH,	"%s",		GLOB(servername));
 	CLI_AMI_OUTPUT_PARAM("Bind Address", 		CLI_AMI_LIST_WIDTH,	"%s:%d",	pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
 	CLI_AMI_OUTPUT_BOOL ("Nat", 			CLI_AMI_LIST_WIDTH,			GLOB(nat));
+	CLI_AMI_OUTPUT_PARAM("Extern Hostname", 	CLI_AMI_LIST_WIDTH,	"%s",		GLOB(externhost));
+	CLI_AMI_OUTPUT_PARAM("Extern Host Refresh", 	CLI_AMI_LIST_WIDTH,	"%d",		GLOB(externrefresh));
 	CLI_AMI_OUTPUT_PARAM("Extern IP", 		CLI_AMI_LIST_WIDTH,	"%s:%d",	pbx_inet_ntoa(GLOB(externip.sin_addr)), ntohs(GLOB(externip.sin_port)));
-	CLI_AMI_OUTPUT_BOOL ("Direct RTP   ", 		CLI_AMI_LIST_WIDTH,			GLOB(directrtp));
+	CLI_AMI_OUTPUT_BOOL ("Direct RTP", 		CLI_AMI_LIST_WIDTH,			GLOB(directrtp));
 	CLI_AMI_OUTPUT_PARAM("Keepalive", 		CLI_AMI_LIST_WIDTH,	"%d",		GLOB(keepalive));
 	CLI_AMI_OUTPUT_PARAM("Debug", 			CLI_AMI_LIST_WIDTH,	"(%d) %s",	GLOB(debug), debugcategories);
 	CLI_AMI_OUTPUT_PARAM("Date format", 		CLI_AMI_LIST_WIDTH,	"%s",		GLOB(dateformat));

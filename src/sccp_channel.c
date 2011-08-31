@@ -10,8 +10,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date: 2011-01-23 18:03:14 +0100 (So, 23 Jan 2011) $
- * $Revision: 2296 $
+ * $Date$
+ * $Revision$
  */
 
 /*!
@@ -23,7 +23,7 @@
 #include "config.h"
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2296 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 static uint32_t callCount = 1;
 
@@ -155,7 +155,9 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t *channel){
 	pbx_log(LOG_NOTICE, "readState %d\n", channel->rtp.audio.readState);
 	
 	/* check if remote set a preferred formate that is compatible */
-	if( (channel->rtp.audio.readState == SCCP_RTP_STATUS_INACTIVE) || !sccp_utils_isCodecCompatible(channel->rtp.audio.readFormat, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio) )) {
+	if( (channel->rtp.audio.readState == SCCP_RTP_STATUS_INACTIVE) 
+		|| !sccp_utils_isCodecCompatible(channel->rtp.audio.readFormat, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio) )
+	) {
 		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: recalculateReadformat\n", DEV_ID_LOG(sccp_channel_getDevice(channel)));
 		channel->rtp.audio.readFormat = sccp_utils_findBestCodec(channel->preferences.audio, ARRAY_LEN(channel->preferences.audio), channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio), channel->remoteCapabilities.audio, ARRAY_LEN(channel->remoteCapabilities.audio));
 		
@@ -166,6 +168,10 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t *channel){
 			}
 			char s1[512];
 			pbx_log(LOG_NOTICE, "can not calculate readFormat, fall back to %s (%d)\n", sccp_multiple_codecs2str(s1, sizeof(s1) - 1, &channel->rtp.audio.readFormat, 1), channel->rtp.audio.readFormat);
+		} else {
+			if (sccp_utils_isCodecCompatible(channel->rtp.audio.readFormat, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio))) {
+				channel->rtp.audio.readState = SCCP_RTP_STATUS_REQUESTED;
+			}
 		}
 	}
 	char s1[512], s2[512], s3[512],s4[512];
@@ -191,22 +197,22 @@ static void sccp_channel_recalculateWriteformat(sccp_channel_t *channel){
 // 		return;
 // 	}
   
+	pbx_log(LOG_NOTICE, "writeState %d\n", channel->rtp.audio.writeState);
   
 	/* check if remote set a preferred formate that is compatible */
 	if ((channel->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) 
-	  || !sccp_utils_isCodecCompatible(channel->rtp.audio.readFormat, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio))
-// 	  || !sccp_utils_isCodecCompatible(channel->rtp.audio.readFormat, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio)
+	  || !sccp_utils_isCodecCompatible(channel->rtp.audio.writeFormat, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio))
 	) {
 		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: recalculateWriteformat\n", DEV_ID_LOG(sccp_channel_getDevice(channel)));
 		channel->rtp.audio.writeFormat = sccp_utils_findBestCodec(channel->preferences.audio, ARRAY_LEN(channel->preferences.audio), channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio), channel->remoteCapabilities.audio, ARRAY_LEN(channel->remoteCapabilities.audio));
-		
-		
 		if(channel->rtp.audio.writeFormat == SKINNY_CODEC_NONE){
 			channel->rtp.audio.writeFormat = SKINNY_CODEC_G711_ULAW_64K;
-
-			
 			char s1[512];
 			pbx_log(LOG_NOTICE, "can not calculate writeFormat, fall back to %s (%d)\n", sccp_multiple_codecs2str(s1, sizeof(s1) - 1, &channel->rtp.audio.writeFormat, 1), channel->rtp.audio.writeFormat);
+		} else {
+			if (sccp_utils_isCodecCompatible(channel->rtp.audio.writeFormat, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio))) {
+				channel->rtp.audio.writeState = SCCP_RTP_STATUS_REQUESTED;
+			}
 		}
 	}else{
 		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: audio.writeState already active %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), channel->rtp.audio.writeState);
@@ -934,32 +940,34 @@ void sccp_channel_startmediatransmission(sccp_channel_t *channel)
 	if (!(d = channel->privateData->device))
 		return;
 
-
-
 	//check if bind address is an global bind address
 	//if (!channel->rtp.audio.phone_remote.sin_addr.s_addr) {
 	//	channel->rtp.audio.phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
 	//}
-		
-	
 	
 	/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
 	if (d->nat) {
-			pbx_log(LOG_NOTICE, "Device is behint NAT use external address: %s\n", GLOB(externhost));
+		if (sccp_is_nonempty_string(GLOB(externhost))) {
+			pbx_log(LOG_NOTICE, "Device is behind NAT use external hostname translation: %s\n", GLOB(externhost));
 			struct ast_hostent ahp;
 			struct hostent *hp;
-	 		// replace us.sin_addr if we are natted
-	 		if (GLOB(externip.sin_addr.s_addr)) {
-	 			if (GLOB(externexpire) && (time(NULL) >= GLOB(externexpire))) {
-	 				time(&GLOB(externexpire));
-	 				GLOB(externexpire) += GLOB(externrefresh);
-	 				if ((hp = pbx_gethostbyname(GLOB(externhost), &ahp))) {
-	 					memcpy(&GLOB(externip.sin_addr), hp->h_addr, sizeof(GLOB(externip.sin_addr)));
-	 				} else
-	 					pbx_log(LOG_NOTICE, "Warning: Re-lookup of '%s' failed!\n", GLOB(externhost));
-	 			}
-	 			memcpy(&channel->rtp.audio.phone_remote.sin_addr, &GLOB(externip.sin_addr), 4);
-	 		}
+			// replace us.sin_addr if we are natted
+			if (GLOB(externip.sin_addr.s_addr)) {
+				if (GLOB(externexpire) && (time(NULL) >= GLOB(externexpire))) {
+					time(&GLOB(externexpire));
+					GLOB(externexpire) += GLOB(externrefresh);
+					if ((hp = pbx_gethostbyname(GLOB(externhost), &ahp))) {
+						memcpy(&GLOB(externip.sin_addr), hp->h_addr, sizeof(GLOB(externip.sin_addr)));
+					} else {
+						pbx_log(LOG_NOTICE, "Warning: Re-lookup of '%s' failed!\n", GLOB(externhost));
+					}
+				}
+				memcpy(&channel->rtp.audio.phone_remote.sin_addr, &GLOB(externip.sin_addr), 4);
+			}
+		} else if (GLOB(externip.sin_addr.s_addr)) {
+			pbx_log(LOG_NOTICE, "Device is behind NAT use external address: %s\n", pbx_inet_ntoa(GLOB(externip.sin_addr)));
+			memcpy(&channel->rtp.audio.phone_remote.sin_addr, &GLOB(externip.sin_addr), 4);
+		}
 	} else {
 		/** \todo move this to the initial part, otherwise we overwrite direct rtp destination */
 		channel->rtp.audio.phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
@@ -1006,10 +1014,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t *channel)
 	channel->rtp.audio.readState |= SCCP_RTP_STATUS_PROGESS;
 	sccp_dev_send(channel->privateData->device, r);
 	
-	
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to: '%s:%d' with codec: %s(%d) (%d ms), tos %d, silencesuppression: %s\n", channel->privateData->device->id, pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), ntohs(channel->rtp.audio.phone_remote.sin_port), codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat, packetSize, channel->privateData->device->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
-	
-	
 }
 
 /*!
