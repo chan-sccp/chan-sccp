@@ -9,8 +9,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date: 2011-01-23 14:04:34 +0100 (So, 23 Jan 2011) $
- * $Revision: 2294 $
+ * $Date$
+ * $Revision$
  */
 
 /*!
@@ -24,7 +24,7 @@
 #include "config.h"
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2294 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #include <math.h>
 #if ASTERISK_VERSION_NUMBER < 10400
@@ -3087,7 +3087,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 		return;
 	}
 	if (status) {
-		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call\n", DEV_ID_LOG(d));
+		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call (status: %d)\n", DEV_ID_LOG(d), status);
 		sccp_channel_endcall_locked(channel);
 		sccp_channel_unlock(channel);
 		return;
