@@ -148,7 +148,6 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk18_rtp_read(PBX_CHANNEL_TYPE * ast)
 	PBX_FRAME_TYPE *frame;
 
 	frame = &ast_null_frame;
-	// ASTERISK_VERSION_NUMBER >= 10400
 
 	if (!c || !c->rtp.audio.rtp)
 		return frame;
@@ -157,18 +156,6 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk18_rtp_read(PBX_CHANNEL_TYPE * ast)
 
 	case 0:
 		frame = ast_rtp_instance_read(c->rtp.audio.rtp, 0);		/* RTP Audio */
-		
-		if (frame->subclass.codec != ast->rawreadformat) {
-			ast_debug(1, "Oooh, format changed to %s\n", ast_getformatname(frame->subclass.codec));
-			ast->nativeformats = frame->subclass.codec;
-			ast_set_read_format(ast, frame->subclass.codec);
-		}
-		ast_set_read_format(ast, skinny_codec2pbx_codec(c->rtp.audio.readFormat));
-		ast->nativeformats = skinny_codec2pbx_codec(c->rtp.audio.readFormat);
-		
-		if((GLOB(debug) & DEBUGCAT_RTP) != 0){
-			ast_log(LOG_WARNING, "%s: Asked to read frame subclass.codec %lu, while native formats are %lu read/write = (%lu)/(%lu)\n", DEV_ID_LOG(sccp_channel_getDevice(c)), (uint64_t)frame->subclass.codec, ast->nativeformats, ast->readformat, ast->writeformat);
-		}
 		break;
 	case 1:
 		frame = ast_rtp_instance_read(c->rtp.audio.rtp, 1);		/* RTCP Control Channel */
@@ -186,6 +173,24 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk18_rtp_read(PBX_CHANNEL_TYPE * ast)
 
 	default:
 		return frame;
+	}
+	if (frame && (signed)frame->subclass.codec != (signed )(c->owner->nativeformats & AST_FORMAT_AUDIO_MASK)) {		
+		if (!(frame->subclass.codec & skinny_codecs2pbx_codecs(c->capabilities.audio))) {
+			ast_debug(1, "Bogus frame of format '%s(%d)' received from '%s'!\n", ast_getformatname(frame->subclass.codec), (int)frame->subclass.codec, c->owner->name);
+			return &ast_null_frame;
+		}
+		ast_debug(1, "Oooh, format changed to %s\n", ast_getformatname(frame->subclass.codec));
+		ast->nativeformats = (c->owner->nativeformats & (AST_FORMAT_VIDEO_MASK | AST_FORMAT_TEXT_MASK)) | frame->subclass.codec;
+		ast_set_read_format(ast, c->owner->readformat);
+		ast_set_write_format(ast, c->owner->writeformat);
+//	} else {
+//		ast_set_read_format(ast, skinny_codec2pbx_codec(c->rtp.audio.readFormat));
+//		ast_set_write_format(ast, skinny_codec2pbx_codec(c->rtp.audio.writeFormat));
+//		ast->nativeformats = skinny_codec2pbx_codec(c->rtp.audio.readFormat);
+	}
+	
+	if((GLOB(debug) & DEBUGCAT_RTP) != 0){
+		ast_log(LOG_WARNING, "%s: Asked to read frame subclass.codec %lu, while native formats are %lu read/write = (%lu)/(%lu)\n", DEV_ID_LOG(sccp_channel_getDevice(c)), (uint64_t)frame->subclass.codec, ast->nativeformats, ast->readformat, ast->writeformat);
 	}
 
 	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(sccp_channel_getDevice(c)), ast->fdno, frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
@@ -471,10 +476,12 @@ static int sccp_wrapper_asterisk18_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_T
 				}
 			} else if (!(frame->subclass.codec & ast->nativeformats)) {
 			  
-				ast_set_write_format(ast, frame->subclass.codec);
-//                              char s1[512], s2[512], s3[512];
-//
-//                              ast_log(LOG_WARNING, "%s: Asked to transmit frame type %d, while native formats are %s(%lu) read/write = %s(%lu)/%s(%lu)\n", DEV_ID_LOG(sccp_channel_getDevice(c)), frame->subclass, pbx_getformatname_multiple(s1, sizeof(s1) - 1, ast->nativeformats), ast->nativeformats, pbx_getformatname_multiple(s2, sizeof(s2) - 1, ast->readformat), (ULONG)ast->readformat, pbx_getformatname_multiple(s3, sizeof(s3) - 1, (ULONG)ast->writeformat), (ULONG)ast->writeformat);
+//				ast_set_write_format(ast, frame->subclass.codec);
+				if (c->rtp.audio.writeFormat) {
+					ast_set_write_format(ast, skinny_codec2pbx_codec(c->rtp.audio.writeFormat));
+				}
+				char s1[512], s2[512], s3[512];
+				ast_log(LOG_WARNING, "%s: Asked to transmit frame type %d, while native formats are %s(%lu) read/write = %s(%lu)/%s(%lu)\n", DEV_ID_LOG(sccp_channel_getDevice(c)), frame->frametype, pbx_getformatname_multiple(s1, sizeof(s1) - 1, ast->nativeformats), ast->nativeformats, pbx_getformatname_multiple(s2, sizeof(s2) - 1, ast->readformat), (ULONG)ast->readformat, pbx_getformatname_multiple(s3, sizeof(s3) - 1, (ULONG)ast->writeformat), (ULONG)ast->writeformat);
 				//! \todo correct debugging
 //                              ast_log(LOG_WARNING, "%s: Asked to transmit frame type %d, while native formats are %s(%lu) read/write = %s(%lu)/%s(%lu)\n", DEV_ID_LOG(sccp_channel_getDevice(c)), (int)frame->frametype, pbx_getformatname_multiple(s1, sizeof(s1) - 1, ast->nativeformats), ast->nativeformats, pbx_getformatname_multiple(s2, sizeof(s2) - 1, ast->readformat), (ULONG)ast->readformat, pbx_getformatname_multiple(s3, sizeof(s3) - 1, (ULONG)ast->writeformat), (ULONG)ast->writeformat);
 				//return -1;
@@ -1221,7 +1228,7 @@ static int sccp_wrapper_asterisk18_callerid_name(const sccp_channel_t * channel,
 
 static format_t sccp_wrapper_asterisk18_getCodec(PBX_CHANNEL_TYPE * ast)
 {
-	format_t format = 0;
+	format_t format = AST_FORMAT_ULAW;
 	sccp_channel_t 	*channel;
 	
 	if (!(channel = CS_AST_CHANNEL_PVT(ast))) {
@@ -1229,12 +1236,23 @@ static format_t sccp_wrapper_asterisk18_getCodec(PBX_CHANNEL_TYPE * ast)
 		return format;
 	}
 
-	sccp_log( (DEBUGCAT_RTP | DEBUGCAT_CODEC) ) (VERBOSE_PREFIX_3 "asterisk requests format for channel %s\n", ast->name);
-	format = skinny_codec2pbx_codec(channel->rtp.audio.readFormat);
-	
-	sccp_log((DEBUGCAT_RTP | DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: our format: %s (%d)\n", ast->name, codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat);
+	sccp_log( (DEBUGCAT_RTP | DEBUGCAT_CODEC) ) (VERBOSE_PREFIX_3 "asterisk requests format for channel %s, readFormat: %s(%d)\n", ast->name, codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat);
+/*	format = skinny_codec2pbx_codec(channel->rtp.audio.readFormat);
+//	format = skinny_codec2pbx_codec(channel->rtp.audio.writeFormat);
 
-	return format;
+	if (format) {
+		sccp_log((DEBUGCAT_RTP | DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: our format: sccp:%s(%d) => pbx:%s(%d)\n", ast->name, codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat, ast_getformatname(format), (int)format);
+		return format;
+	} else {
+		ast_log (LOG_ERROR, "SCCP: Channel %s ReadFormat %s(%d) could not be translated to viable PBX Codec \n", ast->name, codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat);
+		return format;
+	}*/
+	/* according to chan_sip, getCodec should be returning capability */
+	if (channel->remoteCapabilities.audio)
+		return skinny_codecs2pbx_codecs(channel->remoteCapabilities.audio);
+	else
+		return skinny_codecs2pbx_codecs(channel->capabilities.audio);		
+
 }
 
 /*
