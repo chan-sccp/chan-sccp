@@ -1,3 +1,84 @@
+2011-08-30  marcelloceschia
+
+	* [r2711] src/sccp_labels.h: fixes compile issue with some asterisk
+	  1.4 version
+
+	* [r2710] src/sccp_labels.h: fixes compile issue with some asterisk
+	  1.4 version
+
+	* [r2709] src/sccp_labels.h: fixes compile issue with some asterisk
+	  1.4 version
+
+	* [r2708] src/sccp_labels.h: fixes compile issue with some asterisk
+	  1.4 version (ifdef for AST_CAUSE_SUBSCRIBER_ABSENT)
+
+2011-08-29  marcelloceschia
+
+	* [r2702] src/sccp_channel.c, src/sccp_pbx.c, src/sccp_pbx.h: copy
+	  variables for transfering channel
+
+2011-08-27  ddegroot
+
+	* [r2701] conf/database_updates/migrate_to_mysql-v5.sql,
+	  conf/database_updates/update_mysql_v4.sql,
+	  conf/database_updates/update_mysql_v5.sql, conf/mysql-v4.sql,
+	  conf/mysql-v5.sql, conf/postgres.sql, conf/sqlite.sql[ADD],
+	  conf/sqlite3.sql[ADD]: Update field length for earlyrtp in
+	  default database files
+
+2011-08-23  marcelloceschia
+
+	* [r2697] src/sccp_pbx.c: remove NOTICE and WARNING debug according
+	  to #3396677
+
+2011-08-21  marcelloceschia
+
+	* [r2695] src/sccp_pbx.c: use channel name as pvt_uniqueid
+
+2011-08-20  marcelloceschia
+
+	* [r2692] src/sccp_config.c: fixes button parse exception
+
+2011-08-18  marcelloceschia
+
+	* [r2690] doc/04_Setup_Guide.doc: fixes documentation issue
+
+2011-08-13  marcelloceschia
+
+	* [r2687] src/sccp_pbx.c: add dnid information
+
+2011-08-02  ddegroot
+
+	* [r2686] conf/sccp.conf: Update sccp.conf sample file according to
+	  Marcello's comments (2-Aug-2011)
+
+	* [r2684] ChangeLog, NEWS, debian/changelog, src/config.h.in: Fixed
+	  devstate detection (update .version num)
+
+	* [r2683] .version, autoconf/extra.m4, configure, src/config.h.in:
+	  Fixed devstate detection
+
+2011-08-01  ddegroot
+
+	* [r2682] ChangeLog, NEWS, debian/changelog, src/config.h.in:
+	  Update ChangeLogs
+
+	* [r2681] Makefile.in, configure, doc/Makefile.in, src/Makefile.in,
+	  src/config.h.in: Update configure to reflect .version numbers
+
+	* [r2680] .version: Update .version numbers
+
+	* [r2679] .[CPY]: Renamed /branches/V3.0.0 to /branches/V3.0 to
+	  allow for minor number increments
+
+	* [r2675] Updated branches V3.0.0 and V3.1.0 with new asterisk
+	  version checks for configure
+
+2011-07-30  ddegroot
+
+	* [r2669] Fix devicestate.h handling for older versions of asterisk
+	  1.6.0
+
 2011-07-29  ddegroot
 
 	* [r2668] ChangeLog, src/config.h.in, src/sccp_actions.c,

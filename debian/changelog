@@ -1,3 +1,26 @@
+chan-sccp-b (3.0.0-3.4) stable; urgency=low
+
+  * Fixed/Improved:
+  *  - Small bug fixes
+  *  - Fix compile against older asterisk 1.4 versions
+
+ -- Diederik de Groot <dkgroot@sourceforge.net>  Tue, 30 Aug 2011 13:39:49 +0200
+
+chan-sccp-b (3.0.0-3.3) stable; urgency=low
+
+  * Fixed/Improved:
+  *  - Fixed devstate detection 
+
+ -- Diederik de Groot <dkgroot@sourceforge.net>  Tue, 02 Aug 2011 19:01:37 +0200
+
+chan-sccp-b (3.0.0-3.2) stable; urgency=low
+
+  * Fixed/Improved:
+  *  - bug fixes for configure when using crosscompiling
+  *  - minor bug fixes when compiling against older asterisk versions 
+
+ -- Diederik de Groot <dkgroot@sourceforge.net>  Mon, 01 Aug 2011 20:35:37 +0200
+
 chan-sccp-b (3.0.0-3.1) unstable; urgency=low
 
   * Release Candidate 3.1
