@@ -682,23 +682,30 @@ AC_DEFUN([CS_PARSE_WITH_LIBGC], [
 ])
 
 AC_DEFUN([CS_SETUP_MODULE_DIR], [
-	if test "x${prefix}" != "xNONE"; then
-	  if test "${build_cpu}" = "x86_64"; then
-		if test -d ${prefix}/lib64/asterisk/modules; then
-			csmoddir=${prefix}/lib64/asterisk/modules
-		else
-			csmoddir=${prefix}/lib/asterisk/modules
-		fi
-	  else
-		csmoddir=${prefix}/lib/asterisk/modules;
-	  fi
-	elif test -z "${csmoddir}"; then
-	   csmoddir="${DESTDIR}${PBX_MODDIR}"
-	   # directory for modules
-	   if test -z "${csmoddir}"; then
-	     # fallback to asterisk modules directory
-	     csmoddir="${PBX_LIB}/asterisk/modules"
-	   fi
-	fi
+	case "${host}" in
+        	*-*-darwin*)
+        		csmoddir='/Library/Application Support/Asterisk/Modules/modules'
+	             	;;
+           	*)
+                        if test "x${prefix}" != "xNONE"; then
+                          if test "${build_cpu}" = "x86_64"; then
+                                if test -d ${prefix}/lib64/asterisk/modules; then
+                                        csmoddir=${prefix}/lib64/asterisk/modules
+                                else
+                                        csmoddir=${prefix}/lib/asterisk/modules
+                                fi
+                          else
+                                csmoddir=${prefix}/lib/asterisk/modules;
+                          fi
+                        elif test -z "${csmoddir}"; then
+                           csmoddir="${DESTDIR}${PBX_MODDIR}"
+                           # directory for modules
+                           if test -z "${csmoddir}"; then
+                             # fallback to asterisk modules directory
+                             csmoddir="${PBX_LIB}/asterisk/modules"
+                           fi
+                        fi
+          		;;
+	esac
 	AC_SUBST([csmoddir])
 ])
