@@ -179,7 +179,9 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk18_rtp_read(PBX_CHANNEL_TYPE * ast)
 	}
 	
 	if((GLOB(debug) & DEBUGCAT_RTP) != 0){
-		ast_log(LOG_WARNING, "%s: Asked to read frame subclass.codec %lu, while native formats are %lu read/write = (%lu)/(%lu)\n", DEV_ID_LOG(sccp_channel_getDevice(c)), (uint64_t)frame->subclass.codec, ast->nativeformats, ast->readformat, ast->writeformat);
+	        if (ast->readformat != ast->writeformat) {
+		        ast_log(LOG_WARNING, "%s: Asked to read frame subclass.codec %lu, while native formats are %lu read/write = (%lu)/(%lu)\n", DEV_ID_LOG(sccp_channel_getDevice(c)), (uint64_t)frame->subclass.codec, ast->nativeformats, ast->readformat, ast->writeformat);
+		}
 	}
 
 	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(sccp_channel_getDevice(c)), ast->fdno, frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
