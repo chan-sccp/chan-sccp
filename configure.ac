@@ -3,8 +3,8 @@ dnl COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
 dnl CREATED BY: Created by Diederik de Groot
 dnl LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
 dnl          See the LICENSE file at the top of the source tree.
-dnl DATE: $Date: 2011-05-31 04:47:49 +0200 (Tue, 31 May 2011) $
-dnl REVISION: $Revision: 2591 $
+dnl DATE: $Date$
+dnl REVISION: $Revision$
 dnl NOTE: Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.53)
 AC_INIT([Chan_SCCP],
@@ -17,7 +17,6 @@ MAX_ASTERISK_VERSION=111
 AC_CONFIG_AUX_DIR([autoconf])
 AC_CONFIG_MACRO_DIR([autoconf])
 
-CS_USE_AUTCONF_CACHE
 CS_GET_VERSION([.])
 
 dnl cross-compile macros
@@ -49,7 +48,7 @@ AM_DISABLE_STATIC([])
 
 AC_CONFIG_SRCDIR([src/chan_sccp.c]) 
 AC_COPYRIGHT("Chan_SCCP")
-AC_REVISION($Revision: 2591 $) 
+AC_REVISION($Revision$) 
 
 CONFIGURE_PART([Checking build environment:])
 CS_SETUP_BUILD
@@ -114,7 +113,6 @@ dnl 	asterisk/pbx.h asterisk/acl.h asterisk/app.h asterisk/astdb.h asterisk/call
 dnl	ctype.h argz.h dirent.h dld.h dlfcn.h dl.h fcntl.h inttypes.h memory.h netinet/in.h pthread.h stdbool.h stdint.h stdlib.h strings.h string.h sys/dl.h sys/ioctl.h sys/socket.h sys/stat.h sys/types.h unistd.h signal.h 
 dnl])
 
-AC_CACHE_SAVE
 AC_OUTPUT
 
 #
