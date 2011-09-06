@@ -839,7 +839,7 @@ extern "C" {
 		sccp_featureConfiguration_t priFeature;				/*!< priority Feature */
 		sccp_featureConfiguration_t mobFeature;				/*!< priority Feature */
 #    ifdef CS_DEVSTATE_FEATURE
-		 SCCP_LIST_HEAD(, sccp_devstate_specifier_t) devstateSpecifiers;	/*!< List of Custom DeviceState entries the phone monitors. */
+		SCCP_LIST_HEAD(, sccp_devstate_specifier_t) devstateSpecifiers;	/*!< List of Custom DeviceState entries the phone monitors. */
 #    endif
 
 		char softkeyDefinition[50];					/*!< requested softKey configuration */
@@ -895,7 +895,7 @@ extern "C" {
  */
 	struct sccp_addon {
 		int type;							/*!< Add-On Type */
-		 SCCP_LIST_ENTRY(sccp_addon_t) list;				/*!< Linked List Entry for this Add-On */
+		SCCP_LIST_ENTRY(sccp_addon_t) list;				/*!< Linked List Entry for this Add-On */
 		sccp_device_t *device;						/*!< Device Associated with this Add-On */
 	};
 
@@ -995,7 +995,7 @@ extern "C" {
 			struct sccp_rtp video;					/*!< Video RTP session */
 		} rtp;
 
-		 SCCP_LIST_ENTRY(sccp_channel_t) list;				/*!< Channel Linked List */
+		SCCP_LIST_ENTRY(sccp_channel_t) list;				/*!< Channel Linked List */
 		sccp_autoanswer_type_t autoanswer_type;				/*!< Auto Answer Type */
 		uint8_t autoanswer_cause;					/*!< Auto Answer Cause */
 		boolean_t answered_elsewhere;					/*!< Answered Elsewhere */
