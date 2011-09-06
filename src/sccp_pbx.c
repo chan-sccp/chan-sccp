@@ -513,6 +513,7 @@ int sccp_pbx_answer(sccp_channel_t * c)
 			pbx_setstate(br, AST_STATE_UP);
 
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) Going to Masquerade %s into %s\n", br->name, astForwardedChannel->name);
+
 			if (pbx_channel_masquerade(astForwardedChannel, br)) {
 				pbx_log(LOG_ERROR, "(sccp_pbx_answer) Failed to masquerade bridge into forwarded channel\n");
 				return -1;
@@ -559,10 +560,12 @@ int sccp_pbx_answer(sccp_channel_t * c)
 		sccp_channel_endcall_locked(c);
 		sccp_channel_unlock(c);
 		return -1;
+
 	}
 
 	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Outgoing call has been answered %s on %s@%s-%08x\n", c->owner->name, c->line->name, DEV_ID_LOG(sccp_channel_getDevice(c)), c->callid);
 	sccp_channel_lock(c);
+	
 	sccp_channel_updateChannelCapability_locked(c);
 
 	/*! \todo This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
@@ -614,10 +617,14 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 		pbx_log(LOG_ERROR, "SCCP: Unable to allocate asterisk channel\n");
 		return 0;
 	}
-//      /* Don't hold a sccp pvt lock while we allocate a channel */
+	/* reset channel preferences/capabilities */
+	memset(c->preferences.audio,0,sizeof(c->preferences.audio));
+	memset(c->capabilities.audio,0,sizeof(c->capabilities.audio));
+
 	if (sccp_channel_getDevice(c)) {
 		sccp_linedevices_t *linedevice;
 
+		/* Don't hold a sccp pvt lock while we allocate a channel */
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 			if (linedevice->device == sccp_channel_getDevice(c))
@@ -656,6 +663,9 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 			}
 			break;
 		}
+		/* copy channel preferences/capabilities */
+		memcpy(c->preferences.audio,linedevice->device->preferences.audio,sizeof(c->preferences.audio));
+		memcpy(c->capabilities.audio,linedevice->device->capabilities.audio,sizeof(c->capabilities.audio));
 	} else {
 
 		switch (c->calltype) {
@@ -669,15 +679,52 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 			sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
 			break;
 		}
+		/* set common preferences and capabilities (in case of shared line and unknown device add all codecs from all devices)*/
+		uint8_t x,y,z;
+		z = 0;
+		sccp_linedevices_t *linedevice=NULL;        
+		boolean_t skip_codec=FALSE;
+		SCCP_LIST_LOCK(&l->devices);
+		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+			for(x=0; x < SKINNY_MAX_CAPABILITIES && linedevice->device->preferences.audio[x] != 0; x++){
+				for(y=0; y < SKINNY_MAX_CAPABILITIES && c->preferences.audio[y] != 0; y++){
+					if (c->preferences.audio[y] == linedevice->device->preferences.audio[x]) {
+						skip_codec=TRUE;
+						break;
+					}
+				}
+				if (!skip_codec) {
+					c->preferences.audio[z++] = linedevice->device->preferences.audio[x];
+				}
+			}
+			z=0;
+			for(x=0; x < SKINNY_MAX_CAPABILITIES && linedevice->device->capabilities.audio[x] != 0; x++){
+				for(y=0; y < SKINNY_MAX_CAPABILITIES && c->capabilities.audio[y] != 0; y++){
+					if (c->capabilities.audio[y] == linedevice->device->capabilities.audio[x]) {
+						skip_codec=TRUE;
+						break;
+					}
+				}
+				if (!skip_codec) {
+					c->capabilities.audio[z++] = linedevice->device->capabilities.audio[x];
+				}
+			}
+		}
+		SCCP_LIST_UNLOCK(&l->devices);
 	}
 
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:     cid_num: \"%s\"\n", c->callInfo.callingPartyNumber);
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:    cid_name: \"%s\"\n", c->callInfo.callingPartyName);
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: accountcode: \"%s\"\n", l->accountcode);
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:       exten: \"%s\"\n", c->dialedNumber);
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:     context: \"%s\"\n", l->context);
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:    amaflags: \"%d\"\n", l->amaflags);
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:   chan/call: \"%s-%08x\"\n", l->name, c->callid);
+	char pref_buf[512], cap_buf[512];
+	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
+	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, c->capabilities.audio, ARRAY_LEN(c->capabilities.audio));
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:         cid_num: \"%s\"\n", c->callInfo.callingPartyNumber);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:        cid_name: \"%s\"\n", c->callInfo.callingPartyName);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:     accountcode: \"%s\"\n", l->accountcode);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:           exten: \"%s\"\n", c->dialedNumber);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:         context: \"%s\"\n", l->context);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:        amaflags: \"%d\"\n", l->amaflags);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:       chan/call: \"%s-%08x\"\n", l->name, c->callid);
+	sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_3                   "SCCP:    preferences: %s\n", pref_buf);
+	sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_3                   "SCCO: capabilitities: %s\n", cap_buf);
 
 	/* This should definitely fix CDR */
 //      tmp = pbx_channel_alloc(1, AST_STATE_DOWN, c->callInfo.callingPartyNumber, c->callInfo.callingPartyName, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
@@ -733,6 +780,7 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 	/* asterisk needs the native formats bevore dialout, otherwise the next channel gets the whole AUDIO_MASK as requested format
 	 * chan_sip dont like this do sdp processing */
 // 	PBX(set_nativeAudioFormats)(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
+
 
 	// export sccp informations in asterisk dialplan
 	if (sccp_channel_getDevice(c)) {
