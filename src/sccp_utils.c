@@ -9,14 +9,14 @@
  * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date: 2011-02-01 17:41:24 +0100 (Di, 01. Feb 2011) $
- * $Revision: 2303 $
+ * $Date$
+ * $Revision$
  */
 
 #include "config.h"
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2303 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 /*!
  * \brief is Printable Character
