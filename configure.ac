@@ -18,7 +18,6 @@ AC_USE_SYSTEM_EXTENSIONS
 AC_CONFIG_AUX_DIR([autoconf])
 AC_CONFIG_MACRO_DIR([autoconf])
 
-CS_USE_AUTCONF_CACHE
 CS_GET_VERSION([.])
 
 dnl cross-compile macros
@@ -115,7 +114,6 @@ dnl 	asterisk/pbx.h asterisk/acl.h asterisk/app.h asterisk/astdb.h asterisk/call
 dnl	ctype.h argz.h dirent.h dld.h dlfcn.h dl.h fcntl.h inttypes.h memory.h netinet/in.h pthread.h stdbool.h stdint.h stdlib.h strings.h string.h sys/dl.h sys/ioctl.h sys/socket.h sys/stat.h sys/types.h unistd.h signal.h 
 dnl])
 
-AC_CACHE_SAVE
 AC_OUTPUT
 
 #

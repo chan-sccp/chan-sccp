@@ -1,19 +1,3 @@
-AC_DEFUN([CS_USE_AUTCONF_CACHE], [
-        cache_file="config.cache"
-        rev=`echo '$Revision: 2590 $'|sed y%\$\ :%___%`
-        if test -f $cache_file; then 
-          if test -n "`grep -q $rev $cache_file`"; then
-            rm $cache_file
-            touch $cache_file
-          else
-            AC_CACHE_LOAD
-          fi
-        else 
-          touch $cache_file
-        fi
-        AC_CACHE_CHECK([check config.cache],[cs_cv_configure_revision],[cs_cv_configure_revision=${rev}])
-])
-
 AC_DEFUN([CS_SETUP_DEFAULTS], [
 	ac_default_prefix=/usr
 	if test ${sysconfdir} = '${prefix}/etc'; then
@@ -185,7 +169,6 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_SUBST(SVN)
 	AC_SUBST(GREP)
 	AC_SUBST(RPMBUILD)
-	AC_CACHE_SAVE
 ])
 
 AC_DEFUN([CS_FIND_LIBRARIES], [
@@ -204,7 +187,6 @@ AC_DEFUN([CS_FIND_LIBRARIES], [
 	AC_CHECK_HEADERS([netinet/in.h fcntl.h])
 	AC_STRUCT_TM
 	AC_STRUCT_TIMEZONE
-	AC_CACHE_SAVE
 ])
 
 AC_DEFUN([CS_CHECK_CROSSCOMPILE],[
@@ -268,7 +250,6 @@ AC_DEFUN([CS_SETUP_LIBTOOL], [
 	  CFLAGS="$save_CFLAGS"
 	fi
 	AC_SUBST([LIBTOOL_DEPS])
-	AC_CACHE_SAVE
 ])
 
 AC_DEFUN([CS_CHECK_TYPES], [ 
@@ -335,7 +316,6 @@ AC_DEFUN([CS_CHECK_TYPES], [
 	AC_C_BIGENDIAN(AC_DEFINE([__BYTE_ORDER],__BIG_ENDIAN,[Big Endian]),AC_DEFINE([__BYTE_ORDER],__LITTLE_ENDIAN,[Little Endian]))
 	AC_DEFINE([__LITTLE_ENDIAN],1234,[for the places where it is not defined])
 	AC_DEFINE([__BIG_ENDIAN],4321,[for the places where it is not defined])
-	AC_CACHE_SAVE
 ])
 
 AC_DEFUN([CS_CHECK_SVN2CL], [
@@ -402,7 +382,6 @@ AC_DEFUN([CS_WITH_PBX], [
 	LDFLAGS_saved="$LDFLAGS"
 	AC_SUBST([PBX_PATH])
 	PBX_MANDATORY="yes"
-	AC_CACHE_SAVE
 	
 	CS_CHECK_PBX
 
@@ -427,7 +406,6 @@ AC_DEFUN([CS_WITH_PBX], [
 	fi
 	AST_SET_PBX_AMCONDITIONALS
 	AC_SUBST([PBX_TYPE])
-	AC_CACHE_SAVE
 ])
 
 AC_DEFUN([CS_SETUP_DOXYGEN], [
@@ -656,7 +634,6 @@ AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_DISABLE_DYNAMIC_SPEEDDIAL_CID
 	CS_ENABLE_VIDEO
 	CS_DISABLE_DYNAMIC_CONFIG
-	AC_CACHE_SAVE
 ])
 
 AC_DEFUN([CS_PARSE_WITH_LIBGC], [
