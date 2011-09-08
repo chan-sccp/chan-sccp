@@ -115,6 +115,7 @@ const char *codec2name(uint32_t value);
 char *sccp_multiple_codecs2str(char *buf, size_t size, skinny_codec_t * codecs, int length);
 int sccp_parse_allow_disallow(skinny_codec_t * sccp_codecs, skinny_codec_t * mask, const char *list, int allowing);
 const char *skinny_ringermode2str(uint8_t type);
+int copy_capable_preferences(skinny_codec_t preferences[SKINNY_MAX_CAPABILITIES], uint8_t preferences_size, skinny_codec_t capabilities[SKINNY_MAX_CAPABILITIES], uint8_t capabilities_size, skinny_codec_t capable_preferences[SKINNY_MAX_CAPABILITIES], uint8_t capable_preferences_size);
 const char *array2str(uint8_t type, uint32_t value);
 boolean_t sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t lenght);
 const char *sccp_channel_toString(sccp_channel_t *c);

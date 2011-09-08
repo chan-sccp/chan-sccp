@@ -1662,35 +1662,21 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_device_t * d, sccp_mo
 		d->capabilities.audio[i] = codec;
 		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s\n", d->id, codec, codec2str(codec));
 	}
-	
 
-//	if((d->preferences.audio[0] == SKINNY_CODEC_NONE)){	// prevent assignment by reversing order
 	if((SKINNY_CODEC_NONE == d->preferences.audio[0])){
 		/* we have no preferred codec, use capabilities -MC*/
 		memcpy(&d->preferences.audio, &d->capabilities.audio, sizeof(d->preferences.audio));
 	} else {
-		/* reduce preferences by capabiltities */
-		skinny_codec_t temp_audio[SKINNY_MAX_CAPABILITIES];
-		memcpy(temp_audio, d->preferences.audio, sizeof(d->preferences.audio));
-		memset(d->preferences.audio,0,sizeof(d->preferences.audio));
-		uint8_t x,y,z;
-		z = 0;
-		for(x=0; x < SKINNY_MAX_CAPABILITIES && temp_audio[x] != 0; x++){
-			for(y=0; y < SKINNY_MAX_CAPABILITIES && d->capabilities.audio[y] != 0; y++){
-				if (temp_audio[x] == d->capabilities.audio[y]) {
-					d->preferences.audio[z++]=d->capabilities.audio[y];
-					sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: Capable Preferred Codec %d\n", d->id, d->preferences.audio[z-1]);
-					break;
-				}
-			}
-		}
+		/* copy only capable preferences from config_preferences */
+		memset(&d->preferences.audio, 0, sizeof(d->preferences.audio));
+		copy_capable_preferences(d->config_preferences.audio, ARRAY_LEN(d->config_preferences.audio), d->capabilities.audio, ARRAY_LEN(d->capabilities.audio), d->preferences.audio, ARRAY_LEN(d->preferences.audio));
 	}
 	char cap_buf[512], pref_buf[512];
 
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: capabilities: %s\n", d->id, cap_buf);
 	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: new prefereneces: %s\n", d->id, pref_buf);
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: new preferences: %s\n", d->id, pref_buf);
 }
 
 /*!
