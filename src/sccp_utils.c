@@ -1182,6 +1182,28 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, skinny_codec_
 }
 
 /*!
+ * reduce preferences by capabiltities 
+ */
+int copy_capable_preferences(skinny_codec_t preferences[SKINNY_MAX_CAPABILITIES], uint8_t preferences_size, skinny_codec_t capabilities[SKINNY_MAX_CAPABILITIES], uint8_t capabilities_size, skinny_codec_t capable_preferences[SKINNY_MAX_CAPABILITIES], uint8_t capable_preferences_size) {
+	if (SKINNY_CODEC_NONE==preferences[0] || SKINNY_CODEC_NONE==capabilities[0]) {
+		return 0;
+	}
+	memset(capable_preferences,0,sizeof(preferences));
+	uint8_t x,y;
+	capable_preferences_size = 0;
+	for(x=0; x < SKINNY_MAX_CAPABILITIES && preferences[x] != 0; x++){
+		for(y=0; y < SKINNY_MAX_CAPABILITIES && capabilities[y] != 0; y++){
+			if (preferences[x] == capabilities[y]) {
+				capable_preferences[capable_preferences_size++]=capabilities[y];
+				sccp_log((DEBUGCAT_CODEC & DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "SCCP: Capable Preferred Codec %d\n", capable_preferences[capable_preferences_size-1]);
+				break;
+			}
+		}
+	}
+	return 1;
+}
+
+/*!
  * \brief Convert SCCP/Skinny Types 2 String
  * \param type 	SCCP/Skinny Type
  * \param value SCCP/Skinny Value

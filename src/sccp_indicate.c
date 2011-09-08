@@ -8,14 +8,14 @@
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note 	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *
- * $Date: 2011-01-12 02:42:50 +0100 (Mi, 12 Jan 2011) $
- * $Revision: 2235 $
+ * $Date$
+ * $Revision$
  */
 
 #include "config.h"
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2235 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function);
 
@@ -232,9 +232,6 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 			}
 
 		}
-		
-		
-		
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGIN);
 		
 		char prompt[50];

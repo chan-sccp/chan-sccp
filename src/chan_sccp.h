@@ -742,12 +742,17 @@ extern "C" {
 		} capabilities;
 
 		struct {
-			skinny_codec_t audio[SKINNY_MAX_CAPABILITIES];		/*!< SCCP Audio Codec Preferences */
-			skinny_codec_t video[SKINNY_MAX_CAPABILITIES];		/*!< SCCP Video Codec Preferences */
+			skinny_codec_t audio[SKINNY_MAX_CAPABILITIES];		/*!< SCCP Audio Codec Preferences from sccp.conf */
+			skinny_codec_t video[SKINNY_MAX_CAPABILITIES];		/*!< SCCP Video Codec Preferences from sccp.conf */
+		} config_preferences;
+
+		struct {
+			skinny_codec_t audio[SKINNY_MAX_CAPABILITIES];		/*!< SCCP Audio Codec Preferences after capabilities are known */
+			skinny_codec_t video[SKINNY_MAX_CAPABILITIES];		/*!< SCCP Video Codec Preferences after capabilities are known */
 		} preferences;
 
 //		uint8_t earlyrtp;						/*!< RTP Channel State where to open the RTP Media Stream */
-		sccp_channelState_t earlyrtp;						/*!< RTP Channel State where to open the RTP Media Stream */
+		sccp_channelState_t earlyrtp;					/*!< RTP Channel State where to open the RTP Media Stream */
 		uint8_t protocolversion;					/*!< Skinny Supported Protocol Version */
 		uint8_t inuseprotocolversion;					/*!< Skinny Used Protocol Version */
 		int keepalive;							/*!< Station Specific Keepalive Timeout */
@@ -762,7 +767,7 @@ extern "C" {
 		boolean_t meetme;						/*!< Meetme on/off */
 		char meetmeopts[SCCP_MAX_CONTEXT];				/*!< Meetme Options to be Used */
 
-		sccp_lampMode_t mwilamp;						/*!< MWI/Lamp to indicate MailBox Messages */
+		sccp_lampMode_t mwilamp;					/*!< MWI/Lamp to indicate MailBox Messages */
 		boolean_t mwioncall;						/*!< MWI On Call Support (Boolean, default=on) */
 		boolean_t softkeysupport;					/*!< Soft Key Support (Boolean, default=on) */
 		uint32_t mwilight;						/*!< MWI/Light bit field to to store mwi light for each line and device (offset 0 is current device state) */

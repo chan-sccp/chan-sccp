@@ -375,8 +375,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 {
 	sccp_device_t *d;
 	sccp_line_t *l;
-	char pref_buf[256];
-	char cap_buf[512];
+	char pref_buf[512], config_pref_buf[512], cap_buf[512];
 	PBX_VARIABLE_TYPE *v = NULL;
 	sccp_linedevices_t *linedevice;
 	int local_total=0;
@@ -399,6 +398,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	}
 	sccp_device_lock(d);
 
+	sccp_multiple_codecs2str(config_pref_buf, sizeof(config_pref_buf) - 1, d->config_preferences.audio, ARRAY_LEN(d->config_preferences.audio));
 	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
 
@@ -425,7 +425,8 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("Image Version", 		CLI_AMI_LIST_WIDTH,	"%s",	 	d->imageversion);
 	CLI_AMI_OUTPUT_PARAM("Timezone Offset", 	CLI_AMI_LIST_WIDTH,	"%d",	 	d->tz_offset);
 	CLI_AMI_OUTPUT_PARAM("Capabilities", 		CLI_AMI_LIST_WIDTH,	"%s",	 	cap_buf);
-	CLI_AMI_OUTPUT_PARAM("Codecs preference", 	CLI_AMI_LIST_WIDTH,	"%s",	 	pref_buf);
+	CLI_AMI_OUTPUT_PARAM("Config Preferences", 	CLI_AMI_LIST_WIDTH,	"%s",	 	config_pref_buf);
+	CLI_AMI_OUTPUT_PARAM("Capable Preferences", 	CLI_AMI_LIST_WIDTH,	"%s",	 	pref_buf);
 	CLI_AMI_OUTPUT_PARAM("Audio TOS", 		CLI_AMI_LIST_WIDTH,	"%d",	 	d->audio_tos);
 	CLI_AMI_OUTPUT_PARAM("Audio COS", 		CLI_AMI_LIST_WIDTH,	"%d",	 	d->audio_cos);
 	CLI_AMI_OUTPUT_PARAM("Video TOS", 		CLI_AMI_LIST_WIDTH,	"%d",	 	d->video_tos);
