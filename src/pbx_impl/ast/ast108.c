@@ -178,7 +178,7 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk18_rtp_read(PBX_CHANNEL_TYPE * ast)
 // // 		ast_set_write_format(ast, ast->writeformat);
 // 	}
 
-	if(frame->subclass.codec != skinny_codec2pbx_codecs(c->rtp.audio.readFormat)){
+	if(ast->readformat != skinny_codec2pbx_codecs(c->rtp.audio.readFormat)){
 		PBX(rtp_setReadFormat)(c, c->rtp.audio.readFormat);
 	}
 	
@@ -459,8 +459,8 @@ static int sccp_wrapper_asterisk18_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_T
 //				ast_log(LOG_WARNING, "%s: Asked to transmit frame type %d, while native formats are %s(%lu) read/write = %s(%lu)/%s(%lu)\n", DEV_ID_LOG(sccp_channel_getDevice(c)), frame->frametype, pbx_getformatname_multiple(s1, sizeof(s1) - 1, ast->nativeformats), ast->nativeformats, pbx_getformatname_multiple(s2, sizeof(s2) - 1, ast->readformat), (ULONG)ast->readformat, pbx_getformatname_multiple(s3, sizeof(s3) - 1, (ULONG)ast->writeformat), (ULONG)ast->writeformat);
 				//return -1;
 			}
-			if(frame->subclass.codec != skinny_codec2pbx_codecs(c->rtp.audio.writeFormat)){
-				PBX(rtp_setReadFormat)(c, c->rtp.audio.writeFormat);
+			if(ast->writeformat != skinny_codec2pbx_codecs(c->rtp.audio.writeFormat)){
+				PBX(rtp_setWriteFormat)(c, c->rtp.audio.writeFormat);
 			}
 			
 			if (c->rtp.audio.rtp) {
