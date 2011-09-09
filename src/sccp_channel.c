@@ -144,9 +144,16 @@ void sccp_channel_setDevice(sccp_channel_t *channel, const sccp_device_t *device
  * \param channel a *locked* SCCP Channel
  * 
  */
-static void sccp_channel_recalculateReadformat(sccp_channel_t *channel)
-{
+static void sccp_channel_recalculateReadformat(sccp_channel_t *channel){
+  
 	pbx_log(LOG_NOTICE, "readState %d\n", channel->rtp.audio.readState);
+	if(channel->rtp.audio.writeState != SCCP_RTP_STATUS_INACTIVE && channel->rtp.audio.writeFormat != SKINNY_CODEC_NONE){
+		pbx_log(LOG_NOTICE, "we already have a write format, dont change codec\n");
+		channel->rtp.audio.readFormat = channel->rtp.audio.writeFormat;
+		return;
+	}
+  
+	
 	
 	/* check if remote set a preferred formate that is compatible */
 	if( (channel->rtp.audio.readState == SCCP_RTP_STATUS_INACTIVE) 
@@ -156,21 +163,16 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t *channel)
 		channel->rtp.audio.readFormat = sccp_utils_findBestCodec(channel->preferences.audio, ARRAY_LEN(channel->preferences.audio), channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio), channel->remoteCapabilities.audio, ARRAY_LEN(channel->remoteCapabilities.audio));
 		
 		if(channel->rtp.audio.readFormat == SKINNY_CODEC_NONE){
+			channel->rtp.audio.readFormat = SKINNY_CODEC_G711_ULAW_64K;
 			
-			if(channel->capabilities.audio[0] != SKINNY_CODEC_NONE){
-				channel->rtp.audio.readFormat = SKINNY_CODEC_G711_ULAW_64K;
-			}
 			char s1[512];
 			pbx_log(LOG_NOTICE, "can not calculate readFormat, fall back to %s (%d)\n", sccp_multiple_codecs2str(s1, sizeof(s1) - 1, &channel->rtp.audio.readFormat, 1), channel->rtp.audio.readFormat);
-		} else {
-			if (sccp_utils_isCodecCompatible(channel->rtp.audio.readFormat, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio))) {
-				channel->rtp.audio.readState = SCCP_RTP_STATUS_REQUESTED;
-			}
 		}
+		
+		PBX(rtp_setReadFormat)(channel, channel->rtp.audio.readFormat);
 	}
 	char s1[512], s2[512], s3[512],s4[512];
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: SCCP/%s-%08x, \n        - capabilities: %s \n        - preferences: %s \n        - remote caps: %s \n        - READ: %s\n",
-				DEV_ID_LOG(sccp_channel_getDevice(channel)) ? DEV_ID_LOG(sccp_channel_getDevice(channel)) : "SCCP",
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, \ncapabilities: %s \npreferences: %s \nremote caps: %s \nREAD: %s\n",
 				channel->line->name, 
 				channel->callid, 
 				sccp_multiple_codecs2str(s1, sizeof(s1) - 1, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio)), 
@@ -185,31 +187,38 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t *channel)
  * \param channel a *locked* SCCP Channel
  * 
  */
-static void sccp_channel_recalculateWriteformat(sccp_channel_t *channel)
-{
+static void sccp_channel_recalculateWriteformat(sccp_channel_t *channel){
 	pbx_log(LOG_NOTICE, "writeState %d\n", channel->rtp.audio.writeState);
+  
+	if(channel->rtp.audio.readState != SCCP_RTP_STATUS_INACTIVE && channel->rtp.audio.readFormat != SKINNY_CODEC_NONE){
+		pbx_log(LOG_NOTICE, "we already have a read format, dont change codec\n");
+		channel->rtp.audio.writeFormat = channel->rtp.audio.readFormat;
+		return;
+	}
+  
+	
   
 	/* check if remote set a preferred formate that is compatible */
 	if ((channel->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) 
 	  || !sccp_utils_isCodecCompatible(channel->rtp.audio.writeFormat, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio))
 	) {
 		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: recalculateWriteformat\n", DEV_ID_LOG(sccp_channel_getDevice(channel)));
+		
 		channel->rtp.audio.writeFormat = sccp_utils_findBestCodec(channel->preferences.audio, ARRAY_LEN(channel->preferences.audio), channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio), channel->remoteCapabilities.audio, ARRAY_LEN(channel->remoteCapabilities.audio));
+		
 		if(channel->rtp.audio.writeFormat == SKINNY_CODEC_NONE){
 			channel->rtp.audio.writeFormat = SKINNY_CODEC_G711_ULAW_64K;
+			
 			char s1[512];
 			pbx_log(LOG_NOTICE, "can not calculate writeFormat, fall back to %s (%d)\n", sccp_multiple_codecs2str(s1, sizeof(s1) - 1, &channel->rtp.audio.writeFormat, 1), channel->rtp.audio.writeFormat);
-		} else {
-			if (sccp_utils_isCodecCompatible(channel->rtp.audio.writeFormat, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio))) {
-				channel->rtp.audio.writeState = SCCP_RTP_STATUS_REQUESTED;
-			}
-		}
+		} 
+		
+		PBX(rtp_setWriteFormat)(channel, channel->rtp.audio.writeFormat);
 	}else{
 		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: audio.writeState already active %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), channel->rtp.audio.writeState);
 	}
 	char s1[512], s2[512], s3[512],s4[512];
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: SCCP/%s-%08x, \n        - capabilities: %s \n        - preferences: %s \n        - remote caps: %s \n        - WRITE: %s\n",
-				DEV_ID_LOG(sccp_channel_getDevice(channel)) ? DEV_ID_LOG(sccp_channel_getDevice(channel)) : "SCCP",
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, \ncapabilities: %s \npreferences: %s \nremote caps: %s \n\tWRITE: %s\n",
 				channel->line->name, 
 				channel->callid, 
 				sccp_multiple_codecs2str(s1, sizeof(s1) - 1, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio)), 
@@ -526,7 +535,8 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t *channel)
 
 	d = channel->privateData->device;
 
-	sccp_channel_recalculateWriteformat(channel);
+	/* calculating format at this point doesn work, because asterisk needs a nativeformat to be set before dial */
+	//sccp_channel_recalculateWriteformat(channel);
 	
 
 	packetSize = 20; /** \todo calculate packetSize */
@@ -548,7 +558,6 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t *channel)
 		return;
 	}
 	
-//	find_best_codec
 	if (channel->owner) {
 		PBX(set_nativeAudioFormats)(channel, &channel->rtp.audio.writeFormat, 1);
 		PBX(rtp_setWriteFormat) (channel, channel->rtp.audio.writeFormat);
@@ -966,11 +975,11 @@ void sccp_channel_startmediatransmission(sccp_channel_t *channel)
 	}
 	
 	
-	sccp_channel_recalculateReadformat(channel);
+// 	sccp_channel_recalculateReadformat(channel);
 	packetSize = 20;
 	
 	if (channel->owner) {
- 		PBX(set_nativeAudioFormats)(channel, &channel->rtp.audio.readFormat, 1); 
+		PBX(set_nativeAudioFormats)(channel, &channel->rtp.audio.readFormat, 1);
 		PBX(rtp_setReadFormat) (channel, channel->rtp.audio.readFormat);
 	}
 
@@ -1396,11 +1405,11 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * channel
 		d = device;
 	}
 	//channel->privateData->device = d;
-	/*! update real preferences and capabilities by device */
 	sccp_channel_setDevice(channel, d);
 
+
 // 	//! \todo move this to openreceive- and startmediatransmission (we do calc in openreceiv and startmedia, so check if we can remove)
- 	sccp_channel_updateChannelCapability_locked(channel);
+	sccp_channel_updateChannelCapability_locked(channel);
 
 	/* answering an incoming call */
 	/* look if we have a call to put on hold */
@@ -1434,20 +1443,21 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * channel
 	SCCP_LIST_UNLOCK(&channel->line->channels);
 	/* */
     
-	/** set called party name */
-	sccp_linedevices_t *linedevice = sccp_util_getDeviceConfiguration(device, channel->line);
-	if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
-		sprintf(channel->callInfo.calledPartyNumber, "%s%s", channel->line->cid_num, linedevice->subscriptionId.number);
-	} else {
-		sprintf(channel->callInfo.calledPartyNumber, "%s%s", channel->line->cid_num, (channel->line->defaultSubscriptionId.number) ? channel->line->defaultSubscriptionId.number : "");
-	}
+    /** set called party name */
+    sccp_linedevices_t *linedevice = sccp_util_getDeviceConfiguration(device, channel->line);
+    if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
+        sprintf(channel->callInfo.calledPartyNumber, "%s%s", channel->line->cid_num, linedevice->subscriptionId.number);
+    } else {
+        sprintf(channel->callInfo.calledPartyNumber, "%s%s", channel->line->cid_num, (channel->line->defaultSubscriptionId.number) ? channel->line->defaultSubscriptionId.number : "");
+    }
 
-	if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
-		sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, linedevice->subscriptionId.name);
-	} else {
-		sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
-	}
-	/* done */
+    if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
+        sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, linedevice->subscriptionId.name);
+    } else {
+        sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
+    }
+    
+    /* done */
     
 
 	sccp_channel_set_active(d, channel);
@@ -1674,7 +1684,8 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t *channel, 
 	sccp_channel_setDevice(channel, d);
 
 	//! \todo move this to openreceive- and startmediatransmission
- 	sccp_channel_updateChannelCapability_locked(channel);
+	sccp_channel_updateChannelCapability_locked(channel);
+	
 
 	channel->state = SCCP_CHANNELSTATE_HOLD;
 	sccp_rtp_createAudioServer(channel);

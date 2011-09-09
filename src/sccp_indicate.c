@@ -232,6 +232,9 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 			}
 
 		}
+		
+		
+		
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGIN);
 		
 		char prompt[50];
