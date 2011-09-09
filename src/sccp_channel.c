@@ -1404,7 +1404,7 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * channel
 		}
 		d = device;
 	}
-	//channel->privateData->device = d;
+
 	sccp_channel_setDevice(channel, d);
 
 
@@ -1443,21 +1443,21 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * channel
 	SCCP_LIST_UNLOCK(&channel->line->channels);
 	/* */
     
-    /** set called party name */
-    sccp_linedevices_t *linedevice = sccp_util_getDeviceConfiguration(device, channel->line);
-    if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
-        sprintf(channel->callInfo.calledPartyNumber, "%s%s", channel->line->cid_num, linedevice->subscriptionId.number);
-    } else {
-        sprintf(channel->callInfo.calledPartyNumber, "%s%s", channel->line->cid_num, (channel->line->defaultSubscriptionId.number) ? channel->line->defaultSubscriptionId.number : "");
-    }
+	/** set called party name */
+	sccp_linedevices_t *linedevice = sccp_util_getDeviceConfiguration(device, channel->line);
+	if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
+	    sprintf(channel->callInfo.calledPartyNumber, "%s%s", channel->line->cid_num, linedevice->subscriptionId.number);
+	} else {
+	    sprintf(channel->callInfo.calledPartyNumber, "%s%s", channel->line->cid_num, (channel->line->defaultSubscriptionId.number) ? channel->line->defaultSubscriptionId.number : "");
+	}
 
-    if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
-        sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, linedevice->subscriptionId.name);
-    } else {
-        sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
-    }
+	if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
+	    sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, linedevice->subscriptionId.name);
+	} else {
+	    sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
+	}
     
-    /* done */
+	/* done */
     
 
 	sccp_channel_set_active(d, channel);
