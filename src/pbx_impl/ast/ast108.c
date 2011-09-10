@@ -178,13 +178,27 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk18_rtp_read(PBX_CHANNEL_TYPE * ast)
 // // 		ast_set_write_format(ast, ast->writeformat);
 // 	}
 
-	if (frame->frametype == AST_FRAME_VOICE) {
-		if (frame->subclass.codec != ast->readformat) {
-			sccp_log(1)(VERBOSE_PREFIX_3 "%s Oooh, format changed to %s\n", ast->name, ast_getformatname(frame->subclass.codec));
-		
-			ast->nativeformats = ast->rawreadformat = frame->subclass.codec;
-			ast_set_read_format(ast, ast->readformat);
+// 	if (frame->frametype == AST_FRAME_VOICE) {
+// 		if (frame->subclass.codec != ast->readformat) {
+// 			sccp_log(1)(VERBOSE_PREFIX_3 "%s Oooh, format changed to %s\n", ast->name, ast_getformatname(frame->subclass.codec));
+// 		
+// 			ast->rawreadformat = frame->subclass.codec;
+// 			ast_set_read_format(ast, ast->readformat);
+// 		}
+// 	}
+	if(frame->frametype == AST_FRAME_VOICE && ast->readformat != skinny_codec2pbx_codec(c->rtp.audio.readFormat)){
+		sccp_log(1)(VERBOSE_PREFIX_3 "%s force read format trancoding\n", ast->name);
+		/* force asterisk to create a new translation path */
+		uint64_t oldnativeformats = ast->nativeformats;
+		if(ast->readtrans){
+			ast_translator_free_path(ast->readtrans);
+			ast->readtrans = NULL;
 		}
+		ast->nativeformats = skinny_codec2pbx_codec(c->rtp.audio.readFormat);
+		ast->rawreadformat = skinny_codec2pbx_codec(c->rtp.audio.readFormat);
+		ast_set_write_format(ast, ast->readformat);
+		ast->nativeformats = oldnativeformats;
+		return &ast_null_frame;
 	}
 	
 	
@@ -465,8 +479,20 @@ static int sccp_wrapper_asterisk18_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_T
 //				ast_log(LOG_WARNING, "%s: Asked to transmit frame type %d, while native formats are %s(%lu) read/write = %s(%lu)/%s(%lu)\n", DEV_ID_LOG(sccp_channel_getDevice(c)), frame->frametype, pbx_getformatname_multiple(s1, sizeof(s1) - 1, ast->nativeformats), ast->nativeformats, pbx_getformatname_multiple(s2, sizeof(s2) - 1, ast->readformat), (ULONG)ast->readformat, pbx_getformatname_multiple(s3, sizeof(s3) - 1, (ULONG)ast->writeformat), (ULONG)ast->writeformat);
 				//return -1;
 			}
-			if(ast->writeformat != skinny_codec2pbx_codec(c->rtp.audio.writeFormat)){
-				PBX(rtp_setWriteFormat)(c, c->rtp.audio.writeFormat);
+			if(frame->subclass.codec != skinny_codec2pbx_codec(c->rtp.audio.writeFormat)){
+				sccp_log(1)(VERBOSE_PREFIX_3 "%s force write format trancoding\n", ast->name);
+				
+				/* force asterisk to create a new translation path */
+				uint64_t oldnativeformats = ast->nativeformats;
+				if(ast->writetrans){
+					ast_translator_free_path(ast->writetrans);
+					ast->writetrans = NULL;
+				}
+				ast->nativeformats = skinny_codec2pbx_codec(c->rtp.audio.writeFormat);
+				ast->rawwriteformat = skinny_codec2pbx_codec(c->rtp.audio.writeFormat);
+				ast_set_write_format(ast, ast->writeformat);
+				ast->nativeformats = oldnativeformats;
+				return ast_rtp_instance_write(c->rtp.audio.rtp,  &ast_null_frame);
 			}
 			
 			if (c->rtp.audio.rtp) {
@@ -1315,12 +1341,12 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(const sccp_channel_t *
 	uint8_t i;
 
 	/* add payload mapping for skinny codecs */
-	for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
-		/* add audio codecs only */
-		if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == SKINNY_CODEC_TYPE_AUDIO) {
-			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, "audio", (char *)skinny_codecs[i].mimesubtype, 0, skinny_codecs[i].sample_rate);
-		}
-	}
+// 	for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
+// 		/* add audio codecs only */
+// 		if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == SKINNY_CODEC_TYPE_AUDIO) {
+// 			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, "audio", (char *)skinny_codecs[i].mimesubtype, 0, skinny_codecs[i].sample_rate);
+// 		}
+// 	}
 
 	return TRUE;
 }
