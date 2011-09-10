@@ -13,14 +13,14 @@
  *   		Relationships: 	SCCP Device -> SCCP DeviceLine -> SCCP Line
  *   			 	SCCP Line -> SCCP ButtonConfig -> SCCP Device
  *
- * \date        $Date: 2011-01-17 15:39:57 +0100 (Mo, 17 Jan 2011) $
- * \version     $Revision: 2269 $
+ * \date        $Date$
+ * \version     $Revision$
  */
 
 #include "config.h"
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2269 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 static void sccp_device_old_indicate_remoteHold(const sccp_device_t *device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy);
 static void sccp_device_new_indicate_remoteHold(const sccp_device_t *device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy);
@@ -369,21 +369,14 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 	case SKINNY_DEVICETYPE_CISCO7941GE:
 	case SKINNY_DEVICETYPE_CISCO7942:
 	case SKINNY_DEVICETYPE_CISCO7945:
-		(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-		(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+		for (i = 0; i < 2 + sccp_addons_taps(d); i++)
+			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+		break;
 		break;
 	case SKINNY_DEVICETYPE_CISCO7920:
 	case SKINNY_DEVICETYPE_CISCO7921:
 	case SKINNY_DEVICETYPE_CISCO7925:
 		for (i = 0; i < 6; i++)
-			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-		break;
-	case SKINNY_DEVICETYPE_CISCO8941:
-	case SKINNY_DEVICETYPE_CISCO8945:
-		d->capabilities.video[0] = SKINNY_CODEC_H264;
-		d->capabilities.video[1] = SKINNY_CODEC_H263;
-		
-		for (i = 0; i < 4; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 		break;
 	case SKINNY_DEVICETYPE_CISCO7985:
@@ -430,6 +423,13 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 		(btn++)->type = SCCP_BUTTONTYPE_LINE;
 		for (i = 0; i < 4; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+		break;
+	case SKINNY_DEVICETYPE_CISCO8941:
+	case SKINNY_DEVICETYPE_CISCO8945:
+		d->capabilities.video[0] = SKINNY_CODEC_H264;
+		d->capabilities.video[1] = SKINNY_CODEC_H263;
+		for (i = 0; i < 4; i++)
+			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 		break;
 	default:
 		/* at least one line */
