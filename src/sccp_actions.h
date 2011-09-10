@@ -9,8 +9,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * 
- * $Date: 2011-01-02 13:36:00 +0100 (So, 02 Jan 2011) $
- * $Revision: 2209 $
+ * $Date$
+ * $Revision$
  */
 
 #ifndef __SCCP_ACTIONS_H
@@ -21,7 +21,7 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_device_t * d, 
 void sccp_handle_alarm(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
-void sccp_handle_SPAregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
+void sccp_handle_SCPCregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_unregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);

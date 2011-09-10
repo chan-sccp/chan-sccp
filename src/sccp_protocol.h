@@ -8,6 +8,8 @@
  *        	Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
+ * 
+ * \note 	Thank you Federico Santulli for SPCP support
  *
  * $Date$
  * $Revision$  
@@ -650,6 +652,7 @@ static const struct skinny_alarm {
 /* SPA Devices */
 #    define SKINNY_DEVICETYPE_SPA_521S			80000			/*!< SPA 521G */
 #    define SKINNY_DEVICETYPE_SPA_525G                  80005			/*!< SPA 525G */
+#    define SKINNY_DEVICETYPE_SPA_525G2			80009			/*!< SPA 525G2 */
 
 /* Extension Modules */
 #    define SKINNY_DEVICETYPE_CISCO7914 		124			/*!< Expansion module */
@@ -760,7 +763,10 @@ static const struct skinny_devicetype {
 	{SKINNY_DEVICETYPE_CISCO8945, "Cisco 8945"},
 	{SKINNY_DEVICETYPE_CISCO8961, "Cisco 896"},
 	
+	/* SPA devices */
 	{SKINNY_DEVICETYPE_SPA_521S, "Cisco SPA 521SG"},
+	{SKINNY_DEVICETYPE_SPA_525G, "Cisco SPA 525G"},
+	{SKINNY_DEVICETYPE_SPA_525G2, "Cisco SPA 525G2"},
 	
 	/* *INDENT-ON* */
 };
@@ -1459,8 +1465,12 @@ typedef enum {
 	ExtensionDeviceCaps = 0x0159,
 	XMLAlarmMessage = 0x015A,
 
-	/* SPA client -> server */
-	SPARegisterMessage = 0x8000,
+	/* SPCP client -> server */
+	SPCPRegisterMessage = 0x8000,
+	
+	/* SPCP server -> client */
+	SPCPRegisterTokenAck = 0x8100,
+	SPCPRegisterTokenReject = 0x8101,                                   
 } sccp_message_t;								/*!< SCCP Message Types Enum */
 
 /*!
@@ -1619,7 +1629,9 @@ static const struct sccp_messagetype {
 	{StartMediaTransmissionAck, "Start Media Transmission Acknowledge"},
 	{ExtensionDeviceCaps, "Extension Device Capabilities Message"},
 	{XMLAlarmMessage, "XML-AlarmMessage"},
-	{SPARegisterMessage, "SPA RegisterMessage (SPCP Protocol)"},
+	{SPCPRegisterMessage, "SCPA RegisterMessage"},
+	{SPCPRegisterTokenAck, "SCPA RegisterMessageACK"},
+	{SPCPRegisterTokenReject, "SCPA RegisterMessageReject"},
 	/* *INDENT-ON* */
 };
 
@@ -3549,7 +3561,15 @@ typedef union {
 		uint32_t lel_stationIpAddr;					/*!< Station IP Address */
 		uint32_t lel_deviceType;					/*!< Device Type as part of SKINNY_DEVICETYPE_* */
 		uint32_t maxStreams;						/*!< Max Streams */
-	} SPARegisterMessage;
+	} SPCPRegisterMessage;
+	
+	struct {
+		uint32_t lel_features;
+	} SPCPRegisterTokenAck;
+
+	struct {
+		uint32_t lel_features;
+	} SPCPRegisterTokenReject;
 
 } sccp_data_t;									/*!< SCCP Data Structure */
 
