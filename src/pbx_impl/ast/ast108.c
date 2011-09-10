@@ -178,9 +178,15 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk18_rtp_read(PBX_CHANNEL_TYPE * ast)
 // // 		ast_set_write_format(ast, ast->writeformat);
 // 	}
 
-	if(ast->readformat != skinny_codec2pbx_codec(c->rtp.audio.readFormat)){
-		PBX(rtp_setReadFormat)(c, c->rtp.audio.readFormat);
+	if (f->frametype == AST_FRAME_VOICE) {
+		if (f->subclass.codec != ast->nativeformats) {
+			sccp_log(1)(VERBOSE_PREFIX_3 "%s Oooh, format changed to %s\n", ast->name, ast_getformatname(f->subclass.codec));
+		
+			ast->nativeformats = ast->rawreadformat = f->subclass.codec;
+			ast_set_read_format(ast, ast->readformat);
+		}
 	}
+	
 	
 	if((GLOB(debug) & DEBUGCAT_RTP) != 0){
 	        if (ast->readformat != ast->writeformat) {
