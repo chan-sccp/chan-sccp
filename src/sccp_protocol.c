@@ -496,10 +496,15 @@ static const sccp_deviceProtocol_t *spcpProtocolDefinition[] = {
 };
 
 uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type){
-	if(type == 0)
+	switch(type){
+	
+	  case SCCP_PROTOCOL:
 		return ARRAY_LEN(sccpProtocolDefinition) - 1;
-	else
+	  case SPCP_PROTOCOL:
 		return ARRAY_LEN(spcpProtocolDefinition) - 1;
+	  default:
+		return 0;
+	}
 }
 
 /*!
@@ -519,16 +524,18 @@ const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(const sccp_device_t
 		protocolArraySize = ARRAY_LEN(sccpProtocolDefinition);
 		protocolDef = sccpProtocolDefinition;
 		returnProtocol=3;				// setting minimally returned protocol
+		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "SCCP: searching for our capability for device protocol SCCP\n");
 	} else {
 		protocolArraySize = ARRAY_LEN(spcpProtocolDefinition);
 		protocolDef = spcpProtocolDefinition;
 		returnProtocol=0;
+		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "SCCP: searching for our capability for device protocol SPCP\n");
 	}
 	
 	for(i = (protocolArraySize - 1); i>0; i--){
 		
 		if(protocolDef[i] != NULL && version >= protocolDef[i]->version){
-			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "SCCP: found protocol version '%d' at %d\n", protocolDef[i]->version, i);
+			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: found protocol version '%d' at %d\n", protocolDef[i]->name, protocolDef[i]->version, i);
 			returnProtocol=i;
 			break;
 		}

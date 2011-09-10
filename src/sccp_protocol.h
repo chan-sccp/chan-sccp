@@ -764,7 +764,7 @@ static const struct skinny_devicetype {
 	{SKINNY_DEVICETYPE_CISCO8961, "Cisco 896"},
 	
 	/* SPA devices */
-	{SKINNY_DEVICETYPE_SPA_521S, "Cisco SPA 521SG"},
+	{SKINNY_DEVICETYPE_SPA_521S, "Cisco SPA 521S"},
 	{SKINNY_DEVICETYPE_SPA_525G, "Cisco SPA 525G"},
 	{SKINNY_DEVICETYPE_SPA_525G2, "Cisco SPA 525G2"},
 	

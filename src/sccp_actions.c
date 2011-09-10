@@ -204,7 +204,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	sccp_hostname_t *permithost;
 	uint8_t protocolVer = r->msg.RegisterMessage.phone_features & SKINNY_PHONE_FEATUES_PROTOCOLVERSION;
 	
-	uint8_t ourMaxSupportedProtocolVersion = sccp_protocol_getMaxSupportedVersionNumber(0);
+	uint8_t ourMaxSupportedProtocolVersion = sccp_protocol_getMaxSupportedVersionNumber(SCCP_PROTOCOL);
 
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d (loadinfo '%s')\n", 
 		r->msg.RegisterMessage.sId.deviceName, 
@@ -492,9 +492,11 @@ void sccp_handle_SCPCregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
 	sccp_session_send(d, r1);
 	
 	
+	uint8_t ourMaxSupportedProtocolVersion = sccp_protocol_getMaxSupportedVersionNumber(SPCP_PROTOCOL);
+	
 	REQ(r1, RegisterAckMessage);
 	d->inuseprotocolversion = d->protocol->version;
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), d->inuseprotocolversion);
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered %s (%d).\n", DEV_ID_LOG(d), ourMaxSupportedProtocolVersion, d->protocol->name, d->protocol->version);
 
 	r1->msg.RegisterAckMessage.protocolVer = d->protocol->version;
 	r1->msg.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
