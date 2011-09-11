@@ -7,8 +7,8 @@
  *		See the LICENSE file at the top of the source tree.
  * \since 	2009-01-16
  *
- * $Date: 2011-01-23 10:49:11 +0100 (So, 23 Jan 2011) $
- * $Revision: 2285 $
+ * $Date$
+ * $Revision$
  */
 
 /*!
@@ -25,7 +25,7 @@
 #include "config.h"
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2285 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 /*!
  * \brief Handle Conference List
@@ -1279,7 +1279,6 @@ void sccp_feat_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 		sccp_featButton_changed(device, featureType);
 
 		sccp_event_t *event = sccp_malloc(sizeof(sccp_event_t));
-
 		memset(event, 0, sizeof(sccp_event_t));
 
 		event->type = SCCP_EVENT_FEATURE_CHANGED;
@@ -1289,13 +1288,13 @@ void sccp_feat_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 
 
 		if(SCCP_FEATURE_MONITOR == featureType) {
-		/* Special case for monitor */
-		sccp_moo_t *r;
-                REQ(r, SetLampMessage);
-		r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
-		r->msg.SetLampMessage.lel_stimulusInstance = 0;
-		r->msg.SetLampMessage.lel_lampMode = htolel((device->monitorFeature.status || (device->mwilight & (1 << 0)))? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
-		sccp_dev_send(device, r);
+			/* Special case for monitor */
+			sccp_moo_t *r;
+			REQ(r, SetLampMessage);
+			r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
+			r->msg.SetLampMessage.lel_stimulusInstance = 0;
+			r->msg.SetLampMessage.lel_lampMode = htolel((device->monitorFeature.status || (device->mwilight & (1 << 0)))? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
+			sccp_dev_send(device, r);
 		}
 
 	}
