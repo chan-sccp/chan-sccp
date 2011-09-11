@@ -181,6 +181,83 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	}
 }
 
+void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r){
+	sccp_moo_t *r1;
+	sccp_device_t *device;
+	sccp_hostname_t *permithost;
+	struct sockaddr_in sin;
+	struct ast_hostent ahp;
+	struct hostent *hp;
+  
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: is requestin a token, Instance: %d, Type: %s (%d)\n", r->msg.SPCPRegisterMessage.sId.deviceName, r->msg.SPCPRegisterMessage.sId.lel_instance, devicetype2str(letohl(r->msg.SPCPRegisterMessage.lel_deviceType)), letohl(r->msg.SPCPRegisterMessage.lel_deviceType));
+
+	/* ip address range check */
+	if (GLOB(ha) && !sccp_apply_ha(GLOB(ha), &s->sin)) {
+		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.SPCPRegisterMessage.sId.deviceName);
+		sccp_session_reject(s, "Device ip not authorized");
+		return;
+	}
+	
+	// Search for already known devices
+	device = sccp_device_find_byid(r->msg.SPCPRegisterMessage.sId.deviceName, FALSE);
+	if (device) {
+		if (device->session && device->session != s) {
+			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", device->id);
+			device->session->session_stop = 1;				/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
+			sccp_log(1) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", device->id);
+		}
+	}
+	
+	// search for all devices including realtime
+	device = sccp_device_find_byid(r->msg.SPCPRegisterMessage.sId.deviceName, TRUE);
+	if (!device) {
+		if (GLOB(allowAnonymous)) {
+			device = sccp_device_create();
+			sccp_config_applyDeviceConfiguration(device, NULL);
+			device->realtime = TRUE;
+
+			sccp_copy_string(device->id, r->msg.SPCPRegisterMessage.sId.deviceName, sizeof(device->id));
+			device->isAnonymous = TRUE;
+			sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
+			sccp_log(1) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.SPCPRegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
+			device->defaultLineInstance = 1;
+			SCCP_RWLIST_WRLOCK(&GLOB(devices));
+			SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), device, list);
+			SCCP_RWLIST_UNLOCK(&GLOB(devices));
+		} else {
+			pbx_log(LOG_NOTICE, "%s: Rejecting device: not found\n", r->msg.SPCPRegisterMessage.sId.deviceName);
+			sccp_session_reject(s, "Unknown Device");
+			return;
+		}
+	} else if (device->ha && !sccp_apply_ha(device->ha, &s->sin)) {
+
+		// \todo check anonymous devices for permit hosts
+		SCCP_LIST_LOCK(&d->permithosts);
+		SCCP_LIST_TRAVERSE(&device->permithosts, permithost, list) {
+			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
+				memcpy(&sin.sin_addr, hp->h_addr, sizeof(sin.sin_addr));
+				if (s->sin.sin_addr.s_addr == sin.sin_addr.s_addr) {
+					break;
+				} else {
+					pbx_log(LOG_NOTICE, "%s: device ip address does not match the permithost = %s (%s)\n", r->msg.SPCPRegisterMessage.sId.deviceName, permithost->name, pbx_inet_ntoa(sin.sin_addr));
+				}
+			} else {
+				pbx_log(LOG_NOTICE, "%s: Invalid address resolution for permithost = %s\n", r->msg.SPCPRegisterMessage.sId.deviceName, permithost->name);
+			}
+		}
+		SCCP_LIST_UNLOCK(&d->permithosts);
+	}
+	
+	s->device = device;
+	device->session = s;
+	s->protocolType = SPCP_PROTOCOL;
+	
+	
+	REQ(r1, SPCPRegisterTokenAck);
+	r1->msg.SPCPRegisterTokenAck.lel_features = htolel(65535);
+	sccp_session_send(d, r1);
+}
+
 /*!
  * \brief Handle Device Registration
  * \param s SCCP Session
@@ -204,7 +281,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	sccp_hostname_t *permithost;
 	uint8_t protocolVer = r->msg.RegisterMessage.phone_features & SKINNY_PHONE_FEATUES_PROTOCOLVERSION;
 	
-	uint8_t ourMaxSupportedProtocolVersion = sccp_protocol_getMaxSupportedVersionNumber(SCCP_PROTOCOL);
+	uint8_t ourMaxSupportedProtocolVersion = sccp_protocol_getMaxSupportedVersionNumber(s->protocolType);
 
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d (loadinfo '%s')\n", 
 		r->msg.RegisterMessage.sId.deviceName, 
@@ -330,9 +407,9 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->length);
 	
 	
-	d->protocol = sccp_protocol_getDeviceProtocol(d, SCCP_PROTOCOL);
+	d->protocol = sccp_protocol_getDeviceProtocol(d, s->protocolType);
 	
-	uint8_t ourProtocolCapability = sccp_protocol_getMaxSupportedVersionNumber(SCCP_PROTOCOL);
+	uint8_t ourProtocolCapability = sccp_protocol_getMaxSupportedVersionNumber(s->protocolType);
 	
 	/*! \todo change 'our protocol capability' calculation, using the protocol definition */
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d).\n", DEV_ID_LOG(d), ourProtocolCapability);
@@ -380,136 +457,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	sccp_dev_sendmsg(d, CapabilitiesReqMessage);
 }
 
-void sccp_handle_SCPCregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
-{
-	sccp_moo_t *r1;
-	uint8_t i = 0;
-	struct ast_hostent ahp;
-	struct hostent *hp;
-	struct sockaddr_in sin;
-	sccp_hostname_t *permithost;
 
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d)\n", r->msg.SPCPRegisterMessage.sId.deviceName, r->msg.SPCPRegisterMessage.sId.lel_instance, devicetype2str(letohl(r->msg.SPCPRegisterMessage.lel_deviceType)), letohl(r->msg.SPCPRegisterMessage.lel_deviceType));
-
-	/* ip address range check */
-	if (GLOB(ha) && !sccp_apply_ha(GLOB(ha), &s->sin)) {
-		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.SPCPRegisterMessage.sId.deviceName);
-		sccp_session_reject(s, "Device ip not authorized");
-		return;
-	}
-	// Search for already known devices
-	d = sccp_device_find_byid(r->msg.SPCPRegisterMessage.sId.deviceName, FALSE);
-	if (d) {
-		if (d->session && d->session != s) {
-			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", d->id);
-			d->session->session_stop = 1;				/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
-			sccp_dev_clean(d, FALSE, 0);				/* we need to clean device configuration to set lines */
-			sccp_log(1) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
-		}
-	}
-	// search for all devices including realtime
-	d = sccp_device_find_byid(r->msg.SPCPRegisterMessage.sId.deviceName, TRUE);
-	if (!d) {
-		if (GLOB(allowAnonymous)) {
-			d = sccp_device_create();
-			sccp_config_applyDeviceConfiguration(d, NULL);
-			d->realtime = TRUE;
- 									
-			sccp_copy_string(d->id, r->msg.SPCPRegisterMessage.sId.deviceName, sizeof(d->id));
-			sccp_log(1) (VERBOSE_PREFIX_3 "new device: '%s'\n", d->id);
-			
-			d->isAnonymous = TRUE;
-
-			sccp_config_addButton(&d->buttonconfig, -1, LINE, GLOB(hotline)->line->name, NULL, NULL);
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", DEV_ID_LOG(d), GLOB(hotline)->line->name);
-			
-			d->defaultLineInstance = 1;
-			SCCP_RWLIST_WRLOCK(&GLOB(devices));
-			SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), d, list);
-			SCCP_RWLIST_UNLOCK(&GLOB(devices));
-		} else {
-			pbx_log(LOG_NOTICE, "%s: Rejecting device: not found\n", r->msg.SPCPRegisterMessage.sId.deviceName);
-			sccp_session_reject(s, "Unknown Device");
-			return;
-		}
-	} else if (d->ha && !sccp_apply_ha(d->ha, &s->sin)) {
-
-		// \todo check anonymous devices for permit hosts
-		SCCP_LIST_LOCK(&d->permithosts);
-		SCCP_LIST_TRAVERSE(&d->permithosts, permithost, list) {
-			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
-				memcpy(&sin.sin_addr, hp->h_addr, sizeof(sin.sin_addr));
-				if (s->sin.sin_addr.s_addr == sin.sin_addr.s_addr) {
-					break;
-				} else {
-					pbx_log(LOG_NOTICE, "%s: device ip address does not match the permithost = %s (%s)\n", r->msg.SPCPRegisterMessage.sId.deviceName, permithost->name, pbx_inet_ntoa(sin.sin_addr));
-				}
-			} else {
-				pbx_log(LOG_NOTICE, "%s: Invalid address resolution for permithost = %s\n", r->msg.SPCPRegisterMessage.sId.deviceName, permithost->name);
-			}
-		}
-		SCCP_LIST_UNLOCK(&d->permithosts);
-
-		if (i) {
-			pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.SPCPRegisterMessage.sId.deviceName);
-			sccp_session_reject(s, "Device ip not authorized");
-			return;
-		}
-	}
-
-	sccp_device_lock(d);
-	d->linesRegistered = FALSE;
-	/* test the localnet to understand if the device is behind NAT */
-	if (GLOB(localaddr) && sccp_apply_ha(GLOB(localaddr), &s->sin)) {
-		/* ok the device is natted */
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream \n", r->msg.SPCPRegisterMessage.sId.deviceName);
-		d->nat = 1;
-	}
-
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr));
-	s->device = d;
-	d->skinny_type = letohl(r->msg.SPCPRegisterMessage.lel_deviceType);
-
-	d->session = s;
-	s->lastKeepAlive = time(0);
-	d->mwilight = 0;
-	//d->protocolversion = r->msg.SPCPRegisterMessage.protocolVer;
-	d->protocolversion = 0;
-	
-	d->protocol = sccp_protocol_getDeviceProtocol(d, SPCP_PROTOCOL);
-
-	sccp_device_unlock(d);
-
-	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
-	int keepAliveInterval = d->keepalive ? d->keepalive : GLOB(keepalive);
-
-	keepAliveInterval = (keepAliveInterval / 2) + (rand() % (keepAliveInterval / 2)) - 1;
-
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval);
-	
-	REQ(r1, SPCPRegisterTokenAck);
-	r1->msg.SPCPRegisterTokenAck.lel_features = htolel(65535);
-	sccp_session_send(d, r1);
-	
-	
-	uint8_t ourMaxSupportedProtocolVersion = sccp_protocol_getMaxSupportedVersionNumber(SPCP_PROTOCOL);
-	
-	REQ(r1, RegisterAckMessage);
-	d->inuseprotocolversion = d->protocol->version;
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered %s (%d).\n", DEV_ID_LOG(d), ourMaxSupportedProtocolVersion, d->protocol->name, d->protocol->version);
-
-	r1->msg.RegisterAckMessage.protocolVer = d->protocol->version;
-	r1->msg.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
-	r1->msg.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel((d->keepalive ? d->keepalive : GLOB(keepalive)));
-
-	memcpy(r1->msg.RegisterAckMessage.dateTemplate, GLOB(dateformat), sizeof(r1->msg.RegisterAckMessage.dateTemplate));
-	sccp_session_send(d, r1);
-	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_PROGRESS);
-
-	// Ask for the capabilities of the device
-	// to proceed with registration according to sccp protocol specification 3.0
-	sccp_dev_sendmsg(d, CapabilitiesReqMessage);
-}
 
 /*!
  * \brief Make Button Template for Device
