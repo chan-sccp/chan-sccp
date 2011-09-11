@@ -1301,12 +1301,12 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(const sccp_channel_t *
 	uint8_t i;
 
 	/* add payload mapping for skinny codecs */
-// 	for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
-// 		/* add audio codecs only */
-// 		if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == SKINNY_CODEC_TYPE_AUDIO) {
-// 			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, "audio", (char *)skinny_codecs[i].mimesubtype, 0, skinny_codecs[i].sample_rate);
-// 		}
-// 	}
+	for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
+		/* add audio codecs only */
+		if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == SKINNY_CODEC_TYPE_AUDIO) {
+			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, "audio", (char *)skinny_codecs[i].mimesubtype, 0, skinny_codecs[i].sample_rate);
+		}
+	}
 
 	return TRUE;
 }
