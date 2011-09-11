@@ -175,7 +175,6 @@ void sccp_device_post_reload(void)
 sccp_device_t *sccp_device_create(void)
 {
 	sccp_device_t *d = sccp_calloc(1, sizeof(sccp_device_t));
-
 	if (!d) {
 		sccp_log(0) (VERBOSE_PREFIX_3 "Unable to allocate memory for a device\n");
 		return NULL;
@@ -197,6 +196,12 @@ sccp_device_t *sccp_device_create(void)
 	d->softKeyConfiguration.size = ARRAY_LEN(SoftKeyModes);
 	d->state = SCCP_DEVICESTATE_ONHOOK;
 	d->postregistration_thread = AST_PTHREADT_STOP;
+	
+	uint8_t i;
+	for(i=0; i< SCCP_MAX_MESSAGESTACK;i++){
+		d->messageStack[i] = NULL;
+	}
+	
 	return d;
 }
 
@@ -1051,14 +1056,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 
 	sccp_dev_clearprompt(d, 0, 0);
 
-	if (d->phonemessage && strcmp(d->phonemessage,"")) {					// display message if set
-		sccp_dev_displayprompt(d, 0, 0, d->phonemessage, 0);
-		goto OUT;
-	}
-
-	/* check for forward to display */
-	if (sccp_dev_display_cfwd(d, FALSE) == TRUE)
-		goto OUT;
+	
 
 #if 0										// Old code to check and set CallForward Indication. Implemention moved / We might need a check in this location later on - DdG/MC
 //      res = 0;
@@ -1174,7 +1172,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 //      }
 //#endif
 #endif
-
+#if 0
 	if (d->dndFeature.enabled && d->dndFeature.status) {
 		if (d->dndFeature.status == SCCP_DNDMODE_REJECT)
 			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " (" SKINNY_DISP_BUSY ") <<<", 0);
@@ -1186,7 +1184,29 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 
 		goto OUT;
 	}
-
+#endif
+	sccp_dev_display_cfwd(d, FALSE);
+	int i;
+	for(i = SCCP_MAX_MESSAGESTACK; i >= 0; i--){
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: message[%d] = \"%s\"\n", d->id, i, d->messageStack[i] ? d->messageStack[i] : "");
+	}
+	
+	for(i = SCCP_MAX_MESSAGESTACK; i >= 0; i--){
+		if(d->messageStack[i]  != NULL){
+			sccp_dev_displayprompt(d, 0, 0, d->messageStack[i], 0);
+			goto OUT;
+		}
+	}
+	
+	if (d->phonemessage && strcmp(d->phonemessage,"")) {					// display message if set
+		sccp_dev_displayprompt(d, 0, 0, d->phonemessage, 0);
+		goto OUT;
+	}
+#if 0
+	/* check for forward to display */
+	if (sccp_dev_display_cfwd(d, FALSE) == TRUE)
+		goto OUT;
+#endif
 	if (PBX(feature_getFromDatabase) && PBX(feature_getFromDatabase) ("SCCP/message", "timeout", tmp, sizeof(tmp))) {
 		sscanf(tmp, "%i", &timeout);
 	}
@@ -1196,7 +1216,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 			goto OUT;
 		}
 	}
-
+#if 0
 	if (d->mwilight) {
 		char buffer[StationMaxDisplayTextSize];
 
@@ -1204,7 +1224,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 		sccp_dev_displayprinotify(d, buffer, 5, 10);
 		goto OUT;
 	}
-
+#endif
 	/* when we are here, there's nothing to display */
 	sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
 	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);				/* this is for redial softkey */
@@ -1364,6 +1384,7 @@ boolean_t sccp_dev_display_cfwd(sccp_device_t * device, boolean_t force)
 		SCCP_LIST_UNLOCK(&line->devices);
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+#if 0
 	/* There isn't any forward on device's lines. */
 	if (s == tmp) {
 		ret = FALSE;
@@ -1376,7 +1397,13 @@ boolean_t sccp_dev_display_cfwd(sccp_device_t * device, boolean_t force)
 	if (strcmp(tmp,"")) {
 		sccp_dev_displayprompt(device, 0, 0, tmp, 0);
 	}
+#endif
 
+	if(strlen(tmp) > 0){
+		sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_CFWD, tmp);
+	}else{
+		sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);
+	}
 	return ret;
 }
 
@@ -1594,6 +1621,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	sccp_selectedchannel_t *selectedChannel = NULL;
 	sccp_line_t *line = NULL;
 	sccp_channel_t *channel = NULL;
+	int i;
 
 #ifdef CS_DEVSTATE_FEATURE
 	sccp_devstate_specifier_t *devstateSpecifier;
@@ -1668,6 +1696,13 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	/* removing addons */
 	if (remove_from_global) {
 		sccp_addons_clear(d);
+	}
+	
+	/* cleanup message stack */
+	for(i = SCCP_MAX_MESSAGESTACK; i>=0; i--){
+		if(d->messageStack[i]  != NULL){
+			sccp_free(d->messageStack[i]);
+		}
 	}
 
 	/* removing selected channels */
@@ -2030,4 +2065,38 @@ static void sccp_device_new_indicate_remoteHold(const sccp_device_t *device, uin
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_HOLDRED, callPriority, callPrivacy);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOLD);
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_HOLD, 0);
+}
+
+
+void sccp_device_addMessageToStack(sccp_device_t *device, uint8_t priority, const char *message){
+	
+	if(ARRAY_LEN(device->messageStack) <= priority)
+		return;
+	
+	/** alredy a message for this priority */
+	if(device->messageStack[priority]){
+		/** message is not the same */
+		if(strcasecmp(device->messageStack[priority], message)){
+			sccp_free(device->messageStack[priority]);
+		}else{
+			return;
+		}
+	}
+	
+	device->messageStack[priority] = strdup(message);
+	sccp_dev_check_displayprompt(device);
+}
+
+
+void sccp_device_clearMessageFromStack(sccp_device_t *device, uint8_t priority){
+	if(ARRAY_LEN(device->messageStack) <= priority)
+		return;
+	
+	pbx_log(LOG_NOTICE, "%s: clear message stack %d\n", DEV_ID_LOG(device), priority);
+	if(device->messageStack[priority]){
+		sccp_free(device->messageStack[priority]);
+		device->messageStack[priority] = NULL;
+		
+		sccp_dev_check_displayprompt(device);
+	}
 }
