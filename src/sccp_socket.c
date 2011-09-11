@@ -372,6 +372,9 @@ static void sccp_accept_connection(void)
 	s->fds[0].events = POLLIN | POLLPRI;
 	s->fds[0].revents = 0;
 	s->fds[0].fd = new_socket;
+	
+	/** set default handler for registration to sccp */
+	s->protocolType = SCCP_PROTOCOL;
 
 	s->lastKeepAlive = time(0);
 	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", pbx_inet_ntoa(s->sin.sin_addr));

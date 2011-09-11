@@ -295,12 +295,11 @@ static const struct sccp_messageMap_cb messagesCbMap[] = {
 	{DeviceToUserDataVersion1Message, sccp_handle_device_to_user, TRUE},
 	{DeviceToUserDataResponseVersion1Message, sccp_handle_device_to_user_response, TRUE},
 	{RegisterTokenReq, sccp_handle_tokenreq, FALSE},
-	{SPCPRegisterMessage, sccp_handle_SCPCregister, FALSE},
 	{UnregisterMessage, sccp_handle_unregister, TRUE},
 	{RegisterMessage, sccp_handle_register, FALSE},
 	{AlarmMessage, sccp_handle_alarm, FALSE},
 	{XMLAlarmMessage, sccp_handle_XMLAlarmMessage, FALSE},
-
+	{SPCPRegisterMessage, sccp_handle_SPCPTokenReq, FALSE},
 };
 
 typedef struct sccp_messageMap_cb sccp_messageMap_cb_t;

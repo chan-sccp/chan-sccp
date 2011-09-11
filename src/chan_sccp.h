@@ -915,7 +915,8 @@ extern "C" {
 		SCCP_RWLIST_ENTRY(sccp_session_t) list;				/*!< Linked List Entry for this Session */
 		boolean_t needcheckringback;					/*!< Need Check Ring Back. (0/1) default 1 */
 		pthread_t session_thread;					/*!< Session Thread */
-		uint8_t session_stop;						/*!< Signal Session Stop */ 
+		uint8_t session_stop;						/*!< Signal Session Stop */
+		uint8_t protocolType;
 	};									/*!< SCCP Session Structure */
 
 /*!

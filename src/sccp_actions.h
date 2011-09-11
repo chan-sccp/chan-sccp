@@ -21,7 +21,7 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_device_t * d, 
 void sccp_handle_alarm(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
-void sccp_handle_SCPCregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
+void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_unregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
