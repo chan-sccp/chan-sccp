@@ -419,9 +419,9 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("Description", 		CLI_AMI_LIST_WIDTH,	"%s",	 	d->description);
 	CLI_AMI_OUTPUT_PARAM("Config Phone Type", 	CLI_AMI_LIST_WIDTH,	"%s",	 	d->config_type);
 	CLI_AMI_OUTPUT_PARAM("Skinny Phone Type", 	CLI_AMI_LIST_WIDTH,	"%s(%d)",	devicetype2str(d->skinny_type), d->skinny_type);
-	CLI_AMI_OUTPUT_BOOL ("Softkey support", 	CLI_AMI_LIST_WIDTH, 			d->softkeysupport);
-	CLI_AMI_OUTPUT_BOOL ("BTemplate support", 	CLI_AMI_LIST_WIDTH, 			d->buttonTemplate);
-	CLI_AMI_OUTPUT_BOOL ("linesRegistered", 	CLI_AMI_LIST_WIDTH, 			d->linesRegistered);
+	CLI_AMI_OUTPUT_YES_NO ("Softkey support", 	CLI_AMI_LIST_WIDTH, 			d->softkeysupport);
+	CLI_AMI_OUTPUT_YES_NO ("BTemplate support", 	CLI_AMI_LIST_WIDTH, 			d->buttonTemplate);
+	CLI_AMI_OUTPUT_YES_NO ("linesRegistered", 	CLI_AMI_LIST_WIDTH, 			d->linesRegistered);
 	CLI_AMI_OUTPUT_PARAM("Image Version", 		CLI_AMI_LIST_WIDTH,	"%s",	 	d->imageversion);
 	CLI_AMI_OUTPUT_PARAM("Timezone Offset", 	CLI_AMI_LIST_WIDTH,	"%d",	 	d->tz_offset);
 	CLI_AMI_OUTPUT_PARAM("Capabilities", 		CLI_AMI_LIST_WIDTH,	"%s",	 	cap_buf);

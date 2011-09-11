@@ -6,14 +6,14 @@
  * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date: 2011-01-13 23:40:34 +0100 (Do, 13 Jan 2011) $
- * $Revision: 2253 $
+ * $Date$
+ * $Revision$
  */
 
 #include "config.h"
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2253 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #ifndef CS_AST_HAS_EVENT
 #    define SCCP_MWI_CHECK_INTERVAL 30
 #endif
@@ -607,7 +607,11 @@ void sccp_mwi_check(sccp_device_t * device)
 		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: Turn %s the MWI light\n", DEV_ID_LOG(device), (device->mwilight > 0) ? "ON" : "OFF");
 
 		/* we should check the display only once, maybe we need a priority stack -MC */
-		sccp_dev_check_displayprompt(device);
+		char buffer[StationMaxDisplayTextSize];
+		sprintf(buffer, "%s: (%d/%d)", SKINNY_DISP_YOU_HAVE_VOICEMAIL, device->voicemailStatistic.newmsgs, device->voicemailStatistic.oldmsgs);
+		
+		sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_VOICEMAIL, buffer);
+		//sccp_dev_check_displayprompt(device);
 	}
 
 	sccp_device_unlock(device);

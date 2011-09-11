@@ -9,14 +9,14 @@
  * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date: 2011-01-21 22:25:08 +0100 (Fr, 21 Jan 2011) $
- * $Revision: 2276 $
+ * $Date$
+ * $Revision$
  */
 
 #include "config.h"
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2276 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #ifdef CS_DYNAMIC_CONFIG
 static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptionId, int onoff);
@@ -341,6 +341,7 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char 
 		linedevice->cfwdAll.enabled = 0;
 		linedevice->cfwdBusy.enabled = 0;
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Call Forward disabled on line %s\n", DEV_ID_LOG(device), l->name);
+		sccp_device_clearMessageFromStack(linedevice->device, SCCP_MESSAGE_PRIORITY_CFWD);
 	} else {
 		if (!number || sccp_strlen_zero(number)) {
 			linedevice->cfwdAll.enabled = 0;

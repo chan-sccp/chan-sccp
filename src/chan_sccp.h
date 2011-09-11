@@ -237,6 +237,14 @@ extern "C" {
 		SCCP_REQUEST_STATUS_UNAVAIL = 0,
 		SCCP_REQUEST_STATUS_SUCCESS,
 	} sccp_channel_request_status_t;					/*!< channel request status */
+	
+#define SCCP_MAX_MESSAGESTACK 10
+	typedef enum { 
+		SCCP_MESSAGE_PRIORITY_IDLE = 0, 
+		SCCP_MESSAGE_PRIORITY_VOICEMAIL, 
+		SCCP_MESSAGE_PRIORITY_DND, 
+		SCCP_MESSAGE_PRIORITY_CFWD, 
+	} sccp_message_priority_t;
 
 /*!
  * \brief SCCP ButtonType Structure
@@ -872,6 +880,8 @@ extern "C" {
 			uint32_t payload;
 			uint32_t transactionID;
 		} dtu_softkey;
+		
+		char *messageStack[SCCP_MAX_MESSAGESTACK];
 		
 		struct {
 			char indicator[3];					/*!< Status Indicator */
