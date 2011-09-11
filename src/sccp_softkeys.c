@@ -425,19 +425,6 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance
 
 	}
 	
-	if (d->dndFeature.enabled && d->dndFeature.status) {
-		if (d->dndFeature.status == SCCP_DNDMODE_REJECT){
-			sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (" SKINNY_DISP_BUSY ") <<<");
-		}else if (d->dndFeature.status == SCCP_DNDMODE_SILENT){
-			/* no internal label for the silent string */
-			sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (Silent) <<<");
-		}else{
-			sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " <<<");
-		}
-	}else{
-		sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_DND);
-	}
-	
 	sccp_feat_changed(d, SCCP_FEATURE_DND);					/* notify the modules the the DND-feature changed state */
 	sccp_dev_check_displayprompt(d);					/*! \todo we should use the feature changed event to check displayprompt */
 }

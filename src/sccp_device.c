@@ -1185,11 +1185,13 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 		goto OUT;
 	}
 #endif
-	sccp_dev_display_cfwd(d, FALSE);
+	//sccp_dev_display_cfwd(d, FALSE);
 	int i;
+#if 0
 	for(i = SCCP_MAX_MESSAGESTACK; i >= 0; i--){
 		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: message[%d] = \"%s\"\n", d->id, i, d->messageStack[i] ? d->messageStack[i] : "");
 	}
+#endif
 	
 	for(i = SCCP_MAX_MESSAGESTACK; i >= 0; i--){
 		if(d->messageStack[i]  != NULL){
