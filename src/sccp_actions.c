@@ -189,17 +189,17 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
 	struct ast_hostent ahp;
 	struct hostent *hp;
   
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: is requestin a token, Instance: %d, Type: %s (%d)\n", r->msg.SPCPRegisterMessage.sId.deviceName, r->msg.SPCPRegisterMessage.sId.lel_instance, devicetype2str(letohl(r->msg.SPCPRegisterMessage.lel_deviceType)), letohl(r->msg.SPCPRegisterMessage.lel_deviceType));
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: is requestin a token, Instance: %d, Type: %s (%d)\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, r->msg.SPCPRegisterTokenRequest.sId.lel_instance, devicetype2str(letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType)), letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType));
 
 	/* ip address range check */
 	if (GLOB(ha) && !sccp_apply_ha(GLOB(ha), &s->sin)) {
-		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.SPCPRegisterMessage.sId.deviceName);
+		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName);
 		sccp_session_reject(s, "Device ip not authorized");
 		return;
 	}
 	
 	// Search for already known devices
-	device = sccp_device_find_byid(r->msg.SPCPRegisterMessage.sId.deviceName, FALSE);
+	device = sccp_device_find_byid(r->msg.SPCPRegisterTokenRequest.sId.deviceName, FALSE);
 	if (device) {
 		if (device->session && device->session != s) {
 			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", device->id);
@@ -209,23 +209,23 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
 	}
 	
 	// search for all devices including realtime
-	device = sccp_device_find_byid(r->msg.SPCPRegisterMessage.sId.deviceName, TRUE);
+	device = sccp_device_find_byid(r->msg.SPCPRegisterTokenRequest.sId.deviceName, TRUE);
 	if (!device) {
 		if (GLOB(allowAnonymous)) {
 			device = sccp_device_create();
 			sccp_config_applyDeviceConfiguration(device, NULL);
 			device->realtime = TRUE;
 
-			sccp_copy_string(device->id, r->msg.SPCPRegisterMessage.sId.deviceName, sizeof(device->id));
+			sccp_copy_string(device->id, r->msg.SPCPRegisterTokenRequest.sId.deviceName, sizeof(device->id));
 			device->isAnonymous = TRUE;
 			sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.SPCPRegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
+			sccp_log(1) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, GLOB(hotline)->line->name);
 			device->defaultLineInstance = 1;
 			SCCP_RWLIST_WRLOCK(&GLOB(devices));
 			SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), device, list);
 			SCCP_RWLIST_UNLOCK(&GLOB(devices));
 		} else {
-			pbx_log(LOG_NOTICE, "%s: Rejecting device: not found\n", r->msg.SPCPRegisterMessage.sId.deviceName);
+			pbx_log(LOG_NOTICE, "%s: Rejecting device: not found\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName);
 			sccp_session_reject(s, "Unknown Device");
 			return;
 		}
@@ -239,10 +239,10 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
 				if (s->sin.sin_addr.s_addr == sin.sin_addr.s_addr) {
 					break;
 				} else {
-					pbx_log(LOG_NOTICE, "%s: device ip address does not match the permithost = %s (%s)\n", r->msg.SPCPRegisterMessage.sId.deviceName, permithost->name, pbx_inet_ntoa(sin.sin_addr));
+					pbx_log(LOG_NOTICE, "%s: device ip address does not match the permithost = %s (%s)\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, permithost->name, pbx_inet_ntoa(sin.sin_addr));
 				}
 			} else {
-				pbx_log(LOG_NOTICE, "%s: Invalid address resolution for permithost = %s\n", r->msg.SPCPRegisterMessage.sId.deviceName, permithost->name);
+				pbx_log(LOG_NOTICE, "%s: Invalid address resolution for permithost = %s\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, permithost->name);
 			}
 		}
 		SCCP_LIST_UNLOCK(&d->permithosts);
