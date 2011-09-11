@@ -1173,14 +1173,10 @@ static const struct skinny_codec {
 	{SKINNY_CODEC_WIDEBAND_256K, 	"slin16",	"slin16",	"Wideband 256k", 		SKINNY_CODEC_TYPE_AUDIO,	"L16",		16000},
 	{SKINNY_CODEC_GSM, 		"gsm",		"gsm",		"GSM", 				SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
 	{SKINNY_CODEC_ACTIVEVOICE, 	"activevoice",	"activevoice",	"ActiveVoice", 			SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
-	
-	{SKINNY_CODEC_G711_ALAW_56K, 	"alaw",		"alaw/56k",	"G.711 A-law 56k", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
 	{SKINNY_CODEC_G711_ALAW_64K, 	"alaw",		"alaw/64k",	"G.711 A-law 64k", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
-	
-	
-	{SKINNY_CODEC_G711_ULAW_56K, 	"ulaw",		"ulaw/56k",	"G.711 u-law 56k", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G711_ALAW_56K, 	"alaw",		"alaw/56k",	"G.711 A-law 56k", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
 	{SKINNY_CODEC_G711_ULAW_64K, 	"ulaw",		"ulaw/64k",	"G.711 u-law 64k", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
-	
+	{SKINNY_CODEC_G711_ULAW_56K, 	"ulaw",		"ulaw/56k",	"G.711 u-law 56k", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
 	{SKINNY_CODEC_G722_64K, 	"g722",		"g722/64k",	"G.722 64k", 			SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
 	{SKINNY_CODEC_G722_56K, 	"g722",		"g722/56k",	"G.722 56k", 			SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
 	{SKINNY_CODEC_G722_48K, 	"g722",		"g722/48k",	"G.722 48k", 			SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
@@ -1192,16 +1188,16 @@ static const struct skinny_codec {
 	{SKINNY_CODEC_G726_32K, 	"g726",		"g726/32k",	"G.726 32K", 			SKINNY_CODEC_TYPE_AUDIO, 	NULL,		0},
 	{SKINNY_CODEC_G728, 		"g728",		"g728",		"G.728", 			SKINNY_CODEC_TYPE_AUDIO, 	NULL,		0},
 	{SKINNY_CODEC_G729, 		"g729",		"g729",		"G.729", 			SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
-	{SKINNY_CODEC_G729_A, 		"g729",		"g729/a",	"G.729 Annex A", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
-	{SKINNY_CODEC_G729_B_LOW, 	"g729",		"g729/b/low",	"G.729B Low Complexity",	SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
-	{SKINNY_CODEC_G729_B, 		"g729",		"g729/b",	"G.729 Annex B", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
-	{SKINNY_CODEC_G729_AB, 		"g729",		"g729/a/b",	"G.729 Annex A + B", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G729_A, 		"g729",		"g729a",	"G.729 Annex A", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G729_B_LOW, 	"g729",		"g729b/low",	"G.729B Low Complexity",	SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G729_B, 		"g729",		"g729b",	"G.729 Annex B", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
+	{SKINNY_CODEC_G729_AB, 		"g729",		"g729ab",	"G.729 Annex A + B", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
 	{SKINNY_CODEC_G729_ANNEX_B, 	"g729",		"g729/annex/b",	"G.729 Annex B", 		SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
 	{SKINNY_CODEC_ISAC, 		"isac",		"isac",		"iSAC", 			SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
 	{SKINNY_CODEC_H224, 		"h224",		"h224",		"H.224", 			SKINNY_CODEC_TYPE_AUDIO,	NULL,		0},
 	{SKINNY_CODEC_H261, 		"h261",		"h261",		"H.261", 			SKINNY_CODEC_TYPE_VIDEO,	NULL,		0},
 	{SKINNY_CODEC_H263, 		"h263",		"h263",		"H.263", 			SKINNY_CODEC_TYPE_VIDEO,	"H263",		0},
-	{SKINNY_CODEC_H263P, 		"h263",		"h263/p",	"Vieo H.263+", 			SKINNY_CODEC_TYPE_VIDEO,	NULL,		0},
+	{SKINNY_CODEC_H263P, 		"h263",		"h263p",	"Vieo H.263+", 			SKINNY_CODEC_TYPE_VIDEO,	NULL,		0},
 	{SKINNY_CODEC_H264, 		"h264",		"h264",		"H.264", 			SKINNY_CODEC_TYPE_VIDEO,	"H264",		0},
 	{SKINNY_CODEC_T120, 		"t120",		"t120",		"T.140", 			SKINNY_CODEC_TYPE_TEXT,		NULL,		0},
 	{SKINNY_CODEC_RFC2833_DYNPAYLOAD,"rfc2833",	"rfc2833",	"RFC 2833 Dyn Pay Load",	SKINNY_CODEC_TYPE_MIXED,	NULL,		0},
@@ -1470,7 +1466,7 @@ typedef enum {
 	XMLAlarmMessage = 0x015A,
 
 	/* SPCP client -> server */
-	SPCPRegisterMessage = 0x8000,
+	SPCPRegisterTokenRequest = 0x8000,
 	
 	/* SPCP server -> client */
 	SPCPRegisterTokenAck = 0x8100,
@@ -1633,7 +1629,7 @@ static const struct sccp_messagetype {
 	{StartMediaTransmissionAck, "Start Media Transmission Acknowledge"},
 	{ExtensionDeviceCaps, "Extension Device Capabilities Message"},
 	{XMLAlarmMessage, "XML-AlarmMessage"},
-	{SPCPRegisterMessage, "SCPA RegisterMessage"},
+	{SPCPRegisterTokenRequest, "SPCP Register Token RequestCODEC"},
 	{SPCPRegisterTokenAck, "SCPA RegisterMessageACK"},
 	{SPCPRegisterTokenReject, "SCPA RegisterMessageReject"},
 	/* *INDENT-ON* */
@@ -3565,7 +3561,7 @@ typedef union {
 		uint32_t lel_stationIpAddr;					/*!< Station IP Address */
 		uint32_t lel_deviceType;					/*!< Device Type as part of SKINNY_DEVICETYPE_* */
 		uint32_t maxStreams;						/*!< Max Streams */
-	} SPCPRegisterMessage;
+	} SPCPRegisterTokenRequest;
 	
 	struct {
 		uint32_t lel_features;
