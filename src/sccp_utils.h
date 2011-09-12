@@ -132,7 +132,7 @@ char *pbx_strip(char *s);
 unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arraylen);
 #    endif
 
-void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** e);
+void sccp_util_featureStorageBackend(const sccp_event_t ** e);
 int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsigned int softkey);
 
 //sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr);

@@ -1526,7 +1526,7 @@ sccp_feature_type_t sccp_featureStr2featureID(const char *str)
 }
 
 /*!
- * \brief Handle Feature Change Event
+ * \brief Handle Feature Change Event for persistent feature storage
  * \param event SCCP Event
  *
  * \callgraph
@@ -1539,7 +1539,7 @@ sccp_feature_type_t sccp_featureStr2featureID(const char *str)
  * \lock
  * 	- device
  */
-void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
+void sccp_util_featureStorageBackend(const sccp_event_t ** event)
 {
 	char family[25];
 	char cfwdLineStore[60];
@@ -1548,14 +1548,6 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 	sccp_linedevices_t *lineDevice;
 	sccp_device_t *device = (*event)->event.featureChanged.device;
 	
-	
-	/* copy from sccp_dev_display_cfwd */
-	char tmp[256] = { 0 };
-	size_t len = sizeof(tmp);
-	char *s = tmp;
-	/* */
-	
-
 	if (!(*event) || !device)
 		return;
 
@@ -1584,12 +1576,6 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 								if (lineDevice->cfwdAll.enabled) {
 									PBX(feature_addToDatabase) (cfwdLineStore, "cfwdAll", lineDevice->cfwdAll.number);
 									sccp_log(1) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);
-									
-									/* build disp message string */
-									if (s != tmp)
-										pbx_build_string(&s, &len, ", ");
-									pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, lineDevice->cfwdAll.number);
-									
 								} else {
 									PBX(feature_removeFromDatabase)(cfwdLineStore, "cfwdAll");
 								}
@@ -1597,13 +1583,7 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 							case SCCP_FEATURE_CFWDBUSY:
 								if (lineDevice->cfwdBusy.enabled) {
 									PBX(feature_addToDatabase) (cfwdLineStore, "cfwdBusy", lineDevice->cfwdBusy.number);
-									sccp_log(1) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);
-									
-									/* build disp message string */
-									if (s != tmp)
-										pbx_build_string(&s, &len, ", ");
-									pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, lineDevice->cfwdBusy.number);
-									
+									sccp_log(1) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);	
 								} else {
 									PBX(feature_removeFromDatabase)(cfwdLineStore, "cfwdBusy");
 								}
@@ -1614,28 +1594,18 @@ void sccp_util_handleFeatureChangeEvent(const sccp_event_t ** event)
 					}
 				}
 			}
-		}
-		
-		if(strlen(tmp) > 0){
-			sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_CFWD, tmp);
-		}else{
-			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);
-		}
-		
+		}	
 		break;
 	case SCCP_FEATURE_DND:
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: change dnd to %s\n", DEV_ID_LOG(device), device->dndFeature.status ? "on" : "off");
 	  
 		if (!device->dndFeature.status) {
 			PBX(feature_removeFromDatabase)(family, "dnd");
-			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_DND);
 		} else {
 			if (device->dndFeature.status == SCCP_DNDMODE_SILENT){
 				PBX(feature_addToDatabase) (family, "dnd", "silent");
-				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (Silent) <<<");
 			}else{
 				PBX(feature_addToDatabase) (family, "dnd", "reject");
-				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (" SKINNY_DISP_BUSY ") <<<");
 			}
 		}
 		break;

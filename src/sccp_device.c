@@ -2102,3 +2102,109 @@ void sccp_device_clearMessageFromStack(sccp_device_t *device, uint8_t priority){
 		sccp_dev_check_displayprompt(device);
 	}
 }
+
+
+/*!
+ * \brief Handle Feature Change Event for persistent feature storage
+ * \param event SCCP Event
+ *
+ * \callgraph
+ * \callergraph
+ * 
+ * \warning
+ * 	- device->buttonconfig is not always locked
+ * 	- line->devices is not always locked
+ * 
+ * \lock
+ * 	- device
+ */
+void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
+{
+	sccp_buttonconfig_t *config;
+	sccp_line_t *line;
+	sccp_linedevices_t *lineDevice;
+	sccp_device_t *device = (*event)->event.featureChanged.device;
+	
+	
+	/* copy from sccp_dev_display_cfwd */
+	char tmp[256] = { 0 };
+	size_t len = sizeof(tmp);
+	char *s = tmp;
+	/* */
+	
+
+	if (!(*event) || !device)
+		return;
+
+	sccp_log(1) (VERBOSE_PREFIX_3 "%s: got FeatureChangeEvent %d\n", DEV_ID_LOG(device), (*event)->event.featureChanged.featureType);
+
+	switch ((*event)->event.featureChanged.featureType) {
+	case SCCP_FEATURE_CFWDBUSY:
+	case SCCP_FEATURE_CFWDALL:
+		SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+			if (config->type == LINE) {
+				line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
+				if (line) {
+					SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
+						if (lineDevice->device != device)
+							continue;
+
+						uint8_t instance = sccp_device_find_index_for_line(device, line->name);
+
+						sccp_dev_forward_status(line, instance, device);
+						switch((*event)->event.featureChanged.featureType) {
+							case SCCP_FEATURE_CFWDALL:
+								if (lineDevice->cfwdAll.enabled) {								
+									/* build disp message string */
+									if (s != tmp)
+										pbx_build_string(&s, &len, ", ");
+									pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, lineDevice->cfwdAll.number);
+									
+								}
+								break;	
+							case SCCP_FEATURE_CFWDBUSY:
+								if (lineDevice->cfwdBusy.enabled) {								
+									/* build disp message string */
+									if (s != tmp)
+										pbx_build_string(&s, &len, ", ");
+									pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, lineDevice->cfwdBusy.number);
+									
+								}
+								break;
+							default:
+								break;
+						}
+					}
+				}
+			}
+		}
+		
+		if(strlen(tmp) > 0){
+			sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_CFWD, tmp);
+		}else{
+			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);
+		}
+		
+		break;
+	case SCCP_FEATURE_DND:
+	  
+		if (!device->dndFeature.status) {
+			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_DND);
+		} else {
+			if (device->dndFeature.status == SCCP_DNDMODE_SILENT){
+				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (Silent) <<<");
+			}else{
+				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (" SKINNY_DISP_BUSY ") <<<");
+			}
+		}
+		break;
+	case SCCP_FEATURE_PRIVACY:
+		break;
+	case SCCP_FEATURE_MONITOR:
+		break;
+	default:
+		return;
+	}
+
+}
+
