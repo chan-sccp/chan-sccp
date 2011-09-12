@@ -307,8 +307,11 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 			PBX_CHANNEL_TYPE *remotePeer;
 			for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
 				if (pbx_find_channel_by_linkid(remotePeer, (void *)ast->linkedid)) {
+					char buf[512];
 					sccp_channel_t *remoteSccpChannel = get_sccp_channel_from_pbx_channel(remotePeer);
 					if(remoteSccpChannel){
+						sccp_multiple_codecs2str(buf, sizeof(buf) - 1, remoteSccpChannel->preferences.audio, ARRAY_LEN(remoteSccpChannel->preferences.audio));
+						ast_log(LOG_WARNING, "remote preferences: %s\n", buf);
 						uint8_t x,y,z;
 						z = 0;
 						for(x=0; x < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->preferences.audio[x] != 0; x++){
@@ -320,12 +323,12 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 							}
 						}
 					}else{
+						ast_log(LOG_WARNING, "remote nativeformats: %s\n", pbx_getformatname_multiple(buf, sizeof(buf) - 1, remotePeer->nativeformats));
 						get_skinnyFormats(remotePeer->nativeformats, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
 					}
 
-					char cap_buf[512];
-					sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
-					ast_log(LOG_WARNING, "remote caps: %s\n", cap_buf);
+					sccp_multiple_codecs2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
+					ast_log(LOG_WARNING, "remote caps: %s\n", buf);
 					ast_channel_unref(remotePeer);
 					break;
 				}
@@ -1393,7 +1396,8 @@ static boolean_t sccp_wrapper_asterisk18_destroyRTP(PBX_RTP_TYPE * rtp)
 static boolean_t sccp_wrapper_asterisk18_addToDatabase(const char *family, const char *key, const char *value)
 {
 	int res;
-
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key) || sccp_strlen_zero(value)) 
+		return FALSE;
 	res = ast_db_put(family, key, value);
 	return (!res) ? TRUE : FALSE;
 }
@@ -1402,6 +1406,8 @@ static boolean_t sccp_wrapper_asterisk18_getFromDatabase(const char *family, con
 {
 	int res;
 
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) 
+		return FALSE;
 	res = ast_db_get(family, key, out, outlen);
 	return (!res) ? TRUE : FALSE;
 }
@@ -1410,6 +1416,8 @@ static boolean_t sccp_wrapper_asterisk18_removeFromDatabase(const char *family, 
 {
 	int res;
 
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) 
+		return FALSE;
 	res = ast_db_del(family, key);
 	return (!res) ? TRUE : FALSE;
 }
@@ -1418,6 +1426,8 @@ static boolean_t sccp_wrapper_asterisk18_removeTreeFromDatabase(const char *fami
 {
 	int res;
 
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) 
+		return FALSE;
 	res = ast_db_deltree(family, key);
 	return (!res) ? TRUE : FALSE;
 }
@@ -1844,7 +1854,7 @@ const struct ast_channel_tech sccp_tech = {
 	.type = SCCP_TECHTYPE_STR,
 	.description = "Skinny Client Control Protocol (SCCP)",
 	// we could use the skinny_codec = ast_codec mapping here to generate the list of capabilities
-	.capabilities 		= AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_GSM | AST_FORMAT_G723_1 | AST_FORMAT_G729A,
+	.capabilities 		= AST_FORMAT_SLINEAR16 | AST_FORMAT_SLINEAR | AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_GSM | AST_FORMAT_G723_1 | AST_FORMAT_G729A,
 	.properties 		= AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
 	.requester 		= sccp_wrapper_asterisk18_request,
 	.devicestate 		= sccp_devicestate,

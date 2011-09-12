@@ -1390,38 +1390,44 @@ static boolean_t sccp_wrapper_asterisk111_destroyRTP(PBX_RTP_TYPE * rtp)
 	return (!res) ? TRUE : FALSE;
 }
 
-static boolean_t sccp_wrapper_asterisk111_addToDatabase(const char *family, const char *key, const char *value)
+static boolean_t sccp_wrapper_asterisk18_addToDatabase(const char *family, const char *key, const char *value)
 {
 	int res;
-
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key) || sccp_strlen_zero(value)) 
+		return FALSE;
 	res = ast_db_put(family, key, value);
 	return (!res) ? TRUE : FALSE;
 }
 
-static boolean_t sccp_wrapper_asterisk111_getFromDatabase(const char *family, const char *key, char *out, int outlen)
+static boolean_t sccp_wrapper_asterisk18_getFromDatabase(const char *family, const char *key, char *out, int outlen)
 {
 	int res;
 
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) 
+		return FALSE;
 	res = ast_db_get(family, key, out, outlen);
 	return (!res) ? TRUE : FALSE;
 }
 
-static boolean_t sccp_wrapper_asterisk111_removeFromDatabase(const char *family, const char *key)
+static boolean_t sccp_wrapper_asterisk18_removeFromDatabase(const char *family, const char *key)
 {
 	int res;
 
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) 
+		return FALSE;
 	res = ast_db_del(family, key);
 	return (!res) ? TRUE : FALSE;
 }
 
-static boolean_t sccp_wrapper_asterisk111_removeTreeFromDatabase(const char *family, const char *key)
+static boolean_t sccp_wrapper_asterisk18_removeTreeFromDatabase(const char *family, const char *key)
 {
 	int res;
 
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) 
+		return FALSE;
 	res = ast_db_deltree(family, key);
 	return (!res) ? TRUE : FALSE;
 }
-
 static boolean_t sccp_wrapper_asterisk111checkhangup(const sccp_channel_t * channel)
 {
 	int res;
