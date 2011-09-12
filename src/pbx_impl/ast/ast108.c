@@ -1486,6 +1486,9 @@ static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * c
 	
 	channel->owner->nativeformats = channel->owner->rawwriteformat = skinny_codec2pbx_codec(codec);
 // 	channel->owner->writeformat = skinny_codec2pbx_codec(codec); /* do not change the write format */
+	if(!channel->owner->writeformat){
+		channel->owner->writeformat = channel->owner->rawwriteformat;
+	}
 
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write native: %d\n", (int)channel->owner->rawwriteformat);
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write: %d\n", (int)channel->owner->writeformat);
@@ -1505,6 +1508,9 @@ static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * c
 static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec){
 	
 	channel->owner->rawreadformat = skinny_codec2pbx_codec(codec);
+	if(!channel->owner->readformat){
+		channel->owner->readformat = channel->owner->rawreadformat;
+	}
 // 	channel->owner->readformat = skinny_codec2pbx_codec(codec);/* do not change the read format */
 
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "read native: %d\n", (int)channel->owner->rawreadformat);
