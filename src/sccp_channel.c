@@ -150,6 +150,7 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t *channel){
 	if(channel->rtp.audio.writeState != SCCP_RTP_STATUS_INACTIVE && channel->rtp.audio.writeFormat != SKINNY_CODEC_NONE){
 		pbx_log(LOG_NOTICE, "we already have a write format, dont change codec\n");
 		channel->rtp.audio.readFormat = channel->rtp.audio.writeFormat;
+		PBX(rtp_setReadFormat) (channel, channel->rtp.audio.readFormat);
 		return;
 	}
   
@@ -197,6 +198,7 @@ static void sccp_channel_recalculateWriteformat(sccp_channel_t *channel){
 	if(channel->rtp.audio.readState != SCCP_RTP_STATUS_INACTIVE && channel->rtp.audio.readFormat != SKINNY_CODEC_NONE){
 		pbx_log(LOG_NOTICE, "we already have a read format, dont change codec\n");
 		channel->rtp.audio.writeFormat = channel->rtp.audio.readFormat;
+		PBX(rtp_setWriteFormat) (channel, channel->rtp.audio.writeFormat);
 		return;
 	}
   
