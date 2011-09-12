@@ -956,26 +956,27 @@ static int sccp_system_message(int fd, int argc, char *argv[])
 	        ast_cli(fd, "SCCP system message text stored successfully\n");
 	}
 
-	if (argc > 5) {
-	        if (!strcmp(argv[4], "beep")) {
-	                beep = 1;
-	                if (sscanf(argv[5], "%d", &msgtimeout) != 1)
-	         		msgtimeout = 10;
-	 		else
-	                        res = pbx_db_put("SCCP/message", "timeout", argv[5]);
-	        }
-	        if (sscanf(argv[4], "%d", &msgtimeout) != 1)
-	                msgtimeout = 10;
+        if (argc > 5) { 
+                if (!strcmp(argv[4], "beep")) {
+                        beep = 1;
+                        if (sscanf(argv[5], "%d", &msgtimeout) != 1)
+                                msgtimeout = 10;
+                        else
+                                res = pbx_db_put("SCCP/message", "timeout", argv[5]);                              
+                }
+                if (sscanf(argv[4], "%d", &msgtimeout) != 1) 
+                        msgtimeout = 10;
                 else 
-	                res = pbx_db_put("SCCP/message", "timeout", argv[4]);
-
-		if (res) {
-		        ast_cli(fd, "Failed to store the SCCP system message timeout\n");
-		} else {
-		        ast_cli(fd, "SCCP system message timeout stored successfully\n");
-		}
-	}
-
+                                res = pbx_db_put("SCCP/message", "timeout", argv[4]); 
+        } else {
+                msgtimeout = 0;
+                res = pbx_db_put("SCCP/message", "timeout", "0");    
+        }
+        if (!res) {
+                ast_cli(fd, "Failed to store the SCCP system message timeout\n");
+        } else {
+                ast_cli(fd, "SCCP system message timeout stored successfully\n");
+        }
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 	        if (d && d->session) {
