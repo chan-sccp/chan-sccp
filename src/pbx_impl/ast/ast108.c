@@ -616,7 +616,7 @@ boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t * channel
 	
 	/** the the tonezone using language information */
 	if(!sccp_strlen_zero(line->language)){
-		(*pbx_channel)->zone = ast_get_indication_zone(line->language);
+		//(*pbx_channel)->zone = ast_get_indication_zone(line->language); /* this will core asterisk on hangup */
 	}
 		
 
