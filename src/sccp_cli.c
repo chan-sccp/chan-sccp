@@ -847,9 +847,11 @@ static int sccp_message_devices(int fd, int argc, char *argv[])
 	}
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		sccp_dev_displaynotify(d, argv[3], msgtimeout);
-		if (beep) {
-			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
+	        if (d && d->session) {
+			sccp_dev_displaynotify(d, argv[3], msgtimeout);
+			if (beep) {
+				sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
+			}
 		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
@@ -927,45 +929,67 @@ CLI_ENTRY_COMPLETE(cli_message_device, sccp_message_device, "Send a message to S
  */
 static int sccp_system_message(int fd, int argc, char *argv[])
 {
-	int res;
+        int res;
+	sccp_device_t *d;
+	int msgtimeout = 0;
+	int beep = 0;
 
-	int timeout = 0;
+	if (argc < 4 || argc >6)
+	        return RESULT_SHOWUSAGE;
 
-	if ((argc < 3) || (argc > 5))
-		return RESULT_SHOWUSAGE;
 	if (argc == 3) {
-		res = ast_db_deltree("SCCP", "message");
-		if (res) {
-			ast_cli(fd, "Failed to delete the SCCP system message!\n");
-			return RESULT_FAILURE;
-		}
-		ast_cli(fd, "SCCP system message deleted!\n");
-		return RESULT_SUCCESS;
+	        res = pbx_db_deltree("SCCP/message", "message");
+	        if (!res) {
+	         	ast_cli(fd, "Failed to delete the SCCP system message!\n");
+	                return RESULT_FAILURE;
+	        }
+	        ast_cli(fd, "SCCP system message deleted!\n");
+	        return RESULT_SUCCESS;
 	}
 	if (sccp_strlen_zero(argv[3]))
-		return RESULT_SHOWUSAGE;
+	        return RESULT_SHOWUSAGE;
+
 	res = pbx_db_put("SCCP/message", "text", argv[3]);
 	if (res) {
-		ast_cli(fd, "Failed to store the SCCP system message text\n");
+	 	ast_cli(fd, "Failed to store the SCCP system message text\n");
 	} else {
-		ast_cli(fd, "SCCP system message text stored successfully\n");
+	        ast_cli(fd, "SCCP system message text stored successfully\n");
 	}
-	if (argc == 5) {
-		if (sscanf(argv[4], "%d", &timeout) != 1)
-			return RESULT_SHOWUSAGE;
-		res = pbx_db_put("SCCP/message", "timeout", argv[4]);
+
+	if (argc > 5) {
+	        if (!strcmp(argv[4], "beep")) {
+	                beep = 1;
+	                if (sscanf(argv[5], "%d", &msgtimeout) != 1)
+	         		msgtimeout = 10;
+	 		else
+	                        res = pbx_db_put("SCCP/message", "timeout", argv[5]);
+	        }
+	        if (sscanf(argv[4], "%d", &msgtimeout) != 1)
+	                msgtimeout = 10;
+                else 
+	                res = pbx_db_put("SCCP/message", "timeout", argv[4]);
+
 		if (res) {
-			ast_cli(fd, "Failed to store the SCCP system message timeout\n");
+		        ast_cli(fd, "Failed to store the SCCP system message timeout\n");
 		} else {
-			ast_cli(fd, "SCCP system message timeout stored successfully\n");
+		        ast_cli(fd, "SCCP system message timeout stored successfully\n");
 		}
-	} else {
-		ast_db_del("SCCP/message", "timeout");
 	}
+
+	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+	        if (d && d->session) {
+	                sccp_dev_displaynotify(d, argv[3], msgtimeout);
+	                if (beep) {
+	                        sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
+	                }
+	        }
+	}
+	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 	return RESULT_SUCCESS;
 }
 
-static char system_message_usage[] = "Usage: sccp system message <message text> [beep] [timeout]\n" "       The default optional timeout is 0 (forever)\n" "       Example: sccp system message \"The boss is gone. Let's have some fun!\"  10\n";
+static char system_message_usage[] = "Usage: sccp system message <message text> [beep] [timeout]\n" "       The default optional timeout is 10 (i.e. forever)\n" "       Example: sccp system message \"The boss is gone. Let's have some fun!\"  10\n";
 
 #define CLI_COMMAND "sccp", "system", "message", NULL
 CLI_ENTRY(cli_system_message, sccp_system_message, "Send a system wide message to all SCCP Devices", system_message_usage)

@@ -105,6 +105,7 @@ enum {
 #    define pbx_gethostbyname ast_gethostbyname
 #    define pbx_apply_ha ast_apply_ha
 #    define pbx_pickup_ext ast_pickup_ext
+#    define pbx_db_deltree ast_db_deltree
 #    define pbx_db_gettree ast_db_gettree
 #    define pbx_db_put ast_db_put
 #    define pbx_db_get ast_db_get
