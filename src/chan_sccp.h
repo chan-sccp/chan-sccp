@@ -1041,8 +1041,8 @@ extern "C" {
 		SCCP_RWLIST_HEAD(, sccp_line_t) lines;				/*!< SCCP Lines */
 
 		ast_mutex_t socket_lock;					/*!< Socket Lock */
-		pthread_t socket_thread;					/*!< Socket Thread */// Moved her in v2 SVN 426 -FS
-		pthread_t mwiMonitorThread;					/*!< MWI Monitor Thread */// MC
+		pthread_t socket_thread;					/*!< Socket Thread */
+		pthread_t mwiMonitorThread;					/*!< MWI Monitor Thread */
 		int descriptor;							/*!< Descriptor */
 		int usecnt;							/*!< Keep track of when we're in use. */
 		ast_mutex_t usecnt_lock;					/*!< Use Counter Asterisk Lock */
@@ -1062,11 +1062,11 @@ extern "C" {
 		int externrefresh;						/*!< External Refresh */
 		time_t externexpire;						/*!< External Expire */
 
-		uint8_t firstdigittimeout;					/*< First Digit Timeout. Wait up to 16 seconds for first digit */
-		uint8_t digittimeout;						/*< Digit Timeout. How long to wait for following digits */
-		char digittimeoutchar;						/*< Digit End Character. What char will force the dial (Normally '#') */
-		boolean_t recorddigittimeoutchar;				/*< Record Digit Time Out Char. Whether to include the digittimeoutchar in the call logs */
-		boolean_t simulate_enbloc;					/*< Simulated Enbloc Dialing for older device to speed up dialing */
+		uint8_t firstdigittimeout;					/*!< First Digit Timeout. Wait up to 16 seconds for first digit */
+		uint8_t digittimeout;						/*!< Digit Timeout. How long to wait for following digits */
+		char digittimeoutchar;						/*!< Digit End Character. What char will force the dial (Normally '#') */
+		boolean_t recorddigittimeoutchar;				/*!< Record Digit Time Out Char. Whether to include the digittimeoutchar in the call logs */
+		boolean_t simulate_enbloc;					/*!< Simulated Enbloc Dialing for older device to speed up dialing */
 
 		uint8_t autoanswer_ring_time;					/*!< Auto Answer Ring Time */
 		uint8_t autoanswer_tone;					/*!< Auto Answer Tone */
