@@ -100,5 +100,5 @@ boolean_t sccp_device_check_update(sccp_device_t * d);
 
 void sccp_device_addMessageToStack(sccp_device_t *device, uint8_t priority, const char *message);
 void sccp_device_clearMessageFromStack(sccp_device_t *device, uint8_t priority);
-
+void sccp_device_featureChangedDisplay(const sccp_event_t ** event);
 #endif										/* __SCCP_DEVICE_H */

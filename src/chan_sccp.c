@@ -584,7 +584,8 @@ boolean_t sccp_prePBXLoad()
 #ifdef CS_SCCP_CONFERENCE
 	sccp_conference_module_start();
 #endif
-	sccp_event_subscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_util_handleFeatureChangeEvent);
+	sccp_event_subscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_util_featureStorageBackend);
+	sccp_event_subscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_device_featureChangedDisplay);
 
 //	sccp_set_config_defaults(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
 	/* GLOB() is a macro for sccp_globals-> */
