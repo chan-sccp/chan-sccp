@@ -24,6 +24,18 @@ struct io_context *io = 0;
 const struct ast_channel_tech sccp_tech;
 #endif
 
+
+
+
+
+
+
+
+
+
+static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec);
+
+
 #define RTP_NEW_SOURCE(_c,_log) 								\
         if(c->rtp.audio.rtp) { 										\
                 ast_rtp_new_source(c->rtp.audio.rtp); 							\
@@ -181,17 +193,11 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk18_rtp_read(PBX_CHANNEL_TYPE * ast)
 		{
 			//sccp_log(1) (VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n", DEV_ID_LOG(c->device), ast->name, pbx_getformatname(ast->nativeformats), ast->nativeformats, pbx_getformatname(frame->subclass), frame->subclass);
 
-			ast->nativeformats = frame->subclass.codec;
-			ast_set_read_format(ast, frame->subclass.codec);
-			ast_set_write_format(ast, frame->subclass.codec);
+			sccp_wrapper_asterisk18_setReadFormat(c, c->rtp.audio.readFormat);
+// 			ast_set_write_format(ast, frame->subclass.codec);
 		}
 #if 0		
-		if( (ast->rawreadformat = ast->readformat) && ast->readtrans ){
-			ast_translator_free_path(ast->readtrans);
-			ast->readtrans = NULL;
-			
-			ast_set_read_format(ast, frame->subclass.codec);
-		}
+		
 #endif
 	}
 	return frame;
@@ -587,8 +593,6 @@ boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t * channel
 
 	(*pbx_channel)->tech = &sccp_tech;
 	(*pbx_channel)->tech_pvt = &channel;
-	//! \todo we already did this during the channel allocation, except asterisk 1.2
-	//! \todo this should be moved to pbx implementation
 	sccp_copy_string((*pbx_channel)->context, line->context, sizeof((*pbx_channel)->context));
 
 	if (!sccp_strlen_zero(line->language))
@@ -608,7 +612,11 @@ boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t * channel
 		(*pbx_channel)->pickupgroup = line->pickupgroup;
 	(*pbx_channel)->priority = 1;
 	
-//	(*pbx_channel)->nativeformats = AST_FORMAT_ULAW | AST_FORMAT_ALAW;
+	/** the the tonezone using language information */
+	if(!sccp_strlen_zero(line->language)){
+		(*pbx_channel)->zone = ast_get_indication_zone(line->language);
+	}
+		
 
 	return TRUE;
 }
@@ -982,7 +990,6 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 
 	if (requestor->linkedid) {
 		ast_string_field_set(channel->owner, linkedid, requestor->linkedid);
-		ast_log(LOG_WARNING, "requestor->linkedid: %s\n", requestor->linkedid);
 	}
 
 	sccp_channel_unlock(channel);
@@ -1480,6 +1487,10 @@ static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * c
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write native: %d\n", (int)channel->owner->rawwriteformat);
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write: %d\n", (int)channel->owner->writeformat);
 
+	if( channel->owner->writetrans ){
+		ast_translator_free_path(channel->owner->writetrans);
+		channel->owner->writetrans = NULL;
+	}
 	ast_set_write_format(channel->owner, channel->owner->writeformat);
 	
 	if(channel->rtp.audio.rtp)
@@ -1494,6 +1505,12 @@ static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * ch
 
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "read native: %d\n", (int)channel->owner->rawreadformat);
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "read: %d\n", (int)channel->owner->readformat);
+	
+	
+	if( channel->owner->readtrans ){
+		ast_translator_free_path(channel->owner->readtrans);
+		channel->owner->readtrans = NULL;
+	}
 
 	ast_set_read_format(channel->owner, channel->owner->readformat);
 	if(channel->rtp.audio.rtp)
@@ -1887,7 +1904,7 @@ const struct ast_channel_tech sccp_tech = {
 	//.write_video		=
 	//.cc_callback          =                                              // ccss, new >1.6.0
 	//.exception            =                                              // new >1.6.0
-	.setoption 		= sccp_wrapper_asterisk18_setOption,
+//	.setoption 		= sccp_wrapper_asterisk18_setOption,
 	//.queryoption          =                                              // new >1.6.0
 	//.get_pvt_uniqueid     = sccp_pbx_get_callid,                         // new >1.6.0
 	//.get_base_channel	=
