@@ -177,13 +177,20 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk18_rtp_read(PBX_CHANNEL_TYPE * ast)
 
 	if (frame->frametype == AST_FRAME_VOICE) {
 
-		if (!(frame->subclass.codec & (ast->nativeformats & AST_FORMAT_AUDIO_MASK)))	// ASTERISK_VERSION_NUMBER >= 10400
+		if (!(frame->subclass.codec & (ast->rawreadformat & AST_FORMAT_AUDIO_MASK)))	// ASTERISK_VERSION_NUMBER >= 10400
 		{
 			//sccp_log(1) (VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n", DEV_ID_LOG(c->device), ast->name, pbx_getformatname(ast->nativeformats), ast->nativeformats, pbx_getformatname(frame->subclass), frame->subclass);
 
 			ast->nativeformats = frame->subclass.codec;
-			ast_set_read_format(ast, ast->readformat);
-			ast_set_write_format(ast, ast->writeformat);
+			ast_set_read_format(ast, frame->subclass.codec);
+			ast_set_write_format(ast, frame->subclass.codec);
+		}
+		
+	if( (ast->rawreadformat = ast->readformat) && ast->readtrans ){
+			ast_translator_free_path(ast->readtrans);
+			ast->readtrans = NULL;
+			
+			ast_set_read_format(ast, frame->subclass.codec);
 		}
 	}
 	return frame;
@@ -455,6 +462,14 @@ static int sccp_wrapper_asterisk18_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_T
 //                              ast_log(LOG_WARNING, "%s: Asked to transmit frame type %d, while native formats are %s(%lu) read/write = %s(%lu)/%s(%lu)\n", DEV_ID_LOG(c->device), (int)frame->frametype, pbx_getformatname_multiple(s1, sizeof(s1) - 1, ast->nativeformats), ast->nativeformats, pbx_getformatname_multiple(s2, sizeof(s2) - 1, ast->readformat), (uint64_t)ast->readformat, pbx_getformatname_multiple(s3, sizeof(s3) - 1, (uint64_t)ast->writeformat), (uint64_t)ast->writeformat);
 				//return -1;
 			}
+			
+			if( (ast->rawwriteformat = ast->writeformat) && ast->writetrans ){
+				ast_translator_free_path(ast->writetrans);
+				ast->writetrans = NULL;
+				
+				ast_set_write_format(ast, frame->subclass.codec);
+			}
+			
 			if (c->rtp.audio.rtp) {
 				res = ast_rtp_instance_write(c->rtp.audio.rtp, frame);
 			}
