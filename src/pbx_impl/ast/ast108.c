@@ -185,13 +185,14 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk18_rtp_read(PBX_CHANNEL_TYPE * ast)
 			ast_set_read_format(ast, frame->subclass.codec);
 			ast_set_write_format(ast, frame->subclass.codec);
 		}
-		
-	if( (ast->rawreadformat = ast->readformat) && ast->readtrans ){
+#if 0		
+		if( (ast->rawreadformat = ast->readformat) && ast->readtrans ){
 			ast_translator_free_path(ast->readtrans);
 			ast->readtrans = NULL;
 			
 			ast_set_read_format(ast, frame->subclass.codec);
 		}
+#endif
 	}
 	return frame;
 }
@@ -465,14 +466,14 @@ static int sccp_wrapper_asterisk18_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_T
 //                              ast_log(LOG_WARNING, "%s: Asked to transmit frame type %d, while native formats are %s(%lu) read/write = %s(%lu)/%s(%lu)\n", DEV_ID_LOG(c->device), (int)frame->frametype, pbx_getformatname_multiple(s1, sizeof(s1) - 1, ast->nativeformats), ast->nativeformats, pbx_getformatname_multiple(s2, sizeof(s2) - 1, ast->readformat), (uint64_t)ast->readformat, pbx_getformatname_multiple(s3, sizeof(s3) - 1, (uint64_t)ast->writeformat), (uint64_t)ast->writeformat);
 				//return -1;
 			}
-			
+#if 0			
 			if( (ast->rawwriteformat = ast->writeformat) && ast->writetrans ){
 				ast_translator_free_path(ast->writetrans);
 				ast->writetrans = NULL;
 				
 				ast_set_write_format(ast, frame->subclass.codec);
 			}
-			
+#endif			
 			if (c->rtp.audio.rtp) {
 				res = ast_rtp_instance_write(c->rtp.audio.rtp, frame);
 			}
@@ -1479,7 +1480,8 @@ static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * c
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write native: %d\n", (int)channel->owner->rawwriteformat);
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write: %d\n", (int)channel->owner->writeformat);
 
-	ast_set_write_format(channel->owner, skinny_codec2pbx_codec(codec));
+	ast_set_write_format(channel->owner, channel->owner->writeformat);
+	
 	if(channel->rtp.audio.rtp)
 		ast_rtp_instance_set_write_format(channel->rtp.audio.rtp, channel->owner->rawwriteformat);
 	
@@ -1493,7 +1495,7 @@ static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * ch
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "read native: %d\n", (int)channel->owner->rawreadformat);
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "read: %d\n", (int)channel->owner->readformat);
 
-	ast_set_read_format(channel->owner, skinny_codec2pbx_codec(codec));
+	ast_set_read_format(channel->owner, channel->owner->readformat);
 	if(channel->rtp.audio.rtp)
 		ast_rtp_instance_set_read_format(channel->rtp.audio.rtp, channel->owner->rawreadformat);
 	return TRUE;
