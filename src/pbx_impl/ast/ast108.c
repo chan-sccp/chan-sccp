@@ -559,6 +559,7 @@ static void sccp_wrapper_asterisk18_setCalleridPresence(const sccp_channel_t * c
 
 static int sccp_wrapper_asterisk18_setNativeAudioFormats(const sccp_channel_t * channel, skinny_codec_t codec[], int length)
 {
+#if 0
 	/* while setting nativeformats to multiple value, asterisk will not transcode it */
 #ifdef CS_EXPERIMENTAL
 	int i;
@@ -571,6 +572,7 @@ static int sccp_wrapper_asterisk18_setNativeAudioFormats(const sccp_channel_t * 
 #endif
 
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: set native Formats to %d, skinny: %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), (int)channel->owner->nativeformats, codec[0]);
+#endif
 	return 1;
 }
 
@@ -1481,8 +1483,9 @@ static int sccp_wrapper_asterisk18_rtp_set_peer(const struct sccp_rtp *rtp, cons
 }
 
 static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * channel, skinny_codec_t codec){
-	channel->owner->rawwriteformat = skinny_codec2pbx_codec(codec);
-	channel->owner->writeformat = skinny_codec2pbx_codec(codec);
+	
+	channel->owner->nativeformats = channel->owner->rawwriteformat = skinny_codec2pbx_codec(codec);
+// 	channel->owner->writeformat = skinny_codec2pbx_codec(codec); /* do not change the write format */
 
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write native: %d\n", (int)channel->owner->rawwriteformat);
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write: %d\n", (int)channel->owner->writeformat);
@@ -1500,8 +1503,9 @@ static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * c
 }
 
 static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec){
+	
 	channel->owner->rawreadformat = skinny_codec2pbx_codec(codec);
-	channel->owner->readformat = skinny_codec2pbx_codec(codec);
+// 	channel->owner->readformat = skinny_codec2pbx_codec(codec);/* do not change the read format */
 
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "read native: %d\n", (int)channel->owner->rawreadformat);
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "read: %d\n", (int)channel->owner->readformat);
