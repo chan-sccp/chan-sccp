@@ -1259,18 +1259,11 @@ static int sccp_system_message(int fd, int argc, char *argv[])
 	int msgtimeout = 0;
 	int beep = 0;
 
+	res = PBX(feature_removeTreeFromDatabase)("SCCP", "message");
+
 	if (argc < 4 || argc >6)
 		return RESULT_SHOWUSAGE;
 
-	if (argc == 3) {
-		res = PBX(feature_removeTreeFromDatabase)("SCCP", "message");
-                if (!res) {
-                        ast_cli(fd, "Failed to delete the SCCP system message!\n");
-                        return RESULT_FAILURE;
-                }
-                ast_cli(fd, "SCCP system message deleted!\n");
-                return RESULT_SUCCESS;
-        }
         if (sccp_strlen_zero(argv[3]))  
                 return RESULT_SHOWUSAGE;
 
@@ -1293,13 +1286,15 @@ static int sccp_system_message(int fd, int argc, char *argv[])
 			msgtimeout = 10;
 		else 
 			res = PBX(feature_addToDatabase)("SCCP/message", "timeout", argv[4]);
-
-                if (!res) {
-                        ast_cli(fd, "Failed to store the SCCP system message timeout\n");
-                } else {
-                        ast_cli(fd, "SCCP system message timeout stored successfully\n");
-                }
+	} else {
+		msgtimeout = 0;
+		res = PBX(feature_addToDatabase)("SCCP/message", "timeout", "0");
 	}
+        if (!res) {
+       		ast_cli(fd, "Failed to store the SCCP system message timeout\n");
+        } else {
+        	ast_cli(fd, "SCCP system message timeout stored successfully\n");
+        }
 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
