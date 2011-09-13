@@ -1045,8 +1045,8 @@ void sccp_dev_set_activeline(sccp_device_t * device, sccp_line_t * l)
  */
 void sccp_dev_check_displayprompt(sccp_device_t * d)
 {
-	char tmp[256] = "";
-	int timeout = 0;
+//	char tmp[256] = "";
+//	int timeout = 0;
 
 //      uint8_t res = 0;
 
@@ -1200,24 +1200,11 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 		}
 	}
 	
-	if (d->phonemessage && strcmp(d->phonemessage,"")) {					// display message if set
-		sccp_dev_displayprompt(d, 0, 0, d->phonemessage, 0);
-		goto OUT;
-	}
 #if 0
 	/* check for forward to display */
 	if (sccp_dev_display_cfwd(d, FALSE) == TRUE)
 		goto OUT;
 #endif
-	if (PBX(feature_getFromDatabase) && PBX(feature_getFromDatabase) ("SCCP/message", "timeout", tmp, sizeof(tmp))) {
-		sscanf(tmp, "%i", &timeout);
-	}
-	if (PBX(feature_getFromDatabase) && PBX(feature_getFromDatabase) ("SCCP/message", "text", tmp, sizeof(tmp))) {
-		if (!sccp_strlen_zero(tmp)) {
-			sccp_dev_displayprinotify(d, tmp, 5, timeout);
-			goto OUT;
-		}
-	}
 #if 0
 	if (d->mwilight) {
 		char buffer[StationMaxDisplayTextSize];

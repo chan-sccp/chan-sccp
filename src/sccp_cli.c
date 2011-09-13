@@ -1170,11 +1170,15 @@ static int sccp_message_devices(int fd, int argc, char *argv[])
 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-        	if (d && d->session) {
-			sccp_dev_displaynotify(d, argv[3], msgtimeout);
-			if (beep) {
-				sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
+		if (msgtimeout) {
+			if (d && d->session) {
+				sccp_dev_displayprinotify(d, argv[3], 5, msgtimeout);
 			}
+		} else {
+			sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_IDLE, argv[3]);
+		}
+		if (beep) {
+			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
 		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
@@ -1224,10 +1228,16 @@ static int sccp_message_device(int fd, int argc, char *argv[])
 	        }
 	}
 	if ((d = sccp_device_find_byid(argv[3], FALSE))) {
-	        sccp_dev_displaynotify(d, argv[4], msgtimeout);
-	        if (beep) {
-	                sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
-	        }
+		if (msgtimeout) {
+			if (d && d->session) {
+				sccp_dev_displayprinotify(d, argv[4], 5, msgtimeout);
+			}
+		} else {
+			sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_IDLE, argv[4]);
+		}
+		if (beep) {
+			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
+		}
 	        return RESULT_SUCCESS;
 	} else {
 	        ast_cli(fd, "Device not found!\n");
@@ -1256,10 +1266,21 @@ static int sccp_system_message(int fd, int argc, char *argv[])
 {
 	int res;
 	sccp_device_t *d;
-	int msgtimeout = 0;
+	char msgtimeout[10];
+	int timeout = 0;
 	int beep = 0;
 
-	res = PBX(feature_removeTreeFromDatabase)("SCCP", "message");
+	if (argc==3) {
+		PBX(feature_removeTreeFromDatabase)("SCCP", "message");
+		SCCP_RWLIST_RDLOCK(&GLOB(devices));
+		SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+			sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_IDLE);
+			sccp_dev_displayprompt(d, 0, 0, "Message off", 1);
+		}
+		SCCP_RWLIST_UNLOCK(&GLOB(devices));
+                ast_cli(fd, "Message Cleared\n");
+		return RESULT_SUCCESS;
+	}
 
 	if (argc < 4 || argc >6)
 		return RESULT_SHOWUSAGE;
@@ -1277,18 +1298,13 @@ static int sccp_system_message(int fd, int argc, char *argv[])
 	if (argc > 5) {
 		if (!strcmp(argv[4], "beep")) {
 			beep = 1;
-			if (sscanf(argv[5], "%d", &msgtimeout) != 1)
-				msgtimeout = 10;
-			else
-				res = PBX(feature_addToDatabase)("SCCP/message", "timeout", argv[5]);
+			if (sscanf(argv[5], "%d", &timeout) != 1)
+				timeout = 10;
 		}
-		if (sscanf(argv[4], "%d", &msgtimeout) != 1) 
-			msgtimeout = 10;
-		else 
-			res = PBX(feature_addToDatabase)("SCCP/message", "timeout", argv[4]);
+		if (sscanf(argv[4], "%d", &timeout) != 1) 
+			timeout = 10;
 	} else {
-		msgtimeout = 0;
-		res = PBX(feature_addToDatabase)("SCCP/message", "timeout", "0");
+		timeout = 0;
 	}
         if (!res) {
        		ast_cli(fd, "Failed to store the SCCP system message timeout\n");
@@ -1296,13 +1312,21 @@ static int sccp_system_message(int fd, int argc, char *argv[])
         	ast_cli(fd, "SCCP system message timeout stored successfully\n");
         }
 
+	sprintf(msgtimeout, "%d", timeout);
+	res = PBX(feature_addToDatabase)("SCCP/message", "timeout", msgtimeout);
+	res = PBX(feature_addToDatabase)("SCCP/message", "text", argv[3]);
+
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-        	if (d && d->session) {
-			sccp_dev_displaynotify(d, argv[3], msgtimeout);
-			if (beep) {
-				sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
+		if (timeout) {
+			if (d && d->session) {
+				sccp_dev_displayprinotify(d, argv[3], 5, timeout);
 			}
+		} else {
+			sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_IDLE, argv[3]);
+		}
+		if (beep) {
+			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
 		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));

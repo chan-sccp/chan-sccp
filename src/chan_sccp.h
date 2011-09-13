@@ -809,7 +809,6 @@ extern "C" {
 		pthread_t postregistration_thread;				/*!< Post Registration Thread */
 
 		PBX_VARIABLE_TYPE *variables;					/*!< Channel variables to set */
-		char *phonemessage;						/*!< Message to display on device */
 		uint8_t defaultLineInstance;					/*!< Default Line Instance */
 
 		struct {
