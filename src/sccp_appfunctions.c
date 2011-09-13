@@ -688,7 +688,7 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 	}
 
         char *text;
-	int timeout;
+	int timeout=0;
 
         if ((text = strchr(data, ':'))) {                                       /*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
@@ -710,18 +710,23 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 
 	d = sccp_channel_getDevice(c);
 	sccp_device_lock(d);
-	sccp_free(d->phonemessage);
 	if (text[0] != '\0') {
-		sccp_dev_displayprinotify(d, text, 5, timeout);
-		sccp_dev_displayprompt(d, 0, 0, text, timeout);
-		d->phonemessage = sccp_strdup(text);
-		PBX(feature_addToDatabase)("SCCPM", d->id, text);
+		PBX(feature_addToDatabase)("SCCP/message", "text", text);
+		if (timeout) {
+			char msgtimeout[10];
+			sprintf(msgtimeout,"%d", timeout);
+			PBX(feature_addToDatabase)("SCCP/message", "timeout", msgtimeout);
+			sccp_dev_displayprompt(d, 0, 0, text, timeout);
+		} else {
+			sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_IDLE, text);
+		}
 	} else {
-		sccp_dev_displayprinotify(d, "Message off", 5, 1);
 		sccp_dev_displayprompt(d, 0, 0, "Message off", 1);
-		d->phonemessage = NULL;
-		PBX(feature_removeFromDatabase)("SCCPM", d->id);
+		sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_IDLE);
+		PBX(feature_removeFromDatabase)("SCCP/message", "timeout");
+		PBX(feature_removeFromDatabase)("SCCP/message", "text");
 	}
+	
 	sccp_device_unlock(d);
 
 	return 0;

@@ -2425,6 +2425,8 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 #endif
 
 	char buffer[ASTDB_RESULT_LEN];
+	char timebuffer[ASTDB_RESULT_LEN];
+	int timeout;
 	char family[ASTDB_FAMILY_KEY_LEN];
 
 	sprintf(family, "SCCP/%s", device->id);
@@ -2454,8 +2456,17 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	}
 
 	/* Message */
-	if (PBX(feature_getFromDatabase)("SCCPM", device->id, buffer, sizeof(buffer))) {
-		device->phonemessage = strdup(buffer);				//set message on device if we have a result
+	if (PBX(feature_getFromDatabase) && PBX(feature_getFromDatabase) ("SCCP/message", "text", buffer, sizeof(buffer))) {
+		if (!sccp_strlen_zero(buffer)) {
+			if (PBX(feature_getFromDatabase) && PBX(feature_getFromDatabase) ("SCCP/message", "timeout", timebuffer, sizeof(timebuffer))) {
+				sscanf(timebuffer, "%i", &timeout);
+			}
+			if (timeout) {
+				sccp_dev_displayprinotify(device, buffer, 5, timeout);
+			} else {	
+				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_IDLE, buffer);
+			}
+		}
 	}
 
 	/* lastDialedNumber */
