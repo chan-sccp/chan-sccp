@@ -1275,7 +1275,7 @@ static int sccp_system_message(int fd, int argc, char *argv[])
 		SCCP_RWLIST_RDLOCK(&GLOB(devices));
 		SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 			sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_IDLE);
-			sccp_dev_displayprompt(d, 0, 0, "Message off", 1);
+			sccp_dev_clearprompt(d, 0, 0);
 		}
 		SCCP_RWLIST_UNLOCK(&GLOB(devices));
                 ast_cli(fd, "Message Cleared\n");
