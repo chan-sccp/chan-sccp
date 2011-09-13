@@ -721,7 +721,7 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 			sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_IDLE, text);
 		}
 	} else {
-		sccp_dev_displayprompt(d, 0, 0, "Message off", 1);
+		sccp_dev_clearprompt(d, 0, 0);
 		sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_IDLE);
 		PBX(feature_removeFromDatabase)("SCCP/message", "timeout");
 		PBX(feature_removeFromDatabase)("SCCP/message", "text");
