@@ -24494,17 +24494,18 @@ $as_echo "$as_me: --enable-dynamic-speeddial: ${ac_cv_dynamic_speeddial}" >&6;}
 if test "${enable_dynamic_speeddial_cid+set}" = set; then :
   enableval=$enable_dynamic_speeddial_cid; ac_cv_dynamic_speeddial_cid=$enableval
 else
-  ac_cv_dynamic_speeddial_cid=yes
+  ac_cv_dynamic_speeddial_cid=${ac_cv_dynamic_speeddial}
 fi
 
-	if test "${ac_cv_dynamic_speeddial_cid}" == "yes"; then :
+        if test "${ac_cv_dynamic_speeddial}" == "yes"; then :
 
-
-$as_echo "#define CS_DYNAMIC_SPEEDDIAL 1" >>confdefs.h
+                if test "${ac_cv_dynamic_speeddial_cid}" == "yes"; then :
 
 
 $as_echo "#define CS_DYNAMIC_SPEEDDIAL_CID 1" >>confdefs.h
 
+
+fi
 
 fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-dynamic-speeddial_cid: ${ac_cv_dynamic_speeddial_cid}" >&5
