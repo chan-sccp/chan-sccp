@@ -43,7 +43,8 @@ struct sccp_pbx_cb {
 	sccp_extension_status_t(*const extension_status) (const sccp_channel_t * channel);
 
 	/** get channel by name */
-	boolean_t(*const getChannelByName) (const char *name, PBX_CHANNEL_TYPE * pbx_channel);
+	boolean_t(*const getChannelByName) (const char *name, PBX_CHANNEL_TYPE *pbx_channel);
+	boolean_t(*const getRemoteChannel) (const sccp_channel_t *channel, PBX_CHANNEL_TYPE **pbx_channel);
 	void *(*const getChannelByCallback) (int (*is_match)(PBX_CHANNEL_TYPE *, void *),void *data);
 	const char *(*const getChannelLinkId) (const sccp_channel_t * channel);
 

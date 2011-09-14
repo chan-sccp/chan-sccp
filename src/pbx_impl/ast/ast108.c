@@ -192,8 +192,9 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk18_rtp_read(PBX_CHANNEL_TYPE * ast)
 		if (!(frame->subclass.codec & (ast->rawreadformat & AST_FORMAT_AUDIO_MASK)))	// ASTERISK_VERSION_NUMBER >= 10400
 		{
 			//sccp_log(1) (VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n", DEV_ID_LOG(c->device), ast->name, pbx_getformatname(ast->nativeformats), ast->nativeformats, pbx_getformatname(frame->subclass), frame->subclass);
-
+#ifndef CS_EXPERIMENTAL
 			sccp_wrapper_asterisk18_setReadFormat(c, c->rtp.audio.readFormat);
+#endif
 // 			ast_set_write_format(ast, frame->subclass.codec);
 		}
 #if 0		
@@ -616,7 +617,7 @@ boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t * channel
 	
 	/** the the tonezone using language information */
 	if(!sccp_strlen_zero(line->language)){
-		//(*pbx_channel)->zone = ast_get_indication_zone(line->language); /* this will core asterisk on hangup */
+		(*pbx_channel)->zone = ast_get_indication_zone(line->language); /* this will core asterisk on hangup */
 	}
 		
 
@@ -1484,47 +1485,109 @@ static int sccp_wrapper_asterisk18_rtp_set_peer(const struct sccp_rtp *rtp, cons
 
 static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * channel, skinny_codec_t codec){
 	
+	format_t oldChannelFormat = channel->owner->rawwriteformat;
+  
 	channel->owner->nativeformats = channel->owner->rawwriteformat = skinny_codec2pbx_codec(codec);
 // 	channel->owner->writeformat = skinny_codec2pbx_codec(codec); /* do not change the write format */
+#ifndef CS_EXPERIMENTAL
 	if(!channel->owner->writeformat){
 		channel->owner->writeformat = channel->owner->rawwriteformat;
 	}
-
-	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write native: %d\n", (int)channel->owner->rawwriteformat);
-	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write: %d\n", (int)channel->owner->writeformat);
-
+	
 	if( channel->owner->writetrans ){
 		ast_translator_free_path(channel->owner->writetrans);
 		channel->owner->writetrans = NULL;
 	}
+#endif
+
+	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write native: %d\n", (int)channel->owner->rawwriteformat);
+	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write: %d\n", (int)channel->owner->writeformat);
+
+	
+	
+#ifdef CS_EXPERIMENTAL
+	PBX_CHANNEL_TYPE *bridge;
+	
+	if(PBX(getRemoteChannel)(channel, &bridge)){
+//		ast_log(LOG_NOTICE, "Bridge found\n");
+		channel->owner->writeformat = 0;
+
+		bridge->readformat = 0;
+// 		if(bridge->readtrans){
+// 			ast_translator_free_path(bridge->readtrans);
+// 			bridge->readtrans = NULL;
+// 		}
+		ast_channel_make_compatible(bridge, channel->owner);
+	}else{
+		ast_set_write_format(channel->owner, channel->owner->rawwriteformat);
+	}
+#else
 	ast_set_write_format(channel->owner, channel->owner->writeformat);
+#endif
 	
 	if(channel->rtp.audio.rtp)
 		ast_rtp_instance_set_write_format(channel->rtp.audio.rtp, channel->owner->rawwriteformat);
+	
+	if(oldChannelFormat != channel->owner->rawwriteformat){
+		sccp_pbx_queue_control(channel, AST_CONTROL_SRCUPDATE);
+	}
 	
 	return TRUE;
 }
 
 static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec){
 	
-	channel->owner->rawreadformat = skinny_codec2pbx_codec(codec);
+	format_t oldChannelFormat = channel->owner->readformat;
+  
+	channel->owner->nativeformats = channel->owner->rawreadformat = skinny_codec2pbx_codec(codec);
+
+#ifndef CS_EXPERIMENTAL
 	if(!channel->owner->readformat){
 		channel->owner->readformat = channel->owner->rawreadformat;
 	}
+	
+	if( channel->owner->readtrans ){
+		ast_translator_free_path(channel->owner->readtrans);
+		channel->owner->readtrans = NULL;
+	}
+#endif
 // 	channel->owner->readformat = skinny_codec2pbx_codec(codec);/* do not change the read format */
 
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "read native: %d\n", (int)channel->owner->rawreadformat);
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "read: %d\n", (int)channel->owner->readformat);
 	
 	
-	if( channel->owner->readtrans ){
-		ast_translator_free_path(channel->owner->readtrans);
-		channel->owner->readtrans = NULL;
-	}
+	
 
+#ifdef CS_EXPERIMENTAL
+	PBX_CHANNEL_TYPE *bridge;
+	
+	if(PBX(getRemoteChannel)(channel, &bridge)){
+//		ast_log(LOG_NOTICE, "Bridge found\n");
+		channel->owner->readformat = 0;
+		
+		bridge->writeformat = 0;
+// 		if(bridge->writetrans){
+// 			ast_translator_free_path(bridge->writetrans);
+// 			bridge->writetrans = NULL;
+// 		}
+		ast_channel_make_compatible(channel->owner, bridge);
+		
+	}else{
+		ast_set_read_format(channel->owner, channel->owner->rawreadformat);
+	}
+#else
 	ast_set_read_format(channel->owner, channel->owner->readformat);
+#endif
+	
+	
 	if(channel->rtp.audio.rtp)
 		ast_rtp_instance_set_read_format(channel->rtp.audio.rtp, channel->owner->rawreadformat);
+	
+	if(oldChannelFormat != channel->owner->rawreadformat){
+		sccp_pbx_queue_control(channel, AST_CONTROL_SRCUPDATE);
+	}
+	
 	return TRUE;
 }
 
@@ -1627,6 +1690,27 @@ static int sccp_wrapper_asterisk18_setCallState(const sccp_channel_t * channel, 
 	sccp_pbx_setcallstate((sccp_channel_t *) channel, state);
 	//! \todo implement correct return value (take into account negative deadlock prevention)
 	return 0;
+}
+
+static boolean_t sccp_asterisk_getRemoteChannel(const sccp_channel_t *channel, PBX_CHANNEL_TYPE **pbx_channel){
+  
+	PBX_CHANNEL_TYPE *remotePeer;
+	struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
+	((struct ao2_iterator *)iterator)->flags |= AO2_ITERATOR_DONTLOCK;
+	
+	for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
+		if (pbx_find_channel_by_linkid(remotePeer, (void *)channel->owner->linkedid)) {
+			break;
+		}
+	}
+	ast_channel_iterator_destroy(iterator);
+	
+	if(remotePeer){
+		*pbx_channel = remotePeer;
+		ast_channel_unref(remotePeer);
+		return TRUE;
+	}
+	return FALSE;
 }
 
 int sccp_wrapper_asterisk18_requestHangup(PBX_CHANNEL_TYPE * channel)
@@ -1935,6 +2019,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.extension_status 		= sccp_wrapper_asterisk18_extensionStatus,
 	.getChannelByName 		= sccp_wrapper_asterisk18_getChannelByName,
 	.getChannelLinkId		= sccp_wrapper_asterisk18_getChannelLinkId,
+	.getRemoteChannel		= sccp_asterisk_getRemoteChannel,
 	.checkhangup			= sccp_wrapper_asterisk18_checkHangup,
 	
 	/* digits */
