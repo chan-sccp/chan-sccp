@@ -73,7 +73,6 @@
 #      include <asterisk/event_defs.h>
 #    endif
 #    include <asterisk/indications.h>
-#    include <asterisk/module.h>
                 
 #    include "define.h"
 #    ifdef ASTERISK_CONF_1_2
