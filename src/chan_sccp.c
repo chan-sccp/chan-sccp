@@ -544,7 +544,6 @@ int sccp_sched_del(int id)
  * \brief 	Load the actual chan_sccp module
  * \return	Success as int
  */
-#include <asterisk/module.h>
 boolean_t sccp_prePBXLoad()
 {
 	/* check for existance of chan_skinny */
