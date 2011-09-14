@@ -1271,7 +1271,7 @@ static int sccp_system_message(int fd, int argc, char *argv[])
         if (!res) {
                 ast_cli(fd, "Failed to store the SCCP system message text\n");
         } else {
-                ast_cli(fd, "SCCP system message text stored successfully\n");
+                sccp_log(DEBUGCAT_CLI)(VERBOSE_PREFIX_3 "SCCP system message text stored successfully\n");
         }
 
 	if (argc > 5) {
@@ -1288,7 +1288,7 @@ static int sccp_system_message(int fd, int argc, char *argv[])
         if (!res) {
        		ast_cli(fd, "Failed to store the SCCP system message timeout\n");
         } else {
-        	ast_cli(fd, "SCCP system message timeout stored successfully\n");
+        	sccp_log(DEBUGCAT_CLI)(VERBOSE_PREFIX_3 "SCCP system message timeout stored successfully\n");
         }
 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
