@@ -544,8 +544,14 @@ int sccp_sched_del(int id)
  * \brief 	Load the actual chan_sccp module
  * \return	Success as int
  */
+#include <asterisk/module.h>
 boolean_t sccp_prePBXLoad()
 {
+	/* check for existance of chan_skinny */
+	if (ast_module_check("chan_skinny.so")) {
+		pbx_log(LOG_ERROR, "Chan_skinny is loaded. Please check modules.conf and remove chan_skinny before loading chan_sccp.\n");
+		return FALSE;
+	}
 
 	pbx_log(LOG_NOTICE, "preloading pbx module\n");
 #ifdef HAVE_LIBGC

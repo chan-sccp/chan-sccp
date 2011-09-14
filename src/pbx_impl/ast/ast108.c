@@ -2084,7 +2084,7 @@ static int load_module(void)
 	res = sccp_prePBXLoad();
 	/* make globals */
 	if (!res) {
-		return AST_MODULE_LOAD_FAILURE;
+                return AST_MODULE_LOAD_DECLINE;
 	}
 
 	sched = sched_context_create();
