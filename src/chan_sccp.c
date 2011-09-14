@@ -912,6 +912,15 @@ int load_module()
 static int load_module(void)
 #endif
 {
+
+ 	/* check for existance of chan_skinny */
+#if ASTERISK_VERSION_NUMBER > 10600 	
+ 	if (ast_module_check("chan_skinny.so")) {
+ 		ast_log(LOG_ERROR, "Chan_skinny is loaded. Please check modules.conf and remove chan_skinny before loading chan_sccp.\n");
+ 	 	return AST_MODULE_LOAD_DECLINE;
+	}
+#endif
+ 	        					
 #ifdef HAVE_LIBGC
 	GC_INIT();
 	(void)GC_set_warn_proc(gc_warn_handler);
