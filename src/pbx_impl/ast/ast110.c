@@ -1932,8 +1932,8 @@ static int load_module(void)
 	res = sccp_prePBXLoad();
 	/* make globals */
 	if (!res) {
-		return AST_MODULE_LOAD_FAILURE;
-	}
+                return AST_MODULE_LOAD_DECLINE;
+        }
 	
 	sccp_tech.capabilities = ast_format_cap_alloc();
 	ast_format_cap_add_all_by_type(sccp_tech.capabilities, AST_FORMAT_TYPE_AUDIO);
