@@ -834,7 +834,7 @@ void sccp_dev_clearprompt(const sccp_device_t * d, uint8_t lineInstance, uint32_
 //void sccp_dev_displayprompt(sccp_device_t * d, uint8_t line, uint32_t callid, char *msg, int timeout)
 void sccp_dev_displayprompt_debug(const sccp_device_t * d, uint8_t lineInstance, uint32_t callid, char *msg, int timeout, char *file, int lineno, const char *pretty_function)
 {
-	pbx_log(LOG_NOTICE, "%s: ( %s:%d:%s ) sccp_dev_displayprompt '%s' for line %d (%d)\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg, lineInstance, timeout);
+	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: ( %s:%d:%s ) sccp_dev_displayprompt '%s' for line %d (%d)\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg, lineInstance, timeout);
 
 	if (!d || !d->session)
 		return;
@@ -875,7 +875,7 @@ void sccp_dev_cleardisplay(sccp_device_t * d)
 //void sccp_dev_display(sccp_device_t * d, char *msg)
 void sccp_dev_display_debug(sccp_device_t * d, char *msg, char *file, int lineno, const char *pretty_function)
 {
-	pbx_log(LOG_NOTICE, "%s: ( %s:%d:%s ) sccp_dev_display '%s'\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg);
+	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: ( %s:%d:%s ) sccp_dev_display '%s'\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg);
 	sccp_moo_t *r;
 
 	if (!d || !d->session)
@@ -925,7 +925,7 @@ void sccp_dev_cleardisplaynotify(sccp_device_t * d)
 //void sccp_dev_displaynotify(sccp_device_t * d, char *msg, uint32_t timeout)
 void sccp_dev_displaynotify_debug(sccp_device_t * d, char *msg, uint8_t timeout, char *file, int lineno, const char *pretty_function)
 {
-	pbx_log(LOG_NOTICE, "%s: ( %s:%d:%s ) sccp_dev_displaynotify '%s' (%d)\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg, timeout);
+	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: ( %s:%d:%s ) sccp_dev_displaynotify '%s' (%d)\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg, timeout);
 
 	if (!d || !d->session)
 		return;
@@ -971,7 +971,7 @@ void sccp_dev_cleardisplayprinotify(sccp_device_t * d)
 //void sccp_dev_displayprinotify(sccp_device_t * d, char *msg, uint32_t priority, uint32_t timeout)
 void sccp_dev_displayprinotify_debug(sccp_device_t * d, char *msg, uint8_t priority, uint8_t timeout, char *file, int lineno, const char *pretty_function)
 {
-	pbx_log(LOG_NOTICE, "%s: ( %s:%d:%s ) sccp_dev_displayprinotify '%s' (%d/%d)\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg, timeout, priority);
+	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: ( %s:%d:%s ) sccp_dev_displayprinotify '%s' (%d/%d)\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg, timeout, priority);
 
 	if (!d || !d->session)
 		return;
