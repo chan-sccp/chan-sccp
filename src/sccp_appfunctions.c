@@ -711,20 +711,9 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 	d = sccp_channel_getDevice(c);
 	sccp_device_lock(d);
 	if (text[0] != '\0') {
-		PBX(feature_addToDatabase)("SCCP/message", "text", text);
-		if (timeout) {
-			char msgtimeout[10];
-			sprintf(msgtimeout,"%d", timeout);
-			PBX(feature_addToDatabase)("SCCP/message", "timeout", msgtimeout);
-			sccp_dev_displayprompt(d, 0, 0, text, timeout);
-		} else {
-			sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_IDLE, text);
-		}
+		sccp_dev_set_message(d, text, timeout, TRUE, FALSE);
 	} else {
-		sccp_dev_clearprompt(d, 0, 0);
-		sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_IDLE);
-		PBX(feature_removeFromDatabase)("SCCP/message", "timeout");
-		PBX(feature_removeFromDatabase)("SCCP/message", "text");
+		sccp_dev_clear_message(d, TRUE);
 	}
 	
 	sccp_device_unlock(d);
