@@ -1525,9 +1525,6 @@ static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * c
 	ast_set_write_format(channel->owner, channel->owner->writeformat);
 #endif
 	
-	if(channel->rtp.audio.rtp)
-		ast_rtp_instance_set_write_format(channel->rtp.audio.rtp, channel->owner->rawwriteformat);
-	
 	if(oldChannelFormat != channel->owner->rawwriteformat){
 		sccp_pbx_queue_control((sccp_channel_t *)channel, AST_CONTROL_SRCUPDATE);
 	}
@@ -1580,9 +1577,6 @@ static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * ch
 	ast_set_read_format(channel->owner, channel->owner->readformat);
 #endif
 	
-	
-	if(channel->rtp.audio.rtp)
-		ast_rtp_instance_set_read_format(channel->rtp.audio.rtp, channel->owner->rawreadformat);
 	
 	if(oldChannelFormat != channel->owner->rawreadformat){
 		sccp_pbx_queue_control((sccp_channel_t *)channel, AST_CONTROL_SRCUPDATE);
