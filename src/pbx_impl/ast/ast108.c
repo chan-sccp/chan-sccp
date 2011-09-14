@@ -1529,7 +1529,7 @@ static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * c
 		ast_rtp_instance_set_write_format(channel->rtp.audio.rtp, channel->owner->rawwriteformat);
 	
 	if(oldChannelFormat != channel->owner->rawwriteformat){
-		sccp_pbx_queue_control(channel, AST_CONTROL_SRCUPDATE);
+		sccp_pbx_queue_control((sccp_channel_t *)channel, AST_CONTROL_SRCUPDATE);
 	}
 	
 	return TRUE;
@@ -1585,7 +1585,7 @@ static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * ch
 		ast_rtp_instance_set_read_format(channel->rtp.audio.rtp, channel->owner->rawreadformat);
 	
 	if(oldChannelFormat != channel->owner->rawreadformat){
-		sccp_pbx_queue_control(channel, AST_CONTROL_SRCUPDATE);
+		sccp_pbx_queue_control((sccp_channel_t *)channel, AST_CONTROL_SRCUPDATE);
 	}
 	
 	return TRUE;
@@ -1912,6 +1912,8 @@ static int sccp_wrapper_asterisk18_setOption(struct ast_channel *ast, int option
         }
 
 	switch (option) {
+	//! if AST_OPTION_FORMAT_READ / AST_OPTION_FORMAT_WRITE are available we might be indication that we can do transcoding (channel.c:set_format). Correct ? */
+/*
 	case AST_OPTION_FORMAT_READ:
 		if (c->rtp.audio.rtp) {
 			res = ast_rtp_instance_set_read_format(c->rtp.audio.rtp, *(int *) data);
@@ -1922,6 +1924,7 @@ static int sccp_wrapper_asterisk18_setOption(struct ast_channel *ast, int option
 			res = ast_rtp_instance_set_write_format(c->rtp.audio.rtp, *(int *) data);
 		}
 		break;
+*/		
 	case AST_OPTION_MAKE_COMPATIBLE:
 		if (c->rtp.audio.rtp) {
 			res = ast_rtp_instance_make_compatible(ast, c->rtp.audio.rtp, (struct ast_channel *) data);
