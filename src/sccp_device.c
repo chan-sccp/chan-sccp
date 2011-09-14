@@ -746,6 +746,70 @@ void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid)
 }
 
 /*!
+ * \brief Set Message on Display Prompt of Device
+ * \param d SCCP Device
+ * \param msg Msg as char
+ * \param timeout Timeout as int
+ * \param storedb Store in the pbx database
+ * \param beep Beep on device when message is received
+ *
+ * \callgraph
+ * \callergraph
+ */
+void sccp_dev_set_message(sccp_device_t * d, char *msg, int timeout, boolean_t storedb, boolean_t beep)
+{
+	if (!d)	
+		return;
+
+	if (storedb) {
+		char msgtimeout[10];
+		sprintf(msgtimeout,"%d",timeout);
+		PBX(feature_addToDatabase)("SCCP/message", "timeout", strdup(msgtimeout));
+		PBX(feature_addToDatabase)("SCCP/message", "text", msg);
+	}	
+
+	if (!d->session)
+		return;
+
+	if (timeout) {
+		sccp_dev_displayprinotify(d, msg, 5, timeout);
+	} else {
+		sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_IDLE, msg);
+	}
+	if (beep) {
+		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
+	}
+}
+
+/*!
+ * \brief Clear Message from Display Prompt of Device
+ * \param d SCCP Device
+ * \param storedb Store in the pbx database
+ *
+ * \callgraph
+ * \callergraph
+ */
+void sccp_dev_clear_message(sccp_device_t * d, boolean_t cleardb)
+{
+	if (!d)	
+		return;
+
+	if (cleardb) {
+		PBX(feature_removeTreeFromDatabase)("SCCP/message", "timeout");
+		PBX(feature_removeTreeFromDatabase)("SCCP/message", "text");
+	}	
+
+	if (!d->session)
+		return;
+
+	sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_IDLE);
+	sccp_dev_clearprompt(d, 0, 0);
+}
+
+
+
+
+/*!
  * \brief Send Clear Prompt to Device
  * \param d SCCP Device
  * \param lineInstance LineInstance as uint8_t

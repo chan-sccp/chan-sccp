@@ -97,6 +97,8 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t * device);
 void sccp_dev_keypadbutton(sccp_device_t * d, char digit, uint8_t line, uint32_t callid);
 boolean_t sccp_device_check_update(sccp_device_t * d);
 
+void sccp_dev_set_message(sccp_device_t * d, char *msg, int timeout, boolean_t storedb, boolean_t beep);
+void sccp_dev_clear_message(sccp_device_t * d, boolean_t cleardb);
 
 void sccp_device_addMessageToStack(sccp_device_t *device, uint8_t priority, const char *message);
 void sccp_device_clearMessageFromStack(sccp_device_t *device, uint8_t priority);
