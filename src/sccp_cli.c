@@ -1025,7 +1025,9 @@ CLI_AMI_ENTRY(show_sessions, sccp_show_sessions, "Show all SCCP sessions", cli_s
  */
 static int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
+	ast_cli(fd, "Command has not been fully implemented yet!\n");
 	return RESULT_FAILURE;
+
 /*
 	sccp_line_t *line=NULL;
 	sccp_mailboxLine_t *mailboxLine = NULL;
@@ -1052,8 +1054,8 @@ static int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s,
 		CLI_AMI_TABLE_FIELD(Mailbox,			s,	10,	subscription->mailbox)				\
 		CLI_AMI_TABLE_FIELD(LineName,			s,	15,	linebuf)					\
 		CLI_AMI_TABLE_FIELD(Context,			s,	15,	subscription->context)				\
-		CLI_AMI_TABLE_FIELD(Voicemails_New,		d,	2,	subscription->currentVoicemailStatistic.newmsgs)\
-		CLI_AMI_TABLE_FIELD(Voicemails_Old,		d,	2,	subscription->currentVoicemailStatistic.oldmsgs)
+		CLI_AMI_TABLE_FIELD(New,			d,	3,	subscription->currentVoicemailStatistic.newmsgs)\
+		CLI_AMI_TABLE_FIELD(Old,			d,	3,	subscription->currentVoicemailStatistic.oldmsgs)
 	#include "sccp_cli_table.h"
 	
 	if (s) *total=local_total;

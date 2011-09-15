@@ -6,8 +6,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * 
- * $Date: 2010-11-17 12:03:44 +0100 (Mi, 17 Nov 2010) $
- * $Revision: 2130 $  
+ * $Date$
+ * $Revision$  
  */
 
 #ifndef SCCP_MWI_H_
@@ -17,6 +17,7 @@
 #        include "asterisk/event.h"
 #    endif
 
+
 /*!
  * \brief SCCP Mailbox Line Type Definition
  *
@@ -24,6 +25,7 @@
  *
  */
 typedef struct sccp_mailboxLine sccp_mailboxLine_t;
+
 
 /*!
  * \brief SCCP Mailbox Line Type Structure 
@@ -79,6 +81,8 @@ struct sccp_mailbox_subscriber_list {
 	int schedUpdate;
 #    endif
 };										/*!< SCCP Mailbox Subscriber List Structure */
+
+SCCP_LIST_HEAD(, sccp_mailbox_subscriber_list_t) sccp_mailbox_subscriptions;
 
 void sccp_mwi_module_start(void);
 void sccp_mwi_module_stop(void);
