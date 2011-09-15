@@ -1982,11 +1982,10 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				l = sccp_line_create();
 				is_new = TRUE;
 				sccp_copy_string(l->name, cat, sizeof(l->name));
-//				sccp_line_addToGlobals(l);
 			}
 			
 			sccp_config_buildLine(l, v, cat, FALSE);
-//			if (is_new)
+			if (is_new)
 				sccp_line_addToGlobals(l);
 			
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found line %d: %s\n", line_count, cat);
