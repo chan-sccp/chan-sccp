@@ -1025,14 +1025,9 @@ CLI_AMI_ENTRY(show_sessions, sccp_show_sessions, "Show all SCCP sessions", cli_s
  */
 static int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	ast_cli(fd, "Command has not been fully implemented yet!\n");
-	return RESULT_FAILURE;
-
-/*
 	sccp_line_t *line=NULL;
 	sccp_mailboxLine_t *mailboxLine = NULL;
-	char *linebuf="";
-	size_t linebufsize=0;
+	char linebuf[30]="";
 	int local_total=0;
 
 	// Channels
@@ -1047,12 +1042,15 @@ static int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s,
 	#define CLI_AMI_TABLE_BEFORE_ITERATION 											\
 		SCCP_LIST_TRAVERSE(&subscription->sccp_mailboxLine, mailboxLine, list) {					\
 			line = mailboxLine->line;										\
-			ast_join(linebuf, linebufsize, (const char * const *) line->name);					\
+			sprintf(linebuf,"%s",line->name);									\
+/*			if (line->name) {											\
+				ast_join(linebuf, sizeof(linebuf), (const char * const *) line->name);				\
+			}*/													\
 		}	
 
 	#define CLI_AMI_TABLE_FIELDS 												\
 		CLI_AMI_TABLE_FIELD(Mailbox,			s,	10,	subscription->mailbox)				\
-		CLI_AMI_TABLE_FIELD(LineName,			s,	15,	linebuf)					\
+		CLI_AMI_TABLE_FIELD(LineName,			s,	30,	linebuf)					\
 		CLI_AMI_TABLE_FIELD(Context,			s,	15,	subscription->context)				\
 		CLI_AMI_TABLE_FIELD(New,			d,	3,	subscription->currentVoicemailStatistic.newmsgs)\
 		CLI_AMI_TABLE_FIELD(Old,			d,	3,	subscription->currentVoicemailStatistic.oldmsgs)
@@ -1061,7 +1059,6 @@ static int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s,
 	if (s) *total=local_total;
 
 	return RESULT_SUCCESS;
-*/
 }
 
 static char cli_mwi_subscriptions_usage[] = "Usage: sccp show mwi subscriptions\n" "	Show All SCCP MWI Subscriptions.\n";
