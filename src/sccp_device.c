@@ -791,7 +791,8 @@ void sccp_dev_clear_message(sccp_device_t * d, boolean_t cleardb)
 	}	
 
 	sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_IDLE);
-	sccp_dev_clearprompt(d, 0, 0);
+//	sccp_dev_clearprompt(d, 0, 0);
+	sccp_dev_cleardisplay(d);
 }
 
 

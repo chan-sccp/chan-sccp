@@ -12,8 +12,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date: 2011-01-22 17:54:36 +0100 (Sa, 22 Jan 2011) $
- * $Revision: 2277 $  
+ * $Date$
+ * $Revision$  
  */
 
 #ifndef __SCCP_LABELS_H
@@ -156,7 +156,7 @@ static const struct skinny_label {
 	{SKINNY_LBL_CALL_PARK_AT, "Call park At"},
 	{SKINNY_LBL_PRIMARY_ONLY, "Primary Only"},
 	{SKINNY_LBL_TEMP_FAIL, "Temp Fail"},
-	{SKINNY_LBL_YOU_HAVE_VOICEMAIL, "You Have VoiceMail"},
+	{SKINNY_LBL_YOU_HAVE_VOICEMAIL, "You Have a VoiceMail"},
 	{SKINNY_LBL_FORWARDED_TO, "Forwarded to"},
 	{SKINNY_LBL_CAN_NOT_COMPLETE_CONFERENCE, "Can Not Complete Conference"},
 	{SKINNY_LBL_NO_CONFERENCE_BRIDGE, "No Conference Bridge"},
