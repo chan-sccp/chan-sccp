@@ -2180,6 +2180,8 @@ boolean_t sccp_strcmp(const char *data1,const char *data2)
  * \retval int on strcasecmp
  * \retval TRUE on both zero length
  * \retval FALSE on one of the the parameters being zero length
+ *
+ * \todo take into account global prefer_quality_over_size setting
  */
 boolean_t sccp_strcasecmp(const char *data1,const char *data2)
 {

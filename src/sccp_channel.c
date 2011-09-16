@@ -155,10 +155,7 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t *channel){
 		return;
 	}
 #endif
-  
-	
-	
-	/* check if remote set a preferred formate that is compatible */
+	/* check if remote set a preferred format that is compatible */
 	if( (channel->rtp.audio.readState == SCCP_RTP_STATUS_INACTIVE) 
 		|| !sccp_utils_isCodecCompatible(channel->rtp.audio.readFormat, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio) )
 	) {
@@ -171,9 +168,6 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t *channel){
 			char s1[512];
 			pbx_log(LOG_NOTICE, "can not calculate readFormat, fall back to %s (%d)\n", sccp_multiple_codecs2str(s1, sizeof(s1) - 1, &channel->rtp.audio.readFormat, 1), channel->rtp.audio.readFormat);
 		}
-		
-		
-
 		PBX(set_nativeAudioFormats)(channel, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio));
 		PBX(rtp_setReadFormat) (channel, channel->rtp.audio.readFormat);
 
@@ -205,9 +199,7 @@ static void sccp_channel_recalculateWriteformat(sccp_channel_t *channel){
  		return;
  	}
 #endif
-	
-  
-	/* check if remote set a preferred formate that is compatible */
+	/* check if remote set a preferred format that is compatible */
 	if ((channel->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) 
 	  || !sccp_utils_isCodecCompatible(channel->rtp.audio.writeFormat, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio))
 	) {

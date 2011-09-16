@@ -1054,6 +1054,7 @@ extern "C" {
 
 		struct sockaddr_in bindaddr;					/*!< Bind IP Address */
 		skinny_codec_t global_preferences[SKINNY_MAX_CAPABILITIES];	/*!< Global Asterisk Codecs */
+		boolean_t prefer_quality_over_size;				/*!< When deciding which codec to choose, prefer sound quality over packet size */
 		struct sccp_ha *ha;						/*!< Permit or deny connections to the main socket */
 		struct sccp_ha *localaddr;					/*!< Localnet for Network Address Translation */
 		struct sockaddr_in externip;					/*!< External IP Address (\todo should change to an array of external ip's, because externhost could resolv to multiple ip-addresses (h_addr_list))*/
@@ -1136,9 +1137,7 @@ extern "C" {
 #    endif
 		char token_fallback[7];						/*!< Fall back immediatly on TokenReq (true/false/odd/even)*/
 		int token_backoff_time;						/*!< Backoff time on TokenReject */
-/*############### new ?? / unused ?? ############## */
-		/*char mohinterpret[SCCP_MAX_MUSICCLASS]; */				/*!< Music On Hold Interpret */
-// 	 	unsigned int private: 1; 				        /*!< Permit Private Function Support (Boolean, default=on) */
+
 	};									/*!< SCCP Global Varable Structure */
 
 /*!

@@ -203,6 +203,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 																													"Rules are processed from the first to the last."
 																													"This General rule is valid for all incoming connections. It's the 1st filter."
 																													"using 'internal' will allow the 10.0.0.0, 172.16.0.0 and 192.168.1.0 networks"},
+  {"quality_over_size",			G_OBJ_REF(prefer_quality_over_size),	SCCP_CONFIG_DATATYPE_BOOLEAN,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"true",		NULL,			"When making decisions during codec selections prefer sound quality over packet size (default true)"},
   {"localnet", 				G_OBJ_REF(localaddr), 			SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		" ",		sccp_config_parse_permit,"All RFC 1918 addresses are local networks, example '192.168.1.0/255.255.255.0'"},
   {"externip", 				G_OBJ_REF(externip), 			SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"",		sccp_config_parse_ipaddress,"IP Address that we're going to notify in RTP media stream"},
   {"externhost", 			G_OBJ_REF(externhost), 			SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"",		NULL,			"Hostname (if dynamic) that we're going to notify in RTP media stream"},
