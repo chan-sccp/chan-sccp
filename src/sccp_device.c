@@ -1484,8 +1484,10 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	/* Unregister event subscriptions originating from devstate feature */
 	SCCP_LIST_LOCK(&d->devstateSpecifiers);
 	SCCP_LIST_TRAVERSE(&d->devstateSpecifiers, devstateSpecifier, list) {
-		ast_event_unsubscribe(devstateSpecifier->sub);
-		sccp_log(DEBUGCAT_FEATURE_BUTTON) (VERBOSE_PREFIX_1 "%s: Removed Devicestate Subscription: %s\n", d->id, devstateSpecifier->specifier);
+	        if (devstateSpecifier->sub) {
+        		ast_event_unsubscribe(devstateSpecifier->sub);
+	        	sccp_log(DEBUGCAT_FEATURE_BUTTON) (VERBOSE_PREFIX_1 "%s: Removed Devicestate Subscription: %s\n", d->id, devstateSpecifier->specifier);
+		}
 	}
 	SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
 #endif
