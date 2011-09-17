@@ -202,6 +202,11 @@ sccp_device_t *sccp_device_create(void)
 		d->messageStack[i] = NULL;
 	}
 	
+	/* disable videomode softkey for all softkeysets */
+	for(i=0; i< KEYMODE_ONHOOKSTEALABLE; i++){
+		sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_VIDEO_MODE, FALSE);
+	}
+	
 	return d;
 }
 
@@ -280,8 +285,6 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 {
 	uint8_t i;
 
-	if (!d || !d->session)
-		return;
 	sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Building button template %s(%d), user config %s\n", d->id, devicetype2str(d->skinny_type), d->skinny_type, d->config_type);
 
 	switch (d->skinny_type) {
@@ -387,6 +390,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 	case SKINNY_DEVICETYPE_CISCO7985:
 		d->capabilities.video[0] = SKINNY_CODEC_H264;
 		d->capabilities.video[1] = SKINNY_CODEC_H263;
+		sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
 		
 		for (i = 0; i < 1; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
@@ -433,11 +437,13 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 	case SKINNY_DEVICETYPE_CISCO8945:
 		d->capabilities.video[0] = SKINNY_CODEC_H264;
 		d->capabilities.video[1] = SKINNY_CODEC_H263;
+		sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
+		
 		for (i = 0; i < 4; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 		break;
 	case SKINNY_DEVICETYPE_SPA_521S:
-		for (i = 0; i < 4; i++)
+		for (i = 0; i < 1; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 		break;
 	case SKINNY_DEVICETYPE_SPA_525G2:
@@ -1731,6 +1737,8 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	
 	/* cleanup statistics */
 	memset(&d->configurationStatistic, 0, sizeof(d->configurationStatistic));
+	
+	d->mwilight = 0; /* cleanup mwi status */
 
 	/* removing addons */
 	if (remove_from_global) {
