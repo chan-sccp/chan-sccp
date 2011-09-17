@@ -296,6 +296,7 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t ** event)
 
 	if (line && (&line->mailboxes) != NULL) {
 		SCCP_LIST_TRAVERSE(&line->mailboxes, mailbox, list) {
+			sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_1 "line: '%s' mailbox: %s@%s\n",line->name, mailbox->mailbox, (mailbox->context) ? mailbox->context : "default");
 			sccp_mwi_addMailboxSubscription(mailbox->mailbox, (mailbox->context) ? mailbox->context : "default", line);
 		}
 	}
@@ -480,12 +481,13 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 		r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
 		r->msg.SetLampMessage.lel_stimulusInstance = htolel(instance);
 		//r->msg.SetLampMessage.lel_lampMode = htolel( (l->voicemailStatistic.newmsgs) ? SKINNY_LAMP_ON :  SKINNY_LAMP_OFF);
-		r->msg.SetLampMessage.lel_lampMode = htolel((status) ? d->mwilamp : SKINNY_LAMP_OFF);
+// 		r->msg.SetLampMessage.lel_lampMode = htolel((status) ? d->mwilamp : SKINNY_LAMP_OFF);
+		r->msg.SetLampMessage.lel_lampMode = (d->mwilight & ~(1 << 0)) ? htolel(d->mwilamp) : htolel(SKINNY_LAMP_OFF);
 
 		sccp_dev_send(d, r);
 		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n", DEV_ID_LOG(d), (mask > 0) ? "ON" : "OFF", (l ? l->name : "unknown"), instance);
 	} else {
-		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: Device already know status %s on line %s (%d)\n", DEV_ID_LOG(d), (mask > 0) ? "ON" : "OFF", (l ? l->name : "unknown"), instance);
+		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: Device already know status %s on line %s (%d)\n", DEV_ID_LOG(d), (newState & ~(1 << 0)) ? "ON" : "OFF", (l ? l->name : "unknown"), instance);
 	}
 
 	sccp_mwi_check(d);
@@ -600,7 +602,7 @@ void sccp_mwi_check(sccp_device_t * device)
 		//r->msg.SetLampMessage.lel_stimulusInstance = 0;
 		r->msg.SetLampMessage.lel_lampMode = htolel((device->mwilight) ? device->mwilamp : SKINNY_LAMP_OFF);
 		sccp_dev_send(device, r);
-		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: Turn %s the MWI light (newmsgs: %d->%d)\n", DEV_ID_LOG(device), (device->mwilight > 0) ? "ON" : "OFF", newmsgs, device->voicemailStatistic.newmsgs);
+		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: Turn %s the MWI light (newmsgs: %d->%d)\n", DEV_ID_LOG(device), (device->mwilight & (1 << 0)) ? "ON" : "OFF", newmsgs, device->voicemailStatistic.newmsgs);
 
 		/* we should check the display only once, maybe we need a priority stack -MC */
 		if (device->mwilight > 0) {		
@@ -609,7 +611,6 @@ void sccp_mwi_check(sccp_device_t * device)
 			sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_VOICEMAIL, buffer);
 		} else {
 			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_VOICEMAIL);
-			sccp_dev_cleardisplay(device);
 		}
 	}
 
