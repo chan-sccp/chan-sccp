@@ -855,9 +855,6 @@ void sccp_dev_displayprompt_debug(const sccp_device_t * d, uint8_t lineInstance,
  */
 void sccp_dev_cleardisplay(sccp_device_t * d)
 {
-	if (!d || !d->session)
-		return;
-
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
 		return;								/* only for telecaster and new phones */
 
@@ -904,9 +901,6 @@ void sccp_dev_display_debug(sccp_device_t * d, char *msg, char *file, int lineno
  */
 void sccp_dev_cleardisplaynotify(sccp_device_t * d)
 {
-	if (!d || !d->session)
-		return;
-
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
 		return;								/* only for telecaster and new phones */
 
@@ -1734,6 +1728,9 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	event->type = SCCP_EVENT_DEVICE_UNREGISTERED;
 	event->event.deviceRegistered.device = d;
 	sccp_event_fire((const sccp_event_t **)&event);
+	
+	/* cleanup statistics */
+	memset(&d->configurationStatistic, 0, sizeof(d->configurationStatistic));
 
 	/* removing addons */
 	if (remove_from_global) {
