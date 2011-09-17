@@ -2311,10 +2311,11 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 	}
 
 	sin.sin_family = AF_INET;
-	if (d->trustphoneip || d->directrtp)
+	if (d->trustphoneip || d->directrtp){
 		memcpy(&sin.sin_addr, &ipAddr, sizeof(sin.sin_addr));
-	else
+	}else{
 		memcpy(&sin.sin_addr, &s->sin.sin_addr, sizeof(sin.sin_addr));
+	}
 	sin.sin_port = ipPort;
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID);
@@ -2963,6 +2964,14 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 
 	/* parsing video caps */
 	n = letohl(r->msg.UpdateCapabilitiesMessage.lel_videoCapCount);
+	
+	/* enable video mode button if device has video capability */
+	if(n > 0){
+		sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
+	}else{
+		sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, FALSE);
+	}
+	
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Video Capabilities\n", DEV_ID_LOG(d), n);
 	for (i = 0; i < n; i++) {
 		codec = letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[i].lel_payloadCapability);
@@ -2987,10 +2996,8 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 					"--");
 		}
 		if(d->capabilities.video[i] == SKINNY_CODEC_H264){
-			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s level: %d\n", DEV_ID_LOG(d), "", "", 
-					letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[i].codec_options.h264.level));
-			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s profile: %d\n", DEV_ID_LOG(d), "", "", 
-					letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[i].codec_options.h264.profile));
+			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s level: %d\n", DEV_ID_LOG(d), "", "", letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[i].codec_options.h264.level));
+			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s profile: %d\n", DEV_ID_LOG(d), "", "", letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[i].codec_options.h264.profile));
 		}
 	}
 
