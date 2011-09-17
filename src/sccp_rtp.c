@@ -41,7 +41,7 @@ int sccp_rtp_createAudioServer(const sccp_channel_t *c)
 		pbx_log(LOG_WARNING, "%s: Did not get our rtp part\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
 	}
 	//memcpy(&c->rtp.audio.phone_remote, &us, sizeof(c->rtp.audio.phone_remote));
-	PBX(rtp_setPeer) (&c->rtp.audio, &c->rtp.audio.phone, sccp_channel_getDevice(c)->nat);
+	PBX(rtp_setPeer) (&c->rtp.audio, &c->rtp.audio.phone, c->getDevice(c) ? c->getDevice(c)->nat : 0);
 
 	return rtpResult;
 }
