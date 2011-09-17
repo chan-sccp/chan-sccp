@@ -76,7 +76,13 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 	} else {										\
 		ast_cli(fd, "%-*.*s %s %s\n", width, width, param, ":", ((value) ? "on" : "off")); \
 	}
-
+#    define CLI_AMI_OUTPUT_YES_NO(param, width, value) 						\
+	if (NULL != s) {									\
+		astman_append(s, "%s: %s\r\n", param, ((value) ? "yes" : "no"));		\
+		local_total++;									\
+	} else {										\
+		ast_cli(fd, "%-*.*s %s %s\n", width, width, param, ":", ((value) ? "yes" : "no")); \
+	}
 #    define CLI_AMI_ERROR(fd, s, m, fmt, ...) 							\
 	pbx_log(LOG_WARNING, "SCCP CLI ERROR" fmt, __VA_ARGS__);				\
 	if (NULL != s) {									\
