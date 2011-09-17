@@ -22,7 +22,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \brief create a new rtp server for audio data
  * \param c SCCP Channel
  */
-int sccp_rtp_createAudioServer(const sccp_channel_t * c)
+int sccp_rtp_createAudioServer(const sccp_channel_t *c)
 {
 	boolean_t rtpResult = FALSE;
 
@@ -41,6 +41,7 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 		pbx_log(LOG_WARNING, "%s: Did not get our rtp part\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
 	}
 	//memcpy(&c->rtp.audio.phone_remote, &us, sizeof(c->rtp.audio.phone_remote));
+	PBX(rtp_setPeer) (&c->rtp.audio, &c->rtp.audio.phone, sccp_channel_getDevice(c)->nat);
 
 	return rtpResult;
 }
@@ -102,24 +103,25 @@ void sccp_rtp_set_peer(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr
 
 	/* validate socket */
 	if (new_peer->sin_port == 0) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (__PRETTY_FUNCTION__) remote information are invalid, dont change anything\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: ( sccp_rtp_set_peer ) remote information are invalid, dont change anything\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
 		return;
 	}
 
 	/* check if we have new infos */
 	if (socket_equals(new_peer, &c->rtp.audio.phone_remote)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (__PRETTY_FUNCTION__) remote information are equals with our curent one, ignore change\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) remote information are equals with our curent one, ignore change\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
 		return;
 	}
 
 	memcpy(&c->rtp.audio.phone_remote, new_peer, sizeof(c->rtp.audio.phone_remote));
-	pbx_log(LOG_ERROR, "%s: ( __PRETTY_FUNCTION__ ) Set remote address to %s:%d\n", DEV_ID_LOG(sccp_channel_getDevice(c)), pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
+	pbx_log(LOG_ERROR, "%s: ( sccp_rtp_set_peer ) Set remote address to %s:%d\n", DEV_ID_LOG(sccp_channel_getDevice(c)), pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
 
 	if (c->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE) {
 		/* Shutdown any early-media or previous media on re-invite */
 		/*! \todo we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait) */
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (__PRETTY_FUNCTION__) Stop media transmission on channel %d\n", DEV_ID_LOG(sccp_channel_getDevice(c)), c->callid);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Stop media transmission on channel %d\n", DEV_ID_LOG(sccp_channel_getDevice(c)), c->callid);
 		sccp_channel_stopmediatransmission_locked(c);
+		sccp_channel_startmediatransmission(c);
 	}
 
 }
@@ -135,13 +137,14 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 
 	/* validate socket */
 	if (new_peer->sin_port == 0) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (__PRETTY_FUNCTION__) remote information are invalid, dont change anything\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are invalid, dont change anything\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
 		return;
 	}
 
 	/* check if we have new infos */
+	/*! \todo if we enable this, we get an audio issue when resume on the same device, so we need to force asterisk to update -MC */
 	if (socket_equals(new_peer, &c->rtp.audio.phone)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (__PRETTY_FUNCTION__) remote information are equals with our curent one, ignore change\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equals with our curent one, ignore change\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
 		return;
 	}
 
