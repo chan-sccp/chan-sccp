@@ -692,11 +692,10 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 	int timeout=0;
 	
 	text = strsep(&splitter, ",");
-	timeout = atoi(splitter);
-	
+	if(splitter){
+		timeout = atoi(splitter);
+	}
 
-
-	pbx_log(LOG_NOTICE, "SetMessage text: '%s' timeout: %d\n", text, timeout);
 
 	if (!text || !c || !sccp_channel_getDevice(c))
 		return 0;
