@@ -408,8 +408,9 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 	case SKINNY_DEVICETYPE_CISCO7985:
 		d->capabilities.video[0] = SKINNY_CODEC_H264;
 		d->capabilities.video[1] = SKINNY_CODEC_H263;
+#ifdef CS_SCCP_VIDEO
 		sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
-		
+#endif
 		for (i = 0; i < 1; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 		break;
@@ -463,7 +464,9 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 	case SKINNY_DEVICETYPE_CISCO8945:
 		d->capabilities.video[0] = SKINNY_CODEC_H264;
 		d->capabilities.video[1] = SKINNY_CODEC_H263;
+#ifdef CS_SCCP_VIDEO
 		sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
+#endif
 		
 		for (i = 0; i < 4; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
