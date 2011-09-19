@@ -1925,12 +1925,21 @@ static const char *sccp_wrapper_asterisk18_getChannelLinkId(const sccp_channel_t
 
 static int sccp_pbx_sendHTML(struct ast_channel *ast, int subclass, const char *data, int datalen){
 	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
+	struct ast_frame fr;	
 
         if (!c || !c->getDevice(c)) {
         	return -1;
         }
 	c->getDevice(c)->pushURL(c->getDevice(c), data, 1);
 	
+	memset(&fr, 0, sizeof(fr));
+	fr.frametype = AST_FRAME_HTML;
+	fr.subclass.integer = AST_HTML_LDCOMPLETE;
+	fr.data.ptr = data;
+	fr.src = "SCCP Send URL";
+	fr.datalen = datalen;
+
+	ast_queue_frame(ast, ast_frisolate(&fr));
 	return 0;
 }
 
