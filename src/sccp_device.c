@@ -24,7 +24,17 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 static void sccp_device_old_indicate_remoteHold(const sccp_device_t *device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy);
 static void sccp_device_new_indicate_remoteHold(const sccp_device_t *device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy);
-static void sccp_device_pushURL(const sccp_device_t *device, const char *url, uint8_t priority);
+
+
+static sccp_push_result_t sccp_device_pushURL(const sccp_device_t *device, const char *url, uint8_t priority, uint8_t tone);
+static sccp_push_result_t sccp_device_pushURLNotSupported(const sccp_device_t *device, const char *url, uint8_t priority, uint8_t tone){
+	return SCCP_PUSH_RESULT_NOT_SUPPORTED;
+}
+
+static sccp_push_result_t sccp_device_pushTextMessage(const sccp_device_t *device, const char *messageText, const char *from, uint8_t priority, uint8_t tone);
+static sccp_push_result_t sccp_device_pushTextMessageNotSupported(const sccp_device_t *device, const char *messageText, const char *from, uint8_t priority, uint8_t tone){
+	return SCCP_PUSH_RESULT_NOT_SUPPORTED;
+}
 
 
 
@@ -208,7 +218,8 @@ sccp_device_t *sccp_device_create(void)
 		sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_VIDEO_MODE, FALSE);
 	}
 	
-	d->pushURL = sccp_device_pushURL;
+	d->pushURL = sccp_device_pushURLNotSupported;
+	d->pushTextMessage = sccp_device_pushTextMessageNotSupported;
 	
 	return d;
 }
@@ -380,9 +391,13 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 	case SKINNY_DEVICETYPE_CISCO7941GE:
 	case SKINNY_DEVICETYPE_CISCO7942:
 	case SKINNY_DEVICETYPE_CISCO7945:
+		/* add text message support */
+		d->pushTextMessage = sccp_device_pushTextMessage;
+		d->pushURL = sccp_device_pushURL;
+		
+		
 		for (i = 0; i < 2 + sccp_addons_taps(d); i++)
 			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-		break;
 		break;
 	case SKINNY_DEVICETYPE_CISCO7920:
 	case SKINNY_DEVICETYPE_CISCO7921:
@@ -403,6 +418,10 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 	case SKINNY_DEVICETYPE_CISCO7961GE:
 	case SKINNY_DEVICETYPE_CISCO7962:
 	case SKINNY_DEVICETYPE_CISCO7965:
+		/* add text message support */
+		d->pushTextMessage = sccp_device_pushTextMessage;
+		d->pushURL = sccp_device_pushURL;
+		
 		for (i = 0; i < 6 + sccp_addons_taps(d); i++)
 			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 		break;
@@ -419,6 +438,10 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			for (i = 0; i < 8 + addonsTaps; i++) {
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			}
+			
+			/* add text message support */
+			d->pushTextMessage = sccp_device_pushTextMessage;
+			d->pushURL = sccp_device_pushURL;
 		}
 		break;
 	case SKINNY_DEVICETYPE_NOKIA_ICC:
@@ -718,12 +741,9 @@ void sccp_dev_deactivate_cplane(sccp_device_t * d)
  * \param callid Call ID as uint32_t
  * \param timeout Timeout as uint32_t
  */
-void sccp_dev_starttone(sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t callid, uint32_t timeout)
+void sccp_dev_starttone(const sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t callid, uint32_t timeout)
 {
 	sccp_moo_t *r;
-
-	if (!d || !d->session)
-		return;
 
 	REQ(r, StartToneMessage);
 	r->msg.StartToneMessage.lel_tone = htolel(tone);
@@ -2256,11 +2276,25 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 
 }
 
-static void sccp_device_pushURL(const sccp_device_t *device, const char *url, uint8_t priority){
+static sccp_push_result_t sccp_device_pushURL(const sccp_device_t *device, const char *url, uint8_t priority, uint8_t tone){
 	char xmlData[512];
 	sprintf(xmlData, "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"%s\"/></CiscoIPPhoneExecute>", url);
 	
 	device->protocol->sendUserToDeviceDataVersionMessage(device, xmlData, priority);
+	if(SKINNY_TONE_SILENCE != tone){
+		sccp_dev_starttone(device, tone, 0, 0, 0);
+	}
+	return SCCP_PUSH_RESULT_SUCCESS;
+}
+
+static sccp_push_result_t sccp_device_pushTextMessage(const sccp_device_t *device, const char *messageText, const char *from, uint8_t priority, uint8_t tone){
+	char xmlData[1024];
+	sprintf(xmlData, "<CiscoIPPhoneText><Title>%s</Title><Text>%s</Text></CiscoIPPhoneText>", from ? from : "", messageText);
 	
+	device->protocol->sendUserToDeviceDataVersionMessage(device, xmlData, priority);
 	
+	if(SKINNY_TONE_SILENCE != tone){
+		sccp_dev_starttone(device, tone, 0, 0, 0);
+	}
+	return SCCP_PUSH_RESULT_SUCCESS;
 }
