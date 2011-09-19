@@ -688,22 +688,15 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 	}
 
         char *text;
+	char *splitter = strdupa(data);
 	int timeout=0;
+	
+	text = strsep(&splitter, ",");
+	timeout = atoi(splitter);
+	
 
-        if ((text = strchr(data, ':'))) {                                       /*! \todo Will be deprecated after 1.4 */
-		static int deprecation_warning = 0;
 
-		*text++ = '\0';
-		if (deprecation_warning++ % 10 == 0)
-			pbx_log(LOG_WARNING, "SCCPCHANNEL(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
-		timeout = atoi(data);
-	} else if ((text = strchr(data, ','))) {
-		*text++ = '\0';
-		timeout = atoi(data);
-	} else {
-                text = (char *)data;
-		timeout = 0;
-	}
+	pbx_log(LOG_NOTICE, "SetMessage text: '%s' timeout: %d\n", text, timeout);
 
 	if (!text || !c || !sccp_channel_getDevice(c))
 		return 0;
