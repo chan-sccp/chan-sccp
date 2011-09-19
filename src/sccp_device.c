@@ -24,6 +24,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 static void sccp_device_old_indicate_remoteHold(const sccp_device_t *device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy);
 static void sccp_device_new_indicate_remoteHold(const sccp_device_t *device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy);
+static void sccp_device_pushURL(const sccp_device_t *device, const char *url, uint8_t priority);
 
 
 
@@ -206,6 +207,8 @@ sccp_device_t *sccp_device_create(void)
 	for(i=0; i< KEYMODE_ONHOOKSTEALABLE; i++){
 		sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_VIDEO_MODE, FALSE);
 	}
+	
+	d->pushURL = sccp_device_pushURL;
 	
 	return d;
 }
@@ -2253,3 +2256,11 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 
 }
 
+static void sccp_device_pushURL(const sccp_device_t *device, const char *url, uint8_t priority){
+	char xmlData[512];
+	sprintf(xmlData, "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"%s\"/></CiscoIPPhoneExecute>", url);
+	
+	device->protocol->sendUserToDeviceDataVersionMessage(device, xmlData, priority);
+	
+	
+}

@@ -646,9 +646,6 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 	sampleRate = sccp_rtp_get_sampleRate(channel->rtp.video.writeFormat);
 	lineInstance = sccp_device_find_index_for_line(channel->privateData->device, channel->line->name);
 
-
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive multimedia channel with format %s[%d] skinnyFormat %s[%d], payload %d\n", DEV_ID_LOG(channel->privateData->device), codec2str(channel->rtp.video.writeFormat), channel->rtp.video.writeFormat, codec2str(skinnyFormat), skinnyFormat, payloadType);
-
 #if 0
 	if (channel->device->inuseprotocolversion < 15) {
 		r = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(r->msg.OpenMultiMediaChannelMessage));
@@ -738,7 +735,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 // 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.dummy8 			= htolel(0);
 	}
 
-
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive multimedia channel with format %s[%d] skinnyFormat %s[%d], payload %d\n", DEV_ID_LOG(channel->privateData->device), codec2str(channel->rtp.video.writeFormat), channel->rtp.video.writeFormat, codec2str(skinnyFormat), skinnyFormat, payloadType);
 	sccp_dev_send(channel->privateData->device, r);
 }
 
@@ -1689,9 +1686,7 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t *channel, 
 #endif
 
 	sccp_rtp_stop(channel);
-
-// 	channel->device = d;
-	sccp_channel_setDevice(channel, d);
+	channel->setDevice(channel, d);
 
 	//! \todo move this to openreceive- and startmediatransmission
 	sccp_channel_updateChannelCapability_locked(channel);

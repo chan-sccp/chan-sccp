@@ -891,6 +891,8 @@ extern "C" {
 			boolean_t overwritable;					/*!< Status is overwritable */
 			boolean_t updated;					/*!< Status has changed, and needs to be refreshed */
 		} status;							/*!< Status Structure */
+		
+		void (*pushURL) (const sccp_device_t *device, const char *url, uint8_t priority);
 	};
 
 // Number of additional keys per addon -FS

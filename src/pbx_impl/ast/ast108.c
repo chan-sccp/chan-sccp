@@ -299,7 +299,7 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Asterisk indicate '%d' condition on channel %s\n", DEV_ID_LOG(sccp_channel_getDevice(c)), ind, ast->name);
 
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
-	res = (c->rtp.audio.rtp ? -1 : 0);
+	res = ( (c->rtp.audio.readState != SCCP_RTP_STATUS_INACTIVE)  ? -1 : 0);
 
 	switch (ind) {
 	case AST_CONTROL_RINGING:
@@ -370,33 +370,7 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 	case AST_CONTROL_SRCUPDATE:
 		/* Source media has changed. */
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
-
-		/* update channel format */
-		//! \todo use skinny codecs
-//              oldChannelFormat = c->format;
-		//c->format = ast->rawreadformat & AST_FORMAT_AUDIO_MASK;
-
-//              if (oldChannelFormat != c->format) {
-//                      /* notify of changing format */
-//                      char s1[512], s2[512];
-// 
-//                      ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, changing format from: %s(%lu) to: %s(%lu) \n", c->line->name, c->callid, pbx_getformatname_multiple(s1, sizeof(s1) - 1, c->format), (ULONG)ast->nativeformats, pbx_getformatname_multiple(s2, sizeof(s2) - 1, ast->rawreadformat), (ULONG)ast->rawreadformat);
-//                      ast_set_read_format(ast, c->format);
-//                      ast_set_write_format(ast, c->format);
-//              }
-
-		//! \todo reenable it
-//              ast_log(LOG_NOTICE, "SCCP: SCCP/%s-%08x, state: %s(%d) \n", c->line->name, c->callid, sccp_indicate2str(c->state), c->state);
-//              if (c->rtp.audio.rtp) {
-//                      if (oldChannelFormat != c->format) {
-//                              if (c->mediaStatus.receive == TRUE || c->mediaStatus.transmit == TRUE) {
-//                                      sccp_channel_closereceivechannel_locked(c);     /* close the already openend receivechannel */
-//                                      sccp_channel_openreceivechannel_locked(c);      /* reopen it */
-//                              }
-//                      }
-//              }
-
-                //! \todo handle COLP
+		
 		if (c->rtp.audio.rtp)
 			ast_rtp_instance_change_source(c->rtp.audio.rtp);
 		res = 0;
@@ -499,7 +473,7 @@ static int sccp_wrapper_asterisk18_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_T
 					sccp_channel_openMultiMediaChannel(c);
 				}
 			}
-
+			
 			if (c->rtp.video.rtp && (c->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE) != 0) {
 				res = ast_rtp_instance_write(c->rtp.video.rtp, frame);
 			}
@@ -1937,6 +1911,8 @@ static int sccp_wrapper_asterisk18_setOption(struct ast_channel *ast, int option
 	return res;
 }
 
+
+
 static const char *sccp_wrapper_asterisk18_getChannelLinkId(const sccp_channel_t *channel){
 	static const char *emptyLinkId = "--no-linkedid--";
 	
@@ -1944,6 +1920,18 @@ static const char *sccp_wrapper_asterisk18_getChannelLinkId(const sccp_channel_t
 		return channel->owner->linkedid;
 	}
 	return emptyLinkId;
+}
+
+
+static int sccp_pbx_sendHTML(struct ast_channel *ast, int subclass, const char *data, int datalen){
+	sccp_channel_t *c = get_sccp_channel_from_ast_channel(ast);
+
+        if (!c || !c->getDevice(c)) {
+        	return -1;
+        }
+	c->getDevice(c)->pushURL(c->getDevice(c), data, 1);
+	
+	return 0;
 }
 
 /*!
@@ -1983,6 +1971,7 @@ const struct ast_channel_tech sccp_tech = {
 	//.bridged_channel	=
 	
 	.send_text 		= sccp_pbx_sendtext,
+	.send_html 		= sccp_pbx_sendHTML,
 	//.send_html		=
 	//.send_image		=
 
