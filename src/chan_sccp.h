@@ -245,6 +245,12 @@ extern "C" {
 		SCCP_MESSAGE_PRIORITY_DND, 
 		SCCP_MESSAGE_PRIORITY_CFWD, 
 	} sccp_message_priority_t;
+	
+	typedef enum { 
+		SCCP_PUSH_RESULT_FAIL = 0, 
+		SCCP_PUSH_RESULT_NOT_SUPPORTED, 
+		SCCP_PUSH_RESULT_SUCCESS, 
+	} sccp_push_result_t;
 
 /*!
  * \brief SCCP ButtonType Structure
@@ -892,7 +898,8 @@ extern "C" {
 			boolean_t updated;					/*!< Status has changed, and needs to be refreshed */
 		} status;							/*!< Status Structure */
 		
-		void (*pushURL) (const sccp_device_t *device, const char *url, uint8_t priority);
+		sccp_push_result_t (*pushURL) (const sccp_device_t *device, const char *url, uint8_t priority, uint8_t tone);
+		sccp_push_result_t (*pushTextMessage) (const sccp_device_t *device, const char *messageText, const char *from, uint8_t priority, uint8_t tone);
 	};
 
 // Number of additional keys per addon -FS

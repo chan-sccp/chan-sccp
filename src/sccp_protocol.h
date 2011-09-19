@@ -345,7 +345,7 @@ typedef enum {
 #    define APPID_PROVISION				2
 
 /* skinny tones skinny_tone2str */
-#    define SKINNY_TONE_SILENCE 			0
+#    define SKINNY_TONE_SILENCE 		0
 #    define SKINNY_TONE_DTMF1			1
 #    define SKINNY_TONE_DTMF2			2
 #    define SKINNY_TONE_DTMF3			3

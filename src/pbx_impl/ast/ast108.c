@@ -1930,16 +1930,21 @@ static int sccp_pbx_sendHTML(struct ast_channel *ast, int subclass, const char *
         if (!c || !c->getDevice(c)) {
         	return -1;
         }
-	c->getDevice(c)->pushURL(c->getDevice(c), data, 1);
-	
-	memset(&fr, 0, sizeof(fr));
-	fr.frametype = AST_FRAME_HTML;
-	fr.subclass.integer = AST_HTML_LDCOMPLETE;
-	fr.data.ptr = data;
+        memset(&fr, 0, sizeof(fr));
+        fr.frametype = AST_FRAME_HTML;
+	fr.data.ptr = (char *)data;
 	fr.src = "SCCP Send URL";
 	fr.datalen = datalen;
-
+        
+        sccp_push_result_t pushResult = c->getDevice(c)->pushURL(c->getDevice(c), data, 1, SKINNY_TONE_ZIP);
+	
+	if(SCCP_PUSH_RESULT_SUCCESS == pushResult){
+		fr.subclass.integer = AST_HTML_LDCOMPLETE;
+	}else{
+		fr.subclass.integer = AST_HTML_NOSUPPORT;
+	}
 	ast_queue_frame(ast, ast_frisolate(&fr));
+	
 	return 0;
 }
 
@@ -1954,6 +1959,55 @@ struct ast_rtp_glue sccp_rtp = {
 	.get_codec = sccp_wrapper_asterisk18_getCodec,
 };
 
+#ifdef HAVE_PBX_MESSAGE_H
+#include "asterisk/message.h"
+static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to, const char *from){
+
+	char 		*lineName;
+	sccp_line_t 	*line;
+	const char	*messageText = ast_msg_get_body(msg);
+	int 		res = -1;
+	
+	lineName  = ast_strdupa(to);
+	if (strchr(lineName, '@')) {
+		strsep(&lineName, "@");
+	} else {
+		strsep(&lineName, ":");
+	}
+	if (ast_strlen_zero(lineName)) {
+		ast_log(LOG_WARNING, "MESSAGE(to) is invalid for SCCP - '%s'\n", to);
+		return -1;
+	}
+	
+	line = sccp_line_find_byname_wo(lineName, FALSE);
+	if(!line){
+		ast_log(LOG_WARNING, "line '%s' not found\n", lineName);
+		return -1;
+	}
+	
+	
+	/** \todo move this to line implementation */
+	sccp_linedevices_t *linedevice;
+	sccp_push_result_t pushResult;
+
+	SCCP_LIST_LOCK(&line->devices);
+	SCCP_LIST_TRAVERSE(&line->devices, linedevice, list) {
+		pushResult = linedevice->device->pushTextMessage(linedevice->device, messageText, from, 1, SKINNY_TONE_ZIP);
+		if(SCCP_PUSH_RESULT_SUCCESS == pushResult){
+			res = 0;
+		}
+	}
+	SCCP_LIST_UNLOCK(&line->devices);
+	
+	return res;
+}
+
+
+static const struct ast_msg_tech sccp_msg_tech = {
+	.name = "sccp",
+	.msg_send = sccp_asterisk_message_send,
+};
+#endif
 
 /*!
  * \brief SCCP Tech Structure
@@ -2103,6 +2157,13 @@ static int load_module(void)
 			return -1;
 		}
 	}
+	
+#ifdef HAVE_PBX_MESSAGE_H
+	if (ast_msg_tech_register(&sccp_msg_tech)) {
+		/* LOAD_FAILURE stops Asterisk, so cleanup is a moot point. */
+		ast_log(LOG_WARNING, "Unable to register message interface\n");
+	}
+#endif
 
 	ast_rtp_glue_register(&sccp_rtp);
 	sccp_register_management();
@@ -2153,6 +2214,9 @@ static int unload_module(void)
 	sccp_hint_module_stop();
 #ifdef CS_SCCP_MANAGER
 	sccp_unregister_management();
+#endif
+#ifdef HAVE_PBX_MESSAGE_H
+	ast_msg_tech_unregister(&sccp_msg_tech);
 #endif
 
 	sccp_globals_lock(monitor_lock);
