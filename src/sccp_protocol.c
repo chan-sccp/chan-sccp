@@ -463,7 +463,7 @@ static void sccp_protocol_sendRegisterAckV11(const sccp_device_t *device, uint8_
 /* done registerACK*/
 
 
-void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_t *device, const void *xmlData, uint8_t priority){
+static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_t *device, const void *xmlData, uint8_t priority){
 	sccp_moo_t *r = NULL;
 	
 	int dummy_len, msgSize, hdr_len, padding;
