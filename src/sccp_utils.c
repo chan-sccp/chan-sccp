@@ -273,9 +273,9 @@ struct ast_variable *sccp_create_variable(const char *buf)
 sccp_channel_t *get_sccp_channel_from_ast_channel(struct ast_channel * ast_chan)
 {
 #ifndef CS_AST_HAS_TECH_PVT
-	if (!strncasecmp(ast_chan->type, "SCCP", 4)) {
+	if (!(NULL == ast_chan) && !(NULL == ast_chan->type) && !strncasecmp(ast_chan->type, "SCCP", 4)) {
 #else
-	if (!strncasecmp(ast_chan->tech->type, "SCCP", 4)) {
+	if (!(NULL == ast_chan) && !(NULL == ast_chan->tech) && !(NULL == ast_chan->tech->type) && !strncasecmp(ast_chan->tech->type, "SCCP", 4)) {
 #endif
 		return CS_AST_CHANNEL_PVT(ast_chan);
 	} else {
