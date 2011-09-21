@@ -2659,6 +2659,8 @@ typedef union {
 		StationIdentifier sId;						/*!< Station Identifier */
 		uint32_t lel_stationIpAddr;					/*!< Station IP Address */
 		uint32_t lel_deviceType;					/*!< Device Type as part of SKINNY_DEVICETYPE_* */
+		char	 ipv6Address[16];
+		uint32_t unknown;
 #    endif
 	} RegisterTokenReq;							/*!< Register Token Request */
 
@@ -3292,7 +3294,7 @@ typedef union {
 	} RegisterTokenAck;							/*!< Register Token Ackknowledge Message Structure */
 
 	struct {
-		char text[StationMaxDisplayTextSize];				/*!< Rejection Text */
+		uint32_t lel_tokenRejWaitTime;					/*!< Back Off Time */
 	} RegisterTokenReject;							/*!< Register Token Reject Message Structure */
 
 	struct {

@@ -1065,7 +1065,8 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 		r->msg.StartMediaTransmission.lel_ssValue = htolel(c->line->silencesuppression);	// Silence supression
 		r->msg.StartMediaTransmission.lel_maxFramesPerPacket = htolel(0);
 		r->msg.StartMediaTransmission.lel_rtptimeout = htolel(10);
-		r->msg.StartMediaTransmission.bel_remoteIpAddr = htolel(c->rtp.audio.phone_remote.sin_addr.s_addr);
+		//r->msg.StartMediaTransmission.bel_remoteIpAddr = htolel(c->rtp.audio.phone_remote.sin_addr.s_addr);
+		memcpy(&r->msg.StartMediaTransmission.bel_remoteIpAddr, &c->rtp.audio.phone_remote.sin_addr, 4);
 		r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(c->rtp.audio.phone_remote.sin_port));
 	} else {
 		r = sccp_build_packet(StartMediaTransmission, sizeof(r->msg.StartMediaTransmission_v17));
@@ -1305,10 +1306,13 @@ void sccp_channel_endcall_locked(sccp_channel_t * c)
 	This script set the hold state for transfer_channel explicitly -MC
 	*/
 	if (c->device && c->device->transfer_channel && c->device->transfer_channel != c) {
-		uint8_t instance = sccp_device_find_index_for_line(c->device, c->device->transfer_channel->line->name);
+		if(c->device->transfer_channel->line){
+			/** \todo we have to investigate why we have a invalid transfer channel */
+			uint8_t instance = sccp_device_find_index_for_line(c->device, c->device->transfer_channel->line->name);
 
-		sccp_device_sendcallstate(c->device, instance, c->device->transfer_channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-		sccp_dev_set_keyset(c->device, instance, c->device->transfer_channel->callid, KEYMODE_ONHOLD);
+			sccp_device_sendcallstate(c->device, instance, c->device->transfer_channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+			sccp_dev_set_keyset(c->device, instance, c->device->transfer_channel->callid, KEYMODE_ONHOLD);
+		}
 		c->device->transfer_channel = NULL;
 	}
 

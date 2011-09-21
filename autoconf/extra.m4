@@ -590,12 +590,12 @@ AC_DEFUN([CS_DISABLE_DYNAMIC_SPEEDDIAL], [
 AC_DEFUN([CS_DISABLE_DYNAMIC_SPEEDDIAL_CID], [
 	AC_ARG_ENABLE(dynamic_speeddial_cid, 
 	  AC_HELP_STRING([--disable-dynamic-speeddial-cid], [disable dynamic speeddials with call info]), 
-            ac_cv_dynamic_speeddial_cid=$enableval, ac_cv_dynamic_speeddial_cid=${ac_cv_dynamic_speeddial})
-        AS_IF([test "${ac_cv_dynamic_speeddial}" == "yes"], [
-                AS_IF([test "${ac_cv_dynamic_speeddial_cid}" == "yes"], [
-                        AC_DEFINE(CS_DYNAMIC_SPEEDDIAL_CID, 1, [dynamic speeddials with callinfo enabled])
-                ])
-        ])
+	    ac_cv_dynamic_speeddial_cid=$enableval, ac_cv_dynamic_speeddial_cid=${ac_cv_dynamic_speeddial})
+	AS_IF([test "${ac_cv_dynamic_speeddial}" == "yes"], [
+		AS_IF([test "${ac_cv_dynamic_speeddial_cid}" == "yes"], [
+			AC_DEFINE(CS_DYNAMIC_SPEEDDIAL_CID, 1, [dynamic speeddials with callinfo enabled])
+		])
+	])
 	AC_MSG_NOTICE([--enable-dynamic-speeddial_cid: ${ac_cv_dynamic_speeddial_cid}])
 ])
 

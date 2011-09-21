@@ -85,18 +85,19 @@ void sccp_handle_unknown_message(sccp_session_t * s, sccp_device_t * d, sccp_moo
  */
 void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
+	uint8_t retryTime = 60;
+  
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is requesting a Token, Instance: %d, Type: %s (%d)\n", 
+		r->msg.RegisterTokenReq.sId.deviceName, 
+		letohl(r->msg.RegisterTokenReq.sId.lel_instance), 
+		devicetype2str(letohl(r->msg.RegisterTokenReq.lel_deviceType)), 
+		letohl(r->msg.RegisterTokenReq.lel_deviceType)
+	);
 
-	sccp_moo_t *r1;
-
-	if (!s || (s->fds[0].fd < 0)) {
-		ast_log(LOG_ERROR, "%s: No Valid Session\n", r->msg.RegisterMessage.sId.deviceName);
-		return;
-	}
-
-	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is requesting a Token, Instance: %d, Type: %s (%d), Version: %d\n", r->msg.RegisterMessage.sId.deviceName, letohl(r->msg.RegisterMessage.sId.lel_instance), devicetype2str(letohl(r->msg.RegisterMessage.lel_deviceType)), letohl(r->msg.RegisterMessage.lel_deviceType), r->msg.RegisterMessage.protocolVer);
+	sccp_dump_packet((unsigned char *)&r->msg.RegisterTokenReq, r->length);
 
 	// Search for already known devices -> Cleanup
-	d = sccp_device_find_byid(r->msg.RegisterMessage.sId.deviceName, FALSE);
+	d = sccp_device_find_byid(r->msg.RegisterTokenReq.sId.deviceName, FALSE);
 	if (d) {
 		if (d->session && d->session != s) {
 			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_2 "%s: Device is registered on another server (TokenReq)!\n", d->id);
@@ -108,15 +109,41 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 	/* ip address range check */
 	if (GLOB(ha) && !pbx_apply_ha(GLOB(ha), &((sccp_session_t *) s)->sin)) {
-		ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.RegisterMessage.sId.deviceName);
-		REQ(r1, RegisterTokenReject);
-		memcpy(r1->msg.RegisterTokenReject.text, "Device ip not authorized", sizeof(r1->msg.RegisterTokenReject.text));
-		sccp_session_send2(s, r1);
+		ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.RegisterTokenReq.sId.deviceName);
+		REQ(r, RegisterTokenReject);
+		r->msg.RegisterTokenReject.lel_tokenRejWaitTime = htolel(60);
+		sccp_session_send2(s, r);
 		return;
 	}
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", r->msg.RegisterMessage.sId.deviceName);
-	REQ(r1, RegisterTokenAck);
-	sccp_session_send2(s, r1);
+
+	/* \todo handle device pre-registration to speed up registration upon emergency and make communication (device reset) with device possible */
+
+	/*Currently rejecting token until further notice */
+	boolean_t sendAck=FALSE;
+	
+
+	/* we are the primary server */
+	if(letohl(r->msg.RegisterTokenReq.sId.lel_instance) == 0){
+		
+		//if(letohl(r->msg.RegisterTokenReq.unknown) & 0x00FFFFFF){
+		//	retryTime = 30;
+		//	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: active call on device fallback retry in %d seconds\n", r->msg.RegisterTokenReq.sId.deviceName, retryTime);
+		//}else{
+			sendAck = TRUE;
+		//}
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: unknown: %d, (%d)\n", r->msg.RegisterTokenReq.sId.deviceName, letohl(r->msg.RegisterTokenReq.unknown), (r->msg.RegisterTokenReq.unknown) & 0x10);
+
+	}
+	
+	if (sendAck) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", r->msg.RegisterTokenReq.sId.deviceName);
+		REQ(r, RegisterTokenAck);
+		sccp_session_send2(s, r);
+	}else {
+		REQ(r, RegisterTokenReject);
+		r->msg.RegisterTokenReject.lel_tokenRejWaitTime = htolel(retryTime);
+		sccp_session_send2(s, r);
+	}
 }
 #endif
 
@@ -2350,12 +2377,12 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 
 	memset(ipAddr, 0, 16);
 	if (d->inuseprotocolversion < 17) {
-		ipPort = htons(htolel(r->msg.OpenReceiveChannelAck.lel_portNumber));
+		ipPort = htons(letohl(r->msg.OpenReceiveChannelAck.lel_portNumber));
 		partyID = letohl(r->msg.OpenReceiveChannelAck.lel_passThruPartyId);
 		status = letohl(r->msg.OpenReceiveChannelAck.lel_orcStatus);
 		memcpy(&ipAddr, &r->msg.OpenReceiveChannelAck.bel_ipAddr, 4);
 	} else {
-		ipPort = htons(htolel(r->msg.OpenReceiveChannelAck_v17.lel_portNumber));
+		ipPort = htons(letohl(r->msg.OpenReceiveChannelAck_v17.lel_portNumber));
 		partyID = letohl(r->msg.OpenReceiveChannelAck_v17.lel_passThruPartyId);
 		status = letohl(r->msg.OpenReceiveChannelAck_v17.lel_orcStatus);
 		memcpy(&ipAddr, &r->msg.OpenReceiveChannelAck_v17.bel_ipAddr, 16);

@@ -913,6 +913,7 @@ static int load_module(void)
 #endif
 {
 
+
  	/* check for existance of chan_skinny */
 #if ASTERISK_VERSION_NUMBER > 10600 	
  	if (ast_module_check("chan_skinny.so")) {

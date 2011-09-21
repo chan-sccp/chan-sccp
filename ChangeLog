@@ -1,3 +1,28 @@
+2011-09-09  marcelloceschia
+
+	* [r2738] src/sccp_hint.c: backport changes for dynamic speeddials
+
+2011-09-07  ddegroot
+
+	* [r2735] conf/sccp.conf, conf/sccp_short.conf,
+	  conf/sccp_simple.conf: setting all nat lines in the config
+	  exaples to off
+
+2011-09-06  ddegroot
+
+	* [r2731] autoconf/extra.m4, configure, configure.ac: Removed
+	  configure caching between runs, to prevent issues
+
+2011-09-01  ddegroot
+
+	* [r2730] autoconf/extra.m4, configure: update configure to deal
+	  with installation location on Apple Darwin systems
+
+2011-08-30  ddegroot
+
+	* [r2715] .version, ChangeLog, NEWS, debian/changelog: Update
+	  version to V3.0.3_STABLE
+
 2011-08-30  marcelloceschia
 
 	* [r2711] src/sccp_labels.h: fixes compile issue with some asterisk

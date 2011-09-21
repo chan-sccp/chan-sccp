@@ -1,3 +1,9 @@
+Version: 3.0.4_STABLE
+============================
+Fixed/Improved:
+ - Small bug fixes
+ - Fix hint issue on 7914 addons (with 7960 and dynamic speeddials)
+
 Version: 3.0.3_STABLE
 ============================
 Fixed/Improved:
@@ -89,4 +95,8 @@ Fixed/Improved:
 
 
 
+<<<<<<< .working
 >>>>>>> .merge-rechts.r2715
+=======
+
+>>>>>>> .merge-rechts.r2824

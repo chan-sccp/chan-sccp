@@ -7044,13 +7044,25 @@ if test "${lt_cv_nm_interface+set}" = set; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
+<<<<<<< .working
   (eval echo "\"\$as_me:7047: $ac_compile\"" >&5)
+=======
+  (eval echo "\"\$as_me:7054: $ac_compile\"" >&5)
+>>>>>>> .merge-rechts.r2824
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
+<<<<<<< .working
   (eval echo "\"\$as_me:7050: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+=======
+  (eval echo "\"\$as_me:7057: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+>>>>>>> .merge-rechts.r2824
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
+<<<<<<< .working
   (eval echo "\"\$as_me:7053: output\"" >&5)
+=======
+  (eval echo "\"\$as_me:7060: output\"" >&5)
+>>>>>>> .merge-rechts.r2824
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -8244,7 +8256,11 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
+<<<<<<< .working
   echo '#line 8247 "configure"' > conftest.$ac_ext
+=======
+  echo '#line 8254 "configure"' > conftest.$ac_ext
+>>>>>>> .merge-rechts.r2824
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -11120,11 +11136,19 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
+<<<<<<< .working
    (eval echo "\"\$as_me:11123: $lt_compile\"" >&5)
+=======
+   (eval echo "\"\$as_me:11130: $lt_compile\"" >&5)
+>>>>>>> .merge-rechts.r2824
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
+<<<<<<< .working
    echo "$as_me:11127: \$? = $ac_status" >&5
+=======
+   echo "$as_me:11134: \$? = $ac_status" >&5
+>>>>>>> .merge-rechts.r2824
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -11459,11 +11483,19 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
+<<<<<<< .working
    (eval echo "\"\$as_me:11462: $lt_compile\"" >&5)
+=======
+   (eval echo "\"\$as_me:11469: $lt_compile\"" >&5)
+>>>>>>> .merge-rechts.r2824
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
+<<<<<<< .working
    echo "$as_me:11466: \$? = $ac_status" >&5
+=======
+   echo "$as_me:11473: \$? = $ac_status" >&5
+>>>>>>> .merge-rechts.r2824
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -11564,11 +11596,19 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
+<<<<<<< .working
    (eval echo "\"\$as_me:11567: $lt_compile\"" >&5)
+=======
+   (eval echo "\"\$as_me:11574: $lt_compile\"" >&5)
+>>>>>>> .merge-rechts.r2824
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
+<<<<<<< .working
    echo "$as_me:11571: \$? = $ac_status" >&5
+=======
+   echo "$as_me:11578: \$? = $ac_status" >&5
+>>>>>>> .merge-rechts.r2824
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -11619,11 +11659,19 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
+<<<<<<< .working
    (eval echo "\"\$as_me:11622: $lt_compile\"" >&5)
+=======
+   (eval echo "\"\$as_me:11629: $lt_compile\"" >&5)
+>>>>>>> .merge-rechts.r2824
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
+<<<<<<< .working
    echo "$as_me:11626: \$? = $ac_status" >&5
+=======
+   echo "$as_me:11633: \$? = $ac_status" >&5
+>>>>>>> .merge-rechts.r2824
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14003,7 +14051,11 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
+<<<<<<< .working
 #line 14006 "configure"
+=======
+#line 14013 "configure"
+>>>>>>> .merge-rechts.r2824
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -14099,7 +14151,11 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
+<<<<<<< .working
 #line 14102 "configure"
+=======
+#line 14109 "configure"
+>>>>>>> .merge-rechts.r2824
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -15232,7 +15288,11 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
+<<<<<<< .working
 #line 15235 "configure"
+=======
+#line 15242 "configure"
+>>>>>>> .merge-rechts.r2824
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -24509,9 +24569,17 @@ else
   ac_cv_dynamic_speeddial_cid=${ac_cv_dynamic_speeddial}
 fi
 
+<<<<<<< .working
         if test "${ac_cv_dynamic_speeddial}" == "yes"; then :
+=======
+	if test "${ac_cv_dynamic_speeddial}" == "yes"; then :
+>>>>>>> .merge-rechts.r2824
 
+<<<<<<< .working
                 if test "${ac_cv_dynamic_speeddial_cid}" == "yes"; then :
+=======
+		if test "${ac_cv_dynamic_speeddial_cid}" == "yes"; then :
+>>>>>>> .merge-rechts.r2824
 
 
 $as_echo "#define CS_DYNAMIC_SPEEDDIAL_CID 1" >>confdefs.h
