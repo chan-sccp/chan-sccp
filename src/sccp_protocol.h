@@ -289,7 +289,7 @@ typedef enum {
 } skinny_callstate_security_t;							/*!< Skinny CallSecurityInfo */
 
 #    define StationMaxDeviceNameSize			16
-#    define StationMaxButtonTemplateSize		42
+#    define StationMaxButtonTemplateSize		56
 #    define StationMaxButtonTemplateNameSize		44
 #    define StationDateTemplateSize 			6
 //#define StationMaxDisplayTextSize             33
