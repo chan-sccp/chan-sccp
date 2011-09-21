@@ -407,12 +407,6 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 		for (i = 0; i < 6; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 		break;
-	case SKINNY_DEVICETYPE_CISCO6921:
-	case SKINNY_DEVICETYPE_CISCO6941:
-	case SKINNY_DEVICETYPE_CISCO6945:
-		for (i = 0; i < 20; i++)
-			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-		break;
 	case SKINNY_DEVICETYPE_CISCO8941:
 	case SKINNY_DEVICETYPE_CISCO8945:
 		for (i = 0; i < 20; i++)
@@ -1512,9 +1506,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		/* only remove the subscription if we destroy the device */
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->devstateSpecifiers, devstateSpecifier, list) {
 			sccp_log(DEBUGCAT_FEATURE_BUTTON) (VERBOSE_PREFIX_1 "%s: Removed Devicestate Subscription: %s\n", d->id, devstateSpecifier->specifier);
-			SCCP_LIST_REMOVE_CURRENT(devstateSpecifier);
 			devstateSpecifier->sub = ast_event_unsubscribe(devstateSpecifier->sub);
-			sccp_free(devstateSpecifier);
 		}
 		SCCP_LIST_TRAVERSE_SAFE_END;
 	}
