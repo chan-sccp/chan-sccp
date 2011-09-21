@@ -193,7 +193,7 @@ extern "C" {
 	#define SCCP_MAX_MUSICCLASS 80
 #endif
 
-	typedef unsigned int sccp_group_t;
+	typedef unsigned long long sccp_group_t;
 	typedef struct channel sccp_channel_t;					/*!< SCCP Channel Structure */
 	typedef struct sccp_session sccp_session_t;				/*!< SCCP Session Structure */
 	typedef struct sccp_line sccp_line_t;					/*!< SCCP Line Structure */
