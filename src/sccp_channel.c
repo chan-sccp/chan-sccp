@@ -92,6 +92,7 @@ sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * de
 	c->isCodecFix = FALSE;
 	c->desiredVideoBitrate = 1920;						/* default value. \todo: should be made configurable in the global / per device config. */
 	c->device = device;
+	c->mutemic_flag = FALSE;
 	if (NULL != c->device) {
 		sccp_channel_updateChannelCapability_locked(c);
 	};
@@ -681,6 +682,13 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 
 	sccp_channel_updateChannelCapability_locked(c);
 
+
+	/* Mute mic feature: If previously set, mute the microphone prior receiving media is already open. */
+	/* This must be done in this exact order to work on popular phones like the 7975. It must also be done in other places for other phones. */
+	if( c->mutemic_flag ) {
+		sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
+	}
+
 #if ASTERISK_VERSION_NUMBER >= 10400
 	struct ast_format_list fmt = pbx_codec_pref_getsize(&c->codecs, c->format & AST_FORMAT_AUDIO_MASK);
 
@@ -1053,6 +1061,12 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 	payloadType = sccp_codec_ast2skinny(c->format);				// was c->format
 	packetSize = 20;
 #endif
+	
+	/* Mute mic feature: If previously set, mute the microphone after receiving of media is already open, but before starting to send to rtp. */
+	/* This must be done in this exact order to work also on newer phones like the 8945. It must also be done in other places for other phones. */
+	if( c->mutemic_flag ) {
+		sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
+	}
 
 	if (d->inuseprotocolversion < 17) {
 		REQ(r, StartMediaTransmission);
@@ -1099,6 +1113,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 #else
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Video support not enabled\n", DEV_ID_LOG(c->device));
 #endif
+		
 }
 
 /*!

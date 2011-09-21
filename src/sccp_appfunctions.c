@@ -817,7 +817,7 @@ static int sccp_app_setmutemic(struct ast_channel *chan, void *data)
 		return 0;
 	}
 
-	sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
+	c->mutemic_flag = TRUE;
 
 	return 0;
 }
