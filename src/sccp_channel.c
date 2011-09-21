@@ -1173,7 +1173,7 @@ void sccp_channel_stopmediatransmission_locked(sccp_channel_t * c)
 	c->mediaStatus.transmit = FALSE;
 	// stopping rtp
 	if (c->rtp.audio.rtp || c->rtp.video.rtp) {
-		//sccp_rtp_stop(c);
+		sccp_rtp_stop(c);
 	}
 	c->rtp.audio.status &= ~SCCP_RTP_STATUS_TRANSMIT;
 
