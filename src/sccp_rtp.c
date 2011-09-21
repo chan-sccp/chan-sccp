@@ -145,7 +145,7 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 	/*! \todo if we enable this, we get an audio issue when resume on the same device, so we need to force asterisk to update -MC */
 	if (socket_equals(new_peer, &c->rtp.audio.phone)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equals with our curent one, ignore change\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
-		return;
+// 		return;
 	}
 
 	memcpy(&c->rtp.audio.phone, new_peer, sizeof(c->rtp.audio.phone));
