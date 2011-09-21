@@ -305,6 +305,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 //																													"Defaults to fixed."},
 //  {"jblog", 				G_OBJ_REF(global_jbconf.flags) /*<<2*/,	SCCP_CONFIG_DATATYPE_BOOLEAN,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"no",		NULL,			" Enables jitterbuffer frame logging. Defaults to 'no'."},
 //
+/*
   {"hotline_enabled", 			G_OBJ_REF(allowAnonymous), 		SCCP_CONFIG_DATATYPE_BOOLEAN,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"no",		NULL,			" Setting the hotline Feature on a device, will make it connect to a predefined extension as soon as the Receiver"
 																													"is picked up or the 'New Call' Button is pressed. No number has to be given. This works even on devices which "
 																													"have no entry in the config file or realtime database. "
@@ -312,6 +313,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 																													"able to only call one number, or for unprovisioned phones to only be able to call the helpdesk to get their phone"
 																													"set up	If hotline_enabled = yes, any device which is not included in the configuration explicitly will be allowed "
 																													"to registered as a guest device. All such devices will register on a single shared line called 'hotline'."},
+*/
 
 // {"hotline_context",			(offsetof(struct sccp_global_vars,hotline) + offsetof(struct sccp_hotline,line) + offsetof(struct sccp_line,context)), offsize(struct sccp_line,context), 	SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"sccp",	NULL,			""},
 //   {"hotline_extension", 		(offsetof(struct sccp_global_vars,hotline) + offsetof(struct sccp_hotline,exten)), offsize(struct sccp_hotline,exten),		SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"111",		NULL,			""},
@@ -711,7 +713,7 @@ void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, co
 		type = sccpDstConfig[i].type;
 
 		// if (flags) { 
-		if (alreadySetEntries[i]==0 && flags != SCCP_CONFIG_FLAG_OBSOLETE) {		// has not been set already
+		if (alreadySetEntries[i]==0 && !(flags & SCCP_CONFIG_FLAG_OBSOLETE) ) {		// has not been set already
 		        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s looking for default (flags: %d, type: %d)\n", sccpDstConfig[i].name, flags, type);
 			switch (flags) {
 			case SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT:
@@ -1439,7 +1441,39 @@ sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, cons
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 
-	*(ast_group_t *) dest = pbx_get_group(value);
+	char *piece;
+	char *c;
+	int start=0, finish=0, x;
+	sccp_group_t group = 0;
+
+	if (!sccp_strlen_zero(value)){
+		c = ast_strdupa(value);
+		
+		while ((piece = strsep(&c, ","))) {
+			if (sscanf(piece, "%30d-%30d", &start, &finish) == 2) {
+				/* Range */
+			} else if (sscanf(piece, "%30d", &start)) {
+				/* Just one */
+				finish = start;
+			} else {
+				ast_log(LOG_ERROR, "Syntax error parsing group configuration '%s' at '%s'. Ignoring.\n", value, piece);
+				continue;
+			}
+			for (x = start; x <= finish; x++) {
+				if ((x > 63) || (x < 0)) {
+					ast_log(LOG_WARNING, "Ignoring invalid group %d (maximum group is 63)\n", x);
+				} else{
+					group |= ((ast_group_t) 1 << x);
+				}
+			}
+		}
+	}
+	
+	if( (*(sccp_group_t *) dest) != group){
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+		
+		*(sccp_group_t *) dest = group;
+	}
 	return changed;
 }
 
