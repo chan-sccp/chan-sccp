@@ -1671,8 +1671,6 @@ static boolean_t sccp_asterisk_getRemoteChannel(const sccp_channel_t *channel, P
 int sccp_wrapper_asterisk18_requestHangup(PBX_CHANNEL_TYPE * channel)
 {
 
-	/* Is there a blocker ? */
-	uint8_t res = (channel->pbx || ast_test_flag(channel, AST_FLAG_BLOCKING));
 
 	channel->hangupcause = AST_CAUSE_NORMAL_CLEARING;
 	if ((channel->_softhangup & AST_SOFTHANGUP_APPUNLOAD) != 0) {
@@ -1682,15 +1680,14 @@ int sccp_wrapper_asterisk18_requestHangup(PBX_CHANNEL_TYPE * channel)
 			channel->hangupcause = AST_CAUSE_ANSWERED_ELSEWHERE;
 		}
 	}
-
-	if (res) {
-		channel->_softhangup |= AST_SOFTHANGUP_DEV;
-		ast_queue_hangup(channel);
-		return 1;
-	} else {
+	if(!channel->pbx){
 		ast_hangup(channel);
-		return 2;
+	}else if(channel->_state != AST_STATE_UP){
+		ast_softhangup_nolock(channel, AST_SOFTHANGUP_DEV);
+	}else{
+		ast_queue_hangup(channel);
 	}
+	return 2;
 }
 
 /*!
