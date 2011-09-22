@@ -916,29 +916,33 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 	/** getting remote capabilities */
 	char cap_buf[512];
 	
-	/* audio capabilities */
-	sccp_channel_t *remoteSccpChannel = get_sccp_channel_from_pbx_channel(requestor);
-	if(remoteSccpChannel){
-		uint8_t x,y,z;
-		z = 0;
-		/* shrink audioCapabilities to remote preferred/capable format */
-		for(x=0; x < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->preferences.audio[x] != 0; x++){
-			for(y=0; y < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->capabilities.audio[y] != 0; y++){
-				if(remoteSccpChannel->preferences.audio[x] == remoteSccpChannel->capabilities.audio[y] ){
-					audioCapabilities[z++] = remoteSccpChannel->preferences.audio[x];
-					break;
-				}
-			}
-		}
-	}else{
-		get_skinnyFormats(requestor->nativeformats & AST_FORMAT_AUDIO_MASK, audioCapabilities, ARRAY_LEN(audioCapabilities));
-	}
+    /* originating call from cli */
+    if(requestor){
+        /* audio capabilities */
+        sccp_channel_t *remoteSccpChannel = get_sccp_channel_from_pbx_channel(requestor);
+        if(remoteSccpChannel){
+            uint8_t x,y,z;
+            z = 0;
+            /* shrink audioCapabilities to remote preferred/capable format */
+            for(x=0; x < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->preferences.audio[x] != 0; x++){
+                for(y=0; y < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->capabilities.audio[y] != 0; y++){
+                    if(remoteSccpChannel->preferences.audio[x] == remoteSccpChannel->capabilities.audio[y] ){
+                        audioCapabilities[z++] = remoteSccpChannel->preferences.audio[x];
+                        break;
+                    }
+                }
+            }
+        }else{
+            get_skinnyFormats(requestor->nativeformats & AST_FORMAT_AUDIO_MASK, audioCapabilities, ARRAY_LEN(audioCapabilities));
+        }
+        
+        /* video capabilities */
+        get_skinnyFormats(requestor->nativeformats & AST_FORMAT_VIDEO_MASK, videoCapabilities, ARRAY_LEN(videoCapabilities));
+    }
 	
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, audioCapabilities, ARRAY_LEN(audioCapabilities));
 	ast_log(LOG_WARNING, "remote audio caps: %s\n", cap_buf);
 	
-	/* video capabilities */
-	get_skinnyFormats(requestor->nativeformats & AST_FORMAT_VIDEO_MASK, videoCapabilities, ARRAY_LEN(videoCapabilities));
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, videoCapabilities, ARRAY_LEN(videoCapabilities));
 	ast_log(LOG_WARNING, "remote video caps: %s\n", cap_buf);
 	/** done */
@@ -959,14 +963,16 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 		ast_log(LOG_WARNING, "SCCP: Unable to allocate channel\n");
 		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 		goto EXITFUNC;
-	} else {
-		pbx_channel = channel->owner;
-		/* set calling party */
-		sccp_channel_set_callingparty(channel, requestor->caller.id.name.str, requestor->caller.id.number.str);
-		sccp_channel_set_originalCalledparty(channel, requestor->redirecting.to.name.str, requestor->redirecting.to.number.str);
+	}
+    
+	pbx_channel = channel->owner;
+	/* set calling party */
+    if(requestor){
+        sccp_channel_set_callingparty(channel, requestor->caller.id.name.str, requestor->caller.id.number.str);
+        sccp_channel_set_originalCalledparty(channel, requestor->redirecting.to.name.str, requestor->redirecting.to.number.str);
 	}
 
-	if (requestor->linkedid) {
+	if (requestor && requestor->linkedid) {
 		ast_string_field_set(channel->owner, linkedid, requestor->linkedid);
 	}
 
@@ -1863,6 +1869,12 @@ static int sccp_wrapper_asterisk18_channel_write(struct ast_channel *ast, const 
 		res = TRUE;
 	} else if (!strcasecmp(args, "codec")) {
 		res = sccp_channel_setPreferredCodec(c, value);
+	} else if (!strcasecmp(args, "microphone")) {
+		if(!value || sccp_strlen_zero(value) || !sccp_true(value)){
+			c->setMicophone(c, FALSE);
+		}else{
+			c->setMicophone(c, TRUE);
+		}
 	} else {
 		return -1;
 	}
