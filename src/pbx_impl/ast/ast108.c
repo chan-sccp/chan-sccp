@@ -962,7 +962,7 @@ EXITFUNC:
 	if (lineName)
 		sccp_free(lineName);
 	sccp_restart_monitor();
-	return (channel->owner) ? channel->owner : NULL;
+	return (channel && channel->owner) ? channel->owner : NULL;
 }
 
 static int sccp_wrapper_asterisk18_call(PBX_CHANNEL_TYPE * chan, char *addr, int timeout)
