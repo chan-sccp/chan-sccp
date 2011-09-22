@@ -35,6 +35,15 @@
 #    define SKINNY_PHONE_FEATUES_ABBRDIAL 1<<31
 #    define SKINNY_PHONE_FEATUES_DYNAMIC_MESSAGES 1<<24
 
+/*!
+ * \brief Skinny Device Feature (ENUM)
+ */
+typedef enum {
+	SKINNY_DEVFEATURE_DYNAMIC_MESSAGE = 1 << 24,
+	SKINNY_DEVFEATURE_ABBREVIATED_DIAL = 1 << 31,
+} skinny_devfeature_t;								/*!< Skinny Device Feature Enum */
+
+
 /*! 
  * \brief internal chan_sccp call state (c->callstate) (Enum)
  */
@@ -271,13 +280,6 @@ static const struct skinny_calltype {
 	/* *INDENT-ON* */
 };
 
-/*!
- * \brief Skinny Device Feature (ENUM)
- */
-typedef enum {
-	SKINNY_DEVFEATURE_DYNAMIC_MESSAGE = 1 << 24,
-	SKINNY_DEVFEATURE_ABBREVIATED_DIAL = 1 << 31,
-} skinny_devfeature_t;								/*!< Skinny Device Feature Enum */
 
 /*!
  * \brief Skinny Device Feature Structure

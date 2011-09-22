@@ -631,3 +631,53 @@ struct ast_codec_pref *sccp_codec_pref2pbx_codec_pref(skinny_codec_t *skinny_cod
         return res;
 }
 */
+
+/*!
+ * \brief Retrieve the SCCP Channel from an Asterisk Channel
+ * \param ast_chan Asterisk Channel
+ * \return SCCP Channel on Success or Null on Fail
+ */
+sccp_channel_t *get_sccp_channel_from_ast_channel(PBX_CHANNEL_TYPE *ast_chan)
+{
+#ifndef CS_AST_HAS_TECH_PVT
+	if (!strncasecmp(ast_chan->type, "SCCP", 4)) {
+#else
+	if (!strncasecmp(ast_chan->tech->type, "SCCP", 4)) {
+#endif
+		return CS_AST_CHANNEL_PVT(ast_chan);
+	} else {
+		return NULL;
+	}
+}
+
+
+int sccp_asterisk_pbx_fktChannelWrite(struct ast_channel *ast, const char *funcname, char *args, const char *value){
+	sccp_channel_t *c;
+	boolean_t	res = TRUE;
+
+
+	c = get_sccp_channel_from_ast_channel(ast);
+	if (!c) {
+		ast_log(LOG_ERROR, "This function requires a valid SCCP channel\n");
+		return -1;
+	}
+	
+	
+	if (!strcasecmp(args, "MaxCallBR")) {
+		sccp_log(1) (VERBOSE_PREFIX_3 "%s: set max call bitrate to %s\n", DEV_ID_LOG(sccp_channel_getDevice(c)), value);
+		pbx_builtin_setvar_helper(ast, "_MaxCallBR", value);
+		res = TRUE;
+	} else if (!strcasecmp(args, "codec")) {
+		res = sccp_channel_setPreferredCodec(c, value);
+	} else if (!strcasecmp(args, "microphone")) {
+		if(!value || sccp_strlen_zero(value) || !sccp_true(value)){
+			c->setMicophone(c, FALSE);
+		}else{
+			c->setMicophone(c, TRUE);
+		}
+	} else {
+		return -1;
+	}
+	
+	return res ? 0 : -1;
+}

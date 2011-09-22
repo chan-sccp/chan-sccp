@@ -217,4 +217,12 @@ int skinny_codecs2pbx_codecs(skinny_codec_t * skinny_codecs);
 	        sccp_free(ptr);
 	}
 
+/*!
+ * \brief Retrieve the SCCP Channel from an Asterisk Channel
+ * \param ast_chan Asterisk Channel
+ * \return SCCP Channel on Success or Null on Fail
+ */
+sccp_channel_t *get_sccp_channel_from_ast_channel(PBX_CHANNEL_TYPE *ast_chan);
+int sccp_asterisk_pbx_fktChannelWrite(struct ast_channel *ast, const char *funcname, char *args, const char *value);
+	
 #endif

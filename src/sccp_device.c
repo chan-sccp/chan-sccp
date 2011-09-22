@@ -1800,13 +1800,11 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	/* Unregister event subscriptions originating from devstate feature */
 	SCCP_LIST_LOCK(&d->devstateSpecifiers);
 	while ((devstateSpecifier = SCCP_LIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
-		if (devstateSpecifier->sub)
+		if (devstateSpecifier->sub){
 			pbx_event_unsubscribe(devstateSpecifier->sub);
-            		sccp_free(devstateSpecifier);
-              		sccp_log(DEBUGCAT_FEATURE_BUTTON) (VERBOSE_PREFIX_1 "%s: Removed Devicestate Subscription: %s\n", d->id, devstateSpecifier->specifier);
-              	}
-//        if (SCCP_LIST_EMPTY(&d->devstateSpecifiers)) 
-//        	SCCP_LIST_HEAD_DESTROY(&d->devstateSpecifiers);	
+		}
+		sccp_log(DEBUGCAT_FEATURE_BUTTON) (VERBOSE_PREFIX_1 "%s: Removed Devicestate Subscription: %s\n", d->id, devstateSpecifier->specifier);
+	}
 	SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
 #endif
 
