@@ -65,26 +65,6 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 }
 
 
-
-/*!
- * \brief Retrieve the SCCP Channel from an Asterisk Channel
- * \param ast_chan Asterisk Channel
- * \return SCCP Channel on Success or Null on Fail
- */
-static sccp_channel_t *get_sccp_channel_from_ast_channel(PBX_CHANNEL_TYPE *ast_chan)
-{
-#ifndef CS_AST_HAS_TECH_PVT
-	if (!strncasecmp(ast_chan->type, "SCCP", 4)) {
-#else
-	if (!strncasecmp(ast_chan->tech->type, "SCCP", 4)) {
-#endif
-		return CS_AST_CHANNEL_PVT(ast_chan);
-	} else {
-		return NULL;
-	}
-}
-
-
 static void get_skinnyFormats(struct ast_format_cap *format, skinny_codec_t codecs[], size_t size)
 {
 	unsigned int x;

@@ -93,24 +93,6 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format)
 }
 
 /*!
- * \brief Retrieve the SCCP Channel from an Asterisk Channel
- * \param ast_chan Asterisk Channel
- * \return SCCP Channel on Success or Null on Fail
- */
-static sccp_channel_t *get_sccp_channel_from_ast_channel(PBX_CHANNEL_TYPE *ast_chan)
-{
-#ifndef CS_AST_HAS_TECH_PVT
-	if (!strncasecmp(ast_chan->type, "SCCP", 4)) {
-#else
-	if (!strncasecmp(ast_chan->tech->type, "SCCP", 4)) {
-#endif
-		return CS_AST_CHANNEL_PVT(ast_chan);
-	} else {
-		return NULL;
-	}
-}
-
-/*!
  * \brief 	start monitoring thread of chan_sccp
  * \param 	data
  *
@@ -811,7 +793,6 @@ static sccp_extension_status_t sccp_wrapper_asterisk18_extensionStatus(const scc
 
 static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, format_t format, const PBX_CHANNEL_TYPE * requestor, void *data, int *cause)
 {
-	PBX_CHANNEL_TYPE *pbx_channel = NULL;
 	sccp_channel_request_status_t requestStatus;
 	sccp_channel_t *channel = NULL;
 	
@@ -917,28 +898,31 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 	char cap_buf[512];
 	
 	/* audio capabilities */
-	sccp_channel_t *remoteSccpChannel = get_sccp_channel_from_pbx_channel(requestor);
-	if(remoteSccpChannel){
-		uint8_t x,y,z;
-		z = 0;
-		/* shrink audioCapabilities to remote preferred/capable format */
-		for(x=0; x < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->preferences.audio[x] != 0; x++){
-			for(y=0; y < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->capabilities.audio[y] != 0; y++){
-				if(remoteSccpChannel->preferences.audio[x] == remoteSccpChannel->capabilities.audio[y] ){
-					audioCapabilities[z++] = remoteSccpChannel->preferences.audio[x];
-					break;
+	if(requestor){
+		sccp_channel_t *remoteSccpChannel = get_sccp_channel_from_pbx_channel(requestor);
+		if(remoteSccpChannel){
+			uint8_t x,y,z;
+			z = 0;
+			/* shrink audioCapabilities to remote preferred/capable format */
+			for(x=0; x < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->preferences.audio[x] != 0; x++){
+				for(y=0; y < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->capabilities.audio[y] != 0; y++){
+					if(remoteSccpChannel->preferences.audio[x] == remoteSccpChannel->capabilities.audio[y] ){
+						audioCapabilities[z++] = remoteSccpChannel->preferences.audio[x];
+						break;
+					}
 				}
 			}
+		}else{
+			get_skinnyFormats(requestor->nativeformats & AST_FORMAT_AUDIO_MASK, audioCapabilities, ARRAY_LEN(audioCapabilities));
 		}
-	}else{
-		get_skinnyFormats(requestor->nativeformats & AST_FORMAT_AUDIO_MASK, audioCapabilities, ARRAY_LEN(audioCapabilities));
+		
+		/* video capabilities */
+		get_skinnyFormats(requestor->nativeformats & AST_FORMAT_VIDEO_MASK, videoCapabilities, ARRAY_LEN(videoCapabilities));
 	}
 	
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, audioCapabilities, ARRAY_LEN(audioCapabilities));
 	ast_log(LOG_WARNING, "remote audio caps: %s\n", cap_buf);
 	
-	/* video capabilities */
-	get_skinnyFormats(requestor->nativeformats & AST_FORMAT_VIDEO_MASK, videoCapabilities, ARRAY_LEN(videoCapabilities));
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, videoCapabilities, ARRAY_LEN(videoCapabilities));
 	ast_log(LOG_WARNING, "remote video caps: %s\n", cap_buf);
 	/** done */
@@ -955,19 +939,21 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 	}
 
 	if (!sccp_pbx_channel_allocate_locked(channel)) {
-		//! \todo handle error in more detail
+		//! \todo handle error in more detail, cleanup sccp channel
 		ast_log(LOG_WARNING, "SCCP: Unable to allocate channel\n");
 		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 		goto EXITFUNC;
-	} else {
-		pbx_channel = channel->owner;
+	} 
+	
+	if(requestor){
 		/* set calling party */
 		sccp_channel_set_callingparty(channel, requestor->caller.id.name.str, requestor->caller.id.number.str);
 		sccp_channel_set_originalCalledparty(channel, requestor->redirecting.to.name.str, requestor->redirecting.to.number.str);
-	}
+	    
 
-	if (requestor->linkedid) {
-		ast_string_field_set(channel->owner, linkedid, requestor->linkedid);
+		if (requestor->linkedid) {
+			ast_string_field_set(channel->owner, linkedid, requestor->linkedid);
+		}
 	}
 
 	sccp_channel_unlock(channel);
@@ -976,7 +962,7 @@ EXITFUNC:
 	if (lineName)
 		sccp_free(lineName);
 	sccp_restart_monitor();
-	return (pbx_channel && channel && channel->owner && channel->owner==pbx_channel) ? pbx_channel : NULL;
+	return (channel->owner) ? channel->owner : NULL;
 }
 
 static int sccp_wrapper_asterisk18_call(PBX_CHANNEL_TYPE * chan, char *addr, int timeout)
@@ -1845,36 +1831,6 @@ static int sccp_wrapper_asterisk18_channel_read(struct ast_channel *ast, NEWCONS
 	return 0;
 }
 
-static int sccp_wrapper_asterisk18_channel_write(struct ast_channel *ast, const char *funcname, char *args, const char *value){
-	sccp_channel_t *c;
-	boolean_t	res;
-
-
-	if (!ast || ast->tech != &sccp_tech) {
-		ast_log(LOG_ERROR, "This function requires a valid SCCP channel\n");
-		return -1;
-	}
-
-	c = get_sccp_channel_from_ast_channel(ast);
-	
-	if (!strcasecmp(args, "MaxCallBR")) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: set max call bitrate to %s\n", DEV_ID_LOG(sccp_channel_getDevice(c)), value);
-		pbx_builtin_setvar_helper(ast, "_MaxCallBR", value);
-		res = TRUE;
-	} else if (!strcasecmp(args, "codec")) {
-		res = sccp_channel_setPreferredCodec(c, value);
-// 	} else if (!strcasecmp(args, "microphone")) {
-// 		if(!value || sccp_strlen_zero(value) || !sccp_true(value)){
-// 			c->setMicophone(c, FALSE);
-// 		}else{
-// 			c->setMicophone(c, TRUE);
-// 		}
-	} else {
-		return -1;
-	}
-	
-	return res ? 0 : -1;
-}
 
 /*! \brief Set an option on a asterisk channel */
 static int sccp_wrapper_asterisk18_setOption(struct ast_channel *ast, int option, void *data, int datalen)
@@ -2045,7 +2001,7 @@ const struct ast_channel_tech sccp_tech = {
 	//.send_image		=
 
 	.func_channel_read 	= sccp_wrapper_asterisk18_channel_read,
-	.func_channel_write 	= sccp_wrapper_asterisk18_channel_write,
+	.func_channel_write 	= sccp_asterisk_pbx_fktChannelWrite,
 
 	.send_digit_begin	= sccp_wrapper_recvdigit_begin,
 	.send_digit_end 	= sccp_wrapper_recvdigit_end,

@@ -82,29 +82,7 @@ char *pbx_getformatname(format_t format)
  */
 char *pbx_getformatname_multiple(char *buf, size_t size, format_t format)
 {
-#if ASTERISK_VERSION_NUMBER >= 10400
-	return ast_getformatname_multiple(buf, size, format & AST_FORMAT_AUDIO_MASK);
-#else
 	return ast_getformatname_multiple(buf, size, format);
-#endif										// ASTERISK_VERSION_NUMBER
-}
-
-/*!
- * \brief Retrieve the SCCP Channel from an Asterisk Channel
- * \param ast_chan Asterisk Channel
- * \return SCCP Channel on Success or Null on Fail
- */
-static sccp_channel_t *get_sccp_channel_from_ast_channel(PBX_CHANNEL_TYPE *ast_chan)
-{
-#ifndef CS_AST_HAS_TECH_PVT
-	if (!strncasecmp(ast_chan->type, "SCCP", 4)) {
-#else
-	if (!strncasecmp(ast_chan->tech->type, "SCCP", 4)) {
-#endif
-		return CS_AST_CHANNEL_PVT(ast_chan);
-	} else {
-		return NULL;
-	}
 }
 
 /*!
