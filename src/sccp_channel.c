@@ -43,21 +43,21 @@ static boolean_t sccp_alway_true(void){
 	return TRUE;
 }
 
-static void sccp_channel_setMicophoneState(const sccp_channel_t *channel, boolean_t enabled){
+static void sccp_channel_setMicrophoneState(const sccp_channel_t *channel, boolean_t enabled){
 	sccp_channel_t *c = (sccp_channel_t *)channel;
 	
 	c->privateData->microphone = enabled;
 	
 	switch(enabled){
 	  case TRUE:
-	    c->isMicophoneEnabled = sccp_alway_true;
+	    c->isMicrophoneEnabled = sccp_alway_true;
 	    if(c->privateData->device && (c->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE) ){
 		  sccp_dev_set_microphone(c->privateData->device, SKINNY_STATIONMIC_ON);
 	    }
 	    
 	    break;
 	  case FALSE:
-	    c->isMicophoneEnabled = sccp_alway_false;
+	    c->isMicrophoneEnabled = sccp_alway_false;
 	    if(c->privateData->device && (c->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)){
 		  sccp_dev_set_microphone(c->privateData->device, SKINNY_STATIONMIC_OFF);
 	    }
@@ -153,8 +153,8 @@ sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * de
 	channel->getDevice		= sccp_channel_getDevice;
 	channel->setDevice		= sccp_channel_setDevice;
 	
-	channel->isMicophoneEnabled	= sccp_alway_true;
-	channel->setMicophone		= sccp_channel_setMicophoneState;
+	channel->isMicrophoneEnabled	= sccp_alway_true;
+	channel->setMicrophone		= sccp_channel_setMicrophoneState;
 
 	return channel;
 }
@@ -580,7 +580,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t *channel)
 	
 	/* Mute mic feature: If previously set, mute the microphone prior receiving media is already open. */
 	/* This must be done in this exact order to work on popular phones like the 7975. It must also be done in other places for other phones. */
-	if( !channel->isMicophoneEnabled() ) {
+	if( !channel->isMicrophoneEnabled() ) {
 		sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
 	}
 
@@ -991,7 +991,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t *channel)
 	
 	/* Mute mic feature: If previously set, mute the microphone after receiving of media is already open, but before starting to send to rtp. */
 	/* This must be done in this exact order to work also on newer phones like the 8945. It must also be done in other places for other phones. */
-	if( !channel->isMicophoneEnabled() ) {
+	if( !channel->isMicrophoneEnabled() ) {
 		sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
 	}
 

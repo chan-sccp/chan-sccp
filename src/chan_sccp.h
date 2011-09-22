@@ -1033,8 +1033,8 @@ extern "C" {
 
 		struct subscriptionId subscriptionId;
 		boolean_t peerIsSCCP;						/*!< Indicates that channel-peer is also SCCP */
-		void (*setMicophone) (const sccp_channel_t *channel, boolean_t on);
-		boolean_t (*isMicophoneEnabled)(void);
+		void (*setMicrophone) (const sccp_channel_t *channel, boolean_t on);
+		boolean_t (*isMicrophoneEnabled)(void);
 	};									/*!< SCCP Channel Structure */
 
 /*!
