@@ -671,9 +671,9 @@ int sccp_asterisk_pbx_fktChannelWrite(struct ast_channel *ast, const char *funcn
 		res = sccp_channel_setPreferredCodec(c, value);
 	} else if (!strcasecmp(args, "microphone")) {
 		if(!value || sccp_strlen_zero(value) || !sccp_true(value)){
-			c->setMicophone(c, FALSE);
+			c->setMicrophone(c, FALSE);
 		}else{
-			c->setMicophone(c, TRUE);
+			c->setMicrophone(c, TRUE);
 		}
 	} else {
 		return -1;
