@@ -17,109 +17,6 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2269 $")
 
-/************************************************************************************************************ CALLERID **/
-
-/*
- * \brief get callerid_name from pbx
- * \param sccp_channle Asterisk Channel
- * \param cid name result
- * \return parse result
- */
-
-/*
-static int sccp_wrapper_asterisk_callerid_name(const sccp_channel_t * channel, char **cid_name)
-{
-	int return_val = 0;
-
-#ifdef ASTERISK_CONF_1_8
-	// impl 1.8
-#else
-	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
-
-#    ifndef CS_AST_CHANNEL_HAS_CID						//ast1.2
-	char *name, *number, *cidtmp;
-
-	if (pbx_channel->callerid && (cidtmp = strdup(pbx_channel->callerid))) {
-		ast_callerid_parse(cidtmp, &name, &number);
-		if (name && strlen(name) > 0) {
-			*cid_name = strdup(name);
-			return_val = 1;
-		}
-		if (cidtmp)
-			ast_free(cidtmp);
-		cidtmp = NULL;
-
-		if (name)
-			ast_free(name);
-		name = NULL;
-
-		if (number)
-			ast_free(number);
-		number = NULL;
-	}
-#    else
-	if (pbx_channel->cid.cid_name && strlen(pbx_channel->cid.cid_name) > 0) {
-		*cid_name = strdup(pbx_channel->cid.cid_name);
-		return_val = 1;
-	}
-#    endif									// CS_AST_CHANNEL_HAS_CID
-#endif
-	return return_val;
-}
-*/
-
-/*
- * \brief get callerid_name from pbx
- * \param ast_chan Asterisk Channel
- * \return char * with the callername
- */
-
-/*
-static int sccp_wrapper_asterisk_callerid_number(const sccp_channel_t * channel, char **cid_number)
-{
-	int return_val = 0;
-
-#ifdef ASTERISK_CONF_1_8
-	// impl 1.8
-#else
-	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
-
-#    ifndef CS_AST_CHANNEL_HAS_CID						// ast1.2
-	char *name, *number, *cidtmp;
-
-	if (pbx_channel->callerid && (cidtmp = strdup(pbx_channel->callerid))) {
-		ast_callerid_parse(cidtmp, &name, &number);
-		if (number && strlen(number) > 0) {
-			*cid_number = strdup(number);
-			return_val = 1;
-		}
-		if (cidtmp)
-			ast_free(cidtmp);
-		cidtmp = NULL;
-
-		if (name)
-			ast_free(name);
-		name = NULL;
-
-		if (number)
-			ast_free(number);
-		number = NULL;
-	}
-#    else
-
-	if (pbx_channel->cid.cid_num && strlen(pbx_channel->cid.cid_num) > 0) {
-		*cid_number = strdup(pbx_channel->cid.cid_num);
-		return_val = 1;
-	}
-#    endif									// CS_AST_CHANNEL_HAS_CID
-#endif
-
-	return return_val;
-}
-*/
-
-/************************************************************************************************************* CHANNEL **/
-
 /*
  * \brief itterate through locked pbx channels
  * \note replacement for ast_channel_walk_locked
@@ -138,12 +35,12 @@ PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 			return NULL;  
 		}
 	} 
-       	target = ast_channel_iterator_next(iter);
+	target = ast_channel_iterator_next(iter);
 	if (!ast_channel_unref(target)) {
 		ast_channel_lock(target);
 		return target;
 	} else {
- 		if (iter) {
+		if (iter) {
 			ast_channel_iterator_destroy(iter);
 		}
 		return NULL;
@@ -164,24 +61,24 @@ PBX_CHANNEL_TYPE *pbx_channel_search_locked(int (*is_match)(PBX_CHANNEL_TYPE *, 
 #if ASTERISK_VERSION_NUMBER < 10800
 	return ast_channel_search_locked(is_match, data);
 #else
-        boolean_t matched=FALSE;
-        PBX_CHANNEL_TYPE *pbx_channel = NULL;
+	boolean_t matched=FALSE;
+	PBX_CHANNEL_TYPE *pbx_channel = NULL;
   
-  	struct ast_channel_iterator *iter = NULL;
-        if (!(iter = ast_channel_iterator_all_new())) {
-     	        return NULL;  
-        }
+	struct ast_channel_iterator *iter = NULL;
+	if (!(iter = ast_channel_iterator_all_new())) {
+	        return NULL;  
+	}
  
- 	for (; iter && (pbx_channel = ast_channel_iterator_next(iter)); ast_channel_unref(pbx_channel)) {
-  		pbx_channel_lock(pbx_channel);
-                if (is_match(pbx_channel, data)) {
-                        matched=TRUE;
-                        break;
-                }
-   		pbx_channel_unlock(pbx_channel);
-        }
+	for (; iter && (pbx_channel = ast_channel_iterator_next(iter)); ast_channel_unref(pbx_channel)) {
+		pbx_channel_lock(pbx_channel);
+		if (is_match(pbx_channel, data)) {
+			matched=TRUE;
+			break;
+		}
+		pbx_channel_unlock(pbx_channel);
+	}
 
-        if (iter) {
+	if (iter) {
 	        ast_channel_iterator_destroy(iter);
         }
 
@@ -454,67 +351,6 @@ int pbx_moh_start(PBX_CHANNEL_TYPE * chan, const char *mclass, const char *inter
 #endif										// ASTERISK_VERSION_NUMBER
 }
 
-/***************************************************************************************************************** RTP **/
-/*
-sccp_extension_status_t sccp_wrapper_asterisk_extensionStatus(const sccp_channel_t * channel)
-{
-	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
-
-	int ignore_pat = ast_ignore_pattern(pbx_channel->context, channel->dialedNumber);
-
-	int ext_exist = ast_exists_extension(pbx_channel, pbx_channel->context,
-					     channel->dialedNumber, 1, channel->line->cid_num);
-
-	int ext_canmatch = ast_canmatch_extension(pbx_channel, pbx_channel->context,
-						  channel->dialedNumber, 1, channel->line->cid_num);
-
-	int ext_matchmore = ast_matchmore_extension(pbx_channel, pbx_channel->context,
-						    channel->dialedNumber, 1,
-						    channel->line->cid_num);
-
-	sccp_log(1) (VERBOSE_PREFIX_1 "SCCP: extension helper says that:\n" "ignore pattern  : %d\n" "exten_exists    : %d\n" "exten_canmatch  : %d\n" "exten_matchmore : %d\n", ignore_pat, ext_exist, ext_canmatch, ext_matchmore);
-	if (ignore_pat) {
-		return SCCP_EXTENSION_NOTEXISTS;
-	} else if (ext_exist) {
-		if (ext_canmatch)
-			return SCCP_EXTENSION_EXACTMATCH;
-		else
-			return SCCP_EXTENSION_MATCHMORE;
-	}
-
-	return SCCP_EXTENSION_NOTEXISTS;
-}
-
-//sccp_parkresult_t sccp_wrapper_asterisk_park(const sccp_channel_t * channel, const sccp_channel_t * host, int timeout, int *parkinglot)
-sccp_parkresult_t sccp_wrapper_asterisk_park(const sccp_channel_t * channel, const sccp_channel_t * host_channel, int timeout, const char *parkinglot, int *extout)
-{
-	int result;
-
-	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
-
-	PBX_CHANNEL_TYPE *pbx_host_channel = host_channel->owner;
-
-#if ASTERISK_VERSION_NUMBER >= 10800
-	result = ast_park_call(pbx_channel, pbx_host_channel, timeout, parkinglot, extout);
-#else
-	result = ast_park_call(pbx_channel, pbx_host_channel, timeout, extout);
-#endif
-	if (result == 0)
-		return PARK_RESULT_SUCCESS;
-	else
-		return PARK_RESULT_FAIL;
-}
-
-int sccp_wrapper_asterisk_setCallState(const sccp_channel_t * channel, int state)
-{
-	if (channel && channel->owner) {
-		ast_setstate(channel->owner, state);
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Set asterisk state %s (%d) for call %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), ast_state2str(state), state, channel->callid);
-	}
-	return 0;
-}
-*/
-
 /****************************************************************************************************** CODEC / FORMAT **/
 
 /*!
@@ -555,28 +391,6 @@ ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec)
 	return 0;
 }
 
-/*
-// \todo check bitwise operator (not sure) - DdG
-skinny_codec_t *pbx_codecs2skinny_codecs(int codecs)
-{
-        skinny_codec_t *res=NULL;
-        unsigned int i; 
-        int pbx_codec, sccp_codec_entry=0;
-	for (i = 1; i < ARRAY_LEN(skinny2pbx_codec_maps); i++) {
-		if (SKINNY_MAX_CAPABILITIES >= sccp_codec_entry) {
-                        pbx_codec=skinny2pbx_codec_maps[i].pbx_codec;
-                        if ((codecs & pbx_codec) == pbx_codec){		//bitwise match
-                                res[sccp_codec_entry++]=skinny2pbx_codec_maps[i].skinny_codec;
-                        } else {
-                                ast_log(LOG_WARNING, "No matching SCCP codec found for Ast_codec:%d\n", skinny2pbx_codec_maps[i].pbx_codec);
-                        }
-		} else {
-			ast_log(LOG_WARNING, "Device Codec Overflow: Reached Device Max Capabilities");
-		}
-	}
-	return res;
-}
-*/
 
 /*!
  * \brief Convert an array of skinny_codecs (enum) to a bit array of ast_codecs (fmt)
@@ -598,39 +412,6 @@ int skinny_codecs2pbx_codecs(skinny_codec_t * skinny_codecs)
 	return res_codec;
 }
 
-/*
-skinny_codec_t *pbx_codec_pref2sccp_codec_pref(struct ast_codec_pref *prefs)
-{
-        skinny_codec_t *res=NULL;
-        int i, codec, mpl_entry=0;
-        
-        for(i = 0; i < 32 ; i++) {
-		if (SKINNY_MAX_CAPABILITIES >= mpl_entry) {
-                        if ((codec = ast_codec_pref_index(prefs,i))) {
-                                res[mpl_entry++]=pbx_codec2skinny_codec(codec);
-                        }
-		} else {
-			ast_log(LOG_WARNING, "Device Codec Overflow: Reached Device Max Capabilities");
-		}
-        }
-        return res;
-}
-*/
-
-/*
-struct ast_codec_pref *sccp_codec_pref2pbx_codec_pref(skinny_codec_t *skinny_codecs)
-{
-        struct ast_codec_pref *res=NULL;
-        int i,x;
-        for(i = 0; i < SKINNY_MAX_CAPABILITIES; i++) {
-		ast_log(LOG_WARNING, "%d: %d => %d\n", i, skinny_codecs[i], skinny_codec2pbx_codec(skinny_codecs[i]));
-                if (0!=skinny_codecs[i]) {
-        		x=ast_codec_pref_append(res, skinny_codec2pbx_codec(skinny_codecs[i]));
-		}
-        }        
-        return res;
-}
-*/
 
 /*!
  * \brief Retrieve the SCCP Channel from an Asterisk Channel
