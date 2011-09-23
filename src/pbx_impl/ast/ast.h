@@ -226,3 +226,10 @@ sccp_channel_t *get_sccp_channel_from_ast_channel(PBX_CHANNEL_TYPE *ast_chan);
 int sccp_asterisk_pbx_fktChannelWrite(struct ast_channel *ast, const char *funcname, char *args, const char *value);
 	
 #endif
+
+/***** database *****/ 
+boolean_t sccp_asterisk_addToDatabase(const char *family, const char *key, const char *value);
+boolean_t sccp_asterisk_getFromDatabase(const char *family, const char *key, char *out, int outlen);
+boolean_t sccp_asterisk_removeFromDatabase(const char *family, const char *key);
+boolean_t sccp_asterisk_removeTreeFromDatabase(const char *family, const char *key);
+/***** end - database *****/
