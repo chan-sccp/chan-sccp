@@ -848,7 +848,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 		options++;
 	}
 
-	sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: Asterisk asked us to create a channel with type=%s, format=%lu, lineName=%s, options=%s\n", type, (uint64_t)format, lineName, (options) ? options : "");
+	sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: Asterisk asked us to create a channel with type=%s, format=%lu, lineName=%s, options=%s\n", type, (ULONG)format, lineName, (options) ? options : "");
 	
 	/* parse options */
 	if (options && (optc = sccp_app_separate_args(options, '/', optv, sizeof(optv) / sizeof(optv[0])))) {
@@ -1370,7 +1370,7 @@ static boolean_t sccp_wrapper_asterisk111_destroyRTP(PBX_RTP_TYPE * rtp)
 	return (!res) ? TRUE : FALSE;
 }
 
-static boolean_t sccp_wrapper_asterisk18_addToDatabase(const char *family, const char *key, const char *value)
+static boolean_t sccp_wrapper_asterisk111_addToDatabase(const char *family, const char *key, const char *value)
 {
 	int res;
 	if (sccp_strlen_zero(family) || sccp_strlen_zero(key) || sccp_strlen_zero(value)) 
@@ -1379,7 +1379,7 @@ static boolean_t sccp_wrapper_asterisk18_addToDatabase(const char *family, const
 	return (!res) ? TRUE : FALSE;
 }
 
-static boolean_t sccp_wrapper_asterisk18_getFromDatabase(const char *family, const char *key, char *out, int outlen)
+static boolean_t sccp_wrapper_asterisk111_getFromDatabase(const char *family, const char *key, char *out, int outlen)
 {
 	int res;
 
@@ -1389,7 +1389,7 @@ static boolean_t sccp_wrapper_asterisk18_getFromDatabase(const char *family, con
 	return (!res) ? TRUE : FALSE;
 }
 
-static boolean_t sccp_wrapper_asterisk18_removeFromDatabase(const char *family, const char *key)
+static boolean_t sccp_wrapper_asterisk111_removeFromDatabase(const char *family, const char *key)
 {
 	int res;
 
@@ -1399,7 +1399,7 @@ static boolean_t sccp_wrapper_asterisk18_removeFromDatabase(const char *family, 
 	return (!res) ? TRUE : FALSE;
 }
 
-static boolean_t sccp_wrapper_asterisk18_removeTreeFromDatabase(const char *family, const char *key)
+static boolean_t sccp_wrapper_asterisk111_removeTreeFromDatabase(const char *family, const char *key)
 {
 	int res;
 
@@ -1408,7 +1408,7 @@ static boolean_t sccp_wrapper_asterisk18_removeTreeFromDatabase(const char *fami
 	res = ast_db_deltree(family, key);
 	return (!res) ? TRUE : FALSE;
 }
-static boolean_t sccp_wrapper_asterisk111checkhangup(const sccp_channel_t * channel)
+static boolean_t sccp_wrapper_asterisk111_checkHangup(const sccp_channel_t * channel)
 {
 	int res;
 
@@ -1878,7 +1878,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.extension_status 		= sccp_wrapper_asterisk111_extensionStatus,
 	.getChannelByName 		= sccp_wrapper_asterisk111_getChannelByName,
 	.getChannelLinkId		= sccp_wrapper_asterisk111_getChannelLinkId,
-	.checkhangup			= sccp_wrapper_asterisk111checkhangup,
+	.checkhangup			= sccp_wrapper_asterisk111_checkHangup,
 	
 	/* digits */
 	.send_digits 			= sccp_wrapper_asterisk111_sendDigits,
