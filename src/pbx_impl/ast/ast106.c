@@ -1325,45 +1325,6 @@ static boolean_t sccp_wrapper_asterisk16_destroyRTP(PBX_RTP_TYPE * rtp)
 	return (!rtp) ? TRUE : FALSE;
 }
 
-static boolean_t sccp_wrapper_asterisk16_addToDatabase(const char *family, const char *key, const char *value)
-{
-	int res;
-	if (sccp_strlen_zero(family) || sccp_strlen_zero(key) || sccp_strlen_zero(value)) 
-		return FALSE;
-	res = ast_db_put(family, key, value);
-	return (!res) ? TRUE : FALSE;
-}
-
-static boolean_t sccp_wrapper_asterisk16_getFromDatabase(const char *family, const char *key, char *out, int outlen)
-{
-	int res;
-
-	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) 
-		return FALSE;
-	res = ast_db_get(family, key, out, outlen);
-	return (!res) ? TRUE : FALSE;
-}
-
-static boolean_t sccp_wrapper_asterisk16_removeFromDatabase(const char *family, const char *key)
-{
-	int res;
-
-	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) 
-		return FALSE;
-	res = ast_db_del(family, key);
-	return (!res) ? TRUE : FALSE;
-}
-
-static boolean_t sccp_wrapper_asterisk16_removeTreeFromDatabase(const char *family, const char *key)
-{
-	int res;
-
-	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) 
-		return FALSE;
-	res = ast_db_deltree(family, key);
-	return (!res) ? TRUE : FALSE;
-}
-
 static boolean_t sccp_wrapper_asterisk16checkhangup(const sccp_channel_t * channel)
 {
 	int res;
@@ -1801,10 +1762,11 @@ struct sccp_pbx_cb sccp_pbx = {
 	
 	
 	/* database */
-	.feature_addToDatabase 		= sccp_wrapper_asterisk16_addToDatabase,
-	.feature_getFromDatabase 	= sccp_wrapper_asterisk16_getFromDatabase,	//! \todo implement callback
-	.feature_removeFromDatabase     = sccp_wrapper_asterisk16_removeFromDatabase,	
-	.feature_removeTreeFromDatabase = sccp_wrapper_asterisk16_removeTreeFromDatabase,
+	.feature_addToDatabase 		= sccp_asterisk_addToDatabase,
+	.feature_getFromDatabase 	= sccp_asterisk_getFromDatabase,
+	.feature_removeFromDatabase     = sccp_asterisk_removeFromDatabase,	
+	.feature_removeTreeFromDatabase = sccp_asterisk_removeTreeFromDatabase,
+	
 	.feature_park			= sccp_wrapper_asterisk16_park,
 	.feature_pickup			= sccp_wrapper_asterisk16_pickupChannel,
 	

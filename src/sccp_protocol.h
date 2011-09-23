@@ -2748,7 +2748,7 @@ typedef union {
 	} ConnectionStatisticsRes;						/*!< Connection Statistics Response Message - Server -> Client */
 	
 	struct {
-		char DirectoryNumber[25];					/*!< Directory Number */
+		char DirectoryNumber[28];					/*!< Directory Number */
 		uint32_t lel_CallIdentifier;					/*!< Call Identifier */
 // 		uint32_t lel_StatsProcessingType;				/*!< Stats Processing Type */
 		uint32_t lel_SentPackets;					/*!< Sent Packets */

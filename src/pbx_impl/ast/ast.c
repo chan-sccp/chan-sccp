@@ -462,3 +462,47 @@ int sccp_asterisk_pbx_fktChannelWrite(struct ast_channel *ast, const char *funcn
 	
 	return res ? 0 : -1;
 }
+
+
+
+
+/***** database *****/ 
+boolean_t sccp_asterisk_addToDatabase(const char *family, const char *key, const char *value)
+{
+	int res;
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key) || sccp_strlen_zero(value)) 
+		return FALSE;
+	res = ast_db_put(family, key, value);
+	return (!res) ? TRUE : FALSE;
+}
+
+boolean_t sccp_asterisk_getFromDatabase(const char *family, const char *key, char *out, int outlen)
+{
+	int res;
+
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) 
+		return FALSE;
+	res = ast_db_get(family, key, out, outlen);
+	return (!res) ? TRUE : FALSE;
+}
+
+boolean_t sccp_asterisk_removeFromDatabase(const char *family, const char *key)
+{
+	int res;
+
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) 
+		return FALSE;
+	res = ast_db_del(family, key);
+	return (!res) ? TRUE : FALSE;
+}
+
+boolean_t sccp_asterisk_removeTreeFromDatabase(const char *family, const char *key)
+{
+	int res;
+
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) 
+		return FALSE;
+	res = ast_db_deltree(family, key);
+	return (!res) ? TRUE : FALSE;
+}
+/* end - database */
