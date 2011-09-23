@@ -576,7 +576,7 @@ boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t * channel
 	if(!sccp_strlen_zero(line->language)){
 		(*pbx_channel)->zone = ast_get_indication_zone(line->language); /* this will core asterisk on hangup */
 	}
-		
+	ast_channel_ref((*pbx_channel));
 
 	return TRUE;
 }
@@ -595,11 +595,15 @@ int sccp_wrapper_asterisk18_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		c->answered_elsewhere = TRUE;
 	}
 
-	CS_AST_CHANNEL_PVT(ast_channel) = NULL;
+	
 
 	sccp_channel_lock(c);
 	res = sccp_pbx_hangup_locked(c);
 	sccp_channel_unlock(c);
+	
+	CS_AST_CHANNEL_PVT(ast_channel) = NULL;
+	ast_channel->tech_pvt = NULL;
+	ast_channel_unref(ast_channel);
 
 	return res;
 }
@@ -1672,22 +1676,23 @@ int sccp_wrapper_asterisk18_requestHangup(PBX_CHANNEL_TYPE * channel)
 {
 
 
-	channel->hangupcause = AST_CAUSE_NORMAL_CLEARING;
 	if ((channel->_softhangup & AST_SOFTHANGUP_APPUNLOAD) != 0) {
 		channel->hangupcause = AST_CAUSE_CHANNEL_UNACCEPTABLE;
-	} else {
-		if (channel->masq != NULL) {					// we are masquerading
-			channel->hangupcause = AST_CAUSE_ANSWERED_ELSEWHERE;
-		}
-	}
-	if(!channel->pbx){
+	} 
+	
+	sccp_log(1) (VERBOSE_PREFIX_3 "%s: hasPbx %s; state: %d\n", channel->name, channel->pbx?"yes":"no", channel->_state);
+	
+	if(!channel->pbx && !ast_test_flag(channel, AST_FLAG_BLOCKING)){
 		ast_hangup(channel);
+		sccp_log(1) (VERBOSE_PREFIX_3 "%s: send ast_hangup\n", channel->name);
 	}else if(channel->_state != AST_STATE_UP){
 		ast_softhangup_nolock(channel, AST_SOFTHANGUP_DEV);
+		sccp_log(1) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", channel->name);
 	}else{
 		ast_queue_hangup(channel);
+		sccp_log(1) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", channel->name);
 	}
-	return 2;
+	return TRUE;
 }
 
 /*!
