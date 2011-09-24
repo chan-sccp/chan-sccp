@@ -80,7 +80,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 //   param3=cli string to be types as array of strings
 //   param4=registration description
 //   param5=usage string
-#    define CLI_AMI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER)	\
+#    define CLI_AMI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER, _POS)\
 	static int manager_ ## _FUNCTION_NAME(struct mansession *s, const struct message *m)	\
 	{											\
 		const char *id = astman_get_header(m, "ActionID");				\
@@ -120,9 +120,12 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 			e->usage = _USAGE;							\
 			ast_free(command);							\
 			return NULL;								\
-		} else if (cmd == CLI_GENERATE) 						\
-			return _COMPLETER((char *)a->line, (char *)a->word,  a->pos, a->n);	\
-												\
+		} else if (cmd == CLI_GENERATE) {						\
+			if (a->pos==_POS || (0==_POS && (unsigned)a->pos > ARRAY_LEN(cli_command))) 	\
+				return _COMPLETER((char *)a->line, (char *)a->word, a->pos, a->n);\
+			else 									\
+				return NULL;							\
+		}										\
 		if (a->argc < (int)(ARRAY_LEN(cli_command))) 					\
 			return CLI_SHOWUSAGE;							\
 												\
@@ -172,7 +175,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 		else										\
 			return CLI_FAILURE;							\
 	};
-#    define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER)	\
+#    define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER, _POS)	\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {	\
 		static char *cli_command[] = { CLI_COMMAND, NULL};					\
 		char *command=NULL;								\
@@ -185,9 +188,12 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 			e->usage = _USAGE;							\
 			ast_free(command);							\
 			return NULL;								\
-		} else if (cmd == CLI_GENERATE) 						\
-			return _COMPLETER((char *)a->line, (char *)a->word, a->pos, a->n);	\
-												\
+		} else if (cmd == CLI_GENERATE) {						\
+			if (a->pos==_POS || (0==_POS && (unsigned)a->pos > ARRAY_LEN(cli_command))) 	\
+				return _COMPLETER((char *)a->line, (char *)a->word, a->pos, a->n);\
+			else 									\
+				return NULL;							\
+		}										\
 		if (a->argc < (int)(ARRAY_LEN(cli_command))) 					\
 			return CLI_SHOWUSAGE;							\
 												\
@@ -198,7 +204,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 	};
 #    define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)				\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {	\
-		static char *cli_command[] = { CLI_COMMAND, NULL };					\
+		static char *cli_command[] = { CLI_COMMAND, NULL };				\
 		char *command=NULL;								\
 		if (cmd == CLI_INIT) {								\
 			if(!implode( cli_command," ", &command)) {				\
