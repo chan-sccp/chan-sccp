@@ -99,7 +99,7 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 //   param3=cli string to be types as array of strings
 //   param4=registration description
 //   param5=usage string
-#    define CLI_AMI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER)	\
+#    define CLI_AMI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER, _POS)\
 	static int manager_ ## _FUNCTION_NAME(struct mansession *s, const struct message *m)	\
 	{											\
 		const char *id = astman_get_header(m, "ActionID");				\
@@ -139,8 +139,12 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 			e->usage = _USAGE;							\
 			ast_free(command);							\
 			return NULL;								\
-		} else if (cmd == CLI_GENERATE) 						\
-			return _COMPLETER((char *)a->line, (char *)a->word,  a->pos, a->n);	\
+		} else if (cmd == CLI_GENERATE) {						\
+			if (a->pos==_POS || (0==_POS && (unsigned)a->pos > ARRAY_LEN(cli_command))) 	\
+				return _COMPLETER((char *)a->line, (char *)a->word, a->pos, a->n);\
+			else 									\
+				return NULL;							\
+		}										\
 												\
 		if (a->argc < (int)(ARRAY_LEN(cli_command))) 					\
 			return CLI_SHOWUSAGE;							\
@@ -191,7 +195,7 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 		else										\
 			return CLI_FAILURE;							\
 	};
-#    define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER)	\
+#    define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER, _POS)	\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {	\
 		static char *cli_command[] = { CLI_COMMAND };					\
 		char *command=NULL;								\
@@ -204,8 +208,12 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 			e->usage = _USAGE;							\
 			ast_free(command);							\
 			return NULL;								\
-		} else if (cmd == CLI_GENERATE) 						\
-			return _COMPLETER((char *)a->line, (char *)a->word, a->pos, a->n);	\
+		} else if (cmd == CLI_GENERATE) {						\
+			if (a->pos==_POS || (0==_POS && (unsigned)a->pos > ARRAY_LEN(cli_command))) 	\
+				return _COMPLETER((char *)a->line, (char *)a->word, a->pos, a->n);\
+			else 									\
+				return NULL;							\
+		}										\
 												\
 		if (a->argc < (int)(ARRAY_LEN(cli_command))) 					\
 			return CLI_SHOWUSAGE;							\
