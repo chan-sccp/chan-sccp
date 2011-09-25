@@ -224,8 +224,17 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE *chan, NEWCONST char *cmd, char
 static struct pbx_custom_function sccpdevice_function = {
 	.name = "SCCPDEVICE",
 	.synopsis = "Retrieves information about an SCCP Device",
-	.syntax = "Usage: SCCPDEVICE(deviceId,<option>)",
+	.syntax = 	"Usage: SCCPDEVICE(deviceId,<option>)\n",
 	.read = sccp_func_sccpdevice,
+	.desc = "DeviceId = Device Identifier (i.e. SEP0123456789)\n"
+		"Option = One of the possible options mentioned in arguments\n",
+	.arguments = 	"DeviceId = Device Identifier (i.e. SEP0123456789)\n"
+		     	"Option = One of these possible options:\n"
+				"ip, id, status, description, config_type, skinny_type, tz_offset, image_version, \n"
+				"accessory_status, registration_state, codecs, capability, state, lines_registered, \n"
+				"lines_count, last_number, early_rtp, supported_protocol_version, used_protocol_version, \n"
+				"mwi_light, dynamic, realtime, active_channel, transfer_channel, conference_channel, \n"
+				"current_line, button_config, pending_delete, chanvar[], codec[]",
 };
 
 /*!
@@ -441,6 +450,14 @@ static struct pbx_custom_function sccpline_function = {
 	.synopsis = "Retrieves information about an SCCP Line",
 	.syntax = "Usage: SCCPLINE(lineName,<option>)",
 	.read = sccp_func_sccpline,
+	.desc = "LineName = Name of the line to be queried.\n"
+		"Option = One of the possible options mentioned in arguments\n",
+	.arguments = 	"LineName = use on off these: 'current', 'parent', actual linename\n"
+		     	"Option = One of these possible options:\n"
+				"id, name, description, label, vmnum, trnsfvm, meetme, meetmenum, meetmeopts, context, \n"
+				"language, accountcode, musicclass, amaflags, callgroup, pickupgroup, cid_name, cid_num, \n"
+				"incoming_limit, channel_count, dynamic, realtime, pending_delete, pending_update, \n"
+				"regexten, regcontext, adhoc_number, newmsgs, oldmsgs, num_lines, cfwd, devices, chanvar[]"
 };
 
 /*!
@@ -583,8 +600,18 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE *chan, NEWCONST char *cmd, cha
 static struct pbx_custom_function sccpchannel_function = {
 	.name = "SCCPCHANNEL",
 	.synopsis = "Retrieves information about an SCCP Line",
-	.syntax = "Usage: SCCPCHANNEL(deviceId,<option>)",
+	.syntax = "Usage: SCCPCHANNEL(channelId,<option>)",
 	.read = sccp_func_sccpchannel,
+	.desc = "ChannelId = Name of the line to be queried.\n"
+		"Option = One of the possible options mentioned in arguments\n",
+	.arguments = 	"ChannelId = use on off these: 'current', actual callid\n"
+		     	"Option = One of these possible options:\n"
+				"callid, id, format, codecs, capability, calledPartyName, calledPartyNumber, callingPartyName, \n"
+				"callingPartyNumber, originalCallingPartyName, originalCallingPartyNumber, originalCalledPartyName, \n"
+				"originalCalledPartyNumber, lastRedirectingPartyName, lastRedirectingPartyNumber, cgpnVoiceMailbox, \n"
+				"cdpnVoiceMailbox, originalCdpnVoiceMailbox, lastRedirectingVoiceMailbox, passthrupartyid, state, \n"
+				"previous_state, calltype, dialed_number, device, line, answered_elsewhere, privacy, ss_action, \n"
+				"monitorEnabled, parent, codec[]"	// not implemented yet: "/*conference*/, /*peer*/"
 };
 
 /*!
