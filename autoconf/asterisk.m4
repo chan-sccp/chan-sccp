@@ -35,10 +35,10 @@ AC_DEFUN([AST_GET_VERSION], [
 			echo "ASTERISK_REPOS_LOCATION: ${ASTERISK_REPOS_LOCATION}"
 
 			# remove from pbx_ver
-	    		echo "NEW PBX_VER: [${pbx_ver}]"
+#	    		echo "NEW PBX_VER: [${pbx_ver}]"
 	    		pbx_ver=${pbx_ver%%-*}							# remove tail
 			pbx_ver=${pbx_ver//\"/}							# remove '"'
-	    		echo "NEW PBX_VER: [${pbx_ver}]"
+#	    		echo "NEW PBX_VER: [${pbx_ver}]"
 
 			# process version number
 			version_found=0
@@ -57,15 +57,16 @@ AC_DEFUN([AST_GET_VERSION], [
 						REALTIME_USEABLE=0
 					fi
 					
-					ASTERISK_VER=${pbx_ver/^$x\./}								# remove leading '1.x.'
-					ASTERISK_VER1=${ASTERISK_VER%%.*}
-					if test ${#ASTERISK_VER1} -gt 1; then
-						ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_VER1}"			# add only third version part
+					ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
+#					ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\([0-9]*\)\(.*\)/\1/g"`			# remove leading and trailing .*
+					ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
+					if test ${#ASTERISK_MINOR_VER1} -gt 1; then
+						ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
 					else
-						ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_VER1}"		# add only third version part
+						ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
 					fi
 					
-					echo "ASTERISK_VER: $ASTERISK_VER"
+					echo "ASTERISK_MINOR_VER: $ASTERISK_MINOR_VER1"
 					echo "ASTERISK_VER_GROUP: $ASTERISK_VER_GROUP"
 					echo "ASTERISK_VERSION_NUMBER: $ASTERISK_VERSION_NUMBER"
 					
