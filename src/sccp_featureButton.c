@@ -7,8 +7,8 @@
  *		See the LICENSE file at the top of the source tree.
  * \since 	2009-06-15
  *
- * $Date: 2011-01-13 23:40:34 +0100 (Do, 13 Jan 2011) $
- * $Revision: 2253 $
+ * $Date$
+ * $Revision$
  */
 
 /*!
@@ -23,7 +23,7 @@
 #include "config.h"
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2253 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 /*!
  * \brief Feature Button Changed
@@ -265,8 +265,13 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 }
 
-#ifdef CS_DEVSTATE_FEATURE
 
+/*!
+ * \brief Device State Feature CallBack
+ *
+ * Called when we want to return a state change of a device
+ */
+#ifdef CS_DEVSTATE_FEATURE
 void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 {
 	/* parse the devstate string */

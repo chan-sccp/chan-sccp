@@ -1343,6 +1343,9 @@ void sccp_feat_channelStateChanged(sccp_device_t * device, sccp_channel_t * chan
 
 int checkMonCond(void *v);
 
+/*!
+ * \brief Check Monitor Condition
+ */
 int checkMonCond(void *v) {
 	PBX_CHANNEL_TYPE *c = (PBX_CHANNEL_TYPE *) v;
 	
