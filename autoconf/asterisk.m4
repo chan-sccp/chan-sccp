@@ -552,6 +552,16 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					int test_control_srcupdate = (int)AST_CONTROL_SRCUPDATE;
 				], [CS_AST_CONTROL_SRCUPDATE], ['AST_CONTROL_SRCUPDATE' available]
 			)
+
+			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_controlL_incomplete'...], [ac_cv_ast_controlL_incomplete], [
+					#if ASTERISK_VERSION_NUMBER >= 10400
+					#include <asterisk.h>
+					#endif
+					#include <asterisk/frame.h>
+				], [
+					int test_controlL_incomplete = (int)AST_CONTROL_INCOMPLETE;
+				], [CS_AST_CONTROL_INCOMPLETE], ['AST_CONTROL_INCOMPLETE' available]
+			)
 			
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_hold'...], [ac_cv_ast_control_hold], [
 					#if ASTERISK_VERSION_NUMBER >= 10400
