@@ -42,7 +42,7 @@ struct sccp_private_channel_data{
  * \brief SetMicrophone Helper Function to set to FALSE
  * \return FALSE
  */
-static boolean_t sccp_alway_false(void){
+static boolean_t sccp_always_false(void){
 	return FALSE;
 }
 
@@ -50,7 +50,7 @@ static boolean_t sccp_alway_false(void){
  * \brief SetMicrophone Helper Function to set to TRUE
  * \return TRUE
  */
-static boolean_t sccp_alway_true(void){
+static boolean_t sccp_always_true(void){
 	return TRUE;
 }
 
@@ -66,14 +66,14 @@ static void sccp_channel_setMicrophoneState(const sccp_channel_t *channel, boole
 	
 	switch(enabled){
 	  case TRUE:
-	    c->isMicrophoneEnabled = sccp_alway_true;
+	    c->isMicrophoneEnabled = sccp_always_true;
 	    if(c->privateData->device && (c->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE) ){
 		  sccp_dev_set_microphone(c->privateData->device, SKINNY_STATIONMIC_ON);
 	    }
 	    
 	    break;
 	  case FALSE:
-	    c->isMicrophoneEnabled = sccp_alway_false;
+	    c->isMicrophoneEnabled = sccp_always_false;
 	    if(c->privateData->device && (c->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)){
 		  sccp_dev_set_microphone(c->privateData->device, SKINNY_STATIONMIC_OFF);
 	    }
@@ -169,7 +169,7 @@ sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * de
 	channel->getDevice		= sccp_channel_getDevice;
 	channel->setDevice		= sccp_channel_setDevice;
 	
-	channel->isMicrophoneEnabled	= sccp_alway_true;
+	channel->isMicrophoneEnabled	= sccp_always_true;
 	channel->setMicrophone		= sccp_channel_setMicrophoneState;
 
 	return channel;
