@@ -383,6 +383,11 @@ static int sccp_asterisk110_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void
 			res = -1;
 		break;
 	case AST_CONTROL_INCOMPLETE:						/*!< Indication that the extension dialed is incomplete */
+	        /* \todo implement dial continuation by:
+	         *  - display message incomplete number
+	         *  - adding time to channel->scheduler.digittimeout
+	         *  - rescheduling sccp_pbx_sched_dial 
+                 */
 		res = 0;
 		break;
 	case -1:								// Asterisk prod the channel
