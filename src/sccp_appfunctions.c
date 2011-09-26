@@ -740,6 +740,7 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 	return 0;
 }
 
+/*! \brief Stucture to declare a dialplan function: SETMESSAGE */
 static char *setmessage_name = "SetMessage";
 static char *setmessage_synopsis = "Send a Message to the current Phone";
 static char *setmessage_descr = "Usage: SetMessage(\"Message\"[,timeout])\n" "       Send a Message to the Calling Device (and remove after timeout, if timeout is ommited will stay until next/empty message)\n";

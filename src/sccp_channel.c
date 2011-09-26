@@ -30,19 +30,35 @@ static uint32_t callCount = 1;
 AST_MUTEX_DEFINE_STATIC(callCountLock);
 
 
+/*!
+ * \brief Private Channel Data Structure
+ */
 struct sccp_private_channel_data{
 	sccp_device_t *device;
 	boolean_t microphone;	/*!< Flag to mute the microphone when calling a baby phone */
 };
 
+/*!
+ * \brief SetMicrophone Helper Function to set to FALSE
+ * \return FALSE
+ */
 static boolean_t sccp_alway_false(void){
 	return FALSE;
 }
 
+/*!
+ * \brief SetMicrophone Helper Function to set to TRUE
+ * \return TRUE
+ */
 static boolean_t sccp_alway_true(void){
 	return TRUE;
 }
 
+/*!
+ * \brief Set Microphone State
+ * \param channel SCCP Channel
+ * \param enabled Enabled as Boolean
+ */
 static void sccp_channel_setMicrophoneState(const sccp_channel_t *channel, boolean_t enabled){
 	sccp_channel_t *c = (sccp_channel_t *)channel;
 	
@@ -159,10 +175,20 @@ sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * de
 	return channel;
 }
 
+/*!
+ * \brief Retrieve Device from Channels->Private Channel Data
+ * \param channel SCCP Channel
+ * \return SCCP Device
+ */
 sccp_device_t *sccp_channel_getDevice(const sccp_channel_t *channel){
 	return channel->privateData->device;
 }
 
+/*!
+ * \brief Set Device in Channels->Private Channel Data
+ * \param channel SCCP Channel
+ * \param device SCCP Device
+ */
 void sccp_channel_setDevice(sccp_channel_t *channel, const sccp_device_t *device){
 	channel->privateData->device = (sccp_device_t *)device;
   
@@ -178,7 +204,6 @@ void sccp_channel_setDevice(sccp_channel_t *channel, const sccp_device_t *device
 /*!
  * \brief recalculating read format for channel 
  * \param channel a *locked* SCCP Channel
- * 
  */
 static void sccp_channel_recalculateReadformat(sccp_channel_t *channel){
 
@@ -222,7 +247,6 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t *channel){
 /*!
  * \brief recalculating write format for channel 
  * \param channel a *locked* SCCP Channel
- * 
  */
 static void sccp_channel_recalculateWriteformat(sccp_channel_t *channel){
 	//pbx_log(LOG_NOTICE, "writeState %d\n", channel->rtp.audio.writeState);
@@ -662,6 +686,10 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t *channel)
 	//sccp_channel_openMultiMediaChannel(sccp_channel);
 }
 
+/*!
+ * \brief Open Multi Media Channel (Video) on Channel
+ * \param channel SCCP Channel
+ */
 void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 {
 	sccp_moo_t *r;
@@ -781,6 +809,10 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 	sccp_dev_send(channel->privateData->device, r);
 }
 
+/*!
+ * \brief Start Multi Media Transmission (Video) on Channel
+ * \param channel SCCP Channel
+ */
 void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 {
 	sccp_moo_t *r;
@@ -1215,6 +1247,14 @@ void sccp_channel_updatemediatype_locked(sccp_channel_t * channel)
 #endif
 }
 
+/*!
+ * \brief Callback function to destroy an SCCP channel
+ * \param data Data cast to SCCP Channel
+ * \return success as int
+ *
+ * \lock
+ * 	- channel
+ */
 int sccp_channel_destroy_callback(const void *data)
 {
 	sccp_channel_t *channel = (sccp_channel_t *) data;
@@ -2258,6 +2298,10 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 	}
 }
 
+/*!
+ * \brief Reset Caller Id Presentation
+ * \param channel SCCP Channel
+ */
 void sccp_channel_reset_calleridPresenceParameter(sccp_channel_t * channel)
 {
 	channel->callInfo.presentation = CALLERID_PRESENCE_ALLOWED;
@@ -2265,6 +2309,11 @@ void sccp_channel_reset_calleridPresenceParameter(sccp_channel_t * channel)
 		PBX(set_callerid_presence) (channel);
 }
 
+/*!
+ * \brief Set Caller Id Presentation
+ * \param channel SCCP Channel
+ * \param presenceParameter SCCP CallerID Presence ENUM
+ */
 void sccp_channel_set_calleridPresenceParameter(sccp_channel_t * channel, sccp_calleridpresence_t presenceParameter)
 {
 	if (PBX(set_callerid_presence))
@@ -2392,6 +2441,12 @@ void sccp_channel_park(sccp_channel_t *channel)
 #endif
 
 
+/*!
+ * \brief Set Preferred Codec on Channel
+ * \param c SCCP Channel
+ * \param data Stringified Skinny Codec ShortName
+ * \return Success as Boolean
+ */
 boolean_t sccp_channel_setPreferredCodec(sccp_channel_t *c, const void *data){
 	
 	struct ast_codec_pref 	codecs;
