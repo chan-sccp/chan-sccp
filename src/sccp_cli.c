@@ -111,7 +111,7 @@ static char *sccp_complete_line(OLDCONST char *line, OLDCONST char *word, int po
  * \lock
  * 	- lines
  */
-static char *sccp_complete_channel(OLDCONST char *channel, OLDCONST char *word, int pos, int state)
+static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
 	sccp_line_t *l;
 	sccp_channel_t *c;
@@ -188,6 +188,31 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 	}
 	return ret;
 }
+
+/*
+#define SCCP_CLI_DEVICE_COMPLETER  1
+#define SCCP_CLI_LINE_COMPLETER    2
+#define SCCP_CLI_CHANNEL_COMPLETER 3
+#define SCCP_CLI_DEBUG_COMPLETER   4
+*/
+static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *line, OLDCONST char *word, int pos, int state) {
+	switch (completer) {
+		case SCCP_CLI_DEVICE_COMPLETER:
+			return sccp_complete_device(line, word, pos, state);
+			break;
+		case SCCP_CLI_LINE_COMPLETER:
+			return sccp_complete_line(line, word, pos, state);
+			break;
+		case SCCP_CLI_CHANNEL_COMPLETER:
+			return sccp_complete_channel(line, word, pos, state);
+			break;
+		case SCCP_CLI_DEBUG_COMPLETER:
+			return sccp_complete_debug(line, word, pos, state);
+			break;
+	}
+	return NULL;
+}
+
 
 /* --- Support Functions ---------------------------------------------------------------------------------------------- */
 
@@ -399,9 +424,6 @@ CLI_AMI_ENTRY(show_devices, sccp_show_devices, "List defined SCCP devices", cli_
  * 	- device
  * 	  - device->buttonconfig
  */
-#define CLI_COMMAND "sccp", "show", "device"
-#define AMI_COMMAND "SCCPShowDevice"
-#define CLI_AMI_PARAMS "DeviceName"
 static int sccp_show_device(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d;
@@ -613,8 +635,14 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 }
 static char cli_device_usage[] = "Usage: sccp show device <deviceId>\n" "       Lists device settings for the SCCP subsystem.\n";
 static char ami_device_usage[] = "Usage: SCCPShowDevice\n" "Lists device settings for the SCCP subsystem.\n\n" "PARAMS: DeviceName\n";
-CLI_AMI_ENTRY_COMPLETE(show_device, sccp_show_device, "Lists device settings", cli_device_usage, sccp_complete_device, 3)
+
+#define CLI_COMMAND "sccp", "show", "device"
+#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
+#define AMI_COMMAND "SCCPShowDevice"
+#define CLI_AMI_PARAMS "DeviceName"
+CLI_AMI_ENTRY_COMPLETE(show_device, sccp_show_device, "Lists device settings", cli_device_usage)
 #undef CLI_AMI_PARAMS
+#undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 
@@ -900,10 +928,12 @@ static char cli_line_usage[] = "Usage: sccp show line <lineId>\n" "       List d
 static char ami_line_usage[] = "Usage: SCCPShowLine\n" "List defined SCCP line settings.\n\n" "PARAMS: LineName\n";
 
 #define CLI_COMMAND "sccp", "show", "line"
+#define CLI_COMPLETE SCCP_CLI_LINE_COMPLETER
 #define AMI_COMMAND "SCCPShowLine"
 #define CLI_AMI_PARAMS "LineName"
-CLI_AMI_ENTRY_COMPLETE(show_line, sccp_show_line, "List defined SCCP line settings", cli_line_usage, sccp_complete_line, 3)
+CLI_AMI_ENTRY_COMPLETE(show_line, sccp_show_line, "List defined SCCP line settings", cli_line_usage)
 #undef CLI_AMI_PARAMS
+#undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 
@@ -1267,7 +1297,9 @@ static int sccp_message_device(int fd, int argc, char *argv[])
 static char message_device_usage[] = "Usage: sccp message device <deviceId> <message text> [beep] [timeout]\n" "       Send a message to an SCCP Device + phone beep + timeout.\n";
 
 #define CLI_COMMAND "sccp", "message", "device"
-CLI_ENTRY_COMPLETE(cli_message_device, sccp_message_device, "Send a message to SCCP Device", message_device_usage, sccp_complete_device, 3)
+#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
+CLI_ENTRY_COMPLETE(cli_message_device, sccp_message_device, "Send a message to SCCP Device", message_device_usage)
+#undef CLI_COMPLETE
 #undef CLI_COMMAND
 
 /* ------------------------------------------------------------------------------------------------------SYSTEM MESSAGE- */
@@ -1381,8 +1413,10 @@ static int sccp_dnd_device(int fd, int argc, char *argv[])
 static char dnd_device_usage[] = "Usage: sccp dnd <deviceId>\n" "       Send a dnd to an SCCP Device.\n";
 
 #define CLI_COMMAND "sccp", "dnd", "device"
-CLI_ENTRY_COMPLETE(cli_dnd_device, sccp_dnd_device, "Send a dnd to SCCP Device", dnd_device_usage, sccp_complete_device, 3)
+#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
+CLI_ENTRY_COMPLETE(cli_dnd_device, sccp_dnd_device, "Send a dnd to SCCP Device", dnd_device_usage)
 #undef CLI_COMMAND
+#undef CLI_COMPLETE
 
 /* --------------------------------------------------------------------------------------------REMOVE_LINE_FROM_DEVICE- */
 
@@ -1406,8 +1440,10 @@ static int sccp_remove_line_from_device(int fd, int argc, char *argv[])
 static char remove_line_from_device_usage[] = "Usage: sccp remove line <deviceID> <lineID>\n" "       Remove a line from device.\n";
 
 #define CLI_COMMAND "sccp", "remove", "line"
-CLI_ENTRY(cli_remove_line_from_device, sccp_remove_line_from_device, "Remove a line from device", remove_line_from_device_usage)
+#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER, SCCP_CLI_LINE_COMPLETER
+CLI_ENTRY_COMPLETE(cli_remove_line_from_device, sccp_remove_line_from_device, "Remove a line from device", remove_line_from_device_usage)
 #undef CLI_COMMAND
+#undef CLI_COMPLETE
 
 /* -------------------------------------------------------------------------------------------------ADD_LINE_TO_DEVICE- */
 
@@ -1455,8 +1491,10 @@ static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 static char add_line_to_device_usage[] = "Usage: sccp add line <deviceID> <lineID>\n" "       Add a line to a device.\n";
 
 #define CLI_COMMAND "sccp", "add", "line"
-CLI_ENTRY_COMPLETE(cli_add_line_to_device, sccp_add_line_to_device, "Add a line to a device", add_line_to_device_usage, sccp_complete_device, 3)
+#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER, SCCP_CLI_LINE_COMPLETER
+CLI_ENTRY_COMPLETE(cli_add_line_to_device, sccp_add_line_to_device, "Add a line to a device", add_line_to_device_usage)
 #undef CLI_COMMAND
+#undef CLI_COMPLETE
 
 /* ------------------------------------------------------------------------------------------------------------DO DEBUG- */
 
@@ -1492,9 +1530,10 @@ static int sccp_do_debug(int fd, int argc, char *argv[])
 static char do_debug_usage[] = "Usage: SCCP debug [no] <level or categories>\n" "       Where categories is one or more (separated by comma's) of:\n" "       core, sccp, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey,\n" "       indicate, pbx, socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime,\n" "       lock, newcode, high\n";
 
 #define CLI_COMMAND "sccp", "debug"
-CLI_ENTRY_COMPLETE(cli_do_debug, sccp_do_debug, "Set SCCP Debugging Types", do_debug_usage, sccp_complete_debug, 0)
+#define CLI_COMPLETE SCCP_CLI_DEBUG_COMPLETER
+CLI_ENTRY_COMPLETE(cli_do_debug, sccp_do_debug, "Set SCCP Debugging Types", do_debug_usage)
 #undef CLI_COMMAND
-
+#undef CLI_COMPLETE
 /* ------------------------------------------------------------------------------------------------------------NO DEBUG- */
 
 /*!
@@ -1598,7 +1637,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 #endif
 }
 
-static char reload_usage[] = "Usage: SCCP reload [filename]\n" "       Reloads SCCP configuration from sccp.conf or optional [filename] (It will close all active connections, which have changed)\n";
+static char reload_usage[] = "Usage: SCCP reload [filename]\n" "       Reloads SCCP configuration from sccp.conf or optional [filename]\n" "       (It will send a reset to all device which have changed (when they have an active channel reset will be postponed until device goes onhook))\n";
 
 #define CLI_COMMAND "sccp", "reload"
 CLI_ENTRY(cli_reload, sccp_cli_reload, "Reload the SCCP configuration", reload_usage)
@@ -1697,15 +1736,19 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 static char reset_usage[] = "Usage: SCCP reset\n" "       sccp reset <deviceId> [restart]\n";
 
 #define CLI_COMMAND "sccp", "reset"
-CLI_ENTRY_COMPLETE(cli_reset, sccp_reset_restart, "Show SCCP version details", reset_usage, sccp_complete_device, 2)
+#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
+CLI_ENTRY_COMPLETE(cli_reset, sccp_reset_restart, "Show SCCP version details", reset_usage)
 #undef CLI_COMMAND
+#undef CLI_COMPLETE
 
 /* -------------------------------------------------------------------------------------------------------------RESTART- */
 static char restart_usage[] = "Usage: SCCP restart\n" "       sccp restart <deviceId>\n";
 
 #define CLI_COMMAND "sccp", "restart"
-CLI_ENTRY_COMPLETE(cli_restart, sccp_reset_restart, "Restart an SCCP device", restart_usage, sccp_complete_device, 2)
+#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
+CLI_ENTRY_COMPLETE(cli_restart, sccp_reset_restart, "Restart an SCCP device", restart_usage)
 #undef CLI_COMMAND
+#undef CLI_COMPLETE
 
 /* ----------------------------------------------------------------------------------------------------------UNREGISTER- */
 
@@ -1759,8 +1802,10 @@ static int sccp_unregister(int fd, int argc, char *argv[])
 static char unregister_usage[] = "Usage: SCCP unregister <deviceId>\n" "       Unregister an SCCP device\n";
 
 #define CLI_COMMAND "sccp", "unregister"
-CLI_ENTRY_COMPLETE(cli_unregister, sccp_unregister, "Unregister an SCCP device", unregister_usage, sccp_complete_device, 2)
+#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
+CLI_ENTRY_COMPLETE(cli_unregister, sccp_unregister, "Unregister an SCCP device", unregister_usage)
 #undef CLI_COMMAND
+#undef CLI_COMPLETE
 
 /* --------------------------------------------------------------------------------------------------------------START CALL- */
 /*!
@@ -1808,8 +1853,10 @@ static int sccp_start_call(int fd, int argc, char *argv[])
 static char start_call_usage[] = "Usage: sccp call <deviceId> <phone_number>\n" "Call number <number> using device <deviceId>\nIf number is ommitted, device will go off-Hook.\n";
 
 #define CLI_COMMAND "sccp", "call"
-CLI_ENTRY_COMPLETE(cli_start_call, sccp_start_call, "Call Number via Device", start_call_usage, sccp_complete_device, 2)
+#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
+CLI_ENTRY_COMPLETE(cli_start_call, sccp_start_call, "Call Number via Device", start_call_usage)
 #undef CLI_COMMAND
+#undef CLI_COMPLETE
 
 /* --------------------------------------------------------------------------------------------------------------SET HOLD- */
 /*!
@@ -1862,8 +1909,10 @@ static int sccp_set_hold(int fd, int argc, char *argv[])
 static char set_hold_usage[] = "Usage: sccp set hold <channelId> <on/off>\n" "Set a channel to hold/unhold";
 
 #define CLI_COMMAND "sccp", "set", "hold"
-CLI_ENTRY_COMPLETE(cli_set_hold, sccp_set_hold, "Set channel to hold/unhold", set_hold_usage, sccp_complete_channel, 3)
+#define CLI_COMPLETE SCCP_CLI_CHANNEL_COMPLETER
+CLI_ENTRY_COMPLETE(cli_set_hold, sccp_set_hold, "Set channel to hold/unhold", set_hold_usage)
 #undef CLI_COMMAND
+#undef CLI_COMPLETE
 /* --------------------------------------------------------------------------------------------------------------REMOTE ANSWER- */
 /*!
  * \brief Answer a Remote Channel
@@ -1909,8 +1958,10 @@ static int sccp_remote_answer(int fd, int argc, char *argv[])
 static char remote_answer_usage[] = "Usage: sccp answer <channelId>\n" "Answer a ringing/incoming channel";
 
 #define CLI_COMMAND "sccp", "answer"
-CLI_ENTRY_COMPLETE(cli_remote_answer, sccp_remote_answer, "Answer a ringing/incoming channel", remote_answer_usage, sccp_complete_channel, 2)
+#define CLI_COMPLETE SCCP_CLI_CHANNEL_COMPLETER
+CLI_ENTRY_COMPLETE(cli_remote_answer, sccp_remote_answer, "Answer a ringing/incoming channel", remote_answer_usage)
 #undef CLI_COMMAND
+#undef CLI_COMPLETE
 
 /* --------------------------------------------------------------------------------------------------------------END CALL- */
 /*!
@@ -1954,8 +2005,10 @@ static int sccp_end_call(int fd, int argc, char *argv[])
 static char end_call_usage[] = "Usage: sccp onhook <channelId>\n" "Hangup a channel";
 
 #define CLI_COMMAND "sccp", "onhook"
-CLI_ENTRY_COMPLETE(cli_end_call, sccp_end_call, "Hangup a channel", end_call_usage, sccp_complete_channel, 2)
+#define CLI_COMPLETE SCCP_CLI_CHANNEL_COMPLETER
+CLI_ENTRY_COMPLETE(cli_end_call, sccp_end_call, "Hangup a channel", end_call_usage)
 #undef CLI_COMMAND
+#undef CLI_COMPLETE
 
 
 /* --- Register Cli Entries-------------------------------------------------------------------------------------------- */
