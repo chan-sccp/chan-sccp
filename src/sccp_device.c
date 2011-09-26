@@ -23,8 +23,8 @@
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 static void sccp_device_old_indicate_remoteHold(const sccp_device_t *device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy);
-static void sccp_device_new_indicate_remoteHold(const sccp_device_t *device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy);
 
+static void sccp_device_new_indicate_remoteHold(const sccp_device_t *device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy);
 
 static sccp_push_result_t sccp_device_pushURL(const sccp_device_t *device, const char *url, uint8_t priority, uint8_t tone);
 static sccp_push_result_t sccp_device_pushURLNotSupported(const sccp_device_t *device, const char *url, uint8_t priority, uint8_t tone){
@@ -35,8 +35,6 @@ static sccp_push_result_t sccp_device_pushTextMessage(const sccp_device_t *devic
 static sccp_push_result_t sccp_device_pushTextMessageNotSupported(const sccp_device_t *device, const char *messageText, const char *from, uint8_t priority, uint8_t tone){
 	return SCCP_PUSH_RESULT_NOT_SUPPORTED;
 }
-
-
 
 static const struct sccp_device_indication_cb sccp_device_indication_newerDevices = {
 	.remoteHold = sccp_device_new_indicate_remoteHold,
@@ -224,6 +222,9 @@ sccp_device_t *sccp_device_create(void)
 	return d;
 }
 
+/*!
+ * \brief set type of Indicate protocol by device type
+ */
 void sccp_device_setIndicationProtocol(sccp_device_t *device){
   
 	switch (device->skinny_type) {
@@ -2106,6 +2107,9 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t * device)
 	return numberOfChannels;
 }
 
+/*!
+ * \brief Send DTMF Tone as KeyPadButton to SCCP Device
+ */
 void sccp_dev_keypadbutton(sccp_device_t * d, char digit, uint8_t line, uint32_t callid)
 {
 	sccp_moo_t *r;
@@ -2139,11 +2143,17 @@ void sccp_dev_keypadbutton(sccp_device_t * d, char digit, uint8_t line, uint32_t
 }
 
 
+/*!
+ * \brief Indicate to device that remote side has been put on hold (old).
+ */
 static void sccp_device_old_indicate_remoteHold(const sccp_device_t *device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy){
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_HOLD, callPriority, callPrivacy);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOLD);
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_HOLD, 0);
 }
+/*!
+ * \brief Indicate to device that remote side has been put on hold (new).
+ */
 static void sccp_device_new_indicate_remoteHold(const sccp_device_t *device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy){
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_HOLDRED, callPriority, callPrivacy);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOLD);
@@ -2151,6 +2161,9 @@ static void sccp_device_new_indicate_remoteHold(const sccp_device_t *device, uin
 }
 
 
+/*!
+ * \brief Add message to the MessageStack to be shown on the Status Line of the SCCP Device
+ */
 void sccp_device_addMessageToStack(sccp_device_t *device, uint8_t priority, const char *message){
 	
 	if(ARRAY_LEN(device->messageStack) <= priority)
@@ -2170,7 +2183,9 @@ void sccp_device_addMessageToStack(sccp_device_t *device, uint8_t priority, cons
 	sccp_dev_check_displayprompt(device);
 }
 
-
+/*!
+ * \brief Remove a message from the MessageStack to be shown on the Status Line of the SCCP Device
+ */
 void sccp_device_clearMessageFromStack(sccp_device_t *device, uint8_t priority){
 	if(ARRAY_LEN(device->messageStack) <= priority)
 		return;
@@ -2289,6 +2304,9 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 
 }
 
+/*!
+ * \brief Push a URL to an SCCP device
+ */
 static sccp_push_result_t sccp_device_pushURL(const sccp_device_t *device, const char *url, uint8_t priority, uint8_t tone){
 	char xmlData[512];
 	sprintf(xmlData, "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"%s\"/></CiscoIPPhoneExecute>", url);
@@ -2300,6 +2318,9 @@ static sccp_push_result_t sccp_device_pushURL(const sccp_device_t *device, const
 	return SCCP_PUSH_RESULT_SUCCESS;
 }
 
+/*!
+ * \brief Push a Text Message to an SCCP device
+ */
 static sccp_push_result_t sccp_device_pushTextMessage(const sccp_device_t *device, const char *messageText, const char *from, uint8_t priority, uint8_t tone){
 	char xmlData[1024];
 	sprintf(xmlData, "<CiscoIPPhoneText><Title>%s</Title><Text>%s</Text></CiscoIPPhoneText>", from ? from : "", messageText);

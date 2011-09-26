@@ -93,7 +93,7 @@ static char *sccp_complete_line(OLDCONST char *line, OLDCONST char *word, int po
 
 /*!
  * \brief Complete Channel
- * \param channel Channel as char
+ * \param line Line as char
  * \param word Word as char
  * \param pos Pos as int
  * \param state State as int
@@ -409,6 +409,9 @@ CLI_AMI_ENTRY(show_devices, sccp_show_devices, "List defined SCCP devices", cli_
 /*!
  * \brief Show Device
  * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
@@ -648,6 +651,9 @@ CLI_AMI_ENTRY(show_device, sccp_show_device, "Lists device settings", cli_device
 /*!
  * \brief Show Lines
  * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
@@ -804,6 +810,9 @@ CLI_AMI_ENTRY(show_lines, sccp_show_lines, "List defined SCCP Lines", cli_lines_
 /*!
  * \brief Show Line
  * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
@@ -1019,6 +1028,9 @@ CLI_AMI_ENTRY(show_channels, sccp_show_channels, "Lists active SCCP channels", c
 /*!
  * \brief Show Sessions
  * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
@@ -1091,6 +1103,9 @@ CLI_AMI_ENTRY(show_sessions, sccp_show_sessions, "Show all SCCP sessions", cli_s
 /*!
  * \brief Show MWI Subscriptions
  * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int

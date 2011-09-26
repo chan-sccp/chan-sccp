@@ -796,7 +796,6 @@ sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, cons
 
 /*!
  * \brief Config Converter/Parser for Bind Address
- *
  */
 sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
@@ -1091,6 +1090,8 @@ sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size
 }
 
 /*!
+ * \brief Config Converter/Parser for addons
+ * 
  * \todo make more generic
  * \todo cleanup original implementation in sccp_utils.c
  */
@@ -1142,7 +1143,7 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, con
 }
 
 /*!
- * \brief
+ * \brief Config Converter/Parser for privacyFeature
  *
  * \todo malloc/calloc of privacyFeature necessary ?
  */
@@ -1169,6 +1170,9 @@ sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t s
 	return changed;
 }
 
+/*!
+ * \brief Config Converter/Parser for early RTP
+ */
 sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
@@ -1196,6 +1200,9 @@ sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, c
 	return changed;
 }
 
+/*!
+ * \brief Config Converter/Parser for dtmfmode
+ */
 sccp_value_changed_t sccp_config_parse_dtmfmode(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
@@ -1217,6 +1224,9 @@ sccp_value_changed_t sccp_config_parse_dtmfmode(void *dest, const size_t size, c
 	return changed;
 }
 
+/*!
+ * \brief Config Converter/Parser for mwilamp
+ */
 sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
@@ -1247,7 +1257,6 @@ sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, co
 /*!
  * \brief Config Converter/Parser for Mailbox Value
  * \todo make checks for changes to make it more generic 
- * 
  */
 sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
@@ -2551,6 +2560,5 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	}
 	SCCP_LIST_UNLOCK(&device->devstateSpecifiers);
 #endif
-
-
 }
+

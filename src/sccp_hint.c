@@ -123,8 +123,8 @@ void sccp_hint_module_stop()
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 
-/*! \brief can we us cid for device?
- *
+/*! 
+ * \brief can we us cid for device?
  */
 static boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice)
 {
@@ -879,7 +879,7 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 	sccp_mutex_unlock(&hint->lock);
 }
 
-/**
+/*!
  * \brief check if we can set DND status
  * On shared line we will send dnd status if all devices in dnd only.
  * single line signaling dnd if device is in dnd
@@ -1174,6 +1174,7 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
  * \brief thread for searching callinfo on none sccp channels
  * \param data Data
  * 
+ * \deprecated
  * \lock
  * 	- asterisk channel
  * 	  - see sccp_hint_notifySubscribers()
