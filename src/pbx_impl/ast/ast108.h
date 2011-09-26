@@ -140,7 +140,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 	};
 #    define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)				\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {			\
-		static char *cli_command[] = { CLI_COMMAND};							\
+		static char *cli_command[] = { CLI_COMMAND };							\
 		static sccp_cli_completer_t cli_complete[] = { CLI_COMPLETE };					\
 		char *command=NULL;										\
 		uint8_t completer;										\
