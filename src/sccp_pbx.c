@@ -695,6 +695,11 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 	c->owner = tmp;
 	tmp->tech_pvt = c;
 
+#ifdef CS_EXPERIMENTAL
+	PBX(set_nativeAudioFormats)(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
+#endif
+	
+	
 	sccp_channel_updateChannelCapability_locked(c);
 	//! \todo check locking
 	/* \todo we should remove this shit. */

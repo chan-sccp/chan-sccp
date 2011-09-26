@@ -281,8 +281,13 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Asterisk indicate '%d' condition on channel %s\n", DEV_ID_LOG(sccp_channel_getDevice(c)), ind, ast->name);
 
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
-	res = ( (c->rtp.audio.readState != SCCP_RTP_STATUS_INACTIVE)  ? -1 : 0);
+	res = ( ((c->rtp.audio.readState != SCCP_RTP_STATUS_INACTIVE) || (c->getDevice(c) && c->getDevice(c)->earlyrtp)) ? -1 : 0);
 
+sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: readStat: %d\n", DEV_ID_LOG(sccp_channel_getDevice(c)), c->rtp.audio.readState);
+sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: res: %d\n", DEV_ID_LOG(sccp_channel_getDevice(c)), res);
+sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: rtp?: %s\n", DEV_ID_LOG(sccp_channel_getDevice(c)), (c->rtp.audio.rtp)?"yes":"no");
+	
+	
 	switch (ind) {
 	case AST_CONTROL_RINGING:
 		if (SKINNY_CALLTYPE_OUTBOUND == c->calltype) {
@@ -533,7 +538,7 @@ static void sccp_wrapper_asterisk18_setCalleridPresence(const sccp_channel_t * c
 	}
 }
 
-static int sccp_wrapper_asterisk18_setNativeAudioFormats(const sccp_channel_t * channel, skinny_codec_t codec[], int length)
+static int sccp_wrapper_asterisk18_setNativeAudioFormats(const sccp_channel_t *channel, skinny_codec_t codec[], int length)
 {
 #if 0
 	/* while setting nativeformats to multiple value, asterisk will not transcode it */
@@ -549,6 +554,17 @@ static int sccp_wrapper_asterisk18_setNativeAudioFormats(const sccp_channel_t * 
 
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: set native Formats to %d, skinny: %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), (int)channel->owner->nativeformats, codec[0]);
 #endif
+	ast_log(LOG_WARNING, "%s: set native Formats length: %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), length);
+#ifdef CS_EXPERIMENTAL
+	int i;
+
+	channel->owner->nativeformats = 0;
+	for (i = 0; i < length; i++) {
+		channel->owner->nativeformats |= skinny_codec2pbx_codec(codec[i]);
+		ast_log(LOG_WARNING, "%s: set native Formats to %d, skinny: %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), (int)channel->owner->nativeformats, codec[i]);
+	}
+#endif
+
 	return 1;
 }
 
@@ -595,7 +611,8 @@ boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t * channel
 		(*pbx_channel)->zone = ast_get_indication_zone(line->language); /* this will core asterisk on hangup */
 	}
 	ast_channel_ref((*pbx_channel));
-
+	
+	
 	return TRUE;
 }
 
