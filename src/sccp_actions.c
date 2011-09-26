@@ -181,6 +181,23 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	}
 }
 
+/*!
+ * \brief Handle Token Request for SPCP phones
+ *
+ * If a fall-back server has been entered in the phones cnf.xml file and the phone has fallen back to a secundairy server
+ * it will send a tokenreq to the primairy every so often (secundaity keep alive timeout ?). Once the primairy server sends 
+ * a token acknowledgement the switches back.
+ *
+ * \param s SCCP Session
+ * \param d SCCP Device
+ * \param r SCCP Moo
+ *
+ * \callgraph
+ * \callergraph
+ *
+ * \todo Implement a decision when to send RegisterTokenAck and when to send RegisterTokenReject
+ *       If sending RegisterTokenReject what should the lel_tokenRejWaitTime (BackOff time) be
+ */
 void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r){
 	sccp_moo_t *r1;
 	sccp_device_t *device;

@@ -256,6 +256,11 @@ struct sccp_messageMap_cb {
 	boolean_t deviceIsNecessary;
 };
 
+/*!
+ * \brief SCCP Message Handler Callback Mapping
+ *
+ * Used to map SKinny Message Id's to their Handling Implementations
+ */
 static const struct sccp_messageMap_cb messagesCbMap[] = {
 	{KeepAliveMessage, sccp_handle_KeepAliveMessage, FALSE},		/* 7985 sends a KeepAliveMessage before register */
 	{OffHookMessage, sccp_handle_offhook, TRUE},
@@ -307,6 +312,11 @@ static const struct sccp_messageMap_cb messagesCbMap[] = {
 
 typedef struct sccp_messageMap_cb sccp_messageMap_cb_t;
 
+/*!
+ * \brief Get SCCP Message Handler by Message Id
+ * \param messageId Skinny Message Id
+ * \return Message CallBack Entry
+ */
 static const sccp_messageMap_cb_t *sccp_getMessageMap_by_MessageId(uint32_t messageId)
 {
 	uint32_t i;
@@ -526,6 +536,13 @@ void *sccp_create_hotline(void)
 	return NULL;
 }
 
+/*!
+ * \brief Add Callback Functon to PBX Scheduler
+ * \param when number of seconds from this point in time as int
+ * \param callback CallBack Function to be called when the time has passed
+ * \param data	Extraneous Data 
+ * \return sceduled id as int
+ */
 int sccp_sched_add(int when, sccp_sched_cb callback, const void *data)
 {
 
@@ -535,6 +552,11 @@ int sccp_sched_add(int when, sccp_sched_cb callback, const void *data)
 	return PBX(sched_add) (when, callback, data);
 }
 
+/*!
+ * \brief Remove Callback Functon from PBX Scheduler
+ * \param id ID of scheduled callback as int
+ * \return success as int
+ */
 int sccp_sched_del(int id)
 {
 	if (!PBX(sched_del))
@@ -655,6 +677,10 @@ int sccp_sched_free(void *ptr)
 
 }
 
+/*!
+ * \brief PBX Independent Function to be called before unloading the module
+ * \return Success as int
+ */
 int sccp_preUnload(void)
 {
 	sccp_device_t *d;
@@ -768,6 +794,10 @@ int sccp_preUnload(void)
 	return 0;
 }
 
+/*!
+ * \brief PBX Independent Function to be called when starting module reload
+ * \return Success as int
+ */
 int sccp_reload(void)
 {
 
