@@ -258,7 +258,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 #endif
   {"amaflags", 				G_OBJ_REF(amaflags), 			SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"",		sccp_config_parse_amaflags,"Sets the default AMA flag code stored in the CDR record"},
 //  {"protocolversion", 			G_OBJ_REF(protocolversion), 		SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_OBSOLETE,		SCCP_CONFIG_NOUPDATENEEDED,		"17",		sccp_config_parse_protocolversion,"skinny version protocol. Just for testing. 1 to 17 (excluding 12-14)"},
-  {"protocolversion", 			G_OBJ_REF(protocolversion), 		SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_OBSOLETE,		SCCP_CONFIG_NOUPDATENEEDED,		"20",		NULL,"skinny version protocol. Just for testing. 1 to 17 (excluding 12-14)"},
+  {"protocolversion", 			G_OBJ_REF(protocolversion), 		SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_OBSOLETE,		SCCP_CONFIG_NOUPDATENEEDED,		"20",		NULL,"skinny version protocol. (excluding 12-14)"},
   {"callanswerorder", 			G_OBJ_REF(callanswerorder), 		SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"oldestfirst",	sccp_config_parse_callanswerorder,"oldestfirst or lastestfirst"},
   {"regcontext", 			G_OBJ_REF(regcontext), 			SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"sccpregistration",sccp_config_parse_regcontext,	"SCCP Lines will we added to this context in asterisk for Dundi lookup purposes. "
 																													"Don not set to a manually created context. The context will be autocreated. You can share the sip/iax context if you like."},
@@ -314,7 +314,9 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 																													"set up	If hotline_enabled = yes, any device which is not included in the configuration explicitly will be allowed "
 																													"to registered as a guest device. All such devices will register on a single shared line called 'hotline'."},
 
+  {"hotline_context",			(offsetof(struct sccp_global_vars,hotline) + offsetof(sccp_hotline_t,line) + offsetof(sccp_line_t,context)), offsize(sccp_line_t,context), 	SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"sccp",	NULL,			""},
 //  {"hotline_context",			(offsetof(struct sccp_global_vars,hotline) + offsetof(struct sccp_hotline,line) + offsetof(struct sccp_line,context)), offsize(struct sccp_line,context), 	SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"sccp",	NULL,			""},
+//  {"hotline_extension", 		(offsetof(struct sccp_global_vars,hotline), offsize(struct sccp_hotline,exten),		SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"111",		NULL,			""},
 //  {"hotline_extension", 		(offsetof(struct sccp_global_vars,hotline) + offsetof(struct sccp_hotline,exten)), offsize(struct sccp_hotline,exten),		SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"111",		NULL,			""},
   {"fallback",				G_OBJ_REF(token_fallback),		SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"false",	NULL, 			"Immediately fallback to primairy/master server when it becomes available (master/slave asterisk cluster) (TokenRequest)"
 																													"Possible values are: true/false/odd/even (odd/even uses the last digit of the MAC address to make the decision)"
@@ -1530,6 +1532,7 @@ sccp_value_changed_t sccp_config_parse_dnd(void *dest, const size_t size, const 
 /*!
  * \brief add a Button to a device
  * \param buttonconfig_head pointer to the device->buttonconfig list
+ * \param index		button index
  * \param type          type of button
  * \param name          name
  * \param options       options
@@ -1703,6 +1706,7 @@ sccp_configurationchange_t sccp_config_addButton(void *buttonconfig_head, int in
 
 /*!
  * \brief Build Line
+ * \param l SCCP Line
  * \param v Asterisk Variable
  * \param lineName Name of line as char
  * \param isRealtime is Realtime as Boolean
@@ -1733,6 +1737,7 @@ sccp_line_t *sccp_config_buildLine(sccp_line_t *l, PBX_VARIABLE_TYPE *v, const c
 
 /*!
  * \brief Build Device
+ * \param d SCCP Device
  * \param v Asterisk Variable
  * \param deviceName Name of device as char
  * \param isRealtime is Realtime as Boolean

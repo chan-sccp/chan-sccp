@@ -6,8 +6,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * 
- * $Date: 2011-04-22 00:57:17 +0200 (Fr, 22. Apr 2011) $
- * $Revision: 2553 $  
+ * $Date$
+ * $Revision$  
  */
 
 /*!
@@ -21,7 +21,7 @@
 #ifdef CS_SCCP_CONFERENCE
 #    include "asterisk/bridging.h"
 #    include "asterisk/bridging_features.h"
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2553 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #    if ASTERISK_VERSION_NUMBER >= 10602
 #      include "asterisk/astobj2.h"
 static int lastConferenceID = 99;
@@ -232,8 +232,8 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 /*!
  * \brief Add participant to conference
  *
- * \param conference conference
- * \param participant participant to remove
+ * \param conference SCCP conference
+ * \param channel SCCP channel
  * 
  * \warning
  * 	- conference->participants is not always locked
@@ -581,7 +581,7 @@ static void *sccp_conference_join_thread(void *data)
 /*!
  * \brief Is this participant a moderator on this conference
  *
- * \param conference SCCP Conference
+ * \param participant SCCP Conference Participant
  * \param channel SCCP Channel
  * 
  * \return Boolean
@@ -825,7 +825,7 @@ EXIT:
  * \brief Kick Participant from Conference
  *
  * \param conference SCCP Conference
- * \param channel SCCP Channel
+ * \param participant SCCP Conference Participant
  */
 void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
@@ -871,7 +871,7 @@ void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_confe
  * \brief Toggle Mute Conference Participant
  *
  * \param conference SCCP Conference
- * \param channel SCCP Channel
+ * \param participant SCCP Conference Participant
  */
 void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
@@ -1023,7 +1023,7 @@ sccp_conference_t *sccp_conference_find_byid(uint32_t id)
 /*!
  * Find participant in conference by id
  *
- * \param channel SCCP Channel
+ * \param conference SCCP Conference
  * \param id ID as uint32_t
  * \returns sccp_conference_participant_t
  *
