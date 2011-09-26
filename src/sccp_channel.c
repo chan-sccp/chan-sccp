@@ -39,7 +39,7 @@ struct sccp_private_channel_data{
 };
 
 /*!
- * \brief SetMicrophone Helper Function to set to FALSE
+ * \brief Helper Function to set to FALSE
  * \return FALSE
  */
 static boolean_t sccp_always_false(void){
@@ -47,7 +47,7 @@ static boolean_t sccp_always_false(void){
 }
 
 /*!
- * \brief SetMicrophone Helper Function to set to TRUE
+ * \brief Helper Function to set to TRUE
  * \return TRUE
  */
 static boolean_t sccp_always_true(void){
