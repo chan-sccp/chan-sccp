@@ -277,11 +277,11 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 /* \todo need a solution to set boolean flags in a bit array */
 /*
 #if ASTERISK_VERSION_NUMBER >= 10400
-		// handle jb in configuration just let asterisk do that
-		if (!pbx_jb_read_conf(&GLOB(global_jbconf), v->name, v->value)) {
-			// Found a jb parameter
-			continue;
-		}
+	// handle jb in configuration just let asterisk do that
+	if (!pbx_jb_read_conf(&GLOB(global_jbconf), v->name, v->value)) {
+		// Found a jb parameter
+		continue;
+	}
 #endif
 */
 
@@ -305,7 +305,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 //																													"Defaults to fixed."},
 //  {"jblog", 				G_OBJ_REF(global_jbconf.flags) /*<<2*/,	SCCP_CONFIG_DATATYPE_BOOLEAN,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"no",		NULL,			" Enables jitterbuffer frame logging. Defaults to 'no'."},
 //
-/*
+
   {"hotline_enabled", 			G_OBJ_REF(allowAnonymous), 		SCCP_CONFIG_DATATYPE_BOOLEAN,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"no",		NULL,			" Setting the hotline Feature on a device, will make it connect to a predefined extension as soon as the Receiver"
 																													"is picked up or the 'New Call' Button is pressed. No number has to be given. This works even on devices which "
 																													"have no entry in the config file or realtime database. "
@@ -313,10 +313,9 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 																													"able to only call one number, or for unprovisioned phones to only be able to call the helpdesk to get their phone"
 																													"set up	If hotline_enabled = yes, any device which is not included in the configuration explicitly will be allowed "
 																													"to registered as a guest device. All such devices will register on a single shared line called 'hotline'."},
-*/
 
-// {"hotline_context",			(offsetof(struct sccp_global_vars,hotline) + offsetof(struct sccp_hotline,line) + offsetof(struct sccp_line,context)), offsize(struct sccp_line,context), 	SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"sccp",	NULL,			""},
-//   {"hotline_extension", 		(offsetof(struct sccp_global_vars,hotline) + offsetof(struct sccp_hotline,exten)), offsize(struct sccp_hotline,exten),		SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"111",		NULL,			""},
+//  {"hotline_context",			(offsetof(struct sccp_global_vars,hotline) + offsetof(struct sccp_hotline,line) + offsetof(struct sccp_line,context)), offsize(struct sccp_line,context), 	SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"sccp",	NULL,			""},
+//  {"hotline_extension", 		(offsetof(struct sccp_global_vars,hotline) + offsetof(struct sccp_hotline,exten)), offsize(struct sccp_hotline,exten),		SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"111",		NULL,			""},
   {"fallback",				G_OBJ_REF(token_fallback),		SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"false",	NULL, 			"Immediately fallback to primairy/master server when it becomes available (master/slave asterisk cluster) (TokenRequest)"
 																													"Possible values are: true/false/odd/even (odd/even uses the last digit of the MAC address to make the decision)"
 																													"Value can be changed online via CLI/AMI command \"fallback=[true/false]\""},
@@ -371,7 +370,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
                                                                                                                                                                                                                                         "Other options (A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see app_meetme documentation"},
   {"softkeyset", 			D_OBJ_REF(softkeyDefinition),		SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		NULL,	NULL, 			"use specified softkeyset with name softkeyset1"},
 #ifdef CS_ADV_FEATURES
-  {"useRedialMenu", 			D_OBJ_REF(useRedialMenu), 		SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"off",	NULL, 				"show the redial phone book list instead of dialing the last number (adv_feature)"},
+  {"useRedialMenu", 			D_OBJ_REF(useRedialMenu), 		SCCP_CONFIG_DATATYPE_BOOLEAN,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"off",	NULL, 				"show the redial phone book list instead of dialing the last number (adv_feature)"},
 #endif
 #ifdef CS_SCCP_PICKUP
   {"pickupexten", 			D_OBJ_REF(pickupexten), 		SCCP_CONFIG_DATATYPE_BOOLEAN,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"off",	NULL, 				"enable Pickup function to direct pickup an extension"},
@@ -590,11 +589,11 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 		str = (char *)dst;
 
 		if (strcasecmp(str, value) ) {
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "config parameter %s '%s' != %s\n", name, str, value);
+			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "config parameter %s '%s' != '%s'\n", name, str, value);
 			changes = SCCP_CONFIG_CHANGE_CHANGED;
 			pbx_copy_string(dst, value, sccpConfigOption->size);
-		}else{
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "config parameter %s '%s' == %s\n", name, str, value);
+//		}else{
+//			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "config parameter %s '%s' == '%s'\n", name, str, value);
 		}
 		break;
 
@@ -655,7 +654,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 
 	/* set changed value if changed */
 	if (SCCP_CONFIG_CHANGE_CHANGED == changed) {
-		sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_2 "config parameter %s='%s' in line %d changed %s\n", name, value, lineno, SCCP_CONFIG_NEEDDEVICERESET==sccpConfigOption->change ? "(causes device reset)": "");
+		sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_2 "config parameter %s='%s' in line %d changed. %s\n", name, value, lineno, SCCP_CONFIG_NEEDDEVICERESET==sccpConfigOption->change ? "(causes device reset)": "");
 		changes = sccpConfigOption->change;
 	}
 
@@ -678,8 +677,8 @@ void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, co
 	sccp_device_t *my_device = NULL;
 	sccp_line_t *my_line = NULL;
 	sccp_device_t *ref_device = NULL;						/* need to find a way to find the default device to copy */
-	int flags;								/* enum wrapper */
-	int type;								/* enum wrapper */
+	int flags;									/* enum wrapper */
+	int type;									/* enum wrapper */
 	const char *value="";								/*! \todo retrieve value from correct segment */
 	const char *variable_block_name="";
 	
@@ -694,13 +693,13 @@ void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, co
 			my_device = &(*(sccp_device_t *)obj);
 			variable_block_name=strdup((const char *)my_device->id);
 			arraySize = ARRAY_LEN(sccpDeviceConfigOptions);
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "setting device[%s] defaults\n", my_device ? my_device->id : "");
+			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "setting device[%s] defaults\n", my_device ? my_device->id : "NULL");
 			break;
 		case SCCP_CONFIG_LINE_SEGMENT:			
 			my_line = &(*(sccp_line_t *)obj);			
 			variable_block_name=strdup((const char *)my_line->id);
 			arraySize = ARRAY_LEN(sccpLineConfigOptions);
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "setting line[%s] defaults\n", my_line ? my_line->name : "");
+			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "setting line[%s] defaults\n", my_line ? my_line->name : "NULL");
 			break;
 		case SCCP_CONFIG_SOFTKEY_SEGMENT:
 		        ast_log(LOG_ERROR, "softkey default loading not implemented yet\n");
@@ -1559,7 +1558,7 @@ sccp_configurationchange_t sccp_config_addButton(void *buttonconfig_head, int in
 		// check if the button is to be deleted to see if we need to replace it
 		if (index==0 && config->pendingDelete && config->type == type) {
 			if (config->type == EMPTY || !strcmp(config->label, name)) {
-				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Found Existing button at %d\n, Replacing", config->index);
+				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Found Existing button at %d (Being Replaced)\n", config->index);
 				index = config->index;
 				break;
 			}
@@ -1722,7 +1721,7 @@ sccp_line_t *sccp_config_buildLine(sccp_line_t *l, PBX_VARIABLE_TYPE *v, const c
 #endif
 #ifdef CS_DYNAMIC_CONFIG
 	if (res == SCCP_CONFIG_NEEDDEVICERESET && l && l->pendingDelete) {
-		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "SCCP: major changes for line '%s' detected, reset required -> pendingUpdate=1\n", l->id);
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: major changes for line '%s' detected, device reset required -> pendingUpdate=1\n", l->id);
 		l->pendingUpdate = 1;
 	}
 	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "%s: Removing pendingDelete\n", l->name);
@@ -1752,7 +1751,7 @@ sccp_device_t *sccp_config_buildDevice(sccp_device_t *d, PBX_VARIABLE_TYPE *v, c
 #endif
 #ifdef CS_DYNAMIC_CONFIG
 	if (res == SCCP_CONFIG_NEEDDEVICERESET && d && d->pendingDelete) {
-		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: major changes for device detected, reset required -> pendingUpdate=1\n", d->id);
+		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: major changes for device detected, device reset required -> pendingUpdate=1\n", d->id);
 		d->pendingUpdate = 1;
 	}
 	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "%s: Removing pendingDelete\n", d->id);
@@ -1784,7 +1783,7 @@ sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYP
 
 	for (; v; v = v->next) {
 		res |= sccp_config_object_setValue(sccp_globals, v->name, v->value, v->lineno, SCCP_CONFIG_GLOBAL_SEGMENT);
-		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Update Needed (%d)\n", res);
+//		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Update Needed (%d)\n", res);
 		// mark entries as already set
 		for (i=0;i<ARRAY_LEN(sccpGlobalConfigOptions);i++) {
 			if (!strcasecmp(sccpGlobalConfigOptions[i].name,v->name)) {
@@ -1934,9 +1933,9 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	
 	sccp_line_t *l;
 	sccp_device_t *d;
-	boolean_t is_new;
+	boolean_t is_new=FALSE;
 
-	pbx_log(LOG_NOTICE, "Loading Devices and Lines from config\n");
+	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Loading Devices and Lines from config\n");
 
 #ifdef CS_DYNAMIC_CONFIG
 	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Checking Reading Type\n");
@@ -2017,8 +2016,10 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				l = sccp_line_create();
 				is_new = TRUE;
 				sccp_copy_string(l->name, cat, sizeof(l->name));
+			} else {
+				is_new = FALSE;
 			}
-			
+						
 			sccp_config_buildLine(l, v, cat, FALSE);
 			if (is_new)
 				sccp_line_addToGlobals(l);
@@ -2125,7 +2126,7 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, P
 	for (; v; v = v->next) {
 		res |= sccp_config_object_setValue(l, v->name, v->value, v->lineno, SCCP_CONFIG_LINE_SEGMENT);
 		// mark entries as already set
-		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "%s: Update Needed (%d)\n", l->name, res);
+//		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "%s: Update Needed (%d)\n", l->name, res);
 		for (i=0;i<ARRAY_LEN(sccpLineConfigOptions);i++) {
 			if (!strcasecmp(sccpLineConfigOptions[i].name,v->name)) {
 				alreadySetEntries[i]=1;
@@ -2199,7 +2200,7 @@ sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * 
 #endif
 	for (; v; v = v->next) {
 		res |= sccp_config_object_setValue(d, v->name, v->value, v->lineno, SCCP_CONFIG_DEVICE_SEGMENT);
-		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "%s: Update Needed (%d)\n", d->id, res);
+//		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "%s: Update Needed (%d)\n", d->id, res);
 
 		// mark entries as already set
 		for (i=0;i<ARRAY_LEN(sccpDeviceConfigOptions);i++) {
