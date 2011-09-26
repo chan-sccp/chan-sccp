@@ -99,7 +99,7 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 //   param3=cli string to be types as array of strings
 //   param4=registration description
 //   param5=usage string
-#    define CLI_AMI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)				\
+#    define CLI_AMI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)		\
 	static int manager_ ## _FUNCTION_NAME(struct mansession *s, const struct message *m)			\
 	{													\
 		const char *id = astman_get_header(m, "ActionID");						\
@@ -143,7 +143,7 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 			return NULL;										\
 		} else if (cmd == CLI_GENERATE) {								\
 			for (completer=0; completer<ARRAY_LEN(cli_complete); completer++) {			\
-				if ((unsigned)a->pos == (completer + ARRAY_LEN(cli_command) - 1)) {		\
+				if ((unsigned)a->pos == (completer + ARRAY_LEN(cli_command) - 1) || _COMPLETER_REPEAT ) {\
 					return sccp_exec_completer(cli_complete[completer], (char *)a->line, (char *)a->word, a->pos, a->n);\
 				}										\
 			}											\
@@ -199,7 +199,7 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 		else												\
 			return CLI_FAILURE;									\
 	};
-#    define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)					\
+#    define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)		\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {			\
 		static char *cli_command[] = { CLI_COMMAND };							\
 		static sccp_cli_completer_t cli_complete[] = { CLI_COMPLETE };					\
@@ -216,7 +216,7 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 			return NULL;										\
 		} else if (cmd == CLI_GENERATE) {								\
 			for (completer=0; completer<ARRAY_LEN(cli_complete); completer++) {			\
-				if ((unsigned)a->pos == (completer + ARRAY_LEN(cli_command) - 1)) {		\
+				if ((unsigned)a->pos == (completer + ARRAY_LEN(cli_command) - 1) || _COMPLETER_REPEAT ) {\
 					return sccp_exec_completer(cli_complete[completer], (char *)a->line, (char *)a->word, a->pos, a->n);\
 				}										\
 			}											\
