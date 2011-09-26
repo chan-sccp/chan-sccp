@@ -359,7 +359,7 @@ sccp_device_t *sccp_device_find_realtime(const char *name)
 /*!
  * \brief Find Line by Name
  * \param name Line Name
- * \param realtime Use Realtime as Boolean
+ * \param useRealtime Use Realtime as Boolean
  * \return SCCP Line
  *
  * \callgraph

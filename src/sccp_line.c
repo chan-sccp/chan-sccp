@@ -578,6 +578,7 @@ void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t * channel)
  * \brief Register Extension to Asterisk regextension
  * \param l SCCP Line
  * \param subscriptionId subscriptionId
+ * \param onoff On/Off as int
  * \note used for DUNDi Discovery \ref DUNDi
  */
 static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptionId, int onoff)

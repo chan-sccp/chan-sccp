@@ -655,7 +655,7 @@ void sccp_session_reject(sccp_session_t * session, char *message)
 /*!
  * \brief Send a Reject Message to Device.
  * \param session SCCP Session Pointer
- * \param message Message as char (reason of rejection)
+ * \param backoff_time Time to Backoff before retrying TokenSend
  */
 void sccp_session_tokenReject(sccp_session_t * session, uint32_t backoff_time)
 {

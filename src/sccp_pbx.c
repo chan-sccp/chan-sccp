@@ -1,6 +1,6 @@
 
 /*!
- * \file        pbx_impl.c
+ * \file        sccp_pbx.c
  * \brief       SCCP PBX Asterisk Wrapper Class
  * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
  * \note        Reworked, but based on chan_sccp code.

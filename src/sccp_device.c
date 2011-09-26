@@ -810,7 +810,7 @@ void sccp_dev_set_message(sccp_device_t * d, char *msg, int timeout, boolean_t s
 /*!
  * \brief Clear Message from Display Prompt of Device
  * \param d SCCP Device
- * \param storedb Store in the pbx database
+ * \param cleardb Clear from the pbx database
  *
  * \callgraph
  * \callergraph
@@ -860,6 +860,9 @@ void sccp_dev_clearprompt(const sccp_device_t * d, uint8_t lineInstance, uint32_
  * \param callid Call ID uint32_t
  * \param msg Msg as char
  * \param timeout Timeout as int
+ * \param file Source File
+ * \param lineno Source Line 
+ * \param pretty_function CB Function to Print
  *
  * \callgraph
  * \callergraph
@@ -898,6 +901,9 @@ void sccp_dev_cleardisplay(sccp_device_t * d)
  * \brief Send Display to Device
  * \param d SCCP Device
  * \param msg Msg as char
+ * \param file Source File
+ * \param lineno Source Line 
+ * \param pretty_function CB Function to Print
  *
  * \callgraph
  * \callergraph
@@ -945,6 +951,9 @@ void sccp_dev_cleardisplaynotify(sccp_device_t * d)
  * \param d SCCP Device
  * \param msg Msg as char
  * \param timeout Timeout as uint8_t
+ * \param file Source File
+ * \param lineno Source Line 
+ * \param pretty_function CB Function to Print
  *
  * \callgraph
  * \callergraph
@@ -991,6 +1000,9 @@ void sccp_dev_cleardisplayprinotify(sccp_device_t * d)
  * \param msg Msg as char
  * \param priority Priority as uint8_t
  * \param timeout Timeout as uint8_t
+ * \param file Source File
+ * \param lineno Source Line 
+ * \param pretty_function CB Function to Print
  *
  * \callgraph
  * \callergraph

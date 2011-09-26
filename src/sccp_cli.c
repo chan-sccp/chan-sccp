@@ -196,6 +196,9 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 /*!
  * \brief Show Globals
  * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
@@ -323,6 +326,9 @@ CLI_AMI_ENTRY(show_globals, sccp_show_globals, "List defined SCCP global setting
 /*!
  * \brief Show Devices
  * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
@@ -906,6 +912,9 @@ CLI_AMI_ENTRY_COMPLETE(show_line, sccp_show_line, "List defined SCCP line settin
 /*!
  * \brief Show Channels
  * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int

@@ -426,8 +426,8 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 
 /*!
  * \brief Handle Group Pickup Feature
- * \param l SCCP Line
- * \param d SCCP Device
+ * \param c PBX Channel
+ * \param data Data
  * \return Success as int
  *
  * \see static int find_channel_by_group(struct ast_channel *c, void *data) from features.c

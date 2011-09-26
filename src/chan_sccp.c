@@ -49,11 +49,14 @@ struct sccp_global_vars *sccp_globals = 0;
 
 /*!
  * \brief	SCCP Request Channel
- * \param	lineName 	Line Name as Char
- * \param	codec 		Skinny Codec
- * \param	autoanswer 	SCCP Auto Answer Type
- * \param 	ringermode	Ringer Mode
- * \param 	channel		SCCP Channel
+ * \param	lineName 		Line Name as Char
+ * \param	requestedCodec 		Requested Skinny Codec
+ * \param 	capabilities		Array of Skinny Codec Capabilities
+ * \param 	capabilityLength 	Length of Capabilities Array
+ * \param	autoanswer_type 	SCCP Auto Answer Type
+ * \param	autoanswer_cause 	SCCP Auto Answer Cause
+ * \param 	ringermode		Ringer Mode
+ * \param 	channel			SCCP Channel
  * \return	SCCP Channel Request Status
  * 
  * \called_from_asterisk
