@@ -686,18 +686,18 @@ void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, co
 	switch (segment) {
 		case SCCP_CONFIG_GLOBAL_SEGMENT:
 			arraySize = ARRAY_LEN(sccpGlobalConfigOptions);
-			variable_block_name=strdup("general");
+			variable_block_name=strdupa("general");
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "setting [general] defaults\n");
 			break;
 		case SCCP_CONFIG_DEVICE_SEGMENT:
 			my_device = &(*(sccp_device_t *)obj);
-			variable_block_name=strdup((const char *)my_device->id);
+			variable_block_name=strdupa((const char *)my_device->id);
 			arraySize = ARRAY_LEN(sccpDeviceConfigOptions);
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "setting device[%s] defaults\n", my_device ? my_device->id : "NULL");
 			break;
 		case SCCP_CONFIG_LINE_SEGMENT:			
 			my_line = &(*(sccp_line_t *)obj);			
-			variable_block_name=strdup((const char *)my_line->id);
+			variable_block_name=strdupa((const char *)my_line->id);
 			arraySize = ARRAY_LEN(sccpLineConfigOptions);
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "setting line[%s] defaults\n", my_line ? my_line->name : "NULL");
 			break;
@@ -1245,6 +1245,7 @@ sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, co
 /*!
  * \brief Config Converter/Parser for Mailbox Value
  * \todo make checks for changes to make it more generic 
+ * 
  */
 sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
@@ -1953,7 +1954,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 		pbx_log(LOG_NOTICE, "Unable to load config file sccp.conf, SCCP disabled\n");
 		return;
 	}
-
+	
 	while ((cat = pbx_category_browse(GLOB(cfg), cat))) {
 
 		const char *utype;

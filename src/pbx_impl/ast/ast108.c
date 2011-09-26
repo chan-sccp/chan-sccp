@@ -383,13 +383,16 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 		} else
 			res = -1;
 		break;
-#ifdef AST_CONTROL_INCOMPLETE
+#ifdef CS_AST_CONTROL_INCOMPLETE
 	case AST_CONTROL_INCOMPLETE:						/*!< Indication that the extension dialed is incomplete */
 	        /* \todo implement dial continuation by:
 	         *  - display message incomplete number
 	         *  - adding time to channel->scheduler.digittimeout
 	         *  - rescheduling sccp_pbx_sched_dial 
                  */
+#ifdef CS_EXPERIMENTAL
+		sccp_indicate_locked(c->getDevice(c), c, SCCP_CHANNELSTATE_DIGITSFOLL);
+#endif
 		res = 0;
 		break;
 #endif 
