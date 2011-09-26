@@ -128,7 +128,7 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 	}													\
 														\
 	static char * cli_ ## _FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {	\
-		static char *cli_command[] = { CLI_COMMAND, NULL };						\
+		static char *cli_command[] = { CLI_COMMAND };						\
 		static sccp_cli_completer_t cli_complete[] = { CLI_COMPLETE };					\
 		char *command=NULL;										\
 		uint8_t completer;										\
