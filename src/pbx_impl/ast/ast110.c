@@ -382,6 +382,9 @@ static int sccp_asterisk110_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void
 		} else
 			res = -1;
 		break;
+	case AST_CONTROL_INCOMPLETE:						/*!< Indication that the extension dialed is incomplete */
+		res = 0;
+		break;
 	case -1:								// Asterisk prod the channel
 		res = -1;
 		break;
