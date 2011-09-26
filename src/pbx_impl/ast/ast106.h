@@ -99,7 +99,7 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 //   param3=cli string to be types as array of strings
 //   param4=registration description
 //   param5=usage string
-#    define CLI_AMI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)		\
+#    define CLI_AMI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)		\
 	static int manager_ ## _FUNCTION_NAME(struct mansession *s, const struct message *m)			\
 	{													\
 		const char *id = astman_get_header(m, "ActionID");						\
@@ -158,48 +158,7 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 		else												\
 			return CLI_FAILURE;									\
 	};
-#    define CLI_AMI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)					\
-	static int manager_ ## _FUNCTION_NAME(struct mansession *s, const struct message *m)			\
-	{													\
-		const char *id = astman_get_header(m, "ActionID");						\
-		static char *ami_command[] = { AMI_COMMAND, NULL };						\
-		char idtext[256] = "";										\
-		int total = 0;											\
-		if (!pbx_strlen_zero(id))									\
-			snprintf(idtext, sizeof(idtext), "ActionID: %s\r\n", id);				\
-		astman_send_ack(s, m, AMI_COMMAND);								\
-		_CALLED_FUNCTION(-1, &total, s, m, ARRAY_LEN(ami_command), ami_command);			\
-		astman_append(s,										\
-		"Event: " _DESCR " Complete\r\n"								\
-		"EventList: Complete\r\n"									\
-		"ListItems: %d\r\n"										\
-		"%s"												\
-		"\r\n\r\n", total, idtext);  									\
-		return 0;											\
-	}													\
-	static char * cli_ ## _FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {	\
-		static char *cli_command[] = { CLI_COMMAND, NULL };						\
-		char *command=NULL;										\
-		if (cmd == CLI_INIT) {										\
-			if(!implode( cli_command," ", &command)) {						\
-				ast_free(command);								\
-				return CLI_FAILURE;								\
-			}											\
-			e->command = strdup(command);								\
-			e->usage = _USAGE;									\
-			ast_free(command);									\
-		} else if (cmd == CLI_GENERATE)									\
-			return NULL;										\
-														\
-		if (a->argc < (int)(ARRAY_LEN(cli_command)-1))	 						\
-			return CLI_SHOWUSAGE;									\
-														\
-		if(_CALLED_FUNCTION(a->fd, NULL, NULL, NULL, a->argc, (char **) a->argv) == RESULT_SUCCESS)	\
-			return CLI_SUCCESS;									\
-		else												\
-			return CLI_FAILURE;									\
-	};
-#    define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)		\
+#    define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)		\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {			\
 		static char *cli_command[] = { CLI_COMMAND };							\
 		static sccp_cli_completer_t cli_complete[] = { CLI_COMPLETE };					\
@@ -231,29 +190,4 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 		else												\
 			return CLI_FAILURE;									\
 	};
-#    define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)					\
-	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {			\
-		static char *cli_command[] = { CLI_COMMAND };							\
-		char *command=NULL;										\
-		if (cmd == CLI_INIT) {										\
-			if(!implode( cli_command," ", &command)) {						\
-				ast_free(command);								\
-				return CLI_FAILURE;								\
-			}											\
-			e->command = strdup(command);								\
-			e->usage = _USAGE;									\
-			ast_free(command);									\
-		} else if (cmd == CLI_GENERATE)									\
-			return NULL;										\
-														\
-		if (a->argc < (int)(ARRAY_LEN(cli_command)-1))	 						\
-			return CLI_SHOWUSAGE;									\
-														\
-		if(_CALLED_FUNCTION(a->fd, a->argc, a->argv) == RESULT_SUCCESS)					\
-			return CLI_SUCCESS;									\
-		else												\
-			return CLI_FAILURE;									\
-	};
-// END CLI_ENTRY
-
 #endif										/* SCCP_ASTERISK19_PBX_H_ */
