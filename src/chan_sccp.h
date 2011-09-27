@@ -1111,7 +1111,7 @@ extern "C" {
 		boolean_t echocancel;						/*!< Echo Canel Support (Boolean, default=on) */
 		boolean_t silencesuppression;					/*!< Silence Suppression Support (Boolean, default=on)  */
 		boolean_t trustphoneip;						/*!< Trust Phone IP Support (Boolean, default=on) */
-		uint8_t earlyrtp;						/*!< Channel State where to open the rtp media stream */
+		sccp_channelState_t earlyrtp;					/*!< Channel State where to open the rtp media stream */
 		uint8_t dndmode;						/*!< Do Not Disturb (DND) Mode: \see SCCP_DNDMODE_* */
 		boolean_t privacy;						/*!< Privacy Support (Length=2) */
 		sccp_lampMode_t mwilamp;					/*!< MWI/Lamp (Length:3) */
