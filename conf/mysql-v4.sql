@@ -25,6 +25,10 @@ CREATE TABLE IF NOT EXISTS `sccpdevices` (
   `nat` varchar(15) default 'off',
   `softkeyset` varchar(100) default '',
   `setvar` varchar(100) default NULL,
+  `audio_tos` varchar(11) default NULL,
+  `audio_cos` varchar(1) default NULL,
+  `video_tos` varchar(11) default NULL,
+  `video_cos` varchar(1) default NULL,
   `name` varchar(15) NOT NULL default '',
   PRIMARY KEY  (`name`)
 ) TYPE=MyISAM;
@@ -48,10 +52,6 @@ CREATE TABLE IF NOT EXISTS `sccplines` (
   `musicclass` varchar(45) default NULL,
   `language` varchar(45) default NULL,
   `accountcode` varchar(45) default NULL,
-  `audio_tos` varchar(11) default NULL,
-  `audio_cos` varchar(1) default NULL,
-  `video_tos` varchar(11) default NULL,
-  `video_cos` varchar(1) default NULL,
   `echocancel` varchar(45) default NULL,
   `silencesuppression` varchar(45) default NULL,
   `callgroup` varchar(45) default NULL,
