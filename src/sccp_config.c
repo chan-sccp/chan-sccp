@@ -177,6 +177,8 @@ sccp_value_changed_t sccp_config_parse_blindtransferindication(void *dest, const
 sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_regcontext(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 
 /*!
  * \brief List of SCCP Config Options for SCCP Globals
@@ -314,9 +316,9 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 																													"set up	If hotline_enabled = yes, any device which is not included in the configuration explicitly will be allowed "
 																													"to registered as a guest device. All such devices will register on a single shared line called 'hotline'."},
 
-  {"hotline_context",			(offsetof(struct sccp_global_vars,hotline) + offsetof(sccp_hotline_t,line) + offsetof(sccp_line_t,context)), offsize(sccp_line_t,context), 	SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"sccp",	NULL,			""},
+  {"hotline_context",			offsetof(struct sccp_global_vars,hotline), offsize(struct sccp_line,context),	SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"sccp",		sccp_config_parse_hotline_context,			""},
 //  {"hotline_context",			(offsetof(struct sccp_global_vars,hotline) + offsetof(struct sccp_hotline,line) + offsetof(struct sccp_line,context)), offsize(struct sccp_line,context), 	SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"sccp",	NULL,			""},
-//  {"hotline_extension", 		(offsetof(struct sccp_global_vars,hotline), offsize(struct sccp_hotline,exten),		SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"111",		NULL,			""},
+  {"hotline_extension", 		offsetof(struct sccp_global_vars,hotline), offsize(sccp_hotline_t,exten),			SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"111",		sccp_config_parse_hotline_exten,			""},
 //  {"hotline_extension", 		(offsetof(struct sccp_global_vars,hotline) + offsetof(struct sccp_hotline,exten)), offsize(struct sccp_hotline,exten),		SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"111",		NULL,			""},
   {"fallback",				G_OBJ_REF(token_fallback),		SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"false",	NULL, 			"Immediately fallback to primairy/master server when it becomes available (master/slave asterisk cluster) (TokenRequest)"
 																													"Possible values are: true/false/odd/even (odd/even uses the last digit of the MAC address to make the decision)"
@@ -1507,6 +1509,43 @@ sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, co
 	return changed;
 }
 
+/*!
+ * \brief Config Converter/Parser for Hotline Context
+ */
+sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	sccp_hotline_t *hotline = *(sccp_hotline_t **)dest;
+
+	if (strcasecmp(hotline->line->context, value) ) {
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+		pbx_copy_string(hotline->line->context, value, size);
+	}else{
+	        changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	}
+	return changed;
+}
+
+
+/*!
+ * \brief Config Converter/Parser for Hotline Extension
+ */
+sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	sccp_hotline_t *hotline = *(sccp_hotline_t **)dest;
+
+	if (strcasecmp(hotline->exten, value) ) {
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+		pbx_copy_string(hotline->exten, value, size);
+		if (hotline->line) {
+			sccp_copy_string(hotline->line->adhocNumber, value, sizeof(hotline));
+		}
+	}else{
+	        changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	}
+	return changed;
+}
 /*!
  * \brief Config Converter/Parser for DND Values
  * \note 0/off is allow and 1/on is reject

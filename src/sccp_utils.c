@@ -2041,6 +2041,8 @@ char **explode(char *str, char *sep)
  * \param sep String to use as seperator
  * \param res Result String
  * \return success as boolean
+ *
+ * \deprecated use ast_join instead
  */
 boolean_t implode(char *str[], char *sep, char **res)
 {
