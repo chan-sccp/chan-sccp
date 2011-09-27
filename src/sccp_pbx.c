@@ -307,7 +307,11 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 		pbx_queue_control(ast, AST_CONTROL_RINGING);
 		sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_RINGIN);
 	} else {
-		pbx_queue_control(ast, AST_CONTROL_CONGESTION);
+		if (linedevice->device->dndFeature.enabled && linedevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
+			pbx_queue_control(ast, AST_CONTROL_BUSY);
+		} else {		
+			pbx_queue_control(ast, AST_CONTROL_CONGESTION);
+		}
 	}
 
 	if (cid_name)
