@@ -2057,7 +2057,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 			int minimum_digit_before_check=3;
 			int lpbx_digit_usecs=0;
 			int number_of_digits=len;
-			unsigned int timeout_if_enbloc=2000;					// new timeout if we have established we should enbloc dialing 
+			int timeout_if_enbloc=2000;					// new timeout if we have established we should enbloc dialing 
 			sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_1 "SCCP: ENBLOC_EMU digittimeout '%d' ms, sched_wait '%d' ms\n", channel->enbloc.digittimeout, PBX(sched_wait)(channel->scheduler.digittimeout));
 			if (GLOB(simulate_enbloc) && !channel->enbloc.deactivate && number_of_digits>=1) {		// skip the first digit (first digit had longer delay than the rest)
 				if ((channel->enbloc.digittimeout) < (PBX(sched_wait)(channel->scheduler.digittimeout)*1000) ) {

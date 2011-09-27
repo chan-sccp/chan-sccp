@@ -753,7 +753,7 @@ extern "C" {
 
 		sccp_devicestate_t state;					/*!< Device State (SCCP_DEVICE_ONHOOK or SCCP_DEVICE_OFFHOOK) */
 		boolean_t linesRegistered;					/*!< did we answer the RegisterAvailableLinesMessage */
-		uint8_t digittimeout;						/*< Digit Timeout. How long to wait for following digits */
+		int digittimeout;						/*< Digit Timeout. How long to wait for following digits */
 		const struct sccp_device_indication_cb *indicate;
 
 		char lastNumber[SCCP_MAX_EXTENSION];				/*!< Last Dialed Number */
@@ -999,7 +999,7 @@ extern "C" {
 		skinny_calltype_t calltype;					/*!< Skinny Call Type as SKINNY_CALLTYPE_* */
 
 		struct {
-			unsigned int digittimeout;				/*!< Digit Timeout on Dialing State (Enbloc-Emu) */
+			int digittimeout;					/*!< Digit Timeout on Dialing State (Enbloc-Emu) */
 			unsigned int deactivate:1;				/*!< Deactivate Enbloc-Emulation (Time Deviation Found) */
 			int totaldigittime;					/*!< Total Time used to enter Number (Enbloc-Emu) */
 			int totaldigittimesquared;				/*!< Total Time Squared used to enter Number (Enbloc-Emu) */
@@ -1082,7 +1082,7 @@ extern "C" {
 		time_t externexpire;						/*!< External Expire */
 
 		uint8_t firstdigittimeout;					/*!< First Digit Timeout. Wait up to 16 seconds for first digit */
-		uint8_t digittimeout;						/*!< Digit Timeout. How long to wait for following digits */
+		int digittimeout;						/*!< Digit Timeout. How long to wait for following digits */
 		char digittimeoutchar;						/*!< Digit End Character. What char will force the dial (Normally '#') */
 		boolean_t recorddigittimeoutchar;				/*!< Record Digit Time Out Char. Whether to include the digittimeoutchar in the call logs */
 		boolean_t simulate_enbloc;					/*!< Simulated Enbloc Dialing for older device to speed up dialing */
