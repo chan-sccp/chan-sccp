@@ -35,7 +35,6 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
   `nat` varchar(15) default 'off',
   `softkeyset` varchar(100) default '',
   `setvar` varchar(100) default NULL,
-  `directrtp` varchar(10) DEFAULT NULL,
   `disallow` varchar(255) DEFAULT NULL,
   `allow` varchar(255) DEFAULT NULL,
   `name` varchar(15) NOT NULL default '',
