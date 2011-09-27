@@ -269,7 +269,14 @@ extern "C" {
 	  /* *INDENT-ON* */
 	};
 
+	/*!
+	* \brief SCCP Conference Structure
+	*/
 	struct sccp_conference;
+	
+	/*!
+	* \brief SCCP Private Channel Data Structure
+	*/
 	struct sccp_private_channel_data;
 
 	/*!
@@ -608,18 +615,19 @@ extern "C" {
 		} button;							/*!< SCCP Button Structure */
 	};									/*!< SCCP Button Configuration Structure */
 
-/*!
- * \brief SCCP Hostname Structure
- */
+	/*!
+	 * \brief SCCP Hostname Structure
+	 */
 	struct sccp_hostname {
 		char name[MAXHOSTNAMELEN];					/*!< Name of the Host */
 		SCCP_LIST_ENTRY(sccp_hostname_t) list;				/*!< Host Linked List Entry */
 	};									/*!< SCCP Hostname Structure */
 
-#    ifdef CS_DEVSTATE_FEATURE
 	/*
-	 * \brief SCCP devstate registrations per device
+	 * \brief SCCP DevState Specifier Structure
+	 * Recording number of Device State Registrations Per Device
 	 */
+#    ifdef CS_DEVSTATE_FEATURE
 	struct sccp_devstate_specifier {
 		char specifier[254];						/*!< Name of the Custom  Devstate Extension */
 		struct ast_event_sub *sub;					/* Asterisk event Subscription related to the devstate extension. */

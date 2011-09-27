@@ -33,6 +33,7 @@ struct softKeySetConfigList softKeySetConfig;					/*!< List of SoftKeySets */
 /*!
  * \brief Softkey Pre Reload
  *
+ * \deprecated
  * \lock
  * 	- softKeySetConfig
  */
@@ -62,6 +63,9 @@ void sccp_softkey_post_reload(void)
 }
 #endif										/* CS_DYNAMIC_CONFIG */
 
+/*!
+ * \brief Softkey Function Callback by SKINNY LABEL
+ */
 static const struct sccp_softkeyMap_cb softkeyCbMap[] = {
 	{SKINNY_LBL_NEWCALL, sccp_sk_newcall, FALSE},
 	{SKINNY_LBL_REDIAL, sccp_sk_redial, FALSE},
@@ -102,6 +106,9 @@ static const struct sccp_softkeyMap_cb softkeyCbMap[] = {
 
 };
 
+/*!
+ * \brief Get SoftkeyMap by Event
+ */
 const sccp_softkeyMap_cb_t *sccp_getSoftkeyMap_by_SoftkeyEvent(uint32_t event)
 {
 	uint8_t i;
@@ -165,6 +172,17 @@ void sccp_sk_dial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstanc
 	}
 }
 
+/*!
+ * \brief Start/Stop VideoMode
+ * \n Usage: \ref sccp_sk_videomode
+ * \param device SCCP Device
+ * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
+ * \param channel SCCP Channel
+ *
+ * \todo Add doxygen entry for sccp_sk_videomode
+ * \todo Implement stopping video transmission
+ */
 void sccp_sk_videomode(sccp_device_t *device, sccp_line_t *l, const uint32_t lineInstance, sccp_channel_t *channel){
 #ifdef CS_SCCP_VIDEO
 	if (sccp_device_isVideoSupported(device)) {

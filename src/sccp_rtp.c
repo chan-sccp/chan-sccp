@@ -156,6 +156,9 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 		PBX(rtp_setPeer) (rtp, new_peer, sccp_channel_getDevice(c)->nat);
 }
 
+/*!
+ * \brief Get Audio Peer RTP Information
+ */
 sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t * c, struct sccp_rtp **rtp)
 {
 	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
@@ -173,6 +176,9 @@ sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t * c, struct sccp_
 	return result;
 }
 
+/*!
+ * \brief Get Video Peer RTP Information
+ */
 sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t * c, struct sccp_rtp ** rtp)
 {
 	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
@@ -187,6 +193,9 @@ sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t * c, struct sccp_
 	return result;
 }
 
+/*!
+ * \brief Get Payload Type
+ */
 uint8_t sccp_rtp_get_payloadType(const struct sccp_rtp * rtp, skinny_codec_t codec)
 {
 	if (PBX(rtp_get_payloadType)) {
@@ -196,6 +205,9 @@ uint8_t sccp_rtp_get_payloadType(const struct sccp_rtp * rtp, skinny_codec_t cod
 	}
 }
 
+/*!
+ * \brief Get Sample Rate
+ */
 uint8_t sccp_rtp_get_sampleRate(skinny_codec_t codec)
 {
 	if (PBX(rtp_get_sampleRate)) {
@@ -232,18 +244,27 @@ void sccp_rtp_destroy(sccp_channel_t * c)
 	}
 }
 
+/*!
+ * \brief Get Audio Peer
+ */
 boolean_t sccp_rtp_getAudioPeer(sccp_channel_t * c, struct sockaddr_in **new_peer)
 {
 	*new_peer = &c->rtp.audio.phone_remote;
 	return TRUE;
 }
 
+/*!
+ * \brief Get Video Peer
+ */
 boolean_t sccp_rtp_getVideoPeer(sccp_channel_t * c, struct sockaddr_in ** new_peer)
 {
 	*new_peer = &c->rtp.audio.phone_remote;
 	return TRUE;
 }
 
+/*!
+ * \brief Retrieve Phone Socket Information
+ */
 boolean_t sccp_rtp_getUs(const struct sccp_rtp * rtp, struct sockaddr_in * us)
 {
 	if (rtp->rtp) {

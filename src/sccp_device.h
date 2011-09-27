@@ -21,6 +21,9 @@ void sccp_device_pre_reload(void);
 void sccp_device_post_reload(void);
 #    endif
 
+/*!
+ * \brief SCCP Device Indication Callback Structure
+ */
 struct sccp_device_indication_cb {
 	void (*const remoteHold) (const sccp_device_t *device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy);
 };
