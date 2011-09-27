@@ -1839,7 +1839,6 @@ sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYP
 	memset(alreadySetEntries, 0, sizeof(alreadySetEntries));
 
 	for (; v; v = v->next) {
-		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Before (%s='%s')\n", v->name, v->value);
 		res |= sccp_config_object_setValue(sccp_globals, v->name, v->value, v->lineno, SCCP_CONFIG_GLOBAL_SEGMENT);
 		// mark entries as already set
 		for (i=0;i<ARRAY_LEN(sccpGlobalConfigOptions);i++) {
@@ -1848,8 +1847,6 @@ sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYP
 			}
 		}
 	}
-/***DDG***/
- 	GLOB(debug)=1;
 	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Update Needed (%d)\n", res);
 	
 	sccp_config_set_defaults(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT, alreadySetEntries, ARRAY_LEN(sccpGlobalConfigOptions));	
