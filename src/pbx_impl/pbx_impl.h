@@ -57,7 +57,7 @@ struct sccp_pbx_cb {
 	int (*const sched_add) (int when, sccp_sched_cb callback, const void *data);
 	int (*const sched_del) (int id);
 	long (*const sched_when) (int id);
-	unsigned int (*const sched_wait) (int id);
+	int (*const sched_wait) (int id);
 
 	/* rtp */
 	int (*const rtp_getPeer) (const sccp_channel_t * channel, struct sockaddr_in * address);

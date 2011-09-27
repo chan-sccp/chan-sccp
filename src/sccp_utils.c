@@ -2100,8 +2100,7 @@ int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1)
 /*!
  * \brief Send a xml message to the phone to invoke Cisco XML Response (for example show service menu)
  *
- * \todo implementation moved to sccp_protocol.c
- * \deprecated
+ * \deprecated implementation moved to sccp_protocol.c
  */
 void sendUserToDeviceVersion1Message(sccp_device_t * d, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, char data[])
 {

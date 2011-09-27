@@ -1489,7 +1489,7 @@ static long sccp_asterisk110_sched_when(int id)
 	return ast_sched_when(sched, id);
 }
 
-static unsigned int sccp_asterisk110_sched_wait(int id)
+static int sccp_asterisk110_sched_wait(int id)
 {
 	return ast_sched_wait(sched);
 }
