@@ -38,6 +38,10 @@ CREATE TABLE sccpdevice (
   "setvar" 			varchar(100) 	DEFAULT NULL,
   "disallow" 			varchar(255) 	DEFAULT NULL,
   "allow" 			varchar(255) 	DEFAULT NULL,
+  "audio_tos" 			varchar(11) 	DEFAULT NULL,
+  "audio_cos" 			varchar(1) 	DEFAULT NULL,
+  "video_tos" 			varchar(11) 	DEFAULT NULL,
+  "video_cos" 			varchar(1) 	DEFAULT NULL,
   "name" 			varchar(15) 	NOT NULL DEFAULT '',
   PRIMARY KEY  ("name")
 );
@@ -64,10 +68,6 @@ CREATE TABLE "sccpline" (
   "musicclass" 			varchar(45) 	DEFAULT NULL,
   "language" 			varchar(45) 	DEFAULT NULL,
   "accountcode" 		varchar(45) 	DEFAULT NULL,
-  "audio_tos" 			varchar(11) 	DEFAULT NULL,
-  "audio_cos" 			varchar(1) 	DEFAULT NULL,
-  "video_tos" 			varchar(11) 	DEFAULT NULL,
-  "video_cos" 			varchar(1) 	DEFAULT NULL,
   "echocancel" 			varchar(45) 	DEFAULT NULL,
   "silencesuppression" 		varchar(45) 	DEFAULT NULL,
   "callgroup" 			varchar(45) 	DEFAULT NULL,
