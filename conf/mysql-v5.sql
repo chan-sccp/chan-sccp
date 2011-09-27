@@ -34,13 +34,13 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
   `privacy` varchar(100) default 'full',
   `nat` varchar(15) default 'off',
   `softkeyset` varchar(100) default '',
-  `setvar` varchar(100) default NULL,
-  `disallow` varchar(255) DEFAULT NULL,
-  `allow` varchar(255) DEFAULT NULL,
   `audio_tos` varchar(11) default NULL,
   `audio_cos` varchar(1) default NULL,
   `video_tos` varchar(11) default NULL,
   `video_cos` varchar(1) default NULL,
+  `setvar` varchar(100) default NULL,
+  `disallow` varchar(255) DEFAULT NULL,
+  `allow` varchar(255) DEFAULT NULL,
   `name` varchar(15) NOT NULL default '',
   PRIMARY KEY  (`name`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;

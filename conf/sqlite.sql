@@ -23,14 +23,14 @@ CREATE TABLE "sccpdevice" (
   "privacy" 			varchar(100) 	DEFAULT 'full',
   "nat" 			varchar(15) 	DEFAULT 'off',
   "softkeyset" 			varchar(100) 	DEFAULT '',
-  "setvar" 			varchar(100) 	DEFAULT NULL,
-  "disallow" 			varchar(255) 	DEFAULT NULL,
-  "allow" 			varchar(255) 	DEFAULT NULL,
-  "button" 			text,
   "audio_tos" 			varchar(11) 	DEFAULT NULL,
   "audio_cos" 			varchar(1) 	DEFAULT NULL,
   "video_tos" 			varchar(11) 	DEFAULT NULL,
   "video_cos" 			varchar(1) 	DEFAULT NULL,
+  "setvar" 			varchar(100) 	DEFAULT NULL,
+  "disallow" 			varchar(255) 	DEFAULT NULL,
+  "allow" 			varchar(255) 	DEFAULT NULL,
+  "button" 			text,
   "name" 			varchar(15) 	NOT NULL DEFAULT '',
   PRIMARY KEY  ("name")
 );
