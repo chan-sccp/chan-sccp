@@ -104,8 +104,6 @@ int sccp_unregister_management(void)
 	return result;
 }
 
-
-
 /*!
  * \brief starting manager-module
  */
@@ -131,6 +129,11 @@ void sccp_manager_module_stop()
 }
 
 
+/*!
+ * \brief Event Listener
+ *
+ * Handles the manager events that need to be posted when an event happens
+ */
 void sccp_manager_eventListener(const sccp_event_t **event){
 	const sccp_event_t 	*e = *event;
 	sccp_device_t 		*device;
@@ -500,6 +503,14 @@ static int sccp_manager_device_update(struct mansession *s, const struct message
 }
 
 
+/*!
+ * \brief Start Call on Device, Line to Number
+ * \param s Management Session
+ * \param m Message 
+ * \return Success as int
+ * 
+ * \called_from_asterisk
+ */
 static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 {
 	sccp_device_t *d;
@@ -535,6 +546,14 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 	return 0;
 }
 
+/*!
+ * \brief Answer Call of ChannelId on Device
+ * \param s Management Session
+ * \param m Message 
+ * \return Success as int
+ * 
+ * \called_from_asterisk
+ */
 static int sccp_manager_answerCall(struct mansession *s, const struct message *m)
 {
 	sccp_device_t *device;
@@ -570,6 +589,14 @@ static int sccp_manager_answerCall(struct mansession *s, const struct message *m
 	return 0;
 }
 
+/*!
+ * \brief Hangup Call of ChannelId
+ * \param s Management Session
+ * \param m Message 
+ * \return Success as int
+ * 
+ * \called_from_asterisk
+ */
 static int sccp_manager_hangupCall(struct mansession *s, const struct message *m)
 {
 	sccp_channel_t *c;
@@ -589,7 +616,14 @@ static int sccp_manager_hangupCall(struct mansession *s, const struct message *m
 	return 0;
 }
 
-
+/*!
+ * \brief Put ChannelId Call on Hold (on/off)
+ * \param s Management Session
+ * \param m Message 
+ * \return Success as int
+ * 
+ * \called_from_asterisk
+ */
 static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 {
 	sccp_channel_t *c;

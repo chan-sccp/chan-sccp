@@ -13,7 +13,10 @@
 #include "config.h"
 #include "common.h"
 
-/* callInfoMessage */
+/* CallInfo Message */
+/*!
+ * \brief Send CallInfoMessage (V3)
+ */
 static void sccp_device_sendCallinfoV3(const sccp_device_t * device, const sccp_channel_t * channel)
 {
 	sccp_moo_t *r;
@@ -75,6 +78,9 @@ static void sccp_device_sendCallinfoV3(const sccp_device_t * device, const sccp_
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Send callinfo for %s channel %d on line instance %d" "\n\tcallerid: %s" "\n\tcallerName: %s\n", (device) ? device->id : "(null)", calltype2str(channel->calltype), channel->callid, instance, channel->callInfo.callingPartyNumber, channel->callInfo.callingPartyName);
 }
 
+/*!
+ * \brief Send CallInfoMessage (V7)
+ */
 static void sccp_device_sendCallinfoV7(const sccp_device_t *device, const sccp_channel_t * channel)
 {
 	sccp_moo_t *r;
@@ -148,6 +154,9 @@ static void sccp_device_sendCallinfoV7(const sccp_device_t *device, const sccp_c
 	sccp_dev_send(device, r);
 }
 
+/*!
+ * \brief Send CallInfoMessage (V16)
+ */
 static void sccp_protocol_sendCallinfoV16(const sccp_device_t *device, const sccp_channel_t * channel)
 {
 	sccp_moo_t *r;
@@ -227,6 +236,9 @@ static void sccp_protocol_sendCallinfoV16(const sccp_device_t *device, const scc
 
 
 /* DialedNumber Message */
+/*!
+ * \brief Send DialedNumber Message (V3)
+ */
 static void sccp_protocol_sendDialedNumberV3(const sccp_device_t *device, const sccp_channel_t *channel){
 	sccp_moo_t *r;
 	uint8_t instance;
@@ -245,6 +257,8 @@ static void sccp_protocol_sendDialedNumberV3(const sccp_device_t *device, const 
 }
 
 /*!
+ * \brief Send DialedNumber Message (V19)
+ *
  * \todo this message is wrong, but we get 'Placed Calls' working on V >= 19
  */
 static void sccp_protocol_sendDialedNumberV19(const sccp_device_t *device, const sccp_channel_t *channel){
@@ -263,10 +277,13 @@ static void sccp_protocol_sendDialedNumberV19(const sccp_device_t *device, const
 	sccp_dev_send(device, r);
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, channel->callInfo.calledPartyNumber, calltype2str(channel->calltype), channel->callid);
 }
-/* done - DialdNumber Message */
+/* done - DialedNumber Message */
 
 
-/* display prompt */
+/* Display Prompt Message */
+/*!
+ * \brief Send Display Prompt Message (Static)
+ */
 static void sccp_protocol_sendStaticDisplayprompt(const sccp_device_t *device, uint8_t lineInstance, uint8_t callid, uint8_t timeout, const char *message){
 	sccp_moo_t *r;
 	
@@ -280,6 +297,9 @@ static void sccp_protocol_sendStaticDisplayprompt(const sccp_device_t *device, u
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display prompt on line %d, callid %d, timeout %d\n", device->id, lineInstance, callid, timeout);
 }
 
+/*!
+ * \brief Send Display Prompt Message (Dynamic)
+ */
 static void sccp_protocol_sendDynamicDisplayprompt(const sccp_device_t *device, uint8_t lineInstance, uint8_t callid, uint8_t timeout, const char *message){
 	sccp_moo_t *r;
 	
@@ -299,7 +319,10 @@ static void sccp_protocol_sendDynamicDisplayprompt(const sccp_device_t *device, 
 }
 /* done - display prompt */
 
-/* display notify */
+/* Display Notify  Message */
+/*!
+ * \brief Send Display Notify Message (Static)
+ */
 static void sccp_protocol_sendStaticDisplayNotify(const sccp_device_t *device, uint8_t timeout, const char *message){
 	sccp_moo_t *r;
 	
@@ -311,6 +334,9 @@ static void sccp_protocol_sendStaticDisplayNotify(const sccp_device_t *device, u
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display notify timeout %d\n", device->id, timeout);
 }
 
+/*!
+ * \brief Send Display Notify Message (Dynamic)
+ */
 static void sccp_protocol_sendDynamicDisplayNotify(const sccp_device_t *device, uint8_t timeout, const char *message){
 	sccp_moo_t *r;
 	
@@ -328,7 +354,10 @@ static void sccp_protocol_sendDynamicDisplayNotify(const sccp_device_t *device, 
 }
 /* done - display notify */
 
-/* display priority notify */
+/* Display Priority Notify Message */
+/*!
+ * \brief Send Priority Display Notify Message (Static)
+ */
 static void sccp_protocol_sendStaticDisplayPriNotify(const sccp_device_t *device, uint8_t priority, uint8_t timeout, const char *message){
 	sccp_moo_t *r;
 	
@@ -341,6 +370,9 @@ static void sccp_protocol_sendStaticDisplayPriNotify(const sccp_device_t *device
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display notify timeout %d\n", device->id, timeout);
 }
 
+/*!
+ * \brief Send Priority Display Notify Message (Dynamic)
+ */
 static void sccp_protocol_sendDynamicDisplayPriNotify(const sccp_device_t *device, uint8_t priority, uint8_t timeout, const char *message){
 	sccp_moo_t *r;
 	
@@ -359,9 +391,10 @@ static void sccp_protocol_sendDynamicDisplayPriNotify(const sccp_device_t *devic
 }
 /* done - display notify */
 
-
-
-/* send callForwardStatus */
+/* callForwardStatus Message */
+/*!
+ * \brief Send Call Forward Status Message
+ */
 static void sccp_protocol_sendCallForwardStatus(const sccp_device_t *device, const void *data){
 	sccp_moo_t *r;
 	const sccp_linedevices_t *linedevice = (sccp_linedevices_t *)data;
@@ -381,6 +414,9 @@ static void sccp_protocol_sendCallForwardStatus(const sccp_device_t *device, con
 	sccp_dev_send(device, r);
 }
 
+/*!
+ * \brief Send Call Forward Status Message (V19)
+ */
 static void sccp_protocol_sendCallForwardStatusV19(const sccp_device_t *device, const void *data){
 	sccp_moo_t *r;
 	const sccp_linedevices_t *linedevice = (sccp_linedevices_t *)data;
@@ -406,7 +442,10 @@ static void sccp_protocol_sendCallForwardStatusV19(const sccp_device_t *device, 
 /* done - send callForwardStatus */
 
 
-/* registerAck*/
+/* registerAck Message */
+/*!
+ * \brief Send Register Acknowledgement Message (V3)
+ */
 static void sccp_protocol_sendRegisterAckV3(const sccp_device_t *device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat){
 	sccp_moo_t *r;
 	
@@ -426,6 +465,9 @@ static void sccp_protocol_sendRegisterAckV3(const sccp_device_t *device, uint8_t
 	sccp_dev_send(device, r);  
 }
 
+/*!
+ * \brief Send Register Acknowledgement Message (V4)
+ */
 static void sccp_protocol_sendRegisterAckV4(const sccp_device_t *device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat){
 	sccp_moo_t *r;
 	
@@ -444,6 +486,9 @@ static void sccp_protocol_sendRegisterAckV4(const sccp_device_t *device, uint8_t
 	sccp_dev_send(device, r);  
 }
 
+/*!
+ * \brief Send Register Acknowledgement Message (V11)
+ */
 static void sccp_protocol_sendRegisterAckV11(const sccp_device_t *device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat){
 	sccp_moo_t *r;
 	
@@ -460,9 +505,13 @@ static void sccp_protocol_sendRegisterAckV11(const sccp_device_t *device, uint8_
 	memcpy(r->msg.RegisterAckMessage.dateTemplate, dateformat, sizeof(r->msg.RegisterAckMessage.dateTemplate));
 	sccp_dev_send(device, r);  
 }
-/* done registerACK*/
+/* done - registerACK */
 
 
+/* sendUserToDeviceData Message */
+/*!
+ * \brief Send User To Device Message (V1)
+ */
 static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_t *device, const void *xmlData, uint8_t priority){
 	sccp_moo_t *r = NULL;
 	
@@ -491,12 +540,15 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_
 		sccp_dev_send(device, r); 
 	}
 }
+/* done - sendUserToDeviceData */
 
 
 /*! \todo need a protocol implementation for ConnectionStatisticsReq using Version 19 and higher */
 /*! \todo need a protocol implementation for ForwardStatMessage using Version 19 and higher */
 
-/* protocol definitions */
+/*! 
+ * \brief SCCP Protocol Version to Message Mapping
+ */
 static const sccp_deviceProtocol_t *sccpProtocolDefinition[] = {
 	NULL, 
 	NULL,
@@ -522,6 +574,9 @@ static const sccp_deviceProtocol_t *sccpProtocolDefinition[] = {
 };
 
 
+/*! 
+ * \brief SPCP Protocol Version to Message Mapping
+ */
 static const sccp_deviceProtocol_t *spcpProtocolDefinition[] = {
 	&(sccp_deviceProtocol_t){"SPCP", 0, sccp_device_sendCallinfoV3, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV4, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message},
 	NULL,
@@ -534,6 +589,9 @@ static const sccp_deviceProtocol_t *spcpProtocolDefinition[] = {
 	&(sccp_deviceProtocol_t){"SPCP", 8, sccp_device_sendCallinfoV3, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV4, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message},
 };
 
+/*! 
+ * \brief Get Maximum Supported Version Number by Protocol Type
+ */
 uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type){
 	switch(type){
 	
@@ -547,7 +605,7 @@ uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type){
 }
 
 /*!
- * \brief get maximum possible protocol supported by device
+ * \brief Get Maximum Possible Protocol Supported by Device
  */
 const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(const sccp_device_t *device, int type){
 	

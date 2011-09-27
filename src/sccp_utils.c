@@ -1078,6 +1078,9 @@ char *sccp_multiple_codecs2str(char *buf, size_t size, skinny_codec_t * codecs, 
 }
 
 void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_t skinny_codec);
+/*!
+ * \brief Remove Codec from Skinny Codec Preferences
+ */
 void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_t skinny_codec)
 {
 	skinny_codec_t *old_skinny_codec_prefs;
@@ -1102,6 +1105,9 @@ void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_
 	}
 }
 
+/*!
+ * \brief Append Codec to Skinny Codec Preferences
+ */
 static int skinny_codec_pref_append(skinny_codec_t * skinny_codec_pref, skinny_codec_t skinny_codec)
 {
 	int x = 0;
@@ -1118,6 +1124,9 @@ static int skinny_codec_pref_append(skinny_codec_t * skinny_codec_pref, skinny_c
 	return -1;
 }
 
+/*!
+ * \brief Parse Skinny Codec Allow / Disallow Config Lines
+ */
 int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, skinny_codec_t * skinny_codec_mask, const char *list, int allowing)
 {
 	int all;
@@ -1231,6 +1240,9 @@ const char *array2str(uint8_t type, uint32_t value)
 	}
 }
 
+/*!
+ * \brief Check if Skinny Codec is compatible with Skinny Capabilities Array
+ */
 boolean_t sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length)
 {
 	uint8_t i;
@@ -2058,6 +2070,9 @@ boolean_t implode(char *str[], char *sep, char **res)
 }
 
 #ifdef HAVE_LIBGC
+/*!
+ * \brief Verbose Logging Hanler for the GC Garbage Collector
+ */
 void gc_warn_handler(char *msg, GC_word p)
 {
 	pbx_log(LOG_ERROR, "LIBGC: WARNING");
@@ -2084,6 +2099,9 @@ int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1)
 
 /*!
  * \brief Send a xml message to the phone to invoke Cisco XML Response (for example show service menu)
+ *
+ * \todo implementation moved to sccp_protocol.c
+ * \deprecated
  */
 void sendUserToDeviceVersion1Message(sccp_device_t * d, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, char data[])
 {
@@ -2193,6 +2211,14 @@ boolean_t sccp_strcasecmp(const char *data1,const char *data2)
         return FALSE;
 }
 
+/*!
+ * \brief Find the best codec match Between Preferences, Capabilities and RemotePeerCapabilities
+ * 
+ * Returns:
+ *  - Best Match If Found
+ *  - If not it returns the first jointCapability
+ *  - Else SKINNY_CODEC_NONE
+ */
 skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int cLength, const skinny_codec_t remotePeerCapabilities[], int rLength)
 {
 	uint8_t r, c, p;
@@ -2286,13 +2312,13 @@ void sccp_free_ha(struct sccp_ha *ha)
 #endif
 }
 
+void sccp_copy_ha(const struct sccp_ha *from, struct sccp_ha *to);
 /*! 
  * \brief Copy Host Access Rule Structure 
  * \param from Source HA to copy
  * \param to Destination HA to copy to
  * \retval void
  */
-void sccp_copy_ha(const struct sccp_ha *from, struct sccp_ha *to);
 void sccp_copy_ha(const struct sccp_ha *from, struct sccp_ha *to)
 {
 	memcpy(&to->netaddr, &from->netaddr, sizeof(from->netaddr));

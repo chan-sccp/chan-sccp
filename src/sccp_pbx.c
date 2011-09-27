@@ -1140,6 +1140,8 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char *digits)
  * \brief Queue a control frame
  * \param c SCCP Channel
  * \param control as Asterisk Control Frame Type
+ *
+ * \deprecated
  */
 #if ASTERISK_VERSION_NUMBER >= 10400
 int sccp_pbx_queue_control(sccp_channel_t * c, enum ast_control_frame_type control)
@@ -1245,6 +1247,8 @@ int sccp_pbx_transfer(PBX_CHANNEL_TYPE * ast, const char *dest)
 /*!
  * \brief Get (remote) peer for this channel
  * \param channel 	SCCP Channel
+ *
+ * \deprecated
  */
 sccp_channel_t *sccp_pbx_getPeer(sccp_channel_t * channel)
 {
@@ -1257,6 +1261,7 @@ sccp_channel_t *sccp_pbx_getPeer(sccp_channel_t * channel)
  * \param channel 	SCCP Channel
  * \param capabilities 	Codec Capabilities
  *
+ * \deprecated
  * \note Variable capabilities will be malloced by function, caller must destroy this later
  */
 int sccp_pbx_getCodecCapabilities(sccp_channel_t * channel, void **capabilities)

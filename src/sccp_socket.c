@@ -44,6 +44,9 @@ void *sccp_socket_device_thread(void *session);
 
 static sccp_moo_t *sccp_process_data(sccp_session_t * s);
 
+/*!
+ * \brief Exchange Socket Addres Information from them to us
+ */
 static int sccp_sockect_getOurAddressfor(struct in_addr *them, struct in_addr *us)
 {
 	int s;
