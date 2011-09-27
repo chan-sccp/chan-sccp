@@ -24,11 +24,13 @@ CREATE TABLE sccpdevice (
   privacy varchar(100) default 'full',
   nat varchar(3) NULL default 'off',
   softkeyset varchar(100) NULL default NULL,
-  setvar varchar(100) default NULL,
   audio_tos varchar(11) default NULL,
   audio_cos varchar(1) default NULL,
   video_tos varchar(11) default NULL,
   video_cos varchar(1) default NULL,
+  setvar varchar(100) default NULL,
+  disallow varchar(15) default NULL,
+  allow varchar(15) default NULL,
   name varchar(15) NOT NULL default '',
   PRIMARY KEY  (name)
 );
