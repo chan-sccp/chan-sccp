@@ -731,8 +731,6 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, const uint8_t alreadySetEntries[], uint8_t arraySize)
 {
 	uint8_t i = 0;
-	//uint8_t arraySize = 0;
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "setting %s defaults\n", sccp_find_segment(segment)->name);
 	const SCCPConfigOption *sccpDstConfig = sccp_find_segment(segment)->config;
 	const SCCPConfigOption *sccpDefaultConfigOption;
 	sccp_device_t *my_device = NULL;
@@ -748,19 +746,19 @@ void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, co
 		case SCCP_CONFIG_GLOBAL_SEGMENT:
 			arraySize = ARRAY_LEN(sccpGlobalConfigOptions);
 			variable_block_name=strdupa("general");
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "setting [general] defaults\n");
+			sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_1 "setting [general] defaults\n");
 			break;
 		case SCCP_CONFIG_DEVICE_SEGMENT:
 			my_device = &(*(sccp_device_t *)obj);
 			variable_block_name=strdupa((const char *)my_device->id);
 			arraySize = ARRAY_LEN(sccpDeviceConfigOptions);
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "setting device[%s] defaults\n", my_device ? my_device->id : "NULL");
+			sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_1 "setting device[%s] defaults\n", my_device ? my_device->id : "NULL");
 			break;
 		case SCCP_CONFIG_LINE_SEGMENT:			
 			my_line = &(*(sccp_line_t *)obj);			
 			variable_block_name=strdupa((const char *)my_line->id);
 			arraySize = ARRAY_LEN(sccpLineConfigOptions);
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "setting line[%s] defaults\n", my_line ? my_line->name : "NULL");
+			sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_1 "setting line[%s] defaults\n", my_line ? my_line->name : "NULL" );
 			break;
 		case SCCP_CONFIG_SOFTKEY_SEGMENT:
 		        ast_log(LOG_ERROR, "softkey default loading not implemented yet\n");
@@ -1317,10 +1315,10 @@ sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, co
 
 /*!
  * \brief Config Converter/Parser for Mailbox Value
- * \todo make checks for changes to make it more generic 
  */
 sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_mailbox_t *mailbox = NULL;
 	char *context, *mbox = NULL;
 
@@ -1346,12 +1344,9 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, co
 
 			SCCP_LIST_INSERT_TAIL(mailboxList, mailbox, list);
 		}
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
-	/* \todo when mbox is free-ed here, we get a segfault */
-/*	if (mbox)
-		sccp_free(mbox);
-*/		
-	return SCCP_CONFIG_CHANGE_CHANGED;
+	return changed;
 }
 
 /*!
