@@ -106,12 +106,11 @@ enum SCCPConfigOptionType {
 /* *INDENT-OFF* */
 	SCCP_CONFIG_DATATYPE_BOOLEAN			= 1 << 0,
 	SCCP_CONFIG_DATATYPE_INT			= 1 << 1,
-	SCCP_CONFIG_DATATYPE_UINT8			= 1 << 2,
-	SCCP_CONFIG_DATATYPE_UINT16			= 1 << 3,
-	SCCP_CONFIG_DATATYPE_STRING			= 1 << 4,
-	SCCP_CONFIG_DATATYPE_GENERIC			= 1 << 5,
-	SCCP_CONFIG_DATATYPE_STRINGPTR			= 1 << 6,	/* pointer */
-	SCCP_CONFIG_DATATYPE_CHAR			= 1 << 7,
+	SCCP_CONFIG_DATATYPE_UINT			= 1 << 2,
+	SCCP_CONFIG_DATATYPE_STRING			= 1 << 3,
+	SCCP_CONFIG_DATATYPE_GENERIC			= 1 << 4,
+	SCCP_CONFIG_DATATYPE_STRINGPTR			= 1 << 5,	/* pointer */
+	SCCP_CONFIG_DATATYPE_CHAR			= 1 << 6,
 /* *INDENT-ON* */
 };
 
@@ -212,17 +211,17 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
   {"externip", 				G_OBJ_REF(externip), 			SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"",		sccp_config_parse_ipaddress,"IP Address that we're going to notify in RTP media stream"},
   {"externhost", 			G_OBJ_REF(externhost), 			SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"",		NULL,			"Hostname (if dynamic) that we're going to notify in RTP media stream"},
   {"externrefresh", 			G_OBJ_REF(externrefresh), 		SCCP_CONFIG_DATATYPE_INT,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"60",		NULL,		"Expire time in seconds for the hostname (dns resolution)"},
-  {"firstdigittimeout", 		G_OBJ_REF(firstdigittimeout), 		SCCP_CONFIG_DATATYPE_UINT8,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"16",		NULL,			"Dialing timeout for the 1st digit "},
+  {"firstdigittimeout", 		G_OBJ_REF(firstdigittimeout), 		SCCP_CONFIG_DATATYPE_UINT,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"16",		NULL,			"Dialing timeout for the 1st digit "},
   {"digittimeout", 			G_OBJ_REF(digittimeout), 		SCCP_CONFIG_DATATYPE_INT,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"8",		NULL,			"More digits"},
   {"digittimeoutchar", 			G_OBJ_REF(digittimeoutchar), 		SCCP_CONFIG_DATATYPE_CHAR,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"#",		NULL,			"You can force the channel to dial with this char in the dialing state"},
   {"recorddigittimeoutchar", 		G_OBJ_REF(recorddigittimeoutchar), 	SCCP_CONFIG_DATATYPE_BOOLEAN,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"false",	NULL,			"You can force the channel to dial with this char in the dialing state"},
   {"simulate_enbloc",	 		G_OBJ_REF(simulate_enbloc), 		SCCP_CONFIG_DATATYPE_BOOLEAN,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"true",		NULL,			"Use simulated enbloc dialing to speedup connection when dialing while onhook (older phones)"},
-  {"autoanswer_ring_time", 		G_OBJ_REF(autoanswer_ring_time),	SCCP_CONFIG_DATATYPE_UINT8,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"1",		NULL,			"Ringing time in seconds for the autoanswer, the default is 1"},
-  {"autoanswer_tone", 			G_OBJ_REF(autoanswer_tone), 		SCCP_CONFIG_DATATYPE_UINT8,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"0x32",		NULL,			"Autoanswer confirmation tone. For a complete list of tones: grep SKINNY_TONE sccp_protocol.h"
+  {"autoanswer_ring_time", 		G_OBJ_REF(autoanswer_ring_time),	SCCP_CONFIG_DATATYPE_UINT,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"1",		NULL,			"Ringing time in seconds for the autoanswer, the default is 1"},
+  {"autoanswer_tone", 			G_OBJ_REF(autoanswer_tone), 		SCCP_CONFIG_DATATYPE_UINT,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"0x32",		NULL,			"Autoanswer confirmation tone. For a complete list of tones: grep SKINNY_TONE sccp_protocol.h"
 																													"not all the tones can be played in a connected state, so you have to try."},
-  {"remotehangup_tone", 		G_OBJ_REF(remotehangup_tone), 		SCCP_CONFIG_DATATYPE_UINT8,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"0x32",		NULL,			"Passive hangup notification. 0 for none"},
-  {"transfer_tone", 			G_OBJ_REF(transfer_tone), 		SCCP_CONFIG_DATATYPE_UINT8,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"0",		NULL,			"Confirmation tone on transfer. Works only between SCCP devices"},
-  {"callwaiting_tone", 			G_OBJ_REF(callwaiting_tone), 		SCCP_CONFIG_DATATYPE_UINT8,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"0x2d",		NULL,			"Sets to 0 to disable the callwaiting tone"},
+  {"remotehangup_tone", 		G_OBJ_REF(remotehangup_tone), 		SCCP_CONFIG_DATATYPE_UINT,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"0x32",		NULL,			"Passive hangup notification. 0 for none"},
+  {"transfer_tone", 			G_OBJ_REF(transfer_tone), 		SCCP_CONFIG_DATATYPE_UINT,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"0",		NULL,			"Confirmation tone on transfer. Works only between SCCP devices"},
+  {"callwaiting_tone", 			G_OBJ_REF(callwaiting_tone), 		SCCP_CONFIG_DATATYPE_UINT,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"0x2d",		NULL,			"Sets to 0 to disable the callwaiting tone"},
   {"musicclass", 			G_OBJ_REF(musicclass), 			SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"default",	NULL,			"Sets the default music on hold class"},
   {"language", 				G_OBJ_REF(language), 			SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"en",		NULL,			"Default language setting"},
 #ifdef CS_MANAGER_EVENTS
@@ -427,7 +426,7 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
   {"meetmeopts", 			L_OBJ_REF(meetmeopts),			SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT,	SCCP_CONFIG_NOUPDATENEEDED,		NULL,	NULL, 				"options to send the meetme application, defaults are dependent on meetme app see the list above."
                                                                                                                                                                                                                                         "Other options (app_meetme: A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see conferencing app for specific documentation"},
   {"transfer", 				L_OBJ_REF(transfer),			SCCP_CONFIG_DATATYPE_BOOLEAN,	SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT,	SCCP_CONFIG_NOUPDATENEEDED,		NULL,	NULL, 				"per line transfer capability"},
-  {"incominglimit", 			L_OBJ_REF(incominglimit),		SCCP_CONFIG_DATATYPE_UINT16,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		NULL,	NULL, 				"allow x number of incoming calls (call waiting)"},
+  {"incominglimit", 			L_OBJ_REF(incominglimit),		SCCP_CONFIG_DATATYPE_UINT,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		NULL,	NULL, 				"allow x number of incoming calls (call waiting)"},
   {"echocancel", 			L_OBJ_REF(echocancel),			SCCP_CONFIG_DATATYPE_BOOLEAN,	SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,	SCCP_CONFIG_NOUPDATENEEDED,		NULL,	NULL, 				"sets the phone echocancel for this line"},
   {"silencesuppression",		L_OBJ_REF(silencesuppression),		SCCP_CONFIG_DATATYPE_BOOLEAN,	SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,	SCCP_CONFIG_NOUPDATENEEDED,		NULL,	NULL, 				"sets the silence suppression for this line"},
   {"language", 				L_OBJ_REF(language),			SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,	SCCP_CONFIG_NOUPDATENEEDED,		NULL,	NULL, 				"sets the language setting per line"},
@@ -438,7 +437,7 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
   {"pickupgroup", 			L_OBJ_REF(pickupgroup),			SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,		 	SCCP_CONFIG_NOUPDATENEEDED,		NULL, 	sccp_config_parse_group,	"sets the pickup groups this line is a member of (this phone can pickup calls from remote phones which are in this caller group"},
   {"trnsfvm", 				L_OBJ_REF(trnsfvm),			SCCP_CONFIG_DATATYPE_STRINGPTR,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		NULL,	NULL, 				"extension to redirect the caller to for voice mail"},
   {"secondary_dialtone_digits", 	L_OBJ_REF(secondary_dialtone_digits),	SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,	 	"9", 	sccp_config_parse_secondaryDialtoneDigits, 	"digits to indicate an external line to user (secondary dialtone) (max 9 digits)"},
-  {"secondary_dialtone_tone", 		L_OBJ_REF(secondary_dialtone_tone),	SCCP_CONFIG_DATATYPE_UINT8, 	SCCP_CONFIG_FLAG_NONE, 			SCCP_CONFIG_NOUPDATENEEDED, 		"0x22", NULL,			 	"outside dialtone frequency"},
+  {"secondary_dialtone_tone", 		L_OBJ_REF(secondary_dialtone_tone),	SCCP_CONFIG_DATATYPE_UINT, 	SCCP_CONFIG_FLAG_NONE, 			SCCP_CONFIG_NOUPDATENEEDED, 		"0x22", NULL,			 	"outside dialtone frequency"},
   {"setvar", 				L_OBJ_REF(variables),			SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,		 	SCCP_CONFIG_NOUPDATENEEDED, 		NULL, 	sccp_config_parse_variables,	"extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)"
                                                                                                                                                                                                                                         "format setvar=param=value, for example setvar=sipno=12345678"},
   {"dnd", 				L_OBJ_REF(dndmode),			SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 	SCCP_CONFIG_NOUPDATENEEDED, 		"reject", sccp_config_parse_dnd, 		"allow setting dnd for this line. Valid values are 'off', 'on' (busy signal), 'reject' (busy signal), 'silent' (ringer = silent) or user to toggle on phone"},
@@ -538,10 +537,12 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;		/* indicates config value is changed or not */
 	sccp_configurationchange_t changes = SCCP_CONFIG_NOUPDATENEEDED;
 
-	int intnum;
+	short int int8num;
+	int int16num;
+	long int int32num;
 	short unsigned int uint8num;
 	unsigned int uint16num;
-//	long unsigned int uint32num;
+	long unsigned int uint32num;
 	boolean_t bool;
 	char *str;
 	char oldChar;
@@ -633,30 +634,61 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 
 	case SCCP_CONFIG_DATATYPE_INT:
 		if (!sccp_strlen_zero(value)) {
-			intnum = atoi(value);
-			if ((*(int *)dst) != intnum) {
-				*(int *)dst = intnum;
-				changed = SCCP_CONFIG_CHANGE_CHANGED;
+			switch (sccpConfigOption->size)	 {
+				case 1:
+					if (sscanf(value, "%hd", &int8num) == 1) {
+						if ((*(int8_t *)dst) != int8num) {
+							*(int8_t *)dst = int8num;
+							changed = SCCP_CONFIG_CHANGE_CHANGED;
+						}
+					}
+					break;
+				case 2:
+					if (sscanf(value, "%d", &int16num) == 1) {
+						if ((*(int16_t *)dst) != int16num) {
+							*(int16_t *)dst = int16num;
+							changed = SCCP_CONFIG_CHANGE_CHANGED;
+						}
+					}
+					break;
+				case 4:
+					if (sscanf(value, "%ld", &int32num) == 1) {
+						if ((*(int32_t *)dst) != int32num) {
+							*(int32_t *)dst = int32num;
+							changed = SCCP_CONFIG_CHANGE_CHANGED;
+						}
+					}
+					break;
 			}
 		}
 		break;
-	case SCCP_CONFIG_DATATYPE_UINT8:
+	case SCCP_CONFIG_DATATYPE_UINT:
 		if (!sccp_strlen_zero(value)) {
-			if (sscanf(value, "%hu", &uint8num) == 1) {
-				if ((*(uint8_t *)dst) != uint8num) {
-					*(uint8_t *)dst = uint8num;
-					changed = SCCP_CONFIG_CHANGE_CHANGED;
-				}
-			}
-		}
-		break;
-	case SCCP_CONFIG_DATATYPE_UINT16:
-		if (!sccp_strlen_zero(value)) {
-			if (sscanf(value, "%u", &uint16num) == 1) {
-				if ((*(uint16_t *)dst) != uint16num) {
-					*(uint16_t *)dst = uint16num;
-					changed = SCCP_CONFIG_CHANGE_CHANGED;
-				}
+			switch (sccpConfigOption->size)	 {
+				case 1:
+					if (sscanf(value, "%hu", &uint8num) == 1) {
+						if ((*(uint8_t *)dst) != uint8num) {
+							*(uint8_t *)dst = uint8num;
+							changed = SCCP_CONFIG_CHANGE_CHANGED;
+						}
+					}
+					break;
+				case 2:
+					if (sscanf(value, "%u", &uint16num) == 1) {
+						if ((*(uint16_t *)dst) != uint16num) {
+							*(uint16_t *)dst = uint16num;
+							changed = SCCP_CONFIG_CHANGE_CHANGED;
+						}
+					}
+					break;
+				case 4:
+					if (sscanf(value, "%lu", &uint32num) == 1) {
+						if ((*(uint32_t *)dst) != uint32num) {
+							*(uint32_t *)dst = uint32num;
+							changed = SCCP_CONFIG_CHANGE_CHANGED;
+						}
+					}
+					break;
 			}
 		}
 		break;

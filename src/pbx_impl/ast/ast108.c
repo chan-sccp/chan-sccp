@@ -554,14 +554,12 @@ static int sccp_wrapper_asterisk18_setNativeAudioFormats(const sccp_channel_t *c
 		char codecs[512];
 		sccp_multiple_codecs2str(codecs, sizeof(codecs) - 1, codec, length);
 		sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_2 "%s: updated native Formats to %d, length: %d, skinny: [%s]\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), (int)channel->owner->nativeformats, length, codecs);
-		return 1;
-	} else {
-		return 0;
 	}
 //#else
 //	channel->owner->nativeformats = skinny_codec2pbx_codec(codec[0]);
 //	return 1;
 #endif
+	return 1;
 }
 
 static int sccp_wrapper_asterisk18_setNativeVideoFormats(const sccp_channel_t * channel, uint32_t formats)
