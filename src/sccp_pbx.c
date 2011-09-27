@@ -238,6 +238,7 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 	}
 
 	boolean_t isRinging = FALSE;
+	boolean_t hasDNDParticipant = FALSE;
 
 	sccp_linedevices_t *linedevice;
 
@@ -272,8 +273,10 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 			sccp_channel_unlock(c);
 			isRinging = TRUE;
 		} else {
-			if (linedevice->device->dndFeature.enabled && linedevice->device->dndFeature.status == SCCP_DNDMODE_REJECT)
+			if (linedevice->device->dndFeature.enabled && linedevice->device->dndFeature.status == SCCP_DNDMODE_REJECT){
+				hasDNDParticipant = TRUE;
 				continue;
+			}
 
 			/* \todo perhaps lock the channel on global section */
 			sccp_channel_lock(c);
@@ -306,12 +309,10 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 	if (isRinging) {
 		pbx_queue_control(ast, AST_CONTROL_RINGING);
 		sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_RINGIN);
-	} else {
-		if (linedevice->device->dndFeature.enabled && linedevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
-			pbx_queue_control(ast, AST_CONTROL_BUSY);
-		} else {		
-			pbx_queue_control(ast, AST_CONTROL_CONGESTION);
-		}
+	} else if(hasDNDParticipant) {
+		pbx_queue_control(ast, AST_CONTROL_BUSY);
+	} else{
+		pbx_queue_control(ast, AST_CONTROL_CONGESTION);
 	}
 
 	if (cid_name)
