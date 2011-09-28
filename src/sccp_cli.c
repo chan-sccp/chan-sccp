@@ -1683,6 +1683,60 @@ CLI_ENTRY(cli_reload, sccp_cli_reload, "Reload the SCCP configuration", reload_u
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 
+/*
+#define CLI_COMMAND "sccp", "config", "reload"
+#define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
+CLI_ENTRY(cli_config_reload, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
+#undef CLI_COMMAND
+#undef CLI_COMPLETE
+*/
+
+/*!
+ * \brief Generare sccp.conf
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ */
+static int sccp_cli_config_generate(int fd, int argc, char *argv[])
+{
+#ifdef CS_EXPERIMENTAL
+	int returnval=RESULT_SUCCESS;
+	char *config_file="sccp.conf.test";
+
+	if (argc < 2 || argc > 3)
+		return RESULT_SHOWUSAGE;
+
+	pbx_cli(fd, "SCCP: Creating config file.\n");
+
+	if (argc > 3) {
+		pbx_cli(fd, "Using config file '%s'\n", argv[3]);
+		config_file=strdupa(argv[3]);
+	}
+	if (sccp_config_generate(config_file, sizeof(config_file))) {
+		pbx_cli(fd, "SCCP generated. saving '%s'...\n", config_file);
+	} else {
+		pbx_cli(fd, "SCCP generation failed.\n");
+		returnval = RESULT_FAILURE;
+	}
+
+	return returnval;
+#else
+	pbx_cli(fd, "SCCP config generate not implemented yet! use unload and load.\n");
+	return RESULT_FAILURE;
+#endif
+}
+
+static char config_generate_usage[] = "Usage: SCCP config generate [filename]\n" "       Generates a new sccp.conf if none exists. Either creating sccp.conf or [filename] if specified\n";
+
+#define CLI_COMMAND "sccp", "config", "generate"
+#define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
+CLI_ENTRY(cli_config_generate, sccp_cli_config_generate, "Generate a SCCP configuration file", config_generate_usage, FALSE)
+#undef CLI_COMMAND
+#undef CLI_COMPLETE
+
 /* -------------------------------------------------------------------------------------------------------SHOW VERSION- */
 
 /*!
@@ -2084,6 +2138,8 @@ static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_dnd_device, "Set DND on a device"),
 	AST_CLI_DEFINE(cli_do_debug, "Enable SCCP debugging."),
 	AST_CLI_DEFINE(cli_no_debug, "Disable SCCP debugging."),
+	AST_CLI_DEFINE(cli_config_generate, "SCCP generate config file."),
+//	AST_CLI_DEFINE(cli_config_reload, "SCCP module reload."),
 	AST_CLI_DEFINE(cli_reload, "SCCP module reload."),
 	AST_CLI_DEFINE(cli_restart, "Restart an SCCP device"),
 	AST_CLI_DEFINE(cli_reset, "Reset an SCCP Device"),
@@ -2112,6 +2168,8 @@ void sccp_register_cli(void)
 	pbx_cli_register(&cli_show_sessions);
 	pbx_cli_register(&cli_show_version);
 	pbx_cli_register(&cli_show_softkeysets);
+	pbx_cli_register(&cli_config_generate);
+//	pbx_cli_register(&cli_config_reload);
 	pbx_cli_register(&cli_reload);
 	pbx_cli_register(&cli_restart);
 	pbx_cli_register(&cli_reset);
@@ -2166,6 +2224,8 @@ void sccp_unregister_cli(void)
 	pbx_cli_unregister(&cli_show_sessions);
 	pbx_cli_unregister(&cli_show_version);
 	pbx_cli_unregister(&cli_show_softkeysets);
+	pbx_cli_unregister(&cli_config_generate);
+//	pbx_cli_unregister(&cli_config_reload);
 	pbx_cli_unregister(&cli_reload);
 	pbx_cli_unregister(&cli_restart);
 	pbx_cli_unregister(&cli_reset);
