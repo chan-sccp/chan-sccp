@@ -270,9 +270,11 @@ PBX_VARIABLE_TYPE *sccp_create_variable(const char *buf)
 sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_channel)
 {
 #ifndef CS_AST_HAS_TECH_PVT
-	if (!(NULL == pbx_channel) && !(NULL == pbx_channel->type) && !strncasecmp(pbx_channel->type, "SCCP", 4)) {
+//	if (!(NULL == pbx_channel) && !(NULL == pbx_channel->type) && !strncasecmp(pbx_channel->type, "SCCP", 4)) {
+	if (!strncasecmp(pbx_channel->type, "SCCP", 4)) {
 #else
-	if (!(NULL == pbx_channel) && !(NULL == pbx_channel->tech) && !(NULL == pbx_channel->tech->type) && !strncasecmp(pbx_channel->tech->type, "SCCP", 4)) {
+//	if (!(NULL == pbx_channel) && !(NULL == pbx_channel->tech) && !(NULL == pbx_channel->tech->type) && !strncasecmp(pbx_channel->tech->type, "SCCP", 4)) {
+	if (!strncasecmp(pbx_channel->tech->type, "SCCP", 4)) {
 #endif
 		return CS_AST_CHANNEL_PVT(pbx_channel);
 	} else {
