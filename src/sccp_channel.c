@@ -2393,6 +2393,10 @@ void sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices
 
 	/* dial sccp_forwarding_channel */
 	sccp_copy_string(sccp_forwarding_channel->owner->exten, dialedNumber, sizeof(sccp_forwarding_channel->owner->exten));
+
+
+        /* \todo copy device line setvar variables from parent channel to forwarder->owner */
+
 	//PBX(set_callstate)(sccp_forwarding_channel, AST_STATE_OFFHOOK);
 	PBX(set_callstate) (sccp_forwarding_channel, AST_STATE_OFFHOOK);
 	if (!sccp_strlen_zero(dialedNumber) 
