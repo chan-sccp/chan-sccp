@@ -2325,6 +2325,21 @@ void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevi
 	/* copy channel variables */
 	sccp_pbx_copyChannelVariables(parent->owner, forwarder->owner, SCCP_COPYVARIABLE_NORMAL | SCCP_COPYVARIABLE_HARDTRANSFERABLE | SCCP_COPYVARIABLE_SOFTTRANSFERABLE);
 
+        /* set devicevariables */
+        struct ast_variable *v = NULL;
+        v = ((lineDevice->device) ? lineDevice->device->variables : NULL);
+        while (forwarder->owner && lineDevice->device && v) {
+                pbx_builtin_setvar_helper(forwarder->owner, v->name, v->value);
+                v = v->next;
+        }
+
+        /* set linevariables */
+        v = ((lineDevice->line) ? lineDevice->line->variables : NULL);
+        while (forwarder->owner && lineDevice->line && v) {
+                pbx_builtin_setvar_helper(forwarder->owner, v->name, v->value);
+                v = v->next;
+        }
+
 	/* dial forwarder */
 	sccp_copy_string(forwarder->owner->exten, dialedNumber, sizeof(forwarder->owner->exten));
 	PBX(set_callstate) (forwarder, AST_STATE_OFFHOOK);
