@@ -19,7 +19,7 @@
 void *sccp_socket_thread(void *ignore);
 void sccp_session_sendmsg(const sccp_device_t * device, sccp_message_t t);
 int sccp_session_send(const sccp_device_t * device, sccp_moo_t * r);
-void sccp_session_reject(sccp_session_t * session, char *message);
+sccp_session_t *sccp_session_reject(sccp_session_t * session, char *message);
 void sccp_session_tokenReject(sccp_session_t * session, uint32_t backoff_time);
 void sccp_session_tokenAck(sccp_session_t * session);
 struct in_addr *sccp_session_getINaddr(sccp_device_t * device, int type);

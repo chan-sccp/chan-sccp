@@ -211,7 +211,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
 	/* ip address range check */
 	if (GLOB(ha) && !sccp_apply_ha(GLOB(ha), &s->sin)) {
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName);
-		sccp_session_reject(s, "Device ip not authorized");
+		s = sccp_session_reject(s, "Device ip not authorized");
 		return;
 	}
 	
@@ -243,7 +243,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
 			SCCP_RWLIST_UNLOCK(&GLOB(devices));
 		} else {
 			pbx_log(LOG_NOTICE, "%s: Rejecting device: not found\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName);
-			sccp_session_reject(s, "Unknown Device");
+			s = sccp_session_reject(s, "Unknown Device");
 			return;
 		}
 	} else if (device->ha && !sccp_apply_ha(device->ha, &s->sin)) {
@@ -320,72 +320,72 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			j += 1;
 		}	    
 	}
-
-	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: IPv6-Address: %s\n", r->msg.RegisterMessage.sId.deviceName, ipv6Addr);
 	i = 0;
-    
-    
-	/* ip address range check */
-	if (GLOB(ha) && !sccp_apply_ha(GLOB(ha), &s->sin)) {
-		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.RegisterMessage.sId.deviceName);
-		sccp_session_reject(s, "Device ip not authorized");
-		return;
-	}
-	// Search for already known devices
-	d = sccp_device_find_byid(r->msg.RegisterMessage.sId.deviceName, FALSE);
-	if (d) {
-		if (d->session && d->session != s) {
-			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", d->id);
-			d->session->session_stop = 1;				/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
-			sccp_dev_clean(d, FALSE, 0);				/* we need to clean device configuration to set lines */
-			sccp_log(1) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
-		}
-	}
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: IPv6-Address: %s\n", r->msg.RegisterMessage.sId.deviceName, ipv6Addr);
+
 
 	// search for all devices including realtime
 	d = sccp_device_find_byid(r->msg.RegisterMessage.sId.deviceName, TRUE);
-	if (!d) {
-		if (GLOB(allowAnonymous)) {
-			d = sccp_device_create();
-			sccp_config_applyDeviceConfiguration(d, NULL);
-			d->realtime = TRUE;
+	
+	if (!d && GLOB(allowAnonymous)) {
+		  d = sccp_device_create();
+		  sccp_config_applyDeviceConfiguration(d, NULL);
+		  d->realtime = TRUE;
 
-			sccp_copy_string(d->id, r->msg.RegisterMessage.sId.deviceName, sizeof(d->id));
-			d->isAnonymous = TRUE;
-			sccp_config_addButton(&d->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.RegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
-			d->defaultLineInstance = 1;
-			SCCP_RWLIST_WRLOCK(&GLOB(devices));
-			SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), d, list);
-			SCCP_RWLIST_UNLOCK(&GLOB(devices));
-		} else {
-			pbx_log(LOG_NOTICE, "%s: Rejecting device: not found\n", r->msg.RegisterMessage.sId.deviceName);
-			sccp_session_reject(s, "Unknown Device");
+		  sccp_copy_string(d->id, r->msg.RegisterMessage.sId.deviceName, sizeof(d->id));
+		  d->isAnonymous = TRUE;
+		  sccp_config_addButton(&d->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
+		  sccp_log(1) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.RegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
+		  d->defaultLineInstance = 1;
+		  SCCP_RWLIST_WRLOCK(&GLOB(devices));
+		  SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), d, list);
+		  SCCP_RWLIST_UNLOCK(&GLOB(devices));
+	} 
+	
+	if (d) {
+		struct sccp_ha *temp_ha;
+		
+		// copy ha
+		temp_ha = d->ha;
+		
+
+		// add permithosts after having been resolved
+		char new_permit[31]={0};
+		uint8_t i=0;
+// 		SCCP_LIST_LOCK(&d->permithosts);
+// 		SCCP_LIST_TRAVERSE(&d->permithosts, permithost, list) {
+// 			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
+// 			  
+// 				for(i=0; NULL != hp->h_addr_list[i]; i++ ){	// walk resulting ip address
+// 					snprintf(new_permit, sizeof(new_permit),  "%s/255.255.255.255", pbx_inet_ntoa( *( struct in_addr*)( hp -> h_addr_list[i])));
+// 			        	sccp_append_ha("permit", new_permit, temp_ha, NULL);
+// 				}
+// 			} else {
+// 				ast_log(LOG_NOTICE, "%s: Invalid address resolution for permithost = %s (skipping permithost).\n", r->msg.RegisterMessage.sId.deviceName, permithost->name);
+// 			}
+// 		}
+// 		SCCP_LIST_UNLOCK(&d->permithosts);
+		
+		s->device = d;				/* attach device to session, so it can be cleaned up during session cleanup */
+ 
+		// check ha
+		if (sccp_apply_ha(temp_ha, &s->sin) != AST_SENSE_ALLOW) {
+			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
+			s = sccp_session_reject(s, "IP Not Authorized");
 			return;
 		}
-	} else if (d->ha && !sccp_apply_ha(d->ha, &s->sin)) {
-
-		// \todo check anonymous devices for permit hosts
-		SCCP_LIST_LOCK(&d->permithosts);
-		SCCP_LIST_TRAVERSE(&d->permithosts, permithost, list) {
-			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
-				memcpy(&sin.sin_addr, hp->h_addr, sizeof(sin.sin_addr));
-				if (s->sin.sin_addr.s_addr == sin.sin_addr.s_addr) {
-					break;
-				} else {
-					pbx_log(LOG_NOTICE, "%s: device ip address does not match the permithost = %s (%s)\n", r->msg.RegisterMessage.sId.deviceName, permithost->name, pbx_inet_ntoa(sin.sin_addr));
-				}
-			} else {
-				pbx_log(LOG_NOTICE, "%s: Invalid address resolution for permithost = %s\n", r->msg.RegisterMessage.sId.deviceName, permithost->name);
-			}
-		}
-		SCCP_LIST_UNLOCK(&d->permithosts);
-
-		if (i) {
-			pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.RegisterMessage.sId.deviceName);
-			sccp_session_reject(s, "Device ip not authorized");
+		
+		if (d->session && d->session != s) {
+			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", d->id);
+			s->session_stop = 1;		/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
+			sccp_log(1) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
 			return;
 		}
+		
+	} else {
+		ast_log(LOG_NOTICE, "%s: Rejecting device: Device Unknown \n", r->msg.RegisterMessage.sId.deviceName);
+		s = sccp_session_reject(s, "Device Unknown");
+		return;
 	}
 
 	sccp_device_lock(d);
@@ -400,7 +400,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			(r->msg.RegisterMessage.phone_features & SKINNY_PHONE_FEATUES_DYNAMIC_MESSAGES) == 0 ? "no" : "yes",
 			(r->msg.RegisterMessage.phone_features & SKINNY_PHONE_FEATUES_ABBRDIAL) == 0 ? "no" : "yes");
 
-	if (GLOB(localaddr) && sccp_apply_ha(GLOB(localaddr), &s->sin)) {
+	if (GLOB(localaddr) && sccp_apply_ha(GLOB(localaddr), &s->sin) != AST_SENSE_ALLOW) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream \n", r->msg.RegisterMessage.sId.deviceName);
 		d->nat = 1;
 	}
@@ -585,6 +585,10 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 
 					case SCCP_FEATURE_TRANSFER:
 						btn[i].type = SKINNY_BUTTONTYPE_TRANSFER;
+						break;
+						
+					case SCCP_FEATURE_MONITOR:
+						btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 						break;
 
 					case SCCP_FEATURE_MULTIBLINK:
@@ -2838,12 +2842,15 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 		sccp_copy_string(featureOption, config->button.feature.options, sizeof(featureOption));
 	}
 
-	sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s \n", d->id, config->button.feature.id, featureOption);
+	sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s\n", d->id, config->button.feature.id, featureOption);
 	switch (config->button.feature.id) {
+	  
 	case SCCP_FEATURE_PRIVACY:
 
-		if (!d->privacyFeature.enabled)
+		if (!d->privacyFeature.enabled){
+			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: privacy feature is disabled, ignore this change\n", d->id);
 			break;
+		}
 
 		if (!strcasecmp(config->button.feature.options, "callpresent")) {
 			uint32_t res = d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
@@ -2859,6 +2866,8 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 				config->button.feature.status = 1;
 			}
 			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
+		}else{
+			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: do not know how to handle %s\n", d->id, config->button.feature.options);
 		}
 
 		break;
@@ -2894,10 +2903,21 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 #ifdef CS_SCCP_FEATURE_MONITOR
 	case SCCP_FEATURE_MONITOR:
 		d->monitorFeature.status = (d->monitorFeature.status) ? 0 : 1;
-		sccp_channel_t *channel = sccp_channel_get_active_locked(d);
-
-		sccp_feat_monitor(d, channel->line, 0, channel);
-		sccp_channel_unlock(channel);
+		
+		
+		
+		if(TRUE == toggleState){
+		  
+			sccp_channel_t *channel = sccp_channel_get_active_locked(d);
+			if(!channel){
+				d->monitorFeature.status = (SCCP_FEATURE_MONITOR_STATE_DISABLED == d->monitorFeature.status) ? SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE : SCCP_FEATURE_MONITOR_STATE_DISABLED;
+			}else{
+				d->monitorFeature.status = (SCCP_FEATURE_MONITOR_STATE_DISABLED == d->monitorFeature.status) ? SCCP_FEATURE_MONITOR_STATE_ACTIVE : SCCP_FEATURE_MONITOR_STATE_DISABLED;
+				sccp_feat_monitor(d, channel->line, 0, channel);
+				sccp_channel_unlock(channel);
+			}
+		}
+		
 		break;
 #endif
 

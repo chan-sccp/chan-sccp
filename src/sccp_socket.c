@@ -189,7 +189,8 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 
 	d = s->device;
 
-	if (d) {
+	/* cleanup device if this session is not a crossover session */
+	if (d && (d->session == s || NULL == d->session) ) {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), pbx_inet_ntoa(s->sin.sin_addr));
 		sccp_device_lock(d);
 		d->session = NULL;
@@ -371,11 +372,30 @@ static void sccp_accept_connection(void)
 	memset(s, 0, sizeof(sccp_session_t));
 	memcpy(&s->sin, &incoming, sizeof(s->sin));
 	sccp_mutex_init(&s->lock);
+	
+	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
+	SCCP_LIST_INSERT_HEAD(&GLOB(sessions), s, list);
+	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
+	
 
 	s->fds[0].events = POLLIN | POLLPRI;
 	s->fds[0].revents = 0;
 	s->fds[0].fd = new_socket;
 	
+	if(!GLOB(ha)){
+		ast_log(LOG_NOTICE, "No global ha list\n");
+	  
+	}
+	
+	
+	/* check ip address against global permit/deny ACL*/
+	if ( GLOB(ha) && sccp_apply_ha(GLOB(ha), &s->sin) != AST_SENSE_ALLOW ) {
+		ast_log(LOG_NOTICE, "Rejecting device: Ip address '%s' denied %d \n", pbx_inet_ntoa(s->sin.sin_addr), sccp_apply_ha(GLOB(ha), &s->sin) );
+		s = sccp_session_reject(s, "Device ip not authorized");
+		return;
+	} 
+	
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", pbx_inet_ntoa(s->sin.sin_addr));
 	/** set default handler for registration to sccp */
 	s->protocolType = SCCP_PROTOCOL;
 
@@ -389,10 +409,6 @@ static void sccp_accept_connection(void)
 	}
 
 	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Using ip %s\n", pbx_inet_ntoa(s->ourip));
-
-	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
-	SCCP_LIST_INSERT_HEAD(&GLOB(sessions), s, list);
-	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
 
 	pthread_attr_t attr;
 
@@ -646,13 +662,27 @@ sccp_session_t *sccp_session_find(const sccp_device_t * device)
  * \param session SCCP Session Pointer
  * \param message Message as char (reason of rejection)
  */
-void sccp_session_reject(sccp_session_t * session, char *message)
+sccp_session_t *sccp_session_reject(sccp_session_t * session, char *message)
 {
 	sccp_moo_t *r;
 
 	REQ(r, RegisterRejectMessage);
 	sccp_copy_string(r->msg.RegisterRejectMessage.text, message, sizeof(r->msg.RegisterRejectMessage.text));
 	sccp_session_send2(session, r);
+	
+	
+	/* if we reject the connction during acceppt connection, thread is not ready */
+	if(session->session_thread){
+		pthread_cancel(session->session_thread);
+		session->session_thread = AST_PTHREADT_NULL;
+		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: use thread cleanup\n", DEV_ID_LOG(session->device));
+	}else{
+		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: no thread\n", DEV_ID_LOG(session->device));
+		sccp_session_close(session);
+		destroy_session(session, 0);
+	}
+	
+	return NULL;
 }
 
 /*!

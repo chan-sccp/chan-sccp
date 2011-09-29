@@ -1444,9 +1444,14 @@ static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * c
 	
 	format_t oldChannelFormat = channel->owner->rawwriteformat;
   
-	channel->owner->nativeformats = channel->owner->rawwriteformat = skinny_codec2pbx_codec(codec);
+// 	channel->owner->nativeformats = channel->owner->rawwriteformat = skinny_codec2pbx_codec(codec);
+	channel->owner->rawwriteformat = skinny_codec2pbx_codec(codec);
+	channel->owner->nativeformats |= channel->owner->rawwriteformat;
+	
+	
 // 	channel->owner->writeformat = skinny_codec2pbx_codec(codec); /* do not change the write format */
 #ifndef CS_EXPERIMENTAL
+	//sccp_wrapper_asterisk18_setNativeAudioFormats(channel, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio));
 	if(!channel->owner->writeformat){
 		channel->owner->writeformat = channel->owner->rawwriteformat;
 	}
@@ -1456,7 +1461,8 @@ static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * c
 		channel->owner->writetrans = NULL;
 	}
 #endif
-
+	ast_set_write_format(channel->owner, channel->owner->rawwriteformat);
+	
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write native: %d\n", (int)channel->owner->rawwriteformat);
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write: %d\n", (int)channel->owner->writeformat);
 
@@ -1481,11 +1487,18 @@ static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * c
 #else
 	ast_set_write_format(channel->owner, channel->owner->writeformat);
 #endif
+
+// 	if(oldChannelFormat != channel->owner->rawwriteformat){
+// 		sccp_pbx_queue_control((sccp_channel_t *)channel, AST_CONTROL_SRCUPDATE);
+// 	}
 	
-	if(oldChannelFormat != channel->owner->rawwriteformat){
-		sccp_pbx_queue_control((sccp_channel_t *)channel, AST_CONTROL_SRCUPDATE);
-	}
+	channel->owner->nativeformats = channel->owner->rawwriteformat;
+	ast_set_write_format(channel->owner, channel->owner->writeformat);
 	
+	channel->owner->nativeformats = channel->owner->rawreadformat;
+	ast_set_read_format(channel->owner, channel->owner->writeformat);
+	
+// 	channel->owner->nativeformats = 0;
 	return TRUE;
 }
 
@@ -1493,8 +1506,11 @@ static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * ch
 	
 	format_t oldChannelFormat = channel->owner->readformat;
   
-	channel->owner->nativeformats = channel->owner->rawreadformat = skinny_codec2pbx_codec(codec);
-
+// 	channel->owner->nativeformats = channel->owner->rawreadformat = skinny_codec2pbx_codec(codec);
+	channel->owner->rawreadformat = skinny_codec2pbx_codec(codec);
+	channel->owner->nativeformats |= channel->owner->rawreadformat;
+	
+	
 #ifndef CS_EXPERIMENTAL
 	if(!channel->owner->readformat){
 		channel->owner->readformat = channel->owner->rawreadformat;
@@ -1509,7 +1525,7 @@ static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * ch
 
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "read native: %d\n", (int)channel->owner->rawreadformat);
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "read: %d\n", (int)channel->owner->readformat);
-	
+	ast_set_read_format(channel->owner, channel->owner->readformat);
 	
 	
 
@@ -1533,11 +1549,18 @@ static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * ch
 #else
 	ast_set_read_format(channel->owner, channel->owner->readformat);
 #endif
+
 	
+// 	if(oldChannelFormat != channel->owner->rawreadformat){
+// 		sccp_pbx_queue_control((sccp_channel_t *)channel, AST_CONTROL_SRCUPDATE);
+// 	}
 	
-	if(oldChannelFormat != channel->owner->rawreadformat){
-		sccp_pbx_queue_control((sccp_channel_t *)channel, AST_CONTROL_SRCUPDATE);
-	}
+	channel->owner->nativeformats = channel->owner->rawwriteformat;
+	ast_set_write_format(channel->owner, channel->owner->writeformat);
+	
+	channel->owner->nativeformats = channel->owner->rawreadformat;
+	ast_set_read_format(channel->owner, channel->owner->writeformat);
+// 	channel->owner->nativeformats = 0;
 	
 	return TRUE;
 }
@@ -1838,18 +1861,20 @@ static int sccp_wrapper_asterisk18_setOption(struct ast_channel *ast, int option
 
 	switch (option) {
 	//! if AST_OPTION_FORMAT_READ / AST_OPTION_FORMAT_WRITE are available we might be indication that we can do transcoding (channel.c:set_format). Correct ? */
-/*
+
 	case AST_OPTION_FORMAT_READ:
 		if (c->rtp.audio.rtp) {
 			res = ast_rtp_instance_set_read_format(c->rtp.audio.rtp, *(int *) data);
 		}
+		sccp_wrapper_asterisk18_setReadFormat(c, *(int *) data);
 		break;
 	case AST_OPTION_FORMAT_WRITE:
 		if (c->rtp.audio.rtp) {
 			res = ast_rtp_instance_set_write_format(c->rtp.audio.rtp, *(int *) data);
 		}
+		sccp_wrapper_asterisk18_setWriteFormat(c, *(int *) data);
 		break;
-*/		
+		
 	case AST_OPTION_MAKE_COMPATIBLE:
 		if (c->rtp.audio.rtp) {
 			res = ast_rtp_instance_make_compatible(ast, c->rtp.audio.rtp, (struct ast_channel *) data);
@@ -2004,7 +2029,7 @@ const struct ast_channel_tech sccp_tech = {
 	//.write_video		=
 	//.cc_callback          =                                              // ccss, new >1.6.0
 	//.exception            =                                              // new >1.6.0
-//	.setoption 		= sccp_wrapper_asterisk18_setOption,
+// 	.setoption 		= sccp_wrapper_asterisk18_setOption,
 	//.queryoption          =                                              // new >1.6.0
 	//.get_pvt_uniqueid     = sccp_pbx_get_callid,                         // new >1.6.0
 	//.get_base_channel	=

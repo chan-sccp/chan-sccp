@@ -566,8 +566,8 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE *chan, NEWCONST char *cmd, cha
 		sccp_copy_string(buf, c->privacy ? "yes" : "no", len);
 	} else if (!strcasecmp(colname, "ss_action")) {
 		snprintf(buf, len, "%d", c->ss_action);
-	} else if (!strcasecmp(colname, "monitorEnabled")) {
-		sccp_copy_string(buf, c->monitorEnabled ? "yes" : "no", len);
+// 	} else if (!strcasecmp(colname, "monitorEnabled")) {
+// 		sccp_copy_string(buf, c->monitorEnabled ? "yes" : "no", len);
 	} else if (!strcasecmp(colname, "conference")) {
 		/*! \todo needs to be implemented */
 	} else if (!strcasecmp(colname, "parent")) {

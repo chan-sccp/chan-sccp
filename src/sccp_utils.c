@@ -2383,16 +2383,34 @@ struct sccp_ha *sccp_duplicate_ha_list(struct sccp_ha *original)
 int sccp_apply_ha(struct sccp_ha *ha, struct sockaddr_in *sin)
 {
 	/* Start optimistic */
-	int res = AST_SENSE_ALLOW;
-
+	int res = AST_SENSE_DENY;
+#if 0
+	char str1[INET_ADDRSTRLEN];
+	char str2[INET_ADDRSTRLEN];
+#endif
+	
 	while (ha) {
 		/* For each rule, if this address and the netmask = the net address
 		   apply the current rule */
+		
+#if 0		
+		inet_ntop(AF_INET, &ha->netaddr.s_addr, str1, INET_ADDRSTRLEN);
+		inet_ntop(AF_INET, &ha->netmask.s_addr, str2, INET_ADDRSTRLEN);
+		ast_log(LOG_NOTICE, "IP: %s, netmask: %s \n", str1, str2);
+		
+		
+		inet_ntop(AF_INET, &sin->sin_addr.s_addr, str1, INET_ADDRSTRLEN);
+		ast_log(LOG_NOTICE, "IP: %s\n", str1);
+#endif		
 		if ((sin->sin_addr.s_addr & ha->netmask.s_addr) == ha->netaddr.s_addr) {
 			res = ha->sense;
 		}
 		ha = ha->next;
 	}
+
+#if 0
+	ast_log(LOG_NOTICE, "result %d\n", res);
+#endif
 	return res;
 }
 
@@ -2429,9 +2447,8 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 		return ret;
 	}
 	memset(ha, 0, sizeof(struct sccp_ha));
-	ha->next = NULL;
 	
-	
+	ast_log(LOG_NOTICE, "start parsing ha sense: %s, stuff: %s \n", sense, stuff);
 	if (!(nm = strchr(tmp, '/'))) {
 		/* assume /32. Yes, htonl does not do anything for this particular mask
 		   but we better use it to show we remember about byte order */
