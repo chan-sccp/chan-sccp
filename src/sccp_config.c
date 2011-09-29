@@ -1054,16 +1054,18 @@ sccp_value_changed_t sccp_config_parse_permit(void *dest, const size_t size, con
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 
-	struct sccp_ha **ha = dest;
+	struct sccp_ha *ha = *(struct sccp_ha **)dest;
 
 	if (!strcasecmp(value,"internal")) {
-		sccp_append_ha("permit", "10.0.0.0/255.0.0.0", *ha, NULL);
-		sccp_append_ha("permit", "172.16.0.0/255.224.0.0", *ha, NULL);
-		sccp_append_ha("permit", "192.168.1.0/255.255.255.0", *ha, NULL);
+		ha = sccp_append_ha("permit", "10.0.0.0/255.0.0.0", ha, NULL);
+		ha = sccp_append_ha("permit", "172.16.0.0/255.224.0.0", ha, NULL);
+		ha = sccp_append_ha("permit", "192.168.1.0/255.255.255.0", ha, NULL);
 	} else {
-		sccp_append_ha("permit", value, *ha, NULL);
+		ha = sccp_append_ha("permit", value, ha, NULL);
 	}
-
+	
+	*(void **)dest = ha;
+	
 	return changed;
 }
 
@@ -1076,9 +1078,11 @@ sccp_value_changed_t sccp_config_parse_deny(void *dest, const size_t size, const
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 
-	struct sccp_ha **ha = dest;
+	struct sccp_ha *ha = *(struct sccp_ha **)dest;
 	
-	sccp_append_ha("deny", value, *ha, NULL);
+	ha = sccp_append_ha("deny", value, ha, NULL);
+	
+	*(void **)dest = ha;
 
 	return changed;
 }
@@ -1749,7 +1753,7 @@ sccp_configurationchange_t sccp_config_addButton(void *buttonconfig_head, int in
 	case FEATURE:
 		if (	FEATURE==config->type && 
 			!sccp_strcmp(config->label, name) &&
-			config->button.feature.id==sccp_featureStr2featureID(options)
+			config->button.feature.id == sccp_featureStr2featureID(options)
 			) {
 			if (!args || !sccp_strcmp(config->button.feature.options, args)) {
 				changes = SCCP_CONFIG_CHANGE_NOCHANGE;
