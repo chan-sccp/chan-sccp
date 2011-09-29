@@ -398,6 +398,12 @@ extern "C" {
 #    endif
 		SCCP_FEATURE_PICKUP
 	} sccp_feature_type_t;							/*!< Feature Type */
+	
+	typedef enum {
+		SCCP_FEATURE_MONITOR_STATE_DISABLED = 0,
+		SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE,
+		SCCP_FEATURE_MONITOR_STATE_ACTIVE,
+	} sccp_feature_monitor_state_t;						/*!< monitor feature state */
 
 /*!
  * \brief SCCP Feature Configuration Structure
@@ -1034,7 +1040,7 @@ extern "C" {
 		uint8_t ss_data;						/*!< Simple Switch Integer param */
 
 		/* feature sets */
-		boolean_t monitorEnabled;					/*!< Monitor Enabled Feature */
+//  		boolean_t monitorEnabled;					/*!< Monitor Enabled Feature */
 
 		struct sccp_conference *conference;				/*!< are we part of a conference? */
 		sccp_channel_t *parentChannel;					/*!< if we are a cfwd channel, our parent is this */

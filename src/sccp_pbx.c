@@ -741,6 +741,12 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 		PBX(set_callerid_name) (c, c->callInfo.callingPartyName);
 	
 	
+	if(c->getDevice(c) && c->getDevice(c)->monitorFeature.status == SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE){
+		sccp_feat_monitor(c->getDevice(c), c->line, 0, c);
+		sccp_feat_changed(c->getDevice(c), SCCP_FEATURE_MONITOR);
+	}
+	
+	
 	/* asterisk needs the native formats bevore dialout, otherwise the next channel gets the whole AUDIO_MASK as requested format
 	 * chan_sip dont like this do sdp processing */
 // 	PBX(set_nativeAudioFormats)(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
