@@ -107,7 +107,7 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		}
 	}
 
-	/* ip address range check */
+	/* double ip address range check */
 	if (GLOB(ha) && !pbx_apply_ha(GLOB(ha), &((sccp_session_t *) s)->sin)) {
 		ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.RegisterTokenReq.sId.deviceName);
 		REQ(r, RegisterTokenReject);
@@ -167,13 +167,9 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 	sccp_moo_t *r1;
 
-	uint8_t i = 0;
-
 	struct ast_hostent ahp;
 
 	struct hostent *hp;
-
-	struct sockaddr_in sin;
 
 	sccp_hostname_t *permithost;
 
@@ -184,12 +180,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d\n", r->msg.RegisterMessage.sId.deviceName, letohl(r->msg.RegisterMessage.sId.lel_instance), devicetype2str(letohl(r->msg.RegisterMessage.lel_deviceType)), letohl(r->msg.RegisterMessage.lel_deviceType), r->msg.RegisterMessage.protocolVer);
 
-	/* ip address range check */
-	if (GLOB(ha) && !pbx_apply_ha(GLOB(ha), &s->sin)) {
-		ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.RegisterMessage.sId.deviceName);
-		sccp_session_reject(s, "Device ip not authorized");
-		return;
-	}
 	// Search for already known devices
 	d = sccp_device_find_byid(r->msg.RegisterMessage.sId.deviceName, FALSE);
 	if (d) {
@@ -223,31 +213,46 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			sccp_session_reject(s, "Unknown Device");
 			return;
 		}
-	} else if (d->ha && !pbx_apply_ha(d->ha, &s->sin)) {
+	}
+	if (d) {
+		struct ast_ha *temp_ha;
+		// copy ha
+		temp_ha=ast_duplicate_ha_list(d->ha);
 
-		//! \todo check anonymous devices for permit hosts
+		// add permithosts after having been resolved
+		char new_permit[31]={0};
+		uint8_t i=0;
 		SCCP_LIST_LOCK(&d->permithosts);
 		SCCP_LIST_TRAVERSE(&d->permithosts, permithost, list) {
 			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
-				memcpy(&sin.sin_addr, hp->h_addr, sizeof(sin.sin_addr));
-				if (s->sin.sin_addr.s_addr == sin.sin_addr.s_addr) {
-					break;
-				} else {
-					ast_log(LOG_NOTICE, "%s: device ip address does not match the permithost = %s (%s)\n", r->msg.RegisterMessage.sId.deviceName, permithost->name, pbx_inet_ntoa(sin.sin_addr));
+				while ( hp -> h_addr_list[i] != NULL) {		// walk resulting ip address
+					snprintf(new_permit, sizeof(new_permit),  "%s/255.255.255.255", pbx_inet_ntoa( *( struct in_addr*)( hp -> h_addr_list[i])));
+#if ASTERISK_VERSION_NUMBER >= 10600 
+			        	ast_append_ha("permit", new_permit, temp_ha, NULL);
+#else 
+			        	ast_append_ha("permit", new_permit, temp_ha);
+#endif			        	
+					i++;
 				}
 			} else {
-				ast_log(LOG_NOTICE, "%s: Invalid address resolution for permithost = %s\n", r->msg.RegisterMessage.sId.deviceName, permithost->name);
+				ast_log(LOG_NOTICE, "%s: Invalid address resolution for permithost = %s (skipping permithost).\n", r->msg.RegisterMessage.sId.deviceName, permithost->name);
 			}
 		}
 		SCCP_LIST_UNLOCK(&d->permithosts);
-
-		if (i) {
-			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.RegisterMessage.sId.deviceName);
-			sccp_session_reject(s, "Device ip not authorized");
+ 
+		// check ha
+		if (ast_apply_ha(temp_ha, &s->sin) != AST_SENSE_ALLOW) {
+			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
+			sccp_free(temp_ha);
+			sccp_session_reject(s, "IP Not Authorized");
 			return;
 		}
+		sccp_free(temp_ha);
+	} else {
+		ast_log(LOG_NOTICE, "%s: Rejecting device: Device Unknown \n", r->msg.RegisterMessage.sId.deviceName);
+		sccp_session_reject(s, "Device Unknown");
+		return;
 	}
-
 	sccp_device_lock(d);
 	d->linesRegistered = FALSE;
 	/* test the localnet to understand if the device is behind NAT */
@@ -341,13 +346,9 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t *
 
 	sccp_moo_t *r1;
 
-	uint8_t i = 0;
-
 	struct ast_hostent ahp;
 
 	struct hostent *hp;
-
-	struct sockaddr_in sin;
 
 	sccp_hostname_t *permithost;
 
@@ -358,12 +359,6 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t *
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d)\n", r->msg.SPARegisterMessage.sId.deviceName, r->msg.SPARegisterMessage.sId.lel_instance, devicetype2str(letohl(r->msg.SPARegisterMessage.lel_deviceType)), letohl(r->msg.SPARegisterMessage.lel_deviceType));
 
-	/* ip address range check */
-	if (GLOB(ha) && !pbx_apply_ha(GLOB(ha), &s->sin)) {
-		ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.SPARegisterMessage.sId.deviceName);
-		sccp_session_reject(s, "Device ip not authorized");
-		return;
-	}
 	// Search for already known devices
 	d = sccp_device_find_byid(r->msg.SPARegisterMessage.sId.deviceName, FALSE);
 	if (d) {
@@ -401,31 +396,46 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t *
 			sccp_session_reject(s, "Unknown Device");
 			return;
 		}
-	} else if (d->ha && !pbx_apply_ha(d->ha, &s->sin)) {
+	}
+	if (d) {
+		struct ast_ha *temp_ha;
+		// copy ha
+		temp_ha=ast_duplicate_ha_list(d->ha);
 
-		//! \todo check anonymous devices for permit hosts
+		// add permithosts after having been resolved
+		char new_permit[31]={0};
+		uint8_t i = 0;
 		SCCP_LIST_LOCK(&d->permithosts);
 		SCCP_LIST_TRAVERSE(&d->permithosts, permithost, list) {
 			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
-				memcpy(&sin.sin_addr, hp->h_addr, sizeof(sin.sin_addr));
-				if (s->sin.sin_addr.s_addr == sin.sin_addr.s_addr) {
-					break;
-				} else {
-					ast_log(LOG_NOTICE, "%s: device ip address does not match the permithost = %s (%s)\n", r->msg.SPARegisterMessage.sId.deviceName, permithost->name, pbx_inet_ntoa(sin.sin_addr));
+				while ( hp -> h_addr_list[i] != NULL) {		// walk resulting ip address
+					snprintf(new_permit, sizeof(new_permit),  "%s/255.255.255.255", pbx_inet_ntoa( *( struct in_addr*)( hp -> h_addr_list[i])));
+#if ASTERISK_VERSION_NUMBER >= 10600 
+			        	ast_append_ha("permit", new_permit, temp_ha, NULL);
+#else 
+			        	ast_append_ha("permit", new_permit, temp_ha);
+#endif			        	
+					i++;
 				}
 			} else {
-				ast_log(LOG_NOTICE, "%s: Invalid address resolution for permithost = %s\n", r->msg.SPARegisterMessage.sId.deviceName, permithost->name);
+				ast_log(LOG_NOTICE, "%s: Invalid address resolution for permithost = %s (skipping permithost).\n", r->msg.RegisterMessage.sId.deviceName, permithost->name);
 			}
 		}
 		SCCP_LIST_UNLOCK(&d->permithosts);
-
-		if (i) {
-			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.SPARegisterMessage.sId.deviceName);
-			sccp_session_reject(s, "Device ip not authorized");
+ 
+		// check ha
+		if (ast_apply_ha(temp_ha, &s->sin) != AST_SENSE_ALLOW) {
+			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
+			sccp_free(temp_ha);
+			sccp_session_reject(s, "IP Not Authorized");
 			return;
 		}
+		sccp_free(temp_ha);
+	} else {
+		ast_log(LOG_NOTICE, "%s: Rejecting device: Device Unknown \n", r->msg.RegisterMessage.sId.deviceName);
+		sccp_session_reject(s, "Device Unknown");
+		return;
 	}
-
 	sccp_device_lock(d);
 	d->linesRegistered = FALSE;
 	/* test the localnet to understand if the device is behind NAT */

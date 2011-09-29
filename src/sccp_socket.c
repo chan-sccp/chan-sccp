@@ -350,7 +350,15 @@ static void sccp_accept_connection(void)
 	s->fds[0].fd = new_socket;
 
 	s->lastKeepAlive = time(0);
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", pbx_inet_ntoa(s->sin.sin_addr));
+
+	/* check ip address against global permit/deny ACL*/
+	if ((GLOB(ha) && pbx_apply_ha(GLOB(ha), &s->sin))) {
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", pbx_inet_ntoa(s->sin.sin_addr));
+	} else {
+		ast_log(LOG_NOTICE, "Rejecting device: Ip address '%s' denied\n", pbx_inet_ntoa(s->sin.sin_addr));
+		sccp_session_reject(s, "Device ip not authorized");
+		return;
+	}
 
 	if (GLOB(bindaddr.sin_addr.s_addr) == INADDR_ANY) {
 		ast_ouraddrfor(&incoming.sin_addr, &s->ourip);
@@ -479,7 +487,7 @@ void *sccp_socket_thread(void *ignore)
 			continue;
 		} else if (res == 0) {
 			/* we should not get here, polling timeout is -1, meaning don't timeout for as long as the socket exists */
-			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP (gloabl sccp_socket_thread): Poll Timeout\n");
+			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP (global sccp_socket_thread): Poll Timeout\n");
 		}
 
 		if (fds[0].revents) {
