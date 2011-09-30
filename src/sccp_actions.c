@@ -146,7 +146,7 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	}
 
 	s->device = d;
-	//device->session = s; /* do not register session to device, this should be done after registration */
+	
 	
 	if(d){
 		if (d->checkACL(d) == FALSE) {
@@ -155,6 +155,9 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			return;
 		}	  
 	}
+	
+	/* all checks passed, assign session to device */
+	d->session = s;
 
 	/* \todo handle device pre-registration to speed up registration upon emergency and make communication (device reset) with device possible */
 
@@ -248,11 +251,8 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
 		}
 	}
 	
-	
-	s->device = device;
-	//device->session = s; /* do not register session to device, this should be done after registration */
-	
-	
+	s->protocolType = SPCP_PROTOCOL;
+	s->device = device;	
 	if(device){
 		if (device->checkACL(device) == FALSE) {
 			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
@@ -261,7 +261,15 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
 		}	  
 	}
 	
-	s->protocolType = SPCP_PROTOCOL;
+	if (device->session && device->session != s) {
+		sccp_log(1) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", device->id);
+		s = sccp_session_reject(s, "Crossover session not allowed");
+		return;
+	}
+	
+	
+	/* all checks passed, assign session to device */
+	device->session = s;
 
 	REQ(r1, SPCPRegisterTokenAck);
 	r1->msg.SPCPRegisterTokenAck.lel_features = htolel(65535);
