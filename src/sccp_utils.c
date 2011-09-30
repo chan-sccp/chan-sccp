@@ -2315,6 +2315,7 @@ void sccp_free_ha(struct sccp_ha *ha)
 #endif
 }
 
+#if 0		// contains an undefined problem, leading to segfault when used
 void sccp_copy_ha(const struct sccp_ha *from, struct sccp_ha *to);
 /*! 
  * \brief Copy Host Access Rule Structure 
@@ -2371,6 +2372,7 @@ struct sccp_ha *sccp_duplicate_ha_list(struct sccp_ha *original)
 
 	return ret;								/* Return start of list */
 }
+#endif
 
 /*!
  * \brief Apply a set of rules to a given IP address
@@ -2384,32 +2386,30 @@ int sccp_apply_ha(struct sccp_ha *ha, struct sockaddr_in *sin)
 {
 	/* Start optimistic */
 	int res = AST_SENSE_DENY;
-#if 1
+#if 0
 	char str1[INET_ADDRSTRLEN];
 	char str2[INET_ADDRSTRLEN];
+	char str3[INET_ADDRSTRLEN];
 #endif
 	
 	while (ha) {
 		/* For each rule, if this address and the netmask = the net address
 		   apply the current rule */
-		
-#if 1		
-		inet_ntop(AF_INET, &ha->netaddr.s_addr, str1, INET_ADDRSTRLEN);
-		inet_ntop(AF_INET, &ha->netmask.s_addr, str2, INET_ADDRSTRLEN);
-		ast_log(LOG_NOTICE, "IP: %s, netmask: %s \n", str1, str2);
-		
-		
+#if 0
 		inet_ntop(AF_INET, &sin->sin_addr.s_addr, str1, INET_ADDRSTRLEN);
-		ast_log(LOG_NOTICE, "IP: %s\n", str1);
+		inet_ntop(AF_INET, &ha->netaddr.s_addr, str2, INET_ADDRSTRLEN);
+		inet_ntop(AF_INET, &ha->netmask.s_addr, str3, INET_ADDRSTRLEN);
+		sccp_log(DEBUGCAT_HIGH)("TEST IP: %s HA: IP: %s/%s, sense '%s'\n", str1, str2, str3, ha->sense ? "deny" : "permit");
 #endif		
+
 		if ((sin->sin_addr.s_addr & ha->netmask.s_addr) == ha->netaddr.s_addr) {
 			res = ha->sense;
 		}
 		ha = ha->next;
 	}
 
-#if 1
-	ast_log(LOG_NOTICE, "result %d\n", res);
+#if 0
+	sccp_log(DEBUGCAT_HIGH)("result %d\n", res);
 #endif
 	return res;
 }

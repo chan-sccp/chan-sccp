@@ -48,6 +48,9 @@ static boolean_t sccp_device_checkACLTrue(sccp_device_t *device){
 	return TRUE;
 }
 
+/*!
+ * \brief Check device ipaddress against the ip ACL (permit/deny and permithosts entries)
+ */
 static boolean_t sccp_device_checkACL(sccp_device_t *device){
 	
 	struct sockaddr_in sin;
