@@ -119,7 +119,7 @@ AUTOCONF = ${SHELL} /root/chan_sccp-trunk/autoconf/missing --run autoconf
 AUTOHEADER = ${SHELL} /root/chan_sccp-trunk/autoconf/missing --run autoheader
 AUTOMAKE = ${SHELL} /root/chan_sccp-trunk/autoconf/missing --run automake-1.11
 AWK = mawk
-BUILD_DATE = 2011-09-30 12:17:25 UTC
+BUILD_DATE = 2011-09-30 12:59:52 UTC
 BUILD_HOSTNAME = vs7911
 BUILD_KERNEL = 2.6.33.2
 BUILD_MACHINE = x86_64
@@ -129,7 +129,7 @@ CAT = /bin/cat
 CC = gcc
 CCACHE = 
 CCDEPMODE = depmode=gcc3
-CFLAGS = -g -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -std=gnu89 -Wno-long-long
+CFLAGS = -g -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -std=gnu89 -Wno-long-long -O0 -Os -Wall -Wextra -Wno-unused-parameter -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs
 CHANGELOG_OLDEST = 1021
 CPP = gcc -E
 CPPFLAGS = 
@@ -148,7 +148,7 @@ DX_DOT =
 DX_DOXYGEN = /usr/bin/doxygen
 DX_DVIPS = 
 DX_EGREP = 
-DX_ENV =  INPUT='. doc' SRCDIR='.' PROJECT='Chan_SCCP' DOCDIR='doxygen-doc' VERSION='4.0.0_DEV' PERL_PATH='/usr/bin/perl' HAVE_DOT='NO' GENERATE_MAN='YES' GENERATE_RTF='NO' GENERATE_XML='NO' GENERATE_HTMLHELP='NO' GENERATE_CHI='NO' GENERATE_HTML='YES' GENERATE_LATEX='NO'
+DX_ENV =  INPUT='. doc src' SRCDIR='.' PROJECT='Chan_SCCP' DOCDIR='doxygen-doc' VERSION='4.0.0_DEV' PERL_PATH='/usr/bin/perl' HAVE_DOT='NO' GENERATE_MAN='YES' GENERATE_RTF='NO' GENERATE_XML='NO' GENERATE_HTMLHELP='NO' GENERATE_CHI='NO' GENERATE_HTML='YES' GENERATE_LATEX='NO'
 DX_FLAG_DX_CURRENT_FEATURE = 
 DX_FLAG_chi = 0
 DX_FLAG_chm = 0
@@ -173,9 +173,9 @@ EGREP = /bin/grep -E
 EXEEXT = 
 FGREP = /bin/grep -F
 FINGER = /usr/bin/finger
-GCFLAGS = 
+GCFLAGS =  -DGC_FIND_LEAK -DGC_PRINT_STATS
 GCLIBS = 
-GDB_FLAGS = 
+GDB_FLAGS = -g
 GREP = /bin/grep
 HAVE_ASTERISK = yes
 HAVE_CALLWEAVER = 
@@ -240,7 +240,7 @@ PTHREAD_LIBS =
 RANLIB = ranlib
 RPMBUILD = echo rpmbuild not found so you cannot build rpm packages (no problem)
 SCCP_BRANCH = DEV
-SCCP_REVISION = 2896:2905
+SCCP_REVISION = 2896:2906
 SCCP_VERSION = 4.0.0
 SED = /bin/sed
 SET_MAKE = 
@@ -306,7 +306,7 @@ psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
 sharedstatedir = ${prefix}/com
 srcdir = .
-strip_binaries = yes
+strip_binaries = no
 subdirs =  libltdl
 sys_symbol_underscore = no
 sysconfdir = /etc
@@ -660,9 +660,6 @@ uninstall-am: uninstall-binPROGRAMS
 	pdf pdf-am ps ps-am tags uninstall uninstall-am \
 	uninstall-binPROGRAMS
 
-
-#gen_sccpconf:
-#
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

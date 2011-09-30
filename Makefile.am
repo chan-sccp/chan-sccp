@@ -10,7 +10,8 @@
 include $(top_srcdir)/amdoxygen.am
 AUTOMAKE_OPTS			= gnu silent-rules
 EXTRA_DIST 			= .version tools conf
-SUBDIRS 			= src doc contrib/gen_sccpconf
+#SUBDIRS 			= src doc contrib/gen_sccpconf
+SUBDIRS 			= src doc
 ACLOCAL_AMFLAGS			= -I autoconf
 AM_CPPFLAGS			= $(LTDLINCL)
 distdir = $(PACKAGE)-$(SCCP_VERSION)_$(SCCP_BRANCH)
@@ -96,11 +97,5 @@ release:
 	fi 
 	@$(MAKE) dist-gzip
 
-#gen_sccpconf:
-#	cd contrib/gen_sccpconf
-#	@$(MAKE) gen_sccpconf
-
-gen_sccpconf_explicit:
-	cd contrib/gen_sccpconf
-	@$(MAKE) gen_sccpconf
-	
+gen_sccpconf:
+	cd contrib/gen_sccpconf && $(MAKE) $(AM_MAKEFLAGS) all
