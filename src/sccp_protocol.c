@@ -508,31 +508,23 @@ static void sccp_protocol_sendRegisterAckV11(const sccp_device_t *device, uint8_
 /* done - registerACK */
 
 /* Token Messages */
-static boolean_t sccp_protocol_retrieveTokenReqSCCP(const sccp_moo_t * r, const boolean_t realtime, sccp_device_t *device, uint32_t server_instance, uint32_t deviceType) {
-	device = sccp_device_find_byid(r->msg.RegisterTokenReq.sId.deviceName, realtime);
-	if (device) {
-		server_instance=letohl(r->msg.RegisterTokenReq.sId.lel_instance);
-		deviceType=letohl(r->msg.RegisterTokenReq.lel_deviceType);
-		return TRUE;	
-	} else {
-		return FALSE;
-	}
+static boolean_t sccp_protocol_retrieveTokenReqSCCP(const sccp_moo_t * r, char deviceName[13], uint32_t serverInstance, uint32_t deviceType) {
+	deviceName=strdupa(r->msg.RegisterTokenReq.sId.deviceName);
+	serverInstance=letohl(r->msg.RegisterTokenReq.sId.lel_instance);
+	deviceType=letohl(r->msg.RegisterTokenReq.lel_deviceType);
+	return TRUE;	
 }
 static void sccp_protocol_sendTokenAckSCCP(const sccp_device_t *device, uint32_t features) {
 }
 static void sccp_protocol_sendTokenRejectSCCP(const sccp_device_t *device, uint32_t backoff_time, uint32_t features) {
 }
-static boolean_t sccp_protocol_retrieveTokenReqSPCP(const sccp_moo_t * r, const boolean_t realtime, sccp_device_t *device, uint32_t server_instance, uint32_t deviceType) {
-	device = sccp_device_find_byid(r->msg.SPCPRegisterTokenRequest.sId.deviceName, realtime);
-	if (device) {
-		server_instance=letohl(r->msg.SPCPRegisterTokenRequest.sId.lel_instance);
-		deviceType=letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType);
-		return TRUE;	
-	} else {
-		return FALSE;
-	}
+static boolean_t sccp_protocol_retrieveTokenReqSPCP(const sccp_moo_t * r, char deviceName[13], uint32_t serverInstance, uint32_t deviceType) {
+	deviceName=strdupa(r->msg.SPCPRegisterTokenRequest.sId.deviceName);
+	serverInstance=letohl(r->msg.SPCPRegisterTokenRequest.sId.lel_instance);
+	deviceType=letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType);
 	return TRUE;	
 }
+
 static void sccp_protocol_sendTokenAckSPCP(const sccp_device_t *device, uint32_t features) {
 }
 static void sccp_protocol_sendTokenRejectSPCP(const sccp_device_t *device, uint32_t backoff_time, uint32_t features) {
