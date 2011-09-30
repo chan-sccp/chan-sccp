@@ -36,13 +36,11 @@ static int sccp_config_generate(char *filename, size_t sizeof_filename)  {
         char name_and_value[100];
         int linelen=0;
 
-	char fn[100];
-	strncpy(fn, filename, sizeof_filename);
 //	snprintf(fn, sizeof(fn), "%s/%s", ast_config_AST_CONFIG_DIR, "sccp.conf.test");
-        printf("info:" "Creating new config file '%s'\n", fn);
+        printf("info:" "Creating new config file '%s'\n", filename);
 	
         FILE *f;
-        if (!(f = fopen(fn, "w"))) {
+        if (!(f = fopen(filename, "w"))) {
                 printf("error:" "Error creating new config file \n");
                 return 1;
         }
@@ -54,7 +52,7 @@ static int sccp_config_generate(char *filename, size_t sizeof_filename)  {
                                 
         fprintf(f,";!\n");
         fprintf(f,";! Automatically generated configuration file\n");
-        fprintf(f,";! Filename: %s (%s)\n", filename, fn);
+        fprintf(f,";! Filename: %s\n", filename);
         fprintf(f,";! Generator: sccp config generate\n");
         fprintf(f,";! Creation Date: %s", date);
         fprintf(f,";!\n");
@@ -105,11 +103,14 @@ static int sccp_config_generate(char *filename, size_t sizeof_filename)  {
 
 int main(int argc, char *argv[])
 {
-	char *config_file="sccp.conf.test";
+	char *config_file="";
 	
-	if(argc>0) {
-		config_file=malloc(sizeof(char) * strlen(argv[1]));
+	if(argc>1) {
+		config_file=malloc(sizeof(char*) * strlen(argv[1]) + 1);
 		config_file=strdup(argv[1]);	
+	} else {
+		printf("Usage: gen_sccpconf <config filename>\n");	
+		return 1;
 	}
 	
 	if (sccp_config_generate(config_file, sizeof(config_file))) {
