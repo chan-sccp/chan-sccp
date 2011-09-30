@@ -1442,7 +1442,7 @@ static int sccp_wrapper_asterisk18_rtp_set_peer(const struct sccp_rtp *rtp, cons
 
 static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * channel, skinny_codec_t codec){
 	
-	format_t oldChannelFormat = channel->owner->rawwriteformat;
+//	format_t oldChannelFormat = channel->owner->rawwriteformat;
   
 // 	channel->owner->nativeformats = channel->owner->rawwriteformat = skinny_codec2pbx_codec(codec);
 	channel->owner->rawwriteformat = skinny_codec2pbx_codec(codec);
@@ -1504,7 +1504,7 @@ static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * c
 
 static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec){
 	
-	format_t oldChannelFormat = channel->owner->readformat;
+//	format_t oldChannelFormat = channel->owner->readformat;
   
 // 	channel->owner->nativeformats = channel->owner->rawreadformat = skinny_codec2pbx_codec(codec);
 	channel->owner->rawreadformat = skinny_codec2pbx_codec(codec);
