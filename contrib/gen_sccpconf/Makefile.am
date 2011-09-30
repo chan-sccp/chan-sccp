@@ -18,5 +18,3 @@ gen_sccpconf_CFLAGS	= $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) 
 gen_sccpconf_CFLAGS	+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall $(GCFLAGS)
 gen_sccpconf_LDFLAGS	= -avoid-version -module  $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS)
 
-#gen_sccpconf:
-#
