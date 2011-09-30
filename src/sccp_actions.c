@@ -145,11 +145,15 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		}
 	}
 
-	/* ip address range check */
-	if (GLOB(ha) && !sccp_apply_ha(GLOB(ha), &((sccp_session_t *) s)->sin)) {
-		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.RegisterTokenReq.sId.deviceName);
-		sccp_session_tokenReject(s, GLOB(token_backoff_time));
-		return;
+	s->device = d;
+	//device->session = s; /* do not register session to device, this should be done after registration */
+	
+	if(d){
+		if (d->checkACL(d) == FALSE) {
+			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
+			s = sccp_session_reject(s, "IP Not Authorized");
+			return;
+		}	  
 	}
 
 	/* \todo handle device pre-registration to speed up registration upon emergency and make communication (device reset) with device possible */
@@ -201,10 +205,6 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r){
 	sccp_moo_t *r1;
 	sccp_device_t *device;
-	sccp_hostname_t *permithost;
-	struct sockaddr_in sin;
-	struct ast_hostent ahp;
-	struct hostent *hp;
   
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: is requestin a token, Instance: %d, Type: %s (%d)\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, r->msg.SPCPRegisterTokenRequest.sId.lel_instance, devicetype2str(letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType)), letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType));
 
@@ -246,30 +246,23 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
 			s = sccp_session_reject(s, "Unknown Device");
 			return;
 		}
-	} else if (device->ha && !sccp_apply_ha(device->ha, &s->sin)) {
-
-		// \todo check anonymous devices for permit hosts
-		SCCP_LIST_LOCK(&d->permithosts);
-		SCCP_LIST_TRAVERSE(&device->permithosts, permithost, list) {
-			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
-				memcpy(&sin.sin_addr, hp->h_addr, sizeof(sin.sin_addr));
-				if (s->sin.sin_addr.s_addr == sin.sin_addr.s_addr) {
-					break;
-				} else {
-					pbx_log(LOG_NOTICE, "%s: device ip address does not match the permithost = %s (%s)\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, permithost->name, pbx_inet_ntoa(sin.sin_addr));
-				}
-			} else {
-				pbx_log(LOG_NOTICE, "%s: Invalid address resolution for permithost = %s\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, permithost->name);
-			}
-		}
-		SCCP_LIST_UNLOCK(&d->permithosts);
 	}
 	
+	
 	s->device = device;
-	device->session = s;
+	//device->session = s; /* do not register session to device, this should be done after registration */
+	
+	
+	if(device){
+		if (device->checkACL(device) == FALSE) {
+			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
+			s = sccp_session_reject(s, "IP Not Authorized");
+			return;
+		}	  
+	}
+	
 	s->protocolType = SPCP_PROTOCOL;
-	
-	
+
 	REQ(r1, SPCPRegisterTokenAck);
 	r1->msg.SPCPRegisterTokenAck.lel_features = htolel(65535);
 	sccp_session_send(d, r1);
@@ -292,10 +285,6 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
 void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
 	uint8_t i = 0;
-	struct ast_hostent ahp;
-	struct hostent *hp;
-	struct sockaddr_in sin;
-	sccp_hostname_t *permithost;
 	uint8_t protocolVer = r->msg.RegisterMessage.phone_features & SKINNY_PHONE_FEATUES_PROTOCOLVERSION;
 	
 	uint8_t ourMaxSupportedProtocolVersion = sccp_protocol_getMaxSupportedVersionNumber(s->protocolType);
@@ -328,57 +317,31 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	d = sccp_device_find_byid(r->msg.RegisterMessage.sId.deviceName, TRUE);
 	
 	if (!d && GLOB(allowAnonymous)) {
-		  d = sccp_device_create();
+		  d = sccp_device_createAnonymous(r->msg.RegisterMessage.sId.deviceName);
+		  
 		  sccp_config_applyDeviceConfiguration(d, NULL);
-		  d->realtime = TRUE;
-
-		  sccp_copy_string(d->id, r->msg.RegisterMessage.sId.deviceName, sizeof(d->id));
-		  d->isAnonymous = TRUE;
 		  sccp_config_addButton(&d->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
 		  sccp_log(1) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.RegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
 		  d->defaultLineInstance = 1;
+		  
 		  SCCP_RWLIST_WRLOCK(&GLOB(devices));
 		  SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), d, list);
 		  SCCP_RWLIST_UNLOCK(&GLOB(devices));
 	} 
 	
 	if (d) {
-		struct sccp_ha *temp_ha;
-		
-		// copy ha
-		temp_ha = d->ha;
-		
-
-		// add permithosts after having been resolved
-		char new_permit[31]={0};
-		uint8_t i=0;
-// 		SCCP_LIST_LOCK(&d->permithosts);
-// 		SCCP_LIST_TRAVERSE(&d->permithosts, permithost, list) {
-// 			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
-// 			  
-// 				for(i=0; NULL != hp->h_addr_list[i]; i++ ){	// walk resulting ip address
-// 					snprintf(new_permit, sizeof(new_permit),  "%s/255.255.255.255", pbx_inet_ntoa( *( struct in_addr*)( hp -> h_addr_list[i])));
-// 			        	sccp_append_ha("permit", new_permit, temp_ha, NULL);
-// 				}
-// 			} else {
-// 				ast_log(LOG_NOTICE, "%s: Invalid address resolution for permithost = %s (skipping permithost).\n", r->msg.RegisterMessage.sId.deviceName, permithost->name);
-// 			}
-// 		}
-// 		SCCP_LIST_UNLOCK(&d->permithosts);
-		
 		s->device = d;				/* attach device to session, so it can be cleaned up during session cleanup */
  
-		// check ha
-		if (sccp_apply_ha(temp_ha, &s->sin) != AST_SENSE_ALLOW) {
+		/* check ACLs for this device */
+		if (d->checkACL(d) == FALSE) {
 			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
 			s = sccp_session_reject(s, "IP Not Authorized");
 			return;
 		}
 		
 		if (d->session && d->session != s) {
-			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", d->id);
-			s->session_stop = 1;		/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
-			sccp_log(1) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
+			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", d->id);
+			s = sccp_session_reject(s, "Crossover session not allowed");
 			return;
 		}
 		

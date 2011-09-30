@@ -914,6 +914,7 @@ extern "C" {
 		
 		sccp_push_result_t (*pushURL) (const sccp_device_t *device, const char *url, uint8_t priority, uint8_t tone);
 		sccp_push_result_t (*pushTextMessage) (const sccp_device_t *device, const char *messageText, const char *from, uint8_t priority, uint8_t tone);
+		boolean_t (* checkACL) (sccp_device_t *device);
 	};
 
 // Number of additional keys per addon -FS
