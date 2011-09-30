@@ -145,7 +145,7 @@ typedef struct SCCPConfigOption {
 	enum SCCPConfigOptionFlag flags;					/*!< Data type */
 	sccp_configurationchange_t change;					/*!< Does a change of this value needs a device restart */
 	const char *defaultValue;						/*!< Default value */
-	 sccp_value_changed_t(*converter_f) (void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);	/*!< Conversion function */
+	sccp_value_changed_t(*converter_f) (void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);	/*!< Conversion function */
 	const char *description;						/*!< Configuration description (config file) or warning message for deprecated or obsolete values */
 /* *INDENT-OFF* */
 } SCCPConfigOption;
@@ -2636,7 +2636,6 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	SCCP_LIST_UNLOCK(&device->devstateSpecifiers);
 #endif
 }
-
 
 int sccp_config_generate(char *filename, size_t sizeof_filename) 
 {
