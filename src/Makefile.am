@@ -8,7 +8,7 @@
 # NOTE: Process this file with automake to produce a makefile.in script.
 
 AUTOMAKE_OPTS		= gnu silent-rules
-
+#SUBDIRS			= gen_sccpconf
 # Chan_SCCP.so
 csmod_LTLIBRARIES	= chan_sccp.la
 
@@ -50,6 +50,14 @@ chan_sccp_la_DEPENDENCIES = $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
 chan_sccp_la_CFLAGS	= $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(GCLIBS)
 chan_sccp_la_CFLAGS	+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall $(GCFLAGS)
 chan_sccp_la_LDFLAGS	= -avoid-version -module  $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS)
+
+#bin_PROGRAMS = gen_sccpconf
+#gen_sccpconf_SOURCES = gen_sccpconf/gen_sccpconf.c gen_sccpconf/gen_sccpconf.h sccp_config_entries.h
+#gen_sccpconf_CPPFLAGS	= $(PBX_CPPFLAGS)
+#gen_sccpconf_DEPENDENCIES = $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
+#gen_sccpconf_CFLAGS	= $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(GCLIBS)
+#gen_sccpconf_CFLAGS	+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall $(GCFLAGS)
+#gen_sccpconf_LDFLAGS	= -avoid-version -module  $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS)
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)

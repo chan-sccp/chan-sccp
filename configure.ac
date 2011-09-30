@@ -95,6 +95,7 @@ AC_CONFIG_FILES([
    README
    doc/Makefile
    src/Makefile
+   contrib/gen_sccpconf/Makefile
 ])
 
 AH_BOTTOM([
