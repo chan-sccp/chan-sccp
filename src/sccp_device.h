@@ -32,6 +32,7 @@ struct sccp_device_indication_cb {
 void sccp_dev_check_displayprompt(sccp_device_t * d);
 
 sccp_device_t *sccp_device_create(void);
+sccp_device_t *sccp_device_createAnonymous(const char *name);
 void sccp_device_setIndicationProtocol(sccp_device_t *device);
 sccp_device_t *sccp_device_addToGlobals(sccp_device_t * device);
 void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn);

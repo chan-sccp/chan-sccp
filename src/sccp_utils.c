@@ -2384,7 +2384,7 @@ int sccp_apply_ha(struct sccp_ha *ha, struct sockaddr_in *sin)
 {
 	/* Start optimistic */
 	int res = AST_SENSE_DENY;
-#if 0
+#if 1
 	char str1[INET_ADDRSTRLEN];
 	char str2[INET_ADDRSTRLEN];
 #endif
@@ -2393,7 +2393,7 @@ int sccp_apply_ha(struct sccp_ha *ha, struct sockaddr_in *sin)
 		/* For each rule, if this address and the netmask = the net address
 		   apply the current rule */
 		
-#if 0		
+#if 1		
 		inet_ntop(AF_INET, &ha->netaddr.s_addr, str1, INET_ADDRSTRLEN);
 		inet_ntop(AF_INET, &ha->netmask.s_addr, str2, INET_ADDRSTRLEN);
 		ast_log(LOG_NOTICE, "IP: %s, netmask: %s \n", str1, str2);
@@ -2408,7 +2408,7 @@ int sccp_apply_ha(struct sccp_ha *ha, struct sockaddr_in *sin)
 		ha = ha->next;
 	}
 
-#if 0
+#if 1
 	ast_log(LOG_NOTICE, "result %d\n", res);
 #endif
 	return res;

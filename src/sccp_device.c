@@ -44,6 +44,55 @@ static const struct sccp_device_indication_cb sccp_device_indication_olderDevice
 	.remoteHold = sccp_device_old_indicate_remoteHold,
 };
 
+static boolean_t sccp_device_checkACLTrue(sccp_device_t *device){
+	return TRUE;
+}
+
+static boolean_t sccp_device_checkACL(sccp_device_t *device){
+	
+	struct sockaddr_in sin;
+	boolean_t matchesACL = FALSE;
+	
+	/* get current socket information */
+	sccp_session_getSocketAddr(device, &sin);
+	
+	
+	/* no permit deny information */
+	if(!device->ha){
+		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: no deny/permit information for this device, allow all connections", device->id);
+		return TRUE;
+	}
+  
+	if (sccp_apply_ha(device->ha, &sin) != AST_SENSE_ALLOW) {
+	  
+		// checking permithosts	
+		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: not allowed by deny/permit list. Checking permithost list...", device->id);
+
+		struct ast_hostent ahp;
+		struct hostent *hp;
+		sccp_hostname_t *permithost;
+		
+		uint8_t i=0;
+		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&device->permithosts, permithost, list) {
+			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
+				for(i=0; NULL != hp->h_addr_list[i]; i++ ) {	// walk resulting ip address
+					if (sin.sin_addr.s_addr == (*(struct in_addr*)hp->h_addr_list[i]).s_addr) {
+						sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: permithost = %s match found.\n", device->id, permithost->name);
+						matchesACL = TRUE;
+						continue;
+					}
+				}
+			} else {
+				sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Invalid address resolution for permithost = %s (skipping permithost).\n", device->id, permithost->name);
+			}
+		}
+		SCCP_LIST_TRAVERSE_SAFE_END;
+	}else{
+		matchesACL = TRUE;
+	}
+  
+	return matchesACL;
+}
 
 #define  REF_DEBUG 1
 #ifdef CS_DYNAMIC_CONFIG
@@ -218,6 +267,18 @@ sccp_device_t *sccp_device_create(void)
 	
 	d->pushURL = sccp_device_pushURLNotSupported;
 	d->pushTextMessage = sccp_device_pushTextMessageNotSupported;
+	d->checkACL = sccp_device_checkACL;
+	
+	return d;
+}
+
+sccp_device_t *sccp_device_createAnonymous(const char *name){
+	sccp_device_t *d = sccp_device_create();
+	d->realtime = TRUE;
+	d->isAnonymous = TRUE;
+	d->checkACL = sccp_device_checkACLTrue;
+	
+	sccp_copy_string(d->id, name, sizeof(d->id));
 	
 	return d;
 }

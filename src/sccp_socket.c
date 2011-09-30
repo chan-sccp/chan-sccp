@@ -657,6 +657,22 @@ sccp_session_t *sccp_session_find(const sccp_device_t * device)
 	return device->session;
 }
 
+
+static sccp_session_t *sccp_session_findSessionForDevice(const sccp_device_t * device)
+{
+	sccp_session_t *session;
+  
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
+		if ( session->device == device) {
+			break;
+		}
+	}
+	SCCP_LIST_TRAVERSE_SAFE_END;
+	  
+	return session;
+}
+
+
 /*!
  * \brief Send a Reject Message to Device.
  * \param session SCCP Session Pointer
@@ -733,4 +749,15 @@ struct in_addr *sccp_session_getINaddr(sccp_device_t * device, int type)
 	default:
 		return NULL;
 	}
+}
+
+
+void sccp_session_getSocketAddr(const sccp_device_t *device, struct sockaddr_in *sin)
+{
+	sccp_session_t *s = sccp_session_findSessionForDevice(device);
+
+	if (!s)
+		return;
+	
+	memcpy(sin, &s->sin, sizeof(struct sockaddr_in));
 }
