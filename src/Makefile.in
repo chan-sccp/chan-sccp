@@ -20,7 +20,7 @@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2011-08-31 19:04:17 +0200 (Wed, 31 Aug 2011) $
+# DATE:     $Date: 2011-08-31 17:04:17 +0000 (Mi, 31. Aug 2011) $
 # REVISION: $Revision: 2728 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 
@@ -366,7 +366,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTS = gnu silent-rules
-
+#SUBDIRS			= gen_sccpconf
 # Chan_SCCP.so
 csmod_LTLIBRARIES = chan_sccp.la
 chan_sccp_la_SOURCES = chan_sccp.h sccp_cli.h sccp_event.h \
@@ -1049,6 +1049,14 @@ uninstall-am: uninstall-csmodLTLIBRARIES
 	mostlyclean-libtool pdf pdf-am ps ps-am tags uninstall \
 	uninstall-am uninstall-csmodLTLIBRARIES
 
+
+#bin_PROGRAMS = gen_sccpconf
+#gen_sccpconf_SOURCES = gen_sccpconf/gen_sccpconf.c gen_sccpconf/gen_sccpconf.h sccp_config_entries.h
+#gen_sccpconf_CPPFLAGS	= $(PBX_CPPFLAGS)
+#gen_sccpconf_DEPENDENCIES = $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
+#gen_sccpconf_CFLAGS	= $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(GCLIBS)
+#gen_sccpconf_CFLAGS	+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall $(GCFLAGS)
+#gen_sccpconf_LDFLAGS	= -avoid-version -module  $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS)
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
