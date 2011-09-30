@@ -211,7 +211,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
 	/* ip address range check */
 	if (GLOB(ha) && !sccp_apply_ha(GLOB(ha), &s->sin)) {
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName);
-		s = sccp_session_reject(s, "Device ip not authorized");
+		s = sccp_session_reject(s, "IP not authorized");
 		return;
 	}
 	
@@ -341,7 +341,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		
 		if (d->session && d->session != s) {
 			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", d->id);
-			s = sccp_session_reject(s, "Crossover session not allowed");
+			s = sccp_session_reject(s, "No Crossover Allowed");
 			return;
 		}
 		
