@@ -389,7 +389,7 @@ static void sccp_accept_connection(void)
 	
 	/* check ip address against global permit/deny ACL*/
 	if ( GLOB(ha) && sccp_apply_ha(GLOB(ha), &s->sin) != AST_SENSE_ALLOW ) {
-		ast_log(LOG_NOTICE, "Reject Connection: Device Ip-address '%s' denied.\n", pbx_inet_ntoa(s->sin.sin_addr));
+		ast_log(LOG_NOTICE, "Reject Connection: Ip-address '%s' denied. Check general permit settings.\n", pbx_inet_ntoa(s->sin.sin_addr));
 		s = sccp_session_reject(s, "Device ip not authorized");
 		return;
 	} 
