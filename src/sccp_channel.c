@@ -2455,9 +2455,7 @@ boolean_t sccp_channel_setPreferredCodec(sccp_channel_t *c, const void *data){
 	
 	char 			text[64] = { '\0' };
 	uint64_t 		x;
-	int 			numFoundCodecs = 0;
-
-	
+	unsigned int		numFoundCodecs = 0;
 
 	skinny_codec_t tempCodecPreferences[ARRAY_LEN(c->preferences.audio)];
 
@@ -2469,8 +2467,6 @@ boolean_t sccp_channel_setPreferredCodec(sccp_channel_t *c, const void *data){
 	/* save original preferences */
 	memcpy(&tempCodecPreferences, c->preferences.audio, sizeof(c->preferences.audio));
 
-	
-
 	for (x = 0; x < ARRAY_LEN(skinny_codecs) && numFoundCodecs < ARRAY_LEN(c->preferences.audio); x++) {
 		if (!strcasecmp(skinny_codecs[x].shortname, text)) {
 
@@ -2481,7 +2477,7 @@ boolean_t sccp_channel_setPreferredCodec(sccp_channel_t *c, const void *data){
 			//! \todo we should remove our prefs from original list -MC
 		}
 	}
-	(&c->preferences.audio[numFoundCodecs], tempCodecPreferences, sizeof(c->preferences.audio) * (ARRAY_LEN(c->preferences.audio) - numFoundCodecs) );
+//	(&c->preferences.audio[numFoundCodecs], tempCodecPreferences, sizeof(c->preferences.audio) * (ARRAY_LEN(c->preferences.audio) - numFoundCodecs) );
 
 	return TRUE;
 }
