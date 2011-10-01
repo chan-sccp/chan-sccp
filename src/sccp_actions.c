@@ -123,19 +123,34 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * s, sccp_device_t * d, sccp_moo
  * \todo Implement a decision when to send RegisterTokenAck and when to send RegisterTokenReject
  *       If sending RegisterTokenReject what should the lel_tokenRejWaitTime (BackOff time) be
  */
-void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
+void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
+	uint32_t mid = letohl(r->lel_messageId);
+	char *deviceName;
+	uint32_t serverInstance;
+	uint32_t deviceType;
+	if (RegisterTokenRequest==mid) {
+		deviceName=strdupa(r->msg.RegisterTokenRequest.sId.deviceName);
+		serverInstance=letohl(r->msg.RegisterTokenRequest.sId.lel_instance);
+		deviceType=letohl(r->msg.RegisterTokenRequest.lel_deviceType);
+		sccp_dump_packet((unsigned char *)&r->msg.RegisterTokenRequest, r->length);
+	} else if (SPCPRegisterTokenRequest){
+		deviceName=strdupa(r->msg.SPCPRegisterTokenRequest.sId.deviceName);
+		serverInstance=letohl(r->msg.SPCPRegisterTokenRequest.sId.lel_instance);
+		deviceType=letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType);
+		sccp_dump_packet((unsigned char *)&r->msg.SPCPRegisterTokenRequest, r->length);
+	} else {
+	}
+
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is requesting a Token, Instance: %d, Type: %s (%d)\n", 
-		r->msg.RegisterTokenReq.sId.deviceName, 
-		letohl(r->msg.RegisterTokenReq.sId.lel_instance), 
-		devicetype2str(letohl(r->msg.RegisterTokenReq.lel_deviceType)), 
-		letohl(r->msg.RegisterTokenReq.lel_deviceType)
+		deviceName, 
+		serverInstance, 
+		devicetype2str(deviceType), 
+		letohl(deviceType)
 	);
 
-	sccp_dump_packet((unsigned char *)&r->msg.RegisterTokenReq, r->length);
-
 	// Search for already known devices -> Cleanup
-	d = sccp_device_find_byid(r->msg.RegisterTokenReq.sId.deviceName, FALSE);
+	d = sccp_device_find_byid(deviceName, FALSE);
 	if (d) {
 		if (d->session && d->session != s) {
 			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_2 "%s: Device is registered on another server (TokenReq)!\n", d->id);
@@ -145,9 +160,29 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		}
 	}
 
+	// create hotline device if necessary
+/*	if (!d) {
+		if (GLOB(allowAnonymous)) {
+			d = sccp_device_create();
+			sccp_config_applyDeviceConfiguration(d, NULL);
+			d->realtime = TRUE;
+
+			sccp_copy_string(d->id, deviceName, sizeof(d->id));
+			d->isAnonymous = TRUE;
+			sccp_config_addButton(&d->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
+			sccp_log(1) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", deviceName, GLOB(hotline)->line->name);
+			d->defaultLineInstance = 1;
+			SCCP_RWLIST_WRLOCK(&GLOB(devices));
+			SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), d, list);
+			SCCP_RWLIST_UNLOCK(&GLOB(devices));
+		} else {
+			pbx_log(LOG_NOTICE, "%s: Rejecting device: not found\n", deviceName);
+			s = sccp_session_reject(s, "Unknown Device");
+			return;
+		}
+	}*/
+
 	s->device = d;
-	
-	
 	if(d){
 		if (d->checkACL(d) == FALSE) {
 			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
@@ -163,11 +198,10 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 	/*Currently rejecting token until further notice */
 	boolean_t sendAck=FALSE;
-	int last_digit=r->msg.RegisterTokenReq.sId.deviceName[strlen(r->msg.RegisterTokenReq.sId.deviceName)];
+	int last_digit=deviceName[strlen(deviceName)];
 	if (!strcasecmp("true", GLOB(token_fallback))) {
-//		sendAck=TRUE;	
 		/* we are the primary server */
-		if(letohl(r->msg.RegisterTokenReq.sId.lel_instance) == 0){
+		if(letohl(serverInstance) == 0){
 			sendAck = TRUE;
 		}
 	} else if (!strcasecmp("odd", GLOB(token_fallback))) {
@@ -178,13 +212,12 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			sendAck=TRUE;	
 	}
 	
-	
 	if (sendAck) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", r->msg.RegisterTokenReq.sId.deviceName);
-		sccp_session_tokenAck(s);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", deviceName);
+		d->protocol->sendTokenAck(d, 65535);
 	}else {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token rejection (sccp.conf:fallback=%s), ask again in '%d' seconds\n", r->msg.RegisterTokenReq.sId.deviceName, GLOB(token_fallback), GLOB(token_backoff_time));
-		sccp_session_tokenReject(s, GLOB(token_backoff_time));
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token rejection (sccp.conf:fallback=%s), ask again in '%d' seconds\n", deviceName, GLOB(token_fallback), GLOB(token_backoff_time));
+		d->protocol->sendTokenReject(d, GLOB(token_backoff_time), 65535);
 	}
 }
 
@@ -293,7 +326,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
 void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
 	uint8_t i = 0;
-	uint8_t protocolVer = r->msg.RegisterMessage.phone_features & SKINNY_PHONE_FEATUES_PROTOCOLVERSION;
+	uint8_t protocolVer = r->msg.RegisterMessage.phone_features & SKINNY_PHONE_FEATURES_PROTOCOLVERSION;
 	
 	uint8_t ourMaxSupportedProtocolVersion = sccp_protocol_getMaxSupportedVersionNumber(s->protocolType);
 
@@ -368,8 +401,8 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: device load_info='%s', maxbuttons='%d', supports dynamic_messages='%s', supports abbr_dial='%s'\n", r->msg.RegisterMessage.sId.deviceName, 
 			r->msg.RegisterMessage.loadInfo, 
 			r->msg.RegisterMessage.lel_maxButtons,
-			(r->msg.RegisterMessage.phone_features & SKINNY_PHONE_FEATUES_DYNAMIC_MESSAGES) == 0 ? "no" : "yes",
-			(r->msg.RegisterMessage.phone_features & SKINNY_PHONE_FEATUES_ABBRDIAL) == 0 ? "no" : "yes");
+			(r->msg.RegisterMessage.phone_features & SKINNY_PHONE_FEATURES_DYNAMIC_MESSAGES) == 0 ? "no" : "yes",
+			(r->msg.RegisterMessage.phone_features & SKINNY_PHONE_FEATURES_ABBRDIAL) == 0 ? "no" : "yes");
 
 	if (GLOB(localaddr) && sccp_apply_ha(GLOB(localaddr), &s->sin) != AST_SENSE_ALLOW) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream \n", r->msg.RegisterMessage.sId.deviceName);

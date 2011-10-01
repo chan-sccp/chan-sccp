@@ -31,9 +31,9 @@
 #    define SCCP_MAX_AUTOLOGIN			100				/*!< Maximum allowed of autologins per device */
 #    define SCCP_KEEPALIVE				5			/*!< Default keepalive time if not specified in sccp.conf. */
 
-#    define SKINNY_PHONE_FEATUES_PROTOCOLVERSION 0xFF
-#    define SKINNY_PHONE_FEATUES_ABBRDIAL 1<<31
-#    define SKINNY_PHONE_FEATUES_DYNAMIC_MESSAGES 1<<24
+#    define SKINNY_PHONE_FEATURES_PROTOCOLVERSION 0xFF
+#    define SKINNY_PHONE_FEATURES_ABBRDIAL 1<<31
+#    define SKINNY_PHONE_FEATURES_DYNAMIC_MESSAGES 1<<24
 
 /*!
  * \brief Skinny Device Feature (ENUM)
@@ -1330,7 +1330,7 @@ typedef enum {
 	SoftKeyEventMessage = 0x0026,
 	UnregisterMessage = 0x0027,
 	SoftKeyTemplateReqMessage = 0x0028,
-	RegisterTokenReq = 0x0029,
+	RegisterTokenRequest = 0x0029,
 	HeadsetStatusMessage = 0x002B,
 	MediaResourceNotification = 0x002C,
 	RegisterAvailableLinesMessage = 0x002D,
@@ -1512,7 +1512,7 @@ static const struct sccp_messagetype {
 	{SoftKeyEventMessage, "SoftKey Event Message"},
 	{UnregisterMessage, "Unregister Message"},
 	{SoftKeyTemplateReqMessage, "SoftKey Template Request"},
-	{RegisterTokenReq, "Register Token Request"},
+	{RegisterTokenRequest, "Register Token Request"},
 	{HeadsetStatusMessage, "Headset Status Message"},
 	{MediaResourceNotification, "Media Resource Notification"},
 	{RegisterAvailableLinesMessage, "Register Available Lines Message"},
@@ -2786,7 +2786,7 @@ typedef union {
 		uint32_t lel_deviceType;					/*!< Device Type as part of SKINNY_DEVICETYPE_* */
 		char	 ipv6Address[16];
 		uint32_t unknown;
-	} RegisterTokenReq;							/*!< Register Token Request */
+	} RegisterTokenRequest;							/*!< Register Token Request */
 
 	struct {
 		uint32_t lel_hsMode;						/*!< Head Set Mode */
@@ -3858,7 +3858,6 @@ typedef struct {
 	void (*const displayPriNotify) (const sccp_device_t *device, uint8_t priority, uint8_t timeout, const char *message);
 	void (*const sendCallforwardMessage) (const sccp_device_t *device, const void *linedevice);
 	void (*const sendUserToDeviceDataVersionMessage) (const sccp_device_t *device, const void *xmlData, uint8_t priority);
-	boolean_t (*const retrieveTokenReq) (const sccp_moo_t * r, char deviceName[13], uint32_t serverInstance, uint32_t deviceType);
 	void (*const sendTokenAck) (const sccp_device_t *device, uint32_t features);
 	void (*const sendTokenReject) (const sccp_device_t *device, uint32_t backoff_time, uint32_t features);
 } sccp_deviceProtocol_t;
