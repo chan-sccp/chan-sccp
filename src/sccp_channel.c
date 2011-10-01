@@ -2453,27 +2453,25 @@ void sccp_channel_park(sccp_channel_t *channel)
  */
 boolean_t sccp_channel_setPreferredCodec(sccp_channel_t *c, const void *data){
 	
-	struct ast_codec_pref 	codecs;
 	char 			text[64] = { '\0' };
 	uint64_t 		x;
 	int 			numFoundCodecs = 0;
 
 	
 
-	skinny_codec_t tempCodecPreferences[sizeof(c->preferences.audio)];
+	skinny_codec_t tempCodecPreferences[ARRAY_LEN(c->preferences.audio)];
 
 	if (!data || !c )
 		return FALSE;
 
 	strncpy(text, data, sizeof(text) - 1);
-	memset(&codecs, 0, sizeof(codecs));
 
 	/* save original preferences */
 	memcpy(&tempCodecPreferences, c->preferences.audio, sizeof(c->preferences.audio));
 
 	
 
-	for (x = 0; x < ARRAY_LEN(skinny_codecs); x++) {
+	for (x = 0; x < ARRAY_LEN(skinny_codecs) && numFoundCodecs < ARRAY_LEN(c->preferences.audio); x++) {
 		if (!strcasecmp(skinny_codecs[x].shortname, text)) {
 
 			c->preferences.audio[numFoundCodecs] = skinny_codecs[x].codec;
@@ -2483,7 +2481,7 @@ boolean_t sccp_channel_setPreferredCodec(sccp_channel_t *c, const void *data){
 			//! \todo we should remove our prefs from original list -MC
 		}
 	}
-	memcpy(&c->preferences.audio[numFoundCodecs], tempCodecPreferences, sizeof(c->preferences.audio) - numFoundCodecs);
+	(&c->preferences.audio[numFoundCodecs], tempCodecPreferences, sizeof(c->preferences.audio) * (ARRAY_LEN(c->preferences.audio) - numFoundCodecs) );
 
 	return TRUE;
 }
