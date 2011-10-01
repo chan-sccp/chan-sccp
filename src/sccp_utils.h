@@ -154,3 +154,7 @@ int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1);
 void sendUserToDeviceVersion1Message(sccp_device_t * d, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, char data[]);
 #endif
 boolean_t sccp_strcasecmp(const char *data1, const char *data2);
+
+#ifdef CS_SCCP_VIDEO
+void sccp_util_getVideoChannelVariables(sccp_channel_t * channel);
+#endif

@@ -1052,7 +1052,9 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		struct subscriptionId subscriptionId;
 		unsigned int peerIsSCCP:1;					/*!< Indicates that channel-peer is also SCCP */
 
+		uint32_t videoCallEnabled;					/*!< Used to dynamically activate video send /receive */
 		uint32_t desiredVideoBitrate;					/*!< Used to dynamically choose bitrate for video */
+		uint32_t desiredVideoLevel;					/*!< Used to dynamically choose level for video */
 
 		boolean_t mutemic_flag;							/*!< Flag to mute the microphone when calling a baby phone */
 	};									/*!< SCCP Channel Structure */

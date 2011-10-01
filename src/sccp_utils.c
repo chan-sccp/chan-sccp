@@ -2060,3 +2060,51 @@ boolean_t sccp_strcasecmp(const char *data1, const char *data2)
 	}
 	return FALSE;
 }
+
+#ifdef CS_SCCP_VIDEO
+void sccp_util_getVideoChannelVariables(sccp_channel_t * c)
+{
+	struct ast_channel *ast;
+	const char *var;
+
+	if (NULL == c) {
+		return;
+	}
+
+	ast = c->owner;
+
+	if (NULL == ast) {
+		return;
+	}
+
+	/* Read channel variable:  Video enable */
+	var = pbx_builtin_getvar_helper(ast, "VIDEO_ENABLE");
+
+	if (NULL == var) {
+	} else {
+		c->videoCallEnabled = sccp_true(var);
+	}
+
+	/* Read channel variable:  Video bitrate */
+	var = pbx_builtin_getvar_helper(ast, "VIDEO_BITRATE");
+
+	if (NULL == var) {
+	} else {
+		c->desiredVideoBitrate = atoi(var);
+	}
+
+	/* Read channel variable:  Video level */
+	var = pbx_builtin_getvar_helper(ast, "VIDEO_LEVEL");
+
+	if (NULL == var) {
+	} else {
+		c->desiredVideoLevel = atoi(var);
+	}
+
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP VIDEO VARIABLES: Issued enable = %s, bitrate = %d, level = %d\n", 
+			c->videoCallEnabled ? "TRUE" : "FALSE",
+			c->desiredVideoBitrate,
+			c->desiredVideoLevel);
+}
+#endif
+

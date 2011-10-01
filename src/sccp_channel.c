@@ -91,6 +91,8 @@ sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * de
 	c->peerIsSCCP = 0;
 	c->isCodecFix = FALSE;
 	c->desiredVideoBitrate = 1920;						/* default value. \todo: should be made configurable in the global / per device config. */
+	c->videoCallEnabled = FALSE;					/*!< Used to dynamically activate video send /receive */
+	c->desiredVideoLevel = 50;					/*!< Used to dynamically choose level for video */
 	c->device = device;
 	c->mutemic_flag = FALSE;
 	if (NULL != c->device) {
@@ -717,8 +719,18 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 		return;
 	}
 #ifdef CS_SCCP_VIDEO
-	if (sccp_device_isVideoSupported(c->device) && !c->rtp.video.rtp && !sccp_rtp_createVideoServer(c)) {
-		ast_log(LOG_WARNING, "%s: can not start VRTP Server\n", DEV_ID_LOG(c->device));
+	if (sccp_device_isVideoSupported(c->device)) {
+
+		/* Update video channel variables to decide whether we use video. */
+		sccp_util_getVideoChannelVariables(c);
+		
+		if(c->videoCallEnabled) {
+			ast_log(LOG_WARNING, "%s: DEBUG: Using Video as set by channel variables.\n", DEV_ID_LOG(c->device));
+			
+			if(!c->rtp.video.rtp && !sccp_rtp_createVideoServer(c)) {
+				ast_log(LOG_WARNING, "%s: can not start VRTP Server\n", DEV_ID_LOG(c->device));
+			}
+		}
 	}
 #endif
 
@@ -765,8 +777,10 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 
 #ifdef CS_SCCP_VIDEO
 	if (sccp_device_isVideoSupported(c->device) && c->rtp.video.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: We can/could/might have video, try to open multimediachannel\n", DEV_ID_LOG(c->device));
-		sccp_channel_openMultiMediaChannel(c);
+			if(c->videoCallEnabled) {
+				sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: We can/could/might have video, try to open multimediachannel\n", DEV_ID_LOG(c->device));
+				sccp_channel_openMultiMediaChannel(c);
+			}
         }
 #endif
 
@@ -831,7 +845,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormat[0].format = htolel(4);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormat[0].mpi = htolel(30);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.profile = htolel(64);
-		r->msg.OpenMultiMediaChannelMessage.videoParameter.level = htolel(50);
+		r->msg.OpenMultiMediaChannelMessage.videoParameter.level = htolel(channel->desiredVideoLevel);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.macroblockspersec = htolel(40500);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.macroblocksperframe = htolel(1620);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.decpicbuf = htolel(8100);
@@ -840,11 +854,6 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.bitRate = htolel(channel->desiredVideoBitrate);
 	} else {
 		r = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(r->msg.OpenMultiMediaChannelMessage_v17));
-
-		uint32_t mylevel = 50;
-		if(channel->desiredVideoBitrate < 2560) {
-			mylevel = 29;
-		}
 
 		r->msg.OpenMultiMediaChannelMessage_v17.lel_conferenceID = htolel(channel->callid);
 		r->msg.OpenMultiMediaChannelMessage_v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
@@ -858,7 +867,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.pictureFormat[0].format = htolel(1);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.pictureFormat[0].mpi = htolel(1);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.profile = htolel(64);
-		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.level = htolel(mylevel);
+		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.level = htolel(channel->desiredVideoLevel);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.macroblockspersec = htolel(0);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.macroblocksperframe = htolel(0);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.decpicbuf = htolel(0);
@@ -950,19 +959,14 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		r->msg.StartMultiMediaTransmission.videoParameter.pictureFormatCount = htolel(0);
 		r->msg.StartMultiMediaTransmission.videoParameter.pictureFormat[0].format = htolel(4);
 		r->msg.StartMultiMediaTransmission.videoParameter.pictureFormat[0].mpi = htolel(30);
-		r->msg.StartMultiMediaTransmission.videoParameter.profile = htolel(50);
-		r->msg.StartMultiMediaTransmission.videoParameter.level = htolel(64);
+		r->msg.StartMultiMediaTransmission.videoParameter.profile = htolel(64);
+		r->msg.StartMultiMediaTransmission.videoParameter.level = htolel(channel->desiredVideoLevel);
 		r->msg.StartMultiMediaTransmission.videoParameter.macroblockspersec = htolel(40500);
 		r->msg.StartMultiMediaTransmission.videoParameter.macroblocksperframe = htolel(1620);
 		r->msg.StartMultiMediaTransmission.videoParameter.decpicbuf = htolel(8100);
 		r->msg.StartMultiMediaTransmission.videoParameter.brandcpb = htolel(10000);
 		r->msg.StartMultiMediaTransmission.videoParameter.confServiceNum = htolel(channel->callid);
 	} else {
-		uint32_t mylevel = 50;
-		if(channel->desiredVideoBitrate < 2560) {
-			mylevel = 29;
-		}
-
 		r = sccp_build_packet(StartMultiMediaTransmission, sizeof(r->msg.StartMultiMediaTransmission_v17));
 		r->msg.StartMultiMediaTransmission_v17.lel_conferenceID = htolel(channel->callid);
 		r->msg.StartMultiMediaTransmission_v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
@@ -977,7 +981,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormat[0].format = htolel(1);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormat[0].mpi = htolel(1);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.profile = htolel(64);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.level = htolel(mylevel);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.level = htolel(channel->desiredVideoLevel);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.macroblockspersec = htolel(0);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.macroblocksperframe = htolel(0);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.decpicbuf = htolel(0);
@@ -1101,11 +1105,13 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 
 #ifdef CS_SCCP_VIDEO
 	if (sccp_device_isVideoSupported(c->device)) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", DEV_ID_LOG(c->device));
-		if (!c->rtp.video.rtp && !sccp_rtp_createVideoServer(c)) {
-			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(c->device));
-		} else {
-			sccp_channel_startMultiMediaTransmission(c);
+		if(c->videoCallEnabled) {
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", DEV_ID_LOG(c->device));
+			if (!c->rtp.video.rtp && !sccp_rtp_createVideoServer(c)) {
+				sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(c->device));
+			} else {
+				sccp_channel_startMultiMediaTransmission(c);
+			}
 		}
 	} else {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: We have no video support\n", DEV_ID_LOG(c->device));
