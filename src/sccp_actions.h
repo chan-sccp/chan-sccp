@@ -19,7 +19,7 @@ void sccp_init_device(sccp_device_t * d);
 void sccp_handle_unknown_message(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_alarm(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
-void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
+void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
