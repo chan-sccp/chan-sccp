@@ -126,20 +126,23 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * s, sccp_device_t * d, sccp_moo
 void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
 	uint32_t mid = letohl(r->lel_messageId);
-	char *deviceName;
-	uint32_t serverInstance;
-	uint32_t deviceType;
-	if (RegisterTokenRequest==mid) {
-		deviceName=strdupa(r->msg.RegisterTokenRequest.sId.deviceName);
-		serverInstance=letohl(r->msg.RegisterTokenRequest.sId.lel_instance);
-		deviceType=letohl(r->msg.RegisterTokenRequest.lel_deviceType);
-		sccp_dump_packet((unsigned char *)&r->msg.RegisterTokenRequest, r->length);
-	} else if (SPCPRegisterTokenRequest){
-		deviceName=strdupa(r->msg.SPCPRegisterTokenRequest.sId.deviceName);
-		serverInstance=letohl(r->msg.SPCPRegisterTokenRequest.sId.lel_instance);
-		deviceType=letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType);
-		sccp_dump_packet((unsigned char *)&r->msg.SPCPRegisterTokenRequest, r->length);
-	} else {
+	char *deviceName="";
+	uint32_t serverInstance=0;
+	uint32_t deviceType=0;
+
+	switch(mid) {
+		case RegisterTokenRequest:
+	 		deviceName=strdupa(r->msg.RegisterTokenRequest.sId.deviceName);
+ 			serverInstance=letohl(r->msg.RegisterTokenRequest.sId.lel_instance);
+ 			deviceType=letohl(r->msg.RegisterTokenRequest.lel_deviceType);
+			sccp_dump_packet((unsigned char *)&r->msg.RegisterTokenRequest, r->length);
+			break;
+		case SPCPRegisterTokenRequest:
+			deviceName=strdupa(r->msg.SPCPRegisterTokenRequest.sId.deviceName);
+			serverInstance=letohl(r->msg.SPCPRegisterTokenRequest.sId.lel_instance);
+			deviceType=letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType);
+			sccp_dump_packet((unsigned char *)&r->msg.SPCPRegisterTokenRequest, r->length);
+			break;
 	}
 
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is requesting a Token, Instance: %d, Type: %s (%d)\n", 
@@ -161,6 +164,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	}
 
 	// create hotline device if necessary
+	/* \todo handle device pre-registration to speed up registration upon emergency and make communication (device reset) with device possible */
 /*	if (!d) {
 		if (GLOB(allowAnonymous)) {
 			d = sccp_device_create();
@@ -219,94 +223,6 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token rejection (sccp.conf:fallback=%s), ask again in '%d' seconds\n", deviceName, GLOB(token_fallback), GLOB(token_backoff_time));
 		d->protocol->sendTokenReject(d, GLOB(token_backoff_time), 65535);
 	}
-}
-
-/*!
- * \brief Handle Token Request for SPCP phones
- *
- * If a fall-back server has been entered in the phones cnf.xml file and the phone has fallen back to a secundairy server
- * it will send a tokenreq to the primairy every so often (secundaity keep alive timeout ?). Once the primairy server sends 
- * a token acknowledgement the switches back.
- *
- * \param s SCCP Session
- * \param d SCCP Device
- * \param r SCCP Moo
- *
- * \callgraph
- * \callergraph
- *
- * \todo Implement a decision when to send RegisterTokenAck and when to send RegisterTokenReject
- *       If sending RegisterTokenReject what should the lel_tokenRejWaitTime (BackOff time) be
- */
-void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r){
-	sccp_moo_t *r1;
-	sccp_device_t *device;
-  
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: is requestin a token, Instance: %d, Type: %s (%d)\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, r->msg.SPCPRegisterTokenRequest.sId.lel_instance, devicetype2str(letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType)), letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType));
-
-	/* ip address range check */
-	if (GLOB(ha) && !sccp_apply_ha(GLOB(ha), &s->sin)) {
-		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName);
-		s = sccp_session_reject(s, "IP not authorized");
-		return;
-	}
-	
-	// Search for already known devices
-	device = sccp_device_find_byid(r->msg.SPCPRegisterTokenRequest.sId.deviceName, FALSE);
-	if (device) {
-		if (device->session && device->session != s) {
-			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", device->id);
-			device->session->session_stop = 1;				/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
-			sccp_log(1) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", device->id);
-		}
-	}
-	
-	// search for all devices including realtime
-	device = sccp_device_find_byid(r->msg.SPCPRegisterTokenRequest.sId.deviceName, TRUE);
-	if (!device) {
-		if (GLOB(allowAnonymous)) {
-			device = sccp_device_create();
-			sccp_config_applyDeviceConfiguration(device, NULL);
-			device->realtime = TRUE;
-
-			sccp_copy_string(device->id, r->msg.SPCPRegisterTokenRequest.sId.deviceName, sizeof(device->id));
-			device->isAnonymous = TRUE;
-			sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, GLOB(hotline)->line->name);
-			device->defaultLineInstance = 1;
-			SCCP_RWLIST_WRLOCK(&GLOB(devices));
-			SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), device, list);
-			SCCP_RWLIST_UNLOCK(&GLOB(devices));
-		} else {
-			pbx_log(LOG_NOTICE, "%s: Rejecting device: not found\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName);
-			s = sccp_session_reject(s, "Unknown Device");
-			return;
-		}
-	}
-	
-	s->protocolType = SPCP_PROTOCOL;
-	s->device = device;	
-	if(device){
-		if (device->checkACL(device) == FALSE) {
-			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
-			s = sccp_session_reject(s, "IP Not Authorized");
-			return;
-		}	  
-	}
-	
-	if (device->session && device->session != s) {
-		sccp_log(1) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", device->id);
-		s = sccp_session_reject(s, "Crossover session not allowed");
-		return;
-	}
-	
-	
-	/* all checks passed, assign session to device */
-	device->session = s;
-
-	REQ(r1, SPCPRegisterTokenAck);
-	r1->msg.SPCPRegisterTokenAck.lel_features = htolel(65535);
-	sccp_session_send(d, r1);
 }
 
 /*!
@@ -396,8 +312,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	d->device_features = r->msg.RegisterMessage.phone_features;
 	d->linesRegistered = FALSE;
 	
-	
-	
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: device load_info='%s', maxbuttons='%d', supports dynamic_messages='%s', supports abbr_dial='%s'\n", r->msg.RegisterMessage.sId.deviceName, 
 			r->msg.RegisterMessage.loadInfo, 
 			r->msg.RegisterMessage.lel_maxButtons,
@@ -444,7 +358,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval);
 // 	REQ(r1, RegisterAckMessage);
-
 //      sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->length);
 
 	if (r->length < 56 && d->protocolversion == 0) {

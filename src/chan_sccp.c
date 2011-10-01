@@ -307,7 +307,6 @@ static const struct sccp_messageMap_cb messagesCbMap[] = {
 	{RegisterMessage, sccp_handle_register, FALSE},
 	{AlarmMessage, sccp_handle_alarm, FALSE},
 	{XMLAlarmMessage, sccp_handle_XMLAlarmMessage, FALSE},
-//	{SPCPRegisterTokenRequest, sccp_handle_SPCPTokenReq, FALSE},
 	{SPCPRegisterTokenRequest, sccp_handle_token_request, FALSE},
 };
 
