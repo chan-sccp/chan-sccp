@@ -125,25 +125,15 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * s, sccp_device_t * d, sccp_moo
  */
 void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
-	uint32_t mid = letohl(r->lel_messageId);
 	char *deviceName="";
 	uint32_t serverInstance=0;
 	uint32_t deviceType=0;
 
-	switch(mid) {
-		case RegisterTokenRequest:
-	 		deviceName=strdupa(r->msg.RegisterTokenRequest.sId.deviceName);
- 			serverInstance=letohl(r->msg.RegisterTokenRequest.sId.lel_instance);
- 			deviceType=letohl(r->msg.RegisterTokenRequest.lel_deviceType);
-			sccp_dump_packet((unsigned char *)&r->msg.RegisterTokenRequest, r->length);
-			break;
-		case SPCPRegisterTokenRequest:
-			deviceName=strdupa(r->msg.SPCPRegisterTokenRequest.sId.deviceName);
-			serverInstance=letohl(r->msg.SPCPRegisterTokenRequest.sId.lel_instance);
-			deviceType=letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType);
-			sccp_dump_packet((unsigned char *)&r->msg.SPCPRegisterTokenRequest, r->length);
-			break;
-	}
+	deviceName=strdupa(r->msg.RegisterTokenRequest.sId.deviceName);
+	serverInstance=letohl(r->msg.RegisterTokenRequest.sId.lel_instance);
+	deviceType=letohl(r->msg.RegisterTokenRequest.lel_deviceType);
+
+//	sccp_dump_packet((unsigned char *)&r->msg.RegisterTokenRequest, r->length);
 
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is requesting a Token, Instance: %d, Type: %s (%d)\n", 
 		deviceName, 
@@ -219,18 +209,10 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	
 	if (sendAck) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", deviceName);
-		if (RegisterTokenRequest==mid) {
-			sccp_session_tokenAck(s);
-		} else {
-			sccp_session_tokenAckSPCP(s, 65535);
-		}
+		sccp_session_tokenAck(s);
 	}else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token rejection (sccp.conf:fallback=%s), ask again in '%d' seconds\n", deviceName, GLOB(token_fallback), GLOB(token_backoff_time));
-		if (RegisterTokenRequest==mid) {
-			sccp_session_tokenReject(s, GLOB(token_backoff_time));
-		} else {
-			sccp_session_tokenRejectSPCP(s, 65535);
-		}
+		sccp_session_tokenReject(s, GLOB(token_backoff_time));
 	}
 }
 
@@ -252,7 +234,6 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
  *       If sending RegisterTokenReject what should the lel_tokenRejWaitTime (BackOff time) be
  */
 void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r){
-	sccp_moo_t *r1;
 	sccp_device_t *device;
   
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: is requestin a token, Instance: %d, Type: %s (%d)\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, r->msg.SPCPRegisterTokenRequest.sId.lel_instance, devicetype2str(letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType)), letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType));
@@ -313,13 +294,9 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
 		return;
 	}
 	
-	
 	/* all checks passed, assign session to device */
 	device->session = s;
-
-	REQ(r1, SPCPRegisterTokenAck);
-	r1->msg.SPCPRegisterTokenAck.lel_features = htolel(65535);
-	sccp_session_send(d, r1);
+	sccp_session_tokenAckSPCP(s, 65535);
 }
 
 /*!

@@ -731,6 +731,7 @@ void sccp_session_tokenAck(sccp_session_t * session)
  * \param session SCCP Session Pointer
  * \param features Phone Features
  */
+/*
 void sccp_session_tokenRejectSPCP(sccp_session_t * session, uint32_t features)
 {
 	sccp_moo_t *r;
@@ -739,6 +740,7 @@ void sccp_session_tokenRejectSPCP(sccp_session_t * session, uint32_t features)
 	r->msg.SPCPRegisterTokenReject.lel_features=htolel(features);
 	sccp_session_send2(session, r);
 }
+*/
 
 /*!
  * \brief Send a token acknowledgement to the SPCP Device.
