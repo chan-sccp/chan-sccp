@@ -219,7 +219,6 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	
 	if (sendAck) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", deviceName);
-// 		d->protocol->sendTokenAck(d, 65535); /* this will core directly */
 		if (RegisterTokenRequest==mid) {
 			sccp_session_tokenAck(s);
 		} else {
@@ -227,7 +226,6 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 		}
 	}else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token rejection (sccp.conf:fallback=%s), ask again in '%d' seconds\n", deviceName, GLOB(token_fallback), GLOB(token_backoff_time));
-// 		d->protocol->sendTokenReject(d, GLOB(token_backoff_time), 65535); /* this will core directly */
 		if (RegisterTokenRequest==mid) {
 			sccp_session_tokenReject(s, GLOB(token_backoff_time));
 		} else {
@@ -279,7 +277,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	}
 	i = 0;
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: IPv6-Address: %s\n", r->msg.RegisterMessage.sId.deviceName, ipv6Addr);
-
 
 	// search for all devices including realtime
 	d = sccp_device_find_byid(r->msg.RegisterMessage.sId.deviceName, TRUE);
@@ -352,14 +349,11 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	
 	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->length);
 	
-	
 	d->protocol = sccp_protocol_getDeviceProtocol(d, s->protocolType);
 	
 	uint8_t ourProtocolCapability = sccp_protocol_getMaxSupportedVersionNumber(s->protocolType);
 	
-	/*! \todo change 'our protocol capability' calculation, using the protocol definition */
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d).\n", DEV_ID_LOG(d), ourProtocolCapability);
-
 	sccp_device_unlock(d);
 
 	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
