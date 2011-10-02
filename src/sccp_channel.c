@@ -1058,7 +1058,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 		}
 	}
 #if ASTERISK_VERSION_NUMBER >= 10400
-	fmt = pbx_codec_pref_getsize(&c->device->codecs, c->format);
+	fmt = pbx_codec_pref_getsize(&c->device->codecs, c->format & AST_FORMAT_AUDIO_MASK);
 	payloadType = sccp_codec_ast2skinny(fmt.bits);
 	packetSize = fmt.cur_ms;
 #else
