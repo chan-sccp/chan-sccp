@@ -143,7 +143,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	);
 
 	// Search for already known devices -> Cleanup
-	d = sccp_device_find_byid(deviceName, FALSE); /** why do not use realtime devices? -MC */
+	d = sccp_device_find_byid(deviceName, TRUE); /** why do not use realtime devices? -MC */
 	if (d) {
 		if (d->session && d->session != s) {
 			/** this code is dangerous!!! -MC */
@@ -152,11 +152,9 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 			sccp_dev_clean(d, FALSE, 0);				/* we need to clean device configuration to set lines */
 			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
 		}
-	}
-
-	// create hotline device if necessary
-	/* \todo handle device pre-registration to speed up registration upon emergency and make communication (device reset) with device possible */
-/*	if (!d) {
+	} else {
+		// create hotline device if necessary
+		/* \todo handle device pre-registration to speed up registration upon emergency and make communication (device reset) with device possible */
 		if (GLOB(allowAnonymous)) {
 			d = sccp_device_create();
 			sccp_config_applyDeviceConfiguration(d, NULL);
@@ -170,49 +168,48 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 			SCCP_RWLIST_WRLOCK(&GLOB(devices));
 			SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), d, list);
 			SCCP_RWLIST_UNLOCK(&GLOB(devices));
-		} else {
+		} else { */
 			pbx_log(LOG_NOTICE, "%s: Rejecting device: not found\n", deviceName);
 			s = sccp_session_reject(s, "Unknown Device");
 			return;
 		}
-	}*/
-
-	s->device = d;
-	if(d){
+	}
+	if (d) {
+		s->device = d;
 		if (d->checkACL(d) == FALSE) {
 			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
 			s = sccp_session_reject(s, "IP Not Authorized");
 			return;
 		}	  
-	}
 	
-	/* all checks passed, assign session to device */
-	d->session = s;
+		/* all checks passed, assign session to device */
+		d->session = s;
 
-	/* \todo handle device pre-registration to speed up registration upon emergency and make communication (device reset) with device possible */
+		/* \todo handle device pre-registration to speed up registration upon emergency and make communication (device reset) with device possible */
 
-	/*Currently rejecting token until further notice */
-	boolean_t sendAck=FALSE;
-	int last_digit=deviceName[strlen(deviceName)];
-	if (!strcasecmp("true", GLOB(token_fallback))) {
-		/* we are the primary server */
-		if(letohl(serverInstance) == 0){
-			sendAck = TRUE;
+		/*Currently rejecting token until further notice */
+		boolean_t sendAck=FALSE;
+		int last_digit=deviceName[strlen(deviceName)];
+		if (!strcasecmp("true", GLOB(token_fallback))) {
+			/* we are the primary server */
+			if(letohl(serverInstance) == 0){
+				sendAck = TRUE;
+			}
+		} else if (!strcasecmp("odd", GLOB(token_fallback))) {
+			if (last_digit % 2 != 0)
+				sendAck=TRUE;
+		} else if (!strcasecmp("even", GLOB(token_fallback))) {
+			if (last_digit % 2 == 0)
+				sendAck=TRUE;	
 		}
-	} else if (!strcasecmp("odd", GLOB(token_fallback))) {
-		if (last_digit % 2 != 0)
-			sendAck=TRUE;
-	} else if (!strcasecmp("even", GLOB(token_fallback))) {
-		if (last_digit % 2 == 0)
-			sendAck=TRUE;	
-	}
-	
-	if (sendAck) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", deviceName);
-		sccp_session_tokenAck(s);
-	}else {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token rejection (sccp.conf:fallback=%s), ask again in '%d' seconds\n", deviceName, GLOB(token_fallback), GLOB(token_backoff_time));
-		sccp_session_tokenReject(s, GLOB(token_backoff_time));
+		
+		if (sendAck) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", deviceName);
+			sccp_session_tokenAck(s);
+		}else {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token rejection (sccp.conf:fallback=%s), ask again in '%d' seconds\n", deviceName, GLOB(token_fallback), GLOB(token_backoff_time));
+			sccp_session_tokenReject(s, GLOB(token_backoff_time));
+		}
 	}
 }
 
