@@ -540,11 +540,13 @@ static void sccp_wrapper_asterisk18_setCalleridPresence(const sccp_channel_t * c
 
 static int sccp_wrapper_asterisk18_setNativeAudioFormats(const sccp_channel_t *channel, skinny_codec_t codec[], int length)
 {
-	ast_debug(10, "%s: set native Formats length: %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), length);
+	
 #ifdef CS_EXPERIMENTAL
 	format_t new_nativeformats=0;
 	int i;
 
+	ast_debug(10, "%s: set native Formats length: %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), length);
+	
 	for (i = 0; i < length; i++) {
 		new_nativeformats |= skinny_codec2pbx_codec(codec[i]);
 		ast_debug(10, "%s: set native Formats to %d, skinny: %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), (int)channel->owner->nativeformats, codec[i]);
@@ -555,9 +557,8 @@ static int sccp_wrapper_asterisk18_setNativeAudioFormats(const sccp_channel_t *c
 		sccp_multiple_codecs2str(codecs, sizeof(codecs) - 1, codec, length);
 		sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_2 "%s: updated native Formats to %d, length: %d, skinny: [%s]\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), (int)channel->owner->nativeformats, length, codecs);
 	}
-//#else
-//	channel->owner->nativeformats = skinny_codec2pbx_codec(codec[0]);
-//	return 1;
+#else
+	channel->owner->nativeformats = skinny_codec2pbx_codec(codec[0]);
 #endif
 	return 1;
 }
