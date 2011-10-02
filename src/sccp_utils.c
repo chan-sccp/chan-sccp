@@ -2399,7 +2399,7 @@ int sccp_apply_ha(struct sccp_ha *ha, struct sockaddr_in *sin)
 		inet_ntop(AF_INET, &sin->sin_addr.s_addr, str1, INET_ADDRSTRLEN);
 		inet_ntop(AF_INET, &ha->netaddr.s_addr, str2, INET_ADDRSTRLEN);
 		inet_ntop(AF_INET, &ha->netmask.s_addr, str3, INET_ADDRSTRLEN);
-		sccp_log(DEBUGCAT_HIGH)("TEST IP: %s HA: IP: %s/%s, sense '%s'\n", str1, str2, str3, ha->sense ? "deny" : "permit");
+		sccp_log(DEBUGCAT_CORE)("TEST IP: %s HA: IP: %s/%s, sense '%s'\n", str1, str2, str3, ha->sense ? "permit" : "deny");
 #endif		
 
 		if ((sin->sin_addr.s_addr & ha->netmask.s_addr) == ha->netaddr.s_addr) {
@@ -2409,7 +2409,7 @@ int sccp_apply_ha(struct sccp_ha *ha, struct sockaddr_in *sin)
 	}
 
 #if 0
-	sccp_log(DEBUGCAT_HIGH)("result %d\n", res);
+	sccp_log(DEBUGCAT_CORE)("result %d\n", res);
 #endif
 	return res;
 }
@@ -2439,7 +2439,7 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 	ret = path;
 	p = path;
 	while (p) {
-		prev = path;
+		prev = p;
 		p = p->next;
 	}
 
@@ -2503,8 +2503,12 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 	} else {
 		ret = ha;
 	}
+	
 
-	sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_1 "%s/%s sense %d appended to acl for peer\n", sccp_strdupa(pbx_inet_ntoa(ha->netaddr)), sccp_strdupa(pbx_inet_ntoa(ha->netmask)), ha->sense);
+	ast_log(LOG_NOTICE, "path: %p\n", path);
+	ast_log(LOG_NOTICE, "prev: %p\n", prev);
+	ast_log(LOG_NOTICE, "%s/%s sense %d appended to acl for peer\n", sccp_strdupa(pbx_inet_ntoa(ha->netaddr)), sccp_strdupa(pbx_inet_ntoa(ha->netmask)), ha->sense);
+	ast_log(LOG_NOTICE, "ha: %p\n", ret);
 
 	return ret;
 }
