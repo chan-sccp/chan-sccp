@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_channel.c
  * \brief 	SCCP Channel Class
@@ -2477,7 +2476,7 @@ boolean_t sccp_channel_setPreferredCodec(sccp_channel_t *c, const void *data){
 			//! \todo we should remove our prefs from original list -MC
 		}
 	}
-//	(&c->preferences.audio[numFoundCodecs], tempCodecPreferences, sizeof(c->preferences.audio) * (ARRAY_LEN(c->preferences.audio) - numFoundCodecs) );
+	memcpy(&c->preferences.audio[numFoundCodecs], tempCodecPreferences, sizeof(skinny_codec_t) * (ARRAY_LEN(c->preferences.audio) - numFoundCodecs) );
 
 	return TRUE;
 }
