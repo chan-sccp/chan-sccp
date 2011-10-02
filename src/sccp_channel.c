@@ -1057,8 +1057,8 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 			memcpy(&c->rtp.audio.phone_remote.sin_addr, &GLOB(externip.sin_addr), 4);
 		}
 	}
-#if ASTERISK_VERSION_NUMBER >= 10400
-	fmt = pbx_codec_pref_getsize(&c->device->codecs, c->format & AST_FORMAT_AUDIO_MASK);
+#if ASTERISK_VERSION_NUMBER >= 10400   
+	fmt = pbx_codec_pref_getsize(&c->codecs, c->format & AST_FORMAT_AUDIO_MASK);
 	payloadType = sccp_codec_ast2skinny(fmt.bits);
 	packetSize = fmt.cur_ms;
 #else
