@@ -153,9 +153,10 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	);
 
 	// Search for already known devices -> Cleanup
-	d = sccp_device_find_byid(deviceName, FALSE);
+	d = sccp_device_find_byid(deviceName, FALSE); /** why do not use realtime devices? -MC */
 	if (d) {
 		if (d->session && d->session != s) {
+			/** this code is dangerous!!! -MC */
 			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_2 "%s: Device is registered on another server (TokenReq)!\n", d->id);
 			d->session->session_stop = 1;				/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
 			sccp_dev_clean(d, FALSE, 0);				/* we need to clean device configuration to set lines */
@@ -218,10 +219,12 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	
 	if (sendAck) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", deviceName);
-		d->protocol->sendTokenAck(d, 65535);
+// 		d->protocol->sendTokenAck(d, 65535); /* this will core directly */
+		sccp_session_tokenAck(s);
 	}else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token rejection (sccp.conf:fallback=%s), ask again in '%d' seconds\n", deviceName, GLOB(token_fallback), GLOB(token_backoff_time));
-		d->protocol->sendTokenReject(d, GLOB(token_backoff_time), 65535);
+// 		d->protocol->sendTokenReject(d, GLOB(token_backoff_time), 65535); /* this will core directly */
+		sccp_session_tokenReject(s, GLOB(token_backoff_time));
 	}
 }
 
