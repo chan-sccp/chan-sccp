@@ -652,10 +652,6 @@ boolean_t sccp_prePBXLoad()
 	GLOB(earlyrtp) = SCCP_CHANNELSTATE_PROGRESS;
 	
 	memset(GLOB(hotline), 0, sizeof(sccp_hotline_t));
-	
-	char new_permit[31];
-	snprintf(new_permit, sizeof(new_permit),  "0.0.0.0/0.0.0.0");
-	sccp_append_ha("permit", new_permit, GLOB(ha), NULL);
 
 	sccp_create_hotline();
 
