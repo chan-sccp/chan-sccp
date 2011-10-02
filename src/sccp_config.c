@@ -769,9 +769,10 @@ sccp_value_changed_t sccp_config_parse_permit(void *dest, const size_t size, con
 	struct sccp_ha *ha = *(struct sccp_ha **)dest;
 
 	if (!strcasecmp(value,"internal")) {
+		ha = sccp_append_ha("permit", "127.0.0.0/255.0.0.0", ha, NULL);
 		ha = sccp_append_ha("permit", "10.0.0.0/255.0.0.0", ha, NULL);
 		ha = sccp_append_ha("permit", "172.16.0.0/255.224.0.0", ha, NULL);
-		ha = sccp_append_ha("permit", "192.168.1.0/255.255.255.0", ha, NULL);
+		ha = sccp_append_ha("permit", "192.168.0.0/255.255.0.0", ha, NULL);
 	} else {
 		ha = sccp_append_ha("permit", value, ha, NULL);
 	}
