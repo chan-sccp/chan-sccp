@@ -411,7 +411,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	s->lastKeepAlive = time(0);
 	d->mwilight = 0;
 	d->protocolversion = protocolVer;
-	
+
 	/** workaround to fix the protocol version issue for ata devices */
 	/*
 	 * MAC-Address        : ATA00215504e821
@@ -421,19 +421,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		d->protocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
 	}
 	
-	
-	
-	if(r->length == 36){
-                pbx_log(LOG_NOTICE, "check for old message structure\n");
-                d->protocolversion = r->msg.RegisterMessage36.protocolVer;
-                d->skinny_type = letohl(r->msg.RegisterMessage36.lel_deviceType);
-                pbx_log(LOG_NOTICE, "%s has protocol version %d\n", r->msg.RegisterMessage36.sId.deviceName, d->protocolversion);
-        }
-	
-	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->length);
-	
-	d->protocol = sccp_protocol_getDeviceProtocol(d, s->protocolType);
-	
+	d->protocol = sccp_protocol_getDeviceProtocol(d, s->protocolType);	
 	uint8_t ourProtocolCapability = sccp_protocol_getMaxSupportedVersionNumber(s->protocolType);
 	
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d).\n", DEV_ID_LOG(d), ourProtocolCapability);
@@ -441,32 +429,21 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
 	int keepAliveInterval = d->keepalive ? d->keepalive : GLOB(keepalive);
-
 	keepAliveInterval = (keepAliveInterval / 2) + (rand() % (keepAliveInterval / 2)) + 1;
 
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval);
-// 	REQ(r1, RegisterAckMessage);
-//      sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->length);
+	
 
-	if (r->length < 56 && d->protocolversion == 0) {
-		// registration request with protocol 0 version structure.
-		sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->length);
-		d->inuseprotocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d) (low).\n", DEV_ID_LOG(d), ourMaxSupportedProtocolVersion, d->inuseprotocolversion);
-	} else if (protocolVer > GLOB(protocolversion)) {
-		d->inuseprotocolversion = GLOB(protocolversion);
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: asked for protocol version (%d). We answered (%d) as our capability.\n", DEV_ID_LOG(d), protocolVer, ourMaxSupportedProtocolVersion);
-	} else if (protocolVer <= GLOB(protocolversion)) {
-		d->inuseprotocolversion = protocolVer;
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), ourMaxSupportedProtocolVersion, protocolVer);
-	}
+	
+	
 	
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Phone protocol capability : %d\n", DEV_ID_LOG(d), protocolVer);
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Our protocol capability	 : %d\n", DEV_ID_LOG(d), ourMaxSupportedProtocolVersion);
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Joint protocol capability : %d\n", DEV_ID_LOG(d), d->protocol->version);
+	
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval);
 
 	
-	d->inuseprotocolversion = d->protocol->version; /*! \TODO remove fallback option */
+	d->inuseprotocolversion = d->protocol->version;
 	sccp_device_setIndicationProtocol(d);
 	d->protocol->sendRegisterAck(d, keepAliveInterval, (d->keepalive ? d->keepalive : GLOB(keepalive)), GLOB(dateformat) );
 	
