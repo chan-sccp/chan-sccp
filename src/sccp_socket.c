@@ -710,7 +710,7 @@ void sccp_session_tokenReject(sccp_session_t * session, uint32_t backoff_time)
 	sccp_moo_t *r;
 
 	REQ(r, RegisterTokenReject);
-	r->msg.RegisterTokenReject.lel_tokenRejWaitTime=backoff_time;
+	r->msg.RegisterTokenReject.lel_tokenRejWaitTime = htolel(backoff_time);
 	sccp_session_send2(session, r);
 }
 
@@ -731,7 +731,6 @@ void sccp_session_tokenAck(sccp_session_t * session)
  * \param session SCCP Session Pointer
  * \param features Phone Features
  */
-/*
 void sccp_session_tokenRejectSPCP(sccp_session_t * session, uint32_t features)
 {
 	sccp_moo_t *r;
@@ -740,7 +739,7 @@ void sccp_session_tokenRejectSPCP(sccp_session_t * session, uint32_t features)
 	r->msg.SPCPRegisterTokenReject.lel_features=htolel(features);
 	sccp_session_send2(session, r);
 }
-*/
+
 
 /*!
  * \brief Send a token acknowledgement to the SPCP Device.

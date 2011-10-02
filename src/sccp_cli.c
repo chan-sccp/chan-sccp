@@ -467,6 +467,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("MAC-Address", 		CLI_AMI_LIST_WIDTH,	"%s", 		d->id);
 	CLI_AMI_OUTPUT_PARAM("Protocol Version", 	CLI_AMI_LIST_WIDTH,	"Supported '%d', In Use '%d'", 	d->protocolversion, d->inuseprotocolversion);
 	CLI_AMI_OUTPUT_PARAM("Protocol In Use", 	CLI_AMI_LIST_WIDTH,	"%s Version %d",d->protocol ? d->protocol->name : "NONE", d->protocol ? d->protocol->version: 0);
+	CLI_AMI_OUTPUT_PARAM("Tokenstate", 		CLI_AMI_LIST_WIDTH,	"%s",	 	d->status.token ? ( (d->status.token == SCCP_TOKEN_STATE_ACK) ? "Token acknowledged" : "Token rejected" ) : "no toke requested");
 	CLI_AMI_OUTPUT_PARAM("Keepalive", 		CLI_AMI_LIST_WIDTH,	"%d",	 	d->keepalive);
 	CLI_AMI_OUTPUT_PARAM("Registration state", 	CLI_AMI_LIST_WIDTH,	"%s(%d)",	deviceregistrationstatus2str(d->registrationState), d->registrationState);
 	CLI_AMI_OUTPUT_PARAM("State", 			CLI_AMI_LIST_WIDTH,	"%s(%d)",	devicestatus2str(d->state), d->state);

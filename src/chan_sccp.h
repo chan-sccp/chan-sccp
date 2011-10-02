@@ -251,6 +251,13 @@ extern "C" {
 		SCCP_PUSH_RESULT_NOT_SUPPORTED, 
 		SCCP_PUSH_RESULT_SUCCESS, 
 	} sccp_push_result_t;
+	
+	typedef enum { 
+		SCCP_TOKEN_STATE_NOTOKEN = 0,
+		SCCP_TOKEN_STATE_ACK,
+		SCCP_TOKEN_STATE_REJ,
+	} sccp_tokenstate_t;
+	
 
 /*!
  * \brief SCCP ButtonType Structure
@@ -910,6 +917,7 @@ extern "C" {
 			int timeout;						/*!< Timeout for temporairy status text line */
 			boolean_t overwritable;					/*!< Status is overwritable */
 			boolean_t updated;					/*!< Status has changed, and needs to be refreshed */
+			sccp_tokenstate_t token;				/*!< token request state */
 		} status;							/*!< Status Structure */
 		
 		sccp_push_result_t (*pushURL) (const sccp_device_t *device, const char *url, uint8_t priority, uint8_t tone);
