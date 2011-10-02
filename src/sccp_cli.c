@@ -1715,7 +1715,7 @@ static int sccp_cli_config_generate(int fd, int argc, char *argv[])
 		pbx_cli(fd, "Using config file '%s'\n", argv[3]);
 		config_file=strdupa(argv[3]);
 	}
-	if (sccp_config_generate(config_file, sizeof(config_file))) {
+	if (sccp_config_generate(config_file, 0)) {
 		pbx_cli(fd, "SCCP generated. saving '%s'...\n", config_file);
 	} else {
 		pbx_cli(fd, "SCCP generation failed.\n");

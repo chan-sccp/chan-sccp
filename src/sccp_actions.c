@@ -220,11 +220,19 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	if (sendAck) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", deviceName);
 // 		d->protocol->sendTokenAck(d, 65535); /* this will core directly */
-		sccp_session_tokenAck(s);
+		if (RegisterTokenRequest==mid) {
+			sccp_session_tokenAck(s);
+		} else {
+			sccp_session_tokenAckSPCP(s, 65535);
+		}
 	}else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token rejection (sccp.conf:fallback=%s), ask again in '%d' seconds\n", deviceName, GLOB(token_fallback), GLOB(token_backoff_time));
 // 		d->protocol->sendTokenReject(d, GLOB(token_backoff_time), 65535); /* this will core directly */
-		sccp_session_tokenReject(s, GLOB(token_backoff_time));
+		if (RegisterTokenRequest==mid) {
+			sccp_session_tokenReject(s, GLOB(token_backoff_time));
+		} else {
+			sccp_session_tokenRejectSPCP(s, 65535);
+		}
 	}
 }
 
