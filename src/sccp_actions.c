@@ -235,6 +235,94 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 }
 
 /*!
+ * \brief Handle Token Request for SPCP phones
+ *
+ * If a fall-back server has been entered in the phones cnf.xml file and the phone has fallen back to a secundairy server
+ * it will send a tokenreq to the primairy every so often (secundaity keep alive timeout ?). Once the primairy server sends 
+ * a token acknowledgement the switches back.
+ *
+ * \param s SCCP Session
+ * \param d SCCP Device
+ * \param r SCCP Moo
+ *
+ * \callgraph
+ * \callergraph
+ *
+ * \todo Implement a decision when to send RegisterTokenAck and when to send RegisterTokenReject
+ *       If sending RegisterTokenReject what should the lel_tokenRejWaitTime (BackOff time) be
+ */
+void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r){
+	sccp_moo_t *r1;
+	sccp_device_t *device;
+  
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: is requestin a token, Instance: %d, Type: %s (%d)\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, r->msg.SPCPRegisterTokenRequest.sId.lel_instance, devicetype2str(letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType)), letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType));
+
+	/* ip address range check */
+	if (GLOB(ha) && !sccp_apply_ha(GLOB(ha), &s->sin)) {
+		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName);
+		s = sccp_session_reject(s, "IP not authorized");
+		return;
+	}
+	
+	// Search for already known devices
+	device = sccp_device_find_byid(r->msg.SPCPRegisterTokenRequest.sId.deviceName, FALSE);
+	if (device) {
+		if (device->session && device->session != s) {
+			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", device->id);
+			device->session->session_stop = 1;				/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
+			sccp_log(1) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", device->id);
+		}
+	}
+	
+	// search for all devices including realtime
+	device = sccp_device_find_byid(r->msg.SPCPRegisterTokenRequest.sId.deviceName, TRUE);
+	if (!device) {
+		if (GLOB(allowAnonymous)) {
+			device = sccp_device_create();
+			sccp_config_applyDeviceConfiguration(device, NULL);
+			device->realtime = TRUE;
+
+			sccp_copy_string(device->id, r->msg.SPCPRegisterTokenRequest.sId.deviceName, sizeof(device->id));
+			device->isAnonymous = TRUE;
+			sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
+			sccp_log(1) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, GLOB(hotline)->line->name);
+			device->defaultLineInstance = 1;
+			SCCP_RWLIST_WRLOCK(&GLOB(devices));
+			SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), device, list);
+			SCCP_RWLIST_UNLOCK(&GLOB(devices));
+		} else {
+			pbx_log(LOG_NOTICE, "%s: Rejecting device: not found\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName);
+			s = sccp_session_reject(s, "Unknown Device");
+			return;
+		}
+	}
+	
+	s->protocolType = SPCP_PROTOCOL;
+	s->device = device;	
+	if(device){
+		if (device->checkACL(device) == FALSE) {
+			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
+			s = sccp_session_reject(s, "IP Not Authorized");
+			return;
+		}	  
+	}
+	
+	if (device->session && device->session != s) {
+		sccp_log(1) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", device->id);
+		s = sccp_session_reject(s, "Crossover session not allowed");
+		return;
+	}
+	
+	
+	/* all checks passed, assign session to device */
+	device->session = s;
+
+	REQ(r1, SPCPRegisterTokenAck);
+	r1->msg.SPCPRegisterTokenAck.lel_features = htolel(65535);
+	sccp_session_send(d, r1);
+}
+
+/*!
  * \brief Handle Device Registration
  * \param s SCCP Session
  * \param d SCCP Device
