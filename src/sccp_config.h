@@ -101,7 +101,5 @@ uint8_t sccp_config_readSoftSet(uint8_t * softkeyset, const char *data);
 int sccp_config_getSoftkeyLbl(char *key);
 void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device);
 
-//struct ast_config *sccp_config_generate(void);
-int sccp_config_generate(char *filename, size_t sizeof_filename);
-
+int sccp_config_generate(char *filename, int configType);
 #endif /*__SCCP_CONFIG_H */

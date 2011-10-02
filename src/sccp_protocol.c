@@ -528,7 +528,6 @@ static void sccp_protocol_sendTokenAckSPCP(const sccp_device_t *device, uint32_t
 static void sccp_protocol_sendTokenRejectSPCP(const sccp_device_t *device, uint32_t backoff_time, uint32_t features) {
         sccp_moo_t *r;
 	REQ(r, SPCPRegisterTokenReject);
-//	r->msg.SPCPRegisterTokenReject.lel_tokenRejWaitTime=backoff_time;
         r->msg.SPCPRegisterTokenReject.lel_features=features;
 	sccp_session_send(device, r);
 }

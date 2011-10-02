@@ -22,6 +22,8 @@ int sccp_session_send(const sccp_device_t * device, sccp_moo_t * r);
 sccp_session_t *sccp_session_reject(sccp_session_t * session, char *message);
 void sccp_session_tokenReject(sccp_session_t * session, uint32_t backoff_time);
 void sccp_session_tokenAck(sccp_session_t * session);
+void sccp_session_tokenRejectSPCP(sccp_session_t * session, uint32_t features);
+void sccp_session_tokenAckSPCP(sccp_session_t * session, uint32_t features);
 struct in_addr *sccp_session_getINaddr(sccp_device_t * device, int type);
 void sccp_session_getSocketAddr(const sccp_device_t *device, struct sockaddr_in *sin);
 

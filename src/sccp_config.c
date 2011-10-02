@@ -2349,7 +2349,16 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 #endif
 }
 
-int sccp_config_generate(char *filename, size_t sizeof_filename) 
+/*!
+ * \brief Generate default sccp.conf file
+ * \param filename Filename
+ * \param configType Config Type:
+ *  - 0 = templated + registered devices
+ *  - 1 = required params only
+ *  - 2 = all params
+ * \todo Add functionality
+ */
+int sccp_config_generate(char *filename, int configType) 
 {
         const SCCPConfigSegment *sccpConfigSegment = NULL;
         const SCCPConfigOption *config=NULL;
@@ -2385,8 +2394,13 @@ int sccp_config_generate(char *filename, size_t sizeof_filename)
 
 	for (segment=SCCP_CONFIG_GLOBAL_SEGMENT; segment <= SCCP_CONFIG_SOFTKEY_SEGMENT; segment++) {			
 		sccpConfigSegment = sccp_find_segment(segment);
-		sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_2 "adding [%s] section\n", sccpConfigSegment->name);
-		fprintf(f, "\n;\n; %s section\n;\n[%s]\n", sccpConfigSegment->name, sccpConfigSegment->name);
+		if (configType==0 && (segment==SCCP_CONFIG_DEVICE_SEGMENT || segment==SCCP_CONFIG_LINE_SEGMENT)) {
+        		sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_2 "adding [%s] template section\n", sccpConfigSegment->name);
+	        	fprintf(f, "\n;\n; %s section\n;\n[default_%s](!)\n", sccpConfigSegment->name, sccpConfigSegment->name);
+                } else {
+        		sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_2 "adding [%s] section\n", sccpConfigSegment->name);
+	        	fprintf(f, "\n;\n; %s section\n;\n[%s]\n", sccpConfigSegment->name, sccpConfigSegment->name);
+                }
 
 		config = sccpConfigSegment->config;
 		for (sccp_option = 0; sccp_option < sccpConfigSegment->config_size; sccp_option++) {
@@ -2395,7 +2409,7 @@ int sccp_config_generate(char *filename, size_t sizeof_filename)
 				
 				if (!sccp_strlen_zero(config[sccp_option].name)) {
 					if (!sccp_strlen_zero(config[sccp_option].defaultValue)		// non empty
-						|| ((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != 0 && sccp_strlen_zero(config[sccp_option].defaultValue)) // empty but required
+						|| (configType!=2 && ((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != 0 && sccp_strlen_zero(config[sccp_option].defaultValue))) // empty but required
 					) {
 						snprintf(name_and_value, sizeof(name_and_value),"%s = %s", config[sccp_option].name, sccp_strlen_zero(config[sccp_option].defaultValue) ? "\"\"" : config[sccp_option].defaultValue);
 						linelen=(int)strlen(name_and_value);

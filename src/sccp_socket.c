@@ -727,6 +727,32 @@ void sccp_session_tokenAck(sccp_session_t * session)
 }
 
 /*!
+ * \brief Send an Reject Message to the SPCP Device.
+ * \param session SCCP Session Pointer
+ * \param features Phone Features
+ */
+void sccp_session_tokenRejectSPCP(sccp_session_t * session, uint32_t features)
+{
+	sccp_moo_t *r;
+
+	REQ(r, SPCPRegisterTokenReject);
+	r->msg.SPCPRegisterTokenReject.lel_features=htolel(features);
+	sccp_session_send2(session, r);
+}
+
+/*!
+ * \brief Send a token acknowledgement to the SPCP Device.
+ * \param session SCCP Session Pointer
+ */
+void sccp_session_tokenAckSPCP(sccp_session_t * session, uint32_t features)
+{
+	sccp_moo_t *r;
+	REQ(r, SPCPRegisterTokenAck);
+	r->msg.SPCPRegisterTokenAck.lel_features=htolel(features);
+	sccp_session_send2(session, r);
+}
+
+/*!
  * \brief Get the in_addr for Specific Device.
  * \param device SCCP Device Pointer (can be null)
  * \param type Type in {AF_INET, AF_INET6}
