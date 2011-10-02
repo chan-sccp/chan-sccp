@@ -168,7 +168,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 			SCCP_RWLIST_WRLOCK(&GLOB(devices));
 			SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), d, list);
 			SCCP_RWLIST_UNLOCK(&GLOB(devices));
-		} else { */
+		} else {
 			pbx_log(LOG_NOTICE, "%s: Rejecting device: not found\n", deviceName);
 			s = sccp_session_reject(s, "Unknown Device");
 			return;
