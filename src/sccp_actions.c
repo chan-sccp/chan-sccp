@@ -412,6 +412,17 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	d->mwilight = 0;
 	d->protocolversion = protocolVer;
 	
+	/** workaround to fix the protocol version issue for ata devices */
+	/*
+	 * MAC-Address        : ATA00215504e821
+	 * Protocol Version   : Supported '33', In Use '17'
+	 */
+	if(d->skinny_type == SKINNY_DEVICETYPE_ATA188 || d->skinny_type == SKINNY_DEVICETYPE_ATA186){
+		d->protocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
+	}
+	
+	
+	
 	if(r->length == 36){
                 pbx_log(LOG_NOTICE, "check for old message structure\n");
                 d->protocolversion = r->msg.RegisterMessage36.protocolVer;
