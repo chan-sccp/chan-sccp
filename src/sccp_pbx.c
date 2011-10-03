@@ -702,6 +702,12 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 
 #ifdef CS_EXPERIMENTAL
 	PBX(set_nativeAudioFormats)(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
+#else
+	if(c->calltype == SKINNY_CALLTYPE_OUTBOUND){
+		PBX(set_nativeAudioFormats)(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
+	}else{
+		PBX(set_nativeAudioFormats)(c, c->preferences.audio, 1);
+	}
 #endif
 	
 	
