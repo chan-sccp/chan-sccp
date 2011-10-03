@@ -632,6 +632,14 @@ AC_DEFUN([CS_ENABLE_VIDEO], [
 	AC_MSG_NOTICE([--enable-video: ${ac_cv_streaming_video}])
 ])
 
+AC_DEFUN([CS_ENABLE_VIDEOLAYER], [
+	AC_ARG_ENABLE(videolayer, 
+	  AC_HELP_STRING([--enable-videolayer], [enable video layer (experimental)]), 
+	  ac_cv_streaming_videolayer=$enableval, ac_cv_streaming_videolayer=no)
+	AS_IF([test "${ac_cv_streaming_videolayer}" == "yes"], [AC_DEFINE(CS_SCCP_VIDEOLAYER, 1, [Using video layer])])
+	AC_MSG_NOTICE([--enable-videolayer: ${ac_cv_streaming_videolayer}])
+])
+
 AC_DEFUN([CS_DISABLE_DYNAMIC_CONFIG], [
 	AC_ARG_ENABLE(dynamic_config, 
 	  AC_HELP_STRING([--disable-dynamic-config], [disable sccp reload]), 
@@ -659,6 +667,7 @@ AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_DISABLE_DYNAMIC_SPEEDDIAL
 	CS_DISABLE_DYNAMIC_SPEEDDIAL_CID
 	CS_ENABLE_VIDEO
+	CS_ENABLE_VIDEOLAYER
 	CS_DISABLE_DYNAMIC_CONFIG
 ])
 
