@@ -128,18 +128,14 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 	}													\
 														\
 	static char * cli_ ## _FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {	\
-		static char *cli_command[] = { CLI_COMMAND };						\
+		char *cli_command[] = { CLI_COMMAND, NULL };						\
 		static sccp_cli_completer_t cli_complete[] = { CLI_COMPLETE };					\
-		char *command=NULL;										\
+		char command[80]="";										\
 		uint8_t completer;										\
 		if (cmd == CLI_INIT) {										\
-			if(!implode( cli_command," ", &command)) {						\
-				ast_free(command);								\
-				return CLI_FAILURE;								\
-			}											\
+		 	ast_join(command, sizeof(command), cli_command);					\
 			e->command = strdup(command);								\
 			e->usage = _USAGE;									\
-			ast_free(command);									\
 			return NULL;										\
 		} else if (cmd == CLI_GENERATE) {								\
 			for (completer=0; completer<ARRAY_LEN(cli_complete); completer++) {			\
@@ -149,8 +145,7 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 			}											\
 			return NULL;										\
 		}												\
-														\
-		if (a->argc < (int)(ARRAY_LEN(cli_command))) 							\
+		if (a->argc < (int)(ARRAY_LEN(cli_command)-1)) 							\
 			return CLI_SHOWUSAGE;									\
 														\
 		if(_CALLED_FUNCTION(a->fd, NULL, NULL, NULL, a->argc, (char **) a->argv) == RESULT_SUCCESS)	\
@@ -158,34 +153,29 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 		else												\
 			return CLI_FAILURE;									\
 	};
-#    define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)		\
+#    define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)				\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {			\
-		static char *cli_command[] = { CLI_COMMAND };							\
+		char *cli_command[] = { CLI_COMMAND, NULL };						\
 		static sccp_cli_completer_t cli_complete[] = { CLI_COMPLETE };					\
-		char *command=NULL;										\
+		char command[80]="";										\
 		uint8_t completer;										\
 		if (cmd == CLI_INIT) {										\
-			if(!implode( cli_command," ", &command)) {						\
-				ast_free(command);								\
-				return CLI_FAILURE;								\
-			}											\
+		 	ast_join(command, sizeof(command), cli_command);					\
 			e->command = strdup(command);								\
 			e->usage = _USAGE;									\
-			ast_free(command);									\
 			return NULL;										\
 		} else if (cmd == CLI_GENERATE) {								\
 			for (completer=0; completer<ARRAY_LEN(cli_complete); completer++) {			\
-				if ((unsigned)a->pos == (completer + ARRAY_LEN(cli_command) - 1) || _COMPLETER_REPEAT ) {\
+				if ((unsigned)a->pos == (completer + ARRAY_LEN(cli_command) -1) || _COMPLETER_REPEAT ) {\
 					return sccp_exec_completer(cli_complete[completer], (char *)a->line, (char *)a->word, a->pos, a->n);\
 				}										\
 			}											\
 			return NULL;										\
 		}												\
-														\
-		if (a->argc < (int)(ARRAY_LEN(cli_command))) 							\
+		if (a->argc < (int)(ARRAY_LEN(cli_command)-1)) 							\
 			return CLI_SHOWUSAGE;									\
 														\
-		if(_CALLED_FUNCTION(a->fd, a->argc, a->argv) == RESULT_SUCCESS)					\
+		if(_CALLED_FUNCTION(a->fd, a->argc, (char **) a->argv) == RESULT_SUCCESS)			\
 			return CLI_SUCCESS;									\
 		else												\
 			return CLI_FAILURE;									\
