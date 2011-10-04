@@ -338,11 +338,8 @@ int sccp_hint_state(char *context, char *exten, enum ast_extension_states state,
 #endif										// CS_AST_HAS_EXTENSION_RINGING
 	default:
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "SCCP: Unmapped hint state %d for %s\n", state, hint->hint_dialplan);
-#ifndef CS_DYNAMIC_SPEEDDIAL
-		hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-#else
 		hint->currentState = SCCP_CHANNELSTATE_DOWN;
-#endif										// CS_DYNAMIC_SPEEDDIAL
+
 		sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(hint->callInfo.callingPartyName));
 		sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(hint->callInfo.calledPartyName));
 	}
@@ -428,7 +425,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 			REQ(r, FeatureStatDynamicMessage);
 			r->msg.FeatureStatDynamicMessage.lel_instance = htolel(subscriber->instance);
-			r->msg.FeatureStatDynamicMessage.lel_type = SKINNY_BUTTONTYPE_BLFSPEEDDIAL;			
+			r->msg.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
 			
 			
 			switch (hint->currentState) {
