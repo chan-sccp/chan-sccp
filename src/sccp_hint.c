@@ -447,7 +447,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 			REQ(r, FeatureStatAdvancedMessage);
 			r->msg.FeatureStatAdvancedMessage.lel_instance = htolel(subscriber->instance);
-			r->msg.FeatureStatAdvancedMessage.lel_type = SKINNY_BUTTONTYPE_BLFSPEEDDIAL;
+			r->msg.FeatureStatAdvancedMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
 
 			switch (hint->currentState) {
 			case SCCP_CHANNELSTATE_ONHOOK:
