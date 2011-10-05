@@ -764,10 +764,10 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		r->msg.OpenMultiMediaChannelMessage.lel_callReference 				= htolel(channel->callid);
 		r->msg.OpenMultiMediaChannelMessage.lel_payloadType 				= htolel(payloadType);
 // 		r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormatCount 		= htolel(0);
-		r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormat[0].format 	= htolel(4);
-		r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormat[0].mpi 	= htolel(30);
-		r->msg.OpenMultiMediaChannelMessage.videoParameter.profile 			= htolel(8);
-		r->msg.OpenMultiMediaChannelMessage.videoParameter.level 			= htolel(19);
+// 		r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormat[0].format 	= htolel(4);
+// 		r->msg.OpenMultiMediaChannelMessage.videoParameter.pictureFormat[0].mpi 	= htolel(30);
+		r->msg.OpenMultiMediaChannelMessage.videoParameter.profile 			= htolel(64);
+		r->msg.OpenMultiMediaChannelMessage.videoParameter.level 			= htolel(50);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.macroblockspersec 		= htolel(40500);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.macroblocksperframe 		= htolel(1620);
 		r->msg.OpenMultiMediaChannelMessage.videoParameter.decpicbuf 			= htolel(8100);
@@ -933,14 +933,14 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		r->msg.StartMultiMediaTransmission.lel_passThruPartyId 				= htolel(channel->passthrupartyid);
 		r->msg.StartMultiMediaTransmission.lel_payloadCapability 			= htolel(channel->rtp.video.readFormat);
 		r->msg.StartMultiMediaTransmission.lel_callReference 				= htolel(channel->callid);
-		r->msg.StartMultiMediaTransmission.lel_payloadType 				= payloadType;
+		r->msg.StartMultiMediaTransmission.lel_payloadType 				= htolel(payloadType);
 		r->msg.StartMultiMediaTransmission.lel_DSCPValue 				= htolel(136);
 		r->msg.StartMultiMediaTransmission.videoParameter.bitRate 			= htolel(bitRate);
 // 		r->msg.StartMultiMediaTransmission.videoParameter.pictureFormatCount 		= htolel(0);
 // 		r->msg.StartMultiMediaTransmission.videoParameter.pictureFormat[0].format 	= htolel(4);
 // 		r->msg.StartMultiMediaTransmission.videoParameter.pictureFormat[0].mpi 		= htolel(30);
-		r->msg.StartMultiMediaTransmission.videoParameter.profile 			= htolel(8);
-		r->msg.StartMultiMediaTransmission.videoParameter.level 			= htolel(19);	/* has to be >= 15 to work with 7985 */
+		r->msg.StartMultiMediaTransmission.videoParameter.profile 			= htolel(0x40);
+		r->msg.StartMultiMediaTransmission.videoParameter.level 			= htolel(0x32);	/* has to be >= 15 to work with 7985 */
 		r->msg.StartMultiMediaTransmission.videoParameter.macroblockspersec 		= htolel(40500);
 		r->msg.StartMultiMediaTransmission.videoParameter.macroblocksperframe 		= htolel(1620);
 		r->msg.StartMultiMediaTransmission.videoParameter.decpicbuf 			= htolel(8100);
@@ -957,7 +957,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		r->msg.StartMultiMediaTransmission_v17.lel_passThruPartyId 			= htolel(channel->passthrupartyid);
 		r->msg.StartMultiMediaTransmission_v17.lel_payloadCapability 			= htolel(channel->rtp.video.readFormat);
 		r->msg.StartMultiMediaTransmission_v17.lel_callReference 			= htolel(channel->callid);
-		r->msg.StartMultiMediaTransmission_v17.lel_payloadType 				= payloadType;
+		r->msg.StartMultiMediaTransmission_v17.lel_payloadType 				= htolel(payloadType);
 		r->msg.StartMultiMediaTransmission_v17.lel_DSCPValue 				= htolel(136);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.confServiceNum 		= htolel(channel->callid);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.bitRate 			= htolel(bitRate);
