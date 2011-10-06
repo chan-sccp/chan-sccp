@@ -472,7 +472,7 @@ static int sccp_wrapper_asterisk18_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_T
 			    //      && (c->device->capability & frame->subclass)
 			    ) {
 				int codec = pbx_codec2skinny_codec( (frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
-				ast_log(LOG_NOTICE, "%s: got video frame %d\n", DEV_ID_LOG(c->getDevice(c)), codec);
+				ast_log(LOG_NOTICE, "%s: got video frame %d\n", DEV_ID_LOG(c->getDevice(c)), codec);				
 				if(0 != codec){
 					c->rtp.video.writeFormat = codec;
 					sccp_channel_openMultiMediaChannel(c);
@@ -1486,20 +1486,10 @@ static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * c
 		ast_set_write_format(channel->owner, channel->owner->rawwriteformat);
 	}
 #else
+	channel->owner->nativeformats = channel->owner->rawwriteformat;
 	ast_set_write_format(channel->owner, channel->owner->writeformat);
 #endif
 
-// 	if(oldChannelFormat != channel->owner->rawwriteformat){
-// 		sccp_pbx_queue_control((sccp_channel_t *)channel, AST_CONTROL_SRCUPDATE);
-// 	}
-	
-	channel->owner->nativeformats = channel->owner->rawwriteformat;
-	ast_set_write_format(channel->owner, channel->owner->writeformat);
-	
-	channel->owner->nativeformats = channel->owner->rawreadformat;
-	ast_set_read_format(channel->owner, channel->owner->writeformat);
-	
-// 	channel->owner->nativeformats = 0;
 	return TRUE;
 }
 
@@ -1509,7 +1499,7 @@ static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * ch
   
 // 	channel->owner->nativeformats = channel->owner->rawreadformat = skinny_codec2pbx_codec(codec);
 	channel->owner->rawreadformat = skinny_codec2pbx_codec(codec);
-	channel->owner->nativeformats |= channel->owner->rawreadformat;
+	channel->owner->nativeformats = channel->owner->rawreadformat;
 	
 	
 #ifndef CS_EXPERIMENTAL
@@ -1526,7 +1516,9 @@ static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * ch
 
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "read native: %d\n", (int)channel->owner->rawreadformat);
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "read: %d\n", (int)channel->owner->readformat);
-	ast_set_read_format(channel->owner, channel->owner->readformat);
+	
+	
+	
 	
 	
 
@@ -1548,21 +1540,10 @@ static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * ch
 		ast_set_read_format(channel->owner, channel->owner->rawreadformat);
 	}
 #else
+	channel->owner->nativeformats = channel->owner->rawreadformat;
 	ast_set_read_format(channel->owner, channel->owner->readformat);
 #endif
 
-	
-// 	if(oldChannelFormat != channel->owner->rawreadformat){
-// 		sccp_pbx_queue_control((sccp_channel_t *)channel, AST_CONTROL_SRCUPDATE);
-// 	}
-	
-	channel->owner->nativeformats = channel->owner->rawwriteformat;
-	ast_set_write_format(channel->owner, channel->owner->writeformat);
-	
-	channel->owner->nativeformats = channel->owner->rawreadformat;
-	ast_set_read_format(channel->owner, channel->owner->writeformat);
-// 	channel->owner->nativeformats = 0;
-	
 	return TRUE;
 }
 
