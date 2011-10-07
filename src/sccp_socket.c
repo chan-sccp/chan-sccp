@@ -300,6 +300,7 @@ void *sccp_socket_device_thread(void *session)
 						s->session_stop = 1;
 						break;
 					}
+					sccp_free(m);
 				}
 			} else if (res == 0) {					/* poll timeout */
 				now = time(0);

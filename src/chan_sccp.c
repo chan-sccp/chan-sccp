@@ -359,29 +359,6 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	s->lastKeepAlive = time(0);	/** always update keepalive */
 	sccp_device_t *tmpDevice=NULL;
 
-	/** Check if all necessary information is available */
-	if (s->device) {
-		tmpDevice = sccp_device_find_byipaddress(s->sin);
-		if (s->device != tmpDevice) {
-
-			/** IP Address has changed mid session */
-//                      if (s->device->nat == 1) {
-//                              // We are natted, what should we do, Not doing anything for now, just sending warning -- DdG
-//                              pbx_log(LOG_WARNING, "%s: Device (%s:%d) %p attempted to send messages via a different %s ip-address (%s:%d) %p.\n", DEV_ID_LOG(s->device), pbx_inet_ntoa(s->sin.sin_addr), ntohs(s->sin.sin_port), s, DEV_ID_LOG(tmpDevice), pbx_inet_ntoa(tmpDevice->session->sin.sin_addr), ntohs(tmpDevice->session->sin.sin_port), tmpDevice->session);
-//                      } else {
-			if (s->device->nat != 1) {
-				// We are not natted, but the ip-address has changed
-				pbx_log(LOG_ERROR, "(sccp_handle_message): SCCP: Device is attempting to send message via a different ip-address.\nIf this is behind a firewall please set it up in sccp.conf with nat=1.\n");
-				sccp_free(r);
-				return 0;
-			}
-		} else if (s->device && (!s->device->session || s->device->session != s)) {
-			sccp_log((DEBUGCAT_CORE | DEBUGCAT_MESSAGE | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "%s: cross device session (Removing Old Session)\n", DEV_ID_LOG(s->device));
-			sccp_free(r);
-			return 0;
-		}
-	}
-
 	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message (%x) %s\n", DEV_ID_LOG(s->device), mid, message2str(mid));
 
 	/* search for message handler */
@@ -391,26 +368,24 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	if (!messageMap_cb) {
 		pbx_log(LOG_WARNING, "Don't know how to handle message %d\n", mid);
 		sccp_handle_unknown_message(s, s->device, r);
-
-		free(r);
 		return 1;
 	}
 
 	if (messageMap_cb->messageHandler_cb && messageMap_cb->deviceIsNecessary == TRUE && !check_session_message_device(s, r, message2str(mid))) {
-		free(r);
 		return 0;
 	}
 	if (messageMap_cb->messageHandler_cb) {
-		if (messageMap_cb->deviceIsNecessary==TRUE) 
+		if (messageMap_cb->deviceIsNecessary==TRUE){ 
 			sccp_device_lock(s->device);
+		}
+		
 		messageMap_cb->messageHandler_cb(s, s->device, r);
-		if (messageMap_cb->deviceIsNecessary==TRUE) 
+		
+		if (messageMap_cb->deviceIsNecessary==TRUE){
 			sccp_device_unlock(s->device);
+		}
 	}
 
-	if (r) {
-		sccp_free(r);
-	}
 	return 1;
 }
 
