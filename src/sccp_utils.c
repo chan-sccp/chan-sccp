@@ -2447,8 +2447,9 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 		return ret;
 	}
 	memset(ha, 0, sizeof(struct sccp_ha));
-	
+#if 0	
 	ast_log(LOG_NOTICE, "start parsing ha sense: %s, stuff: %s \n", sense, stuff);
+#endif
 	if (!(nm = strchr(tmp, '/'))) {
 		/* assume /32. Yes, htonl does not do anything for this particular mask
 		   but we better use it to show we remember about byte order */
@@ -2503,12 +2504,6 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 	} else {
 		ret = ha;
 	}
-	
-
-	ast_log(LOG_NOTICE, "path: %p\n", path);
-	ast_log(LOG_NOTICE, "prev: %p\n", prev);
-	ast_log(LOG_NOTICE, "%s/%s sense %d appended to acl for peer\n", sccp_strdupa(pbx_inet_ntoa(ha->netaddr)), sccp_strdupa(pbx_inet_ntoa(ha->netmask)), ha->sense);
-	ast_log(LOG_NOTICE, "ha: %p\n", ret);
 
 	return ret;
 }
