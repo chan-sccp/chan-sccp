@@ -2297,7 +2297,6 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
  */
 void sccp_free_ha(struct sccp_ha *ha)
 {
-#ifdef ASTERISK_CONF_1_8
 	struct sccp_ha *hal;
 
 	while (ha) {
@@ -2305,14 +2304,6 @@ void sccp_free_ha(struct sccp_ha *ha)
 		ha = ha->next;
 		sccp_free(hal);
 	}
-#else
-	struct sccp_ha *next;
-
-	for (next = ha->next; ha; next = next->next) {
-		ha = next;
-		sccp_free(ha);
-	}
-#endif
 }
 
 #if 0		// contains an undefined problem, leading to segfault when used
