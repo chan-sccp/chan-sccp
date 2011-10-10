@@ -2450,8 +2450,12 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
 			if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
-				sccp_ast_setstate(c, AST_STATE_UP);
-				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
+				if(c->videoCallEnabled) {
+					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Audio established, but still waiting for video.\n", d->id);
+				} else {
+					sccp_ast_setstate(c, AST_STATE_UP);
+					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
+				}
 			}
 
 		} else {
@@ -2550,6 +2554,13 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 		r1->msg.FlowControlCommandMessageResp.lel_maxBitRate = htolel(8000000);
 		sccp_dev_send(c->device, r1);
 		sccp_channel_unlock(c);
+			
+		/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
+			if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE) 
+			 &&(c->rtp.video.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE)) {
+					sccp_ast_setstate(c, AST_STATE_UP);
+					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up with video.\n", d->id);
+			}
 	} else {
 		ast_log(LOG_ERROR, "%s: No channel with this PassThruId!\n", d->id);
 	}
@@ -3103,13 +3114,68 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 	/* update status */
 	c->rtp.audio.status &= ~SCCP_RTP_STATUS_PROGRESS_TRANSMIT;
 	c->rtp.audio.status |= SCCP_RTP_STATUS_TRANSMIT;
-	/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
-	if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
-		sccp_ast_setstate(c, AST_STATE_UP);
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
-	}
+			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
+			if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
+				if(c->videoCallEnabled) {
+					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Audio established, but still waiting for video.\n", d->id);
+				} else {
+					sccp_ast_setstate(c, AST_STATE_UP);
+					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
+				}
+			}
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), callID, callID1, partyID);
+	//ast_cond_signal(&c->rtp.audio.convar);
+	sccp_channel_unlock(c);
+}
+
+/*!
+ * \brief Handle Start Multi Media Transmission Acknowledgement
+ * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
+ * \param r SCCP Message as sccp_moo_t
+ */
+void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
+{
+	struct sockaddr_in sin;
+
+	sccp_channel_t *c;
+
+	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0, callID1 = 0;
+
+	ipPort = htons(htolel(r->msg.StartMultiMediaTransmissionAck.lel_portNumber));
+	partyID = letohl(r->msg.StartMultiMediaTransmissionAck.lel_passThruPartyId);
+	status = letohl(r->msg.StartMultiMediaTransmissionAck.lel_smtStatus);
+	callID = letohl(r->msg.StartMultiMediaTransmissionAck.lel_callReference);
+	callID1 = letohl(r->msg.StartMultiMediaTransmissionAck.lel_callReference1);
+
+	sin.sin_family = AF_INET;
+	memcpy(&sin.sin_addr, &r->msg.StartMultiMediaTransmissionAck.bel_ipAddr, sizeof(sin.sin_addr));
+	sin.sin_port = ipPort;
+
+	c = sccp_channel_find_bypassthrupartyid_locked(partyID);
+	if (!c) {
+		ast_log(LOG_WARNING, "%s: Channel with passthrupartyid %u not found, please report this to developer\n", DEV_ID_LOG(d), partyID);
+		return;
+	}
+	if (status) {
+		ast_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call\n", DEV_ID_LOG(d));
+		sccp_channel_endcall_locked(c);
+		sccp_channel_unlock(c);
+		return;
+	}
+
+	/* update status */
+	c->rtp.video.status &= ~SCCP_RTP_STATUS_PROGRESS_TRANSMIT;
+	c->rtp.video.status |= SCCP_RTP_STATUS_TRANSMIT;
+			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
+			if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE) 
+			 &&(c->rtp.video.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE)) {
+					sccp_ast_setstate(c, AST_STATE_UP);
+					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up with video.\n", d->id);
+			}
+
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), callID, callID1, partyID);
 	//ast_cond_signal(&c->rtp.audio.convar);
 	sccp_channel_unlock(c);
 }

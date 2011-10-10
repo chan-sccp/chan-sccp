@@ -149,6 +149,9 @@ void sccp_channel_updateChannelCapability_locked(sccp_channel_t * channel)
 		}
 	}
 
+	/* Dirty hack for testing */
+	//channel->format |= AST_FORMAT_H264;
+
 	/* After updating capabilities with one device, we keep the codec. But not before, since capabilities might vary. */
 	if (channel->device)
 		channel->isCodecFix = TRUE;
@@ -169,6 +172,7 @@ void sccp_channel_updateChannelCapability_locked(sccp_channel_t * channel)
 
 	char s1[512], s2[512];
 
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: Did we set the owner? %s Nativeformats = %08x \n", channel->line->name, channel->callid, (channel->owner)?"YES":"NO", (channel->owner)?channel->owner->nativeformats:0);
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, capabilities: %s(%d) USED *: %s(%d) \n", channel->line->name, channel->callid, pbx_getformatname_multiple(s1, sizeof(s1) - 1, channel->capability), channel->capability, pbx_getformatname_multiple(s2, sizeof(s2) - 1, channel->format), channel->format);
 }
 
@@ -863,9 +867,9 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 		r->msg.OpenMultiMediaChannelMessage_v17.lel_payloadType = htolel(payloadType);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.confServiceNum = htolel(channel->callid);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.bitRate = htolel(channel->desiredVideoBitrate);
-		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.pictureFormatCount = htolel(0);
-		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.pictureFormat[0].format = htolel(1);
-		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.pictureFormat[0].mpi = htolel(1);
+		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.pictureFormatCount = htolel(1);
+		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.pictureFormat[0].format = htolel(8);
+		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.pictureFormat[0].mpi = htolel(0);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.profile = htolel(64);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.level = htolel(channel->desiredVideoLevel);
 		r->msg.OpenMultiMediaChannelMessage_v17.videoParameter.macroblockspersec = htolel(0);
@@ -977,9 +981,9 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		r->msg.StartMultiMediaTransmission_v17.lel_payloadType = payloadType;
 		r->msg.StartMultiMediaTransmission_v17.lel_DSCPValue = htolel(136);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.bitRate = htolel(channel->desiredVideoBitrate);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormatCount = htolel(0);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormat[0].format = htolel(1);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormat[0].mpi = htolel(1);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormatCount = htolel(1);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormat[0].format = htolel(8);
+		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormat[0].mpi = htolel(0);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.profile = htolel(64);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.level = htolel(channel->desiredVideoLevel);
 		r->msg.StartMultiMediaTransmission_v17.videoParameter.macroblockspersec = htolel(0);

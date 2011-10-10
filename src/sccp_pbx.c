@@ -617,6 +617,8 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: Outgoing call has been answered %s on %s@%s-%08x\n", ast->name, c->line->name, DEV_ID_LOG(c->device), c->callid);
 	sccp_channel_lock(c);
 	sccp_channel_updateChannelCapability_locked(c);
+	/* Changed the locking order here to be more modest (-DD) */
+	sccp_channel_unlock(c);
 
 	/* \todo This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
 	   as I have forgotten what my actual motivation was for writing this strange code. (-DD) */
@@ -626,7 +628,6 @@ static int sccp_pbx_answer(struct ast_channel *ast)
 	sccp_channel_send_callinfo(c->device, c);
 	sccp_indicate_locked(c->device, c, SCCP_CHANNELSTATE_CONNECTED);
 
-	sccp_channel_unlock(c);
 	return 0;
 }
 
@@ -763,6 +764,11 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame)
 		case AST_FRAME_IMAGE:
 		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
+// Note that the following breaks hold / resume with concurrent video calls.
+// If you put a video call on  hold with the following code enabled,
+// it will unfortunately reopen the video channel. We need a check or abandon this on demand handler.
+// Also check if the video rtp server is properly stopped in the first place. (-DD)
+#if 0
 			if ((c->rtp.video.status & SCCP_RTP_STATUS_PROGRESS_RECEIVE) == 0 && (c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) == 0 && c->rtp.video.rtp && c->device && (frame->subclass & AST_FORMAT_VIDEO_MASK)
 			    //      && (c->device->capability & frame->subclass) 
 			    ) {
@@ -771,6 +777,7 @@ static int sccp_pbx_write(struct ast_channel *ast, struct ast_frame *frame)
 				sccp_channel_openMultiMediaChannel(c);
 				c->rtp.video.status |= SCCP_RTP_STATUS_PROGRESS_RECEIVE;
 			}
+#endif
 #endif
 			if (c->rtp.video.rtp && (c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE) != 0) {
 				res = sccp_rtp_write(c->rtp.video.rtp, frame);
@@ -1464,7 +1471,8 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 		ast_log(LOG_ERROR, "%s: No audio format to offer. Cancelling call on line %s\n", l->id, l->name);
 		return 0;
 	}
-	fmt = tmp->readformat;
+	//fmt = tmp->readformat;
+	fmt = tmp->nativeformats;
 
 #ifdef CS_AST_HAS_AST_STRING_FIELD
 	ast_string_field_build(tmp, name, "SCCP/%s-%08x", l->name, c->callid);

@@ -418,6 +418,7 @@ static const struct sccp_messageMap_cb messagesCbMap[] = {
 	{OpenReceiveChannelAck, sccp_handle_open_receive_channel_ack, TRUE},
 	{OpenMultiMediaReceiveChannelAckMessage, sccp_handle_OpenMultiMediaReceiveAck, TRUE},
 	{StartMediaTransmissionAck, sccp_handle_startmediatransmission_ack, TRUE},
+	{StartMultiMediaTransmissionAck, sccp_handle_startmultimediatransmission_ack, TRUE},
 
 	{IpPortMessage, NULL, TRUE},
 	{VersionReqMessage, sccp_handle_version, TRUE},
@@ -988,9 +989,9 @@ static int load_module(void)
 	GLOB(digittimeout) = 8;
 	/* Yes, these are all that the phone supports (now including its own 'Wideband 256k') */
 #ifdef AST_FORMAT_SLINEAR16
-	GLOB(global_capability) = AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_G729A | AST_FORMAT_SLINEAR16 | AST_FORMAT_H263;
+	GLOB(global_capability) = AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_G729A | AST_FORMAT_SLINEAR16 | AST_FORMAT_H263 | AST_FORMAT_H264;
 #else
-	GLOB(global_capability) = AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_G729A | AST_FORMAT_H263;
+	GLOB(global_capability) = AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_G729A | AST_FORMAT_H263 | AST_FORMAT_H264;
 #endif
 
 	GLOB(debug) = 1;

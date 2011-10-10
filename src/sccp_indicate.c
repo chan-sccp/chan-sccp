@@ -231,10 +231,14 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		/* asterisk wants rtp open before AST_STATE_UP
 		 * so we set it in OPEN_CHANNEL_ACK in sccp_actions.c.
 		 */
+		/* Maybe not a good idea since if there is no progress earlyrtp this could open the channel early. */
+#if 0
 		if (d->earlyrtp) {
 			sccp_ast_setstate(c, AST_STATE_UP);
 		}
-		sccp_channel_updatemediatype_locked(c);
+#endif
+		// I doubt that is neccessary any more (-DD).
+		// sccp_channel_updatemediatype_locked(c);
 		break;
 	case SCCP_CHANNELSTATE_BUSY:
 		/* it will be emulated if the rtp audio stream is open */
