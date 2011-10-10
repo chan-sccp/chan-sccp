@@ -469,6 +469,7 @@ static int sccp_wrapper_asterisk18_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_T
 		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
 			if ( c->rtp.video.writeState == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.rtp && c->getDevice(c)
+				&& c->state != SCCP_CHANNELSTATE_HOLD
 			    //      && (c->device->capability & frame->subclass)
 			    ) {
 				int codec = pbx_codec2skinny_codec( (frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
@@ -1030,6 +1031,9 @@ static int sccp_wrapper_asterisk18_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL
 	}
 
 	c->owner = newchan;
+	ast_channel_ref(c->owner);
+	ast_channel_unref(oldchan);
+	
 	return 0;
 }
 
