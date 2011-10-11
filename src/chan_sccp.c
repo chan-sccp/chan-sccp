@@ -13,8 +13,8 @@
  * 		When to use:	Methods communicating to asterisk about module initialization, status, destruction
  *   		Relationships: 	Main hub for all other sourcefiles.
  *
- * $Date: 2011-10-02 21:19:06 +0200 (So, 02. Okt 2011) $
- * $Revision: 2938 $
+ * $Date$
+ * $Revision$
  */
 
 //#define AST_MODULE "chan_sccp"
@@ -22,7 +22,7 @@
 #include "config.h"
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2938 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 void *sccp_create_hotline(void);
 
@@ -570,8 +570,8 @@ boolean_t sccp_prePBXLoad()
 #    endif
 #endif
 	/* make globals */
-	sccp_globals = (sccp_global_vars*) sccp_malloc(sizeof(struct sccp_global_vars));
-	sccp_event_listeners = (sccp_event_subscriptions*) sccp_malloc(sizeof(struct sccp_event_subscriptions));
+	sccp_globals = (struct sccp_global_vars*) sccp_malloc(sizeof(struct sccp_global_vars));
+	sccp_event_listeners = (struct sccp_event_subscriptions*) sccp_malloc(sizeof(struct sccp_event_subscriptions));
 	if (!sccp_globals || !sccp_event_listeners) {
 		pbx_log(LOG_ERROR, "No free memory for SCCP global vars. SCCP channel type disabled\n");
 		return FALSE;

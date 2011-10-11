@@ -143,12 +143,7 @@ extern "C" {
 
 #    define PBX(x) sccp_pbx.x
 
-<<<<<<< HEAD
-
 #    ifdef CS_AST_HAS_TECH_PVT
-=======
- #    ifdef CS_AST_HAS_TECH_PVT
->>>>>>> remove sccp_is_nonempty_string and make chan_sccp compatible wit CXX
 #        define CS_AST_CHANNEL_PVT(x) ((sccp_channel_t*)x->tech_pvt)
 #    else
 #        define CS_AST_CHANNEL_PVT(x) ((sccp_channel_t*)x->pvt->pvt)
