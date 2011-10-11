@@ -28,25 +28,16 @@ extern "C" {
 #    include "config.h"
 #    include "common.h"
 
-#include "config.h"
-#include "common.h"
-#include <poll.h>
-#include "asterisk/compiler.h"
-#include "asterisk/lock.h"
-#include "asterisk/abstract_jb.h"
-
-// // #    include <asterisk/pbx.h>
-// #    include <asterisk.h>
-// #    include <asterisk/causes.h>
-// #    ifdef HAVE_BYTESWAP_H 
-// #      include <byteswap.h>
-// #    endif
-// #    ifdef HAVE_SYS_ENDIAN_H
-// #      include <sys/endian.h>
-// #    endif
-// #    ifdef HAVE_SYS_BYTEORDER_H
-// #      include <sys/byteorder.h>
-// #    endif
+#    include <asterisk/causes.h>
+#    ifdef HAVE_BYTESWAP_H 
+#      include <byteswap.h>
+#    endif
+#    ifdef HAVE_SYS_ENDIAN_H
+#      include <sys/endian.h>
+#    endif
+#    ifdef HAVE_SYS_BYTEORDER_H
+#      include <sys/byteorder.h>
+#    endif
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
 /*
