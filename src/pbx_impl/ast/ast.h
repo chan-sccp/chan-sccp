@@ -282,6 +282,7 @@ static const struct ast_skinny_cause {
 
 };
 
+
 int set_pbx_callerid(PBX_CHANNEL_TYPE * ast_chan, sccp_callinfo_t * callInfo);
 PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target);
 PBX_CHANNEL_TYPE *pbx_channel_search_locked(int (*is_match)(PBX_CHANNEL_TYPE *, void *),void *data);
