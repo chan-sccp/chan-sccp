@@ -82,8 +82,6 @@ struct sccp_mailbox_subscriber_list {
 #    endif
 };										/*!< SCCP Mailbox Subscriber List Structure */
 
-SCCP_LIST_HEAD(, sccp_mailbox_subscriber_list_t) sccp_mailbox_subscriptions;
-
 void sccp_mwi_module_start(void);
 void sccp_mwi_module_stop(void);
 void sccp_mwi_check(sccp_device_t * device);

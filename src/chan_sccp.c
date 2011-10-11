@@ -29,6 +29,16 @@ void *sccp_create_hotline(void);
 /*!
  * \brief	Buffer for Jitterbuffer use
  */
+
+#if defined(__cplusplus) || defined(c_plusplus)
+static ast_jb_conf default_jbconf = {
+	flags:			0,
+	max_size:		-1,
+	resync_threshold:	-1,
+	impl:			"",
+	target_extra:		-1
+};
+#else
 static struct ast_jb_conf default_jbconf = {
 	.flags = 0,
 	.max_size = -1,
@@ -36,6 +46,8 @@ static struct ast_jb_conf default_jbconf = {
 	.impl = "",
 
 };
+#endif
+
 
 /*!
  * \brief	Global null frame
@@ -558,11 +570,11 @@ boolean_t sccp_prePBXLoad()
 #    endif
 #endif
 	/* make globals */
-	sccp_globals = sccp_malloc(sizeof(struct sccp_global_vars));
-	sccp_event_listeners = sccp_malloc(sizeof(struct sccp_event_subscriptions));
+	sccp_globals = (sccp_global_vars*) sccp_malloc(sizeof(struct sccp_global_vars));
+	sccp_event_listeners = (sccp_event_subscriptions*) sccp_malloc(sizeof(struct sccp_event_subscriptions));
 	if (!sccp_globals || !sccp_event_listeners) {
 		pbx_log(LOG_ERROR, "No free memory for SCCP global vars. SCCP channel type disabled\n");
-		return -1;
+		return FALSE;
 	}
 
 	/* Initialize memory */
@@ -610,19 +622,19 @@ boolean_t sccp_prePBXLoad()
 	GLOB(sccp_cos) = 4;
 	GLOB(audio_cos) = 6;
 	GLOB(video_cos) = 5;
-	GLOB(echocancel) = 1;
-	GLOB(silencesuppression) = 0;
+	GLOB(echocancel) = TRUE;
+	GLOB(silencesuppression) = TRUE;
 	GLOB(dndmode) = SCCP_DNDMODE_REJECT;
 	GLOB(autoanswer_tone) = SKINNY_TONE_ZIP;
 	GLOB(remotehangup_tone) = SKINNY_TONE_ZIP;
 	GLOB(callwaiting_tone) = SKINNY_TONE_CALLWAITINGTONE;
-	GLOB(privacy) = 1;							/* permit private function */
+	GLOB(privacy) = TRUE;							/* permit private function */
 	GLOB(mwilamp) = SKINNY_LAMP_ON;
 	GLOB(protocolversion) = SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH;
 	GLOB(amaflags) = pbx_cdr_amaflags2int("documentation");
 	GLOB(callanswerorder) = ANSWER_OLDEST_FIRST;
 	GLOB(socket_thread) = AST_PTHREADT_NULL;
-	GLOB(hotline) = sccp_malloc(sizeof(sccp_hotline_t));
+	GLOB(hotline) = (sccp_hotline_t*)sccp_malloc(sizeof(sccp_hotline_t));
 	GLOB(cfg) = sccp_config_getConfig();
 	GLOB(earlyrtp) = SCCP_CHANNELSTATE_PROGRESS;
 	
