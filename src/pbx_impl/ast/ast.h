@@ -50,11 +50,6 @@
 #    ifdef HAVE_PBX_DEVICESTATE_H
 #        include <asterisk/devicestate.h>
 #    endif
-#    ifndef HAVE_PBX_RTP_ENGINE_H
-#         include <asterisk/rtp.h>
-#    else
-#         include <asterisk/rtp_engine.h>
-#    endif
 #    ifdef AST_EVENT_IE_CIDNAME
 #        include <asterisk/event.h>
 #        include <asterisk/event_defs.h>

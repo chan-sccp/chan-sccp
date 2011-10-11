@@ -35,12 +35,7 @@ int sccp_pbx_answer(sccp_channel_t * c);
 //! \todo do we need this?
 // It is a function so we can intervene in the standard asterisk bridge method. 
 // At this moment it provides a little logging and switches a couple of DTMF signals off when bridging SCCP<->SCCP calls - DdG
-#    if ASTERISK_VERSION_NUMBER > 10400
-enum pbx_bridge_result sccp_rtp_bridge(PBX_CHANNEL_TYPE * c0, PBX_CHANNEL_TYPE * c1, int flags, PBX_FRAME_TYPE **fo, PBX_CHANNEL_TYPE ** rc, int timeoutms);
-
-int sccp_pbx_queue_control(sccp_channel_t * c, enum ast_control_frame_type control);
-#    else
+//! \todo move this to pbx impl
 int sccp_pbx_queue_control(sccp_channel_t * c, uint8_t control);
-#    endif									// ASTERISK_VERSION_NUMBER >= 10400
 
 #endif

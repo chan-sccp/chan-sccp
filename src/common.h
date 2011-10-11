@@ -10,6 +10,10 @@
 #ifndef CHAN_SCCP_COMMON_H
 #    define CHAN_SCCP_COMMON_H
 
+#    if defined(__cplusplus) || defined(c_plusplus)
+extern "C" {
+#    endif
+     
 #    include <sys/signal.h>
 #    include <sys/types.h>
 #    include <sys/socket.h>
@@ -24,12 +28,6 @@
 #    include <ctype.h>
 #    include <unistd.h>
 #    include <assert.h>
-
-#if PBX_TYPE == ASTERISK
-#    if ASTERISK_VERSION_NUMBER >= 10400
-#        include <asterisk.h>
-#    endif
-#endif
 
 #    include "sccp_lock.h"
 #    include "sccp_dllists.h"
@@ -60,4 +58,8 @@
 #    include "sccp_appfunctions.h"
 #    include "sccp_management.h"
 #    include "sccp_rtp.h"
+
+#if defined(__cplusplus) || defined(c_plusplus)
+}
+#    endif
 #endif										// CHAN_SCCP_COMMON_H
