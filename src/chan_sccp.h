@@ -137,9 +137,9 @@ extern "C" {
 #    define PBX(x) sccp_pbx.x
 
 #    ifdef CS_AST_HAS_TECH_PVT
-#        define CS_AST_CHANNEL_PVT(x) x->tech_pvt
+#        define CS_AST_CHANNEL_PVT(x) ((sccp_channel_t*)x->tech_pvt)
 #    else
-#        define CS_AST_CHANNEL_PVT(x) x->pvt->pvt
+#        define CS_AST_CHANNEL_PVT(x) ((sccp_channel_t*)x->pvt->pvt)
 #    endif
 
 #    ifdef CS_AST_HAS_TECH_PVT

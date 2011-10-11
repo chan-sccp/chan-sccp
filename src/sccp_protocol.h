@@ -1242,7 +1242,7 @@ typedef enum {
  * \brief SCCP DNDMode Structure
  */
 static const struct skinny_transmitOrReceiveModes {
-	skinny_transmitOrReceive_t 	mode;
+	uint8_t				mode;
 	const char *const 		text;
 } skinny_transmitOrReceiveModes[] = {
 	/* *INDENT-OFF* */

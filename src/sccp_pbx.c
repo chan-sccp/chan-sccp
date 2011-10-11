@@ -1160,11 +1160,7 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char *digits)
  *
  * \deprecated
  */
-#if ASTERISK_VERSION_NUMBER >= 10400
-int sccp_pbx_queue_control(sccp_channel_t * c, enum ast_control_frame_type control)
-#else
 int sccp_pbx_queue_control(sccp_channel_t * c, uint8_t control)
-#endif										// ASTERISK_VERSION_NUMBER >= 10400
 {
 //      PBX_FRAME_TYPE f;
 //      f = pbx_null_frame;

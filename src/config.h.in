@@ -260,6 +260,9 @@
 /* Using streaming video */
 #undef CS_SCCP_VIDEO
 
+/* Using video layer */
+#undef CS_SCCP_VIDEOLAYER
+
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
 
