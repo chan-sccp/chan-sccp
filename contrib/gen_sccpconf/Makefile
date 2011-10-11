@@ -213,7 +213,7 @@ AUTOCONF = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run autoco
 AUTOHEADER = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run autoheader
 AUTOMAKE = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run automake-1.11
 AWK = gawk
-BUILD_DATE = 2011-10-06 17:15:43 UTC
+BUILD_DATE = 2011-10-06 17:43:25 UTC
 BUILD_HOSTNAME = carol
 BUILD_KERNEL = 2.6.37.6-0.7-default
 >>>>>>> configure
