@@ -128,6 +128,7 @@ AWK = gawk
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 BUILD_DATE = 2011-10-11 16:27:22 UTC
 BUILD_HOSTNAME = moviebox
 BUILD_KERNEL = 2.6.38-11-generic
@@ -141,6 +142,9 @@ BUILD_DATE = 2011-10-06 16:33:22 UTC
 =======
 BUILD_DATE = 2011-10-06 17:15:43 UTC
 >>>>>>> remove sccp_is_nonempty_string and make chan_sccp compatible wit CXX
+=======
+BUILD_DATE = 2011-10-06 17:43:25 UTC
+>>>>>>> remove sccp_mailbox_subscriptions from header definition, make chan_sccp compatible to cxx
 BUILD_HOSTNAME = carol
 BUILD_KERNEL = 2.6.37.6-0.7-default
 >>>>>>> configure
