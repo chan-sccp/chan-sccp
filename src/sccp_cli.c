@@ -1120,7 +1120,6 @@ CLI_AMI_ENTRY(show_sessions, sccp_show_sessions, "Show all SCCP sessions", cli_s
  */
 static int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-
 // 	sccp_line_t *line=NULL;
 // 	sccp_mailboxLine_t *mailboxLine = NULL;
 // 	char linebuf[30]="";
@@ -1153,7 +1152,6 @@ static int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s,
 // 	#include "sccp_cli_table.h"
 // 	
 // 	if (s) *total=local_total;
-
 
 	return RESULT_SUCCESS;
 }
