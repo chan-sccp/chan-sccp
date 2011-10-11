@@ -153,32 +153,7 @@ static const value_string skinny_miscCommandType[] = {
  };
 */
 
-/*!
- * \brief AST Device State Structure
- */
-static const struct pbx_devicestate {
-#    ifdef ENUM_AST_DEVICE
-	enum ast_device_state devicestate;
-#    else
-	uint8_t devicestate;
-#    endif
-	const char *const text;
-} pbx_devicestates[] = {
-	/* *INDENT-OFF* */
-	{AST_DEVICE_UNKNOWN, "Device is valid but channel doesn't know state"},
-	{AST_DEVICE_NOT_INUSE, "Device is not in use"},
-	{AST_DEVICE_INUSE, "Device is in use"},
-	{AST_DEVICE_BUSY, "Device is busy"},
-	{AST_DEVICE_INVALID, "Device is invalid"},
-	{AST_DEVICE_UNAVAILABLE, "Device is unavailable"},
-	{AST_DEVICE_RINGING, "Device is ringing"},
-	{AST_DEVICE_RINGINUSE, "Device is ringing and in use"},
-	{AST_DEVICE_ONHOLD, "Device is on hold"},
-#    ifdef AST_DEVICE_TOTAL
-	{AST_DEVICE_TOTAL, "Total num of device states, used for testing"}
-#    endif
-	/* *INDENT-ON* */
-};
+
 
 /*!
  * \brief SCCP BLF States for Dynamic Speeddials (ENUM)
@@ -1678,29 +1653,6 @@ static const struct sccp_accessory_state {
 	/* *INDENT-ON* */
 };
 
-/*!
- * \brief SCCP Extension State Structure
- */
-static const struct sccp_extension_state {
-	uint16_t extension_state;
-	const char *const text;
-} sccp_extension_states[] = {
-	/* *INDENT-OFF* */
-	{AST_EXTENSION_REMOVED, "Extension Removed"},
-	{AST_EXTENSION_DEACTIVATED, "Extension Hint Removed"},
-	{AST_EXTENSION_NOT_INUSE, "No device INUSE or BUSY"},
-	{AST_EXTENSION_INUSE, "One or More devices In Use"},
-	{AST_EXTENSION_BUSY, "All devices Busy"},
-	{AST_EXTENSION_UNAVAILABLE, "All devices Unavailable/Unregistered"},
-#    ifdef CS_AST_HAS_EXTENSION_RINGING
-	{AST_EXTENSION_RINGING, "All Devices Ringing"},
-	{AST_EXTENSION_INUSE | AST_EXTENSION_RINGING, "All Devices Ringing and In Use"},
-#    endif
-#    ifdef CS_AST_HAS_EXTENSION_ONHOLD
-	{AST_EXTENSION_ONHOLD, "All Devices On Hold"},
-#    endif
-	/* *INDENT-ON* */
-};
 
 /*=====================================================================================================*/
 
