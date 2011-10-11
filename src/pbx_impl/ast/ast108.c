@@ -46,6 +46,7 @@ static int sccp_pbx_sendtext(PBX_CHANNEL_TYPE *ast, const char *text);
 static int sccp_wrapper_recvdigit_begin(PBX_CHANNEL_TYPE *ast, char digit);
 static int sccp_wrapper_recvdigit_end(PBX_CHANNEL_TYPE *ast, char digit, unsigned int duration);
 static int sccp_wrapper_asterisk18_channel_read(struct ast_channel *ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen);
+static int sccp_pbx_sendHTML(struct ast_channel *ast, int subclass, const char *data, int datalen);
 
 
 #    if defined(__cplusplus) || defined(c_plusplus)
@@ -68,7 +69,7 @@ static struct ast_channel_tech sccp_tech = {
 	write: 			sccp_wrapper_asterisk18_rtp_write,
 	send_text: 		sccp_pbx_sendtext,
 	send_image: 		NULL,
-	send_html: 		NULL,
+	send_html: 		sccp_pbx_sendHTML,
 	exception: 		NULL,
 	bridge: 		sccp_wrapper_asterisk18_rtpBridge,
 	early_bridge: 		NULL,
@@ -862,7 +863,7 @@ static sccp_parkresult_t sccp_wrapper_asterisk18_park(const sccp_channel_t * hos
 
 		return PARK_RESULT_FAIL;
 	}
-	if (!(arg = (parkingThreadArg*)ast_calloc(1, sizeof(struct parkingThreadArg)))) {
+	if (!(arg = (struct parkingThreadArg*)ast_calloc(1, sizeof(struct parkingThreadArg)))) {
 		return PARK_RESULT_FAIL;
 	}
 
@@ -1439,7 +1440,7 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(const sccp_channel_t *
 	for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
 		/* add audio codecs only */
 		if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == SKINNY_CODEC_TYPE_AUDIO) {
-			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, "audio", (char *)skinny_codecs[i].mimesubtype, (ast_rtp_options)0, skinny_codecs[i].sample_rate);
+			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, "audio", (char *)skinny_codecs[i].mimesubtype, (enum ast_rtp_options)0, skinny_codecs[i].sample_rate);
 		}
 	}
 
@@ -1495,7 +1496,7 @@ static boolean_t sccp_wrapper_asterisk18_create_video_rtp(const sccp_channel_t *
 	for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
 		/* add audio codecs only */
 		if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == SKINNY_CODEC_TYPE_VIDEO) {
-			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, "video", (char *)skinny_codecs[i].mimesubtype, (ast_rtp_options)0, skinny_codecs[i].sample_rate);
+			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, "video", (char *)skinny_codecs[i].mimesubtype, (enum ast_rtp_options)0, skinny_codecs[i].sample_rate);
 		}
 	}
 
@@ -2261,7 +2262,11 @@ struct sccp_pbx_cb sccp_pbx = {
 };
 #endif
 
+#if defined(__cplusplus) || defined(c_plusplus)
 static ast_module_load_result load_module(void)
+#else
+static int load_module(void)
+#endif
 {
 
 	boolean_t res;
@@ -2428,7 +2433,7 @@ static const __attribute__((unused)) struct ast_module_info *ast_module_info = &
 AST_MODULE_INFO(ASTERISK_GPL_KEY, AST_MODFLAG_LOAD_ORDER, "Skinny Client Control Protocol (SCCP). CPP-Release: " SCCP_VERSION " " SCCP_BRANCH " (built by '" BUILD_USER "' on '" BUILD_DATE "', NULL)",
 	.load = load_module,
 	.unload = unload_module,
-	.reload = reload,
+	.reload = module_reload,
 	.load_pri = AST_MODPRI_CHANNEL_DRIVER,
 	.nonoptreq = "res_rtp_asterisk,chan_local",
     );

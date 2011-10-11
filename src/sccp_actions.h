@@ -58,4 +58,5 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 void sccp_handle_device_to_user(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_device_to_user_response(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_XMLAlarmMessage(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
+void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 #endif

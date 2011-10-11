@@ -13,8 +13,8 @@
  * 		When to use:	Methods communicating to asterisk about module initialization, status, destruction
  *   		Relationships: 	Main hub for all other sourcefiles.
  *
- * $Date: 2011-10-02 21:19:06 +0200 (So, 02. Okt 2011) $
- * $Revision: 2938 $
+ * $Date$
+ * $Revision$
  */
 
 //#define AST_MODULE "chan_sccp"
@@ -22,23 +22,13 @@
 #include "config.h"
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2938 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 void *sccp_create_hotline(void);
 
 /*!
  * \brief	Buffer for Jitterbuffer use
  */
-
-#if defined(__cplusplus) || defined(c_plusplus)
-static ast_jb_conf default_jbconf = {
-	flags:			0,
-	max_size:		-1,
-	resync_threshold:	-1,
-	impl:			"",
-	target_extra:		-1
-};
-#else
 static struct ast_jb_conf default_jbconf = {
 	.flags = 0,
 	.max_size = -1,
@@ -46,8 +36,6 @@ static struct ast_jb_conf default_jbconf = {
 	.impl = "",
 
 };
-#endif
-
 
 /*!
  * \brief	Global null frame
@@ -319,8 +307,8 @@ static const struct sccp_messageMap_cb messagesCbMap[] = {
 	{RegisterMessage, sccp_handle_register, FALSE},
 	{AlarmMessage, sccp_handle_alarm, FALSE},
 	{XMLAlarmMessage, sccp_handle_XMLAlarmMessage, FALSE},
-//	{SPCPRegisterTokenRequest, sccp_handle_token_request, FALSE},
 	{SPCPRegisterTokenRequest, sccp_handle_SPCPTokenReq, FALSE},
+	{StartMultiMediaTransmissionAck, sccp_handle_startmultimediatransmission_ack, TRUE},
 };
 
 typedef struct sccp_messageMap_cb sccp_messageMap_cb_t;
@@ -369,7 +357,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	mid = letohl(r->lel_messageId);
 
 	s->lastKeepAlive = time(0);	/** always update keepalive */
-//	sccp_device_t *tmpDevice=NULL;
+	sccp_device_t *tmpDevice=NULL;
 
 	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message (%x) %s\n", DEV_ID_LOG(s->device), mid, message2str(mid));
 
@@ -570,11 +558,11 @@ boolean_t sccp_prePBXLoad()
 #    endif
 #endif
 	/* make globals */
-	sccp_globals = (sccp_global_vars*) sccp_malloc(sizeof(struct sccp_global_vars));
-	sccp_event_listeners = (sccp_event_subscriptions*) sccp_malloc(sizeof(struct sccp_event_subscriptions));
+	sccp_globals = sccp_malloc(sizeof(struct sccp_global_vars));
+	sccp_event_listeners = sccp_malloc(sizeof(struct sccp_event_subscriptions));
 	if (!sccp_globals || !sccp_event_listeners) {
 		pbx_log(LOG_ERROR, "No free memory for SCCP global vars. SCCP channel type disabled\n");
-		return FALSE;
+		return -1;
 	}
 
 	/* Initialize memory */
@@ -622,19 +610,19 @@ boolean_t sccp_prePBXLoad()
 	GLOB(sccp_cos) = 4;
 	GLOB(audio_cos) = 6;
 	GLOB(video_cos) = 5;
-	GLOB(echocancel) = TRUE;
-	GLOB(silencesuppression) = TRUE;
+	GLOB(echocancel) = 1;
+	GLOB(silencesuppression) = 0;
 	GLOB(dndmode) = SCCP_DNDMODE_REJECT;
 	GLOB(autoanswer_tone) = SKINNY_TONE_ZIP;
 	GLOB(remotehangup_tone) = SKINNY_TONE_ZIP;
 	GLOB(callwaiting_tone) = SKINNY_TONE_CALLWAITINGTONE;
-	GLOB(privacy) = TRUE;							/* permit private function */
+	GLOB(privacy) = 1;							/* permit private function */
 	GLOB(mwilamp) = SKINNY_LAMP_ON;
 	GLOB(protocolversion) = SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH;
 	GLOB(amaflags) = pbx_cdr_amaflags2int("documentation");
 	GLOB(callanswerorder) = ANSWER_OLDEST_FIRST;
 	GLOB(socket_thread) = AST_PTHREADT_NULL;
-	GLOB(hotline) = (sccp_hotline_t*)sccp_malloc(sizeof(sccp_hotline_t));
+	GLOB(hotline) = sccp_malloc(sizeof(sccp_hotline_t));
 	GLOB(cfg) = sccp_config_getConfig();
 	GLOB(earlyrtp) = SCCP_CHANNELSTATE_PROGRESS;
 	
