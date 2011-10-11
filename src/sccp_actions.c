@@ -2466,6 +2466,8 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 		sccp_dev_send(sccp_channel_getDevice(channel), r1);
 
 		sccp_channel_unlock(channel);
+		
+		ast_queue_control(channel->owner, AST_CONTROL_VIDUPDATE);
 	} else {
 		pbx_log(LOG_ERROR, "%s: No channel with this PassThruId!\n", d->id);
 	}
@@ -3048,16 +3050,34 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 	struct sockaddr_in sin;
 	sccp_channel_t *channel;
 	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0, callID1 = 0;
-
-	ipPort = htons(htolel(r->msg.StartMediaTransmissionAck.lel_portNumber));
-	partyID = letohl(r->msg.StartMediaTransmissionAck.lel_passThruPartyId);
-	status = letohl(r->msg.StartMediaTransmissionAck.lel_smtStatus);
-	callID = letohl(r->msg.StartMediaTransmissionAck.lel_callReference);
-	callID1 = letohl(r->msg.StartMediaTransmissionAck.lel_callReference1);
+	const char *ipAddress;
 
 	sin.sin_family = AF_INET;
-	memcpy(&sin.sin_addr, &r->msg.StartMediaTransmissionAck.bel_ipAddr, sizeof(sin.sin_addr));
-	sin.sin_port = ipPort;
+	if( letohl(r->lel_reserved) < 17){
+		ipPort = htons(htolel(r->msg.StartMediaTransmissionAck.lel_portNumber));
+		partyID = letohl(r->msg.StartMediaTransmissionAck.lel_passThruPartyId);
+		status = letohl(r->msg.StartMediaTransmissionAck.lel_smtStatus);
+		callID = letohl(r->msg.StartMediaTransmissionAck.lel_callReference);
+		callID1 = letohl(r->msg.StartMediaTransmissionAck.lel_callReference1);
+		
+		memcpy(&sin.sin_addr, &r->msg.StartMediaTransmissionAck.bel_ipAddr, sizeof(sin.sin_addr));
+		ipAddress = pbx_inet_ntoa(sin.sin_addr);
+	}else{
+		ipPort = htons(htolel(r->msg.StartMediaTransmissionAck_v17.lel_portNumber));
+		partyID = letohl(r->msg.StartMediaTransmissionAck_v17.lel_passThruPartyId);
+		status = letohl(r->msg.StartMediaTransmissionAck_v17.lel_smtStatus);
+		callID = letohl(r->msg.StartMediaTransmissionAck_v17.lel_callReference);
+		callID1 = letohl(r->msg.StartMediaTransmissionAck_v17.lel_callReference1);
+		
+		if(letohl(r->msg.StartMediaTransmissionAck_v17.lel_unknown1) == 1){
+			ipAddress = (const char *)&r->msg.StartMediaTransmissionAck_v17.bel_ipAddr;
+		}else{
+			memcpy(&sin.sin_addr, &r->msg.StartMediaTransmissionAck_v17.bel_ipAddr, sizeof(sin.sin_addr));
+			ipAddress = pbx_inet_ntoa(sin.sin_addr);
+		}
+	}
+	
+	
 
 	channel = sccp_channel_find_bypassthrupartyid_locked(partyID);
 	if (!channel) {
@@ -3079,7 +3099,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 		PBX(set_callstate) (channel, AST_STATE_UP);
 	}
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), callID, callID1, partyID);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, ipAddress, ntohs(sin.sin_port), callID, callID1, partyID);
 	//pbx_cond_signal(&c->rtp.audio.convar);
 	sccp_channel_unlock(channel);
 }
@@ -3178,4 +3198,70 @@ void sccp_handle_device_to_user_response(sccp_session_t * s, sccp_device_t * d, 
 
 	sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: DTU Response: AppID %d , LineInstance %d, CallID %d, Transaction %d\n", d->id, appID, lineInstance, callReference, transactionID);
 	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: DTU Response: Data %s\n", d->id, data);
+}
+
+
+/*!
+ * \brief Handle Start Multi Media Transmission Acknowledgement
+ * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
+ * \param r SCCP Message as sccp_moo_t
+ */
+void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
+{
+	struct sockaddr_in sin;
+	const char *ipAddress;
+
+	sccp_channel_t *c;
+
+	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0, callID1 = 0;
+	
+	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
+
+	
+	sin.sin_family = AF_INET;
+	if( letohl(r->lel_reserved) < 17){
+		ipPort = htons(htolel(r->msg.StartMultiMediaTransmissionAck.lel_portNumber));
+		partyID = letohl(r->msg.StartMultiMediaTransmissionAck.lel_passThruPartyId);
+		status = letohl(r->msg.StartMultiMediaTransmissionAck.lel_smtStatus);
+		callID = letohl(r->msg.StartMultiMediaTransmissionAck.lel_callReference);
+		callID1 = letohl(r->msg.StartMultiMediaTransmissionAck.lel_callReference1);
+		
+		memcpy(&sin.sin_addr, &r->msg.StartMultiMediaTransmissionAck.bel_ipAddr, sizeof(sin.sin_addr));
+		ipAddress = pbx_inet_ntoa(sin.sin_addr);
+	}else{
+		ipPort = htons(htolel(r->msg.StartMultiMediaTransmissionAck_v17.lel_portNumber));
+		partyID = letohl(r->msg.StartMultiMediaTransmissionAck_v17.lel_passThruPartyId);
+		status = letohl(r->msg.StartMultiMediaTransmissionAck_v17.lel_smtStatus);
+		callID = letohl(r->msg.StartMultiMediaTransmissionAck_v17.lel_callReference);
+		callID1 = letohl(r->msg.StartMultiMediaTransmissionAck_v17.lel_callReference1);
+		
+		if(letohl(r->msg.StartMultiMediaTransmissionAck_v17.lel_unknown1) == 1){
+			ipAddress = (const char *)&r->msg.StartMultiMediaTransmissionAck_v17.bel_ipAddr;
+		}else{
+			memcpy(&sin.sin_addr, &r->msg.StartMultiMediaTransmissionAck_v17.bel_ipAddr, sizeof(sin.sin_addr));
+			ipAddress = pbx_inet_ntoa(sin.sin_addr);
+		}
+	}
+	
+	
+	c = sccp_channel_find_bypassthrupartyid_locked(partyID);
+	if (!c) {
+		ast_log(LOG_WARNING, "%s: Channel with passthrupartyid %u not found, please report this to developer\n", DEV_ID_LOG(d), partyID);
+		return;
+	}
+	if (status) {
+		ast_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call\n", DEV_ID_LOG(d));
+		sccp_channel_endcall_locked(c);
+		sccp_channel_unlock(c);
+		return;
+	}
+
+	/* update status */
+	c->rtp.video.readState &= ~SCCP_RTP_STATUS_PROGESS;
+	c->rtp.video.readState |= SCCP_RTP_STATUS_ACTIVE;
+
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, ipAddress, ipPort, callID, callID1, partyID);
+
+	sccp_channel_unlock(c);
 }

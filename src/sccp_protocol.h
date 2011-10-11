@@ -1465,6 +1465,7 @@ typedef enum {
 	DialedPhoneBookAckMessage = 0x0152,
 	Unknown_0x0153_Message = 0x0153,
 	StartMediaTransmissionAck = 0x0154,
+	StartMultiMediaTransmissionAck = 0x0155,
 	ExtensionDeviceCaps = 0x0159,
 	XMLAlarmMessage = 0x015A,
 
@@ -1630,6 +1631,7 @@ static const struct sccp_messagetype {
 	{DialedPhoneBookAckMessage, "Dialed PhoneBook Ack Message"},
 	{Unknown_0x0153_Message, "Undefined 0x0153 Message"},
 	{StartMediaTransmissionAck, "Start Media Transmission Acknowledge"},
+	{StartMultiMediaTransmissionAck, "Start Media Transmission Acknowledge"},
 	{ExtensionDeviceCaps, "Extension Device Capabilities Message"},
 	{XMLAlarmMessage, "XML-AlarmMessage"},
 	{SPCPRegisterTokenRequest, "SPCP Register Token RequestCODEC"},
@@ -2204,12 +2206,10 @@ typedef union {
 		uint32_t lel_callReference;					/*!< Call Reference */
 		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
 		uint32_t lel_callReference1;					/*!< Call Reference1 */
-		uint32_t lel_unknown1;						/*!< Unknown (i think this switches from IPv4 to IPv6 (0x00 in IPv4)) */
-		/* include IPv6 support */
-		char bel_ipAddr[16];						/*!< Ip Address Array (This field is apparently in big-endian format, even though most other fields are in little-endian format.) */
+		uint32_t bel_ipAddr;						/*!< Ip Address Array (This field is apparently in big-endian format, even though most other fields are in little-endian format.) */
 		uint32_t lel_portNumber;					/*!< Port Number */
 		uint32_t lel_smtStatus;						/*!< Start Media Transmission Status */
-		uint32_t lel_unknown2;						/*!< Unknown 2 */
+		uint32_t lel_unknown1;						/*!< Unknown 2 */
 	} StartMediaTransmissionAck;						/*!< Start Media Transmission Acknowledgement Structure */
 
 	/* this is from a 7941
@@ -3493,6 +3493,30 @@ typedef union {
 		videoParameter_t videoParameter;                                        /*!< Data Parameter */
 
 	} StartMultiMediaTransmission_v17;                                      /*!< Start MultiMedia Transmission Message Structure */
+	
+	
+		struct {
+		uint32_t lel_callReference;					/*!< Call Reference */
+		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+		uint32_t lel_callReference1;					/*!< Call Reference1 */
+		uint32_t bel_ipAddr;						/*!< This field is apparently in big-endian format, even though most other fields are little-endian. */
+		uint32_t lel_portNumber;					/*!< Port Number */
+		uint32_t lel_smtStatus;						/*!< Start Media Transmission Status */
+		uint32_t lel_unknown2;						/*!< Unknown 2 */
+	} StartMultiMediaTransmissionAck;					/*!< Start Media Transmission Acknowledgement Structure */
+
+	struct {
+		uint32_t lel_callReference;					/*!< Call Reference */
+		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+		uint32_t lel_callReference1;					/*!< Call Reference 1 */
+		uint32_t lel_unknown1;						/*!< i think this switches from IPv4 to IPv6 (0x00 in IPv4) */
+		/* include IPv6 support */
+		char bel_ipAddr[16];						/*!< This field is apparently in big-endian format, even though most other fields are in little-endian format. */
+		uint32_t lel_portNumber;					/*!< Port Number */
+		uint32_t lel_smtStatus;						/*!< startmediatransmission status */
+		uint32_t lel_unknown2;						/*!< Unknown */
+	} StartMultiMediaTransmissionAck_v17;					/*!< Start Media Transmission Acknowledgement used in protocoll version 17 */
+
 
 	struct {
 		uint32_t lel_displayTimeout;					/*!< Display Timeout */
