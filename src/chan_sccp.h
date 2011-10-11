@@ -14,8 +14,8 @@
  *		See the LICENSE file at the top of the source tree.
  * \warning 	File has been Lined up using 8 Space TABS
  *
- * $Date$
- * $Revision$
+ * $Date: 2011-10-02 19:33:09 +0200 (So, 02. Okt 2011) $
+ * $Revision: 2932 $
  */
 
 #ifndef __CHAN_SCCP_H
@@ -28,21 +28,34 @@ extern "C" {
 #    include "config.h"
 #    include "common.h"
 
-#    include <asterisk/causes.h>
-#    ifdef HAVE_BYTESWAP_H 
-#      include <byteswap.h>
-#    endif
-#    ifdef HAVE_SYS_ENDIAN_H
-#      include <sys/endian.h>
-#    endif
-#    ifdef HAVE_SYS_BYTEORDER_H
-#      include <sys/byteorder.h>
-#    endif
+#include "config.h"
+#include "common.h"
+#include <poll.h>
+#include "asterisk/compiler.h"
+#include "asterisk/lock.h"
+#include "asterisk/abstract_jb.h"
+
+// // #    include <asterisk/pbx.h>
+// #    include <asterisk.h>
+// #    include <asterisk/causes.h>
+// #    ifdef HAVE_BYTESWAP_H 
+// #      include <byteswap.h>
+// #    endif
+// #    ifdef HAVE_SYS_ENDIAN_H
+// #      include <sys/endian.h>
+// #    endif
+// #    ifdef HAVE_SYS_BYTEORDER_H
+// #      include <sys/byteorder.h>
+// #    endif
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
 #    ifndef AST_CAUSE_ANSWERED_ELSEWHERE
 #        define AST_CAUSE_ANSWERED_ELSEWHERE 200
 #    endif
+
+
+#define sccp_mutex_t ast_mutex_t
+
 
 /* fix cast for (uint64_t) during printf */
 #if SIZEOF_LONG == SIZEOF_LONG_LONG
@@ -135,7 +148,7 @@ extern "C" {
 
 #    define PBX(x) sccp_pbx.x
 
-#    ifdef CS_AST_HAS_TECH_PVT
+ #    ifdef CS_AST_HAS_TECH_PVT
 #        define CS_AST_CHANNEL_PVT(x) ((sccp_channel_t*)x->tech_pvt)
 #    else
 #        define CS_AST_CHANNEL_PVT(x) ((sccp_channel_t*)x->pvt->pvt)
@@ -180,6 +193,7 @@ extern "C" {
 	#define SCCP_MAX_LANGUAGE 20
 #endif
 	
+#undef SCCP_MAX_ACCOUNT_CODE
 #ifdef AST_MAX_ACCOUNT_CODE
 	#define SCCP_MAX_ACCOUNT_CODE AST_MAX_ACCOUNT_CODE
 #else
@@ -191,6 +205,8 @@ extern "C" {
 #else
 	#define SCCP_MAX_MUSICCLASS 80
 #endif
+	
+#define SCCP_MAXHOSTNAMELEN 100
 
 	typedef unsigned long long sccp_group_t;
 	typedef struct channel sccp_channel_t;					/*!< SCCP Channel Structure */
@@ -631,7 +647,7 @@ extern "C" {
 	 * \brief SCCP Hostname Structure
 	 */
 	struct sccp_hostname {
-		char name[MAXHOSTNAMELEN];					/*!< Name of the Host */
+		char name[SCCP_MAXHOSTNAMELEN];					/*!< Name of the Host */
 		SCCP_LIST_ENTRY(sccp_hostname_t) list;				/*!< Host Linked List Entry */
 	};									/*!< SCCP Hostname Structure */
 
@@ -654,7 +670,7 @@ extern "C" {
  * \note A line is the equivalent of a 'phone line' going to the phone.
  */
 	struct sccp_line {
-		ast_mutex_t lock;						/*!< Asterisk: Lock Me Up and Tie me Down */
+		sccp_mutex_t lock;						/*!< Asterisk: Lock Me Up and Tie me Down */
 		char id[5];							/*!< This line's ID, used for logging into (for mobility) */
 		char pin[8];							/*!< PIN number for mobility/roaming. */
 		char name[80];							/*!< The name of the line, so use in asterisk (i.e SCCP/[name]) */
@@ -749,7 +765,7 @@ extern "C" {
  * \brief SCCP Device Structure
  */
 	struct sccp_device {
-		ast_mutex_t lock;						/*!< Asterisk: Lock Me Up and Tie me Down */
+		sccp_mutex_t lock;						/*!< Asterisk: Lock Me Up and Tie me Down */
 		char id[StationMaxDeviceNameSize];				/*!< SEP<macAddress> of the device. */
 		char description[40];						/*!< Internal Description. Skinny protocol does not use it */
 		char config_type[10];						/*!< Model of this Phone used for setting up features/softkeys/buttons etc. */
@@ -944,7 +960,7 @@ extern "C" {
  * \note This contains the current session the phone is in
  */
 	struct sccp_session {
-		ast_mutex_t lock;						/*!< Asterisk: Lock Me Up and Tie me Down */
+		sccp_mutex_t lock;						/*!< Asterisk: Lock Me Up and Tie me Down */
 		void *buffer;							/*!< Session Buffer */
 		int32_t buffer_size;						/*!< Session Buffer Size */
 		struct sockaddr_in sin;						/*!< Incoming Socket Address*/
@@ -978,7 +994,7 @@ extern "C" {
  * \note This contains the current channel information
  */
 	struct channel {
-		ast_mutex_t lock;						/*!< Asterisk: Lock Me Up and Tie me Down */
+		sccp_mutex_t lock;						/*!< Asterisk: Lock Me Up and Tie me Down */
 		ast_cond_t astStateCond;
 		
 		
@@ -1063,21 +1079,21 @@ extern "C" {
  * \brief SCCP Global Variable Structure
  */
 	struct sccp_global_vars {
-		ast_mutex_t lock;						/*!< Asterisk: Lock Me Up and Tie me Down */
+		sccp_mutex_t lock;						/*!< Asterisk: Lock Me Up and Tie me Down */
 
 		pthread_t monitor_thread;					/*!< Monitor Thread */// ADDED IN 414 -FS
-		ast_mutex_t monitor_lock;					/*!< Monitor Asterisk Lock */// ADDED IN 414 -FS
+		sccp_mutex_t monitor_lock;					/*!< Monitor Asterisk Lock */// ADDED IN 414 -FS
 
 		SCCP_RWLIST_HEAD(, sccp_session_t) sessions;			/*!< SCCP Sessions */
 		SCCP_RWLIST_HEAD(, sccp_device_t) devices;			/*!< SCCP Devices */
 		SCCP_RWLIST_HEAD(, sccp_line_t) lines;				/*!< SCCP Lines */
 
-		ast_mutex_t socket_lock;					/*!< Socket Lock */
+		sccp_mutex_t socket_lock;					/*!< Socket Lock */
 		pthread_t socket_thread;					/*!< Socket Thread */
 		pthread_t mwiMonitorThread;					/*!< MWI Monitor Thread */
 		int descriptor;							/*!< Descriptor */
 		int usecnt;							/*!< Keep track of when we're in use. */
-		ast_mutex_t usecnt_lock;					/*!< Use Counter Asterisk Lock */
+		sccp_mutex_t usecnt_lock;					/*!< Use Counter Asterisk Lock */
 
 		int keepalive;							/*!< KeepAlive */
 		uint32_t debug;							/*!< Debug */
@@ -1222,18 +1238,6 @@ extern "C" {
 
 	int sccp_sched_free(void *ptr);
 
-/*!
- * \todo sccp_is_nonempty_string never used (not used)
- */
-	static inline unsigned int sccp_is_nonempty_string(char *string) {
-		if (NULL != string) {
-			if (!ast_strlen_zero(string)) {				/*!< \todo Unrecognized identifier: ast_strlen_zero. Identifier used in code has not been declared. */
-				return 1;					/*!< \todo Return value type int does not match declared type unsigned char: 1 */
-			}
-		}
-		return 0;							/*!< \todo Return value type int does not match declared type unsigned char: 1 */
-	}
-
 	typedef struct softKeySetConfiguration sccp_softKeySetConfiguration_t;	/*!< SoftKeySet configuration */
 
 /*!
@@ -1250,14 +1254,6 @@ extern "C" {
 		unsigned int pendingUpdate:1;
 #    endif
 	};									/*!< SoftKeySet Configuration Structure */
-
-/*
-   struct softKeySetConfigList{
-	ast_mutex_t lock;
-	sccp_softKeySetConfiguration_t *first;
-	sccp_softKeySetConfiguration_t *last;
-	uint16_t size;
-} */
 
 	SCCP_LIST_HEAD(softKeySetConfigList, sccp_softKeySetConfiguration_t);	/*!< SCCP LIST HEAD for softKeySetConfigList (Structure) */
 	extern struct softKeySetConfigList softKeySetConfig;			/*!< List of SoftKeySets */

@@ -1033,7 +1033,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t *channel)
 	
 	/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
 	if (d->nat) {
-		if (sccp_is_nonempty_string(GLOB(externhost))) {
+		if (!sccp_strlen_zero(GLOB(externhost))) {
 			pbx_log(LOG_NOTICE, "Device is behind NAT use external hostname translation: %s\n", GLOB(externhost));
 			struct ast_hostent ahp;
 			struct hostent *hp;
@@ -1630,7 +1630,7 @@ int sccp_channel_hold_locked(sccp_channel_t * channel)
 
 	if (peer) {
 #ifdef CS_AST_RTP_INSTANCE_NEW
-                pbx_rtp_instance_change_source(channel->rtp.audio.rtp);
+//                 pbx_rtp_instance_change_source(channel->rtp.audio.rtp);
 #else
 #  ifdef CS_AST_RTP_NEW_SOURCE
                 ast_rtp_new_source(channel->rtp.audio.rtp);
