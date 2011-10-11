@@ -49,13 +49,6 @@ extern "C" {
 // #    endif
 
 
-/* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
-/*
-#    ifndef AST_CAUSE_ANSWERED_ELSEWHERE
-#       define AST_CAUSE_ANSWERED_ELSEWHERE 200
-#    endif
-*/
-
 #define sccp_mutex_t ast_mutex_t
 
 
