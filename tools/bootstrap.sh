@@ -5,8 +5,8 @@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2010-04-25 15:03:12 +0200 (So, 25 Apr 2010) $
-# REVISION: $Revision: 1478 $
+# DATE:     $Date$
+# REVISION: $Revision$
 
 if [ -f src/Makefile ]; then
   rm -rf config aclocal.m4 autom4te.cache/ src/Makefile.in src/config.h src/Makefile

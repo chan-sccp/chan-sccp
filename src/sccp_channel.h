@@ -10,8 +10,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
- * $Date: 2011-01-23 14:04:34 +0100 (So, 23 Jan 2011) $
- * $Revision: 2294 $  
+ * $Date$
+ * $Revision$  
  */
 
 #ifndef __SCCP_CHANNEL_H
