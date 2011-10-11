@@ -49,6 +49,7 @@ static int sccp_wrapper_asterisk18_channel_read(struct ast_channel *ast, NEWCONS
 static int sccp_pbx_sendHTML(struct ast_channel *ast, int subclass, const char *data, int datalen);
 
 
+
 #    if defined(__cplusplus) || defined(c_plusplus)
 /*!
  * \brief SCCP Tech Structure
@@ -1441,7 +1442,6 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(const sccp_channel_t *
 		/* add audio codecs only */
 		if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == SKINNY_CODEC_TYPE_AUDIO) {
 			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, "audio", (char *)skinny_codecs[i].mimesubtype, (enum ast_rtp_options)0, skinny_codecs[i].sample_rate);
-		}
 	}
 
 	return TRUE;
