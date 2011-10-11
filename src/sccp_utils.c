@@ -470,7 +470,7 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: button instance %d, type: %d\n", DEV_ID_LOG(d), config->instance, config->type);
 
-		if (config->type == LINE && config->instance == instance && sccp_is_nonempty_string(config->button.line.name)) {
+		if (config->type == LINE && config->instance == instance && !sccp_strlen_zero(config->button.line.name)) {
 			l = sccp_line_find_byname_wo(config->button.line.name, TRUE);
 			break;
 		}

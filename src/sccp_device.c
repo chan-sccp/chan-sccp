@@ -1134,7 +1134,7 @@ sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, 
 		if (config->type == SPEEDDIAL && config->instance == instance) {
 
 			/* we are searching for hinted speeddials */
-			if (type == SCCP_BUTTONTYPE_HINT && !sccp_is_nonempty_string(config->button.speeddial.hint))
+			if (type == SCCP_BUTTONTYPE_HINT && sccp_strlen_zero(config->button.speeddial.hint))
 				continue;
 
 			k = sccp_malloc(sizeof(sccp_speed_t));

@@ -498,7 +498,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 			for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 				sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: btn[%.2d].type = %d\n", DEV_ID_LOG(d), i, btn[i].type);
 
-				if (buttonconfig->type == LINE && sccp_is_nonempty_string(buttonconfig->button.line.name)
+				if (buttonconfig->type == LINE && !sccp_strlen_zero(buttonconfig->button.line.name)
 				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE)) {
 
 					btn[i].type = SKINNY_BUTTONTYPE_LINE;
@@ -528,11 +528,11 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 					buttonconfig->instance = btn[i].instance = serviceInstance++;
 					break;
 
-				} else if (buttonconfig->type == SPEEDDIAL && sccp_is_nonempty_string(buttonconfig->label)
+				} else if (buttonconfig->type == SPEEDDIAL && !sccp_strlen_zero(buttonconfig->label)
 					   && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL)) {
 
 					buttonconfig->instance = btn[i].instance = i + 1;
-					if (sccp_is_nonempty_string(buttonconfig->button.speeddial.hint)
+					if (!sccp_strlen_zero(buttonconfig->button.speeddial.hint)
 					    && btn[i].type == SCCP_BUTTONTYPE_MULTI	/* we can set our feature */
 					    ) {
 #ifdef CS_DYNAMIC_SPEEDDIAL
@@ -555,7 +555,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 					}
 					break;
 
-				} else if (buttonconfig->type == FEATURE && sccp_is_nonempty_string(buttonconfig->label)
+				} else if (buttonconfig->type == FEATURE && !sccp_strlen_zero(buttonconfig->label)
 					   && (btn[i].type == SCCP_BUTTONTYPE_MULTI)) {
 
 					buttonconfig->instance = btn[i].instance = speeddialInstance++;
@@ -1092,7 +1092,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	switch (stimulus) {
 
 	case SKINNY_BUTTONTYPE_LASTNUMBERREDIAL:				// We got a Redial Request
-		if (!sccp_is_nonempty_string(d->lastNumber))
+		if (sccp_strlen_zero(d->lastNumber))
 			return;
 		channel = sccp_channel_get_active_locked(d);
 		if (channel) {
@@ -1750,13 +1750,13 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_mo
 		if (buttonconfig->type == LINE) {
 			l = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE);
 			if (l) {
-				if (sccp_is_nonempty_string(l->trnsfvm))
+				if (!sccp_strlen_zero(l->trnsfvm))
 					trnsfvm = 1;
 
 				if (l->meetme)
 					meetme = 1;
 
-				if (sccp_is_nonempty_string(l->meetmenum))
+				if (!sccp_strlen_zero(l->meetmenum))
 					meetme = 1;
 
 #ifdef CS_SCCP_PICKUP
@@ -2616,7 +2616,7 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
 	sccp_line_t *l = NULL;
 	int len = 0;
 
-	if (r && sccp_is_nonempty_string(r->msg.EnblocCallMessage.calledParty)) {
+	if (r && !sccp_strlen_zero(r->msg.EnblocCallMessage.calledParty)) {
 		channel = sccp_channel_get_active_locked(d);
 		if (channel) {
 			if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK)) {

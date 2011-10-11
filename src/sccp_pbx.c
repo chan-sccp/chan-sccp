@@ -863,7 +863,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	if (c->owner->pbx) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) PBX structure already exists. Dialing instead of starting.\n");
 		/* If there are any digits, send them instead of starting the PBX */
-		if (sccp_is_nonempty_string(c->dialedNumber)) {
+		if (!sccp_strlen_zero(c->dialedNumber)) {
 			sccp_pbx_senddigits(c, c->dialedNumber);
 			sccp_channel_set_calledparty(c, c->dialedNumber, c->dialedNumber);
 			if (sccp_channel_getDevice(c))
