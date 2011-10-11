@@ -69,45 +69,7 @@ static struct ast_channel_tech sccp_tech = {
 	write: 			sccp_wrapper_asterisk18_rtp_write,
 	send_text: 		sccp_pbx_sendtext,
 	send_image: 		NULL,
-	send_html: 		NULL,
-	exception: 		NULL,
-	bridge: 		sccp_wrapper_asterisk18_rtpBridge,
-	early_bridge: 		NULL,
-	indicate: 		sccp_wrapper_asterisk18_indicate,
-	fixup: 			sccp_wrapper_asterisk18_fixup,
-	setoption: 		NULL,
-	queryoption: 		NULL,
-	transfer: 		NULL,
-	write_video: 		sccp_wrapper_asterisk18_rtp_write,
-	write_text: 		NULL,
-	bridged_channel: 	NULL,
-	func_channel_read: 	sccp_wrapper_asterisk18_channel_read,
-	func_channel_write: 	sccp_asterisk_pbx_fktChannelWrite,
-	get_base_channel: 	NULL,
-	set_base_channel: 	NULL
-};
-
-#    if defined(__cplusplus) || defined(c_plusplus)
-/*!
- * \brief SCCP Tech Structure
- */
-static struct ast_channel_tech sccp_tech = {
-	type: 			SCCP_TECHTYPE_STR,
-	description: 		"Skinny Client Control Protocol (SCCP)",
-	capabilities: 		AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_SLINEAR16 | AST_FORMAT_GSM | AST_FORMAT_G723_1 | AST_FORMAT_G729A | AST_FORMAT_H264 | AST_FORMAT_H263_PLUS,
-	properties: 		AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
-	requester: 		sccp_wrapper_asterisk18_request,
-	devicestate: 		sccp_devicestate,
-	send_digit_begin: 	sccp_wrapper_recvdigit_begin,
-	send_digit_end: 	sccp_wrapper_recvdigit_end,
-	call: 			sccp_wrapper_asterisk18_call,
-	hangup: 		sccp_wrapper_asterisk18_hangup,
-	answer: 		sccp_wrapper_asterisk18_answer,
-	read: 			sccp_wrapper_asterisk18_rtp_read,
-	write: 			sccp_wrapper_asterisk18_rtp_write,
-	send_text: 		sccp_pbx_sendtext,
-	send_image: 		NULL,
-	send_html: 		NULL,
+	send_html: 		sccp_pbx_sendHTML,
 	exception: 		NULL,
 	bridge: 		sccp_wrapper_asterisk18_rtpBridge,
 	early_bridge: 		NULL,
@@ -126,7 +88,6 @@ static struct ast_channel_tech sccp_tech = {
 };
 
 #else
-
 
 /*!
  * \brief SCCP Tech Structure
@@ -1480,6 +1441,7 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(const sccp_channel_t *
 		/* add audio codecs only */
 		if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == SKINNY_CODEC_TYPE_AUDIO) {
 			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, "audio", (char *)skinny_codecs[i].mimesubtype, (enum ast_rtp_options)0, skinny_codecs[i].sample_rate);
+		}
 	}
 
 	return TRUE;
