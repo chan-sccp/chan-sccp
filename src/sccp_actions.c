@@ -3076,8 +3076,6 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 			ipAddress = pbx_inet_ntoa(sin.sin_addr);
 		}
 	}
-	
-	
 
 	channel = sccp_channel_find_bypassthrupartyid_locked(partyID);
 	if (!channel) {
@@ -3099,7 +3097,8 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 		PBX(set_callstate) (channel, AST_STATE_UP);
 	}
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, ipAddress, ntohs(sin.sin_port), callID, callID1, partyID);
+//	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, ipAddress, ntohs(sin.sin_port), callID, callID1, partyID);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, ipAddress, ipPort, callID, callID1, partyID);
 	//pbx_cond_signal(&c->rtp.audio.convar);
 	sccp_channel_unlock(channel);
 }
