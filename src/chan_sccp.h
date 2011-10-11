@@ -48,6 +48,7 @@ extern "C" {
 // #      include <sys/byteorder.h>
 // #    endif
 
+
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
 /*
 #    ifndef AST_CAUSE_ANSWERED_ELSEWHERE
