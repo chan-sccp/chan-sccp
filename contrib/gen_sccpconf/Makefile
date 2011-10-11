@@ -116,6 +116,7 @@ DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 ACLOCAL = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run aclocal-1.11
 ALLOCA = 
 AMTAR = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run tar
@@ -139,6 +140,11 @@ ACLOCAL = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run aclocal
 ALLOCA = 
 AMTAR = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run tar
 >>>>>>> configure
+=======
+ACLOCAL = ${SHELL} /home/marcello/src/chan-sccp-b/git/autoconf/missing --run aclocal-1.11
+ALLOCA = 
+AMTAR = ${SHELL} /home/marcello/src/chan-sccp-b/git/autoconf/missing --run tar
+>>>>>>> make it cpp compatible
 AM_DEFAULT_VERBOSITY = 0
 AR = ar
 ARGZ_H = 
@@ -247,18 +253,26 @@ DX_DOCDIR = doxygen-doc
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 DX_DOT = /usr/bin/dot
 DX_DOXYGEN = /usr/bin/doxygen
+=======
+DX_DOT = 
+DX_DOXYGEN = 
+>>>>>>> make it cpp compatible
 DX_DVIPS = 
 DX_EGREP = 
-DX_ENV =  INPUT='. doc' SRCDIR='.' PROJECT='Chan_SCCP' DOCDIR='doxygen-doc' VERSION='4.0.0_DEV' PERL_PATH='/usr/bin/perl' HAVE_DOT='YES' DOT_PATH='/usr/bin' GENERATE_MAN='YES' GENERATE_RTF='NO' GENERATE_XML='NO' GENERATE_HTMLHELP='NO' GENERATE_CHI='NO' GENERATE_HTML='YES' GENERATE_LATEX='NO'
+DX_ENV =  INPUT='. doc' SRCDIR='.' PROJECT='Chan_SCCP' DOCDIR='doxygen-doc' VERSION='4.0.0_DEV' HAVE_DOT='NO' GENERATE_MAN='NO' GENERATE_RTF='NO' GENERATE_XML='NO' GENERATE_HTMLHELP='NO' GENERATE_CHI='NO' GENERATE_HTML='NO' GENERATE_LATEX='NO'
 DX_FLAG_DX_CURRENT_FEATURE = 
 DX_FLAG_chi = 0
 DX_FLAG_chm = 0
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> configure
+=======
+>>>>>>> make it cpp compatible
 DX_FLAG_doc = 1
 DX_FLAG_dot = 1
 DX_FLAG_html = 1
@@ -301,6 +315,10 @@ DX_FLAG_DX_CURRENT_FEATURE =
 DX_FLAG_chi = 0
 DX_FLAG_chm = 0
 <<<<<<< HEAD
+>>>>>>> make it cpp compatible
+<<<<<<< HEAD
+=======
+=======
 >>>>>>> make it cpp compatible
 >>>>>>> make it cpp compatible
 DX_FLAG_doc = 0
@@ -308,6 +326,7 @@ DX_FLAG_dot = 0
 DX_FLAG_html = 0
 DX_FLAG_man = 0
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> make it cpp compatible
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -336,6 +355,8 @@ DX_FLAG_man = 1
 =======
 >>>>>>> configure
 >>>>>>> configure
+=======
+>>>>>>> make it cpp compatible
 DX_FLAG_pdf = 0
 DX_FLAG_ps = 0
 DX_FLAG_rtf = 0
@@ -428,10 +449,10 @@ PBX_CFLAGS = -I/home/dkgroot/development/asterisk-1.8/include -DHAVE_ASTERISK
 PBX_GENERAL = chan_sccp_la-ast.lo
 PBX_INCLUDE = /home/dkgroot/development/asterisk-1.8/include/asterisk
 PBX_LDFLAGS = 
-PBX_LIB = /usr/lib64
+PBX_LIB = /usr/lib
 PBX_MAJOR = chan_sccp_la-ast108.lo
 PBX_MINOR = 
-PBX_MODDIR = /usr/lib64/asterisk/modules
+PBX_MODDIR = /usr/lib/asterisk/modules
 PBX_PATH = NONE /usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw
 PBX_TYPE = Asterisk
 PTHREAD_CC = gcc
@@ -462,6 +483,7 @@ __Darwin__ =
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> configure
 =======
@@ -475,10 +497,13 @@ abs_top_srcdir = /usr/local/src/chan-sccp-b/git
 =======
 =======
 >>>>>>> make it cpp compatible
+=======
+>>>>>>> make it cpp compatible
 abs_builddir = /home/marcello/src/chan-sccp-b/git/contrib/gen_sccpconf
 abs_srcdir = /home/marcello/src/chan-sccp-b/git/contrib/gen_sccpconf
 abs_top_builddir = /home/marcello/src/chan-sccp-b/git
 abs_top_srcdir = /home/marcello/src/chan-sccp-b/git
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> make it cpp compatible
 =======
@@ -487,6 +512,8 @@ abs_top_srcdir = /home/marcello/src/chan-sccp-b/git
 >>>>>>> make it cpp compatible
 =======
 >>>>>>> configure
+=======
+>>>>>>> make it cpp compatible
 ac_ct_CC = gcc
 ac_ct_CXX = g++
 ac_ct_DUMPBIN = 
@@ -507,7 +534,7 @@ build_cpu = x86_64
 build_os = linux-gnu
 build_vendor = unknown
 builddir = .
-csmoddir = /usr/lib64/asterisk/modules
+csmoddir = /usr/lib/asterisk/modules
 datadir = ${datarootdir}
 datarootdir = ${prefix}/share
 docdir = ${datarootdir}/doc/${PACKAGE_TARNAME}
@@ -525,6 +552,7 @@ host_vendor = unknown
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -549,6 +577,11 @@ install_sh = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/install-sh
 libdir = ${exec_prefix}/lib64
 libexecdir = ${exec_prefix}/lib
 >>>>>>> configure
+=======
+install_sh = ${SHELL} /home/marcello/src/chan-sccp-b/git/autoconf/install-sh
+libdir = ${exec_prefix}/lib
+libexecdir = ${exec_prefix}/libexec
+>>>>>>> make it cpp compatible
 localedir = ${datarootdir}/locale
 localstatedir = ${prefix}/var
 lt_ECHO = echo
