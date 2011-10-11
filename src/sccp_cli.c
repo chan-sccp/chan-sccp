@@ -1120,38 +1120,39 @@ CLI_AMI_ENTRY(show_sessions, sccp_show_sessions, "Show all SCCP sessions", cli_s
  */
 static int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-// 	sccp_line_t *line=NULL;
-// 	sccp_mailboxLine_t *mailboxLine = NULL;
-// 	char linebuf[30]="";
-// 	int local_total=0;
-// 
-// 	// Channels
-// 	#define CLI_AMI_TABLE_NAME MWI_Subscriptions
-// 	#define CLI_AMI_TABLE_PER_ENTRY_NAME Mailbox_Subscriber
-// 	#define CLI_AMI_TABLE_LIST_ITER_HEAD &sccp_mailbox_subscriptions
-// 	#define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_mailbox_subscriber_list_t
-// 	#define CLI_AMI_TABLE_LIST_ITER_VAR subscription
-// 	#define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
-// 	#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
-// 	#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
-// 	#define CLI_AMI_TABLE_BEFORE_ITERATION 											\
-// 		SCCP_LIST_TRAVERSE(&subscription->sccp_mailboxLine, mailboxLine, list) {					\
-// 			line = mailboxLine->line;										\
-// 			sprintf(linebuf,"%s",line->name);									\
-// /*			if (line->name) {											\
-// 				ast_join(linebuf, sizeof(linebuf), (const char * const *) line->name);				\
-// 			}*/													\
-// 		}	
-// 
-// 	#define CLI_AMI_TABLE_FIELDS 												\
-// 		CLI_AMI_TABLE_FIELD(Mailbox,			s,	10,	subscription->mailbox)				\
-// 		CLI_AMI_TABLE_FIELD(LineName,			s,	30,	linebuf)					\
-// 		CLI_AMI_TABLE_FIELD(Context,			s,	15,	subscription->context)				\
-// 		CLI_AMI_TABLE_FIELD(New,			d,	3,	subscription->currentVoicemailStatistic.newmsgs)\
-// 		CLI_AMI_TABLE_FIELD(Old,			d,	3,	subscription->currentVoicemailStatistic.oldmsgs)
-// 	#include "sccp_cli_table.h"
-// 	
-// 	if (s) *total=local_total;
+/* 	sccp_line_t *line=NULL;
+ 	sccp_mailboxLine_t *mailboxLine = NULL;
+ 	char linebuf[30]="";
+ 	int local_total=0;
+ 
+ 	 Channels
+ 	#define CLI_AMI_TABLE_NAME MWI_Subscriptions
+ 	#define CLI_AMI_TABLE_PER_ENTRY_NAME Mailbox_Subscriber
+ 	#define CLI_AMI_TABLE_LIST_ITER_HEAD &sccp_mailbox_subscriptions
+ 	#define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_mailbox_subscriber_list_t
+ 	#define CLI_AMI_TABLE_LIST_ITER_VAR subscription
+ 	#define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
+ 	#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
+ 	#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
+ 	#define CLI_AMI_TABLE_BEFORE_ITERATION 											\
+ 		SCCP_LIST_TRAVERSE(&subscription->sccp_mailboxLine, mailboxLine, list) {					\
+ 			line = mailboxLine->line;										\
+ 			sprintf(linebuf,"%s",line->name);									\
+//			if (line->name) {											\
+//				ast_join(linebuf, sizeof(linebuf), (const char * const *) line->name);				\
+// 			}													\
+ 		}	
+ 
+ 	#define CLI_AMI_TABLE_FIELDS 												\
+ 		CLI_AMI_TABLE_FIELD(Mailbox,			s,	10,	subscription->mailbox)				\
+ 		CLI_AMI_TABLE_FIELD(LineName,			s,	30,	linebuf)					\
+ 		CLI_AMI_TABLE_FIELD(Context,			s,	15,	subscription->context)				\
+ 		CLI_AMI_TABLE_FIELD(New,			d,	3,	subscription->currentVoicemailStatistic.newmsgs)\
+ 		CLI_AMI_TABLE_FIELD(Old,			d,	3,	subscription->currentVoicemailStatistic.oldmsgs)
+ 	#include "sccp_cli_table.h"
+ 	
+ 	if (s) *total=local_total;
+*/
 
 	return RESULT_SUCCESS;
 }

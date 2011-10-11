@@ -357,7 +357,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	mid = letohl(r->lel_messageId);
 
 	s->lastKeepAlive = time(0);	/** always update keepalive */
-	sccp_device_t *tmpDevice=NULL;
+//	sccp_device_t *tmpDevice=NULL;
 
 	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message (%x) %s\n", DEV_ID_LOG(s->device), mid, message2str(mid));
 
