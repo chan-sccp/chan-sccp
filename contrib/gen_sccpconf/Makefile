@@ -41,15 +41,9 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-<<<<<<< HEAD
 build_triplet = x86_64-unknown-linux-gnu
 host_triplet = x86_64-unknown-linux-gnu
 target_triplet = x86_64-unknown-linux-gnu
-=======
-build_triplet = x86_64-suse-linux-gnu
-host_triplet = x86_64-suse-linux-gnu
-target_triplet = x86_64-suse-linux-gnu
->>>>>>> make it cpp compatible
 bin_PROGRAMS = gen_sccpconf$(EXEEXT)
 subdir = contrib/gen_sccpconf
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -112,92 +106,25 @@ DIST_SOURCES = $(gen_sccpconf_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-ACLOCAL = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run aclocal-1.11
+ACLOCAL = ${SHELL} /home/dkgroot/development/chan-sccp-b/trunk/autoconf/missing --run aclocal-1.11
 ALLOCA = 
-AMTAR = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run tar
+AMTAR = ${SHELL} /home/dkgroot/development/chan-sccp-b/trunk/autoconf/missing --run tar
 AM_DEFAULT_VERBOSITY = 0
 AR = ar
 ARGZ_H = 
 ASTERISK_REPOS_LOCATION = BRANCH
 ASTERISK_VERSION_NUMBER = 10801
 ASTERISK_VER_GROUP = 108
-AUTOCONF = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run autoconf
-AUTOHEADER = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run autoheader
-AUTOMAKE = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run automake-1.11
+AUTOCONF = ${SHELL} /home/dkgroot/development/chan-sccp-b/trunk/autoconf/missing --run autoconf
+AUTOHEADER = ${SHELL} /home/dkgroot/development/chan-sccp-b/trunk/autoconf/missing --run autoheader
+AUTOMAKE = ${SHELL} /home/dkgroot/development/chan-sccp-b/trunk/autoconf/missing --run automake-1.11
 AWK = gawk
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 BUILD_DATE = 2011-10-11 16:27:22 UTC
 BUILD_HOSTNAME = moviebox
 BUILD_KERNEL = 2.6.38-11-generic
-=======
-BUILD_DATE = 2011-10-06 13:46:53 UTC
-BUILD_HOSTNAME = linux-g6pm.ceschia.local
-BUILD_KERNEL = 2.6.37.6-0.7-desktop
->>>>>>> make it cpp compatible
-=======
-BUILD_DATE = 2011-10-06 16:33:22 UTC
-=======
-BUILD_DATE = 2011-10-06 17:15:43 UTC
->>>>>>> remove sccp_is_nonempty_string and make chan_sccp compatible wit CXX
-=======
-BUILD_DATE = 2011-10-06 17:43:25 UTC
->>>>>>> remove sccp_mailbox_subscriptions from header definition, make chan_sccp compatible to cxx
-BUILD_HOSTNAME = carol
-BUILD_KERNEL = 2.6.37.6-0.7-default
-<<<<<<< HEAD
->>>>>>> configure
-=======
-=======
-=======
->>>>>>> make it cpp compatible
-AUTOCONF = ${SHELL} /home/marcello/src/chan-sccp-b/git/autoconf/missing --run autoconf
-AUTOHEADER = ${SHELL} /home/marcello/src/chan-sccp-b/git/autoconf/missing --run autoheader
-AUTOMAKE = ${SHELL} /home/marcello/src/chan-sccp-b/git/autoconf/missing --run automake-1.11
-AWK = gawk
-BUILD_DATE = 2011-10-06 13:46:53 UTC
-BUILD_HOSTNAME = linux-g6pm.ceschia.local
-BUILD_KERNEL = 2.6.37.6-0.7-desktop
-<<<<<<< HEAD
->>>>>>> make it cpp compatible
-<<<<<<< HEAD
->>>>>>> make it cpp compatible
-=======
-=======
-AUTOCONF = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run autoconf
-AUTOHEADER = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run autoheader
-AUTOMAKE = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run automake-1.11
-AWK = gawk
-BUILD_DATE = 2011-10-06 17:43:25 UTC
-BUILD_HOSTNAME = carol
-BUILD_KERNEL = 2.6.37.6-0.7-default
->>>>>>> configure
-<<<<<<< HEAD
->>>>>>> configure
-=======
-=======
->>>>>>> make it cpp compatible
->>>>>>> make it cpp compatible
-=======
-AUTOCONF = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run autoconf
-AUTOHEADER = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run autoheader
-AUTOMAKE = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run automake-1.11
-AWK = gawk
-BUILD_DATE = 2011-10-06 17:43:25 UTC
-BUILD_HOSTNAME = carol
-BUILD_KERNEL = 2.6.37.6-0.7-default
->>>>>>> configure
-=======
-BUILD_DATE = 2011-10-11 16:57:05 UTC
-BUILD_HOSTNAME = carol
-BUILD_KERNEL = 2.6.37.6-0.7-default
->>>>>>> reconfigure
 BUILD_MACHINE = x86_64
 BUILD_OS = Linux
-BUILD_USER = Login: marcello       			Name: Marcello Ceschia
+BUILD_USER = Login: root           			Name: root
 CAT = /bin/cat
 CC = gcc
 CCACHE = 
@@ -221,137 +148,18 @@ DSYMUTIL =
 DUMPBIN = 
 DX_CONFIG = doc/doxygen.cfg
 DX_DOCDIR = doxygen-doc
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 DX_DOT = /usr/bin/dot
-DX_DOXYGEN = /usr/bin/doxygen
-=======
-DX_DOT = 
-DX_DOXYGEN = 
->>>>>>> make it cpp compatible
-=======
-DX_DOT = /usr/bin/dot
-DX_DOXYGEN = /usr/bin/doxygen
->>>>>>> configure
+DX_DOXYGEN = /usr/local/bin/doxygen
 DX_DVIPS = 
 DX_EGREP = 
 DX_ENV =  INPUT='. doc' SRCDIR='.' PROJECT='Chan_SCCP' DOCDIR='doxygen-doc' VERSION='4.0.0_DEV' PERL_PATH='/usr/bin/perl' HAVE_DOT='YES' DOT_PATH='/usr/bin' GENERATE_MAN='YES' GENERATE_RTF='NO' GENERATE_XML='NO' GENERATE_HTMLHELP='NO' GENERATE_CHI='NO' GENERATE_HTML='YES' GENERATE_LATEX='NO'
 DX_FLAG_DX_CURRENT_FEATURE = 
 DX_FLAG_chi = 0
 DX_FLAG_chm = 0
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> configure
-=======
->>>>>>> make it cpp compatible
-=======
-=======
->>>>>>> configure
->>>>>>> configure
 DX_FLAG_doc = 1
 DX_FLAG_dot = 1
 DX_FLAG_html = 1
 DX_FLAG_man = 1
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
-=======
->>>>>>> configure
-=======
-DX_DOT = 
-DX_DOXYGEN = 
-=======
-=======
->>>>>>> reconfigure
-DX_DOT = /usr/bin/dot
-DX_DOXYGEN = /usr/bin/doxygen
-DX_DVIPS = 
-DX_EGREP = 
-DX_ENV =  INPUT='. doc' SRCDIR='.' PROJECT='Chan_SCCP' DOCDIR='doxygen-doc' VERSION='4.0.0_DEV' PERL_PATH='/usr/bin/perl' HAVE_DOT='YES' DOT_PATH='/usr/bin' GENERATE_MAN='YES' GENERATE_RTF='NO' GENERATE_XML='NO' GENERATE_HTMLHELP='NO' GENERATE_CHI='NO' GENERATE_HTML='YES' GENERATE_LATEX='NO'
-DX_FLAG_DX_CURRENT_FEATURE = 
-DX_FLAG_chi = 0
-DX_FLAG_chm = 0
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> make it cpp compatible
-=======
-<<<<<<< HEAD
->>>>>>> configure
-=======
-=======
-DX_DOT = 
-DX_DOXYGEN = 
-=======
-DX_DOT = /usr/bin/dot
-DX_DOXYGEN = /usr/bin/doxygen
->>>>>>> configure
-DX_DVIPS = 
-DX_EGREP = 
-DX_ENV =  INPUT='. doc' SRCDIR='.' PROJECT='Chan_SCCP' DOCDIR='doxygen-doc' VERSION='4.0.0_DEV' PERL_PATH='/usr/bin/perl' HAVE_DOT='YES' DOT_PATH='/usr/bin' GENERATE_MAN='YES' GENERATE_RTF='NO' GENERATE_XML='NO' GENERATE_HTMLHELP='NO' GENERATE_CHI='NO' GENERATE_HTML='YES' GENERATE_LATEX='NO'
-DX_FLAG_DX_CURRENT_FEATURE = 
-DX_FLAG_chi = 0
-DX_FLAG_chm = 0
-<<<<<<< HEAD
->>>>>>> make it cpp compatible
-<<<<<<< HEAD
-=======
-=======
->>>>>>> make it cpp compatible
->>>>>>> make it cpp compatible
-DX_FLAG_doc = 0
-DX_FLAG_dot = 0
-DX_FLAG_html = 0
-DX_FLAG_man = 0
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> make it cpp compatible
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> configure
-=======
->>>>>>> make it cpp compatible
-=======
-=======
-=======
->>>>>>> configure
-=======
->>>>>>> reconfigure
-DX_FLAG_doc = 1
-DX_FLAG_dot = 1
-DX_FLAG_html = 1
-DX_FLAG_man = 1
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> configure
-<<<<<<< HEAD
->>>>>>> configure
-=======
-=======
->>>>>>> make it cpp compatible
-<<<<<<< HEAD
->>>>>>> make it cpp compatible
-=======
-=======
->>>>>>> configure
->>>>>>> configure
-=======
->>>>>>> make it cpp compatible
-=======
->>>>>>> configure
-=======
->>>>>>> reconfigure
 DX_FLAG_pdf = 0
 DX_FLAG_ps = 0
 DX_FLAG_rtf = 0
@@ -372,7 +180,7 @@ FINGER = /usr/bin/finger
 GCFLAGS = 
 GCLIBS = 
 GDB_FLAGS = 
-GREP = /usr/bin/grep
+GREP = /bin/grep
 HAVE_ASTERISK = yes
 HAVE_CALLWEAVER = 
 HEAD = /usr/bin/head
@@ -383,11 +191,7 @@ INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
-<<<<<<< HEAD
 LD = /usr/bin/ld -m elf_x86_64
-=======
-LD = /usr/x86_64-suse-linux/bin/ld -m elf_x86_64
->>>>>>> make it cpp compatible
 LDFLAGS = 
 LIBADD_DL = -ldl 
 LIBADD_DLD_LINK = 
@@ -408,7 +212,7 @@ LT_CONFIG_H = src/config.h
 LT_DLLOADERS =  libltdl/dlopen.la
 LT_DLPREOPEN = -dlpreopen libltdl/dlopen.la 
 M4 = /usr/bin/m4
-MAKEINFO = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run makeinfo
+MAKEINFO = ${SHELL} /home/dkgroot/development/chan-sccp-b/trunk/autoconf/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
 NM = /usr/bin/nm -B
 NMEDIT = 
@@ -424,15 +228,15 @@ PACKAGE_TARNAME = Chan_SCCP_4.0.0_DEV
 PACKAGE_URL = 
 PACKAGE_VERSION = 4.0.0_DEV
 PATH_SEPARATOR = :
-PBX_CFLAGS = -I/usr/include -DHAVE_ASTERISK
+PBX_CFLAGS = -I/home/dkgroot/development/asterisk-1.8/include -DHAVE_ASTERISK
 PBX_GENERAL = chan_sccp_la-ast.lo
-PBX_INCLUDE = /usr/include/asterisk
+PBX_INCLUDE = /home/dkgroot/development/asterisk-1.8/include/asterisk
 PBX_LDFLAGS = 
-PBX_LIB = /usr/lib64
+PBX_LIB = /home/dkgroot/development/asterisk-1.8/lib
 PBX_MAJOR = chan_sccp_la-ast108.lo
 PBX_MINOR = 
-PBX_MODDIR = /usr/lib64/asterisk/modules
-PBX_PATH = NONE /usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw
+PBX_MODDIR = /home/dkgroot/development/asterisk-1.8/lib/asterisk/modules
+PBX_PATH = /home/dkgroot/development/asterisk-1.8
 PBX_TYPE = Asterisk
 PTHREAD_CC = gcc
 PTHREAD_CFLAGS = -pthread
@@ -440,11 +244,7 @@ PTHREAD_LIBS =
 RANLIB = ranlib
 RPMBUILD = echo rpmbuild not found so you cannot build rpm packages (no problem)
 SCCP_BRANCH = DEV
-<<<<<<< HEAD
 SCCP_REVISION = 2972:2973
-=======
-SCCP_REVISION = 
->>>>>>> make it cpp compatible
 SCCP_VERSION = 4.0.0
 SED = /bin/sed
 SET_MAKE = 
@@ -452,16 +252,16 @@ SH = /bin/bash
 SHELL = /bin/bash
 STRIP = strip
 SVN = /usr/bin/svn
-SVN2CL = /usr/bin/svn2cl
+SVN2CL = /usr/local/bin/svn2cl
 TR = /usr/bin/tr
 UNAME = /bin/uname
 VERSION = 4.0.0_DEV
 WHOAMI = /usr/bin/whoami
 __Darwin__ = 
-abs_builddir = /usr/local/src/chan-sccp-b/git/contrib/gen_sccpconf
-abs_srcdir = /usr/local/src/chan-sccp-b/git/contrib/gen_sccpconf
-abs_top_builddir = /usr/local/src/chan-sccp-b/git
-abs_top_srcdir = /usr/local/src/chan-sccp-b/git
+abs_builddir = /home/dkgroot/development/chan-sccp-b/trunk/contrib/gen_sccpconf
+abs_srcdir = /home/dkgroot/development/chan-sccp-b/trunk/contrib/gen_sccpconf
+abs_top_builddir = /home/dkgroot/development/chan-sccp-b/trunk
+abs_top_srcdir = /home/dkgroot/development/chan-sccp-b/trunk
 ac_ct_CC = gcc
 ac_ct_CXX = g++
 ac_ct_DUMPBIN = 
@@ -472,27 +272,19 @@ am__quote =
 am__tar = ${AMTAR} chof - "$$tardir"
 am__untar = ${AMTAR} xf -
 bindir = ${exec_prefix}/bin
-<<<<<<< HEAD
 build = x86_64-unknown-linux-gnu
-=======
-build = x86_64-suse-linux-gnu
->>>>>>> make it cpp compatible
 build_alias = 
 build_cpu = x86_64
 build_os = linux-gnu
 build_vendor = unknown
 builddir = .
-csmoddir = /usr/lib64/asterisk/modules
+csmoddir = /home/dkgroot/development/asterisk-1.8/lib/asterisk/modules
 datadir = ${datarootdir}
 datarootdir = ${prefix}/share
 docdir = ${datarootdir}/doc/${PACKAGE_TARNAME}
 dvidir = ${docdir}
 exec_prefix = ${prefix}
-<<<<<<< HEAD
 host = x86_64-unknown-linux-gnu
-=======
-host = x86_64-suse-linux-gnu
->>>>>>> make it cpp compatible
 host_alias = 
 host_cpu = x86_64
 host_os = linux-gnu
@@ -500,9 +292,9 @@ host_vendor = unknown
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/install-sh
-libdir = ${exec_prefix}/lib64
-libexecdir = ${exec_prefix}/lib
+install_sh = ${SHELL} /home/dkgroot/development/chan-sccp-b/trunk/autoconf/install-sh
+libdir = ${exec_prefix}/lib
+libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
 localstatedir = ${prefix}/var
 lt_ECHO = echo
@@ -523,11 +315,7 @@ strip_binaries = yes
 subdirs =  libltdl
 sys_symbol_underscore = no
 sysconfdir = /etc
-<<<<<<< HEAD
 target = x86_64-unknown-linux-gnu
-=======
-target = x86_64-suse-linux-gnu
->>>>>>> make it cpp compatible
 target_alias = 
 target_cpu = x86_64
 target_os = linux-gnu
