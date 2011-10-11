@@ -28,7 +28,6 @@ extern "C" {
 #    include "config.h"
 #    include "common.h"
 
-#    include <asterisk/pbx.h>
 #    include <asterisk/causes.h>
 #    ifdef HAVE_BYTESWAP_H 
 #      include <byteswap.h>
