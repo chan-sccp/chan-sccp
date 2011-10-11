@@ -21,7 +21,7 @@ chan_sccp_la_SOURCES	=	chan_sccp.h		sccp_cli.h		sccp_event.h					\
                                 sccp_socket.h   	sccp_mwi.h		common.h		sccp_rtp.h 		\
                                 sccp_appfunctions.h
 
-chan_sccp_la_SOURCES	+=	chan_sccp.c		sccp_channel.c		sccp_device.c		sccp_indicate.c 	\
+chan_sccp_la_SOURCES	+=	chan_sccp.cc		sccp_channel.c		sccp_device.c		sccp_indicate.c 	\
                                 sccp_pbx.c 		pbx_impl/pbx_impl.c	sccp_softkeys.c		sccp_featureButton.c	\
                                 sccp_line.c		sccp_utils.c		sccp_actions.c		sccp_cli.c		\
                                 sccp_features.c 	sccp_socket.c		sccp_config.c		sccp_hint.c		\
