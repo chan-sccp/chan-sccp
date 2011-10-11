@@ -3,8 +3,8 @@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date$
-# REVISION: $Revision$
+# DATE:     $Date: 2011-10-11 16:19:03 +0200 (Di, 11. Okt 2011) $
+# REVISION: $Revision: 2969 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 
 AUTOMAKE_OPTS		= gnu silent-rules
@@ -21,7 +21,7 @@ chan_sccp_la_SOURCES	=	chan_sccp.h		sccp_cli.h		sccp_event.h					\
                                 sccp_socket.h   	sccp_mwi.h		common.h		sccp_rtp.h 		\
                                 sccp_appfunctions.h
 
-chan_sccp_la_SOURCES	+=	chan_sccp.cc		sccp_channel.c		sccp_device.c		sccp_indicate.c 	\
+chan_sccp_la_SOURCES	+=	chan_sccp.c		sccp_channel.c		sccp_device.c		sccp_indicate.c 	\
                                 sccp_pbx.c 		pbx_impl/pbx_impl.c	sccp_softkeys.c		sccp_featureButton.c	\
                                 sccp_line.c		sccp_utils.c		sccp_actions.c		sccp_cli.c		\
                                 sccp_features.c 	sccp_socket.c		sccp_config.c		sccp_hint.c		\
@@ -37,7 +37,7 @@ EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast104.h pbx_impl/ast/ast104.c
 EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1040x.h pbx_impl/ast/ast1040x.c
 EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast106.h pbx_impl/ast/ast106.c
 EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1060x.h pbx_impl/ast/ast1060x.c
-EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast108.h pbx_impl/ast/ast108.cc
+EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast108.h pbx_impl/ast/ast108.c
 EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1080x.h pbx_impl/ast/ast1080x.c
 EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast110.h pbx_impl/ast/ast110.c
 EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1100x.h pbx_impl/ast/ast1100x.c
