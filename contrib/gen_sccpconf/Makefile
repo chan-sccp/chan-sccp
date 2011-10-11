@@ -127,6 +127,7 @@ AUTOMAKE = ${SHELL} /usr/local/src/chan-sccp-b/git/autoconf/missing --run automa
 AWK = gawk
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 BUILD_DATE = 2011-10-11 16:27:22 UTC
 BUILD_HOSTNAME = moviebox
 BUILD_KERNEL = 2.6.38-11-generic
@@ -137,12 +138,15 @@ BUILD_KERNEL = 2.6.37.6-0.7-desktop
 >>>>>>> make it cpp compatible
 =======
 BUILD_DATE = 2011-10-06 16:33:22 UTC
+=======
+BUILD_DATE = 2011-10-06 17:15:43 UTC
+>>>>>>> remove sccp_is_nonempty_string and make chan_sccp compatible wit CXX
 BUILD_HOSTNAME = carol
 BUILD_KERNEL = 2.6.37.6-0.7-default
 >>>>>>> configure
 BUILD_MACHINE = x86_64
 BUILD_OS = Linux
-BUILD_USER = Login: root           			Name: root
+BUILD_USER = Login: marcello       			Name: Marcello Ceschia
 CAT = /bin/cat
 CC = gcc
 CCACHE = 
