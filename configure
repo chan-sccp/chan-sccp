@@ -7573,13 +7573,31 @@ if test "${lt_cv_nm_interface+set}" = set; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
+<<<<<<< HEAD
   (eval echo "\"\$as_me:7576: $ac_compile\"" >&5)
+=======
+<<<<<<< HEAD
+  (eval echo "\"\$as_me:7057: $ac_compile\"" >&5)
+>>>>>>> need cxx
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
   (eval echo "\"\$as_me:7579: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
+<<<<<<< HEAD
   (eval echo "\"\$as_me:7582: output\"" >&5)
+=======
+  (eval echo "\"\$as_me:7063: output\"" >&5)
+=======
+  (eval echo "\"\$as_me:7595: $ac_compile\"" >&5)
+  (eval "$ac_compile" 2>conftest.err)
+  cat conftest.err >&5
+  (eval echo "\"\$as_me:7598: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
+  cat conftest.err >&5
+  (eval echo "\"\$as_me:7601: output\"" >&5)
+>>>>>>> need cxx
+>>>>>>> need cxx
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -8773,7 +8791,15 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
+<<<<<<< HEAD
   echo '#line 8776 "configure"' > conftest.$ac_ext
+=======
+<<<<<<< HEAD
+  echo '#line 8257 "configure"' > conftest.$ac_ext
+=======
+  echo '#line 8795 "configure"' > conftest.$ac_ext
+>>>>>>> need cxx
+>>>>>>> need cxx
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -12176,11 +12202,27 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
+<<<<<<< HEAD
    (eval echo "\"\$as_me:12179: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
    echo "$as_me:12183: \$? = $ac_status" >&5
+=======
+<<<<<<< HEAD
+   (eval echo "\"\$as_me:11133: $lt_compile\"" >&5)
+   (eval "$lt_compile" 2>conftest.err)
+   ac_status=$?
+   cat conftest.err >&5
+   echo "$as_me:11137: \$? = $ac_status" >&5
+=======
+   (eval echo "\"\$as_me:12198: $lt_compile\"" >&5)
+   (eval "$lt_compile" 2>conftest.err)
+   ac_status=$?
+   cat conftest.err >&5
+   echo "$as_me:12202: \$? = $ac_status" >&5
+>>>>>>> need cxx
+>>>>>>> need cxx
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12515,11 +12557,27 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
+<<<<<<< HEAD
    (eval echo "\"\$as_me:12518: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
    echo "$as_me:12522: \$? = $ac_status" >&5
+=======
+<<<<<<< HEAD
+   (eval echo "\"\$as_me:11472: $lt_compile\"" >&5)
+   (eval "$lt_compile" 2>conftest.err)
+   ac_status=$?
+   cat conftest.err >&5
+   echo "$as_me:11476: \$? = $ac_status" >&5
+=======
+   (eval echo "\"\$as_me:12537: $lt_compile\"" >&5)
+   (eval "$lt_compile" 2>conftest.err)
+   ac_status=$?
+   cat conftest.err >&5
+   echo "$as_me:12541: \$? = $ac_status" >&5
+>>>>>>> need cxx
+>>>>>>> need cxx
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12620,11 +12678,27 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
+<<<<<<< HEAD
    (eval echo "\"\$as_me:12623: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
    echo "$as_me:12627: \$? = $ac_status" >&5
+=======
+<<<<<<< HEAD
+   (eval echo "\"\$as_me:11577: $lt_compile\"" >&5)
+   (eval "$lt_compile" 2>out/conftest.err)
+   ac_status=$?
+   cat out/conftest.err >&5
+   echo "$as_me:11581: \$? = $ac_status" >&5
+=======
+   (eval echo "\"\$as_me:12642: $lt_compile\"" >&5)
+   (eval "$lt_compile" 2>out/conftest.err)
+   ac_status=$?
+   cat out/conftest.err >&5
+   echo "$as_me:12646: \$? = $ac_status" >&5
+>>>>>>> need cxx
+>>>>>>> need cxx
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -12675,11 +12749,27 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
+<<<<<<< HEAD
    (eval echo "\"\$as_me:12678: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
    echo "$as_me:12682: \$? = $ac_status" >&5
+=======
+<<<<<<< HEAD
+   (eval echo "\"\$as_me:11632: $lt_compile\"" >&5)
+   (eval "$lt_compile" 2>out/conftest.err)
+   ac_status=$?
+   cat out/conftest.err >&5
+   echo "$as_me:11636: \$? = $ac_status" >&5
+=======
+   (eval echo "\"\$as_me:12697: $lt_compile\"" >&5)
+   (eval "$lt_compile" 2>out/conftest.err)
+   ac_status=$?
+   cat out/conftest.err >&5
+   echo "$as_me:12701: \$? = $ac_status" >&5
+>>>>>>> need cxx
+>>>>>>> need cxx
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15059,7 +15149,15 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
+<<<<<<< HEAD
 #line 15062 "configure"
+=======
+<<<<<<< HEAD
+#line 14016 "configure"
+=======
+#line 15081 "configure"
+>>>>>>> need cxx
+>>>>>>> need cxx
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -15155,7 +15253,15 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
+<<<<<<< HEAD
 #line 15158 "configure"
+=======
+<<<<<<< HEAD
+#line 14112 "configure"
+=======
+#line 15177 "configure"
+>>>>>>> need cxx
+>>>>>>> need cxx
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -19135,7 +19241,15 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
+<<<<<<< HEAD
 #line 19138 "configure"
+=======
+<<<<<<< HEAD
+#line 15245 "configure"
+=======
+#line 19157 "configure"
+>>>>>>> need cxx
+>>>>>>> need cxx
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
