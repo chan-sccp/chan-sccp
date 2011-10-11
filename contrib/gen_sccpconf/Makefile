@@ -231,7 +231,7 @@ BUILD_KERNEL = 2.6.37.6-0.7-default
 >>>>>>> configure
 BUILD_MACHINE = x86_64
 BUILD_OS = Linux
-BUILD_USER = Login: root           			Name: root
+BUILD_USER = Login: marcello       			Name: Marcello Ceschia
 CAT = /bin/cat
 CC = gcc
 CCACHE = 
