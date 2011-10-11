@@ -53,6 +53,7 @@ AC_REVISION($Revision$)
 CONFIGURE_PART([Checking build environment:])
 CS_SETUP_BUILD
 CS_SETUP_DEFAULTS
+AC_PROG_CXX
 
 CONFIGURE_PART([Checking host platform:])
 CS_SETUP_HOST_PLATFORM
