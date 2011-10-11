@@ -581,16 +581,16 @@ sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, 
 	}
 	
 	if (&bindaddr_prev->sin_addr != NULL && hp != NULL) {
-		if ((bindaddr_new = sccp_malloc(sizeof(bindaddr_new)))) {
-			memcpy(&bindaddr_new->sin_addr, hp->h_addr, sizeof(bindaddr_new->sin_addr));
+		if ((bindaddr_new = sccp_malloc(sizeof(struct sockaddr_in)))) {
+			memcpy(&bindaddr_new->sin_addr, hp->h_addr, sizeof(struct in_addr));
 			if (bindaddr_prev->sin_addr.s_addr != bindaddr_new->sin_addr.s_addr) {
-				memcpy(&bindaddr_prev->sin_addr, hp->h_addr, sizeof(bindaddr_prev->sin_addr));
+				memcpy(&bindaddr_prev->sin_addr, hp->h_addr, sizeof(struct in_addr));
 				changed = SCCP_CONFIG_CHANGE_CHANGED;
 			}
 			sccp_free(bindaddr_new);
 		}
 	} else {
-		memcpy(&bindaddr_prev->sin_addr, hp->h_addr, sizeof(bindaddr_prev->sin_addr));
+		memcpy(&bindaddr_prev->sin_addr, hp->h_addr, sizeof(struct in_addr));
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
