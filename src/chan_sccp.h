@@ -14,8 +14,8 @@
  *		See the LICENSE file at the top of the source tree.
  * \warning 	File has been Lined up using 8 Space TABS
  *
- * $Date: 2011-10-02 19:33:09 +0200 (So, 02. Okt 2011) $
- * $Revision: 2932 $
+ * $Date$
+ * $Revision$
  */
 
 #ifndef __CHAN_SCCP_H
@@ -49,10 +49,11 @@ extern "C" {
 // #    endif
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
+/*
 #    ifndef AST_CAUSE_ANSWERED_ELSEWHERE
-#        define AST_CAUSE_ANSWERED_ELSEWHERE 200
+#       define AST_CAUSE_ANSWERED_ELSEWHERE 200
 #    endif
-
+*/
 
 #define sccp_mutex_t ast_mutex_t
 
