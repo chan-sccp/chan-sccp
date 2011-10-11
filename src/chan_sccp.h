@@ -28,16 +28,25 @@ extern "C" {
 #    include "config.h"
 #    include "common.h"
 
-#    include <asterisk/causes.h>
-#    ifdef HAVE_BYTESWAP_H 
-#      include <byteswap.h>
-#    endif
-#    ifdef HAVE_SYS_ENDIAN_H
-#      include <sys/endian.h>
-#    endif
-#    ifdef HAVE_SYS_BYTEORDER_H
-#      include <sys/byteorder.h>
-#    endif
+#include "config.h"
+#include "common.h"
+#include <poll.h>
+#include "asterisk/compiler.h"
+#include "asterisk/lock.h"
+#include "asterisk/abstract_jb.h"
+
+// // #    include <asterisk/pbx.h>
+// #    include <asterisk.h>
+// #    include <asterisk/causes.h>
+// #    ifdef HAVE_BYTESWAP_H 
+// #      include <byteswap.h>
+// #    endif
+// #    ifdef HAVE_SYS_ENDIAN_H
+// #      include <sys/endian.h>
+// #    endif
+// #    ifdef HAVE_SYS_BYTEORDER_H
+// #      include <sys/byteorder.h>
+// #    endif
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
 /*
@@ -140,7 +149,7 @@ extern "C" {
 
 #    define PBX(x) sccp_pbx.x
 
-#    ifdef CS_AST_HAS_TECH_PVT
+ #    ifdef CS_AST_HAS_TECH_PVT
 #        define CS_AST_CHANNEL_PVT(x) ((sccp_channel_t*)x->tech_pvt)
 #    else
 #        define CS_AST_CHANNEL_PVT(x) ((sccp_channel_t*)x->pvt->pvt)
