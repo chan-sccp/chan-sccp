@@ -3264,3 +3264,15 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 
 	sccp_channel_unlock(c);
 }
+
+/*!
+ * \brief Handle Start Multi Media Transmission Acknowledgement
+ * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
+ * \param r SCCP Message as sccp_moo_t
+ */
+void sccp_handle_mediatransmissionfailure(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
+{
+	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Received a MediaTranmissionFailure (not being handled fully at this moment)\n", DEV_ID_LOG(d));
+}

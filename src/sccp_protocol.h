@@ -1306,6 +1306,7 @@ typedef enum {
 	UnregisterMessage = 0x0027,
 	SoftKeyTemplateReqMessage = 0x0028,
 	RegisterTokenRequest = 0x0029,
+	MediaTransmissionFailure = 0x002A,
 	HeadsetStatusMessage = 0x002B,
 	MediaResourceNotification = 0x002C,
 	RegisterAvailableLinesMessage = 0x002D,
@@ -1400,6 +1401,8 @@ typedef enum {
 	StartAnnouncementMessage = 0x0122,
 	StopAnnouncementMessage = 0x0123,
 	AnnouncementFinishMessage = 0x0124,
+	// ??
+	// ??
 	NotifyDtmfToneMessage = 0x0127,
 	SendDtmfToneMessage = 0x0128,
 	SubscribeDtmfPayloadReqMessage = 0x0129,
@@ -1423,10 +1426,12 @@ typedef enum {
 	DropParticipantReqMessage = 0x013B,
 	AuditConferenceReqMessage = 0x013C,
 	AuditParticipantReqMessage = 0x013D,
+	// ??
 	UserToDeviceDataVersion1Message = 0x013F,
 
 	/* sent by us */
 	Unknown_0x0141_Message = 0x0141,
+	// ??
         DisplayDynamicNotifyMessage = 0x0143,
         DisplayDynamicPriNotifyMessage = 0x0144,
 	DisplayDynamicPromptStatusMessage = 0x0145,
@@ -1489,6 +1494,7 @@ static const struct sccp_messagetype {
 	{UnregisterMessage, "Unregister Message"},
 	{SoftKeyTemplateReqMessage, "SoftKey Template Request"},
 	{RegisterTokenRequest, "Register Token Request"},
+	{MediaTransmissionFailure, "Media Transmission Failure"}, 
 	{HeadsetStatusMessage, "Headset Status Message"},
 	{MediaResourceNotification, "Media Resource Notification"},
 	{RegisterAvailableLinesMessage, "Register Available Lines Message"},
@@ -2739,6 +2745,14 @@ typedef union {
 		char	 ipv6Address[16];
 		uint32_t unknown;
 	} RegisterTokenRequest;							/*!< Register Token Request */
+	
+	struct {
+		uint32_t lel_conferenceId;					/*!< Conference ID */
+		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+		uint32_t bel_remoteIpAddr;					/*!< This field is apparently in big-endian */
+		uint32_t lel_remotePortNumber;					/*!< Remote Port Number */
+		uint32_t lel_callRef;						/*!< Call Reference */
+	} MediaTransmissionFailure;
 
 	struct {
 		uint32_t lel_hsMode;						/*!< Head Set Mode */
