@@ -27,9 +27,10 @@
 #    define SPCP_PROTOCOL	1
 
 #    define DEFAULT_SCCP_PORT			2000				/*!< SCCP uses port 2000. */
-#    define DEFAULT_SCCP_BACKLOG			2			/*!< the listen baklog. */
+#    define DEFAULT_SCCP_SECURE_PORT		2443				/*!< SCCP secure port 2443. */
+#    define DEFAULT_SCCP_BACKLOG		2				/*!< the listen baklog. */
 #    define SCCP_MAX_AUTOLOGIN			100				/*!< Maximum allowed of autologins per device */
-#    define SCCP_KEEPALIVE				5			/*!< Default keepalive time if not specified in sccp.conf. */
+#    define SCCP_KEEPALIVE			5				/*!< Default keepalive time if not specified in sccp.conf. */
 
 #    define SKINNY_PHONE_FEATURES_PROTOCOLVERSION 0xFF
 #    define SKINNY_PHONE_FEATURES_ABBRDIAL 1<<31
