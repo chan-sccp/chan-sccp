@@ -1,4 +1,4 @@
-dnl FILE: asterisk.m4
+	dnl FILE: asterisk.m4
 dnl COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
 dnl CREATED BY: Created by Diederik de Groot
 dnl LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
@@ -65,7 +65,8 @@ AC_DEFUN([AST_GET_VERSION], [
 					else
 						ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
 					fi
-					
+
+					ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
 					echo "ASTERISK_MINOR_VER: $ASTERISK_MINOR_VER1"
 					echo "ASTERISK_VER_GROUP: $ASTERISK_VER_GROUP"
 					echo "ASTERISK_VERSION_NUMBER: $ASTERISK_VERSION_NUMBER"
@@ -89,12 +90,22 @@ AC_DEFUN([AST_GET_VERSION], [
 						*) AC_DEFINE([ASTERISK_CONF], [0], [NOT Defined ASTERISK_CONF !!]);;
 					esac 
 
+					if [ test ${ASTERISK_VER_GROUP} -lt ${MIN_ASTERISK_VERSION} ]; then
+						echo ""
+						CONFIGURE_PART([Asterisk Version ${ASTERISK_VER} Not Supported])
+						echo ""
+						echo "This version of chan-sccp-b only has support for Asterisk 1.6.x and above."
+						echo ""
+						echo "Please install a higher version of asterisk"
+						echo ""
+						echo ""
+						exit 255
+					fi
 					if [ test ${ASTERISK_VER_GROUP} -gt ${MAX_ASTERISK_VERSION} ]; then
 						echo ""
 						CONFIGURE_PART([Asterisk Version ${ASTERISK_VER} Not Supported])
 						echo ""
-						echo "This version of chan-sccp-b only has support for Asterisk 1.6.x and below."
-						echo "We are working on support newer asterisk versions and early test version will be available shortly"
+						echo "This version of chan-sccp-b only has support for Asterisk 1.11.x and below."
 						echo ""
 						echo "Please install a lower version of asterisk"
 						echo ""
