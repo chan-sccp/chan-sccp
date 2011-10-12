@@ -489,7 +489,8 @@ sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_
 		break;
 
 	case AST_CONTROL_VIDUPDATE:						/* Request a video frame update */
-		if (c->rtp.video.rtp) {
+		if (c->rtp.video.rtp && c->getDevice(c) && sccp_device_isVideoSupported(c->getDevice(c))) {
+			c->getDevice(c)->protocol->sendFastPictureUpdate(c->getDevice(c), c);
 			res = 0;
 		} else
 			res = -1;

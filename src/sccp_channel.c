@@ -671,15 +671,15 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t *channel)
  	if (!channel->rtp.video.rtp) {
  		sccp_rtp_createVideoServer(channel);
  	}
-// 	if (sccp_device_isVideoSupported(channel->device)) {
-// 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", DEV_ID_LOG(channel->device));
-// 		if (!channel->rtp.video.rtp && !sccp_rtp_createVideoServer(channel)) {
-// 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(channel->device));
-// 		} else {
-// 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: vrtp started\n", DEV_ID_LOG(channel->device));
-//  			sccp_channel_startMultiMediaTransmission(channel);
-// 		}
-// 	}
+	if (sccp_device_isVideoSupported(channel->privateData->device)) {
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", DEV_ID_LOG(channel->privateData->device));
+		if (!channel->rtp.video.rtp && !sccp_rtp_createVideoServer(channel)) {
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(channel->privateData->device));
+		} else {
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: vrtp started\n", DEV_ID_LOG(channel->privateData->device));
+ 			sccp_channel_startMultiMediaTransmission(channel);
+		}
+	}
 #endif
 	//pbx_rtp_set_vars(sccp_channel->owner, sccp_channel->rtp.audio.rtp);
 	//sccp_channel_openMultiMediaChannel(sccp_channel);
@@ -996,6 +996,9 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 // 	r->msg.FlowControlCommandMessage.maxBitRate 		= htolel(8000);
 	r->msg.FlowControlCommandMessage.maxBitRate 		= htolel(bitRate);
 	sccp_dev_send(channel->privateData->device, r);
+	
+	
+	ast_queue_control(channel->owner, AST_CONTROL_VIDUPDATE);
 }
 
 /*!
