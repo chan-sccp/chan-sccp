@@ -1401,8 +1401,6 @@ typedef enum {
 	StartAnnouncementMessage = 0x0122,
 	StopAnnouncementMessage = 0x0123,
 	AnnouncementFinishMessage = 0x0124,
-	// ??
-	// ??
 	NotifyDtmfToneMessage = 0x0127,
 	SendDtmfToneMessage = 0x0128,
 	SubscribeDtmfPayloadReqMessage = 0x0129,
@@ -1426,12 +1424,10 @@ typedef enum {
 	DropParticipantReqMessage = 0x013B,
 	AuditConferenceReqMessage = 0x013C,
 	AuditParticipantReqMessage = 0x013D,
-	// ??
 	UserToDeviceDataVersion1Message = 0x013F,
 
 	/* sent by us */
 	Unknown_0x0141_Message = 0x0141,
-	// ??
         DisplayDynamicNotifyMessage = 0x0143,
         DisplayDynamicPriNotifyMessage = 0x0144,
 	DisplayDynamicPromptStatusMessage = 0x0145,
@@ -2747,11 +2743,11 @@ typedef union {
 	} RegisterTokenRequest;							/*!< Register Token Request */
 	
 	struct {
-		uint32_t lel_conferenceId;					/*!< Conference ID */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		uint32_t bel_remoteIpAddr;					/*!< This field is apparently in big-endian */
-		uint32_t lel_remotePortNumber;					/*!< Remote Port Number */
-		uint32_t lel_callRef;						/*!< Call Reference */
+		uint32_t lel_conferenceId;                                      /*!< Conference ID */
+		uint32_t lel_passThruPartyId;                                   /*!< Pass Through Party ID */
+		uint32_t bel_remoteIpAddr;                                      /*!< This field is apparently in big-endian */
+		uint32_t lel_remotePortNumber;                                  /*!< Remote Port Number */
+		uint32_t lel_callRef;                                           /*!< Call Reference */
 	} MediaTransmissionFailure;
 
 	struct {
@@ -3093,7 +3089,43 @@ typedef union {
 		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
 		uint32_t lel_callReference;					/*!< Call Reference */
 		uint32_t lel_miscCommandType;					/*!< Miscellaneous Command Type */
-		uint32_t unknown[10];
+		union {
+			uint32_t unknown[10];
+			struct{
+				uint32_t bel_remoteIpAddr;
+				uint32_t unknown1;
+				uint32_t unknown2;
+				uint32_t unknown3;
+				uint32_t unknown4;
+				uint32_t lel_value1;
+				uint32_t lel_value2;
+				uint32_t lel_value3;
+				uint32_t lel_value4;
+			} videoFastUpdatePicture;
+
+			struct{
+				uint32_t lel_firstGOB;
+				uint32_t lel_numberOfGOBs;
+			} videoFastUpdateGOB;
+			
+			struct{
+				uint32_t lel_firstGOB;
+				uint32_t lel_firstMB;
+				uint32_t lel_numberOfMBs;
+			} videoFastUpdateMB;
+
+			struct{
+				uint32_t lel_pictureNumber;
+				uint32_t lel_longTermPictureIndex;
+			} lostPicture;
+		
+			struct{
+				uint32_t lel_pictureNumber;
+				uint32_t lel_longTermPictureIndex;
+				uint32_t lel_firstMB;
+				uint32_t lel_numberOfMBs;
+			} lostPartialPicture;
+		} data;
 	} MiscellaneousCommandMessage;						/*!< Miscellaneous Command Message Structure */
 
 	struct {
