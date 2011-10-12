@@ -127,8 +127,11 @@ typedef enum {
 	SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF
 } sccp_miscCommandType_t;							/*!< misccommand types */
 
-/*
-static const value_string skinny_miscCommandType[] = {
+
+static const struct sccp_miscCommandType {
+	uint8_t id;
+	const char *const text;
+} skinny_miscCommandType[] = {
 	{0  , "videoFreezePicture"},
 	{1  , "videoFastUpdatePicture"},
 	{2  , "videoFastUpdateGOB"},
@@ -139,19 +142,22 @@ static const value_string skinny_miscCommandType[] = {
 	{7  , "temporalSpatialTradeOff"},
 	{0  , NULL}
 };
-*/
 
-/*
- static const value_string skinny_formatTypes[] = {
- {1  , "sqcif (128x96)"},
- {2  , "qcif (176x144)"},
- {3  , "cif (352x288)"},
- {4  , "4cif (704x576)"},
- {5  , "16cif (1408x1152)"},
- {6  , "custom_base"},
- {0  , NULL}
- };
-*/
+
+
+static const struct sccp_formatTypes {
+	uint8_t id;
+	const char *const text;
+} skinny_formatTypes[] = {
+	{0  , ""},
+	{1  , "sqcif (128x96)"},
+	{2  , "qcif (176x144)"},
+	{3  , "cif (352x288)"},
+	{4  , "4cif (704x576)"},
+	{5  , "16cif (1408x1152)"},
+	{6  , "custom_base"},
+};
+
 
 
 

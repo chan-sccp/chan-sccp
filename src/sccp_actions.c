@@ -2969,7 +2969,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
 	int i;
-	uint8_t codec, n, levels, level;
+	uint8_t codec, n, levels, level, format;
 	char transmitReceiveStr[5];
 
 	/* parsing audio caps */
@@ -3010,8 +3010,11 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 		
 		levels = letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[i].lel_levelPreferenceCount);
 		for (level = 0; level < levels; level++) {
+			format = letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[i].levelPreference[level].format);
+		  
+		  
 			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s transmitPreference: %d\n", DEV_ID_LOG(d), "", "", letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[i].levelPreference[level].transmitPreference));
-			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s format: %d\n", DEV_ID_LOG(d), "", "", letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[i].levelPreference[level].format));
+			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s format: %d: %s\n", DEV_ID_LOG(d), "", "", format, skinny_formatTypes[format].text );
 			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s maxBitRate: %d\n", DEV_ID_LOG(d), "", "", letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[i].levelPreference[level].maxBitRate));
 			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s minBitRate: %d\n", DEV_ID_LOG(d), "", "", letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[i].levelPreference[level].minBitRate));
 			
@@ -3275,4 +3278,51 @@ void sccp_handle_mediatransmissionfailure(sccp_session_t * s, sccp_device_t * d,
 {
 	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Received a MediaTranmissionFailure (not being handled fully at this moment)\n", DEV_ID_LOG(d));
+}
+
+/*!
+ * \brief Handle Miscellaneous Command Message
+ * \param s SCCP Session as sccp_session_t
+ * \param d SCCP Device as sccp_device_t
+ * \param r SCCP Message as sccp_moo_t
+ */
+void sccp_handle_miscellaneousCommandMessage(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r){
+	sccp_miscCommandType_t 	commandType;
+	struct sockaddr_in 	sin;
+	uint32_t 		partyID;
+	sccp_channel_t		*channel;
+	
+	partyID = letohl(r->msg.MiscellaneousCommandMessage.lel_passThruPartyId);
+	commandType = letohl(r->msg.MiscellaneousCommandMessage.lel_miscCommandType);
+	
+	channel = sccp_channel_find_bypassthrupartyid_locked(partyID);
+	
+	switch(commandType){
+	  case SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE:
+	    
+	    break;
+	  case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE:
+		memcpy(&sin.sin_addr, &r->msg.MiscellaneousCommandMessage.data.videoFastUpdatePicture.bel_remoteIpAddr, sizeof(sin.sin_addr));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: media statistic for %s, value1: %u, value2: %u, value3: %u, value4: %u\n", 
+					channel ? DEV_ID_LOG(channel->getDevice(channel) ) : "--",
+					pbx_inet_ntoa(sin.sin_addr), 
+					letohl(r->msg.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value1),
+					letohl(r->msg.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value2),
+					letohl(r->msg.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value3),
+					letohl(r->msg.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value4)
+		);
+	    break;
+// 	  case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:
+// 	  case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB:
+// 	  case SKINNY_MISCCOMMANDTYPE_LOSTPICTURE:
+// 	  case SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE:
+// 	  case SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE:
+// 	  case SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF:
+	  default:
+	    
+	    break;
+	}
+	
+	if(channel)
+		sccp_channel_unlock(channel);
 }
