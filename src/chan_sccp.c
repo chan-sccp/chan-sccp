@@ -322,6 +322,7 @@ static const struct sccp_messageMap_cb messagesCbMap[] = {
 	{SPCPRegisterTokenRequest, sccp_handle_SPCPTokenReq, FALSE},
 	{StartMultiMediaTransmissionAck, sccp_handle_startmultimediatransmission_ack, TRUE},
 	{MediaTransmissionFailure, sccp_handle_mediatransmissionfailure, TRUE},
+	{MiscellaneousCommandMessage, sccp_handle_miscellaneousCommandMessage, TRUE},
 };
 
 typedef struct sccp_messageMap_cb sccp_messageMap_cb_t;
