@@ -404,7 +404,9 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
 	sccp_moo_t *r;
 	uint32_t state;								/* used to fall back to old behavior */
+#ifdef CS_DYNAMIC_SPEEDDIAL
 	char displayMessage[80];
+#endif
 
 	if (!hint)
 		return;
@@ -505,6 +507,12 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				state = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 				break;
 		}
+		
+		
+		if(SCCP_CHANNELSTATE_RINGING == hint->previousState){
+			/* we send a congestion to the phone, so call will not be marked as missed call */
+			sccp_device_sendcallstate(subscriber->device, subscriber->instance, 0, SCCP_CHANNELSTATE_CONGESTION, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+		}
 
 		sccp_device_sendcallstate(subscriber->device, subscriber->instance, 0, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
 
@@ -534,7 +542,9 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 			sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_INUSEHINT);
 		}
 	}
-SCCP_LIST_TRAVERSE_SAFE_END}
+	SCCP_LIST_TRAVERSE_SAFE_END
+  
+}
 
 /*!
  * \brief Handle line status change
@@ -599,6 +609,8 @@ void sccp_hint_hintStatusUpdate(sccp_hint_list_t * hint)
 	/* notify asterisk */
 	sccp_hint_notifySubscribers(hint);
 	sccp_hint_notifyAsterisk(line, hint->currentState);
+	
+	hint->previousState = hint->currentState;
 }
 
 /*!

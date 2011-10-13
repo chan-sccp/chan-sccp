@@ -50,6 +50,7 @@ struct sccp_hint_list {
 	char hint_dialplan[256];						/*!< e.g. IAX2/station123 */
 
 	sccp_channelState_t currentState;					/*!< current State */
+	sccp_channelState_t previousState;					/*!< current State */
 	sccp_hinttype_t hintType;						/*!< Type of Hint */
 
 	/*!
