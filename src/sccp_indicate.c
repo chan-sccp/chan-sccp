@@ -134,6 +134,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		if (c == d->active_channel)
 			sccp_dev_stoptone(d, instance, c->callid);
 
+		sccp_dev_cleardisplaynotify(d);
 		sccp_dev_clearprompt(d, instance, c->callid);
 		/* if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
 		if (c->answered_elsewhere)
@@ -474,7 +475,6 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 			if (c->answered_elsewhere)
 				sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 
-			sccp_dev_cleardisplaynotify(d);
 			sccp_dev_clearprompt(remoteDevice, instance, c->callid);
 			sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_NORMAL, (!c->privacy) ? SKINNY_CALLINFO_VISIBILITY_DEFAULT : SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 
