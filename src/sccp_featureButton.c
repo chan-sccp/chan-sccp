@@ -56,11 +56,6 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 
 	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;				// Default feature 
 	
-		// This needs to default to FALSE so that the cfwd feature
-		// is not being enabled unless there is an existing database entry.
-		// The state is loaded from the database after configuring the buttons,
-		// so it is ok to set it to false here at first.
-	boolean_t cfwdButtonEnabled = FALSE;
 
 #ifdef CS_DEVSTATE_FEATURE
 	char buf[254] = "";
@@ -99,6 +94,12 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				}
 				break;
 			case SCCP_FEATURE_CFWDALL:
+					
+				// This needs to default to FALSE so that the cfwd feature
+				// is not being enabled unless there is an existing database entry.
+				// The state is loaded from the database after configuring the buttons,
+				// so it is ok to set it to false here at first.	
+				config->button.feature.status = 0;
 
 				/* get current state */
 				SCCP_LIST_TRAVERSE(&device->buttonconfig, buttonconfig, list) {
@@ -118,18 +119,13 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 							sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled) ? "on" : "off");
 
 							/* set this button active, only if all lines are fwd -requesting issue #3081549 */
-							if (linedevice->cfwdAll.enabled == 0) {
-								cfwdButtonEnabled = FALSE;
+							if (1 == linedevice->cfwdAll.enabled) {
+								config->button.feature.status &= 1; // Logical and &= intended here.
 							}
 						}
 					}
 				}
 				buttonconfig = NULL;
-
-				if (cfwdButtonEnabled)
-					config->button.feature.status = 1;
-				else
-					config->button.feature.status = 0;
 
 				break;
 

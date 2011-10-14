@@ -2938,6 +2938,8 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 	case SCCP_FEATURE_CFWDALL:
 		status = SCCP_CFWD_ALL;
 
+			
+			// Toggle _and_ ask for activation of the feature in one logical expression.
 		if (!config->button.feature.options || sccp_strlen_zero(config->button.feature.options) || !config->button.feature.status)
 			status = SCCP_CFWD_NONE;
 
