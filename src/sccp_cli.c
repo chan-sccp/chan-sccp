@@ -506,6 +506,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("Device State (Acc.)", 	CLI_AMI_LIST_WIDTH,	"%s",	 	accessorystatus2str(d->accessorystatus));
 	CLI_AMI_OUTPUT_PARAM("Last Used Accessory", 	CLI_AMI_LIST_WIDTH,	"%s",	 	accessory2str(d->accessoryused));
 	CLI_AMI_OUTPUT_PARAM("Last dialed number", 	CLI_AMI_LIST_WIDTH,	"%s",	 	d->lastNumber);
+	CLI_AMI_OUTPUT_PARAM("Status Indicator", 	CLI_AMI_LIST_WIDTH,	"%s",	 	d->status.indicator);
 #ifdef CS_ADV_FEATURES
 	CLI_AMI_OUTPUT_BOOL ("Use Placed Calls", 	CLI_AMI_LIST_WIDTH, 			d->useRedialMenu);
 #endif

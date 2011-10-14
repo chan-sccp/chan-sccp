@@ -203,8 +203,13 @@ extern "C" {
 	
 #define SCCP_MAX_HOSTNAME_LEN 100
 #define SCCP_MAX_MESSAGESTACK 10
-#define SCCP_MAX_STATUS_INDICATOR 4
 
+#define SCCP_MAX_STATUS_LINE 40
+#define SCCP_MAX_STATUS_INDICATOR 4
+#define SCCP_STATUS_INDICATOR_CFWD 0
+#define SCCP_STATUS_INDICATOR_DND 1
+#define SCCP_STATUS_INDICATOR_PRIVACY 2
+#define SCCP_STATUS_INDICATOR_MONITOR 3
 	typedef unsigned long long sccp_group_t;
 	typedef struct channel sccp_channel_t;					/*!< SCCP Channel Structure */
 	typedef struct sccp_session sccp_session_t;				/*!< SCCP Session Structure */
@@ -386,6 +391,7 @@ extern "C" {
  */
 	typedef enum {
 		SCCP_FEATURE_UNKNOWN,
+		SCCP_FEATURE_CFWDNONE,
 		SCCP_FEATURE_CFWDALL,
 		SCCP_FEATURE_CFWDBUSY,
 		SCCP_FEATURE_CFWDNOANSWER,
@@ -576,6 +582,7 @@ extern "C" {
 
 		sccp_cfwd_information_t cfwdAll;				/*!< cfwd information */
 		sccp_cfwd_information_t cfwdBusy;				/*!< cfwd information */
+		sccp_cfwd_information_t cfwdNoAnswer;				/*!< cfwd information */
 
 		struct subscriptionId subscriptionId;				/*!< for addressing individual devices on shared line */
 		char label[80];							/*!<  */
@@ -918,19 +925,19 @@ extern "C" {
 			uint32_t transactionID;
 		} dtu_softkey;
 		
-		char *messageStack[SCCP_MAX_MESSAGESTACK];
 		
 		struct {
 			char indicator[SCCP_MAX_STATUS_INDICATOR];		/*!< Status Indicator */
+			sccp_tokenstate_t token;				/*!< token request state */
 //			char line[40];						/*!< Status Text Line */
 //			int priority;						/*!< Priority From 10 to 0 */
 //			char temp_line[40];					/*!< Temporairy Status Text Line */
 //			int timeout;						/*!< Timeout for temporairy status text line */
 //			boolean_t overwritable;					/*!< Status is overwritable */
 //			boolean_t updated;					/*!< Status has changed, and needs to be refreshed */
-			sccp_tokenstate_t token;				/*!< token request state */
 		} status;							/*!< Status Structure */
 		
+		char *messageStack[SCCP_MAX_MESSAGESTACK];
 		sccp_push_result_t (*pushURL) (const sccp_device_t *device, const char *url, uint8_t priority, uint8_t tone);
 		sccp_push_result_t (*pushTextMessage) (const sccp_device_t *device, const char *messageText, const char *from, uint8_t priority, uint8_t tone);
 		boolean_t (* checkACL) (sccp_device_t *device);
