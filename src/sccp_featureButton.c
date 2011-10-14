@@ -106,8 +106,8 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 						if (buttonconfig->type == LINE) {
 							
 							// Check if line and line device exists and thus forward status on that device can be checked
-							if (line = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE) 
-								&& linedevice = sccp_util_getDeviceConfiguration(device, line) ) {
+							if ((line = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE)) 
+								&& (linedevice = sccp_util_getDeviceConfiguration(device, line)) ) {
 								
 								sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled) ? "on" : "off");
 								
