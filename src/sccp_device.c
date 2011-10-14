@@ -235,6 +235,7 @@ void sccp_device_post_reload(void)
  */
 sccp_device_t *sccp_device_create(void)
 {
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "DEVICE CREATE\n");
 	sccp_device_t *d = sccp_calloc(1, sizeof(sccp_device_t));
 	if (!d) {
 		sccp_log(0) (VERBOSE_PREFIX_3 "Unable to allocate memory for a device\n");
@@ -252,17 +253,24 @@ sccp_device_t *sccp_device_create(void)
 #endif	
 	memset(d->softKeyConfiguration.activeMask, 0xFF, sizeof(d->softKeyConfiguration.activeMask));
 	
-	
 	d->softKeyConfiguration.modes = (softkey_modes *) SoftKeyModes;
 	d->softKeyConfiguration.size = ARRAY_LEN(SoftKeyModes);
 	d->state = SCCP_DEVICESTATE_ONHOOK;
 	d->postregistration_thread = AST_PTHREADT_STOP;
 	
+	d->status.indicator[SCCP_STATUS_INDICATOR_CFWD]='_';
+	d->status.indicator[SCCP_STATUS_INDICATOR_DND]='_';
+	d->status.indicator[SCCP_STATUS_INDICATOR_PRIVACY]='_';
+	d->status.indicator[SCCP_STATUS_INDICATOR_MONITOR]='_';
+
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "!!! Init MessageStack\n");
+
+	/* initialize messageStack */
 	uint8_t i;
-	for(i=0; i< SCCP_MAX_MESSAGESTACK;i++){
+	for(i=0; i < SCCP_MAX_MESSAGESTACK; i++) {
 		d->messageStack[i] = NULL;
 	}
-	
+
 	/* disable videomode softkey for all softkeysets */
 	for(i=0; i< KEYMODE_ONHOOKSTEALABLE; i++){
 		sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_VIDEO_MODE, FALSE);
@@ -955,15 +963,19 @@ void sccp_dev_clearprompt(const sccp_device_t * d, uint8_t lineInstance, uint32_
 //void sccp_dev_displayprompt(sccp_device_t * d, uint8_t line, uint32_t callid, char *msg, int timeout)
 void sccp_dev_displayprompt_debug(const sccp_device_t * d, uint8_t lineInstance, uint32_t callid, char *msg, int timeout, char *file, int lineno, const char *pretty_function)
 {
+	char disp_message[SCCP_MAX_STATUS_LINE];
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: ( %s:%d:%s ) sccp_dev_displayprompt '%s' for line %d (%d)\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg, lineInstance, timeout);
 
 	if (!d || !d->session)
 		return;
+		
+	snprintf(disp_message, sizeof(disp_message), "[%s] %s", d->status.indicator, msg ? msg : "");
 
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
 		return;								/* only for telecaster and new phones */
 
-	d->protocol->displayPrompt(d, lineInstance, callid, timeout, msg);
+//	d->protocol->displayPrompt(d, lineInstance, callid, timeout, msg);
+	d->protocol->displayPrompt(d, lineInstance, callid, timeout, disp_message);
 }
 
 /*!
@@ -1228,8 +1240,8 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	sccp_dev_clearprompt(d, 0, 0);
 
 	int i;
-	for(i = SCCP_MAX_MESSAGESTACK; i >= 0; i--){
-		if(d->messageStack[i]  != NULL){
+	for(i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--){
+		if(d->messageStack[i] != NULL){
 			sccp_dev_displayprompt(d, 0, 0, d->messageStack[i], 0);
 			goto OUT;
 		}
@@ -1239,7 +1251,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
 	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);				/* this is for redial softkey */
 
- OUT:
+OUT:
 	sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Finish DisplayPrompt\n", d->id);
 }
 
@@ -1281,45 +1293,6 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
 		// Otherwise, just select the callplane
 		pbx_log(LOG_WARNING, "%s: Unknown status while trying to select line %s.  Current line is %s\n", d->id, wanted->name, current->name);
 	}
-}
-
-/*!
- * \brief Display Call Forward
- */
-boolean_t sccp_dev_display_cfwd(sccp_device_t * device, boolean_t force)
-{
-	boolean_t ret = TRUE;
-	char tmp[256] = { 0 };
-	size_t len = sizeof(tmp);
-	char *s = tmp;
-	sccp_line_t *line = NULL;
-	sccp_linedevices_t *ld = NULL;
-
-	/* List every forwarded lines on the device prompt. */
-	SCCP_RWLIST_RDLOCK(&GLOB(lines));
-	SCCP_RWLIST_TRAVERSE(&GLOB(lines), line, list) {
-		SCCP_LIST_LOCK(&line->devices);
-		SCCP_LIST_TRAVERSE(&line->devices, ld, list) {
-			if (ld->device == device) {
-				if (s != tmp)
-					pbx_build_string(&s, &len, ", ");
-				if (ld->cfwdAll.enabled) {
-					pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, ld->cfwdAll.number);
-				} else if (ld->cfwdBusy.enabled) {
-					pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, ld->cfwdBusy.number);
-				}
-			}
-		}
-		SCCP_LIST_UNLOCK(&line->devices);
-	}
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
-
-	if(strlen(tmp) > 0){
-		sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_CFWD, tmp);
-	}else{
-		sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);
-	}
-	return ret;
 }
 
 /*!
@@ -1598,7 +1571,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	}
 	
 	/* cleanup message stack */
-	for(i = SCCP_MAX_MESSAGESTACK; i>=0; i--){
+	for(i = SCCP_MAX_MESSAGESTACK - 1; i>=0; i--){
 		if(d->messageStack[i]  != NULL){
 			sccp_free(d->messageStack[i]);
 		}
@@ -1997,6 +1970,8 @@ void sccp_device_clearMessageFromStack(sccp_device_t *device, uint8_t priority){
  * 
  * \lock
  * 	- device
+ *
+ * \todo implement cfwd_noanswer
  */
 void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 {
@@ -2005,13 +1980,9 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 	sccp_linedevices_t *lineDevice;
 	sccp_device_t *device = (*event)->event.featureChanged.device;
 	
-	
-	/* copy from sccp_dev_display_cfwd */
 	char tmp[256] = { 0 };
 	size_t len = sizeof(tmp);
 	char *s = tmp;
-	/* */
-	
 
 	if (!(*event) || !device)
 		return;
@@ -2019,6 +1990,11 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: got FeatureChangeEvent %d\n", DEV_ID_LOG(device), (*event)->event.featureChanged.featureType);
 
 	switch ((*event)->event.featureChanged.featureType) {
+	case SCCP_FEATURE_CFWDNONE:
+		device->status.indicator[SCCP_STATUS_INDICATOR_CFWD]='_';
+		sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);
+		break;
+	case SCCP_FEATURE_CFWDNOANSWER:
 	case SCCP_FEATURE_CFWDBUSY:
 	case SCCP_FEATURE_CFWDALL:
 		SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
@@ -2039,7 +2015,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 									if (s != tmp)
 										pbx_build_string(&s, &len, ", ");
 									pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, lineDevice->cfwdAll.number);
-									
+									device->status.indicator[SCCP_STATUS_INDICATOR_CFWD]='A';
 								}
 								break;	
 							case SCCP_FEATURE_CFWDBUSY:
@@ -2048,7 +2024,17 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 									if (s != tmp)
 										pbx_build_string(&s, &len, ", ");
 									pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, lineDevice->cfwdBusy.number);
-									
+									device->status.indicator[SCCP_STATUS_INDICATOR_CFWD]='B';
+								}
+								break;
+							case SCCP_FEATURE_CFWDNOANSWER:
+								if (lineDevice->cfwdBusy.enabled) {								
+									sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Call Forward NoAnswer not fully implemented yet\n", DEV_ID_LOG(device));
+									/* build disp message string */
+									if (s != tmp)
+										pbx_build_string(&s, &len, ", ");
+									pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDNOANSWER, line->cid_num, SKINNY_DISP_FORWARDED_TO, lineDevice->cfwdNoAnswer.number);
+									device->status.indicator[SCCP_STATUS_INDICATOR_CFWD]='N';
 								}
 								break;
 							default:
@@ -2062,6 +2048,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 		if(strlen(tmp) > 0){
 			sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_CFWD, tmp);
 		}else{
+			device->status.indicator[SCCP_STATUS_INDICATOR_CFWD]='_';
 			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);
 		}
 		
@@ -2070,17 +2057,30 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 	  
 		if (!device->dndFeature.status) {
 			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_DND);
+			device->status.indicator[SCCP_STATUS_INDICATOR_DND]='_';
 		} else {
 			if (device->dndFeature.status == SCCP_DNDMODE_SILENT){
 				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (Silent) <<<");
+				device->status.indicator[SCCP_STATUS_INDICATOR_DND]='S';
 			}else{
 				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (" SKINNY_DISP_BUSY ") <<<");
+				device->status.indicator[SCCP_STATUS_INDICATOR_DND]='D';
 			}
 		}
 		break;
 	case SCCP_FEATURE_PRIVACY:
+		if (TRUE==device->privacyFeature.status) {
+				device->status.indicator[SCCP_STATUS_INDICATOR_PRIVACY]='B';
+		} else {
+				device->status.indicator[SCCP_STATUS_INDICATOR_PRIVACY]='_';
+		}		
 		break;
 	case SCCP_FEATURE_MONITOR:
+		if (TRUE==device->monitorFeature.status) {
+				device->status.indicator[SCCP_STATUS_INDICATOR_MONITOR]='M';
+		} else {
+				device->status.indicator[SCCP_STATUS_INDICATOR_MONITOR]='_';
+		}				
 		break;
 	default:
 		return;

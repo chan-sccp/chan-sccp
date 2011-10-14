@@ -79,7 +79,7 @@ void sccp_dev_set_activeline(sccp_device_t * device, sccp_line_t * l);
 void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * l);
 //void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t instance, uint8_t lampMode);
 void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * device);
-boolean_t sccp_dev_display_cfwd(sccp_device_t * device, boolean_t force);
+//boolean_t sccp_dev_display_cfwd(sccp_device_t * device, boolean_t force);
 int sccp_device_check_ringback(sccp_device_t * d);
 void *sccp_dev_postregistration(void *data);
 void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime);
