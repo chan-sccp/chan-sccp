@@ -1221,154 +1221,13 @@ void sccp_dev_set_activeline(sccp_device_t * device, sccp_line_t * l)
  */
 void sccp_dev_check_displayprompt(sccp_device_t * d)
 {
-//	char tmp[256] = "";
-//	int timeout = 0;
-
-//      uint8_t res = 0;
-
 	//sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_1 "%s: %s:%d %s: (sccp_dev_check_displayprompt) Send Current Options to Device\n", file, pretty_function, line, d->id);
 	if (!d || !d->session)
 		return;
 
 	sccp_dev_clearprompt(d, 0, 0);
 
-	
-
-#if 0										// Old code to check and set CallForward Indication. Implemention moved / We might need a check in this location later on - DdG/MC
-//      res = 0;
-//      SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-//              if(buttonconfig->type == LINE ){
-//                      l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
-//                      if (l && l->cfwd_type != SCCP_CFWD_NONE && l->cfwd_num) {
-//                              res = 1;
-//                              // tmp[0] = '\0';
-//                              memset(tmp, 0, sizeof(tmp));
-//                              instance = sccp_device_find_index_for_line(d, l->name);
-//
-//                              if (l->cfwd_type == SCCP_CFWD_ALL) {
-//                                      strcat(tmp, SKINNY_DISP_CFWDALL ":");
-//                                      sccp_dev_set_lamp(d, SKINNY_STIMULUS_FORWARDALL, instance, SKINNY_LAMP_ON);
-//                              } else if (l->cfwd_type == SCCP_CFWD_BUSY) {
-//                                      strcat(tmp, SKINNY_DISP_CFWDBUSY ":");
-//                                      sccp_dev_set_lamp(d, SKINNY_STIMULUS_FORWARDBUSY, instance, SKINNY_LAMP_ON);
-//                              }
-//                              strcat(tmp, SKINNY_DISP_FORWARDED_TO " ");
-//                              strcat(tmp, l->cfwd_num);
-//                              sccp_dev_displayprompt(d, 0, 0, tmp, 0);
-//                              sccp_dev_set_keyset(d, instance, 0, KEYMODE_ONHOOK); /* this is for redial softkey */
-//                      }
-//
-//              }
-//      }
-#endif
-
-#if 0										// Proof of concept. Remarked out because issues where found on newer devices. This proof of concept will be implemented correctly in a later stadium - DdG
-//#ifdef CS_ADV_FEATURES
-//      /*!
-//       * \todo New Feature to Display DND / CallForward Status and Privacy Status per Line
-//       * This is only a proof of concept for now.
-//       * Issues:
-//       *   - Number of calls to "sccp_dev_check_displayprompt" should be checked, or maybe done per line
-//       *   - DND per line might be a nice feature
-//       *   - Privacy status check is not right yet
-//       *   - Message Waiting Could be integrated as well.
-//       */
-//      sccp_moo_t              *r1 = NULL;
-//      sccp_buttonconfig_t     *buttonconfig;
-//      sccp_linedevices_t      *linedevice;
-//      sccp_line_t             *l;
-//      uint16_t                        instance;
-//      sccp_log((DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_3 "%s: Checking Cfwd / DND\n", d->id);
-//      /* walk the buttonconfig list for this device */
-//      SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-//              if(buttonconfig->type == LINE ){
-//                      memset(tmp, 0, sizeof(tmp));
-//                      /* get the line associated with this button */
-//                      l = sccp_line_find_byname_wo(buttonconfig->button.line.name,FALSE);
-//                      if (l) {
-//                              sccp_log((DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_3 "%s: Checking Cfwd for line %s\n", d->id, l->name);
-//                              /* get the linedevice and instance number */
-//                              linedevice = sccp_util_getDeviceConfiguration(d, l);
-//                              instance = sccp_device_find_index_for_line(d, l->name);
-//                              if (linedevice && instance ) {
-//                                      /* add some spaces to delete what was here before */
-//                                      /* this methode needs to be refined keeping in mind proportional fonts */
-//                                      strcat(tmp, "        ");
-//                                      /* overwrite the original line label */
-//                                      strcat(tmp, l->label);
-//
-//                                      /* add a status block */
-//                                      strcat(tmp, " [");
-//
-//                                      /* check DND status */
-//                                      if (d->dndFeature.enabled==TRUE) {
-//                                              if (d->dndFeature.status==SCCP_DNDMODE_REJECT) {
-//                                                      strcat(tmp,"B");
-//                                              } else if (d->dndFeature.status==SCCP_DNDMODE_SILENT) {
-//                                                      strcat(tmp,"S");
-//                                              } else if (d->dndFeature.status==SCCP_DNDMODE_USERDEFINED) {
-//                                                      strcat(tmp,"O");
-//                                              } else {
-//                                                      strcat(tmp, "_");
-//                                              }
-//                                      /* DND per line would be a nice feature as well */
-//                                      //} else if(l && (l->dndmode != SCCP_DNDMODE_OFF)) {
-//                                      }
-//
-//                                      /* check Privacy status */
-//                                      /* Marcello: Need some help here */
-//                                      if(d->privacyFeature.enabled==TRUE && isPrivicyEnabled){
-//                                              strcat(tmp, "P");
-//                                      } else {
-//                                              strcat(tmp, "_");
-//                                      }
-//
-//                                      /* check cfwr status */
-//                                      if((linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled)) {
-//                                              if (linedevice->cfwdAll.enabled == SCCP_CFWD_ALL) {
-//                                                      strcat(tmp, "A->");
-//                                              } else if (linedevice->cfwdBusy.enabled){
-//                                                      strcat(tmp, "B->");
-//                                              }
-//                                              strcat(tmp, linedevice->cfwdAll.number);
-//                                      } else {
-//                                              strcat(tmp, "_");
-//                                      }
-//
-//                                      /* end the status block */
-//                                      strcat(tmp, "]");
-//
-//                                      /* Send the new button infomation using buildLineStatDynamicMessage */
-//                                      sccp_log((DEBUGCAT_NEWCODE))(VERBOSE_PREFIX_3 "%s: Sending LineStatDynamicMessage for line %s\n", d->id, l->name);
-//                                      r1=sccp_utils_buildLineStatDynamicMessage(instance,d->description,"",tmp);
-//                                      sccp_dev_send(d, r1);
-//                              }
-//                      }
-//              }
-//      }
-//#endif
-#endif
-#if 0
-	if (d->dndFeature.enabled && d->dndFeature.status) {
-		if (d->dndFeature.status == SCCP_DNDMODE_REJECT)
-			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " (" SKINNY_DISP_BUSY ") <<<", 0);
-		else if (d->dndFeature.status == SCCP_DNDMODE_SILENT)
-			/* no internal label for the silent string */
-			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " (Silent) <<<", 0);
-		else
-			sccp_dev_displayprompt(d, 0, 0, ">>> " SKINNY_DISP_DND " <<<", 0);
-
-		goto OUT;
-	}
-#endif
-	//sccp_dev_display_cfwd(d, FALSE);
 	int i;
-#if 0
-	for(i = SCCP_MAX_MESSAGESTACK; i >= 0; i--){
-		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: message[%d] = \"%s\"\n", d->id, i, d->messageStack[i] ? d->messageStack[i] : "");
-	}
-#endif
-	
 	for(i = SCCP_MAX_MESSAGESTACK; i >= 0; i--){
 		if(d->messageStack[i]  != NULL){
 			sccp_dev_displayprompt(d, 0, 0, d->messageStack[i], 0);
@@ -1376,20 +1235,6 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 		}
 	}
 	
-#if 0
-	/* check for forward to display */
-	if (sccp_dev_display_cfwd(d, FALSE) == TRUE)
-		goto OUT;
-#endif
-#if 0
-	if (d->mwilight) {
-		char buffer[StationMaxDisplayTextSize];
-
-		sprintf(buffer, "%s: (%d/%d)", SKINNY_DISP_YOU_HAVE_VOICEMAIL, d->voicemailStatistic.newmsgs, d->voicemailStatistic.oldmsgs);
-		sccp_dev_displayprinotify(d, buffer, 5, 10);
-		goto OUT;
-	}
-#endif
 	/* when we are here, there's nothing to display */
 	sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
 	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);				/* this is for redial softkey */
@@ -1439,87 +1284,6 @@ void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
 }
 
 /*!
- * \brief Set Message Waiting Indicator (MWI or LAMP) on Device
- * \param d SCCP Device
- * \param l SCCP Line
- * \param hasMail Mail Indicator Status as uint8_t
- *
- * \deprecated
- * \todo should this be implemented or removed
- *
- * \callgraph
- * \callergraph
- */
-void sccp_dev_set_mwi(sccp_device_t * d, sccp_line_t * l, uint8_t hasMail)
-{
-//      sccp_moo_t * r;
-//      uint8_t instance;
-//      if (!d)
-//              return;
-//
-//      int retry = 0;
-//      while(sccp_device_trylock(d)) {
-//              retry++;
-//              sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s), retry: %d\n" ,__FILE__, __LINE__, __PRETTY_FUNCTION__, retry);
-//              usleep(100);
-//
-//              if(retry > 100){
-//                      sccp_device_unlock(d);
-//                      return;
-//              }
-//      }
-//
-//      if (l) {
-//              instance = sccp_device_find_index_for_line(d, l->name);
-//      } else {
-//              if (d->mwilight == hasMail) {
-//                      sccp_device_unlock(d);
-//                      return;
-//              }
-//              d->mwilight = hasMail;
-//              instance = 0;
-//      }
-//      sccp_device_unlock(d);
-//
-//
-//      REQ(r, SetLampMessage);
-//      r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
-//      r->msg.SetLampMessage.lel_stimulusInstance = (l ? htolel(instance) : 0);
-//      /* when l is defined we are switching on/off the button icon */
-//      r->msg.SetLampMessage.lel_lampMode = htolel( (hasMail) ? ( (l) ? SKINNY_LAMP_ON :  d->mwilamp) : SKINNY_LAMP_OFF);
-//      sccp_dev_send(d, r);
-//      sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_MWI))(VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n",DEV_ID_LOG(d), hasMail ? "ON" : "OFF", (l ? l->name : "unknown"),(l ? instance : 0));
-}
-
-/*!
- * \brief Set Message Waiting Indicator (MWI/Lamp)
- * \param d SCCP Device
- * \param stimulus Stimulus as uint16_t
- * \param instance Instance as uint8_t
- * \param lampMode LampMode as uint8_t
- *
- * \deprecated
- * \todo: dev_set_lamp (SetLampMessage) ToBeRemoved / Moved / Reimplemented ?
- */
-void sccp_dev_set_lamp(const sccp_device_t * d, uint16_t stimulus, uint16_t instance, uint8_t lampMode)
-{
-
-/*
-   sccp_moo_t * r;
-
-	if (!d )
-		return;
-
-	REQ(r, SetLampMessage);
-	r->msg.SetLampMessage.lel_stimulus = htolel(stimulus);
-	r->msg.SetLampMessage.lel_stimulusInstance = htolel(instance);
-	r->msg.SetLampMessage.lel_lampMode = htolel(lampMode);
-	sccp_dev_send(d, r);
-	*/
-	//sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Send lamp mode %s(%d) on line %d\n", d->id, lampmode2str(lampMode), lampMode, instance );
-}
-
-/*!
  * \brief Display Call Forward
  */
 boolean_t sccp_dev_display_cfwd(sccp_device_t * device, boolean_t force)
@@ -1549,20 +1313,6 @@ boolean_t sccp_dev_display_cfwd(sccp_device_t * device, boolean_t force)
 		SCCP_LIST_UNLOCK(&line->devices);
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
-#if 0
-	/* There isn't any forward on device's lines. */
-	if (s == tmp) {
-		ret = FALSE;
-		if (force) {
-			/* Send an empty message to hide the message. */
-			tmp[0] = ' ';
-			tmp[1] = '\0';
-		}
-	}
-	if (strcmp(tmp,"")) {
-		sccp_dev_displayprompt(device, 0, 0, tmp, 0);
-	}
-#endif
 
 	if(strlen(tmp) > 0){
 		sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_CFWD, tmp);
@@ -1585,18 +1335,14 @@ boolean_t sccp_dev_display_cfwd(sccp_device_t * device, boolean_t force)
  */
 void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * device)
 {
-// 	sccp_moo_t *r1 = NULL;
 	sccp_linedevices_t *linedevice = NULL;
 
 	if (!device || !device->session)
 		return;
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Send Forward Status.  Line: %s\n", device->id, l->name);
-// 	REQ(r1, ForwardStatMessage);
-// 	r1->msg.ForwardStatMessage.lel_lineNumber = htolel(lineInstance);
-// 
 	linedevice = sccp_util_getDeviceConfiguration(device, l);
-// 
+
 // 	//! \todo check for forward status during registration -MC
 	if (!linedevice) {
 		if (device->registrationState == SKINNY_DEVICE_RS_OK) {
@@ -1617,22 +1363,9 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 		}
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: no linedevice\n", device->id);
 	} else {
-// 		r1->msg.ForwardStatMessage.lel_status = (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled) ? htolel(1) : 0;
-// 		if (linedevice->cfwdAll.enabled) {
-// 			r1->msg.ForwardStatMessage.lel_cfwdallstatus = htolel(1);
-// 			sccp_copy_string(r1->msg.ForwardStatMessage.cfwdallnumber, linedevice->cfwdAll.number, sizeof(r1->msg.ForwardStatMessage.cfwdallnumber));
-// 		} else if (linedevice->cfwdBusy.enabled) {
-// 			r1->msg.ForwardStatMessage.lel_cfwdbusystatus = htolel(1);
-// 			sccp_copy_string(r1->msg.ForwardStatMessage.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(r1->msg.ForwardStatMessage.cfwdbusynumber));
-// 		}
-// 
-// 		sccp_dev_display_cfwd(device, TRUE);
 		device->protocol->sendCallforwardMessage(device, linedevice);
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Sent Forward Status.  Line: %s (%d)\n", device->id, l->name, linedevice->lineInstance);
 	}
-// 	sccp_dev_send(device, r1);
-
-	
 
 	// \todo What to do with this lineStatusChanges in sccp_dev_forward_status
 	/*
@@ -1696,10 +1429,6 @@ void *sccp_dev_postregistration(void *data)
 		return NULL;
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device registered; performing post registration tasks...\n", d->id);
-
-	/* turn off the device MWI light. We need to force it off on some phone (7910 for example) */
-	sccp_dev_set_mwi(d, NULL, 0);
-
 
 	// Post event to interested listeners (hints, mwi) that device was registered.
 	sccp_event_t *event = sccp_malloc(sizeof(sccp_event_t));
@@ -2071,35 +1800,6 @@ uint8_t sccp_device_find_index_for_line(const sccp_device_t * d, const char *lin
 
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: sccp_device_find_index_for_line return: %d\n", DEV_ID_LOG(d), config ? config->instance : -2);
 	return (config) ? config->instance : -2;
-}
-
-/*!
- * \brief Remove Line from Device
- * \param device SCCP Device
- * \param line SCCP Line
- *
- * \deprecated
- * \todo Should this be implemented or removed ?
- *
- * \callgraph
- * \callergraph
- */
-void sccp_device_removeLine(sccp_device_t * device, sccp_line_t * line)
-{
-//      sccp_buttonconfig_t     *config;
-//
-//
-//      SCCP_LIST_LOCK(&device->buttonconfig);
-//      SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
-//              if(config->type == LINE && (config->button.line.name) && line && !strcasecmp(config->button.line.name, line->name)){
-//                      config->button.line.reference = NULL;
-//
-//                      // \todo implement remove
-//                      //SCCP_LIST_REMOVE_CURRENT(config);
-//              }
-//      }
-//      SCCP_LIST_UNLOCK(&device->buttonconfig);
-
 }
 
 /*!
