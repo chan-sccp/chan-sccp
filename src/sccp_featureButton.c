@@ -123,7 +123,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
  									config->button.feature.status = 1;
  								}
  								
- 								config->button.feature.status &= 1; // Logical and &= intended here.
+ 								config->button.feature.status &= ((linedevice->cfwdAll.enabled)?1:0); // Logical and &= intended here.
   							}
 						}
 					}
