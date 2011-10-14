@@ -350,22 +350,17 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char 
 			sccp_log(1) (VERBOSE_PREFIX_3 "%s: Call Forward to an empty number. Invalid\n", DEV_ID_LOG(device));
 		} else {
 			switch (type) {
-			case SCCP_CFWD_ALL:
-				linedevice->cfwdAll.enabled = 1;
-				sccp_copy_string(linedevice->cfwdAll.number, number, sizeof(linedevice->cfwdAll.number));
-				break;
-			case SCCP_CFWD_BUSY:
-				linedevice->cfwdBusy.enabled = 1;
-				sccp_copy_string(linedevice->cfwdBusy.number, number, sizeof(linedevice->cfwdBusy.number));
-				break;
-			case SCCP_CFWD_NOANSWER:
-				sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Call Forward NoAnswer not fully implemented yet\n", DEV_ID_LOG(device));
-				linedevice->cfwdNoAnswer.enabled = 1;
-				sccp_copy_string(linedevice->cfwdNoAnswer.number, number, sizeof(linedevice->cfwdNoAnswer.number));
-				break;
-			default:
-				linedevice->cfwdAll.enabled = 0;
-				linedevice->cfwdBusy.enabled = 0;
+				case SCCP_CFWD_ALL:
+					linedevice->cfwdAll.enabled = 1;
+					sccp_copy_string(linedevice->cfwdAll.number, number, sizeof(linedevice->cfwdAll.number));
+					break;
+				case SCCP_CFWD_BUSY:
+					linedevice->cfwdBusy.enabled = 1;
+					sccp_copy_string(linedevice->cfwdBusy.number, number, sizeof(linedevice->cfwdBusy.number));
+					break;
+				default:
+					linedevice->cfwdAll.enabled = 0;
+					linedevice->cfwdBusy.enabled = 0;
 			}
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Call Forward enabled on line %s to number %s\n", DEV_ID_LOG(device), l->name, number);
 		}
@@ -373,21 +368,18 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char 
 	if (linedevice && linedevice->device) {
 		sccp_dev_starttone(linedevice->device, SKINNY_TONE_ZIPZIP, 0, 0, 0);
 		switch (type) {
-		case SCCP_CFWD_ALL:
-			sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDALL);
-			break;
-		case SCCP_CFWD_BUSY:
-			sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDBUSY);
-			break;
-		case SCCP_CFWD_NOANSWER:
-			sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDNOANSWER);
-			break;
-		case SCCP_CFWD_NONE:
-			sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDNONE);
-			break;
-		default:
-			sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDNONE);
-			break;
+			case SCCP_CFWD_ALL:
+				sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDALL);
+				break;
+			case SCCP_CFWD_BUSY:
+				sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDBUSY);
+				break;
+			case SCCP_CFWD_NONE:
+				sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDNONE);
+				break;
+			default:
+				sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDNONE);
+				break;
 		}
 		sccp_dev_forward_status(l, linedevice->lineInstance, device);
 	}

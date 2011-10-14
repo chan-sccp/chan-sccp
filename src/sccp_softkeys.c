@@ -804,12 +804,15 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 
 	sccp_channel_lock(c);
 	c->privacy = (c->privacy) ? FALSE : TRUE;
+	d->privacyFeature.status = c->privacy;
+	sccp_feat_changed(d, SCCP_FEATURE_PRIVACY);
+/*	
 	if (c->privacy) {
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_PRIVATE, 0);
 	} else {
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, 1);
 	}
-
+*/
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Private %s on call %d\n", d->id, c->privacy ? "enabled" : "disabled", c->callid);
 	sccp_channel_unlock(c);
 }

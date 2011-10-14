@@ -1994,7 +1994,6 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 		device->status.indicator[SCCP_STATUS_INDICATOR_CFWD]='_';
 		sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);
 		break;
-	case SCCP_FEATURE_CFWDNOANSWER:
 	case SCCP_FEATURE_CFWDBUSY:
 	case SCCP_FEATURE_CFWDALL:
 		SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
@@ -2027,16 +2026,6 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 									device->status.indicator[SCCP_STATUS_INDICATOR_CFWD]='B';
 								}
 								break;
-							case SCCP_FEATURE_CFWDNOANSWER:
-								if (lineDevice->cfwdBusy.enabled) {								
-									sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Call Forward NoAnswer not fully implemented yet\n", DEV_ID_LOG(device));
-									/* build disp message string */
-									if (s != tmp)
-										pbx_build_string(&s, &len, ", ");
-									pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDNOANSWER, line->cid_num, SKINNY_DISP_FORWARDED_TO, lineDevice->cfwdNoAnswer.number);
-									device->status.indicator[SCCP_STATUS_INDICATOR_CFWD]='N';
-								}
-								break;
 							default:
 								break;
 						}
@@ -2048,7 +2037,6 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 		if(strlen(tmp) > 0){
 			sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_CFWD, tmp);
 		}else{
-			device->status.indicator[SCCP_STATUS_INDICATOR_CFWD]='_';
 			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);
 		}
 		
@@ -2070,16 +2058,21 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 		break;
 	case SCCP_FEATURE_PRIVACY:
 		if (TRUE==device->privacyFeature.status) {
-				device->status.indicator[SCCP_STATUS_INDICATOR_PRIVACY]='B';
+				device->status.indicator[SCCP_STATUS_INDICATOR_PRIVACY]='P';
+				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_PRIVACY,  SKINNY_DISP_PRIVATE);
 		} else {
+				
 				device->status.indicator[SCCP_STATUS_INDICATOR_PRIVACY]='_';
-		}		
+				sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_PRIVACY);
+		}
 		break;
 	case SCCP_FEATURE_MONITOR:
 		if (TRUE==device->monitorFeature.status) {
 				device->status.indicator[SCCP_STATUS_INDICATOR_MONITOR]='M';
+				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_MONITOR,  SKINNY_DISP_MONITOR);
 		} else {
 				device->status.indicator[SCCP_STATUS_INDICATOR_MONITOR]='_';
+				sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_MONITOR);
 		}				
 		break;
 	default:
