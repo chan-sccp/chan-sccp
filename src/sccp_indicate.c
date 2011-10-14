@@ -134,8 +134,10 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		if (c == d->active_channel)
 			sccp_dev_stoptone(d, instance, c->callid);
 
-		sccp_dev_cleardisplaynotify(d);
 		sccp_dev_clearprompt(d, instance, c->callid);
+		
+		// Test for 7910
+		sccp_dev_cleardisplaynotify(d);
 		/* if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
 		if (c->answered_elsewhere)
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
@@ -156,6 +158,10 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 
 		if (c->previousChannelState == SCCP_CHANNELSTATE_RINGING)
 			sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
+		
+		// Test for 7910
+		sccp_dev_clearprompt(d, 0, 0);
+		sccp_dev_cleardisplaynotify(d);
 
 		break;
 	case SCCP_CHANNELSTATE_RINGOUT:

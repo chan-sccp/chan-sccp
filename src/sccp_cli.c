@@ -879,6 +879,8 @@ static int sccp_message_device(int fd, int argc, char *argv[])
 {
 	sccp_device_t *d;
 
+	// DIRTY TEST
+	sccp_moo_t *r1;
 	
 	int msgtimeout = 10;
 
@@ -900,6 +902,7 @@ static int sccp_message_device(int fd, int argc, char *argv[])
 		}
 	}
 	if ((d = sccp_device_find_byid(argv[3], FALSE))) {
+		// DIRTY TEST
 		//sccp_dev_displaynotify(d, argv[4], msgtimeout);
 		
 		
@@ -908,7 +911,7 @@ static int sccp_message_device(int fd, int argc, char *argv[])
 
 		r1->msg.LineStatMessage.lel_lineNumber = htolel(1);
 		
-		sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, "Blubb", sizeof(r1->msg.LineStatMessage.lineDirNumber));
+		sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, "David", sizeof(r1->msg.LineStatMessage.lineDirNumber));
 		
 		sccp_copy_string(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName, argv[4], sizeof(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName));
 				
