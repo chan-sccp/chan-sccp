@@ -2385,6 +2385,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 
 	uint32_t status = 0, ipPort = 0, partyID = 0;
 
+
 	memset(ipAddr, 0, 16);
 	if (d->inuseprotocolversion < 17) {
 		ipPort = htons(letohl(r->msg.OpenReceiveChannelAck.lel_portNumber));
@@ -3088,6 +3089,9 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 	sccp_channel_t *c;
 
 	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0, callID1 = 0;
+	
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Dumping message with length %d\n", DEV_ID_LOG(d), r->length);
+	sccp_dump_packet((unsigned char *)&r->msg.StartMediaTransmissionAck, sizeof(r->msg.StartMediaTransmissionAck_v17));
 
 	ipPort = htons(htolel(r->msg.StartMediaTransmissionAck.lel_portNumber));
 	partyID = letohl(r->msg.StartMediaTransmissionAck.lel_passThruPartyId);

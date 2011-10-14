@@ -2103,12 +2103,10 @@ typedef union {
 		uint32_t lel_callReference;					/*!< Call Reference */
 		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
 		uint32_t lel_callReference1;					/*!< Call Reference1 */
-		uint32_t lel_unknown1;						/*!< Unknown (i think this switches from IPv4 to IPv6 (0x00 in IPv4)) */
-		/* include IPv6 support */
-		char bel_ipAddr[16];						/*!< Ip Address Array (This field is apparently in big-endian format, even though most other fields are in little-endian format.) */
+		uint32_t bel_ipAddr;						/*!< Ip Address Array (This field is apparently in big-endian format, even though most other fields are in little-endian format.) */
 		uint32_t lel_portNumber;					/*!< Port Number */
 		uint32_t lel_smtStatus;						/*!< Start Media Transmission Status */
-		uint32_t lel_unknown2;						/*!< Unknown 2 */
+		uint32_t lel_unknown1;						/*!< Unknown 2 */
 	} StartMediaTransmissionAck;						/*!< Start Media Transmission Acknowledgement Structure */
 
 
