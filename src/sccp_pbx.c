@@ -472,7 +472,9 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
 	} else {
-		sccp_channel_send_callinfo(d, c);
+		// Really neccessary?
+		// Test for 7910 (to remove the following line)
+		// sccp_channel_send_callinfo(d, c);
 		sccp_pbx_needcheckringback(d);
 		sccp_dev_check_displayprompt(d);
 	}
