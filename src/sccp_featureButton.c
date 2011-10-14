@@ -130,11 +130,6 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				}
 				buttonconfig = NULL;
 
-				if (cfwdButtonEnabeld)
-					config->button.feature.status = 1;
-				else
-					config->button.feature.status = 0;
-
 				break;
 
 			case SCCP_FEATURE_DND:
