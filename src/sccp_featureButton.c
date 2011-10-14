@@ -54,9 +54,13 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 
 	uint8_t instance = 0;
 
-	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;				// Default feature type.
-
-	boolean_t cfwdButtonEnabled = TRUE;
+	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;				// Default feature 
+	
+		// This needs to default to FALSE so that the cfwd feature
+		// is not being enabled unless there is an existing database entry.
+		// The state is loaded from the database after configuring the buttons,
+		// so it is ok to set it to false here at first.
+	boolean_t cfwdButtonEnabled = FALSE;
 
 #ifdef CS_DEVSTATE_FEATURE
 	char buf[254] = "";
