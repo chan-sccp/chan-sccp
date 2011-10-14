@@ -482,7 +482,10 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 	sprintf(family, "SCCP/%s/%s", device->id, l->name);
 	res = pbx_db_get(family, "cfwdAll", buffer, sizeof(buffer));
 	if (!res) {
-		linedevice->cfwdAll.enabled = TRUE;
+			// Since upon deactivation of the feature the database entries are removed
+			// The default cfwd state should be FALSE.
+			// Otherwise any prepared cfwd features activate unwantedly after device restart (-DD, Bug 3396965)
+		linedevice->cfwdAll.enabled = FALSE;
 		sccp_copy_string(linedevice->cfwdAll.number, buffer, sizeof(linedevice->cfwdAll.number));
 		sccp_feat_changed(device, SCCP_FEATURE_CFWDALL);
 	}
