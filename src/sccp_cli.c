@@ -906,6 +906,21 @@ static int sccp_message_device(int fd, int argc, char *argv[])
 		//sccp_dev_displaynotify(d, argv[4], msgtimeout);
 		
 		
+		// EVEN MORE DIRTY TEST
+		
+		REQ(r1, ButtonTemplateMessageSingle);
+		
+			r1->msg.ButtonTemplateMessageSingle.definition[0].instanceNumber = 1;
+			r1->msg.ButtonTemplateMessageSingle.lel_buttonCount = 1
+			r1->msg.ButtonTemplateMessageSingle.definition[0].buttonDefinition = SKINNY_BUTTONTYPE_LINE;
+				
+		r1->msg.ButtonTemplateMessageSingle.lel_buttonOffset = 0;
+		r1->msg.ButtonTemplateMessageSingle.lel_buttonCount = htolel(1);
+		r1->msg.ButtonTemplateMessage.lel_totalButtonCount = htolel(1);
+		
+		sccp_dev_send(d, r1);
+		
+		
 		// DIRTY TEST
 		REQ(r1, LineStatMessage);
 
