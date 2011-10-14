@@ -89,46 +89,36 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				break;
 			case SCCP_FEATURE_CFWDALL:
 					
-				// This needs to default to FALSE so that the cfwd feature
-				// is not being enabled unless we can ask the lines for their state.
-				// If the lines are not available, the state should be loaded
-				// from the database after configuring the buttons,
-				// but I need to check on that (-DD).
-				config->button.feature.status = 0;
-
-				/* get current state */
-				SCCP_LIST_TRAVERSE(&device->buttonconfig, buttonconfig, list) {
-					if (buttonconfig->type == LINE) {
-						line = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE);
-						if (line) {
-
-							linedevice = sccp_util_getDeviceConfiguration(device, line);
-
-							if (!linedevice) {
-								if (device->registrationState == SKINNY_DEVICE_RS_OK) {
-									pbx_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
+					
+					// This needs to default to FALSE so that the cfwd feature
+					// is not being enabled unless we can ask the lines for their state.
+					config->button.feature.status = 0;
+					
+					/* get current state */
+					SCCP_LIST_TRAVERSE(&device->buttonconfig, buttonconfig, list) {
+						if (buttonconfig->type == LINE) {
+							
+							// Check if line and line device exists and thus forward status on that device can be checked
+							if (line = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE) 
+								&& linedevice = sccp_util_getDeviceConfiguration(device, line) ) {
+								
+								sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled) ? "on" : "off");
+								
+								/* set this button active, only if all lines are fwd -requesting issue #3081549 */
+								// Upon finding the first existing line, we need to set the feature status
+								// to TRUE and subsequently AND that value with the forward status of each line.
+								if(FALSE == lineFound) {
+									lineFound = TRUE;
+									config->button.feature.status = 1;
 								}
-								continue;
+								
+								// Set status of feature by logical and to comply with requirement above.
+								config->button.feature.status &= ((linedevice->cfwdAll.enabled)?1:0); // Logical and &= intended here.
 							}
-
-							sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled) ? "on" : "off");
-
-							/* set this button active, only if all lines are fwd -requesting issue #3081549 */
-							if (linedevice->cfwdAll.enabled) {
- 								// Upon finding the first existing line, we need to set the feature status
- 								// to TRUE and subsequently AND that value with the forward status of each line.
- 								
- 								if(FALSE == lineFound) {
- 									lineFound = TRUE;
- 									config->button.feature.status = 1;
- 								}
- 								
- 								config->button.feature.status &= ((linedevice->cfwdAll.enabled)?1:0); // Logical and &= intended here.
-  							}
 						}
 					}
-				}
-				buttonconfig = NULL;
+					buttonconfig = NULL;
+
 
 				break;
 
