@@ -1310,8 +1310,6 @@ void sccp_channel_endcall_locked(sccp_channel_t * channel)
 	*/
 	if (channel->privateData->device && channel->privateData->device->transfer_channel && channel->privateData->device->transfer_channel != channel) {
 		uint8_t instance = sccp_device_find_index_for_line(channel->privateData->device, channel->privateData->device->transfer_channel->line->name);
-
-		sccp_dev_set_lamp(channel->privateData->device, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_WINK);
 		sccp_device_sendcallstate(channel->privateData->device, instance, channel->privateData->device->transfer_channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_dev_set_keyset(channel->privateData->device, instance, channel->privateData->device->transfer_channel->callid, KEYMODE_ONHOLD);
 		channel->privateData->device->transfer_channel = NULL;

@@ -201,7 +201,9 @@ extern "C" {
 	#define SCCP_MAX_MUSICCLASS 80
 #endif
 	
-#define SCCP_MAXHOSTNAMELEN 100
+#define SCCP_MAX_HOSTNAME_LEN 100
+#define SCCP_MAX_MESSAGESTACK 10
+#define SCCP_MAX_STATUS_INDICATOR 4
 
 	typedef unsigned long long sccp_group_t;
 	typedef struct channel sccp_channel_t;					/*!< SCCP Channel Structure */
@@ -248,7 +250,6 @@ extern "C" {
 		SCCP_REQUEST_STATUS_SUCCESS,
 	} sccp_channel_request_status_t;					/*!< channel request status */
 	
-#define SCCP_MAX_MESSAGESTACK 10
 	typedef enum { 
 		SCCP_MESSAGE_PRIORITY_IDLE = 0, 
 		SCCP_MESSAGE_PRIORITY_VOICEMAIL, 
@@ -642,7 +643,7 @@ extern "C" {
 	 * \brief SCCP Hostname Structure
 	 */
 	struct sccp_hostname {
-		char name[SCCP_MAXHOSTNAMELEN];					/*!< Name of the Host */
+		char name[SCCP_MAX_HOSTNAME_LEN];					/*!< Name of the Host */
 		SCCP_LIST_ENTRY(sccp_hostname_t) list;				/*!< Host Linked List Entry */
 	};									/*!< SCCP Hostname Structure */
 
@@ -920,13 +921,13 @@ extern "C" {
 		char *messageStack[SCCP_MAX_MESSAGESTACK];
 		
 		struct {
-			char indicator[3];					/*!< Status Indicator */
-			char line[40];						/*!< Status Text Line */
-			int priority;						/*!< Priority From 10 to 0 */
-			char temp_line[40];					/*!< Temporairy Status Text Line */
-			int timeout;						/*!< Timeout for temporairy status text line */
-			boolean_t overwritable;					/*!< Status is overwritable */
-			boolean_t updated;					/*!< Status has changed, and needs to be refreshed */
+			char indicator[SCCP_MAX_STATUS_INDICATOR];		/*!< Status Indicator */
+//			char line[40];						/*!< Status Text Line */
+//			int priority;						/*!< Priority From 10 to 0 */
+//			char temp_line[40];					/*!< Temporairy Status Text Line */
+//			int timeout;						/*!< Timeout for temporairy status text line */
+//			boolean_t overwritable;					/*!< Status is overwritable */
+//			boolean_t updated;					/*!< Status has changed, and needs to be refreshed */
 			sccp_tokenstate_t token;				/*!< token request state */
 		} status;							/*!< Status Structure */
 		
