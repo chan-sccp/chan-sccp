@@ -56,6 +56,8 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 
 	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;				// Default feature 
 	
+	boolean_t lineFound = FALSE;
+	
 
 #ifdef CS_DEVSTATE_FEATURE
 	char buf[254] = "";
@@ -96,9 +98,10 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 			case SCCP_FEATURE_CFWDALL:
 					
 				// This needs to default to FALSE so that the cfwd feature
-				// is not being enabled unless there is an existing database entry.
-				// The state is loaded from the database after configuring the buttons,
-				// so it is ok to set it to false here at first.	
+				// is not being enabled unless we can ask the lines for their state.
+				// If the lines are not available, the state should be loaded
+				// from the database after configuring the buttons,
+				// but I need to check on that (-DD).
 				config->button.feature.status = 0;
 
 				/* get current state */
@@ -119,7 +122,15 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 							sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled) ? "on" : "off");
 
 							/* set this button active, only if all lines are fwd -requesting issue #3081549 */
-							if (1 == linedevice->cfwdAll.enabled) {
+							if (linedevice->cfwdAll.enabled) {
+								// Upon finding the first existing line, we need to set the feature status
+								// to TRUE and subsequently AND that value with the forward status of each line.
+								
+								if(FALSE == lineFound) {
+									lineFound = TRUE;
+									config->button.feature.status = 1;
+								}
+								
 								config->button.feature.status &= 1; // Logical and &= intended here.
 							}
 						}
