@@ -258,8 +258,10 @@ extern "C" {
 	typedef enum { 
 		SCCP_MESSAGE_PRIORITY_IDLE = 0, 
 		SCCP_MESSAGE_PRIORITY_VOICEMAIL, 
+		SCCP_MESSAGE_PRIORITY_MONITOR,
+		SCCP_MESSAGE_PRIORITY_PRIVACY,
 		SCCP_MESSAGE_PRIORITY_DND, 
-		SCCP_MESSAGE_PRIORITY_CFWD, 
+		SCCP_MESSAGE_PRIORITY_CFWD,
 	} sccp_message_priority_t;
 	
 	typedef enum { 
@@ -394,7 +396,6 @@ extern "C" {
 		SCCP_FEATURE_CFWDNONE,
 		SCCP_FEATURE_CFWDALL,
 		SCCP_FEATURE_CFWDBUSY,
-		SCCP_FEATURE_CFWDNOANSWER,
 		SCCP_FEATURE_DND,
 		SCCP_FEATURE_PRIVACY,
 		SCCP_FEATURE_MONITOR,
@@ -582,7 +583,6 @@ extern "C" {
 
 		sccp_cfwd_information_t cfwdAll;				/*!< cfwd information */
 		sccp_cfwd_information_t cfwdBusy;				/*!< cfwd information */
-		sccp_cfwd_information_t cfwdNoAnswer;				/*!< cfwd information */
 
 		struct subscriptionId subscriptionId;				/*!< for addressing individual devices on shared line */
 		char label[80];							/*!<  */

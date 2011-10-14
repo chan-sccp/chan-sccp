@@ -1375,6 +1375,7 @@ void sccp_feat_monitor(sccp_device_t * device, sccp_line_t * line, const uint32_
 	if (result && featureExtension) {
 		sccp_pbx_senddigits(channel, featureExtension);
 // 		channel->monitorEnabled = (channel->monitorEnabled) ? FALSE : TRUE;
+		device->monitorFeature.status = device->monitorFeature.status ? FALSE : TRUE;
 		sccp_feat_changed(device, SCCP_FEATURE_MONITOR);
 	}
 

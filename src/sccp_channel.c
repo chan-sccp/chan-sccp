@@ -1890,6 +1890,12 @@ void sccp_channel_clean_locked(sccp_channel_t * channel)			// we assume channel 
 			d->transfer_channel = NULL;
 		if (d->conference_channel == channel)
 			d->conference_channel = NULL;
+			
+		if (channel->privacy) {
+			channel->privacy=FALSE;
+			d->privacyFeature.status = FALSE;
+			sccp_feat_changed(d, SCCP_FEATURE_PRIVACY);	
+		}
 
 		if ((sccp_selected_channel = sccp_device_find_selectedchannel(d, channel))) {
 			SCCP_LIST_LOCK(&d->selectedChannels);
