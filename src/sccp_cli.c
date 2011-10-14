@@ -879,6 +879,7 @@ static int sccp_message_device(int fd, int argc, char *argv[])
 {
 	sccp_device_t *d;
 
+	
 	int msgtimeout = 10;
 
 	int beep = 0;
@@ -899,7 +900,25 @@ static int sccp_message_device(int fd, int argc, char *argv[])
 		}
 	}
 	if ((d = sccp_device_find_byid(argv[3], FALSE))) {
-		sccp_dev_displaynotify(d, argv[4], msgtimeout);
+		//sccp_dev_displaynotify(d, argv[4], msgtimeout);
+		
+		
+		// DIRTY TEST
+		REQ(r1, LineStatMessage);
+
+		r1->msg.LineStatMessage.lel_lineNumber = htolel(1);
+		
+		sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, "Blubb", sizeof(r1->msg.LineStatMessage.lineDirNumber));
+		
+		sccp_copy_string(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName, argv[4], sizeof(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName));
+				
+		sccp_copy_string(r1->msg.LineStatMessage.lineDisplayName, "Blabb", sizeof(r1->msg.LineStatMessage.lineDisplayName));
+		
+		sccp_dev_send(d, r1);
+
+		
+		
+		
 		if (beep) {
 			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
 		}
