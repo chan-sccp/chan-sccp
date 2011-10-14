@@ -2856,10 +2856,17 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 
 		break;
 	case SCCP_FEATURE_CFWDALL:
-		status = SCCP_CFWD_ALL;
+		status = SCCP_CFWD_NONE;
 
-		if (!config->button.feature.options || sccp_strlen_zero(config->button.feature.options) || !config->button.feature.status)
-			status = SCCP_CFWD_NONE;
+			
+		// Ask for activation of the feature.
+			if (config->button.feature.options && !sccp_strlen_zero(config->button.feature.options)) {
+				
+				// Now set the feature status. Note that the button status has already been toggled above.
+				if(config->button.feature.status) {
+					status = SCCP_CFWD_ALL;
+				}
+			}
 
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if (config->type == LINE) {
