@@ -131,7 +131,7 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		//}else{
 			sendAck = TRUE;
 		//}
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: unknown: %d, (%d)\n", r->msg.RegisterTokenReq.sId.deviceName, letohl(r->msg.RegisterTokenReq.unknown), (r->msg.RegisterTokenReq.unknown) & 0x10);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: unknown: %d, (%d)\n", r->msg.RegisterTokenReq.sId.deviceName, letohl(r->msg.RegisterTokenReq.unknown), (letohl(r->msg.RegisterTokenReq.unknown) & 0x6));
 
 	}
 	
@@ -270,7 +270,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	s->lastKeepAlive = time(0);
 	d->mwilight = 0;
 	d->protocolversion = r->msg.RegisterMessage.protocolVer;
-
+	
 	sccp_device_unlock(d);
 
 	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
@@ -283,7 +283,11 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 //      sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->length);
 
-	if (r->length < 56 && d->protocolversion == 0) {
+	// A logical or is required here, since if we read a message length less than 56,
+	// the protocolversion can be undefined (depending on whether overhead memory of the message might be uninitialized).
+	// Only if we read a full length register message must we check for a meaningful protocolversion other than zero.
+
+	if (r->length < 56 || d->protocolversion == 0) {
 		// registration request with protocol 0 version structure.
 		d->inuseprotocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), d->inuseprotocolversion);
@@ -294,7 +298,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		d->inuseprotocolversion = r->msg.RegisterMessage.protocolVer;
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), r->msg.RegisterMessage.protocolVer);
 	}
-
+	
 	if (d->inuseprotocolversion <= 3) {
 		// Our old flags for protocols from 0 to 3
 		r1->msg.RegisterAckMessage.unknown1 = 0x00;
@@ -2385,7 +2389,6 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 
 	uint32_t status = 0, ipPort = 0, partyID = 0;
 
-
 	memset(ipAddr, 0, 16);
 	if (d->inuseprotocolversion < 17) {
 		ipPort = htons(letohl(r->msg.OpenReceiveChannelAck.lel_portNumber));
@@ -2454,9 +2457,9 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 				if(c->videoCallEnabled) {
 					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Audio established, but still waiting for video.\n", d->id);
 				} else {
-					sccp_ast_setstate(c, AST_STATE_UP);
-					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
-				}
+				sccp_ast_setstate(c, AST_STATE_UP);
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
+			}
 			}
 
 		} else {
@@ -3096,7 +3099,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 	sccp_channel_t *c;
 
 	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0, callID1 = 0;
-	
+
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Dumping message with length %d\n", DEV_ID_LOG(d), r->length);
 	sccp_dump_packet((unsigned char *)&r->msg.StartMediaTransmissionAck, sizeof(r->msg.StartMediaTransmissionAck_v17));
 
@@ -3125,14 +3128,14 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 	/* update status */
 	c->rtp.audio.status &= ~SCCP_RTP_STATUS_PROGRESS_TRANSMIT;
 	c->rtp.audio.status |= SCCP_RTP_STATUS_TRANSMIT;
-			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
-			if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
+	/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
+	if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
 				if(c->videoCallEnabled) {
 					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Audio established, but still waiting for video.\n", d->id);
 				} else {
-					sccp_ast_setstate(c, AST_STATE_UP);
-					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
-				}
+		sccp_ast_setstate(c, AST_STATE_UP);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
+	}
 			}
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), callID, callID1, partyID);
