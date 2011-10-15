@@ -287,6 +287,7 @@ sccp_device_t *sccp_device_create(void)
 	d->pushURL = sccp_device_pushURLNotSupported;
 	d->pushTextMessage = sccp_device_pushTextMessageNotSupported;
 	d->checkACL = sccp_device_checkACL;
+	d->hasDisplayPrompt = sccp_device_trueResult;
 	
 	return d;
 }
@@ -296,7 +297,6 @@ sccp_device_t *sccp_device_createAnonymous(const char *name){
 	d->realtime = TRUE;
 	d->isAnonymous = TRUE;
 	d->checkACL = sccp_device_checkACLTrue;
-	d->hasDisplayPrompt = sccp_device_trueResult;
 	
 	sccp_copy_string(d->id, name, sizeof(d->id));
 	
