@@ -434,6 +434,11 @@ int sccp_pbx_hangup_locked(sccp_channel_t * c)
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
 	} else {
+		/* 
+		 * Really neccessary?
+		 * Test for 7910 (to remove the following line)
+		 *  (-DD)
+		 */
 		sccp_channel_send_callinfo(d, c);
 		sccp_pbx_needcheckringback(d);
 		sccp_dev_check_displayprompt(d);
@@ -580,6 +585,12 @@ int sccp_pbx_answer(sccp_channel_t * c)
 	sccp_indicate_locked(sccp_channel_getDevice(c), c, SCCP_CHANNELSTATE_CONNECTED);
 
 	sccp_channel_unlock(c);
+	
+	if(c->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE){
+		/** \todo use pbx implementation for requested video update */
+		ast_queue_control(c->owner, AST_CONTROL_VIDUPDATE);
+	}
+	
 	return 0;
 }
 

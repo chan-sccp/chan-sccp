@@ -148,6 +148,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		if (c == d->active_channel)
 			sccp_dev_stoptone(d, instance, c->callid);
 
+		sccp_dev_cleardisplaynotify(d);
 		sccp_dev_clearprompt(d, instance, c->callid);
 
 		/* if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
