@@ -48,6 +48,14 @@ static boolean_t sccp_device_checkACLTrue(sccp_device_t *device){
 	return TRUE;
 }
 
+static boolean_t sccp_device_trueResult(void){
+	return TRUE;
+}
+
+static boolean_t sccp_device_falseResult(void){
+	return FALSE;
+}
+
 /*!
  * \brief Check device ipaddress against the ip ACL (permit/deny and permithosts entries)
  */
@@ -288,6 +296,7 @@ sccp_device_t *sccp_device_createAnonymous(const char *name){
 	d->realtime = TRUE;
 	d->isAnonymous = TRUE;
 	d->checkACL = sccp_device_checkACLTrue;
+	d->hasDisplayPrompt = sccp_device_trueResult;
 	
 	sccp_copy_string(d->id, name, sizeof(d->id));
 	
@@ -540,7 +549,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 #ifdef CS_SCCP_VIDEO
 		sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
 #endif
-		
+		d->hasDisplayPrompt = sccp_device_falseResult;
 		for (i = 0; i < 4; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 		break;
@@ -559,18 +568,21 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
     	case SKINNY_DEVICETYPE_CISCO6921:
     		for (i = 0; i < 2; i++) {
                 	(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-                }	
+                }
+                d->hasDisplayPrompt = sccp_device_falseResult;
 		break;
 	case SKINNY_DEVICETYPE_CISCO6941:
 	case SKINNY_DEVICETYPE_CISCO6945:
 		for (i = 0; i < 4; i++) {
 			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
                 }
+                d->hasDisplayPrompt = sccp_device_falseResult;
 		break;
 	case SKINNY_DEVICETYPE_CISCO6961:
 		for (i = 0; i < 12; i++) {
                         (btn++)->type = SCCP_BUTTONTYPE_MULTI;
 		}
+		d->hasDisplayPrompt = sccp_device_falseResult;
 		break;
 	default:
 		/* at least one line */
@@ -1248,7 +1260,9 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	}
 	
 	/* when we are here, there's nothing to display */
-	sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
+	if(d->hasDisplayPrompt){
+		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
+	}
 	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);				/* this is for redial softkey */
 
 OUT:
