@@ -506,8 +506,8 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("Device State (Acc.)", 	CLI_AMI_LIST_WIDTH,	"%s",	 	accessorystatus2str(d->accessorystatus));
 	CLI_AMI_OUTPUT_PARAM("Last Used Accessory", 	CLI_AMI_LIST_WIDTH,	"%s",	 	accessory2str(d->accessoryused));
 	CLI_AMI_OUTPUT_PARAM("Last dialed number", 	CLI_AMI_LIST_WIDTH,	"%s",	 	d->lastNumber);
-	CLI_AMI_OUTPUT_PARAM("Status Indicator", 	CLI_AMI_LIST_WIDTH,	"%s",	 	d->status.indicator);
 #ifdef CS_ADV_FEATURES
+	CLI_AMI_OUTPUT_PARAM("Status Indicator", 	CLI_AMI_LIST_WIDTH,	"%s",	 	d->status.indicator);
 	CLI_AMI_OUTPUT_BOOL ("Use Placed Calls", 	CLI_AMI_LIST_WIDTH, 			d->useRedialMenu);
 #endif
 #ifdef CS_DYNAMIC_CONFIG
@@ -1328,11 +1328,22 @@ static int sccp_message_device(int fd, int argc, char *argv[])
 	}
 	if ((d = sccp_device_find_byid(argv[3], FALSE))) {
 		sccp_dev_set_message(d, argv[4], timeout, FALSE, beep);	
+
+#if CS_ADV_FEATURES
+		sccp_moo_t *r1;
+		REQ(r1, LineStatMessage);
+		r1->msg.LineStatMessage.lel_lineNumber = htolel(1);
+		sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, "lDN", sizeof(r1->msg.LineStatMessage.lineDirNumber));
+		sccp_copy_string(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName, "lFQDN", sizeof(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName));
+		sccp_copy_string(r1->msg.LineStatMessage.lineDisplayName, "lDisplayName", sizeof(r1->msg.LineStatMessage.lineDisplayName));
+		sccp_dev_send(d, r1);
+#endif
 	        return RESULT_SUCCESS;
 	} else {
 	        ast_cli(fd, "Device not found!\n");
 	        return RESULT_FAILURE;
 	}
+	
 }
 
 static char message_device_usage[] = "Usage: sccp message device <deviceId> <message text> [beep] [timeout]\n" "       Send a message to an SCCP Device + phone beep + timeout.\n";

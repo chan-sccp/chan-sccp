@@ -927,7 +927,9 @@ extern "C" {
 		
 		
 		struct {
+#ifdef CS_ADV_FEATURES
 			char indicator[SCCP_MAX_STATUS_INDICATOR];		/*!< Status Indicator */
+#endif
 			sccp_tokenstate_t token;				/*!< token request state */
 //			char line[40];						/*!< Status Text Line */
 //			int priority;						/*!< Priority From 10 to 0 */
