@@ -1,3 +1,14 @@
+Needs testing
+============================================================================
+Fix Check sccp reload:
+  - sccp.conf reloading / reset necessary devices
+
+Remote capabilities check: test remote channel is sccp channel -> use preferred codecs (mostly done, test transfer hold needed -MC)
+
+MaxCallBR to "automaticly" choose audio and video codec
+
+
+
 Needs fixing
 ============================================================================
 
@@ -8,10 +19,7 @@ Fix NAT/DirectRTP/EarlyRTP Issues
 
 Fix Cisco Communicator Support (mostly done -MC)
 
-Fix when phone looses connection and tries to re-connect within keepalive time, it is looked out of connecting
-
-Fix Check sccp reload:
-  - sccp.conf reloading / reset necessary devices
+Fix when phone looses connection and tries to re-connect within keepalive time, it is locked out of connecting
 
 Fix Conference + ConfList
 
@@ -19,19 +27,14 @@ Fix RegContext SubscriptionId (segfault during module load after unload)
 
 Fix Pressing a shared line button, while another phone is on a call using the same shared line.
 
-for remote capabilities check: test remote channel is sccp channel -> use preferred codecs (mostly done, test transfer hold needed -MC)
+Handle control_frame receipt of AST_CONTROL_HANGUP when previous channel->state AST_CONTROL_REDIRECTING -> finish tranfer/blindtransfer
 
-implement MaxCallBR to "automaticly" choose audio and video codec
-
-handle control_frame receipt of AST_CONTROL_HANGUP when previous channel->state AST_CONTROL_REDIRECTING -> finish tranfer/blindtransfer
-
-pbx_impl documentation: Wenn wir die function in pbx_impl_ast nicht static machen und die header fur diese functionen in pbx_impl.h legen wurde, konnte mann die pbx_impl functions dort documentieren, statt in jeder einzelne ast???.c file. Ist das ok, oder gibt es da noch probleme ?
-
-CLI_Macro's saubern: Da sollte ich noch mal durch gehen und die per asterisk version spalten.
-
-CallerId Exchange > ast 1.8: benuzten von ast_channel_queue_connected_line_update, ast_channel_update_connected_line fur pickup und transfer. mit callback function (ast_channel_queue_connected_line_update) wenn das target connected ist.
+CallerId Exchange > ast 1.8: benuzten von ast_channel_queue_connected_line_update, ast_channel_update_connected_line fur pickup und transfer. 
+  mit callback function (ast_channel_queue_connected_line_update) wenn das target connected ist.
 
 Pickup: eigentlicher pickup code sollte in ein seperate function liegen, damit die fur grouppickup und directpickup nicht wiederhollte werden musste (sccp_do_pickup -> calls -> PBX(do_pickup)).
+
+CLI_Macro's saubern: Da sollte ich noch mal durch gehen und die per asterisk version spalten.
 
 
 Objectives 1.8
@@ -46,7 +49,7 @@ Automatic enabling of directrtp when possible / desired
 
 Improve codec selection, up/downgrade codec on resume
 
-Improve status display (Cfwd / DND / Privacy)
+Improve status display (Cfwd / DND / Privacy) (implemented via device->status.indicator (CS_ADV_FEATURES)). Updates needed: Only display when active indicator.
 
 Add Support IPV6
 
@@ -66,7 +69,7 @@ Make tested configure options standard, and remove configure flags (and reduce p
  - park
  - pickup
 
-Add sccp.conf Option to save protocol messages from phone -> asterisk to use for device debugging purposes
+Add sccp.conf Option to save protocol messages from phone -> asterisk to use for device debugging purposes.
 
 Add support for Call Completion Supplementary Services (ccss) / *5 / Call caller back as soon as device becomes available
 
@@ -74,17 +77,15 @@ Add CLI/AMI interfaces for master/slave switchover (token message)
 
 Add FeatureButton to monitor Parkinglot + CiscoXML List of parked calls inc ase there is more than one call so you can select one.
 
+pbx_impl documentation: Wenn wir die function in pbx_impl_ast nicht static machen und die header fur diese functionen in pbx_impl.h legen wurde, konnte mann die pbx_impl functions dort documentieren, statt in jeder einzelne ast???.c file. Ist das ok, oder gibt es da noch probleme ?
+
 
 
 Short Term
 ============================================================================
-add 1.6.x support to pbx_impl
+Rewrite manager and cli interfaces to use the same function and also produce xml (similar to other asterisk channel drivers do) (also checkout chan_ss7 cli methods) (partially implemented)
 
-add 1.4 support to pbx_impl
-
-Rewrite manager and cli interfaces to use the same function and also produce xml (similar to other asterisk channel drivers do) (also checkout chan_ss7 cli methods)
-
-Generate sample sccp.conf and sccp.sql files from ConfigOption
+Generate sample sccp.conf and sccp.sql files from ConfigOption (initial implementation in sccp config generate / contrib/gen_sccpconf)
  - check used sccp.conf file version and upgrade if necessary on start
 
 Add Perl Protocol Testing script (sccp_protocol.h would need to be reformatted)
@@ -95,7 +96,9 @@ Video Provider abstraction: Implement abstraction layer for video source and sin
 
 Long Term
 ============================================================================
-add template option for realtime either using templates from sccp.conf or template entry in database
+Add 1.4 support to pbx_impl
+
+Add template option for realtime either using templates from sccp.conf or template entry in database
 
 Add FreeSwitch/CallWeaver/Yate/??? support to pbx_impl
 
