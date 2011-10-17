@@ -1,0 +1,332 @@
+Needs fixing
+============================================================================
+
+[2011-08-06 20:58:46] ERROR[17405]: lock.c:136 __ast_pthread_mutex_destroy: sccp_device.c line 1693 (sccp_dev_clean): Error destroying mutex &(&d->devstateSpecifiers)->lock: Device or resource busy
+[2011-08-06 20:58:46] ERROR[17405]: lock.c:407 __ast_pthread_mutex_unlock: sccp_device.c line 1694 (sccp_dev_clean): mutex '&(&d->devstateSpecifiers)->lock' freed more times than we've locked!
+
+Fix NAT/DirectRTP/EarlyRTP Issues
+
+Fix Cisco Communicator Support (mostly done -MC)
+
+Fix when phone looses connection and tries to re-connect within keepalive time, it is looked out of connecting
+
+Fix Check sccp reload:
+  - sccp.conf reloading / reset necessary devices
+
+Fix Conference + ConfList
+
+Fix RegContext SubscriptionId (segfault during module load after unload)
+
+Fix Pressing a shared line button, while another phone is on a call using the same shared line.
+
+for remote capabilities check: test remote channel is sccp channel -> use preferred codecs (mostly done, test transfer hold needed -MC)
+
+implement MaxCallBR to "automaticly" choose audio and video codec
+
+handle control_frame receipt of AST_CONTROL_HANGUP when previous channel->state AST_CONTROL_REDIRECTING -> finish tranfer/blindtransfer
+
+pbx_impl documentation: Wenn wir die function in pbx_impl_ast nicht static machen und die header fur diese functionen in pbx_impl.h legen wurde, konnte mann die pbx_impl functions dort documentieren, statt in jeder einzelne ast???.c file. Ist das ok, oder gibt es da noch probleme ?
+
+CLI_Macro's saubern: Da sollte ich noch mal durch gehen und die per asterisk version spalten.
+
+CallerId Exchange > ast 1.8: benuzten von ast_channel_queue_connected_line_update, ast_channel_update_connected_line fur pickup und transfer. mit callback function (ast_channel_queue_connected_line_update) wenn das target connected ist.
+
+Pickup: eigentlicher pickup code sollte in ein seperate function liegen, damit die fur grouppickup und directpickup nicht wiederhollte werden musste (sccp_do_pickup -> calls -> PBX(do_pickup)).
+
+
+Objectives 1.8
+============================================================================
+
+Finish Configuration
+- use global codecs for device
+
+Automatically Detect nated devices
+
+Automatic enabling of directrtp when possible / desired
+
+Improve codec selection, up/downgrade codec on resume
+
+Improve status display (Cfwd / DND / Privacy)
+
+Add Support IPV6
+
+Dynamic configuration for devices
+ - add cli interfaces to manipulate configuration and save sccp.conf
+
+Cond_wait/Cond_timedwait for several situations
+ - open receive
+ - pbx indication
+ - dialtimeout (cond_timedwait)
+ - scheduler
+ - pbx_channel handover
+
+Make tested configure options standard, and remove configure flags (and reduce preprocessor checks in the sources)
+ - realtime (add on/off switch to global sccp.conf section)
+ - dev_state
+ - park
+ - pickup
+
+Add sccp.conf Option to save protocol messages from phone -> asterisk to use for device debugging purposes
+
+Add support for Call Completion Supplementary Services (ccss) / *5 / Call caller back as soon as device becomes available
+
+Add CLI/AMI interfaces for master/slave switchover (token message)
+
+Add FeatureButton to monitor Parkinglot + CiscoXML List of parked calls inc ase there is more than one call so you can select one.
+
+
+
+Short Term
+============================================================================
+add 1.6.x support to pbx_impl
+
+add 1.4 support to pbx_impl
+
+Rewrite manager and cli interfaces to use the same function and also produce xml (similar to other asterisk channel drivers do) (also checkout chan_ss7 cli methods)
+
+Generate sample sccp.conf and sccp.sql files from ConfigOption
+ - check used sccp.conf file version and upgrade if necessary on start
+
+Add Perl Protocol Testing script (sccp_protocol.h would need to be reformatted)
+
+Video Provider abstraction: Implement abstraction layer for video source and sink.
+
+
+
+Long Term
+============================================================================
+add template option for realtime either using templates from sccp.conf or template entry in database
+
+Add FreeSwitch/CallWeaver/Yate/??? support to pbx_impl
+
+Video Call Client Software (Java, Applet, Webstart).
+
+Add Video Handling for Conference (One Sender, Multiple Viewer, Multicast)
+
+Enforce lock hierarchies:
+  - Extend every thread with a thread_local int current_lock_hierarchy_level"
+  - Before locking check if the current lock hierarchy level is lower than the lock level
+    - If true -> set current_lock_hierarchy_level to lock level
+    - If false -> use try_lock once.
+      - on success -> set current_lock_hierarchy_level to lock level
+      - on failure -> if holding one lock already
+        - if one lock already -> conditional wait on this onelock
+	- if more than one lock :
+	  - release all locks begotten via trylock in current thread 
+	    conditional wait on last lock begotten via normal lock
+  - On unlock -> set current_lock_hierarchy_level to previous lock level
+
+
+
+New Features
+============================================================================
+New Parameter CFwdUnRegistered -> Here you can set a Number to be dialed when a device has not registered or unreachable(kirk / nokia-icc)
+
+
+
+Doxygen Entries:
+=============================================================================
+chan_sccp.c:188 = handle dnd on device
+chan_sccp.c:419 = should be pbx independent
+chan_sccp.c:499 = how can we handle this ?
+chan_sccp.c:693 = make this pbx independend
+chan_sccp.c:697 = Temporary fix to unload Module. Needs to be looked at 
+sccp_actions.c:123 = Implement a decision when to send RegisterTokenAck and when to send RegisterTokenReject
+sccp_actions.c:155 = handle device pre-registration to speed up registration upon emergency and make communication (device reset) with device possible 
+sccp_actions.c:274 = check anonymous devices for permit hosts
+sccp_actions.c:337 = change 'our protocol capability' calculation, using the protocol definition 
+sccp_actions.c:441 = check anonymous devices for permit hosts
+sccp_actions.c:750 = why do we get the message twice  
+sccp_actions.c:1134 = set index
+sccp_actions.c:1210 = we should  lock the list here. 
+sccp_actions.c:1399 = use feature map or sccp_feat_handle_directpickup 
+sccp_actions.c:1414 = use feature map or sccp_feat_handle_directpickup 
+sccp_actions.c:2165 = why the extra wait here, we received the digittimeoutchar ? 
+sccp_actions.c:2166 = or replace by pbx_cond_timedwait 
+sccp_actions.c:2183 = why the extra wait here, we already waited and found an exact match ? 
+sccp_actions.c:2184 = or replace by pbx_cond_timedwait 
+sccp_actions.c:2574 = extend ServerResMessage to be able to return multiple servers (cluster)
+sccp_actions.c:2575 = Handle IPv6
+sccp_appfunctions.c:51:	if ((colname = strchr(data, ' = Will be deprecated after 1.4 
+sccp_appfunctions.c:262:	if ((colname = strchr(data, ' = Will be deprecated after 1.4 
+sccp_appfunctions.c:469:	if ((colname = strchr(data, ' = Will be deprecated after 1.4 
+sccp_appfunctions.c:555 = needs to be implemented 
+sccp_appfunctions.c:559 = needs to be implemented 
+sccp_appfunctions.c:693:        if ((text = strchr(data, ' = Will be deprecated after 1.4 
+sccp_channel.c:466 = We need to test what we have to copy in the DirectoryNumber 
+sccp_channel.c:511 = calculate packetSize 
+sccp_channel.c:716 = unused? 
+sccp_channel.c:744 = handle payload error
+sccp_channel.c:745 = use rtp codec map
+sccp_channel.c:924 = move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup 
+sccp_channel.c:942 = move this to the initial part, otherwise we overwrite direct rtp destination 
+sccp_channel.c:1111 = fix directRTP with peer channel
+sccp_channel.c:1333 = handle codec choose
+sccp_channel.c:1386 = move this to openreceive- and startmediatransmission (we do calc in openreceiv and startmedia, so check if we can remove)
+sccp_channel.c:1446 = use pbx impl
+sccp_channel.c:1520 = use pbx impl
+sccp_channel.c:1637 = use pbx impl
+sccp_channel.c:1663 = move this to openreceive- and startmediatransmission
+sccp_channel.c:1876 = use pbx impl
+sccp_channel.c:1932 = use pbx impl
+sccp_channel.c:1944 = Find a way solve the chan->state problem
+sccp_channel.c:2084 = how about other types like SIP and IAX... How are we going to implement the callerid exchange for them. 
+sccp_channel.c:2348 = we should remove our prefs from original list -MC
+sccp_cli.c:631 = handle shared line
+sccp_cli.c:1022 = TO BE IMPLEMENTED: sccp show mwi subscriptions
+sccp_cli.c:1198 = TO BE IMPLEMENTED: sccp message device
+sccp_cli.c:1353 = TO BE IMPLEMENTED: sccp message device
+sccp_cli.c:1635 = implement a check for active channels before sending reset 
+sccp_cli.c:1907 = add short description
+sccp_conference.c:44 = Implement SCCP:StartAnnouncementMessage SCCP:StopAnnouncementMessage
+sccp_conference.c:175 = make this pbx independent 
+sccp_conference.c:197 = make this pbx independent 
+sccp_conference.c:217 = TODO: error handling
+sccp_conference.c:333 = TODO: error handling
+sccp_conference.c:347 = TODO: error handling
+sccp_conference.c:374 = implement this
+sccp_conference.c:375 = check if the are enough participants in conference
+sccp_conference.c:399 = we need an sccp.conf conference option to specify the action that needs to be taken when the 
+sccp_conference.c:414 = hangup channel / sccp_channel for removed participant when called via KICK action - DdG 
+sccp_conference.c:437 = should this not be 2 ?
+sccp_conference.c:456 = implement this
+sccp_conference.c:457 = check if the are enough participants in conference
+sccp_conference.c:672 = implement this in the right way 
+sccp_conference.c:850 = find a better methode to wait for the thread to signal removed participant (pthread_cond_timedwait ?); 
+sccp_conference.c:913 = how to handle multiple moderators
+sccp_conference.c:925 = how to handle multiple moderators
+sccp_conference.c:941 = how to handle multiple moderators
+sccp_config.c:275 = need a solution to set boolean flags in a bit array 
+sccp_config.c:519 = add errormsg return to sccpConfigOption->converter_f: so we can have a fixed format the returned errors to the user
+sccp_config.c:679 = retrieve value from correct segment 
+sccp_config.c:878 = Can we completely loose the option to set the protocol version and just embed the max_protocol version in the source
+sccp_config.c:947 = need check to see if preferred_codecs has changed
+sccp_config.c:948 = do we need to reduce the preferences by the pbx -> skinny codec mapping ?
+sccp_config.c:960 = implement check 
+sccp_config.c:985 = need check to see if ha has changed
+sccp_config.c:1007 = need check to see if ha has changed
+sccp_config.c:1023 = Build a check to see if the button has changed 
+sccp_config.c:1064 = maybe add new DATATYPE_LIST to add string param value to LIST_HEAD to make a generic parser
+sccp_config.c:1065 = need check to see if  has changed
+sccp_config.c:1087 = make more generic
+sccp_config.c:1088 = cleanup original implementation in sccp_utils.c
+sccp_config.c:1109 = check allowed addons during the registration process, so we can use skinny device type instead of user defined type -MC 
+sccp_config.c:1140 = malloc/calloc of privacyFeature necessary ?
+sccp_config.c:1242 = make checks for changes to make it more generic 
+sccp_config.c:1272 = when mbox is free-ed here, we get a segfault 
+sccp_config.c:1432 = check changes to make the function more generic
+sccp_config.c:1507 = Build a check to see if the button has changed
+sccp_config.c:1597 = check if values change 
+sccp_config.c:1623 = check if values change 
+sccp_config.c:1639 = check if values change 
+sccp_config.c:1659 = check if values change 
+sccp_config.c:1812 = change using singular h_addr to h_addr_list (name may resolve to multiple ip-addresses 
+sccp_config.c:2107 = this function should be called sccp_config_applyDeviceConfiguration
+sccp_config.c:2398 = restore cfwd feature
+sccp_config.c:2482 = Add some filtering in order to reduce number of unnecessarily triggered events.
+sccp_device.c:545 = Disable DirTrfr by Default
+sccp_device.c:649 = What does this function do exactly (ActivateCallPlaneMessage) ?
+sccp_device.c:675 = What does this function do exactly (DeactivateCallPlaneMessage) ?
+sccp_device.c:1026 = We have to decide on a standardized implementation of displayprompt to be used
+sccp_device.c:1086 = New Feature to Display DND / CallForward Status and Privacy Status per Line
+sccp_device.c:1240 = (1) Put current call on hold
+sccp_device.c:1255 = should this be implemented or removed
+sccp_device.c:1309 -> : dev_set_lamp (SetLampMessage) ToBeRemoved / Moved / Reimplemented ?
+sccp_device.c:1381 = integration this function correctly into check sccp_dev_check_displayprompt
+sccp_device.c:1400 = check for forward status during registration -MC
+sccp_device.c:1405 = this is the wrong place to do this hack, -MC
+sccp_device.c:1437 = What to do with this lineStatusChanges in sccp_dev_forward_status
+sccp_device.c:1562 = integrate sccp_dev_clean and sccp_dev_free into sccp_device_delete -DdG
+sccp_device.c:1871 = Should this be implemented or removed ?
+sccp_device.c:1886 = implement remove
+sccp_features.c:359 -> : remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
+sccp_features.c:482 = backport from trunk
+sccp_features.c:708 = Conferencing option needs to be build and implemented
+sccp_features.c:800 = Conferencing option needs to be build and implemented
+sccp_features.c:814 = Conferencing option needs to be build and implemented
+sccp_features.c:964 -> : remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
+sccp_features.c:1134 = Conferencing option needs to be build and implemented
+sccp_features.c:1332 -> : In the event a call is terminated,
+sccp_hint.c:403 = Check if the actual device still exists while going throughthe hint->subscribers and not pointing at rubish
+sccp_hint.c:1177 = implement in pbx wrapper as getCallInfo(char *channelName, callInfo *callinfo)
+sccp_indicate.c:174 = is this a good solution? -MC
+sccp_indicate.c:244 = thats not the right place to update pbx state 
+sccp_indicate.c:277:	case SCCP_CHANNELSTATE_PROGRESS = SCCP_CHANNELSTATE_PROGRESS To be checked 
+sccp_indicate.c:344:	case SCCP_CHANNELSTATE_INVALIDCONFERENCE = SCCP_CHANNELSTATE_INVALIDCONFERENCE To be implemented 
+sccp_indicate.c:347:	case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE = SCCP_CHANNELSTATE_CONNECTEDCONFERENCE To be implemented 
+sccp_indicate.c:420:	case SCCP_CHANNELSTATE_BLINDTRANSFER = SCCP_CHANNELSTATE_BLINDTRANSFER To be implemented 
+sccp_indicate.c:423:	default = SCCP_CHANNELSTATE:default To be implemented 
+sccp_indicate.c:461 = Explain Pretty Function
+sccp_indicate.c:480 = move this to channel->privacy 
+sccp_indicate.c:497 = find working lock
+sccp_indicate.c:518 = do not publish status we already know, because we are part of it
+sccp_line.c:57 = to be implemented correctly (***)
+sccp_line.c:218 = integrate sccp_line_clean and sccp_line_delete_nolock into sccp_line_delete
+sccp_line.c:312 = we should check, that extension is reachable on line
+sccp_management.c:80 = add description for ami 
+sccp_management.c:81 = add description for ami 
+sccp_management.c:82 = add description for ami 
+sccp_management.c:83 = add description for ami 
+sccp_mwi.c:219 = Marcello)
+sccp_mwi.c:224 = implement sccp_mwi_unsubscribeMailbox
+sccp_pbx.c:87 = reimplement DNDMODES, ringermode=urgent, autoanswer
+sccp_pbx.c:143 = perhaps we should lock the sccp_channel here. 
+sccp_pbx.c:190 = implement dnid, ani, ani2 and rdnis
+sccp_pbx.c:234 = check if we have to do this
+sccp_pbx.c:268 = perhaps lock the channel on global section 
+sccp_pbx.c:277 = perhaps lock the channel on global section 
+sccp_pbx.c:480 = perhaps we should lock channel here. 
+sccp_pbx.c:567 = This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
+sccp_pbx.c:690 = we should move this
+sccp_pbx.c:693 = should we move this to pbx implementation ? -MC
+sccp_pbx.c:697 = check locking
+sccp_pbx.c:698 = we should remove this shit. 
+sccp_pbx.c:717 -> : Bridge?
+sccp_pbx.c:718 -> : Transfer?
+sccp_pbx.c:788 = check overlap feature status -MC
+sccp_pbx.c:805 = clarify Soft Switch Function
+sccp_pbx.c:1076 = replace AST_PBX enum using pbx_impl wrapper enum 
+sccp_pbx.c:1080 = change indicate to something more suitable 
+sccp_pbx.c:1149 = implement this in pbx implementation
+sccp_pbx.c:1165 = pbx_transfer needs to be implemented correctly
+sccp_pbx.c:1185 = Blindtransfer needs to be implemented correctly
+sccp_pbx.c:1192 = Transfer needs to be implemented correctly
+sccp_pbx.c:1244 = implement internal peer search
+sccp_pbx.c:1257 = implement internal peer search
+sccp_protocol.c:109 = this should be 1?
+sccp_protocol.c:186 = this should be 1?
+sccp_protocol.c:248 = this message is wrong, but we get 'Placed Calls' working on V >= 19
+sccp_protocol.c:465 = need a protocol implementation for ConnectionStatisticsReq using Version 19 and higher 
+sccp_protocol.c:466 = need a protocol implementation for ForwardStatMessage using Version 19 and higher 
+sccp_rtp.c:120 = we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait) 
+sccp_softkeys.c:341 = discus Marcello's transfer experiment
+sccp_softkeys.c:384 = The line param is not used 
+sccp_softkeys.c:428 = we should use the feature changed event to check displayprompt 
+sccp_softkeys.c:792 = Conferencing option needs to be build and implemented
+sccp_softkeys.c:808 = Conferencing option is under development.
+sccp_softkeys.c:823 = Conferencing option needs to be build and implemented
+sccp_softkeys.c:878 = Conferencing option needs to be build and implemented
+sccp_softkeys.c:953 = use SoftKeyLabel instead of softkeyindex
+sccp_utils.c:268 = this code is not pbx independent
+sccp_utils.c:448 = No ID Specified only instance, should this function be renamed ?
+sccp_utils.c:883 = write an pbx implementation for that
+sccp_utils.c:1358 = implement function for finding index of given SoftKey
+chan_sccp.h:157 = I don't like the -1 returned value 
+chan_sccp.h:689 = TO BE REMOVED) 
+chan_sccp.h:884 = third MWI/light entry in device ? 
+chan_sccp.h:1101 = should change to an array of external ip's, because externhost could resolv to multiple ip-addresses (h_addr_list))
+chan_sccp.h:1236 = sccp_is_nonempty_string never used (not used)
+chan_sccp.h:1240 = Unrecognized identifier: ast_strlen_zero. Identifier used in code has not been declared. 
+chan_sccp.h:1241 = Return value type int does not match declared type unsigned char: 1 
+chan_sccp.h:1244 = Return value type int does not match declared type unsigned char: 1 
+sccp_lock.h:131 = add __sccp_rwlock implementation for debugging in sccp_lock.c 
+sccp_pbx.h:35 = do we need this?
+sccp_protocol.h:1742 = what is layout? 
+sccp_protocol.h:1966 = Unknown 
+sccp_protocol.h:1967 = I don't know if this is exact 
+sccp_protocol.h:1973 = Unknown 
+sccp_protocol.h:1974 = Unknown2 
+sccp_protocol.h:2067 = Unknown 0x004A Message Structure 
+sccp_protocol.h:2074 = Unknown 0x0141 Message Structure 
+sccp_protocol.h:2080 = shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 
+sccp_protocol.h:3013 = Starting su=0|1) 
