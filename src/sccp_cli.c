@@ -879,9 +879,6 @@ static int sccp_message_device(int fd, int argc, char *argv[])
 {
 	sccp_device_t *d;
 
-	// DIRTY TEST
-	sccp_moo_t *r1;
-	
 	int msgtimeout = 10;
 
 	int beep = 0;
@@ -902,40 +899,7 @@ static int sccp_message_device(int fd, int argc, char *argv[])
 		}
 	}
 	if ((d = sccp_device_find_byid(argv[3], FALSE))) {
-		// DIRTY TEST
-		//sccp_dev_displaynotify(d, argv[4], msgtimeout);
-		
-		
-		// EVEN MORE DIRTY TEST
-		
-		REQ(r1, ButtonTemplateMessageSingle);
-		
-			r1->msg.ButtonTemplateMessageSingle.definition[0].instanceNumber = 1;
-			r1->msg.ButtonTemplateMessageSingle.lel_buttonCount = 1
-			r1->msg.ButtonTemplateMessageSingle.definition[0].buttonDefinition = SKINNY_BUTTONTYPE_LINE;
-				
-		r1->msg.ButtonTemplateMessageSingle.lel_buttonOffset = 0;
-		r1->msg.ButtonTemplateMessageSingle.lel_buttonCount = htolel(1);
-		r1->msg.ButtonTemplateMessage.lel_totalButtonCount = htolel(1);
-		
-		sccp_dev_send(d, r1);
-		
-		
-		// DIRTY TEST
-		REQ(r1, LineStatMessage);
-
-		r1->msg.LineStatMessage.lel_lineNumber = htolel(1);
-		
-		sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, "David", sizeof(r1->msg.LineStatMessage.lineDirNumber));
-		
-		sccp_copy_string(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName, argv[4], sizeof(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName));
-				
-		sccp_copy_string(r1->msg.LineStatMessage.lineDisplayName, "Blabb", sizeof(r1->msg.LineStatMessage.lineDisplayName));
-		
-		sccp_dev_send(d, r1);
-
-		
-		
+		sccp_dev_displaynotify(d, argv[4], msgtimeout);
 		
 		if (beep) {
 			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
