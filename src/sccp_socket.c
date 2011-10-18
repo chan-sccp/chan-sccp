@@ -627,13 +627,26 @@ sccp_session_t *sccp_session_find(const sccp_device_t * device)
  * \param session SCCP Session Pointer
  * \param message Message as char (reason of rejection)
  */
-void sccp_session_reject(sccp_session_t * session, char *message)
+sccp_session_t *sccp_session_reject(sccp_session_t * session, char *message)
 {
 	sccp_moo_t *r;
 
 	REQ(r, RegisterRejectMessage);
 	sccp_copy_string(r->msg.RegisterRejectMessage.text, message, sizeof(r->msg.RegisterRejectMessage.text));
 	sccp_session_send2(session, r);
+
+        /* if we reject the connction during accept connection, thread is not ready */ 
+        if(session->session_thread){
+                pthread_cancel(session->session_thread);
+                session->session_thread = AST_PTHREADT_NULL;
+		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: use thread cleanup\n", DEV_ID_LOG(session->device));
+        }else{   
+         	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: no thread\n", DEV_ID_LOG(session->device));
+                sccp_session_close(session);
+		destroy_session(session, 0);
+        }
+ 
+ 	return NULL;
 }
 
 /*!

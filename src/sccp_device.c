@@ -22,8 +22,61 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #define  REF_DEBUG 1
-#ifdef CS_DYNAMIC_CONFIG
 
+/*!
+ * \brief Check device ipaddress against the ip ACL (permit/deny and permithosts entries)
+ */
+boolean_t sccp_device_checkACL(sccp_device_t *device)
+{
+	struct sockaddr_in sin;
+	boolean_t matchesACL = FALSE;
+
+        if (!device || !device->session)
+                return FALSE;
+
+        sccp_session_t *session=device->session;
+	
+	/* get current socket information */
+	memcpy(&sin, &session->sin, sizeof(struct sockaddr_in));
+	
+	/* no permit deny information */
+	if(!device->ha){
+		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: no deny/permit information for this device, allow all connections", device->id);
+		return TRUE;
+	}
+  
+	if (ast_apply_ha(device->ha, &sin) != AST_SENSE_ALLOW) {
+	  
+		// checking permithosts	
+		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: not allowed by deny/permit list. Checking permithost list...", device->id);
+
+		struct ast_hostent ahp;
+		struct hostent *hp;
+		sccp_hostname_t *permithost;
+		
+		uint8_t i=0;
+		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&device->permithosts, permithost, list) {
+			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
+				for(i=0; NULL != hp->h_addr_list[i]; i++ ) {	// walk resulting ip address
+					if (sin.sin_addr.s_addr == (*(struct in_addr*)hp->h_addr_list[i]).s_addr) {
+						sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: permithost = %s match found.\n", device->id, permithost->name);
+						matchesACL = TRUE;
+						continue;
+					}
+				}
+			} else {
+				sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Invalid address resolution for permithost = %s (skipping permithost).\n", device->id, permithost->name);
+			}
+		}
+		SCCP_LIST_TRAVERSE_SAFE_END;
+	}else{
+		matchesACL = TRUE;
+	}
+  
+	return matchesACL;
+}
+
+#ifdef CS_DYNAMIC_CONFIG
 /*!
  * \brief run before reload is start on devices
  * \note See \ref sccp_config_reload

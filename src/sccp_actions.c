@@ -167,12 +167,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 	sccp_moo_t *r1;
 
-	struct ast_hostent ahp;
-
-	struct hostent *hp;
-
-	sccp_hostname_t *permithost;
-
 	if (!s || (s->fds[0].fd < 0)) {
 		ast_log(LOG_ERROR, "%s: No Valid Session\n", DEV_ID_LOG(s->device));
 		return;
@@ -215,44 +209,27 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		}
 	}
 	if (d) {
-		struct ast_ha *temp_ha;
-		// copy ha
-		temp_ha=ast_duplicate_ha_list(d->ha);
-
-		// add permithosts after having been resolved
-		char new_permit[31]={0};
-		uint8_t i=0;
-		SCCP_LIST_LOCK(&d->permithosts);
-		SCCP_LIST_TRAVERSE(&d->permithosts, permithost, list) {
-			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
-				while ( hp -> h_addr_list[i] != NULL) {		// walk resulting ip address
-					snprintf(new_permit, sizeof(new_permit),  "%s/255.255.255.255", pbx_inet_ntoa( *( struct in_addr*)( hp -> h_addr_list[i])));
-#if ASTERISK_VERSION_NUMBER >= 10600 
-			        	ast_append_ha("permit", new_permit, temp_ha, NULL);
-#else 
-			        	ast_append_ha("permit", new_permit, temp_ha);
-#endif			        	
-					i++;
-				}
-			} else {
-				ast_log(LOG_NOTICE, "%s: Invalid address resolution for permithost = %s (skipping permithost).\n", r->msg.RegisterMessage.sId.deviceName, permithost->name);
-			}
-		}
-		SCCP_LIST_UNLOCK(&d->permithosts);
- 
-		// check ha
-		if (ast_apply_ha(temp_ha, &s->sin) != AST_SENSE_ALLOW) {
+		s->device = d;				/* attach device to session, so it can be cleaned up during session cleanup */
+		
+		/* check ACLs for this device */
+		if (sccp_device_checkACL(d) == FALSE) {
 			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
-			sccp_free(temp_ha);
-			sccp_session_reject(s, "IP Not Authorized");
+			s = sccp_session_reject(s, "IP Not Authorized");
 			return;
 		}
-		sccp_free(temp_ha);
+		
+		if (d->session && d->session != s) {
+			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", d->id);
+			s = sccp_session_reject(s, "No Crossover Allowed");
+			return;
+		}
+		
 	} else {
 		ast_log(LOG_NOTICE, "%s: Rejecting device: Device Unknown \n", r->msg.RegisterMessage.sId.deviceName);
-		sccp_session_reject(s, "Device Unknown");
+		s = sccp_session_reject(s, "Device Unknown");
 		return;
 	}
+	
 	sccp_device_lock(d);
 	d->linesRegistered = FALSE;
 	/* test the localnet to understand if the device is behind NAT */
@@ -350,12 +327,6 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t *
 
 	sccp_moo_t *r1;
 
-	struct ast_hostent ahp;
-
-	struct hostent *hp;
-
-	sccp_hostname_t *permithost;
-
 	if (!s || (s->fds[0].fd < 0)) {
 		ast_log(LOG_ERROR, "%s: No Valid Session\n", DEV_ID_LOG(s->device));
 		return;
@@ -401,45 +372,29 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t *
 			return;
 		}
 	}
-	if (d) {
-		struct ast_ha *temp_ha;
-		// copy ha
-		temp_ha=ast_duplicate_ha_list(d->ha);
 
-		// add permithosts after having been resolved
-		char new_permit[31]={0};
-		uint8_t i = 0;
-		SCCP_LIST_LOCK(&d->permithosts);
-		SCCP_LIST_TRAVERSE(&d->permithosts, permithost, list) {
-			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
-				while ( hp -> h_addr_list[i] != NULL) {		// walk resulting ip address
-					snprintf(new_permit, sizeof(new_permit),  "%s/255.255.255.255", pbx_inet_ntoa( *( struct in_addr*)( hp -> h_addr_list[i])));
-#if ASTERISK_VERSION_NUMBER >= 10600 
-			        	ast_append_ha("permit", new_permit, temp_ha, NULL);
-#else 
-			        	ast_append_ha("permit", new_permit, temp_ha);
-#endif			        	
-					i++;
-				}
-			} else {
-				ast_log(LOG_NOTICE, "%s: Invalid address resolution for permithost = %s (skipping permithost).\n", r->msg.RegisterMessage.sId.deviceName, permithost->name);
-			}
-		}
-		SCCP_LIST_UNLOCK(&d->permithosts);
- 
-		// check ha
-		if (ast_apply_ha(temp_ha, &s->sin) != AST_SENSE_ALLOW) {
+	if (d) {
+		s->device = d;				/* attach device to session, so it can be cleaned up during session cleanup */
+		
+		/* check ACLs for this device */
+		if (sccp_device_checkACL(d) == FALSE) {
 			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
-			sccp_free(temp_ha);
-			sccp_session_reject(s, "IP Not Authorized");
+			s = sccp_session_reject(s, "IP Not Authorized");
 			return;
 		}
-		sccp_free(temp_ha);
+		
+		if (d->session && d->session != s) {
+			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", d->id);
+			s = sccp_session_reject(s, "No Crossover Allowed");
+			return;
+		}
+		
 	} else {
 		ast_log(LOG_NOTICE, "%s: Rejecting device: Device Unknown \n", r->msg.RegisterMessage.sId.deviceName);
-		sccp_session_reject(s, "Device Unknown");
+		s = sccp_session_reject(s, "Device Unknown");
 		return;
 	}
+	
 	sccp_device_lock(d);
 	d->linesRegistered = FALSE;
 	/* test the localnet to understand if the device is behind NAT */
