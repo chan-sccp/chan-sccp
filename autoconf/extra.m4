@@ -644,7 +644,7 @@ AC_DEFUN([CS_IPv6], [
 	AC_ARG_ENABLE(IPv6, 
 	  AC_HELP_STRING([--enable-IPv6], [enable IPv6 support (experimental, developers only)]), 
 	  ac_cv_ipv6=$enableval, ac_cv_ipv6=no)
-	AS_IF([test "${ac_cv_ipv6}" == "yes"], [AC_DEFINE(CS_IPv6, 1, [Enable IPv6 support])])
+	AS_IF([test "${ac_cv_ipv6}" == "yes"], [AC_DEFINE([CS_IPV6], 1, [Enable IPv6 support])])
 	AC_MSG_NOTICE([--enable-IPv6: ${ac_cv_ipv6}])
 ])
 
