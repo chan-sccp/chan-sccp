@@ -63,6 +63,8 @@
  * Also check the deny/permit entries to make sure they cover your network/devices and check if the bindaddr is actually 
  * reachable from the addresses you have permitted to connect.
  *
+ * (For more information about hints check \ref nf_hints here)
+ *
  * \code
  * ;=========================================================================================
  * ;
@@ -125,7 +127,7 @@
  * addon = 7914
  * devicetype = 7940
  * park = off
- * button = speeddial,Helpdesk, 98112, 98112@hint  	; Add SpeedDial to Helpdesk
+ * button = speeddial,Helpdesk, 98112, 98112@hint  	; Add SpeedDial to Helpdesk (verify that you have the hint context correctly set [\ref nf_hints])
  * button = line, 98011					; Assign Line 98011 to Device
  * button = empty					; Assign an Empty Button
  * button = line, 98012					; Assign Line 98012 to Device
