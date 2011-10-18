@@ -166,5 +166,39 @@
  * 
  * see \ref nf_sccp_function How to use dialplan functions
  *
- **/
-
+ * \subsection nf_hints How to to use Hints
+ * Q: How to use Hints
+ *
+ * A: To use a hinted speeddial you will also need an hint entry in your dialplan, which could look like:
+ * 
+ * extension.conf:
+ * \code
+ * [hints]
+ *	exten => 101,hint,SCCP/101
+ *	exten => 102,hint,SCCP/102
+ *	exten => 103,hint,SCCP/103
+ *	exten => 104,hint,SCCP/104
+ *	exten => 105,hint,SCCP/105
+ *      exten => 200,hint,SCCP/101&SCCP/102		// Secretaties
+ * \endcode
+ *
+ * or
+ *
+ * extension.ael (in AEL2 format):
+ * \code
+ * context hints {
+ *      hint(SCCP/101) _101 => NoOp(hint);
+ *      hint(SCCP/102) _102 => NoOp(hint);
+ *      hint(SCCP/103) _103 => NoOp(hint);
+ *      hint(SCCP/104) _104 => NoOp(hint);
+ *      hint(SCCP/105) _105 => NoOp(hint);
+ *      hint(SCCP/101&SCCP/102) _200 => NoOp(hint);
+ * };
+ * \endcode
+ *
+ * Once these hints have been configured you can use them in a speedial entry in your sccp.conf like:
+ *
+ * \code
+ * button = speeddial, "Secretaries", 200, 200@hints
+ * \endcode **/
+ */
