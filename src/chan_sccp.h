@@ -927,8 +927,6 @@ extern "C" {
 			uint32_t transactionID;
 		} dtu_softkey;
 		
-		char *messageStack[SCCP_MAX_MESSAGESTACK];
-		
 		struct {
 #ifdef CS_ADV_FEATURES
 			char indicator[SCCP_MAX_STATUS_INDICATOR];		/*!< Status Indicator */
@@ -941,11 +939,12 @@ extern "C" {
 //			boolean_t overwritable;					/*!< Status is overwritable */
 //			boolean_t updated;					/*!< Status has changed, and needs to be refreshed */
 		} status;							/*!< Status Structure */
-		
 		sccp_push_result_t (*pushURL) (const sccp_device_t *device, const char *url, uint8_t priority, uint8_t tone);
 		sccp_push_result_t (*pushTextMessage) (const sccp_device_t *device, const char *messageText, const char *from, uint8_t priority, uint8_t tone);
 		boolean_t (* checkACL) (sccp_device_t *device);
 		boolean_t (* hasDisplayPrompt) (void);
+
+		char *messageStack[SCCP_MAX_MESSAGESTACK];
 	};
 
 // Number of additional keys per addon -FS

@@ -1259,7 +1259,8 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	sccp_dev_clearprompt(d, 0, 0);
 
 	int i;
-	for(i = ARRAY_LEN(d->messageStack); i >= 0; i--){
+//	for(i = ARRAY_LEN(d->messageStack); i >= 0; i--){
+	for(i = SCCP_MAX_MESSAGESTACK-1; i>=0; i--) {
 		if(d->messageStack[i] != NULL){
 			sccp_dev_displayprompt(d, 0, 0, d->messageStack[i], 0);
 			goto OUT;
@@ -1592,7 +1593,8 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	}
 	
 	/* cleanup message stack */
-	for(i = ARRAY_LEN(d->messageStack); i>=0; i--){
+//	for(i = ARRAY_LEN(d->messageStack); i>=0; i--){
+	for(i=0;i< SCCP_MAX_MESSAGESTACK;i++) { 
 		if(d->messageStack[i] != NULL){
 			sccp_free(d->messageStack[i]);
 		}

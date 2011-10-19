@@ -196,7 +196,7 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 	if (pbx_channel_masquerade(participant->conferenceBridgePeer, chan)) {
 		pbx_log(LOG_ERROR, "SCCP: Conference: failed to masquerade channel.\n");
 		//pbx_channel_unlock(chan);
-		ast_hangup(participant->conferenceBridgePeer);
+		PBX(requestHangup)(participant->conferenceBridgePeer);
 		participant->conferenceBridgePeer = NULL;
 		return -1;
 	} else {
@@ -566,7 +566,7 @@ static void *sccp_conference_join_thread(void *data)
 
 	if (pbx_pbx_start(astChannel)) {
 		pbx_log(LOG_WARNING, "SCCP: Unable to start PBX on %s\n", participant->conferenceBridgePeer->name);
-		ast_hangup(astChannel);
+		PBX(requestHangup)(astChannel);
 		// return -1;
 		return NULL;
 	}
