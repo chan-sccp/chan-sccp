@@ -1265,7 +1265,7 @@ static int sccp_message_devices(int fd, int argc, char *argv[])
 	if (sccp_strlen_zero(argv[3]))
 		return RESULT_SHOWUSAGE;
 
-	if (argc > 5) {
+	if (argc > 4) {
 		if (!strcmp(argv[4], "beep")) {
 			beep = TRUE;
 			if (sscanf(argv[5], "%d", &timeout) != 1) {
@@ -1398,7 +1398,7 @@ static int sccp_system_message(int fd, int argc, char *argv[])
                 sccp_log(DEBUGCAT_CLI)(VERBOSE_PREFIX_3 "SCCP system message text stored successfully\n");
         }
 
-	if (argc > 5) {
+	if (argc > 4) {
 		if (!strcmp(argv[4], "beep")) {
 			beep = TRUE;
 			if (sscanf(argv[5], "%d", &timeout) != 1)
