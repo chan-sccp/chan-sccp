@@ -553,7 +553,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		sccp_channel_answer_locked(d, c);
 		sccp_channel_unlock(c);
 		ast_channel_unlock(target);
-		ast_hangup(original);
+		PBX(requestHangup)(original);
 		target = ast_channel_unref(target);
 
 	} else {

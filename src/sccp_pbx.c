@@ -925,7 +925,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	if (!l) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) No <line> available. Returning from dial thread.\n");
 		if (chan)
-			ast_hangup(chan);
+			PBX(requestHangup)(chan);
 		return NULL;
 	}
 

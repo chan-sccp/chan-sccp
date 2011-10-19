@@ -221,6 +221,9 @@
 /* experimental mode enabled */
 #undef CS_EXPERIMENTAL
 
+/* Enable IPv6 support */
+#undef CS_IPV6
+
 /* manager events enabled */
 #undef CS_MANAGER_EVENTS
 

@@ -170,7 +170,6 @@ sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * de
 	
 	channel->isMicrophoneEnabled	= sccp_always_true;
 	channel->setMicrophone		= sccp_channel_setMicrophoneState;
-
 	return channel;
 }
 
@@ -1287,6 +1286,7 @@ void sccp_channel_endcall_locked(sccp_channel_t * channel)
 		pbx_log(LOG_WARNING, "No channel or line or device to hangup\n");
 		return;
 	}
+	
 
 	/* this is a station active endcall or onhook */
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %d on line %s (%s)\n", DEV_ID_LOG(channel->privateData->device), channel->callid, channel->line->name, sccp_indicate2str(channel->state));
