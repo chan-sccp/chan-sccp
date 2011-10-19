@@ -1605,10 +1605,11 @@ void sccp_util_featureStorageBackend(const sccp_event_t ** event)
 									sccp_log(1) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdLineStore);
 								}
 								break;
-							default: /* SCCP_FEATURE_CFWDNONE */
-								sccp_log(1) (VERBOSE_PREFIX_3 "%s: db clear\n", DEV_ID_LOG(device));
+							case SCCP_FEATURE_CFWDNONE:
 								PBX(feature_removeFromDatabase)(cfwdLineStore, "cfwdAll");
 								PBX(feature_removeFromDatabase)(cfwdLineStore, "cfwdBusy");
+								sccp_log(1) (VERBOSE_PREFIX_3 "%s: cfwd cleared from db\n", DEV_ID_LOG(device));
+							default:
 								break;
 						}
 					}
