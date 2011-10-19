@@ -148,10 +148,12 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 		if (a->argc < (int)(ARRAY_LEN(cli_command))) 							\
 			return CLI_SHOWUSAGE;									\
 														\
-		if(_CALLED_FUNCTION(a->fd, NULL, NULL, NULL, a->argc, (char **) a->argv) == RESULT_SUCCESS)	\
-			return CLI_SUCCESS;									\
-		else												\
-			return CLI_FAILURE;									\
+		switch (_CALLED_FUNCTION(a->fd, NULL, NULL, NULL, a->argc, (char **) a->argv)) {		\
+			case RESULT_SUCCESS: return CLI_SUCCESS;						\
+			case RESULT_FAILURE: return CLI_FAILURE;						\
+			case RESULT_SHOWUSAGE: return CLI_SHOWUSAGE;						\
+			default: return CLI_FAILURE;								\
+		}												\
 	};
 #    define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)				\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {			\
@@ -175,9 +177,11 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 		if (a->argc < (int)(ARRAY_LEN(cli_command))) 							\
 			return CLI_SHOWUSAGE;									\
 														\
-		if(_CALLED_FUNCTION(a->fd, a->argc, (char **) a->argv) == RESULT_SUCCESS)			\
-			return CLI_SUCCESS;									\
-		else												\
-			return CLI_FAILURE;									\
+		switch (_CALLED_FUNCTION(a->fd, a->argc, (char **) a->argv)) {					\
+			case RESULT_SUCCESS: return CLI_SUCCESS;						\
+			case RESULT_FAILURE: return CLI_FAILURE;						\
+			case RESULT_SHOWUSAGE: return CLI_SHOWUSAGE;						\
+			default: return CLI_FAILURE;								\
+		}												\
 	};
 #endif										/* SCCP_ASTERISK19_PBX_H_ */
