@@ -1565,12 +1565,13 @@ void sccp_util_featureStorageBackend(const sccp_event_t ** event)
 	if (!(*event) || !device)
 		return;
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: got FeatureChangeEvent %d\n", DEV_ID_LOG(device), (*event)->event.featureChanged.featureType);
+	sccp_log(1) (VERBOSE_PREFIX_3 "%s: StorageBackend got Feature Change Event %d\n", DEV_ID_LOG(device), (*event)->event.featureChanged.featureType);
 	sccp_device_lock(device);
 	sprintf(family, "SCCP/%s", device->id);
 	sccp_device_unlock(device);
 
 	switch ((*event)->event.featureChanged.featureType) {
+	case SCCP_FEATURE_CFWDNONE:
 	case SCCP_FEATURE_CFWDBUSY:
 	case SCCP_FEATURE_CFWDALL:
 		SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
@@ -1592,6 +1593,7 @@ void sccp_util_featureStorageBackend(const sccp_event_t ** event)
 									sccp_log(1) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);
 								} else {
 									PBX(feature_removeFromDatabase)(cfwdLineStore, "cfwdAll");
+									sccp_log(1) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdLineStore);
 								}
 								break;	
 							case SCCP_FEATURE_CFWDBUSY:
@@ -1600,9 +1602,13 @@ void sccp_util_featureStorageBackend(const sccp_event_t ** event)
 									sccp_log(1) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);	
 								} else {
 									PBX(feature_removeFromDatabase)(cfwdLineStore, "cfwdBusy");
+									sccp_log(1) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdLineStore);
 								}
 								break;
-							default:
+							default: /* SCCP_FEATURE_CFWDNONE */
+								sccp_log(1) (VERBOSE_PREFIX_3 "%s: db clear\n", DEV_ID_LOG(device));
+								PBX(feature_removeFromDatabase)(cfwdLineStore, "cfwdAll");
+								PBX(feature_removeFromDatabase)(cfwdLineStore, "cfwdBusy");
 								break;
 						}
 					}
