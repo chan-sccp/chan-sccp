@@ -277,7 +277,7 @@ sccp_device_t *sccp_device_create(void)
 
 	/* initialize messageStack */
 	uint8_t i;
-	for(i=0; i < SCCP_MAX_MESSAGESTACK; i++) {
+	for(i=0; i < ARRAY_LEN(d->messageStack); i++) {
 		d->messageStack[i] = NULL;
 	}
 
@@ -895,7 +895,7 @@ void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid)
  * \callgraph
  * \callergraph
  */
-void sccp_dev_set_message(sccp_device_t * d, char *msg, int timeout, boolean_t storedb, boolean_t beep)
+void sccp_dev_set_message(sccp_device_t * d, const char *msg, const int timeout, const boolean_t storedb, const boolean_t beep)
 {
 	if (storedb) {
 		char msgtimeout[10];
@@ -922,7 +922,7 @@ void sccp_dev_set_message(sccp_device_t * d, char *msg, int timeout, boolean_t s
  * \callgraph
  * \callergraph
  */
-void sccp_dev_clear_message(sccp_device_t * d, boolean_t cleardb)
+void sccp_dev_clear_message(sccp_device_t * d, const boolean_t cleardb)
 {
 	if (cleardb) {
 		PBX(feature_removeTreeFromDatabase)("SCCP/message", "timeout");
@@ -946,7 +946,7 @@ void sccp_dev_clear_message(sccp_device_t * d, boolean_t cleardb)
  * \callgraph
  * \callergraph
  */
-void sccp_dev_clearprompt(const sccp_device_t * d, uint8_t lineInstance, uint32_t callid)
+void sccp_dev_clearprompt(const sccp_device_t * d, const uint8_t lineInstance, const uint32_t callid)
 {
 	sccp_moo_t *r;
 
@@ -975,7 +975,7 @@ void sccp_dev_clearprompt(const sccp_device_t * d, uint8_t lineInstance, uint32_
  * \callergraph
  */
 //void sccp_dev_displayprompt(sccp_device_t * d, uint8_t line, uint32_t callid, char *msg, int timeout)
-void sccp_dev_displayprompt_debug(const sccp_device_t * d, uint8_t lineInstance, uint32_t callid, char *msg, int timeout, char *file, int lineno, const char *pretty_function)
+void sccp_dev_displayprompt_debug(const sccp_device_t * d, const uint8_t lineInstance, const uint32_t callid, const char *msg, const int timeout, const char *file, int lineno, const char *pretty_function)
 {
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: ( %s:%d:%s ) sccp_dev_displayprompt '%s' for line %d (%d)\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg, lineInstance, timeout);
 
@@ -1004,7 +1004,7 @@ void sccp_dev_displayprompt_debug(const sccp_device_t * d, uint8_t lineInstance,
  * \callgraph
  * \callergraph
  */
-void sccp_dev_cleardisplay(sccp_device_t * d)
+void sccp_dev_cleardisplay(const sccp_device_t * d)
 {
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
 		return;								/* only for telecaster and new phones */
@@ -1025,7 +1025,7 @@ void sccp_dev_cleardisplay(sccp_device_t * d)
  * \callergraph
  */
 //void sccp_dev_display(sccp_device_t * d, char *msg)
-void sccp_dev_display_debug(sccp_device_t * d, char *msg, char *file, int lineno, const char *pretty_function)
+void sccp_dev_display_debug(const sccp_device_t * d, const char *msg, const char *file, const int lineno, const char *pretty_function)
 {
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: ( %s:%d:%s ) sccp_dev_display '%s'\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg);
 	sccp_moo_t *r;
@@ -1053,7 +1053,7 @@ void sccp_dev_display_debug(sccp_device_t * d, char *msg, char *file, int lineno
  * \callgraph
  * \callergraph
  */
-void sccp_dev_cleardisplaynotify(sccp_device_t * d)
+void sccp_dev_cleardisplaynotify(const sccp_device_t * d)
 {
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
 		return;								/* only for telecaster and new phones */
@@ -1075,7 +1075,7 @@ void sccp_dev_cleardisplaynotify(sccp_device_t * d)
  * \callergraph
  */
 //void sccp_dev_displaynotify(sccp_device_t * d, char *msg, uint32_t timeout)
-void sccp_dev_displaynotify_debug(sccp_device_t * d, char *msg, uint8_t timeout, char *file, int lineno, const char *pretty_function)
+void sccp_dev_displaynotify_debug(const sccp_device_t * d, const char *msg, uint8_t timeout, const char *file, const int lineno, const char *pretty_function)
 {
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: ( %s:%d:%s ) sccp_dev_displaynotify '%s' (%d)\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg, timeout);
 
@@ -1098,7 +1098,7 @@ void sccp_dev_displaynotify_debug(sccp_device_t * d, char *msg, uint8_t timeout,
  * \callgraph
  * \callergraph
  */
-void sccp_dev_cleardisplayprinotify(sccp_device_t * d)
+void sccp_dev_cleardisplayprinotify(const sccp_device_t * d)
 {
 	if (!d || !d->session)
 		return;
@@ -1124,7 +1124,7 @@ void sccp_dev_cleardisplayprinotify(sccp_device_t * d)
  * \callergraph
  */
 //void sccp_dev_displayprinotify(sccp_device_t * d, char *msg, uint32_t priority, uint32_t timeout)
-void sccp_dev_displayprinotify_debug(sccp_device_t * d, char *msg, uint8_t priority, uint8_t timeout, char *file, int lineno, const char *pretty_function)
+void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, const uint8_t priority, const uint8_t timeout, const char *file, const int lineno, const char *pretty_function)
 {
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: ( %s:%d:%s ) sccp_dev_displayprinotify '%s' (%d/%d)\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg, timeout, priority);
 
@@ -1259,7 +1259,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	sccp_dev_clearprompt(d, 0, 0);
 
 	int i;
-	for(i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--){
+	for(i = ARRAY_LEN(d->messageStack); i >= 0; i--){
 		if(d->messageStack[i] != NULL){
 			sccp_dev_displayprompt(d, 0, 0, d->messageStack[i], 0);
 			goto OUT;
@@ -1592,8 +1592,8 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	}
 	
 	/* cleanup message stack */
-	for(i = SCCP_MAX_MESSAGESTACK - 1; i>=0; i--){
-		if(d->messageStack[i]  != NULL){
+	for(i = ARRAY_LEN(d->messageStack); i>=0; i--){
+		if(d->messageStack[i] != NULL){
 			sccp_free(d->messageStack[i]);
 		}
 	}
@@ -1942,7 +1942,7 @@ static void sccp_device_new_indicate_remoteHold(const sccp_device_t *device, uin
 /*!
  * \brief Add message to the MessageStack to be shown on the Status Line of the SCCP Device
  */
-void sccp_device_addMessageToStack(sccp_device_t *device, uint8_t priority, const char *message){
+void sccp_device_addMessageToStack(sccp_device_t *device, const uint8_t priority, const char *message){
 	
 	if(ARRAY_LEN(device->messageStack) <= priority)
 		return;
@@ -1964,7 +1964,7 @@ void sccp_device_addMessageToStack(sccp_device_t *device, uint8_t priority, cons
 /*!
  * \brief Remove a message from the MessageStack to be shown on the Status Line of the SCCP Device
  */
-void sccp_device_clearMessageFromStack(sccp_device_t *device, uint8_t priority){
+void sccp_device_clearMessageFromStack(sccp_device_t *device, const uint8_t priority){
 	if(ARRAY_LEN(device->messageStack) <= priority)
 		return;
 	
