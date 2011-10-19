@@ -55,8 +55,10 @@ extern "C" {
 /* fix cast for (uint64_t) during printf */
 #if SIZEOF_LONG == SIZEOF_LONG_LONG
 #define ULONG long unsigned int
+#define UI64FMT "%lu"			// contributed by Stéphane Plantard
 #else
 #define ULONG long long unsigned int
+#define UI64FMT "%llu"			// contributed by Stéphane Plantard
 #endif
 
 /* Add bswap function if necessary */

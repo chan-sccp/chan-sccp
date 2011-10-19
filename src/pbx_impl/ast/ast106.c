@@ -52,7 +52,7 @@ static void get_skinnyFormats(format_t format, skinny_codec_t codecs[], size_t s
 	for (x = 0; x < ARRAY_LEN(skinny2pbx_codec_maps) && len <= size; x++) {
 		if (skinny2pbx_codec_maps[x].pbx_codec & format) {
 			codecs[len++] = skinny2pbx_codec_maps[x].skinny_codec;
-			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "map ast codec %lu to %d\n", (ULONG)(skinny2pbx_codec_maps[x].pbx_codec & format), skinny2pbx_codec_maps[x].skinny_codec);
+			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "map ast codec " UI64FMT " to %d\n", (ULONG)(skinny2pbx_codec_maps[x].pbx_codec & format), skinny2pbx_codec_maps[x].skinny_codec);
 		}
 	}
 }
@@ -1113,9 +1113,9 @@ static int sccp_wrapper_asterisk16_set_rtp_peer(PBX_CHANNEL_TYPE *ast, PBX_RTP_T
 		return 0;
 	} else {
 		if (ast->_state != AST_STATE_UP) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "SCCP: (sccp_channel_set_rtp_peer) Early RTP stage, codecs=%lu, nat=%d\n", (ULONG)codecs, d->nat);
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "SCCP: (sccp_channel_set_rtp_peer) Early RTP stage, codecs=" UI64FMT ", nat=%d\n", (ULONG)codecs, d->nat);
 		} else {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "SCCP: (sccp_channel_set_rtp_peer) Native Bridge Break, codecs=%lu, nat=%d\n", (ULONG)codecs, d->nat);
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "SCCP: (sccp_channel_set_rtp_peer) Native Bridge Break, codecs=" UI64FMT ", nat=%d\n", (ULONG)codecs, d->nat);
 		}
 		return 0;
 	}
