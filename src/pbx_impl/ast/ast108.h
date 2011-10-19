@@ -65,12 +65,12 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 	}
 
 #    define CLI_AMI_ERROR(fd, s, m, fmt, ...) 									\
-	pbx_log(LOG_WARNING, "SCCP CLI ERROR" fmt, __VA_ARGS__);						\
+/*	pbx_log(LOG_WARNING, "SCCP CLI ERROR: " fmt, __VA_ARGS__);						*/\
 	if (NULL != s) {											\
 		astman_send_error(s, m, fmt);									\
 		local_total++;											\
 	} else {												\
-		ast_cli(fd, "SCCP CLI ERROR" fmt, __VA_ARGS__);							\
+		ast_cli(fd, "SCCP CLI ERROR: " fmt, __VA_ARGS__);						\
 	}													\
 	return RESULT_FAILURE;
 
@@ -129,13 +129,15 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 			}											\
 			return NULL;										\
 		}												\
-		if (a->argc < (int)(ARRAY_LEN(cli_command))) 							\
+		if (a->argc < (int)(ARRAY_LEN(cli_command))-1) 							\
 			return CLI_SHOWUSAGE;									\
 														\
-		if(_CALLED_FUNCTION(a->fd, NULL, NULL, NULL, a->argc, (char **) a->argv) == RESULT_SUCCESS)	\
-			return CLI_SUCCESS;									\
-		else												\
-			return CLI_FAILURE;									\
+		switch (_CALLED_FUNCTION(a->fd, NULL, NULL, NULL, a->argc, (char **) a->argv)) {		\
+			case RESULT_SUCCESS: return CLI_SUCCESS;						\
+			case RESULT_FAILURE: return CLI_FAILURE;						\
+			case RESULT_SHOWUSAGE: return CLI_SHOWUSAGE;						\
+			default: return CLI_FAILURE;								\
+		}												\
 	};
 #    define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)				\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {			\
@@ -159,9 +161,11 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 		if (a->argc < (int)(ARRAY_LEN(cli_command))) 							\
 			return CLI_SHOWUSAGE;									\
 														\
-		if(_CALLED_FUNCTION(a->fd, a->argc, (char **) a->argv) == RESULT_SUCCESS)			\
-			return CLI_SUCCESS;									\
-		else												\
-			return CLI_FAILURE;									\
+		switch (_CALLED_FUNCTION(a->fd, a->argc, (char **) a->argv)) {					\
+			case RESULT_SUCCESS: return CLI_SUCCESS;						\
+			case RESULT_FAILURE: return CLI_FAILURE;						\
+			case RESULT_SHOWUSAGE: return CLI_SHOWUSAGE;						\
+			default: return CLI_FAILURE;								\
+		}												\
 	};
 #endif										/* SCCP_AST108_H_ */
