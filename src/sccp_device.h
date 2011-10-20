@@ -16,7 +16,7 @@
 #ifndef __SCCP_DEVICE_H
 #    define __SCCP_DEVICE_H
 
-boolean_t sccp_device_checkACL(sccp_device_t *device);
+boolean_t sccp_device_checkACL(sccp_device_t *device, sccp_session_t *session);
 #    ifdef CS_DYNAMIC_CONFIG
 void sccp_device_pre_reload(void);
 void sccp_device_post_reload(void);

@@ -212,14 +212,14 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		s->device = d;				/* attach device to session, so it can be cleaned up during session cleanup */
 		
 		/* check ACLs for this device */
-		if (sccp_device_checkACL(d) == FALSE) {
+		if (sccp_device_checkACL(d, s) == FALSE) {
 			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
 			s = sccp_session_reject(s, "IP Not Authorized");
 			return;
 		}
 		
 		if (d->session && d->session != s) {
-			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", d->id);
+			ast_log(LOG_NOTICE, "%s: Crossover device registration!\n", d->id);
 			s = sccp_session_reject(s, "No Crossover Allowed");
 			return;
 		}
@@ -377,14 +377,14 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t *
 		s->device = d;				/* attach device to session, so it can be cleaned up during session cleanup */
 		
 		/* check ACLs for this device */
-		if (sccp_device_checkACL(d) == FALSE) {
+		if (sccp_device_checkACL(d, s) == FALSE) {
 			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
 			s = sccp_session_reject(s, "IP Not Authorized");
 			return;
 		}
 		
 		if (d->session && d->session != s) {
-			sccp_log(1) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", d->id);
+			ast_log(LOG_NOTICE, "%s: Crossover device registration!\n", d->id);
 			s = sccp_session_reject(s, "No Crossover Allowed");
 			return;
 		}

@@ -26,16 +26,14 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 /*!
  * \brief Check device ipaddress against the ip ACL (permit/deny and permithosts entries)
  */
-boolean_t sccp_device_checkACL(sccp_device_t *device)
+boolean_t sccp_device_checkACL(sccp_device_t *device, sccp_session_t *session)
 {
 	struct sockaddr_in sin;
 	boolean_t matchesACL = FALSE;
 
-        if (!device || !device->session)
+        if (!device || !session)
                 return FALSE;
 
-        sccp_session_t *session=device->session;
-	
 	/* get current socket information */
 	memcpy(&sin, &session->sin, sizeof(struct sockaddr_in));
 	
@@ -73,6 +71,7 @@ boolean_t sccp_device_checkACL(sccp_device_t *device)
 		matchesACL = TRUE;
 	}
   
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: checkACL returning %s", device->id, matchesACL ? "TRUE" : "FALSE");
 	return matchesACL;
 }
 
@@ -225,6 +224,18 @@ sccp_device_t *sccp_device_create(void)
 	SCCP_LIST_HEAD_INIT(&d->buttonconfig);
 	SCCP_LIST_HEAD_INIT(&d->selectedChannels);
 	SCCP_LIST_HEAD_INIT(&d->addons);
+
+#if ASTERISK_VERSION_NUMBER >= 10600 
+	ast_append_ha("permit", "127.0.0.0/255.0.0.0", d->ha, NULL);
+	ast_append_ha("permit", "10.0.0.0/255.0.0.0", d->ha, NULL);
+	ast_append_ha("permit", "172.16.0.0/255.224.0.0", d->ha, NULL);
+	ast_append_ha("permit", "192.168.0.0/255.255.0.0", d->ha, NULL);
+#else 
+	ast_append_ha("permit", "127.0.0.0/255.0.0.0", d->ha);
+	ast_append_ha("permit", "10.0.0.0/255.0.0.0", d->ha);
+	ast_append_ha("permit", "172.16.0.0/255.224.0.0", d->ha);
+	ast_append_ha("permit", "192.168.0.0/255.255.0.0", d->ha);
+#endif	
 	return d;
 }
 
