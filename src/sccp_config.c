@@ -377,9 +377,12 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 		break;
 	case SCCP_CONFIG_DATATYPE_UINT:
 		if (!sccp_strlen_zero(value)) {
+// 		  pbx_log(LOG_NOTICE, "size %d\n", sccpConfigOption->size);
+// 		  pbx_log(LOG_NOTICE, "cmp %d\n", strncmp("0x",value, 2));
+// 		  pbx_log(LOG_NOTICE, "sscan %d\n", sscanf(value, "%hx", &int8num));
 			switch (sccpConfigOption->size)	 {
 				case 1:
-					if (sscanf(value, "%hu", &uint8num) == 1) {
+					if ( (!strncmp("0x",value, 2) && sscanf(value, "%hx", &uint8num)) || (sscanf(value, "%hu", &uint8num) == 1) ) {
 						if ((*(uint8_t *)dst) != uint8num) {
 							*(uint8_t *)dst = uint8num;
 							changed = SCCP_CONFIG_CHANGE_CHANGED;
@@ -2282,12 +2285,12 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 		device->dndFeature.status = SCCP_DNDMODE_OFF;
 	}
 
-	/* monitorFeature */
-	if (PBX(feature_getFromDatabase)(family, "monitor", buffer, sizeof(buffer))) {
-		device->monitorFeature.status = 1;
-	} else {
-		device->monitorFeature.status = 0;
-	}
+// 	/* monitorFeature */
+// 	if (PBX(feature_getFromDatabase)(family, "monitor", buffer, sizeof(buffer))) {
+// 		device->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_REQUESTED;
+// 	} else {
+// 		device->monitorFeature.status = 0;
+// 	}
 
 	/* privacyFeature */
 	if (PBX(feature_getFromDatabase)(family, "privacy", buffer, sizeof(buffer))) {
