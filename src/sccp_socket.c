@@ -352,12 +352,12 @@ static void sccp_accept_connection(void)
 	s->lastKeepAlive = time(0);
 
 	/* check ip address against global permit/deny ACL*/
-	if ((GLOB(ha) && pbx_apply_ha(GLOB(ha), &s->sin))) {
-		sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", pbx_inet_ntoa(s->sin.sin_addr));
-	} else {
+	if (GLOB(ha) && (AST_SENSE_ALLOW != pbx_apply_ha(GLOB(ha), &s->sin) )) {
 		ast_log(LOG_NOTICE, "Rejecting device: Ip address '%s' denied\n", pbx_inet_ntoa(s->sin.sin_addr));
 		sccp_session_reject(s, "Device ip not authorized");
 		return;
+	} else {
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", pbx_inet_ntoa(s->sin.sin_addr));
 	}
 
 	if (GLOB(bindaddr.sin_addr.s_addr) == INADDR_ANY) {
