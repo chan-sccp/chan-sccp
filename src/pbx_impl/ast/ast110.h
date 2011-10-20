@@ -128,7 +128,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 			return NULL;										\
 		}												\
 														\
-		if (a->argc < (int)(ARRAY_LEN(cli_command))) 							\
+		if (a->argc < (int)(ARRAY_LEN(cli_command)-1)) 							\
 			return CLI_SHOWUSAGE;									\
 														\
 		switch (_CALLED_FUNCTION(a->fd, NULL, NULL, NULL, a->argc, (char **) a->argv)) {		\
