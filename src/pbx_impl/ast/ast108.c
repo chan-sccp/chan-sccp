@@ -733,14 +733,9 @@ int sccp_wrapper_asterisk18_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		c->answered_elsewhere = TRUE;
 	}
 
-	
-
 	sccp_channel_lock(c);
 	res = sccp_pbx_hangup_locked(c);
 	sccp_channel_unlock(c);
-	
-// 	CS_AST_CHANNEL_PVT(ast_channel) = NULL;
-	ast_channel->tech_pvt = NULL;
 	
 	ast_channel->tech_pvt = NULL;
 	ast_channel_unref(ast_channel);
@@ -1425,6 +1420,14 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(const sccp_channel_t *
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: rtp created at %s:%d\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock), ast_sockaddr_port(&sock));
 	if (c->owner) {
 		ast_rtp_instance_set_prop(rtp_instance, AST_RTP_PROPERTY_RTCP, 1);
+
+		if (SCCP_DTMFMODE_INBAND==d->dtmfmode) {
+			ast_rtp_instance_dtmf_mode_set(rtp_instance, AST_RTP_DTMF_MODE_INBAND);
+		} else {
+			ast_rtp_instance_set_prop(rtp_instance, AST_RTP_PROPERTY_DTMF, 1);
+			ast_rtp_instance_set_prop(rtp_instance, AST_RTP_PROPERTY_DTMF_COMPENSATE, 1);
+	        }
+
 		ast_channel_set_fd(c->owner, 0, ast_rtp_instance_fd(rtp_instance, 0));
 		ast_channel_set_fd(c->owner, 1, ast_rtp_instance_fd(rtp_instance, 1));
 		ast_queue_frame(c->owner, &ast_null_frame);
@@ -1782,27 +1785,89 @@ static boolean_t sccp_asterisk_getRemoteChannel(const sccp_channel_t *channel, P
 	return FALSE;
 }
 
+/*
 int sccp_wrapper_asterisk18_requestHangup(PBX_CHANNEL_TYPE * channel)
 {
-
+	if (!channel) {
+		sccp_log(1) (VERBOSE_PREFIX_3 "channel to hangup is NULL\n");
+		return FALSE;
+	}	
+			
+	sccp_channel_t *sccp_channel=get_sccp_channel_from_pbx_channel(channel);
 
 	if ((channel->_softhangup & AST_SOFTHANGUP_APPUNLOAD) != 0) {
 		channel->hangupcause = AST_CAUSE_CHANNEL_UNACCEPTABLE;
+		ast_softhangup(channel, AST_SOFTHANGUP_APPUNLOAD);
+		sccp_log(1) (VERBOSE_PREFIX_3 "%s: send softhangup appunload\n", channel->name);
+		return TRUE;
 	} 
 	
 	sccp_log(1) (VERBOSE_PREFIX_3 "%s: hasPbx %s; state: %d\n", channel->name, channel->pbx?"yes":"no", channel->_state);
-	
-	if(!channel->pbx && !ast_test_flag(channel, AST_FLAG_BLOCKING)){
-		ast_hangup(channel);
+	if (AST_STATE_UP != channel->_state && SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state) { 
+		// hangup after callforward ss-switch 
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: send ast_hangup\n", channel->name);
-	}else if(channel->_state != AST_STATE_UP){
-		ast_softhangup_nolock(channel, AST_SOFTHANGUP_DEV);
+		ast_hangup(channel);
+//	} else if (AST_STATE_UP != channel->_state && SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state) { 
+	} else if (!channel->pbx && AST_STATE_UP != channel->_state && !ast_test_flag(channel, AST_FLAG_BLOCKING)) {
+		// hangup before connection to pbx is established 
+		sccp_log(1) (VERBOSE_PREFIX_3 "%s: send ast_hangup\n", channel->name);
+		ast_hangup(channel);
+	} else if (AST_STATE_UP != channel->_state && (SCCP_CHANNELSTATE_BUSY == sccp_channel->state || SCCP_CHANNELSTATE_CONGESTION == sccp_channel->state)) {
+		// softhangup when channel structure is still needed afterwards 
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", channel->name);
-	}else{
-		ast_queue_hangup(channel);
+		ast_softhangup_nolock(channel, AST_SOFTHANGUP_DEV);
+	} else if (!channel->hangupcause) {
+		// if no cause is give, provide a fallback one 
+		sccp_log(1) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup_with_cause\n", channel->name);
+		ast_queue_hangup_with_cause(channel, AST_CAUSE_NORMAL_UNSPECIFIED);
+	} else 	{
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", channel->name);
+		ast_queue_hangup(channel);
 	}
 	return TRUE;
+}
+*/
+
+int sccp_wrapper_asterisk18_requestHangup(PBX_CHANNEL_TYPE * channel)
+{
+        if (!channel) {
+                sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "channel to hangup is NULL\n");
+                return FALSE;
+        }
+
+        sccp_channel_t *sccp_channel=get_sccp_channel_from_pbx_channel(channel);
+
+        if ((channel->_softhangup & AST_SOFTHANGUP_APPUNLOAD) != 0) {
+                channel->hangupcause = AST_CAUSE_CHANNEL_UNACCEPTABLE;
+                ast_softhangup(channel, AST_SOFTHANGUP_APPUNLOAD);
+                sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send softhangup appunload\n", channel->name);
+                return TRUE;
+        }
+
+        sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: hasPbx %s; state: %d\n", channel->name, channel->pbx?"yes":"no", channel->_state);
+        if (AST_STATE_UP != channel->_state) {          // channel could be locked if necessary, either single sided or softhangup
+                if (!channel->pbx && !ast_test_flag(channel, AST_FLAG_BLOCKING) && (SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state || SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state)) {
+//                      SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state                        // hangup after callforward ss-switch
+//                      SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state                  // hangup before connection to pbx is established 
+                        sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_hangup\n", channel->name);
+                        ast_hangup(channel);
+                        return TRUE;
+                } else if ((SCCP_CHANNELSTATE_BUSY == sccp_channel->state || SCCP_CHANNELSTATE_CONGESTION == sccp_channel->state)) {
+                        /* softhangup when channel structure is still needed afterwards */
+                        sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", channel->name);
+                        ast_softhangup_nolock(channel, AST_SOFTHANGUP_DEV);
+                        return TRUE;
+                }
+        }
+        if (!channel->hangupcause) {                    // channel could be locked, hangup is queued.
+                /* if no cause is give, provide a fallback one */
+                sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup_with_cause\n", channel->name);
+                ast_queue_hangup_with_cause(channel, AST_CAUSE_NORMAL_UNSPECIFIED);
+        } else {
+                sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", channel->name);
+                ast_queue_hangup(channel);
+        }
+        return TRUE;
 }
 
 /*!
