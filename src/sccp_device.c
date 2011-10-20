@@ -993,7 +993,7 @@ void sccp_dev_displayprompt_debug(const sccp_device_t * d, const uint8_t lineIns
 #ifdef CS_ADV_FEATURES
 	d->protocol->displayPrompt(d, lineInstance, callid, timeout, disp_message);
 #else
-//	d->protocol->displayPrompt(d, lineInstance, callid, timeout, msg);
+	d->protocol->displayPrompt(d, lineInstance, callid, timeout, msg);
 #endif	
 }
 
