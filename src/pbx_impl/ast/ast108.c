@@ -1845,10 +1845,11 @@ int sccp_wrapper_asterisk18_requestHangup(PBX_CHANNEL_TYPE * channel)
         }
 
         sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: hasPbx %s; state: %d\n", channel->name, channel->pbx?"yes":"no", channel->_state);
+//	do we need to check (channel->_softhangup != 0), to see if we already hanging up ?
         if (AST_STATE_UP != channel->_state) {          // channel could be locked if necessary, either single sided or softhangup
                 if (!channel->pbx && !ast_test_flag(channel, AST_FLAG_BLOCKING) && (SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state || SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state)) {
-//                      SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state                        // hangup after callforward ss-switch
-//                      SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state                  // hangup before connection to pbx is established 
+                	// SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state        -> hangup after callforward ss-switch
+                	// SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state  -> hangup before connection to pbx is established 
                         sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_hangup\n", channel->name);
                         ast_hangup(channel);
                         return TRUE;
@@ -1859,14 +1860,8 @@ int sccp_wrapper_asterisk18_requestHangup(PBX_CHANNEL_TYPE * channel)
                         return TRUE;
                 }
         }
-        if (!channel->hangupcause) {                    // channel could be locked, hangup is queued.
-                /* if no cause is give, provide a fallback one */
-                sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup_with_cause\n", channel->name);
-                ast_queue_hangup_with_cause(channel, AST_CAUSE_NORMAL_UNSPECIFIED);
-        } else {
-                sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", channel->name);
-                ast_queue_hangup(channel);
-        }
+        sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", channel->name);
+        ast_queue_hangup(channel);
         return TRUE;
 }
 
