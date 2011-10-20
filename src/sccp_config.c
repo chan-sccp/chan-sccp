@@ -1135,6 +1135,20 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 	ast_codec_pref_string(&GLOB(global_codecs), pref_buf, sizeof(pref_buf) - 1);
 	ast_verbose(VERBOSE_PREFIX_3 "GLOBAL: Preferred capability %s\n", pref_buf);
 
+	if(GLOB(ha)) {
+#if ASTERISK_VERSION_NUMBER >= 10600 
+	ast_append_ha("permit", "127.0.0.0/255.0.0.0", GLOB(ha), NULL);
+	ast_append_ha("permit", "10.0.0.0/255.0.0.0", GLOB(ha), NULL);
+	ast_append_ha("permit", "172.16.0.0/255.224.0.0", GLOB(ha), NULL);
+	ast_append_ha("permit", "192.168.0.0/255.255.0.0", GLOB(ha), NULL);
+#else 
+	ast_append_ha("permit", "127.0.0.0/255.0.0.0", GLOB(ha));
+	ast_append_ha("permit", "10.0.0.0/255.0.0.0", GLOB(ha));
+	ast_append_ha("permit", "172.16.0.0/255.224.0.0", GLOB(ha));
+	ast_append_ha("permit", "192.168.0.0/255.255.0.0", GLOB(ha));
+#endif	
+	}
+
 	if (!ntohs(GLOB(bindaddr.sin_port))) {
 		GLOB(bindaddr.sin_port) = ntohs(DEFAULT_SCCP_PORT);
 	}
