@@ -145,7 +145,7 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 			}											\
 			return NULL;										\
 		}												\
-		if (a->argc < (int)(ARRAY_LEN(cli_command))) 							\
+		if (a->argc < (int)(ARRAY_LEN(cli_command)-1)) 							\
 			return CLI_SHOWUSAGE;									\
 														\
 		switch (_CALLED_FUNCTION(a->fd, NULL, NULL, NULL, a->argc, (char **) a->argv)) {		\
@@ -174,7 +174,7 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 			}											\
 			return NULL;										\
 		}												\
-		if (a->argc < (int)(ARRAY_LEN(cli_command))) 							\
+		if (a->argc < (int)(ARRAY_LEN(cli_command)-1)) 							\
 			return CLI_SHOWUSAGE;									\
 														\
 		switch (_CALLED_FUNCTION(a->fd, a->argc, (char **) a->argv)) {					\
