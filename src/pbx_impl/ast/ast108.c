@@ -1844,12 +1844,14 @@ int sccp_wrapper_asterisk18_requestHangup(PBX_CHANNEL_TYPE * channel)
                 return TRUE;
         }
 
-        sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: hasPbx %s; state: %d\n", channel->name, channel->pbx?"yes":"no", channel->_state);
+        sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "hangup %s: hasPbx %s; ast state: %s, sccp state: %s, blocking: %s, already being hungup: %s\n", channel->name, channel->pbx ? "yes" : "no", pbx_state2str(channel->_state), sccp_indicate2str(sccp_channel->state), ast_test_flag(channel, AST_FLAG_BLOCKING) ? "yes" : "no", channel->_softhangup ? "yes" : "no" );
 //	do we need to check (channel->_softhangup != 0), to see if we already hanging up ?
-        if (AST_STATE_UP != channel->_state) {          // channel could be locked if necessary, either single sided or softhangup
-                if (!channel->pbx && !ast_test_flag(channel, AST_FLAG_BLOCKING) && (SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state || SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state)) {
-                	// SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state        -> hangup after callforward ss-switch
-                	// SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state  -> hangup before connection to pbx is established 
+//	if (!channel->pbx && !ast_test_flag(channel, AST_FLAG_BLOCKING)) {		// -> crash
+        if (AST_STATE_UP != channel->_state) {
+                } else if (AST_STATE_DIALING == channel->_state || SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state || SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state) {
+                	// AST_STATE_DIALING == channel->_state			   -> use ast_hangup when still in dialing state
+                	// SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state        -> use ast_hangup after callforward ss-switch
+                	// SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state  -> use ast_hangup before connection to pbx is established 
                         sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_hangup\n", channel->name);
                         ast_hangup(channel);
                         return TRUE;
