@@ -1529,7 +1529,7 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * channel
 	SCCP_LIST_LOCK(&channel->line->channels);
 	SCCP_LIST_TRAVERSE(&channel->line->channels, sccp_channel_2, list) {
 		if (sccp_channel_2->parentChannel == channel) {
-			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, sccp_channel_2->callid);
+			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: CHANNEL Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, sccp_channel_2->callid);
 			/* No need to lock because sccp_channel->line->channels is already locked. */
 			sccp_channel_endcall_locked(sccp_channel_2);
 			channel->answered_elsewhere = TRUE;
