@@ -414,7 +414,7 @@ int sccp_pbx_hangup_locked(sccp_channel_t * c)
 	SCCP_LIST_LOCK(&c->line->channels);
 	SCCP_LIST_TRAVERSE(&c->line->channels, channel, list) {
 		if (channel->parentChannel == c) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
+			sccp_log(1) (VERBOSE_PREFIX_3 "%s: PBX Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
 			/* No need to lock because c->line->channels is already locked. */
 			sccp_channel_endcall_locked(channel);
 		}
@@ -515,6 +515,7 @@ int sccp_pbx_answer(sccp_channel_t * c)
 		}
 
 		/* did we find our bridge */
+		/* \todo masquarade does not succeed when forwarding to a dialplan extension which starts with PLAYBACK */
 		if (br) {
 			pbx_log(LOG_NOTICE, "SCCP: bridge: %s\n", (br) ? br->name : " -- no bridged found -- ");
 
