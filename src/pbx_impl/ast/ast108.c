@@ -1406,10 +1406,6 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(const sccp_channel_t *
 	else
 		return FALSE;
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", DEV_ID_LOG(d), pbx_inet_ntoa(s->ourip));
-	if (c->rtp.audio.rtp) {
-		ast_log(LOG_ERROR, "we already have a rtp server, why dont we use this?\n");
-		return TRUE;
-	}
 
 	ast_sockaddr_from_sin(&sock, &GLOB(bindaddr));
 	*new_rtp = rtp_instance = ast_rtp_instance_new("asterisk", sched, &sock, NULL);
