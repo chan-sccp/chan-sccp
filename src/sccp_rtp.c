@@ -30,6 +30,11 @@ int sccp_rtp_createAudioServer(const sccp_channel_t *c)
 
 	if (!c)
 		return -1;
+	
+	if (c->rtp.audio.rtp) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "we already have a rtp server, we use this one\n");
+		return TRUE;
+	}
 
 	if (PBX(rtp_audio_create)) {
 		rtpResult = PBX(rtp_audio_create) (c, (void **)&((sccp_channel_t *) c)->rtp.audio.rtp);
