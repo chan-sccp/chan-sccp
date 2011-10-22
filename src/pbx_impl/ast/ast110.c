@@ -374,6 +374,8 @@ static int sccp_asterisk110_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void
 	case AST_CONTROL_CONNECTED_LINE:
 		sccp_asterisk110_connectedline(c, data, datalen);
 		sccp_indicate_locked(c->getDevice(c), c, c->state);
+		
+		res = 0;
 		break;
 
 	case AST_CONTROL_VIDUPDATE:						/* Request a video frame update */
