@@ -486,6 +486,8 @@ sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_
 	case AST_CONTROL_CONNECTED_LINE:
 		sccp_wrapper_asterisk18_connectedline(c, data, datalen);
 		sccp_indicate_locked(sccp_channel_getDevice(c), c, c->state);
+		
+		res = 0;
 		break;
 
 	case AST_CONTROL_VIDUPDATE:						/* Request a video frame update */
