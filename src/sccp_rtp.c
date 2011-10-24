@@ -37,7 +37,7 @@ int sccp_rtp_createAudioServer(const sccp_channel_t *c)
 	}
 
 	if (PBX(rtp_audio_create)) {
-		rtpResult = PBX(rtp_audio_create) (c, (void **)&((sccp_channel_t *) c)->rtp.audio.rtp);
+		rtpResult = (boolean_t)PBX(rtp_audio_create) (c, (void **)&((sccp_channel_t *) c)->rtp.audio.rtp);
 	} else {
 		pbx_log(LOG_ERROR, "we should start our own rtp server, but we dont have one\n");
 	}
@@ -68,7 +68,7 @@ int sccp_rtp_createVideoServer(const sccp_channel_t * c)
 	}
 
 	if (PBX(rtp_video_create)) {
-		rtpResult = PBX(rtp_video_create) (c, (void **)&((sccp_channel_t *) c)->rtp.video.rtp);
+		rtpResult = (boolean_t)PBX(rtp_video_create) (c, (void **)&((sccp_channel_t *) c)->rtp.video.rtp);
 	} else {
 		pbx_log(LOG_ERROR, "we should start our own rtp server, but we dont have one\n");
 	}

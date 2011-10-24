@@ -19,7 +19,7 @@
 extern "C" {
 #    endif
 #include <asterisk/sched.h>
-#include <asterisk/netsock2.h>
+#include <asterisk/netsock.h>
 
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp.h>
