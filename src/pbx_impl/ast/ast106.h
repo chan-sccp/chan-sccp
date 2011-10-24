@@ -1,7 +1,8 @@
 
 /*!
- * \file 	sccp_ast106.h
+ * \file 	sccp_ast108.h
  * \brief 	SCCP PBX Asterisk Header
+ * \author 	Marcello Ceshia
  * \author 	Diederik de Groot <ddegroot [at] users.sourceforge.net>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
@@ -9,6 +10,7 @@
  * $Date: 2010-10-23 20:04:30 +0200 (Sat, 23 Oct 2010) $
  * $Revision: 2044 $  
  */
+
 #ifndef SCCP_AST_MAJOR_H_
 #    define SCCP_AST_MAJOR_H_
 
@@ -16,13 +18,10 @@
 #    include "../../common.h"
 
 #    define sccp_sched_context_destroy sched_context_destroy
-#    define ast_channel_unref(...) __VA_ARGS__ 
+#    define ast_channel_unref(c) ({ ao2_ref(c, -1); (struct ast_channel *) (NULL); })
+#    define NEWCONST const							// old functions used without const
+#    define OLDCONST								// new function used with const
 
-typedef int ast_format_t;
-typedef int64_t format_t;
-
-#    define NEWCONST const								// old functions used without const
-#    define OLDCONST 									// new function used with const
 
 enum AST_CONNECTED_LINE_UPDATE_SOURCE {
         /*! Update for unknown reason (May be interpreted to mean from answer) */
@@ -37,21 +36,16 @@ enum AST_CONNECTED_LINE_UPDATE_SOURCE {
         AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING
 };
 
-char *pbx_getformatname(format_t format);
-char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
-
+#    include "ast.h"
+typedef int64_t ast_format_t;
+int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rtp, PBX_RTP_TYPE * vrtp, PBX_RTP_TYPE * trtp, int codecs, int nat_active);
 void *sccp_do_monitor(void *data);
 int sccp_restart_monitor(void);
 int sccp_wrapper_asterisk16_hangup(PBX_CHANNEL_TYPE * ast_channel);
 boolean_t sccp_wrapper_asterisk16_allocPBXChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
 int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
-
-// CLI_ENTRY
-//   param1=registration_name
-//   param2=function to execute when called
-//   param3=cli string to be types as array of strings
-//   param4=registration description
-//   param5=usage string
+char *pbx_getformatname(format_t format);
+char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 
 #    define CLI_AMI_OUTPUT(fd, s, ...) 										\
 	if (NULL != s) {											\
@@ -76,6 +70,7 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 	} else {												\
 		ast_cli(fd, "%-*.*s %s %s\n", width, width, param, ":", ((value) ? "on" : "off")); 		\
 	}
+
 #    define CLI_AMI_OUTPUT_YES_NO(param, width, value) 								\
 	if (NULL != s) {											\
 		astman_append(s, "%s: %s\r\n", param, ((value) ? "yes" : "no"));				\
@@ -83,13 +78,14 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 	} else {												\
 		ast_cli(fd, "%-*.*s %s %s\n", width, width, param, ":", ((value) ? "yes" : "no")); 		\
 	}
+
 #    define CLI_AMI_ERROR(fd, s, m, fmt, ...) 									\
-	pbx_log(LOG_WARNING, "SCCP CLI ERROR" fmt, __VA_ARGS__);						\
+/*	pbx_log(LOG_WARNING, "SCCP CLI ERROR: " fmt, __VA_ARGS__);						*/\
 	if (NULL != s) {											\
 		astman_send_error(s, m, fmt);									\
 		local_total++;											\
 	} else {												\
-		ast_cli(fd, "SCCP CLI ERROR" fmt, __VA_ARGS__);							\
+		ast_cli(fd, "SCCP CLI ERROR: " fmt, __VA_ARGS__);						\
 	}													\
 	return RESULT_FAILURE;
 
