@@ -29,14 +29,15 @@ void *sccp_create_hotline(void);
 /*!
  * \brief	Buffer for Jitterbuffer use
  */
-
 #if defined(__cplusplus) || defined(c_plusplus)
 static ast_jb_conf default_jbconf = {
 	flags:			0,
 	max_size:		-1,
 	resync_threshold:	-1,
 	impl:			"",
-	target_extra:		-1
+#ifdef CS_AST_JB_TARGET_EXTRA
+	target_extra:			-1,
+#endif
 };
 #else
 static struct ast_jb_conf default_jbconf = {
@@ -44,7 +45,9 @@ static struct ast_jb_conf default_jbconf = {
 	.max_size = -1,
 	.resync_threshold = -1,
 	.impl = "",
-
+#ifdef CS_AST_JB_TARGET_EXTRA
+	.target_extra=-1,
+#endif
 };
 #endif
 
@@ -402,6 +405,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 
 	return 1;
 }
+
 
 /**
  * \brief load the configuration from sccp.conf
