@@ -489,13 +489,15 @@ void sccp_pbx_needcheckringback(sccp_device_t * d)
 int sccp_pbx_answer(sccp_channel_t * c)
 {
 	/* \todo perhaps we should lock channel here. */
-
 	if (c->parentChannel) {
 		/* we are a forwarded call, bridge me with my parent */
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "SCCP: bridge me with my parent, device %s\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
 
 		PBX_CHANNEL_TYPE *astChannel = NULL, *br = NULL, *astForwardedChannel = c->parentChannel->owner;
 
+		if (c->owner->appl) {
+			sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) %s bridging to dialplan application %s\n", c->owner->name, c->owner->appl);
+		}
 		/*
 		   on this point we do not have a pointer to ou bridge channel
 		   so we search for it -MC
@@ -545,8 +547,8 @@ int sccp_pbx_answer(sccp_channel_t * c)
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) no bridge. channel state: astForwardedChannel %s\n", pbx_state2str(astForwardedChannel->_state));
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) ============================================== \n");
 
-		if (c->owner->_state == AST_STATE_RING && astForwardedChannel->_state == AST_STATE_DOWN) {
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "SCCP: Receiver Hungup\n");
+		if (c->owner->_state == AST_STATE_RING && astForwardedChannel->_state == AST_STATE_DOWN && c->owner->pbx) {
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "SCCP: Receiver Hungup: (hasPBX: %s)\n", c->owner->pbx ? "yes" : "no");
 			astForwardedChannel->hangupcause = AST_CAUSE_CALL_REJECTED;
 			astForwardedChannel->_softhangup |= AST_SOFTHANGUP_DEV;
 			pbx_queue_hangup(astForwardedChannel);

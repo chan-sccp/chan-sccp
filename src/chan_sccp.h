@@ -183,13 +183,6 @@ extern "C" {
 	
 #define SCCP_MAX_HOSTNAME_LEN 100
 #define SCCP_MAX_MESSAGESTACK 10
-
-#define SCCP_MAX_STATUS_LINE 40
-#define SCCP_MAX_STATUS_INDICATOR 4
-#define SCCP_STATUS_INDICATOR_CFWD 0
-#define SCCP_STATUS_INDICATOR_DND 1
-#define SCCP_STATUS_INDICATOR_PRIVACY 2
-#define SCCP_STATUS_INDICATOR_MONITOR 3
 	typedef unsigned long long sccp_group_t;
 	typedef struct channel sccp_channel_t;					/*!< SCCP Channel Structure */
 	typedef struct sccp_session sccp_session_t;				/*!< SCCP Session Structure */
@@ -907,11 +900,9 @@ extern "C" {
 			uint32_t payload;
 			uint32_t transactionID;
 		} dtu_softkey;
+
 		
 		struct {
-#ifdef CS_ADV_FEATURES
-			char indicator[SCCP_MAX_STATUS_INDICATOR];		/*!< Status Indicator */
-#endif
 			sccp_tokenstate_t token;				/*!< token request state */
 //			char line[40];						/*!< Status Text Line */
 //			int priority;						/*!< Priority From 10 to 0 */
@@ -925,7 +916,7 @@ extern "C" {
 		boolean_t (* checkACL) (sccp_device_t *device);
 		boolean_t (* hasDisplayPrompt) (void);
 
-		char *messageStack[SCCP_MAX_MESSAGESTACK];
+		char *(messageStack[SCCP_MAX_MESSAGESTACK]);
 	};
 
 // Number of additional keys per addon -FS

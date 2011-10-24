@@ -266,13 +266,6 @@ sccp_device_t *sccp_device_create(void)
 	d->state = SCCP_DEVICESTATE_ONHOOK;
 	d->postregistration_thread = AST_PTHREADT_STOP;
 	
-#ifdef CS_ADV_FEATURES
-	d->status.indicator[SCCP_STATUS_INDICATOR_CFWD]='_';
-	d->status.indicator[SCCP_STATUS_INDICATOR_DND]='_';
-	d->status.indicator[SCCP_STATUS_INDICATOR_PRIVACY]='_';
-	d->status.indicator[SCCP_STATUS_INDICATOR_MONITOR]='_';
-#endif
-
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "!!! Init MessageStack\n");
 
 	/* initialize messageStack */
@@ -981,20 +974,11 @@ void sccp_dev_displayprompt_debug(const sccp_device_t * d, const uint8_t lineIns
 
 	if (!d || !d->session)
 		return;
-		
-#ifdef CS_ADV_FEATURES
-	char disp_message[SCCP_MAX_STATUS_LINE];
-	snprintf(disp_message, sizeof(disp_message), "[%s] %s", d->status.indicator, msg ? msg : "");
-#endif	
 
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
 		return;								/* only for telecaster and new phones */
 
-#ifdef CS_ADV_FEATURES
-	d->protocol->displayPrompt(d, lineInstance, callid, timeout, disp_message);
-#else
 	d->protocol->displayPrompt(d, lineInstance, callid, timeout, msg);
-#endif	
 }
 
 /*!
@@ -2014,9 +1998,6 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 
 	switch ((*event)->event.featureChanged.featureType) {
 	case SCCP_FEATURE_CFWDNONE:
-#ifdef CS_ADV_FEATURES
-		device->status.indicator[SCCP_STATUS_INDICATOR_CFWD]='_';
-#endif
 		sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);
 		break;
 	case SCCP_FEATURE_CFWDBUSY:
@@ -2039,9 +2020,6 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 									if (s != tmp)
 										pbx_build_string(&s, &len, ", ");
 									pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, lineDevice->cfwdAll.number);
-#ifdef CS_ADV_FEATURES
-									device->status.indicator[SCCP_STATUS_INDICATOR_CFWD]='A';
-#endif
 								}
 								break;	
 							case SCCP_FEATURE_CFWDBUSY:
@@ -2050,9 +2028,6 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 									if (s != tmp)
 										pbx_build_string(&s, &len, ", ");
 									pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, lineDevice->cfwdBusy.number);
-#ifdef CS_ADV_FEATURES
-									device->status.indicator[SCCP_STATUS_INDICATOR_CFWD]='B';
-#endif
 								}
 								break;
 							default:
@@ -2074,46 +2049,25 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 	  
 		if (!device->dndFeature.status) {
 			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_DND);
-#ifdef CS_ADV_FEATURES
-			device->status.indicator[SCCP_STATUS_INDICATOR_DND]='_';
-#endif
 		} else {
 			if (device->dndFeature.status == SCCP_DNDMODE_SILENT){
 				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (Silent) <<<");
-#ifdef CS_ADV_FEATURES
-				device->status.indicator[SCCP_STATUS_INDICATOR_DND]='S';
-#endif
 			}else{
 				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (" SKINNY_DISP_BUSY ") <<<");
-#ifdef CS_ADV_FEATURES
-				device->status.indicator[SCCP_STATUS_INDICATOR_DND]='D';
-#endif
 			}
 		}
 		break;
 	case SCCP_FEATURE_PRIVACY:
 		if (TRUE==device->privacyFeature.status) {
-#ifdef CS_ADV_FEATURES
-				device->status.indicator[SCCP_STATUS_INDICATOR_PRIVACY]='P';
-#endif
 				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_PRIVACY,  SKINNY_DISP_PRIVATE);
 		} else {
-#ifdef CS_ADV_FEATURES
-				device->status.indicator[SCCP_STATUS_INDICATOR_PRIVACY]='_';
-#endif
 				sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_PRIVACY);
 		}
 		break;
 	case SCCP_FEATURE_MONITOR:
 		if (TRUE==device->monitorFeature.status) {
-#ifdef CS_ADV_FEATURES
-				device->status.indicator[SCCP_STATUS_INDICATOR_MONITOR]='M';
-#endif
 				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_MONITOR,  SKINNY_DISP_MONITOR);
 		} else {
-#ifdef CS_ADV_FEATURES
-				device->status.indicator[SCCP_STATUS_INDICATOR_MONITOR]='_';
-#endif
 				sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_MONITOR);
 		}				
 		break;
