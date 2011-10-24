@@ -131,7 +131,6 @@ AC_DEFUN([CS_SETUP_ENVIRONMENT], [
 dnl	AC_GNU_SOURCE
 
 	CFLAGS="$CFLAGS -std=gnu89"
-	CFLAGS="$CFLAGS -Wno-long-long"
 
 	if test "${cross_compiling}" = "yes"; 
 	then
@@ -485,6 +484,8 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		enable_debug_mutex="no"
 		strip_binaries="yes"
 		GDB_FLAGS="$GDB_FLAGS"
+		CFLAGS_saved="$CFLAGS_saved -Wno-unused-function -Wno-long-long"
+		CFLAGS="$CFLAGS_saved"
 	fi
 ])
 
