@@ -28,29 +28,7 @@ extern "C" {
 #    include "config.h"
 #    include "common.h"
 
-#include "config.h"
-#include "common.h"
-#include <poll.h>
-#include "asterisk/compiler.h"
-#include "asterisk/lock.h"
-#include "asterisk/abstract_jb.h"
-
-// // #    include <asterisk/pbx.h>
-// #    include <asterisk.h>
-// #    include <asterisk/causes.h>
-// #    ifdef HAVE_BYTESWAP_H 
-// #      include <byteswap.h>
-// #    endif
-// #    ifdef HAVE_SYS_ENDIAN_H
-// #      include <sys/endian.h>
-// #    endif
-// #    ifdef HAVE_SYS_BYTEORDER_H
-// #      include <sys/byteorder.h>
-// #    endif
-
-
 #define sccp_mutex_t ast_mutex_t
-
 
 /* fix cast for (uint64_t) during printf */
 #if SIZEOF_LONG == SIZEOF_LONG_LONG
@@ -277,8 +255,11 @@ extern "C" {
 		SCCP_TOKEN_STATE_ACK,
 		SCCP_TOKEN_STATE_REJ,
 	} sccp_tokenstate_t;
-	
 
+#    include "sccp_protocol.h"
+#if HAVE_ASTERISK
+#    include "pbx_impl/ast/ast.h"
+#endif
 /*!
  * \brief SCCP ButtonType Structure
  */
@@ -487,13 +468,13 @@ extern "C" {
 		SCCP_LIST_ENTRY(sccp_mailbox_t) list;				/*!< Mailbox Linked List Entry */
 	};									/*!< SCCP Mailbox Structure */
 
-#    include "sccp_protocol.h"
 
 /*!
  * \brief Privacy Definition
  */
 #    define SCCP_PRIVACYFEATURE_HINT 		1 << 1;
 #    define SCCP_PRIVACYFEATURE_CALLPRESENT	1 << 2;
+
 
 /*!
  * \brief SCCP Currently Selected Channel Structure

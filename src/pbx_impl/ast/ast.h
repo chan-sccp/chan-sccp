@@ -20,6 +20,8 @@
 #        include <asterisk.h>
 #        include <asterisk/abstract_jb.h>
 #    endif
+#    include <asterisk/frame_defs.h>
+#    include <asterisk/compiler.h>
 #    include <asterisk/utils.h>
 #    include <asterisk/threadstorage.h>
 #    include <asterisk/strings.h>
@@ -64,6 +66,11 @@
 #        include <asterisk/endian.h>
 #    endif
 #    include <asterisk/translate.h>
+#    ifdef HAVE_PBX_RTP_ENGINE_H
+#      include <asterisk/rtp_engine.h>
+#    else
+#      include <asterisk/rtp.h>
+#    endif
 #    ifdef CS_DEVSTATE_FEATURE
 #      include <asterisk/event_defs.h>
 #    endif
