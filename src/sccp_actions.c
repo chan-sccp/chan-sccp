@@ -332,6 +332,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		r->msg.RegisterMessage.loadInfo
 	);
 	
+#ifdef CS_IPV6
 	char ipv6Addr[38];
 	memset(ipv6Addr, 0, sizeof(ipv6Addr));
 	
@@ -345,6 +346,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	}
 	i = 0;
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: IPv6-Address: %s\n", r->msg.RegisterMessage.sId.deviceName, ipv6Addr);
+#endif
 
 	// search for all devices including realtime
 	if(!d){
