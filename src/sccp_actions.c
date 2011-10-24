@@ -318,7 +318,6 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
  */
 void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
-	uint8_t i = 0;
 	uint8_t protocolVer = r->msg.RegisterMessage.phone_features & SKINNY_PHONE_FEATURES_PROTOCOLVERSION;
 	
 	uint8_t ourMaxSupportedProtocolVersion = sccp_protocol_getMaxSupportedVersionNumber(s->protocolType);
@@ -333,6 +332,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	);
 	
 #ifdef CS_IPV6
+	uint8_t i = 0;
 	char ipv6Addr[38];
 	memset(ipv6Addr, 0, sizeof(ipv6Addr));
 	
