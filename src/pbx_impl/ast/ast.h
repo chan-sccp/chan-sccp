@@ -20,7 +20,6 @@
 #        include <asterisk.h>
 #        include <asterisk/abstract_jb.h>
 #    endif
-#    include <asterisk/frame_defs.h>
 #    include <asterisk/compiler.h>
 #    include <asterisk/utils.h>
 #    include <asterisk/threadstorage.h>
