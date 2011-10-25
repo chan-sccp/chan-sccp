@@ -101,6 +101,11 @@ static void sccp_read_data(sccp_session_t * s)
 	length = (int16_t) bytesAvailable;
 
 	input = sccp_malloc(length + 1);
+	if (!input) {
+		pbx_log(LOG_WARNING, "SCCP: unable to allocate %d bytes for skinny a packet\n", length+1);
+		sccp_free(input);
+		return;
+	}
 
 	readlen = read(s->fds[0].fd, input, length);
 	if (readlen <= 0) {
