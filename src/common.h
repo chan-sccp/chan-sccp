@@ -13,7 +13,7 @@
 #    if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {
 #    endif
-     
+
 #    include <sys/signal.h>
 #    include <sys/types.h>
 #    include <sys/socket.h>
@@ -60,7 +60,7 @@ extern "C" {
 #    include "sccp_management.h"
 #    include "sccp_rtp.h"
 
-#if defined(__cplusplus) || defined(c_plusplus)
+#    if defined(__cplusplus) || defined(c_plusplus)
 }
 #    endif
 #endif										// CHAN_SCCP_COMMON_H

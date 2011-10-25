@@ -31,13 +31,13 @@ void *sccp_create_hotline(void);
  */
 #if defined(__cplusplus) || defined(c_plusplus)
 static ast_jb_conf default_jbconf = {
-	flags:			0,
-	max_size:		-1,
-	resync_threshold:	-1,
-	impl:			"",
-#ifdef CS_AST_JB_TARGET_EXTRA
-	target_extra:			-1,
-#endif
+ flags:0,
+ max_size:-1,
+ resync_threshold:-1,
+ impl:	"",
+#    ifdef CS_AST_JB_TARGET_EXTRA
+ target_extra:-1,
+#    endif
 };
 #else
 static struct ast_jb_conf default_jbconf = {
@@ -45,17 +45,16 @@ static struct ast_jb_conf default_jbconf = {
 	.max_size = -1,
 	.resync_threshold = -1,
 	.impl = "",
-#ifdef CS_AST_JB_TARGET_EXTRA
-	.target_extra=-1,
-#endif
+#    ifdef CS_AST_JB_TARGET_EXTRA
+	.target_extra = -1,
+#    endif
 };
 #endif
-
 
 /*!
  * \brief	Global null frame
  */
-PBX_FRAME_TYPE sccp_null_frame;						/*!< Asterisk Structure */
+PBX_FRAME_TYPE sccp_null_frame;							/*!< Asterisk Structure */
 
 /*!
  * \brief	Global variables
@@ -95,7 +94,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 	if (!l) {
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "SCCP/%s does not exist!\n", lineSubscriptionId.mainId);
 		return SCCP_REQUEST_STATUS_UNAVAIL;
-        }
+	}
 	sccp_log((DEBUGCAT_SCCP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
 	if (l->devices.size == 0) {
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP/%s isn't currently registered anywhere.\n", l->name);
@@ -126,34 +125,34 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 		//pbx_log(LOG_NOTICE, "%s: calling all subscribers\n", l->id);
 	}
 
-// 	my_sccp_channel->rtp.audio.writeState |= SCCP_CODEC_STATUS_REMOTE_PREFERRED;
-// 	//my_sccp_channel->rtp.audio.writeFormat = codec;
+//      my_sccp_channel->rtp.audio.writeState |= SCCP_CODEC_STATUS_REMOTE_PREFERRED;
+//      //my_sccp_channel->rtp.audio.writeFormat = codec;
 // 
-// 	my_sccp_channel->rtp.audio.readState |= SCCP_CODEC_STATUS_REMOTE_PREFERRED;
-// 	//my_sccp_channel->rtp.audio.readFormat = codec;
-
+//      my_sccp_channel->rtp.audio.readState |= SCCP_CODEC_STATUS_REMOTE_PREFERRED;
+//      //my_sccp_channel->rtp.audio.readFormat = codec;
 
 	uint8_t size = (capabilityLength < sizeof(my_sccp_channel->remoteCapabilities.audio)) ? capabilityLength : sizeof(my_sccp_channel->remoteCapabilities.audio);
+
 	memset(&my_sccp_channel->remoteCapabilities.audio, 0, sizeof(my_sccp_channel->remoteCapabilities.audio));
 	memcpy(&my_sccp_channel->remoteCapabilities.audio, capabilities, size);
-	
+
 	/** set requested codec */
-// 	if(requestedCodec != SKINNY_CODEC_NONE){
-// 		my_sccp_channel->rtp.audio.writeFormat = requestedCodec;
-// 		my_sccp_channel->rtp.audio.writeState = SCCP_RTP_STATUS_REQUESTED;
-// 	}
-// 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "requested codec (%d)\n", my_sccp_channel->rtp.audio.writeFormat);
+//      if(requestedCodec != SKINNY_CODEC_NONE){
+//              my_sccp_channel->rtp.audio.writeFormat = requestedCodec;
+//              my_sccp_channel->rtp.audio.writeState = SCCP_RTP_STATUS_REQUESTED;
+//      }
+//      sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "requested codec (%d)\n", my_sccp_channel->rtp.audio.writeFormat);
+
 	/** done */
-	
-//	uint8_t x;
-// 	for (x = 0; x < capabilityLength && x <= sizeof(my_sccp_channel->remoteCapabilities.audio); x++) {
-// 		my_sccp_channel->remoteCapabilities.audio[x] = capabilities[x];
-// 	}
-	
-	
+
+//      uint8_t x;
+//      for (x = 0; x < capabilityLength && x <= sizeof(my_sccp_channel->remoteCapabilities.audio); x++) {
+//              my_sccp_channel->remoteCapabilities.audio[x] = capabilities[x];
+//      }
+
 	/** do not set prefered codec, because we do not know the device capabilities */
-// 	my_sccp_channel->rtp.audio.writeState |= SCCP_CODEC_STATUS_REMOTE_PREFERRED;
-// 	my_sccp_channel->rtp.audio.readState |= SCCP_CODEC_STATUS_REMOTE_PREFERRED;
+//      my_sccp_channel->rtp.audio.writeState |= SCCP_CODEC_STATUS_REMOTE_PREFERRED;
+//      my_sccp_channel->rtp.audio.readState |= SCCP_CODEC_STATUS_REMOTE_PREFERRED;
 
 	my_sccp_channel->autoanswer_type = autoanswer_type;
 	my_sccp_channel->autoanswer_cause = autoanswer_cause;
@@ -374,7 +373,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	mid = letohl(r->lel_messageId);
 
 	s->lastKeepAlive = time(0);	/** always update keepalive */
-//	sccp_device_t *tmpDevice=NULL;
+//      sccp_device_t *tmpDevice=NULL;
 
 	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message (%x) %s\n", DEV_ID_LOG(s->device), mid, message2str(mid));
 
@@ -392,20 +391,19 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 		return 0;
 	}
 	if (messageMap_cb->messageHandler_cb) {
-		if (messageMap_cb->deviceIsNecessary==TRUE){ 
+		if (messageMap_cb->deviceIsNecessary == TRUE) {
 			sccp_device_lock(s->device);
 		}
-		
+
 		messageMap_cb->messageHandler_cb(s, s->device, r);
-		
-		if (messageMap_cb->deviceIsNecessary==TRUE){
+
+		if (messageMap_cb->deviceIsNecessary == TRUE) {
 			sccp_device_unlock(s->device);
 		}
 	}
 
 	return 1;
 }
-
 
 /**
  * \brief load the configuration from sccp.conf
@@ -525,7 +523,6 @@ void *sccp_create_hotline(void)
 
 	GLOB(hotline)->line = hotline;
 	sccp_copy_string(GLOB(hotline)->exten, "111", sizeof(GLOB(hotline)->exten));
-	
 
 	return NULL;
 }
@@ -576,8 +573,8 @@ boolean_t sccp_prePBXLoad()
 #    endif
 #endif
 	/* make globals */
-	sccp_globals = (struct sccp_global_vars*) sccp_malloc(sizeof(struct sccp_global_vars));
-	sccp_event_listeners = (struct sccp_event_subscriptions*) sccp_malloc(sizeof(struct sccp_event_subscriptions));
+	sccp_globals = (struct sccp_global_vars *)sccp_malloc(sizeof(struct sccp_global_vars));
+	sccp_event_listeners = (struct sccp_event_subscriptions *)sccp_malloc(sizeof(struct sccp_event_subscriptions));
 	if (!sccp_globals || !sccp_event_listeners) {
 		pbx_log(LOG_ERROR, "No free memory for SCCP global vars. SCCP channel type disabled\n");
 		return FALSE;
@@ -605,10 +602,10 @@ boolean_t sccp_prePBXLoad()
 	sccp_event_subscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_util_featureStorageBackend);
 	sccp_event_subscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_device_featureChangedDisplay);
 
-//	sccp_set_config_defaults(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
+//      sccp_set_config_defaults(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
 	/* GLOB() is a macro for sccp_globals-> */
 	GLOB(descriptor) = -1;
-//	GLOB(ourport) = 2000;
+//      GLOB(ourport) = 2000;
 	GLOB(bindaddr.sin_port) = 2000;
 	GLOB(externrefresh) = 60;
 	GLOB(keepalive) = SCCP_KEEPALIVE;
@@ -640,10 +637,10 @@ boolean_t sccp_prePBXLoad()
 	GLOB(amaflags) = pbx_cdr_amaflags2int("documentation");
 	GLOB(callanswerorder) = ANSWER_OLDEST_FIRST;
 	GLOB(socket_thread) = AST_PTHREADT_NULL;
-	GLOB(hotline) = (sccp_hotline_t*)sccp_malloc(sizeof(sccp_hotline_t));
+	GLOB(hotline) = (sccp_hotline_t *) sccp_malloc(sizeof(sccp_hotline_t));
 	GLOB(cfg) = sccp_config_getConfig();
 	GLOB(earlyrtp) = SCCP_CHANNELSTATE_PROGRESS;
-	
+
 	memset(GLOB(hotline), 0, sizeof(sccp_hotline_t));
 
 	sccp_create_hotline();
@@ -766,8 +763,7 @@ int sccp_preUnload(void)
 
 	if (SCCP_LIST_EMPTY(&GLOB(sessions)))
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(sessions));
-	
-	
+
 	sccp_manager_module_stop();
 
 	sccp_mutex_destroy(&GLOB(socket_lock));

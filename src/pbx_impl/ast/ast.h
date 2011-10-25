@@ -66,15 +66,15 @@
 #    endif
 #    include <asterisk/translate.h>
 #    ifdef HAVE_PBX_RTP_ENGINE_H
-#      include <asterisk/rtp_engine.h>
+#        include <asterisk/rtp_engine.h>
 #    else
-#      include <asterisk/rtp.h>
+#        include <asterisk/rtp.h>
 #    endif
 #    ifdef CS_DEVSTATE_FEATURE
-#      include <asterisk/event_defs.h>
+#        include <asterisk/event_defs.h>
 #    endif
 #    include <asterisk/indications.h>
-                
+
 #    include "define.h"
 #    ifdef ASTERISK_CONF_1_2
 #        include "ast102.h"
@@ -88,6 +88,7 @@
 #    endif
 #    ifdef ASTERISK_CONF_1_6
 #        include "ast106.h"
+
 /*#        if ASTERISK_VERSION_NUMBER == 10600
 #            include "ast10600.h"
 #            define PBXVER 10600
@@ -104,11 +105,12 @@
 #        include "ast108.h"
 #    endif
 #    ifdef ASTERISK_CONF_1_10
-#	ifdef ASTERISK_REPOS_LOCATION_TRUNK
-#         include "astTrunk.h"
-#	else
-#         include "ast110.h"
-#	endif
+#        	ifdef ASTERISK_REPOS_LOCATION_TRUNK
+#        include "astTrunk.h"
+#        	else
+#        include "ast110.h"
+#        	endif
+
 /*#        if ASTERISK_VERSION_NUMBER == 11000
 #            include "ast11000.h"
 #            define PBXVER 11000
@@ -117,9 +119,8 @@
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
 #    ifndef AST_CAUSE_ANSWERED_ELSEWHERE
-#       define AST_CAUSE_ANSWERED_ELSEWHERE 200
+#        define AST_CAUSE_ANSWERED_ELSEWHERE 200
 #    endif
-
 
 extern struct sccp_pbx_cb sccp_pbx;
 
@@ -164,11 +165,12 @@ static const struct skinny2pbx_codec_map {
 	/* *INDENT-ON* */
 };
 
-#define PBX_HANGUP_CAUSE_UNKNOWN AST_CAUSE_NORMAL_UNSPECIFIED
-#define PBX_HANGUP_CAUSE_NORMAL_CALL_CLEARING AST_CAUSE_NORMAL_CLEARING
-#define PBX_HANGUP_CAUSE_CHANNEL_UNAVAILABLE AST_CAUSE_REQUESTED_CHAN_UNAVAIL
-#define PBX_HANGUP_CAUSE_FACILITY_REJECTED AST_CAUSE_FACILITY_REJECTED
-#define PBX_HANGUP_CAUSE_CALL_REJECTED AST_CAUSE_CALL_REJECTED
+#    define PBX_HANGUP_CAUSE_UNKNOWN AST_CAUSE_NORMAL_UNSPECIFIED
+#    define PBX_HANGUP_CAUSE_NORMAL_CALL_CLEARING AST_CAUSE_NORMAL_CLEARING
+#    define PBX_HANGUP_CAUSE_CHANNEL_UNAVAILABLE AST_CAUSE_REQUESTED_CHAN_UNAVAIL
+#    define PBX_HANGUP_CAUSE_FACILITY_REJECTED AST_CAUSE_FACILITY_REJECTED
+#    define PBX_HANGUP_CAUSE_CALL_REJECTED AST_CAUSE_CALL_REJECTED
+
 /*!
  * \brief AST Device State Structure
  */
@@ -225,8 +227,8 @@ static const struct sccp_extension_state {
  */
 static const struct ast_skinny_cause {
 	int pbx_cause;
-	const char * skinny_disp;
-	const char * message;
+	const char *skinny_disp;
+	const char *message;
 } ast_skinny_causes[] = {
 	/* *INDENT-OFF* */
 
@@ -295,18 +297,18 @@ static const struct ast_skinny_cause {
 
 int set_pbx_callerid(PBX_CHANNEL_TYPE * ast_chan, sccp_callinfo_t * callInfo);
 PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target);
-PBX_CHANNEL_TYPE *pbx_channel_search_locked(int (*is_match)(PBX_CHANNEL_TYPE *, void *),void *data);
+PBX_CHANNEL_TYPE *pbx_channel_search_locked(int (*is_match) (PBX_CHANNEL_TYPE *, void *), void *data);
 struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast_ha *path, int *error);
 struct ast_context *pbx_context_find_or_create(struct ast_context **extcontexts, struct ast_hashtab *exttable, const char *name, const char *registrar);
 struct ast_config *pbx_config_load(const char *filename, const char *who_asked, struct ast_flags flags);
-PBX_VARIABLE_TYPE *pbx_variable_new(PBX_VARIABLE_TYPE *v);
+PBX_VARIABLE_TYPE *pbx_variable_new(PBX_VARIABLE_TYPE * v);
 const char *pbx_inet_ntoa(struct in_addr ia);
 int pbx_str2cos(const char *value, unsigned int *cos);
 int pbx_str2tos(const char *value, unsigned int *tos);
 int pbx_context_remove_extension(const char *context, const char *extension, int priority, const char *registrar);
 void pbxman_send_listack(struct mansession *s, const struct message *m, char *msg, char *listflag);
 int pbx_moh_start(PBX_CHANNEL_TYPE * chan, const char *mclass, const char *interpclass);
-PBX_CHANNEL_TYPE * sccp_search_remotepeer_locked( int(*const found_cb)(PBX_CHANNEL_TYPE *c, void *data), void *data);
+PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANNEL_TYPE * c, void *data), void *data);
 const char *pbx_inet_ntoa(struct in_addr ia);
 
 //#if ASTERISK_VERSION_NUMBER >=10900
@@ -331,40 +333,43 @@ int skinny_codecs2pbx_codecs(skinny_codec_t * skinny_codecs);
 #    define sccp_strndup(str, len) \
 	_sccp_strndup((str), (len), __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
-	extern inline char *_sccp_strndup(const char *str, size_t len, const char *file, int lineno, const char *func);
+extern inline char *_sccp_strndup(const char *str, size_t len, const char *file, int lineno, const char *func);
 
-	extern inline char *_sccp_strndup(const char *str, size_t len, const char *file, int lineno, const char *func) {
-		char *newstr = NULL;
+extern inline char *_sccp_strndup(const char *str, size_t len, const char *file, int lineno, const char *func)
+{
+	char *newstr = NULL;
 
-		if (str) {
-                        if (!(newstr = strndup(str, len)))
-				ast_log(LOG_ERROR, "Memory Allocation Failure in function %s at line %d of %s\n", func, lineno, file);
-      		}
-                return newstr;
+	if (str) {
+		if (!(newstr = strndup(str, len)))
+			ast_log(LOG_ERROR, "Memory Allocation Failure in function %s at line %d of %s\n", func, lineno, file);
 	}
+	return newstr;
+}
 
 /* 
  * sccp_free_ptr should be used when a function pointer for free() needs to be 
  * passed as the argument to a function. Otherwise, astmm will cause seg faults.
  */
-   	static void sccp_free_ptr(void *ptr) attribute_unused;
-	static void sccp_free_ptr(void *ptr) {
-	        sccp_free(ptr);
-	}
+static void sccp_free_ptr(void *ptr) attribute_unused;
+static void sccp_free_ptr(void *ptr)
+{
+	sccp_free(ptr);
+}
 
 /*!
  * \brief Retrieve the SCCP Channel from an Asterisk Channel
  * \param ast_chan Asterisk Channel
  * \return SCCP Channel on Success or Null on Fail
  */
-sccp_channel_t *get_sccp_channel_from_ast_channel(PBX_CHANNEL_TYPE *ast_chan);
+sccp_channel_t *get_sccp_channel_from_ast_channel(PBX_CHANNEL_TYPE * ast_chan);
 int sccp_asterisk_pbx_fktChannelWrite(struct ast_channel *ast, const char *funcname, char *args, const char *value);
-	
+
 #endif
 
-/***** database *****/ 
+/***** database *****/
 boolean_t sccp_asterisk_addToDatabase(const char *family, const char *key, const char *value);
 boolean_t sccp_asterisk_getFromDatabase(const char *family, const char *key, char *out, int outlen);
 boolean_t sccp_asterisk_removeFromDatabase(const char *family, const char *key);
 boolean_t sccp_asterisk_removeTreeFromDatabase(const char *family, const char *key);
+
 /***** end - database *****/

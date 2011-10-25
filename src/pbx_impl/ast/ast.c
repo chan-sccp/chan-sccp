@@ -29,12 +29,13 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2269 $")
 PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 {
 #if ASTERISK_VERSION_NUMBER >= 10800
-	struct ast_channel_iterator *iter = NULL; 
+	struct ast_channel_iterator *iter = NULL;
+
 	if (!target) {
 		if (!(iter = ast_channel_iterator_all_new())) {
-			return NULL;  
+			return NULL;
 		}
-	} 
+	}
 	target = ast_channel_iterator_next(iter);
 	if (!ast_channel_unref(target)) {
 		ast_channel_lock(target);
@@ -56,40 +57,41 @@ PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
  * \param data paremeter data for match function
  * \return pbx_channel Locked Asterisk Channel
  */
-PBX_CHANNEL_TYPE *pbx_channel_search_locked(int (*is_match)(PBX_CHANNEL_TYPE *, void *),void *data){
+PBX_CHANNEL_TYPE *pbx_channel_search_locked(int (*is_match) (PBX_CHANNEL_TYPE *, void *), void *data)
+{
 //#ifdef ast_channel_search_locked
 #if ASTERISK_VERSION_NUMBER < 10800
 	return ast_channel_search_locked(is_match, data);
 #else
-	boolean_t matched=FALSE;
+	boolean_t matched = FALSE;
 	PBX_CHANNEL_TYPE *pbx_channel = NULL;
-  
+
 	struct ast_channel_iterator *iter = NULL;
+
 	if (!(iter = ast_channel_iterator_all_new())) {
-	        return NULL;  
+		return NULL;
 	}
- 
+
 	for (; iter && (pbx_channel = ast_channel_iterator_next(iter)); ast_channel_unref(pbx_channel)) {
 		pbx_channel_lock(pbx_channel);
 		if (is_match(pbx_channel, data)) {
-			matched=TRUE;
+			matched = TRUE;
 			break;
 		}
 		pbx_channel_unlock(pbx_channel);
 	}
 
 	if (iter) {
-	        ast_channel_iterator_destroy(iter);
-        }
+		ast_channel_iterator_destroy(iter);
+	}
 
 	if (matched)
 		return pbx_channel;
-	else 
-	        return NULL;
+	else
+		return NULL;
 
 #endif
 }
-
 
 /************************************************************************************************************** CONFIG **/
 
@@ -159,10 +161,6 @@ struct ast_config *pbx_config_load(const char *filename, const char *who_asked, 
 #endif										// ASTERISK_VERSION_NUMBER
 }
 
-
-
-
-
 /*!
  * \brief Get/Create new config variable
  * \note replacement for ast_variable_new
@@ -171,7 +169,7 @@ struct ast_config *pbx_config_load(const char *filename, const char *who_asked, 
  * \param filename Filename
  * \return The return value is struct ast_variable.
  */
-PBX_VARIABLE_TYPE *pbx_variable_new(PBX_VARIABLE_TYPE *v)
+PBX_VARIABLE_TYPE *pbx_variable_new(PBX_VARIABLE_TYPE * v)
 {
 #if ASTERISK_VERSION_NUMBER >= 10600
 	return ast_variable_new(v->name, v->value, v->file);
@@ -391,7 +389,6 @@ ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec)
 	return 0;
 }
 
-
 /*!
  * \brief Convert an array of skinny_codecs (enum) to a bit array of ast_codecs (fmt)
  *
@@ -412,13 +409,12 @@ int skinny_codecs2pbx_codecs(skinny_codec_t * skinny_codecs)
 	return res_codec;
 }
 
-
 /*!
  * \brief Retrieve the SCCP Channel from an Asterisk Channel
  * \param ast_chan Asterisk Channel
  * \return SCCP Channel on Success or Null on Fail
  */
-sccp_channel_t *get_sccp_channel_from_ast_channel(PBX_CHANNEL_TYPE *ast_chan)
+sccp_channel_t *get_sccp_channel_from_ast_channel(PBX_CHANNEL_TYPE * ast_chan)
 {
 #ifndef CS_AST_HAS_TECH_PVT
 	if (!strncasecmp(ast_chan->type, "SCCP", 4)) {
@@ -431,52 +427,48 @@ sccp_channel_t *get_sccp_channel_from_ast_channel(PBX_CHANNEL_TYPE *ast_chan)
 	}
 }
 
-
-int sccp_asterisk_pbx_fktChannelWrite(struct ast_channel *ast, const char *funcname, char *args, const char *value){
+int sccp_asterisk_pbx_fktChannelWrite(struct ast_channel *ast, const char *funcname, char *args, const char *value)
+{
 	sccp_channel_t *c;
-	boolean_t	res = TRUE;
-
+	boolean_t res = TRUE;
 
 	c = get_sccp_channel_from_ast_channel(ast);
 	if (!c) {
 		ast_log(LOG_ERROR, "This function requires a valid SCCP channel\n");
 		return -1;
 	}
-	
-	
+
 	if (!strcasecmp(args, "MaxCallBR")) {
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: set max call bitrate to %s\n", DEV_ID_LOG(sccp_channel_getDevice(c)), value);
-		
-// 		if(sscanf(value, "%ud", &c->maxBitRate)){
-// 			pbx_builtin_setvar_helper(ast, "_MaxCallBR", value);
-// 			res = TRUE;
-// 		}else{
-// 			res = FALSE;
-// 		}
-		
+
+//              if(sscanf(value, "%ud", &c->maxBitRate)){
+//                      pbx_builtin_setvar_helper(ast, "_MaxCallBR", value);
+//                      res = TRUE;
+//              }else{
+//                      res = FALSE;
+//              }
+
 	} else if (!strcasecmp(args, "codec")) {
 		res = sccp_channel_setPreferredCodec(c, value);
 	} else if (!strcasecmp(args, "microphone")) {
-		if(!value || sccp_strlen_zero(value) || !sccp_true(value)){
+		if (!value || sccp_strlen_zero(value) || !sccp_true(value)) {
 			c->setMicrophone(c, FALSE);
-		}else{
+		} else {
 			c->setMicrophone(c, TRUE);
 		}
 	} else {
 		return -1;
 	}
-	
+
 	return res ? 0 : -1;
 }
 
-
-
-
-/***** database *****/ 
+/***** database *****/
 boolean_t sccp_asterisk_addToDatabase(const char *family, const char *key, const char *value)
 {
 	int res;
-	if (sccp_strlen_zero(family) || sccp_strlen_zero(key) || sccp_strlen_zero(value)) 
+
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key) || sccp_strlen_zero(value))
 		return FALSE;
 	res = ast_db_put(family, key, value);
 	return (!res) ? TRUE : FALSE;
@@ -486,7 +478,7 @@ boolean_t sccp_asterisk_getFromDatabase(const char *family, const char *key, cha
 {
 	int res;
 
-	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) 
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key))
 		return FALSE;
 	res = ast_db_get(family, key, out, outlen);
 	return (!res) ? TRUE : FALSE;
@@ -496,7 +488,7 @@ boolean_t sccp_asterisk_removeFromDatabase(const char *family, const char *key)
 {
 	int res;
 
-	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) 
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key))
 		return FALSE;
 	res = ast_db_del(family, key);
 	return (!res) ? TRUE : FALSE;
@@ -506,9 +498,10 @@ boolean_t sccp_asterisk_removeTreeFromDatabase(const char *family, const char *k
 {
 	int res;
 
-	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) 
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key))
 		return FALSE;
 	res = ast_db_deltree(family, key);
 	return (!res) ? TRUE : FALSE;
 }
+
 /* end - database */

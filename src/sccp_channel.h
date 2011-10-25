@@ -55,13 +55,13 @@ void sccp_channel_transfer_locked(sccp_channel_t * c);
 void sccp_channel_transfer_complete(sccp_channel_t * c);
 void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevice, char *fwdNumber);
 
-sccp_device_t *sccp_channel_getDevice(const sccp_channel_t *channel);
-void sccp_channel_setDevice(sccp_channel_t *channel, const sccp_device_t *device);
+sccp_device_t *sccp_channel_getDevice(const sccp_channel_t * channel);
+void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * device);
 
 #    ifdef CS_SCCP_PARK
 void sccp_channel_park(sccp_channel_t * c);
 #    endif
 
-boolean_t sccp_channel_setPreferredCodec(sccp_channel_t *c, const void *data);
+boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data);
 
 #endif

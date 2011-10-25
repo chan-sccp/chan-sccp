@@ -85,13 +85,10 @@
 #include <asterisk/paths.h>
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2154 $")
-
 #ifndef offsetof
 #    define offsetof(T, F) ((unsigned int)((char *)&((T *)0)->F))
 #endif
-
 #define offsize(T, F) sizeof(((T *)0)->F)
-
 #define G_OBJ_REF(x) offsetof(struct sccp_global_vars,x), offsize(struct sccp_global_vars,x)
 #define D_OBJ_REF(x) offsetof(struct sccp_device,x), offsize(struct sccp_device,x)
 #define L_OBJ_REF(x) offsetof(struct sccp_line,x), offsize(struct sccp_line,x)
@@ -131,7 +128,6 @@ enum SCCPConfigOptionFlag {
 /* *INDENT-ON* */
 };
 
-
 /*!
  * \brief SCCP Config Option Struct
  */
@@ -145,7 +141,7 @@ typedef struct SCCPConfigOption {
 	enum SCCPConfigOptionFlag flags;					/*!< Data type */
 	sccp_configurationchange_t change;					/*!< Does a change of this value needs a device restart */
 	const char *defaultValue;						/*!< Default value */
-	sccp_value_changed_t(*converter_f) (void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);	/*!< Conversion function */
+	 sccp_value_changed_t(*converter_f) (void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);	/*!< Conversion function */
 	const char *description;						/*!< Configuration description (config file) or warning message for deprecated or obsolete values */
 /* *INDENT-OFF* */
 } SCCPConfigOption;
@@ -2442,4 +2438,3 @@ int sccp_config_generate(char *filename, int configType)
 
 	return 0;
 }
-
