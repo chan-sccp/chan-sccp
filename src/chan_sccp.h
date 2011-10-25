@@ -365,7 +365,7 @@ extern "C" {
 };
 
 /*!
- * \brief Feature Type Enum
+ * \brief SCCP Feature Type Enum
  */
 	typedef enum {
 		SCCP_FEATURE_UNKNOWN,
@@ -398,7 +398,45 @@ extern "C" {
 		SCCP_FEATURE_DEVSTATE,
 #    endif
 		SCCP_FEATURE_PICKUP
-	} sccp_feature_type_t;							/*!< Feature Type */
+	} sccp_feature_type_t;							/*!< SCCP Feature Type Enum */
+
+	static const struct sccp_feature_type {
+		sccp_feature_type_t featureType;
+		const char *const text;
+	} sccp_feature_types[] = {
+		/* *INDENT-OFF* */
+		{SCCP_FEATURE_UNKNOWN, 		"FEATURE_UNKNOWN"},
+		{SCCP_FEATURE_CFWDNONE,	 	"cfwd off"},
+		{SCCP_FEATURE_CFWDALL, 		"cfwdall"},
+		{SCCP_FEATURE_CFWDBUSY,	 	"cfwdbusy"},
+		{SCCP_FEATURE_DND, 		"dnd"},
+		{SCCP_FEATURE_PRIVACY, 		"privacy"},
+		{SCCP_FEATURE_MONITOR, 		"monitor"},
+		{SCCP_FEATURE_HOLD, 		"hold"},
+		{SCCP_FEATURE_TRANSFER,	 	"transfer"},
+		{SCCP_FEATURE_MULTIBLINK, 	"multiblink"},
+		{SCCP_FEATURE_MOBILITY, 	"mobility"},
+		{SCCP_FEATURE_CONFERENCE,	"conference"},
+		{SCCP_FEATURE_TEST6, 		"FEATURE_TEST6"},
+		{SCCP_FEATURE_TEST7, 		"FEATURE_TEST7"},
+		{SCCP_FEATURE_TEST8, 		"FEATURE_TEST8"},
+		{SCCP_FEATURE_TEST9, 		"FEATURE_TEST9"},
+		{SCCP_FEATURE_TESTA, 		"FEATURE_TESTA"},
+		{SCCP_FEATURE_TESTB, 		"FEATURE_TESTB"},
+		{SCCP_FEATURE_TESTC, 		"FEATURE_TESTC"},
+		{SCCP_FEATURE_TESTD, 		"FEATURE_TESTD"},
+		{SCCP_FEATURE_TESTE, 		"FEATURE_TESTE"},
+		{SCCP_FEATURE_TESTF, 		"FEATURE_TESTF"},
+		{SCCP_FEATURE_TESTG, 		"FEATURE_TESTG"},
+		{SCCP_FEATURE_TESTH, 		"FEATURE_TESTH"},
+		{SCCP_FEATURE_TESTI, 		"FEATURE_TESTI"},
+		{SCCP_FEATURE_TESTJ, 		"FEATURE_TESTJ"},
+#    ifdef CS_DEVSTATE_FEATURE
+		{SCCP_FEATURE_DEVSTATE, 	"devstate"},
+#    endif
+		{SCCP_FEATURE_PICKUP, 		"pickup"},
+		/* *INDENT-ON* */
+	};
 	
 	typedef enum {
 		SCCP_FEATURE_MONITOR_STATE_DISABLED = 0,
