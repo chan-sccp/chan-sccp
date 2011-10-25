@@ -1,6 +1,6 @@
 
 /*!
- * \file 	sccp_ast108.h
+ * \file 	sccp_ast106.h
  * \brief 	SCCP PBX Asterisk Header
  * \author 	Marcello Ceshia
  * \author 	Diederik de Groot <ddegroot [at] users.sourceforge.net>
@@ -23,9 +23,6 @@ typedef int64_t ast_format_t;
 int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rtp, PBX_RTP_TYPE * vrtp, PBX_RTP_TYPE * trtp, int codecs, int nat_active);
 void *sccp_do_monitor(void *data);
 int sccp_restart_monitor(void);
-int sccp_wrapper_asterisk18_hangup(PBX_CHANNEL_TYPE * ast_channel);
-boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
-int sccp_wrapper_asterisk18_requestHangup(PBX_CHANNEL_TYPE * channel);
 char *pbx_getformatname(format_t format);
 char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 
