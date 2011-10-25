@@ -47,6 +47,9 @@ static int sccp_wrapper_recvdigit_begin(PBX_CHANNEL_TYPE *ast, char digit);
 static int sccp_wrapper_recvdigit_end(PBX_CHANNEL_TYPE *ast, char digit, unsigned int duration);
 static int sccp_wrapper_asterisk18_channel_read(struct ast_channel *ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen);
 static int sccp_pbx_sendHTML(struct ast_channel *ast, int subclass, const char *data, int datalen);
+int sccp_wrapper_asterisk18_hangup(PBX_CHANNEL_TYPE * ast_channel);
+boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
+int sccp_wrapper_asterisk18_requestHangup(PBX_CHANNEL_TYPE * channel);
 
 
 #    if defined(__cplusplus) || defined(c_plusplus)
