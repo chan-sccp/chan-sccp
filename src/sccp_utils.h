@@ -112,6 +112,7 @@ const char *devicestatus2str(uint32_t value);
 const char *codec2str(skinny_codec_t value);
 const char *codec2shortname(uint32_t value);
 const char *codec2name(uint32_t value);
+const char *featureType2str(uint32_t value);
 char *sccp_multiple_codecs2str(char *buf, size_t size, skinny_codec_t * codecs, int length);
 int sccp_parse_allow_disallow(skinny_codec_t * sccp_codecs, skinny_codec_t * mask, const char *list, int allowing);
 const char *skinny_ringermode2str(uint8_t type);

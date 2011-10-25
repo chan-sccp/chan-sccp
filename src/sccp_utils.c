@@ -1039,6 +1039,11 @@ const char *codec2name(uint32_t value)
 	_ARR2STR(skinny_codecs, codec, value, name);
 }
 
+const char *featureType2str(uint32_t value)
+{
+	_ARR2STR(sccp_feature_types, featureType, value, text);
+}
+
 /*!
  * \brief Retrieve the string of format numbers and names from an array of formats
  * Buffer needs to be declared and freed afterwards
@@ -1478,65 +1483,18 @@ enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state
  * \param str Feature Str as char
  * \return Feature Type
  */
-sccp_feature_type_t sccp_featureStr2featureID(const char *str)
+sccp_feature_type_t sccp_featureStr2featureID(const char *const str)
 {
 	if (!str)
 		return SCCP_FEATURE_UNKNOWN;
-	if (!strcasecmp(str, "cfwdall")) {
-		return SCCP_FEATURE_CFWDALL;
-	} else if (!strcasecmp(str, "privacy")) {
-		return SCCP_FEATURE_PRIVACY;
-	} else if (!strcasecmp(str, "dnd")) {
-		return SCCP_FEATURE_DND;
-	} else if (!strcasecmp(str, "monitor")) {
-		return SCCP_FEATURE_MONITOR;
-#ifdef CS_DEVSTATE_FEATURE
-	} else if (!strcasecmp(str, "devstate")) {
-		return SCCP_FEATURE_DEVSTATE;
-#endif
-	} else if (!strcasecmp(str, "hold")) {
-		return SCCP_FEATURE_HOLD;
-	} else if (!strcasecmp(str, "transfer")) {
-		return SCCP_FEATURE_TRANSFER;
-	} else if (!strcasecmp(str, "multiblink")) {
-		return SCCP_FEATURE_MULTIBLINK;
-	} else if (!strcasecmp(str, "mobility")) {
-		return SCCP_FEATURE_MOBILITY;
-	} else if (!strcasecmp(str, "conference")) {
-		return SCCP_FEATURE_CONFERENCE;
-	} else if (!strcasecmp(str, "test6")) {
-		return SCCP_FEATURE_TEST6;
-	} else if (!strcasecmp(str, "test7")) {
-		return SCCP_FEATURE_TEST7;
-	} else if (!strcasecmp(str, "test8")) {
-		return SCCP_FEATURE_TEST8;
-	} else if (!strcasecmp(str, "test9")) {
-		return SCCP_FEATURE_TEST9;
-	} else if (!strcasecmp(str, "testA")) {
-		return SCCP_FEATURE_TESTA;
-	} else if (!strcasecmp(str, "testB")) {
-		return SCCP_FEATURE_TESTB;
-	} else if (!strcasecmp(str, "testC")) {
-		return SCCP_FEATURE_TESTC;
-	} else if (!strcasecmp(str, "testD")) {
-		return SCCP_FEATURE_TESTD;
-	} else if (!strcasecmp(str, "testE")) {
-		return SCCP_FEATURE_TESTE;
-	} else if (!strcasecmp(str, "testF")) {
-		return SCCP_FEATURE_TESTF;
-	} else if (!strcasecmp(str, "testG")) {
-		return SCCP_FEATURE_TESTG;
-	} else if (!strcasecmp(str, "testH")) {
-		return SCCP_FEATURE_TESTH;
-	} else if (!strcasecmp(str, "testI")) {
-		return SCCP_FEATURE_TESTI;
-	} else if (!strcasecmp(str, "testJ")) {
-		return SCCP_FEATURE_TESTJ;
-	} else if (!strcasecmp(str, "pickup")) {
-		return SCCP_FEATURE_PICKUP;
-	}
 
-	return SCCP_FEATURE_UNKNOWN;
+        uint32_t i;
+        for (i = 0; i < ARRAY_LEN(sccp_feature_types); i++) {
+                if (!strcasecmp(sccp_feature_types[i].text,str)) {
+                        return sccp_feature_types[i].featureType;
+                }
+        } 
+        return SCCP_FEATURE_UNKNOWN;
 }
 
 /*!
@@ -1565,7 +1523,7 @@ void sccp_util_featureStorageBackend(const sccp_event_t ** event)
 	if (!(*event) || !device)
 		return;
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: StorageBackend got Feature Change Event %d\n", DEV_ID_LOG(device), (*event)->event.featureChanged.featureType);
+	sccp_log(1) (VERBOSE_PREFIX_3 "%s: StorageBackend got Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), featureType2str((*event)->event.featureChanged.featureType), (*event)->event.featureChanged.featureType);
 	sccp_device_lock(device);
 	sprintf(family, "SCCP/%s", device->id);
 	sccp_device_unlock(device);

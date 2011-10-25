@@ -1994,7 +1994,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 	if (!(*event) || !device)
 		return;
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: received Feature Change Event %d\n", DEV_ID_LOG(device), (*event)->event.featureChanged.featureType);
+	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Received Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), featureType2str((*event)->event.featureChanged.featureType), (*event)->event.featureChanged.featureType);
 
 	switch ((*event)->event.featureChanged.featureType) {
 	case SCCP_FEATURE_CFWDNONE:
