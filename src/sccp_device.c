@@ -1494,7 +1494,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	sccp_selectedchannel_t *selectedChannel = NULL;
 	sccp_line_t *line = NULL;
 	sccp_channel_t *channel = NULL;
-	int i;
 
 #ifdef CS_DEVSTATE_FEATURE
 	sccp_devstate_specifier_t *devstateSpecifier;
@@ -1576,14 +1575,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		sccp_addons_clear(d);
 	}
 	
-	/* cleanup message stack */
-//	for(i = ARRAY_LEN(d->messageStack); i>=0; i--){
-	for(i=0;i< SCCP_MAX_MESSAGESTACK;i++) { 
-		if(d->messageStack[i] != NULL){
-			sccp_free(d->messageStack[i]);
-		}
-	}
-
 	/* removing selected channels */
 	SCCP_LIST_LOCK(&d->selectedChannels);
 	while ((selectedChannel = SCCP_LIST_REMOVE_HEAD(&d->selectedChannels, list))) {
@@ -1691,6 +1682,14 @@ int sccp_device_destroy(const void *ptr)
 	SCCP_LIST_HEAD_DESTROY(&d->selectedChannels);
 	if (d->ha) {
 		sccp_free_ha(d->ha);
+	}
+
+	/* cleanup message stack */
+	int i;
+	for(i=0;i< SCCP_MAX_MESSAGESTACK;i++) { 
+		if(d->messageStack[i] != NULL){
+			sccp_free(d->messageStack[i]);
+		}
 	}
 
 	d->ha = NULL;
