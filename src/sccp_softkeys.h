@@ -33,7 +33,7 @@ struct sccp_softkeyMap_cb {
 typedef struct sccp_softkeyMap_cb sccp_softkeyMap_cb_t;
 
 const sccp_softkeyMap_cb_t *sccp_getSoftkeyMap_by_SoftkeyEvent(uint32_t event);
-void sccp_softkey_setSoftkeyState(sccp_device_t *device, uint8_t softKeySet, uint8_t softKey, boolean_t enable);
+void sccp_softkey_setSoftkeyState(sccp_device_t * device, uint8_t softKeySet, uint8_t softKey, boolean_t enable);
 
 void sccp_sk_dial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
 void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);

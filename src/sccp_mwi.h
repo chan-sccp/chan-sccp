@@ -17,7 +17,6 @@
 #        include "asterisk/event.h"
 #    endif
 
-
 /*!
  * \brief SCCP Mailbox Line Type Definition
  *
@@ -25,7 +24,6 @@
  *
  */
 typedef struct sccp_mailboxLine sccp_mailboxLine_t;
-
 
 /*!
  * \brief SCCP Mailbox Line Type Structure 

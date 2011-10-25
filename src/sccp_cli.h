@@ -15,7 +15,7 @@
 #ifndef __SCCP_CLI_H
 #    define __SCCP_CLI_H
 
-typedef enum sccp_cli_completer{
+typedef enum sccp_cli_completer {
 	SCCP_CLI_NULL_COMPLETER,
 	SCCP_CLI_DEVICE_COMPLETER,
 	SCCP_CLI_LINE_COMPLETER,

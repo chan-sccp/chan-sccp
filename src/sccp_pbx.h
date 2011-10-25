@@ -29,7 +29,7 @@ sccp_channel_t *sccp_pbx_getPeer(sccp_channel_t * channel);
 int sccp_pbx_getCodecCapabilities(sccp_channel_t * channel, void **capabilities);
 int sccp_pbx_getPeerCodecCapabilities(sccp_channel_t * channel, void **capabilities);
 int sccp_pbx_hangup_locked(sccp_channel_t * c);
-int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout);
+int sccp_pbx_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout);
 int sccp_pbx_answer(sccp_channel_t * c);
 
 //! \todo do we need this?

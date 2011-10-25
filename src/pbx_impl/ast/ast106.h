@@ -22,18 +22,17 @@
 #    define NEWCONST const							// old functions used without const
 #    define OLDCONST								// new function used with const
 
-
 enum AST_CONNECTED_LINE_UPDATE_SOURCE {
-        /*! Update for unknown reason (May be interpreted to mean from answer) */
-        AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN,
-        /*! Update from normal call answering */
-        AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER,
-        /*! Update from call diversion (Deprecated, use REDIRECTING updates instead.) */
-        AST_CONNECTED_LINE_UPDATE_SOURCE_DIVERSION,
-        /*! Update from call transfer(active) (Party has already answered) */
-        AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER,
-        /*! Update from call transfer(alerting) (Party has not answered yet) */
-        AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING
+	/*! Update for unknown reason (May be interpreted to mean from answer) */
+	AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN,
+	/*! Update from normal call answering */
+	AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER,
+	/*! Update from call diversion (Deprecated, use REDIRECTING updates instead.) */
+	AST_CONNECTED_LINE_UPDATE_SOURCE_DIVERSION,
+	/*! Update from call transfer(active) (Party has already answered) */
+	AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER,
+	/*! Update from call transfer(alerting) (Party has not answered yet) */
+	AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING
 };
 
 #    include "ast.h"

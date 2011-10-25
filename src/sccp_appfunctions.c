@@ -36,7 +36,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2235 $")
  * 	- device
  * 	  - device->buttonconfig
  */
-static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE *chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
+static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
 	sccp_device_t *d;
 
@@ -224,17 +224,11 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE *chan, NEWCONST char *cmd, char
 static struct pbx_custom_function sccpdevice_function = {
 	.name = "SCCPDEVICE",
 	.synopsis = "Retrieves information about an SCCP Device",
-	.syntax = 	"Usage: SCCPDEVICE(deviceId,<option>)\n",
+	.syntax = "Usage: SCCPDEVICE(deviceId,<option>)\n",
 	.read = sccp_func_sccpdevice,
-	.desc = "DeviceId = Device Identifier (i.e. SEP0123456789)\n"
-		"Option = One of the possible options mentioned in arguments\n",
-	.arguments = 	"DeviceId = Device Identifier (i.e. SEP0123456789)\n"
-		     	"Option = One of these possible options:\n"
-				"ip, id, status, description, config_type, skinny_type, tz_offset, image_version, \n"
-				"accessory_status, registration_state, codecs, capability, state, lines_registered, \n"
-				"lines_count, last_number, early_rtp, supported_protocol_version, used_protocol_version, \n"
-				"mwi_light, dynamic, realtime, active_channel, transfer_channel, conference_channel, \n"
-				"current_line, button_config, pending_delete, chanvar[], codec[]",
+	.desc = "DeviceId = Device Identifier (i.e. SEP0123456789)\n" "Option = One of the possible options mentioned in arguments\n",
+	.arguments = "DeviceId = Device Identifier (i.e. SEP0123456789)\n"
+	    "Option = One of these possible options:\n" "ip, id, status, description, config_type, skinny_type, tz_offset, image_version, \n" "accessory_status, registration_state, codecs, capability, state, lines_registered, \n" "lines_count, last_number, early_rtp, supported_protocol_version, used_protocol_version, \n" "mwi_light, dynamic, realtime, active_channel, transfer_channel, conference_channel, \n" "current_line, button_config, pending_delete, chanvar[], codec[]",
 };
 
 /*!
@@ -255,7 +249,7 @@ static struct pbx_custom_function sccpdevice_function = {
  * 	- line
  * 	  - line->devices
  */
-static int sccp_func_sccpline(PBX_CHANNEL_TYPE *chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
+static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
 	sccp_line_t *l;
 
@@ -450,14 +444,8 @@ static struct pbx_custom_function sccpline_function = {
 	.synopsis = "Retrieves information about an SCCP Line",
 	.syntax = "Usage: SCCPLINE(lineName,<option>)",
 	.read = sccp_func_sccpline,
-	.desc = "LineName = Name of the line to be queried.\n"
-		"Option = One of the possible options mentioned in arguments\n",
-	.arguments = 	"LineName = use on off these: 'current', 'parent', actual linename\n"
-		     	"Option = One of these possible options:\n"
-				"id, name, description, label, vmnum, trnsfvm, meetme, meetmenum, meetmeopts, context, \n"
-				"language, accountcode, musicclass, amaflags, callgroup, pickupgroup, cid_name, cid_num, \n"
-				"incoming_limit, channel_count, dynamic, realtime, pending_delete, pending_update, \n"
-				"regexten, regcontext, adhoc_number, newmsgs, oldmsgs, num_lines, cfwd, devices, chanvar[]"
+	.desc = "LineName = Name of the line to be queried.\n" "Option = One of the possible options mentioned in arguments\n",
+	.arguments = "LineName = use on off these: 'current', 'parent', actual linename\n" "Option = One of these possible options:\n" "id, name, description, label, vmnum, trnsfvm, meetme, meetmenum, meetmeopts, context, \n" "language, accountcode, musicclass, amaflags, callgroup, pickupgroup, cid_name, cid_num, \n" "incoming_limit, channel_count, dynamic, realtime, pending_delete, pending_update, \n" "regexten, regcontext, adhoc_number, newmsgs, oldmsgs, num_lines, cfwd, devices, chanvar[]"
 };
 
 /*!
@@ -477,7 +465,7 @@ static struct pbx_custom_function sccpline_function = {
  * \lock
  * 	- channel
  */
-static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE *chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
+static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
 	sccp_channel_t *c;
 
@@ -566,8 +554,8 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE *chan, NEWCONST char *cmd, cha
 		sccp_copy_string(buf, c->privacy ? "yes" : "no", len);
 	} else if (!strcasecmp(colname, "ss_action")) {
 		snprintf(buf, len, "%d", c->ss_action);
-// 	} else if (!strcasecmp(colname, "monitorEnabled")) {
-// 		sccp_copy_string(buf, c->monitorEnabled ? "yes" : "no", len);
+//      } else if (!strcasecmp(colname, "monitorEnabled")) {
+//              sccp_copy_string(buf, c->monitorEnabled ? "yes" : "no", len);
 	} else if (!strcasecmp(colname, "conference")) {
 		/*! \todo needs to be implemented */
 	} else if (!strcasecmp(colname, "parent")) {
@@ -602,16 +590,8 @@ static struct pbx_custom_function sccpchannel_function = {
 	.synopsis = "Retrieves information about an SCCP Line",
 	.syntax = "Usage: SCCPCHANNEL(channelId,<option>)",
 	.read = sccp_func_sccpchannel,
-	.desc = "ChannelId = Name of the line to be queried.\n"
-		"Option = One of the possible options mentioned in arguments\n",
-	.arguments = 	"ChannelId = use on off these: 'current', actual callid\n"
-		     	"Option = One of these possible options:\n"
-				"callid, id, format, codecs, capability, calledPartyName, calledPartyNumber, callingPartyName, \n"
-				"callingPartyNumber, originalCallingPartyName, originalCallingPartyNumber, originalCalledPartyName, \n"
-				"originalCalledPartyNumber, lastRedirectingPartyName, lastRedirectingPartyNumber, cgpnVoiceMailbox, \n"
-				"cdpnVoiceMailbox, originalCdpnVoiceMailbox, lastRedirectingVoiceMailbox, passthrupartyid, state, \n"
-				"previous_state, calltype, dialed_number, device, line, answered_elsewhere, privacy, ss_action, \n"
-				"monitorEnabled, parent, codec[]"	// not implemented yet: "/*conference*/, /*peer*/"
+	.desc = "ChannelId = Name of the line to be queried.\n" "Option = One of the possible options mentioned in arguments\n",
+	.arguments = "ChannelId = use on off these: 'current', actual callid\n" "Option = One of these possible options:\n" "callid, id, format, codecs, capability, calledPartyName, calledPartyNumber, callingPartyName, \n" "callingPartyNumber, originalCallingPartyName, originalCallingPartyNumber, originalCalledPartyName, \n" "originalCalledPartyNumber, lastRedirectingPartyName, lastRedirectingPartyNumber, cgpnVoiceMailbox, \n" "cdpnVoiceMailbox, originalCdpnVoiceMailbox, lastRedirectingVoiceMailbox, passthrupartyid, state, \n" "previous_state, calltype, dialed_number, device, line, answered_elsewhere, privacy, ss_action, \n" "monitorEnabled, parent, codec[]"	// not implemented yet: "/*conference*/, /*peer*/"
 };
 
 /*!
@@ -623,20 +603,19 @@ static struct pbx_custom_function sccpchannel_function = {
  * \called_from_asterisk
  */
 #if ASTERISK_VERSION_NUMBER >= 10800
-static int sccp_app_prefcodec(PBX_CHANNEL_TYPE *chan, const char *data)
+static int sccp_app_prefcodec(PBX_CHANNEL_TYPE * chan, const char *data)
 #else
-static int sccp_app_prefcodec(PBX_CHANNEL_TYPE *chan, void *data)
+static int sccp_app_prefcodec(PBX_CHANNEL_TYPE * chan, void *data)
 #endif
 {
-	
-	sccp_channel_t 	*c = NULL;
-	int 		res;
+
+	sccp_channel_t *c = NULL;
+	int res;
 
 	if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 		pbx_log(LOG_WARNING, "sccp_app_prefcodec(): Not an SCCP channel\n");
 		return -1;
 	}
-	
 
 	res = sccp_channel_setPreferredCodec(c, data);
 	return res ? 0 : -1;
@@ -656,9 +635,9 @@ static char *prefcodec_descr = "Usage: SetSCCPCodec(codec)" "Sets the preferred 
  * \called_from_asterisk
  */
 #if ASTERISK_VERSION_NUMBER >= 10800
-static int sccp_app_calledparty(PBX_CHANNEL_TYPE *chan, const char *data)
+static int sccp_app_calledparty(PBX_CHANNEL_TYPE * chan, const char *data)
 #else
-static int sccp_app_calledparty(PBX_CHANNEL_TYPE *chan, void *data)
+static int sccp_app_calledparty(PBX_CHANNEL_TYPE * chan, void *data)
 #endif
 {
 	char *text = (char *)data;
@@ -714,15 +693,14 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 		return 0;
 	}
 
-        char *text;
+	char *text;
 	char *splitter = strdupa(data);
-	int timeout=0;
-	
+	int timeout = 0;
+
 	text = strsep(&splitter, ",");
-	if(splitter){
+	if (splitter) {
 		timeout = atoi(splitter);
 	}
-
 
 	if (!text || !c || !sccp_channel_getDevice(c))
 		return 0;
@@ -734,7 +712,7 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 	} else {
 		sccp_dev_clear_message(d, TRUE);
 	}
-	
+
 	sccp_device_unlock(d);
 
 	return 0;

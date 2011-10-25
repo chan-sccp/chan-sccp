@@ -94,11 +94,11 @@ struct sccp_hint_list {
  * \param data Asterisk Data
  * \return Status as int
  */
-#if ASTERISK_VERSION_NUMBER >= 11001
+#    if ASTERISK_VERSION_NUMBER >= 11001
 int sccp_hint_state(const char *context, const char *exten, enum ast_extension_states state, void *data);
-#else
+#    else
 int sccp_hint_state(char *context, char *exten, enum ast_extension_states state, void *data);
-#endif
+#    endif
 
 #    define sccp_hint_lineStatusChanged(a,b,c,d,e) sccp_hint_lineStatusChangedDebug(a,b,c,d,e, __FILE__, __LINE__)
 void sccp_hint_lineStatusChangedDebug(sccp_line_t * line, sccp_device_t * device, sccp_channel_t * channel, sccp_channelState_t previousState, sccp_channelState_t state, char *callerFile, int callerLine);

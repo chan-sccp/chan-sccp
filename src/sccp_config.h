@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_config.h
  * \brief 	SCCP Config Header
@@ -29,15 +30,16 @@ typedef enum {
  * \brief Enum for Config Option Blocks
  */
 typedef enum {
-	SCCP_CONFIG_GLOBAL_SEGMENT			= 0,
+	SCCP_CONFIG_GLOBAL_SEGMENT = 0,
 	SCCP_CONFIG_DEVICE_SEGMENT,
 	SCCP_CONFIG_LINE_SEGMENT,
 	SCCP_CONFIG_SOFTKEY_SEGMENT,
 } sccp_config_segment_t;
 
 void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, const uint8_t alreadySetEntries[], uint8_t arraySize);
-void sccp_copy_defaultValue(const char *name, void *obj, const sccp_device_t *device, const sccp_config_segment_t segment);
+void sccp_copy_defaultValue(const char *name, void *obj, const sccp_device_t * device, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_dnd(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
+
 /*!
  * \brief Soft Key Configuration Template Structure
  */
@@ -85,23 +87,24 @@ static const softkeyConfigurationTemplate softKeyTemplate[] = {
 };
 
 sccp_configurationchange_t sccp_config_addButton(void *buttonconfig_head, int index, button_type_t type, const char *name, const char *option, const char *args);
-sccp_line_t *sccp_config_buildLine(sccp_line_t *l, PBX_VARIABLE_TYPE *v, const char *lineName, boolean_t isRealtime);
-sccp_device_t *sccp_config_buildDevice(sccp_device_t *d, PBX_VARIABLE_TYPE *v, const char *deviceName, boolean_t isRealtime);
+sccp_line_t *sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const char *lineName, boolean_t isRealtime);
+sccp_device_t *sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * v, const char *deviceName, boolean_t isRealtime);
 boolean_t sccp_config_general(sccp_readingtype_t readingtype);
 void cleanup_stale_contexts(char *newContext, char *oldContext);
 void sccp_config_readDevicesLines(sccp_readingtype_t readingtype);
 
-#define CONFIG_STATUS_FILEOLD       (void *)-3
-#define CONFIG_STATUS_FILE_NOT_SCCP (void *)-4
+#    define CONFIG_STATUS_FILEOLD       (void *)-3
+#    define CONFIG_STATUS_FILE_NOT_SCCP (void *)-4
 struct ast_config *sccp_config_getConfig(void);
-sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYPE *v);
-sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, PBX_VARIABLE_TYPE *v);
+sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYPE * v);
+sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, PBX_VARIABLE_TYPE * v);
 sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * d, PBX_VARIABLE_TYPE * v);
 
-void sccp_config_softKeySet(PBX_VARIABLE_TYPE *variable, const char *name);
+void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name);
 uint8_t sccp_config_readSoftSet(uint8_t * softkeyset, const char *data);
 int sccp_config_getSoftkeyLbl(char *key);
 void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device);
 
 int sccp_config_generate(char *filename, int configType);
+
 #endif /*__SCCP_CONFIG_H */
