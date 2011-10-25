@@ -178,16 +178,15 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 //	participant->conferenceBridgePeer = ast_channel_alloc(0, chan->_state, 0, 0, chan->accountcode, chan->exten, chan->context, "", chan->amaflags, "ConferenceBridge/%s", chan->name);
 //	if (!participant->conferenceBridgePeer) {
 //		pbx_log(LOG_NOTICE, "Couldn't allocate participant peer.\n");
-//		//pbx_channel_unlock(chan);
 //		return -1;
 //	}
 
-	participant->conferenceBridgePeer->_state = AST_STATE_DOWN;
 	if (!PBX(alloc_pbxChannel)(get_sccp_channel_from_pbx_channel(chan), &participant->conferenceBridgePeer)) {
 		pbx_log(LOG_NOTICE, "Couldn't allocate participant peer.\n");
 		//pbx_channel_unlock(chan);
 		return -1;
 	}
+	participant->conferenceBridgePeer->_state = AST_STATE_DOWN;
 
 	participant->conferenceBridgePeer->readformat = chan->readformat;
 	participant->conferenceBridgePeer->writeformat = chan->writeformat;
