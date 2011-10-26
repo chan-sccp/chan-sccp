@@ -2508,3 +2508,32 @@ void sccp_print_group(struct ast_str *buf, int buflen, sccp_group_t group)
 	}
 	return;
 }
+
+/*!
+ * \brief Compare two socket addressed with each other
+ */
+int sockaddr_cmp_addr (struct sockaddr_storage * addr1, socklen_t len1, struct sockaddr_storage * addr2, socklen_t len2)
+{
+      struct sockaddr_in* p1_in = (struct sockaddr_in*)addr1;
+      struct sockaddr_in* p2_in = (struct sockaddr_in*)addr2;
+      struct sockaddr_in6* p1_in6 = (struct sockaddr_in6*)addr1;
+      struct sockaddr_in6* p2_in6 = (struct sockaddr_in6*)addr2;
+      if(len1 < len2)
+            return -1;
+      if(len1 > len2)
+            return 1;
+      if( p1_in->sin_family < p2_in->sin_family)
+            return -1;
+      if( p1_in->sin_family > p2_in->sin_family)
+            return 1;
+      /* compare ip4 */
+      if( p1_in->sin_family == AF_INET ) {
+            return memcmp(&p1_in->sin_addr, &p2_in->sin_addr, INET_ADDRSTRLEN);
+      } else if (p1_in6->sin6_family == AF_INET6) {
+            return memcmp(&p1_in6->sin6_addr, &p2_in6->sin6_addr, INET6_ADDRSTRLEN);
+      } else {
+            /* unknown type, compare for sanity. */
+            return memcmp(addr1, addr2, len1);
+      }
+}
+

@@ -313,24 +313,31 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d (loadinfo '%s')\n", r->msg.RegisterMessage.sId.deviceName, letohl(r->msg.RegisterMessage.sId.lel_instance), devicetype2str(letohl(r->msg.RegisterMessage.lel_deviceType)), letohl(r->msg.RegisterMessage.lel_deviceType), protocolVer, r->msg.RegisterMessage.loadInfo);
 
-#ifdef CS_IPV6
-	uint8_t i = 0;
-	char ipv6Addr[38];
+#  if CS_EXPERIMENTAL
+        socklen_t addrlen=0;
+        struct sockaddr_storage *session_ss={0};
 
-	memset(ipv6Addr, 0, sizeof(ipv6Addr));
-
-	int j = 0;
-
-	for (i = 0; i < 16; i++) {
-		sprintf(&ipv6Addr[i * 2 + j], "%02x", (uint8_t) r->msg.RegisterMessage.ipv6Address[i]);
-		if ((i > 0 && i < 14) && ((i + 1) % 2) == 0) {
-			ipv6Addr[i * 2 + 2 + j] = ':';
-			j += 1;
-		}
+        struct sockaddr_storage *ss={0};
+	char iabuf[INET6_ADDRSTRLEN];
+        struct sockaddr_in sin;
+        if (0!=r->msg.RegisterMessage.lel_stationIpAddr) {
+                sin.sin_family=AF_INET;
+                memcpy(&sin.sin_addr, &r->msg.RegisterMessage.lel_stationIpAddr, 4);
+                inet_ntop(AF_INET, &sin.sin_addr, iabuf, (socklen_t)INET_ADDRSTRLEN);
+                sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: IPv4-Address: %s\n", r->msg.RegisterMessage.sId.deviceName, iabuf);
+                ss = (struct sockaddr_storage *)&sin;
 	}
-	i = 0;
-	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: IPv6-Address: %s\n", r->msg.RegisterMessage.sId.deviceName, ipv6Addr);
-#endif
+#    ifdef CS_IPV6
+        struct sockaddr_in6 sin6;
+        if (0!=r->msg.RegisterMessage.ipv6Address) {
+                sin6.sin6_family = AF_INET6;
+        	memcpy(&sin6.sin6_addr, &r->msg.RegisterMessage.lel_stationIpAddr, 16);
+	        inet_ntop(AF_INET6, &sin6.sin6_addr, iabuf, (socklen_t)INET6_ADDRSTRLEN);
+	        sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: IPv6-Address: %s\n", r->msg.RegisterMessage.sId.deviceName, iabuf);
+	       	ss = (struct sockaddr_storage *)&sin6;
+	}
+#    endif
+#  endif  
 
 	// search for all devices including realtime
 	if (!d) {
@@ -384,6 +391,24 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream \n", r->msg.RegisterMessage.sId.deviceName);
 		d->nat = 1;
 	}
+	
+	/* We should be using sockaddr_storage in sccp_socket.c so this convertion would not be necessary here */
+#  if CS_EXPERIMENTAL
+	if (AF_INET==s->sin.sin_family) {
+		session_ss=(struct sockaddr_storage *)&s->sin;
+		addrlen=(socklen_t)INET_ADDRSTRLEN;
+	}
+#    ifdef CS_IPV6
+/*	if (AF_INET6==s->sin6.sin6_family) {
+		session_ss=(struct sockaddr_storage *)&s->sin6;
+		addrlen=(socklen_t)INET6_ADDRSTRLEN;
+	}*/
+#    endif
+	if (sockaddr_cmp_addr(ss, addrlen, session_ss, addrlen)) {		// test to see if phone ip address differs from incoming socket ipaddress -> nat
+		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will use externip or externhost for the RTP stream \n", r->msg.RegisterMessage.sId.deviceName);
+		d->nat = 1;
+	}
+#endif
 
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr));
 	s->device = d;
