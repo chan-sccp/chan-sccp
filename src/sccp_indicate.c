@@ -92,19 +92,21 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 //              PBX(set_callstate)(c, AST_STATE_DOWN);
 		break;
 	case SCCP_CHANNELSTATE_OFFHOOK:
-		//sccp_dev_set_mwi(d, l, 0);
-		//if (!d->mwioncall)
-		//      sccp_dev_set_mwi(d, NULL, 0);
-
-		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
-		PBX(set_callstate) (c, AST_STATE_OFFHOOK);
-		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-		sccp_dev_set_cplane(l, instance, d, 1);
-		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 0);
-		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_OFFHOOK);
-
-		sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, c->callid, 0);
-
+		if (SCCP_CHANNELSTATE_DOWN==c->previousChannelState) {		// new call
+			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
+			PBX(set_callstate) (c, AST_STATE_OFFHOOK);
+			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+			sccp_dev_set_cplane(l, instance, d, 1);
+			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 0);
+			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_OFFHOOK);
+			sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, c->callid, 0);
+		} else {							// call pickup
+			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
+			PBX(set_callstate) (c, AST_STATE_OFFHOOK);
+			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+			sccp_dev_set_cplane(l, instance, d, 1);
+			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_OFFHOOK);
+		}
 		/* for earlyrtp take a look at sccp_channel_newcall because we have no c->owner here */
 		break;
 	case SCCP_CHANNELSTATE_GETDIGITS:
