@@ -3,9 +3,13 @@ Needs testing
 Fix Check sccp reload:
   - sccp.conf reloading / reset necessary devices
 
+Fix RegContext SubscriptionId (segfault during module load after unload)
+
 Remote capabilities check: test remote channel is sccp channel -> use preferred codecs (mostly done, test transfer hold needed -MC)
 
 MaxCallBR to "automaticly" choose audio and video codec
+
+Automatically Detect nated devices
 
 
 
@@ -22,8 +26,6 @@ Fix Cisco Communicator Support (mostly done -MC)
 Fix when phone looses connection and tries to re-connect within keepalive time, it is locked out of connecting
 
 Fix Conference + ConfList
-
-Fix RegContext SubscriptionId (segfault during module load after unload)
 
 Fix Pressing a shared line button, while another phone is on a call using the same shared line.
 
@@ -42,8 +44,6 @@ Objectives 1.8
 
 Finish Configuration
 - use global codecs for device
-
-Automatically Detect nated devices
 
 Automatic enabling of directrtp when possible / desired
 
