@@ -122,14 +122,14 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 
 	if (!sccp_strlen_zero(ast->call_forward)) {
 		pbx_queue_control(ast, -1);					/* Prod Channel if in the middle of a call_forward instead of proceed */
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Forwarding Call to '%s'\n", ast->call_forward);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Forwarding Call to '%s'\n", ast->call_forward);
 		return 0;
 	}									// CS_AST_CHANNEL_HAS_CID
 
 #if ASTERISK_VERSION_NUMBER < 10400
 	// if channel type is undefined, set to SCCP
 	if (!ast->type) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Channel type undefined, setting to type 'SCCP'\n");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Channel type undefined, setting to type 'SCCP'\n");
 		ast->type = "SCCP";
 	}
 #endif										// ASTERISK_VERSION_NUMBER < 10400
@@ -162,12 +162,12 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 		return -1;
 	}
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Asterisk request to call %s\n", l->id, ast->name);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Asterisk request to call %s\n", l->id, ast->name);
 
 	/* if incoming call limit is reached send BUSY */
 	sccp_line_lock(l);
 	if (SCCP_RWLIST_GETSIZE(l->channels) > l->incominglimit) {		/* >= just to be sure :-) */
-		sccp_log(1) (VERBOSE_PREFIX_3 "Incoming calls limit (%d) reached on SCCP/%s... sending busy\n", l->incominglimit, l->name);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Incoming calls limit (%d) reached on SCCP/%s... sending busy\n", l->incominglimit, l->name);
 		sccp_line_unlock(l);
 		pbx_setstate(ast, AST_STATE_BUSY);
 		pbx_queue_control(ast, AST_CONTROL_BUSY);
@@ -288,7 +288,7 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 				struct sccp_answer_conveyor_struct *conveyor = sccp_calloc(1, sizeof(struct sccp_answer_conveyor_struct));
 
 				if (conveyor) {
-					sccp_log(1) (VERBOSE_PREFIX_3 "%s: Running the autoanswer thread on %s\n", DEV_ID_LOG(linedevice->device), ast->name);
+					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Running the autoanswer thread on %s\n", DEV_ID_LOG(linedevice->device), ast->name);
 					conveyor->callid = c->callid;
 					conveyor->linedevice = linedevice;
 					
@@ -365,7 +365,7 @@ int sccp_pbx_hangup_locked(sccp_channel_t * c)
 	sccp_device_t *d = NULL;
 
 	/* here the ast channel is locked */
-	//sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Asterisk request to hangup channel %s\n", ast->name);
+	//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk request to hangup channel %s\n", ast->name);
 
 	sccp_mutex_lock(&GLOB(usecnt_lock));
 	GLOB(usecnt)--;
@@ -414,7 +414,7 @@ int sccp_pbx_hangup_locked(sccp_channel_t * c)
 	SCCP_LIST_LOCK(&c->line->channels);
 	SCCP_LIST_TRAVERSE(&c->line->channels, channel, list) {
 		if (channel->parentChannel == c) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: PBX Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: PBX Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
 			/* No need to lock because c->line->channels is already locked. */
 			sccp_channel_endcall_locked(channel);
 		}
@@ -574,7 +574,7 @@ int sccp_pbx_answer(sccp_channel_t * c)
 		return -1;
 	}
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Outgoing call has been answered %s on %s@%s-%08x\n", c->owner->name, c->line->name, DEV_ID_LOG(sccp_channel_getDevice(c)), c->callid);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Outgoing call has been answered %s on %s@%s-%08x\n", c->owner->name, c->line->name, DEV_ID_LOG(sccp_channel_getDevice(c)), c->callid);
 	sccp_channel_lock(c);
 	sccp_channel_updateChannelCapability_locked(c);
 
@@ -629,7 +629,7 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Line: %s\n", l->name);
 
 	if (!l) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate asterisk channel %s\n", l->name);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate asterisk channel %s\n", l->name);
 		pbx_log(LOG_ERROR, "SCCP: Unable to allocate asterisk channel\n");
 		return 0;
 	}
@@ -794,7 +794,7 @@ int sccp_pbx_sched_dial(const void *data)
 	sccp_channel_t *c = (sccp_channel_t *) data;
 
 	if (c && c->owner && !c->owner->pbx) {
-		sccp_log(1) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%d'. Going to dial '%s'\n", c->callid, c->dialedNumber);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%d'. Going to dial '%s'\n", c->callid, c->dialedNumber);
 		sccp_channel_lock(c);
 		sccp_pbx_softswitch_locked(c);
 		sccp_channel_unlock(c);
@@ -816,7 +816,7 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 	if (!sccp_strlen_zero(c->dialedNumber)) {
 		if (GLOB(recorddigittimeoutchar) && GLOB(digittimeoutchar) == c->dialedNumber[strlen(c->dialedNumber) - 1]) {
 			/* we finished dialing with digit timeout char */
-			sccp_log(1) (VERBOSE_PREFIX_1 "SCCP: We finished dialing with digit timeout char %s\n", c->dialedNumber);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: We finished dialing with digit timeout char %s\n", c->dialedNumber);
 			return SCCP_EXTENSION_EXACTMATCH;
 		}
 	}
@@ -827,13 +827,13 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 		extensionStatus = PBX(extension_status) (c);
 		if (((sccp_channel_getDevice(c)->overlapFeature.enabled && !extensionStatus) || (!sccp_channel_getDevice(c)->overlapFeature.enabled && !extensionStatus))
 		    && ((sccp_channel_getDevice(c)->overlapFeature.enabled && !extensionStatus) || (!sccp_channel_getDevice(c)->overlapFeature.enabled && !extensionStatus))) {
-			sccp_log(1) (VERBOSE_PREFIX_1 "SCCP: %s Matches more\n", c->dialedNumber);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: %s Matches more\n", c->dialedNumber);
 			return SCCP_EXTENSION_MATCHMORE;
 		}
-		sccp_log(1) (VERBOSE_PREFIX_1 "SCCP: %s Match %s\n", c->dialedNumber, extensionStatus == SCCP_EXTENSION_EXACTMATCH ? "Exact" : "More");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: %s Match %s\n", c->dialedNumber, extensionStatus == SCCP_EXTENSION_EXACTMATCH ? "Exact" : "More");
 		return extensionStatus;
 	}
-	sccp_log(1) (VERBOSE_PREFIX_1 "SCCP: %s Does Exists\n", c->dialedNumber);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: %s Does Exists\n", c->dialedNumber);
 	return SCCP_EXTENSION_NOTEXISTS;
 }
 
@@ -875,7 +875,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	
 	/* prevent softswitch from being executed twice (Pavel Troller / 15-Oct-2010) */
 	if (c->owner->pbx) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) PBX structure already exists. Dialing instead of starting.\n");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) PBX structure already exists. Dialing instead of starting.\n");
 		/* If there are any digits, send them instead of starting the PBX */
 		if (!sccp_strlen_zero(c->dialedNumber)) {
 			sccp_pbx_senddigits(c, c->dialedNumber);
@@ -933,7 +933,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	}
 
 	instance = sccp_device_find_index_for_line(d, c->line->name);
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) New call on line %s\n", DEV_ID_LOG(d), l->name);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) New call on line %s\n", DEV_ID_LOG(d), l->name);
 
 	/* assign callerid name and number */
 	//sccp_channel_set_callingparty(c, l->cid_name, l->cid_num);
@@ -978,7 +978,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 
 		if (!sccp_strlen_zero(shortenedNumber)) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Asterisk request to pickup exten '%s'\n", shortenedNumber);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk request to pickup exten '%s'\n", shortenedNumber);
 			if (sccp_feat_directpickup_locked(c, shortenedNumber)) {
 				sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 			}
@@ -991,15 +991,15 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	case SCCP_SS_GETMEETMEROOM:
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme request\n", d->id);
 		if (!sccp_strlen_zero(shortenedNumber) && !sccp_strlen_zero(c->line->meetmenum)) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme request for room '%s' on extension '%s'\n", d->id, shortenedNumber, c->line->meetmenum);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme request for room '%s' on extension '%s'\n", d->id, shortenedNumber, c->line->meetmenum);
 			if (c->owner && !pbx_check_hangup(c->owner))
 				pbx_builtin_setvar_helper(c->owner, "SCCP_MEETME_ROOM", shortenedNumber);
 			sccp_copy_string(shortenedNumber, c->line->meetmenum, sizeof(shortenedNumber));
 
 			//sccp_copy_string(c->dialedNumber, SKINNY_DISP_CONFERENCE, sizeof(c->dialedNumber));
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Start Meetme Thread\n", d->id);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Start Meetme Thread\n", d->id);
 			sccp_feat_meetme_start(c);				/* Copied from Federico Santulli */
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme Thread Started\n", d->id);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme Thread Started\n", d->id);
 			return NULL;
 		} else {
 			// without a number we can also close the call. Isn't it true ?
@@ -1017,7 +1017,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 		sccp_dev_clearprompt(d, instance, c->callid);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 		if (!sccp_strlen_zero(shortenedNumber)) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Device request to barge exten '%s'\n", d->id, shortenedNumber);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Device request to barge exten '%s'\n", d->id, shortenedNumber);
 			if (sccp_feat_barge(c, shortenedNumber)) {
 				sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 			}
@@ -1035,7 +1035,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 		sccp_dev_clearprompt(d, instance, c->callid);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 		if (!sccp_strlen_zero(shortenedNumber)) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Device request to barge conference '%s'\n", d->id, shortenedNumber);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Device request to barge conference '%s'\n", d->id, shortenedNumber);
 			if (sccp_feat_cbarge(c, shortenedNumber)) {
 				sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 			}
@@ -1216,7 +1216,7 @@ int sccp_pbx_transfer(PBX_CHANNEL_TYPE * ast, const char *dest)
 		dest = "";
 		return -1;
 	}
-	sccp_log(1) (VERBOSE_PREFIX_1 "Transferring '%s' to '%s'\n", ast->name, dest);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "Transferring '%s' to '%s'\n", ast->name, dest);
 	if (ast->_state == AST_STATE_RING) {
 		//! \todo Blindtransfer needs to be implemented correctly
 
