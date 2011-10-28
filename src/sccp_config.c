@@ -568,7 +568,7 @@ sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, 
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 
-/*	struct ast_hostent ahp;
+	struct ast_hostent ahp;
 	struct hostent *hp;
 
 	struct sockaddr_in *bindaddr_prev = &(*(struct sockaddr_in *)dest);
@@ -592,52 +592,6 @@ sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, 
 		memcpy(&bindaddr_prev->sin_addr, hp->h_addr, sizeof(struct in_addr));
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
-*/
-
-	struct sockaddr_in *bindaddr_prev = &(*(struct sockaddr_in *)dest);
-
-	char curval[256], *port=NULL, *host=NULL, *splitter;
-	sccp_copy_string(curval, value, sizeof(curval));
-	splitter=curval;
-	host = strsep(&splitter, ":");
- 	port = splitter;
-
-	int status;
-	struct addrinfo hints, *res, *p;
-	memset(&hints, 0, sizeof hints); // make sure the struct is empty
-	hints.ai_family = AF_UNSPEC;     // don't care IPv4 or IPv6
-	hints.ai_socktype = SOCK_STREAM; // TCP stream sockets
-	hints.ai_flags = AI_PASSIVE;     // fill in my IP for me
-	if ((status = getaddrinfo(host, port, &hints, &res)) != 0) {
-		pbx_log(LOG_WARNING, "Invalid address: %s. error: %s. SCCP disabled!\n", value, gai_strerror(status));
-		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
-	}
-
-//	for(p = res;p != NULL; p = p->ai_next) {		// use sockaddr_storage to store multiple results
-	p=res;
-		if (p != NULL) {
-			if (p->ai_family == AF_INET) { 	// IPv4
-				if (bindaddr_prev->sin_addr.s_addr != (((struct sockaddr_in *)p->ai_addr)->sin_addr).s_addr || bindaddr_prev->sin_port != ((struct sockaddr_in *)p->ai_addr)->sin_port) {
-					bindaddr_prev->sin_family=((struct sockaddr_in *)p->ai_addr)->sin_family;
-					memcpy(&bindaddr_prev->sin_addr, &(((struct sockaddr_in *)p->ai_addr)->sin_addr), sizeof(struct in_addr));
-					bindaddr_prev->sin_port=((struct sockaddr_in *)p->ai_addr)->sin_port;
-					changed = SCCP_CONFIG_CHANGE_CHANGED;
-				}
-//			else 				// IPv6
-//				if (bindaddr_prev->sin_addr.s_addr != ((struct sockaddr_in6 *)p->ai_addr).s_addr || bindaddr_prev->sin_port != ((struct sockaddr_in6 *)p->ai_addr)->sin_port) {
-//					bindaddr_prev->sin_family=((struct sockaddr_in6 *)p->ai_addr)->sin_family;
-//					memcpy(&bindaddr_prev->sin_addr, &(((struct sockaddr_in6 *)p->ai_addr)->sin_addr), sizeof(struct in_addr));
-//					bindaddr_prev->sin_port=((struct sockaddr_in6 *)p->ai_addr)->sin_port;
-//					changed = SCCP_CONFIG_CHANGE_CHANGED;
-//				}
-			}
-		}
-//		char ipstr[INET6_ADDRSTRLEN];
-//		inet_ntop(p->ai_family, &(((struct sockaddr_in *)p->ai_addr)->sin_addr), ipstr, sizeof ipstr);
-//		pbx_log(LOG_WARNING, "host: %s, port: %d\n", ipstr, htons((((struct sockaddr_in *)p->ai_addr)->sin_port)));
-//	}
-        freeaddrinfo(res); // free the linked-list
-        
 	return changed;
 }
 
