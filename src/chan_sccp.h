@@ -977,7 +977,6 @@ extern "C" {
 		sccp_mutex_t lock;						/*!< Asterisk: Lock Me Up and Tie me Down */
 		void *buffer;							/*!< Session Buffer */
 		int32_t buffer_size;						/*!< Session Buffer Size */
-		struct sockaddr_storage *ss;					/*!< Incoming Socket Address Storage */
 		struct sockaddr_in sin;						/*!< Incoming Socket Address */
 		struct in_addr ourip;						/*!< Our IP is for rtp use */
 		time_t lastKeepAlive;						/*!< Last KeepAlive Time */
@@ -996,9 +995,7 @@ extern "C" {
 	struct sccp_rtp {
 		PBX_RTP_TYPE *rtp;						/*!< pbx rtp pointer */
 		boolean_t isStarted;						/*!< is rtp server started */
-		struct sockaddr_storage *phone_ss;				/*!< Our Phone Socket Address Storage (openreceive)*/
 		struct sockaddr_in phone;					/*!< our phone information (openreceive) */
-		struct sockaddr_storage *phone_remote_ss;			/*!< Phone Destination Socket Address Storage (starttransmission)*/
 		struct sockaddr_in phone_remote;				/*!< phone destination address (starttransmission) */
 		skinny_codec_t readFormat;					/*!< current read format */
 		uint8_t readState;						/*!< current read state */
@@ -1106,7 +1103,7 @@ extern "C" {
 		sccp_mutex_t socket_lock;					/*!< Socket Lock */
 		pthread_t socket_thread;					/*!< Socket Thread */
 		pthread_t mwiMonitorThread;					/*!< MWI Monitor Thread */
-		int descriptor;							/*!< Server Socket Descriptor */
+		int descriptor;							/*!< Descriptor */
 		int usecnt;							/*!< Keep track of when we're in use. */
 		sccp_mutex_t usecnt_lock;					/*!< Use Counter Asterisk Lock */
 
