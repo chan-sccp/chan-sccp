@@ -613,7 +613,7 @@ sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, 
 //	}
         freeaddrinfo(res); // free the linked-list
 #else
-/*	struct ast_hostent ahp;
+	struct ast_hostent ahp;
 	struct hostent *hp;
 
 	struct sockaddr_in *bindaddr_prev = &(*(struct sockaddr_in *)dest);
@@ -637,7 +637,6 @@ sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, 
 		memcpy(&bindaddr_prev->sin_addr, hp->h_addr, sizeof(struct in_addr));
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
-*/
 #endif
 	return changed;
 }
