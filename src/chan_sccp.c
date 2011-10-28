@@ -446,8 +446,36 @@ int load_config(void)
 	}
 
 	if (GLOB(descriptor) < 0) {
-		GLOB(descriptor) = socket(AF_INET, SOCK_STREAM, 0);
+#ifdef CS_EXPERIMENTAL
+		int status;
+		struct addrinfo hints, *res;
+		char port_str[5] = "";
 
+		memset(&hints, 0, sizeof hints);				// make sure the struct is empty
+		hints.ai_family = AF_UNSPEC;					// don't care IPv4 or IPv6
+		hints.ai_socktype = SOCK_STREAM;				// TCP stream sockets
+
+		if (&GLOB(bindaddr.sin_addr) != NULL) {
+			snprintf(port_str, sizeof(port_str), "%d", ntohs(GLOB(bindaddr.sin_port)));
+			if ((status = getaddrinfo(pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), port_str, &hints, &res)) != 0) {
+				pbx_log(LOG_WARNING, "Failed to get addressinfo for %s:%d, error: %s!\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), gai_strerror(status));
+				close(GLOB(descriptor));
+				GLOB(descriptor) = -1;
+				return 0;
+			}
+		} else {
+			hints.ai_flags = AI_PASSIVE;				// fill in my IP for me
+			if ((status = getaddrinfo(NULL, "cisco_sccp", &hints, &res)) != 0) {
+				pbx_log(LOG_WARNING, "Failed to get addressinfo, error: %s!\n", gai_strerror(status));
+				close(GLOB(descriptor));
+				GLOB(descriptor) = -1;
+				return 0;
+			}
+		}
+		GLOB(descriptor) = socket(res->ai_family, res->ai_socktype, res->ai_protocol);	// need to add code to handle multiple interfaces (multi homed server) -> multiple socket descriptors
+#else
+//              GLOB(descriptor) = socket(AF_INET, SOCK_STREAM, 0);     //replaced
+#endif
 		on = 1;
 		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
 			pbx_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
@@ -467,7 +495,11 @@ int load_config(void)
 		if (GLOB(descriptor) < 0) {
 			pbx_log(LOG_WARNING, "Unable to create SCCP socket: %s\n", strerror(errno));
 		} else {
-			if (bind(GLOB(descriptor), (struct sockaddr *)&GLOB(bindaddr), sizeof(GLOB(bindaddr))) < 0) {
+#ifdef CS_EXPERIMENTAL
+			if (bind(GLOB(descriptor), res->ai_addr, res->ai_addrlen) < 0) {	// using addrinfo hints
+#else
+			if (bind(GLOB(descriptor), (struct sockaddr *)&GLOB(bindaddr), sizeof(GLOB(bindaddr))) < 0) {	//replaced
+#endif
 				pbx_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
 				close(GLOB(descriptor));
 				GLOB(descriptor) = -1;
@@ -486,6 +518,9 @@ int load_config(void)
 			pbx_pthread_create(&GLOB(socket_thread), NULL, sccp_socket_thread, NULL);
 
 		}
+#ifdef CS_EXPERIMENTAL
+		freeaddrinfo(res);
+#endif
 	}
 	//! \todo how can we handle this ?
 	//sccp_restart_monitor();
