@@ -175,6 +175,9 @@ sccp_value_changed_t sccp_config_parse_regcontext(void *dest, const size_t size,
 sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_jbflags_enable(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_jbflags_force(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 
 #include "sccp_config_entries.h"
 
@@ -249,9 +252,11 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 	short int int8num;
 	int int16num;
 	long int int32num;
+	long long int int64num;
 	short unsigned int uint8num;
 	unsigned int uint16num;
 	long unsigned int uint32num;
+	long long unsigned int uint64num;
 	boolean_t bool;
 	char *str;
 	char oldChar;
@@ -343,6 +348,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 
 	case SCCP_CONFIG_DATATYPE_INT:
 		if (!sccp_strlen_zero(value)) {
+//			pbx_log(LOG_NOTICE, "name: %s, size %d, cmp %d, sscan %d\n", name, (int)sccpConfigOption->size, strncmp("0x",value, 2), sscanf(value, "%hx", &int8num));
 			switch (sccpConfigOption->size)	 {
 				case 1:
 					if (sscanf(value, "%hd", &int8num) == 1) {
@@ -368,14 +374,20 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 						}
 					}
 					break;
+				case 8:
+					if (sscanf(value, "%lld", &int64num) == 1) {
+						if ((*(int64_t *)dst) != int64num) {
+							*(int64_t *)dst = int64num;
+							changed = SCCP_CONFIG_CHANGE_CHANGED;
+						}
+					}
+					break;
 			}
 		}
 		break;
 	case SCCP_CONFIG_DATATYPE_UINT:
 		if (!sccp_strlen_zero(value)) {
-// 		  pbx_log(LOG_NOTICE, "size %d\n", sccpConfigOption->size);
-// 		  pbx_log(LOG_NOTICE, "cmp %d\n", strncmp("0x",value, 2));
-// 		  pbx_log(LOG_NOTICE, "sscan %d\n", sscanf(value, "%hx", &int8num));
+//			pbx_log(LOG_NOTICE, "name: %s, size %d, cmp %d, sscan %d\n", name, (int)sccpConfigOption->size, strncmp("0x",value, 2), sscanf(value, "%hx", &int8num));
 			switch (sccpConfigOption->size)	 {
 				case 1:
 					if ( (!strncmp("0x",value, 2) && sscanf(value, "%hx", &uint8num)) || (sscanf(value, "%hu", &uint8num) == 1) ) {
@@ -397,6 +409,14 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 					if (sscanf(value, "%lu", &uint32num) == 1) {
 						if ((*(uint32_t *)dst) != uint32num) {
 							*(uint32_t *)dst = uint32num;
+							changed = SCCP_CONFIG_CHANGE_CHANGED;
+						}
+					}
+					break;
+				case 8:
+					if (sscanf(value, "%llu", &uint64num) == 1) {
+						if ((*(uint64_t *)dst) != uint64num) {
+							*(uint64_t *)dst = uint64num;
 							changed = SCCP_CONFIG_CHANGE_CHANGED;
 						}
 					}
@@ -1366,6 +1386,33 @@ sccp_value_changed_t sccp_config_parse_dnd(void *dest, const size_t size, const 
 	}
 
 	return changed;
+}
+
+/*!
+ * \brief Config Converter/Parser for Jitter Buffer Flags
+ */
+static sccp_value_changed_t sccp_config_parse_jbflags(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment, const unsigned int flag)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	struct ast_jb_conf jb = *(struct ast_jb_conf *)dest;
+	
+//        ast_log(LOG_WARNING,"Checking JITTERBUFFER: %d to %s\n", flag, value);
+        if (pbx_test_flag(&jb, flag) != ast_true(value)) {
+//		 ast_log(LOG_WARNING,"Setting JITTERBUFFER: %d to %s\n", flag, value);
+//		 pbx_set2_flag(&jb, ast_true(value), flag);
+		 pbx_set2_flag(&GLOB(global_jbconf), ast_true(value), flag);
+		 changed = SCCP_CONFIG_CHANGE_CHANGED;
+        }
+	return changed;
+}
+sccp_value_changed_t sccp_config_parse_jbflags_enable(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment){
+	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_ENABLED);	
+}
+sccp_value_changed_t sccp_config_parse_jbflags_force(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment){
+	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_FORCED);	
+}
+sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment){
+	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_LOG);	
 }
 
 /* end dyn config */
