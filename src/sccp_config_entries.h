@@ -111,21 +111,21 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 																																" - {'Konference', 'MTV'}\n"},
 	{"meetmeopts", 			G_OBJ_REF(meetmeopts), 			SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"qxd",			NULL,					" options to send the meetme application, defaults are dependent on meetme app see the list above\n"
 																																"Other options (app_meetme: A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see meetme specific documentation\n"},
-	{"jbenable", 			G_OBJ_REF(global_jbconf),	 	SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"no",			sccp_config_parse_jbflags_enable,	" Enables the use of a jitterbuffer on the receiving side of a\n"
+	{"jbenable", 			G_OBJ_REF(global_jbconf),	 	SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"no",			sccp_config_parse_jbflags_enable,	" Enables the use of a jitterbuffer on the receiving side of a\n"
 																																"sccp channel. Defaults to 'no'. An enabled jitterbuffer will\n"
 																																"be used only if the sending side can create and the receiving\n"
 																																"side can not accept jitter. The sccp channel can accept\n"
 																																"jitter, thus a jitterbuffer on the receive sccp side will be\n"
 																																"used only if it is forced and enabled.\n"},
-	{"jbforce", 			G_OBJ_REF(global_jbconf),		SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"no",			sccp_config_parse_jbflags_force,	"Forces the use of a jitterbuffer on the receive side of a sccp\n"
+	{"jbforce", 			G_OBJ_REF(global_jbconf),		SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"no",			sccp_config_parse_jbflags_force,	"Forces the use of a jitterbuffer on the receive side of a sccp\n"
 																																"channel. Defaults to 'no'.\n"},
-	{"jblog", 			G_OBJ_REF(global_jbconf),		SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"no",			sccp_config_parse_jbflags_log,		" Enables jitterbuffer frame logging. Defaults to 'no'.\n"},
-	{"jbmaxsize", 			G_OBJ_REF(global_jbconf.max_size),	SCCP_CONFIG_DATATYPE_INT,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"200",			NULL,					"Max length of the jitterbuffer in milliseconds.\n"},
-	{"jbresyncthreshold", 		G_OBJ_REF(global_jbconf.resync_threshold),SCCP_CONFIG_DATATYPE_INT,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"1000",			NULL,					"Jump in the frame timestamps over which the jitterbuffer is\n"
+	{"jblog", 			G_OBJ_REF(global_jbconf),		SCCP_CONFIG_DATATYPE_GENERIC,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"no",			sccp_config_parse_jbflags_log,		" Enables jitterbuffer frame logging. Defaults to 'no'.\n"},
+	{"jbmaxsize", 			G_OBJ_REF(global_jbconf.max_size),	SCCP_CONFIG_DATATYPE_INT,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"200",			NULL,					"Max length of the jitterbuffer in milliseconds.\n"},
+	{"jbresyncthreshold", 		G_OBJ_REF(global_jbconf.resync_threshold),SCCP_CONFIG_DATATYPE_INT,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"1000",			NULL,					"Jump in the frame timestamps over which the jitterbuffer is\n"
 																																"resynchronized. Useful to improve the quality of the voice, with\n"
 																																"big jumps in/broken timestamps, usually sent from exotic devices\n"
 																																"and programs. Defaults to 1000.\n"},
-	{"jbimpl", 			G_OBJ_REF(global_jbconf.impl),		SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NEEDDEVICERESET,		"fixed",		NULL,					"Jitterbuffer implementation, used on the receiving side of a\n"
+	{"jbimpl", 			G_OBJ_REF(global_jbconf.impl),		SCCP_CONFIG_DATATYPE_STRING,	SCCP_CONFIG_FLAG_NONE,			SCCP_CONFIG_NOUPDATENEEDED,		"fixed",		NULL,					"Jitterbuffer implementation, used on the receiving side of a\n"
 																																"sccp channel. Two implementations are currently available\n"
 																																"- 'fixed' (with size always equals to jbmaxsize)\n"
 																																"- 'adaptive' (with variable size, actually the new jb of IAX2).\n"
