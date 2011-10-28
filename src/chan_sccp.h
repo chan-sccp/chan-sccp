@@ -610,7 +610,7 @@ extern "C" {
 		uint16_t index;							/*!< Button position on device */
 		char label[StationMaxNameSize];					/*!< Button Name/Label */
 		button_type_t type;						/*!< Button type (e.g. line, speeddial, feature, empty) */
-		 SCCP_LIST_ENTRY(sccp_buttonconfig_t) list;			/*!< Button Linked List Entry */
+		SCCP_LIST_ENTRY(sccp_buttonconfig_t) list;			/*!< Button Linked List Entry */
 
 #    ifdef CS_DYNAMIC_CONFIG
 		unsigned int pendingDelete:1;
@@ -1246,7 +1246,7 @@ extern "C" {
 	while (id > -1 && (_sched_res = sccp_sched_del(id)) && ++_count < 10) \
 		usleep(1); \
 	if (_count == 10) { \
-		sccp_log(1)(VERBOSE_PREFIX_3 "SCCP: Unable to cancel schedule ID %d.\n", id); \
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: Unable to cancel schedule ID %d.\n", id); \
 	} \
 	id = -1; \
 	(_sched_res); \

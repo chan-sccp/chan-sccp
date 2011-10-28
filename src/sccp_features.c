@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_features.c
  * \brief 	SCCP Features Class
@@ -297,19 +296,19 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 	sccp_channel_t *tmpChannel;
 
 	if (sccp_strlen_zero(exten)) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) zero exten\n");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) zero exten\n");
 		return -1;
 	}
 
 	if (!c || !c->owner) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) no channel\n");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) no channel\n");
 		return -1;
 	}
 
 	original = c->owner;
 
 	if (!c->line || !sccp_channel_getDevice(c) ) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) no device\n");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) no device\n");
 		return -1;
 	}
 
@@ -358,20 +357,20 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 			if (d->pickupmodeanswer) {
 				if ((res = ast_answer(c->owner))) {		// \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
 
-					sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to answer '%s'\n", c->owner->name);
+					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to answer '%s'\n", c->owner->name);
 					res = -1;
 				} else if ((res = pbx_queue_control(c->owner, AST_CONTROL_ANSWER))) {
-					sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to queue answer on '%s'\n", c->owner->name);
+					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to queue answer on '%s'\n", c->owner->name);
 					res = -1;
 				}
 			}
 
 			if (res == 0) {
 				if ((res = pbx_channel_masquerade(target, c->owner))) {
-					sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);
+					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to masquerade '%s' into '%s'\n", c->owner->name, target->name);
 					res = -1;
 				} else {
-					sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
+					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Pickup on '%s' by '%s'\n", target->name, c->owner->name);
 					c->calltype = SKINNY_CALLTYPE_INBOUND;
 					sccp_channel_set_callingparty(c, name, number);
 					if (d->pickupmodeanswer) {
@@ -390,7 +389,7 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 						c->ringermode = SKINNY_STATION_OUTSIDERING;	// default ring
 						ringermode = pbx_builtin_getvar_helper(c->owner, "ALERT_INFO");
 						if (ringermode && !sccp_strlen_zero(ringermode)) {
-							sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", ringermode);
+							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", ringermode);
 							if (strcasecmp(ringermode, "inside") == 0)
 								c->ringermode = SKINNY_STATION_INSIDERING;
 							else if (strcasecmp(ringermode, "feature") == 0)
@@ -419,7 +418,7 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 	}
 	sccp_free(pickupexten);
 	pickupexten = NULL;
-	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (directpickup) quit\n");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) quit\n");
 	return res;
 }
 
@@ -499,7 +498,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	sccp_channel_t *c;
 
 	if (!l || !d || !d->id || sccp_strlen_zero(d->id)) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) no line or device\n");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) no line or device\n");
 		return -1;
 	}
 
@@ -562,7 +561,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
                 sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 1, 0, 3);	                
         }
 	
-	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) quit\n");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) quit\n");
 	return res;
 }
 
@@ -617,12 +616,12 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 	sccp_channel_t *c;
 	sccp_line_t *l;
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Voicemail Button pressed on line (%d)\n", d->id, lineInstance);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Voicemail Button pressed on line (%d)\n", d->id, lineInstance);
 
 	c = sccp_channel_get_active_locked(d);
 	if (c) {
 		if (!c->line || sccp_strlen_zero(c->line->vmnum)) {
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, lineInstance);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, lineInstance);
 			sccp_channel_unlock(c);
 			return;
 		}
@@ -645,14 +644,14 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 		l = sccp_line_find_byid(d, lineInstance);
 
 	if (!l) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, lineInstance);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, lineInstance);
 		return;
 	}
 	if (!sccp_strlen_zero(l->vmnum)) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Dialing voicemail %s\n", d->id, l->vmnum);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Dialing voicemail %s\n", d->id, l->vmnum);
 		sccp_channel_newcall(l, d, l->vmnum, SKINNY_CALLTYPE_OUTBOUND);
 	} else {
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, lineInstance);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, lineInstance);
 	}
 }
 
@@ -686,7 +685,7 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 		return;
 	}
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: TRANSVM to %s\n", d->id, l->trnsfvm);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: TRANSVM to %s\n", d->id, l->trnsfvm);
 #ifdef CS_AST_HAS_AST_STRING_FIELD
 	pbx_string_field_set(c->owner, call_forward, l->trnsfvm);
 #else
@@ -886,7 +885,7 @@ sccp_channel_t *sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, s
 	SCCP_SCHED_DEL(c->scheduler.digittimeout);
 
 	if (!(c->scheduler.digittimeout = sccp_sched_add(GLOB(firstdigittimeout) * 1000, sccp_pbx_sched_dial, c))) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Unable to schedule dialing in '%d' ms\n", GLOB(firstdigittimeout));
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to schedule dialing in '%d' ms\n", GLOB(firstdigittimeout));
 	}
 
 	sccp_channel_unlock(c);
@@ -955,7 +954,7 @@ static void *sccp_feat_meetme_thread(void *data)
 	for (i = 0; i < sizeof(meetmeApps) / sizeof(struct meetmeAppConfig); i++) {
 		if (pbx_findapp(meetmeApps[i].appName)) {
 			app = &(meetmeApps[i]);
-			sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: using '%s' for meetme\n", meetmeApps[i].appName);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: using '%s' for meetme\n", meetmeApps[i].appName);
 			break;
 		}
 	}

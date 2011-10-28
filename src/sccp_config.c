@@ -933,7 +933,7 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, con
 	else if (!strcasecmp(value, "7916"))
 		addon_type = SKINNY_DEVICETYPE_CISCO7916;
 	else {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Unknown addon type (%s)\n", value);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unknown addon type (%s)\n", value);
 		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
 
@@ -945,7 +945,7 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, con
 //             (!strcasecmp(d->config_type, "7962")) ||
 //             (!strcasecmp(d->config_type, "7965")) ||
 //             (!strcasecmp(d->config_type, "7970")) || (!strcasecmp(d->config_type, "7971")) || (!strcasecmp(d->config_type, "7975")))) && !((addon_type == SKINNY_DEVICETYPE_CISCO7915) && ((!strcasecmp(d->config_type, "7962")) || (!strcasecmp(d->config_type, "7965")) || (!strcasecmp(d->config_type, "7975")))) && !((addon_type == SKINNY_DEVICETYPE_CISCO7916) && ((!strcasecmp(d->config_type, "7962")) || (!strcasecmp(d->config_type, "7965")) || (!strcasecmp(d->config_type, "7975"))))) {
-//              sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Configured device (%s) does not support the specified addon type (%s)\n", d->config_type, value);
+//              sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Configured device (%s) does not support the specified addon type (%s)\n", d->config_type, value);
 //              return changed;
 //      }
 
@@ -953,7 +953,7 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, con
 	sccp_addon_t *addon = sccp_malloc(sizeof(sccp_addon_t));
 
 	if (!addon) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a device addon\n");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a device addon\n");
 		return changed;
 	}
 	memset(addon, 0, sizeof(sccp_addon_t));

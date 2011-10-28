@@ -170,7 +170,7 @@ boolean_t sccp_device_check_update(sccp_device_t * d)
 		return FALSE;
 	}
 
-	sccp_log(1) (VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf\n", d->id);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf\n", d->id);
 	sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 	if (d->session)
 		pthread_cancel(d->session->session_thread);
@@ -1993,7 +1993,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t ** event)
 	if (!(*event) || !device)
 		return;
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Received Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), featureType2str((*event)->event.featureChanged.featureType), (*event)->event.featureChanged.featureType);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Received Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), featureType2str((*event)->event.featureChanged.featureType), (*event)->event.featureChanged.featureType);
 
 	switch ((*event)->event.featureChanged.featureType) {
 	case SCCP_FEATURE_CFWDNONE:

@@ -279,7 +279,7 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk111_rtp_read(PBX_CHANNEL_TYPE * ast)
 		ast_log(LOG_WARNING, "%s: error reading frame == NULL\n", DEV_ID_LOG(c->getDevice(c)));
 		return frame;
 	}
-	//sccp_log(1)(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast->fdno, frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
+	//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast->fdno, frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
 
 	if (frame->frametype == AST_FRAME_VOICE) {
 
@@ -712,7 +712,7 @@ int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		return -1;
 
 	if (ast_test_flag(ast_channel, AST_FLAG_ANSWERED_ELSEWHERE) || ast_channel->hangupcause == AST_CAUSE_ANSWERED_ELSEWHERE) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere");
 		c->answered_elsewhere = TRUE;
 	}
 
@@ -794,7 +794,7 @@ static sccp_parkresult_t sccp_wrapper_asterisk111_park(const sccp_channel_t * ho
 	bridgedChannel = ast_bridged_channel(hostChannel->owner);
 
 	if (!bridgedChannel) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: No PBX channel for parking");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: No PBX channel for parking");
 		return PARK_RESULT_FAIL;
 	}
 
@@ -899,7 +899,7 @@ static sccp_extension_status_t sccp_wrapper_asterisk111_extensionStatus(const sc
 	int ext_canmatch = ast_canmatch_extension(pbx_channel, pbx_channel->context, channel->dialedNumber, 1, channel->line->cid_num);
 	int ext_matchmore = ast_matchmore_extension(pbx_channel, pbx_channel->context, channel->dialedNumber, 1, channel->line->cid_num);
 
-	sccp_log(1) (VERBOSE_PREFIX_1 "SCCP: extension helper says that:\n" "ignore pattern  : %d\n" "exten_exists    : %d\n" "exten_canmatch  : %d\n" "exten_matchmore : %d\n", ignore_pat, ext_exist, ext_canmatch, ext_matchmore);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: extension helper says that:\n" "ignore pattern  : %d\n" "exten_exists    : %d\n" "exten_canmatch  : %d\n" "exten_matchmore : %d\n", ignore_pat, ext_exist, ext_canmatch, ext_matchmore);
 	if (ignore_pat) {
 		return SCCP_EXTENSION_NOTEXISTS;
 	} else if (ext_exist) {
@@ -1111,7 +1111,7 @@ static int sccp_wrapper_asterisk111_answer(PBX_CHANNEL_TYPE * chan)
  */
 static int sccp_wrapper_asterisk111_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL_TYPE * newchan)
 {
-	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: we got a fixup request for %s\n", newchan->name);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: we got a fixup request for %s\n", newchan->name);
 	sccp_channel_t *c = get_sccp_channel_from_pbx_channel(newchan);
 
 	if (!c) {
@@ -1674,7 +1674,7 @@ static boolean_t sccp_asterisk_getRemoteChannel(const sccp_channel_t * channel, 
 int sccp_wrapper_asterisk111_requestHangup(PBX_CHANNEL_TYPE * channel)
 {
 	if (!channel) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "channel to hangup is NULL\n");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "channel to hangup is NULL\n");
 		return FALSE;
 	}	
 			
@@ -1683,30 +1683,30 @@ int sccp_wrapper_asterisk111_requestHangup(PBX_CHANNEL_TYPE * channel)
 	if ((channel->_softhangup & AST_SOFTHANGUP_APPUNLOAD) != 0) {
 		channel->hangupcause = AST_CAUSE_CHANNEL_UNACCEPTABLE;
 		ast_softhangup(channel, AST_SOFTHANGUP_APPUNLOAD);
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: send softhangup appunload\n", channel->name);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: send softhangup appunload\n", channel->name);
 		return TRUE;
 	} 
 	
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: hasPbx %s; state: %d\n", channel->name, channel->pbx?"yes":"no", channel->_state);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hasPbx %s; state: %d\n", channel->name, channel->pbx?"yes":"no", channel->_state);
 	if (AST_STATE_UP != channel->_state && SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state) { 
 		// hangup after callforward ss-switch 
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: send ast_hangup\n", channel->name);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: send ast_hangup\n", channel->name);
 		ast_hangup(channel);
 //	} else if (AST_STATE_UP != channel->_state && SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state) { 
 	} else if (!channel->pbx && AST_STATE_UP != channel->_state && !ast_test_flag(channel, AST_FLAG_BLOCKING)) {
 		// hangup before connection to pbx is established 
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: send ast_hangup\n", channel->name);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: send ast_hangup\n", channel->name);
 		ast_hangup(channel);
 	} else if (AST_STATE_UP != channel->_state && (SCCP_CHANNELSTATE_BUSY == sccp_channel->state || SCCP_CHANNELSTATE_CONGESTION == sccp_channel->state)) {
 		// softhangup when channel structure is still needed afterwards 
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", channel->name);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", channel->name);
 		ast_softhangup_nolock(channel, AST_SOFTHANGUP_DEV);
 	} else if (!channel->hangupcause) {
 		// if no cause is give, provide a fallback one 
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup_with_cause\n", channel->name);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup_with_cause\n", channel->name);
 		ast_queue_hangup_with_cause(channel, AST_CAUSE_NORMAL_UNSPECIFIED);
 	} else 	{
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", channel->name);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", channel->name);
 		ast_queue_hangup(channel);
 	}
 	return TRUE;
@@ -1778,7 +1778,7 @@ static int sccp_pbx_sendtext(PBX_CHANNEL_TYPE * ast, const char *text)
 	if (!text || sccp_strlen_zero(text))
 		return 0;
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: Sending text %s on %s\n", d->id, text, ast->name);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending text %s on %s\n", d->id, text, ast->name);
 
 	instance = sccp_device_find_index_for_line(d, c->line->name);
 	sccp_dev_displayprompt(d, instance, c->callid, (char *)text, 10);
@@ -1821,10 +1821,10 @@ static int sccp_wrapper_recvdigit_end(PBX_CHANNEL_TYPE * ast, char digit, unsign
 
 	d = sccp_channel_getDevice(c);
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked to send dtmf '%d' to channel %s. Trying to send it %s\n", digit, ast->name, (d->dtmfmode) ? "outofband" : "inband");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked to send dtmf '%d' to channel %s. Trying to send it %s\n", digit, ast->name, (d->dtmfmode) ? "outofband" : "inband");
 
 	if (c->state != SCCP_CHANNELSTATE_CONNECTED) {
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Can't send the dtmf '%d' %c to a not connected channel %s\n", d->id, digit, digit, ast->name);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Can't send the dtmf '%d' %c to a not connected channel %s\n", d->id, digit, digit, ast->name);
 		return -1;
 	}
 

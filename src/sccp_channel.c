@@ -379,7 +379,7 @@ void sccp_channel_send_callinfo(sccp_device_t * device, sccp_channel_t * channel
 	if (!device || !channel || !device->protocol)
 		return;
 
-	sccp_log(1) (VERBOSE_PREFIX_3 "%s: send callInfo of callid %d\n", DEV_ID_LOG(device), (channel) ? channel->callid : 0);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: send callInfo of callid %d\n", DEV_ID_LOG(device), (channel) ? channel->callid : 0);
 	device->protocol->sendCallInfo(device, channel);
 }
 
@@ -1811,7 +1811,7 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * channel,
 		} else {
 			sprintf(channel->callInfo.callingPartyName, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
 		}
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Set callingPartyNumber '%s' callingPartyName '%s'\n", DEV_ID_LOG(channel->privateData->device), channel->callInfo.callingPartyNumber, channel->callInfo.callingPartyName);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Set callingPartyNumber '%s' callingPartyName '%s'\n", DEV_ID_LOG(channel->privateData->device), channel->callInfo.callingPartyNumber, channel->callInfo.callingPartyName);
 		PBX(set_connected_line) (channel, channel->callInfo.callingPartyNumber, channel->callInfo.callingPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
 
 	} else if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
@@ -1827,7 +1827,7 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * channel,
 		} else {
 			sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
 		}
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Set calledPartyNumber '%s' calledPartyName '%s'\n", DEV_ID_LOG(channel->privateData->device), channel->callInfo.calledPartyNumber, channel->callInfo.calledPartyName);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Set calledPartyNumber '%s' calledPartyName '%s'\n", DEV_ID_LOG(channel->privateData->device), channel->callInfo.calledPartyNumber, channel->callInfo.calledPartyName);
 		PBX(set_connected_line) (channel, channel->callInfo.calledPartyNumber, channel->callInfo.calledPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
 	}
 	/* */

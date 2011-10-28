@@ -166,7 +166,7 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
 	/* line was not created */
 	SCCP_RWLIST_INSERT_HEAD(&GLOB(lines), line, list);
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
-	sccp_log(1) (VERBOSE_PREFIX_3 "Added line '%s'\n", line->name);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Added line '%s'\n", line->name);
 
 	sccp_event_t *event = sccp_malloc(sizeof(sccp_event_t));
 
@@ -342,12 +342,12 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char 
 	if (type == SCCP_CFWD_NONE) {
 		linedevice->cfwdAll.enabled = 0;
 		linedevice->cfwdBusy.enabled = 0;
-		sccp_log(1) (VERBOSE_PREFIX_3 "%s: Call Forward disabled on line %s\n", DEV_ID_LOG(device), l->name);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward disabled on line %s\n", DEV_ID_LOG(device), l->name);
 	} else {
 		if (!number || sccp_strlen_zero(number)) {
 			linedevice->cfwdAll.enabled = 0;
 			linedevice->cfwdBusy.enabled = 0;
-			sccp_log(1) (VERBOSE_PREFIX_3 "%s: Call Forward to an empty number. Invalid\n", DEV_ID_LOG(device));
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward to an empty number. Invalid\n", DEV_ID_LOG(device));
 		} else {
 			switch (type) {
 				case SCCP_CFWD_ALL:
