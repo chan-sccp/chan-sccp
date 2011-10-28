@@ -474,7 +474,7 @@ int load_config(void)
 		}
 		GLOB(descriptor) = socket(res->ai_family, res->ai_socktype, res->ai_protocol);	// need to add code to handle multiple interfaces (multi homed server) -> multiple socket descriptors
 #else
-//              GLOB(descriptor) = socket(AF_INET, SOCK_STREAM, 0);     //replaced
+              GLOB(descriptor) = socket(AF_INET, SOCK_STREAM, 0);     //replaced
 #endif
 		on = 1;
 		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
