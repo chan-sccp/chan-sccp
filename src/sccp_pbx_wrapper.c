@@ -987,7 +987,16 @@ int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rt
 
 	struct sockaddr_in them;
 
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: __FILE__\n");
+ 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: %s:%d set_rtp_peer\n", __FILE__, __LINE__);
+
+	if(!rtp && !vrtp 
+#if ASTERISK_VERSION_NUMBER > 10600
+	&& !trtp
+#endif	
+	&& (0 ==codecs) ) {
+	 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) No RTP / No Codecs returning 0\n");
+		return 0;
+	}
 
 	if (!(c = CS_AST_CHANNEL_PVT(ast))) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) NO PVT\n");
