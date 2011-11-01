@@ -430,9 +430,9 @@ int load_config(void)
 #endif
 
 #if SCCP_PLATFORM_BYTE_ORDER == SCCP_LITTLE_ENDIAN
-	sccp_log(0) (VERBOSE_PREFIX_2 "Platform byte order   : LITTLE ENDIAN\n");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Platform byte order   : LITTLE ENDIAN\n");
 #else
-	sccp_log(0) (VERBOSE_PREFIX_2 "Platform byte order   : BIG ENDIAN\n");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Platform byte order   : BIG ENDIAN\n");
 #endif
 
 	if (!sccp_config_general(SCCP_CONFIG_READINITIAL)) {
@@ -513,7 +513,7 @@ int load_config(void)
 				GLOB(descriptor) = -1;
 				return 0;
 			}
-			sccp_log(0) (VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
 			GLOB(reload_in_progress) = FALSE;
 			pbx_pthread_create(&GLOB(socket_thread), NULL, sccp_socket_thread, NULL);
 

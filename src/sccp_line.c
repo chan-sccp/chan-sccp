@@ -118,7 +118,7 @@ sccp_line_t *sccp_line_create(void)
 	sccp_line_t *l = sccp_malloc(sizeof(sccp_line_t));
 
 	if (!l) {
-		sccp_log(0) (VERBOSE_PREFIX_3 "Unable to allocate memory for a line\n");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Unable to allocate memory for a line\n");
 		return NULL;
 	}
 	memset(l, 0, sizeof(sccp_line_t));

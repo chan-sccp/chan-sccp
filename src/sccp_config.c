@@ -882,7 +882,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, con
 	button_type_t type;
 	unsigned i;
 #endif
-	sccp_log(0) (VERBOSE_PREFIX_3 "Found buttonconfig: %s\n", value);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Found buttonconfig: %s\n", value);
 	sccp_copy_string(k_button, value, sizeof(k_button));
 	splitter = k_button;
 	buttonType = strsep(&splitter, ",");
@@ -1483,7 +1483,7 @@ sccp_configurationchange_t sccp_config_addButton(void *buttonconfig_head, int in
 	SCCP_LIST_UNLOCK(buttonconfigList);
 
 	if (sccp_strlen_zero(name) || (type != LINE && !options) ) {
-		sccp_log(0) (VERBOSE_PREFIX_1 "SCCP: Faulty Button Configuration found at index: %d", config->index);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Faulty Button Configuration found at index: %d", config->index);
 		type = EMPTY;
 		changes = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
@@ -1574,7 +1574,7 @@ sccp_configurationchange_t sccp_config_addButton(void *buttonconfig_head, int in
 
 		if (args) {
 			sccp_copy_string(config->button.feature.options, args, sizeof(config->button.feature.options));
-			sccp_log(0) (VERBOSE_PREFIX_3 "Arguments present on feature button: %d\n", config->instance);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Arguments present on feature button: %d\n", config->instance);
 		}
 
 		sccp_log((DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "Configured feature button with featureID: %s args: %s\n", options, args);
@@ -2120,7 +2120,7 @@ sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * 
 			/* Check for the presence of a devicestate specifier and register in device list. */
 			if ((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && (strncmp("", config->button.feature.options, 254))) {
 				dspec = sccp_calloc(1, sizeof(sccp_devstate_specifier_t));
-				sccp_log(0) (VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
 				SCCP_LIST_LOCK(&d->devstateSpecifiers);
 				sccp_copy_string(dspec->specifier, config->button.feature.options, sizeof(config->button.feature.options));
 				SCCP_LIST_INSERT_TAIL(&d->devstateSpecifiers, dspec, list);
