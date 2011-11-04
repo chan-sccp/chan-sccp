@@ -72,6 +72,9 @@
    non-root user. These may be able to be tested at runtime. */
 #undef CONFIGURE_RAN_AS_ROOT
 
+/* CPU Count */
+#undef CPU_COUNT
+
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */
@@ -403,6 +406,15 @@
 
 /* Define if libdlloader will be built on this platform */
 #undef HAVE_LIBDLLOADER
+
+/* Define to 1 if libev is available */
+#undef HAVE_LIBEV
+
+/* Define to 1 if libevent is available */
+#undef HAVE_LIBEVENT
+
+/* Define to 1 if libev-libevent is available */
+#undef HAVE_LIBEVENT_COMPAT
 
 /* Define to 1 if libgc is available */
 #undef HAVE_LIBGC

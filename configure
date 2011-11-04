@@ -764,6 +764,9 @@ GDB_FLAGS
 strip_binaries
 WANT_DEBUG_FALSE
 WANT_DEBUG_TRUE
+EVENT_TYPE
+EVENT_CFLAGS
+EVENT_LIBS
 DOXYGEN_PAPER_SIZE
 DX_COND_latex_FALSE
 DX_COND_latex_TRUE
@@ -7575,13 +7578,13 @@ if test "${lt_cv_nm_interface+set}" = set; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:7578: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:7581: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:7581: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:7584: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:7584: output\"" >&5)
+  (eval echo "\"\$as_me:7587: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -8775,7 +8778,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 8778 "configure"' > conftest.$ac_ext
+  echo '#line 8781 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -12178,11 +12181,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12181: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12184: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12185: \$? = $ac_status" >&5
+   echo "$as_me:12188: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12517,11 +12520,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12520: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12523: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12524: \$? = $ac_status" >&5
+   echo "$as_me:12527: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12622,11 +12625,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12625: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12628: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12629: \$? = $ac_status" >&5
+   echo "$as_me:12632: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -12677,11 +12680,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12680: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12683: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12684: \$? = $ac_status" >&5
+   echo "$as_me:12687: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15061,7 +15064,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 15064 "configure"
+#line 15067 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -15157,7 +15160,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 15160 "configure"
+#line 15163 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -17113,11 +17116,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17116: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17119: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:17120: \$? = $ac_status" >&5
+   echo "$as_me:17123: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -17212,11 +17215,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17215: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17218: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:17219: \$? = $ac_status" >&5
+   echo "$as_me:17222: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -17264,11 +17267,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17267: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17270: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:17271: \$? = $ac_status" >&5
+   echo "$as_me:17274: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -19137,7 +19140,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 19140 "configure"
+#line 19143 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -26595,6 +26598,7 @@ fi
 
 
 
+
 case $TERM in
        #   for the most important terminal types we directly know the sequences
        xterm|xterm*|vt220|vt220*)
@@ -28569,6 +28573,256 @@ esac
 
 
 
+case $TERM in
+       #   for the most important terminal types we directly know the sequences
+       xterm|xterm*|vt220|vt220*)
+               T_MD=`awk 'BEGIN { printf("%c%c%c%c", 27, 91, 49, 109); }' </dev/null 2>/dev/null`
+               T_ME=`awk 'BEGIN { printf("%c%c%c", 27, 91, 109); }' </dev/null 2>/dev/null`
+        ;;
+       vt100|vt100*|cygwin)
+               T_MD=`awk 'BEGIN { printf("%c%c%c%c%c%c", 27, 91, 49, 109, 0, 0); }' </dev/null 2>/dev/null`
+               T_ME=`awk 'BEGIN { printf("%c%c%c%c%c", 27, 91, 109, 0, 0); }' </dev/null 2>/dev/null`
+       ;;
+       *)
+               T_MD=''
+               T_ME=''
+       ;;
+esac
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+$as_echo "" >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${T_MD}Checking Enable/Disable:${T_ME}" >&5
+$as_echo "${T_MD}Checking Enable/Disable:${T_ME}" >&6; }
+
+
+	EVENT_LIBS=""
+	EVENT_CFLAGS=""
+	EVENT_TYPE=""
+	if test -z "$EVENT_HOME" ; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for event_init in -lev" >&5
+$as_echo_n "checking for event_init in -lev... " >&6; }
+if test "${ac_cv_lib_ev_event_init+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lev  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char event_init ();
+int
+main ()
+{
+return event_init ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_ev_event_init=yes
+else
+  ac_cv_lib_ev_event_init=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ev_event_init" >&5
+$as_echo "$ac_cv_lib_ev_event_init" >&6; }
+if test "x$ac_cv_lib_ev_event_init" = x""yes; then :
+  HAVE_EVENT="yes"
+fi
+
+		if test "$HAVE_EVENT" = "yes" ; then
+			EVENT_LIBS="-lev"
+			EVENT_TYPE="ev"
+		else
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for event_init in -levent" >&5
+$as_echo_n "checking for event_init in -levent... " >&6; }
+if test "${ac_cv_lib_event_event_init+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-levent  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char event_init ();
+int
+main ()
+{
+return event_init ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_event_event_init=yes
+else
+  ac_cv_lib_event_event_init=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_event_event_init" >&5
+$as_echo "$ac_cv_lib_event_event_init" >&6; }
+if test "x$ac_cv_lib_event_event_init" = x""yes; then :
+  HAVE_EVENT="yes"
+fi
+
+			if test "$HAVE_EVENT" = "yes" ; then
+				EVENT_LIBS="-levent"
+				EVENT_TYPE="event"
+			fi
+		fi
+	else
+		EVENT_OLD_LDFLAGS="$LDFLAGS" ; LDFLAGS="$LDFLAGS -L$EVENT_HOME/lib"
+		EVENT_OLD_CFLAGS="$CFLAGS" ; CFLAGS="$CFLAGS -I$EVENT_HOME/include"
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for event_init in -lev" >&5
+$as_echo_n "checking for event_init in -lev... " >&6; }
+if test "${ac_cv_lib_ev_event_init+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lev  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char event_init ();
+int
+main ()
+{
+return event_init ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_ev_event_init=yes
+else
+  ac_cv_lib_ev_event_init=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ev_event_init" >&5
+$as_echo "$ac_cv_lib_ev_event_init" >&6; }
+if test "x$ac_cv_lib_ev_event_init" = x""yes; then :
+  HAVE_EVENT="yes"
+fi
+
+		if test "$HAVE_EVENT" = "yes"; then
+			CFLAGS="$EVENT_OLD_CFLAGS"
+			LDFLAGS="$EVENT_OLD_LDFLAGS"
+			if test "$HAVE_EVENT" = "yes" ; then
+				EVENT_LIBS="-L$EVENT_HOME/lib -lev"
+				test -d "$EVENT_HOME/include" && EVENT_CFLAGS="-I$EVENT_HOME/include"
+				EVENT_TYPE="ev"
+			fi
+		else
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for event_init in -levent" >&5
+$as_echo_n "checking for event_init in -levent... " >&6; }
+if test "${ac_cv_lib_event_event_init+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-levent  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char event_init ();
+int
+main ()
+{
+return event_init ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_event_event_init=yes
+else
+  ac_cv_lib_event_event_init=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_event_event_init" >&5
+$as_echo "$ac_cv_lib_event_event_init" >&6; }
+if test "x$ac_cv_lib_event_event_init" = x""yes; then :
+  HAVE_EVENT="yes"
+fi
+
+			CFLAGS="$EVENT_OLD_CFLAGS"
+			LDFLAGS="$EVENT_OLD_LDFLAGS"
+			if test "$HAVE_EVENT" = "yes" ; then
+				EVENT_LIBS="-L$EVENT_HOME/lib -levent"
+				test -d "$EVENT_HOME/include" && EVENT_CFLAGS="-I$EVENT_HOME/include"
+				EVENT_TYPE="event"
+			fi
+		fi
+	fi
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libev/libevent..." >&5
+$as_echo_n "checking for libev/libevent...... " >&6; }
+	if test "$HAVE_EVENT" = "yes" ; then
+		if test "$EVENT_TYPE" = "ev"; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: libev" >&5
+$as_echo "libev" >&6; }
+
+$as_echo "#define HAVE_LIBEV 1" >>confdefs.h
+
+
+$as_echo "#define HAVE_LIBEVENT_COMPAT 1" >>confdefs.h
+
+		else
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: libevent" >&5
+$as_echo "libevent" >&6; }
+
+$as_echo "#define HAVE_LIBEVENT 1" >>confdefs.h
+
+		fi
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		as_fn_error $? "
+			*** ERROR: cannot find libev or libevent!
+			***
+			*** Either install libev + libev-libevent-dev (preferred) or the older libevent
+			*** Sources can be found here: http://software.schmorp.de/pkg/libev.html or http://www.monkey.org/~provos/libevent/
+			*** If it's already installed, specify its path using --with-libevent=PATH
+		" "$LINENO" 5
+	fi
+
+
+
+
+
 
 	# Check whether --enable-optimization was given.
 if test "${enable_optimization+set}" = set; then :
@@ -29059,6 +29313,36 @@ fi
 		GCFLAGS="$GCFLAGS -DGC_FIND_LEAK -DGC_PRINT_STATS"
 	fi
 
+
+
+
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking the number of available CPUs" >&5
+$as_echo_n "checking the number of available CPUs... " >&6; }
+    CPU_COUNT="0"
+
+    #On MacOS
+    if test -x /usr/sbin/sysctl -a `/sbin/sysctl -a 2>/dev/null| grep -c hw.cpu`; then
+        CPU_COUNT=`/usr/sbin/sysctl -n hw.ncpu`
+    fi
+
+    #On Linux
+    if test "x$CPU_COUNT" = "x0" -a -e /proc/cpuinfo; then
+        CPU_COUNT=`$EGREP -c '^processor' /proc/cpuinfo`
+    fi
+
+    if test "x$CPU_COUNT" = "x0"; then
+        CPU_COUNT="1"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: unable to detect (assuming 1) " >&5
+$as_echo "unable to detect (assuming 1) " >&6; }
+    else
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $CPU_COUNT " >&5
+$as_echo "$CPU_COUNT " >&6; }
+    fi
+
+cat >>confdefs.h <<_ACEOF
+#define CPU_COUNT `echo ${CPU_COUNT}`
+_ACEOF
 
 
 

@@ -3,8 +3,8 @@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2011-10-11 16:19:03 +0200 (Di, 11. Okt 2011) $
-# REVISION: $Revision: 2969 $
+# DATE:     $Date$
+# REVISION: $Revision$
 # NOTE: Process this file with automake to produce a makefile.in script.
 
 AUTOMAKE_OPTS		= gnu silent-rules
@@ -19,7 +19,7 @@ chan_sccp_la_SOURCES	=	chan_sccp.h		sccp_cli.h		sccp_event.h					\
                                 pbx_impl/pbx_impl.h	sccp_device.h		sccp_hint.h		sccp_lock.h		\
                                 sccp_protocol.h 	sccp_dllists.h		sccp_indicate.h		sccp_management.h	\
                                 sccp_socket.h   	sccp_mwi.h		common.h		sccp_rtp.h 		\
-                                sccp_appfunctions.h
+                                sccp_appfunctions.h	sccp_thpool.h
 
 chan_sccp_la_SOURCES	+=	chan_sccp.c		sccp_channel.c		sccp_device.c		sccp_indicate.c 	\
                                 sccp_pbx.c 		pbx_impl/pbx_impl.c	sccp_softkeys.c		sccp_featureButton.c	\
@@ -27,7 +27,7 @@ chan_sccp_la_SOURCES	+=	chan_sccp.c		sccp_channel.c		sccp_device.c		sccp_indicat
                                 sccp_features.c 	sccp_socket.c		sccp_config.c		sccp_hint.c		\
                                 sccp_lock.c		sccp_event.c		sccp_adv_features.c	sccp_management.c	\
                                 sccp_mwi.c		sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	\
-                                sccp_protocol.c
+                                sccp_protocol.c		sccp_thpool.c
                                 
 if BUILD_AST			# New conditional build using EXTRA_ and _DEPENDENCIES 
 EXTRA_chan_sccp_la_SOURCES = pbx_impl/ast/ast.h pbx_impl/ast/ast.c
@@ -47,9 +47,9 @@ endif
 chan_sccp_la_CPPFLAGS	= $(PBX_CPPFLAGS)
 chan_sccp_la_LIBADD	= $(PTHREAD_CFLAGS) $(GCLIBS) $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
 chan_sccp_la_DEPENDENCIES = $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
-chan_sccp_la_CFLAGS	= $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(GCLIBS)
-chan_sccp_la_CFLAGS	+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall $(GCFLAGS)
-chan_sccp_la_LDFLAGS	= -avoid-version -module  $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS)
+chan_sccp_la_CFLAGS	= $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(GCLIBS) $(EVENT_LIBS)
+chan_sccp_la_CFLAGS	+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall $(GCFLAGS) $(EVENT_CFLAGS)
+chan_sccp_la_LDFLAGS	= -avoid-version -module  $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS) $(EVENT_LIBS)
 
 #bin_PROGRAMS = gen_sccpconf
 #gen_sccpconf_SOURCES = gen_sccpconf/gen_sccpconf.c gen_sccpconf/gen_sccpconf.h sccp_config_entries.h
