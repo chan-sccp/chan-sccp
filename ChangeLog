@@ -1,4 +1,196 @@
 ------------------------------------------------------------------------
+r3113 | ddegroot | 2011-11-01 12:41:51 +0000 (Di, 01. Nov 2011) | 1 Zeile
+
+Replaced sccp_log(0)
+------------------------------------------------------------------------
+r3110 | ddegroot | 2011-10-28 15:29:32 +0000 (Fr, 28. Okt 2011) | 1 Zeile
+
+Set jitterbuffer parameters to NOUPDATENEEDED
+------------------------------------------------------------------------
+r3109 | ddegroot | 2011-10-28 15:25:31 +0000 (Fr, 28. Okt 2011) | 1 Zeile
+
+Re-Added jitterbuffer parsing to sccp_config.c. Extended INT/UINT config parse to allow for LONG LONG (64bit)
+------------------------------------------------------------------------
+r3108 | ddegroot | 2011-10-28 14:13:45 +0000 (Fr, 28. Okt 2011) | 1 Zeile
+
+Mixed up labels in sccp show globals for hotline
+------------------------------------------------------------------------
+r3107 | ddegroot | 2011-10-28 14:05:38 +0000 (Fr, 28. Okt 2011) | 1 Zeile
+
+accidentally commented out bindaddr setting
+------------------------------------------------------------------------
+r3106 | ddegroot | 2011-10-28 14:04:08 +0000 (Fr, 28. Okt 2011) | 1 Zeile
+
+accidentally commented out socket creation
+------------------------------------------------------------------------
+r3105 | ddegroot | 2011-10-28 13:19:31 +0000 (Fr, 28. Okt 2011) | 1 Zeile
+
+replaced sccp_log(1) with sccp_log((DEBUGCAT_CORE)))
+------------------------------------------------------------------------
+r3104 | ddegroot | 2011-10-28 10:06:03 +0000 (Fr, 28. Okt 2011) | 1 Zeile
+
+Added posix methods to handle socket / bindaddr / ip-address
+------------------------------------------------------------------------
+r3103 | ddegroot | 2011-10-28 09:52:13 +0000 (Fr, 28. Okt 2011) | 1 Zeile
+
+revert to 3101, accidental checkin of socket replacement code.
+------------------------------------------------------------------------
+r3102 | ddegroot | 2011-10-28 09:50:12 +0000 (Fr, 28. Okt 2011) | 1 Zeile
+
+cleanup experiment line rewrite code from sccp_cli
+------------------------------------------------------------------------
+r3101 | ddegroot | 2011-10-27 21:54:51 +0000 (Do, 27. Okt 2011) | 1 Zeile
+
+updated TODO. sccp reload moved to testing
+------------------------------------------------------------------------
+r3098 | ddegroot | 2011-10-27 14:16:25 +0000 (Do, 27. Okt 2011) | 1 Zeile
+
+Updated gen_sccpconf (the automatic sccp.conf generator)
+------------------------------------------------------------------------
+r3097 | ddegroot | 2011-10-27 12:06:23 +0000 (Do, 27. Okt 2011) | 1 Zeile
+
+Removed default for secondaryDialtoneDigits
+------------------------------------------------------------------------
+r3095 | ddegroot | 2011-10-26 18:20:17 +0000 (Mi, 26. Okt 2011) | 1 Zeile
+
+Possible solution for the Auto Hold (Bug: 342487)
+------------------------------------------------------------------------
+r3094 | ddegroot | 2011-10-26 16:13:11 +0000 (Mi, 26. Okt 2011) | 1 Zeile
+
+Added experimental nat detection code (CS_EXPERIMENTAL)
+------------------------------------------------------------------------
+r3093 | ddegroot | 2011-10-25 23:49:00 +0000 (Di, 25. Okt 2011) | 1 Zeile
+
+Re-indented code
+------------------------------------------------------------------------
+r3092 | ddegroot | 2011-10-25 21:11:34 +0000 (Di, 25. Okt 2011) | 1 Zeile
+
+Added sync todo
+------------------------------------------------------------------------
+r3091 | ddegroot | 2011-10-25 21:05:33 +0000 (Di, 25. Okt 2011) | 1 Zeile
+
+Resynced asterisk 1.10 and above to asterisk 1.8 functions
+------------------------------------------------------------------------
+r3090 | ddegroot | 2011-10-25 18:01:52 +0000 (Di, 25. Okt 2011) | 1 Zeile
+
+Fix V4.0 sccp_conference_addAstChannelToConferenceBridge
+------------------------------------------------------------------------
+r3089 | ddegroot | 2011-10-25 16:04:12 +0000 (Di, 25. Okt 2011) | 1 Zeile
+
+Moved freeing messageStack entries from sccp_dev_cleanup to sccp_dev_destroy [fixing r3079 fails to build with Asterisk 1.6.2.20]
+------------------------------------------------------------------------
+r3088 | ddegroot | 2011-10-25 15:29:23 +0000 (Di, 25. Okt 2011) | 1 Zeile
+
+Updated event display to include name of the event
+------------------------------------------------------------------------
+r3087 | ddegroot | 2011-10-24 21:37:19 +0000 (Mo, 24. Okt 2011) | 1 Zeile
+
+set default minimum incoming call limit
+------------------------------------------------------------------------
+r3086 | ddegroot | 2011-10-24 21:01:33 +0000 (Mo, 24. Okt 2011) | 1 Zeile
+
+Updated requestHangup for ast106
+------------------------------------------------------------------------
+r3085 | ddegroot | 2011-10-24 20:54:17 +0000 (Mo, 24. Okt 2011) | 1 Zeile
+
+Added ifdef for IPv6
+------------------------------------------------------------------------
+r3084 | ddegroot | 2011-10-24 18:58:13 +0000 (Mo, 24. Okt 2011) | 1 Zeile
+
+using netsock.h instead of netsock2.h for asterisk 1.6.2.x
+------------------------------------------------------------------------
+r3083 | ddegroot | 2011-10-24 18:46:36 +0000 (Mo, 24. Okt 2011) | 1 Zeile
+
+fix format_t error for asterisk 1.6.2.20
+------------------------------------------------------------------------
+r3082 | ddegroot | 2011-10-24 18:31:38 +0000 (Mo, 24. Okt 2011) | 1 Zeile
+
+Update asterisk 1.6 compatibility
+------------------------------------------------------------------------
+r3081 | ddegroot | 2011-10-24 18:30:23 +0000 (Mo, 24. Okt 2011) | 1 Zeile
+
+Move includes
+------------------------------------------------------------------------
+r3079 | marcelloceschia | 2011-10-22 13:21:51 +0000 (Sa, 22. Okt 2011) | 1 Zeile
+
+always answer success for connected line update
+------------------------------------------------------------------------
+r3078 | marcelloceschia | 2011-10-22 08:07:29 +0000 (Sa, 22. Okt 2011) | 1 Zeile
+
+remove the rtp server notice
+------------------------------------------------------------------------
+r3077 | ddegroot | 2011-10-21 16:11:51 +0000 (Fr, 21. Okt 2011) | 1 Zeile
+
+Added todo in bridging code, when forwarding call to dialplan extension which start with PLAYBACK bridging goes wrong. Haven't found a solution yet.
+------------------------------------------------------------------------
+r3076 | ddegroot | 2011-10-21 14:44:36 +0000 (Fr, 21. Okt 2011) | 1 Zeile
+
+Fix requestHangup when still in Dialing state
+------------------------------------------------------------------------
+r3072 | ddegroot | 2011-10-20 17:26:12 +0000 (Do, 20. Okt 2011) | 1 Zeile
+
+cleanup requestHangup
+------------------------------------------------------------------------
+r3070 | ddegroot | 2011-10-20 14:14:40 +0000 (Do, 20. Okt 2011) | 1 Zeile
+
+Fix requestHangup to deal with simultaneous hangup on two channels
+------------------------------------------------------------------------
+r3069 | marcelloceschia | 2011-10-20 13:56:28 +0000 (Do, 20. Okt 2011) | 1 Zeile
+
+parse hex values
+------------------------------------------------------------------------
+r3068 | marcelloceschia | 2011-10-20 12:55:45 +0000 (Do, 20. Okt 2011) | 1 Zeile
+
+fixes disp prompt issue
+------------------------------------------------------------------------
+r3067 | ddegroot | 2011-10-20 05:04:02 +0000 (Do, 20. Okt 2011) | 1 Zeile
+
+Fix cli_command length [BUG: 3426184
+------------------------------------------------------------------------
+r3066 | ddegroot | 2011-10-19 21:44:35 +0000 (Mi, 19. Okt 2011) | 1 Zeile
+
+Clear CFWD's from database on event SCCP_FEATURE_CFWDNONE
+------------------------------------------------------------------------
+r3065 | ddegroot | 2011-10-19 21:38:15 +0000 (Mi, 19. Okt 2011) | 1 Zeile
+
+Clear CFWD's from database on event SCCP_FEATURE_CFWDNONE
+------------------------------------------------------------------------
+r3064 | ddegroot | 2011-10-19 20:26:20 +0000 (Mi, 19. Okt 2011) | 1 Zeile
+
+Fixing messageStack out of bounds, using PBX(requestHangup) instead of ast_hangup
+------------------------------------------------------------------------
+r3063 | ddegroot | 2011-10-19 16:53:00 +0000 (Mi, 19. Okt 2011) | 1 Zeile
+
+cli show_usage fix
+------------------------------------------------------------------------
+r3062 | ddegroot | 2011-10-19 14:45:37 +0000 (Mi, 19. Okt 2011) | 1 Zeile
+
+Fix cli usage display when to little parameters are provided (related to old cli_command[] NULL issue/fix)
+------------------------------------------------------------------------
+r3061 | ddegroot | 2011-10-19 14:21:54 +0000 (Mi, 19. Okt 2011) | 1 Zeile
+
+fix sccp message with and without beep
+------------------------------------------------------------------------
+r3060 | ddegroot | 2011-10-19 12:12:18 +0000 (Mi, 19. Okt 2011) | 1 Zeile
+
+Using const in dev_display functions
+------------------------------------------------------------------------
+r3059 | ddegroot | 2011-10-19 11:33:29 +0000 (Mi, 19. Okt 2011) | 1 Zeile
+
+Commited Patch 1 by Stéphane Plantard
+------------------------------------------------------------------------
+r3058 | ddegroot | 2011-10-19 11:05:54 +0000 (Mi, 19. Okt 2011) | 1 Zeile
+
+Adapted sccp_cli.c to cope with IPV6 display
+------------------------------------------------------------------------
+r3057 | ddegroot | 2011-10-18 02:47:15 +0000 (Di, 18. Okt 2011) | 1 Zeile
+
+re-added the record and intercept  button
+------------------------------------------------------------------------
+r3054 | ddegroot | 2011-10-18 00:54:49 +0000 (Di, 18. Okt 2011) | 1 Zeile
+
+renamed CS_IPv6 to CS_IPV6 to rectify circular reference
+------------------------------------------------------------------------
 r3053 | ddegroot | 2011-10-18 00:19:16 +0000 (Di, 18. Okt 2011) | 1 Zeile
 
 Updated documentation to clarify how to setup hints
