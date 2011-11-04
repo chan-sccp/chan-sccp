@@ -783,13 +783,13 @@ AC_DEFUN([CS_PARSE_WITH_LIBEV], [
 		fi
 	else
 		AC_MSG_RESULT([no])
-		AC_MSG_ERROR([
-			*** ERROR: cannot find libev or libevent!
-			***
-			*** Either install libev + libev-libevent-dev (preferred) or the older libevent
-			*** Sources can be found here: http://software.schmorp.de/pkg/libev.html or http://www.monkey.org/~provos/libevent/
-			*** If it's already installed, specify its path using --with-libevent=PATH
-		])
+dnl		AC_MSG_ERROR([
+dnl			*** ERROR: cannot find libev or libevent!
+dnl			***
+dnl			*** Either install libev + libev-libevent-dev (preferred) or the older libevent
+dnl			*** Sources can be found here: http://software.schmorp.de/pkg/libev.html or http://www.monkey.org/~provos/libevent/
+dnl			*** If it's already installed, specify its path using --with-libevent=PATH
+dnl		])
 	fi
 	AC_SUBST([EVENT_LIBS])
 	AC_SUBST([EVENT_CFLAGS])
