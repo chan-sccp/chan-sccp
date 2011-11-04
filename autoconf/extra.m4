@@ -731,3 +731,91 @@ AC_DEFUN([CS_SETUP_MODULE_DIR], [
 	esac
 	AC_SUBST([csmoddir])
 ])
+
+AC_DEFUN([CS_PARSE_WITH_LIBEV], [
+	EVENT_LIBS=""
+	EVENT_CFLAGS=""
+	EVENT_TYPE=""
+	if test -z "$EVENT_HOME" ; then
+		AC_CHECK_LIB([ev], [event_init], [HAVE_EVENT="yes"], [])
+		if test "$HAVE_EVENT" = "yes" ; then
+			EVENT_LIBS="-lev"
+			EVENT_TYPE="ev"
+		else 
+			AC_CHECK_LIB([event], [event_init], [HAVE_EVENT="yes"], [])
+			if test "$HAVE_EVENT" = "yes" ; then
+				EVENT_LIBS="-levent"
+				EVENT_TYPE="event"
+			fi
+		fi	
+	else
+		EVENT_OLD_LDFLAGS="$LDFLAGS" ; LDFLAGS="$LDFLAGS -L$EVENT_HOME/lib"
+		EVENT_OLD_CFLAGS="$CFLAGS" ; CFLAGS="$CFLAGS -I$EVENT_HOME/include"
+		AC_CHECK_LIB([ev], [event_init], [HAVE_EVENT="yes"], [])
+		if test "$HAVE_EVENT" = "yes"; then
+			CFLAGS="$EVENT_OLD_CFLAGS"
+			LDFLAGS="$EVENT_OLD_LDFLAGS"
+			if test "$HAVE_EVENT" = "yes" ; then
+				EVENT_LIBS="-L$EVENT_HOME/lib -lev"
+				test -d "$EVENT_HOME/include" && EVENT_CFLAGS="-I$EVENT_HOME/include"
+				EVENT_TYPE="ev"
+			fi
+		else
+			AC_CHECK_LIB([event], [event_init], [HAVE_EVENT="yes"], [])
+			CFLAGS="$EVENT_OLD_CFLAGS"
+			LDFLAGS="$EVENT_OLD_LDFLAGS"
+			if test "$HAVE_EVENT" = "yes" ; then
+				EVENT_LIBS="-L$EVENT_HOME/lib -levent"
+				test -d "$EVENT_HOME/include" && EVENT_CFLAGS="-I$EVENT_HOME/include"
+				EVENT_TYPE="event"
+			fi
+		fi
+	fi
+	AC_MSG_CHECKING([for libev/libevent...])
+	if test "$HAVE_EVENT" = "yes" ; then
+		if test "$EVENT_TYPE" = "ev"; then
+			AC_MSG_RESULT([libev])
+			AC_DEFINE(HAVE_LIBEV, 1, [Define to 1 if libev is available])
+			AC_DEFINE(HAVE_LIBEVENT_COMPAT, 1, [Define to 1 if libev-libevent is available])
+		else
+			AC_MSG_RESULT([libevent])
+			AC_DEFINE(HAVE_LIBEVENT, 1, [Define to 1 if libevent is available])
+		fi
+	else
+		AC_MSG_RESULT([no])
+		AC_MSG_ERROR([
+			*** ERROR: cannot find libev or libevent!
+			***
+			*** Either install libev + libev-libevent-dev (preferred) or the older libevent
+			*** Sources can be found here: http://software.schmorp.de/pkg/libev.html or http://www.monkey.org/~provos/libevent/
+			*** If it's already installed, specify its path using --with-libevent=PATH
+		])
+	fi
+	AC_SUBST([EVENT_LIBS])
+	AC_SUBST([EVENT_CFLAGS])
+	AC_SUBST([EVENT_TYPE])
+])
+
+AC_DEFUN([AX_COUNT_CPUS], [
+    AC_REQUIRE([AC_PROG_EGREP])
+    AC_MSG_CHECKING(the number of available CPUs)
+    CPU_COUNT="0"
+
+    #On MacOS
+    if test -x /usr/sbin/sysctl -a `/sbin/sysctl -a 2>/dev/null| grep -c hw.cpu`; then
+        CPU_COUNT=`/usr/sbin/sysctl -n hw.ncpu`
+    fi
+
+    #On Linux
+    if test "x$CPU_COUNT" = "x0" -a -e /proc/cpuinfo; then
+        CPU_COUNT=`$EGREP -c '^processor' /proc/cpuinfo`
+    fi
+
+    if test "x$CPU_COUNT" = "x0"; then
+        CPU_COUNT="1"
+        AC_MSG_RESULT( [unable to detect (assuming 1)] )
+    else
+        AC_MSG_RESULT( $CPU_COUNT )
+    fi
+    AC_DEFINE_UNQUOTED([CPU_COUNT],`echo ${CPU_COUNT}`,[CPU Count])
+])
