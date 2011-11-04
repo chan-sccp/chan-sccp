@@ -97,7 +97,7 @@ extern "C" {
 #            define GC_THREADS
 #            undef _REENTRANT
 #            define _REENTRANT
-#            define GC_REDIRECT_TO_LOCAL
+//#            define GC_REDIRECT_TO_LOCAL
 #            include <gc/gc_local_alloc.h>
 #            include <gc/gc_backptr.h>
 #        endif
@@ -313,10 +313,10 @@ extern "C" {
 		DEBUGCAT_THREADLOCK 	= 1 << 25,
 		DEBUGCAT_MESSAGE 	= 1 << 26,
 		DEBUGCAT_NEWCODE 	= 1 << 27,
-		DEBUGCAT_HIGH 		= 1 << 28,
-		DEBUGCAT_NYI		= 1 << 29,				// Not Yet Implemented
-		DEBUGCAT_FIXME		= 1 << 30,				// Fix Me
-//		DEBUGCAT_FYI		= 1 << 31,				// For Your Information
+		DEBUGCAT_THPOOL		= 1 << 28,
+		DEBUGCAT_HIGH 		= 1 << 29,
+		DEBUGCAT_NYI		= 1 << 30,				// Not Yet Implemented
+		DEBUGCAT_FIXME		= 1 << 31,				// Fix Me
 	} sccp_debug_category_t;						/*!< SCCP Debug Category Enum */
 	/* *INDENT-ON* */
 

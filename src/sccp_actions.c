@@ -1429,6 +1429,28 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
 		sccp_channel_unlock(channel);
 		sccp_pbx_senddigits(channel, k->ext);
 	} else {
+		/* check Remote RINGING + gpickup */
+#ifdef CS_SCCP_PICKUP
+#ifdef CS_EXPERIMENTAL
+		l = sccp_line_find_byid(d, k->instance);
+		if (l && l->pickupgroup && PBX(feature_pickup)) {
+			const char *hint_context;
+			const char *hint_extension;	
+			char *splitter=strdup(k->hint);
+			hint_extension=strsep(&splitter, "@");
+			hint_context=strsep(&splitter, "@");
+			
+			if (AST_EXTENSION_RINGING == pbx_extension_state(NULL, hint_context, hint_extension)) {
+				if (sccp_feat_grouppickup(l, d)) {
+					return;	
+				}
+			}
+//			sccp_channel_newcall(l, d, (char *)pbx_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND);
+//			sccp_channel_newcall(l, d, "*8", SKINNY_CALLTYPE_OUTBOUND);
+		}
+#endif		
+#endif		
+
 		// Pull up a channel
 		if (d->defaultLineInstance > 0) {
 			sccp_log((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
