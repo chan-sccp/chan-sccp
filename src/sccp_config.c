@@ -1397,7 +1397,7 @@ static sccp_value_changed_t sccp_config_parse_jbflags(void *dest, const size_t s
 	struct ast_jb_conf jb = *(struct ast_jb_conf *)dest;
 	
 //        ast_log(LOG_WARNING,"Checking JITTERBUFFER: %d to %s\n", flag, value);
-        if (pbx_test_flag(&jb, flag) != ast_true(value)) {
+        if (pbx_test_flag(&jb, flag) != (unsigned)ast_true(value)) {
 //		 ast_log(LOG_WARNING,"Setting JITTERBUFFER: %d to %s\n", flag, value);
 //		 pbx_set2_flag(&jb, ast_true(value), flag);
 		 pbx_set2_flag(&GLOB(global_jbconf), ast_true(value), flag);

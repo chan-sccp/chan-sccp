@@ -474,8 +474,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		enable_do_crash="yes"
 		enable_debug_mutex="yes"
 		strip_binaries="no"
-		CFLAGS_saved="$CFLAGS_saved -O0 -Os -Wall -Wextra -Wno-unused-parameter -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs"
-		dnl " -Wlong-long"
+		CFLAGS_saved="$CFLAGS_saved -O0 -Os -Wfatal-errors -Werror -Wall -Wextra -Wno-unused-parameter -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wno-missing-field-initializers -Wno-deprecated -Wno-unused -fmessage-length=0 -fno-merge-constants -fstrict-aliasing -Winvalid-pch -fstack-protector-all"
 		CFLAGS="$CFLAGS_saved"
 		GDB_FLAGS="-g"
 	else
@@ -736,61 +735,67 @@ AC_DEFUN([CS_PARSE_WITH_LIBEV], [
 	EVENT_LIBS=""
 	EVENT_CFLAGS=""
 	EVENT_TYPE=""
-	if test -z "$EVENT_HOME" ; then
-		AC_CHECK_LIB([ev], [event_init], [HAVE_EVENT="yes"], [])
-		if test "$HAVE_EVENT" = "yes" ; then
-			EVENT_LIBS="-lev"
-			EVENT_TYPE="ev"
-		else 
-			AC_CHECK_LIB([event], [event_init], [HAVE_EVENT="yes"], [])
+	AC_ARG_WITH(libevent,
+	  [AC_HELP_STRING([--with-libevent=yes|no],[use garbage collector (libgc) as allocator (experimental)])],
+	    uselibevent="$withval")
+	if test "x$uselibevent" = "xyes"; then
+		if test -z "$EVENT_HOME" ; then
+			AC_CHECK_LIB([ev], [event_init], [HAVE_EVENT="yes"], [])
 			if test "$HAVE_EVENT" = "yes" ; then
-				EVENT_LIBS="-levent"
-				EVENT_TYPE="event"
-			fi
-		fi	
-	else
-		EVENT_OLD_LDFLAGS="$LDFLAGS" ; LDFLAGS="$LDFLAGS -L$EVENT_HOME/lib"
-		EVENT_OLD_CFLAGS="$CFLAGS" ; CFLAGS="$CFLAGS -I$EVENT_HOME/include"
-		AC_CHECK_LIB([ev], [event_init], [HAVE_EVENT="yes"], [])
-		if test "$HAVE_EVENT" = "yes"; then
-			CFLAGS="$EVENT_OLD_CFLAGS"
-			LDFLAGS="$EVENT_OLD_LDFLAGS"
-			if test "$HAVE_EVENT" = "yes" ; then
-				EVENT_LIBS="-L$EVENT_HOME/lib -lev"
-				test -d "$EVENT_HOME/include" && EVENT_CFLAGS="-I$EVENT_HOME/include"
+				EVENT_LIBS="-lev"
 				EVENT_TYPE="ev"
-			fi
+			else 
+				AC_CHECK_LIB([event], [event_init], [HAVE_EVENT="yes"], [])
+				if test "$HAVE_EVENT" = "yes" ; then
+					EVENT_LIBS="-levent"
+					EVENT_TYPE="event"
+				fi
+			fi	
 		else
-			AC_CHECK_LIB([event], [event_init], [HAVE_EVENT="yes"], [])
-			CFLAGS="$EVENT_OLD_CFLAGS"
-			LDFLAGS="$EVENT_OLD_LDFLAGS"
-			if test "$HAVE_EVENT" = "yes" ; then
-				EVENT_LIBS="-L$EVENT_HOME/lib -levent"
-				test -d "$EVENT_HOME/include" && EVENT_CFLAGS="-I$EVENT_HOME/include"
-				EVENT_TYPE="event"
+			EVENT_OLD_LDFLAGS="$LDFLAGS" ; LDFLAGS="$LDFLAGS -L$EVENT_HOME/lib"
+			EVENT_OLD_CFLAGS="$CFLAGS" ; CFLAGS="$CFLAGS -I$EVENT_HOME/include"
+			AC_CHECK_LIB([ev], [event_init], [HAVE_EVENT="yes"], [])
+			if test "$HAVE_EVENT" = "yes"; then
+				CFLAGS="$EVENT_OLD_CFLAGS"
+				LDFLAGS="$EVENT_OLD_LDFLAGS"
+				if test "$HAVE_EVENT" = "yes" ; then
+					EVENT_LIBS="-L$EVENT_HOME/lib -lev"
+					test -d "$EVENT_HOME/include" && EVENT_CFLAGS="-I$EVENT_HOME/include"
+					EVENT_TYPE="ev"
+				fi
+			else
+				AC_CHECK_LIB([event], [event_init], [HAVE_EVENT="yes"], [])
+				CFLAGS="$EVENT_OLD_CFLAGS"
+				LDFLAGS="$EVENT_OLD_LDFLAGS"
+				if test "$HAVE_EVENT" = "yes" ; then
+					EVENT_LIBS="-L$EVENT_HOME/lib -levent"
+					test -d "$EVENT_HOME/include" && EVENT_CFLAGS="-I$EVENT_HOME/include"
+					EVENT_TYPE="event"
+				fi
 			fi
 		fi
-	fi
-	AC_MSG_CHECKING([for libev/libevent...])
-	if test "$HAVE_EVENT" = "yes" ; then
-		if test "$EVENT_TYPE" = "ev"; then
-			AC_MSG_RESULT([libev])
-			AC_DEFINE(HAVE_LIBEV, 1, [Define to 1 if libev is available])
-			AC_DEFINE(HAVE_LIBEVENT_COMPAT, 1, [Define to 1 if libev-libevent is available])
+		AC_MSG_CHECKING([for libev/libevent...])
+		if test "$HAVE_EVENT" = "yes" ; then
+			if test "$EVENT_TYPE" = "ev"; then
+				AC_MSG_RESULT([libev])
+				AC_DEFINE(HAVE_LIBEV, 1, [Define to 1 if libev is available])
+				AC_DEFINE(HAVE_LIBEVENT_COMPAT, 1, [Define to 1 if libev-libevent is available])
+			else
+				AC_MSG_RESULT([libevent])
+				AC_DEFINE(HAVE_LIBEVENT, 1, [Define to 1 if libevent is available])
+			fi
 		else
-			AC_MSG_RESULT([libevent])
-			AC_DEFINE(HAVE_LIBEVENT, 1, [Define to 1 if libevent is available])
+			AC_MSG_RESULT([no])
+	dnl		AC_MSG_ERROR([
+	dnl			*** ERROR: cannot find libev or libevent!
+	dnl			***
+	dnl			*** Either install libev + libev-libevent-dev (preferred) or the older libevent
+	dnl			*** Sources can be found here: http://software.schmorp.de/pkg/libev.html or http://www.monkey.org/~provos/libevent/
+	dnl			*** If it's already installed, specify its path using --with-libevent=PATH
+	dnl		])
 		fi
-	else
-		AC_MSG_RESULT([no])
-dnl		AC_MSG_ERROR([
-dnl			*** ERROR: cannot find libev or libevent!
-dnl			***
-dnl			*** Either install libev + libev-libevent-dev (preferred) or the older libevent
-dnl			*** Sources can be found here: http://software.schmorp.de/pkg/libev.html or http://www.monkey.org/~provos/libevent/
-dnl			*** If it's already installed, specify its path using --with-libevent=PATH
-dnl		])
 	fi
+	AM_CONDITIONAL([BUILD_WITH_LIBEVENT], test "$EVENT_TYPE" != "")
 	AC_SUBST([EVENT_LIBS])
 	AC_SUBST([EVENT_CFLAGS])
 	AC_SUBST([EVENT_TYPE])

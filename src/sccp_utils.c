@@ -1839,7 +1839,7 @@ sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t * device, scc
  * \param new_debug_value as uint32_t
  * \return new_debug_value as uint32_t
  */
-uint32_t sccp_parse_debugline(char *arguments[], int startat, int argc, uint32_t new_debug_value)
+uint32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug_value)
 {
 	int argi;
 	uint32_t i;
@@ -1897,7 +1897,7 @@ uint32_t sccp_parse_debugline(char *arguments[], int startat, int argc, uint32_t
  * \param debugvalue DebugValue as uint32_t
  * \return string containing list of categories comma seperated (you need to free it)
  */
-char *sccp_get_debugcategories(uint32_t debugvalue)
+char *sccp_get_debugcategories(int32_t debugvalue)
 {
 	uint32_t i;
 	char *res = NULL;

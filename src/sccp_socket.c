@@ -415,15 +415,18 @@ static void sccp_accept_connection(void)
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Using ip %s\n", pbx_inet_ntoa(s->ourip));
 
+	size_t stacksize=0;
 	pthread_attr_t attr;
 
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
 	pbx_pthread_create(&s->session_thread, &attr, sccp_socket_device_thread, s);
+	if (!pthread_attr_getstacksize(&attr, &stacksize)) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Using %d memory for this thread\n", (int)stacksize);
+	}	
 }
 
 /*!
