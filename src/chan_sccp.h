@@ -1105,9 +1105,9 @@ extern "C" {
 		pthread_t monitor_thread;					/*!< Monitor Thread */// ADDED IN 414 -FS
 		sccp_mutex_t monitor_lock;					/*!< Monitor Asterisk Lock */// ADDED IN 414 -FS
 
-		 SCCP_RWLIST_HEAD(, sccp_session_t) sessions;			/*!< SCCP Sessions */
-		 SCCP_RWLIST_HEAD(, sccp_device_t) devices;			/*!< SCCP Devices */
-		 SCCP_RWLIST_HEAD(, sccp_line_t) lines;				/*!< SCCP Lines */
+		SCCP_RWLIST_HEAD(, sccp_session_t) sessions;			/*!< SCCP Sessions */
+		SCCP_RWLIST_HEAD(, sccp_device_t) devices;			/*!< SCCP Devices */
+		SCCP_RWLIST_HEAD(, sccp_line_t) lines;				/*!< SCCP Lines */
 
 		sccp_mutex_t socket_lock;					/*!< Socket Lock */
 		pthread_t socket_thread;					/*!< Socket Thread */
@@ -1117,7 +1117,7 @@ extern "C" {
 		sccp_mutex_t usecnt_lock;					/*!< Use Counter Asterisk Lock */
 
 		int keepalive;							/*!< KeepAlive */
-		uint32_t debug;							/*!< Debug */
+		int32_t debug;							/*!< Debug */
 		char servername[StationMaxDisplayNotifySize];			/*!< ServerName */
 		char context[SCCP_MAX_CONTEXT];					/*!< Global / General Context */
 		char dateformat[8];						/*!< Date Format */
