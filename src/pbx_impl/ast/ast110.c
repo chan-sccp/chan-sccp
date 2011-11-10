@@ -1522,27 +1522,35 @@ static int sccp_wrapper_asterisk110_rtp_set_peer(const struct sccp_rtp *rtp, con
 	return res;
 }
 
-static boolean_t sccp_wrapper_asterisk110_setWriteFormat(const sccp_channel_t * channel, skinny_codec_t codec)
+static boolean_t sccp_wrapper_asterisk111_setWriteFormat(const sccp_channel_t * channel, skinny_codec_t codec)
 {
 	//! \todo possibly needs to be synced to ast108
+	if (!channel)
+		return FALSE;
+
 	struct ast_format fmt;
 
 	ast_format_set(&fmt, skinny_codec2pbx_codec(codec), 0);
 	ast_format_copy(&channel->owner->writeformat, &fmt);
 	ast_format_copy(&channel->owner->rawwriteformat, &fmt);
-	ast_rtp_instance_set_write_format(channel->rtp.audio.rtp, &fmt);
+	if (0!=channel->rtp.audio.rtp)
+		ast_rtp_instance_set_write_format(channel->rtp.audio.rtp, &fmt);
 	return TRUE;
 }
 
-static boolean_t sccp_wrapper_asterisk110_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec)
+static boolean_t sccp_wrapper_asterisk111_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec)
 {
 	//! \todo possibly needs to be synced to ast108
+	if (!channel)
+		return FALSE;
+
 	struct ast_format fmt;
 
 	ast_format_set(&fmt, skinny_codec2pbx_codec(codec), 0);
 	ast_format_copy(&channel->owner->readformat, &fmt);
 	ast_format_copy(&channel->owner->rawreadformat, &fmt);
-	ast_rtp_instance_set_read_format(channel->rtp.audio.rtp, &fmt);
+	if (0!=channel->rtp.audio.rtp)
+		ast_rtp_instance_set_read_format(channel->rtp.audio.rtp, &fmt);
 	return TRUE;
 }
 
