@@ -28872,7 +28872,8 @@ $as_echo "#define DEBUG 1" >>confdefs.h
 		enable_do_crash="yes"
 		enable_debug_mutex="yes"
 		strip_binaries="no"
-		CFLAGS_saved="$CFLAGS_saved -O0 -Os -Wfatal-errors -Werror -Wall -Wextra -Wno-unused-parameter -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wno-missing-field-initializers -Wno-deprecated -Wno-unused -fmessage-length=0 -fno-merge-constants -fstrict-aliasing -Winvalid-pch -fstack-protector-all"
+		CFLAGS_saved="$CFLAGS_saved -O0 -Os -Wfatal-errors -Werror -Wall -Wextra -Wno-unused-parameter -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wno-missing-field-initializers -Wno-unused -fmessage-length=0 -fno-merge-constants -fstrict-aliasing -Winvalid-pch -fstack-protector-all"
+		#-Wno-deprecated
 		CFLAGS="$CFLAGS_saved"
 		GDB_FLAGS="-g"
 	else
