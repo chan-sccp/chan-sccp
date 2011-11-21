@@ -3079,6 +3079,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 /* TODO: Maybe consider trustphoneip here if appropriate (_DD) */
 
 	sin.sin_family = AF_INET;
+	memcpy(&sin.sin_addr, ipAddr, 4);
 	sin.sin_port = ipPort;
 
 	c = sccp_channel_find_bypassthrupartyid_locked(partyID);
