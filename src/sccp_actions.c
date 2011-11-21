@@ -3073,7 +3073,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 		status = letohl(r->msg.StartMediaTransmissionAck_v17.lel_smtStatus);
 		callID = letohl(r->msg.StartMediaTransmissionAck_v17.lel_callReference);
 		callID1 = letohl(r->msg.StartMediaTransmissionAck_v17.lel_callReference1);
-		memcpy(&ipAddr, &r->msg.StartMediaTransmissionAck.bel_ipAddr, 16);
+		memcpy(&ipAddr, &r->msg.StartMediaTransmissionAck_v17.bel_ipAddr, 16);
 	}
 
 /* TODO: Maybe consider trustphoneip here if appropriate (_DD) */
