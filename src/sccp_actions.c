@@ -3054,18 +3054,31 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 	sccp_channel_t *c;
 
 	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0, callID1 = 0;
+	char ipAddr[16];
 
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Dumping message with length %d\n", DEV_ID_LOG(d), r->length);
 	sccp_dump_packet((unsigned char *)&r->msg.StartMediaTransmissionAck, sizeof(r->msg.StartMediaTransmissionAck_v17));
 
-	ipPort = htons(htolel(r->msg.StartMediaTransmissionAck.lel_portNumber));
-	partyID = letohl(r->msg.StartMediaTransmissionAck.lel_passThruPartyId);
-	status = letohl(r->msg.StartMediaTransmissionAck.lel_smtStatus);
-	callID = letohl(r->msg.StartMediaTransmissionAck.lel_callReference);
-	callID1 = letohl(r->msg.StartMediaTransmissionAck.lel_callReference1);
+	memset(ipAddr, 0, 16);
+	if (d->inuseprotocolversion < 17) {
+		ipPort = htons(htolel(r->msg.StartMediaTransmissionAck.lel_portNumber));
+		partyID = letohl(r->msg.StartMediaTransmissionAck.lel_passThruPartyId);
+		status = letohl(r->msg.StartMediaTransmissionAck.lel_smtStatus);
+		callID = letohl(r->msg.StartMediaTransmissionAck.lel_callReference);
+		callID1 = letohl(r->msg.StartMediaTransmissionAck.lel_callReference1);
+		memcpy(&ipAddr, &r->msg.StartMediaTransmissionAck.bel_ipAddr, 4);
+	} else {
+		ipPort = htons(htolel(r->msg.StartMediaTransmissionAck_v17.lel_portNumber));
+		partyID = letohl(r->msg.StartMediaTransmissionAck_v17.lel_passThruPartyId);
+		status = letohl(r->msg.StartMediaTransmissionAck_v17.lel_smtStatus);
+		callID = letohl(r->msg.StartMediaTransmissionAck_v17.lel_callReference);
+		callID1 = letohl(r->msg.StartMediaTransmissionAck_v17.lel_callReference1);
+		memcpy(&ipAddr, &r->msg.StartMediaTransmissionAck.bel_ipAddr, 16);
+	}
+
+/* TODO: Maybe consider trustphoneip here if appropriate (_DD) */
 
 	sin.sin_family = AF_INET;
-	memcpy(&sin.sin_addr, &r->msg.StartMediaTransmissionAck.bel_ipAddr, sizeof(sin.sin_addr));
 	sin.sin_port = ipPort;
 
 	c = sccp_channel_find_bypassthrupartyid_locked(partyID);
