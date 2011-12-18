@@ -1309,7 +1309,10 @@ void sccp_channel_endcall_locked(sccp_channel_t * c)
 		ast_log(LOG_WARNING, "No channel or line or device to hangup\n");
 		return;
 	}
-
+        if (NULL == c->owner) {
+                ast_log(LOG_WARNING, "No pbx channel provided in c->owner to hangup\n");			
+                return;			
+        }
 	/* this is a station active endcall or onhook */
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %d on line %s (%s)\n", DEV_ID_LOG(c->device), c->callid, c->line->name, sccp_indicate2str(c->state));
 
@@ -1798,11 +1801,11 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c, boole
 
 	struct ast_channel *peer;
 
-	sccp_channel_t *sccp_peer;
+//	sccp_channel_t *sccp_peer;
 
 	peer = CS_AST_BRIDGED_CHANNEL(c->owner);
 	if (peer) {
-		sccp_peer = get_sccp_channel_from_ast_channel(peer);
+//		sccp_peer = get_sccp_channel_from_ast_channel(peer);
 		pbx_moh_stop(peer);
 #ifdef CS_AST_RTP_NEW_SOURCE
 		if (c->rtp.audio.rtp)
@@ -1868,7 +1871,7 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * c, boole
  */
 void sccp_channel_clean_locked(sccp_channel_t * c)				// we assume channel is locked
 {
-	sccp_line_t *l;
+//	sccp_line_t *l;
 
 	sccp_device_t *d;
 
@@ -1878,7 +1881,7 @@ void sccp_channel_clean_locked(sccp_channel_t * c)				// we assume channel is lo
 		return;
 
 	d = c->device;
-	l = c->line;
+//	l = c->line;
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "Cleaning channel %08x\n", c->callid);
 
 	/* mark the channel DOWN so any pending thread will terminate */
@@ -2441,7 +2444,7 @@ void sccp_channel_park(sccp_channel_t * c)
 {
 	sccp_device_t *d;
 
-	sccp_line_t *l;
+//	sccp_line_t *l;
 
 	struct sccp_dual *dual;
 
@@ -2455,7 +2458,7 @@ void sccp_channel_park(sccp_channel_t * c)
 		return;
 
 	d = c->device;
-	l = c->line;
+//	l = c->line;
 	if (!d)
 		return;
 

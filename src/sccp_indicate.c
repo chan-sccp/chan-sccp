@@ -137,7 +137,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		sccp_dev_clearprompt(d, instance, c->callid);
 		
 		// Test for 7910
-		sccp_dev_cleardisplaynotify(d);
+//V3.0		sccp_dev_cleardisplaynotify(d);
 		/* if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
 		if (c->answered_elsewhere)
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
@@ -160,8 +160,8 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 			sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
 		
 		// Test for 7910
-		sccp_dev_clearprompt(d, 0, 0);
-		sccp_dev_cleardisplaynotify(d);
+//V3.0		sccp_dev_clearprompt(d, 0, 0);
+//V3.0		sccp_dev_cleardisplaynotify(d);
 
 		break;
 	case SCCP_CHANNELSTATE_RINGOUT:
@@ -238,12 +238,12 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		/* asterisk wants rtp open before AST_STATE_UP
 		 * so we set it in OPEN_CHANNEL_ACK in sccp_actions.c.
 		 */
-		/* Maybe not a good idea since if there is no progress earlyrtp this could open the channel early. */
-#if 0
+//V3.0		/* Maybe not a good idea since if there is no progress earlyrtp this could open the channel early. */
+//V3.0#if 0
 		if (d->earlyrtp) {
 			sccp_ast_setstate(c, AST_STATE_UP);
 		}
-#endif
+//V3.0#endif
 		// I doubt that is neccessary any more (-DD).
 		// sccp_channel_updatemediatype_locked(c);
 		break;

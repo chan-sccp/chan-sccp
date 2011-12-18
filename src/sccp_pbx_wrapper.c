@@ -738,7 +738,7 @@ boolean_t sccp_wrapper_asterisk_create_audio_rtp(const sccp_channel_t * c, struc
 	if (c->rtp.audio.rtp) {
 		ast_rtp_codec_setpref(*new_rtp, (struct ast_codec_pref *)&c->codecs);
 		ast_codec_pref_string((struct ast_codec_pref *)&c->codecs, pref_buf, sizeof(pref_buf) - 1);
-		sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, set pref: %s\n", c->line->name, c->callid, pref_buf);
+		sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, set pef: %s\n", c->line->name, c->callid, pref_buf);
 	}
 #endif
 	if (*new_rtp) {
@@ -987,6 +987,7 @@ int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rt
 
 	struct sockaddr_in them;
 
+ 
  	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: %s:%d set_rtp_peer\n", __FILE__, __LINE__);
 
 	if(!rtp && !vrtp 
@@ -1002,34 +1003,49 @@ int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rt
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) NO PVT\n");
 		return -1;
 	}
+
+	sccp_channel_lock(c);
+	if (NULL != c->owner) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) c->owner is null\n");
+		sccp_channel_unlock(c);
+		return -1;
+	}	
+
 	if (!(l = c->line)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) NO LINE\n");
+		sccp_channel_unlock(c);
 		return -1;
 	}
 	if (!(d = c->device)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) NO DEVICE\n");
+		sccp_channel_unlock(c);
 		return -1;
 	}
 
 	if (!d->directrtp) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) Direct RTP disabled\n");
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Direct RTP disabled\n", DEV_ID_LOG(c->device) );
+		sccp_channel_unlock(c);
 		return -1;
 	}
 
 	if (rtp) {
 		ast_rtp_get_peer(rtp, &them);
 		sccp_rtp_set_peer(c, &them);
+		sccp_channel_unlock(c);
 		return 0;
 	} else {
 		if (ast->_state != AST_STATE_UP) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "SCCP: (sccp_channel_set_rtp_peer) Early RTP stage, codecs=%d, nat=%d\n", codecs, d->nat);
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_set_rtp_peer) Early RTP stage, codecs=%d, nat=%d\n", DEV_ID_LOG(c->device), codecs, d->nat);
 		} else {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "SCCP: (sccp_channel_set_rtp_peer) Native Bridge Break, codecs=%d, nat=%d\n", codecs, d->nat);
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_set_rtp_peer) Native Bridge Break, codecs=%d, nat=%d\n", DEV_ID_LOG(c->device), codecs, d->nat);
 		}
+		sccp_channel_unlock(c);
 		return 0;
 	}
 
 	/* Need a return here to break the bridge */
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Breaking the bridge on channel : %d\n", DEV_ID_LOG(c->device), c->callid);
+	sccp_channel_unlock(c);
 	return 0;
 }
 
