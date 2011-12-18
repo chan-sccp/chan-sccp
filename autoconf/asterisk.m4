@@ -504,6 +504,15 @@ AC_DEFUN([AST_CHECK_HEADERS],[
     AC_CHECK_HEADER([asterisk/features.h],
     		[
     			AC_DEFINE(HAVE_PBX_FEATURES_H,1,[Found 'asterisk/features.h'])
+
+			AC_MSG_CHECKING([ - availability 'ast_do_pickup'...])
+			AC_EGREP_HEADER([ast_do_pickup], [asterisk/features.h],
+			[
+				AC_DEFINE(CS_AST_DO_PICKUP,1,[Found 'ast_do_pickup' in asterisk/features.h])
+				AC_MSG_RESULT(yes)
+			],[
+				AC_MSG_RESULT(no)
+			])
 		],,[ 
 		#if ASTERISK_VERSION_NUMBER >= 10400
 		#include <asterisk.h>

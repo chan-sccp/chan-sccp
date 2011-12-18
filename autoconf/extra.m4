@@ -13,9 +13,9 @@ AC_DEFUN([CS_SETUP_BUILD],[
 	AC_PATH_PROGS(DATE,date,[echo date not found so no daten info will be available])
 	AC_PATH_PROGS(UNAME,uname,[echo uname not found so no version info will be available])
 	AC_PATH_PROGS(WHOAMI,whoami,[echo whoami not found so no builduser info will be available])
-	AC_PATH_PROGS(FINGER,finger,[echo finger not found so no builduser info will be available])
-	AC_PATH_PROGS(HEAD,head,[echo finger not found so no builduser info will be available])
-	AC_PATH_PROGS(CUT,cut,[echo finger not found so no builduser info will be available])
+	AC_PATH_PROGS(FINGER,finger,whoami)
+	AC_PATH_PROGS(HEAD,head,[echo head not found so no builduser info will be available])
+	AC_PATH_PROGS(CUT,cut,[echo cut not found so no builduser info will be available])
 	AC_PATH_PROGS(AWK,awk,[echo awk not found so no builduser info will be available])
 
 	if test ! x"${UNAME}" = xNo; then

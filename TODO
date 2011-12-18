@@ -38,6 +38,8 @@ Pickup: eigentlicher pickup code sollte in ein seperate function liegen, damit d
 
 CLI_Macro's saubern: Da sollte ich noch mal durch gehen und die per asterisk version spalten.
 
+Crossover device registration: It happens after module unload chan_sccp.so, module load chan_sccp.so and a 7985 phone is connected during it. 
+
 
 Objectives 1.8
 ============================================================================
