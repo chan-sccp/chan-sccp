@@ -1522,7 +1522,7 @@ static int sccp_wrapper_asterisk110_rtp_set_peer(const struct sccp_rtp *rtp, con
 	return res;
 }
 
-static boolean_t sccp_wrapper_asterisk111_setWriteFormat(const sccp_channel_t * channel, skinny_codec_t codec)
+static boolean_t sccp_wrapper_asterisk110_setWriteFormat(const sccp_channel_t * channel, skinny_codec_t codec)
 {
 	//! \todo possibly needs to be synced to ast108
 	if (!channel)
@@ -1538,7 +1538,7 @@ static boolean_t sccp_wrapper_asterisk111_setWriteFormat(const sccp_channel_t * 
 	return TRUE;
 }
 
-static boolean_t sccp_wrapper_asterisk111_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec)
+static boolean_t sccp_wrapper_asterisk110_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec)
 {
 	//! \todo possibly needs to be synced to ast108
 	if (!channel)
