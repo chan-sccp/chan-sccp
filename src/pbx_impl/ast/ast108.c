@@ -48,6 +48,7 @@ int sccp_wrapper_asterisk18_hangup(PBX_CHANNEL_TYPE * ast_channel);
 boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
 int sccp_wrapper_asterisk18_requestHangup(PBX_CHANNEL_TYPE * channel);
 
+
 #if defined(__cplusplus) || defined(c_plusplus)
 
 /*!
@@ -137,6 +138,7 @@ const struct ast_channel_tech sccp_tech = {
 };
 
 #endif
+
 
 static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec);
 
@@ -878,6 +880,90 @@ static sccp_parkresult_t sccp_wrapper_asterisk18_park(const sccp_channel_t * hos
 
 }
 
+#if !CS_AST_DO_PICKUP
+static const struct ast_datastore_info pickup_active = {
+        .type = "pickup-active",
+};
+        
+int ast_do_pickup(struct ast_channel *chan, struct ast_channel *target);
+int ast_do_pickup(struct ast_channel *chan, struct ast_channel *target)
+{
+	struct ast_party_connected_line connected_caller;
+	struct ast_channel *chans[2] = { chan, target };
+	struct ast_datastore *ds_pickup;
+	const char *chan_name;/*!< A masquerade changes channel names. */
+	const char *target_name;/*!< A masquerade changes channel names. */
+	int res = -1;
+
+	target_name = ast_strdupa(target->name);
+	ast_debug(1, "Call pickup on '%s' by '%s'\n", target_name, chan->name);
+
+	/* Mark the target to block any call pickup race. */
+	ds_pickup = ast_datastore_alloc(&pickup_active, NULL);
+	if (!ds_pickup) {
+		ast_log(LOG_WARNING,
+			"Unable to create channel datastore on '%s' for call pickup\n", target_name);
+		return -1;
+	}
+	ast_channel_datastore_add(target, ds_pickup);
+
+	ast_party_connected_line_init(&connected_caller);
+	ast_party_connected_line_copy(&connected_caller, &target->connected);
+	ast_channel_unlock(target);/* The pickup race is avoided so we do not need the lock anymore. */
+	connected_caller.source = AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER;
+	if (ast_channel_connected_line_macro(NULL, chan, &connected_caller, 0, 0)) {
+		ast_channel_update_connected_line(chan, &connected_caller, NULL);
+	}
+	ast_party_connected_line_free(&connected_caller);
+
+	ast_channel_lock(chan);
+	chan_name = ast_strdupa(chan->name);
+	ast_connected_line_copy_from_caller(&connected_caller, &chan->caller);
+	ast_channel_unlock(chan);
+	connected_caller.source = AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER;
+	ast_channel_queue_connected_line_update(chan, &connected_caller, NULL);
+	ast_party_connected_line_free(&connected_caller);
+
+//	ast_cel_report_event(target, AST_CEL_PICKUP, NULL, NULL, chan);
+
+	if (ast_answer(chan)) {
+		ast_log(LOG_WARNING, "Unable to answer '%s'\n", chan_name);
+		goto pickup_failed;
+	}
+
+	if (ast_queue_control(chan, AST_CONTROL_ANSWER)) {
+		ast_log(LOG_WARNING, "Unable to queue answer on '%s'\n", chan_name);
+		goto pickup_failed;
+	}
+	
+	/* setting this flag to generate a reason header in the cancel message to the ringing channel */
+	ast_set_flag(chan, AST_FLAG_ANSWERED_ELSEWHERE);
+
+	if (ast_channel_masquerade(target, chan)) {
+		ast_log(LOG_WARNING, "Unable to masquerade '%s' into '%s'\n", chan_name,
+			target_name);
+		goto pickup_failed;
+	}
+
+	/* If you want UniqueIDs, set channelvars in manager.conf to CHANNEL(uniqueid) */
+	ast_manager_event_multichan(EVENT_FLAG_CALL, "Pickup", 2, chans,
+		"Channel: %s\r\n"
+		"TargetChannel: %s\r\n",
+		chan_name, target_name);
+
+	/* Do the masquerade manually to make sure that it is completed. */
+	ast_do_masquerade(target);
+	res = 0;
+
+pickup_failed:
+	ast_channel_lock(target);
+	if (!ast_channel_datastore_remove(target, ds_pickup)) {
+		ast_datastore_free(ds_pickup);
+	}
+
+	return res;
+}
+#endif
 /*!
  * \brief Pickup asterisk channel target using chan
  * 
@@ -886,7 +972,7 @@ static sccp_parkresult_t sccp_wrapper_asterisk18_park(const sccp_channel_t * hos
  */
 static boolean_t sccp_wrapper_asterisk18_pickupChannel(const sccp_channel_t * chan, struct ast_channel *target)
 {
-	boolean_t result;
+	boolean_t result=FALSE;
 
 	result = ast_do_pickup(chan->owner, target) ? FALSE : TRUE;
 
