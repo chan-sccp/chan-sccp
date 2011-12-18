@@ -3172,7 +3172,9 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 void sccp_handle_device_to_user(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
 	uint32_t appID;
-//	uint32_t lineInstance;
+#ifdef CS_SCCP_CONFERENCE
+	uint32_t lineInstance;
+#endif
 	uint32_t callReference;
 	uint32_t transactionID;
 	uint32_t dataLength;
@@ -3184,7 +3186,9 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 #endif
 
 	appID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_appID);
-//	lineInstance = letohl(r->msg.DeviceToUserDataVersion1Message.lel_lineInstance);
+#ifdef CS_SCCP_CONFERENCE
+	lineInstance = letohl(r->msg.DeviceToUserDataVersion1Message.lel_lineInstance);
+#endif
 	callReference = letohl(r->msg.DeviceToUserDataVersion1Message.lel_callReference);
 	transactionID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_transactionID);
 	dataLength = letohl(r->msg.DeviceToUserDataVersion1Message.lel_dataLength);
