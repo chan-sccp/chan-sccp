@@ -1,0 +1,148 @@
+Index: src/sccp_featureButton.c
+===================================================================
+--- src/sccp_featureButton.c	(Revision 3128)
++++ src/sccp_featureButton.c	(Arbeitskopie)
+@@ -51,7 +51,6 @@
+ 	uint8_t instance = 0;
+ 	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;				// Default feature type.
+ 	boolean_t lineFound = FALSE;
+-	uint32_t state = 0;
+ 
+ #ifdef CS_DEVSTATE_FEATURE
+ 	char buf[254] = "";
+@@ -134,24 +133,28 @@
+ 				}
+ 				break;
+ 			case SCCP_FEATURE_MONITOR:
+-				sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: monitor feature state: %d\n", DEV_ID_LOG(device), config->button.feature.status);
+ 				buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
++								
+ 				
+-				//config->button.feature.status = (device->monitorFeature.status) ? 1 : 0;
+-				switch(config->button.feature.status){
+-				  case SCCP_FEATURE_MONITOR_STATE_DISABLED:
+-				    //config->button.feature.status = 131329;
+-				    state = 0;
++				switch(device->monitorFeature.status){
++				  
++				  case 0:
++				    config->button.feature.status = 0;
+ 				    break;
+-				  case SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE:
+-				    state = 66306;
++				    
++				  case SCCP_FEATURE_MONITOR_STATE_REQUESTED:
++				    config->button.feature.status = 131586;
+ 				    break;
++				    
+ 				  case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
+-				    state = 131589;
++				    config->button.feature.status = 131843;
+ 				    break;
++				    
++				  case (SCCP_FEATURE_MONITOR_STATE_REQUESTED | SCCP_FEATURE_MONITOR_STATE_ACTIVE):
++				    config->button.feature.status = 131589;
++				    break;
+ 				}
+-				
+-				break;
++			break;
+ 
+ #ifdef CS_DEVSTATE_FEATURE
+ 
+@@ -266,13 +269,13 @@
+ 				REQ(featureMessage, FeatureStatDynamicMessage);
+ 				featureMessage->msg.FeatureStatDynamicMessage.lel_instance = htolel(instance);
+ 				featureMessage->msg.FeatureStatDynamicMessage.lel_type = htolel(buttonID);
+-				featureMessage->msg.FeatureStatDynamicMessage.lel_status = htolel(state ? state : config->button.feature.status);
++				featureMessage->msg.FeatureStatDynamicMessage.lel_status = htolel(config->button.feature.status);
+ 				sccp_copy_string(featureMessage->msg.FeatureStatDynamicMessage.DisplayName, config->label, strlen(config->label) + 1);
+ 			} else {
+ 				REQ(featureMessage, FeatureStatMessage);
+ 				featureMessage->msg.FeatureStatMessage.lel_featureInstance = htolel(instance);
+ 				featureMessage->msg.FeatureStatMessage.lel_featureID = htolel(buttonID);
+-				featureMessage->msg.FeatureStatMessage.lel_featureStatus = htolel( state ? state : config->button.feature.status);
++				featureMessage->msg.FeatureStatMessage.lel_featureStatus = htolel(config->button.feature.status);
+ 				sccp_copy_string(featureMessage->msg.FeatureStatMessage.featureTextLabel, config->label, strlen(config->label) + 1);
+ 			}
+ 			sccp_dev_send(device, featureMessage);
+Index: src/sccp_actions.c
+===================================================================
+--- src/sccp_actions.c	(Revision 3128)
++++ src/sccp_actions.c	(Arbeitskopie)
+@@ -2901,19 +2901,30 @@
+ 		break;
+ #ifdef CS_SCCP_FEATURE_MONITOR
+ 	case SCCP_FEATURE_MONITOR:
+-		d->monitorFeature.status = (d->monitorFeature.status) ? 0 : 1;
+-
+-		if (TRUE == toggleState) {
+-
+-			sccp_channel_t *channel = sccp_channel_get_active_locked(d);
+-
+-			if (!channel) {
+-				d->monitorFeature.status = (SCCP_FEATURE_MONITOR_STATE_DISABLED == d->monitorFeature.status) ? SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE : SCCP_FEATURE_MONITOR_STATE_DISABLED;
+-			} else {
+-				d->monitorFeature.status = (SCCP_FEATURE_MONITOR_STATE_DISABLED == d->monitorFeature.status) ? SCCP_FEATURE_MONITOR_STATE_ACTIVE : SCCP_FEATURE_MONITOR_STATE_DISABLED;
+-				sccp_feat_monitor(d, channel->line, 0, channel);
+-				sccp_channel_unlock(channel);
++		if(TRUE == toggleState){
++		  
++			boolean_t result;
++			sccp_channel_t *channel = NULL;
++			
++			if(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED){
++				d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_REQUESTED;
++			}else{
++				d->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_REQUESTED;
+ 			}
++			
++			/* check if we need to start or stop monitor */
++			if( ((d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) >> 1) == (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) ){
++				sccp_log(1) (VERBOSE_PREFIX_3 "%s: no need to update monitor state\n",d->id);
++			}else{
++				channel = sccp_channel_get_active_locked(d);
++				if(channel){
++					sccp_feat_monitor(d, channel->line, 0, channel);
++					sccp_channel_unlock(channel);
++				}
++			}
++			
++			
++			sccp_log(1) (VERBOSE_PREFIX_3 "%s: set monitor state to %d\n", d->id, d->monitorFeature.status);
+ 		}
+ 
+ 		break;
+Index: src/chan_sccp.h
+===================================================================
+--- src/chan_sccp.h	(Revision 3128)
++++ src/chan_sccp.h	(Arbeitskopie)
+@@ -439,9 +439,8 @@
+ 	};
+ 
+ 	typedef enum {
+-		SCCP_FEATURE_MONITOR_STATE_DISABLED = 0,
+-		SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE,
+-		SCCP_FEATURE_MONITOR_STATE_ACTIVE,
++		SCCP_FEATURE_MONITOR_STATE_ACTIVE 	= 1 << 1,
++		SCCP_FEATURE_MONITOR_STATE_REQUESTED	= 1 << 2,
+ 	} sccp_feature_monitor_state_t;						/*!< monitor feature state */
+ 
+ /*!
+Index: src/sccp_pbx.c
+===================================================================
+--- src/sccp_pbx.c	(Revision 3128)
++++ src/sccp_pbx.c	(Arbeitskopie)
+@@ -761,7 +761,11 @@
+ 		PBX(set_callerid_name) (c, c->callInfo.callingPartyName);
+ 	
+ 	
+-	if(c->getDevice(c) && c->getDevice(c)->monitorFeature.status == SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE){
++	/** check for monitor request */
++	if(c->getDevice(c) 
++	    && (c->getDevice(c)->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) 
++	    && !(c->getDevice(c)->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) ){
++		
+ 		sccp_feat_monitor(c->getDevice(c), c->line, 0, c);
+ 		sccp_feat_changed(c->getDevice(c), SCCP_FEATURE_MONITOR);
+ 	}
