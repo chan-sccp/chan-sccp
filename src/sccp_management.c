@@ -58,6 +58,15 @@ static int sccp_manager_answerCall(struct mansession *s, const struct message *m
 static int sccp_manager_hangupCall(struct mansession *s, const struct message *m);
 static int sccp_manager_holdCall(struct mansession *s, const struct message *m);
 
+#if HAVE_PBX_MANAGER_HOOK_H
+static int sccp_asterisk_managerHookHelper(int category, const char *event, char *content);
+
+static struct manager_custom_hook sccp_manager_hook = {
+	.file	= "chan_sccp",
+	.helper = sccp_asterisk_managerHookHelper,
+};
+#endif
+
 /*!
  * \brief Register management commands
  */
@@ -82,6 +91,11 @@ int sccp_register_management(void)
 	result |= pbx_manager_register2("SCCPHangupCall", _MAN_FLAGS, sccp_manager_hangupCall, "hangup a channel", ""); /*!< \todo add description for ami */
 	result |= pbx_manager_register2("SCCPHoldCall", _MAN_FLAGS, sccp_manager_holdCall, "hold/unhold a call", ""); /*!< \todo add description for ami */
 #    undef _MAN_FLAGS
+	
+#if HAVE_PBX_MANAGER_HOOK_H
+	ast_manager_register_hook(&sccp_manager_hook);
+#endif
+	
 	return result;
 }
 
@@ -101,6 +115,11 @@ int sccp_unregister_management(void)
 	result |= pbx_manager_unregister("SCCPAnswerCall");
 	result |= pbx_manager_unregister("SCCPHangupCall");
 	result |= pbx_manager_unregister("SCCPHoldCall");
+
+#if HAVE_PBX_MANAGER_HOOK_H
+	ast_manager_unregister_hook(&sccp_manager_hook);
+#endif
+	
 	return result;
 }
 
@@ -654,4 +673,82 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 	return 0;
 }
 
-#endif
+
+#if HAVE_PBX_MANAGER_HOOK_H
+/**
+ * parse string from management hook to struct message
+ * 
+ */
+static void sccp_asterisk_parseStrToAstMessage(char *str, struct message *m){
+	int x = 0;
+	int curlen;
+	
+	curlen = strlen(str);
+	for (x = 0; x < curlen; x++) {
+		int cr;  /* set if we have \r */
+		if (str[x] == '\r' && x+1 < curlen && str[x+1] == '\n')
+			cr = 2;  /* Found. Update length to include \r\n */
+		else if (str[x] == '\n')
+			cr = 1;  /* also accept \n only */
+		else
+			continue;
+		/* don't keep empty lines */
+		if (x && m->hdrcount < ARRAY_LEN(m->headers)) {
+			/* ... but trim \r\n and terminate the header string */
+			str[x] = '\0';
+			m->headers[m->hdrcount++] = str;
+		}
+		x += cr;
+		curlen -= x;   /* remaining size */
+		str += x;      /* update pointer */
+		x = -1;        /* reset loop */
+	}
+}
+
+
+/**
+ * 
+ * 
+ * 
+ */
+static int sccp_asterisk_managerHookHelper(int category, const char *event, char *content){
+  
+	struct message m = { 0 };
+	struct ast_channel *ast = NULL;
+	struct ast_channel *astBridge = NULL;
+	
+	
+	sccp_channel_t *channel = NULL;
+	char *str, *dupStr;
+	
+
+	if(EVENT_FLAG_CALL == category){
+		if(!strcasecmp("MonitorStart", event) || !strcasecmp("MonitorStop", event) ){
+		  
+			str = dupStr = strdupa(content); /** need a dup, because converter to message structure will modify the str */
+			sccp_asterisk_parseStrToAstMessage(str, &m); /** convert to message structure to use the astman_get_header function */
+			const char *channelName = astman_get_header(&m, "Channel");
+			
+			ast = ast_channel_get_by_name(channelName);
+
+			if(ast && (CS_AST_CHANNEL_PVT_IS_SCCP(ast)) ){
+				channel = get_sccp_channel_from_ast_channel(ast);
+			}else if(ast && ((astBridge = ast_channel_get_by_name(pbx_builtin_getvar_helper(ast, "BRIDGEPEER"))) != NULL) && (CS_AST_CHANNEL_PVT_IS_SCCP(astBridge)) ){
+				channel = get_sccp_channel_from_ast_channel(astBridge);
+			}
+			
+			if(channel && channel->getDevice(channel)){
+				if(strcasecmp("MonitorStart", event)){
+					channel->getDevice(channel)->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_ACTIVE;
+				}else{
+					channel->getDevice(channel)->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
+				}
+				sccp_feat_changed(channel->getDevice(channel), SCCP_FEATURE_MONITOR);
+			}
+		}
+	}
+	return 0;
+}
+#endif /* HAVE_PBX_MANAGER_HOOK_H */
+
+#endif /* CS_SCCP_MANAGER */
