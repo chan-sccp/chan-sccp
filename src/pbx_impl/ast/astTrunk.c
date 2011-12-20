@@ -571,7 +571,8 @@ static int sccp_wrapper_asterisk111_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 #ifdef CS_SCCP_VIDEO
 			if (c->rtp.video.writeState == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.rtp && c->getDevice(c)
 			    && c->state != SCCP_CHANNELSTATE_HOLD) {
-				int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
+//				int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
+				int codec = pbx_codec2skinny_codec((frame->frametype == AST_FRAME_VIDEO));
 
 				ast_log(LOG_NOTICE, "%s: got video frame %d\n", DEV_ID_LOG(c->getDevice(c)), codec);
 				if (0 != codec) {
