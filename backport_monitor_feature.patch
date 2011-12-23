@@ -1,7 +1,184 @@
+Index: backport_monitor_feature.patch
+===================================================================
+--- backport_monitor_feature.patch	(revision 3130)
++++ backport_monitor_feature.patch	(working copy)
+@@ -1,148 +0,0 @@
+-Index: src/sccp_featureButton.c
+-===================================================================
+---- src/sccp_featureButton.c	(Revision 3128)
+-+++ src/sccp_featureButton.c	(Arbeitskopie)
+-@@ -51,7 +51,6 @@
+- 	uint8_t instance = 0;
+- 	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;				// Default feature type.
+- 	boolean_t lineFound = FALSE;
+--	uint32_t state = 0;
+- 
+- #ifdef CS_DEVSTATE_FEATURE
+- 	char buf[254] = "";
+-@@ -134,24 +133,28 @@
+- 				}
+- 				break;
+- 			case SCCP_FEATURE_MONITOR:
+--				sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: monitor feature state: %d\n", DEV_ID_LOG(device), config->button.feature.status);
+- 				buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+-+								
+- 				
+--				//config->button.feature.status = (device->monitorFeature.status) ? 1 : 0;
+--				switch(config->button.feature.status){
+--				  case SCCP_FEATURE_MONITOR_STATE_DISABLED:
+--				    //config->button.feature.status = 131329;
+--				    state = 0;
+-+				switch(device->monitorFeature.status){
+-+				  
+-+				  case 0:
+-+				    config->button.feature.status = 0;
+- 				    break;
+--				  case SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE:
+--				    state = 66306;
+-+				    
+-+				  case SCCP_FEATURE_MONITOR_STATE_REQUESTED:
+-+				    config->button.feature.status = 131586;
+- 				    break;
+-+				    
+- 				  case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
+--				    state = 131589;
+-+				    config->button.feature.status = 131843;
+- 				    break;
+-+				    
+-+				  case (SCCP_FEATURE_MONITOR_STATE_REQUESTED | SCCP_FEATURE_MONITOR_STATE_ACTIVE):
+-+				    config->button.feature.status = 131589;
+-+				    break;
+- 				}
+--				
+--				break;
+-+			break;
+- 
+- #ifdef CS_DEVSTATE_FEATURE
+- 
+-@@ -266,13 +269,13 @@
+- 				REQ(featureMessage, FeatureStatDynamicMessage);
+- 				featureMessage->msg.FeatureStatDynamicMessage.lel_instance = htolel(instance);
+- 				featureMessage->msg.FeatureStatDynamicMessage.lel_type = htolel(buttonID);
+--				featureMessage->msg.FeatureStatDynamicMessage.lel_status = htolel(state ? state : config->button.feature.status);
+-+				featureMessage->msg.FeatureStatDynamicMessage.lel_status = htolel(config->button.feature.status);
+- 				sccp_copy_string(featureMessage->msg.FeatureStatDynamicMessage.DisplayName, config->label, strlen(config->label) + 1);
+- 			} else {
+- 				REQ(featureMessage, FeatureStatMessage);
+- 				featureMessage->msg.FeatureStatMessage.lel_featureInstance = htolel(instance);
+- 				featureMessage->msg.FeatureStatMessage.lel_featureID = htolel(buttonID);
+--				featureMessage->msg.FeatureStatMessage.lel_featureStatus = htolel( state ? state : config->button.feature.status);
+-+				featureMessage->msg.FeatureStatMessage.lel_featureStatus = htolel(config->button.feature.status);
+- 				sccp_copy_string(featureMessage->msg.FeatureStatMessage.featureTextLabel, config->label, strlen(config->label) + 1);
+- 			}
+- 			sccp_dev_send(device, featureMessage);
+-Index: src/sccp_actions.c
+-===================================================================
+---- src/sccp_actions.c	(Revision 3128)
+-+++ src/sccp_actions.c	(Arbeitskopie)
+-@@ -2901,19 +2901,30 @@
+- 		break;
+- #ifdef CS_SCCP_FEATURE_MONITOR
+- 	case SCCP_FEATURE_MONITOR:
+--		d->monitorFeature.status = (d->monitorFeature.status) ? 0 : 1;
+--
+--		if (TRUE == toggleState) {
+--
+--			sccp_channel_t *channel = sccp_channel_get_active_locked(d);
+--
+--			if (!channel) {
+--				d->monitorFeature.status = (SCCP_FEATURE_MONITOR_STATE_DISABLED == d->monitorFeature.status) ? SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE : SCCP_FEATURE_MONITOR_STATE_DISABLED;
+--			} else {
+--				d->monitorFeature.status = (SCCP_FEATURE_MONITOR_STATE_DISABLED == d->monitorFeature.status) ? SCCP_FEATURE_MONITOR_STATE_ACTIVE : SCCP_FEATURE_MONITOR_STATE_DISABLED;
+--				sccp_feat_monitor(d, channel->line, 0, channel);
+--				sccp_channel_unlock(channel);
+-+		if(TRUE == toggleState){
+-+		  
+-+			boolean_t result;
+-+			sccp_channel_t *channel = NULL;
+-+			
+-+			if(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED){
+-+				d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_REQUESTED;
+-+			}else{
+-+				d->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_REQUESTED;
+- 			}
+-+			
+-+			/* check if we need to start or stop monitor */
+-+			if( ((d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) >> 1) == (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) ){
+-+				sccp_log(1) (VERBOSE_PREFIX_3 "%s: no need to update monitor state\n",d->id);
+-+			}else{
+-+				channel = sccp_channel_get_active_locked(d);
+-+				if(channel){
+-+					sccp_feat_monitor(d, channel->line, 0, channel);
+-+					sccp_channel_unlock(channel);
+-+				}
+-+			}
+-+			
+-+			
+-+			sccp_log(1) (VERBOSE_PREFIX_3 "%s: set monitor state to %d\n", d->id, d->monitorFeature.status);
+- 		}
+- 
+- 		break;
+-Index: src/chan_sccp.h
+-===================================================================
+---- src/chan_sccp.h	(Revision 3128)
+-+++ src/chan_sccp.h	(Arbeitskopie)
+-@@ -439,9 +439,8 @@
+- 	};
+- 
+- 	typedef enum {
+--		SCCP_FEATURE_MONITOR_STATE_DISABLED = 0,
+--		SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE,
+--		SCCP_FEATURE_MONITOR_STATE_ACTIVE,
+-+		SCCP_FEATURE_MONITOR_STATE_ACTIVE 	= 1 << 1,
+-+		SCCP_FEATURE_MONITOR_STATE_REQUESTED	= 1 << 2,
+- 	} sccp_feature_monitor_state_t;						/*!< monitor feature state */
+- 
+- /*!
+-Index: src/sccp_pbx.c
+-===================================================================
+---- src/sccp_pbx.c	(Revision 3128)
+-+++ src/sccp_pbx.c	(Arbeitskopie)
+-@@ -761,7 +761,11 @@
+- 		PBX(set_callerid_name) (c, c->callInfo.callingPartyName);
+- 	
+- 	
+--	if(c->getDevice(c) && c->getDevice(c)->monitorFeature.status == SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE){
+-+	/** check for monitor request */
+-+	if(c->getDevice(c) 
+-+	    && (c->getDevice(c)->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) 
+-+	    && !(c->getDevice(c)->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) ){
+-+		
+- 		sccp_feat_monitor(c->getDevice(c), c->line, 0, c);
+- 		sccp_feat_changed(c->getDevice(c), SCCP_FEATURE_MONITOR);
+- 	}
+Index: src/sccp_pbx.c
+===================================================================
+--- src/sccp_pbx.c	(revision 3130)
++++ src/sccp_pbx.c	(working copy)
+@@ -761,12 +761,17 @@
+ 		PBX(set_callerid_name) (c, c->callInfo.callingPartyName);
+ 	
+ 	
+-	if(c->getDevice(c) && c->getDevice(c)->monitorFeature.status == SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE){
++	/** check for monitor request */
++#ifdef CS_SCCP_FEATURE_MONITOR
++	if(c->getDevice(c) 
++	    && (c->getDevice(c)->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) 
++	    && !(c->getDevice(c)->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) ){
++		
+ 		sccp_feat_monitor(c->getDevice(c), c->line, 0, c);
+ 		sccp_feat_changed(c->getDevice(c), SCCP_FEATURE_MONITOR);
+ 	}
++#endif	
+ 	
+-	
+ 	/* asterisk needs the native formats bevore dialout, otherwise the next channel gets the whole AUDIO_MASK as requested format
+ 	 * chan_sip dont like this do sdp processing */
+ // 	PBX(set_nativeAudioFormats)(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
 Index: src/sccp_featureButton.c
 ===================================================================
---- src/sccp_featureButton.c	(Revision 3128)
-+++ src/sccp_featureButton.c	(Arbeitskopie)
+--- src/sccp_featureButton.c	(revision 3130)
++++ src/sccp_featureButton.c	(working copy)
 @@ -51,7 +51,6 @@
  	uint8_t instance = 0;
  	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;				// Default feature type.
@@ -10,9 +187,11 @@ Index: src/sccp_featureButton.c
  
  #ifdef CS_DEVSTATE_FEATURE
  	char buf[254] = "";
-@@ -134,24 +133,28 @@
+@@ -133,26 +132,31 @@
+ 					}
  				}
  				break;
++#ifdef CS_SCCP_FEATURE_MONITOR
  			case SCCP_FEATURE_MONITOR:
 -				sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: monitor feature state: %d\n", DEV_ID_LOG(device), config->button.feature.status);
  				buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
@@ -46,11 +225,13 @@ Index: src/sccp_featureButton.c
  				}
 -				
 -				break;
+-
 +			break;
- 
++#endif
  #ifdef CS_DEVSTATE_FEATURE
  
-@@ -266,13 +269,13 @@
+ 				/**
+@@ -266,13 +270,13 @@
  				REQ(featureMessage, FeatureStatDynamicMessage);
  				featureMessage->msg.FeatureStatDynamicMessage.lel_instance = htolel(instance);
  				featureMessage->msg.FeatureStatDynamicMessage.lel_type = htolel(buttonID);
@@ -68,8 +249,8 @@ Index: src/sccp_featureButton.c
  			sccp_dev_send(device, featureMessage);
 Index: src/sccp_actions.c
 ===================================================================
---- src/sccp_actions.c	(Revision 3128)
-+++ src/sccp_actions.c	(Arbeitskopie)
+--- src/sccp_actions.c	(revision 3130)
++++ src/sccp_actions.c	(working copy)
 @@ -2901,19 +2901,30 @@
  		break;
  #ifdef CS_SCCP_FEATURE_MONITOR
@@ -115,11 +296,23 @@ Index: src/sccp_actions.c
  		break;
 Index: src/chan_sccp.h
 ===================================================================
---- src/chan_sccp.h	(Revision 3128)
-+++ src/chan_sccp.h	(Arbeitskopie)
-@@ -439,9 +439,8 @@
+--- src/chan_sccp.h	(revision 3130)
++++ src/chan_sccp.h	(working copy)
+@@ -411,7 +411,9 @@
+ 		{SCCP_FEATURE_CFWDBUSY,	 	"cfwdbusy"},
+ 		{SCCP_FEATURE_DND, 		"dnd"},
+ 		{SCCP_FEATURE_PRIVACY, 		"privacy"},
++#ifdef CS_SCCP_FEATURE_MONITOR
+ 		{SCCP_FEATURE_MONITOR, 		"monitor"},
++#endif
+ 		{SCCP_FEATURE_HOLD, 		"hold"},
+ 		{SCCP_FEATURE_TRANSFER,	 	"transfer"},
+ 		{SCCP_FEATURE_MULTIBLINK, 	"multiblink"},
+@@ -438,12 +440,12 @@
+ 		/* *INDENT-ON* */
  	};
  
++#ifdef CS_SCCP_FEATURE_MONITOR
  	typedef enum {
 -		SCCP_FEATURE_MONITOR_STATE_DISABLED = 0,
 -		SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE,
@@ -127,22 +320,523 @@ Index: src/chan_sccp.h
 +		SCCP_FEATURE_MONITOR_STATE_ACTIVE 	= 1 << 1,
 +		SCCP_FEATURE_MONITOR_STATE_REQUESTED	= 1 << 2,
  	} sccp_feature_monitor_state_t;						/*!< monitor feature state */
+-
++#endif
+ /*!
+  * \brief SCCP Feature Configuration Structure
+  */
+@@ -898,7 +900,9 @@
+ 		/* feature configurations */
+ 		sccp_featureConfiguration_t privacyFeature;			/*!< Device Privacy Feature. \see SCCP_PRIVACYFEATURE_* */
+ 		sccp_featureConfiguration_t overlapFeature;			/*!< Overlap Dial Feature */
++#ifdef CS_SCCP_FEATURE_MONITOR
+ 		sccp_featureConfiguration_t monitorFeature;			/*!< Monitor (automon) Feature */
++#endif
+ 		sccp_featureConfiguration_t dndFeature;				/*!< dnd Feature */
+ 		sccp_featureConfiguration_t priFeature;				/*!< priority Feature */
+ 		sccp_featureConfiguration_t mobFeature;				/*!< priority Feature */
+@@ -1085,8 +1089,9 @@
+ 		uint8_t ss_data;						/*!< Simple Switch Integer param */
+ 
+ 		/* feature sets */
++#ifdef CS_SCCP_FEATURE_MONITOR
+ //              boolean_t monitorEnabled;                                       /*!< Monitor Enabled Feature */
+-
++#endif
+ 		struct sccp_conference *conference;				/*!< are we part of a conference? */
+ 		sccp_channel_t *parentChannel;					/*!< if we are a cfwd channel, our parent is this */
+ 
+@@ -1102,9 +1107,10 @@
+ 	struct sccp_global_vars {
+ 		sccp_mutex_t lock;						/*!< Asterisk: Lock Me Up and Tie me Down */
+ 
++#ifdef CS_SCCP_FEATURE_MONITOR
+ 		pthread_t monitor_thread;					/*!< Monitor Thread */// ADDED IN 414 -FS
+ 		sccp_mutex_t monitor_lock;					/*!< Monitor Asterisk Lock */// ADDED IN 414 -FS
+-
++#endif
+ 		SCCP_RWLIST_HEAD(, sccp_session_t) sessions;			/*!< SCCP Sessions */
+ 		SCCP_RWLIST_HEAD(, sccp_device_t) devices;			/*!< SCCP Devices */
+ 		SCCP_RWLIST_HEAD(, sccp_line_t) lines;				/*!< SCCP Lines */
+Index: src/sccp_features.c
+===================================================================
+--- src/sccp_features.c	(revision 3130)
++++ src/sccp_features.c	(working copy)
+@@ -1369,7 +1369,7 @@
+ #ifdef CS_SCCP_FEATURE_MONITOR
+ 
+ 	if (PBX(getFeatureExtension))
+-		result = PBX(getFeatureExtension) (channel, &featureExtension);
++		result = PBX(getFeatureExtension) (channel, &featureExtension);		// is channel necessary for this function ?
+ 
+ 	if (result && featureExtension) {
+ 		sccp_pbx_senddigits(channel, featureExtension);
+Index: src/pbx_impl/ast/ast106.c
+===================================================================
+--- src/pbx_impl/ast/ast106.c	(revision 3130)
++++ src/pbx_impl/ast/ast106.c	(working copy)
+@@ -772,9 +772,24 @@
+ 		return PARK_RESULT_SUCCESS;
+ 	}
+ 	return PARK_RESULT_FAIL;
++}
+ 
++static boolean_t sccp_asterisk16_getFeatureExtension(const sccp_channel_t *channel, char **extension){
++	struct ast_call_feature *feat;
++	
++	ast_rdlock_call_features();
++	feat = ast_find_call_feature("automon");
++	
++	
++	if(feat){
++		*extension = strdup(feat->exten);
++	}
++	ast_unlock_call_features();
++	
++	return feat ? TRUE : FALSE;
+ }
+ 
++
+ /*!
+  * \brief Pickup asterisk channel target using chan
+  * 
+@@ -1967,7 +1982,7 @@
+  feature_getFromDatabase:sccp_asterisk_getFromDatabase,
+  feature_removeFromDatabase:sccp_asterisk_removeFromDatabase,
+  feature_removeTreeFromDatabase:sccp_asterisk_removeTreeFromDatabase,
+- getFeatureExtension:NULL,
++ getFeatureExtension:sccp_asterisk16_getFeatureExtension,
+  feature_pickup:sccp_wrapper_asterisk16_pickupChannel,
+ 
+  eventSubscribe:NULL,
+@@ -2041,9 +2056,8 @@
+ 	.feature_getFromDatabase 	= sccp_asterisk_getFromDatabase,
+ 	.feature_removeFromDatabase     = sccp_asterisk_removeFromDatabase,	
+ 	.feature_removeTreeFromDatabase = sccp_asterisk_removeTreeFromDatabase,
+-	
+-	
+ 	.feature_park			= sccp_wrapper_asterisk16_park,
++	.getFeatureExtension		= sccp_asterisk16_getFeatureExtension,
+ 	.feature_pickup			= sccp_wrapper_asterisk16_pickupChannel,
+ 	
+ 	.findChannelByCallback		= sccp_wrapper_asterisk16_findChannelWithCallback,
+Index: src/pbx_impl/ast/ast108.c
+===================================================================
+--- src/pbx_impl/ast/ast108.c	(revision 3130)
++++ src/pbx_impl/ast/ast108.c	(working copy)
+@@ -48,7 +48,6 @@
+ boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
+ int sccp_wrapper_asterisk18_requestHangup(PBX_CHANNEL_TYPE * channel);
+ 
+-
+ #if defined(__cplusplus) || defined(c_plusplus)
  
  /*!
-Index: src/sccp_pbx.c
-===================================================================
---- src/sccp_pbx.c	(Revision 3128)
-+++ src/sccp_pbx.c	(Arbeitskopie)
-@@ -761,7 +761,11 @@
- 		PBX(set_callerid_name) (c, c->callInfo.callingPartyName);
- 	
- 	
--	if(c->getDevice(c) && c->getDevice(c)->monitorFeature.status == SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE){
-+	/** check for monitor request */
-+	if(c->getDevice(c) 
-+	    && (c->getDevice(c)->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) 
-+	    && !(c->getDevice(c)->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) ){
-+		
- 		sccp_feat_monitor(c->getDevice(c), c->line, 0, c);
- 		sccp_feat_changed(c->getDevice(c), SCCP_FEATURE_MONITOR);
+@@ -139,7 +138,6 @@
+ 
+ #endif
+ 
+-
+ static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec);
+ 
+ #define RTP_NEW_SOURCE(_c,_log) 								\
+@@ -880,19 +878,34 @@
+ 
+ }
+ 
++static boolean_t sccp_asterisk18_getFeatureExtension(const sccp_channel_t *channel, char **extension){
++	struct ast_call_feature *feat;
++	
++	ast_rdlock_call_features();
++	feat = ast_find_call_feature("automon");
++	
++	
++	if(feat){
++		*extension = strdup(feat->exten);
++	}
++	ast_unlock_call_features();
++	
++	return feat ? TRUE : FALSE;
++}
++
+ #if !CS_AST_DO_PICKUP
+ static const struct ast_datastore_info pickup_active = {
+-        .type = "pickup-active",
++	.type = "pickup-active",
+ };
+-        
++
+ int ast_do_pickup(struct ast_channel *chan, struct ast_channel *target);
+ int ast_do_pickup(struct ast_channel *chan, struct ast_channel *target)
+ {
+ 	struct ast_party_connected_line connected_caller;
+ 	struct ast_channel *chans[2] = { chan, target };
+ 	struct ast_datastore *ds_pickup;
+-	const char *chan_name;/*!< A masquerade changes channel names. */
+-	const char *target_name;/*!< A masquerade changes channel names. */
++	const char *chan_name;							/*!< A masquerade changes channel names. */
++	const char *target_name;						/*!< A masquerade changes channel names. */
+ 	int res = -1;
+ 
+ 	target_name = ast_strdupa(target->name);
+@@ -901,15 +914,14 @@
+ 	/* Mark the target to block any call pickup race. */
+ 	ds_pickup = ast_datastore_alloc(&pickup_active, NULL);
+ 	if (!ds_pickup) {
+-		ast_log(LOG_WARNING,
+-			"Unable to create channel datastore on '%s' for call pickup\n", target_name);
++		ast_log(LOG_WARNING, "Unable to create channel datastore on '%s' for call pickup\n", target_name);
+ 		return -1;
  	}
+ 	ast_channel_datastore_add(target, ds_pickup);
+ 
+ 	ast_party_connected_line_init(&connected_caller);
+ 	ast_party_connected_line_copy(&connected_caller, &target->connected);
+-	ast_channel_unlock(target);/* The pickup race is avoided so we do not need the lock anymore. */
++	ast_channel_unlock(target);						/* The pickup race is avoided so we do not need the lock anymore. */
+ 	connected_caller.source = AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER;
+ 	if (ast_channel_connected_line_macro(NULL, chan, &connected_caller, 0, 0)) {
+ 		ast_channel_update_connected_line(chan, &connected_caller, NULL);
+@@ -924,7 +936,7 @@
+ 	ast_channel_queue_connected_line_update(chan, &connected_caller, NULL);
+ 	ast_party_connected_line_free(&connected_caller);
+ 
+-//	ast_cel_report_event(target, AST_CEL_PICKUP, NULL, NULL, chan);
++//      ast_cel_report_event(target, AST_CEL_PICKUP, NULL, NULL, chan);
+ 
+ 	if (ast_answer(chan)) {
+ 		ast_log(LOG_WARNING, "Unable to answer '%s'\n", chan_name);
+@@ -935,27 +947,23 @@
+ 		ast_log(LOG_WARNING, "Unable to queue answer on '%s'\n", chan_name);
+ 		goto pickup_failed;
+ 	}
+-	
++
+ 	/* setting this flag to generate a reason header in the cancel message to the ringing channel */
+ 	ast_set_flag(chan, AST_FLAG_ANSWERED_ELSEWHERE);
+ 
+ 	if (ast_channel_masquerade(target, chan)) {
+-		ast_log(LOG_WARNING, "Unable to masquerade '%s' into '%s'\n", chan_name,
+-			target_name);
++		ast_log(LOG_WARNING, "Unable to masquerade '%s' into '%s'\n", chan_name, target_name);
+ 		goto pickup_failed;
+ 	}
+ 
+ 	/* If you want UniqueIDs, set channelvars in manager.conf to CHANNEL(uniqueid) */
+-	ast_manager_event_multichan(EVENT_FLAG_CALL, "Pickup", 2, chans,
+-		"Channel: %s\r\n"
+-		"TargetChannel: %s\r\n",
+-		chan_name, target_name);
++	ast_manager_event_multichan(EVENT_FLAG_CALL, "Pickup", 2, chans, "Channel: %s\r\n" "TargetChannel: %s\r\n", chan_name, target_name);
+ 
+ 	/* Do the masquerade manually to make sure that it is completed. */
+ 	ast_do_masquerade(target);
+ 	res = 0;
+ 
+-pickup_failed:
++ pickup_failed:
+ 	ast_channel_lock(target);
+ 	if (!ast_channel_datastore_remove(target, ds_pickup)) {
+ 		ast_datastore_free(ds_pickup);
+@@ -964,6 +972,7 @@
+ 	return res;
+ }
+ #endif
++
+ /*!
+  * \brief Pickup asterisk channel target using chan
+  * 
+@@ -972,7 +981,7 @@
+  */
+ static boolean_t sccp_wrapper_asterisk18_pickupChannel(const sccp_channel_t * chan, struct ast_channel *target)
+ {
+-	boolean_t result=FALSE;
++	boolean_t result = FALSE;
+ 
+ 	result = ast_do_pickup(chan->owner, target) ? FALSE : TRUE;
+ 
+@@ -2173,13 +2182,13 @@
+ #if defined(__cplusplus) || defined(c_plusplus)
+ 
+ struct ast_rtp_glue sccp_rtp = {
+- type:	SCCP_TECHTYPE_STR,
+- mod:	NULL,
+- get_rtp_info:sccp_wrapper_asterisk18_get_rtp_peer,
+- get_vrtp_info:sccp_wrapper_asterisk18_get_vrtp_peer,
+- get_trtp_info:NULL,
+- update_peer:sccp_wrapper_asterisk18_set_rtp_peer,
+- get_codec:sccp_wrapper_asterisk18_getCodec,
++	type:	SCCP_TECHTYPE_STR,
++	mod:	NULL,
++	get_rtp_info:sccp_wrapper_asterisk18_get_rtp_peer,
++	get_vrtp_info:sccp_wrapper_asterisk18_get_vrtp_peer,
++	get_trtp_info:NULL,
++	update_peer:sccp_wrapper_asterisk18_set_rtp_peer,
++	get_codec:sccp_wrapper_asterisk18_getCodec,
+ };
+ 
+ #else
+@@ -2242,8 +2251,8 @@
+ 
+ #    if defined(__cplusplus) || defined(c_plusplus)
+ static const struct ast_msg_tech sccp_msg_tech = {
+- name:	"sccp",
+- msg_send:sccp_asterisk_message_send,
++	name:	"sccp",
++	msg_send:sccp_asterisk_message_send,
+ };
+ #    else
+ static const struct ast_msg_tech sccp_msg_tech = {
+@@ -2256,76 +2265,75 @@
+ 
+ #if defined(__cplusplus) || defined(c_plusplus)
+ sccp_pbx_cb sccp_pbx = {
++	alloc_pbxChannel:sccp_wrapper_asterisk18_allocPBXChannel,
++	set_callstate:sccp_wrapper_asterisk18_setCallState,
++	checkhangup:sccp_wrapper_asterisk18_checkHangup,
++	hangup:NULL,
++	requestHangup:sccp_wrapper_asterisk18_requestHangup,
++	extension_status:sccp_wrapper_asterisk18_extensionStatus,
+ 
+- alloc_pbxChannel:sccp_wrapper_asterisk18_allocPBXChannel,
+- set_callstate:sccp_wrapper_asterisk18_setCallState,
+- checkhangup:sccp_wrapper_asterisk18_checkHangup,
+- hangup:NULL,
+- requestHangup:sccp_wrapper_asterisk18_requestHangup,
+- extension_status:sccp_wrapper_asterisk18_extensionStatus,
+-
+ 	/** get channel by name */
+- getChannelByName:sccp_wrapper_asterisk18_getChannelByName,
+- getRemoteChannel:sccp_asterisk_getRemoteChannel,
+- getChannelByCallback:NULL,
+- getChannelLinkId:sccp_wrapper_asterisk18_getChannelLinkId,
++	getChannelByName:sccp_wrapper_asterisk18_getChannelByName,
++	getRemoteChannel:sccp_asterisk_getRemoteChannel,
++	getChannelByCallback:NULL,
++	getChannelLinkId:sccp_wrapper_asterisk18_getChannelLinkId,
+ 
+- set_nativeAudioFormats:sccp_wrapper_asterisk18_setNativeAudioFormats,
+- set_nativeVideoFormats:sccp_wrapper_asterisk18_setNativeVideoFormats,
++	set_nativeAudioFormats:sccp_wrapper_asterisk18_setNativeAudioFormats,
++	set_nativeVideoFormats:sccp_wrapper_asterisk18_setNativeVideoFormats,
+ 
+- getPeerCodecCapabilities:NULL,
+- send_digit:sccp_wrapper_asterisk18_sendDigit,
+- send_digits:sccp_wrapper_asterisk18_sendDigits,
++	getPeerCodecCapabilities:NULL,
++	send_digit:sccp_wrapper_asterisk18_sendDigit,
++	send_digits:sccp_wrapper_asterisk18_sendDigits,
+ 
+- sched_add:sccp_wrapper_asterisk18_sched_add,
+- sched_del:sccp_wrapper_asterisk18_sched_del,
+- sched_when:sccp_wrapper_asterisk18_sched_when,
+- sched_wait:sccp_wrapper_asterisk18_sched_wait,
++	sched_add:sccp_wrapper_asterisk18_sched_add,
++	sched_del:sccp_wrapper_asterisk18_sched_del,
++	sched_when:sccp_wrapper_asterisk18_sched_when,
++	sched_wait:sccp_wrapper_asterisk18_sched_wait,
+ 
+ 	/* rtp */
+- rtp_getPeer:NULL,
+- rtp_getUs:sccp_wrapper_asterisk18_rtpGetUs,
+- rtp_setPeer:sccp_wrapper_asterisk18_rtp_set_peer,
+- rtp_setWriteFormat:sccp_wrapper_asterisk18_setWriteFormat,
+- rtp_setReadFormat:sccp_wrapper_asterisk18_setReadFormat,
+- rtp_destroy:sccp_wrapper_asterisk18_destroyRTP,
+- rtp_stop:sccp_wrapper_asterisk18_rtp_stop,
+- rtp_codec:NULL,
+- rtp_audio_create:sccp_wrapper_asterisk18_create_audio_rtp,
+- rtp_video_create:sccp_wrapper_asterisk18_create_video_rtp,
+- rtp_get_payloadType:sccp_wrapper_asterisk18_get_payloadType,
+- rtp_get_sampleRate:sccp_wrapper_asterisk18_get_sampleRate,
+- rtp_bridgePeers:NULL,
++	rtp_getPeer:NULL,
++	rtp_getUs:sccp_wrapper_asterisk18_rtpGetUs,
++	rtp_setPeer:sccp_wrapper_asterisk18_rtp_set_peer,
++	rtp_setWriteFormat:sccp_wrapper_asterisk18_setWriteFormat,
++	rtp_setReadFormat:sccp_wrapper_asterisk18_setReadFormat,
++	rtp_destroy:sccp_wrapper_asterisk18_destroyRTP,
++	rtp_stop:sccp_wrapper_asterisk18_rtp_stop,
++	rtp_codec:NULL,
++	rtp_audio_create:sccp_wrapper_asterisk18_create_audio_rtp,
++	rtp_video_create:sccp_wrapper_asterisk18_create_video_rtp,
++	rtp_get_payloadType:sccp_wrapper_asterisk18_get_payloadType,
++	rtp_get_sampleRate:sccp_wrapper_asterisk18_get_sampleRate,
++	rtp_bridgePeers:NULL,
+ 
+ 	/* callerid */
+- get_callerid_name:sccp_wrapper_asterisk18_callerid_name,
+- get_callerid_number:sccp_wrapper_asterisk18_callerid_number,
+- get_callerid_ani:NULL,
+- get_callerid_dnid:NULL,
+- get_callerid_rdnis:NULL,
+- get_callerid_presence:NULL,
++	get_callerid_name:sccp_wrapper_asterisk18_callerid_name,
++	get_callerid_number:sccp_wrapper_asterisk18_callerid_number,
++	get_callerid_ani:NULL,
++	get_callerid_dnid:NULL,
++	get_callerid_rdnis:NULL,
++	get_callerid_presence:NULL,
+ 
+- set_callerid_name:sccp_wrapper_asterisk18_setCalleridName,
+- set_callerid_number:sccp_wrapper_asterisk18_setCalleridNumber,
+- set_callerid_ani:NULL,
+- set_callerid_dnid:NULL,
+- set_callerid_redirectingParty:sccp_wrapper_asterisk18_setRedirectingParty,
+- set_callerid_redirectedParty:sccp_wrapper_asterisk18_setRedirectedParty,
+- set_callerid_presence:sccp_wrapper_asterisk18_setCalleridPresence,
+- set_connected_line:sccp_wrapper_asterisk18_updateConnectedLine,
++	set_callerid_name:sccp_wrapper_asterisk18_setCalleridName,
++	set_callerid_number:sccp_wrapper_asterisk18_setCalleridNumber,
++	set_callerid_ani:NULL,
++	set_callerid_dnid:NULL,
++	set_callerid_redirectingParty:sccp_wrapper_asterisk18_setRedirectingParty,
++	set_callerid_redirectedParty:sccp_wrapper_asterisk18_setRedirectedParty,
++	set_callerid_presence:sccp_wrapper_asterisk18_setCalleridPresence,
++	set_connected_line:sccp_wrapper_asterisk18_updateConnectedLine,
+ 
+ 	/* feature section */
+- feature_park:sccp_wrapper_asterisk18_park,
+- feature_stopMusicOnHold:NULL,
+- feature_addToDatabase:sccp_asterisk_addToDatabase,
+- feature_getFromDatabase:sccp_asterisk_getFromDatabase,
+- feature_removeFromDatabase:sccp_asterisk_removeFromDatabase,
+- feature_removeTreeFromDatabase:sccp_asterisk_removeTreeFromDatabase,
+- getFeatureExtension:NULL,
+- feature_pickup:sccp_wrapper_asterisk18_pickupChannel,
++	feature_park:sccp_wrapper_asterisk18_park,
++	feature_stopMusicOnHold:NULL,
++	feature_addToDatabase:sccp_asterisk_addToDatabase,
++	feature_getFromDatabase:sccp_asterisk_getFromDatabase,
++	feature_removeFromDatabase:sccp_asterisk_removeFromDatabase,
++	feature_removeTreeFromDatabase:sccp_asterisk_removeTreeFromDatabase,
++	getFeatureExtension:sccp_asterisk18_getFeatureExtension,
++	feature_pickup:sccp_wrapper_asterisk18_pickupChannel,
+ 
+- eventSubscribe:NULL,
+- findChannelByCallback:sccp_wrapper_asterisk18_findChannelWithCallback
++	eventSubscribe:NULL,
++	findChannelByCallback:sccp_wrapper_asterisk18_findChannelWithCallback
+ };
+ 
+ #else
+@@ -2389,19 +2397,16 @@
+ 	.set_callerid_presence 		= sccp_wrapper_asterisk18_setCalleridPresence,
+ 	.set_connected_line		= sccp_wrapper_asterisk18_updateConnectedLine,
+ 	
+-	
+ 	/* database */
+ 	.feature_addToDatabase 		= sccp_asterisk_addToDatabase,
+ 	.feature_getFromDatabase 	= sccp_asterisk_getFromDatabase,
+ 	.feature_removeFromDatabase     = sccp_asterisk_removeFromDatabase,	
+ 	.feature_removeTreeFromDatabase = sccp_asterisk_removeTreeFromDatabase,
+-	
+-	
+ 	.feature_park			= sccp_wrapper_asterisk18_park,
++	.getFeatureExtension		= sccp_asterisk18_getFeatureExtension,
+ 	.feature_pickup			= sccp_wrapper_asterisk18_pickupChannel,
+-	
++
+ 	.findChannelByCallback		= sccp_wrapper_asterisk18_findChannelWithCallback,
+-	
+ 	/* *INDENT-ON* */
+ };
+ #endif
+Index: src/pbx_impl/ast/ast110.c
+===================================================================
+--- src/pbx_impl/ast/ast110.c	(revision 3130)
++++ src/pbx_impl/ast/ast110.c	(working copy)
+@@ -855,9 +855,24 @@
+ 		return PARK_RESULT_SUCCESS;
+ 	}
+ 	return PARK_RESULT_FAIL;
++}
+ 
++static boolean_t sccp_asterisk110_getFeatureExtension(consyt sccp_channel_t *channel, char **extension){
++	struct ast_call_feature *feat;
++	
++	ast_rdlock_call_features();
++	feat = ast_find_call_feature("automon");
++	
++	
++	if(feat){
++		*extension = strdup(feat->exten);
++	}
++	ast_unlock_call_features();
++	
++	return feat ? TRUE : FALSE;
+ }
+ 
++
+ /*!
+  * \brief Pickup asterisk channel target using chan
+  * 
+@@ -2131,7 +2146,7 @@
+  feature_getFromDatabase:sccp_asterisk_getFromDatabase,
+  feature_removeFromDatabase:sccp_asterisk_removeFromDatabase,
+  feature_removeTreeFromDatabase:sccp_asterisk_removeTreeFromDatabase,
+- getFeatureExtension:NULL,
++ getFeatureExtension:sccp_asterisk110_getFeatureExtension,
+  feature_pickup:sccp_wrapper_asterisk110_pickupChannel,
+ 
+  eventSubscribe:NULL,
+@@ -2205,9 +2220,8 @@
+ 	.feature_getFromDatabase 	= sccp_asterisk_getFromDatabase,
+ 	.feature_removeFromDatabase     = sccp_asterisk_removeFromDatabase,	
+ 	.feature_removeTreeFromDatabase = sccp_asterisk_removeTreeFromDatabase,
+-	
+-	
+ 	.feature_park			= sccp_wrapper_asterisk110_park,
++	.getFeatureExtension		= sccp_asterisk110_getFeatureExtension,
+ 	.feature_pickup			= sccp_wrapper_asterisk110_pickupChannel,
+ 	
+ 	.findChannelByCallback		= sccp_wrapper_asterisk110_findChannelWithCallback,
+Index: src/pbx_impl/ast/astTrunk.c
+===================================================================
+--- src/pbx_impl/ast/astTrunk.c	(revision 3130)
++++ src/pbx_impl/ast/astTrunk.c	(working copy)
+@@ -855,9 +855,24 @@
+ 		return PARK_RESULT_SUCCESS;
+ 	}
+ 	return PARK_RESULT_FAIL;
++}
+ 
++static boolean_t sccp_asterisk111_getFeatureExtension(const sccp_channel_t *channel, char **extension){
++	struct ast_call_feature *feat;
++	
++	ast_rdlock_call_features();
++	feat = ast_find_call_feature("automon");
++	
++	
++	if(feat){
++		*extension = strdup(feat->exten);
++	}
++	ast_unlock_call_features();
++	
++	return feat ? TRUE : FALSE;
+ }
+ 
++
+ /*!
+  * \brief Pickup asterisk channel target using chan
+  * 
+@@ -2131,7 +2146,7 @@
+  feature_getFromDatabase:sccp_asterisk_getFromDatabase,
+  feature_removeFromDatabase:sccp_asterisk_removeFromDatabase,
+  feature_removeTreeFromDatabase:sccp_asterisk_removeTreeFromDatabase,
+- getFeatureExtension:NULL,
++ getFeatureExtension:sccp_asterisk111_getFeatureExtension,
+  feature_pickup:sccp_wrapper_asterisk111_pickupChannel,
+ 
+  eventSubscribe:NULL,
+@@ -2205,9 +2220,8 @@
+ 	.feature_getFromDatabase 	= sccp_asterisk_getFromDatabase,
+ 	.feature_removeFromDatabase     = sccp_asterisk_removeFromDatabase,	
+ 	.feature_removeTreeFromDatabase = sccp_asterisk_removeTreeFromDatabase,
+-	
+-	
+ 	.feature_park			= sccp_wrapper_asterisk111_park,
++	.getFeatureExtension		= sccp_asterisk111_getFeatureExtension,
+ 	.feature_pickup			= sccp_wrapper_asterisk111_pickupChannel,
+ 	
+ 	.findChannelByCallback		= sccp_wrapper_asterisk111_findChannelWithCallback,
