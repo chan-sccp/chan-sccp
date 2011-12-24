@@ -451,7 +451,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		enable_do_crash="yes"
 		enable_debug_mutex="yes"
 		strip_binaries="no"
-		CFLAGS_saved="$CFLAGS_saved -O0 -Os -Wall -Wextra -Wno-unused-parameter -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wlong-long"
+		CFLAGS_saved="$CFLAGS_saved -O0 -Os -Wall -Wextra -Wno-unused-parameter -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wlong-long -Wno-unused-but-set-variable"
 		CFLAGS="$CFLAGS_saved"
 		GDB_FLAGS="-g"
 	else
@@ -459,6 +459,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		enable_do_crash="no"
 		enable_debug_mutex="no"
 		strip_binaries="yes"
+		CFLAGS_saved="$CFLAGS_saved -O3 -Wno-unused-parameter -Wno-unused-but-set-variable"
 		GDB_FLAGS="$GDB_FLAGS"
 	fi
 ])
