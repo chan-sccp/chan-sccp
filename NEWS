@@ -1,3 +1,9 @@
+Version: 3.1.1_STABLE
+============================
+Fixed/Improved: 
+ - Video Support
+ - Minor Bug Fixes
+
 Version: 3.0.4_STABLE
 ============================
 Fixed/Improved:
@@ -76,27 +82,4 @@ Fixed/Improved:
  - improved callerid passing during call forward
 
 Version: 3.0_RC1
-============================
-Added Functionality: 
- - HotLine
- - Shared Lines
- - Dynamic speed dials
- - New configuration file handling using templating 
 
-Fixed/Improved: 
- - Realtime database support
- - Debug indications
- - Direct transfer
- - Group pickup
- - Call parking
-
-<<<<<<< .working
-=======
-
-
-
-<<<<<<< .working
->>>>>>> .merge-rechts.r2715
-=======
-
->>>>>>> .merge-rechts.r2824

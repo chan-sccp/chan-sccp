@@ -1,3 +1,11 @@
+chan-sccp-b (3.1.1-0.1) stable; urgency=medium
+
+  * Fixed/Improved: 
+  *  - Video Support
+  *  - Minor Bug Fixes
+
+ -- Diederik de Groot <dkgroot@sourceforge.net>  Sat, 24 Dec 2011 14:05:47 +0100
+
 chan-sccp-b (3.0.0-3.5) stable; urgency=low
 
   * Fixed/Improved:
