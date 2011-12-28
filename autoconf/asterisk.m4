@@ -32,13 +32,10 @@ AC_DEFUN([AST_GET_VERSION], [
 			else
 				ASTERISK_REPOS_LOCATION=TGZ
 			fi
-			echo "ASTERISK_REPOS_LOCATION: ${ASTERISK_REPOS_LOCATION}"
 
 			# remove from pbx_ver
-#	    		echo "NEW PBX_VER: [${pbx_ver}]"
 	    		pbx_ver=${pbx_ver%%-*}							# remove tail
 			pbx_ver=${pbx_ver//\"/}							# remove '"'
-#	    		echo "NEW PBX_VER: [${pbx_ver}]"
 
 			# process version number
 			version_found=0
@@ -67,9 +64,6 @@ AC_DEFUN([AST_GET_VERSION], [
 					fi
 
 					ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
-					echo "ASTERISK_MINOR_VER: $ASTERISK_MINOR_VER1"
-					echo "ASTERISK_VER_GROUP: $ASTERISK_VER_GROUP"
-					echo "ASTERISK_VERSION_NUMBER: $ASTERISK_VERSION_NUMBER"
 					
 					version_found=1
 					AC_MSG_RESULT([Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER} ($x)'])
