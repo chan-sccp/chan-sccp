@@ -1,3 +1,8 @@
+Version: 3.1.2_STABLE
+Fixed/Improved
+ - Compilation on FreeBSD
+ - Autoconf script
+
 Version: 3.1.1_STABLE
 ============================
 Fixed/Improved: 
@@ -82,4 +87,5 @@ Fixed/Improved:
  - improved callerid passing during call forward
 
 Version: 3.0_RC1
+
 

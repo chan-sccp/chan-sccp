@@ -10,13 +10,13 @@ AC_DEFUN([CS_SETUP_DEFAULTS], [
 
 AC_DEFUN([CS_SETUP_BUILD],[
 	AC_PATH_TOOL([UNAME], [uname], No)
-	AC_PATH_PROGS(DATE,date,[echo date not found so no daten info will be available])
-	AC_PATH_PROGS(UNAME,uname,[echo uname not found so no version info will be available])
-	AC_PATH_PROGS(WHOAMI,whoami,[echo whoami not found so no builduser info will be available])
-	AC_PATH_PROGS(FINGER,finger,[echo finger not found so no builduser info will be available])
-	AC_PATH_PROGS(HEAD,head,[echo finger not found so no builduser info will be available])
-	AC_PATH_PROGS(CUT,cut,[echo finger not found so no builduser info will be available])
-	AC_PATH_PROGS(AWK,awk,[echo awk not found so no builduser info will be available])
+	AC_PATH_PROGS(DATE,date,No)
+	AC_PATH_PROGS(UNAME,uname,No)
+	AC_PATH_PROGS(WHOAMI,whoami,No)
+	AC_PATH_PROGS(FINGER,finger,No)
+	AC_PATH_PROGS(HEAD,head,No)
+	AC_PATH_PROGS(CUT,cut,No)
+	AC_PATH_PROGS(AWK,awk,No)
 
 	if test ! x"${UNAME}" = xNo; then
 	    if test -n $BUILD_OS ; then
@@ -25,7 +25,7 @@ AC_DEFUN([CS_SETUP_BUILD],[
 		BUILD_MACHINE="`${UNAME} -m`"
 		BUILD_HOSTNAME="`${UNAME} -n`"
 		BUILD_KERNEL="`${UNAME} -r`"
-		if test ! x"${AWK}" = xNo; then
+		if test "_${AWK}" != "_No" && test "_${FINGER}" != "_No"; then
 			BUILD_USER="`${FINGER} -lp $(echo "$USER") | ${HEAD} -n 1 | ${AWK} -F:\  '{print $3}'`"
 		else
 			BUILD_USER="`${WHOAMI}`"
@@ -130,7 +130,6 @@ AC_DEFUN([CS_SETUP_ENVIRONMENT], [
 dnl	AC_GNU_SOURCE
 
 	CFLAGS="$CFLAGS -std=gnu89"
-	CFLAGS="$CFLAGS -Wno-long-long"
 
 	if test "${cross_compiling}" = "yes"; 
 	then
@@ -207,7 +206,7 @@ AC_DEFUN([CS_WITH_CCACHE],[
 	dnl Compile With CCACHE
 	AC_ARG_WITH(ccache,
 	  AC_HELP_STRING([--with-ccache[=PATH]], [use ccache during compile]), [ac_cv_use_ccache="${withval}"], [ac_cv_use_ccache="no"])
-	AS_IF([test "${ac_cv_use_ccache}" != "no"], [
+	AS_IF([test "_${ac_cv_use_ccache}" != "_no"], [
 		if test "${ac_cv_use_ccache}" = "yes"; then
 			AC_PATH_PROGS(CCACHE,ccache,[echo ccache not found])
 			if test -n "${CCACHE}"; then
@@ -414,7 +413,7 @@ AC_DEFUN([CS_SETUP_DOXYGEN], [
 	AC_ARG_ENABLE(devdoc, 
 	  AC_HELP_STRING([--enable-devdoc], [enable developer documentation]), 
 	  ac_cv_use_devdoc=$enableval, ac_cv_use_devdoc=no)
-	AS_IF([test "${ac_cv_use_devdoc}" == "yes"], 
+	AS_IF([test "_${ac_cv_use_devdoc}" == "_yes"], 
 	  [DX_ENV_APPEND([INPUT],[. doc src])],
 	  [DX_ENV_APPEND([INPUT],[. doc])]
 	)
@@ -451,15 +450,26 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		enable_do_crash="yes"
 		enable_debug_mutex="yes"
 		strip_binaries="no"
-		CFLAGS_saved="$CFLAGS_saved -O0 -Os -Wall -Wextra -Wno-unused-parameter -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wlong-long -Wno-unused-but-set-variable"
-		CFLAGS="$CFLAGS_saved"
+		CFLAGS="$CFLAGS_saved -O0 -Os -Wall"
+		AX_CFLAGS_GCC_OPTION_NEW(-Wstrict-prototypes)
+		AX_CFLAGS_GCC_OPTION_NEW(-Wmissing-prototypes)
+		AX_CFLAGS_GCC_OPTION_NEW(-Wmissing-declarations)
+		AX_CFLAGS_GCC_OPTION_NEW(-Wnested-externs)
+		AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
+		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
+		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
+		CFLAGS_saved="$CFLAGS"
 		GDB_FLAGS="-g"
 	else
 		AC_DEFINE([DEBUG],[0],[Extra debugging.])
 		enable_do_crash="no"
 		enable_debug_mutex="no"
 		strip_binaries="yes"
-		CFLAGS_saved="$CFLAGS_saved -O3 -Wno-unused-parameter -Wno-unused-but-set-variable"
+		CFLAGS="$CFLAGS_saved -O3"
+		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
+		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
+		AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
+		CFLAGS_saved="$CFLAGS"
 		GDB_FLAGS="$GDB_FLAGS"
 	fi
 ])
@@ -475,7 +485,7 @@ AC_DEFUN([CS_DISABLE_PICKUP], [
 	AC_ARG_ENABLE(pickup, 
 	  AC_HELP_STRING([--disable-pickup], [disable pickup function]), 
 	  ac_cv_use_pickup=$enableval, ac_cv_use_pickup=yes)
-	AS_IF([test "${ac_cv_use_pickup}" == "yes"], [AC_DEFINE(CS_SCCP_PICKUP, 1, [pickup function enabled])])
+	AS_IF([test "_${ac_cv_use_pickup}" == "_yes"], [AC_DEFINE(CS_SCCP_PICKUP, 1, [pickup function enabled])])
 	AC_MSG_NOTICE([--enable-pickup: ${ac_cv_use_pickup}])
 ])
 
@@ -483,7 +493,7 @@ AC_DEFUN([CS_DISABLE_PARK], [
 	AC_ARG_ENABLE(park, 
 	  AC_HELP_STRING([--disable-park], [disable park functionality]), 
 	  ac_cv_use_park=$enableval, ac_cv_use_park=yes)
-	AS_IF([test "${ac_cv_use_park}" == "yes"], [AC_DEFINE(CS_SCCP_PARK, 1, [park functionality enabled])])
+	AS_IF([test "_${ac_cv_use_park}" == "_yes"], [AC_DEFINE(CS_SCCP_PARK, 1, [park functionality enabled])])
 	AC_MSG_NOTICE([--enable-park: ${ac_cv_use_park}])
 ])
 
@@ -491,7 +501,7 @@ AC_DEFUN([CS_DISABLE_DIRTRFR], [
 	AC_ARG_ENABLE(dirtrfr, 
 	  AC_HELP_STRING([--disable-dirtrfr], [disable direct transfer]), 
 	  ac_cv_use_dirtrfr=$enableval, ac_cv_use_dirtrfr=yes)
-	AS_IF([test "${ac_cv_use_dirtrfr}" == "yes"], [AC_DEFINE(CS_SCCP_DIRTRFR, 1, [direct transfer enabled])])
+	AS_IF([test "_${ac_cv_use_dirtrfr}" == "_yes"], [AC_DEFINE(CS_SCCP_DIRTRFR, 1, [direct transfer enabled])])
 	AC_MSG_NOTICE([--enable-dirtrfr: ${ac_cv_use_dirtrfr}])
 ])
 
@@ -499,7 +509,7 @@ AC_DEFUN([CS_DISABLE_MONITOR], [
 	AC_ARG_ENABLE(monitor, 
 	  AC_HELP_STRING([--disable-monitor], [disable feature monitor)]), 
 	  ac_cv_use_monitor=$enableval, ac_cv_use_monitor=yes)
-	AS_IF([test "${ac_cv_use_monitor}" == "yes"], [AC_DEFINE(CS_SCCP_FEATURE_MONITOR, 1, [feature monitor enabled])])
+	AS_IF([test "_${ac_cv_use_monitor}" == "_yes"], [AC_DEFINE(CS_SCCP_FEATURE_MONITOR, 1, [feature monitor enabled])])
 	AC_MSG_NOTICE([--enable-monitor: ${ac_cv_use_monitor}])
 ])
 
@@ -507,7 +517,7 @@ AC_DEFUN([CS_ENABLE_CONFERENCE], [
 	AC_ARG_ENABLE(conference, 
 	  AC_HELP_STRING([--enable-conference], [enable conference (>ast 1.6.2)(experimental)]), 
 	  ac_cv_use_conference=$enableval, ac_cv_use_conference=no)
-	AS_IF([test "${ac_cv_use_conference}" == "yes"], [AC_DEFINE(CS_SCCP_CONFERENCE, 1, [conference enabled])])
+	AS_IF([test "_${ac_cv_use_conference}" == "_yes"], [AC_DEFINE(CS_SCCP_CONFERENCE, 1, [conference enabled])])
 	AC_MSG_NOTICE([--enable-conference: ${ac_cv_use_conference}])
 ])
 
@@ -515,7 +525,7 @@ AC_DEFUN([CS_DISABLE_MANAGER], [
 	AC_ARG_ENABLE(manager, 
 	  AC_HELP_STRING([--disable-manager], [disabled ast manager events]), 
 	  ac_cv_use_manager=$enableval, ac_cv_use_manager=yes)
-	AS_IF([test "${ac_cv_use_manager}" == "yes"], [
+	AS_IF([test "_${ac_cv_use_manager}" == "_yes"], [
 		AC_DEFINE(CS_MANAGER_EVENTS, 1, [manager events enabled])
 		AC_DEFINE(CS_SCCP_MANAGER, 1, [manager console control enabled])
 	])
@@ -526,7 +536,7 @@ AC_DEFUN([CS_DISABLE_FUNCTIONS], [
 	AC_ARG_ENABLE(functions, 
 	  AC_HELP_STRING([--disable-functions], [disabled Dialplan functions]), 
 	  ac_cv_use_functions=$enableval, ac_cv_use_functions=yes)
-	AS_IF([test "${ac_cv_use_functions}" == "yes"], [AC_DEFINE(CS_SCCP_FUNCTIONS, 1, [dialplan function enabled])])
+	AS_IF([test "_${ac_cv_use_functions}" == "_yes"], [AC_DEFINE(CS_SCCP_FUNCTIONS, 1, [dialplan function enabled])])
 	AC_MSG_NOTICE([--enable-functions: ${ac_cv_use_functions}])
 ])
 
@@ -534,7 +544,7 @@ AC_DEFUN([CS_ENABLE_INDICATIONS], [
 	AC_ARG_ENABLE(indications, 
 	  AC_HELP_STRING([--enable-indications], [enable debug indications]), 
 	  ac_cv_debug_indications=$enableval, ac_cv_debug_indications=no)
-	AS_IF([test "${ac_cv_debug_indications}" == "yes"], [AC_DEFINE(CS_DEBUG_INDICATIONS, 1, [debug indications enabled])])
+	AS_IF([test "_${ac_cv_debug_indications}" == "_yes"], [AC_DEFINE(CS_DEBUG_INDICATIONS, 1, [debug indications enabled])])
 	AC_MSG_NOTICE([--enable-indications: ${ac_cv_debug_indications}])
 ])
 
@@ -542,7 +552,7 @@ AC_DEFUN([CS_DISABLE_REALTIME], [
 	AC_ARG_ENABLE(realtime, 
 	  AC_HELP_STRING([--disable-realtime], [disable realtime support]), 
 	  ac_cv_realtime=$enableval, ac_cv_realtime=yes)
-	AS_IF([test "${ac_cv_realtime}" == "yes"], [AC_DEFINE(CS_SCCP_REALTIME, 1, [realtime enabled])])
+	AS_IF([test "_${ac_cv_realtime}" == "_yes"], [AC_DEFINE(CS_SCCP_REALTIME, 1, [realtime enabled])])
 	AC_MSG_NOTICE([--enable-realtime: ${ac_cv_realtime}])
 ])
 
@@ -550,7 +560,7 @@ AC_DEFUN([CS_DISABLE_FEATURE_MONITOR], [
 	AC_ARG_ENABLE(feature_monitor, 
 	  AC_HELP_STRING([--disable-feature-monitor], [disable feature monitor]), 
 	  ac_cv_feature_monitor=$enableval, ac_cv_feature_monitor=yes)
-	AS_IF([test "${ac_cv_feature_monitor}" == "yes"], [AC_DEFINE(CS_SCCP_FEATURE_MONITOR, 1, [feature monitor enabled])])
+	AS_IF([test "_${ac_cv_feature_monitor}" == "_yes"], [AC_DEFINE(CS_SCCP_FEATURE_MONITOR, 1, [feature monitor enabled])])
 	AC_MSG_NOTICE([--enable-feature-monitor: ${ac_cv_feature_monitor}])
 ])
 
@@ -558,7 +568,7 @@ AC_DEFUN([CS_ENABLE_ADVANCED_FUNCTIONS], [
 	AC_ARG_ENABLE(advanced_functions, 
 	  AC_HELP_STRING([--enable-advanced-functions], [enable advanced functions (experimental)]), 
 	    ac_cv_advanced_functions=$enableval, ac_cv_advanced_functions=no)
-	AS_IF([test "${ac_cv_advanced_functions}" == "yes"], [AC_DEFINE(CS_ADV_FEATURES, 1, [advanced functions enabled])])
+	AS_IF([test "_${ac_cv_advanced_functions}" == "_yes"], [AC_DEFINE(CS_ADV_FEATURES, 1, [advanced functions enabled])])
 	AC_MSG_NOTICE([--enable-advanced-functions: ${ac_cv_advanced_functions}])
 ])
 
@@ -566,7 +576,7 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_MODE], [
 	AC_ARG_ENABLE(experimental_mode, 
 	  AC_HELP_STRING([--enable-experimental-mode], [enable experimental mode (only for developers)]), 
 	    ac_cv_experimental_mode=$enableval, ac_cv_experimental_mode=no)
-	AS_IF([test "${ac_cv_experimental_mode}" == "yes"], [AC_DEFINE(CS_EXPERIMENTAL, 1, [experimental mode enabled])])
+	AS_IF([test "_${ac_cv_experimental_mode}" == "_yes"], [AC_DEFINE(CS_EXPERIMENTAL, 1, [experimental mode enabled])])
 	AC_MSG_NOTICE([--enable-experimental-mode: ${ac_cv_experimental_mode} (only for developers)])
 ])
 
@@ -575,8 +585,8 @@ AC_DEFUN([CS_DISABLE_DEVSTATE_FEATURE], [
 	  AC_HELP_STRING([--disable-devstate-feature], [disable device state feature button]), 
 	    ac_cv_devstate_feature=$enableval, ac_cv_devstate_feature=yes)
 	AS_IF([test ${ASTERISK_VERSION_NUMBER} -lt 10601], [ac_cv_devstate_feature=no])
-	AS_IF([test "${DEVICESTATE_H}" != "yes"], [ac_cv_devstate_feature=no])
-	AS_IF([test "${ac_cv_devstate_feature}" == "yes"], [AC_DEFINE(CS_DEVSTATE_FEATURE, 1, [devstate feature enabled])])
+	AS_IF([test "_${DEVICESTATE_H}" != "_yes"], [ac_cv_devstate_feature=no])
+	AS_IF([test "_${ac_cv_devstate_feature}" == "_yes"], [AC_DEFINE(CS_DEVSTATE_FEATURE, 1, [devstate feature enabled])])
 	AC_MSG_NOTICE([--enable-devstate-feature: ${ac_cv_devstate_feature}])
 ])
 
@@ -584,7 +594,7 @@ AC_DEFUN([CS_DISABLE_DYNAMIC_SPEEDDIAL], [
 	AC_ARG_ENABLE(dynamic_speeddial, 
 	  AC_HELP_STRING([--disable-dynamic-speeddial], [disable dynamic speeddials]), 
 	    ac_cv_dynamic_speeddial=$enableval, ac_cv_dynamic_speeddial=yes)
-	AS_IF([test "${ac_cv_dynamic_speeddial}" == "yes"], [AC_DEFINE(CS_DYNAMIC_SPEEDDIAL, 1, [dynamic speeddials enabled])])
+	AS_IF([test "_${ac_cv_dynamic_speeddial}" == "_yes"], [AC_DEFINE(CS_DYNAMIC_SPEEDDIAL, 1, [dynamic speeddials enabled])])
 	AC_MSG_NOTICE([--enable-dynamic-speeddial: ${ac_cv_dynamic_speeddial}])
 ])
 
@@ -592,8 +602,8 @@ AC_DEFUN([CS_DISABLE_DYNAMIC_SPEEDDIAL_CID], [
 	AC_ARG_ENABLE(dynamic_speeddial_cid, 
 	  AC_HELP_STRING([--disable-dynamic-speeddial-cid], [disable dynamic speeddials with call info]), 
 	    ac_cv_dynamic_speeddial_cid=$enableval, ac_cv_dynamic_speeddial_cid=${ac_cv_dynamic_speeddial})
-	AS_IF([test "${ac_cv_dynamic_speeddial}" == "yes"], [
-		AS_IF([test "${ac_cv_dynamic_speeddial_cid}" == "yes"], [
+	AS_IF([test "_${ac_cv_dynamic_speeddial}" == "_yes"], [
+		AS_IF([test "_${ac_cv_dynamic_speeddial_cid}" == "_yes"], [
 			AC_DEFINE(CS_DYNAMIC_SPEEDDIAL_CID, 1, [dynamic speeddials with callinfo enabled])
 		])
 	])
@@ -604,7 +614,7 @@ AC_DEFUN([CS_ENABLE_VIDEO], [
 	AC_ARG_ENABLE(video, 
 	  AC_HELP_STRING([--enable-video], [enable streaming video (experimental)]), 
 	  ac_cv_streaming_video=$enableval, ac_cv_streaming_video=no)
-	AS_IF([test "${ac_cv_streaming_video}" == "yes"], [AC_DEFINE(CS_SCCP_VIDEO, 1, [Using streaming video])])
+	AS_IF([test "_${ac_cv_streaming_video}" == "_yes"], [AC_DEFINE(CS_SCCP_VIDEO, 1, [Using streaming video])])
 	AC_MSG_NOTICE([--enable-video: ${ac_cv_streaming_video}])
 ])
 
@@ -612,7 +622,7 @@ AC_DEFUN([CS_DISABLE_DYNAMIC_CONFIG], [
 	AC_ARG_ENABLE(dynamic_config, 
 	  AC_HELP_STRING([--disable-dynamic-config], [disable sccp reload]), 
 	  ac_cv_dynamic_config=$enableval, ac_cv_dynamic_config=yes)
-	AS_IF([test "${ac_cv_dynamic_config}" == "yes"], [AC_DEFINE(CS_DYNAMIC_CONFIG, 1, [sccp reload enabled])])
+	AS_IF([test "_${ac_cv_dynamic_config}" == "_yes"], [AC_DEFINE(CS_DYNAMIC_CONFIG, 1, [sccp reload enabled])])
 	AC_MSG_NOTICE([--enable-dynamic-config: ${ac_cv_dynamic_config}])
 ])
 

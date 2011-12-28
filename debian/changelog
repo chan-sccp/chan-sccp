@@ -1,3 +1,11 @@
+chan-sccp-b (3.1.1-0.2) stable; urgency=low
+
+  * Fixed/Improved: 
+  *  - Compilation on FreeBSD
+  *  - Autoconf script
+
+ -- Diederik de Groot <dkgroot@sourceforge.net>  Wed, 28 Dec 2011 16:18:16 +0100
+
 chan-sccp-b (3.1.1-0.1) stable; urgency=medium
 
   * Fixed/Improved: 
