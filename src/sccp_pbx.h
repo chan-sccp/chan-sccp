@@ -12,8 +12,8 @@
  * $Date$
  * $Revision$  
  */
-#ifndef __SCCP_PBX_H
-#    define __SCCP_PBX_H
+#    ifndef __SCCP_PBX_H
+#define __SCCP_PBX_H
 
 uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c);
 int sccp_pbx_sched_dial(const void *data);
@@ -38,4 +38,4 @@ int sccp_pbx_answer(sccp_channel_t * c);
 //! \todo move this to pbx impl
 int sccp_pbx_queue_control(sccp_channel_t * c, uint8_t control);
 
-#endif
+#    endif

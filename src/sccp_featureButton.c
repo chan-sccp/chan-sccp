@@ -295,7 +295,7 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	/* If it is the custom family, isolate the specifier. */
 	sccp_device_t *device;
 	size_t len = strlen("Custom:");
-	char *sspecifier = 0;
+//	char *sspecifier = 0;
 	const char *dev;
 
 	if (!data || !ast_event)
@@ -321,7 +321,7 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	   In the future we might need a more elegant hint-registry for this type of notification,
 	   which should be global to chan-sccp-b, not for each device. For now, this suffices. */
 	if (!strncasecmp(dev, "Custom:", len)) {
-		sspecifier = (char *)(dev + len);
+//		sspecifier = (char *)(dev + len);
 		sccp_featButton_changed(device, SCCP_FEATURE_DEVSTATE);
 	}
 }

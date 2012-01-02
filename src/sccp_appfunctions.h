@@ -14,9 +14,9 @@
  * $Revision: 1867 $
  */
 
-#ifndef __SCCP_APPFUNCTIONS_H
-#    define __SCCP_APPFUNCTIONS_H
+#    ifndef __SCCP_APPFUNCTIONS_H
+#define __SCCP_APPFUNCTIONS_H
 
 int sccp_register_dialplan_functions(void);
 int sccp_unregister_dialplan_functions(void);
-#endif
+#    endif

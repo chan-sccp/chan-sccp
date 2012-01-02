@@ -11,8 +11,8 @@
  * $Revision: 2130 $  
  */
 
-#ifndef SCCP_HINT_H_
-#    define SCCP_HINT_H_
+#    ifndef SCCP_HINT_H_
+#define SCCP_HINT_H_
 
 typedef enum { ASTERISK = 0, INTERNAL = 1 } sccp_hinttype_t;
 
@@ -74,11 +74,11 @@ struct sccp_hint_list {
 
 		struct {
 			int hintid;						/*!< Hint ID */
-#    ifndef AST_EVENT_IE_CIDNAME
+#ifndef AST_EVENT_IE_CIDNAME
 			pthread_t notificationThread;				/*!< Notification Thread */
-#    else
+#else
 			struct pbx_event_sub *device_state_sub;
-#    endif
+#endif
 		} asterisk;							/*!< Hint Type Asterisk Structure */
 	} type;									/*!< Hint Type Structure */
 
@@ -94,15 +94,15 @@ struct sccp_hint_list {
  * \param data Asterisk Data
  * \return Status as int
  */
-#    if ASTERISK_VERSION_NUMBER >= 11001
+#if ASTERISK_VERSION_NUMBER >= 11001
 int sccp_hint_state(const char *context, const char *exten, enum ast_extension_states state, void *data);
-#    else
+#else
 int sccp_hint_state(char *context, char *exten, enum ast_extension_states state, void *data);
-#    endif
+#endif
 
-#    define sccp_hint_lineStatusChanged(a,b,c,d,e) sccp_hint_lineStatusChangedDebug(a,b,c,d,e, __FILE__, __LINE__)
+#define sccp_hint_lineStatusChanged(a,b,c,d,e) sccp_hint_lineStatusChangedDebug(a,b,c,d,e, __FILE__, __LINE__)
 void sccp_hint_lineStatusChangedDebug(sccp_line_t * line, sccp_device_t * device, sccp_channel_t * channel, sccp_channelState_t previousState, sccp_channelState_t state, char *callerFile, int callerLine);
 void sccp_hint_module_start(void);
 void sccp_hint_module_stop(void);
 
-#endif										/* SCCP_HINT_H_ */
+#    endif										/* SCCP_HINT_H_ */

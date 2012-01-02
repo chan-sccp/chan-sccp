@@ -9,8 +9,8 @@
  * $Date$
  * $Revision$  
  */
-#ifndef __SCCP_RTP_H
-#    define __SCCP_RTP_H
+#    ifndef __SCCP_RTP_H
+#define __SCCP_RTP_H
 
 typedef enum {
 	SCCP_RTP_INFO_NORTP = 0,
@@ -33,4 +33,4 @@ sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t * c, struct sccp_
 sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t * c, struct sccp_rtp **rtp);
 boolean_t sccp_rtp_getUs(const struct sccp_rtp *rtp, struct sockaddr_in *us);
 
-#endif										// __SCCP_RTP_H
+#    endif										// __SCCP_RTP_H

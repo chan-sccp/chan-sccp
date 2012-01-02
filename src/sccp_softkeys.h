@@ -12,13 +12,13 @@
  * $Date$
  * $Revision$  
  */
-#ifndef __SCCP_SOFTKEYS_H
-#    define __SCCP_SOFTKEYS_H
+#    ifndef __SCCP_SOFTKEYS_H
+#define __SCCP_SOFTKEYS_H
 
-#    ifdef CS_DYNAMIC_CONFIG
+#ifdef CS_DYNAMIC_CONFIG
 void sccp_softkey_pre_reload(void);
 void sccp_softkey_post_reload(void);
-#    endif
+#endif
 
 /*!
  * \brief SCCP SoftKeyMap Callback
@@ -69,4 +69,4 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
 void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c, unsigned int keymode, unsigned int softkeyindex, unsigned int status);
 
-#endif
+#    endif

@@ -460,7 +460,7 @@ static void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t 
 	sccp_device_t *remoteDevice;
 	sccp_channel_t *activeChannel;
 	int instance;
-	uint32_t privacyStatus=0;
+//	uint32_t privacyStatus=0;
 	uint8_t stateVisibility;
 
 	if (!c || !c->line)
@@ -469,8 +469,8 @@ static void __sccp_indicate_remote_device(sccp_device_t *device, sccp_channel_t 
     
 
 	/** \todo move this to channel->privacy */
-	if (sccp_channel_getDevice(c))
-		privacyStatus = sccp_channel_getDevice(c)->privacyFeature.status & SCCP_PRIVACYFEATURE_HINT;
+//	if (sccp_channel_getDevice(c))
+//		privacyStatus = sccp_channel_getDevice(c)->privacyFeature.status & SCCP_PRIVACYFEATURE_HINT;
 
 // 	/* do not display private lines */
 // 	if (state !=SCCP_CHANNELSTATE_CONNECTED && (c->privacy || privacyStatus > 0) ){

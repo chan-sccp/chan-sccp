@@ -1431,25 +1431,26 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
 	} else {
 		/* check Remote RINGING + gpickup */
 #ifdef CS_SCCP_PICKUP
-#ifdef CS_EXPERIMENTAL
+#    ifdef CS_EXPERIMENTAL
 		l = sccp_line_find_byid(d, k->instance);
 		if (l && l->pickupgroup && PBX(feature_pickup)) {
 			const char *hint_context;
-			const char *hint_extension;	
-			char *splitter=strdup(k->hint);
-			hint_extension=strsep(&splitter, "@");
-			hint_context=strsep(&splitter, "@");
-			
+			const char *hint_extension;
+			char *splitter = strdup(k->hint);
+
+			hint_extension = strsep(&splitter, "@");
+			hint_context = strsep(&splitter, "@");
+
 			if (AST_EXTENSION_RINGING == pbx_extension_state(NULL, hint_context, hint_extension)) {
 				if (sccp_feat_grouppickup(l, d)) {
-					return;	
+					return;
 				}
 			}
-//			sccp_channel_newcall(l, d, (char *)pbx_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND);
-//			sccp_channel_newcall(l, d, "*8", SKINNY_CALLTYPE_OUTBOUND);
+//                      sccp_channel_newcall(l, d, (char *)pbx_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND);
+//                      sccp_channel_newcall(l, d, "*8", SKINNY_CALLTYPE_OUTBOUND);
 		}
-#endif		
-#endif		
+#    endif
+#endif
 
 		// Pull up a channel
 		if (d->defaultLineInstance > 0) {
@@ -2524,12 +2525,13 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 {
 	if (letohl(r->lel_reserved) < 19) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Statistics from %s callid: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", d->id,
-			     r->msg.ConnectionStatisticsRes.DirectoryNumber, letohl(r->msg.ConnectionStatisticsRes.lel_CallIdentifier), letohl(r->msg.ConnectionStatisticsRes.lel_SentPackets), letohl(r->msg.ConnectionStatisticsRes.lel_RecvdPackets), letohl(r->msg.ConnectionStatisticsRes.lel_LostPkts), letohl(r->msg.ConnectionStatisticsRes.lel_Jitter), letohl(r->msg.ConnectionStatisticsRes.lel_latency)
+					   r->msg.ConnectionStatisticsRes.DirectoryNumber, letohl(r->msg.ConnectionStatisticsRes.lel_CallIdentifier), letohl(r->msg.ConnectionStatisticsRes.lel_SentPackets), letohl(r->msg.ConnectionStatisticsRes.lel_RecvdPackets), letohl(r->msg.ConnectionStatisticsRes.lel_LostPkts), letohl(r->msg.ConnectionStatisticsRes.lel_Jitter), letohl(r->msg.ConnectionStatisticsRes.lel_latency)
 		    );
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Statistics (V19) from %s callid: %d Packets sent: %d(0x%x) rcvd: %d(0x%x) lost: %d jitter: %d latency: %d\n", d->id,
-			     r->msg.ConnectionStatisticsRes_V19.DirectoryNumber,
-			     letohl(r->msg.ConnectionStatisticsRes_V19.lel_CallIdentifier), letohl(r->msg.ConnectionStatisticsRes_V19.lel_SentPackets), letohl(r->msg.ConnectionStatisticsRes_V19.lel_SentPackets), letohl(r->msg.ConnectionStatisticsRes_V19.lel_RecvdPackets), letohl(r->msg.ConnectionStatisticsRes_V19.lel_RecvdPackets), letohl(r->msg.ConnectionStatisticsRes_V19.lel_LostPkts), letohl(r->msg.ConnectionStatisticsRes_V19.lel_Jitter), letohl(r->msg.ConnectionStatisticsRes_V19.lel_latency)
+					   r->msg.ConnectionStatisticsRes_V19.DirectoryNumber,
+					   letohl(r->msg.ConnectionStatisticsRes_V19.lel_CallIdentifier), letohl(r->msg.ConnectionStatisticsRes_V19.lel_SentPackets), letohl(r->msg.ConnectionStatisticsRes_V19.lel_SentPackets), letohl(r->msg.ConnectionStatisticsRes_V19.lel_RecvdPackets), letohl(r->msg.ConnectionStatisticsRes_V19.lel_RecvdPackets), letohl(r->msg.ConnectionStatisticsRes_V19.lel_LostPkts), letohl(r->msg.ConnectionStatisticsRes_V19.lel_Jitter),
+					   letohl(r->msg.ConnectionStatisticsRes_V19.lel_latency)
 		    );
 
 		sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
@@ -2801,9 +2803,9 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 	uint32_t featureStat1 = 0;
 	uint32_t featureStat2 = 0;
 	uint32_t featureStat3 = 0;
+	uint32_t res = 0;
 
 #ifdef CS_DEVSTATE_FEATURE
-	int res = 0;
 	char buf[254] = "";
 #endif
 
@@ -2846,7 +2848,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 		}
 
 		if (!strcasecmp(config->button.feature.options, "callpresent")) {
-			uint32_t res = d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
+			res = d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
 
 			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
 			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: result=%d\n", d->id, res);
