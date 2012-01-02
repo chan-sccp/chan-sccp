@@ -54,37 +54,39 @@ int sccp_wrapper_asterisk111_requestHangup(PBX_CHANNEL_TYPE * channel);
  * \brief SCCP Tech Structure
  */
 static struct ast_channel_tech sccp_tech = {
- type:	SCCP_TECHTYPE_STR,
- description:"Skinny Client Control Protocol (SCCP)",
+	/* *INDENT-OFF* */	
+	type:	SCCP_TECHTYPE_STR,
+	description:"Skinny Client Control Protocol (SCCP)",
 //      capabilities:           AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_SLINEAR16 | AST_FORMAT_GSM | AST_FORMAT_G723_1 | AST_FORMAT_G729A | AST_FORMAT_H264 | AST_FORMAT_H263_PLUS,
- properties:AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
- requester:sccp_wrapper_asterisk111_request,
- devicestate:sccp_devicestate,
- send_digit_begin:sccp_wrapper_recvdigit_begin,
- send_digit_end:sccp_wrapper_recvdigit_end,
- call:	sccp_wrapper_asterisk111_call,
- hangup:sccp_wrapper_asterisk111_hangup,
- answer:sccp_wrapper_asterisk111_answer,
- read:	sccp_wrapper_asterisk111_rtp_read,
- write:sccp_wrapper_asterisk111_rtp_write,
- send_text:sccp_pbx_sendtext,
- send_image:NULL,
- send_html:sccp_pbx_sendHTML,
- exception:NULL,
- bridge:sccp_wrapper_asterisk111_rtpBridge,
- early_bridge:NULL,
- indicate:sccp_wrapper_asterisk111_indicate,
- fixup:sccp_wrapper_asterisk111_fixup,
- setoption:NULL,
- queryoption:NULL,
- transfer:NULL,
- write_video:sccp_wrapper_asterisk111_rtp_write,
- write_text:NULL,
- bridged_channel:NULL,
- func_channel_read:sccp_wrapper_asterisk111_channel_read,
- func_channel_write:sccp_asterisk_pbx_fktChannelWrite,
- get_base_channel:NULL,
- set_base_channel:NULL
+	properties:AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
+	requester:sccp_wrapper_asterisk111_request,
+	devicestate:sccp_devicestate,
+	send_digit_begin:sccp_wrapper_recvdigit_begin,
+	send_digit_end:sccp_wrapper_recvdigit_end,
+	call:	sccp_wrapper_asterisk111_call,
+	hangup:sccp_wrapper_asterisk111_hangup,
+	answer:sccp_wrapper_asterisk111_answer,
+	read:	sccp_wrapper_asterisk111_rtp_read,
+	write:sccp_wrapper_asterisk111_rtp_write,
+	send_text:sccp_pbx_sendtext,
+	send_image:NULL,
+	send_html:sccp_pbx_sendHTML,
+	exception:NULL,
+	bridge:sccp_wrapper_asterisk111_rtpBridge,
+	early_bridge:NULL,
+	indicate:sccp_wrapper_asterisk111_indicate,
+	fixup:sccp_wrapper_asterisk111_fixup,
+	setoption:NULL,
+	queryoption:NULL,
+	transfer:NULL,
+	write_video:sccp_wrapper_asterisk111_rtp_write,
+	write_text:NULL,
+	bridged_channel:NULL,
+	func_channel_read:sccp_wrapper_asterisk111_channel_read,
+	func_channel_write:sccp_asterisk_pbx_fktChannelWrite,
+	get_base_channel:NULL,
+	set_base_channel:NULL
+	/* *INDENT-ON* */
 };
 
 #else
@@ -571,7 +573,7 @@ static int sccp_wrapper_asterisk111_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 #ifdef CS_SCCP_VIDEO
 			if (c->rtp.video.writeState == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.rtp && c->getDevice(c)
 			    && c->state != SCCP_CHANNELSTATE_HOLD) {
-//				int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
+//                              int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
 				int codec = pbx_codec2skinny_codec((frame->frametype == AST_FRAME_VIDEO));
 
 				ast_log(LOG_NOTICE, "%s: got video frame %d\n", DEV_ID_LOG(c->getDevice(c)), codec);
@@ -1534,7 +1536,7 @@ static boolean_t sccp_wrapper_asterisk111_setWriteFormat(const sccp_channel_t * 
 	ast_format_set(&fmt, skinny_codec2pbx_codec(codec), 0);
 	ast_format_copy(&channel->owner->writeformat, &fmt);
 	ast_format_copy(&channel->owner->rawwriteformat, &fmt);
-	if (0!=channel->rtp.audio.rtp)
+	if (0 != channel->rtp.audio.rtp)
 		ast_rtp_instance_set_write_format(channel->rtp.audio.rtp, &fmt);
 	return TRUE;
 }
@@ -1550,7 +1552,7 @@ static boolean_t sccp_wrapper_asterisk111_setReadFormat(const sccp_channel_t * c
 	ast_format_set(&fmt, skinny_codec2pbx_codec(codec), 0);
 	ast_format_copy(&channel->owner->readformat, &fmt);
 	ast_format_copy(&channel->owner->rawreadformat, &fmt);
-	if (0!=channel->rtp.audio.rtp)
+	if (0 != channel->rtp.audio.rtp)
 		ast_rtp_instance_set_read_format(channel->rtp.audio.rtp, &fmt);
 	return TRUE;
 }
