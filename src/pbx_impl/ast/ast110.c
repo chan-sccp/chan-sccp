@@ -959,7 +959,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 		options++;
 	}
 
-	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked us to create a channel with type=%s, format=" UI64FMT ", lineName=%s, options=%s\n", type, (uint64_t) format, lineName, (options) ? options : "");
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked us to create a channel with type=%s, format=" UI64FMT "lineName=%s, options=%s\n", type, (uint64_t) ast_format_cap_to_old_bitfield(format), lineName, (options) ? options : "");
 
 	/* parse options */
 	if (options && (optc = sccp_app_separate_args(options, '/', optv, sizeof(optv) / sizeof(optv[0])))) {
