@@ -13,13 +13,13 @@
  * $Revision$
  */
 
-#ifndef __SCCP_LINE_H
-#    define __SCCP_LINE_H
+#    ifndef __SCCP_LINE_H
+#define __SCCP_LINE_H
 
-#    ifdef CS_DYNAMIC_CONFIG
+#ifdef CS_DYNAMIC_CONFIG
 void sccp_line_pre_reload(void);
 void sccp_line_post_reload(void);
-#    endif
+#endif
 
 sccp_line_t *sccp_line_create(void);
 sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line);
@@ -32,4 +32,4 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device);
 void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel);
 void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t * channel);
-#endif										/* __SCCP_LINE_H */
+#    endif										/* __SCCP_LINE_H */

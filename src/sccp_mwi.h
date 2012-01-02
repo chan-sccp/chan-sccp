@@ -10,12 +10,12 @@
  * $Revision$  
  */
 
-#ifndef SCCP_MWI_H_
-#    define SCCP_MWI_H_
+#    ifndef SCCP_MWI_H_
+#define SCCP_MWI_H_
 
-#    ifdef CS_AST_HAS_EVENT
-#        include "asterisk/event.h"
-#    endif
+#ifdef CS_AST_HAS_EVENT
+#    include "asterisk/event.h"
+#endif
 
 /*!
  * \brief SCCP Mailbox Line Type Definition
@@ -70,14 +70,14 @@ struct sccp_mailbox_subscriber_list {
 		int oldmsgs;							/*!< Old Messages */
 	} previousVoicemailStatistic;						/*!< Previous Voicemail Statistic Structure */
 
-#    ifdef CS_AST_HAS_EVENT
+#ifdef CS_AST_HAS_EVENT
 	/*!
 	 * \brief Asterisk Event Subscribers Structure
 	 */
 	struct pbx_event_sub *event_sub;
-#    else
+#else
 	int schedUpdate;
-#    endif
+#endif
 };										/*!< SCCP Mailbox Subscriber List Structure */
 
 void sccp_mwi_module_start(void);
@@ -86,10 +86,10 @@ void sccp_mwi_check(sccp_device_t * device);
 
 void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t ** mailbox);
 
-#    ifdef CS_AST_HAS_EVENT
+#ifdef CS_AST_HAS_EVENT
 void sccp_mwi_event(const struct ast_event *event, void *data);
-#    else
+#else
 int sccp_mwi_checksubscription(const void *ptr);
-#    endif
+#endif
 
-#endif										/*SCCP_MWI_H_ */
+#    endif										/*SCCP_MWI_H_ */

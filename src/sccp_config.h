@@ -12,8 +12,8 @@
  * $Date: 2010-11-17 12:03:44 +0100 (Wed, 17 Nov 2010) $
  * $Revision: 2130 $  
  */
-#ifndef __SCCP_CONFIG_H
-#    define __SCCP_CONFIG_H
+#    ifndef __SCCP_CONFIG_H
+#define __SCCP_CONFIG_H
 
 /*!
  * \brief Enum for Config Value Change Status
@@ -93,8 +93,8 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype);
 void cleanup_stale_contexts(char *newContext, char *oldContext);
 void sccp_config_readDevicesLines(sccp_readingtype_t readingtype);
 
-#    define CONFIG_STATUS_FILEOLD       (void *)-3
-#    define CONFIG_STATUS_FILE_NOT_SCCP (void *)-4
+#define CONFIG_STATUS_FILEOLD       (void *)-3
+#define CONFIG_STATUS_FILE_NOT_SCCP (void *)-4
 struct ast_config *sccp_config_getConfig(void);
 sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYPE * v);
 sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, PBX_VARIABLE_TYPE * v);
@@ -107,4 +107,4 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device);
 
 int sccp_config_generate(char *filename, int configType);
 
-#endif /*__SCCP_CONFIG_H */
+#    endif     /*__SCCP_CONFIG_H */

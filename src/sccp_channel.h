@@ -14,8 +14,8 @@
  * $Revision$  
  */
 
-#ifndef __SCCP_CHANNEL_H
-#    define __SCCP_CHANNEL_H
+#    ifndef __SCCP_CHANNEL_H
+#define __SCCP_CHANNEL_H
 
 sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * device);
 sccp_channel_t *sccp_channel_get_active_locked(sccp_device_t * d);
@@ -58,10 +58,10 @@ void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevi
 sccp_device_t *sccp_channel_getDevice(const sccp_channel_t * channel);
 void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * device);
 
-#    ifdef CS_SCCP_PARK
+#ifdef CS_SCCP_PARK
 void sccp_channel_park(sccp_channel_t * c);
-#    endif
+#endif
 
 boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data);
 
-#endif
+#    endif

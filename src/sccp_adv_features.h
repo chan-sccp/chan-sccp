@@ -14,7 +14,7 @@
  * $Revision$
  */
 
-#define DUMMY 1
+#    define DUMMY 1
 
 void dummyproc1(void);
 void dummyproc2(void);

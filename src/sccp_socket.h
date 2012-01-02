@@ -13,8 +13,8 @@
  * $Revision$  
  */
 
-#ifndef __SCCP_SOCKET_H
-#    define __SCCP_SOCKET_H
+#    ifndef __SCCP_SOCKET_H
+#define __SCCP_SOCKET_H
 
 void *sccp_socket_thread(void *ignore);
 void sccp_session_sendmsg(const sccp_device_t * device, sccp_message_t t);
@@ -27,4 +27,4 @@ void sccp_session_tokenAckSPCP(sccp_session_t * session, uint32_t features);
 struct in_addr *sccp_session_getINaddr(sccp_device_t * device, int type);
 void sccp_session_getSocketAddr(const sccp_device_t * device, struct sockaddr_in *sin);
 
-#endif
+#    endif

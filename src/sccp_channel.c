@@ -693,7 +693,6 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 	sccp_moo_t *r;
 	uint32_t skinnyFormat;
 	int payloadType;
-	uint32_t sampleRate;
 	uint8_t lineInstance;
 
 	int bitRate = 1500;
@@ -711,10 +710,10 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 	}
 
 	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, channel->rtp.video.writeFormat);
-	sampleRate = sccp_rtp_get_sampleRate(channel->rtp.video.writeFormat);
 	lineInstance = sccp_device_find_index_for_line(channel->privateData->device, channel->line->name);
 
 #if 0
+	uint32_t sampleRate = sccp_rtp_get_sampleRate(channel->rtp.video.writeFormat);
 	if (channel->device->inuseprotocolversion < 15) {
 		r = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(r->msg.OpenMultiMediaChannelMessage));
 

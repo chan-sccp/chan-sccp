@@ -10,7 +10,7 @@
  * $Revision: 2130 $  
  */
 
-#ifdef CS_SCCP_MANAGER
+#    ifdef CS_SCCP_MANAGER
 
 /*
  * sccp_management.h
@@ -19,13 +19,13 @@
  *      Author: marcello
  */
 
-#    ifndef __SCCP_MANAGEMENT_H
-#        define __SCCP_MANAGEMENT_H
+#ifndef __SCCP_MANAGEMENT_H
+#    define __SCCP_MANAGEMENT_H
 
 int sccp_register_management(void);
 int sccp_unregister_management(void);
 void sccp_manager_module_start(void);
 void sccp_manager_module_stop(void);
 
-#    endif									/* SCCP_MANAGEMENT_H_ */
-#endif
+#endif										/* SCCP_MANAGEMENT_H_ */
+#    endif

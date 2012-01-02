@@ -12,8 +12,8 @@
  * $Date$
  * $Revision$
  */
-#ifndef __SCCP_CLI_H
-#    define __SCCP_CLI_H
+#    ifndef __SCCP_CLI_H
+#define __SCCP_CLI_H
 
 typedef enum sccp_cli_completer {
 	SCCP_CLI_NULL_COMPLETER,
@@ -26,4 +26,4 @@ typedef enum sccp_cli_completer {
 void sccp_register_cli(void);
 void sccp_unregister_cli(void);
 
-#endif										// __SCCP_CLI_H
+#    endif										// __SCCP_CLI_H

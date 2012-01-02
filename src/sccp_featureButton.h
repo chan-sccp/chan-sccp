@@ -11,13 +11,13 @@
  * $Revision$  
  */
 
-#ifndef SCCP_FEATUREBUTTON_H_
-#    define SCCP_FEATUREBUTTON_H_
+#    ifndef SCCP_FEATUREBUTTON_H_
+#define SCCP_FEATUREBUTTON_H_
 
 void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t featureType);
 
-#    ifdef CS_DEVSTATE_FEATURE
+#ifdef CS_DEVSTATE_FEATURE
 void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data);
-#    endif
+#endif
 
-#endif										/* SCCP_FEATUREBUTTON_H_ */
+#    endif										/* SCCP_FEATUREBUTTON_H_ */

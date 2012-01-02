@@ -11,10 +11,10 @@
  * $Revision$  
  */
 
-#ifndef SCCP_EVENT_H_
-#    define SCCP_EVENT_H_
+#    ifndef SCCP_EVENT_H_
+#define SCCP_EVENT_H_
 
-#    include "chan_sccp.h"
+#include "chan_sccp.h"
 
 /* structures */
 
@@ -101,4 +101,4 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb)
 
 void sccp_event_fire(const sccp_event_t ** event);
 
-#endif										/* SCCP_EVENT_H_ */
+#    endif										/* SCCP_EVENT_H_ */
