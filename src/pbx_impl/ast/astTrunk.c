@@ -95,6 +95,7 @@ static struct ast_channel_tech sccp_tech = {
  * \brief SCCP Tech Structure
  */
 struct ast_channel_tech sccp_tech = {
+	/* *INDENT-OFF* */	
 	.type = SCCP_TECHTYPE_STR,
 	.description = "Skinny Client Control Protocol (SCCP)",
 	// we could use the skinny_codec = ast_codec mapping here to generate the list of capabilities
@@ -1991,13 +1992,15 @@ static int sccp_pbx_sendHTML(struct ast_channel *ast, int subclass, const char *
  */
 #if defined(__cplusplus) || defined(c_plusplus)
 struct ast_rtp_glue sccp_rtp = {
- type:	SCCP_TECHTYPE_STR,
- mod:	NULL,
- get_rtp_info:sccp_wrapper_asterisk111_get_rtp_peer,
- get_vrtp_info:sccp_wrapper_asterisk111_get_vrtp_peer,
- get_trtp_info:NULL,
- update_peer:sccp_wrapper_asterisk111_set_rtp_peer,
- get_codec:sccp_wrapper_asterisk111_getCodec,
+	/* *INDENT-OFF* */
+	type:	SCCP_TECHTYPE_STR,
+	mod:	NULL,
+	get_rtp_info:sccp_wrapper_asterisk111_get_rtp_peer,
+	get_vrtp_info:sccp_wrapper_asterisk111_get_vrtp_peer,
+	get_trtp_info:NULL,
+	update_peer:sccp_wrapper_asterisk111_set_rtp_peer,
+	get_codec:sccp_wrapper_asterisk111_getCodec,
+	/* *INDENT-ON* */
 };
 #else
 struct ast_rtp_glue sccp_rtp = {
@@ -2054,13 +2057,17 @@ static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to,
 
 #    if defined(__cplusplus) || defined(c_plusplus)
 static const struct ast_msg_tech sccp_msg_tech = {
- name:	"sccp",
- msg_send:sccp_asterisk_message_send,
+	/* *INDENT-OFF* */
+	name:	"sccp",
+	msg_send:sccp_asterisk_message_send,
+	/* *INDENT-ON* */
 };
 #    else
 static const struct ast_msg_tech sccp_msg_tech = {
+	/* *INDENT-OFF* */
 	.name = "sccp",
 	.msg_send = sccp_asterisk_message_send,
+	/* *INDENT-ON* */
 };
 #    endif
 
@@ -2068,88 +2075,90 @@ static const struct ast_msg_tech sccp_msg_tech = {
 
 #if defined(__cplusplus) || defined(c_plusplus)
 sccp_pbx_cb sccp_pbx = {
+	/* *INDENT-OFF* */	
 
- alloc_pbxChannel:sccp_wrapper_asterisk111_allocPBXChannel,
- set_callstate:sccp_wrapper_asterisk111_setCallState,
- checkhangup:sccp_wrapper_asterisk111_checkHangup,
- hangup:NULL,
- requestHangup:sccp_wrapper_asterisk111_requestHangup,
- extension_status:sccp_wrapper_asterisk111_extensionStatus,
+	alloc_pbxChannel:sccp_wrapper_asterisk111_allocPBXChannel,
+	set_callstate:sccp_wrapper_asterisk111_setCallState,
+	checkhangup:sccp_wrapper_asterisk111_checkHangup,
+	hangup:NULL,
+	requestHangup:sccp_wrapper_asterisk111_requestHangup,
+	extension_status:sccp_wrapper_asterisk111_extensionStatus,
 
 	/** get channel by name */
- getChannelByName:sccp_wrapper_asterisk111_getChannelByName,
- getRemoteChannel:sccp_asterisk_getRemoteChannel,
- getChannelByCallback:NULL,
- getChannelLinkId:sccp_wrapper_asterisk111_getChannelLinkId,
+	getChannelByName:sccp_wrapper_asterisk111_getChannelByName,
+	getRemoteChannel:sccp_asterisk_getRemoteChannel,
+	getChannelByCallback:NULL,
+	getChannelLinkId:sccp_wrapper_asterisk111_getChannelLinkId,
 
- set_nativeAudioFormats:sccp_wrapper_asterisk111_setNativeAudioFormats,
- set_nativeVideoFormats:sccp_wrapper_asterisk111_setNativeVideoFormats,
+	set_nativeAudioFormats:sccp_wrapper_asterisk111_setNativeAudioFormats,
+	set_nativeVideoFormats:sccp_wrapper_asterisk111_setNativeVideoFormats,
 
- getPeerCodecCapabilities:NULL,
- send_digit:sccp_wrapper_asterisk111_sendDigit,
- send_digits:sccp_wrapper_asterisk111_sendDigits,
+	getPeerCodecCapabilities:NULL,
+	send_digit:sccp_wrapper_asterisk111_sendDigit,
+	send_digits:sccp_wrapper_asterisk111_sendDigits,
 
- sched_add:sccp_wrapper_asterisk111_sched_add,
- sched_del:sccp_wrapper_asterisk111_sched_del,
- sched_when:sccp_wrapper_asterisk111_sched_when,
- sched_wait:sccp_wrapper_asterisk111_sched_wait,
+	sched_add:sccp_wrapper_asterisk111_sched_add,
+	sched_del:sccp_wrapper_asterisk111_sched_del,
+	sched_when:sccp_wrapper_asterisk111_sched_when,
+	sched_wait:sccp_wrapper_asterisk111_sched_wait,
 
 	/* rtp */
- rtp_getPeer:NULL,
- rtp_getUs:sccp_wrapper_asterisk111_rtpGetUs,
- rtp_setPeer:sccp_wrapper_asterisk111_rtp_set_peer,
- rtp_setWriteFormat:sccp_wrapper_asterisk111_setWriteFormat,
- rtp_setReadFormat:sccp_wrapper_asterisk111_setReadFormat,
- rtp_destroy:sccp_wrapper_asterisk111_destroyRTP,
- rtp_stop:sccp_wrapper_asterisk111_rtp_stop,
- rtp_codec:NULL,
- rtp_audio_create:sccp_wrapper_asterisk111_create_audio_rtp,
- rtp_video_create:sccp_wrapper_asterisk111_create_video_rtp,
- rtp_get_payloadType:sccp_wrapper_asterisk111_get_payloadType,
- rtp_get_sampleRate:sccp_wrapper_asterisk111_get_sampleRate,
- rtp_bridgePeers:NULL,
+	rtp_getPeer:NULL,
+	rtp_getUs:sccp_wrapper_asterisk111_rtpGetUs,
+	rtp_setPeer:sccp_wrapper_asterisk111_rtp_set_peer,
+	rtp_setWriteFormat:sccp_wrapper_asterisk111_setWriteFormat,
+	rtp_setReadFormat:sccp_wrapper_asterisk111_setReadFormat,
+	rtp_destroy:sccp_wrapper_asterisk111_destroyRTP,
+	rtp_stop:sccp_wrapper_asterisk111_rtp_stop,
+	rtp_codec:NULL,
+	rtp_audio_create:sccp_wrapper_asterisk111_create_audio_rtp,
+	rtp_video_create:sccp_wrapper_asterisk111_create_video_rtp,
+	rtp_get_payloadType:sccp_wrapper_asterisk111_get_payloadType,
+	rtp_get_sampleRate:sccp_wrapper_asterisk111_get_sampleRate,
+	rtp_bridgePeers:NULL,
 
 	/* callerid */
- get_callerid_name:sccp_wrapper_asterisk111_callerid_name,
- get_callerid_number:sccp_wrapper_asterisk111_callerid_number,
- get_callerid_ani:NULL,
- get_callerid_dnid:NULL,
- get_callerid_rdnis:NULL,
- get_callerid_presence:NULL,
+	get_callerid_name:sccp_wrapper_asterisk111_callerid_name,
+	get_callerid_number:sccp_wrapper_asterisk111_callerid_number,
+	get_callerid_ani:NULL,
+	get_callerid_dnid:NULL,
+	get_callerid_rdnis:NULL,
+	get_callerid_presence:NULL,
 
- set_callerid_name:sccp_wrapper_asterisk111_setCalleridName,
- set_callerid_number:sccp_wrapper_asterisk111_setCalleridNumber,
- set_callerid_ani:NULL,
- set_callerid_dnid:NULL,
- set_callerid_redirectingParty:sccp_wrapper_asterisk111_setRedirectingParty,
- set_callerid_redirectedParty:sccp_wrapper_asterisk111_setRedirectedParty,
- set_callerid_presence:sccp_wrapper_asterisk111_setCalleridPresence,
- set_connected_line:sccp_wrapper_asterisk111_updateConnectedLine,
+	set_callerid_name:sccp_wrapper_asterisk111_setCalleridName,
+	set_callerid_number:sccp_wrapper_asterisk111_setCalleridNumber,
+	set_callerid_ani:NULL,
+	set_callerid_dnid:NULL,
+	set_callerid_redirectingParty:sccp_wrapper_asterisk111_setRedirectingParty,
+	set_callerid_redirectedParty:sccp_wrapper_asterisk111_setRedirectedParty,
+	set_callerid_presence:sccp_wrapper_asterisk111_setCalleridPresence,
+	set_connected_line:sccp_wrapper_asterisk111_updateConnectedLine,
 
 	/* feature section */
- feature_park:sccp_wrapper_asterisk111_park,
- feature_stopMusicOnHold:NULL,
- feature_addToDatabase:sccp_asterisk_addToDatabase,
- feature_getFromDatabase:sccp_asterisk_getFromDatabase,
- feature_removeFromDatabase:sccp_asterisk_removeFromDatabase,
- feature_removeTreeFromDatabase:sccp_asterisk_removeTreeFromDatabase,
- getFeatureExtension:NULL,
- feature_pickup:sccp_wrapper_asterisk111_pickupChannel,
+	feature_park:sccp_wrapper_asterisk111_park,
+	feature_stopMusicOnHold:NULL,
+	feature_addToDatabase:sccp_asterisk_addToDatabase,
+	feature_getFromDatabase:sccp_asterisk_getFromDatabase,
+	feature_removeFromDatabase:sccp_asterisk_removeFromDatabase,
+	feature_removeTreeFromDatabase:sccp_asterisk_removeTreeFromDatabase,
+	getFeatureExtension:NULL,
+	feature_pickup:sccp_wrapper_asterisk111_pickupChannel,
 
- eventSubscribe:NULL,
- findChannelByCallback:sccp_wrapper_asterisk111_findChannelWithCallback
+	eventSubscribe:NULL,
+	findChannelByCallback:sccp_wrapper_asterisk111_findChannelWithCallback
+	/* *INDENT-ON* */	
 };
 
 #else
 
 /*!
- * \brief SCCP - PBX Callback Functions 
- * (Decoupling Tight Dependencies on Asterisk Functions)
- */
+	* \brief SCCP - PBX Callback Functions 
+	* (Decoupling Tight Dependencies on Asterisk Functions)
+	*/
 struct sccp_pbx_cb sccp_pbx = {
 	/* *INDENT-OFF* */
-  
-        /* channel */
+	 
+	/* channel */
 	.alloc_pbxChannel 		= sccp_wrapper_asterisk111_allocPBXChannel,
 	.requestHangup 			= sccp_wrapper_asterisk111_requestHangup,
 	.extension_status 		= sccp_wrapper_asterisk111_extensionStatus,
