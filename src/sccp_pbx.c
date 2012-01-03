@@ -175,17 +175,21 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 	}
 	sccp_line_unlock(l);
 
-//      if (PBX(get_callerid_name))
-//              PBX(get_callerid_name)(c, &cid_name);
-// 
-//      if (PBX(get_callerid_number))
-//              PBX(get_callerid_number)(c, &cid_number);
+	/* Reinstated this call instead of the following lines */
+	/* DNID, ANI and RDNIS still have to be implemented correctly */
+	if (PBX(get_callerid_name))
+      		PBX(get_callerid_name)(c, &cid_name);
+ 
+	if (PBX(get_callerid_number))
+        	PBX(get_callerid_number)(c, &cid_number);
 
+/*
 	if (strlen(c->callInfo.callingPartyNumber) > 0)
 		cid_number = strdup(c->callInfo.callingPartyNumber);
 
 	if (strlen(c->callInfo.callingPartyName) > 0)
 		cid_name = strdup(c->callInfo.callingPartyName);
+*/
 
 	//! \todo implement dnid, ani, ani2 and rdnis
 	/* Set the channel callingParty Name and Number */
