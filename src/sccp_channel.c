@@ -441,6 +441,31 @@ void sccp_channel_setSkinnyCallstate(sccp_channel_t * channel, skinny_callstate_
  * \callgraph
  * \callergraph
  */
+void sccp_channel_display_callInfo(sccp_channel_t * channel)
+{
+	if (!channel)
+		return;
+
+	sccp_callinfo_t CallInfo = channel->callInfo;
+		
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x callInfo:\n", channel->line->name, channel->callid);
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - calledParty: %s <%s>, valid: %s\n", (CallInfo.calledPartyName) ? CallInfo.calledPartyName : "", (CallInfo.calledPartyNumber) ? CallInfo.calledPartyNumber : "", (CallInfo.calledParty_valid) ? "TRUE" : "FALSE");
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - callingParty: %s <%s>, valid: %s\n", (CallInfo.callingPartyName) ? CallInfo.callingPartyName : "", (CallInfo.callingPartyNumber) ? CallInfo.callingPartyNumber : "", (CallInfo.callingParty_valid) ? "TRUE" : "FALSE");
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - originalCalledParty: %s <%s>, valid: %s\n", (CallInfo.originalCalledPartyName) ? CallInfo.originalCalledPartyName : "", (CallInfo.originalCalledPartyNumber) ? CallInfo.originalCalledPartyNumber : "", (CallInfo.originalCalled_valid) ? "TRUE" : "FALSE");
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - originalCallingParty: %s <%s>, valid: %s\n", (CallInfo.originalCallingPartyName) ? CallInfo.originalCallingPartyName : "", (CallInfo.originalCallingPartyNumber) ? CallInfo.originalCallingPartyNumber : "", (CallInfo.originalCalling_valid) ? "TRUE" : "FALSE");
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - lastRedirectingParty: %s <%s>, valid: %s\n", (CallInfo.lastRedirectingPartyName) ? CallInfo.lastRedirectingPartyName : "", (CallInfo.lastRedirectingPartyNumber) ? CallInfo.lastRedirectingPartyNumber : "", (CallInfo.lastRedirecting_valid) ? "TRUE" : "FALSE");
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - originalCalledPartyRedirectReason: %d, lastRedirectingReason: %d, CallInfo Presentation: %d\n\n", CallInfo.originalCdpnRedirectReason, CallInfo.lastRedirectingReason, CallInfo.presentation);
+}
+
+/*!
+ * \brief Set CallingParty on SCCP Channel c
+ * \param channel SCCP Channel
+ * \param name Name as char
+ * \param number Number as char
+ *
+ * \callgraph
+ * \callergraph
+ */
 void sccp_channel_set_callingparty(sccp_channel_t * channel, char *name, char *number)
 {
 	if (!channel)
