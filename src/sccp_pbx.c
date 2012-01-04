@@ -201,14 +201,10 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 		cid_pres = PBX(get_callerid_presence)(c);
 
 	//! \todo implement dnid, ani, ani2 and rdnis
-	/* Set the channel callingParty Name and Number */
-	sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) asterisk cid_num = '%s'\n", (cid_number) ? cid_number : "");
-	sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) asterisk cid_name = '%s'\n", (cid_name) ? cid_name : "");
-	sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) asterisk cid_dnid = '%s'\n", (cid_dnid) ? cid_dnid : "");
-	sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) asterisk cid_ani = '%s'\n", (cid_ani) ? cid_ani : "");
-	sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) asterisk cid_ani2 = '%i'\n", cid_ani2);
-	sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) asterisk cid_rdnis = '%s'\n", (cid_rdnis) ? cid_rdnis : "");
-
+	sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) asterisk callerid='%s <%s>', dnid='%s', ani='%s', ani2=%d, rdnis='%s'\n", (cid_number) ? cid_number : "", (cid_name) ? cid_name : "", (cid_dnid) ? cid_dnid : "", (cid_ani) ? cid_ani : "", cid_ani2, (cid_rdnis) ? cid_rdnis : "");
+	sccp_channel_display_callInfo(c);
+	
+	/* Set the channel callingParty Name and Number, called Party Name and Number, original CalledParty Name and Number, Presentation */
 	if (GLOB(recorddigittimeoutchar)) {
 		/* The hack to add the # at the end of the incoming number
 		   is only applied for numbers beginning with a 0,
@@ -229,16 +225,15 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 	} else {
 		sccp_channel_set_callingparty(c, cid_name, cid_number);
 	}
-	c->callInfo.presentation = cid_pres;
+	/* Set the channel calledParty Name and Number 7910 compatibility */
+	sccp_channel_set_calledparty(c, l->cid_name, l->cid_num);
 
 	/* check if we have an forwared call */
 	if (!sccp_strlen_zero(cid_ani) && strncmp(cid_ani, c->callInfo.callingPartyNumber, strlen(cid_ani))) {
 		sccp_copy_string(c->callInfo.originalCalledPartyNumber, cid_ani, sizeof(c->callInfo.originalCalledPartyNumber));
 	}
 	//! \todo implement dnid, ani, ani2 and rdnis
-
-	/* Set the channel calledParty Name and Number 7910 compatibility */
-	sccp_channel_set_calledparty(c, l->cid_name, l->cid_num);
+	c->callInfo.presentation = cid_pres;
 
 	if (!c->ringermode) {
 		c->ringermode = SKINNY_STATION_OUTSIDERING;
