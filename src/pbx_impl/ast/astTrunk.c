@@ -1293,24 +1293,6 @@ static enum ast_rtp_glue_result sccp_wrapper_asterisk111_get_vrtp_peer(PBX_CHANN
 	return res;
 }
 
-/*
- * \brief get callerid_name from pbx
- * \param sccp_channle Asterisk Channel
- * \param cid name result
- * \return parse result
- */
-static int sccp_wrapper_asterisk111_callerid_name(const sccp_channel_t * channel, char **cid_name)
-{
-	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
-
-	if (pbx_chan->caller.id.name.str && strlen(pbx_chan->caller.id.name.str) > 0) {
-		*cid_name = strdup(pbx_chan->caller.id.name.str);
-		return 1;
-	}
-
-	return 0;
-}
-
 static void sccp_wrapper_asterisk111_getCodec(PBX_CHANNEL_TYPE * ast, struct ast_format_cap *result)
 {
 	uint8_t i;
@@ -1333,6 +1315,24 @@ static void sccp_wrapper_asterisk111_getCodec(PBX_CHANNEL_TYPE * ast, struct ast
 
 /*
  * \brief get callerid_name from pbx
+ * \param sccp_channle Asterisk Channel
+ * \param cid name result
+ * \return parse result
+ */
+static int sccp_wrapper_asterisk111_callerid_name(const sccp_channel_t * channel, char **cid_name)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+
+	if (pbx_chan->caller.id.name.str && strlen(pbx_chan->caller.id.name.str) > 0) {
+		*cid_name = strdup(pbx_chan->caller.id.name.str);
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * \brief get callerid_name from pbx
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
  */
@@ -1347,6 +1347,105 @@ static int sccp_wrapper_asterisk111_callerid_number(const sccp_channel_t * chann
 
 	return 0;
 }
+
+/*
+ * \brief get callerid_ton from pbx
+ * \param ast_chan Asterisk Channel
+ * \return char * with the caller number
+ */
+static int sccp_wrapper_asterisk111_callerid_ton(const sccp_channel_t * channel, char **cid_ton)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+
+	if (pbx_chan->caller.id.number.valid) {
+		return pbx_chan->caller.ani.number.plan;
+	}
+	return 0;
+}
+
+
+/*
+ * \brief get callerid_ani from pbx
+ * \param ast_chan Asterisk Channel
+ * \return char * with the caller number
+ */
+static int sccp_wrapper_asterisk111_callerid_ani(const sccp_channel_t * channel, char **cid_ani)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+
+	if (pbx_chan->caller.ani.number.valid && pbx_chan->caller.ani.number.str && strlen(pbx_chan->caller.ani.number.str) > 0) {
+		*cid_ani = strdup(pbx_chan->caller.ani.number.str);
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * \brief get callerid_dnid from pbx
+ * \param ast_chan Asterisk Channel
+ * \return char * with the caller number
+ */
+static int sccp_wrapper_asterisk111_callerid_subaddr(const sccp_channel_t * channel, char **cid_subaddr)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+
+	if (pbx_chan->caller.id.subaddress.valid && pbx_chan->caller.id.subaddress.str && strlen(pbx_chan->caller.id.subaddress.str) > 0) {
+		*cid_subaddr = strdup(pbx_chan->caller.id.subaddress.str);
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * \brief get callerid_dnid from pbx (Destination ID)
+ * \param ast_chan Asterisk Channel
+ * \return char * with the caller number
+ */
+static int sccp_wrapper_asterisk111_callerid_dnid(const sccp_channel_t * channel, char **cid_dnid)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+
+	if (pbx_chan->dialed.number.str && strlen(pbx_chan->dialed.number.str) > 0) {
+		*cid_dnid = strdup(pbx_chan->dialed.number.str);
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * \brief get callerid_rdnis from pbx
+ * \param ast_chan Asterisk Channel
+ * \return char * with the caller number
+ */
+static int sccp_wrapper_asterisk111_callerid_rdnis(const sccp_channel_t * channel, char **cid_rdnis)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+
+	if (pbx_chan->redirecting.from.number.valid && pbx_chan->redirecting.from.number.str && strlen(pbx_chan->redirecting.from.number.str) > 0) {
+		*cid_rdnis = strdup(pbx_chan->redirecting.from.number.str);
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * \brief get callerid_presence from pbx
+ * \param ast_chan Asterisk Channel
+ * \return char * with the caller number
+ */
+static int sccp_wrapper_asterisk111_callerid_presence(const sccp_channel_t * channel)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+	if (pbx_chan->caller.id.number.valid) {
+		return pbx_chan->caller.id.number.presentation;
+	}
+	return 0;
+}
+
 
 static int sccp_wrapper_asterisk111_rtp_stop(sccp_channel_t * channel)
 {
@@ -2120,10 +2219,12 @@ sccp_pbx_cb sccp_pbx = {
 	/* callerid */
 	get_callerid_name:sccp_wrapper_asterisk111_callerid_name,
 	get_callerid_number:sccp_wrapper_asterisk111_callerid_number,
-	get_callerid_ani:NULL,
-	get_callerid_dnid:NULL,
-	get_callerid_rdnis:NULL,
-	get_callerid_presence:NULL,
+	get_callerid_ton:sccp_wrapper_asterisk111_callerid_ton,
+	get_callerid_ani:sccp_wrapper_asterisk111_callerid_ani,
+	get_callerid_subaddr:sccp_wrapper_asterisk111_callerid_subaddr,
+	get_callerid_dnid:sccp_wrapper_asterisk111_callerid_dnid,
+	get_callerid_rdnis:sccp_wrapper_asterisk111_callerid_rdnis,
+	get_callerid_presence:sccp_wrapper_asterisk111_callerid_presence,
 
 	set_callerid_name:sccp_wrapper_asterisk111_setCalleridName,
 	set_callerid_number:sccp_wrapper_asterisk111_setCalleridNumber,
@@ -2199,9 +2300,12 @@ struct sccp_pbx_cb sccp_pbx = {
 	/* callerid */
 	.get_callerid_name 		= sccp_wrapper_asterisk111_callerid_name,
 	.get_callerid_number 		= sccp_wrapper_asterisk111_callerid_number,
-	.get_callerid_dnid 		= NULL,						//! \todo implement callback
-	.get_callerid_rdnis 		= NULL,						//! \todo implement callback
-	.get_callerid_presence 		= NULL,						//! \todo implement callback
+	.get_callerid_ton 		= sccp_wrapper_asterisk111_callerid_ton,
+	.get_callerid_ani 		= sccp_wrapper_asterisk111_callerid_ani,
+	.get_callerid_subaddr 		= sccp_wrapper_asterisk111_callerid_subaddr,
+	.get_callerid_dnid 		= sccp_wrapper_asterisk111_callerid_dnid,
+	.get_callerid_rdnis 		= sccp_wrapper_asterisk111_callerid_rdnis,
+	.get_callerid_presence 		= sccp_wrapper_asterisk111_callerid_presence,
 	.set_callerid_name 		= sccp_wrapper_asterisk111_setCalleridName,	//! \todo implement callback
 	.set_callerid_number 		= sccp_wrapper_asterisk111_setCalleridNumber,	//! \todo implement callback
 	.set_callerid_dnid 		= NULL,						//! \todo implement callback

@@ -96,7 +96,7 @@ struct {												\
 	     __list_prev = __new_prev, (var) = __list_next,						\
 	     __new_prev = (var),									\
 	     __list_next = (var) ? (var)->field.next : NULL						\
-	    )
+	    )												
 #define SCCP_RWLIST_TRAVERSE_SAFE_BEGIN SCCP_LIST_TRAVERSE_SAFE_BEGIN
 
 /* Current List Item Removal */
@@ -192,7 +192,7 @@ struct {												\
 #define SCCP_RWLIST_INSERT_BEFORE_CURRENT_BACKWARDS SCCP_LIST_INSERT_BEFORE_CURRENT_BACKWARDS
 
 /* List Traverse End (Parentesis) */
-#define SCCP_LIST_TRAVERSE_SAFE_END  }
+#define SCCP_LIST_TRAVERSE_SAFE_END  __list_prev = __list_prev; }
 #define SCCP_RWLIST_TRAVERSE_SAFE_END SCCP_LIST_TRAVERSE_SAFE_END
 
 /* List Backward Explore Routine */
@@ -216,7 +216,7 @@ struct {												\
 #define SCCP_RWLIST_TRAVERSE_BACKWARDS_SAFE_BEGIN SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_BEGIN
 
 /* List Backward Traverse End (Parentesis) */
-#define SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_END  }
+#define SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_END  __list_prev = __list_prev; }
 #define SCCP_RWLIST_TRAVERSE_BACKWARDS_SAFE_END  SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_END
 
 /* List Head Init */

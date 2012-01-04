@@ -96,9 +96,9 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 	static int manager_ ## _FUNCTION_NAME(struct mansession *s, const struct message *m)			\
 	{													\
 		const char *id = astman_get_header(m, "ActionID");						\
-		static char *cli_ami_command[] = { CLI_COMMAND, NULL};						\
-		static char *ami_command = AMI_COMMAND;								\
-		cli_ami_command[0] = ami_command;								\
+/*		static char *cli_ami_command[] = { CLI_COMMAND, NULL};					*/	\
+/*		static char *ami_command = AMI_COMMAND;							*/	\
+/*		cli_ami_command[0] = ami_command;							*/	\
 		static char *cli_ami_params[] = { CLI_AMI_PARAMS, NULL };					\
 		static char *arguments[ARRAY_LEN(cli_ami_params)];						\
 		uint8_t x=0;											\

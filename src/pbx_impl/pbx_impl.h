@@ -77,7 +77,9 @@ struct sccp_pbx_cb {
 	/* callerid */
 	int (*const get_callerid_name) (const sccp_channel_t * channel, char **cid_name);
 	int (*const get_callerid_number) (const sccp_channel_t * channel, char **cid_number);
+	int (*const get_callerid_ton) (const sccp_channel_t * channel, char **ton);
 	int (*const get_callerid_ani) (const sccp_channel_t * channel, char **ani);
+	int (*const get_callerid_subaddr) (const sccp_channel_t * channel, char **subaddr);
 	int (*const get_callerid_dnid) (const sccp_channel_t * channel, char **dnid);
 	int (*const get_callerid_rdnis) (const sccp_channel_t * channel, char **rdnis);
 	int (*const get_callerid_presence) (const sccp_channel_t * channel);

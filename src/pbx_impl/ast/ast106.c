@@ -1194,24 +1194,6 @@ static enum ast_rtp_get_result sccp_wrapper_asterisk16_get_vrtp_peer(PBX_CHANNEL
 	return res;
 }
 
-/*
- * \brief get callerid_name from pbx
- * \param sccp_channle Asterisk Channel
- * \param cid name result
- * \return parse result
- */
-static int sccp_wrapper_asterisk16_callerid_name(const sccp_channel_t * channel, char **cid_name)
-{
-	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
-
-	if (pbx_chan->cid.cid_name && strlen(pbx_chan->cid.cid_name) > 0) {
-		*cid_name = strdup(pbx_chan->cid.cid_name);
-		return 1;
-	}
-
-	return 0;
-}
-
 static int sccp_wrapper_asterisk16_getCodec(PBX_CHANNEL_TYPE * ast)
 {
 	format_t format = AST_FORMAT_ULAW;
@@ -1231,6 +1213,24 @@ static int sccp_wrapper_asterisk16_getCodec(PBX_CHANNEL_TYPE * ast)
 
 /*
  * \brief get callerid_name from pbx
+ * \param sccp_channle Asterisk Channel
+ * \param cid name result
+ * \return parse result
+ */
+static int sccp_wrapper_asterisk16_callerid_name(const sccp_channel_t * channel, char **cid_name)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+
+	if (pbx_chan->cid.cid_name && strlen(pbx_chan->cid.cid_name) > 0) {
+		*cid_name = strdup(pbx_chan->cid.cid_name);
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * \brief get callerid_name from pbx
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
  */
@@ -1244,6 +1244,81 @@ static int sccp_wrapper_asterisk16_callerid_number(const sccp_channel_t * channe
 	}
 
 	return 0;
+}
+
+/*
+ * \brief get callerid_ton from pbx
+ * \param ast_chan Asterisk Channel
+ * \return char * with the caller number
+ */
+static int sccp_wrapper_asterisk16_callerid_ton(const sccp_channel_t * channel, char **cid_ton)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+
+	return pbx_chan->cid.cid_ton;
+}
+
+
+/*
+ * \brief get callerid_ani from pbx
+ * \param ast_chan Asterisk Channel
+ * \return char * with the caller number
+ */
+static int sccp_wrapper_asterisk16_callerid_ani(const sccp_channel_t * channel, char **cid_ani)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+
+	if (pbx_chan->cid.cid_ani && strlen(pbx_chan->cid.cid_ani) > 0) {
+		*cid_ani = strdup(pbx_chan->cid.cid_ani);
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * \brief get callerid_dnid from pbx (Destination ID)
+ * \param ast_chan Asterisk Channel
+ * \return char * with the caller number
+ */
+static int sccp_wrapper_asterisk16_callerid_dnid(const sccp_channel_t * channel, char **cid_dnid)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+
+	if (pbx_chan->cid.cid_dnid && strlen(pbx_chan->cid.cid_dnid) > 0) {
+		*cid_dnid = strdup(pbx_chan->cid.cid_dnid);
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * \brief get callerid_rdnis from pbx
+ * \param ast_chan Asterisk Channel
+ * \return char * with the caller number
+ */
+static int sccp_wrapper_asterisk16_callerid_rdnis(const sccp_channel_t * channel, char **cid_rdnis)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+
+	if (pbx_chan->cid.cid_rdnis && strlen(pbx_chan->cid.cid_rdnis) > 0) {
+		*cid_rdnis = strdup(pbx_chan->cid.cid_rdnis);
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * \brief get callerid_presence from pbx
+ * \param ast_chan Asterisk Channel
+ * \return char * with the caller number
+ */
+static int sccp_wrapper_asterisk16_callerid_presence(const sccp_channel_t * channel)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+	return pbx_chan->cid.cid_pres;
 }
 
 static int sccp_wrapper_asterisk16_rtp_stop(sccp_channel_t * channel)
@@ -1954,10 +2029,12 @@ sccp_pbx_cb sccp_pbx = {
 	/* callerid */
 	get_callerid_name:sccp_wrapper_asterisk16_callerid_name,
 	get_callerid_number:sccp_wrapper_asterisk16_callerid_number,
-	get_callerid_ani:NULL,
-	get_callerid_dnid:NULL,
-	get_callerid_rdnis:NULL,
-	get_callerid_presence:NULL,
+	get_callerid_ton:sccp_wrapper_asterisk16_callerid_ton,
+	get_callerid_ani:sccp_wrapper_asterisk16_callerid_ani,
+	get_callerid_subaddr:NULL,
+	get_callerid_dnid:sccp_wrapper_asterisk16_callerid_dnid,
+	get_callerid_rdnis:sccp_wrapper_asterisk16_callerid_rdnis,
+	get_callerid_presence:sccp_wrapper_asterisk16_callerid_presence,
 
 	set_callerid_name:sccp_wrapper_asterisk16_setCalleridName,
 	set_callerid_number:sccp_wrapper_asterisk16_setCalleridNumber,
@@ -2034,9 +2111,12 @@ struct sccp_pbx_cb sccp_pbx = {
 	/* callerid */
 	.get_callerid_name 		= sccp_wrapper_asterisk16_callerid_name,
 	.get_callerid_number 		= sccp_wrapper_asterisk16_callerid_number,
-	.get_callerid_dnid 		= NULL,						//! \todo implement callback
-	.get_callerid_rdnis 		= NULL,						//! \todo implement callback
-	.get_callerid_presence 		= NULL,						//! \todo implement callback
+	.get_callerid_ton 		= sccp_wrapper_asterisk16_callerid_ton,
+	.get_callerid_ani 		= sccp_wrapper_asterisk16_callerid_ani,
+	.get_callerid_subaddr 		= NULL,
+	.get_callerid_dnid 		= sccp_wrapper_asterisk16_callerid_dnid,
+	.get_callerid_rdnis 		= sccp_wrapper_asterisk16_callerid_rdnis,
+	.get_callerid_presence 		= sccp_wrapper_asterisk16_callerid_presence,
 	.set_callerid_name 		= sccp_wrapper_asterisk16_setCalleridName,	//! \todo implement callback
 	.set_callerid_number 		= sccp_wrapper_asterisk16_setCalleridNumber,	//! \todo implement callback
 	.set_callerid_dnid 		= NULL,						//! \todo implement callback
