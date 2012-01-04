@@ -454,6 +454,7 @@ void sccp_channel_set_callingparty(sccp_channel_t * channel, char *name, char *n
 	if (number && strncmp(number, channel->callInfo.callingPartyNumber, StationMaxDirnumSize - 1)) {
 		sccp_copy_string(channel->callInfo.callingPartyNumber, number, sizeof(channel->callInfo.callingPartyNumber));
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Set callingParty Number %s on channel %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), channel->callInfo.callingPartyNumber, channel->callid);
+		channel->callInfo.callingParty_valid = 1;
 	}
 	return;
 }
@@ -485,6 +486,7 @@ boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *
 		sccp_copy_string(channel->callInfo.originalCallingPartyNumber, number, sizeof(channel->callInfo.originalCallingPartyNumber));
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Set callingParty Number %s on channel %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), channel->callInfo.originalCallingPartyNumber, channel->callid);
 		changed = TRUE;
+		channel->callInfo.originalCalling_valid = 1;
 	}
 	return changed;
 }
@@ -511,6 +513,7 @@ void sccp_channel_set_calledparty(sccp_channel_t * channel, char *name, char *nu
 	if (number && strncmp(number, channel->callInfo.calledPartyNumber, StationMaxDirnumSize - 1)) {
 		sccp_copy_string(channel->callInfo.calledPartyNumber, number, sizeof(channel->callInfo.callingPartyNumber));
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Set calledParty Number %s on channel %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), channel->callInfo.calledPartyNumber, channel->callid);
+		channel->callInfo.calledParty_valid = 1;
 	}
 }
 
@@ -540,6 +543,7 @@ boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * channel, char *n
 		sccp_copy_string(channel->callInfo.originalCalledPartyNumber, number, sizeof(channel->callInfo.originalCalledPartyNumber));
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Set originalCalledParty Number %s on channel %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), channel->callInfo.originalCalledPartyNumber, channel->callid);
 		changed = TRUE;
+		channel->callInfo.originalCalled_valid = 1;
 	}
 	return changed;
 }

@@ -116,6 +116,7 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 	char *cid_ani = NULL;
 	int cid_ani2 = 0;
 	char *cid_rdnis = NULL;
+	int cid_pres = 0;
 
 	char suffixedNumber[255] = { '\0' };					/*!< For saving the digittimeoutchar to the logs */
 	boolean_t hasSession = FALSE;
@@ -176,20 +177,28 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 	sccp_line_unlock(l);
 
 	/* Reinstated this call instead of the following lines */
-	/* DNID, ANI and RDNIS still have to be implemented correctly */
 	if (PBX(get_callerid_name))
       		PBX(get_callerid_name)(c, &cid_name);
  
-	if (PBX(get_callerid_number))
-        	PBX(get_callerid_number)(c, &cid_number);
+	if (PBX(get_callerid_number)) {
+        	if (PBX(get_callerid_number)(c, &cid_number)) {
 
-/*
-	if (strlen(c->callInfo.callingPartyNumber) > 0)
-		cid_number = strdup(c->callInfo.callingPartyNumber);
+			if (PBX(get_callerid_ani)) {
+				if (!PBX(get_callerid_ani)(c, &cid_ani)) {
+					cid_ani = ast_strdup(cid_number);
+				}
+			}
+        	}
+	}        	
 
-	if (strlen(c->callInfo.callingPartyName) > 0)
-		cid_name = strdup(c->callInfo.callingPartyName);
-*/
+	if (PBX(get_callerid_dnid))
+		PBX(get_callerid_dnid)(c, &cid_dnid);
+
+	if (PBX(get_callerid_rdnis))
+		PBX(get_callerid_rdnis)(c, &cid_rdnis);
+
+	if (PBX(get_callerid_presence))
+		cid_pres = PBX(get_callerid_presence)(c);
 
 	//! \todo implement dnid, ani, ani2 and rdnis
 	/* Set the channel callingParty Name and Number */
@@ -220,11 +229,13 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 	} else {
 		sccp_channel_set_callingparty(c, cid_name, cid_number);
 	}
+	c->callInfo.presentation = cid_pres;
 
 	/* check if we have an forwared call */
 	if (!sccp_strlen_zero(cid_ani) && strncmp(cid_ani, c->callInfo.callingPartyNumber, strlen(cid_ani))) {
 		sccp_copy_string(c->callInfo.originalCalledPartyNumber, cid_ani, sizeof(c->callInfo.originalCalledPartyNumber));
 	}
+	//! \todo implement dnid, ani, ani2 and rdnis
 
 	/* Set the channel calledParty Name and Number 7910 compatibility */
 	sccp_channel_set_calledparty(c, l->cid_name, l->cid_num);

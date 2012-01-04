@@ -77,21 +77,21 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 //   param3=cli string to be types as array of strings
 //   param4=registration description
 //   param5=usage string
-#    define CLI_AMI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)		\
+#    define CLI_AMI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)			\
 	static int manager_ ## _FUNCTION_NAME(struct mansession *s, const struct message *m)			\
 	{													\
 		const char *id = astman_get_header(m, "ActionID");						\
-		static char *cli_ami_command[] = { CLI_COMMAND, NULL};						\
-		static char *ami_command = AMI_COMMAND;								\
-		cli_ami_command[0] = ami_command;								\
-		static char *cli_ami_params[] = { CLI_AMI_PARAMS };					\
+/*		static char *cli_ami_command[] = { CLI_COMMAND, NULL};					*/	\
+/*		static char *ami_command = AMI_COMMAND;							*/	\
+/*		cli_ami_command[0] = ami_command;							*/	\
+		static char *cli_ami_params[] = { CLI_AMI_PARAMS };						\
 		static char *arguments[ARRAY_LEN(cli_ami_params)];						\
-		uint8_t x=0; \
-		uint8_t i=0; \
-		for (x=0, i=0;x<ARRAY_LEN(cli_ami_params);x++) {	\
-			if(NULL != cli_ami_params[x] && strlen(cli_ami_params[x]) > 0){ \
-				arguments[i++]=strdupa(astman_get_header(m, cli_ami_params[x])); \
-			} \
+		uint8_t x=0; 											\
+		uint8_t i=0; 											\
+		for (x=0, i=0;x<ARRAY_LEN(cli_ami_params);x++) {						\
+			if(NULL != cli_ami_params[x] && strlen(cli_ami_params[x]) > 0){				\
+				arguments[i++]=strdupa(astman_get_header(m, cli_ami_params[x]));		\
+			} 											\
 		}												\
 		char idtext[256] = "";										\
 		int total = 0;											\

@@ -471,24 +471,20 @@ void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, co
 	int flags;									/* enum wrapper */
 	int type;									/* enum wrapper */
 	const char *value="";								/*! \todo retrieve value from correct segment */
-	const char *variable_block_name="";
 	
 	/* check if not already set using it's own parameter in the sccp.conf file */
 	switch (segment) {
 		case SCCP_CONFIG_GLOBAL_SEGMENT:
 			arraySize = ARRAY_LEN(sccpGlobalConfigOptions);
-			variable_block_name=strdupa("general");
 			sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_1 "setting [general] defaults\n");
 			break;
 		case SCCP_CONFIG_DEVICE_SEGMENT:
 			my_device = &(*(sccp_device_t *)obj);
-			variable_block_name=strdupa((const char *)my_device->id);
 			arraySize = ARRAY_LEN(sccpDeviceConfigOptions);
 			sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_1 "setting device[%s] defaults\n", my_device ? my_device->id : "NULL");
 			break;
 		case SCCP_CONFIG_LINE_SEGMENT:			
 			my_line = &(*(sccp_line_t *)obj);			
-			variable_block_name=strdupa((const char *)my_line->id);
 			arraySize = ARRAY_LEN(sccpLineConfigOptions);
 			sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_1 "setting line[%s] defaults\n", my_line ? my_line->name : "NULL" );
 			break;

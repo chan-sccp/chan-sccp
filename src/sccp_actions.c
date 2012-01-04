@@ -3127,19 +3127,21 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 void sccp_handle_device_to_user(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
 	uint32_t appID;
-	uint32_t lineInstance;
 	uint32_t callReference;
 	uint32_t transactionID;
 	uint32_t dataLength;
 	char data[StationMaxXMLMessage];
 
 #ifdef CS_SCCP_CONFERENCE
+	uint32_t lineInstance;
 	uint32_t conferenceID;
 	uint32_t participantID;
 #endif
 
 	appID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_appID);
+#ifdef CS_SCCP_CONFERENCE
 	lineInstance = letohl(r->msg.DeviceToUserDataVersion1Message.lel_lineInstance);
+#endif
 	callReference = letohl(r->msg.DeviceToUserDataVersion1Message.lel_callReference);
 	transactionID = letohl(r->msg.DeviceToUserDataVersion1Message.lel_transactionID);
 	dataLength = letohl(r->msg.DeviceToUserDataVersion1Message.lel_dataLength);
