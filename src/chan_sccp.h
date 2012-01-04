@@ -532,17 +532,17 @@ struct sccp_callinfo {
 	char originalCalledPartyNumber[StationMaxDirnumSize];			/*!< Original Calling Party ID */
 	char originalCdpnVoiceMailbox[StationMaxDirnumSize];			/*!< Original Called Party VoiceMail Box */
 	unsigned int originalCdpnVoiceMailbox_valid:1;				/*!< TRUE if the name information is valid/present */
-	unsigned int originalCalled_valid:1;					/*!< TRUE if the name information is valid/present */
+	unsigned int originalCalledParty_valid:1;					/*!< TRUE if the name information is valid/present */
 
 	char originalCallingPartyName[StationMaxNameSize];			/*!< Original Calling Party Name */
 	char originalCallingPartyNumber[StationMaxDirnumSize];			/*!< Original Calling Party ID */
-	unsigned int originalCalling_valid:1;					/*!< TRUE if the name information is valid/present */
+	unsigned int originalCallingParty_valid:1;					/*!< TRUE if the name information is valid/present */
 
 	char lastRedirectingPartyName[StationMaxNameSize];			/*!< Original Called Party Name */
 	char lastRedirectingPartyNumber[StationMaxDirnumSize];			/*!< Original Called Party ID */
 	char lastRedirectingVoiceMailbox[StationMaxDirnumSize];			/*!< Last Redirecting VoiceMail Box */
 	unsigned int lastRedirectingVoiceMailbox_valid:1;			/*!< TRUE if the name information is valid/present */
-	unsigned int lastRedirecting_valid:1;					/*!< TRUE if the name information is valid/present */
+	unsigned int lastRedirectingParty_valid:1;					/*!< TRUE if the name information is valid/present */
 
 	uint32_t originalCdpnRedirectReason;					/*!< Original Called Party Redirect Reason */
 	uint32_t lastRedirectingReason;						/*!< Last Redirecting Reason */

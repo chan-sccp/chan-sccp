@@ -202,7 +202,6 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 
 	//! \todo implement dnid, ani, ani2 and rdnis
 	sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) asterisk callerid='%s <%s>', dnid='%s', ani='%s', ani2=%d, rdnis='%s'\n", (cid_number) ? cid_number : "", (cid_name) ? cid_name : "", (cid_dnid) ? cid_dnid : "", (cid_ani) ? cid_ani : "", cid_ani2, (cid_rdnis) ? cid_rdnis : "");
-	sccp_channel_display_callInfo(c);
 	
 	/* Set the channel callingParty Name and Number, called Party Name and Number, original CalledParty Name and Number, Presentation */
 	if (GLOB(recorddigittimeoutchar)) {
@@ -234,6 +233,8 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 	}
 	//! \todo implement dnid, ani, ani2 and rdnis
 	c->callInfo.presentation = cid_pres;
+
+	sccp_channel_display_callInfo(c);
 
 	if (!c->ringermode) {
 		c->ringermode = SKINNY_STATION_OUTSIDERING;
