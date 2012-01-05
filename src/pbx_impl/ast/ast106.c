@@ -49,6 +49,7 @@ static int sccp_wrapper_asterisk16_channel_read(struct ast_channel *ast, NEWCONS
 static int sccp_pbx_sendHTML(struct ast_channel *ast, int subclass, const char *data, int datalen);
 int sccp_wrapper_asterisk16_hangup(PBX_CHANNEL_TYPE * ast_channel);
 boolean_t sccp_wrapper_asterisk16_allocPBXChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
+boolean_t sccp_wrapper_asterisk16_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel, uint32_t conf_id, uint32_t part_id);
 int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * channel);
 
 #if defined(__cplusplus) || defined(c_plusplus)
@@ -620,6 +621,15 @@ boolean_t sccp_wrapper_asterisk16_allocPBXChannel(const sccp_channel_t * channel
 	sprintf(linkId, "SCCP::%d", channel->callid);
 	pbx_builtin_setvar_helper(*pbx_channel, SCCP_AST_LINKID_HELPER, linkId);
 
+	return TRUE;
+}
+
+boolean_t sccp_wrapper_asterisk16_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel, uint32_t conf_id, uint32_t part_id)
+{
+        *pbxDstChannel = ast_channel_alloc(0, pbxSrcChannel->_state, 0, 0, pbxSrcChannel->accountcode, pbxSrcChannel->exten, pbxSrcChannel->context, pbxSrcChannel->amaflags, "SCCP/%s-CONF/%08X/%08X", pbxSrcChannel->name, conf_id, part_id);
+        if (*pbxDstChannel == NULL)
+        	return FALSE;
+	pbx_builtin_setvar_helper(*pbxDstChannel, SCCP_AST_LINKID_HELPER, pbx_builtin_getvar_helper(pbxSrcChannel, SCCP_AST_LINKID_HELPER));
 	return TRUE;
 }
 
@@ -1987,6 +1997,7 @@ static const struct ast_msg_tech sccp_msg_tech = {
 sccp_pbx_cb sccp_pbx = {
 	/* *INDENT-OFF* */
 	alloc_pbxChannel:sccp_wrapper_asterisk16_allocPBXChannel,
+	alloc_conferenceTempPBXChannel:sccp_wrapper_asterisk16_alloc_conferenceTempPBXChannel,
 	set_callstate:sccp_wrapper_asterisk16_setCallState,
 	checkhangup:sccp_wrapper_asterisk16_checkHangup,
 	hangup:NULL,
@@ -2072,6 +2083,8 @@ struct sccp_pbx_cb sccp_pbx = {
   
         /* channel */
 	.alloc_pbxChannel 		= sccp_wrapper_asterisk16_allocPBXChannel,
+	.alloc_conferenceTempPBXChannel	= sccp_wrapper_asterisk16_alloc_conferenceTempPBXChannel,
+	
 	.requestHangup 			= sccp_wrapper_asterisk16_requestHangup,
 	.extension_status 		= sccp_wrapper_asterisk16_extensionStatus,
 	.getChannelByName 		= sccp_wrapper_asterisk16_getChannelByName,
