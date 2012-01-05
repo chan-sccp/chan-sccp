@@ -509,6 +509,9 @@ void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference,
  *
  * \lock
  * 	- conference->participants
+ *
+ * \todo We need a way to tear down the conference if the moderator job has moved to some other channel driver (SIP), using promote_participant
+ *
  */
 void sccp_conference_end(sccp_conference_t * conference)
 {
@@ -517,7 +520,7 @@ void sccp_conference_end(sccp_conference_t * conference)
 	SCCP_LIST_LOCK(&conference->participants);
 	while ((part = SCCP_LIST_REMOVE_HEAD(&conference->participants, list))) {
 		if (part->channel)
-			part->channel->conference = NULL;
+			part->channel->conference = NULL;		/*!< We need a way to tear down the conference if the moderator job has moved to some other channel driver (SIP), using promote_participant */
 		sccp_free(part);
 	}
 	SCCP_LIST_UNLOCK(&conference->participants);
