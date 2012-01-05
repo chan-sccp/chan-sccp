@@ -31,8 +31,8 @@ extern "C" {
 		uint32_t id;							/*!< conference id */
 		sccp_conference_participant_t *moderator;			/*!< how initializes the conference */
 		struct ast_bridge *bridge;					/*!< Shared Ast_Bridge used by this conference */
-		 SCCP_LIST_HEAD(, sccp_conference_participant_t) participants;	/*!< participants in conference */
-		 SCCP_LIST_ENTRY(sccp_conference_t) list;			/*!< Linked List Entry */
+		SCCP_LIST_HEAD(, sccp_conference_participant_t) participants;	/*!< participants in conference */
+		SCCP_LIST_ENTRY(sccp_conference_t) list;			/*!< Linked List Entry */
 	};
 
 	struct sccp_conference_participant {
@@ -45,6 +45,7 @@ extern "C" {
 
 		uint32_t id;							/*!< Numeric participant id. */
 		sccp_channel_t *channel;					/*!< sccp channel, non-null if the participant resides on an SCCP device */
+		PBX_CHANNEL_TYPE *origChannel;					/*!< the original asterisk channel to which we have to return after the conference */
 		PBX_CHANNEL_TYPE *conferenceBridgePeer;				/*!< the asterisk channel which joins the conference bridge */
 		struct ast_bridge_features features;				/*!< Enabled features information */
 		pthread_t joinThread;						/*!< Running in this Thread */
@@ -55,7 +56,7 @@ extern "C" {
 		char exitexten[SCCP_MAX_CONTEXT];				/*!< Extension to jump to after hangup */
 		int exitpriority;						/*!< Priority to jump to after hangup */
 
-		 SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
+		SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
 	};
 
 /* prototype definition */

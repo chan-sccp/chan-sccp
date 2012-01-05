@@ -190,8 +190,11 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 	participant->conferenceBridgePeer->readformat = chan->readformat;
 	participant->conferenceBridgePeer->writeformat = chan->writeformat;
 	participant->conferenceBridgePeer->nativeformats = chan->nativeformats;
+	
+	/* save original channel */
+	participant->origChannel = chan;
 
-	if (pbx_channel_masquerade(participant->conferenceBridgePeer, chan)) {
+	if (pbx_channel_masquerade(participant->conferenceBridgePeer, participant->origChannel)) {
 		pbx_log(LOG_ERROR, "SCCP: Conference: failed to masquerade channel.\n");
 		//pbx_channel_unlock(chan);
 		PBX(requestHangup) (participant->conferenceBridgePeer);
@@ -199,9 +202,11 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 		return -1;
 	} else {
 		pbx_channel_lock(participant->conferenceBridgePeer);
-
 		pbx_do_masquerade(participant->conferenceBridgePeer);/** \todo make this pbx independent */
-		ast_channel_unlock(participant->conferenceBridgePeer);
+		pbx_channel_unlock(participant->conferenceBridgePeer);
+
+		/* assign hangup cause to origChannel*/
+		participant->origChannel->hangupcause = AST_CAUSE_NORMAL_UNSPECIFIED;
 	}
 
 	if (NULL == participant->channel) {
@@ -290,7 +295,6 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 
 		pbx_channel_lock(localCallLeg);
 	}
-
 	remoteParticipant = (sccp_conference_participant_t *) sccp_malloc(sizeof(sccp_conference_participant_t));
 	if (!remoteParticipant) {
 		if (adding_moderator) {
@@ -334,11 +338,12 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 	SCCP_LIST_INSERT_TAIL(&conference->participants, remoteParticipant, list);
 	SCCP_LIST_UNLOCK(&conference->participants);
 
-	if (0 != sccp_conference_addAstChannelToConferenceBridge(remoteParticipant, remoteCallLeg)) {
-		// \todo TODO: error handling
-	}
-
-	if (adding_moderator) {
+	if (!adding_moderator) {
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Adding remote party.\n");
+		if (0 != sccp_conference_addAstChannelToConferenceBridge(remoteParticipant, remoteCallLeg)) {
+			// \todo TODO: error handling
+		}
+	} else {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Adding local party of moderator.\n");
 
 		localParticipant->conference = conference;
@@ -415,13 +420,37 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 		snprintf(leaveMessage, 255, "Member #%d left conference.", participant->id);
 		sccp_dev_displayprompt(sccp_channel_getDevice(conference->moderator->channel), instance, conference->moderator->channel->callid, leaveMessage, 10);
 	}
+	
+	/* masquarade back to origChannel */
+	if (pbx_channel_masquerade(participant->origChannel, ast_channel) {
+		pbx_log(LOG_ERROR, "SCCP: Conference: failed to masquerade back to orig channel.\n");
+		PBX(requestHangup) (participant->conferenceBridgePeer);
+		PBX(requestHangup) (participant->origChannel);
+		participant->conferenceBridgePeer = NULL;
+		return -1;
+	} else {
+		pbx_channel_lock(participant->origChannel);
+		pbx_do_masquerade(participant->origChannel);/** \todo make this pbx independent */
+		pbx_channel_unlock(participant->origChannel);
+	}
+
+	/* \todo hangup channel / sccp_channel for removed participant when called via KICK action - DdG */
+	if (ast_channel && !pbx_check_hangup(participant->conferenceBridgePeer)) {
+		pbx_channel_lock(participant->conferenceBridgePeer);
+		participant->conferenceBridgePeer->flasg |= AST_FLAG_ZOMBIE
+		participant->conferenceBridgePeer->_softhangup |= AST_SOFTHANGUP_EXPLICIT;
+		participant->conferenceBridgePeer->hangupcause = AST_CAUSE_REDIRECTED_TO_NEW_DESTINATION;
+		participant->conferenceBridgePeer->_state = AST_STATE_DOWN;
+		participant->conferenceBridgePeer_unlock(participant->conferenceBridgePeer);
+		participant->conferenceBridgePeer = NULL;
+	}
 
 	/* \todo hangup channel / sccp_channel for removed participant when called via KICK action - DdG */
 	if (ast_channel && !pbx_check_hangup(ast_channel)) {
 		pbx_channel_lock(ast_channel);
 		ast_channel->_softhangup |= AST_SOFTHANGUP_DEV;
-		ast_channel->_softhangup |= AST_SOFTHANGUP_ASYNCGOTO;
-		ast_channel->hangupcause = AST_CAUSE_FACILITY_REJECTED;
+//		ast_channel->_softhangup |= AST_SOFTHANGUP_ASYNCGOTO;
+		ast_channel->hangupcause = AST_CAUSE_NORMAL_UNSPECIFIED;
 		ast_channel->_state = AST_STATE_DOWN;
 		ast_channel_unlock(ast_channel);
 		ast_channel = NULL;
