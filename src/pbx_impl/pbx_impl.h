@@ -36,7 +36,8 @@ struct sccp_pbx_cb {
 	/* *INDENT-OFF* */
 	/* channels */
 	boolean_t(*const alloc_pbxChannel) (const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
-	int (*const set_callstate) (const sccp_channel_t * channel, int state);
+	boolean_t(*const alloc_conferenceTempPBXChannel) (PBX_CHANNEL_TYPE * channel, PBX_CHANNEL_TYPE ** pbx_channel, uint32_t conf_id, uint32_t part_id);
+	int (*const set_callstate) (const sccp_channel_t * ast_channel, int state);
 	boolean_t(*const checkhangup) (const sccp_channel_t * channel);
 	int (*const hangup) (PBX_CHANNEL_TYPE * channel);
 	int (*const requestHangup) (PBX_CHANNEL_TYPE * channel);
