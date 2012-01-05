@@ -516,7 +516,8 @@ void sccp_conference_end(sccp_conference_t * conference)
 
 	SCCP_LIST_LOCK(&conference->participants);
 	while ((part = SCCP_LIST_REMOVE_HEAD(&conference->participants, list))) {
-		part->channel->conference = NULL;
+		if (part->channel)
+			part->channel->conference = NULL;
 		sccp_free(part);
 	}
 	SCCP_LIST_UNLOCK(&conference->participants);
@@ -582,7 +583,7 @@ static void *sccp_conference_join_thread(void *data)
 	pbx_bridge_join(participant->conference->bridge, astChannel, NULL, &participant->features);
 	pbx_log(LOG_NOTICE, "SCCP: Conference: Join thread: leaving pbx_bridge_join: %s\n", sccp_channel_toString(participant->channel));
 
-	if (pbx_pbx_start(astChannel)) {
+	if (pbx_pbx_run(astChannel)) {
 		pbx_log(LOG_WARNING, "SCCP: Unable to start PBX on %s\n", participant->conferenceBridgePeer->name);
 		PBX(requestHangup) (astChannel);
 		// return -1;
