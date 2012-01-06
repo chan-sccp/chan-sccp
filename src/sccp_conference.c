@@ -51,7 +51,9 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 
 	sccp_conference_participant_t *moderator = NULL;
 
-	//int   confCapabilities = AST_BRIDGE_CAPABILITY_MULTIMIX | AST_BRIDGE_CAPABILITY_THREAD | AST_BRIDGE_CAPABILITY_VIDEO;
+//	int   confCapabilities = AST_BRIDGE_CAPABILITY_MULTIMIX | AST_BRIDGE_CAPABILITY_MULTITHREADED | AST_BRIDGE_CAPABILITY_THREAD | AST_BRIDGE_CAPABILITY_VIDEO;
+	int   confCapabilities = AST_BRIDGE_CAPABILITY_1TO1MIX | AST_BRIDGE_CAPABILITY_OPTIMIZE;
+	int   confFlags = AST_BRIDGE_FLAG_SMART | AST_BRIDGE_FLAG_DISSOLVE;
 
 	if (NULL == owner) {
 		pbx_log(LOG_ERROR, "SCCP: Conference: NULL owner (sccp channel) while creating new conference.\n");
@@ -60,6 +62,10 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 
 	if (NULL == owner->owner) {
 		pbx_log(LOG_ERROR, "SCCP: Conference: NULL owner (ast channel) while creating new conference.\n");
+		return NULL;
+	}
+	if (pbx_bridge_check(confCapabilities, confFlags) {
+		pbx_log(LOG_ERROR, "SCCP: Conference: The bridge which was requested cannot be created. Exiting.\n");
 		return NULL;
 	}
 
@@ -74,7 +80,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 
 	conference->id = ++lastConferenceID;
 	SCCP_LIST_HEAD_INIT(&conference->participants);
-	conference->bridge = pbx_bridge_new(AST_BRIDGE_CAPABILITY_1TO1MIX, AST_BRIDGE_FLAG_SMART);
+	conference->bridge = pbx_bridge_new(confCapabilities, confFlags);
 
 	if (NULL == conference->bridge) {
 		pbx_log(LOG_ERROR, "SCCP: Conference: Conference: conference bridge could not be created.\n");
@@ -166,7 +172,7 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 		pbx_set_flag(chan, AST_FLAG_BRIDGE_HANGUP_DONT);		/*! don't let the after-bridge code run the h-exten */
 		pbx_set_flag(chan, AST_FLAG_NBRIDGE);				/*! This channel is in a native bridge */
 		pbx_set_flag(chan, AST_FLAG_BLOCKING);				/*! a thread is blocking on this channel */
-		//ast_channel_unlock(chan);
+		//pbx_channel_unlock(chan);
 	}
 	//PBX_CHANNEL_TYPE *bridge = CS_AST_BRIDGED_CHANNEL(chan);
 
@@ -181,6 +187,22 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 	participant->conferenceBridgePeer->readformat = chan->readformat;
 	participant->conferenceBridgePeer->writeformat = chan->writeformat;
 	participant->conferenceBridgePeer->nativeformats = chan->nativeformats;
+
+	/* copy dialplan context from original channel */
+/*
+	if(sccp_zerolen_str(chan->macrocontext)) {
+		sccp_copy_string(participant->conferenceBridgePeer->maxcrocontext, chan->macrocontext, sizeof(participant->conferenceBridgePeer->maxcrocontext));
+		sccp_copy_string(participant->conferenceBridgePeer->macroexten, chan->macroexten, sizeof(participant->conferenceBridgePeer->macroexten));
+		participant->conferenceBridgePeer->macropriority = chan->macropriority;
+	} else {
+		sccp_copy_string(participant->conferenceBridgePeer->dialcontext, chan->dialcontext, sizeof(participant->conferenceBridgePeer->dialcontext));
+		sccp_copy_string(participant->conferenceBridgePeer->context, chan->context, sizeof(participant->conferenceBridgePeer->context));
+		participant->conferenceBridgePeer->priority = chan->priority;
+	}	
+*/
+	
+	participant->conferenceBridgePeer->softhangup = AST_SOFTHANGUP_UNBRIDGE;
+	pbx_set_flag(participant->conferenceBridgePeer,BRIDGE_HANGUP_DONT);		// don't hangup automatically so we can hangup manually
 	
 	/* save original channel */
 	participant->origChannel = chan;
@@ -323,7 +345,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		pbx_copy_string(remoteParticipant->exitexten, remoteCallLeg->exten, sizeof(remoteParticipant->exitexten));
 		remoteParticipant->exitpriority = remoteCallLeg->priority;
 	}
-	ast_channel_unlock(remoteCallLeg);
+	pbx_channel_unlock(remoteCallLeg);
 
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_INSERT_TAIL(&conference->participants, remoteParticipant, list);
@@ -412,7 +434,7 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 		sccp_dev_displayprompt(sccp_channel_getDevice(conference->moderator->channel), instance, conference->moderator->channel->callid, leaveMessage, 10);
 	}
 	
-	/* masquarade back to origChannel */
+	/* masquerade back to origChannel */
 	if (pbx_channel_masquerade(participant->origChannel, ast_channel) {
 		pbx_log(LOG_ERROR, "SCCP: Conference: failed to masquerade back to orig channel.\n");
 		PBX(requestHangup) (participant->conferenceBridgePeer);
@@ -423,29 +445,33 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 		pbx_channel_lock(participant->origChannel);
 		pbx_do_masquerade(participant->origChannel);/** \todo make this pbx independent */
 		pbx_channel_unlock(participant->origChannel);
+		
+		/* \todo hangup channel / sccp_channel for removed participant when called via KICK action - DdG */
+		if (ast_channel && !pbx_check_hangup(participant->conferenceBridgePeer)) {
+			pbx_channel_lock(participant->conferenceBridgePeer);
+			//pbx_set_flag(participant->conferenceBridgePeer, AST_FLAG_ZOMBIE);
+			//participant->conferenceBridgePeer->_softhangup |= AST_SOFTHANGUP_EXPLICIT;
+			//participant->conferenceBridgePeer->hangupcause = AST_CAUSE_REDIRECTED_TO_NEW_DESTINATION;
+			participant->conferenceBridgePeer->_state = AST_STATE_DOWN;
+			participant->conferenceBridgePeer_unlock(participant->conferenceBridgePeer);
+			pbx_softhangup(participant->conferenceBridgePeer, AST_CAUSE_REDIRECTED_TO_NEW_DESTINATION);
+			participant->conferenceBridgePeer = NULL;
+		}
 	}
 
 	/* \todo hangup channel / sccp_channel for removed participant when called via KICK action - DdG */
-	if (ast_channel && !pbx_check_hangup(participant->conferenceBridgePeer)) {
-		pbx_channel_lock(participant->conferenceBridgePeer);
-		participant->conferenceBridgePeer->flasg |= AST_FLAG_ZOMBIE
-		participant->conferenceBridgePeer->_softhangup |= AST_SOFTHANGUP_EXPLICIT;
-		participant->conferenceBridgePeer->hangupcause = AST_CAUSE_REDIRECTED_TO_NEW_DESTINATION;
-		participant->conferenceBridgePeer->_state = AST_STATE_DOWN;
-		participant->conferenceBridgePeer_unlock(participant->conferenceBridgePeer);
-		participant->conferenceBridgePeer = NULL;
-	}
-
-	/* \todo hangup channel / sccp_channel for removed participant when called via KICK action - DdG */
+	/* switch to manual hangup by individuals */
+/*
 	if (ast_channel && !pbx_check_hangup(ast_channel)) {
 		pbx_channel_lock(ast_channel);
 		ast_channel->_softhangup |= AST_SOFTHANGUP_DEV;
 //		ast_channel->_softhangup |= AST_SOFTHANGUP_ASYNCGOTO;
 		ast_channel->hangupcause = AST_CAUSE_NORMAL_UNSPECIFIED;
 		ast_channel->_state = AST_STATE_DOWN;
-		ast_channel_unlock(ast_channel);
+		pbx_channel_unlock(ast_channel);
 		ast_channel = NULL;
 	}
+*/
 
 	if (participant->channel) {						// sccp device
 		participant->channel->conference = NULL;
@@ -583,16 +609,20 @@ static void *sccp_conference_join_thread(void *data)
 		}
 	}
 
+	/* joining the bridge */
+	/* blocks until the channel is removed or departed from bridge */
 	pbx_bridge_join(participant->conference->bridge, astChannel, NULL, &participant->features);
 	pbx_log(LOG_NOTICE, "SCCP: Conference: Join thread: leaving pbx_bridge_join: %s\n", sccp_channel_toString(participant->channel));
 
-	if (pbx_pbx_run(astChannel)) {
+	/* start dialplan for astChannel (not needed because we masqueraded back to origChannel) */
+/*	if (pbx_pbx_start(astChannel)) {	// start executing dialplan for channel in new thead
 		pbx_log(LOG_WARNING, "SCCP: Unable to start PBX on %s\n", participant->conferenceBridgePeer->name);
 		PBX(requestHangup) (astChannel);
 		// return -1;
 		return NULL;
-	}
+	}*/
 
+	/* remove participant and switch back to origChannel */
 	sccp_conference_removeParticipant(participant->conference, participant);
 
 	participant->joinThread = AST_PTHREADT_NULL;
@@ -865,7 +895,8 @@ void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_confe
 	}
 
 	ao2_lock(participant->conference->bridge);
-	pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer);
+//	pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer);	/* remove and hangup */
+	pbx_bridge_depart(participant->conference->bridge, participant->conferenceBridgePeer);	/* remove don't hangup */
 	ao2_unlock(participant->conference->bridge);
 
 	/* \todo find a better methode to wait for the thread to signal removed participant (pthread_cond_timedwait ?); */
