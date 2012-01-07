@@ -1441,6 +1441,21 @@ static format_t sccp_wrapper_asterisk18_getCodec(PBX_CHANNEL_TYPE * ast)
  * \param sccp_channle Asterisk Channel
  * \param cid name result
  * \return parse result
+ *
+ * caller.id.name.str
+ * caller.id.name.char_set
+ * caller.id.name.presentation
+ * caller.id.name.valid
+ * caller.id.number.str
+ * caller.id.number.plan
+ * caller.id.number.presentation
+ * caller.id.number.valid
+ * caller.id.subaddress.str
+ * caller.id.subaddress.type 
+ * caller.id.subaddress.odd_even_indicator
+ * caller.id.subaddress.valid
+ * caller.ani.*
+ * caller.ani2
  */
 static int sccp_wrapper_asterisk18_callerid_name(const sccp_channel_t * channel, char **cid_name)
 {
@@ -1458,6 +1473,21 @@ static int sccp_wrapper_asterisk18_callerid_name(const sccp_channel_t * channel,
  * \brief get callerid_name from pbx
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
+ *
+ * caller.id.name.str
+ * caller.id.name.char_set
+ * caller.id.name.presentation
+ * caller.id.name.valid
+ * caller.id.number.str
+ * caller.id.number.plan
+ * caller.id.number.presentation
+ * caller.id.number.valid
+ * caller.id.subaddress.str
+ * caller.id.subaddress.type 
+ * caller.id.subaddress.odd_even_indicator
+ * caller.id.subaddress.valid
+ * caller.ani.*
+ * caller.ani2
  */
 static int sccp_wrapper_asterisk18_callerid_number(const sccp_channel_t * channel, char **cid_number)
 {
@@ -1491,6 +1521,23 @@ static int sccp_wrapper_asterisk18_callerid_ton(const sccp_channel_t * channel, 
  * \brief get callerid_ani from pbx
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
+ *
+ * caller.id.name.*
+ * caller.id.number.*
+ * caller.id.subaddress.*
+ * caller.ani.name.str
+ * caller.ani.name.char_set
+ * caller.ani.name.presentation
+ * caller.ani.name.valid
+ * caller.ani.number.str
+ * caller.ani.number.plan
+ * caller.ani.number.presentation
+ * caller.ani.number.valid
+ * caller.ani.subaddr.str
+ * caller.ani.subaddr.type
+ * caller.ani.subaddr.odd_even_indicator
+ * caller.ani.subaddr.valid
+ * caller.ani2
  */
 static int sccp_wrapper_asterisk18_callerid_ani(const sccp_channel_t * channel, char **cid_ani)
 {
@@ -1508,6 +1555,11 @@ static int sccp_wrapper_asterisk18_callerid_ani(const sccp_channel_t * channel, 
  * \brief get callerid_dnid from pbx
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
+ *
+ * caller.id.subaddress.str
+ * caller.id.subaddress.type 
+ * caller.id.subaddress.odd_even_indicator
+ * caller.id.subaddress.valid
  */
 static int sccp_wrapper_asterisk18_callerid_subaddr(const sccp_channel_t * channel, char **cid_subaddr)
 {
@@ -1525,6 +1577,14 @@ static int sccp_wrapper_asterisk18_callerid_subaddr(const sccp_channel_t * chann
  * \brief get callerid_dnid from pbx (Destination ID)
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
+ *
+ * dialed.number.str
+ * dialed.number.plan
+ * dialed.subaddress.str
+ * dialed.subaddress.type 
+ * dialed.subaddress.odd_even_indicator
+ * dialed.subaddress.valid
+ * dialed.transit_network_select
  */
 static int sccp_wrapper_asterisk18_callerid_dnid(const sccp_channel_t * channel, char **cid_dnid)
 {
@@ -1542,6 +1602,31 @@ static int sccp_wrapper_asterisk18_callerid_dnid(const sccp_channel_t * channel,
  * \brief get callerid_rdnis from pbx
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
+ *
+ * redirecting.from.name.str
+ * redirecting.from.name.char_set
+ * redirecting.from.name.presentation
+ * redirecting.from.name.valid
+ * redirecting.from.number.str
+ * redirecting.from.number.char_set
+ * redirecting.from.number.presentation
+ * redirecting.from.number.valid
+ * redirecting.from.subaddress.str
+ * redirecting.from.subaddress.type 
+ * redirecting.from.subaddress.odd_even_indicator
+ * redirecting.from.subaddress.valid
+ * redirecting.to.name.str
+ * redirecting.to.name.char_set
+ * redirecting.to.name.presentation
+ * redirecting.to.name.valid
+ * redirecting.to.number.str
+ * redirecting.to.number.char_set
+ * redirecting.to.number.presentation
+ * redirecting.to.number.valid
+ * redirecting.to.subaddress.str
+ * redirecting.to.subaddress.type 
+ * redirecting.to.subaddress.odd_even_indicator
+ * redirecting.to.subaddress.valid
  */
 static int sccp_wrapper_asterisk18_callerid_rdnis(const sccp_channel_t * channel, char **cid_rdnis)
 {

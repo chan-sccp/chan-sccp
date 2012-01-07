@@ -184,13 +184,11 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
  
 	if (strlen(c->callInfo.callingPartyNumber) > 0)
 		cid_number = strdup(c->callInfo.callingPartyNumber);
-	else if (PBX(get_callerid_number)) {
+	else if (PBX(get_callerid_number))
         	if (PBX(get_callerid_number)(c, &cid_number))
 
-	if (PBX(get_callerid_ani)) {
-		if (!PBX(get_callerid_ani)(c, &cid_ani)) {
-			cid_ani = ast_strdup(cid_number);
-		}
+	if (PBX(get_callerid_ani) && !PBX(get_callerid_ani)(c, &cid_ani)) {
+		cid_ani = ast_strdup(cid_number);
 	}
 
 	if (PBX(get_callerid_dnid))
