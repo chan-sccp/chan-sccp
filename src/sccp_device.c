@@ -246,7 +246,7 @@ sccp_device_t *sccp_device_create(void)
 {
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "DEVICE CREATE\n");
 //	sccp_device_t *d = sccp_calloc(1, sizeof(sccp_device_t));
-	sccp_device_t *d = (sccp_device_t *)RefCountedObjectAlloc(sizeof(sccp_device_t), __sccp_device_destroy);
+	sccp_device_t *d = RefCountedObjectAlloc(sizeof(sccp_device_t), __sccp_device_destroy);
 	if (!d) {
 		sccp_log(0) (VERBOSE_PREFIX_3 "Unable to allocate memory for a device\n");
 		return NULL;
@@ -254,6 +254,7 @@ sccp_device_t *sccp_device_create(void)
 	
 	memset(d, 0, sizeof(d));
 	pbx_mutex_init(&d->lock);
+
 
 	SCCP_LIST_HEAD_INIT(&d->buttonconfig);
 	SCCP_LIST_HEAD_INIT(&d->selectedChannels);
@@ -285,6 +286,13 @@ sccp_device_t *sccp_device_create(void)
 	d->pushTextMessage = sccp_device_pushTextMessageNotSupported;
 	d->checkACL = sccp_device_checkACL;
 	d->hasDisplayPrompt = sccp_device_trueResult;
+
+	sccp_device_lock(d);
+	sccp_device_unlock(d);
+	sccp_device_lock(d);
+	sccp_device_lock(d);
+	sccp_device_unlock(d);
+	sccp_device_unlock(d);
 	
 	return d;
 }

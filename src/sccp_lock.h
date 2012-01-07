@@ -67,17 +67,17 @@ int sccp_release(const char *objtype, void * ptr, const char *filename, int line
 //#    define sccp_line_lock(x)			pbx_mutex_lock(&x->lock)
 //#    define sccp_line_trylock(x)		pbx_mutex_trylock(&x->lock)
 //#    define sccp_line_unlock(x)         	pbx_mutex_unlock(&x->lock)
-#    define sccp_line_lock(x)			sccp_line_retain(&x)
-#    define sccp_line_trylock(x)		sccp_line_retain(&x)
-#    define sccp_line_unlock(x)        		sccp_line_release(&x)
+#    define sccp_line_lock(x)			sccp_line_retain(x)
+#    define sccp_line_trylock(x)		sccp_line_retain(x)
+#    define sccp_line_unlock(x)        		sccp_line_release(x)
 
 	/* Macro for Devices */
 //#    define sccp_device_lock(x)		pbx_mutex_lock(&x->lock)
 //#    define sccp_device_trylock(x)		pbx_mutex_trylock(&x->lock)
 //#    define sccp_device_unlock(x)		pbx_mutex_unlock(&x->lock)
-#    define sccp_device_lock(x)			sccp_device_retain(&x)
-#    define sccp_device_trylock(x)		sccp_device_retain(&x)
-#    define sccp_device_unlock(x)		sccp_device_release(&x)
+#    define sccp_device_lock(x)			sccp_device_retain(x)
+#    define sccp_device_trylock(x)		sccp_device_retain(x)
+#    define sccp_device_unlock(x)		sccp_device_release(x)
 
 	/* Macro for Channels */
 #    define sccp_channel_lock_dbg(x,w,y,z)	pbx_mutex_lock(&x->lock)
@@ -122,17 +122,17 @@ int __sccp_mutex_trylock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, 
 //#    define sccp_line_lock(a)           	__sccp_mutex_lock(&a->lock, "(sccp line [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 //#    define sccp_line_trylock(a)        	__sccp_mutex_trylock(&a->lock, "(sccp line [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 //#    define sccp_line_unlock(a)         	__sccp_mutex_unlock(&a->lock, "(sccp line [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define sccp_line_lock(x)			sccp_line_retain(&x)
-#    define sccp_line_trylock(x)		sccp_line_retain(&x)
-#    define sccp_line_unlock(x)        		sccp_line_release(&x)
+#    define sccp_line_lock(x)			sccp_line_retain(x)
+#    define sccp_line_trylock(x)		sccp_line_retain(x)
+#    define sccp_line_unlock(x)        		sccp_line_release(x)
 
 	/* Macro for Devices */
 //#    define sccp_device_lock(a)			__sccp_mutex_lock(&a->lock, "(sccp device [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 //#    define sccp_device_trylock(a)		__sccp_mutex_trylock(&a->lock, "(sccp device [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 //#    define sccp_device_unlock(a)		__sccp_mutex_unlock(&a->lock, "(sccp device [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define sccp_device_lock(x)			sccp_device_retain(&x)
-#    define sccp_device_trylock(x)		sccp_device_retain(&x)
-#    define sccp_device_unlock(x)		sccp_device_release(&x)
+#    define sccp_device_lock(x)			sccp_device_retain(x)
+#    define sccp_device_trylock(x)		sccp_device_retain(x)
+#    define sccp_device_unlock(x)		sccp_device_release(x)
 
 	/* Macro for Channels */
 #    define sccp_channel_lock(a)		__sccp_mutex_lock(&a->lock, "(sccp channel [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)

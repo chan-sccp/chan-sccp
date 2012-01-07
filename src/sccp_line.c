@@ -123,7 +123,7 @@ sccp_line_t *sccp_line_create(void)
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Unable to allocate memory for a line\n");
 		return NULL;
 	}
-	memset(l, 0, sizeof(sccp_line_t));
+//	memset(l, 0, sizeof(sccp_line_t));
 	pbx_mutex_init(&l->lock);
 	SCCP_LIST_HEAD_INIT(&l->channels);
 	SCCP_LIST_HEAD_INIT(&l->devices);
