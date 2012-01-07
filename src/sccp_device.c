@@ -21,6 +21,7 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
+int __sccp_device_destroy(const void *ptr);
 
 static void sccp_device_old_indicate_remoteHold(const sccp_device_t *device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy);
 
@@ -244,7 +245,8 @@ void sccp_device_post_reload(void)
 sccp_device_t *sccp_device_create(void)
 {
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "DEVICE CREATE\n");
-	sccp_device_t *d = sccp_calloc(1, sizeof(sccp_device_t));
+//	sccp_device_t *d = sccp_calloc(1, sizeof(sccp_device_t));
+	sccp_device_t *d = (sccp_device_t *)RefCountedObjectAlloc(sizeof(sccp_device_t), __sccp_device_destroy);
 	if (!d) {
 		sccp_log(0) (VERBOSE_PREFIX_3 "Unable to allocate memory for a device\n");
 		return NULL;
@@ -1639,7 +1641,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
  * 	  - device->permithosts
  * 	  - device->devstateSpecifiers
  */
-int sccp_device_destroy(const void *ptr)
+int __sccp_device_destroy(const void *ptr)
 {
 	sccp_device_t *d = (sccp_device_t *) ptr;
 	sccp_buttonconfig_t *config = NULL;
@@ -1700,6 +1702,29 @@ int sccp_device_destroy(const void *ptr)
 	pbx_mutex_destroy(&d->lock);
 	sccp_free(d);
 
+	return 0;
+}
+
+/*!
+ * \brief Free a Device as scheduled command
+ * \param ptr SCCP Device Pointer
+ * \return success as int
+ *
+ * \callgraph
+ * \callergraph
+ * 
+ * \called_from_asterisk
+ * 
+ * \lock
+ * 	- device
+ * 	  - device->buttonconfig
+ * 	  - device->permithosts
+ * 	  - device->devstateSpecifiers
+ */
+int sccp_device_destroy(const void *ptr)
+{
+	sccp_device_t *d = (sccp_device_t *) ptr;
+	sccp_device_release(d);
 	return 0;
 }
 

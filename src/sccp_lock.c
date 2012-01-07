@@ -295,5 +295,48 @@ int __sccp_mutex_trylock(ast_mutex_t * p_mutex, const char *itemnametolock, cons
 
 	return res;
 }
-
 #endif
+
+void * RefCountedObjectAlloc(size_t size, void *destructor)
+{
+	RefCountedObject * o;
+	char * ptr;
+	o = ( RefCountedObject * )calloc( sizeof( RefCountedObject ) + size, 1 );
+	ptr = ( char * )o;
+	ptr += sizeof( RefCountedObject);
+	ast_atomic_fetchadd_int(&o->refcount, 1);
+	o->data = ptr;
+	o->destructor = destructor;
+	return ( void * )ptr;
+} 
+
+int sccp_retain(void * ptr) 
+{
+	RefCountedObject * o;
+	char * cptr;
+
+	cptr = (char *)ptr;
+	cptr -= sizeof(RefCountedObject);
+	o = (RefCountedObject *)cptr;
+
+	ast_atomic_fetchadd_int(&o->refcount, 1);
+	return 0;
+}
+
+int sccp_release(void * ptr) 
+{
+	RefCountedObject * o;
+	char * cptr;
+	int beforeVal=0;
+
+	cptr = (char *)ptr;
+	cptr -= sizeof(RefCountedObject);
+	o = (RefCountedObject *)cptr;
+
+	beforeVal=ast_atomic_fetchadd_int(&o->refcount, -1);
+	if( (beforeVal-1) == 0 ) {
+		pbx_log(LOG_NOTICE, "ReferenceCount for %p, reached 0 -> cleaning up!\n", o);
+		o->destructor(o);
+	}
+	return 0;
+}

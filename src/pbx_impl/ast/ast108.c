@@ -979,7 +979,8 @@ static boolean_t sccp_wrapper_asterisk18_pickupChannel(const sccp_channel_t * ch
 {
 	boolean_t result = FALSE;
 
-	result = ast_do_pickup(chan->owner, target) ? FALSE : TRUE;
+//	result = ast_do_pickup(chan->owner, target) ? FALSE : TRUE;
+	result = ast_pickup_call(target) ? FALSE : TRUE;
 
 	return result;
 }
