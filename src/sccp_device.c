@@ -254,6 +254,7 @@ sccp_device_t *sccp_device_create(void)
 	
 	memset(d, 0, sizeof(d));
 	pbx_mutex_init(&d->lock);
+	sccp_device_lock(d);
 
 
 	SCCP_LIST_HEAD_INIT(&d->buttonconfig);
@@ -286,14 +287,7 @@ sccp_device_t *sccp_device_create(void)
 	d->pushTextMessage = sccp_device_pushTextMessageNotSupported;
 	d->checkACL = sccp_device_checkACL;
 	d->hasDisplayPrompt = sccp_device_trueResult;
-
-	sccp_device_lock(d);
 	sccp_device_unlock(d);
-	sccp_device_lock(d);
-	sccp_device_lock(d);
-	sccp_device_unlock(d);
-	sccp_device_unlock(d);
-	
 	return d;
 }
 
