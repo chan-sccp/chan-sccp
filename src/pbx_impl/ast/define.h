@@ -245,4 +245,6 @@
 #    define pbx_strlen_zero ast_strlen_zero
 #    define pbx_event_sub ast_event_sub
 #    define pbx_context_find ast_context_find
+#    define pbx_bridge_impart ast_bridge_impart
+#    define pbx_bridge_depart ast_bridge_depart
 #endif

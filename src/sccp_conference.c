@@ -34,6 +34,7 @@ static void *sccp_conference_join_thread(void *data);
 boolean_t isModerator(sccp_conference_participant_t * participant, sccp_channel_t * channel);
 sccp_conference_t *sccp_conference_find_byid(uint32_t id);
 sccp_conference_participant_t *sccp_conference_participant_find_byid(sccp_conference_t * conference, uint32_t id);
+int sccp_conference_swapAstChannelBridge(sccp_conference_participant_t * participant, PBX_CHANNEL_TYPE * chan);
 
 /*!
  * \brief Create conference
@@ -64,10 +65,10 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 		pbx_log(LOG_ERROR, "SCCP: Conference: NULL owner (ast channel) while creating new conference.\n");
 		return NULL;
 	}
-	if (pbx_bridge_check(confCapabilities, confFlags) {
+/*	if (pbx_bridge_check(confCapabilities, confFlags) {
 		pbx_log(LOG_ERROR, "SCCP: Conference: The bridge which was requested cannot be created. Exiting.\n");
 		return NULL;
-	}
+	}*/
 
 	/* create conference */
 	conference = (sccp_conference_t *) sccp_malloc(sizeof(sccp_conference_t));
@@ -144,7 +145,7 @@ int sccp_conference_swapAstChannelBridge(sccp_conference_participant_t * partici
 	if (chan->pbx) {
 		pbx_set_flag(chan, AST_FLAG_BLOCKING);				/*! a thread is blocking on this channel */
 	}
-	participant->origBridge=chan->_bridge;
+	participant->origBridge=chan->bridge;
 	participant->conferenceBridgePeer=chan;
 
 	if (NULL == participant->channel) {
@@ -164,8 +165,8 @@ int sccp_conference_swapAstChannelBridge(sccp_conference_participant_t * partici
 
 	/* leave current bridge */
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Swapping out original bridge via sccp_conference_swapAstChannelBridge.\n");
-	participant->origBridge = astChannel->bridge;
-	pbx_bridge_depart(astChannel->_bridge, astChannel);
+	participant->origBridge = chan->bridge;
+	pbx_bridge_depart(participant->origBridge, chan);
 
 	/* joining the conference bridge (blocks until the channel is removed or departed from bridge) */
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_swapAstChannelBridge.\n");
@@ -174,7 +175,7 @@ int sccp_conference_swapAstChannelBridge(sccp_conference_participant_t * partici
 	}
 	/* left the conference, re-instating original bridge connection */
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Swapping in original bridge via sccp_conference_swapAstChannelBridge.\n");
-	pbx_bridge_impart((astChannel->_bridge, astChannel);
+	pbx_bridge_impart(participant->origBridge, chan, NULL, NULL);
 
 	pbx_clear_flag(chan, AST_FLAG_BLOCKING);				/*! release channel blocking flag */
 
@@ -346,7 +347,7 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 	if (!conference || !participant->conferenceBridgePeer)
 		return;
 
-	PBX_CHANNEL_TYPE *ast_channel = participant->conferenceBridgePeer;
+//	PBX_CHANNEL_TYPE *ast_channel = participant->conferenceBridgePeer;
 
 	char leaveMessage[256] = { '\0' };
 
