@@ -67,18 +67,18 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	l = c->line;
 
 	/* replaced with a trylock loop, because lock is taken out of order */
-//	sccp_device_lock(d);
-	int deadlockAvoidanceCounter=0;
-        while (sccp_device_trylock(d)) {
-                if (deadlockAvoidanceCounter++ > 100) {
- 		        ast_log(LOG_ERROR, "SCCP: We would create a deadlock in %s:%d, giving up\n", __FILE__, __LINE__);
- 		        return;
-		}
-		/* giving up lock on channel to allow other to progress */
-		sccp_channel_unlock(c);
-		usleep(10);
-		sccp_channel_lock(c);
-	}		
+	sccp_device_lock(d);
+//	int deadlockAvoidanceCounter=0;
+//        while (sccp_device_trylock(d)) {
+//                if (deadlockAvoidanceCounter++ > 100) {
+// 		        ast_log(LOG_ERROR, "SCCP: We would create a deadlock in %s:%d, giving up\n", __FILE__, __LINE__);
+// 		        return;
+//		}
+//		/* giving up lock on channel to allow other to progress */
+//		sccp_channel_unlock(c);
+//		usleep(10);
+//		sccp_channel_lock(c);
+//	}
 	instance = sccp_device_find_index_for_line(d, l->name);
 
 	/* all the check are ok. We can safely run all the dev functions with no more checks */
