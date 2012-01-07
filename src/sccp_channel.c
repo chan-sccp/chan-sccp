@@ -503,13 +503,13 @@ boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *
 
 	if (name && strncmp(name, channel->callInfo.originalCallingPartyName, StationMaxNameSize - 1)) {
 		sccp_copy_string(channel->callInfo.originalCallingPartyName, name, sizeof(channel->callInfo.originalCallingPartyName));
-		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Set callingParty Name %s on channel %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), channel->callInfo.originalCallingPartyName, channel->callid);
+		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Set original Calling Party Name %s on channel %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), channel->callInfo.originalCallingPartyName, channel->callid);
 		changed = TRUE;
 	}
 
 	if (number && strncmp(number, channel->callInfo.originalCallingPartyNumber, StationMaxDirnumSize - 1)) {
 		sccp_copy_string(channel->callInfo.originalCallingPartyNumber, number, sizeof(channel->callInfo.originalCallingPartyNumber));
-		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Set callingParty Number %s on channel %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), channel->callInfo.originalCallingPartyNumber, channel->callid);
+		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Set original Calling Party Number %s on channel %d\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), channel->callInfo.originalCallingPartyNumber, channel->callid);
 		changed = TRUE;
 		channel->callInfo.originalCallingParty_valid = 1;
 	}

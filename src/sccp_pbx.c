@@ -177,19 +177,21 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 	sccp_line_unlock(l);
 
 	/* Reinstated this call instead of the following lines */
-	if (PBX(get_callerid_name))
+	if (strlen(c->callInfo.callingPartyName) > 0)
+		cid_name = strdup(c->callInfo.callingPartyName);
+	else if (PBX(get_callerid_name))
       		PBX(get_callerid_name)(c, &cid_name);
  
-	if (PBX(get_callerid_number)) {
-        	if (PBX(get_callerid_number)(c, &cid_number)) {
+	if (strlen(c->callInfo.callingPartyNumber) > 0)
+		cid_number = strdup(c->callInfo.callingPartyNumber);
+	else if (PBX(get_callerid_number)) {
+        	if (PBX(get_callerid_number)(c, &cid_number))
 
-			if (PBX(get_callerid_ani)) {
-				if (!PBX(get_callerid_ani)(c, &cid_ani)) {
-					cid_ani = ast_strdup(cid_number);
-				}
-			}
-        	}
-	}        	
+	if (PBX(get_callerid_ani)) {
+		if (!PBX(get_callerid_ani)(c, &cid_ani)) {
+			cid_ani = ast_strdup(cid_number);
+		}
+	}
 
 	if (PBX(get_callerid_dnid))
 		PBX(get_callerid_dnid)(c, &cid_dnid);
