@@ -125,9 +125,11 @@ sccp_line_t *sccp_line_create(void)
 	}
 //	memset(l, 0, sizeof(sccp_line_t));
 	pbx_mutex_init(&l->lock);
+	sccp_line_lock(l);
 	SCCP_LIST_HEAD_INIT(&l->channels);
 	SCCP_LIST_HEAD_INIT(&l->devices);
 	SCCP_LIST_HEAD_INIT(&l->mailboxes);
+	sccp_line_unlock(l);
 
 	return l;
 }
