@@ -20,7 +20,6 @@
 void sccp_line_pre_reload(void);
 void sccp_line_post_reload(void);
 #endif
-
 sccp_line_t *sccp_line_create(void);
 sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line);
 void sccp_line_kill(sccp_line_t * l);

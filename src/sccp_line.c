@@ -20,6 +20,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #ifdef CS_DYNAMIC_CONFIG
 static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptionId, int onoff);
+int __sccp_line_destroy(const void *ptr);
 
 /*!
  * \brief run before reload is start on lines
@@ -115,7 +116,8 @@ void sccp_line_post_reload(void)
  */
 sccp_line_t *sccp_line_create(void)
 {
-	sccp_line_t *l = sccp_malloc(sizeof(sccp_line_t));
+//	sccp_line_t *l = sccp_malloc(sizeof(sccp_line_t));
+	sccp_line_t *l = (sccp_line_t *)RefCountedObjectAlloc(sizeof(sccp_line_t), __sccp_line_destroy);
 
 	if (!l) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Unable to allocate memory for a line\n");
@@ -264,7 +266,7 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
  * 	- line
  * 	  - see sccp_mwi_unsubscribeMailbox()
  */
-int sccp_line_destroy(const void *ptr)
+int __sccp_line_destroy(const void *ptr)
 {
 	sccp_line_t *l = (sccp_line_t *) ptr;
 
@@ -290,6 +292,25 @@ int sccp_line_destroy(const void *ptr)
 	sccp_line_unlock(l);
 	pbx_mutex_destroy(&l->lock);
 	sccp_free(l);
+	return 0;
+}
+
+/*!
+ * \brief Free a Line as scheduled command
+ * \param ptr SCCP Line Pointer
+ * \return success as int
+ *
+ * \callgraph
+ * \callergraph
+ * 
+ * \lock
+ * 	- line
+ * 	  - see sccp_mwi_unsubscribeMailbox()
+ */
+int sccp_line_destroy(const void *ptr)
+{
+	sccp_line_t *l = (sccp_line_t *) ptr;
+	sccp_line_release(l);
 	return 0;
 }
 
