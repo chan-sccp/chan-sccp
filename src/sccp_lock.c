@@ -301,13 +301,14 @@ void * RefCountedObjectAlloc(size_t size, void *destructor)
 {
 	RefCountedObject * o;
 	char * ptr;
-	o = ( RefCountedObject * )calloc( sizeof( RefCountedObject ) + size, 1 );
-	ptr = ( char * )o;
-	ptr += sizeof( RefCountedObject);
-	ast_atomic_fetchadd_int(&o->refcount, 1);
+	o = (RefCountedObject *)calloc( sizeof( RefCountedObject ) + size, 1 );
+	ptr = (char *)o;
+	ptr += sizeof(RefCountedObject);
+	o->refcount = 1;
 	o->data = ptr;
 	o->destructor = destructor;
-	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "Refcount initialized for object %p\n",o);
+	pbx_log(LOG_NOTICE, "Refcount initialized for object %p to %d\n",o, o->refcount);
+	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "Refcount initialized for object %p to %d\n",o, o->refcount);
 	return ( void * )ptr;
 } 
 
@@ -315,13 +316,16 @@ int sccp_retain(const char *objtype, void * ptr, const char *filename, int linen
 {
 	RefCountedObject * o;
 	char * cptr;
+	int beforeVal;
 
 	cptr = (char *)ptr;
 	cptr -= sizeof(RefCountedObject);
 	o = (RefCountedObject *)cptr;
 
-	ast_atomic_fetchadd_int(&o->refcount, 1);
-	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %s line %d (%s) Refcount increased for %s: %p to: %d\n", filename, lineno, func, objtype, o, o->refcount);
+//	beforeVal = ast_atomic_fetchadd_int(&o->refcount, 1);
+	beforeVal = o->refcount++;
+//	pbx_log(LOG_NOTICE, "::::==== %s:%d (%s) Refcount increased for %s: %p to: %d\n", filename, lineno, func, objtype, o, beforeVal+1);
+	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %s:%d (%s) Refcount increased for %s: %p to: %d\n", filename, lineno, func, objtype, o, beforeVal+1);
 	return 0;
 }
 
@@ -329,14 +333,16 @@ int sccp_release(const char *objtype, void * ptr, const char *filename, int line
 {
 	RefCountedObject * o;
 	char * cptr;
-	int beforeVal=0;
+	int beforeVal;
 
 	cptr = (char *)ptr;
 	cptr -= sizeof(RefCountedObject);
 	o = (RefCountedObject *)cptr;
 
-	beforeVal=ast_atomic_fetchadd_int(&o->refcount, -1);
-	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %s line %d (%s) Refcount decreased for %s: %p to: %d\n", filename, lineno, func, objtype, o, o->refcount);
+//	beforeVal=ast_atomic_fetchadd_int(&o->refcount, -1);
+	beforeVal = o->refcount--;
+//	pbx_log(LOG_NOTICE, "::::==== %s:%d (%s) Refcount decreased for %s: %p to: %d\n", filename, lineno, func, objtype, o, beforeVal-1);
+	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %s:%d (%s) Refcount decreased for %s: %p to: %d\n", filename, lineno, func, objtype, o, beforeVal-1);
 	if( (beforeVal-1) == 0 ) {
 		pbx_log(LOG_NOTICE, "ReferenceCount for %p, reached 0 -> cleaning up!\n", o);
 		o->destructor(o);
