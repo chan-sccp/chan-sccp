@@ -25,6 +25,8 @@
 #        include "cw/cw.h"
 #    endif
 
+#    define PBX_BRIDGE_TYPE struct ast_bridge
+
 /*!
  * \brief SCCP PBX Callback function
  *
