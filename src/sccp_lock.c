@@ -342,6 +342,7 @@ int sccp_release(const char *objtype, void * ptr, const char *filename, int line
 	if( (beforeVal-1) == 0 ) {
 		pbx_log(LOG_NOTICE, "ReferenceCount for %p, reached 0 -> cleaning up!\n", o);
 		o->destructor(o);
+		sccp_free(o);
 	}
 	return 0;
 }

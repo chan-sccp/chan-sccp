@@ -1702,7 +1702,7 @@ int __sccp_device_destroy(const void *ptr)
 
 	sccp_device_unlock(d);
 	pbx_mutex_destroy(&d->lock);
-	sccp_free(d);
+//	sccp_free(d);	// moved to sccp_release
 
 	return 0;
 }
