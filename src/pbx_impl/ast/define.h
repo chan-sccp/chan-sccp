@@ -247,4 +247,6 @@
 #    define pbx_context_find ast_context_find
 #    define pbx_bridge_impart ast_bridge_impart
 #    define pbx_bridge_depart ast_bridge_depart
+
+#    define pbx_atomic_fetchadd_int ast_atomic_fetchadd_int
 #endif
