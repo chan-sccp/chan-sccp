@@ -201,8 +201,8 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 		d->session = NULL;
 		d->registrationState = SKINNY_DEVICE_RS_NONE;
 		d->needcheckringback = 0;
-		sccp_device_unlock(d);
 		sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
+		sccp_device_unlock(d);
 	}
 
 	/* closing fd's */
