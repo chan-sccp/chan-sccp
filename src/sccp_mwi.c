@@ -445,8 +445,11 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 	if (!d)
 		return;
 
-	int retry = 0;
 
+#if CS_EXPERIMENTAL
+	sccp_device_lock(d);
+#else
+	int retry = 0;
 	while (sccp_device_trylock(d)) {
 		retry++;
 		sccp_log((DEBUGCAT_MWI + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s), retry: %d\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, retry);
@@ -456,6 +459,7 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 			return;
 		}
 	}
+#endif	
 
 	/* when l is defined we are switching on/off the button icon */
 	if (l) {
