@@ -1711,12 +1711,13 @@ int __sccp_device_destroy(const void *ptr)
 	}
 
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Device Destroyed\n", d->id);
-	pbx_mutex_destroy(&d->lock);
 #if CS_EXPERIMENTAL
 	sccp_mutex_unlock(&d->lock);		// using real device lock while using refcount
 #else
 	sccp_device_unlock(d);
 #endif
+	pbx_mutex_destroy(&d->lock);
+
 #if !CS_EXPERIMENTAL	// refcount
 	sccp_free(d);	// moved to sccp_release
 #endif
