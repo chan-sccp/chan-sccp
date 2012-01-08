@@ -293,7 +293,7 @@ int __sccp_line_destroy(const void *ptr)
 	}
 	sccp_line_unlock(l);
 	pbx_mutex_destroy(&l->lock);
-	sccp_free(l);
+//	sccp_free(l);	// moved to sccp_release
 	return 0;
 }
 
