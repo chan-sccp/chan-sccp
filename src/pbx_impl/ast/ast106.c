@@ -985,22 +985,20 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_request(const char *type, int f
 		ast_log(LOG_WARNING, "SCCP: Unable to allocate channel\n");
 		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 		goto EXITFUNC;
-	} else {
-		PBX_CHANNEL_TYPE *requestor = channel->owner;
-
-		/* set calling party */
-		sccp_channel_set_callingparty(channel, requestor->cid.cid_name, requestor->cid.cid_num);
-		sccp_channel_set_originalCalledparty(channel, NULL, requestor->cid.cid_dnid);
-
-		char linkId[25];
-
-		sprintf(linkId, "SCCP::%d", channel->callid);
-		pbx_builtin_setvar_helper(requestor, SCCP_AST_LINKID_HELPER, linkId);
 	}
+	PBX_CHANNEL_TYPE *requestor = channel->owner;
+
+	// set calling party 
+	sccp_channel_set_callingparty(channel, requestor->cid.cid_name, requestor->cid.cid_num);
+	sccp_channel_set_originalCalledparty(channel, NULL, requestor->cid.cid_dnid);
+
+	char linkId[25];
+	sprintf(linkId, "SCCP::%d", channel->callid);
+	pbx_builtin_setvar_helper(requestor, SCCP_AST_LINKID_HELPER, linkId);
 
 	sccp_channel_unlock(channel);
 
- EXITFUNC:
+EXITFUNC:
 	if (lineName)
 		sccp_free(lineName);
 	sccp_restart_monitor();
