@@ -313,7 +313,7 @@ void * RefCountedObjectAlloc(size_t size, void *destructor)
 	return ( void * )ptr;
 } 
 
-int sccp_retain(const char *objtype, void * ptr, const char *filename, int lineno, const char *func) 
+void *sccp_retain(const char *objtype, void * ptr, const char *filename, int lineno, const char *func) 
 {
 	RefCountedObject * o;
 	char * cptr;
@@ -332,7 +332,7 @@ int sccp_retain(const char *objtype, void * ptr, const char *filename, int linen
 	return ptr;
 }
 
-int sccp_release(const char *objtype, void * ptr, const char *filename, int lineno, const char *func) 
+void *sccp_release(const char *objtype, void * ptr, const char *filename, int lineno, const char *func) 
 {
 	RefCountedObject * o;
 	char * cptr;
@@ -347,7 +347,6 @@ int sccp_release(const char *objtype, void * ptr, const char *filename, int line
 
 	if( refcountval < 0 ) {
 		pbx_log(LOG_NOTICE, "ReferenceCount would go below 0 for %p -> it is already being cleaned!\n", o);
-		return NULL;		// already being freed;
 	} else if( refcountval == 0 ) {
 		pbx_log(LOG_NOTICE, "ReferenceCount for %p, reached 0 -> cleaning up!\n", o);
 		o->destructor(ptr);

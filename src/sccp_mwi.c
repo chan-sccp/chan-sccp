@@ -446,7 +446,7 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 		return;
 
 
-#if CS_EXPERIMENTAL
+#if CS_EXPERIMENTAL	//refcount
 	sccp_device_lock(d);
 #else
 	int retry = 0;

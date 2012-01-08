@@ -709,11 +709,14 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 	sccp_channel_updateChannelCapability_locked(c);
 	//! \todo check locking
 	/* \todo we should remove this shit. */
+#ifdef CS_EXPERIMENTAL	//refcount
+	sccp_line_lock(l);
+#else
 	while (sccp_line_trylock(l)) {
 		sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
 		usleep(1);
 	}
-	
+#endif	
 
 #ifdef CS_AST_HAS_AST_STRING_FIELD
 	pbx_string_field_build(tmp, name, "SCCP/%s-%08x", l->name, c->callid);
