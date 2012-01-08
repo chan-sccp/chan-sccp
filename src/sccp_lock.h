@@ -24,8 +24,8 @@ typedef struct
 RefCountedObject; 
 
 void * RefCountedObjectAlloc(size_t size, void *destructor);
-int sccp_retain(const char *objtype, void * ptr, const char *filename, int lineno, const char *func);
-int sccp_release(const char *objtype, void * ptr, const char *filename, int lineno, const char *func);
+void *sccp_retain(const char *objtype, void * ptr, const char *filename, int lineno, const char *func);
+void *sccp_release(const char *objtype, void * ptr, const char *filename, int lineno, const char *func);
 #    define sccp_device_release(x) sccp_release("device", x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #    define sccp_device_retain(x) sccp_retain("device", x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #    define sccp_line_release(x) sccp_release("line", x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
