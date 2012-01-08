@@ -817,7 +817,7 @@ static uint8_t sccp_wrapper_asterisk16_get_sampleRate(skinny_codec_t codec)
 {
 	uint32_t astCodec;
 
-	astCodec = skinny_codec2pbx_codec(codec);
+
 	return ast_rtp_lookup_sample_rate(1, astCodec);
 }
 
@@ -1009,14 +1009,11 @@ static int sccp_wrapper_asterisk16_call(PBX_CHANNEL_TYPE * chan, char *addr, int
 {
 
 	sccp_channel_t *channel = get_sccp_channel_from_pbx_channel(chan);
-	/* Reinstated this call instead of the following lines */
 	char *cid_name = NULL;
 	char *cid_number = NULL;
 	
-	
-	PBX(get_callerid_name)(c, &cid_name);
-	PBX(get_callerid_number)(c, &cid_number);
-	
+	sccp_wrapper_asterisk16_callerid_name(c, &cid_name);
+	sccp_wrapper_asterisk16_callerid_number(c, &cid_number);
 	
 	sccp_channel_set_callingparty(channel, cid_name, cid_number);
 
