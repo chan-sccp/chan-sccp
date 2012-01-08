@@ -325,6 +325,8 @@ int sccp_retain(const char *objtype, void * ptr, const char *filename, int linen
 
 	beforeVal = ast_atomic_fetchadd_int(&o->refcount, 1);
 	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %s:%d (%s) Refcount increased for %s: %p to: %d\n", filename, lineno, func, objtype, o, beforeVal+1);
+	if (0==beforeVal) 
+		return -1;		// refcount = 0 -> object is being cleaned up
 	return 0;
 }
 
@@ -340,10 +342,15 @@ int sccp_release(const char *objtype, void * ptr, const char *filename, int line
 
 	beforeVal=ast_atomic_fetchadd_int(&o->refcount, -1);
 	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %s:%d (%s) Refcount decreased for %s: %p to: %d\n", filename, lineno, func, objtype, o, beforeVal-1);
-	if( (beforeVal-1) == 0 ) {
+
+	if( (beforeVal-1) < 0 ) {
+		return -1;		// already being freed;
+	} else if( (beforeVal-1) == 0 ) {
 		pbx_log(LOG_NOTICE, "ReferenceCount for %p, reached 0 -> cleaning up!\n", o);
-		o->destructor(o);
-		sccp_free(o);
+		if (o->destructor(o)) {
+			sccp_free(o);
+			o = NULL;
+		}
 	}
 	return 0;
 }

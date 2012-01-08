@@ -277,7 +277,11 @@ int __sccp_line_destroy(const void *ptr)
 
 	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Line FREE\n", l->name);
 
+#if CS_EXPERIMENTAL
+	sccp_mutex_lock(&l->lock);
+#else	
 	sccp_line_lock(l);
+#endif	
 	if (l->trnsfvm)
 		sccp_free(l->trnsfvm);
 
@@ -294,8 +298,12 @@ int __sccp_line_destroy(const void *ptr)
 			sccp_free(mailbox->context);
 		sccp_free(mailbox);
 	}
-	sccp_line_unlock(l);
 	pbx_mutex_destroy(&l->lock);
+#if CS_EXPERIMENTAL
+	sccp_mutex_unlock(&l->lock);
+#else	
+	sccp_line_unlock(l);
+#endif	
 #if !CS_EXPERIMENTAL	//refcount
 	sccp_free(l);	// moved to sccp_release
 #endif

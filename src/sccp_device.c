@@ -1614,6 +1614,11 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	sccp_device_unlock(d);
 
 	if (remove_from_global) {
+#if CS_EXPERIMENTAL	//refcount
+		// don't need scheduled destroy when using refcount
+		sccp_device_destroy(d);
+		d = NULL;
+#else
 		if (cleanupTime > 0) {
 			sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "%s: Device planned to be free'd in %d secs.\n", d->id, cleanupTime);
 			if ((d->scheduleTasks.free = sccp_sched_add(cleanupTime * 1000, sccp_device_destroy, d)) < 0) {
@@ -1625,6 +1630,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 			sccp_device_destroy(d);
 			d = NULL;
 		}
+#endif
 		return;
 	}
 }
@@ -1652,8 +1658,11 @@ int __sccp_device_destroy(const void *ptr)
 	sccp_hostname_t *permithost = NULL;
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Destroy Device\n", d->id);
+#if CS_EXPERIMENTAL
+	sccp_mutex_lock(&d->lock);		// using real device lock while using refcount
+#else
 	sccp_device_lock(d);
-
+#endif
 	/* remove button config */
 	/* only generated on read config, so do not remove on reset/restart */
 	SCCP_LIST_LOCK(&d->buttonconfig);
@@ -1667,7 +1676,8 @@ int __sccp_device_destroy(const void *ptr)
 	/* removing permithosts */
 	SCCP_LIST_LOCK(&d->permithosts);
 	while ((permithost = SCCP_LIST_REMOVE_HEAD(&d->permithosts, list))) {
-		sccp_free(permithost);
+		if (permithost)
+			sccp_free(permithost);
 	}
 	SCCP_LIST_UNLOCK(&d->permithosts);
 	SCCP_LIST_HEAD_DESTROY(&d->permithosts);
@@ -1675,39 +1685,41 @@ int __sccp_device_destroy(const void *ptr)
 #ifdef CS_DEVSTATE_FEATURE
 	/* removing devstate_specifier */
 	sccp_devstate_specifier_t *devstateSpecifier;
-
 	SCCP_LIST_LOCK(&d->devstateSpecifiers);
 	while ((devstateSpecifier = SCCP_LIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
-		sccp_free(devstateSpecifier);
+		if (devstateSpecifier)
+			sccp_free(devstateSpecifier);
 	}
 	SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
-       	SCCP_LIST_HEAD_DESTROY(&d->devstateSpecifiers);	
+	SCCP_LIST_HEAD_DESTROY(&d->devstateSpecifiers);	
 #endif
 
 	/* destroy selected channels list */
 	SCCP_LIST_HEAD_DESTROY(&d->selectedChannels);
+
 	if (d->ha) {
 		sccp_free_ha(d->ha);
+		d->ha = NULL;
 	}
 
 	/* cleanup message stack */
 	int i;
 	for(i=0;i< SCCP_MAX_MESSAGESTACK;i++) { 
-		if(d->messageStack[i] != NULL){
+		if(d && d->messageStack && d->messageStack[i] != NULL){
 			sccp_free(d->messageStack[i]);
 		}
 	}
 
-	d->ha = NULL;
-
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Device Destroyed\n", d->id);
-
-	sccp_device_unlock(d);
 	pbx_mutex_destroy(&d->lock);
+#if CS_EXPERIMENTAL
+	sccp_mutex_unlock(&d->lock);		// using real device lock while using refcount
+#else
+	sccp_device_unlock(d);
+#endif
 #if !CS_EXPERIMENTAL	// refcount
 	sccp_free(d);	// moved to sccp_release
 #endif
-
 	return 0;
 }
 
