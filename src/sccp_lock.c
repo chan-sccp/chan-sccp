@@ -325,9 +325,10 @@ int sccp_retain(const char *objtype, void * ptr, const char *filename, int linen
 
 	refcountval = pbx_atomic_fetchadd_int(&o->refcount, 1) + 1;
 	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %s:%d (%s) Refcount increased for %s: %p to: %d\n", filename, lineno, func, objtype, o, refcountval);
-	if (1 < refcountval) 
+	if (refcountval < 1) {
 		pbx_log(LOG_NOTICE, "ReferenceCount reached 0 for %p -> it is being cleaned!\n", o);
 		return -1;		// refcount = 0 -> object is being cleaned up
+	}	
 	return 0;
 }
 
