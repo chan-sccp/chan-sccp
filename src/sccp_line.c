@@ -138,10 +138,12 @@ sccp_line_t *sccp_line_create(void)
 }
 
 sccp_line_t *__sccp_line_retain(sccp_line_t *l, const char *filename, int lineno, const char *func) {
-	return (sccp_line_t *)sccp_retain("line", l, filename, lineno, func);
+	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %-15.15s:%-4.4d (%-25.25s) Refcount for line: %s ", filename, lineno, func, (l && l->name) ? l->name : "UNDEF");
+	return (sccp_line_t *)sccp_retain(l);
 }
 sccp_line_t *__sccp_line_release(sccp_line_t *l, const char *filename, int lineno, const char *func) {
-	return (sccp_line_t *)sccp_release("line", l, filename, lineno, func);
+	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %-15.15s:%-4.4d (%-25.25s) Refcount for line: %s ", filename, lineno, func, (l && l->name) ? l->name : "UNDEF");
+	return (sccp_line_t *)sccp_release(l);
 }
 
 /*!

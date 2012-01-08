@@ -294,10 +294,12 @@ sccp_device_t *sccp_device_create(void)
 }
 
 sccp_device_t *__sccp_device_retain(sccp_device_t *d, const char *filename, int lineno, const char *func) {
-	return (sccp_device_t *)sccp_retain("device", d, filename, lineno, func);
+	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %-15.15s:%-4.4d (%-25.25s) Refcount for device: %s ", filename, lineno, func, DEV_ID_LOG(d));
+	return (sccp_device_t *)sccp_retain(d);
 }
 sccp_device_t *__sccp_device_release(sccp_device_t *d, const char *filename, int lineno, const char *func) {
-	return (sccp_device_t *)sccp_release("device", d, filename, lineno, func);
+	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %-15.15s:%-4.4d (%-25.25s) Refcount for device: %s ", filename, lineno, func, DEV_ID_LOG(d));
+	return (sccp_device_t *)sccp_release(d);
 }
 
 sccp_device_t *sccp_device_createAnonymous(const char *name){
