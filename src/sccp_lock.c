@@ -297,6 +297,7 @@ int __sccp_mutex_trylock(ast_mutex_t * p_mutex, const char *itemnametolock, cons
 }
 #endif
 
+#if CS_EXPERIMENTAL
 void * RefCountedObjectAlloc(size_t size, void *destructor)
 {
 	RefCountedObject * o;
@@ -346,3 +347,4 @@ int sccp_release(const char *objtype, void * ptr, const char *filename, int line
 	}
 	return 0;
 }
+#endif

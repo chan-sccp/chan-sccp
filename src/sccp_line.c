@@ -116,14 +116,17 @@ void sccp_line_post_reload(void)
  */
 sccp_line_t *sccp_line_create(void)
 {
-//	sccp_line_t *l = sccp_malloc(sizeof(sccp_line_t));
+#if CS_EXPERIMENTAL	// refcount
 	sccp_line_t *l = (sccp_line_t *)RefCountedObjectAlloc(sizeof(sccp_line_t), __sccp_line_destroy);
+#else	
+	sccp_line_t *l = sccp_malloc(sizeof(sccp_line_t));
+#endif
 
 	if (!l) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Unable to allocate memory for a line\n");
 		return NULL;
 	}
-//	memset(l, 0, sizeof(sccp_line_t));
+	memset(l, 0, sizeof(sccp_line_t));
 	pbx_mutex_init(&l->lock);
 	sccp_line_lock(l);
 	SCCP_LIST_HEAD_INIT(&l->channels);
@@ -293,7 +296,9 @@ int __sccp_line_destroy(const void *ptr)
 	}
 	sccp_line_unlock(l);
 	pbx_mutex_destroy(&l->lock);
-//	sccp_free(l);	// moved to sccp_release
+#if !CS_EXPERIMENTAL	//refcount
+	sccp_free(l);	// moved to sccp_release
+#endif
 	return 0;
 }
 
@@ -311,9 +316,13 @@ int __sccp_line_destroy(const void *ptr)
  */
 int sccp_line_destroy(const void *ptr)
 {
+#if CS_EXPERIMENTAL	//refcount
 	sccp_line_t *l = (sccp_line_t *) ptr;
 	sccp_line_release(l);
 	return 0;
+#else
+	return __sccp_line_destroy(ptr);
+#endif
 }
 
 /*!
