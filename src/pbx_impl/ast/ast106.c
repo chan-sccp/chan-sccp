@@ -816,8 +816,7 @@ static uint8_t sccp_wrapper_asterisk16_get_payloadType(const struct sccp_rtp *rt
 static uint8_t sccp_wrapper_asterisk16_get_sampleRate(skinny_codec_t codec)
 {
 	uint32_t astCodec;
-
-
+	astCodec = skinny_codec2pbx_codec(codec);
 	return ast_rtp_lookup_sample_rate(1, astCodec);
 }
 
@@ -1005,17 +1004,128 @@ EXITFUNC:
 	return (channel && channel->owner) ? channel->owner : NULL;
 }
 
+/*
+ * \brief get callerid_name from pbx
+ * \param sccp_channle Asterisk Channel
+ * \param cid name result
+ * \return parse result
+ */
+static int sccp_wrapper_asterisk16_callerid_name(const sccp_channel_t * channel, char **cid_name)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+
+	if (pbx_chan->cid.cid_name && strlen(pbx_chan->cid.cid_name) > 0) {
+		*cid_name = strdup(pbx_chan->cid.cid_name);
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * \brief get callerid_name from pbx
+ * \param ast_chan Asterisk Channel
+ * \return char * with the caller number
+ */
+static int sccp_wrapper_asterisk16_callerid_number(const sccp_channel_t * channel, char **cid_number)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+
+	if (pbx_chan->cid.cid_num && strlen(pbx_chan->cid.cid_num) > 0) {
+		*cid_number = strdup(pbx_chan->cid.cid_num);
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * \brief get callerid_ton from pbx
+ * \param ast_chan Asterisk Channel
+ * \return char * with the caller number
+ */
+static int sccp_wrapper_asterisk16_callerid_ton(const sccp_channel_t * channel, char **cid_ton)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+
+	return pbx_chan->cid.cid_ton;
+}
+
+
+/*
+ * \brief get callerid_ani from pbx
+ * \param ast_chan Asterisk Channel
+ * \return char * with the caller number
+ */
+static int sccp_wrapper_asterisk16_callerid_ani(const sccp_channel_t * channel, char **cid_ani)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+
+	if (pbx_chan->cid.cid_ani && strlen(pbx_chan->cid.cid_ani) > 0) {
+		*cid_ani = strdup(pbx_chan->cid.cid_ani);
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * \brief get callerid_dnid from pbx (Destination ID)
+ * \param ast_chan Asterisk Channel
+ * \return char * with the caller number
+ */
+static int sccp_wrapper_asterisk16_callerid_dnid(const sccp_channel_t * channel, char **cid_dnid)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+
+	if (pbx_chan->cid.cid_dnid && strlen(pbx_chan->cid.cid_dnid) > 0) {
+		*cid_dnid = strdup(pbx_chan->cid.cid_dnid);
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * \brief get callerid_rdnis from pbx
+ * \param ast_chan Asterisk Channel
+ * \return char * with the caller number
+ */
+static int sccp_wrapper_asterisk16_callerid_rdnis(const sccp_channel_t * channel, char **cid_rdnis)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+
+	if (pbx_chan->cid.cid_rdnis && strlen(pbx_chan->cid.cid_rdnis) > 0) {
+		*cid_rdnis = strdup(pbx_chan->cid.cid_rdnis);
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * \brief get callerid_presence from pbx
+ * \param ast_chan Asterisk Channel
+ * \return char * with the caller number
+ */
+static int sccp_wrapper_asterisk16_callerid_presence(const sccp_channel_t * channel)
+{
+	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
+	return pbx_chan->cid.cid_pres;
+}
+
+
 static int sccp_wrapper_asterisk16_call(PBX_CHANNEL_TYPE * chan, char *addr, int timeout)
 {
 
-	sccp_channel_t *channel = get_sccp_channel_from_pbx_channel(chan);
+	sccp_channel_t *sccp_channel = get_sccp_channel_from_pbx_channel(chan);
 	char *cid_name = NULL;
 	char *cid_number = NULL;
 	
-	sccp_wrapper_asterisk16_callerid_name(c, &cid_name);
-	sccp_wrapper_asterisk16_callerid_number(c, &cid_number);
+	sccp_wrapper_asterisk16_callerid_name(sccp_channel, &cid_name);
+	sccp_wrapper_asterisk16_callerid_number(sccp_channel, &cid_number);
 	
-	sccp_channel_set_callingparty(channel, cid_name, cid_number);
+	sccp_channel_set_callingparty(sccp_channel, cid_name, cid_number);
 
 	if(cid_name){
 		free(cid_name);
@@ -1234,116 +1344,6 @@ static int sccp_wrapper_asterisk16_getCodec(PBX_CHANNEL_TYPE * ast)
 		return skinny_codecs2pbx_codecs(channel->remoteCapabilities.audio);
 	else
 		return skinny_codecs2pbx_codecs(channel->capabilities.audio);
-}
-
-/*
- * \brief get callerid_name from pbx
- * \param sccp_channle Asterisk Channel
- * \param cid name result
- * \return parse result
- */
-static int sccp_wrapper_asterisk16_callerid_name(const sccp_channel_t * channel, char **cid_name)
-{
-	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
-
-	if (pbx_chan->cid.cid_name && strlen(pbx_chan->cid.cid_name) > 0) {
-		*cid_name = strdup(pbx_chan->cid.cid_name);
-		return 1;
-	}
-
-	return 0;
-}
-
-/*
- * \brief get callerid_name from pbx
- * \param ast_chan Asterisk Channel
- * \return char * with the caller number
- */
-static int sccp_wrapper_asterisk16_callerid_number(const sccp_channel_t * channel, char **cid_number)
-{
-	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
-
-	if (pbx_chan->cid.cid_num && strlen(pbx_chan->cid.cid_num) > 0) {
-		*cid_number = strdup(pbx_chan->cid.cid_num);
-		return 1;
-	}
-
-	return 0;
-}
-
-/*
- * \brief get callerid_ton from pbx
- * \param ast_chan Asterisk Channel
- * \return char * with the caller number
- */
-static int sccp_wrapper_asterisk16_callerid_ton(const sccp_channel_t * channel, char **cid_ton)
-{
-	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
-
-	return pbx_chan->cid.cid_ton;
-}
-
-
-/*
- * \brief get callerid_ani from pbx
- * \param ast_chan Asterisk Channel
- * \return char * with the caller number
- */
-static int sccp_wrapper_asterisk16_callerid_ani(const sccp_channel_t * channel, char **cid_ani)
-{
-	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
-
-	if (pbx_chan->cid.cid_ani && strlen(pbx_chan->cid.cid_ani) > 0) {
-		*cid_ani = strdup(pbx_chan->cid.cid_ani);
-		return 1;
-	}
-
-	return 0;
-}
-
-/*
- * \brief get callerid_dnid from pbx (Destination ID)
- * \param ast_chan Asterisk Channel
- * \return char * with the caller number
- */
-static int sccp_wrapper_asterisk16_callerid_dnid(const sccp_channel_t * channel, char **cid_dnid)
-{
-	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
-
-	if (pbx_chan->cid.cid_dnid && strlen(pbx_chan->cid.cid_dnid) > 0) {
-		*cid_dnid = strdup(pbx_chan->cid.cid_dnid);
-		return 1;
-	}
-
-	return 0;
-}
-
-/*
- * \brief get callerid_rdnis from pbx
- * \param ast_chan Asterisk Channel
- * \return char * with the caller number
- */
-static int sccp_wrapper_asterisk16_callerid_rdnis(const sccp_channel_t * channel, char **cid_rdnis)
-{
-	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
-
-	if (pbx_chan->cid.cid_rdnis && strlen(pbx_chan->cid.cid_rdnis) > 0) {
-		*cid_rdnis = strdup(pbx_chan->cid.cid_rdnis);
-		return 1;
-	}
-
-	return 0;
-}
-
-/*
- * \brief get callerid_presence from pbx
- * \param ast_chan Asterisk Channel
- * \return char * with the caller number
- */
-static int sccp_wrapper_asterisk16_callerid_presence(const sccp_channel_t * channel)
-{
-	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
-	return pbx_chan->cid.cid_pres;
 }
 
 static int sccp_wrapper_asterisk16_rtp_stop(sccp_channel_t * channel)
