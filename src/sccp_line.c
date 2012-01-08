@@ -298,12 +298,12 @@ int __sccp_line_destroy(const void *ptr)
 			sccp_free(mailbox->context);
 		sccp_free(mailbox);
 	}
-	pbx_mutex_destroy(&l->lock);
 #if CS_EXPERIMENTAL
 	sccp_mutex_unlock(&l->lock);
 #else	
 	sccp_line_unlock(l);
 #endif	
+	pbx_mutex_destroy(&l->lock);
 #if !CS_EXPERIMENTAL	//refcount
 	sccp_free(l);	// moved to sccp_release
 #endif
