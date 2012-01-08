@@ -1007,7 +1007,27 @@ EXITFUNC:
 
 static int sccp_wrapper_asterisk16_call(PBX_CHANNEL_TYPE * chan, char *addr, int timeout)
 {
-	//! \todo change this handling and split pbx and sccp handling -MC
+
+	sccp_channel_t *channel = get_sccp_channel_from_pbx_channel(chan);
+	/* Reinstated this call instead of the following lines */
+	char *cid_name = NULL;
+	char *cid_number = NULL;
+	
+	
+	PBX(get_callerid_name)(c, &cid_name);
+	PBX(get_callerid_number)(c, &cid_number);
+	
+	
+	sccp_channel_set_callingparty(channel, cid_name, cid_number);
+
+	if(cid_name){
+		free(cid_name);
+	}
+	
+	if(cid_number){
+		free(cid_number);
+	}
+	
 	return sccp_pbx_call(chan, addr, timeout);
 }
 
