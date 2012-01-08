@@ -297,7 +297,7 @@ sccp_device_t *__sccp_device_retain(sccp_device_t *d, const char *filename, int 
 	return (sccp_device_t *)sccp_retain("device", d, filename, lineno, func);
 }
 sccp_device_t *__sccp_device_release(sccp_device_t *d, const char *filename, int lineno, const char *func) {
-	return (sccp_device_t *)sccp_retain("device", d, filename, lineno, func);
+	return (sccp_device_t *)sccp_release("device", d, filename, lineno, func);
 }
 
 sccp_device_t *sccp_device_createAnonymous(const char *name){

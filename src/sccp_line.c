@@ -141,7 +141,7 @@ sccp_line_t *__sccp_line_retain(sccp_line_t *l, const char *filename, int lineno
 	return (sccp_line_t *)sccp_retain("line", l, filename, lineno, func);
 }
 sccp_line_t *__sccp_line_release(sccp_line_t *l, const char *filename, int lineno, const char *func) {
-	return (sccp_line_t *)sccp_retain("line", l, filename, lineno, func);
+	return (sccp_line_t *)sccp_release("line", l, filename, lineno, func);
 }
 
 /*!
