@@ -245,8 +245,11 @@ void sccp_device_post_reload(void)
 sccp_device_t *sccp_device_create(void)
 {
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "DEVICE CREATE\n");
-//	sccp_device_t *d = sccp_calloc(1, sizeof(sccp_device_t));
+#if CS_EXPERIMENTAL	//refcount
 	sccp_device_t *d = RefCountedObjectAlloc(sizeof(sccp_device_t), __sccp_device_destroy);
+#else
+	sccp_device_t *d = sccp_calloc(1, sizeof(sccp_device_t));
+#endif
 	if (!d) {
 		sccp_log(0) (VERBOSE_PREFIX_3 "Unable to allocate memory for a device\n");
 		return NULL;
@@ -255,7 +258,6 @@ sccp_device_t *sccp_device_create(void)
 	memset(d, 0, sizeof(d));
 	pbx_mutex_init(&d->lock);
 	sccp_device_lock(d);
-
 
 	SCCP_LIST_HEAD_INIT(&d->buttonconfig);
 	SCCP_LIST_HEAD_INIT(&d->selectedChannels);
@@ -1702,7 +1704,9 @@ int __sccp_device_destroy(const void *ptr)
 
 	sccp_device_unlock(d);
 	pbx_mutex_destroy(&d->lock);
-//	sccp_free(d);	// moved to sccp_release
+#if !CS_EXPERIMENTAL	// refcount
+	sccp_free(d);	// moved to sccp_release
+#endif
 
 	return 0;
 }
@@ -1725,9 +1729,13 @@ int __sccp_device_destroy(const void *ptr)
  */
 int sccp_device_destroy(const void *ptr)
 {
+#if CS_EXPERIMENTAL	// refcount
 	sccp_device_t *d = (sccp_device_t *) ptr;
 	sccp_device_release(d);
 	return 0;
+#else
+	return __sccp_device_destroy(ptr);
+#endif	
 }
 
 /*!
