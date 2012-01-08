@@ -317,15 +317,16 @@ int sccp_retain(const char *objtype, void * ptr, const char *filename, int linen
 {
 	RefCountedObject * o;
 	char * cptr;
-	int beforeVal;
+	int refcountval;
 
 	cptr = (char *)ptr;
 	cptr -= sizeof(RefCountedObject);
 	o = (RefCountedObject *)cptr;
 
-	beforeVal = ast_atomic_fetchadd_int(&o->refcount, 1);
-	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %s:%d (%s) Refcount increased for %s: %p to: %d\n", filename, lineno, func, objtype, o, beforeVal+1);
-	if (0==beforeVal) 
+	refcountval = pbx_atomic_fetchadd_int(&o->refcount, 1) + 1;
+	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %s:%d (%s) Refcount increased for %s: %p to: %d\n", filename, lineno, func, objtype, o, refcountval);
+	if (1 < refcountval) 
+		pbx_log(LOG_NOTICE, "ReferenceCount reached 0 for %p -> it is being cleaned!\n", o);
 		return -1;		// refcount = 0 -> object is being cleaned up
 	return 0;
 }
@@ -334,23 +335,23 @@ int sccp_release(const char *objtype, void * ptr, const char *filename, int line
 {
 	RefCountedObject * o;
 	char * cptr;
-	int beforeVal;
+	int refcountval;
 
 	cptr = (char *)ptr;
 	cptr -= sizeof(RefCountedObject);
 	o = (RefCountedObject *)cptr;
 
-	beforeVal=ast_atomic_fetchadd_int(&o->refcount, -1);
-	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %s:%d (%s) Refcount decreased for %s: %p to: %d\n", filename, lineno, func, objtype, o, beforeVal-1);
+	refcountval=pbx_atomic_fetchadd_int(&o->refcount, -1) -1;
+	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %s:%d (%s) Refcount decreased for %s: %p to: %d\n", filename, lineno, func, objtype, o, refcountval);
 
-	if( (beforeVal-1) < 0 ) {
+	if( refcountval < 0 ) {
+		pbx_log(LOG_NOTICE, "ReferenceCount would go below 0 for %p -> it is already being cleaned!\n", o);
 		return -1;		// already being freed;
-	} else if( (beforeVal-1) == 0 ) {
+	} else if( refcountval == 0 ) {
 		pbx_log(LOG_NOTICE, "ReferenceCount for %p, reached 0 -> cleaning up!\n", o);
-		if (o->destructor(o)) {
-			sccp_free(o);
-			o = NULL;
-		}
+		o->destructor(ptr);
+		sccp_free(o);
+		o = NULL;
 	}
 	return 0;
 }
