@@ -313,7 +313,7 @@ void * RefCountedObjectAlloc(size_t size, void *destructor)
 	return ( void * )ptr;
 } 
 
-void *sccp_retain(const char *objtype, void * ptr, const char *filename, int lineno, const char *func) 
+void *sccp_retain(void * ptr)
 {
 	RefCountedObject * o;
 	char * cptr;
@@ -324,15 +324,16 @@ void *sccp_retain(const char *objtype, void * ptr, const char *filename, int lin
 	o = (RefCountedObject *)cptr;
 
 	refcountval = pbx_atomic_fetchadd_int(&o->refcount, 1) + 1;
-	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %s:%d (%s) Refcount increased for %s: %p to: %d\n", filename, lineno, func, objtype, o, refcountval);
 	if (refcountval < 1) {
-		pbx_log(LOG_NOTICE, "ReferenceCount reached 0 for %p -> it is being cleaned!\n", o);
+		pbx_log(LOG_ERROR, "\nrefcount already reached 0 -> obj is fading!\n");
 		return NULL;		// refcount = 0 -> object is being cleaned up
-	}	
+	} else {
+		sccp_log((DEBUGCAT_LOCK)) ("increased to: %d\n", refcountval);
+	}
 	return ptr;
 }
 
-void *sccp_release(const char *objtype, void * ptr, const char *filename, int lineno, const char *func) 
+void *sccp_release(void * ptr)
 {
 	RefCountedObject * o;
 	char * cptr;
@@ -343,15 +344,16 @@ void *sccp_release(const char *objtype, void * ptr, const char *filename, int li
 	o = (RefCountedObject *)cptr;
 
 	refcountval=pbx_atomic_fetchadd_int(&o->refcount, -1) -1;
-	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %s:%d (%s) Refcount decreased for %s: %p to: %d\n", filename, lineno, func, objtype, o, refcountval);
 
 	if( refcountval < 0 ) {
-		pbx_log(LOG_NOTICE, "ReferenceCount would go below 0 for %p -> it is already being cleaned!\n", o);
+		pbx_log(LOG_ERROR, "\nrefcount would go below 0 -> it is already being cleaned!\n");
 	} else if( refcountval == 0 ) {
-		pbx_log(LOG_NOTICE, "ReferenceCount for %p, reached 0 -> cleaning up!\n", o);
+		pbx_log(LOG_NOTICE, "\nrefcount has reached 0 -> cleaning up!\n");
 		o->destructor(ptr);
 		sccp_free(o);
 		o = NULL;
+	} else {
+		sccp_log((DEBUGCAT_LOCK)) ("decreased to: %d\n", refcountval);
 	}
 	return NULL;
 }
