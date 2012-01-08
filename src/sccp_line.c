@@ -464,11 +464,17 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
 		linedevice = sccp_malloc(sizeof(sccp_linedevices_t));
 		memset(linedevice, 0, sizeof(sccp_linedevices_t));
+		
 	}
 
+#if CS_EXPERIMENTAL	//refcount			
+	linedevice->device = sccp_device_retain(device);
+	linedevice->line = sccp_line_retain(l);
+#else			
 	linedevice->device = device;
-	linedevice->lineInstance = lineInstance;
 	linedevice->line = l;
+#endif
+	linedevice->lineInstance = lineInstance;
 
 	if (NULL != subscriptionId) {
 		sccp_copy_string(linedevice->subscriptionId.name, subscriptionId->name, sizeof(linedevice->subscriptionId.name));
@@ -566,7 +572,10 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 			event->type = SCCP_EVENT_DEVICE_DETACHED;
 			event->event.deviceAttached.linedevice = linedevice;
 			sccp_event_fire((const sccp_event_t **)&event);
-			
+#if CS_EXPERIMENTAL	//refcount			
+			sccp_device_release(device);
+			sccp_line_release(l);
+#endif			
 			sccp_free(linedevice);
 		}
 	}
