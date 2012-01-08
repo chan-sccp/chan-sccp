@@ -1609,6 +1609,7 @@ static void sccp_wrapper_asterisk16_setRedirectingParty(const sccp_channel_t * c
 
 static void sccp_wrapper_asterisk16_setRedirectedParty(const sccp_channel_t * channel, const char *number, const char *name)
 {
+	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "sccp_wrapper_asterisk16_setRedirectedParty Not Implemented\n");
 	/*!< \todo set RedirectedParty using ast_callerid */
 
 /*	if (number) {
@@ -1627,7 +1628,7 @@ static void sccp_wrapper_asterisk16_setRedirectedParty(const sccp_channel_t * ch
 
 static void sccp_wrapper_asterisk16_updateConnectedLine(const sccp_channel_t * channel, const char *number, const char *name, uint8_t reason)
 {
-
+	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "sccp_wrapper_asterisk16_updateConnectedLine Not Implemented\n");
 /*
 	struct ast_party_connected_line connected;
 	struct ast_set_party_connected_line update_connected;
