@@ -112,11 +112,6 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 
 	char *cid_name = NULL;
 	char *cid_number = NULL;
-	char *cid_dnid = NULL;
-	char *cid_ani = NULL;
-	int cid_ani2 = 0;
-	char *cid_rdnis = NULL;
-	int cid_pres = 0;
 
 	char suffixedNumber[255] = { '\0' };					/*!< For saving the digittimeoutchar to the logs */
 	boolean_t hasSession = FALSE;
@@ -179,29 +174,12 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 	/* Reinstated this call instead of the following lines */
 	if (strlen(c->callInfo.callingPartyName) > 0)
 		cid_name = strdup(c->callInfo.callingPartyName);
-	else if (PBX(get_callerid_name))
-      		PBX(get_callerid_name)(c, &cid_name);
- 
+
 	if (strlen(c->callInfo.callingPartyNumber) > 0)
 		cid_number = strdup(c->callInfo.callingPartyNumber);
-	else if (PBX(get_callerid_number))
-        	if (PBX(get_callerid_number)(c, &cid_number))
-
-	if (PBX(get_callerid_ani) && !PBX(get_callerid_ani)(c, &cid_ani)) {
-		cid_ani = ast_strdup(cid_number);
-	}
-
-	if (PBX(get_callerid_dnid))
-		PBX(get_callerid_dnid)(c, &cid_dnid);
-
-	if (PBX(get_callerid_rdnis))
-		PBX(get_callerid_rdnis)(c, &cid_rdnis);
-
-	if (PBX(get_callerid_presence))
-		cid_pres = PBX(get_callerid_presence)(c);
 
 	//! \todo implement dnid, ani, ani2 and rdnis
-	sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) asterisk callerid='%s <%s>', dnid='%s', ani='%s', ani2=%d, rdnis='%s'\n", (cid_number) ? cid_number : "", (cid_name) ? cid_name : "", (cid_dnid) ? cid_dnid : "", (cid_ani) ? cid_ani : "", cid_ani2, (cid_rdnis) ? cid_rdnis : "");
+	sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) asterisk callerid='%s <%s>'\n", (cid_number) ? cid_number : "", (cid_name) ? cid_name : "");
 	
 	/* Set the channel callingParty Name and Number, called Party Name and Number, original CalledParty Name and Number, Presentation */
 	if (GLOB(recorddigittimeoutchar)) {
@@ -227,12 +205,10 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 	/* Set the channel calledParty Name and Number 7910 compatibility */
 	sccp_channel_set_calledparty(c, l->cid_name, l->cid_num);
 
-	/* check if we have an forwared call */
-	if (!sccp_strlen_zero(cid_ani) && strncmp(cid_ani, c->callInfo.callingPartyNumber, strlen(cid_ani))) {
-		sccp_copy_string(c->callInfo.originalCalledPartyNumber, cid_ani, sizeof(c->callInfo.originalCalledPartyNumber));
-	}
 	//! \todo implement dnid, ani, ani2 and rdnis
-	c->callInfo.presentation = cid_pres;
+	if (PBX(get_callerid_presence)) {
+		c->callInfo.presentation = PBX(get_callerid_presence)(c);
+	}	
 
 	sccp_channel_display_callInfo(c);
 
@@ -330,12 +306,6 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 		free(cid_name);
 	if (cid_number)
 		free(cid_number);
-	if (cid_dnid)
-		free(cid_dnid);
-	if (cid_ani)
-		free(cid_ani);
-	if (cid_rdnis)
-		free(cid_rdnis);
 
 	return 0;
 }
