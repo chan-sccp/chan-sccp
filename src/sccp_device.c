@@ -293,6 +293,13 @@ sccp_device_t *sccp_device_create(void)
 	return d;
 }
 
+sccp_device_t *__sccp_device_retain(sccp_device_t *d, const char *filename, int lineno, const char *func) {
+	return (sccp_device_t *)sccp_retain("device", d, filename, lineno, func);
+}
+sccp_device_t *__sccp_device_release(sccp_device_t *d, const char *filename, int lineno, const char *func) {
+	return (sccp_device_t *)sccp_retain("device", d, filename, lineno, func);
+}
+
 sccp_device_t *sccp_device_createAnonymous(const char *name){
 	sccp_device_t *d = sccp_device_create();
 	d->realtime = TRUE;

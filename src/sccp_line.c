@@ -137,6 +137,13 @@ sccp_line_t *sccp_line_create(void)
 	return l;
 }
 
+sccp_line_t *__sccp_line_retain(sccp_line_t *l, const char *filename, int lineno, const char *func) {
+	return (sccp_line_t *)sccp_retain("line", l, filename, lineno, func);
+}
+sccp_line_t *__sccp_line_release(sccp_line_t *l, const char *filename, int lineno, const char *func) {
+	return (sccp_line_t *)sccp_retain("line", l, filename, lineno, func);
+}
+
 /*!
  * Add a line to global line list.
  * \param line line pointer
