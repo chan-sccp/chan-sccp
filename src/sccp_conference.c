@@ -145,8 +145,8 @@ int sccp_conference_swapAstChannelBridge(sccp_conference_participant_t * partici
 	if (chan->pbx) {
 		pbx_set_flag(chan, AST_FLAG_BLOCKING);				/*! a thread is blocking on this channel */
 	}
-	participant->origBridge=chan->bridge;
 	participant->conferenceBridgePeer=chan;
+	participant->origBridge=participant->conferenceBridgePeer->bridge;
 
 	if (NULL == participant->channel) {
 		participant->channel = get_sccp_channel_from_pbx_channel(participant->conferenceBridgePeer);
@@ -162,20 +162,30 @@ int sccp_conference_swapAstChannelBridge(sccp_conference_participant_t * partici
 		/* In the future we may need to consider that / if the moderator changes the sccp channel due to creating new channel for the moderator */
 	}
 
+	/* leave current ast_channel_bridge */
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Disconnecting from original bridge via sccp_conference_swapAstChannelBridge.\n");
 
-	/* leave current bridge */
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Swapping out original bridge via sccp_conference_swapAstChannelBridge.\n");
-	participant->origBridge = chan->bridge;
-	pbx_bridge_depart(participant->origBridge, chan);
+	PBX_CHANNEL_TYPE *otherside;
+	otherside = participant->conferenceBridgePeer->_bridge;
+	ast_indicate(participant->conferenceBridgePeer, AST_CONTROL_HOLD);
+	participant->conferenceBridgePeer->_bridge=NULL;
+	ast_indicate(participant->conferenceBridgePeer, -1);
+	ast_indicate(participant->conferenceBridgePeer, AST_CONTROL_UNHOLD);
 
 	/* joining the conference bridge (blocks until the channel is removed or departed from bridge) */
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_swapAstChannelBridge.\n");
 	if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_join_thread, participant) < 0) {
 		// \todo TODO: error handling
 	}
-	/* left the conference, re-instating original bridge connection */
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Swapping in original bridge via sccp_conference_swapAstChannelBridge.\n");
-	pbx_bridge_impart(participant->origBridge, chan, NULL, NULL);
+
+	/* left the conference, re-instating original ast_channel_bridge connection */
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Reconnecting to original bridge via sccp_conference_swapAstChannelBridge.\n");
+	ast_indicate(participant->conferenceBridgePeer, AST_CONTROL_HOLD);
+	participant->conferenceBridgePeer->_bridge=otherside;
+	participant->conferenceBridgePeer->readformat = otherside->readformat;
+	participant->conferenceBridgePeer->writeformat = otherside->writeformat;
+	ast_indicate(participant->conferenceBridgePeer, -1);
+	ast_indicate(participant->conferenceBridgePeer, AST_CONTROL_UNHOLD);
 
 	pbx_clear_flag(chan, AST_FLAG_BLOCKING);				/*! release channel blocking flag */
 
@@ -270,7 +280,6 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 	pbx_bridge_features_init(&remoteParticipant->features);
 
 	/* get the exitcontext, to jump to after hangup */
-
 	pbx_channel_lock(remoteCallLeg);
 	if (!pbx_strlen_zero(remoteCallLeg->macrocontext)) {
 		pbx_copy_string(remoteParticipant->exitcontext, remoteCallLeg->macrocontext, sizeof(remoteParticipant->exitcontext));
