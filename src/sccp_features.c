@@ -730,13 +730,13 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 		return;
 
 	sccp_device_lock(d);
-//	uint8_t num = sccp_device_numberOfChannels(d);
+	uint8_t num = sccp_device_numberOfChannels(d);
 
 	sccp_device_unlock(d);
-//	if (num < 2) {
-//		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
-//		return;
-//	}
+	if (num < 2) {
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+		return;
+	}
 
 	if (!d->conference) {
 		d->conference = sccp_conference_create(c);
