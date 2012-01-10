@@ -21,8 +21,8 @@ void sccp_line_pre_reload(void);
 void sccp_line_post_reload(void);
 #endif
 sccp_line_t *sccp_line_create(void);
-sccp_line_t *__sccp_line_retain(sccp_line_t *l, const char *filename, int lineno, const char *func);
-sccp_line_t *__sccp_line_release(sccp_line_t *d, const char *filename, int lineno, const char *func);
+inline sccp_line_t *__sccp_line_retain(sccp_line_t *l, const char *filename, int lineno, const char *func);
+inline sccp_line_t *__sccp_line_release(sccp_line_t *d, const char *filename, int lineno, const char *func);
 sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line);
 void sccp_line_kill(sccp_line_t * l);
 void sccp_line_clean(sccp_line_t * l, boolean_t destroy);
