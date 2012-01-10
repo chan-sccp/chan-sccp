@@ -976,7 +976,7 @@ struct sccp_session {
 	sccp_mutex_t lock;							/*!< Asterisk: Lock Me Up and Tie me Down */
 	void *buffer;								/*!< Session Buffer */
 	int32_t buffer_size;							/*!< Session Buffer Size */
-#ifdef CS_EXPERIMENTAL
+#ifdef CS_EXPERIMENTAL_NEWIP
 	struct sockaddr_storage *ss;						/*!< Incoming Socket Address Storage */
 #endif
 	struct sockaddr_in sin;							/*!< Incoming Socket Address */
@@ -997,11 +997,11 @@ struct sccp_session {
 struct sccp_rtp {
 	PBX_RTP_TYPE *rtp;							/*!< pbx rtp pointer */
 	boolean_t isStarted;							/*!< is rtp server started */
-#ifdef CS_EXPERIMENTAL
+#ifdef CS_EXPERIMENTAL_NEWIP
 	struct sockaddr_storage *phone_ss;					/*!< Our Phone Socket Address Storage (openreceive) */
 #endif
 	struct sockaddr_in phone;						/*!< our phone information (openreceive) */
-#ifdef CS_EXPERIMENTAL
+#ifdef CS_EXPERIMENTAL_NEWIP
 	struct sockaddr_storage *phone_remote_ss;				/*!< Phone Destination Socket Address Storage (starttransmission) */
 #endif
 	struct sockaddr_in phone_remote;					/*!< phone destination address (starttransmission) */
@@ -1121,7 +1121,7 @@ struct sccp_global_vars {
 	char context[SCCP_MAX_CONTEXT];						/*!< Global / General Context */
 	char dateformat[8];							/*!< Date Format */
 
-#ifdef CS_EXPERIMENTAL
+#ifdef CS_EXPERIMENTAL_NEWIP
 	struct sockaddr_storage bindaddr_ss;					/*!< Bind Socket Storage */
 #endif
 	struct sockaddr_in bindaddr;						/*!< Bind IP Address */

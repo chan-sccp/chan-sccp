@@ -283,7 +283,7 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk16_rtp_read(PBX_CHANNEL_TYPE * ast)
 		if (!(frame->subclass & (ast->rawreadformat & AST_FORMAT_AUDIO_MASK)))	// ASTERISK_VERSION_NUMBER >= 10400
 		{
 			//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n", DEV_ID_LOG(c->device), ast->name, pbx_getformatname(ast->nativeformats), ast->nativeformats, pbx_getformatname(frame->subclass), frame->subclass);
-#ifndef CS_EXPERIMENTAL
+#ifndef CS_EXPERIMENTAL_CODEC
 			sccp_wrapper_asterisk16_setReadFormat(c, c->rtp.audio.readFormat);
 #endif
 //                      ast_set_write_format(ast, frame->subclass.codec);
@@ -1500,7 +1500,7 @@ static boolean_t sccp_wrapper_asterisk16_setWriteFormat(const sccp_channel_t * c
 	channel->owner->rawwriteformat = skinny_codec2pbx_codec(codec);
 	channel->owner->nativeformats |= channel->owner->rawwriteformat;
 
-#ifndef CS_EXPERIMENTAL
+#ifndef CS_EXPERIMENTAL_CODEC
 	if (!channel->owner->writeformat) {
 		channel->owner->writeformat = channel->owner->rawwriteformat;
 	}
@@ -1515,7 +1515,7 @@ static boolean_t sccp_wrapper_asterisk16_setWriteFormat(const sccp_channel_t * c
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write native: %d\n", (int)channel->owner->rawwriteformat);
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write: %d\n", (int)channel->owner->writeformat);
 
-#ifdef CS_EXPERIMENTAL
+#ifdef CS_EXPERIMENTAL_CODEC
 	PBX_CHANNEL_TYPE *bridge;
 
 	if (PBX(getRemoteChannel) (channel, &bridge)) {
@@ -1540,7 +1540,7 @@ static boolean_t sccp_wrapper_asterisk16_setReadFormat(const sccp_channel_t * ch
 	channel->owner->rawreadformat = skinny_codec2pbx_codec(codec);
 	channel->owner->nativeformats = channel->owner->rawreadformat;
 
-#ifndef CS_EXPERIMENTAL
+#ifndef CS_EXPERIMENTAL_CODEC
 	if (!channel->owner->readformat) {
 		channel->owner->readformat = channel->owner->rawreadformat;
 	}
@@ -1553,7 +1553,7 @@ static boolean_t sccp_wrapper_asterisk16_setReadFormat(const sccp_channel_t * ch
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "read native: %d\n", (int)channel->owner->rawreadformat);
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "read: %d\n", (int)channel->owner->readformat);
 
-#ifdef CS_EXPERIMENTAL
+#ifdef CS_EXPERIMENTAL_CODEC
 	PBX_CHANNEL_TYPE *bridge;
 
 	if (PBX(getRemoteChannel) (channel, &bridge)) {
