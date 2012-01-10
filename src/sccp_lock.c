@@ -349,8 +349,7 @@ inline void *sccp_release(void * ptr)
 		pbx_log(LOG_ERROR, "\nrefcount would go below 0 -> it is already being cleaned!\n");
 	} else if( refcountval == 0 ) {
 		pbx_log(LOG_NOTICE, "\nrefcount has reached 0 -> cleaning up!\n");
-		if (o->destructor(ptr))
-			o->destructor(ptr);
+		o->destructor(ptr);
 		sccp_free(o);
 		o = NULL;
 	} else {
