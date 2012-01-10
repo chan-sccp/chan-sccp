@@ -26,10 +26,18 @@ RefCountedObject;
 void * RefCountedObjectAlloc(size_t size, void *destructor);
 void *sccp_retain(void * ptr);
 void *sccp_release(void * ptr);
-#    define sccp_device_release(x) __sccp_device_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define sccp_device_retain(x) __sccp_device_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define sccp_line_release(x) __sccp_line_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define sccp_line_retain(x) __sccp_line_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#endif
+
+#if CS_EXPERIMENTAL_REFCOUNT
+#    define sccp_line_release(x) 		__sccp_line_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#    define sccp_line_retain(x) 		__sccp_line_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#    define sccp_device_release(x) 		__sccp_device_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#    define sccp_device_retain(x) 		__sccp_device_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#else
+#    define sccp_line_release(x) 		{/* noop */}
+#    define sccp_line_retain(x) 		{/* noop */}
+#    define sccp_device_release(x) 		{/* noop */}
+#    define sccp_device_retain(x) 		{/* noop */}
 #endif
 
 #    define sccp_mutex_init(x)          		pbx_mutex_init(x)
