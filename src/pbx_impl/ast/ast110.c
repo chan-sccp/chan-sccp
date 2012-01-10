@@ -290,7 +290,7 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk110_rtp_read(PBX_CHANNEL_TYPE * ast)
 			ast_format_cap_remove_bytype(ast->nativeformats, AST_FORMAT_TYPE_AUDIO);
 			ast_format_cap_add(ast->nativeformats, &frame->subclass.format);
 
-#ifndef CS_EXPERIMENTAL
+#ifndef CS_EXPERIMENTAL_CODEC
 			ast_set_read_format(ast, &ast->readformat);
 #endif
 //                      ast_set_write_format(ast, &ast->writeformat);
