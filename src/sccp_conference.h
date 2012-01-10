@@ -45,7 +45,7 @@ extern "C" {
 
 		uint32_t id;							/*!< Numeric participant id. */
 		sccp_channel_t *channel;					/*!< sccp channel, non-null if the participant resides on an SCCP device */
-		PBX_BRIDGE_TYPE *origBridge;					/*!< the original asterisk bridge to which we have to return after the conference */
+		PBX_CHANNEL_TYPE *origChannel;					/*!< the original asterisk channel to which we have to return after the conference */
 		PBX_CHANNEL_TYPE *conferenceBridgePeer;				/*!< the asterisk channel which joins the conference bridge */
 		struct ast_bridge_features features;				/*!< Enabled features information */
 		pthread_t joinThread;						/*!< Running in this Thread */
@@ -67,7 +67,7 @@ extern "C" {
 	void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_module_start(void);
 	void sccp_conference_end(sccp_conference_t * conference);
-//	int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_t * participant, PBX_CHANNEL_TYPE * currentParticipantPeer);
+	int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_t * participant, PBX_CHANNEL_TYPE * currentParticipantPeer);
 
 	void sccp_conference_readFrame(PBX_FRAME_TYPE * frame, sccp_channel_t * channel);
 	void sccp_conference_writeFrame(PBX_FRAME_TYPE * frame, sccp_channel_t * channel);
