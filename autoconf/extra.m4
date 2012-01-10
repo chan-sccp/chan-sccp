@@ -604,6 +604,30 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_MODE], [
 	AC_MSG_NOTICE([--enable-experimental-mode: ${ac_cv_experimental_mode} (only for developers)])
 ])
 
+AC_DEFUN([CS_ENABLE_EXPERIMENTAL_RTP], [
+	AC_ARG_ENABLE(experimental_rtp, 
+	  AC_HELP_STRING([--enable-experimental-rtp], [enable experimental rtp (only for developers)]), 
+	    ac_cv_experimental_rtp=$enableval, ac_cv_experimental_rtp=no)
+	AS_IF([test "_${ac_cv_experimental_rtp}" == "_yes"], [AC_DEFINE(CS_EXPERIMENTAL_RTP, 1, [experimental rtp enabled])])
+	AC_MSG_NOTICE([--enable-experimental-rtp: ${ac_cv_experimental_rtp} (only for developers)])
+])
+
+AC_DEFUN([CS_ENABLE_EXPERIMENTAL_NEWIP], [
+	AC_ARG_ENABLE(experimental_newip, 
+	  AC_HELP_STRING([--enable-experimental-newip], [enable experimental newip (only for developers)]), 
+	    ac_cv_experimental_newip=$enableval, ac_cv_experimental_newip=no)
+	AS_IF([test "_${ac_cv_experimental_newip}" == "_yes"], [AC_DEFINE(CS_EXPERIMENTAL_NEWIP, 1, [experimental newip enabled])])
+	AC_MSG_NOTICE([--enable-experimental-newip: ${ac_cv_experimental_newip} (only for developers)])
+])
+
+AC_DEFUN([CS_ENABLE_EXPERIMENTAL_REFCOUNT], [
+	AC_ARG_ENABLE(experimental_refcount, 
+	  AC_HELP_STRING([--enable-experimental-rtp], [enable experimental refcount (only for developers)]), 
+	    ac_cv_experimental_refcount=$enableval, ac_cv_experimental_refcount=no)
+	AS_IF([test "_${ac_cv_experimental_refcount}" == "_yes"], [AC_DEFINE(CS_EXPERIMENTAL_REFCOUNT, 1, [experimental refcount enabled])])
+	AC_MSG_NOTICE([--enable-experimental-refcount: ${ac_cv_experimental_refcount} (only for developers)])
+])
+
 AC_DEFUN([CS_DISABLE_DEVSTATE_FEATURE], [
 	AC_ARG_ENABLE(devstate_feature, 
 	  AC_HELP_STRING([--disable-devstate-feature], [disable device state feature button]), 

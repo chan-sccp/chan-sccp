@@ -245,7 +245,7 @@ void sccp_device_post_reload(void)
 sccp_device_t *sccp_device_create(void)
 {
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "DEVICE CREATE\n");
-#if CS_EXPERIMENTAL	//refcount
+#if CS_EXPERIMENTAL_RECOUNT
 	sccp_device_t *d = RefCountedObjectAlloc(sizeof(sccp_device_t), __sccp_device_destroy);
 #else
 	sccp_device_t *d = sccp_calloc(1, sizeof(sccp_device_t));
@@ -1625,7 +1625,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	sccp_device_unlock(d);
 
 	if (remove_from_global) {
-#if CS_EXPERIMENTAL	//refcount
+#if CS_EXPERIMENTAL_REFCOUNT
 		// don't need scheduled destroy when using refcount
 		sccp_device_destroy(d);
 		d = NULL;
