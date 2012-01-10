@@ -313,7 +313,7 @@ void * RefCountedObjectAlloc(size_t size, void *destructor)
 	return ( void * )ptr;
 } 
 
-void *sccp_retain(void * ptr)
+inline void *sccp_retain(void * ptr)
 {
 	RefCountedObject * o;
 	char * cptr;
@@ -333,7 +333,7 @@ void *sccp_retain(void * ptr)
 	return ptr;
 }
 
-void *sccp_release(void * ptr)
+inline void *sccp_release(void * ptr)
 {
 	RefCountedObject * o;
 	char * cptr;
