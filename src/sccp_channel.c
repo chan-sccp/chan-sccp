@@ -445,16 +445,15 @@ void sccp_channel_display_callInfo(sccp_channel_t * channel)
 {
 	if (!channel || !&channel->callInfo)
 		return;
-
-	sccp_callinfo_t CallInfo = channel->callInfo;
-		
+	sccp_channel_lock(channel);
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x callInfo:\n", channel->line->name, channel->callid);
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - calledParty: %s <%s>, valid: %s\n", (CallInfo.calledPartyName) ? CallInfo.calledPartyName : "", (CallInfo.calledPartyNumber) ? CallInfo.calledPartyNumber : "", (CallInfo.calledParty_valid) ? "TRUE" : "FALSE");
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - callingParty: %s <%s>, valid: %s\n", (CallInfo.callingPartyName) ? CallInfo.callingPartyName : "", (CallInfo.callingPartyNumber) ? CallInfo.callingPartyNumber : "", (CallInfo.callingParty_valid) ? "TRUE" : "FALSE");
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - originalCalledParty: %s <%s>, valid: %s\n", (CallInfo.originalCalledPartyName) ? CallInfo.originalCalledPartyName : "", (CallInfo.originalCalledPartyNumber) ? CallInfo.originalCalledPartyNumber : "", (CallInfo.originalCalledParty_valid) ? "TRUE" : "FALSE");
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - originalCallingParty: %s <%s>, valid: %s\n", (CallInfo.originalCallingPartyName) ? CallInfo.originalCallingPartyName : "", (CallInfo.originalCallingPartyNumber) ? CallInfo.originalCallingPartyNumber : "", (CallInfo.originalCallingParty_valid) ? "TRUE" : "FALSE");
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - lastRedirectingParty: %s <%s>, valid: %s\n", (CallInfo.lastRedirectingPartyName) ? CallInfo.lastRedirectingPartyName : "", (CallInfo.lastRedirectingPartyNumber) ? CallInfo.lastRedirectingPartyNumber : "", (CallInfo.lastRedirectingParty_valid) ? "TRUE" : "FALSE");
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - originalCalledPartyRedirectReason: %d, lastRedirectingReason: %d, CallInfo Presentation: %d\n\n", CallInfo.originalCdpnRedirectReason, CallInfo.lastRedirectingReason, CallInfo.presentation);
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - calledParty: %s <%s>, valid: %s\n", (channel->callInfo.calledPartyName) ? channel->callInfo.calledPartyName : "", (channel->callInfo.calledPartyNumber) ? channel->callInfo.calledPartyNumber : "", (channel->callInfo.calledParty_valid) ? "TRUE" : "FALSE");
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - callingParty: %s <%s>, valid: %s\n", (channel->callInfo.callingPartyName) ? channel->callInfo.callingPartyName : "", (channel->callInfo.callingPartyNumber) ? channel->callInfo.callingPartyNumber : "", (channel->callInfo.callingParty_valid) ? "TRUE" : "FALSE");
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - originalCalledParty: %s <%s>, valid: %s\n", (channel->callInfo.originalCalledPartyName) ? channel->callInfo.originalCalledPartyName : "", (channel->callInfo.originalCalledPartyNumber) ? channel->callInfo.originalCalledPartyNumber : "", (channel->callInfo.originalCalledParty_valid) ? "TRUE" : "FALSE");
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - originalCallingParty: %s <%s>, valid: %s\n", (channel->callInfo.originalCallingPartyName) ? channel->callInfo.originalCallingPartyName : "", (channel->callInfo.originalCallingPartyNumber) ? channel->callInfo.originalCallingPartyNumber : "", (channel->callInfo.originalCallingParty_valid) ? "TRUE" : "FALSE");
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - lastRedirectingParty: %s <%s>, valid: %s\n", (channel->callInfo.lastRedirectingPartyName) ? channel->callInfo.lastRedirectingPartyName : "", (channel->callInfo.lastRedirectingPartyNumber) ? channel->callInfo.lastRedirectingPartyNumber : "", (channel->callInfo.lastRedirectingParty_valid) ? "TRUE" : "FALSE");
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 " - originalCalledPartyRedirectReason: %d, lastRedirectingReason: %d, CallInfo Presentation: %d\n\n", channel->callInfo.originalCdpnRedirectReason, channel->callInfo.lastRedirectingReason, channel->callInfo.presentation);
+	sccp_channel_unlock(channel);
 }
 
 /*!
@@ -2319,7 +2318,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 		}								// if (CS_AST_CHANNEL_PVT_IS_SCCP(pbx_source_remote_channel)) {
 	}
 	sccp_channel_display_callInfo(sccp_destination_local_channel);
-	sccp_channel_display_callInfo(sccp_source_remote_channel);
+//	sccp_channel_display_callInfo(sccp_source_remote_channel);
 	if (GLOB(transfer_tone) && sccp_destination_local_channel->state == SCCP_CHANNELSTATE_CONNECTED) {
 		/* while connected not all the tones can be played */
 		sccp_dev_starttone(sccp_destination_local_channel->privateData->device, GLOB(autoanswer_tone), instance, sccp_destination_local_channel->callid, 0);
