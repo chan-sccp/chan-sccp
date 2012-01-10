@@ -315,7 +315,7 @@ int __sccp_line_destroy(const void *ptr)
 	sccp_line_unlock(l);
 #endif	
 	pbx_mutex_destroy(&l->lock);
-#if !CS_EXPERIMENTAL	//refcount
+#if !CS_EXPERIMENTAL_REFCOUNT
 	sccp_free(l);	// moved to sccp_release
 #endif
 	return 0;
@@ -335,7 +335,7 @@ int __sccp_line_destroy(const void *ptr)
  */
 int sccp_line_destroy(const void *ptr)
 {
-#if CS_EXPERIMENTAL	//refcount
+#if CS_EXPERIMENTAL_REFCOUNT
 	sccp_line_t *l = (sccp_line_t *) ptr;
 	sccp_line_release(l);
 	return 0;
@@ -469,7 +469,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 		
 	}
 
-#if CS_EXPERIMENTAL	//refcount			
+#if CS_EXPERIMENTAL_REFCOUNT			
 	linedevice->device = sccp_device_retain(device);
 	linedevice->line = sccp_line_retain(l);
 #else			
@@ -574,7 +574,7 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 			event->type = SCCP_EVENT_DEVICE_DETACHED;
 			event->event.deviceAttached.linedevice = linedevice;
 			sccp_event_fire((const sccp_event_t **)&event);
-#if CS_EXPERIMENTAL	//refcount			
+#if CS_EXPERIMENTAL_REFCOUNT			
 			sccp_device_release(device);
 			sccp_line_release(l);
 #endif			

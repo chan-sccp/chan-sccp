@@ -297,7 +297,7 @@ int __sccp_mutex_trylock(ast_mutex_t * p_mutex, const char *itemnametolock, cons
 }
 #endif
 
-#if CS_EXPERIMENTAL
+#if CS_EXPERIMENTAL_REFCOUNT
 void * RefCountedObjectAlloc(size_t size, void *destructor)
 {
 	RefCountedObject * o;

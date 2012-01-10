@@ -14,7 +14,7 @@
 #    ifndef __SCCP_LOCK_H
 #define __SCCP_LOCK_H
 
-#if CS_EXPERIMENTAL
+#if CS_EXPERIMENTAL_REFCOUNT
 typedef struct
 {
 	volatile int refcount;
@@ -66,7 +66,7 @@ void *sccp_release(void * ptr);
 #    define sccp_mutex_trylock(x)		pbx_mutex_trylock(x)
 
 	/* Macro for Lines */
-#if CS_EXPERIMENTAL
+#if CS_EXPERIMENTAL_REFCOUNT
 #    define sccp_line_lock(x)			sccp_line_retain(x)
 #    define sccp_line_trylock(x)		sccp_line_retain(x)
 #    define sccp_line_unlock(x)        		sccp_line_release(x)
@@ -77,7 +77,7 @@ void *sccp_release(void * ptr);
 #endif
 
 	/* Macro for Devices */
-#if CS_EXPERIMENTAL
+#if CS_EXPERIMENTAL_REFCOUNT
 #    define sccp_device_lock(x)			sccp_device_retain(x)
 #    define sccp_device_trylock(x)		sccp_device_retain(x)
 #    define sccp_device_unlock(x)		sccp_device_release(x)
@@ -127,7 +127,7 @@ int __sccp_mutex_trylock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, 
 #    define sccp_mutex_trylock(a)       	__sccp_mutex_trylock(a, "(sccp unspecified [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
 	/* Macro for Lines */
-#if CS_EXPERIMENTAL
+#if CS_EXPERIMENTAL_REFCOUNT
 #    define sccp_line_lock(x)			sccp_line_retain(x)
 #    define sccp_line_trylock(x)		sccp_line_retain(x)
 #    define sccp_line_unlock(x)        		sccp_line_release(x)
@@ -137,7 +137,7 @@ int __sccp_mutex_trylock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, 
 #    define sccp_line_unlock(a)         	__sccp_mutex_unlock(&a->lock, "(sccp line [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #endif
 	/* Macro for Devices */
-#if CS_EXPERIMENTAL
+#if CS_EXPERIMENTAL_REFCOUNT
 #    define sccp_device_lock(x)			sccp_device_retain(x)
 #    define sccp_device_trylock(x)		sccp_device_retain(x)
 #    define sccp_device_unlock(x)		sccp_device_release(x)

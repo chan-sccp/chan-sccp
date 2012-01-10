@@ -67,7 +67,7 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	l = c->line;
 
 	/* replaced with a trylock loop, because lock is taken out of order */
-#if CS_EXPERIMENTAL	//refcount
+#if CS_EXPERIMENTAL_REFCOUNT
 	sccp_device_lock(d);
 #else	
 	int deadlockAvoidanceCounter=0;
