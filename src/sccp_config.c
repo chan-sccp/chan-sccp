@@ -584,7 +584,7 @@ sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, 
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 
-#ifdef CS_EXPERIMENTAL
+#ifdef CS_EXPERIMENTAL_NEWIP
 	struct sockaddr_in *bindaddr_prev = &(*(struct sockaddr_in *)dest);
 
 	char curval[256], *port=NULL, *host=NULL, *splitter;

@@ -604,6 +604,14 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_MODE], [
 	AC_MSG_NOTICE([--enable-experimental-mode: ${ac_cv_experimental_mode} (only for developers)])
 ])
 
+AC_DEFUN([CS_ENABLE_EXPERIMENTAL_CODEC], [
+	AC_ARG_ENABLE(experimental_codec, 
+	  AC_HELP_STRING([--enable-experimental-codec], [enable experimental codec (only for developers)]), 
+	    ac_cv_experimental_codec=$enableval, ac_cv_experimental_codec=no)
+	AS_IF([test "_${ac_cv_experimental_codec}" == "_yes"], [AC_DEFINE(CS_EXPERIMENTAL_CODEC, 1, [experimental codec enabled])])
+	AC_MSG_NOTICE([--enable-experimental-codec: ${ac_cv_experimental_codec} (only for developers)])
+])
+
 AC_DEFUN([CS_ENABLE_EXPERIMENTAL_RTP], [
 	AC_ARG_ENABLE(experimental_rtp, 
 	  AC_HELP_STRING([--enable-experimental-rtp], [enable experimental rtp (only for developers)]), 
