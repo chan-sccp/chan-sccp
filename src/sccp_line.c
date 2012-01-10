@@ -116,7 +116,7 @@ void sccp_line_post_reload(void)
  */
 sccp_line_t *sccp_line_create(void)
 {
-#if CS_EXPERIMENTAL	// refcount
+#if CS_EXPERIMENTAL_REFCOUNT
 	sccp_line_t *l = (sccp_line_t *)RefCountedObjectAlloc(sizeof(sccp_line_t), __sccp_line_destroy);
 #else	
 	sccp_line_t *l = sccp_malloc(sizeof(sccp_line_t));
@@ -137,7 +137,7 @@ sccp_line_t *sccp_line_create(void)
 	return l;
 }
 
-#if CS_EXPERIMENTAL
+#if CS_EXPERIMENTAL_REFCOUNT
 sccp_line_t *__sccp_line_retain(sccp_line_t *l, const char *filename, int lineno, const char *func) {
 	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %-15.15s:%-4.4d (%-25.25s) Refcount for line: %s ", filename, lineno, func, (l && l->name) ? l->name : "UNDEF");
 	return (sccp_line_t *)sccp_retain(l);
@@ -288,7 +288,7 @@ int __sccp_line_destroy(const void *ptr)
 
 	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Line FREE\n", l->name);
 
-#if CS_EXPERIMENTAL
+#if CS_EXPERIMENTAL_REFCOUNT
 	sccp_mutex_lock(&l->lock);
 #else	
 	sccp_line_lock(l);
@@ -309,7 +309,7 @@ int __sccp_line_destroy(const void *ptr)
 			sccp_free(mailbox->context);
 		sccp_free(mailbox);
 	}
-#if CS_EXPERIMENTAL
+#if CS_EXPERIMENTAL_REFCOUNT
 	sccp_mutex_unlock(&l->lock);
 #else	
 	sccp_line_unlock(l);

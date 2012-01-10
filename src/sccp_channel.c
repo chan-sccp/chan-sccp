@@ -211,7 +211,7 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 static void sccp_channel_recalculateReadformat(sccp_channel_t * channel)
 {
 
-#ifndef CS_EXPERIMENTAL
+#ifndef CS_EXPERIMENTAL_RTP
 	//pbx_log(LOG_NOTICE, "readState %d\n", channel->rtp.audio.readState);
 	if (channel->rtp.audio.writeState != SCCP_RTP_STATUS_INACTIVE && channel->rtp.audio.writeFormat != SKINNY_CODEC_NONE) {
 		//pbx_log(LOG_NOTICE, "we already have a write format, dont change codec\n");
@@ -254,7 +254,7 @@ static void sccp_channel_recalculateWriteformat(sccp_channel_t * channel)
 {
 	//pbx_log(LOG_NOTICE, "writeState %d\n", channel->rtp.audio.writeState);
 
-#ifndef CS_EXPERIMENTAL
+#ifndef CS_EXPERIMENTAL_RTP
 	if (channel->rtp.audio.readState != SCCP_RTP_STATUS_INACTIVE && channel->rtp.audio.readFormat != SKINNY_CODEC_NONE) {
 		//pbx_log(LOG_NOTICE, "we already have a read format, dont change codec\n");
 		channel->rtp.audio.writeFormat = channel->rtp.audio.readFormat;
@@ -296,7 +296,7 @@ static void sccp_channel_recalculateWriteformat(sccp_channel_t * channel)
  */
 void sccp_channel_updateChannelCapability_locked(sccp_channel_t * channel)
 {
-#ifdef CS_EXPERIMENTAL
+#ifdef CS_EXPERIMENTAL_CODEC
 	//sccp_channel_recalculateReadformat(channel);
 #else
 	sccp_channel_recalculateReadformat(channel);
@@ -639,7 +639,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * channel)
 	}
 
 	/* calculating format at this point doesn work, because asterisk needs a nativeformat to be set before dial */
-#ifdef CS_EXPERIMENTAL
+#ifdef CS_EXPERIMENTAL_CODEC
 	sccp_channel_recalculateWriteformat(channel);
 #endif
 
@@ -1085,7 +1085,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * channel)
 		channel->rtp.audio.phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
 	}
 
-#ifdef CS_EXPERIMENTAL
+#ifdef CS_EXPERIMENTAL_CODEC
 	sccp_channel_recalculateReadformat(channel);
 #endif
 	packetSize = 20;

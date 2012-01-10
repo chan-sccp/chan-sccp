@@ -313,7 +313,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d (loadinfo '%s')\n", r->msg.RegisterMessage.sId.deviceName, letohl(r->msg.RegisterMessage.sId.lel_instance), devicetype2str(letohl(r->msg.RegisterMessage.lel_deviceType)), letohl(r->msg.RegisterMessage.lel_deviceType), protocolVer, r->msg.RegisterMessage.loadInfo);
 
-#ifdef CS_EXPERIMENTAL
+#ifdef CS_EXPERIMENTAL_NEWIP
 	socklen_t addrlen = 0;
 	struct sockaddr_storage *session_ss = { 0 };
 
@@ -395,7 +395,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	}
 
 	/* We should be using sockaddr_storage in sccp_socket.c so this convertion would not be necessary here */
-#ifdef CS_EXPERIMENTAL
+#ifdef CS_EXPERIMENTAL_NEWIP
 	if (AF_INET == s->sin.sin_family) {
 		session_ss = (struct sockaddr_storage *)&s->sin;
 		addrlen = (socklen_t) INET_ADDRSTRLEN;

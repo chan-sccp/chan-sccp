@@ -695,7 +695,7 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 	c->owner = tmp;
 	tmp->tech_pvt = c;
 
-#ifdef CS_EXPERIMENTAL
+#ifdef CS_EXPERIMENTAL_CODEC
 	PBX(set_nativeAudioFormats)(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
 #else
 	if(c->calltype == SKINNY_CALLTYPE_OUTBOUND){
@@ -709,7 +709,7 @@ uint8_t sccp_pbx_channel_allocate_locked(sccp_channel_t * c)
 	sccp_channel_updateChannelCapability_locked(c);
 	//! \todo check locking
 	/* \todo we should remove this shit. */
-#ifdef CS_EXPERIMENTAL	//refcount
+#ifdef CS_EXPERIMENTAL_REFCOUNT
 	sccp_line_lock(l);
 #else
 	while (sccp_line_trylock(l)) {

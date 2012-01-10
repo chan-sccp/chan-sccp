@@ -446,7 +446,7 @@ int load_config(void)
 	}
 
 	if (GLOB(descriptor) < 0) {
-#ifdef CS_EXPERIMENTAL
+#ifdef CS_EXPERIMENTAL_NEWIP
 		int status;
 		struct addrinfo hints, *res;
 		char port_str[5] = "";
@@ -495,7 +495,7 @@ int load_config(void)
 		if (GLOB(descriptor) < 0) {
 			pbx_log(LOG_WARNING, "Unable to create SCCP socket: %s\n", strerror(errno));
 		} else {
-#ifdef CS_EXPERIMENTAL
+#ifdef CS_EXPERIMENTAL_NEWIP
 			if (bind(GLOB(descriptor), res->ai_addr, res->ai_addrlen) < 0) {	// using addrinfo hints
 #else
 			if (bind(GLOB(descriptor), (struct sockaddr *)&GLOB(bindaddr), sizeof(GLOB(bindaddr))) < 0) {	//replaced
@@ -518,7 +518,7 @@ int load_config(void)
 			pbx_pthread_create(&GLOB(socket_thread), NULL, sccp_socket_thread, NULL);
 
 		}
-#ifdef CS_EXPERIMENTAL
+#ifdef CS_EXPERIMENTAL_NEWIP
 		freeaddrinfo(res);
 #endif
 	}

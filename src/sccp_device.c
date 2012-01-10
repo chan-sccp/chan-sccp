@@ -293,7 +293,7 @@ sccp_device_t *sccp_device_create(void)
 	return d;
 }
 
-#if CS_EXPERIMENTAL
+#if CS_EXPERIMENTAL_REFCOUNT
 sccp_device_t *__sccp_device_retain(sccp_device_t *d, const char *filename, int lineno, const char *func) {
 	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %-15.15s:%-4.4d (%-25.25s) Refcount for device: %s ", filename, lineno, func, DEV_ID_LOG(d));
 	return (sccp_device_t *)sccp_retain(d);
@@ -1669,7 +1669,7 @@ int __sccp_device_destroy(const void *ptr)
 	sccp_hostname_t *permithost = NULL;
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Destroy Device\n", d->id);
-#if CS_EXPERIMENTAL
+#if CS_EXPERIMENTAL_REFCOUNT
 	sccp_mutex_lock(&d->lock);		// using real device lock while using refcount
 #else
 	sccp_device_lock(d);
@@ -1722,14 +1722,14 @@ int __sccp_device_destroy(const void *ptr)
 	}
 
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Device Destroyed\n", d->id);
-#if CS_EXPERIMENTAL
+#if CS_EXPERIMENTAL_REFCOUNT
 	sccp_mutex_unlock(&d->lock);		// using real device lock while using refcount
 #else
 	sccp_device_unlock(d);
 #endif
 	pbx_mutex_destroy(&d->lock);
 
-#if !CS_EXPERIMENTAL	// refcount
+#if !CS_EXPERIMENTAL_REFCOUNT
 	sccp_free(d);	// moved to sccp_release
 #endif
 	return 0;
@@ -1753,7 +1753,7 @@ int __sccp_device_destroy(const void *ptr)
  */
 int sccp_device_destroy(const void *ptr)
 {
-#if CS_EXPERIMENTAL	// refcount
+#if CS_EXPERIMENTAL_REFCOUNT
 	sccp_device_t *d = (sccp_device_t *) ptr;
 	sccp_device_release(d);
 	return 0;
