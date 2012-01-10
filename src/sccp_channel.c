@@ -443,7 +443,7 @@ void sccp_channel_setSkinnyCallstate(sccp_channel_t * channel, skinny_callstate_
  */
 void sccp_channel_display_callInfo(sccp_channel_t * channel)
 {
-	if (!channel)
+	if (!channel || !&channel->callInfo)
 		return;
 
 	sccp_callinfo_t CallInfo = channel->callInfo;
