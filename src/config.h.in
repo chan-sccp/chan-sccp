@@ -134,6 +134,9 @@
 /* 'AST_DEVICE_TOTAL' available */
 #undef CS_AST_DEVICE_TOTAL
 
+/* Found 'ast_do_pickup' in asterisk/features.h */
+#undef CS_AST_DO_PICKUP
+
 /* SIREN7 frmt available */
 #undef CS_AST_FORMAT_SIREN7
 
@@ -223,6 +226,18 @@
 
 /* experimental mode enabled */
 #undef CS_EXPERIMENTAL
+
+/* experimental codec enabled */
+#undef CS_EXPERIMENTAL_CODEC
+
+/* experimental newip enabled */
+#undef CS_EXPERIMENTAL_NEWIP
+
+/* experimental refcount enabled */
+#undef CS_EXPERIMENTAL_REFCOUNT
+
+/* experimental rtp enabled */
+#undef CS_EXPERIMENTAL_RTP
 
 /* Enable IPv6 support */
 #undef CS_IPV6
@@ -693,6 +708,9 @@
 
 /* The archive extension */
 #undef LT_LIBEXT
+
+/* The archive prefix */
+#undef LT_LIBPREFIX
 
 /* Define to the extension used for runtime loadable modules, say, ".so". */
 #undef LT_MODULE_EXT

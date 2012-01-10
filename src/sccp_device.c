@@ -245,7 +245,7 @@ void sccp_device_post_reload(void)
 sccp_device_t *sccp_device_create(void)
 {
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "DEVICE CREATE\n");
-#if CS_EXPERIMENTAL_RECOUNT
+#if CS_EXPERIMENTAL_REFCOUNT
 	sccp_device_t *d = RefCountedObjectAlloc(sizeof(sccp_device_t), __sccp_device_destroy);
 #else
 	sccp_device_t *d = sccp_calloc(1, sizeof(sccp_device_t));
