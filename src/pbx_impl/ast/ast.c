@@ -441,12 +441,12 @@ int sccp_asterisk_pbx_fktChannelWrite(struct ast_channel *ast, const char *funcn
 	if (!strcasecmp(args, "MaxCallBR")) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set max call bitrate to %s\n", DEV_ID_LOG(sccp_channel_getDevice(c)), value);
 
-//              if(sscanf(value, "%ud", &c->maxBitRate)){
-//                      pbx_builtin_setvar_helper(ast, "_MaxCallBR", value);
-//                      res = TRUE;
-//              }else{
-//                      res = FALSE;
-//              }
+             if(sscanf(value, "%ud", &c->maxBitRate)){
+                     pbx_builtin_setvar_helper(ast, "_MaxCallBR", value);
+                     res = TRUE;
+             }else{
+                     res = FALSE;
+             }
 
 	} else if (!strcasecmp(args, "codec")) {
 		res = sccp_channel_setPreferredCodec(c, value);

@@ -162,6 +162,7 @@ sccp_channel_t *sccp_channel_allocate_locked(sccp_line_t * l, sccp_device_t * de
 	channel->line = l;
 	channel->peerIsSCCP = 0;
 	channel->enbloc.digittimeout = GLOB(digittimeout) * 1000;
+	channel->maxBitRate = 15000;
 
 	sccp_channel_setDevice(channel, device);
 
@@ -854,6 +855,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 	packetSize = 1920;
 
 	int bitRate = 15000;
+	bitRate = channel->maxBitRate;
 
 	if (!channel->rtp.video.rtp) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: can't start vrtp media transmission, maybe channel is down %s-%08X\n", channel->privateData->device->id, channel->line->name, channel->callid);

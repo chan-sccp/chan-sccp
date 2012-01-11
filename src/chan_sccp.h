@@ -1090,6 +1090,7 @@ struct channel {
 	sccp_channel_t *parentChannel;						/*!< if we are a cfwd channel, our parent is this */
 
 	struct subscriptionId subscriptionId;
+	unsigned int maxBitRate;
 	boolean_t peerIsSCCP;							/*!< Indicates that channel-peer is also SCCP */
 	void (*setMicrophone) (const sccp_channel_t * channel, boolean_t on);
 	boolean_t(*isMicrophoneEnabled) (void);
