@@ -577,7 +577,7 @@ static int sccp_wrapper_asterisk110_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 //                              int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
 				int codec = pbx_codec2skinny_codec((frame->frametype == AST_FRAME_VIDEO));
 
-				ast_log(LOG_NOTICE, "%s: got video frame %d\n", DEV_ID_LOG(c->getDevice(c)), codec);
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: got video frame %d\n", DEV_ID_LOG(c->getDevice(c)), codec);
 				if (0 != codec) {
 					c->rtp.video.writeFormat = codec;
 					sccp_channel_openMultiMediaChannel(c);
