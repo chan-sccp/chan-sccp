@@ -1766,7 +1766,8 @@ int sccp_wrapper_asterisk16_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 		}
 	}
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", ast_channel->name);
-//      ast_channel->_softhangup |= AST_SOFTHANGUP_DEV;
+	ast_channel->whentohangup = ast_tvnow();
+	ast_channel->_state=AST_STATE_DOWN;
 	ast_queue_hangup(ast_channel);
 	return TRUE;
 }
