@@ -24,8 +24,8 @@ typedef struct
 RefCountedObject; 
 
 void * RefCountedObjectAlloc(size_t size, void *destructor);
-inline void *sccp_retain(void * ptr);
-inline void *sccp_release(void * ptr);
+inline void *sccp_retain(void * ptr, const char *objecttype, const char *objectid, const char *filename, int lineno, const char *func);
+inline void *sccp_release(void * ptr, const char *objecttype, const char *objectid, const char *filename, int lineno, const char *func);
 #endif
 
 #if CS_EXPERIMENTAL_REFCOUNT
