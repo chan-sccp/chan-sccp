@@ -1,0 +1,75 @@
+[SEP001122334455]
+description = Phone Number One
+addon = 7914
+devicetype = 7940
+park = off
+button = speeddial,Helpdesk, 98112, 98112@hint  	; Add SpeedDial to Helpdesk
+button = line, 98011: Line1				; Assign Line 98011 to Device
+button = line, empty					; Assign an Empty Line
+button = line, 98012					; Assign Line 98012 to Device
+button = speeddial,Phone 2 Line 1, 98021, 98021@hint	; Add SpeedDial to Phone Number Two Line 1
+cfwdall = off
+type = device
+keepalive = 60
+tzoffset = +2
+transfer = on
+park = on
+cfwdall = off
+cfwdbusy = off
+cfwdnoanswer = off
+pickupexten = off
+pickupcontext = from-internal-xfer
+pickupmodeanswer = on
+dtmfmode = inband
+imageversion = P00405000700
+deny=0.0.0.0/0.0.0.0
+permit=192.168.1.5/255.255.255.255
+dndFeature = on
+trustphoneip = no
+nat=off
+directrtp=off
+earlyrtp = progress
+private = on
+mwilamp = on
+mwioncall = off
+setvar=testvar=value
+cfwdall = on
+
+[SEP002244668800]
+description = Phone Number Two
+devicetype = 7960
+park = off
+button = speeddial,Helpdesk, 98112, 98112@hint  		; Add SpeedDial to Helpdesk (without hint)
+button = line, 98021
+button= feature,Private Call,privacy,callpresent		;set channel variable SKINNY_PRIVATE to 1 if feature is enabled
+button= feature,DND Busy,DND,busy				;set dnd status to busy
+button= feature,DND Silent,DND,silent				;set dnd status to silent
+button= feature,Record calls,monitor				;record calls using automon (asterisk >= 1.6 only)
+button= feature,call forward to *54,cfwdAll,*54			;forward all calls to *54
+button = speeddial,Phone 1 Line 1, 98011, 98011@hint
+button = speeddial,Phone 1 Line 2, 98012, 98012@hint
+type = device
+keepalive = 60
+tzoffset = +2
+transfer = on
+park = on
+cfwdall = off
+cfwdbusy = off
+cfwdnoanswer = off
+pickupexten = off
+pickupcontext = from-internal-xfer
+pickupmodeanswer = on
+dtmfmode = inband
+imageversion = P00405000700
+deny=0.0.0.0/0.0.0.0
+permit=192.168.1.5/255.255.255.255
+dnd = on
+trustphoneip = no
+nat=off
+directrtp=off
+earlyrtp = progress
+private = on
+mwilamp = on
+mwioncall = off
+setvar=testvar=value
+cfwdall = on

@@ -1060,6 +1060,10 @@ enable_realtime
 enable_feature_monitor
 enable_advanced_functions
 enable_experimental_mode
+enable_experimental_codec
+enable_experimental_rtp
+enable_experimental_newip
+enable_experimental_refcount
 enable_devstate_feature
 enable_dynamic_speeddial
 enable_dynamic_speeddial_cid
@@ -1744,6 +1748,14 @@ Optional Features:
                           enable advanced functions (experimental)
   --enable-experimental-mode
                           enable experimental mode (only for developers)
+  --enable-experimental-codec
+                          enable experimental codec (only for developers)
+  --enable-experimental-rtp
+                          enable experimental rtp (only for developers)
+  --enable-experimental-newip
+                          enable experimental newip (only for developers)
+  --enable-experimental-rtp
+                          enable experimental refcount (only for developers)
   --disable-devstate-feature
                           disable device state feature button
   --disable-dynamic-speeddial
@@ -7602,13 +7614,13 @@ if ${lt_cv_nm_interface+:} false; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:7605: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:7617: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:7608: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:7620: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:7611: output\"" >&5)
+  (eval echo "\"\$as_me:7623: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -8802,7 +8814,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 8805 "configure"' > conftest.$ac_ext
+  echo '#line 8817 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -12205,11 +12217,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12208: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12220: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12212: \$? = $ac_status" >&5
+   echo "$as_me:12224: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12544,11 +12556,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12547: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12559: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12551: \$? = $ac_status" >&5
+   echo "$as_me:12563: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12649,11 +12661,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12652: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12664: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12656: \$? = $ac_status" >&5
+   echo "$as_me:12668: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -12704,11 +12716,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12707: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12719: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12711: \$? = $ac_status" >&5
+   echo "$as_me:12723: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15088,7 +15100,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 15091 "configure"
+#line 15103 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -15184,7 +15196,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 15187 "configure"
+#line 15199 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -17140,11 +17152,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17143: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17155: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:17147: \$? = $ac_status" >&5
+   echo "$as_me:17159: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -17239,11 +17251,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17242: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17254: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:17246: \$? = $ac_status" >&5
+   echo "$as_me:17258: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -17291,11 +17303,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17294: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17306: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:17298: \$? = $ac_status" >&5
+   echo "$as_me:17310: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -19164,7 +19176,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 19167 "configure"
+#line 19179 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -29629,6 +29641,70 @@ $as_echo "#define CS_EXPERIMENTAL 1" >>confdefs.h
 fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-experimental-mode: ${ac_cv_experimental_mode} (only for developers)" >&5
 $as_echo "$as_me: --enable-experimental-mode: ${ac_cv_experimental_mode} (only for developers)" >&6;}
+
+
+	# Check whether --enable-experimental_codec was given.
+if test "${enable_experimental_codec+set}" = set; then :
+  enableval=$enable_experimental_codec; ac_cv_experimental_codec=$enableval
+else
+  ac_cv_experimental_codec=no
+fi
+
+	if test "_${ac_cv_experimental_codec}" == "_yes"; then :
+
+$as_echo "#define CS_EXPERIMENTAL_CODEC 1" >>confdefs.h
+
+fi
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-experimental-codec: ${ac_cv_experimental_codec} (only for developers)" >&5
+$as_echo "$as_me: --enable-experimental-codec: ${ac_cv_experimental_codec} (only for developers)" >&6;}
+
+
+	# Check whether --enable-experimental_rtp was given.
+if test "${enable_experimental_rtp+set}" = set; then :
+  enableval=$enable_experimental_rtp; ac_cv_experimental_rtp=$enableval
+else
+  ac_cv_experimental_rtp=no
+fi
+
+	if test "_${ac_cv_experimental_rtp}" == "_yes"; then :
+
+$as_echo "#define CS_EXPERIMENTAL_RTP 1" >>confdefs.h
+
+fi
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-experimental-rtp: ${ac_cv_experimental_rtp} (only for developers)" >&5
+$as_echo "$as_me: --enable-experimental-rtp: ${ac_cv_experimental_rtp} (only for developers)" >&6;}
+
+
+	# Check whether --enable-experimental_newip was given.
+if test "${enable_experimental_newip+set}" = set; then :
+  enableval=$enable_experimental_newip; ac_cv_experimental_newip=$enableval
+else
+  ac_cv_experimental_newip=no
+fi
+
+	if test "_${ac_cv_experimental_newip}" == "_yes"; then :
+
+$as_echo "#define CS_EXPERIMENTAL_NEWIP 1" >>confdefs.h
+
+fi
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-experimental-newip: ${ac_cv_experimental_newip} (only for developers)" >&5
+$as_echo "$as_me: --enable-experimental-newip: ${ac_cv_experimental_newip} (only for developers)" >&6;}
+
+
+	# Check whether --enable-experimental_refcount was given.
+if test "${enable_experimental_refcount+set}" = set; then :
+  enableval=$enable_experimental_refcount; ac_cv_experimental_refcount=$enableval
+else
+  ac_cv_experimental_refcount=no
+fi
+
+	if test "_${ac_cv_experimental_refcount}" == "_yes"; then :
+
+$as_echo "#define CS_EXPERIMENTAL_REFCOUNT 1" >>confdefs.h
+
+fi
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-experimental-refcount: ${ac_cv_experimental_refcount} (only for developers)" >&5
+$as_echo "$as_me: --enable-experimental-refcount: ${ac_cv_experimental_refcount} (only for developers)" >&6;}
 
 
 	# Check whether --enable-devstate_feature was given.
