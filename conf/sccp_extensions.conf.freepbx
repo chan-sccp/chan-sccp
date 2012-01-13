@@ -1,0 +1,86 @@
+[98011]
+id = 1000
+type = line
+pin = 1234
+label = Phone 1 Line 1
+description = Line 98011
+mailbox = 10011
+cid_name = MY CID
+cid_num = 98011
+accountcode=79011
+callgroup=1,3-4
+pickupgroup=1,3-5
+;amaflags = 
+context = from-internal-xfer
+incominglimit = 2
+transfer = on
+vmnum = 600
+meetme = on
+meetmeopts = qxd
+meetmenum = 700
+trnsfvm = 1000
+secondary_dialtone_digits = 9
+secondary_dialtone_tone = 0x22
+musicclass=default
+language=en
+audio_tos = 0xB8
+audio_cos = 6
+video_tos = 0x88
+video_cos = 5
+echocancel = on
+silencesuppression = off
+setvar=testvar2=my value
+dnd = on
+
+[98012]
+id = 1001
+type = line
+pin = 4356
+label = Phone 1 Line 2
+description = Line 98012
+mailbox = 10012
+cid_name = MY LINE 2
+cid_num = 98012
+accountcode=79002
+callgroup=1,4-9
+pickupgroup=1,3-9
+echocancel = off
+context = from-internal-xfer
+incominglimit = 2
+transfer = on
+vmnum = 600
+trnsfvm = 1000
+secondary_dialtone_digits = 9
+secondary_dialtone_tone = 0x22
+musicclass=default
+language=en
+echocancel = on
+silencesuppression = off
+silencesuppression = on
+dnd = silent
+
+[98021]
+id = 1000
+type = line
+pin = 1234
+label = Phone 2 Line 1
+description = Line 98021
+mailbox = 10021
+cid_name = MY CID
+cid_num = 98021
+accountcode=79021
+callgroup=1,3-4
+pickupgroup=1,3-5
+context = from-internal-xfer
+incominglimit = 2
+transfer = on
+vmnum = 600
+trnsfvm = 1000
+secondary_dialtone_digits = 9
+secondary_dialtone_tone = 0x22
+musicclass=default
+language=en
+echocancel = on
+silencesuppression = off
+setvar=testvar2=my value
+

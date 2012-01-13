@@ -1,0 +1,51 @@
+;=========================================================================================
+;
+; general definitions
+;
+;=========================================================================================
+[general]
+servername = FreePbxSCCP
+keepalive = 60
+debug = 1
+context = from-internal-xfer
+dateformat = D.M.Y
+bindaddr = 0.0.0.0
+port = 2000
+disallow=all
+allow=alaw
+allow=ulaw
+allow=g729
+firstdigittimeout = 16
+digittimeout = 8
+autoanswer_ring_time = 1
+autoanswer_tone = 0x32
+remotehangup_tone = 0x32
+transfer_tone = 0
+callwaiting_tone = 0x2d
+musicclass=default
+language=en
+deny=0.0.0.0/0.0.0.0
+permit=192.168.1.0/255.255.255.0
+dnd = on
+sccp_tos = 0x68
+sccp_cos = 4
+audio_tos = 0xB8
+audio_cos = 6
+video_tos = 0x88
+video_cos = 5
+echocancel = on
+silencesuppression = off
+trustphoneip = no
+private = on
+callanswerorder=oldestfirst
+hotline_enabled=yes					;can devices without configuration register
+hotline_context=default					; context for hotline
+hotline_extension=111					; extension will be dialed on offHook
+
+;=========================================================================================
+;
+; include files
+;
+;=========================================================================================
+#include sccp_hardware.conf
+#include sccp_extensions.conf
