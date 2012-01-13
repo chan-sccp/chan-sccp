@@ -1515,6 +1515,7 @@ void sccp_util_featureStorageBackend(const sccp_event_t ** event)
 {
 	char family[25];
 	char cfwdLineStore[60];
+	return;
 	sccp_buttonconfig_t *config;
 	sccp_line_t *line;
 	sccp_linedevices_t *lineDevice;
@@ -1577,32 +1578,40 @@ void sccp_util_featureStorageBackend(const sccp_event_t ** event)
 		break;
 	case SCCP_FEATURE_DND:
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to %s\n", DEV_ID_LOG(device), device->dndFeature.status ? "on" : "off");
-	  
-		if (!device->dndFeature.status) {
-			PBX(feature_removeFromDatabase)(family, "dnd");
-		} else {
-			if (device->dndFeature.status == SCCP_DNDMODE_SILENT){
-				PBX(feature_addToDatabase) (family, "dnd", "silent");
-			}else{
-				PBX(feature_addToDatabase) (family, "dnd", "reject");
-			}
+		if (device->dndFeature.previousStatus != device->dndFeature.status) {
+                        if (!device->dndFeature.status) {
+                                PBX(feature_removeFromDatabase)(family, "dnd");
+                        } else {
+                                if (device->dndFeature.status == SCCP_DNDMODE_SILENT){
+                                        PBX(feature_addToDatabase) (family, "dnd", "silent");
+                                }else{
+                                        PBX(feature_addToDatabase) (family, "dnd", "reject");
+                                }
+                        }
+                        device->dndFeature.previousStatus = device->dndFeature.status;
 		}
 		break;
 	case SCCP_FEATURE_PRIVACY:
-		if (!device->privacyFeature.status) {
-			PBX(feature_removeFromDatabase)(family, "privacy");
-		} else {
-			char data[256];
+	        if (device->privacyFeature.previousStatus != device->privacyFeature.status) {
+                        if (!device->privacyFeature.status) {
+                                PBX(feature_removeFromDatabase)(family, "privacy");
+                        } else {
+                                char data[256];
 
-			sprintf(data, "%d", device->privacyFeature.status);
-			PBX(feature_addToDatabase) (family, "privacy", data);
-		}
+                                sprintf(data, "%d", device->privacyFeature.status);
+                                PBX(feature_addToDatabase) (family, "privacy", data);
+                        }
+                        device->privacyFeature.status = device->privacyFeature.status;
+                }
 		break;
 	case SCCP_FEATURE_MONITOR:
-		if (!device->monitorFeature.status) {
-			PBX(feature_removeFromDatabase)(family, "monitor");
-		} else {
-			PBX(feature_addToDatabase) (family, "monitor", "on");
+	        if (device->monitorFeature.previousStatus != device->monitorFeature.status) {
+                        if (!device->monitorFeature.status) {
+                                PBX(feature_removeFromDatabase)(family, "monitor");
+                        } else {
+                                PBX(feature_addToDatabase) (family, "monitor", "on");
+                        }
+                        device->monitorFeature.previousStatus = device->monitorFeature.status;
 		}
 		break;
 	default:
