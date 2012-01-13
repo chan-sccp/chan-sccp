@@ -313,7 +313,7 @@ void * RefCountedObjectAlloc(size_t size, void *destructor)
 	return ( void * )ptr;
 } 
 
-inline void *sccp_retain(void * ptr)
+inline void *sccp_retain(void * ptr, const char *objecttype, const char *objectid, const char *filename, int lineno, const char *func)
 {
 	RefCountedObject * o;
 	char * cptr;
@@ -325,15 +325,19 @@ inline void *sccp_retain(void * ptr)
 
 	refcountval = pbx_atomic_fetchadd_int(&o->refcount, 1) + 1;
 	if (refcountval < 1) {
-		pbx_log(LOG_ERROR, "\nrefcount already reached 0 -> obj is fading!\n");
+		pbx_log(LOG_ERROR, "%s: refcount already reached 0 -> obj is fading!\n", objectid);
 		return NULL;		// refcount = 0 -> object is being cleaned up
 	} else {
-		sccp_log((DEBUGCAT_LOCK)) ("increased to: %d\n", refcountval);
+#if DEBUG
+		sccp_log((DEBUGCAT_LOCK)) ("%-15.15s:%-4.4d (%-25.25s) %*.*s> refcount for %s: %s increased to: %d\n", filename, lineno, func, refcountval-1, refcountval-1, "------", objecttype, objectid, refcountval);
+#else		
+		sccp_log((DEBUGCAT_LOCK)) ("SCCP: %*.*s> refcount for %s: %s increased to: %d\n", refcountval-1, refcountval-1, "------", objecttype, objectid, refcountval);
+#endif
 	}
 	return ptr;
 }
 
-inline void *sccp_release(void * ptr)
+inline void *sccp_release(void * ptr, const char *objecttype, const char *objectid, const char *filename, int lineno, const char *func)
 {
 	RefCountedObject * o;
 	char * cptr;
@@ -346,14 +350,18 @@ inline void *sccp_release(void * ptr)
 	refcountval=pbx_atomic_fetchadd_int(&o->refcount, -1) -1;
 
 	if( refcountval < 0 ) {
-		pbx_log(LOG_ERROR, "\nrefcount would go below 0 -> it is already being cleaned!\n");
+		pbx_log(LOG_ERROR, "%s: refcount would go below 0 -> it is already being cleaned!\n", objectid);
 	} else if( refcountval == 0 ) {
-		pbx_log(LOG_NOTICE, "\nrefcount has reached 0 -> cleaning up!\n");
+		pbx_log(LOG_NOTICE, "%s: refcount has reached 0 -> cleaning up!\n", objectid);
 		o->destructor(ptr);
 		sccp_free(o);
 		o = NULL;
 	} else {
-		sccp_log((DEBUGCAT_LOCK)) ("decreased to: %d\n", refcountval);
+#if DEBUG
+		sccp_log((DEBUGCAT_LOCK)) ("%-15.15s:%-4.4d (%-25.25s) <%*.*s refcount for %s: %s decreased to: %d\n", filename, lineno, func, refcountval, refcountval, "------", objecttype, objectid, refcountval);
+#else
+		sccp_log((DEBUGCAT_LOCK)) ("SCCP: <%*.*s refcount for %s: %s decreased to: %d\n", filename, lineno, func, refcountval, refcountval, "------", objecttype, objectid, refcountval);
+#endif		
 	}
 	return NULL;
 }
