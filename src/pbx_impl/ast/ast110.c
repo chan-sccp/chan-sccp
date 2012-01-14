@@ -609,18 +609,21 @@ static int sccp_wrapper_asterisk110_sendDigits(const sccp_channel_t * channel, c
 
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Sending digits '%s'\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), digits);
 	// We don't just call sccp_pbx_senddigit due to potential overhead, and issues with locking
-	f.src = "SCCP";
-	// CS_AST_NEW_FRAME_STRUCT
-	for (i = 0; digits[i] != '\0'; i++) {
-		f.subclass.integer = digits[i];
-		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Sending digit %c\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), digits[i]);
+        f.src = "SCCP";
+        // CS_AST_NEW_FRAME_STRUCT
 
-		f.frametype = AST_FRAME_DTMF_BEGIN;
-		ast_queue_frame(pbx_channel, &f);
+//      f.frametype = AST_FRAME_DTMF_BEGIN;
+//      ast_queue_frame(pbx_channel, &f);
+        for (i = 0; digits[i] != '\0'; i++) {
+                sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Sending digit %c\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), digits[i]);
 
-		f.frametype = AST_FRAME_DTMF_END;
-		ast_queue_frame(pbx_channel, &f);
-	}
+                f.frametype = AST_FRAME_DTMF_END;       // Sending only the dmtf will force asterisk to start with DTMF_BEGIN and schedule the DTMF_END
+                f.subclass.integer = digits[i];
+//              f.samples = SCCP_MIN_DTMF_DURATION * 8;
+                f.len = SCCP_MIN_DTMF_DURATION;
+                f.src = "SEND DIGIT";
+                ast_queue_frame(pbx_channel, &f);
+        }
 	return 1;
 }
 
