@@ -82,6 +82,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 
 #    define SCCP_LOCK_TRIES 10
 #    define SCCP_LOCK_USLEEP 100
+#    define SCCP_MIN_DTMF_DURATION 80		// 80 ms
 
 /*! \todo I don't like the -1 returned value */
 #    define sccp_true(x) (pbx_true(x) ? 1 : 0)
