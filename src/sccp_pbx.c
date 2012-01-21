@@ -483,24 +483,25 @@ int sccp_pbx_answer(sccp_channel_t * c)
 		   on this point we do not have a pointer to ou bridge channel
 		   so we search for it -MC
 		 */
-		const char *bridgePeer = pbx_builtin_getvar_helper(c->owner, "BRIDGEPEER");
+		const char *bridgePeerChannelName = pbx_builtin_getvar_helper(c->owner, "BRIDGEPEER");
 
-		if (bridgePeer) {
-			while ((astChannel = pbx_channel_walk_locked(astChannel)) != NULL) {
-				sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) searching for channel where %s == %s\n", bridgePeer, astChannel->name);
-				if (strlen(astChannel->name) == strlen(bridgePeer) && !strncmp(astChannel->name, bridgePeer, strlen(astChannel->name))) {
-					pbx_channel_unlock(astChannel);
-					br = astChannel;
-					break;
-				}
-				pbx_channel_unlock(astChannel);
-			}
+		if (bridgePeerChannelName) {
+// 			while ((astChannel = pbx_channel_walk_locked(astChannel)) != NULL) {
+// 				sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) searching for channel where %s == %s\n", bridgePeer, astChannel->name);
+// 				if (strlen(astChannel->name) == strlen(bridgePeer) && !strncmp(astChannel->name, bridgePeer, strlen(astChannel->name))) {
+// 					pbx_channel_unlock(astChannel);
+// 					br = astChannel;
+// 					break;
+// 				}
+// 				pbx_channel_unlock(astChannel);
+// 			}
+			PBX(getChannelByName)(bridgePeerChannelName, br);
 		}
 
 		/* did we find our bridge */
 		/* \todo masquarade does not succeed when forwarding to a dialplan extension which starts with PLAYBACK */
+		pbx_log(LOG_NOTICE, "SCCP: bridge: %s\n", (br) ? br->name : " -- no bridged found -- ");
 		if (br) {
-			pbx_log(LOG_NOTICE, "SCCP: bridge: %s\n", (br) ? br->name : " -- no bridged found -- ");
 
 			/* set the channel and the bridge to state UP to fix problem with fast pickup / autoanswer */
 			pbx_setstate(c->owner, AST_STATE_UP);
