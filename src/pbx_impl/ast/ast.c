@@ -29,23 +29,44 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2269 $")
 PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 {
 #if ASTERISK_VERSION_NUMBER >= 10800
-	struct ast_channel_iterator *iter = NULL;
+	struct ast_channel_iterator *iter = ast_channel_iterator_all_new();
+	PBX_CHANNEL_TYPE *res = NULL;
 
-	if (!target) {
-		if (!(iter = ast_channel_iterator_all_new())) {
-			return NULL;
+// 	if (!target) {
+// 		if (!(iter = ast_channel_iterator_all_new())) {
+// 			return NULL;
+// 		}
+// 	}
+// 	target = ast_channel_iterator_next(iter);
+// 	if (!ast_channel_unref(target)) {
+// 		ast_channel_lock(target);
+// 		return target;
+// 	} else {
+// 		if (iter) {
+// 			ast_channel_iterator_destroy(iter);
+// 		}
+// 		return NULL;
+// 	}
+	
+	/* no target given, so just start iteration */
+	if(!target){
+		res = ast_channel_iterator_next(iter);
+	}else{
+		/* search for our target channel and use the next iteration value */
+		while ((res = ast_channel_iterator_next(iter)) != NULL) {
+			if(res == target){
+				res = ast_channel_iterator_next(iter);
+				break;
+			}
 		}
 	}
-	target = ast_channel_iterator_next(iter);
-	if (!ast_channel_unref(target)) {
-		ast_channel_lock(target);
-		return target;
-	} else {
-		if (iter) {
-			ast_channel_iterator_destroy(iter);
-		}
-		return NULL;
+	
+	if (res) {
+		ast_channel_unref(res);
+		ast_channel_lock(res);
 	}
+	ast_channel_iterator_destroy(iter);
+	return res;
 #else
 	return ast_channel_walk_locked(target);
 #endif
