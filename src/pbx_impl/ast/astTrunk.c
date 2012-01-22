@@ -1614,12 +1614,14 @@ static boolean_t sccp_wrapper_asterisk111_rtpGetUs(PBX_RTP_TYPE * rtp, struct so
 	return TRUE;
 }
 
-static boolean_t sccp_wrapper_asterisk111_getChannelByName(const char *name, PBX_CHANNEL_TYPE * pbx_channel)
+static boolean_t sccp_wrapper_asterisk111_getChannelByName(const char *name, PBX_CHANNEL_TYPE **pbx_channel)
 {
-
-	pbx_channel = ast_channel_get_by_name(name);
-	if (!pbx_channel)
+	struct ast_channel *ast = ast_channel_get_by_name(name);
+	
+	if (!ast)
 		return FALSE;
+	
+	*pbx_channel = ast;
 	return TRUE;
 }
 

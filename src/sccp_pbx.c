@@ -495,7 +495,8 @@ int sccp_pbx_answer(sccp_channel_t * c)
 // 				}
 // 				pbx_channel_unlock(astChannel);
 // 			}
-			PBX(getChannelByName)(bridgePeerChannelName, br);
+			pbx_log(LOG_NOTICE, "Searching for dridge channel %s\n", bridgePeerChannelName);
+			PBX(getChannelByName)(bridgePeerChannelName, &br);
 		}
 
 		/* did we find our bridge */
