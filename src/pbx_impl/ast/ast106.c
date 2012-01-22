@@ -1473,12 +1473,14 @@ static boolean_t sccp_wrapper_asterisk16_rtpGetUs(PBX_RTP_TYPE * rtp, struct soc
 	return TRUE;
 }
 
-static boolean_t sccp_wrapper_asterisk16_getChannelByName(const char *name, PBX_CHANNEL_TYPE * pbx_channel)
+static boolean_t sccp_wrapper_asterisk16_getChannelByName(const char *name, PBX_CHANNEL_TYPE **pbx_channel)
 {
-	pbx_channel = ast_get_channel_by_name_locked(name);
-	if (!pbx_channel)
+	struct ast_channel *ast = ast_get_channel_by_name_locked(name);
+	
+	if (!ast)
 		return FALSE;
-	pbx_channel_unlock(pbx_channel);
+	
+	*pbx_channel = ast;
 	return TRUE;
 }
 
