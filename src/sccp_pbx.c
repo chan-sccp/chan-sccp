@@ -486,6 +486,7 @@ int sccp_pbx_answer(sccp_channel_t * c)
 		const char *bridgePeerChannelName = pbx_builtin_getvar_helper(c->owner, "BRIDGEPEER");
 
 		if (bridgePeerChannelName) {
+			/* the old way of searching bridged channel */
 // 			while ((astChannel = pbx_channel_walk_locked(astChannel)) != NULL) {
 // 				sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) searching for channel where %s == %s\n", bridgePeer, astChannel->name);
 // 				if (strlen(astChannel->name) == strlen(bridgePeer) && !strncmp(astChannel->name, bridgePeer, strlen(astChannel->name))) {
@@ -495,7 +496,6 @@ int sccp_pbx_answer(sccp_channel_t * c)
 // 				}
 // 				pbx_channel_unlock(astChannel);
 // 			}
-			pbx_log(LOG_NOTICE, "Searching for dridge channel %s\n", bridgePeerChannelName);
 			PBX(getChannelByName)(bridgePeerChannelName, &br);
 		}
 
