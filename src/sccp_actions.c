@@ -1066,6 +1066,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	uint8_t stimulus;
 	uint8_t instance;
 	sccp_channel_t *sccp_channel_hold;
+	sccp_channel_t *sccp_channel_ringing;
 
 	stimulus = letohl(r->msg.StimulusMessage.lel_stimulus);
 	instance = letohl(r->msg.StimulusMessage.lel_stimulusInstance);
@@ -1159,26 +1160,26 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			sccp_dev_set_activeline(d, l);
 			sccp_dev_set_cplane(l, instance, d, 1);
 			sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
-		} else {
-			sccp_channel_hold = sccp_channel_find_bystate_on_line_locked(l, SCCP_CHANNELSTATE_HOLD);
+		} else if ((sccp_channel_hold = sccp_channel_find_bystate_on_line_locked(l, SCCP_CHANNELSTATE_HOLD))) {
 			sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Channel count on line %d = %d", d->id, instance, SCCP_RWLIST_GETSIZE(l->channels));
-			if (sccp_channel_hold != NULL) {
-				if (SCCP_RWLIST_GETSIZE(l->channels) == 1) {
-					/* \todo we should  lock the list here. */
-					channel = SCCP_LIST_FIRST(&l->channels);
-					sccp_channel_lock(channel);
-					sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d", d->id, channel->callid, instance);
-					sccp_dev_set_activeline(d, l);
-					sccp_channel_resume_locked(d, channel, TRUE);
-					sccp_channel_unlock(channel);
-					sccp_dev_set_cplane(l, instance, d, 1);
-				} else {
-					sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Switch to line %d", d->id, instance);
-					sccp_dev_set_activeline(d, l);
-					sccp_dev_set_cplane(l, instance, d, 1);
-				}
-			}
-			sccp_channel_unlock(sccp_channel_hold);
+                        if (SCCP_RWLIST_GETSIZE(l->channels) == 1) {
+                                /* \todo we should  lock the list here. */
+                                channel = SCCP_LIST_FIRST(&l->channels);
+                                sccp_channel_lock(channel);
+                                sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d", d->id, channel->callid, instance);
+                                sccp_dev_set_activeline(d, l);
+                                sccp_channel_resume_locked(d, channel, TRUE);
+                                sccp_channel_unlock(channel);
+                                sccp_dev_set_cplane(l, instance, d, 1);
+                        } else {
+                                sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Switch to line %d", d->id, instance);
+                                sccp_dev_set_activeline(d, l);
+                                sccp_dev_set_cplane(l, instance, d, 1);
+                        }
+                        sccp_channel_unlock(sccp_channel_hold);
+		} else if ((sccp_channel_ringing = sccp_channel_find_bystate_on_line_nolock(l, SCCP_CHANNELSTATE_RINGING))) {
+                        sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Answering incoming/ringing line %d", d->id, instance);
+		        sccp_sk_answer(d, l, instance, sccp_channel_ringing);
 		}
 		break;
 
