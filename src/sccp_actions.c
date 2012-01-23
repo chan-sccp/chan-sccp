@@ -1160,6 +1160,10 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			sccp_dev_set_activeline(d, l);
 			sccp_dev_set_cplane(l, instance, d, 1);
 			sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
+		} else if ((sccp_channel_ringing = sccp_channel_find_bystate_on_line_locked(l, SCCP_CHANNELSTATE_RINGING))) {
+                        sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Answering incoming/ringing line %d", d->id, instance);
+			sccp_channel_answer_locked(d, sccp_channel_ringing);
+			sccp_channel_unlock(sccp_channel_ringing);
 		} else if ((sccp_channel_hold = sccp_channel_find_bystate_on_line_locked(l, SCCP_CHANNELSTATE_HOLD))) {
 			sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Channel count on line %d = %d", d->id, instance, SCCP_RWLIST_GETSIZE(l->channels));
                         if (SCCP_RWLIST_GETSIZE(l->channels) == 1) {
@@ -1177,9 +1181,6 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
                                 sccp_dev_set_cplane(l, instance, d, 1);
                         }
                         sccp_channel_unlock(sccp_channel_hold);
-		} else if ((sccp_channel_ringing = sccp_channel_find_bystate_on_line_nolock(l, SCCP_CHANNELSTATE_RINGING))) {
-                        sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Answering incoming/ringing line %d", d->id, instance);
-		        sccp_sk_answer(d, l, instance, sccp_channel_ringing);
 		}
 		break;
 
