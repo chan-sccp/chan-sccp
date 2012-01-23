@@ -486,7 +486,7 @@ int sccp_pbx_answer(sccp_channel_t * c)
 		 */
 		const char *bridgePeerChannelName = pbx_builtin_getvar_helper(c->owner, "BRIDGEPEER");
 
-		if (bridgePeerChannelName) {
+		if (!sccp_strlen_zero(bridgePeerChannelName)) {
 			/* the old way of searching bridged channel */
 // 			while ((astChannel = pbx_channel_walk_locked(astChannel)) != NULL) {
 // 				sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) searching for channel where %s == %s\n", bridgePeer, astChannel->name);

@@ -73,7 +73,7 @@ PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 }
 
 /*
- * \brief itterate through locked pbx channels and search using specified match function
+ * \brief iterate through locked pbx channels and search using specified match function
  * \param is_match match function
  * \param data paremeter data for match function
  * \return pbx_channel Locked Asterisk Channel
