@@ -474,7 +474,8 @@ int sccp_pbx_answer(sccp_channel_t * c)
 		/* we are a forwarded call, bridge me with my parent */
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "SCCP: bridge me with my parent, device %s\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
 
-		PBX_CHANNEL_TYPE *astChannel = NULL, *br = NULL, *astForwardedChannel = c->parentChannel->owner;
+//		PBX_CHANNEL_TYPE *astChannel = NULL, *br = NULL, *astForwardedChannel = c->parentChannel->owner;
+		PBX_CHANNEL_TYPE *br = NULL, *astForwardedChannel = c->parentChannel->owner;
 
 		if (c->owner->appl) {
 			sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) %s bridging to dialplan application %s\n", c->owner->name, c->owner->appl);
@@ -520,7 +521,6 @@ int sccp_pbx_answer(sccp_channel_t * c)
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: ast %s\n", pbx_state2str(c->owner->_state));
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: astForwardedChannel %s\n", pbx_state2str(astForwardedChannel->_state));
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: br %s\n", pbx_state2str(br->_state));
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: astChannel %s\n", pbx_state2str(astChannel->_state));
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) ============================================== \n");
 			return 0;
 		}
