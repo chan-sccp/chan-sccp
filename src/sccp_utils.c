@@ -1515,7 +1515,6 @@ void sccp_util_featureStorageBackend(const sccp_event_t ** event)
 {
 	char family[25];
 	char cfwdLineStore[60];
-	return;
 	sccp_buttonconfig_t *config;
 	sccp_line_t *line;
 	sccp_linedevices_t *lineDevice;
