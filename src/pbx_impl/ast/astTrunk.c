@@ -1,6 +1,6 @@
 
 /*!
- * \file 	sccp_astTrunk.c
+ * \file 	astTrunk.c
  * \brief 	SCCP PBX Asterisk Wrapper Class
  * \author 	Marcello Ceshia
  * \author 	Diederik de Groot <ddegroot [at] users.sourceforge.net>
@@ -876,7 +876,8 @@ static sccp_parkresult_t sccp_wrapper_asterisk111_park(const sccp_channel_t * ho
 /*!
  * \brief Pickup asterisk channel target using chan
  * 
- * \param hostChannel initial channel that request the parking
+ * \param chan initial channel that request the parking
+ * \param target Channel t park to
  * 
  */
 static boolean_t sccp_wrapper_asterisk111_pickupChannel(const sccp_channel_t * chan, struct ast_channel *target)

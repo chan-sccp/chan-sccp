@@ -1,6 +1,6 @@
 
 /*!
- * \file 	sccp_astTrunk.h
+ * \file 	astTrunk.h
  * \brief 	SCCP PBX Asterisk Header
  * \author 	Marcello Ceshia
  * \author 	Diederik de Groot <ddegroot [at] users.sourceforge.net>

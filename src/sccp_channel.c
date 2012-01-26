@@ -436,8 +436,6 @@ void sccp_channel_setSkinnyCallstate(sccp_channel_t * channel, skinny_callstate_
 /*!
  * \brief Set CallingParty on SCCP Channel c
  * \param channel SCCP Channel
- * \param name Name as char
- * \param number Number as char
  *
  * \callgraph
  * \callergraph

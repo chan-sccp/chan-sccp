@@ -1,6 +1,6 @@
 
 /*!
- * \file 	sccp_ast108.c
+ * \file 	ast108.c
  * \brief 	SCCP PBX Asterisk Wrapper Class
  * \author 	Marcello Ceshia
  * \author 	Diederik de Groot <ddegroot [at] users.sourceforge.net>
@@ -938,8 +938,8 @@ pickup_failed:
 /*!
  * \brief Pickup asterisk channel target using chan
  * 
- * \param hostChannel initial channel that request the parking
- * 
+ * \param chan initial channel that request the parking           
+ * \param target Channel t park to
  */
 static boolean_t sccp_wrapper_asterisk18_pickupChannel(const sccp_channel_t * chan, struct ast_channel *target)
 {

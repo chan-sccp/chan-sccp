@@ -1,6 +1,6 @@
 
 /*!
- * \file 	sccp_ast.c
+ * \file 	ast.c
  * \brief 	SCCP PBX Asterisk Wrapper Class
  * \author 	Diederik de Groot <ddegroot [at] users.sourceforge.net>
  * \note	Reworked, but based on chan_sccp code.
@@ -185,9 +185,7 @@ struct ast_config *pbx_config_load(const char *filename, const char *who_asked, 
 /*!
  * \brief Get/Create new config variable
  * \note replacement for ast_variable_new
- * \param name Variable Name as char
- * \param value Variable Value as char
- * \param filename Filename
+ * \param v Variable Name as char
  * \return The return value is struct ast_variable.
  */
 PBX_VARIABLE_TYPE *pbx_variable_new(PBX_VARIABLE_TYPE * v)
@@ -307,8 +305,6 @@ int pbx_str2cos(const char *value, unsigned int *cos)
  * \param context context to remove extension from
  * \param extension which extension to remove
  * \param priority priority of extension to remove (0 to remove all)
- * \param callerid NULL to remove all; non-NULL to match a single record per priority
- * \param matchcid non-zero to match callerid element (if non-NULL); 0 to match default case
  * \param registrar registrar of the extension
  *
  * This function removes an extension from a given context.
@@ -335,9 +331,10 @@ int pbx_context_remove_extension(const char *context, const char *extension, int
 /*!   
  * \brief Send ack in manager list transaction
  * \note replacement for astman_send_listack
- * \param context which context to add the ignorpattern to
- * \param ignorepat ignorepattern to set up for the extension
- * \param registrar registrar of the ignore pattern
+ * \param s Management Session
+ * \param m Management Message
+ * \param msg Message
+ * \param listflag List Flag
  */
 void pbxman_send_listack(struct mansession *s, const struct message *m, char *msg, char *listflag)
 {
@@ -394,7 +391,7 @@ skinny_codec_t pbx_codec2skinny_codec(ast_format_type fmt)
 /*!
  * \brief Convert a skinny_codec (enum) to an ast_codec (fmt)
  *
- * \param skinny_codec Skinny Codec (enum)
+ * \param codec Skinny Codec (enum)
  *
  * \return fmt Format as ast_format_type
  */

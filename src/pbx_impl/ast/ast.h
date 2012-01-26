@@ -1,6 +1,6 @@
 
 /*!
- * \file 	sccp_ast.h
+ * \file 	ast.h
  * \brief 	SCCP PBX Asterisk Header
  * \author 	Diederik de Groot <ddegroot [at] users.sourceforge.net>
  * \note	Reworked, but based on chan_sccp code.
