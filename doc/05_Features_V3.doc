@@ -14,8 +14,8 @@
  */
 
 /*!
- * \page new_features What is new in this version (V3/Trunk)
- * \section se_new_features New features in this version (V3/Trunk)
+ * \page new_features What is new in V3
+ * \section se_new_features New features in V3
  * 
  * \ref nf_shared_lines 	"How to use Shared Lines on a device"\n
  * \ref nf_phone_buttons 	"How to set Phone Buttons on a device (softkeys)"\n
