@@ -1,6 +1,6 @@
 
 /*!
- * \file 	sccp_ast104.h
+ * \file 	ast104.h
  * \brief 	SCCP PBX Asterisk Header
  * \author 	Diederik de Groot <ddegroot [at] users.sourceforge.net>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
