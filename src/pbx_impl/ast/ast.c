@@ -471,10 +471,7 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 		ast_channel->hangupcause);
 	
 	if (AST_STATE_UP != ast_channel->_state) {
-		if (AST_STATE_DOWN==ast_channel->_state && NULL==sccp_channel) {
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: hanging up masqueraded channel\n", ast_channel->name);
-			ast_hangup(ast_channel);
-		} else if (AST_STATE_DIALING == ast_channel->_state || SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state || SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state) {
+		if (AST_STATE_DIALING == ast_channel->_state || SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state || SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state) {
 			// AST_STATE_DIALING == ast_channel->_state                        -> use ast_hangup when still in dialing state
 			// SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state        -> use ast_hangup after callforward ss-switch
 			// SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state  -> use ast_hangup before connection to pbx is established 
