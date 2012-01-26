@@ -32,7 +32,8 @@
  * \ref what_sccp	"What is Chan_SCCP"\n
  * \ref build_guide 	"Building and Installation Guide"\n
  * \ref setup_sccp      "How to setup the chan_sccp Module"\n
- * \ref new_features    "What is new in this version (V3/Trunk)"\n
+ * \ref V3_features     "What is new in V3"\n
+ * \ref new_features    "What is new in this version (V4/Trunk)"\n
  * \ref faq		"Frequently Asked Questions"\n
  * \ref cons 		"Consulted Documentation"\n
  * \ref supp_os		"Supported Operating Systems / Notes"\n

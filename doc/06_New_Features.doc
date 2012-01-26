@@ -14,8 +14,8 @@
  */
 
 /*!
- * \page new_features What is new in V4
- * \section se_new_features New features in V4
+ * \page new_features What is new in V4/trunk
+ * \section se_new_features New features in V4/trunk
  * 
  * \ref nf_config_parser 		"New Config Parser"\n
  * \ref nf_protocol_handler		"New SCCP Protocol Handler"\n
