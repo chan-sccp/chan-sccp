@@ -47,7 +47,6 @@ static int sccp_pbx_sendHTML(struct ast_channel *ast, int subclass, const char *
 int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel);
 boolean_t sccp_wrapper_asterisk111_allocPBXChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
 boolean_t sccp_wrapper_asterisk111_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel, uint32_t conf_id, uint32_t part_id);
-int sccp_wrapper_asterisk111_requestHangup(PBX_CHANNEL_TYPE * channel);
 
 #if defined(__cplusplus) || defined(c_plusplus)
 
@@ -1796,50 +1795,6 @@ static boolean_t sccp_asterisk_getRemoteChannel(const sccp_channel_t * channel, 
 	return FALSE;
 }
 
-int sccp_wrapper_asterisk111_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
-{
-	if (!ast_channel) {
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "channel to hangup is NULL\n");
-		return FALSE;
-	}
-
-	sccp_channel_t *sccp_channel = get_sccp_channel_from_pbx_channel(ast_channel);
-
-	if ((ast_channel->_softhangup & AST_SOFTHANGUP_APPUNLOAD) != 0) {
-		ast_channel->hangupcause = AST_CAUSE_CHANNEL_UNACCEPTABLE;
-		ast_softhangup(ast_channel, AST_SOFTHANGUP_APPUNLOAD);
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send softhangup appunload\n", ast_channel->name);
-		return TRUE;
-	}
-
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "hangup %s: hasPbx %s; ast state: %s, sccp state: %s, blocking: %s, already being hungup: %s, hangupcause: %d\n", ast_channel->name, ast_channel->pbx ? "yes" : "no", pbx_state2str(ast_channel->_state), sccp_indicate2str(sccp_channel->state), ast_test_flag(ast_channel, AST_FLAG_BLOCKING) ? "yes" : "no", ast_channel->_softhangup ? "yes" : "no", ast_channel->hangupcause);
-
-//      do we need to check (ast_channel->_softhangup != 0), to see if we already hanging up ?
-//      if (!channel->pbx && !ast_test_flag(ast_channel, AST_FLAG_BLOCKING)) {          // -> crash
-
-	if (AST_STATE_UP != ast_channel->_state) {
-		if (AST_STATE_DIALING == ast_channel->_state || SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state || SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state) {
-			// AST_STATE_DIALING == ast_channel->_state                        -> use ast_hangup when still in dialing state
-			// SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state        -> use ast_hangup after callforward ss-switch
-			// SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state  -> use ast_hangup before connection to pbx is established 
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_hangup\n", ast_channel->name);
-			ast_hangup(ast_channel);
-			return TRUE;
-		} else if (((AST_STATE_RING == ast_channel->_state || AST_STATE_RINGING == ast_channel->_state) && SCCP_CHANNELSTATE_DIALING == sccp_channel->state) || SCCP_CHANNELSTATE_BUSY == sccp_channel->state || SCCP_CHANNELSTATE_CONGESTION == sccp_channel->state) {
-			/* softhangup when ast_channel structure is still needed afterwards */
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", ast_channel->name);
-			ast_softhangup_nolock(ast_channel, AST_SOFTHANGUP_DEV);
-			return TRUE;
-		}
-	}
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", ast_channel->name);
-	ast_channel->whentohangup = ast_tvnow();
-	ast_channel->_state=AST_STATE_DOWN;
-	ast_channel->_softhangup |= AST_SOFTHANGUP_DEV;
-	ast_queue_hangup(ast_channel);
-	return TRUE;
-}
-
 /*!
  * \brief Send Text to Asterisk Channel
  * \param ast Asterisk Channel as ast_channel
@@ -2155,7 +2110,7 @@ sccp_pbx_cb sccp_pbx = {
 	set_callstate:sccp_wrapper_asterisk111_setCallState,
 	checkhangup:sccp_wrapper_asterisk111_checkHangup,
 	hangup:NULL,
-	requestHangup:sccp_wrapper_asterisk111_requestHangup,
+	requestHangup:sccp_wrapper_asterisk_requestHangup,
 	extension_status:sccp_wrapper_asterisk111_extensionStatus,
 
 	/** get channel by name */
@@ -2237,7 +2192,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	/* channel */
 	.alloc_pbxChannel 		= sccp_wrapper_asterisk111_allocPBXChannel,
 	.alloc_conferenceTempPBXChannel	= sccp_wrapper_asterisk111_alloc_conferenceTempPBXChannel,
-	.requestHangup 			= sccp_wrapper_asterisk111_requestHangup,
+	.requestHangup 			= sccp_wrapper_asterisk_requestHangup,
 	.extension_status 		= sccp_wrapper_asterisk111_extensionStatus,
 	.getChannelByName 		= sccp_wrapper_asterisk111_getChannelByName,
 	.getChannelLinkId		= sccp_wrapper_asterisk111_getChannelLinkId,

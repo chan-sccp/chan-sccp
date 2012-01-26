@@ -363,6 +363,7 @@ static void sccp_free_ptr(void *ptr)
  */
 sccp_channel_t *get_sccp_channel_from_ast_channel(PBX_CHANNEL_TYPE * ast_chan);
 int sccp_asterisk_pbx_fktChannelWrite(struct ast_channel *ast, const char *funcname, char *args, const char *value);
+int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel);
 
 #endif
 
