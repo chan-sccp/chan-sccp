@@ -1,4 +1,88 @@
 ------------------------------------------------------------------------
+r3209 | marcelloceschia | 2012-01-22 10:26:40 +0100 (Sun, 22 Jan 2012) | 1 line
+
+use PBX(getChannelByName) to answer forwared channel; change getChannelByName interface definition
+------------------------------------------------------------------------
+r3208 | marcelloceschia | 2012-01-22 10:18:16 +0100 (Sun, 22 Jan 2012) | 1 line
+
+use PBX(getChannelByName) to answer forwared channel; change getChannelByName interface definition
+------------------------------------------------------------------------
+r3207 | marcelloceschia | 2012-01-21 18:20:20 +0100 (Sat, 21 Jan 2012) | 1 line
+
+changing the pbx_channel_walk_locked function and the way we are searching for a bridged channel, this maybe solves the issue with cfwd
+------------------------------------------------------------------------
+r3206 | ddegroot | 2012-01-14 18:19:51 +0100 (Sat, 14 Jan 2012) | 1 line
+
+Only sending DMTF_END, asterisk will generate the DTMF_BEGIN as needed (Thanks to Pavel Troller)
+------------------------------------------------------------------------
+r3205 | ddegroot | 2012-01-13 21:51:40 +0100 (Fri, 13 Jan 2012) | 1 line
+
+Split freepbx sccp.conf samples
+------------------------------------------------------------------------
+r3204 | ddegroot | 2012-01-13 21:50:34 +0100 (Fri, 13 Jan 2012) | 1 line
+
+Re-adding EXPERIMENTAL_MODES
+------------------------------------------------------------------------
+r3203 | ddegroot | 2012-01-13 18:14:47 +0100 (Fri, 13 Jan 2012) | 1 line
+
+Improve hangup responsiveness
+------------------------------------------------------------------------
+r3202 | ddegroot | 2012-01-13 17:55:00 +0100 (Fri, 13 Jan 2012) | 1 line
+
+Updated debug loggin for refcount retain/release functions
+------------------------------------------------------------------------
+r3201 | ddegroot | 2012-01-13 17:05:54 +0100 (Fri, 13 Jan 2012) | 1 line
+
+Reduce number of database interactions -> improve handling speed and interface responsiveness
+------------------------------------------------------------------------
+r3200 | ddegroot | 2012-01-11 18:13:21 +0100 (Wed, 11 Jan 2012) | 1 line
+
+updated got video video debug message
+------------------------------------------------------------------------
+r3199 | marcelloceschia | 2012-01-11 11:39:08 +0100 (Wed, 11 Jan 2012) | 1 line
+
+Robert: MaxCallBR
+------------------------------------------------------------------------
+r3198 | ddegroot | 2012-01-10 23:03:38 +0100 (Tue, 10 Jan 2012) | 1 line
+
+correcting destructor call
+------------------------------------------------------------------------
+r3197 | ddegroot | 2012-01-10 22:44:40 +0100 (Tue, 10 Jan 2012) | 1 line
+
+inlined retain/release functions to lower the function call cost
+------------------------------------------------------------------------
+r3196 | ddegroot | 2012-01-10 22:38:54 +0100 (Tue, 10 Jan 2012) | 1 line
+
+Added configure experimental flags
+------------------------------------------------------------------------
+r3195 | ddegroot | 2012-01-10 22:04:00 +0100 (Tue, 10 Jan 2012) | 1 line
+
+Added no-op's for retain and release when using without --enable-experimental-refcount
+------------------------------------------------------------------------
+r3194 | ddegroot | 2012-01-10 21:56:03 +0100 (Tue, 10 Jan 2012) | 1 line
+
+Revert to old sccp_conference implementation
+------------------------------------------------------------------------
+r3193 | ddegroot | 2012-01-10 18:58:26 +0100 (Tue, 10 Jan 2012) | 1 line
+
+Fixed sccp_channel_display_callInfo
+------------------------------------------------------------------------
+r3192 | ddegroot | 2012-01-10 18:44:35 +0100 (Tue, 10 Jan 2012) | 1 line
+
+Added check for existing callInfo structure in sccp_channel_display_callInfo
+------------------------------------------------------------------------
+r3191 | ddegroot | 2012-01-10 18:29:23 +0100 (Tue, 10 Jan 2012) | 1 line
+
+assigned new experimental-modes to pbx_impl
+------------------------------------------------------------------------
+r3190 | ddegroot | 2012-01-10 18:26:13 +0100 (Tue, 10 Jan 2012) | 1 line
+
+assigned new experimental-modes
+------------------------------------------------------------------------
+r3189 | ddegroot | 2012-01-10 18:18:49 +0100 (Tue, 10 Jan 2012) | 1 line
+
+temporarily split experimental-mode
+------------------------------------------------------------------------
 r3188 | ddegroot | 2012-01-09 14:38:35 +0100 (Mon, 09 Jan 2012) | 1 line
 
 Resetting minimum of 3 channels for conference, cleanup ast108.c

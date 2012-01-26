@@ -438,7 +438,7 @@ AC_DEFUN([CS_SETUP_DOXYGEN], [
 	  AC_HELP_STRING([--enable-devdoc], [enable developer documentation]), 
 	  ac_cv_use_devdoc=$enableval, ac_cv_use_devdoc=no)
 	AS_IF([test "_${ac_cv_use_devdoc}" == "_yes"], 
-	  [DX_ENV_APPEND([INPUT],[. doc src])],
+	  [DX_ENV_APPEND([INPUT],[. doc src src/pbx_impl src/pbx_impl/ast])],
 	  [DX_ENV_APPEND([INPUT],[. doc])]
 	)
 	AC_MSG_NOTICE([--enable-devdoc: ${ac_cv_use_devdoc}])

@@ -26672,7 +26672,7 @@ else
 fi
 
 	if test "_${ac_cv_use_devdoc}" == "_yes"; then :
-  DX_ENV="$DX_ENV INPUT='. doc src'"
+  DX_ENV="$DX_ENV INPUT='. doc src src/pbx_impl src/pbx_impl/ast'"
 
 else
   DX_ENV="$DX_ENV INPUT='. doc'"
