@@ -445,7 +445,7 @@ sccp_channel_t *get_sccp_channel_from_ast_channel(PBX_CHANNEL_TYPE * ast_chan)
 	}
 }
 
-int sccp_wrapper_asterisk18_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
+int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 {
 	if (!ast_channel) {
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "channel to hangup is NULL\n");
