@@ -445,7 +445,7 @@ sccp_channel_t *get_sccp_channel_from_ast_channel(PBX_CHANNEL_TYPE * ast_chan)
 	}
 }
 
-int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
+int sccp_wrapper_asterisk18_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 {
 	if (!ast_channel) {
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "channel to hangup is NULL\n");
@@ -469,7 +469,8 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 		ast_test_flag(ast_channel, AST_FLAG_BLOCKING) ? "yes" : "no", 
 		ast_channel->_softhangup ? "yes" : "no", 
 		ast_channel->hangupcause);
-	
+
+	// \todo possible nullpointer dereference ahead (sccp_channel might be null)
 	if (AST_STATE_UP != ast_channel->_state) {
 		if (AST_STATE_DIALING == ast_channel->_state || SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state || SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state) {
 			// AST_STATE_DIALING == ast_channel->_state                        -> use ast_hangup when still in dialing state
@@ -477,20 +478,20 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 			// SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state  -> use ast_hangup before connection to pbx is established 
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_hangup\n", ast_channel->name);
 			ast_hangup(ast_channel);
+			return TRUE;
 		} else if (((AST_STATE_RING == ast_channel->_state || AST_STATE_RINGING == ast_channel->_state) && SCCP_CHANNELSTATE_DIALING == sccp_channel->state) || SCCP_CHANNELSTATE_BUSY == sccp_channel->state || SCCP_CHANNELSTATE_CONGESTION == sccp_channel->state) {
 			/* softhangup when ast_channel structure is still needed afterwards */
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", ast_channel->name);
 			ast_softhangup_nolock(ast_channel, AST_SOFTHANGUP_DEV);
+			return TRUE;
 		}
-	} else {
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", ast_channel->name);
-		ast_channel->whentohangup = ast_tvnow();
-		ast_channel->_state=AST_STATE_DOWN;
-		ast_queue_hangup(ast_channel);
 	}
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", ast_channel->name);
+	ast_channel->whentohangup = ast_tvnow();
+	ast_channel->_state=AST_STATE_DOWN;
+	ast_queue_hangup(ast_channel);
 	return TRUE;
 }
-
 
 
 int sccp_asterisk_pbx_fktChannelWrite(struct ast_channel *ast, const char *funcname, char *args, const char *value)
