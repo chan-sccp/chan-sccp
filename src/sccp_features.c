@@ -359,7 +359,7 @@ int sccp_feat_directpickup_locked(sccp_channel_t * c, char *exten)
 
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to answer '%s'\n", c->owner->name);
 					res = -1;
-				} else if ((res = pbx_queue_control(c->owner, AST_CONTROL_ANSWER))) {
+				} else if ((res = PBX(queue_control)(c->owner, AST_CONTROL_ANSWER))) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to queue answer on '%s'\n", c->owner->name);
 					res = -1;
 				}
@@ -695,7 +695,7 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 	instance = sccp_device_find_index_for_line(d, l->name);
 	sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 	pbx_setstate(c->owner, AST_STATE_BUSY);
-	pbx_queue_control(c->owner, AST_CONTROL_BUSY);
+	PBX(queue_control)(c->owner, AST_CONTROL_BUSY);
 }
 
 /*!
