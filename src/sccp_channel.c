@@ -622,12 +622,8 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * channel)
  */
 void sccp_channel_openreceivechannel_locked(sccp_channel_t * channel)
 {
-	sccp_moo_t *r;
 	sccp_device_t *d = NULL;
 
-	//int payloadType;
-	int packetSize;
-	struct sockaddr_in *them;
 	uint16_t instance;
 
 	if (!channel || !sccp_channel_getDevice(channel))
@@ -645,8 +641,6 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * channel)
 #ifdef CS_EXPERIMENTAL_CODEC
 	sccp_channel_recalculateWriteformat(channel);
 #endif
-
-	packetSize = 20; /** \todo calculate packetSize */
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: channel %s payloadType %d\n", channel->privateData->device->id, (channel->owner) ? channel->owner->name : "NULL", channel->rtp.audio.writeFormat);
 
@@ -669,35 +663,9 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * channel)
 		PBX(rtp_setWriteFormat) (channel, channel->rtp.audio.writeFormat);
 	}
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d] (%d ms), payload %d, echocancel: %d\n", channel->privateData->device->id, codec2str(channel->rtp.audio.writeFormat), channel->rtp.audio.writeFormat, packetSize, channel->rtp.audio.writeFormat, channel->line->echocancel);
-
-	sccp_rtp_getAudioPeer(channel, &them);
-	if (d->inuseprotocolversion >= 17) {
-		r = sccp_build_packet(OpenReceiveChannel, sizeof(r->msg.OpenReceiveChannel_v17));
-
-		memcpy(&r->msg.OpenReceiveChannel_v17.bel_remoteIpAddr, &them->sin_addr, 4);
-		r->msg.OpenReceiveChannel_v17.lel_conferenceId = htolel(channel->callid);
-		r->msg.OpenReceiveChannel_v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
-		r->msg.OpenReceiveChannel_v17.lel_millisecondPacketSize = htolel(packetSize);
-		r->msg.OpenReceiveChannel_v17.lel_payloadType = htolel(channel->rtp.audio.writeFormat);
-		r->msg.OpenReceiveChannel_v17.lel_vadValue = htolel(channel->line->echocancel);
-		r->msg.OpenReceiveChannel_v17.lel_conferenceId1 = htolel(channel->callid);
-		r->msg.OpenReceiveChannel_v17.lel_rtptimeout = htolel(10);
-		r->msg.OpenReceiveChannel_v17.lel_unknown20 = htolel(4000);
-	} else {
-		REQ(r, OpenReceiveChannel);
-		r->msg.OpenReceiveChannel.lel_conferenceId = htolel(channel->callid);
-		r->msg.OpenReceiveChannel.lel_passThruPartyId = htolel(channel->passthrupartyid);
-		r->msg.OpenReceiveChannel.lel_millisecondPacketSize = htolel(packetSize);
-		r->msg.OpenReceiveChannel.lel_payloadType = htolel(channel->rtp.audio.writeFormat);
-		r->msg.OpenReceiveChannel.lel_vadValue = htolel(channel->line->echocancel);
-		r->msg.OpenReceiveChannel.lel_conferenceId1 = htolel(channel->callid);
-		r->msg.OpenReceiveChannel.lel_rtptimeout = htolel(10);
-	}
-
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d], payload %d, echocancel: %d\n", channel->privateData->device->id, codec2str(channel->rtp.audio.writeFormat), channel->rtp.audio.writeFormat, channel->rtp.audio.writeFormat, channel->line->echocancel);
 	channel->rtp.audio.writeState = SCCP_RTP_STATUS_PROGESS;
-	sccp_dev_send(channel->privateData->device, r);
-
+	d->protocol->sendOpenReceiveChannel(d, channel);
 #ifdef CS_SCCP_VIDEO
 	if (!channel->rtp.video.rtp) {
 		sccp_rtp_createVideoServer(channel);

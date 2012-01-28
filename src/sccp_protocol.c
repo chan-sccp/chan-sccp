@@ -508,6 +508,46 @@ static void sccp_protocol_sendRegisterAckV11(const sccp_device_t *device, uint8_
 }
 /* done - registerACK */
 
+/*!
+ * \brief Send Open Receive Channel (V3)
+ */
+static void sccp_protocol_sendOpenReceiveChannelV3(const sccp_device_t *device, const sccp_channel_t *channel) {
+        sccp_moo_t *r;
+	int packetSize = 20; 				/*! \todo calculate packetSize */
+        
+        REQ(r, OpenReceiveChannel);
+	r->msg.OpenReceiveChannel.lel_conferenceId = htolel(channel->callid);
+	r->msg.OpenReceiveChannel.lel_passThruPartyId = htolel(channel->passthrupartyid);
+	r->msg.OpenReceiveChannel.lel_millisecondPacketSize = htolel(packetSize);
+	r->msg.OpenReceiveChannel.lel_payloadType = htolel(channel->rtp.audio.writeFormat);
+	r->msg.OpenReceiveChannel.lel_vadValue = htolel(channel->line->echocancel);
+	r->msg.OpenReceiveChannel.lel_conferenceId1 = htolel(channel->callid);
+	r->msg.OpenReceiveChannel.lel_rtptimeout = htolel(10);
+	
+	sccp_dev_send(device, r);  
+}
+
+/*!
+ * \brief Send Open Receive Channel (V17)
+ */
+static void sccp_protocol_sendOpenReceiveChannelV17(const sccp_device_t *device, const sccp_channel_t *channel) {
+	struct sockaddr_in *them;
+	int packetSize = 20; 				/*! \todo calculate packetSize */
+
+        sccp_rtp_getAudioPeer((sccp_channel_t *)channel, &them);
+        sccp_moo_t *r = sccp_build_packet(OpenReceiveChannel, sizeof(r->msg.OpenReceiveChannel_v17));
+	memcpy(&r->msg.OpenReceiveChannel_v17.bel_remoteIpAddr, &them->sin_addr, 4);
+	r->msg.OpenReceiveChannel_v17.lel_conferenceId = htolel(channel->callid);
+	r->msg.OpenReceiveChannel_v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
+	r->msg.OpenReceiveChannel_v17.lel_millisecondPacketSize = htolel(packetSize);
+	r->msg.OpenReceiveChannel_v17.lel_payloadType = htolel(channel->rtp.audio.writeFormat);
+	r->msg.OpenReceiveChannel_v17.lel_vadValue = htolel(channel->line->echocancel);
+	r->msg.OpenReceiveChannel_v17.lel_conferenceId1 = htolel(channel->callid);
+	r->msg.OpenReceiveChannel_v17.lel_rtptimeout = htolel(10);
+	r->msg.OpenReceiveChannel_v17.lel_unknown20 = htolel(4000);
+	
+	sccp_dev_send(device, r);  
+}  
 
 /* fastPictureUpdate */
 static void sccp_protocol_sendFastPictureUpdate(const sccp_device_t *device, const sccp_channel_t *channel){
@@ -523,6 +563,7 @@ static void sccp_protocol_sendFastPictureUpdate(const sccp_device_t *device, con
 	sccp_dev_send(device, r);
 }
 /* done - fastPictureUpdate */
+
 
 
 
@@ -571,24 +612,24 @@ static const sccp_deviceProtocol_t *sccpProtocolDefinition[] = {
 	NULL, 
 	NULL,
 	NULL,
-	&(sccp_deviceProtocol_t){"SCCP", 3, sccp_device_sendCallinfoV3, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV3, sccp_protocol_sendStaticDisplayprompt, sccp_protocol_sendStaticDisplayNotify, sccp_protocol_sendStaticDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate},/* default impl*/
+	&(sccp_deviceProtocol_t){"SCCP", 3, sccp_device_sendCallinfoV3, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV3, sccp_protocol_sendStaticDisplayprompt, sccp_protocol_sendStaticDisplayNotify, sccp_protocol_sendStaticDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate,sccp_protocol_sendOpenReceiveChannelV3},/* default impl*/
 	NULL,
-	&(sccp_deviceProtocol_t){"SCCP", 5, sccp_device_sendCallinfoV3, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV4, sccp_protocol_sendStaticDisplayprompt, sccp_protocol_sendStaticDisplayNotify, sccp_protocol_sendStaticDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate},
-	NULL,
-	NULL,
-	NULL,
-	&(sccp_deviceProtocol_t){"SCCP", 9, sccp_device_sendCallinfoV7, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV4, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate},
-	&(sccp_deviceProtocol_t){"SCCP", 10, sccp_device_sendCallinfoV7, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV4, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate},
-	&(sccp_deviceProtocol_t){"SCCP", 11, sccp_device_sendCallinfoV7, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate},
+	&(sccp_deviceProtocol_t){"SCCP", 5, sccp_device_sendCallinfoV3, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV4, sccp_protocol_sendStaticDisplayprompt, sccp_protocol_sendStaticDisplayNotify, sccp_protocol_sendStaticDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate,sccp_protocol_sendOpenReceiveChannelV3},
 	NULL,
 	NULL,
 	NULL,
-	&(sccp_deviceProtocol_t){"SCCP", 15, sccp_device_sendCallinfoV7, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate},
-	&(sccp_deviceProtocol_t){"SCCP", 16, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate},
-	&(sccp_deviceProtocol_t){"SCCP", 17, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate},
+	&(sccp_deviceProtocol_t){"SCCP", 9, sccp_device_sendCallinfoV7, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV4, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate,sccp_protocol_sendOpenReceiveChannelV3},
+	&(sccp_deviceProtocol_t){"SCCP", 10, sccp_device_sendCallinfoV7, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV4, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate,sccp_protocol_sendOpenReceiveChannelV3},
+	&(sccp_deviceProtocol_t){"SCCP", 11, sccp_device_sendCallinfoV7, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate,sccp_protocol_sendOpenReceiveChannelV3},
 	NULL,
-	&(sccp_deviceProtocol_t){"SCCP", 19, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV19, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatusV19,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate},
-	&(sccp_deviceProtocol_t){"SCCP", 20, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV19, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatusV19,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate},
+	NULL,
+	NULL,
+	&(sccp_deviceProtocol_t){"SCCP", 15, sccp_device_sendCallinfoV7, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate,sccp_protocol_sendOpenReceiveChannelV3},
+	&(sccp_deviceProtocol_t){"SCCP", 16, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate,sccp_protocol_sendOpenReceiveChannelV3},
+	&(sccp_deviceProtocol_t){"SCCP", 17, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate,sccp_protocol_sendOpenReceiveChannelV17},
+	NULL,
+	&(sccp_deviceProtocol_t){"SCCP", 19, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV19, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatusV19,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate,sccp_protocol_sendOpenReceiveChannelV17},
+	&(sccp_deviceProtocol_t){"SCCP", 20, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV19, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatusV19,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate,sccp_protocol_sendOpenReceiveChannelV17},
 };
 
 
@@ -597,7 +638,7 @@ static const sccp_deviceProtocol_t *sccpProtocolDefinition[] = {
  */
 
 static const sccp_deviceProtocol_t *spcpProtocolDefinition[] = {
-	&(sccp_deviceProtocol_t){"SPCP", 0, sccp_device_sendCallinfoV3, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV4, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate},
+	&(sccp_deviceProtocol_t){"SPCP", 0, sccp_device_sendCallinfoV3, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV4, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate,sccp_protocol_sendOpenReceiveChannelV3},
 	NULL,
 	NULL,
 	NULL,
@@ -605,7 +646,7 @@ static const sccp_deviceProtocol_t *spcpProtocolDefinition[] = {
 	NULL,
 	NULL,
 	NULL,
-	&(sccp_deviceProtocol_t){"SPCP", 8, sccp_device_sendCallinfoV3, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV4, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate},
+	&(sccp_deviceProtocol_t){"SPCP", 8, sccp_device_sendCallinfoV3, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV4, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus,sccp_protocol_sendUserToDeviceDataVersion1Message,sccp_protocol_sendFastPictureUpdate,sccp_protocol_sendOpenReceiveChannelV3},
 };
 
 /*! 
