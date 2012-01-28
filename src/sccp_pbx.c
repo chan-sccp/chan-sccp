@@ -117,7 +117,7 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 	boolean_t hasSession = FALSE;
 
 	if (!sccp_strlen_zero(ast->call_forward)) {
-		pbx_queue_control(ast, -1);					/* Prod Channel if in the middle of a call_forward instead of proceed */
+		PBX(queue_control)(ast, -1);					/* Prod Channel if in the middle of a call_forward instead of proceed */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Forwarding Call to '%s'\n", ast->call_forward);
 		return 0;
 	}									// CS_AST_CHANNEL_HAS_CID
@@ -166,7 +166,7 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Incoming calls limit (%d) reached on SCCP/%s... sending busy\n", l->incominglimit, l->name);
 		sccp_line_unlock(l);
 		pbx_setstate(ast, AST_STATE_BUSY);
-		pbx_queue_control(ast, AST_CONTROL_BUSY);
+		PBX(queue_control)(ast, AST_CONTROL_BUSY);
 		return 0;
 	}
 	sccp_line_unlock(l);
@@ -294,12 +294,12 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 	SCCP_LIST_UNLOCK(&l->devices);
 
 	if (isRinging) {
-		pbx_queue_control(ast, AST_CONTROL_RINGING);
+		PBX(queue_control)(ast, AST_CONTROL_RINGING);
 		sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_RINGIN);
 	} else if(hasDNDParticipant) {
-		pbx_queue_control(ast, AST_CONTROL_BUSY);
+		PBX(queue_control)(ast, AST_CONTROL_BUSY);
 	} else{
-		pbx_queue_control(ast, AST_CONTROL_CONGESTION);
+		PBX(queue_control)(ast, AST_CONTROL_CONGESTION);
 	}
 
 	if (cid_name)
@@ -1152,27 +1152,6 @@ void sccp_pbx_senddigits(sccp_channel_t * c, char *digits)
 	if (PBX(send_digits))
 		PBX(send_digits) (c, digits);
 }
-
-/*!
- * \brief Queue a control frame
- * \param c SCCP Channel
- * \param control as Asterisk Control Frame Type
- *
- * \deprecated
- */
-int sccp_pbx_queue_control(sccp_channel_t * c, uint8_t control)
-{
-//      PBX_FRAME_TYPE f;
-//      f = pbx_null_frame;
-//      f.frametype = AST_FRAME_DTMF;
-//      f.subclass = control;
-//      sccp_queue_frame(c, &f);
-
-	//! \todo implement this in pbx implementation
-	return 0;
-
-}
-
 
 /*!
  * \brief Handle Dialplan Transfer

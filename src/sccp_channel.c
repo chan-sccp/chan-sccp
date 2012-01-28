@@ -1019,7 +1019,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 	r->msg.FlowControlCommandMessage.maxBitRate = htolel(bitRate);
 	sccp_dev_send(channel->privateData->device, r);
 
-	ast_queue_control(channel->owner, AST_CONTROL_VIDUPDATE);
+	PBX(queue_control)(channel->owner, AST_CONTROL_VIDUPDATE);
 }
 
 /*!
@@ -1591,7 +1591,7 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * channel
 #endif
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answering channel with state '%s' (%d)\n", DEV_ID_LOG(channel->privateData->device), pbx_state2str(channel->owner->_state), channel->owner->_state);
-	pbx_queue_control(channel->owner, AST_CONTROL_ANSWER);
+	PBX(queue_control)(channel->owner, AST_CONTROL_ANSWER);
 
 	if (channel->state != SCCP_CHANNELSTATE_OFFHOOK)
 		sccp_indicate_locked(d, channel, SCCP_CHANNELSTATE_OFFHOOK);
@@ -1647,31 +1647,8 @@ int sccp_channel_hold_locked(sccp_channel_t * channel)
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Hold the channel %s-%08X\n", d->id, l->name, channel->callid);
 
-	PBX_CHANNEL_TYPE *peer;
-
-	peer = CS_AST_BRIDGED_CHANNEL(channel->owner);
-
-	if (peer) {
-#ifdef CS_AST_RTP_INSTANCE_NEW
-//                 pbx_rtp_instance_change_source(channel->rtp.audio.rtp);
-#else
-#    ifdef CS_AST_RTP_NEW_SOURCE
-		ast_rtp_new_source(channel->rtp.audio.rtp);
-#    endif
-#endif
-		ast_moh_start(peer, NULL, l->musicclass);			//! \todo use pbx impl
-
-#ifdef CS_AST_HAS_FLAG_MOH
-		pbx_set_flag(peer, AST_FLAG_MOH);
-#endif
-	}
-#ifdef CS_AST_CONTROL_HOLD
-	if (!channel->owner) {
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "C owner disappeared! Can't free ressources\n");
-		return 0;
-	}
-	sccp_pbx_queue_control(channel, AST_CONTROL_HOLD);
-#endif
+	if (channel->owner) 
+		PBX(queue_control_data)(channel->owner, AST_CONTROL_HOLD, S_OR(l->musicclass, NULL), !ast_strlen_zero(l->musicclass) ? strlen(l->musicclass) + 1 : 0);
 
 	sccp_device_lock(d);
 	d->active_channel = NULL;
@@ -1771,30 +1748,8 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * channel,
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume the channel %s-%08X\n", d->id, l->name, channel->callid);
 
-	PBX_CHANNEL_TYPE *peer;
-
-//      sccp_channel_t *sccp_peer;
-
-	peer = CS_AST_BRIDGED_CHANNEL(channel->owner);
-	if (peer) {
-		pbx_moh_stop(peer);						//! \todo use pbx impl
-#ifdef CS_AST_RTP_NEW_SOURCE
-		if (channel->rtp.audio.rtp)
-			ast_rtp_new_source(channel->rtp.audio.rtp);
-#endif
-
-		// this is for STABLE version
-#ifdef CS_AST_HAS_FLAG_MOH
-		pbx_clear_flag(peer, AST_FLAG_MOH);
-#endif
-	}
-#ifdef CS_AST_CONTROL_HOLD
-#    ifdef CS_AST_RTP_NEW_SOURCE
-	if (channel->rtp.audio.rtp)
-		ast_rtp_new_source(channel->rtp.audio.rtp);
-#    endif
-	sccp_pbx_queue_control(channel, AST_CONTROL_UNHOLD);
-#endif
+	if (channel->owner)
+		PBX(queue_control)(channel->owner, AST_CONTROL_UNHOLD);
 
 	sccp_rtp_stop(channel);
 	channel->setDevice(channel, d);
@@ -1807,7 +1762,7 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * channel,
 
 	sccp_channel_set_active(d, channel);
 #ifdef CS_AST_CONTROL_SRCUPDATE
-	sccp_pbx_queue_control(channel, AST_CONTROL_SRCUPDATE);			// notify changes e.g codec
+	PBX(queue_control)(channel->owner, AST_CONTROL_SRCUPDATE);			// notify changes e.g codec
 #endif
 	sccp_indicate_locked(d, channel, SCCP_CHANNELSTATE_CONNECTED);		// this will also reopen the RTP stream
 

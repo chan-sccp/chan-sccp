@@ -2062,7 +2062,7 @@ static int sccp_remote_answer(int fd, int argc, char *argv[])
 	sccp_channel_answer_locked(sccp_channel_getDevice(c), c);
 	sccp_channel_unlock(c);
 	if (c->owner) {
-		pbx_queue_control(c->owner, AST_CONTROL_ANSWER);
+		PBX(queue_control)(c->owner, AST_CONTROL_ANSWER);
 	}
 	return RESULT_SUCCESS;
 }

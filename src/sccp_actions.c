@@ -2495,7 +2495,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 
 		sccp_channel_unlock(channel);
 
-		ast_queue_control(channel->owner, AST_CONTROL_VIDUPDATE);
+		PBX(queue_control)(channel->owner, AST_CONTROL_VIDUPDATE);
 	} else {
 		pbx_log(LOG_ERROR, "%s: No channel with this PassThruId!\n", d->id);
 	}
