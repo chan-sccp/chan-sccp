@@ -3868,6 +3868,7 @@ typedef struct {
 	void (*const sendUserToDeviceDataVersionMessage) (const sccp_device_t * device, const void *xmlData, uint8_t priority);
 	void (*const sendFastPictureUpdate) (const sccp_device_t * device, const sccp_channel_t * channel);
 	void (*const sendOpenReceiveChannel) (const sccp_device_t *device, const sccp_channel_t *channel);
+	void (*const sendOpenMultiMediaChannel) (const sccp_device_t *device, const sccp_channel_t *channel, uint32_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);
 } sccp_deviceProtocol_t;
 
 uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type);
