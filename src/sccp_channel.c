@@ -358,8 +358,13 @@ void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * channel)
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Set the active channel %d on device\n", DEV_ID_LOG(d), (channel) ? channel->callid : 0);
 	sccp_device_lock(d);
-	d->active_channel = channel;
-	d->currentLine = channel->line;
+	if (channel) {
+		d->active_channel = channel;
+		d->currentLine = channel->line;
+	} else {
+		d->active_channel = NULL;
+		d->currentLine = NULL;
+	}
 	sccp_device_unlock(d);
 }
 
@@ -1585,7 +1590,7 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * channel
 #ifdef CS_AST_HAS_FLAG_MOH
 	pbx_bridged_channel = CS_AST_BRIDGED_CHANNEL(channel->owner);
 	if (pbx_bridged_channel && pbx_test_flag(pbx_bridged_channel, AST_FLAG_MOH)) {
-		pbx_moh_stop(pbx_bridged_channel);				//! \todo use pbx impl
+		PBX(moh_stop)(pbx_bridged_channel);				//! \todo use pbx impl
 		pbx_clear_flag(pbx_bridged_channel, AST_FLAG_MOH);
 	}
 #endif
@@ -1651,7 +1656,8 @@ int sccp_channel_hold_locked(sccp_channel_t * channel)
 		PBX(queue_control_data)(channel->owner, AST_CONTROL_HOLD, S_OR(l->musicclass, NULL), !ast_strlen_zero(l->musicclass) ? strlen(l->musicclass) + 1 : 0);
 
 	sccp_device_lock(d);
-	d->active_channel = NULL;
+//	d->active_channel = NULL;
+	sccp_channel_set_active(d, NULL);
 	sccp_device_unlock(d);
 	sccp_indicate_locked(d, channel, SCCP_CHANNELSTATE_HOLD);		// this will also close (but not destroy) the RTP stream
 
@@ -1753,6 +1759,7 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * channel,
 
 	sccp_rtp_stop(channel);
 	channel->setDevice(channel, d);
+	sccp_channel_set_active(d, channel);
 
 	//! \todo move this to openreceive- and startmediatransmission
 	sccp_channel_updateChannelCapability_locked(channel);
@@ -2021,7 +2028,7 @@ static void *sccp_channel_transfer_ringing_thread(void *data)
 
 	} else if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_MOH) {
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Started music on hold for channel %s(%p)\n", dual->transfered->name, (void *)dual->transfered);
-		ast_moh_start(dual->transfered, NULL, NULL);			//! \todo use pbx impl
+		PBX(moh_start)(dual->transfered, NULL, NULL);			//! \todo use pbx impl
 	}
 	ast_channel_unlock(dual->transfered);
 	sccp_free(dual);
