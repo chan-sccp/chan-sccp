@@ -694,7 +694,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 	int payloadType;
 	uint8_t lineInstance;
 	int bitRate = 1500;
-	sccp_device_t *d;
+	sccp_device_t *d = NULL;
 
 	if (!(d = channel->privateData->device))
 		return;
@@ -725,7 +725,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
  */
 void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 {
-	sccp_moo_t *r;
+//	sccp_moo_t *r;
 	int payloadType;
 	sccp_device_t *d = NULL;
 	struct sockaddr_in sin;
@@ -735,7 +735,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 	int packetSize = 20;							/*! \todo unused? */
 
 	channel->rtp.video.readFormat = SKINNY_CODEC_H264;
-	packetSize = 3840;
+//	packetSize = 3840;
 	packetSize = 1920;
 
 	int bitRate = 15000;
@@ -755,7 +755,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 	channel->rtp.video.readFormat = sccp_utils_findBestCodec(channel->preferences.video, ARRAY_LEN(channel->preferences.video), channel->capabilities.video, ARRAY_LEN(channel->capabilities.video), channel->remoteCapabilities.video, ARRAY_LEN(channel->remoteCapabilities.video));
 
 	if (channel->rtp.video.readFormat == 0) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: fall back to h264\n", channel->privateData->device->id);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: fall back to h264\n", d->id);
 		channel->rtp.video.readFormat = SKINNY_CODEC_H264;
 	}
 
@@ -771,11 +771,11 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		channel->rtp.video.phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
 	}
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: using payload %d\n", channel->privateData->device->id, payloadType);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: using payload %d\n", d->id, payloadType);
 
 	sccp_rtp_getUs(&channel->rtp.video, &sin);
 
-	if (channel->privateData->device->nat) {
+	if (d->nat) {
 		if (GLOB(externip.sin_addr.s_addr)) {
 			if (GLOB(externexpire) && (time(NULL) >= GLOB(externexpire))) {
 				time(&GLOB(externexpire));
@@ -788,122 +788,16 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 			memcpy(&sin.sin_addr, &GLOB(externip.sin_addr), 4);
 		}
 	}
-#if 0
-	if (d->inuseprotocolversion < 15) {
-		r = sccp_build_packet(StartMultiMediaTransmission, sizeof(r->msg.StartMultiMediaTransmission));
-		r->msg.StartMultiMediaTransmission.lel_conferenceID = htolel(channel->callid);
-		r->msg.StartMultiMediaTransmission.lel_passThruPartyId = htolel(channel->passthrupartyid);
-		r->msg.StartMultiMediaTransmission.lel_payloadCapability = htolel(channel->rtp.video.readFormat);
-		memcpy(&r->msg.StartMultiMediaTransmission.bel_remoteIpAddr, &channel->rtp.video.phone_remote.sin_addr, 4);
-		//r->msg.StartMultiMediaTransmission.bel_remoteIpAddr = htolel(channel->rtp.video.phone_remote.sin_addr.s_addr);
-		r->msg.StartMultiMediaTransmission.lel_remotePortNumber = htolel(ntohs(sin.sin_port));
-		r->msg.StartMultiMediaTransmission.lel_callReference = htolel(channel->callid);
-		r->msg.StartMultiMediaTransmission.lel_payloadType = payloadType;
-		r->msg.StartMultiMediaTransmission.lel_DSCPValue = htolel(136);
-		r->msg.StartMultiMediaTransmission.audioParameter.millisecondPacketSize = htolel(packetSize);
-		r->msg.StartMultiMediaTransmission.audioParameter.lel_echoCancelType = 0;
-		r->msg.StartMultiMediaTransmission.videoParameter.bitRate = 0;
-		r->msg.StartMultiMediaTransmission.videoParameter.pictureFormatCount = 0;
-		r->msg.StartMultiMediaTransmission.videoParameter.confServiceNum = 0;
-		r->msg.StartMultiMediaTransmission.videoParameter.dummy = 0;
-		r->msg.StartMultiMediaTransmission.videoParameter.h261VideoCapability.temporalSpatialTradeOffCapability = htolel(0x00000040);	/* profile */
-		r->msg.StartMultiMediaTransmission.videoParameter.h261VideoCapability.stillImageTransmission = htolel(0x00000032);	/* level */
-		r->msg.StartMultiMediaTransmission.dataParameter.protocolDependentData = htolel(0x002415f8);
-		r->msg.StartMultiMediaTransmission.dataParameter.maxBitRate = htolel(0x098902c4);
-	} else {
 
-		r = sccp_build_packet(StartMultiMediaTransmission, sizeof(r->msg.StartMultiMediaTransmission_v17));
-		r->msg.StartMultiMediaTransmission_v17.lel_conferenceID = htolel(channel->callid);
-		r->msg.StartMultiMediaTransmission_v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
-		r->msg.StartMultiMediaTransmission_v17.lel_payloadCapability = htolel(channel->rtp.video.readFormat);
-		memcpy(&r->msg.StartMultiMediaTransmission_v17.bel_remoteIpAddr, &channel->rtp.video.phone_remote.sin_addr, 4);
-		r->msg.StartMultiMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(sin.sin_port));
-		r->msg.StartMultiMediaTransmission_v17.lel_callReference = htolel(channel->callid);
-		r->msg.StartMultiMediaTransmission_v17.lel_payloadType = payloadType;
-		r->msg.StartMultiMediaTransmission_v17.lel_DSCPValue = htolel(136);
-		r->msg.StartMultiMediaTransmission_v17.audioParameter.millisecondPacketSize = htolel(packetSize);
-		r->msg.StartMultiMediaTransmission_v17.audioParameter.lel_echoCancelType = 0;
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.bitRate = 0;
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormatCount = 0;
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.confServiceNum = 0;
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.dummy = 0;
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.h261VideoCapability.temporalSpatialTradeOffCapability = htolel(0x00000040);	/* profile */
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.h261VideoCapability.stillImageTransmission = htolel(0x00000032);	/* level */
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.h263VideoCapability.h263CapabilityBitfield = htolel(0x4c3a525b);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.h263VideoCapability.annexNandwFutureUse = htolel(0x202d2050);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.vieoVideoCapability.modelNumber = htolel(0x203a5048);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.vieoVideoCapability.bandwidth = htolel(0x4e202c30);
-		r->msg.StartMultiMediaTransmission_v17.dataParameter.protocolDependentData = htolel(0x002415f8);
-		r->msg.StartMultiMediaTransmission_v17.dataParameter.maxBitRate = htolel(0x098902c4);
-	}
-#endif
-	if (d->inuseprotocolversion < 15) {
-		r = sccp_build_packet(StartMultiMediaTransmission, sizeof(r->msg.StartMultiMediaTransmission));
-		r->msg.StartMultiMediaTransmission.lel_conferenceID = htolel(channel->callid);
-		r->msg.StartMultiMediaTransmission.lel_passThruPartyId = htolel(channel->passthrupartyid);
-		r->msg.StartMultiMediaTransmission.lel_payloadCapability = htolel(channel->rtp.video.readFormat);
-		r->msg.StartMultiMediaTransmission.lel_callReference = htolel(channel->callid);
-		r->msg.StartMultiMediaTransmission.lel_payloadType = htolel(payloadType);
-		r->msg.StartMultiMediaTransmission.lel_DSCPValue = htolel(136);
-		r->msg.StartMultiMediaTransmission.videoParameter.bitRate = htolel(bitRate);
-//              r->msg.StartMultiMediaTransmission.videoParameter.pictureFormatCount            = htolel(0);
-//              r->msg.StartMultiMediaTransmission.videoParameter.pictureFormat[0].format       = htolel(4);
-//              r->msg.StartMultiMediaTransmission.videoParameter.pictureFormat[0].mpi          = htolel(30);
-		r->msg.StartMultiMediaTransmission.videoParameter.profile = htolel(0x40);
-		r->msg.StartMultiMediaTransmission.videoParameter.level = htolel(0x32);	/* has to be >= 15 to work with 7985 */
-		r->msg.StartMultiMediaTransmission.videoParameter.macroblockspersec = htolel(40500);
-		r->msg.StartMultiMediaTransmission.videoParameter.macroblocksperframe = htolel(1620);
-		r->msg.StartMultiMediaTransmission.videoParameter.decpicbuf = htolel(8100);
-		r->msg.StartMultiMediaTransmission.videoParameter.brandcpb = htolel(10000);
-		r->msg.StartMultiMediaTransmission.videoParameter.confServiceNum = htolel(channel->callid);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s(%d) (%d ms), payloadType %d, tos %d\n", d->id, pbx_inet_ntoa(channel->rtp.video.phone_remote.sin_addr), ntohs(channel->rtp.video.phone_remote.sin_port), codec2str(channel->rtp.video.readFormat), channel->rtp.video.readFormat, packetSize, payloadType, d->audio_tos);
+	d->protocol->sendStartMultiMediaTransmission(d, channel, payloadType, bitRate, sin);
 
-		r->msg.StartMultiMediaTransmission.lel_remotePortNumber = htolel(ntohs(sin.sin_port));
-		memcpy(&r->msg.StartMultiMediaTransmission.bel_remoteIpAddr, &channel->rtp.video.phone_remote.sin_addr, 4);
-
-	} else {
-
-		r = sccp_build_packet(StartMultiMediaTransmission, sizeof(r->msg.StartMultiMediaTransmission_v17));
-		r->msg.StartMultiMediaTransmission_v17.lel_conferenceID = htolel(channel->callid);
-		r->msg.StartMultiMediaTransmission_v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
-		r->msg.StartMultiMediaTransmission_v17.lel_payloadCapability = htolel(channel->rtp.video.readFormat);
-		r->msg.StartMultiMediaTransmission_v17.lel_callReference = htolel(channel->callid);
-		r->msg.StartMultiMediaTransmission_v17.lel_payloadType = htolel(payloadType);
-		r->msg.StartMultiMediaTransmission_v17.lel_DSCPValue = htolel(136);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.confServiceNum = htolel(channel->callid);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.bitRate = htolel(bitRate);
-//              r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormatCount        = htolel(1);
-//              r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormat[0].format   = htolel(4);
-//              r->msg.StartMultiMediaTransmission_v17.videoParameter.pictureFormat[0].mpi      = htolel(1);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.profile = htolel(64);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.level = htolel(50);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.macroblockspersec = htolel(40500);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.macroblocksperframe = htolel(1620);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.decpicbuf = htolel(8100);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.brandcpb = htolel(10000);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.dummy1 = htolel(1);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.dummy2 = htolel(2);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.dummy3 = htolel(3);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.dummy4 = htolel(4);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.dummy5 = htolel(5);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.dummy6 = htolel(6);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.dummy7 = htolel(7);
-		r->msg.StartMultiMediaTransmission_v17.videoParameter.dummy8 = htolel(8);
-
-		r->msg.StartMultiMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(sin.sin_port));
-		memcpy(&r->msg.StartMultiMediaTransmission_v17.bel_remoteIpAddr, &channel->rtp.video.phone_remote.sin_addr, 4);
-
-	}
-
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s(%d) (%d ms), payloadType %d, tos %d\n", channel->privateData->device->id, pbx_inet_ntoa(channel->rtp.video.phone_remote.sin_addr), ntohs(channel->rtp.video.phone_remote.sin_port), codec2str(channel->rtp.video.readFormat), channel->rtp.video.readFormat, packetSize, payloadType, channel->privateData->device->audio_tos);
-	sccp_dev_send(channel->privateData->device, r);
-
-	r = sccp_build_packet(FlowControlCommandMessage, sizeof(r->msg.FlowControlCommandMessage));
+	sccp_moo_t *r = sccp_build_packet(FlowControlCommandMessage, sizeof(r->msg.FlowControlCommandMessage));
 	r->msg.FlowControlCommandMessage.lel_conferenceID = htolel(channel->callid);
 	r->msg.FlowControlCommandMessage.lel_passThruPartyId = htolel(channel->passthrupartyid);
 	r->msg.FlowControlCommandMessage.lel_callReference = htolel(channel->callid);
-//      r->msg.FlowControlCommandMessage.maxBitRate             = htolel(8000);
 	r->msg.FlowControlCommandMessage.maxBitRate = htolel(bitRate);
-	sccp_dev_send(channel->privateData->device, r);
+	sccp_dev_send(d, r);
 
 	PBX(queue_control)(channel->owner, AST_CONTROL_VIDUPDATE);
 }
@@ -918,9 +812,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
  */
 void sccp_channel_startmediatransmission(sccp_channel_t * channel)
 {
-	sccp_moo_t *r;
 	sccp_device_t *d = NULL;
-	int packetSize;
 
 	if (!channel->rtp.audio.rtp) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: can't start rtp media transmission, maybe channel is down %s-%08X\n", channel->privateData->device->id, channel->line->name, channel->callid);
@@ -973,46 +865,15 @@ void sccp_channel_startmediatransmission(sccp_channel_t * channel)
 #ifdef CS_EXPERIMENTAL_CODEC
 	sccp_channel_recalculateReadformat(channel);
 #endif
-	packetSize = 20;
-
 	if (channel->owner) {
 		PBX(set_nativeAudioFormats) (channel, &channel->rtp.audio.readFormat, 1);
 		PBX(rtp_setReadFormat) (channel, channel->rtp.audio.readFormat);
 	}
 
-	if (d->inuseprotocolversion < 17) {
-		REQ(r, StartMediaTransmission);
-		r->msg.StartMediaTransmission.lel_conferenceId = htolel(channel->callid);
-		r->msg.StartMediaTransmission.lel_passThruPartyId = htolel(channel->passthrupartyid);
-		r->msg.StartMediaTransmission.lel_conferenceId1 = htolel(channel->callid);
-		r->msg.StartMediaTransmission.lel_millisecondPacketSize = htolel(packetSize);
-		r->msg.StartMediaTransmission.lel_payloadType = htolel(channel->rtp.audio.readFormat);
-		r->msg.StartMediaTransmission.lel_precedenceValue = htolel(channel->privateData->device->audio_tos);
-		r->msg.StartMediaTransmission.lel_ssValue = htolel(channel->line->silencesuppression);	// Silence supression
-		r->msg.StartMediaTransmission.lel_maxFramesPerPacket = htolel(0);
-		r->msg.StartMediaTransmission.lel_rtptimeout = htolel(10);
-		r->msg.StartMediaTransmission.bel_remoteIpAddr = htolel(channel->rtp.audio.phone_remote.sin_addr.s_addr);
-		r->msg.StartMediaTransmission.lel_remotePortNumber = htolel(ntohs(channel->rtp.audio.phone_remote.sin_port));
-	} else {
-		r = sccp_build_packet(StartMediaTransmission, sizeof(r->msg.StartMediaTransmission_v17));
-		memcpy(&r->msg.StartMediaTransmission_v17.bel_remoteIpAddr, &channel->rtp.audio.phone_remote.sin_addr, 4);
-
-		r->msg.StartMediaTransmission_v17.lel_conferenceId = htolel(channel->callid);
-		r->msg.StartMediaTransmission_v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
-		r->msg.StartMediaTransmission_v17.lel_conferenceId1 = htolel(channel->callid);
-		r->msg.StartMediaTransmission_v17.lel_millisecondPacketSize = htolel(packetSize);
-		r->msg.StartMediaTransmission_v17.lel_payloadType = htolel(channel->rtp.audio.readFormat);
-		r->msg.StartMediaTransmission_v17.lel_precedenceValue = htolel(channel->privateData->device->audio_tos);
-		r->msg.StartMediaTransmission_v17.lel_ssValue = htolel(channel->line->silencesuppression);	// Silence supression
-		r->msg.StartMediaTransmission_v17.lel_maxFramesPerPacket = htolel(0);
-		r->msg.StartMediaTransmission_v17.lel_rtptimeout = htolel(10);
-		r->msg.StartMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(channel->rtp.audio.phone_remote.sin_port));
-	}
-
 	channel->rtp.audio.readState |= SCCP_RTP_STATUS_PROGRESS;
-	sccp_dev_send(channel->privateData->device, r);
+	d->protocol->sendStartMediaTransmission(d, channel);
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to: '%s:%d' with codec: %s(%d) (%d ms), tos %d, silencesuppression: %s\n", channel->privateData->device->id, pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), ntohs(channel->rtp.audio.phone_remote.sin_port), codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat, packetSize, channel->privateData->device->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to: '%s:%d' with codec: %s(%d), tos %d, silencesuppression: %s\n", d->id, pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), ntohs(channel->rtp.audio.phone_remote.sin_port), codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
 }
 
 /*!
