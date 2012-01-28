@@ -3108,7 +3108,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 	}
 
 	/* update status */
-	channel->rtp.audio.readState &= ~SCCP_RTP_STATUS_PROGESS;
+	channel->rtp.audio.readState &= ~SCCP_RTP_STATUS_PROGRESS;
 	channel->rtp.audio.readState |= SCCP_RTP_STATUS_ACTIVE;
 	/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
 	if (channel->state == SCCP_CHANNELSTATE_CONNECTED && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE)) {
@@ -3273,7 +3273,7 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 	}
 
 	/* update status */
-	c->rtp.video.readState &= ~SCCP_RTP_STATUS_PROGESS;
+	c->rtp.video.readState &= ~SCCP_RTP_STATUS_PROGRESS;
 	c->rtp.video.readState |= SCCP_RTP_STATUS_ACTIVE;
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, ipAddress, ipPort, callID, callID1, partyID);
