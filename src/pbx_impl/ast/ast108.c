@@ -93,6 +93,7 @@ static struct ast_channel_tech sccp_tech = {
  * \brief SCCP Tech Structure
  */
 const struct ast_channel_tech sccp_tech = {
+	/* *INDENT-OFF* */
 	.type 			= SCCP_TECHTYPE_STR,
 	.description 		= "Skinny Client Control Protocol (SCCP)",
 	// we could use the skinny_codec = ast_codec mapping here to generate the list of capabilities
@@ -2374,7 +2375,7 @@ sccp_pbx_cb sccp_pbx = {
 	feature_pickup:			sccp_wrapper_asterisk18_pickupChannel,
 
 	eventSubscribe:			NULL,
-	findChannelByCallback:		sccp_wrapper_asterisk18_findChannelWithCallback
+	findChannelByCallback:		sccp_wrapper_asterisk18_findChannelWithCallback,
 
 	moh_start:			sccp_asterisk_moh_start,
 	moh_stop:			sccp_asterisk_moh_stop,
