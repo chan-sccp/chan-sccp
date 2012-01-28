@@ -459,12 +459,18 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 
 		/* when the bridged channel hold/unhold the call we are notified here */
 	case AST_CONTROL_HOLD:
-		ast_moh_start(ast, (const char *)data, c->musicclass);
+		if (!ast_test_flag(ast, AST_FLAG_MOH)) {
+			sccp_asterisk_moh_start(ast, (const char *)data, c->musicclass);
+			pbx_set_flag(ast, AST_FLAG_MOH);
+		}	
+		
 		res = 0;
 		break;
 	case AST_CONTROL_UNHOLD:
-		ast_moh_stop(ast);
-
+		if (ast_test_flag(ast, AST_FLAG_MOH)) {
+			sccp_asterisk_moh_stop(ast);
+			pbx_clear_flag(ast, AST_FLAG_MOH);
+		}
 		if (c->rtp.audio.rtp)
 			ast_rtp_instance_update_source(c->rtp.audio.rtp);
 
@@ -904,7 +910,7 @@ int ast_do_pickup(struct ast_channel *chan, struct ast_channel *target)
 		goto pickup_failed;
 	}
 
-	if (ast_queue_control(chan, AST_CONTROL_ANSWER)) {
+	if (sccp_asterisk_queue_control(chan, AST_CONTROL_ANSWER)) {
 		ast_log(LOG_WARNING, "Unable to queue answer on '%s'\n", chan_name);
 		goto pickup_failed;
 	}
@@ -2369,6 +2375,11 @@ sccp_pbx_cb sccp_pbx = {
 
 	eventSubscribe:			NULL,
 	findChannelByCallback:		sccp_wrapper_asterisk18_findChannelWithCallback
+
+	moh_start:			sccp_asterisk_moh_start,
+	moh_stop:			sccp_asterisk_moh_stop,
+	queue_control:			sccp_asterisk_queue_control,
+	queue_control_data:		sccp_asterisk_queue_control_data,
 	/* *INDENT-ON* */
 };
 #else
@@ -2446,6 +2457,11 @@ struct sccp_pbx_cb sccp_pbx = {
 	.feature_pickup			= sccp_wrapper_asterisk18_pickupChannel,
 	
 	.findChannelByCallback		= sccp_wrapper_asterisk18_findChannelWithCallback,
+
+	.moh_start			= sccp_asterisk_moh_start,
+	.moh_stop			= sccp_asterisk_moh_stop,
+	.queue_control			= sccp_asterisk_queue_control,
+	.queue_control_data		= sccp_asterisk_queue_control_data,
 	
 	/* *INDENT-ON* */
 };

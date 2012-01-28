@@ -345,28 +345,6 @@ void pbxman_send_listack(struct mansession *s, const struct message *m, char *ms
 #endif										// ASTERISK_VERSION_NUMBER
 }
 
-/*!
- * \brief Turn on music on hold on a given channel 
- * \note replacement for ast_moh_start
- *
- * \param chan The channel structure that will get music on hold
- * \param mclass The class to use if the musicclass is not currently set on
- *               the channel structure.
- * \param interpclass The class to use if the musicclass is not currently set on
- *                    the channel structure or in the mclass argument.
- *
- * \retval Zero on success
- * \retval non-zero on failure
- */
-int pbx_moh_start(PBX_CHANNEL_TYPE * chan, const char *mclass, const char *interpclass)
-{
-#if ASTERISK_VERSION_NUMBER < 10400
-	return ast_moh_start(chan, interpclass);
-#else
-	return ast_moh_start(chan, mclass, interpclass);
-#endif										// ASTERISK_VERSION_NUMBER
-}
-
 /****************************************************************************************************** CODEC / FORMAT **/
 
 /*!
@@ -572,3 +550,52 @@ boolean_t sccp_asterisk_removeTreeFromDatabase(const char *family, const char *k
 }
 
 /* end - database */
+
+/*!
+ * \brief Turn on music on hold on a given channel 
+ * \note replacement for ast_moh_start
+ *
+ * \param chan The channel structure that will get music on hold
+ * \param mclass The class to use if the musicclass is not currently set on
+ *               the channel structure.
+ * \param interpclass The class to use if the musicclass is not currently set on
+ *                    the channel structure or in the mclass argument.
+ *
+ * \retval Zero on success
+ * \retval non-zero on failure
+ */
+int sccp_asterisk_moh_start(const PBX_CHANNEL_TYPE * pbx_channel, const char *mclass, const char* interpclass)
+{
+	return ast_moh_start((PBX_CHANNEL_TYPE *)pbx_channel, mclass, interpclass);
+}
+
+void sccp_asterisk_moh_stop(const PBX_CHANNEL_TYPE * pbx_channel) 
+{
+	ast_moh_stop((PBX_CHANNEL_TYPE *)pbx_channel);
+}
+
+/*!
+ * \brief Queue a control frame
+ * \param pbx_channel PBX Channel
+ * \param control as Asterisk Control Frame Type
+ */
+int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control)
+{
+        struct ast_frame f = { AST_FRAME_CONTROL, .subclass.integer = control };
+        return ast_queue_frame((PBX_CHANNEL_TYPE *)pbx_channel, &f);
+}
+
+/*!
+ * \brief Queue a control frame with payload
+ * \param pbx_channel PBX Channel
+ * \param control as Asterisk Control Frame Type
+ * \param data Payload
+ * \param datalen Payload Length
+ */
+int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen)
+{
+        struct ast_frame f = { AST_FRAME_CONTROL, .subclass.integer = control, .data.ptr = (void *) data, .datalen = datalen  };
+        return ast_queue_frame((PBX_CHANNEL_TYPE *)pbx_channel, &f);
+}
+
+                                           

@@ -365,12 +365,16 @@ sccp_channel_t *get_sccp_channel_from_ast_channel(PBX_CHANNEL_TYPE * ast_chan);
 int sccp_asterisk_pbx_fktChannelWrite(struct ast_channel *ast, const char *funcname, char *args, const char *value);
 int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel);
 
-#endif
-
 /***** database *****/
 boolean_t sccp_asterisk_addToDatabase(const char *family, const char *key, const char *value);
 boolean_t sccp_asterisk_getFromDatabase(const char *family, const char *key, char *out, int outlen);
 boolean_t sccp_asterisk_removeFromDatabase(const char *family, const char *key);
 boolean_t sccp_asterisk_removeTreeFromDatabase(const char *family, const char *key);
-
 /***** end - database *****/
+
+int sccp_asterisk_moh_start(const PBX_CHANNEL_TYPE * pbx_channel, const char *mclass, const char* interpclass);
+void sccp_asterisk_moh_stop(const PBX_CHANNEL_TYPE * pbx_channel);
+int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
+int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
+#endif
+
