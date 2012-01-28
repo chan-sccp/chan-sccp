@@ -214,7 +214,7 @@ typedef enum { CALLERID_PRESENCE_FORBIDDEN = 0, CALLERID_PRESENCE_ALLOWED = 1 } 
 typedef enum {
 	SCCP_RTP_STATUS_INACTIVE = 0,
 	SCCP_RTP_STATUS_REQUESTED = 1 << 0,				/*!< rtp not started, but format was requested */
-	SCCP_RTP_STATUS_PROGESS = 1 << 1,
+	SCCP_RTP_STATUS_PROGRESS = 1 << 1,
 	SCCP_RTP_STATUS_ACTIVE = 1 << 2,
 } sccp_rtp_status_t;							/*!< RTP status information */
 typedef enum {
