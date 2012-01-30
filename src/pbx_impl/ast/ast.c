@@ -450,14 +450,21 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 
 	// \todo possible nullpointer dereference ahead (sccp_channel might be null)
 	if (AST_STATE_UP != ast_channel->_state) {
-		if (AST_STATE_DIALING == ast_channel->_state || SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state || SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state) {
+		if (		(AST_STATE_DIALING == ast_channel->_state && SCCP_CHANNELSTATE_PROGRESS != sccp_channel->state) || 
+		                SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state || 
+		                SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state
+                        ) {
 			// AST_STATE_DIALING == ast_channel->_state                        -> use ast_hangup when still in dialing state
 			// SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state        -> use ast_hangup after callforward ss-switch
 			// SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state  -> use ast_hangup before connection to pbx is established 
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_hangup\n", ast_channel->name);
 			ast_hangup(ast_channel);
 			return TRUE;
-		} else if (((AST_STATE_RING == ast_channel->_state || AST_STATE_RINGING == ast_channel->_state) && SCCP_CHANNELSTATE_DIALING == sccp_channel->state) || SCCP_CHANNELSTATE_BUSY == sccp_channel->state || SCCP_CHANNELSTATE_CONGESTION == sccp_channel->state) {
+		} else if (
+		                ( (AST_STATE_RING == ast_channel->_state || AST_STATE_RINGING == ast_channel->_state) && SCCP_CHANNELSTATE_DIALING == sccp_channel->state ) || 
+		                SCCP_CHANNELSTATE_BUSY == sccp_channel->state || 
+		                SCCP_CHANNELSTATE_CONGESTION == sccp_channel->state
+                        ) {
 			/* softhangup when ast_channel structure is still needed afterwards */
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", ast_channel->name);
 			ast_softhangup_nolock(ast_channel, AST_SOFTHANGUP_DEV);
