@@ -8,7 +8,11 @@ if (file_exists('test.xml')) {
     $revision = $xml->revision;
     print "version: $version, revison: $revision\n";
 
-
+    print "<html>";
+    print "<style media='screen' type='text/css'>"; 
+    print "label span {display: none;}";
+    print "label:hover span {display: block; relative: absolute; top: 10px; left: 10px; width: 400px; padding: 2px; margin: 2px; z-index: 100; color: #AAA; background: yellow; font: 10px Verdana, sans-serif; text-align: left; filter:alpha(opacity=95); opacity:0.95; display:inline;}";
+    print "</style>";
     print "<form><table>\n";
     foreach ($xml->section as $value){ 
       $sectionname = $value['name'];
@@ -19,8 +23,9 @@ if (file_exists('test.xml')) {
         $required = $value1->required;
         $description = trim($value1->description);
 
-        print "<tr><td ><label for='$name'>";
-        print "<div id=name>$name</div>";
+        print "<tr><td nowrap><label for='$name'>";
+        print "<div id='name'>$name</div>";
+        print "<span wrap>$description</span>";
         
         if ( $value1->required) {
             print "<div id=required>*</div>";
@@ -40,20 +45,26 @@ if (file_exists('test.xml')) {
                 print "<input type='radio' name='$name' value='Off' />Off<br />";
                 break;
             case "generic":
-                if(isset( $value1->type_spec)) {
-                    $type_spec = explode(",",$value1->type_spec);
-                } else {
-                    $type_spec = "";
+                if(isset( $value1->generic_parser)) {
+                    $parser = explode("=",$value1->generic_parser);
+                    if (isset($parser[0])) {
+                        $type_parser = $parser[0];
+                        if (isset($parser[1])) {
+                            $type_values = explode(",",$parser[1]);
+                            if(isset( $value1->multiple)) {
+                              print "<select name='$name' class='$type_parser' multiple>";
+                            } else { 
+                              print "<select name='$name' class='$type_parser'>";
+                            }
+                            foreach($type_values as $value) {
+                              print "<option value='$value'>$value</option>";
+                            }
+                            print "</select>";
+                        } else {
+                            print "<input type='text' class='$type_parser' name='$name' size='$size'/>";
+                        }
+                    }
                 }
-                if(isset( $value1->multiple)) {
-                  print "<select name='$name' multiple>";
-                } else { 
-                  print "<select name='$name'>";
-                }
-                foreach($type_spec as $spec) {
-                  print "<option value='$spec'>$spec</option>";
-                }
-                print "</select>";
                 break;
         }
         print "</td>\n";
@@ -67,6 +78,7 @@ if (file_exists('test.xml')) {
       }
     }
     print "</table></form>\n";
+    print "</html>";
 } else {
     exit('Failed to open test.xml.');
 } 
