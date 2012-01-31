@@ -60,57 +60,59 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
         if (CONFIG_TYPE_XML == config_type) {
                 fprintf(f, "<?xml version=\"1.0\"?>\n");
                 fprintf(f, "<sccp>\n");
+                fprintf(f, "  <version>%s</version>\n", SCCP_VERSION);
+                fprintf(f, "  <revision>%s</revision>\n", SCCP_REVISION);
                 for (segment=SCCP_CONFIG_GLOBAL_SEGMENT; segment <= SCCP_CONFIG_SOFTKEY_SEGMENT; segment++) {			
                         sccpConfigSegment = sccp_find_segment(segment);
                         printf("info:" "adding [%s] section\n", sccpConfigSegment->name);
                         
                         fprintf(f, "  <section name=\"%s\">\n", sccpConfigSegment->name);
-
+                        fprintf(f, "    <params>\n");
                         config = sccpConfigSegment->config;
                         for (sccp_option = 0; sccp_option < sccpConfigSegment->config_size; sccp_option++) {
                                 if ((config[sccp_option].flags & SCCP_CONFIG_FLAG_IGNORE & SCCP_CONFIG_FLAG_DEPRECATED & SCCP_CONFIG_FLAG_OBSOLETE) == 0) {
                                         printf("info:" "adding name: %s, default_value: %s\n", config[sccp_option].name, config[sccp_option].defaultValue);
 
-                                        fprintf(f, "    <param name=\"%s\">\n", config[sccp_option].name);
-                                        fprintf(f, "      <required>%d</required>\n", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) ? 1 : 0);
+                                        fprintf(f, "      <param name=\"%s\">\n", config[sccp_option].name);
+                                        fprintf(f, "        <required>%d</required>\n", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) ? 1 : 0);
                                         if (((config[sccp_option].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
-                                                fprintf(f, "      <multiple>1</multiple>\n");
+                                                fprintf(f, "        <multiple>1</multiple>\n");
                                         }
                                         if (config[sccp_option].type) {
                                                 switch (config[sccp_option].type) {
                                                         case SCCP_CONFIG_DATATYPE_BOOLEAN:
-                                                                fprintf(f, "      <type>boolean</type>\n");
+                                                                fprintf(f, "        <type>boolean</type>\n");
                                                                 break;
                                                         case SCCP_CONFIG_DATATYPE_INT:
-                                                                fprintf(f, "      <type>int</type>\n");
-                                                                fprintf(f, "      <size>8</size>\n");
+                                                                fprintf(f, "        <type>int</type>\n");
+                                                                fprintf(f, "        <size>8</size>\n");
                                                                 break;
                                                         case SCCP_CONFIG_DATATYPE_UINT:
-                                                                fprintf(f, "      <type>unsigned int</type>\n");
-                                                                fprintf(f, "      <size>8</size>\n");
+                                                                fprintf(f, "        <type>unsigned int</type>\n");
+                                                                fprintf(f, "        <size>8</size>\n");
                                                                 break;
                                                         case SCCP_CONFIG_DATATYPE_STRING:
-                                                                fprintf(f, "      <type>string</type>\n");
-                                                                fprintf(f, "      <size>45</size>\n");
+                                                                fprintf(f, "        <type>string</type>\n");
+                                                                fprintf(f, "        <size>45</size>\n");
                                                                 break;
                                                         case SCCP_CONFIG_DATATYPE_GENERIC:
-                                                                fprintf(f, "      <type>generic</type>\n");
-                                                                fprintf(f, "      <type_spec>%s</type_spec>\n", config[sccp_option].cb);
+                                                                fprintf(f, "        <type>generic</type>\n");
+                                                                fprintf(f, "        <type_spec>%s</type_spec>\n", config[sccp_option].cb);
                                                                 break;
                                                         case SCCP_CONFIG_DATATYPE_STRINGPTR:
-                                                                fprintf(f, "      <type>string</type>\n");
-                                                                fprintf(f, "      <size>45</size>\n");
+                                                                fprintf(f, "        <type>string</type>\n");
+                                                                fprintf(f, "        <size>45</size>\n");
                                                                 break;
                                                         case SCCP_CONFIG_DATATYPE_CHAR:
-                                                                fprintf(f, "      <type>char</type>\n");
+                                                                fprintf(f, "        <type>char</type>\n");
                                                                 break;
                                                 }
                                         }
                                         if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue)==0) {
-                                                fprintf(f, "      <default>%s</default>\n", config[sccp_option].defaultValue);
+                                                fprintf(f, "        <default>%s</default>\n", config[sccp_option].defaultValue);
                                         }
                                         if (strlen(config[sccp_option].description)!=0) {
-                                                fprintf(f, "      <description>");
+                                                fprintf(f, "        <description>");
                                                 description=malloc(sizeof(char) * strlen(config[sccp_option].description));	
                                                 description=strdup(config[sccp_option].description);	
                                                 while ((description_part=strsep(&description, "\n"))) {
@@ -120,9 +122,10 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
                                                 }
                                                 fprintf(f, "</description>\n");
                                         }
-                                        fprintf(f, "    </param>\n");
+                                        fprintf(f, "      </param>\n");
                                 }
                         }
+                        fprintf(f, "    </params>\n");
                         fprintf(f, "  </section>\n");
                 }
                 fprintf(f, "</sccp>\n");
