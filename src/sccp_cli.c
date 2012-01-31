@@ -1735,7 +1735,7 @@ static int sccp_cli_config_generate(int fd, int argc, char *argv[])
 
 	return returnval;
 #else
-	pbx_cli(fd, "SCCP config generate not implemented yet! use unload and load.\n");
+	pbx_cli(fd, "online SCCP config generate not implemented yet! use gen_sccpconf from contrib for now.\n");
 	return RESULT_FAILURE;
 #endif
 }

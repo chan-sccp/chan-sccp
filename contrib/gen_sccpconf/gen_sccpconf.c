@@ -30,6 +30,8 @@
 #define CONFIG_TYPE_DEFAULTS 1
 #define CONFIG_TYPE_TEMPLATED 2
 #define CONFIG_TYPE_SHORT 3
+#define CONFIG_TYPE_XML 4
+//#define CONFIG_TYPE_JSON 5
 
 static int sccp_config_generate(const char *filename, size_t sizeof_filename, int config_type)  {
         const SCCPConfigSegment *sccpConfigSegment = NULL;
@@ -55,119 +57,190 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
         time(&t);
         strncpy(date, ctime(&t), sizeof(date));
                                 
-        fprintf(f,";!\n");
-        fprintf(f,";! Automatically generated configuration file\n");
-        fprintf(f,";! Filename: %s\n", filename);
-        fprintf(f,";! Generator: sccp config generate\n");
-        fprintf(f,";! Creation Date: %s", date);
-        fprintf(f,";!\n");
-        fprintf(f,"\n");
+        if (CONFIG_TYPE_XML == config_type) {
+                fprintf(f, "<?xml version=\"1.0\"?>\n");
+                fprintf(f, "<sccp>\n");
+                for (segment=SCCP_CONFIG_GLOBAL_SEGMENT; segment <= SCCP_CONFIG_SOFTKEY_SEGMENT; segment++) {			
+                        sccpConfigSegment = sccp_find_segment(segment);
+                        printf("info:" "adding [%s] section\n", sccpConfigSegment->name);
+                        
+                        fprintf(f, "  <section name=\"%s\">\n", sccpConfigSegment->name);
 
-	for (segment=SCCP_CONFIG_GLOBAL_SEGMENT; segment <= SCCP_CONFIG_SOFTKEY_SEGMENT; segment++) {			
-		sccpConfigSegment = sccp_find_segment(segment);
-		printf("info:" "adding [%s] section\n", sccpConfigSegment->name);
-		if (CONFIG_TYPE_TEMPLATED == config_type && SCCP_CONFIG_DEVICE_SEGMENT == segment) {
-			fprintf(f, "\n;\n; %s section\n;\n[%s_template](!)                                                              ; create new template\n", sccpConfigSegment->name, sccpConfigSegment->name);
-		} else if (CONFIG_TYPE_TEMPLATED == config_type && SCCP_CONFIG_LINE_SEGMENT == segment) {
-			fprintf(f, "\n;\n; %s section\n;\n[%s_template](!)                                                                ; create new template\n", sccpConfigSegment->name, sccpConfigSegment->name);
-		} else {
-			fprintf(f, "\n;\n; %s section\n;\n[%s]\n", sccpConfigSegment->name, sccpConfigSegment->name);
-		}
+                        config = sccpConfigSegment->config;
+                        for (sccp_option = 0; sccp_option < sccpConfigSegment->config_size; sccp_option++) {
+                                if ((config[sccp_option].flags & SCCP_CONFIG_FLAG_IGNORE & SCCP_CONFIG_FLAG_DEPRECATED & SCCP_CONFIG_FLAG_OBSOLETE) == 0) {
+                                        printf("info:" "adding name: %s, default_value: %s\n", config[sccp_option].name, config[sccp_option].defaultValue);
 
-		config = sccpConfigSegment->config;
-		for (sccp_option = 0; sccp_option < sccpConfigSegment->config_size; sccp_option++) {
-			if ((config[sccp_option].flags & SCCP_CONFIG_FLAG_IGNORE & SCCP_CONFIG_FLAG_DEPRECATED & SCCP_CONFIG_FLAG_OBSOLETE) == 0) {
-				printf("info:" "adding name: %s, default_value: %s\n", config[sccp_option].name, config[sccp_option].defaultValue);
-				
-				if (config[sccp_option].name && strlen(config[sccp_option].name)!=0) {
-					switch (config_type){
-						case CONFIG_TYPE_ALL:
-							break;	
-						case CONFIG_TYPE_DEFAULTS:
-							if ( (((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == 0) && (!config[sccp_option].defaultValue || strlen(config[sccp_option].defaultValue)==0)) ) {
-								continue;
-							}
-							break;	
-						case CONFIG_TYPE_TEMPLATED:
-							if ( (!config[sccp_option].defaultValue || strlen(config[sccp_option].defaultValue)==0) ) {
-								continue;
-							}
-							break;	
-						case CONFIG_TYPE_SHORT:		// SHORT
-							if ( (((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == 0) && (!config[sccp_option].defaultValue || strlen(config[sccp_option].defaultValue)==0)) ) {
-								continue;
-							}
-							break;	
-					}
-					if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue)==0) {
-						snprintf(name_and_value, sizeof(name_and_value),"%s = %s", config[sccp_option].name, config[sccp_option].defaultValue);
-					} else {
-						snprintf(name_and_value, sizeof(name_and_value),"%s = \"\"", config[sccp_option].name);
-					}							
-					linelen=(int)strlen(name_and_value);
-					fprintf(f, "%s", name_and_value);
-					if (CONFIG_TYPE_SHORT != config_type && config[sccp_option].description && strlen(config[sccp_option].description)!=0) {
-						description=malloc(sizeof(char) * strlen(config[sccp_option].description));	
-						description=strdup(config[sccp_option].description);	
-						while ((description_part=strsep(&description, "\n"))) {
-							if (description_part && strlen(description_part)!=0) {
-								fprintf(f, "%*.s ; %s%s\n", 81-linelen, " ", (config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != 0 ? "(REQUIRED) " : "", description_part);
-								linelen=0;
-							}
-						}	
-					} else {
-						fprintf(f, "\n");
-					}
-				} else {
-					printf("error:" "Error creating new variable structure for %s='%s'\n", config[sccp_option].name, config[sccp_option].defaultValue);
-					return 2;
-				}
-			}
-		}
-		printf("\n");
-		if (CONFIG_TYPE_TEMPLATED == config_type) {
-			// make up two devices and two lines
-			if (SCCP_CONFIG_DEVICE_SEGMENT == segment) {
-				fprintf(f, "\n");
-				fprintf(f, "[SEP001B535CD5E4](device_template)                                                ; use template 'device_template'\n");
-				fprintf(f, "description=sample1\n");
-				fprintf(f, "devicetype=7960\n");
-				fprintf(f, "button=line, 110\n");
-				fprintf(f, "button=line, 200@01:_SharedLine\n");
-				fprintf(f, "\n");
-				fprintf(f, "[SEP0024C4444763](device_template)                                                ; use template 'device_template'\n");
-				fprintf(f, "description=sample1\n");
-				fprintf(f, "devicetype=7962\n");
-				fprintf(f, "button=line, 111\n");
-				fprintf(f, "button=line, 200@02:_SharedLine\n");
-				fprintf(f, "\n");
-			}
-			if (SCCP_CONFIG_LINE_SEGMENT == segment) {
-				fprintf(f, "\n");
-				fprintf(f, "[110](line_template)                                                              ; use template 'line_template'\n");
-				fprintf(f, "id=110\n");
-				fprintf(f, "label=sample_110\n");
-				fprintf(f, "description=sampleline_110\n");
-				fprintf(f, "cid_num=110\n");
-				fprintf(f, "cid_name=user110\n");
-				fprintf(f, "\n");
-				fprintf(f, "[111](line_template)                                                              ; use template 'line_template'\n");
-				fprintf(f, "id=111\n");
-				fprintf(f, "label=sample_111\n");
-				fprintf(f, "description=sampleline_111\n");
-				fprintf(f, "cid_num=111\n");
-				fprintf(f, "cid_name=user111\n");
-				fprintf(f, "\n");
-				fprintf(f, "[200](line_template)                                                              ; use template 'line_template'\n");
-				fprintf(f, "id=200\n");
-				fprintf(f, "label=sample_share\n");
-				fprintf(f, "description=sharedline\n");
-				fprintf(f, "cid_num=200\n");
-				fprintf(f, "cid_name=shared\n");
-				fprintf(f, "\n");
-			}
-		
-		}
+                                        fprintf(f, "    <param name=\"%s\">\n", config[sccp_option].name);
+                                        fprintf(f, "      <required>%d</required>\n", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) ? 1 : 0);
+                                        if (((config[sccp_option].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
+                                                fprintf(f, "      <multiple>1</multiple>\n");
+                                        }
+                                        if (config[sccp_option].type) {
+                                                switch (config[sccp_option].type) {
+                                                        case SCCP_CONFIG_DATATYPE_BOOLEAN:
+                                                                fprintf(f, "      <type>boolean</type>\n");
+                                                                break;
+                                                        case SCCP_CONFIG_DATATYPE_INT:
+                                                                fprintf(f, "      <type>int</type>\n");
+                                                                fprintf(f, "      <size>8</size>\n");
+                                                                break;
+                                                        case SCCP_CONFIG_DATATYPE_UINT:
+                                                                fprintf(f, "      <type>unsigned int</type>\n");
+                                                                fprintf(f, "      <size>8</size>\n");
+                                                                break;
+                                                        case SCCP_CONFIG_DATATYPE_STRING:
+                                                                fprintf(f, "      <type>string</type>\n");
+                                                                fprintf(f, "      <size>45</size>\n");
+                                                                break;
+                                                        case SCCP_CONFIG_DATATYPE_GENERIC:
+                                                                fprintf(f, "      <type>generic</type>\n");
+                                                                fprintf(f, "      <type_spec>%s</type_spec>\n", config[sccp_option].cb);
+                                                                break;
+                                                        case SCCP_CONFIG_DATATYPE_STRINGPTR:
+                                                                fprintf(f, "      <type>string</type>\n");
+                                                                fprintf(f, "      <size>45</size>\n");
+                                                                break;
+                                                        case SCCP_CONFIG_DATATYPE_CHAR:
+                                                                fprintf(f, "      <type>char</type>\n");
+                                                                break;
+                                                }
+                                        }
+                                        if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue)==0) {
+                                                fprintf(f, "      <default>%s</default>\n", config[sccp_option].defaultValue);
+                                        }
+                                        if (strlen(config[sccp_option].description)!=0) {
+                                                fprintf(f, "      <description>");
+                                                description=malloc(sizeof(char) * strlen(config[sccp_option].description));	
+                                                description=strdup(config[sccp_option].description);	
+                                                while ((description_part=strsep(&description, "\n"))) {
+                                                        if (description_part && strlen(description_part)!=0) {
+                                                                fprintf(f, "%s ", description_part);
+                                                        }
+                                                }
+                                                fprintf(f, "</description>\n");
+                                        }
+                                        fprintf(f, "    </param>\n");
+                                }
+                        }
+                        fprintf(f, "  </section>\n");
+                }
+                fprintf(f, "</sccp>\n");
+        } else {
+                fprintf(f,";!\n");
+                fprintf(f,";! Automatically generated configuration file\n");
+                fprintf(f,";! Filename: %s\n", filename);
+                fprintf(f,";! Generator: sccp config generate\n");
+                fprintf(f,";! Creation Date: %s", date);
+                fprintf(f,";!\n");
+                fprintf(f,"\n");
+
+                for (segment=SCCP_CONFIG_GLOBAL_SEGMENT; segment <= SCCP_CONFIG_SOFTKEY_SEGMENT; segment++) {			
+                        sccpConfigSegment = sccp_find_segment(segment);
+                        printf("info:" "adding [%s] section\n", sccpConfigSegment->name);
+                        if (CONFIG_TYPE_TEMPLATED == config_type && SCCP_CONFIG_DEVICE_SEGMENT == segment) {
+                                fprintf(f, "\n;\n; %s section\n;\n[%s_template](!)                                                              ; create new template\n", sccpConfigSegment->name, sccpConfigSegment->name);
+                        } else if (CONFIG_TYPE_TEMPLATED == config_type && SCCP_CONFIG_LINE_SEGMENT == segment) {
+                                fprintf(f, "\n;\n; %s section\n;\n[%s_template](!)                                                                ; create new template\n", sccpConfigSegment->name, sccpConfigSegment->name);
+                        } else {
+                                fprintf(f, "\n;\n; %s section\n;\n[%s]\n", sccpConfigSegment->name, sccpConfigSegment->name);
+                        }
+
+                        config = sccpConfigSegment->config;
+                        for (sccp_option = 0; sccp_option < sccpConfigSegment->config_size; sccp_option++) {
+                                if ((config[sccp_option].flags & SCCP_CONFIG_FLAG_IGNORE & SCCP_CONFIG_FLAG_DEPRECATED & SCCP_CONFIG_FLAG_OBSOLETE) == 0) {
+                                        printf("info:" "adding name: %s, default_value: %s\n", config[sccp_option].name, config[sccp_option].defaultValue);
+                                        
+                                        if (config[sccp_option].name && strlen(config[sccp_option].name)!=0) {
+                                                switch (config_type){
+                                                        case CONFIG_TYPE_ALL:
+                                                                break;	
+                                                        case CONFIG_TYPE_DEFAULTS:
+                                                                if ( (((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != SCCP_CONFIG_FLAG_REQUIRED) && (!config[sccp_option].defaultValue || strlen(config[sccp_option].defaultValue)==0)) ) {
+                                                                        continue;
+                                                                }
+                                                                break;	
+                                                        case CONFIG_TYPE_TEMPLATED:
+                                                                if ( (!config[sccp_option].defaultValue || strlen(config[sccp_option].defaultValue)==0) ) {
+                                                                        continue;
+                                                                }
+                                                                break;	
+                                                        case CONFIG_TYPE_SHORT:		// SHORT
+                                                                if ( (((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != SCCP_CONFIG_FLAG_REQUIRED) && (!config[sccp_option].defaultValue || strlen(config[sccp_option].defaultValue)==0)) ) {
+                                                                        continue;
+                                                                }
+                                                                break;	
+                                                }
+                                                if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue)==0) {
+                                                        snprintf(name_and_value, sizeof(name_and_value),"%s = %s", config[sccp_option].name, config[sccp_option].defaultValue);
+                                                } else {
+                                                        snprintf(name_and_value, sizeof(name_and_value),"%s = \"\"", config[sccp_option].name);
+                                                }							
+                                                linelen=(int)strlen(name_and_value);
+                                                fprintf(f, "%s", name_and_value);
+                                                if (CONFIG_TYPE_SHORT != config_type && config[sccp_option].description && strlen(config[sccp_option].description)!=0) {
+                                                        description=malloc(sizeof(char) * strlen(config[sccp_option].description));	
+                                                        description=strdup(config[sccp_option].description);	
+                                                        while ((description_part=strsep(&description, "\n"))) {
+                                                                if (description_part && strlen(description_part)!=0) {
+                                                                        fprintf(f, "%*.s ; %s%s%s\n", 81-linelen, " ", (config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED ? "(REQUIRED) " : "", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "(MULTI-ENTRY) " : "", description_part);
+                                                                        linelen=0;
+                                                                }
+                                                        }	
+                                                } else {
+                                                        fprintf(f, "\n");
+                                                }
+                                        } else {
+                                                printf("error:" "Error creating new variable structure for %s='%s'\n", config[sccp_option].name, config[sccp_option].defaultValue);
+                                                return 2;
+                                        }
+                                }
+                        }
+                        printf("\n");
+                        if (CONFIG_TYPE_TEMPLATED == config_type) {
+                                // make up two devices and two lines
+                                if (SCCP_CONFIG_DEVICE_SEGMENT == segment) {
+                                        fprintf(f, "\n");
+                                        fprintf(f, "[SEP001B535CD5E4](device_template)                                                ; use template 'device_template'\n");
+                                        fprintf(f, "description=sample1\n");
+                                        fprintf(f, "devicetype=7960\n");
+                                        fprintf(f, "button=line, 110\n");
+                                        fprintf(f, "button=line, 200@01:_SharedLine\n");
+                                        fprintf(f, "\n");
+                                        fprintf(f, "[SEP0024C4444763](device_template)                                                ; use template 'device_template'\n");
+                                        fprintf(f, "description=sample1\n");
+                                        fprintf(f, "devicetype=7962\n");
+                                        fprintf(f, "button=line, 111\n");
+                                        fprintf(f, "button=line, 200@02:_SharedLine\n");
+                                        fprintf(f, "\n");
+                                }
+                                if (SCCP_CONFIG_LINE_SEGMENT == segment) {
+                                        fprintf(f, "\n");
+                                        fprintf(f, "[110](line_template)                                                              ; use template 'line_template'\n");
+                                        fprintf(f, "id=110\n");
+                                        fprintf(f, "label=sample_110\n");
+                                        fprintf(f, "description=sampleline_110\n");
+                                        fprintf(f, "cid_num=110\n");
+                                        fprintf(f, "cid_name=user110\n");
+                                        fprintf(f, "\n");
+                                        fprintf(f, "[111](line_template)                                                              ; use template 'line_template'\n");
+                                        fprintf(f, "id=111\n");
+                                        fprintf(f, "label=sample_111\n");
+                                        fprintf(f, "description=sampleline_111\n");
+                                        fprintf(f, "cid_num=111\n");
+                                        fprintf(f, "cid_name=user111\n");
+                                        fprintf(f, "\n");
+                                        fprintf(f, "[200](line_template)                                                              ; use template 'line_template'\n");
+                                        fprintf(f, "id=200\n");
+                                        fprintf(f, "label=sample_share\n");
+                                        fprintf(f, "description=sharedline\n");
+                                        fprintf(f, "cid_num=200\n");
+                                        fprintf(f, "cid_name=shared\n");
+                                        fprintf(f, "\n");
+                                }
+                        
+                        }
+                }
 	}
         fclose(f);
 
@@ -194,10 +267,13 @@ int main(int argc, char *argv[])
 		}
 		else if (!strcasecmp(argv[2], "SHORT")) {
 			config_type=CONFIG_TYPE_SHORT;	
+		}	
+		else if (!strcasecmp(argv[2], "XML")) {
+			config_type=CONFIG_TYPE_XML;	
 		}
 	} else {
 		printf("Usae: gen_sccpconf <config filename> <conf_type>\n");	
-		printf("      where conf_type is one of: ALL | DEFAULTS | TEMPLATED | SHORT\n");
+		printf("      where conf_type is one of: (ALL | DEFAULTS | TEMPLATED | SHORT | XML)\n");
 		return 1;
 	}
 	

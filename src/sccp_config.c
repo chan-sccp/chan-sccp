@@ -125,6 +125,7 @@ enum SCCPConfigOptionFlag {
 	SCCP_CONFIG_FLAG_REQUIRED			= 1 << 5,		/*< parameter is required */
 	SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT		= 1 << 6,		/*< retrieve default value from device */
 	SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT		= 1 << 7,		/*< retrieve default value from global */
+        SCCP_CONFIG_FLAG_MULTI_ENTRY                    = 1 << 8,               /*< multi entries allowed */
 /* *INDENT-ON* */
 };
 
@@ -195,7 +196,7 @@ typedef struct SCCPConfigSegment {
  * \brief SCCP Config Option Struct Initialization
  */
 static const SCCPConfigSegment sccpConfigSegments[] = {
-	{"global", SCCP_CONFIG_GLOBAL_SEGMENT, sccpGlobalConfigOptions, ARRAY_LEN(sccpGlobalConfigOptions)},
+	{"general", SCCP_CONFIG_GLOBAL_SEGMENT, sccpGlobalConfigOptions, ARRAY_LEN(sccpGlobalConfigOptions)},
 	{"device", SCCP_CONFIG_DEVICE_SEGMENT, sccpDeviceConfigOptions, ARRAY_LEN(sccpDeviceConfigOptions)},
 	{"line", SCCP_CONFIG_LINE_SEGMENT, sccpLineConfigOptions, ARRAY_LEN(sccpLineConfigOptions)},
 	{"softkey", SCCP_CONFIG_SOFTKEY_SEGMENT, sccpSoftKeyConfigOptions, ARRAY_LEN(sccpSoftKeyConfigOptions)},
@@ -2498,7 +2499,7 @@ int sccp_config_generate(char *filename, int configType)
 				
 				if (!sccp_strlen_zero(config[sccp_option].name)) {
 					if (!sccp_strlen_zero(config[sccp_option].defaultValue)		// non empty
-						|| (configType!=2 && ((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != 0 && sccp_strlen_zero(config[sccp_option].defaultValue))) // empty but required
+						|| (configType!=2 && ((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != SCCP_CONFIG_FLAG_REQUIRED && sccp_strlen_zero(config[sccp_option].defaultValue))) // empty but required
 					) {
 						snprintf(name_and_value, sizeof(name_and_value),"%s = %s", config[sccp_option].name, sccp_strlen_zero(config[sccp_option].defaultValue) ? "\"\"" : config[sccp_option].defaultValue);
 						linelen=(int)strlen(name_and_value);
@@ -2507,7 +2508,7 @@ int sccp_config_generate(char *filename, int configType)
 							description=strdupa(config[sccp_option].description);	
 							while ((description_part=strsep(&description, "\n"))) {
 								if (!sccp_strlen_zero(description_part)) {
-									fprintf(f, "%*.s ; %s\n", 81-linelen, " ", description_part);
+									fprintf(f, "%*.s ; %s%s%s\n", 81-linelen, " ", (config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED ? "(REQUIRED) " : "", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "(MULTI-ENTRY)" : "", description_part);
 									linelen=0;
 								}
 							}	
