@@ -2549,7 +2549,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
                                 sccpConfigSegment = &sccpConfigSegments[i];
                                 config = sccp_find_config(sccpConfigSegments[i].segment, req_option);
                                 if (config) {
-                                        const char *possible_values = config->enumkeys();
+                                        const char *possible_values = NULL;
                                         astman_append(s, "Event: AttributeEntry\r\n");
                                         astman_append(s, "Segment: %s\r\n", sccpConfigSegment->name);
                                         astman_append(s, "Option: %s\r\n", config->name);
@@ -2581,14 +2581,17 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
                                                         astman_append(s, "Type: CHAR\r\n");
                                                         break;
                                                 case SCCP_CONFIG_DATATYPE_ENUM2INT:
+                                                        possible_values = config->enumkeys();
                                                         astman_append(s, "Type: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "SET" : "ENUM");; 
                                                         astman_append(s, "PossibleValues: %s\r\n", possible_values);
                                                         break;
                                                 case SCCP_CONFIG_DATATYPE_ENUM2STR:
+                                                        possible_values = config->enumkeys();
                                                         astman_append(s, "Type: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "SET" : "ENUM");; 
 //                                                        astman_append(s, "PossibleValues: %s\r\n", possible_values);
                                                         break;
                                                 case SCCP_CONFIG_DATATYPE_CSV2STR:
+                                                        possible_values = config->enumkeys();
                                                         astman_append(s, "Type: SET\r\n");
 //                                                        astman_append(s, "PossibleValues: %s\r\n", possible_values);
                                                         break;
@@ -2599,11 +2602,13 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
                                         if (strlen(config->description)!=0) {
                                       	description=malloc(sizeof(char) * strlen(config->description));	
                                                 description=strdup(config->description);	
+                                                astman_append(s, "Description: ");
                                                 while ((description_part=strsep(&description, "\n"))) {
                                                         if (description_part && strlen(description_part)!=0) {
-                                                                astman_append(s, "Description: %s\r\n", description_part);
+                                                                astman_append(s, "%s", description_part);
                                                         }
                                                 }
+                                                astman_append(s, "%s%s\r\n", !sccp_strlen_zero(possible_values) ? "(POSSIBLE VALUES: " : "", possible_values);
                                         }
                                         astman_append(s, "\r\n");
                                         if (possible_values)
