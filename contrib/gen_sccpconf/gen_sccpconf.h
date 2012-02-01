@@ -66,9 +66,12 @@ enum SCCPConfigOptionType {
 	SCCP_CONFIG_DATATYPE_INT			= 1 << 1,
 	SCCP_CONFIG_DATATYPE_UINT			= 1 << 2,
 	SCCP_CONFIG_DATATYPE_STRING			= 1 << 3,
-	SCCP_CONFIG_DATATYPE_GENERIC			= 1 << 4,
+	SCCP_CONFIG_DATATYPE_PARSER			= 1 << 4,
 	SCCP_CONFIG_DATATYPE_STRINGPTR			= 1 << 5,	/* pointer */
 	SCCP_CONFIG_DATATYPE_CHAR			= 1 << 6,
+	SCCP_CONFIG_DATATYPE_ENUM2INT			= 1 << 7,
+	SCCP_CONFIG_DATATYPE_ENUM2STR			= 1 << 8,
+	SCCP_CONFIG_DATATYPE_CSV2STR			= 1 << 9,
 /* *INDENT-ON* */
 };
 
@@ -100,11 +103,11 @@ typedef struct SCCPConfigOption {
 	const int offset;
 	const size_t size;
 	enum SCCPConfigOptionType type;						/*!< Data type */
+	const char *generic_parser;
+	const char *str2enum;							/*!< convert used for parsing OptionType: SCCP_CONFIG_DATATYPE_ENUM */
 	enum SCCPConfigOptionFlag flags;					/*!< Data type */
 	sccp_configurationchange_t change;					/*!< Does a change of this value needs a device restart */
 	const char *defaultValue;						/*!< Default value */
-//	sccp_value_changed_t(*converter_f) (void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);	/*!< Conversion function */
-	const char *generic_parser;
 	const char *description;						/*!< Configuration description (config file) or warning message for deprecated or obsolete values */
 /* *INDENT-OFF* */
 } SCCPConfigOption;

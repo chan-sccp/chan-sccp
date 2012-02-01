@@ -106,7 +106,7 @@ enum SCCPConfigOptionType {
 	SCCP_CONFIG_DATATYPE_INT			= 1 << 1,
 	SCCP_CONFIG_DATATYPE_UINT			= 1 << 2,
 	SCCP_CONFIG_DATATYPE_STRING			= 1 << 3,
-	SCCP_CONFIG_DATATYPE_GENERIC			= 1 << 4,
+	SCCP_CONFIG_DATATYPE_PARSER			= 1 << 4,
 	SCCP_CONFIG_DATATYPE_STRINGPTR			= 1 << 5,	/* pointer */
 	SCCP_CONFIG_DATATYPE_CHAR			= 1 << 6,
 	SCCP_CONFIG_DATATYPE_ENUM2INT			= 1 << 7,
@@ -438,7 +438,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 		}
 		break;
 
-	case SCCP_CONFIG_DATATYPE_GENERIC:
+	case SCCP_CONFIG_DATATYPE_PARSER:
 		if (sccpConfigOption->converter_f) {
 			changed = sccpConfigOption->converter_f(dst, sccpConfigOption->size, value, segment);
 		}
@@ -2543,8 +2543,8 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
                                                 case SCCP_CONFIG_DATATYPE_STRING:
                                                         astman_append(s, "Type: STRING\r\n");
                                                         break;
-                                                case SCCP_CONFIG_DATATYPE_GENERIC:
-                                                        astman_append(s, "Type: GENERAL\r\n");
+                                                case SCCP_CONFIG_DATATYPE_PARSER:
+                                                        astman_append(s, "Type: PARSER\r\n");
                                                         astman_append(s, "possible_values: %s\r\n", "");
                                                         break;
                                                 case SCCP_CONFIG_DATATYPE_CHAR:

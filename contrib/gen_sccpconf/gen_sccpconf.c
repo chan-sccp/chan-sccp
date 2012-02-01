@@ -119,7 +119,7 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
                                                                         fprintf(f, " VARCHAR(%d)", 45);
                                                                 }                                                                
                                                                 break;
-                                                        case SCCP_CONFIG_DATATYPE_GENERIC:
+                                                        case SCCP_CONFIG_DATATYPE_PARSER:
                                                                 fprintf(f, " VARCHAR(45)");
 /*                                                                if (((config[sccp_option].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
                                                                         fprintf(f, " SET(%s)\n", config[sccp_option].generic_parser);
@@ -134,6 +134,10 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
                                                                 if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue)==0) {
                                                                         fprintf(f, " DEFAULT '%-1s'", config[sccp_option].defaultValue);
                                                                 }
+                                                                break;
+                                                        case SCCP_CONFIG_DATATYPE_ENUM2INT:
+                                                        case SCCP_CONFIG_DATATYPE_ENUM2STR:
+                                                        case SCCP_CONFIG_DATATYPE_CSV2STR:
                                                                 break;
                                                 }
                                         }
@@ -194,7 +198,7 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
                                                                 fprintf(f, "        <type>string</type>\n");
                                                                 fprintf(f, "        <size>45</size>\n");
                                                                 break;
-                                                        case SCCP_CONFIG_DATATYPE_GENERIC:
+                                                        case SCCP_CONFIG_DATATYPE_PARSER:
                                                                 fprintf(f, "        <type>generic</type>\n");
                                                                 fprintf(f, "        <generic_parser>%s</generic_parser>\n", config[sccp_option].generic_parser);
                                                                 break;
@@ -204,6 +208,10 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
                                                                 break;
                                                         case SCCP_CONFIG_DATATYPE_CHAR:
                                                                 fprintf(f, "        <type>char</type>\n");
+                                                                break;
+                                                        case SCCP_CONFIG_DATATYPE_ENUM2INT:
+                                                        case SCCP_CONFIG_DATATYPE_ENUM2STR:
+                                                        case SCCP_CONFIG_DATATYPE_CSV2STR:
                                                                 break;
                                                 }
                                         }
