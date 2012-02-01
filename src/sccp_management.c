@@ -44,6 +44,10 @@ static char management_device_update_desc[] = "Description: restart a given devi
  * \brief Show Line Forward Description
  */
 static char management_line_fwd_update_desc[] = "Description: update forward status for line\n" "\n" "Variables:\n" "  Linename: Name of line\n" "  Forwardtype: type of cfwd (all | busy | noAnswer)\n" "  Number: number to forward calls (optional)";
+/*!
+ * \brief Fetch config MetaData
+ */
+static char management_fetch_config_metadata_desc[] = "Description: fetch configuration metadata\n" "\n" "Variables:\n" "  segment: Config Segment Name (if empty returns all segments).\n" "  option: OptionName (if empty returns all options in sement).";
 
 void sccp_manager_eventListener(const sccp_event_t ** event);
 
@@ -90,6 +94,7 @@ int sccp_register_management(void)
 	result |= pbx_manager_register2("SCCPAnswerCall", _MAN_FLAGS, sccp_manager_answerCall, "answer a ringin channel", ""); /*!< \todo add description for ami */
 	result |= pbx_manager_register2("SCCPHangupCall", _MAN_FLAGS, sccp_manager_hangupCall, "hangup a channel", ""); /*!< \todo add description for ami */
 	result |= pbx_manager_register2("SCCPHoldCall", _MAN_FLAGS, sccp_manager_holdCall, "hold/unhold a call", ""); /*!< \todo add description for ami */
+	result |= pbx_manager_register2("SCCPConfigMetaData", _MAN_FLAGS, sccp_manager_config_metadata, "retrieve config metadata", management_fetch_config_metadata_desc);
 #    undef _MAN_FLAGS
 	
 #if HAVE_PBX_MANAGER_HOOK_H
@@ -115,6 +120,7 @@ int sccp_unregister_management(void)
 	result |= pbx_manager_unregister("SCCPAnswerCall");
 	result |= pbx_manager_unregister("SCCPHangupCall");
 	result |= pbx_manager_unregister("SCCPHoldCall");
+	result |= pbx_manager_unregister("SCCPConfigMetaData");
 
 #if HAVE_PBX_MANAGER_HOOK_H
 	ast_manager_unregister_hook(&sccp_manager_hook);
