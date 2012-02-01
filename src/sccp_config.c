@@ -109,6 +109,9 @@ enum SCCPConfigOptionType {
 	SCCP_CONFIG_DATATYPE_GENERIC			= 1 << 4,
 	SCCP_CONFIG_DATATYPE_STRINGPTR			= 1 << 5,	/* pointer */
 	SCCP_CONFIG_DATATYPE_CHAR			= 1 << 6,
+	SCCP_CONFIG_DATATYPE_ENUM2INT			= 1 << 7,
+	SCCP_CONFIG_DATATYPE_ENUM2STR			= 1 << 8,
+	SCCP_CONFIG_DATATYPE_CSV2STR			= 1 << 9,
 /* *INDENT-ON* */
 };
 
@@ -142,7 +145,7 @@ typedef struct SCCPConfigOption {
 	enum SCCPConfigOptionFlag flags;					/*!< Data type */
 	sccp_configurationchange_t change;					/*!< Does a change of this value needs a device restart */
 	const char *defaultValue;						/*!< Default value */
-	 sccp_value_changed_t(*converter_f) (void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);	/*!< Conversion function */
+	sccp_value_changed_t(*converter_f) (void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);	/*!< Conversion function */
 	const char *description;						/*!< Configuration description (config file) or warning message for deprecated or obsolete values */
 /* *INDENT-OFF* */
 } SCCPConfigOption;
@@ -172,7 +175,6 @@ sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, 
 sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_blindtransferindication(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_regcontext(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
@@ -261,6 +263,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 	boolean_t bool;
 	char *str;
 	char oldChar;
+//	uint32_t x;
 
 	if (!sccpConfigOption) {
 		pbx_log(LOG_WARNING, "Unknown param at %s:%d:%s='%s'\n", sccpConfigSegment->name, lineno, name, value);
@@ -441,6 +444,33 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 		}
 		break;
 
+        // New Generic ENUM_KEY/CSV Parsers
+	case SCCP_CONFIG_DATATYPE_ENUM2INT:
+                if ((*(uint32_t *)dst | atoi(value)) != atoi(value)) {
+/*                        for (x=0; x<ARRAY_SIZE(sccpConfigOption->enum_array), x++) {
+                                if (!strcasecmp(value,sccpConfigOption->enum_array[x].key) {
+                                       *(uint32_t *)dst |= value;
+                                       changed = SCCP_CONFIG_CHANGE_CHANGED;
+                                       break;
+                                }
+                        }*/
+                }
+		break;
+
+	case SCCP_CONFIG_DATATYPE_ENUM2STR:
+	        if (!strcasecmp(&(*(char *)dst), value)) {
+/*                        for (x=0; x<ARRAY_SIZE(sccpConfigOption->enum_array), x++) {
+                                if (!strcasecmp(value,sccpConfigOption->enum_array[x].key) {
+                                       *(char **)dest = strdup(value);
+                                       changed = SCCP_CONFIG_CHANGE_CHANGED;
+                                       break;
+                                }
+                        }*/
+	        }
+		break;
+
+	case SCCP_CONFIG_DATATYPE_CSV2STR:
+		break;
 	default:
 		pbx_log(LOG_WARNING, "Unknown param at %s='%s'\n", name, value);
 		return SCCP_CONFIG_NOUPDATENEEDED;
@@ -762,23 +792,6 @@ sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t 
 		*(call_answer_order_t *) dest = new_value;
 	}
 	return changed;
-}
-
-/*!
- * \brief Config Converter/Parser for RegContext
- */
-sccp_value_changed_t sccp_config_parse_regcontext(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-
-	if (strcasecmp(&(*(char *)dest), value)) {
-		*(char **)dest = strdup(value);
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-	} else {
-		return SCCP_CONFIG_CHANGE_NOCHANGE;
-	}
-	return changed;
-
 }
 
 /*!
@@ -2437,6 +2450,132 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	}
 	SCCP_LIST_UNLOCK(&device->devstateSpecifiers);
 #endif
+}
+
+int sccp_manager_config_metadata(struct mansession *s, const struct message *m) 
+{
+        const SCCPConfigSegment *sccpConfigSegment = NULL;
+        const SCCPConfigOption 	*config=NULL;
+        long unsigned int 	sccp_option;
+        char 			idtext[256];
+        int  			total = 0;
+        int 			i;
+	const char 		*id = astman_get_header(m, "ActionID");					
+	const char 		*req_segment= astman_get_header(m, "Segment");
+	const char 		*req_option = astman_get_header(m, "Option");
+	char *description;
+	char *description_part;
+
+	if (strlen(req_segment) == 0) {		// return all segments
+	        astman_send_listack(s, m, "List of segments will follow", "start");
+        	for (i = 0; i < ARRAY_LEN(sccpConfigSegments); i++) {
+               		astman_append(s, "Event: SegmentEntry\r\n");
+        		astman_append(s, "Segment: %s\r\n\r\n", sccpConfigSegments[i].name);
+			total++;
+	        }
+                astman_append(s, "Event: SegmentlistComplete\r\n\r\n");
+	} else if (strlen(req_option) == 0) { 	// return all options for segment
+	        astman_send_listack(s, m, "List of SegmentOptions will follow", "start");
+        	for (i = 0; i < ARRAY_LEN(sccpConfigSegments); i++) {
+	                if (!strcasecmp(sccpConfigSegments[i].name, req_segment)) {
+                                sccpConfigSegment = &sccpConfigSegments[i];
+                                config = sccpConfigSegment->config;
+                                for (sccp_option = 0; sccp_option < sccpConfigSegment->config_size; sccp_option++) {
+                                        astman_append(s, "Event: OptionEntry\r\n");
+                                        astman_append(s, "Segment: %s\r\n", sccpConfigSegment->name);
+                                        astman_append(s, "Option: %s\r\n\r\n", config[sccp_option].name);
+                                        total++;
+                                }
+                                total++;
+                        }
+                }
+                if (0 == total) {
+                        astman_append(s, "error: segment %s not found\r\n", req_segment);
+                } else {
+                        astman_append(s, "Event: SegmentOptionlistComplete\r\n\r\n");
+                }
+	} else {				// return metadata for option in segmnet
+	        astman_send_listack(s, m, "List of Option Attributes will follow", "start");
+        	for (i = 0; i < ARRAY_LEN(sccpConfigSegments); i++) {
+	                if (!strcasecmp(sccpConfigSegments[i].name, req_segment)) {
+                                sccpConfigSegment = &sccpConfigSegments[i];
+                                config = sccp_find_config(sccpConfigSegments[i].segment, req_option);
+                                if (config) {
+                                        astman_append(s, "Event: AttributeEntry\r\n");
+                                        astman_append(s, "Segment: %s\r\n", sccpConfigSegment->name);
+                                        astman_append(s, "Option: %s\r\n", config->name);
+                                        astman_append(s, "Size: %d\r\n", (int)config->size);
+                                        astman_append(s, "Required: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) ? "true" : "false");; 
+                                        astman_append(s, "Deprecated: %s\r\n:", ((config->flags & SCCP_CONFIG_FLAG_DEPRECATED) == SCCP_CONFIG_FLAG_DEPRECATED) ? "true" : "false");
+                                        astman_append(s, "Obsolete: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_OBSOLETE) == SCCP_CONFIG_FLAG_OBSOLETE) ? "true" : "false");; 
+                                        astman_append(s, "Multientry: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "true" : "false");; 
+                                        
+                                        switch (config->type) {
+                                                case SCCP_CONFIG_DATATYPE_BOOLEAN:
+                                                        astman_append(s, "Type: BOOLEAN\r\n");
+                                                        break;
+                                                case SCCP_CONFIG_DATATYPE_INT:
+                                                        astman_append(s, "Type: INT\r\n");
+                                                        break;
+                                                case SCCP_CONFIG_DATATYPE_UINT:
+                                                        astman_append(s, "Type: UNSIGNED INT\r\n");
+                                                        break;
+                                                case SCCP_CONFIG_DATATYPE_STRINGPTR:
+                                                case SCCP_CONFIG_DATATYPE_STRING:
+                                                        astman_append(s, "Type: STRING\r\n");
+                                                        break;
+                                                case SCCP_CONFIG_DATATYPE_GENERIC:
+                                                        astman_append(s, "Type: GENERAL\r\n");
+                                                        astman_append(s, "possible_values: %s\r\n", "");
+                                                        break;
+                                                case SCCP_CONFIG_DATATYPE_CHAR:
+                                                        astman_append(s, "Type: CHAR\r\n");
+                                                        break;
+                                                case SCCP_CONFIG_DATATYPE_ENUM2INT:
+                                                        astman_append(s, "Type: ENUM\r\n");
+                                                        break;
+                                                case SCCP_CONFIG_DATATYPE_ENUM2STR:
+                                                        astman_append(s, "Type: ENUM\r\n");
+                                                        break;
+                                                case SCCP_CONFIG_DATATYPE_CSV2STR:
+                                                        astman_append(s, "Type: CSV\r\n");
+                                                        break;
+                                        }
+                                        if (config->defaultValue && !strlen(config->defaultValue)==0) {
+                                                astman_append(s, "DefaultValue: %s\r\n", config->defaultValue);
+                                        }
+                                        if (strlen(config->description)!=0) {
+                                      	description=malloc(sizeof(char) * strlen(config->description));	
+                                                description=strdup(config->description);	
+                                                while ((description_part=strsep(&description, "\n"))) {
+                                                        if (description_part && strlen(description_part)!=0) {
+                                                                astman_append(s, "Description: %s\r\n", description_part);
+                                                        }
+                                                }
+                                        }
+                                        astman_append(s, "\r\n");
+                                        total++;
+                                } else {
+                                        astman_append(s, "error: option %s in segment %s not found\r\n", req_option, req_segment);
+                                        total++;
+                                }
+                        }
+                }
+                if (0 == total) {
+                        astman_append(s, "error: segment %s not found\r\n", req_segment);
+                        total++;
+                } else {
+                        astman_append(s, "Event: SegmentOptionAttributelistComplete\r\n\r\n");
+                }
+	}
+
+	snprintf(idtext, sizeof(idtext), "ActionID: %s\r\n", id);		
+	astman_append(s,							
+		"EventList: Complete\r\n"					
+		"ListItems: %d\r\n"						
+		"%s"								
+		"\r\n", total, idtext);  					
+        return 0;
 }
 
 /*!

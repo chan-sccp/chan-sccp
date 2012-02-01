@@ -92,6 +92,7 @@ sccp_device_t *sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * v,
 boolean_t sccp_config_general(sccp_readingtype_t readingtype);
 void cleanup_stale_contexts(char *newContext, char *oldContext);
 void sccp_config_readDevicesLines(sccp_readingtype_t readingtype);
+int sccp_manager_config_metadata(struct mansession *s, const struct message *m);
 
 #define CONFIG_STATUS_FILEOLD       (void *)-3
 #define CONFIG_STATUS_FILE_NOT_SCCP (void *)-4
