@@ -93,6 +93,28 @@ void sccp_dev_dbclean(void);
         pbx_log(LOG_ERROR, "_STRARR2INT Lookup Failed for " #arrayname "." #lookup_var "=%s\n", lookup_val); \
         return 0; \
         })
+#define _RETURNALLKEYS(_array,_key) 							\
+({										\
+	uint32_t i;								\
+	char *res = NULL;							\
+	const char *sep = ",";							\
+	size_t size = 0;							\
+	for (i = 0; i < ARRAY_LEN(_array); ++i) {				\
+                size_t new_size = size;						\
+                new_size += strlen(_array[i]._key) + sizeof(sep) + 1;		\
+                res = sccp_realloc(res, new_size);				\
+                if (!res)							\
+                        return NULL;						\
+                if (size == 0) {						\
+                        strcpy(res, _array[i]._key);				\
+                } else {							\
+                        strcat(res, sep);					\
+                        strcat(res, _array[i]._key);				\
+                }								\
+                size = new_size;						\
+	}									\
+	return (const char *)res;						\
+})
 
 // SCCP Lookups
 const char *message2str(uint32_t value);
@@ -124,6 +146,7 @@ const char *codec2str(skinny_codec_t value);
 const char *codec2key(uint32_t value);
 const char *codec2name(uint32_t value);
 const char *featureType2str(uint32_t value);
+const char *debugcat_keys(void);
 const uint32_t debugcat2int(const char *str);
 
 char *sccp_multiple_codecs2str(char *buf, size_t size, skinny_codec_t * codecs, int length);
@@ -163,7 +186,7 @@ sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t * device, scc
 uint32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug);
 char *sccp_get_debugcategories(int32_t debugvalue);
 sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const char *dirNum, const char *fqdn, const char *lineDisplayName);
-char **explode(char *str, char *sep);
+char **explode(const char *str, const char *sep);
 boolean_t implode(char *str[], char *sep, char **res);
 
 #ifdef HAVE_LIBGC

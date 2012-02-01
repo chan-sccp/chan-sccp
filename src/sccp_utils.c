@@ -1043,10 +1043,18 @@ const char *featureType2str(uint32_t value)
 {
 	_ARR2STR(sccp_feature_types, featureType, value, text);
 }
+
+
+const char *debugcat_keys(void)
+{
+        _RETURNALLKEYS(sccp_debug_categories, key);
+}
 const uint32_t debugcat2int(const char *str)
 {
 	_STRARR2INT(sccp_debug_categories, key, str, category);
 }
+
+
 
 /*!
  * \brief Retrieve the string of format numbers and names from an array of formats
@@ -1913,7 +1921,7 @@ char *sccp_get_debugcategories(int32_t debugvalue)
 {
 	uint32_t i;
 	char *res = NULL;
-	const char *sep = ", ";
+	const char *sep = ",";
 	size_t size = 0;
 
 	for (i = 0; i < ARRAY_LEN(sccp_debug_categories); ++i) {
@@ -1995,7 +2003,7 @@ sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
  * \param sep String to use as seperator
  * \return array of string (Needs to be freed afterwards)
  */
-char **explode(char *str, char *sep)
+char **explode(const char *str, const char *sep)
 {
 	int nn = 0;
 	char *tmp = "";

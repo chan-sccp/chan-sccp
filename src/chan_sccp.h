@@ -329,6 +329,8 @@ static const struct sccp_debug_category {
 	const char *const text;
 } sccp_debug_categories[] = {
 	/* *INDENT-OFF* */
+	{"all",  		0xffffffff, 		"all debug levels"},
+	{"none",  		0x00000000, 		"all debug levels"},
 	{"core",  		DEBUGCAT_CORE, 		"core debug level"},
 	{"sccp",  		DEBUGCAT_SCCP, 		"sccp debug level"},
 	{"hint",  		DEBUGCAT_HINT, 		"hint debug level"},
