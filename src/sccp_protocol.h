@@ -1131,7 +1131,7 @@ typedef enum {
  */
 static const struct skinny_codec {
 	skinny_codec_t codec;
-	const char *const shortname;						// used in sccp.conf
+	const char *const key;							// used in sccp.conf
 	const char *const name;							// used in sccp.conf
 	const char *const text;							// used to display the codec name
 	skinny_payload_type_t codec_type;

@@ -177,9 +177,9 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 				continue;
 		}
 		// find a match with partial category
-		if (!strncasecmp(word, sccp_debug_categories[i].short_name, wordlen)) {
+		if (!strncasecmp(word, sccp_debug_categories[i].key, wordlen)) {
 			if (++which > state)
-				return strdup(sccp_debug_categories[i].short_name);
+				return strdup(sccp_debug_categories[i].key);
 		}
 	}
 	return ret;
