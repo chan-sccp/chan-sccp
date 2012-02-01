@@ -82,6 +82,17 @@ void sccp_dev_dbclean(void);
         pbx_log(LOG_ERROR, "_ARR2STR Lookup Failed for " #arrayname "." #lookup_var "=%i\n", lookup_val); \
         return ""; \
         })
+#define _STRARR2INT(arrayname, lookup_var, lookup_val, return_var) \
+        ({ \
+        uint32_t i; \
+        for (i = 0; i < ARRAY_LEN(arrayname); i++) { \
+                if (!strcasecmp(arrayname[i].lookup_var, lookup_val)) { \
+                        return (uint32_t)arrayname[i].return_var; \
+                } \
+        } \
+        pbx_log(LOG_ERROR, "_STRARR2INT Lookup Failed for " #arrayname "." #lookup_var "=%s\n", lookup_val); \
+        return 0; \
+        })
 
 // SCCP Lookups
 const char *message2str(uint32_t value);
@@ -113,6 +124,8 @@ const char *codec2str(skinny_codec_t value);
 const char *codec2key(uint32_t value);
 const char *codec2name(uint32_t value);
 const char *featureType2str(uint32_t value);
+const uint32_t debugcat2int(const char *str);
+
 char *sccp_multiple_codecs2str(char *buf, size_t size, skinny_codec_t * codecs, int length);
 int sccp_parse_allow_disallow(skinny_codec_t * sccp_codecs, skinny_codec_t * mask, const char *list, int allowing);
 const char *skinny_ringermode2str(uint8_t type);

@@ -146,6 +146,7 @@ typedef struct SCCPConfigOption {
 	sccp_configurationchange_t change;					/*!< Does a change of this value needs a device restart */
 	const char *defaultValue;						/*!< Default value */
 	sccp_value_changed_t(*converter_f) (void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);	/*!< Conversion function */
+	const uint32_t (*str2enum)(const char *str);					/*!< convert used for parsing OptionType: SCCP_CONFIG_DATATYPE_ENUM */
 	const char *description;						/*!< Configuration description (config file) or warning message for deprecated or obsolete values */
 /* *INDENT-OFF* */
 } SCCPConfigOption;
@@ -263,7 +264,6 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 	boolean_t bool;
 	char *str;
 	char oldChar;
-//	uint32_t x;
 
 	if (!sccpConfigOption) {
 		pbx_log(LOG_WARNING, "Unknown param at %s:%d:%s='%s'\n", sccpConfigSegment->name, lineno, name, value);
@@ -446,20 +446,18 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 
         // New Generic ENUM_KEY/CSV Parsers
 	case SCCP_CONFIG_DATATYPE_ENUM2INT:
-                if ((*(uint32_t *)dst | atoi(value)) != atoi(value)) {
-/*                        for (x=0; x<ARRAY_SIZE(sccpConfigOption->enum_array), x++) {
-                                if (!strcasecmp(value,sccpConfigOption->enum_array[x].key) {
-                                       *(uint32_t *)dst |= value;
-                                       changed = SCCP_CONFIG_CHANGE_CHANGED;
-                                       break;
-                                }
-                        }*/
-                }
+                if (sccpConfigOption->str2enum) {
+                        const uint32_t new_val=sccpConfigOption->str2enum(value);
+                        if ((*(uint32_t *)dst | new_val) != new_val) {
+                                *(uint32_t *)dst |= (uint32_t) new_val;
+                                changed = SCCP_CONFIG_CHANGE_CHANGED;
+                        }
+                }        
 		break;
 
 	case SCCP_CONFIG_DATATYPE_ENUM2STR:
 	        if (!strcasecmp(&(*(char *)dst), value)) {
-/*                        for (x=0; x<ARRAY_SIZE(sccpConfigOption->enum_array), x++) {
+/*                        for (x=0; x<ARRAY_LEN(sccpConfigOption->enum_array); x++) {
                                 if (!strcasecmp(value,sccpConfigOption->enum_array[x].key) {
                                        *(char **)dest = strdup(value);
                                        changed = SCCP_CONFIG_CHANGE_CHANGED;
@@ -1084,9 +1082,9 @@ sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, co
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_lampMode_t mwilamp = 0;
 
-	if (!strcasecmp(value, "off")) {
+	if (!sccp_true(value)) {
 		mwilamp = SKINNY_LAMP_OFF;
-	} else if (!strcasecmp(value, "on")) {
+	} else if (sccp_true(value)) {
 		mwilamp = SKINNY_LAMP_ON;
 	} else if (!strcasecmp(value, "wink")) {
 		mwilamp = SKINNY_LAMP_WINK;
