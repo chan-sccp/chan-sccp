@@ -142,11 +142,11 @@ typedef struct SCCPConfigOption {
 	const int offset;							/*!< The offset relative to the context structure where the option value is stored. */
 	const size_t size;							/*!< Structure size */
 	enum SCCPConfigOptionType type;						/*!< Data type */
+	sccp_value_changed_t(*converter_f) (void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);	/*!< Conversion function */
+	const uint32_t (*str2enum)(const char *str);					/*!< convert used for parsing OptionType: SCCP_CONFIG_DATATYPE_ENUM */
 	enum SCCPConfigOptionFlag flags;					/*!< Data type */
 	sccp_configurationchange_t change;					/*!< Does a change of this value needs a device restart */
 	const char *defaultValue;						/*!< Default value */
-	sccp_value_changed_t(*converter_f) (void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);	/*!< Conversion function */
-	const uint32_t (*str2enum)(const char *str);					/*!< convert used for parsing OptionType: SCCP_CONFIG_DATATYPE_ENUM */
 	const char *description;						/*!< Configuration description (config file) or warning message for deprecated or obsolete values */
 /* *INDENT-OFF* */
 } SCCPConfigOption;
@@ -447,11 +447,32 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
         // New Generic ENUM_KEY/CSV Parsers
 	case SCCP_CONFIG_DATATYPE_ENUM2INT:
                 if (sccpConfigOption->str2enum) {
-                        const uint32_t new_val=sccpConfigOption->str2enum(value);
-                        if ((*(uint32_t *)dst | new_val) != new_val) {
-                                *(uint32_t *)dst |= (uint32_t) new_val;
-                                changed = SCCP_CONFIG_CHANGE_CHANGED;
-                        }
+			switch (sccpConfigOption->size)	 {
+				case 1:
+                                        uint8num=(uint8_t)sccpConfigOption->str2enum(value);
+                                        if ((*(uint8_t *)dst | uint8num) != uint8num) {
+                                                *(uint32_t *)dst |= uint8num;
+                                                changed = SCCP_CONFIG_CHANGE_CHANGED;
+                                        }
+				case 2:
+                                        uint16num=(uint16_t)sccpConfigOption->str2enum(value);
+                                        if ((*(uint16_t *)dst | uint16num) != uint16num) {
+                                                *(uint16_t *)dst |= uint16num; 
+                                                changed = SCCP_CONFIG_CHANGE_CHANGED;
+                                        }
+				case 4:
+                                        uint32num=(uint32_t)sccpConfigOption->str2enum(value);
+                                        if ((*(uint32_t *)dst | uint32num) != uint32num) {
+                                                *(uint32_t *)dst |= uint32num; 
+                                                changed = SCCP_CONFIG_CHANGE_CHANGED;
+                                        }
+				case 8:
+                                        uint64num=(uint64_t)sccpConfigOption->str2enum(value);
+                                        if ((*(uint64_t *)dst | uint64num) != uint64num) {
+                                                *(uint64_t *)dst |= uint64num; 
+                                                changed = SCCP_CONFIG_CHANGE_CHANGED;
+                                        }
+			}	
                 }        
 		break;
 
