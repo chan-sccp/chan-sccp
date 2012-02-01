@@ -1029,9 +1029,9 @@ const char *codec2str(skinny_codec_t value)
 	_ARR2STR(skinny_codecs, codec, value, text);
 }
 
-const char *codec2shortname(uint32_t value)
+const char *codec2key(uint32_t value)
 {
-	_ARR2STR(skinny_codecs, codec, value, shortname);
+	_ARR2STR(skinny_codecs, codec, value, key);
 }
 
 const char *codec2name(uint32_t value)
@@ -1154,7 +1154,7 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, skinny_codec_
 			break;
 		}
 		for (x = 0; x < ARRAY_LEN(skinny_codecs); x++) {
-			if (all || !strcasecmp(skinny_codecs[x].shortname, this)) {
+			if (all || !strcasecmp(skinny_codecs[x].key, this)) {
 				//pbx_log(LOG_WARNING, "%s codec '%s'\n", allowing ? "allow" : "disallow", this);
 				codec = skinny_codecs[x].codec;
 				found = TRUE;
@@ -1880,7 +1880,7 @@ uint32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t 
 				while (token != NULL) {
 					// match debug level name to enum
 					for (i = 0; i < ARRAY_LEN(sccp_debug_categories); i++) {
-						if (strcasecmp(token, sccp_debug_categories[i].short_name) == 0) {
+						if (strcasecmp(token, sccp_debug_categories[i].key) == 0) {
 							if (subtract) {
 								if ((new_debug_value & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
 									new_debug_value -= sccp_debug_categories[i].category;
@@ -1916,16 +1916,16 @@ char *sccp_get_debugcategories(int32_t debugvalue)
 		if ((debugvalue & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
 			size_t new_size = size;
 
-			new_size += strlen(sccp_debug_categories[i].short_name) + sizeof(sep) + 1;
+			new_size += strlen(sccp_debug_categories[i].key) + sizeof(sep) + 1;
 			res = sccp_realloc(res, new_size);
 			if (!res)
 				return NULL;
 
 			if (size == 0) {
-				strcpy(res, sccp_debug_categories[i].short_name);
+				strcpy(res, sccp_debug_categories[i].key);
 			} else {
 				strcat(res, sep);
-				strcat(res, sccp_debug_categories[i].short_name);
+				strcat(res, sccp_debug_categories[i].key);
 			}
 
 			size = new_size;

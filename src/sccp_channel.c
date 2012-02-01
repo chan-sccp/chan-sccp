@@ -2197,7 +2197,7 @@ boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data)
 	memcpy(&tempCodecPreferences, c->preferences.audio, sizeof(c->preferences.audio));
 
 	for (x = 0; x < ARRAY_LEN(skinny_codecs) && numFoundCodecs < ARRAY_LEN(c->preferences.audio); x++) {
-		if (!strcasecmp(skinny_codecs[x].shortname, text)) {
+		if (!strcasecmp(skinny_codecs[x].key, text)) {
 
 			c->preferences.audio[numFoundCodecs] = skinny_codecs[x].codec;
 			numFoundCodecs++;

@@ -110,7 +110,7 @@ const char *keymode2str(uint32_t value);
 const char *deviceregistrationstatus2str(uint32_t value);
 const char *devicestatus2str(uint32_t value);
 const char *codec2str(skinny_codec_t value);
-const char *codec2shortname(uint32_t value);
+const char *codec2key(uint32_t value);
 const char *codec2name(uint32_t value);
 const char *featureType2str(uint32_t value);
 char *sccp_multiple_codecs2str(char *buf, size_t size, skinny_codec_t * codecs, int length);

@@ -324,7 +324,7 @@ typedef enum {
  * \brief SCCP Verbose Level Structure
  */
 static const struct sccp_debug_category {
-	const char *const short_name;
+	const char *const key;
 	sccp_debug_category_t category;
 	const char *const text;
 } sccp_debug_categories[] = {

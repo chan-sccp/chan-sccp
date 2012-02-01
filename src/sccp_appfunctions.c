@@ -205,7 +205,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 
 		codecnum = colname + 6;						// move past the '[' 
 		codecnum = strsep(&codecnum, "]");				// trim trailing ']' if any 
-		if (skinny_codecs[atoi(codecnum)].shortname) {
+		if (skinny_codecs[atoi(codecnum)].key) {
 //              if ((codec = pbx_codec_pref_index(&d->codecs, atoi(codecnum)))) {
 //                      sccp_copy_string(buf, pbx_getformatname(codec), len);
 			sccp_copy_string(buf, codec2name(atoi(codecnum)), len);
@@ -571,7 +571,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		codecnum = strsep(&codecnum, "]");				// trim trailing ']' if any 
 //              if ((codec = pbx_codec_pref_index(&c->codecs, atoi(codecnum)))) {
 //                      sccp_copy_string(buf, pbx_getformatname(codec), len);
-		if (skinny_codecs[atoi(codecnum)].shortname) {
+		if (skinny_codecs[atoi(codecnum)].key) {
 			sccp_copy_string(buf, codec2name(atoi(codecnum)), len);
 		} else {
 			buf[0] = '\0';
