@@ -199,6 +199,15 @@ static const struct pbx_devicestate {
 };
 
 /*!
+ * \brief PBX Hangup Types handled by sccp_wrapper_asterisk_forceHangup
+ */
+typedef enum {
+        PBX_QUEUED_HANGUP = 0,
+        PBX_SOFT_HANGUP = 1,
+        PBX_HARD_HANGUP = 2,
+} pbx_hangup_type_t;
+
+/*!
  * \brief SCCP Extension State Structure
  */
 static const struct sccp_extension_state {
@@ -363,6 +372,7 @@ static void sccp_free_ptr(void *ptr)
  */
 sccp_channel_t *get_sccp_channel_from_ast_channel(PBX_CHANNEL_TYPE * ast_chan);
 int sccp_asterisk_pbx_fktChannelWrite(struct ast_channel *ast, const char *funcname, char *args, const char *value);
+int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * ast_channel, pbx_hangup_type_t pbx_hangup_type);
 int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel);
 
 /***** database *****/

@@ -1987,6 +1987,7 @@ sccp_pbx_cb sccp_pbx = {
 	checkhangup:			sccp_wrapper_asterisk16_checkHangup,
 	hangup:				NULL,
 	requestHangup:			sccp_wrapper_asterisk_requestHangup,
+	forceHangup:                    sccp_wrapper_asterisk_forceHangup,
 	extension_status:		sccp_wrapper_asterisk16_extensionStatus,
 
 	/** get channel by name */
@@ -2076,6 +2077,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.alloc_conferenceTempPBXChannel	= sccp_wrapper_asterisk16_alloc_conferenceTempPBXChannel,
 	
 	.requestHangup 			= sccp_wrapper_asterisk_requestHangup,
+	.forceHangup                    = sccp_wrapper_asterisk_forceHangup,
 	.extension_status 		= sccp_wrapper_asterisk16_extensionStatus,
 	.getChannelByName 		= sccp_wrapper_asterisk16_getChannelByName,
 	.getChannelLinkId		= sccp_wrapper_asterisk16_getChannelLinkId,
