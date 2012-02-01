@@ -16,17 +16,17 @@
  */
 
 /* dyn config */
-#define DATA_TYPE(_w,_x,_y) SCCP_CONFIG_DATATYPE_##_w, _x, _y						// make DataTypeParsers easier to extend when they need extra parameters
-#define TYPE_BOOLEAN DATA_TYPE(BOOLEAN, NULL, NULL)
-#define TYPE_INT DATA_TYPE(INT, NULL, NULL)
-#define TYPE_UINT DATA_TYPE(UINT, NULL, NULL)
-#define TYPE_STRING DATA_TYPE(STRING, NULL, NULL)
-#define TYPE_STRINGPTR DATA_TYPE(STRINGPTR, NULL, NULL)
-#define TYPE_CHAR DATA_TYPE(CHAR, NULL, NULL)
-#define TYPE_PARSER(_x) DATA_TYPE(PARSER, _x, NULL)
-#define TYPE_ENUM2INT(_y) DATA_TYPE(ENUM2INT, NULL, _y)
-#define TYPE_ENUM2STR(_y) DATA_TYPE(ENUM2STR, NULL, _y)
-#define TYPE_CSV2STR(_y) DATA_TYPE(CSV2STR, NULL, _y)
+#define DATA_TYPE(_w,_x,_y,_z) SCCP_CONFIG_DATATYPE_##_w, _x, _y,_z					// make DataTypeParsers easier to extend when they need extra parameters
+#define TYPE_BOOLEAN DATA_TYPE(BOOLEAN, NULL, NULL, NULL)
+#define TYPE_INT DATA_TYPE(INT, NULL, NULL, NULL)
+#define TYPE_UINT DATA_TYPE(UINT, NULL, NULL, NULL)
+#define TYPE_STRING DATA_TYPE(STRING, NULL, NULL, NULL)
+#define TYPE_STRINGPTR DATA_TYPE(STRINGPTR, NULL, NULL, NULL)
+#define TYPE_CHAR DATA_TYPE(CHAR, NULL, NULL, NULL)
+#define TYPE_PARSER(_x) DATA_TYPE(PARSER, _x, NULL, NULL)
+#define TYPE_ENUM2INT(_y,_z) DATA_TYPE(ENUM2INT, NULL, _y, _z)
+#define TYPE_ENUM2STR(_y,_z) DATA_TYPE(ENUM2STR, NULL, _y, _z)
+#define TYPE_CSV2STR(_y,_z) DATA_TYPE(CSV2STR, NULL, _y, _z)
 /*!
  * \brief List of SCCP Config Options for SCCP Globals
  */
@@ -35,8 +35,8 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"servername", 			G_OBJ_REF(servername), 			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NOUPDATENEEDED,		"Asterisk",			"show this name on the device registration\n"},
 	{"keepalive", 			G_OBJ_REF(keepalive), 			TYPE_INT,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"60",				"Phone keep alive message every 60 secs. Used to check the voicemail and keep an open connection between server and phone (nat). \n"
 																										  											"Don't set any lower than 60 seconds.\n"},
-//NEW1	{"debug", 			G_OBJ_REF(debug), 			TYPE_ENUM2INT(debugcat2int),							SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED,		"core",				"console debug level or categories\n"
-	{"debug", 			G_OBJ_REF(debug), 			TYPE_PARSER(sccp_config_parse_debug),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED,		"core",				"console debug level or categories\n"
+/*NEW*/	{"debug", 			G_OBJ_REF(debug), 			TYPE_ENUM2INT(debugcat2int,debugcat_keys),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED,		"core",				"console debug level or categories\n"
+//	{"debug", 			G_OBJ_REF(debug), 			TYPE_PARSER(sccp_config_parse_debug),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED,		"core",				"console debug level or categories\n"
 																														  							"examples: debug = 11 | debug = mwi,event,core | debug = all | debug = none or 0\n"
 																																					"possible categories: \n"
 																																					"core, sccp, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey, indicate, pbx\n"
@@ -44,7 +44,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"context", 			G_OBJ_REF(context), 			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"sccp",				"pbx dialplan context\n"},
 	{"dateformat", 			G_OBJ_REF(dateformat), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"D.M.Y",			"M-D-Y in any order. Use M/D/YA (for 12h format)\n"},
 	{"bindaddr", 			G_OBJ_REF(bindaddr), 			TYPE_PARSER(sccp_config_parse_ipaddress),					SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"0.0.0.0",			"replace with the ip address of the asterisk server (RTP important param)\n"}, 
-	{"port", 			G_OBJ_REF(bindaddr),			TYPE_PARSER(sccp_config_parse_ipaddress),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"2000",				"listen on port 2000 (Skinny, default)\n"},
+	{"port", 			G_OBJ_REF(bindaddr),			TYPE_PARSER(sccp_config_parse_port),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"2000",				"listen on port 2000 (Skinny, default)\n"},
 	{"disallow", 			G_OBJ_REF(global_preferences),		TYPE_PARSER(sccp_config_parse_disallow_codec),					SCCP_CONFIG_FLAG_REQUIRED | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,		"",				"First disallow all codecs, for example 'all'\n"},
 	{"allow", 			G_OBJ_REF(global_preferences),		TYPE_PARSER(sccp_config_parse_allow_codec),					SCCP_CONFIG_FLAG_REQUIRED | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,		"",				"Allow codecs in order of preference (Multiple lines allowed)\n"},
 	{"deny", 			G_OBJ_REF(ha),	 			TYPE_PARSER(sccp_config_parse_deny),						SCCP_CONFIG_FLAG_REQUIRED | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,		"0.0.0.0/0.0.0.0",		"Deny every address except for the only one allowed. example: '0.0.0.0/0.0.0.0'\n"},
