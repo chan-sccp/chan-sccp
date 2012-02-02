@@ -440,11 +440,12 @@ int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * ast_channel, pbx_hangup
         }
 
         /* channel is not running */
+/*
         if (!ast_channel->pbx) {
                 sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: channel is not running. forcing queued_hangup.\n", ast_channel->name);
                 return FALSE;
         }
-
+*/
         /* check for briged ast_channel */
         PBX_CHANNEL_TYPE *pbx_bridged_channel = NULL;
         if ((pbx_bridged_channel = CS_AST_BRIDGED_CHANNEL(ast_channel))) {
