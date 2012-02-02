@@ -255,7 +255,7 @@ sccp_device_t *sccp_device_create(void)
 		return NULL;
 	}
 	
-	memset(d, 0, sizeof(d));
+	memset(d, 0, sizeof(sccp_device_t));
 	pbx_mutex_init(&d->lock);
 	sccp_device_lock(d);
 
@@ -1522,7 +1522,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 
 	if (remove_from_global) {
 		SCCP_RWLIST_WRLOCK(&GLOB(devices));
-		SCCP_RWLIST_REMOVE(&GLOB(devices), d, list);
+		d = SCCP_RWLIST_REMOVE(&GLOB(devices), d, list);
 		SCCP_RWLIST_UNLOCK(&GLOB(devices));
 	}
 

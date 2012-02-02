@@ -163,9 +163,9 @@ void sccp_sk_dial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstanc
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Dial Pressed\n", DEV_ID_LOG(d));
 	if (c) { // Handle termination of dialling if in appropriate state.
 		/* Only handle this in DIALING state. AFAIK GETDIGITS is used only for call forward and related input functions. (-DD) */
-		if ( (c->state == SCCP_CHANNELSTATE_DIALING) ) {
+		if ( SCCP_CHANNELSTATE_DIALING == c->state ) {
 			sccp_channel_lock(c);
-			SCCP_SCHED_DEL(c->scheduler.digittimeout);
+			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 			sccp_pbx_softswitch_locked(c);
 			sccp_channel_unlock(c);
 		}
@@ -257,7 +257,7 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 			sccp_copy_string(c->dialedNumber, d->lastNumber, sizeof(c->dialedNumber));
 			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Get ready to redial number %s\n", d->id, d->lastNumber);
 			// c->digittimeout = time(0)+1;
-			SCCP_SCHED_DEL(c->scheduler.digittimeout);
+			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 			sccp_pbx_softswitch_locked(c);
 			sccp_channel_unlock(c);
 		}
@@ -494,7 +494,7 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIn
 	if (len > 1) {
 		c->dialedNumber[len - 1] = '\0';
 		/* removing scheduled dial */
-		SCCP_SCHED_DEL(c->scheduler.digittimeout);
+		c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 		/* rescheduling dial timeout (one digit) */
 		if ((c->scheduler.digittimeout = sccp_sched_add(GLOB(digittimeout) * 1000, sccp_pbx_sched_dial, c)) < 0) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: (sccp_sk_backspace) Unable to reschedule dialing in '%d' s\n", GLOB(digittimeout));
@@ -502,7 +502,7 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIn
 	} else if (len == 1) {
 		c->dialedNumber[len - 1] = '\0';
 		/* removing scheduled dial */
-		SCCP_SCHED_DEL(c->scheduler.digittimeout);
+		c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 		/* rescheduling dial timeout (no digits) */
 		if ((c->scheduler.digittimeout = sccp_sched_add(GLOB(firstdigittimeout) * 1000, sccp_pbx_sched_dial, c)) < 0) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: (sccp_sk_backspace) Unable to reschedule dialing in '%d' s\n", GLOB(firstdigittimeout));
@@ -645,7 +645,7 @@ void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 
 	if ((x = sccp_device_find_selectedchannel(d, c))) {
 		SCCP_LIST_LOCK(&d->selectedChannels);
-		SCCP_LIST_REMOVE(&d->selectedChannels, x, list);
+		x = SCCP_LIST_REMOVE(&d->selectedChannels, x, list);
 		SCCP_LIST_UNLOCK(&d->selectedChannels);
 		sccp_free(x);
 	} else {

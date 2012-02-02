@@ -633,7 +633,7 @@ void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t * channel)
 
 	sccp_line_lock(l);
 	SCCP_LIST_LOCK(&l->channels);
-	SCCP_LIST_REMOVE(&l->channels, channel, list);
+	channel = SCCP_LIST_REMOVE(&l->channels, channel, list);
 	SCCP_LIST_UNLOCK(&l->channels);
 
 	sccp_line_unlock(l);

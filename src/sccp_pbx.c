@@ -381,7 +381,7 @@ int sccp_pbx_hangup_locked(sccp_channel_t * c)
 		sccp_rtp_destroy(c);
 	}
 	// removing scheduled dialing
-	SCCP_SCHED_DEL(c->scheduler.digittimeout);
+	c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 
 	sccp_line_lock(c->line);
 	c->line->statistic.numberOfActiveChannels--;
@@ -888,7 +888,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	char shortenedNumber[256] = { '\0' };					/* For recording the digittimeoutchar */
 
 	/* removing scheduled dialing */
-	SCCP_SCHED_DEL(c->scheduler.digittimeout);
+	c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 
 	/* we should just process outbound calls, let's check calltype */
 	if (c->calltype != SKINNY_CALLTYPE_OUTBOUND) {
