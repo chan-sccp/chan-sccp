@@ -40,7 +40,8 @@ AC_DEFUN([AST_GET_VERSION], [
 			# process version number
 			version_found=0
 			for x in "1.2" "1.4" "1.6" "1.8" "1.10" "10"; do
-				if [ ! test -z `expr match "${pbx_ver}" "^\($x\).*"` ]; then
+				if test `echo $pbx_ver | sed "s/^\(${x}\).*$/\1/g"` == "$x";then  
+dnl				if [ ! test -z `expr match "${pbx_ver}" "^\($x\).*"` ]; then
 					if test ${#x} -gt 3; then		# 1.10
 						ASTERISK_VER_GROUP="`echo $x|sed 's/\.//g'`"
 					elif test ${#x} -lt 3; then		# 1.10
@@ -62,7 +63,6 @@ AC_DEFUN([AST_GET_VERSION], [
 					else
 						ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
 					fi
-
 					ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
 					
 					version_found=1
