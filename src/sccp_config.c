@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_config.c
  * \brief 	SCCP Config Class
@@ -86,7 +85,11 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2154 $")
 #ifndef offsetof
+#if defined(__GNUC__) && __GNUC__ > 3
+#    define offsetof(type, member)  __builtin_offsetof (type, member)
+#else
 #    define offsetof(T, F) ((unsigned int)((char *)&((T *)0)->F))
+#endif
 #endif
 #define offsize(T, F) sizeof(((T *)0)->F)
 #define G_OBJ_REF(x) offsetof(struct sccp_global_vars,x), offsize(struct sccp_global_vars,x)
@@ -2549,71 +2552,74 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
                                 sccpConfigSegment = &sccpConfigSegments[i];
                                 config = sccp_find_config(sccpConfigSegments[i].segment, req_option);
                                 if (config) {
-                                        const char *possible_values = NULL;
-                                        astman_append(s, "Event: AttributeEntry\r\n");
-                                        astman_append(s, "Segment: %s\r\n", sccpConfigSegment->name);
-                                        astman_append(s, "Option: %s\r\n", config->name);
-                                        astman_append(s, "Size: %d\r\n", (int)config->size);
-                                        astman_append(s, "Required: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) ? "true" : "false");; 
-                                        astman_append(s, "Deprecated: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_DEPRECATED) == SCCP_CONFIG_FLAG_DEPRECATED) ? "true" : "false");
-                                        astman_append(s, "Obsolete: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_OBSOLETE) == SCCP_CONFIG_FLAG_OBSOLETE) ? "true" : "false");; 
-                                        astman_append(s, "Multientry: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "true" : "false");; 
-                                        
-                                        switch (config->type) {
-                                                case SCCP_CONFIG_DATATYPE_BOOLEAN:
-                                                        astman_append(s, "Type: BOOLEAN\r\n");
-                                                        break;
-                                                case SCCP_CONFIG_DATATYPE_INT:
-                                                        astman_append(s, "Type: INT\r\n");
-                                                        break;
-                                                case SCCP_CONFIG_DATATYPE_UINT:
-                                                        astman_append(s, "Type: UNSIGNED INT\r\n");
-                                                        break;
-                                                case SCCP_CONFIG_DATATYPE_STRINGPTR:
-                                                case SCCP_CONFIG_DATATYPE_STRING:
-                                                        astman_append(s, "Type: STRING\r\n");
-                                                        break;
-                                                case SCCP_CONFIG_DATATYPE_PARSER:
-                                                        astman_append(s, "Type: PARSER\r\n");
-                                                        astman_append(s, "possible_values: %s\r\n", "");
-                                                        break;
-                                                case SCCP_CONFIG_DATATYPE_CHAR:
-                                                        astman_append(s, "Type: CHAR\r\n");
-                                                        break;
-                                                case SCCP_CONFIG_DATATYPE_ENUM2INT:
-                                                        possible_values = config->enumkeys();
-                                                        astman_append(s, "Type: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "SET" : "ENUM");; 
-                                                        astman_append(s, "PossibleValues: %s\r\n", possible_values);
-                                                        break;
-                                                case SCCP_CONFIG_DATATYPE_ENUM2STR:
-                                                        possible_values = config->enumkeys();
-                                                        astman_append(s, "Type: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "SET" : "ENUM");; 
-//                                                        astman_append(s, "PossibleValues: %s\r\n", possible_values);
-                                                        break;
-                                                case SCCP_CONFIG_DATATYPE_CSV2STR:
-                                                        possible_values = config->enumkeys();
-                                                        astman_append(s, "Type: SET\r\n");
-//                                                        astman_append(s, "PossibleValues: %s\r\n", possible_values);
-                                                        break;
-                                        }
-                                        if (config->defaultValue && !strlen(config->defaultValue)==0) {
-                                                astman_append(s, "DefaultValue: %s\r\n", config->defaultValue);
-                                        }
-                                        if (strlen(config->description)!=0) {
-                                      	description=malloc(sizeof(char) * strlen(config->description));	
-                                                description=strdup(config->description);	
-                                                astman_append(s, "Description: ");
-                                                while ((description_part=strsep(&description, "\n"))) {
-                                                        if (description_part && strlen(description_part)!=0) {
-                                                                astman_append(s, "%s", description_part);
-                                                        }
+                                        if ((config->flags & SCCP_CONFIG_FLAG_IGNORE) != SCCP_CONFIG_FLAG_IGNORE) {
+                                                const char *possible_values = NULL;
+                                                astman_append(s, "Event: AttributeEntry\r\n");
+                                                astman_append(s, "Segment: %s\r\n", sccpConfigSegment->name);
+                                                astman_append(s, "Option: %s\r\n", config->name);
+                                                astman_append(s, "Size: %d\r\n", (int)config->size);
+                                                astman_append(s, "Required: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) ? "true" : "false"); 
+                                                astman_append(s, "Deprecated: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_DEPRECATED) == SCCP_CONFIG_FLAG_DEPRECATED) ? "true" : "false");
+                                                astman_append(s, "Obsolete: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_OBSOLETE) == SCCP_CONFIG_FLAG_OBSOLETE) ? "true" : "false"); 
+                                                astman_append(s, "Multientry: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "true" : "false");
+                                                astman_append(s, "RestartRequiredOnUpdate: %s\r\n", ((config->change & SCCP_CONFIG_NEEDDEVICERESET) == SCCP_CONFIG_NEEDDEVICERESET) ? "true" : "false");
+
+                                                switch (config->type) {
+                                                        case SCCP_CONFIG_DATATYPE_BOOLEAN:
+                                                                astman_append(s, "Type: BOOLEAN\r\n");
+                                                                break;
+                                                        case SCCP_CONFIG_DATATYPE_INT:
+                                                                astman_append(s, "Type: INT\r\n");
+                                                                break;
+                                                        case SCCP_CONFIG_DATATYPE_UINT:
+                                                                astman_append(s, "Type: UNSIGNED INT\r\n");
+                                                                break;
+                                                        case SCCP_CONFIG_DATATYPE_STRINGPTR:
+                                                        case SCCP_CONFIG_DATATYPE_STRING:
+                                                                astman_append(s, "Type: STRING\r\n");
+                                                                break;
+                                                        case SCCP_CONFIG_DATATYPE_PARSER:
+                                                                astman_append(s, "Type: PARSER\r\n");
+                                                                astman_append(s, "possible_values: %s\r\n", "");
+                                                                break;
+                                                        case SCCP_CONFIG_DATATYPE_CHAR:
+                                                                astman_append(s, "Type: CHAR\r\n");
+                                                                break;
+                                                        case SCCP_CONFIG_DATATYPE_ENUM2INT:
+                                                                possible_values = config->enumkeys();
+                                                                astman_append(s, "Type: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "SET" : "ENUM");; 
+                                                                astman_append(s, "PossibleValues: %s\r\n", possible_values);
+                                                                break;
+                                                        case SCCP_CONFIG_DATATYPE_ENUM2STR:
+                                                                possible_values = config->enumkeys();
+                                                                astman_append(s, "Type: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "SET" : "ENUM");; 
+        //                                                        astman_append(s, "PossibleValues: %s\r\n", possible_values);
+                                                                break;
+                                                        case SCCP_CONFIG_DATATYPE_CSV2STR:
+                                                                possible_values = config->enumkeys();
+                                                                astman_append(s, "Type: SET\r\n");
+        //                                                        astman_append(s, "PossibleValues: %s\r\n", possible_values);
+                                                                break;
                                                 }
-                                                astman_append(s, "%s%s\r\n", !sccp_strlen_zero(possible_values) ? "(POSSIBLE VALUES: " : "", possible_values);
+                                                if (config->defaultValue && !strlen(config->defaultValue)==0) {
+                                                        astman_append(s, "DefaultValue: %s\r\n", config->defaultValue);
+                                                }
+                                                if (strlen(config->description)!=0) {
+                                                description=malloc(sizeof(char) * strlen(config->description));	
+                                                        description=strdup(config->description);	
+                                                        astman_append(s, "Description: ");
+                                                        while ((description_part=strsep(&description, "\n"))) {
+                                                                if (description_part && strlen(description_part)!=0) {
+                                                                        astman_append(s, "%s", description_part);
+                                                                }
+                                                        }
+                                                        astman_append(s, "%s%s\r\n", !sccp_strlen_zero(possible_values) ? "(POSSIBLE VALUES: " : "", possible_values);
+                                                }
+                                                astman_append(s, "\r\n");
+                                                if (possible_values)
+                                                        sccp_free((char *)possible_values);
+                                                total++;
                                         }
-                                        astman_append(s, "\r\n");
-                                        if (possible_values)
-                                                sccp_free((char *)possible_values);
-                                        total++;
                                 } else {
                                         astman_append(s, "error: option %s in segment %s not found\r\n", req_option, req_segment);
                                         total++;

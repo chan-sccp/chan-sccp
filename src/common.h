@@ -32,6 +32,7 @@ extern "C" {
 
 #include "sccp_lock.h"
 #include "sccp_dllists.h"
+#include "chan_sccp.h"
 #include "sccp_event.h"
 #include "pbx_impl/pbx_impl.h"
 

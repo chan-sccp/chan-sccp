@@ -14,7 +14,8 @@
 #    ifndef SCCP_EVENT_H_
 #define SCCP_EVENT_H_
 
-#include "chan_sccp.h"
+//#include "config.h"
+#include "common.h"
 
 /* structures */
 
