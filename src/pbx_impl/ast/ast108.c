@@ -547,6 +547,28 @@ static int sccp_wrapper_asterisk18_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_T
 					sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Asterisk prodded channel %s.\n", DEV_ID_LOG(c->getDevice(c)), ast->name);
 				}
 			}
+//CODEC_TRANSLATION_FIX_AFTER_MOH
+			if (frame->subclass.codec != ast->rawwriteformat) {
+				/* asterisk channel.c:4911 temporary fix*/
+				if ((!(frame->subclass.codec & ast->nativeformats)) && (ast->writeformat != frame->subclass.codec)) {
+					char s1[512], s2[512], s3[512];
+					ast_log(LOG_WARNING, "Asked to transmit frame type %s, while native formats is %s read/write = %s/%s\n",
+						ast_getformatname(frame->subclass.codec),
+						ast_getformatname_multiple(s1, sizeof(s1), ast->nativeformats & AST_FORMAT_AUDIO_MASK),
+						ast_getformatname_multiple(s2, sizeof(s2), ast->readformat),
+						ast_getformatname_multiple(s3, sizeof(s3), ast->writeformat));
+					ast_set_write_format(ast, frame->subclass.codec);
+					ast_log(LOG_WARNING, "(Forced format change) to transmit frame type %s, while native formats is %s read/write = %s/%s\n",
+						ast_getformatname(frame->subclass.codec),
+						ast_getformatname_multiple(s1, sizeof(s1), ast->nativeformats & AST_FORMAT_AUDIO_MASK),
+						ast_getformatname_multiple(s2, sizeof(s2), ast->readformat),
+						ast_getformatname_multiple(s3, sizeof(s3), ast->writeformat));
+				}
+
+				frame = (ast->writetrans) ? ast_translate(ast->writetrans, frame, 0) : frame;
+			}
+//CODEC_TRANSLATION_FIX_AFTER_MOH
+
 			if (c->rtp.audio.rtp) {
 				res = ast_rtp_instance_write(c->rtp.audio.rtp, frame);
 			}
