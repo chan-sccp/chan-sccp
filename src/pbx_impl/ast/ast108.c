@@ -558,7 +558,7 @@ static int sccp_wrapper_asterisk18_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_T
 						ast_getformatname_multiple(s2, sizeof(s2), ast->readformat),
 						ast_getformatname_multiple(s3, sizeof(s3), ast->writeformat));
 					ast_set_write_format(ast, frame->subclass.codec);
-					ast_log(LOG_WARNING, "(Forced format change) to transmit frame type %s, while native formats is %s read/write = %s/%s\n",
+					ast_log(LOG_WARNING, "you should update your asterisk version to solve issues ASTERISK-14384, ASTERISK-17502, ASTERISK-17541, ASTERISK-18063, ASTERISK-18325, ASTERISK-18422\n",
 						ast_getformatname(frame->subclass.codec),
 						ast_getformatname_multiple(s1, sizeof(s1), ast->nativeformats & AST_FORMAT_AUDIO_MASK),
 						ast_getformatname_multiple(s2, sizeof(s2), ast->readformat),
