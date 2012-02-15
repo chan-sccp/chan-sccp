@@ -552,7 +552,8 @@ static int sccp_wrapper_asterisk18_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_T
 				/* asterisk channel.c:4911 temporary fix*/
 				if ((!(frame->subclass.codec & ast->nativeformats)) && (ast->writeformat != frame->subclass.codec)) {
 					char s1[512], s2[512], s3[512];
-					ast_log(LOG_WARNING, "Asked to transmit frame type %s, while native formats is %s read/write = %s/%s\nForcing writeformat to %s\n",
+					sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_2 "%s: Asked to transmit frame type %s, while native formats is %s read/write = %s/%s\n -> Forcing writeformat to %s to fix this issue.\n",
+						DEV_ID_LOG(c->getDevice(c)),
 						ast_getformatname(frame->subclass.codec),
 						ast_getformatname_multiple(s1, sizeof(s1), ast->nativeformats & AST_FORMAT_AUDIO_MASK),
 						ast_getformatname_multiple(s2, sizeof(s2), ast->readformat),
