@@ -2158,6 +2158,7 @@ static int sccp_wrapper_asterisk18_channel_read(struct ast_channel *ast, NEWCONS
 }
 
 /*! \brief Set an option on a asterisk channel */
+#if 0
 static int sccp_wrapper_asterisk18_setOption(struct ast_channel *ast, int option, void *data, int datalen)
 {
 	int res = -1;
@@ -2197,6 +2198,7 @@ static int sccp_wrapper_asterisk18_setOption(struct ast_channel *ast, int option
 
 	return res;
 }
+#endif
 
 static const char *sccp_wrapper_asterisk18_getChannelLinkId(const sccp_channel_t * channel)
 {
