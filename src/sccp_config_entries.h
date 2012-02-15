@@ -136,17 +136,17 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 																																					" - {'MeetMe', 'qd'},\n"
 																																					" - {'ConfBridge', 'Mac'},\n"
 																																					" - {'Konference', 'MTV'}\n"},
-	{"meetmeopts", 			G_OBJ_REF(meetmeopts), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"qxd",				" options to send the meetme application, defaults are dependent on meetme app see the list above\n"
+	{"meetmeopts", 			G_OBJ_REF(meetmeopts), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"qxd",				"options to send the meetme application, defaults are dependent on meetme app see the list above\n"
 																																					"Other options (app_meetme: A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see meetme specific documentation\n"},
-	{"jbenable", 			G_OBJ_REF(global_jbconf),	 	TYPE_PARSER(sccp_config_parse_jbflags_enable),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				" Enables the use of a jitterbuffer on the receiving side of a\n"
+	{"jbenable", 			G_OBJ_REF(global_jbconf),	 	TYPE_PARSER(sccp_config_parse_jbflags_enable),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				" Enables the use of a jitterbuffer on the receiving side of a\n"
 																																					"sccp channel. Defaults to 'no'. An enabled jitterbuffer will\n"
 																																					"be used only if the sending side can create and the receiving\n"
 																																					"side can not accept jitter. The sccp channel can accept\n"
 																																					"jitter, thus a jitterbuffer on the receive sccp side will be\n"
 																																					"used only if it is forced and enabled.\n"},
-	{"jbforce", 			G_OBJ_REF(global_jbconf),		TYPE_PARSER(sccp_config_parse_jbflags_force),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Forces the use of a jitterbuffer on the receive side of a sccp\n"
+	{"jbforce", 			G_OBJ_REF(global_jbconf),		TYPE_PARSER(sccp_config_parse_jbflags_force),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Forces the use of a jitterbuffer on the receive side of a sccp\n"
 																																					"channel. Defaults to 'no'.\n"},
-	{"jblog", 			G_OBJ_REF(global_jbconf),		TYPE_PARSER(sccp_config_parse_jbflags_log),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				" Enables jitterbuffer frame logging. Defaults to 'no'.\n"},
+	{"jblog", 			G_OBJ_REF(global_jbconf),		TYPE_PARSER(sccp_config_parse_jbflags_log),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Enables jitterbuffer frame logging. Defaults to 'no'.\n"},
 	{"jbmaxsize", 			G_OBJ_REF(global_jbconf.max_size),	TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"200",				"Max length of the jitterbuffer in milliseconds.\n"},
 	{"jbresyncthreshold", 		G_OBJ_REF(global_jbconf.resync_threshold),TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"1000",				"Jump in the frame timestamps over which the jitterbuffer is\n"
 																																					"resynchronized. Useful to improve the quality of the voice, with\n"
