@@ -384,8 +384,8 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 	case SCCP_CHANNELSTATE_DIGITSFOLL:
 		//sccp_dev_stoptone(d, l->instance, c->callid);
 		sccp_channel_send_dialednumber(c);
-//		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_DIGITSFOLL);
-//		sccp_ast_setstate(c, AST_STATE_DIALING);
+		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_DIGITSFOLL);
+		sccp_ast_setstate(c, AST_STATE_DIALING);
 		break;
 	case SCCP_CHANNELSTATE_BLINDTRANSFER:					/*! \todo SCCP_CHANNELSTATE_BLINDTRANSFER To be implemented */
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_BLINDTRANSFER (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
