@@ -384,7 +384,5 @@ boolean_t sccp_asterisk_removeTreeFromDatabase(const char *family, const char *k
 
 int sccp_asterisk_moh_start(const PBX_CHANNEL_TYPE * pbx_channel, const char *mclass, const char* interpclass);
 void sccp_asterisk_moh_stop(const PBX_CHANNEL_TYPE * pbx_channel);
-int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
-int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
 #endif
 
