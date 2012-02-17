@@ -50,6 +50,8 @@ static int sccp_pbx_sendHTML(struct ast_channel *ast, int subclass, const char *
 int sccp_wrapper_asterisk16_hangup(PBX_CHANNEL_TYPE * ast_channel);
 boolean_t sccp_wrapper_asterisk16_allocPBXChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
 boolean_t sccp_wrapper_asterisk16_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel, uint32_t conf_id, uint32_t part_id);
+int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
+int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
 
 #if defined(__cplusplus) || defined(c_plusplus)
 
@@ -1893,6 +1895,32 @@ static int sccp_pbx_sendHTML(struct ast_channel *ast, int subclass, const char *
 
 	return 0;
 }
+
+/*!
+ * \brief Queue a control frame
+ * \param pbx_channel PBX Channel
+ * \param control as Asterisk Control Frame Type
+ */
+int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control)
+{
+        struct ast_frame f = { AST_FRAME_CONTROL, .subclass = control };
+        return ast_queue_frame((PBX_CHANNEL_TYPE *)pbx_channel, &f);
+}
+
+/*!
+ * \brief Queue a control frame with payload
+ * \param pbx_channel PBX Channel
+ * \param control as Asterisk Control Frame Type
+ * \param data Payload
+ * \param datalen Payload Length
+ */
+int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen)
+{
+        struct ast_frame f = { AST_FRAME_CONTROL, .subclass = control, .data.ptr = (void *) data, .datalen = datalen  };
+        return ast_queue_frame((PBX_CHANNEL_TYPE *)pbx_channel, &f);
+}
+
+                                           
 
 /*!
  * \brief using RTP Glue Engine

@@ -635,28 +635,3 @@ void sccp_asterisk_moh_stop(const PBX_CHANNEL_TYPE * pbx_channel)
 	ast_moh_stop((PBX_CHANNEL_TYPE *)pbx_channel);
 }
 
-/*!
- * \brief Queue a control frame
- * \param pbx_channel PBX Channel
- * \param control as Asterisk Control Frame Type
- */
-int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control)
-{
-        struct ast_frame f = { AST_FRAME_CONTROL, .subclass.integer = control };
-        return ast_queue_frame((PBX_CHANNEL_TYPE *)pbx_channel, &f);
-}
-
-/*!
- * \brief Queue a control frame with payload
- * \param pbx_channel PBX Channel
- * \param control as Asterisk Control Frame Type
- * \param data Payload
- * \param datalen Payload Length
- */
-int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen)
-{
-        struct ast_frame f = { AST_FRAME_CONTROL, .subclass.integer = control, .data.ptr = (void *) data, .datalen = datalen  };
-        return ast_queue_frame((PBX_CHANNEL_TYPE *)pbx_channel, &f);
-}
-
-                                           
