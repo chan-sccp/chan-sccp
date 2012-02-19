@@ -1370,6 +1370,105 @@ static int sccp_wrapper_asterisk16_rtp_stop(sccp_channel_t * channel)
 	return 0;
 }
 
+enum strict_rtp_state {
+	STRICT_RTP_OPEN = 0,
+	STRICT_RTP_LEARN,   
+	STRICT_RTP_CLOSED,  
+};
+/* Just a mock version of ast_rtp to be able to modify rtpPayloadType current_RTP_PT on the fly */
+struct mock_ast_rtp {
+	int s;
+	struct ast_frame f;
+	unsigned char rawdata[8192 + AST_FRIENDLY_OFFSET];
+	unsigned int ssrc;
+	unsigned int themssrc;
+	unsigned int rxssrc;
+	unsigned int lastts;
+	unsigned int lastrxts;
+	unsigned int lastividtimestamp;
+	unsigned int lastovidtimestamp;
+	unsigned int lastitexttimestamp;
+	unsigned int lastotexttimestamp;
+	unsigned int lasteventseqn;
+	int lastrxseqno;
+	unsigned short seedrxseqno;
+	unsigned int seedrxts;
+	unsigned int rxcount;
+	unsigned int rxoctetcount;
+	unsigned int txcount;
+	unsigned int txoctetcount;
+	unsigned int cycles;
+	double rxjitter;
+	double rxtransit;
+	int lasttxformat;
+	int lastrxformat;
+	int rtptimeout;
+	int rtpholdtimeout;
+	int rtpkeepalive;
+	char resp;
+	unsigned int lastevent;
+	unsigned int dtmf_duration;
+	unsigned int dtmf_timeout;
+	unsigned int dtmfsamples;
+	unsigned int lastdigitts;
+	char sending_digit;
+	char send_digit;
+	int send_payload;
+	int send_duration;
+	int nat;
+	unsigned int flags;
+	struct sockaddr_in us;
+	struct sockaddr_in them;
+	struct sockaddr_in altthem;
+	struct timeval rxcore;
+	struct timeval txcore;
+	double drxcore;
+	struct timeval lastrx;
+	struct timeval dtmfmute;
+	struct ast_smoother *smoother;
+	int *ioid;
+	unsigned short seqno;
+	unsigned short rxseqno;
+	struct sched_context *sched;
+	struct io_context *io;
+	void *data;
+	ast_rtp_callback callback;
+#ifdef P2P_INTENSE
+	ast_mutex_t bridge_lock;
+#endif
+	struct rtpPayloadType current_RTP_PT[MAX_RTP_PT];
+	int rtp_lookup_code_cache_isAstFormat;
+	int rtp_lookup_code_cache_code;
+	int rtp_lookup_code_cache_result;
+	struct ast_rtcp *rtcp;
+	struct ast_codec_pref pref;
+	struct ast_rtp *bridged;
+	enum strict_rtp_state strict_rtp_state;
+	struct sockaddr_in strict_rtp_address;
+	int set_marker_bit:1;
+	struct rtp_red *red;
+};
+
+static void add_slinear16_to_payloadtypes(struct ast_rtp *rtp)
+{
+	struct mock_ast_rtp *mock_rtp = (struct mock_ast_rtp*)rtp;
+	
+        // check if mapping is not already available
+        struct rtpPayloadType rtpPT = ast_rtp_lookup_pt(rtp, SKINNY_CODEC_WIDEBAND_256K);
+        if (!rtpPT.isAstFormat) {
+                // set defaults
+                ast_rtp_pt_default(rtp);
+	        // adding mapping from codec WIDEBAND_256k -> AST_CODEC_SLINEAR16 to the current_RTP_PT array
+                mock_rtp->current_RTP_PT[SKINNY_CODEC_WIDEBAND_256K].isAstFormat = 1; 
+                mock_rtp->current_RTP_PT[SKINNY_CODEC_WIDEBAND_256K].code = AST_FORMAT_SLINEAR16;
+                mock_rtp->rtp_lookup_code_cache_isAstFormat = 0; 
+                mock_rtp->rtp_lookup_code_cache_code = 0;
+                mock_rtp->rtp_lookup_code_cache_result = 0;
+                // add maptype
+                ast_rtp_set_rtpmap_type_rate(rtp, 1, "audio", "L16", 0, 16000);
+        }
+}
+
 static boolean_t sccp_wrapper_asterisk16_create_audio_rtp(const sccp_channel_t * c, void **new_rtp)
 {
 	sccp_session_t *s;
@@ -1412,6 +1511,7 @@ static boolean_t sccp_wrapper_asterisk16_create_audio_rtp(const sccp_channel_t *
 		}
 	}
 */
+	add_slinear16_to_payloadtypes((struct ast_rtp *)*new_rtp);
 	return TRUE;
 }
 
