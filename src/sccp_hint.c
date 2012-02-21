@@ -129,10 +129,12 @@ void sccp_hint_module_stop()
 static boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice)
 {
 
+#ifndef CS_DYNAMIC_SPEEDDIAL_CID
 	if ((device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7971 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7985)
 	    && positionOnDevice <= 8)
 
 		return TRUE;
+#endif
 
 	return FALSE;
 }
