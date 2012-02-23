@@ -342,6 +342,11 @@ static void sccp_wrapper_asterisk18_connectedline(sccp_channel_t * channel, cons
 		if (ast->connected.id.name.str && !sccp_strlen_zero(ast->connected.id.name.str))
 			sccp_copy_string(channel->callInfo.calledPartyName, ast->connected.id.name.str, sizeof(channel->callInfo.calledPartyName));
 	}
+	
+	sccp_device_t *device = sccp_channel_getDevice(channel);
+	if(device){
+		sccp_channel_send_callinfo(device, channel);
+	}
 }
 
 static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *data, size_t datalen)
