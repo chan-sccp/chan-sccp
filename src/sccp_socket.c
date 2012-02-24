@@ -19,9 +19,11 @@
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #include <sys/ioctl.h>
-#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
+#ifndef CS_USE_POLL_COMPAT
+#    include <poll.h>
 #    include <sys/poll.h>
 #else
+#    define AST_POLL_COMPAT 1
 #    include <asterisk/poll-compat.h>
 #endif
 
