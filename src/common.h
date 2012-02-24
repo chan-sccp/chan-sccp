@@ -28,7 +28,6 @@ extern "C" {
 #include <ctype.h>
 #include <unistd.h>
 #include <assert.h>
-#include <poll.h>
 
 #include "sccp_lock.h"
 #include "sccp_dllists.h"

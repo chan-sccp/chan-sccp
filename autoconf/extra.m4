@@ -50,54 +50,69 @@ AC_DEFUN([CS_SETUP_HOST_PLATFORM],[
 	astlibdir=''
 	case "${host}" in
 	  *-*-darwin*)
-		AC_DEFINE([__Darwin__],,[Define if Darwin])
+		AC_DEFINE([__Darwin__],1,[Using Darwin / Apple OSX])
+		AC_DEFINE([DARWIN],1,[Using Darwin / Apple OSX])
 		AC_SUBST(__Darwin__)
+		use_poll_compat=yes
 		no_libcap=yes
 		ostype=bsd
 		;;
 	  *-*-freebsd*)
+	    	AC_DEFINE([BSD], 1, [using BSD])
+		use_poll_compat=yes
 		no_libcap=yes
 		ostype=bsd
 		;;
 	  *-*-netbsd*)
+	    	AC_DEFINE([BSD], 1, [using BSD])
+		use_poll_compat=yes
 		no_libcap=yes
 		ostype=bsd
 		;;
 	  *-*-openbsd*)
+	    	AC_DEFINE([BSD], 1, [using BSD])
+		use_poll_compat=yes
 		no_libcap=yes
 		ostype=bsd
 		;;
 	  *-*-dragonfly*)
+	    	AC_DEFINE([BSD], 1, [using BSD])
+		use_poll_compat=yes
 		no_libcap=yes
 		ostype=bsd
 		;;
 	  *-aix*)
-	    AC_DEFINE(AIX,,[Define if AIX])
-	     broken_types=yes
+	    	AC_DEFINE([AIX], 1, [using IAX])
+		use_poll_compat=yes
+		broken_types=yes
 		no_libcap=yes
 		ostype=aix
 	    ;;
 	  *-osf4*)
-	    AC_DEFINE(OSF1,,[Define if OSF1])
-	    tru64_types=yes
+		AC_DEFINE([OSF1], 1, [using my beloved Digital OS])
+		use_poll_compat=yes
+		tru64_types=yes
 		no_libcap=yes
 		ostype=osf
 	    ;;
 	  *-osf5.1*)
-	    AC_DEFINE(OSF1)
+		AC_DEFINE([OSF1], 1, [using my beloved Digital OS])
+		use_poll_compat=yes
 		no_libcap=yes
 		ostype=osf
 	    ;;
 	  *-tru64*)
-	    AC_DEFINE(OSF1)
+		AC_DEFINE([OSF1], 1, [using my beloved Digital OS])
+		use_poll_compat=yes
 		tru64_types=yes
 		no_libcap=yes
 		ostype=osf
 	    ;;
 	  *-*-linux*)
-		ostype=linux
+		AC_DEFINE([LINUX],[1],[using LINUX])
 		LARGEFILE_FLAGS="-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"
 		CFLAGS="$CFLAGS $LARGEFILE_FLAGS"
+		ostype=linux
 		;;
 	  *cygwin*)
 		AC_DEFINE([_WIN32_WINNT],[0x0500],[Heya, it's windows])
@@ -107,17 +122,22 @@ AC_DEFUN([CS_SETUP_HOST_PLATFORM],[
 		ostype=cygwin
 		;;
 	  *-*-solaris2*)
-		AC_DEFINE([SOLARIS],[1],[needed for optional declarations to be visible])
+		AC_DEFINE([SOLARIS],[1],[using SOLARIS])
+		use_poll_compat=yes
 		no_libcap=yes
-	ostype=solaris
+		ostype=solaris
 		force_generic_timers=yes
 		;;
 	  *)
-		AC_MSG_RESULT(Unsupported operating system: ${host})
+		AC_MSG_RESULT(Unsupported/Unknown operating system: ${host})
+		use_poll_compat=yes
 		no_libcap=yes
 		ostype=unknown
 		;;
-	esac  
+	esac
+	if test "x$use_poll_compat" = "xyes"; then
+		AC_DEFINE([CS_USE_POLL_COMPAT], 1, [Define to 1 if internal poll should be used.])
+	fi
 	AC_SUBST(ostype)
 ])
 
