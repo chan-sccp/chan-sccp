@@ -386,7 +386,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	}
 
 	if (messageMap_cb->messageHandler_cb && messageMap_cb->deviceIsNecessary == TRUE && !check_session_message_device(s, r, message2str(mid))) {
-		pbx_log(LOG_ERROR "SCCP: Device is required to handle this message %s(%x), but none is provided. Exiting sccp_handle_message\n", message2str(mid), mid);
+		pbx_log(LOG_ERROR, "SCCP: Device is required to handle this message %s(%x), but none is provided. Exiting sccp_handle_message\n", message2str(mid), mid);
 		return 0;
 	}
 	if (messageMap_cb->messageHandler_cb) {
