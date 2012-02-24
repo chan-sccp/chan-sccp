@@ -366,7 +366,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	}
 
 	if (!r) {
-		pbx_log(LOG_ERROR, "%s: (sccp_handle_message) No Message Specified.\n which is required, Exiting sccp_handle_message !", DEV_ID_LOG(s->device));
+		pbx_log(LOG_ERROR, "%s: (sccp_handle_message) No Message Specified.\n which is required, Exiting sccp_handle_message !\n", DEV_ID_LOG(s->device));
 		return 0;
 	}
 

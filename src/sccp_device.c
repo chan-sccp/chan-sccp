@@ -2010,7 +2010,7 @@ void sccp_device_clearMessageFromStack(sccp_device_t *device, const uint8_t prio
 	if(ARRAY_LEN(device->messageStack) <= priority)
 		return;
 	
-	pbx_log(LOG_NOTICE, "%s: clear message stack %d\n", DEV_ID_LOG(device), priority);
+	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_4 "%s: clear message stack %d\n", DEV_ID_LOG(device), priority);
 	if(device->messageStack[priority]){
 		sccp_free(device->messageStack[priority]);
 		device->messageStack[priority] = NULL;
