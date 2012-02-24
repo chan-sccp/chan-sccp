@@ -823,22 +823,22 @@ static int ast_do_pickup(PBX_CHANNEL_TYPE *chan, PBX_CHANNEL_TYPE *target)
 	}
 	ast_channel_datastore_add(target, ds_pickup);
 
-	ast_party_connected_line_init(&connected_caller);
-	ast_party_connected_line_copy(&connected_caller, &target->connected);
+// 	ast_party_connected_line_init(&connected_caller);
+// 	ast_party_connected_line_copy(&connected_caller, &target->connected);
 	ast_channel_unlock(target);						/* The pickup race is avoided so we do not need the lock anymore. */
-	connected_caller.source = AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER;
-	if (ast_channel_connected_line_macro(NULL, chan, &connected_caller, 0, 0)) {
-		ast_channel_update_connected_line(chan, &connected_caller, NULL);
-	}
-	ast_party_connected_line_free(&connected_caller);
+// 	connected_caller.source = AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER;
+// 	if (ast_channel_connected_line_macro(NULL, chan, &connected_caller, 0, 0)) {
+// 		ast_channel_update_connected_line(chan, &connected_caller, NULL);
+// 	}
+// 	ast_party_connected_line_free(&connected_caller);
 
 	ast_channel_lock(chan);
 	chan_name = ast_strdupa(chan->name);
-	ast_connected_line_copy_from_caller(&connected_caller, &chan->caller);
+// 	ast_connected_line_copy_from_caller(&connected_caller, &chan->caller);
 	ast_channel_unlock(chan);
-	connected_caller.source = AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER;
-	ast_channel_queue_connected_line_update(chan, &connected_caller, NULL);
-	ast_party_connected_line_free(&connected_caller);
+// 	connected_caller.source = AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER;
+// 	ast_channel_queue_connected_line_update(chan, &connected_caller, NULL);
+// 	ast_party_connected_line_free(&connected_caller);
 
 //      ast_cel_report_event(target, AST_CEL_PICKUP, NULL, NULL, chan);
 
@@ -861,7 +861,7 @@ static int ast_do_pickup(PBX_CHANNEL_TYPE *chan, PBX_CHANNEL_TYPE *target)
 	}
 
 	/* If you want UniqueIDs, set channelvars in manager.conf to CHANNEL(uniqueid) */
-	ast_manager_event_multichan(EVENT_FLAG_CALL, "Pickup", 2, chans, "Channel: %s\r\n" "TargetChannel: %s\r\n", chan_name, target_name);
+// 	ast_manager_event_multichan(EVENT_FLAG_CALL, "Pickup", 2, chans, "Channel: %s\r\n" "TargetChannel: %s\r\n", chan_name, target_name);
 
 	/* Do the masquerade manually to make sure that it is completed. */
 	ast_do_masquerade(target);
