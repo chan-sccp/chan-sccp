@@ -1334,7 +1334,7 @@ sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, cons
 	sccp_group_t group = 0;
 
 	if (!sccp_strlen_zero(value)){
-		c = ast_strdupa(value);
+		c = sccp_strdupa(value);
 		
 		while ((piece = strsep(&c, ","))) {
 			if (sscanf(piece, "%30d-%30d", &start, &finish) == 2) {
