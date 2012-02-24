@@ -694,7 +694,7 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 	}
 
 	char *text;
-	char *splitter = strdupa(data);
+	char *splitter = sccp_strdupa(data);
 	int timeout = 0;
 
 	text = strsep(&splitter, ",");

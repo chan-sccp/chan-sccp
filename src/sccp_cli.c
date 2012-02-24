@@ -446,11 +446,11 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	const char *dev;
 
 	if (s) {
-		dev = strdupa(astman_get_header(m, "DeviceName"));
+		dev = sccp_strdupa(astman_get_header(m, "DeviceName"));
 	} else {
 		if (argc < 4)
 			return RESULT_SHOWUSAGE;
-		dev = strdupa(argv[3]);
+		dev = sccp_strdupa(argv[3]);
 	}
 	d = sccp_device_find_byid(dev, TRUE);
 
@@ -838,11 +838,11 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	const char *line;
 
 	if (s) {
-		line = strdupa(astman_get_header(m, "LineName"));
+		line = sccp_strdupa(astman_get_header(m, "LineName"));
 	} else {
 		if (argc < 4)
 			return RESULT_SHOWUSAGE;
-		line = strdupa(argv[3]);
+		line = sccp_strdupa(argv[3]);
 	}
 	l = sccp_line_find_byname(line);
 
@@ -1643,7 +1643,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 
 	if (argc > 2) {
 		pbx_cli(fd, "Using config file '%s'\n", argv[2]);
-		GLOB(config_file_name) = strdupa(argv[2]);
+		GLOB(config_file_name) = sccp_strdupa(argv[2]);
 	}
 
 	struct ast_config *cfg = sccp_config_getConfig();
@@ -1724,7 +1724,7 @@ static int sccp_cli_config_generate(int fd, int argc, char *argv[])
 
 	if (argc > 3) {
 		pbx_cli(fd, "Using config file '%s'\n", argv[3]);
-		config_file = strdupa(argv[3]);
+		config_file = sccp_strdupa(argv[3]);
 	}
 	if (sccp_config_generate(config_file, 0)) {
 		pbx_cli(fd, "SCCP generated. saving '%s'...\n", config_file);
