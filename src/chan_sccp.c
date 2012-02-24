@@ -358,7 +358,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	uint32_t mid;
 
 	if (!s) {
-		pbx_log(LOG_ERROR, "SCCP: (sccp_handle_message) Client does not have a sessions, Required !\n");
+		pbx_log(LOG_ERROR, "SCCP: (sccp_handle_message) Client does not have a session which is required. Exiting sccp_handle_message !\n");
 		if (r) {
 			sccp_free(r);
 		}
@@ -366,28 +366,27 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	}
 
 	if (!r) {
-		pbx_log(LOG_ERROR, "%s: (sccp_handle_message) No Message Specified.\n, Required !", DEV_ID_LOG(s->device));
+		pbx_log(LOG_ERROR, "%s: (sccp_handle_message) No Message Specified.\n which is required, Exiting sccp_handle_message !", DEV_ID_LOG(s->device));
 		return 0;
 	}
 
 	mid = letohl(r->lel_messageId);
+	s->lastKeepAlive = time(0);
 
-	s->lastKeepAlive = time(0);	/** always update keepalive */
-//      sccp_device_t *tmpDevice=NULL;
-
-	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message (%x) %s\n", DEV_ID_LOG(s->device), mid, message2str(mid));
+	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (%x)\n", DEV_ID_LOG(s->device), message2str(mid), mid);
 
 	/* search for message handler */
 	messageMap_cb = sccp_getMessageMap_by_MessageId(mid);
 
 	/* we dont know how to handle event */
 	if (!messageMap_cb) {
-		pbx_log(LOG_WARNING, "Don't know how to handle message %d\n", mid);
+		pbx_log(LOG_WARNING, "SCCP: Unknown Message %x. Don't know how to handle it. Skipping.\n", mid);
 		sccp_handle_unknown_message(s, s->device, r);
 		return 1;
 	}
 
 	if (messageMap_cb->messageHandler_cb && messageMap_cb->deviceIsNecessary == TRUE && !check_session_message_device(s, r, message2str(mid))) {
+		pbx_log(LOG_ERROR "SCCP: Device is required to handle this message %s(%x), but none is provided. Exiting sccp_handle_message\n", message2str(mid), mid);
 		return 0;
 	}
 	if (messageMap_cb->messageHandler_cb) {
