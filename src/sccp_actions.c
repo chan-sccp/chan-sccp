@@ -125,7 +125,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	uint32_t serverInstance = 0;
 	uint32_t deviceType = 0;
 
-	deviceName = strdupa(r->msg.RegisterTokenRequest.sId.deviceName);
+	deviceName = sccp_strdupa(r->msg.RegisterTokenRequest.sId.deviceName);
 	serverInstance = letohl(r->msg.RegisterTokenRequest.sId.lel_instance);
 	deviceType = letohl(r->msg.RegisterTokenRequest.lel_deviceType);
 
