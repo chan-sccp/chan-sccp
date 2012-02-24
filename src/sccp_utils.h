@@ -24,6 +24,9 @@
                 memcpy (__new, __old, __len);                             \
                 __new;                                                    \
         }))
+#ifndef strdupa
+#define strdupa sccp_strdupa
+#endif
 
 void sccp_dump_packet(unsigned char *messagebuffer, int len);
 
