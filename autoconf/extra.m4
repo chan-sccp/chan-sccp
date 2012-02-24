@@ -510,10 +510,11 @@ dnl		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 		enable_debug_mutex="no"
 		strip_binaries="yes"
 		GDB_FLAGS="$GDB_FLAGS"
-		CFLAGS="$CFLAGS_saved -O3"
+		CFLAGS="$CFLAGS_saved -O3 "
 		AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
 		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
+		AX_CFLAGS_GCC_OPTION_NEW(-Wno-ignored-qualifiers)
 		CFLAGS_saved="$CFLAGS"
 	fi
 ])
