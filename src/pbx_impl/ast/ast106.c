@@ -813,7 +813,7 @@ static int ast_do_pickup(PBX_CHANNEL_TYPE *chan, PBX_CHANNEL_TYPE *target)
         
 	int res = -1;
 
-	target_name = ast_strdupa(target->name);
+	target_name = sccp_strdupa(target->name);
 	ast_debug(1, "Call pickup on '%s' by '%s'\n", target_name, chan->name);
 
 	/* Mark the target to block any call pickup race. */
@@ -843,7 +843,7 @@ static int ast_do_pickup(PBX_CHANNEL_TYPE *chan, PBX_CHANNEL_TYPE *target)
 	ast_channel_unlock(target);						/* The pickup race is avoided so we do not need the lock anymore. */
 
 	ast_channel_lock(chan);
-	chan_name = ast_strdupa(chan->name);
+	chan_name = sccp_strdupa(chan->name);
 	/* exchange callerid info */
 	if (c) {
 		if (chan && !sccp_strlen_zero(chan->cid.cid_name))

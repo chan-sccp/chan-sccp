@@ -902,7 +902,7 @@ int ast_do_pickup(struct ast_channel *chan, struct ast_channel *target)
 	const char *target_name;						/*!< A masquerade changes channel names. */
 	int res = -1;
 
-	target_name = ast_strdupa(target->name);
+	target_name = sccp_strdupa(target->name);
 	ast_debug(1, "Call pickup on '%s' by '%s'\n", target_name, chan->name);
 
 	/* Mark the target to block any call pickup race. */
@@ -923,7 +923,7 @@ int ast_do_pickup(struct ast_channel *chan, struct ast_channel *target)
 	ast_party_connected_line_free(&connected_caller);
 
 	ast_channel_lock(chan);
-	chan_name = ast_strdupa(chan->name);
+	chan_name = sccp_strdupa(chan->name);
 	ast_connected_line_copy_from_caller(&connected_caller, &chan->caller);
 	ast_channel_unlock(chan);
 	connected_caller.source = AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER;
