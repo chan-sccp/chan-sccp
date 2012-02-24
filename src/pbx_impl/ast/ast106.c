@@ -862,6 +862,13 @@ static int ast_do_pickup(PBX_CHANNEL_TYPE *chan, PBX_CHANNEL_TYPE *target)
 			sccp_free(target_cid_ani);
 		}
 	}
+	// copy codec information
+	chan->nativeformats = target->nativeformats;
+	chan->rawwriteformat = target->rawwriteformat;
+	chan->writeformat = target->writeformat;
+	chan->readformat = target->readformat;
+	chan->writetrans = target->writetrans;
+	ast_set_write_format(chan, target->rawwriteformat);
 	ast_channel_unlock(chan);
 
 	if (ast_answer(chan)) {
