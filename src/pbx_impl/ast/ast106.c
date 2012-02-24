@@ -809,7 +809,7 @@ static int ast_do_pickup(PBX_CHANNEL_TYPE *chan, PBX_CHANNEL_TYPE *target)
 	const char *chan_name;							/*!< A masquerade changes channel names. */
 	const char *target_name;						/*!< A masquerade changes channel names. */
         char *target_cid_name = NULL, *target_cid_number = NULL, *target_cid_ani = NULL;
-	sccp_channel_t *c = get_sccp_channel_from_pbx_channel(chan);
+	sccp_channel_t *c = get_sccp_channel_from_pbx_channel(target);
         
 	int res = -1;
 
@@ -833,11 +833,17 @@ static int ast_do_pickup(PBX_CHANNEL_TYPE *chan, PBX_CHANNEL_TYPE *target)
 		if (target->cid.cid_ani)
 			target_cid_ani = strdup(target->cid.cid_ani);
 	}
+	// copy codec information
+	target->nativeformats = chan->nativeformats;
+	target->rawwriteformat = chan->rawwriteformat;
+	target->writeformat = chan->writeformat;
+	target->readformat = chan->readformat;
+	target->writetrans = chan->writetrans;
+	ast_set_write_format(target, chan->rawwriteformat);
 	ast_channel_unlock(target);						/* The pickup race is avoided so we do not need the lock anymore. */
 
 	ast_channel_lock(chan);
 	chan_name = ast_strdupa(chan->name);
-
 	/* exchange callerid info */
 	if (c) {
 		if (chan && !sccp_strlen_zero(chan->cid.cid_name))
@@ -847,11 +853,11 @@ static int ast_do_pickup(PBX_CHANNEL_TYPE *chan, PBX_CHANNEL_TYPE *target)
 			sccp_copy_string(c->callInfo.originalCalledPartyNumber, chan->cid.cid_num, sizeof(c->callInfo.originalCalledPartyNumber));
 
 		if (!sccp_strlen_zero(target_cid_name)) {
-			sccp_copy_string(c->callInfo.callingPartyName, target_cid_name, sizeof(c->callInfo.callingPartyName));
+			sccp_copy_string(c->callInfo.calledPartyName, target_cid_name, sizeof(c->callInfo.callingPartyName));
 			sccp_free(target_cid_name);
 		}
 		if (!sccp_strlen_zero(target_cid_number)) {
-			sccp_copy_string(c->callInfo.callingPartyNumber, target_cid_number, sizeof(c->callInfo.callingPartyNumber));
+			sccp_copy_string(c->callInfo.calledPartyNumber, target_cid_number, sizeof(c->callInfo.callingPartyNumber));
 			sccp_free(target_cid_number);
 		}
 
@@ -862,13 +868,6 @@ static int ast_do_pickup(PBX_CHANNEL_TYPE *chan, PBX_CHANNEL_TYPE *target)
 			sccp_free(target_cid_ani);
 		}
 	}
-	// copy codec information
-	chan->nativeformats = target->nativeformats;
-	chan->rawwriteformat = target->rawwriteformat;
-	chan->writeformat = target->writeformat;
-	chan->readformat = target->readformat;
-	chan->writetrans = target->writetrans;
-	ast_set_write_format(chan, target->rawwriteformat);
 	ast_channel_unlock(chan);
 
 	if (ast_answer(chan)) {
