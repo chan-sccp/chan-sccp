@@ -90,7 +90,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 		uint8_t i=0; 											\
 		for (x=0, i=0;x<ARRAY_LEN(cli_ami_params);x++) {						\
 			if(NULL != cli_ami_params[x] && strlen(cli_ami_params[x]) > 0){				\
-				arguments[i++]=strdupa(astman_get_header(m, cli_ami_params[x])); 		\
+				arguments[i++]=sccp_strdupa(astman_get_header(m, cli_ami_params[x])); 		\
 			} 											\
 		}												\
 		char idtext[256] = "";										\
