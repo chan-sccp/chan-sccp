@@ -265,7 +265,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 	unsigned int uint16num;
 	long unsigned int uint32num;
 	long long unsigned int uint64num;
-	boolean_t bool;
+	boolean_t boolean;
 	char *str;
 	char oldChar;
 	
@@ -437,9 +437,9 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 		break;
 
 	case SCCP_CONFIG_DATATYPE_BOOLEAN:
-		bool = sccp_true(value);
+		boolean = sccp_true(value);
 
-		if (*(boolean_t *) dst != bool) {
+		if (*(boolean_t *) dst != boolean) {
 			*(boolean_t *) dst = sccp_true(value);
 			changed = SCCP_CONFIG_CHANGE_CHANGED;
 		}
