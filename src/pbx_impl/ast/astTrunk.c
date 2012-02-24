@@ -2088,7 +2088,7 @@ static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to,
 	const char *messageText = ast_msg_get_body(msg);
 	int res = -1;
 
-	lineName = (char *)strdupa(to);
+	lineName = (char *)sccp_strdupa(to);
 	if (strchr(lineName, '@')) {
 		strsep(&lineName, "@");
 	} else {

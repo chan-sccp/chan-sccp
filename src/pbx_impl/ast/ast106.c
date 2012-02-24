@@ -662,7 +662,7 @@ int sccp_wrapper_asterisk16_hangup(PBX_CHANNEL_TYPE * ast_channel)
 	sccp_channel_unlock(c);
 
 	ast_channel->tech_pvt = NULL;
-	ast_channel_unref(ast_channel);
+	ast_channel = ast_channel_unref(ast_channel);
 
 	return res;
 }
@@ -2160,7 +2160,7 @@ static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to,
 	const char *messageText = ast_msg_get_body(msg);
 	int res = -1;
 
-	lineName = (char *)strdupa(to);
+	lineName = (char *)sccp_strdupa(to);
 	if (strchr(lineName, '@')) {
 		strsep(&lineName, "@");
 	} else {
