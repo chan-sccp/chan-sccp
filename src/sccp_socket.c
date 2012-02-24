@@ -191,7 +191,7 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 		return;
 
 	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
-	SCCP_LIST_REMOVE(&GLOB(sessions), s, list);
+	s = SCCP_LIST_REMOVE(&GLOB(sessions), s, list);
 	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
 
 	d = s->device;
