@@ -302,7 +302,8 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 	case SCCP_CONFIG_FLAG_REQUIRED:
 		if (NULL == value) {
 			pbx_log(LOG_WARNING, "required config param at %s='%s' - %s\n", name, value, sccpConfigOption->description);
-			return SCCP_CONFIG_CHANGE_INVALIDVALUE;
+			changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+                        return SCCP_CONFIG_ERROR;
 		}
 	}
 
@@ -314,7 +315,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 
 		if (!sccp_strlen_zero(value)) {
 			if ( oldChar != value[0] ) {
-				changes = SCCP_CONFIG_CHANGE_CHANGED;
+				changed = SCCP_CONFIG_CHANGE_CHANGED;
 				*(char *)dst = value[0];
 			}
 		}
@@ -325,7 +326,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 
 		if (strcasecmp(str, value) ) {
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "config parameter %s '%s' != '%s'\n", name, str, value);
-			changes = SCCP_CONFIG_CHANGE_CHANGED;
+			changed = SCCP_CONFIG_CHANGE_CHANGED;
 			pbx_copy_string(dst, value, sccpConfigOption->size);
 //		}else{
 //			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "config parameter %s '%s' == '%s'\n", name, str, value);
@@ -962,7 +963,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, con
 //	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "ButtonName: %s\n", buttonName);
 //	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "ButtonOption: %s\n", buttonOption);
 
-	changed = (sccp_value_changed_t)sccp_config_addButton(dest, 0, type, buttonName ? pbx_strip(buttonName) : buttonType, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL);
+	changed = sccp_config_addButton(dest, 0, type, buttonName ? pbx_strip(buttonName) : buttonType, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL);
 
 	return changed;
 }
@@ -1496,12 +1497,13 @@ sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size
  *
  * \todo Build a check to see if the button has changed
  */
-sccp_configurationchange_t sccp_config_addButton(void *buttonconfig_head, int index, button_type_t type, const char *name, const char *options, const char *args)
+sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, button_type_t type, const char *name, const char *options, const char *args)
 {
 	sccp_buttonconfig_t *config = NULL;
 //	boolean_t is_new = FALSE;
 	int highest_index = 0;
-	sccp_configurationchange_t changes = SCCP_CONFIG_NOUPDATENEEDED;
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+//	sccp_configurationchange_t changes = SCCP_CONFIG_NOUPDATENEEDED;
 
 	SCCP_LIST_HEAD(, sccp_buttonconfig_t) * buttonconfigList = buttonconfig_head;
 
@@ -1539,14 +1541,14 @@ sccp_configurationchange_t sccp_config_addButton(void *buttonconfig_head, int in
 	} else {
 		config->pendingDelete = 0;
 		config->pendingUpdate = 1;
-		changes = SCCP_CONFIG_CHANGE_CHANGED;
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	SCCP_LIST_UNLOCK(buttonconfigList);
 
 	if (sccp_strlen_zero(name) || (type != LINE && !options) ) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Faulty Button Configuration found at index: %d", config->index);
 		type = EMPTY;
-		changes = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
 
 	switch (type) {
@@ -1564,10 +1566,10 @@ sccp_configurationchange_t sccp_config_addButton(void *buttonconfig_head, int in
 			!sccp_strcmp(config->button.line.subscriptionId.aux, composedLineRegistrationId.subscriptionId.aux)
 			) {
 			if (!options || !sccp_strcmp(config->button.line.options, options)) {
-				changes = SCCP_CONFIG_CHANGE_NOCHANGE;
+				changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 				break;
 			} else {
-				changes = SCCP_CONFIG_CHANGE_NOCHANGE;
+				changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 				break;
 			}
 		}
@@ -1590,7 +1592,7 @@ sccp_configurationchange_t sccp_config_addButton(void *buttonconfig_head, int in
 			!sccp_strcmp(config->button.speeddial.ext, options)
 			) {
 			if (!args || !sccp_strcmp(config->button.speeddial.hint, args)) {
-				changes = SCCP_CONFIG_CHANGE_NOCHANGE;
+				changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 				break;
 			}
 		}
@@ -1607,7 +1609,7 @@ sccp_configurationchange_t sccp_config_addButton(void *buttonconfig_head, int in
 			!sccp_strcmp(config->label, name) &&
 			!sccp_strcmp(config->button.service.url, options)
 			) {
-			changes = SCCP_CONFIG_CHANGE_NOCHANGE;
+			changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 			break;
 		}
 		/* \todo check if values change */
@@ -1622,7 +1624,7 @@ sccp_configurationchange_t sccp_config_addButton(void *buttonconfig_head, int in
 			config->button.feature.id == sccp_featureStr2featureID(options)
 			) {
 			if (!args || !sccp_strcmp(config->button.feature.options, args)) {
-				changes = SCCP_CONFIG_CHANGE_NOCHANGE;
+				changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 				break;
 			}
 		}
@@ -1643,14 +1645,14 @@ sccp_configurationchange_t sccp_config_addButton(void *buttonconfig_head, int in
 		break;
 	case EMPTY:
 		if (	EMPTY==config->type ) {
-			changes = SCCP_CONFIG_CHANGE_NOCHANGE;
+			changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 			break;
 		}
 		/* \todo check if values change */
 		config->type = EMPTY;
 		break;
 	}
-	return changes;
+	return changed;
 }
 
 /*!
@@ -2261,7 +2263,7 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE *variable, const char *name)
 	
 	if(!softKeySetConfiguration){
 		softKeySetConfiguration = sccp_calloc(1, sizeof(sccp_softKeySetConfiguration_t));
-		memset(softKeySetConfiguration, 0, sizeof(softKeySetConfiguration));
+		memset(softKeySetConfiguration, 0, sizeof(sccp_softKeySetConfiguration_t));
 
 		sccp_copy_string(softKeySetConfiguration->name, name, sizeof(softKeySetConfiguration->name));
 		softKeySetConfiguration->numberOfSoftKeySets = 0;

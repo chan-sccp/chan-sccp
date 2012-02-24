@@ -485,7 +485,8 @@ typedef enum {
  */
 typedef enum {
 	SCCP_CONFIG_NOUPDATENEEDED = 0,
-	SCCP_CONFIG_NEEDDEVICERESET = 1 << 1
+	SCCP_CONFIG_NEEDDEVICERESET = 1 << 1,
+	SCCP_CONFIG_ERROR = 1 << 2
 } sccp_configurationchange_t;							/*!< configuration state change */
 
 /*!
