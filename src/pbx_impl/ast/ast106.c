@@ -805,11 +805,12 @@ static const struct ast_datastore_info pickup_active = {
 
 static int ast_do_pickup(PBX_CHANNEL_TYPE *chan, PBX_CHANNEL_TYPE *target)
 {
-	struct ast_party_connected_line connected_caller;
-	PBX_CHANNEL_TYPE *chans[2] = { chan, target };
 	struct ast_datastore *ds_pickup;
 	const char *chan_name;							/*!< A masquerade changes channel names. */
 	const char *target_name;						/*!< A masquerade changes channel names. */
+        char *target_cid_name = NULL, *target_cid_number = NULL, *target_cid_ani = NULL;
+	sccp_channel_t *c = get_sccp_channel_from_pbx_channel(chan);
+        
 	int res = -1;
 
 	target_name = ast_strdupa(target->name);
@@ -823,24 +824,45 @@ static int ast_do_pickup(PBX_CHANNEL_TYPE *chan, PBX_CHANNEL_TYPE *target)
 	}
 	ast_channel_datastore_add(target, ds_pickup);
 
-// 	ast_party_connected_line_init(&connected_caller);
-// 	ast_party_connected_line_copy(&connected_caller, &target->connected);
+	/* store callerid info to local variables */
+	if (c) {
+		if (target->cid.cid_name)
+			target_cid_name = strdup(target->cid.cid_name);
+		if (target->cid.cid_num)
+			target_cid_number = strdup(target->cid.cid_num);
+		if (target->cid.cid_ani)
+			target_cid_ani = strdup(target->cid.cid_ani);
+	}
 	ast_channel_unlock(target);						/* The pickup race is avoided so we do not need the lock anymore. */
-// 	connected_caller.source = AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER;
-// 	if (ast_channel_connected_line_macro(NULL, chan, &connected_caller, 0, 0)) {
-// 		ast_channel_update_connected_line(chan, &connected_caller, NULL);
-// 	}
-// 	ast_party_connected_line_free(&connected_caller);
 
 	ast_channel_lock(chan);
 	chan_name = ast_strdupa(chan->name);
-// 	ast_connected_line_copy_from_caller(&connected_caller, &chan->caller);
-	ast_channel_unlock(chan);
-// 	connected_caller.source = AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER;
-// 	ast_channel_queue_connected_line_update(chan, &connected_caller, NULL);
-// 	ast_party_connected_line_free(&connected_caller);
 
-//      ast_cel_report_event(target, AST_CEL_PICKUP, NULL, NULL, chan);
+	/* exchange callerid info */
+	if (c) {
+		if (chan && !sccp_strlen_zero(chan->cid.cid_name))
+			sccp_copy_string(c->callInfo.originalCalledPartyName, chan->cid.cid_name, sizeof(c->callInfo.originalCalledPartyName));
+
+		if (chan && !sccp_strlen_zero(chan->cid.cid_num))
+			sccp_copy_string(c->callInfo.originalCalledPartyNumber, chan->cid.cid_num, sizeof(c->callInfo.originalCalledPartyNumber));
+
+		if (!sccp_strlen_zero(target_cid_name)) {
+			sccp_copy_string(c->callInfo.callingPartyName, target_cid_name, sizeof(c->callInfo.callingPartyName));
+			sccp_free(target_cid_name);
+		}
+		if (!sccp_strlen_zero(target_cid_number)) {
+			sccp_copy_string(c->callInfo.callingPartyNumber, target_cid_number, sizeof(c->callInfo.callingPartyNumber));
+			sccp_free(target_cid_number);
+		}
+
+		/* we use the chan->cid.cid_name to do the magic */
+		if (!sccp_strlen_zero(target_cid_ani)) {
+			sccp_copy_string(c->callInfo.callingPartyNumber, target_cid_ani, sizeof(c->callInfo.callingPartyNumber));
+			sccp_copy_string(c->callInfo.callingPartyName, target_cid_ani, sizeof(c->callInfo.callingPartyName));
+			sccp_free(target_cid_ani);
+		}
+	}
+	ast_channel_unlock(chan);
 
 	if (ast_answer(chan)) {
 		pbx_log(LOG_WARNING, "Unable to answer '%s'\n", chan_name);
@@ -860,14 +882,11 @@ static int ast_do_pickup(PBX_CHANNEL_TYPE *chan, PBX_CHANNEL_TYPE *target)
 		goto pickup_failed;
 	}
 
-	/* If you want UniqueIDs, set channelvars in manager.conf to CHANNEL(uniqueid) */
-// 	ast_manager_event_multichan(EVENT_FLAG_CALL, "Pickup", 2, chans, "Channel: %s\r\n" "TargetChannel: %s\r\n", chan_name, target_name);
-
 	/* Do the masquerade manually to make sure that it is completed. */
 	ast_do_masquerade(target);
 	res = 0;
 
- pickup_failed:
+pickup_failed:
 	ast_channel_lock(target);
 	if (!ast_channel_datastore_remove(target, ds_pickup)) {
 		ast_datastore_free(ds_pickup);
