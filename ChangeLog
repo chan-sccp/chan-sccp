@@ -1,4 +1,20 @@
 ------------------------------------------------------------------------
+r3169 | ddegroot | 2012-01-08 03:41:11 +0100 (Sun, 08 Jan 2012) | 1 line
+
+rename sccp_simple.conf to sccp.conf (To make it easier for beginning users)
+------------------------------------------------------------------------
+r3168 | ddegroot | 2012-01-08 03:39:23 +0100 (Sun, 08 Jan 2012) | 1 line
+
+renamed some of the sample config files. Added sccp_freepbx.conf sample
+------------------------------------------------------------------------
+r3139 | ddegroot | 2011-12-28 16:22:43 +0100 (Wed, 28 Dec 2011) | 1 line
+
+Fixed FreeBSD Compilation (Reported by David Cecchin)
+------------------------------------------------------------------------
+r3136 | ddegroot | 2011-12-28 11:21:14 +0100 (Wed, 28 Dec 2011) | 1 line
+
+Publish V3.1 Release News
+------------------------------------------------------------------------
 r3134 | ddegroot | 2011-12-24 13:52:50 +0100 (Sat, 24 Dec 2011) | 1 line
 
 V3.1 Stable Release
