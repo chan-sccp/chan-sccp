@@ -1,4 +1,316 @@
 ------------------------------------------------------------------------
+r3288 | ddegroot | 2012-02-25 16:20:28 +0100 (Sat, 25 Feb 2012) | 1 line
+
+Reverted hint change related to Dynamic Speeddial CID (sccp_hint_isCIDavailabe). To switch this feature of use --disable-dynamic-speeddial-cid
+------------------------------------------------------------------------
+r3287 | ddegroot | 2012-02-24 20:50:07 +0100 (Fri, 24 Feb 2012) | 1 line
+
+Removed LOG_NOTICE status from sccp_device_clearMessageFromStack Message, added line retrun to LOG_ERROR message in sccp_hangle_message
+------------------------------------------------------------------------
+r3286 | ddegroot | 2012-02-24 20:00:22 +0100 (Fri, 24 Feb 2012) | 1 line
+
+Added strdupa -> sccp_strdupa for platforms where /usr/lib/string.h does not provide an implementation
+------------------------------------------------------------------------
+r3285 | ddegroot | 2012-02-24 19:57:01 +0100 (Fri, 24 Feb 2012) | 1 line
+
+removed last traces of strdupa
+------------------------------------------------------------------------
+r3284 | ddegroot | 2012-02-24 19:37:58 +0100 (Fri, 24 Feb 2012) | 1 line
+
+Replaced instanced of SCCP_DEVICESTATE_... by SCCP_CHANNELSTATE_.... in calls to sccp_hint_lineStatusChanged
+------------------------------------------------------------------------
+r3283 | ddegroot | 2012-02-24 19:35:31 +0100 (Fri, 24 Feb 2012) | 1 line
+
+Fixed faulty return sccp_configurationchange_t values by sccp_valuechange_t
+------------------------------------------------------------------------
+r3282 | ddegroot | 2012-02-24 19:33:56 +0100 (Fri, 24 Feb 2012) | 1 line
+
+Replaced instanced of SCCP_DEVICESTATE_... by SCCP_CHANNELSTATE_.... in calls to sccp_hint_lineStatusChanged
+------------------------------------------------------------------------
+r3281 | ddegroot | 2012-02-24 19:32:48 +0100 (Fri, 24 Feb 2012) | 1 line
+
+Fix result unused warning
+------------------------------------------------------------------------
+r3280 | ddegroot | 2012-02-24 18:51:32 +0100 (Fri, 24 Feb 2012) | 1 line
+
+Irradicate ast_strdupa, using sccp_strdupa replacement instead
+------------------------------------------------------------------------
+r3279 | ddegroot | 2012-02-24 18:48:04 +0100 (Fri, 24 Feb 2012) | 1 line
+
+Reversed callerid info on ast106.c ast_do_pickup by accident
+------------------------------------------------------------------------
+r3278 | ddegroot | 2012-02-24 18:09:16 +0100 (Fri, 24 Feb 2012) | 1 line
+
+Reduce depandic warnings raised by llvm/clang compiler using -Wno-ignored-qualifiers during non-DEBUG build
+------------------------------------------------------------------------
+r3277 | ddegroot | 2012-02-24 18:07:22 +0100 (Fri, 24 Feb 2012) | 1 line
+
+Replaced strdupa with sccp_strdupa (because clang compiler cannot find strdupa in asterisk sources)
+------------------------------------------------------------------------
+r3276 | ddegroot | 2012-02-24 17:45:16 +0100 (Fri, 24 Feb 2012) | 1 line
+
+fix llvm complaining about: two or more data types in declaration specifiers
+------------------------------------------------------------------------
+r3275 | ddegroot | 2012-02-24 17:27:15 +0100 (Fri, 24 Feb 2012) | 1 line
+
+Fixed compilation regarding poll_compat issues (DARWIN/OSX, BSD, IAX etc). Compilation on Apple OS-X should not work again.
+------------------------------------------------------------------------
+r3274 | ddegroot | 2012-02-24 16:53:37 +0100 (Fri, 24 Feb 2012) | 1 line
+
+Fixed debug warning message
+------------------------------------------------------------------------
+r3273 | ddegroot | 2012-02-24 16:51:55 +0100 (Fri, 24 Feb 2012) | 1 line
+
+Extended logging during sccp_handle_message and sccp_handle_soft_key_event. Fixed spelling error in sccp_cli.c
+------------------------------------------------------------------------
+r3272 | ddegroot | 2012-02-24 15:50:52 +0100 (Fri, 24 Feb 2012) | 1 line
+
+Partial Fix for audio during gpickup
+------------------------------------------------------------------------
+r3271 | ddegroot | 2012-02-24 15:22:29 +0100 (Fri, 24 Feb 2012) | 1 line
+
+Compiling against asterisk 1.6.2.11 again... Gpickup still needs to be tested
+------------------------------------------------------------------------
+r3270 | marcelloceschia | 2012-02-24 11:30:15 +0100 (Fri, 24 Feb 2012) | 1 line
+
+fixes compile issue with asterisk 1.6.2
+------------------------------------------------------------------------
+r3269 | marcelloceschia | 2012-02-23 18:23:16 +0100 (Thu, 23 Feb 2012) | 1 line
+
+fix ast_do_pickup issue with ast 1.6.2
+------------------------------------------------------------------------
+r3268 | ddegroot | 2012-02-23 16:57:00 +0100 (Thu, 23 Feb 2012) | 1 line
+
+Fix marcello's calledPartyNumber fix
+------------------------------------------------------------------------
+r3267 | marcelloceschia | 2012-02-23 16:17:51 +0100 (Thu, 23 Feb 2012) | 1 line
+
+update cid name line after connected line update
+------------------------------------------------------------------------
+r3266 | marcelloceschia | 2012-02-23 16:04:14 +0100 (Thu, 23 Feb 2012) | 1 line
+
+update cid name line after connected line update
+------------------------------------------------------------------------
+r3265 | marcelloceschia | 2012-02-23 16:03:59 +0100 (Thu, 23 Feb 2012) | 1 line
+
+update cid name line after connected line update
+------------------------------------------------------------------------
+r3264 | marcelloceschia | 2012-02-23 16:02:40 +0100 (Thu, 23 Feb 2012) | 1 line
+
+update cid name line after connected line update
+------------------------------------------------------------------------
+r3263 | ddegroot | 2012-02-23 14:51:12 +0100 (Thu, 23 Feb 2012) | 1 line
+
+Fix redial softkey handling when offhook (without lineInstance and callid)
+------------------------------------------------------------------------
+r3262 | ddegroot | 2012-02-21 15:37:26 +0100 (Tue, 21 Feb 2012) | 1 line
+
+Fix private softkey. Pressing private softkey will only be used for one call and one call only. Privacy Feature Button remains unchanged and will be retained in astdb
+------------------------------------------------------------------------
+r3261 | marcelloceschia | 2012-02-21 12:50:47 +0100 (Tue, 21 Feb 2012) | 1 line
+
+disable dynamic speeddial cid
+------------------------------------------------------------------------
+r3260 | ddegroot | 2012-02-19 08:30:29 +0100 (Sun, 19 Feb 2012) | 1 line
+
+Make asterisk-1.6.x-patch-widebandslin16k.patch unneccessary for asterisk 1.6.2.x, by extending the current_RTP_PT payloadtypes on the fly when creating audio_rtp
+------------------------------------------------------------------------
+r3259 | ddegroot | 2012-02-17 22:41:12 +0100 (Fri, 17 Feb 2012) | 1 line
+
+Revert to previous behaviour for SCCP_CHANNELSTATE_DIGITSFOLL (awaiting discussion if we should guard against sending states to phones multiple times when nothing changed)
+------------------------------------------------------------------------
+r3257 | ddegroot | 2012-02-17 22:30:33 +0100 (Fri, 17 Feb 2012) | 1 line
+
+Fix queue_control/queue_control_data when compiling against asterisk 1.6.2.x (Claudius Zingeli)
+------------------------------------------------------------------------
+r3256 | ddegroot | 2012-02-17 16:30:45 +0100 (Fri, 17 Feb 2012) | 1 line
+
+Remove setting sccp_dev_set_keyset during digitsfoll when already in that mode
+------------------------------------------------------------------------
+r3255 | ddegroot | 2012-02-15 20:35:28 +0100 (Wed, 15 Feb 2012) | 1 line
+
+Disabled jitterbuffer by default (set to default:on by accident)
+------------------------------------------------------------------------
+r3254 | ddegroot | 2012-02-15 12:21:25 +0100 (Wed, 15 Feb 2012) | 1 line
+
+Convert ast_warning during ast_write codec fix to standard sccp_log
+------------------------------------------------------------------------
+r3253 | ddegroot | 2012-02-15 12:11:12 +0100 (Wed, 15 Feb 2012) | 1 line
+
+Remark setOption to resolve compile warning
+------------------------------------------------------------------------
+r3252 | ddegroot | 2012-02-15 12:09:36 +0100 (Wed, 15 Feb 2012) | 1 line
+
+hold/resume/no sound issue solved for ast1.8 version below asterisk 1.8.7.0
+------------------------------------------------------------------------
+r3251 | marcelloceschia | 2012-02-11 13:16:26 +0100 (Sat, 11 Feb 2012) | 1 line
+
+add warning for outdated asterisk version with issues ASTERISK-14384, ASTERISK-17502, ASTERISK-17541, ASTERISK-18063, ASTERISK-18325, ASTERISK-18422
+------------------------------------------------------------------------
+r3250 | ddegroot | 2012-02-11 12:28:33 +0100 (Sat, 11 Feb 2012) | 1 line
+
+Test/Fix codec translation after music on hold
+------------------------------------------------------------------------
+r3249 | ddegroot | 2012-02-05 07:03:05 +0100 (Sun, 05 Feb 2012) | 1 line
+
+Fix include order for sccp_event.h. Complete sccp_manager_config_metadata
+------------------------------------------------------------------------
+r3248 | marcelloceschia | 2012-02-02 21:28:31 +0100 (Thu, 02 Feb 2012) | 1 line
+
+fixes compile warings
+------------------------------------------------------------------------
+r3247 | ddegroot | 2012-02-02 19:35:22 +0100 (Thu, 02 Feb 2012) | 1 line
+
+Fixed hangup issue
+------------------------------------------------------------------------
+r3246 | ddegroot | 2012-02-02 02:49:29 +0100 (Thu, 02 Feb 2012) | 1 line
+
+Revert to using sed instead of expr in asterisk.m4 (Apple / Alistair Galbraith)
+------------------------------------------------------------------------
+r3245 | ddegroot | 2012-02-01 23:16:46 +0100 (Wed, 01 Feb 2012) | 1 line
+
+Moved new config data type to EXPERIMENTAL (for while testing), Added documentation to new config data types
+------------------------------------------------------------------------
+r3244 | ddegroot | 2012-02-01 22:04:58 +0100 (Wed, 01 Feb 2012) | 1 line
+
+Implemented debug config parser using ENUM2INT / ENUMKEYS
+------------------------------------------------------------------------
+r3243 | ddegroot | 2012-02-01 11:24:07 +0100 (Wed, 01 Feb 2012) | 1 line
+
+Adapted to new sccp_config_entries.h
+------------------------------------------------------------------------
+r3242 | ddegroot | 2012-02-01 10:43:45 +0100 (Wed, 01 Feb 2012) | 1 line
+
+Added DATA_TYPE Macro to sccp_config.
+------------------------------------------------------------------------
+r3241 | ddegroot | 2012-02-01 08:41:48 +0100 (Wed, 01 Feb 2012) | 1 line
+
+Fixed sccp_config_parser_mwilamp
+------------------------------------------------------------------------
+r3240 | ddegroot | 2012-02-01 07:35:53 +0100 (Wed, 01 Feb 2012) | 1 line
+
+Renamed shortname in enum lookups to key (debugcat / codec) to allow for generic access
+------------------------------------------------------------------------
+r3239 | ddegroot | 2012-02-01 07:34:37 +0100 (Wed, 01 Feb 2012) | 1 line
+
+Migrated SCCPConfigMetaData AMI Function from refcount project
+------------------------------------------------------------------------
+r3238 | ddegroot | 2012-02-01 07:33:26 +0100 (Wed, 01 Feb 2012) | 1 line
+
+Migrated forceHangup to pbx_impl from refcount project, fixed possible null pointer dereference in requestHangup (sccp_channel), replaced pbx_hangup in sccp_features.c by PBX(forceHangup)
+------------------------------------------------------------------------
+r3237 | ddegroot | 2012-01-31 22:31:06 +0100 (Tue, 31 Jan 2012) | 1 line
+
+Small refinement to gen_sccpconf.h attribute types
+------------------------------------------------------------------------
+r3236 | ddegroot | 2012-01-31 21:45:17 +0100 (Tue, 31 Jan 2012) | 1 line
+
+Updated gen_sccpconf, fixed small issues in sccp_config_entries.h
+------------------------------------------------------------------------
+r3235 | ddegroot | 2012-01-31 18:44:25 +0100 (Tue, 31 Jan 2012) | 1 line
+
+Added sccp_xml_parser.php sample
+------------------------------------------------------------------------
+r3234 | ddegroot | 2012-01-31 09:07:36 +0100 (Tue, 31 Jan 2012) | 1 line
+
+Added xml output to gen_sccpconf (for version independent webfrontend
+------------------------------------------------------------------------
+r3233 | ddegroot | 2012-01-30 18:13:37 +0100 (Mon, 30 Jan 2012) | 1 line
+
+Revised requestHangup during sccp channelstate Progress
+------------------------------------------------------------------------
+r3232 | ddegroot | 2012-01-28 09:46:56 +0100 (Sat, 28 Jan 2012) | 1 line
+
+Realigned callback definitions, added queue_control_data callback to ast106, ast110 and astTrunk
+------------------------------------------------------------------------
+r3231 | ddegroot | 2012-01-28 09:30:07 +0100 (Sat, 28 Jan 2012) | 1 line
+
+Moved startmediatransmission and startmultimediatransmission message to sccp_protocol.c
+------------------------------------------------------------------------
+r3230 | ddegroot | 2012-01-28 09:01:52 +0100 (Sat, 28 Jan 2012) | 1 line
+
+Moved openmultimediachannel message to sccp_protocol.c
+------------------------------------------------------------------------
+r3229 | ddegroot | 2012-01-28 08:42:02 +0100 (Sat, 28 Jan 2012) | 1 line
+
+Renamed SCCP_RTP_STATUS_PROGESS to SCCP_RTP_STATUS_PROGRESS
+------------------------------------------------------------------------
+r3228 | ddegroot | 2012-01-28 08:40:57 +0100 (Sat, 28 Jan 2012) | 1 line
+
+Moved openreceivechannel message to sccp_protocol.c
+------------------------------------------------------------------------
+r3227 | ddegroot | 2012-01-28 08:11:01 +0100 (Sat, 28 Jan 2012) | 1 line
+
+Change to using PBX(moh_start) and PBX(moh_stop), use sccp_channel_set_active during hold/resume
+------------------------------------------------------------------------
+r3226 | ddegroot | 2012-01-28 08:05:17 +0100 (Sat, 28 Jan 2012) | 1 line
+
+Change to using PBX(queue_control) and PBX(queue_cotrol_data)
+------------------------------------------------------------------------
+r3225 | ddegroot | 2012-01-28 07:55:02 +0100 (Sat, 28 Jan 2012) | 1 line
+
+Added moh_start/moh_stop/queue_control and queue_control_data to pbx_impl
+------------------------------------------------------------------------
+r3224 | ddegroot | 2012-01-27 09:08:35 +0100 (Fri, 27 Jan 2012) | 1 line
+
+renamed sccp_wrapper_asterisk18_requestHangup to sccp_wrapper_asterisk_requestHangup and moved to ast.c
+------------------------------------------------------------------------
+r3223 | ddegroot | 2012-01-27 04:56:10 +0100 (Fri, 27 Jan 2012) | 1 line
+
+revert requestHangup to original behaviour (Bob Brown: chan_sccp v4.0 r3221 - Incoming calls nothanging up)
+------------------------------------------------------------------------
+r3222 | ddegroot | 2012-01-26 19:14:30 +0100 (Thu, 26 Jan 2012) | 1 line
+
+Refix gpickup whilst reenabling previous hangup procedure (Tyler / Bob)
+------------------------------------------------------------------------
+r3221 | ddegroot | 2012-01-26 13:00:46 +0100 (Thu, 26 Jan 2012) | 1 line
+
+Fixed gpickup -> caused by hangup problem without a valid sccp_channel
+------------------------------------------------------------------------
+r3220 | ddegroot | 2012-01-26 09:56:27 +0100 (Thu, 26 Jan 2012) | 1 line
+
+Removed generated makefile
+------------------------------------------------------------------------
+r3219 | ddegroot | 2012-01-26 08:54:00 +0100 (Thu, 26 Jan 2012) | 1 line
+
+Update reference for new features in doxygen
+------------------------------------------------------------------------
+r3218 | ddegroot | 2012-01-26 08:49:05 +0100 (Thu, 26 Jan 2012) | 1 line
+
+Update doxygen doc
+------------------------------------------------------------------------
+r3217 | ddegroot | 2012-01-26 08:37:29 +0100 (Thu, 26 Jan 2012) | 1 line
+
+Added new doxygen section
+------------------------------------------------------------------------
+r3216 | ddegroot | 2012-01-26 08:36:52 +0100 (Thu, 26 Jan 2012) | 1 line
+
+Updated V4.0 Doxygen Documentation
+------------------------------------------------------------------------
+r3215 | ddegroot | 2012-01-25 09:04:05 +0100 (Wed, 25 Jan 2012) | 1 line
+
+Fix asterisk16_sendDigits
+------------------------------------------------------------------------
+r3214 | ddegroot | 2012-01-23 21:16:13 +0100 (Mon, 23 Jan 2012) | 1 line
+
+Added a check to see if the got a non-zero bridgePeerChannelName
+------------------------------------------------------------------------
+r3213 | ddegroot | 2012-01-23 20:53:40 +0100 (Mon, 23 Jan 2012) | 1 line
+
+Answering ringing line using the line button (Josip Gracin) analogous to V3.1
+------------------------------------------------------------------------
+r3212 | ddegroot | 2012-01-23 20:48:29 +0100 (Mon, 23 Jan 2012) | 1 line
+
+Answering ringing line using the line button (Josip Gracin)
+------------------------------------------------------------------------
+r3211 | ddegroot | 2012-01-23 19:34:15 +0100 (Mon, 23 Jan 2012) | 1 line
+
+Reactivated featureStorageBackend
+------------------------------------------------------------------------
+r3210 | ddegroot | 2012-01-23 16:37:12 +0100 (Mon, 23 Jan 2012) | 1 line
+
+Removed reference to astChannel during callforward bridging, not set/used anymore -> PBX(getChannelByName)
+------------------------------------------------------------------------
 r3209 | marcelloceschia | 2012-01-22 10:26:40 +0100 (Sun, 22 Jan 2012) | 1 line
 
 use PBX(getChannelByName) to answer forwared channel; change getChannelByName interface definition
