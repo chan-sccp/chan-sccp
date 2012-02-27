@@ -1883,9 +1883,6 @@ uint32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t 
 						new_debug_value += sccp_debug_categories[i].category;
 					}
 				}
-			} else if (!strncmp(argument, "devel", 5)) {
-				new_debug_value += DEBUGCAT_NYI;
-				new_debug_value += DEBUGCAT_FIXME;
 			} else {
 				// parse comma separated debug_var
 				token = strtok(argument, delimiters);
