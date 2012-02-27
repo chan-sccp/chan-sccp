@@ -315,10 +315,8 @@ typedef enum {
 	DEBUGCAT_NEWCODE 	= 1 << 27,
 	DEBUGCAT_THPOOL		= 1 << 28,
 	DEBUGCAT_HIGH 		= 1 << 29,
-	DEBUGCAT_NYI		= 1 << 30,				// Not Yet Implemented
-	DEBUGCAT_FIXME		= 1 << 31,				// Fix Me
 	/* *INDENT-ON* */
-} sccp_debug_category_t;						/*!< SCCP Debug Category Enum */
+} sccp_debug_category_t;						/*!< SCCP Debug Category Enum (saved in global_vars:debug = uint32_t)*/
 
 /*!
  * \brief SCCP Verbose Level Structure
@@ -359,10 +357,8 @@ static const struct sccp_debug_category {
 	{"threadlock",  	DEBUGCAT_THREADLOCK, 	"thread-lock debug level"},
 	{"message",  		DEBUGCAT_MESSAGE, 	"message debug level"},
 	{"newcode",  		DEBUGCAT_NEWCODE, 	"newcode debug level"}, 
+	{"threadpool", 		DEBUGCAT_THPOOL, 	"threadpool debug level"}, 
 	{"high",  		DEBUGCAT_HIGH, 		"high debug level"},
-       	{"nyi",  		DEBUGCAT_NYI, 		"not yet implemented developer debug level"},
-       	{"fixme",  		DEBUGCAT_FIXME, 	"fixme developer debug level"},
-//     	{"fyi",  		DEBUGCAT_FYI, 		"for your information developer debug level"},
 	/* *INDENT-ON* */
 };
 
