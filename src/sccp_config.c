@@ -1223,7 +1223,7 @@ sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, const 
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
 		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 #else
-		\changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 #endif
 		tos = 0x68 & 0xff;
 	}

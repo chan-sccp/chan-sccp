@@ -1262,7 +1262,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	for(i = SCCP_MAX_MESSAGESTACK-1; i>=0; i--) {
 		if(d->messageStack[i] != NULL){
 			sccp_dev_displayprompt(d, 0, 0, d->messageStack[i], 0);
-			goto OUT;
+			goto DONE;
 		}
 	}
 	
@@ -1272,7 +1272,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	}
 	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);				/* this is for redial softkey */
 
-OUT:
+DONE:
 	sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Finish DisplayPrompt\n", d->id);
 }
 
