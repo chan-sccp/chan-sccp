@@ -202,7 +202,13 @@ typedef struct sccp_ast_channel_name sccp_ast_channel_name_t;		/*!< SCCP Asteris
 typedef struct sccp_buttonconfig sccp_buttonconfig_t;			/*!< SCCP Button Config Structure */
 typedef struct sccp_hotline sccp_hotline_t;				/*!< SCCP Hotline Structure */
 typedef struct sccp_callinfo sccp_callinfo_t;				/*!< SCCP Call Information Structure */
-typedef enum { FALSE = 0, TRUE = 1 } boolean_t;				/*!< Asterisk Reverses True and False; nice !! */
+#ifndef SOLARIS
+	typedef enum { FALSE = 0, TRUE = 1 } boolean_t;				/*!< Asterisk Reverses True and False; nice !! */
+#else
+	// solaris already has a defintion for boolean_t, having B_FALSE and B_TRUE as members
+#  define FALSE B_FALSE;
+#  define TRUE B_TRUE;	
+#endif
 typedef enum { ON, OFF } light_t;					/*!< Enum Light Status */
 typedef enum { NO_CHANGES = 0, MINOR_CHANGES = 1, CHANGES_NEED_RESET = 2 } sccp_diff_t;	/*!< SCCP Diff Structure */
 

@@ -19,6 +19,9 @@
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 #include <sys/ioctl.h>
+#ifdef SOLARIS
+    #include <sys/filio.h>		// provides FIONREAD on SOLARIS
+#endif
 #ifndef CS_USE_POLL_COMPAT
 #    include <poll.h>
 #    include <sys/poll.h>
