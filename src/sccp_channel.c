@@ -1235,8 +1235,6 @@ sccp_channel_t *sccp_channel_newcall_locked(sccp_line_t * l, sccp_device_t * dev
 void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * channel)
 {
 	sccp_line_t *l;
-	sccp_device_t *d;
-	sccp_channel_t *sccp_channel_1;
 
 #ifdef CS_AST_HAS_FLAG_MOH
 	PBX_CHANNEL_TYPE *pbx_bridged_channel;
@@ -1253,7 +1251,6 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * channel
 	}
 
 	l = channel->line;
-	d = (channel->state == SCCP_CHANNELSTATE_HOLD) ? device : channel->privateData->device;
 
 	/* channel was on hold, restore active -> inc. channelcount */
 	if (channel->state == SCCP_CHANNELSTATE_HOLD) {
@@ -1262,22 +1259,20 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * channel
 		sccp_line_unlock(channel->line);
 	}
 
-	if (!d) {
-		if (!device) {
-			pbx_log(LOG_ERROR, "SCCP: Channel %d has no device\n", (channel ? channel->callid : 0));
-			return;
-		}
-		d = device;
+	if (!device) {
+		pbx_log(LOG_ERROR, "SCCP: Channel %d has no device\n", (channel ? channel->callid : 0));
+		return;
 	}
 
-	sccp_channel_setDevice(channel, d);
+	sccp_channel_setDevice(channel, device);
 
 //      //! \todo move this to openreceive- and startmediatransmission (we do calc in openreceiv and startmedia, so check if we can remove)
 	sccp_channel_updateChannelCapability_locked(channel);
 
 	/* answering an incoming call */
 	/* look if we have a call to put on hold */
-	if ((sccp_channel_1 = sccp_channel_get_active_locked(d)) != NULL) {
+	sccp_channel_t *sccp_channel_1;
+	if ((sccp_channel_1 = sccp_channel_get_active_locked(device)) != NULL) {
 		/* If there is a ringout or offhook call, we end it so that we can answer the call. */
 		if (sccp_channel_1->state == SCCP_CHANNELSTATE_OFFHOOK || sccp_channel_1->state == SCCP_CHANNELSTATE_RINGOUT) {
 			sccp_channel_endcall_locked(sccp_channel_1);
@@ -1290,15 +1285,14 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * channel
 		sccp_channel_1 = NULL;
 	}
 
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answer the channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answer the channel %s-%08X\n", DEV_ID_LOG(device), l->name, channel->callid);
 
 	/* end callforwards */
 	sccp_channel_t *sccp_channel_2;
-
 	SCCP_LIST_LOCK(&channel->line->channels);
 	SCCP_LIST_TRAVERSE(&channel->line->channels, sccp_channel_2, list) {
 		if (sccp_channel_2->parentChannel == channel) {
-			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: CHANNEL Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, sccp_channel_2->callid);
+			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: CHANNEL Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(device), l->name, sccp_channel_2->callid);
 			/* No need to lock because sccp_channel->line->channels is already locked. */
 			sccp_channel_endcall_locked(sccp_channel_2);
 			channel->answered_elsewhere = TRUE;
@@ -1324,8 +1318,8 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * channel
 
 	/* done */
 
-	sccp_channel_set_active(d, channel);
-	sccp_dev_set_activeline(d, channel->line);
+	sccp_channel_set_active(device, channel);
+	sccp_dev_set_activeline(device, channel->line);
 
 	/* the old channel state could be CALLTRANSFER, so the bridged channel is on hold */
 	/* do we need this ? -FS */
@@ -1337,15 +1331,15 @@ void sccp_channel_answer_locked(sccp_device_t * device, sccp_channel_t * channel
 	}
 #endif
 
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answering channel with state '%s' (%d)\n", DEV_ID_LOG(channel->privateData->device), pbx_state2str(channel->owner->_state), channel->owner->_state);
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answering channel with state '%s' (%d)\n", DEV_ID_LOG(device), pbx_state2str(channel->owner->_state), channel->owner->_state);
 	PBX(queue_control)(channel->owner, AST_CONTROL_ANSWER);
 
 	if (channel->state != SCCP_CHANNELSTATE_OFFHOOK)
-		sccp_indicate_locked(d, channel, SCCP_CHANNELSTATE_OFFHOOK);
+		sccp_indicate_locked(device, channel, SCCP_CHANNELSTATE_OFFHOOK);
 
 	PBX(set_connected_line) (channel, channel->callInfo.calledPartyNumber, channel->callInfo.calledPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
 
-	sccp_indicate_locked(d, channel, SCCP_CHANNELSTATE_CONNECTED);
+	sccp_indicate_locked(device, channel, SCCP_CHANNELSTATE_CONNECTED);
 }
 
 /*!
