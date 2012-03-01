@@ -629,20 +629,14 @@ sccp_channel_t *sccp_channel_find_bystate_on_line_nolock(sccp_line_t * l, uint8_
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
 
-	SCCP_RWLIST_RDLOCK(&GLOB(lines));
-	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
-		SCCP_LIST_LOCK(&l->channels);
-		SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
-			if (channel && channel->state == state) {
-				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), channel->callid);
-				break;
-			}
-		}
-		SCCP_LIST_UNLOCK(&l->channels);
-		if (channel)
-			break;
-	}
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+        SCCP_LIST_LOCK(&l->channels);
+        SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
+                if (channel && channel->state == state) {
+                        sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), channel->callid);
+                        break;
+                }
+        }
+        SCCP_LIST_UNLOCK(&l->channels);
 
 	return channel;
 }
@@ -667,20 +661,14 @@ sccp_channel_t *sccp_channel_find_bystate_on_line_locked(sccp_line_t * l, uint8_
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
 
-	SCCP_RWLIST_RDLOCK(&GLOB(lines));
-	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
-		SCCP_LIST_LOCK(&l->channels);
-		SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
-			if (channel && channel->state == state) {
-				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), channel->callid);
-				break;
-			}
-		}
-		SCCP_LIST_UNLOCK(&l->channels);
-		if (channel)
-			break;
-	}
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+        SCCP_LIST_LOCK(&l->channels);
+        SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
+                if (channel && channel->state == state) {
+                        sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), channel->callid);
+                        break;
+                }
+        }
+        SCCP_LIST_UNLOCK(&l->channels);
 
 	if (channel)
 		sccp_channel_lock(channel);
