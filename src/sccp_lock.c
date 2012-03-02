@@ -177,12 +177,6 @@ int __sccp_mutex_lock(ast_mutex_t * p_mutex, const char *itemnametolock, const c
 #    ifdef CS_LOCKS_DEBUG_ALL
 	if (strncasecmp(filename, "sccp_socket.c", 13))
 		sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Locking %s\n", filename, lineno, func, itemnametolock);
-
-#        if ASTERISK_VERSION_NUMBER >= 10601
-	if ((sccp_globals->debug & DEBUGCAT_THREADLOCK) != 0) {
-		log_show_lock(p_mutex);
-	}
-#        endif
 #    endif
 #    ifdef CS_AST_DEBUG_THREADS
 	res = __pbx_pthread_mutex_lock(filename, lineno, func, itemnametolock, p_mutex);
@@ -243,12 +237,6 @@ int __sccp_mutex_trylock(ast_mutex_t * p_mutex, const char *itemnametolock, cons
 #    ifdef CS_LOCKS_DEBUG_ALL
 	if (strncasecmp(filename, "sccp_socket.c", 13))
 		sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: Trying to lock %s\n", filename, lineno, func, itemnametolock);
-
-#        if ASTERISK_VERSION_NUMBER >= 10601
-	if ((sccp_globals->debug & DEBUGCAT_THREADLOCK) != 0) {
-		log_show_lock(p_mutex);
-	}
-#        endif
 #    endif
 #    ifdef CS_AST_DEBUG_THREADS
 	res = __pbx_pthread_mutex_trylock(filename, lineno, func, itemnametolock, p_mutex);
