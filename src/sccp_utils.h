@@ -199,8 +199,8 @@ int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1);
 void sendUserToDeviceVersion1Message(sccp_device_t * d, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, char data[]);
 size_t sccp_strlen(const char *data);
 boolean_t sccp_strlen_zero(const char *data);
-boolean_t sccp_strcmp(const char *data1, const char *data2);
-boolean_t sccp_strcasecmp(const char *data1, const char *data2);
+boolean_t sccp_strequals(const char *data1, const char *data2);
+boolean_t sccp_strcaseequals(const char *data1, const char *data2);
 skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int length1, const skinny_codec_t remotePeerCapabilities[], int length2);
 
 void sccp_free_ha(struct sccp_ha *ha);

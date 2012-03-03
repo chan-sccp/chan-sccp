@@ -989,8 +989,8 @@ void sccp_hint_subscribeHint(const sccp_device_t * device, const char *hintStr, 
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
 		if (sccp_strlen(hint_exten) == sccp_strlen(hint->exten)
 		    && sccp_strlen(hint_context) == sccp_strlen(hint->context)
-		    && !sccp_strcmp(hint_exten, hint->exten)
-		    && !sccp_strcmp(hint_context, hint->context)) {
+		    && sccp_strequals(hint_exten, hint->exten)
+		    && sccp_strequals(hint_context, hint->context)) {
 			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "Hint found\n");
 			break;
 		}
