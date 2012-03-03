@@ -48,11 +48,11 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"servername", 			G_OBJ_REF(servername), 			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NOUPDATENEEDED,		"Asterisk",			"show this name on the device registration\n"},
 	{"keepalive", 			G_OBJ_REF(keepalive), 			TYPE_INT,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"60",				"Phone keep alive message every 60 secs. Used to check the voicemail and keep an open connection between server and phone (nat). \n"
 																										  											"Don't set any lower than 60 seconds.\n"},
-#if CS_EXPERIMENTAL
-	{"debug", 			G_OBJ_REF(debug), 			TYPE_ENUM2INT(debugcat2int,debugcat_keys),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED,		"core",				"console debug level or categories\n"
-#else	
+//#if CS_EXPERIMENTAL
+//	{"debug", 			G_OBJ_REF(debug), 			TYPE_ENUM2INT(debugcat2int,debugcat_keys),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED,		"core",				"console debug level or categories\n"
+//#else	
 	{"debug", 			G_OBJ_REF(debug), 			TYPE_PARSER(sccp_config_parse_debug),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED,		"core",				"console debug level or categories\n"
-#endif	
+//#endif	
 																														  							"examples: debug = 11 | debug = mwi,event,core | debug = all | debug = none or 0\n"
 																																					"possible categories: \n"
 																																					"core, sccp, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey, indicate, pbx\n"
@@ -179,8 +179,8 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"name", 			0, 				0,	TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"device name\n"},
 	{"device", 			D_OBJ_REF(config_type),			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"device type\n"},
-	{"devicetype", 			D_OBJ_REF(config_type),			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"device type\n"},
-	{"type", 			D_OBJ_REF(config_type),			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"used for device templates, value will be inherited.\n"},
+	{"devicetype", 			D_OBJ_REF(config_type),			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"device type\n"},
+	{"type", 			D_OBJ_REF(config_type),			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"used for device templates, value will be inherited.\n"},
 	{"description", 		D_OBJ_REF(description),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"device description\n"},
 	{"keepalive", 			D_OBJ_REF(keepalive), 			TYPE_INT,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"set keepalive to 60\n"},
 	{"tzoffset", 			D_OBJ_REF(tz_offset), 			TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"0",				"time zone offset\n"},

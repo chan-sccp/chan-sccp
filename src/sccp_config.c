@@ -1707,7 +1707,8 @@ sccp_device_t *sccp_config_buildDevice(sccp_device_t *d, PBX_VARIABLE_TYPE *v, c
 	d->realtime = isRealtime;
 #endif
 #ifdef CS_DYNAMIC_CONFIG
-	if (res == SCCP_CONFIG_NEEDDEVICERESET && d && d->pendingDelete) {
+//	if (res == SCCP_CONFIG_NEEDDEVICERESET && d && d->pendingDelete) {
+	if (res == SCCP_CONFIG_NEEDDEVICERESET && d) {
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: major changes for device detected, device reset required -> pendingUpdate=1\n", d->id);
 		d->pendingUpdate = 1;
 	}
