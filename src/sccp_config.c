@@ -1565,7 +1565,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, b
 			!sccp_strcmp(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name) &&	
 			!sccp_strcmp(config->button.line.subscriptionId.aux, composedLineRegistrationId.subscriptionId.aux)
 			) {
-			if (!options || !sccp_strcmp(config->button.line.options, options)) {
+			if (options && !sccp_strcmp(config->button.line.options, options)) {
 				changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 				break;
 			} else {
