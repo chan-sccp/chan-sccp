@@ -2148,17 +2148,17 @@ size_t sccp_strlen(const char *data)
  * \return strcmp as int
  *
  * \retval int on strcmp
- * \retval TRUE on both zero length
- * \retval FALSE on one of the the parameters being zero length
+ * \retval FALSE on both zero length
+ * \retval TRUE on one of the the parameters being zero length
  */
 boolean_t sccp_strcmp(const char *data1,const char *data2)
 {
 	if (sccp_strlen_zero(data1) && sccp_strlen_zero(data2)) {
- 	        return TRUE;
+ 	        return FALSE;
  	} else if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2)) {
  	        return strcmp(data1,data2);
         }
-        return FALSE;
+        return TRUE;
 }
 
 /*!
@@ -2169,19 +2169,17 @@ boolean_t sccp_strcmp(const char *data1,const char *data2)
  * \return strcasecmp as int
  *
  * \retval int on strcasecmp
- * \retval TRUE on both zero length
- * \retval FALSE on one of the the parameters being zero length
- *
- * \todo take into account global prefer_quality_over_size setting
+ * \retval FALSE on both zero length
+ * \retval TRUE on one of the the parameters being zero length
  */
 boolean_t sccp_strcasecmp(const char *data1,const char *data2)
 {
 	if (sccp_strlen_zero(data1) && sccp_strlen_zero(data2)) {
- 	        return TRUE;
+ 	        return FALSE;
  	} else if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2)) {
  	        return strcasecmp(data1,data2);
         }
-        return FALSE;
+        return TRUE;
 }
 
 /*!
