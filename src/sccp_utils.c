@@ -2141,45 +2141,45 @@ size_t sccp_strlen(const char *data)
 }
 
 /*!
- * \brief SCCP version of strcmp
+ * \brief SCCP version of strequals
  * \note Takes into account zero length strings, if both strings are zero length returns TRUE
  * \param data1 String to be checked
  * \param data2 String to be checked
- * \return strcmp as int
+ * \return !strcmp as boolean_t
  *
- * \retval int on strcmp
- * \retval FALSE on both zero length
- * \retval TRUE on one of the the parameters being zero length
+ * \retval booleant_t on !strcmp
+ * \retval TRUE on both zero length
+ * \retval FALSE on one of the the parameters being zero length
  */
-boolean_t sccp_strcmp(const char *data1,const char *data2)
+boolean_t sccp_strequals(const char *data1,const char *data2)
 {
 	if (sccp_strlen_zero(data1) && sccp_strlen_zero(data2)) {
- 	        return FALSE;
+ 	        return TRUE;
  	} else if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2)) {
- 	        return strcmp(data1,data2);
+ 	        return !strcmp(data1,data2);
         }
-        return TRUE;
+        return FALSE;
 }
 
 /*!
- * \brief SCCP version of strcasecmp
+ * \brief SCCP version of strcaseequals
  * \note Takes into account zero length strings, if both strings are zero length returns TRUE
  * \param data1 String to be checked
  * \param data2 String to be checked
- * \return strcasecmp as int
+ * \return !strcasecmp as boolean_t
  *
- * \retval int on strcasecmp
- * \retval FALSE on both zero length
- * \retval TRUE on one of the the parameters being zero length
+ * \retval boolean_t on strcaseequals
+ * \retval TRUE on both zero length
+ * \retval FALSE on one of the the parameters being zero length
  */
-boolean_t sccp_strcasecmp(const char *data1,const char *data2)
+boolean_t sccp_strcaseequals(const char *data1,const char *data2)
 {
 	if (sccp_strlen_zero(data1) && sccp_strlen_zero(data2)) {
- 	        return FALSE;
+ 	        return TRUE;
  	} else if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2)) {
- 	        return strcasecmp(data1,data2);
+ 	        return !strcasecmp(data1,data2);
         }
-        return TRUE;
+        return FALSE;
 }
 
 /*!

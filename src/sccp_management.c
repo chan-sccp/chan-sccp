@@ -465,15 +465,15 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 	if (line) {
 		linedevice = sccp_util_getDeviceConfiguration(device, line);
 		if (linedevice) {
-			if (!sccp_strcasecmp("all", forwardType)) {
-				if (!sccp_strcasecmp("no", Disable)) {
+			if (!sccp_strcaseequals("all", forwardType)) {
+				if (!sccp_strcaseequals("no", Disable)) {
 					linedevice->cfwdAll.enabled = 0;
 				} else {
 					linedevice->cfwdAll.enabled = 1;
 				}
 				sccp_copy_string(linedevice->cfwdAll.number, number, strlen(number));
-			} else if (!sccp_strcasecmp("busy", forwardType)) {
-				if (!sccp_strcasecmp("no", Disable)) {
+			} else if (!sccp_strcaseequals("busy", forwardType)) {
+				if (!sccp_strcaseequals("no", Disable)) {
 					linedevice->cfwdBusy.enabled = 0;
 				} else {
 					linedevice->cfwdBusy.enabled = 1;
@@ -661,12 +661,12 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 		astman_send_error(s, m, "Call not found\r\n" );
 		return 0;
 	}
-	if (!sccp_strcasecmp("on", hold)) {						/* check to see if enable hold */
+	if (!sccp_strcaseequals("on", hold)) {						/* check to see if enable hold */
 		astman_append(s, "Put channel '%s' on hold\n", channelId);
 		sccp_channel_hold_locked(c);
 		sccp_channel_unlock(c);
 		retValStr = "Channel was put on hold";
-	} else if (!sccp_strcasecmp("off", hold)) {					/* check to see if disable hold */
+	} else if (!sccp_strcaseequals("off", hold)) {					/* check to see if disable hold */
 		astman_append(s, "remove channel '%s' from hold\n", channelId);
 		sccp_channel_resume_locked(sccp_channel_getDevice(c), c, FALSE);
 		sccp_channel_unlock(c);

@@ -1176,7 +1176,7 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, co
 
 	// Check mailboxes list
 	SCCP_LIST_TRAVERSE(mailboxList, mailbox, list) {
-		if (!sccp_strcmp(mailbox->mailbox, mbox)) {
+		if (sccp_strequals(mailbox->mailbox, mbox)) {
 			mailbox_exists = TRUE;
 		}
 	}
@@ -1559,13 +1559,13 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, b
 		composedLineRegistrationId = sccp_parseComposedId(name, 80);
 
 		if (	LINE==config->type && 
-			!sccp_strcmp(config->label, name) &&
-			!sccp_strcmp(config->button.line.name, composedLineRegistrationId.mainId) &&
-			!sccp_strcasecmp(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number) &&	
-			!sccp_strcmp(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name) &&	
-			!sccp_strcmp(config->button.line.subscriptionId.aux, composedLineRegistrationId.subscriptionId.aux)
+			sccp_strequals(config->label, name) &&
+			sccp_strequals(config->button.line.name, composedLineRegistrationId.mainId) &&
+			sccp_strcaseequals(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number) &&	
+			sccp_strequals(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name) &&	
+			sccp_strequals(config->button.line.subscriptionId.aux, composedLineRegistrationId.subscriptionId.aux)
 			) {
-			if (options && !sccp_strcmp(config->button.line.options, options)) {
+			if (options && sccp_strequals(config->button.line.options, options)) {
 				changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 				break;
 			} else {
@@ -1588,10 +1588,13 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, b
 	case SPEEDDIAL:
 		/* \todo check if values change */
 		if (	SPEEDDIAL==config->type && 
-			!sccp_strcmp(config->label, name) &&
-			!sccp_strcmp(config->button.speeddial.ext, options)
+			sccp_strequals(config->label, name) &&
+			sccp_strequals(config->button.speeddial.ext, options)
 			) {
-			if (!args || !sccp_strcmp(config->button.speeddial.hint, args)) {
+			if (args && sccp_strequals(config->button.speeddial.hint, args)) {
+				changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+				break;
+			} else {
 				changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 				break;
 			}
@@ -1606,8 +1609,8 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, b
 		break;
 	case SERVICE:
 		if (	SERVICE==config->type && 
-			!sccp_strcmp(config->label, name) &&
-			!sccp_strcmp(config->button.service.url, options)
+			sccp_strequals(config->label, name) &&
+			sccp_strequals(config->button.service.url, options)
 			) {
 			changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 			break;
@@ -1620,12 +1623,13 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, b
 		break;
 	case FEATURE:
 		if (	FEATURE==config->type && 
-			!sccp_strcmp(config->label, name) &&
+			sccp_strequals(config->label, name) &&
 			config->button.feature.id == sccp_featureStr2featureID(options)
 			) {
-			if (!args || !sccp_strcmp(config->button.feature.options, args)) {
+			if (args && sccp_strequals(config->button.feature.options, args)) {
 				changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 				break;
+			} else {
 			}
 		}
 		/* \todo check if values change */
@@ -1853,11 +1857,11 @@ void cleanup_stale_contexts(char *new, char *old)
 		sccp_copy_string(newlist, new, sizeof(newlist));
 		stringp = newlist;
 		while ((newcontext = strsep(&stringp, "&"))) {
-			if (sccp_strcmp(newcontext, oldcontext) == 0) {
+			if (sccp_strequals(newcontext, oldcontext)) {
 				/* This is not the context you're looking for */
 				stalecontext = '\0';
 				break;
-			} else if (sccp_strcmp(newcontext, oldcontext)) {
+			} else if (!sccp_strequals(newcontext, oldcontext)) {
 				stalecontext = oldcontext;
 			}
 
