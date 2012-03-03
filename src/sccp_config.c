@@ -1545,8 +1545,8 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, b
 	}
 	SCCP_LIST_UNLOCK(buttonconfigList);
 
-	if (sccp_strlen_zero(name) || (type != LINE && !options) ) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Faulty Button Configuration found at index: %d", config->index);
+        if ( type != EMPTY && (sccp_strlen_zero(name) || (type != LINE && !options))) {
+                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Faulty Button Configuration found at index: %d, type: %s, name: %s\n", config->index, sccp_buttontype2str(type), name);
 		type = EMPTY;
 		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
