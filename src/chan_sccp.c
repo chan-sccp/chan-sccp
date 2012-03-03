@@ -764,7 +764,7 @@ int sccp_preUnload(void)
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
 	while ((d = SCCP_LIST_REMOVE_HEAD(&GLOB(devices), list))) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: Removing device %s\n", d->id);
-		sccp_dev_clean(d, TRUE, 0);
+		sccp_dev_clean(d, FALSE, 0);
 	}
 	if (SCCP_RWLIST_EMPTY(&GLOB(devices)))
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(devices));
