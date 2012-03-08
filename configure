@@ -28814,7 +28814,8 @@ $as_echo "#define DEBUG 1" >>confdefs.h
 		enable_debug_mutex="yes"
 		strip_binaries="no"
 		CFLAGS="$CFLAGS_saved -O0 -Os -Wall"
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wstrict-prototypes" >&5
+		if test "x$GCC" = "xyes"; then
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wstrict-prototypes" >&5
 $as_echo_n "checking CFLAGS for gcc -Wstrict-prototypes... " >&6; }
 if ${ac_cv_cflags_gcc_option__Wstrict_prototypes+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -28877,7 +28878,7 @@ case ".$ac_cv_cflags_gcc_option__Wstrict_prototypes" in
  ;;
 esac
 
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wmissing-prototypes" >&5
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wmissing-prototypes" >&5
 $as_echo_n "checking CFLAGS for gcc -Wmissing-prototypes... " >&6; }
 if ${ac_cv_cflags_gcc_option__Wmissing_prototypes+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -28940,7 +28941,7 @@ case ".$ac_cv_cflags_gcc_option__Wmissing_prototypes" in
  ;;
 esac
 
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wmissing-declarations" >&5
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wmissing-declarations" >&5
 $as_echo_n "checking CFLAGS for gcc -Wmissing-declarations... " >&6; }
 if ${ac_cv_cflags_gcc_option__Wmissing_declarations+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -29003,7 +29004,7 @@ case ".$ac_cv_cflags_gcc_option__Wmissing_declarations" in
  ;;
 esac
 
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wnested-externs" >&5
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wnested-externs" >&5
 $as_echo_n "checking CFLAGS for gcc -Wnested-externs... " >&6; }
 if ${ac_cv_cflags_gcc_option__Wnested_externs+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -29066,7 +29067,7 @@ case ".$ac_cv_cflags_gcc_option__Wnested_externs" in
  ;;
 esac
 
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wno-long-long" >&5
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wno-long-long" >&5
 $as_echo_n "checking CFLAGS for gcc -Wno-long-long... " >&6; }
 if ${ac_cv_cflags_gcc_option__Wno_long_long+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -29129,7 +29130,7 @@ case ".$ac_cv_cflags_gcc_option__Wno_long_long" in
  ;;
 esac
 
-		CFLAGS_saved="$CFLAGS"
+    		fi
 		GDB_FLAGS="-g"
 	else
 
@@ -29140,7 +29141,8 @@ $as_echo "#define DEBUG 0" >>confdefs.h
 		strip_binaries="yes"
 		GDB_FLAGS="$GDB_FLAGS"
 		CFLAGS="$CFLAGS_saved -O3 "
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wno-long-long" >&5
+		if test "x$GCC" = "xyes"; then
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wno-long-long" >&5
 $as_echo_n "checking CFLAGS for gcc -Wno-long-long... " >&6; }
 if ${ac_cv_cflags_gcc_option__Wno_long_long+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -29203,7 +29205,7 @@ case ".$ac_cv_cflags_gcc_option__Wno_long_long" in
  ;;
 esac
 
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wno-unused-parameter" >&5
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wno-unused-parameter" >&5
 $as_echo_n "checking CFLAGS for gcc -Wno-unused-parameter... " >&6; }
 if ${ac_cv_cflags_gcc_option__Wno_unused_parameter+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -29266,70 +29268,7 @@ case ".$ac_cv_cflags_gcc_option__Wno_unused_parameter" in
  ;;
 esac
 
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wno-unused-but-set-variable" >&5
-$as_echo_n "checking CFLAGS for gcc -Wno-unused-but-set-variable... " >&6; }
-if ${ac_cv_cflags_gcc_option__Wno_unused_but_set_variable+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_cv_cflags_gcc_option__Wno_unused_but_set_variable="no, unknown"
-
- ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
- ac_save_CFLAGS="$CFLAGS"
-for ac_arg in "-pedantic -Werror % -Wno-unused-but-set-variable"     "-pedantic % -Wno-unused-but-set-variable %% no, obsolete"     #
-do CFLAGS="$ac_save_CFLAGS "`echo $ac_arg | sed -e 's,%%.*,,' -e 's,%,,'`
-   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-return 0;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_cv_cflags_gcc_option__Wno_unused_but_set_variable=`echo $ac_arg | sed -e 's,.*% *,,'` ; break
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-done
- CFLAGS="$ac_save_CFLAGS"
- ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_cflags_gcc_option__Wno_unused_but_set_variable" >&5
-$as_echo "$ac_cv_cflags_gcc_option__Wno_unused_but_set_variable" >&6; }
-case ".$ac_cv_cflags_gcc_option__Wno_unused_but_set_variable" in
-     .ok|.ok,*)  ;;
-   .|.no|.no,*)  ;;
-   *)
-   if echo " $CFLAGS " | grep " $ac_cv_cflags_gcc_option__Wno_unused_but_set_variable " 2>&1 >/dev/null
-   then { { $as_echo "$as_me:${as_lineno-$LINENO}: : CFLAGS does contain \$ac_cv_cflags_gcc_option__Wno_unused_but_set_variable"; } >&5
-  (: CFLAGS does contain $ac_cv_cflags_gcc_option__Wno_unused_but_set_variable) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }
-   else { { $as_echo "$as_me:${as_lineno-$LINENO}: : CFLAGS=\"\$CFLAGS \$ac_cv_cflags_gcc_option__Wno_unused_but_set_variable\""; } >&5
-  (: CFLAGS="$CFLAGS $ac_cv_cflags_gcc_option__Wno_unused_but_set_variable") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }
-                      CFLAGS="$CFLAGS $ac_cv_cflags_gcc_option__Wno_unused_but_set_variable"
-   fi
- ;;
-esac
-
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wno-ignored-qualifiers" >&5
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wno-ignored-qualifiers" >&5
 $as_echo_n "checking CFLAGS for gcc -Wno-ignored-qualifiers... " >&6; }
 if ${ac_cv_cflags_gcc_option__Wno_ignored_qualifiers+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -29392,8 +29331,28 @@ case ".$ac_cv_cflags_gcc_option__Wno_ignored_qualifiers" in
  ;;
 esac
 
-		CFLAGS_saved="$CFLAGS"
+
+			# handle special case for no-unused-but-set-variable
+			cat - <<_ACEOF >conftest.c
+				#include <stdio.h>
+				int main(void)
+				{
+			        void *p = 0x1234;
+		                printf("P is %p\n", p);
+		        }
+		        _ACEOF
+			if test -z { ac_try='$CC $CFLAGS -Wno-unused-but-set-variable conftest.c -o conftest.o 2&gt;&amp;1 | grep "unrecognised command lines option"'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then
+				CFLAGS="$CFLAG -Wno-unused-but-set-variable"
+			fi
+			rm conftest.c conftest.o
+		fi
 	fi
+	CFLAGS_saved="$CFLAGS"
 
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-debug: ${enable_debug}" >&5
@@ -29927,7 +29886,7 @@ $as_echo "$CPU_COUNT " >&6; }
     fi
 
 cat >>confdefs.h <<_ACEOF
-#define CPU_COUNT `echo ${CPU_COUNT}`
+#define CS_CPU_COUNT `echo ${CPU_COUNT}`
 _ACEOF
 
 
