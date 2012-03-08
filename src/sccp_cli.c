@@ -232,6 +232,7 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	char pref_buf[256];
 	struct ast_str *callgroup_buf = pbx_str_alloca(512);
 	struct ast_str *pickupgroup_buf = pbx_str_alloca(512);
+	struct ast_str *ha_buf = pbx_str_alloca(512);
 	char *debugcategories;
 	int local_total = 0;
 
@@ -239,6 +240,7 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 
 	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, GLOB(global_preferences), ARRAY_LEN(GLOB(global_preferences)));
 	debugcategories = sccp_get_debugcategories(GLOB(debug));
+	sccp_print_ha(ha_buf, sizeof(ha_buf), GLOB(ha));
 
 	if (!s) {
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver global settings ----------------------------------------------------------------------------------\n");
@@ -259,6 +261,7 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	CLI_AMI_OUTPUT_PARAM("Extern Hostname", CLI_AMI_LIST_WIDTH, "%s", GLOB(externhost));
 	CLI_AMI_OUTPUT_PARAM("Extern Host Refresh", CLI_AMI_LIST_WIDTH, "%d", GLOB(externrefresh));
 	CLI_AMI_OUTPUT_PARAM("Extern IP", CLI_AMI_LIST_WIDTH, "%s:%d", pbx_inet_ntoa(GLOB(externip.sin_addr)), ntohs(GLOB(externip.sin_port)));
+	CLI_AMI_OUTPUT_PARAM("Deny/Permit", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
 	CLI_AMI_OUTPUT_BOOL("Direct RTP", CLI_AMI_LIST_WIDTH, GLOB(directrtp));
 	CLI_AMI_OUTPUT_PARAM("Keepalive", CLI_AMI_LIST_WIDTH, "%d", GLOB(keepalive));
 	CLI_AMI_OUTPUT_PARAM("Debug", CLI_AMI_LIST_WIDTH, "(%d) %s", GLOB(debug), debugcategories);
@@ -439,6 +442,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	sccp_line_t *l;
 	char pref_buf[256];
 	char cap_buf[512];
+	struct ast_str *ha_buf = pbx_str_alloca(512);
 	PBX_VARIABLE_TYPE *v = NULL;
 	sccp_linedevices_t *linedevice;
 	int local_total = 0;
@@ -462,6 +466,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 
 	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
+	sccp_print_ha(ha_buf, sizeof(ha_buf), GLOB(ha));
 
 	if (!s) {
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver device settings ----------------------------------------------------------------------------------\n");
@@ -508,6 +513,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_BOOL("Trust phone ip", CLI_AMI_LIST_WIDTH, d->trustphoneip);
 	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s:%d", (d->session) ? pbx_inet_ntoa(d->session->sin.sin_addr) : "???.???.???.???", (d->session) ? ntohs(d->session->sin.sin_port) : 0);
 	CLI_AMI_OUTPUT_PARAM("Our Address", CLI_AMI_LIST_WIDTH, "%s", (d->session) ? ast_inet_ntoa(d->session->ourip) : "???.???.???.???");
+	CLI_AMI_OUTPUT_PARAM("Deny/Permit", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
 	CLI_AMI_OUTPUT_PARAM("Early RTP", CLI_AMI_LIST_WIDTH, "%s (%s)", d->earlyrtp ? "Yes" : "No", d->earlyrtp ? sccp_indicate2str(d->earlyrtp) : "none");
 	CLI_AMI_OUTPUT_PARAM("Device State (Acc.)", CLI_AMI_LIST_WIDTH, "%s", accessorystatus2str(d->accessorystatus));
 	CLI_AMI_OUTPUT_PARAM("Last Used Accessory", CLI_AMI_LIST_WIDTH, "%s", accessory2str(d->accessoryused));

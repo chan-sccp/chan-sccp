@@ -2391,24 +2391,25 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 	char *nm;
 	struct sccp_ha *prev = NULL;
 	struct sccp_ha *ret;
-	struct sccp_ha *p;
 	int x;
 	char *tmp = sccp_strdupa(stuff);
 
 	ret = path;
-	p = path;
-	while (p) {
-		prev = p;
-		p = p->next;
+	while (path) {
+		prev = path;
+		path = path->next;
+		sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "Walk down\n");
 	}
 
-	if (!(ha = sccp_malloc(sizeof(struct sccp_ha)))) {
+	if (!(ha = sccp_calloc(1, sizeof(*ha)))) {
+		if (error) {
+			*error=1;
+		}
 		return ret;
 	}
-	memset(ha, 0, sizeof(struct sccp_ha));
-#if 0	
-	ast_log(LOG_NOTICE, "start parsing ha sense: %s, stuff: %s \n", sense, stuff);
-#endif
+//#if 0
+	sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "start parsing ha sense: %s, stuff: %s \n", sense, stuff);
+//#endif
 	if (!(nm = strchr(tmp, '/'))) {
 		/* assume /32. Yes, htonl does not do anything for this particular mask
 		   but we better use it to show we remember about byte order */
@@ -2467,6 +2468,17 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 	return ret;
 }
 
+void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path)
+{
+	char str1[INET_ADDRSTRLEN];
+	char str2[INET_ADDRSTRLEN];
+	while (path) {
+		inet_ntop(AF_INET, &path->netaddr.s_addr, str1, INET_ADDRSTRLEN);
+		inet_ntop(AF_INET, &path->netmask.s_addr, str2, INET_ADDRSTRLEN);
+		pbx_str_append(&buf, buflen, "%s:%s/%s,", AST_SENSE_DENY==path->sense ? "deny" : "permit", str1, str2);
+		path = path->next;
+	}
+}
 
 /*!
  * \brief Yields string representation from channel (for debug).

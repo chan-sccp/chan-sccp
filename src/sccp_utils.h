@@ -207,6 +207,7 @@ void sccp_free_ha(struct sccp_ha *ha);
 struct sccp_ha *sccp_duplicate_ha_list(struct sccp_ha *original);
 int sccp_apply_ha(struct sccp_ha *ha, struct sockaddr_in *sin);
 struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp_ha *path, int *error);
+void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path);
 void sccp_print_group(struct ast_str *buf, int buflen, sccp_group_t group);
 int sockaddr_cmp_addr(struct sockaddr_storage *addr1, socklen_t len1, struct sockaddr_storage *addr2, socklen_t len2);
 #    endif
