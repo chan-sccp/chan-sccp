@@ -892,19 +892,22 @@ sccp_value_changed_t sccp_config_parse_disallow_codec(void *dest, const size_t s
 sccp_value_changed_t sccp_config_parse_permit(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	int error=0;
 
 	struct sccp_ha *ha = *(struct sccp_ha **)dest;
 
 	if (!strcasecmp(value,"internal")) {
-		ha = sccp_append_ha("permit", "127.0.0.0/255.0.0.0", ha, NULL);
-		ha = sccp_append_ha("permit", "10.0.0.0/255.0.0.0", ha, NULL);
-		ha = sccp_append_ha("permit", "172.16.0.0/255.224.0.0", ha, NULL);
-		ha = sccp_append_ha("permit", "192.168.0.0/255.255.0.0", ha, NULL);
+		ha = sccp_append_ha("permit", "127.0.0.0/255.0.0.0", ha, &error);
+		ha = sccp_append_ha("permit", "10.0.0.0/255.0.0.0", ha, &error);
+		ha = sccp_append_ha("permit", "172.16.0.0/255.224.0.0", ha, &error);
+		ha = sccp_append_ha("permit", "192.168.0.0/255.255.0.0", ha, &error);
 	} else {
-		ha = sccp_append_ha("permit", value, ha, NULL);
+		ha = sccp_append_ha("permit", value, ha, &error);
 	}
-	
-	*(void **)dest = ha;
+	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Permit: %s\n", value);
+
+        if (!error)
+        	*(struct sccp_ha**)dest = ha;
 	
 	return changed;
 }
@@ -917,12 +920,16 @@ sccp_value_changed_t sccp_config_parse_permit(void *dest, const size_t size, con
 sccp_value_changed_t sccp_config_parse_deny(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	int error=0;
 
 	struct sccp_ha *ha = *(struct sccp_ha **)dest;
-	
-	ha = sccp_append_ha("deny", value, ha, NULL);
-	
-	*(void **)dest = ha;
+
+	ha = sccp_append_ha("deny", value, ha, &error);
+
+	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Deny: %s\n", value);
+
+        if (!error)
+        	*(struct sccp_ha **)dest = ha;
 
 	return changed;
 }
