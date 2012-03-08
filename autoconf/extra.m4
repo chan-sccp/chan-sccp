@@ -204,7 +204,7 @@ AC_DEFUN([CS_FIND_LIBRARIES], [
 	AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep strcasecmp strchr strdup strerror strncasecmp strerror strchr malloc calloc realloc free]) 
 	AC_HEADER_STDC    
 	AC_HEADER_STDBOOL 
-	AC_CHECK_HEADERS([netinet/in.h fcntl.h])
+	AC_CHECK_HEADERS([netinet/in.h fcntl.h sys/signal.h stdio.h errno.h ctype.h assert.h])
 	AC_STRUCT_TM
 	AC_STRUCT_TIMEZONE
 ])

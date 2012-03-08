@@ -20316,7 +20316,7 @@ $as_echo "#define HAVE_STDBOOL_H 1" >>confdefs.h
 
 fi
 
-	for ac_header in netinet/in.h fcntl.h
+	for ac_header in netinet/in.h fcntl.h sys/signal.h stdio.h errno.h ctype.h assert.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
