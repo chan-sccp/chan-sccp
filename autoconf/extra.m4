@@ -495,14 +495,15 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		enable_debug_mutex="yes"
 		strip_binaries="no"
 		CFLAGS="$CFLAGS_saved -O0 -Os -Wall"
-		AX_CFLAGS_GCC_OPTION_NEW(-Wstrict-prototypes)
-		AX_CFLAGS_GCC_OPTION_NEW(-Wmissing-prototypes)
-		AX_CFLAGS_GCC_OPTION_NEW(-Wmissing-declarations)
-		AX_CFLAGS_GCC_OPTION_NEW(-Wnested-externs)
-		AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
-dnl		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
-dnl		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
-		CFLAGS_saved="$CFLAGS"
+		if test "x$GCC" = "xyes"; then
+                        AX_CFLAGS_GCC_OPTION_NEW(-Wstrict-prototypes)
+                        AX_CFLAGS_GCC_OPTION_NEW(-Wmissing-prototypes)
+                        AX_CFLAGS_GCC_OPTION_NEW(-Wmissing-declarations)
+                        AX_CFLAGS_GCC_OPTION_NEW(-Wnested-externs)
+                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
+dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
+dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
+    		fi 
 		GDB_FLAGS="-g"
 	else
 		AC_DEFINE([DEBUG],[0],[Extra debugging.])
@@ -511,12 +512,14 @@ dnl		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 		strip_binaries="yes"
 		GDB_FLAGS="$GDB_FLAGS"
 		CFLAGS="$CFLAGS_saved -O3 "
-		AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
-		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
-		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
-		AX_CFLAGS_GCC_OPTION_NEW(-Wno-ignored-qualifiers)
-		CFLAGS_saved="$CFLAGS"
+		if test "x$GCC" = "xyes"; then
+                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
+                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
+dnl                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)	// has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html)
+                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-ignored-qualifiers)
+		fi		
 	fi
+	CFLAGS_saved="$CFLAGS"
 ])
 
 AC_DEFUN([CS_ENABLE_DEBUG], [
@@ -889,5 +892,5 @@ AC_DEFUN([AX_COUNT_CPUS], [
     else
         AC_MSG_RESULT( $CPU_COUNT )
     fi
-    AC_DEFINE_UNQUOTED([CPU_COUNT],`echo ${CPU_COUNT}`,[CPU Count])
+    AC_DEFINE_UNQUOTED([CS_CPU_COUNT],`echo ${CPU_COUNT}`,[CS_CPU Count])
 ])
