@@ -71,24 +71,24 @@ AC_DEFUN([CS_SETUP_HOST_PLATFORM],[
 		ostype=bsd
 		;;
 	  *-aix*)
-	    AC_DEFINE(AIX,,[Define if AIX])
-	     broken_types=yes
+		AC_DEFINE(AIX,,[Define if AIX])
+		broken_types=yes
 		no_libcap=yes
 		ostype=aix
 	    ;;
 	  *-osf4*)
-	    AC_DEFINE(OSF1,,[Define if OSF1])
-	    tru64_types=yes
+		AC_DEFINE(OSF1,,[Define if OSF1])
+		tru64_types=yes
 		no_libcap=yes
 		ostype=osf
 	    ;;
 	  *-osf5.1*)
-	    AC_DEFINE(OSF1)
+		AC_DEFINE(OSF1)
 		no_libcap=yes
 		ostype=osf
 	    ;;
 	  *-tru64*)
-	    AC_DEFINE(OSF1)
+		AC_DEFINE(OSF1)
 		tru64_types=yes
 		no_libcap=yes
 		ostype=osf
@@ -108,7 +108,7 @@ AC_DEFUN([CS_SETUP_HOST_PLATFORM],[
 	  *-*-solaris2*)
 		AC_DEFINE([SOLARIS],[1],[needed for optional declarations to be visible])
 		no_libcap=yes
-	ostype=solaris
+		ostype=solaris
 		force_generic_timers=yes
 		;;
 	  *)
@@ -456,7 +456,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		AX_CFLAGS_GCC_OPTION_NEW(-Wmissing-declarations)
 		AX_CFLAGS_GCC_OPTION_NEW(-Wnested-externs)
 		AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
-		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
+dnl		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
 		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 		CFLAGS_saved="$CFLAGS"
 		GDB_FLAGS="-g"
@@ -467,7 +467,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		strip_binaries="yes"
 		CFLAGS="$CFLAGS_saved -O3"
 		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
-		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
+dnl 		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)		// has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html)
 		AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
 		CFLAGS_saved="$CFLAGS"
 		GDB_FLAGS="$GDB_FLAGS"
