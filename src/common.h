@@ -14,20 +14,52 @@
 extern "C" {
 #endif
 
-#include <sys/signal.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
-#include <netinet/ip.h>
-#include <netinet/tcp.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
+#if HAVE_SYS_SIGNAL_H
+#  include <sys/signal.h>
+#endif
+#if HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+#endif
+#if HAVE_SYS_SOCKET_H
+#  include <sys/socket.h>
+#endif
+#if HAVE_NETINET_IN_H
+#  include <netinet/in.h>
+#  include <netinet/in_systm.h>
+#  include <netinet/ip.h>
+#  include <netinet/tcp.h>
+#endif
+#if HAVE_STRING_H
+#  include <string.h>
+#endif
+#if HAVE_STDIO_H
+#  include <stdio.h>
+#endif
+#if HAVE_STDLIB_H
+#  include <stdlib.h>
+#endif
+#if HAVE_ERRNO_H
+#  include <errno.h>
+#endif
+#if HAVE_CTYPE_H
 #include <ctype.h>
-#include <unistd.h>
-#include <assert.h>
+#endif
+#if HAVE_UNISTD_H
+#  include <unistd.h>
+#endif
+#if HAVE_ASSERT_H
+#  include <assert.h>
+#endif
+#if HAVE_INTTYPES_H
+#  include <inttypes.h>
+#endif
+#if HAVE_BYTESWAP_H
+#  include <byteswap.h>
+#elif HAVE_SYS_BYTEORDER_H
+#  include <sys/byteorder.h>
+#elif HAVE_SYS_ENDIAN_H
+#  include <sys/endian.h>
+#endif
 
 #include "sccp_lock.h"
 #include "sccp_dllists.h"
