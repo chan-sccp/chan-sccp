@@ -1687,10 +1687,12 @@ sccp_line_t *sccp_config_buildLine(sccp_line_t *l, PBX_VARIABLE_TYPE *v, const c
 	l->realtime = isRealtime;
 #endif
 #ifdef CS_DYNAMIC_CONFIG
-	if (res == SCCP_CONFIG_NEEDDEVICERESET && l && l->pendingDelete) {
+	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET && l && l->pendingDelete) {
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: major changes for line '%s' detected, device reset required -> pendingUpdate=1\n", l->id);
 		l->pendingUpdate = 1;
-	}
+	} else {
+	        l->pendingUpdate = 0;
+        }
 	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "%s: Removing pendingDelete\n", l->name);
 	l->pendingDelete = 0;
 #endif	/* CS_DYNAMIC_CONFIG */
@@ -1719,10 +1721,12 @@ sccp_device_t *sccp_config_buildDevice(sccp_device_t *d, PBX_VARIABLE_TYPE *v, c
 #endif
 #ifdef CS_DYNAMIC_CONFIG
 //	if (res == SCCP_CONFIG_NEEDDEVICERESET && d && d->pendingDelete) {
-	if (res == SCCP_CONFIG_NEEDDEVICERESET && d) {
+	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET && d) {
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: major changes for device detected, device reset required -> pendingUpdate=1\n", d->id);
 		d->pendingUpdate = 1;
-	}
+	} else {
+	        d->pendingUpdate = 0;
+        }
 	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "%s: Removing pendingDelete\n", d->id);
 	d->pendingDelete = 0;
 #endif	/* CS_DYNAMIC_CONFIG */
@@ -1803,9 +1807,11 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 //	sccp_config_set_defaults(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
 	
 #ifdef CS_DYNAMIC_CONFIG
-	if (res == SCCP_CONFIG_NEEDDEVICERESET) {
+	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET) {
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "SCCP: major changes detected in globals, reset required -> pendingUpdate=1\n");
 		GLOB(pendingUpdate = 1);
+	} else {
+	        GLOB(pendingUpdate = 0);
 	}
 #endif
 
@@ -2023,9 +2029,11 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			res = sccp_config_applyLineConfiguration(l, v);
 			/* check if we did some changes that needs a device update */
 #    ifdef CS_DYNAMIC_CONFIG
-			if (res == SCCP_CONFIG_NEEDDEVICERESET) {
+			if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET) {
 				l->pendingUpdate = 1;
-			}
+			} else {
+			        l->pendingUpdate = 0;
+		        } 
 #    endif
 			pbx_variables_destroy(v);
 		}
@@ -2034,7 +2042,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	/* finished realtime line reload */
 #endif
 
-	if (GLOB(pendingUpdate)) {
+	if (GLOB(reload_in_progress) && GLOB(pendingUpdate)) {
 		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Global param changed needing restart ->  Restart all device\n");
 		sccp_device_t *device;
 		SCCP_RWLIST_WRLOCK(&GLOB(devices));
@@ -2044,8 +2052,8 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			}
 		}	
 		SCCP_RWLIST_UNLOCK(&GLOB(devices));
-		GLOB(pendingUpdate)=0;
 	}
+	GLOB(pendingUpdate)=0;
 
 
 #ifdef CS_DYNAMIC_CONFIG
