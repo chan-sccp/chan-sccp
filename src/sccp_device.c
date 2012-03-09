@@ -78,7 +78,10 @@ static boolean_t sccp_device_checkACL(sccp_device_t *device){
 	if (sccp_apply_ha(device->ha, &sin) != AST_SENSE_ALLOW) {
 	  
 		// checking permithosts	
-		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: not allowed by deny/permit list. Checking permithost list...", device->id);
+		struct ast_str *ha_buf = pbx_str_alloca(512);
+		sccp_print_ha(ha_buf, sizeof(ha_buf), GLOB(ha));
+		
+		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: not allowed by deny/permit list (%s). Checking permithost list...", device->id, pbx_str_buffer(ha_buf));
 
 		struct ast_hostent ahp;
 		struct hostent *hp;
@@ -171,7 +174,7 @@ boolean_t sccp_device_check_update(sccp_device_t * d)
 		return FALSE;
 	}
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf\n", d->id);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf (%d, %d)\n", d->id, d->pendingUpdate, d->pendingDelete);
 	sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 	if (d->session)
 		pthread_cancel(d->session->session_thread);
