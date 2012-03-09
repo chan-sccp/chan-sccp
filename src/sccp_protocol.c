@@ -536,7 +536,6 @@ static void sccp_protocol_sendOpenReceiveChannelV17(const sccp_device_t *device,
 
         sccp_rtp_getAudioPeer((sccp_channel_t *)channel, &them);
         sccp_moo_t *r = sccp_build_packet(OpenReceiveChannel, sizeof(r->msg.OpenReceiveChannel_v17));
-	memcpy(&r->msg.OpenReceiveChannel_v17.bel_remoteIpAddr, &them->sin_addr, 4);
 	r->msg.OpenReceiveChannel_v17.lel_conferenceId 					= htolel(channel->callid);
 	r->msg.OpenReceiveChannel_v17.lel_passThruPartyId 				= htolel(channel->passthrupartyid);
 	r->msg.OpenReceiveChannel_v17.lel_millisecondPacketSize 			= htolel(packetSize);
@@ -545,6 +544,7 @@ static void sccp_protocol_sendOpenReceiveChannelV17(const sccp_device_t *device,
 	r->msg.OpenReceiveChannel_v17.lel_conferenceId1 				= htolel(channel->callid);
 	r->msg.OpenReceiveChannel_v17.lel_rtptimeout 					= htolel(10);
 	r->msg.OpenReceiveChannel_v17.lel_unknown20 					= htolel(4000);
+	memcpy(&r->msg.OpenReceiveChannel_v17.bel_remoteIpAddr, &them->sin_addr, 4);
 	
 	sccp_dev_send(device, r);  
 }  
@@ -628,8 +628,8 @@ static void sccp_protocol_sendStartMediaTransmissionV3(const sccp_device_t *devi
 	r->msg.StartMediaTransmission.lel_ssValue 					= htolel(channel->line->silencesuppression);	// Silence supression
 	r->msg.StartMediaTransmission.lel_maxFramesPerPacket 				= htolel(0);
 	r->msg.StartMediaTransmission.lel_rtptimeout 					= htolel(10);
-	r->msg.StartMediaTransmission.bel_remoteIpAddr 					= htolel(channel->rtp.audio.phone_remote.sin_addr.s_addr);
 	r->msg.StartMediaTransmission.lel_remotePortNumber 				= htolel(ntohs(channel->rtp.audio.phone_remote.sin_port));
+	memcpy(&r->msg.StartMediaTransmission.bel_remoteIpAddr, &channel->rtp.audio.phone_remote.sin_addr, 4);
 
 	sccp_dev_send(device, r);  
 }
