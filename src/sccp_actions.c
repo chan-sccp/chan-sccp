@@ -307,7 +307,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
  */
 void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
-	uint8_t protocolVer = r->msg.RegisterMessage.phone_features & SKINNY_PHONE_FEATURES_PROTOCOLVERSION;
+	uint8_t protocolVer = letohl(r->msg.RegisterMessage.phone_features) & SKINNY_PHONE_FEATURES_PROTOCOLVERSION;
 
 	uint8_t ourMaxSupportedProtocolVersion = sccp_protocol_getMaxSupportedVersionNumber(s->protocolType);
 
@@ -384,10 +384,10 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	}
 
 	sccp_device_lock(d);
-	d->device_features = r->msg.RegisterMessage.phone_features;
+	d->device_features = letohl(r->msg.RegisterMessage.phone_features);
 	d->linesRegistered = FALSE;
 
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: device load_info='%s', maxbuttons='%d', supports dynamic_messages='%s', supports abbr_dial='%s'\n", r->msg.RegisterMessage.sId.deviceName, r->msg.RegisterMessage.loadInfo, r->msg.RegisterMessage.lel_maxButtons, (r->msg.RegisterMessage.phone_features & SKINNY_PHONE_FEATURES_DYNAMIC_MESSAGES) == 0 ? "no" : "yes", (r->msg.RegisterMessage.phone_features & SKINNY_PHONE_FEATURES_ABBRDIAL) == 0 ? "no" : "yes");
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: device load_info='%s', maxbuttons='%d', supports dynamic_messages='%s', supports abbr_dial='%s'\n", r->msg.RegisterMessage.sId.deviceName, r->msg.RegisterMessage.loadInfo, r->msg.RegisterMessage.lel_maxButtons, (d->device_features & SKINNY_PHONE_FEATURES_DYNAMIC_MESSAGES) == 0 ? "no" : "yes", (d->device_features & SKINNY_PHONE_FEATURES_ABBRDIAL) == 0 ? "no" : "yes");
 
 	if (GLOB(localaddr) && sccp_apply_ha(GLOB(localaddr), &s->sin) != AST_SENSE_ALLOW) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream (%s does not fit permit/deny)\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
