@@ -75,9 +75,6 @@
    non-root user. These may be able to be tested at runtime. */
 #undef CONFIGURE_RAN_AS_ROOT
 
-/* CPU Count */
-#undef CPU_COUNT
-
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */
@@ -211,6 +208,9 @@
 
 /* Found 'AST_FORMAT_SIREN7' in asterisk/frame.h */
 #undef CS_CODEC_G722_1_24K
+
+/* CS_CPU Count */
+#undef CS_CPU_COUNT
 
 /* debug indications enabled */
 #undef CS_DEBUG_INDICATIONS
