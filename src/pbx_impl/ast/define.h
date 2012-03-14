@@ -63,6 +63,7 @@
 #    define pbx_channel_unregister ast_channel_unregister
 
 // general redefinitions
+#    define pbx_check_hangup ast_check_hangup
 #    define pbx_channel_lock ast_channel_lock
 #    define pbx_channel_unlock ast_channel_unlock
 #    define pbx_sched_wait ast_sched_wait
@@ -181,7 +182,6 @@
 //#    define pbx_queue_control ast_queue_control
 //#    define pbx_queue_frame ast_queue_frame
 #    define pbx_queue_hangup ast_queue_hangup
-#    define pbx_hangup ast_hangup
 #    define pbx_random ast_random
 #    define pbx_realloc ast_realloc
 #    define pbx_register_file_version ast_register_file_version
@@ -260,6 +260,4 @@
 #    define pbx_hangup ast_hangup
 
 #    define pbx_atomic_fetchadd_int ast_atomic_fetchadd_int
-#    define pbx_explicit_goto ast_explicit_goto
-#    define pbx_channel_make_compatible ast_channel_make_compatible
 #endif
