@@ -639,10 +639,13 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 		return;
 	}
 
-	if (!lineInstance)
-		l = sccp_line_find_byid(d, 1);
-	else
-		l = sccp_line_find_byid(d, lineInstance);
+        if (!lineInstance) {
+                if (d->defaultLineInstance)
+                        lineInstance = d=>defaultLineInstance;
+                else
+                        lineInstance = 1;
+        }
+        l = sccp_line_find_byid(d, lineInstance);
 
 	if (!l) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, lineInstance);
