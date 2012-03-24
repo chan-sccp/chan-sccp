@@ -641,7 +641,7 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 
         if (!lineInstance) {
                 if (d->defaultLineInstance)
-                        lineInstance = d=>defaultLineInstance;
+                        lineInstance = d->defaultLineInstance;
                 else
                         lineInstance = 1;
         }
