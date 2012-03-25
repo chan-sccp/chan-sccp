@@ -648,9 +648,18 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
         l = sccp_line_find_byid(d, lineInstance);
 
 	if (!l) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line with instance %d found. Not Dialing Voicemail Extension.\n", d->id, lineInstance);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line with instance %d found.\n", d->id, lineInstance);
+		
+		//TODO workaround to solve the voicemail button issue with old hint style and speeddials before first line -MC
+		if(d->defaultLineInstance){
+			l = sccp_line_find_byid(d, d->defaultLineInstance);
+		}
+	}
+	if (!l) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line with defaultLineInstance %d found. Not Dialing Voicemail Extension.\n", d->id, d->defaultLineInstance);
 		return;
 	}
+	
 	if (!sccp_strlen_zero(l->vmnum)) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Dialing voicemail %s\n", d->id, l->vmnum);
 		sccp_channel_newcall(l, d, l->vmnum, SKINNY_CALLTYPE_OUTBOUND);
