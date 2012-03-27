@@ -995,7 +995,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_moo_t *
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if (config->instance == lineNumber) {
 				if (config->type == LINE) {
-					if (config->button.line.options && !strcasecmp(config->button.line.options, "default")) {
+					if (config->button.line.options && strcasestr(config->button.line.options, "default")) {
 						d->defaultLineInstance = lineNumber;
 						sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", lineNumber);
 					}
