@@ -1719,7 +1719,8 @@ void sccp_channel_transfer_locked(sccp_channel_t * channel)
 		pbx_builtin_setvar_helper(CS_AST_BRIDGED_CHANNEL(channel->owner), "BLINDTRANSFER", sccp_channel_new->owner->name);
 
 	}
-	sccp_channel_unlock(sccp_channel_new);
+	if (sccp_channel_new)
+		sccp_channel_unlock(sccp_channel_new);
 }
 
 /*!
