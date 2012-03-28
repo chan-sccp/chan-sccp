@@ -71,7 +71,7 @@ boolean_t sccp_device_checkACL(sccp_device_t *device, sccp_session_t *session)
 		matchesACL = TRUE;
 	}
   
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: checkACL returning %s", device->id, matchesACL ? "TRUE" : "FALSE");
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: checkACL returning %s\n", device->id, matchesACL ? "TRUE" : "FALSE");
 	return matchesACL;
 }
 
@@ -605,8 +605,9 @@ void sccp_dev_sendmsg(const sccp_device_t * d, sccp_message_t t)
 void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 {
 	char servername[StationMaxDisplayNotifySize];
-
 	sccp_moo_t *r;
+
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: (sccp_dev_set_registered) Setting Registered Status for Device from %s to %s\n", DEV_ID_LOG(d), deviceregistrationstatus2str(d->registrationState), deviceregistrationstatus2str(opt));
 
 	if (d->registrationState == opt)
 		return;
