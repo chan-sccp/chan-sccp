@@ -80,7 +80,7 @@ static void sccp_read_data(sccp_session_t * s)
 			ast_log(LOG_WARNING, "SCCP: FIONREAD Come back later (EAGAIN): %s\n", strerror(errno));
 		} else {
 			/* probably a CLOSE_WAIT (readlen==0 || errno == ECONNRESET || errno == ETIMEDOUT) */
-			ast_log(LOG_WARNING, "SCCP: read() returned zero length. Assuming closed connection.\n");
+			ast_log(LOG_NOTICE, "SCCP: socket read returned zero length, either device disconnected or network disconnect. Closing Connection.\n");
 			pthread_cancel(s->session_thread);
 		}
 		ast_free(input);
