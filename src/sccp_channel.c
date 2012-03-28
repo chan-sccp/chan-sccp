@@ -1980,21 +1980,19 @@ void sccp_channel_transfer_locked(sccp_channel_t * c)
 		return;
 	}
 
-	sccp_device_lock(d);
-	
 	/* are we in the middle of a transfer? */
 	/*! \todo It is a bad idea to instigate transfer twice on a channel already being transferred. (-DD) */
+	sccp_device_lock(d);
 	if (d->transfer_channel && (d->transfer_channel != c)) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion\n", (d && d->id) ? d->id : "SCCP");
 		sccp_device_unlock(d);
 		sccp_channel_transfer_complete(c);
 		return;
 	}
-
 	d->transfer_channel = c;
 	sccp_device_unlock(d);
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%08X\n", (d && d->id) ? d->id : "SCCP", (c->line && c->line->name) ? c->line->name : "(null)", c->callid);
 
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%08X\n", (d && d->id) ? d->id : "SCCP", (c->line && c->line->name) ? c->line->name : "(null)", c->callid);
 	if (!c->owner) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No bridged channel to transfer on %s-%08X\n", (d && d->id) ? d->id : "SCCP", (c->line && c->line->name) ? c->line->name : "(null)", c->callid);
 		instance = sccp_device_find_index_for_line(d, c->line->name);
@@ -2016,7 +2014,8 @@ void sccp_channel_transfer_locked(sccp_channel_t * c)
 		pbx_builtin_setvar_helper(newcall->owner, "BLINDTRANSFER", CS_AST_BRIDGED_CHANNEL(c->owner)->name);
 		pbx_builtin_setvar_helper(CS_AST_BRIDGED_CHANNEL(c->owner), "BLINDTRANSFER", newcall->owner->name);
 	}
-	sccp_channel_unlock(newcall);
+	if (newcall)
+        	sccp_channel_unlock(newcall);
 }
 
 /*!
@@ -2094,8 +2093,8 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal)
 	}
 	// Obtain the device from which the transfer was initiated
 	d = cDestinationLocal->device;
-	sccp_device_lock(d);
 	// Obtain the source channel on that device
+	sccp_device_lock(d);
 	cSourceLocal = d->transfer_channel;
 	sccp_device_unlock(d);
 
