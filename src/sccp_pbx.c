@@ -932,7 +932,7 @@ static int sccp_pbx_indicate(struct ast_channel *ast, int ind, const void *data,
 
 	while (sccp_channel_trylock(c)) {
 		if (deadlockAvoidanceCounter++ > 100) {
-			ast_log(LOG_ERROR, "SCCP: We detected a possible deadlock after 100 tries (giving up) in %s:%d\n", __FILE__, __LINE__);
+			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "SCCP: We detected a possible deadlock after 100 tries (giving up) in %s:%d\n", __FILE__, __LINE__);
 			return -1;
 		}
 
