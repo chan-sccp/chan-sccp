@@ -377,28 +377,28 @@ static sccp_device_t *check_session_message_device(sccp_session_t * s, sccp_moo_
 
 	if (!s || (s->fds[0].fd < 0)) {
 		ast_log(LOG_ERROR, "(%s) Session no longer valid\n", msg);
-		return NULL;
+		goto EXIT;
 	}
 
 	if (!r) {
 		ast_log(LOG_ERROR, "(%s) No Message Provided\n", msg);
-		return NULL;
+		goto EXIT;
 	}
 
 	if (!(d = s->device)) {
-		ast_log(LOG_ERROR, "No valid Device available to handle %s for\n", msg);
-		return NULL;
+		ast_log(LOG_WARNING, "No valid Session Device available to handle %s for,\n", msg);
+		goto EXIT;
 	}
-
-	if (s != s->device->session) {
+	if (s->device && s != s->device->session) {
 		ast_log(LOG_WARNING, "(%s) Provided Session and Device Session are not the same!!\n", msg);
 	}
 
+EXIT:
 	if ((GLOB(debug) & (DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) != 0) {
 		uint32_t mid = letohl(r->lel_messageId);
 
 		ast_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(d), message2str(mid), mid, r->length);
-		sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
+		sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
 	}
 
 	return d;
@@ -461,7 +461,7 @@ static const struct sccp_messageMap_cb messagesCbMap[] = {
 	{RegisterTokenReq, sccp_handle_register, FALSE},
 #endif
 	{SPARegisterMessage, sccp_handle_SPAregister, FALSE},
-	{UnregisterMessage, sccp_handle_unregister, TRUE},
+	{UnregisterMessage, sccp_handle_unregister, FALSE},
 	{RegisterMessage, sccp_handle_register, FALSE},
 	{AlarmMessage, sccp_handle_alarm, FALSE},
 	{XMLAlarmMessage, sccp_handle_unknown_message, FALSE},
