@@ -1924,18 +1924,6 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 
 	struct tm *cmtime = NULL;
 
-	/*! \todo check this in handle messages */
-	if (!s || (s->fds[0].fd < 0)) {
-		ast_log(LOG_ERROR, "(Time Date Request) Session no longer valid\n");
-		return;
-	}
-
-	/*! \todo check this in handle messages */
-	if (s != s->device->session) {
-		ast_log(LOG_WARNING, "(Time Date Request) Provided Session and Device Session are not the same!!\n");
-		return;
-	}
-
 	sccp_moo_t *r1;
 
 	REQ(r1, DefineTimeDate);
