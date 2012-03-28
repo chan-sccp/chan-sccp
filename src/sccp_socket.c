@@ -229,7 +229,7 @@ void *sccp_socket_device_thread(void *session)
 	pthread_cleanup_push(sccp_socket_device_thread_exit, session);
 
 	/* we increase additionalTime for wireless/slower devices */
-	if (s->device && (s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7970)) {
+	if (s->device && (s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO6911)) {
 		keepaliveAdditionalTime += 10;
 	}
 
@@ -258,7 +258,7 @@ void *sccp_socket_device_thread(void *session)
 				pollTimeout = 5000;
 			}
 
-			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: set poll timeout %d\n", DEV_ID_LOG(s->device), pollTimeout);
+			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: set poll timeout %d\n", DEV_ID_LOG(s->device), pollTimeout);
 
 			res = sccp_socket_poll(s->fds, 1, pollTimeout);
 			if (res < 0) {						/* poll error */
@@ -276,7 +276,7 @@ void *sccp_socket_device_thread(void *session)
 			}
 
 			if (s->fds[0].revents) {				/* handle poll events a.k.a. data processing */
-				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
+				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
 				sccp_read_data(s);
 				while ((m = sccp_process_data(s))) {
 					if (!sccp_handle_message(m, s)) {
@@ -508,8 +508,10 @@ void *sccp_socket_thread(void *ignore)
  */
 void sccp_session_sendmsg(const sccp_device_t * device, sccp_message_t t)
 {
-	if (!device || !device->session)
+	if (!device || !device->session) {
+        	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: (sccp_session_sendmsg) No device available to send message to\n");
 		return;
+        }
 
 	sccp_moo_t *r = sccp_build_packet(t, 0);
 
@@ -565,7 +567,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 
 	//sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
 
-	if (msgid == KeepAliveAckMessage || msgid == RegisterAckMessage) {
+	if (msgid == KeepAliveAckMessage || msgid == RegisterAckMessage || msgid == UnregisterAckMessage) {
 		r->lel_reserved = 0;
 	} else if (s->device && s->device->inuseprotocolversion >= 17) {
 		r->lel_reserved = htolel(0x11);					// we should always send 0x11
@@ -580,7 +582,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 	bytesSent = 0;
 	bufAddr = ((uint8_t *) r);
 	bufLen = (ssize_t) (letohl(r->length) + 8);
-	/* sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Sending Packet Type %s (%d bytes)\n", s->device->id, message2str(letohl(r->lel_messageId)), letohl(r->length)); */
+	/* sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Sending Packet Type %s (%d bytes)\n", DEV_ID_LOG(s->device), message2str(letohl(r->lel_messageId)), letohl(r->length)); */
 	do {
 		res = write(s->fds[0].fd, bufAddr + bytesSent, bufLen - bytesSent);
 		if (res >= 0) {
@@ -597,12 +599,11 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 	sccp_session_unlock(s);
 	ast_free(r);
 
-	if (bytesSent < bufLen) {
-		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Could only send %d of %d bytes!\n", s->device->id, (int)bytesSent, (int)bufLen);
-		sccp_session_close(s);
-		return 0;
-	}
-
+        if (bytesSent < bufLen) {
+                ast_log(LOG_ERROR, "%s: Could only send %d of %d bytes!\n", DEV_ID_LOG(s->device), (int)bytesSent, (int)bufLen);
+//              sccp_session_close(s);
+                return -1;
+        }
 	return res;
 }
 
@@ -616,9 +617,11 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
  */
 sccp_session_t *sccp_session_find(const sccp_device_t * device)
 {
-	if (!device)
+	if (!device) {
+        	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: (sccp_session_find) No device available to find session\n");
 		return NULL;
-
+        }
+        
 	return device->session;
 }
 
