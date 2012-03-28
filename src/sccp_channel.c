@@ -1348,7 +1348,7 @@ void sccp_channel_endcall_locked(sccp_channel_t * c)
 		/* Is there a blocker ? */
 		res = (c->owner->pbx || c->owner->blocker);
 
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending %s hangup request to %s\n", DEV_ID_LOG(c->device), res ? "(queue)" : "(force)", c->owner->name);
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending %s hangup request to %s (state: %s)\n", DEV_ID_LOG(c->device), res ? "(queue)" : "(force)", c->owner->name, sccp_callstate2str(c->state));
 
 		c->owner->hangupcause = AST_CAUSE_NORMAL_CLEARING;
 		if ((c->owner->_softhangup & AST_SOFTHANGUP_APPUNLOAD) != 0) {
