@@ -1005,7 +1005,7 @@ int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rt
 	}
 
 	sccp_channel_lock(c);
-	if (NULL != c->owner) {
+	if (NULL == c->owner) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) c->owner is null\n");
 		sccp_channel_unlock(c);
 		return -1;
@@ -1022,13 +1022,13 @@ int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rt
 		return -1;
 	}
 
-	if (!d->directrtp) {
+/*	if (!d->directrtp) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (sccp_channel_set_rtp_peer) Direct RTP disabled\n", DEV_ID_LOG(c->device) );
 		sccp_channel_unlock(c);
 		return -1;
-	}
+	}*/
 
-	if (rtp) {
+	if (rtp && d->directrtp) {
 		ast_rtp_get_peer(rtp, &them);
 		sccp_rtp_set_peer(c, &them);
 		sccp_channel_unlock(c);
