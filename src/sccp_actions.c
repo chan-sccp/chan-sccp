@@ -64,7 +64,7 @@ void sccp_handle_unknown_message(sccp_session_t * s, sccp_device_t * d, sccp_moo
 	if ((GLOB(debug) & (DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) != 0)		// only show when debugging messages
 		ast_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", message2str(mid), mid, r->length);
 
-	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
+	sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
 }
 
 #ifdef CS_ADV_FEATURES
@@ -1924,6 +1924,18 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 
 	struct tm *cmtime = NULL;
 
+	/*! \todo check this in handle messages */
+	if (!s || (s->fds[0].fd < 0)) {
+		ast_log(LOG_ERROR, "(Time Date Request) Session no longer valid\n");
+		return;
+	}
+
+	/*! \todo check this in handle messages */
+	if (s != s->device->session) {
+		ast_log(LOG_WARNING, "(Time Date Request) Provided Session and Device Session are not the same!!\n");
+		return;
+	}
+
 	sccp_moo_t *r1;
 
 	REQ(r1, DefineTimeDate);
@@ -2123,9 +2135,11 @@ void sccp_handle_dialtone_locked(sccp_channel_t * c)
 
 	sccp_device_t *d = NULL;
 
-	int len = 0, len1 = 0;
+	int lenDialed = 0, lenSecDialtoneDigits = 0;
 
 	uint8_t instance;
+	uint32_t callid = 0;
+	uint32_t secondary_dialtone_tone = 0;
 
 	if (!c)
 		return;
@@ -2136,24 +2150,25 @@ void sccp_handle_dialtone_locked(sccp_channel_t * c)
 	if (!(d = c->device))
 		return;
 
-	len = strlen(c->dialedNumber);
+	callid = c->callid;
+	lenDialed = strlen(c->dialedNumber);
 	instance = sccp_device_find_index_for_line(d, l->name);
 	/* secondary dialtone check */
-	len1 = strlen(l->secondary_dialtone_digits);
+	lenSecDialtoneDigits = strlen(l->secondary_dialtone_digits);
+	secondary_dialtone_tone = l->secondary_dialtone_tone;
 
 	/* we check dialtone just in DIALING action
 	 * otherwise, you'll get secondary dialtone also
 	 * when catching call forward number, meetme room,
 	 * etc.
 	 * */
-
 	if (c->ss_action != SCCP_SS_DIAL)
 		return;
 
-	if (len == 0 && c->state != SCCP_CHANNELSTATE_OFFHOOK) {
+	if (lenDialed == 0 && c->state != SCCP_CHANNELSTATE_OFFHOOK) {
 		sccp_dev_stoptone(d, instance, c->callid);
 		sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, c->callid, 0);
-	} else if (len == 1) {
+	} else if (lenDialed == 1) {
 		if (c->state != SCCP_CHANNELSTATE_DIALING) {
 			sccp_dev_stoptone(d, instance, c->callid);
 			sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_DIALING);
@@ -2162,12 +2177,14 @@ void sccp_handle_dialtone_locked(sccp_channel_t * c)
 		}
 	}
 
-	if (len1 && len == len1 && !strncmp(c->dialedNumber, l->secondary_dialtone_digits, len1)) {
-		/* We have a secondary dialtone */
-		sccp_safe_sleep(100);
-		sccp_dev_starttone(d, l->secondary_dialtone_tone, instance, c->callid, 0);
-	} else if ((len1) && (len == len1 + 1 || (len > 1 && len1 > 1 && len == len1 - 1))) {
-		sccp_dev_stoptone(d, instance, c->callid);
+	if (d && c) {
+		if (lenSecDialtoneDigits && lenDialed == lenSecDialtoneDigits && !strncmp(c->dialedNumber, l->secondary_dialtone_digits, lenSecDialtoneDigits)) {
+			/* We have a secondary dialtone */
+//			sccp_safe_sleep(100);
+			sccp_dev_starttone(d, secondary_dialtone_tone, instance, callid, 0);
+		} else if ((lenSecDialtoneDigits) && (lenDialed == lenSecDialtoneDigits + 1 || (lenDialed > 1 && lenSecDialtoneDigits > 1 && lenDialed == lenSecDialtoneDigits - 1))) {
+			sccp_dev_stoptone(d, instance, callid);
+		}
 	}
 }
 
@@ -2324,11 +2341,12 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 
 	struct sockaddr_in us;
 
-	sccp_channel_t *c;
+	sccp_channel_t *c = NULL;
 
 	char ipAddr[16];
 
-	uint32_t status = 0, ipPort = 0, partyID = 0;
+	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0;
+	uint32_t unknown1 = 0, unknown2 = 0, unknown3 = 0, unknown4 = 0;
 
 	memset(ipAddr, 0, 16);
 	if (d->inuseprotocolversion < 17) {
@@ -2336,11 +2354,21 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		partyID = letohl(r->msg.OpenReceiveChannelAck.lel_passThruPartyId);
 		status = letohl(r->msg.OpenReceiveChannelAck.lel_orcStatus);
 		memcpy(&ipAddr, &r->msg.OpenReceiveChannelAck.bel_ipAddr, 4);
+		callID = letohl(r->msg.OpenReceiveChannelAck.lel_callReference);
+		unknown1 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_1);
+		unknown2 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_2);
+		unknown3 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_3);
+		unknown4 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_4);
 	} else {
 		ipPort = htons(letohl(r->msg.OpenReceiveChannelAck_v17.lel_portNumber));
 		partyID = letohl(r->msg.OpenReceiveChannelAck_v17.lel_passThruPartyId);
 		status = letohl(r->msg.OpenReceiveChannelAck_v17.lel_orcStatus);
 		memcpy(&ipAddr, &r->msg.OpenReceiveChannelAck_v17.bel_ipAddr, 16);
+		callID = letohl(r->msg.OpenReceiveChannelAck.lel_callReference);
+		unknown1 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_1);
+		unknown2 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_2);
+		unknown3 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_3);
+		unknown4 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_4);
 	}
 	if (status) {
 		ast_log(LOG_ERROR, "Open Receive Channel Failure\n");
@@ -2354,15 +2382,19 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		memcpy(&sin.sin_addr, &s->sin.sin_addr, sizeof(sin.sin_addr));
 	sin.sin_port = ipPort;
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, Trustphoneip: %s, Directrtp: %s, Natted: %s\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, d->trustphoneip ? "yes" : "no", d->directrtp ? "yes" : "no", d->nat ? "yes" : "no");
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, CallID: %u, Trustphoneip: %s, Directrtp: %s, Natted: %s\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, callID, d->trustphoneip ? "yes" : "no", d->directrtp ? "yes" : "no", d->nat ? "yes" : "no");
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Unknown1: %u, Unknown2: %u: Unknown3: %u, Unknown4: %u\n", d->id, unknown1, unknown2, unknown3, unknown4);
 	if (status) {
 		/* rtp error from the phone */
 		ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available\n", d->id, status);
 		return;
 	}
 
-	c = sccp_channel_find_bypassthrupartyid_locked(partyID);
-
+	if (partyID != 0)
+		c = sccp_channel_find_bypassthrupartyid_locked(partyID);
+        if (!c && callID != 0)   
+		c = sccp_channel_find_byid_locked(callID);
+                        
 	/* prevent a segmentation fault on fast hangup after answer, failed voicemail for example */
 	if (c) {								// && c->state != SCCP_CHANNELSTATE_DOWN) {
 		if (status) {
@@ -3063,7 +3095,6 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 	}
 
 /* TODO: Maybe consider trustphoneip here if appropriate (_DD) */
-
 	sin.sin_family = AF_INET;
 	memcpy(&sin.sin_addr, ipAddr, 4);
 	sin.sin_port = ipPort;
@@ -3076,11 +3107,12 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 		c = sccp_channel_find_byid_locked(callID1);
 	
 	if (!c) {
-		ast_log(LOG_WARNING, "%s: Channel with passthrupartyid %u not found, please report this to developer\n", DEV_ID_LOG(d), partyID);
+		ast_log(LOG_WARNING, "%s: Channel with passthrupartyid %u / callid %u / callid1 %u not found, please report this to developer\n", DEV_ID_LOG(d), partyID, callID, callID1);
 		return;
 	}
 	if (status) {
-		ast_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call\n", DEV_ID_LOG(d));
+		ast_log(LOG_WARNING, "%s: Error while opening MediaTransmission (%d). Ending call\n", DEV_ID_LOG(d), status);
+		sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
 		sccp_channel_endcall_locked(c);
 		sccp_channel_unlock(c);
 		return;
