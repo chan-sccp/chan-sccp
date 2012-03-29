@@ -9,7 +9,8 @@
 [general]
 servername = Asterisk					; show this name on the device registration
 keepalive = 60						; Phone keep alive message every 60 secs. Used to check the voicemail and keep an open connection between server and phone (nat). 
-							; Don't set any lower than 60 seconds.
+							; Don't set any lower than 60 seconds. Actual device keepalive value is randomized within the time segment specified to spread multiple 
+							; devices over time, to reduce the load on server by keepalive message.
 debug = core						; console debug level or categories
 							; examples: debug = 11 | debug = mwi,event,core | debug = all | debug = none or 0
 							; possible categories: 
@@ -134,7 +135,7 @@ hotline_extension=111
 
 [defaultdevice](!)					; default device template
 type = device						; specifies that this template is for a device, it will be inherited
-keepalive = 60						; set 0 to disable the keepalive check.
+keepalive = 30						; set 0 to disable the keepalive check. Set to lower value like 30 on wifi devices.
 tzoffset = +2
 transfer = on						; enable or disable the transfer capability. It does remove the transfer softkey
 park = on						; take a look to the compile howto. Park stuff is not compiled by default
@@ -425,7 +426,7 @@ offhookfeat     = redial,endcall								; off hook with features
 onhint          = newcall,pickup,barge								; hint is indicating activity
 digitsfoll      = back,endcall,dial								; shown after firstdigit has been entered
 ringin          = answer,endcall,transvm,idivert						; incoming line ringing
-ringout         = endcall,transfer,cfwdall,idivert						; outgoing line ringing 
+ringout         = empty,endcall,transfer,cfwdall,idivert					; outgoing line ringing 
 connected       = hold,endcall,park,select,cfwdall,cfwdbusy,idivert				; call connected
 onhold          = resume,newcall,endcall,transfer,conflist,select,dirtrfr,idivert,meetme	; call on hold
 conntrans       = hold,endcall,transfer,conf,park,select,dirtrfr,meetme,cfwdall,cfwdbusy       	; transferable connection

@@ -1,4 +1,68 @@
 ------------------------------------------------------------------------
+r3331 | ddegroot | 2012-03-28 18:35:52 +0200 (Wed, 28 Mar 2012) | 1 line
+
+Extend Hangup Logging To Include Channel State
+------------------------------------------------------------------------
+r3330 | ddegroot | 2012-03-28 18:32:56 +0200 (Wed, 28 Mar 2012) | 1 line
+
+Send Device Reset during module unload, to speed up reregister.
+------------------------------------------------------------------------
+r3329 | ddegroot | 2012-03-28 18:32:29 +0200 (Wed, 28 Mar 2012) | 1 line
+
+Fix handle_time_date, check should happend check_message
+------------------------------------------------------------------------
+r3328 | ddegroot | 2012-03-28 16:48:14 +0200 (Wed, 28 Mar 2012) | 1 line
+
+Lowered 'socket read() zero length' status from WARNING to NOTICE
+------------------------------------------------------------------------
+r3327 | ddegroot | 2012-03-28 16:38:00 +0200 (Wed, 28 Mar 2012) | 1 line
+
+Indent debug output from Fire event and event type, to follow the flow
+------------------------------------------------------------------------
+r3326 | ddegroot | 2012-03-28 16:36:50 +0200 (Wed, 28 Mar 2012) | 1 line
+
+Decrease the importantance of deadlock warning
+------------------------------------------------------------------------
+r3325 | ddegroot | 2012-03-28 16:31:06 +0200 (Wed, 28 Mar 2012) | 1 line
+
+Clarify/Add debug messages. Increase lock span in sccp_handle_AvailableLines, to prevent reported sccp_line_addDevice issue. sccp_handle_unregister now sends message directly to session not requiring valid device to be registered. Handle startmediatransmission even when no valid passthrupartyid was returned, instead use callID/callID1 when available.
+------------------------------------------------------------------------
+r3324 | ddegroot | 2012-03-28 16:26:42 +0200 (Wed, 28 Mar 2012) | 1 line
+
+Allow Unregister message handling without valid device, use one exit point during message_check. Allow dumping of packet even if device was not specified. Use r-msg instead of r->msg.RegisterMessage when calling sccp_dump_packet
+------------------------------------------------------------------------
+r3323 | ddegroot | 2012-03-28 16:24:24 +0200 (Wed, 28 Mar 2012) | 1 line
+
+Fix transfer unlock issue, when new_channel could not be created.
+------------------------------------------------------------------------
+r3322 | ddegroot | 2012-03-28 16:23:26 +0200 (Wed, 28 Mar 2012) | 1 line
+
+Extended logging in sccp_socket.c. Do not close session when a complete message could not be delivered, if necessary session timeout will take care of the cleanup. Add 6911 phones to list of phones that need addional time for keepalive
+------------------------------------------------------------------------
+r3321 | ddegroot | 2012-03-28 16:20:54 +0200 (Wed, 28 Mar 2012) | 1 line
+
+Clarify debug messages
+------------------------------------------------------------------------
+r3304 | ddegroot | 2012-03-08 19:09:34 +0100 (Thu, 08 Mar 2012) | 1 line
+
+Removed -Wno-unused-but-set-variable because of negative side effect on certain platforms (debian lenny-> http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html)
+------------------------------------------------------------------------
+r3295 | ddegroot | 2012-03-02 18:53:21 +0100 (Fri, 02 Mar 2012) | 1 line
+
+Remove use of log_show_lock (Philipep Teissier / Sparc64 / Asterisk 1.6.2.22)
+------------------------------------------------------------------------
+r3289 | ddegroot | 2012-02-25 23:05:42 +0100 (Sat, 25 Feb 2012) | 1 line
+
+Irradicate rpl_malloc issues when cross compiling, by updating autocon/extra,m4
+------------------------------------------------------------------------
+r3258 | ddegroot | 2012-02-17 22:32:42 +0100 (Fri, 17 Feb 2012) | 1 line
+
+Revert to previous behaviour for SCCP_CHANNELSTATE_DIGITSFOLL (waiting for discussion to close)
+------------------------------------------------------------------------
+r3256 | ddegroot | 2012-02-17 16:30:45 +0100 (Fri, 17 Feb 2012) | 1 line
+
+Remove setting sccp_dev_set_keyset during digitsfoll when already in that mode
+------------------------------------------------------------------------
 r3169 | ddegroot | 2012-01-08 03:41:11 +0100 (Sun, 08 Jan 2012) | 1 line
 
 rename sccp_simple.conf to sccp.conf (To make it easier for beginning users)
