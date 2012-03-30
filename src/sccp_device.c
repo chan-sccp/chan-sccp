@@ -71,7 +71,7 @@ static boolean_t sccp_device_checkACL(sccp_device_t *device){
 	
 	/* no permit deny information */
 	if(!device->ha){
-		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: no deny/permit information for this device, allow all connections", device->id);
+		pbx_log(LOG_NOTICE, "%s: no deny/permit information for this device, allow all connections\n", device->id);
 		return TRUE;
 	}
   
@@ -81,7 +81,7 @@ static boolean_t sccp_device_checkACL(sccp_device_t *device){
 		struct ast_str *ha_buf = pbx_str_alloca(512);
 		sccp_print_ha(ha_buf, sizeof(ha_buf), GLOB(ha));
 		
-		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: not allowed by deny/permit list (%s). Checking permithost list...", device->id, pbx_str_buffer(ha_buf));
+		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: not allowed by deny/permit list (%s). Checking permithost list...\n", device->id, pbx_str_buffer(ha_buf));
 
 		struct ast_hostent ahp;
 		struct hostent *hp;
@@ -106,6 +106,7 @@ static boolean_t sccp_device_checkACL(sccp_device_t *device){
 		matchesACL = TRUE;
 	}
   
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: checkACL returning %s\n", device->id, matchesACL ? "TRUE" : "FALSE");
 	return matchesACL;
 }
 
@@ -666,6 +667,8 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 {
 	char servername[StationMaxDisplayNotifySize];
 	sccp_moo_t *r;
+
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: (sccp_dev_set_registered) Setting Registered Status for Device from %s to %s\n", DEV_ID_LOG(d), deviceregistrationstatus2str(d->registrationState), deviceregistrationstatus2str(opt));
 
 	if (d->registrationState == opt)
 		return;
