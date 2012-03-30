@@ -2331,9 +2331,10 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 {
 	struct sockaddr_in sin;
 
-	sccp_channel_t *channel;
+	sccp_channel_t *channel = NULL;
 	char ipAddr[16];
-	uint32_t status = 0, ipPort = 0, partyID = 0;
+	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0;
+	uint32_t unknown1 = 0, unknown2 = 0, unknown3 = 0, unknown4 = 0;
 
 	memset(ipAddr, 0, 16);
 	if (d->inuseprotocolversion < 17) {
@@ -2341,11 +2342,21 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		partyID = letohl(r->msg.OpenReceiveChannelAck.lel_passThruPartyId);
 		status = letohl(r->msg.OpenReceiveChannelAck.lel_orcStatus);
 		memcpy(&ipAddr, &r->msg.OpenReceiveChannelAck.bel_ipAddr, 4);
+		unknown1 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_1);
+		unknown2 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_2);
+		unknown3 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_3);
+		unknown4 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_4);
+		callID = letohl(r->msg.OpenReceiveChannelAck.lel_callReference);
 	} else {
 		ipPort = htons(htolel(r->msg.OpenReceiveChannelAck_v17.lel_portNumber));
 		partyID = letohl(r->msg.OpenReceiveChannelAck_v17.lel_passThruPartyId);
 		status = letohl(r->msg.OpenReceiveChannelAck_v17.lel_orcStatus);
 		memcpy(&ipAddr, &r->msg.OpenReceiveChannelAck_v17.bel_ipAddr, 16);
+		unknown1 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_1);
+		unknown2 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_2);
+		unknown3 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_3);
+		unknown4 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_4);
+		callID = letohl(r->msg.OpenReceiveChannelAck_v17.lel_callReference);
 	}
 	if (status) {
 		pbx_log(LOG_ERROR, "Open Receive Channel Failure\n");
@@ -2360,14 +2371,18 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 	}
 	sin.sin_port = ipPort;
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, CallID: %u\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, callID);
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Unknown1: %u, Unknown2: %u: Unknown3: %u, Unknown4: %u\n", d->id, unknown1, unknown2, unknown3, unknown4);
 	if (status) {
 		/* rtp error from the phone */
 		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available\n", d->id, status);
 		return;
 	}
 
-	channel = sccp_channel_find_bypassthrupartyid_locked(partyID);
+	if (partyID != 0)
+		channel = sccp_channel_find_bypassthrupartyid_locked(partyID);
+        if (!channel && callID != 0)   
+		channel = sccp_channel_find_byid_locked(callID);
 
 	/* prevent a segmentation fault on fast hangup after answer, failed voicemail for example */
 	if (channel) {								// && sccp_channel->state != SCCP_CHANNELSTATE_DOWN) {
@@ -2461,7 +2476,8 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID);
 	if (status) {
 		/* rtp error from the phone */
-		pbx_log(LOG_ERROR, "%s: (OpenMultiMediaReceiveChannelAck) Device error (%d) ! No RTP media available\n", d->id, status);
+		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission (%d). Ending call\n", DEV_ID_LOG(d), status);
+		sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
 		return;
 	}
 
@@ -2508,7 +2524,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 
 		PBX(queue_control)(channel->owner, AST_CONTROL_VIDUPDATE);
 	} else {
-		pbx_log(LOG_ERROR, "%s: No channel with this PassThruId!\n", d->id);
+		pbx_log(LOG_ERROR, "%s: No channel with this PassThruId %u!\n", d->id, partyID);
 	}
 }
 
@@ -3114,11 +3130,12 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 		channel = sccp_channel_find_byid_locked(callID1);
 	
 	if (!channel) {
-		pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u not found, please report this to developer\n", DEV_ID_LOG(d), partyID);
+		pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u / callid %u / callid1 %u not found, please report this to developer\n", DEV_ID_LOG(d), partyID, callID, callID1);
 		return;
 	}
 	if (status) {
 		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call (status: %d)\n", DEV_ID_LOG(d), status);
+		sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
 		sccp_channel_endcall_locked(channel);
 		sccp_channel_unlock(channel);
 		return;
