@@ -2149,7 +2149,7 @@ void sccp_handle_dialtone_locked(sccp_channel_t * c)
 		}
 	}
 
-	if (d && c) {
+	if (d && c && l) {
 		if (lenSecDialtoneDigits && lenDialed == lenSecDialtoneDigits && !strncmp(c->dialedNumber, l->secondary_dialtone_digits, lenSecDialtoneDigits)) {
 			/* We have a secondary dialtone */
 //			sccp_safe_sleep(100);
@@ -2336,11 +2336,11 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		partyID = letohl(r->msg.OpenReceiveChannelAck_v17.lel_passThruPartyId);
 		status = letohl(r->msg.OpenReceiveChannelAck_v17.lel_orcStatus);
 		memcpy(&ipAddr, &r->msg.OpenReceiveChannelAck_v17.bel_ipAddr, 16);
-		callID = letohl(r->msg.OpenReceiveChannelAck.lel_callReference);
-		unknown1 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_1);
-		unknown2 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_2);
-		unknown3 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_3);
-		unknown4 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_4);
+		callID = letohl(r->msg.OpenReceiveChannelAck_v17.lel_callReference);
+		unknown1 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_1);
+		unknown2 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_2);
+		unknown3 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_3);
+		unknown4 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_4);
 	}
 	if (status) {
 		ast_log(LOG_ERROR, "Open Receive Channel Failure\n");
