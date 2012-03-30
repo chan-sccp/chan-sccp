@@ -2634,6 +2634,10 @@ typedef union {
 										   little-endian format. */
 		uint32_t lel_portNumber;					/*!< Port Number */
 		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+                uint32_t lel_unknown_1;
+                uint32_t lel_unknown_2;
+                uint32_t lel_unknown_3;
+                uint32_t lel_unknown_4;
 		uint32_t lel_callReference;					/*!< Call Reference */
 	} OpenReceiveChannelAck;						/*!< Open Receive Channel Acknowledgement */
 
@@ -2652,6 +2656,10 @@ typedef union {
 										   little-endian format. */
 		uint32_t lel_portNumber;					/*!< Port Number */
 		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+                uint32_t lel_unknown_1;
+                uint32_t lel_unknown_2;
+                uint32_t lel_unknown_3;
+                uint32_t lel_unknown_4;
 		uint32_t lel_callReference;					/*!< Call Reference */
 	} OpenReceiveChannelAck_v17;						/*!< Open Receive Channel Acknowledgement v17 */
 
