@@ -116,7 +116,7 @@ static void sccp_read_data(sccp_session_t * s)
 			pbx_log(LOG_WARNING, "SCCP: FIONREAD Come back later (EAGAIN): %s\n", strerror(errno));
 		} else {
 			/* probably a CLOSE_WAIT (readlen==0 || errno == ECONNRESET || errno == ETIMEDOUT) */
-			pbx_log(LOG_WARNING, "SCCP: read() returned zero length. Assuming closed connection. %d\n", s->fds[0].revents);
+			ast_log(LOG_NOTICE, "SCCP: socket read returned zero length, either device disconnected or network disconnect. Closing Connection. (%d)\n", s->fds[0].revents);
 			pthread_cancel(s->session_thread);
 		}
 		sccp_free(input);
