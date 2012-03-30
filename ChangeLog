@@ -1,4 +1,24 @@
 ------------------------------------------------------------------------
+r3343 | ddegroot | 2012-03-30 12:35:35 +0200 (Fri, 30 Mar 2012) | 1 line
+
+Fix sccp_handle_open_receive_channel_ack. Add extra line check to handle_dialtone
+------------------------------------------------------------------------
+r3335 | ddegroot | 2012-03-30 10:50:29 +0200 (Fri, 30 Mar 2012) | 1 line
+
+Split handle_time_date_req to two functions. only require a valid device pointer to handle request
+------------------------------------------------------------------------
+r3334 | ddegroot | 2012-03-29 22:32:20 +0200 (Thu, 29 Mar 2012) | 1 line
+
+Update annotated sccp.conf and ChangeLog
+------------------------------------------------------------------------
+r3333 | ddegroot | 2012-03-29 22:19:41 +0200 (Thu, 29 Mar 2012) | 1 line
+
+RTP patch
+------------------------------------------------------------------------
+r3332 | ddegroot | 2012-03-29 22:18:27 +0200 (Thu, 29 Mar 2012) | 1 line
+
+PassthruPartyID for 6911 and 6912. Revert handle_time_date_req hangling
+------------------------------------------------------------------------
 r3331 | ddegroot | 2012-03-28 18:35:52 +0200 (Wed, 28 Mar 2012) | 1 line
 
 Extend Hangup Logging To Include Channel State
