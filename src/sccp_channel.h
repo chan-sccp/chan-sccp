@@ -64,5 +64,6 @@ void sccp_channel_park(sccp_channel_t * c);
 #endif
 
 boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data);
+int sccp_channel_callwaiting_tone_interval(sccp_channel_t *c);
 
 #    endif
