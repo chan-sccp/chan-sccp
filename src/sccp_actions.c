@@ -65,7 +65,7 @@ void sccp_handle_unknown_message(sccp_session_t * s, sccp_device_t * d, sccp_moo
 	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0)				// only show when debugging messages
 		pbx_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", message2str(mid), mid, r->length);
 
-	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
+	sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
 }
 
 /*!
@@ -1996,6 +1996,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	uint32_t callid;
 	char resp = '\0';
 	int len = 0;
+
 	sccp_channel_t *channel = NULL;
 	sccp_line_t *l = NULL;
 
@@ -2186,8 +2187,11 @@ void sccp_handle_dialtone_locked(sccp_channel_t * channel)
 {
 	sccp_line_t *l = NULL;
 	sccp_device_t *d = NULL;
-	int len = 0, len1 = 0;
+	int lenDialed = 0, lenSecDialtoneDigits = 0;
+	
 	uint8_t instance;
+	uint32_t callid = 0;
+	uint32_t secondary_dialtone_tone = 0;
 
 	if (!channel)
 		return;
@@ -2198,10 +2202,13 @@ void sccp_handle_dialtone_locked(sccp_channel_t * channel)
 	if (!(d = sccp_channel_getDevice(channel)))
 		return;
 
-	len = strlen(channel->dialedNumber);
+	callid = channel->callid;
+	lenDialed = strlen(channel->dialedNumber);
+
 	instance = sccp_device_find_index_for_line(d, l->name);
 	/* secondary dialtone check */
-	len1 = strlen(l->secondary_dialtone_digits);
+	lenSecDialtoneDigits = strlen(l->secondary_dialtone_digits);
+	secondary_dialtone_tone = l->secondary_dialtone_tone;
 
 	/* we check dialtone just in DIALING action
 	 * otherwise, you'll get secondary dialtone also
@@ -2212,10 +2219,10 @@ void sccp_handle_dialtone_locked(sccp_channel_t * channel)
 	if (channel->ss_action != SCCP_SS_DIAL)
 		return;
 
-	if (len == 0 && channel->state != SCCP_CHANNELSTATE_OFFHOOK) {
+	if (lenDialed == 0 && channel->state != SCCP_CHANNELSTATE_OFFHOOK) {
 		sccp_dev_stoptone(d, instance, channel->callid);
 		sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, channel->callid, 0);
-	} else if (len == 1) {
+	} else if (lenDialed == 1) {
 		if (channel->state != SCCP_CHANNELSTATE_DIALING) {
 			sccp_dev_stoptone(d, instance, channel->callid);
 			sccp_indicate_locked(d, channel, SCCP_CHANNELSTATE_DIALING);
@@ -2224,12 +2231,14 @@ void sccp_handle_dialtone_locked(sccp_channel_t * channel)
 		}
 	}
 
-	if (len1 && len == len1 && !strncmp(channel->dialedNumber, l->secondary_dialtone_digits, len1)) {
-		/* We have a secondary dialtone */
-		sccp_safe_sleep(100);
-		sccp_dev_starttone(d, l->secondary_dialtone_tone, instance, channel->callid, 0);
-	} else if ((len1) && (len == len1 + 1 || (len > 1 && len1 > 1 && len == len1 - 1))) {
-		sccp_dev_stoptone(d, instance, channel->callid);
+	if (d && channel && l) {
+	        if (lenSecDialtoneDigits && lenDialed == lenSecDialtoneDigits && !strncmp(channel->dialedNumber, l->secondary_dialtone_digits, lenSecDialtoneDigits)) {
+                        /* We have a secondary dialtone */
+//			sccp_safe_sleep(100);			// don't sleep while not owning all locks
+                        sccp_dev_starttone(d, secondary_dialtone_tone, instance, callid, 0);
+                } else if ((lenSecDialtoneDigits) && (lenDialed == lenSecDialtoneDigits + 1 || (lenDialed > 1 && lenSecDialtoneDigits > 1 && lenDialed == lenSecDialtoneDigits - 1))) {
+                        sccp_dev_stoptone(d, instance, callid);
+                }
 	}
 }
 
