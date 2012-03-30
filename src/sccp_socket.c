@@ -43,8 +43,6 @@ void sccp_session_close(sccp_session_t * s);
 
 void sccp_socket_device_thread_exit(void *session);
 
-int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r);
-
 void *sccp_socket_device_thread(void *session);
 
 static sccp_moo_t *sccp_process_data(sccp_session_t * s);

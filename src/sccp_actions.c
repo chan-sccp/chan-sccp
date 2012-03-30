@@ -458,6 +458,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	   Ask for the capabilities of the device
 	   to proceed with registration according to sccp protocol specification 3.0 
 	 */
+	sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: (sccp_handle_register) asking for capabilities\n", DEV_ID_LOG(d));
 	sccp_dev_sendmsg(d, CapabilitiesReqMessage);
 }
 
@@ -727,11 +728,10 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 	}
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: Phone available lines %d\n", d->id, line_count);
+	sccp_device_lock(d);
 	if (d->isAnonymous == TRUE) {
 
-		sccp_device_lock(d);
 		d->currentLine = GLOB(hotline)->line;
-		sccp_device_unlock(d);
 
 		sccp_line_addDevice(GLOB(hotline)->line, d, 1, NULL);
 		sccp_hint_lineStatusChanged(GLOB(hotline)->line, d, NULL, SCCP_CHANNELSTATE_ZOMBIE, SCCP_CHANNELSTATE_ONHOOK);
@@ -743,12 +743,10 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 
 				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Attaching line %s with instance %d to this device\n", d->id, l->name, btn[i].instance);
 
-				sccp_device_lock(d);
 				if (defaultLineSet == FALSE) {
 					d->currentLine = l;
 					defaultLineSet = TRUE;
 				}
-				sccp_device_unlock(d);
 
 				SCCP_LIST_LOCK(&d->buttonconfig);
 				SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
@@ -765,7 +763,6 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 
 		}
 	}
-	sccp_device_lock(d);
 	d->linesRegistered = TRUE;
 	sccp_device_unlock(d);
 }
@@ -813,13 +810,15 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * 
 {
 	sccp_moo_t *r1;
 
-	/* we don't need to look for active channels. the phone does send unregister only when there are no channels */
-	REQ(r1, UnregisterAckMessage);
-	r1->msg.UnregisterAckMessage.lel_status = SKINNY_UNREGISTERSTATUS_OK;
-	sccp_session_send(d, r1);
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: unregister request sent\n", DEV_ID_LOG(d));
-	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);
-	pthread_cancel(s->session_thread);
+ 	/* we don't need to look for active channels. the phone does send unregister only when there are no channels */
+ 	REQ(r1, UnregisterAckMessage);
+ 	r1->msg.UnregisterAckMessage.lel_status = SKINNY_UNREGISTERSTATUS_OK;
+	sccp_session_send2(s, r1);		// send directly to session, skipping device check
+ 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: unregister request sent\n", DEV_ID_LOG(d));
+	if (d) {
+		sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);
+	}
+ 	pthread_cancel(s->session_thread);
 }
 
 /*!
@@ -3069,7 +3068,7 @@ void sccp_handle_KeepAliveMessage(sccp_session_t * s, sccp_device_t * d, sccp_mo
 void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
 	struct sockaddr_in sin;
-	sccp_channel_t *channel;
+	sccp_channel_t *channel = NULL;
 	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0, callID1 = 0;
 	const char *ipAddress;
 
@@ -3098,7 +3097,13 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 		}
 	}
 
-	channel = sccp_channel_find_bypassthrupartyid_locked(partyID);
+	if (partyID != 0)
+		channel = sccp_channel_find_bypassthrupartyid_locked(partyID);
+	if (!channel && callID != 0) 
+		channel = sccp_channel_find_byid_locked(callID);
+	if (!channel && callID1 != 0) 
+		channel = sccp_channel_find_byid_locked(callID1);
+	
 	if (!channel) {
 		pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u not found, please report this to developer\n", DEV_ID_LOG(d), partyID);
 		return;
