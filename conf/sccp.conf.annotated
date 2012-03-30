@@ -32,6 +32,7 @@ autoanswer_tone = 0x32					; autoanswer confirmation tone. For a complete list o
 remotehangup_tone = 0x32				; passive hangup notification. 0 for none
 transfer_tone = 0					; confirmation tone on transfer. Works only between SCCP devices
 callwaiting_tone = 0x2d					; sets to 0 to disable the callwaiting tone
+callwaiting_interval = 0				; Call waiting tone interval in seconds. Setting this to 0 = disables. Default is 0
 musicclass=default					; Sets the default music on hold class
 language=en						; Default language setting
 ;callevents=no 						; generate manager events when phone 
