@@ -77,6 +77,7 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t * device);
 #    define REQCMD(x,y) x = sccp_build_packet(y, 0)
 
 void sccp_dev_keypadbutton(sccp_device_t * d, char digit, uint8_t line, uint32_t callid);
+void  sccp_device_set_time_date(sccp_device_t *d);
 
 #    ifdef CS_DYNAMIC_CONFIG
 sccp_device_t *sccp_clone_device(sccp_device_t * orig_device);

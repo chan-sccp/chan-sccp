@@ -1920,41 +1920,12 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_device_t * d, 
  */
 void sccp_handle_time_date_req(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
-	time_t timer = 0;
-
-	struct tm *cmtime = NULL;
-
-	/*! \todo check this in handle messages */
-	if (!s || (s->fds[0].fd < 0)) {
-		ast_log(LOG_ERROR, "(Time Date Request) Session no longer valid\n");
+	if (!d) {
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: No device suppplied to handle time date request\n", DEV_ID_LOG(d));
 		return;
 	}
 
-	/*! \todo check this in handle messages */
-	if (s != s->device->session) {
-		ast_log(LOG_WARNING, "(Time Date Request) Provided Session and Device Session are not the same!!\n");
-		return;
-	}
-
-	sccp_moo_t *r1;
-
-	REQ(r1, DefineTimeDate);
-
-	/* modulate the timezone by full hours only */
-	timer = time(0) + (s->device->tz_offset * 3600);
-	cmtime = localtime(&timer);
-	r1->msg.DefineTimeDate.lel_year = htolel(cmtime->tm_year + 1900);
-	r1->msg.DefineTimeDate.lel_month = htolel(cmtime->tm_mon + 1);
-	r1->msg.DefineTimeDate.lel_dayOfWeek = htolel(cmtime->tm_wday);
-	r1->msg.DefineTimeDate.lel_day = htolel(cmtime->tm_mday);
-	r1->msg.DefineTimeDate.lel_hour = htolel(cmtime->tm_hour);
-	r1->msg.DefineTimeDate.lel_minute = htolel(cmtime->tm_min);
-	r1->msg.DefineTimeDate.lel_seconds = htolel(cmtime->tm_sec);
-	r1->msg.DefineTimeDate.lel_milliseconds = htolel(0);
-	r1->msg.DefineTimeDate.lel_systemTime = htolel(timer);
-	sccp_dev_send(s->device, r1);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send date/time\n", s->device->id);
-
+	sccp_device_set_time_date(d);
 /*
 	According to SCCP protocol since version 3,
 	the first instance of asking for time and date
@@ -1962,6 +1933,7 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	This is included even in the minimal subset of device registration commands.
 */
 	if (d->registrationState != SKINNY_DEVICE_RS_OK) {
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Registration complete\n", DEV_ID_LOG(d));
 		sccp_dev_set_registered(s->device, SKINNY_DEVICE_RS_OK);
 	}
 }

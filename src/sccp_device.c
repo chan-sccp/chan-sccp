@@ -1877,6 +1877,33 @@ void sccp_dev_keypadbutton(sccp_device_t * d, char digit, uint8_t line, uint32_t
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: (sccp_dev_keypadbutton) Sending keypad '%02X'\n", DEV_ID_LOG(d), digit);
 }
 
+void  sccp_device_set_time_date(sccp_device_t *d)
+{
+	sccp_moo_t *r1;
+	time_t timer = 0;
+	struct tm *cmtime = NULL;
+	
+	if (!d)
+	        return;
+
+	REQ(r1, DefineTimeDate);
+
+	/* modulate the timezone by full hours only */
+	timer = time(0) + (d->tz_offset * 3600);
+	cmtime = localtime(&timer);
+	r1->msg.DefineTimeDate.lel_year = htolel(cmtime->tm_year + 1900);
+	r1->msg.DefineTimeDate.lel_month = htolel(cmtime->tm_mon + 1);
+	r1->msg.DefineTimeDate.lel_dayOfWeek = htolel(cmtime->tm_wday);
+	r1->msg.DefineTimeDate.lel_day = htolel(cmtime->tm_mday);
+	r1->msg.DefineTimeDate.lel_hour = htolel(cmtime->tm_hour);
+	r1->msg.DefineTimeDate.lel_minute = htolel(cmtime->tm_min);
+	r1->msg.DefineTimeDate.lel_seconds = htolel(cmtime->tm_sec);
+	r1->msg.DefineTimeDate.lel_milliseconds = htolel(0);
+	r1->msg.DefineTimeDate.lel_systemTime = htolel(timer);
+	sccp_dev_send(d, r1);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send date/time\n", DEV_ID_LOG(d));
+}
+
 #ifdef CS_DYNAMIC_CONFIG
 
 /*!
@@ -2317,4 +2344,5 @@ sccp_diff_t sccp_buttonconfig_changed(sccp_buttonconfig_t * buttonconfig_a, sccp
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "(sccp_buttonconfig_changed) Returning : %d\n", res);
 	return res;
 }
+
 #endif
