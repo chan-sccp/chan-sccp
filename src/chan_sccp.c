@@ -232,28 +232,29 @@ static sccp_device_t *check_session_message_device(sccp_session_t * s, sccp_moo_
 
 	if (!s || (s->fds[0].fd < 0)) {
 		pbx_log(LOG_ERROR, "(%s) Session no longer valid\n", msg);
-		return NULL;
+		goto EXIT;
 	}
 
 	if (!r) {
 		pbx_log(LOG_ERROR, "(%s) No Message Provided\n", msg);
-		return NULL;
+		goto EXIT;
 	}
 
 	if (!(d = s->device)) {
-		pbx_log(LOG_ERROR, "No valid Device available to handle %s for\n", msg);
-		return NULL;
+		ast_log(LOG_WARNING, "No valid Session Device available to handle %s for,\n", msg);
+		goto EXIT;
 	}
 
-	if (s != s->device->session) {
+	if (s->device && s != s->device->session) {
 		pbx_log(LOG_WARNING, "(%s) Provided Session and Device Session are not the same!!\n", msg);
 	}
 
+EXIT:
 	if ((GLOB(debug) & (DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) != 0) {
 		uint32_t mid = letohl(r->lel_messageId);
 
 		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(d), message2str(mid), mid, r->length);
-		sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? (int)r->length : (int)SCCP_MAX_PACKET);
+		sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET) ? (int)r->length : (int)SCCP_MAX_PACKET);
 	}
 
 	return d;
@@ -317,7 +318,7 @@ static const struct sccp_messageMap_cb messagesCbMap[] = {
 	{DeviceToUserDataVersion1Message, sccp_handle_device_to_user, TRUE},
 	{DeviceToUserDataResponseVersion1Message, sccp_handle_device_to_user_response, TRUE},
 	{RegisterTokenRequest, sccp_handle_token_request, FALSE},
-	{UnregisterMessage, sccp_handle_unregister, TRUE},
+	{UnregisterMessage, sccp_handle_unregister, FALSE},
 	{RegisterMessage, sccp_handle_register, FALSE},
 	{AlarmMessage, sccp_handle_alarm, FALSE},
 	{XMLAlarmMessage, sccp_handle_XMLAlarmMessage, FALSE},
