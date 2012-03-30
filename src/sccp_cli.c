@@ -2130,6 +2130,65 @@ CLI_ENTRY(cli_end_call, sccp_end_call, "Hangup a channel", end_call_usage, FALSE
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 
+/* ---------------------------------------------------------------------------------------------------------------------- TOKEN - */
+
+/*!
+ * \brief Send Token Ack to device(s)
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ *
+ * \lock
+ * 	- channel
+ */
+static int sccp_tokenack(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+{
+	sccp_device_t *d;
+	int local_total = 0;
+	const char *dev;
+
+	if (s) {
+		dev = sccp_strdupa(astman_get_header(m, "DeviceName"));
+	} else {
+		if (argc < 3)
+			return RESULT_SHOWUSAGE;
+		dev = sccp_strdupa(argv[2]);
+	}
+	d = sccp_device_find_byid(dev, TRUE);
+	if (!d) {
+		pbx_log(LOG_WARNING, "Failed to get device %s\n", dev);
+		CLI_AMI_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);
+	}
+
+	if (d->status.token != SCCP_TOKEN_STATE_REJ && d->session) {
+		pbx_log(LOG_WARNING, "%s: We need to have received a token request before we can acknowledge it\n", dev);
+		CLI_AMI_ERROR(fd, s, m, "%s: We need to have received a token request before we can acknowledge it\n", dev);
+	} else {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", dev);
+		sccp_session_tokenAck(d->session);
+	}
+	
+	if (s)
+		*total = local_total;
+	return RESULT_SUCCESS;
+}
+
+static char cli_tokenack_usage[] = "Usage: sccp tokenack <deviceId>\n" "Send Token Acknowlegde. Makes a phone switch servers on demand (used in clustering)\n";
+static char ami_tokenack_usage[] = "Usage: SCCPTokenAck\n" "Send Token Acknowledge to device. Makes a phone switch servers on demand (used in clustering)\n\n" "PARAMS: DeviceName\n";
+
+#define CLI_COMMAND "sccp", "tokenack"
+#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
+#define AMI_COMMAND "SCCPTokenAck"
+#define CLI_AMI_PARAMS "DeviceName"
+CLI_AMI_ENTRY(tokenack, sccp_tokenack, "Send TokenAck", cli_tokenack_usage, FALSE)
+#undef CLI_AMI_PARAMS
+#undef CLI_COMPLETE
+#undef AMI_COMMAND
+#undef CLI_COMMAND
+
 /* --- Register Cli Entries-------------------------------------------------------------------------------------------- */
 #if ASTERISK_VERSION_NUMBER >= 10600
 
@@ -2169,7 +2228,8 @@ static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_start_call, "Start a Call."),
 	AST_CLI_DEFINE(cli_end_call, "End a Call."),
 	AST_CLI_DEFINE(cli_set_hold, "Place call on hold."),
-	AST_CLI_DEFINE(cli_remote_answer, "Remotely answer a call.")
+	AST_CLI_DEFINE(cli_remote_answer, "Remotely answer a call."),
+	AST_CLI_DEFINE(cli_tokenack, "Send Token Acknowledgement.")
 };
 #endif
 
@@ -2211,6 +2271,7 @@ void sccp_register_cli(void)
 	pbx_cli_register(&cli_remote_answer);
 	pbx_cli_register(&cli_start_call);
 	pbx_cli_register(&cli_end_call);
+	pbx_cli_register(&cli_tokenack);
 #endif
 #if ASTERISK_VERSION_NUMBER < 10600
 #    define _MAN_COM_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_COMMAND
@@ -2227,6 +2288,7 @@ void sccp_register_cli(void)
 	pbx_manager_register2("SCCPShowChannels", _MAN_REP_FLAGS, manager_show_channels, "show channels", ami_channels_usage);
 	pbx_manager_register2("SCCPShowSessions", _MAN_REP_FLAGS, manager_show_sessions, "show sessions", ami_sessions_usage);
 	pbx_manager_register2("SCCPShowMWISubscriptions", _MAN_REP_FLAGS, manager_show_mwi_subscriptions, "show sessions", ami_mwi_subscriptions_usage);
+	pbx_manager_register2("SCCPTokenAck", _MAN_REP_FLAGS, manager_tokenack, "send tokenack", ami_tokenack_usage);
 }
 
 /*!
@@ -2267,6 +2329,7 @@ void sccp_unregister_cli(void)
 	pbx_cli_unregister(&cli_remote_answer);
 	pbx_cli_unregister(&cli_start_call);
 	pbx_cli_unregister(&cli_end_call);
+	pbx_cli_unregister(&cli_tokenack);
 #endif
 	pbx_manager_unregister("SCCPShowGlobals");
 	pbx_manager_unregister("SCCPShowDevice");
@@ -2276,4 +2339,5 @@ void sccp_unregister_cli(void)
 	pbx_manager_unregister("SCCPShowChannels");
 	pbx_manager_unregister("SCCPShowSessions");
 	pbx_manager_unregister("SCCPShowMWISubscriptions");
+	pbx_manager_unregister("SCCPTokenAck");
 }
