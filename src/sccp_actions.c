@@ -2318,7 +2318,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 	char ipAddr[16];
 
 	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0;
-	uint32_t unknown1 = 0, unknown2 = 0, unknown3 = 0, unknown4 = 0;
+	uint32_t unknown1 = 0, unknown2 = 0, ipPort1 = 0, unknown3 = 0;
 
 	memset(ipAddr, 0, 16);
 	if (d->inuseprotocolversion < 17) {
@@ -2328,9 +2328,9 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		memcpy(&ipAddr, &r->msg.OpenReceiveChannelAck.bel_ipAddr, 4);
 		callID = letohl(r->msg.OpenReceiveChannelAck.lel_callReference);
 		unknown1 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_1);
+		ipPort1 = letohl(r->msg.OpenReceiveChannelAck.lel_portNumber1);
 		unknown2 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_2);
 		unknown3 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_3);
-		unknown4 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_4);
 	} else {
 		ipPort = htons(letohl(r->msg.OpenReceiveChannelAck_v17.lel_portNumber));
 		partyID = letohl(r->msg.OpenReceiveChannelAck_v17.lel_passThruPartyId);
@@ -2338,9 +2338,9 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		memcpy(&ipAddr, &r->msg.OpenReceiveChannelAck_v17.bel_ipAddr, 16);
 		callID = letohl(r->msg.OpenReceiveChannelAck_v17.lel_callReference);
 		unknown1 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_1);
+		ipPort1 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_portNumber1);
 		unknown2 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_2);
 		unknown3 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_3);
-		unknown4 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_4);
 	}
 	if (status) {
 		ast_log(LOG_ERROR, "Open Receive Channel Failure\n");
@@ -2355,7 +2355,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 	sin.sin_port = ipPort;
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, CallID: %u, Trustphoneip: %s, Directrtp: %s, Natted: %s\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, callID, d->trustphoneip ? "yes" : "no", d->directrtp ? "yes" : "no", d->nat ? "yes" : "no");
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Unknown1: %u, Unknown2: %u: Unknown3: %u, Unknown4: %u\n", d->id, unknown1, unknown2, unknown3, unknown4);
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Unknown1: %u, Unknown2: %u: Port1: %u, Unknown3: %u\n", d->id, unknown1, unknown2, ipPort1, unknown3);
 	if (status) {
 		/* rtp error from the phone */
 		ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available\n", d->id, status);
@@ -2418,6 +2418,10 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		} else {
 			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruId!\n", d->id);
 		}
+		if (d->inuseprotocolversion < 17)
+			sccp_dump_packet((unsigned char *)&r->msg.OpenReceiveChannelAck, sizeof(r->msg.OpenReceiveChannelAck));
+		else 
+			sccp_dump_packet((unsigned char *)&r->msg.OpenReceiveChannelAck_v17, sizeof(r->msg.OpenReceiveChannelAck_v17));
 	}
 }
 
@@ -3103,7 +3107,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 	}
 			}
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), callID, callID1, partyID);
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmissionAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, CallId: %u, CallId1: %u\n", DEV_ID_LOG(d), status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, callID, callID1);
 	//ast_cond_signal(&c->rtp.audio.convar);
 	sccp_channel_unlock(c);
 }
