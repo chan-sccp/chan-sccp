@@ -748,7 +748,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 	}
 #endif
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d] (%d ms), payload %d, echocancel: %d\n", c->device->id, codec2str(payloadType), c->format, packetSize, payloadType, c->line->echocancel);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d] (%d ms), payload %d, echocancel: %d, passthrupartyid: %d, callid: %d\n", c->device->id, codec2str(payloadType), c->format, packetSize, payloadType, c->line->echocancel, c->passthrupartyid, c->callid);
 
 	if (d->inuseprotocolversion >= 17) {
 		r = sccp_build_packet(OpenReceiveChannel, sizeof(r->msg.OpenReceiveChannel_v17));
