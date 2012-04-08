@@ -179,8 +179,11 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	if (d) {
 		if (d->session && d->session != s) {
 			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", d->id);
+			d->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
+//			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 			d->session->session_stop = 1;				/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
-			sccp_dev_clean(d, FALSE, 0);				/* we need to clean device configuration to set lines */
+			s->session_stop = 1;
+//			sccp_dev_clean(d, FALSE, 0);				/* we need to clean device configuration to set lines */
 			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
 		}
 	}
@@ -220,6 +223,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		
 		if (d->session && d->session != s) {
 			ast_log(LOG_NOTICE, "%s: Crossover device registration!\n", d->id);
+			d->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
 			s = sccp_session_reject(s, "No Crossover Allowed");
 			return;
 		}
@@ -253,7 +257,9 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
 	int keepAliveInterval = d->keepalive ? d->keepalive : GLOB(keepalive);
 
-	keepAliveInterval = (keepAliveInterval / 2) + (rand() % (keepAliveInterval / 2)) + 1;
+//	keepAliveInterval = (keepAliveInterval / 2) + (rand() % (keepAliveInterval / 2)) + 1;
+	keepAliveInterval = ((keepAliveInterval / 4) * 3) + (rand() % (keepAliveInterval / 4)) + 1;
+	d->keepalive = keepAliveInterval;
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval);
 	REQ(r1, RegisterAckMessage);
