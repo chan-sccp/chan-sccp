@@ -783,16 +783,18 @@ static int sccp_show_sessions(int fd, int argc, char *argv[])
 
 	sccp_device_t *d = NULL;
 
-	ast_cli(fd, "%-10s %-21s %-4s %-15s %-15s %-15s\n", "Socket", "IP", "KA", "DEVICE", "STATE", "TYPE");
-	ast_cli(fd, "========== ===================== ==== =============== =============== ===============\n");
+	ast_cli(fd, "%-10s %-21s %-4s %-4s %-15s %-15s %-15s\n", "Socket", "IP", "KA", "KI", "DEVICE", "STATE", "TYPE");
+	ast_cli(fd, "========== ===================== ==== ==== =============== =============== ===============\n");
 	SCCP_RWLIST_RDLOCK(&GLOB(sessions));
 	SCCP_LIST_TRAVERSE(&GLOB(sessions), s, list) {
 		sccp_session_lock(s);
-		d = s->device;
-		if (d) {
-			sccp_device_lock(d);
-			ast_cli(fd, "%-10d %-15s:%-6d %-4d %-15s %-15s %-15s\n", s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr), s->sin.sin_port, (uint32_t) (time(0) - s->lastKeepAlive), (d) ? d->id : "--", (d) ? devicestatus2str(d->state) : "--", (d) ? devicetype2str(d->skinny_type) : "--");
-			sccp_device_unlock(d);
+		if (s->device) {
+			d = s->device;
+			if (d->session == s) {
+				sccp_device_lock(d);
+				ast_cli(fd, "%-10d %-15s:%-6d %-4d %-4d %-15s %-15s %-15s\n", s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr), s->sin.sin_port, (uint32_t) (time(0) - s->lastKeepAlive), d->keepalive, (d) ? d->id : "--", (d) ? devicestatus2str(d->state) : "--", (d) ? devicetype2str(d->skinny_type) : "--");
+				sccp_device_unlock(d);
+			}
 		}
 		sccp_session_unlock(s);
 	}
