@@ -748,8 +748,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 	}
 #endif
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d] (%d ms), payload %d, echocancel: %d, passthrupartyid: %d, callid: %d\n", c->device->id, codec2str(payloadType), c->format, packetSize, payloadType, c->line->echocancel, c->passthrupartyid, c->callid);
-
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d] (%d ms), payload %d, echocancel: %d, passthrupartyid: %u, callid: %u\n", c->device->id, codec2str(payloadType), c->format, packetSize, payloadType, c->line->echocancel, c->passthrupartyid, c->callid);
 	if (d->inuseprotocolversion >= 17) {
 		r = sccp_build_packet(OpenReceiveChannel, sizeof(r->msg.OpenReceiveChannel_v17));
 		sccp_rtp_getAudioPeer(c, &them);
@@ -757,7 +756,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 		r->msg.OpenReceiveChannel_v17.lel_conferenceId = htolel(c->callid);
 		r->msg.OpenReceiveChannel_v17.lel_passThruPartyId = htolel(c->passthrupartyid);
 		r->msg.OpenReceiveChannel_v17.lel_millisecondPacketSize = htolel(packetSize);
-		/* if something goes wrong the default codec is ulaw */
+		// if something goes wrong the default codec is ulaw
 		r->msg.OpenReceiveChannel_v17.lel_payloadType = htolel((payloadType) ? payloadType : 4);
 		r->msg.OpenReceiveChannel_v17.lel_vadValue = htolel(c->line->echocancel);
 		r->msg.OpenReceiveChannel_v17.lel_conferenceId1 = htolel(c->callid);
@@ -768,7 +767,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * c)
 		r->msg.OpenReceiveChannel.lel_conferenceId = htolel(c->callid);
 		r->msg.OpenReceiveChannel.lel_passThruPartyId = htolel(c->passthrupartyid);
 		r->msg.OpenReceiveChannel.lel_millisecondPacketSize = htolel(packetSize);
-		/* if something goes wrong the default codec is ulaw */
+		// if something goes wrong the default codec is ulaw 
 		r->msg.OpenReceiveChannel.lel_payloadType = htolel((payloadType) ? payloadType : 4);
 		r->msg.OpenReceiveChannel.lel_vadValue = htolel(c->line->echocancel);
 		r->msg.OpenReceiveChannel.lel_conferenceId1 = htolel(c->callid);
@@ -1105,7 +1104,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * c)
 		r->msg.StartMediaTransmission_v17.lel_remotePortNumber = htolel(ntohs(c->rtp.audio.phone_remote.sin_port));
 	}
 	sccp_dev_send(c->device, r);
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to: '%s:%d' with codec: %s(%d) (%d ms), tos %d, silencesuppression: %s\n", c->device->id, pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr), ntohs(c->rtp.audio.phone_remote.sin_port), codec2str(payloadType), payloadType, packetSize, c->line->audio_tos, c->line->silencesuppression ? "ON" : "OFF");
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to: '%s:%d' with codec: %s(%d) (%d ms), tos %d, silencesuppression: %s, passthrupartyid %u, callid %u\n", c->device->id, pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr), ntohs(c->rtp.audio.phone_remote.sin_port), codec2str(payloadType), payloadType, packetSize, c->line->audio_tos, c->line->silencesuppression ? "ON" : "OFF", c->passthrupartyid, c->callid);
 
 #ifdef CS_SCCP_VIDEO
 	if (sccp_device_isVideoSupported(c->device)) {

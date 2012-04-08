@@ -2317,7 +2317,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 
 	char ipAddr[16];
 
-	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0;
+	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0, passthrupartyid = 0;
 	uint32_t unknown1 = 0, unknown2 = 0, ipPort1 = 0, unknown3 = 0;
 
 	memset(ipAddr, 0, 16);
@@ -2342,9 +2342,16 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		unknown2 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_2);
 		unknown3 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_3);
 	}
-	if (status) {
-		ast_log(LOG_ERROR, "Open Receive Channel Failure\n");
-		return;
+
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, CallID: %u, Trustphoneip: %s, Directrtp: %s, Natted: %s\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, callID, d->trustphoneip ? "yes" : "no", d->directrtp ? "yes" : "no", d->nat ? "yes" : "no");
+	sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Unknown1: %u, Unknown2: %u: Port1: %u, Unknown3: %u\n", d->id, unknown1, unknown2, ipPort1, unknown3);
+
+	if (partyID)
+		passthrupartyid = partyID;
+		
+	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 && 0 == passthrupartyid) {
+		passthrupartyid = 0xFFFFFFFF - callID;
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 6911 which does not return a passthrupartyid, using callid: %u -> passthrupartyid %u\n", d->id, callID, passthrupartyid);
 	}
 
 	sin.sin_family = AF_INET;
@@ -2354,23 +2361,18 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		memcpy(&sin.sin_addr, &s->sin.sin_addr, sizeof(sin.sin_addr));
 	sin.sin_port = ipPort;
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, CallID: %u, Trustphoneip: %s, Directrtp: %s, Natted: %s\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, callID, d->trustphoneip ? "yes" : "no", d->directrtp ? "yes" : "no", d->nat ? "yes" : "no");
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Unknown1: %u, Unknown2: %u: Port1: %u, Unknown3: %u\n", d->id, unknown1, unknown2, ipPort1, unknown3);
-	if (status) {
-		/* rtp error from the phone */
-		ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available\n", d->id, status);
-		return;
+	if ((d->active_channel && d->active_channel->passthrupartyid == passthrupartyid) || !passthrupartyid) {		// reduce the amount of searching by first checking active_channel
+		c = d->active_channel;
+		sccp_channel_lock(c);
+	} else {
+		c = sccp_channel_find_on_device_bypassthrupartyid_locked(d, passthrupartyid);
 	}
-
-	if (partyID != 0)
-		c = sccp_channel_find_bypassthrupartyid_locked(partyID);
-        if (!c && callID != 0)   
-		c = sccp_channel_find_byid_locked(callID);
                         
 	/* prevent a segmentation fault on fast hangup after answer, failed voicemail for example */
 	if (c) {								// && c->state != SCCP_CHANNELSTATE_DOWN) {
 		if (status) {
 			c->rtp.audio.status = 0;
+//			sccp_channel_endcall_locked(c);		// should we be hanging up here
 			sccp_channel_unlock(c);
 			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available\n", DEV_ID_LOG(d), status);
 			return;
@@ -2382,6 +2384,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
 			sccp_channel_unlock(c);
+//			sccp_channel_endcall_locked(c);		// should we be hanging up here
 			ast_log(LOG_WARNING, "%s: (OpenReceiveChannelAck) Invalid Number (%d)\n", DEV_ID_LOG(d), c->state);
 			return;
 		}
@@ -2402,11 +2405,11 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 				if(c->videoCallEnabled) {
 					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Audio established, but still waiting for video.\n", d->id);
 				} else {
-				sccp_ast_setstate(c, AST_STATE_UP);
-				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
+					sccp_ast_setstate(c, AST_STATE_UP);
+					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
+				}
 			}
-			}
-
+			sccp_channel_set_active(d, c);
 		} else {
 			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 			sccp_channel_endcall_locked(c);				// FS - 350
@@ -2414,14 +2417,20 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		sccp_channel_unlock(c);
 	} else {
 		if (status) {
-			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available\n", d->id, status);
+			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available. Hanging up active channel.\n", d->id, status);
 		} else {
-			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruId!\n", d->id);
+			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruId!. Hanging up active channel.\n", d->id);
 		}
 		if (d->inuseprotocolversion < 17)
 			sccp_dump_packet((unsigned char *)&r->msg.OpenReceiveChannelAck, sizeof(r->msg.OpenReceiveChannelAck));
 		else 
 			sccp_dump_packet((unsigned char *)&r->msg.OpenReceiveChannelAck_v17, sizeof(r->msg.OpenReceiveChannelAck_v17));
+		// should we be hanging up here		
+//		if (d->active_channel) {
+//			sccp_channel_lock(d->active_channel);
+//			sccp_channel_endcall_locked(d->active_channel);
+//			sccp_channel_unlock(d->active_channel);
+//		}
 	}
 }
 
@@ -3047,7 +3056,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 
 	sccp_channel_t *c = NULL;
 
-	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0, callID1 = 0;
+	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0, callID1 = 0, passthrupartyid = 0;
 	char ipAddr[16];
 
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Dumping message with length %d\n", DEV_ID_LOG(d), r->length);
@@ -3070,20 +3079,33 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 		memcpy(&ipAddr, &r->msg.StartMediaTransmissionAck_v17.bel_ipAddr, 16);
 	}
 
-/* TODO: Maybe consider trustphoneip here if appropriate (_DD) */
+	if (partyID)
+		passthrupartyid = partyID;
+
+	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 && 0 == passthrupartyid) {
+		passthrupartyid = 0xFFFFFFFF - callID1;
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 6911 which does not return a passthrupartyid, using callid: %u -> passthrupartyid %u\n", d->id, callID1, passthrupartyid);
+	}
+
+	/* TODO: Maybe consider trustphoneip here if appropriate (_DD) */
 	sin.sin_family = AF_INET;
 	memcpy(&sin.sin_addr, ipAddr, 4);
 	sin.sin_port = ipPort;
 
-	if (partyID != 0)
-		c = sccp_channel_find_bypassthrupartyid_locked(partyID);
-	if (!c && callID != 0) 
-		c = sccp_channel_find_byid_locked(callID);
-	if (!c && callID1 != 0) 
-		c = sccp_channel_find_byid_locked(callID1);
-	
+	if ((d->active_channel && d->active_channel->passthrupartyid == passthrupartyid) || !passthrupartyid) {
+		c = d->active_channel;
+		sccp_channel_lock(c);
+	} else {
+		c = sccp_channel_find_on_device_bypassthrupartyid_locked(d, passthrupartyid);
+	}
 	if (!c) {
-		ast_log(LOG_WARNING, "%s: Channel with passthrupartyid %u / callid %u / callid1 %u not found, please report this to developer\n", DEV_ID_LOG(d), partyID, callID, callID1);
+		ast_log(LOG_WARNING, "%s: Channel with passthrupartyid %u / callid %u / callid1 %u not found, please report this to developer. Hanging up active channel.\n", DEV_ID_LOG(d), partyID, callID, callID1);
+		// should we be hanging up here ?
+		if (d->active_channel) {
+			sccp_channel_lock(d->active_channel);
+			sccp_channel_endcall_locked(d->active_channel);
+			sccp_channel_unlock(d->active_channel);
+		}
 		return;
 	}
 	if (status) {
@@ -3099,13 +3121,13 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 	c->rtp.audio.status |= SCCP_RTP_STATUS_TRANSMIT;
 	/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
 	if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
-				if(c->videoCallEnabled) {
-					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Audio established, but still waiting for video.\n", d->id);
-				} else {
-		sccp_ast_setstate(c, AST_STATE_UP);
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
+		if(c->videoCallEnabled) {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Audio established, but still waiting for video.\n", d->id);
+		} else {
+			sccp_ast_setstate(c, AST_STATE_UP);
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
+		}
 	}
-			}
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmissionAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, CallId: %u, CallId1: %u\n", DEV_ID_LOG(d), status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, callID, callID1);
 	//ast_cond_signal(&c->rtp.audio.convar);
@@ -3122,9 +3144,9 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 {
 	struct sockaddr_in sin;
 
-	sccp_channel_t *c;
+	sccp_channel_t *c = NULL;
 
-	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0, callID1 = 0;
+	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0, callID1 = 0, passthrupartyid = 0;
 
 	ipPort = htons(htolel(r->msg.StartMultiMediaTransmissionAck.lel_portNumber));
 	partyID = letohl(r->msg.StartMultiMediaTransmissionAck.lel_passThruPartyId);
@@ -3132,13 +3154,32 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 	callID = letohl(r->msg.StartMultiMediaTransmissionAck.lel_callReference);
 	callID1 = letohl(r->msg.StartMultiMediaTransmissionAck.lel_callReference1);
 
+	if (partyID)
+		passthrupartyid = partyID;
+
+	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 && 0 == passthrupartyid) {
+		passthrupartyid = 0xFFFFFFFF - callID1;
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 6911 which does not return a passthrupartyid, using callid: %u -> passthrupartyid %u\n", d->id, callID1, passthrupartyid);
+	}
+
 	sin.sin_family = AF_INET;
 	memcpy(&sin.sin_addr, &r->msg.StartMultiMediaTransmissionAck.bel_ipAddr, sizeof(sin.sin_addr));
 	sin.sin_port = ipPort;
 
-	c = sccp_channel_find_bypassthrupartyid_locked(partyID);
+	if ((d->active_channel && d->active_channel->passthrupartyid == passthrupartyid) || !passthrupartyid) {
+		c = d->active_channel;
+		sccp_channel_lock(c);
+	} else {
+		c = sccp_channel_find_on_device_bypassthrupartyid_locked(d, passthrupartyid);
+	}
 	if (!c) {
-		ast_log(LOG_WARNING, "%s: Channel with passthrupartyid %u not found, please report this to developer\n", DEV_ID_LOG(d), partyID);
+		ast_log(LOG_WARNING, "%s: Channel with passthrupartyid %u not found, please report this to developer. Hanging up active channel.\n", DEV_ID_LOG(d), partyID);
+		// should we be hanging up here ?
+		if (d->active_channel) {
+			sccp_channel_lock(d->active_channel);
+			sccp_channel_endcall_locked(d->active_channel);
+			sccp_channel_unlock(d->active_channel);
+		}
 		return;
 	}
 	if (status) {
@@ -3151,12 +3192,13 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 	/* update status */
 	c->rtp.video.status &= ~SCCP_RTP_STATUS_PROGRESS_TRANSMIT;
 	c->rtp.video.status |= SCCP_RTP_STATUS_TRANSMIT;
-			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
-			if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE) 
-			 &&(c->rtp.video.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE)) {
-					sccp_ast_setstate(c, AST_STATE_UP);
-					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up with video.\n", d->id);
-			}
+	/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
+	if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE) 
+			&&(c->rtp.video.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.video.status & SCCP_RTP_STATUS_RECEIVE)) 
+	{
+		sccp_ast_setstate(c, AST_STATE_UP);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up with video.\n", d->id);
+	}
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), callID, callID1, partyID);
 	//ast_cond_signal(&c->rtp.audio.convar);
