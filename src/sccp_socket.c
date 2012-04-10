@@ -304,6 +304,8 @@ void *sccp_socket_device_thread(void *session)
 				sccp_read_data(s);
 				while ((m = sccp_process_data(s))) {
 					if (!sccp_handle_message(m, s)) {
+						if (s->device && s->device->registrationState)
+							s->device->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
 						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
 						s->session_stop = 1;
 						break;
@@ -315,16 +317,22 @@ void *sccp_socket_device_thread(void *session)
 				if (s->device && s->device->keepalive && (now > ((s->lastKeepAlive + s->device->keepalive) + keepaliveAdditionalTime))) {
 					sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session Keepalive %s Expired, now %s\n", DEV_ID_LOG(s->device), ctime(&s->lastKeepAlive), ctime(&now));
 					pbx_log(LOG_WARNING, "%s: Dead device does not send a keepalive message in %d+%d seconds. Will be removed\n", DEV_ID_LOG(s->device), GLOB(keepalive), keepaliveAdditionalTime);
+					if (s->device && s->device->registrationState)
+			                        s->device->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
 					s->session_stop = 1;
 					break;
 				}
 			} else {						/* poll error */
 				pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
+				if (s->device && s->device->registrationState)
+		                        s->device->registrationState = SKINNY_DEVICE_RS_FAILED;
 				s->session_stop = 1;
 				break;
 			}
 		} else {							/* session is gone */
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session is Gone\n", DEV_ID_LOG(s->device));
+			if (s->device && s->device->registrationState)
+	                        s->device->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
 			s->session_stop = 1;
 			break;
 		}
