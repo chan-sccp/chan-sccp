@@ -823,6 +823,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 		uint8_t protocolversion;					/*!< Skinny Supported Protocol Version */
 		uint8_t inuseprotocolversion;					/*!< Skinny Used Protocol Version */
 		int keepalive;							/*!< Station Specific Keepalive Timeout */
+		int keepaliveinterval;						/*!< Currently Set Keepalive Timeout */
 		time_t registrationTime;
 
 		struct ast_ha *ha;						/*!< Permit or Deny Connections to the Main Socket */
