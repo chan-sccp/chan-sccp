@@ -259,7 +259,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 //	keepAliveInterval = (keepAliveInterval / 2) + (rand() % (keepAliveInterval / 2)) + 1;
 	keepAliveInterval = ((keepAliveInterval / 4) * 3) + (rand() % (keepAliveInterval / 4)) + 1;
-	d->keepalive = keepAliveInterval;
+	d->keepaliveinterval = keepAliveInterval;
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval);
 	REQ(r1, RegisterAckMessage);
