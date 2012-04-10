@@ -2390,8 +2390,18 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
 			sccp_channel_unlock(c);
-//			sccp_channel_endcall_locked(c);		// should we be hanging up here
 			ast_log(LOG_WARNING, "%s: (OpenReceiveChannelAck) Invalid Number (%d)\n", DEV_ID_LOG(d), c->state);
+			return;
+		}
+		if (channel->state == SCCP_CHANNELSTATE_DOWN) {
+			sccp_channel_unlock(channel);
+			pbx_log(LOG_WARNING, "%s: (OpenReceiveChannelAck) Channel is down. Giving up... (%d)\n", DEV_ID_LOG(d), channel->state);
+			sccp_moo_t *r;
+			REQ(r, CloseReceiveChannel);
+			r->msg.CloseReceiveChannel.lel_conferenceId = htolel(callID);
+			r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(partyID);
+			r->msg.CloseReceiveChannel.lel_conferenceId1 = htolel(callID);
+			sccp_dev_send(d, r);
 			return;
 		}
 
@@ -2426,17 +2436,18 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available. Hanging up active channel.\n", d->id, status);
 		} else {
 			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruId!. Hanging up active channel.\n", d->id);
+			sccp_moo_t *r;
+
+			REQ(r, CloseReceiveChannel);
+			r->msg.CloseReceiveChannel.lel_conferenceId = htolel(callId);
+			r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(partyID);
+			r->msg.CloseReceiveChannel.lel_conferenceId1 = htolel(callId);
+			sccp_dev_send(d, r);
 		}
 		if (d->inuseprotocolversion < 17)
 			sccp_dump_packet((unsigned char *)&r->msg.OpenReceiveChannelAck, sizeof(r->msg.OpenReceiveChannelAck));
 		else 
 			sccp_dump_packet((unsigned char *)&r->msg.OpenReceiveChannelAck_v17, sizeof(r->msg.OpenReceiveChannelAck_v17));
-		// should we be hanging up here		
-//		if (d->active_channel) {
-//			sccp_channel_lock(d->active_channel);
-//			sccp_channel_endcall_locked(d->active_channel);
-//			sccp_channel_unlock(d->active_channel);
-//		}
 	}
 }
 
@@ -3120,23 +3131,25 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 		sccp_channel_endcall_locked(c);
 		sccp_channel_unlock(c);
 		return;
-	}
-
-	/* update status */
-	c->rtp.audio.status &= ~SCCP_RTP_STATUS_PROGRESS_TRANSMIT;
-	c->rtp.audio.status |= SCCP_RTP_STATUS_TRANSMIT;
-	/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
-	if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
-		if(c->videoCallEnabled) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Audio established, but still waiting for video.\n", d->id);
+	} else {
+                if (channel->state != SCCP_CHANNELSTATE_DOWN) {
+			/* update status */
+			c->rtp.audio.status &= ~SCCP_RTP_STATUS_PROGRESS_TRANSMIT;
+			c->rtp.audio.status |= SCCP_RTP_STATUS_TRANSMIT;
+			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
+			if (c->state == SCCP_CHANNELSTATE_CONNECTED && (c->rtp.audio.status & SCCP_RTP_STATUS_TRANSMIT) && (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE)) {
+				if(c->videoCallEnabled) {
+					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Audio established, but still waiting for video.\n", d->id);
+				} else {
+					sccp_ast_setstate(c, AST_STATE_UP);
+					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
+				}
+			}
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmissionAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, CallId: %u, CallId1: %u\n", DEV_ID_LOG(d), status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, callID, callID1);
 		} else {
-			sccp_ast_setstate(c, AST_STATE_UP);
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
+                        pbx_log(LOG_WARNING, "%s: (sccp_handle_startmediatransmission_ack) Channel already down (%d). Hanging up\n", DEV_ID_LOG(d), c->state);
+                        sccp_channel_endcall_locked(channel);
 		}
-	}
-
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmissionAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, CallId: %u, CallId1: %u\n", DEV_ID_LOG(d), status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, callID, callID1);
-	//ast_cond_signal(&c->rtp.audio.convar);
 	sccp_channel_unlock(c);
 }
 
