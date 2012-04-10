@@ -663,7 +663,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * channel)
 		PBX(rtp_setWriteFormat) (channel, channel->rtp.audio.writeFormat);
 	}
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d], payload %d, echocancel: %d\n", channel->privateData->device->id, codec2str(channel->rtp.audio.writeFormat), channel->rtp.audio.writeFormat, channel->rtp.audio.writeFormat, channel->line->echocancel);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d], payload %d, echocancel: %d, passthrupartyid: %u, callid: %u\n", channel->privateData->device->id, codec2str(channel->rtp.audio.writeFormat), channel->rtp.audio.writeFormat, channel->rtp.audio.writeFormat, channel->line->echocancel, channel->passthrupartyid, channel->callid);
 	channel->rtp.audio.writeState = SCCP_RTP_STATUS_PROGRESS;
 	d->protocol->sendOpenReceiveChannel(d, channel);
 #ifdef CS_SCCP_VIDEO
@@ -873,7 +873,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * channel)
 	channel->rtp.audio.readState |= SCCP_RTP_STATUS_PROGRESS;
 	d->protocol->sendStartMediaTransmission(d, channel);
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to: '%s:%d' with codec: %s(%d), tos %d, silencesuppression: %s\n", d->id, pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), ntohs(channel->rtp.audio.phone_remote.sin_port), codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF");
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to: '%s:%d' with codec: %s(%d), tos %d, silencesuppression: %s , passthrupartyid: %u, callid: %u\n", d->id, pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), ntohs(channel->rtp.audio.phone_remote.sin_port), codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
 }
 
 /*!
