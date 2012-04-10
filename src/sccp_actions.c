@@ -2393,15 +2393,10 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 			ast_log(LOG_WARNING, "%s: (OpenReceiveChannelAck) Invalid Number (%d)\n", DEV_ID_LOG(d), c->state);
 			return;
 		}
-		if (channel->state == SCCP_CHANNELSTATE_DOWN) {
-			sccp_channel_unlock(channel);
-			pbx_log(LOG_WARNING, "%s: (OpenReceiveChannelAck) Channel is down. Giving up... (%d)\n", DEV_ID_LOG(d), channel->state);
-			sccp_moo_t *r;
-			REQ(r, CloseReceiveChannel);
-			r->msg.CloseReceiveChannel.lel_conferenceId = htolel(callID);
-			r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(partyID);
-			r->msg.CloseReceiveChannel.lel_conferenceId1 = htolel(callID);
-			sccp_dev_send(d, r);
+		if (c->state == SCCP_CHANNELSTATE_DOWN) {
+			ast_log(LOG_WARNING, "%s: (OpenReceiveChannelAck) Channel is down. Giving up... (%d)\n", DEV_ID_LOG(d), c->state);
+			sccp_channel_closereceivechannel_locked(c);
+			sccp_channel_unlock(c);
 			return;
 		}
 
@@ -2439,9 +2434,9 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 			sccp_moo_t *r;
 
 			REQ(r, CloseReceiveChannel);
-			r->msg.CloseReceiveChannel.lel_conferenceId = htolel(callId);
+			r->msg.CloseReceiveChannel.lel_conferenceId = htolel(callID);
 			r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(partyID);
-			r->msg.CloseReceiveChannel.lel_conferenceId1 = htolel(callId);
+			r->msg.CloseReceiveChannel.lel_conferenceId1 = htolel(callID);
 			sccp_dev_send(d, r);
 		}
 		if (d->inuseprotocolversion < 17)
@@ -3132,7 +3127,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 		sccp_channel_unlock(c);
 		return;
 	} else {
-                if (channel->state != SCCP_CHANNELSTATE_DOWN) {
+                if (c->state != SCCP_CHANNELSTATE_DOWN) {
 			/* update status */
 			c->rtp.audio.status &= ~SCCP_RTP_STATUS_PROGRESS_TRANSMIT;
 			c->rtp.audio.status |= SCCP_RTP_STATUS_TRANSMIT;
@@ -3147,9 +3142,10 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 			}
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmissionAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, CallId: %u, CallId1: %u\n", DEV_ID_LOG(d), status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, callID, callID1);
 		} else {
-                        pbx_log(LOG_WARNING, "%s: (sccp_handle_startmediatransmission_ack) Channel already down (%d). Hanging up\n", DEV_ID_LOG(d), c->state);
-                        sccp_channel_endcall_locked(channel);
+                        ast_log(LOG_WARNING, "%s: (sccp_handle_startmediatransmission_ack) Channel already down (%d). Hanging up\n", DEV_ID_LOG(d), c->state);
+                        sccp_channel_endcall_locked(c);
 		}
+	}
 	sccp_channel_unlock(c);
 }
 
