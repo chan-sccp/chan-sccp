@@ -822,6 +822,7 @@ struct sccp_device {
 	uint8_t protocolversion;						/*!< Skinny Supported Protocol Version */
 	uint8_t inuseprotocolversion;						/*!< Skinny Used Protocol Version */
 	int keepalive;								/*!< Station Specific Keepalive Timeout */
+	int keepaliveinterval;							/*!< Currently set Keepalive Timeout */
 	time_t registrationTime;
 
 	struct sccp_ha *ha;							/*!< Permit or Deny Connections to the Main Socket */
