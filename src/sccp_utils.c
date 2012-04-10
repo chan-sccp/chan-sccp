@@ -567,10 +567,13 @@ sccp_channel_t *sccp_channel_find_byid_locked(uint32_t id)
 }
 
 /*!
- * We need this to start the correct rtp stream.
  * \brief Find Channel by Pass Through Party ID
- * \param id Party ID
+ * We need this to start the correct rtp stream.
+ *
+ * \param passthrupartyid Party ID
  * \return *locked* SCCP Channel - cann bee NULL if no channel with this id was found
+ *
+ * \note Does check that channel state not is DOWN.
  *
  * \callgraph
  * \callergraph
@@ -580,19 +583,19 @@ sccp_channel_t *sccp_channel_find_byid_locked(uint32_t id)
  * 	  - line->channels
  * 	- channel
  */
-sccp_channel_t *sccp_channel_find_bypassthrupartyid_locked(uint32_t id)
+sccp_channel_t *sccp_channel_find_bypassthrupartyid_locked(uint32_t passthrupartyid)
 {
 	sccp_channel_t *channel = NULL;
 	sccp_line_t *l;
 
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u\n", id);
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u\n", passthrupartyid);
 
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
 			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%u: Found channel partyID: %u state: %d\n", channel->callid, channel->passthrupartyid, channel->state);
-			if (channel->passthrupartyid == id && channel->state != SCCP_CHANNELSTATE_DOWN) {
+			if (channel->passthrupartyid == passthrupartyid && channel->state != SCCP_CHANNELSTATE_DOWN) {
 				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel (%u)\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), channel->callid);
 				break;
 			}
@@ -606,8 +609,71 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid_locked(uint32_t id)
 
 	if (channel)
 		sccp_channel_lock(channel);
+	else
+		ast_log(LOG_WARNING, "SCCP: Could not find active channel with Passthrupartyid %u\n", passthrupartyid);
 
 	return channel;
+}
+
+/*!
+ * \brief Find Channel by Pass Through Party ID on a line connected to device provided
+ * We need this to start the correct rtp stream.
+ *
+ * \param d SCCP Device
+ * \param passthrupartyid Party ID
+ * \return *locked* SCCP Channel - can be NULL if no channel with this id was found. 
+ *
+ * \note does not take channel state into account, this need to be asserted in the calling function
+ *
+ * \callgraph
+ * \callergraph
+ * 
+ * \lock
+ * 	- lines
+ * 	  - line->channels
+ * 	- channel
+ */
+sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid_locked(sccp_device_t *d, uint32_t passthrupartyid)
+{
+	if (!d) {
+		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: No device provided to look for %u\n", passthrupartyid);
+		return NULL;
+	}	
+	sccp_channel_t *c = NULL;
+	sccp_line_t *l = NULL;
+	sccp_buttonconfig_t *buttonconfig = NULL;
+	boolean_t channelFound = FALSE;
+	
+	sccp_device_lock(d);
+	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+		if (buttonconfig->type == LINE) {
+			l = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE);
+			if (l) {
+				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_CHANNEL | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: line: '%s'\n", DEV_ID_LOG(d), l->name);
+				SCCP_LIST_LOCK(&l->channels);
+				SCCP_LIST_TRAVERSE(&l->channels, c, list) {
+//					if (c->passthrupartyid == passthrupartyid && c->state != SCCP_CHANNELSTATE_DOWN) {
+					if (c->passthrupartyid == passthrupartyid) {
+						sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel (%u) on line %s with state %d\n", DEV_ID_LOG(d), c->callid, l->name, c->state);
+						channelFound = TRUE;
+						break;
+					}
+				}
+				SCCP_LIST_UNLOCK(&l->channels);
+
+				if (channelFound)
+					break;
+			}
+		}
+	}
+	sccp_device_unlock(d);
+
+	if (c && channelFound)
+		sccp_channel_lock(c);
+	else 
+		ast_log(LOG_WARNING, "SCCP: Could not find active channel with Passthrupartyid %u on device %s\n", passthrupartyid, DEV_ID_LOG(d));
+
+	return c;
 }
 
 /*!
