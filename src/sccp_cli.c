@@ -1069,24 +1069,27 @@ static int sccp_show_sessions(int fd, int *total, struct mansession *s, const st
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_RWLIST_RDLOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_RWLIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_RWLIST_UNLOCK
-#define CLI_AMI_TABLE_BEFORE_ITERATION 											\
+#define CLI_AMI_TABLE_BEFORE_ITERATION 												\
 		sccp_session_lock(session);											\
-		d = session->device;												\
-		if (d) {													\
-			sccp_device_lock(d);
+		if (session->device) {												\
+			d = session->device;											\
+			if (d) {												\
+				sccp_device_lock(d);
 
-#define CLI_AMI_TABLE_AFTER_ITERATION 											\
-			sccp_device_unlock(d);											\
+#define CLI_AMI_TABLE_AFTER_ITERATION 												\
+				sccp_device_unlock(d);										\
+			}													\
 		}														\
 		sccp_session_unlock(session);
-
-#define CLI_AMI_TABLE_FIELDS 												\
-		CLI_AMI_TABLE_FIELD(Socket,			d,	10,	session->fds[0].fd)				\
-		CLI_AMI_TABLE_FIELD(IP,				s,	CLI_AMI_LIST_WIDTH,	pbx_inet_ntoa(session->sin.sin_addr))		\
-		CLI_AMI_TABLE_FIELD(Port,			d,	5,	session->sin.sin_port)				\
-		CLI_AMI_TABLE_FIELD(KA,				d,	4,	(uint32_t) (time(0) - session->lastKeepAlive))	\
-		CLI_AMI_TABLE_FIELD(Device,			s,	15,	(d) ? d->id : "--")				\
-		CLI_AMI_TABLE_FIELD(State,			s,	14,	(d) ? devicestatus2str(d->state) : "--")	\
+				
+#define CLI_AMI_TABLE_FIELDS 														\
+		CLI_AMI_TABLE_FIELD(Socket,			d,	10,	session->fds[0].fd)					\
+		CLI_AMI_TABLE_FIELD(IP,				s,	CLI_AMI_LIST_WIDTH,	pbx_inet_ntoa(session->sin.sin_addr))	\
+		CLI_AMI_TABLE_FIELD(Port,			d,	5,	session->sin.sin_port)					\
+		CLI_AMI_TABLE_FIELD(KA,				d,	4,	(uint32_t) (time(0) - session->lastKeepAlive))		\
+		CLI_AMI_TABLE_FIELD(KI,				d,	4,	d->keepaliveinterval)			\
+		CLI_AMI_TABLE_FIELD(Device,			s,	15,	(d) ? d->id : "--")					\
+		CLI_AMI_TABLE_FIELD(State,			s,	14,	(d) ? devicestatus2str(d->state) : "--")		\
 		CLI_AMI_TABLE_FIELD(Type,			s,	15,	(d) ? devicetype2str(d->skinny_type) : "--")
 #include "sccp_cli_table.h"
 
