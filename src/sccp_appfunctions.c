@@ -138,7 +138,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	} else if (!strcasecmp(colname, "active_channel")) {
 		snprintf(buf, len, "%d", d->active_channel->callid);
 	} else if (!strcasecmp(colname, "transfer_channel")) {
-		snprintf(buf, len, "%d", d->transferChannels.transferee->callid);
+		snprintf(buf, len, "%d", d->transfer_channel->callid);
 	} else if (!strcasecmp(colname, "conference_channel")) {
 		snprintf(buf, len, "%d", d->conference_channel->callid);
 	} else if (!strcasecmp(colname, "current_line")) {

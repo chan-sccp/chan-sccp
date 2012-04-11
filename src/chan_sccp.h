@@ -859,12 +859,7 @@ struct sccp_device {
 
 	boolean_t realtime;							/*!< is it a realtime configuration */
 	sccp_channel_t *active_channel;						/*!< Active SCCP Channel */
-// 	sccp_channel_t *transfer_channel;					/*!< SCCP Channel being Transfered */
-	struct {
-		sccp_channel_t *transferee;					/*!< SCCP Channel that will be transferred */
-		sccp_channel_t *transferer;					/*!< SCCP Channel that transfers transferee  */
-	} transferChannels;
-	
+	sccp_channel_t *transfer_channel;					/*!< SCCP Channel being Transfered */
 	sccp_channel_t *conference_channel;					/*!< SCCP Channel which is going to be Conferenced */
 	sccp_line_t *currentLine;						/*!< Current Line */
 	sccp_session_t *session;						/*!< Current Session */
