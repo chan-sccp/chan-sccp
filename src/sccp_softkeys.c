@@ -609,7 +609,8 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		}
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: (sccp_sk_dirtrfr) First Channel Status (%d), Second Channel Status (%d)\n", DEV_ID_LOG(d), chan1->state, chan2->state);
 		sccp_device_lock(d);
-		d->transfer_channel = chan1;
+		d->transferChannels.transferee = chan1;
+		d->transferChannels.transferer = chan2;
 		sccp_device_unlock(d);
 
 		sccp_channel_transfer_complete(chan2);
