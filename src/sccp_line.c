@@ -434,6 +434,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 	if (!l || !device)
 		return;
 
+	sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: addDevice for line '%s'\n", DEV_ID_LOG(device), l->name);
 	linedevice = sccp_util_getDeviceConfiguration(device, l);
 	if (linedevice) {
 		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: device already registered for line '%s'\n", DEV_ID_LOG(device), l->name);
@@ -478,6 +479,9 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 
 	char buffer[ASTDB_RESULT_LEN];
 
+	sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: checking call forward status for line '%s'\n", DEV_ID_LOG(device), l->name);
+        linedevice->cfwdAll.enabled = FALSE;
+        linedevice->cfwdBusy.enabled = FALSE;
 	memset(family, 0, ASTDB_FAMILY_KEY_LEN);
 	sprintf(family, "SCCP/%s/%s", device->id, l->name);
 	res = pbx_db_get(family, "cfwdAll", buffer, sizeof(buffer));
@@ -485,7 +489,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 	        // Since upon deactivation of the feature the database entries are removed
 	        // The default cfwd state should be FALSE.			
 	        // Otherwise any prepared cfwd features activate unwantedly after device restart (-DD, Bug 3396965)			
-	        linedevice->cfwdAll.enabled = FALSE;
+	        linedevice->cfwdAll.enabled = TRUE;
 		sccp_copy_string(linedevice->cfwdAll.number, buffer, sizeof(linedevice->cfwdAll.number));
 		sccp_feat_changed(device, SCCP_FEATURE_CFWDALL);
 	}
