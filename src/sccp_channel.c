@@ -2101,7 +2101,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * cDestinationLocal)
 	instance = sccp_device_find_index_for_line(d, cDestinationLocal->line->name);
 
 	if (cDestinationLocal->state != SCCP_CHANNELSTATE_RINGOUT && cDestinationLocal->state != SCCP_CHANNELSTATE_CONNECTED) {
-		ast_log(LOG_WARNING, "SCCP: Failed to complete transfer. The channel is not ringing or connected\n");
+		ast_log(LOG_WARNING, "SCCP: Failed to complete transfer. The channel is not ringing or connected. ChannelState: %s (%d)\n", channelstate2str(cDestinationLocal->state), cDestinationLocal->state);
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, instance, cDestinationLocal->callid, 0);
 		sccp_dev_displayprompt(d, instance, cDestinationLocal->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
