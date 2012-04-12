@@ -416,7 +416,7 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 	}
 #endif										// AST_FLAG_ANSWERED_ELSEWHERE
 	d = c->device;
-	if (c->state != SCCP_CHANNELSTATE_DOWN) {
+	if (c->state != SCCP_CHANNELSTATE_DOWN && SKINNY_DEVICE_RS_OK == d->registrationState) {
 		if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_channel_get_active_nolock(d))
 			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
 		sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_ONHOOK);
@@ -430,11 +430,15 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 	}
 #endif										// CS_SCCP_CONFERENCE
 
-	if (c->rtp.audio.rtp || c->rtp.video.rtp) {
-		sccp_channel_closereceivechannel_locked(c);
-		usleep(200);
-		sccp_rtp_destroy(c);
-		usleep(200);
+	if (c) {
+		if (c->rtp.audio.rtp || c->rtp.video.rtp) {
+			if (SKINNY_DEVICE_RS_OK == d->registrationState) {
+				sccp_channel_closereceivechannel_locked(c);
+				usleep(200);
+			}
+			sccp_rtp_destroy(c);
+			usleep(200);
+		}
 	}
 	// removing scheduled dialing
 	SCCP_SCHED_DEL(sched, c->digittimeout);
@@ -471,6 +475,8 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 			sccp_indicate_locked(d, c, SKINNY_CALLSTATE_ONHOOK);
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
+	} else if (SKINNY_DEVICE_RS_OK != d->registrationState) {
+		c->state = SCCP_CHANNELSTATE_DOWN;		// device is reregistering
 	} else {
 		// Really neccessary?
 		// Test for 7910 (to remove the following line)
