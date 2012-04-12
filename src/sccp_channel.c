@@ -1049,7 +1049,7 @@ int sccp_channel_destroy_callback(const void *data)
  * 	- line->channels
  * 	  - see sccp_channel_endcall()
  */
-void sccp_channel_endcall_locked(sccp_channel_t * channel)
+void sccp_channel_endcall_locked(sccp_channel_t *channel)
 {
 	if (!channel || !channel->line) {
 		pbx_log(LOG_WARNING, "No channel or line or device to hangup\n");
@@ -1076,12 +1076,22 @@ void sccp_channel_endcall_locked(sccp_channel_t * channel)
 	7960 loses callplane when cancel transfer (end call on other channel).
 	This script set the hold state for transfer_channel explicitly -MC
 	*/
-	if (channel->privateData->device && channel->privateData->device->transfer_channel && channel->privateData->device->transfer_channel != channel) {
-		uint8_t instance = sccp_device_find_index_for_line(channel->privateData->device, channel->privateData->device->transfer_channel->line->name);
+	if (channel->privateData->device && channel->privateData->device->transferChannels.transferee && channel->privateData->device->transferChannels.transferee != channel) {
+		uint8_t instance = sccp_device_find_index_for_line(channel->privateData->device, channel->privateData->device->transferChannels.transferee->line->name);
 
-		sccp_device_sendcallstate(channel->privateData->device, instance, channel->privateData->device->transfer_channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-		sccp_dev_set_keyset(channel->privateData->device, instance, channel->privateData->device->transfer_channel->callid, KEYMODE_ONHOLD);
-		channel->privateData->device->transfer_channel = NULL;
+		sccp_device_sendcallstate(channel->privateData->device, instance, channel->privateData->device->transferChannels.transferee->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+		sccp_dev_set_keyset(channel->privateData->device, instance, channel->privateData->device->transferChannels.transferee->callid, KEYMODE_ONHOLD);
+		channel->privateData->device->transferChannels.transferee = NULL;
+	}
+	
+	/** request a hangup for channel that are part of a transfer call */
+	if(
+	    (channel == channel->privateData->device->transferChannels.transferee) 
+	    || (channel == channel->privateData->device->transferChannels.transferer) 
+	  
+	){
+		channel->privateData->device->transferChannels.transferee = NULL;
+		channel->privateData->device->transferChannels.transferer = NULL;
 	}
 
 	if (channel->owner) {
@@ -1476,8 +1486,9 @@ int sccp_channel_resume_locked(sccp_device_t * device, sccp_channel_t * channel,
 
 	/* check if we are in the middle of a transfer */
 	sccp_device_lock(d);
-	if (d->transfer_channel == channel) {
-		d->transfer_channel = NULL;
+	if (d->transferChannels.transferee == channel) {
+		d->transferChannels.transferee = NULL;
+		d->transferChannels.transferer = NULL;
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer on the channel %s-%08X\n", d->id, l->name, channel->callid);
 	}
 
@@ -1605,8 +1616,12 @@ void sccp_channel_clean_locked(sccp_channel_t * channel)			// we assume channel 
 
 		if (d->active_channel == channel)
 			d->active_channel = NULL;
-		if (d->transfer_channel == channel)
-			d->transfer_channel = NULL;
+		if (d->transferChannels.transferee == channel){
+			d->transferChannels.transferee = NULL;
+		}
+		if (d->transferChannels.transferer == channel){
+			d->transferChannels.transferer = NULL;
+		}
 		if (d->conference_channel == channel)
 			d->conference_channel = NULL;
 
@@ -1688,15 +1703,16 @@ void sccp_channel_transfer_locked(sccp_channel_t * channel)
 	}
 
 	sccp_device_lock(d);
+	
 	/* are we in the middle of a transfer? */
-	if (d->transfer_channel && (d->transfer_channel != channel)) {
+	if (d->transferChannels.transferee && d->transferChannels.transferer) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion\n", (d && d->id) ? d->id : "SCCP");
 		sccp_device_unlock(d);
-		sccp_channel_transfer_complete(channel);
+		sccp_channel_transfer_complete(d->transferChannels.transferer);
 		return;
 	}
 
-	d->transfer_channel = channel;
+	d->transferChannels.transferee = channel;								/** channel to be transfered */
 	sccp_device_unlock(d);
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
 
@@ -1710,7 +1726,9 @@ void sccp_channel_transfer_locked(sccp_channel_t * channel)
 		return;
 	if (channel->state != SCCP_CHANNELSTATE_CALLTRANSFER)
 		sccp_indicate_locked(d, channel, SCCP_CHANNELSTATE_CALLTRANSFER);
-	sccp_channel_new = sccp_channel_newcall_locked(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
+	sccp_channel_new = sccp_channel_newcall_locked(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND);	/** this channel is requested for complete the transfer */
+	d->transferChannels.transferer = sccp_channel_new; 							/** set channel that will do the transfer  */
+	
 	/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER */
 	if (blindTransfer || (sccp_channel_new && sccp_channel_new->owner && channel->owner && CS_AST_BRIDGED_CHANNEL(channel->owner))) {
 
@@ -1719,8 +1737,9 @@ void sccp_channel_transfer_locked(sccp_channel_t * channel)
 		pbx_builtin_setvar_helper(CS_AST_BRIDGED_CHANNEL(channel->owner), "BLINDTRANSFER", sccp_channel_new->owner->name);
 
 	}
-	if (sccp_channel_new)
+	if (sccp_channel_new){
 		sccp_channel_unlock(sccp_channel_new);
+	}
 }
 
 /*!
@@ -1811,7 +1830,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 	d = sccp_destination_local_channel->privateData->device;
 	sccp_device_lock(d);
 	// Obtain the source channel on that device
-	sccp_source_local_channel = d->transfer_channel;
+	sccp_source_local_channel = d->transferChannels.transferee;
 	sccp_device_unlock(d);
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Complete transfer from %s-%08X\n", d->id, sccp_destination_local_channel->line->name, sccp_destination_local_channel->callid);
@@ -1930,7 +1949,9 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 	}
 
 	sccp_device_lock(d);
-	d->transfer_channel = NULL;
+	/** reset transfer */
+	d->transferChannels.transferee = NULL;
+	d->transferChannels.transferer = NULL;
 	sccp_device_unlock(d);
 
 	if (!pbx_destination_remote_channel) {
