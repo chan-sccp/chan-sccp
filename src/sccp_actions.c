@@ -180,7 +180,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		if (d->session && d->session != s) {
 			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", d->id);
 			d->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
-//			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 			d->session->session_stop = 1;				/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
 			s->session_stop = 1;
 //			sccp_dev_clean(d, FALSE, 0);				/* we need to clean device configuration to set lines */
