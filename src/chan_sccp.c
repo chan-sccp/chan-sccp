@@ -512,24 +512,14 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	s->lastKeepAlive = time(0);	/** always update keepalive */
 
 	/** Check if all necessary information is available */
-	if (s->device) {
-		if (s->device != sccp_device_find_byipaddress(s->sin)) {
-
-			/** IP Address has changed mid session */
-			if (s->device->nat == 1) {
-				// We are natted, what should we do, Not doing anything for now, just sending warning -- DdG
-				ast_log(LOG_WARNING, "%s: Device (%s) attempted to send messages via a different ip-address (%s).\n", DEV_ID_LOG(s->device), pbx_inet_ntoa(s->sin.sin_addr), pbx_inet_ntoa(s->device->session->sin.sin_addr));
-			} else {
-				// We are not natted, but the ip-address has changed
-				ast_log(LOG_ERROR, "(sccp_handle_message): SCCP: Device is attempting to send message via a different ip-address.\nIf this is behind a firewall please set it up in sccp.conf with nat=1.\n");
-				ast_free(r);
-				return 0;
-			}
-		} else if (s->device && (!s->device->session || s->device->session != s)) {
-			sccp_log((DEBUGCAT_CORE | DEBUGCAT_MESSAGE | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "%s: cross device session (Removing Old Session)\n", DEV_ID_LOG(s->device));
-			ast_free(r);
-			return 0;
-		}
+	if (s->device && (!s->device->session || s->device->session != s)) {
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_MESSAGE | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "%s: cross device session (Removing Old Session)\n", DEV_ID_LOG(s->device));
+		s->device->registrationState = SKINNY_DEVICE_RS_FAILED;
+		if (s->device->session)
+			s->device->session->session_stop = 1;
+		s->session_stop = 1;
+		ast_free(r);
+		return 0;
 	}
 
 	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message (%x) %s\n", DEV_ID_LOG(s->device), mid, message2str(mid));
