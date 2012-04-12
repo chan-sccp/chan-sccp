@@ -222,8 +222,6 @@ void *sccp_socket_device_thread(void *session)
 
 	int pollTimeout;
 
-	time_t now;
-
 	sccp_moo_t *m;
 
 	pthread_cleanup_push(sccp_socket_device_thread_exit, session);
@@ -247,16 +245,9 @@ void *sccp_socket_device_thread(void *session)
 #endif
 		if (s->fds[0].fd > 0) {
 			/* calculate poll timout using keepalive interval */
-			now = time(0);
 			maxWaitTime = (s->device) ? s->device->keepalive : GLOB(keepalive);
 			maxWaitTime += keepaliveAdditionalTime;
-
-			/* our calculation was in seconds, we need msecs */
-			pollTimeout = (int)(maxWaitTime - ((int)now - (int)s->lastKeepAlive)) * 1000;
-
-			if (pollTimeout < 5000) {
-				pollTimeout = 5000;
-			}
+			pollTimeout = maxWaitTime * 1000;			// in ms
 
 			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: set poll timeout %d\n", DEV_ID_LOG(s->device), pollTimeout);
 
@@ -265,12 +256,16 @@ void *sccp_socket_device_thread(void *session)
 				/* Sparc64 + OpenBSD socket implementation can be interupted via system irq, ignore and try again */
 				if ((errno != EAGAIN) && (errno != EINTR)) {
 					ast_log(LOG_ERROR, "%s: socket_poll() returned %d. errno: %d (%s)\n", DEV_ID_LOG(s->device), res, errno, strerror(errno));
+                                        if (s->device && s->device->registrationState)
+                                                s->device->registrationState = SKINNY_DEVICE_RS_FAILED;
 					s->session_stop = 1;
 					break;
 				}
 				continue;
 			} else if (res == 0) {					/* poll timeout */
 				ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d).\n", DEV_ID_LOG(s->device), (int)maxWaitTime, pollTimeout);
+				if (s->device && s->device->registrationState)
+				        s->device->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
 				s->session_stop = 1;
 				break;
 			}
@@ -281,6 +276,8 @@ void *sccp_socket_device_thread(void *session)
 				while ((m = sccp_process_data(s))) {
 					if (!sccp_handle_message(m, s)) {
 						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
+                                                if (s->device && s->device->registrationState)
+                                                        s->device->registrationState = SKINNY_DEVICE_RS_FAILED;
 						s->session_stop = 1;
 						break;
 					}
@@ -288,6 +285,8 @@ void *sccp_socket_device_thread(void *session)
 			}
 		} else {							/* session is gone */
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session is Gone\n", DEV_ID_LOG(s->device));
+			if (s->device && s->device->registrationState)
+			        s->device->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
 			s->session_stop = 1;
 			break;
 		}
