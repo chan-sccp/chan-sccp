@@ -2430,7 +2430,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		if (status) {
 			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available. Hanging up active channel.\n", d->id, status);
 		} else {
-			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruId!. Hanging up active channel.\n", d->id);
+			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruId %u!. Hanging up active channel.\n", d->id, passthrupartyid);
 			sccp_moo_t *r;
 
 			REQ(r, CloseReceiveChannel);
