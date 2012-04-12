@@ -552,8 +552,6 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 
 	uint8_t *bufAddr;
 
-	boolean_t finishSending;
-
 	unsigned int try, maxTries;;
 
 	if (!s || s->fds[0].fd <= 0 || s->fds[0].revents & POLLHUP) {
@@ -575,34 +573,34 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	res = 0;
-	finishSending = 0;
 	try = 1;
-	maxTries = 500;
+	maxTries = 50;
 	bytesSent = 0;
 	bufAddr = ((uint8_t *) r);
 	bufLen = (ssize_t) (letohl(r->length) + 8);
-	/* sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Sending Packet Type %s (%d bytes)\n", DEV_ID_LOG(s->device), message2str(letohl(r->lel_messageId)), letohl(r->length)); */
+/*	sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Sending Packet Type %s (%d bytes)\n", DEV_ID_LOG(s->device), message2str(letohl(r->lel_messageId)), letohl(r->length));*/
 	do {
 		res = write(s->fds[0].fd, bufAddr + bytesSent, bufLen - bytesSent);
-		if (res >= 0) {
-			bytesSent += res;
+		if (res <= 0) {
+		        if (res < 0 && (errno == EINTR || errno == EAGAIN)) {
+		                ast_log(LOG_NOTICE, "%s: Partial Socket Write (%d/%d/%d)... Trying again(EAGAIN)(%d/%d)... error: %s.\n", DEV_ID_LOG(s->device), (int)res, (int)bytesSent, (int)bufLen, try, maxTries, strerror(errno));
+		                usleep(10);
+		                continue;
+                        } else {
+                                ast_log(LOG_NOTICE, "%s: write returned %d. Could only send %d of %d bytes! of message %s with length %d\n", DEV_ID_LOG(s->device), (int)res, (int)bytesSent, (int)bufLen, message2str(letohl(r->lel_messageId)), letohl(r->length));
+                                ast_log(LOG_NOTICE, "%s: socket write returned zero length, either device disconnected or network disconnect. Closing Connection.\n", DEV_ID_LOG(s->device));
+                             	sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
+                                if (s)
+                                        s->session_stop = 1;
+                                break;
+                        }
 		}
-		if ((bytesSent == bufLen) || (try >= maxTries)) {
-			finishSending = 1;
-		} else {
-			usleep(10);
-		}
+		bytesSent += res;
 		try++;
-	} while (!finishSending);
+	} while (bytesSent < bufLen && try < maxTries && s && !s->session_stop && s->fds[0].fd > 0);
 
 	sccp_session_unlock(s);
 	ast_free(r);
-
-        if (bytesSent < bufLen) {
-                ast_log(LOG_ERROR, "%s: Could only send %d of %d bytes!\n", DEV_ID_LOG(s->device), (int)bytesSent, (int)bufLen);
-//              sccp_session_close(s);
-                return -1;
-        }
 	return res;
 }
 
