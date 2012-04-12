@@ -39,14 +39,14 @@ boolean_t sccp_device_checkACL(sccp_device_t *device, sccp_session_t *session)
 	
 	/* no permit deny information */
 	if(!device->ha){
-		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: no deny/permit information for this device, allow all connections", device->id);
+		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: no deny/permit information for this device, allow all connections\n", device->id);
 		return TRUE;
 	}
   
 	if (ast_apply_ha(device->ha, &sin) != AST_SENSE_ALLOW) {
 	  
 		// checking permithosts	
-		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: not allowed by deny/permit list. Checking permithost list...", device->id);
+		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: not allowed by deny/permit list. Checking permithost list...\n", device->id);
 
 		struct ast_hostent ahp;
 		struct hostent *hp;
