@@ -156,6 +156,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 
 	s->device = d;
 	d->status.token = SCCP_TOKEN_STATE_REJ;
+	d->skinny_type = deviceType;
 
 	if (d->checkACL(d) == FALSE) {
 		ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
@@ -271,6 +272,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
 	s->protocolType = SPCP_PROTOCOL;
 	s->device = device;
 	device->status.token = SCCP_TOKEN_STATE_REJ;
+	d->skinny_type = letohl(r->msg.RegisterTokenRequest.lel_deviceType);
 
 	if (device->checkACL(device) == FALSE) {
 		ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
@@ -445,21 +447,18 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	sccp_device_unlock(d);
 
 	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
-	int keepAliveInterval = d->keepalive ? d->keepalive : GLOB(keepalive);
-
-	keepAliveInterval = ((keepAliveInterval / 4) * 3) + (rand() % (keepAliveInterval / 4)) + 1;
-	
-	d->keepaliveinterval = keepAliveInterval;
+	d->keepaliveinterval = d->keepalive ? d->keepalive : GLOB(keepalive);
+	d->keepaliveinterval = ((d->keepaliveinterval / 4) * 3) + (rand() % (d->keepaliveinterval / 4)) + 1;
 
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Phone protocol capability : %d\n", DEV_ID_LOG(d), protocolVer);
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Our protocol capability	 : %d\n", DEV_ID_LOG(d), ourMaxSupportedProtocolVersion);
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Joint protocol capability : %d\n", DEV_ID_LOG(d), d->protocol->version);
 
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval);
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, d->keepaliveinterval);
 
 	d->inuseprotocolversion = d->protocol->version;
 	sccp_device_setIndicationProtocol(d);
-	d->protocol->sendRegisterAck(d, keepAliveInterval, (d->keepalive ? d->keepalive : GLOB(keepalive)), GLOB(dateformat));
+	d->protocol->sendRegisterAck(d, d->keepaliveinterval, (d->keepalive ? d->keepalive : GLOB(keepalive)), GLOB(dateformat));
 
 	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_PROGRESS);
 
