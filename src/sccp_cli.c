@@ -792,7 +792,7 @@ static int sccp_show_sessions(int fd, int argc, char *argv[])
 			d = s->device;
 			if (d->session == s) {
 				sccp_device_lock(d);
-				ast_cli(fd, "%-10d %-15s:%-6d %-4d %-4d %-15s %-15s %-15s\n", s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr), s->sin.sin_port, (uint32_t) (time(0) - s->lastKeepAlive), d->keepaliveinterval, (d) ? d->id : "--", (d) ? devicestatus2str(d->state) : "--", (d) ? devicetype2str(d->skinny_type) : "--");
+				ast_cli(fd, "%-10d %-15s:%-5d %-4d %-4d %-15s %-15s %-15s\n", s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr), s->sin.sin_port, (uint32_t) (time(0) - s->lastKeepAlive), d->keepaliveinterval, (d) ? d->id : "--", (d) ? devicestatus2str(d->state) : "--", (d) ? devicetype2str(d->skinny_type) : "--");
 				sccp_device_unlock(d);
 			}
 		}
