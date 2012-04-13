@@ -455,11 +455,7 @@ static const struct sccp_messageMap_cb messagesCbMap[] = {
 	{DeviceToUserDataVersion1Message, sccp_handle_device_to_user, TRUE},
 	{DeviceToUserDataResponseVersion1Message, sccp_handle_device_to_user_response, TRUE},
 
-#ifdef CS_ADV_FEATURES
 	{RegisterTokenReq, sccp_handle_tokenreq, FALSE},
-#else
-	{RegisterTokenReq, sccp_handle_register, FALSE},
-#endif
 	{SPARegisterMessage, sccp_handle_SPAregister, FALSE},
 	{UnregisterMessage, sccp_handle_unregister, FALSE},
 	{RegisterMessage, sccp_handle_register, FALSE},

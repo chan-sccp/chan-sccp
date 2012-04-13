@@ -67,8 +67,6 @@ void sccp_handle_unknown_message(sccp_session_t * s, sccp_device_t * d, sccp_moo
 	sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
 }
 
-#ifdef CS_ADV_FEATURES
-
 /*!
  * \brief Handle Token Request
  *
@@ -85,6 +83,7 @@ void sccp_handle_unknown_message(sccp_session_t * s, sccp_device_t * d, sccp_moo
  */
 void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
+	
 	uint8_t retryTime = 60;
   
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is requesting a Token, Instance: %d, Type: %s (%d)\n", 
@@ -98,39 +97,41 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 	// Search for already known devices -> Cleanup
 	d = sccp_device_find_byid(r->msg.RegisterTokenReq.sId.deviceName, FALSE);
-	if (d) {
-		if (d->session && d->session != s) {
-			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_2 "%s: Device is registered on another server (TokenReq)!\n", d->id);
-			d->session->session_stop = 1;				/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
-			sccp_dev_clean(d, FALSE, 0);				/* we need to clean device configuration to set lines */
-			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
-		}
-	}
+        if (!d) {
+                ast_log(LOG_NOTICE, "%s: Rejecting device: not found\n", r->msg.RegisterTokenReq.sId.deviceName);
+                s = sccp_session_reject(s, "Unknown Device");
+                return;
+        }
+
+        s->device = d;
 
 	/* double ip address range check */
 	if (GLOB(ha) && !pbx_apply_ha(GLOB(ha), &((sccp_session_t *) s)->sin)) {
 		ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", r->msg.RegisterTokenReq.sId.deviceName);
+		d->registrationState = SKINNY_DEVICE_RS_FAILED;
 		REQ(r, RegisterTokenReject);
 		r->msg.RegisterTokenReject.lel_tokenRejWaitTime = htolel(60);
 		sccp_session_send2(s, r);
 		return;
 	}
 
+	if (d->session && d->session != s) {
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_2 "%s: Device is registered on another server (TokenReq)!\n", d->id);
+		d->registrationState = SKINNY_DEVICE_RS_FAILED;
+		d->session->session_stop = 1;				/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
+		sccp_dev_clean(d, FALSE, 0);				/* we need to clean device configuration to set lines */
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
+	}
+
 	/* \todo handle device pre-registration to speed up registration upon emergency and make communication (device reset) with device possible */
 
 	/*Currently rejecting token until further notice */
 	boolean_t sendAck=FALSE;
-	
+	d->session = s;
 
 	/* we are the primary server */
 	if(letohl(r->msg.RegisterTokenReq.sId.lel_instance) == 0){
-		
-		//if(letohl(r->msg.RegisterTokenReq.unknown) & 0x00FFFFFF){
-		//	retryTime = 30;
-		//	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: active call on device fallback retry in %d seconds\n", r->msg.RegisterTokenReq.sId.deviceName, retryTime);
-		//}else{
-			sendAck = TRUE;
-		//}
+		sendAck = TRUE;
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: unknown: %d, (%d)\n", r->msg.RegisterTokenReq.sId.deviceName, letohl(r->msg.RegisterTokenReq.unknown), (letohl(r->msg.RegisterTokenReq.unknown) & 0x6));
 
 	}
@@ -145,7 +146,6 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		sccp_session_send2(s, r);
 	}
 }
-#endif
 
 /*!
  * \brief Handle Device Registration
@@ -254,14 +254,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	
 	sccp_device_unlock(d);
 
-	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
-	int keepAliveInterval = d->keepalive ? d->keepalive : GLOB(keepalive);
-
-//	keepAliveInterval = (keepAliveInterval / 2) + (rand() % (keepAliveInterval / 2)) + 1;
-	keepAliveInterval = ((keepAliveInterval / 4) * 3) + (rand() % (keepAliveInterval / 4)) + 1;
-	d->keepaliveinterval = keepAliveInterval;
-
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, d->keepaliveinterval);
 	REQ(r1, RegisterAckMessage);
 
 //      sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->length);
@@ -300,7 +293,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	}
 
 	r1->msg.RegisterAckMessage.protocolVer = d->inuseprotocolversion;
-	r1->msg.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
+	r1->msg.RegisterAckMessage.lel_keepAliveInterval = htolel(d->keepaliveinterval);
 	r1->msg.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel((d->keepalive ? d->keepalive : GLOB(keepalive)));
 
 	memcpy(r1->msg.RegisterAckMessage.dateTemplate, GLOB(date_format), sizeof(r1->msg.RegisterAckMessage.dateTemplate));
@@ -423,21 +416,20 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t *
 	//d->protocolversion = r->msg.SPARegisterMessage.protocolVer;
 	d->protocolversion = 0;
 
+	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
+	d->keepaliveinterval = d->keepalive ? d->keepalive : GLOB(keepalive);
+	d->keepaliveinterval = ((d->keepaliveinterval / 4) * 3) + (rand() % (d->keepaliveinterval / 4)) + 1;
+
 	sccp_device_unlock(d);
 
-	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
-	int keepAliveInterval = d->keepalive ? d->keepalive : GLOB(keepalive);
-
-	keepAliveInterval = (keepAliveInterval / 2) + (rand() % (keepAliveInterval / 2)) - 1;
-
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, keepAliveInterval);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, d->keepaliveinterval);
 	REQ(r1, RegisterAckMessage);
 
 	d->inuseprotocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), d->inuseprotocolversion);
 
 	r1->msg.RegisterAckMessage.protocolVer = d->inuseprotocolversion;
-	r1->msg.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
+	r1->msg.RegisterAckMessage.lel_keepAliveInterval = htolel(d->keepaliveinterval);
 	r1->msg.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel((d->keepalive ? d->keepalive : GLOB(keepalive)));
 
 	memcpy(r1->msg.RegisterAckMessage.dateTemplate, GLOB(date_format), sizeof(r1->msg.RegisterAckMessage.dateTemplate));
