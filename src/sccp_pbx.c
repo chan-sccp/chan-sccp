@@ -472,7 +472,11 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 			assert(linedevice->device);
 
 			d = linedevice->device;
-			sccp_indicate_locked(d, c, SKINNY_CALLSTATE_ONHOOK);
+			if (SKINNY_DEVICE_RS_OK == d->registrationState) {
+				sccp_indicate_locked(d, c, SKINNY_CALLSTATE_ONHOOK);
+			} else {
+				c->state = SCCP_CHANNELSTATE_DOWN;
+			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
 	} else if (SKINNY_DEVICE_RS_OK != d->registrationState) {
