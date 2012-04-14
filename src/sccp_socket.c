@@ -596,8 +596,12 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
                                 }
                                 break;
                         } 
-                        sccp_log (DEBUGCAT_HIGH)(VERBOSE_PREFIX_4 "%s: EAGAIN / EINTR: %d (error: '%s'). Sent %d of %d for Message: '%s' with total length %d  \n", DEV_ID_LOG(s->device), (int)res, strerror(errno), (int)bytesSent, (int)bufLen, message2str(letohl(r->lel_messageId)), letohl(r->length));
-                        usleep(50);		// try sending more data
+                        sccp_log (DEBUGCAT_HIGH)(VERBOSE_PREFIX_4 "%s: EAGAIN / EINTR: %d (error: '%s (%d)'). Sent %d of %d for Message: '%s' with total length %d. Try: %d/%d\n", DEV_ID_LOG(s->device), (int)res, strerror(errno), errno, (int)bytesSent, (int)bufLen, message2str(letohl(r->lel_messageId)), letohl(r->length), try, maxTries);
+                        if (errno == 11) {		// resource temporarily unavailable
+	                        usleep(200);		// back off somewhat longer to give the network buffer some time
+			} else {
+				usleep(50);		// back off a little
+			}
                         continue; 
                 }
 		bytesSent += res;
