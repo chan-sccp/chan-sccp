@@ -92,8 +92,7 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		devicetype2str(letohl(r->msg.RegisterTokenReq.lel_deviceType)), 
 		letohl(r->msg.RegisterTokenReq.lel_deviceType)
 	);
-
-	sccp_dump_packet((unsigned char *)&r->msg.RegisterTokenReq, r->length);
+//	sccp_dump_packet((unsigned char *)&r->msg.RegisterTokenReq, r->length);
 
 	// Search for already known devices -> Cleanup
 	d = sccp_device_find_byid(r->msg.RegisterTokenReq.sId.deviceName, FALSE);
