@@ -610,7 +610,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 	}
 
 	try = 0;
-	maxTries = 50;
+	maxTries = 500;
 	bytesSent = 0;
 	bufAddr = ((uint8_t *) r);
 	bufLen = (ssize_t) (letohl(r->length) + 8);
@@ -619,7 +619,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 		res = write(s->fds[0].fd, bufAddr + bytesSent, bufLen - bytesSent);
                 if (res < 0) { 
                         if (errno != EINTR && errno != EAGAIN) {
-                                pbx_log(LOG_WARNING, "%s: write returned %d (error: '%s'). Sent %d of %d for Message: '%s' with total length %d \n", DEV_ID_LOG(s->device), (int)res, strerror(errno), (int)bytesSent, (int)bufLen, message2str(letohl(r->lel_messageId)), letohl(r->length));
+                                pbx_log(LOG_WARNING, "%s: write returned %d (error: '%s (%d)'). Sent %d of %d for Message: '%s' with total length %d \n", DEV_ID_LOG(s->device), (int)res, strerror(errno), errno, (int)bytesSent, (int)bufLen, message2str(letohl(r->lel_messageId)), letohl(r->length));
                                 sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
                                 if (s) {
                                         ast_log(LOG_WARNING, "%s. closing connection", DEV_ID_LOG(s->device));
@@ -630,9 +630,13 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
                                         s->session_thread = AST_PTHREADT_NULL;
                                 }
                                 break;
-                        } 
-                        sccp_log (DEBUGCAT_HIGH)(VERBOSE_PREFIX_4 "%s: EAGAIN / EINTR: %d (error: '%s'). Sent %d of %d for Message: '%s' with total length %d  \n", DEV_ID_LOG(s->device), (int)res, strerror(errno), (int)bytesSent, (int)bufLen, message2str(letohl(r->lel_messageId)), letohl(r->length));
-                        usleep(50);		// try sending more data
+                        }
+                        sccp_log (DEBUGCAT_HIGH)(VERBOSE_PREFIX_4 "%s: EAGAIN / EINTR: %d (error: '%s (%d)'). Sent %d of %d for Message: '%s' with total length %d. Try: %d/%d\n", DEV_ID_LOG(s->device), (int)res, strerror(errno), errno, (int)bytesSent, (int)bufLen, message2str(letohl(r->lel_messageId)), letohl(r->length), try, maxTries);
+                        if (errno == 11) {		// resource temporarily unavailable
+	                        usleep(200);		// back off somewhat longer to give the network buffer some time
+			} else {
+				usleep(50);		// back off a little
+			}
                         continue; 
                 }
 		bytesSent += res;
