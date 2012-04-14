@@ -1389,7 +1389,7 @@ int sccp_channel_hold_locked(sccp_channel_t * channel)
 	/* put on hold an active call */
 	if (channel->state != SCCP_CHANNELSTATE_CONNECTED && channel->state != SCCP_CHANNELSTATE_PROCEED) {	// TOLL FREE NUMBERS STAYS ALWAYS IN CALL PROGRESS STATE
 		/* something wrong on the code let's notify it for a fix */
-		pbx_log(LOG_ERROR, "%s can't put on hold an inactive channel %s-%08X (%s)\n", d->id, l->name, channel->callid, sccp_indicate2str(channel->state));
+		sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "%s can't put on hold an inactive channel %s-%08X (%s)... cancelling hold action.\n", d->id, l->name, channel->callid, sccp_indicate2str(channel->state));
 		/* hard button phones need it */
 		instance = sccp_device_find_index_for_line(d, l->name);
 		sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
