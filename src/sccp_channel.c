@@ -1684,6 +1684,7 @@ void sccp_channel_transfer_locked(sccp_channel_t * channel)
 {
 	sccp_device_t *d;
 	sccp_channel_t *sccp_channel_new = NULL;
+	uint8_t prev_channel_state = 0;
 	uint32_t blindTransfer = 0;
 	uint16_t instance;
 
@@ -1722,12 +1723,12 @@ void sccp_channel_transfer_locked(sccp_channel_t * channel)
 		sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
 	}
+	prev_channel_state = channel->state;
 	if ((channel->state != SCCP_CHANNELSTATE_HOLD && channel->state != SCCP_CHANNELSTATE_CALLTRANSFER) && !sccp_channel_hold_locked(channel))
 		return;
 	if (channel->state != SCCP_CHANNELSTATE_CALLTRANSFER)
 		sccp_indicate_locked(d, channel, SCCP_CHANNELSTATE_CALLTRANSFER);
 	sccp_channel_new = sccp_channel_newcall_locked(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND);	/** this channel is requested for complete the transfer */
-	d->transferChannels.transferer = sccp_channel_new; 							/** set channel that will do the transfer  */
 	
 	/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER */
 	if (blindTransfer || (sccp_channel_new && sccp_channel_new->owner && channel->owner && CS_AST_BRIDGED_CHANNEL(channel->owner))) {
@@ -1737,8 +1738,15 @@ void sccp_channel_transfer_locked(sccp_channel_t * channel)
 		pbx_builtin_setvar_helper(CS_AST_BRIDGED_CHANNEL(channel->owner), "BLINDTRANSFER", sccp_channel_new->owner->name);
 
 	}
-	if (sccp_channel_new){
+	if (sccp_channel_new) {
+		d->transferChannels.transferer = sccp_channel_new; 					/** set channel that will do the transfer  */
 		sccp_channel_unlock(sccp_channel_new);
+	} else {
+		// giving up
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: New channel could not be created to complete transfer for %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
+		sccp_indicate_locked(d, channel, prev_channel_state);
+		d->transferChannels.transferer = NULL; 							/** set channel that will do the transfer  */
+		d->transferChannels.transferee = NULL; 							/** set channel that will do the transfer  */
 	}
 }
 
