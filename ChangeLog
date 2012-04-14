@@ -1,4 +1,52 @@
 ------------------------------------------------------------------------
+r3381 | ddegroot | 2012-04-13 12:23:58 +0200 (Fri, 13 Apr 2012) | 1 line
+
+Set devicetype during sccp_handle_tokenReq, so that they are displayed nicely in sccp show sessions
+------------------------------------------------------------------------
+r3377 | ddegroot | 2012-04-12 15:53:36 +0200 (Thu, 12 Apr 2012) | 1 line
+
+Reinstated marcello's transfer patch, to negate the issue with shifting focus during transfer
+------------------------------------------------------------------------
+r3365 | marcelloceschia | 2012-04-11 18:09:45 +0200 (Wed, 11 Apr 2012) | 1 line
+
+revert changes in 3364
+------------------------------------------------------------------------
+r3364 | marcelloceschia | 2012-04-11 12:16:43 +0200 (Wed, 11 Apr 2012) | 1 line
+
+change the way we handle transfer situations
+------------------------------------------------------------------------
+r3362 | ddegroot | 2012-04-10 14:17:45 +0200 (Tue, 10 Apr 2012) | 1 line
+
+Added passthrupartyid and callid to logging in sccp_channel.c
+------------------------------------------------------------------------
+r3361 | ddegroot | 2012-04-10 14:12:23 +0200 (Tue, 10 Apr 2012) | 1 line
+
+Store the keepaliveinterval for use in sccp show sessions
+------------------------------------------------------------------------
+r3357 | ddegroot | 2012-04-10 13:49:13 +0200 (Tue, 10 Apr 2012) | 1 line
+
+Set the registrationstate during crossover session / sessiontimeout
+------------------------------------------------------------------------
+r3356 | ddegroot | 2012-04-10 13:43:33 +0200 (Tue, 10 Apr 2012) | 1 line
+
+Enable openreceive_channel_ack and startmediatransmission_ack functions to function without a valid passthrupartyid on 6911 phones
+------------------------------------------------------------------------
+r3349 | ddegroot | 2012-03-30 18:21:52 +0200 (Fri, 30 Mar 2012) | 1 line
+
+Added callwaiting_interval option to sccp.conf. Implemented repeating callwaiting signal.
+------------------------------------------------------------------------
+r3348 | ddegroot | 2012-03-30 15:56:18 +0200 (Fri, 30 Mar 2012) | 1 line
+
+Added CLI/AMI command to send TokenAck to device (sccp tokenack <deviceId> / SCCPTokenAck <DeviceName>). Makes a phone switch servers in a clustered environment on demand.
+------------------------------------------------------------------------
+r3347 | ddegroot | 2012-03-30 13:13:56 +0200 (Fri, 30 Mar 2012) | 1 line
+
+Send reset to connected devices during module unload. This will make them reconnect much quicker afterwards
+------------------------------------------------------------------------
+r3346 | ddegroot | 2012-03-30 13:08:26 +0200 (Fri, 30 Mar 2012) | 1 line
+
+Update ChangeLog
+------------------------------------------------------------------------
 r3344 | ddegroot | 2012-03-30 13:02:59 +0200 (Fri, 30 Mar 2012) | 1 line
 
 Use callID next to passthrupartyid during handle_open_receive_channel_ack, handle_OpenMultiMediaReceiveAck and handle_startmediatransmission_ack, extended debug logging in case of status error
