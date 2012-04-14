@@ -580,6 +580,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 	bufAddr = ((uint8_t *) r);
 	bufLen = (ssize_t) (letohl(r->length) + 8);
 	do {
+		try++;
 		res = write(s->fds[0].fd, bufAddr + bytesSent, bufLen - bytesSent);
                 if (res < 0) { 
                         if (errno != EINTR && errno != EAGAIN) {
@@ -595,10 +596,11 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
                                 }
                                 break;
                         } 
+                        sccp_log (DEBUGCAT_HIGH)(VERBOSE_PREFIX_4 "%s: EAGAIN / EINTR: %d (error: '%s'). Sent %d of %d for Message: '%s' with total length %d  \n", DEV_ID_LOG(s->device), (int)res, strerror(errno), (int)bytesSent, (int)bufLen, message2str(letohl(r->lel_messageId)), letohl(r->length));
                         usleep(50);		// try sending more data
+                        continue; 
                 }
 		bytesSent += res;
-		try++;
 	} while (bytesSent < bufLen && try < maxTries && s && !s->session_stop && s->fds[0].fd > 0);
 
 	sccp_session_unlock(s);
