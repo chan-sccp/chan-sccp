@@ -565,8 +565,6 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 	}
 	sccp_session_lock(s);
 
-	//sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
-
 	if (msgid == KeepAliveAckMessage || msgid == RegisterAckMessage || msgid == UnregisterAckMessage) {
 		r->lel_reserved = 0;
 	} else if (s->device && s->device->inuseprotocolversion >= 17) {
@@ -581,7 +579,6 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 	bytesSent = 0;
 	bufAddr = ((uint8_t *) r);
 	bufLen = (ssize_t) (letohl(r->length) + 8);
-/*	sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Sending Packet Type %s (%d bytes)\n", DEV_ID_LOG(s->device), message2str(letohl(r->lel_messageId)), letohl(r->length));*/
 	do {
 		res = write(s->fds[0].fd, bufAddr + bytesSent, bufLen - bytesSent);
                 if (res < 0) { 
@@ -599,7 +596,6 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
                                 break;
                         } 
                         usleep(50);		// try sending more data
-                        continue;
                 }
 		bytesSent += res;
 		try++;
@@ -607,6 +603,12 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 
 	sccp_session_unlock(s);
 	ast_free(r);
+	r = NULL;
+
+        if (bytesSent < bufLen) {
+                ast_log(LOG_ERROR, "%s: Could only send %d of %d bytes!\n", DEV_ID_LOG(s->device), (int)bytesSent, (int)bufLen);
+                return -1;
+        }
 	return res;
 }
 
