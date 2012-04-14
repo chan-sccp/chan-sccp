@@ -363,7 +363,7 @@ int sccp_pbx_hangup_locked(sccp_channel_t * c)
 	}
 
 	d = sccp_channel_getDevice(c);
-	if (c->state != SCCP_CHANNELSTATE_DOWN) {
+	if (c->state != SCCP_CHANNELSTATE_DOWN && SKINNY_DEVICE_RS_OK == d->registrationState) {
 		if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_channel_get_active_nolock(d))
 			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
 		sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_ONHOOK);
@@ -378,9 +378,12 @@ int sccp_pbx_hangup_locked(sccp_channel_t * c)
 	}
 #endif										// CS_SCCP_CONFERENCE
 
-	if (c->rtp.audio.rtp) {
-		sccp_channel_closereceivechannel_locked(c);
-		sccp_rtp_destroy(c);
+	if (c) {
+		if (c->rtp.audio.rtp || c->rtp.video.rtp) {
+			if (SKINNY_DEVICE_RS_OK == d->registrationState)
+				sccp_channel_closereceivechannel_locked(c);
+			sccp_rtp_destroy(c);
+		}
 	}
 	// removing scheduled dialing
 	c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
@@ -413,9 +416,12 @@ int sccp_pbx_hangup_locked(sccp_channel_t * c)
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 			d = linedevice->device;
-			sccp_indicate_locked(d, c, SKINNY_CALLSTATE_ONHOOK);
+			if (SKINNY_DEVICE_RS_OK == d->registrationState) {
+				sccp_indicate_locked(d, c, SKINNY_CALLSTATE_ONHOOK);
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
+	} else if (SKINNY_DEVICE_RS_OK != d->registrationState) {
+		c->state = SCCP_CHANNELSTATE_DOWN;		// device is reregistering
 	} else {
 		/* 
 		 * Really neccessary?

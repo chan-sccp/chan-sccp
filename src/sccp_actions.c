@@ -276,7 +276,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
 
 	if (device->checkACL(device) == FALSE) {
 		ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
-                d->registrationState = SKINNY_DEVICE_RS_FAILED;
+                device->registrationState = SKINNY_DEVICE_RS_FAILED;
 		sccp_session_tokenRejectSPCP(s, 60);
 		s = sccp_session_reject(s, "IP Not Authorized");
 		return;
@@ -284,7 +284,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t 
 
 	if (device->session && device->session != s) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", device->id);
-                d->registrationState = SKINNY_DEVICE_RS_FAILED;
+                device->registrationState = SKINNY_DEVICE_RS_FAILED;
 		sccp_session_tokenRejectSPCP(s, 60);
 		s = sccp_session_reject(s, "Crossover session not allowed");
 		return;
