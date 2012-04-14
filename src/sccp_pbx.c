@@ -416,7 +416,7 @@ int sccp_pbx_hangup_locked(sccp_channel_t * c)
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 			d = linedevice->device;
-			if (SKINNY_DEVICE_RS_OK == d->registrationState) {
+			if (SKINNY_DEVICE_RS_OK == d->registrationState)
 				sccp_indicate_locked(d, c, SKINNY_CALLSTATE_ONHOOK);
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
