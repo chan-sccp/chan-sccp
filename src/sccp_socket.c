@@ -249,17 +249,10 @@ void sccp_socket_device_thread_exit(void *session)
 void *sccp_socket_device_thread(void *session)
 {
 	sccp_session_t *s = (sccp_session_t *) session;
-
 	uint8_t keepaliveAdditionalTime = 10;
-
 	int res;
-
 	double maxWaitTime;
-
 	int pollTimeout;
-
-	time_t now;
-
 	sccp_moo_t *m;
 
 	pthread_cleanup_push(sccp_socket_device_thread_exit, session);
@@ -283,7 +276,6 @@ void *sccp_socket_device_thread(void *session)
 #endif
 		if (s->fds[0].fd > 0) {
 			/* calculate poll timout using keepalive interval */
-			now = time(0);
 			maxWaitTime = (s->device) ? s->device->keepalive : GLOB(keepalive);
 			maxWaitTime += keepaliveAdditionalTime;
 			pollTimeout = maxWaitTime * 1000;
@@ -587,28 +579,27 @@ int sccp_session_send(const sccp_device_t * device, sccp_moo_t * r)
 int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 {
 	ssize_t res=0;
-
 	uint32_t msgid = letohl(r->lel_messageId);
-
 	ssize_t bytesSent;
-
 	ssize_t bufLen;
-
 	uint8_t *bufAddr;
-
-	boolean_t finishSending;
-
 	unsigned int try, maxTries;;
 
-	if (!s || s->fds[0].fd <= 0 || s->fds[0].revents & POLLHUP) {
+	if (!s || s->fds[0].fd <= 0 || s->fds[0].revents & POLLHUP || s->session_stop) {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Tried to send packet over DOWN device.\n");
 		sccp_free(r);
 		r = NULL;
+		if (s) {
+                        ast_log(LOG_WARNING, "%s. closing connection", DEV_ID_LOG(s->device));
+                        if (s->device && s->device->registrationState)
+                                s->device->registrationState = SKINNY_DEVICE_RS_FAILED;
+                        s->session_stop = 1;
+                        pthread_cancel(s->session_thread);
+                        s->session_thread = AST_PTHREADT_NULL;
+		}
 		return -1;
 	}
 	sccp_session_lock(s);
-
-	//sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
 
 	if (msgid == KeepAliveAckMessage || msgid == RegisterAckMessage || msgid == UnregisterAckMessage) {
 		r->lel_reserved = 0;
@@ -618,33 +609,39 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 		r->lel_reserved = 0;
 	}
 
-//	res = 0;
-	finishSending = 0;
 	try = 1;
-	maxTries = 500;
+	maxTries = 50;
 	bytesSent = 0;
 	bufAddr = ((uint8_t *) r);
 	bufLen = (ssize_t) (letohl(r->length) + 8);
-	/* sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Sending Packet Type %s (%d bytes)\n", DEV_ID_LOG(s->device), message2str(letohl(r->lel_messageId)), letohl(r->length)); */
 	do {
 		res = write(s->fds[0].fd, bufAddr + bytesSent, bufLen - bytesSent);
-		if (res >= 0) {
-			bytesSent += res;
-		}
-		if ((bytesSent == bufLen) || (try >= maxTries)) {
-			finishSending = 1;
-		} else {
-			usleep(10);
-		}
+                if (res < 0) { 
+                        if (errno != EINTR && errno != EAGAIN) {
+                                ast_log(LOG_WARNING, "%s: write returned %d (error: '%s'). Sent %d of %d for Message: '%s' with total length %d \n", DEV_ID_LOG(s->device), (int)res, strerror(errno), (int)bytesSent, (int)bufLen, message2str(letohl(r->lel_messageId)), letohl(r->length));
+                                sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
+                                if (s) {
+                                        ast_log(LOG_WARNING, "%s. closing connection", DEV_ID_LOG(s->device));
+                                        if (s->device && s->device->registrationState)
+                                                s->device->registrationState = SKINNY_DEVICE_RS_FAILED;
+                                        s->session_stop = 1;
+                                        pthread_cancel(s->session_thread);
+                                        s->session_thread = AST_PTHREADT_NULL;
+                                }
+                                break;
+                        } 
+                        usleep(50);		// try sending more data
+                }
+		bytesSent += res;
 		try++;
-	} while (!finishSending);
+	} while (bytesSent < bufLen && try < maxTries && s && !s->session_stop && s->fds[0].fd > 0);
 
 	sccp_session_unlock(s);
 	sccp_free(r);
+	r = NULL;
 
         if (bytesSent < bufLen) {
                 ast_log(LOG_ERROR, "%s: Could only send %d of %d bytes!\n", DEV_ID_LOG(s->device), (int)bytesSent, (int)bufLen);
-//              sccp_session_close(s);
                 return -1;
         }
 
