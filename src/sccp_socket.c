@@ -286,14 +286,7 @@ void *sccp_socket_device_thread(void *session)
 			now = time(0);
 			maxWaitTime = (s->device) ? s->device->keepalive : GLOB(keepalive);
 			maxWaitTime += keepaliveAdditionalTime;
-
-			/* our calculation was in seconds, we need msecs */
-			pollTimeout = (int)(maxWaitTime - ((int)now - (int)s->lastKeepAlive)) * 1000;
-
-			if (pollTimeout < 0) {
-				s->session_stop = 1;
-				break;
-			}
+			pollTimeout = maxWaitTime * 1000;
 
 			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: set poll timeout %d\n", DEV_ID_LOG(s->device), pollTimeout);
 
@@ -313,15 +306,11 @@ void *sccp_socket_device_thread(void *session)
 					sccp_free(m);
 				}
 			} else if (res == 0) {					/* poll timeout */
-				now = time(0);
-				if (s->device && s->device->keepalive && (now > ((s->lastKeepAlive + s->device->keepalive) + keepaliveAdditionalTime))) {
-					sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session Keepalive %s Expired, now %s\n", DEV_ID_LOG(s->device), ctime(&s->lastKeepAlive), ctime(&now));
-					pbx_log(LOG_WARNING, "%s: Dead device does not send a keepalive message in %d+%d seconds. Will be removed\n", DEV_ID_LOG(s->device), GLOB(keepalive), keepaliveAdditionalTime);
-					if (s->device && s->device->registrationState)
-			                        s->device->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
-					s->session_stop = 1;
-					break;
-				}
+				ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d).\n", DEV_ID_LOG(s->device), (int)maxWaitTime, pollTimeout);
+				if (s->device && s->device->registrationState)
+		                        s->device->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
+				s->session_stop = 1;
+				break;
 			} else {						/* poll error */
 				pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
 				if (s->device && s->device->registrationState)
