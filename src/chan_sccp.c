@@ -543,6 +543,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	if (r) {
 		sccp_free(r);
 	}
+	s->lastKeepAlive = time(0);	/** always update keepalive */
 	return 1;
 }
 

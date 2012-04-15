@@ -214,7 +214,7 @@ void *sccp_socket_device_thread(void *session)
 {
 	sccp_session_t *s = (sccp_session_t *) session;
 
-	uint8_t keepaliveAdditionalTime = 10;
+	uint8_t keepaliveAdditionalTimePercent = 10;
 
 	int res;
 
@@ -228,7 +228,7 @@ void *sccp_socket_device_thread(void *session)
 
 	/* we increase additionalTime for wireless/slower devices */
 	if (s->device && (s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO6911)) {
-		keepaliveAdditionalTime += 10;
+		keepaliveAdditionalTimePercent += 10;
 	}
 
 	while (!s->session_stop) {
@@ -246,7 +246,7 @@ void *sccp_socket_device_thread(void *session)
 		if (s->fds[0].fd > 0) {
 			/* calculate poll timout using keepalive interval */
 			maxWaitTime = (s->device) ? s->device->keepalive : GLOB(keepalive);
-			maxWaitTime += keepaliveAdditionalTime;
+			maxWaitTime += (maxWaitTime/100) * keepaliveAdditionalTimePercent;
 			pollTimeout = maxWaitTime * 1000;			// in ms
 
 			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: set poll timeout %d\n", DEV_ID_LOG(s->device), pollTimeout);
@@ -263,11 +263,13 @@ void *sccp_socket_device_thread(void *session)
 				}
 				continue;
 			} else if (res == 0) {					/* poll timeout */
-				ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d).\n", DEV_ID_LOG(s->device), (int)maxWaitTime, pollTimeout);
-				if (s->device && s->device->registrationState)
-				        s->device->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
-				s->session_stop = 1;
-				break;
+			        if (((int)time(0) > ((int)s->lastKeepAlive + (int)maxWaitTime))) {
+                                        ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d).\n", DEV_ID_LOG(s->device), (int)maxWaitTime, pollTimeout);
+                                        if (s->device && s->device->registrationState)
+                                                s->device->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
+                                        s->session_stop = 1;
+                                        break;
+                                }
 			}
 
 			if (s->fds[0].revents) {				/* handle poll events a.k.a. data processing */
