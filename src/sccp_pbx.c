@@ -137,8 +137,7 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 	}
 
 	/* \todo perhaps we should lock the sccp_channel here. */
-	l = c->line;
-	if (l) {
+	if ((l = c->line)) {
 		sccp_linedevices_t *linedevice;
 
 		sccp_line_lock(l);
@@ -151,17 +150,18 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
 		sccp_line_unlock(l);
-	}
-
-	if (!l || !hasSession) {
-		pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no line or device or session\n", (c ? c->callid : 0));
+		if (!hasSession) {
+			ast_log(LOG_WARNING, "SCCP: weird error. The channel %d has no device connected to this line or device has no valid session\n", (c ? c->callid : 0));
+			return -1;
+		}
+	} else {
+		ast_log(LOG_WARNING, "SCCP: weird error. The channel %d has no line\n", (c ? c->callid : 0));
 		return -1;
 	}
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Asterisk request to call %s\n", l->id, ast->name);
-
 	/* if incoming call limit is reached send BUSY */
 	sccp_line_lock(l);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Asterisk request to call %s\n", l->id, ast->name);
 	if (SCCP_RWLIST_GETSIZE(l->channels) > l->incominglimit) {		/* >= just to be sure :-) */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Incoming calls limit (%d) reached on SCCP/%s... sending busy\n", l->incominglimit, l->name);
 		sccp_line_unlock(l);
