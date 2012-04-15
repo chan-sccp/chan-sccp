@@ -136,7 +136,7 @@ hotline_extension=111
 [defaultdevice](!)					; default device template
 type = device						; specifies that this template is for a device, it will be inherited
 keepalive = 60						; set 0 to disable the keepalive check.
-tzoffset = +2
+;tzoffset = +2
 transfer = on						; enable or disable the transfer capability. It does remove the transfer softkey
 park = on						; take a look to the compile howto. Park stuff is not compiled by default
 cfwdall = off						; activate the callforward stuff and softkeys
@@ -246,7 +246,7 @@ button = speeddial,Phone 2 Line One, 98021, 98021@hint
 keepalive = 60						; set 0 to disable the keepalive check.
 addon = 7914
 addon = 7914
-tzoffset = +2
+;tzoffset = +2
 transfer = off						; enable or disable the transfer capability. It does remove the transfer softkey
 park = off						; take a look to the compile howto. Park stuff is not compiled by default
 cfwdall = on						; activate the callforward stuff and softkeys
