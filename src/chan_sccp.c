@@ -401,6 +401,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 			sccp_device_unlock(s->device);
 		}
 	}
+	s->lastKeepAlive = time(0);
 
 	return 1;
 }
