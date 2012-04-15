@@ -1,4 +1,64 @@
 ------------------------------------------------------------------------
+r3404 | ddegroot | 2012-04-15 13:33:21 +0200 (Sun, 15 Apr 2012) | 1 line
+
+Set lastkeepalive at beginning and end of handle_message. Use keepaliveextratime as a percentage. Re-check lastKeepalive before disconnecting session
+------------------------------------------------------------------------
+r3402 | ddegroot | 2012-04-15 11:57:53 +0200 (Sun, 15 Apr 2012) | 1 line
+
+Switching of non-blocking more in sccp_socket when using experimental-mode. There is no need to use non-blocking mode when running one thread per session.
+------------------------------------------------------------------------
+r3401 | ddegroot | 2012-04-15 11:57:35 +0200 (Sun, 15 Apr 2012) | 1 line
+
+Gaining a little more information when we can't find the line connected to an incoming call
+------------------------------------------------------------------------
+r3398 | marcelloceschia | 2012-04-15 11:12:18 +0200 (Sun, 15 Apr 2012) | 1 line
+
+do not enable tzoffset in sample configs
+------------------------------------------------------------------------
+r3396 | ddegroot | 2012-04-14 15:57:13 +0200 (Sat, 14 Apr 2012) | 1 line
+
+Backoff a little longer when 'resource temp unavailable' occurs during send
+------------------------------------------------------------------------
+r3395 | ddegroot | 2012-04-14 15:49:56 +0200 (Sat, 14 Apr 2012) | 1 line
+
+Fix sccp_session_send continue
+------------------------------------------------------------------------
+r3393 | ddegroot | 2012-04-14 15:34:22 +0200 (Sat, 14 Apr 2012) | 1 line
+
+Extended logging during transfer completion to find out when we get 'Failed to complete transfer. The channel is not ringing or connected'
+------------------------------------------------------------------------
+r3392 | ddegroot | 2012-04-14 15:32:29 +0200 (Sat, 14 Apr 2012) | 1 line
+
+Extended logging in sccp_channel_find_on_device_bypassthrupartyid_locked.
+------------------------------------------------------------------------
+r3391 | ddegroot | 2012-04-14 15:28:49 +0200 (Sat, 14 Apr 2012) | 1 line
+
+Reduced ERROR level to standard sccp_log for 'can't put on hold inactive channel'
+------------------------------------------------------------------------
+r3390 | ddegroot | 2012-04-14 15:26:50 +0200 (Sat, 14 Apr 2012) | 1 line
+
+Simplyfied sccp_socket_device_thread. No need to reduce the pollTimeout window, preventing the window to become to small. Rewrite sccp_session_send2 method to take into account EINTR/EAGAIN, but folding when a real write error occurs.
+------------------------------------------------------------------------
+r3388 | ddegroot | 2012-04-14 14:57:16 +0200 (Sat, 14 Apr 2012) | 1 line
+
+Removed recalculation of pollTimeout based on previous message handling. We do not need reduce the pollTimeout window based on a previously handled message.
+------------------------------------------------------------------------
+r3387 | ddegroot | 2012-04-14 14:56:43 +0200 (Sat, 14 Apr 2012) | 1 line
+
+Removed extras {
+------------------------------------------------------------------------
+r3386 | ddegroot | 2012-04-14 14:53:10 +0200 (Sat, 14 Apr 2012) | 1 line
+
+Fixes re-registration issue when phone still has an open channel, but misses timeout. A context switch on a heavily loaded machine and a very low keep-alive time, leads to missing keepalive windows whilst handling a message when a context switch happens.
+------------------------------------------------------------------------
+r3385 | ddegroot | 2012-04-14 14:41:20 +0200 (Sat, 14 Apr 2012) | 1 line
+
+Handle transfer savely when new_channel does not return a new channel as expected
+------------------------------------------------------------------------
+r3382 | ddegroot | 2012-04-14 11:17:03 +0200 (Sat, 14 Apr 2012) | 1 line
+
+Fix bad magic number on hangup (Reported by Diego/Philippe)
+------------------------------------------------------------------------
 r3381 | ddegroot | 2012-04-13 12:23:58 +0200 (Fri, 13 Apr 2012) | 1 line
 
 Set devicetype during sccp_handle_tokenReq, so that they are displayed nicely in sccp show sessions
