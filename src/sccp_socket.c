@@ -311,7 +311,7 @@ static void sccp_accept_connection(void)
 
 	sccp_session_t *s;
 
-	int dummy = 1, new_socket;
+	int new_socket;
 
 	socklen_t length = (socklen_t) (sizeof(struct sockaddr_in));
 
@@ -322,12 +322,15 @@ static void sccp_accept_connection(void)
 		return;
 	}
 
+#ifndef CS_EXPERIMENTAL
+        /* retaining old non-blocking implementation. I don't see a reason to use non-blocking if we are using a thread per session, why would that bring us anything */
+	int dummy = 1;
 	if (ioctl(new_socket, FIONBIO, &dummy) < 0) {
 		ast_log(LOG_ERROR, "Couldn't set socket to non-blocking\n");
 		close(new_socket);
 		return;
 	}
-
+#endif
 	if (setsockopt(new_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
 		ast_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
 	if (setsockopt(new_socket, IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0)
