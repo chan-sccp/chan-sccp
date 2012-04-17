@@ -363,7 +363,7 @@ int sccp_pbx_hangup_locked(sccp_channel_t * c)
 	}
 
 	d = sccp_channel_getDevice(c);
-	if (c->state != SCCP_CHANNELSTATE_CONNECTED && d && SKINNY_DEVICE_RS_OK == d->registrationState) {
+	if d && (c->state != SCCP_CHANNELSTATE_CONNECTED && d && SKINNY_DEVICE_RS_OK == d->registrationState) {
 		if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_channel_get_active_nolock(d)){
 			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
 		}
@@ -381,7 +381,7 @@ int sccp_pbx_hangup_locked(sccp_channel_t * c)
 
 	if (c) {
 		if (c->rtp.audio.rtp || c->rtp.video.rtp) {
-			if (SKINNY_DEVICE_RS_OK == d->registrationState)
+			if (d && SKINNY_DEVICE_RS_OK == d->registrationState)
 				sccp_channel_closereceivechannel_locked(c);
 			sccp_rtp_destroy(c);
 		}
@@ -417,7 +417,7 @@ int sccp_pbx_hangup_locked(sccp_channel_t * c)
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 			d = linedevice->device;
-			if (SKINNY_DEVICE_RS_OK == d->registrationState)
+			if (d && SKINNY_DEVICE_RS_OK == d->registrationState)
 				sccp_indicate_locked(d, c, SKINNY_CALLSTATE_ONHOOK);
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
