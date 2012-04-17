@@ -416,7 +416,7 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 	}
 #endif										// AST_FLAG_ANSWERED_ELSEWHERE
 	d = c->device;
-	if (c->state != SCCP_CHANNELSTATE_DOWN && SKINNY_DEVICE_RS_OK == d->registrationState) {
+	if (d && c->state != SCCP_CHANNELSTATE_DOWN && SKINNY_DEVICE_RS_OK == d->registrationState) {
 		if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_channel_get_active_nolock(d))
 			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
 		sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_ONHOOK);
@@ -432,7 +432,7 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 
 	if (c) {
 		if (c->rtp.audio.rtp || c->rtp.video.rtp) {
-			if (SKINNY_DEVICE_RS_OK == d->registrationState) {
+			if (d && SKINNY_DEVICE_RS_OK == d->registrationState) {
 				sccp_channel_closereceivechannel_locked(c);
 				usleep(200);
 			}
@@ -472,7 +472,7 @@ static int sccp_pbx_hangup(struct ast_channel *ast)
 			assert(linedevice->device);
 
 			d = linedevice->device;
-			if (SKINNY_DEVICE_RS_OK == d->registrationState) {
+			if (d && SKINNY_DEVICE_RS_OK == d->registrationState) {
 				sccp_indicate_locked(d, c, SKINNY_CALLSTATE_ONHOOK);
 			} else {
 				c->state = SCCP_CHANNELSTATE_DOWN;
