@@ -2366,6 +2366,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		unknown4 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_4);
 		callID = letohl(r->msg.OpenReceiveChannelAck_v17.lel_callReference);
 	}
+	
 	sin.sin_family = AF_INET;
 	if (d->trustphoneip || d->directrtp) {
 		memcpy(&sin.sin_addr, &ipAddr, sizeof(sin.sin_addr));
@@ -2376,6 +2377,12 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, CallID: %u\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, callID);
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Unknown1: %u, Unknown2: %u: Unknown3: %u, Unknown4: %u\n", d->id, unknown1, unknown2, unknown3, unknown4);
+	
+	if (status) {
+		// rtp error from the phone 
+		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device returned error: %d ! No RTP media available. Giving up.\n", d->id, status);
+		return;
+	}
 
 	if (partyID)
 		passthrupartyid = partyID;
@@ -2385,13 +2392,6 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 6911 which does not return a passthrupartyid, using callid: %u -> passthrupartyid %u\n", d->id, callID, passthrupartyid);
  	}
 
-/*
-	if (status) {
-		// rtp error from the phone 
-		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available\n", d->id, status);
-		return;
-	}
-*/
 	if ((d->active_channel && d->active_channel->passthrupartyid == passthrupartyid) || !passthrupartyid) {		// reduce the amount of searching by first checking active_channel
 		channel = d->active_channel;
 		sccp_channel_lock(channel);
@@ -2400,11 +2400,6 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
  	}
 	/* prevent a segmentation fault on fast hangup after answer, failed voicemail for example */
 	if (channel) {										// && sccp_channel->state != SCCP_CHANNELSTATE_DOWN) {
-		if (status) {
-			sccp_channel_unlock(channel);
-			pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available\n", DEV_ID_LOG(d), status);
-			return;
-		}
 		if (channel->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
 			sccp_channel_unlock(channel);
 			pbx_log(LOG_WARNING, "%s: (OpenReceiveChannelAck) Invalid Number (%d). Giving up...\n", DEV_ID_LOG(d), channel->state);
@@ -2444,22 +2439,18 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		}
 		sccp_channel_unlock(channel);
 	} else {
-		if (status) {
-			pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available\n", d->id, status);
-		} else {
-			/* we successfully opened receive channel, but have no channel active -> close receive */
-			int callId = partyID ^ 0xFFFFFFFF;
+                /* we successfully opened receive channel, but have no channel active -> close receive */
+                int callId = partyID ^ 0xFFFFFFFF;
 
-			pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruId %u (callid: %d, callid: %d)!\n", d->id, partyID, callID, callId);
+                pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruId %u (callid: %d, callid: %d)!\n", d->id, partyID, callID, callId);
 
-			sccp_moo_t *r;
+                sccp_moo_t *r;
 
-			REQ(r, CloseReceiveChannel);
-			r->msg.CloseReceiveChannel.lel_conferenceId = htolel(callId);
-			r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(partyID);
-			r->msg.CloseReceiveChannel.lel_conferenceId1 = htolel(callId);
-			sccp_dev_send(d, r);
-		}
+                REQ(r, CloseReceiveChannel);
+                r->msg.CloseReceiveChannel.lel_conferenceId = htolel(callId);
+                r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(partyID);
+                r->msg.CloseReceiveChannel.lel_conferenceId1 = htolel(callId);
+                sccp_dev_send(d, r);
 	}
 }
 
