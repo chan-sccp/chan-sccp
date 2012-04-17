@@ -363,9 +363,10 @@ int sccp_pbx_hangup_locked(sccp_channel_t * c)
 	}
 
 	d = sccp_channel_getDevice(c);
-	if (c->state != SCCP_CHANNELSTATE_DOWN && SKINNY_DEVICE_RS_OK == d->registrationState) {
-		if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_channel_get_active_nolock(d))
+	if (c->state != SCCP_CHANNELSTATE_CONNECTED && d && SKINNY_DEVICE_RS_OK == d->registrationState) {
+		if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_channel_get_active_nolock(d)){
 			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
+		}
 		sccp_indicate_locked(d, c, SCCP_CHANNELSTATE_ONHOOK);
 	}
 
