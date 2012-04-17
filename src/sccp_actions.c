@@ -2498,6 +2498,11 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		memcpy(&sin.sin_addr, &s->sin.sin_addr, sizeof(sin.sin_addr));
 	sin.sin_port = ipPort;
 
+	if (status) {
+		ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device returned error: %d ! No RTP media available. Giving up.\n", DEV_ID_LOG(d), status);
+		return;
+	}
+
 	if ((d->active_channel && d->active_channel->passthrupartyid == passthrupartyid) || !passthrupartyid) {		// reduce the amount of searching by first checking active_channel
 		c = d->active_channel;
 		sccp_channel_lock(c);
@@ -2507,14 +2512,6 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
                         
 	/* prevent a segmentation fault on fast hangup after answer, failed voicemail for example */
 	if (c) {								// && c->state != SCCP_CHANNELSTATE_DOWN) {
-		if (status) {
-			c->rtp.audio.status = 0;
-//			sccp_channel_endcall_locked(c);		// should we be hanging up here
-			sccp_channel_unlock(c);
-			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available\n", DEV_ID_LOG(d), status);
-			return;
-		}
-
 		/* update status */
 		c->rtp.audio.status &= ~SCCP_RTP_STATUS_PROGRESS_RECEIVE;
 		c->rtp.audio.status |= SCCP_RTP_STATUS_RECEIVE;
@@ -2558,18 +2555,14 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		}
 		sccp_channel_unlock(c);
 	} else {
-		if (status) {
-			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device error (%d) ! No RTP media available. Hanging up active channel.\n", d->id, status);
-		} else {
-			ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruId %u!. Hanging up active channel.\n", d->id, passthrupartyid);
-			sccp_moo_t *r;
+		ast_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruId %u!. Hanging up active channel.\n", d->id, passthrupartyid);
+		sccp_moo_t *r;
 
-			REQ(r, CloseReceiveChannel);
-			r->msg.CloseReceiveChannel.lel_conferenceId = htolel(callID);
-			r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(partyID);
-			r->msg.CloseReceiveChannel.lel_conferenceId1 = htolel(callID);
-			sccp_dev_send(d, r);
-		}
+		REQ(r, CloseReceiveChannel);
+		r->msg.CloseReceiveChannel.lel_conferenceId = htolel(callID);
+		r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(partyID);
+		r->msg.CloseReceiveChannel.lel_conferenceId1 = htolel(callID);
+		sccp_dev_send(d, r);
 		if (d->inuseprotocolversion < 17)
 			sccp_dump_packet((unsigned char *)&r->msg.OpenReceiveChannelAck, sizeof(r->msg.OpenReceiveChannelAck));
 		else 
