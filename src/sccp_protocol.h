@@ -3666,9 +3666,9 @@ typedef struct {
 #define KEYMODE_DIGITSFOLL			6
 #define KEYMODE_CONNCONF			7
 #define KEYMODE_RINGOUT 			8
-#define KEYMODE_OFFHOOKFEAT 		9
+#define KEYMODE_OFFHOOKFEAT 			9
 #define KEYMODE_INUSEHINT			10
-#define KEYMODE_ONHOOKSTEALABLE		11
+#define KEYMODE_ONHOOKSTEALABLE			11
 
 /*!
  * \brief Skinny KeyMode Structure

@@ -749,11 +749,8 @@ int sccp_wrapper_asterisk110_hangup(PBX_CHANNEL_TYPE * ast_channel)
 	sccp_channel_unlock(c);
 
 	ast_channel->tech_pvt = NULL;
-//	ast_channel_unref(ast_channel);
-#if CS_AST_MODULE_REF
-        ast_module_unref(ast_module_info->self);
-#endif
-        
+	ast_channel_unref(ast_channel);
+
 	return res;
 }
 
