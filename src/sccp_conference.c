@@ -578,8 +578,11 @@ static void *sccp_conference_join_thread(void *data)
 			sccp_dev_displayprompt(sccp_channel_getDevice(participant->channel), instance, participant->channel->callid, "Entered Conference", 10);
 		}
 	}
-
+#if ASTERISK_VERSION_NUMBER < 11010
 	pbx_bridge_join(participant->conference->bridge, astChannel, NULL, &participant->features);
+#else
+	pbx_bridge_join(participant->conference->bridge, astChannel, NULL, &participant->features, NULL);
+#endif
 	pbx_log(LOG_NOTICE, "SCCP: Conference: Join thread: leaving pbx_bridge_join: %s\n", sccp_channel_toString(participant->channel));
 
 	if (pbx_pbx_start(astChannel)) {
