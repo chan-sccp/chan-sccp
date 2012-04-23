@@ -1263,7 +1263,7 @@ CLI_ENTRY(cli_show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeyS
 static int sccp_message_devices(int fd, int argc, char *argv[])
 {
 	sccp_device_t *d;
-	int timeout = 10;
+	int timeout = 0;
 	boolean_t beep = FALSE;
 
 	if (argc < 4)
@@ -1275,15 +1275,12 @@ static int sccp_message_devices(int fd, int argc, char *argv[])
 	if (argc > 4) {
 		if (!strcmp(argv[4], "beep")) {
 			beep = TRUE;
-			if (sscanf(argv[5], "%d", &timeout) != 1) {
-				timeout = 10;
-			}
+			sscanf(argv[5], "%d", &timeout); 
 		}
-		if (sscanf(argv[4], "%d", &timeout) != 1) {
-			timeout = 10;
-		}
+		sscanf(argv[4], "%d", &timeout); 
 	}
 
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Sending message '%s' to all devices (beep: %d, timeout: %d)\n", argv[3], beep, timeout);
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		sccp_dev_set_message(d, argv[3], timeout, FALSE, beep);
@@ -1328,15 +1325,12 @@ static int sccp_message_device(int fd, int argc, char *argv[])
 	if (argc > 5) {
 		if (!strcmp(argv[5], "beep")) {
 			beep = TRUE;
-			if (sscanf(argv[6], "%d", &timeout) != 1) {
-				timeout = 10;
-			}
+			sscanf(argv[6], "%d", &timeout);
 		}
-		if (sscanf(argv[5], "%d", &timeout) != 1) {
-			timeout = 10;
-		}
+		sscanf(argv[5], "%d", &timeout);
 	}
 	if ((d = sccp_device_find_byid(argv[3], FALSE))) {
+		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Sending message '%s' to %s (beep: %d, timeout: %d)\n", argv[3], d->id, beep, timeout);
 		sccp_dev_set_message(d, argv[4], timeout, FALSE, beep);
 
 		return RESULT_SUCCESS;
@@ -1399,11 +1393,9 @@ static int sccp_system_message(int fd, int argc, char *argv[])
 	if (argc > 4) {
 		if (!strcmp(argv[4], "beep")) {
 			beep = TRUE;
-			if (sscanf(argv[5], "%d", &timeout) != 1)
-				timeout = 10;
+			sscanf(argv[5], "%d", &timeout);
 		}
-		if (sscanf(argv[4], "%d", &timeout) != 1)
-			timeout = 10;
+		sscanf(argv[4], "%d", &timeout);
 	} else {
 		timeout = 0;
 	}
@@ -1413,6 +1405,7 @@ static int sccp_system_message(int fd, int argc, char *argv[])
 		sccp_log(DEBUGCAT_CLI) (VERBOSE_PREFIX_3 "SCCP system message timeout stored successfully\n");
 	}
 
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Sending system message '%s' to all devices (beep: %d, timeout: %d)\n", argv[3], beep, timeout);
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		sccp_dev_set_message(d, argv[3], timeout, TRUE, beep);
