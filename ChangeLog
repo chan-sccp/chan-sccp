@@ -1,4 +1,16 @@
 ------------------------------------------------------------------------
+r3411 | ddegroot | 2012-04-17 13:23:48 +0200 (Tue, 17 Apr 2012) | 1 line
+
+Moved status check during handle_openreceive_channel_ack before looking for channel
+------------------------------------------------------------------------
+r3407 | ddegroot | 2012-04-17 13:06:28 +0200 (Tue, 17 Apr 2012) | 1 line
+
+Verify existence of d during sccp_pbx_hangup
+------------------------------------------------------------------------
+r3405 | ddegroot | 2012-04-15 14:39:06 +0200 (Sun, 15 Apr 2012) | 1 line
+
+Updated ChangeLog
+------------------------------------------------------------------------
 r3403 | ddegroot | 2012-04-15 13:31:06 +0200 (Sun, 15 Apr 2012) | 1 line
 
 Set lastkeepalive at beginning and end of handle_message. Use keepaliveextratime as a percentage. Re-check lastKeepalive before disconnecting session
