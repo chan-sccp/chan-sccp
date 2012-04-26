@@ -1,4 +1,40 @@
 ------------------------------------------------------------------------
+r3417 | ddegroot | 2012-04-26 18:01:00 +0200 (Thu, 26 Apr 2012) | 1 line
+
+Added WARNING_USE_BRANCHES_V4.0 because of pending V4.1(refcount) release to trunk.
+------------------------------------------------------------------------
+r3414 | ddegroot | 2012-04-23 11:29:48 +0200 (Mon, 23 Apr 2012) | 1 line
+
+Fix sccp message timeout
+------------------------------------------------------------------------
+r3413 | marcelloceschia | 2012-04-21 13:41:14 +0200 (Sat, 21 Apr 2012) | 1 line
+
+fixes conference compile issue
+------------------------------------------------------------------------
+r3412 | marcelloceschia | 2012-04-20 19:17:23 +0200 (Fri, 20 Apr 2012) | 1 line
+
+does this fix the hint issue?
+------------------------------------------------------------------------
+r3410 | ddegroot | 2012-04-17 13:17:09 +0200 (Tue, 17 Apr 2012) | 1 line
+
+Moved status check during handle_openreceive_channel_ack before looking for channel
+------------------------------------------------------------------------
+r3409 | ddegroot | 2012-04-17 13:16:26 +0200 (Tue, 17 Apr 2012) | 1 line
+
+Verify existence of d during sccp_pbx_hangup
+------------------------------------------------------------------------
+r3408 | ddegroot | 2012-04-17 13:07:11 +0200 (Tue, 17 Apr 2012) | 1 line
+
+Verify existence of d during sccp_pbx_hangup
+------------------------------------------------------------------------
+r3406 | marcelloceschia | 2012-04-17 11:07:32 +0200 (Tue, 17 Apr 2012) | 1 line
+
+fixes hangup issue
+------------------------------------------------------------------------
+r3405 | ddegroot | 2012-04-15 14:39:06 +0200 (Sun, 15 Apr 2012) | 1 line
+
+Updated ChangeLog
+------------------------------------------------------------------------
 r3404 | ddegroot | 2012-04-15 13:33:21 +0200 (Sun, 15 Apr 2012) | 1 line
 
 Set lastkeepalive at beginning and end of handle_message. Use keepaliveextratime as a percentage. Re-check lastKeepalive before disconnecting session
