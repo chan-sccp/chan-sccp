@@ -1,4 +1,72 @@
 ------------------------------------------------------------------------
+r3416 | ddegroot | 2012-04-26 17:58:37 +0200 (Thu, 26 Apr 2012) | 1 line
+
+Renamed WARNING txt file
+------------------------------------------------------------------------
+r3415 | ddegroot | 2012-04-26 17:56:08 +0200 (Thu, 26 Apr 2012) | 1 line
+
+Copying revision r3224 from trunk to branches/V4.0, in preperation of moving V4.1(refcount) into trunk.
+------------------------------------------------------------------------
+r3224 | ddegroot | 2012-01-27 09:08:35 +0100 (Fri, 27 Jan 2012) | 1 line
+
+renamed sccp_wrapper_asterisk18_requestHangup to sccp_wrapper_asterisk_requestHangup and moved to ast.c
+------------------------------------------------------------------------
+r3223 | ddegroot | 2012-01-27 04:56:10 +0100 (Fri, 27 Jan 2012) | 1 line
+
+revert requestHangup to original behaviour (Bob Brown: chan_sccp v4.0 r3221 - Incoming calls nothanging up)
+------------------------------------------------------------------------
+r3222 | ddegroot | 2012-01-26 19:14:30 +0100 (Thu, 26 Jan 2012) | 1 line
+
+Refix gpickup whilst reenabling previous hangup procedure (Tyler / Bob)
+------------------------------------------------------------------------
+r3221 | ddegroot | 2012-01-26 13:00:46 +0100 (Thu, 26 Jan 2012) | 1 line
+
+Fixed gpickup -> caused by hangup problem without a valid sccp_channel
+------------------------------------------------------------------------
+r3220 | ddegroot | 2012-01-26 09:56:27 +0100 (Thu, 26 Jan 2012) | 1 line
+
+Removed generated makefile
+------------------------------------------------------------------------
+r3219 | ddegroot | 2012-01-26 08:54:00 +0100 (Thu, 26 Jan 2012) | 1 line
+
+Update reference for new features in doxygen
+------------------------------------------------------------------------
+r3218 | ddegroot | 2012-01-26 08:49:05 +0100 (Thu, 26 Jan 2012) | 1 line
+
+Update doxygen doc
+------------------------------------------------------------------------
+r3217 | ddegroot | 2012-01-26 08:37:29 +0100 (Thu, 26 Jan 2012) | 1 line
+
+Added new doxygen section
+------------------------------------------------------------------------
+r3216 | ddegroot | 2012-01-26 08:36:52 +0100 (Thu, 26 Jan 2012) | 1 line
+
+Updated V4.0 Doxygen Documentation
+------------------------------------------------------------------------
+r3215 | ddegroot | 2012-01-25 09:04:05 +0100 (Wed, 25 Jan 2012) | 1 line
+
+Fix asterisk16_sendDigits
+------------------------------------------------------------------------
+r3214 | ddegroot | 2012-01-23 21:16:13 +0100 (Mon, 23 Jan 2012) | 1 line
+
+Added a check to see if the got a non-zero bridgePeerChannelName
+------------------------------------------------------------------------
+r3213 | ddegroot | 2012-01-23 20:53:40 +0100 (Mon, 23 Jan 2012) | 1 line
+
+Answering ringing line using the line button (Josip Gracin) analogous to V3.1
+------------------------------------------------------------------------
+r3212 | ddegroot | 2012-01-23 20:48:29 +0100 (Mon, 23 Jan 2012) | 1 line
+
+Answering ringing line using the line button (Josip Gracin)
+------------------------------------------------------------------------
+r3211 | ddegroot | 2012-01-23 19:34:15 +0100 (Mon, 23 Jan 2012) | 1 line
+
+Reactivated featureStorageBackend
+------------------------------------------------------------------------
+r3210 | ddegroot | 2012-01-23 16:37:12 +0100 (Mon, 23 Jan 2012) | 1 line
+
+Removed reference to astChannel during callforward bridging, not set/used anymore -> PBX(getChannelByName)
+------------------------------------------------------------------------
 r3209 | marcelloceschia | 2012-01-22 10:26:40 +0100 (Sun, 22 Jan 2012) | 1 line
 
 use PBX(getChannelByName) to answer forwared channel; change getChannelByName interface definition
