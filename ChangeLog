@@ -1,4 +1,56 @@
 ------------------------------------------------------------------------
+r3432 | ddegroot | 2012-04-29 15:05:52 +0200 (Sun, 29 Apr 2012) | 1 line
+
+Split handling of session_stop and keepalive to recitify false debug output
+------------------------------------------------------------------------
+r3431 | ddegroot | 2012-04-29 14:25:09 +0200 (Sun, 29 Apr 2012) | 1 line
+
+Added sccp_channel_closereceivechannel_locked to startmediatransmission if something went wrong if getting the correct channel
+------------------------------------------------------------------------
+r3430 | ddegroot | 2012-04-29 14:23:33 +0200 (Sun, 29 Apr 2012) | 1 line
+
+Updated sccp_handle_keypad_button function, to use sccp_find_channel_on_line_byid_locked instead of sccp_channel_find_byid_locked (reduces number searched channels). Removed replacement of l / d when not necessary. Added debug logging if channel was not found.
+------------------------------------------------------------------------
+r3429 | ddegroot | 2012-04-29 14:20:20 +0200 (Sun, 29 Apr 2012) | 1 line
+
+Replace pthread_cancel calls by sccp_session_cancel, where necessary.
+------------------------------------------------------------------------
+r3428 | ddegroot | 2012-04-29 14:19:11 +0200 (Sun, 29 Apr 2012) | 1 line
+
+Finalize backport of sccp_handle_register from V4.0. Replace pthread_cancel calls by sccp_session_cancel, where necessary.
+------------------------------------------------------------------------
+r3427 | ddegroot | 2012-04-29 14:10:50 +0200 (Sun, 29 Apr 2012) | 1 line
+
+Call sccp_session_cancel function instead of pthread_cancel where needed
+------------------------------------------------------------------------
+r3426 | ddegroot | 2012-04-29 14:10:11 +0200 (Sun, 29 Apr 2012) | 1 line
+
+Added centralized sccp_session_cancel function, to be called from all locations when the need arises to cancel a thread, it will use c->session_stopping flag. Switched off non-blocking behaviour of the used socket for read/writing, because there is no need when having one socket per session (non-blocked socket handling code remains, but could be removed later on). Call sccp_session_cancel function instead of pthread_cancel where needed
+------------------------------------------------------------------------
+r3425 | ddegroot | 2012-04-29 14:05:12 +0200 (Sun, 29 Apr 2012) | 1 line
+
+Added session_stopping flag to sccp_channel to be used in sccp_socket.c for signaling
+------------------------------------------------------------------------
+r3424 | ddegroot | 2012-04-29 14:02:12 +0200 (Sun, 29 Apr 2012) | 1 line
+
+Reinstated old fix by David Dederscheck during SCCP_CHANNELSTATE_INVALIDNUMBER, preventing issues after invalid number has been signalled. Phones would get in a unknown state when callinfo was called afterwards, from could only be resolved by resetting the phone. (-DD-)
+------------------------------------------------------------------------
+r3423 | ddegroot | 2012-04-29 13:59:45 +0200 (Sun, 29 Apr 2012) | 1 line
+
+Added locking and logging to sccp_line_addChannel and sccp_line_removeChannel. This prevents issues when using sccp_channel_find functions. (MC)
+------------------------------------------------------------------------
+r3422 | ddegroot | 2012-04-29 13:57:18 +0200 (Sun, 29 Apr 2012) | 1 line
+
+Prevent segfault during sccp_pbx_softswitch_locked when checking c->owner->pbx
+------------------------------------------------------------------------
+r3421 | ddegroot | 2012-04-29 13:56:09 +0200 (Sun, 29 Apr 2012) | 1 line
+
+Added debug logging to sccp_dev_send
+------------------------------------------------------------------------
+r3418 | ddegroot | 2012-04-26 18:24:03 +0200 (Thu, 26 Apr 2012) | 1 line
+
+Update ChangeLogs
+------------------------------------------------------------------------
 r3411 | ddegroot | 2012-04-17 13:23:48 +0200 (Tue, 17 Apr 2012) | 1 line
 
 Moved status check during handle_openreceive_channel_ack before looking for channel
