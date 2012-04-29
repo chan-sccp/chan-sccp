@@ -42,6 +42,28 @@ void *sccp_socket_device_thread(void *session);
 
 static sccp_moo_t *sccp_process_data(sccp_session_t * s);
 
+void sccp_session_cancel(sccp_session_t *session) 
+{
+	int e = 0;
+	if (session)
+		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: sccp_session_cancel called\n", DEV_ID_LOG(session->device));
+	if (session && !session->session_stopping) {
+		session->session_stopping = 1;
+		if(session->session_thread != AST_PTHREADT_NULL){
+			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: cancel sesssion, use thread cleanup\n", DEV_ID_LOG(session->device));
+			e = pthread_cancel(session->session_thread);
+			if (e)
+				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: pthread_cancel returned error\n", DEV_ID_LOG(session->device));
+			
+			session->session_thread = AST_PTHREADT_NULL;
+		}else{   
+			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: cancel sesssion, no thread. calling destructor\n", DEV_ID_LOG(session->device));
+			sccp_session_close(session);
+			destroy_session(session, 0);
+		}
+        }
+}
+
 /*!
  * \brief Read Data From Socket
  * \param s SCCP Session
@@ -62,7 +84,7 @@ static void sccp_read_data(sccp_session_t * s)
 			ast_log(LOG_WARNING, "SCCP: FIONREAD Come back later (EAGAIN): %s\n", strerror(errno));
 		} else {
 			ast_log(LOG_WARNING, "SCCP: FIONREAD ioctl failed: %s\n", strerror(errno));
-			pthread_cancel(s->session_thread);
+			sccp_session_cancel(s);
 		}
 		return;
 	}
@@ -81,7 +103,7 @@ static void sccp_read_data(sccp_session_t * s)
 		} else {
 			/* probably a CLOSE_WAIT (readlen==0 || errno == ECONNRESET || errno == ETIMEDOUT) */
 			ast_log(LOG_NOTICE, "SCCP: socket read returned zero length, either device disconnected or network disconnect. Closing Connection.\n");
-			pthread_cancel(s->session_thread);
+			sccp_session_cancel(s);
 		}
 		ast_free(input);
 		return;
@@ -166,7 +188,8 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Killing Session %s\n", DEV_ID_LOG(d), pbx_inet_ntoa(s->sin.sin_addr));
 		sccp_device_lock(d);
 		d->session = NULL;
-		d->registrationState = SKINNY_DEVICE_RS_NONE;
+		if (d->registrationState == SKINNY_DEVICE_RS_OK)
+			d->registrationState = SKINNY_DEVICE_RS_NONE;
 		d->needcheckringback = 0;
 		sccp_device_unlock(d);
 		sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
@@ -197,10 +220,11 @@ void sccp_socket_device_thread_exit(void *session)
 	sccp_session_t *s = (sccp_session_t *) session;
 
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: cleanup session\n", DEV_ID_LOG(s->device));
-
+	s->session_stopping = 1;
+	s->session_stop = 1;
 	s->session_thread = AST_PTHREADT_NULL;
-	sccp_session_close(s);
-	destroy_session(s, 10);
+	sccp_session_close(session);
+	destroy_session(session, 10);
 }
 
 /*!
@@ -262,8 +286,8 @@ void *sccp_socket_device_thread(void *session)
 					break;
 				}
 				continue;
-			} else if (res == 0) {					/* poll timeout */
-			        if (((int)time(0) > ((int)s->lastKeepAlive + (int)maxWaitTime))) {
+			} else if (s->session_stop || res == 0) {					/* poll timeout */
+				if (s->session_stop || s->lastKeepAlive > (s->device ? s->device->keepalive : GLOB(keepalive))) {
                                         ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d).\n", DEV_ID_LOG(s->device), (int)maxWaitTime, pollTimeout);
                                         if (s->device && s->device->registrationState)
                                                 s->device->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
@@ -324,21 +348,22 @@ static void sccp_accept_connection(void)
 		return;
 	}
 
-#ifndef CS_EXPERIMENTAL
-        /* retaining old non-blocking implementation. I don't see a reason to use non-blocking if we are using a thread per session, why would that bring us anything */
+/*
+        // removed old non-blocking implementation. I don't see a reason to use non-blocking if we are using a thread per session, why would that bring us anything 
 	int dummy = 1;
 	if (ioctl(new_socket, FIONBIO, &dummy) < 0) {
 		ast_log(LOG_ERROR, "Couldn't set socket to non-blocking\n");
 		close(new_socket);
 		return;
 	}
-#endif
+*/
 	if (setsockopt(new_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
 		ast_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
 	if (setsockopt(new_socket, IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0)
 		ast_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(sccp_tos), strerror(errno));
 	if (setsockopt(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
 		ast_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
+
 #if defined(linux)
 	if (setsockopt(new_socket, SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0)
 		ast_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
@@ -532,8 +557,13 @@ void sccp_session_sendmsg(const sccp_device_t * device, sccp_message_t t)
 int sccp_session_send(const sccp_device_t * device, sccp_moo_t * r)
 {
 	sccp_session_t *s = sccp_session_find(device);
-
-	return sccp_session_send2(s, r);
+	
+	if (s && r && !s->session_stop && !s->session_stopping) {
+		return sccp_session_send2(s, r);
+	} else {
+                sccp_session_cancel(s);
+		return -1;
+	}
 }
 
 /*!
@@ -563,8 +593,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
                         if (s->device && s->device->registrationState)
                                 s->device->registrationState = SKINNY_DEVICE_RS_FAILED;
                         s->session_stop = 1;
-                        pthread_cancel(s->session_thread);
-                        s->session_thread = AST_PTHREADT_NULL;
+                        sccp_session_cancel(s);
                 }
 		return -1;
 	}
@@ -587,17 +616,15 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 	do {
 		try++;
 		res = write(s->fds[0].fd, bufAddr + bytesSent, bufLen - bytesSent);
-                if (res < 0) { 
+                if (res < 0 || errno == EPIPE) { 
                         if (errno != EINTR && errno != EAGAIN) {
                                 ast_log(LOG_WARNING, "%s: write returned %d (error: '%s'). Sent %d of %d for Message: '%s' with total length %d \n", DEV_ID_LOG(s->device), (int)res, strerror(errno), (int)bytesSent, (int)bufLen, message2str(letohl(r->lel_messageId)), letohl(r->length));
                                 sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
                                 if (s) {
-                                        ast_log(LOG_WARNING, "%s. closing connection", DEV_ID_LOG(s->device));
+                                        ast_log(LOG_WARNING, "%s: closing connection", DEV_ID_LOG(s->device));
                                         if (s->device && s->device->registrationState)
                                                 s->device->registrationState = SKINNY_DEVICE_RS_FAILED;
                                         s->session_stop = 1;
-                                        pthread_cancel(s->session_thread);
-                                        s->session_thread = AST_PTHREADT_NULL;
                                 }
                                 break;
                         } 
@@ -616,8 +643,9 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 	ast_free(r);
 	r = NULL;
 
-        if (bytesSent < bufLen) {
+        if (bytesSent < bufLen || s->session_stop) {
                 ast_log(LOG_ERROR, "%s: Could only send %d of %d bytes!\n", DEV_ID_LOG(s->device), (int)bytesSent, (int)bufLen);
+                sccp_session_cancel(s);
                 return -1;
         }
 	return res;
@@ -633,7 +661,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
  */
 sccp_session_t *sccp_session_find(const sccp_device_t * device)
 {
-	if (!device) {
+	if (!device || !device->session) {
         	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: (sccp_session_find) No device available to find session\n");
 		return NULL;
         }
@@ -655,15 +683,7 @@ sccp_session_t *sccp_session_reject(sccp_session_t * session, char *message)
 	sccp_session_send2(session, r);
 
         /* if we reject the connction during accept connection, thread is not ready */ 
-        if(session->session_thread){
-                pthread_cancel(session->session_thread);
-                session->session_thread = AST_PTHREADT_NULL;
-		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: use thread cleanup\n", DEV_ID_LOG(session->device));
-        }else{   
-         	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: no thread\n", DEV_ID_LOG(session->device));
-                sccp_session_close(session);
-		destroy_session(session, 0);
-        }
+        sccp_session_cancel(session);
  
  	return NULL;
 }
