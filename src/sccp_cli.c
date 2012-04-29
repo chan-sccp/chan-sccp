@@ -1557,7 +1557,7 @@ CLI_ENTRY(cli_add_line_to_device, sccp_add_line_to_device, "Add a line to a devi
  */
 static int sccp_do_debug(int fd, int argc, char *argv[])
 {
-	uint32_t new_debug = GLOB(debug);
+	int32_t new_debug = GLOB(debug);
 
 	if (argc > 2) {
 		new_debug = sccp_parse_debugline(argv, 2, argc, new_debug);
