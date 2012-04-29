@@ -1915,10 +1915,10 @@ sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t * device, scc
  * \param new_debug_value as uint32_t
  * \return new_debug_value as uint32_t
  */
-uint32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug_value)
+int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug_value)
 {
 	int argi;
-	uint32_t i;
+	int32_t i;
 	char *argument = "";
 	char *token = "";
 	const char delimiters[] = " ,\t";
@@ -1972,7 +1972,7 @@ uint32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t 
  */
 char *sccp_get_debugcategories(int32_t debugvalue)
 {
-	uint32_t i;
+	int32_t i;
 	char *res = NULL;
 	const char *sep = ",";
 	size_t size = 0;
