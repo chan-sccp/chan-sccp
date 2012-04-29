@@ -1964,29 +1964,37 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	lineInstance = letohl(r->msg.KeypadButtonMessage.lel_lineInstance);
 	callid = letohl(r->msg.KeypadButtonMessage.lel_callReference);
 
-	if (lineInstance)
+	if (lineInstance) {
 		l = sccp_line_find_byinstance(s->device, lineInstance);
-
-	if (l && callid)
-		c = sccp_channel_find_byid_locked(callid);
+		if (l && callid) {
+			c = sccp_find_channel_on_line_byid_locked(l, callid);
+		}
+	} else {
+		if (callid) {
+			c = sccp_channel_find_byid_locked(callid);
+			l = c->line;
+		}
+	}
 
 	/* Old phones like 7912 never uses callid
 	 * so here we don't have a channel, this way we
 	 * should get the active channel on device
+	 * !! last resort
 	 */
 	if (!c) {
-		c = sccp_channel_get_active_locked(d);
+		ast_log(LOG_NOTICE, "%s: Could not find channel by callid %d on line %s with instance %d! Using active channel instead.\n", DEV_ID_LOG(d), callid, l->name, lineInstance);
+		c = sccp_channel_get_active_locked(d);			
 	}
 
-	if (!c) {
-		ast_log(LOG_NOTICE, "Device %s sent a Keypress, but there is no active channel!\n", DEV_ID_LOG(d));
+	if (!c) {							
+		ast_log(LOG_NOTICE, "Device %s sent a Keypress, but there is no active channel! Giving up\n", DEV_ID_LOG(d));
 		return;
 	}
 
-	l = c->line;
-	d = c->device;
+//	l = c->line;		// we already know this because we got the lineInstance -> l, so taking the line from the channel is wrong in my opinion
+//	d = c->device;		// we already know this because we have s->device, so taking the device from the channel is wrong in my opinion
 
-	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Cisco Digit: %08x (%d) on line %s\n", d->id, event, event, l->name);
+	sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Cisco Digit: %08x (%d) on line %s, channel %d with state: %d\n", d->id, event, event, l->name, c->callid, c->state);			// we need to get this log line, next time
 
 	if (event < 10)
 		resp = '0' + event;
@@ -1996,20 +2004,21 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 		resp = '#';
 
 	/* added PROGRESS to make sending digits possible during progress state (Pavel Troller) */
-	if (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED || c->state == SCCP_CHANNELSTATE_PROGRESS) {
+	if (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED || c->state == SCCP_CHANNELSTATE_PROGRESS) {	// will not do this if the state is down
 		/* we have to unlock 'cause the senddigit lock the channel */
 		sccp_channel_unlock(c);
 		sccp_pbx_senddigit(c, resp);
 		return;
 	}
 
-	if ((c->state == SCCP_CHANNELSTATE_DIALING) || (c->state == SCCP_CHANNELSTATE_OFFHOOK) || (c->state == SCCP_CHANNELSTATE_GETDIGITS)) {
+	if ((c->state == SCCP_CHANNELSTATE_DIALING) || (c->state == SCCP_CHANNELSTATE_OFFHOOK) || (c->state == SCCP_CHANNELSTATE_GETDIGITS)) {	// c->state should be offhook, but apparently is not
 		len = strlen(c->dialedNumber);
 		if (len >= (AST_MAX_EXTENSION - 1)) {
-			uint8_t instance;
+//			uint8_t instance;
 
-			instance = sccp_device_find_index_for_line(d, c->line->name);
-			sccp_dev_displayprompt(d, instance, c->callid, "No more digits", 5);
+//			instance = sccp_device_find_index_for_line(d, c->line->name);
+//			sccp_dev_displayprompt(d, instance, c->callid, "No more digits", 5);
+			sccp_dev_displayprompt(d, lineInstance, c->callid, "No more digits", 5);
 		} else {
 			c->dialedNumber[len++] = resp;
 			c->dialedNumber[len] = '\0';
@@ -2086,6 +2095,8 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 				return;
 			}
 		}
+	} else {
+		ast_log(LOG_WARNING, "%s: keypad_button could not be handled correctly because of invalid state on line %s, channel: %d, state: %d\n", DEV_ID_LOG(d), l->name, c->callid, c->state);
 	}
 	sccp_handle_dialtone_locked(c);
 	sccp_channel_unlock(c);
