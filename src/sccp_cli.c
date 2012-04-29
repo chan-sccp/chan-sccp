@@ -145,9 +145,9 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 				continue;
 		}
 		// find a match with partial category
-		if (!strncasecmp(word, sccp_debug_categories[i].short_name, strlen(word))) {
+		if (!strncasecmp(word, sccp_debug_categories[i].key, strlen(word))) {
 			if (++which > state)
-				return strdup(sccp_debug_categories[i].short_name);
+				return strdup(sccp_debug_categories[i].key);
 		}
 	}
 	return ret;
@@ -1199,7 +1199,7 @@ CLI_ENTRY(cli_show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeyS
  */
 static int sccp_do_debug(int fd, int argc, char *argv[])
 {
-	uint32_t new_debug = GLOB(debug);
+	int32_t new_debug = GLOB(debug);
 
 	if (argc > 2) {
 		new_debug = sccp_parse_debugline(argv, 2, argc, new_debug);

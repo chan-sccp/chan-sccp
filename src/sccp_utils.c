@@ -1872,18 +1872,13 @@ sccp_linedevices_t *sccp_util_getDeviceConfiguration(sccp_device_t * device, scc
  * \param new_debug_value as uint32_t
  * \return new_debug_value as uint32_t
  */
-uint32_t sccp_parse_debugline(char *arguments[], int startat, int argc, uint32_t new_debug_value)
+int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug_value)
 {
 	int argi;
-
-	uint32_t i;
-
+	int32_t i;
 	char *argument = "";
-
 	char *token = "";
-
 	const char delimiters[] = " ,\t";
-
 	boolean_t subtract = 0;
 
 	if (sscanf((char *)arguments[startat], "%d", &new_debug_value) != 1) {
@@ -1907,7 +1902,7 @@ uint32_t sccp_parse_debugline(char *arguments[], int startat, int argc, uint32_t
 				while (token != NULL) {
 					// match debug level name to enum
 					for (i = 0; i < ARRAY_LEN(sccp_debug_categories); i++) {
-						if (strcasecmp(token, sccp_debug_categories[i].short_name) == 0) {
+						if (strcasecmp(token, sccp_debug_categories[i].key) == 0) {
 							if (subtract) {
 								if ((new_debug_value & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
 									new_debug_value -= sccp_debug_categories[i].category;
@@ -1932,30 +1927,27 @@ uint32_t sccp_parse_debugline(char *arguments[], int startat, int argc, uint32_t
  * \param debugvalue DebugValue as uint32_t
  * \return string containing list of categories comma seperated (you need to free it)
  */
-char *sccp_get_debugcategories(uint32_t debugvalue)
+char *sccp_get_debugcategories(int32_t debugvalue)
 {
-	uint32_t i;
-
+	int32_t i;
 	char *res = NULL;
-
-	const char *sep = ", ";
-
+	const char *sep = ",";
 	size_t size = 0;
 
 	for (i = 0; i < ARRAY_LEN(sccp_debug_categories); ++i) {
 		if ((debugvalue & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
 			size_t new_size = size;
 
-			new_size += strlen(sccp_debug_categories[i].short_name) + sizeof(sep) + 1;
+			new_size += strlen(sccp_debug_categories[i].key) + sizeof(sep) + 1;
 			res = ast_realloc(res, new_size);
 			if (!res)
 				return NULL;
 
 			if (size == 0) {
-				strcpy(res, sccp_debug_categories[i].short_name);
+				strcpy(res, sccp_debug_categories[i].key);
 			} else {
 				strcat(res, sep);
-				strcat(res, sccp_debug_categories[i].short_name);
+				strcat(res, sccp_debug_categories[i].key);
 			}
 
 			size = new_size;

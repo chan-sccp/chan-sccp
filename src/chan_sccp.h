@@ -384,42 +384,45 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 /*!
  * \brief SCCP Verbose Level Structure
  */
-	static const struct sccp_debug_category {
-		const char *const short_name;
-		sccp_debug_category_t category;
-		const char *const text;
-	} sccp_debug_categories[] = {
-		{
-		"core", DEBUGCAT_CORE, "core debug level"}, {
-		"sccp", DEBUGCAT_SCCP, "sccp debug level"}, {
-		"hint", DEBUGCAT_HINT, "hint debug level"}, {
-		"rtp", DEBUGCAT_RTP, "rtp debug level"}, {
-		"device", DEBUGCAT_DEVICE, "device debug level"}, {
-		"line", DEBUGCAT_LINE, "line debug level"}, {
-		"action", DEBUGCAT_ACTION, "action debug level"}, {
-		"channel", DEBUGCAT_CHANNEL, "channel debug level"}, {
-		"cli", DEBUGCAT_CLI, "cli debug level"}, {
-		"config", DEBUGCAT_CONFIG, "config debug level"}, {
-		"feature", DEBUGCAT_FEATURE, "feature debug level"}, {
-		"feature_button", DEBUGCAT_FEATURE_BUTTON, "feature_button debug level"}, {
-		"softkey", DEBUGCAT_SOFTKEY, "softkey debug level"}, {
-		"indicate", DEBUGCAT_INDICATE, "indicate debug level"}, {
-		"pbx", DEBUGCAT_PBX, "pbx debug level"}, {
-		"socket", DEBUGCAT_SOCKET, "socket debug level"}, {
-		"mwi", DEBUGCAT_MWI, "mwi debug level"}, {
-		"event", DEBUGCAT_EVENT, "event debug level"}, {
-		"adv_feature", DEBUGCAT_ADV_FEATURE, "adv_feature debug level"}, {
-		"conference", DEBUGCAT_CONFERENCE, "conference debug level"}, {
-		"buttontemplate", DEBUGCAT_BUTTONTEMPLATE, "buttontemplate debug level"}, {
-		"speeddial", DEBUGCAT_SPEEDDIAL, "speeddial debug level"}, {
-		"codec", DEBUGCAT_CODEC, "codec debug level"}, {
-		"realtime", DEBUGCAT_REALTIME, "realtime debug level"}, {
-		"lock", DEBUGCAT_LOCK, "lock debug level"}, {
-		"threadlock", DEBUGCAT_THREADLOCK, "thread-lock debug level"}, {
-		"message", DEBUGCAT_MESSAGE, "message debug level"}, {
-		"utils", DEBUGCAT_UTILS, "utils debug level"}, {
-		"newcode", DEBUGCAT_NEWCODE, "newcode debug level"}, {
-	"high", DEBUGCAT_HIGH, "high debug level"},};
+static const struct sccp_debug_category {
+        const char *const key;
+        sccp_debug_category_t category;
+        const char *const text;
+} sccp_debug_categories[] = {
+        /* *INDENT-OFF* */
+        {"all", 		0xffffffff, 		"all debug levels"},
+        {"none",		0x00000000, 		"all debug levels"},
+        {"core",  		DEBUGCAT_CORE, 		"core debug level"},
+        {"sccp",  		DEBUGCAT_SCCP, 		"sccp debug level"},
+        {"hint",  		DEBUGCAT_HINT, 		"hint debug level"},
+        {"rtp",  		DEBUGCAT_RTP, 		"rtp debug level"},
+        {"device",  		DEBUGCAT_DEVICE, 	"device debug level"},
+        {"line",  		DEBUGCAT_LINE, 		"line debug level"},
+        {"action",  		DEBUGCAT_ACTION, 	"action debug level"},
+        {"channel",  		DEBUGCAT_CHANNEL, 	"channel debug level"},
+        {"cli",  		DEBUGCAT_CLI, 		"cli debug level"},
+        {"config",  		DEBUGCAT_CONFIG, 	"config debug level"},
+        {"feature",  		DEBUGCAT_FEATURE, 	"feature debug level"},
+        {"feature_button",  	DEBUGCAT_FEATURE_BUTTON,"feature_button debug level"},
+        {"softkey",  		DEBUGCAT_SOFTKEY, 	"softkey debug level"},
+        {"indicate",  		DEBUGCAT_INDICATE, 	"indicate debug level"},
+        {"pbx",  		DEBUGCAT_PBX, 		"pbx debug level"},
+        {"socket",  		DEBUGCAT_SOCKET, 	"socket debug level"},
+        {"mwi",  		DEBUGCAT_MWI, 		"mwi debug level"},
+        {"event",  		DEBUGCAT_EVENT, 	"event debug level"},
+        {"adv_feature",  	DEBUGCAT_ADV_FEATURE, 	"adv_feature debug level"},
+        {"conference",  	DEBUGCAT_CONFERENCE, 	"conference debug level"},
+        {"buttontemplate",  	DEBUGCAT_BUTTONTEMPLATE,"buttontemplate debug level"},
+        {"speeddial",  		DEBUGCAT_SPEEDDIAL, 	"speeddial debug level"},
+        {"codec",  		DEBUGCAT_CODEC, 	"codec debug level"},
+        {"realtime",  		DEBUGCAT_REALTIME, 	"realtime debug level"},
+        {"lock",  		DEBUGCAT_LOCK, 		"lock debug level"},
+        {"threadlock",  	DEBUGCAT_THREADLOCK, 	"thread-lock debug level"},
+        {"message",  		DEBUGCAT_MESSAGE, 	"message debug level"},
+        {"newcode",  		DEBUGCAT_NEWCODE, 	"newcode debug level"}, 
+        {"high",  		DEBUGCAT_HIGH, 		"high debug level"},
+        /* *INDENT-ON* */
+};
 
 /*!
  * \brief Feature Type Enum
@@ -1105,7 +1108,7 @@ static inline unsigned long long bswap_64(unsigned long long x) {
 
 		struct ast_codec_pref global_codecs;				/*!< Global Asterisk Codecs */
 		int keepalive;							/*!< KeepAlive */
-		uint32_t debug;							/*!< Debug */
+		int32_t debug;							/*!< Debug */
 		char date_format[7];						/*!< Date Format */
 
 		uint8_t firstdigittimeout;					/*< First Digit Timeout. Wait up to 16 seconds for first digit */
