@@ -1685,7 +1685,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	}
 
 	/* prevent softswitch from being executed twice (Pavel Troller / 15-Oct-2010) */
-	if (c->owner->pbx) {
+	if (c->owner && c->owner->pbx) {
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) PBX structure already exists. Dialing instead of starting.\n");
 		/* If there are any digits, send them instead of starting the PBX */
 		if (sccp_is_nonempty_string(c->dialedNumber)) {
