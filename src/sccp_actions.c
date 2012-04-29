@@ -333,7 +333,8 @@ void sccp_handle_SPAregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t *
 
 			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_2 "%s: SPA-Device is doing a re-registration!\n", d->id);
 			if (d->session != s) {
-				pthread_cancel(s->session_thread);
+				sccp_session_cancel(s);
+//				pthread_cancel(s->session_thread);
 			} else {
 				return;
 			}
@@ -786,8 +787,11 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * 
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: unregister request sent\n", DEV_ID_LOG(d));
 	if (d) {
 		sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);
+		if (d->session)
+			sccp_session_cancel(d->session);
+	} else if (s->device && s->device->session && s->device->session != s) {
+		sccp_session_cancel(s->device->session);
 	}
-	pthread_cancel(s->session_thread);
 }
 
 /*!
@@ -816,7 +820,8 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 
 	if (d->registrationState != SKINNY_DEVICE_RS_PROGRESS && d->registrationState != SKINNY_DEVICE_RS_OK) {
 		ast_log(LOG_WARNING, "%s: Received a button template request from unregistered device\n", d->id);
-		pthread_cancel(s->session_thread);
+		sccp_session_cancel(s);
+//		pthread_cancel(s->session_thread);
 		return;
 	}
 
@@ -831,7 +836,8 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 	if (!btn) {
 		ast_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
 		sccp_device_unlock(d);
-		pthread_cancel(s->session_thread);
+		sccp_session_cancel(s);
+//		pthread_cancel(s->session_thread);
 		return;
 	}
 
