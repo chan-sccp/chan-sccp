@@ -1021,7 +1021,8 @@ static int unload_module(void)
 	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
 	while ((s = SCCP_LIST_REMOVE_HEAD(&GLOB(sessions), list))) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", pbx_inet_ntoa(s->sin.sin_addr));
-		pthread_cancel(s->session_thread);
+//		pthread_cancel(s->session_thread);
+		sccp_session_cancel(s);
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
 
