@@ -161,154 +161,6 @@ void sccp_handle_tokenreq(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
  * 	- socket
  * 	  - device
  */
-#if 0 
-void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
-{
-
-	sccp_moo_t *r1;
-
-	if (!s || (s->fds[0].fd < 0)) {
-		ast_log(LOG_ERROR, "%s: No Valid Session\n", DEV_ID_LOG(s->device));
-		return;
-	}
-
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d\n", r->msg.RegisterMessage.sId.deviceName, letohl(r->msg.RegisterMessage.sId.lel_instance), devicetype2str(letohl(r->msg.RegisterMessage.lel_deviceType)), letohl(r->msg.RegisterMessage.lel_deviceType), r->msg.RegisterMessage.protocolVer);
-
-	// Search for already known devices
-	d = sccp_device_find_byid(r->msg.RegisterMessage.sId.deviceName, FALSE);
-	if (d) {
-		if (d->session && d->session != s) {
-			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", d->id);
-			d->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
-			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
-			d->session->session_stop = 1;				/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
-			s->session_stop = 1;
-//			sccp_dev_clean(d, FALSE, 0);				/* we need to clean device configuration to set lines */
-			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", d->id);
-		}
-	}
-	// search for all devices including realtime
-	d = sccp_device_find_byid(r->msg.RegisterMessage.sId.deviceName, TRUE);
-	if (!d) {
-		if (GLOB(allowAnonymus)) {
-			d = sccp_device_create();
-			sccp_copy_string(d->id, r->msg.RegisterMessage.sId.deviceName, sizeof(d->id));
-			d->realtime = TRUE;
-			d->isAnonymous = TRUE;
-#ifdef CS_DYNAMIC_CONFIG
-			sccp_config_addButton(d, -1, LINE, GLOB(hotline)->line->name, NULL, NULL);
-#else
-			sccp_config_addLine(d, GLOB(hotline)->line->name, NULL, 0);
-#endif
-			sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.RegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
-			d->defaultLineInstance = 1;
-			SCCP_RWLIST_WRLOCK(&GLOB(devices));
-			SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), d, list);
-			SCCP_RWLIST_UNLOCK(&GLOB(devices));
-		} else {
-			ast_log(LOG_NOTICE, "%s: Rejecting device: not found\n", r->msg.RegisterMessage.sId.deviceName);
-			sccp_session_reject(s, "Unknown Device");
-			return;
-		}
-	}
-	if (d) {
-		s->device = d;				/* attach device to session, so it can be cleaned up during session cleanup */
-		
-		/* check ACLs for this device */
-		if (sccp_device_checkACL(d, s) == FALSE) {
-			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
-			s = sccp_session_reject(s, "IP Not Authorized");
-			return;
-		}
-		
-		if (d->session && d->session != s) {
-			ast_log(LOG_NOTICE, "%s: Crossover device registration!\n", d->id);
-			d->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
-			s = sccp_session_reject(s, "No Crossover Allowed");
-			return;
-		}
-		
-	} else {
-		ast_log(LOG_NOTICE, "%s: Rejecting device: Device Unknown \n", r->msg.RegisterMessage.sId.deviceName);
-		s = sccp_session_reject(s, "Device Unknown");
-		return;
-	}
-	
-	sccp_device_lock(d);
-	d->linesRegistered = FALSE;
-	/* test the localnet to understand if the device is behind NAT */
-	if (GLOB(localaddr) && pbx_apply_ha(GLOB(localaddr), &s->sin)) {
-		/* ok the device is natted */
-		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream \n", r->msg.RegisterMessage.sId.deviceName);
-		d->nat = 1;
-	}
-
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr));
-	s->device = d;
-	d->skinny_type = letohl(r->msg.RegisterMessage.lel_deviceType);
-
-	d->session = s;
-	s->lastKeepAlive = time(0);
-	d->mwilight = 0;
-	d->protocolversion = r->msg.RegisterMessage.protocolVer;
-	
-	sccp_device_unlock(d);
-
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", d->id, d->keepaliveinterval);
-	REQ(r1, RegisterAckMessage);
-
-//      sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->length);
-
-	// A logical or is required here, since if we read a message length less than 56,
-	// the protocolversion can be undefined (depending on whether overhead memory of the message might be uninitialized).
-	// Only if we read a full length register message must we check for a meaningful protocolversion other than zero.
-
-	if (r->length < 56 || d->protocolversion == 0) {
-		// registration request with protocol 0 version structure.
-		d->inuseprotocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), d->inuseprotocolversion);
-	} else if (r->msg.RegisterMessage.protocolVer > GLOB(protocolversion)) {
-		d->inuseprotocolversion = GLOB(protocolversion);
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: asked for protocol version (%d). We answered (%d) as our capability.\n", DEV_ID_LOG(d), r->msg.RegisterMessage.protocolVer, GLOB(protocolversion));
-	} else if (r->msg.RegisterMessage.protocolVer <= GLOB(protocolversion)) {
-		d->inuseprotocolversion = r->msg.RegisterMessage.protocolVer;
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d). We answered (%d).\n", DEV_ID_LOG(d), GLOB(protocolversion), r->msg.RegisterMessage.protocolVer);
-	}
-	
-	if (d->inuseprotocolversion <= 3) {
-		// Our old flags for protocols from 0 to 3
-		r1->msg.RegisterAckMessage.unknown1 = 0x00;
-		r1->msg.RegisterAckMessage.unknown2 = 0x00;
-		r1->msg.RegisterAckMessage.unknown3 = 0x00;
-	} else if (d->inuseprotocolversion <= 10) {
-		/* CCM 4.1.3 Sets this bytes this way Proto v6 */
-		r1->msg.RegisterAckMessage.unknown1 = 0x20;			// 0x00;
-		r1->msg.RegisterAckMessage.unknown2 = 0x00;			// 0x00;
-		r1->msg.RegisterAckMessage.unknown3 = 0xFE;			// 0xFE;
-	} else if (d->inuseprotocolversion >= 11) {
-		/* CCM7 Sets this bytes this way Proto v11 */
-		r1->msg.RegisterAckMessage.unknown1 = 0x20;			// 0x00;
-		r1->msg.RegisterAckMessage.unknown2 = 0xF1;			// 0xF1;
-		r1->msg.RegisterAckMessage.unknown3 = 0xFF;			// 0xFF;
-	}
-
-	r1->msg.RegisterAckMessage.protocolVer = d->inuseprotocolversion;
-	r1->msg.RegisterAckMessage.lel_keepAliveInterval = htolel(d->keepaliveinterval);
-	r1->msg.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel((d->keepalive ? d->keepalive : GLOB(keepalive)));
-
-	memcpy(r1->msg.RegisterAckMessage.dateTemplate, GLOB(date_format), sizeof(r1->msg.RegisterAckMessage.dateTemplate));
-	sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: (sccp_handle_register) sending reply\n", DEV_ID_LOG(d));
-	sccp_session_send(d, r1);
-	sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: (sccp_handle_register) setting registered\n", DEV_ID_LOG(d));
-	sccp_dev_set_registered(d, SKINNY_DEVICE_RS_PROGRESS);
-
-	// Ask for the capabilities of the device
-	// to proceed with registration according to sccp protocol specification 3.0
-	sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: (sccp_handle_register) asking for capabilities\n", DEV_ID_LOG(d));
-	sccp_dev_sendmsg(d, CapabilitiesReqMessage);
-
-}
-#else
 void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
 	sccp_moo_t *r1;
@@ -348,27 +200,26 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		s->device = d;				/* attach device to session, so it can be cleaned up during session cleanup */
 		
 		/* check ACLs for this device */
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION))(VERBOSE_PREFIX_3 "here1\n");
 		if (sccp_device_checkACL(d, s) == FALSE) {
 			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
 			d->registrationState = SKINNY_DEVICE_RS_FAILED;
 			s = sccp_session_reject(s, "IP Not Authorized");
 			return;
 		}
-		
 		if (d->session && d->session != s) {
 			ast_log(LOG_NOTICE, "%s: Crossover device registration!\n", d->id);
 			d->registrationState = SKINNY_DEVICE_RS_FAILED;
 			s = sccp_session_reject(s, "No Crossover Allowed");
 			return;
 		}
-		
 	} else {
 		ast_log(LOG_NOTICE, "%s: Rejecting device: Device Unknown \n", r->msg.RegisterMessage.sId.deviceName);
 		d->registrationState = SKINNY_DEVICE_RS_FAILED;
 		s = sccp_session_reject(s, "Device Unknown");
 		return;
 	}
-	
+
 	sccp_device_lock(d);
 	d->linesRegistered = FALSE;
 	/* test the localnet to understand if the device is behind NAT */
@@ -377,6 +228,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream \n", r->msg.RegisterMessage.sId.deviceName);
 		d->nat = 1;
 	}
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION))(VERBOSE_PREFIX_3 "here6\n");
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr));
 	s->device = d;
@@ -446,7 +298,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: (sccp_handle_register) asking for capabilities\n", DEV_ID_LOG(d));
 	sccp_dev_sendmsg(d, CapabilitiesReqMessage);
 }
-#endif
 
 /*!
  * \brief Handle Device Registration for SPA phones
