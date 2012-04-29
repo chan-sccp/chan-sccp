@@ -276,6 +276,7 @@ void *sccp_socket_device_thread(void *session)
 			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: set poll timeout %d\n", DEV_ID_LOG(s->device), pollTimeout);
 
 			res = sccp_socket_poll(s->fds, 1, pollTimeout);
+//			res = sccp_socket_poll(s->fds, 1, 30000);
 			if (res < 0) {						/* poll error */
 				/* Sparc64 + OpenBSD socket implementation can be interupted via system irq, ignore and try again */
 				if ((errno != EAGAIN) && (errno != EINTR)) {
@@ -286,8 +287,13 @@ void *sccp_socket_device_thread(void *session)
 					break;
 				}
 				continue;
-			} else if (s->session_stop || res == 0) {					/* poll timeout */
-				if (s->session_stop || s->lastKeepAlive > (s->device ? s->device->keepalive : GLOB(keepalive))) {
+			} else if (s->session_stop) {
+				ast_log(LOG_NOTICE, "%s: Closing session because session_stop was set\n", DEV_ID_LOG(s->device));
+				if (s->device && s->device->registrationState)
+					s->device->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
+				break;
+			} else if (res == 0) {					/* poll timeout */
+				if (s->lastKeepAlive > (s->device ? s->device->keepalive : GLOB(keepalive))) {
                                         ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d).\n", DEV_ID_LOG(s->device), (int)maxWaitTime, pollTimeout);
                                         if (s->device && s->device->registrationState)
                                                 s->device->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
@@ -295,7 +301,6 @@ void *sccp_socket_device_thread(void *session)
                                         break;
                                 }
 			}
-
 			if (s->fds[0].revents) {				/* handle poll events a.k.a. data processing */
 				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
 				sccp_read_data(s);
