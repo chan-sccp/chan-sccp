@@ -1217,7 +1217,7 @@ static int sccp_do_debug(int fd, int argc, char *argv[])
 
 static char do_debug_usage[] = "Usage: SCCP debug [no] <level or categories>\n" "       Where categories is one or more (separated by comma's) of:\n" "       core, sccp, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey,\n" "       indicate, pbx, socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime,\n" "       lock, newcode, high\n";
 
-#define CLI_COMMAND "sccp", "debug", NULL
+#define CLI_COMMAND "sccp", "debug"
 CLI_ENTRY_COMPLETE(cli_do_debug, sccp_do_debug, "Set SCCP Debugging Types", do_debug_usage, sccp_complete_debug)
 #undef CLI_COMMAND
 
