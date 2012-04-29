@@ -582,8 +582,10 @@ int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
 	if (d && d->session) {
 		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, message2str(letohl(r->lel_messageId)));
 		return sccp_session_send(d, r);
-	} else
+	} else {
+		ast_log(LOG_WARNING, "%s: >> (sccp_dev_send) No Session available to send '%s'\n", d->id, message2str(letohl(r->lel_messageId)));
 		return -1;
+	}
 }
 
 /*!
