@@ -3171,6 +3171,9 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 	if (status) {
 		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call (status: %d)\n", DEV_ID_LOG(d), status);
 		sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
+                if (channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) {
+		        sccp_channel_closereceivechannel_locked(channel);
+		}
 		sccp_channel_endcall_locked(channel);
 	} else {
                 if (channel->state != SCCP_CHANNELSTATE_DOWN) {
@@ -3184,6 +3187,9 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
                         sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, ipAddress, ipPort, callID, callID1, partyID);
                 } else {
                         pbx_log(LOG_WARNING, "%s: (sccp_handle_startmediatransmission_ack) Channel already down (%d). Hanging up\n", DEV_ID_LOG(d), channel->state);
+                        if (channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) {
+                                sccp_channel_closereceivechannel_locked(channel);
+                        }
                         sccp_channel_endcall_locked(channel);
                 }
 	}
