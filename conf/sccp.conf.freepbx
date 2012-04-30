@@ -35,7 +35,6 @@ video_tos = 0x88
 video_cos = 5
 echocancel = on
 silencesuppression = off
-trustphoneip = no
 private = on
 callanswerorder=oldestfirst
 hotline_enabled=yes					;can devices without configuration register

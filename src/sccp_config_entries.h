@@ -103,7 +103,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"echocancel", 			G_OBJ_REF(echocancel), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"sets the phone echocancel for all devices\n"},
 	{"silencesuppression", 		G_OBJ_REF(silencesuppression), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"sets the silence suppression for all devices\n"
 																																					"we don't have to trust the phone ip address, but the ip address of the connection\n"},
-	{"trustphoneip", 		G_OBJ_REF(trustphoneip), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"The phone has a ip address. It could be private, so if the phone is behind NAT \n"},
+	{"trustphoneip", 		G_OBJ_REF(trustphoneip), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NOUPDATENEEDED,		"no",				"The phone has a ip address. It could be private, so if the phone is behind NAT \n"},
 	{"earlyrtp", 			G_OBJ_REF(earlyrtp), 			TYPE_PARSER(sccp_config_parse_earlyrtp),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"progress",			"valid options: none, offhook, dial, ringout and progress. default is progress.\n"
 																																					"The audio stream will be open in the progress and connected state by default.\n"},
 	{"dnd", 			G_OBJ_REF(dndmode), 			TYPE_PARSER(sccp_config_parse_dnd),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"reject",			"turn on the dnd softkey for all devices. Valid values are 'off', 'on' (busy signal), 'reject' (busy signal), 'silent' (ringer = silent)\n"},
@@ -204,7 +204,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"audio_cos", 			D_OBJ_REF(audio_cos),			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT, 				SCCP_CONFIG_NEEDDEVICERESET, 		NULL,				"sets the audio/rtp packets Class of Service (COS) (defaults to 6)\n"},
 	{"video_tos", 			D_OBJ_REF(video_tos),			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT, 				SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"sets the video/rtp packets Type of Service (TOS)  (defaults to 0x88 = 10001000 = 136 = DSCP:100010 = AF41)\n"},
 	{"video_cos", 			D_OBJ_REF(video_cos),			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT, 				SCCP_CONFIG_NEEDDEVICERESET, 		NULL,				"sets the video/rtp packets Class of Service (COS) (defaults to 5)\n"},
-	{"trustphoneip", 		D_OBJ_REF(trustphoneip), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"The phone has a ip address. It could be private, so if the phone is behind NAT \n"
+	{"trustphoneip", 		D_OBJ_REF(trustphoneip), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_DEPRECATED,	SCCP_CONFIG_NEEDDEVICERESET,	NULL,				"The phone has a ip address. It could be private, so if the phone is behind NAT \n"
 																																					"we don't have to trust the phone ip address, but the ip address of the connection\n"},
 	{"nat", 			D_OBJ_REF(nat), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED | SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				"Device NAT support (default Off)\n"},
 	{"directrtp", 			D_OBJ_REF(directrtp), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"This option allow devices to do direct RTP sessions (default Off)								\n"},
