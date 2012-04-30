@@ -869,7 +869,7 @@ void *sccp_pbx_softswitch_locked(sccp_channel_t * c)
 	c->enbloc.digittimeout = GLOB(digittimeout) * 1000;
 	
 	/* prevent softswitch from being executed twice (Pavel Troller / 15-Oct-2010) */
-	if (c->owner->pbx) {
+	if (c->owner && c->owner->pbx) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) PBX structure already exists. Dialing instead of starting.\n");
 		/* If there are any digits, send them instead of starting the PBX */
 		if (!sccp_strlen_zero(c->dialedNumber)) {
