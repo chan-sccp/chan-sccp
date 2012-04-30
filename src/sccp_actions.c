@@ -2271,14 +2271,14 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 	sccp_channel_t *c = NULL;
 	sccp_line_t *l = NULL;
 	const sccp_softkeyMap_cb_t *softkeyMap_cb = NULL;
-       	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Got Softkey but no device to connect it to. Exiting\n", DEV_ID_LOG(d));
+       	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Got Softkey\n", DEV_ID_LOG(d));
 
 	uint32_t event = letohl(r->msg.SoftKeyEventMessage.lel_softKeyEvent);
 	uint32_t lineInstance = letohl(r->msg.SoftKeyEventMessage.lel_lineInstance);
 	uint32_t callid = letohl(r->msg.SoftKeyEventMessage.lel_callReference);
 
 	if (!d) {
-	        pbx_log(LOG_ERROR, "Received Softkey Event but no device to connect it to. Exiting\n");
+	        pbx_log(LOG_ERROR, "SCCP: Received Softkey Event but no device to connect it to. Exiting\n");
 		return;
         }
         
