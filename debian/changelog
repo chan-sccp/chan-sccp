@@ -1,10 +1,31 @@
+chan-sccp-b (3.1.3-0.0) stable; urgency=medium
+ * Added Functionality:
+ * - Added support for 69xx phones
+ *   - Fixed handle_openreceivechannel to cope with devices that do not send passthrupartyid
+ *   - Fixed handle_startmediatransmission to cope with devices that do not send passthrupartyid
+ *
+ * Fixed/Improved
+ *  - Adapted socket handling for larger numbers of phones. Changed keepalive handling. Changed session_stop handling
+ *  - Added locking to sccp_channel_addLine / sccp_channel_removeLine, also fixes sccp_channel_find functionality
+ *  - Backported register handling
+ *  - Backported debugcategory handling
+ *  - Updated keypad button handling
+ *  - Updated crossdevice registration to cleanup open channels correctly while in the sccp_pbx_hangup function
+ *  - Fixed compile issues when using older gcc versions
+ *  - Prevent segfault during sccp_pbx_softswitch_locked
+ *  - Fixed invalidnumber indication signalling
+ *  - Extended logging in different locations
+ *  - Reduced number of RTP error messages, where none where necessary
+
+ -- Diederik de Groot <ddegroot@users.sourceforge.net>  Sun, 29 Apr 2012 15:58:29 +0200
+
 chan-sccp-b (3.1.1-0.2) stable; urgency=low
 
   * Fixed/Improved: 
   *  - Compilation on FreeBSD
   *  - Autoconf script
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Wed, 28 Dec 2011 16:18:16 +0100
+ -- Diederik de Groot <ddegroot@users.sourceforge.net>  Wed, 28 Dec 2011 16:18:16 +0100
 
 chan-sccp-b (3.1.1-0.1) stable; urgency=medium
 
@@ -12,7 +33,7 @@ chan-sccp-b (3.1.1-0.1) stable; urgency=medium
   *  - Video Support
   *  - Minor Bug Fixes
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Sat, 24 Dec 2011 14:05:47 +0100
+ -- Diederik de Groot <ddegroot@users.sourceforge.net>  Sat, 24 Dec 2011 14:05:47 +0100
 
 chan-sccp-b (3.0.0-3.5) stable; urgency=low
 
@@ -20,7 +41,7 @@ chan-sccp-b (3.0.0-3.5) stable; urgency=low
   *  - Small bug fixes
   *  - Fix hint issue on 7914 addons (with 7960 and dynamic speeddials)
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Fri, 09 Sep 2011 18:38:57 +0200
+ -- Diederik de Groot <ddegroot@users.sourceforge.net>  Fri, 09 Sep 2011 18:38:57 +0200
 
 chan-sccp-b (3.0.0-3.4) stable; urgency=low
 
@@ -28,14 +49,14 @@ chan-sccp-b (3.0.0-3.4) stable; urgency=low
   *  - Small bug fixes
   *  - Fix compile against older asterisk 1.4 versions
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Tue, 30 Aug 2011 13:39:49 +0200
+ -- Diederik de Groot <ddegroot@users.sourceforge.net>  Tue, 30 Aug 2011 13:39:49 +0200
 
 chan-sccp-b (3.0.0-3.3) stable; urgency=low
 
   * Fixed/Improved:
   *  - Fixed devstate detection 
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Tue, 02 Aug 2011 19:01:37 +0200
+ -- Diederik de Groot <ddegroot@users.sourceforge.net>  Tue, 02 Aug 2011 19:01:37 +0200
 
 chan-sccp-b (3.0.0-3.2) stable; urgency=low
 
@@ -43,7 +64,7 @@ chan-sccp-b (3.0.0-3.2) stable; urgency=low
   *  - bug fixes for configure when using crosscompiling
   *  - minor bug fixes when compiling against older asterisk versions 
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Mon, 01 Aug 2011 20:35:37 +0200
+ -- Diederik de Groot <ddegroot@users.sourceforge.net>  Mon, 01 Aug 2011 20:35:37 +0200
 
 chan-sccp-b (3.0.0-3.1) unstable; urgency=low
 
@@ -60,7 +81,7 @@ chan-sccp-b (3.0.0-3.1) unstable; urgency=low
   *  - lots of small bugs reported by users
   *  - documentation updates
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Thu, 10 Feb 2011 12:44:12 +0100
+ -- Diederik de Groot <ddegroot@users.sourceforge.net>  Thu, 10 Feb 2011 12:44:12 +0100
 
 chan-sccp-b (3.0.0-3) unstable; urgency=low
 
@@ -84,7 +105,7 @@ chan-sccp-b (3.0.0-3) unstable; urgency=low
   *  - lots of small bugs reported by users
   *  - documentation updates
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Fri, 22 Oct 2010 11:19:26 +0200
+ -- Diederik de Groot <ddegroot@users.sourceforge.net>  Fri, 22 Oct 2010 11:19:26 +0200
 
 chan-sccp-b (3.0.0-2) unstable; urgency=low
 
@@ -101,11 +122,11 @@ chan-sccp-b (3.0.0-2) unstable; urgency=low
   * 
   * 
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Fri, 14 Sept 2010 11:19:26 +0200
+ -- Diederik de Groot <ddegroot@users.sourceforge.net>  Fri, 14 Sept 2010 11:19:26 +0200
 
 chan-sccp-b (3.0.0-1) unstable; urgency=low
 
   * Release Candidate 1
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Thu, 26 Aug 2010 13:56:42 +0200
+ -- Diederik de Groot <ddegroot@users.sourceforge.net>  Thu, 26 Aug 2010 13:56:42 +0200
 
