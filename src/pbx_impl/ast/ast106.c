@@ -1812,12 +1812,19 @@ RDNIS=Redirected Dialed Number Identification Service
 static void sccp_wrapper_asterisk16_setRedirectingParty(const sccp_channel_t * channel, const char *number, const char *name)
 {
 	// set redirecting party
-	if (!strcmp(channel->owner->cid.cid_rdnis, number)) {
-		sccp_copy_string(channel->owner->cid.cid_rdnis, number, sizeof(channel->owner->cid.cid_rdnis) - 1);
+	if(channel->owner->cid.cid_rdnis){
+		ast_free(channel->owner->cid.cid_rdnis);
 	}
+	channel->owner->cid.cid_rdnis = ast_strdup(number);
+	
+	
 	// set number dialed originaly
-	if (!strcmp(channel->owner->cid.cid_dnid, channel->owner->cid.cid_num)) {
-		sccp_copy_string(channel->owner->cid.cid_dnid, channel->owner->cid.cid_num, sizeof(channel->owner->cid.cid_dnid) - 1);
+	if(channel->owner->cid.cid_dnid){
+		ast_free(channel->owner->cid.cid_dnid);
+	}
+	
+	if (channel->owner->cid.cid_num) {
+		channel->owner->cid.cid_dnid = ast_strdup(channel->owner->cid.cid_num);
 	}
 }
 
