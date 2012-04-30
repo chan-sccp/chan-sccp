@@ -58,7 +58,6 @@ video_cos = 5						; sets the default video/rtp packets Class of Service (COS)  
 echocancel = on						; sets the phone echocancel for all devices
 silencesuppression = off				; sets the silence suppression for all devices
 							; we don't have to trust the phone ip address, but the ip address of the connection
-trustphoneip = no					; The phone has a ip address. It could be private, so if the phone is behind NAT 
 earlyrtp = progress					; valid options: none, offhook, dial, ringout and progress. default is progress.
 							; The audio stream will be open in the progress and connected state by default.
 dnd = on						; turn on the dnd softkey for all devices. Valid values are "off", "on" (busy signal), "reject" (busy signal), "silent" (ringer = silent)
@@ -153,8 +152,6 @@ deny=0.0.0.0/0.0.0.0					; Same as general
 permit=192.168.1.0/255.255.255.0			; This device can register only using this ip address
 permithost=myphone1.example.net				; This will allow phones connecting from myphone1.example.net
 dnd = on						; turn on the dnd softkey for this device. Valid values are "off", "on" (busy signal), "reject" (busy signal), "silent" (ringer = silent) or user to toggle on phone
-trustphoneip = no					; The phone has a ip address. It could be private, so if the phone is behind NAT 
-							; we don't have to trust the phone ip address, but the ip address of the connection
 ;nat=off							; Device NAT support (default Off)
 ;directrtp=off						; This option allow devices to do direct RTP sessions (default Off)								
 earlyrtp = progress					; valid options: none, offhook, dial, ringout and progress. default is progress.
@@ -264,7 +261,6 @@ imageversion = P00405000700				; useful to upgrade old firmwares (the ones that 
 deny=0.0.0.0/0.0.0.0					; Same as general
 permit=192.168.1.5/255.255.255.255			; This device can register only using this ip address
 dnd = on						; turn on the dnd softkey for this device. Valid values are "off", "on" (busy signal), "reject" (busy signal), "silent" (ringer = silent) or user to toggle on phone
-trustphoneip = no					; The phone has a ip address. It could be private, so if the phone is behind NAT 
 nat = off						; Device NAT support (default Off)
 directrtp = off						; This option allow devices to do direct RTP sessions (default Off)								
 earlyrtp = none						; valid options: none, offhook, dial, ringout. default is none.

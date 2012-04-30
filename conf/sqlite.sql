@@ -11,7 +11,6 @@ CREATE TABLE "sccpdevice" (
   "deny" 			varchar(45) 	DEFAULT NULL,
   "permit" 			varchar(45) 	DEFAULT NULL,
   "dndFeature" 			varchar(5) 	DEFAULT 'on',
-  "trustphoneip" 		varchar(5) 	DEFAULT NULL,
   "directrtp" 			varchar(3) 	DEFAULT 'off',
   "earlyrtp" 			varchar(8) 	DEFAULT 'off',
   "mwilamp" 			varchar(5) 	DEFAULT 'on',

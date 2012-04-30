@@ -105,7 +105,6 @@
  * video_cos = 5
  * echocancel = on
  * silencesuppression = off
- * trustphoneip = no
  * private = on
  * callanswerorder=oldestfirst
  * meetme = on
@@ -149,7 +148,6 @@
  * deny=0.0.0.0/0.0.0.0
  * permit=192.168.1.5/255.255.255.255
  * dnd = on
- * trustphoneip = no
  * nat=on
  * directrtp=on
  * earlyrtp = none
@@ -258,7 +256,6 @@
  * deny=0.0.0.0/0.0.0.0
  * permit=192.168.1.5/255.255.255.255
  * dnd = on
- * trustphoneip = no
  * nat=on
  * directrtp=on
  * earlyrtp = none

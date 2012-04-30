@@ -914,6 +914,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 			GLOB(silencesuppression) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "trustphoneip")) {
 			GLOB(trustphoneip) = sccp_true(v->value);
+			ast_log (LOG_WARNING, "trustphoneip option is now deprecated. Please remove this option from your config file\n");
 		} else if (!strcasecmp(v->name, "private")) {
 			GLOB(privacy) = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "earlyrtp")) {
@@ -1784,6 +1785,7 @@ sccp_device_t *sccp_config_applyDeviceConfiguration(sccp_device_t * d, struct as
 			d->overlapFeature.enabled = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "trustphoneip")) {
 			d->trustphoneip = sccp_true(v->value);
+			ast_log (LOG_WARNING, "trustphoneip option is now deprecated. Please remove this option from your config file\n");
 		} else if (!strcasecmp(v->name, "private")) {
 			d->privacyFeature.enabled = sccp_true(v->value);
 		} else if (!strcasecmp(v->name, "softkeyset")) {

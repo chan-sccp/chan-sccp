@@ -2348,7 +2348,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		unknown3 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_3);
 	}
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, CallID: %u, Trustphoneip: %s, Directrtp: %s, Natted: %s\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, callID, d->trustphoneip ? "yes" : "no", d->directrtp ? "yes" : "no", d->nat ? "yes" : "no");
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, CallID: %u, Directrtp: %s, Natted: %s\n", d->id, status, (d->directrtp ? "Phone DirectRTP" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, callID, d->directrtp ? "yes" : "no", d->nat ? "yes" : "no");
 	sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Unknown1: %u, Unknown2: %u: Port1: %u, Unknown3: %u\n", d->id, unknown1, unknown2, ipPort1, unknown3);
 
 	if (partyID)
@@ -2360,7 +2360,8 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 	}
 
 	sin.sin_family = AF_INET;
-	if ((d->trustphoneip || d->directrtp) && (!d->nat))
+//	if ((d->trustphoneip || d->directrtp) && (!d->nat))
+	if ((d->directrtp) && (!d->nat))
 		memcpy(&sin.sin_addr, &ipAddr, sizeof(sin.sin_addr));
 	else
 		memcpy(&sin.sin_addr, &s->sin.sin_addr, sizeof(sin.sin_addr));
@@ -2476,7 +2477,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 	sin.sin_family = AF_INET;
 	sin.sin_port = ipPort;
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u\n", d->id, status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID);
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u\n", d->id, status, (d->directrtp ? "Phone DirectRTP" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID);
 	if (status) {
 		/* rtp error from the phone */
 		ast_log(LOG_ERROR, "%s: (OpenMultiMediaReceiveChannelAck) Device error (%d) ! No VRTP media available\n", d->id, status);
@@ -3091,7 +3092,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 6911 which does not return a passthrupartyid, using callid: %u -> passthrupartyid %u\n", d->id, callID1, passthrupartyid);
 	}
 
-	/* TODO: Maybe consider trustphoneip here if appropriate (_DD) */
+	/* TODO: Maybe consider trustphoneip here if appropriate (_DD) */ /* trustphoneip is now deprecated (DdG) */
 	sin.sin_family = AF_INET;
 	memcpy(&sin.sin_addr, ipAddr, 4);
 	sin.sin_port = ipPort;
@@ -3135,7 +3136,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set channel up.\n", d->id);
 				}
 			}
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmissionAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, CallId: %u, CallId1: %u\n", DEV_ID_LOG(d), status, (d->trustphoneip ? "Phone" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, callID, callID1);
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmissionAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, CallId: %u, CallId1: %u\n", DEV_ID_LOG(d), status, (d->directrtp ? "Phone DirectRTP" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, callID, callID1);
 		} else {
                         ast_log(LOG_WARNING, "%s: (sccp_handle_startmediatransmission_ack) Channel already down (%d). Hanging up\n", DEV_ID_LOG(d), c->state);
 			if (c->rtp.audio.status & SCCP_RTP_STATUS_RECEIVE) {

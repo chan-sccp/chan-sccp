@@ -851,7 +851,7 @@ static const struct sccp_debug_category {
 		unsigned int dtmfmode:1;					/*!< DTMF Mode (0 inband - 1 outofband) */
 		unsigned int nat:1;						/*!< Network Address Translation Support (Boolean, default=on) */
 		unsigned int directrtp:1;					/*!< Direct RTP Support (Boolean, default=on) */
-		unsigned int trustphoneip:1;					/*!< Trust Phone IP Support (Boolean, default=on) */
+		unsigned int trustphoneip:1;					/*!< Trust Phone IP Support (Boolean, default=off) DEPRECATED */
 		unsigned int needcheckringback:1;				/*!< Need to Check Ring Back Support (Boolean, default=on) */
 
 		boolean_t realtime;						/*!< is it a realtime configuration */

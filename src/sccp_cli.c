@@ -269,7 +269,7 @@ static int sccp_show_globals(int fd, int argc, char *argv[])
 	ast_cli(fd, "Private softkey       : %s\n", GLOB(privacy) ? "Enabled" : "Disabled");
 	ast_cli(fd, "Echo cancel           : %s\n", GLOB(echocancel) ? "Enabled" : "Disabled");
 	ast_cli(fd, "Silence suppression   : %s\n", GLOB(silencesuppression) ? "Enabled" : "Disabled");
-	ast_cli(fd, "Trust phone ip        : %s\n", GLOB(trustphoneip) ? "Yes" : "No");
+	ast_cli(fd, "Trust phone ip (depre): %s\n", GLOB(trustphoneip) ? "Yes" : "No");
 	ast_cli(fd, "Early RTP             : %s\n", GLOB(earlyrtp) ? "Yes" : "No");
 	ast_cli(fd, "AutoAnswer ringtime   : %d\n", GLOB(autoanswer_ring_time));
 	ast_cli(fd, "AutoAnswer tone       : %d\n", GLOB(autoanswer_tone));
@@ -416,7 +416,7 @@ static int sccp_show_device(int fd, int argc, char *argv[])
 	ast_cli(fd, "Nat                : %s\n", (d->nat) ? "Yes" : "No");
 	ast_cli(fd, "Videosupport?      : %s\n", sccp_device_isVideoSupported(d) ? "Yes" : "No");
 	ast_cli(fd, "Direct RTP         : %s\n", (d->directrtp) ? "Yes" : "No");
-	ast_cli(fd, "Trust phone ip     : %s\n", (d->trustphoneip) ? "Yes" : "No");
+	ast_cli(fd, "Trust phone ip(dep): %s\n", (d->trustphoneip) ? "Yes" : "No");
 	ast_cli(fd, "Bind Address       : %s:%d\n", (d->session) ? pbx_inet_ntoa(d->session->sin.sin_addr) : "???.???.???.???", (d->session) ? ntohs(d->session->sin.sin_port) : 0);
 	ast_cli(fd, "Early RTP          : %s\n", (d->earlyrtp) ? "Yes" : "No");
 	ast_cli(fd, "Device State (Acc.): %s\n", accessorystatus2str(d->accessorystatus));
