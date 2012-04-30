@@ -2014,29 +2014,37 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	lineInstance = letohl(r->msg.KeypadButtonMessage.lel_lineInstance);
 	callid = letohl(r->msg.KeypadButtonMessage.lel_callReference);
 
-	if (lineInstance)
+	if (lineInstance) {
 		l = sccp_line_find_byid(s->device, lineInstance);
-
-	if (l && callid)
-		channel = sccp_channel_find_byid_locked(callid);
+		if (l && callid) {
+		        channel = sccp_find_channel_on_line_byid_locked(l, callid);
+		}
+        } else {
+                if (callid) {
+                        channel = sccp_channel_find_byid_locked(callid);
+                        l = channel->line;
+                }
+        }
 
 	/* Old phones like 7912 never uses callid
 	 * so here we don't have a channel, this way we
 	 * should get the active channel on device
+	 * (as a last resort !)
 	 */
 	if (!channel) {
+	        pbx_log(LOG_NOTICE, "%s: Could not find channel by callid %d on line %s with instance %d! Using active channel instead.\n", DEV_ID_LOG(d), callid, l->name, lineInstance);
 		channel = sccp_channel_get_active_locked(d);
 	}
 
 	if (!channel) {
-		pbx_log(LOG_NOTICE, "Device %s sent a Keypress, but there is no active channel!\n", DEV_ID_LOG(d));
+		pbx_log(LOG_NOTICE, "Device %s sent a Keypress, but there is no active channel! Giving up.\n", DEV_ID_LOG(d));
 		return;
 	}
 
-	l = channel->line;
-	d = sccp_channel_getDevice(channel);
+//	l = channel->line;			// we already know this because we got the lineInstance -> l, so taking the line from the channel is wrong in my opinion
+//	d = sccp_channel_getDevice(channel);	// we already know this because we have s->device, so taking the device from the channel is wrong in my opinion
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP Digit: %08x (%d) on line %s\n", DEV_ID_LOG(d), digit, digit, l->name);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP Digit: %08x (%d) on line %s, channel %d with state: %d\n", DEV_ID_LOG(d), digit, digit, l->name, channel->callid, channel->state);
 
 	if (digit == 14) {
 		resp = '*';
@@ -2061,10 +2069,10 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS)) {
 		len = strlen(channel->dialedNumber);
 		if (len >= (SCCP_MAX_EXTENSION - 1)) {
-			uint8_t instance;
-
-			instance = sccp_device_find_index_for_line(d, channel->line->name);
-			sccp_dev_displayprompt(d, instance, channel->callid, "No more digits", 5);
+//			uint8_t instance;
+//			instance = sccp_device_find_index_for_line(d, channel->line->name);
+//			sccp_dev_displayprompt(d, instance, channel->callid, "No more digits", 5);
+                        sccp_dev_displayprompt(d, lineInstance, channel->callid, "No more digits", 5);
 		} else {
 //                      sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: else state\n");
 //                      sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: GLOB(digittimeoutchar) = '%c'\n",GLOB(digittimeoutchar));
@@ -2182,6 +2190,8 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 				return;
 			}
 		}
+	} else {
+	        pbx_log(LOG_WARNING, "%s: keypad_button could not be handled correctly because of invalid state on line %s, channel: %d, state: %d\n", DEV_ID_LOG(d), l->name, channel->callid, channel->state);
 	}
 	sccp_handle_dialtone_locked(channel);
 	sccp_channel_unlock(channel);
