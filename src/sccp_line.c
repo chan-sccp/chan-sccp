@@ -604,14 +604,18 @@ void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel)
 	if (!l || !channel)
 		return;
 
+	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Adding channel %d to line %s", channel->callid, l->name);
 	sccp_line_lock(l);
 	l->statistic.numberOfActiveChannels++;
-	sccp_line_unlock(l);
 
+	SCCP_LIST_LOCK(&l->channels);
 	if (GLOB(callanswerorder) == ANSWER_OLDEST_FIRST)
 		SCCP_LIST_INSERT_TAIL(&l->channels, channel, list);
 	else
 		SCCP_LIST_INSERT_HEAD(&l->channels, channel, list);
+	SCCP_LIST_UNLOCK(&l->channels);
+
+	sccp_line_unlock(l);
 }
 
 /*!
@@ -630,6 +634,8 @@ void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t * channel)
 {
 	if (!l || !channel)
 		return;
+
+	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Removing channel %d from line %s", channel->callid, l->name);
 
 	sccp_line_lock(l);
 	SCCP_LIST_LOCK(&l->channels);
