@@ -22,7 +22,6 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
   `deny` varchar(45) default NULL,
   `permit` varchar(45) default NULL,
   `dndFeature` varchar(5) default 'on',
-  `trustphoneip` varchar(5) default NULL,
   `directrtp` varchar(3) default 'off',
   `earlyrtp` varchar(8) default 'off',
   `mwilamp` varchar(5) default 'on',

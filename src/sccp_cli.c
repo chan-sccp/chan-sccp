@@ -305,7 +305,7 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	CLI_AMI_OUTPUT_BOOL("Private softkey", CLI_AMI_LIST_WIDTH, GLOB(privacy));
 	CLI_AMI_OUTPUT_BOOL("Echo cancel", CLI_AMI_LIST_WIDTH, GLOB(echocancel));
 	CLI_AMI_OUTPUT_BOOL("Silence suppression", CLI_AMI_LIST_WIDTH, GLOB(silencesuppression));
-	CLI_AMI_OUTPUT_BOOL("Trust phone ip", CLI_AMI_LIST_WIDTH, GLOB(trustphoneip));
+	CLI_AMI_OUTPUT_BOOL("Trust phone ip (deprecated)", CLI_AMI_LIST_WIDTH, GLOB(trustphoneip));
 	CLI_AMI_OUTPUT_PARAM("Early RTP", CLI_AMI_LIST_WIDTH, "%s (%s)", GLOB(earlyrtp) ? "Yes" : "No", GLOB(earlyrtp) ? sccp_indicate2str(GLOB(earlyrtp)) : "none");
 	CLI_AMI_OUTPUT_PARAM("AutoAnswer ringtime", CLI_AMI_LIST_WIDTH, "%d", GLOB(autoanswer_ring_time));
 	CLI_AMI_OUTPUT_PARAM("AutoAnswer tone", CLI_AMI_LIST_WIDTH, "%d", GLOB(autoanswer_tone));
@@ -510,7 +510,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_BOOL("Nat", CLI_AMI_LIST_WIDTH, d->nat);
 	CLI_AMI_OUTPUT_BOOL("Videosupport?", CLI_AMI_LIST_WIDTH, sccp_device_isVideoSupported(d));
 	CLI_AMI_OUTPUT_BOOL("Direct RTP", CLI_AMI_LIST_WIDTH, d->directrtp);
-	CLI_AMI_OUTPUT_BOOL("Trust phone ip", CLI_AMI_LIST_WIDTH, d->trustphoneip);
+	CLI_AMI_OUTPUT_BOOL("Trust phone ip (deprecated)", CLI_AMI_LIST_WIDTH, d->trustphoneip);
 	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s:%d", (d->session) ? pbx_inet_ntoa(d->session->sin.sin_addr) : "???.???.???.???", (d->session) ? ntohs(d->session->sin.sin_port) : 0);
 	CLI_AMI_OUTPUT_PARAM("Our Address", CLI_AMI_LIST_WIDTH, "%s", (d->session) ? ast_inet_ntoa(d->session->ourip) : "???.???.???.???");
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
