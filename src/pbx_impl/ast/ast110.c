@@ -1691,15 +1691,15 @@ static void sccp_wrapper_asterisk110_setCalleridNumber(const sccp_channel_t * ch
 static void sccp_wrapper_asterisk110_setRedirectingParty(const sccp_channel_t * channel, const char *number, const char *name)
 {
 	if (number) {
-		channel->owner->redirecting.from.number.valid = 1;
 		ast_party_number_free(&channel->owner->redirecting.from.number);
 		channel->owner->redirecting.from.number.str = ast_strdup(number);
+		channel->owner->redirecting.from.number.valid = 1;
 	}
 
 	if (name) {
-		channel->owner->redirecting.from.name.valid = 1;
 		ast_party_name_free(&channel->owner->redirecting.from.name);
 		channel->owner->redirecting.from.name.str = ast_strdup(name);
+		channel->owner->redirecting.from.name.valid = 1;
 	}
 }
 

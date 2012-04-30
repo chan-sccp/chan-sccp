@@ -1579,16 +1579,18 @@ static boolean_t sccp_wrapper_asterisk16_setReadFormat(const sccp_channel_t * ch
 
 static void sccp_wrapper_asterisk16_setCalleridName(const sccp_channel_t * channel, const char *name)
 {
-	if (!strcmp(channel->owner->cid.cid_name, name)) {
-		sccp_copy_string(channel->owner->cid.cid_name, name, sizeof(channel->owner->cid.cid_name) - 1);
+	if(channel->owner->cid.cid_name){
+		ast_free(channel->owner->cid.cid_name);
 	}
+	channel->owner->cid.cid_name = ast_strdup(name);
 }
 
 static void sccp_wrapper_asterisk16_setCalleridNumber(const sccp_channel_t * channel, const char *number)
 {
-	if (!strcmp(channel->owner->cid.cid_num, number)) {
-		sccp_copy_string(channel->owner->cid.cid_num, number, sizeof(channel->owner->cid.cid_num) - 1);
+	if(channel->owner->cid.cid_num){
+		ast_free(channel->owner->cid.cid_num);
 	}
+	channel->owner->cid.cid_num = ast_strdup(number);
 }
 
 /*
