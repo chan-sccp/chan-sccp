@@ -1009,7 +1009,7 @@ struct sccp_session {
  */
 struct sccp_rtp {
 	PBX_RTP_TYPE *rtp;							/*!< pbx rtp pointer */
-	boolean_t isStarted;							/*!< is rtp server started */
+//	boolean_t isStarted;							/*!< is rtp server started */
 #ifdef CS_EXPERIMENTAL_NEWIP
 	struct sockaddr_storage *phone_ss;					/*!< Our Phone Socket Address Storage (openreceive) */
 #endif
