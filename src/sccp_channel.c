@@ -1085,13 +1085,14 @@ void sccp_channel_endcall_locked(sccp_channel_t *channel)
 	}
 	
 	/** request a hangup for channel that are part of a transfer call */
-	if(
-	    (channel == channel->privateData->device->transferChannels.transferee) 
-	    || (channel == channel->privateData->device->transferChannels.transferer) 
-	  
-	){
-		channel->privateData->device->transferChannels.transferee = NULL;
-		channel->privateData->device->transferChannels.transferer = NULL;
+	if (channel->privateData->device) {
+		if(
+		    (channel->privateData->device->transferChannels.transferee && channel == channel->privateData->device->transferChannels.transferee)
+		    || (channel->privateData->device->transferChannels.transferer && channel == channel->privateData->device->transferChannels.transferer)
+		){
+			channel->privateData->device->transferChannels.transferee = NULL;
+			channel->privateData->device->transferChannels.transferer = NULL;
+		}
 	}
 
 	if (channel->owner) {
