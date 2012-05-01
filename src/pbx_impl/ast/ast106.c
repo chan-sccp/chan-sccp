@@ -1587,14 +1587,14 @@ static boolean_t sccp_wrapper_asterisk16_create_audio_rtp(const sccp_channel_t *
 		s = d->session;
 	else
 		return FALSE;
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", DEV_ID_LOG(d), pbx_inet_ntoa(s->ourip));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection on %s\n", DEV_ID_LOG(d), pbx_inet_ntoa(s->ourip));
 
 	*new_rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, s->ourip);
 	if (!*new_rtp) {
 		return FALSE;
 	}
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: rtp created\n", DEV_ID_LOG(d));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: rtp server created\n", DEV_ID_LOG(d));
 	if (c->owner) {
 		ast_channel_set_fd(c->owner, 0, ast_rtp_fd(*new_rtp));
 		ast_channel_set_fd(c->owner, 1, ast_rtcp_fd(*new_rtp));
