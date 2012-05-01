@@ -648,9 +648,9 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * channel)
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", channel->privateData->device->id, channel->callid, codec2str(channel->rtp.audio.writeFormat), channel->line->echocancel ? "ON" : "OFF");
 	if (!channel->rtp.audio.rtp) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Starting RTP on channel %s-%08X\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), channel->line->name, channel->callid);
-		sccp_rtp_createAudioServer(channel);
+		channel->rtp.audio.isStarted = sccp_rtp_createAudioServer(channel);
 	}
-	if (!channel->rtp.audio.rtp && !sccp_rtp_createAudioServer(channel)) {
+	if (!channel->rtp.audio.rtp && !channel->rtp.audio.isStarted) {
 		pbx_log(LOG_WARNING, "%s: Error opening RTP for channel %s-%08X\n", DEV_ID_LOG(sccp_channel_getDevice(channel)), channel->line->name, channel->callid);
 
 		instance = sccp_device_find_index_for_line(sccp_channel_getDevice(channel), channel->line->name);
@@ -668,7 +668,7 @@ void sccp_channel_openreceivechannel_locked(sccp_channel_t * channel)
 	d->protocol->sendOpenReceiveChannel(d, channel);
 #ifdef CS_SCCP_VIDEO
 	if (!channel->rtp.video.rtp) {
-		sccp_rtp_createVideoServer(channel);
+		channel->rtp.video.isStarted = sccp_rtp_createVideoServer(channel);
 	}
 	if (sccp_device_isVideoSupported(channel->privateData->device)) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", DEV_ID_LOG(channel->privateData->device));
