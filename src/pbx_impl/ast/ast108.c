@@ -1656,7 +1656,7 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(const sccp_channel_t *
 	sccp_device_t *d = NULL;
 	struct ast_sockaddr sock;
 	struct ast_rtp_instance *rtp_instance;
-	char pref_buf[128];
+//	char pref_buf[128];
 
 	//uint32_t astCodecPref = 0;                                            /*! \todo get asterist codec pref */
 	struct ast_codec_pref astCodecPref;
@@ -1668,7 +1668,7 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(const sccp_channel_t *
 		s = d->session;
 	else
 		return FALSE;
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection at %s\n", DEV_ID_LOG(d), pbx_inet_ntoa(s->ourip));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection on %s\n", DEV_ID_LOG(d), pbx_inet_ntoa(s->ourip));
 
 	ast_sockaddr_from_sin(&sock, &GLOB(bindaddr));
 	*new_rtp = rtp_instance = ast_rtp_instance_new("asterisk", sched, &sock, NULL);
@@ -1676,7 +1676,7 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(const sccp_channel_t *
 		return FALSE;
 	}
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: rtp created at %s:%d\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock), ast_sockaddr_port(&sock));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: rtp server created at %s:%d\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock), ast_sockaddr_port(&sock));
 	if (c->owner) {
 		ast_rtp_instance_set_prop(rtp_instance, AST_RTP_PROPERTY_RTCP, 1);
 
@@ -1693,8 +1693,8 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(const sccp_channel_t *
 	}
 
 	ast_rtp_codecs_packetization_set(ast_rtp_instance_get_codecs(rtp_instance), rtp_instance, &astCodecPref);
-	//ast_codec_pref_string((struct ast_codec_pref *)&c->codecs, pref_buf, sizeof(pref_buf) - 1);
-	sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, set pef: %s\n", c->line->name, c->callid, pref_buf);
+//	ast_codec_pref_string((struct ast_codec_pref *)&c->codecs, pref_buf, sizeof(pref_buf) - 1);
+//	sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, set pref: %s\n", c->line->name, c->callid, pref_buf);
 	ast_rtp_instance_set_qos(rtp_instance, d->audio_tos, d->audio_cos, "SCCP RTP");
 	struct ast_rtp_codecs *codecs = ast_rtp_instance_get_codecs(rtp_instance);
 	uint8_t i;
