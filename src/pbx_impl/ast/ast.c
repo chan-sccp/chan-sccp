@@ -434,16 +434,21 @@ int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * ast_channel, pbx_hangup
                 return FALSE;
         }
 
-        if (ast_channel->_softhangup != 0 ) {
-                sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: channel is already being hungup. exiting hangup\n", ast_channel->name);
-                return FALSE;
+        if (ast_channel->_softhangup != 0) {
+        	if (AST_STATE_DOWN == ast_channel->_state) {
+	                sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: channel is already being hungup. exiting hangup\n", ast_channel->name);
+        	        return FALSE;
+		} else {
+			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: channel is already being hunup. forcing queued_hangup.\n", ast_channel->name);
+			pbx_hangup_type = PBX_QUEUED_HANGUP;
+		}
         }
 
         /* channel is not running */
 /*
         if (!ast_channel->pbx) {
                 sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: channel is not running. forcing queued_hangup.\n", ast_channel->name);
-                return FALSE;
+                pbx_hangup_type = PBX_QUEUED_HANGUP;
         }
 */
         /* check for briged ast_channel */
@@ -458,6 +463,7 @@ int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * ast_channel, pbx_hangup
         switch (pbx_hangup_type) {
                 case PBX_HARD_HANGUP:
                         sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send hard ast_hangup\n", ast_channel->name);
+		        ast_indicate(ast_channel, -1);
                         ast_hangup(ast_channel);
                         break;
                 case PBX_SOFT_HANGUP:
@@ -467,7 +473,7 @@ int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * ast_channel, pbx_hangup
                 case PBX_QUEUED_HANGUP:
                         sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", ast_channel->name);
                         ast_channel->whentohangup = ast_tvnow();
-                        ast_channel->_state=AST_STATE_DOWN;
+//                        ast_channel->_state=AST_STATE_DOWN;
                         ast_queue_hangup(ast_channel);
                         break;
         }
