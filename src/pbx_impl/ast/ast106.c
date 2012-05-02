@@ -1693,6 +1693,7 @@ static boolean_t sccp_wrapper_asterisk16_getChannelByName(const char *name, PBX_
 		return FALSE;
 	
 	*pbx_channel = ast;
+	ast_channel_unlock(ast);
 	return TRUE;
 }
 
