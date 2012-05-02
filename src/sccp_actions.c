@@ -2008,32 +2008,32 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	sccp_channel_t *channel = NULL;
 	sccp_line_t *l = NULL;
 
-//      int digitTimeout;
-
 	digit = letohl(r->msg.KeypadButtonMessage.lel_kpButton);
 	lineInstance = letohl(r->msg.KeypadButtonMessage.lel_lineInstance);
 	callid = letohl(r->msg.KeypadButtonMessage.lel_callReference);
 
 	if (lineInstance) {
-		l = sccp_line_find_byid(s->device, lineInstance);
-		if (l && callid) {
-		        channel = sccp_find_channel_on_line_byid_locked(l, callid);
-		}
-        } else {
-                if (callid) {
-                        channel = sccp_channel_find_byid_locked(callid);
-                        l = channel->line;
+	        l = sccp_line_find_byid(d, lineInstance);
+	}
+	if (callid) {
+                if (d->active_channel && d->active_channel->callid == callid) {
+                        channel = sccp_channel_get_active_locked(d);
+                } else {
+                        if (l) {
+                                channel = sccp_find_channel_on_line_byid_locked(l, callid);
+                        } else {
+                                channel = sccp_channel_find_byid_locked(callid);
+                        }
                 }
         }
-
+        
 	/* Old phones like 7912 never uses callid
 	 * so here we don't have a channel, this way we
 	 * should get the active channel on device
-	 * (as a last resort !)
 	 */
 	if (!channel) {
-	        pbx_log(LOG_NOTICE, "%s: Could not find channel by callid %d on line %s with instance %d! Using active channel instead.\n", DEV_ID_LOG(d), callid, l->name, lineInstance);
-		channel = sccp_channel_get_active_locked(d);
+        	channel = sccp_channel_get_active_locked(d);
+                pbx_log(LOG_NOTICE, "%s: Could not find channel by callid %d on line %s with instance %d! Using active channel %d instead.\n", DEV_ID_LOG(d), callid, (l ? l->name : (channel ? channel->line->name : "Undef")), lineInstance, (channel ? channel->callid : 0));
 	}
 
 	if (!channel) {
@@ -2041,7 +2041,8 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 		return;
 	}
 
-//	l = channel->line;			// we already know this because we got the lineInstance -> l, so taking the line from the channel is wrong in my opinion
+        if (!l)
+                l = channel->line;
 //	d = sccp_channel_getDevice(channel);	// we already know this because we have s->device, so taking the device from the channel is wrong in my opinion
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP Digit: %08x (%d) on line %s, channel %d with state: %d\n", DEV_ID_LOG(d), digit, digit, l->name, channel->callid, channel->state);
