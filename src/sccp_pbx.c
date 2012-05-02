@@ -497,9 +497,10 @@ int sccp_pbx_answer(sccp_channel_t * c)
 
 		if (!sccp_strlen_zero(bridgePeerChannelName)) {
 			/* the old way of searching bridged channel */
+//			PBX_CHANNEL_TYPE *astChannel = NULL;
 // 			while ((astChannel = pbx_channel_walk_locked(astChannel)) != NULL) {
-// 				sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) searching for channel where %s == %s\n", bridgePeer, astChannel->name);
-// 				if (strlen(astChannel->name) == strlen(bridgePeer) && !strncmp(astChannel->name, bridgePeer, strlen(astChannel->name))) {
+//				sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) searching for channel where %s == %s\n", bridgePeerChannelName, astChannel->name);
+// 				if (strlen(astChannel->name) == strlen(bridgePeerChannelName) && !strncmp(astChannel->name, bridgePeerChannelName, strlen(astChannel->name))) {
 // 					pbx_channel_unlock(astChannel);
 // 					br = astChannel;
 // 					break;
@@ -531,59 +532,60 @@ int sccp_pbx_answer(sccp_channel_t * c)
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: astForwardedChannel %s\n", pbx_state2str(astForwardedChannel->_state));
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: br %s\n", pbx_state2str(br->_state));
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) ============================================== \n");
-			return 0;
-		}
+//			return 0;
+		} else {
+			/* we have no bridge and can not make a masquerade -> end call */
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) no bridge. channel state: ast %s\n", pbx_state2str(c->owner->_state));
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) no bridge. channel state: astForwardedChannel %s\n", pbx_state2str(astForwardedChannel->_state));
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) ============================================== \n");
 
-		/* we have no bridge and can not make a masquerade -> end call */
-		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) no bridge. channel state: ast %s\n", pbx_state2str(c->owner->_state));
-		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) no bridge. channel state: astForwardedChannel %s\n", pbx_state2str(astForwardedChannel->_state));
-		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) ============================================== \n");
-
-		if (c->owner->_state == AST_STATE_RING && astForwardedChannel->_state == AST_STATE_DOWN && c->owner->pbx) {
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "SCCP: Receiver Hungup: (hasPBX: %s)\n", c->owner->pbx ? "yes" : "no");
-			astForwardedChannel->hangupcause = AST_CAUSE_CALL_REJECTED;
-			astForwardedChannel->_softhangup |= AST_SOFTHANGUP_DEV;
-			pbx_queue_hangup(astForwardedChannel);
+			if (c->owner->_state == AST_STATE_RING && astForwardedChannel->_state == AST_STATE_DOWN && c->owner->pbx) {
+				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "SCCP: Receiver Hungup: (hasPBX: %s)\n", c->owner->pbx ? "yes" : "no");
+				astForwardedChannel->hangupcause = AST_CAUSE_CALL_REJECTED;
+				astForwardedChannel->_softhangup |= AST_SOFTHANGUP_DEV;
+				pbx_queue_hangup(astForwardedChannel);
 #if 0
-			sccp_channel_lock(c->parentChannel);
-			sccp_channel_endcall_locked(c->parentChannel);
-			sccp_channel_unlock(c->parentChannel);
+				sccp_channel_lock(c->parentChannel);
+				sccp_channel_endcall_locked(c->parentChannel);
+				sccp_channel_unlock(c->parentChannel);
 #endif
-			return 0;
+//				return 0;
+			} else {
+				pbx_log(LOG_ERROR, "SCCP: We did not find bridge channel for call forwarding call. Hangup\n");
+				astForwardedChannel->hangupcause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
+				astForwardedChannel->_softhangup |= AST_SOFTHANGUP_DEV;
+				pbx_queue_hangup(astForwardedChannel);
+#if 0
+				sccp_channel_lock(c->parentChannel);
+				sccp_channel_endcall_locked(c->parentChannel);
+				sccp_channel_unlock(c->parentChannel);
+#endif
+				sccp_channel_lock(c);
+				sccp_channel_endcall_locked(c);
+				sccp_channel_unlock(c);
+				return -1;
+			}
 		}
-		pbx_log(LOG_ERROR, "SCCP: We did not find bridge channel for call forwarding call. Hangup\n");
-		astForwardedChannel->hangupcause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
-		astForwardedChannel->_softhangup |= AST_SOFTHANGUP_DEV;
-		pbx_queue_hangup(astForwardedChannel);
-#if 0
-		sccp_channel_lock(c->parentChannel);
-		sccp_channel_endcall_locked(c->parentChannel);
-		sccp_channel_unlock(c->parentChannel);
-#endif
+	} else {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Outgoing call has been answered %s on %s@%s-%08x\n", c->owner->name, c->line->name, DEV_ID_LOG(sccp_channel_getDevice(c)), c->callid);
 		sccp_channel_lock(c);
-		sccp_channel_endcall_locked(c);
+		sccp_channel_updateChannelCapability_locked(c);
+
+		/*! \todo This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
+		   as I have forgotten what my actual motivation was for writing this strange code. (-DD) */
+		sccp_indicate_locked(sccp_channel_getDevice(c), c, SCCP_CHANNELSTATE_DIALING);
+		sccp_channel_send_callinfo(sccp_channel_getDevice(c), c);
+		sccp_indicate_locked(sccp_channel_getDevice(c), c, SCCP_CHANNELSTATE_PROCEED);
+	    
+		sccp_channel_send_callinfo(sccp_channel_getDevice(c), c);
+		sccp_indicate_locked(sccp_channel_getDevice(c), c, SCCP_CHANNELSTATE_CONNECTED);
+
 		sccp_channel_unlock(c);
-		return -1;
-	}
-
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Outgoing call has been answered %s on %s@%s-%08x\n", c->owner->name, c->line->name, DEV_ID_LOG(sccp_channel_getDevice(c)), c->callid);
-	sccp_channel_lock(c);
-	sccp_channel_updateChannelCapability_locked(c);
-
-	/*! \todo This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
-	   as I have forgotten what my actual motivation was for writing this strange code. (-DD) */
-	sccp_indicate_locked(sccp_channel_getDevice(c), c, SCCP_CHANNELSTATE_DIALING);
-	sccp_channel_send_callinfo(sccp_channel_getDevice(c), c);
-	sccp_indicate_locked(sccp_channel_getDevice(c), c, SCCP_CHANNELSTATE_PROCEED);
-    
-	sccp_channel_send_callinfo(sccp_channel_getDevice(c), c);
-	sccp_indicate_locked(sccp_channel_getDevice(c), c, SCCP_CHANNELSTATE_CONNECTED);
-
-	sccp_channel_unlock(c);
-	
-	if(c->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE){
-		/** \todo use pbx implementation for requested video update */
-		ast_queue_control(c->owner, AST_CONTROL_VIDUPDATE);
+		
+		if(c->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE){
+			/** \todo use pbx implementation for requested video update */
+			ast_queue_control(c->owner, AST_CONTROL_VIDUPDATE);
+		}
 	}
 	
 	return 0;
