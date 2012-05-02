@@ -457,7 +457,7 @@ int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * ast_channel, pbx_hangup
 
         switch (pbx_hangup_type) {
                 case PBX_HARD_HANGUP:
-                        sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send hanrd ast_hangup\n", ast_channel->name);
+                        sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send hard ast_hangup\n", ast_channel->name);
                         ast_hangup(ast_channel);
                         break;
                 case PBX_SOFT_HANGUP:
@@ -501,12 +501,12 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 		ast_channel->_softhangup ? "yes" : "no", 
 		ast_channel->hangupcause);
 
-	// \todo possible nullpointer dereference ahead (sccp_channel might be null)
 	if (AST_STATE_UP != ast_channel->_state) {
 	        if ( NULL == sccp_channel) {	// prevent dereferecing null pointer
 	                sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", ast_channel->name);
                         ast_softhangup_nolock(ast_channel, AST_SOFTHANGUP_DEV);
 	        } else {
+	                sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: checking ast/sccp state\n", ast_channel->name);
                         if (	(AST_STATE_DIALING == ast_channel->_state && SCCP_CHANNELSTATE_PROGRESS != sccp_channel->state) || 
                                         SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state || 
                                         SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state
@@ -517,7 +517,7 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 				sccp_wrapper_asterisk_forceHangup(ast_channel, PBX_HARD_HANGUP);
                                 return TRUE;
                         } else if (
-                                        ( (AST_STATE_RING == ast_channel->_state || AST_STATE_RINGING == ast_channel->_state) && SCCP_CHANNELSTATE_DIALING == sccp_channel->state ) || 
+                                        ( (AST_STATE_RING == ast_channel->_state || AST_STATE_RINGING == ast_channel->_state) && (SCCP_CHANNELSTATE_DIALING == sccp_channel->state || SCCP_CHANNELSTATE_RINGOUT == sccp_channel->state) ) || 
                                         SCCP_CHANNELSTATE_BUSY == sccp_channel->state || 
                                         SCCP_CHANNELSTATE_CONGESTION == sccp_channel->state
                                 ) {
