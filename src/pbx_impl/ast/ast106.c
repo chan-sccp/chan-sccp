@@ -1,4 +1,3 @@
-
 /*!
  * \file 	ast106.c
  * \brief 	SCCP PBX Asterisk Wrapper Class
@@ -53,7 +52,7 @@ boolean_t sccp_wrapper_asterisk16_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TYP
 int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
 int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
 #ifdef CS_EXPERIMENTAL
-boolean_t sccp_asterisk_getForwardingForChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
+boolean_t sccp_asterisk_getForwardOriginator(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
 #endif
 
 #if defined(__cplusplus) || defined(c_plusplus)
@@ -317,17 +316,17 @@ static int sccp_wrapper_asterisk16_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 	}
 
 	if (!sccp_channel_getDevice(c)) {
-		/* handle forwarded channel indications */
 #ifdef CS_EXPERIMENTAL
+		/* handle forwarded channel indications */
 		if (c->parentChannel) {
 			PBX_CHANNEL_TYPE *bridgePeer;
 			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: forwarding indication %d to parentChannel %s (LINKEDID: %s)\n", ind, c->parentChannel->owner->name, pbx_builtin_getvar_helper(c->parentChannel->owner, SCCP_AST_LINKEDID_HELPER));
-			if (sccp_asterisk_getForwardingForChannel(c->parentChannel, &bridgePeer)) {
+			if (sccp_asterisk_getForwardOriginator(c->parentChannel, &bridgePeer)) {
 				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: forwarding indication %d to caller %s\n", ind, bridgePeer->name);
 				sccp_wrapper_asterisk16_indicate(bridgePeer, ind, data, datalen);
 				ast_channel_unlock(bridgePeer);
 			} else {
-				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: cannot forward indication %d. bridgePeer not found\n", ind);
+				pbx_log(LOG_NOTICE, "SCCP: cannot forward indication %d. bridgePeer not found\n", ind);
 			}
 		} else 
 #endif
@@ -1973,17 +1972,9 @@ static int pbx_find_channel_by_linkid(PBX_CHANNEL_TYPE * ast, void *data)
 	if (!data)
 		return 0;
 
-	char *linkId = data;
-	char *refLinkId = NULL;
-
-	ast_channel_lock(ast);
-	if (pbx_builtin_getvar_helper(ast, SCCP_AST_LINKEDID_HELPER)) {
-		refLinkId = strdup(pbx_builtin_getvar_helper(ast, SCCP_AST_LINKEDID_HELPER));
-	}
-	ast_channel_unlock(ast);
-
-	if (refLinkId && !ast->masq && !strcasecmp(refLinkId, linkId)) {
-		ast_log(LOG_NOTICE, "SCCP: peer name: %s, linkId: %s\n", ast->name ? ast->name : "(null)", refLinkId ? refLinkId : "(null)");
+	char *linkedId = data;
+	if (!ast->masq && sccp_strequals(pbx_builtin_getvar_helper(ast, SCCP_AST_LINKEDID_HELPER), linkedId)) {
+		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: peer name: %s, linkId: %s\n", ast->name ? ast->name : "(null)", linkedId);
 //		return !ast->pbx && (!strcasecmp(refLinkId, linkId)) && !ast->masq;
 		return 1;
 	} else {
@@ -1994,7 +1985,6 @@ static int pbx_find_channel_by_linkid(PBX_CHANNEL_TYPE * ast, void *data)
 static boolean_t sccp_asterisk_getRemoteChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel)
 {
 	PBX_CHANNEL_TYPE *remotePeer = ast_channel_search_locked(pbx_find_channel_by_linkid, (void *)sccp_wrapper_asterisk16_getChannelLinkedId(channel));
-
 	if (remotePeer) {
 		*pbx_channel = remotePeer;
 		return TRUE;
@@ -2003,7 +1993,7 @@ static boolean_t sccp_asterisk_getRemoteChannel(const sccp_channel_t * channel, 
 }
 
 #ifdef CS_EXPERIMENTAL
-static int pbx_find_channel_by_forwarding_for(PBX_CHANNEL_TYPE * ast, void *data)
+static int pbx_find_forward_originator_channel_by_linkedid(PBX_CHANNEL_TYPE * ast, void *data)
 {
 	if (!data)
 		return 0;
@@ -2013,31 +2003,20 @@ static int pbx_find_channel_by_forwarding_for(PBX_CHANNEL_TYPE * ast, void *data
 	if (ast == refAstChannel) {		// skip own channel
 		return 0;
 	}
-	const char *linkId = pbx_builtin_getvar_helper(refAstChannel, SCCP_AST_LINKEDID_HELPER);
-	char *refLinkId = NULL;
-
-	ast_channel_lock(ast);
-	if (pbx_builtin_getvar_helper(ast, SCCP_AST_LINKEDID_HELPER)) {
-		refLinkId = strdup(pbx_builtin_getvar_helper(ast, SCCP_AST_LINKEDID_HELPER));
-	}
-	ast_channel_unlock(ast);
-
-	if (refLinkId && !ast->masq && !strcasecmp(refLinkId, linkId)) {
-		ast_log(LOG_NOTICE, "SCCP: peer name: %s, linkId: %s\n", ast->name ? ast->name : "(null)", refLinkId ? refLinkId : "(null)");
+	
+	if (!ast->masq && sccp_strequals(pbx_builtin_getvar_helper(refAstChannel, SCCP_AST_LINKEDID_HELPER), pbx_builtin_getvar_helper(ast, SCCP_AST_LINKEDID_HELPER))) {
+		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: peer name: %s\n", ast->name ? ast->name : "(null)");
 		return 1;
 	} else {
 		return 0;
 	}
 }
-#endif
 
-#ifdef CS_EXPERIMENTAL
-boolean_t sccp_asterisk_getForwardingForChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel)
+boolean_t sccp_asterisk_getForwardOriginator(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel)
 {
-	PBX_CHANNEL_TYPE *remotePeer = ast_channel_search_locked(pbx_find_channel_by_forwarding_for, (void *)channel->owner);
-
+	PBX_CHANNEL_TYPE *remotePeer = ast_channel_search_locked(pbx_find_forward_originator_channel_by_linkedid, (void *)channel->owner);
 	if (remotePeer) {
-		ast_log(LOG_NOTICE, "SCCP: found peer name: %s\n", remotePeer->name ? remotePeer->name : "(null)");
+		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: found peer name: %s\n", remotePeer->name ? remotePeer->name : "(null)");
 		*pbx_channel = remotePeer;
 		return TRUE;
 	}
