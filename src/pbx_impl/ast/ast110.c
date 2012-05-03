@@ -1992,14 +1992,21 @@ static int sccp_wrapper_asterisk110_setOption(struct ast_channel *ast, int optio
 }
 #endif
 
-static const char *sccp_wrapper_asterisk110_getChannelLinkId(const sccp_channel_t * channel)
+static const char *sccp_wrapper_asterisk110_getChannelLinkedId(const sccp_channel_t * channel)
 {
-	static const char *emptyLinkId = "--no-linkedid--";
+	static const char *emptyLinkedId = "--no-linkedid--";
 
 	if (channel->owner) {
 		return channel->owner->linkedid;
 	}
-	return emptyLinkId;
+	return emptyLinkedId;
+}
+
+static void sccp_wrapper_asterisk110_setChannelLinkedId(const sccp_channel_t * channel, const char *new_linkedid)
+{
+	if (channel->owner) {
+		pbx_string_field_set(channel->owner, linkedid, new_linkedid);
+	}
 }
 
 static int sccp_pbx_sendHTML(struct ast_channel *ast, int subclass, const char *data, int datalen)
@@ -2158,7 +2165,8 @@ sccp_pbx_cb sccp_pbx = {
 	getChannelByName:		sccp_wrapper_asterisk110_getChannelByName,
 	getRemoteChannel:		sccp_asterisk_getRemoteChannel,
 	getChannelByCallback:		NULL,
-	getChannelLinkId:		sccp_wrapper_asterisk110_getChannelLinkId,
+	getChannelLinkedId:		sccp_wrapper_asterisk110_getChannelLinkedId,
+	setChannelLinkedId:		sccp_wrapper_asterisk110_setChannelLinkedId,
 
 	set_nativeAudioFormats:		sccp_wrapper_asterisk110_setNativeAudioFormats,
 	set_nativeVideoFormats:		sccp_wrapper_asterisk110_setNativeVideoFormats,
@@ -2242,7 +2250,8 @@ struct sccp_pbx_cb sccp_pbx = {
 	.forceHangup                    = sccp_wrapper_asterisk_forceHangup,
 	.extension_status 		= sccp_wrapper_asterisk110_extensionStatus,
 	.getChannelByName 		= sccp_wrapper_asterisk110_getChannelByName,
-	.getChannelLinkId		= sccp_wrapper_asterisk110_getChannelLinkId,
+	.getChannelLinkedId		= sccp_wrapper_asterisk110_getChannelLinkedId,
+	.setChannelLinkedId		= sccp_wrapper_asterisk110_setChannelLinkedId,
 	.getRemoteChannel		= sccp_asterisk_getRemoteChannel,
 	.checkhangup			= sccp_wrapper_asterisk110_checkHangup,
 	

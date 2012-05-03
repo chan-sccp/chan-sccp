@@ -241,6 +241,7 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 			sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			sccp_channel_send_callinfo(linedevice->device, c);
 			
+/*
 #ifdef CS_EXPERIMENTAL
 			if (sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "FORWARDER_FOR"))) {
 				struct ast_var_t *variables;
@@ -258,6 +259,7 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 				ast_channel_unlock(c->owner);
 			}
 #endif		
+*/
 			sccp_channel_forward(c, linedevice, linedevice->cfwdAll.number);
 			isRinging = TRUE;
 			continue;
