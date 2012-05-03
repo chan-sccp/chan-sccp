@@ -141,7 +141,7 @@ static void sccp_device_sendCallinfoV7(const sccp_device_t *device, const sccp_c
 		int pos = 0;
 
 		for (i = 0; i < ARRAY_LEN(data); i++) {
-			sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
+			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
 			if (data[i]) {
 				memcpy(&buffer[pos], data[i], data_len[i]);
 				pos += data_len[i] + 1;
@@ -221,7 +221,7 @@ static void sccp_protocol_sendCallinfoV16(const sccp_device_t *device, const scc
 		int pos = 0;
 
 		for (i = 0; i < ARRAY_LEN(data); i++) {
-			sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
+			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
 			if (data[i]) {
 				memcpy(&buffer[pos], data[i], data_len[i]);
 				pos += data_len[i] + 1;
