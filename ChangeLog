@@ -1,4 +1,48 @@
 ------------------------------------------------------------------------
+r3459 | ddegroot | 2012-05-02 16:28:03 +0200 (Wed, 02 May 2012) | 1 line
+
+Corrected handle_keypad_button issue when using 7912 phones
+------------------------------------------------------------------------
+r3458 | ddegroot | 2012-05-02 15:37:03 +0200 (Wed, 02 May 2012) | 1 line
+
+revised sccp_wrapper_asterisk_forceHangup
+------------------------------------------------------------------------
+r3457 | ddegroot | 2012-05-02 15:35:10 +0200 (Wed, 02 May 2012) | 1 line
+
+Fix callforward when using asterisk 1.6. Missing channel unlock in sccp_wrapper_asterisk16_getChannelByName.
+------------------------------------------------------------------------
+r3456 | ddegroot | 2012-05-02 14:08:15 +0200 (Wed, 02 May 2012) | 1 line
+
+update sccp_wrapper_asterisk_requestHangup
+------------------------------------------------------------------------
+r3455 | ddegroot | 2012-05-02 14:07:36 +0200 (Wed, 02 May 2012) | 1 line
+
+Compile against asterisk 1.6 with lock debugging options
+------------------------------------------------------------------------
+r3454 | ddegroot | 2012-05-01 22:56:34 +0200 (Tue, 01 May 2012) | 1 line
+
+Removed sccp_rtp.isStarted (-MC-). Revised call to sccp_rtp_createAudioServer in sccp_channel_openreceivechannel_locked.
+------------------------------------------------------------------------
+r3453 | ddegroot | 2012-05-01 15:26:49 +0200 (Tue, 01 May 2012) | 1 line
+
+Revised openreceivechannel sligthly
+------------------------------------------------------------------------
+r3452 | ddegroot | 2012-05-01 15:03:12 +0200 (Tue, 01 May 2012) | 1 line
+
+Update logging text in sccp_wrapper_asterisk??_create_audio_rtp
+------------------------------------------------------------------------
+r3451 | ddegroot | 2012-05-01 14:57:38 +0200 (Tue, 01 May 2012) | 1 line
+
+Fix segfault during cfwdall (Issue reported by Diego Vargus)
+------------------------------------------------------------------------
+r3450 | ddegroot | 2012-04-30 20:00:19 +0200 (Mon, 30 Apr 2012) | 1 line
+
+Ported setCallerid? fixes by MC (To follow the example of setRedirectPartyId)
+------------------------------------------------------------------------
+r3448 | ddegroot | 2012-04-30 19:53:29 +0200 (Mon, 30 Apr 2012) | 1 line
+
+Ported setRedirectedParty fix by MC (CallForward Issue Segfault reported by Diego Vargus during)
+------------------------------------------------------------------------
 r3444 | ddegroot | 2012-04-30 16:51:26 +0200 (Mon, 30 Apr 2012) | 1 line
 
 Corrected debug message in sccp_handle_soft_key_event
