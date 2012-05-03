@@ -214,7 +214,7 @@ int sccp_devicestate(void *data)
 	else
 		res = AST_DEVICE_INUSE;
 
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE | DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked for the state (%d) of the line %s\n", res, (char *)data);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE | DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked for the device state %s(%d) of the line %s\n", ast_devstate2str(res), res, (char *)data);
 
 	return res;
 }

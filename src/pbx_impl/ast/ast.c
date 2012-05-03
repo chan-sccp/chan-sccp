@@ -439,7 +439,7 @@ int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * ast_channel, pbx_hangup
 	                sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: channel is already being hungup. exiting hangup\n", ast_channel->name);
         	        return FALSE;
 		} else {
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: channel is already being hunup. forcing queued_hangup.\n", ast_channel->name);
+			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: channel is already being hungup. forcing queued_hangup.\n", ast_channel->name);
 			pbx_hangup_type = PBX_QUEUED_HANGUP;
 		}
         }
