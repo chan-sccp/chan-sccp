@@ -50,7 +50,9 @@ struct sccp_pbx_cb {
 	boolean_t(*const getChannelByName) (const char *name, PBX_CHANNEL_TYPE **pbx_channel);
 	boolean_t(*const getRemoteChannel) (const sccp_channel_t *channel, PBX_CHANNEL_TYPE **pbx_channel);
 	void *(*const getChannelByCallback) (int (*is_match)(PBX_CHANNEL_TYPE *, void *),void *data);
-	const char *(*const getChannelLinkId) (const sccp_channel_t * channel);
+	
+	const char *(*const getChannelLinkedId) (const sccp_channel_t * channel);
+	void (*const setChannelLinkedId) (const sccp_channel_t *channel, const char *linkedid);
 
 	int (*const set_nativeAudioFormats) (const sccp_channel_t * channel, skinny_codec_t codec[], int length);
 	int (*const set_nativeVideoFormats) (const sccp_channel_t * channel, uint32_t);

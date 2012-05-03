@@ -1201,14 +1201,15 @@ sccp_channel_t *sccp_channel_newcall_locked(sccp_line_t * l, sccp_device_t * dev
 
 	PBX(set_callstate) (channel, AST_STATE_OFFHOOK);
 
-#if ASTERISK_VERSION_NUMBER >= 10800
+//#if ASTERISK_VERSION_NUMBER >= 10800
 	/* create linkid */
-	char linkid[50];
+	char linkedid[50];
 
-	sprintf(linkid, "SCCP::%-10d", channel->callid);
-	pbx_string_field_set(channel->owner, linkedid, linkid);
+	sprintf(linkedid, "SCCP::%-10d", channel->callid);
+//	pbx_string_field_set(channel->owner, linkedid, linkid);
+	PBX(setChannelLinkedId) (channel, linkedid);
 	/* done */
-#endif
+//#endif
 
 	if (device->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !channel->rtp.audio.rtp) {
 		sccp_channel_openreceivechannel_locked(channel);

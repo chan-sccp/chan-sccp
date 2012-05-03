@@ -31,7 +31,7 @@ extern "C" {
 struct sched_context *sched = 0;
 struct io_context *io = 0;
 
-#define SCCP_AST_LINKID_HELPER "LINKID"
+#define SCCP_AST_LINKEDID_HELPER "LINKEDID"
 
 //static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_request(const char *type, format_t format, const PBX_CHANNEL_TYPE * requestor, void *data, int *cause);
 static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_request(const char *type, int format, void *data, int *cause);
@@ -52,9 +52,11 @@ boolean_t sccp_wrapper_asterisk16_allocPBXChannel(const sccp_channel_t * channel
 boolean_t sccp_wrapper_asterisk16_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel, uint32_t conf_id, uint32_t part_id);
 int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
 int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
+/*
 #ifdef CS_EXPERIMENTAL
 boolean_t sccp_asterisk_getForwarderPeerChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
 #endif
+*/
 
 #if defined(__cplusplus) || defined(c_plusplus)
 
@@ -320,9 +322,19 @@ static int sccp_wrapper_asterisk16_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 		/* handle forwarded channel indications */
 #ifdef CS_EXPERIMENTAL
 		if (c->parentChannel) {
-			PBX_CHANNEL_TYPE *bridgePeer;
+/*			PBX_CHANNEL_TYPE *bridgePeer;
 			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: forwarding indication %d to parentChannel %s (FORWARDED_FOR: %s)\n", ind, c->parentChannel->owner->name, pbx_builtin_getvar_helper(c->parentChannel->owner, "FORWARDER_FOR"));
 			if (sccp_asterisk_getForwarderPeerChannel(c->parentChannel, &bridgePeer)) {
+				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: forwarding indication %d to caller %s\n", ind, bridgePeer->name);
+				sccp_wrapper_asterisk16_indicate(bridgePeer, ind, data, datalen);
+				ast_channel_unlock(bridgePeer);
+			} else {
+				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: cannot forward indication %d. bridgePeer not found\n", ind);
+			}
+*/
+			PBX_CHANNEL_TYPE *bridgePeer;
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: forwarding indication %d to parentChannel %s (LINKEDID: %s)\n", ind, c->parentChannel->owner->name, pbx_builtin_getvar_helper(c->parentChannel->owner, "LINKEDID"));
+			if (PBX(getRemoteChannel)(c->parentChannel, &bridgePeer)) {
 				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: forwarding indication %d to caller %s\n", ind, bridgePeer->name);
 				sccp_wrapper_asterisk16_indicate(bridgePeer, ind, data, datalen);
 				ast_channel_unlock(bridgePeer);
@@ -653,11 +665,13 @@ boolean_t sccp_wrapper_asterisk16_allocPBXChannel(const sccp_channel_t * channel
 		(*pbx_channel)->zone = ast_get_indication_zone(line->language);	/* this will core asterisk on hangup */
 	}
 
-	if (sccp_strlen_zero(pbx_builtin_getvar_helper(*pbx_channel, SCCP_AST_LINKID_HELPER))) {
+/*
+	if (sccp_strlen_zero(pbx_builtin_getvar_helper(*pbx_channel, SCCP_AST_LINKEDID_HELPER))) {
 		char linkId[25];
 		sprintf(linkId, "SCCP::%d", channel->callid);
-		pbx_builtin_setvar_helper(*pbx_channel, "_" SCCP_AST_LINKID_HELPER, linkId);
+		pbx_builtin_setvar_helper(*pbx_channel, "_" SCCP_AST_LINKEDID_HELPER, linkId);
 	}
+*/
 	return TRUE;
 }
 
@@ -666,7 +680,7 @@ boolean_t sccp_wrapper_asterisk16_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TYP
         *pbxDstChannel = ast_channel_alloc(0, pbxSrcChannel->_state, 0, 0, pbxSrcChannel->accountcode, pbxSrcChannel->exten, pbxSrcChannel->context, pbxSrcChannel->amaflags, "SCCP/%s-CONF/%08X/%08X", pbxSrcChannel->name, conf_id, part_id);
         if (*pbxDstChannel == NULL)
         	return FALSE;
-	pbx_builtin_setvar_helper(*pbxDstChannel, "_" SCCP_AST_LINKID_HELPER, pbx_builtin_getvar_helper(pbxSrcChannel, SCCP_AST_LINKID_HELPER));
+	pbx_builtin_setvar_helper(*pbxDstChannel, "_" SCCP_AST_LINKEDID_HELPER, pbx_builtin_getvar_helper(pbxSrcChannel, SCCP_AST_LINKEDID_HELPER));
 	return TRUE;
 }
 
@@ -1133,11 +1147,13 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_request(const char *type, int f
 	sccp_channel_set_callingparty(channel, requestor->cid.cid_name, requestor->cid.cid_num);
 	sccp_channel_set_originalCalledparty(channel, NULL, requestor->cid.cid_dnid);
 
-	if (sccp_strlen_zero(pbx_builtin_getvar_helper(requestor, SCCP_AST_LINKID_HELPER))) {
+/*
+	if (sccp_strlen_zero(pbx_builtin_getvar_helper(requestor, SCCP_AST_LINKEDID_HELPER))) {
 		char linkId[25];
 		sprintf(linkId, "SCCP::%d", channel->callid);
-		pbx_builtin_setvar_helper(requestor, "_" SCCP_AST_LINKID_HELPER, linkId);
+		pbx_builtin_setvar_helper(requestor, "_" SCCP_AST_LINKEDID_HELPER, linkId);
 	}
+*/
 	sccp_channel_unlock(channel);
 
 EXITFUNC:
@@ -1966,8 +1982,8 @@ static int pbx_find_channel_by_linkid(PBX_CHANNEL_TYPE * ast, void *data)
 	char *refLinkId = NULL;
 
 	ast_channel_lock(ast);
-	if (pbx_builtin_getvar_helper(ast, SCCP_AST_LINKID_HELPER)) {
-		refLinkId = strdup(pbx_builtin_getvar_helper(ast, SCCP_AST_LINKID_HELPER));
+	if (pbx_builtin_getvar_helper(ast, SCCP_AST_LINKEDID_HELPER)) {
+		refLinkId = strdup(pbx_builtin_getvar_helper(ast, SCCP_AST_LINKEDID_HELPER));
 	}
 	ast_channel_unlock(ast);
 
@@ -1980,21 +1996,28 @@ static int pbx_find_channel_by_linkid(PBX_CHANNEL_TYPE * ast, void *data)
 	}
 }
 
-static const char *sccp_wrapper_asterisk16_getChannelLinkId(const sccp_channel_t * channel)
+static const char *sccp_wrapper_asterisk16_getChannelLinkedId(const sccp_channel_t * channel)
 {
 	static const char *emptyLinkId = "--no-linkedid--";
 
 	if (channel->owner) {
-		if (pbx_builtin_getvar_helper(channel->owner, SCCP_AST_LINKID_HELPER)) {
-			return pbx_builtin_getvar_helper(channel->owner, SCCP_AST_LINKID_HELPER);
+		if (pbx_builtin_getvar_helper(channel->owner, SCCP_AST_LINKEDID_HELPER)) {
+			return pbx_builtin_getvar_helper(channel->owner, SCCP_AST_LINKEDID_HELPER);
 		}
 	}
 	return emptyLinkId;
 }
 
+static void sccp_wrapper_asterisk16_setChannelLinkedId(const sccp_channel_t * channel, const char *linkedid)
+{
+	if (channel->owner) {
+		pbx_builtin_setvar_helper(channel->owner, "__" SCCP_AST_LINKEDID_HELPER, linkedid);
+	}
+}
+
 static boolean_t sccp_asterisk_getRemoteChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel)
 {
-	PBX_CHANNEL_TYPE *remotePeer = ast_channel_search_locked(pbx_find_channel_by_linkid, (void *)sccp_wrapper_asterisk16_getChannelLinkId(channel));
+	PBX_CHANNEL_TYPE *remotePeer = ast_channel_search_locked(pbx_find_channel_by_linkid, (void *)sccp_wrapper_asterisk16_getChannelLinkedId(channel));
 
 	if (remotePeer) {
 		*pbx_channel = remotePeer;
@@ -2003,6 +2026,7 @@ static boolean_t sccp_asterisk_getRemoteChannel(const sccp_channel_t * channel, 
 	return FALSE;
 }
 
+/*
 #ifdef CS_EXPERIMENTAL
 boolean_t sccp_asterisk_getForwarderPeerChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel)
 {
@@ -2016,6 +2040,7 @@ boolean_t sccp_asterisk_getForwarderPeerChannel(const sccp_channel_t * channel, 
 	return FALSE;
 }
 #endif
+*/
 
 /*!
  * \brief Send Text to Asterisk Channel
@@ -2297,7 +2322,8 @@ sccp_pbx_cb sccp_pbx = {
 	getChannelByName:		sccp_wrapper_asterisk16_getChannelByName,
 	getRemoteChannel:		sccp_asterisk_getRemoteChannel,
 	getChannelByCallback:		NULL,
-	getChannelLinkId:		sccp_wrapper_asterisk16_getChannelLinkId,
+	getChannelLinkedId:		sccp_wrapper_asterisk16_getChannelLinkedId,
+	setChannelLinkedId: 		sccp_wrapper_asterisk16_setChannelLinkedId,
 
 	set_nativeAudioFormats:		sccp_wrapper_asterisk16_setNativeAudioFormats,
 	set_nativeVideoFormats:		sccp_wrapper_asterisk16_setNativeVideoFormats,
@@ -2383,7 +2409,8 @@ struct sccp_pbx_cb sccp_pbx = {
 	.forceHangup                    = sccp_wrapper_asterisk_forceHangup,
 	.extension_status 		= sccp_wrapper_asterisk16_extensionStatus,
 	.getChannelByName 		= sccp_wrapper_asterisk16_getChannelByName,
-	.getChannelLinkId		= sccp_wrapper_asterisk16_getChannelLinkId,
+	.getChannelLinkedId		= sccp_wrapper_asterisk16_getChannelLinkedId,
+	.setChannelLinkedId		= sccp_wrapper_asterisk16_setChannelLinkedId,
 	.getRemoteChannel		= sccp_asterisk_getRemoteChannel,
 	.checkhangup			= sccp_wrapper_asterisk16_checkHangup,
 	
