@@ -240,11 +240,6 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 			pbx_log(LOG_NOTICE, "%s: initialize cfwd for line %s\n", linedevice->device->id, l->name);
 			sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			sccp_channel_send_callinfo(linedevice->device, c);
-#ifdef CS_EXPERIMENTAL
-			if (sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "FORWARDING_FOR"))) {
-				pbx_builtin_setvar_helper(c->owner, "__FORWARDING_FOR", pbx_builtin_getvar_helper(c->owner, "LINKEDID"));
-			}
-#endif		
 			sccp_channel_forward(c, linedevice, linedevice->cfwdAll.number);
 			isRinging = TRUE;
 			continue;
