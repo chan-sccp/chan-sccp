@@ -240,6 +240,24 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 			pbx_log(LOG_NOTICE, "%s: initialize cfwd for line %s\n", linedevice->device->id, l->name);
 			sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			sccp_channel_send_callinfo(linedevice->device, c);
+			
+#ifdef CS_EXPERIMENTAL
+			if (sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "FORWARDER_FOR"))) {
+				struct ast_var_t *variables;
+				const char *var, *val;
+				char mask[25];
+
+				ast_channel_lock(c->owner);
+				sprintf(mask, "SCCP::%d", c->callid);
+				AST_LIST_TRAVERSE(&c->owner->varshead, variables, entries) {
+					if ((var = ast_var_name(variables)) && (val = ast_var_value(variables)) && (!strcmp("LINKID", var)) && (strcmp(mask, val))) {
+						sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "SCCP: LINKID %s\n", val);
+						pbx_builtin_setvar_helper(c->owner, "__FORWARDER_FOR", val);
+					}
+				}
+				ast_channel_unlock(c->owner);
+			}
+#endif		
 			sccp_channel_forward(c, linedevice, linedevice->cfwdAll.number);
 			isRinging = TRUE;
 			continue;
@@ -481,7 +499,7 @@ int sccp_pbx_answer(sccp_channel_t * c)
 	/* \todo perhaps we should lock channel here. */
 	if (c->parentChannel) {
 		/* we are a forwarded call, bridge me with my parent */
-		sccp_log((DEBUGCAT_PBX | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "SCCP: bridge me with my parent, device %s\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
+		sccp_log((DEBUGCAT_PBX | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "%s: bridge me %s with my parentchannel %s\n", DEV_ID_LOG(sccp_channel_getDevice(c)), c->owner->name, c->parentChannel->owner->name);
 
 //		PBX_CHANNEL_TYPE *astChannel = NULL, *br = NULL, *astForwardedChannel = c->parentChannel->owner;
 		PBX_CHANNEL_TYPE *br = NULL, *astForwardedChannel = c->parentChannel->owner;
@@ -496,23 +514,13 @@ int sccp_pbx_answer(sccp_channel_t * c)
 		const char *bridgePeerChannelName = pbx_builtin_getvar_helper(c->owner, "BRIDGEPEER");
 
 		if (!sccp_strlen_zero(bridgePeerChannelName)) {
-			/* the old way of searching bridged channel */
-//			PBX_CHANNEL_TYPE *astChannel = NULL;
-// 			while ((astChannel = pbx_channel_walk_locked(astChannel)) != NULL) {
-//				sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) searching for channel where %s == %s\n", bridgePeerChannelName, astChannel->name);
-// 				if (strlen(astChannel->name) == strlen(bridgePeerChannelName) && !strncmp(astChannel->name, bridgePeerChannelName, strlen(astChannel->name))) {
-// 					pbx_channel_unlock(astChannel);
-// 					br = astChannel;
-// 					break;
-// 				}
-// 				pbx_channel_unlock(astChannel);
-// 			}
+			sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) searching for bridgepeer by name: %s\n", bridgePeerChannelName);
 			PBX(getChannelByName)(bridgePeerChannelName, &br);
 		}
 
 		/* did we find our bridge */
 		/* \todo masquarade does not succeed when forwarding to a dialplan extension which starts with PLAYBACK */
-		pbx_log(LOG_NOTICE, "SCCP: bridge: %s\n", (br) ? br->name : " -- no bridged found -- ");
+		pbx_log(LOG_NOTICE, "SCCP: bridge: %s\n", (br) ? br->name : " -- no bridgepeer found -- ");
 		if (br) {
 
 			/* set the channel and the bridge to state UP to fix problem with fast pickup / autoanswer */
