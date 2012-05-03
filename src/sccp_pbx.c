@@ -240,26 +240,11 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE *ast, char *dest, int timeout)
 			pbx_log(LOG_NOTICE, "%s: initialize cfwd for line %s\n", linedevice->device->id, l->name);
 			sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			sccp_channel_send_callinfo(linedevice->device, c);
-			
-/*
 #ifdef CS_EXPERIMENTAL
-			if (sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "FORWARDER_FOR"))) {
-				struct ast_var_t *variables;
-				const char *var, *val;
-				char mask[25];
-
-				ast_channel_lock(c->owner);
-				sprintf(mask, "SCCP::%d", c->callid);
-				AST_LIST_TRAVERSE(&c->owner->varshead, variables, entries) {
-					if ((var = ast_var_name(variables)) && (val = ast_var_value(variables)) && (!strcmp("LINKID", var)) && (strcmp(mask, val))) {
-						sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "SCCP: LINKID %s\n", val);
-						pbx_builtin_setvar_helper(c->owner, "__FORWARDER_FOR", val);
-					}
-				}
-				ast_channel_unlock(c->owner);
+			if (sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "FORWARDING_FOR"))) {
+				pbx_builtin_setvar_helper(c->owner, "__FORWARDING_FOR", pbx_builtin_getvar_helper(c->owner, "LINKEDID"));
 			}
 #endif		
-*/
 			sccp_channel_forward(c, linedevice, linedevice->cfwdAll.number);
 			isRinging = TRUE;
 			continue;
