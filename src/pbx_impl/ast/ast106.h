@@ -18,7 +18,11 @@
 #    include "../../common.h"
 
 #    define sccp_sched_context_destroy sched_context_destroy
+#if ASTERISK_VERSION_NUMBER > 10601
 #    define ast_channel_unref(c) ({ ao2_ref(c, -1); (struct ast_channel *) (NULL); })
+#else
+#    define ast_channel_unref(c) NULL
+#endif
 #    define NEWCONST const							// old functions used without const
 #    define OLDCONST								// new function used with const
 
