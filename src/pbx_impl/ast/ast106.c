@@ -656,7 +656,7 @@ boolean_t sccp_wrapper_asterisk16_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TYP
         *pbxDstChannel = ast_channel_alloc(0, pbxSrcChannel->_state, 0, 0, pbxSrcChannel->accountcode, pbxSrcChannel->exten, pbxSrcChannel->context, pbxSrcChannel->amaflags, "SCCP/%s-CONF/%08X/%08X", pbxSrcChannel->name, conf_id, part_id);
         if (*pbxDstChannel == NULL)
         	return FALSE;
-	pbx_builtin_setvar_helper(*pbxDstChannel, "_" SCCP_AST_LINKEDID_HELPER, pbx_builtin_getvar_helper(pbxSrcChannel, SCCP_AST_LINKEDID_HELPER));
+	pbx_builtin_setvar_helper(*pbxDstChannel, "__" SCCP_AST_LINKEDID_HELPER, pbx_builtin_getvar_helper(pbxSrcChannel, SCCP_AST_LINKEDID_HELPER));
 	return TRUE;
 }
 
