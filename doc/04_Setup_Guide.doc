@@ -59,9 +59,27 @@
  *
  * \subsection sccp_config_howto2 Sample config files
  * 
- * Make sure you pay attention to the context used in the config file. And check if this context exists in your dialplan.
+ * Make sure you pay attention to the CONTEXT used in the config file, it must match your dialplan. We have currently specified "sccp" as the default context, you will either
+ * have to add the sccp context to your dialplan in the correct locations or change the default sccp  context to something that matches your dialplan. 
+ *
  * Also check the deny/permit entries to make sure they cover your network/devices and check if the bindaddr is actually 
  * reachable from the addresses you have permitted to connect.
+ *
+ * When using hinted speeddials it is important to provide the necessary hints in your dialplan by simply adding something 
+ * like "exten => 98021,hint,SCCP/98021" in the 'default' context (or possibly "from-internal" for FreePBX users). You will have to use the same context when definining the speeddial button below. 
+ * You can also create these hints in a seperate context called hints for example
+ *
+ * \code
+ * [hints]
+ * exten => 98021,hint,SCCP/98021
+ * \endcode
+ * 
+ * That way you can refer to them in a button definition like (notice the context used to create hints in the dialplan, must match the context specified in the button definition)
+ * \code
+ * button = speeddial,Phone 2 Line 1, 98021, 98021@hints
+ * \endcode
+ *
+ * Monitoring non-SCCP devices is possible by reviewing the hint status in the Asterisk CLI using the "core show hints" command.  Anything that generates a hint can be monitored using the buttons.  The following states are recognized: .... Custom state processing (see Asterisk documentation for more information) is also possible using this methodology.
  *
  * (For more information about hints check \ref nf_hints here)
  *
@@ -126,11 +144,11 @@
  * addon = 7914
  * devicetype = 7940
  * park = off
- * button = speeddial,Helpdesk, 98112, 98112@hint  	; Add SpeedDial to Helpdesk (verify that you have the hint context correctly set [\ref nf_hints])
+ * button = speeddial,Helpdesk, 98112, 98112@hints  	; Add SpeedDial to Helpdesk (verify that you have the hints context correctly set [\ref nf_hints])
  * button = line, 98011					; Assign Line 98011 to Device
  * button = empty					; Assign an Empty Button
  * button = line, 98012					; Assign Line 98012 to Device
- * button = speeddial,Phone 2 Line 1, 98021, 98021@hint	; Add SpeedDial to Phone Number Two Line 1
+ * button = speeddial,Phone 2 Line 1, 98021, 98021@hints	; Add SpeedDial to Phone Number Two Line 1 (Notice the context needs to be the same as where the hint is defined in your dialplan)
  * cfwdall = off
  * type = device
  * keepalive = 60
@@ -229,15 +247,15 @@
  * description = Phone Number Two
  * devicetype = 7960
  * park = off
- * button = speeddial,Helpdesk, 98112, 98112@hint  		; Add SpeedDial to Helpdesk (without hint)
+ * button = speeddial,Helpdesk, 98112		  		; Add SpeedDial to Helpdesk (without hint)
  * button = line, 98021
  * button= feature,Private Call,privacy,callpresent		;set channel variable SKINNY_PRIVATE to 1 if feature is enabled
  * button= feature,DND Busy,DND,busy				;set dnd status to busy
  * button= feature,DND Silent,DND,silent				;set dnd status to silent
  * button= feature,Record calls,monitor				;record calls using automon (asterisk >= 1.6 only)
  * button= feature,call forward to *54,cfwdAll,*54			;forward all calls to *54
- * button = speeddial,Phone 1 Line 1, 98011, 98011@hint
- * button = speeddial,Phone 1 Line 2, 98012, 98012@hint
+ * button = speeddial,Phone 1 Line 1, 98011, 98011@hints
+ * button = speeddial,Phone 1 Line 2, 98012, 98012@hints
  * 
  * type = device
  * keepalive = 60
