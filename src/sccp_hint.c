@@ -17,6 +17,13 @@
 /*!
  * \file
  * \page sccp_hint How do hints work in chan-sccp-b
+ *
+ * Getting hint information for display the various connected devices (e.g., 7960 or 7914) varies from PBX implementation to implementation.  
+ * In pure Asterisk and its derivatives, hint processing is needed to provide the information for the button, and can be accomplished as simply 
+ * as adding "exten => 581,hint,SCCP/581" in the default (possibly "from-internal") internal dial-plan.  
+ * Monitoring non-SCCP devices is possible by reviewing the hint status in the Asterisk CLI using the "core show hints" command.  
+ * Anything that generates a hint can be monitored using the buttons.  
+ *
  * \section hint_update How does hint update work
 
  \dot
