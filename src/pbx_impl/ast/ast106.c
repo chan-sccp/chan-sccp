@@ -480,10 +480,6 @@ static int sccp_wrapper_asterisk16_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_T
 				} else {
 					// frame->samples == 0  when frame_src is ast_prod
 					sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Asterisk prodded channel %s.\n", DEV_ID_LOG(c->getDevice(c)), ast->name);
-					if (c->parentChannel) {
-						sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: forwarding prodding to parentChannel %s\n", c->parentChannel->owner->name);
-						sccp_wrapper_asterisk16_rtp_write(c->parentChannel->owner, frame);
-					}
 				}
 			} else if (!(frame->subclass & ast->nativeformats)) {
 //                              char s1[512], s2[512], s3[512];
