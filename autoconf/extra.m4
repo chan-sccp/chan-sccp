@@ -493,7 +493,7 @@ dnl		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 		CFLAGS="$CFLAGS_saved -O3"
 		AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
 		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
-		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
+dnl		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
 		CFLAGS_saved="$CFLAGS"
 	fi
 ])
