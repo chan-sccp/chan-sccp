@@ -16,7 +16,7 @@
  */
 
 /* dyn config */
-#define DATA_TYPE(_w,_x,_y,_z) SCCP_CONFIG_DATATYPE_##_w, _x, _y,_z					// make DataTypeParsers easier to extend when they need extra parameters
+#define DATA_TYPE(_w,_x,_y,_z) SCCP_CONFIG_DATATYPE_##_w, _x, _y,_z						// make DataTypeParsers easier to extend when they need extra parameters
 
 /* straight forward data types */
 #define TYPE_BOOLEAN DATA_TYPE(BOOLEAN, NULL, NULL, NULL)
@@ -29,6 +29,7 @@
 /* complex data type parsers */
 
 /* TYPE_ENUM2INT convert regular key index enum to int */
+
 /* where _enum2int_cb should be passed an enum as string and will return it's int value (by config->size)*/
 #define TYPE_ENUM2INT(_enum2int_cb,_fullkeys_cb) DATA_TYPE(ENUM2INT, NULL, _enum2int_cb,_fullkeys_cb)
 
@@ -40,6 +41,7 @@
 
 /* custom parser */
 #define TYPE_PARSER(_x) DATA_TYPE(PARSER, _x, NULL, NULL)
+
 /*!
  * \brief List of SCCP Config Options for SCCP Globals
  */
@@ -139,7 +141,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 																																					" - {'Konference', 'MTV'}\n"},
 	{"meetmeopts", 			G_OBJ_REF(meetmeopts), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"qxd",				"options to send the meetme application, defaults are dependent on meetme app see the list above\n"
 																																					"Other options (app_meetme: A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see meetme specific documentation\n"},
-	{"jbenable", 			G_OBJ_REF(global_jbconf),	 	TYPE_PARSER(sccp_config_parse_jbflags_enable),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				" Enables the use of a jitterbuffer on the receiving side of a\n"
+	{"jbenable", 			G_OBJ_REF(global_jbconf),	 	TYPE_PARSER(sccp_config_parse_jbflags_enable),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Enables the use of a jitterbuffer on the receiving side of a\n"
 																																					"sccp channel. Defaults to 'no'. An enabled jitterbuffer will\n"
 																																					"be used only if the sending side can create and the receiving\n"
 																																					"side can not accept jitter. The sccp channel can accept\n"

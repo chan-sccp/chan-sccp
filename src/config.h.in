@@ -161,6 +161,9 @@
 /* 'ast_event_subscribe' available */
 #undef CS_AST_HAS_EVENT
 
+/* 'ac_cv_ast_event_defs_cidname' available */
+#undef CS_AST_HAS_EVENT_CIDNAME
+
 /* 'AST_EXTENSION_ONHOLD' available */
 #undef CS_AST_HAS_EXTENSION_ONHOLD
 
@@ -532,6 +535,9 @@
 
 /* Found 'asterisk/endian.h' */
 #undef HAVE_PBX_ENDIAN_H
+
+/* Found 'asterisk/event_defs.h' */
+#undef HAVE_PBX_EVENT_DEFS_CIDNAME_H
 
 /* Found 'asterisk/event.h' */
 #undef HAVE_PBX_EVENT_H

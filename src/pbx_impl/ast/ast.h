@@ -172,6 +172,15 @@ static const struct skinny2pbx_codec_map {
 #    define PBX_HANGUP_CAUSE_CALL_REJECTED AST_CAUSE_CALL_REJECTED
 
 /*!
+ * \brief PBX Hangup Types handled by sccp_wrapper_asterisk_forceHangup
+ */
+typedef enum {
+        PBX_QUEUED_HANGUP = 0,
+        PBX_SOFT_HANGUP = 1,
+        PBX_HARD_HANGUP = 2,
+} pbx_hangup_type_t;
+
+/*!
  * \brief AST Device State Structure
  */
 static const struct pbx_devicestate {
@@ -197,15 +206,6 @@ static const struct pbx_devicestate {
 #    endif
 	/* *INDENT-ON* */
 };
-
-/*!
- * \brief PBX Hangup Types handled by sccp_wrapper_asterisk_forceHangup
- */
-typedef enum {
-        PBX_QUEUED_HANGUP = 0,
-        PBX_SOFT_HANGUP = 1,
-        PBX_HARD_HANGUP = 2,
-} pbx_hangup_type_t;
 
 /*!
  * \brief SCCP Extension State Structure
@@ -321,7 +321,7 @@ PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANN
 const char *pbx_inet_ntoa(struct in_addr ia);
 
 //#if ASTERISK_VERSION_NUMBER >=10900
-//#define ast_format_type struct ast_format
+//#    define ast_format_type struct ast_format
 //#else
 #    define ast_format_type int
 //#endif
@@ -335,6 +335,7 @@ ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec);
 
 //skinny_codec_t *pbx_codecs2skinny_codecs(int codecs);
 int skinny_codecs2pbx_codecs(skinny_codec_t * skinny_codecs);
+int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref);
 
 //skinny_codec_t *pbx_codec_pref2sccp_codec_pref(struct ast_codec_pref *prefs);
 //struct ast_codec_pref *sccp_codec_pref2pbx_codec_pref(skinny_codec_t *skinny_codecs);
@@ -350,7 +351,7 @@ extern inline char *_sccp_strndup(const char *str, size_t len, const char *file,
 
 	if (str) {
 		if (!(newstr = strndup(str, len)))
-			ast_log(LOG_ERROR, "Memory Allocation Failure in function %s at line %d of %s\n", func, lineno, file);
+			pbx_log(LOG_ERROR, "Memory Allocation Failure in function %s at line %d of %s\n", func, lineno, file);
 	}
 	return newstr;
 }
@@ -370,10 +371,16 @@ static void sccp_free_ptr(void *ptr)
  * \param ast_chan Asterisk Channel
  * \return SCCP Channel on Success or Null on Fail
  */
-sccp_channel_t *get_sccp_channel_from_ast_channel(PBX_CHANNEL_TYPE * ast_chan);
-int sccp_asterisk_pbx_fktChannelWrite(struct ast_channel *ast, const char *funcname, char *args, const char *value);
-int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * ast_channel, pbx_hangup_type_t pbx_hangup_type);
-int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel);
+#if DEBUG
+#define get_sccp_channel_from_pbx_channel(_x) __get_sccp_channel_from_pbx_channel(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+sccp_channel_t *__get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_channel, const char *filename, int lineno, const char *func);
+#else
+sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_channel);
+#endif
+int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE *ast, const char *funcname, char *args, const char *value);
+int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * pbx_channel, pbx_hangup_type_t pbx_hangup_type);
+int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * pbx_channel);
+int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * pbx_channel, pbx_hangup_type_t pbx_hangup_type);
 
 /***** database *****/
 boolean_t sccp_asterisk_addToDatabase(const char *family, const char *key, const char *value);

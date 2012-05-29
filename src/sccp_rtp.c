@@ -22,31 +22,34 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \brief create a new rtp server for audio data
  * \param c SCCP Channel
  */
-int sccp_rtp_createAudioServer(const sccp_channel_t *c)
+int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 {
 	boolean_t rtpResult = FALSE;
+	sccp_device_t *device = NULL;
 
 	//struct sockaddr_in us;
 
 	if (!c)
 		return -1;
-	
+
 	if (c->rtp.audio.rtp) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "we already have a rtp server, we use this one\n");
 		return TRUE;
 	}
 
 	if (PBX(rtp_audio_create)) {
-		rtpResult = (boolean_t)PBX(rtp_audio_create) (c, (void **)&((sccp_channel_t *) c)->rtp.audio.rtp);
+		rtpResult = (boolean_t) PBX(rtp_audio_create)((sccp_channel_t *)c);
 	} else {
 		pbx_log(LOG_ERROR, "we should start our own rtp server, but we dont have one\n");
 	}
 
 	if (!sccp_rtp_getUs(&c->rtp.audio, &((sccp_channel_t *) c)->rtp.audio.phone_remote)) {
-		pbx_log(LOG_WARNING, "%s: Did not get our rtp part\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
+		pbx_log(LOG_WARNING, "%s: Did not get our rtp part\n", c->currentDeviceId);
 	}
-	//memcpy(&c->rtp.audio.phone_remote, &us, sizeof(c->rtp.audio.phone_remote));
-	PBX(rtp_setPeer) (&c->rtp.audio, &c->rtp.audio.phone, c->getDevice(c) ? c->getDevice(c)->nat : 0);
+
+	device = sccp_channel_getDevice_retained(c);
+	PBX(rtp_setPeer) (&c->rtp.audio, &c->rtp.audio.phone, device ? device->nat : 0);
+	device = device ? sccp_device_release(device) : NULL;
 
 	return rtpResult;
 }
@@ -68,15 +71,15 @@ int sccp_rtp_createVideoServer(const sccp_channel_t * c)
 	}
 
 	if (PBX(rtp_video_create)) {
-		rtpResult = (boolean_t)PBX(rtp_video_create) (c, (void **)&((sccp_channel_t *) c)->rtp.video.rtp);
+		rtpResult = (boolean_t) PBX(rtp_video_create)((sccp_channel_t *)c);
 	} else {
 		pbx_log(LOG_ERROR, "we should start our own rtp server, but we dont have one\n");
 	}
-	
+
 	if (!sccp_rtp_getUs(&c->rtp.video, &((sccp_channel_t *) c)->rtp.video.phone_remote)) {
-		pbx_log(LOG_WARNING, "%s: Did not get our rtp part\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
+		pbx_log(LOG_WARNING, "%s: Did not get our rtp part\n", c->currentDeviceId);
 	}
-	
+
 	return rtpResult;
 }
 
@@ -108,24 +111,24 @@ void sccp_rtp_set_peer(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr
 
 	/* validate socket */
 	if (new_peer->sin_port == 0) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: ( sccp_rtp_set_peer ) remote information are invalid, dont change anything\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: ( sccp_rtp_set_peer ) remote information are invalid, dont change anything\n", c->currentDeviceId);
 		return;
 	}
 
 	/* check if we have new infos */
 	if (socket_equals(new_peer, &c->rtp.audio.phone_remote)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) remote information are equals with our curent one, ignore change\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) remote information are equals with our curent one, ignore change\n", c->currentDeviceId);
 		return;
 	}
 
 	memcpy(&c->rtp.audio.phone_remote, new_peer, sizeof(c->rtp.audio.phone_remote));
-	pbx_log(LOG_ERROR, "%s: ( sccp_rtp_set_peer ) Set remote address to %s:%d\n", DEV_ID_LOG(sccp_channel_getDevice(c)), pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
+	pbx_log(LOG_ERROR, "%s: ( sccp_rtp_set_peer ) Set remote address to %s:%d\n", c->currentDeviceId, pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
 
 	if (c->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE) {
 		/* Shutdown any early-media or previous media on re-invite */
 		/*! \todo we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait) */
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Stop media transmission on channel %d\n", DEV_ID_LOG(sccp_channel_getDevice(c)), c->callid);
-		sccp_channel_stopmediatransmission_locked(c);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Stop media transmission on channel %d\n", c->currentDeviceId, c->callid);
+		sccp_channel_stopmediatransmission(c);
 		sccp_channel_startmediatransmission(c);
 	}
 
@@ -139,26 +142,32 @@ void sccp_rtp_set_peer(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr
  */
 void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr_in *new_peer)
 {
+	sccp_device_t *device;
+	int nat = 0;
 
 	/* validate socket */
 	if (new_peer->sin_port == 0) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are invalid, dont change anything\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are invalid, dont change anything\n", c->currentDeviceId);
 		return;
 	}
 
 	/* check if we have new infos */
 	/*! \todo if we enable this, we get an audio issue when resume on the same device, so we need to force asterisk to update -MC */
 	if (socket_equals(new_peer, &c->rtp.audio.phone)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equals with our curent one, ignore change\n", DEV_ID_LOG(sccp_channel_getDevice(c)));
-// 		return;
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equals with our curent one, ignore change\n", c->currentDeviceId);
+//              return;
 	}
 
 	memcpy(&c->rtp.audio.phone, new_peer, sizeof(c->rtp.audio.phone));
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set phone address to %s:%d\n", DEV_ID_LOG(sccp_channel_getDevice(c)), pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set phone address to %s:%d\n", c->currentDeviceId, pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
 
 	//update pbx
-	if (PBX(rtp_setPeer))
-		PBX(rtp_setPeer) (rtp, new_peer, sccp_channel_getDevice(c)->nat);
+	device = sccp_channel_getDevice_retained(c);
+	nat = device ? device->nat : 0;
+	if (PBX(rtp_setPeer)) {
+		PBX(rtp_setPeer) (rtp, new_peer, nat);
+	}
+	device = device ? sccp_device_release(device) : NULL;
 }
 
 /*!
@@ -166,18 +175,22 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
  */
 sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t * c, struct sccp_rtp **rtp)
 {
+	sccp_device_t *device = NULL;
 	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
 
-	if (!sccp_channel_getDevice(c)) {
+	device = sccp_channel_getDevice_retained(c);
+	if (!device) {
 		return SCCP_RTP_INFO_NORTP;
 	}
 
 	*rtp = &(((sccp_channel_t *) c)->rtp.audio);
 
 	result = SCCP_RTP_INFO_AVAILABLE;
-	if (sccp_channel_getDevice(c)->directrtp && !sccp_channel_getDevice(c)->nat) {
+	if (device->directrtp && !device->nat) {
 		result |= SCCP_RTP_INFO_ALLOW_DIRECTRTP;
 	}
+
+	device = device ? sccp_device_release(device) : NULL;
 	return result;
 }
 
@@ -187,14 +200,18 @@ sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t * c, struct sccp_
 sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t * c, struct sccp_rtp ** rtp)
 {
 	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
+	sccp_device_t *device = NULL;
 
-	if (!sccp_channel_getDevice(c)) {
+	device = sccp_channel_getDevice_retained(c);
+	if (!device) {
 		return SCCP_RTP_INFO_NORTP;
 	}
 
 	*rtp = &(((sccp_channel_t *) c)->rtp.video);
 
 	result = SCCP_RTP_INFO_AVAILABLE;
+
+	device = device ? sccp_device_release(device) : NULL;
 	return result;
 }
 
@@ -218,9 +235,10 @@ uint8_t sccp_rtp_get_sampleRate(skinny_codec_t codec)
 	if (PBX(rtp_get_sampleRate)) {
 		return PBX(rtp_get_sampleRate) (codec);
 	} else {
-		return (uint8_t)3840;
+		return (uint8_t) 3840;
 	}
 }
+
 /*!
  * \brief Destroy RTP Source.
  * \param c SCCP Channel
@@ -229,23 +247,23 @@ void sccp_rtp_destroy(sccp_channel_t * c)
 {
 	sccp_device_t *d = NULL;
 	sccp_line_t *l = NULL;
-	
-	d = sccp_channel_getDevice(c);
+	if (c && (d = sccp_channel_getDevice_retained(c))) {
+		if (c->line) {
+			l = c->line;
 
-	if (c && c->line && d) {
-		l = c->line;
+			if (c->rtp.audio.rtp) {
+				sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying phone media transmission on channel %s-%08X\n", (d && d->id) ? d->id : "SCCP", l ? l->name : "(null)", c->callid);
+				PBX(rtp_destroy) (c->rtp.audio.rtp);
+				c->rtp.audio.rtp = NULL;
+			}
 
-		if (c->rtp.audio.rtp) {
-			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying phone media transmission on channel %s-%08X\n", (d && d->id) ? d->id : "SCCP", l ? l->name : "(null)", c->callid);
-			PBX(rtp_destroy) (c->rtp.audio.rtp);
-			c->rtp.audio.rtp = NULL;
+			if (c->rtp.video.rtp) {
+				sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying video media transmission on channel %s-%08X\n", (d && d->id) ? d->id : "SCCP", l ? l->name : "(null)", c->callid);
+				PBX(rtp_destroy) (c->rtp.video.rtp);
+				c->rtp.video.rtp = NULL;
+			}
 		}
-
-		if (c->rtp.video.rtp) {
-			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying video media transmission on channel %s-%08X\n", (d && d->id) ? d->id : "SCCP", l ? l->name : "(null)", c->callid);
-			PBX(rtp_destroy) (c->rtp.video.rtp);
-			c->rtp.video.rtp = NULL;
-		}
+		d = sccp_device_release(d);
 	}
 }
 

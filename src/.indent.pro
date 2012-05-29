@@ -1,6 +1,6 @@
 -linux 	/* Use Linux Code Style */
 -l500 	/* Max Line Length */
--c81 	/* Comments start at column 81 */
+-c113 	/* Comments start at column 81 */
 -hnl 	/* Honour new lines */
 -nbbo 	/* Break after Boolean operator, if line needs to be broken -> boolean operator always at the end */
 -ppi4	/* Preprocessor indentation -> 4 */

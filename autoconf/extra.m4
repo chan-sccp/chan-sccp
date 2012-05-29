@@ -129,7 +129,7 @@ AC_DEFUN([CS_SETUP_HOST_PLATFORM],[
 		force_generic_timers=yes
 		;;
 	  *)
-		AC_MSG_RESULT(Unsupported/Unknown operating system: ${host})
+		AC_MSG_RESULT(["Unsupported/Unknown operating system: ${host}"])
 		use_poll_compat=yes
 		no_libcap=yes
 		ostype=unknown
@@ -494,16 +494,20 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		enable_do_crash="yes"
 		enable_debug_mutex="yes"
 		strip_binaries="no"
-		CFLAGS="$CFLAGS_saved -O0 -Os -Wall"
+		CFLAGS="$CFLAGS_saved -O0 -Os -Wall "
 		if test "x$GCC" = "xyes"; then
                         AX_CFLAGS_GCC_OPTION_NEW(-Wstrict-prototypes)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wmissing-prototypes)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wmissing-declarations)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wnested-externs)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
+			AX_CFLAGS_GCC_OPTION_NEW(-Wnonnull)
 dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
 dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
     		fi 
+    		if test "x$CC" = "xclang"; then
+    			CFLAGS="$CFLAGS -fcatch-undefined-behavior "
+    		fi
 		GDB_FLAGS="-g"
 	else
 		AC_DEFINE([DEBUG],[0],[Extra debugging.])
@@ -654,7 +658,7 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_NEWIP], [
 
 AC_DEFUN([CS_ENABLE_EXPERIMENTAL_REFCOUNT], [
 	AC_ARG_ENABLE(experimental_refcount, 
-	  AC_HELP_STRING([--enable-experimental-rtp], [enable experimental refcount (only for developers)]), 
+	  AC_HELP_STRING([--enable-experimental-refcount], [enable experimental refcount (only for developers)]), 
 	    ac_cv_experimental_refcount=$enableval, ac_cv_experimental_refcount=no)
 	AS_IF([test "_${ac_cv_experimental_refcount}" == "_yes"], [AC_DEFINE(CS_EXPERIMENTAL_REFCOUNT, 1, [experimental refcount enabled])])
 	AC_MSG_NOTICE([--enable-experimental-refcount: ${ac_cv_experimental_refcount} (only for developers)])

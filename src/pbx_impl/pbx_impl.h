@@ -39,12 +39,13 @@ struct sccp_pbx_cb {
 	/* channels */
 	boolean_t(*const alloc_pbxChannel) (const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
 	boolean_t(*const alloc_conferenceTempPBXChannel) (PBX_CHANNEL_TYPE * channel, PBX_CHANNEL_TYPE ** pbx_channel, uint32_t conf_id, uint32_t part_id);
-	int (*const set_callstate) (const sccp_channel_t * ast_channel, int state);
+	int (*const set_callstate) (const sccp_channel_t * pbx_channel, int state);
 	boolean_t(*const checkhangup) (const sccp_channel_t * channel);
 	int (*const hangup) (PBX_CHANNEL_TYPE * channel);
 	int (*const requestHangup) (PBX_CHANNEL_TYPE * channel);
-	int (*const forceHangup) (PBX_CHANNEL_TYPE * ast_channel, pbx_hangup_type_t pbx_hangup_type);
+	int (*const forceHangup) (PBX_CHANNEL_TYPE * channel, pbx_hangup_type_t pbx_hangup_type);
 	sccp_extension_status_t(*const extension_status) (const sccp_channel_t * channel);
+	const char *(*const getChannelName) (const sccp_channel_t *channel);
 
 	/** get channel by name */
 	boolean_t(*const getChannelByName) (const char *name, PBX_CHANNEL_TYPE **pbx_channel);
@@ -74,10 +75,10 @@ struct sccp_pbx_cb {
 	boolean_t(*const rtp_destroy) (PBX_RTP_TYPE * tp);
 	int (*const rtp_stop) (sccp_channel_t * channel);
 	int (*const rtp_codec) (sccp_channel_t * channel);
-	boolean_t(*const rtp_audio_create) (const sccp_channel_t * channel, void **new_rtp);
-	boolean_t(*const rtp_video_create) (const sccp_channel_t * channel, void **new_rtp);
+	boolean_t(*const rtp_audio_create) (sccp_channel_t * channel);
+	boolean_t(*const rtp_video_create) (sccp_channel_t * channel);
 	uint8_t(*const rtp_get_payloadType) (const struct sccp_rtp * rtp, skinny_codec_t codec);
-	uint8_t(*const rtp_get_sampleRate) (skinny_codec_t codec);
+	int(*const rtp_get_sampleRate) (skinny_codec_t codec);
 	uint8_t(*const rtp_bridgePeers) (PBX_CHANNEL_TYPE * c0, PBX_CHANNEL_TYPE * c1, int flags, struct ast_frame ** fo, PBX_CHANNEL_TYPE ** rc, int timeoutms);
 
 	/* callerid */
@@ -107,7 +108,7 @@ struct sccp_pbx_cb {
 	boolean_t(*const feature_removeFromDatabase) (const char *family, const char *key);
 	boolean_t(*const feature_removeTreeFromDatabase) (const char *family, const char *key);
 	boolean_t(*const getFeatureExtension) (const sccp_channel_t * channel, char **featureExtension);
-	boolean_t(*const feature_pickup) (const sccp_channel_t *chan, struct ast_channel *target);
+	boolean_t(*const feature_pickup) (const sccp_channel_t *chan, PBX_CHANNEL_TYPE *target);
 
 	void *(*const eventSubscribe)(const sccp_channel_t * channel, char **featureExtension);
 	PBX_CHANNEL_TYPE *(*const findChannelByCallback)(int(*const found_cb)(PBX_CHANNEL_TYPE *c, void *data), void *data, boolean_t lock);

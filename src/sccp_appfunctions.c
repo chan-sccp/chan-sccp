@@ -48,7 +48,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 
 	int first = 0;
 
-	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
+	if ((colname = strchr(data, ':'))) {									/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
 
 		*colname++ = '\0';
@@ -68,21 +68,18 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			return -1;
 		}
 
-		if (!c || !sccp_channel_getDevice(c)) {
+		if (!(d = sccp_channel_getDevice_retained(c))) {
 			pbx_log(LOG_WARNING, "SCCPDEVICE(): SCCP Device not available\n");
+			c = sccp_channel_release(c);
 			return -1;
 		}
-
-		d = sccp_channel_getDevice(c);
-
+		c = sccp_channel_release(c);
 	} else {
-		if (!(d = sccp_device_find_byid(data, TRUE))) {
+		if (!(d = sccp_device_find_byid(data, FALSE))) {
 			pbx_log(LOG_WARNING, "SCCPDEVICE(): SCCP Device not available\n");
 			return -1;
 		}
 	}
-
-	sccp_device_lock(d);
 	if (!strcasecmp(colname, "ip")) {
 		sccp_session_t *s = d->session;
 
@@ -142,7 +139,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	} else if (!strcasecmp(colname, "conference_channel")) {
 		snprintf(buf, len, "%d", d->conference_channel->callid);
 	} else if (!strcasecmp(colname, "current_line")) {
-		sccp_copy_string(buf, d->currentLine->id, len);
+		sccp_copy_string(buf, d->currentLine->id ? d->currentLine->id : "", len);
 	} else if (!strcasecmp(colname, "button_config")) {
 		sccp_buttonconfig_t *config;
 
@@ -203,8 +200,8 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 
 //              int codec = 0;
 
-		codecnum = colname + 6;						// move past the '[' 
-		codecnum = strsep(&codecnum, "]");				// trim trailing ']' if any 
+		codecnum = colname + 6;										// move past the '[' 
+		codecnum = strsep(&codecnum, "]");								// trim trailing ']' if any 
 		if (skinny_codecs[atoi(codecnum)].key) {
 //              if ((codec = pbx_codec_pref_index(&d->codecs, atoi(codecnum)))) {
 //                      sccp_copy_string(buf, pbx_getformatname(codec), len);
@@ -216,7 +213,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		pbx_log(LOG_WARNING, "SCCPDEVICE(): unknown function option: %s", data);
 		buf[0] = '\0';
 	}
-	sccp_device_unlock(d);
+	sccp_device_release(d);
 	return 0;
 }
 
@@ -227,8 +224,10 @@ static struct pbx_custom_function sccpdevice_function = {
 	.syntax = "Usage: SCCPDEVICE(deviceId,<option>)\n",
 	.read = sccp_func_sccpdevice,
 	.desc = "DeviceId = Device Identifier (i.e. SEP0123456789)\n" "Option = One of the possible options mentioned in arguments\n",
+#if ASTERISK_VERSION_NUMBER > 10601
 	.arguments = "DeviceId = Device Identifier (i.e. SEP0123456789)\n"
 	    "Option = One of these possible options:\n" "ip, id, status, description, config_type, skinny_type, tz_offset, image_version, \n" "accessory_status, registration_state, codecs, capability, state, lines_registered, \n" "lines_count, last_number, early_rtp, supported_protocol_version, used_protocol_version, \n" "mwi_light, dynamic, realtime, active_channel, transfer_channel, conference_channel, \n" "current_line, button_config, pending_delete, chanvar[], codec[]",
+#endif
 };
 
 /*!
@@ -262,7 +261,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 
 	int first = 0;
 
-	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
+	if ((colname = strchr(data, ':'))) {									/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
 
 		*colname++ = '\0';
@@ -280,11 +279,13 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			return -1;
 		}
 
-		if (!c || !c->line) {
+		if (!c->line) {
 			pbx_log(LOG_WARNING, "SCCPLINE(): SCCP Line not available\n");
+			c = sccp_channel_release(c);
 			return -1;
 		}
 		l = c->line;
+		c = sccp_channel_release(c);
 	} else if (!strncasecmp(data, "parent", 7)) {
 		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 
@@ -292,19 +293,19 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			return -1;
 		}
 
-		if (!c || !c->parentChannel || !c->parentChannel->line) {
+		if (!c->parentChannel || !c->parentChannel->line) {
 			pbx_log(LOG_WARNING, "SCCPLINE(): SCCP Line not available\n");
+			c = sccp_channel_release(c);
 			return -1;
 		}
 		l = c->parentChannel->line;
+		c = sccp_channel_release(c);
 	} else {
 		if (!(l = sccp_line_find_byname_wo(data, TRUE))) {
 			pbx_log(LOG_WARNING, "sccp_func_sccpdevice: SCCP Line not available\n");
 			return -1;
 		}
 	}
-	sccp_line_lock(l);
-
 	if (!strcasecmp(colname, "id")) {
 		sccp_copy_string(buf, l->id, len);
 	} else if (!strcasecmp(colname, "name")) {
@@ -385,6 +386,8 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 		snprintf(buf, len, "%d", l->voicemailStatistic.oldmsgs);
 	} else if (!strcasecmp(colname, "num_lines")) {
 		snprintf(buf, len, "%d", l->devices.size);
+	} else if (!strcasecmp(colname, "mailboxes")) {
+		/*! \todo needs to be implemented, should return a comma separated list of mailboxes */
 	} else if (!strcasecmp(colname, "cfwd")) {
 		sccp_linedevices_t *linedevice;
 
@@ -434,7 +437,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 		pbx_log(LOG_WARNING, "SCCPLINE(): unknown function option: %s", data);
 		buf[0] = '\0';
 	}
-	sccp_line_unlock(l);
+	sccp_line_release(l);
 	return 0;
 }
 
@@ -445,7 +448,9 @@ static struct pbx_custom_function sccpline_function = {
 	.syntax = "Usage: SCCPLINE(lineName,<option>)",
 	.read = sccp_func_sccpline,
 	.desc = "LineName = Name of the line to be queried.\n" "Option = One of the possible options mentioned in arguments\n",
+#if ASTERISK_VERSION_NUMBER > 10601
 	.arguments = "LineName = use on off these: 'current', 'parent', actual linename\n" "Option = One of these possible options:\n" "id, name, description, label, vmnum, trnsfvm, meetme, meetmenum, meetmeopts, context, \n" "language, accountcode, musicclass, amaflags, callgroup, pickupgroup, cid_name, cid_num, \n" "incoming_limit, channel_count, dynamic, realtime, pending_delete, pending_update, \n" "regexten, regcontext, adhoc_number, newmsgs, oldmsgs, num_lines, cfwd, devices, chanvar[]"
+#endif
 };
 
 /*!
@@ -471,7 +476,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 
 	char *colname;
 
-	if ((colname = strchr(data, ':'))) {					/*! \todo Will be deprecated after 1.4 */
+	if ((colname = strchr(data, ':'))) {									/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
 
 		*colname++ = '\0';
@@ -484,13 +489,11 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 
 	if (!strncasecmp(data, "current", 7)) {
 		if (!(c = get_sccp_channel_from_pbx_channel(chan)))
-			return -1;						/* Not a SCCP channel. */
-
-		sccp_channel_lock(c);
+			return -1;										/* Not a SCCP channel. */
 	} else {
 		uint32_t callid = atoi(data);
 
-		if (!(c = sccp_channel_find_byid_locked(callid))) {
+		if (!(c = sccp_channel_find_byid(callid))) {
 			pbx_log(LOG_WARNING, "SCCPCHANNEL(): SCCP Channel not available\n");
 			return -1;
 		}
@@ -545,7 +548,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 	} else if (!strcasecmp(colname, "dialed_number")) {
 		sccp_copy_string(buf, c->dialedNumber, len);
 	} else if (!strcasecmp(colname, "device")) {
-		sccp_copy_string(buf, sccp_channel_getDevice(c)->id, len);
+		sccp_copy_string(buf, c->currentDeviceId, len);
 	} else if (!strcasecmp(colname, "line")) {
 		sccp_copy_string(buf, c->line->name, len);
 	} else if (!strcasecmp(colname, "answered_elsewhere")) {
@@ -567,8 +570,8 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 
 //              int codec = 0;
 
-		codecnum = colname + 6;						// move past the '[' 
-		codecnum = strsep(&codecnum, "]");				// trim trailing ']' if any 
+		codecnum = colname + 6;										// move past the '[' 
+		codecnum = strsep(&codecnum, "]");								// trim trailing ']' if any 
 //              if ((codec = pbx_codec_pref_index(&c->codecs, atoi(codecnum)))) {
 //                      sccp_copy_string(buf, pbx_getformatname(codec), len);
 		if (skinny_codecs[atoi(codecnum)].key) {
@@ -580,7 +583,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		pbx_log(LOG_WARNING, "SCCPCHANNEL(): unknown function option: %s", data);
 		buf[0] = '\0';
 	}
-	sccp_channel_unlock(c);
+	sccp_channel_release(c);
 	return 0;
 }
 
@@ -591,7 +594,9 @@ static struct pbx_custom_function sccpchannel_function = {
 	.syntax = "Usage: SCCPCHANNEL(channelId,<option>)",
 	.read = sccp_func_sccpchannel,
 	.desc = "ChannelId = Name of the line to be queried.\n" "Option = One of the possible options mentioned in arguments\n",
+#if ASTERISK_VERSION_NUMBER > 10601
 	.arguments = "ChannelId = use on off these: 'current', actual callid\n" "Option = One of these possible options:\n" "callid, id, format, codecs, capability, calledPartyName, calledPartyNumber, callingPartyName, \n" "callingPartyNumber, originalCallingPartyName, originalCallingPartyNumber, originalCalledPartyName, \n" "originalCalledPartyNumber, lastRedirectingPartyName, lastRedirectingPartyNumber, cgpnVoiceMailbox, \n" "cdpnVoiceMailbox, originalCdpnVoiceMailbox, lastRedirectingVoiceMailbox, passthrupartyid, state, \n" "previous_state, calltype, dialed_number, device, line, answered_elsewhere, privacy, ss_action, \n" "monitorEnabled, parent, codec[]"	// not implemented yet: "/*conference*/, /*peer*/"
+#endif
 };
 
 /*!
@@ -613,18 +618,20 @@ static int sccp_app_prefcodec(PBX_CHANNEL_TYPE * chan, void *data)
 	int res;
 
 	if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
-		pbx_log(LOG_WARNING, "sccp_app_prefcodec(): Not an SCCP channel\n");
+		pbx_log(LOG_WARNING, "SCCPSetCodec: Not an SCCP channel\n");
 		return -1;
 	}
 
 	res = sccp_channel_setPreferredCodec(c, data);
+	c = sccp_channel_release(c);
 	return res ? 0 : -1;
 }
 
 /*! \brief Stucture to declare a dialplan function: SETSCCPCODEC */
-static char *prefcodec_name = "SetSCCPCodec";
+static char *prefcodec_name = "SCCPSetCodec";
+static char *old_prefcodec_name = "SetSCCPCodec";
 static char *prefcodec_synopsis = "Sets the preferred codec for the current sccp channel";
-static char *prefcodec_descr = "Usage: SetSCCPCodec(codec)" "Sets the preferred codec for dialing out with the current chan_sccp channel\n";
+static char *prefcodec_descr = "Usage: SCCPSetCodec(codec)" "Sets the preferred codec for dialing out with the current chan_sccp channel\n";
 
 /*!
  * \brief 	Set the Name and Number of the Called Party to the Calling Phone
@@ -647,23 +654,28 @@ static int sccp_app_calledparty(PBX_CHANNEL_TYPE * chan, void *data)
 	sccp_channel_t *c = NULL;
 
 	if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
-		pbx_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");
+		pbx_log(LOG_WARNING, "SCCPSetCalledParty: Not an SCCP channel\n");
 		return 0;
 	}
 
-	if (!text || !c)
+	if (!text) {
+		pbx_log(LOG_WARNING, "SCCPSetCalledParty: No CalledParty Information Provided\n");
+		c = sccp_channel_release(c);
 		return 0;
+	}
 
 	pbx_callerid_parse(text, &name, &num);
 	sccp_channel_set_calledparty(c, name, num);
+	c = sccp_channel_release(c);
 
 	return 0;
 }
 
 /*! \brief Stucture to declare a dialplan function: SETCALLEDPARTY */
-static char *calledparty_name = "SetCalledParty";
+static char *calledparty_name = "SCCPSetCalledParty";
+static char *old_calledparty_name = "SetCalledParty";
 static char *calledparty_synopsis = "Sets the callerid of the called party";
-static char *calledparty_descr = "Usage: SetCalledParty(\"Name\" <ext>)" "Sets the name and number of the called party for use with chan_sccp\n";
+static char *calledparty_descr = "Usage: SCCPSetCalledParty(\"Name\" <ext>)" "Sets the name and number of the called party for use with chan_sccp\n";
 
 /*!
  * \brief	It allows you to send a message to the calling device.
@@ -689,7 +701,7 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 	sccp_device_t *d;
 
 	if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
-		pbx_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n");
+		pbx_log(LOG_WARNING, "SCCPSetMessage: Not an SCCP channel\n");
 		return 0;
 	}
 
@@ -702,26 +714,27 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 		timeout = atoi(splitter);
 	}
 
-	if (!text || !c || !sccp_channel_getDevice(c))
+	if (!text || !(d = sccp_channel_getDevice_retained(c))) {
+		pbx_log(LOG_WARNING, "SCCPSetMessage: Not an SCCP device or not text provided\n");
+		c = sccp_channel_release(c);
 		return 0;
-
-	d = sccp_channel_getDevice(c);
-	sccp_device_lock(d);
+	}
 	if (text[0] != '\0') {
 		sccp_dev_set_message(d, text, timeout, TRUE, FALSE);
 	} else {
 		sccp_dev_clear_message(d, TRUE);
 	}
 
-	sccp_device_unlock(d);
-
+	d = sccp_device_release(d);
+	c = sccp_channel_release(c);
 	return 0;
 }
 
 /*! \brief Stucture to declare a dialplan function: SETMESSAGE */
-static char *setmessage_name = "SetMessage";
+static char *setmessage_name = "SCCPSetMessage";
+static char *old_setmessage_name = "SetMessage";
 static char *setmessage_synopsis = "Send a Message to the current Phone";
-static char *setmessage_descr = "Usage: SetMessage(\"Message\"[,timeout])\n" "       Send a Message to the Calling Device (and remove after timeout, if timeout is ommited will stay until next/empty message)\n";
+static char *setmessage_descr = "Usage: SCCPSetMessage(\"Message\"[,timeout])\n" "       Send a Message to the Calling Device (and remove after timeout, if timeout is ommited will stay until next/empty message)\n";
 
 int sccp_register_dialplan_functions(void)
 {
@@ -731,6 +744,10 @@ int sccp_register_dialplan_functions(void)
 	result = pbx_register_application(calledparty_name, sccp_app_calledparty, calledparty_synopsis, calledparty_descr, NULL);
 	result |= pbx_register_application(setmessage_name, sccp_app_setmessage, setmessage_synopsis, setmessage_descr, NULL);
 	result |= pbx_register_application(prefcodec_name, sccp_app_prefcodec, prefcodec_synopsis, prefcodec_descr, NULL);
+	/* old names */
+	result |= pbx_register_application(old_calledparty_name, sccp_app_calledparty, calledparty_synopsis, calledparty_descr, NULL);
+	result |= pbx_register_application(old_setmessage_name, sccp_app_setmessage, setmessage_synopsis, setmessage_descr, NULL);
+	result |= pbx_register_application(old_prefcodec_name, sccp_app_prefcodec, prefcodec_synopsis, prefcodec_descr, NULL);
 
 	/* Register dialplan functions */
 	result |= pbx_custom_function_register(&sccpdevice_function, NULL);
@@ -748,6 +765,10 @@ int sccp_unregister_dialplan_functions(void)
 	result = pbx_unregister_application(calledparty_name);
 	result |= pbx_unregister_application(setmessage_name);
 	result |= pbx_unregister_application(prefcodec_name);
+	/* old names */
+	result |= pbx_unregister_application(old_calledparty_name);
+	result |= pbx_unregister_application(old_setmessage_name);
+	result |= pbx_unregister_application(old_prefcodec_name);
 
 	/* Unregister dial plan functions */
 	result |= pbx_custom_function_unregister(&sccpdevice_function);
