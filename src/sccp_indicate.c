@@ -236,8 +236,9 @@ void __sccp_indicate_locked(sccp_device_t * device, sccp_channel_t * c, uint8_t 
 		
 		sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGIN);
 		
-		char prompt[50];
-		sprintf(prompt, "Incoming Call from: %s", strlen(c->callInfo.callingPartyName) ? c->callInfo.callingPartyName : c->callInfo.callingPartyNumber );
+		char prompt[100];
+		snprintf(prompt, sizeof(prompt), "Incoming Call from: %s", strlen(c->callInfo.callingPartyName) ? c->callInfo.callingPartyName : c->callInfo.callingPartyNumber);
+
 		sccp_dev_displayprompt(d, instance, c->callid, prompt, 0);
 		
 		PBX(set_callstate) (c, AST_STATE_RINGING);/*!\todo thats not the right place to update pbx state */
