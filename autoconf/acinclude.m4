@@ -371,7 +371,7 @@ AC_DEFUN([CS_GET_VERSION], [
     else 
       SCCP_BRANCH="`cat .hg/branch`"
     fi
-    SCCP_REVISION="`hg parents|grep changeset|sed 's/\(.*:\)\(.*\)\(:.*\)/\2/g'|sed 's/\ //g'`"
+    SCCP_REVISION="`hg parents|grep changeset|tail -n1|sed 's/\(.*:\)\(.*\)\(:.*\)/\2/g'|sed 's/\ //g'`"
   elif test -d .svn;then
     PARTS=`LANG=C svn info | grep URL | awk '{print $2;}'`
     FOURTH_PART="`echo $PARTS|awk -F/ '{print $6}'`"

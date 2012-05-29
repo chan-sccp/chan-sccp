@@ -10,22 +10,22 @@
 AUTOMAKE_OPTS		= gnu silent-rules
 csmod_LTLIBRARIES	= chan_sccp.la
 
-chan_sccp_la_SOURCES	=	chan_sccp.h		sccp_cli.h		sccp_event.h					\
+chan_sccp_la_SOURCES	=	chan_sccp.h		sccp_cli.h		sccp_threadpool.h	sccp_event.h		\
                                 sccp_labels.h		sccp_utils.h		sccp_adv_features.h	sccp_channel.h  	\
                                 sccp_softkeys.h		sccp_conference.h	sccp_featureButton.h	sccp_line.h		\
                                 sccp_actions.h		sccp_config.h		sccp_features.h		sccp_pbx.h		\
                                 pbx_impl/pbx_impl.h	sccp_device.h		sccp_hint.h		sccp_lock.h		\
-                                sccp_protocol.h 	sccp_dllists.h		sccp_indicate.h		sccp_management.h	\
-                                sccp_mwi.h		common.h		sccp_rtp.h 		sccp_appfunctions.h	\
-                                sccp_socket.h
+                                sccp_refcount.h		sccp_protocol.h 	sccp_dllists.h		sccp_indicate.h		\
+                                sccp_management.h	sccp_mwi.h		common.h		sccp_rtp.h 		\
+                                sccp_appfunctions.h	sccp_socket.h
                                 
 chan_sccp_la_SOURCES	+=	chan_sccp.c		sccp_channel.c		sccp_device.c		sccp_indicate.c 	\
                                 sccp_pbx.c 		pbx_impl/pbx_impl.c	sccp_softkeys.c		sccp_featureButton.c	\
                                 sccp_line.c		sccp_utils.c		sccp_actions.c		sccp_cli.c		\
                                 sccp_features.c 	sccp_config.c		sccp_hint.c		sccp_lock.c		\
-                                sccp_event.c		sccp_adv_features.c	sccp_management.c	sccp_mwi.c		\
-                                sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	sccp_protocol.c		\
-                                sccp_socket.c
+                                sccp_refcount.c		sccp_event.c		sccp_adv_features.c	sccp_management.c	\
+                                sccp_mwi.c		sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	\
+                                sccp_protocol.c		sccp_socket.c		sccp_threadpool.c
                                 
 EXTRA_chan_sccp_la_SOURCES = 
 if BUILD_AST

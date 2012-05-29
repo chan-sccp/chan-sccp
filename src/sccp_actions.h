@@ -13,8 +13,8 @@
  * $Revision$
  */
 
-#    ifndef __SCCP_ACTIONS_H
-#define __SCCP_ACTIONS_H
+#ifndef __SCCP_ACTIONS_H
+#    define __SCCP_ACTIONS_H
 void sccp_init_device(sccp_device_t * d);
 void sccp_handle_unknown_message(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
@@ -30,7 +30,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k);
 void sccp_handle_backspace(sccp_device_t * d, uint8_t line, uint32_t callid);
-void sccp_handle_dialtone_locked(sccp_channel_t * c);
+void sccp_handle_dialtone(sccp_channel_t * c);
 void sccp_handle_KeepAliveMessage(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_onhook(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
@@ -61,4 +61,4 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * s, sccp_device_t * d, sccp_moo
 void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_mediatransmissionfailure(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 void sccp_handle_miscellaneousCommandMessage(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
-#    endif
+#endif

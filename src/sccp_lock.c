@@ -13,11 +13,15 @@
 
 /*!
  * \file
- * \page sccp_lock Locking in SCCP
+ * \page sccp_lock Locking and Object Preservation in SCCP
+ *
+ * \ref lock_types Locking Type\n
+ * \ref lock_order Locking Order\n
+ * \ref refcount   Reference Counting\n
  * 
  * \section lock_types Lock Types and their Objects
  *
- * In chan-sccp-b we use different types of locks for different occasions. It depents mainly on the object which needs to
+ * In chan-sccp-b we use different types of locks for different occasions. It depends mainly on the object which needs to
  * be locked, how long this lock will last and if the object should be shared most of the time between multiple threads.
  *
  * We make a distinction between locks for global lists, global objects and list/objects used/owned by a global object. 
@@ -27,12 +31,15 @@
  * for example:
  * - list of devices (rwlock, shared) -> multiple readers or 1 writer can have this lock on the list
  *   once the device you where looking for it need to be locked exclusively, for read or write, to prevent changes:
- *   - device (currently mutex) -> multiple readers or 1 writer can have this lock on the list
- *     (note at the moment it is still a mutex but we might gradually change then to a rwlock.)
+ *   - device (refcounted) -> multiple readers or 1 writer can have this lock on the list
  *     - list of selectedChannels(mutex)
  *       - selectedChannel (mutex)
+ *       .
+ *     .
+ *   .
+ * .
  *
- * global lists (in this order):
+ * \subsection lock_types_globallists Global Lists (in order)
  * - sessions (mutex)
  * - devices (rwlock)
  * - lines (rwlock)
@@ -41,14 +48,17 @@
  * .
  * <small>(mutex -> rwlock = currently using mutex, should change to rwlock soon)</small>
  *
- * global objects (in this order):
+ * \subsection lock_types_globalobjects Global Objects (in order)
  * - sccp_session (mutex)
- * - sccp_device (mutex -> rwlock)
- * - sccp_line (mutex -> rwlock)
- *   - sccp_channel (mutex ->rwlock)
+ * - sccp_device (refcounted)
+ * - sccp_line (refcounted)
+ *   - sccp_linedevice (refcounted)
+ *   - sccp_channel (refcounted)
  *   .
+ * - sccp_event (refcounted)
  * .
  *
+ * \subsection lock_types_ownerlists Owned Lists (e,g. for device)
  * object owned lists (e.g for device):
  * - buttonconfig (no lock -> lock parent)			// should be renamed to buttonconfigs to indicate it's list status
  * - selectedChannels (mutex)					// channels added / removed frequently
@@ -57,6 +67,7 @@
  * - devstateSpecifiers (no lock -> lock parent)		// added once
  * .
  * 
+ * \subsection lock_types_ownerobjects Owned Objects (e,g. for device)
  * object owned objects (e.g. for device):
  * - buttonconfig (no lock -> lock parent)
  * - selectedChannel (no lock -> lock parent)			// state does not change
@@ -67,7 +78,7 @@
  *
  * \section lock_order Locking order
  * 
- * - Rule1: 	Locks should be taking in order to prevent deadlocks. 
+ * - Rule 1: 	Locks should be taking in order to prevent deadlocks. 
  * 		So always lock the highest order first:
  * 	- Global list (in order device, line, channel)
  * 	- Global object (in order device, line, channel)
@@ -75,19 +86,22 @@
  * 	- Owned object (in order specified in Rule2/Rule3) havind rwlock / mutex, otherwise lock parent
  *	.
  *
- * - Rule2: For locks on owned lists / objects, you must release as soon as possible and prevent nesting. 
- * - Rule3: If nesting can not be avoided, lock in order of the struct in chan_sccp.h providing the owned list. 
+ * - Rule 2: For locks on owned lists / objects, you must release as soon as possible and prevent nesting. 
+ * - Rule 3: If nesting can not be avoided, lock in order of the struct in chan_sccp.h providing the owned list. 
  * .
+ * These locking rules need to be followed to the letter !
  *
- * \section lock_deadlock Prevent Deadlocks
- * \section lock_starvation Prevent Starvation
- * \section lock_assumptions Locking Assumptions
+ */
+ 
+/*
+ * \!section lock_deadlock Prevent Deadlocks
+ * \!section lock_starvation Prevent Starvation
+ * \!section lock_assumptions Locking Assumptions
  */
 #include "config.h"
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-
 #ifdef CS_AST_DEBUG_CHANNEL_LOCKS
 #    define CS_LOCKS_DEBUG_ALL
 
@@ -282,75 +296,5 @@ int __sccp_mutex_trylock(ast_mutex_t * p_mutex, const char *itemnametolock, cons
 		sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "::::==== %s line %d (%s) SCCP_MUTEX: %s lock failed. No mutex.\n", filename, lineno, func, itemnametolock);
 
 	return res;
-}
-#endif
-
-#if CS_EXPERIMENTAL_REFCOUNT
-void * RefCountedObjectAlloc(size_t size, void *destructor)
-{
-	RefCountedObject * o;
-	char * ptr;
-	o = (RefCountedObject *)calloc( sizeof( RefCountedObject ) + size, 1 );
-	ptr = (char *)o;
-	ptr += sizeof(RefCountedObject);
-	o->refcount = 1;
-	o->data = ptr;
-	o->destructor = destructor;
-	pbx_log(LOG_NOTICE, "Refcount initialized for object %p to %d\n",o, o->refcount);
-	sccp_log((DEBUGCAT_LOCK)) (VERBOSE_PREFIX_3 "Refcount initialized for object %p to %d\n",o, o->refcount);
-	return ( void * )ptr;
-} 
-
-inline void *sccp_retain(void * ptr, const char *objecttype, const char *objectid, const char *filename, int lineno, const char *func)
-{
-	RefCountedObject * o;
-	char * cptr;
-	int refcountval;
-
-	cptr = (char *)ptr;
-	cptr -= sizeof(RefCountedObject);
-	o = (RefCountedObject *)cptr;
-
-	refcountval = pbx_atomic_fetchadd_int(&o->refcount, 1) + 1;
-	if (refcountval < 1) {
-		pbx_log(LOG_ERROR, "%s: refcount already reached 0 -> obj is fading!\n", objectid);
-		return NULL;		// refcount = 0 -> object is being cleaned up
-	} else {
-#if DEBUG
-		sccp_log((DEBUGCAT_LOCK)) ("%-15.15s:%-4.4d (%-25.25s) %*.*s> refcount for %s: %s increased to: %d\n", filename, lineno, func, refcountval-1, refcountval-1, "------", objecttype, objectid, refcountval);
-#else		
-		sccp_log((DEBUGCAT_LOCK)) ("SCCP: %*.*s> refcount for %s: %s increased to: %d\n", refcountval-1, refcountval-1, "------", objecttype, objectid, refcountval);
-#endif
-	}
-	return ptr;
-}
-
-inline void *sccp_release(void * ptr, const char *objecttype, const char *objectid, const char *filename, int lineno, const char *func)
-{
-	RefCountedObject * o;
-	char * cptr;
-	int refcountval;
-
-	cptr = (char *)ptr;
-	cptr -= sizeof(RefCountedObject);
-	o = (RefCountedObject *)cptr;
-
-	refcountval=pbx_atomic_fetchadd_int(&o->refcount, -1) -1;
-
-	if( refcountval < 0 ) {
-		pbx_log(LOG_ERROR, "%s: refcount would go below 0 -> it is already being cleaned!\n", objectid);
-	} else if( refcountval == 0 ) {
-		pbx_log(LOG_NOTICE, "%s: refcount has reached 0 -> cleaning up!\n", objectid);
-		o->destructor(ptr);
-		sccp_free(o);
-		o = NULL;
-	} else {
-#if DEBUG
-		sccp_log((DEBUGCAT_LOCK)) ("%-15.15s:%-4.4d (%-25.25s) <%*.*s refcount for %s: %s decreased to: %d\n", filename, lineno, func, refcountval, refcountval, "------", objecttype, objectid, refcountval);
-#else
-		sccp_log((DEBUGCAT_LOCK)) ("SCCP: <%*.*s refcount for %s: %s decreased to: %d\n", filename, lineno, func, refcountval, refcountval, "------", objecttype, objectid, refcountval);
-#endif		
-	}
-	return NULL;
 }
 #endif

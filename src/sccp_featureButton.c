@@ -88,37 +88,36 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				}
 				break;
 			case SCCP_FEATURE_CFWDALL:
-					
-					
-					// This needs to default to FALSE so that the cfwd feature
-					// is not being enabled unless we can ask the lines for their state.
-					config->button.feature.status = 0;
-					
-					/* get current state */
-					SCCP_LIST_TRAVERSE(&device->buttonconfig, buttonconfig, list) {
-						if (buttonconfig->type == LINE) {
-							
-							// Check if line and line device exists and thus forward status on that device can be checked
-							if ((line = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE))
-								&& (linedevice = sccp_util_getDeviceConfiguration(device, line)) ) {
-								
-								sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled) ? "on" : "off");
-								
-								/* set this button active, only if all lines are fwd -requesting issue #3081549 */
-								// Upon finding the first existing line, we need to set the feature status
-								// to TRUE and subsequently AND that value with the forward status of each line.
-								if(FALSE == lineFound) {
-									lineFound = TRUE;
-									config->button.feature.status = 1;
-								}
-								
-								// Set status of feature by logical and to comply with requirement above.
-								config->button.feature.status &= ((linedevice->cfwdAll.enabled)?1:0); // Logical and &= intended here.
+
+				// This needs to default to FALSE so that the cfwd feature
+				// is not being enabled unless we can ask the lines for their state.
+				config->button.feature.status = 0;
+
+				/* get current state */
+				SCCP_LIST_TRAVERSE(&device->buttonconfig, buttonconfig, list) {
+					if (buttonconfig->type == LINE) {
+
+						// Check if line and line device exists and thus forward status on that device can be checked
+						if ((line = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE))
+						    && (linedevice = sccp_util_getDeviceConfiguration(device, line))) {
+
+							sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled) ? "on" : "off");
+
+							/* set this button active, only if all lines are fwd -requesting issue #3081549 */
+							// Upon finding the first existing line, we need to set the feature status
+							// to TRUE and subsequently AND that value with the forward status of each line.
+							if (FALSE == lineFound) {
+								lineFound = TRUE;
+								config->button.feature.status = 1;
 							}
+							// Set status of feature by logical and to comply with requirement above.
+							config->button.feature.status &= ((linedevice->cfwdAll.enabled) ? 1 : 0);	// Logical and &= intended here.
+							linedevice = sccp_linedevice_release(linedevice);
+							line = sccp_line_release(line);
 						}
 					}
-					buttonconfig = NULL;
-
+				}
+				buttonconfig = NULL;
 
 				break;
 
@@ -136,21 +135,21 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 			case SCCP_FEATURE_MONITOR:
 				sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: monitor feature state: %d\n", DEV_ID_LOG(device), config->button.feature.status);
 				buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
-				
+
 				//config->button.feature.status = (device->monitorFeature.status) ? 1 : 0;
-				switch(config->button.feature.status){
-				  case SCCP_FEATURE_MONITOR_STATE_DISABLED:
-				    //config->button.feature.status = 131329;
-				    state = 0;
-				    break;
-				  case SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE:
-				    state = 66306;
-				    break;
-				  case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
-				    state = 131589;
-				    break;
+				switch (config->button.feature.status) {
+				case SCCP_FEATURE_MONITOR_STATE_DISABLED:
+					//config->button.feature.status = 131329;
+					state = 0;
+					break;
+				case SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE:
+					state = 66306;
+					break;
+				case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
+					state = 131589;
+					break;
 				}
-				
+
 				break;
 
 #ifdef CS_DEVSTATE_FEATURE
@@ -162,7 +161,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				/* we check which devicestate this button is assigned to, and fetch the respective status from the astdb.
 				   Note that this relies on the functionality of the asterisk custom devicestate module. */
 
-				if (PBX(feature_getFromDatabase)(devstate_db_family, config->button.feature.options, buf, sizeof(buf))) {
+				if (PBX(feature_getFromDatabase) (devstate_db_family, config->button.feature.options, buf, sizeof(buf))) {
 					sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: devstate feature state: %s state: %s\n", DEV_ID_LOG(device), config->button.feature.options, buf);
 					if (!strncmp("INUSE", buf, 254)) {
 						config->button.feature.status = 1;
@@ -272,7 +271,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				REQ(featureMessage, FeatureStatMessage);
 				featureMessage->msg.FeatureStatMessage.lel_featureInstance = htolel(instance);
 				featureMessage->msg.FeatureStatMessage.lel_featureID = htolel(buttonID);
-				featureMessage->msg.FeatureStatMessage.lel_featureStatus = htolel( state ? state : config->button.feature.status);
+				featureMessage->msg.FeatureStatMessage.lel_featureStatus = htolel(state ? state : config->button.feature.status);
 				sccp_copy_string(featureMessage->msg.FeatureStatMessage.featureTextLabel, config->label, strlen(config->label) + 1);
 			}
 			sccp_dev_send(device, featureMessage);
@@ -281,7 +280,6 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
 }
-
 
 /*!
  * \brief Device State Feature CallBack
@@ -295,7 +293,8 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	/* If it is the custom family, isolate the specifier. */
 	sccp_device_t *device;
 	size_t len = strlen("Custom:");
-//	char *sspecifier = 0;
+
+//      char *sspecifier = 0;
 	const char *dev;
 
 	if (!data || !ast_event)
@@ -321,7 +320,7 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	   In the future we might need a more elegant hint-registry for this type of notification,
 	   which should be global to chan-sccp-b, not for each device. For now, this suffices. */
 	if (!strncasecmp(dev, "Custom:", len)) {
-//		sspecifier = (char *)(dev + len);
+//              sspecifier = (char *)(dev + len);
 		sccp_featButton_changed(device, SCCP_FEATURE_DEVSTATE);
 	}
 }

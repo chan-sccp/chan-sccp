@@ -51,7 +51,18 @@
  * Our project can always use more testers, documentors, developers, project managers. Why not apply 
  * by contacting one of our Project Admin members (\ref authors). 
  * 
- * \subsection dv_tracing   How to trace an Protocol Error
- * \subsection dv_protocol  Using a Network Protocol Analyzer
+ * \subsection dv_locking Get familiar and follow the sccp locking and refcounting rules
+ * 
+ * Please check out the locking and refcounted object types used by chan-sccp-b to see when and how the are used (see: \ref lock_types).
  *
+ * When submitting patches or developing within the chan-sccp-b team, regard, follow and obey by these locking and refcount rules at all times:
+ * - \ref lock_order Locking Order\n
+ * - \ref refcount   Reference Counting\n
+ * .
  **/
+
+/*
+ * \!subsection dv_tracing   How to trace an Protocol Error
+ * \!subsection dv_protocol  Using a Network Protocol Analyzer
+ *
+ */

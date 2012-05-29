@@ -51,7 +51,7 @@ uint8_t sccp_wrapper_asterisk_get_payloadType(const struct sccp_rtp *rtp, skinny
 
 //void *sccp_do_monitor(void *data);
 //int sccp_restart_monitor(void);
-//int sccp_wrapper_asterisk16_hangup(PBX_CHANNEL_TYPE * ast_channel);
+//int sccp_wrapper_asterisk16_hangup(PBX_CHANNEL_TYPE * pbx_channel);
 //boolean_t sccp_wrapper_asterisk16_allocPBXChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
 
 // CLI_ENTRY

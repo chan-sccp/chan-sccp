@@ -8,7 +8,7 @@ dnl REVISION: $Revision$
 dnl NOTE: Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.53)
 AC_INIT([Chan_SCCP],
-        [3.0_TRUNK],
+        [4.1_TRUNK],
         [https://sourceforge.net/projects/chan-sccp-b/],
         [Chan_SCCP])
 

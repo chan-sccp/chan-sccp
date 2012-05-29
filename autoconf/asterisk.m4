@@ -495,6 +495,26 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 		#include <asterisk.h>
 		#endif
     ])
+    AC_CHECK_HEADER([asterisk/event_defs.h],	
+    		[
+    			AC_DEFINE(HAVE_PBX_EVENT_DEFS_CIDNAME_H,1,[Found 'asterisk/event_defs.h'])
+    			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ac_cv_ast_event_defs_cidname'...], [ac_cv_ast_event_defs_cidname], [
+					#if ASTERISK_VERSION_NUMBER >= 10400
+					#include <asterisk.h>
+					#endif
+					#include <asterisk/event_defs.h>
+				], [
+					int data = AST_EVENT_IE_CEL_CIDNAME;				
+				], [CS_AST_HAS_EVENT_CIDNAME],['ac_cv_ast_event_defs_cidname' available]
+			)
+
+		],,[ 
+		#if ASTERISK_VERSION_NUMBER >= 10400
+		#include <asterisk.h>
+		#endif
+    ])
+    
+    
     AC_CHECK_HEADER([asterisk/features.h],
     		[
     			AC_DEFINE(HAVE_PBX_FEATURES_H,1,[Found 'asterisk/features.h'])

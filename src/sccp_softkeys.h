@@ -12,13 +12,14 @@
  * $Date$
  * $Revision$  
  */
-#    ifndef __SCCP_SOFTKEYS_H
-#define __SCCP_SOFTKEYS_H
+#ifndef __SCCP_SOFTKEYS_H
+#    define __SCCP_SOFTKEYS_H
 
-#ifdef CS_DYNAMIC_CONFIG
+#    ifdef CS_DYNAMIC_CONFIG
 void sccp_softkey_pre_reload(void);
 void sccp_softkey_post_reload(void);
-#endif
+#    endif
+void sccp_softkey_clear(void);
 
 /*!
  * \brief SCCP SoftKeyMap Callback
@@ -27,7 +28,7 @@ void sccp_softkey_post_reload(void);
  */
 struct sccp_softkeyMap_cb {
 	uint32_t event;
-	void (*const softkeyEvent_cn) (sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
+	void (*const softkeyEvent_cb) (sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
 	boolean_t channelIsNecessary;
 };
 typedef struct sccp_softkeyMap_cb sccp_softkeyMap_cb_t;
@@ -69,4 +70,4 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
 void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c, unsigned int keymode, unsigned int softkeyindex, unsigned int status);
 
-#    endif
+#endif
