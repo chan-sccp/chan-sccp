@@ -1935,7 +1935,7 @@ static int sccp_wrapper_recvdigit_end(PBX_CHANNEL_TYPE * ast, char digit, unsign
 
 	sccp_dev_keypadbutton(d, digit, sccp_device_find_index_for_line(d, c->line->name), c->callid);
 	d = sccp_device_release(d);
-	return 0;
+	return -1;
 }
 
 static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_findChannelWithCallback(int (*const found_cb) (PBX_CHANNEL_TYPE * c, void *data), void *data, boolean_t lock)
