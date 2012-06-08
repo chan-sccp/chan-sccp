@@ -673,7 +673,7 @@ sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, cons
 
 	debug_new = sccp_parse_debugline(debug_arr, 0, 1, debug_new);
 	if (*(uint32_t *) dest != debug_new) {
-		*(uint32_t *) dest |= debug_new;
+		*(uint32_t *) dest = debug_new;
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	sccp_free(debug_arr[0]);
