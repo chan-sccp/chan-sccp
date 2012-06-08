@@ -215,7 +215,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		}
 	} else {
 		ast_log(LOG_NOTICE, "%s: Rejecting device: Device Unknown \n", r->msg.RegisterMessage.sId.deviceName);
-		d->registrationState = SKINNY_DEVICE_RS_FAILED;
 		s = sccp_session_reject(s, "Device Unknown");
 		return;
 	}
