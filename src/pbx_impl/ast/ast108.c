@@ -2213,7 +2213,7 @@ static int sccp_wrapper_recvdigit_end(PBX_CHANNEL_TYPE * ast, char digit, unsign
 
 	d = sccp_device_release(d);
 	c = sccp_channel_release(c);
-	return 0;
+	return -1;
 }
 
 static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_findChannelWithCallback(int (*const found_cb) (PBX_CHANNEL_TYPE * c, void *data), void *data, boolean_t lock)
