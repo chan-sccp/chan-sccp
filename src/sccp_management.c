@@ -640,6 +640,7 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 	sccp_channel_t *c;
 	const char *channelId = astman_get_header(m, "channelId");
 	const char *hold = astman_get_header(m, "hold");
+	const char *deviceName = astman_get_header(m, "Devicename");
 	char *retValStr;
 
 	c = sccp_channel_find_byid(atoi(channelId));
@@ -652,10 +653,18 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 		sccp_channel_hold(c);
 		retValStr = "Channel was put on hold";
 	} else if (sccp_strcaseequals("off", hold)) {					/* check to see if disable hold */
+		
+		/** we need the device for resuming calls */
+		if(sccp_strlen_zero(deviceName)){
+			astman_send_error(s, m, "To resume a channel, you need to specify the device that resumes call using Devicename variable\r\n");
+			c = sccp_channel_release(c);
+			return 0;
+		}
+		
 		astman_append(s, "remove channel '%s' from hold\n", channelId);
-		sccp_device_t *d = sccp_channel_getDevice_retained(c);
+		sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
 		sccp_channel_resume(d, c, FALSE);
-		d = sccp_device_release(d);
+		d = d ? sccp_device_release(d) : NULL;
 		retValStr = "Channel was resumed";
 	} else {
 		astman_send_error(s, m, "Invalid value for hold, use 'on' or 'off' only\r\n");
