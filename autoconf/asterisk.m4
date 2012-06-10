@@ -34,14 +34,17 @@ AC_DEFUN([AST_GET_VERSION], [
 			fi
 
 			# remove from pbx_ver
+	    		# remove from pbx_ver
 	    		pbx_ver=${pbx_ver%%-*}							# remove tail
-			pbx_ver=${pbx_ver//\"/}							# remove '"'
+			#pbx_ver=${pbx_ver//\"/}						# remove '"'
+			pbx_ver=`echo ${pbx_ver} | sed 's/"//g'`
 
 			# process version number
 			version_found=0
 			for x in "1.2" "1.4" "1.6" "1.8" "1.10" "10"; do
-				if test `echo $pbx_ver | sed "s/^\(${x}\).*$/\1/g"` == "$x";then  
+				#if test `echo $pbx_ver | sed "s/^\(${x}\).*$/\1/g"` == "$x";then  
 dnl				if [ ! test -z `expr match "${pbx_ver}" "^\($x\).*"` ]; then
+				if echo $pbx_ver|grep -q "$x"; then
 					if test ${#x} -gt 3; then		# 1.10
 						ASTERISK_VER_GROUP="`echo $x|sed 's/\.//g'`"
 					elif test ${#x} -lt 3; then		# 1.10
@@ -55,15 +58,26 @@ dnl				if [ ! test -z `expr match "${pbx_ver}" "^\($x\).*"` ]; then
 						REALTIME_USEABLE=0
 					fi
 					
-					ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
-#					ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\([0-9]*\)\(.*\)/\1/g"`			# remove leading and trailing .*
+					#ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
+##					ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\([0-9]*\)\(.*\)/\1/g"`			# remove leading and trailing .*
+					#ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
+					#if test ${#ASTERISK_MINOR_VER1} -gt 1; then
+						#ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
+					#else
+						#ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
+					#fi
+					#ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
+
+					#ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
+					ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\([0-9]*\)\(.*\)/\1/g"`			# remove leading and trailing .*
 					ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
-					if test ${#ASTERISK_MINOR_VER1} -gt 1; then
-						ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
-					else
+					#if test ${#ASTERISK_MINOR_VER1} -gt 1; then
+						#ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
+					#else
 						ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
-					fi
-					ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
+					#fi
+
+					#ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
 					
 					version_found=1
 					AC_MSG_RESULT([Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER} ($x)'])
