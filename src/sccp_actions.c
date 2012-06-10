@@ -121,11 +121,12 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * s, sccp_device_t * d, sccp_moo
  */
 void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
-	char *deviceName = "";
+	char deviceName[StationMaxDeviceNameSize];
 	uint32_t serverInstance = 0;
 	uint32_t deviceType = 0;
 
-	deviceName = strdupa(r->msg.RegisterTokenRequest.sId.deviceName);
+	sccp_copy_string(deviceName, r->msg.RegisterTokenRequest.sId.deviceName, sizeof(deviceName));
+// 	deviceName = strdupa(r->msg.RegisterTokenRequest.sId.deviceName);
 	serverInstance = letohl(r->msg.RegisterTokenRequest.sId.lel_instance);
 	deviceType = letohl(r->msg.RegisterTokenRequest.lel_deviceType);
 

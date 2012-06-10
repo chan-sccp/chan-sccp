@@ -1022,7 +1022,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 		return NULL;
 	}
 	/* we leave the data unchanged */
-	lineName = strdup((const char *)data);
+	lineName = ast_strdupa((const char *)data);
 	/* parsing options string */
 	char *options = NULL;
 	int optc = 0;
@@ -1411,7 +1411,7 @@ static int sccp_wrapper_asterisk18_callerid_name(const sccp_channel_t * channel,
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
 	if (pbx_chan->caller.id.name.valid && pbx_chan->caller.id.name.str && strlen(pbx_chan->caller.id.name.str) > 0) {
-		*cid_name = strdup(pbx_chan->caller.id.name.str);
+		*cid_name = ast_strdupa(pbx_chan->caller.id.name.str);
 		return 1;
 	}
 
@@ -1443,7 +1443,7 @@ static int sccp_wrapper_asterisk18_callerid_number(const sccp_channel_t * channe
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 	
 	if (pbx_chan->caller.id.number.valid && pbx_chan->caller.id.number.str && strlen(pbx_chan->caller.id.number.str) > 0) {
-		*cid_number = strdup(pbx_chan->caller.id.number.str);
+		*cid_number = ast_strdupa(pbx_chan->caller.id.number.str);
 		return 1;
 	}
 
@@ -1493,7 +1493,7 @@ static int sccp_wrapper_asterisk18_callerid_ani(const sccp_channel_t * channel, 
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
 	if (pbx_chan->caller.ani.number.valid && pbx_chan->caller.ani.number.str && strlen(pbx_chan->caller.ani.number.str) > 0) {
-		*cid_ani = strdup(pbx_chan->caller.ani.number.str);
+		*cid_ani = ast_strdupa(pbx_chan->caller.ani.number.str);
 		return 1;
 	}
 
@@ -1515,7 +1515,7 @@ static int sccp_wrapper_asterisk18_callerid_subaddr(const sccp_channel_t * chann
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
 	if (pbx_chan->caller.id.subaddress.valid && pbx_chan->caller.id.subaddress.str && strlen(pbx_chan->caller.id.subaddress.str) > 0) {
-		*cid_subaddr = strdup(pbx_chan->caller.id.subaddress.str);
+		*cid_subaddr = ast_strdupa(pbx_chan->caller.id.subaddress.str);
 		return 1;
 	}
 
@@ -1540,7 +1540,7 @@ static int sccp_wrapper_asterisk18_callerid_dnid(const sccp_channel_t * channel,
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
 	if (pbx_chan->dialed.number.str && strlen(pbx_chan->dialed.number.str) > 0) {
-		*cid_dnid = strdup(pbx_chan->dialed.number.str);
+		*cid_dnid = ast_strdupa(pbx_chan->dialed.number.str);
 		return 1;
 	}
 
@@ -1582,7 +1582,7 @@ static int sccp_wrapper_asterisk18_callerid_rdnis(const sccp_channel_t * channel
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
 	if (pbx_chan->redirecting.from.number.valid && pbx_chan->redirecting.from.number.str && strlen(pbx_chan->redirecting.from.number.str) > 0) {
-		*cid_rdnis = strdup(pbx_chan->redirecting.from.number.str);
+		*cid_rdnis = ast_strdupa(pbx_chan->redirecting.from.number.str);
 		return 1;
 	}
 
@@ -2245,7 +2245,7 @@ static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to,
 	const char *messageText = ast_msg_get_body(msg);
 	int res = -1;
 
-	lineName = (char *)strdupa(to);
+	lineName = (char *)ast_strdupa(to);
 	if (strchr(lineName, '@')) {
 		strsep(&lineName, "@");
 	} else {

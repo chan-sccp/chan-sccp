@@ -2504,13 +2504,14 @@ int sccp_config_generate(char *filename, int configType)
 						linelen=(int)strlen(name_and_value);
 						fprintf(f, "%s", name_and_value);
 						if (!sccp_strlen_zero(config[sccp_option].description)) {
-							description=strdupa(config[sccp_option].description);	
+							description=strdup(config[sccp_option].description);	
 							while ((description_part=strsep(&description, "\n"))) {
 								if (!sccp_strlen_zero(description_part)) {
 									fprintf(f, "%*.s ; %s\n", 81-linelen, " ", description_part);
 									linelen=0;
 								}
-							}	
+							}
+							sccp_free(description);
 						} else {
 							fprintf(f, "\n");
 						}

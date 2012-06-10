@@ -246,7 +246,8 @@ void sccp_safe_sleep(int ms)
 PBX_VARIABLE_TYPE *sccp_create_variable(const char *buf)
 {
 	PBX_VARIABLE_TYPE *tmpvar = NULL;
-	char *varname = sccp_strdupa(buf), *varval = NULL;
+	const char *varname = buf;
+	char *varval = NULL;
 
 	if ((varval = strchr(varname, '='))) {
 		*varval++ = '\0';
@@ -1140,12 +1141,13 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, skinny_codec_
 	unsigned int x;
 //	unsigned int y;
 	int errors = 0;
-	char *parse = NULL, *this = NULL;
+	const char *parse = NULL;
+	char *this = NULL;
 	boolean_t found = FALSE;
 //	boolean_t mapped = FALSE;
 	skinny_codec_t codec;
 
-	parse = sccp_strdupa(list);
+	parse = list;
 	while ((this = strsep(&parse, ","))) {
 		all = strcasecmp(this, "all") ? 0 : 1;
 

@@ -443,14 +443,16 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	sccp_linedevices_t *linedevice;
 	int local_total = 0;
 
-	const char *dev;
+	char dev[StationMaxDeviceNameSize];
 
 	if (s) {
-		dev = strdupa(astman_get_header(m, "DeviceName"));
+// 		dev = strdup(astman_get_header(m, "DeviceName"));
+		sccp_copy_string(dev, astman_get_header(m, "DeviceName"), sizeof(dev));
 	} else {
 		if (argc < 4)
 			return RESULT_SHOWUSAGE;
-		dev = strdupa(argv[3]);
+// 		dev = strdup(argv[3]);
+		sccp_copy_string(dev, argv[3], sizeof(dev));
 	}
 	d = sccp_device_find_byid(dev, TRUE);
 
@@ -835,14 +837,16 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	struct ast_str *pickupgroup_buf = pbx_str_alloca(512);
 	int local_total = 0;
 
-	const char *line;
+	char line[80];
 
 	if (s) {
-		line = strdupa(astman_get_header(m, "LineName"));
+// 		line = strdup(astman_get_header(m, "LineName"));
+		sccp_copy_string(line, astman_get_header(m, "LineName"), sizeof(line));
 	} else {
 		if (argc < 4)
 			return RESULT_SHOWUSAGE;
-		line = strdupa(argv[3]);
+// 		line = strdup(argv[3]);
+		sccp_copy_string(line, argv[3], sizeof(line));
 	}
 	l = sccp_line_find_byname(line);
 
@@ -975,7 +979,7 @@ static int sccp_show_channels(int fd, int *total, struct mansession *s, const st
 	sccp_channel_t *channel;
 	sccp_line_t *l;
 	int local_total = 0;
-	char tmpname[20];
+	char tmpname[21];
 
 	// Channels
 #define CLI_AMI_TABLE_NAME Channels
@@ -998,7 +1002,7 @@ static int sccp_show_channels(int fd, int *total, struct mansession *s, const st
 
 #define CLI_AMI_TABLE_FIELDS 												\
 		CLI_AMI_TABLE_FIELD(ID,			d,	5,	channel->callid)					\
-		CLI_AMI_TABLE_FIELD(PBX,		s,	20,	strdupa(tmpname))						\
+		CLI_AMI_TABLE_FIELD(PBX,		s,	20,	tmpname)						\
 		CLI_AMI_TABLE_FIELD(Line,		s,	10,	channel->line->name)					\
 		CLI_AMI_TABLE_FIELD(Device,		s,	16,	(sccp_channel_getDevice(channel)) ? sccp_channel_getDevice(channel)->id : "(unknown)")	\
 		CLI_AMI_TABLE_FIELD(DeviceDescr,	s,	32,	(sccp_channel_getDevice(channel)) ? sccp_channel_getDevice(channel)->description : "(unknown)")	\
@@ -1643,7 +1647,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 
 	if (argc > 2) {
 		pbx_cli(fd, "Using config file '%s'\n", argv[2]);
-		GLOB(config_file_name) = strdupa(argv[2]);
+		GLOB(config_file_name) = strdup(argv[2]);
 	}
 
 	struct ast_config *cfg = sccp_config_getConfig();
@@ -1724,7 +1728,7 @@ static int sccp_cli_config_generate(int fd, int argc, char *argv[])
 
 	if (argc > 3) {
 		pbx_cli(fd, "Using config file '%s'\n", argv[3]);
-		config_file = strdupa(argv[3]);
+		config_file = strdup(argv[3]);
 	}
 	if (sccp_config_generate(config_file, 0)) {
 		pbx_cli(fd, "SCCP generated. saving '%s'...\n", config_file);
@@ -1732,7 +1736,7 @@ static int sccp_cli_config_generate(int fd, int argc, char *argv[])
 		pbx_cli(fd, "SCCP generation failed.\n");
 		returnval = RESULT_FAILURE;
 	}
-
+	sccp_free(config_file);
 	return returnval;
 #else
 	pbx_cli(fd, "SCCP config generate not implemented yet! use unload and load.\n");

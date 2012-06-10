@@ -90,7 +90,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 		uint8_t i=0; 											\
 		for (x=0, i=0;x<ARRAY_LEN(cli_ami_params);x++) {						\
 			if(NULL != cli_ami_params[x] && strlen(cli_ami_params[x]) > 0){				\
-				arguments[i++]=strdupa(astman_get_header(m, cli_ami_params[x]));		\
+				arguments[i++]=strdup(astman_get_header(m, cli_ami_params[x]));		\
 			} 											\
 		}												\
 		char idtext[256] = "";										\
@@ -105,6 +105,11 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 		"ListItems: %d\r\n"										\
 		"%s"												\
 		"\r\n\r\n", total, idtext);  									\
+		for (x=0, i=0;x<ARRAY_LEN(cli_ami_params);x++) {						\
+			if(NULL != arguments[x] && strlen(arguments[x]) > 0){					\
+				sccp_free(arguments[i++]);							\
+			} 											\
+		}												\
 		return 0;											\
 	}													\
 														\
