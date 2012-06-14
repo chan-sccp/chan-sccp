@@ -1968,11 +1968,9 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 		if (l && callid) {
 			c = sccp_find_channel_on_line_byid_locked(l, callid);
 		}
-	} else {
-		if (callid) {
-			c = sccp_channel_find_byid_locked(callid);
-			l = c->line;
-		}
+	} else if (callid) {
+		c = sccp_channel_find_byid_locked(callid);
+		l = c->line;
 	}
 
 	/* Old phones like 7912 never uses callid
@@ -1981,7 +1979,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	 * !! last resort
 	 */
 	if (!c) {
-		ast_log(LOG_NOTICE, "%s: Could not find channel by callid %d on line %s with instance %d! Using active channel instead.\n", DEV_ID_LOG(d), callid, l->name, lineInstance);
+		ast_log(LOG_NOTICE, "%s: Could not find channel by callid %d on line %s with instance %d! Using active channel instead.\n", DEV_ID_LOG(d), callid, l ? l->name : "(null)", lineInstance);
 		c = sccp_channel_get_active_locked(d);			
 	}
 
