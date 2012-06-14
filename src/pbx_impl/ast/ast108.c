@@ -1161,8 +1161,6 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 	sccp_channel_unlock(channel);
 
 EXITFUNC:
-	if (lineName)
-		sccp_free(lineName);
 	sccp_restart_monitor();
 	return (channel && channel->owner) ? channel->owner : NULL;
 }
