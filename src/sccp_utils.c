@@ -1069,7 +1069,7 @@ const char *codec2str(skinny_codec_t value)
 	_ARR2STR(skinny_codecs, codec, value, text);
 }
 
-const int codec2payload(skinny_codec_t value)
+int codec2payload(skinny_codec_t value)
 {
 	_ARR2INT(skinny_codecs, codec, value, rtp_payload_type);
 }
@@ -1094,7 +1094,7 @@ const char *debugcat_keys(void)
 {
         _RETURNALLKEYS(sccp_debug_categories, key);
 }
-const uint32_t debugcat2int(const char *str)
+uint32_t debugcat2int(const char *str)
 {
 	_STRARR2INT(sccp_debug_categories, key, str, category);
 }
