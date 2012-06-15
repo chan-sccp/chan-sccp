@@ -212,12 +212,12 @@ const char *keymode2description(uint32_t value);
 const char *deviceregistrationstatus2str(uint32_t value);
 const char *devicestatus2str(uint32_t value);
 const char *codec2str(skinny_codec_t value);
-const int codec2payload(skinny_codec_t value);
+int codec2payload(skinny_codec_t value);
 const char *codec2key(uint32_t value);
 const char *codec2name(uint32_t value);
 const char *featureType2str(uint32_t value);
 const char *debugcat_keys(void);
-const uint32_t debugcat2int(const char *str);
+uint32_t debugcat2int(const char *str);
 const char *skinny_formatType2str(uint8_t value);
 
 char *sccp_multiple_codecs2str(char *buf, size_t size, skinny_codec_t * codecs, int length);
