@@ -366,6 +366,10 @@
 /* Define to 1 if you have the `closedir' function. */
 #undef HAVE_CLOSEDIR
 
+/* if the compiler and cpu can both handle the 128-bit CMPXCHG16B instruction
+   */
+#undef HAVE_CMPXCHG16B
+
 /* Define to 1 if you have the <ctype.h> header file. */
 #undef HAVE_CTYPE_H
 
@@ -427,6 +431,12 @@
 
 /* Define to 1 if you have the `gethostbyname' function. */
 #undef HAVE_GETHOSTBYNAME
+
+/* Define to 1 if you have the <ia32intrin.h> header file. */
+#undef HAVE_IA32INTRIN_H
+
+/* Define to 1 if you have the <ia64intrin.h> header file. */
+#undef HAVE_IA64INTRIN_H
 
 /* Define to 1 if you have the `inet_ntoa' function. */
 #undef HAVE_INET_NTOA
@@ -797,17 +807,38 @@
    your system. */
 #undef PTHREAD_CREATE_JOINABLE
 
+/* if the compiler supports __sync_val_compare_and_swap */
+#undef SCCP_ATOMIC_BUILTINS
+
 /* SCCP_BIG_ENDIAN */
 #undef SCCP_BIG_ENDIAN
 
 /* Define the SCCP Branch */
 #undef SCCP_BRANCH
 
+/* if the compiler supports __sync_val_compare_and_swap */
+#undef SCCP_BUILTIN_CAS
+
+/* if the compiler supports __sync_val_compare_and_swap on 32-bit ints */
+#undef SCCP_BUILTIN_CAS32
+
+/* if the compiler supports __sync_val_compare_and_swap on 64-bit ints */
+#undef SCCP_BUILTIN_CAS64
+
+/* if the compiler supports __sync_val_compare_and_swap on pointers */
+#undef SCCP_BUILTIN_CAS_PTR
+
+/* if the compiler supports __sync_fetch_and_add */
+#undef SCCP_BUILTIN_INCR
+
 /* SCCP_LITTLE_ENDIAN */
 #undef SCCP_LITTLE_ENDIAN
 
 /* Not Found 'AST_MAX_ACCOUNT_CODE' in asterisk/channel.h */
 #undef SCCP_MAX_ACCOUNT_CODE
+
+/* if this header is necessary for builtin atomics */
+#undef SCCP_NEEDS_INTEL_INTRIN
 
 /* SCCP_PLATFORM_BYTE_ORDER */
 #undef SCCP_PLATFORM_BYTE_ORDER

@@ -994,7 +994,7 @@ static const struct skinny_buttontype {
  * \brief Skinny Lamp Mode (ENUM) 
  */
 typedef enum {
-	SKINNY_LAMP_OFF = 1,							/*!< Lamp Off, 0% Duty */
+	SKINNY_LAMP_OFF = 1,											/*!< Lamp Off, 0% Duty */
 	SKINNY_LAMP_ON = 2,											/*!< Lamp On, 100% Duty */
 	SKINNY_LAMP_WINK = 3,											/*!< Lamp slow blink, ~90% Duty */
 	SKINNY_LAMP_FLASH = 4,											/*!< Lamp very fast blink, ~70% Duty */

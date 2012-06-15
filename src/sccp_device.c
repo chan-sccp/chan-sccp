@@ -1730,7 +1730,7 @@ int __sccp_device_destroy(const void *ptr)
 	sccp_hostname_t *permithost = NULL;
 	int i;
 
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Destroy Device\n", d->id);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Destroing Device\n", d->id);
 	sccp_mutex_lock(&d->lock);						// using real device lock while using refcount
 
 	/* remove button config */
@@ -2042,23 +2042,27 @@ static void sccp_device_new_indicate_remoteHold(const sccp_device_t * device, ui
  */
 void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priority, const char *message)
 {
-	int tries=20;
+	char *newValue = strdup(message);
+	char *oldValue = NULL;
+	char *yieldedValue;
+	
 	if (ARRAY_LEN(device->messageStack) <= priority)
 		return;
 
-	char *newmsgptr = strdup(message);
-	char *prevmsgptr = NULL;
 	do {
 		/** already a message for this priority */
-//		if (device->messageStack[priority])
-			prevmsgptr = device->messageStack[priority];
-//		else
-//			prevmsgptr = NULL;										// possibly have to set it back to null on second loop
-		tries--;
-	} while (tries && __sync_val_compare_and_swap(&device->messageStack[priority], prevmsgptr, newmsgptr));			// Atomic Swap In newmsgptr
+		oldValue = device->messageStack[priority];
+#ifdef SCCP_BUILTIN_CAS_PTR
+		yieldedValue = __sync_val_compare_and_swap(&device->messageStack[priority], oldValue, newValue);		// Atomic Swap In newmsgptr
+#else
+		device->messageStack[priority] = newValue;
+		yieldedValue = oldValue;
+#endif
+	} while (yieldedValue != oldValue);
+
 	
-	if (prevmsgptr) {
-		sccp_free(prevmsgptr);
+	if (oldValue) {
+		sccp_free(oldValue);
 	}
 	sccp_dev_check_displayprompt(device);
 }
@@ -2068,20 +2072,29 @@ void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priorit
  */
 void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t priority)
 {
-	int tries=20;
+	
+	char *newValue = NULL;
+	char *oldValue = NULL;
+	char *yieldedValue;
+
 	if (ARRAY_LEN(device->messageStack) <= priority)
 		return;
 
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_4 "%s: clear message stack %d\n", DEV_ID_LOG(device), priority);
 
-	char *msgptr = NULL;
+
 	do {
-		msgptr = device->messageStack[priority];
-		tries--;
-	} while (tries && __sync_val_compare_and_swap(&device->messageStack[priority], msgptr, NULL));				// Atomic Swap Out msgptr
+		oldValue = device->messageStack[priority];
+#ifdef SCCP_BUILTIN_CAS_PTR
+		yieldedValue = __sync_val_compare_and_swap(&device->messageStack[priority], oldValue, newValue);		// Atomic Swap In newmsgptr
+#else
+		device->messageStack[priority] = newValue;
+		yieldedValue = oldValue;
+#endif
+	} while (yieldedValue != oldValue);
 	
-	if (msgptr) {
-		sccp_free(msgptr);
+	if (oldValue) {
+		sccp_free(oldValue);
 		sccp_dev_check_displayprompt(device);
 	}
 }

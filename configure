@@ -1021,6 +1021,8 @@ enable_dependency_tracking
 enable_silent_rules
 enable_static
 enable_largefile
+enable_builtin_atomics
+enable_cross_cmpxchg16b
 enable_shared
 with_pic
 enable_fast_install
@@ -1714,6 +1716,15 @@ Optional Features:
   --disable-silent-rules         verbose build output (undo: `make V=0')
   --enable-static[=PKGS]  build static libraries [default=no]
   --disable-largefile     omit support for large files
+  --disable-builtin-atomics
+                          force the use of inline-assembly (if possible)
+                          rather than compiler-builtins for atomics. This is
+                          useful for working around some compiler bugs;
+                          normally, it's preferable to use compiler builtins.
+  --enable-cross-cmpxchg16b
+                          when cross compiling, ordinarily we asume that
+                          cmpxchg16b is not available, however this option
+                          forces us to assume that cmpxchg16b IS available
   --enable-shared[=PKGS]  build shared libraries [default=yes]
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
@@ -7150,6 +7161,330 @@ fi
 	fi
 
 
+# Check whether --enable-builtin-atomics was given.
+if test "${enable_builtin_atomics+set}" = set; then :
+  enableval=$enable_builtin_atomics;
+fi
+
+if test "x$enable_builtin_atomics" != xno; then :
+
+for ac_header in ia64intrin.h ia32intrin.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+
+done
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether compiler supports builtin atomic CAS-32" >&5
+$as_echo_n "checking whether compiler supports builtin atomic CAS-32... " >&6; }
+if ${sccp_cv_atomic_CAS32+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifdef HAVE_IA64INTRIN_H
+# include <ia64intrin.h>
+#elif HAVE_IA32INTRIN_H
+# include <ia32intrin.h>
+#endif
+#include <stdlib.h>
+#include <stdint.h> /* for uint32_t */
+
+int main()
+{
+uint32_t bar=1, old=1, new=2;
+uint32_t foo = __sync_val_compare_and_swap(&bar, old, new);
+return (int)foo;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  sccp_cv_atomic_CAS32="yes"
+else
+  sccp_cv_atomic_CAS32="no"
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $sccp_cv_atomic_CAS32" >&5
+$as_echo "$sccp_cv_atomic_CAS32" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether compiler supports builtin atomic CAS-64" >&5
+$as_echo_n "checking whether compiler supports builtin atomic CAS-64... " >&6; }
+if ${sccp_cv_atomic_CAS64+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifdef HAVE_IA64INTRIN_H
+# include <ia64intrin.h>
+#elif HAVE_IA32INTRIN_H
+# include <ia32intrin.h>
+#endif
+#include <stdlib.h>
+#include <stdint.h> /* for uint64_t */
+
+int main()
+{
+uint64_t bar=1, old=1, new=2;
+uint64_t foo = __sync_val_compare_and_swap(&bar, old, new);
+return foo;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  sccp_cv_atomic_CAS64="yes"
+else
+  sccp_cv_atomic_CAS64="no"
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $sccp_cv_atomic_CAS64" >&5
+$as_echo "$sccp_cv_atomic_CAS64" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether compiler supports builtin atomic CAS-ptr" >&5
+$as_echo_n "checking whether compiler supports builtin atomic CAS-ptr... " >&6; }
+if ${sccp_cv_atomic_CASptr+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifdef HAVE_IA64INTRIN_H
+# include <ia64intrin.h>
+#elif HAVE_IA32INTRIN_H
+# include <ia32intrin.h>
+#endif
+#include <stdlib.h>
+
+int main()
+{
+void *bar=(void*)1, *old=(void*)1, *new=(void*)2;
+void *foo = __sync_val_compare_and_swap(&bar, old, new);
+return (int)(long)foo;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  sccp_cv_atomic_CASptr="yes"
+else
+  sccp_cv_atomic_CASptr="no"
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $sccp_cv_atomic_CASptr" >&5
+$as_echo "$sccp_cv_atomic_CASptr" >&6; }
+if test "x$sccp_cv_atomic_CAS32" = "xyes" && test "x$sccp_cv_atomic_CAS64" = "xyes" && test "x$sccp_cv_atomic_CASptr" = "xyes"; then :
+  sccp_cv_atomic_CAS=yes
+else
+  sccp_cv_atomic_CAS=no
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether compiler supports builtin atomic incr" >&5
+$as_echo_n "checking whether compiler supports builtin atomic incr... " >&6; }
+if ${sccp_cv_atomic_incr+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifdef HAVE_IA64INTRIN_H
+# include <ia64intrin.h>
+#elif HAVE_IA32INTRIN_H
+# include <ia32intrin.h>
+#endif
+#include <stdlib.h>
+
+int main()
+{
+long bar=1;
+long foo = __sync_fetch_and_add(&bar, 1);
+return foo;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  sccp_cv_atomic_incr="yes"
+else
+  sccp_cv_atomic_incr="no"
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $sccp_cv_atomic_incr" >&5
+$as_echo "$sccp_cv_atomic_incr" >&6; }
+if test "$sccp_cv_atomic_CAS" = "yes"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether ia64intrin.h is required" >&5
+$as_echo_n "checking whether ia64intrin.h is required... " >&6; }
+if ${sccp_cv_require_ia64intrin_h+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdlib.h>
+
+int main()
+{
+long bar=1, old=1, new=2;
+long foo = __sync_val_compare_and_swap(&bar, old, new);
+return foo;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  sccp_cv_require_ia64intrin_h="no"
+else
+  sccp_cv_require_ia64intrin_h="yes"
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $sccp_cv_require_ia64intrin_h" >&5
+$as_echo "$sccp_cv_require_ia64intrin_h" >&6; }
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the compiler supports CMPXCHG16B" >&5
+$as_echo_n "checking whether the compiler supports CMPXCHG16B... " >&6; }
+if ${sccp_cv_cmpxchg16b+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdint.h> /* for uint64_t */
+struct m128 {
+uint64_t a,b;
+} one, two, tmp;
+int main(void)
+{
+one.a = 1;
+one.b = 2;
+two.a = 3;
+two.b = 4;
+tmp.a = 5;
+tmp.b = 6;
+__asm__ __volatile__ ("lock cmpxchg16b (%2)"
+:"=a"(tmp.a),"=d"(tmp.b)
+:"r"(&two),"a"(two.a),"d"(two.b),"b"(one.a),"c"(one.b)
+:"memory");
+return tmp.a;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  sccp_cv_cmpxchg16b="yes"
+else
+  sccp_cv_cmpxchg16b="no"
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $sccp_cv_cmpxchg16b" >&5
+$as_echo "$sccp_cv_cmpxchg16b" >&6; }
+if test "x$sccp_cv_cmpxchg16b" = "xyes"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the CPU supports CMPXCHG16B" >&5
+$as_echo_n "checking whether the CPU supports CMPXCHG16B... " >&6; }
+if ${sccp_cv_cpu_cmpxchg16b+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  # Check whether --enable-cross-cmpxchg16b was given.
+if test "${enable_cross_cmpxchg16b+set}" = set; then :
+  enableval=$enable_cross_cmpxchg16b;
+fi
+
+   if test "$cross_compiling" = yes; then :
+  if test "x$enable_cross_cmpxchg16b" == "xyes"; then :
+  sccp_cv_cpu_cmpxchg16b="assuming yes"
+else
+  sccp_cv_cpu_cmpxchg16b="assuming no"
+fi
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdint.h> /* for uint64_t */
+struct m128 {
+uint64_t a,b;
+} one, two, tmp;
+int main(void)
+{
+one.a = 1;
+one.b = 2;
+two.a = 3;
+two.b = 4;
+tmp.a = 5;
+tmp.b = 6;
+__asm__ __volatile__ ("lock cmpxchg16b (%2)"
+:"=a"(tmp.a),"=d"(tmp.b)
+:"r"(&two),"a"(two.a),"d"(two.b),"b"(one.a),"c"(one.b)
+:"memory");
+return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  sccp_cv_cpu_cmpxchg16b="yes"
+else
+  sccp_cv_cpu_cmpxchg16b="no"
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $sccp_cv_cpu_cmpxchg16b" >&5
+$as_echo "$sccp_cv_cpu_cmpxchg16b" >&6; }
+
+fi
+if test "x$sccp_cv_cpu_cmpxchg16b" == "xassuming yes"; then :
+  sccp_cv_cpu_cmpxchg16b="yes"
+fi
+if test "x$sccp_cv_cpu_cmpxchg16b" == "xyes"; then :
+
+$as_echo "#define HAVE_CMPXCHG16B 1" >>confdefs.h
+
+fi
+if test "$sccp_cv_require_ia64intrin_h" = "yes"; then :
+
+$as_echo "#define SCCP_NEEDS_INTEL_INTRIN 1" >>confdefs.h
+
+fi
+if test "x$sccp_cv_atomic_CASptr" = "xyes"; then :
+
+$as_echo "#define SCCP_BUILTIN_CAS_PTR 1" >>confdefs.h
+
+fi
+if test "x$sccp_cv_atomic_CAS32" = "xyes"; then :
+
+$as_echo "#define SCCP_BUILTIN_CAS32 1" >>confdefs.h
+
+fi
+if test "x$sccp_cv_atomic_CAS64" = "xyes"; then :
+
+$as_echo "#define SCCP_BUILTIN_CAS64 1" >>confdefs.h
+
+fi
+if test "x$sccp_cv_atomic_CAS" = "xyes"; then :
+
+$as_echo "#define SCCP_BUILTIN_CAS 1" >>confdefs.h
+
+fi
+if test "$sccp_cv_atomic_incr" = "yes"; then :
+
+$as_echo "#define SCCP_BUILTIN_INCR 1" >>confdefs.h
+
+fi
+if test "$sccp_cv_atomic_CAS" = "yes" -a "$sccp_cv_atomic_incr" = "yes"; then :
+
+$as_echo "#define SCCP_ATOMIC_BUILTINS 1" >>confdefs.h
+
+
+fi
+
+
 
 case $TERM in
        #   for the most important terminal types we directly know the sequences
@@ -7650,13 +7985,13 @@ if ${lt_cv_nm_interface+:} false; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:7653: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:7988: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:7656: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:7991: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:7659: output\"" >&5)
+  (eval echo "\"\$as_me:7994: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -8850,7 +9185,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 8853 "configure"' > conftest.$ac_ext
+  echo '#line 9188 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -12253,11 +12588,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12256: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12591: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12260: \$? = $ac_status" >&5
+   echo "$as_me:12595: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12592,11 +12927,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12595: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12930: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12599: \$? = $ac_status" >&5
+   echo "$as_me:12934: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12697,11 +13032,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12700: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13035: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12704: \$? = $ac_status" >&5
+   echo "$as_me:13039: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -12752,11 +13087,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12755: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13090: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12759: \$? = $ac_status" >&5
+   echo "$as_me:13094: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15136,7 +15471,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 15139 "configure"
+#line 15474 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -15232,7 +15567,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 15235 "configure"
+#line 15570 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -17188,11 +17523,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17191: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17526: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:17195: \$? = $ac_status" >&5
+   echo "$as_me:17530: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -17287,11 +17622,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17290: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17625: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:17294: \$? = $ac_status" >&5
+   echo "$as_me:17629: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -17339,11 +17674,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17342: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17677: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:17346: \$? = $ac_status" >&5
+   echo "$as_me:17681: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -19212,7 +19547,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 19215 "configure"
+#line 19550 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
