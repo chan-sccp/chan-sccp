@@ -22,11 +22,17 @@
 #    define pbx_channel_unref(c) ({ ao2_ref(c, -1); (PBX_CHANNEL_TYPE *) (NULL); })
 #else
 #    define pbx_channel_unref(c) NULL
-#    define CONFIG_STATUS_FILEMISSING (void *)-2
-#    define CONFIG_STATUS_FILEINVALID (void *)-2
 #endif
 #    define NEWCONST const							// old functions used without const
 #    define OLDCONST								// new function used with const
+
+#ifndef CONFIG_STATUS_FILEMISSING
+#    define CONFIG_STATUS_FILEMISSING (void *)-2
+#endif
+
+#ifndef CONFIG_STATUS_FILEINVALID
+#    define CONFIG_STATUS_FILEINVALID (void *)-2
+#endif
 
 enum AST_CONNECTED_LINE_UPDATE_SOURCE {
 	/*! Update for unknown reason (May be interpreted to mean from answer) */
