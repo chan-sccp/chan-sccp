@@ -82,12 +82,12 @@ static boolean_t sccp_always_true(void)
  * \param channel SCCP Channel
  * \param enabled Enabled as Boolean
  */
-static void sccp_channel_setMicrophoneState(const sccp_channel_t * channel, boolean_t enabled)
+static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t enabled)
 {
 	sccp_channel_t *c = NULL;
 	sccp_device_t *d = NULL;
 
-	if (!(c = sccp_channel_retain((sccp_channel_t *) channel)))
+	if (!(c = sccp_channel_retain(channel)))
 		return;
 
 	if (!(d = sccp_channel_getDevice_retained(channel))) {

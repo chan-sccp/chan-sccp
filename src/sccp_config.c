@@ -146,8 +146,8 @@ typedef struct SCCPConfigOption {
 	const int offset;							/*!< The offset relative to the context structure where the option value is stored. */
 	const size_t size;							/*!< Structure size */
 	enum SCCPConfigOptionType type;						/*!< Data type */
-	 sccp_value_changed_t(*converter_f) (void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);	/*!< Conversion function */
-	const uint32_t(*str2enumval) (const char *str);				/*!< generic convertor used for parsing OptionType: SCCP_CONFIG_DATATYPE_ENUM */
+	sccp_value_changed_t(*converter_f) (void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);	/*!< Conversion function */
+	uint32_t(*str2enumval) (const char *str);				/*!< generic convertor used for parsing OptionType: SCCP_CONFIG_DATATYPE_ENUM */
 	const char *(*enumkeys) (void);						/*!< reverse convertor used for parsing OptionType: SCCP_CONFIG_DATATYPE_ENUM, to retrieve all possible values allowed */
 	enum SCCPConfigOptionFlag flags;					/*!< Data type */
 	sccp_configurationchange_t change;					/*!< Does a change of this value needs a device restart */
