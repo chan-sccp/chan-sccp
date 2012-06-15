@@ -59,6 +59,7 @@ AC_PROG_CXX
 CONFIGURE_PART([Checking host platform:])
 CS_SETUP_HOST_PLATFORM
 CS_SETUP_ENVIRONMENT
+SCCP_CHECK_ATOMICS
             
 CONFIGURE_PART([Checking for standard programs:])
 CS_FIND_PROGRAMS
