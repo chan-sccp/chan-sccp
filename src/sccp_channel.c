@@ -30,6 +30,27 @@ void sccp_channel_unsetDevice(sccp_channel_t * channel);
 
 AST_MUTEX_DEFINE_STATIC(callCountLock);
 
+
+inline sccp_channel_t *__sccp_channel_retain(sccp_channel_t * c, const char *filename, int lineno, const char *func)
+{
+	if (NULL != c) {
+		return (sccp_channel_t *) sccp_refcount_retain(c, filename, lineno, func);
+	} else {
+		pbx_log(LOG_ERROR, "Trying to retain null pointer for channel in %s:%s (%d)\n", filename, func, lineno);
+		return NULL;
+	}
+}
+
+inline sccp_channel_t *__sccp_channel_release(sccp_channel_t * c, const char *filename, int lineno, const char *func)
+{
+	if (NULL != c) {
+		return (sccp_channel_t *) sccp_refcount_release(c, filename, lineno, func);
+	} else {
+		pbx_log(LOG_ERROR, "Trying to release null pointer for channel in %s:%s (%d)\n", filename, func, lineno);
+		return NULL;
+	}
+}
+
 /*!
  * \brief Private Channel Data Structure
  */
@@ -203,26 +224,6 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	sccp_channel_release(channel);
 #endif
 	return channel;
-}
-
-inline sccp_channel_t *__sccp_channel_retain(sccp_channel_t * c, const char *filename, int lineno, const char *func)
-{
-	if (NULL != c) {
-		return (sccp_channel_t *) sccp_refcount_retain(c, filename, lineno, func);
-	} else {
-		pbx_log(LOG_ERROR, "Trying to retain null pointer for channel in %s:%s (%d)\n", filename, func, lineno);
-		return NULL;
-	}
-}
-
-inline sccp_channel_t *__sccp_channel_release(sccp_channel_t * c, const char *filename, int lineno, const char *func)
-{
-	if (NULL != c) {
-		return (sccp_channel_t *) sccp_refcount_release(c, filename, lineno, func);
-	} else {
-		pbx_log(LOG_ERROR, "Trying to release null pointer for channel in %s:%s (%d)\n", filename, func, lineno);
-		return NULL;
-	}
 }
 
 /*!

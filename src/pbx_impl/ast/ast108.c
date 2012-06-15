@@ -14,6 +14,7 @@
 #include "../../config.h"
 #include "../../common.h"
 #include "ast108.h"
+#include <signal.h>
 
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {
