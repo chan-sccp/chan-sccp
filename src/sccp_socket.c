@@ -15,6 +15,7 @@
 
 #include "config.h"
 #include "common.h"
+#include <signal.h>
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <sys/ioctl.h>
