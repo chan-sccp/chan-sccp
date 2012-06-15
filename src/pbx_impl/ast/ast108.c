@@ -938,6 +938,21 @@ static sccp_parkresult_t sccp_wrapper_asterisk18_park(const sccp_channel_t * hos
 
 }
 
+static boolean_t sccp_wrapper_asterisk18_getFeatureExtension(const sccp_channel_t *channel, char **extension){
+	struct ast_call_feature *feat;
+	
+	ast_rdlock_call_features();
+	feat = ast_find_call_feature("automon");
+	
+	
+	if(feat){
+		*extension = strdup(feat->exten);
+	}
+	ast_unlock_call_features();
+	
+	return feat ? TRUE : FALSE;
+}
+
 #if !CS_AST_DO_PICKUP
 static const struct ast_datastore_info pickup_active = {
 	.type = "pickup-active",
@@ -2647,7 +2662,7 @@ sccp_pbx_cb sccp_pbx = {
 	feature_getFromDatabase:	sccp_asterisk_getFromDatabase,
 	feature_removeFromDatabase:	sccp_asterisk_removeFromDatabase,
 	feature_removeTreeFromDatabase:	sccp_asterisk_removeTreeFromDatabase,
-	getFeatureExtension:		NULL,
+	getFeatureExtension:		sccp_wrapper_asterisk18_getFeatureExtension,
 	feature_pickup:			sccp_wrapper_asterisk18_pickupChannel,
 
 	eventSubscribe:			NULL,
@@ -2735,6 +2750,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	
 	
 	.feature_park			= sccp_wrapper_asterisk18_park,
+	.getFeatureExtension		= sccp_wrapper_asterisk18_getFeatureExtension,
 	.feature_pickup			= sccp_wrapper_asterisk18_pickupChannel,
 	
 	.findChannelByCallback		= sccp_wrapper_asterisk18_findChannelWithCallback,

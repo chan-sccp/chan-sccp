@@ -3078,17 +3078,41 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 	case SCCP_FEATURE_MONITOR:
 		d->monitorFeature.status = (d->monitorFeature.status) ? 0 : 1;
 
-		if (TRUE == toggleState) {
-
-			sccp_channel_t *channel = sccp_channel_get_active(d);
-
-			if (!channel) {
-				d->monitorFeature.status = (SCCP_FEATURE_MONITOR_STATE_DISABLED == d->monitorFeature.status) ? SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE : SCCP_FEATURE_MONITOR_STATE_DISABLED;
-			} else {
-				d->monitorFeature.status = (SCCP_FEATURE_MONITOR_STATE_DISABLED == d->monitorFeature.status) ? SCCP_FEATURE_MONITOR_STATE_ACTIVE : SCCP_FEATURE_MONITOR_STATE_DISABLED;
-				sccp_feat_monitor(d, channel->line, 0, channel);
-				channel = sccp_channel_release(channel);
+// 		if (TRUE == toggleState) {
+// 
+// 			sccp_channel_t *channel = sccp_channel_get_active(d);
+// 
+// 			if (!channel) {
+// 				d->monitorFeature.status = (SCCP_FEATURE_MONITOR_STATE_DISABLED == d->monitorFeature.status) ? SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE : SCCP_FEATURE_MONITOR_STATE_DISABLED;
+// 			} else {
+// 				d->monitorFeature.status = (SCCP_FEATURE_MONITOR_STATE_DISABLED == d->monitorFeature.status) ? SCCP_FEATURE_MONITOR_STATE_ACTIVE : SCCP_FEATURE_MONITOR_STATE_DISABLED;
+// 				sccp_feat_monitor(d, channel->line, 0, channel);
+// 				channel = sccp_channel_release(channel);
+// 			}
+// 		}
+		
+		if(TRUE == toggleState){
+		  
+			sccp_channel_t *channel = NULL;
+			if(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED){
+				d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_REQUESTED;
+			}else{
+				d->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_REQUESTED;
 			}
+			
+			/* check if we need to start or stop monitor */
+			if( ((d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) >> 1) == (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) ){
+				sccp_log(1) (VERBOSE_PREFIX_3 "%s: no need to update monitor state\n",d->id);
+			}else{
+				channel = sccp_channel_get_active(d);
+				if(channel){
+					sccp_feat_monitor(d, channel->line, 0, channel);
+					channel = sccp_channel_release(channel);
+				}
+			}
+			
+			
+			sccp_log(1) (VERBOSE_PREFIX_3 "%s: set monitor state to %d\n", d->id, d->monitorFeature.status);
 		}
 
 		break;
